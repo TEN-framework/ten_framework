@@ -1,0 +1,3 @@
+[submodule "core/ten_gn"]
+  path = core/ten_gn
+  url = ssh://git@git.agoralab.co/neon/ten_gn.git
