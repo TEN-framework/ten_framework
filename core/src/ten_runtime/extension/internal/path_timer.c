@@ -16,6 +16,7 @@
 #include "ten_runtime/msg/cmd_result/cmd_result.h"
 #include "ten_runtime/timer/timer.h"
 #include "ten_utils/container/list.h"
+#include "ten_utils/lib/smart_ptr.h"
 #include "ten_utils/lib/string.h"
 #include "ten_utils/lib/time.h"
 
@@ -64,23 +65,41 @@ static void ten_extension_out_path_timer_on_triggered(ten_timer_t *self,
   int64_t current_time_us = ten_current_time_us();
 
   // Remove all the expired paths in the OUT path table.
-  size_t timeout_paths_cnt = 0;
+  ten_list_t timeout_cmd_result_list = TEN_LIST_INIT_VAL;
   ten_list_foreach (out_paths, iter) {
     ten_path_t *path = (ten_path_t *)ten_ptr_listnode_get(iter.node);
     TEN_ASSERT(path && ten_path_check_integrity(path, true),
                "Should not happen.");
 
     if (current_time_us >= path->expired_time_us) {
-      ++timeout_paths_cnt;
-      ten_extension_terminate_out_path_prematurely(extension, path,
-                                                   "Path timeout.");
+      ten_shared_ptr_t *cmd_result =
+          ten_cmd_result_create(TEN_STATUS_CODE_ERROR);
+      TEN_ASSERT(cmd_result && ten_cmd_base_check_integrity(cmd_result),
+                 "Should not happen.");
+
+      ten_msg_set_property(cmd_result, "detail",
+                           ten_value_create_string("Path timeout."), NULL);
+      ten_cmd_base_set_cmd_id(cmd_result,
+                              ten_string_get_raw_str(&path->cmd_id));
+      ten_list_push_smart_ptr_back(&timeout_cmd_result_list, cmd_result);
+      ten_shared_ptr_destroy(cmd_result);
     }
   }
 
-  if (timeout_paths_cnt) {
+  if (!ten_list_is_empty(&timeout_cmd_result_list)) {
     TEN_LOGE("[%s] %zu paths timeout.", ten_extension_get_name(extension),
-             timeout_paths_cnt);
+             ten_list_size(&timeout_cmd_result_list));
   }
+
+  ten_list_foreach (&timeout_cmd_result_list, iter) {
+    ten_shared_ptr_t *cmd_result = ten_smart_ptr_listnode_get(iter.node);
+    TEN_ASSERT(cmd_result && ten_cmd_base_check_integrity(cmd_result),
+               "Should not happen.");
+
+    ten_extension_handle_in_msg(extension, cmd_result);
+  }
+
+  ten_list_clear(&timeout_cmd_result_list);
 }
 
 ten_timer_t *ten_extension_create_timer_for_in_path(ten_extension_t *self) {
