@@ -64,7 +64,8 @@ static void ten_extension_out_path_timer_on_triggered(ten_timer_t *self,
 
   int64_t current_time_us = ten_current_time_us();
 
-  // Remove all the expired paths in the OUT path table.
+  // Create a fake error result for those timed-out commands and send it back to
+  // the extension.
   ten_list_t timeout_cmd_result_list = TEN_LIST_INIT_VAL;
   ten_list_foreach (out_paths, iter) {
     ten_path_t *path = (ten_path_t *)ten_ptr_listnode_get(iter.node);
