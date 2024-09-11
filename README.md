@@ -1,6 +1,6 @@
 # TEN Framework
 
-**TEN** stands for **Transformative Extensions Network** and represents the Next-Gen AI-Agent Platform, the world's first truly real-time multimodal agent framework. If you like our project, please click the star button to stay updated with TEN.
+**TEN** stands for **Transformative Extensions Network** and represents the Next-Gen AI-Agent Framework, the world's first truly real-time multimodal AI agent framework.
 
 The TEN framework offers the following advantages:
 
@@ -10,14 +10,14 @@ The TEN framework offers the following advantages:
 2. **Supports Multiple Languages and Platforms**
    Developers can create modular and reusable extensions using various programming languages, such as C++, Go, and Python (with future support for JavaScript/TypeScript). Moreover, the TEN framework runs seamlessly across platforms, including Windows, Mac, Linux, and mobile devices.
 
-3. **Real-Time Agent State Management**
-   TEN has the ability to manage real-time agent states, enabling dynamic responsiveness and adjustment of agent behavior in real time.
-
-4. **Edge-Cloud Integration**
+3. **Edge-Cloud Integration**
    Through the TEN framework, extensions deployed across edge and cloud environments can be easily combined to create diverse applications and scenarios. For privacy-sensitive edge deployments, small models leverage local compute power for reduced costs and lower latency, while cloud-based large models can be integrated for an optimal balance of cost and performance.
 
-5. **Flexibility Beyond Model Limitations**
+4. **Flexibility Beyond Model Limitations**
    The TEN framework allows for the creation of complex AI applications that transcend the limitations of large models alone. Agents can be easily constructed to meet a wide range of needs using a simple drag-and-drop, responsive programming approach. TEN also facilitates the integration of AI with audio-visual tools, databases, monitoring systems, RAG, and more.
+
+5. **Real-Time Agent State Management**
+   TEN has the ability to manage real-time agent states, enabling dynamic responsiveness and adjustment of agent behavior in real time.
 
 ## Use Cases
 
@@ -32,7 +32,7 @@ With the TEN framework, you can easily accomplish the following scenarios. You c
 
 ## Documentation
 
-Please see [doc](https://doc.theten.ai/).
+Please visit our [documentation site](https://doc.theten.ai/) for more information.
 
 ## License Information
 
