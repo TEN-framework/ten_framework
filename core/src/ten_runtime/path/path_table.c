@@ -553,6 +553,14 @@ ten_shared_ptr_t *ten_path_table_determine_actual_cmd_result(
       // completed its task, so the flag is marked accordingly.
       ten_path_mark_belonging_group_processed(path);
 
+      // If the 'remove_flag' is set false, it means the path cannot be removed
+      // from the path table, usually when cmd results need to be returned in
+      // streaming. However, we do __not__ support streaming return in the case
+      // of sending msgs to multiple destinations.
+      TEN_ASSERT(
+          remove_path,
+          "Streaming return is not supported for multiple destinations.");
+
       // Remove the path group from the path table if all paths in the group
       // have been processed.
       ten_path_table_remove_group_and_all_its_paths_if_needed(self, path_type,

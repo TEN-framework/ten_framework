@@ -469,13 +469,23 @@ static void ten_extension_thread_process_remaining_paths(
     TEN_LOGD("[%s] Flushing %zu remaining out paths.",
              ten_extension_get_name(extension), out_paths_cnt);
 
-    ten_list_foreach (out_paths, iter) {
-      ten_path_t *path = (ten_path_t *)ten_ptr_listnode_get(iter.node);
+    // Clear remaining _OUT_ paths, note it's unsafe to delete elements in a for
+    // loop over a list.
+    while (out_paths_cnt > 0) {
+      ten_listnode_t *node = ten_list_front(out_paths);
+      ten_path_t *path = (ten_path_t *)ten_ptr_listnode_get(node);
       TEN_ASSERT(path && ten_path_check_integrity(path, true),
                  "Should not happen.");
 
       ten_extension_terminate_out_path_prematurely(extension, path,
                                                    "The extension is stopped.");
+
+      size_t left_paths_cnt = ten_list_size(out_paths);
+      if (left_paths_cnt == out_paths_cnt) {
+        TEN_ASSERT(0, "Failed to remove the path.");
+      }
+
+      out_paths_cnt = left_paths_cnt;
     }
   }
 }
