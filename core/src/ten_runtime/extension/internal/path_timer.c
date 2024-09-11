@@ -141,22 +141,3 @@ ten_timer_t *ten_extension_create_timer_for_out_path(ten_extension_t *self) {
 
   return timer;
 }
-
-void ten_extension_terminate_out_path_prematurely(ten_extension_t *self,
-                                                  ten_path_t *path,
-                                                  const char *msg) {
-  TEN_ASSERT(self && ten_extension_check_integrity(self, true) && path &&
-                 ten_path_check_integrity(path, true),
-             "Should not happen.");
-
-  ten_shared_ptr_t *cmd_result = ten_cmd_result_create(TEN_STATUS_CODE_ERROR);
-  ten_msg_set_property(cmd_result, "detail", ten_value_create_string(msg),
-                       NULL);
-  TEN_ASSERT(cmd_result && ten_cmd_base_check_integrity(cmd_result),
-             "Should not happen.");
-
-  ten_cmd_base_set_cmd_id(cmd_result, ten_string_get_raw_str(&path->cmd_id));
-
-  ten_extension_handle_in_msg(self, cmd_result);
-  ten_shared_ptr_destroy(cmd_result);
-}
