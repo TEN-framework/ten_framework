@@ -382,7 +382,7 @@ static ten_path_in_t *ten_path_table_find_in_path(ten_path_table_t *self,
   return ten_ptr_listnode_get(old_node);
 }
 
-static void ten_mark_path_group_processed(ten_path_t *path) {
+static void ten_path_mark_belonging_group_processed(ten_path_t *path) {
   TEN_ASSERT(path && ten_path_check_integrity(path, true), "Invalid argument.");
   TEN_ASSERT(ten_path_is_in_a_group(path), "Invalid argument.");
 
@@ -393,9 +393,8 @@ static void ten_mark_path_group_processed(ten_path_t *path) {
   master->group->master.has_been_processed = true;
 }
 
-static bool ten_path_table_clear_group_if_needed(ten_path_table_t *self,
-                                                 TEN_PATH_TYPE type,
-                                                 ten_path_t *path) {
+static bool ten_path_table_remove_group_and_all_its_paths_if_needed(
+    ten_path_table_t *self, TEN_PATH_TYPE type, ten_path_t *path) {
   TEN_ASSERT(self, "Invalid argument.");
   TEN_ASSERT(ten_path_table_check_integrity(self, true), "Invalid argument.");
   TEN_ASSERT(path && ten_path_check_integrity(path, true), "Invalid argument.");
@@ -420,13 +419,14 @@ static bool ten_path_table_clear_group_if_needed(ten_path_table_t *self,
 
     if (group_path->cached_cmd_result == NULL) {
       // If there is a path in the group that has not received the cmd result,
-      // we should not clear the group.
+      // it means this group is not finished, therefore, we should not remove
+      // the group.
       return false;
     }
   }
 
-  // If all paths in the group have received the cmd result, we should clear the
-  // group.
+  // If all paths in the group have received the cmd result, we should remove
+  // the group, and all its contained paths.
   ten_list_foreach (group_members, iter) {
     ten_path_t *group_path = ten_ptr_listnode_get(iter.node);
     TEN_ASSERT(group_path && ten_path_check_integrity(group_path, true),
@@ -547,12 +547,14 @@ ten_shared_ptr_t *ten_path_table_determine_actual_cmd_result(
     }
 
     if (ten_path_is_in_a_group(path)) {
-      // Mark the path group as processed.
-      ten_mark_path_group_processed(path);
+      // The path is resolved, it means the group is finished, therefore mark
+      // the path group as processed.
+      ten_path_mark_belonging_group_processed(path);
 
-      // Clear the path group from the path table if all paths in the group
+      // Remove the path group from the path table if all paths in the group
       // have been processed.
-      ten_path_table_clear_group_if_needed(self, path_type, path);
+      ten_path_table_remove_group_and_all_its_paths_if_needed(self, path_type,
+                                                              path);
     } else {
       // Remove the corresponding path from the path table, because the
       // purpose of that path is completed.
@@ -587,8 +589,8 @@ ten_path_t *ten_path_table_set_result(ten_path_table_t *self,
     // been processed. If so, we should check if all paths in the group have
     // been processed to clear the group.
     if (ten_path_is_in_a_group(path)) {
-      bool removed =
-          ten_path_table_clear_group_if_needed(self, path_type, path);
+      bool removed = ten_path_table_remove_group_and_all_its_paths_if_needed(
+          self, path_type, path);
       if (removed) {
         return NULL;
       }
