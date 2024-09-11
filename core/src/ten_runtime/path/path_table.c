@@ -407,6 +407,7 @@ static bool ten_path_table_remove_group_and_all_its_paths_if_needed(
              "Should not happen.");
 
   if (!master->group->master.has_been_processed) {
+    // This path group has not yet completed its task, so it cannot be removed.
     return false;
   }
 
@@ -519,8 +520,9 @@ ten_shared_ptr_t *ten_path_table_determine_actual_cmd_result(
     TEN_ASSERT(cmd_result && ten_cmd_base_check_integrity(cmd_result),
                "Invalid argument.");
 
-    // Clone the cached cmd result, because we will destroy the attaching
-    // PATH later.
+    // The `cached_cmd_result` is the only criterion used to determine whether a
+    // path has completed its task. Therefore, it is set here to ensure that
+    // other validation logic can function properly.
     path->cached_cmd_result = ten_shared_ptr_clone(cmd_result);
 
     // We need to use the original cmd name to find the schema definition of the
@@ -547,8 +549,8 @@ ten_shared_ptr_t *ten_path_table_determine_actual_cmd_result(
     }
 
     if (ten_path_is_in_a_group(path)) {
-      // The path is resolved, it means the group is finished, therefore mark
-      // the path group as processed.
+      // When execution reaches this point, it means that the path group has
+      // completed its task, so the flag is marked accordingly.
       ten_path_mark_belonging_group_processed(path);
 
       // Remove the path group from the path table if all paths in the group
@@ -585,9 +587,10 @@ ten_path_t *ten_path_table_set_result(ten_path_table_t *self,
   if (path) {
     ten_path_set_result(path, cmd_result);
 
-    // If the path is in a group, we should check whether the path group has
-    // been processed. If so, we should check if all paths in the group have
-    // been processed to clear the group.
+    // Since `cached_cmd_result` can indicate whether a path has been processed,
+    // every time `cached_cmd_result` is assigned a value, it should check
+    // whether this group can be removed from the path table, thus avoiding
+    // resource leakage.
     if (ten_path_is_in_a_group(path)) {
       bool removed = ten_path_table_remove_group_and_all_its_paths_if_needed(
           self, path_type, path);
