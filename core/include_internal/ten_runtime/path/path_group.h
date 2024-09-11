@@ -161,6 +161,14 @@ typedef struct ten_path_group_t {
     struct {
       TEN_PATH_GROUP_POLICY policy;
       ten_list_t members;  // Contain the members of the group.
+
+      // Paths in the group could not be used to transmit cmds or cmd results
+      // if this flag is set to true.
+      // For example, if the policy is ONE_FAIL_RETURN_AND_ALL_OK_RETURN_FIRST
+      // and one of the paths in the group has received a fail cmd result, then
+      // the 'has_been_processed' flag will be set to true to prevent the left
+      // paths in the group from transmitting cmd results.
+      bool has_been_processed;
     } master;
 
     // There might be multiple slaves in a group.

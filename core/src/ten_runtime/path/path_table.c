@@ -382,8 +382,20 @@ static ten_path_in_t *ten_path_table_find_in_path(ten_path_table_t *self,
   return ten_ptr_listnode_get(old_node);
 }
 
-static void ten_path_table_clear_group(ten_path_table_t *self,
-                                       TEN_PATH_TYPE type, ten_path_t *path) {
+static void ten_mark_path_group_processed(ten_path_t *path) {
+  TEN_ASSERT(path && ten_path_check_integrity(path, true), "Invalid argument.");
+  TEN_ASSERT(ten_path_is_in_a_group(path), "Invalid argument.");
+
+  ten_path_t *master = ten_path_group_get_master(path);
+  TEN_ASSERT(master && ten_path_check_integrity(path, true),
+             "Should not happen.");
+
+  master->group->master.has_been_processed = true;
+}
+
+static bool ten_path_table_clear_group_if_needed(ten_path_table_t *self,
+                                                 TEN_PATH_TYPE type,
+                                                 ten_path_t *path) {
   TEN_ASSERT(self, "Invalid argument.");
   TEN_ASSERT(ten_path_table_check_integrity(self, true), "Invalid argument.");
   TEN_ASSERT(path && ten_path_check_integrity(path, true), "Invalid argument.");
@@ -391,38 +403,49 @@ static void ten_path_table_clear_group(ten_path_table_t *self,
 
   ten_list_t *list = type == TEN_PATH_IN ? &self->in_paths : &self->out_paths;
 
-  ten_path_t *master = NULL;
+  ten_path_t *master = ten_path_group_get_master(path);
+  TEN_ASSERT(master && ten_path_check_integrity(path, true),
+             "Should not happen.");
+
+  if (!master->group->master.has_been_processed) {
+    return false;
+  }
+
   ten_list_t *group_members = ten_path_group_get_members(path);
+
   ten_list_foreach (group_members, iter) {
     ten_path_t *group_path = ten_ptr_listnode_get(iter.node);
     TEN_ASSERT(group_path && ten_path_check_integrity(group_path, true),
                "Invalid argument.");
 
-    if (group_path->group->role == TEN_PATH_GROUP_ROLE_MASTER) {
-      master = group_path;
-    } else if (group_path->group->role == TEN_PATH_GROUP_ROLE_SLAVE) {
+    if (group_path->cached_cmd_result == NULL) {
+      // If there is a path in the group that has not received the cmd result,
+      // we should not clear the group.
+      return false;
+    }
+  }
+
+  // If all paths in the group have received the cmd result, we should clear the
+  // group.
+  ten_list_foreach (group_members, iter) {
+    ten_path_t *group_path = ten_ptr_listnode_get(iter.node);
+    TEN_ASSERT(group_path && ten_path_check_integrity(group_path, true),
+               "Invalid argument.");
+
+    if (group_path->group->role == TEN_PATH_GROUP_ROLE_SLAVE) {
       ten_listnode_t *group_path_node = ten_list_find_ptr(list, group_path);
       TEN_ASSERT(group_path_node, "Should not happen.");
 
       ten_list_remove_node(list, group_path_node);
-
-      // After removing paths, those cmd results correspond to those paths
-      // will _not_ be transmitted to the previous node (because the relevant
-      // path could not be found).
-    } else {
-      TEN_ASSERT(0, "Should not happen.");
     }
   }
 
-  TEN_ASSERT(master, "Should not happen.");
-
+  // Remove the master node.
   ten_listnode_t *master_node = ten_list_find_ptr(list, master);
   TEN_ASSERT(master_node, "Should not happen.");
   ten_list_remove_node(list, master_node);
 
-  // After removing paths, those cmd results correspond to those paths
-  // will _not_ be transmitted to the previous node (because the relevant
-  // path could not be found).
+  return true;
 }
 
 // Search the specified path table for the corresponding path entry.
@@ -496,9 +519,9 @@ ten_shared_ptr_t *ten_path_table_determine_actual_cmd_result(
     TEN_ASSERT(cmd_result && ten_cmd_base_check_integrity(cmd_result),
                "Invalid argument.");
 
-    // Steal the cached cmd result, because we will destroy the attaching
+    // Clone the cached cmd result, because we will destroy the attaching
     // PATH later.
-    path->cached_cmd_result = NULL;
+    path->cached_cmd_result = ten_shared_ptr_clone(cmd_result);
 
     // We need to use the original cmd name to find the schema definition of the
     // cmd result.
@@ -524,9 +547,12 @@ ten_shared_ptr_t *ten_path_table_determine_actual_cmd_result(
     }
 
     if (ten_path_is_in_a_group(path)) {
-      // The condition of the path group is met, clear the group.
+      // Mark the path group as processed.
+      ten_mark_path_group_processed(path);
 
-      ten_path_table_clear_group(self, path_type, path);
+      // Clear the path group from the path table if all paths in the group
+      // have been processed.
+      ten_path_table_clear_group_if_needed(self, path_type, path);
     } else {
       // Remove the corresponding path from the path table, because the
       // purpose of that path is completed.
@@ -556,6 +582,17 @@ ten_path_t *ten_path_table_set_result(ten_path_table_t *self,
 
   if (path) {
     ten_path_set_result(path, cmd_result);
+
+    // If the path is in a group, we should check whether the path group has
+    // been processed. If so, we should check if all paths in the group have
+    // been processed to clear the group.
+    if (ten_path_is_in_a_group(path)) {
+      bool removed =
+          ten_path_table_clear_group_if_needed(self, path_type, path);
+      if (removed) {
+        return NULL;
+      }
+    }
   }
 
   return path;
