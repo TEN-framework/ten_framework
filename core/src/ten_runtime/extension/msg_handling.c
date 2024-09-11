@@ -126,7 +126,7 @@ void ten_extension_handle_in_msg(ten_extension_t *self, ten_shared_ptr_t *msg) {
       // Therefore, unless there is a clear need, the simultaneous use of
       // these modes is currently blocked.
       TEN_ASSERT(
-          !is_final_result && !ten_path_is_in_a_group(out_path),
+          is_final_result || !ten_path_is_in_a_group(out_path),
           "Streaming return is not supported for multiple destinations.");
 
       // The path will be removed from the path table if the cmd result is
