@@ -11,24 +11,34 @@ import subprocess
 import platform
 
 
-def main(executable_path, *args):
-    print("ten_rust unit_test executable path:", executable_path)
-    print("ten_rust unit_test arguments:", args)
+def copy_executable_to_predefined_name(executable_path: str):
+    executable_dirname = Path(executable_path).parent
+    executable_filename = Path(executable_path).name
 
-    src_path = Path(executable_path).parent
+    # Determine if it's a unit test or an integration test based on the filename
+    # prefix
+    if executable_filename.startswith("integration_test"):
+        test_type = "integration_test"
+    elif executable_filename.startswith("ten_rust"):
+        test_type = "unit_test"
+    else:
+        return
 
     if platform.system() == "Windows":
-        target_filename = "unit_test.exe"
+        predefined_filename = f"{test_type}.exe"
     else:
-        target_filename = "unit_test"
+        predefined_filename = test_type
 
-    target_path = os.path.join(src_path, target_filename)
-
+    target_path = os.path.join(executable_dirname, predefined_filename)
     shutil.copy(executable_path, target_path)
+
+
+def main(executable_path: str, *args):
+    copy_executable_to_predefined_name(executable_path)
 
     # Prepare the command with arguments passed to the script.
     command = [str(executable_path)] + list(args)
-    print("ten_rust unit_test final test command:", command)
+    print("ten_rust test command:", command)
 
     result = subprocess.run(command, capture_output=True, text=True)
 

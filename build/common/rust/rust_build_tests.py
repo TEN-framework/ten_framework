@@ -146,6 +146,8 @@ if __name__ == "__main__":
         returncode, logs = cmd_exec.run_cmd(cmd, args.log_level)
         if returncode:
             raise Exception(f"Failed to build rust tests: {logs}")
+        else:
+            print(logs)
 
         # The output of the dependencies will be in <target_path>/<build_type>
         # /deps, while the output of the tests will be in <target_path>/<target>
