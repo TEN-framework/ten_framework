@@ -15,7 +15,7 @@ if (ten_enable_package_manager) {
   if (is_linux || is_win || (is_mac && target_cpu == "x64")) {
     rust_test("tman_test") {
       project_path = "//core/src/ten_manager"
-      unittest_output_name = "tman_test"
+      unit_test_output_name = "unit_test"
 
       clingo_lib_folder =
           rebase_path("${root_out_dir}/gen/cmake/clingo/install/lib")

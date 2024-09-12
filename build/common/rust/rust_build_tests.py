@@ -21,8 +21,8 @@ class ArgumentInfo(argparse.Namespace):
         self.log_level: int
         self.test_output_dir: str
         self.tg_timestamp_proxy_file: str | None = None
-        self.unittest_output_name: str
-        self.integration_output_name: str | None = None
+        self.unit_test_output_name: str
+        self.integration_test_output_name: str | None = None
 
 
 def copy_test_binaries(
@@ -33,7 +33,9 @@ def copy_test_binaries(
     log_level: int = 0,
 ):
     if log_level > 0:
-        print(f"Copying test binary {base_name} from {source_dir} to {output_dir}")
+        print(
+            f"Copying test binary {base_name} from {source_dir} to {output_dir}"
+        )
 
     if through_real_test:
         if platform.system() == "Windows":
@@ -94,8 +96,10 @@ if __name__ == "__main__":
     parser.add_argument(
         "--tg-timestamp-proxy-file", type=str, default="", required=False
     )
-    parser.add_argument("--unittest-output-name", type=str, required=True)
-    parser.add_argument("--integration-output-name", type=str, required=False)
+    parser.add_argument("--unit-test-output-name", type=str, required=True)
+    parser.add_argument(
+        "--integration-test-output-name", type=str, required=False
+    )
 
     arg_info = ArgumentInfo()
     args = parser.parse_args(namespace=arg_info)
@@ -156,12 +160,12 @@ if __name__ == "__main__":
                     args.build_type,
                     "deps",
                 ),
-                args.unittest_output_name,
+                args.unit_test_output_name,
                 args.test_output_dir,
                 args.log_level,
             )
 
-            if args.integration_output_name:
+            if args.integration_test_output_name:
                 # Copy the integration test binary.
                 copy_test_binaries(
                     args.through_real_test,
@@ -171,7 +175,7 @@ if __name__ == "__main__":
                         args.build_type,
                         "deps",
                     ),
-                    args.integration_output_name,
+                    args.integration_test_output_name,
                     args.test_output_dir,
                     args.log_level,
                 )
@@ -182,7 +186,9 @@ if __name__ == "__main__":
 
     except Exception as exc:
         returncode = 1
-        timestamp_proxy.remove_timestamp_proxy_file(args.tg_timestamp_proxy_file)
+        timestamp_proxy.remove_timestamp_proxy_file(
+            args.tg_timestamp_proxy_file
+        )
         print(exc)
 
     finally:
