@@ -12,7 +12,7 @@ use ten_rust::pkg_info::{
 
 #[test]
 fn test_graph_check_extension_not_installed() {
-    let app_dir = "test_data/graph_check_extension_not_installed";
+    let app_dir = "tests/test_data/graph_check_extension_not_installed";
     let pkg_infos =
         get_all_existed_pkgs_info_of_app(Path::new(app_dir)).unwrap();
     assert!(!pkg_infos.is_empty());
@@ -36,7 +36,7 @@ fn test_graph_check_extension_not_installed() {
 
 #[test]
 fn test_graph_check_predefined_graph_success() {
-    let app_dir = "test_data/graph_check_predefined_graph_success";
+    let app_dir = "tests/test_data/graph_check_predefined_graph_success";
     let pkg_infos =
         get_all_existed_pkgs_info_of_app(Path::new(app_dir)).unwrap();
     assert!(!pkg_infos.is_empty());
@@ -59,7 +59,7 @@ fn test_graph_check_predefined_graph_success() {
 
 #[test]
 fn test_graph_check_all_msgs_schema_incompatible() {
-    let app_dir = "test_data/graph_check_all_msgs_schema_incompatible";
+    let app_dir = "tests/test_data/graph_check_all_msgs_schema_incompatible";
     let pkg_infos =
         get_all_existed_pkgs_info_of_app(Path::new(app_dir)).unwrap();
     assert!(!pkg_infos.is_empty());

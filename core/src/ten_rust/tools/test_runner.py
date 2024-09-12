@@ -12,8 +12,8 @@ import platform
 
 
 def main(executable_path, *args):
-    print("tman unit_test executable path:", executable_path)
-    print("tman unit_test arguments:", args)
+    print("ten_rust unit_test executable path:", executable_path)
+    print("ten_rust unit_test arguments:", args)
 
     src_path = Path(executable_path).parent
 
@@ -28,7 +28,7 @@ def main(executable_path, *args):
 
     # Prepare the command with arguments passed to the script.
     command = [str(executable_path)] + list(args)
-    print("tman unit_test final test command:", command)
+    print("ten_rust unit_test final test command:", command)
 
     result = subprocess.run(command, capture_output=True, text=True)
 
