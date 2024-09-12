@@ -21,22 +21,25 @@ class ArgumentInfo(argparse.Namespace):
         self.log_level: int
         self.test_output_dir: str
         self.tg_timestamp_proxy_file: str | None = None
+        self.unittest_output_name: str
+        self.integration_output_name: str | None = None
 
 
 def copy_test_binaries(
     through_real_test: bool,
     source_dir: str,
+    base_name: str,
     output_dir: str,
     log_level: int = 0,
 ):
     if log_level > 0:
-        print(f"Copying test binaries from {source_dir} to {output_dir}")
+        print(f"Copying test binary {base_name} from {source_dir} to {output_dir}")
 
     if through_real_test:
         if platform.system() == "Windows":
-            executable_name = "tman_test.exe"
+            executable_name = f"{base_name}.exe"
         else:
-            executable_name = "tman_test"
+            executable_name = base_name
 
         fs_utils.copy_file(
             os.path.join(source_dir, executable_name),
@@ -61,11 +64,15 @@ def copy_test_binaries(
             if extension != "" and extension != ".exe":
                 continue
 
-            ff = f[: f.rindex("-") if "-" in f else -1] + extension
+            binary_name = f[: f.rindex("-") if "-" in f else -1]
+            if binary_name != base_name:
+                continue
+
+            dest = binary_name + extension
 
             fs_utils.copy_file(
                 os.path.join(source_dir, f),
-                os.path.join(output_dir, ff),
+                os.path.join(output_dir, dest),
                 True,
             )
 
@@ -87,6 +94,8 @@ if __name__ == "__main__":
     parser.add_argument(
         "--tg-timestamp-proxy-file", type=str, default="", required=False
     )
+    parser.add_argument("--unittest-output-name", type=str, required=True)
+    parser.add_argument("--integration-output-name", type=str, required=False)
 
     arg_info = ArgumentInfo()
     args = parser.parse_args(namespace=arg_info)
@@ -138,6 +147,7 @@ if __name__ == "__main__":
         # /deps, while the output of the tests will be in <target_path>/<target>
         # /<build_type>/deps.
         if args.test_output_dir != "":
+            # Copy the unit test binary.
             copy_test_binaries(
                 args.through_real_test,
                 os.path.join(
@@ -146,9 +156,25 @@ if __name__ == "__main__":
                     args.build_type,
                     "deps",
                 ),
+                args.unittest_output_name,
                 args.test_output_dir,
                 args.log_level,
             )
+
+            if args.integration_output_name:
+                # Copy the integration test binary.
+                copy_test_binaries(
+                    args.through_real_test,
+                    os.path.join(
+                        args.target_path,
+                        args.target,
+                        args.build_type,
+                        "deps",
+                    ),
+                    args.integration_output_name,
+                    args.test_output_dir,
+                    args.log_level,
+                )
 
         # Success to build the app, update the stamp file to represent this
         # fact.
@@ -156,9 +182,7 @@ if __name__ == "__main__":
 
     except Exception as exc:
         returncode = 1
-        timestamp_proxy.remove_timestamp_proxy_file(
-            args.tg_timestamp_proxy_file
-        )
+        timestamp_proxy.remove_timestamp_proxy_file(args.tg_timestamp_proxy_file)
         print(exc)
 
     finally:

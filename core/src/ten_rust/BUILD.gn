@@ -7,14 +7,16 @@ import("//build/common/rust/rust.gni")
 import("//build/ten_rust/options.gni")
 
 copy("ten_rust_test_data") {
-  sources = [ "//core/src/ten_rust/ten_rust_test_data" ]
-  outputs = [ "${root_out_dir}/tests/standalone/ten_rust_test_data" ]
+  sources = [ "//core/src/ten_rust/tests/test_data" ]
+  outputs = [ "${root_out_dir}/tests/standalone/ten_rust/tests/test_data" ]
 }
 
 if (enable_ten_rust) {
   rust_test("ten_rust_test") {
     project_path = "//core/src/ten_rust"
-    test_output_dir = "${root_out_dir}/tests/standalone"
+    test_output_dir = "${root_out_dir}/tests/standalone/ten_rust"
+    unittest_output_name = "ten_rust"
+    integration_output_name = "integration_tests_main"
 
     utils_static_lib_path = rebase_path("${root_gen_dir}/core/src/ten_utils")
     env = [ "TEN_UTILS_LIBRARY_PATH=${utils_static_lib_path}" ]

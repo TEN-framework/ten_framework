@@ -105,9 +105,9 @@ mod tests {
         // The first item is 'manifest.json', and the second item is
         // 'property.json'.
         let all_pkgs_json = vec![(
-            include_str!("test_data/all_data_type_app_manifest.json")
+            include_str!("test_data_embed/all_data_type_app_manifest.json")
                 .to_string(),
-            include_str!("test_data/all_data_type_app_property.json")
+            include_str!("test_data_embed/all_data_type_app_property.json")
                 .to_string(),
         )];
 

@@ -360,7 +360,9 @@ mod tests {
     use serde_json::json;
 
     use super::*;
-    use crate::{config::TmanConfig, dev_server::mock::tests::inject_all_pkgs_for_mock};
+    use crate::{
+        config::TmanConfig, dev_server::mock::tests::inject_all_pkgs_for_mock,
+    };
     use ten_rust::pkg_info::default_app_loc;
 
     #[actix_web::test]
@@ -374,27 +376,33 @@ mod tests {
         let all_pkgs_json = vec![
             (
                 include_str!(
-                    "../test_data/large_response_source_app_manifest.json"
+                    "../test_data_embed/large_response_source_app_manifest.json"
                 )
                 .to_string(),
                 include_str!(
-                    "../test_data/large_response_source_app_property.json"
+                    "../test_data_embed/large_response_source_app_property.json"
                 )
                 .to_string(),
             ),
             (
-                include_str!("../test_data/extension_addon_1_manifest.json")
-                    .to_string(),
+                include_str!(
+                    "../test_data_embed/extension_addon_1_manifest.json"
+                )
+                .to_string(),
                 "{}".to_string(),
             ),
             (
-                include_str!("../test_data/extension_addon_2_manifest.json")
-                    .to_string(),
+                include_str!(
+                    "../test_data_embed/extension_addon_2_manifest.json"
+                )
+                .to_string(),
                 "{}".to_string(),
             ),
             (
-                include_str!("../test_data/extension_addon_3_manifest.json")
-                    .to_string(),
+                include_str!(
+                    "../test_data_embed/extension_addon_3_manifest.json"
+                )
+                .to_string(),
                 "{}".to_string(),
             ),
         ];
@@ -645,27 +653,33 @@ mod tests {
         let all_pkgs_json = vec![
             (
                 include_str!(
-                    "../test_data/large_response_source_app_manifest.json"
+                    "../test_data_embed/large_response_source_app_manifest.json"
                 )
                 .to_string(),
                 include_str!(
-                    "../test_data/large_response_source_app_property.json"
+                    "../test_data_embed/large_response_source_app_property.json"
                 )
                 .to_string(),
             ),
             (
-                include_str!("../test_data/extension_addon_1_manifest.json")
-                    .to_string(),
+                include_str!(
+                    "../test_data_embed/extension_addon_1_manifest.json"
+                )
+                .to_string(),
                 "{}".to_string(),
             ),
             (
-                include_str!("../test_data/extension_addon_2_manifest.json")
-                    .to_string(),
+                include_str!(
+                    "../test_data_embed/extension_addon_2_manifest.json"
+                )
+                .to_string(),
                 "{}".to_string(),
             ),
             (
-                include_str!("../test_data/extension_addon_3_manifest.json")
-                    .to_string(),
+                include_str!(
+                    "../test_data_embed/extension_addon_3_manifest.json"
+                )
+                .to_string(),
                 "{}".to_string(),
             ),
         ];

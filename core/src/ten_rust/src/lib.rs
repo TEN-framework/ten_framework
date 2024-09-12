@@ -4,7 +4,7 @@
 // information.
 //
 mod bindings;
-mod interface;
+pub mod interface;
 pub mod json;
 pub mod json_schema;
 pub mod pkg_info;

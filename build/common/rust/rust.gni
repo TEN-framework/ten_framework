@@ -153,6 +153,8 @@ template("rust_target") {
 # why we need to add a separate target for building the tests only.
 template("rust_test") {
   assert(defined(invoker.project_path), "project_path is not defined")
+  assert(defined(invoker.unittest_output_name),
+         "unittest_output_name is required to determine the unittest binary.")
 
   _target_name = target_name
   target_path = target_gen_dir
@@ -168,7 +170,17 @@ template("rust_test") {
       rebase_path(target_path),
       "--tg-timestamp-proxy-file",
       rebase_path(tg_timestamp_proxy_file),
+      "--unittest-output-name",
+      invoker.unittest_output_name,
     ]
+
+    if (defined(invoker.integration_output_name) &&
+        invoker.integration_output_name != "") {
+      args += [
+        "--integration-output-name",
+        invoker.integration_output_name,
+      ]
+    }
 
     args += [ "--build-type" ]
     if (is_debug) {
