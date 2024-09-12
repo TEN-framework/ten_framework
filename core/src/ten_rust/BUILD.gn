@@ -78,6 +78,9 @@ group("ten_rust") {
 
   if (enable_ten_rust) {
     public_deps += [ ":ten_rust_binding" ]
-    deps += [ ":ten_rust_test" ]
+
+    if (is_linux || is_win || (is_mac && target_cpu == "x64")) {
+      deps += [ ":ten_rust_test" ]
+    }
   }
 }
