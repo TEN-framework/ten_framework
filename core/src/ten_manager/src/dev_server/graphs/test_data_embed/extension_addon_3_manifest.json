@@ -1,6 +1,6 @@
 {
   "type": "extension",
-  "name": "extension_addon_2",
+  "name": "extension_addon_3",
   "version": "0.1.0",
   "dependencies": [
     {
@@ -15,39 +15,12 @@
         "name": "test_cmd",
         "property": {
           "test_property": {
-            "type": "int32"
-          }
-        }
-      },
-      {
-        "name": "another_test_cmd",
-        "property": {
-          "test_property": {
-            "type": "int8"
-          }
-        }
-      },
-      {
-        "name": "has_required",
-        "property": {
-          "foo": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "foo"
-        ]
-      },
-      {
-        "name": "has_required_mismatch",
-        "property": {
-          "foo": {
             "type": "string"
           }
         }
       }
     ],
-    "data_out": [
+    "data_in": [
       {
         "name": "data_has_required",
         "property": {
