@@ -50,3 +50,20 @@ jobs:
             out/linux/x64/ten_packages/extension/default_extension_go
             out/linux/x64/ten_packages/extension/default_extension_python
             out/linux/x64/ten_packages/extension/py_init_extension_cpp
+
+      - name: Package assets
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          zip -vr ten_packages-ubuntu1804-gcc-${{ matrix.build_type }}.zip \
+            out/linux/x64/ten_packages/system \
+            out/linux/x64/ten_packages/extension_group \
+            out/linux/x64/ten_packages/extension/default_extension_cpp \
+            out/linux/x64/ten_packages/extension/default_extension_go \
+            out/linux/x64/ten_packages/extension/default_extension_python \
+            out/linux/x64/ten_packages/extension/py_init_extension_cpp
+      - name: Release assets
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: |
+            ten_packages-ubuntu1804-gcc-${{ matrix.build_type }}.zip
