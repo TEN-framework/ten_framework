@@ -33,4 +33,4 @@ jobs:
         registry: ghcr.io
         workdir: ${{ matrix.workdir }}
         snapshot: true
-        tags: "${{ github.ref == 'refs/heads/main' && 'latest,' || '' }}"
+        tags: "${{ github.ref == 'refs/heads/main-ci' && 'latest,' || '' }}"
