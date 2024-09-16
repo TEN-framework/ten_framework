@@ -58,7 +58,7 @@ void ten_backtrace_dump(ten_backtrace_t *self, size_t skip) {
   int frames = backtrace(call_stack, 128);
   char **strs = backtrace_symbols(call_stack, frames);
   for (size_t i = skip; i < frames; ++i) {
-    TEN_LOGE_AUX(((ten_backtrace_common_t *)self)->log, "%s", strs[i]);
+    TEN_LOGE("%s", strs[i]);
   }
   free(strs);
 }
