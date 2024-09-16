@@ -17,8 +17,8 @@
 
 #include "include_internal/ten_utils/log/log.h"
 #include "include_internal/ten_utils/log/output.h"
-#include "ten_utils/macro/check.h"
 #include "ten_utils/lib/file.h"
+#include "ten_utils/macro/check.h"
 
 static void ten_log_output_set(ten_log_t *self,
                                const ten_log_output_func_t output_cb,
@@ -36,7 +36,7 @@ static void ten_log_close_file_cb(void *user_data) {
   assert(fd && *fd && "Invalid argument.");
 
 #if defined(_WIN32) || defined(_WIN64)
-  arg = NULL;
+  user_data = NULL;
   HANDLE handle = (HANDLE)_get_osfhandle(*fd);
   CloseHandle(handle);
 #else
@@ -66,7 +66,7 @@ static void ten_log_output_file_cb(ten_string_t *msg, void *user_data) {
   ten_string_append_formatted(msg, "%s", TEN_LOG_EOL);
 
 #if defined(_WIN32) || defined(_WIN64)
-  HANDLE handle = *(HANDLE *)arg;
+  HANDLE handle = *(HANDLE *)user_data;
 
   // WriteFile() is atomic for local files opened with
   // FILE_APPEND_DATA and without FILE_WRITE_DATA
