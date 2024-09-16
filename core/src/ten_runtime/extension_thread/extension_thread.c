@@ -22,6 +22,7 @@
 #include "include_internal/ten_runtime/extension_thread/msg_interface/common.h"
 #include "include_internal/ten_runtime/msg/msg.h"
 #include "include_internal/ten_runtime/ten_env/ten_env.h"
+#include "include_internal/ten_utils/log/new.h"
 #include "include_internal/ten_utils/sanitizer/thread_check.h"
 #include "ten_runtime/extension/extension.h"
 #include "ten_runtime/ten_env/ten_env.h"
@@ -104,6 +105,8 @@ ten_extension_thread_t *ten_extension_thread_create(void) {
   ten_sanitizer_thread_check_init(&self->thread_check);
   self->runloop = NULL;
 
+  ten_log_new_init(&self->log);
+
   return self;
 }
 
@@ -151,6 +154,8 @@ void ten_extension_thread_destroy(ten_extension_thread_t *self) {
 
   ten_mutex_destroy(self->lock_mode_lock);
   self->lock_mode_lock = NULL;
+
+  ten_log_new_deinit(&self->log);
 
   TEN_FREE(self);
 }
@@ -244,7 +249,7 @@ static void ten_extension_thread_inherit_thread_ownership(
 }
 
 void *ten_extension_thread_main_actual(ten_extension_thread_t *self) {
-  TEN_LOGD("Extension thread is started.");
+  TEN_LOG_NEW(&self->log, TEN_LOG_NEW_DEBUG, "Extension thread is started");
 
   TEN_ASSERT(self &&
                  // TEN_NOLINTNEXTLINE(thread-check)

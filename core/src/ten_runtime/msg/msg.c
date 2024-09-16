@@ -931,7 +931,7 @@ static bool ten_raw_msg_dump_internal(ten_msg_t *msg, ten_error_t *err,
 
   ten_string_t description;
   ten_string_init(&description);
-  ten_string_set_from_va_list(&description, fmt, ap);
+  ten_string_append_from_va_list(&description, fmt, ap);
 
   const char *p = ten_string_get_raw_str(&description);
 

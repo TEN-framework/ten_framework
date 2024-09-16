@@ -6,12 +6,14 @@
 
 package ten
 
-//#include "ten.h"
+//#include "ten_env.h"
 import "C"
 
 import (
 	"fmt"
 	"log"
+	"runtime"
+	"strings"
 	"unsafe"
 )
 
@@ -19,6 +21,19 @@ type (
 	// ResultHandler is a function type that represents a handler for the result
 	// of a command.
 	ResultHandler func(TenEnv, CmdResult)
+)
+
+type LogLevel int32
+
+const (
+	logLevelInvalid LogLevel = iota
+
+	LogLevelVerbose
+	LogLevelDebug
+	LogLevelInfo
+	LogLevelWarn
+	LogLevelError
+	LogLevelFatal
 )
 
 // TenEnv represents the interface for the TEN (Run Time Environment) component.
@@ -74,6 +89,8 @@ type TenEnv interface {
 	) error
 
 	InitPropertyFromJSONBytes(value []byte) error
+
+	Log(level LogLevel, msg string, args ...interface{}) error
 }
 
 // Making a compile-time assertion which indicates that if 'ten' type doesn't
@@ -516,5 +533,45 @@ func (p *tenEnv) SetPropertyAsync(
 	if ok {
 		return res
 	}
+	return nil
+}
+
+func (p *tenEnv) Log(level LogLevel, msg string, args ...interface{}) error {
+	// Format the message with the provided arguments
+	formattedMsg := fmt.Sprintf(msg, args...)
+
+	// Get caller info
+	pc, fileName, lineNo, ok := runtime.Caller(
+		1, // 1 means the caller of this function
+	)
+	funcName := "unknown"
+	if ok {
+		fn := runtime.FuncForPC(pc)
+		if fn != nil {
+			funcName = fn.Name()
+
+			parts := strings.Split(funcName, ".")
+			if len(parts) > 0 {
+				// The last part is the method name.
+				funcName = parts[len(parts)-1]
+			}
+		}
+	} else {
+		fileName = "unknown"
+		lineNo = 0
+	}
+
+	C.ten_go_ten_env_log(
+		p.cPtr,
+		C.int(level),
+		unsafe.Pointer(unsafe.StringData(funcName)),
+		C.int(len(funcName)),
+		unsafe.Pointer(unsafe.StringData(fileName)),
+		C.int(len(fileName)),
+		C.int(lineNo),
+		unsafe.Pointer(unsafe.StringData(formattedMsg)),
+		C.int(len(formattedMsg)),
+	)
+
 	return nil
 }

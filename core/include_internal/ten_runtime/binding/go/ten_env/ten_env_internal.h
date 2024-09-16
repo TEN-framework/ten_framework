@@ -13,7 +13,7 @@
 #include "include_internal/ten_runtime/ten_env_proxy/ten_env_proxy.h"
 #include "ten_runtime/addon/extension/extension.h"
 #include "ten_runtime/binding/go/interface/ten/common.h"
-#include "ten_runtime/binding/go/interface/ten/ten.h"
+#include "ten_runtime/binding/go/interface/ten/ten_env.h"
 #include "ten_runtime/ten.h"
 #include "ten_runtime/ten_env/ten_env.h"
 #include "ten_utils/lib/rwlock.h"
@@ -42,9 +42,11 @@ typedef struct ten_go_ten_env_t {
 
   ten_go_bridge_t bridge;
 
-  ten_env_t *c_ten;  // Point to the corresponding C ten.
-  ten_env_proxy_t
-      *c_ten_proxy;  // Point to the corresponding C ten_env_proxy if any.
+  // Point to the corresponding C ten.
+  ten_env_t *c_ten_env;
+
+  // Point to the corresponding C ten_env_proxy if any.
+  ten_env_proxy_t *c_ten_env_proxy;
 
   ten_rwlock_t *lock;
 } ten_go_ten_env_t;

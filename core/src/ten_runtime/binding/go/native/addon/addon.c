@@ -21,7 +21,7 @@
 #include "ten_runtime/addon/extension_group/extension_group.h"
 #include "ten_runtime/binding/common.h"
 #include "ten_runtime/binding/go/interface/ten/common.h"
-#include "ten_runtime/binding/go/interface/ten/ten.h"
+#include "ten_runtime/binding/go/interface/ten/ten_env.h"
 #include "ten_runtime/ten_env/internal/on_xxx_done.h"
 #include "ten_utils/lib/alloc.h"
 #include "ten_utils/lib/error.h"

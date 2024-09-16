@@ -3,6 +3,8 @@
 // See https://github.com/TEN-framework/ten_framework/LICENSE for license
 // information.
 //
+#include "include_internal/ten_runtime/ten_env/ten_env.h"
+
 #include <stdlib.h>
 
 #include "include_internal/ten_runtime/addon/addon.h"
@@ -14,7 +16,7 @@
 #include "include_internal/ten_runtime/extension_group/extension_group.h"
 #include "include_internal/ten_runtime/extension_thread/extension_thread.h"
 #include "include_internal/ten_runtime/msg/msg.h"
-#include "include_internal/ten_runtime/ten_env/ten_env.h"
+#include "include_internal/ten_utils/log/new.h"
 #include "ten_runtime/app/app.h"
 #include "ten_runtime/binding/common.h"
 #include "ten_runtime/extension/extension.h"
@@ -85,6 +87,7 @@ ten_env_t *ten_env_create(void) {
   self->close_handler = NULL;
   self->destroy_handler = NULL;
   ten_list_init(&self->ten_proxy_list);
+  ten_log_new_init(&self->log);
 
   self->attach_to = TEN_ENV_ATTACH_TO_INVALID;
   self->attached_target.addon_host = NULL;
@@ -160,6 +163,8 @@ void ten_env_destroy(ten_env_t *self) {
 
   ten_sanitizer_thread_check_deinit(&self->thread_check);
   ten_signature_set(&self->signature, 0);
+
+  ten_log_new_deinit(&self->log);
 
   TEN_FREE(self);
 }

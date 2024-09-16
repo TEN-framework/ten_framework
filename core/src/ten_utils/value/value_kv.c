@@ -40,7 +40,7 @@ ten_value_kv_t *ten_value_kv_create_vempty(const char *fmt, ...) {
 
   va_list ap;
   va_start(ap, fmt);
-  ten_string_set_from_va_list(&self->key, fmt, ap);
+  ten_string_append_from_va_list(&self->key, fmt, ap);
   va_end(ap);
 
   self->value = NULL;

@@ -81,8 +81,8 @@ void ten_streambackend_tcp_dump_info(ten_streambackend_tcp_t *tcp_stream,
 
   ten_string_t description;
   ten_string_init(&description);
-  ten_string_set_from_va_list(&description, ten_string_get_raw_str(&new_fmt),
-                              ap);
+  ten_string_append_from_va_list(&description, ten_string_get_raw_str(&new_fmt),
+                                 ap);
   ten_string_deinit(&new_fmt);
 
   va_end(ap);

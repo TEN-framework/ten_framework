@@ -170,6 +170,7 @@ PyTypeObject *ten_py_ten_env_type(void) {
       {"is_cmd_connected", ten_py_ten_env_is_cmd_connected, METH_VARARGS, NULL},
       {"init_property_from_json", ten_py_ten_env_init_property_from_json,
        METH_VARARGS, NULL},
+      {"log", ten_py_ten_env_log, METH_VARARGS, NULL},
       {NULL, NULL, 0, NULL},
   };
 

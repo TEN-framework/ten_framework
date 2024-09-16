@@ -15,7 +15,7 @@
 #include "ten_runtime/addon/extension/extension.h"
 #include "ten_runtime/binding/common.h"
 #include "ten_runtime/binding/go/interface/ten/common.h"
-#include "ten_runtime/binding/go/interface/ten/ten.h"
+#include "ten_runtime/binding/go/interface/ten/ten_env.h"
 #include "ten_runtime/ten.h"
 #include "ten_runtime/ten_env/ten_env.h"
 #include "ten_runtime/ten_env_proxy/ten_env_proxy.h"
@@ -148,7 +148,7 @@ bool ten_go_ten_env_addon_create_extension(uintptr_t bridge_addr,
       ten_env_notify_addon_create_extension_info_create(
           addon_name, instance_name, callback_info);
 
-  if (!ten_env_proxy_notify(self->c_ten_proxy,
+  if (!ten_env_proxy_notify(self->c_ten_env_proxy,
                             ten_env_notify_addon_create_extension,
                             addon_extension_create_info, false, &err)) {
     TEN_LOGD("TEN/GO failed to addon_extension_create.");

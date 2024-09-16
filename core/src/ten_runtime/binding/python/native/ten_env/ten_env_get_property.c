@@ -298,13 +298,13 @@ PyObject *ten_py_ten_env_is_property_exist(PyObject *self, PyObject *args) {
 
   if (PyTuple_GET_SIZE(args) != 1) {
     return ten_py_raise_py_value_error_exception(
-        "Invalid argument count when ten.is_property_exist.");
+        "Invalid argument count when ten_env.is_property_exist.");
   }
 
   const char *path = NULL;
   if (!PyArg_ParseTuple(args, "s", &path)) {
     return ten_py_raise_py_value_error_exception(
-        "Failed to parse argument when ten.is_property_exist.");
+        "Failed to parse argument when ten_env.is_property_exist.");
   }
 
   ten_error_t err;

@@ -370,7 +370,7 @@ static bool ten_value_init_vastring(ten_value_t *self, const char *fmt,
 
   ten_value_init_string(self);
 
-  ten_string_set_from_va_list(&self->content.string, fmt, ap);
+  ten_string_append_from_va_list(&self->content.string, fmt, ap);
 
   return true;
 }

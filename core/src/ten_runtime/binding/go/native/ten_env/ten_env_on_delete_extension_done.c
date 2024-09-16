@@ -7,7 +7,7 @@
 
 #include "include_internal/ten_runtime/binding/go/ten_env/ten_env.h"
 #include "include_internal/ten_runtime/binding/go/ten_env/ten_env_internal.h"
-#include "ten_runtime/binding/go/interface/ten/ten.h"
+#include "ten_runtime/binding/go/interface/ten/ten_env.h"
 #include "ten_runtime/ten_env_proxy/ten_env_proxy.h"
 #include "ten_utils/macro/check.h"
 
@@ -39,7 +39,7 @@ void ten_go_ten_env_on_destroy_extensions_done(uintptr_t bridge_addr) {
   ten_error_t err;
   ten_error_init(&err);
 
-  if (!ten_env_proxy_notify(self->c_ten_proxy,
+  if (!ten_env_proxy_notify(self->c_ten_env_proxy,
                             ten_env_notify_on_destroy_extensions_done, NULL,
                             false, &err)) {
     TEN_LOGD("TEN/GO failed to on_destroy_extensions_done.");

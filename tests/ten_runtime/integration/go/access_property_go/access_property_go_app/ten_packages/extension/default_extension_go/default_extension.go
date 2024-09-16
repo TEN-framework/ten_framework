@@ -18,7 +18,7 @@ type baseExtension struct {
 }
 
 func (ext *baseExtension) OnStart(tenEnv ten.TenEnv) {
-	fmt.Println("baseExtension OnStart")
+	tenEnv.Log(ten.LogLevelDebug, "baseExtension OnStart")
 
 	tenEnv.OnStartDone()
 }

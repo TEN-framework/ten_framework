@@ -123,7 +123,7 @@ PyObject *ten_py_ten_env_send_cmd(PyObject *self, PyObject *args) {
 
   if (PyTuple_GET_SIZE(args) != 2) {
     return ten_py_raise_py_value_error_exception(
-        "Invalid argument count when ten.ten_py_ten_env_send_cmd.");
+        "Invalid argument count when ten_env.send_cmd.");
   }
 
   bool success = true;

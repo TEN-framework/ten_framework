@@ -119,8 +119,8 @@ TEN_UTILS_API void ten_string_clear(ten_string_t *self);
  */
 TEN_UTILS_API void ten_string_reserve(ten_string_t *self, size_t extra);
 
-TEN_UTILS_API void ten_string_set_from_va_list(ten_string_t *self,
-                                               const char *fmt, va_list ap);
+TEN_UTILS_API void ten_string_append_from_va_list(ten_string_t *self,
+                                                  const char *fmt, va_list ap);
 
 /**
  * @brief Set the string object with a c string.

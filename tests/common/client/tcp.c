@@ -65,8 +65,8 @@ static void ten_test_tcp_client_dump_socket_info(ten_test_tcp_client_t *self,
 
   ten_string_t description;
   ten_string_init(&description);
-  ten_string_set_from_va_list(&description, ten_string_get_raw_str(&new_fmt),
-                              ap);
+  ten_string_append_from_va_list(&description, ten_string_get_raw_str(&new_fmt),
+                                 ap);
   ten_string_deinit(&new_fmt);
 
   va_end(ap);
