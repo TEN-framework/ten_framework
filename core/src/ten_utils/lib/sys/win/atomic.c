@@ -8,7 +8,7 @@
 #include <Windows.h>
 #include <assert.h>
 
-#include "ten_utils/macro/check.h"
+#include "include_internal/ten_utils/macro/check.h"
 
 int64_t ten_atomic_fetch_add(volatile ten_atomic_t *a, int64_t v) {
   return InterlockedExchangeAdd64(a, v);

@@ -10,16 +10,16 @@
 #include <string.h>
 
 #if defined(__linux__)
-  #include <sys/syscall.h>
-  #include <sys/types.h>
-  #include <unistd.h>
+#include <sys/syscall.h>
+#include <sys/types.h>
+#include <unistd.h>
 #endif
 
+#include "include_internal/ten_utils/log/log.h"
+#include "include_internal/ten_utils/macro/check.h"
 #include "ten_utils/lib/alloc.h"
 #include "ten_utils/lib/thread_local.h"
 #include "ten_utils/lib/thread_once.h"
-#include "ten_utils/log/log.h"
-#include "ten_utils/macro/check.h"
 
 static ten_thread_once_t __tcb_once = TEN_THREAD_ONCE_INIT;
 static ten_thread_key_t __tcb = kInvalidTlsKey;
@@ -183,14 +183,14 @@ ten_thread_t *ten_thread_create(const char *name,
 
   pthread_attr_t *attr_ptr = NULL;
 
-  #if defined(__i386__)
+#if defined(__i386__)
   pthread_attr_t attr;
   pthread_attr_init(&attr);
   size_t stacksize = 256UL * 1024UL;
   pthread_attr_setstacksize(&attr, stacksize);
 
   attr_ptr = &attr;
-  #endif
+#endif
 
   int rc = pthread_create(&self, attr_ptr, pthread_routine, thread);
   if (rc != 0) {
@@ -199,10 +199,10 @@ ten_thread_t *ten_thread_create(const char *name,
     goto error;
   }
 
-  #if defined(_DEBUG) && defined(__linux__)
+#if defined(_DEBUG) && defined(__linux__)
   TEN_LOGV("New thread is created, id(%lu), name(%s).", syscall(__NR_gettid),
            name);
-  #endif
+#endif
 
 #endif
 
@@ -267,10 +267,10 @@ ten_thread_t *ten_thread_create_fake(const char *name) {
 #else
   t->aux = (void *)pthread_self();
 
-  #if defined(_DEBUG) && defined(__linux__)
+#if defined(_DEBUG) && defined(__linux__)
   TEN_LOGV("New thread is created, id(%lu), name(%s).", syscall(__NR_gettid),
            name);
-  #endif
+#endif
 
 #endif
 

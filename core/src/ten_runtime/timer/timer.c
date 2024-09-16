@@ -11,12 +11,12 @@
 #include "include_internal/ten_runtime/common/loc.h"
 #include "include_internal/ten_runtime/msg/cmd_base/cmd/timer/cmd.h"
 #include "include_internal/ten_runtime/msg/msg.h"
+#include "include_internal/ten_utils/log/log.h"
+#include "include_internal/ten_utils/macro/check.h"
 #include "ten_runtime/timer/timer.h"
 #include "ten_utils/io/runloop.h"
 #include "ten_utils/lib/alloc.h"
 #include "ten_utils/lib/smart_ptr.h"
-#include "ten_utils/log/log.h"
-#include "ten_utils/macro/check.h"
 #include "ten_utils/macro/mark.h"
 
 static bool ten_timer_is_closing(ten_timer_t *self) {

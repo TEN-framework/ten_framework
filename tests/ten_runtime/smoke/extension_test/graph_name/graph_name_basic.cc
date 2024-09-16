@@ -8,9 +8,9 @@
 
 #include "gtest/gtest.h"
 #include "include_internal/ten_runtime/binding/cpp/ten.h"
+#include "include_internal/ten_utils/log/log.h"
 #include "ten_utils/lib/thread.h"
 #include "ten_utils/lib/time.h"
-#include "ten_utils/log/log.h"
 #include "tests/common/client/cpp/msgpack_tcp.h"
 #include "tests/common/constant.h"
 #include "tests/ten_runtime/smoke/extension_test/util/binding/cpp/check.h"
@@ -102,7 +102,7 @@ class test_app_1 : public ten::app_t {
                       "_ten": {
                         "uri": "msgpack://127.0.0.1:8001/",
                         "long_running_mode": true,
-                        "log_level": 1
+                        "log_level": 2
                       }
                     })"
         // clang-format on
@@ -122,7 +122,7 @@ class test_app_2 : public ten::app_t {
                       "_ten": {
                         "uri": "msgpack://127.0.0.1:8002/",
                         "long_running_mode": true,
-                        "log_level": 1
+                        "log_level": 2
                       }
                     })"
         // clang-format on

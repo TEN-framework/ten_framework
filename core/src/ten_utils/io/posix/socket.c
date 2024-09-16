@@ -11,9 +11,9 @@
 #include <string.h>
 #include <unistd.h>
 
+#include "include_internal/ten_utils/log/log.h"
+#include "include_internal/ten_utils/macro/check.h"
 #include "ten_utils/lib/alloc.h"
-#include "ten_utils/log/log.h"
-#include "ten_utils/macro/check.h"
 #include "ten_utils/macro/mark.h"
 
 ten_socket_t *ten_socket_create(TEN_SOCKET_FAMILY family, TEN_SOCKET_TYPE type,

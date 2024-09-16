@@ -16,14 +16,14 @@
 #include "include_internal/ten_runtime/extension_group/extension_group.h"
 #include "include_internal/ten_runtime/extension_thread/extension_thread.h"
 #include "include_internal/ten_runtime/msg/msg.h"
-#include "include_internal/ten_utils/log/new.h"
+#include "include_internal/ten_utils/log/log.h"
+#include "include_internal/ten_utils/macro/check.h"
 #include "ten_runtime/app/app.h"
 #include "ten_runtime/binding/common.h"
 #include "ten_runtime/extension/extension.h"
 #include "ten_runtime/ten_env/ten_env.h"
 #include "ten_utils/lib/alloc.h"
 #include "ten_utils/lib/string.h"
-#include "ten_utils/macro/check.h"
 #include "ten_utils/sanitizer/thread_check.h"
 
 bool ten_env_check_integrity(ten_env_t *self, bool check_thread) {
@@ -87,7 +87,6 @@ ten_env_t *ten_env_create(void) {
   self->close_handler = NULL;
   self->destroy_handler = NULL;
   ten_list_init(&self->ten_proxy_list);
-  ten_log_new_init(&self->log);
 
   self->attach_to = TEN_ENV_ATTACH_TO_INVALID;
   self->attached_target.addon_host = NULL;
@@ -163,8 +162,6 @@ void ten_env_destroy(ten_env_t *self) {
 
   ten_sanitizer_thread_check_deinit(&self->thread_check);
   ten_signature_set(&self->signature, 0);
-
-  ten_log_new_deinit(&self->log);
 
   TEN_FREE(self);
 }

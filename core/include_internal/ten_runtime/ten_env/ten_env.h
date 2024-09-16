@@ -9,10 +9,10 @@
 
 #include "include_internal/ten_runtime/addon/addon.h"
 #include "include_internal/ten_runtime/binding/common.h"
-#include "include_internal/ten_utils/log/new.h"
+#include "include_internal/ten_utils/log/log.h"
+#include "include_internal/ten_utils/macro/check.h"
 #include "ten_runtime/ten_env/ten_env.h"
 #include "ten_utils/io/runloop.h"
-#include "ten_utils/macro/check.h"
 
 #define TEN_SIGNATURE 0x1336D348DA779EA6U
 
@@ -72,8 +72,6 @@ typedef struct ten_env_t {
   ten_destroy_handler_in_target_lang_func_t destroy_handler;
 
   ten_list_t ten_proxy_list;
-
-  ten_log_new_t log;
 } ten_env_t;
 
 TEN_RUNTIME_PRIVATE_API ten_runloop_t *ten_env_get_attached_runloop(

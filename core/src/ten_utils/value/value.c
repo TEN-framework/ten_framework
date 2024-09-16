@@ -13,6 +13,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+#include "include_internal/ten_utils/macro/check.h"
 #include "include_internal/ten_utils/value/value.h"
 #include "ten_utils/container/list.h"
 #include "ten_utils/container/list_node.h"
@@ -20,7 +21,7 @@
 #include "ten_utils/lib/buf.h"
 #include "ten_utils/lib/error.h"
 #include "ten_utils/lib/string.h"
-#include "ten_utils/macro/check.h"
+#include "ten_utils/macro/mark.h"
 #include "ten_utils/macro/memory.h"
 #include "ten_utils/value/type.h"
 #include "ten_utils/value/value_kv.h"

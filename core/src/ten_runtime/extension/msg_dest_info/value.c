@@ -9,7 +9,7 @@
 #include "include_internal/ten_runtime/extension/extension_info/extension_info.h"
 #include "include_internal/ten_runtime/extension/extension_info/value.h"
 #include "include_internal/ten_runtime/extension/msg_dest_info/msg_dest_info.h"
-#include "ten_utils/macro/check.h"
+#include "include_internal/ten_utils/macro/check.h"
 
 // Parse the following snippet.
 //

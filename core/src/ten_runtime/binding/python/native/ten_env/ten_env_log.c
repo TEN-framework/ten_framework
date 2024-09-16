@@ -8,8 +8,8 @@
 #include "include_internal/ten_runtime/binding/python/common/error.h"
 #include "include_internal/ten_runtime/binding/python/ten_env/ten_env.h"
 #include "include_internal/ten_runtime/ten_env/log.h"
-#include "include_internal/ten_utils/log/new.h"
-#include "ten_utils/macro/check.h"
+#include "include_internal/ten_utils/log/log.h"
+#include "include_internal/ten_utils/macro/check.h"
 #include "ten_utils/macro/memory.h"
 
 typedef struct ten_env_notify_log_info_t {
@@ -70,7 +70,7 @@ PyObject *ten_py_ten_env_log(PyObject *self, PyObject *args) {
         "Invalid argument count when ten_env.log.");
   }
 
-  TEN_LOG_NEW_LEVEL level = TEN_LOG_NEW_INVALID;
+  TEN_LOG_LEVEL level = TEN_LOG_LEVEL_INVALID;
   const char *func_name = NULL;
   const char *file_name = NULL;
   size_t line_no = 0;

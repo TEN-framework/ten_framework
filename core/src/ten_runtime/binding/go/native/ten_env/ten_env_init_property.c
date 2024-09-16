@@ -6,6 +6,7 @@
 #include "include_internal/ten_runtime/binding/go/internal/common.h"
 #include "include_internal/ten_runtime/binding/go/ten_env/ten_env.h"
 #include "include_internal/ten_runtime/binding/go/ten_env/ten_env_internal.h"
+#include "include_internal/ten_utils/macro/check.h"
 #include "ten_runtime/binding/go/interface/ten/common.h"
 #include "ten_runtime/binding/go/interface/ten/ten_env.h"
 #include "ten_runtime/common/errno.h"
@@ -15,7 +16,6 @@
 #include "ten_utils/lib/error.h"
 #include "ten_utils/lib/event.h"
 #include "ten_utils/lib/string.h"
-#include "ten_utils/macro/check.h"
 
 typedef struct ten_notify_set_init_property_info_t {
   ten_string_t value;

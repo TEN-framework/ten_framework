@@ -6,7 +6,7 @@
 #include <stdbool.h>
 
 #include "include_internal/ten_runtime/binding/python/common/python_stuff.h"
-#include "ten_utils/log/log.h"
+#include "include_internal/ten_utils/log/log.h"
 
 static void ten_py_print_py_error(void) {
   PyObject *ptype = NULL;

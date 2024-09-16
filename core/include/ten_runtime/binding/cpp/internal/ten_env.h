@@ -8,6 +8,7 @@
 #include <functional>
 #include <memory>
 
+#include "include_internal/ten_utils/macro/check.h"
 #include "ten_runtime/binding/common.h"
 #include "ten_runtime/binding/cpp/internal/msg/audio_frame.h"
 #include "ten_runtime/binding/cpp/internal/msg/cmd/cmd.h"
@@ -24,7 +25,7 @@
 #include "ten_utils/lang/cpp/lib/value.h"
 #include "ten_utils/lib/buf.h"
 #include "ten_utils/lib/error.h"
-#include "ten_utils/macro/check.h"
+#include "ten_utils/macro/mark.h"
 #include "ten_utils/value/value.h"
 #include "ten_utils/value/value_json.h"
 

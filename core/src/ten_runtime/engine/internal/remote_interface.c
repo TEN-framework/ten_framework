@@ -19,6 +19,8 @@
 #include "include_internal/ten_runtime/msg/msg.h"
 #include "include_internal/ten_runtime/protocol/protocol.h"
 #include "include_internal/ten_runtime/remote/remote.h"
+#include "include_internal/ten_utils/log/log.h"
+#include "include_internal/ten_utils/macro/check.h"
 #include "ten_runtime/app/app.h"
 #include "ten_runtime/common/status_code.h"
 #include "ten_runtime/msg/cmd_result/cmd_result.h"
@@ -27,9 +29,8 @@
 #include "ten_utils/container/list_ptr.h"
 #include "ten_utils/lib/smart_ptr.h"
 #include "ten_utils/lib/string.h"
-#include "ten_utils/log/log.h"
-#include "ten_utils/macro/check.h"
 #include "ten_utils/macro/field.h"
+#include "ten_utils/macro/mark.h"
 
 static bool ten_engine_del_weak_remote(ten_engine_t *self,
                                        ten_remote_t *remote) {

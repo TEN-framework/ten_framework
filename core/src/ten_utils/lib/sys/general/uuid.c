@@ -10,7 +10,7 @@
 #include <inttypes.h>
 #include <stdio.h>
 
-#include "ten_utils/macro/check.h"
+#include "include_internal/ten_utils/macro/check.h"
 
 /**
  * http://xoshiro.di.unimi.it/splitmix64.c

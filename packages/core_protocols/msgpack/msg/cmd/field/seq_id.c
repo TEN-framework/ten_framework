@@ -9,7 +9,7 @@
 
 #include "include_internal/ten_runtime/msg/cmd_base/cmd_base.h"
 #include "include_internal/ten_runtime/msg/msg.h"
-#include "ten_utils/macro/check.h"
+#include "include_internal/ten_utils/macro/check.h"
 
 void ten_msgpack_cmd_seq_id_serialize(ten_msg_t *self, msgpack_packer *pck) {
   TEN_ASSERT(self && ten_raw_msg_check_integrity(self) && pck,

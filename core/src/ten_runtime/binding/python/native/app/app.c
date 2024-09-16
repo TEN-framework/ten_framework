@@ -11,12 +11,12 @@
 #include "include_internal/ten_runtime/binding/python/ten_env/ten_env.h"
 #include "include_internal/ten_runtime/extension/extension.h"
 #include "include_internal/ten_runtime/metadata/metadata_info.h"
+#include "include_internal/ten_utils/log/log.h"
 #include "ten_runtime/binding/common.h"
 #include "ten_runtime/binding/python/common.h"
 #include "ten_runtime/ten_env/ten_env.h"
 #include "ten_runtime/ten_env_proxy/ten_env_proxy.h"
 #include "ten_utils/lib/signature.h"
-#include "ten_utils/log/log.h"
 
 static bool ten_py_app_check_integrity(ten_py_app_t *self, bool check_thread) {
   TEN_ASSERT(self, "Should not happen.");

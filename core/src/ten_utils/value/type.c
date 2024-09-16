@@ -8,10 +8,10 @@
 #include <float.h>
 #include <stddef.h>
 
+#include "include_internal/ten_utils/macro/check.h"
 #include "ten_utils/container/list.h"
 #include "ten_utils/lib/json.h"
 #include "ten_utils/lib/string.h"
-#include "ten_utils/macro/check.h"
 #include "ten_utils/value/type_info.h"
 
 TEN_TYPE ten_type_from_string(const char *type_str) {

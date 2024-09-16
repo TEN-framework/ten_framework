@@ -8,18 +8,18 @@
 #include "include_internal/ten_utils/lib/alloc.h"
 
 #if defined(TEN_USE_ASAN)
-  #include <sanitizer/asan_interface.h>
+#include <sanitizer/asan_interface.h>
 #endif
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "include_internal/ten_utils/log/log.h"
+#include "include_internal/ten_utils/macro/check.h"
 #include "include_internal/ten_utils/sanitizer/memory_check.h"
 #include "ten_utils/container/list.h"
 #include "ten_utils/lib/alloc.h"
 #include "ten_utils/lib/mutex.h"
 #include "ten_utils/lib/string.h"
-#include "ten_utils/log/log.h"
-#include "ten_utils/macro/check.h"
 #include "ten_utils/macro/mark.h"
 
 static ten_sanitizer_memory_records_t g_memory_records = {NULL,
@@ -175,19 +175,19 @@ void ten_sanitizer_memory_record_dump(void) {
              g_memory_records.total_size);
   }
 
-  #if defined(TEN_USE_ASAN)
+#if defined(TEN_USE_ASAN)
   __asan_unpoison_memory_region(&g_memory_records.records.front,
                                 sizeof(ten_listnode_t *));
   __asan_unpoison_memory_region(&g_memory_records.records.back,
                                 sizeof(ten_listnode_t *));
-  #endif
+#endif
 
   size_t idx = 0;
   ten_list_foreach (&g_memory_records.records, iter) {
-  #if defined(TEN_USE_ASAN)
+#if defined(TEN_USE_ASAN)
     __asan_unpoison_memory_region((((ten_ptr_listnode_t *)(iter.node))->ptr),
                                   sizeof(ten_sanitizer_memory_record_t *));
-  #endif
+#endif
 
     ten_sanitizer_memory_record_t *info = ten_ptr_listnode_get(iter.node);
 
@@ -197,18 +197,18 @@ void ten_sanitizer_memory_record_dump(void) {
 
     idx++;
 
-  #if defined(TEN_USE_ASAN)
+#if defined(TEN_USE_ASAN)
     __asan_poison_memory_region((((ten_ptr_listnode_t *)(iter.node))->ptr),
                                 sizeof(ten_sanitizer_memory_record_t *));
-  #endif
+#endif
   }
 
-  #if defined(TEN_USE_ASAN)
+#if defined(TEN_USE_ASAN)
   __asan_poison_memory_region(&g_memory_records.records.front,
                               sizeof(ten_listnode_t *));
   __asan_poison_memory_region(&g_memory_records.records.back,
                               sizeof(ten_listnode_t *));
-  #endif
+#endif
 
   size_t total_size = g_memory_records.total_size;
 

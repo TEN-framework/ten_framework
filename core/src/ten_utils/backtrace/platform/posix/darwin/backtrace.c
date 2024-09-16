@@ -3,7 +3,7 @@
 // See https://github.com/TEN-framework/ten_framework/LICENSE for license
 // information.
 //
-#include "ten_utils/backtrace/backtrace.h"
+#include "include_internal/ten_utils/backtrace/backtrace.h"
 
 #include <assert.h>
 #include <execinfo.h>
@@ -11,9 +11,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "ten_utils/backtrace/common.h"
+#include "include_internal/ten_utils/backtrace/common.h"
+#include "include_internal/ten_utils/log/log.h"
 #include "ten_utils/lib/alloc.h"
-#include "ten_utils/log/log.h"
 
 /**
  * @note On Mac, we are currently using a simple method instead of a complicated

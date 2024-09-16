@@ -90,7 +90,7 @@ type TenEnv interface {
 
 	InitPropertyFromJSONBytes(value []byte) error
 
-	Log(level LogLevel, msg string, args ...interface{}) error
+	// Log(level LogLevel, msg string, args ...interface{}) error
 }
 
 // Making a compile-time assertion which indicates that if 'ten' type doesn't

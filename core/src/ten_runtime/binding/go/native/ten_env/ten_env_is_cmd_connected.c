@@ -5,10 +5,10 @@
 //
 #include "include_internal/ten_runtime/binding/go/ten_env/ten_env.h"
 #include "include_internal/ten_runtime/binding/go/ten_env/ten_env_internal.h"
+#include "include_internal/ten_utils/macro/check.h"
 #include "ten_runtime/binding/go/interface/ten/ten_env.h"
 #include "ten_runtime/ten_env_proxy/ten_env_proxy.h"
 #include "ten_utils/lib/alloc.h"
-#include "ten_utils/macro/check.h"
 
 typedef struct ten_env_notify_is_cmd_connected_info_t {
   bool result;

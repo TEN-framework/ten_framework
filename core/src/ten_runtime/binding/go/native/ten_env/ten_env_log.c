@@ -11,10 +11,10 @@
 #include "include_internal/ten_runtime/binding/go/ten_env/ten_env.h"
 #include "include_internal/ten_runtime/binding/go/ten_env/ten_env_internal.h"
 #include "include_internal/ten_runtime/ten_env/log.h"
+#include "include_internal/ten_utils/macro/check.h"
 #include "ten_runtime/binding/go/interface/ten/common.h"
 #include "ten_runtime/binding/go/interface/ten/ten_env.h"
 #include "ten_utils/lib/error.h"
-#include "ten_utils/macro/check.h"
 #include "ten_utils/macro/memory.h"
 
 typedef struct ten_env_notify_log_info_t {

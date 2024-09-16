@@ -8,8 +8,8 @@
 #include <assert.h>
 #include <stdlib.h>
 
+#include "include_internal/ten_utils/macro/check.h"
 #include "ten_utils/lib/alloc.h"
-#include "ten_utils/macro/check.h"
 
 void ten_vector_init(ten_vector_t *self, size_t capacity) {
   TEN_ASSERT(self, "Invalid argument.");

@@ -112,27 +112,27 @@ class TenEnv:
     def init_property_from_json(self, json_str: str) -> None:
         return self._internal.init_property_from_json(json_str)
 
-    def log(
-        self,
-        level: TenEnvLogLevel,
-        *args,
-    ) -> None:
-        msg = " ".join(map(str, args))
+    # def log(
+    #     self,
+    #     level: TenEnvLogLevel,
+    #     *args,
+    # ) -> None:
+    #     msg = " ".join(map(str, args))
 
-        # Get the current frame and the caller's frame.
-        frame = inspect.currentframe()
-        if frame is not None:
-            caller_frame = frame.f_back
-            if caller_frame is not None:
-                # Extract information from the caller's frame
-                file_name = caller_frame.f_code.co_filename
-                func_name = caller_frame.f_code.co_name
-                line_no = caller_frame.f_lineno
+    #     # Get the current frame and the caller's frame.
+    #     frame = inspect.currentframe()
+    #     if frame is not None:
+    #         caller_frame = frame.f_back
+    #         if caller_frame is not None:
+    #             # Extract information from the caller's frame
+    #             file_name = caller_frame.f_code.co_filename
+    #             func_name = caller_frame.f_code.co_name
+    #             line_no = caller_frame.f_lineno
 
-                return self._internal.log(
-                    level, func_name, file_name, line_no, msg
-                )
-            else:
-                return self._internal.log(level, None, None, 0, msg)
-        else:
-            return self._internal.log(level, None, None, 0, msg)
+    #             return self._internal.log(
+    #                 level, func_name, file_name, line_no, msg
+    #             )
+    #         else:
+    #             return self._internal.log(level, None, None, 0, msg)
+    #     else:
+    #         return self._internal.log(level, None, None, 0, msg)

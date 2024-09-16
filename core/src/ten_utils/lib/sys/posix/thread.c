@@ -8,7 +8,7 @@
 #include <assert.h>
 #include <pthread.h>
 
-#include "ten_utils/macro/check.h"
+#include "include_internal/ten_utils/macro/check.h"
 
 TEN_UTILS_API ten_thread_t *__get_self();
 

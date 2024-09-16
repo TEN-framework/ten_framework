@@ -8,9 +8,9 @@
 #include <stdarg.h>
 #include <stdlib.h>
 
+#include "include_internal/ten_utils/macro/check.h"
 #include "ten_utils/lib/alloc.h"
 #include "ten_utils/lib/string.h"
-#include "ten_utils/macro/check.h"
 #include "ten_utils/value/value.h"
 
 bool ten_value_kv_check_integrity(ten_value_kv_t *self) {

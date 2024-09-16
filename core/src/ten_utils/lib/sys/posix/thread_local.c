@@ -7,7 +7,7 @@
 
 #include <pthread.h>
 
-#include "ten_utils/log/log.h"
+#include "include_internal/ten_utils/log/log.h"
 
 ten_thread_key_t ten_thread_key_create(void) {
   ten_thread_key_t key = kInvalidTlsKey;

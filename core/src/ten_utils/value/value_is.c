@@ -9,7 +9,7 @@
 #include <stdarg.h>
 #include <stdint.h>
 
-#include "ten_utils/macro/check.h"
+#include "include_internal/ten_utils/macro/check.h"
 #include "ten_utils/value/type.h"
 #include "ten_utils/value/value.h"
 #include "ten_utils/value/value_kv.h"

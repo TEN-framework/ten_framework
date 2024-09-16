@@ -8,11 +8,12 @@
 #include "include_internal/ten_runtime/msg/cmd_base/cmd/cmd.h"
 #include "include_internal/ten_runtime/msg/cmd_base/cmd/start_graph/cmd.h"
 #include "include_internal/ten_runtime/msg/msg.h"
+#include "include_internal/ten_utils/log/log.h"
+#include "include_internal/ten_utils/macro/check.h"
 #include "ten_runtime/msg/cmd/start_graph/cmd.h"
 #include "ten_utils/lib/json.h"
 #include "ten_utils/lib/string.h"
-#include "ten_utils/log/log.h"
-#include "ten_utils/macro/check.h"
+#include "ten_utils/macro/mark.h"
 
 bool ten_cmd_start_graph_put_predefined_graph_name_to_json(ten_msg_t *self,
                                                            ten_json_t *json,

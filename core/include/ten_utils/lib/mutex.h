@@ -7,7 +7,7 @@
 
 #include "ten_utils/ten_config.h"
 
-#include "ten_utils/macro/check.h"
+#include "include_internal/ten_utils/macro/check.h"
 
 #define TEN_DO_WITH_MUTEX_LOCK(lock, blocks)                  \
   do {                                                        \

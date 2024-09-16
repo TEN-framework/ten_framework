@@ -9,7 +9,7 @@
 #include "core_protocols/msgpack/msg/field/dest.h"
 #include "core_protocols/msgpack/msg/loc.h"
 #include "core_protocols/msgpack/msg/msg.h"
-#include "ten_utils/macro/check.h"
+#include "include_internal/ten_utils/macro/check.h"
 
 void ten_msgpack_msg_src_serialize(ten_msg_t *self, msgpack_packer *pck) {
   TEN_ASSERT(self && ten_raw_msg_check_integrity(self) && pck,

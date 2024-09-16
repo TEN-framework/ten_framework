@@ -9,6 +9,7 @@
 
 #include "include_internal/ten_runtime/msg/cmd_base/cmd_result/cmd.h"
 #include "include_internal/ten_runtime/msg/msg.h"
+#include "include_internal/ten_utils/macro/check.h"
 #include "ten_runtime/ten.h"
 #include "ten_utils/container/list.h"
 #include "ten_utils/container/list_node_str.h"
@@ -18,7 +19,6 @@
 #include "ten_utils/lib/buf.h"
 #include "ten_utils/lib/string.h"
 #include "ten_utils/lib/time.h"
-#include "ten_utils/macro/check.h"
 
 static void ten_test_tcp_client_dump_socket_info(ten_test_tcp_client_t *self,
                                                  const char *fmt, ...) {

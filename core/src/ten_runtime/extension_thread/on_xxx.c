@@ -37,6 +37,8 @@
 #include "include_internal/ten_runtime/path/path_table.h"
 #include "include_internal/ten_runtime/schema_store/store.h"
 #include "include_internal/ten_runtime/ten_env/ten_env.h"
+#include "include_internal/ten_utils/log/log.h"
+#include "include_internal/ten_utils/macro/check.h"
 #include "ten_runtime/extension/extension.h"
 #include "ten_runtime/msg/cmd_result/cmd_result.h"
 #include "ten_utils/container/list.h"
@@ -45,8 +47,6 @@
 #include "ten_utils/lib/error.h"
 #include "ten_utils/lib/smart_ptr.h"
 #include "ten_utils/lib/string.h"
-#include "ten_utils/log/log.h"
-#include "ten_utils/macro/check.h"
 #include "ten_utils/macro/mark.h"
 #include "ten_utils/sanitizer/thread_check.h"
 #include "ten_utils/value/value.h"
@@ -310,7 +310,7 @@ void ten_extension_thread_on_extension_on_init_done(void *self_, void *arg) {
 
   if (self->extensions_cnt_of_on_init_done ==
       ten_list_size(&self->extensions)) {
-    // All extensions in this extension group/thread have been inited.
+    // All extensions in this extension group/thread have been initted.
 
     // Because the extension's on_init() may initialize some states of the
     // extension, we must wait until all extensions have completed their
@@ -706,7 +706,7 @@ void ten_extension_thread_on_all_extensions_in_all_extension_threads_added_to_en
   // the `interface` info is not available until `Extension::on_init_done()`.
   ten_extension_thread_determine_all_extension_dest_from_graph(self);
 
-  // Notify the engine that the extension thread is inited.
+  // Notify the engine that the extension thread is initted.
   ten_engine_t *engine = self->extension_context->engine;
   // TEN_NOLINTNEXTLINE(thread-check)
   // thread-check: The runloop of the engine will not be changed during the

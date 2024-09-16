@@ -5,8 +5,8 @@
 //
 #include "tests/common/client/curl_connect.h"
 
+#include "include_internal/ten_utils/log/log.h"
 #include "ten_utils/lib/time.h"
-#include "ten_utils/log/log.h"
 
 bool ten_test_curl_connect_with_retry(CURL *curl, uint16_t max_retries,
                                       int64_t delay_in_ms) {

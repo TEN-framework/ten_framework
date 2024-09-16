@@ -7,7 +7,7 @@
 
 #include "ten_runtime/ten_config.h"
 
-#include "include_internal/ten_utils/log/new.h"
+#include "include_internal/ten_utils/log/log.h"
 #include "ten_utils/container/list.h"
 #include "ten_utils/io/runloop.h"
 #include "ten_utils/lib/error.h"
@@ -81,8 +81,6 @@ typedef struct ten_extension_thread_t {
   ten_extension_context_t *extension_context;
 
   ten_runloop_t *runloop;
-
-  ten_log_new_t log;
 } ten_extension_thread_t;
 
 TEN_RUNTIME_API bool ten_extension_thread_not_call_by_me(

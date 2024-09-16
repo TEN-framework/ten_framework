@@ -8,13 +8,13 @@
 #include <cstddef>
 #include <string>
 
+#include "include_internal/ten_utils/log/log.h"
+#include "include_internal/ten_utils/macro/check.h"
 #include "ten_runtime/app/app.h"
 #include "ten_runtime/binding/common.h"
 #include "ten_runtime/binding/cpp/internal/common.h"
 #include "ten_runtime/binding/cpp/internal/extension_group.h"
 #include "ten_runtime/ten.h"
-#include "ten_utils/log/log.h"
-#include "ten_utils/macro/check.h"
 
 using ten_app_t = struct ten_app_t;
 

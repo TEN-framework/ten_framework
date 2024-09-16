@@ -18,18 +18,18 @@
 #include "ten_runtime/ten_env/ten_env.h"
 #include "ten_utils/lib/rwlock.h"
 
-#define TEN_GO_TEN_IS_ALIVE_REGION_BEGIN(ten_bridge, err_stmt)          \
-  do {                                                                  \
-    ten_rwlock_lock((ten_bridge)->lock, 1);                             \
-    if (((ten_bridge)->c_ten == NULL) ||                                \
-        (((ten_bridge)->c_ten->attach_to != TEN_ENV_ATTACH_TO_ADDON) && \
-         ((ten_bridge)->c_ten_proxy == NULL))) {                        \
-      ten_rwlock_unlock((ten_bridge)->lock, 1);                         \
-      {                                                                 \
-        err_stmt                                                        \
-      }                                                                 \
-      goto ten_is_close;                                                \
-    }                                                                   \
+#define TEN_GO_TEN_IS_ALIVE_REGION_BEGIN(ten_bridge, err_stmt)              \
+  do {                                                                      \
+    ten_rwlock_lock((ten_bridge)->lock, 1);                                 \
+    if (((ten_bridge)->c_ten_env == NULL) ||                                \
+        (((ten_bridge)->c_ten_env->attach_to != TEN_ENV_ATTACH_TO_ADDON) && \
+         ((ten_bridge)->c_ten_env_proxy == NULL))) {                        \
+      ten_rwlock_unlock((ten_bridge)->lock, 1);                             \
+      {                                                                     \
+        err_stmt                                                            \
+      }                                                                     \
+      goto ten_is_close;                                                    \
+    }                                                                       \
   } while (0)
 
 #define TEN_GO_TEN_IS_ALIVE_REGION_END(ten_bridge) \

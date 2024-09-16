@@ -5,7 +5,7 @@
 //
 #include <nlohmann/json.hpp>
 
-#include "ten_utils/log/log.h"
+#include "include_internal/ten_utils/log/log.h"
 #include "ten_utils/macro/mark.h"
 #include "tests/common/client/cpp/msgpack_tcp.h"
 

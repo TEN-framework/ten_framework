@@ -12,9 +12,7 @@ class DefaultExtension(Extension):
         self.name = name
 
     def on_init(self, ten_env: TenEnv) -> None:
-        ten_env.log(
-            TenEnvLogLevel.DEBUG, "DefaultExtension on_init, name", self.name
-        )
+        print("DefaultExtension on_init, name", self.name)
         assert self.name == "default_extension_python"
 
         ten_env.init_property_from_json('{"testKey": "testValue"}')

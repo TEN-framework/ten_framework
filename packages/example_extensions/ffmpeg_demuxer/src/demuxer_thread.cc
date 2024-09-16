@@ -13,13 +13,13 @@
 #include <utility>
 
 #include "demuxer.h"
+#include "include_internal/ten_utils/log/log.h"
+#include "include_internal/ten_utils/macro/check.h"
 #include "libavutil/rational.h"
 #include "ten_runtime/binding/cpp/ten.h"
 #include "ten_utils/lang/cpp/lib/value.h"
 #include "ten_utils/lib/event.h"
 #include "ten_utils/lib/thread.h"
-#include "ten_utils/log/log.h"
-#include "ten_utils/macro/check.h"
 
 namespace ten {
 namespace ffmpeg_extension {
