@@ -90,7 +90,7 @@ type TenEnv interface {
 
 	InitPropertyFromJSONBytes(value []byte) error
 
-	Log(level LogLevel, msg string, args ...interface{}) error
+	Log(level LogLevel, msg string) error
 }
 
 // Making a compile-time assertion which indicates that if 'ten' type doesn't
@@ -566,8 +566,8 @@ func (p *tenEnv) Log(level LogLevel, msg string) error {
 		unsafe.Pointer(unsafe.StringData(fileName)),
 		C.int(len(fileName)),
 		C.int(lineNo),
-		unsafe.Pointer(unsafe.StringData(formattedMsg)),
-		C.int(len(formattedMsg)),
+		unsafe.Pointer(unsafe.StringData(msg)),
+		C.int(len(msg)),
 	)
 
 	return nil

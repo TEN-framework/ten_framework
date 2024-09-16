@@ -12,7 +12,7 @@ from .cmd import Cmd
 from .video_frame import VideoFrame
 from .audio_frame import AudioFrame
 from .data import Data
-from .ten_env_log_level import TenEnvLogLevel
+from .log_level import LogLevel
 
 
 class TenEnv: ...  # type: ignore
@@ -112,7 +112,7 @@ class TenEnv:
     def init_property_from_json(self, json_str: str) -> None:
         return self._internal.init_property_from_json(json_str)
 
-    def log(self, level: TenEnvLogLevel, msg: str) -> None:
+    def log(self, level: LogLevel, msg: str) -> None:
         # Get the current frame and the caller's frame.
         frame = inspect.currentframe()
         if frame is not None:

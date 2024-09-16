@@ -4,7 +4,7 @@
 # information.
 #
 from .ten_env_attach_to_enum import _TenEnvAttachTo
-from .ten_env_log_level import TenEnvLogLevel
+from .log_level import LogLevel
 
 class _Msg:
     def to_json(self) -> str: ...
@@ -111,7 +111,7 @@ class _TenEnv:
     def init_property_from_json(self, json_str: str) -> None: ...
     def log(
         self,
-        level: TenEnvLogLevel,
+        level: LogLevel,
         func_name: str | None,
         file_name: str | None,
         line_no: int,

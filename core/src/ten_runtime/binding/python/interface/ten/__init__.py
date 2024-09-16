@@ -16,7 +16,7 @@ from .cmd_result import CmdResult, StatusCode
 from .video_frame import VideoFrame, PixelFmt
 from .audio_frame import AudioFrame, AudioFrameDataFmt
 from .data import Data
-from .ten_env_log_level import TenEnvLogLevel
+from .log_level import LogLevel
 
 # Specify what should be imported when a user imports * from the
 # ten_runtime_python package.
@@ -35,5 +35,5 @@ __all__ = [
     "CmdResult",
     "PixelFmt",
     "AudioFrameDataFmt",
-    "TenEnvLogLevel",
+    "LogLevel",
 ]

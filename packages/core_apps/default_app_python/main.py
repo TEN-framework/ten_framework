@@ -3,13 +3,13 @@
 # Licensed under the Apache License, Version 2.0.
 # See the LICENSE file for more information.
 #
-from ten import App, TenEnv, TenEnvLogLevel
+from ten import App, TenEnv, LogLevel
 
 
 class DefaultApp(App):
 
     def on_init(self, ten_env: TenEnv):
-        ten_env.log(TenEnvLogLevel.DEBUG, "app on_init")
+        ten_env.log(LogLevel.DEBUG, "app on_init")
         ten_env.on_init_done()
 
     def on_deinit(self, ten_env: TenEnv) -> None:

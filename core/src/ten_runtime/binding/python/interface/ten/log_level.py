@@ -6,7 +6,7 @@
 from enum import IntEnum
 
 
-class TenEnvLogLevel(IntEnum):
+class LogLevel(IntEnum):
     INVALID = 0
     VERBOSE = 1
     DEBUG = 2
