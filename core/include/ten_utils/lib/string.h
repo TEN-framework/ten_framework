@@ -11,7 +11,7 @@
 #include <stdbool.h>
 #include <string.h>
 
-#include "include_internal/ten_utils/macro/check.h"
+#include "ten_utils/macro/check.h"
 #include "ten_utils/lib/buf.h"
 #include "ten_utils/lib/signature.h"
 

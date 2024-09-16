@@ -8,7 +8,7 @@
 #include "include_internal/ten_runtime/common/constant_str.h"
 #include "include_internal/ten_runtime/msg/msg.h"
 #include "include_internal/ten_runtime/msg/video_frame/video_frame.h"
-#include "include_internal/ten_utils/macro/check.h"
+#include "ten_utils/macro/check.h"
 #include "ten_runtime/msg/msg.h"
 #include "ten_runtime/msg/video_frame/video_frame.h"
 #include "ten_utils/lib/json.h"

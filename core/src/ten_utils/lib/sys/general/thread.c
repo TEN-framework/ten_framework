@@ -16,7 +16,7 @@
 #endif
 
 #include "include_internal/ten_utils/log/log.h"
-#include "include_internal/ten_utils/macro/check.h"
+#include "ten_utils/macro/check.h"
 #include "ten_utils/lib/alloc.h"
 #include "ten_utils/lib/thread_local.h"
 #include "ten_utils/lib/thread_once.h"

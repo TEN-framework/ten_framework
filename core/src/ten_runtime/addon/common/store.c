@@ -9,7 +9,7 @@
 #include <string.h>
 
 #include "include_internal/ten_runtime/addon/addon.h"
-#include "include_internal/ten_utils/macro/check.h"
+#include "ten_utils/macro/check.h"
 #include "ten_utils/container/list.h"
 #include "ten_utils/lib/atomic.h"
 #include "ten_utils/lib/mutex.h"

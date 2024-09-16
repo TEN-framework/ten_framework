@@ -10,7 +10,7 @@
 #include "include_internal/ten_runtime/protocol/context.h"
 #include "include_internal/ten_runtime/protocol/context_store.h"
 #include "include_internal/ten_runtime/protocol/protocol.h"
-#include "include_internal/ten_utils/macro/check.h"
+#include "ten_utils/macro/check.h"
 #include "ten_runtime/protocol/context.h"
 #include "ten_utils/container/hash_table.h"
 #include "ten_utils/container/list.h"

@@ -11,7 +11,7 @@
 
 #include "gtest/gtest.h"
 #include "include_internal/ten_runtime/binding/cpp/ten.h"
-#include "include_internal/ten_utils/macro/check.h"
+#include "ten_utils/macro/check.h"
 #include "ten_utils/lang/cpp/lib/value.h"
 #include "ten_utils/lib/alloc.h"
 #include "ten_utils/lib/thread.h"

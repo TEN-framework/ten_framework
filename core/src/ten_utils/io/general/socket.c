@@ -20,7 +20,7 @@
 #include <unistd.h>
 #endif
 
-#include "include_internal/ten_utils/macro/check.h"
+#include "ten_utils/macro/check.h"
 #include "ten_utils/lib/alloc.h"
 
 ten_socket_addr_t *ten_socket_addr_create(const char *address, uint16_t port) {

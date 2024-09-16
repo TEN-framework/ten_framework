@@ -8,7 +8,7 @@
 #include <ctype.h>
 #include <stdlib.h>
 
-#include "include_internal/ten_utils/macro/check.h"
+#include "ten_utils/macro/check.h"
 #include "ten_utils/lib/file.h"
 #include "ten_utils/lib/string.h"
 

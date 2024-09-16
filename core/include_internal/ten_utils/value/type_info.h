@@ -5,15 +5,16 @@
 //
 #pragma once
 
+#include "ten_utils/ten_config.h"
+
 #include <stddef.h>
 
 #include "include_internal/ten_utils/value/constant_str.h"
-#include "ten_utils/ten_config.h"
 #include "ten_utils/value/type.h"
 
 #ifdef __cplusplus
-  #error \
-      "This file contains C99 array designated initializer, and Visual Studio C++ compiler can only support up to C89 by default, so we enable this checking to prevent any wrong inclusion of this file."
+#error \
+    "This file contains C99 array designated initializer, and Visual Studio C++ compiler can only support up to C89 by default, so we enable this checking to prevent any wrong inclusion of this file."
 #endif
 
 typedef struct ten_type_info_t {

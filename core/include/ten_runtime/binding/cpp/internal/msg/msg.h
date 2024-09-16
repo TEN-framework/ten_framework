@@ -9,7 +9,7 @@
 
 #include <string>
 
-#include "include_internal/ten_utils/macro/check.h"
+#include "ten_utils/macro/check.h"
 #include "ten_runtime/common/errno.h"
 #include "ten_runtime/msg/msg.h"
 #include "ten_utils/lang/cpp/lib/error.h"

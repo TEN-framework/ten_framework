@@ -10,7 +10,7 @@
 #include "core_protocols/msgpack/common/value.h"
 #include "include_internal/ten_runtime/msg/data/data.h"
 #include "include_internal/ten_runtime/msg/msg.h"
-#include "include_internal/ten_utils/macro/check.h"
+#include "ten_utils/macro/check.h"
 #include "ten_runtime/msg/data/data.h"
 #include "ten_utils/lib/buf.h"
 

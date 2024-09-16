@@ -10,7 +10,7 @@
 #include <stdlib.h>
 #include <sys/time.h>
 
-#include "include_internal/ten_utils/macro/check.h"
+#include "ten_utils/macro/check.h"
 #include "ten_utils/lib/alloc.h"
 #include "ten_utils/lib/mutex.h"
 #include "ten_utils/macro/memory.h"

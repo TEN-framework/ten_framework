@@ -8,7 +8,7 @@
 #include <pthread.h>
 
 #include "include_internal/ten_utils/log/log.h"
-#include "include_internal/ten_utils/macro/check.h"
+#include "ten_utils/macro/check.h"
 
 int ten_thread_once(ten_thread_once_t *once_control,
                     void (*init_routine)(void)) {

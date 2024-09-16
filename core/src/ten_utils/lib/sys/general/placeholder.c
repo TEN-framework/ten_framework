@@ -9,7 +9,7 @@
 #include <string.h>
 
 #include "include_internal/ten_utils/common/constant_str.h"
-#include "include_internal/ten_utils/macro/check.h"
+#include "ten_utils/macro/check.h"
 #include "include_internal/ten_utils/macro/memory.h"
 #include "include_internal/ten_utils/value/value.h"
 #include "include_internal/ten_utils/value/value_set.h"

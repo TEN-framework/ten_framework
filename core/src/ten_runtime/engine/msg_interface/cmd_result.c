@@ -20,7 +20,7 @@
 #include "include_internal/ten_runtime/path/path_table.h"
 #include "include_internal/ten_runtime/remote/remote.h"
 #include "include_internal/ten_utils/log/log.h"
-#include "include_internal/ten_utils/macro/check.h"
+#include "ten_utils/macro/check.h"
 #include "ten_runtime/common/status_code.h"
 #include "ten_runtime/msg/msg.h"
 #include "ten_utils/lib/smart_ptr.h"

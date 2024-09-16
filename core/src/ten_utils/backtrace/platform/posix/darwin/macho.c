@@ -17,7 +17,7 @@
 
 #include "include_internal/ten_utils/backtrace/backtrace.h"
 #include "include_internal/ten_utils/backtrace/platform/posix/internal.h"
-#include "include_internal/ten_utils/macro/check.h"
+#include "ten_utils/macro/check.h"
 #include "ten_utils/io/mmap.h"
 #include "ten_utils/lib/alloc.h"
 #include "ten_utils/lib/atomic_ptr.h"

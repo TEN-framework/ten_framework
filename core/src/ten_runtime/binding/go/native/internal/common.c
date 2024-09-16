@@ -9,7 +9,7 @@
 #include <string.h>
 
 #include "include_internal/ten_runtime/binding/go/internal/common.h"
-#include "include_internal/ten_utils/macro/check.h"
+#include "ten_utils/macro/check.h"
 #include "ten_utils/lib/alloc.h"
 #include "ten_utils/lib/error.h"
 #include "ten_utils/lib/smart_ptr.h"

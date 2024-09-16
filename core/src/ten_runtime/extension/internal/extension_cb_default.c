@@ -5,7 +5,7 @@
 //
 #include "include_internal/ten_runtime/extension/extension_cb_default.h"
 
-#include "include_internal/ten_utils/macro/check.h"
+#include "ten_utils/macro/check.h"
 #include "ten_runtime/common/status_code.h"
 #include "ten_runtime/msg/cmd_result/cmd_result.h"
 #include "ten_runtime/ten_env/internal/on_xxx_done.h"

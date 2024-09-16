@@ -11,8 +11,8 @@
 #include <stdio.h>   // IWYU pragma: keep
 #include <stdlib.h>  // IWYU pragma: keep
 
-#include "include_internal/ten_utils/backtrace/backtrace.h"  // IWYU pragma: keep
-#include "include_internal/ten_utils/log/log.h"
+#include "ten_utils/backtrace/backtrace.h"  // IWYU pragma: keep
+#include "ten_utils/log/log.h"
 
 #if defined(__has_feature)
 #if __has_feature(address_sanitizer)

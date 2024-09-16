@@ -5,7 +5,7 @@
 //
 #include "include_internal/ten_utils/schema/bindings/rust/schema.h"
 
-#include "include_internal/ten_utils/macro/check.h"
+#include "ten_utils/macro/check.h"
 #include "include_internal/ten_utils/schema/schema.h"
 #include "ten_utils/lib/alloc.h"
 #include "ten_utils/lib/error.h"

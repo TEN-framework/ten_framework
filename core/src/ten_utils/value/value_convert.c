@@ -8,7 +8,7 @@
 #include <float.h>
 #include <stdint.h>
 
-#include "include_internal/ten_utils/macro/check.h"
+#include "ten_utils/macro/check.h"
 #include "include_internal/ten_utils/value/value_can_convert.h"
 #include "ten_runtime/common/errno.h"
 #include "ten_utils/lib/error.h"

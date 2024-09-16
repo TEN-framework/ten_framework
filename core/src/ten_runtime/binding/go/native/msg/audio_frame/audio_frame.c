@@ -10,7 +10,7 @@
 #include "include_internal/ten_runtime/binding/go/internal/common.h"
 #include "include_internal/ten_runtime/binding/go/msg/msg.h"
 #include "include_internal/ten_runtime/msg/msg.h"
-#include "include_internal/ten_utils/macro/check.h"
+#include "ten_utils/macro/check.h"
 #include "ten_runtime/binding/go/interface/ten/msg.h"
 #include "ten_runtime/common/errno.h"
 #include "ten_runtime/msg/audio_frame/audio_frame.h"

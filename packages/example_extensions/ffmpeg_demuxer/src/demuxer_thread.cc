@@ -14,7 +14,7 @@
 
 #include "demuxer.h"
 #include "include_internal/ten_utils/log/log.h"
-#include "include_internal/ten_utils/macro/check.h"
+#include "ten_utils/macro/check.h"
 #include "libavutil/rational.h"
 #include "ten_runtime/binding/cpp/ten.h"
 #include "ten_utils/lang/cpp/lib/value.h"

@@ -5,7 +5,7 @@
 //
 #include "include_internal/ten_utils/schema/schema.h"
 
-#include "include_internal/ten_utils/macro/check.h"
+#include "ten_utils/macro/check.h"
 #include "include_internal/ten_utils/schema/keywords/keyword.h"
 #include "include_internal/ten_utils/schema/keywords/keyword_type.h"
 #include "include_internal/ten_utils/schema/keywords/keywords_info.h"

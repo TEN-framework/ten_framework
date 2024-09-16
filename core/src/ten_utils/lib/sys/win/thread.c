@@ -8,7 +8,7 @@
 #include <Windows.h>
 #include <stdlib.h>
 
-#include "include_internal/ten_utils/macro/check.h"
+#include "ten_utils/macro/check.h"
 #include "ten_utils/lib/thread_local.h"
 
 TEN_UTILS_API ten_thread_t *__get_self();

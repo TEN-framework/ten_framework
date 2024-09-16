@@ -11,7 +11,7 @@
 #include <string.h>
 
 #include "include_internal/ten_utils/lib/buf.h"
-#include "include_internal/ten_utils/macro/check.h"
+#include "ten_utils/macro/check.h"
 #include "ten_utils/lib/buf.h"
 #include "tests/common/client/curl_connect.h"
 #include "tests/common/constant.h"

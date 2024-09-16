@@ -8,7 +8,7 @@
 #include <stdlib.h>
 
 #include "core_protocols/msgpack/common/common.h"
-#include "include_internal/ten_utils/macro/check.h"
+#include "ten_utils/macro/check.h"
 #include "msgpack/object.h"
 #include "msgpack/pack.h"
 #include "msgpack/unpack.h"

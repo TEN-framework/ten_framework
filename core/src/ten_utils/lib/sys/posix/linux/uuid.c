@@ -11,7 +11,7 @@
 #include <time.h>
 #include <unistd.h>
 
-#include "include_internal/ten_utils/macro/check.h"
+#include "ten_utils/macro/check.h"
 
 void ten_uuid4_seed(ten_uuid4_state_t *seed) {
   static uint64_t state0 = 0;

@@ -16,7 +16,7 @@
 #include "include_internal/ten_runtime/schema_store/cmd.h"
 #include "include_internal/ten_runtime/schema_store/msg.h"
 #include "include_internal/ten_runtime/schema_store/store.h"
-#include "include_internal/ten_utils/macro/check.h"
+#include "ten_utils/macro/check.h"
 #include "ten_runtime/common/status_code.h"
 #include "ten_runtime/msg/cmd_result/cmd_result.h"
 #include "ten_utils/lib/error.h"

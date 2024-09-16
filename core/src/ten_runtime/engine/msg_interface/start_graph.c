@@ -18,7 +18,7 @@
 #include "include_internal/ten_runtime/path/path_group.h"
 #include "include_internal/ten_runtime/remote/remote.h"
 #include "include_internal/ten_utils/log/log.h"
-#include "include_internal/ten_utils/macro/check.h"
+#include "ten_utils/macro/check.h"
 #include "include_internal/ten_utils/value/value.h"
 #include "ten_runtime/msg/cmd_result/cmd_result.h"
 #include "ten_utils/container/list.h"

@@ -8,7 +8,7 @@
 #include <assert.h>
 
 #include "include_internal/ten_runtime/msg/msg.h"
-#include "include_internal/ten_utils/macro/check.h"
+#include "ten_utils/macro/check.h"
 
 void ten_msgpack_msg_type_serialize(ten_msg_t *self, msgpack_packer *pck) {
   TEN_ASSERT(self && ten_raw_msg_check_integrity(self) && pck,

@@ -7,7 +7,7 @@
 
 #include "core_protocols/msgpack/common/common.h"
 #include "core_protocols/msgpack/common/value.h"
-#include "include_internal/ten_utils/macro/check.h"
+#include "ten_utils/macro/check.h"
 #include "include_internal/ten_utils/value/value_kv.h"
 #include "msgpack/object.h"
 #include "msgpack/pack.h"

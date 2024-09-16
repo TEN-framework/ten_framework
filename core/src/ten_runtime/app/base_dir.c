@@ -6,7 +6,7 @@
 #include "ten_runtime/ten_config.h"
 
 #include "include_internal/ten_runtime/common/constant_str.h"
-#include "include_internal/ten_utils/macro/check.h"
+#include "ten_utils/macro/check.h"
 #include "ten_utils/lib/file.h"
 #include "ten_utils/lib/json.h"
 #include "ten_utils/lib/path.h"

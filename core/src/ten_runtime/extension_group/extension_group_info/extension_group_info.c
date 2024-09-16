@@ -8,7 +8,7 @@
 #include <stdlib.h>
 
 #include "include_internal/ten_runtime/common/loc.h"
-#include "include_internal/ten_utils/macro/check.h"
+#include "ten_utils/macro/check.h"
 #include "ten_runtime/common/errno.h"
 #include "ten_utils/lib/alloc.h"
 #include "ten_utils/lib/signature.h"

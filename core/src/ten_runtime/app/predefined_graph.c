@@ -18,7 +18,7 @@
 #include "include_internal/ten_runtime/extension_group/extension_group_info/json.h"
 #include "include_internal/ten_runtime/extension_group/extension_group_info/value.h"
 #include "include_internal/ten_runtime/msg/msg.h"
-#include "include_internal/ten_utils/macro/check.h"
+#include "ten_utils/macro/check.h"
 #include "ten_utils/container/list.h"
 #include "ten_utils/container/list_node.h"
 #include "ten_utils/lib/alloc.h"

@@ -12,8 +12,7 @@
 #include <string>
 #include <utility>
 
-#include "include_internal/ten_utils/log/log.h"
-#include "include_internal/ten_utils/macro/check.h"
+#include "ten_utils/macro/check.h"
 #include "ten_runtime/binding/common.h"
 #include "ten_runtime/binding/cpp/internal/common.h"
 #include "ten_runtime/binding/cpp/internal/msg/audio_frame.h"

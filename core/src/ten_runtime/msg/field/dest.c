@@ -9,7 +9,7 @@
 #include "include_internal/ten_runtime/common/loc.h"
 #include "include_internal/ten_runtime/extension/extension_info/extension_info.h"
 #include "include_internal/ten_runtime/msg/msg.h"
-#include "include_internal/ten_utils/macro/check.h"
+#include "ten_utils/macro/check.h"
 #include "ten_utils/lib/json.h"
 #include "ten_utils/lib/string.h"
 #include "ten_utils/macro/mark.h"

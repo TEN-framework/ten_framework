@@ -15,7 +15,7 @@
 #include "include_internal/ten_runtime/extension/ten_env/metadata.h"
 #include "include_internal/ten_runtime/extension_thread/extension_thread.h"
 #include "include_internal/ten_utils/lib/placeholder.h"
-#include "include_internal/ten_utils/macro/check.h"
+#include "ten_utils/macro/check.h"
 #include "ten_utils/lib/string.h"
 #include "ten_utils/value/value.h"
 #include "ten_utils/value/value_get.h"

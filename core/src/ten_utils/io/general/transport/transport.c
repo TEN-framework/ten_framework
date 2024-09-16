@@ -8,7 +8,7 @@
 #include <stdlib.h>
 
 #include "include_internal/ten_utils/io/runloop.h"
-#include "include_internal/ten_utils/macro/check.h"
+#include "ten_utils/macro/check.h"
 #include "ten_utils/io/general/transport/backend/base.h"
 #include "ten_utils/io/general/transport/backend/factory.h"
 #include "ten_utils/lib/mutex.h"

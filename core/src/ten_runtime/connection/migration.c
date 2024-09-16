@@ -10,7 +10,7 @@
 #include "include_internal/ten_runtime/engine/engine.h"
 #include "include_internal/ten_runtime/engine/internal/migration.h"
 #include "include_internal/ten_runtime/protocol/protocol.h"
-#include "include_internal/ten_utils/macro/check.h"
+#include "ten_utils/macro/check.h"
 #include "ten_utils/io/runloop.h"
 #include "ten_utils/lib/ref.h"
 

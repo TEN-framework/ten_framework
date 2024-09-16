@@ -12,7 +12,7 @@
 #include "include_internal/ten_runtime/msg_conversion/msg_conversion/msg_and_result_conversion.h"
 #include "include_internal/ten_runtime/msg_conversion/msg_conversion/msg_and_result_conversion_operation.h"
 #include "include_internal/ten_runtime/msg_conversion/msg_conversion_operation/base.h"
-#include "include_internal/ten_utils/macro/check.h"
+#include "ten_utils/macro/check.h"
 #include "ten_runtime/common/errno.h"
 #include "ten_utils/container/list.h"
 #include "ten_utils/container/list_node.h"

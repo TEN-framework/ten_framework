@@ -5,7 +5,7 @@
 //
 #include "ten_utils/lib/signature.h"
 
-#include "include_internal/ten_utils/macro/check.h"
+#include "ten_utils/macro/check.h"
 
 void ten_signature_set(ten_signature_t *signature, ten_signature_t value) {
   TEN_ASSERT(signature, "Invalid argument.");

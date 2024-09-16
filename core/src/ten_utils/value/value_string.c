@@ -8,7 +8,7 @@
 #include <float.h>
 #include <inttypes.h>
 
-#include "include_internal/ten_utils/macro/check.h"
+#include "ten_utils/macro/check.h"
 #include "include_internal/ten_utils/value/constant_str.h"
 #include "include_internal/ten_utils/value/value_convert.h"
 #include "ten_utils/container/list.h"

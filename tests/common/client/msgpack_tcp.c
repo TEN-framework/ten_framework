@@ -8,7 +8,7 @@
 #include "core_protocols/msgpack/common/parser.h"
 #include "core_protocols/msgpack/msg/msg.h"
 #include "include_internal/ten_runtime/msg/msg.h"
-#include "include_internal/ten_utils/macro/check.h"
+#include "ten_utils/macro/check.h"
 #include "ten_runtime/ten.h"
 #include "ten_utils/container/list.h"
 #include "ten_utils/lib/alloc.h"

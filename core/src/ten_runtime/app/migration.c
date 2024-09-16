@@ -9,7 +9,7 @@
 #include "include_internal/ten_runtime/app/close.h"
 #include "include_internal/ten_runtime/connection/connection.h"
 #include "include_internal/ten_runtime/engine/engine.h"
-#include "include_internal/ten_utils/macro/check.h"
+#include "ten_utils/macro/check.h"
 #include "ten_utils/io/runloop.h"
 #include "ten_utils/macro/mark.h"
 

@@ -9,7 +9,7 @@
 #include <stddef.h>
 #include <stdlib.h>
 
-#include "include_internal/ten_utils/macro/check.h"
+#include "ten_utils/macro/check.h"
 #include "ten_utils/lib/alloc.h"
 #include "ten_utils/lib/atomic.h"
 #include "ten_utils/lib/signature.h"

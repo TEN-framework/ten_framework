@@ -15,7 +15,7 @@
 #include "include_internal/ten_runtime/schema_store/msg.h"
 #include "include_internal/ten_runtime/schema_store/property.h"
 #include "include_internal/ten_utils/log/log.h"
-#include "include_internal/ten_utils/macro/check.h"
+#include "ten_utils/macro/check.h"
 #include "include_internal/ten_utils/schema/constant_str.h"
 #include "include_internal/ten_utils/schema/schema.h"
 #include "include_internal/ten_utils/schema/types/schema_object.h"

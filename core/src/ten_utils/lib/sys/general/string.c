@@ -11,7 +11,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "include_internal/ten_utils/macro/check.h"
+#include "ten_utils/macro/check.h"
 #include "ten_utils/container/list.h"
 #include "ten_utils/lib/alloc.h"
 #include "ten_utils/lib/signature.h"

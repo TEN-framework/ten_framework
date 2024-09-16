@@ -6,7 +6,7 @@
 #include "include_internal/ten_runtime/msg_conversion/msg_conversion/msg_and_result_conversion.h"
 
 #include "include_internal/ten_runtime/msg/msg.h"
-#include "include_internal/ten_utils/macro/check.h"
+#include "ten_utils/macro/check.h"
 #include "ten_utils/lib/alloc.h"
 #include "ten_utils/lib/smart_ptr.h"
 

@@ -5,7 +5,7 @@
 //
 #include "include_internal/ten_utils/schema/keywords/keyword.h"
 
-#include "include_internal/ten_utils/macro/check.h"
+#include "ten_utils/macro/check.h"
 
 bool ten_schema_keyword_check_integrity(ten_schema_keyword_t *self) {
   TEN_ASSERT(self, "Invalid argument.");

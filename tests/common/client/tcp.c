@@ -9,7 +9,7 @@
 
 #include "include_internal/ten_runtime/msg/cmd_base/cmd_result/cmd.h"
 #include "include_internal/ten_runtime/msg/msg.h"
-#include "include_internal/ten_utils/macro/check.h"
+#include "ten_utils/macro/check.h"
 #include "ten_runtime/ten.h"
 #include "ten_utils/container/list.h"
 #include "ten_utils/container/list_node_str.h"

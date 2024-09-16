@@ -10,7 +10,7 @@
 #include "include_internal/ten_runtime/msg/cmd_base/cmd/cmd.h"
 #include "include_internal/ten_runtime/msg/cmd_base/cmd/stop_graph/field/field_info.h"
 #include "include_internal/ten_runtime/msg/msg.h"
-#include "include_internal/ten_utils/macro/check.h"
+#include "ten_utils/macro/check.h"
 #include "ten_runtime/msg/cmd/stop_graph/cmd.h"
 #include "ten_utils/lib/alloc.h"
 #include "ten_utils/lib/json.h"

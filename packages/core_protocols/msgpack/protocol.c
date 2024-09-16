@@ -13,7 +13,7 @@
 #include "include_internal/ten_runtime/metadata/metadata.h"
 #include "include_internal/ten_runtime/protocol/integrated/protocol_integrated.h"
 #include "include_internal/ten_runtime/ten_env/metadata.h"
-#include "include_internal/ten_utils/macro/check.h"
+#include "ten_utils/macro/check.h"
 #include "ten_runtime/addon/addon.h"
 #include "ten_runtime/ten_env/internal/on_xxx_done.h"
 #include "ten_runtime/ten_env/ten_env.h"

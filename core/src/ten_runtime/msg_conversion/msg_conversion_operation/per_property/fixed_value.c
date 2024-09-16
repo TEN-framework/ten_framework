@@ -8,7 +8,7 @@
 #include "include_internal/ten_runtime/common/constant_str.h"
 #include "include_internal/ten_runtime/msg/field/properties.h"
 #include "include_internal/ten_runtime/msg/msg.h"
-#include "include_internal/ten_utils/macro/check.h"
+#include "ten_utils/macro/check.h"
 #include "include_internal/ten_utils/value/value_convert.h"
 #include "ten_utils/lib/error.h"
 #include "ten_utils/lib/json.h"

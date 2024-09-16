@@ -10,7 +10,7 @@
 
 #include "include_internal/ten_runtime/extension/extension.h"
 #include "include_internal/ten_utils/log/log.h"
-#include "include_internal/ten_utils/macro/check.h"
+#include "ten_utils/macro/check.h"
 #include "ten_utils/container/hash_table.h"
 #include "ten_utils/lib/alloc.h"
 #include "ten_utils/lib/string.h"

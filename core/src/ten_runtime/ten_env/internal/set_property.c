@@ -17,7 +17,7 @@
 #include "include_internal/ten_runtime/ten_env/metadata_cb.h"
 #include "include_internal/ten_runtime/ten_env/ten_env.h"
 #include "include_internal/ten_utils/log/log.h"
-#include "include_internal/ten_utils/macro/check.h"
+#include "ten_utils/macro/check.h"
 #include "ten_runtime/app/app.h"
 #include "ten_runtime/common/errno.h"
 #include "ten_runtime/ten_env/internal/metadata.h"

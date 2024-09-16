@@ -12,7 +12,7 @@
 #include "core_protocols/msgpack/msg/field/field_info.h"
 #include "core_protocols/msgpack/msg/msg.h"
 #include "core_protocols/msgpack/msg/msg_info.h"
-#include "include_internal/ten_utils/macro/check.h"
+#include "ten_utils/macro/check.h"
 #include "ten_utils/lib/smart_ptr.h"
 
 void ten_msgpack_msghdr_serialize(ten_msg_t *self, msgpack_packer *pck) {

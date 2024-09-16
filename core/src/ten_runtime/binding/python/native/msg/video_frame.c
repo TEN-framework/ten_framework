@@ -8,7 +8,7 @@
 #include "include_internal/ten_runtime/binding/python/common/error.h"
 #include "include_internal/ten_runtime/binding/python/msg/msg.h"
 #include "include_internal/ten_runtime/msg/msg.h"
-#include "include_internal/ten_utils/macro/check.h"
+#include "ten_utils/macro/check.h"
 #include "memoryobject.h"
 #include "ten_runtime/msg/video_frame/video_frame.h"
 #include "ten_utils/macro/mark.h"

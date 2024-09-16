@@ -11,7 +11,7 @@
 #include <stdlib.h>
 #include <sys/stat.h>
 
-#include "include_internal/ten_utils/macro/check.h"
+#include "ten_utils/macro/check.h"
 #include "ten_utils/lib/alloc.h"
 #include "ten_utils/lib/string.h"
 

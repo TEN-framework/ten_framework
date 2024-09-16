@@ -14,7 +14,7 @@
 #include <unistd.h>
 
 #include "include_internal/ten_utils/backtrace/platform/posix/linux/crc32.h"
-#include "include_internal/ten_utils/macro/check.h"
+#include "ten_utils/macro/check.h"
 #include "ten_utils/lib/alloc.h"
 #include "ten_utils/lib/file.h"
 

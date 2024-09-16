@@ -7,7 +7,7 @@
 
 #include <stdlib.h>
 
-#include "include_internal/ten_utils/macro/check.h"
+#include "ten_utils/macro/check.h"
 #include "include_internal/ten_utils/value/constant_str.h"
 #include "ten_runtime/common/errno.h"
 #include "ten_utils/container/list.h"

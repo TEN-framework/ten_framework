@@ -8,7 +8,7 @@
 #include "include_internal/ten_runtime/app/ten_env/metadata.h"
 #include "include_internal/ten_runtime/extension_group/extension_group.h"
 #include "include_internal/ten_runtime/extension_thread/extension_thread.h"
-#include "include_internal/ten_utils/macro/check.h"
+#include "ten_utils/macro/check.h"
 #include "ten_utils/lib/alloc.h"
 
 bool ten_extension_group_set_property(ten_extension_group_t *extension_group,

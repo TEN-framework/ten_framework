@@ -10,7 +10,7 @@
 
 #include "include_internal/ten_runtime/binding/go/internal/common.h"
 #include "include_internal/ten_runtime/binding/go/value/value.h"
-#include "include_internal/ten_utils/macro/check.h"
+#include "ten_utils/macro/check.h"
 #include "include_internal/ten_utils/value/value_smart_ptr.h"
 #include "ten_runtime/binding/go/interface/ten/common.h"
 #include "ten_runtime/common/errno.h"

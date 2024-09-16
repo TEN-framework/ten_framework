@@ -6,7 +6,7 @@
 #include "include_internal/ten_runtime/binding/go/internal/json.h"
 
 #include "include_internal/ten_runtime/binding/go/internal/common.h"
-#include "include_internal/ten_utils/macro/check.h"
+#include "ten_utils/macro/check.h"
 #include "ten_runtime/common/errno.h"
 #include "ten_utils/lib/string.h"
 

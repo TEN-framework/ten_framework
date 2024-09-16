@@ -10,7 +10,7 @@
 
 #include <stdint.h>
 
-#include "include_internal/ten_utils/macro/check.h"
+#include "ten_utils/macro/check.h"
 #include "ten_utils/macro/mark.h"
 
 /**

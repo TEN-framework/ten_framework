@@ -5,7 +5,7 @@
 //
 #include "include_internal/ten_runtime/extension/extension_hdr.h"
 
-#include "include_internal/ten_utils/macro/check.h"
+#include "ten_utils/macro/check.h"
 #include "ten_utils/lib/smart_ptr.h"
 #include "ten_utils/macro/memory.h"
 

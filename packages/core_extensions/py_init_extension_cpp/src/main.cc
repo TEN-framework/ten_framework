@@ -8,7 +8,7 @@
 
 #include "include_internal/ten_runtime/app/base_dir.h"
 #include "include_internal/ten_utils/log/log.h"
-#include "include_internal/ten_utils/macro/check.h"
+#include "ten_utils/macro/check.h"
 #include "ten_runtime/binding/cpp/ten.h"
 #include "ten_runtime/binding/python/common.h"
 #include "ten_utils/container/list_str.h"

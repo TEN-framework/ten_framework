@@ -14,7 +14,7 @@
 #include "include_internal/ten_runtime/binding/go/msg/msg.h"
 #include "include_internal/ten_runtime/binding/go/value/value.h"
 #include "include_internal/ten_runtime/msg/field/properties.h"
-#include "include_internal/ten_utils/macro/check.h"
+#include "ten_utils/macro/check.h"
 #include "ten_runtime/binding/go/interface/ten/common.h"
 #include "ten_runtime/binding/go/interface/ten/value.h"
 #include "ten_runtime/common/errno.h"

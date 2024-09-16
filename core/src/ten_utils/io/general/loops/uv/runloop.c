@@ -10,7 +10,7 @@
 #include <uv.h>
 
 #include "include_internal/ten_utils/io/general/transport/backend/uv/stream/migrate.h"
-#include "include_internal/ten_utils/macro/check.h"
+#include "ten_utils/macro/check.h"
 #include "ten_utils/container/list.h"
 #include "ten_utils/io/general/loops/runloop.h"
 #include "ten_utils/lib/alloc.h"

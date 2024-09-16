@@ -124,8 +124,6 @@ TEN_UTILS_API void ten_backtrace_destroy_global(void);
 
 TEN_UTILS_API void ten_backtrace_destroy(ten_backtrace_t *self);
 
-TEN_UTILS_API void ten_backtrace_dump_global(size_t skip);
-
 /**
  * @brief Get a full stack backtrace.
  *

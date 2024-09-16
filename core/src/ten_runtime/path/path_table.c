@@ -21,7 +21,7 @@
 #include "include_internal/ten_runtime/path/path_group.h"
 #include "include_internal/ten_runtime/path/path_in.h"
 #include "include_internal/ten_runtime/path/path_out.h"
-#include "include_internal/ten_utils/macro/check.h"
+#include "ten_utils/macro/check.h"
 #include "ten_utils/container/list.h"
 #include "ten_utils/container/list_node.h"
 #include "ten_utils/lib/alloc.h"

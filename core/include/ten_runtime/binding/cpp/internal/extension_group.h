@@ -7,7 +7,7 @@
 
 #include <cstddef>
 
-#include "include_internal/ten_utils/macro/check.h"
+#include "ten_utils/macro/check.h"
 #include "ten_runtime/binding/common.h"
 #include "ten_runtime/binding/cpp/internal/ten_env.h"
 #include "ten_runtime/extension_group/extension_group.h"

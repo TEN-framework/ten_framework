@@ -17,7 +17,7 @@
 
 #include "include_internal/ten_utils/log/log.h"
 #include "include_internal/ten_utils/log/output.h"
-#include "include_internal/ten_utils/macro/check.h"
+#include "ten_utils/macro/check.h"
 #include "ten_utils/lib/file.h"
 
 static void ten_log_output_set(ten_log_t *self,

@@ -10,7 +10,7 @@
 #include "include_internal/ten_runtime/extension/extension_info/json.h"
 #include "include_internal/ten_runtime/extension/msg_dest_info/value.h"
 #include "include_internal/ten_runtime/msg_conversion/msg_conversion/msg_conversion.h"
-#include "include_internal/ten_utils/macro/check.h"
+#include "ten_utils/macro/check.h"
 #include "ten_utils/value/value_merge.h"
 #include "ten_utils/value/value_object.h"
 

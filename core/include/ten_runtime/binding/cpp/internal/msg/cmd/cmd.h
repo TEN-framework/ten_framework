@@ -9,7 +9,7 @@
 
 #include <memory>
 
-#include "include_internal/ten_utils/macro/check.h"
+#include "ten_utils/macro/check.h"
 #include "ten_runtime/binding/cpp/internal/msg/msg.h"
 #include "ten_runtime/msg/cmd/cmd.h"
 #include "ten_runtime/msg/msg.h"

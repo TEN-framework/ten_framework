@@ -8,7 +8,7 @@
 #include "core_protocols/msgpack/msg/cmd/custom/cmd.h"
 #include "core_protocols/msgpack/msg/cmd/custom/field/field_info.h"
 #include "core_protocols/msgpack/msg/field/field_info.h"
-#include "include_internal/ten_utils/macro/check.h"
+#include "ten_utils/macro/check.h"
 #include "ten_runtime/msg/cmd/custom/cmd.h"
 
 static ten_cmd_t *get_raw_cmd(ten_shared_ptr_t *self) {
