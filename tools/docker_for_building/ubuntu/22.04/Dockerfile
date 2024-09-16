@@ -20,6 +20,8 @@ RUN apt-get clean && apt-get update && apt-get install -y --no-install-recommend
   p7zip-rar \
   git \
   tree \
+  zip \
+  unzip \
   libasan5 \
   autoconf \
   libtool \
