@@ -71,9 +71,8 @@ static void ten_log_output_file_cb(ten_string_t *msg, void *user_data) {
   // WriteFile() is atomic for local files opened with
   // FILE_APPEND_DATA and without FILE_WRITE_DATA
   DWORD written;
-  WriteFile(handle, msg->buf_start,
-            (DWORD)(msg->buf_content_end - msg->buf_start + eol_len), &written,
-            0);
+  WriteFile(handle, ten_string_get_raw_str(msg), (DWORD)ten_string_len(msg),
+            &written, 0);
 #else
   int fd = *(int *)user_data;
 
@@ -102,9 +101,8 @@ void ten_log_out_stderr_cb(ten_string_t *msg, void *user_data) {
   // WriteFile() is atomic for local files opened with FILE_APPEND_DATA and
   // without FILE_WRITE_DATA
   DWORD written;
-  WriteFile(GetStdHandle(STD_ERROR_HANDLE), msg->buf_start,
-            (DWORD)(msg->buf_content_end - msg->buf_start + eol_len), &written,
-            0);
+  WriteFile(GetStdHandle(STD_ERROR_HANDLE), ten_string_get_raw_str(msg),
+            (DWORD)ten_string_len(msg), &written, 0);
 #else
   // TODO(Wei): write() is atomic for buffers less than or equal to PIPE_BUF,
   // therefore we need to have some locking mechanism here to prevent log

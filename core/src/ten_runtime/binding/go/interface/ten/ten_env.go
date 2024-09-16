@@ -90,7 +90,7 @@ type TenEnv interface {
 
 	InitPropertyFromJSONBytes(value []byte) error
 
-	// Log(level LogLevel, msg string, args ...interface{}) error
+	Log(level LogLevel, msg string, args ...interface{}) error
 }
 
 // Making a compile-time assertion which indicates that if 'ten' type doesn't
@@ -536,10 +536,7 @@ func (p *tenEnv) SetPropertyAsync(
 	return nil
 }
 
-func (p *tenEnv) Log(level LogLevel, msg string, args ...interface{}) error {
-	// Format the message with the provided arguments
-	formattedMsg := fmt.Sprintf(msg, args...)
-
+func (p *tenEnv) Log(level LogLevel, msg string) error {
 	// Get caller info
 	pc, fileName, lineNo, ok := runtime.Caller(
 		1, // 1 means the caller of this function
