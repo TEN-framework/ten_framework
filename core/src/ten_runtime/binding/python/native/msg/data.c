@@ -13,6 +13,7 @@
 #include "ten_runtime/msg/data/data.h"
 #include "ten_runtime/msg/msg.h"
 #include "ten_utils/lib/buf.h"
+#include "ten_utils/macro/mark.h"
 
 static ten_py_data_t *ten_py_data_create_internal(PyTypeObject *py_type) {
   if (!py_type) {

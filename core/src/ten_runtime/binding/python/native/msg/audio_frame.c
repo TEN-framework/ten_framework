@@ -13,6 +13,7 @@
 #include "object.h"
 #include "ten_runtime/msg/audio_frame/audio_frame.h"
 #include "ten_runtime/msg/msg.h"
+#include "ten_utils/macro/mark.h"
 
 static ten_py_audio_frame_t *ten_py_audio_frame_create_internal(
     PyTypeObject *py_type) {

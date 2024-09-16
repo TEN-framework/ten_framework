@@ -11,6 +11,7 @@
 #include "include_internal/ten_utils/macro/check.h"
 #include "memoryobject.h"
 #include "ten_runtime/msg/video_frame/video_frame.h"
+#include "ten_utils/macro/mark.h"
 
 static ten_py_video_frame_t *ten_py_video_frame_create_internal(
     PyTypeObject *py_type) {

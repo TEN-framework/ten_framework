@@ -22,6 +22,7 @@
 #include "ten_runtime/ten_env/ten_env.h"
 #include "ten_runtime/ten_env_proxy/ten_env_proxy.h"
 #include "ten_utils/lib/smart_ptr.h"
+#include "ten_utils/macro/mark.h"
 
 static bool ten_py_extension_check_integrity(ten_py_extension_t *self,
                                              bool check_thread) {
