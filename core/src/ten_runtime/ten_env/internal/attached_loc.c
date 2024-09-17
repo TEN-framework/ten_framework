@@ -10,9 +10,10 @@
 #include "ten_runtime/ten_env/ten_env.h"
 #include "ten_utils/lib/string.h"
 
-const char *ten_env_get_attached_instance_name(ten_env_t *self) {
-  // =-=-= 改成 true
-  TEN_ASSERT(self && ten_env_check_integrity(self, false), "Invalid argument.");
+const char *ten_env_get_attached_instance_name(ten_env_t *self,
+                                               bool check_thread) {
+  TEN_ASSERT(self && ten_env_check_integrity(self, check_thread),
+             "Invalid argument.");
 
   switch (self->attach_to) {
     case TEN_ENV_ATTACH_TO_EXTENSION:

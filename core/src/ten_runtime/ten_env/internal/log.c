@@ -10,17 +10,17 @@
 #include "ten_runtime/ten_env/ten_env.h"
 #include "ten_utils/lib/string.h"
 
-// =-=-=
-void ten_env_log_without_check_thread(ten_env_t *self, TEN_LOG_LEVEL level,
-                                      const char *func_name,
-                                      const char *file_name, size_t line_no,
-                                      const char *msg) {
-  TEN_ASSERT(self && ten_env_check_integrity(self, false),
+static void ten_env_log_internal(ten_env_t *self, TEN_LOG_LEVEL level,
+                                 const char *func_name, const char *file_name,
+                                 size_t line_no, const char *msg,
+                                 bool check_thread) {
+  TEN_ASSERT(self && ten_env_check_integrity(self, check_thread),
              "Should not happen.");
 
   ten_string_t final_msg;
-  ten_string_init_formatted(&final_msg, "[%s] %s",
-                            ten_env_get_attached_instance_name(self), msg);
+  ten_string_init_formatted(
+      &final_msg, "[%s] %s",
+      ten_env_get_attached_instance_name(self, check_thread), msg);
 
   ten_log_log(&ten_global_log, level, func_name, file_name, line_no,
               ten_string_get_raw_str(&final_msg));
@@ -28,18 +28,21 @@ void ten_env_log_without_check_thread(ten_env_t *self, TEN_LOG_LEVEL level,
   ten_string_deinit(&final_msg);
 }
 
+// TODO(Wei): This function is currently specifically designed for the addon
+// because the addon currently does not have a main thread, so it's unable to
+// check thread safety. Once the main thread for the addon is determined in the
+// future, these hacks made specifically for the addon can be completely
+// removed, and comprehensive thread safety checking can be implemented.
+void ten_env_log_without_check_thread(ten_env_t *self, TEN_LOG_LEVEL level,
+                                      const char *func_name,
+                                      const char *file_name, size_t line_no,
+                                      const char *msg) {
+  ten_env_log_internal(self, level, func_name, file_name, line_no, msg, false);
+}
+
 void ten_env_log(ten_env_t *self, TEN_LOG_LEVEL level, const char *func_name,
                  const char *file_name, size_t line_no, const char *msg) {
-  TEN_ASSERT(self && ten_env_check_integrity(self, true), "Should not happen.");
-
-  ten_string_t final_msg;
-  ten_string_init_formatted(&final_msg, "[%s] %s",
-                            ten_env_get_attached_instance_name(self), msg);
-
-  ten_log_log(&ten_global_log, level, func_name, file_name, line_no,
-              ten_string_get_raw_str(&final_msg));
-
-  ten_string_deinit(&final_msg);
+  ten_env_log_internal(self, level, func_name, file_name, line_no, msg, true);
 }
 
 void ten_env_log_with_size_formatted(ten_env_t *self, TEN_LOG_LEVEL level,
@@ -52,7 +55,7 @@ void ten_env_log_with_size_formatted(ten_env_t *self, TEN_LOG_LEVEL level,
 
   ten_string_t final_msg;
   ten_string_init_formatted(&final_msg, "[%s] ",
-                            ten_env_get_attached_instance_name(self));
+                            ten_env_get_attached_instance_name(self, true));
 
   va_list ap;
   va_start(ap, fmt);

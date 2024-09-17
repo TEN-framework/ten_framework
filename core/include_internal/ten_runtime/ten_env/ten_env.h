@@ -104,7 +104,7 @@ TEN_RUNTIME_PRIVATE_API void ten_env_set_attach_to(
     ten_env_t *self, TEN_ENV_ATTACH_TO attach_to_type, void *attach_to);
 
 TEN_RUNTIME_PRIVATE_API const char *ten_env_get_attached_instance_name(
-    ten_env_t *self);
+    ten_env_t *self, bool check_thread);
 
 inline ten_extension_t *ten_env_get_attached_extension(ten_env_t *self) {
   TEN_ASSERT(self, "Invalid argument.");
