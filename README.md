@@ -1,5 +1,7 @@
 # TEN Framework
 
+<div align="center">
+
 [![Follow on X](https://img.shields.io/twitter/follow/TenFramework?logo=X&color=%20%23f5f5f5)](https://twitter.com/intent/follow?screen_name=TenFramework)
 [![Discussion posts](https://img.shields.io/github/discussions/TEN-framework/ten_framework?labelColor=%20%23FDB062&color=%20%23f79009)](https://github.com/TEN-framework/ten_framework/discussions/)
 [![Commits](https://img.shields.io/github/commit-activity/m/TEN-framework/ten_framework?labelColor=%20%237d89b0&color=%20%235d6b98)](https://github.com/TEN-framework/ten_framework/graphs/commit-activity)
@@ -12,6 +14,8 @@
 [![GitHub watchers](https://img.shields.io/github/watchers/TEN-framework/ten_framework?style=social&label=Watch)](https://GitHub.com/TEN-framework/ten_framework/watchers/?WT.mc_id=academic-105485-koreyst)
 [![GitHub forks](https://img.shields.io/github/forks/TEN-framework/ten_framework?style=social&label=Fork)](https://GitHub.com/TEN-framework/ten_framework/network/?WT.mc_id=academic-105485-koreyst)
 [![GitHub stars](https://img.shields.io/github/stars/TEN-framework/ten_framework?style=social&label=Star)](https://GitHub.com/TEN-framework/ten_framework/stargazers/?WT.mc_id=academic-105485-koreyst)
+
+</div>
 
 **TEN** stands for **Transformative Extensions Network** and represents the Next-Gen AI-Agent Framework, the world's first truly real-time multimodal AI agent framework.
 
