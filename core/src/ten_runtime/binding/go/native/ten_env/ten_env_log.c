@@ -124,9 +124,8 @@ void ten_go_ten_env_log(uintptr_t bridge_addr, int level, const void *func_name,
                               false, &err)) {
       goto done;
     }
+    ten_event_wait(info->completed, -1);
   }
-
-  ten_event_wait(info->completed, -1);
 
 done:
   ten_error_deinit(&err);

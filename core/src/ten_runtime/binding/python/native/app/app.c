@@ -118,7 +118,7 @@ static PyObject *ten_py_app_create(PyTypeObject *type, PyObject *args,
     return ten_py_raise_py_type_error_exception("Expect 0 argument.");
   }
 
-  py_app->c_app = ten_app_create(proxy_on_init, proxy_on_deinit, NULL);
+  py_app->c_app = ten_app_create(NULL, proxy_on_init, proxy_on_deinit, NULL);
   if (!py_app->c_app) {
     TEN_ASSERT(0, "Failed to create TEN app.");
 

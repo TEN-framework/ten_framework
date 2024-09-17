@@ -103,16 +103,12 @@ static void proxy_on_init(ten_extension_t *extension, ten_env_t *ten_env) {
       py_extension && ten_py_extension_check_integrity(py_extension, true),
       "Invalid argument.");
 
-  ten_py_ten_env_t *py_ten_env = ten_py_ten_wrap(ten_env);
-  py_extension->py_ten_env = (PyObject *)py_ten_env;
+  PyObject *py_ten_env = py_extension->py_ten_env;
+  TEN_ASSERT(py_ten_env, "Should not happen.");
 
-  py_ten_env->c_ten_env_proxy = ten_env_proxy_create(ten_env, 1, NULL);
-  TEN_ASSERT(py_ten_env->c_ten_env_proxy &&
-                 ten_env_proxy_check_integrity(py_ten_env->c_ten_env_proxy),
-             "Invalid argument.");
-
-  PyObject *py_res = PyObject_CallMethod((PyObject *)py_extension, "on_init",
-                                         "O", py_ten_env->actual_py_ten_env);
+  PyObject *py_res =
+      PyObject_CallMethod((PyObject *)py_extension, "on_init", "O",
+                          ((ten_py_ten_env_t *)py_ten_env)->actual_py_ten_env);
   Py_XDECREF(py_res);
 
   bool err_occurred = ten_py_check_and_clear_py_error();
