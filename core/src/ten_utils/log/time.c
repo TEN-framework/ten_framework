@@ -38,13 +38,13 @@ void ten_log_get_time(struct tm *time_info, size_t *msec) {
 #if defined(OS_WINDOWS)
   SYSTEMTIME st;
   GetLocalTime(&st);
-  tm->tm_year = st.wYear;
-  tm->tm_mon = st.wMonth - 1;
-  tm->tm_mday = st.wDay;
-  tm->tm_wday = st.wDayOfWeek;
-  tm->tm_hour = st.wHour;
-  tm->tm_min = st.wMinute;
-  tm->tm_sec = st.wSecond;
+  time_info->tm_year = st.wYear;
+  time_info->tm_mon = st.wMonth - 1;
+  time_info->tm_mday = st.wDay;
+  time_info->tm_wday = st.wDayOfWeek;
+  time_info->tm_hour = st.wHour;
+  time_info->tm_min = st.wMinute;
+  time_info->tm_sec = st.wSecond;
   *msec = st.wMilliseconds;
 #else
   struct timeval tv;
