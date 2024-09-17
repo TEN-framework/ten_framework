@@ -352,7 +352,7 @@ ten_go_status_t ten_go_ten_env_set_property_json_bytes(uintptr_t bridge_addr,
 ten_go_status_t ten_go_ten_env_init_property_from_json_bytes(
     uintptr_t bridge_addr, const void *json_str, int json_str_len);
 
-ten_go_status_t ten_go_ten_env_log(uintptr_t bridge_addr, int level,
-                                   const void *func_name, int func_name_len,
-                                   const void *file_name, int file_name_len,
-                                   int line_no, const void *msg, int msg_len);
+void ten_go_ten_env_log(uintptr_t bridge_addr, int level, const void *func_name,
+                        int func_name_len, const void *file_name,
+                        int file_name_len, int line_no, const void *msg,
+                        int msg_len);

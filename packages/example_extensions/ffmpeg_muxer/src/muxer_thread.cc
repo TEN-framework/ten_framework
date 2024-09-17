@@ -8,13 +8,13 @@
 #include <list>
 #include <utility>
 
-#include "include_internal/ten_utils/log/log.h"
 #include "muxer.h"
 #include "ten_runtime/binding/cpp/ten.h"
 #include "ten_utils/lib/event.h"
 #include "ten_utils/lib/mutex.h"
 #include "ten_utils/lib/thread.h"
 #include "ten_utils/lib/time.h"
+#include "ten_utils/log/log.h"
 
 namespace ten {
 namespace ffmpeg_extension {

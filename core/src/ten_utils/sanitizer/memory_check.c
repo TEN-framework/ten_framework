@@ -14,12 +14,12 @@
 #include <stdlib.h>
 
 #include "include_internal/ten_utils/log/log.h"
-#include "ten_utils/macro/check.h"
 #include "include_internal/ten_utils/sanitizer/memory_check.h"
 #include "ten_utils/container/list.h"
 #include "ten_utils/lib/alloc.h"
 #include "ten_utils/lib/mutex.h"
 #include "ten_utils/lib/string.h"
+#include "ten_utils/macro/check.h"
 #include "ten_utils/macro/mark.h"
 
 static ten_sanitizer_memory_records_t g_memory_records = {NULL,

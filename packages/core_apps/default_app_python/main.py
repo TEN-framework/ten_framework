@@ -9,11 +9,11 @@ from ten import App, TenEnv, LogLevel
 class DefaultApp(App):
 
     def on_init(self, ten_env: TenEnv):
-        ten_env.log(LogLevel.DEBUG, "app on_init")
+        ten_env.log_debug("on_init")
         ten_env.on_init_done()
 
     def on_deinit(self, ten_env: TenEnv) -> None:
-        print("app on_deinit")
+        ten_env.log_debug("on_deinit")
         ten_env.on_deinit_done()
 
 

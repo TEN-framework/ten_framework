@@ -13,100 +13,76 @@
 
 #include "ten_utils/lib/signature.h"
 
-#define TEN_LOGV(...)                                                         \
-  do {                                                                        \
-    if (ten_global_log.output_level <= TEN_LOG_LEVEL_VERBOSE) {               \
-      ten_log_log_formatted(&ten_global_log, TEN_LOG_LEVEL_VERBOSE, __func__, \
-                            __FILE__, __LINE__, __VA_ARGS__);                 \
-    }                                                                         \
-  } while (0)
-
-#define TEN_LOGD(...)                                                       \
+#define TEN_LOGV(...)                                                       \
   do {                                                                      \
-    if (ten_global_log.output_level <= TEN_LOG_LEVEL_DEBUG) {               \
-      ten_log_log_formatted(&ten_global_log, TEN_LOG_LEVEL_DEBUG, __func__, \
-                            __FILE__, __LINE__, __VA_ARGS__);               \
-    }                                                                       \
+    ten_log_log_formatted(&ten_global_log, TEN_LOG_LEVEL_VERBOSE, __func__, \
+                          __FILE__, __LINE__, __VA_ARGS__);                 \
   } while (0)
 
-#define TEN_LOGI(...)                                                      \
-  do {                                                                     \
-    if (ten_global_log.output_level <= TEN_LOG_LEVEL_INFO) {               \
-      ten_log_log_formatted(&ten_global_log, TEN_LOG_LEVEL_INFO, __func__, \
-                            __FILE__, __LINE__, __VA_ARGS__);              \
-    }                                                                      \
-  } while (0)
-
-#define TEN_LOGW(...)                                                      \
-  do {                                                                     \
-    if (ten_global_log.output_level <= TEN_LOG_LEVEL_WARN) {               \
-      ten_log_log_formatted(&ten_global_log, TEN_LOG_LEVEL_WARN, __func__, \
-                            __FILE__, __LINE__, __VA_ARGS__);              \
-    }                                                                      \
-  } while (0)
-
-#define TEN_LOGE(...)                                                       \
-  do {                                                                      \
-    if (ten_global_log.output_level <= TEN_LOG_LEVEL_ERROR) {               \
-      ten_log_log_formatted(&ten_global_log, TEN_LOG_LEVEL_ERROR, __func__, \
-                            __FILE__, __LINE__, __VA_ARGS__);               \
-    }                                                                       \
-  } while (0)
-
-#define TEN_LOGF(...)                                                       \
-  do {                                                                      \
-    if (ten_global_log.output_level <= TEN_LOG_LEVEL_FATAL) {               \
-      ten_log_log_formatted(&ten_global_log, TEN_LOG_LEVEL_FATAL, __func__, \
-                            __FILE__, __LINE__, __VA_ARGS__);               \
-    }                                                                       \
-  } while (0)
-
-#define TEN_LOGV_AUX(log, ...)                                              \
-  do {                                                                      \
-    if ((log)->output_level <= TEN_LOG_LEVEL_VERBOSE) {                     \
-      ten_log_log_formatted(log, TEN_LOG_LEVEL_VERBOSE, __func__, __FILE__, \
-                            __LINE__, __VA_ARGS__);                         \
-    }                                                                       \
-  } while (0)
-
-#define TEN_LOGD_AUX(log, ...)                                            \
+#define TEN_LOGD(...)                                                     \
   do {                                                                    \
-    if ((log)->output_level <= TEN_LOG_LEVEL_DEBUG) {                     \
-      ten_log_log_formatted(log, TEN_LOG_LEVEL_DEBUG, __func__, __FILE__, \
-                            __LINE__, __VA_ARGS__);                       \
-    }                                                                     \
+    ten_log_log_formatted(&ten_global_log, TEN_LOG_LEVEL_DEBUG, __func__, \
+                          __FILE__, __LINE__, __VA_ARGS__);               \
   } while (0)
 
-#define TEN_LOGI_AUX(log, ...)                                           \
+#define TEN_LOGI(...)                                                    \
   do {                                                                   \
-    if ((log)->output_level <= TEN_LOG_LEVEL_INFO) {                     \
-      ten_log_log_formatted(log, TEN_LOG_LEVEL_INFO, __func__, __FILE__, \
-                            __LINE__, __VA_ARGS__);                      \
-    }                                                                    \
+    ten_log_log_formatted(&ten_global_log, TEN_LOG_LEVEL_INFO, __func__, \
+                          __FILE__, __LINE__, __VA_ARGS__);              \
   } while (0)
 
-#define TEN_LOGW_AUX(log, ...)                                           \
+#define TEN_LOGW(...)                                                    \
   do {                                                                   \
-    if ((log)->output_level <= TEN_LOG_LEVEL_WARN) {                     \
-      ten_log_log_formatted(log, TEN_LOG_LEVEL_WARN, __func__, __FILE__, \
-                            __LINE__, __VA_ARGS__);                      \
-    }                                                                    \
+    ten_log_log_formatted(&ten_global_log, TEN_LOG_LEVEL_WARN, __func__, \
+                          __FILE__, __LINE__, __VA_ARGS__);              \
   } while (0)
 
-#define TEN_LOGE_AUX(log, ...)                                            \
+#define TEN_LOGE(...)                                                     \
   do {                                                                    \
-    if ((log)->output_level <= TEN_LOG_LEVEL_ERROR) {                     \
-      ten_log_log_formatted(log, TEN_LOG_LEVEL_ERROR, __func__, __FILE__, \
-                            __LINE__, __VA_ARGS__);                       \
-    }                                                                     \
+    ten_log_log_formatted(&ten_global_log, TEN_LOG_LEVEL_ERROR, __func__, \
+                          __FILE__, __LINE__, __VA_ARGS__);               \
   } while (0)
 
-#define TEN_LOGF_AUX(log, ...)                                            \
+#define TEN_LOGF(...)                                                     \
   do {                                                                    \
-    if ((log)->output_level <= TEN_LOG_LEVEL_FATAL) {                     \
-      ten_log_log_formatted(log, TEN_LOG_LEVEL_FATAL, __func__, __FILE__, \
-                            __LINE__, __VA_ARGS__);                       \
-    }                                                                     \
+    ten_log_log_formatted(&ten_global_log, TEN_LOG_LEVEL_FATAL, __func__, \
+                          __FILE__, __LINE__, __VA_ARGS__);               \
+  } while (0)
+
+#define TEN_LOGV_AUX(log, ...)                                            \
+  do {                                                                    \
+    ten_log_log_formatted(log, TEN_LOG_LEVEL_VERBOSE, __func__, __FILE__, \
+                          __LINE__, __VA_ARGS__);                         \
+  } while (0)
+
+#define TEN_LOGD_AUX(log, ...)                                          \
+  do {                                                                  \
+    ten_log_log_formatted(log, TEN_LOG_LEVEL_DEBUG, __func__, __FILE__, \
+                          __LINE__, __VA_ARGS__);                       \
+  } while (0)
+
+#define TEN_LOGI_AUX(log, ...)                                         \
+  do {                                                                 \
+    ten_log_log_formatted(log, TEN_LOG_LEVEL_INFO, __func__, __FILE__, \
+                          __LINE__, __VA_ARGS__);                      \
+  } while (0)
+
+#define TEN_LOGW_AUX(log, ...)                                         \
+  do {                                                                 \
+    ten_log_log_formatted(log, TEN_LOG_LEVEL_WARN, __func__, __FILE__, \
+                          __LINE__, __VA_ARGS__);                      \
+  } while (0)
+
+#define TEN_LOGE_AUX(log, ...)                                          \
+  do {                                                                  \
+    ten_log_log_formatted(log, TEN_LOG_LEVEL_ERROR, __func__, __FILE__, \
+                          __LINE__, __VA_ARGS__);                       \
+  } while (0)
+
+#define TEN_LOGF_AUX(log, ...)                                          \
+  do {                                                                  \
+    ten_log_log_formatted(log, TEN_LOG_LEVEL_FATAL, __func__, __FILE__, \
+                          __LINE__, __VA_ARGS__);                       \
   } while (0)
 
 typedef enum TEN_LOG_LEVEL {

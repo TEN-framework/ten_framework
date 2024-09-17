@@ -8,7 +8,7 @@
 #include "include_internal/ten_runtime/binding/python/common/error.h"
 #include "include_internal/ten_runtime/binding/python/ten_env/ten_env.h"
 #include "include_internal/ten_runtime/ten_env/log.h"
-#include "include_internal/ten_utils/log/log.h"
+#include "ten_runtime/ten_env/internal/log.h"
 #include "ten_utils/macro/check.h"
 #include "ten_utils/macro/memory.h"
 
@@ -75,7 +75,7 @@ PyObject *ten_py_ten_env_log(PyObject *self, PyObject *args) {
   const char *file_name = NULL;
   size_t line_no = 0;
   const char *msg = NULL;
-  if (!PyArg_ParseTuple(args, "issis", &level, &func_name, &file_name, &line_no,
+  if (!PyArg_ParseTuple(args, "izzis", &level, &func_name, &file_name, &line_no,
                         &msg)) {
     return ten_py_raise_py_value_error_exception(
         "Failed to parse argument when ten_env.log.");
@@ -87,14 +87,21 @@ PyObject *ten_py_ten_env_log(PyObject *self, PyObject *args) {
   ten_env_notify_log_info_t *info =
       ten_env_notify_log_info_create(level, func_name, file_name, line_no, msg);
 
-  if (!ten_env_proxy_notify(py_ten->c_ten_env_proxy, ten_env_notify_log, info,
-                            false, &err)) {
-    goto done;
-  }
+  if (py_ten->c_ten_env->attach_to == TEN_ENV_ATTACH_TO_ADDON) {
+    // =-=-= add comments
+    ten_env_log_without_check_thread(py_ten->c_ten_env, info->level,
+                                     info->func_name, info->file_name,
+                                     info->line_no, info->msg);
+  } else {
+    if (!ten_env_proxy_notify(py_ten->c_ten_env_proxy, ten_env_notify_log, info,
+                              false, &err)) {
+      goto done;
+    }
 
-  PyThreadState *saved_py_thread_state = PyEval_SaveThread();
-  ten_event_wait(info->completed, -1);
-  PyEval_RestoreThread(saved_py_thread_state);
+    PyThreadState *saved_py_thread_state = PyEval_SaveThread();
+    ten_event_wait(info->completed, -1);
+    PyEval_RestoreThread(saved_py_thread_state);
+  }
 
 done:
   ten_error_deinit(&err);

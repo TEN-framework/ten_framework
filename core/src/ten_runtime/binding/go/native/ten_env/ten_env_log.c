@@ -7,14 +7,14 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "include_internal/ten_runtime/binding/go/internal/common.h"
 #include "include_internal/ten_runtime/binding/go/ten_env/ten_env.h"
 #include "include_internal/ten_runtime/binding/go/ten_env/ten_env_internal.h"
 #include "include_internal/ten_runtime/ten_env/log.h"
-#include "ten_utils/macro/check.h"
 #include "ten_runtime/binding/go/interface/ten/common.h"
 #include "ten_runtime/binding/go/interface/ten/ten_env.h"
+#include "ten_runtime/ten_env/internal/log.h"
 #include "ten_utils/lib/error.h"
+#include "ten_utils/macro/check.h"
 #include "ten_utils/macro/memory.h"
 
 typedef struct ten_env_notify_log_info_t {
@@ -74,10 +74,10 @@ static void ten_env_notify_log(ten_env_t *ten_env, void *user_data) {
   ten_event_set(info->completed);
 }
 
-ten_go_status_t ten_go_ten_env_log(uintptr_t bridge_addr, int level,
-                                   const void *func_name, int func_name_len,
-                                   const void *file_name, int file_name_len,
-                                   int line_no, const void *msg, int msg_len) {
+void ten_go_ten_env_log(uintptr_t bridge_addr, int level, const void *func_name,
+                        int func_name_len, const void *file_name,
+                        int file_name_len, int line_no, const void *msg,
+                        int msg_len) {
   ten_go_ten_env_t *self = ten_go_ten_env_reinterpret(bridge_addr);
   TEN_ASSERT(self && ten_go_ten_env_check_integrity(self),
              "Should not happen.");
@@ -104,15 +104,11 @@ ten_go_status_t ten_go_ten_env_log(uintptr_t bridge_addr, int level,
       level, func_name_value, func_name_len, file_name_value, file_name_len,
       line_no, msg_value, msg_len);
 
-  ten_go_status_t status;
-  ten_go_status_init_with_errno(&status, TEN_ERRNO_OK);
-
   ten_error_t err;
   ten_error_init(&err);
 
   if (!ten_env_proxy_notify(self->c_ten_env_proxy, ten_env_notify_log, info,
                             false, &err)) {
-    ten_go_status_from_error(&status, &err);
     goto done;
   }
 
@@ -121,6 +117,4 @@ ten_go_status_t ten_go_ten_env_log(uintptr_t bridge_addr, int level,
 done:
   ten_error_deinit(&err);
   ten_env_notify_log_info_destroy(info);
-
-  return status;
 }

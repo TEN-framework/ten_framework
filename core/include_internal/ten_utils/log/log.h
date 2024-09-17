@@ -35,7 +35,7 @@ TEN_UTILS_API void ten_log_log_with_size_from_va_list(
     size_t func_name_len, const char *file_name, size_t file_name_len,
     size_t line_no, const char *fmt, va_list ap);
 
-TEN_UTILS_API void ten_log_log_from_va_list(
+TEN_UTILS_PRIVATE_API void ten_log_log_from_va_list(
     ten_log_t *self, TEN_LOG_LEVEL level, const char *func_name,
     const char *file_name, size_t line_no, const char *fmt, va_list ap);
 
@@ -43,10 +43,12 @@ TEN_UTILS_API void ten_log_log(ten_log_t *self, TEN_LOG_LEVEL level,
                                const char *func_name, const char *file_name,
                                size_t line_no, const char *msg);
 
-TEN_UTILS_PRIVATE_API void ten_log_log_with_size(
-    ten_log_t *self, TEN_LOG_LEVEL level, const char *func_name,
-    size_t func_name_len, const char *file_name, size_t file_name_len,
-    size_t line_no, const char *msg, size_t msg_len);
+TEN_UTILS_API void ten_log_log_with_size(ten_log_t *self, TEN_LOG_LEVEL level,
+                                         const char *func_name,
+                                         size_t func_name_len,
+                                         const char *file_name,
+                                         size_t file_name_len, size_t line_no,
+                                         const char *msg, size_t msg_len);
 
 TEN_UTILS_API void ten_log_global_init(void);
 

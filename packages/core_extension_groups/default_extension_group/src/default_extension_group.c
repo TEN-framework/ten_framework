@@ -11,13 +11,14 @@
 #include "include_internal/ten_runtime/extension_group/extension_group.h"
 #include "include_internal/ten_runtime/ten_env/metadata.h"
 #include "include_internal/ten_runtime/ten_env/ten_env.h"
-#include "include_internal/ten_utils/log/log.h"
-#include "ten_utils/macro/check.h"
 #include "ten_runtime/addon/extension_group/extension_group.h"
 #include "ten_runtime/extension_group/extension_group.h"
 #include "ten_runtime/ten.h"
+#include "ten_runtime/ten_env/internal/log.h"
 #include "ten_runtime/ten_env/ten_env.h"
 #include "ten_utils/container/list_ptr.h"
+#include "ten_utils/log/log.h"
+#include "ten_utils/macro/check.h"
 #include "ten_utils/macro/mark.h"
 
 static void on_addon_create_instance_done(ten_env_t *ten_env,

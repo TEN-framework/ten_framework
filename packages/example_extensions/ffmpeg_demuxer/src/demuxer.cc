@@ -14,12 +14,12 @@
 #include <ctime>
 #include <memory>
 
-#include "ten_utils/macro/check.h"
 #include "libavcodec/packet.h"
 #include "libavutil/channel_layout.h"
 #include "libswresample/swresample.h"
 #include "ten_runtime/binding/cpp/ten.h"
 #include "ten_runtime/msg/video_frame/video_frame.h"
+#include "ten_utils/macro/check.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -46,10 +46,10 @@ extern "C" {
 #endif
 
 #include "demuxer_thread.h"
-#include "include_internal/ten_utils/log/log.h"
-#include "ten_utils/macro/check.h"
 #include "ten_runtime/binding/cpp/ten.h"
 #include "ten_utils/lib/alloc.h"
+#include "ten_utils/log/log.h"
+#include "ten_utils/macro/check.h"
 
 #define GET_FFMPEG_ERROR_MESSAGE(err_msg, errnum)                            \
   /* NOLINTNEXTLINE */                                                       \

@@ -105,6 +105,10 @@ void ten_log_log_from_va_list(ten_log_t *self, TEN_LOG_LEVEL level,
                               size_t line_no, const char *fmt, va_list ap) {
   assert(self && ten_log_check_integrity(self) && "Invalid argument.");
 
+  if (level < self->output_level) {
+    return;
+  }
+
   ten_string_t msg;
   ten_string_init_from_va_list(&msg, fmt, ap);
 
@@ -122,6 +126,10 @@ void ten_log_log_with_size_from_va_list(ten_log_t *self, TEN_LOG_LEVEL level,
                                         const char *fmt, va_list ap) {
   assert(self && ten_log_check_integrity(self) && "Invalid argument.");
 
+  if (level < self->output_level) {
+    return;
+  }
+
   ten_string_t msg;
   ten_string_init_from_va_list(&msg, fmt, ap);
 
@@ -137,6 +145,10 @@ void ten_log_log_formatted(ten_log_t *self, TEN_LOG_LEVEL level,
                            size_t line_no, const char *fmt, ...) {
   assert(self && ten_log_check_integrity(self) && "Invalid argument.");
 
+  if (level < self->output_level) {
+    return;
+  }
+
   va_list ap;
   va_start(ap, fmt);
 
@@ -149,8 +161,13 @@ void ten_log_log(ten_log_t *self, TEN_LOG_LEVEL level, const char *func_name,
                  const char *file_name, size_t line_no, const char *msg) {
   assert(self && ten_log_check_integrity(self) && "Invalid argument.");
 
-  ten_log_log_with_size(self, level, func_name, strlen(func_name), file_name,
-                        strlen(file_name), line_no, msg, strlen(msg));
+  if (level < self->output_level) {
+    return;
+  }
+
+  ten_log_log_with_size(
+      self, level, func_name, func_name ? strlen(func_name) : 0, file_name,
+      file_name ? strlen(file_name) : 0, line_no, msg, msg ? strlen(msg) : 0);
 }
 
 void ten_log_log_with_size(ten_log_t *self, TEN_LOG_LEVEL level,
@@ -158,6 +175,10 @@ void ten_log_log_with_size(ten_log_t *self, TEN_LOG_LEVEL level,
                            const char *file_name, size_t file_name_len,
                            size_t line_no, const char *msg, size_t msg_len) {
   assert(self && ten_log_check_integrity(self) && "Invalid argument.");
+
+  if (level < self->output_level) {
+    return;
+  }
 
   ten_string_t buf;
   ten_string_init(&buf);

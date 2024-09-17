@@ -23,19 +23,6 @@ type (
 	ResultHandler func(TenEnv, CmdResult)
 )
 
-type LogLevel int32
-
-const (
-	logLevelInvalid LogLevel = iota
-
-	LogLevelVerbose
-	LogLevelDebug
-	LogLevelInfo
-	LogLevelWarn
-	LogLevelError
-	LogLevelFatal
-)
-
 // TenEnv represents the interface for the TEN (Run Time Environment) component.
 type TenEnv interface {
 	postSyncJob(payload job) any
@@ -90,7 +77,15 @@ type TenEnv interface {
 
 	InitPropertyFromJSONBytes(value []byte) error
 
-	Log(level LogLevel, msg string) error
+	LogVerbose(msg string)
+	LogDebug(msg string)
+	LogInfo(msg string)
+	LogWarn(msg string)
+	LogError(msg string)
+	LogFatal(msg string)
+	Log(level LogLevel, msg string)
+
+	logInternal(level LogLevel, msg string, skip int)
 }
 
 // Making a compile-time assertion which indicates that if 'ten' type doesn't
@@ -536,11 +531,38 @@ func (p *tenEnv) SetPropertyAsync(
 	return nil
 }
 
-func (p *tenEnv) Log(level LogLevel, msg string) error {
-	// Get caller info
-	pc, fileName, lineNo, ok := runtime.Caller(
-		1, // 1 means the caller of this function
-	)
+func (p *tenEnv) LogVerbose(msg string) {
+	p.logInternal(
+		LogLevelVerbose, msg, 2)
+}
+
+func (p *tenEnv) LogDebug(msg string) {
+	p.logInternal(LogLevelDebug, msg, 2)
+}
+
+func (p *tenEnv) LogInfo(msg string) {
+	p.logInternal(LogLevelInfo, msg, 2)
+}
+
+func (p *tenEnv) LogWarn(msg string) {
+	p.logInternal(LogLevelWarn, msg, 2)
+}
+
+func (p *tenEnv) LogError(msg string) {
+	p.logInternal(LogLevelError, msg, 2)
+}
+
+func (p *tenEnv) LogFatal(msg string) {
+	p.logInternal(LogLevelFatal, msg, 2)
+}
+
+func (p *tenEnv) Log(level LogLevel, msg string) {
+	p.logInternal(level, msg, 1)
+}
+
+func (p *tenEnv) logInternal(level LogLevel, msg string, skip int) {
+	// Get caller info.
+	pc, fileName, lineNo, ok := runtime.Caller(skip)
 	funcName := "unknown"
 	if ok {
 		fn := runtime.FuncForPC(pc)
@@ -569,6 +591,4 @@ func (p *tenEnv) Log(level LogLevel, msg string) error {
 		unsafe.Pointer(unsafe.StringData(msg)),
 		C.int(len(msg)),
 	)
-
-	return nil
 }
