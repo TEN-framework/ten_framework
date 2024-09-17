@@ -7,7 +7,7 @@
 
 #include "ten_utils/ten_config.h"
 
-#include "include_internal/ten_utils/log/log.h"
+#include "ten_utils/log/log.h"
 
 TEN_UTILS_PRIVATE_API char ten_log_level_char(TEN_LOG_LEVEL level);
 

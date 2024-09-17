@@ -8,7 +8,7 @@
 #include <errno.h>
 #include <fcntl.h>
 
-#include "include_internal/ten_utils/log/log.h"
+#include "ten_utils/log/log.h"
 
 static int ten_file_lock_reg(int fd, int cmd, short type, off_t offset,
                              short whence, off_t len) {

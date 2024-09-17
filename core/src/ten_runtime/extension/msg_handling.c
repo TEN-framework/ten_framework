@@ -19,8 +19,6 @@
 #include "include_internal/ten_runtime/path/path.h"
 #include "include_internal/ten_runtime/path/path_group.h"
 #include "include_internal/ten_runtime/path/path_table.h"
-#include "include_internal/ten_utils/log/log.h"
-#include "ten_utils/macro/check.h"
 #include "ten_runtime/extension/extension.h"
 #include "ten_runtime/msg/cmd_result/cmd_result.h"
 #include "ten_runtime/ten_env/internal/return.h"
@@ -28,6 +26,7 @@
 #include "ten_utils/container/list_ptr.h"
 #include "ten_utils/lib/error.h"
 #include "ten_utils/lib/smart_ptr.h"
+#include "ten_utils/macro/check.h"
 
 static void ten_extension_cache_cmd_result_to_in_path_for_auto_return(
     ten_extension_t *extension, ten_shared_ptr_t *cmd) {

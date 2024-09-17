@@ -11,10 +11,9 @@
 #include "include_internal/ten_runtime/msg/cmd_base/cmd/timer/cmd.h"
 #include "include_internal/ten_runtime/msg/msg.h"
 #include "include_internal/ten_runtime/timer/timer.h"
-#include "include_internal/ten_utils/log/log.h"
-#include "ten_utils/macro/check.h"
 #include "ten_runtime/msg/cmd_result/cmd_result.h"
 #include "ten_runtime/timer/timer.h"
+#include "ten_utils/macro/check.h"
 
 static void ten_engine_timer_on_trigger(ten_timer_t *self,
                                         void *on_trigger_data) {

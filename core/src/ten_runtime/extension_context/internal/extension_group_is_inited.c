@@ -11,10 +11,9 @@
 #include "include_internal/ten_runtime/extension_group/extension_group.h"
 #include "include_internal/ten_runtime/extension_thread/extension_thread.h"
 #include "include_internal/ten_runtime/extension_thread/on_xxx.h"
-#include "include_internal/ten_utils/log/log.h"
-#include "ten_utils/macro/check.h"
 #include "ten_utils/container/list.h"
 #include "ten_utils/container/list_node_ptr.h"
+#include "ten_utils/macro/check.h"
 
 void ten_extension_context_on_all_extensions_in_extension_group_are_inited(
     void *self_, void *arg) {

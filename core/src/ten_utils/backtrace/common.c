@@ -10,7 +10,6 @@
 #include <string.h>
 
 #include "include_internal/ten_utils/backtrace/backtrace.h"
-#include "include_internal/ten_utils/log/log.h"
 #include "ten_utils/lib/alloc.h"
 #include "ten_utils/macro/mark.h"
 

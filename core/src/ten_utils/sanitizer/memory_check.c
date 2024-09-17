@@ -13,7 +13,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "include_internal/ten_utils/log/log.h"
 #include "include_internal/ten_utils/sanitizer/memory_check.h"
 #include "ten_utils/container/list.h"
 #include "ten_utils/lib/alloc.h"

@@ -14,12 +14,10 @@
 #include "include_internal/ten_runtime/engine/internal/thread.h"
 #include "include_internal/ten_runtime/msg/msg.h"
 #include "include_internal/ten_runtime/protocol/protocol.h"
-#include "include_internal/ten_utils/log/log.h"
-#include "ten_utils/macro/check.h"
-#include "ten_runtime/msg/cmd_result/cmd_result.h"
 #include "ten_utils/lib/alloc.h"
 #include "ten_utils/lib/smart_ptr.h"
 #include "ten_utils/lib/string.h"
+#include "ten_utils/macro/check.h"
 #include "ten_utils/macro/mark.h"
 #include "ten_utils/sanitizer/thread_check.h"
 

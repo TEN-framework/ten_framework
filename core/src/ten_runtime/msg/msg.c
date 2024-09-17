@@ -22,8 +22,6 @@
 #include "include_internal/ten_runtime/msg/field/field_info.h"
 #include "include_internal/ten_runtime/msg/msg_info.h"
 #include "include_internal/ten_runtime/schema_store/msg.h"
-#include "include_internal/ten_utils/log/log.h"
-#include "ten_utils/macro/check.h"
 #include "include_internal/ten_utils/value/value_path.h"
 #include "ten_runtime/app/app.h"
 #include "ten_runtime/common/errno.h"
@@ -39,6 +37,7 @@
 #include "ten_utils/lib/json.h"
 #include "ten_utils/lib/smart_ptr.h"
 #include "ten_utils/lib/string.h"
+#include "ten_utils/macro/check.h"
 #include "ten_utils/macro/memory.h"
 #include "ten_utils/value/value.h"
 

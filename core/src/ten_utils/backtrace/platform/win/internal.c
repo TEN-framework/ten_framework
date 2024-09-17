@@ -16,7 +16,6 @@
 
 #include "include_internal/ten_utils/backtrace/backtrace.h"
 #include "include_internal/ten_utils/backtrace/common.h"
-#include "include_internal/ten_utils/log/log.h"
 #include "ten_utils/lib/alloc.h"
 #include "ten_utils/macro/memory.h"
 

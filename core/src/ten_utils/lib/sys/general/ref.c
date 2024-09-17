@@ -5,11 +5,10 @@
 //
 #include "ten_utils/lib/ref.h"
 
-#include "include_internal/ten_utils/log/log.h"
-#include "ten_utils/macro/check.h"
 #include "ten_utils/lib/alloc.h"
 #include "ten_utils/lib/atomic.h"
 #include "ten_utils/lib/signature.h"
+#include "ten_utils/macro/check.h"
 
 static bool ten_ref_check_integrity(ten_ref_t *self,
                                     bool has_positive_ref_cnt) {

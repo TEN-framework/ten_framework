@@ -15,11 +15,10 @@
 #include <unistd.h>
 #endif
 
-#include "include_internal/ten_utils/log/log.h"
-#include "ten_utils/macro/check.h"
 #include "ten_utils/lib/alloc.h"
 #include "ten_utils/lib/thread_local.h"
 #include "ten_utils/lib/thread_once.h"
+#include "ten_utils/macro/check.h"
 
 static ten_thread_once_t __tcb_once = TEN_THREAD_ONCE_INIT;
 static ten_thread_key_t __tcb = kInvalidTlsKey;

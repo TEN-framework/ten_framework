@@ -8,7 +8,6 @@
 
 #include "gtest/gtest.h"
 #include "include_internal/ten_runtime/binding/cpp/ten.h"
-#include "include_internal/ten_utils/log/log.h"
 #include "ten_utils/lib/thread.h"
 #include "ten_utils/lib/time.h"
 #include "tests/common/client/cpp/msgpack_tcp.h"

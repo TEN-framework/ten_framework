@@ -7,7 +7,6 @@
 
 #include "ten_runtime/ten_config.h"
 
-#include "include_internal/ten_utils/log/log.h"
 #include "ten_utils/container/list.h"
 #include "ten_utils/io/runloop.h"
 #include "ten_utils/lib/error.h"

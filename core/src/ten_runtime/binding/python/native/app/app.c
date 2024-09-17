@@ -11,7 +11,6 @@
 #include "include_internal/ten_runtime/binding/python/ten_env/ten_env.h"
 #include "include_internal/ten_runtime/extension/extension.h"
 #include "include_internal/ten_runtime/metadata/metadata_info.h"
-#include "include_internal/ten_utils/log/log.h"
 #include "ten_runtime/binding/common.h"
 #include "ten_runtime/binding/python/common.h"
 #include "ten_runtime/ten_env/ten_env.h"

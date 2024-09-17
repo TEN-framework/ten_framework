@@ -8,11 +8,10 @@
 #include "include_internal/ten_runtime/common/constant_str.h"
 #include "include_internal/ten_runtime/msg/cmd_base/cmd_result/cmd.h"
 #include "include_internal/ten_runtime/msg/msg.h"
-#include "include_internal/ten_utils/log/log.h"
-#include "ten_utils/macro/check.h"
 #include "ten_runtime/common/status_code.h"
 #include "ten_runtime/msg/cmd_result/cmd_result.h"
 #include "ten_utils/lib/json.h"
+#include "ten_utils/macro/check.h"
 #include "ten_utils/macro/mark.h"
 
 bool ten_cmd_result_put_status_code_to_json(ten_msg_t *self, ten_json_t *json,
