@@ -1,6 +1,8 @@
 //
-// This file is part of the TEN Framework project.
-// See https://github.com/TEN-framework/ten_framework/LICENSE for license
+// Copyright © 2024 Agora
+// This file is part of TEN Framework, an open source project.
+// Licensed under the Apache License, Version 2.0, with certain conditions.
+// Refer to https://github.com/TEN-framework/ten_framework/LICENSE for more
 // information.
 //
 use std::fs::{self, File};
@@ -10,9 +12,7 @@ use std::path::Path;
 use anyhow::Result;
 use zip::ZipArchive;
 
-use crate::install::installed_paths::{
-    sort_installed_paths, InstalledPaths,
-};
+use crate::install::installed_paths::{sort_installed_paths, InstalledPaths};
 use crate::install::template::extract_and_process_zip_template_part;
 
 fn extract_and_process_zip_normal_part(

@@ -1,6 +1,8 @@
 //
-// This file is part of the TEN Framework project.
-// See https://github.com/TEN-framework/ten_framework/LICENSE for license
+// Copyright © 2024 Agora
+// This file is part of TEN Framework, an open source project.
+// Licensed under the Apache License, Version 2.0, with certain conditions.
+// Refer to https://github.com/TEN-framework/ten_framework/LICENSE for more
 // information.
 //
 use std::{
@@ -360,7 +362,9 @@ mod tests {
     use serde_json::json;
 
     use super::*;
-    use crate::{config::TmanConfig, dev_server::mock::tests::inject_all_pkgs_for_mock};
+    use crate::{
+        config::TmanConfig, dev_server::mock::tests::inject_all_pkgs_for_mock,
+    };
     use ten_rust::pkg_info::default_app_loc;
 
     #[actix_web::test]
