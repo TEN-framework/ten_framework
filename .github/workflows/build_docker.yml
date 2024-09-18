@@ -3,10 +3,10 @@ name: Build - docker
 on:
   push:
     branches:
-    - '**'
+      - "**"
     paths:
-    - 'tools/docker_for_building/**'
-    - '.github/workflows/build_docker.yml'
+      - "tools/docker_for_building/**"
+      - ".github/workflows/build_docker.yml"
 
 env:
   IMAGE_NAME_PREFIX: ten_building_
@@ -22,15 +22,16 @@ jobs:
             workdir: "tools/docker_for_building/ubuntu/18.04"
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-    - name: Build & Publish to Github Container Registry
-      uses: elgohr/Publish-Docker-Github-Action@v5
-      with:
-        name: ${{ github.repository_owner }}/${{ env.IMAGE_NAME_PREFIX }}${{ matrix.image_name }}
-        username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
-        registry: ghcr.io
-        workdir: ${{ matrix.workdir }}
-        snapshot: true
-        tags: "${{ github.ref == 'refs/heads/main' && 'latest,' || '' }}"
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build & Publish to Github Container Registry
+        uses: elgohr/Publish-Docker-Github-Action@v5
+        with:
+          name: ${{ github.repository_owner }}/${{ env.IMAGE_NAME_PREFIX }}${{ matrix.image_name }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+          registry: ghcr.io
+          workdir: ${{ matrix.workdir }}
+          snapshot: true
+          tags: "${{ github.ref == 'refs/heads/main' && 'latest,' || '' }}"

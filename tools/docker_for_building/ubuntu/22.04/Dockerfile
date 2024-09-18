@@ -54,7 +54,7 @@ RUN apt-get clean && apt-get update && apt-get install -y --no-install-recommend
   python3-pip \
   python3-venv
 
-# =======================
+# =======================================
 # Installing Python deps
 
 RUN pip3 install --upgrade setuptools pip && \
@@ -63,7 +63,7 @@ RUN pip3 install --upgrade setuptools pip && \
   ln -sf /usr/bin/python3.10-config /usr/bin/python3-config && \
   ln -sf /usr/bin/python3 /usr/bin/python
 
-# =======================
+# =======================================
 # Installing clang18
 
 RUN wget --no-check-certificate -O - https://apt.llvm.org/llvm-snapshot.gpg.key | apt-key add - && \
@@ -89,7 +89,7 @@ RUN wget --no-check-certificate -O - https://apt.llvm.org/llvm-snapshot.gpg.key 
   ln -sf $(clang -print-file-name=libc++.a) /usr/lib/llvm-18/lib/x86_64-pc-linux-gnu && \
   ln -sf $(clang -print-file-name=libclang_rt.asan.so) $(dirname $(clang -print-file-name=libclang_rt.asan.so))/libclang_rt.asan-x86_64.so
 
-# ==============
+# =======================================
 # Install golang
 
 # /root/go is GOPATH.
@@ -101,8 +101,9 @@ RUN curl -OL https://go.dev/dl/go1.22.3.linux-amd64.tar.gz && \
   rm -rf /usr/local/go && tar -C /usr/local -xvf go1.22.3.linux-amd64.tar.gz && rm go1.22.3.linux-amd64.tar.gz && \
   go install golang.org/dl/go1.20.12@latest && go1.20.12 download
 
-# =======================
+# =======================================
 # Install cargo for rust.
+
 RUN curl https://sh.rustup.rs -sSf | sh -s -- -y && \
   /root/.cargo/bin/rustup install nightly && \
   /root/.cargo/bin/rustup default nightly && \
@@ -110,5 +111,7 @@ RUN curl https://sh.rustup.rs -sSf | sh -s -- -y && \
 
 ENV PATH="/root/.cargo/bin:$PATH"
 
+# =======================================
 # Cleanup
+
 RUN apt-get clean && rm -rf /var/lib/apt/lists/* && rm -rf /tmp/*

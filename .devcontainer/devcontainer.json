@@ -12,7 +12,6 @@
 		"PATH": "${containerWorkspaceFolder}/core/ten_gn:${containerEnv:PATH}"
 	},
 	"postCreateCommand": "git submodule update --init"
-
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
 	// "forwardPorts": [],
 	// Configure tool-specific properties.
