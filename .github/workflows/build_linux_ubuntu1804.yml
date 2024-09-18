@@ -11,7 +11,8 @@ on:
       - "docs/**"
       - ".vscode/**"
       - ".devcontainer/**"
-      - ".github/configs/**"
+      - ".github/**"
+      - "!.github/workflows/build_linux_ubuntu1804.yml"
       - "**.md"
   pull_request:
 
