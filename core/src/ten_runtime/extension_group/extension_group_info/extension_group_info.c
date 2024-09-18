@@ -1,18 +1,19 @@
 //
-// This file is part of the TEN Framework project.
-// See https://github.com/TEN-framework/ten_framework/LICENSE for license
-// information.
+// Copyright © 2024 Agora
+// This file is part of TEN Framework, an open source project.
+// Licensed under the Apache License, Version 2.0, with certain conditions.
+// Refer to the "LICENSE" file in the root directory for more information.
 //
 #include "include_internal/ten_runtime/extension_group/extension_group_info/extension_group_info.h"
 
 #include <stdlib.h>
 
 #include "include_internal/ten_runtime/common/loc.h"
+#include "ten_utils/macro/check.h"
 #include "ten_runtime/common/errno.h"
 #include "ten_utils/lib/alloc.h"
 #include "ten_utils/lib/signature.h"
 #include "ten_utils/lib/string.h"
-#include "ten_utils/macro/check.h"
 #include "ten_utils/value/value.h"
 
 bool ten_extension_group_info_check_integrity(

@@ -1,7 +1,8 @@
 //
-// This file is part of the TEN Framework project.
-// See https://github.com/TEN-framework/ten_framework/LICENSE for license
-// information.
+// Copyright © 2024 Agora
+// This file is part of TEN Framework, an open source project.
+// Licensed under the Apache License, Version 2.0, with certain conditions.
+// Refer to the "LICENSE" file in the root directory for more information.
 //
 #include "include_internal/ten_runtime/app/metadata.h"
 
@@ -12,20 +13,21 @@
 #include "include_internal/ten_runtime/common/constant_str.h"
 #include "include_internal/ten_runtime/common/log.h"
 #include "include_internal/ten_runtime/extension/extension_info/extension_info.h"
+#include "include_internal/ten_utils/log/log.h"
+#include "include_internal/ten_utils/log/output.h"
 #include "ten_runtime/app/app.h"
 #include "ten_utils/container/list.h"
 #include "ten_utils/container/list_node_ptr.h"
 #include "ten_utils/lib/error.h"
 #include "ten_utils/lib/string.h"
-#include "ten_utils/log/log.h"
 #include "ten_utils/macro/check.h"
 #include "ten_utils/value/value.h"
 #include "ten_utils/value/value_get.h"
 #include "ten_utils/value/value_is.h"
 #include "ten_utils/value/value_kv.h"
 
-// Retrieve those property fields that are reserved for the TEN runtime under
-// the 'ten' namespace.
+// Retrieve those property fields that are reserved for the TEN runtime
+// under the 'ten' namespace.
 ten_value_t *ten_app_get_ten_namespace_properties(ten_app_t *self) {
   TEN_ASSERT(self && ten_app_check_integrity(self, true), "Should not happen.");
 
@@ -102,7 +104,7 @@ bool ten_app_init_log_level(ten_app_t *self, ten_value_t *value) {
   ten_error_t err;
   ten_error_init(&err);
 
-  ten_log_set_output_level(ten_value_get_int64(value, &err));
+  ten_log_global_set_output_level(ten_value_get_int64(value, &err));
 
   ten_error_deinit(&err);
 
@@ -120,7 +122,7 @@ bool ten_app_init_log_file(ten_app_t *self, ten_value_t *value) {
                         strlen(ten_value_peek_string(value)));
 
   if (!ten_string_is_empty(&log_file)) {
-    ten_log_set_output_to_file(ten_string_get_raw_str(&log_file));
+    ten_log_global_set_output_to_file(ten_string_get_raw_str(&log_file));
   }
 
   ten_string_deinit(&log_file);
@@ -177,7 +179,8 @@ bool ten_app_handle_ten_namespace_properties(ten_app_t *self) {
   // Set default value for app properties and global log level.
   self->one_event_loop_per_engine = false;
   self->long_running_mode = false;
-  ten_log_set_output_level(DEFAULT_LOG_LEVEL);
+
+  ten_log_global_set_output_level(DEFAULT_LOG_OUTPUT_LEVEL);
 
   if (!ten_app_determine_ten_namespace_properties(self,
                                                   ten_namespace_properties)) {
@@ -193,5 +196,5 @@ void ten_app_handle_metadata(ten_app_t *self) {
              self);
 
   // Load custom TEN app metadata.
-  ten_metadata_load(ten_app_on_init, self->ten_env);
+  ten_metadata_load(ten_app_on_configure, self->ten_env);
 }

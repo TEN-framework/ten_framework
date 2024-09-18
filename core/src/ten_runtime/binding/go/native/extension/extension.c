@@ -1,7 +1,8 @@
 //
-// This file is part of the TEN Framework project.
-// See https://github.com/TEN-framework/ten_framework/LICENSE for license
-// information.
+// Copyright © 2024 Agora
+// This file is part of TEN Framework, an open source project.
+// Licensed under the Apache License, Version 2.0, with certain conditions.
+// Refer to the "LICENSE" file in the root directory for more information.
 //
 #include "ten_runtime/binding/go/interface/ten/extension.h"
 
@@ -17,7 +18,7 @@
 #include "ten_runtime/binding/common.h"
 #include "ten_runtime/binding/go/interface/ten/common.h"
 #include "ten_runtime/binding/go/interface/ten/msg.h"
-#include "ten_runtime/binding/go/interface/ten/ten.h"
+#include "ten_runtime/binding/go/interface/ten/ten_env.h"
 #include "ten_runtime/extension/extension.h"
 #include "ten_runtime/ten_env/ten_env.h"
 #include "ten_runtime/ten_env_proxy/ten_env_proxy.h"
@@ -108,7 +109,7 @@ static void proxy_on_init(ten_extension_t *self, ten_env_t *ten_env) {
              "Should not happen.");
 
   ten_go_ten_env_t *ten_bridge = ten_go_ten_env_wrap(ten_env);
-  ten_bridge->c_ten_proxy = ten_env_proxy_create(ten_env, 1, NULL);
+  ten_bridge->c_ten_env_proxy = ten_env_proxy_create(ten_env, 1, NULL);
 
   tenGoExtensionOnInit(ten_go_extension_go_handle(extension_bridge),
                        ten_go_ten_env_go_handle(ten_bridge));
@@ -283,10 +284,10 @@ ten_go_extension_t *ten_go_extension_create_internal(
       ten_shared_ptr_create(extension_bridge, ten_go_extension_bridge_destroy);
   extension_bridge->bridge.sp_ref_by_c = NULL;
 
-  extension_bridge->c_extension =
-      ten_extension_create(name, proxy_on_init, proxy_on_start, proxy_on_stop,
-                           proxy_on_deinit, proxy_on_cmd, proxy_on_data,
-                           proxy_on_audio_frame, proxy_on_video_frame, NULL);
+  extension_bridge->c_extension = ten_extension_create(
+      name, NULL, proxy_on_init, proxy_on_start, proxy_on_stop, proxy_on_deinit,
+      proxy_on_cmd, proxy_on_data, proxy_on_audio_frame, proxy_on_video_frame,
+      NULL);
 
   ten_binding_handle_set_me_in_target_lang(
       &extension_bridge->c_extension->binding_handle, extension_bridge);

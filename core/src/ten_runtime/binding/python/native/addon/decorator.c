@@ -1,7 +1,8 @@
 //
-// This file is part of the TEN Framework project.
-// See https://github.com/TEN-framework/ten_framework/LICENSE for license
-// information.
+// Copyright © 2024 Agora
+// This file is part of TEN Framework, an open source project.
+// Licensed under the Apache License, Version 2.0, with certain conditions.
+// Refer to the "LICENSE" file in the root directory for more information.
 //
 #include "include_internal/ten_runtime/binding/python/addon/decorator.h"
 
@@ -11,6 +12,7 @@
 #include "ten_runtime/addon/extension/extension.h"
 #include "ten_runtime/addon/extension_group/extension_group.h"
 #include "ten_utils/lib/string.h"
+#include "ten_utils/macro/mark.h"
 
 static PyObject *ten_py_decorator_register_addon_create(
     PyTypeObject *ty, PyObject *args, TEN_UNUSED PyObject *kwds) {

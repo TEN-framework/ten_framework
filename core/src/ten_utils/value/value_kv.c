@@ -1,16 +1,17 @@
 //
-// This file is part of the TEN Framework project.
-// See https://github.com/TEN-framework/ten_framework/LICENSE for license
-// information.
+// Copyright © 2024 Agora
+// This file is part of TEN Framework, an open source project.
+// Licensed under the Apache License, Version 2.0, with certain conditions.
+// Refer to the "LICENSE" file in the root directory for more information.
 //
 #include "include_internal/ten_utils/value/value_kv.h"
 
 #include <stdarg.h>
 #include <stdlib.h>
 
+#include "ten_utils/macro/check.h"
 #include "ten_utils/lib/alloc.h"
 #include "ten_utils/lib/string.h"
-#include "ten_utils/macro/check.h"
 #include "ten_utils/value/value.h"
 
 bool ten_value_kv_check_integrity(ten_value_kv_t *self) {
@@ -40,7 +41,7 @@ ten_value_kv_t *ten_value_kv_create_vempty(const char *fmt, ...) {
 
   va_list ap;
   va_start(ap, fmt);
-  ten_string_set_from_va_list(&self->key, fmt, ap);
+  ten_string_append_from_va_list(&self->key, fmt, ap);
   va_end(ap);
 
   self->value = NULL;

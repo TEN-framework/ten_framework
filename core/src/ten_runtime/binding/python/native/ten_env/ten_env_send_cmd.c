@@ -1,7 +1,8 @@
 //
-// This file is part of the TEN Framework project.
-// See https://github.com/TEN-framework/ten_framework/LICENSE for license
-// information.
+// Copyright © 2024 Agora
+// This file is part of TEN Framework, an open source project.
+// Licensed under the Apache License, Version 2.0, with certain conditions.
+// Refer to the "LICENSE" file in the root directory for more information.
 //
 #include "include_internal/ten_runtime/binding/python/common/common.h"
 #include "include_internal/ten_runtime/binding/python/common/error.h"
@@ -10,10 +11,11 @@
 #include "include_internal/ten_runtime/binding/python/msg/msg.h"
 #include "include_internal/ten_runtime/binding/python/ten_env/ten_env.h"
 #include "include_internal/ten_runtime/msg/cmd_base/cmd_base.h"
+#include "ten_utils/macro/check.h"
 #include "ten_runtime/extension/extension.h"
 #include "ten_runtime/msg/cmd_result/cmd_result.h"
 #include "ten_runtime/ten_env_proxy/ten_env_proxy.h"
-#include "ten_utils/macro/check.h"
+#include "ten_utils/macro/mark.h"
 #include "ten_utils/macro/memory.h"
 
 typedef struct ten_env_notify_send_cmd_info_t {
@@ -123,7 +125,7 @@ PyObject *ten_py_ten_env_send_cmd(PyObject *self, PyObject *args) {
 
   if (PyTuple_GET_SIZE(args) != 2) {
     return ten_py_raise_py_value_error_exception(
-        "Invalid argument count when ten.ten_py_ten_env_send_cmd.");
+        "Invalid argument count when ten_env.send_cmd.");
   }
 
   bool success = true;

@@ -1,7 +1,8 @@
 //
-// This file is part of the TEN Framework project.
-// See https://github.com/TEN-framework/ten_framework/LICENSE for license
-// information.
+// Copyright © 2024 Agora
+// This file is part of TEN Framework, an open source project.
+// Licensed under the Apache License, Version 2.0, with certain conditions.
+// Refer to the "LICENSE" file in the root directory for more information.
 //
 #include "include_internal/ten_runtime/addon/common/store.h"
 
@@ -9,12 +10,12 @@
 #include <string.h>
 
 #include "include_internal/ten_runtime/addon/addon.h"
+#include "ten_utils/macro/check.h"
 #include "ten_utils/container/list.h"
 #include "ten_utils/lib/atomic.h"
 #include "ten_utils/lib/mutex.h"
 #include "ten_utils/lib/ref.h"
 #include "ten_utils/lib/string.h"
-#include "ten_utils/macro/check.h"
 
 void ten_addon_store_init(ten_addon_store_t *store) {
   TEN_ASSERT(store, "Can not init empty addon store.");

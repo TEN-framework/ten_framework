@@ -1,7 +1,8 @@
 //
-// This file is part of the TEN Framework project.
-// See https://github.com/TEN-framework/ten_framework/LICENSE for license
-// information.
+// Copyright © 2024 Agora
+// This file is part of TEN Framework, an open source project.
+// Licensed under the Apache License, Version 2.0, with certain conditions.
+// Refer to the "LICENSE" file in the root directory for more information.
 //
 #include "include_internal/ten_runtime/app/migration.h"
 
@@ -9,8 +10,9 @@
 #include "include_internal/ten_runtime/app/close.h"
 #include "include_internal/ten_runtime/connection/connection.h"
 #include "include_internal/ten_runtime/engine/engine.h"
-#include "ten_utils/io/runloop.h"
 #include "ten_utils/macro/check.h"
+#include "ten_utils/io/runloop.h"
+#include "ten_utils/macro/mark.h"
 
 void ten_app_clean_connection(ten_app_t *self, ten_connection_t *connection) {
   TEN_ASSERT(self && ten_app_check_integrity(self, true),

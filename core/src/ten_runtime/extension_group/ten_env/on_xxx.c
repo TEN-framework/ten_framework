@@ -1,7 +1,8 @@
 //
-// This file is part of the TEN Framework project.
-// See https://github.com/TEN-framework/ten_framework/LICENSE for license
-// information.
+// Copyright © 2024 Agora
+// This file is part of TEN Framework, an open source project.
+// Licensed under the Apache License, Version 2.0, with certain conditions.
+// Refer to the "LICENSE" file in the root directory for more information.
 //
 #include "include_internal/ten_runtime/extension_group/on_xxx.h"
 
@@ -18,8 +19,8 @@
 #include "ten_runtime/app/app.h"
 #include "ten_runtime/ten_env/ten_env.h"
 #include "ten_utils/container/list.h"
-#include "ten_utils/log/log.h"
 #include "ten_utils/macro/check.h"
+#include "ten_utils/macro/mark.h"
 
 void ten_extension_group_on_init(ten_env_t *ten_env) {
   TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
@@ -106,10 +107,10 @@ void ten_extension_group_on_deinit_done(ten_env_t *self) {
     return;
   }
 
-  if (extension_group->state == TEN_EXTENSION_GROUP_STATE_DEINITED) {
+  if (extension_group->state == TEN_EXTENSION_GROUP_STATE_DEINITTED) {
     return;
   }
-  extension_group->state = TEN_EXTENSION_GROUP_STATE_DEINITED;
+  extension_group->state = TEN_EXTENSION_GROUP_STATE_DEINITTED;
 
   TEN_LOGD("[%s] on_deinit() done.",
            ten_extension_group_get_name(extension_group));

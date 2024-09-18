@@ -1,13 +1,15 @@
 //
-// This file is part of the TEN Framework project.
-// See https://github.com/TEN-framework/ten_framework/LICENSE for license
-// information.
+// Copyright © 2024 Agora
+// This file is part of TEN Framework, an open source project.
+// Licensed under the Apache License, Version 2.0, with certain conditions.
+// Refer to the "LICENSE" file in the root directory for more information.
 //
 #include "include_internal/ten_runtime/binding/go/internal/common.h"
 #include "include_internal/ten_runtime/binding/go/ten_env/ten_env.h"
 #include "include_internal/ten_runtime/binding/go/ten_env/ten_env_internal.h"
+#include "ten_utils/macro/check.h"
 #include "ten_runtime/binding/go/interface/ten/common.h"
-#include "ten_runtime/binding/go/interface/ten/ten.h"
+#include "ten_runtime/binding/go/interface/ten/ten_env.h"
 #include "ten_runtime/common/errno.h"
 #include "ten_runtime/ten_env/internal/metadata.h"
 #include "ten_runtime/ten_env_proxy/ten_env_proxy.h"
@@ -15,7 +17,6 @@
 #include "ten_utils/lib/error.h"
 #include "ten_utils/lib/event.h"
 #include "ten_utils/lib/string.h"
-#include "ten_utils/macro/check.h"
 
 typedef struct ten_notify_set_init_property_info_t {
   ten_string_t value;
@@ -84,7 +85,7 @@ ten_go_status_t ten_go_ten_env_init_property_from_json_bytes(
       ten_env_notify_init_property_info_create(json_str, json_str_len);
   TEN_ASSERT(info, "Should not happen.");
 
-  if (!ten_env_proxy_notify(self->c_ten_proxy,
+  if (!ten_env_proxy_notify(self->c_ten_env_proxy,
                             ten_env_notify_init_property_from_json, info, false,
                             &err)) {
     ten_go_status_from_error(&status, &err);

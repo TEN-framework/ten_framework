@@ -1,16 +1,17 @@
 //
-// This file is part of the TEN Framework project.
-// See https://github.com/TEN-framework/ten_framework/LICENSE for license
-// information.
+// Copyright © 2024 Agora
+// This file is part of TEN Framework, an open source project.
+// Licensed under the Apache License, Version 2.0, with certain conditions.
+// Refer to the "LICENSE" file in the root directory for more information.
 //
 #include "ten_utils/io/runloop.h"
 
 #include <stdlib.h>
 #include <string.h>
 
+#include "ten_utils/macro/check.h"
 #include "ten_utils/io/general/loops/runloop.h"
 #include "ten_utils/lib/alloc.h"
-#include "ten_utils/macro/check.h"
 #include "ten_utils/macro/mark.h"
 #include "ten_utils/macro/memory.h"
 
@@ -27,7 +28,7 @@ typedef struct ten_runloop_async_bare_t {
 typedef struct ten_runloop_timer_bare_t {
   ten_runloop_timer_common_t common;
 
-  bool inited;
+  bool initted;
   void (*notify_callback)(ten_runloop_timer_t *, void *);
   void (*stop_callback)(ten_runloop_timer_t *, void *);
   void (*close_callback)(ten_runloop_timer_t *, void *);
@@ -230,8 +231,8 @@ static int ten_runloop_timer_bare_start(
   }
 
   timer_impl->notify_callback = notify_callback;
-  if (timer_impl->inited == false) {
-    timer_impl->inited = true;
+  if (timer_impl->initted == false) {
+    timer_impl->initted = true;
   }
 
   return 0;
@@ -289,7 +290,7 @@ ten_runloop_timer_common_t *ten_runloop_timer_create_bare(void) {
 
   memset(impl, 0, sizeof(ten_runloop_timer_bare_t));
 
-  impl->inited = false;
+  impl->initted = false;
   impl->common.base.impl = ten_strdup(TEN_RUNLOOP_BARE);
   impl->common.start = ten_runloop_timer_bare_start;
   impl->common.stop = ten_runloop_timer_bare_stop;

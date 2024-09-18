@@ -1,7 +1,8 @@
 //
-// This file is part of the TEN Framework project.
-// See https://github.com/TEN-framework/ten_framework/LICENSE for license
-// information.
+// Copyright © 2024 Agora
+// This file is part of TEN Framework, an open source project.
+// Licensed under the Apache License, Version 2.0, with certain conditions.
+// Refer to the "LICENSE" file in the root directory for more information.
 //
 #include "include_internal/ten_runtime/msg/field/dest.h"
 
@@ -9,9 +10,10 @@
 #include "include_internal/ten_runtime/common/loc.h"
 #include "include_internal/ten_runtime/extension/extension_info/extension_info.h"
 #include "include_internal/ten_runtime/msg/msg.h"
+#include "ten_utils/macro/check.h"
 #include "ten_utils/lib/json.h"
 #include "ten_utils/lib/string.h"
-#include "ten_utils/macro/check.h"
+#include "ten_utils/macro/mark.h"
 
 // Set dest information of msg from JSON content if there are any.
 bool ten_raw_msg_dest_from_json(ten_msg_t *self, ten_json_t *json,

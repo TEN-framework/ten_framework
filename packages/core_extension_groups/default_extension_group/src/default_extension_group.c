@@ -1,5 +1,5 @@
 //
-// This file is part of the TEN Framework project.
+// This file is part of TEN Framework, an open source project.
 // Licensed under the Apache License, Version 2.0.
 // See the LICENSE file for more information.
 //
@@ -14,10 +14,12 @@
 #include "ten_runtime/addon/extension_group/extension_group.h"
 #include "ten_runtime/extension_group/extension_group.h"
 #include "ten_runtime/ten.h"
+#include "ten_runtime/ten_env/internal/log.h"
 #include "ten_runtime/ten_env/ten_env.h"
 #include "ten_utils/container/list_ptr.h"
 #include "ten_utils/log/log.h"
 #include "ten_utils/macro/check.h"
+#include "ten_utils/macro/mark.h"
 
 static void on_addon_create_instance_done(ten_env_t *ten_env,
                                           ten_extension_t *extension,
@@ -179,7 +181,7 @@ static void default_extension_group_addon_create_instance(ten_addon_t *addon,
   TEN_ASSERT(addon && name, "Invalid argument.");
 
   ten_extension_group_t *ext_group = ten_extension_group_create(
-      name, ten_default_extension_group_on_init,
+      name, NULL, ten_default_extension_group_on_init,
       ten_default_extension_group_on_deinit,
       ten_default_extension_group_on_create_extensions,
       ten_default_extension_group_on_destroy_extensions);

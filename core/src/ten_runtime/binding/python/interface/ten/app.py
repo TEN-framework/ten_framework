@@ -1,7 +1,8 @@
 #
-# This file is part of the TEN Framework project.
-# See https://github.com/TEN-framework/ten_framework/LICENSE for license
-# information.
+# Copyright © 2024 Agora
+# This file is part of TEN Framework, an open source project.
+# Licensed under the Apache License, Version 2.0, with certain conditions.
+# Refer to the "LICENSE" file in the root directory for more information.
 #
 from libten_runtime_python import _App
 from .ten_env import TenEnv
@@ -19,6 +20,9 @@ class App(_App):
 
     def close(self) -> None:
         _App.close(self)
+
+    def on_configure(self, ten_env: TenEnv) -> None:
+        ten_env.on_configure_done()
 
     def on_init(self, ten_env: TenEnv) -> None:
         ten_env.on_init_done()

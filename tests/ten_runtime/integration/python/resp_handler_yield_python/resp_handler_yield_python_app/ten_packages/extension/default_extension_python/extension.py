@@ -1,7 +1,8 @@
 #
-# This file is part of the TEN Framework project.
-# See https://github.com/TEN-framework/ten_framework/LICENSE for license
-# information.
+# Copyright © 2024 Agora
+# This file is part of TEN Framework, an open source project.
+# Licensed under the Apache License, Version 2.0, with certain conditions.
+# Refer to the "LICENSE" file in the root directory for more information.
 #
 import queue
 import threading
@@ -17,15 +18,15 @@ class DefaultExtension(Extension):
         super().__init__(name)
         self.name = name
 
-    def on_init(self, ten_env: TenEnv) -> None:
+    def on_configure(self, ten_env: TenEnv) -> None:
         print("DefaultExtension on_init, name", self.name)
         assert self.name == "default_extension_python"
 
         ten_env.init_property_from_json('{"testKey": "testValue"}')
-        ten_env.on_init_done()
+        ten_env.on_configure_done()
 
     def on_start(self, ten_env: TenEnv) -> None:
-        print("DefaultExtension on_start")
+        ten_env.log_debug("on_start")
 
         ten_env.set_property_from_json("testKey2", '"testValue2"')
         testValue = ten_env.get_property_to_json("testKey")

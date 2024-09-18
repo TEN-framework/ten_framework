@@ -1,7 +1,8 @@
 //
-// This file is part of the TEN Framework project.
-// See https://github.com/TEN-framework/ten_framework/LICENSE for license
-// information.
+// Copyright © 2024 Agora
+// This file is part of TEN Framework, an open source project.
+// Licensed under the Apache License, Version 2.0, with certain conditions.
+// Refer to the "LICENSE" file in the root directory for more information.
 //
 #include <nlohmann/json.hpp>
 #include <string>
@@ -157,7 +158,7 @@ class plugin_extension_2 : public ten::extension_t {
 
 class business_app : public ten::app_t {
  public:
-  void on_init(ten::ten_env_t &ten_env) override {
+  void on_configure(ten::ten_env_t &ten_env) override {
     // Note that the graph is very simple. It does _not_ contain any workflows,
     // just what the extensions contained in the graph.
     //
@@ -186,7 +187,7 @@ class business_app : public ten::app_t {
                  R"({
                       "_ten": {
                         "uri": "msgpack://127.0.0.1:8001/",
-                        "log_level": 1,
+                        "log_level": 2,
                         "predefined_graphs": [{
                           "name": "0",
                           "auto_start": true,
@@ -217,7 +218,7 @@ class business_app : public ten::app_t {
     );
     ASSERT_EQ(rc, true);
 
-    ten_env.on_init_done();
+    ten_env.on_configure_done();
   }
 };
 

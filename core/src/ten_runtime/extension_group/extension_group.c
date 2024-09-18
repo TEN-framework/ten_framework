@@ -1,7 +1,8 @@
 //
-// This file is part of the TEN Framework project.
-// See https://github.com/TEN-framework/ten_framework/LICENSE for license
-// information.
+// Copyright © 2024 Agora
+// This file is part of TEN Framework, an open source project.
+// Licensed under the Apache License, Version 2.0, with certain conditions.
+// Refer to the "LICENSE" file in the root directory for more information.
 //
 #include "include_internal/ten_runtime/extension_group/extension_group.h"
 
@@ -14,6 +15,7 @@
 #include "include_internal/ten_runtime/extension_thread/extension_thread.h"
 #include "include_internal/ten_runtime/msg/msg.h"
 #include "include_internal/ten_runtime/ten_env/ten_env.h"
+#include "include_internal/ten_utils/log/log.h"
 #include "include_internal/ten_utils/value/value.h"
 #include "ten_runtime/binding/common.h"
 #include "ten_runtime/msg/cmd_result/cmd_result.h"
@@ -22,7 +24,6 @@
 #include "ten_utils/lib/alloc.h"
 #include "ten_utils/lib/ref.h"
 #include "ten_utils/lib/smart_ptr.h"
-#include "ten_utils/log/log.h"
 #include "ten_utils/macro/check.h"
 #include "ten_utils/sanitizer/thread_check.h"
 #include "ten_utils/value/value.h"
@@ -54,7 +55,8 @@ bool ten_extension_group_check_integrity(ten_extension_group_t *self,
 }
 
 ten_extension_group_t *ten_extension_group_create_internal(
-    const char *name, ten_extension_group_on_init_func_t on_init,
+    const char *name, ten_extension_group_on_configure_func_t on_configure,
+    ten_extension_group_on_init_func_t on_init,
     ten_extension_group_on_deinit_func_t on_deinit,
     ten_extension_group_on_create_extensions_func_t on_create_extensions,
     ten_extension_group_on_destroy_extensions_func_t on_destroy_extensions) {
@@ -71,6 +73,7 @@ ten_extension_group_t *ten_extension_group_create_internal(
     ten_string_init_formatted(&self->name, "%s", name);
   }
 
+  self->on_configure = on_configure;
   self->on_init = on_init;
   self->on_deinit = on_deinit;
   self->on_create_extensions = on_create_extensions;
@@ -102,7 +105,8 @@ ten_extension_group_t *ten_extension_group_create_internal(
 }
 
 ten_extension_group_t *ten_extension_group_create(
-    const char *name, ten_extension_group_on_init_func_t on_init,
+    const char *name, ten_extension_group_on_configure_func_t on_configure,
+    ten_extension_group_on_init_func_t on_init,
     ten_extension_group_on_deinit_func_t on_deinit,
     ten_extension_group_on_create_extensions_func_t on_create_extensions,
     ten_extension_group_on_destroy_extensions_func_t on_destroy_extensions) {
@@ -110,7 +114,8 @@ ten_extension_group_t *ten_extension_group_create(
              "Should not happen.");
 
   ten_extension_group_t *self = ten_extension_group_create_internal(
-      name, on_init, on_deinit, on_create_extensions, on_destroy_extensions);
+      name, on_configure, on_init, on_deinit, on_create_extensions,
+      on_destroy_extensions);
   self->ten_env = ten_env_create_for_extension_group(self);
 
   return self;

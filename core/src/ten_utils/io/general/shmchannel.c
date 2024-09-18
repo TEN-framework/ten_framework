@@ -1,7 +1,8 @@
 //
-// This file is part of the TEN Framework project.
-// See https://github.com/TEN-framework/ten_framework/LICENSE for license
-// information.
+// Copyright © 2024 Agora
+// This file is part of TEN Framework, an open source project.
+// Licensed under the Apache License, Version 2.0, with certain conditions.
+// Refer to the "LICENSE" file in the root directory for more information.
 //
 #include "ten_utils/io/shmchannel.h"
 
@@ -12,11 +13,12 @@
 #include "ten_utils/lib/shm.h"
 #include "ten_utils/lib/spinlock.h"
 #include "ten_utils/lib/string.h"
+#include "ten_utils/macro/mark.h"
 
 #if defined(_WIN32)
-  #define TEN_ANYSIZE_ARRAY 1
+#define TEN_ANYSIZE_ARRAY 1
 #else
-  #define TEN_ANYSIZE_ARRAY 0
+#define TEN_ANYSIZE_ARRAY 0
 #endif
 
 typedef struct ten_shm_layout_t {

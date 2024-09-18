@@ -1,17 +1,19 @@
 //
-// This file is part of the TEN Framework project.
-// See https://github.com/TEN-framework/ten_framework/LICENSE for license
-// information.
+// Copyright © 2024 Agora
+// This file is part of TEN Framework, an open source project.
+// Licensed under the Apache License, Version 2.0, with certain conditions.
+// Refer to the "LICENSE" file in the root directory for more information.
 //
 
 package ten
 
-//#include "ten.h"
+//#include "ten_env.h"
 import "C"
 
 import (
 	"fmt"
-	"log"
+	"runtime"
+	"strings"
 	"unsafe"
 )
 
@@ -43,6 +45,7 @@ type TenEnv interface {
 	ReturnResult(result CmdResult, cmd Cmd) error
 	ReturnResultDirectly(result CmdResult) error
 
+	OnConfigureDone() error
 	OnInitDone() error
 	OnStartDone() error
 	OnStopDone() error
@@ -74,6 +77,16 @@ type TenEnv interface {
 	) error
 
 	InitPropertyFromJSONBytes(value []byte) error
+
+	LogVerbose(msg string)
+	LogDebug(msg string)
+	LogInfo(msg string)
+	LogWarn(msg string)
+	LogError(msg string)
+	LogFatal(msg string)
+	Log(level LogLevel, msg string)
+
+	logInternal(level LogLevel, msg string, skip int)
 }
 
 // Making a compile-time assertion which indicates that if 'ten' type doesn't
@@ -291,8 +304,15 @@ func (p *tenEnv) SendAudioFrame(audioFrame AudioFrame) error {
 	return nil
 }
 
+func (p *tenEnv) OnConfigureDone() error {
+	p.LogDebug("OnConfigureDone")
+	C.ten_go_ten_env_on_configure_done(p.cPtr)
+
+	return nil
+}
+
 func (p *tenEnv) OnInitDone() error {
-	log.Println("ten OnInitDone")
+	p.LogDebug("OnInitDone")
 	C.ten_go_ten_env_on_init_done(p.cPtr)
 
 	return nil
@@ -517,4 +537,66 @@ func (p *tenEnv) SetPropertyAsync(
 		return res
 	}
 	return nil
+}
+
+func (p *tenEnv) LogVerbose(msg string) {
+	p.logInternal(
+		LogLevelVerbose, msg, 2)
+}
+
+func (p *tenEnv) LogDebug(msg string) {
+	p.logInternal(LogLevelDebug, msg, 2)
+}
+
+func (p *tenEnv) LogInfo(msg string) {
+	p.logInternal(LogLevelInfo, msg, 2)
+}
+
+func (p *tenEnv) LogWarn(msg string) {
+	p.logInternal(LogLevelWarn, msg, 2)
+}
+
+func (p *tenEnv) LogError(msg string) {
+	p.logInternal(LogLevelError, msg, 2)
+}
+
+func (p *tenEnv) LogFatal(msg string) {
+	p.logInternal(LogLevelFatal, msg, 2)
+}
+
+func (p *tenEnv) Log(level LogLevel, msg string) {
+	p.logInternal(level, msg, 1)
+}
+
+func (p *tenEnv) logInternal(level LogLevel, msg string, skip int) {
+	// Get caller info.
+	pc, fileName, lineNo, ok := runtime.Caller(skip)
+	funcName := "unknown"
+	if ok {
+		fn := runtime.FuncForPC(pc)
+		if fn != nil {
+			funcName = fn.Name()
+
+			parts := strings.Split(funcName, ".")
+			if len(parts) > 0 {
+				// The last part is the method name.
+				funcName = parts[len(parts)-1]
+			}
+		}
+	} else {
+		fileName = "unknown"
+		lineNo = 0
+	}
+
+	C.ten_go_ten_env_log(
+		p.cPtr,
+		C.int(level),
+		unsafe.Pointer(unsafe.StringData(funcName)),
+		C.int(len(funcName)),
+		unsafe.Pointer(unsafe.StringData(fileName)),
+		C.int(len(fileName)),
+		C.int(lineNo),
+		unsafe.Pointer(unsafe.StringData(msg)),
+		C.int(len(msg)),
+	)
 }

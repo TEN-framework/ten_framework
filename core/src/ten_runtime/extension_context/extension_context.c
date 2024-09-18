@@ -1,7 +1,8 @@
 //
-// This file is part of the TEN Framework project.
-// See https://github.com/TEN-framework/ten_framework/LICENSE for license
-// information.
+// Copyright © 2024 Agora
+// This file is part of TEN Framework, an open source project.
+// Licensed under the Apache License, Version 2.0, with certain conditions.
+// Refer to the "LICENSE" file in the root directory for more information.
 //
 #include "include_internal/ten_runtime/extension_context/extension_context.h"
 
@@ -25,6 +26,7 @@
 #include "include_internal/ten_runtime/msg/cmd_base/cmd/start_graph/cmd.h"
 #include "include_internal/ten_runtime/msg/msg.h"
 #include "include_internal/ten_runtime/ten_env/ten_env.h"
+#include "include_internal/ten_utils/log/log.h"
 #include "ten_runtime/app/app.h"
 #include "ten_runtime/common/errno.h"
 #include "ten_runtime/ten_env/ten_env.h"
@@ -35,7 +37,6 @@
 #include "ten_utils/lib/error.h"
 #include "ten_utils/lib/smart_ptr.h"
 #include "ten_utils/lib/string.h"
-#include "ten_utils/log/log.h"
 #include "ten_utils/macro/check.h"
 
 bool ten_extension_context_check_integrity(ten_extension_context_t *self,
@@ -88,9 +89,9 @@ ten_extension_context_t *ten_extension_context_create(ten_engine_t *engine) {
   ten_list_init(&self->extension_groups);
   ten_list_init(&self->extension_threads);
 
-  self->extension_threads_cnt_of_inited = 0;
+  self->extension_threads_cnt_of_initted = 0;
   self->extension_threads_cnt_of_all_extensions_added_to_engine = 0;
-  self->extension_threads_cnt_of_all_extensions_inited = 0;
+  self->extension_threads_cnt_of_all_extensions_initted = 0;
   self->extension_threads_cnt_of_all_extensions_stopped = 0;
   self->extension_threads_cnt_of_closing_flag_is_set = 0;
   self->extension_threads_cnt_of_closed = 0;

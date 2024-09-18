@@ -1,7 +1,8 @@
 //
-// This file is part of the TEN Framework project.
-// See https://github.com/TEN-framework/ten_framework/LICENSE for license
-// information.
+// Copyright © 2024 Agora
+// This file is part of TEN Framework, an open source project.
+// Licensed under the Apache License, Version 2.0, with certain conditions.
+// Refer to the "LICENSE" file in the root directory for more information.
 //
 #include <string.h>
 
@@ -10,6 +11,7 @@
 #include "include_internal/ten_runtime/binding/python/ten_env/ten_env.h"
 #include "object.h"
 #include "ten_runtime/ten_env/internal/on_xxx_done.h"
+#include "ten_utils/macro/mark.h"
 
 PyObject *ten_py_ten_env_on_create_instance_done(PyObject *self,
                                                  TEN_UNUSED PyObject *args) {
@@ -26,8 +28,7 @@ PyObject *ten_py_ten_env_on_create_instance_done(PyObject *self,
   if (!PyArg_ParseTuple(args, "O!l", ten_py_extension_py_type(), &extension,
                         &context)) {
     ten_py_raise_py_value_error_exception(
-        "Invalid argument count when "
-        "ten.ten_py_ten_env_on_create_instance_done.");
+        "Invalid argument count when ten_env.on_create_instance_done.");
   }
 
   bool rc = ten_env_on_create_instance_done(

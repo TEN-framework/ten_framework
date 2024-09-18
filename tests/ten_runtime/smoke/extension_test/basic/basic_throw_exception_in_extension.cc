@@ -1,7 +1,8 @@
 //
-// This file is part of the TEN Framework project.
-// See https://github.com/TEN-framework/ten_framework/LICENSE for license
-// information.
+// Copyright © 2024 Agora
+// This file is part of TEN Framework, an open source project.
+// Licensed under the Apache License, Version 2.0, with certain conditions.
+// Refer to the "LICENSE" file in the root directory for more information.
 //
 #include <nlohmann/json.hpp>
 #include <string>
@@ -138,14 +139,14 @@ class test_extension_group_3 : public ten::extension_group_t {
 
 class test_app_1 : public ten::app_t {
  public:
-  void on_init(ten::ten_env_t &ten_env) override {
+  void on_configure(ten::ten_env_t &ten_env) override {
     bool rc = ten_env.init_property_from_json(
         // clang-format off
                  R"({
                       "_ten": {
                         "uri": "msgpack://127.0.0.1:8001/",
                         "long_running_mode": true,
-                        "log_level": 1
+                        "log_level": 2
                       }
                     })"
         // clang-format on
@@ -153,20 +154,20 @@ class test_app_1 : public ten::app_t {
         nullptr);
     ASSERT_EQ(rc, true);
 
-    ten_env.on_init_done();
+    ten_env.on_configure_done();
   }
 };
 
 class test_app_2 : public ten::app_t {
  public:
-  void on_init(ten::ten_env_t &ten_env) override {
+  void on_configure(ten::ten_env_t &ten_env) override {
     bool rc = ten_env.init_property_from_json(
         // clang-format off
                  R"({
                       "_ten": {
                         "uri": "msgpack://127.0.0.1:8002/",
                         "long_running_mode": true,
-                        "log_level": 1
+                        "log_level": 2
                       }
                     })"
         // clang-format on
@@ -174,20 +175,20 @@ class test_app_2 : public ten::app_t {
         nullptr);
     ASSERT_EQ(rc, true);
 
-    ten_env.on_init_done();
+    ten_env.on_configure_done();
   }
 };
 
 class test_app_3 : public ten::app_t {
  public:
-  void on_init(ten::ten_env_t &ten_env) override {
+  void on_configure(ten::ten_env_t &ten_env) override {
     bool rc = ten_env.init_property_from_json(
         // clang-format off
                  R"({
                       "_ten": {
                         "uri": "msgpack://127.0.0.1:8003/",
                         "long_running_mode": true,
-                        "log_level": 1
+                        "log_level": 2
                       }
                     })"
         // clang-format on
@@ -195,7 +196,7 @@ class test_app_3 : public ten::app_t {
         nullptr);
     ASSERT_EQ(rc, true);
 
-    ten_env.on_init_done();
+    ten_env.on_configure_done();
   }
 };
 

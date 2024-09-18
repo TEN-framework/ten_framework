@@ -1,13 +1,15 @@
 //
-// This file is part of the TEN Framework project.
-// See https://github.com/TEN-framework/ten_framework/LICENSE for license
-// information.
+// Copyright © 2024 Agora
+// This file is part of TEN Framework, an open source project.
+// Licensed under the Apache License, Version 2.0, with certain conditions.
+// Refer to the "LICENSE" file in the root directory for more information.
 //
 #pragma once
 
 #include "ten_runtime/ten_config.h"
 
 #include "ten_runtime/common/errno.h"                  // IWYU pragma: keep
+#include "ten_runtime/ten_env/internal/log.h"          // IWYU pragma: keep
 #include "ten_runtime/ten_env/internal/metadata.h"     // IWYU pragma: keep
 #include "ten_runtime/ten_env/internal/on_xxx_done.h"  // IWYU pragma: keep
 #include "ten_runtime/ten_env/internal/return.h"       // IWYU pragma: keep

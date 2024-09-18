@@ -1,7 +1,8 @@
 //
-// This file is part of the TEN Framework project.
-// See https://github.com/TEN-framework/ten_framework/LICENSE for license
-// information.
+// Copyright © 2024 Agora
+// This file is part of TEN Framework, an open source project.
+// Licensed under the Apache License, Version 2.0, with certain conditions.
+// Refer to the "LICENSE" file in the root directory for more information.
 //
 #include "include_internal/ten_runtime/test/extension_test.h"
 
@@ -41,7 +42,7 @@ ten_extension_test_t *ten_extension_test_create(
 
   self->test_extension_thread = ten_extension_thread_create();
   self->test_extension_group = ten_extension_group_create_internal(
-      "test_extension_group", NULL, NULL, NULL, NULL);
+      "test_extension_group", NULL, NULL, NULL, NULL, NULL);
 
   ten_list_init(&self->pre_created_extensions);
   ten_list_push_ptr_back(&self->pre_created_extensions, test_extension, NULL);

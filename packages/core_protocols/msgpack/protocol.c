@@ -1,5 +1,5 @@
 //
-// This file is part of the TEN Framework project.
+// This file is part of TEN Framework, an open source project.
 // Licensed under the Apache License, Version 2.0.
 // See the LICENSE file for more information.
 //
@@ -18,6 +18,7 @@
 #include "ten_runtime/ten_env/ten_env.h"
 #include "ten_utils/lib/alloc.h"
 #include "ten_utils/macro/check.h"
+#include "ten_utils/macro/mark.h"
 
 typedef struct ten_protocol_msgpack_t {
   ten_protocol_integrated_t base;

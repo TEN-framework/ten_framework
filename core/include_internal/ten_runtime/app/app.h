@@ -1,7 +1,8 @@
 //
-// This file is part of the TEN Framework project.
-// See https://github.com/TEN-framework/ten_framework/LICENSE for license
-// information.
+// Copyright © 2024 Agora
+// This file is part of TEN Framework, an open source project.
+// Licensed under the Apache License, Version 2.0, with certain conditions.
+// Refer to the "LICENSE" file in the root directory for more information.
 //
 #pragma once
 
@@ -80,6 +81,7 @@ typedef struct ten_app_t {
 
   ten_list_t predefined_graph_infos;
 
+  ten_app_on_configure_func_t on_configure;
   ten_app_on_init_func_t on_init;
   ten_app_on_deinit_func_t on_deinit;
 
@@ -127,6 +129,8 @@ TEN_RUNTIME_PRIVATE_API ten_string_t *ten_app_get_uri(ten_app_t *self);
 TEN_RUNTIME_PRIVATE_API ten_protocol_context_store_t *
 ten_app_get_protocol_context_store(ten_app_t *self);
 
+TEN_RUNTIME_PRIVATE_API void ten_app_on_configure(ten_env_t *ten_env);
+
 TEN_RUNTIME_PRIVATE_API void ten_app_on_init(ten_env_t *ten_env);
 
 TEN_RUNTIME_PRIVATE_API void ten_app_on_init_done(ten_env_t *ten_env);
@@ -134,3 +138,5 @@ TEN_RUNTIME_PRIVATE_API void ten_app_on_init_done(ten_env_t *ten_env);
 TEN_RUNTIME_PRIVATE_API void ten_app_on_deinit(ten_app_t *self);
 
 TEN_RUNTIME_PRIVATE_API void ten_app_on_deinit_done(ten_env_t *ten_env);
+
+TEN_RUNTIME_PRIVATE_API void ten_app_on_configure_done(ten_env_t *ten_env);

@@ -1,7 +1,8 @@
 //
-// This file is part of the TEN Framework project.
-// See https://github.com/TEN-framework/ten_framework/LICENSE for license
-// information.
+// Copyright © 2024 Agora
+// This file is part of TEN Framework, an open source project.
+// Licensed under the Apache License, Version 2.0, with certain conditions.
+// Refer to the "LICENSE" file in the root directory for more information.
 //
 #include "include_internal/ten_runtime/engine/msg_interface/start_graph.h"
 
@@ -17,13 +18,13 @@
 #include "include_internal/ten_runtime/path/path.h"
 #include "include_internal/ten_runtime/path/path_group.h"
 #include "include_internal/ten_runtime/remote/remote.h"
+#include "include_internal/ten_utils/log/log.h"
+#include "ten_utils/macro/check.h"
 #include "include_internal/ten_utils/value/value.h"
 #include "ten_runtime/msg/cmd_result/cmd_result.h"
 #include "ten_utils/container/list.h"
 #include "ten_utils/container/list_ptr.h"
 #include "ten_utils/lib/error.h"
-#include "ten_utils/log/log.h"
-#include "ten_utils/macro/check.h"
 
 void ten_engine_handle_cmd_start_graph(ten_engine_t *self,
                                        ten_shared_ptr_t *cmd,

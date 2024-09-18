@@ -1,7 +1,8 @@
 //
-// This file is part of the TEN Framework project.
-// See https://github.com/TEN-framework/ten_framework/LICENSE for license
-// information.
+// Copyright © 2024 Agora
+// This file is part of TEN Framework, an open source project.
+// Licensed under the Apache License, Version 2.0, with certain conditions.
+// Refer to the "LICENSE" file in the root directory for more information.
 //
 // This file is modified from
 // https://github.com/ianlancetaylor/libbacktrace [BSD license]
@@ -15,13 +16,13 @@
 #include <string.h>
 #include <sys/types.h>
 
-#include "ten_utils/backtrace/backtrace.h"
-#include "ten_utils/backtrace/platform/posix/internal.h"
+#include "include_internal/ten_utils/backtrace/backtrace.h"
+#include "include_internal/ten_utils/backtrace/platform/posix/internal.h"
+#include "ten_utils/macro/check.h"
 #include "ten_utils/io/mmap.h"
 #include "ten_utils/lib/alloc.h"
 #include "ten_utils/lib/atomic_ptr.h"
 #include "ten_utils/lib/file.h"
-#include "ten_utils/macro/check.h"
 
 // Mach-O file header for a 32-bit executable.
 typedef struct macho_header_32 {
@@ -1035,9 +1036,9 @@ static int macho_add(ten_backtrace_t *self, const char *filename,
 
     is_big_endian = 0;
 #if defined(__BYTE_ORDER__) && defined(__ORDER_BIG_ENDIAN__)
-  #if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
+#if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
     is_big_endian = 1;
-  #endif
+#endif
 #endif
 
     if (!backtrace_dwarf_add(self, base_address, &dwarf_sections, is_big_endian,

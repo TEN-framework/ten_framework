@@ -1,7 +1,8 @@
 //
-// This file is part of the TEN Framework project.
-// See https://github.com/TEN-framework/ten_framework/LICENSE for license
-// information.
+// Copyright © 2024 Agora
+// This file is part of TEN Framework, an open source project.
+// Licensed under the Apache License, Version 2.0, with certain conditions.
+// Refer to the "LICENSE" file in the root directory for more information.
 //
 #include "include_internal/ten_runtime/engine/engine.h"
 
@@ -17,6 +18,8 @@
 #include "include_internal/ten_runtime/msg/msg.h"
 #include "include_internal/ten_runtime/protocol/protocol.h"
 #include "include_internal/ten_runtime/remote/remote.h"
+#include "include_internal/ten_utils/log/log.h"
+#include "ten_utils/macro/check.h"
 #include "ten_runtime/app/app.h"
 #include "ten_utils/container/hash_table.h"
 #include "ten_utils/container/list.h"
@@ -26,8 +29,6 @@
 #include "ten_utils/lib/mutex.h"
 #include "ten_utils/lib/string.h"
 #include "ten_utils/lib/uuid.h"
-#include "ten_utils/log/log.h"
-#include "ten_utils/macro/check.h"
 #include "ten_utils/sanitizer/thread_check.h"
 
 bool ten_engine_check_integrity(ten_engine_t *self, bool check_thread) {

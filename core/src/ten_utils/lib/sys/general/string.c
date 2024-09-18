@@ -1,7 +1,8 @@
 //
-// This file is part of the TEN Framework project.
-// See https://github.com/TEN-framework/ten_framework/LICENSE for license
-// information.
+// Copyright © 2024 Agora
+// This file is part of TEN Framework, an open source project.
+// Licensed under the Apache License, Version 2.0, with certain conditions.
+// Refer to the "LICENSE" file in the root directory for more information.
 //
 #include "ten_utils/lib/string.h"
 
@@ -11,14 +12,14 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "ten_utils/macro/check.h"
 #include "ten_utils/container/list.h"
 #include "ten_utils/lib/alloc.h"
 #include "ten_utils/lib/signature.h"
-#include "ten_utils/macro/check.h"
 #include "ten_utils/macro/memory.h"
 
 #if defined(_WIN32) || defined(_WIN64)
-  #define strtok_r strtok_s
+#define strtok_r strtok_s
 #endif
 
 ten_string_t *ten_string_create(void) {
@@ -38,8 +39,8 @@ ten_string_t *ten_string_create_from_c_str(const char *str, size_t size) {
   return result;
 }
 
-void ten_string_set_from_va_list(ten_string_t *self, const char *fmt,
-                                 va_list ap) {
+void ten_string_append_from_va_list(ten_string_t *self, const char *fmt,
+                                    va_list ap) {
   TEN_ASSERT(self && ten_string_check_integrity(self), "Invalid argument.");
 
   va_list cp;
@@ -67,14 +68,14 @@ ten_string_t *ten_string_create_formatted(const char *fmt, ...) {
   ten_string_t *self = ten_string_create();
   va_list ap;
   va_start(ap, fmt);
-  ten_string_set_from_va_list(self, fmt, ap);
+  ten_string_append_from_va_list(self, fmt, ap);
   va_end(ap);
   return self;
 }
 
 ten_string_t *ten_string_create_from_va_list(const char *fmt, va_list ap) {
   ten_string_t *self = ten_string_create();
-  ten_string_set_from_va_list(self, fmt, ap);
+  ten_string_append_from_va_list(self, fmt, ap);
   return self;
 }
 
@@ -101,14 +102,20 @@ void ten_string_init(ten_string_t *self) {
   self->buf[0] = 0;
 }
 
-void ten_string_init_formatted(ten_string_t *self, const char *fmt, ...) {
+void ten_string_init_from_va_list(ten_string_t *self, const char *fmt,
+                                  va_list ap) {
   TEN_ASSERT(self, "Invalid argument.");
 
   ten_string_init(self);
+  ten_string_append_from_va_list(self, fmt, ap);
+}
+
+void ten_string_init_formatted(ten_string_t *self, const char *fmt, ...) {
+  TEN_ASSERT(self, "Invalid argument.");
 
   va_list ap;
   va_start(ap, fmt);
-  ten_string_set_from_va_list(self, fmt, ap);
+  ten_string_init_from_va_list(self, fmt, ap);
   va_end(ap);
 }
 
@@ -139,7 +146,7 @@ void ten_string_set_formatted(ten_string_t *self, const char *fmt, ...) {
 
   va_list ap;
   va_start(ap, fmt);
-  ten_string_set_from_va_list(self, fmt, ap);
+  ten_string_append_from_va_list(self, fmt, ap);
   va_end(ap);
 }
 
@@ -151,7 +158,7 @@ void ten_string_prepend_from_va_list(ten_string_t *self, const char *fmt,
   ten_string_t new_str;
   ten_string_init(&new_str);
 
-  ten_string_set_from_va_list(&new_str, fmt, ap);
+  ten_string_append_from_va_list(&new_str, fmt, ap);
   ten_string_append_formatted(&new_str, "%s", ten_string_get_raw_str(self));
 
   // Move the content of new_str to self.
@@ -188,7 +195,7 @@ void ten_string_append_formatted(ten_string_t *self, const char *fmt, ...) {
 
   va_list ap;
   va_start(ap, fmt);
-  ten_string_set_from_va_list(self, fmt, ap);
+  ten_string_append_from_va_list(self, fmt, ap);
   va_end(ap);
 }
 

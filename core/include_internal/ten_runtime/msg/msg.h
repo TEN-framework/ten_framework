@@ -1,16 +1,17 @@
 //
-// This file is part of the TEN Framework project.
-// See https://github.com/TEN-framework/ten_framework/LICENSE for license
-// information.
+// Copyright © 2024 Agora
+// This file is part of TEN Framework, an open source project.
+// Licensed under the Apache License, Version 2.0, with certain conditions.
+// Refer to the "LICENSE" file in the root directory for more information.
 //
 #pragma once
 
 #include "ten_runtime/ten_config.h"
 
 #include "include_internal/ten_runtime/common/loc.h"
+#include "ten_utils/macro/check.h"
 #include "ten_runtime/msg/msg.h"
 #include "ten_utils/container/list.h"
-#include "ten_utils/macro/check.h"
 #include "ten_utils/value/value.h"
 
 #define TEN_MSG_SIGNATURE 0xA9FA53F77185F856U
