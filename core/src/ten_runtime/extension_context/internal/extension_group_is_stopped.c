@@ -1,7 +1,8 @@
 //
-// This file is part of the TEN Framework project.
-// See https://github.com/TEN-framework/ten_framework/LICENSE for license
-// information.
+// Copyright © 2024 Agora
+// This file is part of TEN Framework, an open source project.
+// Licensed under the Apache License, Version 2.0, with certain conditions.
+// Refer to the "LICENSE" file in the root directory for more information.
 //
 #include "include_internal/ten_runtime/extension_context/internal/extension_group_is_stopped.h"
 
@@ -13,7 +14,6 @@
 #include "include_internal/ten_runtime/extension_thread/on_xxx.h"
 #include "ten_utils/container/list.h"
 #include "ten_utils/container/list_node_ptr.h"
-#include "ten_utils/log/log.h"
 #include "ten_utils/macro/check.h"
 
 void ten_extension_context_on_all_extensions_in_extension_group_are_stopped(

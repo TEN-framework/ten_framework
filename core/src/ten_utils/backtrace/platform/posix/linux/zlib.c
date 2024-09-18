@@ -1,18 +1,19 @@
 //
-// This file is part of the TEN Framework project.
-// See https://github.com/TEN-framework/ten_framework/LICENSE for license
-// information.
+// Copyright © 2024 Agora
+// This file is part of TEN Framework, an open source project.
+// Licensed under the Apache License, Version 2.0, with certain conditions.
+// Refer to the "LICENSE" file in the root directory for more information.
 //
 // This file is modified from
 // https://github.com/ianlancetaylor/libbacktrace [BSD license]
 //
-#include "ten_utils/backtrace/platform/posix/linux/zlib.h"
+#include "include_internal/ten_utils/backtrace/platform/posix/linux/zlib.h"
 
 #include <string.h>
 
-#include "ten_utils/backtrace/platform/posix/internal.h"
-#include "ten_utils/backtrace/platform/posix/linux/elf.h"
-#include "ten_utils/backtrace/platform/posix/linux/uncompress.h"
+#include "include_internal/ten_utils/backtrace/platform/posix/internal.h"
+#include "include_internal/ten_utils/backtrace/platform/posix/linux/elf.h"
+#include "include_internal/ten_utils/backtrace/platform/posix/linux/uncompress.h"
 
 #ifdef BACKTRACE_GENERATE_FIXED_HUFFMAN_TABLE
 
@@ -305,7 +306,7 @@ static int elf_zlib_inflate_table(unsigned char *codes, size_t codes_len,
  * @brief Used to generate the fixed Huffman table for block type 1.
  */
 
-  #include <stdio.h>
+#include <stdio.h>
 
 static uint16_t table[ZLIB_TABLE_SIZE];
 static unsigned char codes[288];

@@ -1,7 +1,8 @@
 //
-// This file is part of the TEN Framework project.
-// See https://github.com/TEN-framework/ten_framework/LICENSE for license
-// information.
+// Copyright © 2024 Agora
+// This file is part of TEN Framework, an open source project.
+// Licensed under the Apache License, Version 2.0, with certain conditions.
+// Refer to the "LICENSE" file in the root directory for more information.
 //
 #include "include_internal/ten_runtime/binding/go/internal/common.h"
 #include "include_internal/ten_runtime/binding/go/internal/json.h"
@@ -10,10 +11,10 @@
 #include "include_internal/ten_runtime/binding/go/ten_env/ten_env_internal.h"
 #include "include_internal/ten_runtime/binding/go/ten_env/ten_env_return_result.h"
 #include "include_internal/ten_runtime/binding/go/value/value.h"
-#include "ten_runtime/binding/go/interface/ten/msg.h"
-#include "ten_runtime/binding/go/interface/ten/ten.h"
-#include "ten_utils/lib/error.h"
 #include "ten_utils/macro/check.h"
+#include "ten_runtime/binding/go/interface/ten/msg.h"
+#include "ten_runtime/binding/go/interface/ten/ten_env.h"
+#include "ten_utils/lib/error.h"
 #include "ten_utils/value/value.h"
 
 ten_go_status_t ten_go_ten_env_return_string(uintptr_t bridge_addr,

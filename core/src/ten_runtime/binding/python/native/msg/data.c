@@ -1,18 +1,20 @@
 //
-// This file is part of the TEN Framework project.
-// See https://github.com/TEN-framework/ten_framework/LICENSE for license
-// information.
+// Copyright © 2024 Agora
+// This file is part of TEN Framework, an open source project.
+// Licensed under the Apache License, Version 2.0, with certain conditions.
+// Refer to the "LICENSE" file in the root directory for more information.
 //
 #include "include_internal/ten_runtime/binding/python/msg/data.h"
 
 #include "include_internal/ten_runtime/binding/python/common/error.h"
 #include "include_internal/ten_runtime/binding/python/msg/msg.h"
 #include "include_internal/ten_runtime/msg/msg.h"
+#include "ten_utils/macro/check.h"
 #include "pyport.h"
 #include "ten_runtime/msg/data/data.h"
 #include "ten_runtime/msg/msg.h"
 #include "ten_utils/lib/buf.h"
-#include "ten_utils/macro/check.h"
+#include "ten_utils/macro/mark.h"
 
 static ten_py_data_t *ten_py_data_create_internal(PyTypeObject *py_type) {
   if (!py_type) {

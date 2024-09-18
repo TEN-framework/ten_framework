@@ -1,9 +1,10 @@
 //
-// This file is part of the TEN Framework project.
-// See https://github.com/TEN-framework/ten_framework/LICENSE for license
-// information.
+// Copyright © 2024 Agora
+// This file is part of TEN Framework, an open source project.
+// Licensed under the Apache License, Version 2.0, with certain conditions.
+// Refer to the "LICENSE" file in the root directory for more information.
 //
-#include "ten_utils/io/general/transport/backend/uv/stream/tcp.h"
+#include "include_internal/ten_utils/io/general/transport/backend/uv/stream/tcp.h"
 
 #include <stdarg.h>
 #include <stdlib.h>
@@ -81,8 +82,8 @@ void ten_streambackend_tcp_dump_info(ten_streambackend_tcp_t *tcp_stream,
 
   ten_string_t description;
   ten_string_init(&description);
-  ten_string_set_from_va_list(&description, ten_string_get_raw_str(&new_fmt),
-                              ap);
+  ten_string_append_from_va_list(&description, ten_string_get_raw_str(&new_fmt),
+                                 ap);
   ten_string_deinit(&new_fmt);
 
   va_end(ap);

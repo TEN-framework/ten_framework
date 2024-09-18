@@ -1,7 +1,8 @@
 //
-// This file is part of the TEN Framework project.
-// See https://github.com/TEN-framework/ten_framework/LICENSE for license
-// information.
+// Copyright © 2024 Agora
+// This file is part of TEN Framework, an open source project.
+// Licensed under the Apache License, Version 2.0, with certain conditions.
+// Refer to the "LICENSE" file in the root directory for more information.
 //
 #include <stdbool.h>
 #include <stddef.h>
@@ -17,12 +18,12 @@
 #include "include_internal/ten_runtime/common/home.h"
 #include "include_internal/ten_runtime/connection/connection.h"
 #include "include_internal/ten_runtime/engine/engine.h"
+#include "include_internal/ten_utils/log/log.h"
+#include "ten_utils/macro/check.h"
 #include "ten_runtime/app/app.h"
 #include "ten_utils/container/list.h"
 #include "ten_utils/container/list_node.h"
 #include "ten_utils/lib/string.h"
-#include "ten_utils/log/log.h"
-#include "ten_utils/macro/check.h"
 #include "ten_utils/macro/mark.h"
 
 bool ten_app_check_integrity(ten_app_t *self, bool check_thread) {

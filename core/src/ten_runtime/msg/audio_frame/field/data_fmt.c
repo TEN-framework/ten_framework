@@ -1,17 +1,19 @@
 //
-// This file is part of the TEN Framework project.
-// See https://github.com/TEN-framework/ten_framework/LICENSE for license
-// information.
+// Copyright © 2024 Agora
+// This file is part of TEN Framework, an open source project.
+// Licensed under the Apache License, Version 2.0, with certain conditions.
+// Refer to the "LICENSE" file in the root directory for more information.
 //
 #include "include_internal/ten_runtime/msg/audio_frame/field/data_fmt.h"
 
 #include "include_internal/ten_runtime/common/constant_str.h"
 #include "include_internal/ten_runtime/msg/audio_frame/audio_frame.h"
 #include "include_internal/ten_runtime/msg/msg.h"
+#include "ten_utils/macro/check.h"
 #include "ten_runtime/msg/audio_frame/audio_frame.h"
 #include "ten_runtime/msg/msg.h"
 #include "ten_utils/lib/json.h"
-#include "ten_utils/macro/check.h"
+#include "ten_utils/macro/mark.h"
 
 const char *ten_audio_frame_data_fmt_to_string(
     const TEN_AUDIO_FRAME_DATA_FMT data_fmt) {

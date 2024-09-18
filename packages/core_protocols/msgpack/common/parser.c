@@ -1,5 +1,5 @@
 //
-// This file is part of the TEN Framework project.
+// This file is part of TEN Framework, an open source project.
 // Licensed under the Apache License, Version 2.0.
 // See the LICENSE file for more information.
 //
@@ -12,6 +12,7 @@
 #include "msgpack.h"
 #include "ten_utils/lib/smart_ptr.h"
 #include "ten_utils/macro/check.h"
+#include "ten_utils/macro/mark.h"
 
 void ten_msgpack_parser_init(ten_msgpack_parser_t *self) {
   TEN_ASSERT(self, "Invalid argument.");

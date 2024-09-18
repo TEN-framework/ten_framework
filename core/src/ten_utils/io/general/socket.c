@@ -1,7 +1,8 @@
 //
-// This file is part of the TEN Framework project.
-// See https://github.com/TEN-framework/ten_framework/LICENSE for license
-// information.
+// Copyright © 2024 Agora
+// This file is part of TEN Framework, an open source project.
+// Licensed under the Apache License, Version 2.0, with certain conditions.
+// Refer to the "LICENSE" file in the root directory for more information.
 //
 #include "ten_utils/io/socket.h"
 
@@ -9,19 +10,19 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "include_internal/ten_utils/log/log.h"
 #include "ten_utils/lib/string.h"
-#include "ten_utils/log/log.h"
 
 #if defined(_WIN32)
-  #include <WS2tcpip.h>
-  #include <ws2ipdef.h>
+#include <WS2tcpip.h>
+#include <ws2ipdef.h>
 #else
-  #include <arpa/inet.h>
-  #include <unistd.h>
+#include <arpa/inet.h>
+#include <unistd.h>
 #endif
 
-#include "ten_utils/lib/alloc.h"
 #include "ten_utils/macro/check.h"
+#include "ten_utils/lib/alloc.h"
 
 ten_socket_addr_t *ten_socket_addr_create(const char *address, uint16_t port) {
   ten_socket_addr_t *self =

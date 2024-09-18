@@ -1,7 +1,8 @@
 //
-// This file is part of the TEN Framework project.
-// See https://github.com/TEN-framework/ten_framework/LICENSE for license
-// information.
+// Copyright © 2024 Agora
+// This file is part of TEN Framework, an open source project.
+// Licensed under the Apache License, Version 2.0, with certain conditions.
+// Refer to the "LICENSE" file in the root directory for more information.
 //
 #include "include_internal/ten_runtime/binding/python/common/error.h"
 #include "include_internal/ten_runtime/binding/python/msg/cmd.h"
@@ -80,7 +81,7 @@ PyObject *ten_py_ten_env_return_result(PyObject *self, PyObject *args) {
 
   if (PyTuple_GET_SIZE(args) != 2) {
     return ten_py_raise_py_value_error_exception(
-        "Invalid argument count when ten.ten_py_ten_env_return_result.");
+        "Invalid argument count when ten_env.return_result.");
   }
 
   bool success = true;
@@ -145,8 +146,7 @@ PyObject *ten_py_ten_env_return_result_directly(PyObject *self,
 
   if (PyTuple_GET_SIZE(args) != 1) {
     return ten_py_raise_py_value_error_exception(
-        "Invalid argument count when "
-        "ten.ten_py_ten_env_return_result_directly.");
+        "Invalid argument count when ten_env.return_result_directly.");
   }
 
   bool success = true;

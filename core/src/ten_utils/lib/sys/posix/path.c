@@ -1,10 +1,11 @@
 //
-// This file is part of the TEN Framework project.
-// See https://github.com/TEN-framework/ten_framework/LICENSE for license
-// information.
+// Copyright © 2024 Agora
+// This file is part of TEN Framework, an open source project.
+// Licensed under the Apache License, Version 2.0, with certain conditions.
+// Refer to the "LICENSE" file in the root directory for more information.
 //
 #if defined(OS_LINUX)
-  #define _GNU_SOURCE
+#define _GNU_SOURCE
 #endif
 
 #include "ten_utils/lib/path.h"
@@ -17,10 +18,10 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
+#include "include_internal/ten_utils/log/log.h"
+#include "ten_utils/macro/check.h"
 #include "ten_utils/lib/alloc.h"
 #include "ten_utils/lib/string.h"
-#include "ten_utils/log/log.h"
-#include "ten_utils/macro/check.h"
 #include "ten_utils/macro/mark.h"
 
 int ten_path_to_system_flavor(ten_string_t *path) {

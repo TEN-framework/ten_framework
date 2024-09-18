@@ -1,16 +1,17 @@
 //
-// This file is part of the TEN Framework project.
-// See https://github.com/TEN-framework/ten_framework/LICENSE for license
-// information.
+// Copyright © 2024 Agora
+// This file is part of TEN Framework, an open source project.
+// Licensed under the Apache License, Version 2.0, with certain conditions.
+// Refer to the "LICENSE" file in the root directory for more information.
 //
 #include <string.h>
 
 #include "include_internal/ten_runtime/binding/python/common/error.h"
 #include "include_internal/ten_runtime/binding/python/ten_env/ten_env.h"
+#include "ten_utils/macro/check.h"
 #include "ten_runtime/ten_env_proxy/ten_env_proxy.h"
 #include "ten_utils/lib/error.h"
 #include "ten_utils/lib/json.h"
-#include "ten_utils/macro/check.h"
 #include "ten_utils/macro/memory.h"
 #include "ten_utils/value/value.h"
 #include "ten_utils/value/value_get.h"
@@ -298,13 +299,13 @@ PyObject *ten_py_ten_env_is_property_exist(PyObject *self, PyObject *args) {
 
   if (PyTuple_GET_SIZE(args) != 1) {
     return ten_py_raise_py_value_error_exception(
-        "Invalid argument count when ten.is_property_exist.");
+        "Invalid argument count when ten_env.is_property_exist.");
   }
 
   const char *path = NULL;
   if (!PyArg_ParseTuple(args, "s", &path)) {
     return ten_py_raise_py_value_error_exception(
-        "Failed to parse argument when ten.is_property_exist.");
+        "Failed to parse argument when ten_env.is_property_exist.");
   }
 
   ten_error_t err;

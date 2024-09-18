@@ -1,7 +1,8 @@
 //
-// This file is part of the TEN Framework project.
-// See https://github.com/TEN-framework/ten_framework/LICENSE for license
-// information.
+// Copyright © 2024 Agora
+// This file is part of TEN Framework, an open source project.
+// Licensed under the Apache License, Version 2.0, with certain conditions.
+// Refer to the "LICENSE" file in the root directory for more information.
 //
 #pragma once
 
@@ -38,6 +39,9 @@ TEN_RUNTIME_PRIVATE_API void ten_py_ten_env_invalidate(
     ten_py_ten_env_t *py_ten);
 
 TEN_RUNTIME_PRIVATE_API bool ten_py_ten_env_init_for_module(PyObject *module);
+
+TEN_RUNTIME_PRIVATE_API PyObject *ten_py_ten_env_on_configure_done(
+    PyObject *self, PyObject *args);
 
 TEN_RUNTIME_PRIVATE_API PyObject *ten_py_ten_env_on_init_done(PyObject *self,
                                                               PyObject *args);
@@ -116,3 +120,6 @@ TEN_RUNTIME_PRIVATE_API PyObject *ten_py_ten_env_set_property_float(
 
 TEN_RUNTIME_PRIVATE_API PyObject *ten_py_ten_env_init_property_from_json(
     PyObject *self, PyObject *args);
+
+TEN_RUNTIME_PRIVATE_API PyObject *ten_py_ten_env_log(PyObject *self,
+                                                     PyObject *args);

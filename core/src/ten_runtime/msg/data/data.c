@@ -1,13 +1,15 @@
 //
-// This file is part of the TEN Framework project.
-// See https://github.com/TEN-framework/ten_framework/LICENSE for license
-// information.
+// Copyright © 2024 Agora
+// This file is part of TEN Framework, an open source project.
+// Licensed under the Apache License, Version 2.0, with certain conditions.
+// Refer to the "LICENSE" file in the root directory for more information.
 //
 #include "ten_runtime/msg/data/data.h"
 
 #include "include_internal/ten_runtime/msg/data/field/field_info.h"
 #include "include_internal/ten_runtime/msg/locked_res.h"
 #include "include_internal/ten_runtime/msg/msg.h"
+#include "ten_utils/macro/check.h"
 #include "include_internal/ten_utils/value/value_path.h"
 #include "ten_runtime/common/errno.h"
 #include "ten_utils/lib/alloc.h"
@@ -15,7 +17,7 @@
 #include "ten_utils/lib/json.h"
 #include "ten_utils/lib/signature.h"
 #include "ten_utils/lib/smart_ptr.h"
-#include "ten_utils/macro/check.h"
+#include "ten_utils/macro/mark.h"
 #include "ten_utils/value/value_get.h"
 
 bool ten_raw_data_check_integrity(ten_data_t *self) {

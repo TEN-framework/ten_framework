@@ -1,7 +1,8 @@
 //
-// This file is part of the TEN Framework project.
-// See https://github.com/TEN-framework/ten_framework/LICENSE for license
-// information.
+// Copyright © 2024 Agora
+// This file is part of TEN Framework, an open source project.
+// Licensed under the Apache License, Version 2.0, with certain conditions.
+// Refer to the "LICENSE" file in the root directory for more information.
 //
 #include "include_internal/ten_runtime/extension/extension.h"
 
@@ -22,6 +23,7 @@
 #include "ten_runtime/ten_env/ten_env.h"
 #include "ten_runtime/ten_env_proxy/ten_env_proxy.h"
 #include "ten_utils/lib/smart_ptr.h"
+#include "ten_utils/macro/mark.h"
 
 static bool ten_py_extension_check_integrity(ten_py_extension_t *self,
                                              bool check_thread) {
@@ -38,6 +40,48 @@ static bool ten_py_extension_check_integrity(ten_py_extension_t *self,
 static PyObject *stub_on_callback(TEN_UNUSED PyObject *self,
                                   TEN_UNUSED PyObject *args) {
   Py_RETURN_NONE;
+}
+
+static void proxy_on_configure(ten_extension_t *extension, ten_env_t *ten_env) {
+  TEN_ASSERT(extension && ten_extension_check_integrity(extension, true),
+             "Invalid argument.");
+  TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
+             "Invalid argument.");
+
+  PyGILState_STATE prev_state = ten_py_gil_state_ensure();
+  // This function can only be called on the native thread not a Python
+  // thread.
+  TEN_ASSERT(prev_state == PyGILState_UNLOCKED,
+             "The GIL should not be help by the extension thread now.");
+
+  ten_py_extension_t *py_extension =
+      (ten_py_extension_t *)ten_binding_handle_get_me_in_target_lang(
+          (ten_binding_handle_t *)extension);
+  TEN_ASSERT(
+      py_extension && ten_py_extension_check_integrity(py_extension, true),
+      "Invalid argument.");
+
+  ten_py_ten_env_t *py_ten_env = ten_py_ten_wrap(ten_env);
+  py_extension->py_ten_env = (PyObject *)py_ten_env;
+
+  py_ten_env->c_ten_env_proxy = ten_env_proxy_create(ten_env, 1, NULL);
+  TEN_ASSERT(py_ten_env->c_ten_env_proxy &&
+                 ten_env_proxy_check_integrity(py_ten_env->c_ten_env_proxy),
+             "Invalid argument.");
+
+  PyObject *py_res =
+      PyObject_CallMethod((PyObject *)py_extension, "_proxy_on_configure", "O",
+                          py_ten_env->actual_py_ten_env);
+  Py_XDECREF(py_res);
+
+  bool err_occurred = ten_py_check_and_clear_py_error();
+  TEN_ASSERT(!err_occurred, "Should not happen.");
+
+  // We should release the GIL but not destroy the PyThreadState. The
+  // PyThreadState will not be released until the last extension calls
+  // 'on_deinit_done' in the group.
+  ten_py_eval_save_thread();
+  py_ten_env->need_to_release_gil_state = true;
 }
 
 static void proxy_on_init(ten_extension_t *extension, ten_env_t *ten_env) {
@@ -59,27 +103,18 @@ static void proxy_on_init(ten_extension_t *extension, ten_env_t *ten_env) {
       py_extension && ten_py_extension_check_integrity(py_extension, true),
       "Invalid argument.");
 
-  ten_py_ten_env_t *py_ten_env = ten_py_ten_wrap(ten_env);
-  py_extension->py_ten = (PyObject *)py_ten_env;
-
-  py_ten_env->c_ten_env_proxy = ten_env_proxy_create(ten_env, 1, NULL);
-  TEN_ASSERT(py_ten_env->c_ten_env_proxy &&
-                 ten_env_proxy_check_integrity(py_ten_env->c_ten_env_proxy),
-             "Invalid argument.");
+  PyObject *py_ten_env = py_extension->py_ten_env;
+  TEN_ASSERT(py_ten_env, "Should not happen.");
 
   PyObject *py_res =
-      PyObject_CallMethod((PyObject *)py_extension, "_proxy_on_init", "O",
-                          py_ten_env->actual_py_ten_env);
+      PyObject_CallMethod((PyObject *)py_extension, "on_init", "O",
+                          ((ten_py_ten_env_t *)py_ten_env)->actual_py_ten_env);
   Py_XDECREF(py_res);
 
   bool err_occurred = ten_py_check_and_clear_py_error();
   TEN_ASSERT(!err_occurred, "Should not happen.");
 
-  // We should release the GIL but not destroy the PyThreadState. The
-  // PyThreadState will not be released until the last extension calls
-  // 'on_deinit_done' in the group.
-  ten_py_eval_save_thread();
-  py_ten_env->need_to_release_gil_state = true;
+  ten_py_gil_state_release(prev_state);
 }
 
 static void proxy_on_start(ten_extension_t *extension, ten_env_t *ten_env) {
@@ -99,11 +134,12 @@ static void proxy_on_start(ten_extension_t *extension, ten_env_t *ten_env) {
       py_extension && ten_py_extension_check_integrity(py_extension, true),
       "Invalid argument.");
 
-  PyObject *py_ten = py_extension->py_ten;
-  TEN_ASSERT(py_ten, "Should not happen.");
+  PyObject *py_ten_env = py_extension->py_ten_env;
+  TEN_ASSERT(py_ten_env, "Should not happen.");
 
   PyObject *py_res =
-      PyObject_CallMethod((PyObject *)py_extension, "on_start", "O", py_ten);
+      PyObject_CallMethod((PyObject *)py_extension, "on_start", "O",
+                          ((ten_py_ten_env_t *)py_ten_env)->actual_py_ten_env);
   Py_XDECREF(py_res);
 
   bool err_occurred = ten_py_check_and_clear_py_error();
@@ -129,11 +165,12 @@ static void proxy_on_stop(ten_extension_t *extension, ten_env_t *ten_env) {
       py_extension && ten_py_extension_check_integrity(py_extension, true),
       "Invalid argument.");
 
-  PyObject *py_ten = py_extension->py_ten;
-  TEN_ASSERT(py_ten, "Should not happen.");
+  PyObject *py_ten_env = py_extension->py_ten_env;
+  TEN_ASSERT(py_ten_env, "Should not happen.");
 
   PyObject *py_res =
-      PyObject_CallMethod((PyObject *)py_extension, "on_stop", "O", py_ten);
+      PyObject_CallMethod((PyObject *)py_extension, "on_stop", "O",
+                          ((ten_py_ten_env_t *)py_ten_env)->actual_py_ten_env);
   Py_XDECREF(py_res);
 
   bool err_occurred = ten_py_check_and_clear_py_error();
@@ -159,11 +196,12 @@ static void proxy_on_deinit(ten_extension_t *extension, ten_env_t *ten_env) {
       py_extension && ten_py_extension_check_integrity(py_extension, true),
       "Invalid argument.");
 
-  PyObject *py_ten = py_extension->py_ten;
-  TEN_ASSERT(py_ten, "Should not happen.");
+  PyObject *py_ten_env = py_extension->py_ten_env;
+  TEN_ASSERT(py_ten_env, "Should not happen.");
 
   PyObject *py_res =
-      PyObject_CallMethod((PyObject *)py_extension, "on_deinit", "O", py_ten);
+      PyObject_CallMethod((PyObject *)py_extension, "on_deinit", "O",
+                          ((ten_py_ten_env_t *)py_ten_env)->actual_py_ten_env);
   Py_XDECREF(py_res);
 
   bool err_occurred = ten_py_check_and_clear_py_error();
@@ -189,13 +227,14 @@ static void proxy_on_cmd(ten_extension_t *extension, ten_env_t *ten_env,
       py_extension && ten_py_extension_check_integrity(py_extension, true),
       "Invalid argument.");
 
-  PyObject *py_ten = py_extension->py_ten;
-  TEN_ASSERT(py_ten, "Should not happen.");
+  PyObject *py_ten_env = py_extension->py_ten_env;
+  TEN_ASSERT(py_ten_env, "Should not happen.");
 
   ten_py_cmd_t *py_cmd = ten_py_cmd_wrap(cmd);
 
-  PyObject *py_res = PyObject_CallMethod((PyObject *)py_extension, "on_cmd",
-                                         "OO", py_ten, py_cmd);
+  PyObject *py_res = PyObject_CallMethod(
+      (PyObject *)py_extension, "on_cmd", "OO",
+      ((ten_py_ten_env_t *)py_ten_env)->actual_py_ten_env, py_cmd);
   Py_XDECREF(py_res);
 
   bool err_occurred = ten_py_check_and_clear_py_error();
@@ -223,13 +262,14 @@ static void proxy_on_data(ten_extension_t *extension, ten_env_t *ten_env,
       py_extension && ten_py_extension_check_integrity(py_extension, true),
       "Invalid argument.");
 
-  PyObject *py_ten = py_extension->py_ten;
-  TEN_ASSERT(py_ten, "Should not happen.");
+  PyObject *py_ten_env = py_extension->py_ten_env;
+  TEN_ASSERT(py_ten_env, "Should not happen.");
 
   ten_py_data_t *py_data = ten_py_data_wrap(data);
 
-  PyObject *py_res = PyObject_CallMethod((PyObject *)py_extension, "on_data",
-                                         "OO", py_ten, py_data);
+  PyObject *py_res = PyObject_CallMethod(
+      (PyObject *)py_extension, "on_data", "OO",
+      ((ten_py_ten_env_t *)py_ten_env)->actual_py_ten_env, py_data);
   Py_XDECREF(py_res);
 
   bool err_occurred = ten_py_check_and_clear_py_error();
@@ -258,13 +298,14 @@ static void proxy_on_audio_frame(ten_extension_t *extension, ten_env_t *ten_env,
       py_extension && ten_py_extension_check_integrity(py_extension, true),
       "Invalid argument.");
 
-  PyObject *py_ten = py_extension->py_ten;
-  TEN_ASSERT(py_ten, "Should not happen.");
+  PyObject *py_ten_env = py_extension->py_ten_env;
+  TEN_ASSERT(py_ten_env, "Should not happen.");
 
   ten_py_audio_frame_t *py_audio_frame = ten_py_audio_frame_wrap(audio_frame);
 
   PyObject *py_res = PyObject_CallMethod(
-      (PyObject *)py_extension, "on_audio_frame", "OO", py_ten, py_audio_frame);
+      (PyObject *)py_extension, "on_audio_frame", "OO",
+      ((ten_py_ten_env_t *)py_ten_env)->actual_py_ten_env, py_audio_frame);
   Py_XDECREF(py_res);
 
   bool err_occurred = ten_py_check_and_clear_py_error();
@@ -288,11 +329,12 @@ static void proxy_on_video_frame(ten_extension_t *extension, ten_env_t *ten_env,
 
   PyObject *py_extension = (PyObject *)ten_binding_handle_get_me_in_target_lang(
       (ten_binding_handle_t *)extension);
-  PyObject *py_ten = ((ten_py_extension_t *)py_extension)->py_ten;
+  PyObject *py_ten_env = ((ten_py_extension_t *)py_extension)->py_ten_env;
   ten_py_video_frame_t *py_video_frame = ten_py_video_frame_wrap(video_frame);
 
-  PyObject *py_res = PyObject_CallMethod(py_extension, "on_video_frame", "OO",
-                                         py_ten, py_video_frame);
+  PyObject *py_res = PyObject_CallMethod(
+      py_extension, "on_video_frame", "OO",
+      ((ten_py_ten_env_t *)py_ten_env)->actual_py_ten_env, py_video_frame);
   Py_XDECREF(py_res);
 
   bool err_occurred = ten_py_check_and_clear_py_error();
@@ -321,14 +363,14 @@ static PyObject *ten_py_extension_create(PyTypeObject *type, PyObject *py_name,
 
   ten_signature_set(&py_extension->signature, TEN_PY_EXTENSION_SIGNATURE);
 
-  py_extension->c_extension =
-      ten_extension_create(name, proxy_on_init, proxy_on_start, proxy_on_stop,
-                           proxy_on_deinit, proxy_on_cmd, proxy_on_data,
-                           proxy_on_audio_frame, proxy_on_video_frame, NULL);
+  py_extension->c_extension = ten_extension_create(
+      name, proxy_on_configure, proxy_on_init, proxy_on_start, proxy_on_stop,
+      proxy_on_deinit, proxy_on_cmd, proxy_on_data, proxy_on_audio_frame,
+      proxy_on_video_frame, NULL);
   TEN_ASSERT(py_extension->c_extension, "Should not happen.");
 
   ten_extension_set_me_in_target_lang(py_extension->c_extension, py_extension);
-  py_extension->py_ten = Py_None;
+  py_extension->py_ten_env = Py_None;
 
   return (PyObject *)py_extension;
 }

@@ -1,7 +1,8 @@
 //
-// This file is part of the TEN Framework project.
-// See https://github.com/TEN-framework/ten_framework/LICENSE for license
-// information.
+// Copyright © 2024 Agora
+// This file is part of TEN Framework, an open source project.
+// Licensed under the Apache License, Version 2.0, with certain conditions.
+// Refer to the "LICENSE" file in the root directory for more information.
 //
 #include "include_internal/ten_runtime/metadata/metadata_info.h"
 
@@ -14,12 +15,12 @@
 #include "include_internal/ten_runtime/extension_group/on_xxx.h"
 #include "include_internal/ten_runtime/metadata/default/default.h"
 #include "include_internal/ten_runtime/ten_env/ten_env.h"
+#include "include_internal/ten_utils/log/log.h"
 #include "ten_runtime/ten_env/ten_env.h"
 #include "ten_utils/lib/alloc.h"
 #include "ten_utils/lib/error.h"
 #include "ten_utils/lib/path.h"
 #include "ten_utils/lib/string.h"
-#include "ten_utils/log/log.h"
 #include "ten_utils/macro/check.h"
 
 bool ten_metadata_info_check_integrity(ten_metadata_info_t *self) {
@@ -286,10 +287,10 @@ bool ten_metadata_info_set(ten_metadata_info_t *self, TEN_METADATA_TYPE type,
   return validated;
 }
 
-bool ten_handle_manifest_info_when_on_init_done(ten_metadata_info_t **self,
-                                                const char *base_dir,
-                                                ten_value_t *manifest,
-                                                ten_error_t *err) {
+bool ten_handle_manifest_info_when_on_configure_done(ten_metadata_info_t **self,
+                                                     const char *base_dir,
+                                                     ten_value_t *manifest,
+                                                     ten_error_t *err) {
   TEN_ASSERT(self && *self && ten_metadata_info_check_integrity(*self),
              "Invalid argument.");
   TEN_ASSERT(manifest, "Invalid argument.");
@@ -322,10 +323,10 @@ bool ten_handle_manifest_info_when_on_init_done(ten_metadata_info_t **self,
   return true;
 }
 
-bool ten_handle_property_info_when_on_init_done(ten_metadata_info_t **self,
-                                                const char *base_dir,
-                                                ten_value_t *property,
-                                                ten_error_t *err) {
+bool ten_handle_property_info_when_on_configure_done(ten_metadata_info_t **self,
+                                                     const char *base_dir,
+                                                     ten_value_t *property,
+                                                     ten_error_t *err) {
   TEN_ASSERT(self && *self && ten_metadata_info_check_integrity(*self),
              "Invalid argument.");
   TEN_ASSERT(property, "Invalid argument.");

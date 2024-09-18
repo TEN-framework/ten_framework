@@ -1,7 +1,8 @@
 //
-// This file is part of the TEN Framework project.
-// See https://github.com/TEN-framework/ten_framework/LICENSE for license
-// information.
+// Copyright © 2024 Agora
+// This file is part of TEN Framework, an open source project.
+// Licensed under the Apache License, Version 2.0, with certain conditions.
+// Refer to the "LICENSE" file in the root directory for more information.
 //
 #pragma once
 
@@ -24,7 +25,9 @@
 #include "ten_utils/lang/cpp/lib/value.h"
 #include "ten_utils/lib/buf.h"
 #include "ten_utils/lib/error.h"
+#include "ten_utils/log/log.h"
 #include "ten_utils/macro/check.h"
+#include "ten_utils/macro/mark.h"
 #include "ten_utils/value/value.h"
 #include "ten_utils/value/value_json.h"
 
@@ -946,6 +949,18 @@ class ten_env_t {
     return addon_destroy_extension_async(extension, nullptr, err);
   }
 
+  bool on_configure_done() { return on_configure_done(nullptr); }
+
+  virtual bool on_configure_done(error_t *err) {
+    TEN_ASSERT(c_ten_env, "Should not happen.");
+
+    bool rc = ten_env_on_configure_done(
+        c_ten_env,
+        err != nullptr ? err->get_internal_representation() : nullptr);
+
+    return rc;
+  }
+
   virtual bool on_init_done(error_t *err) {
     TEN_ASSERT(c_ten_env, "Should not happen.");
 
@@ -1030,6 +1045,47 @@ class ten_env_t {
   }
 
   void *get_attached_target() { return get_attached_target(nullptr); }
+
+#define TEN_ENV_LOG_VERBOSE(ten_env, msg)                                      \
+  do {                                                                         \
+    (ten_env).log(TEN_LOG_LEVEL_VERBOSE, __func__, __FILE__, __LINE__, (msg)); \
+  } while (0)
+
+#define TEN_ENV_LOG_DEBUG(ten_env, msg)                                      \
+  do {                                                                       \
+    (ten_env).log(TEN_LOG_LEVEL_DEBUG, __func__, __FILE__, __LINE__, (msg)); \
+  } while (0)
+
+#define TEN_ENV_LOG_INFO(ten_env, msg)                                      \
+  do {                                                                      \
+    (ten_env).log(TEN_LOG_LEVEL_INFO, __func__, __FILE__, __LINE__, (msg)); \
+  } while (0)
+
+#define TEN_ENV_LOG_WARN(ten_env, msg)                                      \
+  do {                                                                      \
+    (ten_env).log(TEN_LOG_LEVEL_WARN, __func__, __FILE__, __LINE__, (msg)); \
+  } while (0)
+
+#define TEN_ENV_LOG_ERROR(ten_env, msg)                                      \
+  do {                                                                       \
+    (ten_env).log(TEN_LOG_LEVEL_ERROR, __func__, __FILE__, __LINE__, (msg)); \
+  } while (0)
+
+#define TEN_ENV_LOG_FATAL(ten_env, msg)                                      \
+  do {                                                                       \
+    (ten_env).log(TEN_LOG_LEVEL_FATAL, __func__, __FILE__, __LINE__, (msg)); \
+  } while (0)
+
+#define TEN_ENV_LOG(ten_env, level, msg)                         \
+  do {                                                           \
+    (ten_env).log((level), __func__, __FILE__, __LINE__, (msg)); \
+  } while (0)
+
+  void log(TEN_LOG_LEVEL level, const char *func_name, const char *file_name,
+           size_t line_no, const char *msg) {
+    TEN_ASSERT(c_ten_env, "Should not happen.");
+    ten_env_log(c_ten_env, level, func_name, file_name, line_no, msg);
+  }
 
  private:
   friend class ten_env_proxy_t;

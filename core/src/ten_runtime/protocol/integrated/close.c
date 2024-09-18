@@ -1,7 +1,8 @@
 //
-// This file is part of the TEN Framework project.
-// See https://github.com/TEN-framework/ten_framework/LICENSE for license
-// information.
+// Copyright © 2024 Agora
+// This file is part of TEN Framework, an open source project.
+// Licensed under the Apache License, Version 2.0, with certain conditions.
+// Refer to the "LICENSE" file in the root directory for more information.
 //
 #include "ten_runtime/protocol/close.h"
 
@@ -10,7 +11,6 @@
 #include "include_internal/ten_runtime/protocol/integrated/protocol_integrated.h"
 #include "include_internal/ten_runtime/protocol/protocol.h"
 #include "ten_utils/io/stream.h"
-#include "ten_utils/log/log.h"
 #include "ten_utils/macro/check.h"
 
 // The principle is very simple. As long as the integrated protocol still has

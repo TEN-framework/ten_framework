@@ -1,7 +1,8 @@
 //
-// This file is part of the TEN Framework project.
-// See https://github.com/TEN-framework/ten_framework/LICENSE for license
-// information.
+// Copyright © 2024 Agora
+// This file is part of TEN Framework, an open source project.
+// Licensed under the Apache License, Version 2.0, with certain conditions.
+// Refer to the "LICENSE" file in the root directory for more information.
 //
 
 package ten
@@ -41,14 +42,19 @@ type VideoFrame interface {
 	LockBuf() ([]byte, error)
 	UnlockBuf(buf *[]byte) error
 	GetBuf() ([]byte, error)
+
 	SetWidth(width int32) error
 	GetWidth() (int32, error)
+
 	SetHeight(height int32) error
 	GetHeight() (int32, error)
+
 	SetTimestamp(timestamp int64) error
 	GetTimestamp() (int64, error)
+
 	IsEOF() (bool, error)
 	SetIsEOF(isEOF bool) error
+
 	GetPixelFmt() (PixelFmt, error)
 	SetPixelFmt(pixelFmt PixelFmt) error
 }

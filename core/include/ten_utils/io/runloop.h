@@ -1,7 +1,8 @@
 //
-// This file is part of the TEN Framework project.
-// See https://github.com/TEN-framework/ten_framework/LICENSE for license
-// information.
+// Copyright © 2024 Agora
+// This file is part of TEN Framework, an open source project.
+// Licensed under the Apache License, Version 2.0, with certain conditions.
+// Refer to the "LICENSE" file in the root directory for more information.
 //
 /**
  * @file
@@ -154,7 +155,7 @@ TEN_UTILS_API void ten_runloop_async_destroy(ten_runloop_async_t *async);
  * @brief Notify the signal.
  * @param async The signal.
  * @return 0 if success, -1 otherwise.
- * @note The signal callback will be called in the thread of |loop| that inited
+ * @note The signal callback will be called in the thread of |loop| that initted
  */
 TEN_UTILS_API int ten_runloop_async_notify(ten_runloop_async_t *async);
 

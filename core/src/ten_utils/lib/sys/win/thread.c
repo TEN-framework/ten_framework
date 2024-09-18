@@ -1,15 +1,16 @@
 //
-// This file is part of the TEN Framework project.
-// See https://github.com/TEN-framework/ten_framework/LICENSE for license
-// information.
+// Copyright © 2024 Agora
+// This file is part of TEN Framework, an open source project.
+// Licensed under the Apache License, Version 2.0, with certain conditions.
+// Refer to the "LICENSE" file in the root directory for more information.
 //
 #include "ten_utils/lib/thread.h"
 
 #include <Windows.h>
 #include <stdlib.h>
 
-#include "ten_utils/lib/thread_local.h"
 #include "ten_utils/macro/check.h"
+#include "ten_utils/lib/thread_local.h"
 
 TEN_UTILS_API ten_thread_t *__get_self();
 

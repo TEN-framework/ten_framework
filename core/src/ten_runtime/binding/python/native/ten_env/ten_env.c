@@ -1,7 +1,8 @@
 //
-// This file is part of the TEN Framework project.
-// See https://github.com/TEN-framework/ten_framework/LICENSE for license
-// information.
+// Copyright © 2024 Agora
+// This file is part of TEN Framework, an open source project.
+// Licensed under the Apache License, Version 2.0, with certain conditions.
+// Refer to the "LICENSE" file in the root directory for more information.
 //
 #include "include_internal/ten_runtime/ten_env/ten_env.h"
 
@@ -133,6 +134,8 @@ PyTypeObject *ten_py_ten_env_type(void) {
       {NULL, NULL, NULL, NULL, NULL}};
 
   static PyMethodDef ten_methods[] = {
+      {"on_configure_done", ten_py_ten_env_on_configure_done, METH_VARARGS,
+       NULL},
       {"on_init_done", ten_py_ten_env_on_init_done, METH_VARARGS, NULL},
       {"on_start_done", ten_py_ten_env_on_start_done, METH_VARARGS, NULL},
       {"on_stop_done", ten_py_ten_env_on_stop_done, METH_VARARGS, NULL},
@@ -170,6 +173,7 @@ PyTypeObject *ten_py_ten_env_type(void) {
       {"is_cmd_connected", ten_py_ten_env_is_cmd_connected, METH_VARARGS, NULL},
       {"init_property_from_json", ten_py_ten_env_init_property_from_json,
        METH_VARARGS, NULL},
+      {"log", ten_py_ten_env_log, METH_VARARGS, NULL},
       {NULL, NULL, 0, NULL},
   };
 

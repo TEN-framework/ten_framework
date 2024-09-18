@@ -1,20 +1,21 @@
 //
-// This file is part of the TEN Framework project.
-// See https://github.com/TEN-framework/ten_framework/LICENSE for license
-// information.
+// Copyright © 2024 Agora
+// This file is part of TEN Framework, an open source project.
+// Licensed under the Apache License, Version 2.0, with certain conditions.
+// Refer to the "LICENSE" file in the root directory for more information.
 //
 #include "tests/common/client/msgpack_tcp.h"
 
 #include "core_protocols/msgpack/common/parser.h"
 #include "core_protocols/msgpack/msg/msg.h"
 #include "include_internal/ten_runtime/msg/msg.h"
+#include "ten_utils/macro/check.h"
 #include "ten_runtime/ten.h"
 #include "ten_utils/container/list.h"
 #include "ten_utils/lib/alloc.h"
 #include "ten_utils/lib/json.h"
 #include "ten_utils/lib/smart_ptr.h"
 #include "ten_utils/lib/string.h"
-#include "ten_utils/macro/check.h"
 #include "tests/common/client/tcp.h"
 
 static ten_buf_t ten_test_msgpack_tcp_client_msgs_to_buf(ten_list_t *msgs) {

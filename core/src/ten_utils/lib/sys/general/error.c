@@ -1,15 +1,16 @@
 //
-// This file is part of the TEN Framework project.
-// See https://github.com/TEN-framework/ten_framework/LICENSE for license
-// information.
+// Copyright © 2024 Agora
+// This file is part of TEN Framework, an open source project.
+// Licensed under the Apache License, Version 2.0, with certain conditions.
+// Refer to the "LICENSE" file in the root directory for more information.
 //
 #include "ten_utils/lib/error.h"
 
 #include <stdarg.h>
 
+#include "ten_utils/macro/check.h"
 #include "ten_utils/lib/alloc.h"
 #include "ten_utils/lib/string.h"
-#include "ten_utils/macro/check.h"
 #include "ten_utils/macro/memory.h"
 
 bool ten_error_check_integrity(ten_error_t *self) {
@@ -61,7 +62,7 @@ bool ten_error_append_errmsg(ten_error_t *self, const char *fmt, ...) {
 
   va_list ap;
   va_start(ap, fmt);
-  ten_string_set_from_va_list(&self->err_msg, fmt, ap);
+  ten_string_append_from_va_list(&self->err_msg, fmt, ap);
   va_end(ap);
 
   return true;
@@ -87,7 +88,7 @@ bool ten_error_vset(ten_error_t *self, ten_errno_t err_no, const char *fmt,
 
   self->err_no = err_no;
   ten_string_clear(&self->err_msg);
-  ten_string_set_from_va_list(&self->err_msg, fmt, ap);
+  ten_string_append_from_va_list(&self->err_msg, fmt, ap);
 
   return true;
 }

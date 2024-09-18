@@ -1,7 +1,8 @@
 //
-// This file is part of the TEN Framework project.
-// See https://github.com/TEN-framework/ten_framework/LICENSE for license
-// information.
+// Copyright © 2024 Agora
+// This file is part of TEN Framework, an open source project.
+// Licensed under the Apache License, Version 2.0, with certain conditions.
+// Refer to the "LICENSE" file in the root directory for more information.
 //
 
 package ten
@@ -11,13 +12,13 @@ import "C"
 
 import (
 	"fmt"
-	"log"
 	"runtime"
 	"unsafe"
 )
 
 // IApp is the interface for the app.
 type IApp interface {
+	OnConfigure(tenEnv TenEnv)
 	OnInit(tenEnv TenEnv)
 	OnDeinit(tenEnv TenEnv)
 }
@@ -25,18 +26,27 @@ type IApp interface {
 // DefaultApp is the default app.
 type DefaultApp struct{}
 
+// OnConfigure configures the app.
+func (p *DefaultApp) OnConfigure(
+	tenEnv TenEnv,
+) {
+	tenEnv.LogDebug("OnConfigure.")
+
+	tenEnv.OnConfigureDone()
+}
+
 // OnInit initializes the app.
 func (p *DefaultApp) OnInit(
 	tenEnv TenEnv,
 ) {
-	log.Println("DefaultApp OnInit.")
+	tenEnv.LogDebug("OnInit.")
 
 	tenEnv.OnInitDone()
 }
 
 // OnDeinit deinitializes the app.
 func (p *DefaultApp) OnDeinit(tenEnv TenEnv) {
-	log.Println("DefaultApp OnDeinit.")
+	tenEnv.LogDebug("OnDeinit.")
 
 	tenEnv.OnDeinitDone()
 }
@@ -94,6 +104,35 @@ func NewApp(
 	})
 
 	return pApp, nil
+}
+
+//
+//export tenGoAppOnConfigure
+func tenGoAppOnConfigure(
+	appID C.uintptr_t,
+	tenEnvID C.uintptr_t,
+) {
+	appObj, ok := handle(appID).get().(*app)
+	if !ok {
+		panic(
+			fmt.Sprintf(
+				"Failed to get app from handle map, id: %d.",
+				uintptr(appID),
+			),
+		)
+	}
+
+	tenEnvObj, ok := handle(tenEnvID).get().(TenEnv)
+	if !ok {
+		panic(
+			fmt.Sprintf(
+				"Failed to get ten from handle map, id: %d.",
+				uintptr(tenEnvID),
+			),
+		)
+	}
+
+	appObj.OnConfigure(tenEnvObj)
 }
 
 //

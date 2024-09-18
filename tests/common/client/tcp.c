@@ -1,7 +1,8 @@
 //
-// This file is part of the TEN Framework project.
-// See https://github.com/TEN-framework/ten_framework/LICENSE for license
-// information.
+// Copyright © 2024 Agora
+// This file is part of TEN Framework, an open source project.
+// Licensed under the Apache License, Version 2.0, with certain conditions.
+// Refer to the "LICENSE" file in the root directory for more information.
 //
 #include "tests/common/client/tcp.h"
 
@@ -9,6 +10,7 @@
 
 #include "include_internal/ten_runtime/msg/cmd_base/cmd_result/cmd.h"
 #include "include_internal/ten_runtime/msg/msg.h"
+#include "ten_utils/macro/check.h"
 #include "ten_runtime/ten.h"
 #include "ten_utils/container/list.h"
 #include "ten_utils/container/list_node_str.h"
@@ -18,7 +20,6 @@
 #include "ten_utils/lib/buf.h"
 #include "ten_utils/lib/string.h"
 #include "ten_utils/lib/time.h"
-#include "ten_utils/macro/check.h"
 
 static void ten_test_tcp_client_dump_socket_info(ten_test_tcp_client_t *self,
                                                  const char *fmt, ...) {
@@ -65,8 +66,8 @@ static void ten_test_tcp_client_dump_socket_info(ten_test_tcp_client_t *self,
 
   ten_string_t description;
   ten_string_init(&description);
-  ten_string_set_from_va_list(&description, ten_string_get_raw_str(&new_fmt),
-                              ap);
+  ten_string_append_from_va_list(&description, ten_string_get_raw_str(&new_fmt),
+                                 ap);
   ten_string_deinit(&new_fmt);
 
   va_end(ap);

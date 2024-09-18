@@ -1,7 +1,8 @@
 //
-// This file is part of the TEN Framework project.
-// See https://github.com/TEN-framework/ten_framework/LICENSE for license
-// information.
+// Copyright © 2024 Agora
+// This file is part of TEN Framework, an open source project.
+// Licensed under the Apache License, Version 2.0, with certain conditions.
+// Refer to the "LICENSE" file in the root directory for more information.
 //
 #include "include_internal/ten_runtime/addon/ten_env/on_xxx.h"
 
@@ -19,8 +20,8 @@
 #include "include_internal/ten_runtime/ten_env/ten_env.h"
 #include "ten_runtime/ten_env/ten_env.h"
 #include "ten_utils/lib/string.h"
-#include "ten_utils/log/log.h"
 #include "ten_utils/macro/check.h"
+#include "ten_utils/macro/mark.h"
 
 void ten_addon_on_init_done(ten_env_t *self) {
   TEN_ASSERT(self, "Invalid argument.");
@@ -36,14 +37,14 @@ void ten_addon_on_init_done(ten_env_t *self) {
   ten_error_t err;
   ten_error_init(&err);
 
-  bool rc = ten_handle_manifest_info_when_on_init_done(
+  bool rc = ten_handle_manifest_info_when_on_configure_done(
       &addon_host->manifest_info, NULL, &addon_host->manifest, &err);
   if (!rc) {
     TEN_LOGW("Failed to load addon manifest data, FATAL ERROR.");
     exit(EXIT_FAILURE);
   }
 
-  rc = ten_handle_property_info_when_on_init_done(
+  rc = ten_handle_property_info_when_on_configure_done(
       &addon_host->property_info, NULL, &addon_host->property, &err);
   if (!rc) {
     TEN_LOGW("Failed to load addon property data, FATAL ERROR.");

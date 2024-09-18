@@ -1,7 +1,8 @@
 //
-// This file is part of the TEN Framework project.
-// See https://github.com/TEN-framework/ten_framework/LICENSE for license
-// information.
+// Copyright © 2024 Agora
+// This file is part of TEN Framework, an open source project.
+// Licensed under the Apache License, Version 2.0, with certain conditions.
+// Refer to the "LICENSE" file in the root directory for more information.
 //
 #include "ten_runtime/ten_env/internal/return.h"
 
@@ -50,7 +51,7 @@ static bool ten_env_return_result_internal(ten_env_t *self,
 
   bool result = true;
 
-  if (extension->state < TEN_EXTENSION_STATE_INITED) {
+  if (extension->state < TEN_EXTENSION_STATE_INITTED) {
     TEN_LOGE("Cannot return results before on_init_done.");
     ten_error_set(err, TEN_ERRNO_GENERIC,
                   "Cannot return results before on_init_done.");

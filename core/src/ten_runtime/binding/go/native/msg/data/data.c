@@ -1,18 +1,19 @@
 //
-// This file is part of the TEN Framework project.
-// See https://github.com/TEN-framework/ten_framework/LICENSE for license
-// information.
+// Copyright © 2024 Agora
+// This file is part of TEN Framework, an open source project.
+// Licensed under the Apache License, Version 2.0, with certain conditions.
+// Refer to the "LICENSE" file in the root directory for more information.
 //
 #include "ten_runtime/binding/go/interface/ten/data.h"
 
 #include "include_internal/ten_runtime/binding/go/internal/common.h"
 #include "include_internal/ten_runtime/binding/go/msg/msg.h"
 #include "include_internal/ten_runtime/msg/msg.h"
+#include "ten_utils/macro/check.h"
 #include "ten_runtime/binding/go/interface/ten/msg.h"
 #include "ten_runtime/common/errno.h"
 #include "ten_runtime/msg/data/data.h"
 #include "ten_utils/lib/error.h"
-#include "ten_utils/macro/check.h"
 
 ten_go_status_t ten_go_data_create(const void *msg_name, int msg_name_len,
                                    uintptr_t *bridge) {

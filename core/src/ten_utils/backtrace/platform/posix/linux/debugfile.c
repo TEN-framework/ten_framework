@@ -1,22 +1,23 @@
 //
-// This file is part of the TEN Framework project.
-// See https://github.com/TEN-framework/ten_framework/LICENSE for license
-// information.
+// Copyright © 2024 Agora
+// This file is part of TEN Framework, an open source project.
+// Licensed under the Apache License, Version 2.0, with certain conditions.
+// Refer to the "LICENSE" file in the root directory for more information.
 //
 // This file is modified from
 // https://github.com/ianlancetaylor/libbacktrace [BSD license]
 //
-#include "ten_utils/backtrace/platform/posix/linux/debugfile.h"
+#include "include_internal/ten_utils/backtrace/platform/posix/linux/debugfile.h"
 
 #include <string.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
 
-#include "ten_utils/backtrace/platform/posix/linux/crc32.h"
+#include "include_internal/ten_utils/backtrace/platform/posix/linux/crc32.h"
+#include "ten_utils/macro/check.h"
 #include "ten_utils/lib/alloc.h"
 #include "ten_utils/lib/file.h"
-#include "ten_utils/macro/check.h"
 
 #define SYSTEM_BUILD_ID_DIR "/usr/lib/debug/.build-id/"
 

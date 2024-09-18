@@ -1,7 +1,8 @@
 //
-// This file is part of the TEN Framework project.
-// See https://github.com/TEN-framework/ten_framework/LICENSE for license
-// information.
+// Copyright © 2024 Agora
+// This file is part of TEN Framework, an open source project.
+// Licensed under the Apache License, Version 2.0, with certain conditions.
+// Refer to the "LICENSE" file in the root directory for more information.
 //
 #pragma once
 
@@ -12,14 +13,14 @@
 
 #if !defined(_WIN32) && !defined(_WIN64)
 
-  #include <sys/time.h>
-  #include <unistd.h>
+#include <sys/time.h>
+#include <unistd.h>
 
-  #if defined(__linux__)
-    #include <linux/limits.h>
-  #elif defined(__MACH__)
-    #include <sys/syslimits.h>
-  #endif
+#if defined(__linux__)
+#include <linux/limits.h>
+#elif defined(__MACH__)
+#include <sys/syslimits.h>
+#endif
 
 TEN_UTILS_PRIVATE_API bool ten_log_time_cache_get(const struct timeval *tv,
                                                   struct tm *tm);

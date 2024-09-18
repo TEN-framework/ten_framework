@@ -1,7 +1,8 @@
 //
-// This file is part of the TEN Framework project.
-// See https://github.com/TEN-framework/ten_framework/LICENSE for license
-// information.
+// Copyright © 2024 Agora
+// This file is part of TEN Framework, an open source project.
+// Licensed under the Apache License, Version 2.0, with certain conditions.
+// Refer to the "LICENSE" file in the root directory for more information.
 //
 #include "ten_runtime/binding/go/interface/ten/audio_frame.h"
 
@@ -399,6 +400,30 @@ ten_go_status_t ten_go_audio_frame_unlock_buf(uintptr_t bridge_addr,
   }
 
   ten_error_deinit(&c_err);
+
+  return status;
+}
+
+ten_go_status_t ten_go_audio_frame_get_buf(uintptr_t bridge_addr,
+                                           const void *buf_addr, int buf_size) {
+  TEN_ASSERT(bridge_addr > 0 && buf_addr && buf_size > 0, "Invalid argument.");
+
+  ten_go_status_t status;
+  ten_go_status_init_with_errno(&status, TEN_ERRNO_OK);
+
+  ten_go_msg_t *audio_frame_bridge = ten_go_msg_reinterpret(bridge_addr);
+  TEN_ASSERT(
+      audio_frame_bridge && ten_go_msg_check_integrity(audio_frame_bridge),
+      "Invalid argument.");
+
+  ten_shared_ptr_t *c_audio_frame = ten_go_msg_c_msg(audio_frame_bridge);
+  uint64_t size = ten_audio_frame_peek_data(c_audio_frame)->size;
+  if (buf_size < size) {
+    ten_go_status_set(&status, TEN_ERRNO_GENERIC, "buffer is not enough");
+  } else {
+    ten_buf_t *data = ten_audio_frame_peek_data(c_audio_frame);
+    memcpy((void *)buf_addr, data->data, size);
+  }
 
   return status;
 }

@@ -1,7 +1,8 @@
 //
-// This file is part of the TEN Framework project.
-// See https://github.com/TEN-framework/ten_framework/LICENSE for license
-// information.
+// Copyright © 2024 Agora
+// This file is part of TEN Framework, an open source project.
+// Licensed under the Apache License, Version 2.0, with certain conditions.
+// Refer to the "LICENSE" file in the root directory for more information.
 //
 #include "ten_runtime/app/app.h"
 
@@ -11,13 +12,14 @@
 #include "include_internal/ten_runtime/app/migration.h"
 #include "include_internal/ten_runtime/connection/connection.h"
 #include "include_internal/ten_runtime/extension_group/extension_group.h"
+#include "include_internal/ten_runtime/global/global.h"
 #include "include_internal/ten_runtime/global/signal.h"
 #include "include_internal/ten_runtime/protocol/context_store.h"
 #include "include_internal/ten_runtime/protocol/protocol.h"
 #include "include_internal/ten_runtime/schema_store/store.h"
 #include "include_internal/ten_runtime/ten_env/ten_env.h"
+#include "include_internal/ten_utils/log/log.h"
 #include "ten_runtime/binding/common.h"
-#include "ten_runtime/global/global.h"
 #include "ten_runtime/protocol/context_store.h"
 #include "ten_runtime/ten_env/ten_env.h"
 #include "ten_utils/container/list.h"
@@ -27,8 +29,8 @@
 #include "ten_utils/lib/mutex.h"
 #include "ten_utils/lib/ref.h"
 #include "ten_utils/lib/string.h"
-#include "ten_utils/log/log.h"
 #include "ten_utils/macro/check.h"
+#include "ten_utils/macro/mark.h"
 #include "ten_utils/sanitizer/thread_check.h"
 #include "ten_utils/value/value.h"
 
@@ -89,12 +91,14 @@ static void *ten_app_routine(void *args) {
   return NULL;
 }
 
-ten_app_t *ten_app_create(ten_app_on_init_func_t on_init,
+ten_app_t *ten_app_create(ten_app_on_configure_func_t on_configure,
+                          ten_app_on_init_func_t on_init,
                           ten_app_on_deinit_func_t on_deinit,
                           TEN_UNUSED ten_error_t *err) {
   ten_app_t *self = (ten_app_t *)TEN_MALLOC(sizeof(ten_app_t));
   TEN_ASSERT(self, "Failed to allocate memory.");
 
+  self->on_configure = on_configure;
   self->on_init = on_init;
   self->on_deinit = on_deinit;
 
@@ -184,8 +188,6 @@ void ten_app_destroy(ten_app_t *self) {
 
   ten_sanitizer_thread_check_deinit(&self->thread_check);
   ten_event_destroy(self->belonging_thread_is_set);
-
-  ten_log_close();
 
   ten_string_deinit(&self->base_dir);
 

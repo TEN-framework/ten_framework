@@ -1,7 +1,8 @@
 //
-// This file is part of the TEN Framework project.
-// See https://github.com/TEN-framework/ten_framework/LICENSE for license
-// information.
+// Copyright © 2024 Agora
+// This file is part of TEN Framework, an open source project.
+// Licensed under the Apache License, Version 2.0, with certain conditions.
+// Refer to the "LICENSE" file in the root directory for more information.
 //
 #include "include_internal/ten_runtime/metadata/metadata.h"
 
@@ -112,11 +113,12 @@ bool ten_metadata_load_from_info(ten_value_t *metadata,
       err);
 }
 
-void ten_metadata_load(ten_object_on_init_func_t on_init, ten_env_t *ten_env) {
-  TEN_ASSERT(on_init && ten_env && ten_env_check_integrity(ten_env, true),
+void ten_metadata_load(ten_object_on_configure_func_t on_configure,
+                       ten_env_t *ten_env) {
+  TEN_ASSERT(on_configure && ten_env && ten_env_check_integrity(ten_env, true),
              "Should not happen.");
 
-  on_init(ten_env);
+  on_configure(ten_env);
 }
 
 ten_value_t *ten_metadata_init_schema_store(ten_value_t *manifest,

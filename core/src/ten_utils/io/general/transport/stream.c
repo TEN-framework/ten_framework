@@ -1,7 +1,8 @@
 //
-// This file is part of the TEN Framework project.
-// See https://github.com/TEN-framework/ten_framework/LICENSE for license
-// information.
+// Copyright © 2024 Agora
+// This file is part of TEN Framework, an open source project.
+// Licensed under the Apache License, Version 2.0, with certain conditions.
+// Refer to the "LICENSE" file in the root directory for more information.
 //
 #include "ten_utils/io/stream.h"
 
@@ -9,9 +10,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "ten_utils/macro/check.h"
 #include "ten_utils/io/general/transport/backend/base.h"
 #include "ten_utils/lib/signature.h"
-#include "ten_utils/macro/check.h"
 #include "ten_utils/macro/memory.h"
 
 bool ten_stream_check_integrity(ten_stream_t *self) {

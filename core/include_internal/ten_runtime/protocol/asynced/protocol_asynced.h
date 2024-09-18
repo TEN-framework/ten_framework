@@ -1,7 +1,8 @@
 //
-// This file is part of the TEN Framework project.
-// See https://github.com/TEN-framework/ten_framework/LICENSE for license
-// information.
+// Copyright © 2024 Agora
+// This file is part of TEN Framework, an open source project.
+// Licensed under the Apache License, Version 2.0, with certain conditions.
+// Refer to the "LICENSE" file in the root directory for more information.
 //
 #pragma once
 
@@ -98,7 +99,7 @@ typedef struct ten_protocol_asynced_t {
   /**
    * The ten_protocol_asynced_t is an underlying resource of the base protocol.
    *
-   * @note All protocol instances are created and inited in the ten world,
+   * @note All protocol instances are created and initted in the ten world,
    * including this 'ten_protocol_asynced_t'. So this 'closeable' belongs to the
    * ten world, and the underlying resource (ex: this closeable) and its owner
    * (ex: the base protocol) must be in the same thread.

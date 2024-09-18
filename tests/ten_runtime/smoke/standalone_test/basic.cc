@@ -1,7 +1,8 @@
 //
-// This file is part of the TEN Framework project.
-// See https://github.com/TEN-framework/ten_framework/LICENSE for license
-// information.
+// Copyright © 2024 Agora
+// This file is part of TEN Framework, an open source project.
+// Licensed under the Apache License, Version 2.0, with certain conditions.
+// Refer to the "LICENSE" file in the root directory for more information.
 //
 #include <nlohmann/json.hpp>
 #include <string>
@@ -89,8 +90,8 @@ bool test_case_1() {
       "standalone_test_basic__test_extension_1",
       [ten_env_mock](ten::ten_env_t &ten_env, ten::extension_t &extension) {
         ten_extension_t *test_extension = ten_extension_create(
-            "test_extension", nullptr, test_extension_on_start, nullptr,
-            nullptr, nullptr, nullptr, nullptr, nullptr, nullptr);
+            "test_extension", nullptr, nullptr, test_extension_on_start,
+            nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr);
 
         ten_extension_test_t *test = ten_extension_test_create(
             test_extension, extension.get_c_extension());

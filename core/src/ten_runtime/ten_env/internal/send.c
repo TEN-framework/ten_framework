@@ -1,7 +1,8 @@
 //
-// This file is part of the TEN Framework project.
-// See https://github.com/TEN-framework/ten_framework/LICENSE for license
-// information.
+// Copyright © 2024 Agora
+// This file is part of TEN Framework, an open source project.
+// Licensed under the Apache License, Version 2.0, with certain conditions.
+// Refer to the "LICENSE" file in the root directory for more information.
 //
 #include "ten_runtime/ten_env/internal/send.h"
 
@@ -18,7 +19,6 @@
 #include "ten_runtime/msg/msg.h"
 #include "ten_runtime/ten_env/ten_env.h"
 #include "ten_utils/lib/error.h"
-#include "ten_utils/log/log.h"
 #include "ten_utils/macro/check.h"
 
 /**
@@ -88,7 +88,7 @@ static bool ten_send_msg_internal(
   ten_extension_t *extension = ten_env_get_attached_extension(self);
   TEN_ASSERT(extension, "Invalid argument.");
 
-  if (extension->state < TEN_EXTENSION_STATE_INITED) {
+  if (extension->state < TEN_EXTENSION_STATE_INITTED) {
     TEN_LOGE("Cannot send messages before on_init_done.");
     ten_error_set(err, TEN_ERRNO_GENERIC,
                   "Cannot send messages before on_init_done.");
