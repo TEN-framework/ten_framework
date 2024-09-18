@@ -28,10 +28,12 @@ jobs:
           fetch-depth: "0"
           submodules: "true"
 
+      - uses: KyleMayes/install-llvm-action@v2
+        with:
+          version: "18"
       - uses: actions/setup-python@v5
         with:
           python-version: "3.10"
-
       - uses: actions/setup-go@v5
         with:
           go-version: "stable"
@@ -43,14 +45,14 @@ jobs:
           pip3 install --use-pep517 python-dotenv jinja2
           go install golang.org/dl/go1.20.12@latest && go1.20.12 download
           go env -w GOFLAGS="-buildvcs=false"
-          rustup default nightly
+          rustup default nightly-2024-07-19
           cargo install --force cbindgen
 
       - name: Build
         run: |
           export PATH=$(pwd)/core/ten_gn:$PATH
           echo $PATH
-          tgn gen mac arm64 ${{ matrix.build_type }} -- log_level=1 enable_serialized_actions=true ten_enable_test=false ten_enable_go_binding=${{ matrix.build_type == 'debug' && 'false' || 'true' }} ten_enable_package_manager=${{ matrix.build_type == 'debug' && 'false' || 'true' }} enable_sanitizer=false
+          tgn gen mac arm64 ${{ matrix.build_type }} -- log_level=1 enable_serialized_actions=true ten_enable_test=false ten_enable_go_binding=${{ matrix.build_type == 'debug' && 'false' || 'true' }} ten_enable_package_manager=${{ matrix.build_type == 'debug' && 'false' || 'true' }}
           tgn build mac arm64 ${{ matrix.build_type }}
           tree -I 'gen|obj' out
 
@@ -65,10 +67,12 @@ jobs:
           fetch-depth: "0"
           submodules: "true"
 
+      - uses: KyleMayes/install-llvm-action@v2
+        with:
+          version: "18"
       - uses: actions/setup-python@v5
         with:
           python-version: "3.10"
-
       - uses: actions/setup-go@v5
         with:
           go-version: "stable"
@@ -80,13 +84,13 @@ jobs:
           pip3 install --use-pep517 python-dotenv jinja2
           go install golang.org/dl/go1.20.12@latest && go1.20.12 download
           go env -w GOFLAGS="-buildvcs=false"
-          rustup default nightly
+          rustup default nightly-2024-07-19
           cargo install --force cbindgen
 
       - name: Build
         run: |
           export PATH=$(pwd)/core/ten_gn:$PATH
           echo $PATH
-          tgn gen mac x64 ${{ matrix.build_type }} -- log_level=1 enable_serialized_actions=true ten_enable_test=false ten_enable_go_binding=${{ matrix.build_type == 'debug' && 'false' || 'true' }} ten_enable_package_manager=${{ matrix.build_type == 'debug' && 'false' || 'true' }} enable_sanitizer=false
+          tgn gen mac x64 ${{ matrix.build_type }} -- log_level=1 enable_serialized_actions=true ten_enable_test=false ten_enable_go_binding=${{ matrix.build_type == 'debug' && 'false' || 'true' }} ten_enable_package_manager=${{ matrix.build_type == 'debug' && 'false' || 'true' }}
           tgn build mac x64 ${{ matrix.build_type }}
           tree -I 'gen|obj' out
