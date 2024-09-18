@@ -49,6 +49,7 @@ jobs:
 
       - name: Build
         run: |
+          export PATH="/opt/homebrew/opt/llvm@17/bin:$PATH"
           export PATH=$(pwd)/core/ten_gn:$PATH
           echo $PATH
           tgn gen mac arm64 ${{ matrix.build_type }} -- log_level=1 enable_serialized_actions=true ten_enable_test=false ten_enable_go_binding=${{ matrix.build_type == 'debug' && 'false' || 'true' }} ten_enable_package_manager=${{ matrix.build_type == 'debug' && 'false' || 'true' }}
@@ -87,6 +88,7 @@ jobs:
 
       - name: Build
         run: |
+          export PATH="/opt/homebrew/opt/llvm@17/bin:$PATH"
           export PATH=$(pwd)/core/ten_gn:$PATH
           echo $PATH
           tgn gen mac x64 ${{ matrix.build_type }} -- log_level=1 enable_serialized_actions=true ten_enable_test=false ten_enable_go_binding=${{ matrix.build_type == 'debug' && 'false' || 'true' }} ten_enable_package_manager=${{ matrix.build_type == 'debug' && 'false' || 'true' }}
