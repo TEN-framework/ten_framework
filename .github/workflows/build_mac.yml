@@ -1,4 +1,5 @@
 name: Build - mac
+
 on:
   push:
     branches:
@@ -26,13 +27,16 @@ jobs:
         with:
           fetch-depth: "0"
           submodules: "true"
+
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.10'
+          python-version: "3.10"
+
       - uses: actions/setup-go@v5
         with:
-          go-version: 'stable'
+          go-version: "stable"
           cache: false
+
       - name: Install tools and dependencies
         run: |
           brew install tree
@@ -41,6 +45,7 @@ jobs:
           go env -w GOFLAGS="-buildvcs=false"
           rustup default nightly
           cargo install --force cbindgen
+
       - name: Build
         run: |
           export PATH=$(pwd)/core/ten_gn:$PATH
@@ -59,13 +64,16 @@ jobs:
         with:
           fetch-depth: "0"
           submodules: "true"
+
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.10'
+          python-version: "3.10"
+
       - uses: actions/setup-go@v5
         with:
-          go-version: 'stable'
+          go-version: "stable"
           cache: false
+
       - name: Install tools and dependencies
         run: |
           brew install tree
@@ -74,6 +82,7 @@ jobs:
           go env -w GOFLAGS="-buildvcs=false"
           rustup default nightly
           cargo install --force cbindgen
+
       - name: Build
         run: |
           export PATH=$(pwd)/core/ten_gn:$PATH

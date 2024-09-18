@@ -1,4 +1,5 @@
 name: Build - win
+
 on:
   push:
     branches:
@@ -26,14 +27,18 @@ jobs:
         with:
           fetch-depth: "0"
           submodules: "true"
+
       - uses: ilammy/msvc-dev-cmd@v1
+
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.10'
+          python-version: "3.10"
+
       - uses: actions/setup-go@v5
         with:
-          go-version: 'stable'
+          go-version: "stable"
           cache: false
+
       - name: Install tools and dependencies
         run: |
           pip3 install --use-pep517 python-dotenv jinja2
@@ -41,6 +46,7 @@ jobs:
           go env -w GOFLAGS="-buildvcs=false"
           rustup default nightly
           cargo install --force cbindgen
+
       - name: Build
         run: |
           $ENV:PATH += ";$PWD/core/ten_gn"
