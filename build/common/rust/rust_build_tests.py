@@ -162,9 +162,8 @@ if __name__ == "__main__":
         # 'name' in [[bin]] or [[lib]] in a crate).
         unit_test_output_name = get_crate_test_output_name(args.log_level)
 
-        # The output of the dependencies will be in <target_path>/<build_type>
-        # /deps, while the output of the tests will be in <target_path>/<target>
-        # /<build_type>/deps.
+        # The output of the tests will be in
+        # <target_path>/<target>/<build_type>/deps
         if args.test_output_dir != "":
             # Copy the unit test binary.
             copy_test_binaries(
