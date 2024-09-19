@@ -90,6 +90,7 @@ jobs:
 
           if [ ${{ matrix.build_type }} == "debug" ]; then
             # lock llvm and rust version to enable asan
+            brew install llvm@18
             rustup default nightly-2024-07-19
           else
             rustup default nightly
