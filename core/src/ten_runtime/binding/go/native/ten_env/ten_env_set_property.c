@@ -11,7 +11,6 @@
 #include "include_internal/ten_runtime/binding/go/ten_env/ten_env.h"
 #include "include_internal/ten_runtime/binding/go/ten_env/ten_env_internal.h"
 #include "include_internal/ten_runtime/binding/go/value/value.h"
-#include "ten_utils/macro/check.h"
 #include "ten_runtime/binding/go/interface/ten/common.h"
 #include "ten_runtime/binding/go/interface/ten/ten_env.h"
 #include "ten_runtime/binding/go/interface/ten/value.h"
@@ -22,6 +21,7 @@
 #include "ten_utils/lib/event.h"
 #include "ten_utils/lib/json.h"
 #include "ten_utils/lib/string.h"
+#include "ten_utils/macro/check.h"
 #include "ten_utils/value/value.h"
 
 typedef struct ten_env_notify_set_property_info_t {
@@ -70,7 +70,6 @@ static void ten_env_notify_set_property(ten_env_t *ten_env, void *user_data) {
 
   info->result = ten_env_set_property(
       ten_env, ten_string_get_raw_str(&info->path), info->c_value, &err);
-  TEN_ASSERT(info->result, "Should not happen.");
 
   ten_event_set(info->completed);
 
