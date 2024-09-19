@@ -30,7 +30,7 @@ def get_crate_test_output_name(log_level: int) -> str:
     returncode, output = cmd_exec.run_cmd(cmd, log_level)
     if returncode:
         raise Exception(f"Failed to get crate name: {output}")
-    
+
     # Get the last line of the output, as there might be some note or warning
     # messages from cargo.
     output = output.splitlines()[-1]
@@ -38,7 +38,7 @@ def get_crate_test_output_name(log_level: int) -> str:
     for target in metadata["packages"][0]["targets"]:
         if target["test"]:
             return target["name"]
-    
+
     raise Exception("Failed to get crate name from targets.")
 
 
@@ -54,7 +54,6 @@ def copy_test_binaries(
             f"Copying test binary {base_name} from {source_dir} to {output_dir}"
         )
 
-    
     for f in os.listdir(source_dir):
         is_executable = os.access(os.path.join(source_dir, f), os.X_OK)
         if not is_executable:
@@ -64,7 +63,7 @@ def copy_test_binaries(
         # <library_name>-<hash>.<extension>. We need to remove the hash suffix.
 
         # We have to deal with the extension of the executable file, as if the
-        # `crate-type` is `cdylib`, the extension is `.so` on linux, which is 
+        # `crate-type` is `cdylib`, the extension is `.so` on linux, which is
         # not what we want. The extension is not present on linux or macos, and
         # the extension is '.exe' on windows.
         extension = os.path.splitext(f)[1]
@@ -124,10 +123,10 @@ if __name__ == "__main__":
     try:
         os.chdir(args.project_path)
 
-        # cargo build --tests: only compile the test source files, without 
+        # cargo build --tests: only compile the test source files, without
         # running the test cases.
         # cargo test: compile the test source files and run the test cases.
-        # 
+        #
         # `cargo build --tests` or `cargo test --no-run` will not trigger the
         # `runner` script in .cargo/config.toml.
         if args.no_run:
@@ -159,7 +158,7 @@ if __name__ == "__main__":
         else:
             print(logs)
 
-        # The prefix of the unit test binary is the crate name (i.e., the 
+        # The prefix of the unit test binary is the crate name (i.e., the
         # 'name' in [[bin]] or [[lib]] in a crate).
         unit_test_output_name = get_crate_test_output_name(args.log_level)
 
