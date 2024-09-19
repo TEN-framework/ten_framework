@@ -43,7 +43,6 @@ jobs:
           if [ ${{ matrix.build_type }} == "debug" ]; then
             # lock llvm and rust version to enable asan
             brew install llvm@18
-            export PATH="/opt/homebrew/opt/llvm@18/bin:$PATH"
             rustup default nightly-2024-07-19
           else
             rustup default nightly
@@ -57,6 +56,9 @@ jobs:
 
       - name: Build
         run: |
+          if [ ${{ matrix.build_type }} == "debug" ]; then
+            export PATH="/opt/homebrew/opt/llvm@18/bin:$PATH"
+          fi
           export PATH=$(pwd)/core/ten_gn:$PATH
           echo $PATH
           tgn gen mac arm64 ${{ matrix.build_type }} -- log_level=1 enable_serialized_actions=true ten_enable_test=false
@@ -88,7 +90,6 @@ jobs:
 
           if [ ${{ matrix.build_type }} == "debug" ]; then
             # lock llvm and rust version to enable asan
-            export PATH="/usr/local/opt/llvm@18/bin:$PATH"
             rustup default nightly-2024-07-19
           else
             rustup default nightly
@@ -102,6 +103,9 @@ jobs:
 
       - name: Build
         run: |
+          if [ ${{ matrix.build_type }} == "debug" ]; then
+            export PATH="/usr/local/opt/llvm@18/bin:$PATH"
+          fi
           export PATH=$(pwd)/core/ten_gn:$PATH
           echo $PATH
           tgn gen mac x64 ${{ matrix.build_type }} -- log_level=1 enable_serialized_actions=true ten_enable_test=false
