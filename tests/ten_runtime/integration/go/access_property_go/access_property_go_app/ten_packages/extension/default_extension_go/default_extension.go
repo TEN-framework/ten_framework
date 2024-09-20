@@ -43,10 +43,35 @@ type aExtension struct {
 	baseExtension
 }
 
+func (p *aExtension) OnConfigure(tenEnv ten.TenEnv) {
+	if err := tenEnv.InitManifestFromJSONBytes([]byte(`{
+      "type": "extension",
+      "name": "A",
+      "version": "0.0.1",
+      "api": {
+        "property": {
+          "prop_int": {
+            "type": "int8"
+           }
+        }
+      }
+    }`)); err != nil {
+		panic("Should not happen.")
+	}
+
+	tenEnv.OnConfigureDone()
+}
+
 func (p *aExtension) OnCmd(
 	tenEnv ten.TenEnv,
 	cmd ten.Cmd,
 ) {
+	if err := tenEnv.SetProperty("prop_int", false); err == nil {
+		panic("Should not happen, the schema is not matched.")
+	} else {
+		println("SetProperty failed: ", err.Error())
+	}
+
 	if err := tenEnv.SetProperty("testBool", false); err != nil {
 		panic("Should not happen.")
 	}

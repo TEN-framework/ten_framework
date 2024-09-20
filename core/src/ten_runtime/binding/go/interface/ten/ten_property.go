@@ -690,3 +690,16 @@ func (p *tenEnv) InitPropertyFromJSONBytes(value []byte) error {
 
 	return err
 }
+
+func (p *tenEnv) InitManifestFromJSONBytes(value []byte) error {
+	defer p.keepAlive()
+
+	apiStatus := C.ten_go_ten_env_init_manifest_from_json_bytes(
+		p.cPtr,
+		unsafe.Pointer(unsafe.SliceData(value)),
+		C.int(len(value)),
+	)
+	err := withGoStatus(&apiStatus)
+
+	return err
+}
