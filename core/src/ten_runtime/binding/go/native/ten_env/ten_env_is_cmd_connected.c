@@ -81,6 +81,7 @@ bool ten_go_ten_env_is_cmd_connected(uintptr_t bridge_addr, const char *name) {
   }
 
   ten_event_wait(info->completed, -1);
+  result = info->result;
 
 done:
   ten_error_deinit(&err);
