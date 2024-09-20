@@ -39,18 +39,32 @@ jobs:
 
       - name: Install tools and dependencies
         run: |
+
+          if [ ${{ matrix.build_type }} == "debug" ]; then
+            # Since the TEN runtime and TEN manager are a combination of C and
+            # Rust, to enable ASan, the ASan versions used by both the C and
+            # Rust compilation environments must be consistent. Therefore, it is
+            # necessary to lock the LLVM and Rust versions to enable ASan.
+            brew install llvm@18
+            rustup default nightly-2024-07-19
+          else
+            rustup default nightly
+          fi
+
           brew install tree
           pip3 install --use-pep517 python-dotenv jinja2
           go install golang.org/dl/go1.20.12@latest && go1.20.12 download
           go env -w GOFLAGS="-buildvcs=false"
-          rustup default nightly
           cargo install --force cbindgen
 
       - name: Build
         run: |
+          if [ ${{ matrix.build_type }} == "debug" ]; then
+            export PATH="/opt/homebrew/opt/llvm@18/bin:$PATH"
+          fi
           export PATH=$(pwd)/core/ten_gn:$PATH
           echo $PATH
-          tgn gen mac arm64 ${{ matrix.build_type }} -- log_level=1 enable_serialized_actions=true ten_enable_test=false ten_enable_go_binding=${{ matrix.build_type == 'debug' && 'false' || 'true' }} ten_enable_package_manager=${{ matrix.build_type == 'debug' && 'false' || 'true' }} enable_sanitizer=false
+          tgn gen mac arm64 ${{ matrix.build_type }} -- log_level=1 enable_serialized_actions=true ten_enable_test=false
           tgn build mac arm64 ${{ matrix.build_type }}
           tree -I 'gen|obj' out
 
@@ -58,7 +72,7 @@ jobs:
     runs-on: macos-13
     strategy:
       matrix:
-        build_type: [debug, release]
+        build_type: [release]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -76,17 +90,31 @@ jobs:
 
       - name: Install tools and dependencies
         run: |
+
+          if [ ${{ matrix.build_type }} == "debug" ]; then
+            # Since the TEN runtime and TEN manager are a combination of C and
+            # Rust, to enable ASan, the ASan versions used by both the C and
+            # Rust compilation environments must be consistent. Therefore, it is
+            # necessary to lock the LLVM and Rust versions to enable ASan.
+            brew install llvm@18
+            rustup default nightly-2024-07-19
+          else
+            rustup default nightly
+          fi
+
           brew install tree
           pip3 install --use-pep517 python-dotenv jinja2
           go install golang.org/dl/go1.20.12@latest && go1.20.12 download
           go env -w GOFLAGS="-buildvcs=false"
-          rustup default nightly
           cargo install --force cbindgen
 
       - name: Build
         run: |
+          if [ ${{ matrix.build_type }} == "debug" ]; then
+            export PATH="/usr/local/opt/llvm@18/bin:$PATH"
+          fi
           export PATH=$(pwd)/core/ten_gn:$PATH
           echo $PATH
-          tgn gen mac x64 ${{ matrix.build_type }} -- log_level=1 enable_serialized_actions=true ten_enable_test=false ten_enable_go_binding=${{ matrix.build_type == 'debug' && 'false' || 'true' }} ten_enable_package_manager=${{ matrix.build_type == 'debug' && 'false' || 'true' }} enable_sanitizer=false
+          tgn gen mac x64 ${{ matrix.build_type }} -- log_level=1 enable_serialized_actions=true ten_enable_test=false
           tgn build mac x64 ${{ matrix.build_type }}
           tree -I 'gen|obj' out
