@@ -77,7 +77,6 @@ type TenEnv interface {
 	) error
 
 	InitPropertyFromJSONBytes(value []byte) error
-	InitManifestFromJSONBytes(value []byte) error
 
 	LogVerbose(msg string)
 	LogDebug(msg string)
