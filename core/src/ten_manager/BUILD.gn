@@ -25,6 +25,7 @@ if (ten_enable_package_manager) {
       utils_static_lib_path = rebase_path("${root_gen_dir}/core/src/ten_utils")
       env += [ "TEN_UTILS_LIBRARY_PATH=${utils_static_lib_path}" ]
 
+      target_path = "${root_gen_dir}/core/src/tman_test"
       test_output_dir = "${root_out_dir}/tests/standalone/ten_manager"
 
       deps = [
