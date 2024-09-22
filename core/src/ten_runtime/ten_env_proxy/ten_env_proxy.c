@@ -54,13 +54,13 @@ ten_env_proxy_t *ten_env_proxy_create(ten_env_t *ten_env,
   }
 
   // Checking 1: The platform currently only supports creating a `ten_env_proxy`
-  // from the `ten_env` of an extension and an app.
+  // from the `ten_env` of an extension, an extension_group, and an app.
   switch (ten_env->attach_to) {
     case TEN_ENV_ATTACH_TO_EXTENSION:
+    case TEN_ENV_ATTACH_TO_EXTENSION_GROUP:
     case TEN_ENV_ATTACH_TO_APP:
       break;
 
-    case TEN_ENV_ATTACH_TO_EXTENSION_GROUP:
     default: {
       const char *err_msg = "Create ten_env_proxy from unsupported ten.";
       TEN_ASSERT(0, "%s", err_msg);
