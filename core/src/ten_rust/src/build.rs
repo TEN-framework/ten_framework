@@ -8,6 +8,8 @@ use std::{
     env, fs,
     path::{Path, PathBuf},
     process::id,
+    thread,
+    time::Duration,
 };
 
 fn auto_gen_schema_bindings_from_c() {
@@ -82,13 +84,31 @@ fn auto_gen_schema_bindings_from_c() {
     fs::write(&temp_bindings, new_bindings_content)
         .expect("Unable to add clippy lint rules to the generated bindings.");
 
-    // Atomically move the temporary file to the target file.
-    fs::rename(&temp_bindings, &generated_bindings)
-        .expect("Unable to move temporary bindings to final destination.");
+    let max_retries = 5;
+    // 500 milliseconds delay between retries.
+    let retry_delay = Duration::from_millis(500);
 
-    if temp_bindings.exists() {
-        fs::remove_file(&temp_bindings)
-            .expect("Failed to remove temporary bindings file.");
+    for attempt in 1..=max_retries {
+        // Atomically move the temporary file to the target file.
+        match fs::rename(&temp_bindings, &generated_bindings) {
+            Ok(_) => {
+                println!("File renamed successfully.");
+                break;
+            }
+            Err(e) if attempt < max_retries => {
+                println!(
+                    "Attempt {}/{} failed: {}. Retrying...",
+                    attempt, max_retries, e
+                );
+                thread::sleep(retry_delay);
+            }
+            Err(e) => {
+                panic!(
+                    "Unable to move temporary bindings to final destination after {} attempts: {}",
+                    max_retries, e
+                );
+            }
+        }
     }
 }
 
