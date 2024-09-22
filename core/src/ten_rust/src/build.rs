@@ -4,7 +4,11 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-use std::{env, fs, path::PathBuf, process::id};
+use std::{
+    env, fs,
+    path::{Path, PathBuf},
+    process::id,
+};
 
 fn auto_gen_schema_bindings_from_c() {
     let mut base_dir = env::current_dir()
@@ -32,8 +36,6 @@ fn auto_gen_schema_bindings_from_c() {
         .generate()
         .expect("Unable to generate bindings");
 
-    let generated_bindings = "src/schema/bindings.rs";
-
     // Generate a unique temporary file based on the current process ID.
     //
     // When `ten_rust` is built, it writes to the
@@ -59,8 +61,9 @@ fn auto_gen_schema_bindings_from_c() {
     // `core/src/ten_rust/src/schema/bindings.rs` files under these GN build
     // paths, with each build path using its own `schema/bindings.rs`.
     // However, it's uncertain if this approach is feasible.
-    let temp_dir = env::temp_dir();
-    let temp_bindings = temp_dir.join(format!("bindings_{}.rs.tmp", id()));
+    let schema_dir = Path::new("src/schema/");
+    let generated_bindings = schema_dir.join("bindings.rs");
+    let temp_bindings = schema_dir.join(format!("bindings_{}.rs.tmp", id()));
 
     binding_gen
         .write_to_file(&temp_bindings)
@@ -80,8 +83,13 @@ fn auto_gen_schema_bindings_from_c() {
         .expect("Unable to add clippy lint rules to the generated bindings.");
 
     // Atomically move the temporary file to the target file.
-    fs::rename(temp_bindings, generated_bindings)
+    fs::rename(&temp_bindings, &generated_bindings)
         .expect("Unable to move temporary bindings to final destination.");
+
+    if temp_bindings.exists() {
+        fs::remove_file(&temp_bindings)
+            .expect("Failed to remove temporary bindings file.");
+    }
 }
 
 // The current auto-detection only supports limited environment combinations;

@@ -14,10 +14,13 @@
 #include "include_internal/ten_runtime/extension_thread/extension_thread.h"
 #include "include_internal/ten_runtime/extension_thread/on_xxx.h"
 #include "include_internal/ten_runtime/ten_env/ten_env.h"
+#include "include_internal/ten_runtime/test/test_extension_group.h"
+#include "ten_runtime/addon/extension_group/extension_group.h"
 #include "ten_runtime/app/app.h"
 #include "ten_runtime/extension/extension.h"
 #include "ten_runtime/msg/cmd/close_app/cmd.h"
 #include "ten_runtime/msg/msg.h"
+#include "ten_runtime/ten_env/internal/metadata.h"
 #include "ten_runtime/ten_env/internal/on_xxx_done.h"
 #include "ten_runtime/ten_env_proxy/ten_env_proxy.h"
 #include "ten_utils/container/list.h"
@@ -45,6 +48,35 @@ static void *ten_extension_thread_main(void *self_) {
   }
 
   return ten_extension_thread_main_actual(self->test_extension_thread);
+}
+
+static void test_ten_app_on_configure(ten_app_t *app, ten_env_t *ten_env) {
+#if 0
+  const char *property_json =
+      "{\
+         \"_ten\": {\
+           \"predefined_graphs\": [{\
+              \"name\": \"0\",\
+              \"auto_start\": false,\
+              \"nodes\": [{\
+                \"type\": \"extension_group\",\
+                \"name\": \"test_extension_group\",\
+                \"addon\": \"test_extension_group\"\
+              },{\
+                \"type\": \"extension\",\
+                \"name\": \"...\",\
+                \"addon\": \"...\",\
+                \"extension_group\": \"test_extension_group\"\
+              }]\
+           }]\
+         }\
+       }";
+  bool rc = ten_env_init_property_from_json(ten_env, property_json, NULL);
+  TEN_ASSERT(rc, "Should not happen.");
+#endif
+
+  bool rc = ten_env_on_configure_done(ten_env, NULL);
+  TEN_ASSERT(rc, "Should not happen.");
 }
 
 static void test_ten_app_on_init(ten_app_t *app, ten_env_t *ten_env) {
@@ -78,7 +110,8 @@ void *test_app_thread_main(void *args) {
   ten_extension_test_new_t *test_info = args;
 
   ten_app_t *test_app =
-      ten_app_create(NULL, test_ten_app_on_init, test_ten_app_on_deinit, &err);
+      ten_app_create(test_ten_app_on_configure, test_ten_app_on_init,
+                     test_ten_app_on_deinit, &err);
   TEN_ASSERT(test_app, "Failed to create app.");
 
   test_app->user_data = test_info;
@@ -91,7 +124,24 @@ void *test_app_thread_main(void *args) {
   return NULL;
 }
 
+static ten_addon_t test_extension_group_addon = {
+    NULL,
+    TEN_ADDON_SIGNATURE,
+    ten_test_extension_group_addon_on_init,
+    NULL,
+    NULL,
+    NULL,
+    ten_test_extension_group_addon_create_instance,
+    ten_test_extension_group_addon_destroy_instance,
+    NULL,
+    NULL,
+};
+
 ten_extension_test_new_t *ten_extension_test_create_new(void) {
+  // Register the test_extension_group addon.
+  ten_addon_register_extension_group("test_extension_group",
+                                     &test_extension_group_addon);
+
   ten_extension_test_new_t *self = TEN_MALLOC(sizeof(ten_extension_test_new_t));
   TEN_ASSERT(self, "Failed to allocate memory.");
 
