@@ -4,7 +4,7 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-use std::{env, fs, path::PathBuf};
+use std::{env, fs, path::PathBuf, process::id};
 
 fn auto_gen_schema_bindings_from_c() {
     let mut base_dir = env::current_dir()
@@ -33,12 +33,17 @@ fn auto_gen_schema_bindings_from_c() {
         .expect("Unable to generate bindings");
 
     let generated_bindings = "src/schema/bindings.rs";
+
+    // Generate a unique temporary file based on the current process ID.
+    let temp_dir = env::temp_dir();
+    let temp_bindings = temp_dir.join(format!("bindings_{}.rs.tmp", id()));
+
     binding_gen
-        .write_to_file(generated_bindings)
+        .write_to_file(&temp_bindings)
         .expect("Unable to write bindings into file.");
 
     // Add some rules to the bindings file to disable clippy lints.
-    let bindings_content = fs::read_to_string(generated_bindings)
+    let bindings_content = fs::read_to_string(&temp_bindings)
         .expect("Unable to read generated bindings");
     let disabled_clippy_lints = [
         "#![allow(non_upper_case_globals)]",
@@ -47,8 +52,12 @@ fn auto_gen_schema_bindings_from_c() {
     ];
     let new_bindings_content =
         disabled_clippy_lints.join("\n") + "\n\n" + &bindings_content;
-    fs::write(generated_bindings, new_bindings_content)
+    fs::write(&temp_bindings, new_bindings_content)
         .expect("Unable to add clippy lint rules to the generated bindings.");
+
+    // Atomically move the temporary file to the target file.
+    fs::rename(temp_bindings, generated_bindings)
+        .expect("Unable to move temporary bindings to final destination.");
 }
 
 // The current auto-detection only supports limited environment combinations;
