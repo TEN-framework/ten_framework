@@ -35,6 +35,30 @@ fn auto_gen_schema_bindings_from_c() {
     let generated_bindings = "src/schema/bindings.rs";
 
     // Generate a unique temporary file based on the current process ID.
+    //
+    // When `ten_rust` is built, it writes to the
+    // `core/src/ten_rust/src/schema/bindings.rs` file, and multiple GN build
+    // paths can trigger the `cargo build` of `ten_rust`. For example, one is
+    // the `ten_rust_static_lib` GN target, another is the `ten_rust_test` GN
+    // target, and another case could be when building `tman`, where the
+    // `Cargo.toml` of `tman` includes a dependency on `ten_rust`, thus
+    // triggering the build of `ten_rust`. Therefore, if these targets trigger
+    // the `cargo build` at the same time, it may result in corrupted content in
+    // `core/src/ten_rust/src/schema/bindings.rs`. To prevent this, an
+    // atomic operation is needed to ensure that the content of
+    // `core/src/ten_rust/src/schema/bindings.rs` is not corrupted due to
+    // multiple parallel generation actions overwriting each other's file
+    // content. On Windows, Linux, and macOS, file system `rename` operations
+    // within the same mount point are atomic. Therefore, taking advantage of
+    // this feature, the content of `bindings.rs` is first generated into a
+    // temporary file, which is then atomically renamed to the final
+    // `bindings.rs`, thereby avoiding content corruption caused by parallel
+    // `cargo build` processes.
+    //
+    // Another possible solution is to differentiate the
+    // `core/src/ten_rust/src/schema/bindings.rs` files under these GN build
+    // paths, with each build path using its own `schema/bindings.rs`.
+    // However, it's uncertain if this approach is feasible.
     let temp_dir = env::temp_dir();
     let temp_bindings = temp_dir.join(format!("bindings_{}.rs.tmp", id()));
 
