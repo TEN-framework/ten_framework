@@ -33,8 +33,27 @@ if (enable_ten_rust) {
 
       deps = [
         ":ten_rust_build_deps",
-        ":ten_rust_static_lib",
         ":ten_rust_test_data",
+
+        # Since during the build process of `ten_rust`, the file
+        # `core/src/ten_rust/src/schema/bindings.rs` will be written, and there
+        # are two GN build paths that will execute `cargo build` of ten_rust.
+        # One is the GN target `ten_rust_static_lib`, and the other is the GN
+        # target `ten_rust_test`. Therefore, if the `cargo build` commands for
+        # these two targets are executed simultaneously, it might cause
+        # corruption in the contents of
+        # `core/src/ten_rust/src/schema/bindings.rs`.
+        #
+        # To avoid this issue, we need to establish the following GN dependency
+        # to ensure that the `cargo build` for `ten_rust_static_lib` and
+        # `ten_rust_test` are executed sequentially rather than in parallel.
+        #
+        # Another possible solution is to differentiate the
+        # `core/src/ten_rust/src/schema/bindings.rs` files for these two GN
+        # build paths, where each build path would use its own
+        # `schema/bindings.rs`. However, it is uncertain whether this is
+        # feasible.
+        ":ten_rust_static_lib",
       ]
     }
   }
