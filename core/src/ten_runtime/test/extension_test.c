@@ -190,6 +190,9 @@ void ten_extension_test_destroy_new(ten_extension_test_new_t *self) {
   ten_event_destroy(self->test_app_ten_env_proxy_create_completed);
 
   TEN_FREE(self);
+
+  ten_addon_unregister_extension_group("test_extension_group",
+                                       &test_extension_group_addon);
 }
 
 ten_extension_test_t *ten_extension_test_create(
