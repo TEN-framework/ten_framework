@@ -59,10 +59,9 @@ fn auto_gen_schema_bindings_from_c() {
     // `bindings.rs`, thereby avoiding content corruption caused by parallel
     // `cargo build` processes.
     //
-    // Another possible solution is to differentiate the
+    // TODO(Wei): Another possible solution is to differentiate the
     // `core/src/ten_rust/src/schema/bindings.rs` files under these GN build
     // paths, with each build path using its own `schema/bindings.rs`.
-    // However, it's uncertain if this approach is feasible.
     let schema_dir = Path::new("src/schema/");
     let generated_bindings = schema_dir.join("bindings.rs");
     let temp_bindings = schema_dir.join(format!("bindings_{}.rs.tmp", id()));
