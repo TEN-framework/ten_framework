@@ -19,7 +19,6 @@
 #include "include_internal/ten_runtime/metadata/metadata_info.h"
 #include "include_internal/ten_runtime/protocol/protocol.h"
 #include "include_internal/ten_runtime/ten_env/ten_env.h"
-#include "ten_utils/macro/check.h"
 #include "ten_runtime/app/app.h"
 #include "ten_runtime/binding/common.h"
 #include "ten_runtime/ten_env/ten_env.h"
@@ -27,6 +26,7 @@
 #include "ten_utils/lib/path.h"
 #include "ten_utils/lib/signature.h"
 #include "ten_utils/lib/string.h"
+#include "ten_utils/macro/check.h"
 #include "ten_utils/macro/mark.h"
 
 bool ten_addon_host_check_integrity(ten_addon_host_t *self) {
@@ -275,13 +275,13 @@ ten_addon_host_t *ten_addon_host_create(TEN_ADDON_TYPE type) {
  * 'on_deinit_done'. However, developers could override this through providing a
  * user-defined 'on_deinit' function.
  */
-void ten_addon_unregister(ten_addon_store_t *store, const char *addon_name,
-                          TEN_UNUSED ten_addon_t *addon) {
+ten_addon_t *ten_addon_unregister(ten_addon_store_t *store,
+                                  const char *addon_name) {
   TEN_ASSERT(store && addon_name, "Should not happen.");
 
   TEN_LOGV("Unregistered addon '%s'", addon_name);
 
-  ten_addon_store_del(store, addon_name);
+  return ten_addon_store_del(store, addon_name);
 }
 
 ten_addon_host_t *ten_addon_host_find(const char *addon_name,

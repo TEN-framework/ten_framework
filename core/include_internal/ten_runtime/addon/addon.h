@@ -117,9 +117,8 @@ TEN_RUNTIME_PRIVATE_API void ten_addon_register(ten_addon_store_t *store,
                                                 const char *name,
                                                 ten_addon_t *addon);
 
-TEN_RUNTIME_PRIVATE_API void ten_addon_unregister(ten_addon_store_t *store,
-                                                  const char *addon_name,
-                                                  ten_addon_t *addon);
+TEN_RUNTIME_PRIVATE_API ten_addon_t *ten_addon_unregister(
+    ten_addon_store_t *store, const char *addon_name);
 
 TEN_RUNTIME_PRIVATE_API const char *ten_addon_host_get_name(
     ten_addon_host_t *self);

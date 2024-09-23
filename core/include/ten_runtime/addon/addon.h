@@ -17,7 +17,7 @@
     ten_addon_register_##TYPE(#NAME, (ADDON));                        \
   }                                                                   \
   TEN_DESTRUCTOR(____dtor_ten_declare_##NAME##_##TYPE##_addon____) {  \
-    ten_addon_unregister_##TYPE(#NAME, (ADDON));                      \
+    ten_addon_unregister_##TYPE(#NAME);                               \
   }
 
 typedef struct ten_addon_t ten_addon_t;
