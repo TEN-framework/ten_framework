@@ -8,9 +8,9 @@ The TEN Agent project, built on the TEN framework, is an open-source AI agent pr
 
 There are three main parts in the TEN Agent:
 
-1.	An agent worker that defines the TEN Graph using TEN Extensions.
-2.	A server that manages the agent worker instances and handles HTTP requests from the client.
-3.	A web frontend project that builds the UI for the AI agent.
+1. An agent worker that defines the TEN Graph using TEN Extensions.
+2. A server that manages the agent worker instances and handles HTTP requests from the client.
+3. A web frontend project that builds the UI for the AI agent.
 
 ### Containers
 
@@ -41,11 +41,11 @@ For details, see the API reference on interfaces in graphs.
 
 The build script will compile the graphs into binaries stored in the `bin` folder. The binaries can be called by other services, such as the server. Note that the binary must be restarted for changes in `property.json` to take effect.
 
-## Server
+### Server
 
 The server folder includes a lightweight HTTP server and a module for running agent binaries. Below are the HTTP APIs for use. They can also be integrated with other frontend applications, such as mobile apps.
 
-#### Start
+### Start
 
 Starts an agent with the given graph and overridden properties. The started agent will join the specified channel and subscribe to the uid used by your browser/device’s RTC.
 
@@ -60,7 +60,8 @@ Starts an agent with the given graph and overridden properties. The started agen
 | bot_uid | (Optional) The uid used by the bot to join RTC. |
 
 Example:
-```
+
+```shell
 curl 'http://localhost:8080/start' \
 -H 'Content-Type: application/json' \
 --data-raw '{
@@ -86,7 +87,8 @@ Stops the agent that was previously started.
 | channel_name | The channel name used to start the agent. |
 
 Example:
-```
+
+```shell
 curl 'http://localhost:8080/stop' \
 -H 'Content-Type: application/json' \
 --data-raw '{
@@ -100,7 +102,8 @@ curl 'http://localhost:8080/stop' \
 Sends a ping to the server to indicate the connection is still alive. This is unnecessary if you specify timeout: -1 when starting the agent. Otherwise, the agent will quit if it doesn’t receive a ping after the specified timeout.
 
 Example:
-```
+
+```shell
 curl 'http://localhost:8080/ping' \
 -H 'Content-Type: application/json' \
 --data-raw '{
@@ -108,14 +111,16 @@ curl 'http://localhost:8080/ping' \
   "channel_name": "test"
 }'
 ```
+
 ### Playground
 
-Playground is the UI of TEN Agent. It is built with NextJS. You can preview it online at https://agent.theten.ai/.
+Playground is the UI of TEN Agent. It is built with NextJS. You can preview it online at <https://agent.theten.ai/>.
 
 The code to handle audio input/output and transcribed text is in src/manager/rtc/rtc.ts. The code captures user audio and transmits it to the agent server while the agent’s audio is sent back to the web app.
 
 Example of joining a channel:
-```
+
+```shell
 async join({ channel, userId }: { channel: string; userId: number }) {
   if (!this._joined) {
     const res = await apiGenAgoraData({ channel, userId });
@@ -131,7 +136,8 @@ async join({ channel, userId }: { channel: string; userId: number }) {
 ```
 
 The text message is transmitted from the agent server to the web app via the Stream Message callback:
-```
+
+```shell
 const onStreamMessage = (message: any) => {
   const { text } = message;
   if (text) {
