@@ -40,10 +40,11 @@ use dependencies::{get_pkg_dependencies_from_manifest, PkgDependency};
 use manifest::{parse_manifest_from_file, parse_manifest_in_folder, Manifest};
 use pkg_identity::PkgIdentity;
 use pkg_type::PkgType;
-use predefined_graphs::{
-    get_pkg_predefined_graphs_from_property, PkgPredefinedGraph,
+use predefined_graphs::get_pkg_predefined_graphs_from_property;
+use property::{
+    parse_property_from_file, parse_property_in_folder,
+    predefined_graph::PropertyPredefinedGraph, Property,
 };
-use property::{parse_property_from_file, parse_property_in_folder, Property};
 use supports::{get_pkg_supports_from_manifest, PkgSupport};
 
 pub fn default_app_loc() -> String {
@@ -74,7 +75,7 @@ pub struct PkgInfo {
     pub manifest: Option<Manifest>,
     pub property: Option<Property>,
 
-    pub predefined_graphs: Vec<PkgPredefinedGraph>,
+    pub predefined_graphs: Vec<PropertyPredefinedGraph>,
 
     pub schema_store: Option<SchemaStore>,
 }

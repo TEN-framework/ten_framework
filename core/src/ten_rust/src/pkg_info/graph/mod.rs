@@ -11,7 +11,7 @@ use std::{collections::HashMap, str::FromStr};
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 
-use super::{pkg_type::PkgType, predefined_graphs::node::PkgNode, PkgInfo};
+use super::{pkg_type::PkgType, PkgInfo};
 use crate::pkg_info::default_app_loc;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -84,6 +84,10 @@ pub struct GraphNode {
 
     #[serde(skip_serializing_if = "Option::is_none")]
     pub property: Option<serde_json::Value>,
+
+    // The corresponding pkg info of this node.
+    #[serde(skip)]
+    pub pkg_info: Option<PkgInfo>,
 }
 
 impl GraphNode {
@@ -99,19 +103,6 @@ impl GraphNode {
         }
 
         Ok(())
-    }
-}
-
-impl From<PkgNode> for GraphNode {
-    fn from(pkg_node: PkgNode) -> Self {
-        GraphNode {
-            node_type: pkg_node.node_type.clone(),
-            name: pkg_node.name.clone(),
-            addon: pkg_node.addon.clone(),
-            extension_group: pkg_node.extension_group.clone(),
-            app: pkg_node.app.clone(),
-            property: pkg_node.property.clone(),
-        }
     }
 }
 

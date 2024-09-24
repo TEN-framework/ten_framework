@@ -35,22 +35,10 @@ fn update_graph_to_property(app_pkg: &mut PkgInfo) {
     if let Some(ref mut property) = app_pkg.property {
         // If _ten exists, update its predefined_graphs; otherwise, create _ten.
         if let Some(ref mut ten) = property._ten {
-            ten.predefined_graphs = Some(
-                app_pkg
-                    .predefined_graphs
-                    .iter()
-                    .map(|g| g.prop_predefined_graph.clone())
-                    .collect(),
-            );
+            ten.predefined_graphs = Some(app_pkg.predefined_graphs.to_vec());
         } else {
             property._ten = Some(TenInProperty {
-                predefined_graphs: Some(
-                    app_pkg
-                        .predefined_graphs
-                        .iter()
-                        .map(|g| g.prop_predefined_graph.clone())
-                        .collect(),
-                ),
+                predefined_graphs: Some(app_pkg.predefined_graphs.to_vec()),
                 uri: None,
                 additional_fields: HashMap::new(),
             });
@@ -59,13 +47,7 @@ fn update_graph_to_property(app_pkg: &mut PkgInfo) {
         // If property is None, create a new Property with _ten field.
         let new_property = Property {
             _ten: Some(TenInProperty {
-                predefined_graphs: Some(
-                    app_pkg
-                        .predefined_graphs
-                        .iter()
-                        .map(|g| g.prop_predefined_graph.clone())
-                        .collect(),
-                ),
+                predefined_graphs: Some(app_pkg.predefined_graphs.to_vec()),
                 uri: None,
                 additional_fields: HashMap::new(),
             }),
@@ -126,11 +108,9 @@ pub async fn update_graph(
             if let Some(old_graph) = app_pkg
                 .predefined_graphs
                 .iter_mut()
-                .find(|g| g.prop_predefined_graph.name == graph_name)
+                .find(|g| g.name == graph_name)
             {
-                old_graph.nodes = new_graph.nodes;
-                old_graph.prop_predefined_graph =
-                    new_graph.prop_predefined_graph;
+                *old_graph = new_graph;
             }
 
             update_graph_to_property(app_pkg);
@@ -253,22 +233,13 @@ mod tests {
                 let predefined_graph = app_pkg
                     .predefined_graphs
                     .iter()
-                    .find(|g| g.prop_predefined_graph.name == "0")
+                    .find(|g| g.name == "0")
                     .unwrap();
 
-                assert!(!predefined_graph
-                    .prop_predefined_graph
-                    .auto_start
-                    .unwrap());
-                assert_eq!(predefined_graph.nodes.len(), 2);
+                assert!(!predefined_graph.auto_start.unwrap());
+                assert_eq!(predefined_graph.graph.nodes.len(), 2);
                 assert_eq!(
-                    predefined_graph
-                        .prop_predefined_graph
-                        .graph
-                        .connections
-                        .as_ref()
-                        .unwrap()
-                        .len(),
+                    predefined_graph.graph.connections.as_ref().unwrap().len(),
                     1
                 );
 

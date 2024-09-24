@@ -10,9 +10,9 @@ use super::pkg_predefined_graphs_find;
 use crate::{
     pkg_info::{
         api::{PkgApiCmdLike, PkgApiDataLike},
+        graph::GraphNode,
         message::{MsgDirection, MsgType},
         pkg_type::PkgType,
-        predefined_graphs::node::PkgNode,
         PkgInfo,
     },
     schema::{
@@ -26,7 +26,7 @@ use crate::{
 pub fn get_extension_nodes_in_graph(
     graph_name: &String,
     all_pkgs: &[PkgInfo],
-) -> Result<Vec<PkgNode>> {
+) -> Result<Vec<GraphNode>> {
     if let Some(app_pkg) = all_pkgs
         .iter()
         .find(|pkg| pkg.pkg_identity.pkg_type == PkgType::App)
@@ -37,19 +37,21 @@ pub fn get_extension_nodes_in_graph(
 
         // Look for the graph by name in the predefined_graphs of the app
         // package.
-        if let Some(graph) =
+        if let Some(predefined_graph) =
             pkg_predefined_graphs_find(&app_pkg.predefined_graphs, |graph| {
-                graph.prop_predefined_graph.name == *graph_name
+                graph.name == *graph_name
             })
         {
             // Collect all extension nodes from the graph.
-            let extension_nodes: Vec<_> = graph
+            let extension_nodes: Vec<_> = predefined_graph
+                .graph
                 .nodes
                 .iter()
                 .filter(|node| node.node_type == PkgType::Extension)
+                .cloned()
                 .collect();
 
-            Ok(extension_nodes.into_iter().cloned().collect())
+            Ok(extension_nodes)
         } else {
             Err(anyhow::anyhow!(
                 format!("Graph {} not found", graph_name).to_string(),
@@ -61,7 +63,7 @@ pub fn get_extension_nodes_in_graph(
 }
 
 pub fn get_extension_nodes_pkg_info(
-    extensions: &mut [PkgNode],
+    extensions: &mut [GraphNode],
     all_pkgs: &[PkgInfo],
 ) -> Result<()> {
     for extension in extensions.iter_mut() {
@@ -83,11 +85,11 @@ pub fn get_extension_nodes_pkg_info(
 }
 
 pub fn get_extension<'a>(
-    extensions: &'a [PkgNode],
+    extensions: &'a [GraphNode],
     app: &String,
     extension_group: &String,
     extension: &String,
-) -> Result<&'a PkgNode> {
+) -> Result<&'a GraphNode> {
     extensions
         .iter()
         .find(|ext| {
@@ -101,7 +103,7 @@ pub fn get_extension<'a>(
 }
 
 pub fn get_cmd_message<'a>(
-    extension: &'a PkgNode,
+    extension: &'a GraphNode,
     cmd_name: &String,
     direction: &MsgDirection,
 ) -> Result<&'a PkgApiCmdLike> {
@@ -122,7 +124,7 @@ pub fn get_cmd_message<'a>(
 }
 
 pub fn get_data_like_message<'a>(
-    extension: &'a PkgNode,
+    extension: &'a GraphNode,
     msg_type: &MsgType,
     msg_name: &String,
     direction: &MsgDirection,
@@ -170,14 +172,14 @@ pub fn get_data_like_message<'a>(
 }
 
 pub struct CompatibleExtensionAndMsg<'a> {
-    pub extension: &'a PkgNode,
+    pub extension: &'a GraphNode,
     pub msg_type: MsgType,
     pub msg_direction: MsgDirection,
     pub msg_name: String,
 }
 
 pub fn get_compatible_cmd_extension<'a>(
-    extensions: &'a [PkgNode],
+    extensions: &'a [GraphNode],
     desired_msg_dir: &MsgDirection,
     pivot: Option<&CmdSchema>,
     cmd_name: &str,
@@ -217,7 +219,7 @@ pub fn get_compatible_cmd_extension<'a>(
 }
 
 pub fn get_compatible_data_like_msg_extension<'a>(
-    extensions: &'a [PkgNode],
+    extensions: &'a [GraphNode],
     desired_msg_dir: &MsgDirection,
     pivot: Option<&TenSchema>,
     msg_type: &MsgType,

@@ -6,11 +6,11 @@
 //
 
 use crate::dev_server::graphs::nodes::DevServerExtension;
-use ten_rust::pkg_info::{pkg_type::PkgType, predefined_graphs::node::PkgNode};
+use ten_rust::pkg_info::{graph::GraphNode, pkg_type::PkgType};
 
-impl From<DevServerExtension> for PkgNode {
+impl From<DevServerExtension> for GraphNode {
     fn from(dev_server_extension: DevServerExtension) -> Self {
-        PkgNode {
+        GraphNode {
             node_type: PkgType::Extension,
             name: dev_server_extension.name,
             addon: dev_server_extension.addon,
