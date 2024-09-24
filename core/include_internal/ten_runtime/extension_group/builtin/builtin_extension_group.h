@@ -21,6 +21,6 @@ TEN_RUNTIME_PRIVATE_API void ten_builtin_extension_group_addon_destroy_instance(
     TEN_UNUSED ten_addon_t *addon, ten_env_t *ten_env, void *_extension_group,
     void *context);
 
-TEN_RUNTIME_PRIVATE_API void ten_register_builtin_extension_group(void);
+TEN_RUNTIME_PRIVATE_API void ten_builtin_extension_group_addon_register(void);
 
-TEN_RUNTIME_PRIVATE_API void ten_unregister_builtin_extension_group(void);
+TEN_RUNTIME_PRIVATE_API void ten_builtin_extension_group_addon_unregister(void);

@@ -203,19 +203,28 @@ void ten_builtin_extension_group_addon_destroy_instance(
   ten_env_on_destroy_instance_done(ten_env, context, NULL);
 }
 
-void ten_register_builtin_extension_group(void) {
-  // Register the test_extension_group addon.
-  ten_addon_t *builtin_extension_group_addon =
-      ten_addon_create(ten_builtin_extension_group_addon_on_init, NULL,
-                       ten_builtin_extension_group_addon_create_instance,
-                       ten_builtin_extension_group_addon_destroy_instance);
+static ten_addon_t builtin_extension_group_addon = {
+    NULL,
+    TEN_ADDON_SIGNATURE,
+    ten_builtin_extension_group_addon_on_init,
+    NULL,
+    NULL,
+    NULL,
+    ten_builtin_extension_group_addon_create_instance,
+    ten_builtin_extension_group_addon_destroy_instance,
+    NULL,
+    NULL,
+};
 
+// Because the name registered by this `builtin_extension_group` is a special
+// name (`ten:builtin_extension_group`), with a `:` in the middle, we can't use
+// the convenient macro `TEN_REGISTER_ADDON_AS_EXTENSION_GROUP`. We have to use
+// an inner register method instead. However, the meaning is exactly the same.
+void ten_builtin_extension_group_addon_register(void) {
   ten_addon_register_extension_group(TEN_STR_BUILTIN_EXTENSION_GROUP,
-                                     builtin_extension_group_addon);
+                                     &builtin_extension_group_addon);
 }
 
-void ten_unregister_builtin_extension_group(void) {
-  ten_addon_t *addon =
-      ten_addon_unregister_extension_group(TEN_STR_BUILTIN_EXTENSION_GROUP);
-  ten_addon_destroy(addon);
+void ten_builtin_extension_group_addon_unregister(void) {
+  ten_addon_unregister_extension_group(TEN_STR_BUILTIN_EXTENSION_GROUP);
 }

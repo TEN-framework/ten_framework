@@ -5,6 +5,7 @@
 // Refer to the "LICENSE" file in the root directory for more information.
 //
 #include "include_internal/ten_runtime/common/log.h"
+#include "include_internal/ten_runtime/extension_group/builtin/builtin_extension_group.h"
 #include "include_internal/ten_runtime/global/global.h"
 #include "include_internal/ten_runtime/global/signal.h"
 #include "include_internal/ten_utils/backtrace/backtrace.h"
@@ -33,9 +34,13 @@ TEN_CONSTRUCTOR(ten_runtime_on_load) {
   ten_global_setup_signal_stuff();
   ten_log_global_init();
   ten_log_global_set_output_level(DEFAULT_LOG_OUTPUT_LEVEL);
+
+  ten_builtin_extension_group_addon_register();
 }
 
 TEN_DESTRUCTOR(ten_runtime_on_unload) {
+  ten_builtin_extension_group_addon_unregister();
+
   ten_global_deinit();
   ten_log_global_deinit();
   ten_backtrace_destroy_global();

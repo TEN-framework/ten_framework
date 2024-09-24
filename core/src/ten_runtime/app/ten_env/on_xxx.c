@@ -89,7 +89,6 @@ static void ten_app_on_configure_done_internal(ten_app_t *self) {
   }
 
   ten_addon_load_all(&err);
-  ten_register_builtin_extension_group();
 
   if (!ten_app_get_predefined_graphs_from_property(self)) {
     return;
@@ -223,6 +222,4 @@ void ten_app_on_deinit_done(ten_env_t *ten_env) {
 
   ten_env_close(self->ten_env);
   ten_runloop_stop(self->loop);
-
-  ten_unregister_builtin_extension_group();
 }
