@@ -51,5 +51,3 @@ TEN_RUNTIME_API void ten_addon_init(
     ten_addon_on_destroy_instance_async_func_t on_destroy_instance_async);
 
 TEN_RUNTIME_API void ten_addon_destroy(ten_addon_t *self);
-
-TEN_RUNTIME_API ten_env_t *ten_addon_get_ten(ten_addon_t *self);

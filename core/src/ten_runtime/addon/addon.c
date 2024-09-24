@@ -63,8 +63,6 @@ void ten_addon_init(
   self->on_destroy_instance_async = on_destroy_instance_async;
 
   self->user_data = NULL;
-
-  self->ten_env = ten_env_create();
 }
 
 ten_addon_t *ten_addon_create(
@@ -172,28 +170,28 @@ static void ten_addon_load_metadata(ten_addon_host_t *self, ten_env_t *ten_env,
  * 'addon'. However, the developer could override the 'on_init' function to
  * perform user-defined operations the addon needs.
  */
-void ten_addon_register(ten_addon_store_t *store, ten_addon_host_t *item,
-                        const char *name, ten_addon_t *addon) {
-  TEN_ASSERT(item && ten_addon_host_check_integrity(item),
+void ten_addon_register(ten_addon_store_t *addon_store,
+                        ten_addon_host_t *addon_host, const char *name,
+                        ten_addon_t *addon) {
+  TEN_ASSERT(addon_host && ten_addon_host_check_integrity(addon_host),
              "Should not happen.");
+  TEN_ASSERT(!addon_host->ten_env, "Invalid argument.");
   TEN_ASSERT(name, "Should not happen.");
 
   TEN_LOGD("Register addon base: %s", name);
 
-  if (!addon->ten_env) {
-    addon->ten_env = ten_env_create();
-  }
-
-  item->addon = addon;
-  item->store = store;
-  item->ten_env = addon->ten_env;
-  ten_env_set_attach_to(item->ten_env, TEN_ENV_ATTACH_TO_ADDON, item);
+  addon_host->addon = addon;
+  addon_host->store = addon_store;
+  addon_host->ten_env = ten_env_create();
+  ten_env_set_attach_to(addon_host->ten_env, TEN_ENV_ATTACH_TO_ADDON,
+                        addon_host);
 
   if (name) {
-    ten_string_set_formatted(&item->name, "%s", name);
+    ten_string_set_formatted(&addon_host->name, "%s", name);
   }
 
-  ten_addon_load_metadata(item, item->ten_env, item->addon->on_init);
+  ten_addon_load_metadata(addon_host, addon_host->ten_env,
+                          addon_host->addon->on_init);
 }
 
 ten_addon_on_create_instance_info_t *ten_addon_on_create_instance_info_create(
@@ -597,10 +595,4 @@ ten_string_t *ten_addon_host_get_base_dir(ten_addon_host_t *self) {
   ten_path_to_system_flavor(base_dir);
 
   return base_dir;
-}
-
-ten_env_t *ten_addon_get_ten(ten_addon_t *self) {
-  TEN_ASSERT(self && ten_addon_check_integrity(self), "Invalid argument.");
-
-  return self->ten_env;
 }
