@@ -72,7 +72,8 @@ pub fn get_pkg_info_for_extension<'a>(
         })
         .ok_or_else(|| {
             anyhow::anyhow!(
-                "the addon '{}' used to instantiate extension '{}' is not found, check your addons in ten_packages/extension.",
+                "the addon '{}' used to instantiate extension '{}' is not found, \
+                check your addons in ten_packages/extension.",
                 extension.addon,
                 extension.name
             )

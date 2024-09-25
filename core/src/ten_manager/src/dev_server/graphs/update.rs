@@ -110,7 +110,6 @@ mod tests {
     use actix_web::{test, App};
     use serde_json::Value;
     use std::{env, fs};
-    use ten_rust::pkg_info::predefined_graphs;
 
     #[actix_web::test]
     async fn test_update_graph_success() {
