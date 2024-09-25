@@ -17,7 +17,6 @@ impl From<DevServerExtension> for GraphNode {
             extension_group: Some(dev_server_extension.extension_group.clone()),
             app: dev_server_extension.app,
             property: dev_server_extension.property,
-            pkg_info: None,
         }
     }
 }

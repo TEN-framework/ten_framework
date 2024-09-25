@@ -84,10 +84,6 @@ pub struct GraphNode {
 
     #[serde(skip_serializing_if = "Option::is_none")]
     pub property: Option<serde_json::Value>,
-
-    // The corresponding pkg info of this node.
-    #[serde(skip)]
-    pub pkg_info: Option<PkgInfo>,
 }
 
 impl GraphNode {

@@ -9,7 +9,6 @@ use anyhow::Result;
 use super::pkg_predefined_graphs_find;
 use crate::{
     pkg_info::{
-        api::{PkgApiCmdLike, PkgApiDataLike},
         graph::GraphNode,
         message::{MsgDirection, MsgType},
         pkg_type::PkgType,
@@ -62,26 +61,23 @@ pub fn get_extension_nodes_in_graph(
     }
 }
 
-pub fn get_extension_nodes_pkg_info(
-    extensions: &mut [GraphNode],
-    all_pkgs: &[PkgInfo],
-) -> Result<()> {
-    for extension in extensions.iter_mut() {
-        if let Some(pkg_info) = all_pkgs.iter().find(|pkg| {
+pub fn get_pkg_info_for_extension<'a>(
+    extension: &'a GraphNode,
+    all_pkgs: &'a [PkgInfo],
+) -> Result<&'a PkgInfo> {
+    all_pkgs
+        .iter()
+        .find(|pkg| {
             pkg.pkg_identity.pkg_type == PkgType::Extension
                 && pkg.pkg_identity.name == extension.addon
-        }) {
-            extension.pkg_info = Some(pkg_info.clone());
-            continue;
-        }
-
-        return Err(anyhow::anyhow!(
-            "the addon '{}' used to instantiate extension '{}' is not found, check your addons in ten_packages/extension.",
-            extension.addon,
-            extension.name
-        ));
-    }
-    Ok(())
+        })
+        .ok_or_else(|| {
+            anyhow::anyhow!(
+                "the addon '{}' used to instantiate extension '{}' is not found, check your addons in ten_packages/extension.",
+                extension.addon,
+                extension.name
+            )
+        })
 }
 
 pub fn get_extension<'a>(
@@ -102,75 +98,6 @@ pub fn get_extension<'a>(
         .ok_or_else(|| anyhow::anyhow!("Extension not found"))
 }
 
-pub fn get_cmd_message<'a>(
-    extension: &'a GraphNode,
-    cmd_name: &String,
-    direction: &MsgDirection,
-) -> Result<&'a PkgApiCmdLike> {
-    extension
-        .pkg_info
-        .as_ref()
-        .and_then(|pkg_info| {
-            pkg_info.api.as_ref().and_then(|api| match direction {
-                MsgDirection::In => {
-                    api.cmd_in.iter().find(|cmd| &cmd.name == cmd_name)
-                }
-                MsgDirection::Out => {
-                    api.cmd_out.iter().find(|cmd| &cmd.name == cmd_name)
-                }
-            })
-        })
-        .ok_or_else(|| anyhow::anyhow!("Command not found"))
-}
-
-pub fn get_data_like_message<'a>(
-    extension: &'a GraphNode,
-    msg_type: &MsgType,
-    msg_name: &String,
-    direction: &MsgDirection,
-) -> Result<&'a PkgApiDataLike> {
-    extension
-        .pkg_info
-        .as_ref()
-        .and_then(|pkg_info| {
-            pkg_info.api.as_ref().and_then(|api| match direction {
-                MsgDirection::In => match msg_type {
-                    MsgType::Data => {
-                        api.data_in.iter().find(|msg| &msg.name == msg_name)
-                    }
-                    MsgType::AudioFrame => api
-                        .audio_frame_in
-                        .iter()
-                        .find(|msg| &msg.name == msg_name),
-                    MsgType::VideoFrame => api
-                        .video_frame_in
-                        .iter()
-                        .find(|msg| &msg.name == msg_name),
-                    _ => {
-                        panic!("Unsupported message type: {}", msg_type)
-                    }
-                },
-                MsgDirection::Out => match msg_type {
-                    MsgType::Data => {
-                        api.data_out.iter().find(|msg| &msg.name == msg_name)
-                    }
-                    MsgType::AudioFrame => api
-                        .audio_frame_out
-                        .iter()
-                        .find(|msg| &msg.name == msg_name),
-                    MsgType::VideoFrame => api
-                        .video_frame_out
-                        .iter()
-                        .find(|msg| &msg.name == msg_name),
-                    _ => {
-                        panic!("Unsupported message type: {}", msg_type)
-                    }
-                },
-            })
-        })
-        .ok_or_else(|| anyhow::anyhow!("Command not found"))
-}
-
 pub struct CompatibleExtensionAndMsg<'a> {
     pub extension: &'a GraphNode,
     pub msg_type: MsgType,
@@ -180,6 +107,7 @@ pub struct CompatibleExtensionAndMsg<'a> {
 
 pub fn get_compatible_cmd_extension<'a>(
     extensions: &'a [GraphNode],
+    all_pkgs: &[PkgInfo],
     desired_msg_dir: &MsgDirection,
     pivot: Option<&CmdSchema>,
     cmd_name: &str,
@@ -187,14 +115,14 @@ pub fn get_compatible_cmd_extension<'a>(
     let mut result = Vec::new();
 
     for ext in extensions {
-        let target_cmd_schema = ext.pkg_info.as_ref().and_then(|pkg| {
-            pkg.schema_store.as_ref().and_then(|schema_store| {
+        let pkg_info = get_pkg_info_for_extension(ext, all_pkgs)?;
+        let target_cmd_schema =
+            pkg_info.schema_store.as_ref().and_then(|schema_store| {
                 match desired_msg_dir {
                     MsgDirection::In => schema_store.cmd_in.get(cmd_name),
                     MsgDirection::Out => schema_store.cmd_out.get(cmd_name),
                 }
-            })
-        });
+            });
 
         let compatible = match desired_msg_dir {
             MsgDirection::In => {
@@ -220,6 +148,7 @@ pub fn get_compatible_cmd_extension<'a>(
 
 pub fn get_compatible_data_like_msg_extension<'a>(
     extensions: &'a [GraphNode],
+    all_pkgs: &'a [PkgInfo],
     desired_msg_dir: &MsgDirection,
     pivot: Option<&TenSchema>,
     msg_type: &MsgType,
@@ -228,11 +157,7 @@ pub fn get_compatible_data_like_msg_extension<'a>(
     let mut result = Vec::new();
 
     for ext in extensions {
-        if ext.pkg_info.is_none() {
-            continue;
-        }
-
-        let pkg_info = ext.pkg_info.as_ref().unwrap();
+        let pkg_info = get_pkg_info_for_extension(ext, all_pkgs)?;
         let target_msg_schema =
             pkg_info.schema_store.as_ref().and_then(|schema_store| {
                 let msg_name = msg_name.as_str();
