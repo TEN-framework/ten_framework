@@ -22,7 +22,8 @@ fn test_graph_check_extension_not_installed() {
         .filter(|pkg| pkg.pkg_identity.pkg_type == PkgType::App)
         .last();
     let app_pkg = app_pkg_info.unwrap();
-    let pkg_graph = app_pkg.predefined_graphs.first().unwrap();
+    let predefined_graphs = app_pkg.get_predefined_graphs().unwrap();
+    let pkg_graph = predefined_graphs.first().unwrap();
     let predefined_graph: PropertyPredefinedGraph = pkg_graph.clone();
     let graph = &predefined_graph.graph;
 
@@ -46,7 +47,8 @@ fn test_graph_check_predefined_graph_success() {
         .filter(|pkg| pkg.pkg_identity.pkg_type == PkgType::App)
         .last();
     let app_pkg = app_pkg_info.unwrap();
-    let pkg_graph = app_pkg.predefined_graphs.first().unwrap();
+    let predefined_graphs = app_pkg.get_predefined_graphs().unwrap();
+    let pkg_graph = predefined_graphs.first().unwrap();
     let predefined_graph: PropertyPredefinedGraph = pkg_graph.clone();
     let graph = &predefined_graph.graph;
 
@@ -69,7 +71,8 @@ fn test_graph_check_all_msgs_schema_incompatible() {
         .filter(|pkg| pkg.pkg_identity.pkg_type == PkgType::App)
         .last();
     let app_pkg = app_pkg_info.unwrap();
-    let pkg_graph = app_pkg.predefined_graphs.first().unwrap();
+    let predefined_graphs = app_pkg.get_predefined_graphs().unwrap();
+    let pkg_graph = predefined_graphs.first().unwrap();
     let predefined_graph: PropertyPredefinedGraph = pkg_graph.clone();
     let graph = &predefined_graph.graph;
 

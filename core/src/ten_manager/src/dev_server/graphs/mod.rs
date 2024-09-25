@@ -47,7 +47,8 @@ pub async fn get_graphs(
             .find(|pkg| pkg.pkg_identity.pkg_type == PkgType::App)
         {
             let graphs: Vec<RespGraph> = app_pkg
-                .predefined_graphs
+                .get_predefined_graphs()
+                .unwrap_or(&vec![])
                 .iter()
                 .map(|graph| RespGraph {
                     name: graph.name.clone(),

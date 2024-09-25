@@ -36,11 +36,10 @@ pub fn get_extension_nodes_in_graph(
 
         // Look for the graph by name in the predefined_graphs of the app
         // package.
-        if let Some(predefined_graph) =
-            pkg_predefined_graphs_find(&app_pkg.predefined_graphs, |graph| {
-                graph.name == *graph_name
-            })
-        {
+        if let Some(predefined_graph) = pkg_predefined_graphs_find(
+            app_pkg.get_predefined_graphs(),
+            |graph| graph.name == *graph_name,
+        ) {
             // Collect all extension nodes from the graph.
             let extension_nodes: Vec<_> = predefined_graph
                 .graph

@@ -9,36 +9,24 @@ pub mod extension;
 use anyhow::Result;
 
 use crate::pkg_info::{
-    graph::Graph,
-    property::{predefined_graph::PropertyPredefinedGraph, Property},
+    graph::Graph, property::predefined_graph::PropertyPredefinedGraph,
 };
 
 use super::graph::{GraphConnection, GraphNode};
 
-pub fn get_pkg_predefined_graphs_from_property(
-    property: &Property,
-) -> Result<Vec<PropertyPredefinedGraph>> {
-    let mut graphs = Vec::new();
-
-    if let Some(ten) = &property._ten {
-        if let Some(predefined_graphs) = &ten.predefined_graphs {
-            for property_predefined_graph in predefined_graphs {
-                graphs.push(property_predefined_graph.clone());
-            }
-        }
-    }
-
-    Ok(graphs)
-}
-
 pub fn pkg_predefined_graphs_find<F>(
-    pkg_predefined_graphs: &[PropertyPredefinedGraph],
+    pkg_predefined_graphs: Option<&Vec<PropertyPredefinedGraph>>,
     predicate: F,
 ) -> Option<&PropertyPredefinedGraph>
 where
     F: Fn(&&PropertyPredefinedGraph) -> bool,
 {
-    pkg_predefined_graphs.iter().find(predicate)
+    match pkg_predefined_graphs {
+        None => None,
+        Some(pkg_predefined_graphs) => {
+            pkg_predefined_graphs.iter().find(predicate)
+        }
+    }
 }
 
 pub fn get_pkg_predefined_graph_from_nodes_and_connections(

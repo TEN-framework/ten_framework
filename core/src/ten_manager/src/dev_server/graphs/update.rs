@@ -4,14 +4,10 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
 
 use actix_web::{web, HttpResponse, Responder};
 use serde::{Deserialize, Serialize};
-
-use ten_rust::pkg_info::property::{Property, TenInProperty};
-use ten_rust::pkg_info::PkgInfo;
 
 use super::{connections::DevServerConnection, nodes::DevServerExtension};
 use crate::dev_server::response::{ApiResponse, ErrorResponse, Status};
@@ -29,33 +25,6 @@ pub struct GraphUpdateRequest {
 #[derive(Serialize, Debug, PartialEq)]
 pub struct GraphUpdateResponse {
     pub success: bool,
-}
-
-fn update_graph_to_property(app_pkg: &mut PkgInfo) {
-    if let Some(ref mut property) = app_pkg.property {
-        // If _ten exists, update its predefined_graphs; otherwise, create _ten.
-        if let Some(ref mut ten) = property._ten {
-            ten.predefined_graphs = Some(app_pkg.predefined_graphs.to_vec());
-        } else {
-            property._ten = Some(TenInProperty {
-                predefined_graphs: Some(app_pkg.predefined_graphs.to_vec()),
-                uri: None,
-                additional_fields: HashMap::new(),
-            });
-        }
-    } else {
-        // If property is None, create a new Property with _ten field.
-        let new_property = Property {
-            _ten: Some(TenInProperty {
-                predefined_graphs: Some(app_pkg.predefined_graphs.to_vec()),
-                uri: None,
-                additional_fields: HashMap::new(),
-            }),
-            additional_fields: HashMap::new(),
-        };
-
-        app_pkg.property = Some(new_property);
-    }
 }
 
 pub async fn update_graph(
@@ -105,15 +74,7 @@ pub async fn update_graph(
                 };
 
             // TODO(Liu): Add graph check.
-            if let Some(old_graph) = app_pkg
-                .predefined_graphs
-                .iter_mut()
-                .find(|g| g.name == graph_name)
-            {
-                *old_graph = new_graph;
-            }
-
-            update_graph_to_property(app_pkg);
+            app_pkg.update_predefined_graph(&new_graph);
 
             let response = ApiResponse {
                 status: Status::Ok,
@@ -149,6 +110,7 @@ mod tests {
     use actix_web::{test, App};
     use serde_json::Value;
     use std::{env, fs};
+    use ten_rust::pkg_info::predefined_graphs;
 
     #[actix_web::test]
     async fn test_update_graph_success() {
@@ -230,11 +192,10 @@ mod tests {
                     .find(|pkg| pkg.pkg_identity.pkg_type == PkgType::App)
                     .unwrap();
 
-                let predefined_graph = app_pkg
-                    .predefined_graphs
-                    .iter()
-                    .find(|g| g.name == "0")
-                    .unwrap();
+                let predefined_graphs =
+                    app_pkg.get_predefined_graphs().unwrap();
+                let predefined_graph =
+                    predefined_graphs.iter().find(|g| g.name == "0").unwrap();
 
                 assert!(!predefined_graph.auto_start.unwrap());
                 assert_eq!(predefined_graph.graph.nodes.len(), 2);
