@@ -10,7 +10,9 @@
 
 #if defined(TEN_USE_ASAN)
 #include <sanitizer/asan_interface.h>
+#include <sanitizer/lsan_interface.h>
 #endif
+
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -21,6 +23,18 @@
 #include "ten_utils/lib/string.h"
 #include "ten_utils/macro/check.h"
 #include "ten_utils/macro/mark.h"
+
+// Note: The `ten_sanitizer_memory_record_t` items stored in
+// `ten_sanitizer_memory_records_t` not only contain the actual allocated memory
+// region addresses but also include other auxiliary allocations used to record
+// these memory regions in `ten_sanitizer_memory_records_t`. However, these
+// auxiliary allocations are only for recording the actual allocated memory
+// region addresses and do not need to be tracked by LeakSanitizer. Otherwise,
+// in addition to the actual memory leaks, each actual memory leak would have
+// corresponding internal auxiliary allocations used for recording, which would
+// essentially be false alarms. Therefore, `__lsan_disable()` and
+// `__lsan_enable()` are used to exclude these auxiliary allocations from being
+// tracked by LeakSanitizer.
 
 static ten_sanitizer_memory_records_t g_memory_records = {NULL,
                                                           TEN_LIST_INIT_VAL, 0};
@@ -38,6 +52,8 @@ static void ten_sanitizer_memory_record_check_enabled(void) {
 }
 
 void ten_sanitizer_memory_record_init(void) {
+  __lsan_disable();
+
   ten_sanitizer_memory_record_check_enabled();
 
 #if defined(TEN_USE_ASAN)
@@ -51,23 +67,32 @@ void ten_sanitizer_memory_record_init(void) {
 #endif
 
   g_memory_records.lock = ten_mutex_create();
+
+  __lsan_enable();
 }
 
 void ten_sanitizer_memory_record_deinit(void) {
+  __lsan_disable();
+
   ten_sanitizer_memory_record_dump();
 
   if (g_memory_records.lock) {
     ten_mutex_destroy(g_memory_records.lock);
   }
+
+  __lsan_enable();
 }
 
 static ten_sanitizer_memory_record_t *ten_sanitizer_memory_record_create(
     void *addr, size_t size, const char *file_name, uint32_t lineno,
     const char *func_name) {
+  __lsan_disable();
+
   ten_sanitizer_memory_record_t *self =
       ten_malloc(sizeof(ten_sanitizer_memory_record_t));
   TEN_ASSERT(self, "Failed to allocate memory.");
   if (!self) {
+    __lsan_enable();
     return NULL;
   }
 
@@ -83,18 +108,27 @@ static ten_sanitizer_memory_record_t *ten_sanitizer_memory_record_create(
 
   self->lineno = lineno;
 
+  __lsan_enable();
   return self;
 }
 
 static void ten_sanitizer_memory_record_destroy(
     ten_sanitizer_memory_record_t *self) {
+  __lsan_disable();
+
+  TEN_ASSERT(self, "Invalid argument.");
+
   ten_string_deinit(&self->file_name);
   ten_free(self);
+
+  __lsan_enable();
 }
 
 static void ten_sanitizer_memory_record_add(
     ten_sanitizer_memory_records_t *self,
     ten_sanitizer_memory_record_t *record) {
+  __lsan_disable();
+
   TEN_ASSERT(self && record, "Invalid argument.");
 
   TEN_UNUSED int rc = ten_mutex_lock(self->lock);
@@ -122,10 +156,14 @@ static void ten_sanitizer_memory_record_add(
 
   rc = ten_mutex_unlock(self->lock);
   TEN_ASSERT(!rc, "Failed to unlock.");
+
+  __lsan_enable();
 }
 
 static void ten_sanitizer_memory_record_del(
     ten_sanitizer_memory_records_t *self, void *addr) {
+  __lsan_disable();
+
   TEN_ASSERT(self && addr, "Invalid argument.");
 
   TEN_UNUSED int rc = ten_mutex_lock(self->lock);
@@ -163,10 +201,14 @@ static void ten_sanitizer_memory_record_del(
 
   rc = ten_mutex_unlock(self->lock);
   TEN_ASSERT(!rc, "Failed to unlock.");
+
+  __lsan_enable();
 }
 
 void ten_sanitizer_memory_record_dump(void) {
 #if defined(TEN_ENABLE_MEMORY_CHECK)
+  __lsan_disable();
+
   TEN_UNUSED int rc = ten_mutex_lock(g_memory_records.lock);
   TEN_ASSERT(!rc, "Failed to lock.");
 
@@ -217,8 +259,11 @@ void ten_sanitizer_memory_record_dump(void) {
 
   if (total_size) {
     TEN_LOGE("Memory leak with %zu bytes.", total_size);
+    __lsan_enable();
     exit(EXIT_FAILURE);
   }
+
+  __lsan_enable();
 #else
   TEN_LOGI("The memory check is disabled.");
 #endif
