@@ -12,4 +12,8 @@ declare_args() {
   # TODO(Liu): Add a gn target to compile the 'ten_utils' static without asan on
   # x86.
   enable_ten_rust = !(enable_sanitizer && target_cpu == "x86")
+
+  # Enable this option if you want to develop rust within enable_sanitizer is
+  # true.
+  enable_cargo_config_gen = false
 }
