@@ -146,6 +146,11 @@ void ten_extension_thread_on_extension_group_on_init_done(
   TEN_ASSERT(ten_extension_thread_check_integrity(self, true),
              "Invalid use of extension_thread %p.", self);
 
+  if (ten_extension_thread_get_state(self) >=
+      TEN_EXTENSION_THREAD_STATE_PREPARE_TO_CLOSE) {
+    return;
+  }
+
   ten_extension_group_t *extension_group = self->extension_group;
   TEN_ASSERT(extension_group &&
                  ten_extension_group_check_integrity(extension_group, true),

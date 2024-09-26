@@ -81,6 +81,8 @@ typedef struct ten_extension_thread_t {
   ten_extension_context_t *extension_context;
 
   ten_runloop_t *runloop;
+
+  ten_event_t *runloop_is_ready_to_use;
 } ten_extension_thread_t;
 
 TEN_RUNTIME_API bool ten_extension_thread_not_call_by_me(
@@ -102,9 +104,6 @@ TEN_RUNTIME_PRIVATE_API ten_extension_thread_t *ten_extension_thread_create(
 TEN_RUNTIME_PRIVATE_API void ten_extension_thread_attach_to_context_and_group(
     ten_extension_thread_t *self, ten_extension_context_t *extension_context,
     ten_extension_group_t *extension_group);
-
-TEN_RUNTIME_PRIVATE_API void ten_extension_thread_attach_to_group(
-    ten_extension_thread_t *self, ten_extension_group_t *extension_group);
 
 TEN_RUNTIME_PRIVATE_API void ten_extension_thread_destroy(
     ten_extension_thread_t *self);
