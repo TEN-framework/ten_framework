@@ -227,12 +227,30 @@ template("rust_test") {
       _rustflags = invoker._rustflags
     }
 
-    if (is_debug) {
-      if (ten_enable_rust_asan) {
-        if (enable_sanitizer) {
-          _rustflags = "${_rustflags} -Zsanitizer=address"
-        }
+    if (!enable_cargo_config_gen && enable_sanitizer && ten_enable_rust_asan) {
+      asan_args = [
+        "--action",
+        "print",
+        "--compiler",
+      ]
+      if (is_clang) {
+        asan_args += [ "clang" ]
+      } else {
+        asan_args += [ "gcc" ]
       }
+
+      asan_args += [
+        "--target-os",
+        target_os,
+        "--target-arch",
+        target_cpu,
+      ]
+
+      flags = exec_script("//build/common/rust/rust_gen_cargo_config.py",
+                          asan_args,
+                          "trim string")
+
+      _rustflags = "${_rustflags} ${flags}"
     }
 
     if (_rustflags != "") {
