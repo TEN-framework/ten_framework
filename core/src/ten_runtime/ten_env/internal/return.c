@@ -60,7 +60,7 @@ static bool ten_env_return_result_internal(ten_env_t *self,
   }
 
   if (extension->state >= TEN_EXTENSION_STATE_CLOSING) {
-    TEN_LOGE("Cannot return results after on_stop_done.");
+    TEN_LOGW("Cannot return results after on_stop_done.");
     ten_error_set(err, TEN_ERRNO_GENERIC,
                   "Cannot return results after on_stop_done.");
     result = false;
