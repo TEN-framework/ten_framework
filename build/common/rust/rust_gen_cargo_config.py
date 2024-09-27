@@ -23,11 +23,11 @@ GCC_ASAN_FLAGS = [
     "asan",
 ]
 
+# "-C",
+# "link-arg=-fuse-ld=lld",
 CLANG_ASAN_FLAGS = [
     "-C",
     "linker=clang",
-    "-C",
-    "link-arg=-fuse-ld=lld",
     "-Z",
     "external-clangrt",
     "-Z",
