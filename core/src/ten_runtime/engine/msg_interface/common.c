@@ -305,7 +305,7 @@ void ten_engine_dispatch_msg(ten_engine_t *self, ten_shared_ptr_t *msg) {
                                   &dest_loc->extension_group_name)) {
             // Find the correct extension thread, ask it to handle the message.
             found = true;
-            ten_extension_thread_handle_msg_async(
+            ten_extension_thread_handle_in_msg_async(
                 extension_group->extension_thread, msg);
             break;
           }

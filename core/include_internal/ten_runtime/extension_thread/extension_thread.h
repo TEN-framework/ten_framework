@@ -26,22 +26,15 @@ typedef struct ten_extension_context_t ten_extension_context_t;
 typedef struct ten_extension_t ten_extension_t;
 
 typedef enum TEN_EXTENSION_THREAD_STATE {
-  // All received messages will be kept in a temporary buffer, and wait until
-  // the state switched to NORMAL.
   TEN_EXTENSION_THREAD_STATE_INIT,
-
-  // All received messages will be fed into the extensions directly.
+  TEN_EXTENSION_THREAD_STATE_CREATING_EXTENSIONS,
   TEN_EXTENSION_THREAD_STATE_NORMAL,
-
-  // All the extensions have been started completely. The extension thread could
-  // be 'suspended' only in this state.
-  TEN_EXTENSION_THREAD_STATE_ALL_STARTED,
-
-  // Give extension a chance to do something before the whole engine shuting
-  // down.
   TEN_EXTENSION_THREAD_STATE_PREPARE_TO_CLOSE,
 
-  // All received messages will be dropped.
+  // All the extensions of the extension thread have been closed, so the
+  // extension thread can now proceed with its own closing flow. Additionally,
+  // since the extensions have been closed, any messages received by the
+  // extension thread from this point on will be directly dropped.
   TEN_EXTENSION_THREAD_STATE_CLOSING,
 
   // The closing procedure is completed, so the extension thread can be
@@ -59,6 +52,7 @@ typedef struct ten_extension_thread_t {
   ten_sanitizer_thread_check_t thread_check;
 
   TEN_EXTENSION_THREAD_STATE state;
+  bool is_close_triggered;
 
   ten_mutex_t *lock_mode_lock;
   bool in_lock_mode;
@@ -68,8 +62,6 @@ typedef struct ten_extension_thread_t {
   ten_list_t extensions;  // ten_extension_t*
   size_t extensions_cnt_of_added_to_engine;
   size_t extensions_cnt_of_deleted_from_engine;
-  size_t extensions_cnt_of_on_init_done;
-  size_t extensions_cnt_of_on_start_done;
   size_t extensions_cnt_of_on_stop_done;
   size_t extensions_cnt_of_set_closing_flag;
 
@@ -81,7 +73,6 @@ typedef struct ten_extension_thread_t {
   ten_extension_context_t *extension_context;
 
   ten_runloop_t *runloop;
-
   ten_event_t *runloop_is_ready_to_use;
 } ten_extension_thread_t;
 

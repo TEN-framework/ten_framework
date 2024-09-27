@@ -84,6 +84,7 @@ ten_extension_thread_t *ten_extension_thread_create(void) {
                     (ten_signature_t)TEN_EXTENSION_THREAD_SIGNATURE);
 
   self->state = TEN_EXTENSION_THREAD_STATE_INIT;
+  self->is_close_triggered = false;
 
   self->extension_context = NULL;
   self->extension_group = NULL;
@@ -93,8 +94,6 @@ ten_extension_thread_t *ten_extension_thread_create(void) {
   ten_list_init(&self->extensions);
   self->extensions_cnt_of_added_to_engine = 0;
   self->extensions_cnt_of_deleted_from_engine = 0;
-  self->extensions_cnt_of_on_init_done = 0;
-  self->extensions_cnt_of_on_start_done = 0;
   self->extensions_cnt_of_on_stop_done = 0;
   self->extensions_cnt_of_set_closing_flag = 0;
 
@@ -314,34 +313,45 @@ static void ten_extension_thread_on_triggering_close(void *self_,
              "Invalid use of extension_thread %p.", self);
 
   // The closing flow should be executed only once.
-  if (ten_extension_thread_get_state(self) >=
-      TEN_EXTENSION_THREAD_STATE_PREPARE_TO_CLOSE) {
+  if (self->is_close_triggered) {
     return;
   }
 
-  ten_extension_thread_set_state(self,
-                                 TEN_EXTENSION_THREAD_STATE_PREPARE_TO_CLOSE);
+  self->is_close_triggered = true;
 
-  if (ten_list_size(&self->extensions)) {
-    // Loop for all the containing extensions, and call their on_stop().
-    ten_list_foreach (&self->extensions, iter) {
-      ten_extension_t *extension = ten_ptr_listnode_get(iter.node);
-      TEN_ASSERT(ten_extension_check_integrity(extension, true),
-                 "Should not happen.");
+  switch (self->state) {
+    case TEN_EXTENSION_THREAD_STATE_INIT:
+      // Enter the deinit flow of the extension group directly.
+      ten_extension_group_on_deinit(self->extension_group);
+      break;
 
-      ten_extension_on_stop(extension);
-    }
-  } else {
-    // TODO(Wei): There will be a time gap that needs to be handled. After the
-    // extension group starts to create_extensions, but before
-    // create_extensions_done, if a close command is received, a memory leak may
-    // occur (i.e., those created extensions). A possible solution is to enter a
-    // specific state when create_extensions is called. If a close command is
-    // received during this state, simply record it. Later, when
-    // create_extensions_done is reached, based on this state, decide whether to
-    // proceed normally or to destroy the created extensions and enter the
-    // standard extension group deinitialization process.
-    ten_extension_group_on_deinit(self->extension_group);
+    case TEN_EXTENSION_THREAD_STATE_CREATING_EXTENSIONS:
+      // We need to wait until `on_create_extensions_done()` is called, as that
+      // is the point when all the created extensions can be retrieved to begin
+      // the close process. Otherwise, memory leaks caused by those extensions
+      // may occur.
+      break;
+
+    case TEN_EXTENSION_THREAD_STATE_NORMAL:
+      ten_extension_thread_set_state(
+          self, TEN_EXTENSION_THREAD_STATE_PREPARE_TO_CLOSE);
+
+      // Loop for all the containing extensions, and call their on_stop().
+      ten_list_foreach (&self->extensions, iter) {
+        ten_extension_t *extension = ten_ptr_listnode_get(iter.node);
+        TEN_ASSERT(ten_extension_check_integrity(extension, true),
+                   "Should not happen.");
+
+        ten_extension_on_stop(extension);
+      }
+      break;
+
+    case TEN_EXTENSION_THREAD_STATE_PREPARE_TO_CLOSE:
+    case TEN_EXTENSION_THREAD_STATE_CLOSING:
+    case TEN_EXTENSION_THREAD_STATE_CLOSED:
+    default:
+      TEN_ASSERT(0, "Should not happen.");
+      break;
   }
 }
 
