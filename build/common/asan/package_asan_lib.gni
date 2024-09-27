@@ -9,7 +9,7 @@ template("package_asan_lib") {
          "dest_asan_lib_dir is not defined.")
 
   action(target_name) {
-    script = "//build/common/scripts/package_asan_lib.py"
+    script = "//.gnfiles/build/scripts/package_asan_lib.py"
 
     if (is_mac) {
       asan_lib_name = "libclang_rt.asan_osx_dynamic.dylib"

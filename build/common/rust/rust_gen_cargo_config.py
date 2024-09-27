@@ -9,7 +9,7 @@ import json
 import shutil
 import sys
 import os
-from build.scripts import cmd_exec, fs_utils, timestamp_proxy
+from build.scripts import timestamp_proxy, package_asan_lib
 
 
 GCC_ASAN_FLAGS = [
@@ -50,18 +50,29 @@ class ArgumentInfo(argparse.Namespace):
         self.project_root: str
         self.build_type: str
         self.compiler: str
-        self.env: list[str]
         self.target: str
+        self.target_os: str
+        self.target_arch: str
         self.tg_timestamp_proxy_file: str | None = None
         self.enable_asan: bool
-        self.gen: bool
+        self.action: str
 
 
-def gen_cargo_config(root: str, compiler: str, target: str):
-    if not os.path.exists(root):
-        raise Exception(f"Project root {root} does not exist.")
+# There is only clang compiler on Mac, and the asan runtime in clang only has
+# dynamic library. However, the ldflag '-shared-libsan' does not support in
+# cargo + clang on Mac, cargo will raise a warning and ignore the flag, ex:
+# clang: warning: argument unused during compilation: '-shared-libasan'. This
+# might be a bug in cargo. So we need to use the following flag instead.
+def special_link_args_on_mac(arch: str) -> str:
+    asan_lib = package_asan_lib.detect_mac_asan_lib(arch)
+    return f"link-arg=-Wl,{asan_lib}"
 
-    cargo_dir = os.path.join(root, ".cargo")
+
+def gen_cargo_config(args: ArgumentInfo):
+    if not os.path.exists(args.project_root):
+        raise Exception(f"Project root {args.project_root} does not exist.")
+
+    cargo_dir = os.path.join(args.project_root, ".cargo")
     if not os.path.exists(cargo_dir):
         os.mkdir(cargo_dir)
 
@@ -69,13 +80,18 @@ def gen_cargo_config(root: str, compiler: str, target: str):
     if os.path.exists(cargo_config):
         os.remove(cargo_config)
 
-    flags = ""
-    if compiler == "gcc":
-        flags = json.dumps(GCC_ASAN_FLAGS)
+    flags = []
+    if args.compiler == "gcc":
+        flags = GCC_ASAN_FLAGS
     else:
-        flags = json.dumps(CLANG_ASAN_FLAGS)
+        flags = CLANG_ASAN_FLAGS
 
-    config_content = ASAN_CONFIG.format(build_target=target, asan_flags=flags)
+    if args.target_os == "mac":
+        flags.extend(["-C", special_link_args_on_mac(args.target_arch)])
+
+    config_content = ASAN_CONFIG.format(
+        build_target=args.target, asan_flags=json.dumps(flags)
+    )
 
     with open(cargo_config, "w") as f:
         f.write(config_content)
@@ -90,10 +106,12 @@ def delete_cargo_config(root: str):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
-    parser.add_argument("--gen", action="store_true")
+    parser.add_argument("--action", type=str, required=True, help="gen|delete|print")
     parser.add_argument("--project-root", type=str, required=False)
     parser.add_argument("--compiler", type=str, required=True)
     parser.add_argument("--target", type=str, required=False)
+    parser.add_argument("--target-os", type=str, required=True)
+    parser.add_argument("--target-arch", type=str, required=True)
     parser.add_argument(
         "--tg-timestamp-proxy-file", type=str, default="", required=False
     )
@@ -104,18 +122,27 @@ if __name__ == "__main__":
     arg_info = ArgumentInfo()
     args = parser.parse_args(namespace=arg_info)
 
-    if args.gen:
-        returncode = 0
+    returncode = 0
+    if args.action == "gen":
         try:
-            if args.enable_asan:
-                gen_cargo_config(args.project_root, args.compiler, args.target)
-            else:
-                delete_cargo_config(args.project_root)
+            gen_cargo_config(args)
 
-            # Success to build the app, update the stamp file to represent this
-            # fact.
+            # Success to gen config, update the stamp file to represent this fact.
             timestamp_proxy.touch_timestamp_proxy_file(args.tg_timestamp_proxy_file)
+        except Exception as exc:
+            returncode = 1
+            timestamp_proxy.remove_timestamp_proxy_file(args.tg_timestamp_proxy_file)
+            print(exc)
 
+        finally:
+            sys.exit(-1 if returncode != 0 else 0)
+
+    elif args.action == "delete":
+        try:
+            delete_cargo_config(args.project_root)
+
+            # Success to delete config, update the stamp file to represent this fact.
+            timestamp_proxy.touch_timestamp_proxy_file(args.tg_timestamp_proxy_file)
         except Exception as exc:
             returncode = 1
             timestamp_proxy.remove_timestamp_proxy_file(args.tg_timestamp_proxy_file)
@@ -124,16 +151,14 @@ if __name__ == "__main__":
         finally:
             sys.exit(-1 if returncode != 0 else 0)
     else:
-        if args.compiler == "gcc":
-            flags = [
-                GCC_ASAN_FLAGS[i] + GCC_ASAN_FLAGS[i + 1]
-                for i in range(0, len(GCC_ASAN_FLAGS) - 1, 2)
-            ]
-            print(" ".join(flags))
-        else:
-            flags = [
-                CLANG_ASAN_FLAGS[i] + CLANG_ASAN_FLAGS[i + 1]
-                for i in range(0, len(CLANG_ASAN_FLAGS) - 1, 2)
-            ]
-            print(" ".join(flags))
+        flags = [
+            CLANG_ASAN_FLAGS[i] + CLANG_ASAN_FLAGS[i + 1]
+            for i in range(0, len(CLANG_ASAN_FLAGS) - 1, 2)
+        ]
+
+        if args.target_os == "mac":
+            asan_lib = package_asan_lib.detect_mac_asan_lib(args.target_arch)
+            flags.append(f"-Clink-arg=-Wl,{asan_lib}")
+
+        print(" ".join(flags))
         sys.exit(0)

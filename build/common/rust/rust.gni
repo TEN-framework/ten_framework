@@ -44,22 +44,27 @@ template("rust_target") {
     }
 
     if (!enable_cargo_config_gen && enable_sanitizer && ten_enable_rust_asan) {
-      flags = ""
+      asan_args = [
+        "--action",
+        "print",
+        "--compiler",
+      ]
       if (is_clang) {
-        flags = exec_script("//build/common/rust/rust_gen_cargo_config.py",
-                            [
-                              "--compiler",
-                              "clang",
-                            ],
-                            "trim string")
+        asan_args += [ "clang" ]
       } else {
-        flags = exec_script("//build/common/rust/rust_gen_cargo_config.py",
-                            [
-                              "--compiler",
-                              "gcc",
-                            ],
-                            "trim string")
+        asan_args += [ "gcc" ]
       }
+
+      asan_args += [
+        "--target-os",
+        target_os,
+        "--target-arch",
+        target_cpu,
+      ]
+
+      flags = exec_script("//build/common/rust/rust_gen_cargo_config.py",
+                          asan_args,
+                          "trim string")
 
       _rustflags = "${_rustflags} ${flags}"
     }
@@ -379,7 +384,6 @@ template("rust_gen_cargo_config") {
     _output = "${_target_path}/${_target_name}_gen_cargo_config"
 
     args = [
-      "--gen",
       "--project-root",
       _project_root,
       "--tg-timestamp-proxy-file",
@@ -424,12 +428,22 @@ template("rust_gen_cargo_config") {
     args += [
       "--target",
       target,
+      "--target-os",
+      target_os,
+      "--target-arch",
+      target_cpu,
     ]
 
-    if (enable_sanitizer) {
-      args += [ "--enable-asan" ]
+    if (enable_sanitizer && enable_cargo_config_gen) {
+      args += [
+        "--action",
+        "gen",
+      ]
     } else {
-      args += [ "--no-enable-asan" ]
+      args += [
+        "--action",
+        "delete",
+      ]
     }
 
     forward_variables_from(invoker,
