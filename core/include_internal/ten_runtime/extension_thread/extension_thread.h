@@ -30,15 +30,6 @@ typedef enum TEN_EXTENSION_THREAD_STATE {
   TEN_EXTENSION_THREAD_STATE_CREATING_EXTENSIONS,
   TEN_EXTENSION_THREAD_STATE_NORMAL,
   TEN_EXTENSION_THREAD_STATE_PREPARE_TO_CLOSE,
-
-  // All the extensions of the extension thread have been closed, so the
-  // extension thread can now proceed with its own closing flow. Additionally,
-  // since the extensions have been closed, any messages received by the
-  // extension thread from this point on will be directly dropped.
-  TEN_EXTENSION_THREAD_STATE_CLOSING,
-
-  // The closing procedure is completed, so the extension thread can be
-  // destroyed safely.
   TEN_EXTENSION_THREAD_STATE_CLOSED,
 } TEN_EXTENSION_THREAD_STATE;
 
@@ -60,9 +51,7 @@ typedef struct ten_extension_thread_t {
   ten_list_t pending_msgs;
 
   ten_list_t extensions;  // ten_extension_t*
-  size_t extensions_cnt_of_deleted_from_engine;
-  size_t extensions_cnt_of_on_stop_done;
-  size_t extensions_cnt_of_set_closing_flag;
+  size_t extensions_cnt_of_deleted;
 
   // Store all extensions (ten_extension_t*) belong to this extension thread.
   ten_extension_store_t *extension_store;

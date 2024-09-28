@@ -626,16 +626,6 @@ bool ten_extension_handle_out_msg(ten_extension_t *self, ten_shared_ptr_t *msg,
   TEN_ASSERT(msg && ten_msg_check_integrity(msg), "Should not happen.");
   TEN_ASSERT(err && ten_error_check_integrity(err), "Invalid argument.");
 
-  if (ten_extension_thread_get_state(self->extension_thread) >=
-      TEN_EXTENSION_THREAD_STATE_CLOSING) {
-    // We should not handle anymore messages, because when the extension thread
-    // enters its 'closing' stage, it means the graph relevant
-    // resources/structures (i.e., ten_all_msg_type_dest_info_t) might
-    // have already been destroyed. Therefore, it's unsafe to continue to handle
-    // messages.
-    return false;
-  }
-
   // The source of the out message is the current extension.
   ten_msg_set_src_to_extension(msg, self);
 

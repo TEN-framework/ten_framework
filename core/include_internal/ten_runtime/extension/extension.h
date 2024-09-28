@@ -77,8 +77,8 @@ typedef enum TEN_EXTENSION_STATE {
   // on_start_done() is completed.
   TEN_EXTENSION_STATE_ON_START_DONE,
 
-  // on_stop_done() is completed and could proceed to be closed.
-  TEN_EXTENSION_STATE_CLOSING,
+  // on_stop_done() is completed.
+  TEN_EXTENSION_STATE_ON_STOP_DONE,
 
   // on_deinit() is called.
   TEN_EXTENSION_STATE_ON_DEINIT,

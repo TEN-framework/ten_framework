@@ -147,7 +147,6 @@ static void ten_extension_thread_handle_in_msg_task(void *self_, void *arg) {
         ten_extension_thread_handle_in_msg_sync(self, msg);
         break;
 
-      case TEN_EXTENSION_THREAD_STATE_CLOSING:
       case TEN_EXTENSION_THREAD_STATE_CLOSED:
         // All the extensions of the extension thread have been closed, so
         // discard all received messages directly.
