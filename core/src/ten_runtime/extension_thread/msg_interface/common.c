@@ -55,9 +55,7 @@ static void ten_extension_thread_handle_in_msg_sync(
   // Find the extension according to 'loc'.
   ten_loc_t *dest_loc = ten_msg_get_first_dest_loc(msg);
   ten_extension_t *extension = ten_extension_store_find_extension(
-      self->extension_store,
-      ten_string_get_raw_str(&dest_loc->extension_group_name),
-      ten_string_get_raw_str(&dest_loc->extension_name), true,
+      self->extension_store, ten_string_get_raw_str(&dest_loc->extension_name),
       self->in_lock_mode ? false : true);
   if (!extension) {
     ten_msg_dump(msg, NULL,
@@ -294,6 +292,9 @@ void ten_extension_thread_dispatch_msg(ten_extension_thread_t *self,
         if (!ten_string_is_equal(&dest_loc->extension_group_name,
                                  &extension_group->name)) {
           // Find the correct extension thread to handle this message.
+          //
+          // TODO(Wei): Should push to engine's extension_msgs queue to enable
+          // engine to find the correct extension thread.
           ten_extension_group_t *extension_group_ =
               ten_extension_context_find_extension_group_by_name(
                   engine->extension_context, &dest_loc->extension_group_name);

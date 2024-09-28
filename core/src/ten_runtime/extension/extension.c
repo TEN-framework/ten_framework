@@ -90,7 +90,6 @@ ten_extension_t *ten_extension_create(
   self->addon_host = NULL;
   ten_string_init_formatted(&self->name, "%s", name);
 
-  ten_string_init(&self->unique_name_in_graph);
   ten_string_init(&self->base_dir);
 
   self->ten_env = NULL;
@@ -170,7 +169,6 @@ void ten_extension_destroy(ten_extension_t *self) {
 
   ten_env_destroy(self->ten_env);
   ten_string_deinit(&self->name);
-  ten_string_deinit(&self->unique_name_in_graph);
 
   ten_value_deinit(&self->manifest);
   ten_value_deinit(&self->property);
@@ -540,14 +538,6 @@ static TEN_EXTENSION_DETERMINE_OUT_MSGS_RESULT ten_extension_determine_out_msgs(
              "Should not happen.");
   TEN_ASSERT(msg && ten_msg_check_integrity(msg), "Should not happen.");
   TEN_ASSERT(result_msgs, "Should not happen.");
-
-  {
-    TEN_UNUSED ten_extension_thread_t *extension_thread =
-        self->extension_thread;
-    TEN_ASSERT(extension_thread, "Invalid argument.");
-    TEN_ASSERT(ten_extension_thread_check_integrity(extension_thread, true),
-               "Invalid use of extension_thread %p.", extension_thread);
-  }
 
   if (ten_msg_get_dest_cnt(msg) > 0) {
     // Because the messages has already had destinations, no matter it is a
@@ -1055,23 +1045,6 @@ ten_path_in_t *ten_extension_get_cmd_return_path_from_itself(
   }
 
   return ten_ptr_listnode_get(returned_node);
-}
-
-void ten_extension_set_unique_name_in_graph(ten_extension_t *self) {
-  TEN_ASSERT(self && ten_extension_check_integrity(self, true) &&
-                 self->extension_thread,
-             "Should not happen.");
-
-  ten_extension_group_t *extension_group =
-      self->extension_thread->extension_group;
-  TEN_ASSERT(extension_group &&
-                 ten_extension_group_check_integrity(extension_group, true),
-             "Should not happen.");
-
-  ten_string_set_formatted(&self->unique_name_in_graph,
-                           TEN_EXTENSION_UNIQUE_NAME_IN_GRAPH_PATTERN,
-                           ten_string_get_raw_str(&extension_group->name),
-                           ten_string_get_raw_str(&self->name));
 }
 
 ten_string_t *ten_extension_get_base_dir(ten_extension_t *self) {
