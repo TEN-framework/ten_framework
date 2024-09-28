@@ -103,46 +103,6 @@ void ten_msg_dest_info_translate_localhost_to_app_uri(ten_msg_dest_info_t *self,
   }
 }
 
-bool ten_msg_dest_runtime_info_check_integrity(
-    ten_msg_dest_runtime_info_t *self) {
-  TEN_ASSERT(self, "Should not happen.");
-
-  if (ten_signature_get(&self->signature) !=
-      (ten_signature_t)TEN_MSG_DEST_RUNTIME_INFO_SIGNATURE) {
-    return false;
-  }
-  return true;
-}
-
-ten_msg_dest_runtime_info_t *ten_msg_dest_runtime_info_create(
-    const char *msg_name) {
-  TEN_ASSERT(msg_name, "Should not happen.");
-
-  ten_msg_dest_runtime_info_t *self = (ten_msg_dest_runtime_info_t *)TEN_MALLOC(
-      sizeof(ten_msg_dest_runtime_info_t));
-  TEN_ASSERT(self, "Failed to allocate memory.");
-
-  ten_signature_set(&self->signature,
-                    (ten_signature_t)TEN_MSG_DEST_RUNTIME_INFO_SIGNATURE);
-  ten_list_init(&self->dest);
-
-  ten_string_init_formatted(&self->msg_name, "%s", msg_name);
-
-  return self;
-}
-
-void ten_msg_dest_runtime_info_destroy(ten_msg_dest_runtime_info_t *self) {
-  TEN_ASSERT(self && ten_msg_dest_runtime_info_check_integrity(self),
-             "Should not happen.");
-
-  ten_signature_set(&self->signature, 0);
-
-  ten_list_clear(&self->dest);
-  ten_string_deinit(&self->msg_name);
-
-  TEN_FREE(self);
-}
-
 bool ten_msg_dest_info_qualified(ten_msg_dest_info_t *self,
                                  const char *msg_name) {
   TEN_ASSERT(self && ten_msg_dest_info_check_integrity(self) && msg_name,

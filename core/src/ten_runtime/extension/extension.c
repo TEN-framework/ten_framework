@@ -13,7 +13,6 @@
 #include "include_internal/ten_runtime/addon/addon.h"
 #include "include_internal/ten_runtime/common/loc.h"
 #include "include_internal/ten_runtime/engine/engine.h"
-#include "include_internal/ten_runtime/extension/extension_hdr.h"
 #include "include_internal/ten_runtime/extension/extension_info/extension_info.h"
 #include "include_internal/ten_runtime/extension/msg_dest_info/json.h"
 #include "include_internal/ten_runtime/extension/msg_dest_info/msg_dest_info.h"
@@ -44,6 +43,7 @@
 #include "ten_utils/container/list_node.h"
 #include "ten_utils/container/list_node_smart_ptr.h"
 #include "ten_utils/container/list_ptr.h"
+#include "ten_utils/container/list_smart_ptr.h"
 #include "ten_utils/io/runloop.h"
 #include "ten_utils/lib/alloc.h"
 #include "ten_utils/lib/error.h"
@@ -271,16 +271,16 @@ static bool ten_extension_merge_interface_dest_to_msg(
     ten_msg_dest_info_t *msg_dest =
         ten_msg_dest_info_create(ten_string_get_raw_str(msg_name));
 
-    ten_list_t dests =
-        ten_extension_context_resolve_extensions_info_to_extensions(
-            extension_context, &interface_dest->dest);
-    ten_list_swap(&msg_dest->dest, &dests);
+    ten_list_foreach (&interface_dest->dest, iter_dest) {
+      ten_weak_ptr_t *shared_dest_extension_info =
+          ten_smart_ptr_listnode_get(iter_dest.node);
+      ten_list_push_smart_ptr_back(&msg_dest->dest, shared_dest_extension_info);
+    }
 
-    // =-=-=
-    ten_shared_ptr_t *shared_msg_dest_runtime =
-        ten_shared_ptr_create(msg_dest, ten_msg_dest_runtime_info_destroy);
-    ten_list_push_smart_ptr_back(msg_dests, shared_msg_dest_runtime);
-    ten_shared_ptr_destroy(shared_msg_dest_runtime);
+    ten_shared_ptr_t *shared_msg_dest =
+        ten_shared_ptr_create(msg_dest, ten_msg_dest_info_destroy);
+    ten_list_push_smart_ptr_back(msg_dests, shared_msg_dest);
+    ten_shared_ptr_destroy(shared_msg_dest);
   }
 
   ten_list_clear(&all_msg_names_in_interface_out);
@@ -463,36 +463,19 @@ static bool ten_extension_determine_out_msg_dest_from_graph(
         curr_msg = msg;
       }
 
-      // =-=-=
-      ten_extensionhdr_t *dest = ten_ptr_listnode_get(iter.node);
-      TEN_ASSERT(dest, "Should not happen.");
+      ten_extension_info_t *dest_extension_info =
+          ten_smart_ptr_get_data(ten_smart_ptr_listnode_get(iter.node));
+      TEN_ASSERT(dest_extension_info, "Should not happen.");
 
-      if (dest->type == TEN_EXTENSION_TYPE_EXTENSION_INFO) {
-        ten_extension_info_t *dest_extension_info =
-            ten_extension_info_from_smart_ptr(dest->u.extension_info);
-        TEN_ASSERT(dest_extension_info, "Invalid argument.");
-        // TEN_NOLINTNEXTLINE(thread-check)
-        // thread-check: The graph-related information of the extension remains
-        // unchanged during the lifecycle of engine/graph, allowing safe
-        // cross-thread access.
-        TEN_ASSERT(
-            ten_extension_info_check_integrity(dest_extension_info, false),
-            "Invalid use of extension_info %p.", dest_extension_info);
+      // TEN_NOLINTNEXTLINE(thread-check)
+      // thread-check: The graph-related information of the extension remains
+      // unchanged during the lifecycle of engine/graph, allowing safe
+      // cross-thread access.
+      TEN_ASSERT(ten_extension_info_check_integrity(dest_extension_info, false),
+                 "Invalid use of extension_info %p.", dest_extension_info);
 
-        ten_msg_clear_and_set_dest_from_extension_info(curr_msg,
-                                                       dest_extension_info);
-      } else {
-        ten_extension_t *dest_extension = dest->u.extension;
-        TEN_ASSERT(dest_extension, "Invalid argument.");
-        // TEN_NOLINTNEXTLINE(thread-check)
-        // thread-check: The graph-related information of the extension remains
-        // unchanged during the lifecycle of engine/graph, allowing safe
-        // cross-thread access.
-        TEN_ASSERT(ten_extension_check_integrity(dest_extension, false),
-                   "Invalid use of extension %p.", dest_extension);
-
-        ten_msg_clear_and_set_dest_to_extension(curr_msg, dest_extension);
-      }
+      ten_msg_clear_and_set_dest_from_extension_info(curr_msg,
+                                                     dest_extension_info);
 
       ten_list_push_smart_ptr_back(result_msgs, curr_msg);
 

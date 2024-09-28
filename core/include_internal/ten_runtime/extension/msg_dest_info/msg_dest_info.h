@@ -23,13 +23,6 @@ typedef struct ten_msg_dest_info_t {
   ten_list_t dest;    // ten_weak_ptr_t of ten_extension_info_t
 } ten_msg_dest_info_t;
 
-// =-=-= 拿掉
-typedef struct ten_msg_dest_runtime_info_t {
-  ten_signature_t signature;
-  ten_string_t msg_name;  // The name of a message.
-  ten_list_t dest;        // ten_extensionhdr_t*
-} ten_msg_dest_runtime_info_t;
-
 TEN_RUNTIME_PRIVATE_API bool ten_msg_dest_info_check_integrity(
     ten_msg_dest_info_t *self);
 
@@ -44,15 +37,6 @@ TEN_RUNTIME_PRIVATE_API void ten_msg_dest_info_destroy(
 
 TEN_RUNTIME_PRIVATE_API void ten_msg_dest_info_translate_localhost_to_app_uri(
     ten_msg_dest_info_t *self, const char *uri);
-
-TEN_RUNTIME_PRIVATE_API bool ten_msg_dest_runtime_info_check_integrity(
-    ten_msg_dest_runtime_info_t *self);
-
-TEN_RUNTIME_PRIVATE_API ten_msg_dest_runtime_info_t *
-ten_msg_dest_runtime_info_create(const char *msg_name);
-
-TEN_RUNTIME_PRIVATE_API void ten_msg_dest_runtime_info_destroy(
-    ten_msg_dest_runtime_info_t *self);
 
 TEN_RUNTIME_PRIVATE_API bool ten_msg_dest_info_qualified(
     ten_msg_dest_info_t *self, const char *msg_name);
