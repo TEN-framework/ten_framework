@@ -44,8 +44,8 @@ void ten_extension_thread_handle_start_msg_task(void *self_,
   ten_extension_group_load_metadata(self->extension_group);
 }
 
-static void ten_extension_thread_handle_msg_sync(ten_extension_thread_t *self,
-                                                 ten_shared_ptr_t *msg) {
+static void ten_extension_thread_handle_in_msg_sync(
+    ten_extension_thread_t *self, ten_shared_ptr_t *msg) {
   TEN_ASSERT(self, "Invalid argument.");
   TEN_ASSERT(ten_extension_thread_check_integrity(self, true),
              "Invalid use of extension_thread %p.", self);
@@ -57,7 +57,8 @@ static void ten_extension_thread_handle_msg_sync(ten_extension_thread_t *self,
   ten_extension_t *extension = ten_extension_store_find_extension(
       self->extension_store,
       ten_string_get_raw_str(&dest_loc->extension_group_name),
-      ten_string_get_raw_str(&dest_loc->extension_name), true, true);
+      ten_string_get_raw_str(&dest_loc->extension_name), true,
+      self->in_lock_mode ? false : true);
   if (!extension) {
     ten_msg_dump(msg, NULL,
                  "Failed to find destination extension %s for msg ^m in %s",
@@ -101,7 +102,7 @@ static void ten_extension_thread_handle_msg_sync(ten_extension_thread_t *self,
   }
 }
 
-static void ten_extension_thread_handle_msg_task(void *self_, void *arg) {
+static void ten_extension_thread_handle_in_msg_task(void *self_, void *arg) {
   ten_extension_thread_t *self = (ten_extension_thread_t *)self_;
   TEN_ASSERT(self, "Invalid argument.");
   TEN_ASSERT(ten_extension_thread_check_integrity(self, true),
@@ -118,7 +119,7 @@ static void ten_extension_thread_handle_msg_task(void *self_, void *arg) {
       // extension thread previously sent out a command. As long as the
       // extension can issue a command, the corresponding result must be
       // delivered to and processed by the respective extension.
-      ten_extension_thread_handle_msg_sync(self, msg);
+      ten_extension_thread_handle_in_msg_sync(self, msg);
     } else {
       // Discard this cmd result.
     }
@@ -143,7 +144,7 @@ static void ten_extension_thread_handle_msg_task(void *self_, void *arg) {
 
       case TEN_EXTENSION_THREAD_STATE_NORMAL:
       case TEN_EXTENSION_THREAD_STATE_PREPARE_TO_CLOSE:
-        ten_extension_thread_handle_msg_sync(self, msg);
+        ten_extension_thread_handle_in_msg_sync(self, msg);
         break;
 
       case TEN_EXTENSION_THREAD_STATE_CLOSING:
@@ -238,8 +239,8 @@ void ten_extension_thread_handle_in_msg_async(ten_extension_thread_t *self,
 
   msg = ten_shared_ptr_clone(msg);
 
-  ten_runloop_post_task_tail(self->runloop,
-                             ten_extension_thread_handle_msg_task, self, msg);
+  ten_runloop_post_task_tail(
+      self->runloop, ten_extension_thread_handle_in_msg_task, self, msg);
 }
 
 void ten_extension_thread_dispatch_msg(ten_extension_thread_t *self,
@@ -334,7 +335,7 @@ void ten_extension_thread_dispatch_msg(ten_extension_thread_t *self,
           // The message should be handled in the current extension thread, so
           // dispatch the message to the current extension thread.
 
-          ten_extension_thread_handle_in_msg_async(self, msg);
+          ten_extension_thread_handle_in_msg_sync(self, msg);
         }
       }
     }
