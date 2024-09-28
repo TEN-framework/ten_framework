@@ -32,7 +32,7 @@ typedef struct ten_extension_info_t {
   ten_extension_t *extension;
 
   // The extension_info of the destination extension for each type of message.
-  ten_all_msg_type_dest_info_t msg_dest_static_info;
+  ten_all_msg_type_dest_info_t msg_dest_info;
 
   // The definition of properties in the graph related to the current extension.
   ten_value_t *property;

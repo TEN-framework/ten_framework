@@ -16,8 +16,7 @@
 #include "ten_utils/lib/string.h"
 #include "ten_utils/macro/check.h"
 
-bool ten_msg_dest_static_info_check_integrity(
-    ten_msg_dest_static_info_t *self) {
+bool ten_msg_dest_info_check_integrity(ten_msg_dest_info_t *self) {
   TEN_ASSERT(self, "Should not happen.");
 
   if (ten_signature_get(&self->signature) !=
@@ -27,12 +26,11 @@ bool ten_msg_dest_static_info_check_integrity(
   return true;
 }
 
-ten_msg_dest_static_info_t *ten_msg_dest_static_info_create(
-    const char *msg_name) {
+ten_msg_dest_info_t *ten_msg_dest_info_create(const char *msg_name) {
   TEN_ASSERT(msg_name, "Should not happen.");
 
-  ten_msg_dest_static_info_t *self = (ten_msg_dest_static_info_t *)TEN_MALLOC(
-      sizeof(ten_msg_dest_static_info_t));
+  ten_msg_dest_info_t *self =
+      (ten_msg_dest_info_t *)TEN_MALLOC(sizeof(ten_msg_dest_info_t));
   TEN_ASSERT(self, "Failed to allocate memory.");
 
   ten_signature_set(&self->signature,
@@ -44,8 +42,8 @@ ten_msg_dest_static_info_t *ten_msg_dest_static_info_create(
   return self;
 }
 
-void ten_msg_dest_static_info_destroy(ten_msg_dest_static_info_t *self) {
-  TEN_ASSERT(self && ten_msg_dest_static_info_check_integrity(self),
+void ten_msg_dest_info_destroy(ten_msg_dest_info_t *self) {
+  TEN_ASSERT(self && ten_msg_dest_info_check_integrity(self),
              "Should not happen.");
 
   ten_signature_set(&self->signature, 0);
@@ -56,20 +54,18 @@ void ten_msg_dest_static_info_destroy(ten_msg_dest_static_info_t *self) {
   TEN_FREE(self);
 }
 
-ten_shared_ptr_t *ten_msg_dest_static_info_clone(ten_shared_ptr_t *self,
-                                                 ten_list_t *extensions_info,
-                                                 ten_error_t *err) {
+ten_shared_ptr_t *ten_msg_dest_info_clone(ten_shared_ptr_t *self,
+                                          ten_list_t *extensions_info,
+                                          ten_error_t *err) {
   TEN_ASSERT(self && extensions_info, "Should not happen.");
 
-  ten_msg_dest_static_info_t *msg_dest_info = ten_shared_ptr_get_data(self);
-  TEN_ASSERT(
-      msg_dest_info && ten_msg_dest_static_info_check_integrity(msg_dest_info),
-      "Should not happen.");
+  ten_msg_dest_info_t *msg_dest_info = ten_shared_ptr_get_data(self);
+  TEN_ASSERT(msg_dest_info && ten_msg_dest_info_check_integrity(msg_dest_info),
+             "Should not happen.");
 
   const char *msg_name = ten_string_get_raw_str(&msg_dest_info->name);
 
-  ten_msg_dest_static_info_t *new_self =
-      ten_msg_dest_static_info_create(msg_name);
+  ten_msg_dest_info_t *new_self = ten_msg_dest_info_create(msg_name);
 
   ten_list_foreach (&msg_dest_info->dest, iter) {
     ten_weak_ptr_t *dest = ten_smart_ptr_listnode_get(iter.node);
@@ -89,11 +85,11 @@ ten_shared_ptr_t *ten_msg_dest_static_info_clone(ten_shared_ptr_t *self,
     ten_weak_ptr_destroy(weak_dest);
   }
 
-  return ten_shared_ptr_create(new_self, ten_msg_dest_static_info_destroy);
+  return ten_shared_ptr_create(new_self, ten_msg_dest_info_destroy);
 }
 
-void ten_msg_dest_static_info_translate_localhost_to_app_uri(
-    ten_msg_dest_static_info_t *self, const char *uri) {
+void ten_msg_dest_info_translate_localhost_to_app_uri(ten_msg_dest_info_t *self,
+                                                      const char *uri) {
   TEN_ASSERT(self && uri, "Should not happen.");
 
   ten_list_foreach (&self->dest, iter) {
@@ -147,14 +143,12 @@ void ten_msg_dest_runtime_info_destroy(ten_msg_dest_runtime_info_t *self) {
   TEN_FREE(self);
 }
 
-bool ten_msg_dest_runtime_info_qualified(ten_msg_dest_runtime_info_t *self,
-                                         const char *msg_name) {
-  TEN_ASSERT(
-      self && ten_msg_dest_runtime_info_check_integrity(self) && msg_name,
-      "Should not happen.");
+bool ten_msg_dest_info_qualified(ten_msg_dest_info_t *self,
+                                 const char *msg_name) {
+  TEN_ASSERT(self && ten_msg_dest_info_check_integrity(self) && msg_name,
+             "Should not happen.");
 
-  if (ten_c_string_is_equal(ten_string_get_raw_str(&self->msg_name),
-                            msg_name)) {
+  if (ten_c_string_is_equal(ten_string_get_raw_str(&self->name), msg_name)) {
     return true;
   }
 

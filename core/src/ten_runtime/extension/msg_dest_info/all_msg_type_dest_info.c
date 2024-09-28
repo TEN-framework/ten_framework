@@ -32,8 +32,8 @@ void ten_all_msg_type_dest_info_deinit(ten_all_msg_type_dest_info_t *self) {
 
 static void translate_localhost_to_app_uri_for_msg_dest(ten_shared_ptr_t *dest,
                                                         const char *uri) {
-  ten_msg_dest_static_info_t *raw_dest = ten_shared_ptr_get_data(dest);
-  ten_msg_dest_static_info_translate_localhost_to_app_uri(raw_dest, uri);
+  ten_msg_dest_info_t *raw_dest = ten_shared_ptr_get_data(dest);
+  ten_msg_dest_info_translate_localhost_to_app_uri(raw_dest, uri);
 }
 
 static void translate_localhost_to_app_uri_for_dest(

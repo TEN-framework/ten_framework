@@ -183,8 +183,6 @@ struct ten_extension_t {
   // 2) Consider removing the extension_group addon mechanism.
   ten_extension_info_t *extension_info;
 
-  ten_all_msg_type_dest_info_t msg_dest_info;
-
   ten_value_t manifest;
   ten_value_t property;
 
@@ -226,9 +224,6 @@ struct ten_extension_t {
   ten_path_timeout_info path_timeout_info;
   // @}
 };
-
-TEN_RUNTIME_PRIVATE_API void ten_extension_determine_all_dest_extension(
-    ten_extension_t *self, ten_extension_context_t *extension_context);
 
 TEN_RUNTIME_PRIVATE_API bool
 ten_extension_determine_and_merge_all_interface_dest_extension(

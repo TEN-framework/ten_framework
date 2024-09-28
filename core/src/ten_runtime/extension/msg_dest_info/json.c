@@ -22,10 +22,10 @@
 #include "ten_utils/lib/string.h"
 #include "ten_utils/macro/check.h"
 
-ten_json_t *ten_msg_dest_static_info_to_json(
-    ten_msg_dest_static_info_t *self, ten_extension_info_t *src_extension_info,
-    ten_error_t *err) {
-  TEN_ASSERT(self && ten_msg_dest_static_info_check_integrity(self),
+ten_json_t *ten_msg_dest_info_to_json(ten_msg_dest_info_t *self,
+                                      ten_extension_info_t *src_extension_info,
+                                      ten_error_t *err) {
+  TEN_ASSERT(self && ten_msg_dest_info_check_integrity(self),
              "Should not happen.");
 
   ten_json_t *json = ten_json_create_object();
@@ -96,7 +96,7 @@ ten_json_t *ten_msg_dest_static_info_to_json(
 }
 
 // NOLINTNEXTLINE(misc-no-recursion)
-ten_shared_ptr_t *ten_msg_dest_static_info_from_json(
+ten_shared_ptr_t *ten_msg_dest_info_from_json(
     ten_json_t *json, ten_list_t *extensions_info,
     ten_extension_info_t *src_extension_info) {
   TEN_ASSERT(json && extensions_info, "Should not happen.");
@@ -106,7 +106,7 @@ ten_shared_ptr_t *ten_msg_dest_static_info_from_json(
     msg_name = "";
   }
 
-  ten_msg_dest_static_info_t *self = ten_msg_dest_static_info_create(msg_name);
+  ten_msg_dest_info_t *self = ten_msg_dest_info_create(msg_name);
 
   ten_json_t *dests_json = ten_json_object_peek(json, TEN_STR_DEST);
   TEN_ASSERT(ten_json_is_array(dests_json), "Should not happen.");
@@ -121,7 +121,7 @@ ten_shared_ptr_t *ten_msg_dest_static_info_from_json(
           ten_extension_info_parse_connection_dest_part_from_json(
               dest_json, extensions_info, src_extension_info, msg_name, NULL);
       if (!dest) {
-        ten_msg_dest_static_info_destroy(self);
+        ten_msg_dest_info_destroy(self);
         return NULL;
       }
 
@@ -133,5 +133,5 @@ ten_shared_ptr_t *ten_msg_dest_static_info_from_json(
     }
   }
 
-  return ten_shared_ptr_create(self, ten_msg_dest_static_info_destroy);
+  return ten_shared_ptr_create(self, ten_msg_dest_info_destroy);
 }
