@@ -14,13 +14,13 @@
 #include "include_internal/ten_runtime/extension/msg_dest_info/msg_dest_info.h"
 #include "include_internal/ten_runtime/msg_conversion/msg_conversion/msg_and_result_conversion_operation.h"
 #include "include_internal/ten_runtime/msg_conversion/msg_conversion/msg_conversion.h"
-#include "ten_utils/macro/check.h"
 #include "ten_utils/container/list.h"
 #include "ten_utils/container/list_node.h"
 #include "ten_utils/lib/error.h"
 #include "ten_utils/lib/json.h"
 #include "ten_utils/lib/smart_ptr.h"
 #include "ten_utils/lib/string.h"
+#include "ten_utils/macro/check.h"
 
 ten_json_t *ten_msg_dest_static_info_to_json(
     ten_msg_dest_static_info_t *self, ten_extension_info_t *src_extension_info,
@@ -32,7 +32,7 @@ ten_json_t *ten_msg_dest_static_info_to_json(
   TEN_ASSERT(json, "Should not happen.");
   ten_json_object_set_new(
       json, TEN_STR_NAME,
-      ten_json_create_string(ten_string_get_raw_str(&self->msg_name)));
+      ten_json_create_string(ten_string_get_raw_str(&self->name)));
 
   ten_json_t *dests_json = ten_json_create_array();
   TEN_ASSERT(dests_json, "Should not happen.");
@@ -75,7 +75,7 @@ ten_json_t *ten_msg_dest_static_info_to_json(
 
       if (ten_loc_is_equal(&src_extension_info->loc,
                            &msg_conversion->src_loc) &&
-          ten_string_is_equal(&msg_conversion->msg_name, &self->msg_name)) {
+          ten_string_is_equal(&msg_conversion->msg_name, &self->name)) {
         ten_json_t *msg_and_result_json =
             ten_msg_and_result_conversion_operation_to_json(
                 msg_conversion->msg_and_result_conversion_operation, err);

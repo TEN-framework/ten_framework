@@ -10,11 +10,11 @@
 
 #include "include_internal/ten_runtime/extension/extension_info/extension_info.h"
 #include "include_internal/ten_runtime/extension/extension_info/json.h"
-#include "ten_utils/macro/check.h"
 #include "ten_utils/container/list_node_smart_ptr.h"
 #include "ten_utils/lib/alloc.h"
 #include "ten_utils/lib/smart_ptr.h"
 #include "ten_utils/lib/string.h"
+#include "ten_utils/macro/check.h"
 
 bool ten_msg_dest_static_info_check_integrity(
     ten_msg_dest_static_info_t *self) {
@@ -39,7 +39,7 @@ ten_msg_dest_static_info_t *ten_msg_dest_static_info_create(
                     (ten_signature_t)TEN_MSG_DEST_STATIC_INFO_SIGNATURE);
   ten_list_init(&self->dest);
 
-  ten_string_init_formatted(&self->msg_name, "%s", msg_name);
+  ten_string_init_formatted(&self->name, "%s", msg_name);
 
   return self;
 }
@@ -51,7 +51,7 @@ void ten_msg_dest_static_info_destroy(ten_msg_dest_static_info_t *self) {
   ten_signature_set(&self->signature, 0);
 
   ten_list_clear(&self->dest);
-  ten_string_deinit(&self->msg_name);
+  ten_string_deinit(&self->name);
 
   TEN_FREE(self);
 }
@@ -66,7 +66,7 @@ ten_shared_ptr_t *ten_msg_dest_static_info_clone(ten_shared_ptr_t *self,
       msg_dest_info && ten_msg_dest_static_info_check_integrity(msg_dest_info),
       "Should not happen.");
 
-  const char *msg_name = ten_string_get_raw_str(&msg_dest_info->msg_name);
+  const char *msg_name = ten_string_get_raw_str(&msg_dest_info->name);
 
   ten_msg_dest_static_info_t *new_self =
       ten_msg_dest_static_info_create(msg_name);

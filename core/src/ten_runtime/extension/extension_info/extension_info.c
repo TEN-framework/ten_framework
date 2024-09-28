@@ -36,11 +36,13 @@ ten_extension_info_t *ten_extension_info_create(void) {
   ten_string_init(&self->extension_addon_name);
 
   ten_loc_init_empty(&self->loc);
+  self->extension = NULL;
+
   self->property = ten_value_create_object_with_move(NULL);
 
   ten_list_init(&self->msg_conversions);
 
-  ten_all_msg_type_dest_static_info_init(&self->msg_dest_static_info);
+  ten_all_msg_type_dest_info_init(&self->msg_dest_static_info);
 
   return self;
 }
@@ -107,7 +109,7 @@ static void ten_extension_info_destroy(ten_extension_info_t *self) {
   ten_sanitizer_thread_check_deinit(&self->thread_check);
   ten_signature_set(&self->signature, 0);
 
-  ten_all_msg_type_dest_static_info_deinit(&self->msg_dest_static_info);
+  ten_all_msg_type_dest_info_deinit(&self->msg_dest_static_info);
 
   ten_string_deinit(&self->extension_addon_name);
 

@@ -19,8 +19,8 @@
 
 typedef struct ten_msg_dest_static_info_t {
   ten_signature_t signature;
-  ten_string_t msg_name;  // The name of a message.
-  ten_list_t dest;        // ten_weak_ptr_t of ten_extension_info_t
+  ten_string_t name;  // The name of a message or an interface.
+  ten_list_t dest;    // ten_weak_ptr_t of ten_extension_info_t
 } ten_msg_dest_static_info_t;
 
 typedef struct ten_msg_dest_runtime_info_t {

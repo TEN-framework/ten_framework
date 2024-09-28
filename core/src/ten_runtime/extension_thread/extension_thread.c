@@ -410,6 +410,7 @@ void ten_extension_thread_set_state(ten_extension_thread_t *self,
   self->state = state;
 }
 
+// =-=-=
 void ten_extension_thread_determine_all_extension_dest_from_graph(
     ten_extension_thread_t *self) {
   TEN_ASSERT(self, "Invalid argument.");
@@ -475,10 +476,7 @@ void ten_extension_thread_start_to_add_all_created_extension_to_engine(
     ten_sanitizer_thread_check_set_belonging_thread_to_current_thread(
         &extension->path_table->thread_check);
 
-    // TODO(Wei): According to the provided extension_info_from_graph, we
-    // should be able to fill the correct runtime graph relevant information
-    // into the 'runtime_msg_dest_info'.
-    ten_all_msg_type_dest_runtime_info_init(&extension->msg_dest_runtime_info);
+    ten_all_msg_type_dest_info_init(&extension->msg_dest_info);
 
     ten_extension_context_t *extension_context = self->extension_context;
     TEN_ASSERT(
