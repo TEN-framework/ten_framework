@@ -106,7 +106,9 @@ def delete_cargo_config(root: str):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
-    parser.add_argument("--action", type=str, required=True, help="gen|delete|print")
+    parser.add_argument(
+        "--action", type=str, required=True, help="gen|delete|print"
+    )
     parser.add_argument("--project-root", type=str, required=False)
     parser.add_argument("--compiler", type=str, required=True)
     parser.add_argument("--target", type=str, required=False)
@@ -127,11 +129,16 @@ if __name__ == "__main__":
         try:
             gen_cargo_config(args)
 
-            # Success to gen config, update the stamp file to represent this fact.
-            timestamp_proxy.touch_timestamp_proxy_file(args.tg_timestamp_proxy_file)
+            # Success to gen cargo config, update the stamp file to represent
+            # this fact.
+            timestamp_proxy.touch_timestamp_proxy_file(
+                args.tg_timestamp_proxy_file
+            )
         except Exception as exc:
             returncode = 1
-            timestamp_proxy.remove_timestamp_proxy_file(args.tg_timestamp_proxy_file)
+            timestamp_proxy.remove_timestamp_proxy_file(
+                args.tg_timestamp_proxy_file
+            )
             print(exc)
 
         finally:
@@ -141,15 +148,21 @@ if __name__ == "__main__":
         try:
             delete_cargo_config(args.project_root)
 
-            # Success to delete config, update the stamp file to represent this fact.
-            timestamp_proxy.touch_timestamp_proxy_file(args.tg_timestamp_proxy_file)
+            # Success to delete cargo config, update the stamp file to represent
+            # this fact.
+            timestamp_proxy.touch_timestamp_proxy_file(
+                args.tg_timestamp_proxy_file
+            )
         except Exception as exc:
             returncode = 1
-            timestamp_proxy.remove_timestamp_proxy_file(args.tg_timestamp_proxy_file)
+            timestamp_proxy.remove_timestamp_proxy_file(
+                args.tg_timestamp_proxy_file
+            )
             print(exc)
 
         finally:
             sys.exit(-1 if returncode != 0 else 0)
+
     else:
         flags = [
             CLANG_ASAN_FLAGS[i] + CLANG_ASAN_FLAGS[i + 1]

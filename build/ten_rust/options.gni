@@ -13,7 +13,7 @@ declare_args() {
   # x86.
   enable_ten_rust = !(enable_sanitizer && target_cpu == "x86")
 
-  # Enable this option if you want to develop rust within enable_sanitizer is
+  # Enable this option if you want to develop rust when enable_sanitizer is
   # true.
   enable_cargo_config_gen = false
 }
