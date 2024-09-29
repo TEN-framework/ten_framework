@@ -6,10 +6,10 @@
 //
 #include "include_internal/ten_runtime/binding/go/ten_env/ten_env.h"
 #include "include_internal/ten_runtime/binding/go/ten_env/ten_env_internal.h"
-#include "ten_utils/macro/check.h"
 #include "ten_runtime/binding/go/interface/ten/ten_env.h"
 #include "ten_runtime/ten_env_proxy/ten_env_proxy.h"
 #include "ten_utils/lib/alloc.h"
+#include "ten_utils/macro/check.h"
 
 typedef struct ten_env_notify_is_cmd_connected_info_t {
   bool result;
@@ -40,7 +40,8 @@ static void ten_env_notify_is_cmd_connected_info_destroy(
   TEN_FREE(info);
 }
 
-static void ten_notify_is_cmd_connected(ten_env_t *ten_env, void *user_data) {
+static void ten_env_proxy_notify_is_cmd_connected(ten_env_t *ten_env,
+                                                  void *user_data) {
   TEN_ASSERT(user_data, "Invalid argument.");
   TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
              "Should not happen.");
@@ -53,7 +54,6 @@ static void ten_notify_is_cmd_connected(ten_env_t *ten_env, void *user_data) {
 
   info->result = ten_env_is_cmd_connected(
       ten_env, ten_string_get_raw_str(&info->name), &err);
-  TEN_ASSERT(info->result, "Should not happen.");
 
   ten_event_set(info->completed);
 
@@ -74,14 +74,16 @@ bool ten_go_ten_env_is_cmd_connected(uintptr_t bridge_addr, const char *name) {
   ten_env_notify_is_cmd_connected_info_t *info =
       ten_env_notify_is_cmd_connected_info_create(name);
 
-  if (!ten_env_proxy_notify(self->c_ten_env_proxy, ten_notify_is_cmd_connected,
-                            info, false, &err)) {
+  if (!ten_env_proxy_notify(self->c_ten_env_proxy,
+                            ten_env_proxy_notify_is_cmd_connected, info, false,
+                            &err)) {
     TEN_LOGD("TEN/GO failed to is_cmd_connected.");
     result = false;
     goto done;
   }
 
   ten_event_wait(info->completed, -1);
+  result = info->result;
 
 done:
   ten_error_deinit(&err);
