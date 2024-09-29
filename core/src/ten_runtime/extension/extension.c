@@ -797,13 +797,8 @@ static void ten_extension_flush_all_pending_msgs(ten_extension_t *self) {
   TEN_ASSERT(ten_extension_check_integrity(self, true),
              "Invalid use of extension %p.", self);
 
-  // The developer expects that on_start() will execute before all on_cmd()
-  // events. Therefore, after on_start() has been executed, there is no need
-  // to wait for on_start_done() before sending all previously buffered
-  // messages into the extension.
-
   // Flush the previously got messages, which are received before
-  // on_start_done(), into the extension.
+  // on_init_done(), into the extension.
   ten_extension_thread_t *extension_thread = self->extension_thread;
   ten_list_foreach (&extension_thread->pending_msgs, iter) {
     ten_shared_ptr_t *msg = ten_smart_ptr_listnode_get(iter.node);
@@ -819,7 +814,7 @@ static void ten_extension_flush_all_pending_msgs(ten_extension_t *self) {
   }
 
   // Flush the previously got messages, which are received before
-  // on_start_done(), into the extension.
+  // on_init_done(), into the extension.
   ten_list_foreach (&self->pending_msgs, iter) {
     ten_shared_ptr_t *msg = ten_smart_ptr_listnode_get(iter.node);
     TEN_ASSERT(msg, "Should not happen.");
@@ -840,6 +835,11 @@ void ten_extension_on_start(ten_extension_t *self) {
 
   if (self->on_start) {
     self->on_start(self, self->ten_env);
+
+    // The developer expects that on_start() will execute before all on_cmd()
+    // events. Therefore, after on_start() has been executed, there is no need
+    // to wait for on_start_done() before sending all previously buffered
+    // messages into the extension.
 
     ten_extension_flush_all_pending_msgs(self);
   } else {

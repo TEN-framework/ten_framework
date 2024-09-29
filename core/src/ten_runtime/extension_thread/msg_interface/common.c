@@ -110,50 +110,36 @@ static void ten_extension_thread_handle_in_msg_task(void *self_, void *arg) {
   TEN_ASSERT(msg && ten_msg_check_integrity(msg), "Invalid argument.");
   TEN_ASSERT(ten_msg_get_dest_cnt(msg) == 1, "Should not happen.");
 
-  if (ten_msg_get_type(msg) == TEN_MSG_TYPE_CMD_RESULT) {
-    if (ten_extension_thread_get_state(self) <=
-        TEN_EXTENSION_THREAD_STATE_PREPARE_TO_CLOSE) {
-      // The receipt of a result is definitely because some extension of this
-      // extension thread previously sent out a command. As long as the
-      // extension can issue a command, the corresponding result must be
-      // delivered to and processed by the respective extension.
-      ten_extension_thread_handle_in_msg_sync(self, msg);
-    } else {
-      // Discard this cmd result.
-    }
-  } else {
-    switch (ten_extension_thread_get_state(self)) {
-      case TEN_EXTENSION_THREAD_STATE_INIT:
-      case TEN_EXTENSION_THREAD_STATE_CREATING_EXTENSIONS: {
+  switch (ten_extension_thread_get_state(self)) {
+    case TEN_EXTENSION_THREAD_STATE_INIT:
+    case TEN_EXTENSION_THREAD_STATE_CREATING_EXTENSIONS:
 #if defined(_DEBUG)
-        ten_msg_dump(msg, NULL,
-                     "A message (^m) comes when extension thread (%p) is in "
-                     "state (%d)",
-                     self, ten_extension_thread_get_state(self));
+      ten_msg_dump(msg, NULL,
+                   "A message (^m) comes when extension thread (%p) is in "
+                   "state (%d)",
+                   self, ten_extension_thread_get_state(self));
 #endif
 
-        // At this stage, the extensions have not been created yet, so any
-        // received messages are placed into a `pending_msgs` list. Once the
-        // extensions are created, the messages will be delivered to the
-        // corresponding extensions.
-        ten_list_push_smart_ptr_back(&self->pending_msgs, msg);
-        break;
-      }
+      // At this stage, the extensions have not been created yet, so any
+      // received messages are placed into a `pending_msgs` list. Once the
+      // extensions are created, the messages will be delivered to the
+      // corresponding extensions.
+      ten_list_push_smart_ptr_back(&self->pending_msgs, msg);
+      break;
 
-      case TEN_EXTENSION_THREAD_STATE_NORMAL:
-      case TEN_EXTENSION_THREAD_STATE_PREPARE_TO_CLOSE:
-        ten_extension_thread_handle_in_msg_sync(self, msg);
-        break;
+    case TEN_EXTENSION_THREAD_STATE_NORMAL:
+    case TEN_EXTENSION_THREAD_STATE_PREPARE_TO_CLOSE:
+      ten_extension_thread_handle_in_msg_sync(self, msg);
+      break;
 
-      case TEN_EXTENSION_THREAD_STATE_CLOSED:
-        // All the extensions of the extension thread have been closed, so
-        // discard all received messages directly.
-        break;
+    case TEN_EXTENSION_THREAD_STATE_CLOSED:
+      // All extensions are removed from this extension thread, so the only
+      // thing we can do is to discard this cmd result.
+      break;
 
-      default:
-        TEN_ASSERT(0, "Should not happen.");
-        break;
-    }
+    default:
+      TEN_ASSERT(0, "Should not happen.");
+      break;
   }
 
   ten_shared_ptr_destroy(msg);
