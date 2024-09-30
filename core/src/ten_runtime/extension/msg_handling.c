@@ -70,35 +70,37 @@ void ten_extension_handle_in_msg(ten_extension_t *self, ten_shared_ptr_t *msg) {
 
   bool delete_msg = false;
 
-  // - During on_init() and on_deinit(), there should be no interaction with
-  //   other extensions.
-  // - During on_start() and on_stop(), it is possible to send messages to other
-  //   extensions and receive cmd_result for that message.
+  // - During on_configure(), on_init() and on_deinit(), the extension should
+  //   not receive any messages, because it is not ready to handle any messages.
+  // - In other time periods, it is possible to receive and send messages to
+  //   other extensions and receive cmd result.
   //
   // The messages, from other extensions, sent to this extension will be
-  // delivered to this extension only after its on_start_done(). Therefore, all
-  // messages sent to this extension before on_start_done() will be queued until
-  // on_start_done() is triggered. On the other hand, the cmd result of the
-  // command sent by this extension in on_start() can be delivered to this
-  // extension before its on_start_done().
+  // delivered to this extension only after its on_start(). Therefore, all
+  // messages sent to this extension before on_start() will be queued until
+  // on_start() is triggered. On the other hand, the cmd result of the
+  // command sent by this extension in any time can be delivered to this
+  // extension before its on_start().
 
-  if (!(self->state == TEN_EXTENSION_STATE_STARTED) &&
-      !(ten_msg_is_cmd_result(msg) &&
-        ten_msg_get_type(msg) == TEN_MSG_TYPE_CMD_RESULT)) {
-    // The extension is not started, and the msg is not a cmd result, so
+  bool msg_is_cmd_result = ten_msg_is_cmd_result(msg);
+
+  if (self->state < TEN_EXTENSION_STATE_ON_START && !msg_is_cmd_result) {
+    // The extension is not initialized, and the msg is not a cmd result, so
     // cache the msg to the pending list.
     ten_list_push_smart_ptr_back(&self->pending_msgs, msg);
     goto done;
   }
 
-  bool msg_is_cmd_result = false;
+  if (self->state >= TEN_EXTENSION_STATE_ON_DEINIT) {
+    // The extension is in its de-initialization phase, and is not ready to
+    // handle any messages, so drop any messages.
+    goto done;
+  }
 
   // Because 'commands' has 'results', TEN will perform some bookkeeping for
   // 'commands' before sending it to the extension.
 
-  if (ten_msg_get_type(msg) == TEN_MSG_TYPE_CMD_RESULT) {
-    msg_is_cmd_result = true;
-
+  if (msg_is_cmd_result) {
     // Set the cmd result to the corresponding OUT path to indicate that
     // there has been a cmd result flow through that OUT path.
     ten_path_t *out_path =
@@ -148,7 +150,7 @@ void ten_extension_handle_in_msg(ten_extension_t *self, ten_shared_ptr_t *msg) {
         // command (if the IN path still exists) when on_cmd_done().
         //
         // TODO(Xilin): Currently, there is no mechanism for auto return, so the
-        // relevant logic code should be able to be disabled.
+        // relevant codes should be able to be disabled.
         ten_extension_cache_cmd_result_to_in_path_for_auto_return(self, msg);
 
         delete_msg = true;

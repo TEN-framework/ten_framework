@@ -177,6 +177,14 @@ void ten_extension_group_create_extensions(ten_extension_group_t *self) {
 
   TEN_LOGD("[%s] create_extensions.", ten_extension_group_get_name(self));
 
+  ten_extension_thread_t *extension_thread = self->extension_thread;
+  TEN_ASSERT(extension_thread, "Should not happen.");
+  TEN_ASSERT(ten_extension_thread_check_integrity(extension_thread, true),
+             "Should not happen.");
+
+  ten_extension_thread_set_state(
+      extension_thread, TEN_EXTENSION_THREAD_STATE_CREATING_EXTENSIONS);
+
   self->on_create_extensions(self, self->ten_env);
 }
 
@@ -217,7 +225,7 @@ void ten_extension_group_set_addon(ten_extension_group_t *self,
 
 ten_shared_ptr_t *ten_extension_group_create_invalid_dest_status(
     ten_shared_ptr_t *origin_cmd, ten_string_t *target_group_name) {
-  TEN_ASSERT(origin_cmd && ten_msg_is_cmd_base(origin_cmd),
+  TEN_ASSERT(origin_cmd && ten_msg_is_cmd_and_result(origin_cmd),
              "Should not happen.");
   TEN_ASSERT(target_group_name, "Should not happen.");
 

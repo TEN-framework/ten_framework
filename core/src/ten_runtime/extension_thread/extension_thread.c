@@ -17,22 +17,22 @@
 #include "include_internal/ten_runtime/engine/on_xxx.h"
 #include "include_internal/ten_runtime/extension/extension.h"
 #include "include_internal/ten_runtime/extension_context/extension_context.h"
-#include "include_internal/ten_runtime/extension_context/internal/add_extension.h"
 #include "include_internal/ten_runtime/extension_group/extension_group.h"
+#include "include_internal/ten_runtime/extension_group/on_xxx.h"
 #include "include_internal/ten_runtime/extension_store/extension_store.h"
 #include "include_internal/ten_runtime/extension_thread/msg_interface/common.h"
 #include "include_internal/ten_runtime/msg/msg.h"
 #include "include_internal/ten_runtime/ten_env/ten_env.h"
-#include "ten_utils/macro/check.h"
 #include "include_internal/ten_utils/sanitizer/thread_check.h"
 #include "ten_runtime/extension/extension.h"
 #include "ten_runtime/ten_env/ten_env.h"
 #include "ten_utils/container/list.h"
 #include "ten_utils/io/runloop.h"
 #include "ten_utils/lib/alloc.h"
+#include "ten_utils/lib/event.h"
 #include "ten_utils/lib/mutex.h"
-#include "ten_utils/lib/string.h"
 #include "ten_utils/lib/thread.h"
+#include "ten_utils/macro/check.h"
 #include "ten_utils/macro/mark.h"
 #include "ten_utils/sanitizer/thread_check.h"
 
@@ -82,19 +82,15 @@ ten_extension_thread_t *ten_extension_thread_create(void) {
                     (ten_signature_t)TEN_EXTENSION_THREAD_SIGNATURE);
 
   self->state = TEN_EXTENSION_THREAD_STATE_INIT;
+  self->is_close_triggered = false;
 
   self->extension_context = NULL;
   self->extension_group = NULL;
   self->extension_store = ten_extension_store_create(
-      offsetof(ten_extension_t, hh_in_extension_thread_extension_store));
+      offsetof(ten_extension_t, hh_in_extension_store));
 
   ten_list_init(&self->extensions);
-  self->extensions_cnt_of_added_to_engine = 0;
-  self->extensions_cnt_of_deleted_from_engine = 0;
-  self->extensions_cnt_of_on_init_done = 0;
-  self->extensions_cnt_of_on_start_done = 0;
-  self->extensions_cnt_of_on_stop_done = 0;
-  self->extensions_cnt_of_set_closing_flag = 0;
+  self->extensions_cnt_of_deleted = 0;
 
   ten_list_init(&self->pending_msgs);
 
@@ -102,12 +98,14 @@ ten_extension_thread_t *ten_extension_thread_create(void) {
   self->lock_mode_lock = ten_mutex_create();
 
   ten_sanitizer_thread_check_init(&self->thread_check);
+
   self->runloop = NULL;
+  self->runloop_is_ready_to_use = ten_event_create(0, 0);
 
   return self;
 }
 
-void ten_extension_thread_attach_to_group(
+static void ten_extension_thread_attach_to_group(
     ten_extension_thread_t *self, ten_extension_group_t *extension_group) {
   TEN_ASSERT(self, "Invalid argument.");
   TEN_ASSERT(ten_extension_thread_check_integrity(self, false),
@@ -145,6 +143,8 @@ void ten_extension_thread_destroy(ten_extension_thread_t *self) {
     ten_runloop_destroy(self->runloop);
     self->runloop = NULL;
   }
+
+  ten_event_destroy(self->runloop_is_ready_to_use);
 
   ten_sanitizer_thread_check_deinit(&self->thread_check);
   ten_extension_store_destroy(self->extension_store);
@@ -191,15 +191,6 @@ static void ten_extension_thread_notify_engine_we_are_closed(
 
   ten_runloop_post_task_tail(engine_loop, ten_engine_on_extension_thread_closed,
                              engine, self);
-}
-
-static void ten_extension_thread_start_runloop(ten_extension_thread_t *self) {
-  TEN_ASSERT(self, "Invalid argument.");
-  TEN_ASSERT(ten_extension_thread_check_integrity(self, true),
-             "Invalid use of extension_thread %p.", self);
-
-  ten_runloop_post_task_tail(
-      self->runloop, ten_extension_thread_handle_start_msg_task, self, NULL);
 }
 
 ten_runloop_t *ten_extension_thread_get_attached_runloop(
@@ -259,8 +250,15 @@ void *ten_extension_thread_main_actual(ten_extension_thread_t *self) {
   self->runloop = ten_runloop_create(NULL);
   TEN_ASSERT(self->runloop, "Should not happen.");
 
-  // Run the extension thread event loop
-  ten_extension_thread_start_runloop(self);
+  ten_runloop_post_task_tail(
+      self->runloop, ten_extension_thread_handle_start_msg_task, self, NULL);
+
+  // Before actually starting the extension thread's runloop, first notify the
+  // engine (extension_context) that the extension thread's runloop is ready for
+  // use.
+  ten_event_set(self->runloop_is_ready_to_use);
+
+  // Run the extension thread event loop.
   ten_runloop_run(self->runloop);
 
   ten_extension_thread_notify_engine_we_are_closed(self);
@@ -285,6 +283,21 @@ void ten_extension_thread_start(ten_extension_thread_t *self) {
              "Should not happen.");
 
   ten_thread_create("extension thread", ten_extension_thread_main, self);
+
+  // The runloop of the extension_thread is created within the extension thread
+  // itself, which introduces a time gap. If the engine (extension_context)
+  // attempts to post a task to the runloop of extension_thread before the
+  // runloop has been created, it would result in a segmentation fault since the
+  // runloop would still be NULL. There are two approaches to handle this
+  // situation:
+  //
+  // 1) Protect both the extension_thread and engine access to
+  //    extension_thread::runloop with a mutex. But this is too heavy.
+  // 2) The approach adopted here is to have the engine thread wait briefly
+  //    until the runloop is successfully created by the extension_thread before
+  //    proceeding. This eliminates the need to lock every time the runloop is
+  //    accessed.
+  ten_event_wait(self->runloop_is_ready_to_use, -1);
 }
 
 static void ten_extension_thread_on_triggering_close(void *self_,
@@ -295,21 +308,34 @@ static void ten_extension_thread_on_triggering_close(void *self_,
              "Invalid use of extension_thread %p.", self);
 
   // The closing flow should be executed only once.
-  if (ten_extension_thread_get_state(self) >=
-      TEN_EXTENSION_THREAD_STATE_PREPARE_TO_CLOSE) {
+  if (self->is_close_triggered) {
     return;
   }
 
-  ten_extension_thread_set_state(self,
-                                 TEN_EXTENSION_THREAD_STATE_PREPARE_TO_CLOSE);
+  self->is_close_triggered = true;
 
-  // Loop for all the containing extensions, and call their on_stop().
-  ten_list_foreach (&self->extensions, iter) {
-    ten_extension_t *extension = ten_ptr_listnode_get(iter.node);
-    TEN_ASSERT(ten_extension_check_integrity(extension, true),
-               "Should not happen.");
+  switch (self->state) {
+    case TEN_EXTENSION_THREAD_STATE_INIT:
+      // Enter the deinit flow of the extension group directly.
+      ten_extension_group_on_deinit(self->extension_group);
+      break;
 
-    ten_extension_on_stop(extension);
+    case TEN_EXTENSION_THREAD_STATE_CREATING_EXTENSIONS:
+      // We need to wait until `on_create_extensions_done()` is called, as that
+      // is the point when all the created extensions can be retrieved to begin
+      // the close process. Otherwise, memory leaks caused by those extensions
+      // may occur.
+      break;
+
+    case TEN_EXTENSION_THREAD_STATE_NORMAL:
+      ten_extension_thread_stop_life_cycle_of_all_extensions(self);
+      break;
+
+    case TEN_EXTENSION_THREAD_STATE_PREPARE_TO_CLOSE:
+    case TEN_EXTENSION_THREAD_STATE_CLOSED:
+    default:
+      TEN_ASSERT(0, "Should not happen.");
+      break;
   }
 }
 
@@ -368,40 +394,6 @@ void ten_extension_thread_set_state(ten_extension_thread_t *self,
   self->state = state;
 }
 
-void ten_extension_thread_determine_all_extension_dest_from_graph(
-    ten_extension_thread_t *self) {
-  TEN_ASSERT(self, "Invalid argument.");
-  TEN_ASSERT(ten_extension_thread_check_integrity(self, true),
-             "Invalid use of extension_thread %p.", self);
-
-  TEN_LOGD("Determine destinations of all extensions from graph.");
-
-  ten_list_foreach (&self->extensions, iter) {
-    ten_extension_t *extension = ten_ptr_listnode_get(iter.node);
-    TEN_ASSERT(ten_extension_check_integrity(extension, true),
-               "Should not happen.");
-
-    // Find the extension_info of the specified 'extension'.
-    extension->extension_info =
-        ten_extension_context_get_extension_info_by_name(
-            self->extension_context,
-            ten_string_get_raw_str(
-                ten_app_get_uri(self->extension_context->engine->app)),
-            ten_string_get_raw_str(
-                &self->extension_context->engine->graph_name),
-            ten_string_get_raw_str(
-                &extension->extension_thread->extension_group->name),
-            ten_string_get_raw_str(&extension->name));
-
-    // Check if this extension is involved in the graph, and if yes, find
-    // out all the destination extension.
-    if (extension->extension_info) {
-      ten_extension_determine_all_dest_extension(extension,
-                                                 self->extension_context);
-    }
-  }
-}
-
 static void ten_extension_thread_add_extension(ten_extension_thread_t *self,
                                                ten_extension_t *extension) {
   TEN_ASSERT(self, "Invalid argument.");
@@ -414,15 +406,28 @@ static void ten_extension_thread_add_extension(ten_extension_thread_t *self,
   extension->extension_thread = self;
 
   TEN_UNUSED bool rc =
-      ten_extension_store_add_extension(self->extension_store, extension, true);
+      ten_extension_store_add_extension(self->extension_store, extension);
   TEN_ASSERT(rc, "Should not happen.");
 }
 
-void ten_extension_thread_start_to_add_all_created_extension_to_engine(
+void ten_extension_thread_add_all_created_extensions(
     ten_extension_thread_t *self) {
   TEN_ASSERT(self, "Invalid argument.");
   TEN_ASSERT(ten_extension_thread_check_integrity(self, true),
              "Invalid use of extension_thread %p.", self);
+
+  ten_extension_context_t *extension_context = self->extension_context;
+  TEN_ASSERT(
+      extension_context &&
+          // TEN_NOLINTNEXTLINE(thread-check)
+          // thread-check: We are in the extension thread, and throughout the
+          // entire lifecycle of the extension, the extension_context where
+          // the extension resides remains unchanged. Even in the closing
+          // flow, the extension_context is closed later than the extension
+          // itself. Therefore, using a pointer to the extension_context
+          // within the extension thread is thread-safe.
+          ten_extension_context_check_integrity(extension_context, false),
+      "Should not happen.");
 
   ten_list_foreach (&self->extensions, iter) {
     ten_extension_t *extension = ten_ptr_listnode_get(iter.node);
@@ -433,42 +438,19 @@ void ten_extension_thread_start_to_add_all_created_extension_to_engine(
     ten_sanitizer_thread_check_set_belonging_thread_to_current_thread(
         &extension->path_table->thread_check);
 
-    // TODO(Wei): According to the provided extension_info_from_graph, we
-    // should be able to fill the correct runtime graph relevant information
-    // into the 'runtime_msg_dest_info'.
-    ten_all_msg_type_dest_runtime_info_init(&extension->msg_dest_runtime_info);
-
-    ten_extension_context_t *extension_context = self->extension_context;
-    TEN_ASSERT(
-        extension_context &&
-            // TEN_NOLINTNEXTLINE(thread-check)
-            // thread-check: We are in the extension thread, and throughout the
-            // entire lifecycle of the extension, the extension_context where
-            // the extension resides remains unchanged. Even in the closing
-            // flow, the extension_context is closed later than the extension
-            // itself. Therefore, using a pointer to the extension_context
-            // within the extension thread is thread-safe.
-            ten_extension_context_check_integrity(extension_context, false),
-        "Should not happen.");
-
-    // Setup 'extension_context' field, this is the most important field when
-    // extension is initiating.
-    extension->extension_context = extension_context;
-
     ten_extension_thread_add_extension(self, extension);
-    ten_extension_link_its_ten_to_extension_context(extension,
-                                                    extension_context);
-
-    ten_engine_t *engine = extension_context->engine;
-    // TEN_NOLINTNEXTLINE(thread-check)
-    // thread-check: The runloop of the engine will not be changed during the
-    // whole lifetime of the extension thread, so it's thread safe to access it
-    // here.
-    TEN_ASSERT(engine && ten_engine_check_integrity(engine, false),
-               "Should not happen.");
-
-    ten_runloop_post_task_tail(ten_engine_get_attached_runloop(engine),
-                               ten_extension_context_add_extension,
-                               extension_context, extension);
   }
+
+  ten_engine_t *engine = extension_context->engine;
+  // TEN_NOLINTNEXTLINE(thread-check)
+  // thread-check: The runloop of the engine will not be changed during the
+  // whole lifetime of the extension thread, so it's thread safe to access it
+  // here.
+  TEN_ASSERT(engine && ten_engine_check_integrity(engine, false),
+             "Should not happen.");
+
+  ten_runloop_post_task_tail(
+      ten_engine_get_attached_runloop(engine),
+      ten_engine_find_extension_info_for_all_extensions_of_extension_thread,
+      engine, self);
 }

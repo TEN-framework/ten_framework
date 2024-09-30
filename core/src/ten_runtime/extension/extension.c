@@ -13,11 +13,10 @@
 #include "include_internal/ten_runtime/addon/addon.h"
 #include "include_internal/ten_runtime/common/loc.h"
 #include "include_internal/ten_runtime/engine/engine.h"
-#include "include_internal/ten_runtime/extension/extension_cb_default.h"
-#include "include_internal/ten_runtime/extension/extension_hdr.h"
 #include "include_internal/ten_runtime/extension/extension_info/extension_info.h"
 #include "include_internal/ten_runtime/extension/msg_dest_info/json.h"
 #include "include_internal/ten_runtime/extension/msg_dest_info/msg_dest_info.h"
+#include "include_internal/ten_runtime/extension/msg_handling.h"
 #include "include_internal/ten_runtime/extension/on_xxx.h"
 #include "include_internal/ten_runtime/extension_context/extension_context.h"
 #include "include_internal/ten_runtime/extension_group/extension_group.h"
@@ -44,6 +43,7 @@
 #include "ten_utils/container/list_node.h"
 #include "ten_utils/container/list_node_smart_ptr.h"
 #include "ten_utils/container/list_ptr.h"
+#include "ten_utils/container/list_smart_ptr.h"
 #include "ten_utils/io/runloop.h"
 #include "ten_utils/lib/alloc.h"
 #include "ten_utils/lib/error.h"
@@ -90,7 +90,6 @@ ten_extension_t *ten_extension_create(
   self->addon_host = NULL;
   ten_string_init_formatted(&self->name, "%s", name);
 
-  ten_string_init(&self->unique_name_in_graph);
   ten_string_init(&self->base_dir);
 
   self->ten_env = NULL;
@@ -107,8 +106,6 @@ ten_extension_t *ten_extension_create(
       TEN_DEFAULT_PATH_CHECK_INTERVAL;  // 10 seconds by default.
 
   self->state = TEN_EXTENSION_STATE_INIT;
-
-  ten_all_msg_type_dest_runtime_info_init(&self->msg_dest_runtime_info);
 
   ten_value_init_object_with_move(&self->manifest, NULL);
   ten_value_init_object_with_move(&self->property, NULL);
@@ -172,8 +169,6 @@ void ten_extension_destroy(ten_extension_t *self) {
 
   ten_env_destroy(self->ten_env);
   ten_string_deinit(&self->name);
-  ten_string_deinit(&self->unique_name_in_graph);
-  ten_all_msg_type_dest_runtime_info_deinit(&self->msg_dest_runtime_info);
 
   ten_value_deinit(&self->manifest);
   ten_value_deinit(&self->property);
@@ -209,81 +204,22 @@ void ten_extension_destroy(ten_extension_t *self) {
   TEN_FREE(self);
 }
 
-static void ten_extension_determine_msg_dest_extension(
-    ten_extension_t *self, ten_extension_context_t *extension_context,
-    ten_list_iterator_t iter, ten_list_t *result_list) {
-  TEN_ASSERT(
-      self && ten_extension_check_integrity(self, true) && extension_context,
-      "Should not happen.");
-
-  ten_msg_dest_static_info_t *msg_dest_static =
-      ten_shared_ptr_get_data(ten_smart_ptr_listnode_get(iter.node));
-  TEN_ASSERT(msg_dest_static, "Should not happen.");
-
-  ten_msg_dest_runtime_info_t *msg_dest_runtime =
-      ten_msg_dest_runtime_info_create(
-          ten_string_get_raw_str(&msg_dest_static->msg_name));
-
-  ten_list_t dests =
-      ten_extension_context_resolve_extensions_info_to_extensions(
-          extension_context, &msg_dest_static->dest);
-  ten_list_swap(&msg_dest_runtime->dest, &dests);
-
-  ten_shared_ptr_t *shared_msg_dest_runtime = ten_shared_ptr_create(
-      msg_dest_runtime, ten_msg_dest_runtime_info_destroy);
-  ten_list_push_smart_ptr_back(result_list, shared_msg_dest_runtime);
-  ten_shared_ptr_destroy(shared_msg_dest_runtime);
-}
-
-void ten_extension_determine_all_dest_extension(
-    ten_extension_t *self, ten_extension_context_t *extension_context) {
-  TEN_ASSERT(
-      self && ten_extension_check_integrity(self, true) && extension_context,
-      "Should not happen.");
-
-  ten_list_foreach (&self->extension_info->msg_dest_static_info.cmd, iter) {
-    ten_extension_determine_msg_dest_extension(
-        self, extension_context, iter, &self->msg_dest_runtime_info.cmd);
-  }
-
-  ten_list_foreach (&self->extension_info->msg_dest_static_info.video_frame,
-                    iter) {
-    ten_extension_determine_msg_dest_extension(
-        self, extension_context, iter,
-        &self->msg_dest_runtime_info.video_frame);
-  }
-
-  ten_list_foreach (&self->extension_info->msg_dest_static_info.audio_frame,
-                    iter) {
-    ten_extension_determine_msg_dest_extension(
-        self, extension_context, iter,
-        &self->msg_dest_runtime_info.audio_frame);
-  }
-
-  ten_list_foreach (&self->extension_info->msg_dest_static_info.data, iter) {
-    ten_extension_determine_msg_dest_extension(
-        self, extension_context, iter, &self->msg_dest_runtime_info.data);
-  }
-}
-
 static bool ten_extension_check_if_msg_dests_have_msg_names(
-    ten_extension_t *self, ten_list_t *msg_runtime_dests,
-    ten_list_t *msg_names) {
-  TEN_ASSERT(msg_runtime_dests && msg_names, "Invalid argument.");
+    ten_extension_t *self, ten_list_t *msg_dests, ten_list_t *msg_names) {
+  TEN_ASSERT(msg_dests && msg_names, "Invalid argument.");
 
-  ten_list_foreach (msg_runtime_dests, iter) {
+  ten_list_foreach (msg_dests, iter) {
     ten_shared_ptr_t *shared_msg_dest = ten_smart_ptr_listnode_get(iter.node);
-    ten_msg_dest_runtime_info_t *msg_dest =
-        ten_shared_ptr_get_data(shared_msg_dest);
-    TEN_ASSERT(msg_dest && ten_msg_dest_runtime_info_check_integrity(msg_dest),
+    ten_msg_dest_info_t *msg_dest = ten_shared_ptr_get_data(shared_msg_dest);
+    TEN_ASSERT(msg_dest && ten_msg_dest_info_check_integrity(msg_dest),
                "Invalid argument.");
 
-    ten_listnode_t *node = ten_list_find_ptr_custom(
-        msg_names, &msg_dest->msg_name, ten_string_is_equal);
+    ten_listnode_t *node = ten_list_find_ptr_custom(msg_names, &msg_dest->name,
+                                                    ten_string_is_equal);
     if (node) {
       TEN_ASSERT(0, "Extension (%s) has duplicated msg name (%s) in dest info.",
                  ten_extension_get_name(self),
-                 ten_string_get_raw_str(&msg_dest->msg_name));
+                 ten_string_get_raw_str(&msg_dest->name));
       return true;
     }
   }
@@ -293,17 +229,16 @@ static bool ten_extension_check_if_msg_dests_have_msg_names(
 
 static bool ten_extension_merge_interface_dest_to_msg(
     ten_extension_t *self, ten_extension_context_t *extension_context,
-    ten_list_iterator_t iter, TEN_MSG_TYPE msg_type,
-    ten_list_t *msg_runtime_dests) {
+    ten_list_iterator_t iter, TEN_MSG_TYPE msg_type, ten_list_t *msg_dests) {
   TEN_ASSERT(
       self && ten_extension_check_integrity(self, true) && extension_context,
       "Should not happen.");
 
-  ten_msg_dest_static_info_t *interface_dest =
+  ten_msg_dest_info_t *interface_dest =
       ten_shared_ptr_get_data(ten_smart_ptr_listnode_get(iter.node));
   TEN_ASSERT(interface_dest, "Should not happen.");
 
-  ten_string_t *interface_name = &interface_dest->msg_name;
+  ten_string_t *interface_name = &interface_dest->name;
   TEN_ASSERT(!ten_string_is_empty(interface_name), "Should not happen.");
 
   ten_list_t all_msg_names_in_interface_out = TEN_LIST_INIT_VAL;
@@ -322,7 +257,7 @@ static bool ten_extension_merge_interface_dest_to_msg(
   }
 
   if (ten_extension_check_if_msg_dests_have_msg_names(
-          self, msg_runtime_dests, &all_msg_names_in_interface_out)) {
+          self, msg_dests, &all_msg_names_in_interface_out)) {
     TEN_ASSERT(0, "Should not happen.");
     return false;
   }
@@ -331,18 +266,19 @@ static bool ten_extension_merge_interface_dest_to_msg(
     ten_string_t *msg_name = ten_ptr_listnode_get(iter.node);
     TEN_ASSERT(msg_name, "Should not happen.");
 
-    ten_msg_dest_runtime_info_t *msg_dest_runtime =
-        ten_msg_dest_runtime_info_create(ten_string_get_raw_str(msg_name));
+    ten_msg_dest_info_t *msg_dest =
+        ten_msg_dest_info_create(ten_string_get_raw_str(msg_name));
 
-    ten_list_t dests =
-        ten_extension_context_resolve_extensions_info_to_extensions(
-            extension_context, &interface_dest->dest);
-    ten_list_swap(&msg_dest_runtime->dest, &dests);
+    ten_list_foreach (&interface_dest->dest, iter_dest) {
+      ten_weak_ptr_t *shared_dest_extension_info =
+          ten_smart_ptr_listnode_get(iter_dest.node);
+      ten_list_push_smart_ptr_back(&msg_dest->dest, shared_dest_extension_info);
+    }
 
-    ten_shared_ptr_t *shared_msg_dest_runtime = ten_shared_ptr_create(
-        msg_dest_runtime, ten_msg_dest_runtime_info_destroy);
-    ten_list_push_smart_ptr_back(msg_runtime_dests, shared_msg_dest_runtime);
-    ten_shared_ptr_destroy(shared_msg_dest_runtime);
+    ten_shared_ptr_t *shared_msg_dest =
+        ten_shared_ptr_create(msg_dest, ten_msg_dest_info_destroy);
+    ten_list_push_smart_ptr_back(msg_dests, shared_msg_dest);
+    ten_shared_ptr_destroy(shared_msg_dest);
   }
 
   ten_list_clear(&all_msg_names_in_interface_out);
@@ -354,36 +290,35 @@ bool ten_extension_determine_and_merge_all_interface_dest_extension(
     ten_extension_t *self) {
   TEN_ASSERT(self && ten_extension_check_integrity(self, true),
              "Invalid argument.");
-  TEN_ASSERT(self->state == TEN_EXTENSION_STATE_CONFIGURED,
+  TEN_ASSERT(self->state == TEN_EXTENSION_STATE_ON_CONFIGURE_DONE,
              "Extension should be on_configure_done.");
 
   if (!self->extension_info) {
     return true;
   }
 
-  ten_list_foreach (&self->extension_info->msg_dest_static_info.interface,
-                    iter) {
+  ten_list_foreach (&self->extension_info->msg_dest_info.interface, iter) {
     if (!ten_extension_merge_interface_dest_to_msg(
             self, self->extension_context, iter, TEN_MSG_TYPE_CMD,
-            &self->msg_dest_runtime_info.cmd)) {
+            &self->extension_info->msg_dest_info.cmd)) {
       return false;
     }
 
     if (!ten_extension_merge_interface_dest_to_msg(
             self, self->extension_context, iter, TEN_MSG_TYPE_DATA,
-            &self->msg_dest_runtime_info.data)) {
+            &self->extension_info->msg_dest_info.data)) {
       return false;
     }
 
     if (!ten_extension_merge_interface_dest_to_msg(
             self, self->extension_context, iter, TEN_MSG_TYPE_VIDEO_FRAME,
-            &self->msg_dest_runtime_info.video_frame)) {
+            &self->extension_info->msg_dest_info.video_frame)) {
       return false;
     }
 
     if (!ten_extension_merge_interface_dest_to_msg(
             self, self->extension_context, iter, TEN_MSG_TYPE_AUDIO_FRAME,
-            &self->msg_dest_runtime_info.audio_frame)) {
+            &self->extension_info->msg_dest_info.audio_frame)) {
       return false;
     }
   }
@@ -392,17 +327,17 @@ bool ten_extension_determine_and_merge_all_interface_dest_extension(
 }
 
 static ten_list_t *ten_extension_get_msg_dests_from_graph_internal(
-    ten_list_t *dest_runtime_info_list, ten_shared_ptr_t *msg) {
-  TEN_ASSERT(dest_runtime_info_list && msg, "Should not happen.");
+    ten_list_t *dest_info_list, ten_shared_ptr_t *msg) {
+  TEN_ASSERT(dest_info_list && msg, "Should not happen.");
 
-  const char *name = ten_msg_get_name(msg);
+  const char *msg_name = ten_msg_get_name(msg);
 
-  // OPTIMIZE(Wei): Use hash table to speed up the findings.
-  ten_listnode_t *msg_dest_runtime_info_node = ten_list_find_shared_ptr_custom(
-      dest_runtime_info_list, name, ten_msg_dest_runtime_info_qualified);
-  if (msg_dest_runtime_info_node) {
-    ten_msg_dest_runtime_info_t *msg_dest = ten_shared_ptr_get_data(
-        ten_smart_ptr_listnode_get(msg_dest_runtime_info_node));
+  // TODO(Wei): Use hash table to speed up the findings.
+  ten_listnode_t *msg_dest_info_node = ten_list_find_shared_ptr_custom(
+      dest_info_list, msg_name, ten_msg_dest_info_qualified);
+  if (msg_dest_info_node) {
+    ten_msg_dest_info_t *msg_dest =
+        ten_shared_ptr_get_data(ten_smart_ptr_listnode_get(msg_dest_info_node));
 
     return &msg_dest->dest;
   }
@@ -415,20 +350,20 @@ static ten_list_t *ten_extension_get_msg_dests_from_graph(
   TEN_ASSERT(self && ten_extension_check_integrity(self, true) && msg,
              "Should not happen.");
 
-  if (ten_msg_is_cmd_base(msg)) {
+  if (ten_msg_is_cmd_and_result(msg)) {
     return ten_extension_get_msg_dests_from_graph_internal(
-        &self->msg_dest_runtime_info.cmd, msg);
+        &self->extension_info->msg_dest_info.cmd, msg);
   } else {
     switch (ten_msg_get_type(msg)) {
       case TEN_MSG_TYPE_DATA:
         return ten_extension_get_msg_dests_from_graph_internal(
-            &self->msg_dest_runtime_info.data, msg);
+            &self->extension_info->msg_dest_info.data, msg);
       case TEN_MSG_TYPE_VIDEO_FRAME:
         return ten_extension_get_msg_dests_from_graph_internal(
-            &self->msg_dest_runtime_info.video_frame, msg);
+            &self->extension_info->msg_dest_info.video_frame, msg);
       case TEN_MSG_TYPE_AUDIO_FRAME:
         return ten_extension_get_msg_dests_from_graph_internal(
-            &self->msg_dest_runtime_info.audio_frame, msg);
+            &self->extension_info->msg_dest_info.audio_frame, msg);
       default:
         TEN_ASSERT(0, "Should not happen.");
         return NULL;
@@ -526,35 +461,19 @@ static bool ten_extension_determine_out_msg_dest_from_graph(
         curr_msg = msg;
       }
 
-      ten_extensionhdr_t *dest = ten_ptr_listnode_get(iter.node);
-      TEN_ASSERT(dest, "Should not happen.");
+      ten_extension_info_t *dest_extension_info =
+          ten_smart_ptr_get_data(ten_smart_ptr_listnode_get(iter.node));
+      TEN_ASSERT(dest_extension_info, "Should not happen.");
 
-      if (dest->type == TEN_EXTENSION_TYPE_EXTENSION_INFO) {
-        ten_extension_info_t *dest_extension_info =
-            ten_extension_info_from_smart_ptr(dest->u.extension_info);
-        TEN_ASSERT(dest_extension_info, "Invalid argument.");
-        // TEN_NOLINTNEXTLINE(thread-check)
-        // thread-check: The graph-related information of the extension remains
-        // unchanged during the lifecycle of engine/graph, allowing safe
-        // cross-thread access.
-        TEN_ASSERT(
-            ten_extension_info_check_integrity(dest_extension_info, false),
-            "Invalid use of extension_info %p.", dest_extension_info);
+      // TEN_NOLINTNEXTLINE(thread-check)
+      // thread-check: The graph-related information of the extension remains
+      // unchanged during the lifecycle of engine/graph, allowing safe
+      // cross-thread access.
+      TEN_ASSERT(ten_extension_info_check_integrity(dest_extension_info, false),
+                 "Invalid use of extension_info %p.", dest_extension_info);
 
-        ten_msg_clear_and_set_dest_from_extension_info(curr_msg,
-                                                       dest_extension_info);
-      } else {
-        ten_extension_t *dest_extension = dest->u.extension;
-        TEN_ASSERT(dest_extension, "Invalid argument.");
-        // TEN_NOLINTNEXTLINE(thread-check)
-        // thread-check: The graph-related information of the extension remains
-        // unchanged during the lifecycle of engine/graph, allowing safe
-        // cross-thread access.
-        TEN_ASSERT(ten_extension_check_integrity(dest_extension, false),
-                   "Invalid use of extension %p.", dest_extension);
-
-        ten_msg_clear_and_set_dest_to_extension(curr_msg, dest_extension);
-      }
+      ten_msg_clear_and_set_dest_from_extension_info(curr_msg,
+                                                     dest_extension_info);
 
       ten_list_push_smart_ptr_back(result_msgs, curr_msg);
 
@@ -574,7 +493,7 @@ static bool ten_extension_determine_out_msg_dest_from_graph(
                     "Failed to find destination of a message (%s) from graph.",
                     msg_name);
     } else {
-      if (ten_msg_is_cmd_base(msg)) {
+      if (ten_msg_is_cmd_and_result(msg)) {
         TEN_LOGE("Failed to find destination of a command (%s) from graph.",
                  msg_name);
       } else {
@@ -620,14 +539,6 @@ static TEN_EXTENSION_DETERMINE_OUT_MSGS_RESULT ten_extension_determine_out_msgs(
   TEN_ASSERT(msg && ten_msg_check_integrity(msg), "Should not happen.");
   TEN_ASSERT(result_msgs, "Should not happen.");
 
-  {
-    TEN_UNUSED ten_extension_thread_t *extension_thread =
-        self->extension_thread;
-    TEN_ASSERT(extension_thread, "Invalid argument.");
-    TEN_ASSERT(ten_extension_thread_check_integrity(extension_thread, true),
-               "Invalid use of extension_thread %p.", extension_thread);
-  }
-
   if (ten_msg_get_dest_cnt(msg) > 0) {
     // Because the messages has already had destinations, no matter it is a
     // backward path or a forward path, dispatch the message according to the
@@ -640,7 +551,7 @@ static TEN_EXTENSION_DETERMINE_OUT_MSGS_RESULT ten_extension_determine_out_msgs(
     // Need to find the destinations from 2 databases:
     // - graph: all messages without the cmd results.
     // - IN path table: cmd results only.
-    if (ten_msg_is_cmd_base(msg)) {
+    if (ten_msg_is_cmd_and_result(msg)) {
       if (ten_msg_get_type(msg) == TEN_MSG_TYPE_CMD_RESULT) {
         // Find the destinations of a cmd result from the path table.
         if (!in_path) {
@@ -705,32 +616,20 @@ bool ten_extension_handle_out_msg(ten_extension_t *self, ten_shared_ptr_t *msg,
   TEN_ASSERT(msg && ten_msg_check_integrity(msg), "Should not happen.");
   TEN_ASSERT(err && ten_error_check_integrity(err), "Invalid argument.");
 
-  if (ten_extension_thread_get_state(self->extension_thread) >=
-      TEN_EXTENSION_THREAD_STATE_CLOSING) {
-    // We should not handle anymore messages, because when the extension thread
-    // enters its 'closing' stage, it means the graph relevant
-    // resources/structures (i.e., ten_all_msg_type_dest_static_info_t) might
-    // have already been destroyed. Therefore, it's unsafe to continue to handle
-    // messages.
-    return false;
-  }
-
   // The source of the out message is the current extension.
   ten_msg_set_src_to_extension(msg, self);
 
   bool result = true;
-  const bool msg_is_cmd = ten_msg_is_cmd_base(msg);
+  const bool msg_is_cmd = ten_msg_is_cmd_and_result(msg);
   bool msg_is_cmd_result = false;
 
-  if (msg_is_cmd) {
-    if (ten_msg_get_type(msg) == TEN_MSG_TYPE_CMD_RESULT) {
-      msg_is_cmd_result = true;
+  if (ten_msg_get_type(msg) == TEN_MSG_TYPE_CMD_RESULT) {
+    msg_is_cmd_result = true;
 
-      // The backward path should strictly follow the information recorded
-      // in the path table, therefore, users should not 'override' the
-      // destination location in this case.
-      ten_msg_clear_dest(msg);
-    }
+    // The backward path should strictly follow the information recorded
+    // in the path table, therefore, users should not 'override' the
+    // destination location in this case.
+    ten_msg_clear_dest(msg);
   }
 
   ten_msg_correct_dest(msg, self->extension_context->engine);
@@ -848,27 +747,6 @@ ten_runloop_t *ten_extension_get_attached_runloop(ten_extension_t *self) {
   return self->extension_thread->runloop;
 }
 
-void ten_extension_link_its_ten_to_extension_context(
-    ten_extension_t *self, ten_extension_context_t *extension_context) {
-  TEN_ASSERT(self, "Invalid argument.");
-  TEN_ASSERT(ten_extension_check_integrity(self, true),
-             "Invalid use of extension %p.", self);
-
-  TEN_ASSERT(
-      extension_context &&
-          // TEN_NOLINTNEXTLINE(thread-check)
-          // thread-check: We are in the extension thread, and throughout the
-          // entire lifecycle of the extension, the extension_context where the
-          // extension resides remains unchanged. Even in the closing flow, the
-          // extension_context is closed later than the extension itself.
-          // Therefore, using a pointer to the extension_context within the
-          // extension thread is thread-safe.
-          ten_extension_context_check_integrity(extension_context, false),
-      "Should not happen.");
-
-  self->extension_context = extension_context;
-}
-
 static void ten_extension_on_configure(ten_env_t *ten_env) {
   TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
              "Should not happen.");
@@ -914,6 +792,38 @@ void ten_extension_on_init(ten_env_t *ten_env) {
   }
 }
 
+static void ten_extension_flush_all_pending_msgs(ten_extension_t *self) {
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_extension_check_integrity(self, true),
+             "Invalid use of extension %p.", self);
+
+  // Flush the previously got messages, which are received before
+  // on_init_done(), into the extension.
+  ten_extension_thread_t *extension_thread = self->extension_thread;
+  ten_list_foreach (&extension_thread->pending_msgs, iter) {
+    ten_shared_ptr_t *msg = ten_smart_ptr_listnode_get(iter.node);
+    TEN_ASSERT(msg, "Should not happen.");
+
+    ten_loc_t *dest_loc = ten_msg_get_first_dest_loc(msg);
+    TEN_ASSERT(dest_loc, "Should not happen.");
+
+    if (ten_string_is_equal(&dest_loc->extension_name, &self->name)) {
+      ten_extension_handle_in_msg(self, msg);
+      ten_list_remove_node(&extension_thread->pending_msgs, iter.node);
+    }
+  }
+
+  // Flush the previously got messages, which are received before
+  // on_init_done(), into the extension.
+  ten_list_foreach (&self->pending_msgs, iter) {
+    ten_shared_ptr_t *msg = ten_smart_ptr_listnode_get(iter.node);
+    TEN_ASSERT(msg, "Should not happen.");
+
+    ten_extension_handle_in_msg(self, msg);
+  }
+  ten_list_clear(&self->pending_msgs);
+}
+
 void ten_extension_on_start(ten_extension_t *self) {
   TEN_ASSERT(self, "Invalid argument.");
   TEN_ASSERT(ten_extension_check_integrity(self, true),
@@ -921,10 +831,21 @@ void ten_extension_on_start(ten_extension_t *self) {
 
   TEN_LOGI("[%s] on_start().", ten_extension_get_name(self));
 
+  self->state = TEN_EXTENSION_STATE_ON_START;
+
   if (self->on_start) {
     self->on_start(self, self->ten_env);
+
+    // The developer expects that on_start() will execute before all on_cmd()
+    // events. Therefore, after on_start() has been executed, there is no need
+    // to wait for on_start_done() before sending all previously buffered
+    // messages into the extension.
+
+    ten_extension_flush_all_pending_msgs(self);
   } else {
-    ten_extension_on_start_default(self, self->ten_env);
+    ten_extension_flush_all_pending_msgs(self);
+
+    ten_extension_on_start_done(self->ten_env);
   }
 }
 
@@ -938,7 +859,7 @@ void ten_extension_on_stop(ten_extension_t *self) {
   if (self->on_stop) {
     self->on_stop(self, self->ten_env);
   } else {
-    ten_extension_on_stop_default(self, self->ten_env);
+    ten_extension_on_stop_done(self->ten_env);
   }
 }
 
@@ -949,12 +870,12 @@ void ten_extension_on_deinit(ten_extension_t *self) {
 
   TEN_LOGD("[%s] on_deinit().", ten_extension_get_name(self));
 
-  ten_extension_set_state(self, TEN_EXTENSION_STATE_DEINITING);
+  self->state = TEN_EXTENSION_STATE_ON_DEINIT;
 
   if (self->on_deinit) {
     self->on_deinit(self, self->ten_env);
   } else {
-    ten_extension_on_deinit_default(self, self->ten_env);
+    ten_extension_on_deinit_done(self->ten_env);
   }
 }
 
@@ -969,7 +890,12 @@ void ten_extension_on_cmd(ten_extension_t *self, ten_shared_ptr_t *msg) {
   if (self->on_cmd) {
     self->on_cmd(self, self->ten_env, msg);
   } else {
-    ten_extension_on_cmd_default(self, self->ten_env, msg);
+    // The default behavior of 'on_cmd' is to _not_ forward this command out,
+    // and return an 'OK' result to the previous stage.
+    ten_shared_ptr_t *cmd_result =
+        ten_cmd_result_create_from_cmd(TEN_STATUS_CODE_OK, msg);
+    ten_env_return_result(self->ten_env, cmd_result, msg, NULL);
+    ten_shared_ptr_destroy(cmd_result);
   }
 }
 
@@ -984,7 +910,8 @@ void ten_extension_on_data(ten_extension_t *self, ten_shared_ptr_t *msg) {
   if (self->on_data) {
     self->on_data(self, self->ten_env, msg);
   } else {
-    ten_extension_on_data_default(self, self->ten_env, msg);
+    // Bypass the data.
+    ten_env_send_data(self->ten_env, msg, NULL);
   }
 }
 
@@ -1000,7 +927,8 @@ void ten_extension_on_video_frame(ten_extension_t *self,
   if (self->on_video_frame) {
     self->on_video_frame(self, self->ten_env, msg);
   } else {
-    ten_extension_on_video_frame_default(self, self->ten_env, msg);
+    // Bypass the video frame.
+    ten_env_send_video_frame(self->ten_env, msg, NULL);
   }
 }
 
@@ -1016,7 +944,8 @@ void ten_extension_on_audio_frame(ten_extension_t *self,
   if (self->on_audio_frame) {
     self->on_audio_frame(self, self->ten_env, msg);
   } else {
-    ten_extension_on_audio_frame_default(self, self->ten_env, msg);
+    // Bypass the audio frame.
+    ten_env_send_audio_frame(self->ten_env, msg, NULL);
   }
 }
 
@@ -1118,34 +1047,10 @@ ten_path_in_t *ten_extension_get_cmd_return_path_from_itself(
   return ten_ptr_listnode_get(returned_node);
 }
 
-void ten_extension_set_unique_name_in_graph(ten_extension_t *self) {
-  TEN_ASSERT(self && ten_extension_check_integrity(self, true) &&
-                 self->extension_thread,
-             "Should not happen.");
-
-  ten_extension_group_t *extension_group =
-      self->extension_thread->extension_group;
-  TEN_ASSERT(extension_group &&
-                 ten_extension_group_check_integrity(extension_group, true),
-             "Should not happen.");
-
-  ten_string_set_formatted(&self->unique_name_in_graph,
-                           TEN_EXTENSION_UNIQUE_NAME_IN_GRAPH_PATTERN,
-                           ten_string_get_raw_str(&extension_group->name),
-                           ten_string_get_raw_str(&self->name));
-}
-
 ten_string_t *ten_extension_get_base_dir(ten_extension_t *self) {
   TEN_ASSERT(self && ten_extension_check_integrity(self, true),
              "Invalid argument.");
   return &self->base_dir;
-}
-
-void ten_extension_set_state(ten_extension_t *self, TEN_EXTENSION_STATE state) {
-  TEN_ASSERT(self && ten_extension_check_integrity(self, true),
-             "Invalid argument.");
-
-  self->state = state;
 }
 
 bool ten_extension_validate_msg_schema(ten_extension_t *self,
@@ -1231,13 +1136,4 @@ ten_extension_t *ten_extension_from_smart_ptr(
     ten_smart_ptr_t *extension_smart_ptr) {
   TEN_ASSERT(extension_smart_ptr, "Invalid argument.");
   return ten_smart_ptr_get_data(extension_smart_ptr);
-}
-
-void ten_extension_direct_all_msg_to_another_extension(ten_extension_t *self,
-                                                       ten_extension_t *other) {
-  TEN_ASSERT(self, "Invalid argument.");
-  TEN_ASSERT(other, "Invalid argument.");
-
-  ten_all_msg_type_dest_runtime_info_direct_all_msg_to_extension(
-      &self->msg_dest_runtime_info, other);
 }

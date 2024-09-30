@@ -9,16 +9,15 @@
 #include "ten_runtime/ten_config.h"
 
 #include "include_internal/ten_runtime/common/loc.h"
-#include "ten_utils/macro/check.h"
 #include "ten_runtime/msg/msg.h"
 #include "ten_utils/container/list.h"
+#include "ten_utils/macro/check.h"
 #include "ten_utils/value/value.h"
 
 #define TEN_MSG_SIGNATURE 0xA9FA53F77185F856U
 
 typedef struct ten_app_t ten_app_t;
 typedef struct ten_extension_t ten_extension_t;
-typedef struct ten_extensionhdr_t ten_extensionhdr_t;
 typedef struct ten_error_t ten_error_t;
 typedef struct ten_engine_t ten_engine_t;
 typedef struct ten_extension_group_t ten_extension_group_t;
@@ -97,8 +96,7 @@ TEN_RUNTIME_PRIVATE_API void ten_msg_clear_and_set_dest_from_msg_src(
 
 TEN_RUNTIME_PRIVATE_API void ten_raw_msg_add_dest(
     ten_msg_t *self, const char *app_uri, const char *graph_name,
-    const char *extension_group_name, const char *extension_name,
-    ten_extension_t *extension);
+    const char *extension_group_name, const char *extension_name);
 
 TEN_RUNTIME_PRIVATE_API void ten_raw_msg_clear_dest(ten_msg_t *self);
 
@@ -120,15 +118,13 @@ TEN_RUNTIME_PRIVATE_API ten_loc_t *ten_raw_msg_get_first_dest_loc(
 
 TEN_RUNTIME_PRIVATE_API void ten_raw_msg_set_src(
     ten_msg_t *self, const char *app_uri, const char *graph_name,
-    const char *extension_group_name, const char *extension_name,
-    ten_extension_t *extension);
+    const char *extension_group_name, const char *extension_name);
 
 TEN_RUNTIME_PRIVATE_API void ten_msg_set_src(ten_shared_ptr_t *self,
                                              const char *app_uri,
                                              const char *graph_name,
                                              const char *extension_group_name,
-                                             const char *extension_name,
-                                             ten_extension_t *extension);
+                                             const char *extension_name);
 
 TEN_RUNTIME_PRIVATE_API void ten_msg_set_src_uri(ten_shared_ptr_t *self,
                                                  const char *app_uri);
@@ -152,9 +148,6 @@ TEN_RUNTIME_PRIVATE_API void ten_raw_msg_clear_and_set_dest_to_loc(
 TEN_RUNTIME_PRIVATE_API void ten_msg_set_src_to_app(ten_shared_ptr_t *self,
                                                     ten_app_t *app);
 
-TEN_RUNTIME_PRIVATE_API ten_extension_t *
-ten_msg_try_to_find_dest_extension_in_fast_path(ten_shared_ptr_t *msg);
-
 TEN_RUNTIME_PRIVATE_API bool ten_msg_type_to_handle_when_closing(
     ten_shared_ptr_t *msg);
 
@@ -172,7 +165,7 @@ TEN_RUNTIME_PRIVATE_API void ten_msg_clear_and_set_dest_to_extension(
 TEN_RUNTIME_PRIVATE_API void ten_msg_correct_dest(ten_shared_ptr_t *msg,
                                                   ten_engine_t *engine);
 
-inline bool ten_raw_msg_is_cmd_base(ten_msg_t *self) {
+inline bool ten_raw_msg_is_cmd_and_result(ten_msg_t *self) {
   TEN_ASSERT(self && ten_raw_msg_check_integrity(self), "Should not happen.");
 
   switch (self->type) {
@@ -349,9 +342,9 @@ inline ten_msg_t *ten_msg_get_raw_msg(ten_shared_ptr_t *self) {
   return (ten_msg_t *)ten_shared_ptr_get_data(self);
 }
 
-inline bool ten_msg_is_cmd_base(ten_shared_ptr_t *self) {
+inline bool ten_msg_is_cmd_and_result(ten_shared_ptr_t *self) {
   TEN_ASSERT(self && ten_msg_check_integrity(self), "Should not happen.");
-  return ten_raw_msg_is_cmd_base(ten_msg_get_raw_msg(self));
+  return ten_raw_msg_is_cmd_and_result(ten_msg_get_raw_msg(self));
 }
 
 inline bool ten_msg_is_cmd(ten_shared_ptr_t *self) {

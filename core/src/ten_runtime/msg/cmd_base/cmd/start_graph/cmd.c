@@ -22,7 +22,6 @@
 #include "include_internal/ten_runtime/msg/cmd_base/cmd/start_graph/cmd.h"
 #include "include_internal/ten_runtime/msg/cmd_base/cmd/start_graph/field/field_info.h"
 #include "include_internal/ten_runtime/msg/msg.h"
-#include "ten_utils/macro/check.h"
 #include "ten_runtime/app/app.h"
 #include "ten_utils/container/list.h"
 #include "ten_utils/container/list_node.h"
@@ -30,6 +29,7 @@
 #include "ten_utils/lib/json.h"
 #include "ten_utils/lib/smart_ptr.h"
 #include "ten_utils/lib/string.h"
+#include "ten_utils/macro/check.h"
 #include "ten_utils/macro/mark.h"
 
 static ten_cmd_start_graph_t *get_raw_cmd(ten_shared_ptr_t *self) {
@@ -245,34 +245,32 @@ static void ten_cmd_start_graph_get_next_list_per_extension_info(
                  app && next,
              "Should not happen.");
 
-  ten_list_foreach (&extension_info->msg_dest_static_info.cmd, iter_cmd) {
-    ten_msg_dest_static_info_t *cmd_dest =
+  ten_list_foreach (&extension_info->msg_dest_info.cmd, iter_cmd) {
+    ten_msg_dest_info_t *cmd_dest =
         ten_shared_ptr_get_data(ten_smart_ptr_listnode_get(iter_cmd.node));
     ten_cmd_start_graph_get_next_list_through_dests(self, app, extension_info,
                                                     &cmd_dest->dest, next,
                                                     from_src_point_of_view);
   }
 
-  ten_list_foreach (&extension_info->msg_dest_static_info.video_frame,
-                    iter_cmd) {
-    ten_msg_dest_static_info_t *data_dest =
+  ten_list_foreach (&extension_info->msg_dest_info.video_frame, iter_cmd) {
+    ten_msg_dest_info_t *data_dest =
         ten_shared_ptr_get_data(ten_smart_ptr_listnode_get(iter_cmd.node));
     ten_cmd_start_graph_get_next_list_through_dests(self, app, extension_info,
                                                     &data_dest->dest, next,
                                                     from_src_point_of_view);
   }
 
-  ten_list_foreach (&extension_info->msg_dest_static_info.audio_frame,
-                    iter_cmd) {
-    ten_msg_dest_static_info_t *data_dest =
+  ten_list_foreach (&extension_info->msg_dest_info.audio_frame, iter_cmd) {
+    ten_msg_dest_info_t *data_dest =
         ten_shared_ptr_get_data(ten_smart_ptr_listnode_get(iter_cmd.node));
     ten_cmd_start_graph_get_next_list_through_dests(self, app, extension_info,
                                                     &data_dest->dest, next,
                                                     from_src_point_of_view);
   }
 
-  ten_list_foreach (&extension_info->msg_dest_static_info.data, iter_cmd) {
-    ten_msg_dest_static_info_t *data_dest =
+  ten_list_foreach (&extension_info->msg_dest_info.data, iter_cmd) {
+    ten_msg_dest_info_t *data_dest =
         ten_shared_ptr_get_data(ten_smart_ptr_listnode_get(iter_cmd.node));
     ten_cmd_start_graph_get_next_list_through_dests(self, app, extension_info,
                                                     &data_dest->dest, next,
@@ -323,6 +321,8 @@ static void ten_raw_cmd_start_graph_add_missing_extension_group_node(
 
     bool group_found = false;
 
+    // Check whether the extension_group name specified by the extension has a
+    // corresponding extension_group item.
     ten_list_foreach (extension_groups_info, iter_extension_group) {
       ten_extension_group_info_t *extension_group_info =
           ten_extension_group_info_from_smart_ptr(
@@ -337,25 +337,28 @@ static void ten_raw_cmd_start_graph_add_missing_extension_group_node(
       }
     }
 
-    if (!group_found) {
-      ten_extension_group_info_t *extension_group_info =
-          ten_extension_group_info_create();
-
-      ten_string_init_formatted(
-          &extension_group_info->extension_group_addon_name,
-          TEN_STR_DEFAULT_EXTENSION_GROUP);
-
-      ten_loc_set(
-          &extension_group_info->loc,
-          ten_string_get_raw_str(&extension_info->loc.app_uri), "",
-          ten_string_get_raw_str(&extension_info->loc.extension_group_name), "",
-          NULL);
-
-      ten_shared_ptr_t *shared_group = ten_shared_ptr_create(
-          extension_group_info, ten_extension_group_info_destroy);
-      ten_list_push_smart_ptr_back(extension_groups_info, shared_group);
-      ten_shared_ptr_destroy(shared_group);
+    if (group_found) {
+      return;
     }
+
+    ten_extension_group_info_t *extension_group_info =
+        ten_extension_group_info_create();
+
+    // Create an extension_group item that uses the builtin
+    // default_extension_group, allowing the extension's extension_group to be
+    // associated with an extension_group addon.
+    ten_string_init_formatted(&extension_group_info->extension_group_addon_name,
+                              TEN_STR_DEFAULT_EXTENSION_GROUP);
+
+    ten_loc_set(
+        &extension_group_info->loc,
+        ten_string_get_raw_str(&extension_info->loc.app_uri), "",
+        ten_string_get_raw_str(&extension_info->loc.extension_group_name), "");
+
+    ten_shared_ptr_t *shared_group = ten_shared_ptr_create(
+        extension_group_info, ten_extension_group_info_destroy);
+    ten_list_push_smart_ptr_back(extension_groups_info, shared_group);
+    ten_shared_ptr_destroy(shared_group);
   }
 }
 

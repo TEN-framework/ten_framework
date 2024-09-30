@@ -11,13 +11,7 @@ use std::{collections::HashMap, str::FromStr};
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 
-use super::{
-    predefined_graphs::{
-        connection::{PkgConnection, PkgDestination, PkgMessageFlow},
-        node::PkgNode,
-    },
-    PkgInfo,
-};
+use super::{pkg_type::PkgType, PkgInfo};
 use crate::pkg_info::default_app_loc;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -76,7 +70,7 @@ impl Graph {
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct GraphNode {
     #[serde(rename = "type")]
-    pub node_type: String,
+    pub node_type: PkgType,
     pub name: String,
     pub addon: String,
 
@@ -95,7 +89,9 @@ pub struct GraphNode {
 impl GraphNode {
     fn validate_and_complete(&mut self) -> Result<()> {
         // extension node must specify extension_group name.
-        if self.node_type == "extension" && self.extension_group.is_none() {
+        if self.node_type == PkgType::Extension
+            && self.extension_group.is_none()
+        {
             return Err(anyhow::anyhow!(
                 "Node '{}' of type 'extension' must have an 'extension_group' defined.",
                 self.name
@@ -103,19 +99,6 @@ impl GraphNode {
         }
 
         Ok(())
-    }
-}
-
-impl From<PkgNode> for GraphNode {
-    fn from(pkg_node: PkgNode) -> Self {
-        GraphNode {
-            node_type: pkg_node.node_type.to_string(),
-            name: pkg_node.name.clone(),
-            addon: pkg_node.addon.clone(),
-            extension_group: pkg_node.extension_group.clone(),
-            app: pkg_node.app.clone(),
-            property: pkg_node.property.clone(),
-        }
     }
 }
 
@@ -152,61 +135,6 @@ pub struct GraphDestination {
 
     pub extension_group: String,
     pub extension: String,
-}
-
-fn get_property_msg_flow_from_pkg(
-    msg_flow: Vec<PkgMessageFlow>,
-) -> Vec<GraphMessageFlow> {
-    msg_flow.into_iter().map(|v| v.into()).collect()
-}
-
-impl From<PkgConnection> for GraphConnection {
-    fn from(pkg_msg_flow: PkgConnection) -> Self {
-        GraphConnection {
-            app: pkg_msg_flow.app.clone(),
-            extension_group: pkg_msg_flow.extension_group.clone(),
-            extension: pkg_msg_flow.extension.clone(),
-            cmd: if pkg_msg_flow.cmd.is_empty() {
-                None
-            } else {
-                Some(get_property_msg_flow_from_pkg(pkg_msg_flow.cmd))
-            },
-            data: if pkg_msg_flow.data.is_empty() {
-                None
-            } else {
-                Some(get_property_msg_flow_from_pkg(pkg_msg_flow.data))
-            },
-            audio_frame: if pkg_msg_flow.audio_frame.is_empty() {
-                None
-            } else {
-                Some(get_property_msg_flow_from_pkg(pkg_msg_flow.audio_frame))
-            },
-            video_frame: if pkg_msg_flow.video_frame.is_empty() {
-                None
-            } else {
-                Some(get_property_msg_flow_from_pkg(pkg_msg_flow.video_frame))
-            },
-        }
-    }
-}
-
-impl From<PkgMessageFlow> for GraphMessageFlow {
-    fn from(pkg_msg_flow: PkgMessageFlow) -> Self {
-        GraphMessageFlow {
-            name: pkg_msg_flow.name.clone(),
-            dest: pkg_msg_flow.dest.iter().map(|d| d.clone().into()).collect(),
-        }
-    }
-}
-
-impl From<PkgDestination> for GraphDestination {
-    fn from(pkg_destination: PkgDestination) -> Self {
-        GraphDestination {
-            app: pkg_destination.app.clone(),
-            extension_group: pkg_destination.extension_group.clone(),
-            extension: pkg_destination.extension.clone(),
-        }
-    }
 }
 
 #[cfg(test)]
