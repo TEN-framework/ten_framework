@@ -127,7 +127,7 @@ class extension_t {
   friend class extension_group_t;
 
   using cpp_extension_on_cmd_func_t =
-      void (extension_t:: *)(ten_env_t &, std::unique_ptr<cmd_t>);
+      void (extension_t::*)(ten_env_t &, std::unique_ptr<cmd_t>);
 
   static void issue_stop_graph_cmd(ten_env_t &ten_env) {
     // Issue a 'close engine' command, and in order to gain the maximum
@@ -213,8 +213,6 @@ class extension_t {
                                     ::ten_env_t *ten_env, ten_shared_ptr_t *cmd,
                                     cpp_extension_on_cmd_func_t on_cmd_func);
 
-  // This function would be called when the extension does _not_ enable the
-  // command binding mechanism.
   static void proxy_on_cmd(ten_extension_t *extension, ::ten_env_t *ten_env,
                            ten_shared_ptr_t *cmd) {
     proxy_on_cmd_internal(extension, ten_env, cmd, &extension_t::on_cmd);

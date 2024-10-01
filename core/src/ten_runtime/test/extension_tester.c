@@ -61,6 +61,8 @@ ten_extension_tester_t *ten_extension_tester_create(
   ten_extension_tester_t *self = TEN_MALLOC(sizeof(ten_extension_tester_t));
   TEN_ASSERT(self, "Failed to allocate memory.");
 
+  self->binding_handle.me_in_target_lang = self;
+
   ten_signature_set(&self->signature, TEN_EXTENSION_TESTER_SIGNATURE);
   ten_sanitizer_thread_check_init_with_current_thread(&self->thread_check);
 
