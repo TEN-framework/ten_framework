@@ -19,7 +19,6 @@
 #include "include_internal/ten_runtime/test/test_app.h"
 #include "ten_runtime/app/app.h"
 #include "ten_runtime/extension/extension.h"
-#include "ten_runtime/msg/cmd/close_app/cmd.h"
 #include "ten_runtime/msg/cmd/start_graph/cmd.h"
 #include "ten_runtime/msg/cmd_result/cmd_result.h"
 #include "ten_runtime/msg/msg.h"
@@ -36,7 +35,8 @@
 #include "ten_utils/macro/check.h"
 #include "ten_utils/macro/memory.h"
 
-bool ten_extension_tester_check_integrity(ten_extension_tester_t *self) {
+bool ten_extension_tester_check_integrity(ten_extension_tester_t *self,
+                                          bool check_thread) {
   TEN_ASSERT(self, "Should not happen.");
 
   if (ten_signature_get(&self->signature) !=
@@ -47,7 +47,8 @@ bool ten_extension_tester_check_integrity(ten_extension_tester_t *self) {
     return false;
   }
 
-  if (!ten_sanitizer_thread_check_do_check(&self->thread_check)) {
+  if (check_thread &&
+      !ten_sanitizer_thread_check_do_check(&self->thread_check)) {
     return false;
   }
 
@@ -55,7 +56,8 @@ bool ten_extension_tester_check_integrity(ten_extension_tester_t *self) {
 }
 
 ten_extension_tester_t *ten_extension_tester_create(
-    ten_extension_tester_on_start_func_t on_start) {
+    ten_extension_tester_on_start_func_t on_start,
+    ten_extension_tester_on_cmd_func_t on_cmd) {
   ten_extension_tester_t *self = TEN_MALLOC(sizeof(ten_extension_tester_t));
   TEN_ASSERT(self, "Failed to allocate memory.");
 
@@ -65,6 +67,7 @@ ten_extension_tester_t *ten_extension_tester_create(
   ten_string_init(&self->target_extension_addon_name);
 
   self->on_start = on_start;
+  self->on_cmd = on_cmd;
 
   self->ten_env_tester = ten_env_tester_create(self);
   self->tester_runloop = ten_runloop_create(NULL);
@@ -77,13 +80,14 @@ ten_extension_tester_t *ten_extension_tester_create(
   self->tester_app_ten_env_proxy_create_completed = ten_event_create(0, 1);
 
   self->tester_app_thread = NULL;
+  self->user_data = NULL;
 
   return self;
 }
 
 void ten_extension_tester_add_addon(ten_extension_tester_t *self,
                                     const char *addon_name) {
-  TEN_ASSERT(self && ten_extension_tester_check_integrity(self),
+  TEN_ASSERT(self && ten_extension_tester_check_integrity(self, true),
              "Invalid argument.");
   TEN_ASSERT(addon_name, "Invalid argument.");
 
@@ -119,36 +123,37 @@ void test_app_ten_env_send_cmd(ten_env_t *ten_env, void *user_data) {
 }
 
 void ten_extension_tester_destroy(ten_extension_tester_t *self) {
-  TEN_ASSERT(self && ten_extension_tester_check_integrity(self),
+  TEN_ASSERT(self && ten_extension_tester_check_integrity(self, true),
              "Invalid argument.");
-  TEN_ASSERT(self->tester_app_ten_env_proxy, "Invalid argument.");
 
-  ten_thread_join(self->tester_app_thread, -1);
-
-  TEN_ASSERT(self->tester_app_ten_env_proxy == NULL, "Should not happen.");
+  TEN_ASSERT(self->tester_app_ten_env_proxy == NULL,
+             "The `ten_env_proxy` of `tester_app` should be released in the "
+             "tester task triggered by the `deinit` of `tester_app`.");
   if (self->tester_app_ten_env_proxy_create_completed) {
     ten_event_destroy(self->tester_app_ten_env_proxy_create_completed);
   }
 
-  TEN_ASSERT(self->tester_extension_ten_env_proxy == NULL,
-             "Should not happen.");
+  TEN_ASSERT(
+      self->tester_extension_ten_env_proxy == NULL,
+      "The `ten_env_proxy` of `tester_extension` should be released in the "
+      "tester task triggered by the `deinit` of `tester_extension`.");
   if (self->tester_extension_ten_env_proxy_create_completed) {
     ten_event_destroy(self->tester_extension_ten_env_proxy_create_completed);
   }
 
+  ten_thread_join(self->tester_app_thread, -1);
+
   ten_string_deinit(&self->target_extension_addon_name);
   ten_env_tester_destroy(self->ten_env_tester);
   ten_sanitizer_thread_check_deinit(&self->thread_check);
-
-  // =-=-= 应该不是在这边调用.
-  ten_runloop_stop(self->tester_runloop);
+  ten_runloop_destroy(self->tester_runloop);
 
   TEN_FREE(self);
 }
 
 static void ten_extension_tester_create_and_start_graph(
     ten_extension_tester_t *self) {
-  TEN_ASSERT(self && ten_extension_tester_check_integrity(self),
+  TEN_ASSERT(self && ten_extension_tester_check_integrity(self, true),
              "Invalid argument.");
 
   ten_shared_ptr_t *start_graph_cmd = ten_cmd_start_graph_create();
@@ -285,7 +290,7 @@ static void ten_extension_tester_create_and_start_graph(
 
 static void ten_extension_tester_create_and_run_app(
     ten_extension_tester_t *self) {
-  TEN_ASSERT(self && ten_extension_tester_check_integrity(self),
+  TEN_ASSERT(self && ten_extension_tester_check_integrity(self, true),
              "Invalid argument.");
 
   // Create the tester app.
@@ -305,7 +310,7 @@ static void ten_extension_tester_create_and_run_app(
 static void ten_extension_tester_on_start_task(void *self_,
                                                TEN_UNUSED void *arg) {
   ten_extension_tester_t *self = (ten_extension_tester_t *)self_;
-  TEN_ASSERT(self && ten_extension_tester_check_integrity(self),
+  TEN_ASSERT(self && ten_extension_tester_check_integrity(self, true),
              "Invalid argument.");
 
   ten_extension_tester_create_and_run_app(self);
@@ -317,7 +322,7 @@ static void ten_extension_tester_on_start_task(void *self_,
 }
 
 void ten_extension_tester_run(ten_extension_tester_t *self) {
-  TEN_ASSERT(self && ten_extension_tester_check_integrity(self),
+  TEN_ASSERT(self && ten_extension_tester_check_integrity(self, true),
              "Invalid argument.");
 
   ten_runloop_post_task_tail(self->tester_runloop,

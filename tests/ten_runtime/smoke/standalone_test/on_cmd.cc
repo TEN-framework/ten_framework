@@ -12,6 +12,7 @@
 #include "ten_runtime/msg/cmd/cmd.h"
 #include "ten_runtime/msg/cmd_result/cmd_result.h"
 #include "ten_utils/lang/cpp/lib/value.h"
+#include "ten_utils/lib/smart_ptr.h"
 #include "tests/ten_runtime/smoke/extension_test/util/binding/cpp/check.h"
 
 namespace {
@@ -30,42 +31,75 @@ class test_extension_1 : public ten::extension_t {
       cmd_result->set_property("detail", "hello world, too");
       bool rc = ten_env.return_result(std::move(cmd_result), std::move(cmd));
       EXPECT_EQ(rc, true);
+
+      // Send out an ack command.
+      auto ack_cmd = ten::cmd_t::create("ack", nullptr);
+      rc = ten_env.send_cmd(std::move(ack_cmd), nullptr);
+      EXPECT_EQ(rc, true);
     }
   }
 };
 
-TEN_CPP_REGISTER_ADDON_AS_EXTENSION(standalone_test_basic__test_extension_1,
+TEN_CPP_REGISTER_ADDON_AS_EXTENSION(standalone_test_on_cmd__test_extension_1,
                                     test_extension_1);
 
 }  // namespace
 
 namespace {
 
+typedef struct test_info_t {
+  bool hello_world_cmd_success;
+  bool ack_cmd_success;
+} test_info_t;
+
 void hello_world_cmd_result_handler(ten_env_tester_t *ten_env,
                                     ten_shared_ptr_t *cmd_result,
-                                    TEN_UNUSED void *user_data) {
+                                    void *user_data) {
   if (ten_cmd_result_get_status_code(cmd_result) == TEN_STATUS_CODE_OK) {
-    ten_env_tester_stop_test(ten_env);
+    auto *test_info = static_cast<test_info_t *>(user_data);
+    test_info->hello_world_cmd_success = true;
   }
 }
 
 void ten_extension_tester_on_start(TEN_UNUSED ten_extension_tester_t *tester,
                                    ten_env_tester_t *ten_env) {
-  // Send the first command to the extension.
+  auto *test_info = static_cast<test_info_t *>(TEN_MALLOC(sizeof(test_info_t)));
+  TEN_ASSERT(test_info, "Failed to allocate memory.");
+
+  test_info->hello_world_cmd_success = false;
+  test_info->ack_cmd_success = false;
+
+  tester->user_data = test_info;
+
   ten_shared_ptr_t *hello_world_cmd = ten_cmd_create("hello_world", nullptr);
   TEN_ASSERT(hello_world_cmd, "Should not happen.");
 
   ten_env_tester_send_cmd(ten_env, hello_world_cmd,
-                          hello_world_cmd_result_handler, nullptr);
+                          hello_world_cmd_result_handler, test_info);
+}
+
+void ten_extension_tester_on_cmd(TEN_UNUSED ten_extension_tester_t *tester,
+                                 ten_env_tester_t *ten_env,
+                                 ten_shared_ptr_t *cmd) {
+  auto *test_info = static_cast<test_info_t *>(tester->user_data);
+
+  if (std::string(ten_msg_get_name(cmd)) == "ack") {
+    test_info->ack_cmd_success = true;
+  }
+
+  if (test_info->ack_cmd_success && test_info->hello_world_cmd_success) {
+    TEN_FREE(test_info);
+    ten_env_tester_stop_test(ten_env);
+  }
 }
 
 }  // namespace
 
-TEST(StandaloneTest, Basic) {  // NOLINT
-  ten_extension_tester_t *tester =
-      ten_extension_tester_create(ten_extension_tester_on_start, nullptr);
+TEST(StandaloneTest, OnCmd) {  // NOLINT
+  ten_extension_tester_t *tester = ten_extension_tester_create(
+      ten_extension_tester_on_start, ten_extension_tester_on_cmd);
   ten_extension_tester_add_addon(tester,
-                                 "standalone_test_basic__test_extension_1");
+                                 "standalone_test_on_cmd__test_extension_1");
 
   ten_extension_tester_run(tester);
 

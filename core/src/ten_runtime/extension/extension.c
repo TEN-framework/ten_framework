@@ -119,6 +119,8 @@ ten_extension_t *ten_extension_create(
 
   self->ten_env = ten_env_create_for_extension(self);
 
+  self->user_data = user_data;
+
   return self;
 }
 

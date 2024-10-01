@@ -38,7 +38,8 @@ static bool ten_env_tester_check_integrity(ten_env_tester_t *self) {
 }
 
 ten_env_tester_t *ten_env_tester_create(ten_extension_tester_t *tester) {
-  TEN_ASSERT(tester, "Invalid argument.");
+  TEN_ASSERT(tester && ten_extension_tester_check_integrity(tester, true),
+             "Invalid argument.");
 
   ten_env_tester_t *self = TEN_MALLOC(sizeof(ten_env_tester_t));
   TEN_ASSERT(self, "Failed to allocate memory.");
@@ -68,7 +69,9 @@ static ten_env_tester_send_cmd_info_t *
 ten_extension_tester_send_cmd_info_create(
     ten_extension_tester_t *tester, ten_shared_ptr_t *cmd,
     ten_env_tester_cmd_result_handler_func_t handler, void *handler_user_data) {
-  TEN_ASSERT(tester && cmd, "Invalid argument.");
+  TEN_ASSERT(
+      tester && ten_extension_tester_check_integrity(tester, true) && cmd,
+      "Invalid argument.");
 
   ten_env_tester_send_cmd_info_t *self =
       TEN_MALLOC(sizeof(ten_env_tester_send_cmd_info_t));
@@ -97,7 +100,7 @@ static void ten_extension_tester_send_cmd_info_destroy(
 static void ten_extension_tester_execute_cmd_result_handler_task(void *self,
                                                                  void *arg) {
   ten_extension_tester_t *tester = self;
-  TEN_ASSERT(tester && ten_extension_tester_check_integrity(tester),
+  TEN_ASSERT(tester && ten_extension_tester_check_integrity(tester, true),
              "Invalid argument.");
 
   ten_env_tester_send_cmd_info_t *send_cmd_info = arg;
