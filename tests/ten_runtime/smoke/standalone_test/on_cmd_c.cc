@@ -40,7 +40,7 @@ class test_extension_1 : public ten::extension_t {
   }
 };
 
-TEN_CPP_REGISTER_ADDON_AS_EXTENSION(standalone_test_on_cmd__test_extension_1,
+TEN_CPP_REGISTER_ADDON_AS_EXTENSION(standalone_test_on_cmd_c__test_extension_1,
                                     test_extension_1);
 
 }  // namespace
@@ -74,8 +74,12 @@ void ten_extension_tester_on_start(TEN_UNUSED ten_extension_tester_t *tester,
   ten_shared_ptr_t *hello_world_cmd = ten_cmd_create("hello_world", nullptr);
   TEN_ASSERT(hello_world_cmd, "Should not happen.");
 
-  ten_env_tester_send_cmd(ten_env, hello_world_cmd,
-                          hello_world_cmd_result_handler, test_info);
+  bool rc = ten_env_tester_send_cmd(ten_env, hello_world_cmd,
+                                    hello_world_cmd_result_handler, test_info);
+
+  if (rc) {
+    ten_shared_ptr_destroy(hello_world_cmd);
+  }
 }
 
 void ten_extension_tester_on_cmd(TEN_UNUSED ten_extension_tester_t *tester,
@@ -95,11 +99,11 @@ void ten_extension_tester_on_cmd(TEN_UNUSED ten_extension_tester_t *tester,
 
 }  // namespace
 
-TEST(StandaloneTest, OnCmd) {  // NOLINT
+TEST(StandaloneTest, OnCmdC) {  // NOLINT
   ten_extension_tester_t *tester = ten_extension_tester_create(
       ten_extension_tester_on_start, ten_extension_tester_on_cmd);
   ten_extension_tester_add_addon(tester,
-                                 "standalone_test_on_cmd__test_extension_1");
+                                 "standalone_test_on_cmd_c__test_extension_1");
 
   ten_extension_tester_run(tester);
 

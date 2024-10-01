@@ -23,3 +23,11 @@ TEN_RUNTIME_API ten_extension_tester_t *ten_extension_tester_create(
     ten_extension_tester_on_cmd_func_t on_cmd);
 
 TEN_RUNTIME_API void ten_extension_tester_destroy(ten_extension_tester_t *self);
+
+TEN_RUNTIME_API void ten_extension_tester_add_addon(
+    ten_extension_tester_t *self, const char *addon_name);
+
+TEN_RUNTIME_API void ten_extension_tester_run(ten_extension_tester_t *self);
+
+TEN_RUNTIME_API ten_env_tester_t *ten_extension_tester_get_ten_env_tester(
+    ten_extension_tester_t *self);

@@ -6,6 +6,11 @@
 //
 #pragma once
 
+#include <memory>
+
+#include "ten_runtime/binding/common.h"
+#include "ten_runtime/binding/cpp/internal/msg/cmd/cmd.h"
+#include "ten_runtime/binding/cpp/internal/test/ten_env_tester.h"
 #include "ten_runtime/test/extension_tester.h"
 #include "ten_utils/macro/check.h"
 
@@ -16,6 +21,9 @@ class extension_tester_t {
   virtual ~extension_tester_t() {
     TEN_ASSERT(c_extension_tester, "Should not happen.");
     ten_extension_tester_destroy(c_extension_tester);
+
+    TEN_ASSERT(cpp_ten_env_tester, "Should not happen.");
+    delete cpp_ten_env_tester;
   }
 
   // @{
@@ -24,6 +32,19 @@ class extension_tester_t {
   extension_tester_t &operator=(const extension_tester_t &) = delete;
   extension_tester_t &operator=(const extension_tester_t &&) = delete;
   // @}
+
+  void add_addon(const char *addon_name) {
+    TEN_ASSERT(addon_name, "Invalid argument.");
+    ten_extension_tester_add_addon(c_extension_tester, addon_name);
+  }
+
+  void run(error_t *err = nullptr) {
+    if (c_extension_tester == nullptr) {
+      return;
+    }
+
+    ten_extension_tester_run(c_extension_tester);
+  }
 
  protected:
   explicit extension_tester_t()
@@ -37,13 +58,17 @@ class extension_tester_t {
     ten_binding_handle_set_me_in_target_lang(
         reinterpret_cast<ten_binding_handle_t *>(c_extension_tester),
         static_cast<void *>(this));
+
+    cpp_ten_env_tester = new ten_env_tester_t(
+        ten_extension_tester_get_ten_env_tester(c_extension_tester));
+    TEN_ASSERT(cpp_ten_env_tester, "Should not happen.");
   }
 
-  virtual void on_start(ten_env_tester_t &cpp_ten_env_tester) {
-    cpp_ten_env_tester.on_start_done();
+  virtual void on_start(ten_env_tester_t &ten_env_tester) {
+    ten_env_tester.on_start_done();
   }
 
-  virtual void on_cmd(ten_env_tester_t &cpp_ten_env_tester,
+  virtual void on_cmd(ten_env_tester_t &ten_env_tester,
                       std::unique_ptr<cmd_t> cmd) {}
 
  private:
@@ -53,15 +78,15 @@ class extension_tester_t {
   }
 
   static void proxy_on_start(ten_extension_tester_t *tester,
-                             ::ten_env_tester_t *cpp_ten_env_tester) {
-    TEN_ASSERT(tester && cpp_ten_env_tester, "Should not happen.");
+                             ::ten_env_tester_t *c_ten_env_tester) {
+    TEN_ASSERT(tester && c_ten_env_tester, "Should not happen.");
 
     auto *cpp_extension_tester = static_cast<extension_tester_t *>(
         ten_binding_handle_get_me_in_target_lang(
             reinterpret_cast<ten_binding_handle_t *>(tester)));
     auto *cpp_ten_env_tester = static_cast<ten_env_tester_t *>(
         ten_binding_handle_get_me_in_target_lang(
-            reinterpret_cast<ten_binding_handle_t *>(cpp_ten_env_tester)));
+            reinterpret_cast<ten_binding_handle_t *>(c_ten_env_tester)));
 
     cpp_extension_tester->invoke_cpp_extension_tester_on_start(
         *cpp_ten_env_tester);
@@ -72,21 +97,23 @@ class extension_tester_t {
     on_cmd(cpp_ten_env_tester, std::move(cmd));
   }
 
-  static void proxy_on_cmd(ten_extension_tester_t *tester,
-                           ::ten_env_tester_t *ten_env, ten_shared_ptr_t *cmd) {
-    TEN_ASSERT(tester && ten_env && cmd, "Should not happen.");
+  static void proxy_on_cmd(ten_extension_tester_t *extension_tester,
+                           ::ten_env_tester_t *c_ten_env_tester,
+                           ten_shared_ptr_t *cmd) {
+    TEN_ASSERT(extension_tester && c_ten_env_tester && cmd,
+               "Should not happen.");
 
     auto *cpp_extension_tester = static_cast<extension_tester_t *>(
         ten_binding_handle_get_me_in_target_lang(
-            reinterpret_cast<ten_binding_handle_t *>(tester)));
+            reinterpret_cast<ten_binding_handle_t *>(extension_tester)));
     auto *cpp_ten_env_tester = static_cast<ten_env_tester_t *>(
         ten_binding_handle_get_me_in_target_lang(
-            reinterpret_cast<ten_binding_handle_t *>(ten_env)));
+            reinterpret_cast<ten_binding_handle_t *>(c_ten_env_tester)));
 
     // Clone a C shared_ptr to be owned by the C++ instance.
     cmd = ten_shared_ptr_clone(cmd);
 
-    cmd_t *cpp_cmd_ptr = new cmd_t(cmd);
+    auto *cpp_cmd_ptr = new cmd_t(cmd);
     auto cpp_cmd_unique_ptr = std::unique_ptr<cmd_t>(cpp_cmd_ptr);
 
     cpp_extension_tester->invoke_cpp_extension_on_cmd(
@@ -94,6 +121,7 @@ class extension_tester_t {
   }
 
   ::ten_extension_tester_t *c_extension_tester;
+  ten_env_tester_t *cpp_ten_env_tester;
 };
 
 }  // namespace ten

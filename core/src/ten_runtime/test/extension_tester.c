@@ -333,3 +333,11 @@ void ten_extension_tester_run(ten_extension_tester_t *self) {
   // Start the runloop of tester.
   ten_runloop_run(self->tester_runloop);
 }
+
+ten_env_tester_t *ten_extension_tester_get_ten_env_tester(
+    ten_extension_tester_t *self) {
+  TEN_ASSERT(self && ten_extension_tester_check_integrity(self, true),
+             "Invalid argument.");
+
+  return self->ten_env_tester;
+}

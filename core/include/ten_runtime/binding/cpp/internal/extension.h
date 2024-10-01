@@ -90,7 +90,7 @@ class extension_t {
         reinterpret_cast<ten_binding_handle_t *>(c_extension),
         static_cast<void *>(this));
 
-    cpp_ten_env = new ten_env_t(ten_extension_get_ten(c_extension));
+    cpp_ten_env = new ten_env_t(ten_extension_get_ten_env(c_extension));
     TEN_ASSERT(cpp_ten_env, "Should not happen.");
   }
 
