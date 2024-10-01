@@ -25,7 +25,7 @@ jobs:
         compiler: [gcc, clang]
         build_type: [debug, release]
     container:
-      image: ghcr.io/ten-framework/ten_building_ubuntu2204
+      image: ghcr.io/wangyoucao577/ten_building_ubuntu2204:feature-arm64
     steps:
       - uses: actions/checkout@v4
         with:
