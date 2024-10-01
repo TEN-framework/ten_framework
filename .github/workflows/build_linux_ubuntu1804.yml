@@ -26,7 +26,7 @@ jobs:
       matrix:
         build_type: [release]
     container:
-      image: ghcr.io/wangyoucao577/ten_building_ubuntu1804:feature-arm64
+      image: ghcr.io/wangyoucao577/ten_building_ubuntu1804:202410011455443d0769
     steps:
       - uses: actions/checkout@v3
         with:
