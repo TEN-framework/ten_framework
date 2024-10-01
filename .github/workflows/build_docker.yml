@@ -32,6 +32,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
           registry: ghcr.io
           workdir: ${{ matrix.workdir }}
+          platforms: linux/amd64
           snapshot: true
           tags: "${{ github.ref == 'refs/heads/main' && 'latest,' || '' }}"
 
