@@ -551,6 +551,7 @@ static const char *ten_addon_type_to_string(TEN_ADDON_TYPE type) {
   }
 }
 
+// =-=-= 这个还有需要吗?
 void ten_addon_host_set_base_dir(ten_addon_host_t *self, ten_app_t *app,
                                  ten_string_t *base_dir) {
   TEN_ASSERT(self && ten_addon_host_check_integrity(self), "Invalid argument.");
