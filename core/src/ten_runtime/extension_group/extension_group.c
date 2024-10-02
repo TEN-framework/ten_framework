@@ -299,9 +299,3 @@ size_t ten_extension_group_decrement_extension_cnt_of_being_destroyed(
 
   return --self->extensions_cnt_of_being_destroyed;
 }
-
-ten_string_t *ten_extension_group_get_base_dir(ten_extension_group_t *self) {
-  TEN_ASSERT(self && ten_extension_group_check_integrity(self, true),
-             "Invalid argument.");
-  return &self->base_dir;
-}

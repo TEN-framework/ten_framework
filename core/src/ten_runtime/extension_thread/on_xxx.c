@@ -17,6 +17,7 @@
 #include "include_internal/ten_runtime/extension/msg_handling.h"
 #include "include_internal/ten_runtime/extension/path_timer.h"
 #include "include_internal/ten_runtime/extension_context/extension_context.h"
+#include "include_internal/ten_runtime/extension_group/base_dir.h"
 #include "include_internal/ten_runtime/extension_group/extension_group.h"
 #include "include_internal/ten_runtime/extension_group/metadata.h"
 #include "include_internal/ten_runtime/extension_group/on_xxx.h"

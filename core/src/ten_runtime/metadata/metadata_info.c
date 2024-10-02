@@ -13,6 +13,7 @@
 #include "include_internal/ten_runtime/app/base_dir.h"
 #include "include_internal/ten_runtime/extension/base_dir.h"
 #include "include_internal/ten_runtime/extension/extension.h"
+#include "include_internal/ten_runtime/extension_group/base_dir.h"
 #include "include_internal/ten_runtime/extension_group/extension_group.h"
 #include "include_internal/ten_runtime/extension_group/on_xxx.h"
 #include "include_internal/ten_runtime/metadata/default/default.h"

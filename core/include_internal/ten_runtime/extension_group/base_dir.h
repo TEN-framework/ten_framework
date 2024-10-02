@@ -10,10 +10,10 @@
 
 #include "ten_utils/lib/string.h"
 
-typedef struct ten_extension_t ten_extension_t;
+typedef struct ten_extension_group_t ten_extension_group_t;
 
-TEN_RUNTIME_PRIVATE_API ten_string_t *ten_extension_get_base_dir(
-    ten_extension_t *self);
+TEN_RUNTIME_PRIVATE_API ten_string_t *ten_extension_group_get_base_dir(
+    ten_extension_group_t *self);
 
-TEN_RUNTIME_PRIVATE_API void ten_extension_find_and_set_base_dir(
-    ten_extension_t *self);
+TEN_RUNTIME_PRIVATE_API void ten_extension_group_find_and_set_base_dir(
+    ten_extension_group_t *self);

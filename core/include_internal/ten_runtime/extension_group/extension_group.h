@@ -105,9 +105,6 @@ TEN_RUNTIME_PRIVATE_API void ten_extension_group_on_deinit_done(
 TEN_RUNTIME_PRIVATE_API void ten_extension_group_on_destroy_extensions_done(
     ten_extension_group_t *self);
 
-TEN_RUNTIME_PRIVATE_API ten_string_t *ten_extension_group_get_base_dir(
-    ten_extension_group_t *self);
-
 TEN_RUNTIME_PRIVATE_API void ten_extension_group_on_create_extensions_done(
     ten_extension_group_t *self, ten_list_t *extensions);
 

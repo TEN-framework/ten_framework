@@ -11,7 +11,7 @@
 #include "ten_utils/lib/path.h"
 #include "ten_utils/lib/string.h"
 
-ten_string_t *ten_extension_find_base_dir(const char *name) {
+static ten_string_t *ten_extension_find_base_dir(const char *name) {
   ten_string_t *extension_base_dir = NULL;
 
   ten_string_t *path =
@@ -37,4 +37,19 @@ ten_string_t *ten_extension_get_base_dir(ten_extension_t *self) {
   TEN_ASSERT(self && ten_extension_check_integrity(self, true),
              "Invalid argument.");
   return &self->base_dir;
+}
+
+void ten_extension_find_and_set_base_dir(ten_extension_t *self) {
+  TEN_ASSERT(self && ten_extension_check_integrity(self, true),
+             "Should not happen.");
+
+  ten_string_t *extension_base_dir =
+      ten_extension_find_base_dir(ten_string_get_raw_str(&self->name));
+  if (!extension_base_dir) {
+    TEN_LOGW("Failed to determine extension base directory.");
+    return;
+  }
+
+  ten_string_copy(&self->base_dir, extension_base_dir);
+  ten_string_destroy(extension_base_dir);
 }

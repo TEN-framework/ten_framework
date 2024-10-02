@@ -13,6 +13,7 @@
 #include "include_internal/ten_runtime/addon/addon.h"
 #include "include_internal/ten_runtime/common/loc.h"
 #include "include_internal/ten_runtime/engine/engine.h"
+#include "include_internal/ten_runtime/extension/base_dir.h"
 #include "include_internal/ten_runtime/extension/extension_info/extension_info.h"
 #include "include_internal/ten_runtime/extension/msg_dest_info/json.h"
 #include "include_internal/ten_runtime/extension/msg_dest_info/msg_dest_info.h"
@@ -969,13 +970,10 @@ void ten_extension_load_metadata(ten_extension_t *self) {
   if (self->addon_host) {
     // If the extension is created by an addon, then the base directory of the
     // extension can be set to `<app>/ten_packages/extension/<addon-name>`. And
-    // the `base_dir` must be set before `on_init()`, as the `property.json` and
-    // `manifest.json` under the `base_dir` might be loaded in the default
-    // behavior of `on_init()`, or users might want to know the value of
-    // `base_dir` in `on_init()`.
-    ten_addon_host_set_base_dir(self->addon_host,
-                                self->extension_context->engine->app,
-                                &self->base_dir);
+    // the `base_dir` must be set before `on_configure()`, as the
+    // `property.json` and `manifest.json` under the `base_dir` might be loaded
+    // in the default behavior of `on_configure_done()`.
+    ten_extension_find_and_set_base_dir(self);
   }
 
   ten_metadata_load(ten_extension_on_configure, self->ten_env);
