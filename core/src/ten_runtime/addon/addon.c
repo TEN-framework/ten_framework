@@ -12,8 +12,8 @@
 #include "include_internal/ten_runtime/addon/extension_group/extension_group.h"
 #include "include_internal/ten_runtime/addon/protocol/protocol.h"
 #include "include_internal/ten_runtime/app/app.h"
+#include "include_internal/ten_runtime/app/base_dir.h"
 #include "include_internal/ten_runtime/common/constant_str.h"
-#include "include_internal/ten_runtime/common/home.h"
 #include "include_internal/ten_runtime/extension/extension.h"
 #include "include_internal/ten_runtime/extension_group/extension_group.h"
 #include "include_internal/ten_runtime/metadata/metadata_info.h"
@@ -583,7 +583,7 @@ void ten_addon_host_set_base_dir(ten_addon_host_t *self, ten_app_t *app,
 ten_string_t *ten_addon_host_get_base_dir(ten_addon_host_t *self) {
   TEN_ASSERT(self && ten_addon_host_check_integrity(self), "Invalid argument.");
 
-  ten_string_t *base_dir = ten_get_app_base_dir();
+  ten_string_t *base_dir = ten_app_find_base_dir();
   if (!base_dir) {
     return NULL;
   }

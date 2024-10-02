@@ -6,8 +6,9 @@
 #include <cstring>
 #include <string>
 
-#include "include_internal/ten_runtime/app/base_dir.h"
 #include "include_internal/ten_runtime/binding/python/common.h"
+#include "include_internal/ten_runtime/common/base_dir.h"
+#include "include_internal/ten_runtime/common/constant_str.h"
 #include "ten_runtime/binding/cpp/internal/ten_env.h"
 #include "ten_runtime/binding/cpp/ten.h"
 #include "ten_utils/container/list_str.h"
@@ -207,7 +208,7 @@ class py_init_addon_t : public ten::addon_t {
         ten_path_get_module_path(reinterpret_cast<const void *>(foo));
     TEN_ASSERT(module_path, "Failed to get module path.");
 
-    ten_app_find_base_dir(module_path, &app_base_dir);
+    ten_find_base_dir(module_path, TEN_STR_APP, nullptr, &app_base_dir);
     ten_string_destroy(module_path);
   }
 

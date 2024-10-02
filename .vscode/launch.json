@@ -419,11 +419,12 @@
       "name": "app (C/C++) (lldb, launch)",
       "type": "lldb",
       "request": "launch",
-      "program": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/cpp/asr_xf_nrt/asr_xf_nrt_app/bin/asr_xf_nrt_app_source",
+      "program": "${workspaceFolder}/tests/ten_runtime/integration/cpp/standalone_test/default_extension_cpp/out/linux/x64/tests/standalone/default_extension_cpp_test",
       "args": [],
-      "cwd": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/cpp/asr_xf_nrt/asr_xf_nrt_app/",
+      "cwd": "${workspaceFolder}/tests/ten_runtime/integration/cpp/standalone_test/default_extension_cpp/",
       "env": {
         "ASAN_OPTIONS": "use_sigaltstack=0",
+        "LD_LIBRARY_PATH": "out/linux/x64/ten_packages/system/ten_runtime/lib/"
       },
     },
     {

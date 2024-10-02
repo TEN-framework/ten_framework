@@ -6,6 +6,7 @@
 //
 #include "include_internal/ten_runtime/addon/addon_autoload.h"
 #include "include_internal/ten_runtime/app/app.h"
+#include "include_internal/ten_runtime/app/base_dir.h"
 #include "include_internal/ten_runtime/app/close.h"
 #include "include_internal/ten_runtime/app/endpoint.h"
 #include "include_internal/ten_runtime/app/engine_interface.h"
@@ -88,7 +89,8 @@ static void ten_app_on_configure_done_internal(ten_app_t *self) {
                           strlen(TEN_STR_LOCALHOST));
   }
 
-  ten_addon_load_all(&err);
+  ten_addon_load_all_from_app_base_dir(self, &err);
+  ten_addon_load_all_from_ten_package_base_dirs(self, &err);
 
   if (!ten_app_get_predefined_graphs_from_property(self)) {
     return;

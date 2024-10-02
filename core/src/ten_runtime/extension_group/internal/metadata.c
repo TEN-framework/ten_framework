@@ -22,7 +22,7 @@ void ten_extension_group_load_metadata(ten_extension_group_t *self) {
                  ten_extension_group_check_integrity(self, true),
              "Should not happen.");
 
-  TEN_LOGD("[%s] Load metadata.", ten_extension_group_get_name(self));
+  TEN_LOGD("[%s] Load metadata.", ten_extension_group_get_name(self, true));
 
   if (self->addon_host) {
     // If the extension group is created by an addon, then the base directory of

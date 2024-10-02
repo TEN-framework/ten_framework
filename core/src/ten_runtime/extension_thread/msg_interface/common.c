@@ -250,7 +250,7 @@ void ten_extension_thread_dispatch_msg(ten_extension_thread_t *self,
   ten_app_t *app = engine->app;
   TEN_ASSERT(app && ten_app_check_integrity(app, false), "Should not happen.");
 
-  if (!ten_string_is_equal(&dest_loc->app_uri, ten_app_get_uri(app))) {
+  if (!ten_string_is_equal_c_str(&dest_loc->app_uri, ten_app_get_uri(app))) {
     TEN_ASSERT(!ten_string_is_empty(&dest_loc->app_uri), "Should not happen.");
 
     // Because the remote might be added or deleted at runtime, so ask the

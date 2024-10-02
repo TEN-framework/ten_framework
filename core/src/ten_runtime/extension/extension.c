@@ -164,7 +164,7 @@ void ten_extension_destroy(ten_extension_t *self) {
   TEN_ASSERT(self->ten_env, "Should not happen.");
 
   // TODO(xilin): Make sure the thread safety.
-  // TEN_LOGD("[%s] Destroyed.", ten_extension_get_name(self));
+  // TEN_LOGD("[%s] Destroyed.", ten_extension_get_name(self, true));
 
   ten_sanitizer_thread_check_deinit(&self->thread_check);
   ten_signature_set(&self->signature, 0);
@@ -220,7 +220,7 @@ static bool ten_extension_check_if_msg_dests_have_msg_names(
                                                     ten_string_is_equal);
     if (node) {
       TEN_ASSERT(0, "Extension (%s) has duplicated msg name (%s) in dest info.",
-                 ten_extension_get_name(self),
+                 ten_extension_get_name(self, true),
                  ten_string_get_raw_str(&msg_dest->name));
       return true;
     }
@@ -558,7 +558,7 @@ static TEN_EXTENSION_DETERMINE_OUT_MSGS_RESULT ten_extension_determine_out_msgs(
         // Find the destinations of a cmd result from the path table.
         if (!in_path) {
           TEN_LOGD("[%s] IN path is missing, discard cmd result.",
-                   ten_extension_get_name(self));
+                   ten_extension_get_name(self, true));
 
           return TEN_EXTENSION_DETERMINE_OUT_MSGS_DROPPING;
         }
@@ -645,7 +645,7 @@ bool ten_extension_handle_out_msg(ten_extension_t *self, ten_shared_ptr_t *msg,
     in_path = ten_path_table_set_result(self->path_table, TEN_PATH_IN, msg);
     if (!in_path) {
       TEN_LOGD("[%s] IN path is missing, discard cmd result.",
-               ten_extension_get_name(self));
+               ten_extension_get_name(self, true));
       return true;
     }
 
@@ -760,7 +760,7 @@ static void ten_extension_on_configure(ten_env_t *ten_env) {
   TEN_ASSERT(ten_extension_check_integrity(self, true),
              "Invalid use of extension %p.", self);
 
-  TEN_LOGD("[%s] on_configure().", ten_extension_get_name(self));
+  TEN_LOGD("[%s] on_configure().", ten_extension_get_name(self, true));
 
   self->manifest_info =
       ten_metadata_info_create(TEN_METADATA_ATTACH_TO_MANIFEST, self->ten_env);
@@ -785,7 +785,7 @@ void ten_extension_on_init(ten_env_t *ten_env) {
   TEN_ASSERT(ten_extension_check_integrity(self, true),
              "Invalid use of extension %p.", self);
 
-  TEN_LOGD("[%s] on_init().", ten_extension_get_name(self));
+  TEN_LOGD("[%s] on_init().", ten_extension_get_name(self, true));
 
   if (self->on_init) {
     self->on_init(self, self->ten_env);
@@ -831,7 +831,7 @@ void ten_extension_on_start(ten_extension_t *self) {
   TEN_ASSERT(ten_extension_check_integrity(self, true),
              "Invalid use of extension %p.", self);
 
-  TEN_LOGI("[%s] on_start().", ten_extension_get_name(self));
+  TEN_LOGI("[%s] on_start().", ten_extension_get_name(self, true));
 
   self->state = TEN_EXTENSION_STATE_ON_START;
 
@@ -856,7 +856,7 @@ void ten_extension_on_stop(ten_extension_t *self) {
   TEN_ASSERT(ten_extension_check_integrity(self, true),
              "Invalid use of extension %p.", self);
 
-  TEN_LOGI("[%s] on_stop().", ten_extension_get_name(self));
+  TEN_LOGI("[%s] on_stop().", ten_extension_get_name(self, true));
 
   if (self->on_stop) {
     self->on_stop(self, self->ten_env);
@@ -870,7 +870,7 @@ void ten_extension_on_deinit(ten_extension_t *self) {
   TEN_ASSERT(ten_extension_check_integrity(self, true),
              "Invalid use of extension %p.", self);
 
-  TEN_LOGD("[%s] on_deinit().", ten_extension_get_name(self));
+  TEN_LOGD("[%s] on_deinit().", ten_extension_get_name(self, true));
 
   self->state = TEN_EXTENSION_STATE_ON_DEINIT;
 
@@ -886,7 +886,7 @@ void ten_extension_on_cmd(ten_extension_t *self, ten_shared_ptr_t *msg) {
   TEN_ASSERT(ten_extension_check_integrity(self, true),
              "Invalid use of extension %p.", self);
 
-  TEN_LOGV("[%s] on_cmd(%s).", ten_extension_get_name(self),
+  TEN_LOGV("[%s] on_cmd(%s).", ten_extension_get_name(self, true),
            ten_msg_get_name(msg));
 
   if (self->on_cmd) {
@@ -906,7 +906,7 @@ void ten_extension_on_data(ten_extension_t *self, ten_shared_ptr_t *msg) {
   TEN_ASSERT(ten_extension_check_integrity(self, true),
              "Invalid use of extension %p.", self);
 
-  TEN_LOGV("[%s] on_data(%s).", ten_extension_get_name(self),
+  TEN_LOGV("[%s] on_data(%s).", ten_extension_get_name(self, true),
            ten_msg_get_name(msg));
 
   if (self->on_data) {
@@ -923,7 +923,7 @@ void ten_extension_on_video_frame(ten_extension_t *self,
   TEN_ASSERT(ten_extension_check_integrity(self, true),
              "Invalid use of extension %p.", self);
 
-  TEN_LOGV("[%s] on_video_frame(%s).", ten_extension_get_name(self),
+  TEN_LOGV("[%s] on_video_frame(%s).", ten_extension_get_name(self, true),
            ten_msg_get_name(msg));
 
   if (self->on_video_frame) {
@@ -940,7 +940,7 @@ void ten_extension_on_audio_frame(ten_extension_t *self,
   TEN_ASSERT(ten_extension_check_integrity(self, true),
              "Invalid use of extension %p.", self);
 
-  TEN_LOGV("[%s] on_audio_frame(%s).", ten_extension_get_name(self),
+  TEN_LOGV("[%s] on_audio_frame(%s).", ten_extension_get_name(self, true),
            ten_msg_get_name(msg));
 
   if (self->on_audio_frame) {
@@ -956,7 +956,7 @@ void ten_extension_load_metadata(ten_extension_t *self) {
   TEN_ASSERT(ten_extension_check_integrity(self, true),
              "Invalid use of extension %p.", self);
 
-  TEN_LOGD("[%s] Load metadata.", ten_extension_get_name(self));
+  TEN_LOGD("[%s] Load metadata.", ten_extension_get_name(self, true));
 
   // This function is safe to be called from the extension main threads, because
   // all the resources it accesses are not be modified after the app
@@ -1009,9 +1009,9 @@ ten_addon_host_t *ten_extension_get_addon(ten_extension_t *self) {
   return self->addon_host;
 }
 
-const char *ten_extension_get_name(ten_extension_t *self) {
+const char *ten_extension_get_name(ten_extension_t *self, bool check_thread) {
   TEN_ASSERT(self, "Invalid argument.");
-  TEN_ASSERT(ten_extension_check_integrity(self, true),
+  TEN_ASSERT(ten_extension_check_integrity(self, check_thread),
              "Invalid use of extension %p.", self);
 
   return ten_string_get_raw_str(&self->name);
@@ -1066,7 +1066,7 @@ bool ten_extension_validate_msg_schema(ten_extension_t *self,
       ten_msg_validate_schema(msg, &self->schema_store, is_msg_out, err);
   if (!validated) {
     TEN_LOGW("[%s] See %s %s::%s with invalid schema: %s.",
-             ten_extension_get_name(self), is_msg_out ? "out" : "in",
+             ten_extension_get_name(self, true), is_msg_out ? "out" : "in",
              ten_msg_get_type_string(msg), ten_msg_get_name(msg),
              ten_error_errmsg(err));
 

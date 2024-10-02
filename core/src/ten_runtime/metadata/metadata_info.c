@@ -10,6 +10,7 @@
 
 #include "include_internal/ten_runtime/addon/addon.h"
 #include "include_internal/ten_runtime/app/app.h"
+#include "include_internal/ten_runtime/app/base_dir.h"
 #include "include_internal/ten_runtime/extension/extension.h"
 #include "include_internal/ten_runtime/extension_group/extension_group.h"
 #include "include_internal/ten_runtime/extension_group/on_xxx.h"
@@ -160,9 +161,9 @@ static void ten_metadata_info_get_debug_display(ten_metadata_info_t *self,
       break;
 
     case TEN_ENV_ATTACH_TO_APP: {
-      ten_string_t *uri =
+      const char *uri =
           ten_app_get_uri(ten_env_get_attached_app(self->belonging_to));
-      ten_string_set_formatted(display, "app(%s)", ten_string_get_raw_str(uri));
+      ten_string_set_formatted(display, "app(%s)", uri);
       break;
     }
 
@@ -170,14 +171,14 @@ static void ten_metadata_info_get_debug_display(ten_metadata_info_t *self,
       ten_string_set_formatted(
           display, "extension_group(%s)",
           ten_extension_group_get_name(
-              ten_env_get_attached_extension_group(self->belonging_to)));
+              ten_env_get_attached_extension_group(self->belonging_to), true));
       break;
 
     case TEN_ENV_ATTACH_TO_EXTENSION:
       ten_string_set_formatted(
           display, "extension(%s)",
           ten_extension_get_name(
-              ten_env_get_attached_extension(self->belonging_to)));
+              ten_env_get_attached_extension(self->belonging_to), true));
       break;
 
     default:

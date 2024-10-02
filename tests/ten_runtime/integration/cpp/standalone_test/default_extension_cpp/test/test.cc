@@ -29,7 +29,11 @@ class extension_tester_1 : public ten::extension_tester_t {
 
 TEST(StandaloneTest, Basic) {  // NOLINT
   auto *tester = new extension_tester_1();
-  tester->add_addon("standalone_test_basic__test_extension_1");
+  tester->add_addon_base_dir(
+      "/home/wei/MyData/MyProject/ten_framework_internal_base/ten_framework/"
+      "tests/ten_runtime/integration/cpp/standalone_test/default_extension_cpp/"
+      "out/linux/x64/ten_packages/extension/default_extension_cpp/");
+  tester->add_addon_name("default_extension_cpp");
 
   tester->run();
 

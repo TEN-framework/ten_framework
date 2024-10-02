@@ -97,7 +97,7 @@ bool ten_extension_store_add_extension(ten_extension_store_t *self,
       &self->hash_table, ten_string_get_raw_str(&extension->name));
   if (found) {
     TEN_LOGE("Failed to have extension with name: %s",
-             ten_extension_get_name(extension));
+             ten_extension_get_name(extension, true));
     result = false;
     goto done;
   }
