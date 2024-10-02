@@ -25,7 +25,7 @@ jobs:
         compiler: [gcc, clang]
         build_type: [debug, release]
     container:
-      image: ghcr.io/wangyoucao577/ten_building_ubuntu2204:20241001154247eaf8e6
+      image: ghcr.io/wangyoucao577/ten_building_ubuntu2204:feature-arm64
     steps:
       - uses: actions/checkout@v4
         with:
@@ -160,7 +160,7 @@ jobs:
       - name: Build
         uses: addnab/docker-run-action@v3
         with:
-          image: ghcr.io/wangyoucao577/ten_building_ubuntu2204:20241001154247eaf8e6
+          image: ghcr.io/wangyoucao577/ten_building_ubuntu2204:feature-arm64
           options: --platform linux/arm64 --workdir ${{ github.workspace }} -v ${{ github.workspace }}:${{ github.workspace }}
           shell: bash
           run: |
