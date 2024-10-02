@@ -140,3 +140,53 @@ jobs:
           files: |
             out/linux/x64/tman-linux-x64-${{ matrix.compiler }}-${{ matrix.build_type }}.zip
             out/linux/x64/ten_packages-linux-x64-${{ matrix.compiler }}-${{ matrix.build_type }}.zip
+
+
+  build-arm64:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        compiler: [gcc]
+        build_type: [release]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: "0"
+          submodules: "true"
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: arm64
+      - name: Build
+        uses: addnab/docker-run-action@v3
+        with:
+          image: ghcr.io/wangyoucao577/ten_building_ubuntu2204:202410011455443d0769
+          options: --platform linux/arm64 --workdir ${{ github.workspace }} -v ${{ github.workspace }}:${{ github.workspace }}
+          shell: bash
+          run: |
+            export PATH=$(pwd)/core/ten_gn:$PATH
+            echo $PATH
+            go env -w GOFLAGS="-buildvcs=false"
+            go1.20.12 download
+            rustup default nightly
+            tgn gen linux arm64 ${{ matrix.build_type }} -- is_clang=${{ matrix.compiler == 'gcc' && 'false' || 'true' }} log_level=1 enable_serialized_actions=true ten_enable_test=false
+            tgn build linux arm64 ${{ matrix.build_type }}
+            tree -I 'gen|obj' out
+
+      - name: Upload tman
+        uses: actions/upload-artifact@v4
+        with:
+          name: tman-linux-arm64-${{ matrix.compiler }}-${{ matrix.build_type }}
+          path: out/linux/arm64/ten_manager/bin/tman
+
+      - name: Upload ten_packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: ten_packages-linux-arm64-${{ matrix.compiler }}-${{ matrix.build_type }}
+          path: |
+            out/linux/arm64/ten_packages/system
+            out/linux/arm64/ten_packages/extension_group
+            out/linux/arm64/ten_packages/extension/default_extension_cpp
+            out/linux/arm64/ten_packages/extension/default_extension_go
+            out/linux/arm64/ten_packages/extension/default_extension_python
+            out/linux/arm64/ten_packages/extension/py_init_extension_cpp
