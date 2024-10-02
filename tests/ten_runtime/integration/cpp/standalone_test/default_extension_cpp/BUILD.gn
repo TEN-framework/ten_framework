@@ -20,23 +20,25 @@ ten_package("default_extension_cpp") {
 }
 
 executable("default_extension_cpp_test") {
-  output_dir = "${root_out_dir}/tests/standalone"
+  output_dir = "${root_out_dir}/tests"
 
-  sources = [
-    "//third_party/googletest/src/gtest_main.cc",
-    "test/test.cc",
+  sources = [ "test/test.cc" ]
+
+  public_deps = [
+    "//third_party/googletest",
+    "//third_party/googletest:gtest_main",
   ]
 
-  public_deps = [ "//third_party/googletest" ]
-
-  include_dirs = [
-    ".ten/app/ten_packages/system/ten_runtime/include",
-    "//third_party/googletest/include",
-  ]
+  include_dirs = [ ".ten/app/ten_packages/system/ten_runtime/include" ]
 
   lib_dirs = [ ".ten/app/ten_packages/system/ten_runtime/lib" ]
   libs = [
     "ten_runtime",
     "ten_utils",
+  ]
+
+  ldflags = [
+    "-Wl,-rpath=\$ORIGIN",
+    "-Wl,-rpath=\$ORIGIN/../lib/",
   ]
 }
