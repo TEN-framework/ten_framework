@@ -7,6 +7,7 @@
 #include "include_internal/ten_runtime/common/base_dir.h"
 
 #include "include_internal/ten_runtime/common/constant_str.h"
+#include "include_internal/ten_runtime/extension/extension.h"
 #include "ten_utils/lib/path.h"
 #include "ten_utils/lib/string.h"
 
@@ -30,4 +31,10 @@ ten_string_t *ten_extension_find_base_dir(const char *name) {
 
   ten_path_to_system_flavor(extension_base_dir);
   return extension_base_dir;
+}
+
+ten_string_t *ten_extension_get_base_dir(ten_extension_t *self) {
+  TEN_ASSERT(self && ten_extension_check_integrity(self, true),
+             "Invalid argument.");
+  return &self->base_dir;
 }

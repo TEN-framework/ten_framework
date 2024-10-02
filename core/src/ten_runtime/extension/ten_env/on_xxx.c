@@ -7,6 +7,7 @@
 #include "include_internal/ten_runtime/extension/on_xxx.h"
 
 #include "include_internal/ten_runtime/common/loc.h"
+#include "include_internal/ten_runtime/extension/base_dir.h"
 #include "include_internal/ten_runtime/extension/close.h"
 #include "include_internal/ten_runtime/extension/extension.h"
 #include "include_internal/ten_runtime/extension/metadata.h"
@@ -19,7 +20,6 @@
 #include "include_internal/ten_runtime/metadata/metadata_info.h"
 #include "include_internal/ten_runtime/ten_env/ten_env.h"
 #include "include_internal/ten_runtime/timer/timer.h"
-#include "ten_utils/lib/alloc.h"
 #include "ten_utils/macro/check.h"
 
 static bool ten_extension_parse_interface_schema(ten_extension_t *self,

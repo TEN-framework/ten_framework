@@ -966,17 +966,16 @@ void ten_extension_load_metadata(ten_extension_t *self) {
   TEN_ASSERT(ten_extension_thread_check_integrity(extension_thread, true),
              "Invalid use of extension_thread %p.", extension_thread);
 
-  if (self->addon_host) {
-    // If the extension is created by an addon, then the base directory of the
-    // extension can be set to `<app>/ten_packages/extension/<addon-name>`. And
-    // the `base_dir` must be set before `on_init()`, as the `property.json` and
-    // `manifest.json` under the `base_dir` might be loaded in the default
-    // behavior of `on_init()`, or users might want to know the value of
-    // `base_dir` in `on_init()`.
-    ten_addon_host_set_base_dir(self->addon_host,
-                                self->extension_context->engine->app,
-                                &self->base_dir);
-  }
+  // if (self->addon_host) {
+  // If the extension is created by an addon, then the base directory of the
+  // extension can be set to `<app>/ten_packages/extension/<addon-name>`. And
+  // the `base_dir` must be set before `on_init()`, as the `property.json` and
+  // `manifest.json` under the `base_dir` might be loaded in the default
+  // behavior of `on_init()`, or users might want to know the value of
+  // `base_dir` in `on_init()`.
+  ten_addon_host_set_base_dir(
+      self->addon_host, self->extension_context->engine->app, &self->base_dir);
+  // }
 
   ten_metadata_load(ten_extension_on_configure, self->ten_env);
 }
@@ -1047,12 +1046,6 @@ ten_path_in_t *ten_extension_get_cmd_return_path_from_itself(
   }
 
   return ten_ptr_listnode_get(returned_node);
-}
-
-ten_string_t *ten_extension_get_base_dir(ten_extension_t *self) {
-  TEN_ASSERT(self && ten_extension_check_integrity(self, true),
-             "Invalid argument.");
-  return &self->base_dir;
 }
 
 bool ten_extension_validate_msg_schema(ten_extension_t *self,

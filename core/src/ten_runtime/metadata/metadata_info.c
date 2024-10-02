@@ -11,6 +11,7 @@
 #include "include_internal/ten_runtime/addon/addon.h"
 #include "include_internal/ten_runtime/app/app.h"
 #include "include_internal/ten_runtime/app/base_dir.h"
+#include "include_internal/ten_runtime/extension/base_dir.h"
 #include "include_internal/ten_runtime/extension/extension.h"
 #include "include_internal/ten_runtime/extension_group/extension_group.h"
 #include "include_internal/ten_runtime/extension_group/on_xxx.h"

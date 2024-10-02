@@ -78,7 +78,7 @@ void ten_find_base_dir(ten_string_t *start_path, const char *type,
     ten_string_destroy(manifest_path);
 
     ten_string_t *next_parent = ten_path_get_dirname(parent_path);
-    if (ten_string_is_equal(parent_path, next_parent)) {
+    if (!next_parent || ten_string_is_equal(parent_path, next_parent)) {
       // No more parent folders.
       ten_string_destroy(parent_path);
       ten_string_destroy(next_parent);
