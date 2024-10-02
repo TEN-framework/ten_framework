@@ -10,7 +10,6 @@
 
 #include "ten_utils/lib/string.h"
 
-TEN_RUNTIME_PRIVATE_API void ten_find_base_dir(ten_string_t *start_path,
-                                               const char *type,
-                                               const char *name,
-                                               ten_string_t **base_dir);
+TEN_RUNTIME_API void ten_find_base_dir(ten_string_t *start_path,
+                                       const char *type, const char *name,
+                                       ten_string_t **base_dir);
