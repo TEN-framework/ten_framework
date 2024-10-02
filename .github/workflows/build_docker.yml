@@ -12,36 +12,16 @@ env:
   IMAGE_NAME_PREFIX: ten_building_
 
 jobs:
-  build-amd64:
+  build:
     strategy:
       matrix:
         include:
           - image_name: "ubuntu2204"
             workdir: "tools/docker_for_building/ubuntu/22.04"
+            platforms: linux/amd64,linux/arm64
           - image_name: "ubuntu1804"
             workdir: "tools/docker_for_building/ubuntu/18.04"
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Build & Publish to Github Container Registry
-        uses: elgohr/Publish-Docker-Github-Action@v5
-        with:
-          name: ${{ github.repository_owner }}/${{ env.IMAGE_NAME_PREFIX }}${{ matrix.image_name }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-          registry: ghcr.io
-          workdir: ${{ matrix.workdir }}
-          platforms: linux/amd64
-          snapshot: true
-          tags: "${{ github.ref == 'refs/heads/main' && 'latest,' || '' }}"
-
-  build-arm64:
-    strategy:
-      matrix:
-        include:
-          - image_name: "ubuntu2204"
-            workdir: "tools/docker_for_building/ubuntu/22.04"
+            platforms: linux/amd64
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -56,6 +36,6 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
           registry: ghcr.io
           workdir: ${{ matrix.workdir }}
-          platforms: linux/arm64
+          platforms: ${{ matrix.platforms }}
           snapshot: true
           tags: "${{ github.ref == 'refs/heads/main' && 'latest,' || '' }}"
