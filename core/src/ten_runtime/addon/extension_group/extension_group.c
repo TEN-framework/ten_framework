@@ -42,8 +42,6 @@ ten_addon_host_t *ten_addon_register_extension_group(const char *name,
 
   ten_addon_register(ten_extension_group_get_store(), addon_host, name,
                      base_dir, addon);
-  TEN_LOGI("Registered addon '%s' as extension group",
-           ten_string_get_raw_str(&addon_host->name));
 
   return addon_host;
 }

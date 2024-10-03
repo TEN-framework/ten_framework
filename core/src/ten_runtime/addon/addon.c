@@ -165,6 +165,20 @@ static void ten_addon_load_metadata(ten_addon_host_t *self, ten_env_t *ten_env,
   }
 }
 
+static const char *ten_addon_type_to_string(TEN_ADDON_TYPE type) {
+  switch (type) {
+    case TEN_ADDON_TYPE_EXTENSION:
+      return TEN_STR_EXTENSION;
+    case TEN_ADDON_TYPE_EXTENSION_GROUP:
+      return TEN_STR_EXTENSION_GROUP;
+    case TEN_ADDON_TYPE_PROTOCOL:
+      return TEN_STR_PROTOCOL;
+    default:
+      TEN_ASSERT(0, "Should not happen.");
+      return NULL;
+  }
+}
+
 /**
  * @brief The registration flow of an addon is as follows.
  *
@@ -181,8 +195,6 @@ void ten_addon_register(ten_addon_store_t *addon_store,
   TEN_ASSERT(!addon_host->ten_env, "Invalid argument.");
   TEN_ASSERT(name, "Should not happen.");
 
-  TEN_LOGD("Register addon: %s", name);
-
   addon_host->addon = addon;
   addon_host->store = addon_store;
   addon_host->ten_env = ten_env_create();
@@ -198,6 +210,9 @@ void ten_addon_register(ten_addon_store_t *addon_store,
     TEN_LOGI("Addon %s base_dir: %s", name, base_dir);
     ten_addon_find_and_set_base_dir(addon_host, base_dir);
   }
+
+  TEN_LOGD("Register addon: %s as %s", name,
+           ten_addon_type_to_string(addon_host->type));
 
   ten_addon_load_metadata(addon_host, addon_host->ten_env,
                           addon_host->addon->on_init);
@@ -569,20 +584,6 @@ ten_string_t *ten_addon_find_base_dir_from_app(const char *addon_type,
   }
 
   return NULL;
-}
-
-static const char *ten_addon_type_to_string(TEN_ADDON_TYPE type) {
-  switch (type) {
-    case TEN_ADDON_TYPE_EXTENSION:
-      return TEN_STR_EXTENSION;
-    case TEN_ADDON_TYPE_EXTENSION_GROUP:
-      return TEN_STR_EXTENSION_GROUP;
-    case TEN_ADDON_TYPE_PROTOCOL:
-      return TEN_STR_PROTOCOL;
-    default:
-      TEN_ASSERT(0, "Should not happen.");
-      return NULL;
-  }
 }
 
 void ten_addon_find_and_set_base_dir(ten_addon_host_t *self,

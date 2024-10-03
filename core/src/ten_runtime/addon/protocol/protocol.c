@@ -47,8 +47,6 @@ void ten_addon_register_protocol(const char *name, const char *base_dir,
 
   ten_addon_register(ten_protocol_get_store(), addon_host, name, base_dir,
                      addon);
-  TEN_LOGI("Registered addon '%s' as protocol.",
-           ten_string_get_raw_str(&addon_host->name));
 }
 
 static bool ten_addon_protocol_match_protocol(ten_addon_host_t *self,

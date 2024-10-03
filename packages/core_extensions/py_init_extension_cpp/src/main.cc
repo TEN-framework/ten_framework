@@ -217,6 +217,12 @@ class py_init_addon_t : public ten::addon_t {
   // <app_root>/ten_packages/system/ten_runtime_python/lib
   // <app_root>/ten_packages/system/ten_runtime_python/interface
   // <app_root>
+  //
+  // The reason for adding `<app_root>` to `sys.path` is that when using
+  // `PyImport_Import` to load Python packages under `ten_packages/`, the module
+  // name used will be in the form of `ten_packages.extensions.xxx`. Therefore,
+  // `<app_root>` must be in `sys.path` to ensure that `ten_packages` can be
+  // located.
   void complete_sys_path() {
     ten_list_t paths;
     ten_list_init(&paths);

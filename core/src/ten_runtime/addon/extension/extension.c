@@ -194,16 +194,12 @@ ten_addon_host_t *ten_addon_register_extension(const char *name,
 
   ten_addon_register(ten_extension_get_store(), addon_host, name, base_dir,
                      addon);
-  TEN_LOGI("Registered addon '%s' as extension",
-           ten_string_get_raw_str(&addon_host->name));
 
   return addon_host;
 }
 
 ten_addon_t *ten_addon_unregister_extension(const char *name) {
   TEN_ASSERT(name, "Should not happen.");
-
-  TEN_LOGV("Unregistered addon of extension '%s'.", name);
 
   return ten_addon_unregister(ten_extension_get_store(), name);
 }
