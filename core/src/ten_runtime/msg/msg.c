@@ -803,7 +803,7 @@ void ten_msg_correct_dest(ten_shared_ptr_t *msg, ten_engine_t *engine) {
       // 'correct' the real destination location from 'localhost' to the real
       // URI of the app.
 
-      ten_string_copy_c_str(&dest_loc->app_uri, app_uri, strlen(app_uri));
+      ten_string_init_from_c_str(&dest_loc->app_uri, app_uri, strlen(app_uri));
       is_local_app = true;
     }
 

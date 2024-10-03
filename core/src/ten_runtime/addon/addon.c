@@ -210,8 +210,7 @@ void ten_addon_register(ten_addon_store_t *addon_store,
     TEN_LOGI("Addon %s base_dir: %s", name, base_dir);
     ten_addon_find_and_set_base_dir(addon_host, base_dir);
   }
-
-  TEN_LOGD("Register addon: %s as %s", name,
+  TEN_LOGI("Register addon: %s as %s", name,
            ten_addon_type_to_string(addon_host->type));
 
   ten_addon_load_metadata(addon_host, addon_host->ten_env,
@@ -601,7 +600,7 @@ void ten_addon_find_and_set_base_dir(ten_addon_host_t *self,
     // If the addon's base dir cannot be found by searching upward through the
     // parent folders, simply trust the passed-in parameter as the addon’s base
     // dir.
-    ten_string_copy_c_str(&self->base_dir, start_path, strlen(start_path));
+    ten_string_init_from_c_str(&self->base_dir, start_path, strlen(start_path));
   }
 }
 

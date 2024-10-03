@@ -297,7 +297,7 @@ bool ten_app_get_predefined_graphs_from_property(ten_app_t *self) {
       result = false;
       goto done;
     }
-    ten_string_copy_c_str(
+    ten_string_init_from_c_str(
         &predefined_graph_info->name,
         ten_value_peek_string(predefined_graph_info_name_value),
         strlen(ten_value_peek_string(predefined_graph_info_name_value)));
