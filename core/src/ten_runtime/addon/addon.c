@@ -181,7 +181,7 @@ void ten_addon_register(ten_addon_store_t *addon_store,
   TEN_ASSERT(!addon_host->ten_env, "Invalid argument.");
   TEN_ASSERT(name, "Should not happen.");
 
-  TEN_LOGD("Register addon base: %s", name);
+  TEN_LOGD("Register addon: %s", name);
 
   addon_host->addon = addon;
   addon_host->store = addon_store;
@@ -195,6 +195,7 @@ void ten_addon_register(ten_addon_store_t *addon_store,
   // require a base directory at all, so `NULL` might be passed as the base_dir
   // parameter value.
   if (base_dir) {
+    TEN_LOGI("Addon %s base_dir: %s", name, base_dir);
     ten_addon_find_and_set_base_dir(addon_host, base_dir);
   }
 

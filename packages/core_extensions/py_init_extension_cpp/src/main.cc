@@ -330,8 +330,8 @@ class py_init_addon_t : public ten::addon_t {
             ten_string_is_equal_c_str(short_name, ".."))) {
         // The full module name is "ten_packages.extension.<short_name>"
         ten_string_t *full_module_name = ten_string_create_formatted(
-            "ten_packages.extension.%s", short_name->buf);
-        ten_py_import_module(full_module_name->buf);
+            "ten_packages.extension.%s", ten_string_get_raw_str(short_name));
+        ten_py_import_module(ten_string_get_raw_str(full_module_name));
         ten_string_destroy(full_module_name);
       }
 
