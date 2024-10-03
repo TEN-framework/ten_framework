@@ -88,7 +88,7 @@ RUN wget --no-check-certificate -O - https://apt.llvm.org/llvm-snapshot.gpg.key 
   update-alternatives --install /usr/bin/clang-check clang-check /usr/bin/clang-check-18 100 && \
   update-alternatives --install /usr/bin/clangd clangd /usr/bin/clangd-18 100
 
-  # =======================================
+# =======================================
 # Install golang
 
 # /root/go is GOPATH.
