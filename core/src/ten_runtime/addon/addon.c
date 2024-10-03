@@ -13,6 +13,7 @@
 #include "include_internal/ten_runtime/addon/protocol/protocol.h"
 #include "include_internal/ten_runtime/app/app.h"
 #include "include_internal/ten_runtime/app/base_dir.h"
+#include "include_internal/ten_runtime/common/base_dir.h"
 #include "include_internal/ten_runtime/common/constant_str.h"
 #include "include_internal/ten_runtime/extension/extension.h"
 #include "include_internal/ten_runtime/extension_group/extension_group.h"
@@ -105,8 +106,10 @@ static void ten_addon_on_end_of_life(TEN_UNUSED ten_ref_t *ref,
 void ten_addon_host_init(ten_addon_host_t *self) {
   TEN_ASSERT(self, "Should not happen.");
 
-  ten_string_init(&self->name);
   ten_signature_set(&self->signature, TEN_ADDON_HOST_SIGNATURE);
+
+  ten_string_init(&self->name);
+  ten_string_init(&self->base_dir);
 
   ten_value_init_object_with_move(&self->manifest, NULL);
   ten_value_init_object_with_move(&self->property, NULL);
@@ -124,6 +127,7 @@ void ten_addon_host_destroy(ten_addon_host_t *self) {
   ten_signature_set(&self->signature, 0);
 
   ten_string_deinit(&self->name);
+  ten_string_deinit(&self->base_dir);
 
   ten_value_deinit(&self->manifest);
   ten_value_deinit(&self->property);
@@ -171,7 +175,7 @@ static void ten_addon_load_metadata(ten_addon_host_t *self, ten_env_t *ten_env,
  */
 void ten_addon_register(ten_addon_store_t *addon_store,
                         ten_addon_host_t *addon_host, const char *name,
-                        ten_addon_t *addon) {
+                        const char *base_dir, ten_addon_t *addon) {
   TEN_ASSERT(addon_host && ten_addon_host_check_integrity(addon_host),
              "Should not happen.");
   TEN_ASSERT(!addon_host->ten_env, "Invalid argument.");
@@ -185,8 +189,13 @@ void ten_addon_register(ten_addon_store_t *addon_store,
   ten_env_set_attach_to(addon_host->ten_env, TEN_ENV_ATTACH_TO_ADDON,
                         addon_host);
 
-  if (name) {
-    ten_string_set_formatted(&addon_host->name, "%s", name);
+  ten_string_set_formatted(&addon_host->name, "%s", name);
+
+  // In some special cases, such as built-in addons, their logic does not
+  // require a base directory at all, so `NULL` might be passed as the base_dir
+  // parameter value.
+  if (base_dir) {
+    ten_addon_find_and_set_base_dir(addon_host, base_dir);
   }
 
   ten_addon_load_metadata(addon_host, addon_host->ten_env,
@@ -537,6 +546,30 @@ const char *ten_addon_host_get_name(ten_addon_host_t *self) {
   return ten_string_get_raw_str(&self->name);
 }
 
+ten_string_t *ten_addon_find_base_dir_from_app(const char *addon_type,
+                                               const char *addon_name) {
+  TEN_ASSERT(
+      addon_type && strlen(addon_type) && addon_name && strlen(addon_name),
+      "Invalid argument.");
+
+  ten_string_t *base_dir = ten_find_app_base_dir();
+  if (!base_dir || ten_string_is_empty(base_dir)) {
+    return NULL;
+  }
+
+  ten_string_set_formatted(base_dir, "%s/%s/%s/%s",
+                           ten_string_get_raw_str(base_dir),
+                           TEN_STR_TEN_PACKAGES, addon_type, addon_name);
+  ten_path_to_system_flavor(base_dir);
+
+  if (!ten_path_exists(ten_string_get_raw_str(base_dir))) {
+    // Clear the `base_dir` to avoid users to use an invalid path.
+    ten_string_destroy(base_dir);
+  }
+
+  return NULL;
+}
+
 static const char *ten_addon_type_to_string(TEN_ADDON_TYPE type) {
   switch (type) {
     case TEN_ADDON_TYPE_EXTENSION:
@@ -551,48 +584,26 @@ static const char *ten_addon_type_to_string(TEN_ADDON_TYPE type) {
   }
 }
 
-// =-=-= 这个还有需要吗?
-void ten_addon_host_set_base_dir(ten_addon_host_t *self, ten_app_t *app,
-                                 ten_string_t *base_dir) {
-  TEN_ASSERT(self && ten_addon_host_check_integrity(self), "Invalid argument.");
+void ten_addon_find_and_set_base_dir(ten_addon_host_t *self,
+                                     const char *start_path) {
+  TEN_ASSERT(start_path && self && ten_addon_host_check_integrity(self),
+             "Should not happen.");
 
-  // TEN_NOLINTNEXTLINE(thread-check)
-  // thread-check: This function is called after an instance of an addon (ex:
-  // extension) is created, which means the app has already started. We only
-  // read the immutable variable `base_dir` from app here.
-  TEN_ASSERT(app && ten_app_check_integrity(app, false), "Invalid argument.");
-  TEN_ASSERT(base_dir && ten_string_check_integrity(base_dir),
-             "Invalid argument.");
-
-  ten_string_t *app_base_dir = ten_app_get_base_dir(app);
-  if (ten_string_is_empty(app_base_dir)) {
-    return;
-  }
-
-  ten_string_set_formatted(
-      base_dir, "%s/%s/%s/%s", ten_string_get_raw_str(app_base_dir),
-      TEN_STR_TEN_PACKAGES, ten_addon_type_to_string(self->type),
-      ten_string_get_raw_str(&self->name));
-  ten_path_to_system_flavor(base_dir);
-
-  if (!ten_path_exists(ten_string_get_raw_str(base_dir))) {
-    // Clear the `base_dir` to avoid users to use an invalid path.
-    ten_string_clear(base_dir);
+  ten_string_t *base_dir =
+      ten_find_base_dir(start_path, ten_addon_type_to_string(self->type),
+                        ten_string_get_raw_str(&self->name));
+  if (base_dir) {
+    ten_string_copy(&self->base_dir, base_dir);
+    ten_string_destroy(base_dir);
+  } else {
+    // If the addon's base dir cannot be found by searching upward through the
+    // parent folders, simply trust the passed-in parameter as the addon’s base
+    // dir.
+    ten_string_copy_c_str(&self->base_dir, start_path, strlen(start_path));
   }
 }
 
-ten_string_t *ten_addon_host_get_base_dir(ten_addon_host_t *self) {
+const char *ten_addon_host_get_base_dir(ten_addon_host_t *self) {
   TEN_ASSERT(self && ten_addon_host_check_integrity(self), "Invalid argument.");
-
-  ten_string_t *base_dir = ten_app_find_base_dir();
-  if (!base_dir) {
-    return NULL;
-  }
-
-  ten_string_append_formatted(base_dir, "/%s/%s/%s", TEN_STR_TEN_PACKAGES,
-                              ten_addon_type_to_string(self->type),
-                              ten_string_get_raw_str(&self->name));
-  ten_path_to_system_flavor(base_dir);
-
-  return base_dir;
+  return ten_string_get_raw_str(&self->base_dir);
 }

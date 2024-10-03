@@ -278,13 +278,13 @@ static ten_go_addon_t *ten_go_addon_register(const void *addon_name,
   switch (addon_type) {
     case TEN_ADDON_TYPE_EXTENSION:
       ten_addon_register_extension(
-          ten_string_get_raw_str(&addon_bridge->addon_name),
+          ten_string_get_raw_str(&addon_bridge->addon_name), NULL,
           &addon_bridge->c_addon);
       break;
 
     case TEN_ADDON_TYPE_EXTENSION_GROUP:
       ten_addon_register_extension_group(
-          ten_string_get_raw_str(&addon_bridge->addon_name),
+          ten_string_get_raw_str(&addon_bridge->addon_name), NULL,
           &addon_bridge->c_addon);
       break;
 

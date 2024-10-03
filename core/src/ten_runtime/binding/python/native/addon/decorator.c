@@ -59,6 +59,7 @@ static void ten_py_decorator_register_addon_destroy(PyObject *self) {
 static PyObject *ten_py_decorator_register_addon_call(
     ten_py_decorator_register_addon_t *self, PyObject *args,
     ten_addon_host_t *(*ten_addon_register)(const char *name,
+                                            const char *base_dir,
                                             ten_addon_t *addon)) {
   PyTypeObject *py_addon_type_object = NULL;
 
@@ -90,7 +91,7 @@ static PyObject *ten_py_decorator_register_addon_call(
   // TEN world.
   ten_py_addon_t *py_addon = (ten_py_addon_t *)py_addon_object;
   ten_addon_host_t *c_addon_host = ten_addon_register(
-      ten_string_get_raw_str(&self->addon_name), &py_addon->c_addon);
+      ten_string_get_raw_str(&self->addon_name), NULL, &py_addon->c_addon);
   TEN_ASSERT(c_addon_host, "Should not happen.");
 
   py_addon->c_addon_host = c_addon_host;

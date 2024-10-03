@@ -12,7 +12,6 @@
 #include "include_internal/ten_runtime/binding/cpp/ten.h"
 #include "ten_utils/lang/cpp/lib/value.h"
 #include "ten_utils/lib/thread.h"
-#include "ten_utils/macro/macros.h"
 #include "tests/common/client/cpp/msgpack_tcp.h"
 #include "tests/ten_runtime/smoke/extension_test/util/binding/cpp/check.h"
 

@@ -91,8 +91,6 @@ ten_extension_t *ten_extension_create(
   self->addon_host = NULL;
   ten_string_init_formatted(&self->name, "%s", name);
 
-  ten_string_init(&self->base_dir);
-
   self->ten_env = NULL;
   self->binding_handle.me_in_target_lang = self;
   self->extension_thread = NULL;
@@ -190,8 +188,6 @@ void ten_extension_destroy(ten_extension_t *self) {
 
   ten_path_table_check_empty(self->path_table);
   ten_path_table_destroy(self->path_table);
-
-  ten_string_deinit(&self->base_dir);
 
   TEN_ASSERT(ten_list_is_empty(&self->path_timers),
              "The path timers should all be closed before the destroy.");
@@ -966,15 +962,6 @@ void ten_extension_load_metadata(ten_extension_t *self) {
   TEN_ASSERT(extension_thread, "Invalid argument.");
   TEN_ASSERT(ten_extension_thread_check_integrity(extension_thread, true),
              "Invalid use of extension_thread %p.", extension_thread);
-
-  if (self->addon_host) {
-    // If the extension is created by an addon, then the base directory of the
-    // extension can be set to `<app>/ten_packages/extension/<addon-name>`. And
-    // the `base_dir` must be set before `on_configure()`, as the
-    // `property.json` and `manifest.json` under the `base_dir` might be loaded
-    // in the default behavior of `on_configure_done()`.
-    ten_extension_find_and_set_base_dir(self);
-  }
 
   ten_metadata_load(ten_extension_on_configure, self->ten_env);
 }

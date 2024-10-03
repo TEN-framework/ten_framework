@@ -31,8 +31,8 @@ static bool ten_extension_parse_interface_schema(ten_extension_t *self,
              "Invalid argument.");
 
   bool result = ten_schema_store_set_interface_schema_definition(
-      &self->schema_store, api_definition,
-      ten_string_get_raw_str(&self->base_dir), err);
+      &self->schema_store, api_definition, ten_extension_get_base_dir(self),
+      err);
   if (!result) {
     TEN_LOGW("[%s] Failed to set interface schema definition: %s.",
              ten_extension_get_name(self, true), ten_error_errmsg(err));
@@ -102,8 +102,7 @@ void ten_extension_on_configure_done(ten_env_t *self) {
   ten_error_init(&err);
 
   bool rc = ten_handle_manifest_info_when_on_configure_done(
-      &extension->manifest_info,
-      ten_string_get_raw_str(ten_extension_get_base_dir(extension)),
+      &extension->manifest_info, ten_extension_get_base_dir(extension),
       &extension->manifest, &err);
   if (!rc) {
     TEN_LOGW("Failed to load extension manifest data, FATAL ERROR.");
@@ -111,8 +110,7 @@ void ten_extension_on_configure_done(ten_env_t *self) {
   }
 
   rc = ten_handle_property_info_when_on_configure_done(
-      &extension->property_info,
-      ten_string_get_raw_str(ten_extension_get_base_dir(extension)),
+      &extension->property_info, ten_extension_get_base_dir(extension),
       &extension->property, &err);
   if (!rc) {
     TEN_LOGW("Failed to load extension property data, FATAL ERROR.");

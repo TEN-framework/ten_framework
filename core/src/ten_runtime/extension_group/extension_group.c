@@ -94,8 +94,6 @@ ten_extension_group_t *ten_extension_group_create_internal(
   self->manifest_info = NULL;
   self->property_info = NULL;
 
-  ten_string_init(&self->base_dir);
-
   self->app = NULL;
   self->extension_context = NULL;
   self->state = TEN_EXTENSION_GROUP_STATE_INIT;
@@ -152,8 +150,6 @@ void ten_extension_group_destroy(ten_extension_group_t *self) {
   }
 
   ten_string_deinit(&self->name);
-
-  ten_string_deinit(&self->base_dir);
 
   if (self->addon_host) {
     // Since the extension has already been destroyed, there is no need to

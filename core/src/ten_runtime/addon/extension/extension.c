@@ -8,6 +8,8 @@
 
 #include "include_internal/ten_runtime/addon/addon.h"
 #include "include_internal/ten_runtime/addon/common/store.h"
+#include "include_internal/ten_runtime/common/base_dir.h"
+#include "include_internal/ten_runtime/common/constant_str.h"
 #include "include_internal/ten_runtime/extension/extension.h"
 #include "include_internal/ten_runtime/extension_group/extension_group.h"
 #include "include_internal/ten_runtime/extension_thread/extension_thread.h"
@@ -15,6 +17,7 @@
 #include "include_internal/ten_runtime/ten_env/ten_env.h"
 #include "ten_runtime/addon/addon.h"
 #include "ten_runtime/ten_env/ten_env.h"
+#include "ten_utils/lib/string.h"
 #include "ten_utils/macro/check.h"
 #include "ten_utils/macro/mark.h"
 
@@ -176,6 +179,7 @@ bool ten_addon_destroy_extension_async(
 }
 
 ten_addon_host_t *ten_addon_register_extension(const char *name,
+                                               const char *base_dir,
                                                ten_addon_t *addon) {
   if (!name || strlen(name) == 0) {
     TEN_LOGE("The addon name is required.");
@@ -188,7 +192,8 @@ ten_addon_host_t *ten_addon_register_extension(const char *name,
       ten_addon_host_create(TEN_ADDON_TYPE_EXTENSION);
   TEN_ASSERT(addon_host, "Should not happen.");
 
-  ten_addon_register(ten_extension_get_store(), addon_host, name, addon);
+  ten_addon_register(ten_extension_get_store(), addon_host, name, base_dir,
+                     addon);
   TEN_LOGI("Registered addon '%s' as extension",
            ten_string_get_raw_str(&addon_host->name));
 

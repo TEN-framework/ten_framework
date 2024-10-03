@@ -6,50 +6,17 @@
 //
 #include "include_internal/ten_runtime/common/base_dir.h"
 
-#include "include_internal/ten_runtime/common/constant_str.h"
+#include "include_internal/ten_runtime/addon/addon.h"
 #include "include_internal/ten_runtime/extension/extension.h"
-#include "ten_utils/lib/path.h"
 #include "ten_utils/lib/string.h"
 
-static ten_string_t *ten_extension_find_base_dir(const char *name) {
-  ten_string_t *extension_base_dir = NULL;
-
-  ten_string_t *path =
-      ten_path_get_module_path((void *)ten_extension_find_base_dir);
-  if (!path) {
-    TEN_LOGW("Could not get extension base dir from module path.");
-    return NULL;
-  }
-
-  ten_find_base_dir(path, TEN_STR_EXTENSION, name, &extension_base_dir);
-  ten_string_destroy(path);
-
-  if (!extension_base_dir) {
-    TEN_LOGW("Could not get extension base dir from module path.");
-    return NULL;
-  }
-
-  ten_path_to_system_flavor(extension_base_dir);
-  return extension_base_dir;
-}
-
-ten_string_t *ten_extension_get_base_dir(ten_extension_t *self) {
+const char *ten_extension_get_base_dir(ten_extension_t *self) {
   TEN_ASSERT(self && ten_extension_check_integrity(self, true),
              "Invalid argument.");
-  return &self->base_dir;
-}
 
-void ten_extension_find_and_set_base_dir(ten_extension_t *self) {
-  TEN_ASSERT(self && ten_extension_check_integrity(self, true),
-             "Should not happen.");
-
-  ten_string_t *extension_base_dir =
-      ten_extension_find_base_dir(ten_string_get_raw_str(&self->name));
-  if (!extension_base_dir) {
-    TEN_LOGW("Failed to determine extension base directory.");
-    return;
+  if (self->addon_host) {
+    return ten_string_get_raw_str(&self->addon_host->base_dir);
+  } else {
+    return NULL;
   }
-
-  ten_string_copy(&self->base_dir, extension_base_dir);
-  ten_string_destroy(extension_base_dir);
 }

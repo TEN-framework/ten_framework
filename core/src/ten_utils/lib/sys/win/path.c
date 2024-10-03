@@ -13,8 +13,8 @@
 #include <stdlib.h>
 #include <winbase.h>
 
-#include "ten_utils/macro/check.h"
 #include "ten_utils/lib/string.h"
+#include "ten_utils/macro/check.h"
 
 ten_string_t *ten_path_get_cwd() {
   char *buf = NULL;
@@ -111,7 +111,7 @@ error:
   return NULL;
 }
 
-ten_string_t *ten_path_get_executable_path() {
+ten_string_t *ten_path_get_executable_path(void) {
   return ten_path_get_binary_path(NULL);
 }
 

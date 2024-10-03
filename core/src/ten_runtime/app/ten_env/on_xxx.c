@@ -62,16 +62,14 @@ static void ten_app_on_configure_done_internal(ten_app_t *self) {
   ten_error_init(&err);
 
   bool rc = ten_handle_manifest_info_when_on_configure_done(
-      &self->manifest_info, ten_string_get_raw_str(ten_app_get_base_dir(self)),
-      &self->manifest, &err);
+      &self->manifest_info, ten_app_get_base_dir(self), &self->manifest, &err);
   if (!rc) {
     TEN_LOGW("Failed to load app manifest data, FATAL ERROR.");
     exit(EXIT_FAILURE);
   }
 
   rc = ten_handle_property_info_when_on_configure_done(
-      &self->property_info, ten_string_get_raw_str(ten_app_get_base_dir(self)),
-      &self->property, &err);
+      &self->property_info, ten_app_get_base_dir(self), &self->property, &err);
   if (!rc) {
     TEN_LOGW("Failed to load app property data, FATAL ERROR.");
     exit(EXIT_FAILURE);

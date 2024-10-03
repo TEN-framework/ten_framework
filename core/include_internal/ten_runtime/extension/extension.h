@@ -154,8 +154,6 @@ struct ten_extension_t {
   ten_addon_host_t *addon_host;
   ten_string_t name;
 
-  ten_string_t base_dir;
-
   ten_env_t *ten_env;
 
   ten_extension_thread_t *extension_thread;

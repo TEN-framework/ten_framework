@@ -129,7 +129,7 @@
       "request": "launch",
       "program": "${workspaceFolder}/out/linux/x64/tests/standalone/ten_runtime_smoke_test",
       "args": [
-        "--gtest_filter=MsgTest.Msg1"
+        "--gtest_filter=ExtensionTest.PropertySetInt32"
       ],
       "cwd": "${workspaceFolder}/out/linux/x64/tests/standalone/",
       "env": {
@@ -419,12 +419,11 @@
       "name": "app (C/C++) (lldb, launch)",
       "type": "lldb",
       "request": "launch",
-      "program": "${workspaceFolder}/tests/ten_runtime/integration/cpp/standalone_test/default_extension_cpp/out/linux/x64/tests/standalone/default_extension_cpp_test",
+      "program": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/cpp/hello_world/hello_world_app/bin/hello_world_app_source",
       "args": [],
-      "cwd": "${workspaceFolder}/tests/ten_runtime/integration/cpp/standalone_test/default_extension_cpp/",
+      "cwd": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/cpp/hello_world/hello_world_app",
       "env": {
         "ASAN_OPTIONS": "use_sigaltstack=0",
-        "LD_LIBRARY_PATH": "out/linux/x64/ten_packages/system/ten_runtime/lib/"
       },
     },
     {

@@ -13,16 +13,15 @@
 
 // Traverse up through the parent folders, searching for a folder containing a
 // manifest.json with the specified type and name.
-void ten_find_base_dir(ten_string_t *start_path, const char *type,
-                       const char *name, ten_string_t **base_dir) {
-  TEN_ASSERT(start_path && type && strlen(type) && base_dir,
+ten_string_t *ten_find_base_dir(const char *start_path, const char *addon_type,
+                                const char *addon_name) {
+  TEN_ASSERT(start_path && addon_type && strlen(addon_type),
              "Invalid argument.");
 
-  ten_string_t *parent_path = ten_string_clone(start_path);
+  ten_string_t *parent_path = ten_string_create_formatted("%s", start_path);
   if (!parent_path) {
-    TEN_LOGE("Failed to clone string: %s", start_path->buf);
     TEN_ASSERT(0, "Should not happen.");
-    return;
+    return NULL;
   }
 
   while (ten_path_is_dir(parent_path)) {
@@ -31,41 +30,42 @@ void ten_find_base_dir(ten_string_t *start_path, const char *type,
 
     if (ten_path_exists(ten_string_get_raw_str(manifest_path))) {
       // Read manifest.json, and check if there is a top-level "type" field with
-      // "app" value.
+      // a value specified in `addon_type` parameter.
       const char *manifest_content =
           ten_file_read(ten_string_get_raw_str(manifest_path));
       if (manifest_content) {
         ten_json_t *json = ten_json_from_string(manifest_content, NULL);
         if (json) {
           do {
-            const char *cur_type =
+            const char *type_in_manifest =
                 ten_json_object_peek_string(json, TEN_STR_TYPE);
-            if (!cur_type) {
+            if (!type_in_manifest) {
               break;
             }
-            if (strcmp(cur_type, type) != 0) {
+            if (strcmp(type_in_manifest, addon_type) != 0) {
               break;
             }
 
-            if (name && strlen(name)) {
-              const char *cur_name =
+            if (addon_name && strlen(addon_name)) {
+              const char *name_in_manifest =
                   ten_json_object_peek_string(json, TEN_STR_NAME);
-              if (!cur_name) {
+              if (!name_in_manifest) {
                 break;
               }
-              if (strcmp(cur_name, name) != 0) {
+              if (strcmp(name_in_manifest, addon_name) != 0) {
                 break;
               }
             }
 
-            *base_dir = ten_path_realpath(parent_path);
+            ten_string_t *base_dir = ten_path_realpath(parent_path);
+            ten_path_to_system_flavor(base_dir);
 
             ten_json_destroy(json);
             TEN_FREE(manifest_content);
             ten_string_destroy(manifest_path);
             ten_string_destroy(parent_path);
 
-            return;
+            return base_dir;
           } while (0);
 
           ten_json_destroy(json);
@@ -78,25 +78,19 @@ void ten_find_base_dir(ten_string_t *start_path, const char *type,
     ten_string_destroy(manifest_path);
 
     ten_string_t *next_parent = ten_path_get_dirname(parent_path);
-    if (!next_parent || ten_string_is_equal(parent_path, next_parent)) {
+    if (!next_parent || ten_string_is_empty(next_parent) ||
+        ten_string_is_equal(parent_path, next_parent)) {
       // No more parent folders.
       ten_string_destroy(parent_path);
       if (next_parent) {
         ten_string_destroy(next_parent);
       }
-      return;
+      return NULL;
     }
 
     ten_string_destroy(parent_path);
     parent_path = next_parent;
-
-    if (!parent_path || ten_string_is_empty(parent_path)) {
-      TEN_LOGE("Failed to find the app path");
-      TEN_ASSERT(0, "Should not happen.");
-      if (parent_path) {
-        ten_string_destroy(parent_path);
-      }
-      return;
-    }
   }
+
+  return NULL;
 }

@@ -8,6 +8,7 @@
 
 #include "include_internal/ten_runtime/addon/addon.h"
 #include "include_internal/ten_runtime/addon/common/store.h"
+#include "include_internal/ten_runtime/common/base_dir.h"
 #include "include_internal/ten_runtime/common/constant_str.h"
 #include "ten_utils/container/list.h"
 #include "ten_utils/container/list_node.h"
@@ -33,7 +34,8 @@ ten_addon_t *ten_addon_unregister_protocol(const char *name) {
   return ten_addon_unregister(ten_protocol_get_store(), name);
 }
 
-void ten_addon_register_protocol(const char *name, ten_addon_t *addon) {
+void ten_addon_register_protocol(const char *name, const char *base_dir,
+                                 ten_addon_t *addon) {
   ten_addon_store_init(ten_protocol_get_store());
 
   ten_addon_host_t *addon_host =
@@ -43,7 +45,8 @@ void ten_addon_register_protocol(const char *name, ten_addon_t *addon) {
   addon_host->type = TEN_ADDON_TYPE_PROTOCOL;
   ten_addon_host_init(addon_host);
 
-  ten_addon_register(ten_protocol_get_store(), addon_host, name, addon);
+  ten_addon_register(ten_protocol_get_store(), addon_host, name, base_dir,
+                     addon);
   TEN_LOGI("Registered addon '%s' as protocol.",
            ten_string_get_raw_str(&addon_host->name));
 }

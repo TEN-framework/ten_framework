@@ -12,8 +12,8 @@
 
 typedef struct ten_app_t ten_app_t;
 
-TEN_RUNTIME_PRIVATE_API ten_string_t *ten_app_get_base_dir(ten_app_t *self);
+TEN_RUNTIME_PRIVATE_API const char *ten_app_get_base_dir(ten_app_t *self);
 
-TEN_RUNTIME_PRIVATE_API ten_string_t *ten_app_find_base_dir(void);
+TEN_RUNTIME_PRIVATE_API ten_string_t *ten_find_app_base_dir(void);
 
 TEN_RUNTIME_PRIVATE_API void ten_app_find_and_set_base_dir(ten_app_t *self);

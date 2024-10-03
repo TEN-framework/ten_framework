@@ -208,7 +208,8 @@ class py_init_addon_t : public ten::addon_t {
         ten_path_get_module_path(reinterpret_cast<const void *>(foo));
     TEN_ASSERT(module_path, "Failed to get module path.");
 
-    ten_find_base_dir(module_path, TEN_STR_APP, nullptr, &app_base_dir);
+    app_base_dir = ten_find_base_dir(ten_string_get_raw_str(module_path),
+                                     TEN_STR_APP, nullptr);
     ten_string_destroy(module_path);
   }
 
@@ -364,7 +365,7 @@ static ten::addon_t *g_py_init_default_extension_addon = nullptr;
 TEN_CONSTRUCTOR(____ctor_ten_declare_py_init_extension_addon____) {
   g_py_init_default_extension_addon = new py_init_addon_t();
   ten_addon_register_extension(
-      "py_init_extension_cpp",
+      "py_init_extension_cpp", nullptr,
       g_py_init_default_extension_addon->get_c_addon());
 }
 

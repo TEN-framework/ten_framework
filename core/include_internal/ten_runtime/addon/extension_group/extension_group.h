@@ -14,6 +14,7 @@
 
 typedef struct ten_env_t ten_env_t;
 typedef struct ten_addon_store_t ten_addon_store_t;
+typedef struct ten_addon_host_t ten_addon_host_t;
 
 TEN_RUNTIME_PRIVATE_API ten_addon_store_t *ten_extension_group_get_store(void);
 

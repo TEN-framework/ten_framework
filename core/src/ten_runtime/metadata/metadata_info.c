@@ -96,30 +96,40 @@ static ten_string_t *ten_metadata_info_filename_to_absolute_path(
   ten_string_t *path = NULL;
   switch (ten_env_get_attach_to(self->belonging_to)) {
     case TEN_ENV_ATTACH_TO_APP: {
-      ten_string_t *base_dir =
+      const char *base_dir =
           ten_app_get_base_dir(ten_env_get_attached_app(self->belonging_to));
-      path = ten_string_clone(base_dir);
+      if (base_dir) {
+        path = ten_string_create_from_c_str(base_dir, strlen(base_dir));
+      }
       break;
     }
 
     case TEN_ENV_ATTACH_TO_EXTENSION_GROUP: {
-      ten_string_t *base_dir = ten_extension_group_get_base_dir(
+      const char *base_dir = ten_extension_group_get_base_dir(
           ten_env_get_attached_extension_group(self->belonging_to));
-      path = ten_string_clone(base_dir);
+      if (base_dir) {
+        path = ten_string_create_from_c_str(base_dir, strlen(base_dir));
+      }
       break;
     }
 
     case TEN_ENV_ATTACH_TO_EXTENSION: {
-      ten_string_t *base_dir = ten_extension_get_base_dir(
+      const char *base_dir = ten_extension_get_base_dir(
           ten_env_get_attached_extension(self->belonging_to));
-      path = ten_string_clone(base_dir);
+      if (base_dir) {
+        path = ten_string_create_from_c_str(base_dir, strlen(base_dir));
+      }
       break;
     }
 
-    case TEN_ENV_ATTACH_TO_ADDON:
-      path = ten_addon_host_get_base_dir(
+    case TEN_ENV_ATTACH_TO_ADDON: {
+      const char *base_dir = ten_addon_host_get_base_dir(
           ten_env_get_attached_addon(self->belonging_to));
+      if (base_dir) {
+        path = ten_string_create_from_c_str(base_dir, strlen(base_dir));
+      }
       break;
+    }
 
     default:
       TEN_ASSERT(0, "Should not happen.");
@@ -303,7 +313,6 @@ bool ten_handle_manifest_info_when_on_configure_done(ten_metadata_info_t **self,
     case TEN_ENV_ATTACH_TO_EXTENSION_GROUP:
     case TEN_ENV_ATTACH_TO_EXTENSION:
       if ((*self)->type == TEN_METADATA_INVALID) {
-        TEN_ASSERT(base_dir, "Invalid argument.");
         ten_set_default_manifest_info(base_dir, (*self), err);
       }
       break;
@@ -339,7 +348,6 @@ bool ten_handle_property_info_when_on_configure_done(ten_metadata_info_t **self,
     case TEN_ENV_ATTACH_TO_EXTENSION_GROUP:
     case TEN_ENV_ATTACH_TO_EXTENSION:
       if ((*self)->type == TEN_METADATA_INVALID) {
-        TEN_ASSERT(base_dir, "Invalid argument.");
         ten_set_default_property_info(base_dir, (*self), NULL);
       }
       break;
