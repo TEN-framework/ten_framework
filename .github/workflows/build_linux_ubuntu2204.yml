@@ -163,7 +163,7 @@ jobs:
             -v $(pwd):/${{ github.workspace }} -w ${{ github.workspace }} \
             ghcr.io/wangyoucao577/ten_building_ubuntu2204:feature-arm64 \
             bash -c "\
-              export PATH=$(pwd)/core/ten_gn:$PATH && \
+              export PATH=$(pwd)/core/ten_gn:/usr/local/go/bin:/root/go/bin:/root/.cargo/bin:$PATH && \
               echo $PATH && \
               go env -w GOFLAGS="-buildvcs=false" && \
               go1.20.12 download && \
