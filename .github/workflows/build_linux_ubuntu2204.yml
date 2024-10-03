@@ -146,7 +146,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        compiler: [gcc]
+        compiler: [clang, gcc]
         build_type: [release]
     steps:
       - uses: actions/checkout@v4
@@ -158,20 +158,20 @@ jobs:
         with:
           platforms: arm64
       - name: Build
-        uses: addnab/docker-run-action@v3
-        with:
-          image: ghcr.io/wangyoucao577/ten_building_ubuntu2204:feature-arm64
-          options: --platform linux/arm64 --workdir ${{ github.workspace }} -v ${{ github.workspace }}:${{ github.workspace }}
-          shell: bash
-          run: |
-            export PATH=$(pwd)/core/ten_gn:$PATH
-            echo $PATH
-            go env -w GOFLAGS="-buildvcs=false"
-            go1.20.12 download
-            rustup default nightly
-            tgn gen linux arm64 ${{ matrix.build_type }} -- is_clang=${{ matrix.compiler == 'gcc' && 'false' || 'true' }} log_level=1 enable_serialized_actions=true ten_enable_test=false
-            tgn build linux arm64 ${{ matrix.build_type }}
-            tree -I 'gen|obj' out
+        run: |
+          docker run --rm --platform linux/arm64 \
+            -v $(pwd):/${{ github.workspace }} -w ${{ github.workspace }} \
+            ghcr.io/wangyoucao577/ten_building_ubuntu2204:feature-arm64 \
+            bash -c "\
+              export PATH=$(pwd)/core/ten_gn:$PATH && \
+              echo $PATH && \
+              go env -w GOFLAGS="-buildvcs=false" && \
+              go1.20.12 download && \
+              rustup default nightly && \
+              tgn gen linux arm64 ${{ matrix.build_type }} -- is_clang=${{ matrix.compiler == 'gcc' && 'false' || 'true' }} log_level=1 enable_serialized_actions=true ten_enable_test=false && \
+              tgn build linux arm64 ${{ matrix.build_type }} && \
+              tree -I 'gen|obj' out \
+            "
 
       - name: Upload tman
         uses: actions/upload-artifact@v4
