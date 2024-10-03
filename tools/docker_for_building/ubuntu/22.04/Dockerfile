@@ -86,12 +86,7 @@ RUN wget --no-check-certificate -O - https://apt.llvm.org/llvm-snapshot.gpg.key 
   update-alternatives --install /usr/bin/clang-format clang-format /usr/bin/clang-format-18 100 && \
   update-alternatives --install /usr/bin/clang-tidy clang-tidy /usr/bin/clang-tidy-18 100 && \
   update-alternatives --install /usr/bin/clang-check clang-check /usr/bin/clang-check-18 100 && \
-  update-alternatives --install /usr/bin/clangd clangd /usr/bin/clangd-18 100 && \
-  clang -print-file-name=libclang_rt.asan.so && \
-  ls -lh /usr/lib/llvm-18/lib/
-  #mkdir -p /usr/lib/llvm-18/lib/x86_64-pc-linux-gnu && \
-  #ln -sf $(clang -print-file-name=libc++.a) /usr/lib/llvm-18/lib/x86_64-pc-linux-gnu && \
-  #ln -sf $(clang -print-file-name=libclang_rt.asan.so) $(dirname $(clang -print-file-name=libclang_rt.asan.so))/libclang_rt.asan-x86_64.so
+  update-alternatives --install /usr/bin/clangd clangd /usr/bin/clangd-18 100
 
   # =======================================
 # Install golang
