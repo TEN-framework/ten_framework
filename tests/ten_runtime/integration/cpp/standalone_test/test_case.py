@@ -45,13 +45,8 @@ def test_standalone_test():
     # Step 2:
     #
     # Execute tgn gen to generate the build files.
-    if sys.platform == "win32":
-        tgn_cmd = os.path.join(root_dir, "../../../core/ten_gn/tgn.bat")
-    else:
-        tgn_cmd = os.path.join(root_dir, "../../../core/ten_gn/tgn")
-
     tgn_gen_cmd = [
-        tgn_cmd,
+        "tgn",
         "gen",
         build_config_args.target_os,
         build_config_args.target_cpu,
@@ -74,7 +69,7 @@ def test_standalone_test():
     #
     # Execute tgn build to build the extension and its test cases.
     tgn_build_cmd = [
-        tgn_cmd,
+        "tgn",
         "build",
         build_config_args.target_os,
         build_config_args.target_cpu,
