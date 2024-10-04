@@ -4,7 +4,6 @@ Test standalone_test.
 
 import subprocess
 import os
-import sys
 from sys import stdout
 from .common import build_config
 
@@ -51,6 +50,8 @@ def test_standalone_test():
         build_config_args.target_os,
         build_config_args.target_cpu,
         build_config_args.target_build,
+        "--",
+        "ten_enable_standalone_test=true",
     ]
 
     tgn_gen_process = subprocess.Popen(
