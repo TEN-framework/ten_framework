@@ -4,6 +4,7 @@
 # See the LICENSE file for more information.
 #
 import("//build/feature/ten_package.gni")
+import("//build/feature/ten_package_test.gni")
 
 ten_package("default_extension_cpp") {
   package_kind = "extension"
@@ -18,5 +19,16 @@ ten_package("default_extension_cpp") {
   include_dirs = [
     "include",
     "include/nlohmann_json",
+  ]
+}
+
+ten_package_test("default_extension_cpp_test") {
+  package_kind = "extension"
+
+  sources = [ "test/basic.cc" ]
+
+  public_deps = [
+    "//third_party/googletest",
+    "//third_party/googletest:gtest_main",
   ]
 }
