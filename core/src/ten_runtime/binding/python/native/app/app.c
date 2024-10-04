@@ -65,6 +65,15 @@ static void proxy_on_configure(ten_app_t *app, ten_env_t *ten_env) {
     // Since the original environment did not hold the GIL, we release the gil
     // here. However, an optimization has been made to avoid releasing the
     // thread state, allowing it to be reused later.
+    //
+    // The effect of not calling PyGILState_Release here is that, since the
+    // number of calls to PyGILState_Ensure and PyGILState_Release are not
+    // equal, the Python thread state will not be released, only the gil will be
+    // released. It is not until on_deinit_done is reached that the
+    // corresponding PyGILState_Release for PyGILState_Ensure is called,
+    // achieving numerical consistency between PyGILState_Ensure and
+    // PyGILState_Release, and only then will the Python thread state be
+    // released.
     ten_py_eval_save_thread();
   } else {
     // No need to release the GIL.

@@ -13,6 +13,7 @@
 #include "include_internal/ten_runtime/binding/python/msg/cmd.h"
 #include "include_internal/ten_runtime/binding/python/test/env_tester.h"
 #include "include_internal/ten_runtime/msg/msg.h"
+#include "include_internal/ten_runtime/test/extension_tester.h"
 #include "ten_runtime/binding/common.h"
 #include "ten_utils/macro/check.h"
 #include "ten_utils/macro/mark.h"
@@ -117,7 +118,6 @@ static void proxy_on_cmd(ten_extension_tester_t *extension_tester,
 
   ten_py_cmd_invalidate(py_cmd);
 
-  // =-=-=
   ten_py_gil_state_release(prev_state);
 }
 

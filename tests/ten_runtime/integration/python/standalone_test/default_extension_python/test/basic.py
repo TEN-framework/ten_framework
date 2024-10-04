@@ -4,5 +4,13 @@
 # Licensed under the Apache License, Version 2.0, with certain conditions.
 # Refer to the "LICENSE" file in the root directory for more information.
 #
+from ten import (
+    ExtensionTester,
+)
+
+
 def test_basic():
-    pass
+    tester = ExtensionTester()
+    tester.add_addon_base_dir("../")
+    tester.set_test_mode_single("default_extension_python")
+    tester.run()

@@ -45,8 +45,13 @@ def test_standalone_test():
     # Step 2:
     #
     # Execute tgn gen to generate the build files.
+    if build_config_args.target_os == "win":
+        tgn_path = os.getenv("tgn")
+    else:
+        tgn_path = "tgn"
+
     tgn_gen_cmd = [
-        "tgn.bat" if build_config_args.target_os == "win" else "tgn",
+        tgn_path,
         "gen",
         build_config_args.target_os,
         build_config_args.target_cpu,
@@ -69,7 +74,7 @@ def test_standalone_test():
     #
     # Execute tgn build to build the extension and its test cases.
     tgn_build_cmd = [
-        "tgn.bat" if build_config_args.target_os == "win" else "tgn",
+        tgn_path,
         "build",
         build_config_args.target_os,
         build_config_args.target_cpu,
