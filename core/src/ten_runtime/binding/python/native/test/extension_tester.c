@@ -53,6 +53,8 @@ static void proxy_on_start(ten_extension_tester_t *extension_tester,
   TEN_ASSERT(ten_env_tester && ten_env_tester_check_integrity(ten_env_tester),
              "Invalid argument.");
 
+  // About to call the Python function, so it's necessary to ensure that the GIL
+  // has been acquired.
   PyGILState_STATE prev_state = ten_py_gil_state_ensure();
   TEN_ASSERT(prev_state == PyGILState_UNLOCKED,
              "The GIL should not be help by the extension thread now.");
@@ -88,6 +90,8 @@ static void proxy_on_cmd(ten_extension_tester_t *extension_tester,
              "Invalid argument.");
   TEN_ASSERT(cmd && ten_msg_check_integrity(cmd), "Invalid argument.");
 
+  // About to call the Python function, so it's necessary to ensure that the GIL
+  // has been acquired.
   PyGILState_STATE prev_state = ten_py_gil_state_ensure();
 
   ten_py_extension_tester_t *py_extension_tester =

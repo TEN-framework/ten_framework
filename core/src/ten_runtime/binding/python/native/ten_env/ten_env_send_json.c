@@ -51,6 +51,9 @@ static void proxy_send_xxx_callback(ten_extension_t *extension,
              "Should not happen.");
   TEN_ASSERT(callback_info, "Should not happen.");
 
+  // About to call the Python function, so it's necessary to ensure that the GIL
+  // has been acquired.
+  //
   // Allows C codes to work safely with Python objects.
   PyGILState_STATE prev_state = ten_py_gil_state_ensure();
 

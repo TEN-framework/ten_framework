@@ -180,9 +180,3 @@ bool ten_py_is_holding_gil(void) {
   // Judge whether the current thread holds the GIL, 1: true, 0: false.
   return PyGILState_Check() == 1;
 }
-
-PyThreadState *ten_py_gil_state_get_this_thread_state(void) {
-  // If no GILState APIs have been called on the current thread, return NULL.
-  // Otherwise, return the PyThreadState associated with the current thread.
-  return PyGILState_GetThisThreadState();
-}
