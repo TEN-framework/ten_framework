@@ -6,6 +6,8 @@
 //
 #include "ten_runtime/ten_config.h"
 
+#include <stdbool.h>
+
 #include "include_internal/ten_runtime/binding/common.h"
 #include "ten_utils/lib/signature.h"
 
@@ -19,6 +21,8 @@ typedef struct ten_env_tester_t {
   ten_signature_t signature;
   ten_extension_tester_t *tester;
 } ten_env_tester_t;
+
+TEN_RUNTIME_API bool ten_env_tester_check_integrity(ten_env_tester_t *self);
 
 TEN_RUNTIME_PRIVATE_API ten_env_tester_t *ten_env_tester_create(
     ten_extension_tester_t *tester);

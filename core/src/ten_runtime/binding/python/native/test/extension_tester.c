@@ -10,7 +10,9 @@
 
 #include "include_internal/ten_runtime/binding/python/common/common.h"
 #include "include_internal/ten_runtime/binding/python/common/error.h"
+#include "include_internal/ten_runtime/binding/python/msg/cmd.h"
 #include "include_internal/ten_runtime/binding/python/test/env_tester.h"
+#include "include_internal/ten_runtime/msg/msg.h"
 #include "ten_runtime/binding/common.h"
 #include "ten_utils/macro/check.h"
 #include "ten_utils/macro/mark.h"
@@ -43,6 +45,78 @@ static ten_py_extension_tester_t *ten_py_extension_tester_create_internal(
   return py_extension_tester;
 }
 
+static void proxy_on_start(ten_extension_tester_t *extension_tester,
+                           ten_env_tester_t *ten_env_tester) {
+  TEN_ASSERT(extension_tester &&
+                 ten_extension_tester_check_integrity(extension_tester, true),
+             "Invalid argument.");
+  TEN_ASSERT(ten_env_tester && ten_env_tester_check_integrity(ten_env_tester),
+             "Invalid argument.");
+
+  PyGILState_STATE prev_state = ten_py_gil_state_ensure();
+  TEN_ASSERT(prev_state == PyGILState_UNLOCKED,
+             "The GIL should not be help by the extension thread now.");
+
+  ten_py_extension_tester_t *py_extension_tester =
+      (ten_py_extension_tester_t *)ten_binding_handle_get_me_in_target_lang(
+          (ten_binding_handle_t *)extension_tester);
+  TEN_ASSERT(py_extension_tester &&
+                 ten_py_extension_tester_check_integrity(py_extension_tester),
+             "Invalid argument.");
+
+  PyObject *py_ten_env_tester = py_extension_tester->py_ten_env_tester;
+  TEN_ASSERT(py_ten_env_tester, "Should not happen.");
+
+  PyObject *py_res = PyObject_CallMethod(
+      (PyObject *)py_extension_tester, "on_start", "O",
+      ((ten_py_ten_env_tester_t *)py_ten_env_tester)->actual_py_ten_env_tester);
+  Py_XDECREF(py_res);
+
+  bool err_occurred = ten_py_check_and_clear_py_error();
+  TEN_ASSERT(!err_occurred, "Should not happen.");
+
+  ten_py_gil_state_release(prev_state);
+}
+
+static void proxy_on_cmd(ten_extension_tester_t *extension_tester,
+                         ten_env_tester_t *ten_env_tester,
+                         ten_shared_ptr_t *cmd) {
+  TEN_ASSERT(extension_tester &&
+                 ten_extension_tester_check_integrity(extension_tester, true),
+             "Invalid argument.");
+  TEN_ASSERT(ten_env_tester && ten_env_tester_check_integrity(ten_env_tester),
+             "Invalid argument.");
+  TEN_ASSERT(cmd && ten_msg_check_integrity(cmd), "Invalid argument.");
+
+  PyGILState_STATE prev_state = ten_py_gil_state_ensure();
+
+  ten_py_extension_tester_t *py_extension_tester =
+      (ten_py_extension_tester_t *)ten_binding_handle_get_me_in_target_lang(
+          (ten_binding_handle_t *)extension_tester);
+  TEN_ASSERT(py_extension_tester &&
+                 ten_py_extension_tester_check_integrity(py_extension_tester),
+             "Invalid argument.");
+
+  PyObject *py_ten_env_tester = py_extension_tester->py_ten_env_tester;
+  TEN_ASSERT(py_ten_env_tester, "Should not happen.");
+
+  ten_py_cmd_t *py_cmd = ten_py_cmd_wrap(cmd);
+
+  PyObject *py_res = PyObject_CallMethod(
+      (PyObject *)py_extension_tester, "on_cmd", "OO",
+      ((ten_py_ten_env_tester_t *)py_ten_env_tester)->actual_py_ten_env_tester,
+      py_cmd);
+  Py_XDECREF(py_res);
+
+  bool err_occurred = ten_py_check_and_clear_py_error();
+  TEN_ASSERT(!err_occurred, "Should not happen.");
+
+  ten_py_cmd_invalidate(py_cmd);
+
+  // =-=-=
+  ten_py_gil_state_release(prev_state);
+}
+
 static ten_py_extension_tester_t *ten_py_extension_tester_init(
     ten_py_extension_tester_t *py_extension_tester, TEN_UNUSED PyObject *args,
     TEN_UNUSED PyObject *kw) {
@@ -51,9 +125,8 @@ static ten_py_extension_tester_t *ten_py_extension_tester_init(
                      (ten_py_extension_tester_t *)py_extension_tester),
              "Invalid argument.");
 
-  // =-=-=
   py_extension_tester->c_extension_tester =
-      ten_extension_tester_create(NULL, NULL);
+      ten_extension_tester_create(proxy_on_start, proxy_on_cmd);
 
   return py_extension_tester;
 }
@@ -153,39 +226,6 @@ static PyObject *ten_py_extension_tester_run(PyObject *self, PyObject *args) {
   TEN_ASSERT(!err_occurred, "Should not happen.");
 
   Py_RETURN_NONE;
-}
-
-static void proxy_on_start(ten_extension_tester_t *extension_tester,
-                           ten_env_t *ten_env) {
-  TEN_ASSERT(extension_tester &&
-                 ten_extension_tester_check_integrity(extension_tester, true),
-             "Invalid argument.");
-  TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
-             "Invalid argument.");
-
-  PyGILState_STATE prev_state = ten_py_gil_state_ensure();
-  TEN_ASSERT(prev_state == PyGILState_UNLOCKED,
-             "The GIL should not be help by the extension thread now.");
-
-  ten_py_extension_tester_t *py_extension_tester =
-      (ten_py_extension_tester_t *)ten_binding_handle_get_me_in_target_lang(
-          (ten_binding_handle_t *)extension_tester);
-  TEN_ASSERT(py_extension_tester &&
-                 ten_py_extension_tester_check_integrity(py_extension_tester),
-             "Invalid argument.");
-
-  PyObject *py_ten_env_tester = py_extension_tester->py_ten_env_tester;
-  TEN_ASSERT(py_ten_env_tester, "Should not happen.");
-
-  PyObject *py_res = PyObject_CallMethod(
-      (PyObject *)py_extension_tester, "on_start", "O",
-      ((ten_py_ten_env_tester_t *)py_ten_env_tester)->actual_py_ten_env_tester);
-  Py_XDECREF(py_res);
-
-  bool err_occurred = ten_py_check_and_clear_py_error();
-  TEN_ASSERT(!err_occurred, "Should not happen.");
-
-  ten_py_gil_state_release(prev_state);
 }
 
 PyTypeObject *ten_py_extension_tester_py_type(void) {

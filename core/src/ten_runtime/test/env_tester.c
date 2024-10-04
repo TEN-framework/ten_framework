@@ -20,7 +20,7 @@
 #include "ten_utils/lib/signature.h"
 #include "ten_utils/macro/memory.h"
 
-static bool ten_env_tester_check_integrity(ten_env_tester_t *self) {
+bool ten_env_tester_check_integrity(ten_env_tester_t *self) {
   TEN_ASSERT(self, "Should not happen.");
 
   if (ten_signature_get(&self->signature) !=
