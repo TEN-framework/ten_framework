@@ -92,7 +92,11 @@ def test_standalone_test():
     tester_cmd = [
         os.path.join(
             extension_root_path,
-            "out/linux/x64/tests/default_extension_cpp_test",
+            (
+                f"out/{build_config_args.target_os}/"
+                f"{build_config_args.target_cpu}/"
+                "tests/default_extension_cpp_test"
+            ),
         ),
     ]
 

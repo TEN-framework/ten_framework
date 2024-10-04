@@ -13,7 +13,7 @@
 #include "include_internal/ten_runtime/ten_env_proxy/ten_env_proxy.h"
 #include "ten_runtime/ten_env/ten_env.h"
 
-#define TEN_PY_TEN_SIGNATURE 0xCCCC1DD4BB4CA743U
+#define TEN_PY_TEN_ENV_SIGNATURE 0xCCCC1DD4BB4CA743U
 
 typedef struct ten_py_ten_env_t {
   PyObject_HEAD

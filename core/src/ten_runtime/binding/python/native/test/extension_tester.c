@@ -8,13 +8,16 @@
 
 #include <stdbool.h>
 
+#include "include_internal/ten_runtime/binding/python/common/common.h"
 #include "include_internal/ten_runtime/binding/python/common/error.h"
+#include "include_internal/ten_runtime/binding/python/test/env_tester.h"
+#include "ten_runtime/binding/common.h"
 #include "ten_utils/macro/check.h"
 #include "ten_utils/macro/mark.h"
 
 static bool ten_py_extension_tester_check_integrity(
     ten_py_extension_tester_t *self) {
-  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(self, "Should not hextension_testeren.");
 
   if (ten_signature_get(&self->signature) !=
       (ten_signature_t)TEN_PY_EXTENSION_TESTER_SIGNATURE) {
@@ -101,10 +104,97 @@ static PyObject *ten_py_extension_tester_add_addon_base_dir(PyObject *self,
   Py_RETURN_NONE;
 }
 
+static PyObject *ten_py_extension_tester_set_test_mode_single(PyObject *self,
+                                                              PyObject *args) {
+  ten_py_extension_tester_t *py_extension_tester =
+      (ten_py_extension_tester_t *)self;
+  TEN_ASSERT(py_extension_tester &&
+                 ten_py_extension_tester_check_integrity(py_extension_tester),
+             "Invalid argument.");
+
+  if (PyTuple_GET_SIZE(args) != 1) {
+    return ten_py_raise_py_value_error_exception(
+        "Invalid argument count when extension_tester.set_test_mode_single.");
+  }
+
+  const char *addon_name = NULL;
+  if (!PyArg_ParseTuple(args, "s", &addon_name)) {
+    return ten_py_raise_py_value_error_exception(
+        "Failed to parse arguments when "
+        "extension_tester.set_test_mode_single.");
+  }
+
+  ten_extension_tester_set_test_mode_single(
+      py_extension_tester->c_extension_tester, addon_name);
+
+  Py_RETURN_NONE;
+}
+
+static PyObject *ten_py_extension_tester_run(PyObject *self, PyObject *args) {
+  ten_py_extension_tester_t *py_extension_tester =
+      (ten_py_extension_tester_t *)self;
+
+  TEN_ASSERT(py_extension_tester &&
+                 ten_py_extension_tester_check_integrity(py_extension_tester),
+             "Invalid argument.");
+
+  TEN_LOGI("ten_py_extension_tester_run");
+
+  bool rc = ten_extension_tester_run(py_extension_tester->c_extension_tester);
+
+  TEN_LOGI("ten_py_extension_tester_run done: %d", rc);
+
+  if (!rc) {
+    return ten_py_raise_py_runtime_error_exception(
+        "Failed to run ten_extension_tester.");
+  }
+
+  bool err_occurred = ten_py_check_and_clear_py_error();
+  TEN_ASSERT(!err_occurred, "Should not happen.");
+
+  Py_RETURN_NONE;
+}
+
+static void proxy_on_start(ten_extension_tester_t *extension_tester,
+                           ten_env_t *ten_env) {
+  TEN_ASSERT(extension_tester &&
+                 ten_extension_tester_check_integrity(extension_tester, true),
+             "Invalid argument.");
+  TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
+             "Invalid argument.");
+
+  PyGILState_STATE prev_state = ten_py_gil_state_ensure();
+  TEN_ASSERT(prev_state == PyGILState_UNLOCKED,
+             "The GIL should not be help by the extension thread now.");
+
+  ten_py_extension_tester_t *py_extension_tester =
+      (ten_py_extension_tester_t *)ten_binding_handle_get_me_in_target_lang(
+          (ten_binding_handle_t *)extension_tester);
+  TEN_ASSERT(py_extension_tester &&
+                 ten_py_extension_tester_check_integrity(py_extension_tester),
+             "Invalid argument.");
+
+  PyObject *py_ten_env_tester = py_extension_tester->py_ten_env_tester;
+  TEN_ASSERT(py_ten_env_tester, "Should not happen.");
+
+  PyObject *py_res = PyObject_CallMethod(
+      (PyObject *)py_extension_tester, "on_start", "O",
+      ((ten_py_ten_env_tester_t *)py_ten_env_tester)->actual_py_ten_env_tester);
+  Py_XDECREF(py_res);
+
+  bool err_occurred = ten_py_check_and_clear_py_error();
+  TEN_ASSERT(!err_occurred, "Should not happen.");
+
+  ten_py_gil_state_release(prev_state);
+}
+
 PyTypeObject *ten_py_extension_tester_py_type(void) {
   static PyMethodDef py_methods[] = {
       {"add_addon_base_dir", ten_py_extension_tester_add_addon_base_dir,
        METH_VARARGS, NULL},
+      {"set_test_mode_single", ten_py_extension_tester_set_test_mode_single,
+       METH_VARARGS, NULL},
+      {"run", ten_py_extension_tester_run, METH_VARARGS, NULL},
       {NULL, NULL, 0, NULL},
   };
 
@@ -131,7 +221,7 @@ bool ten_py_extension_tester_init_for_module(PyObject *module) {
     ten_py_raise_py_system_error_exception(
         "Python VideoFrame class is not ready.");
 
-    TEN_ASSERT(0, "Should not happen.");
+    TEN_ASSERT(0, "Should not hextension_testeren.");
     return false;
   }
 
@@ -139,7 +229,7 @@ bool ten_py_extension_tester_init_for_module(PyObject *module) {
     ten_py_raise_py_import_error_exception(
         "Failed to add Python type to module.");
 
-    TEN_ASSERT(0, "Should not happen.");
+    TEN_ASSERT(0, "Should not hextension_testeren.");
     return false;
   }
   return true;

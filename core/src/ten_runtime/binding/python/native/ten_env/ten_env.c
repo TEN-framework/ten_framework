@@ -20,7 +20,7 @@ bool ten_py_ten_env_check_integrity(ten_py_ten_env_t *self) {
   TEN_ASSERT(self, "Should not happen.");
 
   if (ten_signature_get(&self->signature) !=
-      (ten_signature_t)TEN_PY_TEN_SIGNATURE) {
+      (ten_signature_t)TEN_PY_TEN_ENV_SIGNATURE) {
     return false;
   }
 
@@ -88,7 +88,7 @@ ten_py_ten_env_t *ten_py_ten_wrap(ten_env_t *ten_env) {
   py_ten_env = (ten_py_ten_env_t *)py_ten_py_type->tp_alloc(py_ten_py_type, 0);
   TEN_ASSERT(py_ten_env, "Failed to allocate memory.");
 
-  ten_signature_set(&py_ten_env->signature, TEN_PY_TEN_SIGNATURE);
+  ten_signature_set(&py_ten_env->signature, TEN_PY_TEN_ENV_SIGNATURE);
   py_ten_env->c_ten_env = ten_env;
   py_ten_env->c_ten_env_proxy = NULL;
   py_ten_env->need_to_release_gil_state = false;

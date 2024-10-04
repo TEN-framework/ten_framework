@@ -11,19 +11,19 @@
 #include <stdbool.h>
 
 #include "include_internal/ten_runtime/binding/python/common/python_stuff.h"
-#include "include_internal/ten_runtime/test/extension_tester.h"
+#include "include_internal/ten_runtime/test/env_tester.h"
 #include "ten_utils/lib/signature.h"
 
-#define TEN_PY_EXTENSION_TESTER_SIGNATURE 0x2B343E0B87397B5FU
+#define TEN_PY_TEN_ENV_TESTER_SIGNATURE 0x9DF807EAFAF9F6D5U
 
-typedef struct ten_py_extension_tester_t {
+typedef struct ten_py_ten_env_tester_t {
   PyObject_HEAD
+
   ten_signature_t signature;
-  ten_extension_tester_t *c_extension_tester;
 
-  // Companion ten_env_tester object, the actual type is
-  // ten_py_ten_env_tester_t.
-  PyObject *py_ten_env_tester;
-} ten_py_extension_tester_t;
+  ten_env_tester_t *c_ten_env_tester;
+  PyObject *actual_py_ten_env_tester;
 
-TEN_RUNTIME_PRIVATE_API PyTypeObject *ten_py_extension_tester_py_type(void);
+  // Mark whether the gil state need to be released after 'on_deinit_done'.
+  bool need_to_release_gil_state;
+} ten_py_ten_env_tester_t;
