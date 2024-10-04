@@ -61,7 +61,7 @@ class addon_t {
 
  private:
   ten_addon_t *c_addon;
-  ten_env_t *cpp_ten_env;
+  ten_env_t *cpp_ten_env{};
 
   virtual void on_create_instance_impl(ten_env_t &ten_env, const char *name,
                                        void *context) = 0;
