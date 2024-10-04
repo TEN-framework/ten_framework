@@ -48,6 +48,8 @@ static void proxy_on_configure(ten_extension_t *extension, ten_env_t *ten_env) {
   TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
              "Invalid argument.");
 
+  // About to call the Python function, so it's necessary to ensure that the GIL
+  // has been acquired.
   PyGILState_STATE prev_state = ten_py_gil_state_ensure();
   // This function can only be called on the native thread not a Python
   // thread.
@@ -81,6 +83,7 @@ static void proxy_on_configure(ten_extension_t *extension, ten_env_t *ten_env) {
   // PyThreadState will not be released until the last extension calls
   // 'on_deinit_done' in the group.
   ten_py_eval_save_thread();
+
   py_ten_env->need_to_release_gil_state = true;
 }
 
@@ -90,6 +93,8 @@ static void proxy_on_init(ten_extension_t *extension, ten_env_t *ten_env) {
   TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
              "Invalid argument.");
 
+  // About to call the Python function, so it's necessary to ensure that the GIL
+  // has been acquired.
   PyGILState_STATE prev_state = ten_py_gil_state_ensure();
   // This function can only be called on the native thread not a Python
   // thread.

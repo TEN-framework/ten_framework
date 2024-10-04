@@ -156,6 +156,8 @@ void ten_py_eval_restore_thread(void *state) {
 }
 
 PyGILState_STATE ten_py_gil_state_ensure(void) {
+  // The logic inside PyGILState_Ensure is as follows:
+  //
   // 1) Retrieves the PyThreadState for the current thread using
   //    'pthread_getspecific'.
   //    - If a PyThreadState exists, checks whether the current thread holds the

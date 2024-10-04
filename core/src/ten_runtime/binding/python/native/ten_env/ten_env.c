@@ -85,6 +85,8 @@ ten_py_ten_env_t *ten_py_ten_wrap(ten_env_t *ten_env) {
   }
 
   PyTypeObject *py_ten_py_type = ten_py_ten_env_type();
+
+  // Create a new py_ten_env.
   py_ten_env = (ten_py_ten_env_t *)py_ten_py_type->tp_alloc(py_ten_py_type, 0);
   TEN_ASSERT(py_ten_env, "Failed to allocate memory.");
 

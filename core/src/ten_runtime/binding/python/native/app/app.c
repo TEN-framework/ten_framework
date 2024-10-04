@@ -37,6 +37,9 @@ static void proxy_on_configure(ten_app_t *app, ten_env_t *ten_env) {
 
   TEN_LOGI("proxy_on_configure");
 
+  // About to call the Python function, so it's necessary to ensure that the GIL
+  // has been acquired.
+  //
   // The current state may be PyGILState_LOCKED or PyGILState_UNLOCKED which
   // depends on whether the app is running in the Python thread or native
   // thread.
@@ -50,6 +53,7 @@ static void proxy_on_configure(ten_app_t *app, ten_env_t *ten_env) {
   ten_py_ten_env_t *py_ten_env = ten_py_ten_wrap(ten_env);
   py_ten_env->c_ten_env_proxy = ten_env_proxy_create(ten_env, 1, NULL);
 
+  // Call python function.
   PyObject *py_res = PyObject_CallMethod((PyObject *)py_app, "on_configure",
                                          "O", py_ten_env->actual_py_ten_env);
   Py_XDECREF(py_res);
@@ -58,7 +62,9 @@ static void proxy_on_configure(ten_app_t *app, ten_env_t *ten_env) {
   TEN_ASSERT(!err_occurred, "Should not happen.");
 
   if (prev_state == PyGILState_UNLOCKED) {
-    // Release the GIL but not release the thread state.
+    // Since the original environment did not hold the GIL, we release it here.
+    // However, an optimization has been made to avoid releasing the thread
+    // state, allowing it to be reused later.
     ten_py_eval_save_thread();
   } else {
     // No need to release the GIL.
