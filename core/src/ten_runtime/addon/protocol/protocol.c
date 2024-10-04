@@ -8,7 +8,6 @@
 
 #include "include_internal/ten_runtime/addon/addon.h"
 #include "include_internal/ten_runtime/addon/common/store.h"
-#include "include_internal/ten_runtime/common/base_dir.h"
 #include "include_internal/ten_runtime/common/constant_str.h"
 #include "ten_utils/container/list.h"
 #include "ten_utils/container/list_node.h"

@@ -28,7 +28,7 @@ TEN_RUNTIME_API void ten_extension_tester_add_addon_name(
     ten_extension_tester_t *self, const char *addon_name);
 
 TEN_RUNTIME_API void ten_extension_tester_add_addon_base_dir(
-    ten_extension_tester_t *self, const char *addon_path);
+    ten_extension_tester_t *self, const char *addon_base_dir);
 
 TEN_RUNTIME_API bool ten_extension_tester_run(ten_extension_tester_t *self);
 

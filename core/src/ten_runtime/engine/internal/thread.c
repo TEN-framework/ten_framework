@@ -15,7 +15,6 @@
 #include "ten_runtime/app/app.h"
 #include "ten_utils/io/runloop.h"
 #include "ten_utils/lib/event.h"
-#include "ten_utils/lib/string.h"
 #include "ten_utils/lib/thread.h"
 #include "ten_utils/macro/check.h"
 #include "ten_utils/macro/mark.h"

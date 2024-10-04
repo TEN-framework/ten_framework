@@ -8,8 +8,6 @@
 
 #include "include_internal/ten_runtime/addon/addon.h"
 #include "include_internal/ten_runtime/addon/common/store.h"
-#include "include_internal/ten_runtime/common/base_dir.h"
-#include "include_internal/ten_runtime/common/constant_str.h"
 #include "include_internal/ten_runtime/extension/extension.h"
 #include "include_internal/ten_runtime/extension_group/extension_group.h"
 #include "include_internal/ten_runtime/extension_thread/extension_thread.h"
@@ -17,7 +15,6 @@
 #include "include_internal/ten_runtime/ten_env/ten_env.h"
 #include "ten_runtime/addon/addon.h"
 #include "ten_runtime/ten_env/ten_env.h"
-#include "ten_utils/lib/string.h"
 #include "ten_utils/macro/check.h"
 #include "ten_utils/macro/mark.h"
 

@@ -9,7 +9,6 @@
 #include <stdlib.h>
 
 #include "include_internal/ten_runtime/common/constant_str.h"
-#include "include_internal/ten_runtime/extension/extension.h"
 #include "ten_utils/lib/alloc.h"
 #include "ten_utils/lib/json.h"
 #include "ten_utils/lib/string.h"

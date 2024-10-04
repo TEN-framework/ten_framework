@@ -102,20 +102,17 @@ func RegisterAddonAsExtension(addonName string, instance Addon) error {
 
 	_, file, _, ok := runtime.Caller(1)
 	if !ok {
-		panic("Failed to get the caller information")
-		// return newTenError(
-		// 	ErrnoGeneric, "Failed to get the caller information")
+		return newTenError(ErrnoGeneric, "Failed to get the caller information")
 	}
 
 	baseDir := filepath.Dir(file)
 
 	absBaseDir, err := filepath.Abs(baseDir)
 	if err != nil {
-		panic(fmt.Sprintf("Failed to get the absolute file path: %v", err))
-		// return newTenError(
-		// 	ErrnoGeneric,
-		// 	fmt.Sprintf("Failed to get the absolute file path: %v", err),
-		// )
+		return newTenError(
+			ErrnoGeneric,
+			fmt.Sprintf("Failed to get the absolute file path: %v", err),
+		)
 	}
 
 	addonWrapper := &addon{
@@ -155,21 +152,18 @@ func RegisterAddonAsExtensionGroup(addonName string, instance Addon) error {
 
 	_, file, _, ok := runtime.Caller(1)
 	if !ok {
-		panic("Failed to get the caller information")
-		// return newTenError(ErrnoGeneric, "Failed to get the caller
-		// information")
+		return newTenError(ErrnoGeneric, "Failed to get the caller information")
 	}
 
 	baseDir := filepath.Dir(file)
 
 	absBaseDir, err := filepath.Abs(baseDir)
 	if err != nil {
-		panic(fmt.Sprintf("Failed to get the absolute file path: %v", err))
-		// return newTenError(
-		// 	ErrnoGeneric,
-		// 	fmt.Sprintf("Failed to get the absolute file path: %v",
-		// 		err),
-		// )
+		return newTenError(
+			ErrnoGeneric,
+			fmt.Sprintf("Failed to get the absolute file path: %v",
+				err),
+		)
 	}
 
 	addonWrapper := &addon{

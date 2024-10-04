@@ -15,7 +15,6 @@
 #include "include_internal/ten_runtime/extension/extension.h"
 #include "include_internal/ten_runtime/extension_context/extension_context.h"
 #include "include_internal/ten_runtime/extension_group/extension_group.h"
-#include "include_internal/ten_runtime/extension_group/on_xxx.h"
 #include "include_internal/ten_runtime/extension_thread/extension_thread.h"
 #include "include_internal/ten_runtime/msg/msg.h"
 #include "ten_runtime/app/app.h"

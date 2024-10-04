@@ -102,12 +102,12 @@ void ten_extension_tester_add_addon_name(ten_extension_tester_t *self,
 }
 
 void ten_extension_tester_add_addon_base_dir(ten_extension_tester_t *self,
-                                             const char *addon_path) {
+                                             const char *addon_base_dir) {
   TEN_ASSERT(self && ten_extension_tester_check_integrity(self, true),
              "Invalid argument.");
-  TEN_ASSERT(addon_path, "Invalid argument.");
+  TEN_ASSERT(addon_base_dir, "Invalid argument.");
 
-  ten_list_push_str_back(&self->addon_base_dirs, addon_path);
+  ten_list_push_str_back(&self->addon_base_dirs, addon_base_dir);
 }
 
 static void send_cmd_to_app_callback(ten_extension_t *extension,

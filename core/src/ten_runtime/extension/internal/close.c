@@ -11,7 +11,6 @@
 #include "include_internal/ten_runtime/extension/extension.h"
 #include "include_internal/ten_runtime/extension/msg_handling.h"
 #include "include_internal/ten_runtime/extension_thread/extension_thread.h"
-#include "include_internal/ten_runtime/extension_thread/on_xxx.h"
 #include "include_internal/ten_runtime/msg/cmd_base/cmd_base.h"
 #include "include_internal/ten_runtime/path/path.h"
 #include "include_internal/ten_runtime/path/path_table.h"

@@ -20,6 +20,7 @@ def register_addon_as_extension(name: str, base_dir: str | None = None):
             base_dir = os.path.dirname(caller_frame.f_code.co_filename)
         except (AttributeError, ValueError):
             # Fallback in case sys._getframe() is not available or fails.
+            # Ex: in cython.
             base_dir = None
 
     # If base_dir is not None, convert it to its directory name.
@@ -37,6 +38,7 @@ def register_addon_as_extension_group(name: str, base_dir: str | None = None):
             base_dir = os.path.dirname(caller_frame.f_code.co_filename)
         except (AttributeError, ValueError):
             # Fallback in case sys._getframe() is not available or fails.
+            # Ex: in cython.
             base_dir = None
 
     # If base_dir is not None, convert it to its directory name.
