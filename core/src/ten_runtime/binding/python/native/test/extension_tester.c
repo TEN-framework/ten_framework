@@ -225,7 +225,12 @@ static PyObject *ten_py_extension_tester_run(PyObject *self, PyObject *args) {
 
   TEN_LOGI("ten_py_extension_tester_run");
 
+  PyThreadState *saved_py_thread_state = PyEval_SaveThread();
+
+  // Blocking operation.
   bool rc = ten_extension_tester_run(py_extension_tester->c_extension_tester);
+
+  PyEval_RestoreThread(saved_py_thread_state);
 
   TEN_LOGI("ten_py_extension_tester_run done: %d", rc);
 

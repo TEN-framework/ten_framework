@@ -24,6 +24,7 @@ class ExtensionTesterBasic(ExtensionTester):
             lambda ten_env, result: self.check_hello(ten_env, result),
         )
 
+        print("tester on_start_done")
         ten_env.on_start_done()
 
 

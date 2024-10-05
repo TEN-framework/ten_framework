@@ -24,8 +24,6 @@ static void proxy_send_xxx_callback(ten_env_tester_t *ten_env_tester,
              "Should not happen.");
   TEN_ASSERT(callback_info, "Should not happen.");
 
-  TEN_LOGE("=-=-= 3");
-
   // About to call the Python function, so it's necessary to ensure that the GIL
   // has been acquired.
   //
@@ -40,7 +38,6 @@ static void proxy_send_xxx_callback(ten_env_tester_t *ten_env_tester,
   PyObject *arglist = Py_BuildValue(
       "(OO)", py_ten_env_tester->actual_py_ten_env_tester, cmd_result_bridge);
 
-  TEN_LOGE("=-=-= 4");
   PyObject *result = PyObject_CallObject(cb_func, arglist);
   Py_XDECREF(result);  // Ensure cleanup if an error occurred.
 
@@ -90,10 +87,12 @@ PyObject *ten_py_ten_env_tester_send_cmd(PyObject *self, PyObject *args) {
     cb_func = NULL;
   }
 
-  TEN_LOGE("=-=-= 1");
+  if (cb_func) {
+    Py_INCREF(cb_func);
+  }
+
   ten_env_tester_send_cmd(py_ten_env_tester->c_ten_env_tester,
                           py_cmd->msg.c_msg, proxy_send_xxx_callback, cb_func);
-  TEN_LOGE("=-=-= 2");
 
   // Destroy the C message from the Python message as the ownership has been
   // transferred to the notify_info.
