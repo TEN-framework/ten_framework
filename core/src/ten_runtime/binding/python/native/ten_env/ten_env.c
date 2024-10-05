@@ -84,10 +84,11 @@ ten_py_ten_env_t *ten_py_ten_wrap(ten_env_t *ten_env) {
     return py_ten_env;
   }
 
-  PyTypeObject *py_ten_py_type = ten_py_ten_env_type();
+  PyTypeObject *py_ten_env_py_type = ten_py_ten_env_type();
 
   // Create a new py_ten_env.
-  py_ten_env = (ten_py_ten_env_t *)py_ten_py_type->tp_alloc(py_ten_py_type, 0);
+  py_ten_env =
+      (ten_py_ten_env_t *)py_ten_env_py_type->tp_alloc(py_ten_env_py_type, 0);
   TEN_ASSERT(py_ten_env, "Failed to allocate memory.");
 
   ten_signature_set(&py_ten_env->signature, TEN_PY_TEN_ENV_SIGNATURE);
@@ -115,15 +116,15 @@ static PyObject *ten_py_ten_env_get_attach_to(ten_py_ten_env_t *self,
   return PyLong_FromLong(self->c_ten_env->attach_to);
 }
 
-void ten_py_ten_env_invalidate(ten_py_ten_env_t *py_ten) {
-  TEN_ASSERT(py_ten, "Should not happen.");
+void ten_py_ten_env_invalidate(ten_py_ten_env_t *py_ten_env) {
+  TEN_ASSERT(py_ten_env, "Should not happen.");
 
-  if (py_ten->actual_py_ten_env) {
-    Py_DECREF(py_ten->actual_py_ten_env);
-    py_ten->actual_py_ten_env = NULL;
+  if (py_ten_env->actual_py_ten_env) {
+    Py_DECREF(py_ten_env->actual_py_ten_env);
+    py_ten_env->actual_py_ten_env = NULL;
   }
 
-  Py_DECREF(py_ten);
+  Py_DECREF(py_ten_env);
 }
 
 static void ten_py_ten_env_destroy(PyObject *self) {

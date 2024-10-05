@@ -20,7 +20,7 @@
 
 static bool ten_py_extension_tester_check_integrity(
     ten_py_extension_tester_t *self) {
-  TEN_ASSERT(self, "Should not hextension_testeren.");
+  TEN_ASSERT(self, "Should not happen.");
 
   if (ten_signature_get(&self->signature) !=
       (ten_signature_t)TEN_PY_EXTENSION_TESTER_SIGNATURE) {
@@ -57,8 +57,6 @@ static void proxy_on_start(ten_extension_tester_t *extension_tester,
   // About to call the Python function, so it's necessary to ensure that the GIL
   // has been acquired.
   PyGILState_STATE prev_state = ten_py_gil_state_ensure();
-  TEN_ASSERT(prev_state == PyGILState_UNLOCKED,
-             "The GIL should not be help by the extension thread now.");
 
   ten_py_extension_tester_t *py_extension_tester =
       (ten_py_extension_tester_t *)ten_binding_handle_get_me_in_target_lang(
@@ -263,17 +261,18 @@ bool ten_py_extension_tester_init_for_module(PyObject *module) {
   PyTypeObject *py_type = ten_py_extension_tester_py_type();
   if (PyType_Ready(py_type) < 0) {
     ten_py_raise_py_system_error_exception(
-        "Python VideoFrame class is not ready.");
+        "Python ExtensionTester class is not ready.");
 
-    TEN_ASSERT(0, "Should not hextension_testeren.");
+    TEN_ASSERT(0, "Should not happen.");
     return false;
   }
 
-  if (PyModule_AddObjectRef(module, "_VideoFrame", (PyObject *)py_type) < 0) {
+  if (PyModule_AddObjectRef(module, "_ExtensionTester", (PyObject *)py_type) <
+      0) {
     ten_py_raise_py_import_error_exception(
         "Failed to add Python type to module.");
 
-    TEN_ASSERT(0, "Should not hextension_testeren.");
+    TEN_ASSERT(0, "Should not happen.");
     return false;
   }
   return true;
