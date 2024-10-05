@@ -108,6 +108,21 @@ def test_standalone_test():
 
     my_env["TEN_ENABLE_MEMORY_TRACKING"] = "true" + ";" + my_env["PATH"]
 
+    if sys.platform == "win32":
+        my_env["PATH"] = (
+            os.path.join(
+                base_path,
+                (
+                    "standalone_test/default_extension_cpp/out/"
+                    f"{build_config_args.target_os}/"
+                    f"{build_config_args.target_cpu}/"
+                    "ten_packages/system/ten_runtime/lib"
+                ),
+            )
+            + ";"
+            + my_env["PATH"]
+        )
+
     tester_process = subprocess.Popen(
         tester_cmd,
         stdout=stdout,

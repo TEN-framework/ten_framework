@@ -23,9 +23,6 @@ typedef struct ten_py_ten_env_tester_t {
 
   ten_env_tester_t *c_ten_env_tester;
   PyObject *actual_py_ten_env_tester;
-
-  // Mark whether the gil state need to be released after 'on_deinit_done'.
-  bool need_to_release_gil_state;
 } ten_py_ten_env_tester_t;
 
 TEN_RUNTIME_PRIVATE_API PyTypeObject *ten_py_ten_env_tester_py_type(void);
@@ -33,7 +30,16 @@ TEN_RUNTIME_PRIVATE_API PyTypeObject *ten_py_ten_env_tester_py_type(void);
 TEN_RUNTIME_PRIVATE_API bool ten_py_ten_env_tester_init_for_module(
     PyObject *module);
 
+TEN_RUNTIME_PRIVATE_API ten_py_ten_env_tester_t *ten_py_ten_tester_wrap(
+    ten_env_tester_t *ten_env_tester);
+
 TEN_RUNTIME_PRIVATE_API void ten_py_ten_env_tester_invalidate(
     ten_py_ten_env_tester_t *py_ten);
 
 TEN_RUNTIME_PRIVATE_API PyTypeObject *ten_py_ten_env_tester_type(void);
+
+TEN_RUNTIME_PRIVATE_API PyObject *ten_py_ten_env_tester_on_start_done(
+    PyObject *self, PyObject *args);
+
+TEN_RUNTIME_PRIVATE_API bool ten_py_ten_env_tester_check_integrity(
+    ten_py_ten_env_tester_t *self);

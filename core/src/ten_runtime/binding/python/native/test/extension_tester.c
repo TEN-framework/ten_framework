@@ -65,12 +65,14 @@ static void proxy_on_start(ten_extension_tester_t *extension_tester,
                  ten_py_extension_tester_check_integrity(py_extension_tester),
              "Invalid argument.");
 
-  PyObject *py_ten_env_tester = py_extension_tester->py_ten_env_tester;
-  TEN_ASSERT(py_ten_env_tester, "Should not happen.");
+  ten_py_ten_env_tester_t *py_ten_env_tester =
+      ten_py_ten_tester_wrap(ten_env_tester);
+  py_extension_tester->py_ten_env_tester = (PyObject *)py_ten_env_tester;
+  TEN_ASSERT(py_ten_env_tester->actual_py_ten_env_tester, "Should not happen.");
 
-  PyObject *py_res = PyObject_CallMethod(
-      (PyObject *)py_extension_tester, "on_start", "O",
-      ((ten_py_ten_env_tester_t *)py_ten_env_tester)->actual_py_ten_env_tester);
+  PyObject *py_res =
+      PyObject_CallMethod((PyObject *)py_extension_tester, "on_start", "O",
+                          py_ten_env_tester->actual_py_ten_env_tester);
   Py_XDECREF(py_res);
 
   bool err_occurred = ten_py_check_and_clear_py_error();
@@ -102,6 +104,9 @@ static void proxy_on_cmd(ten_extension_tester_t *extension_tester,
 
   PyObject *py_ten_env_tester = py_extension_tester->py_ten_env_tester;
   TEN_ASSERT(py_ten_env_tester, "Should not happen.");
+  TEN_ASSERT(
+      ((ten_py_ten_env_tester_t *)py_ten_env_tester)->actual_py_ten_env_tester,
+      "Should not happen.");
 
   ten_py_cmd_t *py_cmd = ten_py_cmd_wrap(cmd);
 
@@ -129,6 +134,11 @@ static ten_py_extension_tester_t *ten_py_extension_tester_init(
 
   py_extension_tester->c_extension_tester =
       ten_extension_tester_create(proxy_on_start, proxy_on_cmd);
+
+  ten_binding_handle_set_me_in_target_lang(
+      &py_extension_tester->c_extension_tester->binding_handle,
+      py_extension_tester);
+  py_extension_tester->py_ten_env_tester = Py_None;
 
   return py_extension_tester;
 }

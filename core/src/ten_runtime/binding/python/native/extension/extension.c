@@ -388,7 +388,8 @@ static PyObject *ten_py_extension_create(PyTypeObject *type, PyObject *py_name,
       proxy_on_video_frame, NULL);
   TEN_ASSERT(py_extension->c_extension, "Should not happen.");
 
-  ten_extension_set_me_in_target_lang(py_extension->c_extension, py_extension);
+  ten_binding_handle_set_me_in_target_lang(
+      &py_extension->c_extension->binding_handle, py_extension);
   py_extension->py_ten_env = Py_None;
 
   return (PyObject *)py_extension;

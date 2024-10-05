@@ -6,8 +6,7 @@
 #
 import("//build/ten_runtime/glob.gni")
 
-glob("test") {
-  deps = [ "env_tester" ]
+glob("env_tester") {
   configs = [
     "//core/src/ten_runtime/binding/python/native:ten_runtime_python_config",
   ]

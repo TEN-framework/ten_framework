@@ -9,12 +9,10 @@
 #include <stdbool.h>
 
 #include "include_internal/ten_runtime/binding/python/common/error.h"
-#include "include_internal/ten_runtime/ten_env/ten_env.h"
 #include "ten_runtime/binding/common.h"
 #include "ten_utils/macro/check.h"
 
-static bool ten_py_ten_env_tester_check_integrity(
-    ten_py_ten_env_tester_t *self) {
+bool ten_py_ten_env_tester_check_integrity(ten_py_ten_env_tester_t *self) {
   TEN_ASSERT(self, "Should not happen.");
 
   if (ten_signature_get(&self->signature) !=
@@ -86,12 +84,14 @@ ten_py_ten_env_tester_t *ten_py_ten_tester_wrap(
       ten_binding_handle_get_me_in_target_lang(
           (ten_binding_handle_t *)ten_env_tester);
   if (py_ten_env_tester) {
+    // The `ten_env_tester` has already been wrapped, so we directly returns the
+    // previously wrapped result.
     return py_ten_env_tester;
   }
 
   PyTypeObject *py_ten_env_tester_py_type = ten_py_ten_env_tester_type();
 
-  // Create a new py_ten_env.
+  // Create a new py_ten_env for wrapping.
   py_ten_env_tester =
       (ten_py_ten_env_tester_t *)py_ten_env_tester_py_type->tp_alloc(
           py_ten_env_tester_py_type, 0);
@@ -100,7 +100,6 @@ ten_py_ten_env_tester_t *ten_py_ten_tester_wrap(
   ten_signature_set(&py_ten_env_tester->signature,
                     TEN_PY_TEN_ENV_TESTER_SIGNATURE);
   py_ten_env_tester->c_ten_env_tester = ten_env_tester;
-  py_ten_env_tester->need_to_release_gil_state = false;
 
   py_ten_env_tester->actual_py_ten_env_tester =
       create_actual_py_ten_env_tester_instance(py_ten_env_tester);
@@ -113,8 +112,7 @@ ten_py_ten_env_tester_t *ten_py_ten_tester_wrap(
   ten_binding_handle_set_me_in_target_lang(
       (ten_binding_handle_t *)ten_env_tester, py_ten_env_tester);
 
-  // =-=-=
-  ten_env_set_destroy_handler_in_target_lang(
+  ten_env_tester_set_destroy_handler_in_target_lang(
       ten_env_tester, ten_py_ten_env_tester_c_part_destroyed);
 
   return py_ten_env_tester;
@@ -138,6 +136,8 @@ static void ten_py_ten_env_tester_destroy(PyObject *self) {
 
 PyTypeObject *ten_py_ten_env_tester_type(void) {
   static PyMethodDef ten_methods[] = {
+      {"on_start_done", ten_py_ten_env_tester_on_start_done, METH_VARARGS,
+       NULL},
       {NULL, NULL, 0, NULL},
   };
 
