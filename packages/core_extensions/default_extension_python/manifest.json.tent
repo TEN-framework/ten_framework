@@ -17,7 +17,7 @@
       "**.tent",
       "**.py",
       "README.md",
-      "tests"
+      "tests/**"
     ]
   },
   "api": {}
