@@ -66,7 +66,7 @@ static void proxy_on_start(ten_extension_tester_t *extension_tester,
              "Invalid argument.");
 
   ten_py_ten_env_tester_t *py_ten_env_tester =
-      ten_py_ten_tester_wrap(ten_env_tester);
+      ten_py_ten_env_tester_wrap(ten_env_tester);
   py_extension_tester->py_ten_env_tester = (PyObject *)py_ten_env_tester;
   TEN_ASSERT(py_ten_env_tester->actual_py_ten_env_tester, "Should not happen.");
 

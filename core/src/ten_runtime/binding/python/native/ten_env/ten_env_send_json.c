@@ -57,7 +57,7 @@ static void proxy_send_xxx_callback(ten_extension_t *extension,
   // Allows C codes to work safely with Python objects.
   PyGILState_STATE prev_state = ten_py_gil_state_ensure();
 
-  ten_py_ten_env_t *py_ten_env = ten_py_ten_wrap(ten_env);
+  ten_py_ten_env_t *py_ten_env = ten_py_ten_env_wrap(ten_env);
   ten_py_cmd_result_t *cmd_result_bridge = ten_py_cmd_result_wrap(cmd_result);
 
   PyObject *cb_func = callback_info;

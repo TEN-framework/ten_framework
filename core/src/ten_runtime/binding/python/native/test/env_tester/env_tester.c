@@ -76,7 +76,7 @@ static PyObject *create_actual_py_ten_env_tester_instance(
   return ten_env_tester_instance;
 }
 
-ten_py_ten_env_tester_t *ten_py_ten_tester_wrap(
+ten_py_ten_env_tester_t *ten_py_ten_env_tester_wrap(
     ten_env_tester_t *ten_env_tester) {
   TEN_ASSERT(ten_env_tester, "Invalid argument.");
 
@@ -138,6 +138,8 @@ PyTypeObject *ten_py_ten_env_tester_type(void) {
   static PyMethodDef ten_methods[] = {
       {"on_start_done", ten_py_ten_env_tester_on_start_done, METH_VARARGS,
        NULL},
+      {"stop_test", ten_py_ten_env_tester_stop_test, METH_VARARGS, NULL},
+      {"send_cmd", ten_py_ten_env_tester_send_cmd, METH_VARARGS, NULL},
       {NULL, NULL, 0, NULL},
   };
 

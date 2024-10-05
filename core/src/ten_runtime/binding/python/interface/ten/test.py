@@ -30,6 +30,9 @@ class TenEnvTester:
     def send_cmd(self, cmd: Cmd, result_handler: ResultHandler) -> None:
         return self._internal.send_cmd(cmd, result_handler)
 
+    def stop_test(self) -> None:
+        return self._internal.stop_test()
+
 
 class ExtensionTester(_ExtensionTester):
     @final

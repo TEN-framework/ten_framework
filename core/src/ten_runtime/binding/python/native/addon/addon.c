@@ -62,7 +62,7 @@ static void proxy_on_init(ten_addon_t *addon, ten_env_t *ten_env) {
   // has been acquired.
   PyGILState_STATE prev_state = ten_py_gil_state_ensure();
 
-  ten_py_ten_env_t *py_ten_env = ten_py_ten_wrap(ten_env);
+  ten_py_ten_env_t *py_ten_env = ten_py_ten_env_wrap(ten_env);
   if (!py_ten_env) {
     TEN_ASSERT(0, "Failed to wrap ten.");
     goto done;
@@ -103,7 +103,7 @@ static void proxy_on_deinit(ten_addon_t *addon, ten_env_t *ten_env) {
   // has been acquired.
   PyGILState_STATE prev_state = ten_py_gil_state_ensure();
 
-  ten_py_ten_env_t *py_ten_env = ten_py_ten_wrap(ten_env);
+  ten_py_ten_env_t *py_ten_env = ten_py_ten_env_wrap(ten_env);
   if (!py_ten_env) {
     TEN_ASSERT(0, "Failed to wrap ten.");
     goto done;
@@ -159,7 +159,7 @@ static void proxy_on_create_instance_async(ten_addon_t *addon,
     goto done;
   }
 
-  ten_py_ten_env_t *py_ten_env = ten_py_ten_wrap(ten_env);
+  ten_py_ten_env_t *py_ten_env = ten_py_ten_env_wrap(ten_env);
   if (!py_ten_env) {
     TEN_ASSERT(0, "Failed to wrap ten.");
     goto done;

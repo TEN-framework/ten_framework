@@ -75,7 +75,7 @@ static PyObject *create_actual_py_ten_env_instance(
   return ten_env_instance;
 }
 
-ten_py_ten_env_t *ten_py_ten_wrap(ten_env_t *ten_env) {
+ten_py_ten_env_t *ten_py_ten_env_wrap(ten_env_t *ten_env) {
   TEN_ASSERT(ten_env, "Invalid argument.");
 
   ten_py_ten_env_t *py_ten_env =
