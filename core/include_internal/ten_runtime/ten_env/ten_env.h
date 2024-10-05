@@ -24,13 +24,6 @@ typedef void (*ten_env_close_handler_in_target_lang_func_t)(
 typedef void (*ten_env_destroy_handler_in_target_lang_func_t)(
     void *me_in_target_lang);
 
-typedef enum TEN_CATEGORY {
-  TEN_CATEGORY_INVALID,
-
-  TEN_CATEGORY_NORMAL,
-  TEN_CATEGORY_MOCK,
-} TEN_CATEGORY;
-
 typedef enum TEN_ENV_ATTACH_TO {
   TEN_ENV_ATTACH_TO_INVALID,
 
@@ -46,8 +39,6 @@ typedef struct ten_env_t {
 
   ten_signature_t signature;
   ten_sanitizer_thread_check_t thread_check;
-
-  TEN_CATEGORY category;
 
   TEN_ENV_ATTACH_TO attach_to;
 

@@ -43,7 +43,6 @@ class extension_group_addon_t;
 class extension_addon_t;
 class ten_env_t;
 class ten_env_proxy_t;
-class ten_env_mock_t;
 class ten_env_internal_accessor_t;
 
 using result_handler_func_t =
@@ -1089,7 +1088,6 @@ class ten_env_t {
 
  private:
   friend class ten_env_proxy_t;
-  friend class ten_env_mock_t;
   friend class app_t;
   friend class extension_t;
   friend class extension_group_t;
