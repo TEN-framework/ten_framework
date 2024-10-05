@@ -26,8 +26,7 @@ group("python") {
       "send_json_python",
       "send_recv_image_python",
       "send_recv_pcm_python",
-
-      # "standalone_test",
+      "standalone_test_python",
     ]
 
     if (ten_enable_python_binding && ten_enable_go_binding) {
