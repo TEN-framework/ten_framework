@@ -42,7 +42,7 @@ func tenGoDestroyTen(tenEnvObjID C.uintptr_t) {
 	if !ok {
 		panic(
 			fmt.Sprintf(
-				"Failed to get ten from handle map, id: %d.",
+				"Failed to get ten env from handle map, id: %d.",
 				uintptr(tenEnvObjID),
 			),
 		)
@@ -61,7 +61,7 @@ func tenGoOnCmdResult(
 	if !ok {
 		panic(
 			fmt.Sprintf(
-				"Failed to get ten from handle map, id: %d.",
+				"Failed to get ten env from handle map, id: %d.",
 				uintptr(tenEnvObjID),
 			),
 		)
@@ -87,7 +87,7 @@ func tenGoSetPropertyCallback(
 	if !ok {
 		panic(
 			fmt.Sprintf(
-				"Failed to get ten from handle map, id: %d.",
+				"Failed to get ten env from handle map, id: %d.",
 				uintptr(tenEnvObjID),
 			),
 		)
@@ -123,7 +123,7 @@ func tenGoGetPropertyCallback(
 	if !ok {
 		panic(
 			fmt.Sprintf(
-				"Failed to get ten from handle map, id: %d.",
+				"Failed to get ten env from handle map, id: %d.",
 				uintptr(tenEnvObjID),
 			),
 		)
@@ -162,7 +162,7 @@ func tenGoOnAddonCreateExtensionDone(
 	if !ok {
 		panic(
 			fmt.Sprintf(
-				"Failed to get ten from handle map, id: %d.",
+				"Failed to get ten env from handle map, id: %d.",
 				uintptr(tenEnvObjID),
 			),
 		)
@@ -200,7 +200,7 @@ func tenGoOnAddonDestroyExtensionDone(
 	if !ok {
 		panic(
 			fmt.Sprintf(
-				"Failed to get ten from handle map, id: %d.",
+				"Failed to get ten env from handle map, id: %d.",
 				uintptr(tenEnvObjID),
 			),
 		)

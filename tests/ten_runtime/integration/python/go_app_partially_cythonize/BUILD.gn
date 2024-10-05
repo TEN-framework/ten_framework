@@ -39,6 +39,7 @@ ten_package_test_prepare_auxiliary_resources(
   resources = [
     "//tests/ten_runtime/integration/common=>common",
     "__init__.py",
+    "pytest.ini",
     "test_case.py",
   ]
   if (enable_sanitizer && !is_clang) {
