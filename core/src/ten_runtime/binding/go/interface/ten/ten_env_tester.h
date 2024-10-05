@@ -11,7 +11,9 @@
 
 #include "common.h"
 
-#define TEN_GO_TEN_TESTER_SIGNATURE 0x9159C741BA4A16D3U
+#define TEN_GO_TEN_ENV_TESTER_SIGNATURE 0x9159C741BA4A16D3U
+
+void ten_go_ten_env_tester_finalize(uintptr_t bridge_addr);
 
 void ten_go_ten_env_tester_on_start_done(uintptr_t bridge_addr);
 

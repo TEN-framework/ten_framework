@@ -15,8 +15,8 @@ import (
 	"runtime"
 )
 
-//export tenGoCreateTen
-func tenGoCreateTen(cInstance C.uintptr_t) C.uintptr_t {
+//export tenGoCreateTenEnv
+func tenGoCreateTenEnv(cInstance C.uintptr_t) C.uintptr_t {
 	tenEnvInstance := &tenEnv{
 		attachToType: tenAttachToInvalid,
 	}
@@ -32,8 +32,8 @@ func tenGoCreateTen(cInstance C.uintptr_t) C.uintptr_t {
 	return C.uintptr_t(id)
 }
 
-//export tenGoDestroyTen
-func tenGoDestroyTen(tenEnvObjID C.uintptr_t) {
+//export tenGoDestroyTenEnv
+func tenGoDestroyTenEnv(tenEnvObjID C.uintptr_t) {
 	r, ok := handle(tenEnvObjID).free().(*tenEnv)
 
 	r.attachToType = tenAttachToInvalid

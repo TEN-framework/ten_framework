@@ -9,6 +9,7 @@ package ten
 
 //#include "ten_env_tester.h"
 import "C"
+import "runtime"
 
 type (
 	TesterResultHandler func(TenEnvTester, CmdResult)
@@ -61,4 +62,19 @@ func (p *tenEnvTester) OnStartDone() error {
 	C.ten_go_ten_env_tester_on_start_done(p.cPtr)
 
 	return nil
+}
+
+//export tenGoCreateTenEnvTester
+func tenGoCreateTenEnvTester(cInstance C.uintptr_t) C.uintptr_t {
+	tenEnvTesterInstance := &tenEnvTester{}
+	tenEnvTesterInstance.cPtr = cInstance
+	tenEnvTesterInstance.pool = newJobPool(5)
+	runtime.SetFinalizer(tenEnvTesterInstance, func(p *tenEnvTester) {
+		C.ten_go_ten_env_tester_finalize(p.cPtr)
+	})
+
+	id := newhandle(tenEnvTesterInstance)
+	tenEnvTesterInstance.goObjID = id
+
+	return C.uintptr_t(id)
 }

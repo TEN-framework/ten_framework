@@ -203,7 +203,8 @@ void ten_env_close(ten_env_t *self) {
 }
 
 void ten_env_set_close_handler_in_target_lang(
-    ten_env_t *self, ten_close_handler_in_target_lang_func_t close_handler) {
+    ten_env_t *self,
+    ten_env_close_handler_in_target_lang_func_t close_handler) {
   TEN_ASSERT(self, "Invalid argument.");
   // TEN_NOLINTNEXTLINE(thread-check)
   // thread-check: This function is intended to be called in any threads.
