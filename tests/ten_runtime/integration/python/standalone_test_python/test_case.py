@@ -40,6 +40,11 @@ def test_standalone_test_python():
     # Step 2:
     #
     # Run standalone test cases.
+
+    # Set the required environment variables for the test.
+    my_env["PYTHONMALLOC"] = "malloc"
+    my_env["PYTHONDEVMODE"] = "1"
+
     if sys.platform == "linux":
         if os.path.exists(os.path.join(base_path, "use_asan_lib_marker")):
             libasan_path = os.path.join(
