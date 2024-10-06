@@ -4,9 +4,10 @@
 # Licensed under the Apache License, Version 2.0, with certain conditions.
 # Refer to the "LICENSE" file in the root directory for more information.
 #
+import("//build/ten_runtime/feature/test.gni")
 import("//build/ten_runtime/options.gni")
 
-copy("copy_pytest_ini") {
+copy("copy_pytest_ini_for_ten_runtime_python_integration_test") {
   sources = [ "//tests/ten_runtime/integration/pytest.ini" ]
   outputs = [ "${root_out_dir}/tests/ten_runtime/integration/pytest.ini" ]
 }
@@ -44,5 +45,5 @@ group("python") {
     }
   }
 
-  deps += [ ":copy_pytest_ini" ]
+  deps += [ "//tests/ten_runtime/integration/python:copy_pytest_ini_for_ten_runtime_python_integration_test" ]
 }

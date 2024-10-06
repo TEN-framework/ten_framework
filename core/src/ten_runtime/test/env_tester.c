@@ -202,6 +202,8 @@ void ten_env_tester_stop_test(ten_env_tester_t *self) {
 bool ten_env_tester_on_start_done(ten_env_tester_t *self, ten_error_t *err) {
   TEN_ASSERT(self && ten_env_tester_check_integrity(self), "Invalid argument.");
 
+  ten_extension_tester_on_start_done(self->tester);
+
   return true;
 }
 

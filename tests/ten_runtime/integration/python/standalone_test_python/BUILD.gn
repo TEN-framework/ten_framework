@@ -20,5 +20,8 @@ ten_package_test_prepare_auxiliary_resources(
 }
 
 group("standalone_test_python") {
-  deps = [ ":standalone_test_python_test_files" ]
+  deps = [
+    ":standalone_test_python_test_files",
+    "//tests/ten_runtime/integration/python:copy_pytest_ini_for_ten_runtime_python_integration_test",
+  ]
 }
