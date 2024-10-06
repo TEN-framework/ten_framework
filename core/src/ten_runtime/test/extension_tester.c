@@ -333,6 +333,19 @@ static void ten_extension_tester_create_and_run_app(
              "test_app should have been created its ten_env_proxy.");
 }
 
+void ten_extension_tester_on_start_done(ten_env_tester_t *self) {
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_env_tester_check_integrity(self),
+             "Invalid use of ten_env_tester %p.", self);
+
+  ten_extension_tester_t *extension_tester = self->tester;
+  TEN_ASSERT(extension_tester, "Invalid argument.");
+  TEN_ASSERT(ten_extension_tester_check_integrity(extension_tester, true),
+             "Invalid use of extension_tester %p.", extension_tester);
+
+  TEN_LOGI("tester on_start() done.");
+}
+
 static void ten_extension_tester_on_start_task(void *self_,
                                                TEN_UNUSED void *arg) {
   ten_extension_tester_t *self = (ten_extension_tester_t *)self_;
@@ -344,6 +357,8 @@ static void ten_extension_tester_on_start_task(void *self_,
 
   if (self->on_start) {
     self->on_start(self, self->ten_env_tester);
+  } else {
+    ten_extension_tester_on_start_done(self->ten_env_tester);
   }
 }
 

@@ -12,7 +12,6 @@ ten_package_test_prepare_auxiliary_resources(
   resources = [
     "//tests/ten_runtime/integration/python/standalone_test_python/default_extension_python=>default_extension_python",
     "__init__.py",
-    "pytest.ini",
     "test_case.py",
   ]
   if (enable_sanitizer) {

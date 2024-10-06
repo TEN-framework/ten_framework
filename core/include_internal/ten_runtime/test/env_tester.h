@@ -29,8 +29,9 @@ typedef struct ten_env_tester_t {
   ten_signature_t signature;
   ten_extension_tester_t *tester;
 
-  // =-=-= do we need this?
+  // TODO(Wei): Do we need this close_handler?
   ten_env_tester_close_handler_in_target_lang_func_t close_handler;
+
   ten_env_tester_destroy_handler_in_target_lang_func_t destroy_handler;
 } ten_env_tester_t;
 
