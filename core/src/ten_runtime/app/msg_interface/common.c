@@ -83,11 +83,12 @@ static bool ten_app_handle_msg_default_handler(ten_app_t *self,
       ten_app_get_engine_based_on_dest_graph_id_from_msg(self, msg);
 
   if (!engine) {
-    // Check to see if the requested engine is a prebuilt-graph engine.
+    // Failed to find the engine, check to see if the requested engine is a
+    // _singleton_ prebuilt-graph engine, and start it.
 
     ten_predefined_graph_info_t *predefined_graph_info =
-        ten_app_get_predefined_graph_info_based_on_dest_graph_id_from_msg(self,
-                                                                          msg);
+        ten_app_get_singleton_predefined_graph_info_based_on_dest_graph_id_from_msg(
+            self, msg);
 
     if (predefined_graph_info) {
       if (!ten_app_start_predefined_graph(self, predefined_graph_info, err)) {

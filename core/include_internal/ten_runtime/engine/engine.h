@@ -47,7 +47,7 @@ struct ten_engine_t {
   bool is_ready_to_handle_msg;
 
   // When app creates an engine, it will create a randomized graph ID for the
-  // engine.
+  // engine. It _must_ be a UUID4 string.
   ten_string_t graph_id;
 
   ten_path_table_t *path_table;

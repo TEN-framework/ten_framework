@@ -362,8 +362,8 @@ static void ten_msg_clear_dest_graph_id(ten_shared_ptr_t *self) {
 void ten_msg_set_dest_engine_if_unspecified_or_predefined_graph_name(
     ten_shared_ptr_t *self, ten_engine_t *engine,
     ten_list_t *predefined_graph_infos) {
-  TEN_ASSERT(self && ten_msg_check_integrity(self) && engine,
-             "Should not happen.");
+  TEN_ASSERT(self && ten_msg_check_integrity(self), "Should not happen.");
+  TEN_ASSERT(engine, "Should not happen.");
 
   ten_list_foreach (ten_msg_get_dest(self), iter) {
     ten_loc_t *dest_loc = ten_ptr_listnode_get(iter.node);
@@ -379,31 +379,17 @@ void ten_msg_set_dest_engine_if_unspecified_or_predefined_graph_name(
       // graph_id to the "graph_name" of the _singleton_ predefined graph
       // engine.
 
-      ten_list_foreach (predefined_graph_infos, iter) {
-        ten_predefined_graph_info_t *predefined_graph_info =
-            (ten_predefined_graph_info_t *)ten_ptr_listnode_get(iter.node);
+      ten_predefined_graph_info_t *singleton_predefined_graph =
+          ten_predefined_graph_infos_get_singleton_by_name(
+              predefined_graph_infos,
+              ten_string_get_raw_str(&dest_loc->graph_id));
+      if (singleton_predefined_graph && singleton_predefined_graph->engine) {
+        TEN_ASSERT(engine == singleton_predefined_graph->engine,
+                   "Otherwise, the message should not be transferred to this "
+                   "engine.");
 
-        // =-=-=
-
-        // If the 'graph_id' is the name of one of the predefined graph
-        // engine, we replace it to the graph_id of the predefined graph
-        // engine.
-        if (ten_string_is_equal(&dest_loc->graph_id,
-                                &predefined_graph_info->name)) {
-          // If the predefined graph engine is not started yet, this command
-          // will trigger the start of the predefined graph engine.
-          if (predefined_graph_info->engine == NULL) {
-            break;
-          }
-
-          TEN_ASSERT(engine == predefined_graph_info->engine,
-                     "Otherwise, the message should not be transferred to this "
-                     "engine.");
-
-          ten_string_copy(&dest_loc->graph_id,
-                          &predefined_graph_info->engine->graph_id);
-          break;
-        }
+        ten_string_copy(&dest_loc->graph_id,
+                        &singleton_predefined_graph->engine->graph_id);
       }
     }
   }

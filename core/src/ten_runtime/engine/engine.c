@@ -135,6 +135,7 @@ static void ten_engine_set_graph_id(ten_engine_t *self, ten_shared_ptr_t *cmd) {
       ten_loc_t *dest_loc = ten_ptr_listnode_get(iter.node);
       TEN_ASSERT(dest_loc && ten_loc_check_integrity(dest_loc),
                  "Should not happen.");
+
       ten_string_set_formatted(&dest_loc->graph_id, "%s",
                                ten_string_get_raw_str(&graph_id_str));
     }

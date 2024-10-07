@@ -149,6 +149,7 @@ class test_app : public ten::app_t {
                         "predefined_graphs": [{
                           "name": "default",
                           "auto_start": false,
+                          "singleton": true,
                           "nodes": [{
                             "type": "extension_group",
                             "name": "start_graph_from_extension__predefined_graph_group",

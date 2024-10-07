@@ -39,8 +39,6 @@ void ten_engine_handle_cmd_start_graph(ten_engine_t *self,
   TEN_ASSERT(ten_msg_get_src_app_uri(cmd),
              "The 'start_graph' command should have a src_uri information.");
 
-  // ten_msg_dump(cmd, NULL, "Handle connect cmd: ^m");
-
   ten_cmd_start_graph_add_missing_extension_group_node(cmd);
 
   ten_list_t next = TEN_LIST_INIT_VAL;
