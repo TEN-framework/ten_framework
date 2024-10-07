@@ -81,10 +81,8 @@ sequenceDiagram
    participant A
    participant B
 
-   Note right of A: on_init
+   Note right of A,B: on_init
    activate A
-
-   Note right of B: on_init
    activate B
    deactivate B
    Note right of B: on_init_done
