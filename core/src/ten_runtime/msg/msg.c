@@ -366,25 +366,30 @@ void ten_msg_set_dest_engine_if_unspecified_or_predefined_graph_name(
              "Should not happen.");
 
   ten_list_foreach (ten_msg_get_dest(self), iter) {
-    ten_loc_t *loc = ten_ptr_listnode_get(iter.node);
-    TEN_ASSERT(loc && ten_loc_check_integrity(loc), "Should not happen.");
+    ten_loc_t *dest_loc = ten_ptr_listnode_get(iter.node);
+    TEN_ASSERT(dest_loc && ten_loc_check_integrity(dest_loc),
+               "Should not happen.");
 
-    if (ten_string_is_empty(&loc->graph_id)) {
-      ten_string_copy(&loc->graph_id, &engine->graph_id);
+    if (ten_string_is_empty(&dest_loc->graph_id)) {
+      ten_string_copy(&dest_loc->graph_id, &engine->graph_id);
     } else if (predefined_graph_infos) {
-      // Otherwise, if the target_engine is one of the predefined graph engine,
-      // and the destination graph_id is the "name" of that predefined graph
-      // engine, then replace the destination graph_id to the "graph_name" of
-      // the predefined graph engine.
+      // Otherwise, if the target_engine is one of the _singleton_ predefined
+      // graph engine, and the destination graph_id is the "name" of that
+      // _singleton_ predefined graph engine, then replace the destination
+      // graph_id to the "graph_name" of the _singleton_ predefined graph
+      // engine.
 
       ten_list_foreach (predefined_graph_infos, iter) {
         ten_predefined_graph_info_t *predefined_graph_info =
             (ten_predefined_graph_info_t *)ten_ptr_listnode_get(iter.node);
 
+        // =-=-=
+
         // If the 'graph_id' is the name of one of the predefined graph
         // engine, we replace it to the graph_id of the predefined graph
         // engine.
-        if (ten_string_is_equal(&loc->graph_id, &predefined_graph_info->name)) {
+        if (ten_string_is_equal(&dest_loc->graph_id,
+                                &predefined_graph_info->name)) {
           // If the predefined graph engine is not started yet, this command
           // will trigger the start of the predefined graph engine.
           if (predefined_graph_info->engine == NULL) {
@@ -395,7 +400,7 @@ void ten_msg_set_dest_engine_if_unspecified_or_predefined_graph_name(
                      "Otherwise, the message should not be transferred to this "
                      "engine.");
 
-          ten_string_copy(&loc->graph_id,
+          ten_string_copy(&dest_loc->graph_id,
                           &predefined_graph_info->engine->graph_id);
           break;
         }

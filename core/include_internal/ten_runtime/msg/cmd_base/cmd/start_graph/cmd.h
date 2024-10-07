@@ -15,6 +15,13 @@ typedef struct ten_cmd_start_graph_t {
 
   bool long_running_mode;
 
+  // There are two methods to start a graph:
+  // 1) one is by explicitly specifying the graph's content through
+  //    extension_groups_info and extensions_info.
+  // 2) The other is by specifying only a predefined graph name, and then
+  //    finding the corresponding graph definition from the app's predefined
+  //    graph database.
+
   // The name of the specified predefined graph.
   ten_string_t predefined_graph_name;
 

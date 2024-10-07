@@ -36,7 +36,9 @@ ten_predefined_graph_info_t *ten_predefined_graph_info_create(void) {
   ten_string_init(&self->name);
   ten_list_init(&self->extensions_info);
   ten_list_init(&self->extension_groups_info);
+
   self->auto_start = false;
+  self->singleton = true;
   self->engine = NULL;
 
   return self;
