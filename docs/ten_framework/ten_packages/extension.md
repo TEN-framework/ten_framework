@@ -24,27 +24,13 @@ Each life cycle stage corresponds to a callback function, and there is a corresp
 
 ### State Transition Graph
 
-<details>
-<summary></summary>
-custom_mark21
-@startuml
-start
-:init;
--> test of color;
-if (color?) is (<color:red>red) then
-:print red;
-else
-:print not red;
-note right: no color
-endif
-partition End {
-:end;
-}
--> this is the end;
-end
-@enduml
-custom_mark21
-</details>
+```mermaid
+graph TD;
+    A-->B;
+    A-->C;
+    B-->D;
+    C-->D;
+```
 
 ### on_configure
 
