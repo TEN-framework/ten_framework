@@ -22,7 +22,7 @@ Each life cycle stage corresponds to a callback function, and there is a corresp
 | `on_stop`           | `on_stop_done`               |
 | `on_deinit`         | `on_deinit_done`             |
 
-### State Transition Graph
+### Stage Transition Graph
 
 ```mermaid
 graph TD;
@@ -57,6 +57,13 @@ Used to initialize the extension. Since the extension is not yet ready before `o
 
 This stage marks the runtime starting to send messages into the extension. The `on_start_done` function doesn't have a special purpose, but for consistency with other life cycle stages and to reduce learning complexity, the TEN framework includes it. Typically, `on_start_done` is invoked at the end of the `on_start` callback function. The TEN runtime will start delivering messages from other extensions to this extension after receiving its `on_start_done()`.
 
+```c++
+  void on_start(ten::ten_env_t &ten_env) override {
+    // Some operations.
+    ten_env.on_start_done();
+  }
+```
+
 ### on_stop
 
 There are many situations where the extension needs to stop, such as when the app or engine containing the extension is terminating. When the extension is about to stop, the TEN runtime uses this `on_stop` callback to notify the extension that it has entered the `on_stop` life cycle stage. The extension can then perform any necessary actions for termination.
@@ -64,6 +71,23 @@ There are many situations where the extension needs to stop, such as when the ap
 ### on_deinit
 
 After the extension calls `on_stop_done()`, it enters the `on_deinit` stage. During this stage, because the resources within the extension may no longer be fully available, the TEN runtime will not pass any messages from other extensions to this one.
+
+## Relationship Between Extensions at Different Life Cycle Stages
+
+Basically, there is no inherent relationship. Each extension operates independently, switching between its own life cycle stages. Extensions are independent of one another, and any dependencies between them must be explicitly implemented by the extensions themselves. The TEN runtime does not make any assumptions or guarantees. For example, if extension A needs to wait for extension B to complete its initialization before finishing its own, extension A can send a command to extension B during its `on_init`. Once extension B completes initialization and receives the command, it can reply with a result, and when extension A receives the result, it can call `on_init_done`.
+
+```mermaid
+sequenceDiagram
+    participant A
+    participant B
+    Note right of B: on_init_done
+    A->>B: cmd
+    iframe->>viewscreen: request template
+    viewscreen->>iframe: html & javascript
+    iframe->>dotcom: iframe ready
+    dotcom->>iframe: set mermaid data on iframe
+    iframe->>iframe: render mermaid
+```
 
 ## Interface with TEN Runtime
 
