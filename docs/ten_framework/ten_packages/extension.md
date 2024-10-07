@@ -78,15 +78,22 @@ Basically, there is no inherent relationship. Each extension operates independen
 
 ```mermaid
 sequenceDiagram
-    participant A
-    participant B
-    Note right of B: on_init_done
-    A->>B: cmd
-    iframe->>viewscreen: request template
-    viewscreen->>iframe: html & javascript
-    iframe->>dotcom: iframe ready
-    dotcom->>iframe: set mermaid data on iframe
-    iframe->>iframe: render mermaid
+   participant A
+   participant B
+
+   Note right of A: on_init
+   activate A
+
+   Note right of B: on_init
+   activate B
+   deactivate B
+   Note right of B: on_init_done
+
+   A->>B: cmd
+   B-->>A: result
+
+   deactivate A
+   Note right of A: on_init_done
 ```
 
 ## Interface with TEN Runtime
