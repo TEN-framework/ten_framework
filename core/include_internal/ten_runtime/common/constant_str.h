@@ -145,6 +145,7 @@
 #define TEN_STR_LONG_RUNNING_MODE "long_running_mode"
 #define TEN_STR_GRAPH "graph"
 #define TEN_STR_GRAPH_NAME "graph_name"
+#define TEN_STR_GRAPH_ID "graph_id"
 #define TEN_STR_TYPE "type"
 #define TEN_STR_APP "app"
 #define TEN_STR_NAME "name"

@@ -114,7 +114,7 @@ TEST(ExtensionTest, PredefinedGraphEngineOwnEventloop) {  // NOLINT
   // a message queue in client.
 
   // Do not need to send 'start_graph' command first.
-  // The 'graph_name' MUST be "0" (a special string) if we want to send the
+  // The 'graph_id' MUST be "default" (a special string) if we want to send the
   // request to predefined graph.
   nlohmann::json const resp = client->send_json_and_recv_resp_in_json(
       R"({

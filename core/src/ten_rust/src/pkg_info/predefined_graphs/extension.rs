@@ -23,7 +23,7 @@ use crate::{
 };
 
 pub fn get_extension_nodes_in_graph(
-    graph_name: &String,
+    graph_id: &String,
     all_pkgs: &[PkgInfo],
 ) -> Result<Vec<GraphNode>> {
     if let Some(app_pkg) = all_pkgs
@@ -38,7 +38,7 @@ pub fn get_extension_nodes_in_graph(
         // package.
         if let Some(predefined_graph) = pkg_predefined_graphs_find(
             app_pkg.get_predefined_graphs(),
-            |graph| graph.name == *graph_name,
+            |graph| graph.name == *graph_id,
         ) {
             // Collect all extension nodes from the graph.
             let extension_nodes: Vec<_> = predefined_graph
@@ -52,7 +52,7 @@ pub fn get_extension_nodes_in_graph(
             Ok(extension_nodes)
         } else {
             Err(anyhow::anyhow!(
-                format!("Graph {} not found", graph_name).to_string(),
+                format!("Graph {} not found", graph_id).to_string(),
             ))
         }
     } else {

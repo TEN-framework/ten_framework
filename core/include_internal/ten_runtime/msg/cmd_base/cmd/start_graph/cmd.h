@@ -56,7 +56,7 @@ TEN_RUNTIME_PRIVATE_API ten_list_t
 ten_cmd_start_graph_get_requested_extension_names(ten_shared_ptr_t *self);
 
 TEN_RUNTIME_PRIVATE_API void ten_cmd_start_graph_fill_loc_info(
-    ten_shared_ptr_t *self, const char *app_uri, const char *graph_name);
+    ten_shared_ptr_t *self, const char *app_uri, const char *graph_id);
 
 TEN_RUNTIME_PRIVATE_API bool ten_raw_cmd_start_graph_as_msg_init_from_json(
     ten_msg_t *self, ten_json_t *json, ten_error_t *err);
@@ -70,7 +70,7 @@ ten_raw_cmd_start_graph_as_msg_create_from_json(ten_json_t *json,
 
 TEN_RUNTIME_PRIVATE_API ten_list_t
 ten_cmd_start_graph_get_extension_addon_and_instance_name_pairs_of_specified_extension_group(
-    ten_shared_ptr_t *self, const char *app_uri, const char *graph_name,
+    ten_shared_ptr_t *self, const char *app_uri, const char *graph_id,
     const char *extension_group_name);
 
 TEN_RUNTIME_PRIVATE_API ten_json_t *ten_raw_cmd_start_graph_to_json(

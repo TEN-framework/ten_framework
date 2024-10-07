@@ -73,7 +73,7 @@ bool ten_app_handle_start_graph_cmd(ten_app_t *self,
   }
 
   ten_engine_t *engine =
-      ten_app_get_engine_based_on_dest_graph_name_from_msg(self, cmd);
+      ten_app_get_engine_based_on_dest_graph_id_from_msg(self, cmd);
   if (engine == NULL) {
     // The engine does not exist, create one, and send 'cmd' to the newly
     // created engine.

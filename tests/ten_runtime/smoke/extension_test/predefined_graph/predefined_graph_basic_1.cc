@@ -108,8 +108,8 @@ TEST(ExtensionTest, PredefinedGraphBasic1) {  // NOLINT
   auto *client = new ten::msgpack_tcp_client_t("msgpack://127.0.0.1:8001/");
 
   // Do not need to send 'start_graph' command first.
-  // The 'graph_name' MUST be "0" (a special string) if we want to send the
-  // request to predefined graph.
+  // The 'graph_id' MUST be "default" if we want to send the request to
+  // predefined graph.
   nlohmann::json const resp = client->send_json_and_recv_resp_in_json(
       R"({
            "_ten": {

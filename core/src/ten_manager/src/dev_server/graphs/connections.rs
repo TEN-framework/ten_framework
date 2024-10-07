@@ -130,7 +130,7 @@ pub async fn get_graph_connections(
             .find(|pkg| pkg.pkg_identity.pkg_type == PkgType::App)
         {
             // If the app package has predefined graphs, find the one with the
-            // specified graph_name.
+            // specified graph_id.
             if let Some(predefined_graph) = pkg_predefined_graphs_find(
                 app_pkg.get_predefined_graphs(),
                 |g| g.name == graph_name,

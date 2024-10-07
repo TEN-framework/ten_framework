@@ -48,7 +48,7 @@ struct ten_engine_t {
 
   // When app creates an engine, it will create a randomized graph ID for the
   // engine.
-  ten_string_t graph_name;
+  ten_string_t graph_id;
 
   ten_path_table_t *path_table;
 
@@ -105,5 +105,5 @@ TEN_RUNTIME_PRIVATE_API ten_runloop_t *ten_engine_get_attached_runloop(
 TEN_RUNTIME_PRIVATE_API bool ten_engine_is_ready_to_handle_msg(
     ten_engine_t *self);
 
-TEN_RUNTIME_PRIVATE_API const char *ten_engine_get_name(ten_engine_t *self,
-                                                        bool check_thread);
+TEN_RUNTIME_PRIVATE_API const char *ten_engine_get_id(ten_engine_t *self,
+                                                      bool check_thread);
