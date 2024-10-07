@@ -22,6 +22,28 @@ Each life cycle stage corresponds to a callback function, and there is a corresp
 | `on_stop`           | `on_stop_done`               |
 | `on_deinit`         | `on_deinit_done`             |
 
+### State Transition Graph
+
+<details>
+<summary></summary>
+@startuml
+start
+:init;
+-> test of color;
+if (color?) is (<color:red>red) then
+:print red;
+else
+:print not red;
+note right: no color
+endif
+partition End {
+:end;
+}
+-> this is the end;
+end
+@enduml
+</details>
+
 ### on_configure
 
 Used to set the initial values of the extension's properties.
