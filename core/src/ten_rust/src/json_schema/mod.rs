@@ -804,7 +804,7 @@ mod tests {
           "type": "extension",
           "name": "embedding",
           "version": "0.1.0",
-                  "dependencies": [
+          "dependencies": [
             {
               "type": "system",
               "name": "ten_runtime_python",
@@ -876,7 +876,7 @@ mod tests {
         assert!(result.is_err());
 
         let msg = result.unwrap_err().to_string();
-        assert!(msg.contains("Additional properties are not allowed ('status' was unexpected) @ /api/cmd_in/default"));
+        assert!(msg.contains("Additional properties are not allowed ('status' was unexpected) @ /api/cmd_in/0"));
     }
 
     #[test]
