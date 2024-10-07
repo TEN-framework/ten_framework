@@ -1,5 +1,47 @@
 # Extension
 
+## Life Cycle
+
+The life cycle of an extension is divided into the following stages:
+
+1. `on_configure`
+2. `on_init`
+3. `on_start`
+4. `on_stop`
+5. `on_deinit`
+
+At all these stages, the extension can send messages, and if the sent message is a command type, the extension can also receive the result of the command it sent. In other words, there is no stage where the extension *cannot* send messages or receive the results of its own sent commands. So, in all these stages, the extension can send messages to other extensions, which helps implement dependencies between extensions in all stages.
+
+Each life cycle stage corresponds to a callback function, and there is a corresponding `on_xxx_done()` function to mark the end of that life cycle stage.
+
+| Life Cycle Callback | End of Life Cycle Function   |
+|---------------------|------------------------------|
+| `on_configure`      | `on_configure_done`          |
+| `on_init`           | `on_init_done`               |
+| `on_start`          | `on_start_done`              |
+| `on_stop`           | `on_stop_done`               |
+| `on_deinit`         | `on_deinit_done`             |
+
+### on_configure
+
+Used to set the initial values of the extension's properties.
+
+### on_init
+
+Used to initialize the extension. Since the extension is not yet ready before `on_init_done()`, the TEN runtime will queue all messages sent to the extension until it's ready. Once ready, the queued messages are delivered to the extension. It's important to note that if the result is from a command sent by the extension itself, it is *not* subject to this restriction; the TEN runtime will directly pass the command's result back to the extension. This is because sending a command is a self-initiated action by the extension, so it must be prepared to receive and handle the result of its own commands.
+
+### on_start
+
+This stage marks the runtime starting to send messages into the extension. The `on_start_done` function doesn't have a special purpose, but for consistency with other life cycle stages and to reduce learning complexity, the TEN framework includes it. Typically, `on_start_done` is invoked at the end of the `on_start` callback function. The TEN runtime will start delivering messages from other extensions to this extension after receiving its `on_start_done()`.
+
+### on_stop
+
+There are many situations where the extension needs to stop, such as when the app or engine containing the extension is terminating. When the extension is about to stop, the TEN runtime uses this `on_stop` callback to notify the extension that it has entered the `on_stop` life cycle stage. The extension can then perform any necessary actions for termination.
+
+### on_deinit
+
+After the extension calls `on_stop_done()`, it enters the `on_deinit` stage. During this stage, because the resources within the extension may no longer be fully available, the TEN runtime will not pass any messages from other extensions to this one.
+
 ## Interface with TEN Runtime
 
 Extensions interact with the TEN runtime primarily through three interfaces:
