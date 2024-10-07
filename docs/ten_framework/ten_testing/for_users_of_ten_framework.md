@@ -31,11 +31,11 @@ sequenceDiagram
   participant testing as Extension Testing
   participant tested as Extension Tested
 
-  tester->>testing
-  testing->>tested
+  tester->>testing:
+  testing->>tested:
 
-  tested-->>testing
-  testing-->>tester
+  tested-->>testing:
+  testing-->>tester:
 ```
 
 ## C++
