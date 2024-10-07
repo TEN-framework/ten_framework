@@ -26,10 +26,12 @@ Each life cycle stage corresponds to a callback function, and there is a corresp
 
 ```mermaid
 graph TD;
-    A-->B;
-    A-->C;
-    B-->D;
-    C-->D;
+    on_configure-->on_init;
+    on_configure-->on_stop;
+    on_init-->on_start;
+    on_init-->on_stop;
+    on_start-->on_stop;
+    on_stop-->on_deinit;
 ```
 
 ### on_configure
