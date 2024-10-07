@@ -225,16 +225,16 @@ static bool ten_app_handle_stop_graph_cmd(ten_app_t *self,
              "Should not happen.");
   TEN_ASSERT(ten_msg_get_dest_cnt(cmd) == 1, "Should not happen.");
 
-  ten_string_t *dest_graph_name = ten_cmd_stop_graph_get_graph_id(cmd);
-  TEN_ASSERT(!ten_string_is_empty(dest_graph_name), "Should not happen.");
+  ten_string_t *dest_graph_id = ten_cmd_stop_graph_get_graph_id(cmd);
+  TEN_ASSERT(!ten_string_is_empty(dest_graph_id), "Should not happen.");
 
   ten_engine_t *dest_engine = NULL;
 
-  // Find the engine based on the 'dest_graph_name' in the 'cmd'.
+  // Find the engine based on the 'dest_graph_id' in the 'cmd'.
   ten_list_foreach (&self->engines, iter) {
     ten_engine_t *engine = ten_ptr_listnode_get(iter.node);
 
-    if (ten_string_is_equal(&engine->graph_id, dest_graph_name)) {
+    if (ten_string_is_equal(&engine->graph_id, dest_graph_id)) {
       dest_engine = engine;
       break;
     }

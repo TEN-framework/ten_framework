@@ -14,10 +14,13 @@ typedef struct ten_cmd_start_graph_t {
   ten_cmd_t cmd_hdr;
 
   bool long_running_mode;
+
+  // The name of the specified predefined graph.
   ten_string_t predefined_graph_name;
 
   // ten_shared_ptr_t of ten_extension_group_info_t
   ten_list_t extension_groups_info;
+
   // ten_shared_ptr_t of ten_extension_info_t
   ten_list_t extensions_info;
 } ten_cmd_start_graph_t;

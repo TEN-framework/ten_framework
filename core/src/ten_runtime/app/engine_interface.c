@@ -128,16 +128,16 @@ ten_app_get_predefined_graph_info_based_on_dest_graph_id_from_msg(
                  (ten_msg_get_dest_cnt(msg) == 1),
              "Should not happen.");
 
-  ten_string_t *dest_graph_name = &ten_msg_get_first_dest_loc(msg)->graph_id;
+  ten_string_t *dest_graph_id = &ten_msg_get_first_dest_loc(msg)->graph_id;
 
-  if (ten_string_is_empty(dest_graph_name)) {
+  if (ten_string_is_empty(dest_graph_id)) {
     // There are no destination information in the message, so we don't know
     // which engine this message should go.
     return NULL;
   }
 
   return ten_app_get_predefined_graph_info_by_name(
-      self, ten_string_get_raw_str(dest_graph_name));
+      self, ten_string_get_raw_str(dest_graph_id));
 }
 
 ten_engine_t *ten_app_get_engine_based_on_dest_graph_id_from_msg(
@@ -147,19 +147,19 @@ ten_engine_t *ten_app_get_engine_based_on_dest_graph_id_from_msg(
                  (ten_msg_get_dest_cnt(msg) == 1),
              "Invalid argument.");
 
-  ten_string_t *dest_graph_name = &ten_msg_get_first_dest_loc(msg)->graph_id;
+  ten_string_t *dest_graph_id = &ten_msg_get_first_dest_loc(msg)->graph_id;
 
-  if (ten_string_is_empty(dest_graph_name)) {
+  if (ten_string_is_empty(dest_graph_id)) {
     // There are no destination information in the message, so we don't know
     // which engine this message should go.
     return NULL;
   }
 
-  if (ten_string_is_uuid4(dest_graph_name)) {
+  if (ten_string_is_uuid4(dest_graph_id)) {
     return ten_app_get_engine_by_graph_id(
-        self, ten_string_get_raw_str(dest_graph_name));
+        self, ten_string_get_raw_str(dest_graph_id));
   }
 
   return ten_app_get_predefined_graph_engine_by_name(
-      self, ten_string_get_raw_str(dest_graph_name));
+      self, ten_string_get_raw_str(dest_graph_id));
 }
