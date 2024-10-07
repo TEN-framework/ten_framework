@@ -26,6 +26,7 @@ Each life cycle stage corresponds to a callback function, and there is a corresp
 
 <details>
 <summary></summary>
+custom_mark21
 @startuml
 start
 :init;
@@ -42,6 +43,7 @@ partition End {
 -> this is the end;
 end
 @enduml
+custom_mark21
 </details>
 
 ### on_configure
