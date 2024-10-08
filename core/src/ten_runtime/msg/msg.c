@@ -17,6 +17,7 @@
 #include "include_internal/ten_runtime/extension/extension_info/extension_info.h"
 #include "include_internal/ten_runtime/extension_context/extension_context.h"
 #include "include_internal/ten_runtime/extension_group/extension_group.h"
+#include "include_internal/ten_runtime/extension_group/on_xxx.h"
 #include "include_internal/ten_runtime/extension_store/extension_store.h"
 #include "include_internal/ten_runtime/extension_thread/extension_thread.h"
 #include "include_internal/ten_runtime/msg/cmd_base/cmd_base.h"
@@ -98,7 +99,7 @@ void ten_msg_set_src_to_loc(ten_shared_ptr_t *self, ten_loc_t *loc) {
 // The semantics of the following function is to replace the destination
 // information to one which is specified through the parameters.
 static bool ten_raw_msg_clear_and_set_dest(ten_msg_t *self, const char *uri,
-                                           const char *graph_name,
+                                           const char *graph_id,
                                            const char *extension_group_name,
                                            const char *extension_name,
                                            TEN_UNUSED ten_error_t *err) {
@@ -109,21 +110,21 @@ static bool ten_raw_msg_clear_and_set_dest(ten_msg_t *self, const char *uri,
   ten_list_clear(&self->dest_loc);
   ten_list_push_ptr_back(
       &self->dest_loc,
-      ten_loc_create(uri, graph_name, extension_group_name, extension_name),
+      ten_loc_create(uri, graph_id, extension_group_name, extension_name),
       (ten_ptr_listnode_destroy_func_t)ten_loc_destroy);
 
   return true;
 }
 
 void ten_raw_msg_add_dest(ten_msg_t *self, const char *uri,
-                          const char *graph_name,
+                          const char *graph_id,
                           const char *extension_group_name,
                           const char *extension_name) {
   TEN_ASSERT(self && ten_raw_msg_check_integrity(self), "Should not happen.");
 
   ten_list_push_ptr_back(
       &self->dest_loc,
-      ten_loc_create(uri, graph_name, extension_group_name, extension_name),
+      ten_loc_create(uri, graph_id, extension_group_name, extension_name),
       (ten_ptr_listnode_destroy_func_t)ten_loc_destroy);
 }
 
@@ -141,7 +142,7 @@ static void ten_raw_msg_clear_and_set_dest_from_msg_src(ten_msg_t *self,
 
   ten_raw_msg_clear_and_set_dest(
       self, ten_string_get_raw_str(&raw_msg->src_loc.app_uri),
-      ten_string_get_raw_str(&raw_msg->src_loc.graph_name),
+      ten_string_get_raw_str(&raw_msg->src_loc.graph_id),
       ten_string_get_raw_str(&raw_msg->src_loc.extension_group_name),
       ten_string_get_raw_str(&raw_msg->src_loc.extension_name), NULL);
 }
@@ -196,20 +197,19 @@ const char *ten_msg_get_first_dest_uri(ten_shared_ptr_t *self) {
   return ten_raw_msg_get_first_dest_uri(ten_msg_get_raw_msg(self));
 }
 
-void ten_raw_msg_set_src(ten_msg_t *self, const char *uri,
-                         const char *graph_name,
+void ten_raw_msg_set_src(ten_msg_t *self, const char *uri, const char *graph_id,
                          const char *extension_group_name,
                          const char *extension_name) {
   TEN_ASSERT(self && ten_raw_msg_check_integrity(self), "Should not happen.");
-  ten_loc_set(&self->src_loc, uri, graph_name, extension_group_name,
+  ten_loc_set(&self->src_loc, uri, graph_id, extension_group_name,
               extension_name);
 }
 
 void ten_msg_set_src(ten_shared_ptr_t *self, const char *uri,
-                     const char *graph_name, const char *extension_group_name,
+                     const char *graph_id, const char *extension_group_name,
                      const char *extension_name) {
   TEN_ASSERT(self && ten_msg_check_integrity(self), "Should not happen.");
-  ten_raw_msg_set_src(ten_msg_get_raw_msg(self), uri, graph_name,
+  ten_raw_msg_set_src(ten_msg_get_raw_msg(self), uri, graph_id,
                       extension_group_name, extension_name);
 }
 
@@ -217,8 +217,7 @@ void ten_msg_set_src_to_app(ten_shared_ptr_t *self, ten_app_t *app) {
   TEN_ASSERT(self && ten_msg_check_integrity(self), "Should not happen.");
   TEN_ASSERT(app && ten_app_check_integrity(app, false), "Should not happen.");
 
-  ten_msg_set_src(self, ten_string_get_raw_str(ten_app_get_uri(app)), NULL,
-                  NULL, NULL);
+  ten_msg_set_src(self, ten_app_get_uri(app), NULL, NULL, NULL);
 }
 
 void ten_msg_set_src_to_engine(ten_shared_ptr_t *self, ten_engine_t *engine) {
@@ -226,8 +225,8 @@ void ten_msg_set_src_to_engine(ten_shared_ptr_t *self, ten_engine_t *engine) {
   TEN_ASSERT(engine && ten_engine_check_integrity(engine, false),
              "Should not happen.");
 
-  ten_msg_set_src(self, ten_string_get_raw_str(ten_app_get_uri(engine->app)),
-                  ten_string_get_raw_str(&engine->graph_name), NULL, NULL);
+  ten_msg_set_src(self, ten_app_get_uri(engine->app),
+                  ten_engine_get_id(engine, true), NULL, NULL);
 }
 
 void ten_msg_set_src_to_extension(ten_shared_ptr_t *self,
@@ -256,10 +255,10 @@ void ten_msg_set_src_to_extension(ten_shared_ptr_t *self,
   TEN_ASSERT(engine && ten_engine_check_integrity(engine, false),
              "Should not happen.");
 
-  ten_msg_set_src(self, ten_string_get_raw_str(ten_app_get_uri(engine->app)),
-                  ten_string_get_raw_str(&engine->graph_name),
-                  ten_string_get_raw_str(&extension_group->name),
-                  ten_string_get_raw_str(&extension->name));
+  ten_msg_set_src(self, ten_app_get_uri(engine->app),
+                  ten_engine_get_id(engine, false),
+                  ten_extension_group_get_name(extension_group, true),
+                  ten_extension_get_name(extension, true));
 }
 
 void ten_msg_set_src_to_extension_group(
@@ -274,9 +273,9 @@ void ten_msg_set_src_to_extension_group(
   TEN_ASSERT(engine && ten_engine_check_integrity(engine, false),
              "Should not happen.");
 
-  ten_msg_set_src(self, ten_string_get_raw_str(ten_app_get_uri(engine->app)),
-                  ten_string_get_raw_str(&engine->graph_name),
-                  ten_string_get_raw_str(&extension_group->name), NULL);
+  ten_msg_set_src(self, ten_app_get_uri(engine->app),
+                  ten_engine_get_id(engine, true),
+                  ten_extension_group_get_name(extension_group, true), NULL);
 }
 
 bool ten_msg_src_uri_is_empty(ten_shared_ptr_t *self) {
@@ -284,9 +283,9 @@ bool ten_msg_src_uri_is_empty(ten_shared_ptr_t *self) {
   return strlen(ten_msg_get_src_app_uri(self)) == 0;
 }
 
-bool ten_msg_src_graph_name_is_empty(ten_shared_ptr_t *self) {
+bool ten_msg_src_graph_id_is_empty(ten_shared_ptr_t *self) {
   TEN_ASSERT(self && ten_msg_check_integrity(self), "Should not happen.");
-  return strlen(ten_msg_get_src_graph_name(self)) == 0;
+  return strlen(ten_msg_get_src_graph_id(self)) == 0;
 }
 
 void ten_msg_set_src_uri(ten_shared_ptr_t *self, const char *uri) {
@@ -310,20 +309,20 @@ void ten_msg_set_src_engine_if_unspecified(ten_shared_ptr_t *self,
   TEN_ASSERT(engine && ten_engine_check_integrity(engine, true),
              "Invalid argument.");
 
-  if (ten_msg_src_graph_name_is_empty(self)) {
-    ten_string_copy(&(ten_msg_get_raw_msg(self)->src_loc.graph_name),
-                    &engine->graph_name);
+  if (ten_msg_src_graph_id_is_empty(self)) {
+    ten_string_copy(&(ten_msg_get_raw_msg(self)->src_loc.graph_id),
+                    &engine->graph_id);
   }
 }
 
 bool ten_msg_clear_and_set_dest(ten_shared_ptr_t *self, const char *uri,
-                                const char *graph_name,
+                                const char *graph_id,
                                 const char *extension_group_name,
                                 const char *extension_name, ten_error_t *err) {
   TEN_ASSERT(self && ten_msg_check_integrity(self), "Should not happen.");
 
   return ten_raw_msg_clear_and_set_dest(ten_msg_get_raw_msg(self), uri,
-                                        graph_name, extension_group_name,
+                                        graph_id, extension_group_name,
                                         extension_name, err);
 }
 
@@ -336,7 +335,7 @@ void ten_raw_msg_clear_and_set_dest_to_loc(ten_msg_t *self, ten_loc_t *loc) {
   } else {
     ten_raw_msg_clear_and_set_dest(
         self, ten_string_get_raw_str(&loc->app_uri),
-        ten_string_get_raw_str(&loc->graph_name),
+        ten_string_get_raw_str(&loc->graph_id),
         ten_string_get_raw_str(&loc->extension_group_name),
         ten_string_get_raw_str(&loc->extension_name), NULL);
   }
@@ -349,58 +348,48 @@ void ten_msg_clear_and_set_dest_to_loc(ten_shared_ptr_t *self, ten_loc_t *loc) {
   ten_raw_msg_clear_and_set_dest_to_loc(ten_shared_ptr_get_data(self), loc);
 }
 
-static void ten_msg_clear_dest_graph_name(ten_shared_ptr_t *self) {
+static void ten_msg_clear_dest_graph_id(ten_shared_ptr_t *self) {
   TEN_ASSERT(self && ten_msg_check_integrity(self), "Should not happen.");
 
   ten_list_foreach (ten_msg_get_dest(self), iter) {
     ten_loc_t *loc = ten_ptr_listnode_get(iter.node);
     TEN_ASSERT(loc && ten_loc_check_integrity(loc), "Should not happen.");
 
-    ten_string_clear(&loc->graph_name);
+    ten_string_clear(&loc->graph_id);
   }
 }
 
 void ten_msg_set_dest_engine_if_unspecified_or_predefined_graph_name(
     ten_shared_ptr_t *self, ten_engine_t *engine,
     ten_list_t *predefined_graph_infos) {
-  TEN_ASSERT(self && ten_msg_check_integrity(self) && engine,
-             "Should not happen.");
+  TEN_ASSERT(self && ten_msg_check_integrity(self), "Should not happen.");
+  TEN_ASSERT(engine, "Should not happen.");
 
   ten_list_foreach (ten_msg_get_dest(self), iter) {
-    ten_loc_t *loc = ten_ptr_listnode_get(iter.node);
-    TEN_ASSERT(loc && ten_loc_check_integrity(loc), "Should not happen.");
+    ten_loc_t *dest_loc = ten_ptr_listnode_get(iter.node);
+    TEN_ASSERT(dest_loc && ten_loc_check_integrity(dest_loc),
+               "Should not happen.");
 
-    if (ten_string_is_empty(&loc->graph_name)) {
-      ten_string_copy(&loc->graph_name, &engine->graph_name);
+    if (ten_string_is_empty(&dest_loc->graph_id)) {
+      ten_string_copy(&dest_loc->graph_id, &engine->graph_id);
     } else if (predefined_graph_infos) {
-      // Otherwise, if the target_engine is one of the predefined graph engine,
-      // and the destination graph_name is the "name" of that predefined graph
-      // engine, then replace the destination graph_name to the "graph_name" of
-      // the predefined graph engine.
+      // Otherwise, if the target_engine is one of the _singleton_ predefined
+      // graph engine, and the destination graph_id is the "name" of that
+      // _singleton_ predefined graph engine, then replace the destination
+      // graph_id to the "graph_name" of the _singleton_ predefined graph
+      // engine.
 
-      ten_list_foreach (predefined_graph_infos, iter) {
-        ten_predefined_graph_info_t *predefined_graph_info =
-            (ten_predefined_graph_info_t *)ten_ptr_listnode_get(iter.node);
+      ten_predefined_graph_info_t *singleton_predefined_graph =
+          ten_predefined_graph_infos_get_singleton_by_name(
+              predefined_graph_infos,
+              ten_string_get_raw_str(&dest_loc->graph_id));
+      if (singleton_predefined_graph && singleton_predefined_graph->engine) {
+        TEN_ASSERT(engine == singleton_predefined_graph->engine,
+                   "Otherwise, the message should not be transferred to this "
+                   "engine.");
 
-        // If the 'graph_name' is the name of one of the predefined graph
-        // engine, we replace it to the graph_name of the predefined graph
-        // engine.
-        if (ten_string_is_equal(&loc->graph_name,
-                                &predefined_graph_info->name)) {
-          // If the predefined graph engine is not started yet, this command
-          // will trigger the start of the predefined graph engine.
-          if (predefined_graph_info->engine == NULL) {
-            break;
-          }
-
-          TEN_ASSERT(engine == predefined_graph_info->engine,
-                     "Otherwise, the message should not be transferred to this "
-                     "engine.");
-
-          ten_string_copy(&loc->graph_name,
-                          &predefined_graph_info->engine->graph_name);
-          break;
-        }
+        ten_string_copy(&dest_loc->graph_id,
+                        &singleton_predefined_graph->engine->graph_id);
       }
     }
   }
@@ -419,13 +408,11 @@ void ten_msg_clear_and_set_dest_to_extension(ten_shared_ptr_t *self,
              "Invalid use of extension %p.", extension);
 
   ten_msg_clear_and_set_dest(
-      self,
-      ten_string_get_raw_str(
-          ten_app_get_uri(extension->extension_context->engine->app)),
-      ten_string_get_raw_str(&extension->extension_context->engine->graph_name),
-      ten_string_get_raw_str(
-          &extension->extension_thread->extension_group->name),
-      ten_string_get_raw_str(&extension->name), NULL);
+      self, ten_app_get_uri(extension->extension_context->engine->app),
+      ten_engine_get_id(extension->extension_context->engine, true),
+      ten_extension_group_get_name(extension->extension_thread->extension_group,
+                                   true),
+      ten_extension_get_name(extension, true), NULL);
 }
 
 void ten_msg_clear_and_set_dest_from_extension_info(
@@ -463,9 +450,9 @@ const char *ten_msg_get_src_app_uri(ten_shared_ptr_t *self) {
   return ten_string_get_raw_str(&ten_msg_get_raw_msg(self)->src_loc.app_uri);
 }
 
-const char *ten_msg_get_src_graph_name(ten_shared_ptr_t *self) {
+const char *ten_msg_get_src_graph_id(ten_shared_ptr_t *self) {
   TEN_ASSERT(self && ten_msg_check_integrity(self), "Should not happen.");
-  return ten_string_get_raw_str(&ten_msg_get_raw_msg(self)->src_loc.graph_name);
+  return ten_string_get_raw_str(&ten_msg_get_raw_msg(self)->src_loc.graph_id);
 }
 
 // This hack is only used by msgpack when serializing/deserializing the connect
@@ -788,7 +775,7 @@ void ten_msg_correct_dest(ten_shared_ptr_t *msg, ten_engine_t *engine) {
   TEN_ASSERT(engine && ten_engine_check_integrity(engine, false),
              "Should not happen.");
 
-  ten_string_t *app_uri = ten_app_get_uri(engine->app);
+  const char *app_uri = ten_app_get_uri(engine->app);
 
   ten_msg_t *raw_msg = ten_msg_get_raw_msg(msg);
   ten_list_foreach (&raw_msg->dest_loc, iter) {
@@ -796,7 +783,7 @@ void ten_msg_correct_dest(ten_shared_ptr_t *msg, ten_engine_t *engine) {
 
     bool is_local_app = false;
 
-    if (ten_string_is_equal(&dest_loc->app_uri, app_uri)) {
+    if (ten_string_is_equal_c_str(&dest_loc->app_uri, app_uri)) {
       is_local_app = true;
     } else if (ten_string_is_equal_c_str(&dest_loc->app_uri,
                                          TEN_STR_LOCALHOST)) {
@@ -805,7 +792,7 @@ void ten_msg_correct_dest(ten_shared_ptr_t *msg, ten_engine_t *engine) {
       // 'correct' the real destination location from 'localhost' to the real
       // URI of the app.
 
-      ten_string_copy(&dest_loc->app_uri, app_uri);
+      ten_string_init_from_c_str(&dest_loc->app_uri, app_uri, strlen(app_uri));
       is_local_app = true;
     }
 
@@ -818,9 +805,9 @@ void ten_msg_correct_dest(ten_shared_ptr_t *msg, ten_engine_t *engine) {
       // However, some command, for example, the 'start_graph' command, is a
       // special case, because this kind of command will be handled by the app,
       // rather than by any engines, therefore, we should not set the
-      // destination graph_name in the case of such command.
+      // destination graph_id in the case of such command.
       if (ten_msg_get_type(msg) == TEN_MSG_TYPE_CMD_START_GRAPH) {
-        ten_msg_clear_dest_graph_name(msg);
+        ten_msg_clear_dest_graph_id(msg);
       } else {
         ten_msg_set_dest_engine_if_unspecified_or_predefined_graph_name(
             msg, engine, &engine->app->predefined_graph_infos);
@@ -837,8 +824,8 @@ void ten_msg_correct_dest(ten_shared_ptr_t *msg, ten_engine_t *engine) {
     ten_list_foreach (extensions_info, iter) {
       ten_extension_info_t *extension_info =
           ten_shared_ptr_get_data(ten_smart_ptr_listnode_get(iter.node));
-      ten_extension_info_translate_localhost_to_app_uri(
-          extension_info, ten_string_get_raw_str(app_uri));
+      ten_extension_info_translate_localhost_to_app_uri(extension_info,
+                                                        app_uri);
     }
   }
 }

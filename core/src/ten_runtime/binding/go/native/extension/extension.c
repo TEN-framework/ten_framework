@@ -28,34 +28,34 @@
 #include "ten_utils/macro/check.h"
 
 extern void tenGoExtensionOnConfigure(ten_go_handle_t go_extension,
-                                      ten_go_handle_t go_ten);
+                                      ten_go_handle_t go_ten_env);
 
 extern void tenGoExtensionOnInit(ten_go_handle_t go_extension,
-                                 ten_go_handle_t go_ten);
+                                 ten_go_handle_t go_ten_env);
 
 extern void tenGoExtensionOnStart(ten_go_handle_t go_extension,
-                                  ten_go_handle_t go_ten);
+                                  ten_go_handle_t go_ten_env);
 
 extern void tenGoExtensionOnStop(ten_go_handle_t go_extension,
-                                 ten_go_handle_t go_ten);
+                                 ten_go_handle_t go_ten_env);
 
 extern void tenGoExtensionOnDeinit(ten_go_handle_t go_extension,
-                                   ten_go_handle_t go_ten);
+                                   ten_go_handle_t go_ten_env);
 
 extern void tenGoExtensionOnCmd(ten_go_handle_t go_extension,
-                                ten_go_handle_t go_ten,
+                                ten_go_handle_t go_ten_env,
                                 uintptr_t cmd_bridge_addr);
 
 extern void tenGoExtensionOnData(ten_go_handle_t go_extension,
-                                 ten_go_handle_t go_ten,
+                                 ten_go_handle_t go_ten_env,
                                  uintptr_t data_bridge_addr);
 
 extern void tenGoExtensionOnVideoFrame(ten_go_handle_t go_extension,
-                                       ten_go_handle_t go_ten,
+                                       ten_go_handle_t go_ten_env,
                                        uintptr_t video_frame_bridge_addr);
 
 extern void tenGoExtensionOnAudioFrame(ten_go_handle_t go_extension,
-                                       ten_go_handle_t go_ten,
+                                       ten_go_handle_t go_ten_env,
                                        uintptr_t audio_frame_bridge_addr);
 
 bool ten_go_extension_check_integrity(ten_go_extension_t *self) {
@@ -104,18 +104,18 @@ static void proxy_on_configure(ten_extension_t *self, ten_env_t *ten_env) {
              "Should not happen.");
   TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
              "Should not happen.");
-  TEN_ASSERT(ten_extension_get_ten(self) == ten_env, "Should not happen.");
+  TEN_ASSERT(ten_extension_get_ten_env(self) == ten_env, "Should not happen.");
 
   ten_go_extension_t *extension_bridge =
       ten_binding_handle_get_me_in_target_lang((ten_binding_handle_t *)self);
   TEN_ASSERT(ten_go_extension_check_integrity(extension_bridge),
              "Should not happen.");
 
-  ten_go_ten_env_t *ten_bridge = ten_go_ten_env_wrap(ten_env);
-  ten_bridge->c_ten_env_proxy = ten_env_proxy_create(ten_env, 1, NULL);
+  ten_go_ten_env_t *ten_env_bridge = ten_go_ten_env_wrap(ten_env);
+  ten_env_bridge->c_ten_env_proxy = ten_env_proxy_create(ten_env, 1, NULL);
 
   tenGoExtensionOnConfigure(ten_go_extension_go_handle(extension_bridge),
-                            ten_go_ten_env_go_handle(ten_bridge));
+                            ten_go_ten_env_go_handle(ten_env_bridge));
 }
 
 static void proxy_on_init(ten_extension_t *self, ten_env_t *ten_env) {
@@ -123,17 +123,17 @@ static void proxy_on_init(ten_extension_t *self, ten_env_t *ten_env) {
              "Should not happen.");
   TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
              "Should not happen.");
-  TEN_ASSERT(ten_extension_get_ten(self) == ten_env, "Should not happen.");
+  TEN_ASSERT(ten_extension_get_ten_env(self) == ten_env, "Should not happen.");
 
   ten_go_extension_t *extension_bridge =
       ten_binding_handle_get_me_in_target_lang((ten_binding_handle_t *)self);
   TEN_ASSERT(ten_go_extension_check_integrity(extension_bridge),
              "Should not happen.");
 
-  ten_go_ten_env_t *ten_bridge = ten_go_ten_env_wrap(ten_env);
+  ten_go_ten_env_t *ten_env_bridge = ten_go_ten_env_wrap(ten_env);
 
   tenGoExtensionOnInit(ten_go_extension_go_handle(extension_bridge),
-                       ten_go_ten_env_go_handle(ten_bridge));
+                       ten_go_ten_env_go_handle(ten_env_bridge));
 }
 
 static void proxy_on_start(ten_extension_t *self, ten_env_t *ten_env) {
@@ -141,17 +141,17 @@ static void proxy_on_start(ten_extension_t *self, ten_env_t *ten_env) {
              "Should not happen.");
   TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
              "Should not happen.");
-  TEN_ASSERT(ten_extension_get_ten(self) == ten_env, "Should not happen.");
+  TEN_ASSERT(ten_extension_get_ten_env(self) == ten_env, "Should not happen.");
 
   ten_go_extension_t *extension_bridge =
       ten_binding_handle_get_me_in_target_lang((ten_binding_handle_t *)self);
   TEN_ASSERT(ten_go_extension_check_integrity(extension_bridge),
              "Should not happen.");
 
-  ten_go_ten_env_t *ten_bridge = ten_go_ten_env_wrap(ten_env);
+  ten_go_ten_env_t *ten_env_bridge = ten_go_ten_env_wrap(ten_env);
 
   tenGoExtensionOnStart(ten_go_extension_go_handle(extension_bridge),
-                        ten_go_ten_env_go_handle(ten_bridge));
+                        ten_go_ten_env_go_handle(ten_env_bridge));
 }
 
 static void proxy_on_stop(ten_extension_t *self, ten_env_t *ten_env) {
@@ -159,17 +159,17 @@ static void proxy_on_stop(ten_extension_t *self, ten_env_t *ten_env) {
              "Should not happen.");
   TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
              "Should not happen.");
-  TEN_ASSERT(ten_extension_get_ten(self) == ten_env, "Should not happen.");
+  TEN_ASSERT(ten_extension_get_ten_env(self) == ten_env, "Should not happen.");
 
   ten_go_extension_t *extension_bridge =
       ten_binding_handle_get_me_in_target_lang((ten_binding_handle_t *)self);
   TEN_ASSERT(ten_go_extension_check_integrity(extension_bridge),
              "Should not happen.");
 
-  ten_go_ten_env_t *ten_bridge = ten_go_ten_env_wrap(ten_env);
+  ten_go_ten_env_t *ten_env_bridge = ten_go_ten_env_wrap(ten_env);
 
   tenGoExtensionOnStop(ten_go_extension_go_handle(extension_bridge),
-                       ten_go_ten_env_go_handle(ten_bridge));
+                       ten_go_ten_env_go_handle(ten_env_bridge));
 }
 
 static void proxy_on_deinit(ten_extension_t *self, ten_env_t *ten_env) {
@@ -177,17 +177,17 @@ static void proxy_on_deinit(ten_extension_t *self, ten_env_t *ten_env) {
              "Should not happen.");
   TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
              "Should not happen.");
-  TEN_ASSERT(ten_extension_get_ten(self) == ten_env, "Should not happen.");
+  TEN_ASSERT(ten_extension_get_ten_env(self) == ten_env, "Should not happen.");
 
   ten_go_extension_t *extension_bridge =
       ten_binding_handle_get_me_in_target_lang((ten_binding_handle_t *)self);
   TEN_ASSERT(ten_go_extension_check_integrity(extension_bridge),
              "Should not happen.");
 
-  ten_go_ten_env_t *ten_bridge = ten_go_ten_env_wrap(ten_env);
+  ten_go_ten_env_t *ten_env_bridge = ten_go_ten_env_wrap(ten_env);
 
   tenGoExtensionOnDeinit(ten_go_extension_go_handle(extension_bridge),
-                         ten_go_ten_env_go_handle(ten_bridge));
+                         ten_go_ten_env_go_handle(ten_env_bridge));
 }
 
 static void proxy_on_cmd(ten_extension_t *self, ten_env_t *ten_env,
@@ -196,7 +196,7 @@ static void proxy_on_cmd(ten_extension_t *self, ten_env_t *ten_env,
              "Should not happen.");
   TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
              "Should not happen.");
-  TEN_ASSERT(ten_extension_get_ten(self) == ten_env, "Should not happen.");
+  TEN_ASSERT(ten_extension_get_ten_env(self) == ten_env, "Should not happen.");
   TEN_ASSERT(cmd && ten_cmd_check_integrity(cmd), "Should not happen.");
 
   ten_go_extension_t *extension_bridge =
@@ -204,7 +204,7 @@ static void proxy_on_cmd(ten_extension_t *self, ten_env_t *ten_env,
   TEN_ASSERT(ten_go_extension_check_integrity(extension_bridge),
              "Should not happen.");
 
-  ten_go_ten_env_t *ten_bridge = ten_go_ten_env_wrap(ten_env);
+  ten_go_ten_env_t *ten_env_bridge = ten_go_ten_env_wrap(ten_env);
 
   // We only create the bridge instance in C world, and do _NOT_ call GO
   // function to create a GO cmd instance here. As the GO cmd instance is only
@@ -213,7 +213,8 @@ static void proxy_on_cmd(ten_extension_t *self, ten_env_t *ten_env,
   uintptr_t msg_bridge_addr = (uintptr_t)msg_bridge;
 
   tenGoExtensionOnCmd(ten_go_extension_go_handle(extension_bridge),
-                      ten_go_ten_env_go_handle(ten_bridge), msg_bridge_addr);
+                      ten_go_ten_env_go_handle(ten_env_bridge),
+                      msg_bridge_addr);
 }
 
 static void proxy_on_data(ten_extension_t *self, ten_env_t *ten_env,
@@ -222,19 +223,20 @@ static void proxy_on_data(ten_extension_t *self, ten_env_t *ten_env,
              "Should not happen.");
   TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
              "Should not happen.");
-  TEN_ASSERT(ten_extension_get_ten(self) == ten_env, "Should not happen.");
+  TEN_ASSERT(ten_extension_get_ten_env(self) == ten_env, "Should not happen.");
 
   ten_go_extension_t *extension_bridge =
       ten_binding_handle_get_me_in_target_lang((ten_binding_handle_t *)self);
   TEN_ASSERT(ten_go_extension_check_integrity(extension_bridge),
              "Should not happen.");
 
-  ten_go_ten_env_t *ten_bridge = ten_go_ten_env_wrap(ten_env);
+  ten_go_ten_env_t *ten_env_bridge = ten_go_ten_env_wrap(ten_env);
   ten_go_msg_t *msg_bridge = ten_go_msg_create(data);
 
   uintptr_t msg_bridge_addr = (uintptr_t)msg_bridge;
   tenGoExtensionOnData(ten_go_extension_go_handle(extension_bridge),
-                       ten_go_ten_env_go_handle(ten_bridge), msg_bridge_addr);
+                       ten_go_ten_env_go_handle(ten_env_bridge),
+                       msg_bridge_addr);
 }
 
 static void proxy_on_video_frame(ten_extension_t *self, ten_env_t *ten_env,
@@ -243,14 +245,14 @@ static void proxy_on_video_frame(ten_extension_t *self, ten_env_t *ten_env,
              "Should not happen.");
   TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
              "Should not happen.");
-  TEN_ASSERT(ten_extension_get_ten(self) == ten_env, "Should not happen.");
+  TEN_ASSERT(ten_extension_get_ten_env(self) == ten_env, "Should not happen.");
 
   ten_go_extension_t *extension_bridge =
       ten_binding_handle_get_me_in_target_lang((ten_binding_handle_t *)self);
   TEN_ASSERT(ten_go_extension_check_integrity(extension_bridge),
              "Should not happen.");
 
-  ten_go_ten_env_t *ten_bridge = ten_go_ten_env_wrap(ten_env);
+  ten_go_ten_env_t *ten_env_bridge = ten_go_ten_env_wrap(ten_env);
 
   // Same as `on_cmd()`, the C world only care about the C bridge instance, but
   // does not need to create the GO instance from C. The GO instance can be
@@ -260,7 +262,7 @@ static void proxy_on_video_frame(ten_extension_t *self, ten_env_t *ten_env,
   uintptr_t msg_bridge_addr = (uintptr_t)msg_bridge;
 
   tenGoExtensionOnVideoFrame(ten_go_extension_go_handle(extension_bridge),
-                             ten_go_ten_env_go_handle(ten_bridge),
+                             ten_go_ten_env_go_handle(ten_env_bridge),
                              msg_bridge_addr);
 }
 
@@ -270,19 +272,19 @@ static void proxy_on_audio_frame(ten_extension_t *self, ten_env_t *ten_env,
              "Should not happen.");
   TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
              "Should not happen.");
-  TEN_ASSERT(ten_extension_get_ten(self) == ten_env, "Should not happen.");
+  TEN_ASSERT(ten_extension_get_ten_env(self) == ten_env, "Should not happen.");
 
   ten_go_extension_t *extension_bridge =
       ten_binding_handle_get_me_in_target_lang((ten_binding_handle_t *)self);
   TEN_ASSERT(ten_go_extension_check_integrity(extension_bridge),
              "Should not happen.");
 
-  ten_go_ten_env_t *ten_bridge = ten_go_ten_env_wrap(ten_env);
+  ten_go_ten_env_t *ten_env_bridge = ten_go_ten_env_wrap(ten_env);
   ten_go_msg_t *msg_bridge = ten_go_msg_create(audio_frame);
   uintptr_t msg_bridge_addr = (uintptr_t)msg_bridge;
 
   tenGoExtensionOnAudioFrame(ten_go_extension_go_handle(extension_bridge),
-                             ten_go_ten_env_go_handle(ten_bridge),
+                             ten_go_ten_env_go_handle(ten_env_bridge),
                              msg_bridge_addr);
 }
 

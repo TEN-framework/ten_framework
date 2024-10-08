@@ -4,7 +4,7 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-#include "ten_runtime/binding/python/common.h"
+#include "include_internal/ten_runtime/binding/python/common.h"
 
 #include "include_internal/ten_runtime/binding/python/common/common.h"
 #include "include_internal/ten_runtime/binding/python/common/python_stuff.h"
@@ -156,6 +156,8 @@ void ten_py_eval_restore_thread(void *state) {
 }
 
 PyGILState_STATE ten_py_gil_state_ensure(void) {
+  // The logic inside PyGILState_Ensure is as follows:
+  //
   // 1) Retrieves the PyThreadState for the current thread using
   //    'pthread_getspecific'.
   //    - If a PyThreadState exists, checks whether the current thread holds the
@@ -177,10 +179,4 @@ void ten_py_gil_state_release(PyGILState_STATE state) {
 bool ten_py_is_holding_gil(void) {
   // Judge whether the current thread holds the GIL, 1: true, 0: false.
   return PyGILState_Check() == 1;
-}
-
-PyThreadState *ten_py_gil_state_get_this_thread_state(void) {
-  // If no GILState APIs have been called on the current thread, return NULL.
-  // Otherwise, return the PyThreadState associated with the current thread.
-  return PyGILState_GetThisThreadState();
 }

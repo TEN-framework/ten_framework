@@ -6,6 +6,7 @@
 //
 #include "ten_runtime/binding/go/interface/ten/addon.h"
 
+#include <stdio.h>
 #include <stdlib.h>
 
 #include "include_internal/ten_runtime/addon/addon.h"
@@ -30,12 +31,13 @@
 #include "ten_utils/lib/string.h"
 #include "ten_utils/macro/check.h"
 
-void tenGoAddonOnInit(ten_go_handle_t go_addon, ten_go_handle_t go_ten);
+void tenGoAddonOnInit(ten_go_handle_t go_addon, ten_go_handle_t go_ten_env);
 
-void tenGoAddonOnDeinit(ten_go_handle_t go_addon, ten_go_handle_t go_ten);
+void tenGoAddonOnDeinit(ten_go_handle_t go_addon, ten_go_handle_t go_ten_env);
 
-void tenGoAddonCreateInstance(ten_go_handle_t go_addon, ten_go_handle_t go_ten,
-                              const char *name, void *context);
+void tenGoAddonCreateInstance(ten_go_handle_t go_addon,
+                              ten_go_handle_t go_ten_env, const char *name,
+                              void *context);
 
 void tenGoAddonDestroyInstance(ten_go_handle_t go_instance);
 
@@ -104,10 +106,10 @@ static void ten_go_addon_on_init_helper(ten_addon_t *addon,
   TEN_ASSERT(addon_bridge && ten_go_addon_check_integrity(addon_bridge),
              "Invalid argument.");
 
-  ten_go_ten_env_t *ten_bridge = ten_go_ten_env_wrap(ten_env);
+  ten_go_ten_env_t *ten_env_bridge = ten_go_ten_env_wrap(ten_env);
 
   tenGoAddonOnInit(ten_go_addon_go_handle(addon_bridge),
-                   ten_go_ten_env_go_handle(ten_bridge));
+                   ten_go_ten_env_go_handle(ten_env_bridge));
 }
 
 static void ten_go_addon_on_deinit_helper(ten_addon_t *addon,
@@ -124,9 +126,9 @@ static void ten_go_addon_on_deinit_helper(ten_addon_t *addon,
   TEN_ASSERT(addon_bridge && ten_go_addon_check_integrity(addon_bridge),
              "Invalid argument.");
 
-  ten_go_ten_env_t *ten_bridge = ten_go_ten_env_wrap(ten_env);
+  ten_go_ten_env_t *ten_env_bridge = ten_go_ten_env_wrap(ten_env);
   tenGoAddonOnDeinit(ten_go_addon_go_handle(addon_bridge),
-                     ten_go_ten_env_go_handle(ten_bridge));
+                     ten_go_ten_env_go_handle(ten_env_bridge));
 }
 
 static void ten_go_addon_create_extension_async_helper(ten_addon_t *addon,
@@ -143,12 +145,13 @@ static void ten_go_addon_create_extension_async_helper(ten_addon_t *addon,
   TEN_ASSERT(addon_bridge && ten_go_addon_check_integrity(addon_bridge),
              "Should not happen.");
 
-  ten_go_ten_env_t *ten_bridge = ten_go_ten_env_wrap(ten_env);
-  TEN_ASSERT(ten_bridge && ten_go_ten_env_check_integrity(ten_bridge),
+  ten_go_ten_env_t *ten_env_bridge = ten_go_ten_env_wrap(ten_env);
+  TEN_ASSERT(ten_env_bridge && ten_go_ten_env_check_integrity(ten_env_bridge),
              "Invalid argument.");
 
   tenGoAddonCreateInstance(ten_go_addon_go_handle(addon_bridge),
-                           ten_go_ten_env_go_handle(ten_bridge), name, context);
+                           ten_go_ten_env_go_handle(ten_env_bridge), name,
+                           context);
 }
 
 static void ten_go_addon_create_extension_group_async_helper(ten_addon_t *addon,
@@ -165,12 +168,13 @@ static void ten_go_addon_create_extension_group_async_helper(ten_addon_t *addon,
   TEN_ASSERT(addon_bridge && ten_go_addon_check_integrity(addon_bridge),
              "Should not happen.");
 
-  ten_go_ten_env_t *ten_bridge = ten_go_ten_env_wrap(ten_env);
-  TEN_ASSERT(ten_bridge && ten_go_ten_env_check_integrity(ten_bridge),
+  ten_go_ten_env_t *ten_env_bridge = ten_go_ten_env_wrap(ten_env);
+  TEN_ASSERT(ten_env_bridge && ten_go_ten_env_check_integrity(ten_env_bridge),
              "Invalid argument.");
 
   tenGoAddonCreateInstance(ten_go_addon_go_handle(addon_bridge),
-                           ten_go_ten_env_go_handle(ten_bridge), name, context);
+                           ten_go_ten_env_go_handle(ten_env_bridge), name,
+                           context);
 }
 
 static void ten_go_addon_destroy_instance_helper(ten_addon_t *addon,
@@ -230,10 +234,9 @@ static void ten_go_addon_destroy_instance_helper(ten_addon_t *addon,
   ten_env_on_destroy_instance_done(ten_env, context, NULL);
 }
 
-static ten_go_addon_t *ten_go_addon_register(const void *addon_name,
-                                             int addon_name_len,
-                                             uintptr_t go_addon,
-                                             TEN_ADDON_TYPE addon_type) {
+static ten_go_addon_t *ten_go_addon_register(
+    const void *addon_name, int addon_name_len, const void *base_dir,
+    int base_dir_len, uintptr_t go_addon, TEN_ADDON_TYPE addon_type) {
   TEN_ASSERT(addon_name && addon_name_len > 0, "Invalid argument.");
 
   ten_go_addon_t *addon_bridge =
@@ -250,7 +253,8 @@ static ten_go_addon_t *ten_go_addon_register(const void *addon_name,
       ten_shared_ptr_clone(addon_bridge->bridge.sp_ref_by_go);
 
   addon_bridge->type = addon_type;
-  ten_string_copy_c_str(&addon_bridge->addon_name, addon_name, addon_name_len);
+  ten_string_init_from_c_str(&addon_bridge->addon_name, addon_name,
+                             addon_name_len);
 
   switch (addon_type) {
     case TEN_ADDON_TYPE_EXTENSION:
@@ -275,17 +279,20 @@ static ten_go_addon_t *ten_go_addon_register(const void *addon_name,
   ten_binding_handle_set_me_in_target_lang(
       (ten_binding_handle_t *)&addon_bridge->c_addon, addon_bridge);
 
+  ten_string_t base_dir_str;
+  ten_string_init_from_c_str(&base_dir_str, base_dir, base_dir_len);
+
   switch (addon_type) {
     case TEN_ADDON_TYPE_EXTENSION:
       ten_addon_register_extension(
           ten_string_get_raw_str(&addon_bridge->addon_name),
-          &addon_bridge->c_addon);
+          ten_string_get_raw_str(&base_dir_str), &addon_bridge->c_addon);
       break;
 
     case TEN_ADDON_TYPE_EXTENSION_GROUP:
       ten_addon_register_extension_group(
           ten_string_get_raw_str(&addon_bridge->addon_name),
-          &addon_bridge->c_addon);
+          ten_string_get_raw_str(&base_dir_str), &addon_bridge->c_addon);
       break;
 
     default:
@@ -293,39 +300,41 @@ static ten_go_addon_t *ten_go_addon_register(const void *addon_name,
       break;
   }
 
+  ten_string_deinit(&base_dir_str);
+
   return addon_bridge;
 }
 
-ten_go_status_t ten_go_addon_register_extension(const void *addon_name,
-                                                int addon_name_len,
-                                                uintptr_t go_addon,
-                                                uintptr_t *bridge_addr) {
+ten_go_status_t ten_go_addon_register_extension(
+    const void *addon_name, int addon_name_len, const void *base_dir,
+    int base_dir_len, uintptr_t go_addon, uintptr_t *bridge_addr) {
   TEN_ASSERT(addon_name && addon_name_len > 0 && go_addon && bridge_addr,
              "Invalid argument.");
 
   ten_go_status_t status;
   ten_go_status_init_with_errno(&status, TEN_ERRNO_OK);
 
-  ten_go_addon_t *addon_bridge = ten_go_addon_register(
-      addon_name, addon_name_len, go_addon, TEN_ADDON_TYPE_EXTENSION);
+  ten_go_addon_t *addon_bridge =
+      ten_go_addon_register(addon_name, addon_name_len, base_dir, base_dir_len,
+                            go_addon, TEN_ADDON_TYPE_EXTENSION);
 
   *bridge_addr = (uintptr_t)addon_bridge;
 
   return status;
 }
 
-ten_go_status_t ten_go_addon_register_extension_group(const void *addon_name,
-                                                      int addon_name_len,
-                                                      uintptr_t go_addon,
-                                                      uintptr_t *bridge_addr) {
+ten_go_status_t ten_go_addon_register_extension_group(
+    const void *addon_name, int addon_name_len, const void *base_dir,
+    int base_dir_len, uintptr_t go_addon, uintptr_t *bridge_addr) {
   TEN_ASSERT(addon_name && addon_name_len > 0 && go_addon && bridge_addr,
              "Invalid argument.");
 
   ten_go_status_t status;
   ten_go_status_init_with_errno(&status, TEN_ERRNO_OK);
 
-  ten_go_addon_t *addon_bridge = ten_go_addon_register(
-      addon_name, addon_name_len, go_addon, TEN_ADDON_TYPE_EXTENSION_GROUP);
+  ten_go_addon_t *addon_bridge =
+      ten_go_addon_register(addon_name, addon_name_len, base_dir, base_dir_len,
+                            go_addon, TEN_ADDON_TYPE_EXTENSION_GROUP);
 
   *bridge_addr = (uintptr_t)addon_bridge;
 

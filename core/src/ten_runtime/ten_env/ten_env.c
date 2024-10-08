@@ -34,42 +34,30 @@ bool ten_env_check_integrity(ten_env_t *self, bool check_thread) {
     return false;
   }
 
-  switch (self->category) {
-    case TEN_CATEGORY_MOCK:
-      return true;
+  if (check_thread) {
+    // Utilize the check_integrity of extension_thread to examine cases
+    // involving the lock_mode of extension_thread.
+    ten_extension_thread_t *extension_thread = NULL;
+    switch (self->attach_to) {
+      case TEN_ENV_ATTACH_TO_EXTENSION:
+        extension_thread = self->attached_target.extension->extension_thread;
+        break;
+      case TEN_ENV_ATTACH_TO_EXTENSION_GROUP:
+        extension_thread =
+            self->attached_target.extension_group->extension_thread;
+        break;
+      default:
+        break;
+    }
 
-    case TEN_CATEGORY_NORMAL:
-      if (check_thread) {
-        // Utilize the check_integrity of extension_thread to examine cases
-        // involving the lock_mode of extension_thread.
-        ten_extension_thread_t *extension_thread = NULL;
-        switch (self->attach_to) {
-          case TEN_ENV_ATTACH_TO_EXTENSION:
-            extension_thread =
-                self->attached_target.extension->extension_thread;
-            break;
-          case TEN_ENV_ATTACH_TO_EXTENSION_GROUP:
-            extension_thread =
-                self->attached_target.extension_group->extension_thread;
-            break;
-          default:
-            break;
-        }
-
-        if (extension_thread) {
-          if (ten_extension_thread_check_integrity_if_in_lock_mode(
-                  extension_thread)) {
-            return true;
-          }
-        }
-
-        return ten_sanitizer_thread_check_do_check(&self->thread_check);
+    if (extension_thread) {
+      if (ten_extension_thread_check_integrity_if_in_lock_mode(
+              extension_thread)) {
+        return true;
       }
-      break;
+    }
 
-    default:
-      TEN_ASSERT(0, "Should not happen.");
-      break;
+    return ten_sanitizer_thread_check_do_check(&self->thread_check);
   }
 
   return true;
@@ -82,8 +70,6 @@ ten_env_t *ten_env_create(void) {
   ten_signature_set(&self->signature, (ten_signature_t)TEN_ENV_SIGNATURE);
   ten_sanitizer_thread_check_init_with_current_thread(&self->thread_check);
 
-  self->category = TEN_CATEGORY_NORMAL;
-
   self->binding_handle.me_in_target_lang = NULL;
   self->close_handler = NULL;
   self->destroy_handler = NULL;
@@ -92,12 +78,6 @@ ten_env_t *ten_env_create(void) {
   self->attach_to = TEN_ENV_ATTACH_TO_INVALID;
   self->attached_target.addon_host = NULL;
 
-  return self;
-}
-
-ten_env_t *ten_env_mock_create(void) {
-  ten_env_t *self = ten_env_create();
-  self->category = TEN_CATEGORY_MOCK;
   return self;
 }
 
@@ -172,13 +152,12 @@ void ten_env_close(ten_env_t *self) {
 
   switch (self->attach_to) {
     case TEN_ENV_ATTACH_TO_APP:
-      TEN_LOGD(
-          "[%s] Close ten of app.",
-          ten_string_get_raw_str(ten_app_get_uri(self->attached_target.app)));
+      TEN_LOGD("[%s] Close ten of app.",
+               ten_app_get_uri(self->attached_target.app));
       break;
     case TEN_ENV_ATTACH_TO_ENGINE:
       TEN_LOGD("[%s] Close ten of engine.",
-               ten_engine_get_name(self->attached_target.engine));
+               ten_engine_get_id(self->attached_target.engine, true));
       break;
     case TEN_ENV_ATTACH_TO_EXTENSION_GROUP:
       TEN_LOGD(
@@ -204,7 +183,8 @@ void ten_env_close(ten_env_t *self) {
 }
 
 void ten_env_set_close_handler_in_target_lang(
-    ten_env_t *self, ten_close_handler_in_target_lang_func_t close_handler) {
+    ten_env_t *self,
+    ten_env_close_handler_in_target_lang_func_t close_handler) {
   TEN_ASSERT(self, "Invalid argument.");
   // TEN_NOLINTNEXTLINE(thread-check)
   // thread-check: This function is intended to be called in any threads.
@@ -216,7 +196,7 @@ void ten_env_set_close_handler_in_target_lang(
 
 void ten_env_set_destroy_handler_in_target_lang(
     ten_env_t *self,
-    ten_destroy_handler_in_target_lang_func_t destroy_handler) {
+    ten_env_destroy_handler_in_target_lang_func_t destroy_handler) {
   TEN_ASSERT(self, "Invalid argument.");
   // TEN_NOLINTNEXTLINE(thread-check)
   // thread-check: This function is intended to be called in any threads.
@@ -262,7 +242,7 @@ void *ten_env_get_attached_target(ten_env_t *self) {
     case TEN_ENV_ATTACH_TO_APP:
       return ten_env_get_attached_app(self);
     case TEN_ENV_ATTACH_TO_ADDON:
-      ten_env_get_attached_addon(self);
+      return ten_env_get_attached_addon(self);
     default:
       TEN_ASSERT(0, "Handle more types: %d", self->attach_to);
       return NULL;

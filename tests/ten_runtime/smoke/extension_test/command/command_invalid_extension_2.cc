@@ -37,7 +37,7 @@ class test_extension : public ten::extension_t {
           {
             "app": "localhost",
             "extension": "a",
-            "extension_group": "test extension group"
+            "extension_group": "test_extension_group"
           }
         ]
               }
@@ -45,10 +45,10 @@ class test_extension : public ten::extension_t {
       ten_env.send_json(
           request.dump().c_str(),
           [this](ten::ten_env_t &ten_env,
-                 std::unique_ptr<ten::cmd_result_t> status) {
-            nlohmann::json json = nlohmann::json::parse(status->to_json());
+                 std::unique_ptr<ten::cmd_result_t> result) {
+            nlohmann::json json = nlohmann::json::parse(result->to_json());
             auto cmd_result =
-                ten::cmd_result_t::create(status->get_status_code());
+                ten::cmd_result_t::create(result->get_status_code());
             cmd_result->set_property("detail", json.value("detail", ""));
             ten_env.return_result(std::move(cmd_result),
                                   std::move(requested_cmd));
@@ -68,7 +68,7 @@ class test_extension_group : public ten::extension_group_t {
 
   void on_create_extensions(ten::ten_env_t &ten_env) override {
     std::vector<ten::extension_t *> extensions;
-    extensions.push_back(new test_extension("test extension"));
+    extensions.push_back(new test_extension("test_extension"));
     ten_env.on_create_extensions_done(extensions);
   }
 
@@ -130,7 +130,7 @@ TEST(ExtensionTest, CommandInvalidExtension2) {  // NOLINT
              "seq_id": "55",
              "nodes": [{
                "type": "extension_group",
-               "name": "test extension group",
+               "name": "test_extension_group",
                "addon": "command_invalid_extension_2__extension_group",
                "app": "msgpack://127.0.0.1:8001/"
              }]
@@ -146,8 +146,8 @@ TEST(ExtensionTest, CommandInvalidExtension2) {  // NOLINT
              "seq_id": "137",
              "dest": [{
                "app": "msgpack://127.0.0.1:8001/",
-               "extension_group": "test extension group",
-               "extension": "test extension"
+               "extension_group": "test_extension_group",
+               "extension": "test_extension"
              }]
            }
          })"_json);

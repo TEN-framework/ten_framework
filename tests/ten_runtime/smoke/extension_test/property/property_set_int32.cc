@@ -12,7 +12,6 @@
 #include "include_internal/ten_runtime/binding/cpp/ten.h"
 #include "ten_utils/lang/cpp/lib/value.h"
 #include "ten_utils/lib/thread.h"
-#include "ten_utils/macro/macros.h"
 #include "tests/common/client/cpp/msgpack_tcp.h"
 #include "tests/ten_runtime/smoke/extension_test/util/binding/cpp/check.h"
 
@@ -72,7 +71,7 @@ class test_extension_group : public ten::extension_group_t {
 
   void on_create_extensions(ten::ten_env_t &ten_env) override {
     std::vector<ten::extension_t *> extensions;
-    extensions.push_back(new test_extension("test extension"));
+    extensions.push_back(new test_extension("test_extension"));
     ten_env.on_create_extensions_done(extensions);
   }
 
@@ -124,7 +123,7 @@ TEN_CPP_REGISTER_ADDON_AS_EXTENSION_GROUP(property_set_int32__extension_group,
 
 }  // namespace
 
-TEST(ExtensionTest, PropertySetInt32) {
+TEST(ExtensionTest, PropertySetInt32) {  // NOLINT
   // Start app.
   auto *app_thread =
       ten_thread_create("app thread", test_app_thread_main, nullptr);
@@ -157,7 +156,7 @@ TEST(ExtensionTest, PropertySetInt32) {
              "dest":[{
                "app": "msgpack://127.0.0.1:8001/",
                "extension_group": "property_set_int32__extension_group",
-               "extension": "test extension"
+               "extension": "test_extension"
              }]
            }
          })"_json);

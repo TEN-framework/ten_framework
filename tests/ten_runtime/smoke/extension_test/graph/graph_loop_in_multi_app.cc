@@ -83,7 +83,7 @@ class test_extension_group_1 : public ten::extension_group_t {
 
   void on_create_extensions(ten::ten_env_t &ten_env) override {
     std::vector<ten::extension_t *> extensions;
-    extensions.push_back(new test_extension_1("test extension 1"));
+    extensions.push_back(new test_extension_1("test_extension_1"));
     ten_env.on_create_extensions_done(extensions);
   }
 
@@ -104,8 +104,8 @@ class test_extension_group_2 : public ten::extension_group_t {
 
   void on_create_extensions(ten::ten_env_t &ten_env) override {
     std::vector<ten::extension_t *> extensions;
-    extensions.push_back(new test_extension_2("test extension 2"));
-    extensions.push_back(new test_extension_3("test extension 3"));
+    extensions.push_back(new test_extension_2("test_extension_2"));
+    extensions.push_back(new test_extension_3("test_extension_3"));
     ten_env.on_create_extensions_done(extensions);
   }
 
@@ -126,7 +126,7 @@ class test_extension_group_3 : public ten::extension_group_t {
 
   void on_create_extensions(ten::ten_env_t &ten_env) override {
     std::vector<ten::extension_t *> extensions;
-    extensions.push_back(new test_extension_4("test extension 4"));
+    extensions.push_back(new test_extension_4("test_extension_4"));
     ten_env.on_create_extensions_done(extensions);
   }
 
@@ -247,7 +247,7 @@ TEST(ExtensionTest, GraphLoopInMultiApp) {  // NOLINT
 
   // Create a client and connect to the app.
   ten::msgpack_tcp_client_t *client = nullptr;
-  std::string graph_name;
+  std::string graph_id;
 
   for (size_t i = 0; i < MULTIPLE_APP_SCENARIO_GRAPH_CONSTRUCTION_RETRY_TIMES;
        ++i) {
@@ -278,49 +278,49 @@ TEST(ExtensionTest, GraphLoopInMultiApp) {  // NOLINT
                "connections": [{
                  "app": "msgpack://127.0.0.1:8001/",
                  "extension_group": "graph_loop_in_multi_app__extension_group_1",
-                 "extension": "test extension 1",
+                 "extension": "test_extension_1",
                  "cmd": [{
                     "name": "hello_world",
                     "dest": [{
                       "app": "msgpack://127.0.0.1:8002/",
                       "extension_group": "graph_loop_in_multi_app__extension_group_2",
-                      "extension": "test extension 3"
+                      "extension": "test_extension_3"
                     }]
                   }]
                 },{
                  "app": "msgpack://127.0.0.1:8002/",
                  "extension_group": "graph_loop_in_multi_app__extension_group_2",
-                 "extension": "test extension 2",
+                 "extension": "test_extension_2",
                  "cmd": [{
                     "name": "hello_world",
                     "dest": [{
                       "app": "msgpack://127.0.0.1:8002/",
                       "extension_group": "graph_loop_in_multi_app__extension_group_2",
-                      "extension": "test extension 3"
+                      "extension": "test_extension_3"
                     }]
                   }]
                 },{
                  "app": "msgpack://127.0.0.1:8002/",
                  "extension_group": "graph_loop_in_multi_app__extension_group_2",
-                 "extension": "test extension 3",
+                 "extension": "test_extension_3",
                  "cmd": [{
                     "name": "hello_world",
                     "dest": [{
                       "app": "msgpack://127.0.0.1:8003/",
                       "extension_group": "graph_loop_in_multi_app__extension_group_3",
-                      "extension": "test extension 4"
+                      "extension": "test_extension_4"
                     }]
                   }]
                 },{
                  "app": "msgpack://127.0.0.1:8003/",
                  "extension_group": "graph_loop_in_multi_app__extension_group_3",
-                 "extension": "test extension 4",
+                 "extension": "test_extension_4",
                  "cmd": [{
                     "name": "hello_world",
                     "dest": [{
                       "app": "msgpack://127.0.0.1:8002/",
                       "extension_group": "graph_loop_in_multi_app__extension_group_2",
-                      "extension": "test extension 2"
+                      "extension": "test_extension_2"
                     }]
                   }]
                 }]
@@ -329,7 +329,7 @@ TEST(ExtensionTest, GraphLoopInMultiApp) {  // NOLINT
 
     if (!resp.empty()) {
       ten_test::check_status_code_is(resp, TEN_STATUS_CODE_OK);
-      graph_name = resp["detail"];
+      graph_id = resp["detail"];
       break;
     } else {
       delete client;
@@ -351,7 +351,7 @@ TEST(ExtensionTest, GraphLoopInMultiApp) {  // NOLINT
            "dest":[{
              "app": "msgpack://127.0.0.1:8001/",
              "extension_group": "graph_loop_in_multi_app__extension_group_1",
-             "extension": "test extension 1"
+             "extension": "test_extension_1"
            }]
          }
        })"_json);
@@ -370,11 +370,11 @@ TEST(ExtensionTest, GraphLoopInMultiApp) {  // NOLINT
             "dest":[{
               "app": "msgpack://127.0.0.1:8002/",
               "extension_group": "graph_loop_in_multi_app__extension_group_2",
-              "extension": "test extension 2"
+              "extension": "test_extension_2"
             }]
           }
         })"_json;
-  request_2["_ten"]["dest"][0]["graph"] = graph_name;
+  request_2["_ten"]["dest"][0]["graph"] = graph_id;
   resp = client2->send_json_and_recv_resp_in_json(request_2);
 
   ten_test::check_result_is(resp, "138", TEN_STATUS_CODE_OK,
