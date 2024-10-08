@@ -24,7 +24,7 @@ on:
 
 jobs:
   build:
-    concurrency: ci-${{ github.ref }}
+    concurrency: ci-${{ github.sha }}
     runs-on: windows-latest
     strategy:
       matrix:
