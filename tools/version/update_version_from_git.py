@@ -10,7 +10,31 @@ import argparse
 import os
 import datetime
 from jinja2 import Template
-from build.scripts import touch
+
+
+class PkgInfo:
+    def __init__(self, pkg_type, pkg_name):
+        self.pkg_type = pkg_type
+        self.pkg_name = pkg_name
+
+    def __eq__(self, value):
+        return self.pkg_type == value.pkg_type and self.pkg_name == value.pkg_name
+
+    def __hash__(self):
+        return hash((self.pkg_type, self.pkg_name))
+
+
+def touch(path):
+    with open(path, "a"):
+        try:
+            os.utime(path, follow_symlinks=False)
+        except Exception:
+            try:
+                # If follow_symlinks parameter is not supported, fall back to
+                # default behavior
+                os.utime(path)
+            except Exception:
+                exit(1)
 
 
 class ArgumentInfo(argparse.Namespace):
@@ -21,9 +45,8 @@ class ArgumentInfo(argparse.Namespace):
         self.pkg_type: str | None = None
         self.pkg_name: str | None = None
         self.c_preserved_metadata_path: list[tuple[str, str]] = []
-        self.c_preserved_metadata_not_in_output_path: list[tuple[str, str]] = []
-        self.version_update_manifest_path: list[tuple[str, str]] = []
-        self.dependency_version_update_manifest_path: list[tuple[str, str]] = []
+        self.version_update_manifest_path: list[str] = []
+        self.dependency_version_update_manifest_path: list[str] = []
 
 
 def get_latest_git_tag() -> str:
@@ -38,33 +61,28 @@ def get_latest_git_tag() -> str:
 
 
 def update_c_preserved_metadata_file(
-    args: ArgumentInfo,
+    log_level: int,
     year: str,
     year_month: str,
     version: str,
     src_path: str,
-    dest_path: str,
+    template_path: str,
 ) -> None:
-    if args.log_level > 0:
-        print(f"Checking {dest_path} for updates...")
-
     update_needed = False
 
-    if os.path.exists(dest_path):
-        with open(dest_path, "r") as file:
+    if os.path.exists(src_path):
+        with open(src_path, "r") as file:
             content = file.read()
 
         if f"version={version}" not in content:
             update_needed = True
-            if args.log_level > 0:
-                print(
-                    f"Version mismatch found. Updating version in {dest_path}."
-                )
+            if log_level > 0:
+                print(f"Version mismatch found. Updating version in {src_path}.")
     else:
         update_needed = True
 
     if update_needed:
-        with open(src_path, "r") as file:
+        with open(template_path, "r") as file:
             template_content = file.read()
 
         template = Template(template_content)
@@ -73,11 +91,11 @@ def update_c_preserved_metadata_file(
             VERSION=version, YEAR=year, YEAR_MONTH=year_month
         )
 
-        with open(dest_path, "w") as file:
+        with open(src_path, "w") as file:
             file.write(rendered_content)
     else:
-        if args.log_level > 0:
-            print(f"No update needed for {dest_path}; versions match.")
+        if log_level > 0:
+            print(f"No update needed for {src_path}; versions match.")
 
 
 # {
@@ -87,22 +105,21 @@ def update_c_preserved_metadata_file(
 #   ...
 # }
 def update_version_in_manifest_json_file(
-    args: ArgumentInfo,
+    log_level: int,
     version: str,
     src_path: str,
-    dest_path: str,
 ) -> None:
-    if args.log_level > 0:
+    if log_level > 0:
         print(f"Checking {src_path} for updates...")
 
-    if not os.path.exists(dest_path):
-        touch.touch(dest_path)
+    if not os.path.exists(src_path):
+        touch(src_path)
 
     with open(src_path, "r") as file:
         data = json.load(file)
 
     if data.get("version") != version:
-        if args.log_level > 0:
+        if log_level > 0:
             print(f"Updating version in {src_path}.")
 
         # Update the version in the JSON data.
@@ -112,9 +129,9 @@ def update_version_in_manifest_json_file(
             json.dump(data, file, indent=2)
 
             # Notify that the content of the src_path has changed.
-            touch.touch(dest_path)
+            touch(src_path)
     else:
-        if args.log_level > 0:
+        if log_level > 0:
             print(f"No update needed for {src_path}; versions match.")
 
 
@@ -130,40 +147,77 @@ def update_version_in_manifest_json_file(
 #   ...
 # }
 def update_dependency_manifest_json_file(
-    args: ArgumentInfo,
+    log_level: int,
     version: str,
     src_path: str,
-    dest_path: str,
+    pkgs: list[PkgInfo],
 ) -> None:
-    if args.log_level > 0:
+    if log_level > 0:
         print(f"Checking {src_path} for updates...")
 
-    if not os.path.exists(dest_path):
-        touch.touch(dest_path)
+    if not os.path.exists(src_path):
+        touch(src_path)
 
     with open(src_path, "r") as file:
         data = json.load(file)
 
     updated = False
     for dependency in data.get("dependencies", []):
-        if (
-            dependency.get("type") == args.pkg_type
-            and dependency.get("name") == args.pkg_name
-        ):
+        dependent_pkg = PkgInfo(dependency.get("type"), dependency.get("name"))
+
+        if dependent_pkg in pkgs and dependency.get("version") != version:
             dependency["version"] = version
             updated = True
 
     if updated:
-        if args.log_level > 0:
+        if log_level > 0:
             print(f"Updating version in {src_path}.")
 
         with open(src_path, "w") as file:
             json.dump(data, file, indent=2)
 
             # Notify that the content of the src_path has changed.
-            touch.touch(dest_path)
+            touch(src_path)
     else:
-        if args.log_level > 0:
+        if log_level > 0:
+            print(f"No update needed for {src_path}; versions match.")
+
+
+def update_tman_version_source_file(
+    log_level: int,
+    year: str,
+    year_month: str,
+    version: str,
+    src_path: str,
+    template_path: str,
+) -> None:
+    update_needed = False
+
+    if os.path.exists(src_path):
+        with open(src_path, "r") as file:
+            content = file.read()
+
+        if f'VERSION: &str = "{version}"' not in content:
+            update_needed = True
+            if log_level > 0:
+                print(f"Version mismatch found. Updating version in {src_path}.")
+    else:
+        update_needed = True
+
+    if update_needed:
+        with open(template_path, "r") as file:
+            template_content = file.read()
+
+        template = Template(template_content)
+
+        rendered_content = template.render(
+            VERSION=version, YEAR=year, YEAR_MONTH=year_month
+        )
+
+        with open(src_path, "w") as file:
+            file.write(rendered_content)
+    else:
+        if log_level > 0:
             print(f"No update needed for {src_path}; versions match.")
 
 
@@ -180,24 +234,23 @@ def main(args: ArgumentInfo):
     git_version = git_version.lstrip("v")
 
     if args.c_preserved_metadata_path:
-        for src, dest in args.c_preserved_metadata_path:
+        for src, template in args.c_preserved_metadata_path:
             update_c_preserved_metadata_file(
-                args, year, year_month, git_version, src, dest
-            )
-
-    if args.c_preserved_metadata_not_in_output_path:
-        for src, dest in args.c_preserved_metadata_not_in_output_path:
-            update_c_preserved_metadata_file(
-                args, year, year_month, git_version, src, dest
+                args.log_level, year, year_month, git_version, src, template
             )
 
     if args.version_update_manifest_path:
-        for src, dest in args.version_update_manifest_path:
-            update_version_in_manifest_json_file(args, git_version, src, dest)
+        for src in args.version_update_manifest_path:
+            update_version_in_manifest_json_file(args.log_level, git_version, src)
 
     if args.dependency_version_update_manifest_path:
-        for src, dest in args.dependency_version_update_manifest_path:
-            update_dependency_manifest_json_file(args, git_version, src, dest)
+        for src in args.dependency_version_update_manifest_path:
+            update_dependency_manifest_json_file(
+                args.log_level,
+                git_version,
+                src,
+                [PkgInfo(args.pkg_type, args.pkg_name)],
+            )
 
 
 if __name__ == "__main__":
@@ -213,25 +266,17 @@ if __name__ == "__main__":
         "--c-preserved-metadata-path",
         action="append",
         nargs=2,
-        metavar=("src", "dest"),
-    )
-    parser.add_argument(
-        "--c-preserved-metadata-not-in-output-path",
-        action="append",
-        nargs=2,
-        metavar=("src", "dest"),
+        metavar=("src", "template"),
     )
     parser.add_argument(
         "--version-update-manifest-path",
         action="append",
-        nargs=2,
-        metavar=("src", "dest"),
+        default=[],
     )
     parser.add_argument(
         "--dependency-version-update-manifest-path",
         action="append",
-        nargs=2,
-        metavar=("src", "dest"),
+        default=[],
     )
 
     arg_info = ArgumentInfo()
