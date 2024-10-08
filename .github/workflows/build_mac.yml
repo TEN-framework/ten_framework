@@ -82,8 +82,8 @@ jobs:
       #     TEN_ENABLE_MEMORY_TRACKING: "true"
       #     TEN_ENABLE_BACKTRACE_DUMP: "true"
       #   run: |
-      #     chmod +x out/mac/x64/tests/standalone/ten_utils_unit_test
-      #     out/mac/x64/tests/standalone/ten_utils_unit_test
+      #     chmod +x out/mac/arm64/tests/standalone/ten_utils_unit_test
+      #     out/mac/arm64/tests/standalone/ten_utils_unit_test
 
       # - name: Run Tests (ten_runtime_unit_test)
       #   env:
@@ -92,8 +92,8 @@ jobs:
       #     TEN_ENABLE_MEMORY_TRACKING: "true"
       #     TEN_ENABLE_BACKTRACE_DUMP: "true"
       #   run: |
-      #     chmod +x out/mac/x64/tests/standalone/ten_runtime_unit_test
-      #     out/mac/x64/tests/standalone/ten_runtime_unit_test
+      #     chmod +x out/mac/arm64/tests/standalone/ten_runtime_unit_test
+      #     out/mac/arm64/tests/standalone/ten_runtime_unit_test
 
       # - name: Run Tests (ten_runtime_smoke_test)
       #   env:
@@ -102,8 +102,8 @@ jobs:
       #     TEN_ENABLE_MEMORY_TRACKING: "true"
       #     TEN_ENABLE_BACKTRACE_DUMP: "true"
       #   run: |
-      #     chmod +x out/mac/x64/tests/standalone/ten_runtime_smoke_test
-      #     out/mac/x64/tests/standalone/ten_runtime_smoke_test
+      #     chmod +x out/mac/arm64/tests/standalone/ten_runtime_smoke_test
+      #     out/mac/arm64/tests/standalone/ten_runtime_smoke_test
 
   build-x64:
     concurrency: ci-${{ github.ref }}
