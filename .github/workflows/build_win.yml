@@ -24,7 +24,9 @@ on:
 
 jobs:
   build:
-    concurrency: ci-${{ github.sha }}
+    concurrency:
+      group: ${{ github.head_ref }}
+      cancel-in-progress: true
     runs-on: windows-latest
     strategy:
       matrix:
