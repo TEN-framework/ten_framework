@@ -24,6 +24,7 @@ on:
 
 jobs:
   build-arm64:
+    concurrency: ci-${{ github.ref }}
     runs-on: macos-latest
     strategy:
       matrix:
@@ -105,6 +106,7 @@ jobs:
       #     out/mac/x64/tests/standalone/ten_runtime_smoke_test
 
   build-x64:
+    concurrency: ci-${{ github.ref }}
     runs-on: macos-13
     strategy:
       matrix:
