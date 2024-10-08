@@ -29,7 +29,8 @@ class ArgumentInfo(argparse.Namespace):
 def get_pkg_versions_from_local_registry(
     local_registry_path: str, pkg_type: str, pkg_name: str
 ) -> list[str]:
-    # find directories under <local_registry_path>/<pkg_type>/<pkg_name> and return their names
+    # Find directories under <local_registry_path>/<pkg_type>/<pkg_name> and
+    # return their names.
     pkg_dir = os.path.join(local_registry_path, pkg_type, pkg_name)
     if not os.path.exists(pkg_dir):
         return []
@@ -149,8 +150,9 @@ if __name__ == "__main__":
             )
 
             if len(versions) == 1:
-                # If there is only one version, install using that specific version number to avoid installation failures
-                # due to it being a pre-release version.
+                # If there is only one version, install using that specific
+                # version number to avoid installation failures due to it being
+                # a pre-release version.
                 args.src_pkg += f"@{versions[0]}"
 
         cmd += [
@@ -169,11 +171,15 @@ if __name__ == "__main__":
         if returncode:
             raise Exception("Failed to install app.")
         else:
-            timestamp_proxy.touch_timestamp_proxy_file(args.tg_timestamp_proxy_file)
+            timestamp_proxy.touch_timestamp_proxy_file(
+                args.tg_timestamp_proxy_file
+            )
 
     except Exception as exc:
         returncode = 1
-        timestamp_proxy.remove_timestamp_proxy_file(args.tg_timestamp_proxy_file)
+        timestamp_proxy.remove_timestamp_proxy_file(
+            args.tg_timestamp_proxy_file
+        )
         print(exc)
 
     finally:

@@ -18,7 +18,9 @@ class PkgInfo:
         self.pkg_name = pkg_name
 
     def __eq__(self, value):
-        return self.pkg_type == value.pkg_type and self.pkg_name == value.pkg_name
+        return (
+            self.pkg_type == value.pkg_type and self.pkg_name == value.pkg_name
+        )
 
     def __hash__(self):
         return hash((self.pkg_type, self.pkg_name))
@@ -77,7 +79,9 @@ def update_c_preserved_metadata_file(
         if f"version={version}" not in content:
             update_needed = True
             if log_level > 0:
-                print(f"Version mismatch found. Updating version in {src_path}.")
+                print(
+                    f"Version mismatch found. Updating version in {src_path}."
+                )
     else:
         update_needed = True
 
@@ -200,7 +204,9 @@ def update_tman_version_source_file(
         if f'VERSION: &str = "{version}"' not in content:
             update_needed = True
             if log_level > 0:
-                print(f"Version mismatch found. Updating version in {src_path}.")
+                print(
+                    f"Version mismatch found. Updating version in {src_path}."
+                )
     else:
         update_needed = True
 
@@ -241,7 +247,9 @@ def main(args: ArgumentInfo):
 
     if args.version_update_manifest_path:
         for src in args.version_update_manifest_path:
-            update_version_in_manifest_json_file(args.log_level, git_version, src)
+            update_version_in_manifest_json_file(
+                args.log_level, git_version, src
+            )
 
     if args.dependency_version_update_manifest_path:
         for src in args.dependency_version_update_manifest_path:
