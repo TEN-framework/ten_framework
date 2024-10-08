@@ -12,7 +12,7 @@ ten_package("default_extension_go") {
   package_kind = "extension"
 
   resources = [
-    "default_extension.go",
+    "extension.go",
     "go_release.mod.tent=>go.mod.tent",
     "go_release.mod=>go.mod",
     "manifest.json",
