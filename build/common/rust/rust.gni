@@ -44,7 +44,7 @@ template("rust_target") {
     }
 
     if (!ten_rust_enable_gen_cargo_config && enable_sanitizer &&
-        ten_enable_rust_asan) {
+        ten_rust_enable_asan) {
       asan_args = [
         "--action",
         "print",
@@ -229,7 +229,7 @@ template("rust_test") {
     }
 
     if (!ten_rust_enable_gen_cargo_config && enable_sanitizer &&
-        ten_enable_rust_asan) {
+        ten_rust_enable_asan) {
       asan_args = [
         "--action",
         "print",
