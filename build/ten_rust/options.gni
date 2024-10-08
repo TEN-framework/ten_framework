@@ -14,6 +14,16 @@ declare_args() {
   enable_ten_rust = !(enable_sanitizer && target_cpu == "x86")
 
   # Enable this option if you want to develop rust when enable_sanitizer is
-  # true.
+  # true. The reason we use this option rather than enable_sanitizer is as
+  # follows:
+  #
+  # 1. There is no opportune time to delete the generated cargo config files
+  # during a build.
+  # 2. The cargo toolchain supports building rust projects outside of the
+  # source folder, using the --manifest-path option. However, the cargo config
+  # only effects on the build in the subfolder of the location of the config
+  # file. Ex: in CI, the build runs in a 'out' folder which is outside of the
+  # ten_framework folder, if we run `cargo build` in the `out` folder to build
+  # ten_rust, the cargo config in the ten_framework folder will be ignored.
   enable_cargo_config_gen = false
 }
