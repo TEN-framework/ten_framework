@@ -23,9 +23,9 @@ on:
       - "**.md"
 
 jobs:
-  build-arm64:
+  build-mac-arm64:
     concurrency:
-      group: ${{ github.head_ref }}
+      group: build-mac-arm64-${{ github.head_ref }}
       cancel-in-progress: true
     runs-on: macos-latest
     strategy:
@@ -107,9 +107,9 @@ jobs:
       #     chmod +x out/mac/arm64/tests/standalone/ten_runtime_smoke_test
       #     out/mac/arm64/tests/standalone/ten_runtime_smoke_test
 
-  build-x64:
+  build-mac-x64:
     concurrency:
-      group: ${{ github.head_ref }}
+      group: build-mac-x64-${{ github.head_ref }}
       cancel-in-progress: true
     runs-on: macos-13
     strategy:

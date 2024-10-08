@@ -25,9 +25,9 @@ on:
       - "**.md"
 
 jobs:
-  build:
+  build-linux-ubuntu2204:
     concurrency:
-      group: ${{ github.head_ref }}
+      group: build-linux-ubuntu2204-${{ github.head_ref }}
       cancel-in-progress: true
     runs-on: ubuntu-latest
     strategy:
