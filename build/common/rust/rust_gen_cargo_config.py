@@ -170,8 +170,8 @@ if __name__ == "__main__":
         ]
 
         if args.target_os == "mac":
-            asan_lib = package_asan_lib.detect_mac_asan_lib(args.target_arch)
-            flags.append(f"-Clink-arg=-Wl,{asan_lib}")
+            asan_flag = special_link_args_on_mac(args.target_arch)
+            flags.append(f"-C{asan_flag}")
 
         print(" ".join(flags))
         sys.exit(0)
