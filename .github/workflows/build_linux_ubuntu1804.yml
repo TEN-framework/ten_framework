@@ -42,8 +42,8 @@ jobs:
 
       - name: Install cpulimit and taskset
         run: |
-          sudo apt-get update
-          sudo apt-get install -y cpulimit util-linux
+          apt-get update
+          apt-get install -y cpulimit util-linux
 
       - name: Build
         run: |
