@@ -74,6 +74,19 @@ jobs:
           tgn build mac arm64 ${{ matrix.build_type }}
           tree -I 'gen|obj' out
 
+      - name: Run Tests
+        env:
+          ASAN_OPTIONS: detect_leaks=1:detect_stack_use_after_return=1:color=always:unmap_shadow_on_exit=1:abort_on_error=1
+          TEN_ENABLE_MEMORY_TRACKING: "true"
+        run: |
+          chmod +x cmd_wrapper.sh
+          chmod +x out/linux/x64/tests/standalone/ten_utils_unit_test
+          out/linux/x64/tests/standalone/ten_utils_unit_test
+          chmod +x out/linux/x64/tests/standalone/ten_runtime_unit_test
+          out/linux/x64/tests/standalone/ten_runtime_unit_test
+          chmod +x out/linux/x64/tests/standalone/ten_runtime_smoke_test
+          out/linux/x64/tests/standalone/ten_runtime_smoke_test
+
   build-x64:
     runs-on: macos-13
     strategy:
@@ -124,3 +137,16 @@ jobs:
           tgn gen mac x64 ${{ matrix.build_type }} -- log_level=1 enable_serialized_actions=true ten_enable_tests=false
           tgn build mac x64 ${{ matrix.build_type }}
           tree -I 'gen|obj' out
+
+      - name: Run Tests
+        env:
+          ASAN_OPTIONS: detect_leaks=1:detect_stack_use_after_return=1:color=always:unmap_shadow_on_exit=1:abort_on_error=1
+          TEN_ENABLE_MEMORY_TRACKING: "true"
+        run: |
+          chmod +x cmd_wrapper.sh
+          chmod +x out/linux/x64/tests/standalone/ten_utils_unit_test
+          out/linux/x64/tests/standalone/ten_utils_unit_test
+          chmod +x out/linux/x64/tests/standalone/ten_runtime_unit_test
+          out/linux/x64/tests/standalone/ten_runtime_unit_test
+          chmod +x out/linux/x64/tests/standalone/ten_runtime_smoke_test
+          out/linux/x64/tests/standalone/ten_runtime_smoke_test
