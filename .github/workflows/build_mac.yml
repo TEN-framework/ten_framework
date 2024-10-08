@@ -25,7 +25,7 @@ on:
 jobs:
   build-mac-arm64:
     concurrency:
-      group: build-mac-arm64-${{ github.head_ref }}
+      group: build-mac-arm64-${{ github.head_ref }}-${{ matrix.build_type }}
       cancel-in-progress: true
     runs-on: macos-latest
     strategy:
@@ -109,7 +109,7 @@ jobs:
 
   build-mac-x64:
     concurrency:
-      group: build-mac-x64-${{ github.head_ref }}
+      group: build-mac-x64-${{ github.head_ref }}-${{ matrix.build_type }}
       cancel-in-progress: true
     runs-on: macos-13
     strategy:

@@ -27,7 +27,7 @@ on:
 jobs:
   build-linux-ubuntu2204:
     concurrency:
-      group: build-linux-ubuntu2204-${{ github.head_ref }}
+      group: build-linux-ubuntu2204-${{ github.head_ref }}-${{ matrix.build_type }}
       cancel-in-progress: true
     runs-on: ubuntu-latest
     strategy:

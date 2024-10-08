@@ -25,7 +25,7 @@ on:
 jobs:
   build-win-x64:
     concurrency:
-      group: build-win-x64-${{ github.head_ref }}
+      group: build-win-x64-${{ github.head_ref }}-${{ matrix.build_type }}
       cancel-in-progress: true
     runs-on: windows-latest
     strategy:
