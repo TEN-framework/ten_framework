@@ -40,6 +40,11 @@ jobs:
           fetch-depth: "0"
           submodules: "true"
 
+      - name: Install cpulimit and taskset
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cpulimit util-linux
+
       - name: Build
         run: |
           export PATH=$(pwd)/core/ten_gn/:$PATH
