@@ -14,7 +14,7 @@ layout:
 
 # How to run local model in Python extensions
 
-In the 'TEN' world, extensions can not only leverage third-party AI model
+In the TEN world, extensions can not only leverage third-party AI model
 services to implement functionalities but also run AI models locally which
 reduces the latency and cost of the service. In this tutorial, we will introduce
 how to run a local model in a Python extension, and how to interact with the
@@ -29,7 +29,7 @@ Before you begin running the AI model locally, it is essential to confirm that y
 After ensuring that your hardware meets the necessary requirements, the next step is to install the required software and dependencies. Following these guidelines:
 
 1. **Operating System**: Ensure that your operating system is compatible with the model. Most AI frameworks support Windows, macOS, and Linux, but specific versions may be required.
-2. **Python Version**: As the ten python runtime is bound with a specific Python version, ensure that the Python version you are using is compatible with the model and the inference engine.
+2. **Python Version**: As the TEN python runtime is bound with a specific Python version, ensure that the Python version you are using is compatible with the model and the inference engine.
 3. **Install Required Libraries**: Depending on the AI model, you will need to install specific libraries. Commonlly used libraries include:
 
    - TensorFlow
@@ -46,7 +46,7 @@ After ensuring that your hardware meets the necessary requirements, the next ste
 
 Below is a sample on how to implement a simple text generation in a Python extension using vllm inference engine.
 
-First, load the local model during the extension initialization:
+First, load the local model with the model path during the extension initialization:
 
 ```python
 from ten import (
@@ -84,7 +84,7 @@ Besides text generation, you can also implement other functionalities like image
 
 ## Step 4: Unload the model
 
-Unload the model during the extension cleanup:
+Unload the model during the extension cleanup if necessary:
 
 ```python
 import gc
