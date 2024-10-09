@@ -13,6 +13,7 @@ from update_version_from_git import (
     update_version_in_manifest_json_file,
     update_dependency_manifest_json_file,
     update_tman_version_source_file,
+    update_version_in_manifest_json_file_for_pkgs,
     PkgInfo,
 )
 
@@ -217,6 +218,19 @@ def collect_core_packages_and_update_version(
         update_version_in_manifest_json_file(
             log_level, git_version, manifest_template_file
         )
+
+    # Some core packages are used and overwritten in tests. Update them as well.
+    manifests_in_tests = []
+
+    test_dir_path = os.path.join(repo_base_dir, "tests")
+    for root, dirs, files in os.walk(test_dir_path, followlinks=True):
+        for file in files:
+            if file == MANIFEST_JSON_FILE:
+                manifests_in_tests.append(os.path.join(root, file))
+
+    for manifest in manifests_in_tests:
+        update_version_in_manifest_json_file_for_pkgs(
+            log_level, git_version, manifest, pkgInfos)
 
     return pkgInfos
 

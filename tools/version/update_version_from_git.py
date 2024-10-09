@@ -102,6 +102,34 @@ def update_c_preserved_metadata_file(
             print(f"No update needed for {src_path}; versions match.")
 
 
+def update_version_in_manifest_json_file_for_pkgs(
+    log_level: int,
+    version: str,
+    src_path: str,
+    pkg_infos: list[PkgInfo],
+) -> None:
+    if log_level > 0:
+        print(f"Checking {src_path} for updates...")
+
+    if not os.path.exists(src_path):
+        touch(src_path)
+
+    with open(src_path, "r") as file:
+        data = json.load(file)
+
+    pkg_info = PkgInfo(data.get("type"), data.get("name"))
+    if pkg_info in pkg_infos and data.get("version") != version:
+        if log_level > 0:
+            print(f"Updating version in {src_path}.")
+
+        # Update the version in the JSON data.
+        data["version"] = version
+        with open(src_path, "w") as file:
+            json.dump(data, file, indent=2)
+            # Notify that the content of the src_path has changed.
+            touch(src_path)
+
+
 # {
 #   "type": "<type-in-main-manifest>",
 #   "name": "<name-in-main-manifest>",
