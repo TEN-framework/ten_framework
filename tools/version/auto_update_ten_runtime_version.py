@@ -286,7 +286,8 @@ if __name__ == "__main__":
 
     update_ten_runtime_binary_version(log_level, year, year_month, git_version)
 
-    update_tman_version(log_level, year, year_month, repo_base_dir, git_version)
+    update_tman_version(log_level, year, year_month,
+                        repo_base_dir, git_version)
 
     system_pkgs = collect_ten_system_packages_and_update_version(
         log_level, repo_base_dir, git_version
