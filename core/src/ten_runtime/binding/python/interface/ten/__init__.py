@@ -6,6 +6,7 @@
 #
 from .app import App
 from .extension import Extension
+from .async_extension import AsyncExtension
 from .addon import Addon
 from .decorator import (
     register_addon_as_extension,
