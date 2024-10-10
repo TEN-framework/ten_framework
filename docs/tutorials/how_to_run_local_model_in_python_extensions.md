@@ -12,41 +12,41 @@ layout:
     visible: true
 ---
 
-# How to run local model in Python extensions
+# How to Run a Local AI Model in Python Extensions
 
-In the TEN world, extensions can not only leverage third-party AI model
-services to implement functionalities but also run AI models locally which
-reduces the latency and cost of the service. In this tutorial, we will introduce
-how to run a local model in a Python extension, and how to interact with the
-model in the extension.
+In the TEN framework, extensions can utilize third-party AI services or run AI models locally to improve performance and reduce costs. This tutorial explains how to run a local AI model in a Python extension and how to interact with it within the extension.
 
-## Step 1: Ensure Hardware Requirements are Met
+## Step 1: Check Hardware Requirements
 
-Before you begin running the AI model locally, it is essential to confirm that your hardware meets the necessary requirements. The key components to check are the CPU, GPU, and memory. The AI model you plan to run locally may have specific hardware requirements, so it is important to verify that your hardware meets these requirements.
+Before running an AI model locally, ensure that your hardware meets the necessary requirements. Key components to verify include:
 
-## Step 2: Install Required Software and Dependencies
+- **CPU/GPU**: Check if the model requires specific processing power.
+- **Memory**: Ensure sufficient memory to load and run the model.
 
-After ensuring that your hardware meets the necessary requirements, the next step is to install the required software and dependencies. Following these guidelines:
+Verify that your system can support the model’s demands to ensure smooth operation.
 
-1. **Operating System**: Ensure that your operating system is compatible with the model. Most AI frameworks support Windows, macOS, and Linux, but specific versions may be required.
-2. **Python Version**: As the TEN python runtime is bound with a specific Python version, ensure that the Python version you are using is compatible with the model and the inference engine.
-3. **Install Required Libraries**: Depending on the AI model, you will need to install specific libraries. Commonlly used libraries include:
+## Step 2: Install Necessary Software and Dependencies
+
+Once your hardware is ready, install the required software and dependencies. Follow these steps:
+
+1. **Operating System**: Ensure compatibility with your model. Most AI frameworks support Windows, macOS, and Linux, though specific versions may be required.
+2. **Python Version**: Ensure compatibility with the TEN Python runtime and the model.
+3. **Required Libraries**: Install necessary libraries such as:
 
    - TensorFlow
    - PyTorch
    - Numpy
    - vllm
-   - ...
 
-   You can install these libraries in your Python environment and save the requirements in a `requirements.txt` file under the extension root directory.
+   You can list the required dependencies in a `requirements.txt` file for easy installation.
 
-4. **Download the Model**: Download the AI model you plan to run locally.
+4. **Download the Model**: Obtain the local version of the AI model you plan to run.
 
-## Step 3: Implement your Python Extension
+## Step 3: Implement Your Python Extension
 
-Below is a sample on how to implement a simple text generation in a Python extension using vllm inference engine.
+Below is an example of how to implement a basic text generation feature using the `vllm` inference engine in a Python extension.
 
-First, load the local model with the model path during the extension initialization:
+First, initialize the local model within the extension:
 
 ```python
 from ten import (
@@ -60,11 +60,10 @@ from vllm import LLM
 class TextGenerationExtension(Extension):
     def on_init(self, ten_env: TenEnv) -> None:
         self.llm = LLM(model="<model_path>")
-
         ten_env.on_init_done()
 ```
 
-Next, implement the `on_cmd`/`on_data` method to handle the command/data:
+Next, implement the `on_cmd` method to handle text generation based on the provided input:
 
 ```python
     def on_cmd(self, ten_env: TenEnv, cmd: Cmd) -> None:
@@ -78,13 +77,13 @@ Next, implement the `on_cmd`/`on_data` method to handle the command/data:
         ten_env.return_result(cmd_result, cmd)
 ```
 
-Above, in `on_cmd` method, 'prompt' is retrieved from the property of the command, then the model generates the text based on the prompt, and the generated text is returned as the result of the command.
+In this code, the `on_cmd` method retrieves the `prompt`, generates text using the model, and returns the generated text as the command result.
 
-Besides text generation, you can also implement other functionalities like image recognition (image in, text out), speech-to-text (audio in, text out), etc., using the local model.
+You can adapt this approach to implement other functionalities such as image recognition or speech-to-text by processing the relevant input types.
 
-## Step 4: Unload the model
+## Step 4: Unload the Model
 
-Unload the model during the extension cleanup if necessary:
+It’s important to unload the model during extension cleanup to free resources:
 
 ```python
 import gc
@@ -98,11 +97,12 @@ class TextGenerationExtension(Extension):
         gc.collect()
         torch.cuda.empty_cache()
         torch.distributed.destroy_process_group()
-        print("Successfully delete the llm pipeline and free the GPU memory!")
-
+        print("Successfully deleted the LLM pipeline and freed GPU memory!")
         ten_env.on_deinit_done()
 ```
 
+This ensures efficient memory management, especially when working with GPU resources.
+
 ## Summary
 
-In the TEN Python extension, running a local model is almost indistinguishable from a native Python development experience. By placing model loading and unloading in the appropriate extension lifecycle methods and designing the extension's input and output well, you can easily run a local model in a Python extension and interact with it.
+Running a local model in a TEN Python extension is similar to native Python development. By loading and unloading the model in the appropriate extension lifecycle methods, you can easily integrate local AI models and interact with them effectively.
