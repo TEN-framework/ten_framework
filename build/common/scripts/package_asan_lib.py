@@ -29,9 +29,7 @@ if __name__ == "__main__":
     args = parser.parse_args(namespace=arg_info)
 
     if args.target_os == "mac":
-        asan_lib_src_loc = detect_asan_lib.detect_mac_asan_lib(
-            args.target_arch
-        )
+        asan_lib_src_loc = detect_asan_lib.detect_mac_asan_lib(args.target_arch)
     elif args.target_os == "linux":
         asan_lib_src_loc = detect_asan_lib.detect_linux_asan_lib(
             args.target_arch
