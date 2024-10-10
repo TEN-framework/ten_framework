@@ -4,12 +4,10 @@
 # See the LICENSE file for more information.
 #
 import json
-import threading
 from aiohttp import web, web_request, WSMsgType
-import asyncio
 from ten import (
     Addon,
-    Extension,
+    AsyncExtension,
     register_addon_as_extension,
     TenEnv,
     Cmd,
@@ -18,7 +16,7 @@ from ten import (
 )
 
 
-class HttpServerExtension(Extension):
+class HttpServerExtension(AsyncExtension):
     async def default_handler(self, request: web_request.Request):
         # parse the json body
         try:
@@ -38,7 +36,7 @@ class HttpServerExtension(Extension):
             # If the command is a 'close_app' command, send it to the app.
             if "type" in data["_ten"] and data["_ten"]["type"] == "close_app":
                 close_app_cmd_json = """{"_ten":{"type":"close_app","dest":[{"app":"localhost"}]}}"""
-                self.tenEnv.send_json(close_app_cmd_json, None)
+                self.ten_env.send_json(close_app_cmd_json, None)
                 return web.Response(status=200, text="OK")
             elif "name" in data["_ten"]:
                 # send the command to the TEN runtime
@@ -46,7 +44,11 @@ class HttpServerExtension(Extension):
                 data["url"] = url
                 cmd = Cmd.create_from_json(json.dumps(data))
                 # send 'test' command to the TEN runtime and wait for the result
-                cmd_result = await self.send_cmd_async(self.tenEnv, cmd)
+
+                if cmd is None:
+                    return web.Response(status=400, text="Bad request")
+
+                cmd_result = await self.send_cmd_async(self.ten_env, cmd)
             else:
                 return web.Response(status=404, text="Not found")
 
@@ -71,7 +73,8 @@ class HttpServerExtension(Extension):
                 else:
                     await ws.send_str("some websocket message payload")
             elif msg.type == WSMsgType.ERROR:
-                print("ws connection closed with exception %s" % ws.exception())
+                print("ws connection closed with exception %s" %
+                      ws.exception())
 
         return ws
 
@@ -91,44 +94,15 @@ class HttpServerExtension(Extension):
         self.tcpSite = web.TCPSite(runner, host, port)
         await self.tcpSite.start()
 
-    async def __thread_routine(self, ten_env: TenEnv):
-        print("HttpServerExtension __thread_routine start")
-
-        self.loop = asyncio.get_running_loop()
-
-        await self.start_server("0.0.0.0", self.server_port)
-
-        ten_env.on_start_done()
-
-        # Suspend the thread until stopEvent is set
-        await self.stopEvent.wait()
-
-        await self.webApp.shutdown()
-        await self.webApp.cleanup()
-
-    async def stop_thread(self):
-        self.stopEvent.set()
-
-    async def send_cmd_async(self, ten_env: TenEnv, cmd: Cmd) -> CmdResult:
-        print("HttpServerExtension send_cmd_async")
-        q = asyncio.Queue(1)
-        ten_env.send_cmd(
-            cmd,
-            lambda ten_env, result: asyncio.run_coroutine_threadsafe(
-                q.put(result), self.loop
-            ),  # type: ignore
-        )
-        return await q.get()
-
     def __init__(self, name: str) -> None:
         super().__init__(name)
         self.name = name
-        self.stopEvent = asyncio.Event()
 
-    def on_init(self, ten_env: TenEnv) -> None:
+    async def on_init(self, ten_env: TenEnv) -> None:
+        self.ten_env = ten_env
         ten_env.on_init_done()
 
-    def on_start(self, ten_env: TenEnv) -> None:
+    async def on_start(self, ten_env: TenEnv) -> None:
         print("HttpServerExtension on_start")
 
         try:
@@ -137,31 +111,25 @@ class HttpServerExtension(Extension):
             print("Could not read 'server_port' from properties." + str(e))
             self.server_port = 8002
 
-        self.tenEnv = ten_env
+        await self.start_server("0.0.0.0", self.server_port)
 
-        self.thread = threading.Thread(
-            target=asyncio.run, args=(self.__thread_routine(ten_env),)
-        )
+        ten_env.on_start_done()
 
-        # Then 'on_start_done' will be called in the thread
-        self.thread.start()
-
-    def on_deinit(self, ten_env: TenEnv) -> None:
+    async def on_deinit(self, ten_env: TenEnv) -> None:
         print("HttpServerExtension on_deinit")
         ten_env.on_deinit_done()
 
-    def on_cmd(self, ten_env: TenEnv, cmd: Cmd) -> None:
+    async def on_cmd(self, ten_env: TenEnv, cmd: Cmd) -> None:
         print("HttpServerExtension on_cmd")
 
         # Not supported command
         ten_env.return_result(CmdResult.create(StatusCode.ERROR), cmd)
 
-    def on_stop(self, ten_env: TenEnv) -> None:
+    async def on_stop(self, ten_env: TenEnv) -> None:
         print("HttpServerExtension on_stop")
 
-        if self.thread.is_alive():
-            asyncio.run_coroutine_threadsafe(self.stop_thread(), self.loop)
-            self.thread.join()
+        await self.webApp.shutdown()
+        await self.webApp.cleanup()
 
         ten_env.on_stop_done()
 
