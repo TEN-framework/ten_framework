@@ -1,5 +1,5 @@
 """
-Test two_async_extensions_in_different_groups_python.
+Test two_async_exts_python.
 """
 
 import subprocess
@@ -20,7 +20,7 @@ def http_request():
     )
 
 
-def test_two_async_extensions_in_different_groups_python():
+def test_two_async_exts_python():
     """Test client and app server."""
     base_path = os.path.dirname(os.path.abspath(__file__))
     root_dir = os.path.join(base_path, "../../../../../")
@@ -40,20 +40,20 @@ def test_two_async_extensions_in_different_groups_python():
     my_env["PATH"] = os.path.join(venv_dir, "bin") + os.pathsep + my_env["PATH"]
 
     if sys.platform == "win32":
-        print("test_two_async_extensions_in_different_groups_python doesn't support win32")
+        print("test_two_async_exts_python doesn't support win32")
         assert False
     elif sys.platform == "darwin":
         # client depends on some libraries in the TEN app.
         my_env["DYLD_LIBRARY_PATH"] = os.path.join(
-            base_path, "two_async_extensions_in_different_groups_python_app/lib"
+            base_path, "two_async_exts_python_app/lib"
         )
     else:
         # client depends on some libraries in the TEN app.
         my_env["LD_LIBRARY_PATH"] = os.path.join(
-            base_path, "two_async_extensions_in_different_groups_python_app/lib"
+            base_path, "two_async_exts_python_app/lib"
         )
 
-    app_root_path = os.path.join(base_path, "two_async_extensions_in_different_groups_python_app")
+    app_root_path = os.path.join(base_path, "two_async_exts_python_app")
 
     tman_install_cmd = [
         os.path.join(root_dir, "ten_manager/bin/tman"),
@@ -72,7 +72,7 @@ def test_two_async_extensions_in_different_groups_python():
     tman_install_process.wait()
 
     bootstrap_cmd = os.path.join(
-        base_path, "two_async_extensions_in_different_groups_python_app/bin/bootstrap"
+        base_path, "two_async_exts_python_app/bin/bootstrap"
     )
 
     bootstrap_process = subprocess.Popen(
@@ -84,13 +84,13 @@ def test_two_async_extensions_in_different_groups_python():
         if os.path.exists(os.path.join(base_path, "use_asan_lib_marker")):
             libasan_path = os.path.join(
                 base_path,
-                "two_async_extensions_in_different_groups_python_app/ten_packages/system/ten_runtime/lib/libasan.so",
+                "two_async_exts_python_app/ten_packages/system/ten_runtime/lib/libasan.so",
             )
 
             if os.path.exists(libasan_path):
                 my_env["LD_PRELOAD"] = libasan_path
 
-    server_cmd = os.path.join(base_path, "two_async_extensions_in_different_groups_python_app/bin/start")
+    server_cmd = os.path.join(base_path, "two_async_exts_python_app/bin/start")
 
     server = subprocess.Popen(
         server_cmd,
@@ -102,11 +102,11 @@ def test_two_async_extensions_in_different_groups_python():
 
     is_started = http.is_app_started("127.0.0.1", 8002, 30)
     if not is_started:
-        print("The two_async_extensions_in_different_groups_python is not started after 30 seconds.")
+        print("The two_async_exts_python is not started after 30 seconds.")
 
         server.kill()
         exit_code = server.wait()
-        print("The exit code of two_async_extensions_in_different_groups_python: ", exit_code)
+        print("The exit code of two_async_exts_python: ", exit_code)
 
         assert exit_code == 0
         assert 0
@@ -121,10 +121,10 @@ def test_two_async_extensions_in_different_groups_python():
     finally:
         is_stopped = http.stop_app("127.0.0.1", 8002, 30)
         if not is_stopped:
-            print("The two_async_extensions_in_different_groups_python can not stop after 30 seconds.")
+            print("The two_async_exts_python can not stop after 30 seconds.")
             server.kill()
 
         exit_code = server.wait()
-        print("The exit code of two_async_extensions_in_different_groups_python: ", exit_code)
+        print("The exit code of two_async_exts_python: ", exit_code)
 
         assert exit_code == 0
