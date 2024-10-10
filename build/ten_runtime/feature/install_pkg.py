@@ -26,7 +26,7 @@ class ArgumentInfo(argparse.Namespace):
         self.local_registry_path: str
 
 
-def get_pkg_versions_from_local_registry(
+def get_pkgs_from_local_registry(
     local_registry_path: str, pkg_type: str, pkg_name: str
 ) -> list[str]:
     # Find directories under <local_registry_path>/<pkg_type>/<pkg_name> and
@@ -145,7 +145,7 @@ if __name__ == "__main__":
             list.append(cmd, "--config-file=" + args.config_file)
 
         if args.local_registry_path is not None:
-            versions = get_pkg_versions_from_local_registry(
+            versions = get_pkgs_from_local_registry(
                 args.local_registry_path, args.pkg_type, args.src_pkg
             )
 

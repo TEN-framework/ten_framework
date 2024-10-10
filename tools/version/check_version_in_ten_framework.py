@@ -4,13 +4,14 @@
 # Licensed under the Apache License, Version 2.0, with certain conditions.
 # Refer to the "LICENSE" file in the root directory for more information.
 #
-
 import json
 import os
-from update_version_from_git import get_latest_git_tag
+from common import get_latest_git_tag
 
 
-def check_ten_runtime_binary_version(repo_base_dir: str, git_version: str) -> bool:
+def check_preserved_metadata_version_of_ten_runtime(
+    repo_base_dir: str, git_version: str
+) -> bool:
     c_preserved_metadata_file_src_file = os.path.join(
         repo_base_dir,
         "core",
@@ -30,7 +31,7 @@ def check_ten_runtime_binary_version(repo_base_dir: str, git_version: str) -> bo
     return False
 
 
-def check_tman_version(repo_base_dir: str, git_version: str) -> bool:
+def check_version_of_tman(repo_base_dir: str, git_version: str) -> bool:
     tman_version_src_file = os.path.join(
         repo_base_dir,
         "core",
@@ -50,7 +51,9 @@ def check_tman_version(repo_base_dir: str, git_version: str) -> bool:
     return False
 
 
-def check_ten_system_package_versions(repo_base_dir: str, git_version: str) -> bool:
+def check_version_of_system_packages(
+    repo_base_dir: str, git_version: str
+) -> bool:
     manifest_files = [
         # ten_runtime
         os.path.join(
@@ -95,25 +98,28 @@ def check_ten_system_package_versions(repo_base_dir: str, git_version: str) -> b
     return True
 
 
-def check_versions(repo_base_dir: str, git_version: str) -> bool:
-    if not check_ten_runtime_binary_version(repo_base_dir, git_version):
-        print("ten_runtime binary version does not match.")
+def check_various_versions(repo_base_dir: str, git_version: str) -> bool:
+    if not check_preserved_metadata_version_of_ten_runtime(
+        repo_base_dir, git_version
+    ):
+        print("ten_runtime preserved_metadata version does not match.")
         return False
 
-    if not check_tman_version(repo_base_dir, git_version):
+    if not check_version_of_tman(repo_base_dir, git_version):
         print("ten_manager version does not match.")
         return False
 
-    if not check_ten_system_package_versions(repo_base_dir, git_version):
-        print("ten_runtime system package versions do not match.")
+    if not check_version_of_system_packages(repo_base_dir, git_version):
+        print("ten system package versions do not match.")
         return False
 
     return True
 
 
 if __name__ == "__main__":
-    repo_base_dir = os.path.abspath(os.path.join(
-        os.path.dirname(__file__), "..", ".."))
+    repo_base_dir = os.path.abspath(
+        os.path.join(os.path.dirname(__file__), "..", "..")
+    )
 
     # Change to the correct directory to get the correct git tag.
     os.chdir(repo_base_dir)
@@ -122,7 +128,7 @@ if __name__ == "__main__":
     git_version = get_latest_git_tag()
     git_version = git_version.lstrip("v")
 
-    if check_versions(repo_base_dir, git_version):
+    if check_various_versions(repo_base_dir, git_version):
         print("All versions match.")
     else:
         print("Versions do not match.")

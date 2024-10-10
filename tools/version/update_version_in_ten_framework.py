@@ -7,12 +7,12 @@
 import datetime
 import json
 import os
-from update_version_from_git import (
+from common import (
     get_latest_git_tag,
-    update_c_preserved_metadata_file,
+    update_c_preserved_metadata_version,
     update_version_in_manifest_json_file,
-    update_dependency_manifest_json_file,
-    update_tman_version_source_file,
+    update_dependency_version_in_manifest_json_file,
+    update_version_source_file_of_tman,
     update_version_in_manifest_json_file_for_pkgs,
     PkgInfo,
 )
@@ -27,10 +27,10 @@ def __get_pkg_info_from_manifest_file(manifest_file: str) -> PkgInfo:
         return PkgInfo(manifest["type"], manifest["name"])
 
 
-def __collect_manifests(directory) -> list[str]:
+def __collect_manifest_files(directory) -> list[str]:
     manifests = []
 
-    for root, dirs, files in os.walk(directory, followlinks=True):
+    for _, dirs, _ in os.walk(directory, followlinks=True):
         for dir in dirs:
             if os.path.exists(os.path.join(directory, dir, MANIFEST_JSON_FILE)):
                 manifests.append(
@@ -40,16 +40,15 @@ def __collect_manifests(directory) -> list[str]:
                         MANIFEST_JSON_FILE,
                     )
                 )
-
         break
 
     return manifests
 
 
-def __collect_manifest_tents(directory) -> list[str]:
+def __collect_manifest_tent_files(directory) -> list[str]:
     manifest_templates = []
 
-    for root, dirs, files in os.walk(directory, followlinks=True):
+    for _, dirs, _ in os.walk(directory, followlinks=True):
         for dir in dirs:
             if os.path.exists(
                 os.path.join(directory, dir, MANIFEST_JSON_TENT_FILE)
@@ -61,13 +60,14 @@ def __collect_manifest_tents(directory) -> list[str]:
                         MANIFEST_JSON_TENT_FILE,
                     )
                 )
-
         break
 
     return manifest_templates
 
 
-def update_ten_runtime_binary_version(log_level, year, year_month, git_version):
+def update_c_preserved_metadata_version_of_ten_runtime_binary(
+    log_level, year, year_month, git_version
+):
     # Update the version in the C preserved metadata files.
     c_preserved_metadata_file_src_file = os.path.join(
         repo_base_dir,
@@ -87,7 +87,7 @@ def update_ten_runtime_binary_version(log_level, year, year_month, git_version):
         "preserved_metadata.c.jinja2",
     )
 
-    update_c_preserved_metadata_file(
+    update_c_preserved_metadata_version(
         log_level,
         year,
         year_month,
@@ -97,7 +97,7 @@ def update_ten_runtime_binary_version(log_level, year, year_month, git_version):
     )
 
 
-def update_tman_version(
+def update_version_of_tman(
     log_level: int,
     year: str,
     year_month: str,
@@ -114,10 +114,15 @@ def update_tman_version(
     )
 
     tman_version_template_file_path = os.path.join(
-        repo_base_dir, "core", "src", "ten_manager", "src", "version.rs.jinja2"
+        repo_base_dir,
+        "core",
+        "src",
+        "ten_manager",
+        "src",
+        "version.rs.jinja2",
     )
 
-    update_tman_version_source_file(
+    update_version_source_file_of_tman(
         log_level,
         year,
         year_month,
@@ -127,11 +132,11 @@ def update_tman_version(
     )
 
 
-def collect_ten_system_packages_and_update_version(
+def collect_and_update_version_of_system_packages(
     log_level, repo_base_dir, git_version
 ) -> list[PkgInfo]:
     # Collect manifest files for ten_runtime and all corresponding system
-    # packages(python & go bindings).
+    # packages (python & go bindings).
     manifest_files = [
         # ten_runtime
         os.path.join(
@@ -174,7 +179,7 @@ def collect_ten_system_packages_and_update_version(
     return pkgInfos
 
 
-def collect_core_packages_and_update_version(
+def collect_and_update_version_of_core_packages(
     log_level, repo_base_dir, git_version
 ) -> list[PkgInfo]:
     # Collect manifest files for all core packages.
@@ -195,24 +200,24 @@ def collect_core_packages_and_update_version(
     )
 
     manifest_files = (
-        __collect_manifests(core_apps_dir_path)
-        + __collect_manifests(core_extensions_dir_path)
-        + __collect_manifests(core_protocols_dir_path)
+        __collect_manifest_files(core_apps_dir_path)
+        + __collect_manifest_files(core_extensions_dir_path)
+        + __collect_manifest_files(core_protocols_dir_path)
     )
 
     manifest_template_files = (
-        __collect_manifest_tents(core_apps_dir_path)
-        + __collect_manifest_tents(core_extensions_dir_path)
-        + __collect_manifest_tents(core_protocols_dir_path)
+        __collect_manifest_tent_files(core_apps_dir_path)
+        + __collect_manifest_tent_files(core_extensions_dir_path)
+        + __collect_manifest_tent_files(core_protocols_dir_path)
     )
 
-    pkgInfos = []
+    pkg_infos = []
 
     for manifest_file in manifest_files:
         update_version_in_manifest_json_file(
             log_level, git_version, manifest_file
         )
-        pkgInfos.append(__get_pkg_info_from_manifest_file(manifest_file))
+        pkg_infos.append(__get_pkg_info_from_manifest_file(manifest_file))
 
     for manifest_template_file in manifest_template_files:
         update_version_in_manifest_json_file(
@@ -223,19 +228,20 @@ def collect_core_packages_and_update_version(
     manifests_in_tests = []
 
     test_dir_path = os.path.join(repo_base_dir, "tests")
-    for root, dirs, files in os.walk(test_dir_path, followlinks=True):
+    for root, _, files in os.walk(test_dir_path, followlinks=True):
         for file in files:
             if file == MANIFEST_JSON_FILE:
                 manifests_in_tests.append(os.path.join(root, file))
 
     for manifest in manifests_in_tests:
         update_version_in_manifest_json_file_for_pkgs(
-            log_level, git_version, manifest, pkgInfos)
+            log_level, git_version, manifest, pkg_infos
+        )
 
-    return pkgInfos
+    return pkg_infos
 
 
-def update_package_dependencies(
+def update_dependencies_version(
     log_level, repo_base_dir, git_version, dependencies
 ):
     # Collect manifest files for system packages.
@@ -252,14 +258,14 @@ def update_package_dependencies(
     # Collect manifest files for testing packages.
     test_dir_path = os.path.join(repo_base_dir, "tests")
 
-    manifests = __collect_manifests(system_package_dir_path)
+    manifests = __collect_manifest_files(system_package_dir_path)
 
     for root, dirs, files in os.walk(packages_dir_path, followlinks=True):
         for dir in dirs:
-            manifests += __collect_manifests(
+            manifests += __collect_manifest_files(
                 os.path.join(packages_dir_path, dir)
             )
-            manifests += __collect_manifest_tents(
+            manifests += __collect_manifest_tent_files(
                 os.path.join(packages_dir_path, dir)
             )
 
@@ -271,7 +277,7 @@ def update_package_dependencies(
                 manifests.append(os.path.join(root, file))
 
     for manifest in manifests:
-        update_dependency_manifest_json_file(
+        update_dependency_version_in_manifest_json_file(
             log_level,
             git_version,
             manifest,
@@ -298,19 +304,22 @@ if __name__ == "__main__":
 
     log_level = 1
 
-    update_ten_runtime_binary_version(log_level, year, year_month, git_version)
+    update_c_preserved_metadata_version_of_ten_runtime_binary(
+        log_level, year, year_month, git_version
+    )
 
-    update_tman_version(log_level, year, year_month,
-                        repo_base_dir, git_version)
+    update_version_of_tman(
+        log_level, year, year_month, repo_base_dir, git_version
+    )
 
-    system_pkgs = collect_ten_system_packages_and_update_version(
+    system_pkgs = collect_and_update_version_of_system_packages(
         log_level, repo_base_dir, git_version
     )
 
-    core_pkgs = collect_core_packages_and_update_version(
+    core_pkgs = collect_and_update_version_of_core_packages(
         log_level, repo_base_dir, git_version
     )
 
-    update_package_dependencies(
+    update_dependencies_version(
         log_level, repo_base_dir, git_version, system_pkgs + core_pkgs
     )

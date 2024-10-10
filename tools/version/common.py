@@ -6,9 +6,7 @@
 #
 import subprocess
 import json
-import argparse
 import os
-import datetime
 from jinja2 import Template
 
 
@@ -39,18 +37,6 @@ def touch(path):
                 exit(1)
 
 
-class ArgumentInfo(argparse.Namespace):
-    def __init__(self):
-        super().__init__()
-        self.repo_base_dir: str
-        self.log_level: int
-        self.pkg_type: str | None = None
-        self.pkg_name: str | None = None
-        self.c_preserved_metadata_path: list[tuple[str, str]] = []
-        self.version_update_manifest_path: list[str] = []
-        self.dependency_version_update_manifest_path: list[str] = []
-
-
 def get_latest_git_tag() -> str:
     result = subprocess.run(
         ["git", "describe", "--tags", "--abbrev=0"],
@@ -62,7 +48,7 @@ def get_latest_git_tag() -> str:
     return result.stdout.strip()
 
 
-def update_c_preserved_metadata_file(
+def update_c_preserved_metadata_version(
     log_level: int,
     year: str,
     year_month: str,
@@ -178,7 +164,7 @@ def update_version_in_manifest_json_file(
 #   }
 #   ...
 # }
-def update_dependency_manifest_json_file(
+def update_dependency_version_in_manifest_json_file(
     log_level: int,
     version: str,
     src_path: str,
@@ -215,7 +201,7 @@ def update_dependency_manifest_json_file(
             print(f"No update needed for {src_path}; versions match.")
 
 
-def update_tman_version_source_file(
+def update_version_source_file_of_tman(
     log_level: int,
     year: str,
     year_month: str,
@@ -253,78 +239,3 @@ def update_tman_version_source_file(
     else:
         if log_level > 0:
             print(f"No update needed for {src_path}; versions match.")
-
-
-def main(args: ArgumentInfo):
-    now = datetime.datetime.now()
-    year = now.strftime("%Y")
-    year_month = now.strftime("%Y-%m")
-
-    # Change to the correct directory to get the correct git tag.
-    os.chdir(args.repo_base_dir)
-
-    # Get the latest Git tag, and optionally strip leading 'v' if present.
-    git_version = get_latest_git_tag()
-    git_version = git_version.lstrip("v")
-
-    if args.c_preserved_metadata_path:
-        for src, template in args.c_preserved_metadata_path:
-            update_c_preserved_metadata_file(
-                args.log_level, year, year_month, git_version, src, template
-            )
-
-    if args.version_update_manifest_path:
-        for src in args.version_update_manifest_path:
-            update_version_in_manifest_json_file(
-                args.log_level, git_version, src
-            )
-
-    if args.dependency_version_update_manifest_path:
-        for src in args.dependency_version_update_manifest_path:
-            update_dependency_manifest_json_file(
-                args.log_level,
-                git_version,
-                src,
-                [PkgInfo(args.pkg_type, args.pkg_name)],
-            )
-
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-
-    parser.add_argument("--repo-base-dir", type=str, required=True)
-    parser.add_argument("--log-level", type=int, required=True)
-
-    parser.add_argument("--pkg-type", type=str)
-    parser.add_argument("--pkg-name", type=str)
-
-    parser.add_argument(
-        "--c-preserved-metadata-path",
-        action="append",
-        nargs=2,
-        metavar=("src", "template"),
-    )
-    parser.add_argument(
-        "--version-update-manifest-path",
-        action="append",
-        default=[],
-    )
-    parser.add_argument(
-        "--dependency-version-update-manifest-path",
-        action="append",
-        default=[],
-    )
-
-    arg_info = ArgumentInfo()
-    args = parser.parse_args(namespace=arg_info)
-
-    if args.dependency_version_update_manifest_path and (
-        not args.pkg_type or not args.pkg_name
-    ):
-        error_message = (
-            "--pkg-type and --pkg-name are required when "
-            "--dependency-version-update-manifest-path is specified"
-        )
-        parser.error(error_message)
-
-    main(args)
