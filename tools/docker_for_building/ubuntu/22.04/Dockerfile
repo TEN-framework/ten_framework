@@ -22,6 +22,8 @@ RUN apt-get clean && apt-get update && apt-get install -y --no-install-recommend
   tree \
   zip \
   unzip \
+  cpulimit \
+  util-linux \
   libasan5 \
   autoconf \
   libtool \
