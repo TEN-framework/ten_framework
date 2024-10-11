@@ -106,7 +106,7 @@ Open up a separate terminal window, build the agent and start the server:
 {% code title=">_ Bash" %}
 
 ```bash
-docker exec -it ten_agent_server bash
+docker exec -it ten_agent_dev bash
 make build
 ```
 
