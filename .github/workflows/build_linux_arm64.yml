@@ -31,6 +31,13 @@ jobs:
         with:
           fetch-depth: "0"
           submodules: "true"
+
+      - name: Update version
+        run: |
+          git config --global --add safe.directory $(pwd)
+          python3 tools/version/update_version_in_ten_framework.py
+          python3 tools/version/check_version_in_ten_framework.py
+
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
         with:
