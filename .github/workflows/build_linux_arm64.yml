@@ -19,6 +19,9 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    concurrency:
+      group: build-linux-arm64-${{ github.head_ref }}-${{ matrix.compiler }}-${{ matrix.build_type }}
+      cancel-in-progress: true
     strategy:
       matrix:
         compiler: [clang, gcc]
