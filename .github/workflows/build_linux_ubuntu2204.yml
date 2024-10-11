@@ -160,8 +160,9 @@ jobs:
           )
 
           for item in "${ARRAY[@]}"; do
+            echo $item
             cd $item
-            tman --verbose --user-token ${{ secrets.TEN_CLOUD_STORE }} publish
+            out/linux/x64/ten_manager/bin/tman --verbose --user-token ${{ secrets.TEN_CLOUD_STORE }} publish
             cd -
           done
         shell: bash
