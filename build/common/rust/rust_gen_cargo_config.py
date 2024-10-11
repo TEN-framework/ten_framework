@@ -9,8 +9,33 @@ import json
 import shutil
 import sys
 import os
-from build.scripts import timestamp_proxy, detect_asan_lib
+from build.scripts import timestamp_proxy
 
+sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
+from scripts import package_asan_lib
+
+
+# The content of the auto generated .cargo/config.toml file is as follows.
+#
+# - For gcc compiler:
+#
+# ```toml
+#[target.x86_64-unknown-linux-gnu]
+# rustflags = ["-C", "linker=gcc", "-Z", "external-clangrt", "-Z", "sanitizer=address", "-l", "asan"]
+# 
+# [build]
+# target = "x86_64-unknown-linux-gnu"
+# ```
+#
+# - For clang compiler:
+#
+# ```toml
+# [target.x86_64-unknown-linux-gnu]
+# rustflags = ["-C", "linker=clang", "-Z", "external-clangrt", "-Z", "sanitizer=address", "-C", "link-args=-fsanitize=address"]
+#
+# [build]
+# target = "x86_64-unknown-linux-gnu"
+# ```
 
 GCC_ASAN_FLAGS = [
     "-C",
@@ -66,7 +91,7 @@ class ArgumentInfo(argparse.Namespace):
 # clang: warning: argument unused during compilation: '-shared-libasan'. This
 # might be a bug in cargo. So we need to use the following flag instead.
 def special_link_args_on_mac(arch: str) -> str:
-    asan_lib = detect_asan_lib.detect_mac_asan_lib(arch)
+    asan_lib = package_asan_lib.detect_mac_asan_lib(arch)
     return f"link-arg=-Wl,{asan_lib}"
 
 

@@ -84,10 +84,6 @@ rust_gen_cargo_config("asan_config") {
   project_root = "//"
 }
 
-group("actions_after_ten_utils_static") {
-  deps = [ ":asan_config" ]
-}
-
 group("ten_rust") {
   deps = []
   public_deps = []

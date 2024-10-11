@@ -129,6 +129,6 @@ combine_static_library("ten_utils_combined_static") {
 
   deps = [
     ":ten_utils_static",
-    "//core/src/ten_rust:actions_after_ten_utils_static",
+    "//core/src/ten_rust:asan_config",
   ]
 }

@@ -5,8 +5,9 @@
 # Refer to the "LICENSE" file in the root directory for more information.
 #
 import argparse
+import subprocess
 import os
-from build.scripts import fs_utils, write_depfile, detect_asan_lib
+from build.scripts import fs_utils, write_depfile
 
 
 class ArgumentInfo(argparse.Namespace):
@@ -15,6 +16,85 @@ class ArgumentInfo(argparse.Namespace):
         self.target_arch: str
         self.asan_lib_dst_loc: str
         self.depfile: str
+
+
+def detect_mac_asan_lib(arch: str) -> str:
+    if arch == "x64":
+        out, _ = subprocess.Popen(
+            "clang -m64 -print-file-name=libclang_rt.asan_osx_dynamic.dylib",
+            shell=True,
+            stdout=subprocess.PIPE,
+            encoding="utf-8",
+        ).communicate()
+    elif arch == "x86":
+        out, _ = subprocess.Popen(
+            "clang -m32 -print-file-name=libclang_rt.asan_osx_dynamic.dylib",
+            shell=True,
+            stdout=subprocess.PIPE,
+            encoding="utf-8",
+        ).communicate()
+    elif arch == "arm64":
+        out, _ = subprocess.Popen(
+            "clang -m64 -print-file-name=libclang_rt.asan_osx_dynamic.dylib",
+            shell=True,
+            stdout=subprocess.PIPE,
+            encoding="utf-8",
+        ).communicate()
+
+    libasan_path = out.strip()
+
+    if not libasan_path:
+        raise Exception("Failed to find libclang_rt.asan_osx_dynamic.dylib")
+
+    real_libasan_path = os.path.realpath(libasan_path)
+
+    return real_libasan_path
+
+
+def detect_linux_asan_lib(arch: str) -> str:
+    if arch == "x64":
+        out, _ = subprocess.Popen(
+            "gcc -print-file-name=libasan.so",
+            shell=True,
+            stdout=subprocess.PIPE,
+            encoding="utf-8",
+        ).communicate()
+    elif arch == "x86":
+        out, _ = subprocess.Popen(
+            "gcc -m32 -print-file-name=libasan.so",
+            shell=True,
+            stdout=subprocess.PIPE,
+            encoding="utf-8",
+        ).communicate()
+
+    libasan_path = out.strip()
+
+    if not libasan_path:
+        raise Exception("Failed to find libasan.so")
+
+    real_libasan_path = os.path.realpath(libasan_path)
+
+    return real_libasan_path
+
+
+# Generally speaking, this function should not need to be called because Clang's
+# default ASan mechanism is static linking.
+def detect_linux_clang_asan_lib(_arch: str) -> str:
+    out, _ = subprocess.Popen(
+        "clang -print-file-name=libclang_rt.asan-x86_64.so",
+        shell=True,
+        stdout=subprocess.PIPE,
+        encoding="utf-8",
+    ).communicate()
+
+    libasan_path = out.strip()
+
+    if not libasan_path:
+        raise Exception("Failed to find libclang_rt.asan-x86_64.so")
+
+    real_libasan_path = os.path.realpath(libasan_path)
+
+    return real_libasan_path
 
 
 if __name__ == "__main__":
@@ -29,15 +109,11 @@ if __name__ == "__main__":
     args = parser.parse_args(namespace=arg_info)
 
     if args.target_os == "mac":
-        asan_lib_src_loc = detect_asan_lib.detect_mac_asan_lib(args.target_arch)
+        asan_lib_src_loc = detect_mac_asan_lib(args.target_arch)
     elif args.target_os == "linux":
-        asan_lib_src_loc = detect_asan_lib.detect_linux_asan_lib(
-            args.target_arch
-        )
+        asan_lib_src_loc = detect_linux_asan_lib(args.target_arch)
     elif args.target_os == "linux_clang":
-        asan_lib_src_loc = detect_asan_lib.detect_linux_clang_asan_lib(
-            args.target_arch
-        )
+        asan_lib_src_loc = detect_linux_clang_asan_lib(args.target_arch)
     else:
         raise Exception("Unsupported OS.")
 
