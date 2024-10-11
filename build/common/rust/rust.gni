@@ -460,6 +460,8 @@ template("rust_gen_cargo_config") {
         "gen",
       ]
     } else {
+      # Delete `.cargo/config.toml` file to remove all configurations related to
+      # Rust + ASan.
       args += [
         "--action",
         "delete",

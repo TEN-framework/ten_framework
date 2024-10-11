@@ -20,9 +20,9 @@ from scripts import package_asan_lib
 # - For gcc compiler:
 #
 # ```toml
-#[target.x86_64-unknown-linux-gnu]
+# [target.x86_64-unknown-linux-gnu]
 # rustflags = ["-C", "linker=gcc", "-Z", "external-clangrt", "-Z", "sanitizer=address", "-l", "asan"]
-# 
+#
 # [build]
 # target = "x86_64-unknown-linux-gnu"
 # ```
@@ -85,11 +85,12 @@ class ArgumentInfo(argparse.Namespace):
         self.action: str
 
 
-# There is only clang compiler on Mac, and the asan runtime in clang only has
-# dynamic library. However, the ldflag '-shared-libsan' does not support in
-# cargo + clang on Mac, cargo will raise a warning and ignore the flag, ex:
-# clang: warning: argument unused during compilation: '-shared-libasan'. This
-# might be a bug in cargo. So we need to use the following flag instead.
+# On macOS, only the Clang compiler is available, and Clang's ASan runtime
+# is provided only as a dynamic library. However, the linker flag
+# '-shared-libasan' is not supported in Cargo with Clang on macOS. Cargo will
+# issue a warning and ignore the flag, e.g., 'clang: warning: argument unused
+# during compilation: '-shared-libasan''. This could be a bug in Cargo. To
+# resolve this, use the following flag instead.
 def special_link_args_on_mac(arch: str) -> str:
     asan_lib = package_asan_lib.detect_mac_asan_lib(arch)
     return f"link-arg=-Wl,{asan_lib}"
@@ -99,10 +100,12 @@ def gen_cargo_config(args: ArgumentInfo):
     if not os.path.exists(args.project_root):
         raise Exception(f"Project root {args.project_root} does not exist.")
 
+    # Create .cargo/ folder if not exist.
     cargo_dir = os.path.join(args.project_root, ".cargo")
     if not os.path.exists(cargo_dir):
         os.mkdir(cargo_dir)
 
+    # Check if .cargo/config.toml exists, and remove it if it does.
     cargo_config = os.path.join(cargo_dir, "config.toml")
     if os.path.exists(cargo_config):
         os.remove(cargo_config)
@@ -191,6 +194,10 @@ if __name__ == "__main__":
             sys.exit(-1 if returncode != 0 else 0)
 
     else:
+        # action = print
+        #
+        # Constructs and prints a space-separated string of the necessary ASan
+        # flags for Clang, taking into account any macOS-specific handling.
         flags = [
             CLANG_ASAN_FLAGS[i] + CLANG_ASAN_FLAGS[i + 1]
             for i in range(0, len(CLANG_ASAN_FLAGS) - 1, 2)
