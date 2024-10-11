@@ -19,15 +19,16 @@ impl Graph {
         let mut not_installed_pkgs: Vec<(String, PkgType, String)> = Vec::new();
 
         for node in &self.nodes {
-            if !all_needed_pkgs.contains_key(node.app.as_str()) {
+            let node_app = node.get_app_uri();
+            if !all_needed_pkgs.contains_key(node_app) {
                 not_installed_pkgs.push((
-                    node.app.clone(),
+                    node_app.to_string(),
                     node.node_type.clone(),
                     node.addon.clone(),
                 ));
             }
 
-            let pkgs_in_app = all_needed_pkgs.get(node.app.as_str()).unwrap();
+            let pkgs_in_app = all_needed_pkgs.get(node_app).unwrap();
             let found = pkgs_in_app.iter().find(|pkg| {
                 pkg.pkg_identity.pkg_type == node.node_type
                     && pkg.pkg_identity.name == node.addon
@@ -35,7 +36,7 @@ impl Graph {
             });
             if found.is_none() {
                 not_installed_pkgs.push((
-                    node.app.clone(),
+                    node_app.to_string(),
                     node.node_type.clone(),
                     node.addon.clone(),
                 ));
