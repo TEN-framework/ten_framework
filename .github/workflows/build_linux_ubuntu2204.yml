@@ -164,3 +164,4 @@ jobs:
             tman --verbose --user-token ${{ secrets.TEN_CLOUD_STORE }} publish
             cd -
           done
+        shell: bash
