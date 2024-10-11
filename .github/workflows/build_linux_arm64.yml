@@ -13,8 +13,17 @@ on:
       - ".github/**"
       - "!.github/workflows/build_linux_arm64.yml"
       - "**.md"
-  branches:
-    - "**"
+  push:
+    branches:
+      - "**"
+    paths-ignore:
+      - "tools/**"
+      - "docs/**"
+      - ".vscode/**"
+      - ".devcontainer/**"
+      - ".github/**"
+      - "!.github/workflows/build_linux_arm64.yml"
+      - "**.md"
 
 jobs:
   build:
