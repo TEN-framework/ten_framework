@@ -26,7 +26,7 @@ jobs:
       matrix:
         build_type: [release]
     container:
-      image: ghcr.io/ten-framework/ten_building_ubuntu2204
+      image: ghcr.io/ten-framework/ten_building_ubuntu1804
     steps:
       - uses: actions/checkout@v3
         with:
