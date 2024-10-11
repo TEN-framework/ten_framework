@@ -24,12 +24,12 @@ class test_extension_1 : public ten::extension_t {
     if (std::string(cmd->get_name()) == "hello_world") {
       ten_env.send_cmd(
           std::move(cmd), [this](ten::ten_env_t &ten_env,
-                                 std::unique_ptr<ten::cmd_result_t> status) {
+                                 std::unique_ptr<ten::cmd_result_t> result) {
             EXPECT_EQ(received_cmd_results_cnt, static_cast<size_t>(1));
             received_cmd_results_cnt--;
 
-            status->set_property("detail", "return from extension 1");
-            ten_env.return_result_directly(std::move(status));
+            result->set_property("detail", "return from extension 1");
+            ten_env.return_result_directly(std::move(result));
           });
       return;
     }
@@ -117,47 +117,47 @@ TEST(ExtensionTest, Return2) {  // NOLINT
              "seq_id": "55",
              "nodes": [{
                "type": "extension_group",
-               "name": "test extension group 1",
+               "name": "test_extension_group 1",
                "addon": "default_extension_group",
                "app": "msgpack://127.0.0.1:8001/"
              },{
                "type": "extension",
-               "name": "test extension 1",
+               "name": "test_extension_1",
                "addon": "return_2__extension_1",
                "app": "msgpack://127.0.0.1:8001/",
-               "extension_group": "test extension group 1"
+               "extension_group": "test_extension_group 1"
              },{
                "type": "extension",
-               "name": "test extension 2",
+               "name": "test_extension_2",
                "addon": "return_2__extension_2",
                "app": "msgpack://127.0.0.1:8001/",
-               "extension_group": "test extension group 1"
+               "extension_group": "test_extension_group 1"
              },{
                "type": "extension_group",
-               "name": "test extension group 2",
+               "name": "test_extension_group 2",
                "addon": "default_extension_group",
                "app": "msgpack://127.0.0.1:8001/"
              },{
                "type": "extension",
-               "name": "test extension 3",
+               "name": "test_extension_3",
                "addon": "return_2__extension_3",
                "app": "msgpack://127.0.0.1:8001/",
-               "extension_group": "test extension group 2"
+               "extension_group": "test_extension_group 2"
              }],
              "connections": [{
                "app": "msgpack://127.0.0.1:8001/",
-               "extension_group": "test extension group 1",
-               "extension": "test extension 1",
+               "extension_group": "test_extension_group 1",
+               "extension": "test_extension_1",
                "cmd": [{
                  "name": "hello_world",
                  "dest": [{
                    "app": "msgpack://127.0.0.1:8001/",
-                   "extension_group": "test extension group 1",
-                   "extension": "test extension 2"
+                   "extension_group": "test_extension_group 1",
+                   "extension": "test_extension_2"
                  },{
                    "app": "msgpack://127.0.0.1:8001/",
-                   "extension_group": "test extension group 2",
-                   "extension": "test extension 3"
+                   "extension_group": "test_extension_group 2",
+                   "extension": "test_extension_3"
                  }]
                }]
              }]
@@ -173,8 +173,8 @@ TEST(ExtensionTest, Return2) {  // NOLINT
              "seq_id": "137",
              "dest": [{
                "app": "msgpack://127.0.0.1:8001/",
-               "extension_group": "test extension group 1",
-               "extension": "test extension 1"
+               "extension_group": "test_extension_group 1",
+               "extension": "test_extension_1"
              }]
            }
          })"_json);

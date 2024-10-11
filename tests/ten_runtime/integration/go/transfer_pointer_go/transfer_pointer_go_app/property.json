@@ -4,8 +4,9 @@
     "log_level": 2,
     "predefined_graphs": [
       {
-        "name": "0",
+        "name": "default",
         "auto_start": true,
+        "singleton": true,
         "nodes": [
           {
             "type": "extension_group",

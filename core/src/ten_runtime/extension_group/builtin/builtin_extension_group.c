@@ -1,7 +1,8 @@
 //
+// Copyright © 2024 Agora
 // This file is part of TEN Framework, an open source project.
-// Licensed under the Apache License, Version 2.0.
-// See the LICENSE file for more information.
+// Licensed under the Apache License, Version 2.0, with certain conditions.
+// Refer to the "LICENSE" file in the root directory for more information.
 //
 #include <stdio.h>
 #include <stdlib.h>
@@ -216,7 +217,7 @@ static ten_addon_t builtin_extension_group_addon = {
 };
 
 void ten_builtin_extension_group_addon_register(void) {
-  ten_addon_register_extension_group(TEN_STR_DEFAULT_EXTENSION_GROUP,
+  ten_addon_register_extension_group(TEN_STR_DEFAULT_EXTENSION_GROUP, NULL,
                                      &builtin_extension_group_addon);
 }
 

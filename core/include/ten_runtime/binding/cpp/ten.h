@@ -12,7 +12,6 @@
 // clang-format off
 #include "ten_runtime/binding/cpp/internal/common.h"   // IWYU pragma: export
 #include "ten_runtime/binding/cpp/internal/ten_env.h"      // IWYU pragma: export
-#include "ten_runtime/binding/cpp/internal/ten_env_mock.h" // IWYU pragma: export
 #include "ten_runtime/binding/cpp/internal/ten_env_proxy.h" // IWYU pragma: export
 #include "ten_runtime/binding/cpp/internal/msg/msg.h"  // IWYU pragma: export
 #include "ten_runtime/binding/cpp/internal/msg/cmd/cmd.h" // IWYU pragma: export
@@ -25,6 +24,8 @@
 #include "ten_runtime/binding/cpp/internal/msg/audio_frame.h" // IWYU pragma: export
 // 'extension.h' must be in front of 'addon.h'
 #include "ten_runtime/binding/cpp/internal/extension.h" // IWYU pragma: export
+#include "ten_runtime/binding/cpp/internal/test/extension_tester.h" // IWYU pragma: export
+#include "ten_runtime/binding/cpp/internal/test/env_tester.h" // IWYU pragma: export
 // clang-format on
 
 #include "ten_runtime/addon/extension/extension.h"  // IWYU pragma: export

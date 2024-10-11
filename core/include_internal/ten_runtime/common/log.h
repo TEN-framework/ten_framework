@@ -8,4 +8,4 @@
 
 #include "ten_runtime/ten_config.h"
 
-#define DEFAULT_LOG_OUTPUT_LEVEL TEN_LOG_LEVEL_WARN
+#define DEFAULT_LOG_OUTPUT_LEVEL TEN_LOG_LEVEL_DEBUG

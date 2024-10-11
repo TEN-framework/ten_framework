@@ -16,19 +16,25 @@
 ## TEN framework
 
 * [Overview](ten_framework/concept_overview.md)
+* [Development Process](ten_framework/development_process.md)
 * [Preparation](ten_framework/preparation.md)
+* [Addon System](ten_framework/addon_system.md)
 * [Version System](ten_framework/version_system.md)
 * [Metadata System](ten_framework/metadata_system.md)
 * [Message System](ten_framework/message_system.md)
 * [Type System](ten_framework/type_system.md)
 * [Schema System](ten_framework/schema_system.md)
 * [Build System](ten_framework/build_system.md)
-* [Test System](ten_framework/test_system.md)
 * [Graph](ten_framework/graph.md)
 * [Cloud Store](ten_framework/cloud_store.md)
 * [Debugging](ten_framework/debugging.md)
 * [Profiling](ten_framework/profiling.md)
 * [Dependencies](ten_framework/dependencies.md)
+
+### TEN Testing System
+
+* [For Users of TEN framework](ten_framework/ten_testing/for_users_of_ten_framework.md)
+* [For Developers of TEN framework](ten_framework/ten_testing/for_developers_of_ten_framework.md)
 
 ### Binding
 

@@ -6,7 +6,10 @@
 //
 #include "gtest/gtest.h"
 #include "include_internal/ten_runtime/binding/cpp/ten.h"
-#include "include_internal/ten_runtime/test/extension_test.h"
+#include "include_internal/ten_runtime/test/env_tester.h"
+#include "include_internal/ten_runtime/test/extension_tester.h"
+#include "ten_runtime/binding/cpp/internal/extension.h"
+#include "ten_runtime/common/status_code.h"
 #include "ten_utils/lang/cpp/lib/value.h"
 #include "tests/ten_runtime/smoke/extension_test/util/binding/cpp/check.h"
 
@@ -35,9 +38,32 @@ TEN_CPP_REGISTER_ADDON_AS_EXTENSION(standalone_test_basic__test_extension_1,
 
 }  // namespace
 
+namespace {
+
+class extension_tester_1 : public ten::extension_tester_t {
+ public:
+  void on_start(ten::ten_env_tester_t &ten_env) override {
+    // Send the first command to the extension.
+    auto new_cmd = ten::cmd_t::create("hello_world");
+
+    ten_env.send_cmd(std::move(new_cmd),
+                     [](ten::ten_env_tester_t &ten_env,
+                        std::unique_ptr<ten::cmd_result_t> result) {
+                       if (result->get_status_code() == TEN_STATUS_CODE_OK) {
+                         ten_env.stop_test();
+                       }
+                     });
+  }
+};
+
+}  // namespace
+
 TEST(StandaloneTest, Basic) {  // NOLINT
-  ten_extension_test_t *test = ten_extension_test_create();
-  ten_extension_test_add_addon(test, "standalone_test_basic__test_extension_1");
-  ten_extension_test_start(test);
-  ten_extension_test_destroy(test);
+  auto *tester = new extension_tester_1();
+  tester->set_test_mode_single("standalone_test_basic__test_extension_1");
+
+  bool rc = tester->run();
+  TEN_ASSERT(rc, "Should not happen.");
+
+  delete tester;
 }

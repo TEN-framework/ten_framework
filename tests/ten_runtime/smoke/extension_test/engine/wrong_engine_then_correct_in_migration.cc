@@ -69,8 +69,9 @@ class test_app : public ten::app_t {
                         "one_event_loop_per_engine": true,
                         "log_level": 2,
                         "predefined_graphs": [{
-                          "name": "0",
+                          "name": "default",
                           "auto_start": true,
+                          "singleton": true,
                           "nodes": [{
                             "type": "extension_group",
                             "name": "migration_group",
@@ -116,7 +117,7 @@ TEST(ExtensionTest, WrongEngineThenCorrectInMigration) {  // NOLINT
              "seq_id": "1",
              "dest": [{
                "app": "msgpack://127.0.0.1:8001/",
-               "graph": "incorrect_graph_name",
+               "graph": "incorrect_graph_id",
                "extension_group": "migration_group",
                "extension": "migration"
              }]
@@ -134,7 +135,7 @@ TEST(ExtensionTest, WrongEngineThenCorrectInMigration) {  // NOLINT
              "seq_id": "2",
              "dest": [{
                "app": "msgpack://127.0.0.1:8001/",
-               "graph": "0",
+               "graph": "default",
                "extension_group": "migration_group",
                "extension": "migration"
              }]
@@ -153,7 +154,7 @@ TEST(ExtensionTest, WrongEngineThenCorrectInMigration) {  // NOLINT
              "seq_id": "3",
              "dest": [{
                "app": "msgpack://127.0.0.1:8001/",
-               "graph": "incorrect_graph_name",
+               "graph": "incorrect_graph_id",
                "extension_group": "migration_group",
                "extension": "migration"
              }]

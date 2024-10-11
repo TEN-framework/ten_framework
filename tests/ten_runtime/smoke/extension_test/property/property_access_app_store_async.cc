@@ -61,8 +61,9 @@ class test_app : public ten::app_t {
                         "uri": "msgpack://127.0.0.1:8001/",
                         "log_level": 2,
                         "predefined_graphs": [{
-                          "name": "0",
+                          "name": "default",
                           "auto_start": false,
+                          "singleton": true,
                           "nodes": [{
                             "type": "extension_group",
                             "name": "default_extension_group_1",
@@ -116,7 +117,7 @@ TEST(ExtensionTest, PropertyAccessAppStoreAsync) {  // NOLINT
   auto *client = new ten::msgpack_tcp_client_t("msgpack://127.0.0.1:8001/");
 
   // Do not need to send 'start_graph' command first.
-  // The 'graph_name' MUST be "0" (a special string) if we want to send the
+  // The 'graph_id' MUST be "default" (a special string) if we want to send the
   // request to predefined graph.
   nlohmann::json resp = client->send_json_and_recv_resp_in_json(
       R"({
@@ -125,7 +126,7 @@ TEST(ExtensionTest, PropertyAccessAppStoreAsync) {  // NOLINT
            "seq_id": "111",
            "dest": [{
              "app": "msgpack://127.0.0.1:8001/",
-             "graph": "0",
+             "graph": "default",
              "extension_group": "default_extension_group_2",
              "extension": "test_property_access_app_store_async_2"
            }]
