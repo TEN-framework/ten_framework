@@ -3,9 +3,8 @@ name: Build - linux arm64
 on:
   release:
     types: [created]
-  push:
-    branches:
-      - "**"
+  pull_request:
+    types: [opened, synchronize, reopened]
     paths-ignore:
       - "tools/**"
       - "docs/**"
@@ -14,7 +13,8 @@ on:
       - ".github/**"
       - "!.github/workflows/build_linux_arm64.yml"
       - "**.md"
-  pull_request:
+    branches:
+      - "**"
 
 jobs:
   build:
@@ -43,7 +43,7 @@ jobs:
               go env -w GOFLAGS="-buildvcs=false" && \
               go1.20.12 download && \
               rustup default nightly && \
-              tgn gen linux arm64 ${{ matrix.build_type }} -- is_clang=${{ matrix.compiler == 'gcc' && 'false' || 'true' }} log_level=1 enable_serialized_actions=true ten_enable_test=false ten_enable_libwebsockets=false && \
+              tgn gen linux arm64 ${{ matrix.build_type }} -- is_clang=${{ matrix.compiler == 'gcc' && 'false' || 'true' }} log_level=1 enable_serialized_actions=true ten_enable_tests=false ten_enable_libwebsockets=false && \
               tgn build linux arm64 ${{ matrix.build_type }} && \
               tree -I 'gen|obj' out \
             "
@@ -59,8 +59,9 @@ jobs:
         with:
           name: ten_packages-linux-arm64-${{ matrix.compiler }}-${{ matrix.build_type }}
           path: |
-            out/linux/arm64/ten_packages/system
-            out/linux/arm64/ten_packages/extension_group
+            out/linux/x64/ten_packages/system/ten_runtime
+            out/linux/x64/ten_packages/system/ten_runtime_go
+            out/linux/x64/ten_packages/system/ten_runtime_python
             out/linux/arm64/ten_packages/extension/default_extension_cpp
             out/linux/arm64/ten_packages/extension/default_extension_go
             out/linux/arm64/ten_packages/extension/default_extension_python
@@ -72,14 +73,15 @@ jobs:
           cd out/linux/arm64
           zip -vr tman-linux-arm64-${{ matrix.compiler }}-${{ matrix.build_type }}.zip ten_manager/bin/tman
           zip -vr ten_packages-linux-arm64-${{ matrix.compiler }}-${{ matrix.build_type }}.zip \
-            ten_packages/system \
-            ten_packages/extension_group \
+            ten_packages/system/ten_runtime \
+            ten_packages/system/ten_runtime_go \
+            ten_packages/system/ten_runtime_python \
             ten_packages/extension/default_extension_cpp \
             ten_packages/extension/default_extension_go \
             ten_packages/extension/default_extension_python \
             ten_packages/extension/py_init_extension_cpp
 
-      - name: Release assets
+      - name: Publish to release assets
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/')
         with:
