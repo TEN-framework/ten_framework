@@ -13,17 +13,6 @@ on:
       - ".github/**"
       - "!.github/workflows/build_linux_arm64.yml"
       - "**.md"
-  push:
-    branches:
-      - "**"
-    paths-ignore:
-      - "tools/**"
-      - "docs/**"
-      - ".vscode/**"
-      - ".devcontainer/**"
-      - ".github/**"
-      - "!.github/workflows/build_linux_arm64.yml"
-      - "**.md"
 
 jobs:
   build:
@@ -33,7 +22,7 @@ jobs:
       cancel-in-progress: true
     strategy:
       matrix:
-        compiler: [clang, gcc]
+        compiler: [gcc]
         build_type: [release]
     steps:
       - uses: actions/checkout@v4
@@ -55,7 +44,7 @@ jobs:
         run: |
           docker run --rm --platform linux/arm64 \
             -v $(pwd):/${{ github.workspace }} -w ${{ github.workspace }} \
-            ghcr.io/wangyoucao577/ten_building_ubuntu2204:feature-arm64 \
+            ghcr.io/ten-framework/ten_building_ubuntu2204 \
             bash -c "\
               export PATH=$(pwd)/core/ten_gn:/usr/local/go/bin:/root/go/bin:/root/.cargo/bin:$PATH && \
               echo $PATH && \
