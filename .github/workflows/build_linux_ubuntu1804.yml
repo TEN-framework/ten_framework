@@ -33,6 +33,12 @@ jobs:
           fetch-depth: "0"
           submodules: "true"
 
+      - name: Update version
+        run: |
+          git config --global --add safe.directory $(pwd)
+          python3 tools/version/update_version_in_ten_framework.py
+          python3 tools/version/check_version_in_ten_framework.py
+
       - name: Install cpulimit and taskset
         run: |
           apt-get update
@@ -44,7 +50,7 @@ jobs:
           echo $PATH
           go env -w GOFLAGS="-buildvcs=false"
           rustup default nightly
-          tgn gen linux x64 ${{ matrix.build_type }} -- is_clang=false log_level=1 enable_serialized_actions=true ten_enable_integration_tests=false ten_enable_private_tests=false ten_rust_enable_tests=false ten_enable_package_manager=false
+          tgn gen linux x64 ${{ matrix.build_type }} -- is_clang=false log_level=1 enable_serialized_actions=true ten_enable_integration_tests=false ten_enable_private_tests=false ten_rust_enable_tests=false ten_enable_package_manager=false ten_rust_enable_gen_cargo_config=false
           tgn build linux x64 ${{ matrix.build_type }}
           tree -I 'gen|obj' out
 
@@ -106,7 +112,6 @@ jobs:
             out/linux/x64/ten_packages/system/ten_runtime
             out/linux/x64/ten_packages/system/ten_runtime_go
             out/linux/x64/ten_packages/system/ten_runtime_python
-            out/linux/x64/ten_packages/extension_group
             out/linux/x64/ten_packages/extension/default_extension_cpp
             out/linux/x64/ten_packages/extension/default_extension_go
             out/linux/x64/ten_packages/extension/default_extension_python
@@ -120,13 +125,12 @@ jobs:
             ten_packages/system/ten_runtime \
             ten_packages/system/ten_runtime_go \
             ten_packages/system/ten_runtime_python \
-            ten_packages/extension_group \
             ten_packages/extension/default_extension_cpp \
             ten_packages/extension/default_extension_go \
             ten_packages/extension/default_extension_python \
             ten_packages/extension/py_init_extension_cpp
 
-      - name: Release assets
+      - name: Publish to release assets
         uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/tags/')
         with:
