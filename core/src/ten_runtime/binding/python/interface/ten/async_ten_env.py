@@ -46,7 +46,9 @@ class AsyncTenEnv(TenEnv):
         return await q.get()
 
     def _deinit_routine(self) -> None:
+        # Wait for the internal thread to finish.
         self._ten_thread.join()
+
         self._internal.on_deinit_done()
 
     def _on_release(self) -> None:
@@ -54,5 +56,6 @@ class AsyncTenEnv(TenEnv):
             self._deinit_thread.join()
 
     def on_deinit_done(self) -> None:
+        # Start the deinit thread to avoid blocking the extension thread.
         self._deinit_thread = threading.Thread(target=self._deinit_routine)
         self._deinit_thread.start()

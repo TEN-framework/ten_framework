@@ -76,14 +76,18 @@ class Extension(_Extension):
         pass
 
     @final
-    def _proxy_on_video_frame(self, ten_env: TenEnv, video_frame: VideoFrame) -> None:
+    def _proxy_on_video_frame(
+        self, ten_env: TenEnv, video_frame: VideoFrame
+    ) -> None:
         self.on_video_frame(ten_env, video_frame)
 
     def on_video_frame(self, ten_env: TenEnv, video_frame: VideoFrame) -> None:
         pass
 
     @final
-    def _proxy_on_audio_frame(self, ten_env: TenEnv, audio_frame: AudioFrame) -> None:
+    def _proxy_on_audio_frame(
+        self, ten_env: TenEnv, audio_frame: AudioFrame
+    ) -> None:
         self.on_audio_frame(ten_env, audio_frame)
 
     def on_audio_frame(self, ten_env: TenEnv, audio_frame: AudioFrame) -> None:

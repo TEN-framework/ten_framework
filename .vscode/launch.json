@@ -47,7 +47,7 @@
       "request": "launch",
       "program": "${workspaceFolder}/out/linux/x64/tests/standalone/ten_runtime_unit_test",
       "args": [
-        // "--gtest_filter=TenErrorTest.cpp_thread"
+        "--gtest_filter=TenErrorTest.cpp_thread"
       ],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}/out/linux/x64/",

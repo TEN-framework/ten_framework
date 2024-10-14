@@ -33,6 +33,7 @@ static void ten_env_proxy_notify_on_deinit_done(ten_env_t *ten_env,
   TEN_ASSERT(py_ten_env, "Should not happen.");
 
   // Notify the Python side to do the cleanup.
+  //
   // About to call the Python function, so it's necessary to ensure that the
   // GIL has been acquired.
   PyGILState_STATE prev_state = ten_py_gil_state_ensure();
