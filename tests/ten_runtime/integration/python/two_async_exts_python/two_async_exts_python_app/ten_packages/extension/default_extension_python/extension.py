@@ -38,7 +38,7 @@ class DefaultExtension(AsyncExtension):
 
     async def on_cmd(self, ten_env: AsyncTenEnv, cmd: Cmd) -> None:
         cmd_json = cmd.to_json()
-        ten_env.log_debug(f"DefaultExtension on_cmd: {cmd_json}")
+        ten_env.log_debug(f"on_cmd: {cmd_json}")
 
         # Mock async operation, e.g. network, file I/O.
         await asyncio.sleep(0.5)
@@ -50,7 +50,7 @@ class DefaultExtension(AsyncExtension):
         ten_env.return_result(cmd_result, cmd)
 
     async def on_stop(self, ten_env: AsyncTenEnv) -> None:
-        ten_env.log_debug("DefaultExtension on_stop")
+        ten_env.log_debug("on_stop")
 
         await asyncio.sleep(0.5)
         ten_env.on_stop_done()

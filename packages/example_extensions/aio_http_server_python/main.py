@@ -109,7 +109,7 @@ class HttpServerExtension(AsyncExtension):
         ten_env.on_init_done()
 
     async def on_start(self, ten_env: AsyncTenEnv) -> None:
-        ten_env.log_debug("HttpServerExtension on_start")
+        ten_env.log_debug("on_start")
 
         try:
             self.server_port = ten_env.get_property_int("server_port")
@@ -124,17 +124,17 @@ class HttpServerExtension(AsyncExtension):
         ten_env.on_start_done()
 
     async def on_deinit(self, ten_env: AsyncTenEnv) -> None:
-        ten_env.log_debug("HttpServerExtension on_deinit")
+        ten_env.log_debug("on_deinit")
         ten_env.on_deinit_done()
 
     async def on_cmd(self, ten_env: AsyncTenEnv, cmd: Cmd) -> None:
-        ten_env.log_debug("HttpServerExtension on_cmd")
+        ten_env.log_debug("on_cmd")
 
         # Not supported command.
         ten_env.return_result(CmdResult.create(StatusCode.ERROR), cmd)
 
     async def on_stop(self, ten_env: AsyncTenEnv) -> None:
-        ten_env.log_debug("HttpServerExtension on_stop")
+        ten_env.log_debug("on_stop")
         ten_env.on_stop_done()
 
 
