@@ -64,6 +64,8 @@ def update_manifest(
                 manifest_path,
                 "--os-arch-pairs",
                 os_arch_pair,
+                "--log-level",
+                str(log_level),
             ],
             check=True,
         )
@@ -78,6 +80,7 @@ def update_manifest(
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
+
     parser.add_argument(
         "--tman-path",
         type=str,

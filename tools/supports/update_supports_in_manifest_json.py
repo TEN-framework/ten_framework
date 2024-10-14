@@ -8,7 +8,20 @@ import json
 import argparse
 
 
-def update_supports(input_file: str, output_file: str, os_arch_pairs):
+class ArgumentInfo(argparse.Namespace):
+    def __init__(self):
+        self.input_file: str
+        self.output_file: str
+        self.log_level: int
+        self.os_arch_pairs: list[str]
+
+
+def update_supports(
+    input_file: str,
+    output_file: str,
+    os_arch_pairs: list[list[str]],
+    log_level: int,
+):
     with open(input_file, "r") as file:
         data = json.load(file)
 
@@ -22,7 +35,8 @@ def update_supports(input_file: str, output_file: str, os_arch_pairs):
     with open(output_file, "w") as file:
         json.dump(data, file, indent=2)
 
-    print(f"Updated {output_file} with new 'supports' field.")
+    if log_level > 0:
+        print(f"Updated {output_file} with new 'supports' field.")
 
 
 def main():
@@ -33,6 +47,9 @@ def main():
     parser.add_argument("--input-file", type=str, help="Input JSON file path")
     parser.add_argument("--output-file", type=str, help="Output JSON file path")
     parser.add_argument(
+        "--log-level", type=int, required=False, help="specify log level"
+    )
+    parser.add_argument(
         "--os-arch-pairs",
         metavar="os:arch",
         type=str,
@@ -40,7 +57,8 @@ def main():
         help="OS:Arch pairs (e.g., mac:x64 linux:arm)",
     )
 
-    args = parser.parse_args()
+    arg_info = ArgumentInfo()
+    args = parser.parse_args(namespace=arg_info)
 
     os_arch_pairs = [pair.split(":") for pair in args.os_arch_pairs]
 
@@ -53,7 +71,9 @@ def main():
             print(f"Invalid OS:Arch pair: {':'.join(pair)}")
             return
 
-    update_supports(args.input_file, args.output_file, os_arch_pairs)
+    update_supports(
+        args.input_file, args.output_file, os_arch_pairs, args.log_level
+    )
 
 
 if __name__ == "__main__":
