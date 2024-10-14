@@ -10,6 +10,7 @@ import re
 import sys
 from build.scripts import cmd_exec, touch
 from common.scripts import delete_files
+import subprocess
 
 
 class ArgumentInfo(argparse.Namespace):
@@ -20,6 +21,8 @@ class ArgumentInfo(argparse.Namespace):
         self.config_file: str
         self.log_level: int
         self.enable_publish: bool
+        self.os: str
+        self.cpu: str
 
 
 def extract_publish_path(text: str) -> str | None:
@@ -33,6 +36,39 @@ def write_published_results_to_file(
 ) -> None:
     with open(file_path, "w") as file:
         file.write(published_results)
+
+
+def update_manifest(base_dir: str, os_str: str, cpu_str: str) -> None:
+    manifest_path = os.path.join(base_dir, "manifest.json")
+
+    os_arch_pair = f"{os_str}:{cpu_str}"
+
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    update_script_path = os.path.abspath(
+        os.path.join(
+            script_dir,
+            "../../../tools/supports/update_supports_in_manifest_json.py",
+        )
+    )
+
+    try:
+        subprocess.run(
+            [
+                "python",
+                update_script_path,
+                "--input-file",
+                manifest_path,
+                "--output-file",
+                manifest_path,
+                "--os-arch-pairs",
+                os_arch_pair,
+            ],
+            check=True,
+        )
+        print(f"Manifest updated successfully with os/cpu: {os_str}/{cpu_str}")
+    except subprocess.CalledProcessError as e:
+        print(f"Failed to update manifest.json: {e}")
+        sys.exit(1)
 
 
 if __name__ == "__main__":
@@ -62,12 +98,16 @@ if __name__ == "__main__":
         action=argparse.BooleanOptionalAction,
         default=True,
     )
+    parser.add_argument("--os", type=str, required=True)
+    parser.add_argument("--cpu", type=str, required=True)
 
     arg_info = ArgumentInfo()
     args = parser.parse_args(namespace=arg_info)
 
     if args.enable_publish is False:
         sys.exit(0)
+
+    update_manifest(args.base_dir, args.os, args.cpu)
 
     # Use 'tman publish' to perform the uploading.
     origin_wd = os.getcwd()
