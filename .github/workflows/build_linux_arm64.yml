@@ -40,6 +40,7 @@ jobs:
         uses: docker/setup-qemu-action@v3
         with:
           platforms: arm64
+
       - name: Build
         run: |
           docker run --rm --platform linux/arm64 \

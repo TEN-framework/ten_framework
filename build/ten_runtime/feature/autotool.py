@@ -50,7 +50,9 @@ class AutotoolProject:
         # Compiler choice
         if self.args.use_clang:
             self.configure_env_vars.extend(["CC=clang", "CXX=clang++"])
-            self.configure_cmd_line_options.extend(["--cc=clang", "--cxx=clang++"])
+            self.configure_cmd_line_options.extend(
+                ["--cc=clang", "--cxx=clang++"]
+            )
         else:
             if self.args.log_level:
                 print("compiler choice: gcc\n")
@@ -147,17 +149,23 @@ class AutotoolProject:
 
             if sys.platform == "linux":
                 libs.extend(
-                    glob.glob(f"/usr/lib/{os.uname().machine}-linux-gnu/lib{dep}.so.*")
+                    glob.glob(
+                        f"/usr/lib/{os.uname().machine}-linux-gnu/lib{dep}.so.*"
+                    )
                 )
                 libs.extend(
-                    glob.glob(f"/usr/lib/{os.uname().machine}-linux-gnu/lib{dep}.so")
+                    glob.glob(
+                        f"/usr/lib/{os.uname().machine}-linux-gnu/lib{dep}.so"
+                    )
                 )
             else:
                 print("TODO: Add support for other platforms.")
                 sys.exit(1)
 
             for f in libs:
-                dest = os.path.join(self.args.install_path, "lib", os.path.basename(f))
+                dest = os.path.join(
+                    self.args.install_path, "lib", os.path.basename(f)
+                )
                 fs_utils.copy_file(f, dest, False)
 
     def run(self):
@@ -177,14 +185,20 @@ if __name__ == "__main__":
     parser.add_argument(
         "--configure-cmd-line-options", type=str, action="append", default=[]
     )
-    parser.add_argument("--configure-env-vars", type=str, action="append", default=[])
+    parser.add_argument(
+        "--configure-env-vars", type=str, action="append", default=[]
+    )
     parser.add_argument(
         "--log-level", type=int, required=True, help="specify log level"
     )
     parser.add_argument("--use-clang", type=ast.literal_eval, default=True)
     parser.add_argument("--c-standard", type=str, help="specify c_standard")
-    parser.add_argument("--cxx-standard", type=str, help="specify cxx_standard or not")
-    parser.add_argument("--system-dep-pkgs", type=str, action="append", default=[])
+    parser.add_argument(
+        "--cxx-standard", type=str, help="specify cxx_standard or not"
+    )
+    parser.add_argument(
+        "--system-dep-pkgs", type=str, action="append", default=[]
+    )
 
     arg_info = ArgumentInfo()
     args = parser.parse_args(namespace=arg_info)

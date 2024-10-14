@@ -57,7 +57,9 @@ RUN apt-get clean && apt-get update && apt-get install -y --no-install-recommend
   python3-venv
 
 RUN export ARCH=$(dpkg --print-architecture) && \
-  if [ ${ARCH} = "amd64" ]; then apt-get install -y --no-install-recommends g++-multilib ; fi
+  if [ ${ARCH} = "amd64" ]; then \
+  apt-get install -y --no-install-recommends g++-multilib; \
+  fi
 
 # =======================================
 # Installing Python deps

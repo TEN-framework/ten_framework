@@ -72,7 +72,9 @@ class CmakeProject:
             items = pattern.findall(output)
             self.cmake_version = items[0]
             if not self._version_check(self.cmake_version):
-                raise Exception(f"Your cmake version is {items[0]} less than 3.13.5")
+                raise Exception(
+                    f"Your cmake version is {items[0]} less than 3.13.5"
+                )
             else:
                 return True
 
@@ -128,7 +130,9 @@ cmake.py will consider it as its own command line option."
         self.defines.append(f"-DCMAKE_BUILD_TYPE={self.args.build_type}")
 
         if self.args.install_path:
-            self.defines.append(f"-DCMAKE_INSTALL_PREFIX={self.args.install_path}")
+            self.defines.append(
+                f"-DCMAKE_INSTALL_PREFIX={self.args.install_path}"
+            )
 
         # Compiler choice
         if self.args.target_os != "android":
@@ -136,11 +140,14 @@ cmake.py will consider it as its own command line option."
                 # If specifying different C/C++ compiler, we need to clean/
                 # delete the CMake cache first. Please refer to:
                 # https://stackoverflow.com/questions/48178264/cmake-cache-variables-deleted-when-some-change
-                cached_c_compiler = self._get_cached_variable_value("CMAKE_C_COMPILER")
+                cached_c_compiler = self._get_cached_variable_value(
+                    "CMAKE_C_COMPILER"
+                )
 
                 if (
                     cached_c_compiler is not None
-                    and self._is_cached_c_compiler_is_clang(cached_c_compiler) is False
+                    and self._is_cached_c_compiler_is_clang(cached_c_compiler)
+                    is False
                 ):
                     print("Specify clang, but cached gcc, clean first.")
                     self.clean()
@@ -153,11 +160,14 @@ cmake.py will consider it as its own command line option."
                     ]
                 )
             else:
-                cached_c_compiler = self._get_cached_variable_value("CMAKE_C_COMPILER")
+                cached_c_compiler = self._get_cached_variable_value(
+                    "CMAKE_C_COMPILER"
+                )
 
                 if (
                     cached_c_compiler is not None
-                    and self._is_cached_c_compiler_is_clang(cached_c_compiler) is True
+                    and self._is_cached_c_compiler_is_clang(cached_c_compiler)
+                    is True
                 ):
                     print("Specify gcc, but cached clang, clean first.")
                     self.clean()
@@ -220,8 +230,12 @@ cmake.py will consider it as its own command line option."
 
         self.process_flags_from_arg(self.cflags, self.args.cflags)
         self.process_flags_from_arg(self.cxxflags, self.args.cxxflags)
-        self.process_flags_from_arg(self.sharedlinkerflags, self.args.sharedlinkerflags)
-        self.process_flags_from_arg(self.exelinkerflags, self.args.exelinkerflags)
+        self.process_flags_from_arg(
+            self.sharedlinkerflags, self.args.sharedlinkerflags
+        )
+        self.process_flags_from_arg(
+            self.exelinkerflags, self.args.exelinkerflags
+        )
 
         for opt in self.args.options:
             if str(opt).startswith("CMAKE_C_FLAGS"):
@@ -274,11 +288,15 @@ cmake.py will consider it as its own command line option."
 
         if len(self.sharedlinkerflags) > 0:
             ldflags_cmds = " ".join(self.sharedlinkerflags)
-            self.defines.append("-DCMAKE_SHARED_LINKER_FLAGS='" + ldflags_cmds + "'")
+            self.defines.append(
+                "-DCMAKE_SHARED_LINKER_FLAGS='" + ldflags_cmds + "'"
+            )
 
         if len(self.exelinkerflags) > 0:
             exeflags_cmds = " ".join(self.exelinkerflags)
-            self.defines.append("-DCMAKE_EXE_LINKER_FLAGS='" + exeflags_cmds + "'")
+            self.defines.append(
+                "-DCMAKE_EXE_LINKER_FLAGS='" + exeflags_cmds + "'"
+            )
 
     def gen(self):
         self._fill_attributes()
@@ -341,7 +359,8 @@ cmake.py will consider it as its own command line option."
 
     def install(self):
         cmd = (
-            " ".join(self.env) + f" cmake --install {self.args.build_path} --config"
+            " ".join(self.env)
+            + f" cmake --install {self.args.build_path} --config"
             f" {self.args.build_type}"
         )
         if self.args.log_level > 1:
@@ -386,7 +405,9 @@ if __name__ == "__main__":
         "--log-level", type=int, required=True, help="specify log level"
     )
     parser.add_argument("--c-standard", type=str, help="specify c_standard")
-    parser.add_argument("--cxx-standard", type=str, help="specify cxx_standard or not")
+    parser.add_argument(
+        "--cxx-standard", type=str, help="specify cxx_standard or not"
+    )
     parser.add_argument(
         "--hide-symbol",
         type=str,
@@ -400,8 +421,12 @@ if __name__ == "__main__":
     )
     parser.add_argument("--cflags", type=str, action="append", default=[])
     parser.add_argument("--cxxflags", type=str, action="append", default=[])
-    parser.add_argument("--sharedlinkerflags", type=str, action="append", default=[])
-    parser.add_argument("--exelinkerflags", type=str, action="append", default=[])
+    parser.add_argument(
+        "--sharedlinkerflags", type=str, action="append", default=[]
+    )
+    parser.add_argument(
+        "--exelinkerflags", type=str, action="append", default=[]
+    )
     parser.add_argument("--options", type=str, action="append", default=[])
     parser.add_argument("--install-path", type=str, default="")
     parser.add_argument("--run-build", type=str, default="true")
