@@ -38,7 +38,9 @@ def write_published_results_to_file(
         file.write(published_results)
 
 
-def update_manifest(base_dir: str, os_str: str, cpu_str: str) -> None:
+def update_manifest(
+    base_dir: str, os_str: str, cpu_str: str, log_level: int
+) -> None:
     manifest_path = os.path.join(base_dir, "manifest.json")
 
     os_arch_pair = f"{os_str}:{cpu_str}"
@@ -65,7 +67,10 @@ def update_manifest(base_dir: str, os_str: str, cpu_str: str) -> None:
             ],
             check=True,
         )
-        print(f"Manifest updated successfully with os/cpu: {os_str}/{cpu_str}")
+        if log_level > 0:
+            print(
+                f"Manifest updated successfully with os/cpu: {os_str}/{cpu_str}"
+            )
     except subprocess.CalledProcessError as e:
         print(f"Failed to update manifest.json: {e}")
         sys.exit(1)
@@ -107,7 +112,7 @@ if __name__ == "__main__":
     if args.enable_publish is False:
         sys.exit(0)
 
-    update_manifest(args.base_dir, args.os, args.cpu)
+    update_manifest(args.base_dir, args.os, args.cpu, args.log_level)
 
     # Use 'tman publish' to perform the uploading.
     origin_wd = os.getcwd()
