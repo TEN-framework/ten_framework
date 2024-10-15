@@ -227,6 +227,6 @@ func init() {
 		ten.NewDefaultExtensionAddon(newAExtension),
 	)
 	if err != nil {
-		panic("register addon failed")
+		panic("Failed to register addon.")
 	}
 }
