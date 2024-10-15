@@ -47,7 +47,7 @@ jobs:
             -v $(pwd):/${{ github.workspace }} -w ${{ github.workspace }} -u $(id -u ${USER}):$(id -g ${USER}) \
             ghcr.io/ten-framework/ten_building_ubuntu2204 \
             bash -c "\
-              export PATH=$(pwd)/core/ten_gn:/usr/local/go/bin:/root/go/bin:/root/.cargo/bin:$PATH && \
+              export PATH=$(pwd)/core/ten_gn:/usr/local/go/bin:${HOME}/go/bin:${HOME}/.cargo/bin:$PATH && \
               echo $PATH && \
               go env -w GOFLAGS="-buildvcs=false" && \
               go1.20.12 download && \
