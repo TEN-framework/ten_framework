@@ -57,6 +57,24 @@ jobs:
               tree -I 'gen|obj' out \
             "
 
+      - name: Update supports before upload or publish
+        run: |
+          UPDATE_SUPPORTS_SCRIPT=$(pwd)/tools/supports/update_supports_in_manifest_json.py
+
+          cd out/linux/arm64/ten_packages
+          ARRAY=(
+            "system/ten_runtime"
+            "system/ten_runtime_go"
+            "system/ten_runtime_python"
+            "extension/py_init_extension_cpp"
+          )
+
+          for item in "${ARRAY[@]}"; do
+            python3 ${UPDATE_SUPPORTS_SCRIPT} --os-arch-pairs linux:arm64 --input-file ${item}/manifest.json --output-file ${item}/manifest.json --log-level 1
+            cat ${item}/manifest.json
+          done
+        shell: bash
+
       - name: Upload tman
         uses: actions/upload-artifact@v4
         with:
@@ -68,9 +86,9 @@ jobs:
         with:
           name: ten_packages-linux-arm64-${{ matrix.compiler }}-${{ matrix.build_type }}
           path: |
-            out/linux/x64/ten_packages/system/ten_runtime
-            out/linux/x64/ten_packages/system/ten_runtime_go
-            out/linux/x64/ten_packages/system/ten_runtime_python
+            out/linux/arm64/ten_packages/system/ten_runtime
+            out/linux/arm64/ten_packages/system/ten_runtime_go
+            out/linux/arm64/ten_packages/system/ten_runtime_python
             out/linux/arm64/ten_packages/extension/default_extension_cpp
             out/linux/arm64/ten_packages/extension/default_extension_go
             out/linux/arm64/ten_packages/extension/default_extension_python
