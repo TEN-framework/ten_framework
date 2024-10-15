@@ -27,8 +27,7 @@ pub struct CheckGraphCommand {
 pub fn create_sub_cmd(_args_cfg: &crate::cmd_line::ArgsCfg) -> Command {
     Command::new("graph")
         .about(
-            "Check the predefined graph or start_graph cmd for the primary \
-            app. For more detailed usage, run 'graph -h'",
+            "Check whether the graph content of the predefined graph or start_graph command is correct. For more detailed usage, run 'graph -h'",
         )
         .arg(
             Arg::new("APP")
@@ -36,7 +35,7 @@ pub fn create_sub_cmd(_args_cfg: &crate::cmd_line::ArgsCfg) -> Command {
                 .help(
                     "The absolute path of the app declared in the graph. By \
                     default, the predefined graph will be read from the first \
-                    one in the list. ",
+                    one in the list.",
                 )
                 .required(true),
         )
@@ -45,7 +44,7 @@ pub fn create_sub_cmd(_args_cfg: &crate::cmd_line::ArgsCfg) -> Command {
                 .long("predefined-graph-name")
                 .help(
                     "Specify the predefined graph name only to be checked, \
-                    otherwise, all graphs will be checked.",
+                    otherwise, all predefined graphs will be checked.",
                 )
                 .required(false)
                 .conflicts_with("GRAPH"),
@@ -56,7 +55,7 @@ pub fn create_sub_cmd(_args_cfg: &crate::cmd_line::ArgsCfg) -> Command {
                 .help(
                     "Specify the json string of a 'start_graph' cmd to be \
                     checked. If not specified, the predefined graph in the \
-                    primary app will be checked.",
+                    first app will be checked.",
                 )
                 .required(false)
                 .conflicts_with("PREDEFINED_GRAPH_NAME"),
@@ -97,7 +96,7 @@ fn validate_cmd_args(command: &CheckGraphCommand) -> Result<()> {
     Ok(())
 }
 
-fn get_all_pkg_infos(
+fn get_existed_pkgs_of_all_apps(
     command: &CheckGraphCommand,
 ) -> Result<HashMap<String, Vec<PkgInfo>>> {
     let mut pkgs_info: HashMap<String, Vec<PkgInfo>> = HashMap::new();
@@ -106,11 +105,8 @@ fn get_all_pkg_infos(
 
     for app in &command.app {
         let app_path = path::Path::new(app);
-
-        // TODO(Liu): Add a limitation in the schema to ensure that the 'uri' in
-        // the property.json is not 'localhost'.
         let app_property = parse_property_in_folder(app_path)?;
-        let app_pkgs = get_all_existed_pkgs_info_of_app(app_path)?;
+        let app_existed_pkgs = get_all_existed_pkgs_info_of_app(app_path)?;
 
         let app_uri = app_property.get_app_uri();
         if !single_app && app_uri.as_str() == default_app_loc() {
@@ -120,7 +116,7 @@ fn get_all_pkg_infos(
             ));
         }
 
-        let present_pkg = pkgs_info.insert(app_uri.clone(), app_pkgs);
+        let present_pkg = pkgs_info.insert(app_uri.clone(), app_existed_pkgs);
         if present_pkg.is_some() {
             return Err(anyhow::anyhow!(
                 "All apps should have a unique uri, but uri [{}] is duplicated.",
@@ -140,9 +136,9 @@ fn get_graphs_to_be_checked(command: &CheckGraphCommand) -> Result<Vec<Graph>> {
             .with_context(|| "The graph json string is invalid")?;
         graphs_to_be_checked.push(graph);
     } else {
-        let app_path = path::Path::new(&command.app[0]);
-        let app_property = parse_property_in_folder(app_path)?;
-        let predefined_graphs = app_property
+        let first_app_path = path::Path::new(&command.app[0]);
+        let first_app_property = parse_property_in_folder(first_app_path)?;
+        let predefined_graphs = first_app_property
             ._ten
             .and_then(|p| p.predefined_graphs)
             .ok_or_else(|| {
@@ -184,7 +180,7 @@ pub async fn execute_cmd(
 ) -> Result<()> {
     validate_cmd_args(&command_data)?;
 
-    let all_pkgs = get_all_pkg_infos(&command_data)?;
+    let existed_pkgs_of_all_apps = get_existed_pkgs_of_all_apps(&command_data)?;
     let graphs = get_graphs_to_be_checked(&command_data)?;
 
     let mut err_count = 0;
@@ -192,7 +188,7 @@ pub async fn execute_cmd(
     for (graph_idx, graph) in graphs.iter().enumerate() {
         print!("Checking graph[{}]... ", graph_idx);
 
-        match graph.check(&all_pkgs) {
+        match graph.check(&existed_pkgs_of_all_apps) {
             Ok(_) => println!("{}", Emoji("✅", "Passed")),
             Err(e) => {
                 err_count += 1;

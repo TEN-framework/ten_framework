@@ -399,13 +399,14 @@
       ],
     },
     {
-      "name": "tman check_graph (lldb)",
+      "name": "tman check graph (lldb)",
       "type": "lldb",
       "request": "launch",
       "program": "${workspaceFolder}/core/src/ten_manager/target/x86_64-unknown-linux-gnu/debug/tman",
       "cwd": "${workspaceFolder}/core/src/ten_manager/",
       "args": [
-        "check-graph",
+        "check",
+        "graph",
         "/home/workspace/pcm-pusher"
       ]
     },

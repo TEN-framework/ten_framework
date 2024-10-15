@@ -11,7 +11,7 @@
 // file to achieve this purpose.
 
 fn main() {
-    println!("Running integration tests of ten_man...");
+    println!("Running integration tests of tman...");
 }
 
 // Those following mods will be compiled in one executable.

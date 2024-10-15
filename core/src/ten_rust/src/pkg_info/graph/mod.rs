@@ -56,12 +56,12 @@ impl Graph {
 
     pub fn check(
         &self,
-        all_needed_pkgs: &HashMap<String, Vec<PkgInfo>>,
+        existed_pkgs_of_all_apps: &HashMap<String, Vec<PkgInfo>>,
     ) -> Result<()> {
         self.check_if_nodes_duplicated()?;
         self.check_if_extensions_used_in_connections_have_defined_in_nodes()?;
-        self.check_if_nodes_have_installed(all_needed_pkgs)?;
-        self.check_connections_compatible(all_needed_pkgs)?;
+        self.check_if_nodes_have_installed(existed_pkgs_of_all_apps)?;
+        self.check_connections_compatible(existed_pkgs_of_all_apps)?;
 
         Ok(())
     }
@@ -326,6 +326,8 @@ mod tests {
             "test_data_embed/predefined_graph_connection_app_localhost.json"
         );
         let property = Property::from_str(property_str);
+
+        // App uri should be some string other than 'localhost'.
         assert!(property.is_err());
         println!("Error: {:?}", property.err().unwrap());
     }

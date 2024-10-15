@@ -52,6 +52,10 @@ async fn test_cmd_check_start_graph_multi_apps() {
     )
     .await;
 
+    // The output command of the source extension does not have a defined
+    // schema, but the input command of the destination extension does. This
+    // means that what the destination extension expects may not be provided by
+    // the source extension, resulting in an error.
     assert!(result.is_err());
     eprintln!("{:?}", result);
 }
@@ -119,6 +123,8 @@ async fn test_cmd_check_predefined_graph_check_all() {
     )
     .await;
 
+    // An extension name appears in the connections that is not defined in the
+    // nodes.
     assert!(result.is_err());
     eprintln!("{:?}", result);
 
