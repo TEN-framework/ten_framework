@@ -121,6 +121,7 @@ jobs:
             out/linux/x64/ten_packages/extension/default_extension_cpp
             out/linux/x64/ten_packages/extension/default_extension_go
             out/linux/x64/ten_packages/extension/default_extension_python
+            out/linux/x64/ten_packages/extension/default_async_extension_python
             out/linux/x64/ten_packages/extension/py_init_extension_cpp
 
       - name: Package assets
@@ -135,6 +136,7 @@ jobs:
             ten_packages/extension/default_extension_cpp \
             ten_packages/extension/default_extension_go \
             ten_packages/extension/default_extension_python \
+            ten_packages/extension/default_async_extension_python \
             ten_packages/extension/py_init_extension_cpp
 
       - name: Publish to release assets
@@ -158,6 +160,7 @@ jobs:
             "extension/default_extension_cpp"
             "extension/default_extension_go"
             "extension/default_extension_python"
+            "extension/default_async_extension_python"
             "extension/py_init_extension_cpp"
           )
 
