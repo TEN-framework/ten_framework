@@ -36,6 +36,23 @@ jobs:
           python3 tools/version/update_version_in_ten_framework.py
           python3 tools/version/check_version_in_ten_framework.py
 
+      - name: Update supports
+        run: |
+          UPDATE_SUPPORTS_SCRIPT=$(pwd)/tools/supports/update_supports_in_manifest_json.py
+
+          ARRAY=(
+            "core/src/ten_runtime"
+            "core/src/ten_runtime/binding/go"
+            "core/src/ten_runtime/binding/python"
+            "extension/packages/core_extensions/py_init_extension_cpp"
+          )
+
+          for item in "${ARRAY[@]}"; do
+            python3 ${UPDATE_SUPPORTS_SCRIPT} --os-arch-pairs linux:x64 --input-file ${item}/manifest.json --output-file ${item}/manifest.json --log-level 1
+            cat ${item}/manifest.json
+          done
+        shell: bash
+
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
         with:
