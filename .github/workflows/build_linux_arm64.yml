@@ -48,7 +48,7 @@ jobs:
           )
 
           for item in "${ARRAY[@]}"; do
-            python3 ${UPDATE_SUPPORTS_SCRIPT} --os-arch-pairs linux:x64 --input-file ${item}/manifest.json --output-file ${item}/manifest.json --log-level 1
+            python3 ${UPDATE_SUPPORTS_SCRIPT} --os-arch-pairs linux:arm64 --input-file ${item}/manifest.json --output-file ${item}/manifest.json --log-level 1
             cat ${item}/manifest.json
           done
         shell: bash
