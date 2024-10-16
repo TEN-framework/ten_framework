@@ -44,7 +44,7 @@ jobs:
             "core/src/ten_runtime"
             "core/src/ten_runtime/binding/go"
             "core/src/ten_runtime/binding/python"
-            "extension/packages/core_extensions/py_init_extension_cpp"
+            "packages/core_extensions/py_init_extension_cpp"
           )
 
           for item in "${ARRAY[@]}"; do
