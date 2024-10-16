@@ -12,7 +12,7 @@ use anyhow::Result;
 use serde::{Deserialize, Serialize};
 
 use super::{pkg_type::PkgType, PkgInfo};
-use crate::pkg_info::default_app_loc;
+use crate::pkg_info::localhost;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Graph {
@@ -43,7 +43,7 @@ impl Graph {
         for (idx, node) in &mut self.nodes.iter_mut().enumerate() {
             node.validate_and_complete()
                 .map_err(|e| anyhow::anyhow!("nodes[{}]: {}", idx, e))?;
-            if node.get_app_uri() != default_app_loc() {
+            if node.get_app_uri() != localhost() {
                 nodes_have_declared_app += 1;
             }
         }
@@ -51,7 +51,7 @@ impl Graph {
         if nodes_have_declared_app != 0
             && nodes_have_declared_app != self.nodes.len()
         {
-            return Err(anyhow::anyhow!("The 'app' in all nodes should be not declared or all declared, but not some of them declared."));
+            return Err(anyhow::anyhow!("Either all nodes should have 'app' declared, or none should, but not a mix of both."));
         }
 
         if let Some(connections) = &mut self.connections {
@@ -111,13 +111,13 @@ impl GraphNode {
         }
 
         if let Some(app) = &self.app {
-            if app.as_str() == default_app_loc() {
+            if app.as_str() == localhost() {
                 return Err(anyhow::anyhow!(
                     "the app uri should be some string other than 'localhost'"
                 ));
             }
         } else {
-            self.app = Some(default_app_loc().to_string());
+            self.app = Some(localhost().to_string());
         }
 
         Ok(())
@@ -151,30 +151,30 @@ pub struct GraphConnection {
 impl GraphConnection {
     fn validate_and_complete(
         &mut self,
-        app_declared_in_nodes: bool,
+        is_app_declared_in_nodes: bool,
     ) -> Result<()> {
         if let Some(app) = &self.app {
-            if !app_declared_in_nodes {
+            if !is_app_declared_in_nodes {
                 return Err(anyhow::anyhow!("the 'app' should not be declared, as not any node has declared it"));
             }
 
-            if app.as_str() == default_app_loc() {
+            if app.as_str() == localhost() {
                 return Err(anyhow::anyhow!(
                     "the app uri should be some string other than 'localhost'"
                 ));
             }
         } else {
-            if app_declared_in_nodes {
+            if is_app_declared_in_nodes {
                 return Err(anyhow::anyhow!("the 'app' can not be none, as it has been declared in nodes."));
             }
 
-            self.app = Some(default_app_loc().to_string());
+            self.app = Some(localhost().to_string());
         }
 
         if let Some(cmd) = &mut self.cmd {
             for (idx, cmd_flow) in cmd.iter_mut().enumerate() {
                 cmd_flow
-                    .validate_and_complete(app_declared_in_nodes)
+                    .validate_and_complete(is_app_declared_in_nodes)
                     .map_err(|e| anyhow::anyhow!("cmd[{}].{}", idx, e))?;
             }
         }
@@ -182,7 +182,7 @@ impl GraphConnection {
         if let Some(data) = &mut self.data {
             for (idx, data_flow) in data.iter_mut().enumerate() {
                 data_flow
-                    .validate_and_complete(app_declared_in_nodes)
+                    .validate_and_complete(is_app_declared_in_nodes)
                     .map_err(|e| anyhow::anyhow!("data[{}].{}", idx, e))?;
             }
         }
@@ -190,7 +190,7 @@ impl GraphConnection {
         if let Some(audio_frame) = &mut self.audio_frame {
             for (idx, audio_flow) in audio_frame.iter_mut().enumerate() {
                 audio_flow
-                    .validate_and_complete(app_declared_in_nodes)
+                    .validate_and_complete(is_app_declared_in_nodes)
                     .map_err(|e| {
                         anyhow::anyhow!("audio_frame[{}].{}", idx, e)
                     })?;
@@ -200,7 +200,7 @@ impl GraphConnection {
         if let Some(video_frame) = &mut self.video_frame {
             for (idx, video_flow) in video_frame.iter_mut().enumerate() {
                 video_flow
-                    .validate_and_complete(app_declared_in_nodes)
+                    .validate_and_complete(is_app_declared_in_nodes)
                     .map_err(|e| {
                         anyhow::anyhow!("video_frame[{}].{}", idx, e)
                     })?;
@@ -224,10 +224,10 @@ pub struct GraphMessageFlow {
 impl GraphMessageFlow {
     fn validate_and_complete(
         &mut self,
-        app_declared_in_nodes: bool,
+        is_app_declared_in_nodes: bool,
     ) -> Result<()> {
         for (idx, dest) in &mut self.dest.iter_mut().enumerate() {
-            dest.validate_and_complete(app_declared_in_nodes)
+            dest.validate_and_complete(is_app_declared_in_nodes)
                 .map_err(|e| anyhow::anyhow!("dest[{}]: {}", idx, e))?;
         }
 
@@ -247,24 +247,24 @@ pub struct GraphDestination {
 impl GraphDestination {
     fn validate_and_complete(
         &mut self,
-        app_declared_in_nodes: bool,
+        is_app_declared_in_nodes: bool,
     ) -> Result<()> {
         if let Some(app) = &self.app {
-            if !app_declared_in_nodes {
+            if !is_app_declared_in_nodes {
                 return Err(anyhow::anyhow!("the 'app' should not be declared, as not any node has declared it"));
             }
 
-            if app.as_str() == default_app_loc() {
+            if app.as_str() == localhost() {
                 return Err(anyhow::anyhow!(
                     "the app uri should be some string other than 'localhost'"
                 ));
             }
         } else {
-            if app_declared_in_nodes {
+            if is_app_declared_in_nodes {
                 return Err(anyhow::anyhow!("the 'app' can not be none, as it has been declared in nodes."));
             }
 
-            self.app = Some(default_app_loc().to_string());
+            self.app = Some(localhost().to_string());
         }
 
         Ok(())
@@ -276,7 +276,7 @@ impl GraphDestination {
 }
 
 pub fn is_app_default_loc_or_none(app: &Option<String>) -> bool {
-    app.is_none() || app.as_ref().unwrap().as_str() == default_app_loc()
+    app.is_none() || app.as_ref().unwrap().as_str() == localhost()
 }
 
 #[cfg(test)]
@@ -381,14 +381,14 @@ mod tests {
         );
         let property = Property::from_str(property_str);
 
-        // The 'app' in all nodes should be not declared or all declared, but
-        // not some of them declared.
+        // Either all nodes should have 'app' declared, or none should, but not
+        // a mix of both.
         assert!(property.is_err());
         println!("Error: {:?}", property);
 
         let msg = property.err().unwrap().to_string();
         assert!(msg.contains(
-            "'app' in all nodes should be not declared or all declared"
+            "Either all nodes should have 'app' declared, or none should, but not a mix of both."
         ));
     }
 
