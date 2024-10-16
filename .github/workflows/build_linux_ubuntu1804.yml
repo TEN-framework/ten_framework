@@ -64,15 +64,15 @@ jobs:
           chmod +x $(pwd)/tools/shell/cmd_wrapper.sh
           chmod +x out/linux/x64/tests/standalone/ten_utils_unit_test
 
-          out/linux/x64/tests/standalone/ten_utils_unit_test
+          out/linux/x64/tests/standalone/ten_utils_unit_test || { echo "test failed"; exit 1; }
 
           cpulimit -f -l 60 -- taskset 0x3 $(pwd)/tools/shell/cmd_wrapper.sh out/linux/x64/tests/standalone/ten_utils_unit_test
           read exit_status < ./_cmd_wrapper_exit_status.txt
-          [ "$exit_status" != "0" ] && echo "utils unit test failed" && exit 1
+          [ "$exit_status" != "0" ] && echo "test failed" && exit 1
 
           cpulimit -f -l 30 -- taskset 0x1 $(pwd)/tools/shell/cmd_wrapper.sh out/linux/x64/tests/standalone/ten_utils_unit_test
           read exit_status < ./_cmd_wrapper_exit_status.txt
-          [ "$exit_status" != "0" ] && echo "utils unit test failed" && exit 1
+          [ "$exit_status" != "0" ] && echo "test failed" && exit 1
 
       - name: Run Tests (ten_runtime_unit_test)
         env:
@@ -83,15 +83,15 @@ jobs:
         run: |
           chmod +x out/linux/x64/tests/standalone/ten_runtime_unit_test
 
-          out/linux/x64/tests/standalone/ten_runtime_unit_test
+          out/linux/x64/tests/standalone/ten_runtime_unit_test || { echo "test failed"; exit 1; }
 
           cpulimit -f -l 60 -- taskset 0x3 $(pwd)/tools/shell/cmd_wrapper.sh out/linux/x64/tests/standalone/ten_runtime_unit_test
           read exit_status < ./_cmd_wrapper_exit_status.txt
-          [ "$exit_status" != "0" ] && echo "utils unit test failed" && exit 1
+          [ "$exit_status" != "0" ] && echo "test failed" && exit 1
 
           cpulimit -f -l 30 -- taskset 0x1 $(pwd)/tools/shell/cmd_wrapper.sh out/linux/x64/tests/standalone/ten_runtime_unit_test
           read exit_status < ./_cmd_wrapper_exit_status.txt
-          [ "$exit_status" != "0" ] && echo "utils unit test failed" && exit 1
+          [ "$exit_status" != "0" ] && echo "test failed" && exit 1
 
       - name: Run Tests (ten_runtime_smoke_test)
         env:
@@ -102,15 +102,15 @@ jobs:
         run: |
           chmod +x out/linux/x64/tests/standalone/ten_runtime_smoke_test
 
-          out/linux/x64/tests/standalone/ten_runtime_smoke_test
+          out/linux/x64/tests/standalone/ten_runtime_smoke_test || { echo "test failed"; exit 1; }
 
           cpulimit -f -l 60 -- taskset 0x3 $(pwd)/tools/shell/cmd_wrapper.sh out/linux/x64/tests/standalone/ten_runtime_smoke_test
           read exit_status < ./_cmd_wrapper_exit_status.txt
-          [ "$exit_status" != "0" ] && echo "utils unit test failed" && exit 1
+          [ "$exit_status" != "0" ] && echo "test failed" && exit 1
 
           cpulimit -f -l 30 -- taskset 0x1 $(pwd)/tools/shell/cmd_wrapper.sh out/linux/x64/tests/standalone/ten_runtime_smoke_test
           read exit_status < ./_cmd_wrapper_exit_status.txt
-          [ "$exit_status" != "0" ] && echo "utils unit test failed" && exit 1
+          [ "$exit_status" != "0" ] && echo "test failed" && exit 1
 
       - name: Upload ten_packages
         uses: actions/upload-artifact@v3
