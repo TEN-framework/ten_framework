@@ -61,16 +61,16 @@ jobs:
           TEN_ENABLE_MEMORY_TRACKING: "true"
           TEN_ENABLE_BACKTRACE_DUMP: "true"
         run: |
-          chmod +x $(pwd)/shell/cmd_wrapper.sh
+          chmod +x $(pwd)/tools/shell/cmd_wrapper.sh
           chmod +x out/linux/x64/tests/standalone/ten_utils_unit_test
 
           out/linux/x64/tests/standalone/ten_utils_unit_test
 
-          cpulimit -f -l 60 -- taskset 0x3 $(pwd)/shell/cmd_wrapper.sh out/linux/x64/tests/standalone/ten_utils_unit_test
+          cpulimit -f -l 60 -- taskset 0x3 $(pwd)/tools/shell/cmd_wrapper.sh out/linux/x64/tests/standalone/ten_utils_unit_test
           read exit_status < ./_cmd_wrapper_exit_status.txt
           [ "$exit_status" != "0" ] && echo "utils unit test failed" && exit 1
 
-          cpulimit -f -l 30 -- taskset 0x1 $(pwd)/shell/cmd_wrapper.sh out/linux/x64/tests/standalone/ten_utils_unit_test
+          cpulimit -f -l 30 -- taskset 0x1 $(pwd)/tools/shell/cmd_wrapper.sh out/linux/x64/tests/standalone/ten_utils_unit_test
           read exit_status < ./_cmd_wrapper_exit_status.txt
           [ "$exit_status" != "0" ] && echo "utils unit test failed" && exit 1
 
@@ -85,11 +85,11 @@ jobs:
 
           out/linux/x64/tests/standalone/ten_runtime_unit_test
 
-          cpulimit -f -l 60 -- taskset 0x3 $(pwd)/shell/cmd_wrapper.sh out/linux/x64/tests/standalone/ten_runtime_unit_test
+          cpulimit -f -l 60 -- taskset 0x3 $(pwd)/tools/shell/cmd_wrapper.sh out/linux/x64/tests/standalone/ten_runtime_unit_test
           read exit_status < ./_cmd_wrapper_exit_status.txt
           [ "$exit_status" != "0" ] && echo "utils unit test failed" && exit 1
 
-          cpulimit -f -l 30 -- taskset 0x1 $(pwd)/shell/cmd_wrapper.sh out/linux/x64/tests/standalone/ten_runtime_unit_test
+          cpulimit -f -l 30 -- taskset 0x1 $(pwd)/tools/shell/cmd_wrapper.sh out/linux/x64/tests/standalone/ten_runtime_unit_test
           read exit_status < ./_cmd_wrapper_exit_status.txt
           [ "$exit_status" != "0" ] && echo "utils unit test failed" && exit 1
 
@@ -104,11 +104,11 @@ jobs:
 
           out/linux/x64/tests/standalone/ten_runtime_smoke_test
 
-          cpulimit -f -l 60 -- taskset 0x3 $(pwd)/shell/cmd_wrapper.sh out/linux/x64/tests/standalone/ten_runtime_smoke_test
+          cpulimit -f -l 60 -- taskset 0x3 $(pwd)/tools/shell/cmd_wrapper.sh out/linux/x64/tests/standalone/ten_runtime_smoke_test
           read exit_status < ./_cmd_wrapper_exit_status.txt
           [ "$exit_status" != "0" ] && echo "utils unit test failed" && exit 1
 
-          cpulimit -f -l 30 -- taskset 0x1 $(pwd)/shell/cmd_wrapper.sh out/linux/x64/tests/standalone/ten_runtime_smoke_test
+          cpulimit -f -l 30 -- taskset 0x1 $(pwd)/tools/shell/cmd_wrapper.sh out/linux/x64/tests/standalone/ten_runtime_smoke_test
           read exit_status < ./_cmd_wrapper_exit_status.txt
           [ "$exit_status" != "0" ] && echo "utils unit test failed" && exit 1
 
