@@ -127,10 +127,6 @@ jobs:
             "system/ten_runtime"
             "system/ten_runtime_go"
             "system/ten_runtime_python"
-            "extension/default_extension_cpp"
-            "extension/default_extension_go"
-            "extension/default_extension_python"
-            "extension/default_async_extension_python"
             "extension/py_init_extension_cpp"
           )
 
