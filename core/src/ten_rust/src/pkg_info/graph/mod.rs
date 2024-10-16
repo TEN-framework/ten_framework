@@ -75,6 +75,7 @@ impl Graph {
         self.check_if_extensions_used_in_connections_have_defined_in_nodes()?;
         self.check_if_nodes_have_installed(existed_pkgs_of_all_apps)?;
         self.check_connections_compatible(existed_pkgs_of_all_apps)?;
+        self.check_extension_uniqueness_in_connections()?;
         self.check_message_names()?;
 
         Ok(())
@@ -468,7 +469,8 @@ mod tests {
         );
 
         let graph = Graph::from_str(graph_str).unwrap();
-        let result = graph.check_message_names();
+
+        let result = graph.check_extension_uniqueness_in_connections();
 
         assert!(result.is_err());
         println!("Error: {:?}", result);
