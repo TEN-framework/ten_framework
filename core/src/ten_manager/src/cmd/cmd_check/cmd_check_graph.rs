@@ -143,7 +143,7 @@ fn get_graphs_to_be_checked(command: &CheckGraphCommand) -> Result<Vec<Graph>> {
             .and_then(|p| p.predefined_graphs)
             .ok_or_else(|| {
                 anyhow::anyhow!(
-                    "No predefined graph is found in the primary app."
+                    "No predefined graph is found in the first app."
                 )
             })?;
 
