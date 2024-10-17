@@ -30,14 +30,14 @@ bool ten_app_check_graph(ten_app_t *self, ten_json_t *start_graph_cmd_json,
     return true;
   }
 
-  bool must_json_string = false;
+  bool free_json_string = false;
   const char *graph_json_str = ten_json_to_string(
-      start_graph_cmd_json, TEN_STR_UNDERLINE_TEN, &must_json_string);
+      start_graph_cmd_json, TEN_STR_UNDERLINE_TEN, &free_json_string);
 
   const char *err_msg = NULL;
   bool rc = ten_rust_check_graph_for_app(base_dir, graph_json_str, &err_msg);
 
-  if (must_json_string) {
+  if (free_json_string) {
     TEN_FREE(graph_json_str);
   }
 
