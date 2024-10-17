@@ -52,6 +52,13 @@ jobs:
             cat ${item}/manifest.json
           done
 
+          # Due to the use of QEMU, running as root inside the Docker container
+          # is required. However, outside the container, the user is not root.
+          # This causes issues when trying to handle the contents of the out/
+          # folder from outside the container. To resolve this, the out/ folder
+          # is first created by a regular non-root user to prevent it from being
+          # created during the build stage, thus avoiding permission issues with
+          # the out/ folder being created by the root user.
           mkdir -p out/linux/arm64
         shell: bash
 
