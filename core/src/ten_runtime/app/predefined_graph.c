@@ -151,9 +151,9 @@ bool ten_app_start_predefined_graph(
     return false;
   }
 
-  if (!ten_app_check_graph(self, start_graph_cmd_json, err)) {
-    // The graph check does not support message conversion now, so we can not
-    // return false here. WIP: issues#160.
+  if (!ten_app_check_start_graph_cmd_json(self, start_graph_cmd_json, err)) {
+    // TODO(Wei): The graph check does not support message conversion now, so we
+    // can not return false here. WIP: issues#160.
     TEN_LOGW("[%s] The predefined graph is invalid, %s", ten_app_get_uri(self),
              ten_error_errmsg(err));
   }

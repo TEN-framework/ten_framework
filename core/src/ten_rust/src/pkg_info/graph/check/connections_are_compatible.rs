@@ -97,8 +97,9 @@ impl Graph {
                 dest.extension.as_str(),
             );
 
-            let pkgs_of_dest = existed_pkgs_of_all_apps.get(dest.get_app_uri());
-            if pkgs_of_dest.is_none() {
+            let existed_pkgs_of_dest_app =
+                existed_pkgs_of_all_apps.get(dest.get_app_uri());
+            if existed_pkgs_of_dest_app.is_none() {
                 if skip_if_app_not_exist {
                     continue;
                 } else {
@@ -110,7 +111,7 @@ impl Graph {
             }
 
             let dest_cmd_schema = find_cmd_schema_from_all_pkgs_info(
-                pkgs_of_dest.unwrap(),
+                existed_pkgs_of_dest_app.unwrap(),
                 dest_addon,
                 cmd_name,
                 MsgDirection::In,
@@ -144,9 +145,9 @@ impl Graph {
                     connection.extension.as_str(),
                 );
 
-                let pkgs_of_app =
+                let existed_pkgs_of_src_app =
                     existed_pkgs_of_all_apps.get(connection.get_app_uri());
-                if pkgs_of_app.is_none() {
+                if existed_pkgs_of_src_app.is_none() {
                     if skip_if_app_not_exist {
                         continue;
                     } else {
@@ -155,7 +156,7 @@ impl Graph {
                 }
 
                 let src_cmd_schema = find_cmd_schema_from_all_pkgs_info(
-                    pkgs_of_app.unwrap(),
+                    existed_pkgs_of_src_app.unwrap(),
                     src_addon,
                     flow.name.as_str(),
                     MsgDirection::Out,
@@ -323,11 +324,12 @@ fn find_msg_schema_from_all_pkgs_info<'a>(
     msg_type: &MsgType,
     direction: MsgDirection,
 ) -> Option<&'a TenSchema> {
-    let pkgs_in_app = existed_pkgs_of_all_apps.get(app).unwrap_or_else(|| {
-        panic!("should not happen.");
-    });
+    let existed_pkgs_of_app =
+        existed_pkgs_of_all_apps.get(app).unwrap_or_else(|| {
+            panic!("should not happen.");
+        });
 
-    let addon_pkg = pkgs_in_app
+    let addon_pkg = existed_pkgs_of_app
         .iter()
         .find(|pkg| {
             pkg.pkg_identity.pkg_type == PkgType::Extension

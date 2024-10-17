@@ -10,7 +10,9 @@
     }
   ],
   "package": {
-    "include": ["**"]
+    "include": [
+      "**"
+    ]
   },
   "api": {
     "cmd_out": [

@@ -13,8 +13,9 @@
 #include "ten_runtime/app/app.h"
 #include "ten_utils/macro/memory.h"
 
-bool ten_app_check_graph(ten_app_t *self, ten_json_t *start_graph_cmd_json,
-                         ten_error_t *err) {
+bool ten_app_check_start_graph_cmd_json(ten_app_t *self,
+                                        ten_json_t *start_graph_cmd_json,
+                                        ten_error_t *err) {
   TEN_ASSERT(self && ten_app_check_integrity(self, true), "Should not happen.");
   TEN_ASSERT(start_graph_cmd_json, "Invalid argument.");
 

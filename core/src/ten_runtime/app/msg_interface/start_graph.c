@@ -75,7 +75,7 @@ bool ten_app_check_start_graph_cmd(ten_app_t *self,
     return false;
   }
 
-  bool rc = ten_app_check_graph(self, cmd_json, err);
+  bool rc = ten_app_check_start_graph_cmd_json(self, cmd_json, err);
 
   ten_json_destroy(cmd_json);
 

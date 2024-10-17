@@ -15,5 +15,5 @@
 
 typedef struct ten_app_t ten_app_t;
 
-TEN_RUNTIME_PRIVATE_API bool ten_app_check_graph(
+TEN_RUNTIME_PRIVATE_API bool ten_app_check_start_graph_cmd_json(
     ten_app_t *self, ten_json_t *start_graph_cmd_json, ten_error_t *err);

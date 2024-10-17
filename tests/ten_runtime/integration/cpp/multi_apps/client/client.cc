@@ -9,11 +9,14 @@
 #include "ten_utils/macro/check.h"
 #include "tests/common/client/cpp/msgpack_tcp.h"
 
+namespace {
+
 void test_extension_in_app1_not_installed() {
   // Create a client and connect to the app.
   auto *client = new ten::msgpack_tcp_client_t("msgpack://127.0.0.1:8001/");
 
-  // Send to app 8001, but the extension in app 8001 should be not found.
+  // Send a start_graph cmd to app 8001. However, because there is no extension
+  // addon named `ext_e` in app 8001, the `start_graph` command will fail.
   nlohmann::json resp = client->send_json_and_recv_resp_in_json(
       R"({
            "_ten": {
@@ -49,7 +52,8 @@ void test_extension_in_app2_not_installed() {
   // Create a client and connect to the app.
   auto *client = new ten::msgpack_tcp_client_t("msgpack://127.0.0.1:8001/");
 
-  // Send to app 8001, but the extension in app 8002 should be not found.
+  // Send a start_graph cmd to app 8001. However, because there is no extension
+  // addon named `ext_e` in app 8002, the `start_graph` command will fail.
   auto resp = client->send_json_and_recv_resp_in_json(
       R"({
            "_ten": {
@@ -93,6 +97,8 @@ void test_extension_in_app2_not_installed() {
 
   delete client;
 }
+
+}  // namespace
 
 int main(int argc, char **argv) {
   test_extension_in_app1_not_installed();
