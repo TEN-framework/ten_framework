@@ -13,8 +13,8 @@ use ten_rust::pkg_info::{
 };
 
 #[test]
-fn test_graph_check_extension_not_installed() {
-    let app_dir = "tests/test_data/graph_check_extension_not_installed";
+fn test_graph_check_extension_not_installed_1() {
+    let app_dir = "tests/test_data/graph_check_extension_not_installed_1";
     let pkg_infos =
         get_all_existed_pkgs_info_of_app(Path::new(app_dir)).unwrap();
     assert!(!pkg_infos.is_empty());
@@ -38,8 +38,8 @@ fn test_graph_check_extension_not_installed() {
 }
 
 #[test]
-fn test_graph_check_app_not_found_in_pkgs() {
-    let app_dir = "tests/test_data/graph_check_app_not_found_in_pkgs";
+fn test_graph_check_extension_not_installed_2() {
+    let app_dir = "tests/test_data/graph_check_extension_not_installed_2";
     let pkg_infos =
         get_all_existed_pkgs_info_of_app(Path::new(app_dir)).unwrap();
     assert!(!pkg_infos.is_empty());
