@@ -12,4 +12,6 @@ glob("app") {
     "msg_interface",
     "ten_env",
   ]
+
+  public_deps = [ "//core/src/ten_rust:ten_rust_binding" ]
 }

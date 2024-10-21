@@ -36,6 +36,32 @@ jobs:
           python3 tools/version/update_version_in_ten_framework.py
           python3 tools/version/check_version_in_ten_framework.py
 
+      - name: Update supports
+        run: |
+          UPDATE_SUPPORTS_SCRIPT=$(pwd)/tools/supports/update_supports_in_manifest_json.py
+
+          ARRAY=(
+            "core/src/ten_runtime"
+            "core/src/ten_runtime/binding/go"
+            "core/src/ten_runtime/binding/python"
+            "packages/core_extensions/py_init_extension_cpp"
+          )
+
+          for item in "${ARRAY[@]}"; do
+            python3 ${UPDATE_SUPPORTS_SCRIPT} --os-arch-pairs linux:arm64 --input-file ${item}/manifest.json --output-file ${item}/manifest.json --log-level 1
+            cat ${item}/manifest.json
+          done
+
+          # Due to the use of QEMU, running as root inside the Docker container
+          # is required. However, outside the container, the user is not root.
+          # This causes issues when trying to handle the contents of the out/
+          # folder from outside the container. To resolve this, the out/ folder
+          # is first created by a regular non-root user to prevent it from being
+          # created during the build stage, thus avoiding permission issues with
+          # the out/ folder being created by the root user.
+          mkdir -p out/linux/arm64
+        shell: bash
+
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
         with:
@@ -99,3 +125,18 @@ jobs:
           files: |
             out/linux/arm64/tman-linux-arm64-${{ matrix.compiler }}-${{ matrix.build_type }}.zip
             out/linux/arm64/ten_packages-linux-arm64-${{ matrix.compiler }}-${{ matrix.build_type }}.zip
+
+      - name: Publish release to TEN cloud store
+        if: ${{ startsWith(github.ref, 'refs/tags/') && matrix.compiler == 'gcc' && matrix.build_type == 'release' }}
+        run: |
+          docker run --rm --platform linux/arm64 \
+              -v $(pwd):/${{ github.workspace }} -w ${{ github.workspace }} --entrypoint /bin/bash \
+              ghcr.io/ten-framework/ten_building_ubuntu2204 -c "\
+              set -x && \
+              cd out/linux/arm64/ten_packages && \
+              cd system/ten_runtime && ../../../ten_manager/bin/tman --verbose --user-token ${{ secrets.TEN_CLOUD_STORE }} publish && cd - && \
+              cd system/ten_runtime_go && ../../../ten_manager/bin/tman --verbose --user-token ${{ secrets.TEN_CLOUD_STORE }} publish && cd - && \
+              cd system/ten_runtime_python && ../../../ten_manager/bin/tman --verbose --user-token ${{ secrets.TEN_CLOUD_STORE }} publish && cd - && \
+              cd extension/py_init_extension_cpp && ../../../ten_manager/bin/tman --verbose --user-token ${{ secrets.TEN_CLOUD_STORE }} publish && cd - \
+          "
+        shell: bash
