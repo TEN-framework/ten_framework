@@ -199,7 +199,6 @@ async fn test_cmd_check_single_app_node_cannot_be_localhost() {
     )
     .await;
 
-    // The same extension is defined in two different nodes.
     assert!(result.is_err());
     eprintln!("{:?}", result);
 
@@ -227,7 +226,6 @@ async fn test_cmd_check_multi_apps_node_cannot_be_localhost() {
     )
     .await;
 
-    // The same extension is defined in two different nodes.
     assert!(result.is_err());
     eprintln!("{:?}", result);
 

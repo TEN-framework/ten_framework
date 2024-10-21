@@ -38,13 +38,14 @@ impl FromStr for Graph {
 }
 
 impl Graph {
-    /// Try to determine if the graph is a single-app graph, based on the `app`
-    /// field of nodes.
+    /// Determine if the graph is a single-app graph based on the `app` field of
+    /// nodes.
     ///
-    /// The following case is considered as a multi-app graph, even if the
-    /// `_ten::uri` of app is `http://localhost:8000`, as the graph does not
-    /// own the information of the uri of app.
+    /// A graph is considered a single-app graph if all nodes have the same
+    /// value for the `app` field, or if none of the nodes specify an `app`
+    /// value. Otherwise, it is considered a multi-app (N-app) graph.
     ///
+    /// Example of a single-app graph:
     /// {
     ///   "nodes": [
     ///     {
@@ -56,9 +57,30 @@ impl Graph {
     ///     },
     ///     {
     ///       "type": "extension",
+    ///       "addon": "addon_2",
+    ///       "name": "ext_2",
+    ///       "extension_group": "another_group",
+    ///       "app": "http://localhost:8000"
+    ///     }
+    ///   ]
+    /// }
+    ///
+    /// Example of a multi-app graph:
+    /// {
+    ///   "nodes": [
+    ///     {
+    ///       "type": "extension",
     ///       "addon": "addon_1",
     ///       "name": "ext_1",
-    ///       "extension_group": "some_group"
+    ///       "extension_group": "some_group",
+    ///       "app": "http://localhost:8000"
+    ///     },
+    ///     {
+    ///       "type": "extension",
+    ///       "addon": "addon_2",
+    ///       "name": "ext_2",
+    ///       "extension_group": "another_group",
+    ///       "app": "http://remotehost:8001"
     ///     }
     ///   ]
     /// }
@@ -88,7 +110,9 @@ impl Graph {
         if nodes_have_declared_app != 0
             && nodes_have_declared_app != self.nodes.len()
         {
-            return Err(anyhow::anyhow!(constants::ERR_MSG_APP_CONTENT_MIXED));
+            return Err(anyhow::anyhow!(
+                constants::ERR_MSG_APP_DECLARATION_MISMATCH
+            ));
         }
 
         if let Some(connections) = &mut self.connections {
@@ -177,9 +201,9 @@ impl GraphNode {
         if let Some(app) = &self.app {
             if app.as_str() == localhost() {
                 let err_msg = if is_single_app_graph {
-                    constants::ERR_MSG_APP_LOCALHOST_SINGLE_APP
+                    constants::ERR_MSG_APP_LOCALHOST_DISALLOWED_SINGLE
                 } else {
-                    constants::ERR_MSG_APP_LOCALHOST_MULTI_APP
+                    constants::ERR_MSG_APP_LOCALHOST_DISALLOWED_MULTI
                 };
 
                 return Err(anyhow::anyhow!(err_msg));
@@ -225,9 +249,9 @@ impl GraphConnection {
         if let Some(app) = &self.app {
             if app.as_str() == localhost() {
                 let err_msg = if is_a_single_app_graph {
-                    constants::ERR_MSG_APP_LOCALHOST_SINGLE_APP
+                    constants::ERR_MSG_APP_LOCALHOST_DISALLOWED_SINGLE
                 } else {
-                    constants::ERR_MSG_APP_LOCALHOST_MULTI_APP
+                    constants::ERR_MSG_APP_LOCALHOST_DISALLOWED_MULTI
                 };
 
                 return Err(anyhow::anyhow!(err_msg));
@@ -346,9 +370,9 @@ impl GraphDestination {
         if let Some(app) = &self.app {
             if app.as_str() == localhost() {
                 let err_msg = if is_a_single_app_graph {
-                    constants::ERR_MSG_APP_LOCALHOST_SINGLE_APP
+                    constants::ERR_MSG_APP_LOCALHOST_DISALLOWED_SINGLE
                 } else {
-                    constants::ERR_MSG_APP_LOCALHOST_MULTI_APP
+                    constants::ERR_MSG_APP_LOCALHOST_DISALLOWED_MULTI
                 };
 
                 return Err(anyhow::anyhow!(err_msg));
@@ -476,7 +500,9 @@ mod tests {
         println!("Error: {:?}", property);
 
         let msg = property.err().unwrap().to_string();
-        assert!(msg.contains(constants::ERR_MSG_APP_LOCALHOST_SINGLE_APP));
+        assert!(
+            msg.contains(constants::ERR_MSG_APP_LOCALHOST_DISALLOWED_SINGLE)
+        );
     }
 
     #[test]
@@ -491,7 +517,9 @@ mod tests {
         println!("Error: {:?}", graph);
 
         let msg = graph.err().unwrap().to_string();
-        assert!(msg.contains(constants::ERR_MSG_APP_LOCALHOST_SINGLE_APP));
+        assert!(
+            msg.contains(constants::ERR_MSG_APP_LOCALHOST_DISALLOWED_SINGLE)
+        );
     }
 
     #[test]
@@ -506,7 +534,7 @@ mod tests {
         println!("Error: {:?}", graph);
 
         let msg = graph.err().unwrap().to_string();
-        assert!(msg.contains(constants::ERR_MSG_APP_LOCALHOST_MULTI_APP));
+        assert!(msg.contains(constants::ERR_MSG_APP_LOCALHOST_DISALLOWED_MULTI));
     }
 
     #[test]
@@ -516,12 +544,14 @@ mod tests {
         );
         let property = Property::from_str(property_str);
 
-        // 'localhost' is not allowed in graph definition
+        // 'localhost' is not allowed in graph definition.
         assert!(property.is_err());
         println!("Error: {:?}", property);
 
         let msg = property.err().unwrap().to_string();
-        assert!(msg.contains(constants::ERR_MSG_APP_LOCALHOST_SINGLE_APP));
+        assert!(
+            msg.contains(constants::ERR_MSG_APP_LOCALHOST_DISALLOWED_SINGLE)
+        );
     }
 
     #[test]
