@@ -5,6 +5,7 @@
 // Refer to the "LICENSE" file in the root directory for more information.
 //
 mod check;
+mod constants;
 
 use std::{collections::HashMap, str::FromStr};
 
@@ -37,11 +38,47 @@ impl FromStr for Graph {
 }
 
 impl Graph {
+    /// Try to determine if the graph is a single-app graph, based on the `app`
+    /// field of nodes.
+    ///
+    /// The following case is considered as a multi-app graph, even if the
+    /// `_ten::uri` of app is `http://localhost:8000`, as the graph does not
+    /// own the information of the uri of app.
+    ///
+    /// {
+    ///   "nodes": [
+    ///     {
+    ///       "type": "extension",
+    ///       "addon": "addon_1",
+    ///       "name": "ext_1",
+    ///       "extension_group": "some_group",
+    ///       "app": "http://localhost:8000"
+    ///     },
+    ///     {
+    ///       "type": "extension",
+    ///       "addon": "addon_1",
+    ///       "name": "ext_1",
+    ///       "extension_group": "some_group"
+    ///     }
+    ///   ]
+    /// }
+    fn is_a_single_app_graph(&self) -> bool {
+        let mut app_uris = std::collections::HashSet::new();
+        for node in &self.nodes {
+            if let Some(app_uri) = &node.app {
+                app_uris.insert(app_uri);
+            }
+        }
+
+        app_uris.len() <= 1
+    }
+
     pub fn validate_and_complete(&mut self) -> Result<()> {
+        let is_a_single_app_graph = self.is_a_single_app_graph();
         let mut nodes_have_declared_app = 0;
 
         for (idx, node) in &mut self.nodes.iter_mut().enumerate() {
-            node.validate_and_complete()
+            node.validate_and_complete(is_a_single_app_graph)
                 .map_err(|e| anyhow::anyhow!("nodes[{}]: {}", idx, e))?;
             if node.get_app_uri() != localhost() {
                 nodes_have_declared_app += 1;
@@ -51,13 +88,16 @@ impl Graph {
         if nodes_have_declared_app != 0
             && nodes_have_declared_app != self.nodes.len()
         {
-            return Err(anyhow::anyhow!("Either all nodes should have 'app' declared, or none should, but not a mix of both."));
+            return Err(anyhow::anyhow!(constants::ERR_MSG_APP_CONTENT_MIXED));
         }
 
         if let Some(connections) = &mut self.connections {
             for (idx, connection) in connections.iter_mut().enumerate() {
                 connection
-                    .validate_and_complete(nodes_have_declared_app > 0)
+                    .validate_and_complete(
+                        nodes_have_declared_app > 0,
+                        is_a_single_app_graph,
+                    )
                     .map_err(|e| {
                         anyhow::anyhow!("connections[{}].{}", idx, e)
                     })?;
@@ -120,7 +160,10 @@ pub struct GraphNode {
 }
 
 impl GraphNode {
-    fn validate_and_complete(&mut self) -> Result<()> {
+    fn validate_and_complete(
+        &mut self,
+        is_single_app_graph: bool,
+    ) -> Result<()> {
         // extension node must specify extension_group name.
         if self.node_type == PkgType::Extension
             && self.extension_group.is_none()
@@ -133,9 +176,13 @@ impl GraphNode {
 
         if let Some(app) = &self.app {
             if app.as_str() == localhost() {
-                return Err(anyhow::anyhow!(
-                    "the app uri should be some string other than 'localhost'"
-                ));
+                let err_msg = if is_single_app_graph {
+                    constants::ERR_MSG_APP_LOCALHOST_SINGLE_APP
+                } else {
+                    constants::ERR_MSG_APP_LOCALHOST_MULTI_APP
+                };
+
+                return Err(anyhow::anyhow!(err_msg));
             }
         } else {
             self.app = Some(localhost().to_string());
@@ -173,20 +220,29 @@ impl GraphConnection {
     fn validate_and_complete(
         &mut self,
         is_app_declared_in_nodes: bool,
+        is_a_single_app_graph: bool,
     ) -> Result<()> {
         if let Some(app) = &self.app {
-            if !is_app_declared_in_nodes {
-                return Err(anyhow::anyhow!("the 'app' should not be declared, as not any node has declared it"));
+            if app.as_str() == localhost() {
+                let err_msg = if is_a_single_app_graph {
+                    constants::ERR_MSG_APP_LOCALHOST_SINGLE_APP
+                } else {
+                    constants::ERR_MSG_APP_LOCALHOST_MULTI_APP
+                };
+
+                return Err(anyhow::anyhow!(err_msg));
             }
 
-            if app.as_str() == localhost() {
+            if !is_app_declared_in_nodes {
                 return Err(anyhow::anyhow!(
-                    "the app uri should be some string other than 'localhost'"
+                    constants::ERR_MSG_APP_SHOULD_NOT_DECLARED
                 ));
             }
         } else {
             if is_app_declared_in_nodes {
-                return Err(anyhow::anyhow!("the 'app' can not be none, as it has been declared in nodes."));
+                return Err(anyhow::anyhow!(
+                    constants::ERR_MSG_APP_SHOULD_DECLARED
+                ));
             }
 
             self.app = Some(localhost().to_string());
@@ -195,7 +251,10 @@ impl GraphConnection {
         if let Some(cmd) = &mut self.cmd {
             for (idx, cmd_flow) in cmd.iter_mut().enumerate() {
                 cmd_flow
-                    .validate_and_complete(is_app_declared_in_nodes)
+                    .validate_and_complete(
+                        is_app_declared_in_nodes,
+                        is_a_single_app_graph,
+                    )
                     .map_err(|e| anyhow::anyhow!("cmd[{}].{}", idx, e))?;
             }
         }
@@ -203,7 +262,10 @@ impl GraphConnection {
         if let Some(data) = &mut self.data {
             for (idx, data_flow) in data.iter_mut().enumerate() {
                 data_flow
-                    .validate_and_complete(is_app_declared_in_nodes)
+                    .validate_and_complete(
+                        is_app_declared_in_nodes,
+                        is_a_single_app_graph,
+                    )
                     .map_err(|e| anyhow::anyhow!("data[{}].{}", idx, e))?;
             }
         }
@@ -211,7 +273,10 @@ impl GraphConnection {
         if let Some(audio_frame) = &mut self.audio_frame {
             for (idx, audio_flow) in audio_frame.iter_mut().enumerate() {
                 audio_flow
-                    .validate_and_complete(is_app_declared_in_nodes)
+                    .validate_and_complete(
+                        is_app_declared_in_nodes,
+                        is_a_single_app_graph,
+                    )
                     .map_err(|e| {
                         anyhow::anyhow!("audio_frame[{}].{}", idx, e)
                     })?;
@@ -221,7 +286,10 @@ impl GraphConnection {
         if let Some(video_frame) = &mut self.video_frame {
             for (idx, video_flow) in video_frame.iter_mut().enumerate() {
                 video_flow
-                    .validate_and_complete(is_app_declared_in_nodes)
+                    .validate_and_complete(
+                        is_app_declared_in_nodes,
+                        is_a_single_app_graph,
+                    )
                     .map_err(|e| {
                         anyhow::anyhow!("video_frame[{}].{}", idx, e)
                     })?;
@@ -246,10 +314,14 @@ impl GraphMessageFlow {
     fn validate_and_complete(
         &mut self,
         is_app_declared_in_nodes: bool,
+        is_a_single_app_graph: bool,
     ) -> Result<()> {
         for (idx, dest) in &mut self.dest.iter_mut().enumerate() {
-            dest.validate_and_complete(is_app_declared_in_nodes)
-                .map_err(|e| anyhow::anyhow!("dest[{}]: {}", idx, e))?;
+            dest.validate_and_complete(
+                is_app_declared_in_nodes,
+                is_a_single_app_graph,
+            )
+            .map_err(|e| anyhow::anyhow!("dest[{}]: {}", idx, e))?;
         }
 
         Ok(())
@@ -269,20 +341,29 @@ impl GraphDestination {
     fn validate_and_complete(
         &mut self,
         is_app_declared_in_nodes: bool,
+        is_a_single_app_graph: bool,
     ) -> Result<()> {
         if let Some(app) = &self.app {
-            if !is_app_declared_in_nodes {
-                return Err(anyhow::anyhow!("the 'app' should not be declared, as not any node has declared it"));
+            if app.as_str() == localhost() {
+                let err_msg = if is_a_single_app_graph {
+                    constants::ERR_MSG_APP_LOCALHOST_SINGLE_APP
+                } else {
+                    constants::ERR_MSG_APP_LOCALHOST_MULTI_APP
+                };
+
+                return Err(anyhow::anyhow!(err_msg));
             }
 
-            if app.as_str() == localhost() {
+            if !is_app_declared_in_nodes {
                 return Err(anyhow::anyhow!(
-                    "the app uri should be some string other than 'localhost'"
+                    constants::ERR_MSG_APP_SHOULD_NOT_DECLARED
                 ));
             }
         } else {
             if is_app_declared_in_nodes {
-                return Err(anyhow::anyhow!("the 'app' can not be none, as it has been declared in nodes."));
+                return Err(anyhow::anyhow!(
+                    constants::ERR_MSG_APP_SHOULD_DECLARED
+                ));
             }
 
             self.app = Some(localhost().to_string());
@@ -384,15 +465,63 @@ mod tests {
     }
 
     #[test]
+    fn test_predefined_graph_node_app_localhost() {
+        let property_str = include_str!(
+            "test_data_embed/predefined_graph_connection_app_localhost.json"
+        );
+        let property = Property::from_str(property_str);
+
+        // 'localhost' is not allowed in graph definition
+        assert!(property.is_err());
+        println!("Error: {:?}", property);
+
+        let msg = property.err().unwrap().to_string();
+        assert!(msg.contains(constants::ERR_MSG_APP_LOCALHOST_SINGLE_APP));
+    }
+
+    #[test]
+    fn test_start_graph_cmd_single_app_node_app_localhost() {
+        let graph_str = include_str!(
+            "test_data_embed/start_graph_cmd_single_app_node_app_localhost.json"
+        );
+        let graph = Graph::from_str(graph_str);
+
+        // 'localhost' is not allowed in graph definition
+        assert!(graph.is_err());
+        println!("Error: {:?}", graph);
+
+        let msg = graph.err().unwrap().to_string();
+        assert!(msg.contains(constants::ERR_MSG_APP_LOCALHOST_SINGLE_APP));
+    }
+
+    #[test]
+    fn test_start_graph_cmd_multi_apps_node_app_localhost() {
+        let graph_str = include_str!(
+            "test_data_embed/start_graph_cmd_multi_apps_node_app_localhost.json"
+        );
+        let graph = Graph::from_str(graph_str);
+
+        // 'localhost' is not allowed in graph definition
+        assert!(graph.is_err());
+        println!("Error: {:?}", graph);
+
+        let msg = graph.err().unwrap().to_string();
+        assert!(msg.contains(constants::ERR_MSG_APP_LOCALHOST_MULTI_APP));
+    }
+
+    #[test]
     fn test_predefined_graph_connection_app_localhost() {
         let property_str = include_str!(
             "test_data_embed/predefined_graph_connection_app_localhost.json"
         );
         let property = Property::from_str(property_str);
 
-        // App uri should be some string other than 'localhost'.
+        // 'localhost' is not allowed in graph definition
         assert!(property.is_err());
-        println!("Error: {:?}", property.err().unwrap());
+        println!("Error: {:?}", property);
+
+        let msg = property.err().unwrap().to_string();
+        assert!(msg.contains(constants::ERR_MSG_APP_LOCALHOST_SINGLE_APP));
     }
 
     #[test]

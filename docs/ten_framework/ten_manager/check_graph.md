@@ -757,3 +757,99 @@ The `app` field in each node must met the following rules.
 - **Example (The `app` field in nodes is not equal to the `_ten::uri` of app)**:
 
   Same as [Rule 4](#id-4.-the-addons-declared-in-the-nodes-must-be-installed-in-the-app).
+
+- **Example (The `app` field is `localhost` in a single-app graph)**:
+
+  Checking graph with the following command.
+
+  ```shell
+  tman check graph --graph '{
+    "nodes": [
+      {
+        "type": "extension",
+        "name": "some_extension",
+        "addon": "addon_a",
+        "extension_group": "some_group"
+      },
+      {
+        "type": "extension",
+        "name": "another_ext",
+        "addon": "addon_b",
+        "extension_group": "some_group",
+        "app": "localhost"
+      }
+    ],
+    "connections": [
+      {
+        "extension": "some_extension",
+        "extension_group": "some_group",
+        "cmd": [
+          {
+            "name": "cmd_1",
+            "dest": [
+              {
+                "extension_group": "some_group",
+                "extension": "another_ext"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }' --app /home/TEN-Agent/agents
+  ```
+
+  **Output**:
+
+  ```text
+  💔  Error: Failed to parse graph string, nodes[1]: 'localhost' is not allowed in graph definition, and the graph seems to be a single-app graph, just remove the 'app' field
+  ```
+
+- **Example (The `app` field is `localhost` in a multi-app graph)**:
+
+  Checking graph with the following command.
+
+  ```shell
+  tman check graph --graph '{
+    "nodes": [
+      {
+        "type": "extension",
+        "name": "some_extension",
+        "addon": "addon_a",
+        "extension_group": "some_group",
+        "app": "http://localhost:8000"
+      },
+      {
+        "type": "extension",
+        "name": "another_ext",
+        "addon": "addon_b",
+        "extension_group": "some_group",
+        "app": "localhost"
+      }
+    ],
+    "connections": [
+      {
+        "extension": "some_extension",
+        "extension_group": "some_group",
+        "app": "http://localhost:8000",
+        "cmd": [
+          {
+            "name": "cmd_1",
+            "dest": [
+              {
+                "extension_group": "some_group",
+                "extension": "another_ext"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }' --app /home/TEN-Agent/agents
+  ```
+
+  **Output**:
+
+  ```text
+  💔  Error: Failed to parse graph string, nodes[1]: 'localhost' is not allowed in graph definition, change the content of 'app' field to be consistent with '_ten::uri'
+  ```
