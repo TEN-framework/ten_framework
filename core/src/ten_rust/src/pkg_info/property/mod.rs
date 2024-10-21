@@ -152,7 +152,7 @@ pub fn parse_property_in_folder(
 
     // Validate the property schema only if it is present.
     json_schema::ten_validate_property_json_file(&property_path).with_context(
-        || format!("Failed to validate schema of {}.", property_path.display()),
+        || format!("Failed to validate {}.", property_path.display()),
     )?;
 
     Ok(Some(property))

@@ -126,7 +126,7 @@ pub fn parse_manifest_in_folder(folder_path: &Path) -> Result<Manifest> {
         manifest_path_str.to_str().unwrap(),
     )
     .with_context(|| {
-        format!("Failed to validate schema of {}.", manifest_path.display())
+        format!("Failed to validate {}.", manifest_path.display())
     })?;
 
     Ok(manifest)

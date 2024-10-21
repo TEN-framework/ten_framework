@@ -70,10 +70,10 @@ pub struct InnerError {
 }
 
 impl ErrorResponse {
-    pub fn from_error(err: &Error, formatter: &str) -> Self {
+    pub fn from_error(err: &Error, message_header: &str) -> Self {
         let mut this = ErrorResponse {
             status: Status::Fail,
-            message: format!("{} {}", formatter, err),
+            message: format!("{} {}", message_header, err),
             error: None,
         };
 
