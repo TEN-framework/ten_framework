@@ -3,18 +3,8 @@ name: Build - linux ubuntu1804
 on:
   release:
     types: [created]
-  push:
-    branches:
-      - "**"
-    paths-ignore:
-      - "tools/**"
-      - "docs/**"
-      - ".vscode/**"
-      - ".devcontainer/**"
-      - ".github/**"
-      - "!.github/workflows/build_linux_ubuntu1804.yml"
-      - "**.md"
   pull_request:
+    types: [opened, synchronize, reopened]
     paths-ignore:
       - "tools/**"
       - "docs/**"
@@ -25,7 +15,10 @@ on:
       - "**.md"
 
 jobs:
-  build:
+  build-linux-ubuntu1804:
+    concurrency:
+      group: build-linux-ubuntu1804-${{ github.head_ref }}-${{ matrix.build_type }}
+      cancel-in-progress: true
     runs-on: ubuntu-22.04
     env:
       ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
@@ -40,26 +33,69 @@ jobs:
           fetch-depth: "0"
           submodules: "true"
 
+      - name: Update version
+        run: |
+          git config --global --add safe.directory $(pwd)
+          python3 tools/version/update_version_in_ten_framework.py
+          python3 tools/version/check_version_in_ten_framework.py
+
+      - name: Install cpulimit and taskset
+        run: |
+          apt-get update
+          apt-get install -y cpulimit util-linux
+
       - name: Build
         run: |
           export PATH=$(pwd)/core/ten_gn/:$PATH
           echo $PATH
           go env -w GOFLAGS="-buildvcs=false"
           rustup default nightly
-          tgn gen linux x64 ${{ matrix.build_type }} -- is_clang=false log_level=1 enable_serialized_actions=true ten_enable_test=false ten_enable_package_manager=false
+          tgn gen linux x64 ${{ matrix.build_type }} -- is_clang=false log_level=1 enable_serialized_actions=true ten_enable_integration_tests=false ten_enable_private_tests=false ten_rust_enable_tests=false ten_enable_package_manager=false ten_rust_enable_gen_cargo_config=false
           tgn build linux x64 ${{ matrix.build_type }}
           tree -I 'gen|obj' out
+
+      - name: Run Tests (ten_utils_unit_test)
+        env:
+          ASAN_OPTIONS: detect_leaks=1:detect_stack_use_after_return=1:color=always:unmap_shadow_on_exit=1:abort_on_error=1
+          MALLOC_CHECK_: 3
+          TEN_ENABLE_MEMORY_TRACKING: "true"
+          TEN_ENABLE_BACKTRACE_DUMP: "true"
+        run: |
+          chmod +x out/linux/x64/tests/standalone/ten_utils_unit_test
+          out/linux/x64/tests/standalone/ten_utils_unit_test || { echo "test failed"; exit 1; }
+
+      - name: Run Tests (ten_runtime_unit_test)
+        env:
+          ASAN_OPTIONS: detect_leaks=1:detect_stack_use_after_return=1:color=always:unmap_shadow_on_exit=1:abort_on_error=1
+          MALLOC_CHECK_: 3
+          TEN_ENABLE_MEMORY_TRACKING: "true"
+          TEN_ENABLE_BACKTRACE_DUMP: "true"
+        run: |
+          chmod +x out/linux/x64/tests/standalone/ten_runtime_unit_test
+          out/linux/x64/tests/standalone/ten_runtime_unit_test || { echo "test failed"; exit 1; }
+
+      - name: Run Tests (ten_runtime_smoke_test)
+        env:
+          ASAN_OPTIONS: detect_leaks=1:detect_stack_use_after_return=1:color=always:unmap_shadow_on_exit=1:abort_on_error=1
+          MALLOC_CHECK_: 3
+          TEN_ENABLE_MEMORY_TRACKING: "true"
+          TEN_ENABLE_BACKTRACE_DUMP: "true"
+        run: |
+          chmod +x out/linux/x64/tests/standalone/ten_runtime_smoke_test
+          out/linux/x64/tests/standalone/ten_runtime_smoke_test || { echo "test failed"; exit 1; }
 
       - name: Upload ten_packages
         uses: actions/upload-artifact@v3
         with:
           name: ten_packages-linux-ubuntu1804-x64-gcc-${{ matrix.build_type }}
           path: |
-            out/linux/x64/ten_packages/system
-            out/linux/x64/ten_packages/extension_group
+            out/linux/x64/ten_packages/system/ten_runtime
+            out/linux/x64/ten_packages/system/ten_runtime_go
+            out/linux/x64/ten_packages/system/ten_runtime_python
             out/linux/x64/ten_packages/extension/default_extension_cpp
             out/linux/x64/ten_packages/extension/default_extension_go
             out/linux/x64/ten_packages/extension/default_extension_python
+            out/linux/x64/ten_packages/extension/default_async_extension_python
             out/linux/x64/ten_packages/extension/py_init_extension_cpp
 
       - name: Package assets
@@ -67,14 +103,16 @@ jobs:
         run: |
           cd out/linux/x64
           zip -vr ten_packages-linux-ubuntu1804-x64-gcc-${{ matrix.build_type }}.zip \
-            ten_packages/system \
-            ten_packages/extension_group \
+            ten_packages/system/ten_runtime \
+            ten_packages/system/ten_runtime_go \
+            ten_packages/system/ten_runtime_python \
             ten_packages/extension/default_extension_cpp \
             ten_packages/extension/default_extension_go \
             ten_packages/extension/default_extension_python \
+            ten_packages/extension/default_async_extension_python \
             ten_packages/extension/py_init_extension_cpp
 
-      - name: Release assets
+      - name: Publish to release assets
         uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/tags/')
         with:

@@ -47,7 +47,7 @@
       "request": "launch",
       "program": "${workspaceFolder}/out/linux/x64/tests/standalone/ten_runtime_unit_test",
       "args": [
-        "--gtest_filter=SchemaTest.SchemaStoreValidateProperty"
+        "--gtest_filter=TenErrorTest.cpp_thread"
       ],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}/out/linux/x64/",
@@ -59,6 +59,14 @@
         {
           "name": "LD_PRELOAD",
           "value": "/usr/lib/gcc/x86_64-linux-gnu/10/libasan.so"
+        },
+        {
+          "name": "TEN_ENABLE_MEMORY_TRACKING",
+          "value": "true"
+        },
+        {
+          "name": "TEN_ENABLE_BACKTRACE_DUMP",
+          "value": "true"
         }
       ],
       "externalConsole": false,
@@ -371,9 +379,10 @@
       "program": "${workspaceFolder}/out/linux/x64/ten_manager/bin/tman",
       "cwd": "${workspaceFolder}/out/linux/x64/",
       "args": [
+        "--verbose",
         "dev-server",
-        "--base-dir=/home/wei/MyData/Temp/ASTRA.ai/agents",
-        "--port=49484"
+        "--base-dir=/home/sunxilin/ten_framework_internal_base/ten_framework/out/linux/x64/tests/ten_runtime/integration/python/two_async_extensions_in_different_groups_python/two_async_extensions_in_different_groups_python_app",
+        "--port=49483"
       ],
     },
     {
@@ -388,6 +397,18 @@
         "../../../tests/ten_runtime/integration/ten_manager/res/dest_manifest.json",
         "hello_world",
       ],
+    },
+    {
+      "name": "tman check graph (lldb)",
+      "type": "lldb",
+      "request": "launch",
+      "program": "${workspaceFolder}/core/src/ten_manager/target/x86_64-unknown-linux-gnu/debug/tman",
+      "cwd": "${workspaceFolder}/core/src/ten_manager/",
+      "args": [
+        "check",
+        "graph",
+        "/home/workspace/pcm-pusher"
+      ]
     },
     {
       "name": "ten_rust (rust)",

@@ -2,13 +2,18 @@
   "dependencies": [
     {
       "type": "extension",
-      "name": "default_extension_go",
-      "version": "0.1.0"
+      "name": "addon_a",
+      "version": "0.3.0-alpha"
+    },
+    {
+      "type": "extension",
+      "name": "addon_b",
+      "version": "0.3.0-alpha"
     },
     {
       "type": "protocol",
       "name": "msgpack",
-      "version": "0.1.0"
+      "version": "0.3.0-alpha"
     }
   ]
 }

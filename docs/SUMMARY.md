@@ -51,6 +51,7 @@
 * [Overview](ten_framework/ten_packages/overview.md)
 * [App](ten_framework/ten_packages/app.md)
 * [Extension](ten_framework/ten_packages/extension.md)
+* [Python Async Extension](ten_framework/ten_packages/python_async_extension.md)
 
 ### TEN Manager
 
@@ -60,3 +61,4 @@
 ## Tutorials
 
 * [How to debug with logs](tutorials/how_to_debug_with_logs.md)
+* [How to run local AI model in Python extension](tutorials/how_to_run_local_model_in_python_extensions.md)

@@ -3,18 +3,8 @@ name: Build - linux ubuntu2204
 on:
   release:
     types: [created]
-  push:
-    branches:
-      - "**"
-    paths-ignore:
-      - "tools/**"
-      - "docs/**"
-      - ".vscode/**"
-      - ".devcontainer/**"
-      - ".github/**"
-      - "!.github/workflows/build_linux_ubuntu2204.yml"
-      - "**.md"
   pull_request:
+    types: [opened, synchronize, reopened]
     paths-ignore:
       - "tools/**"
       - "docs/**"
@@ -25,7 +15,10 @@ on:
       - "**.md"
 
 jobs:
-  build:
+  build-linux-ubuntu2204:
+    concurrency:
+      group: build-linux-ubuntu2204-${{ github.head_ref }}-${{ matrix.compiler }}-${{ matrix.build_type }}
+      cancel-in-progress: true
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -39,6 +32,12 @@ jobs:
           fetch-depth: "0"
           submodules: "true"
 
+      - name: Update version
+        run: |
+          git config --global --add safe.directory $(pwd)
+          python3 tools/version/update_version_in_ten_framework.py
+          python3 tools/version/check_version_in_ten_framework.py
+
       - name: Build
         run: |
           export PATH=$(pwd)/core/ten_gn:$PATH
@@ -46,9 +45,57 @@ jobs:
           go env -w GOFLAGS="-buildvcs=false"
           go1.20.12 download
           rustup default nightly
-          tgn gen linux x64 ${{ matrix.build_type }} -- is_clang=${{ matrix.compiler == 'gcc' && 'false' || 'true' }} log_level=1 enable_serialized_actions=true ten_enable_test=false
+          tgn gen linux x64 ${{ matrix.build_type }} -- is_clang=${{ matrix.compiler == 'gcc' && 'false' || 'true' }} log_level=1 enable_serialized_actions=true ten_enable_integration_tests=false ten_enable_private_tests=false ten_rust_enable_tests=false ten_package_manager_enable_tests=false ten_rust_enable_gen_cargo_config=false
           tgn build linux x64 ${{ matrix.build_type }}
           tree -I 'gen|obj' out
+
+      - name: Run Tests (ten_utils_unit_test)
+        env:
+          ASAN_OPTIONS: detect_leaks=1:detect_stack_use_after_return=1:color=always:unmap_shadow_on_exit=1:abort_on_error=1
+          MALLOC_CHECK_: 3
+          TEN_ENABLE_MEMORY_TRACKING: "true"
+          TEN_ENABLE_BACKTRACE_DUMP: "true"
+        run: |
+          chmod +x out/linux/x64/tests/standalone/ten_utils_unit_test
+          out/linux/x64/tests/standalone/ten_utils_unit_test || { echo "test failed"; exit 1; }
+
+      - name: Run Tests (ten_runtime_unit_test)
+        env:
+          ASAN_OPTIONS: detect_leaks=1:detect_stack_use_after_return=1:color=always:unmap_shadow_on_exit=1:abort_on_error=1
+          MALLOC_CHECK_: 3
+          TEN_ENABLE_MEMORY_TRACKING: "true"
+          TEN_ENABLE_BACKTRACE_DUMP: "true"
+        run: |
+          chmod +x out/linux/x64/tests/standalone/ten_runtime_unit_test
+          out/linux/x64/tests/standalone/ten_runtime_unit_test || { echo "test failed"; exit 1; }
+
+      - name: Run Tests (ten_runtime_smoke_test)
+        env:
+          ASAN_OPTIONS: detect_leaks=1:detect_stack_use_after_return=1:color=always:unmap_shadow_on_exit=1:abort_on_error=1
+          MALLOC_CHECK_: 3
+          TEN_ENABLE_MEMORY_TRACKING: "true"
+          TEN_ENABLE_BACKTRACE_DUMP: "true"
+        run: |
+          chmod +x out/linux/x64/tests/standalone/ten_runtime_smoke_test
+          out/linux/x64/tests/standalone/ten_runtime_smoke_test || { echo "test failed"; exit 1; }
+
+      - name: Update supports before upload or publish
+        run: |
+          UPDATE_SUPPORTS_SCRIPT=$(pwd)/tools/supports/update_supports_in_manifest_json.py
+
+          cd out/linux/x64/ten_packages
+          ARRAY=(
+            "system/ten_runtime"
+            "system/ten_runtime_go"
+            "system/ten_runtime_python"
+            "extension/py_init_extension_cpp"
+          )
+
+          for item in "${ARRAY[@]}"; do
+            python3 ${UPDATE_SUPPORTS_SCRIPT} --os-arch-pairs linux:x64 --input-file ${item}/manifest.json --output-file ${item}/manifest.json --log-level 1
+            cat ${item}/manifest.json
+          done
+        shell: bash
 
       - name: Upload tman
         uses: actions/upload-artifact@v4
@@ -61,11 +108,13 @@ jobs:
         with:
           name: ten_packages-linux-x64-${{ matrix.compiler }}-${{ matrix.build_type }}
           path: |
-            out/linux/x64/ten_packages/system
-            out/linux/x64/ten_packages/extension_group
+            out/linux/x64/ten_packages/system/ten_runtime
+            out/linux/x64/ten_packages/system/ten_runtime_go
+            out/linux/x64/ten_packages/system/ten_runtime_python
             out/linux/x64/ten_packages/extension/default_extension_cpp
             out/linux/x64/ten_packages/extension/default_extension_go
             out/linux/x64/ten_packages/extension/default_extension_python
+            out/linux/x64/ten_packages/extension/default_async_extension_python
             out/linux/x64/ten_packages/extension/py_init_extension_cpp
 
       - name: Package assets
@@ -74,17 +123,44 @@ jobs:
           cd out/linux/x64
           zip -vr tman-linux-x64-${{ matrix.compiler }}-${{ matrix.build_type }}.zip ten_manager/bin/tman
           zip -vr ten_packages-linux-x64-${{ matrix.compiler }}-${{ matrix.build_type }}.zip \
-            ten_packages/system \
-            ten_packages/extension_group \
+            ten_packages/system/ten_runtime \
+            ten_packages/system/ten_runtime_go \
+            ten_packages/system/ten_runtime_python \
             ten_packages/extension/default_extension_cpp \
             ten_packages/extension/default_extension_go \
             ten_packages/extension/default_extension_python \
+            ten_packages/extension/default_async_extension_python \
             ten_packages/extension/py_init_extension_cpp
 
-      - name: Release assets
+      - name: Publish to release assets
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/')
         with:
           files: |
             out/linux/x64/tman-linux-x64-${{ matrix.compiler }}-${{ matrix.build_type }}.zip
             out/linux/x64/ten_packages-linux-x64-${{ matrix.compiler }}-${{ matrix.build_type }}.zip
+
+      - name: Publish release to TEN cloud store
+        if: ${{ startsWith(github.ref, 'refs/tags/') && matrix.compiler == 'gcc' && matrix.build_type == 'release' }}
+        run: |
+          TMAN_BIN=$(pwd)/out/linux/x64/ten_manager/bin/tman
+
+          cd out/linux/x64/ten_packages
+          ARRAY=(
+            "system/ten_runtime"
+            "system/ten_runtime_go"
+            "system/ten_runtime_python"
+            "extension/default_extension_cpp"
+            "extension/default_extension_go"
+            "extension/default_extension_python"
+            "extension/default_async_extension_python"
+            "extension/py_init_extension_cpp"
+          )
+
+          for item in "${ARRAY[@]}"; do
+            echo $item
+            cd $item
+            ${TMAN_BIN} --verbose --user-token ${{ secrets.TEN_CLOUD_STORE }} publish
+            cd -
+          done
+        shell: bash

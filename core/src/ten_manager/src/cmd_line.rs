@@ -88,12 +88,20 @@ fn create_cmd() -> clap::ArgMatches {
                 .help("Enable verbose output")
                 .action(clap::ArgAction::SetTrue),
         )
+        .arg(
+            Arg::new("ASSUME_YES")
+                .short('y')
+                .long("yes")
+                .help("Automatically answer 'yes' to all prompts")
+                .action(clap::ArgAction::SetTrue),
+        )
         .subcommand(crate::cmd::cmd_install::create_sub_cmd(&args_cfg))
         .subcommand(crate::cmd::cmd_uninstall::create_sub_cmd(&args_cfg))
         .subcommand(crate::cmd::cmd_package::create_sub_cmd(&args_cfg))
         .subcommand(crate::cmd::cmd_publish::create_sub_cmd(&args_cfg))
         .subcommand(crate::cmd::cmd_delete::create_sub_cmd(&args_cfg))
         .subcommand(crate::cmd::cmd_dev_server::create_sub_cmd(&args_cfg))
+        .subcommand(crate::cmd::cmd_check::create_sub_cmd(&args_cfg))
         .get_matches()
 }
 
@@ -107,6 +115,7 @@ pub fn parse_cmd(
     tman_config.user_token = matches.get_one::<String>("USER_TOKEN").cloned();
     tman_config.mi_mode = matches.get_flag("MI");
     tman_config.verbose = matches.get_flag("VERBOSE");
+    tman_config.assume_yes = matches.get_flag("ASSUME_YES");
 
     match matches.subcommand() {
         Some(("install", sub_cmd_args)) => crate::cmd::CommandData::Install(
@@ -131,6 +140,9 @@ pub fn parse_cmd(
                 crate::cmd::cmd_dev_server::parse_sub_cmd(sub_cmd_args),
             )
         }
+        Some(("check", sub_cmd_args)) => crate::cmd::CommandData::Check(
+            crate::cmd::cmd_check::parse_sub_cmd(sub_cmd_args),
+        ),
         _ => unreachable!("Command not found"),
     }
 }

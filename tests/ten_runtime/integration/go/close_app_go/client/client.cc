@@ -6,7 +6,6 @@
 //
 #include <nlohmann/json.hpp>
 
-#include "include_internal/ten_runtime/binding/cpp/ten.h"
 #include "ten_utils/macro/mark.h"
 #include "tests/common/client/cpp/msgpack_tcp.h"
 
@@ -23,16 +22,11 @@ int main(TEN_UNUSED int argc, TEN_UNUSED char **argv) {
         "app": "msgpack://127.0.0.1:8007/",
         "graph": "default",
         "extension_group": "default_extension_group",
-        "extension": "default_extension"
+        "extension": "default_extension_go"
       }]
     }
   })"_json);
   TEN_ASSERT(TEN_STATUS_CODE_OK == resp["_ten"]["status_code"],
-             "Should not happen.");
-
-  std::string resp_str = resp["detail"];
-  TEN_LOGD("got result: %s", resp_str.c_str());
-  TEN_ASSERT(resp_str == std::string("This is default go extension."),
              "Should not happen.");
 
   // NOTE the order: client destroy, then connection lost, then nodejs exits

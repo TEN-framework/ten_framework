@@ -14,37 +14,11 @@
       ]
     },
     "uri": {
-      "oneOf": [
-        {
-          "type": "string",
-          "const": "localhost"
-        },
-        {
-          "type": "string",
-          "format": "uri"
-        },
-        {
-          "type": "object",
-          "additionalProperties": false,
-          "required": [
-            "value"
-          ],
-          "properties": {
-            "value": {
-              "type": "string",
-              "format": "uri"
-            },
-            "tags": {
-              "type": "array",
-              "minItems": 1,
-              "items": {
-                "type": "string",
-                "minLength": 1
-              }
-            }
-          }
-        }
-      ]
+      "type": "string",
+      "format": "uri",
+      "not": {
+        "const": "localhost"
+      }
     },
     "notEmptyString": {
       "type": "string",
@@ -186,8 +160,7 @@
         "type": {
           "type": "string",
           "enum": [
-            "extension",
-            "extension_group"
+            "extension"
           ]
         },
         "name": {
