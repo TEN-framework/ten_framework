@@ -208,7 +208,7 @@ PyObject *ten_py_ten_env_get_property_string(PyObject *self, PyObject *args) {
     return ten_py_raise_py_value_error_exception("Failed to get property.");
   }
 
-  const char *str_value = ten_value_peek_c_str(value);
+  const char *str_value = ten_value_peek_raw_str(value);
 
   PyObject *result = PyUnicode_FromString(str_value);
 

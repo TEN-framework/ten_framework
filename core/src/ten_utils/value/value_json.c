@@ -17,11 +17,11 @@
 #include "ten_utils/value/value_is.h"
 #include "ten_utils/value/value_kv.h"
 
-static bool ten_value_init_from_json(ten_value_t *self, ten_json_t *json) {
+bool ten_value_init_from_json(ten_value_t *self, ten_json_t *json) {
   TEN_ASSERT(self && json, "Invalid argument.");
 
   if (!self || !json) {
-    return NULL;
+    return false;
   }
 
   switch (ten_json_get_type(json)) {
