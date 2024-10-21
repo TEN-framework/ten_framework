@@ -756,4 +756,4 @@ The `app` field in each node must met the following rules.
 
 - **Example (The `app` field in nodes is not equal to the `_ten::uri` of app)**:
 
-  Same as [Rule 4](#4-the-addons-declared-in-the-nodes-must-be-installed-in-the-app).
+  Same as [Rule 4](#id-4.-the-addons-declared-in-the-nodes-must-be-installed-in-the-app).
