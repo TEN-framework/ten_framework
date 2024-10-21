@@ -8,12 +8,12 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-#include "ten_utils/macro/check.h"
 #include "ten_runtime/common/errno.h"
 #include "ten_utils/container/list.h"
 #include "ten_utils/container/list_node.h"
 #include "ten_utils/lib/error.h"
 #include "ten_utils/lib/string.h"
+#include "ten_utils/macro/check.h"
 #include "ten_utils/value/type.h"
 #include "ten_utils/value/type_operation.h"
 #include "ten_utils/value/value.h"
@@ -558,7 +558,7 @@ ten_string_t *ten_value_peek_string(ten_value_t *self) {
 }
 
 // TODO(Liu): add error context.
-const char *ten_value_peek_c_str(ten_value_t *self) {
+const char *ten_value_peek_raw_str(ten_value_t *self) {
   if (!self) {
     return NULL;
   }

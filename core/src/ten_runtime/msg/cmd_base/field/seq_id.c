@@ -28,7 +28,7 @@ bool ten_cmd_base_put_seq_id_to_json(ten_msg_t *self, ten_json_t *json,
 
   ten_cmd_base_t *cmd = (ten_cmd_base_t *)self;
   ten_json_t *seq_id_json =
-      ten_json_create_string(ten_value_peek_c_str(&cmd->seq_id));
+      ten_json_create_string(ten_value_peek_raw_str(&cmd->seq_id));
   TEN_ASSERT(seq_id_json, "Should not happen.");
 
   ten_json_object_set_new(ten_json, TEN_STR_SEQ_ID, seq_id_json);
@@ -70,7 +70,7 @@ void ten_cmd_base_copy_seq_id(ten_msg_t *self, ten_msg_t *src,
 
   ten_string_init_formatted(
       ten_value_peek_string(&((ten_cmd_base_t *)self)->seq_id), "%s",
-      ten_value_peek_c_str(&((ten_cmd_base_t *)src)->seq_id));
+      ten_value_peek_raw_str(&((ten_cmd_base_t *)src)->seq_id));
 }
 
 bool ten_cmd_base_process_seq_id(ten_msg_t *self,

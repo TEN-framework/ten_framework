@@ -16,7 +16,7 @@ void ten_msgpack_cmd_id_serialize(ten_msg_t *self, msgpack_packer *pck) {
              "Invalid argument.");
 
   int rc = msgpack_pack_str_with_body(
-      pck, ten_value_peek_c_str(&(((ten_cmd_base_t *)self)->cmd_id)),
+      pck, ten_value_peek_raw_str(&(((ten_cmd_base_t *)self)->cmd_id)),
       ten_string_len(
           ten_value_peek_string(&(((ten_cmd_base_t *)self)->cmd_id))));
   TEN_ASSERT(rc == 0, "Should not happen.");

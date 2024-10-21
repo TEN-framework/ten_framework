@@ -368,14 +368,14 @@ void ten_loc_init_from_value(ten_loc_t *self, ten_value_t *value) {
 
   if (ten_value_object_peek(value, TEN_STR_APP)) {
     const char *app_str =
-        ten_value_peek_c_str(ten_value_object_peek(value, TEN_STR_APP));
+        ten_value_peek_raw_str(ten_value_object_peek(value, TEN_STR_APP));
 
     ten_string_init_from_c_str(&self->app_uri, app_str, strlen(app_str));
   }
 
   if (ten_value_object_peek(value, TEN_STR_GRAPH)) {
     const char *graph_str =
-        ten_value_peek_c_str(ten_value_object_peek(value, TEN_STR_GRAPH));
+        ten_value_peek_raw_str(ten_value_object_peek(value, TEN_STR_GRAPH));
 
     ten_string_init_from_c_str(&self->graph_id, graph_str, strlen(graph_str));
   }
@@ -390,12 +390,13 @@ void ten_loc_init_from_value(ten_loc_t *self, ten_value_t *value) {
                  "name of extension_group must be a string.");
 
       const char *group_name_str =
-          ten_value_peek_c_str(extension_group_name_value);
+          ten_value_peek_raw_str(extension_group_name_value);
 
       ten_string_init_from_c_str(&self->extension_group_name, group_name_str,
                                  strlen(group_name_str));
     } else if (ten_value_is_string(extension_group_value)) {
-      const char *group_name_str = ten_value_peek_c_str(extension_group_value);
+      const char *group_name_str =
+          ten_value_peek_raw_str(extension_group_value);
 
       ten_string_init_from_c_str(&self->extension_group_name, group_name_str,
                                  strlen(group_name_str));
@@ -414,12 +415,12 @@ void ten_loc_init_from_value(ten_loc_t *self, ten_value_t *value) {
                  "name of extension must be a string.");
 
       const char *extension_name_str =
-          ten_value_peek_c_str(extension_name_value);
+          ten_value_peek_raw_str(extension_name_value);
 
       ten_string_init_from_c_str(&self->extension_name, extension_name_str,
                                  strlen(extension_name_str));
     } else if (ten_value_is_string(extension_value)) {
-      const char *extension_name_str = ten_value_peek_c_str(extension_value);
+      const char *extension_name_str = ten_value_peek_raw_str(extension_value);
 
       ten_string_init_from_c_str(&self->extension_name, extension_name_str,
                                  strlen(extension_name_str));

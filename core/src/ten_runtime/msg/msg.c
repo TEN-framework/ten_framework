@@ -472,7 +472,8 @@ static void ten_msg_clear_dest_msgpack_serialization_hack(
   if (value) {
     TEN_ASSERT(ten_value_is_string(value), "Should not happen.");
 
-    ten_json_t *json = ten_json_from_string(ten_value_peek_c_str(value), NULL);
+    ten_json_t *json =
+        ten_json_from_string(ten_value_peek_raw_str(value), NULL);
     TEN_ASSERT(ten_json_check_integrity(json), "Should not happen.");
 
     ten_json_object_del(json, TEN_STR_DEST);
@@ -1000,7 +1001,7 @@ static bool ten_raw_msg_dump_internal(ten_msg_t *msg, ten_error_t *err,
 
   TEN_ASSERT(msg_json, "Failed to convert msg type(%s), key(%s) to JSON.",
              ten_msg_type_to_string(msg->type),
-             ten_value_peek_c_str(&msg->name));
+             ten_value_peek_raw_str(&msg->name));
 
   bool must_free = false;
   const char *msg_json_str = ten_json_to_string(msg_json, NULL, &must_free);
@@ -1235,7 +1236,7 @@ bool ten_msg_has_locked_res(ten_shared_ptr_t *self) {
 
 const char *ten_raw_msg_get_name(ten_msg_t *self) {
   TEN_ASSERT(self && ten_raw_msg_check_integrity(self), "Should not happen.");
-  return ten_value_peek_c_str(&self->name);
+  return ten_value_peek_raw_str(&self->name);
 }
 
 const char *ten_msg_get_name(ten_shared_ptr_t *self) {

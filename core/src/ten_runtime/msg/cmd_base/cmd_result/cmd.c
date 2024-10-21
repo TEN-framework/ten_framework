@@ -382,7 +382,7 @@ bool ten_raw_cmd_result_validate_schema(ten_msg_t *status_msg,
              "Invalid argument.");
 
   const char *original_cmd_name =
-      ten_value_peek_c_str(&cmd_result->original_cmd_name);
+      ten_value_peek_raw_str(&cmd_result->original_cmd_name);
   TEN_ASSERT(original_cmd_name && strlen(original_cmd_name),
              "Invalid argument.");
 

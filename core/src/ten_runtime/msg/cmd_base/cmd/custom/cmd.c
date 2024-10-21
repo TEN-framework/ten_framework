@@ -143,7 +143,7 @@ static void ten_raw_cmd_custom_to_json_msgpack_serialization_hack(
     // fields in that json to the json returned.
 
     ten_json_t *payload_json =
-        ten_json_from_string(ten_value_peek_c_str(json_value), NULL);
+        ten_json_from_string(ten_value_peek_raw_str(json_value), NULL);
     TEN_ASSERT(ten_json_check_integrity(payload_json), "Should not happen.");
 
     ten_json_object_update_missing(json, payload_json);
@@ -248,8 +248,8 @@ bool ten_raw_cmd_custom_set_ten_property(ten_msg_t *self, ten_list_t *paths,
                     ten_string_get_raw_str(&item->obj_item_str))) {
           if (ten_value_is_string(value)) {
             ten_value_init_string_with_size(
-                &self->name, ten_value_peek_c_str(value),
-                strlen(ten_value_peek_c_str(value)));
+                &self->name, ten_value_peek_raw_str(value),
+                strlen(ten_value_peek_raw_str(value)));
             success = true;
           } else {
             success = false;

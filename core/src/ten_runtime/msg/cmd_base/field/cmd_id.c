@@ -27,7 +27,7 @@ bool ten_cmd_base_put_cmd_id_to_json(ten_msg_t *self, ten_json_t *json,
 
   ten_cmd_base_t *cmd = (ten_cmd_base_t *)self;
   ten_json_t *cmd_id_json =
-      ten_json_create_string(ten_value_peek_c_str(&cmd->cmd_id));
+      ten_json_create_string(ten_value_peek_raw_str(&cmd->cmd_id));
   TEN_ASSERT(cmd_id_json, "Should not happen.");
 
   ten_json_object_set_new(ten_json, TEN_STR_CMD_ID, cmd_id_json);
@@ -71,7 +71,7 @@ void ten_cmd_base_copy_cmd_id(ten_msg_t *self, ten_msg_t *src,
 
   ten_string_init_formatted(
       ten_value_peek_string(&((ten_cmd_base_t *)self)->cmd_id), "%s",
-      ten_value_peek_c_str(&((ten_cmd_base_t *)src)->cmd_id));
+      ten_value_peek_raw_str(&((ten_cmd_base_t *)src)->cmd_id));
 }
 
 bool ten_cmd_base_process_cmd_id(ten_msg_t *self,

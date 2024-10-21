@@ -16,7 +16,7 @@ void ten_msgpack_cmd_seq_id_serialize(ten_msg_t *self, msgpack_packer *pck) {
              "Invalid argument.");
 
   const char *seq_id =
-      ten_value_peek_c_str(&(((ten_cmd_base_t *)self)->seq_id));
+      ten_value_peek_raw_str(&(((ten_cmd_base_t *)self)->seq_id));
 
   int rc = msgpack_pack_str_with_body(pck, seq_id, strlen(seq_id));
   TEN_ASSERT(rc == 0, "Should not happen.");
