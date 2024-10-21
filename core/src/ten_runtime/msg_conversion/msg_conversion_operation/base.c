@@ -82,7 +82,7 @@ ten_msg_conversion_operation_t *ten_msg_conversion_operation_from_value(
     return NULL;
   }
 
-  const char *type_str = ten_value_peek_string(type_value);
+  const char *type_str = ten_value_peek_c_str(type_value);
   if (!type_str) {
     TEN_ASSERT(0, "Should not happen.");
     return NULL;

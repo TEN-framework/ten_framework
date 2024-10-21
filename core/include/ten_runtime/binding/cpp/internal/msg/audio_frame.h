@@ -134,7 +134,7 @@ class audio_frame_t : public msg_t {
   }
 
   bool alloc_buf(size_t size, error_t *err = nullptr) {
-    return ten_audio_frame_alloc_data(c_msg, size) != nullptr;
+    return ten_audio_frame_alloc_buf(c_msg, size) != nullptr;
   }
 
   buf_t lock_buf(error_t *err = nullptr) const {

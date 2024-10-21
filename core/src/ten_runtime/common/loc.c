@@ -9,10 +9,14 @@
 #include <stdlib.h>
 
 #include "include_internal/ten_runtime/common/constant_str.h"
+#include "ten_utils/container/list.h"
+#include "ten_utils/container/list_ptr.h"
 #include "ten_utils/lib/alloc.h"
 #include "ten_utils/lib/json.h"
 #include "ten_utils/lib/string.h"
 #include "ten_utils/macro/check.h"
+#include "ten_utils/value/value.h"
+#include "ten_utils/value/value_kv.h"
 
 bool ten_loc_check_integrity(ten_loc_t *self) {
   TEN_ASSERT(self, "Should not happen.");
@@ -45,6 +49,17 @@ ten_loc_t *ten_loc_create(const char *app_uri, const char *graph_id,
   ten_loc_t *self = ten_loc_create_empty();
 
   ten_loc_set(self, app_uri, graph_id, extension_group_name, extension_name);
+  TEN_ASSERT(ten_loc_check_integrity(self), "Should not happen.");
+
+  return self;
+}
+
+ten_loc_t *ten_loc_create_from_value(ten_value_t *value) {
+  TEN_ASSERT(value && ten_value_check_integrity(value), "Should not happen.");
+
+  ten_loc_t *self = ten_loc_create_empty();
+
+  ten_loc_init_from_value(self, value);
   TEN_ASSERT(ten_loc_check_integrity(self), "Should not happen.");
 
   return self;
@@ -235,6 +250,55 @@ ten_json_t *ten_loc_to_json(ten_loc_t *self) {
   return loc_json;
 }
 
+ten_value_t *ten_loc_to_value(ten_loc_t *self) {
+  TEN_ASSERT(self && ten_loc_check_integrity(self), "Should not happen.");
+
+  ten_list_t loc_fields = TEN_LIST_INIT_VAL;
+
+  if (!ten_string_is_empty(&self->app_uri)) {
+    ten_list_push_ptr_back(
+        &loc_fields,
+        ten_value_kv_create(
+            TEN_STR_APP,
+            ten_value_create_string(ten_string_get_raw_str(&self->app_uri))),
+        (ten_ptr_listnode_destroy_func_t)ten_value_kv_destroy);
+  }
+
+  if (!ten_string_is_empty(&self->graph_id)) {
+    ten_list_push_ptr_back(
+        &loc_fields,
+        ten_value_kv_create(
+            TEN_STR_GRAPH,
+            ten_value_create_string(ten_string_get_raw_str(&self->graph_id))),
+        (ten_ptr_listnode_destroy_func_t)ten_value_kv_destroy);
+  }
+
+  if (!ten_string_is_empty(&self->extension_group_name)) {
+    ten_list_push_ptr_back(
+        &loc_fields,
+        ten_value_kv_create(TEN_STR_EXTENSION_GROUP,
+                            ten_value_create_string(ten_string_get_raw_str(
+                                &self->extension_group_name))),
+        (ten_ptr_listnode_destroy_func_t)ten_value_kv_destroy);
+  }
+
+  if (!ten_string_is_empty(&self->extension_name)) {
+    ten_list_push_ptr_back(
+        &loc_fields,
+        ten_value_kv_create(TEN_STR_EXTENSION,
+                            ten_value_create_string(
+                                ten_string_get_raw_str(&self->extension_name))),
+        (ten_ptr_listnode_destroy_func_t)ten_value_kv_destroy);
+  }
+
+  ten_value_t *loc_value = ten_value_create_object_with_move(&loc_fields);
+  TEN_ASSERT(loc_value, "Should not happen.");
+
+  ten_list_clear(&loc_fields);
+
+  return loc_value;
+}
+
 void ten_loc_init_from_json(ten_loc_t *self, ten_json_t *json) {
   TEN_ASSERT(self && json, "Should not happen.");
 
@@ -304,14 +368,14 @@ void ten_loc_init_from_value(ten_loc_t *self, ten_value_t *value) {
 
   if (ten_value_object_peek(value, TEN_STR_APP)) {
     const char *app_str =
-        ten_value_peek_string(ten_value_object_peek(value, TEN_STR_APP));
+        ten_value_peek_c_str(ten_value_object_peek(value, TEN_STR_APP));
 
     ten_string_init_from_c_str(&self->app_uri, app_str, strlen(app_str));
   }
 
   if (ten_value_object_peek(value, TEN_STR_GRAPH)) {
     const char *graph_str =
-        ten_value_peek_string(ten_value_object_peek(value, TEN_STR_GRAPH));
+        ten_value_peek_c_str(ten_value_object_peek(value, TEN_STR_GRAPH));
 
     ten_string_init_from_c_str(&self->graph_id, graph_str, strlen(graph_str));
   }
@@ -326,12 +390,12 @@ void ten_loc_init_from_value(ten_loc_t *self, ten_value_t *value) {
                  "name of extension_group must be a string.");
 
       const char *group_name_str =
-          ten_value_peek_string(extension_group_name_value);
+          ten_value_peek_c_str(extension_group_name_value);
 
       ten_string_init_from_c_str(&self->extension_group_name, group_name_str,
                                  strlen(group_name_str));
     } else if (ten_value_is_string(extension_group_value)) {
-      const char *group_name_str = ten_value_peek_string(extension_group_value);
+      const char *group_name_str = ten_value_peek_c_str(extension_group_value);
 
       ten_string_init_from_c_str(&self->extension_group_name, group_name_str,
                                  strlen(group_name_str));
@@ -350,12 +414,12 @@ void ten_loc_init_from_value(ten_loc_t *self, ten_value_t *value) {
                  "name of extension must be a string.");
 
       const char *extension_name_str =
-          ten_value_peek_string(extension_name_value);
+          ten_value_peek_c_str(extension_name_value);
 
       ten_string_init_from_c_str(&self->extension_name, extension_name_str,
                                  strlen(extension_name_str));
     } else if (ten_value_is_string(extension_value)) {
-      const char *extension_name_str = ten_value_peek_string(extension_value);
+      const char *extension_name_str = ten_value_peek_c_str(extension_value);
 
       ten_string_init_from_c_str(&self->extension_name, extension_name_str,
                                  strlen(extension_name_str));

@@ -130,7 +130,7 @@ bool ten_msg_conversion_operation_per_property_rule_fixed_value_to_json(
     }
 
     case TEN_TYPE_STRING: {
-      const char *value_str = ten_value_peek_string(self->value);
+      const char *value_str = ten_value_peek_c_str(self->value);
       ten_json_object_set_new(json, TEN_STR_VALUE,
                               ten_json_create_string(value_str));
       break;

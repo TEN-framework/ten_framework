@@ -335,7 +335,7 @@ ten_go_status_t ten_go_audio_frame_alloc_buf(uintptr_t bridge_addr, int size) {
   TEN_ASSERT(self && ten_go_msg_check_integrity(self), "Invalid argument.");
 
   ten_shared_ptr_t *c_audio_frame = ten_go_msg_c_msg(self);
-  uint8_t *data = ten_audio_frame_alloc_data(c_audio_frame, size);
+  uint8_t *data = ten_audio_frame_alloc_buf(c_audio_frame, size);
   if (!data) {
     ten_go_status_set(&status, TEN_ERRNO_GENERIC, "failed to allocate memory");
   }

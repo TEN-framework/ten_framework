@@ -18,6 +18,7 @@
 #include "ten_utils/lib/smart_ptr.h"
 #include "ten_utils/macro/check.h"
 #include "ten_utils/macro/mark.h"
+#include "ten_utils/value/value.h"
 #include "ten_utils/value/value_get.h"
 
 bool ten_raw_data_check_integrity(ten_data_t *self) {
@@ -201,9 +202,19 @@ ten_json_t *ten_raw_data_as_msg_to_json(ten_msg_t *self, ten_error_t *err) {
 
 bool ten_raw_data_loop_all_fields(ten_msg_t *self,
                                   ten_raw_msg_process_one_field_func_t cb,
-                                  void *user_data, ten_error_t *err) {
-  // TODO(Wei): Implement the fields traversal algorithm here.
-  return cb(self, NULL, user_data, err);
+                                  TEN_UNUSED void *user_data,
+                                  ten_error_t *err) {
+  for (size_t i = 0; i < ten_data_fields_info_size; ++i) {
+    ten_msg_process_field_func_t process_field =
+        ten_data_fields_info[i].process_field;
+    if (process_field) {
+      if (!process_field(self, cb, user_data, err)) {
+        return false;
+      }
+    }
+  }
+
+  return true;
 }
 
 static uint8_t *ten_raw_data_alloc_buf(ten_data_t *self, size_t size) {
@@ -251,9 +262,9 @@ bool ten_raw_data_like_set_ten_property(ten_msg_t *self, ten_list_t *paths,
         if (!strcmp(TEN_STR_NAME,
                     ten_string_get_raw_str(&item->obj_item_str))) {
           if (ten_value_is_string(value)) {
-            ten_string_init_from_c_str(&self->name,
-                                       ten_value_peek_string(value),
-                                       strlen(ten_value_peek_string(value)));
+            ten_value_init_string_with_size(
+                &self->name, ten_value_peek_c_str(value),
+                strlen(ten_value_peek_c_str(value)));
             success = true;
           } else {
             success = false;

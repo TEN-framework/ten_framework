@@ -189,7 +189,7 @@ bool ten_placeholder_resolve(ten_placeholder_t *self,
           ten_value_reset_to_null(placeholder_value);
         } else {
           const char *default_value =
-              ten_value_peek_string(&self->default_value);
+              ten_value_peek_c_str(&self->default_value);
           ten_value_reset_to_string_with_size(placeholder_value, default_value,
                                               strlen(default_value));
         }

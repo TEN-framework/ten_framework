@@ -225,7 +225,7 @@ ten_msg_conversion_operation_per_property_rule_from_value(ten_value_t *value,
       &self->property_path, "%s",
       ten_value_peek_c_str(ten_value_object_peek(value, TEN_STR_PATH)));
 
-  const char *conversion_mode_str = ten_value_peek_string(
+  const char *conversion_mode_str = ten_value_peek_c_str(
       ten_value_object_peek(value, TEN_STR_CONVERSION_MODE));
 
   self->conversion_mode =

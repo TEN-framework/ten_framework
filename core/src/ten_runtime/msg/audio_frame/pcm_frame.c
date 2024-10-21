@@ -44,7 +44,7 @@ int32_t ten_raw_audio_frame_get_samples_per_channel(ten_audio_frame_t *self) {
 
 ten_buf_t *ten_raw_audio_frame_peek_data(ten_audio_frame_t *self) {
   TEN_ASSERT(self, "Should not happen.");
-  return ten_value_peek_buf(&self->data);
+  return ten_value_peek_buf(&self->buf);
 }
 
 int32_t ten_raw_audio_frame_get_sample_rate(ten_audio_frame_t *self) {
@@ -148,9 +148,9 @@ static uint8_t *ten_raw_audio_frame_alloc_data(ten_audio_frame_t *self,
     return NULL;
   }
 
-  ten_value_init_buf(&self->data, size);
+  ten_value_init_buf(&self->buf, size);
 
-  return ten_value_peek_buf(&self->data)->data;
+  return ten_value_peek_buf(&self->buf)->data;
 }
 
 static void ten_raw_audio_frame_init(ten_audio_frame_t *self) {
@@ -166,7 +166,7 @@ static void ten_raw_audio_frame_init(ten_audio_frame_t *self) {
   ten_value_init_int32(&self->number_of_channel, 0);
   ten_value_init_int32(&self->data_fmt, TEN_AUDIO_FRAME_DATA_FMT_INTERLEAVE);
   ten_value_init_int32(&self->line_size, 0);
-  ten_value_init_buf(&self->data, 0);
+  ten_value_init_buf(&self->buf, 0);
   ten_value_init_bool(&self->is_eof, false);
 }
 
@@ -189,7 +189,7 @@ void ten_raw_audio_frame_destroy(ten_audio_frame_t *self) {
   TEN_ASSERT(self, "Should not happen.");
 
   ten_raw_msg_deinit(&self->msg_hdr);
-  ten_value_deinit(&self->data);
+  ten_value_deinit(&self->buf);
 
   TEN_FREE(self);
 }
@@ -306,7 +306,7 @@ bool ten_audio_frame_set_data_fmt(ten_shared_ptr_t *self,
                                           data_fmt);
 }
 
-uint8_t *ten_audio_frame_alloc_data(ten_shared_ptr_t *self, size_t size) {
+uint8_t *ten_audio_frame_alloc_buf(ten_shared_ptr_t *self, size_t size) {
   TEN_ASSERT(self, "Should not happen.");
 
   return ten_raw_audio_frame_alloc_data(ten_shared_ptr_get_data(self), size);
@@ -336,7 +336,7 @@ ten_msg_t *ten_raw_audio_frame_as_msg_clone(ten_msg_t *self,
   ten_value_copy(&self_frame->data_fmt, &new_frame->data_fmt);
   ten_value_copy(&self_frame->line_size, &new_frame->line_size);
   ten_value_copy(&self_frame->is_eof, &new_frame->is_eof);
-  ten_value_copy(&self_frame->data, &new_frame->data);
+  ten_value_copy(&self_frame->buf, &new_frame->buf);
 
   for (size_t i = 0; i < ten_audio_frame_fields_info_size; ++i) {
     if (excluded_field_ids) {

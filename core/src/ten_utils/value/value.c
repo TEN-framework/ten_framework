@@ -351,7 +351,7 @@ static bool ten_value_destruct_string(ten_value_t *self,
   return true;
 }
 
-static bool ten_value_init_string(ten_value_t *self) {
+bool ten_value_init_string(ten_value_t *self) {
   TEN_ASSERT(self, "Invalid argument.");
 
   ten_value_init(self);

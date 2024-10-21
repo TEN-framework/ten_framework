@@ -26,12 +26,12 @@ typedef struct ten_cmd_result_t {
 
   ten_signature_t signature;
 
-  TEN_MSG_TYPE original_cmd_type;
-  ten_string_t original_cmd_name;
+  ten_value_t original_cmd_type;  // int32 (TEN_MSG_TYPE)
+  ten_value_t original_cmd_name;  // string
 
-  TEN_STATUS_CODE status_code;
+  ten_value_t status_code;  // int32 (TEN_STATUS_CODE)
 
-  bool is_final;
+  ten_value_t is_final;  // bool
 } ten_cmd_result_t;
 
 TEN_RUNTIME_PRIVATE_API bool ten_raw_cmd_result_validate_schema(

@@ -13,7 +13,7 @@
 typedef struct ten_cmd_timeout_t {
   ten_cmd_t cmd_hdr;
 
-  uint32_t timer_id;
+  ten_value_t timer_id;  // uint32
 } ten_cmd_timeout_t;
 
 TEN_RUNTIME_PRIVATE_API void ten_cmd_timeout_set_timer_id(

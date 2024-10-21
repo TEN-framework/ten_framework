@@ -543,7 +543,7 @@ ten_list_t *ten_value_peek_array(ten_value_t *self) {
   return NULL;
 }
 
-const char *ten_value_peek_string(ten_value_t *self) {
+ten_string_t *ten_value_peek_string(ten_value_t *self) {
   if (!self) {
     return NULL;
   }
@@ -551,7 +551,7 @@ const char *ten_value_peek_string(ten_value_t *self) {
   TEN_ASSERT(ten_value_check_integrity(self), "Invalid argument.");
 
   if (ten_value_is_string(self)) {
-    return ten_string_get_raw_str(&self->content.string);
+    return &self->content.string;
   } else {
     return NULL;
   }

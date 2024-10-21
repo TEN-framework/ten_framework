@@ -13,10 +13,22 @@
 
 typedef struct ten_msg_t ten_msg_t;
 
-typedef bool (*ten_raw_msg_process_one_field_func_t)(ten_msg_t *msg,
-                                                     ten_value_kv_t *field,
-                                                     void *user_data,
-                                                     ten_error_t *err);
+typedef struct ten_msg_field_process_data_t {
+  const char *field_name;
+  ten_value_t *field_value;
+
+  bool is_user_defined_properties;
+
+  bool value_modified;
+} ten_msg_field_process_data_t;
+
+typedef bool (*ten_raw_msg_process_one_field_func_t)(
+    ten_msg_t *msg, ten_msg_field_process_data_t *field, void *user_data,
+    ten_error_t *err);
+
+TEN_RUNTIME_API void ten_msg_field_process_data_init(
+    ten_msg_field_process_data_t *field, const char *field_name,
+    ten_value_t *field_value, bool is_user_defined_properties);
 
 TEN_RUNTIME_API bool ten_raw_msg_loop_all_fields(
     ten_msg_t *self, ten_raw_msg_process_one_field_func_t cb, void *user_data,

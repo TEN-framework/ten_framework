@@ -522,7 +522,7 @@ void ten_go_ten_value_get_type_and_size(ten_value_t *self, uint8_t *type,
     }
 
     case TEN_TYPE_STRING: {
-      const char *str = ten_value_peek_string(self);
+      const char *str = ten_value_peek_c_str(self);
       TEN_ASSERT(str, "Should not happen.");
 
       *size = strlen(str);
@@ -545,7 +545,7 @@ void ten_go_ten_value_get_string(ten_value_t *self, void *value,
     return;
   }
 
-  const char *str_value = ten_value_peek_string(self);
+  const char *str_value = ten_value_peek_c_str(self);
   TEN_ASSERT(str_value, "Should not happen");
 
   // The value is a pointer to a GO slice which has no space for the null

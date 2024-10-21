@@ -38,7 +38,7 @@ typedef struct ten_audio_frame_t {
 
   ten_value_t data_fmt;  // int32 (TEN_AUDIO_FRAME_DATA_FMT). Format of `data`.
 
-  ten_value_t data;  // buf
+  ten_value_t buf;  // buf
 
   // TODO(Liu): Add data size info for each channel.
   //
