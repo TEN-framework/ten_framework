@@ -99,3 +99,9 @@ ten_raw_cmd_result_get_status_code(ten_cmd_result_t *self);
 
 TEN_RUNTIME_API ten_json_t *ten_cmd_result_to_json(ten_shared_ptr_t *self,
                                                    ten_error_t *err);
+
+TEN_RUNTIME_PRIVATE_API bool ten_raw_cmd_result_is_final(ten_cmd_result_t *self,
+                                                         ten_error_t *err);
+
+TEN_RUNTIME_PRIVATE_API bool ten_raw_cmd_result_set_final(
+    ten_cmd_result_t *self, bool is_final, ten_error_t *err);

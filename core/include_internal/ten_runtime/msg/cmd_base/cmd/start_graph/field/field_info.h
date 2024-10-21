@@ -24,7 +24,7 @@
 #endif
 
 static const ten_msg_field_info_t ten_cmd_start_graph_fields_info[] = {
-    [TEN_CMD_CONNECT_FIELD_CMDHDR] =
+    [TEN_CMD_CONNECT_FIELD_CMD_HDR] =
         {
             .field_name = NULL,
             .put_field_to_json = ten_raw_cmd_put_field_to_json,

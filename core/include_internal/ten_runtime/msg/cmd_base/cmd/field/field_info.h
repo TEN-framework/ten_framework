@@ -10,12 +10,8 @@
 
 #include <stddef.h>
 
-#include "include_internal/ten_runtime/common/constant_str.h"
-#include "include_internal/ten_runtime/msg/cmd_base/cmd/cmd.h"
 #include "include_internal/ten_runtime/msg/cmd_base/cmd/field/field.h"
 #include "include_internal/ten_runtime/msg/cmd_base/cmd_base.h"
-#include "include_internal/ten_runtime/msg/cmd_base/field/field.h"
-#include "include_internal/ten_runtime/msg/field/field.h"
 #include "include_internal/ten_runtime/msg/field/field_info.h"
 
 #ifdef __cplusplus

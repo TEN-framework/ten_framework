@@ -20,7 +20,7 @@
 #endif
 
 static const ten_msg_field_info_t ten_cmd_custom_fields_info[] = {
-    [TEN_CMD_CUSTOM_FIELD_CMDHDR] =
+    [TEN_CMD_CUSTOM_FIELD_CMD_HDR] =
         {
             .field_name = NULL,
             .field_id = -1,
