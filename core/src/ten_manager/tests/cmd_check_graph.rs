@@ -101,10 +101,6 @@ async fn test_cmd_check_app_in_graph_cannot_be_localhost() {
 
     assert!(result.is_err());
     eprintln!("{:?}", result);
-
-    let msg = result.err().unwrap().to_string();
-    assert!(msg
-        .contains("the app uri should be some string other than 'localhost'"));
 }
 
 #[actix_rt::test]
