@@ -80,17 +80,17 @@ use crate::pkg_info::localhost;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum GraphNodeAppDeclaration {
-    AllNone,
-    Uniform,
-    Mixed,
+    NoneDeclared,
+    UniformDeclared,
+    MixedDeclared,
 }
 
 impl GraphNodeAppDeclaration {
     pub fn is_single_app_graph(&self) -> bool {
         match self {
-            GraphNodeAppDeclaration::AllNone => true,
-            GraphNodeAppDeclaration::Uniform => true,
-            GraphNodeAppDeclaration::Mixed => false,
+            GraphNodeAppDeclaration::NoneDeclared => true,
+            GraphNodeAppDeclaration::UniformDeclared => true,
+            GraphNodeAppDeclaration::MixedDeclared => false,
         }
     }
 }
@@ -118,7 +118,7 @@ impl FromStr for Graph {
 }
 
 impl Graph {
-    fn determine_app_declaration_of_graph(
+    fn determine_graph_node_app_declaration(
         &self,
     ) -> Result<GraphNodeAppDeclaration> {
         let mut nodes_have_declared_app = 0;
@@ -148,25 +148,28 @@ impl Graph {
         }
 
         match app_uris.len() {
-            0 => Ok(GraphNodeAppDeclaration::AllNone),
-            1 => Ok(GraphNodeAppDeclaration::Uniform),
-            _ => Ok(GraphNodeAppDeclaration::Mixed),
+            0 => Ok(GraphNodeAppDeclaration::NoneDeclared),
+            1 => Ok(GraphNodeAppDeclaration::UniformDeclared),
+            _ => Ok(GraphNodeAppDeclaration::MixedDeclared),
         }
     }
 
     pub fn validate_and_complete(&mut self) -> Result<()> {
-        let app_declaration = self.determine_app_declaration_of_graph()?;
+        let graph_node_app_declaration =
+            self.determine_graph_node_app_declaration()?;
 
         for (idx, node) in &mut self.nodes.iter_mut().enumerate() {
-            node.validate_and_complete(&app_declaration)
+            node.validate_and_complete(&graph_node_app_declaration)
                 .map_err(|e| anyhow::anyhow!("nodes[{}]: {}", idx, e))?;
         }
 
         if let Some(connections) = &mut self.connections {
             for (idx, connection) in connections.iter_mut().enumerate() {
-                connection.validate_and_complete(&app_declaration).map_err(
-                    |e| anyhow::anyhow!("connections[{}].{}", idx, e),
-                )?;
+                connection
+                    .validate_and_complete(&graph_node_app_declaration)
+                    .map_err(|e| {
+                        anyhow::anyhow!("connections[{}].{}", idx, e)
+                    })?;
             }
         }
 
@@ -228,9 +231,9 @@ pub struct GraphNode {
 impl GraphNode {
     fn validate_and_complete(
         &mut self,
-        app_declaration: &GraphNodeAppDeclaration,
+        graph_node_app_declaration: &GraphNodeAppDeclaration,
     ) -> Result<()> {
-        // extension node must specify extension_group name.
+        // Extension node must specify extension_group name.
         if self.node_type == PkgType::Extension
             && self.extension_group.is_none()
         {
@@ -242,11 +245,12 @@ impl GraphNode {
 
         if let Some(app) = &self.app {
             if app.as_str() == localhost() {
-                let err_msg = if app_declaration.is_single_app_graph() {
-                    constants::ERR_MSG_APP_LOCALHOST_DISALLOWED_SINGLE
-                } else {
-                    constants::ERR_MSG_APP_LOCALHOST_DISALLOWED_MULTI
-                };
+                let err_msg =
+                    if graph_node_app_declaration.is_single_app_graph() {
+                        constants::ERR_MSG_APP_LOCALHOST_DISALLOWED_SINGLE
+                    } else {
+                        constants::ERR_MSG_APP_LOCALHOST_DISALLOWED_MULTI
+                    };
 
                 return Err(anyhow::anyhow!(err_msg));
             }
@@ -285,26 +289,31 @@ pub struct GraphConnection {
 impl GraphConnection {
     fn validate_and_complete(
         &mut self,
-        app_declaration: &GraphNodeAppDeclaration,
+        graph_node_app_declaration: &GraphNodeAppDeclaration,
     ) -> Result<()> {
         if let Some(app) = &self.app {
             if app.as_str() == localhost() {
-                let err_msg = if app_declaration.is_single_app_graph() {
-                    constants::ERR_MSG_APP_LOCALHOST_DISALLOWED_SINGLE
-                } else {
-                    constants::ERR_MSG_APP_LOCALHOST_DISALLOWED_MULTI
-                };
+                let err_msg =
+                    if graph_node_app_declaration.is_single_app_graph() {
+                        constants::ERR_MSG_APP_LOCALHOST_DISALLOWED_SINGLE
+                    } else {
+                        constants::ERR_MSG_APP_LOCALHOST_DISALLOWED_MULTI
+                    };
 
                 return Err(anyhow::anyhow!(err_msg));
             }
 
-            if *app_declaration == GraphNodeAppDeclaration::AllNone {
+            if *graph_node_app_declaration
+                == GraphNodeAppDeclaration::NoneDeclared
+            {
                 return Err(anyhow::anyhow!(
                     constants::ERR_MSG_APP_SHOULD_NOT_DECLARED
                 ));
             }
         } else {
-            if *app_declaration != GraphNodeAppDeclaration::AllNone {
+            if *graph_node_app_declaration
+                != GraphNodeAppDeclaration::NoneDeclared
+            {
                 return Err(anyhow::anyhow!(
                     constants::ERR_MSG_APP_SHOULD_DECLARED
                 ));
@@ -316,7 +325,7 @@ impl GraphConnection {
         if let Some(cmd) = &mut self.cmd {
             for (idx, cmd_flow) in cmd.iter_mut().enumerate() {
                 cmd_flow
-                    .validate_and_complete(app_declaration)
+                    .validate_and_complete(graph_node_app_declaration)
                     .map_err(|e| anyhow::anyhow!("cmd[{}].{}", idx, e))?;
             }
         }
@@ -324,24 +333,28 @@ impl GraphConnection {
         if let Some(data) = &mut self.data {
             for (idx, data_flow) in data.iter_mut().enumerate() {
                 data_flow
-                    .validate_and_complete(app_declaration)
+                    .validate_and_complete(graph_node_app_declaration)
                     .map_err(|e| anyhow::anyhow!("data[{}].{}", idx, e))?;
             }
         }
 
         if let Some(audio_frame) = &mut self.audio_frame {
             for (idx, audio_flow) in audio_frame.iter_mut().enumerate() {
-                audio_flow.validate_and_complete(app_declaration).map_err(
-                    |e| anyhow::anyhow!("audio_frame[{}].{}", idx, e),
-                )?;
+                audio_flow
+                    .validate_and_complete(graph_node_app_declaration)
+                    .map_err(|e| {
+                        anyhow::anyhow!("audio_frame[{}].{}", idx, e)
+                    })?;
             }
         }
 
         if let Some(video_frame) = &mut self.video_frame {
             for (idx, video_flow) in video_frame.iter_mut().enumerate() {
-                video_flow.validate_and_complete(app_declaration).map_err(
-                    |e| anyhow::anyhow!("video_frame[{}].{}", idx, e),
-                )?;
+                video_flow
+                    .validate_and_complete(graph_node_app_declaration)
+                    .map_err(|e| {
+                        anyhow::anyhow!("video_frame[{}].{}", idx, e)
+                    })?;
             }
         }
 
@@ -362,10 +375,10 @@ pub struct GraphMessageFlow {
 impl GraphMessageFlow {
     fn validate_and_complete(
         &mut self,
-        app_declaration: &GraphNodeAppDeclaration,
+        graph_node_app_declaration: &GraphNodeAppDeclaration,
     ) -> Result<()> {
         for (idx, dest) in &mut self.dest.iter_mut().enumerate() {
-            dest.validate_and_complete(app_declaration)
+            dest.validate_and_complete(graph_node_app_declaration)
                 .map_err(|e| anyhow::anyhow!("dest[{}]: {}", idx, e))?;
         }
 
@@ -385,26 +398,31 @@ pub struct GraphDestination {
 impl GraphDestination {
     fn validate_and_complete(
         &mut self,
-        app_declaration: &GraphNodeAppDeclaration,
+        graph_node_app_declaration: &GraphNodeAppDeclaration,
     ) -> Result<()> {
         if let Some(app) = &self.app {
             if app.as_str() == localhost() {
-                let err_msg = if app_declaration.is_single_app_graph() {
-                    constants::ERR_MSG_APP_LOCALHOST_DISALLOWED_SINGLE
-                } else {
-                    constants::ERR_MSG_APP_LOCALHOST_DISALLOWED_MULTI
-                };
+                let err_msg =
+                    if graph_node_app_declaration.is_single_app_graph() {
+                        constants::ERR_MSG_APP_LOCALHOST_DISALLOWED_SINGLE
+                    } else {
+                        constants::ERR_MSG_APP_LOCALHOST_DISALLOWED_MULTI
+                    };
 
                 return Err(anyhow::anyhow!(err_msg));
             }
 
-            if *app_declaration == GraphNodeAppDeclaration::AllNone {
+            if *graph_node_app_declaration
+                == GraphNodeAppDeclaration::NoneDeclared
+            {
                 return Err(anyhow::anyhow!(
                     constants::ERR_MSG_APP_SHOULD_NOT_DECLARED
                 ));
             }
         } else {
-            if *app_declaration != GraphNodeAppDeclaration::AllNone {
+            if *graph_node_app_declaration
+                != GraphNodeAppDeclaration::NoneDeclared
+            {
                 return Err(anyhow::anyhow!(
                     constants::ERR_MSG_APP_SHOULD_DECLARED
                 ));
@@ -515,7 +533,7 @@ mod tests {
         );
         let property = Property::from_str(property_str);
 
-        // 'localhost' is not allowed in graph definition
+        // 'localhost' is not allowed in graph definition.
         assert!(property.is_err());
         println!("Error: {:?}", property);
 
@@ -532,7 +550,7 @@ mod tests {
         );
         let graph = Graph::from_str(graph_str);
 
-        // 'localhost' is not allowed in graph definition
+        // 'localhost' is not allowed in graph definition.
         assert!(graph.is_err());
         println!("Error: {:?}", graph);
 
@@ -549,7 +567,7 @@ mod tests {
         );
         let graph = Graph::from_str(graph_str);
 
-        // 'localhost' is not allowed in graph definition
+        // 'localhost' is not allowed in graph definition.
         assert!(graph.is_err());
         println!("Error: {:?}", graph);
 
