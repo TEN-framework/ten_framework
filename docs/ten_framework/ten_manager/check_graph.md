@@ -617,8 +617,8 @@ The message declared in each message flow in the connections will be checked if 
 
 The `app` field in each node must met the following rules.
 
-- The `app` field must be equal to the `_ten::uri` of the TEN app.
-- Either all nodes should have 'app' declared, or none should.
+- The `app` field must be equal to the `_ten::uri` of the corresponding TEN app.
+- Either all nodes should have `app` declared, or none should.
 - The `app` field can not be `localhost`.
 - The `app` field can not be an empty string.
 
@@ -757,7 +757,7 @@ The `app` field in each node must met the following rules.
 
 - **Example (The `app` field in nodes is not equal to the `_ten::uri` of app)**:
 
-  Same as [Rule 4](#id-4.-the-addons-declared-in-the-nodes-must-be-installed-in-the-app).
+  Same as [Rule 4](#4. The addons declared in the `nodes` must be installed in the app).
 
 - **Example (The `app` field is `localhost` in a single-app graph)**:
 
