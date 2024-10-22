@@ -13,7 +13,7 @@
 typedef struct ten_cmd_start_graph_t {
   ten_cmd_t cmd_hdr;
 
-  ten_value_t long_running_mode;  // string
+  ten_value_t long_running_mode;  // bool
 
   // There are two methods to start a graph:
   // 1) one is by explicitly specifying the graph's content through

@@ -73,8 +73,9 @@ void ten_cmd_start_graph_copy_long_running_mode(
                  ten_raw_msg_get_type(src) == TEN_MSG_TYPE_CMD_START_GRAPH,
              "Should not happen.");
 
-  ((ten_cmd_start_graph_t *)self)->long_running_mode =
-      ((ten_cmd_start_graph_t *)src)->long_running_mode;
+  ten_value_set_bool(&((ten_cmd_start_graph_t *)self)->long_running_mode,
+                     ten_raw_cmd_start_graph_get_long_running_mode(
+                         (ten_cmd_start_graph_t *)src));
 }
 
 bool ten_cmd_start_graph_process_long_running_mode(

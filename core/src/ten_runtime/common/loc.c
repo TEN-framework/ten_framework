@@ -17,6 +17,7 @@
 #include "ten_utils/macro/check.h"
 #include "ten_utils/value/value.h"
 #include "ten_utils/value/value_kv.h"
+#include "ten_utils/value/value_object.h"
 
 bool ten_loc_check_integrity(ten_loc_t *self) {
   TEN_ASSERT(self, "Should not happen.");
@@ -366,22 +367,23 @@ void ten_loc_init_from_value(ten_loc_t *self, ten_value_t *value) {
 
   ten_loc_init_empty(self);
 
-  if (ten_value_object_peek(value, TEN_STR_APP)) {
-    const char *app_str =
-        ten_value_peek_raw_str(ten_value_object_peek(value, TEN_STR_APP));
+  ten_value_t *app_value = ten_value_object_peek(value, TEN_STR_APP);
+  ten_value_t *graph_value = ten_value_object_peek(value, TEN_STR_GRAPH);
+  ten_value_t *extension_group_value =
+      ten_value_object_peek(value, TEN_STR_EXTENSION_GROUP);
+  ten_value_t *extension_value =
+      ten_value_object_peek(value, TEN_STR_EXTENSION);
 
+  if (app_value) {
+    const char *app_str = ten_value_peek_raw_str(app_value);
     ten_string_init_from_c_str(&self->app_uri, app_str, strlen(app_str));
   }
 
-  if (ten_value_object_peek(value, TEN_STR_GRAPH)) {
-    const char *graph_str =
-        ten_value_peek_raw_str(ten_value_object_peek(value, TEN_STR_GRAPH));
-
+  if (graph_value) {
+    const char *graph_str = ten_value_peek_raw_str(graph_value);
     ten_string_init_from_c_str(&self->graph_id, graph_str, strlen(graph_str));
   }
 
-  ten_value_t *extension_group_value =
-      ten_value_object_peek(value, TEN_STR_EXTENSION_GROUP);
   if (extension_group_value) {
     if (ten_value_is_object(extension_group_value)) {
       ten_value_t *extension_group_name_value =
@@ -405,8 +407,6 @@ void ten_loc_init_from_value(ten_loc_t *self, ten_value_t *value) {
     }
   }
 
-  ten_value_t *extension_value =
-      ten_value_object_peek(value, TEN_STR_EXTENSION);
   if (extension_value) {
     if (ten_value_is_object(extension_value)) {
       ten_value_t *extension_name_value =

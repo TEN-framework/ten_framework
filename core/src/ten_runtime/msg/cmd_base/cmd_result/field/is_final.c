@@ -54,7 +54,7 @@ bool ten_cmd_result_get_is_final_from_json(ten_msg_t *self, ten_json_t *json,
 
     ten_raw_cmd_result_set_final((ten_cmd_result_t *)self, is_final, NULL);
   } else {
-    TEN_LOGW("status_code should be an integer.");
+    TEN_LOGW("is_final should be an boolean.");
   }
 
   return true;
