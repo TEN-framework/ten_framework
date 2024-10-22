@@ -15,6 +15,86 @@ use serde::{Deserialize, Serialize};
 use super::{pkg_type::PkgType, PkgInfo};
 use crate::pkg_info::localhost;
 
+/// The state of the 'app' field declaration in all nodes in the graph.
+///
+/// There might be the following cases for the 'app' field declaration:
+///
+/// - Case 1: neither of the nodes has declared the 'app' field. The state will
+///   be `AllNone`.
+///
+/// - Case 2: all nodes have declared the 'app' field, and all of them have the
+///   same value. Ex:
+///
+///     {
+///         "nodes": [
+///             {
+///                 "type": "extension",
+///                 "app": "http://localhost:8000",
+///                 "addon": "addon_1",
+///                 "name": "ext_1",
+///                 "extension_group": "some_group"
+///             },
+///             {
+///                 "type": "extension",
+///                 "app": "http://localhost:8000",
+///                 "addon": "addon_2",
+///                 "name": "ext_2",
+///                 "extension_group": "another_group"
+///             }
+///         ]
+///     }
+///
+///   The state will be `Uniform`.
+///
+/// - Case 3: all nodes have declared the 'app' field, but they have different
+///   values.
+///
+///     {
+///         "nodes": [
+///             {
+///                 "type": "extension",
+///                 "app": "http://localhost:8000",
+///                 "addon": "addon_1",
+///                 "name": "ext_1",
+///                 "extension_group": "some_group"
+///             },
+///             {
+///                 "type": "extension",
+///                 "app": "msgpack://localhost:8001",
+///                 "addon": "addon_2",
+///                 "name": "ext_2",
+///                 "extension_group": "another_group"
+///             }
+///         ]
+///     }
+///
+///   The state will be `Mixed`.
+///
+/// - Case 4: some nodes have declared the 'app' field, and some have not. It's
+///   illegal.
+///
+/// In the view of the 'app' field declaration, there are two types of graphs:
+///
+/// * Single-app graph: the state is `AllNone` or `Uniform`.
+/// * Multi-app graph: the state is `Mixed`.
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum GraphNodeAppDeclaration {
+    AllNone,
+    Uniform,
+    Mixed,
+}
+
+impl GraphNodeAppDeclaration {
+    pub fn is_single_app_graph(&self) -> bool {
+        match self {
+            GraphNodeAppDeclaration::AllNone => true,
+            GraphNodeAppDeclaration::Uniform => true,
+            GraphNodeAppDeclaration::Mixed => false,
+        }
+    }
+}
+
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Graph {
     // It's invalid that a graph does not contain any nodes.
@@ -38,71 +118,23 @@ impl FromStr for Graph {
 }
 
 impl Graph {
-    /// Determine if the graph is a single-app graph based on the `app` field of
-    /// nodes.
-    ///
-    /// A graph is considered a single-app graph if all nodes have the same
-    /// value for the `app` field, or if none of the nodes specify an `app`
-    /// value. Otherwise, it is considered a multi-app (N-app) graph.
-    ///
-    /// Example of a single-app graph:
-    /// {
-    ///   "nodes": [
-    ///     {
-    ///       "type": "extension",
-    ///       "addon": "addon_1",
-    ///       "name": "ext_1",
-    ///       "extension_group": "some_group",
-    ///       "app": "http://localhost:8000"
-    ///     },
-    ///     {
-    ///       "type": "extension",
-    ///       "addon": "addon_2",
-    ///       "name": "ext_2",
-    ///       "extension_group": "another_group",
-    ///       "app": "http://localhost:8000"
-    ///     }
-    ///   ]
-    /// }
-    ///
-    /// Example of a multi-app graph:
-    /// {
-    ///   "nodes": [
-    ///     {
-    ///       "type": "extension",
-    ///       "addon": "addon_1",
-    ///       "name": "ext_1",
-    ///       "extension_group": "some_group",
-    ///       "app": "http://localhost:8000"
-    ///     },
-    ///     {
-    ///       "type": "extension",
-    ///       "addon": "addon_2",
-    ///       "name": "ext_2",
-    ///       "extension_group": "another_group",
-    ///       "app": "http://remotehost:8001"
-    ///     }
-    ///   ]
-    /// }
-    fn is_a_single_app_graph(&self) -> bool {
-        let mut app_uris = std::collections::HashSet::new();
-        for node in &self.nodes {
-            if let Some(app_uri) = &node.app {
-                app_uris.insert(app_uri);
-            }
-        }
-
-        app_uris.len() <= 1
-    }
-
-    pub fn validate_and_complete(&mut self) -> Result<()> {
-        let is_a_single_app_graph = self.is_a_single_app_graph();
+    fn determine_app_declaration_of_graph(
+        &self,
+    ) -> Result<GraphNodeAppDeclaration> {
         let mut nodes_have_declared_app = 0;
+        let mut app_uris = std::collections::HashSet::new();
 
-        for (idx, node) in &mut self.nodes.iter_mut().enumerate() {
-            node.validate_and_complete(is_a_single_app_graph)
-                .map_err(|e| anyhow::anyhow!("nodes[{}]: {}", idx, e))?;
-            if node.get_app_uri() != localhost() {
+        for (idx, node) in self.nodes.iter().enumerate() {
+            if let Some(app_uri) = &node.app {
+                if app_uri.is_empty() {
+                    return Err(anyhow::anyhow!(
+                        "nodes[{}]: {}",
+                        idx,
+                        constants::ERR_MSG_APP_IS_EMPTY
+                    ));
+                }
+
+                app_uris.insert(app_uri);
                 nodes_have_declared_app += 1;
             }
         }
@@ -115,16 +147,26 @@ impl Graph {
             ));
         }
 
+        match app_uris.len() {
+            0 => Ok(GraphNodeAppDeclaration::AllNone),
+            1 => Ok(GraphNodeAppDeclaration::Uniform),
+            _ => Ok(GraphNodeAppDeclaration::Mixed),
+        }
+    }
+
+    pub fn validate_and_complete(&mut self) -> Result<()> {
+        let app_declaration = self.determine_app_declaration_of_graph()?;
+
+        for (idx, node) in &mut self.nodes.iter_mut().enumerate() {
+            node.validate_and_complete(&app_declaration)
+                .map_err(|e| anyhow::anyhow!("nodes[{}]: {}", idx, e))?;
+        }
+
         if let Some(connections) = &mut self.connections {
             for (idx, connection) in connections.iter_mut().enumerate() {
-                connection
-                    .validate_and_complete(
-                        nodes_have_declared_app > 0,
-                        is_a_single_app_graph,
-                    )
-                    .map_err(|e| {
-                        anyhow::anyhow!("connections[{}].{}", idx, e)
-                    })?;
+                connection.validate_and_complete(&app_declaration).map_err(
+                    |e| anyhow::anyhow!("connections[{}].{}", idx, e),
+                )?;
             }
         }
 
@@ -186,7 +228,7 @@ pub struct GraphNode {
 impl GraphNode {
     fn validate_and_complete(
         &mut self,
-        is_single_app_graph: bool,
+        app_declaration: &GraphNodeAppDeclaration,
     ) -> Result<()> {
         // extension node must specify extension_group name.
         if self.node_type == PkgType::Extension
@@ -200,7 +242,7 @@ impl GraphNode {
 
         if let Some(app) = &self.app {
             if app.as_str() == localhost() {
-                let err_msg = if is_single_app_graph {
+                let err_msg = if app_declaration.is_single_app_graph() {
                     constants::ERR_MSG_APP_LOCALHOST_DISALLOWED_SINGLE
                 } else {
                     constants::ERR_MSG_APP_LOCALHOST_DISALLOWED_MULTI
@@ -243,12 +285,11 @@ pub struct GraphConnection {
 impl GraphConnection {
     fn validate_and_complete(
         &mut self,
-        is_app_declared_in_nodes: bool,
-        is_a_single_app_graph: bool,
+        app_declaration: &GraphNodeAppDeclaration,
     ) -> Result<()> {
         if let Some(app) = &self.app {
             if app.as_str() == localhost() {
-                let err_msg = if is_a_single_app_graph {
+                let err_msg = if app_declaration.is_single_app_graph() {
                     constants::ERR_MSG_APP_LOCALHOST_DISALLOWED_SINGLE
                 } else {
                     constants::ERR_MSG_APP_LOCALHOST_DISALLOWED_MULTI
@@ -257,13 +298,13 @@ impl GraphConnection {
                 return Err(anyhow::anyhow!(err_msg));
             }
 
-            if !is_app_declared_in_nodes {
+            if *app_declaration == GraphNodeAppDeclaration::AllNone {
                 return Err(anyhow::anyhow!(
                     constants::ERR_MSG_APP_SHOULD_NOT_DECLARED
                 ));
             }
         } else {
-            if is_app_declared_in_nodes {
+            if *app_declaration != GraphNodeAppDeclaration::AllNone {
                 return Err(anyhow::anyhow!(
                     constants::ERR_MSG_APP_SHOULD_DECLARED
                 ));
@@ -275,10 +316,7 @@ impl GraphConnection {
         if let Some(cmd) = &mut self.cmd {
             for (idx, cmd_flow) in cmd.iter_mut().enumerate() {
                 cmd_flow
-                    .validate_and_complete(
-                        is_app_declared_in_nodes,
-                        is_a_single_app_graph,
-                    )
+                    .validate_and_complete(app_declaration)
                     .map_err(|e| anyhow::anyhow!("cmd[{}].{}", idx, e))?;
             }
         }
@@ -286,37 +324,24 @@ impl GraphConnection {
         if let Some(data) = &mut self.data {
             for (idx, data_flow) in data.iter_mut().enumerate() {
                 data_flow
-                    .validate_and_complete(
-                        is_app_declared_in_nodes,
-                        is_a_single_app_graph,
-                    )
+                    .validate_and_complete(app_declaration)
                     .map_err(|e| anyhow::anyhow!("data[{}].{}", idx, e))?;
             }
         }
 
         if let Some(audio_frame) = &mut self.audio_frame {
             for (idx, audio_flow) in audio_frame.iter_mut().enumerate() {
-                audio_flow
-                    .validate_and_complete(
-                        is_app_declared_in_nodes,
-                        is_a_single_app_graph,
-                    )
-                    .map_err(|e| {
-                        anyhow::anyhow!("audio_frame[{}].{}", idx, e)
-                    })?;
+                audio_flow.validate_and_complete(app_declaration).map_err(
+                    |e| anyhow::anyhow!("audio_frame[{}].{}", idx, e),
+                )?;
             }
         }
 
         if let Some(video_frame) = &mut self.video_frame {
             for (idx, video_flow) in video_frame.iter_mut().enumerate() {
-                video_flow
-                    .validate_and_complete(
-                        is_app_declared_in_nodes,
-                        is_a_single_app_graph,
-                    )
-                    .map_err(|e| {
-                        anyhow::anyhow!("video_frame[{}].{}", idx, e)
-                    })?;
+                video_flow.validate_and_complete(app_declaration).map_err(
+                    |e| anyhow::anyhow!("video_frame[{}].{}", idx, e),
+                )?;
             }
         }
 
@@ -337,15 +362,11 @@ pub struct GraphMessageFlow {
 impl GraphMessageFlow {
     fn validate_and_complete(
         &mut self,
-        is_app_declared_in_nodes: bool,
-        is_a_single_app_graph: bool,
+        app_declaration: &GraphNodeAppDeclaration,
     ) -> Result<()> {
         for (idx, dest) in &mut self.dest.iter_mut().enumerate() {
-            dest.validate_and_complete(
-                is_app_declared_in_nodes,
-                is_a_single_app_graph,
-            )
-            .map_err(|e| anyhow::anyhow!("dest[{}]: {}", idx, e))?;
+            dest.validate_and_complete(app_declaration)
+                .map_err(|e| anyhow::anyhow!("dest[{}]: {}", idx, e))?;
         }
 
         Ok(())
@@ -364,12 +385,11 @@ pub struct GraphDestination {
 impl GraphDestination {
     fn validate_and_complete(
         &mut self,
-        is_app_declared_in_nodes: bool,
-        is_a_single_app_graph: bool,
+        app_declaration: &GraphNodeAppDeclaration,
     ) -> Result<()> {
         if let Some(app) = &self.app {
             if app.as_str() == localhost() {
-                let err_msg = if is_a_single_app_graph {
+                let err_msg = if app_declaration.is_single_app_graph() {
                     constants::ERR_MSG_APP_LOCALHOST_DISALLOWED_SINGLE
                 } else {
                     constants::ERR_MSG_APP_LOCALHOST_DISALLOWED_MULTI
@@ -378,13 +398,13 @@ impl GraphDestination {
                 return Err(anyhow::anyhow!(err_msg));
             }
 
-            if !is_app_declared_in_nodes {
+            if *app_declaration == GraphNodeAppDeclaration::AllNone {
                 return Err(anyhow::anyhow!(
                     constants::ERR_MSG_APP_SHOULD_NOT_DECLARED
                 ));
             }
         } else {
-            if is_app_declared_in_nodes {
+            if *app_declaration != GraphNodeAppDeclaration::AllNone {
                 return Err(anyhow::anyhow!(
                     constants::ERR_MSG_APP_SHOULD_DECLARED
                 ));
@@ -681,5 +701,20 @@ mod tests {
         let graph = Graph::from_str(graph_str).unwrap();
         let result = graph.check_message_names();
         assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_graph_app_can_not_be_empty_string() {
+        let graph_str = include_str!(
+            "test_data_embed/graph_app_can_not_be_empty_string.json"
+        );
+        let graph = Graph::from_str(graph_str);
+
+        // The 'app' can not be empty string.
+        assert!(graph.is_err());
+        println!("Error: {:?}", graph);
+
+        let msg = graph.err().unwrap().to_string();
+        assert!(msg.contains(constants::ERR_MSG_APP_IS_EMPTY));
     }
 }

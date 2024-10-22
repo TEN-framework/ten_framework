@@ -620,6 +620,7 @@ The `app` field in each node must met the following rules.
 - The `app` field must be equal to the `_ten::uri` of the TEN app.
 - Either all nodes should have 'app' declared, or none should.
 - The `app` field can not be `localhost`.
+- The `app` field can not be an empty string.
 
 - **Example (some of the nodes specified the `app` field)**:
 

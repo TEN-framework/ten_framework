@@ -12,6 +12,8 @@ pub const ERR_MSG_APP_LOCALHOST_DISALLOWED_MULTI: &str =
 
 pub const ERR_MSG_APP_DECLARATION_MISMATCH: &str = "Either all nodes should have 'app' declared, or none should, but not a mix of both.";
 
+pub const ERR_MSG_APP_IS_EMPTY: &str = "the 'app' field can not be empty, remove the field if the graph is a single-app graph";
+
 pub const ERR_MSG_APP_SHOULD_NOT_DECLARED: &str =
     "the 'app' should not be declared, as not any node has declared it";
 

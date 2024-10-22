@@ -7,14 +7,13 @@
       "name": "test_extension",
       "addon": "basic_hello_world_2__test_extension",
       "extension_group": "test_extension_group",
-      "app": "localhost"
+      "app": ""
     },
     {
       "type": "extension",
       "name": "test_extension",
       "addon": "basic_hello_world_1__test_extension",
-      "extension_group": "test_extension_group",
-      "app": "localhost"
+      "extension_group": "test_extension_group"
     }
   ]
 }

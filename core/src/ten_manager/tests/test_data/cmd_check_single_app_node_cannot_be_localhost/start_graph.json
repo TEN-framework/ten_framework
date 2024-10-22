@@ -5,7 +5,8 @@
 			"type": "extension",
 			"name": "ext_a",
 			"addon": "addon_a",
-			"extension_group": "some_group"
+			"extension_group": "some_group",
+			"app": "localhost"
 		},
 		{
 			"type": "extension",
