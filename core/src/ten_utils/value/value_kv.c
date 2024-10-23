@@ -98,6 +98,16 @@ void ten_value_kv_destroy(ten_value_kv_t *self) {
   ten_free(self);
 }
 
+void ten_value_kv_destroy_xxx(ten_value_kv_t *self) {
+  TEN_ASSERT(self && ten_value_kv_check_integrity(self), "Invalid argument.");
+
+  ten_string_deinit(&self->key);
+  if (self->value) {
+    ten_value_destroy(self->value);
+  }
+  ten_free(self);
+}
+
 ten_value_kv_t *ten_value_kv_clone(ten_value_kv_t *target) {
   TEN_ASSERT(target && ten_value_kv_check_integrity(target),
              "Invalid argument.");
