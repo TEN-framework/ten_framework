@@ -25,7 +25,8 @@ func (ext *baseExtension) OnStart(tenEnv ten.TenEnv) {
 		panic("The type should be mismatched, as the default value is not set.")
 	}
 
-	if prop, err := tenEnv.GetPropertyString("env_not_set_has_default"); err != nil && prop != "" {
+	if prop, err := tenEnv.GetPropertyString("env_not_set_has_default"); err != nil &&
+		prop != "" {
 		panic("The default value should be used.")
 	}
 
