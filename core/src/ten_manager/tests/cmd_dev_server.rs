@@ -10,7 +10,11 @@ use actix_web::{http::StatusCode, test, web, App};
 
 use ten_manager::{
     config::TmanConfig,
-    dev_server::{graphs::get_graphs, DevServerState},
+    dev_server::{
+        graphs::{get_graphs, RespGraph},
+        response::ApiResponse,
+        DevServerState,
+    },
 };
 
 #[actix_rt::test]
@@ -77,10 +81,11 @@ async fn test_cmd_dev_server_graphs_app_property_not_exist() {
 
     let body = test::read_body(resp).await;
     let body_str = std::str::from_utf8(&body).unwrap();
-    let json: serde_json::Value = serde_json::from_str(body_str).unwrap();
+    let json =
+        serde_json::from_str::<ApiResponse<Vec<RespGraph>>>(body_str).unwrap();
 
     let pretty_json = serde_json::to_string_pretty(&json).unwrap();
     println!("Response body: {}", pretty_json);
 
-    assert!(json["data"].as_array().unwrap().is_empty());
+    assert!(json.data.is_empty());
 }

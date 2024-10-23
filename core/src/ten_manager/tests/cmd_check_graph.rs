@@ -99,7 +99,7 @@ async fn test_cmd_check_app_in_graph_cannot_be_localhost() {
     )
     .await;
 
-    // 'localhost' is not allowed in graph definition
+    // 'localhost' is not allowed in graph definition.
     assert!(result.is_err());
     eprintln!("{:?}", result);
 

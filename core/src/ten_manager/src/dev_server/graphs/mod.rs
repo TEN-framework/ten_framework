@@ -21,7 +21,7 @@ use super::{
 use ten_rust::pkg_info::pkg_type::PkgType;
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
-struct RespGraph {
+pub struct RespGraph {
     name: String,
     auto_start: bool,
 }
