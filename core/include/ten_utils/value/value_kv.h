@@ -32,6 +32,8 @@ TEN_UTILS_API ten_value_kv_t *ten_value_kv_create(const char *name,
 
 TEN_UTILS_API void ten_value_kv_destroy(ten_value_kv_t *self);
 
+TEN_UTILS_API void ten_value_kv_destroy_xxx(ten_value_kv_t *self);
+
 TEN_UTILS_API ten_value_kv_t *ten_value_kv_clone(ten_value_kv_t *target);
 
 TEN_UTILS_API ten_string_t *ten_value_kv_get_key(ten_value_kv_t *self);

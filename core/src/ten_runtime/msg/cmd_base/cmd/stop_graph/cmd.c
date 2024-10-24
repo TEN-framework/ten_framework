@@ -28,7 +28,7 @@ static void ten_raw_cmd_stop_graph_destroy(ten_cmd_stop_graph_t *self) {
 
   ten_raw_cmd_deinit(&self->cmd_hdr);
 
-  ten_string_deinit(&self->graph_id);
+  ten_value_deinit(&self->graph_id);
 
   TEN_FREE(self);
 }
@@ -44,7 +44,7 @@ ten_cmd_stop_graph_t *ten_raw_cmd_stop_graph_create(void) {
 
   ten_raw_cmd_init(&raw_cmd->cmd_hdr, TEN_MSG_TYPE_CMD_STOP_GRAPH);
 
-  ten_string_init(&raw_cmd->graph_id);
+  ten_value_init_string(&raw_cmd->graph_id);
 
   return raw_cmd;
 }
@@ -142,7 +142,7 @@ ten_string_t *ten_raw_cmd_stop_graph_get_graph_id(ten_cmd_stop_graph_t *self) {
                      TEN_MSG_TYPE_CMD_STOP_GRAPH,
              "Should not happen.");
 
-  return &self->graph_id;
+  return ten_value_peek_string(&self->graph_id);
 }
 
 ten_string_t *ten_cmd_stop_graph_get_graph_id(ten_shared_ptr_t *self) {

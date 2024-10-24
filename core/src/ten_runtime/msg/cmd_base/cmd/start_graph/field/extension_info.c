@@ -18,7 +18,6 @@
 #include "include_internal/ten_runtime/msg/cmd_base/cmd/start_graph/cmd.h"
 #include "include_internal/ten_runtime/msg/msg.h"
 #include "include_internal/ten_utils/log/log.h"
-#include "ten_utils/macro/check.h"
 #include "ten_runtime/common/errno.h"
 #include "ten_runtime/msg/cmd/start_graph/cmd.h"
 #include "ten_utils/container/list.h"
@@ -27,6 +26,7 @@
 #include "ten_utils/lib/json.h"
 #include "ten_utils/lib/smart_ptr.h"
 #include "ten_utils/lib/string.h"
+#include "ten_utils/macro/check.h"
 #include "ten_utils/macro/mark.h"
 
 bool ten_cmd_start_graph_put_extension_info_to_json(ten_msg_t *self,
@@ -284,4 +284,14 @@ bool ten_cmd_start_graph_copy_extensions_info(
   }
 
   return true;
+}
+
+bool ten_cmd_start_graph_process_extensions_info(
+    ten_msg_t *self, ten_raw_msg_process_one_field_func_t cb, void *user_data,
+    ten_error_t *err) {
+  TEN_ASSERT(self && ten_raw_msg_check_integrity(self), "Should not happen.");
+
+  ten_cmd_start_graph_t *cmd = (ten_cmd_start_graph_t *)self;
+
+  // TODO(xilin): to be implemented.
 }
