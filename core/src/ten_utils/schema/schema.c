@@ -274,22 +274,35 @@ bool ten_schema_validate_value_with_context(
 bool ten_schema_validate_value(ten_schema_t *self, ten_value_t *value,
                                ten_error_t *err) {
   TEN_ASSERT(self && ten_schema_check_integrity(self), "Invalid argument.");
-  TEN_ASSERT(err && ten_error_check_integrity(err), "Invalid argument.");
 
+  bool new_err = false;
+  if (!err) {
+    err = ten_error_create();
+    new_err = true;
+  } else {
+    TEN_ASSERT(ten_error_check_integrity(err), "Invalid argument.");
+  }
+
+  bool result = false;
   if (!value) {
     ten_error_set(err, TEN_ERRNO_GENERIC, "Value is required.");
-    return false;
+    goto done;
   }
 
   ten_schema_error_context_t err_ctx;
   ten_schema_error_context_init(&err_ctx, err);
-  bool result = ten_schema_validate_value_with_context(self, value, &err_ctx);
+  result = ten_schema_validate_value_with_context(self, value, &err_ctx);
   if (!result && !ten_string_is_empty(&err_ctx.path)) {
     ten_error_prepend_errmsg(err,
                              "%s: ", ten_string_get_raw_str(&err_ctx.path));
   }
 
   ten_schema_error_context_deinit(&err_ctx);
+
+done:
+  if (new_err) {
+    ten_error_destroy(err);
+  }
 
   return result;
 }
@@ -321,15 +334,24 @@ bool ten_schema_adjust_value_type(ten_schema_t *self, ten_value_t *value,
                                   ten_error_t *err) {
   TEN_ASSERT(self && ten_schema_check_integrity(self), "Invalid argument.");
 
+  bool new_err = false;
+  if (!err) {
+    err = ten_error_create();
+    new_err = true;
+  } else {
+    TEN_ASSERT(ten_error_check_integrity(err), "Invalid argument.");
+  }
+
+  bool result = false;
+
   if (!value) {
     ten_error_set(err, TEN_ERRNO_GENERIC, "Value is required.");
-    return false;
+    goto done;
   }
 
   ten_schema_error_context_t err_ctx;
   ten_schema_error_context_init(&err_ctx, err);
-  bool result =
-      ten_schema_adjust_value_type_with_context(self, value, &err_ctx);
+  result = ten_schema_adjust_value_type_with_context(self, value, &err_ctx);
 
   if (!result && !ten_string_is_empty(&err_ctx.path)) {
     ten_error_prepend_errmsg(err,
@@ -337,6 +359,11 @@ bool ten_schema_adjust_value_type(ten_schema_t *self, ten_value_t *value,
   }
 
   ten_schema_error_context_deinit(&err_ctx);
+
+done:
+  if (new_err) {
+    ten_error_destroy(err);
+  }
 
   return result;
 }
@@ -400,7 +427,14 @@ bool ten_schema_is_compatible(ten_schema_t *self, ten_schema_t *target,
                               ten_error_t *err) {
   TEN_ASSERT(self && ten_schema_check_integrity(self), "Invalid argument.");
   TEN_ASSERT(target && ten_schema_check_integrity(target), "Invalid argument.");
-  TEN_ASSERT(err && ten_error_check_integrity(err), "Invalid argument.");
+
+  bool new_err = false;
+  if (!err) {
+    err = ten_error_create();
+    new_err = true;
+  } else {
+    TEN_ASSERT(ten_error_check_integrity(err), "Invalid argument.");
+  }
 
   ten_schema_error_context_t err_ctx;
   ten_schema_error_context_init(&err_ctx, err);
@@ -412,6 +446,10 @@ bool ten_schema_is_compatible(ten_schema_t *self, ten_schema_t *target,
   }
 
   ten_schema_error_context_deinit(&err_ctx);
+
+  if (new_err) {
+    ten_error_destroy(err);
+  }
 
   return result;
 }
