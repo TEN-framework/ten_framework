@@ -14,7 +14,7 @@
 #include "ten_utils/value/value.h"
 
 #define TEN_SCHEMA_SIGNATURE 0x4D9FEA8F6273C974U
-#define TEN_SCHEMA_ERROR_CONTEXT_SIGNATURE 0x32B696D4FC8FFD09U
+#define TEN_SCHEMA_ERROR_SIGNATURE 0x32B696D4FC8FFD09U
 
 typedef struct ten_schema_keyword_type_t ten_schema_keyword_type_t;
 
@@ -114,23 +114,21 @@ typedef struct ten_schema_t {
 // path, because we need to know the index, if the value is an array; but there
 // is no index information in the ten_schema_array_t because each item in the
 // array shares the same schema.
-typedef struct ten_schema_error_context_t {
+typedef struct ten_schema_error_t {
   ten_signature_t signature;
   ten_error_t *err;
   ten_string_t path;
-} ten_schema_error_context_t;
+} ten_schema_error_t;
 
-TEN_UTILS_PRIVATE_API bool ten_schema_error_context_check_integrity(
-    ten_schema_error_context_t *self);
+TEN_UTILS_PRIVATE_API bool ten_schema_error_check_integrity(
+    ten_schema_error_t *self);
 
-TEN_UTILS_PRIVATE_API void ten_schema_error_context_init(
-    ten_schema_error_context_t *self, ten_error_t *err);
+TEN_UTILS_PRIVATE_API void ten_schema_error_init(ten_schema_error_t *self,
+                                                 ten_error_t *err);
 
-TEN_UTILS_PRIVATE_API void ten_schema_error_context_deinit(
-    ten_schema_error_context_t *self);
+TEN_UTILS_PRIVATE_API void ten_schema_error_deinit(ten_schema_error_t *self);
 
-TEN_UTILS_PRIVATE_API void ten_schema_error_context_reset(
-    ten_schema_error_context_t *self);
+TEN_UTILS_PRIVATE_API void ten_schema_error_reset(ten_schema_error_t *self);
 
 TEN_UTILS_PRIVATE_API bool ten_schema_check_integrity(ten_schema_t *self);
 
@@ -151,24 +149,21 @@ TEN_UTILS_API ten_schema_t *ten_schema_create_from_value(ten_value_t *value);
 TEN_UTILS_API void ten_schema_destroy(ten_schema_t *self);
 
 TEN_UTILS_PRIVATE_API bool ten_schema_validate_value_with_context(
-    ten_schema_t *self, ten_value_t *value,
-    ten_schema_error_context_t *err_ctx);
+    ten_schema_t *self, ten_value_t *value, ten_schema_error_t *err_ctx);
 
 TEN_UTILS_API bool ten_schema_validate_value(ten_schema_t *self,
                                              ten_value_t *value,
                                              ten_error_t *err);
 
 TEN_UTILS_PRIVATE_API bool ten_schema_adjust_value_type_with_context(
-    ten_schema_t *self, ten_value_t *value,
-    ten_schema_error_context_t *err_ctx);
+    ten_schema_t *self, ten_value_t *value, ten_schema_error_t *err_ctx);
 
 TEN_UTILS_API bool ten_schema_adjust_value_type(ten_schema_t *self,
                                                 ten_value_t *value,
                                                 ten_error_t *err);
 
 TEN_UTILS_PRIVATE_API bool ten_schema_is_compatible_with_context(
-    ten_schema_t *self, ten_schema_t *target,
-    ten_schema_error_context_t *err_ctx);
+    ten_schema_t *self, ten_schema_t *target, ten_schema_error_t *err_ctx);
 
 TEN_UTILS_API bool ten_schema_is_compatible(ten_schema_t *self,
                                             ten_schema_t *target,

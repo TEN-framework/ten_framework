@@ -76,8 +76,5 @@
     "**/node_modules/*/**": true,
     "**/out/*/**": true,
     "**/third_party/*/**": true
-  },
-  "files.associations": {
-    "schema.h": "c"
   }
 }

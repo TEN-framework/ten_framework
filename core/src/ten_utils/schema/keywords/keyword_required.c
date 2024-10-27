@@ -48,11 +48,10 @@ static void ten_schema_keyword_required_destroy(ten_schema_keyword_t *self_) {
 
 static bool ten_schema_keyword_required_validate_value(
     ten_schema_keyword_t *self_, ten_value_t *value,
-    ten_schema_error_context_t *err_ctx) {
+    ten_schema_error_t *err_ctx) {
   TEN_ASSERT(self_ && value && err_ctx, "Invalid argument.");
   TEN_ASSERT(ten_value_check_integrity(value), "Invalid argument.");
-  TEN_ASSERT(ten_schema_error_context_check_integrity(err_ctx),
-             "Invalid argument.");
+  TEN_ASSERT(ten_schema_error_check_integrity(err_ctx), "Invalid argument.");
 
   if (!ten_value_is_object(value)) {
     ten_error_set(err_ctx->err, TEN_ERRNO_GENERIC,
@@ -103,7 +102,7 @@ static bool ten_schema_keyword_required_validate_value(
 
 static bool ten_schema_keyword_required_adjust_value(
     ten_schema_keyword_t *self_, ten_value_t *value,
-    ten_schema_error_context_t *err_ctx) {
+    ten_schema_error_t *err_ctx) {
   TEN_ASSERT(self_ && value && err_ctx, "Invalid argument.");
 
   // There is no need to adjust the value for the schema keyword 'required'.
@@ -115,8 +114,8 @@ static bool ten_schema_keyword_required_adjust_value(
 // 2. Or the target required keyword is undefined.
 static bool ten_schema_keyword_required_is_compatible(
     ten_schema_keyword_t *self_, ten_schema_keyword_t *target_,
-    ten_schema_error_context_t *err_ctx) {
-  TEN_ASSERT(err_ctx && ten_schema_error_context_check_integrity(err_ctx),
+    ten_schema_error_t *err_ctx) {
+  TEN_ASSERT(err_ctx && ten_schema_error_check_integrity(err_ctx),
              "Invalid argument.");
 
   if (!self_) {

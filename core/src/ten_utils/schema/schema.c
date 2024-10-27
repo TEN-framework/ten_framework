@@ -28,12 +28,10 @@
 #include "ten_utils/value/value_is.h"
 #include "ten_utils/value/value_object.h"
 
-bool ten_schema_error_context_check_integrity(
-    ten_schema_error_context_t *self) {
+bool ten_schema_error_check_integrity(ten_schema_error_t *self) {
   TEN_ASSERT(self, "Invalid argument.");
 
-  if (ten_signature_get(&self->signature) !=
-      TEN_SCHEMA_ERROR_CONTEXT_SIGNATURE) {
+  if (ten_signature_get(&self->signature) != TEN_SCHEMA_ERROR_SIGNATURE) {
     return false;
   }
 
@@ -44,17 +42,16 @@ bool ten_schema_error_context_check_integrity(
   return true;
 }
 
-void ten_schema_error_context_init(ten_schema_error_context_t *self,
-                                   ten_error_t *err) {
+void ten_schema_error_init(ten_schema_error_t *self, ten_error_t *err) {
   TEN_ASSERT(self && err, "Invalid argument.");
 
-  ten_signature_set(&self->signature, TEN_SCHEMA_ERROR_CONTEXT_SIGNATURE);
+  ten_signature_set(&self->signature, TEN_SCHEMA_ERROR_SIGNATURE);
   self->err = err;
   ten_string_init(&self->path);
 }
 
-void ten_schema_error_context_deinit(ten_schema_error_context_t *self) {
-  TEN_ASSERT(self && ten_schema_error_context_check_integrity(self),
+void ten_schema_error_deinit(ten_schema_error_t *self) {
+  TEN_ASSERT(self && ten_schema_error_check_integrity(self),
              "Invalid argument.");
 
   ten_signature_set(&self->signature, 0);
@@ -62,8 +59,8 @@ void ten_schema_error_context_deinit(ten_schema_error_context_t *self) {
   ten_string_deinit(&self->path);
 }
 
-void ten_schema_error_context_reset(ten_schema_error_context_t *self) {
-  TEN_ASSERT(self && ten_schema_error_context_check_integrity(self),
+void ten_schema_error_reset(ten_schema_error_t *self) {
+  TEN_ASSERT(self && ten_schema_error_check_integrity(self),
              "Invalid argument.");
 
   ten_string_clear(&self->path);
@@ -248,12 +245,12 @@ void ten_schema_destroy(ten_schema_t *self) {
   }
 }
 
-bool ten_schema_validate_value_with_context(
-    ten_schema_t *self, ten_value_t *value,
-    ten_schema_error_context_t *err_ctx) {
+bool ten_schema_validate_value_with_context(ten_schema_t *self,
+                                            ten_value_t *value,
+                                            ten_schema_error_t *err_ctx) {
   TEN_ASSERT(self && ten_schema_check_integrity(self), "Invalid argument.");
   TEN_ASSERT(value && ten_value_check_integrity(value), "Invalid argument.");
-  TEN_ASSERT(err_ctx && ten_schema_error_context_check_integrity(err_ctx),
+  TEN_ASSERT(err_ctx && ten_schema_error_check_integrity(err_ctx),
              "Invalid argument.");
 
   ten_hashtable_foreach(&self->keywords, iter) {
@@ -289,15 +286,15 @@ bool ten_schema_validate_value(ten_schema_t *self, ten_value_t *value,
     goto done;
   }
 
-  ten_schema_error_context_t err_ctx;
-  ten_schema_error_context_init(&err_ctx, err);
+  ten_schema_error_t err_ctx;
+  ten_schema_error_init(&err_ctx, err);
   result = ten_schema_validate_value_with_context(self, value, &err_ctx);
   if (!result && !ten_string_is_empty(&err_ctx.path)) {
     ten_error_prepend_errmsg(err,
                              "%s: ", ten_string_get_raw_str(&err_ctx.path));
   }
 
-  ten_schema_error_context_deinit(&err_ctx);
+  ten_schema_error_deinit(&err_ctx);
 
 done:
   if (new_err) {
@@ -307,12 +304,12 @@ done:
   return result;
 }
 
-bool ten_schema_adjust_value_type_with_context(
-    ten_schema_t *self, ten_value_t *value,
-    ten_schema_error_context_t *err_ctx) {
+bool ten_schema_adjust_value_type_with_context(ten_schema_t *self,
+                                               ten_value_t *value,
+                                               ten_schema_error_t *err_ctx) {
   TEN_ASSERT(self && ten_schema_check_integrity(self), "Invalid argument.");
   TEN_ASSERT(value && ten_value_check_integrity(value), "Invalid argument.");
-  TEN_ASSERT(err_ctx && ten_schema_error_context_check_integrity(err_ctx),
+  TEN_ASSERT(err_ctx && ten_schema_error_check_integrity(err_ctx),
              "Invalid argument.");
 
   ten_hashtable_foreach(&self->keywords, iter) {
@@ -349,8 +346,8 @@ bool ten_schema_adjust_value_type(ten_schema_t *self, ten_value_t *value,
     goto done;
   }
 
-  ten_schema_error_context_t err_ctx;
-  ten_schema_error_context_init(&err_ctx, err);
+  ten_schema_error_t err_ctx;
+  ten_schema_error_init(&err_ctx, err);
   result = ten_schema_adjust_value_type_with_context(self, value, &err_ctx);
 
   if (!result && !ten_string_is_empty(&err_ctx.path)) {
@@ -358,7 +355,7 @@ bool ten_schema_adjust_value_type(ten_schema_t *self, ten_value_t *value,
                              "%s: ", ten_string_get_raw_str(&err_ctx.path));
   }
 
-  ten_schema_error_context_deinit(&err_ctx);
+  ten_schema_error_deinit(&err_ctx);
 
 done:
   if (new_err) {
@@ -384,12 +381,12 @@ static ten_schema_keyword_t *ten_schema_peek_keyword_by_type(
   return CONTAINER_OF_FROM_OFFSET(hh, self->keywords.hh_offset);
 }
 
-bool ten_schema_is_compatible_with_context(
-    ten_schema_t *self, ten_schema_t *target,
-    ten_schema_error_context_t *err_ctx) {
+bool ten_schema_is_compatible_with_context(ten_schema_t *self,
+                                           ten_schema_t *target,
+                                           ten_schema_error_t *err_ctx) {
   TEN_ASSERT(self && ten_schema_check_integrity(self), "Invalid argument.");
   TEN_ASSERT(target && ten_schema_check_integrity(target), "Invalid argument.");
-  TEN_ASSERT(err_ctx && ten_schema_error_context_check_integrity(err_ctx),
+  TEN_ASSERT(err_ctx && ten_schema_error_check_integrity(err_ctx),
              "Invalid argument.");
 
   bool result = true;
@@ -436,8 +433,8 @@ bool ten_schema_is_compatible(ten_schema_t *self, ten_schema_t *target,
     TEN_ASSERT(ten_error_check_integrity(err), "Invalid argument.");
   }
 
-  ten_schema_error_context_t err_ctx;
-  ten_schema_error_context_init(&err_ctx, err);
+  ten_schema_error_t err_ctx;
+  ten_schema_error_init(&err_ctx, err);
 
   bool result = ten_schema_is_compatible_with_context(self, target, &err_ctx);
   if (!result && !ten_string_is_empty(&err_ctx.path)) {
@@ -445,7 +442,7 @@ bool ten_schema_is_compatible(ten_schema_t *self, ten_schema_t *target,
                              "%s: ", ten_string_get_raw_str(&err_ctx.path));
   }
 
-  ten_schema_error_context_deinit(&err_ctx);
+  ten_schema_error_deinit(&err_ctx);
 
   if (new_err) {
     ten_error_destroy(err);

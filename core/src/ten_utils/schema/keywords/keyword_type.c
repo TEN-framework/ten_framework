@@ -56,9 +56,9 @@ static void ten_schema_keyword_type_destroy(ten_schema_keyword_t *self_) {
 
 static bool ten_schema_keyword_type_validate_value(
     ten_schema_keyword_t *self_, ten_value_t *value,
-    ten_schema_error_context_t *err_ctx) {
+    ten_schema_error_t *err_ctx) {
   TEN_ASSERT(self_ && value, "Invalid argument.");
-  TEN_ASSERT(err_ctx && ten_schema_error_context_check_integrity(err_ctx),
+  TEN_ASSERT(err_ctx && ten_schema_error_check_integrity(err_ctx),
              "Invalid argument.");
 
   ten_schema_keyword_type_t *self = (ten_schema_keyword_type_t *)self_;
@@ -78,11 +78,11 @@ static bool ten_schema_keyword_type_validate_value(
   return true;
 }
 
-static bool ten_schema_keyword_type_adjust_value(
-    ten_schema_keyword_t *self_, ten_value_t *value,
-    ten_schema_error_context_t *err_ctx) {
+static bool ten_schema_keyword_type_adjust_value(ten_schema_keyword_t *self_,
+                                                 ten_value_t *value,
+                                                 ten_schema_error_t *err_ctx) {
   TEN_ASSERT(self_ && value, "Invalid argument.");
-  TEN_ASSERT(err_ctx && ten_schema_error_context_check_integrity(err_ctx),
+  TEN_ASSERT(err_ctx && ten_schema_error_check_integrity(err_ctx),
              "Invalid argument.");
 
   ten_schema_keyword_type_t *self = (ten_schema_keyword_type_t *)self_;
@@ -132,11 +132,11 @@ static bool ten_schema_keyword_type_adjust_value(
 //
 // Note that the `self` and `target` type keyword should not be NULL, otherwise
 // their schemas are invalid.
-static bool ten_schema_keyword_type_is_compatible(
-    ten_schema_keyword_t *self_, ten_schema_keyword_t *target_,
-    ten_schema_error_context_t *err_ctx) {
+static bool ten_schema_keyword_type_is_compatible(ten_schema_keyword_t *self_,
+                                                  ten_schema_keyword_t *target_,
+                                                  ten_schema_error_t *err_ctx) {
   TEN_ASSERT(self_ && target_, "Invalid argument.");
-  TEN_ASSERT(err_ctx && ten_schema_error_context_check_integrity(err_ctx),
+  TEN_ASSERT(err_ctx && ten_schema_error_check_integrity(err_ctx),
              "Invalid argument.");
 
   ten_schema_keyword_type_t *self = (ten_schema_keyword_type_t *)self_;

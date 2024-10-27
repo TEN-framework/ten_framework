@@ -71,12 +71,11 @@ ten_schema_t *ten_schema_keyword_properties_peek_property_schema(
 
 static bool ten_schema_keyword_properties_validate_value(
     ten_schema_keyword_t *self_, ten_value_t *value,
-    ten_schema_error_context_t *err_ctx) {
+    ten_schema_error_t *err_ctx) {
   TEN_ASSERT(self_ && value && err_ctx, "Invalid argument.");
   TEN_ASSERT(ten_schema_keyword_check_integrity(self_), "Invalid argument.");
   TEN_ASSERT(ten_value_check_integrity(value), "Invalid argument.");
-  TEN_ASSERT(ten_schema_error_context_check_integrity(err_ctx),
-             "Invalid argument.");
+  TEN_ASSERT(ten_schema_error_check_integrity(err_ctx), "Invalid argument.");
 
   if (!ten_value_is_object(value)) {
     ten_error_set(err_ctx->err, TEN_ERRNO_GENERIC,
@@ -121,12 +120,11 @@ static bool ten_schema_keyword_properties_validate_value(
 
 static bool ten_schema_keyword_properties_adjust_value(
     ten_schema_keyword_t *self_, ten_value_t *value,
-    ten_schema_error_context_t *err_ctx) {
+    ten_schema_error_t *err_ctx) {
   TEN_ASSERT(self_ && value && err_ctx, "Invalid argument.");
   TEN_ASSERT(ten_schema_keyword_check_integrity(self_), "Invalid argument.");
   TEN_ASSERT(ten_value_check_integrity(value), "Invalid argument.");
-  TEN_ASSERT(ten_schema_error_context_check_integrity(err_ctx),
-             "Invalid argument.");
+  TEN_ASSERT(ten_schema_error_check_integrity(err_ctx), "Invalid argument.");
 
   if (!ten_value_is_object(value)) {
     ten_error_set(err_ctx->err, TEN_ERRNO_GENERIC,
@@ -172,9 +170,9 @@ static bool ten_schema_keyword_properties_adjust_value(
 // otherwise their schemas are invalid.
 static bool ten_schema_keyword_properties_is_compatible(
     ten_schema_keyword_t *self_, ten_schema_keyword_t *target_,
-    ten_schema_error_context_t *err_ctx) {
+    ten_schema_error_t *err_ctx) {
   TEN_ASSERT(self_ && target_, "Invalid argument.");
-  TEN_ASSERT(err_ctx && ten_schema_error_context_check_integrity(err_ctx),
+  TEN_ASSERT(err_ctx && ten_schema_error_check_integrity(err_ctx),
              "Invalid argument.");
 
   ten_schema_keyword_properties_t *self =
@@ -215,7 +213,7 @@ static bool ten_schema_keyword_properties_is_compatible(
                                   ten_error_errmsg(err_ctx->err));
     }
 
-    ten_schema_error_context_reset(err_ctx);
+    ten_schema_error_reset(err_ctx);
   }
 
   bool success = ten_string_is_empty(&incompatible_fields);
