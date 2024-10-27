@@ -22,11 +22,11 @@ typedef void (*ten_schema_keyword_destroy_func_t)(ten_schema_keyword_t *self);
 
 typedef bool (*ten_schema_keyword_validate_value_func_t)(
     ten_schema_keyword_t *self, ten_value_t *value,
-    ten_schema_error_t *err_ctx);
+    ten_schema_error_t *schema_err);
 
 typedef bool (*ten_schema_keyword_adjust_value_func_t)(
     ten_schema_keyword_t *self, ten_value_t *value,
-    ten_schema_error_t *err_ctx);
+    ten_schema_error_t *schema_err);
 
 /**
  * @brief Check if the keyword is compatible with the target keyword. Note that
@@ -35,7 +35,7 @@ typedef bool (*ten_schema_keyword_adjust_value_func_t)(
  */
 typedef bool (*ten_schema_keyword_is_compatible_func_t)(
     ten_schema_keyword_t *self, ten_schema_keyword_t *target,
-    ten_schema_error_t *err_ctx);
+    ten_schema_error_t *schema_err);
 
 typedef enum TEN_SCHEMA_KEYWORD {
   TEN_SCHEMA_KEYWORD_INVALID = 0,

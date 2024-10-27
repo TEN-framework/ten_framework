@@ -84,8 +84,8 @@ typedef struct ten_schema_t {
 
 // Internal use.
 //
-// The context to be used during the schema validation process. An example of
-// schema is as follows:
+// The error context to be used during the schema validation process. An example
+// of schema is as follows:
 //
 // {
 //   "type": "object",
@@ -148,22 +148,22 @@ TEN_UTILS_API ten_schema_t *ten_schema_create_from_value(ten_value_t *value);
 
 TEN_UTILS_API void ten_schema_destroy(ten_schema_t *self);
 
-TEN_UTILS_PRIVATE_API bool ten_schema_validate_value_with_context(
-    ten_schema_t *self, ten_value_t *value, ten_schema_error_t *err_ctx);
+TEN_UTILS_PRIVATE_API bool ten_schema_validate_value_with_schema_error(
+    ten_schema_t *self, ten_value_t *value, ten_schema_error_t *schema_err);
 
 TEN_UTILS_API bool ten_schema_validate_value(ten_schema_t *self,
                                              ten_value_t *value,
                                              ten_error_t *err);
 
-TEN_UTILS_PRIVATE_API bool ten_schema_adjust_value_type_with_context(
-    ten_schema_t *self, ten_value_t *value, ten_schema_error_t *err_ctx);
+TEN_UTILS_PRIVATE_API bool ten_schema_adjust_value_type_with_schema_error(
+    ten_schema_t *self, ten_value_t *value, ten_schema_error_t *schema_err);
 
 TEN_UTILS_API bool ten_schema_adjust_value_type(ten_schema_t *self,
                                                 ten_value_t *value,
                                                 ten_error_t *err);
 
-TEN_UTILS_PRIVATE_API bool ten_schema_is_compatible_with_context(
-    ten_schema_t *self, ten_schema_t *target, ten_schema_error_t *err_ctx);
+TEN_UTILS_PRIVATE_API bool ten_schema_is_compatible_with_schema_error(
+    ten_schema_t *self, ten_schema_t *target, ten_schema_error_t *schema_err);
 
 TEN_UTILS_API bool ten_schema_is_compatible(ten_schema_t *self,
                                             ten_schema_t *target,

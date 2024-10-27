@@ -48,13 +48,13 @@ static void ten_schema_keyword_required_destroy(ten_schema_keyword_t *self_) {
 
 static bool ten_schema_keyword_required_validate_value(
     ten_schema_keyword_t *self_, ten_value_t *value,
-    ten_schema_error_t *err_ctx) {
-  TEN_ASSERT(self_ && value && err_ctx, "Invalid argument.");
+    ten_schema_error_t *schema_err) {
+  TEN_ASSERT(self_ && value && schema_err, "Invalid argument.");
   TEN_ASSERT(ten_value_check_integrity(value), "Invalid argument.");
-  TEN_ASSERT(ten_schema_error_check_integrity(err_ctx), "Invalid argument.");
+  TEN_ASSERT(ten_schema_error_check_integrity(schema_err), "Invalid argument.");
 
   if (!ten_value_is_object(value)) {
-    ten_error_set(err_ctx->err, TEN_ERRNO_GENERIC,
+    ten_error_set(schema_err->err, TEN_ERRNO_GENERIC,
                   "the value should be an object");
     return false;
   }
@@ -89,7 +89,7 @@ static bool ten_schema_keyword_required_validate_value(
 
   bool result = true;
   if (ten_string_len(&absent_keys) > 0) {
-    ten_error_set(err_ctx->err, TEN_ERRNO_GENERIC,
+    ten_error_set(schema_err->err, TEN_ERRNO_GENERIC,
                   "the required properties are absent: %s",
                   ten_string_get_raw_str(&absent_keys));
     result = false;
@@ -102,8 +102,8 @@ static bool ten_schema_keyword_required_validate_value(
 
 static bool ten_schema_keyword_required_adjust_value(
     ten_schema_keyword_t *self_, ten_value_t *value,
-    ten_schema_error_t *err_ctx) {
-  TEN_ASSERT(self_ && value && err_ctx, "Invalid argument.");
+    ten_schema_error_t *schema_err) {
+  TEN_ASSERT(self_ && value && schema_err, "Invalid argument.");
 
   // There is no need to adjust the value for the schema keyword 'required'.
   return true;
@@ -114,12 +114,12 @@ static bool ten_schema_keyword_required_adjust_value(
 // 2. Or the target required keyword is undefined.
 static bool ten_schema_keyword_required_is_compatible(
     ten_schema_keyword_t *self_, ten_schema_keyword_t *target_,
-    ten_schema_error_t *err_ctx) {
-  TEN_ASSERT(err_ctx && ten_schema_error_check_integrity(err_ctx),
+    ten_schema_error_t *schema_err) {
+  TEN_ASSERT(schema_err && ten_schema_error_check_integrity(schema_err),
              "Invalid argument.");
 
   if (!self_) {
-    ten_error_set(err_ctx->err, TEN_ERRNO_GENERIC,
+    ten_error_set(schema_err->err, TEN_ERRNO_GENERIC,
                   "the `required` in the source schema is undefined");
     return false;
   }
@@ -139,7 +139,7 @@ static bool ten_schema_keyword_required_is_compatible(
 
   if (ten_list_size(&self->required_properties) <
       ten_list_size(&target->required_properties)) {
-    ten_error_set(err_ctx->err, TEN_ERRNO_GENERIC,
+    ten_error_set(schema_err->err, TEN_ERRNO_GENERIC,
                   "required is incompatible, the size of the source can not be "
                   "less than the target.");
     return false;
@@ -162,7 +162,7 @@ static bool ten_schema_keyword_required_is_compatible(
 
   bool success = ten_string_is_empty(&missing_keys);
   if (!success) {
-    ten_error_set(err_ctx->err, TEN_ERRNO_GENERIC,
+    ten_error_set(schema_err->err, TEN_ERRNO_GENERIC,
                   "required is incompatible, the properties [%s] are defined "
                   "in the source but not in the target",
                   ten_string_get_raw_str(&missing_keys));

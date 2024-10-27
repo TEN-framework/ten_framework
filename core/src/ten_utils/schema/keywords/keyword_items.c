@@ -35,15 +35,15 @@ bool ten_schema_keyword_items_check_integrity(
 
 static bool ten_schema_keyword_items_validate_value(
     ten_schema_keyword_t *self_, ten_value_t *value,
-    ten_schema_error_t *err_ctx) {
+    ten_schema_error_t *schema_err) {
   TEN_ASSERT(self_ && ten_schema_keyword_check_integrity(self_),
              "Invalid argument.");
   TEN_ASSERT(value && ten_value_check_integrity(value), "Invalid argument.");
-  TEN_ASSERT(err_ctx && ten_schema_error_check_integrity(err_ctx),
+  TEN_ASSERT(schema_err && ten_schema_error_check_integrity(schema_err),
              "Invalid argument.");
 
   if (!ten_value_is_array(value)) {
-    ten_error_set(err_ctx->err, TEN_ERRNO_GENERIC,
+    ten_error_set(schema_err->err, TEN_ERRNO_GENERIC,
                   "the value should be an array, but is: %s",
                   ten_type_to_string(ten_value_get_type(value)));
     return false;
@@ -63,9 +63,9 @@ static bool ten_schema_keyword_items_validate_value(
     TEN_ASSERT(value_field && ten_value_check_integrity(value_field),
                "Invalid argument.");
 
-    if (!ten_schema_validate_value_with_context(self->item_schema, value_field,
-                                                err_ctx)) {
-      ten_string_prepend_formatted(&err_ctx->path, "[%d]", value_iter.index);
+    if (!ten_schema_validate_value_with_schema_error(self->item_schema,
+                                                     value_field, schema_err)) {
+      ten_string_prepend_formatted(&schema_err->path, "[%d]", value_iter.index);
       return false;
     }
   }
@@ -86,13 +86,13 @@ static void ten_schema_keyword_items_destroy(ten_schema_keyword_t *self_) {
   TEN_FREE(self);
 }
 
-static bool ten_schema_keyword_items_adjust_value(ten_schema_keyword_t *self_,
-                                                  ten_value_t *value,
-                                                  ten_schema_error_t *err_ctx) {
+static bool ten_schema_keyword_items_adjust_value(
+    ten_schema_keyword_t *self_, ten_value_t *value,
+    ten_schema_error_t *schema_err) {
   TEN_ASSERT(self_ && ten_schema_keyword_check_integrity(self_),
              "Invalid argument.");
   TEN_ASSERT(value && ten_value_check_integrity(value), "Invalid argument.");
-  TEN_ASSERT(err_ctx && ten_schema_error_check_integrity(err_ctx),
+  TEN_ASSERT(schema_err && ten_schema_error_check_integrity(schema_err),
              "Invalid argument.");
 
   ten_schema_keyword_items_t *self = (ten_schema_keyword_items_t *)self_;
@@ -100,7 +100,7 @@ static bool ten_schema_keyword_items_adjust_value(ten_schema_keyword_t *self_,
              "Invalid argument.");
 
   if (!ten_value_is_array(value)) {
-    ten_error_set(err_ctx->err, TEN_ERRNO_GENERIC,
+    ten_error_set(schema_err->err, TEN_ERRNO_GENERIC,
                   "the value should be an array, but is: %s",
                   ten_type_to_string(ten_value_get_type(value)));
     return false;
@@ -116,9 +116,9 @@ static bool ten_schema_keyword_items_adjust_value(ten_schema_keyword_t *self_,
     TEN_ASSERT(value_field && ten_value_check_integrity(value_field),
                "Invalid argument.");
 
-    if (!ten_schema_adjust_value_type_with_context(self->item_schema,
-                                                   value_field, err_ctx)) {
-      ten_string_prepend_formatted(&err_ctx->path, "[%d]", value_iter.index);
+    if (!ten_schema_adjust_value_type_with_schema_error(
+            self->item_schema, value_field, schema_err)) {
+      ten_string_prepend_formatted(&schema_err->path, "[%d]", value_iter.index);
       return false;
     }
   }
@@ -136,9 +136,9 @@ static bool ten_schema_keyword_items_adjust_value(ten_schema_keyword_t *self_,
 // their schemas are invalid.
 static bool ten_schema_keyword_items_is_compatible(
     ten_schema_keyword_t *self_, ten_schema_keyword_t *target_,
-    ten_schema_error_t *err_ctx) {
+    ten_schema_error_t *schema_err) {
   TEN_ASSERT(self_ && target_, "Invalid argument.");
-  TEN_ASSERT(err_ctx && ten_schema_error_check_integrity(err_ctx),
+  TEN_ASSERT(schema_err && ten_schema_error_check_integrity(schema_err),
              "Invalid argument.");
 
   ten_schema_keyword_items_t *self = (ten_schema_keyword_items_t *)self_;
@@ -149,10 +149,10 @@ static bool ten_schema_keyword_items_is_compatible(
   TEN_ASSERT(ten_schema_keyword_items_check_integrity(target),
              "Invalid argument.");
 
-  bool success = ten_schema_is_compatible_with_context(
-      self->item_schema, target->item_schema, err_ctx);
+  bool success = ten_schema_is_compatible_with_schema_error(
+      self->item_schema, target->item_schema, schema_err);
   if (!success) {
-    ten_string_prepend_formatted(&err_ctx->path, "[]");
+    ten_string_prepend_formatted(&schema_err->path, "[]");
   }
 
   return success;

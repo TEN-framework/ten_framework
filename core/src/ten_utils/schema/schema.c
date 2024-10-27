@@ -245,12 +245,11 @@ void ten_schema_destroy(ten_schema_t *self) {
   }
 }
 
-bool ten_schema_validate_value_with_context(ten_schema_t *self,
-                                            ten_value_t *value,
-                                            ten_schema_error_t *err_ctx) {
+bool ten_schema_validate_value_with_schema_error(
+    ten_schema_t *self, ten_value_t *value, ten_schema_error_t *schema_err) {
   TEN_ASSERT(self && ten_schema_check_integrity(self), "Invalid argument.");
   TEN_ASSERT(value && ten_value_check_integrity(value), "Invalid argument.");
-  TEN_ASSERT(err_ctx && ten_schema_error_check_integrity(err_ctx),
+  TEN_ASSERT(schema_err && ten_schema_error_check_integrity(schema_err),
              "Invalid argument.");
 
   ten_hashtable_foreach(&self->keywords, iter) {
@@ -259,7 +258,7 @@ bool ten_schema_validate_value_with_context(ten_schema_t *self,
     TEN_ASSERT(keyword && ten_schema_keyword_check_integrity(keyword),
                "Should not happen.");
 
-    bool success = keyword->validate_value(keyword, value, err_ctx);
+    bool success = keyword->validate_value(keyword, value, schema_err);
     if (!success) {
       return false;
     }
@@ -288,7 +287,7 @@ bool ten_schema_validate_value(ten_schema_t *self, ten_value_t *value,
 
   ten_schema_error_t err_ctx;
   ten_schema_error_init(&err_ctx, err);
-  result = ten_schema_validate_value_with_context(self, value, &err_ctx);
+  result = ten_schema_validate_value_with_schema_error(self, value, &err_ctx);
   if (!result && !ten_string_is_empty(&err_ctx.path)) {
     ten_error_prepend_errmsg(err,
                              "%s: ", ten_string_get_raw_str(&err_ctx.path));
@@ -304,12 +303,11 @@ done:
   return result;
 }
 
-bool ten_schema_adjust_value_type_with_context(ten_schema_t *self,
-                                               ten_value_t *value,
-                                               ten_schema_error_t *err_ctx) {
+bool ten_schema_adjust_value_type_with_schema_error(
+    ten_schema_t *self, ten_value_t *value, ten_schema_error_t *schema_err) {
   TEN_ASSERT(self && ten_schema_check_integrity(self), "Invalid argument.");
   TEN_ASSERT(value && ten_value_check_integrity(value), "Invalid argument.");
-  TEN_ASSERT(err_ctx && ten_schema_error_check_integrity(err_ctx),
+  TEN_ASSERT(schema_err && ten_schema_error_check_integrity(schema_err),
              "Invalid argument.");
 
   ten_hashtable_foreach(&self->keywords, iter) {
@@ -318,7 +316,7 @@ bool ten_schema_adjust_value_type_with_context(ten_schema_t *self,
     TEN_ASSERT(keyword && ten_schema_keyword_check_integrity(keyword),
                "Should not happen.");
 
-    bool success = keyword->adjust_value(keyword, value, err_ctx);
+    bool success = keyword->adjust_value(keyword, value, schema_err);
     if (!success) {
       return false;
     }
@@ -348,7 +346,8 @@ bool ten_schema_adjust_value_type(ten_schema_t *self, ten_value_t *value,
 
   ten_schema_error_t err_ctx;
   ten_schema_error_init(&err_ctx, err);
-  result = ten_schema_adjust_value_type_with_context(self, value, &err_ctx);
+  result =
+      ten_schema_adjust_value_type_with_schema_error(self, value, &err_ctx);
 
   if (!result && !ten_string_is_empty(&err_ctx.path)) {
     ten_error_prepend_errmsg(err,
@@ -381,12 +380,11 @@ static ten_schema_keyword_t *ten_schema_peek_keyword_by_type(
   return CONTAINER_OF_FROM_OFFSET(hh, self->keywords.hh_offset);
 }
 
-bool ten_schema_is_compatible_with_context(ten_schema_t *self,
-                                           ten_schema_t *target,
-                                           ten_schema_error_t *err_ctx) {
+bool ten_schema_is_compatible_with_schema_error(
+    ten_schema_t *self, ten_schema_t *target, ten_schema_error_t *schema_err) {
   TEN_ASSERT(self && ten_schema_check_integrity(self), "Invalid argument.");
   TEN_ASSERT(target && ten_schema_check_integrity(target), "Invalid argument.");
-  TEN_ASSERT(err_ctx && ten_schema_error_check_integrity(err_ctx),
+  TEN_ASSERT(schema_err && ten_schema_error_check_integrity(schema_err),
              "Invalid argument.");
 
   bool result = true;
@@ -405,9 +403,9 @@ bool ten_schema_is_compatible_with_context(ten_schema_t *self,
     // target does not, it's compatible.
     if (source_keyword) {
       result = source_keyword->is_compatible(source_keyword, target_keyword,
-                                             err_ctx);
+                                             schema_err);
     } else if (target_keyword) {
-      result = target_keyword->is_compatible(NULL, target_keyword, err_ctx);
+      result = target_keyword->is_compatible(NULL, target_keyword, schema_err);
     } else {
       continue;
     }
@@ -436,7 +434,8 @@ bool ten_schema_is_compatible(ten_schema_t *self, ten_schema_t *target,
   ten_schema_error_t err_ctx;
   ten_schema_error_init(&err_ctx, err);
 
-  bool result = ten_schema_is_compatible_with_context(self, target, &err_ctx);
+  bool result =
+      ten_schema_is_compatible_with_schema_error(self, target, &err_ctx);
   if (!result && !ten_string_is_empty(&err_ctx.path)) {
     ten_error_prepend_errmsg(err,
                              "%s: ", ten_string_get_raw_str(&err_ctx.path));

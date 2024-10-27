@@ -56,9 +56,9 @@ static void ten_schema_keyword_type_destroy(ten_schema_keyword_t *self_) {
 
 static bool ten_schema_keyword_type_validate_value(
     ten_schema_keyword_t *self_, ten_value_t *value,
-    ten_schema_error_t *err_ctx) {
+    ten_schema_error_t *schema_err) {
   TEN_ASSERT(self_ && value, "Invalid argument.");
-  TEN_ASSERT(err_ctx && ten_schema_error_check_integrity(err_ctx),
+  TEN_ASSERT(schema_err && ten_schema_error_check_integrity(schema_err),
              "Invalid argument.");
 
   ten_schema_keyword_type_t *self = (ten_schema_keyword_type_t *)self_;
@@ -67,7 +67,7 @@ static bool ten_schema_keyword_type_validate_value(
 
   TEN_TYPE value_type = ten_value_get_type(value);
   if (!ten_type_is_compatible(value_type, self->type)) {
-    ten_error_set(err_ctx->err, TEN_ERRNO_GENERIC,
+    ten_error_set(schema_err->err, TEN_ERRNO_GENERIC,
                   "the value type does not match the schema type, given: %s, "
                   "expected: %s",
                   ten_type_to_string(value_type),
@@ -78,11 +78,11 @@ static bool ten_schema_keyword_type_validate_value(
   return true;
 }
 
-static bool ten_schema_keyword_type_adjust_value(ten_schema_keyword_t *self_,
-                                                 ten_value_t *value,
-                                                 ten_schema_error_t *err_ctx) {
+static bool ten_schema_keyword_type_adjust_value(
+    ten_schema_keyword_t *self_, ten_value_t *value,
+    ten_schema_error_t *schema_err) {
   TEN_ASSERT(self_ && value, "Invalid argument.");
-  TEN_ASSERT(err_ctx && ten_schema_error_check_integrity(err_ctx),
+  TEN_ASSERT(schema_err && ten_schema_error_check_integrity(schema_err),
              "Invalid argument.");
 
   ten_schema_keyword_type_t *self = (ten_schema_keyword_type_t *)self_;
@@ -95,7 +95,7 @@ static bool ten_schema_keyword_type_adjust_value(ten_schema_keyword_t *self_,
     return true;
   }
 
-  ten_error_t *err = err_ctx->err;
+  ten_error_t *err = schema_err->err;
   switch (schema_type) {
     case TEN_TYPE_INT8:
       return ten_value_convert_to_int8(value, err);
@@ -132,11 +132,11 @@ static bool ten_schema_keyword_type_adjust_value(ten_schema_keyword_t *self_,
 //
 // Note that the `self` and `target` type keyword should not be NULL, otherwise
 // their schemas are invalid.
-static bool ten_schema_keyword_type_is_compatible(ten_schema_keyword_t *self_,
-                                                  ten_schema_keyword_t *target_,
-                                                  ten_schema_error_t *err_ctx) {
+static bool ten_schema_keyword_type_is_compatible(
+    ten_schema_keyword_t *self_, ten_schema_keyword_t *target_,
+    ten_schema_error_t *schema_err) {
   TEN_ASSERT(self_ && target_, "Invalid argument.");
-  TEN_ASSERT(err_ctx && ten_schema_error_check_integrity(err_ctx),
+  TEN_ASSERT(schema_err && ten_schema_error_check_integrity(schema_err),
              "Invalid argument.");
 
   ten_schema_keyword_type_t *self = (ten_schema_keyword_type_t *)self_;
@@ -148,7 +148,7 @@ static bool ten_schema_keyword_type_is_compatible(ten_schema_keyword_t *self_,
 
   bool success = ten_type_is_compatible(self->type, target->type);
   if (!success) {
-    ten_error_set(err_ctx->err, TEN_ERRNO_GENERIC,
+    ten_error_set(schema_err->err, TEN_ERRNO_GENERIC,
                   "type is incompatible, source is [%s], but target is [%s]",
                   ten_type_to_string(self->type),
                   ten_type_to_string(target->type));
