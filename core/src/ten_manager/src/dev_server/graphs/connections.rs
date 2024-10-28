@@ -8,7 +8,7 @@ use std::sync::{Arc, RwLock};
 
 use actix_web::{web, HttpResponse, Responder};
 use serde::{Deserialize, Serialize};
-use ten_rust::pkg_info::graph::msg_conversion::MsgConversion;
+use ten_rust::pkg_info::graph::msg_conversion::MsgAndResultConversion;
 use ten_rust::pkg_info::graph::{
     GraphConnection, GraphDestination, GraphMessageFlow,
 };
@@ -92,7 +92,7 @@ pub struct DevServerDestination {
     pub extension: String,
 
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub msg_conversion: Option<MsgConversion>,
+    pub msg_conversion: Option<MsgAndResultConversion>,
 }
 
 impl From<GraphDestination> for DevServerDestination {

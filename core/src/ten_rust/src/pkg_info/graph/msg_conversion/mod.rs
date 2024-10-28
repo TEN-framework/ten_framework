@@ -94,7 +94,7 @@ impl MsgConversionRule {
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct MsgConversionPartial {
+pub struct MsgConversion {
     #[serde(rename = "type")]
     pub conversion_type: MsgConversionType,
     pub rules: Vec<MsgConversionRule>,
@@ -103,7 +103,7 @@ pub struct MsgConversionPartial {
     pub keep_original: Option<bool>,
 }
 
-impl MsgConversionPartial {
+impl MsgConversion {
     pub fn validate(&self) -> Result<()> {
         if self.rules.is_empty() {
             return Err(anyhow::Error::msg(
@@ -121,15 +121,15 @@ impl MsgConversionPartial {
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct MsgConversion {
+pub struct MsgAndResultConversion {
     #[serde(flatten)]
-    pub msg: MsgConversionPartial,
+    pub msg: MsgConversion,
 
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub result: Option<MsgConversionPartial>,
+    pub result: Option<MsgConversion>,
 }
 
-impl MsgConversion {
+impl MsgAndResultConversion {
     pub fn validate(&self) -> Result<()> {
         self.msg.validate()?;
 

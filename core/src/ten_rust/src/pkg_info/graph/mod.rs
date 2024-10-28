@@ -11,7 +11,7 @@ pub mod msg_conversion;
 use std::{collections::HashMap, str::FromStr};
 
 use anyhow::Result;
-use msg_conversion::MsgConversion;
+use msg_conversion::MsgAndResultConversion;
 use serde::{Deserialize, Serialize};
 
 use super::{pkg_type::PkgType, PkgInfo};
@@ -397,7 +397,7 @@ pub struct GraphDestination {
     pub extension: String,
 
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub msg_conversion: Option<MsgConversion>,
+    pub msg_conversion: Option<MsgAndResultConversion>,
 }
 
 impl GraphDestination {
