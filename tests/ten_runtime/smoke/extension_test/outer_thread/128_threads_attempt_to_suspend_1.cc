@@ -50,7 +50,7 @@ class test_extension_1 : public ten::extension_t {
     // clang-format off
     bool rc = ten_env.init_property_from_json( R"({
       "_ten": {
-        "path_timeout": 600000000
+        "path_timeout": 1200000000
       }
     })");
     // clang-format on
@@ -833,7 +833,7 @@ class test_extension_2 : public ten::extension_t {
   void on_configure(ten::ten_env_t &ten_env) override {
     ten_env.init_property_from_json(R"({
       "_ten": {
-        "path_timeout": 600000000
+        "path_timeout": 1200000000
       }
     })");
     ten_env.on_configure_done();
