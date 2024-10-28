@@ -101,7 +101,7 @@ void test_extension_in_app2_not_installed() {
 }  // namespace
 
 int main(int argc, char **argv) {
-  // test_extension_in_app1_not_installed();
+  test_extension_in_app1_not_installed();
   test_extension_in_app2_not_installed();
 
   // Create a client and connect to the app.
