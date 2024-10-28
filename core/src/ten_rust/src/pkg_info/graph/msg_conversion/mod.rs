@@ -63,7 +63,7 @@ pub struct MsgConversionRule {
     pub original_path: Option<String>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub value: Option<String>,
+    pub value: Option<serde_json::Value>,
 }
 
 impl MsgConversionRule {

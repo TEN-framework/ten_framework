@@ -746,4 +746,40 @@ mod tests {
         let msg = graph.err().unwrap().to_string();
         assert!(msg.contains(constants::ERR_MSG_APP_IS_EMPTY));
     }
+
+    #[test]
+    fn test_graph_message_conversion_fixed_value() {
+        let graph_str = include_str!(
+            "test_data_embed/graph_message_conversion_fixed_value.json"
+        );
+        let graph = Graph::from_str(graph_str).unwrap();
+
+        let connections = graph.connections.unwrap();
+        let cmd = connections
+            .first()
+            .unwrap()
+            .cmd
+            .as_ref()
+            .unwrap()
+            .first()
+            .unwrap();
+        let msg_conversion =
+            cmd.dest.first().unwrap().msg_conversion.as_ref().unwrap();
+        assert_eq!(msg_conversion.msg.rules.len(), 4);
+        assert_eq!(
+            msg_conversion.msg.rules[1]
+                .value
+                .as_ref()
+                .unwrap()
+                .as_str()
+                .unwrap(),
+            "hello"
+        );
+        assert!(msg_conversion.msg.rules[2]
+            .value
+            .as_ref()
+            .unwrap()
+            .as_bool()
+            .unwrap());
+    }
 }
