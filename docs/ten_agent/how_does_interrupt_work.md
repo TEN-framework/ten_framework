@@ -46,7 +46,7 @@ needs.
 In a typical AI agent graph, the interrupt command (`flush`) follows a chain
 processing pattern:
 
-```
+```text
 Interrupt Detector
        ↓
     LLM/ChatGPT
