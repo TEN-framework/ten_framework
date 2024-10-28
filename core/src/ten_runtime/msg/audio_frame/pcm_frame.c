@@ -423,18 +423,6 @@ static bool ten_raw_audio_frame_init_from_json(ten_audio_frame_t *self,
 
   return ten_raw_audio_frame_loop_all_fields(
       (ten_msg_t *)self, ten_raw_msg_get_one_field_from_json, json, err);
-
-  // for (size_t i = 0; i < ten_audio_frame_fields_info_size; ++i) {
-  //   ten_msg_get_field_from_json_func_t get_field_from_json =
-  //       ten_audio_frame_fields_info[i].get_field_from_json;
-  //   if (get_field_from_json) {
-  //     if (!get_field_from_json((ten_msg_t *)self, json, err)) {
-  //       return false;
-  //     }
-  //   }
-  // }
-
-  // return true;
 }
 
 static ten_audio_frame_t *ten_raw_audio_frame_create_from_json(

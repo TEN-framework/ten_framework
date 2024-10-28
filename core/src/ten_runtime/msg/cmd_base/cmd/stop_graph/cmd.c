@@ -62,18 +62,6 @@ static bool ten_raw_cmd_stop_graph_init_from_json(ten_cmd_stop_graph_t *self,
              "Should not happen.");
   TEN_ASSERT(json && ten_json_check_integrity(json), "Should not happen.");
 
-  // for (size_t i = 0; i < ten_cmd_stop_graph_fields_info_size; ++i) {
-  //   ten_msg_get_field_from_json_func_t get_field_from_json =
-  //       ten_cmd_stop_graph_fields_info[i].get_field_from_json;
-  //   if (get_field_from_json) {
-  //     if (!get_field_from_json(&(self->cmd_hdr.cmd_base_hdr.msg_hdr), json,
-  //                              err)) {
-  //       return false;
-  //     }
-  //   }
-  // }
-  // return true;
-
   return ten_raw_cmd_stop_graph_loop_all_fields(
       (ten_msg_t *)self, ten_raw_msg_get_one_field_from_json, json, err);
 }
@@ -123,21 +111,6 @@ ten_json_t *ten_raw_cmd_stop_graph_to_json(ten_msg_t *self, ten_error_t *err) {
 
   ten_json_t *json = ten_json_create_object();
   TEN_ASSERT(json, "Should not happen.");
-
-  // for (size_t i = 0; i < ten_cmd_stop_graph_fields_info_size; ++i) {
-  //   ten_msg_put_field_to_json_func_t put_field_to_json =
-  //       ten_cmd_stop_graph_fields_info[i].put_field_to_json;
-  //   if (put_field_to_json) {
-  //     if (!put_field_to_json(
-  //             &(((ten_cmd_stop_graph_t
-  //             *)self)->cmd_hdr.cmd_base_hdr.msg_hdr), json, err)) {
-  //       ten_json_destroy(json);
-  //       return NULL;
-  //     }
-  //   }
-  // }
-
-  // return json;
 
   if (!ten_raw_cmd_stop_graph_loop_all_fields(
           self, ten_raw_msg_put_one_field_to_json, json, err)) {

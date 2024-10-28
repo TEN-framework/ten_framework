@@ -82,18 +82,6 @@ static bool ten_raw_cmd_custom_init_from_json(ten_cmd_t *self, ten_json_t *json,
              "Should not happen.");
   TEN_ASSERT(json && ten_json_check_integrity(json), "Should not happen.");
 
-  // for (size_t i = 0; i < ten_cmd_custom_fields_info_size; ++i) {
-  //   ten_msg_get_field_from_json_func_t get_field_from_json =
-  //       ten_cmd_custom_fields_info[i].get_field_from_json;
-  //   if (get_field_from_json) {
-  //     if (!get_field_from_json((ten_msg_t *)self, json, err)) {
-  //       return false;
-  //     }
-  //   }
-  // }
-
-  // return true;
-
   return ten_raw_cmd_custom_loop_all_fields(
       (ten_msg_t *)self, ten_raw_msg_get_one_field_from_json, json, err);
 }

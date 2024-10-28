@@ -628,18 +628,6 @@ bool ten_raw_msg_get_field_from_json(ten_msg_t *self, ten_json_t *json,
                                      ten_error_t *err) {
   TEN_ASSERT(self && json, "Should not happen.");
 
-  // for (size_t i = 0; i < ten_msg_fields_info_size; ++i) {
-  //   ten_msg_get_field_from_json_func_t get_field_from_json =
-  //       ten_msg_fields_info[i].get_field_from_json;
-  //   if (get_field_from_json) {
-  //     if (!get_field_from_json(self, json, err)) {
-  //       return false;
-  //     }
-  //   }
-  // }
-
-  // return true;
-
   return ten_raw_msg_process_field(self, ten_raw_msg_get_one_field_from_json,
                                    json, err);
 }
@@ -681,18 +669,6 @@ bool ten_raw_msg_put_field_to_json(ten_msg_t *self, ten_json_t *json,
 
   return ten_raw_msg_process_field(self, ten_raw_msg_put_one_field_to_json,
                                    json, err);
-
-  // for (size_t i = 0; i < ten_msg_fields_info_size; ++i) {
-  //   ten_msg_put_field_to_json_func_t put_field_to_json =
-  //       ten_msg_fields_info[i].put_field_to_json;
-  //   if (put_field_to_json) {
-  //     if (!put_field_to_json(self, json, err)) {
-  //       return false;
-  //     }
-  //   }
-  // }
-
-  // return true;
 }
 
 bool ten_raw_msg_process_field(ten_msg_t *self,
