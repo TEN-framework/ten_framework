@@ -580,9 +580,9 @@ const char *ten_msg_type_to_string(const TEN_MSG_TYPE type) {
   return ten_msg_info[type].msg_type_name;
 }
 
-static bool ten_raw_msg_get_one_field_from_json(
-    ten_msg_t *msg, ten_msg_field_process_data_t *field, void *user_data,
-    ten_error_t *err) {
+bool ten_raw_msg_get_one_field_from_json(ten_msg_t *msg,
+                                         ten_msg_field_process_data_t *field,
+                                         void *user_data, ten_error_t *err) {
   TEN_ASSERT(msg && ten_raw_msg_check_integrity(msg), "Should not happen.");
   TEN_ASSERT(field, "Should not happen.");
 
@@ -644,9 +644,9 @@ bool ten_raw_msg_get_field_from_json(ten_msg_t *self, ten_json_t *json,
                                    json, err);
 }
 
-static bool ten_raw_msg_put_one_field_to_json(
-    ten_msg_t *msg, ten_msg_field_process_data_t *field, void *user_data,
-    ten_error_t *err) {
+bool ten_raw_msg_put_one_field_to_json(ten_msg_t *msg,
+                                       ten_msg_field_process_data_t *field,
+                                       void *user_data, ten_error_t *err) {
   TEN_ASSERT(msg && ten_raw_msg_check_integrity(msg), "Should not happen.");
   TEN_ASSERT(field, "Should not happen.");
 

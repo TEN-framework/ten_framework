@@ -105,3 +105,7 @@ TEN_RUNTIME_PRIVATE_API bool ten_raw_cmd_result_is_final(ten_cmd_result_t *self,
 
 TEN_RUNTIME_PRIVATE_API bool ten_raw_cmd_result_set_final(
     ten_cmd_result_t *self, bool is_final, ten_error_t *err);
+
+TEN_RUNTIME_PRIVATE_API bool ten_raw_cmd_result_loop_all_fields(
+    ten_msg_t *self, ten_raw_msg_process_one_field_func_t cb, void *user_data,
+    ten_error_t *err);

@@ -12,6 +12,7 @@
 #include "ten_utils/lib/error.h"
 #include "ten_utils/lib/json.h"
 #include "ten_utils/lib/thread.h"
+#include "ten_utils/log/log.h"
 #include "tests/common/client/msgpack_tcp.h"
 #include "tests/ten_runtime/smoke/extension_test/util/check.h"
 
@@ -97,6 +98,12 @@ TEST(ExtensionTest, ErrorClientSendJson) {  // NOLINT
   ten_error_t *err = ten_error_create();
   ten_json_t *resp =
       ten_test_msgpack_tcp_client_send_and_recv_json(client, graph, err);
+
+  if (resp != nullptr) {
+    bool must_free = false;
+    auto* json_str = ten_json_to_string(resp, nullptr, &must_free);
+    TEN_LOGE("resp: %s", json_str);
+  }
 
   EXPECT_EQ(resp, nullptr);
   EXPECT_STREQ(ten_error_errmsg(err),

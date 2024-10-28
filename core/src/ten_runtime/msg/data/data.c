@@ -6,6 +6,7 @@
 //
 #include "ten_runtime/msg/data/data.h"
 
+#include "include_internal/ten_runtime/msg/data/data.h"
 #include "include_internal/ten_runtime/msg/data/field/field_info.h"
 #include "include_internal/ten_runtime/msg/locked_res.h"
 #include "include_internal/ten_runtime/msg/msg.h"
@@ -139,17 +140,20 @@ static bool ten_raw_data_init_from_json(ten_data_t *self, ten_json_t *json,
   TEN_ASSERT(self && ten_raw_data_check_integrity(self), "Should not happen.");
   TEN_ASSERT(json && ten_json_check_integrity(json), "Should not happen.");
 
-  for (size_t i = 0; i < ten_data_fields_info_size; ++i) {
-    ten_msg_get_field_from_json_func_t get_field_from_json =
-        ten_data_fields_info[i].get_field_from_json;
-    if (get_field_from_json) {
-      if (!get_field_from_json((ten_msg_t *)self, json, err)) {
-        return false;
-      }
-    }
-  }
+  return ten_raw_data_loop_all_fields(
+      (ten_msg_t *)self, ten_raw_msg_get_one_field_from_json, json, err);
 
-  return true;
+  // for (size_t i = 0; i < ten_data_fields_info_size; ++i) {
+  //   ten_msg_get_field_from_json_func_t get_field_from_json =
+  //       ten_data_fields_info[i].get_field_from_json;
+  //   if (get_field_from_json) {
+  //     if (!get_field_from_json((ten_msg_t *)self, json, err)) {
+  //       return false;
+  //     }
+  //   }
+  // }
+
+  // return true;
 }
 
 static ten_data_t *ten_raw_data_create_from_json(ten_json_t *json,
@@ -192,7 +196,9 @@ ten_json_t *ten_raw_data_as_msg_to_json(ten_msg_t *self, ten_error_t *err) {
   ten_json_t *json = ten_json_create_object();
   TEN_ASSERT(json, "Should not happen.");
 
-  if (!ten_raw_msg_put_field_to_json(self, json, err)) {
+  bool rc = ten_raw_data_loop_all_fields(
+      self, ten_raw_msg_put_one_field_to_json, json, err);
+  if (!rc) {
     ten_json_destroy(json);
     return NULL;
   }

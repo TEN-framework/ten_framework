@@ -91,3 +91,7 @@ TEN_RUNTIME_PRIVATE_API ten_cmd_start_graph_t *ten_raw_cmd_start_graph_create(
 
 TEN_RUNTIME_PRIVATE_API ten_msg_t *ten_raw_cmd_start_graph_as_msg_clone(
     ten_msg_t *self, ten_list_t *excluded_field_ids);
+
+TEN_RUNTIME_PRIVATE_API bool ten_raw_cmd_start_graph_loop_all_fields(
+    ten_msg_t *self, ten_raw_msg_process_one_field_func_t cb, void *user_data,
+    ten_error_t *err);

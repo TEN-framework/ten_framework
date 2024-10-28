@@ -262,7 +262,7 @@ ten_value_t *ten_loc_to_value(ten_loc_t *self) {
         ten_value_kv_create(
             TEN_STR_APP,
             ten_value_create_string(ten_string_get_raw_str(&self->app_uri))),
-        (ten_ptr_listnode_destroy_func_t)ten_value_kv_destroy_xxx);
+        (ten_ptr_listnode_destroy_func_t)ten_value_kv_destroy);
   }
 
   if (!ten_string_is_empty(&self->graph_id)) {
@@ -271,7 +271,7 @@ ten_value_t *ten_loc_to_value(ten_loc_t *self) {
         ten_value_kv_create(
             TEN_STR_GRAPH,
             ten_value_create_string(ten_string_get_raw_str(&self->graph_id))),
-        (ten_ptr_listnode_destroy_func_t)ten_value_kv_destroy_xxx);
+        (ten_ptr_listnode_destroy_func_t)ten_value_kv_destroy);
   }
 
   if (!ten_string_is_empty(&self->extension_group_name)) {
@@ -280,7 +280,7 @@ ten_value_t *ten_loc_to_value(ten_loc_t *self) {
         ten_value_kv_create(TEN_STR_EXTENSION_GROUP,
                             ten_value_create_string(ten_string_get_raw_str(
                                 &self->extension_group_name))),
-        (ten_ptr_listnode_destroy_func_t)ten_value_kv_destroy_xxx);
+        (ten_ptr_listnode_destroy_func_t)ten_value_kv_destroy);
   }
 
   if (!ten_string_is_empty(&self->extension_name)) {
@@ -289,7 +289,7 @@ ten_value_t *ten_loc_to_value(ten_loc_t *self) {
         ten_value_kv_create(TEN_STR_EXTENSION,
                             ten_value_create_string(
                                 ten_string_get_raw_str(&self->extension_name))),
-        (ten_ptr_listnode_destroy_func_t)ten_value_kv_destroy_xxx);
+        (ten_ptr_listnode_destroy_func_t)ten_value_kv_destroy);
   }
 
   ten_value_t *loc_value = ten_value_create_object_with_move(&loc_fields);

@@ -41,3 +41,7 @@ TEN_RUNTIME_PRIVATE_API ten_json_t *ten_raw_cmd_timeout_as_msg_to_json(
     ten_msg_t *self, ten_error_t *err);
 
 TEN_RUNTIME_API uint32_t ten_cmd_timeout_get_timer_id(ten_shared_ptr_t *self);
+
+TEN_RUNTIME_PRIVATE_API bool ten_raw_cmd_timeout_loop_all_fields(
+    ten_msg_t *self, ten_raw_msg_process_one_field_func_t cb, void *user_data,
+    ten_error_t *err);

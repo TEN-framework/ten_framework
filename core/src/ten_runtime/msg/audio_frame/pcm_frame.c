@@ -374,7 +374,9 @@ ten_json_t *ten_raw_audio_frame_as_msg_to_json(ten_msg_t *self,
   ten_json_t *json = ten_json_create_object();
   TEN_ASSERT(json, "Should not happen.");
 
-  if (!ten_raw_msg_put_field_to_json(self, json, err)) {
+  bool rc = ten_raw_audio_frame_loop_all_fields(
+      self, ten_raw_msg_put_one_field_to_json, json, err);
+  if (!rc) {
     ten_json_destroy(json);
     return NULL;
   }
@@ -419,17 +421,20 @@ static bool ten_raw_audio_frame_init_from_json(ten_audio_frame_t *self,
              "Should not happen.");
   TEN_ASSERT(json && ten_json_check_integrity(json), "Should not happen.");
 
-  for (size_t i = 0; i < ten_audio_frame_fields_info_size; ++i) {
-    ten_msg_get_field_from_json_func_t get_field_from_json =
-        ten_audio_frame_fields_info[i].get_field_from_json;
-    if (get_field_from_json) {
-      if (!get_field_from_json((ten_msg_t *)self, json, err)) {
-        return false;
-      }
-    }
-  }
+  return ten_raw_audio_frame_loop_all_fields(
+      (ten_msg_t *)self, ten_raw_msg_get_one_field_from_json, json, err);
 
-  return true;
+  // for (size_t i = 0; i < ten_audio_frame_fields_info_size; ++i) {
+  //   ten_msg_get_field_from_json_func_t get_field_from_json =
+  //       ten_audio_frame_fields_info[i].get_field_from_json;
+  //   if (get_field_from_json) {
+  //     if (!get_field_from_json((ten_msg_t *)self, json, err)) {
+  //       return false;
+  //     }
+  //   }
+  // }
+
+  // return true;
 }
 
 static ten_audio_frame_t *ten_raw_audio_frame_create_from_json(
@@ -556,4 +561,23 @@ ten_value_t *ten_raw_audio_frame_peek_ten_property(ten_msg_t *self,
   }
 
   return result;
+}
+
+bool ten_raw_audio_frame_loop_all_fields(
+    ten_msg_t *self, ten_raw_msg_process_one_field_func_t cb, void *user_data,
+    ten_error_t *err) {
+  TEN_ASSERT(self && ten_raw_audio_frame_check_integrity(self),
+             "Invalid argument.");
+
+  for (size_t i = 0; i < ten_audio_frame_fields_info_size; ++i) {
+    ten_msg_process_field_func_t process_field =
+        ten_audio_frame_fields_info[i].process_field;
+    if (process_field) {
+      if (!process_field(self, cb, user_data, err)) {
+        return false;
+      }
+    }
+  }
+
+  return true;
 }
