@@ -18,9 +18,6 @@ typedef struct ten_extension_info_t ten_extension_info_t;
 TEN_RUNTIME_PRIVATE_API ten_shared_ptr_t *ten_extension_info_node_from_value(
     ten_value_t *value, ten_list_t *extensions_info, ten_error_t *err);
 
-TEN_RUNTIME_PRIVATE_API ten_shared_ptr_t *ten_extension_info_connections_from_value(
-    ten_value_t *value, ten_list_t *extensions_info, ten_error_t *err);
-
 TEN_RUNTIME_PRIVATE_API ten_shared_ptr_t *
 ten_extension_info_parse_connection_src_part_from_value(
     ten_value_t *value, ten_list_t *extensions_info, ten_error_t *err);
@@ -34,5 +31,5 @@ ten_extension_info_parse_connection_dest_part_from_value(
 TEN_RUNTIME_PRIVATE_API ten_value_t *ten_extension_info_node_to_value(
     ten_extension_info_t *self, ten_error_t *err);
 
-TEN_RUNTIME_PRIVATE_API ten_value_t *ten_extension_info_connections_to_value(
+TEN_RUNTIME_PRIVATE_API ten_value_t *ten_extension_info_connection_to_value(
     ten_extension_info_t *self, ten_error_t *err);

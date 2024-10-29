@@ -118,7 +118,7 @@ bool ten_raw_msg_dest_process(ten_msg_t *self,
 
   bool rc = cb(self, &dest_field, user_data, err);
 
-  if (dest_field.value_modified) {
+  if (dest_field.value_is_changed_after_process) {
     ten_list_clear(&self->dest_loc);
 
     ten_value_array_foreach(dest_field.field_value, iter) {

@@ -102,9 +102,8 @@ void ten_value_kv_destroy_key_only(ten_value_kv_t *self) {
   TEN_ASSERT(self && ten_value_kv_check_integrity(self), "Invalid argument.");
 
   ten_string_deinit(&self->key);
-
-  // Value is not owned by the key-value pair, do not destroy it.
   self->value = NULL;
+
   ten_free(self);
 }
 

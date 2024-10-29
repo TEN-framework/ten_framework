@@ -558,8 +558,7 @@ TEN_MSG_TYPE ten_msg_type_from_type_and_name_string(const char *type_str,
   return msg_type;
 }
 
-TEN_MSG_TYPE
-ten_raw_msg_type_spec_by_unique_name(const char *name_str) {
+TEN_MSG_TYPE ten_msg_type_from_unique_name_string(const char *name_str) {
   TEN_ASSERT(name_str, "Invalid argument.");
 
   TEN_MSG_TYPE msg_type = TEN_MSG_TYPE_INVALID;
@@ -582,10 +581,10 @@ const char *ten_msg_type_to_string(const TEN_MSG_TYPE type) {
   return ten_msg_info[type].msg_type_name;
 }
 
-bool ten_raw_msg_get_one_field_from_json(ten_msg_t *msg,
+bool ten_raw_msg_get_one_field_from_json(ten_msg_t *self,
                                          ten_msg_field_process_data_t *field,
                                          void *user_data, ten_error_t *err) {
-  TEN_ASSERT(msg && ten_raw_msg_check_integrity(msg), "Should not happen.");
+  TEN_ASSERT(self && ten_raw_msg_check_integrity(self), "Should not happen.");
   TEN_ASSERT(field, "Should not happen.");
   TEN_ASSERT(
       field->field_value && ten_value_check_integrity(field->field_value),
@@ -649,8 +648,8 @@ bool ten_raw_msg_get_one_field_from_json(ten_msg_t *msg,
   }
 
   // During JSON deserialization, the field value may be modified, so we set the
-  // value_modified flag.
-  field->value_modified = true;
+  // value_is_changed_after_process flag.
+  field->value_is_changed_after_process = true;
 
   return true;
 }
@@ -663,10 +662,10 @@ bool ten_raw_msg_get_field_from_json(ten_msg_t *self, ten_json_t *json,
                                    json, err);
 }
 
-bool ten_raw_msg_put_one_field_to_json(ten_msg_t *msg,
+bool ten_raw_msg_put_one_field_to_json(ten_msg_t *self,
                                        ten_msg_field_process_data_t *field,
                                        void *user_data, ten_error_t *err) {
-  TEN_ASSERT(msg && ten_raw_msg_check_integrity(msg), "Should not happen.");
+  TEN_ASSERT(self && ten_raw_msg_check_integrity(self), "Should not happen.");
   TEN_ASSERT(field, "Should not happen.");
   TEN_ASSERT(
       field->field_value && ten_value_check_integrity(field->field_value),
@@ -696,7 +695,7 @@ bool ten_raw_msg_put_one_field_to_json(ten_msg_t *msg,
   }
 
   // The field value is not modified during JSON serialization.
-  field->value_modified = false;
+  field->value_is_changed_after_process = false;
 
   return true;
 }

@@ -251,8 +251,9 @@ ten_json_t *ten_loc_to_json(ten_loc_t *self) {
   return loc_json;
 }
 
-ten_value_t *ten_loc_to_value(ten_loc_t *self) {
+bool ten_loc_set_value(ten_loc_t *self, ten_value_t *value) {
   TEN_ASSERT(self && ten_loc_check_integrity(self), "Should not happen.");
+  TEN_ASSERT(value && ten_value_check_integrity(value), "Should not happen.");
 
   ten_list_t loc_fields = TEN_LIST_INIT_VAL;
 
@@ -292,12 +293,24 @@ ten_value_t *ten_loc_to_value(ten_loc_t *self) {
         (ten_ptr_listnode_destroy_func_t)ten_value_kv_destroy);
   }
 
-  ten_value_t *loc_value = ten_value_create_object_with_move(&loc_fields);
-  TEN_ASSERT(loc_value, "Should not happen.");
+  bool rc = ten_value_init_object_with_move(value, &loc_fields);
 
   ten_list_clear(&loc_fields);
+  return rc;
+}
 
-  return loc_value;
+ten_value_t *ten_loc_to_value(ten_loc_t *self) {
+  TEN_ASSERT(self && ten_loc_check_integrity(self), "Should not happen.");
+
+  ten_value_t *loc_value = ten_value_create_object_with_move(NULL);
+  TEN_ASSERT(loc_value, "Should not happen.");
+
+  if (ten_loc_set_value(self, loc_value)) {
+    return loc_value;
+  } else {
+    ten_value_destroy(loc_value);
+    return NULL;
+  }
 }
 
 void ten_loc_init_from_json(ten_loc_t *self, ten_json_t *json) {
@@ -375,6 +388,8 @@ void ten_loc_init_from_value(ten_loc_t *self, ten_value_t *value) {
       ten_value_object_peek(value, TEN_STR_EXTENSION);
 
   if (app_value) {
+    TEN_ASSERT(ten_value_is_string(app_value), "Should not happen.");
+
     const char *app_str = ten_value_peek_raw_str(app_value);
     if (app_str && strlen(app_str) > 0) {
       ten_string_init_from_c_str(&self->app_uri, app_str, strlen(app_str));
@@ -382,6 +397,8 @@ void ten_loc_init_from_value(ten_loc_t *self, ten_value_t *value) {
   }
 
   if (graph_value) {
+    TEN_ASSERT(ten_value_is_string(graph_value), "Should not happen.");
+
     const char *graph_str = ten_value_peek_raw_str(graph_value);
     if (graph_str && strlen(graph_str) > 0) {
       ten_string_init_from_c_str(&self->graph_id, graph_str, strlen(graph_str));
@@ -389,51 +406,23 @@ void ten_loc_init_from_value(ten_loc_t *self, ten_value_t *value) {
   }
 
   if (extension_group_value) {
-    if (ten_value_is_object(extension_group_value)) {
-      ten_value_t *extension_group_name_value =
-          ten_value_object_peek(extension_group_value, TEN_STR_NAME);
-      TEN_ASSERT(ten_value_is_string(extension_group_name_value),
-                 "name of extension_group must be a string.");
+    TEN_ASSERT(ten_value_is_string(extension_group_value),
+               "Should not happen.");
 
-      const char *group_name_str =
-          ten_value_peek_raw_str(extension_group_name_value);
-      if (group_name_str && strlen(group_name_str) > 0) {
-        ten_string_init_from_c_str(&self->extension_group_name, group_name_str,
-                                   strlen(group_name_str));
-      }
-    } else if (ten_value_is_string(extension_group_value)) {
-      const char *group_name_str =
-          ten_value_peek_raw_str(extension_group_value);
-      if (group_name_str && strlen(group_name_str) > 0) {
-        ten_string_init_from_c_str(&self->extension_group_name, group_name_str,
-                                   strlen(group_name_str));
-      }
-    } else {
-      TEN_ASSERT(0, "extension_group must be an object or a string.");
+    const char *group_name_str = ten_value_peek_raw_str(extension_group_value);
+    if (group_name_str && strlen(group_name_str) > 0) {
+      ten_string_init_from_c_str(&self->extension_group_name, group_name_str,
+                                 strlen(group_name_str));
     }
   }
 
   if (extension_value) {
-    if (ten_value_is_object(extension_value)) {
-      ten_value_t *extension_name_value =
-          ten_value_object_peek(extension_value, TEN_STR_NAME);
-      TEN_ASSERT(ten_value_is_string(extension_name_value),
-                 "name of extension must be a string.");
+    TEN_ASSERT(ten_value_is_string(extension_value), "Should not happen.");
 
-      const char *extension_name_str =
-          ten_value_peek_raw_str(extension_name_value);
-      if (extension_name_str && strlen(extension_name_str) > 0) {
-        ten_string_init_from_c_str(&self->extension_name, extension_name_str,
-                                   strlen(extension_name_str));
-      }
-    } else if (ten_value_is_string(extension_value)) {
-      const char *extension_name_str = ten_value_peek_raw_str(extension_value);
-      if (extension_name_str && strlen(extension_name_str) > 0) {
-        ten_string_init_from_c_str(&self->extension_name, extension_name_str,
-                                   strlen(extension_name_str));
-      }
-    } else {
-      TEN_ASSERT(0, "extension must be an object or a string.");
+    const char *extension_name_str = ten_value_peek_raw_str(extension_value);
+    if (extension_name_str && strlen(extension_name_str) > 0) {
+      ten_string_init_from_c_str(&self->extension_name, extension_name_str,
+                                 strlen(extension_name_str));
     }
   }
 }

@@ -14,12 +14,25 @@
 typedef struct ten_msg_t ten_msg_t;
 
 typedef struct ten_msg_field_process_data_t {
+  // The name of the field.
   const char *field_name;
+
+  // The value of the field.
   ten_value_t *field_value;
 
+  // Whether this field is a user-defined field. If it is not user-defined, then
+  // it is a `_ten` field.
   bool is_user_defined_properties;
 
-  bool value_modified;
+  // Whether the value has been modified. Some logic checks if the value has
+  // changed, requiring it to be written back to the original memory space for
+  // that field. For example, in the message, `src/dest loc` exists as a
+  // `ten_loc_t` type. If, within certain process logic, the value is modified,
+  // the updated value should reflect in the corresponding `ten_loc_t`. The
+  // `value_is_changed_after_process` field indicates whether the value has been
+  // modified, allowing users to determine if it should be written back to the
+  // original field.
+  bool value_is_changed_after_process;
 } ten_msg_field_process_data_t;
 
 typedef bool (*ten_raw_msg_process_one_field_func_t)(
@@ -27,7 +40,7 @@ typedef bool (*ten_raw_msg_process_one_field_func_t)(
     ten_error_t *err);
 
 TEN_RUNTIME_API void ten_msg_field_process_data_init(
-    ten_msg_field_process_data_t *field, const char *field_name,
+    ten_msg_field_process_data_t *self, const char *field_name,
     ten_value_t *field_value, bool is_user_defined_properties);
 
 TEN_RUNTIME_API bool ten_raw_msg_loop_all_fields(

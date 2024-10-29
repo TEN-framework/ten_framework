@@ -41,9 +41,9 @@ ten_value_t *ten_cmd_start_graph_extensions_info_to_value(ten_msg_t *self,
   ten_list_t *extensions_info =
       ten_raw_cmd_start_graph_get_extensions_info(cmd);
 
-  // Convert the start_graph command into ten_value_t, which is an object-type
-  // value containing two key-value pairs: "nodes" and "connections".
-  // The snippet is as follows:
+  // Convert the core part of the start_graph command into ten_value_t, which is
+  // an object-type value containing two key-value pairs: "nodes" and
+  // "connections". The snippet is as follows:
   //
   // ------------------------
   // {
@@ -113,7 +113,7 @@ ten_value_t *ten_cmd_start_graph_extensions_info_to_value(ten_msg_t *self,
     TEN_ASSERT(extension_info, "Should not happen.");
 
     ten_value_t *extension_info_connections_value =
-        ten_extension_info_connections_to_value(extension_info, err);
+        ten_extension_info_connection_to_value(extension_info, err);
     if (extension_info_connections_value) {
       ten_list_push_ptr_back(
           &connections_list, extension_info_connections_value,
@@ -416,15 +416,15 @@ bool ten_cmd_start_graph_process_extensions_info(
     goto error;
   }
 
-  if (extensions_info_nodes_field.value_modified) {
+  if (extensions_info_nodes_field.value_is_changed_after_process) {
     ten_value_array_foreach(nodes_value, iter) {
-      ten_value_t *item_value = ten_ptr_listnode_get(iter.node);
-      if (!ten_value_is_object(item_value)) {
+      ten_value_t *node_value = ten_ptr_listnode_get(iter.node);
+      if (!ten_value_is_object(node_value)) {
         goto error;
       }
 
       if (ten_extension_info_node_from_value(
-              item_value, ten_raw_cmd_start_graph_get_extensions_info(cmd),
+              node_value, ten_raw_cmd_start_graph_get_extensions_info(cmd),
               err) == NULL) {
         goto error;
       }
@@ -441,7 +441,7 @@ bool ten_cmd_start_graph_process_extensions_info(
     goto error;
   }
 
-  if (extensions_info_connections_field.value_modified) {
+  if (extensions_info_connections_field.value_is_changed_after_process) {
     ten_value_array_foreach(connections_value, iter) {
       ten_value_t *item_value = ten_ptr_listnode_get(iter.node);
       if (!ten_value_is_object(item_value)) {

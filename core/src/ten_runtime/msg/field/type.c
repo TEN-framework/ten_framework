@@ -77,7 +77,7 @@ bool ten_raw_msg_type_process(ten_msg_t *self,
 
   bool rc = cb(self, &type_field, user_data, err);
 
-  if (type_field.value_modified) {
+  if (type_field.value_is_changed_after_process) {
     self->type = ten_msg_type_from_type_string(
         ten_value_peek_raw_str(type_field.field_value));
   }

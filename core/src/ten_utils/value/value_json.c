@@ -29,11 +29,15 @@ bool ten_value_set_from_json(ten_value_t *self, ten_json_t *json) {
   switch (ten_value_get_type(self)) {
     case TEN_TYPE_INVALID:
     case TEN_TYPE_NULL:
-      return false;
+      if (ten_json_is_null(json)) {
+        // Do nothing.
+      }
+      break;
     case TEN_TYPE_BOOL:
       if (ten_json_is_boolean(json)) {
         return ten_value_set_bool(self, ten_json_get_boolean_value(json));
       }
+      break;
     case TEN_TYPE_INT8:
       if (ten_json_is_integer(json) &&
           ten_json_get_integer_value(json) >= INT8_MIN &&
@@ -41,6 +45,7 @@ bool ten_value_set_from_json(ten_value_t *self, ten_json_t *json) {
         return ten_value_set_int8(self,
                                   (int8_t)ten_json_get_integer_value(json));
       }
+      break;
     case TEN_TYPE_INT16:
       if (ten_json_is_integer(json) &&
           ten_json_get_integer_value(json) >= INT16_MIN &&
@@ -48,6 +53,7 @@ bool ten_value_set_from_json(ten_value_t *self, ten_json_t *json) {
         return ten_value_set_int16(self,
                                    (int16_t)ten_json_get_integer_value(json));
       }
+      break;
     case TEN_TYPE_INT32:
       if (ten_json_is_integer(json) &&
           ten_json_get_integer_value(json) >= INT32_MIN &&
@@ -55,46 +61,55 @@ bool ten_value_set_from_json(ten_value_t *self, ten_json_t *json) {
         return ten_value_set_int32(self,
                                    (int32_t)ten_json_get_integer_value(json));
       }
+      break;
     case TEN_TYPE_INT64:
       if (ten_json_is_integer(json)) {
         return ten_value_set_int64(self, ten_json_get_integer_value(json));
       }
+      break;
     case TEN_TYPE_UINT8:
       if (ten_json_is_integer(json) && ten_json_get_integer_value(json) >= 0 &&
           ten_json_get_integer_value(json) <= UINT8_MAX) {
         return ten_value_set_uint8(self,
                                    (uint8_t)ten_json_get_integer_value(json));
       }
+      break;
     case TEN_TYPE_UINT16:
       if (ten_json_is_integer(json) && ten_json_get_integer_value(json) >= 0 &&
           ten_json_get_integer_value(json) <= UINT16_MAX) {
         return ten_value_set_uint16(self,
                                     (uint16_t)ten_json_get_integer_value(json));
       }
+      break;
     case TEN_TYPE_UINT32:
       if (ten_json_is_integer(json) && ten_json_get_integer_value(json) >= 0 &&
           ten_json_get_integer_value(json) <= UINT32_MAX) {
         return ten_value_set_uint32(self,
                                     (uint32_t)ten_json_get_integer_value(json));
       }
+      break;
     case TEN_TYPE_UINT64:
       if (ten_json_is_integer(json) && ten_json_get_integer_value(json) >= 0) {
         return ten_value_set_uint64(self,
                                     (uint64_t)ten_json_get_integer_value(json));
       }
+      break;
     case TEN_TYPE_FLOAT32:
       if (ten_json_is_real(json)) {
         return ten_value_set_float32(self,
                                      (float)ten_json_get_real_value(json));
       }
+      break;
     case TEN_TYPE_FLOAT64:
       if (ten_json_is_real(json)) {
         return ten_value_set_float64(self, ten_json_get_real_value(json));
       }
+      break;
     case TEN_TYPE_STRING:
       if (ten_json_is_string(json)) {
         return ten_value_set_string(self, ten_json_peek_string_value(json));
       }
+      break;
     case TEN_TYPE_ARRAY:
       if (ten_json_is_array(json)) {
         // Loop each item in the JSON array and convert them to ten_value_t.
@@ -106,8 +121,9 @@ bool ten_value_set_from_json(ten_value_t *self, ten_json_t *json) {
           TEN_ASSERT(item && ten_value_check_integrity(item),
                      "Invalid argument.");
 
-          if (item == NULL) {
+          if (!item) {
             // Something wrong, we should return false.
+            ten_list_clear(&array);
             return false;
           }
 
@@ -117,6 +133,7 @@ bool ten_value_set_from_json(ten_value_t *self, ten_json_t *json) {
 
         return ten_value_set_array_with_move(self, &array);
       }
+      break;
     case TEN_TYPE_OBJECT:
       if (ten_json_is_object(json)) {
         // Loop each item in the JSON object and convert them to ten_value_kv_t.
@@ -125,7 +142,13 @@ bool ten_value_set_from_json(ten_value_t *self, ten_json_t *json) {
         ten_json_t *value_json = NULL;
         ten_json_object_foreach(json, key, value_json) {
           ten_value_kv_t *kv = ten_value_kv_from_json(key, value_json);
-          TEN_ASSERT(kv && ten_value_kv_check_integrity(kv), "Invalid argument.");
+          TEN_ASSERT(kv && ten_value_kv_check_integrity(kv),
+                     "Invalid argument.");
+
+          if (!kv) {
+            ten_list_clear(&object);
+            return false;
+          }
 
           ten_list_push_ptr_back(
               &object, kv,
@@ -134,6 +157,7 @@ bool ten_value_set_from_json(ten_value_t *self, ten_json_t *json) {
 
         return ten_value_set_object_with_move(self, &object);
       }
+      break;
     case TEN_TYPE_PTR:
     case TEN_TYPE_BUF:
       TEN_LOGE("Not implemented yet.");

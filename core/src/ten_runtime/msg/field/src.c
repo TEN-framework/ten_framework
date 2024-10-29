@@ -71,7 +71,7 @@ bool ten_raw_msg_src_process(ten_msg_t *self,
 
   bool rc = cb(self, &src_field, user_data, err);
 
-  if (src_field.value_modified) {
+  if (src_field.value_is_changed_after_process) {
     ten_loc_init_from_value(&self->src_loc, src_field.field_value);
   }
 

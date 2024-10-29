@@ -10,18 +10,18 @@
 #include "include_internal/ten_runtime/msg/msg_info.h"
 #include "ten_utils/macro/check.h"
 
-void ten_msg_field_process_data_init(ten_msg_field_process_data_t *field,
+void ten_msg_field_process_data_init(ten_msg_field_process_data_t *self,
                                      const char *field_name,
                                      ten_value_t *field_value,
                                      bool is_user_defined_properties) {
-  TEN_ASSERT(field, "Invalid argument.");
+  TEN_ASSERT(self, "Invalid argument.");
   TEN_ASSERT(field_name, "Invalid argument.");
   TEN_ASSERT(field_value, "Invalid argument.");
 
-  field->field_name = field_name;
-  field->field_value = field_value;
-  field->is_user_defined_properties = is_user_defined_properties;
-  field->value_modified = false;
+  self->field_name = field_name;
+  self->field_value = field_value;
+  self->is_user_defined_properties = is_user_defined_properties;
+  self->value_is_changed_after_process = false;
 }
 
 bool ten_raw_msg_loop_all_fields(ten_msg_t *self,

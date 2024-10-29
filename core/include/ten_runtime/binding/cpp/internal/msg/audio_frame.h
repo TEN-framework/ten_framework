@@ -138,7 +138,7 @@ class audio_frame_t : public msg_t {
   }
 
   buf_t lock_buf(error_t *err = nullptr) const {
-    ten_buf_t *data = ten_audio_frame_peek_data(c_msg);
+    ten_buf_t *data = ten_audio_frame_peek_buf(c_msg);
 
     if (!ten_msg_add_locked_res_buf(
             c_msg, data->data,

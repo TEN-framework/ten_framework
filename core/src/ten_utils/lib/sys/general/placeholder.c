@@ -12,7 +12,6 @@
 #include "include_internal/ten_utils/common/constant_str.h"
 #include "include_internal/ten_utils/macro/memory.h"
 #include "include_internal/ten_utils/value/value.h"
-#include "include_internal/ten_utils/value/value_set.h"
 #include "ten_runtime/common/errno.h"
 #include "ten_utils/lib/error.h"
 #include "ten_utils/lib/string.h"

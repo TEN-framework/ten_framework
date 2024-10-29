@@ -67,6 +67,8 @@ ten_value_t *ten_msg_dest_info_to_value(
                                 &extension_info->loc.extension_name))),
         (ten_ptr_listnode_destroy_func_t)ten_value_kv_destroy);
 
+    bool found = false;
+
     ten_list_foreach (&extension_info->msg_conversions, msg_conversion_iter) {
       ten_msg_conversion_t *msg_conversion =
           ten_ptr_listnode_get(msg_conversion_iter.node);
@@ -77,6 +79,9 @@ ten_value_t *ten_msg_dest_info_to_value(
       if (ten_loc_is_equal(&src_extension_info->loc,
                            &msg_conversion->src_loc) &&
           ten_string_is_equal(&msg_conversion->msg_name, &self->name)) {
+        TEN_ASSERT(found == false, "Should not happen.");
+        found = true;
+
         ten_value_t *msg_and_result_conversion_operation_value =
             ten_msg_and_result_conversion_operation_to_value(
                 msg_conversion->msg_and_result_conversion_operation, err);
@@ -91,8 +96,6 @@ ten_value_t *ten_msg_dest_info_to_value(
             ten_value_kv_create(TEN_STR_MSG_CONVERSION,
                                 msg_and_result_conversion_operation_value),
             (ten_ptr_listnode_destroy_func_t)ten_value_kv_destroy);
-
-        // TODO(xilin): Make msg_conversion to be an array.
       }
     }
 

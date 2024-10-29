@@ -263,13 +263,13 @@ ten_value_t *ten_extension_info_node_to_value(ten_extension_info_t *self,
   TEN_ASSERT(self, "Invalid argument.");
   // TEN_NOLINTNEXTLINE(thread-check)
   // thread-check: The graph-related information of the extension remains
-  // unchanged during the lifecycle of engine/graph, allowing safe
-  // cross-thread access.
+  // unchanged during the lifecycle of engine/graph, allowing safe cross-thread
+  // access.
   TEN_ASSERT(ten_extension_info_check_integrity(self, false),
              "Should not happen.");
 
-  // Convert the extension info into ten_value_t, which is an object-type
-  // value and the snippet is as follows:
+  // Convert the extension info into ten_value_t, which is an object-type value
+  // and the snippet is as follows:
   //
   // ------------------------
   // {
@@ -376,8 +376,8 @@ static ten_value_t *pack_msg_dest(ten_extension_info_t *self,
   return result;
 }
 
-ten_value_t *ten_extension_info_connections_to_value(ten_extension_info_t *self,
-                                                     ten_error_t *err) {
+ten_value_t *ten_extension_info_connection_to_value(ten_extension_info_t *self,
+                                                    ten_error_t *err) {
   TEN_ASSERT(self, "Invalid argument.");
   // TEN_NOLINTNEXTLINE(thread-check)
   // thread-check: The graph-related information of the extension remains

@@ -42,7 +42,7 @@ int32_t ten_raw_audio_frame_get_samples_per_channel(ten_audio_frame_t *self) {
   return ten_value_get_int32(&self->samples_per_channel, NULL);
 }
 
-ten_buf_t *ten_raw_audio_frame_peek_data(ten_audio_frame_t *self) {
+ten_buf_t *ten_raw_audio_frame_peek_buf(ten_audio_frame_t *self) {
   TEN_ASSERT(self, "Should not happen.");
   return ten_value_peek_buf(&self->buf);
 }
@@ -141,8 +141,8 @@ bool ten_raw_audio_frame_set_timestamp(ten_audio_frame_t *self,
   return ten_value_set_int64(&self->timestamp, timestamp);
 }
 
-static uint8_t *ten_raw_audio_frame_alloc_data(ten_audio_frame_t *self,
-                                               size_t size) {
+static uint8_t *ten_raw_audio_frame_alloc_buf(ten_audio_frame_t *self,
+                                              size_t size) {
   if (size <= 0) {
     TEN_ASSERT(0, "Should not happen.");
     return NULL;
@@ -252,9 +252,9 @@ bool ten_audio_frame_set_samples_per_channel(ten_shared_ptr_t *self,
       ten_shared_ptr_get_data(self), samples_per_channel);
 }
 
-ten_buf_t *ten_audio_frame_peek_data(ten_shared_ptr_t *self) {
+ten_buf_t *ten_audio_frame_peek_buf(ten_shared_ptr_t *self) {
   TEN_ASSERT(self, "Should not happen.");
-  return ten_raw_audio_frame_peek_data(ten_shared_ptr_get_data(self));
+  return ten_raw_audio_frame_peek_buf(ten_shared_ptr_get_data(self));
 }
 
 int32_t ten_audio_frame_get_line_size(ten_shared_ptr_t *self) {
@@ -309,7 +309,7 @@ bool ten_audio_frame_set_data_fmt(ten_shared_ptr_t *self,
 uint8_t *ten_audio_frame_alloc_buf(ten_shared_ptr_t *self, size_t size) {
   TEN_ASSERT(self, "Should not happen.");
 
-  return ten_raw_audio_frame_alloc_data(ten_shared_ptr_get_data(self), size);
+  return ten_raw_audio_frame_alloc_buf(ten_shared_ptr_get_data(self), size);
 }
 
 ten_msg_t *ten_raw_audio_frame_as_msg_clone(ten_msg_t *self,

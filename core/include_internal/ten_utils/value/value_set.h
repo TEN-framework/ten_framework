@@ -40,4 +40,4 @@ TEN_UTILS_API bool ten_value_set_array_with_move(ten_value_t *self,
                                                  ten_list_t *value);
 
 TEN_UTILS_API bool ten_value_set_object_with_move(ten_value_t *self,
-                                                 ten_list_t *value);
+                                                  ten_list_t *value);
