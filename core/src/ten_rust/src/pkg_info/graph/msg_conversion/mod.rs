@@ -101,6 +101,21 @@ pub struct MsgConversionRules {
     pub keep_original: Option<bool>,
 }
 
+impl MsgConversionRules {
+    pub fn validate(&self) -> Result<()> {
+        if self.rules.is_empty() {
+            return Err(anyhow::anyhow!("conversion rules are empty"));
+        }
+
+        for (idx, rule) in self.rules.iter().enumerate() {
+            rule.validate()
+                .map_err(|e| anyhow::anyhow!("- rule[{}]: {}", idx, e))?;
+        }
+
+        Ok(())
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct MsgConversion {
     #[serde(rename = "type")]
@@ -112,18 +127,7 @@ pub struct MsgConversion {
 
 impl MsgConversion {
     pub fn validate(&self) -> Result<()> {
-        if self.rules.rules.is_empty() {
-            return Err(anyhow::Error::msg(
-                "message conversion rules are empty",
-            ));
-        }
-
-        for (idx, rule) in self.rules.rules.iter().enumerate() {
-            rule.validate()
-                .map_err(|e| anyhow::anyhow!("- rule[{}]: {}", idx, e))?;
-        }
-
-        Ok(())
+        self.rules.validate()
     }
 }
 
