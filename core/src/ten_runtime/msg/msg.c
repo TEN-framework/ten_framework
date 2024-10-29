@@ -559,7 +559,9 @@ TEN_MSG_TYPE ten_msg_type_from_type_and_name_string(const char *type_str,
 }
 
 TEN_MSG_TYPE
-ten_raw_msg_type_spec_by_name(const char *name_str) {
+ten_raw_msg_type_spec_by_unique_name(const char *name_str) {
+  TEN_ASSERT(name_str, "Invalid argument.");
+
   TEN_MSG_TYPE msg_type = TEN_MSG_TYPE_INVALID;
 
   for (size_t i = 0; i < ten_msg_info_size; i++) {
@@ -585,23 +587,38 @@ bool ten_raw_msg_get_one_field_from_json(ten_msg_t *msg,
                                          void *user_data, ten_error_t *err) {
   TEN_ASSERT(msg && ten_raw_msg_check_integrity(msg), "Should not happen.");
   TEN_ASSERT(field, "Should not happen.");
+  TEN_ASSERT(
+      field->field_value && ten_value_check_integrity(field->field_value),
+      "Should not happen.");
 
   ten_json_t *json = (ten_json_t *)user_data;
   TEN_ASSERT(json, "Should not happen.");
 
   if (!field->is_user_defined_properties) {
+    // Internal fields are uniformly stored in the "_ten" section.
     json = ten_json_object_peek_object_forcibly(json, TEN_STR_UNDERLINE_TEN);
     TEN_ASSERT(json, "Should not happen.");
 
     json = ten_json_object_peek(json, field->field_name);
     if (!json) {
+      // Some fields are optional, and it is allowed for the corresponding JSON
+      // block to be absent during deserialization.
       return true;
     }
 
     if (!ten_value_set_from_json(field->field_value, json)) {
+      // If the field value cannot be set from the JSON, it means that the JSON
+      // format is incorrect.
+      if (err) {
+        ten_error_set(err, TEN_ERRNO_INVALID_JSON,
+                      "Invalid JSON format for field %s.", field->field_name);
+      }
+
       return false;
     }
   } else {
+    // User-defined fields are stored in the root of the JSON. The field value
+    // is an object which includes all the key-value pairs.
     TEN_ASSERT(ten_value_is_object(field->field_value), "Should not happen.");
 
     const char *key = NULL;
@@ -612,13 +629,27 @@ bool ten_raw_msg_get_one_field_from_json(ten_msg_t *msg,
         continue;
       }
 
+      ten_value_t *value = ten_value_from_json(item);
+      if (!value) {
+        // If the value cannot be created from the JSON, it means that the JSON
+        // format is incorrect.
+        if (err) {
+          ten_error_set(err, TEN_ERRNO_INVALID_JSON,
+                        "Invalid JSON format for field %s.", field->field_name);
+        }
+
+        return false;
+      }
+
+      // TODO(xilin): If the key is already existed, should we overwrite it?
       ten_list_push_ptr_back(
-          &field->field_value->content.object,
-          ten_value_kv_create(key, ten_value_from_json(item)),
+          &field->field_value->content.object, ten_value_kv_create(key, value),
           (ten_ptr_listnode_destroy_func_t)ten_value_kv_destroy);
     }
   }
 
+  // During JSON deserialization, the field value may be modified, so we set the
+  // value_modified flag.
   field->value_modified = true;
 
   return true;
@@ -637,11 +668,15 @@ bool ten_raw_msg_put_one_field_to_json(ten_msg_t *msg,
                                        void *user_data, ten_error_t *err) {
   TEN_ASSERT(msg && ten_raw_msg_check_integrity(msg), "Should not happen.");
   TEN_ASSERT(field, "Should not happen.");
+  TEN_ASSERT(
+      field->field_value && ten_value_check_integrity(field->field_value),
+      "Should not happen.");
 
   ten_json_t *json = (ten_json_t *)user_data;
   TEN_ASSERT(json, "Should not happen.");
 
   if (!field->is_user_defined_properties) {
+    // Internal fields are uniformly stored in the "_ten" section.
     json = ten_json_object_peek_object_forcibly(json, TEN_STR_UNDERLINE_TEN);
     TEN_ASSERT(json, "Should not happen.");
 
@@ -654,10 +689,14 @@ bool ten_raw_msg_put_one_field_to_json(ten_msg_t *msg,
       ten_value_kv_t *kv = ten_ptr_listnode_get(iter.node);
       TEN_ASSERT(kv && ten_value_kv_check_integrity(kv), "Should not happen.");
 
+      // The User-defined fields are stored in the root of the JSON.
       ten_json_object_set_new(json, ten_string_get_raw_str(&kv->key),
                               ten_value_to_json(kv->value));
     }
   }
+
+  // The field value is not modified during JSON serialization.
+  field->value_modified = false;
 
   return true;
 }
@@ -690,19 +729,26 @@ bool ten_raw_msg_process_field(ten_msg_t *self,
   return true;
 }
 
-ten_json_t *ten_msg_to_json(ten_shared_ptr_t *self, ten_error_t *err) {
-  TEN_ASSERT(self && ten_msg_check_integrity(self), "Should not happen.");
+static ten_json_t *ten_raw_msg_to_json(ten_msg_t *self, ten_error_t *err) {
+  TEN_ASSERT(self && ten_raw_msg_check_integrity(self), "Should not happen.");
+  ten_json_t *json = ten_json_create_object();
+  TEN_ASSERT(json, "Should not happen.");
 
-  ten_json_t *json = NULL;
+  bool rc = ten_raw_msg_loop_all_fields(self, ten_raw_msg_put_one_field_to_json,
+                                        json, err);
 
-  ten_raw_msg_to_json_func_t to_json =
-      ten_msg_info[ten_msg_get_type(self)].to_json;
-  if (to_json) {
-    ten_msg_t *raw_msg = ten_msg_get_raw_msg(self);
-    json = to_json(raw_msg, err);
+  if (!rc) {
+    ten_json_destroy(json);
+    return NULL;
   }
 
   return json;
+}
+
+ten_json_t *ten_msg_to_json(ten_shared_ptr_t *self, ten_error_t *err) {
+  TEN_ASSERT(self && ten_msg_check_integrity(self), "Should not happen.");
+
+  return ten_raw_msg_to_json(ten_msg_get_raw_msg(self), err);
 }
 
 void ten_raw_msg_copy_field(ten_msg_t *self, ten_msg_t *src,
@@ -756,19 +802,20 @@ static bool ten_raw_msg_init_from_json(ten_msg_t *self, ten_json_t *json,
     }
   }
 
-  ten_raw_msg_init_from_json_func_t init_raw_from_json =
-      ten_msg_info[ten_raw_msg_get_type(self)].init_from_json;
-  if (init_raw_from_json) {
-    return init_raw_from_json(self, json, err);
+  bool rc = ten_raw_msg_loop_all_fields(
+      self, ten_raw_msg_get_one_field_from_json, json, err);
+
+  if (!rc) {
+    if (err) {
+      ten_error_set(
+          err, TEN_ERRNO_INVALID_JSON,
+          "Failed to init a message from json, because the fields are "
+          "incorrect.");
+    }
+    return false;
   }
 
-  TEN_ASSERT(0, "Should not happen.");
-  if (err) {
-    ten_error_set(
-        err, TEN_ERRNO_INVALID_JSON,
-        "Failed to init a message from json, because the type is unknown.");
-  }
-  return false;
+  return true;
 }
 
 bool ten_msg_from_json(ten_shared_ptr_t *self, ten_json_t *json,
@@ -777,20 +824,6 @@ bool ten_msg_from_json(ten_shared_ptr_t *self, ten_json_t *json,
   TEN_ASSERT(json && ten_json_check_integrity(json), "Should not happen.");
 
   return ten_raw_msg_init_from_json(ten_shared_ptr_get_data(self), json, err);
-}
-
-ten_json_t *ten_raw_msg_to_json(ten_msg_t *self, ten_error_t *err) {
-  TEN_ASSERT(self && ten_raw_msg_check_integrity(self), "Should not happen.");
-
-  ten_json_t *json = NULL;
-
-  ten_raw_msg_to_json_func_t to_json =
-      ten_msg_info[ten_raw_msg_get_type(self)].to_json;
-  if (to_json) {
-    json = to_json(self, err);
-  }
-
-  return json;
 }
 
 ten_shared_ptr_t *ten_msg_clone(ten_shared_ptr_t *self,

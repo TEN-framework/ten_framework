@@ -79,7 +79,7 @@ bool ten_raw_msg_name_process(ten_msg_t *self,
   bool rc = cb(self, &name_field, user_data, err);
 
   if (name_field.value_modified) {
-    TEN_MSG_TYPE msg_type_spec_by_name = ten_raw_msg_type_spec_by_name(
+    TEN_MSG_TYPE msg_type_spec_by_name = ten_raw_msg_type_spec_by_unique_name(
         ten_value_peek_raw_str(name_field.field_value));
     if (msg_type_spec_by_name != TEN_MSG_TYPE_INVALID) {
       self->type = msg_type_spec_by_name;

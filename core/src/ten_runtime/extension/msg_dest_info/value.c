@@ -97,21 +97,16 @@ ten_value_t *ten_msg_dest_info_to_value(
     }
 
     ten_value_t *dest_value = ten_value_create_object_with_move(&dest_kv_list);
-
     ten_list_push_ptr_back(&dests_list, dest_value,
                            (ten_ptr_listnode_destroy_func_t)ten_value_destroy);
-
     ten_list_clear(&dest_kv_list);
   }
 
   ten_value_t *dests_value = ten_value_create_array_with_move(&dests_list);
-
   ten_list_push_ptr_back(&value_object_kv_list,
                          ten_value_kv_create(TEN_STR_DEST, dests_value),
                          (ten_ptr_listnode_destroy_func_t)ten_value_kv_destroy);
-
   ten_value_t *value = ten_value_create_object_with_move(&value_object_kv_list);
-
   ten_list_clear(&value_object_kv_list);
 
   return value;

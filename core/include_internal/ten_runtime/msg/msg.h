@@ -253,7 +253,7 @@ TEN_RUNTIME_PRIVATE_API TEN_MSG_TYPE
 ten_msg_type_from_type_string(const char *type_str);
 
 TEN_RUNTIME_PRIVATE_API TEN_MSG_TYPE
-ten_raw_msg_type_spec_by_name(const char *name_str);
+ten_raw_msg_type_spec_by_unique_name(const char *name_str);
 
 // Debug only.
 TEN_RUNTIME_PRIVATE_API bool ten_raw_msg_dump(ten_msg_t *msg, ten_error_t *err,

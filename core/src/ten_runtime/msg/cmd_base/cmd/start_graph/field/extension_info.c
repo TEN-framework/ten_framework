@@ -41,8 +41,20 @@ ten_value_t *ten_cmd_start_graph_extensions_info_to_value(ten_msg_t *self,
   ten_list_t *extensions_info =
       ten_raw_cmd_start_graph_get_extensions_info(cmd);
 
-  // The value is an object type which includes two parts: nodes and
-  // connections.
+  // Convert the start_graph command into ten_value_t, which is an object-type
+  // value containing two key-value pairs: "nodes" and "connections".
+  // The snippet is as follows:
+  //
+  // ------------------------
+  // {
+  //   "nodes": [
+  //     ...
+  //   ],
+  //   "connections": [
+  //     ...
+  //   ]
+  // }
+  // ------------------------
   ten_list_t value_object_kv_list = TEN_LIST_INIT_VAL;
 
   ten_list_t nodes_list = TEN_LIST_INIT_VAL;
@@ -61,6 +73,11 @@ ten_value_t *ten_cmd_start_graph_extensions_info_to_value(ten_msg_t *self,
     if (ten_list_find_string(&unique_extension_list,
                              ten_string_get_raw_str(&loc_str)) != NULL) {
       TEN_LOGE("Extension %s is duplicated.", ten_string_get_raw_str(&loc_str));
+
+      if (err) {
+        ten_error_set(err, TEN_ERRNO_GENERIC, "Extension %s is duplicated.",
+                      ten_string_get_raw_str(&loc_str));
+      }
 
       ten_string_deinit(&loc_str);
       ten_list_clear(&unique_extension_list);
@@ -84,6 +101,12 @@ ten_value_t *ten_cmd_start_graph_extensions_info_to_value(ten_msg_t *self,
 
   ten_list_clear(&unique_extension_list);
 
+  ten_list_push_ptr_back(
+      &value_object_kv_list,
+      ten_value_kv_create(TEN_STR_NODES,
+                          ten_value_create_array_with_move(&nodes_list)),
+      (ten_ptr_listnode_destroy_func_t)ten_value_kv_destroy);
+
   ten_list_foreach (extensions_info, iter) {
     ten_extension_info_t *extension_info =
         ten_shared_ptr_get_data(ten_smart_ptr_listnode_get(iter.node));
@@ -97,12 +120,6 @@ ten_value_t *ten_cmd_start_graph_extensions_info_to_value(ten_msg_t *self,
           (ten_ptr_listnode_destroy_func_t)ten_value_destroy);
     }
   }
-
-  ten_list_push_ptr_back(
-      &value_object_kv_list,
-      ten_value_kv_create(TEN_STR_NODES,
-                          ten_value_create_array_with_move(&nodes_list)),
-      (ten_ptr_listnode_destroy_func_t)ten_value_kv_destroy);
 
   ten_list_push_ptr_back(
       &value_object_kv_list,

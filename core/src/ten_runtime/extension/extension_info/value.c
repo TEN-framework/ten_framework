@@ -268,6 +268,22 @@ ten_value_t *ten_extension_info_node_to_value(ten_extension_info_t *self,
   TEN_ASSERT(ten_extension_info_check_integrity(self, false),
              "Should not happen.");
 
+  // Convert the extension info into ten_value_t, which is an object-type
+  // value and the snippet is as follows:
+  //
+  // ------------------------
+  // {
+  //   "type": "extension",
+  //   "name": "...",
+  //   "addon": "...",
+  //   "extension_group": "...",
+  //   "graph": "...",
+  //   "app": "...",
+  //   "property": {
+  //     ...
+  //   }
+  // }
+  // ------------------------
   ten_list_t kv_list = TEN_LIST_INIT_VAL;
 
   ten_value_t *type_value = ten_value_create_string(TEN_STR_EXTENSION);
@@ -379,6 +395,31 @@ ten_value_t *ten_extension_info_connections_to_value(ten_extension_info_t *self,
     return NULL;
   }
 
+  // Convert the extension info connections into ten_value_t, which is an
+  // object-type value and the snippet is as follows:
+  //
+  // ------------------------
+  // {
+  //   "app": "...",
+  //   "graph": "...",
+  //   "extension_group": "...",
+  //   "extension": "...",
+  //   "cmd": [
+  //     ...
+  //   ],
+  //   "data": [
+  //     ...
+  //   ],
+  //   "video_frame": [
+  //     ...
+  //   ],
+  //   "audio_frame": [
+  //     ...
+  //   ],
+  //   "interface": [
+  //     ...
+  //   ]
+  // }
   ten_list_t kv_list = TEN_LIST_INIT_VAL;
 
   ten_value_t *app_uri_value =

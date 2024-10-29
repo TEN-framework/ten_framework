@@ -27,20 +27,14 @@ void ten_msg_field_process_data_init(ten_msg_field_process_data_t *field,
 bool ten_raw_msg_loop_all_fields(ten_msg_t *self,
                                  ten_raw_msg_process_one_field_func_t cb,
                                  void *user_data, ten_error_t *err) {
-  switch (ten_raw_msg_get_type(self)) {
-    case TEN_MSG_TYPE_DATA: {
-      ten_raw_msg_loop_all_fields_func_t loop_all_fields =
-          ten_msg_info[ten_raw_msg_get_type(self)].loop_all_fields;
-      if (!loop_all_fields) {
-        return false;
-      }
-      return loop_all_fields(self, cb, user_data, err);
-    }
+  TEN_ASSERT(self && ten_raw_msg_check_integrity(self), "Invalid argument.");
+  TEN_ASSERT(cb, "Invalid argument.");
 
-    default:
-      TEN_ASSERT(0, "Handle more cases: %d", self->type);
-      return false;
+  ten_raw_msg_loop_all_fields_func_t loop_all_fields =
+      ten_msg_info[ten_raw_msg_get_type(self)].loop_all_fields;
+  if (!loop_all_fields) {
+    return false;
   }
 
-  return true;
+  return loop_all_fields(self, cb, user_data, err);
 }

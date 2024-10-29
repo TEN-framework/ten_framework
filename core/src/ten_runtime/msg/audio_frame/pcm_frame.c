@@ -554,8 +554,9 @@ ten_value_t *ten_raw_audio_frame_peek_ten_property(ten_msg_t *self,
 bool ten_raw_audio_frame_loop_all_fields(
     ten_msg_t *self, ten_raw_msg_process_one_field_func_t cb, void *user_data,
     ten_error_t *err) {
-  TEN_ASSERT(self && ten_raw_audio_frame_check_integrity(self),
-             "Invalid argument.");
+  TEN_ASSERT(
+      self && ten_raw_audio_frame_check_integrity((ten_audio_frame_t *)self),
+      "Invalid argument.");
 
   for (size_t i = 0; i < ten_audio_frame_fields_info_size; ++i) {
     ten_msg_process_field_func_t process_field =
