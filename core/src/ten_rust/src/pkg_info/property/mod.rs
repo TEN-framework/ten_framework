@@ -340,10 +340,12 @@ mod tests {
             msg_conversion.msg.conversion_type,
             MsgConversionType::PerProperty
         );
-        assert!(msg_conversion.msg.keep_original.is_none());
-        assert_eq!(msg_conversion.msg.rules.len(), 2);
 
-        let rule = &msg_conversion.msg.rules.first().unwrap();
+        let rules = &msg_conversion.msg.rules;
+        assert!(rules.keep_original.is_none());
+        assert_eq!(rules.rules.len(), 2);
+
+        let rule = rules.rules.first().unwrap();
         assert_eq!(rule.conversion_mode, MsgConversionMode::FixedValue);
         assert!(rule.original_path.is_none());
         assert_eq!(rule.value.as_ref().unwrap(), "hello_mapping");
