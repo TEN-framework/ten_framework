@@ -19,7 +19,6 @@
 #include "include_internal/ten_runtime/protocol/close.h"
 #include "include_internal/ten_runtime/remote/remote.h"
 #include "include_internal/ten_utils/log/log.h"
-#include "ten_utils/macro/check.h"
 #include "ten_runtime/addon/addon.h"
 #include "ten_runtime/app/app.h"
 #include "ten_runtime/protocol/close.h"
@@ -28,6 +27,7 @@
 #include "ten_utils/lib/ref.h"
 #include "ten_utils/lib/smart_ptr.h"
 #include "ten_utils/lib/uri.h"
+#include "ten_utils/macro/check.h"
 #include "ten_utils/macro/mark.h"
 #include "ten_utils/sanitizer/thread_check.h"
 #include "ten_utils/value/value_object.h"
@@ -79,8 +79,8 @@ static void ten_protocol_destroy(ten_protocol_t *self) {
   TEN_ASSERT(self->is_closed,
              "Protocol should be closed first before been destroyed.");
 
-  self->addon_host->addon->on_destroy_instance(self->addon_host->addon,
-                                               self->addon_host->ten_env, self);
+  self->addon_host->addon->on_destroy_instance(
+      self->addon_host->addon, self->addon_host->ten_env, self, NULL);
 }
 
 static void ten_protocol_on_end_of_life(TEN_UNUSED ten_ref_t *ref,

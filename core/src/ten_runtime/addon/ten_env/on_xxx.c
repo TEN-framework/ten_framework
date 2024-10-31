@@ -401,6 +401,15 @@ void ten_addon_on_destroy_instance_done(ten_env_t *self, void *context) {
              "Should not happen.");
 
   ten_addon_context_t *addon_context = (ten_addon_context_t *)context;
+  if (!addon_context) {
+    // If the addon_context is NULL, it means that the result of destroy does
+    // not need to be handled, so we can return directly.
+
+    // TODO(xilin): It may be necessary to adjust the destruction process so
+    // that the destroy of the protocol executes on the correct thread.
+    return;
+  }
+
   TEN_ASSERT(addon_context, "Invalid argument.");
 
   ten_env_t *caller_ten = addon_context->caller_ten;

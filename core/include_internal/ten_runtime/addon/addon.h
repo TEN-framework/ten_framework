@@ -21,13 +21,6 @@
 
 typedef struct ten_app_t ten_app_t;
 
-typedef void *(*ten_addon_on_create_instance_func_t)(ten_addon_t *addon,
-                                                     ten_env_t *ten_env,
-                                                     const char *name);
-typedef void (*ten_addon_on_destroy_instance_func_t)(ten_addon_t *addon,
-                                                     ten_env_t *ten_env,
-                                                     void *instance);
-
 typedef enum TEN_ADDON_TYPE {
   TEN_ADDON_TYPE_INVALID,
 
@@ -55,10 +48,8 @@ typedef struct ten_addon_t {
   ten_addon_on_init_func_t on_init;
   ten_addon_on_deinit_func_t on_deinit;
 
+  ten_addon_on_create_instance_func_t on_create_instance;
   ten_addon_on_destroy_instance_func_t on_destroy_instance;
-
-  ten_addon_on_create_instance_async_func_t on_create_instance_async;
-  ten_addon_on_destroy_instance_async_func_t on_destroy_instance_async;
 
   void *user_data;
 } ten_addon_t;
