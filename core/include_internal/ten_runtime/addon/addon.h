@@ -55,7 +55,6 @@ typedef struct ten_addon_t {
   ten_addon_on_init_func_t on_init;
   ten_addon_on_deinit_func_t on_deinit;
 
-  ten_addon_on_create_instance_func_t on_create_instance;
   ten_addon_on_destroy_instance_func_t on_destroy_instance;
 
   ten_addon_on_create_instance_async_func_t on_create_instance_async;
@@ -150,10 +149,6 @@ TEN_RUNTIME_PRIVATE_API bool ten_addon_create_instance_async(
     ten_env_t *ten_env, const char *addon_name, const char *instance_name,
     TEN_ADDON_TYPE type, ten_env_addon_on_create_instance_async_cb_t cb,
     void *cb_data);
-
-TEN_RUNTIME_PRIVATE_API void *ten_addon_create_instance(
-    ten_env_t *ten_env, const char *addon_name, const char *instance_name,
-    TEN_ADDON_TYPE type);
 
 TEN_RUNTIME_PRIVATE_API bool ten_addon_host_destroy_instance_async(
     ten_addon_host_t *self, ten_env_t *ten_env, void *instance,
