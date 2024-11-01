@@ -47,6 +47,7 @@ static void *ten_engine_thread_main(void *self_) {
   self->loop = ten_runloop_create(NULL);
 
   // Create the ten_env for the engine on the engine thread.
+  TEN_ASSERT(!self->ten_env, "Should not happen.");
   self->ten_env = ten_env_create_for_engine(self);
 
   // Notify that the engine thread is started, and the mechanism related to the

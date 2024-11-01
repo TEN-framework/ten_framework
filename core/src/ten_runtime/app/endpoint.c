@@ -12,7 +12,6 @@
 #include "include_internal/ten_runtime/protocol/close.h"
 #include "include_internal/ten_runtime/protocol/context_store.h"
 #include "include_internal/ten_runtime/protocol/protocol.h"
-#include "include_internal/ten_utils/log/log.h"
 #include "ten_utils/lib/string.h"
 #include "ten_utils/macro/check.h"
 

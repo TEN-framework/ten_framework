@@ -201,6 +201,8 @@ ten_engine_t *ten_engine_create(ten_app_t *app, ten_shared_ptr_t *cmd) {
   self->original_start_graph_cmd_of_enabling_engine = NULL;
   self->cmd_stop_graph = NULL;
 
+  self->ten_env = NULL;
+
   self->long_running_mode = ten_cmd_start_graph_get_long_running_mode(cmd);
 
   // This is a workaround as the 'close_trigger_gc' in the ten_remote_t is

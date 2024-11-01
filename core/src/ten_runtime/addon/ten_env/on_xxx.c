@@ -312,8 +312,8 @@ void ten_addon_protocol_on_create_instance_done(ten_env_t *self,
       TEN_ASSERT(engine &&
                      // TEN_NOLINTNEXTLINE(thread-check)
                      // thread-check: Maybe in the thread other than the engine
-                     // thread, and all the function calls in
-                     // this case are thread safe.
+                     // thread, and all the function calls in this case are
+                     // thread safe.
                      ten_engine_check_integrity(engine, false),
                  "Should not happen.");
 
@@ -328,12 +328,12 @@ void ten_addon_protocol_on_create_instance_done(ten_env_t *self,
                                  engine, info);
       break;
     }
+
     case TEN_ENV_ATTACH_TO_APP: {
       ten_app_t *app = ten_env_get_attached_app(caller_ten);
       // TEN_NOLINTNEXTLINE(thread-check)
-      // thread-check: Maybe in the thread other than the app thread
-      // , and all the function calls in this case are
-      // thread safe.
+      // thread-check: Maybe in the thread other than the app thread, and all
+      // the function calls in this case are thread safe.
       TEN_ASSERT(app && ten_app_check_integrity(app, false),
                  "Should not happen.");
 
