@@ -27,13 +27,10 @@ typedef struct ten_addon_create_protocol_info_t {
   void *user_data;
 } ten_addon_create_protocol_info_t;
 
-TEN_RUNTIME_PRIVATE_API ten_addon_create_protocol_info_t *
-ten_addon_create_protocol_into_create(
-    const char *uri, TEN_PROTOCOL_ROLE role,
-    ten_env_addon_on_create_protocol_async_cb_t cb, void *user_data);
-
-TEN_RUNTIME_PRIVATE_API void ten_addon_create_protocol_into_destroy(
-    ten_addon_create_protocol_info_t *info);
+TEN_RUNTIME_PRIVATE_API bool ten_addon_create_protocol_async(
+    ten_env_t *ten_env, const char *uri, TEN_PROTOCOL_ROLE role,
+    ten_env_addon_on_create_protocol_async_cb_t cb, void *user_data,
+    ten_error_t *err);
 
 TEN_RUNTIME_PRIVATE_API ten_addon_store_t *ten_protocol_get_store(void);
 
@@ -45,8 +42,3 @@ TEN_RUNTIME_API void ten_addon_register_protocol(const char *name,
                                                  ten_addon_t *addon);
 
 TEN_RUNTIME_API ten_addon_t *ten_addon_unregister_protocol(const char *name);
-
-TEN_RUNTIME_PRIVATE_API bool ten_addon_create_protocol_async(
-    ten_env_t *ten_env, const char *uri, TEN_PROTOCOL_ROLE role,
-    ten_env_addon_on_create_protocol_async_cb_t cb, void *user_data,
-    ten_error_t *err);

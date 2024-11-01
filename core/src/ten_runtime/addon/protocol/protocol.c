@@ -110,7 +110,7 @@ ten_addon_host_t *ten_addon_protocol_find(const char *protocol) {
   return result;
 }
 
-ten_addon_create_protocol_info_t *ten_addon_create_protocol_into_create(
+static ten_addon_create_protocol_info_t *ten_addon_create_protocol_info_create(
     const char *uri, TEN_PROTOCOL_ROLE role,
     ten_env_addon_on_create_protocol_async_cb_t cb, void *user_data) {
   TEN_ASSERT(uri && role > TEN_PROTOCOL_ROLE_INVALID, "Should not happen.");
@@ -128,7 +128,7 @@ ten_addon_create_protocol_info_t *ten_addon_create_protocol_into_create(
   return info;
 }
 
-void ten_addon_create_protocol_into_destroy(
+static void ten_addon_create_protocol_info_destroy(
     ten_addon_create_protocol_info_t *info) {
   TEN_ASSERT(info, "Should not happen.");
 
@@ -159,7 +159,7 @@ static void proxy_on_addon_protocol_created(ten_env_t *ten_env, void *instance,
     info->cb(ten_env, protocol, info->user_data);
   }
 
-  ten_addon_create_protocol_into_destroy(info);
+  ten_addon_create_protocol_info_destroy(info);
 }
 
 bool ten_addon_create_protocol_async(
@@ -201,7 +201,7 @@ bool ten_addon_create_protocol_async(
   ten_string_destroy(protocol_str);
 
   ten_addon_create_protocol_info_t *info =
-      ten_addon_create_protocol_into_create(uri, role, cb, user_data);
+      ten_addon_create_protocol_info_create(uri, role, cb, user_data);
   TEN_ASSERT(info, "Failed to allocate memory.");
 
   bool rc = ten_addon_create_instance_async(
@@ -211,7 +211,7 @@ bool ten_addon_create_protocol_async(
 
   if (!rc) {
     TEN_LOGE("Failed to create protocol for %s", uri);
-    ten_addon_create_protocol_into_destroy(info);
+    ten_addon_create_protocol_info_destroy(info);
 
     if (err) {
       ten_error_set(err, TEN_ERRNO_GENERIC,

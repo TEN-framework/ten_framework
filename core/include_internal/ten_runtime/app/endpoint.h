@@ -10,8 +10,6 @@
 
 #include <stdbool.h>
 
-#include "ten_utils/lib/string.h"
-
 typedef struct ten_app_t ten_app_t;
 typedef struct ten_protocol_t ten_protocol_t;
 
