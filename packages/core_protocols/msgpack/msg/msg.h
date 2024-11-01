@@ -12,6 +12,18 @@
 #include "core_protocols/msgpack/common/parser.h"
 #include "include_internal/ten_runtime/msg/msg.h"
 
+typedef struct ten_msg_deserialize_info_t {
+  msgpack_unpacker *unpacker;
+  msgpack_unpacked *unpacked;
+} ten_msg_deserialize_info_t;
+
+TEN_RUNTIME_PRIVATE_API ten_msg_deserialize_info_t *
+ten_msg_deserialize_info_create(msgpack_unpacker *unpacker,
+                                msgpack_unpacked *unpacked);
+
+TEN_RUNTIME_PRIVATE_API void ten_msg_deserialize_info_destroy(
+    ten_msg_deserialize_info_t *self);
+
 TEN_RUNTIME_PRIVATE_API void ten_msgpack_msghdr_serialize(ten_msg_t *self,
                                                           msgpack_packer *pck);
 

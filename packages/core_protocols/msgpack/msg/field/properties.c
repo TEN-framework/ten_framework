@@ -52,7 +52,8 @@ bool ten_msgpack_msg_properties_deserialize(ten_msg_t *self,
 
       for (size_t i = 0; i < properties_cnt; i++) {
         ten_value_kv_t *kv =
-            ten_msgpack_value_kv_deserialize(unpacker, unpacked);
+            ten_msgpack_create_value_kv_through_deserialization(unpacker,
+                                                                unpacked);
         TEN_ASSERT(kv, "Should not happen.");
 
         ten_list_push_ptr_back(
