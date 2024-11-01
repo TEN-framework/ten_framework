@@ -394,6 +394,16 @@ void ten_addon_on_destroy_instance_done(ten_env_t *self, void *context) {
     // If the addon_context is NULL, it means that the result of destroy does
     // not need to be handled, so we can return directly.
 
+    // TODO(xilin): For the destroy of the protocol, no `addon_context`
+    // parameter is passed in, which means there’s also no `caller rte`
+    // parameter. Since there’s no `caller rte` parameter, there’s no action to
+    // enqueue a task to the thread where the `caller rte` is located. This is
+    // because, on one hand, there’s currently no place that requires waiting
+    // for protocol destroy to complete, and on the other hand, the app/engine
+    // thread may have already exited at this point. Therefore, the
+    // `on_destroy_instance_done` of the protocol is actually not called in the
+    // current implementation.
+
     // TODO(xilin): It may be necessary to adjust the destruction process so
     // that the destroy of the protocol executes on the correct thread.
     return;
