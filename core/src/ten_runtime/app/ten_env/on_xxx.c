@@ -59,7 +59,7 @@ done:
   }
 }
 
-static void ten_app_auto_start_predefined_graph_and_trigger_on_init(
+static void ten_app_start_auto_start_predefined_graph_and_trigger_on_init(
     ten_app_t *self) {
   TEN_ASSERT(self && ten_app_check_integrity(self, true), "Should not happen.");
   TEN_ASSERT(self->ten_env && ten_env_check_integrity(self->ten_env, true),
@@ -106,7 +106,7 @@ static void ten_app_on_endpoint_protocol_created(ten_env_t *ten_env,
     return;
   }
 
-  ten_app_auto_start_predefined_graph_and_trigger_on_init(self);
+  ten_app_start_auto_start_predefined_graph_and_trigger_on_init(self);
 }
 
 void ten_app_on_configure_done(ten_env_t *ten_env) {
@@ -160,7 +160,7 @@ void ten_app_on_configure_done(ten_env_t *ten_env) {
   ten_app_create_protocol_context_store(self);
 
   if (!ten_string_is_equal_c_str(&self->uri, TEN_STR_LOCALHOST)) {
-    // Create the app listening endpoint if specifying one.
+    // Create the app listening endpoint protocol if specifying one.
     rc = ten_addon_create_protocol_async(
         self->ten_env, ten_string_get_raw_str(&self->uri),
         TEN_PROTOCOL_ROLE_LISTEN, ten_app_on_endpoint_protocol_created, NULL,
@@ -171,7 +171,7 @@ void ten_app_on_configure_done(ten_env_t *ten_env) {
       goto error;
     }
   } else {
-    ten_app_auto_start_predefined_graph_and_trigger_on_init(self);
+    ten_app_start_auto_start_predefined_graph_and_trigger_on_init(self);
   }
 
   return;
