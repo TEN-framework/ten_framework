@@ -108,7 +108,7 @@ void ten_engine_handle_cmd_start_graph(ten_engine_t *self,
 
     if (error_occurred) {
       // An error occurred, so we should not continue to connect to the
-      // remaining apps.
+      // remaining apps (remotes).
       ten_list_clear(&new_works);
     } else {
       if (!ten_list_is_empty(&new_works)) {
@@ -137,8 +137,7 @@ void ten_engine_handle_cmd_start_graph(ten_engine_t *self,
       } else {
         TEN_LOGD(
             "No more new connections should be made, enable the extension "
-            "system "
-            "now.");
+            "system now.");
 
         ten_engine_enable_extension_system(self, cmd, err);
       }

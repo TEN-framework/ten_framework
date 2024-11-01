@@ -116,9 +116,7 @@ void ten_app_on_configure_done(ten_env_t *ten_env) {
 
   ten_app_t *self = ten_env_get_attached_app(ten_env);
   TEN_ASSERT(self && ten_app_check_integrity(self, true), "Should not happen.");
-
-  TEN_ASSERT(self && ten_app_check_integrity(self, true) && self->loop,
-             "Should not happen.");
+  TEN_ASSERT(self->loop, "Should not happen.");
 
   ten_error_t err;
   ten_error_init(&err);
@@ -156,9 +154,9 @@ void ten_app_on_configure_done(ten_env_t *ten_env) {
     goto error;
   }
 
-  // Create the protocol context store _BEFORE_ creating the endpoint protocol
-  // as the context data of the endpoint protocol will depend on the context
-  // store.
+  // Create the protocol context store _BEFORE_ creating the listening endpoint
+  // protocol as the context data of the endpoint protocol will depend on the
+  // context store.
   ten_app_create_protocol_context_store(self);
 
   if (!ten_string_is_equal_c_str(&self->uri, TEN_STR_LOCALHOST)) {

@@ -72,7 +72,7 @@ ten_engine_on_protocol_created_info_t *
 ten_engine_on_protocol_created_info_create(ten_engine_on_remote_created_cb_t cb,
                                            void *user_data) {
   ten_engine_on_protocol_created_info_t *self =
-      (ten_engine_on_protocol_created_info_t *)malloc(
+      (ten_engine_on_protocol_created_info_t *)TEN_MALLOC(
           sizeof(ten_engine_on_protocol_created_info_t));
 
   self->cb = cb;
@@ -212,6 +212,7 @@ static void ten_engine_on_remote_protocol_created(ten_env_t *ten_env,
                                                   void *cb_data) {
   TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
              "Should not happen.");
+
   ten_engine_t *self = ten_env_get_attached_engine(ten_env);
   TEN_ASSERT(self && ten_engine_check_integrity(self, true),
              "Should not happen.");
@@ -245,7 +246,6 @@ static bool ten_engine_create_remote_async(
   TEN_ASSERT(ten_engine_check_integrity(self, true),
              "Invalid use of engine %p.", self);
   TEN_ASSERT(on_remote_created_cb, "Invalid argument.");
-
   TEN_ASSERT(uri, "Should not happen.");
 
   ten_error_t err;
@@ -323,9 +323,8 @@ static void ten_engine_on_graph_remote_connect_error(ten_remote_t *self,
   }
 }
 
-static void ten_engine_connect_to_remote(ten_engine_t *engine,
-                                         ten_remote_t *remote,
-                                         void *user_data) {
+static void ten_engine_connect_to_remote_after_remote_is_created(
+    ten_engine_t *engine, ten_remote_t *remote, void *user_data) {
   TEN_ASSERT(engine && ten_engine_check_integrity(engine, true),
              "Invalid argument.");
 
@@ -373,16 +372,14 @@ bool ten_engine_connect_to_graph_remote(ten_engine_t *self, const char *uri,
   TEN_ASSERT(self, "Invalid argument.");
   TEN_ASSERT(ten_engine_check_integrity(self, true),
              "Invalid use of engine %p.", self);
-
   TEN_ASSERT(uri, "Invalid argument.");
-
   TEN_ASSERT(cmd && ten_msg_get_type(cmd) == TEN_MSG_TYPE_CMD_START_GRAPH,
              "Should not happen.");
 
   TEN_LOGD("Trying to connect to %s inside graph.", uri);
 
-  return ten_engine_create_remote_async(self, uri, ten_engine_connect_to_remote,
-                                        cmd);
+  return ten_engine_create_remote_async(
+      self, uri, ten_engine_connect_to_remote_after_remote_is_created, cmd);
 }
 
 void ten_engine_route_msg_to_remote(ten_engine_t *self, ten_shared_ptr_t *msg) {
