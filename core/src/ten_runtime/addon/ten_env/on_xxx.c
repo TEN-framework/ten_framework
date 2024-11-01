@@ -297,9 +297,7 @@ void ten_addon_protocol_on_create_instance_done(ten_env_t *self,
 
   ten_env_t *caller_ten = addon_context->caller_ten;
   TEN_ASSERT(caller_ten, "Invalid argument.");
-  // TEN_NOLINTNEXTLINE(thread-check)
-  // thread-check: This function is intended to be called in any threads.
-  TEN_ASSERT(ten_env_check_integrity(caller_ten, false),
+  TEN_ASSERT(ten_env_check_integrity(caller_ten, true),
              "Invalid use of ten_env %p.", caller_ten);
 
   TEN_ASSERT(addon_context->addon_on_create_instance_async_cb,
@@ -308,32 +306,24 @@ void ten_addon_protocol_on_create_instance_done(ten_env_t *self,
   switch (caller_ten->attach_to) {
     case TEN_ENV_ATTACH_TO_ENGINE: {
       ten_engine_t *engine = ten_env_get_attached_engine(caller_ten);
-      TEN_ASSERT(engine &&
-                     // TEN_NOLINTNEXTLINE(thread-check)
-                     // thread-check: Maybe in the thread other than the engine
-                     // thread, and all the function calls in this case are
-                     // thread safe.
-                     ten_engine_check_integrity(engine, false),
+      TEN_ASSERT(engine && ten_engine_check_integrity(engine, true),
                  "Should not happen.");
 
-      ten_engine_on_addon_create_protocol_done_info_t *info =
-          ten_engine_on_addon_create_protocol_done_info_create();
+      ten_engine_thread_on_addon_create_protocol_done_info_t *info =
+          ten_engine_thread_on_addon_create_protocol_done_info_create();
 
       info->protocol = protocol;
       info->addon_context = addon_context;
 
-      ten_runloop_post_task_tail(ten_engine_get_attached_runloop(engine),
-                                 ten_engine_on_addon_create_protocol_done,
-                                 engine, info);
+      ten_runloop_post_task_tail(
+          ten_engine_get_attached_runloop(engine),
+          ten_engine_thread_on_addon_create_protocol_done, engine, info);
       break;
     }
 
     case TEN_ENV_ATTACH_TO_APP: {
       ten_app_t *app = ten_env_get_attached_app(caller_ten);
-      // TEN_NOLINTNEXTLINE(thread-check)
-      // thread-check: Maybe in the thread other than the app thread, and all
-      // the function calls in this case are thread safe.
-      TEN_ASSERT(app && ten_app_check_integrity(app, false),
+      TEN_ASSERT(app && ten_app_check_integrity(app, true),
                  "Should not happen.");
 
       ten_app_thread_on_addon_create_protocol_done_info_t *info =

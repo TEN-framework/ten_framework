@@ -229,10 +229,10 @@ void ten_engine_on_addon_destroy_extension_group_done(void *self_, void *arg) {
                                                               addon_context);
 }
 
-ten_engine_on_addon_create_protocol_done_info_t *
-ten_engine_on_addon_create_protocol_done_info_create(void) {
-  ten_engine_on_addon_create_protocol_done_info_t *self =
-      TEN_MALLOC(sizeof(ten_engine_on_addon_create_protocol_done_info_t));
+ten_engine_thread_on_addon_create_protocol_done_info_t *
+ten_engine_thread_on_addon_create_protocol_done_info_create(void) {
+  ten_engine_thread_on_addon_create_protocol_done_info_t *self = TEN_MALLOC(
+      sizeof(ten_engine_thread_on_addon_create_protocol_done_info_t));
 
   self->protocol = NULL;
   self->addon_context = NULL;
@@ -240,18 +240,18 @@ ten_engine_on_addon_create_protocol_done_info_create(void) {
   return self;
 }
 
-void ten_engine_on_addon_create_protocol_done_info_destroy(
-    ten_engine_on_addon_create_protocol_done_info_t *self) {
+static void ten_engine_thread_on_addon_create_protocol_done_info_destroy(
+    ten_engine_thread_on_addon_create_protocol_done_info_t *self) {
   TEN_ASSERT(self, "Invalid argument.");
   TEN_FREE(self);
 }
 
-void ten_engine_on_addon_create_protocol_done(void *self, void *arg) {
+void ten_engine_thread_on_addon_create_protocol_done(void *self, void *arg) {
   ten_engine_t *engine = self;
   TEN_ASSERT(engine && ten_engine_check_integrity(engine, true),
              "Should not happen.");
 
-  ten_engine_on_addon_create_protocol_done_info_t *info = arg;
+  ten_engine_thread_on_addon_create_protocol_done_info_t *info = arg;
   TEN_ASSERT(info, "Should not happen.");
 
   ten_protocol_t *protocol = info->protocol;
@@ -265,5 +265,5 @@ void ten_engine_on_addon_create_protocol_done(void *self, void *arg) {
   }
 
   ten_addon_context_destroy(addon_context);
-  ten_engine_on_addon_create_protocol_done_info_destroy(info);
+  ten_engine_thread_on_addon_create_protocol_done_info_destroy(info);
 }

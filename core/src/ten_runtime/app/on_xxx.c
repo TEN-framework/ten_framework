@@ -22,7 +22,7 @@ ten_app_thread_on_addon_create_protocol_done_info_create(void) {
   return self;
 }
 
-void ten_app_thread_on_addon_create_protocol_done_info_destroy(
+static void ten_app_thread_on_addon_create_protocol_done_info_destroy(
     ten_app_thread_on_addon_create_protocol_done_info_t *self) {
   TEN_ASSERT(self, "Invalid argument.");
   TEN_FREE(self);

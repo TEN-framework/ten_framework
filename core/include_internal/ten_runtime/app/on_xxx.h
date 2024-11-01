@@ -21,9 +21,5 @@ typedef struct ten_app_thread_on_addon_create_protocol_done_info_t {
 TEN_RUNTIME_PRIVATE_API ten_app_thread_on_addon_create_protocol_done_info_t *
 ten_app_thread_on_addon_create_protocol_done_info_create(void);
 
-TEN_RUNTIME_PRIVATE_API void
-ten_app_thread_on_addon_create_protocol_done_info_destroy(
-    ten_app_thread_on_addon_create_protocol_done_info_t *self);
-
 TEN_RUNTIME_PRIVATE_API void ten_app_thread_on_addon_create_protocol_done(
     void *self, void *arg);
