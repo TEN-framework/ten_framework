@@ -23,7 +23,11 @@ use crate::{
     log::{tman_verbose_print, tman_verbose_println},
 };
 
-fn get_model(tman_config: &TmanConfig, model: &Model) -> Option<Vec<String>> {
+fn get_model(
+    tman_config: &TmanConfig,
+    model: &Model,
+    is_usable: &mut bool,
+) -> Option<Vec<String>> {
     // Retrieve the symbols in the model.
     let atoms = model
         .symbols(ShowType::SHOWN)
@@ -32,11 +36,15 @@ fn get_model(tman_config: &TmanConfig, model: &Model) -> Option<Vec<String>> {
     tman_verbose_println!(tman_config, "Model:");
 
     let mut result = Vec::new();
+    *is_usable = true;
 
     for symbol in atoms {
         tman_verbose_println!(tman_config, " {}", symbol);
 
         result.push(symbol.to_string());
+        if symbol.to_string().starts_with("error(") {
+            *is_usable = false;
+        }
     }
     tman_verbose_println!(tman_config, "");
 
@@ -144,15 +152,18 @@ fn print_statistics(
     }
 }
 
-fn solve(tman_config: &TmanConfig, input: &str) -> Result<Vec<String>> {
+fn solve(
+    tman_config: &TmanConfig,
+    input: &str,
+) -> Result<(Option<Vec<String>>, Vec<Vec<String>>)> {
     // Create a control object.
     // i.e., clingo_control_new
     let mut ctl = control({
         let mut args = vec![
-            "--opt-mode=opt".to_string(),
+            "--opt-mode=optN".to_string(),
             "--heuristic=berkmin".to_string(),
-            // "-n".to_string(),
-            // "0".to_string(),
+            "-n".to_string(),
+            "0".to_string(),
         ];
 
         if tman_config.verbose {
@@ -199,7 +210,8 @@ fn solve(tman_config: &TmanConfig, input: &str) -> Result<Vec<String>> {
         .solve(SolveMode::YIELD, &[])
         .expect("Failed retrieving solve handle.");
 
-    let mut result_model = Vec::new();
+    let mut usable_model = None;
+    let mut non_usable_models = Vec::new();
 
     // Loop over all models.
     loop {
@@ -210,9 +222,14 @@ fn solve(tman_config: &TmanConfig, input: &str) -> Result<Vec<String>> {
         match handle.model() {
             // Get the model.
             Ok(Some(model)) => {
-                if let Some(m) = get_model(tman_config, model) {
-                    result_model = m;
-                    break;
+                let mut is_usable = false;
+                if let Some(m) = get_model(tman_config, model, &mut is_usable) {
+                    if is_usable {
+                        usable_model = Some(m);
+                        break; // Exit loop on first usable model.
+                    } else {
+                        non_usable_models.push(m); // Collect error models.
+                    }
                 }
             }
             // Stop if there are no more models.
@@ -222,14 +239,6 @@ fn solve(tman_config: &TmanConfig, input: &str) -> Result<Vec<String>> {
             }
             Err(e) => panic!("Error: {}", e),
         }
-    }
-
-    // If no models were found, return an error.
-    if result_model.is_empty() {
-        return Err(TmanError::Custom(
-                "Unable to resolve dependencies successfully, please report the dependency issue to ten framework github issue.".to_string(),
-            )
-            .into());
     }
 
     // Close the solve handle.
@@ -250,7 +259,7 @@ fn solve(tman_config: &TmanConfig, input: &str) -> Result<Vec<String>> {
     let stats_key = stats.root().unwrap();
     print_statistics(tman_config, stats, stats_key, 0);
 
-    Ok(result_model)
+    Ok((usable_model, non_usable_models))
 }
 
 fn create_input_str_for_dependency_relationship(
@@ -486,7 +495,7 @@ pub fn solve_all(
     extra_dependency_relationships: &Vec<DependencyRelationship>,
     all_candidates: &HashMap<PkgIdentity, HashSet<PkgInfo>>,
     locked_pkgs: Option<&HashMap<PkgIdentity, PkgInfo>>,
-) -> Result<Vec<String>> {
+) -> Result<(Option<Vec<String>>, Vec<Vec<String>>)> {
     let input_str = create_input_str(
         tman_config,
         pkg_name,

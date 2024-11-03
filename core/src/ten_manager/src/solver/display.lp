@@ -11,8 +11,6 @@
 #show introducer/6.
 
 % error types
-#show error/4.
-#show error/5.
 #show error/6.
 #show error/12.
 
