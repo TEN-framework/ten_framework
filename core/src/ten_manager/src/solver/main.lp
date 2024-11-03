@@ -9,16 +9,26 @@
 % 'error' is intentionally left undefined within the logic program.
 #defined error/4.
 #defined error/5.
+#defined error/12.
 
 %-----------------------------------------------------------------------------
 % Version semantics
 %-----------------------------------------------------------------------------
 
-% If a package is selected (selected_pkg == true), then choose one version
-% (selected_pkg_version) from all available versions of that package
+% If a package is selected (selected_pkg == true), then choose at least 1
+% versions (selected_pkg_version) from all available versions of that package
 % (version_declared).
-1 { selected_pkg_version(PkgType, PkgName, PkgVersion) : version_declared(PkgType, PkgName, PkgVersion, PkgWeight) } 1
+1 <= { selected_pkg_version(PkgType, PkgName, PkgVersion) : version_declared(PkgType, PkgName, PkgVersion, PkgWeight) }
   :- selected_pkg(PkgType, PkgName).
+
+error(100, "Select more than 1 version of '[{0}]{1}': '@{2}' introduced by '[{4}]{5}@{6}', and '@{3}' introduced by '[{7}]{8}@{9}'",
+      PkgType, PkgName, PkgVersion1, PkgVersion2, IntroducerType1, IntroducerName1, IntroducerVersion1, IntroducerType2, IntroducerName2, IntroducerVersion2)
+  :- selected_pkg(PkgType, PkgName),
+     selected_pkg_version(PkgType, PkgName, PkgVersion1),
+     selected_pkg_version(PkgType, PkgName, PkgVersion2),
+     PkgVersion1 < PkgVersion2,
+     introducer(PkgType, PkgName, PkgVersion1, IntroducerType1, IntroducerName1, IntroducerVersion1),
+     introducer(PkgType, PkgName, PkgVersion2, IntroducerType2, IntroducerName2, IntroducerVersion2).
 
 % Get the weight of the selected version of the selected package. This rule
 % declares that only one selected_pkg_weight fact can be derived based on the
@@ -32,11 +42,32 @@ selected_pkg(PkgType, PkgName)
   :- selected_pkg_version(PkgType, PkgName, PkgVersion).
 
 %-----------------------------------------------------------------------------
+% Tracking Introducers
+%-----------------------------------------------------------------------------
+
+% The introducer predicate is used to keep track of how each package version was
+% introduced into the selection - either as a root package or as a dependency of
+% another package.
+
+introducer(PkgType, PkgName, PkgVersion, IntroducerType, IntroducerName, IntroducerVersion)
+  :- depends_on(IntroducerType, IntroducerName, IntroducerVersion, PkgType, PkgName, PkgVersion),
+     selected_pkg_version(IntroducerType, IntroducerName, IntroducerVersion),
+     selected_pkg_version(PkgType, PkgName, PkgVersion).
+
+% This rule serves to record that a package version is introduced into the
+% selection directly as a root package, rather than as a dependency of another
+% package. Specifically, it defines an introducer fact for packages that are
+% declared as roots.
+introducer(PkgType, PkgName, PkgVersion, "root", "", "")
+  :- root_declared(PkgType, PkgName),
+     selected_pkg_version(PkgType, PkgName, PkgVersion).
+
+%-----------------------------------------------------------------------------
 % Dependency semantics
 %-----------------------------------------------------------------------------
 
 % It's an error when depending on a version which is not declared.
-error(0, "Depends on an undeclared version '@{2}' of '{0}::{1}'", PkgType, PkgName, PkgVersion)
+error(100, "Depends on an undeclared version '@{2}' of '{0}::{1}'", PkgType, PkgName, PkgVersion)
   :- not version_declared(PkgType, PkgName, PkgVersion, _),
      depends_on_declared(_, _, PkgType, PkgName, PkgVersion).
 
@@ -60,7 +91,7 @@ needed(DepType, DepName)
   :- needed(PkgType, PkgName),
      depends_on(PkgType, PkgName, _, DepType, DepName, _).
 
-error(0, "'{0}::{1}' is not a valid dependency for any package in the DAG", PkgType, PkgName)
+error(100, "'{0}::{1}' is not a valid dependency for any package in the DAG", PkgType, PkgName)
   :- selected_pkg(PkgType, PkgName),
      not needed(PkgType, PkgName).
 % @}
@@ -70,7 +101,7 @@ error(0, "'{0}::{1}' is not a valid dependency for any package in the DAG", PkgT
 %-----------------------------------------------------------------------------
 
 % @{
-% Enable clingo to solve selected_pkg_version/2 and selected_pkg_weight/2 first.
+% Enable clingo to solve selected_pkg_version/3 and selected_pkg_weight/3 first.
 #heuristic selected_pkg_version(PkgType, PkgName, PkgVersion) : version_declared(PkgType, PkgName, PkgVersion, _), selected_pkg(PkgType, PkgName). [10, true]
 
 #heuristic selected_pkg_weight(PkgType, PkgName, _) : version_declared(PkgType, PkgName, PkgVersion, _), selected_pkg(PkgType, PkgName). [10, true]
@@ -89,7 +120,8 @@ error(0, "'{0}::{1}' is not a valid dependency for any package in the DAG", PkgT
   % First minimize the weight of packages declared as root packages.
   PkgWeight@998,PkgType,PkgName : root_declared(PkgType, PkgName), selected_pkg_weight(PkgType, PkgName, PkgWeight);
 
-  % Then minimize the weight of all selected packages,regardless of whether they are root packages.
+  % Then minimize the weight of all selected packages, regardless of whether
+  % they are root packages.
   PkgWeight@999,PkgType,PkgName : selected_pkg_weight(PkgType, PkgName, PkgWeight)
 }.
 
@@ -101,9 +133,8 @@ error(0, "'{0}::{1}' is not a valid dependency for any package in the DAG", PkgT
 % to explain why something failed. Here we optimize HEAVILY against the facts
 % generated by those rules.
 
-%{
-% The following line said that to minimize the count of 'error(Priority, Msg)'
-% in each 'Priority'.
-#minimize{ 1000@1000+Priority,Msg,Arg1,Arg2: error(Priority, Msg, Arg1, Arg2) }.
-#minimize{ 1000@1000+Priority,Msg,Arg1,Arg2,Arg3: error(Priority, Msg, Arg1, Arg2, Arg3) }.
-%}
+#minimize{ 0@1000: #true}.
+
+#minimize{ ErrWeight@1000,Msg,Arg1,Arg2: error(ErrWeight, Msg, Arg1, Arg2) }.
+#minimize{ ErrWeight@1000,Msg,Arg1,Arg2,Arg3: error(ErrWeight, Msg, Arg1, Arg2, Arg3) }.
+#minimize{ ErrWeight@1000,Msg,Arg1,Arg2,Arg3,Arg4,Arg5,Arg6,Arg7,Arg8,Arg9,Arg10: error(ErrWeight, Msg, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8, Arg9, Arg10) }.

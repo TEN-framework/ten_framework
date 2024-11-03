@@ -11,7 +11,6 @@ use console::Emoji;
 use semver::{Version, VersionReq};
 use serde::{Deserialize, Serialize};
 
-use super::constants::MANIFEST_LOCK_JSON_FILENAME;
 use ten_rust::json_schema::validate_manifest_lock_json_string;
 use ten_rust::pkg_info::dependencies::PkgDependency;
 use ten_rust::pkg_info::manifest::support::ManifestSupport;
@@ -21,6 +20,8 @@ use ten_rust::pkg_info::supports::{
 use ten_rust::pkg_info::{
     pkg_identity::PkgIdentity, pkg_type::PkgType, PkgInfo,
 };
+
+use super::constants::MANIFEST_LOCK_JSON_FILENAME;
 
 // The `manifest-lock.json` structure.
 #[derive(Serialize, Deserialize, Debug, Clone)]

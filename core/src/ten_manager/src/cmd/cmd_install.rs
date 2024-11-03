@@ -13,12 +13,25 @@ use std::{
     time::Instant,
 };
 
-use anyhow::{Ok, Result};
+use anyhow::Result;
 use clap::{Arg, ArgAction, ArgMatches, Command};
 use console::Emoji;
 use indicatif::HumanDuration;
 use inquire::Confirm;
 use semver::VersionReq;
+
+use ten_rust::pkg_info::manifest::{
+    dependency::ManifestDependency, parse_manifest_in_folder,
+};
+use ten_rust::pkg_info::{
+    dependencies::{DependencyRelationship, PkgDependency},
+    find_to_be_replaced_local_pkgs, find_untracked_local_packages,
+    get_pkg_info_from_path,
+    pkg_identity::PkgIdentity,
+    pkg_type::PkgType,
+    supports::{is_pkg_supports_compatible_with, Arch, Os, PkgSupport},
+    PkgInfo,
+};
 
 use crate::{
     config::TmanConfig,
@@ -32,7 +45,9 @@ use crate::{
     },
     package_info::tman_get_all_existed_pkgs_info_of_app,
     solver::{
+        introducer::extract_introducer_relations_from_raw_solver_results,
         solve::solve_all,
+        solver_error::{parse_error_statement, print_conflict_info},
         solver_result::{
             extract_solver_results_from_raw_solver_results,
             filter_solver_results_by_type_and_name,
@@ -41,18 +56,6 @@ use crate::{
         },
     },
     utils::{check_is_app_folder, check_is_package_folder},
-};
-use ten_rust::pkg_info::manifest::{
-    dependency::ManifestDependency, parse_manifest_in_folder,
-};
-use ten_rust::pkg_info::{
-    dependencies::{DependencyRelationship, PkgDependency},
-    find_to_be_replaced_local_pkgs, find_untracked_local_packages,
-    get_pkg_info_from_path,
-    pkg_identity::PkgIdentity,
-    pkg_type::PkgType,
-    supports::{is_pkg_supports_compatible_with, Arch, Os, PkgSupport},
-    PkgInfo,
 };
 
 #[derive(Debug)]
@@ -669,11 +672,38 @@ pub async fn execute_cmd(
     )?;
 
     // Print out the answer.
+    tman_verbose_println!(tman_config, "\n");
     tman_verbose_println!(tman_config, "Result:");
     for result in &results {
         tman_verbose_println!(tman_config, " {:?}", result);
     }
     tman_verbose_println!(tman_config, "");
+
+    // Extract introducer relations.
+    let introducer_relations =
+        extract_introducer_relations_from_raw_solver_results(
+            &results,
+            &all_candidates,
+        )?;
+
+    // Parse the error message.
+    if let Ok(conflict_info) = parse_error_statement(&results) {
+        // Print the error message and dependency chains.
+        print_conflict_info(
+            tman_config,
+            &conflict_info,
+            &introducer_relations,
+            &all_candidates,
+        )?;
+
+        // Since there is an error, we need to exit.
+        return Err(TmanError::Custom(
+            "Dependency resolution failed.".to_string(),
+        )
+        .into());
+    }
+
+    // If there is no error message, proceed.
 
     // Get the information of the resultant packages.
     let solver_results = extract_solver_results_from_raw_solver_results(

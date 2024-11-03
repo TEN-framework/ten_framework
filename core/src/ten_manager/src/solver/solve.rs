@@ -7,48 +7,170 @@
 use std::collections::{HashMap, HashSet};
 
 use anyhow::Result;
+use clingo::{
+    control, Configuration, ConfigurationType, Id, Model, Part, ShowType,
+    SolveMode, Statistics, StatisticsType,
+};
 
-use crate::{config::TmanConfig, error::TmanError, log::tman_verbose_println};
 use ten_rust::pkg_info::{
     dependencies::DependencyRelationship, pkg_identity::PkgIdentity,
     pkg_type::PkgType, PkgInfo,
 };
 
-fn get_model(
-    tman_config: &TmanConfig,
-    model: &clingo::Model,
-) -> Option<Vec<String>> {
+use crate::{
+    config::TmanConfig,
+    error::TmanError,
+    log::{tman_verbose_print, tman_verbose_println},
+};
+
+fn get_model(tman_config: &TmanConfig, model: &Model) -> Option<Vec<String>> {
     // Retrieve the symbols in the model.
     let atoms = model
-        .symbols(clingo::ShowType::SHOWN)
+        .symbols(ShowType::SHOWN)
         .expect("Failed to retrieve symbols in the model.");
 
     tman_verbose_println!(tman_config, "Model:");
 
     let mut result = Vec::new();
-    let mut can_be_used = true;
 
     for symbol in atoms {
         tman_verbose_println!(tman_config, " {}", symbol);
 
         result.push(symbol.to_string());
-        if symbol.to_string().starts_with("error(") {
-            can_be_used = false;
-        }
     }
     tman_verbose_println!(tman_config, "");
 
-    if !can_be_used {
-        return None;
-    }
     Some(result)
+}
+
+fn print_prefix(tman_config: &TmanConfig, depth: u8) {
+    tman_verbose_println!(tman_config, "");
+    for _ in 0..depth {
+        tman_verbose_print!(tman_config, "  ");
+    }
+}
+
+// Recursively print the configuration object.
+fn print_configuration(
+    tman_config: &TmanConfig,
+    conf: &Configuration,
+    key: Id,
+    depth: u8,
+) {
+    let configuration_type = conf.configuration_type(key).unwrap();
+    if configuration_type.contains(ConfigurationType::VALUE) {
+        let value = conf
+            .value_get(key)
+            .expect("Failed to retrieve statistics value.");
+
+        tman_verbose_print!(tman_config, "{}", value);
+    } else if configuration_type.contains(ConfigurationType::ARRAY) {
+        let size = conf
+            .array_size(key)
+            .expect("Failed to retrieve statistics array size.");
+        for i in 0..size {
+            let subkey = conf
+                .array_at(key, i)
+                .expect("Failed to retrieve statistics array.");
+            print_prefix(tman_config, depth);
+            tman_verbose_print!(tman_config, "{}: ", i);
+
+            print_configuration(tman_config, conf, subkey, depth + 1);
+        }
+    } else if configuration_type.contains(ConfigurationType::MAP) {
+        let size = conf.map_size(key).unwrap();
+        for i in 0..size {
+            let name = conf.map_subkey_name(key, i).unwrap();
+            let subkey = conf.map_at(key, name).unwrap();
+            print_prefix(tman_config, depth);
+            tman_verbose_print!(tman_config, "{}: ", name);
+
+            print_configuration(tman_config, conf, subkey, depth + 1);
+        }
+    } else {
+        tman_verbose_println!(tman_config, "Unknown ConfigurationType");
+        unreachable!()
+    }
+}
+
+// recursively print the statistics object
+fn print_statistics(
+    tman_config: &TmanConfig,
+    stats: &Statistics,
+    key: u64,
+    depth: u8,
+) {
+    // Get the type of an entry and switch over its various values.
+    let statistics_type = stats.statistics_type(key).unwrap();
+    match statistics_type {
+        StatisticsType::Value => {
+            let value = stats
+                .value_get(key)
+                .expect("Failed to retrieve statistics value.");
+
+            tman_verbose_print!(tman_config, " {}", value);
+        }
+
+        StatisticsType::Array => {
+            let size = stats
+                .array_size(key)
+                .expect("Failed to retrieve statistics array size.");
+            for i in 0..size {
+                let subkey = stats
+                    .array_at(key, i)
+                    .expect("Failed to retrieve statistics array.");
+                print_prefix(tman_config, depth);
+                tman_verbose_print!(tman_config, "{} zu:", i);
+
+                print_statistics(tman_config, stats, subkey, depth + 1);
+            }
+        }
+
+        StatisticsType::Map => {
+            let size = stats.map_size(key).unwrap();
+            for i in 0..size {
+                let name = stats.map_subkey_name(key, i).unwrap();
+                let subkey = stats.map_at(key, name).unwrap();
+                print_prefix(tman_config, depth);
+                tman_verbose_print!(tman_config, "{}:", name);
+
+                print_statistics(tman_config, stats, subkey, depth + 1);
+            }
+        }
+
+        StatisticsType::Empty => {
+            tman_verbose_println!(tman_config, "StatisticsType::Empty");
+        }
+    }
 }
 
 fn solve(tman_config: &TmanConfig, input: &str) -> Result<Vec<String>> {
     // Create a control object.
     // i.e., clingo_control_new
-    let mut ctl =
-        clingo::control([].to_vec()).expect("Failed creating Control.");
+    let mut ctl = control({
+        let mut args = vec![
+            "--opt-mode=opt".to_string(),
+            "--heuristic=berkmin".to_string(),
+            // "-n".to_string(),
+            // "0".to_string(),
+        ];
+
+        if tman_config.verbose {
+            args.push("--verbose".to_string());
+        }
+
+        args
+    })
+    .expect("Failed creating Control.");
+
+    {
+        // Get the configuration object and its root key.
+        let conf = ctl.configuration_mut().unwrap();
+        let root_key = conf.root().unwrap();
+
+        print_configuration(tman_config, conf, root_key, 0);
+        tman_verbose_println!(tman_config, "");
+    }
 
     let main_program = include_str!("main.lp");
     let display_program = include_str!("display.lp");
@@ -63,51 +185,51 @@ fn solve(tman_config: &TmanConfig, input: &str) -> Result<Vec<String>> {
 
     // Ground the parts.
     // i.e., clingo_control_ground
-    let main_part = clingo::Part::new("main", vec![]).unwrap();
-    let display_part = clingo::Part::new("display", vec![]).unwrap();
-    let base_part = clingo::Part::new("base", vec![]).unwrap();
+    let main_part = Part::new("main", vec![]).unwrap();
+    let display_part = Part::new("display", vec![]).unwrap();
+    let base_part = Part::new("base", vec![]).unwrap();
 
     let parts = vec![main_part, display_part, base_part];
     ctl.ground(&parts)
         .expect("Failed to ground a logic program.");
 
-    let conf = ctl.configuration_mut()?;
-
-    // Navigate to the solve.models setting and modify it.
-    let root_key = conf.root()?;
-    let solve_key = conf.map_at(root_key, "solve")?;
-    let models_key = conf.map_at(solve_key, "models")?;
-    // Setting it to "0" means finding all models.
-    conf.value_set(models_key, "0")?;
-
     // Solving. Get a solve handle.
     // i.e., clingo_control_solve
     let mut handle = ctl
-        .solve(clingo::SolveMode::YIELD, &[])
+        .solve(SolveMode::YIELD, &[])
         .expect("Failed retrieving solve handle.");
 
     let mut result_model = Vec::new();
 
-    // Loop over all models
+    // Loop over all models.
     loop {
         // i.e., clingo_solve_handle_resume
         handle.resume().expect("Failed resume on solve handle.");
 
         // i.e., clingo_solve_handle_model
         match handle.model() {
-            // print the model
+            // Get the model.
             Ok(Some(model)) => {
                 if let Some(m) = get_model(tman_config, model) {
                     result_model = m;
+                    break;
                 }
             }
-            // stop if there are no more models
+            // Stop if there are no more models.
             Ok(None) => {
                 tman_verbose_println!(tman_config, "No more models");
                 break;
             }
             Err(e) => panic!("Error: {}", e),
         }
+    }
+
+    // If no models were found, return an error.
+    if result_model.is_empty() {
+        return Err(TmanError::Custom(
+                "Unable to resolve dependencies successfully, please report the dependency issue to ten framework github issue.".to_string(),
+            )
+            .into());
     }
 
     // Close the solve handle.
@@ -120,7 +242,13 @@ fn solve(tman_config: &TmanConfig, input: &str) -> Result<Vec<String>> {
 
     // Free the solve handle.
     // i.e., clingo_solve_handle_close
-    handle.close().expect("Failed to close solve handle.");
+    ctl = handle.close().expect("Failed to close solve handle.");
+
+    // Get the statistics object, get the root key, then print the statistics
+    // recursively.
+    let stats = ctl.statistics().unwrap();
+    let stats_key = stats.root().unwrap();
+    print_statistics(tman_config, stats, stats_key, 0);
 
     Ok(result_model)
 }
@@ -213,7 +341,7 @@ fn create_input_str_for_pkg_info_dependencies(
             if !found_matched {
                 return Err(TmanError::Custom(
                     format!(
-                        "Failed to find candidates for {}::{}({})",
+                        "Failed to find candidates for [{}]{}({})",
                         dependency.pkg_identity.pkg_type,
                         dependency.pkg_identity.name,
                         dependency.version_req
