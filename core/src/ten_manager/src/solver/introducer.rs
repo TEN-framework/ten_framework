@@ -6,13 +6,10 @@
 //
 use std::collections::{HashMap, HashSet};
 
-use anyhow::{anyhow, Result};
+use anyhow::Result;
 use regex::Regex;
-use semver::Version;
 
-use ten_rust::pkg_info::{
-    pkg_identity::PkgIdentity, pkg_type::PkgType, PkgInfo,
-};
+use ten_rust::pkg_info::{pkg_identity::PkgIdentity, PkgInfo};
 
 use crate::dep_and_candidate::get_pkg_info_from_candidates;
 
@@ -91,7 +88,6 @@ pub fn get_dependency_chain(
             }
             None => {
                 panic!("Introducer not found, possibly an error.");
-                break;
             }
         }
     }

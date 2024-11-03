@@ -690,7 +690,6 @@ pub async fn execute_cmd(
     if let Ok(conflict_info) = parse_error_statement(&results) {
         // Print the error message and dependency chains.
         print_conflict_info(
-            tman_config,
             &conflict_info,
             &introducer_relations,
             &all_candidates,

@@ -13,7 +13,7 @@ use regex::Regex;
 use ten_rust::pkg_info::{pkg_identity::PkgIdentity, PkgInfo};
 
 use crate::{
-    config::TmanConfig, dep_and_candidate::get_pkg_info_from_candidates,
+    dep_and_candidate::get_pkg_info_from_candidates,
     solver::introducer::get_dependency_chain,
 };
 
@@ -97,7 +97,6 @@ fn print_dependency_chain(
 }
 
 pub fn print_conflict_info(
-    tman_config: &TmanConfig,
     conflict_info: &ConflictInfo,
     introducer_relations: &HashMap<PkgInfo, Option<PkgInfo>>,
     all_candidates: &HashMap<PkgIdentity, HashSet<PkgInfo>>,

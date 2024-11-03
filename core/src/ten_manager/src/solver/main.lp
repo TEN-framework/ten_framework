@@ -9,6 +9,7 @@
 % 'error' is intentionally left undefined within the logic program.
 #defined error/4.
 #defined error/5.
+#defined error/6.
 #defined error/12.
 
 %-----------------------------------------------------------------------------
@@ -21,7 +22,14 @@
 1 <= { selected_pkg_version(PkgType, PkgName, PkgVersion) : version_declared(PkgType, PkgName, PkgVersion, PkgWeight) }
   :- selected_pkg(PkgType, PkgName).
 
-error(100, "Select more than 1 version of '[{0}]{1}': '@{2}' introduced by '[{4}]{5}@{6}', and '@{3}' introduced by '[{7}]{8}@{9}'",
+error(1000, "Select more than 1 version of '[{0}]{1}': '@{2}' and '@{3}'",
+      PkgType, PkgName, PkgVersion1, PkgVersion2)
+  :- selected_pkg(PkgType, PkgName),
+     selected_pkg_version(PkgType, PkgName, PkgVersion1),
+     selected_pkg_version(PkgType, PkgName, PkgVersion2),
+     PkgVersion1 < PkgVersion2.
+
+error(10, "Select more than 1 version of '[{0}]{1}': '@{2}' introduced by '[{4}]{5}@{6}', and '@{3}' introduced by '[{7}]{8}@{9}'",
       PkgType, PkgName, PkgVersion1, PkgVersion2, IntroducerType1, IntroducerName1, IntroducerVersion1, IntroducerType2, IntroducerName2, IntroducerVersion2)
   :- selected_pkg(PkgType, PkgName),
      selected_pkg_version(PkgType, PkgName, PkgVersion1),
@@ -67,7 +75,7 @@ introducer(PkgType, PkgName, PkgVersion, "root", "", "")
 %-----------------------------------------------------------------------------
 
 % It's an error when depending on a version which is not declared.
-error(100, "Depends on an undeclared version '@{2}' of '{0}::{1}'", PkgType, PkgName, PkgVersion)
+error(1000, "Depends on an undeclared version '@{2}' of '{0}::{1}'", PkgType, PkgName, PkgVersion)
   :- not version_declared(PkgType, PkgName, PkgVersion, _),
      depends_on_declared(_, _, PkgType, PkgName, PkgVersion).
 
@@ -91,7 +99,7 @@ needed(DepType, DepName)
   :- needed(PkgType, PkgName),
      depends_on(PkgType, PkgName, _, DepType, DepName, _).
 
-error(100, "'{0}::{1}' is not a valid dependency for any package in the DAG", PkgType, PkgName)
+error(1000, "'{0}::{1}' is not a valid dependency for any package in the DAG", PkgType, PkgName)
   :- selected_pkg(PkgType, PkgName),
      not needed(PkgType, PkgName).
 % @}
@@ -137,4 +145,5 @@ error(100, "'{0}::{1}' is not a valid dependency for any package in the DAG", Pk
 
 #minimize{ ErrWeight@1000,Msg,Arg1,Arg2: error(ErrWeight, Msg, Arg1, Arg2) }.
 #minimize{ ErrWeight@1000,Msg,Arg1,Arg2,Arg3: error(ErrWeight, Msg, Arg1, Arg2, Arg3) }.
+#minimize{ ErrWeight@1000,Msg,Arg1,Arg2,Arg3,Arg4: error(ErrWeight, Msg, Arg1, Arg2, Arg3, Arg4) }.
 #minimize{ ErrWeight@1000,Msg,Arg1,Arg2,Arg3,Arg4,Arg5,Arg6,Arg7,Arg8,Arg9,Arg10: error(ErrWeight, Msg, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8, Arg9, Arg10) }.
