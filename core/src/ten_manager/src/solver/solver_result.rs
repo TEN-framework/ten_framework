@@ -106,7 +106,7 @@ pub async fn install_solver_results_in_app_folder(
     template_ctx: Option<&serde_json::Value>,
     app_dir: &Path,
 ) -> Result<()> {
-    println!("{}  Installing packages...", Emoji("📦", "+"));
+    println!("{}  Installing packages...", Emoji("📥", "+"));
 
     let bar = ProgressBar::new(solver_results.len().try_into()?);
     bar.set_style(
