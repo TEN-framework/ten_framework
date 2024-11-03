@@ -159,12 +159,7 @@ fn solve(
     // Create a control object.
     // i.e., clingo_control_new
     let mut ctl = control({
-        let mut args = vec![
-            "--opt-mode=optN".to_string(),
-            "--heuristic=berkmin".to_string(),
-            "-n".to_string(),
-            "0".to_string(),
-        ];
+        let mut args = vec![];
 
         if tman_config.verbose {
             args.push("--verbose".to_string());
@@ -178,6 +173,27 @@ fn solve(
         // Get the configuration object and its root key.
         let conf = ctl.configuration_mut().unwrap();
         let root_key = conf.root().unwrap();
+
+        // Configure to enumerate all models.
+        let solve_models_key = conf.map_at(root_key, "solve.models").unwrap();
+        conf.value_set(solve_models_key, "0")
+            .expect("Failed to set solve.models to 0.");
+
+        let solve_opt_mode_key =
+            conf.map_at(root_key, "solve.opt_mode").unwrap();
+        conf.value_set(solve_opt_mode_key, "optN")
+            .expect("Failed to set solve.opt_mode to optN.");
+
+        let stats_key = conf.map_at(root_key, "stats").unwrap();
+        conf.value_set(stats_key, "2")
+            .expect("Failed to set stats_key to 2.");
+
+        // Configure the first solver to use the berkmin heuristic.
+        let mut solver_key = conf.map_at(root_key, "solver").unwrap();
+        solver_key = conf.array_at(solver_key, 0).unwrap();
+        let heuristic_key = conf.map_at(solver_key, "heuristic").unwrap();
+        conf.value_set(heuristic_key, "berkmin")
+            .expect("Failed to set heuristic to berkmin.");
 
         print_configuration(tman_config, conf, root_key, 0);
         tman_verbose_println!(tman_config, "");
@@ -226,7 +242,6 @@ fn solve(
                 if let Some(m) = get_model(tman_config, model, &mut is_usable) {
                     if is_usable {
                         usable_model = Some(m);
-                        break; // Exit loop on first usable model.
                     } else {
                         non_usable_models.push(m); // Collect error models.
                     }
