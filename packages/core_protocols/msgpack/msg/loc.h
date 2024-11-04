@@ -10,9 +10,12 @@
 #include <assert.h>
 #include <stdbool.h>
 
-#include "core_protocols/msgpack/common/common.h"
 #include "include_internal/ten_runtime/common/loc.h"
 #include "ten_utils/lib/string.h"
+
+typedef struct msgpack_packer msgpack_packer;
+typedef struct msgpack_unpacker msgpack_unpacker;
+typedef struct msgpack_unpacked msgpack_unpacked;
 
 TEN_RUNTIME_PRIVATE_API void ten_msgpack_loc_serialize(ten_loc_t *self,
                                                        msgpack_packer *pck);

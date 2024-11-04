@@ -24,12 +24,6 @@ ten_msg_deserialize_info_create(msgpack_unpacker *unpacker,
 TEN_RUNTIME_PRIVATE_API void ten_msg_deserialize_info_destroy(
     ten_msg_deserialize_info_t *self);
 
-TEN_RUNTIME_PRIVATE_API void ten_msgpack_msghdr_serialize(ten_msg_t *self,
-                                                          msgpack_packer *pck);
-
-TEN_RUNTIME_PRIVATE_API bool ten_msgpack_msghdr_deserialize(
-    ten_msg_t *self, msgpack_unpacker *unpacker, msgpack_unpacked *unpacked);
-
 TEN_RUNTIME_PRIVATE_API bool ten_msgpack_msg_serialize(ten_shared_ptr_t *self,
                                                        msgpack_packer *pck,
                                                        ten_error_t *err);

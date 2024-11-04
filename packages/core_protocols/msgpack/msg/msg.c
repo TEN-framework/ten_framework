@@ -10,9 +10,8 @@
 #include "core_protocols/msgpack/common/common.h"
 #include "core_protocols/msgpack/common/parser.h"
 #include "core_protocols/msgpack/common/value.h"
-#include "core_protocols/msgpack/msg/field/field_info.h"
+#include "core_protocols/msgpack/msg/field/type.h"
 #include "core_protocols/msgpack/msg/msg.h"
-#include "core_protocols/msgpack/msg/msg_info.h"
 #include "ten_utils/lib/smart_ptr.h"
 #include "ten_utils/macro/check.h"
 #include "ten_utils/macro/memory.h"
@@ -35,37 +34,6 @@ void ten_msg_deserialize_info_destroy(ten_msg_deserialize_info_t *self) {
   TEN_ASSERT(self, "Invalid argument.");
 
   TEN_FREE(self);
-}
-
-void ten_msgpack_msghdr_serialize(ten_msg_t *self, msgpack_packer *pck) {
-  TEN_ASSERT(self && ten_raw_msg_check_integrity(self) && pck,
-             "Invalid argument.");
-
-  for (size_t i = 0; i < ten_protocol_msgpack_msg_fields_info_size; ++i) {
-    ten_msg_field_serialize_func_t serialize =
-        ten_protocol_msgpack_msg_fields_info[i].serialize;
-    if (serialize) {
-      serialize(self, pck);
-    }
-  }
-}
-
-bool ten_msgpack_msghdr_deserialize(ten_msg_t *self, msgpack_unpacker *unpacker,
-                                    msgpack_unpacked *unpacked) {
-  TEN_ASSERT(self && ten_raw_msg_check_integrity(self) && unpacker && unpacked,
-             "Invalid argument.");
-
-  for (size_t i = 0; i < ten_protocol_msgpack_msg_fields_info_size; ++i) {
-    ten_msg_field_deserialize_func_t deserialize =
-        ten_protocol_msgpack_msg_fields_info[i].deserialize;
-    if (deserialize) {
-      if (!deserialize(self, unpacker, unpacked)) {
-        return false;
-      }
-    }
-  }
-
-  return true;
 }
 
 static bool ten_msg_field_serialize(ten_msg_t *msg,
@@ -280,7 +248,7 @@ void ten_msgpack_deserialize_msg(ten_msgpack_parser_t *parser,
       break;
     }
 
-    msg = ten_msgpack_cmd_deserialize_through_json(msg);
+    // msg = ten_msgpack_cmd_deserialize_through_json(msg);
 
     ten_list_push_smart_ptr_back(result_msgs, msg);
     ten_shared_ptr_destroy(msg);
