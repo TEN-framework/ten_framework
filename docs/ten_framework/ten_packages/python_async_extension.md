@@ -55,8 +55,8 @@ Each method simulates a delay using `await asyncio.sleep()`.
 
 ### Aysnc loop for event handling
 
-- Create a queue: use `asyncio.Queue`
-- Create an async task for event handling
+- Create a queue: use `asyncio.Queue`.
+- Create an async task for event handling.
 
 Here is the sample code:
 
@@ -84,7 +84,8 @@ class DefaultAsyncExtension(AsyncExtension):
                     self.ten_env.log_info("async loop exit")
                     break
 
-                # Your handle logic
+                # Code for processing values retrieved from the queue.
+
             except Exception as e:
                 self.ten_env.log_error(f"Failed to handle {e}")
 ```
