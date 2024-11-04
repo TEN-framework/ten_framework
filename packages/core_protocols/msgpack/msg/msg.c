@@ -73,7 +73,7 @@ static bool ten_msg_field_deserialize(ten_msg_t *msg,
   return rc;
 }
 
-bool ten_msgpack_msg_serialize(ten_shared_ptr_t *self, msgpack_packer *pck,
+bool ten_msgpack_serialize_msg(ten_shared_ptr_t *self, msgpack_packer *pck,
                                ten_error_t *err) {
   TEN_ASSERT(self && ten_msg_check_integrity(self) && pck, "Invalid argument.");
 
@@ -83,43 +83,8 @@ bool ten_msgpack_msg_serialize(ten_shared_ptr_t *self, msgpack_packer *pck,
   return ten_msg_loop_all_fields(self, ten_msg_field_serialize, pck, err);
 }
 
-bool ten_msgpack_msg_deserialize(ten_shared_ptr_t *self,
-                                 msgpack_unpacker *unpacker,
-                                 msgpack_unpacked *unpacked) {
-  TEN_ASSERT(self && ten_msg_check_integrity(self) && unpacker && unpacked,
-             "Invalid argument.");
-
-  ten_msg_deserialize_info_t *info =
-      ten_msg_deserialize_info_create(unpacker, unpacked);
-
-  bool result =
-      ten_msg_loop_all_fields(self, ten_msg_field_deserialize, info, NULL);
-
-  ten_msg_deserialize_info_destroy(info);
-  return result;
-}
-
-TEN_MSG_TYPE ten_msgpack_deserialize_msg_type(msgpack_unpacker *unpacker,
+ten_shared_ptr_t *ten_msgpack_deserialize_msg(msgpack_unpacker *unpacker,
                                               msgpack_unpacked *unpacked) {
-  TEN_ASSERT(unpacker && unpacked, "Invalid argument.");
-
-  TEN_MSG_TYPE kind = TEN_MSG_TYPE_INVALID;
-  msgpack_unpack_return rc = msgpack_unpacker_next(unpacker, unpacked);
-  if (rc == MSGPACK_UNPACK_SUCCESS) {
-    TEN_ASSERT(MSGPACK_DATA_TYPE == MSGPACK_OBJECT_POSITIVE_INTEGER,
-               "Invalid argument.");
-    kind = (TEN_MSG_TYPE)MSGPACK_DATA_I64;
-  } else if (rc == MSGPACK_UNPACK_CONTINUE) {
-    // msgpack format data is incomplete. Need to provide additional bytes.
-    // Do nothing, return directly.
-  } else {
-    TEN_ASSERT(0, "Should not happen.");
-  }
-  return kind;
-}
-
-ten_shared_ptr_t *ten_msgpack_deserialize_msg_internal(
-    msgpack_unpacker *unpacker, msgpack_unpacked *unpacked) {
   TEN_ASSERT(unpacker && unpacked, "Invalid argument.");
 
   TEN_MSG_TYPE msg_type = ten_msgpack_deserialize_msg_type(unpacker, unpacked);
@@ -176,7 +141,7 @@ ten_shared_ptr_t *ten_msgpack_deserialize_msg_internal(
 //    but using msgpack mechanism to accomplish this.
 //
 // We are using method 3.
-ten_buf_t ten_msgpack_serialize_msg(ten_list_t *msgs, ten_error_t *err) {
+ten_buf_t ten_msgpack_serialize_msgs(ten_list_t *msgs, ten_error_t *err) {
   bool result = true;
 
   msgpack_sbuffer sbuf;
@@ -194,7 +159,7 @@ ten_buf_t ten_msgpack_serialize_msg(ten_list_t *msgs, ten_error_t *err) {
                         msgpack_sbuffer_write);
 
     ten_shared_ptr_t *msg = ten_smart_ptr_listnode_get(iter.node);
-    if (!ten_msgpack_msg_serialize(msg, &pck_for_each_msg, err)) {
+    if (!ten_msgpack_serialize_msg(msg, &pck_for_each_msg, err)) {
       result = false;
     }
 
@@ -230,8 +195,9 @@ ten_buf_t ten_msgpack_serialize_msg(ten_list_t *msgs, ten_error_t *err) {
   }
 }
 
-void ten_msgpack_deserialize_msg(ten_msgpack_parser_t *parser,
-                                 ten_buf_t input_buf, ten_list_t *result_msgs) {
+void ten_msgpack_deserialize_msgs(ten_msgpack_parser_t *parser,
+                                  ten_buf_t input_buf,
+                                  ten_list_t *result_msgs) {
   TEN_ASSERT(parser, "Invalid argument.");
 
   // The 1st step is to use the parser for msgpack_ext object to ensure that we
