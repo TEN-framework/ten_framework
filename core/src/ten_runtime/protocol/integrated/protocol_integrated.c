@@ -272,12 +272,12 @@ static void ten_protocol_integrated_set_stream(ten_protocol_integrated_t *self,
 }
 
 static void ten_app_thread_on_client_protocol_created(ten_env_t *ten_env,
-                                                      void *instance,
+                                                      ten_protocol_t *instance,
                                                       void *cb_data) {
   TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
              "Should not happen.");
 
-  ten_protocol_integrated_t *protocol = instance;
+  ten_protocol_integrated_t *protocol = (ten_protocol_integrated_t *)instance;
   TEN_ASSERT(protocol && ten_protocol_check_integrity(&protocol->base, true),
              "Should not happen.");
 
@@ -303,13 +303,6 @@ static void ten_app_thread_on_client_protocol_created(ten_env_t *ten_env,
   // Setup important fields of the newly created protocol.
   new_communication_base_protocol->on_connected =
       listening_base_protocol->on_connected;
-
-  // We can _not_ know whether the protocol role is
-  // 'TEN_PROTOCOL_ROLE_IN_INTERNAL' or 'TEN_PROTOCOL_ROLE_IN_EXTERNAL' until
-  // the message received from the protocol is processed. Refer to
-  // 'ten_connection_on_msgs()' and
-  // 'ten_connection_handle_command_from_external_client()'.
-  new_communication_base_protocol->role = TEN_PROTOCOL_ROLE_IN_DEFAULT;
 
   // Attach the newly created protocol to app first.
   ten_protocol_attach_to_app(new_communication_base_protocol,
@@ -344,12 +337,17 @@ static void ten_protocol_integrated_on_client_accepted(
   ten_app_t *app = listening_base_protocol->attached_target.app;
   TEN_ASSERT(app && ten_app_check_integrity(app, true), "Should not happen.");
 
-  bool rc = ten_addon_create_instance_async(
+  // We can _not_ know whether the protocol role is
+  // 'TEN_PROTOCOL_ROLE_IN_INTERNAL' or 'TEN_PROTOCOL_ROLE_IN_EXTERNAL' until
+  // the message received from the protocol is processed. Refer to
+  // 'ten_connection_on_msgs()' and
+  // 'ten_connection_handle_command_from_external_client()'.
+  bool rc = ten_addon_create_protocol(
       app->ten_env,
       ten_string_get_raw_str(&listening_base_protocol->addon_host->name),
       ten_string_get_raw_str(&listening_base_protocol->addon_host->name),
-      TEN_ADDON_TYPE_PROTOCOL, ten_app_thread_on_client_protocol_created,
-      stream);
+      TEN_PROTOCOL_ROLE_IN_DEFAULT, ten_app_thread_on_client_protocol_created,
+      stream, NULL);
   TEN_ASSERT(rc, "Should not happen.");
 }
 
