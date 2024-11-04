@@ -89,8 +89,6 @@ class DefaultAsyncExtension(AsyncExtension):
                 self.ten_env.log_error(f"Failed to handle {e}")
 ```
 
-`stopped` flag can be used to gracefully exit the loop.
-
 ## Conclusion
 
 TEN's Python async extension provide a powerful way to handle long-running tasks asynchronously. By integrating Python’s `asyncio` framework, the extensions ensure that operations such as network calls or file handling are efficient and non-blocking. This makes TEN a great choice for building scalable, modular applications with asynchronous capabilities.
