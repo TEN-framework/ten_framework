@@ -214,8 +214,6 @@ void ten_msgpack_deserialize_msgs(ten_msgpack_parser_t *parser,
       break;
     }
 
-    // msg = ten_msgpack_cmd_deserialize_through_json(msg);
-
     ten_list_push_smart_ptr_back(result_msgs, msg);
     ten_shared_ptr_destroy(msg);
   }
