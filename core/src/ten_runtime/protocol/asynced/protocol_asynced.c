@@ -466,6 +466,9 @@ static void ten_protocol_asynced_on_client_accepted(void *self, void *info_) {
     ten_app_t *app = listening_base_protocol->attached_target.app;
     TEN_ASSERT(app && ten_app_check_integrity(app, true), "Should not happen.");
 
+    ten_error_t err;
+    ten_error_init(&err);
+
     // We can _not_ know whether the protocol role is
     // 'TEN_PROTOCOL_ROLE_IN_INTERNAL' or 'TEN_PROTOCOL_ROLE_IN_EXTERNAL'
     // until the message received from the protocol is processed. Refer to
@@ -475,7 +478,10 @@ static void ten_protocol_asynced_on_client_accepted(void *self, void *info_) {
         app->ten_env, ten_string_get_raw_str(&addon_host->name),
         ten_string_get_raw_str(&addon_host->name), TEN_PROTOCOL_ROLE_IN_DEFAULT,
         ten_app_thread_on_client_protocol_created, info, NULL);
-    TEN_ASSERT(rc, "Should not happen.");
+    TEN_ASSERT(rc, "Failed to create protocol, err: %s",
+               ten_error_errmsg(&err));
+
+    ten_error_deinit(&err);
   }
 
   // The task is completed, so delete a reference to the 'protocol' to reflect
