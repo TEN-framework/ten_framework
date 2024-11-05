@@ -862,6 +862,61 @@ do you want to continue?",
         Ok(())
     } else {
         // The last model always represents the latest version.
+        //
+        // The first error messages (i.e., non_usable_models.first()) might be
+        // changed when we run `tman install` in an app folder, if the app
+        // contains a conflicted dependency which has many candidates. The
+        // different error messages are as follows.
+        //
+        // ```
+        // ❌  Error: Select more than 1 version of '[system]ten_runtime':
+        //     '@0.2.0' introduced by '[extension]agora_rtm@0.1.0', and '@0.3.1'
+        //     introduced by '[system]ten_runtime_go@0.3.0'
+        // ```
+        //
+        // ```
+        // ❌  Error: Select more than 1 version of '[system]ten_runtime':
+        //     '@0.2.0' introduced by '[extension]agora_rtm@0.1.2', and '@0.3.0'
+        //     introduced by '[system]ten_runtime_go@0.3.0'
+        // ```
+        //
+        // The introducer pkg are different in the two error messages,
+        // `agora_rtm@0.1.0` vs `agora_rtm@0.1.2`.
+        //
+        // The reason is that the candidates are stored in a HashSet, and when
+        // they are traversed and written to the `depends_on_declared` field in
+        // `input.lp``, the order of writing is not guaranteed. Ex, the
+        // `agora_rtm` has three candidates, 0.1.0, 0.1.1, 0.1.2. The
+        // content in the input.ip might be:
+        //
+        // case 1:
+        // ```
+        // depends_on_declared("app", "ten_agent", "0.4.0", "extension", "agora_rtm", "0.1.0").
+        // depends_on_declared("app", "ten_agent", "0.4.0", "extension", "agora_rtm", "0.1.1").
+        // depends_on_declared("app", "ten_agent", "0.4.0", "extension", "agora_rtm", "0.1.2").
+        // ```
+        //
+        // or
+        //
+        // case 2:
+        // ```
+        // depends_on_declared("app", "ten_agent", "0.4.0", "extension", "agora_rtm", "0.1.2").
+        // depends_on_declared("app", "ten_agent", "0.4.0", "extension", "agora_rtm", "0.1.0").
+        // depends_on_declared("app", "ten_agent", "0.4.0", "extension", "agora_rtm", "0.1.1").
+        // ```
+        //
+        // When clingo analyzes the input.lp, it generates the answer models
+        // based on the order of the `depends_on_declared` facts. If there is no
+        // answer for the version declared in the first `depends_on_declared`
+        // fact, it will ignore the versions smaller than it. Ex: in case 1,
+        // there will be answer models for both 0.1.0, 0.1.1 and 0.1.2, and the
+        // first model is for 0.1.0, and the last is for 0.1.2. While in case 2,
+        // there only be answer models for 0.1.2. If we take the first error
+        // message (i.e., non_usable_models.first()) from the answer models, the
+        // error messages for those two cases are as above.
+        //
+        // That's also why we need to take the last model as the final error
+        // message.
         if let Some(non_usable_model) = non_usable_models.last() {
             // Extract introducer relations, and parse the error message.
             if let Ok(conflict_info) = parse_error_statement(non_usable_model) {
