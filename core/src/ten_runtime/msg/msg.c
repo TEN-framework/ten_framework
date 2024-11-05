@@ -863,7 +863,7 @@ ten_shared_ptr_t *ten_msg_create_from_msg_type(TEN_MSG_TYPE msg_type) {
     case TEN_MSG_TYPE_CMD_CLOSE_APP:
       return ten_cmd_close_app_create();
     case TEN_MSG_TYPE_CMD:
-      return ten_cmd_custom_create_empty();
+      return ten_cmd_custom_create();
     case TEN_MSG_TYPE_CMD_START_GRAPH:
       return ten_cmd_start_graph_create();
     case TEN_MSG_TYPE_CMD_STOP_GRAPH:
