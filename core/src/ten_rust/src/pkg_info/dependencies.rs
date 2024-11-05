@@ -20,6 +20,11 @@ use crate::pkg_info::manifest::{dependency::ManifestDependency, Manifest};
 pub struct PkgDependency {
     pub pkg_identity: PkgIdentity,
     pub version_req: VersionReq,
+
+    // The original requested version of this dependency, ex: the `version`
+    // field declared in the `dependencies` section in the manifest.json, or
+    // the `pkg@version` parameter in the command line.
+    pub original_version_req: Option<String>,
 }
 
 pub fn get_pkg_dependencies_from_manifest(
@@ -48,6 +53,7 @@ pub fn get_pkg_dependencies_from_manifest_dependencies(
         dependencies.push(PkgDependency {
             pkg_identity: PkgIdentity { pkg_type, name },
             version_req,
+            original_version_req: Some(manifest_dependency.version.clone()),
         });
     }
 
@@ -77,6 +83,7 @@ impl PkgDependency {
         PkgDependency {
             pkg_identity: PkgIdentity { pkg_type, name },
             version_req,
+            original_version_req: None,
         }
     }
 }

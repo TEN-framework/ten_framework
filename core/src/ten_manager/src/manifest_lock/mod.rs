@@ -253,6 +253,7 @@ impl<'a> From<&'a ManifestLockItem> for PkgInfo {
                                 name: dep.name,
                             },
                             version_req: VersionReq::STAR,
+                            original_version_req: None,
                         })
                         .collect()
                 })
