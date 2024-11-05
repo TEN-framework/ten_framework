@@ -87,7 +87,9 @@ ten_shared_ptr_t *ten_msgpack_deserialize_msg(msgpack_unpacker *unpacker,
                                               msgpack_unpacked *unpacked) {
   TEN_ASSERT(unpacker && unpacked, "Invalid argument.");
 
+  // De-serialize the message type first.
   TEN_MSG_TYPE msg_type = ten_msgpack_deserialize_msg_type(unpacker, unpacked);
+
   ten_shared_ptr_t *new_msg = ten_msg_create_from_msg_type(msg_type);
 
   ten_msg_deserialize_info_t *info =
