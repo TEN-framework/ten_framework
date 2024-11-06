@@ -14,6 +14,7 @@
 #include "msgpack/unpack.h"
 #include "ten_utils/container/list.h"
 #include "ten_utils/container/list_ptr.h"
+#include "ten_utils/lib/buf.h"
 #include "ten_utils/lib/error.h"
 #include "ten_utils/macro/check.h"
 #include "ten_utils/macro/memory.h"
@@ -174,13 +175,14 @@ bool ten_msgpack_value_deserialize(ten_value_t *value,
           msgpack_unpack_return rc = msgpack_unpacker_next(unpacker, unpacked);
           if (rc == MSGPACK_UNPACK_SUCCESS) {
             if (MSGPACK_DATA_TYPE == MSGPACK_OBJECT_BIN) {
-              ten_value_peek_buf(value)->data =
-                  TEN_MALLOC(MSGPACK_DATA_BIN_SIZE + 32);
-              TEN_ASSERT(ten_value_peek_buf(value)->data,
-                         "Failed to allocate memory.");
+              ten_buf_t *buf = ten_value_peek_buf(value);
+              TEN_ASSERT(buf && ten_buf_check_integrity(buf),
+                         "Invalid argument.");
 
-              memcpy(ten_value_peek_buf(value)->data, MSGPACK_DATA_BIN_PTR,
-                     MSGPACK_DATA_BIN_SIZE);
+              // To overwrite the old buffer, we deinit it first.
+              ten_buf_deinit(buf);
+              ten_buf_init_with_copying_data(
+                  buf, (uint8_t *)MSGPACK_DATA_BIN_PTR, MSGPACK_DATA_BIN_SIZE);
               goto done;
             } else {
               TEN_ASSERT(0, "Should not happen.");
@@ -422,13 +424,14 @@ bool ten_msgpack_value_deserialize_inplace(ten_value_t *value,
           msgpack_unpack_return rc = msgpack_unpacker_next(unpacker, unpacked);
           if (rc == MSGPACK_UNPACK_SUCCESS) {
             if (MSGPACK_DATA_TYPE == MSGPACK_OBJECT_BIN) {
-              ten_value_peek_buf(value)->data =
-                  TEN_MALLOC(MSGPACK_DATA_BIN_SIZE + 32);
-              TEN_ASSERT(ten_value_peek_buf(value)->data,
-                         "Failed to allocate memory.");
+              ten_value_init_buf(value, 0);
 
-              memcpy(ten_value_peek_buf(value)->data, MSGPACK_DATA_BIN_PTR,
-                     MSGPACK_DATA_BIN_SIZE);
+              ten_buf_t *buf = ten_value_peek_buf(value);
+              TEN_ASSERT(buf && ten_buf_check_integrity(buf),
+                         "Invalid argument.");
+
+              ten_buf_init_with_copying_data(
+                  buf, (uint8_t *)MSGPACK_DATA_BIN_PTR, MSGPACK_DATA_BIN_SIZE);
               goto done;
             } else {
               TEN_ASSERT(0, "Should not happen.");
