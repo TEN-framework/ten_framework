@@ -861,7 +861,7 @@ do you want to continue?",
 
         Ok(())
     } else {
-        // The last model always represents the latest version.
+        // The last model always represents the optimal version.
         //
         // The first error messages (i.e., non_usable_models.first()) might be
         // changed when we run `tman install` in an app folder, if the app
@@ -904,19 +904,15 @@ do you want to continue?",
         // depends_on_declared("app", "ten_agent", "0.4.0", "extension", "agora_rtm", "0.1.0").
         // depends_on_declared("app", "ten_agent", "0.4.0", "extension", "agora_rtm", "0.1.1").
         // ```
-        //
-        // When clingo analyzes the input.lp, it generates the answer models
-        // based on the order of the `depends_on_declared` facts. If there is no
-        // answer for the version declared in the first `depends_on_declared`
-        // fact, it will ignore the versions smaller than it. Ex: in case 1,
-        // there will be answer models for both 0.1.0, 0.1.1 and 0.1.2, and the
-        // first model is for 0.1.0, and the last is for 0.1.2. While in case 2,
-        // there only be answer models for 0.1.2. If we take the first error
-        // message (i.e., non_usable_models.first()) from the answer models, the
-        // error messages for those two cases are as above.
-        //
-        // That's also why we need to take the last model as the final error
-        // message.
+        // Due to the different order of input data, clingo may start searching
+        // from different points. However, clingo will only output increasingly
+        // better models. Therefore, if we select the first `non_usable_models`,
+        // it is often inconsistent. But if we select the last model, it is
+        // usually consistent, representing the optimal error model that clingo
+        // can find. This phenomenon is similar to the gradient descent process
+        // in neural networks that seeks local optima. Thus, we should select
+        // the last model to obtain the optimal error model and achieve stable
+        // results.
         if let Some(non_usable_model) = non_usable_models.last() {
             // Extract introducer relations, and parse the error message.
             if let Ok(conflict_info) = parse_error_statement(non_usable_model) {

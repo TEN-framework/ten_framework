@@ -88,9 +88,9 @@ pub fn extract_introducer_relations_from_raw_solver_results(
 
 pub fn get_dependency_chain(
     introducer: &PkgInfo,
-    conflict_pkg: &PkgInfo,
+    conflict_pkg_identity: &PkgIdentity,
     introducer_relations: &HashMap<PkgInfo, (String, Option<PkgInfo>)>,
-) -> Vec<(String, PkgInfo)> {
+) -> Vec<(String, PkgIdentity)> {
     let mut chain = Vec::new();
     let mut current_pkg = introducer.clone();
     let mut visited = HashSet::new();
@@ -99,8 +99,8 @@ pub fn get_dependency_chain(
     // dependency chain first.
     let requested_dep_in_introducer = introducer
         .get_dependency_by_type_and_name(
-            &conflict_pkg.pkg_identity.pkg_type.to_string(),
-            &conflict_pkg.pkg_identity.name,
+            &conflict_pkg_identity.pkg_type.to_string(),
+            &conflict_pkg_identity.name,
         )
         .unwrap();
     chain.push((
@@ -109,7 +109,7 @@ pub fn get_dependency_chain(
             .as_ref()
             .unwrap()
             .clone(),
-        conflict_pkg.clone(),
+        conflict_pkg_identity.clone(),
     ));
 
     loop {
@@ -124,12 +124,18 @@ pub fn get_dependency_chain(
                 // `current_pkg`@`requested_version`, i.e., the
                 // `requested_version` is used to declared the `current_pkg` in
                 // the manifest.json of `introducer_pkg`.
-                chain.push((requested_version.clone(), current_pkg.clone()));
+                chain.push((
+                    requested_version.clone(),
+                    current_pkg.pkg_identity.clone(),
+                ));
                 current_pkg = introducer_pkg.clone();
             }
             Some((requested_version, None)) => {
                 // Reached the root.
-                chain.push((requested_version.clone(), current_pkg.clone()));
+                chain.push((
+                    requested_version.clone(),
+                    current_pkg.pkg_identity.clone(),
+                ));
                 break;
             }
             None => {

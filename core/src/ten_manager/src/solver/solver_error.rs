@@ -120,7 +120,7 @@ pub fn parse_error_statement(clingo_output: &[String]) -> Result<ConflictInfo> {
 }
 
 fn print_dependency_chain(
-    chain: &[(String, PkgInfo)],
+    chain: &[(String, PkgIdentity)],
     pkg_type: &str,
     pkg_name: &str,
     version: &str,
@@ -133,8 +133,8 @@ fn print_dependency_chain(
         println!(
             "{:indent$}└─ [{}]{}@{}",
             "",
-            pkg.1.pkg_identity.pkg_type,
-            pkg.1.pkg_identity.name,
+            pkg.1.pkg_type,
+            pkg.1.name,
             pkg.0,
             indent = i * 3
         );
@@ -169,27 +169,21 @@ pub fn print_conflict_info(
     )?;
 
     // The introducer_pkg_info_1/introducer_pkg_info_2 (i.e., the introducer)
-    // depends on the pkg identified by `conflict_pkg_type` &
-    // `conflict_pkg_name` (i.e., the leaf node). The conflict_pkg_version_x
-    // used to get the pkg_info does not matter, as it will be replaced by
-    // the `version_req_str` of the introducer, refer
-    // to `get_dependency_chain()`.
-    let leaf_node_pkg = get_pkg_info_from_candidates(
-        &conflict_info.conflict_pkg_type,
-        &conflict_info.conflict_pkg_name,
-        &conflict_info.conflict_pkg_version_1.pkg_version,
-        all_candidates,
-    )?;
+    // depends on the pkg identified by `conflict_pkg_identity`.
+    let conflict_pkg_identity = PkgIdentity {
+        pkg_type: conflict_info.conflict_pkg_type.parse()?,
+        name: conflict_info.conflict_pkg_name.clone(),
+    };
 
-    // Get dependency chains
+    // Get dependency chains.
     let chain1 = get_dependency_chain(
         &introducer_pkg_info_1,
-        &leaf_node_pkg,
+        &conflict_pkg_identity,
         introducer_relations,
     );
     let chain2 = get_dependency_chain(
         &introducer_pkg_info_2,
-        &leaf_node_pkg,
+        &conflict_pkg_identity,
         introducer_relations,
     );
 
