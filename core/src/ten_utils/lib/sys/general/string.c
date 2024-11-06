@@ -241,6 +241,11 @@ void ten_string_clear(ten_string_t *self) {
 void ten_string_reserve(ten_string_t *self, size_t extra) {
   TEN_ASSERT(self && ten_string_check_integrity(self), "Invalid argument.");
 
+  if (extra > SIZE_MAX - self->first_unused_idx) {
+    TEN_ASSERT(0, "Size overflow detected.");
+    return;
+  }
+
   size_t required_size = self->first_unused_idx + extra;
   if (required_size > (size_t)MAX_BUFFER_SIZE) {
     TEN_ASSERT(0, "Buffer size exceeds the maximum limit.");
