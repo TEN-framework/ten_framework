@@ -236,7 +236,7 @@ void ten_string_clear(ten_string_t *self) {
   self->buf[0] = 0;
 }
 
-#define MAX_BUFFER_SIZE (1024 * 1024)
+#define MAX_BUFFER_SIZE (10 * 1024 * 1024)  // 10 M
 
 void ten_string_reserve(ten_string_t *self, size_t extra) {
   TEN_ASSERT(self && ten_string_check_integrity(self), "Invalid argument.");
