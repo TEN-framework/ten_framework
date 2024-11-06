@@ -275,7 +275,7 @@ void ten_sanitizer_memory_record_dump(void) {
 
     ten_sanitizer_memory_record_t *info = ten_ptr_listnode_get(iter.node);
 
-    TEN_LOGE("\t#%ld %p(%ld bytes) in %s %s:%d", idx, info->addr, info->size,
+    TEN_LOGE("\t#%zu %p(%zu bytes) in %s %s:%d", idx, info->addr, info->size,
              ten_string_get_raw_str(&info->func_name),
              ten_string_get_raw_str(&info->file_name), info->lineno);
 
