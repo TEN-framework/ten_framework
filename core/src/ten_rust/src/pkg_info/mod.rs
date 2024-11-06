@@ -219,11 +219,11 @@ impl PkgInfo {
     pub fn get_dependency_by_type_and_name(
         &self,
         pkg_type: &str,
-        name: &str,
+        pkg_name: &str,
     ) -> Option<&PkgDependency> {
         self.dependencies.iter().find(|dep| {
             dep.pkg_identity.pkg_type.to_string() == pkg_type
-                && dep.pkg_identity.name == name
+                && dep.pkg_identity.name == pkg_name
         })
     }
 }

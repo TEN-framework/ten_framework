@@ -505,7 +505,7 @@ pub async fn execute_cmd(
         let desired_pkg_type_: PkgType = package_type_str.parse()?;
         let (
             desired_pkg_src_name_,
-            desired_pkg_requested_version,
+            desired_pkg_src_version_str_,
             desired_pkg_src_version_,
         ) = parse_pkg_name_version(&command_data.package_name.unwrap())?;
 
@@ -559,7 +559,7 @@ pub async fn execute_cmd(
                         name: desired_pkg_src_name_.clone(),
                     },
                     version_req: desired_pkg_src_version_.clone(),
-                    original_version_req: desired_pkg_requested_version,
+                    version_req_str: desired_pkg_src_version_str_,
                 },
             };
             extra_dependency_relationships.push(extra_dependency_relationship);

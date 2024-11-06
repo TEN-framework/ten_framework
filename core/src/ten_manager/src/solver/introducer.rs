@@ -65,7 +65,7 @@ pub fn extract_introducer_relations_from_raw_solver_results(
                     // The `version` declared in the `dependencies` section in
                     // manifest.json is always present.
                     requested_version_str = requested_dep_in_introducer
-                        .original_version_req
+                        .version_req_str
                         .as_ref()
                         .unwrap()
                         .clone();
@@ -88,7 +88,7 @@ pub fn extract_introducer_relations_from_raw_solver_results(
 
 pub fn get_dependency_chain(
     introducer: &PkgInfo,
-    conflicted_pkg: &PkgInfo,
+    conflict_pkg: &PkgInfo,
     introducer_relations: &HashMap<PkgInfo, (String, Option<PkgInfo>)>,
 ) -> Vec<(String, PkgInfo)> {
     let mut chain = Vec::new();
@@ -99,17 +99,17 @@ pub fn get_dependency_chain(
     // dependency chain first.
     let requested_dep_in_introducer = introducer
         .get_dependency_by_type_and_name(
-            &conflicted_pkg.pkg_identity.pkg_type.to_string(),
-            &conflicted_pkg.pkg_identity.name,
+            &conflict_pkg.pkg_identity.pkg_type.to_string(),
+            &conflict_pkg.pkg_identity.name,
         )
         .unwrap();
     chain.push((
         requested_dep_in_introducer
-            .original_version_req
+            .version_req_str
             .as_ref()
             .unwrap()
             .clone(),
-        conflicted_pkg.clone(),
+        conflict_pkg.clone(),
     ));
 
     loop {
