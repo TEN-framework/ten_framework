@@ -337,19 +337,9 @@ bool ten_value_init_bool(ten_value_t *self, bool value) {
 static bool ten_value_copy_construct_string(ten_value_t *dest, ten_value_t *src,
                                             TEN_UNUSED ten_error_t *err) {
   TEN_ASSERT(dest && src, "Invalid argument.");
-  TEN_ASSERT(src->type == TEN_TYPE_STRING, "Invalid argument.");
+  TEN_ASSERT(ten_value_is_string(src), "Invalid argument.");
 
   ten_string_init_from_string(&dest->content.string, &src->content.string);
-
-  return true;
-}
-
-static bool ten_value_copy_string(ten_value_t *dest, ten_value_t *src,
-                                  TEN_UNUSED ten_error_t *err) {
-  TEN_ASSERT(dest && src, "Invalid argument.");
-  TEN_ASSERT(src->type == TEN_TYPE_STRING, "Invalid argument.");
-
-  ten_string_copy(&dest->content.string, &src->content.string);
 
   return true;
 }
@@ -357,7 +347,7 @@ static bool ten_value_copy_string(ten_value_t *dest, ten_value_t *src,
 static bool ten_value_destruct_string(ten_value_t *self,
                                       TEN_UNUSED ten_error_t *err) {
   TEN_ASSERT(self, "Invalid argument.");
-  TEN_ASSERT(self->type == TEN_TYPE_STRING, "Invalid argument.");
+  TEN_ASSERT(ten_value_is_string(self), "Invalid argument.");
 
   ten_string_deinit(&self->content.string);
 
@@ -784,27 +774,6 @@ ten_value_t *ten_value_create_buf_with_move(ten_buf_t buf) {
   ten_value_t *self = ten_value_create();
   ten_value_init_buf_with_move(self, buf);
   return self;
-}
-
-bool ten_value_copy_construct(ten_value_t *src, ten_value_t *dest) {
-  TEN_ASSERT(src && ten_value_check_integrity(src), "Invalid argument.");
-  TEN_ASSERT(dest && ten_value_check_integrity(dest), "Invalid argument.");
-
-  dest->type = src->type;
-
-  ten_value_construct_func_t construct = src->construct;
-  ten_value_destruct_func_t destruct = src->destruct;
-  ten_value_copy_func_t copy = src->copy;
-
-  if (src->copy) {
-    src->copy(dest, src, NULL);
-  }
-
-  dest->construct = construct;
-  dest->destruct = destruct;
-  dest->copy = copy;
-
-  return true;
 }
 
 bool ten_value_copy(ten_value_t *src, ten_value_t *dest) {
