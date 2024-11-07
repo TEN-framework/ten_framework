@@ -88,7 +88,7 @@ static ten_value_path_item_t *ten_value_path_parse_between_bracket(
 
   if (is_first) {
     item->type = TEN_VALUE_PATH_ITEM_TYPE_OBJECT_ITEM;
-    ten_string_copy_construct(&item->obj_item_str, content);
+    ten_string_init_from_string(&item->obj_item_str, content);
   } else {
     if (!ten_c_string_is_equal(
             ten_string_get_raw_str(content) + ten_string_len(content) - 1,

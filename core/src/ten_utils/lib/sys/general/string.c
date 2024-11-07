@@ -113,14 +113,6 @@ void ten_string_init(ten_string_t *self) {
   TEN_ASSERT(ten_signature_get(&self->signature) != TEN_STRING_SIGNATURE,
              "Should not happen.");
 
-  // Check if the signature indicates that the structure is already initialized.
-  if (ten_signature_get(&self->signature) == TEN_STRING_SIGNATURE) {
-    // Free any allocated memory.
-    if (self->buf && self->buf != self->pre_buf) {
-      TEN_FREE(self->buf);
-    }
-  }
-
   ten_signature_set(&self->signature, (ten_signature_t)TEN_STRING_SIGNATURE);
 
   self->buf = self->pre_buf;
@@ -137,7 +129,7 @@ void ten_string_init_from_va_list(ten_string_t *self, const char *fmt,
   ten_string_append_from_va_list(self, fmt, ap);
 }
 
-void ten_string_copy_construct(ten_string_t *self, ten_string_t *other) {
+void ten_string_init_from_string(ten_string_t *self, ten_string_t *other) {
   TEN_ASSERT(self, "Invalid argument.");
   TEN_ASSERT(other && ten_string_check_integrity(other) &&
                  ten_string_get_raw_str(other),
@@ -152,10 +144,7 @@ void ten_string_copy(ten_string_t *self, ten_string_t *other) {
                  ten_string_get_raw_str(other),
              "Invalid argument.");
 
-  // Deinitialize self to free any existing content.
-  ten_string_deinit(self);
-
-  ten_string_init_formatted(self, "%s", ten_string_get_raw_str(other));
+  ten_string_set_formatted(self, "%s", ten_string_get_raw_str(other));
 }
 
 void ten_string_init_formatted(ten_string_t *self, const char *fmt, ...) {
@@ -245,7 +234,7 @@ void ten_string_append_formatted(ten_string_t *self, const char *fmt, ...) {
   va_end(ap);
 }
 
-void ten_string_reset(ten_string_t *self) {
+static void ten_string_reset(ten_string_t *self) {
   TEN_ASSERT(self && ten_string_check_integrity(self), "Invalid argument.");
 
   if (self->buf && self->buf != self->pre_buf) {

@@ -339,7 +339,7 @@ static bool ten_value_copy_construct_string(ten_value_t *dest, ten_value_t *src,
   TEN_ASSERT(dest && src, "Invalid argument.");
   TEN_ASSERT(src->type == TEN_TYPE_STRING, "Invalid argument.");
 
-  ten_string_copy_construct(&dest->content.string, &src->content.string);
+  ten_string_init_from_string(&dest->content.string, &src->content.string);
 
   return true;
 }
