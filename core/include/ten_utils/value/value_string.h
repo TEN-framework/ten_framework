@@ -19,3 +19,5 @@ TEN_UTILS_API bool ten_value_to_string(ten_value_t *self, ten_string_t *str,
 TEN_UTILS_API ten_value_t *ten_value_from_type_and_string(TEN_TYPE type,
                                                           const char *str,
                                                           ten_error_t *err);
+
+TEN_UTILS_API bool ten_value_string_buf_needs_free(ten_value_t *self);

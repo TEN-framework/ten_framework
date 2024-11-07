@@ -84,7 +84,7 @@ class test_app : public ten::app_t {
         // clang-format off
                  R"({
                       "_ten": {
-                        "uri": "msgpack://127.0.0.1:8001/",
+                        "uri": "msgpack://127.0.0.1:8010/",
                         "log_level": 2
                       }
                     })"
@@ -114,7 +114,7 @@ TEST(ExtensionTest, TimerOneShot) {
       ten_thread_create("app thread", test_app_thread_main, nullptr);
 
   // Create a client and connect to the app.
-  auto *client = new ten::msgpack_tcp_client_t("msgpack://127.0.0.1:8001/");
+  auto *client = new ten::msgpack_tcp_client_t("msgpack://127.0.0.1:8010/");
 
   // Send graph.
   nlohmann::json resp = client->send_json_and_recv_resp_in_json(
@@ -126,7 +126,7 @@ TEST(ExtensionTest, TimerOneShot) {
                "type": "extension",
                "name": "test_extension",
                "addon": "timer_one_shot__extension",
-               "app": "msgpack://127.0.0.1:8001/",
+               "app": "msgpack://127.0.0.1:8010/",
                "extension_group": "timer_one_shot__extension_group"
              }]
            }
@@ -140,7 +140,7 @@ TEST(ExtensionTest, TimerOneShot) {
              "name": "hello_world",
              "seq_id": "137",
              "dest":[{
-               "app": "msgpack://127.0.0.1:8001/",
+               "app": "msgpack://127.0.0.1:8010/",
                "extension_group": "timer_one_shot__extension_group",
                "extension": "test_extension"
              }]

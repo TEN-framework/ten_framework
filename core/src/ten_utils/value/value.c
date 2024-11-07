@@ -25,6 +25,7 @@
 #include "ten_utils/macro/mark.h"
 #include "ten_utils/macro/memory.h"
 #include "ten_utils/value/type.h"
+#include "ten_utils/value/value_is.h"
 #include "ten_utils/value/value_kv.h"
 
 bool ten_value_check_integrity(ten_value_t *self) {
@@ -50,6 +51,8 @@ static bool ten_value_copy_int8(ten_value_t *dest, ten_value_t *src,
 static void ten_value_init(ten_value_t *self) {
   TEN_ASSERT(self, "Invalid argument.");
 
+  // Initialize all memory within `value` to 0, so that the type within it (such
+  // as `ten_string_t`) recognizes it as being in an uninitialized state.
   memset(self, 0, sizeof(ten_value_t));
 
   ten_signature_set(&self->signature, (ten_signature_t)TEN_VALUE_SIGNATURE);
@@ -331,6 +334,16 @@ bool ten_value_init_bool(ten_value_t *self, bool value) {
   return true;
 }
 
+static bool ten_value_copy_construct_string(ten_value_t *dest, ten_value_t *src,
+                                            TEN_UNUSED ten_error_t *err) {
+  TEN_ASSERT(dest && src, "Invalid argument.");
+  TEN_ASSERT(src->type == TEN_TYPE_STRING, "Invalid argument.");
+
+  ten_string_copy_construct(&dest->content.string, &src->content.string);
+
+  return true;
+}
+
 static bool ten_value_copy_string(ten_value_t *dest, ten_value_t *src,
                                   TEN_UNUSED ten_error_t *err) {
   TEN_ASSERT(dest && src, "Invalid argument.");
@@ -357,10 +370,10 @@ bool ten_value_init_string(ten_value_t *self) {
   ten_value_init(self);
 
   self->type = TEN_TYPE_STRING;
-  ten_string_init(&self->content.string);
 
+  ten_string_init(&self->content.string);
   self->construct = NULL;
-  self->copy = ten_value_copy_string;
+  self->copy = ten_value_copy_construct_string;
   self->destruct = ten_value_destruct_string;
 
   return true;
@@ -383,7 +396,7 @@ bool ten_value_init_string_with_size(ten_value_t *self, const char *str,
   TEN_ASSERT(str, "Invalid argument.");
 
   ten_value_init_string(self);
-  ten_string_init_formatted(&self->content.string, "%.*s", len, str);
+  ten_string_set_formatted(&self->content.string, "%.*s", len, str);
 
   return true;
 }
@@ -771,6 +784,27 @@ ten_value_t *ten_value_create_buf_with_move(ten_buf_t buf) {
   ten_value_t *self = ten_value_create();
   ten_value_init_buf_with_move(self, buf);
   return self;
+}
+
+bool ten_value_copy_construct(ten_value_t *src, ten_value_t *dest) {
+  TEN_ASSERT(src && ten_value_check_integrity(src), "Invalid argument.");
+  TEN_ASSERT(dest && ten_value_check_integrity(dest), "Invalid argument.");
+
+  dest->type = src->type;
+
+  ten_value_construct_func_t construct = src->construct;
+  ten_value_destruct_func_t destruct = src->destruct;
+  ten_value_copy_func_t copy = src->copy;
+
+  if (src->copy) {
+    src->copy(dest, src, NULL);
+  }
+
+  dest->construct = construct;
+  dest->destruct = destruct;
+  dest->copy = copy;
+
+  return true;
 }
 
 bool ten_value_copy(ten_value_t *src, ten_value_t *dest) {

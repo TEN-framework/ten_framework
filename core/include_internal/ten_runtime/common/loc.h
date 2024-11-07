@@ -52,16 +52,27 @@ TEN_RUNTIME_PRIVATE_API ten_loc_t *ten_loc_clone(ten_loc_t *src);
 
 TEN_RUNTIME_PRIVATE_API void ten_loc_copy(ten_loc_t *self, ten_loc_t *src);
 
+TEN_RUNTIME_PRIVATE_API void ten_loc_init(ten_loc_t *self, const char *app_uri,
+                                          const char *graph_id,
+                                          const char *extension_group_name,
+                                          const char *extension_name);
+
 TEN_RUNTIME_PRIVATE_API void ten_loc_init_from_loc(ten_loc_t *self,
                                                    ten_loc_t *src);
 
 TEN_RUNTIME_PRIVATE_API void ten_loc_init_from_value(ten_loc_t *self,
                                                      ten_value_t *value);
 
+TEN_RUNTIME_PRIVATE_API void ten_loc_set_from_value(ten_loc_t *self,
+                                                    ten_value_t *value);
+
 TEN_RUNTIME_PRIVATE_API void ten_loc_set(ten_loc_t *self, const char *app_uri,
                                          const char *graph_id,
                                          const char *extension_group_name,
                                          const char *extension_name);
+
+TEN_RUNTIME_PRIVATE_API void ten_loc_set_from_loc(ten_loc_t *self,
+                                                  ten_loc_t *src);
 
 TEN_RUNTIME_PRIVATE_API bool ten_loc_is_empty(ten_loc_t *self);
 
