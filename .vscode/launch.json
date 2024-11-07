@@ -143,7 +143,7 @@
       "env": {
         "LD_LIBRARY_PATH": "${workspaceFolder}/out/linux/x64/tests/standalone/",
         "ASAN_OPTIONS": "abort_on_error=1",
-        "TEN_ENABLE_MEMORY_TRACKING": "true"
+        // "TEN_ENABLE_MEMORY_TRACKING": "true"
       },
     },
     {

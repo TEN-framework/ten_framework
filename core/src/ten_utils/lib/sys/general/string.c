@@ -262,11 +262,13 @@ void ten_string_reserve(ten_string_t *self, size_t extra) {
     if (self->buf == self->pre_buf) {
       tmp = (char *)TEN_MALLOC(new_size);
       TEN_ASSERT(tmp, "Failed to allocate memory.");
+
       memcpy(tmp, self->buf, self->first_unused_idx);
     } else {
       tmp = (char *)TEN_REALLOC(self->buf, new_size);
       TEN_ASSERT(tmp, "Failed to allocate memory.");
     }
+
     self->buf = tmp;
     self->buf_size = new_size;
   }

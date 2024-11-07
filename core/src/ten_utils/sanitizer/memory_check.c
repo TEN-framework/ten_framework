@@ -406,10 +406,15 @@ void *ten_sanitizer_memory_realloc(void *addr, size_t size,
         self, size, file_name, lineno, func_name);
     if (!record) {
       ten_free(self);
-      ten_sanitizer_memory_record_del(&g_memory_records, addr);
+      if (addr != NULL) {
+        ten_sanitizer_memory_record_del(&g_memory_records, addr);
+      }
       return NULL;
     }
 
+    if (addr != NULL) {
+      ten_sanitizer_memory_record_del(&g_memory_records, addr);
+    }
     ten_sanitizer_memory_record_add(&g_memory_records, record);
   }
 
