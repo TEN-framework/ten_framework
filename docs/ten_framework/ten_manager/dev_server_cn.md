@@ -100,6 +100,8 @@ Retrieve the list of extensions within a specified graph.
 
 You will receive a `200 OK` response, with the body containing a JSON array. Ex:
 
+{% code title=".json" %}
+
 ```json
 {
   "status": "ok",
@@ -167,6 +169,8 @@ You will receive a `200 OK` response, with the body containing a JSON array. Ex:
   ]
 }
 ```
+
+{% endcode %}
 
 The element type of the `data` array is defined as follows.
 
