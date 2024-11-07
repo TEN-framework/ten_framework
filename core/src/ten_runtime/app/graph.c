@@ -24,7 +24,6 @@ bool ten_app_check_start_graph_cmd_json(ten_app_t *self,
   TEN_ASSERT(start_graph_cmd_json, "Invalid argument.");
 
 #if defined(TEN_ENABLE_TEN_RUST_APIS)
-
   const char *base_dir = ten_app_get_base_dir(self);
 
   // The pkg_info of extensions in the graph is read from the ten_packages

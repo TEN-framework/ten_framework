@@ -34,7 +34,6 @@ ten_value_t *ten_interface_schema_info_resolve(
   }
 
 #if defined(TEN_ENABLE_TEN_RUST_APIS)
-
   ten_json_t *unresolved_interface_schema_json =
       ten_value_to_json(unresolved_interface_schema_def);
 
@@ -82,7 +81,6 @@ ten_value_t *ten_interface_schema_info_resolve(
   }
 
   return resolved_interface_schema_def;
-
 #else
   return NULL;
 #endif
