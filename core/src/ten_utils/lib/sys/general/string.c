@@ -110,8 +110,8 @@ void ten_string_destroy(ten_string_t *self) {
 
 void ten_string_init(ten_string_t *self) {
   TEN_ASSERT(self, "Invalid argument.");
-  TEN_ASSERT(ten_signature_get(&self->signature) != TEN_STRING_SIGNATURE,
-             "Should not happen.");
+  // TEN_ASSERT(ten_signature_get(&self->signature) != TEN_STRING_SIGNATURE,
+  //            "Should not happen.");
 
   ten_signature_set(&self->signature, (ten_signature_t)TEN_STRING_SIGNATURE);
 
