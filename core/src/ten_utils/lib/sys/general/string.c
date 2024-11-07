@@ -34,7 +34,7 @@ ten_string_t *ten_string_create_from_c_str(const char *str, size_t size) {
   TEN_ASSERT(str, "Invalid argument.");
 
   ten_string_t *result = ten_string_create();
-  ten_string_init_from_c_str(result, str, size);
+  ten_string_set_from_c_str(result, str, size);
 
   return result;
 }
