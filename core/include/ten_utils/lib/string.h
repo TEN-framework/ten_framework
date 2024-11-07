@@ -42,14 +42,14 @@ inline bool ten_string_check_integrity(const ten_string_t *self) {
     return false;
   }
 
+  // A normal `ten_string_t`'s `buf` should be a non-NULL value, either pointing
+  // to `prebuf` or to memory allocated by `malloc`.
   if (self->buf == NULL) {
     return false;
   }
 
   return true;
 }
-
-TEN_UTILS_API bool ten_string_buf_needs_free(ten_string_t *self);
 
 /**
  * @brief Create a string object.
@@ -94,7 +94,6 @@ TEN_UTILS_API void ten_string_init_formatted(ten_string_t *self,
 TEN_UTILS_API void ten_string_copy_construct(ten_string_t *self,
                                              ten_string_t *other);
 
-// =-=-= 整理 ten_string_copy 的意义
 /**
  * @brief Initialize a string object from another string object.
  * @param self The string object.

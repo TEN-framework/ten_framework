@@ -301,10 +301,3 @@ ten_value_t *ten_value_from_type_and_string(TEN_TYPE type, const char *str,
 
   return result;
 }
-
-bool ten_value_string_buf_needs_free(ten_value_t *self) {
-  TEN_ASSERT(self && ten_value_check_integrity(self), "Invalid argument.");
-  TEN_ASSERT(ten_value_is_string(self), "Invalid argument.");
-
-  return ten_string_buf_needs_free(ten_value_peek_string(self));
-}

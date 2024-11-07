@@ -22,11 +22,6 @@
 #define strtok_r strtok_s
 #endif
 
-bool ten_string_buf_needs_free(ten_string_t *self) {
-  TEN_ASSERT(self, "Invalid argument.");
-  return self->buf != NULL && self->buf != self->pre_buf;
-}
-
 ten_string_t *ten_string_create(void) {
   ten_string_t *self = (ten_string_t *)TEN_MALLOC(sizeof(ten_string_t));
   TEN_ASSERT(self, "Failed to allocate memory.");
@@ -143,7 +138,7 @@ void ten_string_init_from_va_list(ten_string_t *self, const char *fmt,
 }
 
 void ten_string_copy_construct(ten_string_t *self, ten_string_t *other) {
-  TEN_ASSERT(self && !ten_string_buf_needs_free(self), "Invalid argument.");
+  TEN_ASSERT(self, "Invalid argument.");
   TEN_ASSERT(other && ten_string_check_integrity(other) &&
                  ten_string_get_raw_str(other),
              "Invalid argument.");
