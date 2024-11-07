@@ -26,7 +26,6 @@ use std::{
     collections::{HashMap, HashSet},
     hash::{Hash, Hasher},
     path::{Path, PathBuf},
-    str::FromStr,
 };
 
 use anyhow::Result;
@@ -421,6 +420,10 @@ pub fn ten_rust_check_graph_for_app(
     let pkgs_info = get_all_existed_pkgs_info_of_app(app_path)?;
     pkgs_of_app.insert(app_uri.to_string(), pkgs_info);
 
-    let graph = Graph::from_str(graph_json)?;
+    // We can not call `Graph::from_str()` here, i.e.,
+    // Graph::validate_and_complete() can not be called. As the `graph_json`
+    // from runtime has been completed, ex: the `app` field in the
+    // nodes/connections has been filled.
+    let graph: Graph = serde_json::from_str(graph_json)?;
     graph.check_for_single_app(&pkgs_of_app)
 }
