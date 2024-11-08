@@ -228,8 +228,11 @@ bool ten_cmd_start_graph_process_extensions_info(
         goto error;
       }
 
-      ten_extension_info_parse_connection_src_part_from_value(
-          item_value, ten_raw_cmd_start_graph_get_extensions_info(cmd), err);
+      if (ten_extension_info_parse_connection_src_part_from_value(
+              item_value, ten_raw_cmd_start_graph_get_extensions_info(cmd),
+              err) == NULL) {
+        goto error;
+      }
     }
   }
 
