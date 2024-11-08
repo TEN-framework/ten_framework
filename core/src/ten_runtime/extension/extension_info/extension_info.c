@@ -132,6 +132,12 @@ static void ten_extension_info_destroy(ten_extension_info_t *self) {
 // 3. Each extension_info in the `extensions_info` is a shared_ptr, and if one
 // is used in the `dest` section, a weak_ptr will be created to reference it to
 // avoid there is a cycle in the graph.
+//
+// Parameters:
+//
+// - expect_to_be_found: the extension_info should be found in `extensions_info`
+// if true. If we are parsing the `nodes` section, it should be false. And if we
+// are parsing the `connections` section, it should be true.
 ten_shared_ptr_t *get_extension_info_in_extensions_info(
     ten_list_t *extensions_info, const char *app_uri, const char *graph_id,
     const char *extension_group_name, const char *extension_addon_name,
@@ -140,11 +146,7 @@ ten_shared_ptr_t *get_extension_info_in_extensions_info(
   TEN_ASSERT(extensions_info && extension_group_name && extension_instance_name,
              "Should not happen.");
 
-  if (expect_to_be_found) {
-    TEN_ASSERT(!extension_addon_name,
-               "Expect to be a query request, the extension_addon_name is not "
-               "needed.");
-  } else {
+  if (!expect_to_be_found) {
     TEN_ASSERT(
         extension_addon_name,
         "Expect to be a create request, the extension_addon_name is required.");
@@ -157,10 +159,50 @@ ten_shared_ptr_t *get_extension_info_in_extensions_info(
   ten_listnode_t *extension_info_node = ten_list_find_shared_ptr_custom_4(
       extensions_info, app_uri, graph_id, extension_group_name,
       extension_instance_name, ten_extension_info_is_specified_extension);
-  if (expect_to_be_found) {
-    if (!extension_info_node) {
+
+  if (extension_info_node) {
+    extension_info = ten_shared_ptr_get_data(
+        ten_smart_ptr_listnode_get(extension_info_node));
+    TEN_ASSERT(extension_info &&
+                   ten_extension_info_check_integrity(extension_info, true),
+               "Should not happen.");
+
+    // The extension addon name should be equal if both specified.
+    if (extension_addon_name && !ten_c_string_is_empty(extension_addon_name) &&
+        !ten_string_is_equal_c_str(&extension_info->extension_addon_name,
+                                   extension_addon_name)) {
+      ten_error_set(
+          err, TEN_ERRNO_INVALID_GRAPH,
+          "extension '%s' is associated with different addon '%s', "
+          "'%s'",
+          extension_instance_name, extension_addon_name,
+          ten_string_get_raw_str(&extension_info->extension_addon_name));
+      return NULL;
+    }
+
+    if (!expect_to_be_found) {
+      if (extension_info_node) {
+        if (err) {
+          ten_error_set(err, TEN_ERRNO_INVALID_GRAPH,
+                        "The extension_info is duplicated, extension_group: "
+                        "%s, extension : %s.",
+                        extension_group_name, extension_instance_name);
+        } else {
+          TEN_ASSERT(0,
+                     "The extension_info is duplicated, extension_group: %s, "
+                     "extension: %s.",
+                     extension_group_name, extension_instance_name);
+        }
+
+        return NULL;
+      }
+    }
+
+    return ten_smart_ptr_listnode_get(extension_info_node);
+  } else {
+    if (expect_to_be_found) {
       if (err) {
-        ten_error_set(err, TEN_ERRNO_GENERIC,
+        ten_error_set(err, TEN_ERRNO_INVALID_GRAPH,
                       "The extension_info is not found, extension_group: %s, "
                       "extension: %s.",
                       extension_group_name, extension_instance_name);
@@ -173,32 +215,6 @@ ten_shared_ptr_t *get_extension_info_in_extensions_info(
 
       return NULL;
     }
-  } else {
-    if (extension_info_node) {
-      if (err) {
-        ten_error_set(err, TEN_ERRNO_GENERIC,
-                      "The extension_info is duplicated, extension_group: %s, "
-                      "extension: %s.",
-                      extension_group_name, extension_instance_name);
-      } else {
-        TEN_ASSERT(0,
-                   "The extension_info is duplicated, extension_group: %s, "
-                   "extension: %s.",
-                   extension_group_name, extension_instance_name);
-      }
-
-      return NULL;
-    }
-  }
-
-  if (extension_info_node) {
-    extension_info = ten_shared_ptr_get_data(
-        ten_smart_ptr_listnode_get(extension_info_node));
-    TEN_ASSERT(extension_info &&
-                   ten_extension_info_check_integrity(extension_info, true),
-               "Should not happen.");
-
-    return ten_smart_ptr_listnode_get(extension_info_node);
   }
 
   ten_extension_info_t *self = ten_extension_info_create();
@@ -239,9 +255,51 @@ static bool copy_msg_dest(ten_list_t *to_static_info,
   return true;
 }
 
-ten_shared_ptr_t *ten_extension_info_clone(ten_extension_info_t *self,
-                                           ten_list_t *extensions_info,
-                                           ten_error_t *err) {
+ten_shared_ptr_t *ten_extension_info_clone_except_dest(
+    ten_extension_info_t *self, ten_list_t *extensions_info, ten_error_t *err) {
+  TEN_ASSERT(extensions_info, "Should not happen.");
+
+  TEN_ASSERT(self, "Invalid argument.");
+  // TEN_NOLINTNEXTLINE(thread-check)
+  // thread-check: The graph-related information of the extension remains
+  // unchanged during the lifecycle of engine/graph, allowing safe
+  // cross-thread access.
+  TEN_ASSERT(ten_extension_info_check_integrity(self, false),
+             "Invalid use of extension_info %p.", self);
+
+  ten_shared_ptr_t *new_dest = get_extension_info_in_extensions_info(
+      extensions_info, ten_string_get_raw_str(&self->loc.app_uri),
+      ten_string_get_raw_str(&self->loc.graph_id),
+      ten_string_get_raw_str(&self->loc.extension_group_name),
+      ten_string_get_raw_str(&self->extension_addon_name),
+      ten_string_get_raw_str(&self->loc.extension_name), false, err);
+  TEN_ASSERT(new_dest, "Should not happen.");
+
+  ten_extension_info_t *new_extension_info = ten_shared_ptr_get_data(new_dest);
+  TEN_ASSERT(new_extension_info &&
+                 ten_extension_info_check_integrity(new_extension_info, true),
+             "Should not happen.");
+
+  ten_value_object_merge_with_clone(new_extension_info->property,
+                                    self->property);
+
+  ten_list_foreach (&self->msg_conversion_contexts, iter) {
+    ten_msg_conversion_context_t *msg_conversion =
+        ten_ptr_listnode_get(iter.node);
+    TEN_ASSERT(msg_conversion &&
+                   ten_msg_conversion_context_check_integrity(msg_conversion),
+               "Should not happen.");
+
+    bool rc = ten_msg_conversion_context_merge(
+        &new_extension_info->msg_conversion_contexts, msg_conversion, err);
+    TEN_ASSERT(rc, "Should not happen.");
+  }
+
+  return new_dest;
+}
+
+static ten_shared_ptr_t *ten_extension_info_dest_clone(
+    ten_extension_info_t *self, ten_list_t *extensions_info, ten_error_t *err) {
   TEN_ASSERT(extensions_info, "Should not happen.");
 
   TEN_ASSERT(self, "Invalid argument.");
@@ -264,21 +322,6 @@ ten_shared_ptr_t *ten_extension_info_clone(ten_extension_info_t *self,
   TEN_ASSERT(new_extension_info &&
                  ten_extension_info_check_integrity(new_extension_info, true),
              "Should not happen.");
-
-  ten_value_object_merge_with_clone(new_extension_info->property,
-                                    self->property);
-
-  ten_list_foreach (&self->msg_conversion_contexts, iter) {
-    ten_msg_conversion_context_t *msg_conversion =
-        ten_ptr_listnode_get(iter.node);
-    TEN_ASSERT(msg_conversion &&
-                   ten_msg_conversion_context_check_integrity(msg_conversion),
-               "Should not happen.");
-
-    bool rc = ten_msg_conversion_context_merge(
-        &new_extension_info->msg_conversion_contexts, msg_conversion, err);
-    TEN_ASSERT(rc, "Should not happen.");
-  }
 
   if (!copy_msg_dest(&new_extension_info->msg_dest_info.cmd,
                      &self->msg_dest_info.cmd, extensions_info, err)) {
@@ -306,6 +349,34 @@ ten_shared_ptr_t *ten_extension_info_clone(ten_extension_info_t *self,
   }
 
   return new_dest;
+}
+
+bool ten_extensions_info_clone(ten_list_t *from, ten_list_t *to,
+                               ten_error_t *err) {
+  TEN_ASSERT(from && to, "Should not happen.");
+
+  // ten_extension_info_clone_except_dest() will call
+  // `get_extension_info_in_extensions_info()`, and in
+  // `get_extension_info_in_extensions_info()` we want to know whether the
+  // extension_info is expected to be found in the `extensions_info`. So we need
+  // to clone are the `nodes` first, and then clone the `connections`.
+  ten_list_foreach (from, iter) {
+    ten_extension_info_t *extension_info =
+        ten_shared_ptr_get_data(ten_smart_ptr_listnode_get(iter.node));
+    if (!ten_extension_info_clone_except_dest(extension_info, to, err)) {
+      return false;
+    }
+  }
+
+  ten_list_foreach (from, iter) {
+    ten_extension_info_t *extension_info =
+        ten_shared_ptr_get_data(ten_smart_ptr_listnode_get(iter.node));
+    if (!ten_extension_info_dest_clone(extension_info, to, err)) {
+      return false;
+    }
+  }
+
+  return true;
 }
 
 bool ten_extension_info_check_integrity(ten_extension_info_t *self,

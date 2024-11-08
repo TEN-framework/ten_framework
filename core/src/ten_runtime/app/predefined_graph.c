@@ -261,12 +261,9 @@ bool ten_app_get_predefined_graph_extensions_and_groups_info_by_name(
     return false;
   }
 
-  ten_list_foreach (&predefined_graph_info->extensions_info, iter) {
-    ten_extension_info_t *extension_info =
-        ten_shared_ptr_get_data(ten_smart_ptr_listnode_get(iter.node));
-    if (!ten_extension_info_clone(extension_info, extensions_info, err)) {
-      return false;
-    }
+  if (!ten_extensions_info_clone(
+          extensions_info, &predefined_graph_info->extensions_info, err)) {
+    return false;
   }
 
   ten_list_foreach (&predefined_graph_info->extension_groups_info, iter) {

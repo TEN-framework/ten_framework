@@ -42,8 +42,12 @@ typedef struct ten_extension_info_t {
 
 TEN_RUNTIME_PRIVATE_API ten_extension_info_t *ten_extension_info_create(void);
 
-TEN_RUNTIME_PRIVATE_API ten_shared_ptr_t *ten_extension_info_clone(
+TEN_RUNTIME_PRIVATE_API ten_shared_ptr_t *ten_extension_info_clone_except_dest(
     ten_extension_info_t *self, ten_list_t *extensions_info, ten_error_t *err);
+
+TEN_RUNTIME_PRIVATE_API bool ten_extensions_info_clone(ten_list_t *from,
+                                                       ten_list_t *to,
+                                                       ten_error_t *err);
 
 TEN_RUNTIME_PRIVATE_API bool ten_extension_info_check_integrity(
     ten_extension_info_t *self, bool check_thread);
