@@ -278,7 +278,7 @@ func (p *tenEnv) SendData(data Data) error {
 
 	// Wait for the async operation to complete.
 	err = <-done
-	loadAndDeleteGoHandle(callbackHandle)
+
 	return err
 }
 
