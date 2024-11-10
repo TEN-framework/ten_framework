@@ -366,16 +366,25 @@ static ten_path_in_t *ten_path_table_find_in_path(ten_path_table_t *self,
   return ten_ptr_listnode_get(old_node);
 }
 
-static void ten_path_mark_belonging_group_processed(ten_path_t *path) {
+static void ten_path_table_remove_path_from_group(ten_path_table_t *self,
+                                                  TEN_PATH_TYPE type,
+                                                  ten_path_t *path) {
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_path_table_check_integrity(self, true), "Invalid argument.");
   TEN_ASSERT(path && ten_path_check_integrity(path, true), "Invalid argument.");
   TEN_ASSERT(ten_path_is_in_a_group(path), "Invalid argument.");
 
-  ten_path_group_t *group =
-      (ten_path_group_t *)ten_shared_ptr_get_data(path->group);
-  TEN_ASSERT(group && ten_path_group_check_integrity(group, true),
-             "Invalid argument.");
+  // Remove path from group members.
+  ten_list_t *group_members = ten_path_group_get_members(path);
+  ten_listnode_t *group_member_node = ten_list_find_ptr(group_members, path);
+  TEN_ASSERT(group_member_node, "Should not happen.");
+  ten_list_remove_node(group_members, group_member_node);
 
-  group->has_been_processed = true;
+  // Remove path from the path table.
+  ten_list_t *paths = type == TEN_PATH_IN ? &self->in_paths : &self->out_paths;
+  ten_listnode_t *paths_node = ten_list_find_ptr(paths, path);
+  TEN_ASSERT(paths_node, "Should not happen.");
+  ten_list_remove_node(paths, paths_node);
 }
 
 static void ten_path_table_remove_group_and_all_its_paths(
@@ -511,16 +520,21 @@ ten_shared_ptr_t *ten_path_table_determine_actual_cmd_result(
   if (ten_path_is_in_a_group(path)) {
     ten_path_group_t *path_group = ten_path_get_group(path);
 
-    // =-=-=
+    switch (path_group->policy) {
+      case TEN_PATH_GROUP_POLICY_RETURN_EACH_IMMEDIATELY:
+        ten_path_table_remove_path_from_group(self, path_type, path);
+        break;
 
-    if (path_group->policy != TEN_PATH_GROUP_POLICY_RETURN_EACH_IMMEDIATELY) {
-      // When execution reaches this point, it means that the path group has
-      // completed its task, so the flag is marked accordingly.
-      ten_path_mark_belonging_group_processed(path);
+      case TEN_PATH_GROUP_POLICY_RETURN_FIRST_OK_OR_FAIL:
+      case TEN_PATH_GROUP_POLICY_RETURN_LAST_OK_OR_FAIL:
+        // The path group has completed its task, so clean up the path group and
+        // all paths it contains.
+        ten_path_table_remove_group_and_all_its_paths(self, path_type, path);
+        break;
 
-      // The path group has completed its task, so clean up the path group and
-      // all paths it contains.
-      ten_path_table_remove_group_and_all_its_paths(self, path_type, path);
+      default:
+        TEN_ASSERT(0, "Should not happen.");
+        break;
     }
   } else {
     if (remove_path) {

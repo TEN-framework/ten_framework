@@ -101,8 +101,6 @@ void ten_extension_handle_in_msg(ten_extension_t *self, ten_shared_ptr_t *msg) {
   // 'commands' before sending it to the extension.
 
   if (msg_is_cmd_result) {
-    // =-=-=
-
     // Set the cmd result to the corresponding OUT path to indicate that
     // there has been a cmd result flow through that OUT path.
     ten_path_t *out_path =

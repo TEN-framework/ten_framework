@@ -70,7 +70,6 @@ static ten_path_group_t *ten_path_group_create(ten_path_table_t *table,
 
   self->table = table;
   self->policy = policy;
-  self->has_been_processed = false;
   ten_list_init(&self->members);
 
   return self;

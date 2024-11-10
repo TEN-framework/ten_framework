@@ -156,15 +156,6 @@ typedef struct ten_path_group_t {
 
   // Contain the members of the group.
   ten_list_t members;  // ten_path_t
-
-  // If this flag is set, none of the paths in the path_group can be used to
-  // trace back cmd results anymore.
-  //
-  // For example, if the policy is ONE_FAIL_RETURN_AND_ALL_OK_RETURN_FIRST
-  // and one of the paths in the group has received a fail cmd result, then
-  // the 'has_been_processed' flag will be set to true to prevent the left
-  // paths in the group from transmitting cmd results.
-  bool has_been_processed;
 } ten_path_group_t;
 
 TEN_RUNTIME_PRIVATE_API bool ten_path_group_check_integrity(
