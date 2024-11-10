@@ -8,10 +8,6 @@
 
 #include "include_internal/ten_utils/lib/alloc.h"
 
-#if !defined(TEN_ENABLE_MEMORY_CHECK)
-#include "ten_utils/log/log.h"
-#endif
-
 #if defined(TEN_USE_ASAN)
 #include <sanitizer/asan_interface.h>
 #include <sanitizer/lsan_interface.h>
@@ -27,6 +23,10 @@
 #include "ten_utils/lib/string.h"
 #include "ten_utils/macro/check.h"
 #include "ten_utils/macro/mark.h"
+
+// Note: Since TEN LOG also involves memory operations, to avoid circular
+// dependencies in the memory checker system, use the basic printf family
+// functions instead of TEN LOG.
 
 // Note: The `ten_sanitizer_memory_record_t` items stored in
 // `ten_sanitizer_memory_records_t` not only contain the actual allocated memory
@@ -50,8 +50,6 @@ static void ten_sanitizer_memory_record_check_enabled(void) {
   if (enable_memory_sanitizer && !strcmp(enable_memory_sanitizer, "true")) {
     g_memory_records_enabled = true;
   }
-#else
-  TEN_LOGI("The memory check is disabled.");
 #endif
 }
 
@@ -80,8 +78,6 @@ void ten_sanitizer_memory_record_init(void) {
   __lsan_enable();
 #endif
 
-#else
-  TEN_LOGI("The memory check is disabled.");
 #endif
 }
 
@@ -102,8 +98,6 @@ void ten_sanitizer_memory_record_deinit(void) {
   __lsan_enable();
 #endif
 
-#else
-  (void)fprintf(stderr, "The memory check is disabled.");
 #endif
 }
 

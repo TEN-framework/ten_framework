@@ -629,7 +629,6 @@ func (p *tenEnv) SetPropertyString(
 
 	// Wait for the async operation to complete.
 	err = <-done
-	loadAndDeleteGoHandle(callbackHandle)
 
 	return err
 }
@@ -671,7 +670,6 @@ func (p *tenEnv) SetPropertyBytes(
 
 	// Wait for the async operation to complete.
 	err = <-done
-	loadAndDeleteGoHandle(callbackHandle)
 
 	return err
 }
@@ -700,7 +698,6 @@ func (p *tenEnv) setPropertyFromJSONBytes(path string, value []byte) error {
 
 	// Wait for the async operation to complete.
 	err = <-done
-	loadAndDeleteGoHandle(callbackHandle)
 
 	return err
 }

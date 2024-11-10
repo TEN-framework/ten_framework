@@ -236,6 +236,9 @@ func tenGoCAsyncApiCallback(
 	callbackHandle C.uintptr_t,
 	apiStatus C.ten_go_status_t,
 ) {
+	// Start a Go routine for asynchronous processing to prevent blocking C code
+	// on the native thread, which would in turn block the Go code calling the C
+	// code.
 	go func() {
 		goHandle := goHandle(callbackHandle)
 		done := loadAndDeleteGoHandle(goHandle).(chan error)

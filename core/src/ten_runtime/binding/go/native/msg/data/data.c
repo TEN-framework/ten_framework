@@ -35,6 +35,8 @@ ten_go_status_t ten_go_data_create(const void *msg_name, int msg_name_len,
   uintptr_t addr = (uintptr_t)data_bridge;
   *bridge = addr;
 
+  // The ownership of the C message instance is transferred into the GO message
+  // instance.
   ten_shared_ptr_destroy(c_data);
 
   return status;

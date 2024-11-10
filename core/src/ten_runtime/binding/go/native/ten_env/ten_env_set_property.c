@@ -75,6 +75,8 @@ static void ten_env_proxy_notify_set_property(ten_env_t *ten_env,
   bool res = ten_env_set_property(ten_env, ten_string_get_raw_str(&info->path),
                                   info->c_value, &err);
   if (res) {
+    // The ownership of the C value has been successfully transferred to the TEN
+    // runtime.
     info->c_value = NULL;
   } else {
     // Prepare error information to pass to Go.
