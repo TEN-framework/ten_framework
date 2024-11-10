@@ -236,14 +236,14 @@ func tenGoCAsyncApiCallback(
 	callbackHandle C.uintptr_t,
 	apiStatus C.ten_go_status_t,
 ) {
-	go func(callbackHandle C.uintptr_t, apiStatus C.ten_go_status_t) {
+	go func() {
 		goHandle := goHandle(callbackHandle)
 		done := loadAndDeleteGoHandle(goHandle).(chan error)
 
 		err := withGoStatus(&apiStatus)
 
 		done <- err
-	}(callbackHandle, apiStatus)
+	}()
 }
 
 func (p *tenEnv) SendData(data Data) error {
