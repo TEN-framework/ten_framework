@@ -41,7 +41,7 @@ class test_extension : public ten::extension_t {
     if (json["_ten"]["name"] == "sum") {
       // TEN_ENV_LOG_ERROR(ten_env, std::to_string(counter_).c_str());
 
-      if (counter_ == 5) {
+      if (counter_ == 2) {
         auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
         cmd_result->set_property_from_json("detail", json.dump().c_str());
         ten_env.return_result(std::move(cmd_result), std::move(cmd));

@@ -42,8 +42,9 @@
 
 #define TEN_ASSERT(expr, fmt, ...)                                            \
   do {                                                                        \
-    /* NOLINTNEXTLINE(readability-simplify-boolean-expr)*/                    \
+    /* NOLINTNEXTLINE */                                                      \
     if (!(expr)) {                                                            \
+      /* NOLINTNEXTLINE */                                                    \
       char err_msg[ASSERT_ERR_MSG_MAX_LENGTH];                                \
       (void)snprintf(err_msg, ASSERT_ERR_MSG_MAX_LENGTH, fmt, ##__VA_ARGS__); \
       (void)fprintf(stderr, "%s\n", err_msg);                                 \
@@ -59,11 +60,14 @@
 
 #define TEN_ASSERT(expr, fmt, ...)                                            \
   do {                                                                        \
+    /* NOLINTNEXTLINE */                                                      \
     if (!(expr)) {                                                            \
+      /* NOLINTNEXTLINE */                                                    \
       char err_msg[ASSERT_ERR_MSG_MAX_LENGTH];                                \
       (void)snprintf(err_msg, ASSERT_ERR_MSG_MAX_LENGTH, fmt, ##__VA_ARGS__); \
       (void)fprintf(stderr, "%s\n", err_msg);                                 \
       ten_backtrace_dump_global(0);                                           \
+      /* NOLINTNEXTLINE */                                                    \
       abort();                                                                \
     }                                                                         \
   } while (0)
