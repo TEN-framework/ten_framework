@@ -108,6 +108,11 @@ ten_shared_ptr_t *ten_msg_dest_info_from_json(
 
   ten_msg_dest_info_t *self = ten_msg_dest_info_create(msg_name);
 
+  // =-=-=
+
+  ten_json_t *dests_json = ten_json_object_peek(json, TEN_STR_DEST);
+  TEN_ASSERT(ten_json_is_array(dests_json), "Should not happen.");
+
   ten_json_t *dests_json = ten_json_object_peek(json, TEN_STR_DEST);
   TEN_ASSERT(ten_json_is_array(dests_json), "Should not happen.");
 
