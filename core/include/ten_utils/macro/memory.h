@@ -12,6 +12,7 @@
 #include "ten_utils/sanitizer/memory_check.h"  // IWYU pragma: keep
 
 #if defined(TEN_ENABLE_MEMORY_CHECK)
+
 #define TEN_MALLOC(size) \
   ten_sanitizer_memory_malloc((size), __FILE__, __LINE__, __FUNCTION__)
 
@@ -35,7 +36,9 @@
 
 #define TEN_STRDUP(str) \
   ten_sanitizer_memory_strdup((str), __FILE__, __LINE__, __FUNCTION__)
+
 #else
+
 #define TEN_MALLOC(size) ten_malloc((size))
 
 #define TEN_CALLOC(cnt, size) ten_calloc((cnt), (size))
@@ -54,4 +57,5 @@
 #define TEN_REALLOC(address, size) ten_realloc((address), (size))
 
 #define TEN_STRDUP(str) ten_strdup((str))
+
 #endif

@@ -34,6 +34,8 @@
 
 #else  // TEN_PRODUCTION
 
+// TEN_ASSERT is used within `ten_string_t`, so do not use `ten_string_t` inside
+// `TEN_ASSERT` to avoid circular dependencies.
 #define ASSERT_ERR_MSG_MAX_LENGTH 1024
 
 #ifndef NDEBUG
