@@ -40,7 +40,7 @@ ten_msg_dest_info_t *ten_msg_dest_info_create(const char *msg_name) {
 
   ten_string_init_formatted(&self->name, "%s", msg_name);
 
-  self->policy = TEN_RESULT_RETURN_POLICY_INVALID;
+  self->policy = TEN_DEFAULT_RESULT_RETURN_POLICY;
 
   return self;
 }
