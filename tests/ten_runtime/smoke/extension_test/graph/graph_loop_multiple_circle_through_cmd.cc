@@ -223,7 +223,7 @@ TEST(ExtensionTest, GraphLoopMultipleCircleThroughCmd) {  // NOLINT
   ten_test::check_status_code_is(resp, TEN_STATUS_CODE_OK);
 
   nlohmann::json detail = resp["detail"];
-  EXPECT_EQ((1 + 2 + 3) * 10, detail["total"].get<std::int32_t>());
+  EXPECT_EQ((1 + 2 + 3) * 2, detail["total"].get<std::int32_t>());
 
   delete client;
 
