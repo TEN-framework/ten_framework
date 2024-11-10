@@ -12,6 +12,7 @@
 
 #include "include_internal/ten_runtime/path/common.h"
 #include "include_internal/ten_runtime/path/path_table.h"
+#include "include_internal/ten_runtime/path/result_return_policy.h"
 #include "ten_utils/container/list.h"
 
 // There is a possible group relationship among ten_path_t, and that group
@@ -128,23 +129,6 @@
 
 typedef struct ten_path_t ten_path_t;
 typedef struct ten_msg_conversion_t ten_msg_conversion_t;
-
-typedef enum TEN_RESULT_RETURN_POLICY {
-  TEN_RESULT_RETURN_POLICY_INVALID,
-
-  // If receive a fail result, return it, otherwise, when all OK results are
-  // received, return the first received one. Clear the group after returning
-  // the result.
-  TEN_RESULT_RETURN_POLICY_FIRST_ERROR_OR_FIRST_OK,
-
-  // Similar to the above, except return the last received one.
-  TEN_RESULT_RETURN_POLICY_FIRST_ERROR_OR_LAST_OK,
-
-  // Return each result immediately as it is received.
-  TEN_RESULT_RETURN_POLICY_EACH_IMMEDIATELY,
-
-  // More modes is allowed, and could be added here in case needed.
-} TEN_RESULT_RETURN_POLICY;
 
 typedef struct ten_path_group_t {
   ten_signature_t signature;

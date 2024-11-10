@@ -33,6 +33,8 @@ class test_extension_1 : public ten::extension_t {
                              std::to_string(received_result_cnt).c_str());
 
             if (cmd_result->is_completed()) {
+              TEN_ASSERT(received_result_cnt == 2, "Should not happen.");
+
               cmd_result->set_property("detail", "hello world, too");
               ten_env.return_result_directly(std::move(cmd_result));
             }
@@ -148,6 +150,7 @@ TEST(CmdResultTest, MultipleResult3) {  // NOLINT
                "extension": "test_extension_1",
                "cmd": [{
                  "name": "hello_world",
+                 "result_return_policy": "each_immediately",
                  "dest": [{
                    "app": "msgpack://127.0.0.1:8001/",
                    "extension_group": "basic_extension_group",

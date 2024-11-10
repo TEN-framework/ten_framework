@@ -12,11 +12,13 @@
 #include "include_internal/ten_runtime/path/path.h"
 #include "ten_runtime/common/status_code.h"
 #include "ten_runtime/msg/cmd_result/cmd_result.h"
+#include "ten_runtime/msg/msg.h"
 #include "ten_utils/container/list.h"
 #include "ten_utils/container/list_ptr.h"
 #include "ten_utils/lib/alloc.h"
 #include "ten_utils/lib/signature.h"
 #include "ten_utils/lib/smart_ptr.h"
+#include "ten_utils/lib/string.h"
 #include "ten_utils/macro/check.h"
 #include "ten_utils/macro/mark.h"
 
