@@ -59,8 +59,7 @@ TEN_RUNTIME_PRIVATE_API bool ten_extension_info_is_desired_extension_group(
 TEN_RUNTIME_PRIVATE_API ten_shared_ptr_t *get_extension_info_in_extensions_info(
     ten_list_t *extensions_info, const char *app_uri, const char *graph_id,
     const char *extension_group_name, const char *extension_addon_name,
-    const char *extension_instance_name, bool expect_to_be_found,
-    ten_error_t *err);
+    const char *extension_instance_name, bool should_exist, ten_error_t *err);
 
 TEN_RUNTIME_PRIVATE_API ten_extension_info_t *ten_extension_info_from_smart_ptr(
     ten_smart_ptr_t *smart_ptr);
