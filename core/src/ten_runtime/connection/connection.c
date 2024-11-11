@@ -403,6 +403,25 @@ void ten_connection_connect_to(ten_connection_t *self, const char *uri,
   }
 }
 
+void ten_connection_attach_to_remote(ten_connection_t *self,
+                                     ten_remote_t *remote) {
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_connection_check_integrity(self, true),
+             "Invalid use of connection %p.", self);
+
+  TEN_ASSERT(remote && ten_remote_check_integrity(remote, true),
+             "Should not happen.");
+
+  ten_atomic_store(&self->attach_to, TEN_CONNECTION_ATTACH_TO_REMOTE);
+  self->attached_target.remote = remote;
+
+  ten_connection_set_on_closed(self, ten_remote_on_connection_closed, remote);
+
+  if (self->protocol) {
+    ten_protocol_set_uri(self->protocol, &remote->uri);
+  }
+}
+
 void ten_connection_attach_to_app(ten_connection_t *self, ten_app_t *app) {
   TEN_ASSERT(self, "Invalid argument.");
   TEN_ASSERT(ten_connection_check_integrity(self, true),
