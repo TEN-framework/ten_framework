@@ -255,7 +255,7 @@ static bool copy_msg_dest(ten_list_t *to_static_info,
   return true;
 }
 
-ten_shared_ptr_t *ten_extension_info_clone_except_dest(
+static ten_shared_ptr_t *ten_extension_info_clone_except_dest(
     ten_extension_info_t *self, ten_list_t *extensions_info, ten_error_t *err) {
   TEN_ASSERT(extensions_info, "Should not happen.");
 

@@ -361,6 +361,7 @@ bool ten_app_get_predefined_graphs_from_property(ten_app_t *self) {
           ten_value_get_bool(predefined_graph_info_singleton_value, &err);
     }
 
+    // Parse 'nodes'.
     ten_value_t *predefined_graph_info_nodes_value =
         ten_value_object_peek(predefined_graph_info_value, TEN_STR_NODES);
     if (predefined_graph_info_nodes_value &&
@@ -392,7 +393,7 @@ bool ten_app_get_predefined_graphs_from_property(ten_app_t *self) {
         const char *type = ten_value_peek_raw_str(type_value);
 
         // Only the extension node is preferred.
-        result = !strcmp(type, TEN_STR_EXTENSION);
+        result = ten_c_string_is_equal(type, TEN_STR_EXTENSION);
         if (result) {
           ten_shared_ptr_t *extension_info = ten_extension_info_node_from_value(
               predefined_graph_info_node_item_value,
@@ -409,6 +410,7 @@ bool ten_app_get_predefined_graphs_from_property(ten_app_t *self) {
       }
     }
 
+    // Parse 'connections'.
     ten_value_t *predefined_graph_info_connections_value =
         ten_value_object_peek(predefined_graph_info_value, TEN_STR_CONNECTIONS);
     if (predefined_graph_info_connections_value &&

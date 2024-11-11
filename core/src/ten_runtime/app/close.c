@@ -87,7 +87,7 @@ static void ten_app_close_task(void *app_, TEN_UNUSED void *arg) {
   TEN_ASSERT(app_ && ten_app_check_integrity(app_, true), "Should not happen.");
 
   // The app might be closed due to the problems during creation, ex: some
-  // property is invalid. And nothing might be not created yet.
+  // property is invalid. And all resources have not been created yet.
   if (ten_app_could_be_close(app)) {
     ten_app_proceed_to_close(app);
     return;
