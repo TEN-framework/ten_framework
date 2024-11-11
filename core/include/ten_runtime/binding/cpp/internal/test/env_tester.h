@@ -9,8 +9,11 @@
 #include <memory>
 
 #include "ten_runtime/binding/common.h"
+#include "ten_runtime/binding/cpp/internal/msg/audio_frame.h"
 #include "ten_runtime/binding/cpp/internal/msg/cmd/cmd.h"
 #include "ten_runtime/binding/cpp/internal/msg/cmd_result.h"
+#include "ten_runtime/binding/cpp/internal/msg/data.h"
+#include "ten_runtime/binding/cpp/internal/msg/video_frame.h"
 #include "ten_runtime/test/env_tester.h"
 #include "ten_utils/lang/cpp/lib/error.h"
 
@@ -95,6 +98,34 @@ class ten_env_tester_t {
 
   bool send_cmd(std::unique_ptr<cmd_t> &&cmd) {
     return send_cmd(std::move(cmd), nullptr, nullptr);
+  }
+
+  virtual bool send_data(std::unique_ptr<data_t> &&data, error_t *err) {
+    TEN_ASSERT(c_ten_env_tester, "Should not happen.");
+
+    bool rc = false;
+
+    if (!data) {
+      TEN_ASSERT(0, "Invalid argument.");
+      return rc;
+    }
+
+    rc = ten_env_tester_send_data(c_ten_env_tester, data->get_underlying_msg());
+
+    if (rc) {
+      // Only when the data has been sent successfully, we should give back the
+      // ownership of the data to the TEN runtime.
+      auto *cpp_data_ptr = data.release();
+      delete cpp_data_ptr;
+    } else {
+      TEN_LOGE("Failed to send_data: %s", data->get_name());
+    }
+
+    return rc;
+  }
+
+  bool send_data(std::unique_ptr<data_t> &&data) {
+    return send_data(std::move(data), nullptr);
   }
 
   void stop_test() {

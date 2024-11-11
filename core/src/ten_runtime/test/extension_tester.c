@@ -62,7 +62,10 @@ bool ten_extension_tester_check_integrity(ten_extension_tester_t *self,
 
 ten_extension_tester_t *ten_extension_tester_create(
     ten_extension_tester_on_start_func_t on_start,
-    ten_extension_tester_on_cmd_func_t on_cmd) {
+    ten_extension_tester_on_cmd_func_t on_cmd,
+    ten_extension_tester_on_data_func_t on_data,
+    ten_extension_tester_on_audio_frame_func_t on_audio_frame,
+    ten_extension_tester_on_video_frame_func_t on_video_frame) {
   ten_extension_tester_t *self = TEN_MALLOC(sizeof(ten_extension_tester_t));
   TEN_ASSERT(self, "Failed to allocate memory.");
 
@@ -76,6 +79,9 @@ ten_extension_tester_t *ten_extension_tester_create(
 
   self->on_start = on_start;
   self->on_cmd = on_cmd;
+  self->on_data = on_data;
+  self->on_audio_frame = on_audio_frame;
+  self->on_video_frame = on_video_frame;
 
   self->ten_env_tester = ten_env_tester_create(self);
   self->tester_runloop = ten_runloop_create(NULL);

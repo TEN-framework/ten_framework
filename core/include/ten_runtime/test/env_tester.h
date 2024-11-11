@@ -21,4 +21,13 @@ TEN_RUNTIME_API bool ten_env_tester_send_cmd(
     ten_env_tester_t *self, ten_shared_ptr_t *cmd,
     ten_env_tester_cmd_result_handler_func_t handler, void *user_data);
 
+TEN_RUNTIME_API bool ten_env_tester_send_data(ten_env_tester_t *self,
+                                              ten_shared_ptr_t *data);
+
+TEN_RUNTIME_API bool ten_env_tester_send_audio_frame(
+    ten_env_tester_t *self, ten_shared_ptr_t *audio_frame);
+
+TEN_RUNTIME_API bool ten_env_tester_send_video_frame(
+    ten_env_tester_t *self, ten_shared_ptr_t *video_frame);
+
 TEN_RUNTIME_API void ten_env_tester_stop_test(ten_env_tester_t *self);

@@ -125,8 +125,7 @@ void ten_engine_handle_cmd_start_graph(ten_engine_t *self,
         if (ten_list_size(&new_works) > 1) {
           // Create path group for these newly submitted 'start_graph' commands.
           ten_paths_create_group(
-              &new_works,
-              TEN_PATH_GROUP_POLICY_ONE_FAIL_RETURN_AND_ALL_OK_RETURN_LAST);
+              &new_works, TEN_RESULT_RETURN_POLICY_FIRST_ERROR_OR_LAST_OK);
         }
         ten_list_clear(&new_works);
 

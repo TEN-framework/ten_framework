@@ -12,6 +12,7 @@
 
 #include "include_internal/ten_runtime/path/common.h"
 #include "include_internal/ten_runtime/path/path_table.h"
+#include "include_internal/ten_runtime/path/result_return_policy.h"
 #include "ten_utils/container/list.h"
 
 // There is a possible group relationship among ten_path_t, and that group
@@ -129,37 +130,16 @@
 typedef struct ten_path_t ten_path_t;
 typedef struct ten_msg_conversion_t ten_msg_conversion_t;
 
-typedef enum TEN_PATH_GROUP_POLICY {
-  TEN_PATH_GROUP_POLICY_INVALID,
-
-  // If receive a fail result, return it, otherwise, when all OK results are
-  // received, return the first received one. Clear the group after returning
-  // the result.
-  TEN_PATH_GROUP_POLICY_ONE_FAIL_RETURN_AND_ALL_OK_RETURN_FIRST,
-
-  // Similar to the above, except return the last received one.
-  TEN_PATH_GROUP_POLICY_ONE_FAIL_RETURN_AND_ALL_OK_RETURN_LAST,
-
-  // More modes is allowed, and could be added here in case needed.
-} TEN_PATH_GROUP_POLICY;
-
 typedef struct ten_path_group_t {
   ten_signature_t signature;
   ten_sanitizer_thread_check_t thread_check;
 
   ten_path_table_t *table;
 
-  TEN_PATH_GROUP_POLICY policy;
-  ten_list_t members;  // Contain the members of the group.
+  TEN_RESULT_RETURN_POLICY policy;
 
-  // If this flag is set, none of the paths in the path_group can be used to
-  // trace back cmd results anymore.
-  //
-  // For example, if the policy is ONE_FAIL_RETURN_AND_ALL_OK_RETURN_FIRST
-  // and one of the paths in the group has received a fail cmd result, then
-  // the 'has_been_processed' flag will be set to true to prevent the left
-  // paths in the group from transmitting cmd results.
-  bool has_been_processed;
+  // Contain the members of the group.
+  ten_list_t members;  // ten_path_t
 } ten_path_group_t;
 
 TEN_RUNTIME_PRIVATE_API bool ten_path_group_check_integrity(
@@ -173,7 +153,7 @@ TEN_RUNTIME_PRIVATE_API ten_list_t *ten_path_group_get_members(
     ten_path_t *path);
 
 TEN_RUNTIME_PRIVATE_API void ten_paths_create_group(
-    ten_list_t *paths, TEN_PATH_GROUP_POLICY policy);
+    ten_list_t *paths, TEN_RESULT_RETURN_POLICY policy);
 
 TEN_RUNTIME_PRIVATE_API ten_path_t *ten_path_group_resolve(ten_path_t *path,
                                                            TEN_PATH_TYPE type);
