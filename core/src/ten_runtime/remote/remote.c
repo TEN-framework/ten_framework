@@ -127,6 +127,27 @@ void ten_remote_on_connection_closed(TEN_UNUSED ten_connection_t *connection,
   }
 }
 
+static void ten_connection_attach_to_remote(ten_connection_t *self,
+                                     ten_remote_t *remote) {
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_connection_check_integrity(self, true),
+             "Invalid use of connection %p.", self);
+
+  TEN_ASSERT(remote && ten_remote_check_integrity(remote, true),
+             "Should not happen.");
+
+  ten_atomic_store(&self->attach_to, TEN_CONNECTION_ATTACH_TO_REMOTE);
+  self->attached_target.remote = remote;
+
+  remote->connection = self;
+
+  ten_connection_set_on_closed(self, ten_remote_on_connection_closed, remote);
+
+  if (self->protocol) {
+    ten_protocol_set_uri(self->protocol, &remote->uri);
+  }
+}
+
 static ten_remote_t *ten_remote_create_empty(const char *uri,
                                              ten_connection_t *connection) {
   TEN_ASSERT(connection && ten_connection_check_integrity(connection, true),

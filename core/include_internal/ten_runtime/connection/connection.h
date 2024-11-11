@@ -233,9 +233,6 @@ TEN_RUNTIME_PRIVATE_API ten_connection_t *ten_connection_create(
 
 TEN_RUNTIME_PRIVATE_API void ten_connection_destroy(ten_connection_t *self);
 
-TEN_RUNTIME_PRIVATE_API void ten_connection_attach_to_remote(
-    ten_connection_t *self, ten_remote_t *remote);
-
 TEN_RUNTIME_PRIVATE_API void ten_connection_attach_to_app(
     ten_connection_t *self, ten_app_t *app);
 
