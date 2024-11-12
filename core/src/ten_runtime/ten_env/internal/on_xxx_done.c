@@ -58,8 +58,7 @@ bool ten_env_on_init_done(ten_env_t *self, ten_error_t *err) {
 
   switch (self->attach_to) {
     case TEN_ENV_ATTACH_TO_EXTENSION:
-      ten_extension_on_init_done(self);
-      break;
+      return ten_extension_on_init_done(self);
 
     case TEN_ENV_ATTACH_TO_EXTENSION_GROUP:
       ten_extension_group_on_init_done(self);
