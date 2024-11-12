@@ -14,6 +14,7 @@
 #include "gtest/gtest.h"
 #include "include_internal/ten_runtime/binding/cpp/ten.h"
 #include "ten_utils/lib/thread.h"
+#include "ten_utils/lib/time.h"
 #include "tests/common/client/http.h"
 
 namespace {
@@ -109,6 +110,8 @@ void *test_app_thread_main(TEN_UNUSED void *args) {
 TEST(ExtensionTest, HttpServerExtensionTwoExtensions) {  // NOLINT
   auto *app_thread =
       ten_thread_create("app thread", test_app_thread_main, nullptr);
+
+  ten_sleep(300);
 
   ten_test_http_client_init();
 
