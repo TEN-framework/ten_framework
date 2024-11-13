@@ -245,7 +245,7 @@ static void test_extension_on_deinit(ten_extension_t *self,
   // actual destruction of ten_env_proxy can still use it to interact with the
   // test_extension as usual.
   bool rc = ten_env_on_deinit_done(ten_env, NULL);
-  TEN_ASSERT(!rc, "Should not happen.");
+  TEN_ASSERT(rc, "Should not happen.");
 }
 
 static void test_extension_addon_create_instance(ten_addon_t *addon,
