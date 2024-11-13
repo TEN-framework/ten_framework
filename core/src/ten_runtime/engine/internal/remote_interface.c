@@ -352,6 +352,9 @@ static void ten_engine_connect_to_remote_after_remote_is_created(
     // actually been established yet.
     // Additionally, there is no need to send the 'start_graph' command to the
     // remote, as the graph must have already been started on the remote side.
+    TEN_LOGD("Destroy remote %p for %s because it's duplicated.", remote,
+             ten_string_get_raw_str(&remote->uri));
+
     ten_remote_destroy(remote);
     ten_shared_ptr_destroy(start_graph_cmd);
     return;
