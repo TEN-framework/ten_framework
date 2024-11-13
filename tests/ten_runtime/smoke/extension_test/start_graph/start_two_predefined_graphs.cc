@@ -19,7 +19,7 @@ class test_normal_extension_1 : public ten::extension_t {
 
   void on_cmd(ten::ten_env_t &ten_env,
               std::unique_ptr<ten::cmd_t> cmd) override {
-    // Always by pass the command
+    // Always by pass the command.
     ten_env.send_cmd(std::move(cmd));
   }
 };
@@ -45,8 +45,9 @@ class test_predefined_graph : public ten::extension_t {
   explicit test_predefined_graph(const std::string &name)
       : ten::extension_t(name) {}
 
-  void start_graph_and_greet(std::string graph_name, ten::ten_env_t &ten_env,
-                             const std::function<void(ten::ten_env_t &)> &cb) {
+  static void start_graph_and_greet(
+      std::string graph_name, ten::ten_env_t &ten_env,
+      const std::function<void(ten::ten_env_t &)> &cb) {
     auto start_graph_json = R"({
              "_ten": {
                "type": "start_graph",
@@ -95,7 +96,7 @@ class test_predefined_graph : public ten::extension_t {
   }
 
   void on_start(ten::ten_env_t &ten_env) override {
-    start_graph_and_greet("graph_1", ten_env, [this](ten::ten_env_t &ten_env) {
+    start_graph_and_greet("graph_1", ten_env, [](ten::ten_env_t &ten_env) {
       start_graph_and_greet("graph_2", ten_env, [](ten::ten_env_t &ten_env) {
         ten_env.on_start_done();
       });
