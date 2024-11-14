@@ -71,10 +71,6 @@ void ten_closeable_init(ten_closeable_t *self, ptrdiff_t offset) {
   ten_closeable_action_to_close_myself_init(&self->action_to_close_myself);
 
   ten_closeable_be_notified_resources_init(&self->be_notified_resources);
-
-  ten_list_init(&self->belong_to_resources);
-  ten_list_init(&self->be_depended_on_resources);
-  ten_list_init(&self->underlying_resources);
 }
 
 static void ten_closeable_be_notified_resources_deinit(
@@ -104,10 +100,6 @@ void ten_closeable_deinit(ten_closeable_t *self) {
   self->state = TEN_CLOSEABLE_STATE_ALIVE;
 
   ten_closeable_be_notified_resources_deinit(&self->be_notified_resources);
-
-  ten_list_clear(&self->belong_to_resources);
-  ten_list_clear(&self->be_depended_on_resources);
-  ten_list_clear(&self->underlying_resources);
 }
 
 void ten_closeable_set_action_to_close_myself(
@@ -215,35 +207,6 @@ static void ten_closeable_on_closed_done_out_of_thread(
   }
 }
 
-static bool ten_closeable_could_start_to_close_myself(ten_closeable_t *self) {
-  TEN_ASSERT(self && ten_closeable_check_integrity(self, true),
-             "Invalid argument.");
-
-  // Check if all remaining underlying_resources have been closed.
-  ten_list_foreach (&self->underlying_resources, iter) {
-    ten_closeable_t *target = ten_ptr_listnode_get(iter.node);
-    TEN_ASSERT(target && ten_closeable_check_integrity(target, true),
-               "Should not happen.");
-
-    if (!ten_closeable_is_closed(target)) {
-      return false;
-    }
-  }
-
-  // Check if all remaining depend_resources have been closed.
-  ten_list_foreach (&self->be_depended_on_resources, iter) {
-    ten_closeable_t *target = ten_ptr_listnode_get(iter.node);
-    TEN_ASSERT(target && ten_closeable_check_integrity(target, true),
-               "Should not happen.");
-
-    if (!ten_closeable_is_closed(target)) {
-      return false;
-    }
-  }
-
-  return true;
-}
-
 void ten_closeable_action_to_close_myself_done(
     ten_closeable_t *self, TEN_UNUSED void *on_close_myself_data) {
   TEN_ASSERT(self && ten_closeable_check_integrity(self, true),
@@ -339,14 +302,7 @@ void ten_closeable_close(ten_closeable_t *self) {
 
   self->state = TEN_CLOSEABLE_STATE_CLOSING;
 
-  if (ten_closeable_could_start_to_close_myself(self)) {
-    ten_closeable_do_close(self);
-  } else {
-    ten_list_foreach (&self->underlying_resources, iter) {
-      ten_closeable_t *resource = ten_ptr_listnode_get(iter.node);
-      ten_closeable_close(resource);
-    }
-  }
+  ten_closeable_do_close(self);
 }
 
 bool ten_closeable_is_closed(ten_closeable_t *self) {

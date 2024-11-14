@@ -207,17 +207,6 @@ typedef bool (*ten_closeable_is_closing_root_func_t)(
     void *is_closing_root_data);
 
 /**
- * @brief This structure is used to represent which ten_closeable_t instance
- * (i.e., @a belong_to) owns a given ten_closeable_t instance.
- */
-typedef struct ten_closeable_belong_to_info_t {
-  ten_closeable_t *belong_to;
-
-  ten_closeable_is_closing_root_func_t is_closing_root_cb;
-  void *is_closing_root_data;
-} ten_closeable_belong_to_info_t;
-
-/**
  * @brief This function is used to indicate that the action of closing the
  * ten_closeable_t itself has been completed entirely.
  */
@@ -317,19 +306,8 @@ typedef struct ten_closeable_t {
   // So we keep the offset rather than the raw pointer here.
   ptrdiff_t offset_in_impl;
 
-  ten_list_t belong_to_resources;  // ten_closeable_belong_to_info_t
-
   // This list is used to store those who are interested in my 'closed' events.
   ten_closeable_be_notified_resources_t be_notified_resources;
-
-  ten_list_t underlying_resources;  // ten_closeable_t
-
-  // The resources depend on me.
-  //
-  // If A depends on B, it means B could only be closed after A is closed. So A
-  // will be kept in the 'be_depended_on_resources' list of B, then B could know
-  // whether all resources depend on it are closed.
-  ten_list_t be_depended_on_resources;  // ten_closeable_t
 
   ten_closeable_action_to_close_myself_t action_to_close_myself;
 } ten_closeable_t;
