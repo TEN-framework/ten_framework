@@ -317,17 +317,6 @@ typedef struct ten_closeable_t {
   // So we keep the offset rather than the raw pointer here.
   ptrdiff_t offset_in_impl;
 
-  /**
-   * @brief I want to customize the logic that determines whether I am the
-   * closing root, instead of using the default behavior of recursively
-   * searching through belong_to_resources.
-   *
-   * @note The second parameter of the callback (i.e., @a underlying_resource)
-   * will be NULL in this case.
-   */
-  ten_closeable_is_closing_root_func_t is_closing_root_myself_cb;
-  void *is_closing_root_myself_data;
-
   ten_list_t belong_to_resources;  // ten_closeable_belong_to_info_t
 
   // This list is used to store those who are interested in my 'closed' events.
@@ -346,7 +335,7 @@ typedef struct ten_closeable_t {
 } ten_closeable_t;
 
 TEN_RUNTIME_API bool ten_closeable_check_integrity(ten_closeable_t *self,
-                                                 bool thread_check);
+                                                   bool thread_check);
 
 /**
  * @example An implementation whose name is 'some_impl_t' and the name of the
@@ -356,64 +345,14 @@ TEN_RUNTIME_API bool ten_closeable_check_integrity(ten_closeable_t *self,
  * ten_closeable_init(&impl->closeable,
  *   offsetof(some_impl_t, closeable)))
  */
-TEN_RUNTIME_API void ten_closeable_init(ten_closeable_t *self, ptrdiff_t offset);
+TEN_RUNTIME_API void ten_closeable_init(ten_closeable_t *self,
+                                        ptrdiff_t offset);
 
 TEN_RUNTIME_API void ten_closeable_deinit(ten_closeable_t *self);
 
 TEN_RUNTIME_API void ten_closeable_close(ten_closeable_t *self);
 
 TEN_RUNTIME_API bool ten_closeable_is_closed(ten_closeable_t *self);
-
-TEN_RUNTIME_API bool ten_closeable_is_closing(ten_closeable_t *self);
-
-/**
- * @brief Enable @a self to own a resource (@a underlying_resource).
- *
- * @param on_closed_all_done_cb Required. The owner (i.e., @a self) _must_
- * receive the 'on_closed_all_done' event of the underlying resource (i.e.,
- * @a underlying_resource) to destroy the underlying resource.
- */
-TEN_RUNTIME_API void ten_closeable_add_underlying_resource(
-    ten_closeable_t *self, ten_closeable_t *underlying_resource,
-    ten_closeable_is_closing_root_func_t is_closing_root_cb,
-    void *is_closing_root_data,
-    ten_closeable_on_intend_to_close_func_t on_intend_to_close_cb,
-    void *on_intend_to_close_data,
-    ten_closeable_on_closed_all_done_func_t on_closed_all_done_cb,
-    void *on_closed_all_done_data);
-
-/**
- * @brief @a self depends on @a depend_resource, @a self will be an item of
- * 'be_depended_on_resources' of @a depend_resource.
- *
- * @param on_closed_cb This is a function of @a depend_resource, which will be
- * registered in @a self. This callback is used to notify @a depend_resource
- * that someone depends on it has been closed.
- *
- * @param on_intend_to_close_cb This is a function of @a self, which will be
- * registered in @a depend_resource. This callback is used to notify @a self
- * when its dependency intends to close.
- */
-TEN_RUNTIME_API void ten_closeable_add_depend_resource(
-    ten_closeable_t *self, ten_closeable_t *depend_resource,
-    ten_closeable_on_closed_func_t on_closed_cb, void *on_closed_data,
-    ten_closeable_on_intend_to_close_func_t on_intend_to_close_cb,
-    void *on_intend_to_close_data);
-
-/**
- * @brief @a self depends on @a depend_resource. Use this function to release
- * the dependency relationship from @a depend_resource only if needed, ex: @a
- * self is closed.
- */
-TEN_RUNTIME_API void ten_closeable_remove_depend_resource(
-    ten_closeable_t *self, ten_closeable_t *depend_resource);
-
-/**
- * @brief @a self depends on @a depend_resource. Use this function to release
- * the dependency relationship between @a self and @a depend_resource if needed.
- */
-TEN_RUNTIME_API void ten_closeable_remove_depend_resource_bidirectional(
-    ten_closeable_t *self, ten_closeable_t *depend_resource);
 
 /**
  * @note Add @a who_have_interest_on_me who is interested in my various closing
@@ -425,24 +364,9 @@ TEN_RUNTIME_API void ten_closeable_remove_depend_resource_bidirectional(
  */
 TEN_RUNTIME_API void ten_closeable_add_be_notified(
     ten_closeable_t *self, void *who_have_interest_on_me,
-    // intend_to_close event.
-    ten_closeable_on_intend_to_close_func_t on_intend_to_close_cb,
-    void *on_intend_to_close_data,
-    // closed event.
-    ten_closeable_on_closed_func_t on_closed_cb, void *on_closed_data,
     // closed_all_done event.
     ten_closeable_on_closed_all_done_func_t on_closed_all_done_cb,
     void *on_closed_all_done_data);
-
-/**
- * @brief @a who_have_interest_on_me does not interest in the various closing
- * events of @a self any more. Ex: @a self is closed.
- */
-TEN_RUNTIME_API void ten_closeable_remove_be_notified(
-    ten_closeable_t *self, void *who_have_interest_on_me);
-
-TEN_RUNTIME_API void ten_closeable_intend_to_close(ten_closeable_t *self,
-                                                 void *intend_to_close_data);
 
 TEN_RUNTIME_API void ten_closeable_action_to_close_myself_done(
     ten_closeable_t *self, void *on_close_myself_data);
@@ -451,8 +375,3 @@ TEN_RUNTIME_API void ten_closeable_set_action_to_close_myself(
     ten_closeable_t *self,
     ten_closeable_action_to_close_myself_func_t action_to_close_myself_cb,
     void *action_to_close_myself_data);
-
-TEN_RUNTIME_API void ten_closeable_set_is_closing_root_myself(
-    ten_closeable_t *self,
-    ten_closeable_is_closing_root_func_t is_closing_root_myself_cb,
-    void *is_closing_root_myself_data);

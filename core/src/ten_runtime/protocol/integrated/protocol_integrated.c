@@ -674,7 +674,6 @@ void ten_protocol_integrated_init(
       &self->base.closeable, ten_protocol_action_to_close_myself, NULL);
 
   ten_closeable_add_be_notified(&self->base.closeable, &self->base.closeable,
-                                NULL, NULL, NULL, NULL,
                                 ten_protocol_on_impl_closed_all_done, NULL);
 
   self->base.role = TEN_PROTOCOL_ROLE_INVALID;
