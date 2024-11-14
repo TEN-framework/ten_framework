@@ -191,6 +191,13 @@ class AsyncExtension(_Extension):
         except Exception as e:
             _exit_on_exception(async_ten_env, e)
 
+    def _exit_on_exception(self, async_ten_env: AsyncTenEnv, e: Exception):
+        traceback_info = traceback.format_exc()
+        async_ten_env.log_fatal(
+            f"Uncaught exception: {e} \ntraceback: {traceback_info}"
+        )
+        os._exit(1)
+
     # Override these methods in your extension
 
     async def on_configure(self, async_ten_env: AsyncTenEnv) -> None:
