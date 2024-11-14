@@ -9,109 +9,12 @@
 #include "ten_runtime/ten_config.h"
 
 #include "ten_utils/container/list.h"
-#include "ten_utils/lib/mutex.h"
 #include "ten_utils/lib/signature.h"
 #include "ten_utils/sanitizer/thread_check.h"
 
 #define TEN_CLOSEABLE_SIGNATURE 0x7263656c6f736564U
 
-typedef enum TEN_CLOSEABLE_STATE {
-  TEN_CLOSEABLE_STATE_ALIVE,
-  TEN_CLOSEABLE_STATE_CLOSING,
-  TEN_CLOSEABLE_STATE_CLOSED,
-} TEN_CLOSEABLE_STATE;
-
-/**
- * @brief The enum is used to represent whether the 'on_closed_done()' callback
- * of ten_closeable_t will be invoked in the thread where ten_closeable_t
- * resides.
- *
- * Suppose that there are a 'ten_closeable_t' instance (we named it 'CA'), and
- * another instance (we named it 'CB') are interested in the 'closed' event of
- * CA. After CA is closed, CB will receive the 'on_closed' event of CA, and then
- * CA should receive the 'on_closed_done' acked from CB. As CA and CB might
- * belongs to different threads, the 'on_closed_done' event maybe delivered to
- * CA from other threads, and normally, we prefer to use the runloop tasks to
- * ensure the thread safety in this case. However, the runloop of CA might be
- * already closed before the 'on_closed_done' event being delivered to CA.
- *
- * The logic of closing is determined by the implementation of the runloop, we
- * cannot make any restrictions. In other words, the runloop might or might not
- * be able to deliver events after it is closed.
- *
- * Usually, the existence of the runloop of CA is in the following two forms.
- *
- * - CA owns a runloop.
- *
- *   In this case, the runloop will be closed before the CA is closed, as the
- *   runloop is a resource owned by CA.
- *
- * - CA does not have its own runloop. In this case, CA uses the runloop belongs
- *   to another 'ten_closeable_t' instance (we named it 'CC'). In the semantics
- *   of ten_closeable_t, CA depends on CC.
- *
- *   In this case, CC might start to close itself after it receives the
- *   'on_closed' event of CA. So the runloop could not be used to deliver the
- *   'on_closed_done' event as it might be already closed.
- *
- * Thus, the 'on_closed_done' could be received in the following two conditions.
- *
- * - In the thread of CA.
- *
- *   * Because CA and CB (who is interested in the 'closed' event of CA) are in
- *     the same thread.
- *
- *   * Or because the runloop of CA (including the runloop CA depends on) is
- *     still able to deliver events when it is closed, so CB could deliver the
- *     'on_closed_done()' ack to CA through the runloop of CA.
- *
- * - Out of the thread of CA.
- *
- *   * CA and CB are in the different threads, and the runloop of CA could not
- *     be able to deliver events when it is closed. Therefore, the
- *     'on_closed_done()' of CA would be called in the thread of CB.
- *
- * In the meanwhile, I can not use the runloop of my owner to deliver the
- * 'on_closed_done' event of mine, because not all the 'ten_closeable_t'
- * instances always have an owner.
- */
-typedef enum TEN_CLOSEABLE_ON_CLOSED_DONE_MODE {
-  // The 'on_closed_done()' of mine is called in my own thread, it means that
-  // the accesses to me is thread safe.
-  TEN_CLOSEABLE_ON_CLOSED_DONE_MODE_IN_OWN_THREAD,
-
-  // The 'on_closed_done()' of mine is called in other threads. One possible use
-  // case of this mode is that others can not use the runloop I am currently in
-  // to the 'on_closed_done' event to me as the runloop can not be used when I
-  // am closed. In this case, we have to ensure the thread safety in help of
-  // some mutex locks.
-  TEN_CLOSEABLE_ON_CLOSED_DONE_MODE_OUT_OWN_THREAD,
-} TEN_CLOSEABLE_ON_CLOSED_DONE_MODE;
-
 typedef struct ten_closeable_t ten_closeable_t;
-
-/**
- * @brief This function is used to indicate that the closed event of @a self has
- * been processed by @a who_have_interest_on_me.
- */
-typedef void (*ten_closeable_on_closed_done_func_t)(
-    ten_closeable_t *self, void *who_have_interest_on_me, void *on_closed_data);
-
-/**
- * @brief This function is used to notify others (i.e., @a
- * who_have_interest_on_me) who are interested in the 'closed' event of mine.
- *
- * @param self The instance who implements the 'ten_closeable_t' interface.
- * @param who_have_interest_on_me The instance who is interested in the 'closed'
- * event of mine.
- * @param on_closed_data The data bound to the 'on_closed' callback.
- * @param on_closed_done The callback to notify the 'closed' event is handled by
- * @a other completely. This callback must not be NULL, and @a other must call
- * this callback when it handles the 'closed' event completely.
- */
-typedef void (*ten_closeable_on_closed_func_t)(
-    ten_closeable_t *self, void *who_have_interest_on_me, void *on_closed_data,
-    ten_closeable_on_closed_done_func_t on_closed_done);
 
 /**
  * @brief This function is used to notify others (i.e., @a
@@ -132,26 +35,6 @@ typedef void (*ten_closeable_on_closed_all_done_func_t)(
     ten_closeable_t *self, void *who_have_interest_on_me,
     void *on_closed_all_done_data);
 
-/**
- * @brief This function is used to notify others (@a who_have_interest_on_me)
- * who are interested in my intend_to_close event.
- */
-typedef void (*ten_closeable_on_intend_to_close_func_t)(
-    ten_closeable_t *self, void *who_have_interest_on_me,
-    void *on_intend_to_close_data);
-
-typedef struct ten_closeable_on_intend_to_close_item_t {
-  void *who_have_interest_on_me;
-  ten_closeable_on_intend_to_close_func_t on_intend_to_close_cb;
-  void *on_intend_to_close_data;
-} ten_closeable_on_intend_to_close_item_t;
-
-typedef struct ten_closeable_on_closed_item_t {
-  void *who_have_interest_on_me;
-  ten_closeable_on_closed_func_t on_closed_cb;
-  void *on_closed_data;
-} ten_closeable_on_closed_item_t;
-
 typedef struct ten_closeable_on_closed_all_done_item_t {
   void *who_have_interest_on_me;
   ten_closeable_on_closed_all_done_func_t on_closed_all_done_cb;
@@ -167,65 +50,10 @@ typedef struct ten_closeable_on_closed_all_done_item_t {
  * prefer to use three different queues here.
  */
 typedef struct ten_closeable_be_notified_resources_t {
-  // Is interested in 'intend_to_close' event. The type of the element is
-  // 'ten_closeable_on_intend_to_close_item_t'.
-  ten_list_t on_intend_to_close_queue;
-
-  // @{
-  // Is interested in 'closed' event. The type of the element is
-  // 'ten_closeable_on_closed_item_t'.
-  ten_list_t on_closed_queue;
-
-  TEN_CLOSEABLE_ON_CLOSED_DONE_MODE on_closed_done_mode;
-  ten_closeable_on_closed_done_func_t on_closed_done_cb;
-
-  // The expected count of 'on_closed_done' event I will receive from others, if
-  // the 'on_closed_done_mode' is 'OUT_OWN_THREAD'. As the 'on_closed_done'
-  // event is called in other threads, it's unsafe to access the fields such
-  // as 'on_closed_queue' and 'on_closed_all_done_queue' of this structure. So
-  // we have to use the mutex lock to ensure the safety.
-  ten_mutex_t *on_closed_done_mutex;
-
-  // The expected count of 'on_closed_done' event I will receive from others,
-  // it's the size of the 'on_closed_queue'. It's just a faster way to determine
-  // whether I have received all 'on_closed_done' events from others, rather
-  // than locking all the 'on_closed_queue'.
-  size_t expected_on_closed_done_count;
-  // @}
-
   // Is interested in 'closed_all_done' event. The type of the element is
   // 'ten_closeable_on_closed_all_done_item_t'.
   ten_list_t on_closed_all_done_queue;
 } ten_closeable_be_notified_resources_t;
-
-/**
- * @brief This function is used to determine whether @a self is the higher-level
- * root when @a underlying_resource wants to close.
- */
-typedef bool (*ten_closeable_is_closing_root_func_t)(
-    ten_closeable_t *self, ten_closeable_t *underlying_resource,
-    void *is_closing_root_data);
-
-/**
- * @brief This function is used to indicate that the action of closing the
- * ten_closeable_t itself has been completed entirely.
- */
-typedef void (*ten_closeable_action_to_close_myself_done_func_t)(
-    ten_closeable_t *self, void *action_to_close_myself_data);
-
-/**
- * @brief This function is used to represent a customized action for a
- * 'ten_closeable_t' to close itself.
- */
-typedef void (*ten_closeable_action_to_close_myself_func_t)(
-    ten_closeable_t *self, void *action_to_close_myself_data,
-    ten_closeable_action_to_close_myself_done_func_t
-        action_to_close_myself_done);
-
-typedef struct ten_closeable_action_to_close_myself_t {
-  ten_closeable_action_to_close_myself_func_t action_to_close_myself_cb;
-  void *action_to_close_myself_data;
-} ten_closeable_action_to_close_myself_t;
 
 /**
  * @brief The standard interface for closing a resource.
@@ -268,8 +96,6 @@ typedef struct ten_closeable_t {
   // All operations _must_ be called in the same thread.
   ten_sanitizer_thread_check_t thread_check;
 
-  TEN_CLOSEABLE_STATE state;
-
   // The offset of this 'ten_closeable_t' object in the implementation who
   // implements the 'ten_closeable_t' interface. It will be used to get the raw
   // pointer of the implementation.
@@ -308,8 +134,6 @@ typedef struct ten_closeable_t {
 
   // This list is used to store those who are interested in my 'closed' events.
   ten_closeable_be_notified_resources_t be_notified_resources;
-
-  ten_closeable_action_to_close_myself_t action_to_close_myself;
 } ten_closeable_t;
 
 TEN_RUNTIME_API bool ten_closeable_check_integrity(ten_closeable_t *self,
@@ -328,10 +152,6 @@ TEN_RUNTIME_API void ten_closeable_init(ten_closeable_t *self,
 
 TEN_RUNTIME_API void ten_closeable_deinit(ten_closeable_t *self);
 
-TEN_RUNTIME_API void ten_closeable_close(ten_closeable_t *self);
-
-TEN_RUNTIME_API bool ten_closeable_is_closed(ten_closeable_t *self);
-
 /**
  * @note Add @a who_have_interest_on_me who is interested in my various closing
  * event to the closeable management of mine (i.e., @a self).
@@ -348,8 +168,3 @@ TEN_RUNTIME_API void ten_closeable_add_be_notified(
 
 TEN_RUNTIME_API void ten_closeable_action_to_close_myself_done(
     ten_closeable_t *self, void *on_close_myself_data);
-
-TEN_RUNTIME_API void ten_closeable_set_action_to_close_myself(
-    ten_closeable_t *self,
-    ten_closeable_action_to_close_myself_func_t action_to_close_myself_cb,
-    void *action_to_close_myself_data);

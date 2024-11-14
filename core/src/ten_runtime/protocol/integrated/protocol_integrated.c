@@ -668,11 +668,6 @@ void ten_protocol_integrated_init(
       (ten_protocol_migrate_func_t)ten_protocol_integrated_migrate,
       (ten_protocol_clean_func_t)ten_protocol_integrated_clean);
 
-  // TODO(Wei): If the implementation protocol implements 'ten_closeable_t'
-  // interface, change the following logic accordingly.
-  ten_closeable_set_action_to_close_myself(
-      &self->base.closeable, ten_protocol_action_to_close_myself, NULL);
-
   ten_closeable_add_be_notified(&self->base.closeable, &self->base.closeable,
                                 ten_protocol_on_impl_closed_all_done, NULL);
 

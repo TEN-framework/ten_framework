@@ -27,10 +27,6 @@ TEN_RUNTIME_PRIVATE_API void ten_protocol_set_on_closed(
 
 TEN_RUNTIME_PRIVATE_API void ten_protocol_on_close(ten_protocol_t *self);
 
-TEN_RUNTIME_API void ten_protocol_action_to_close_myself(
-    ten_closeable_t *self_, void *close_myself_data,
-    ten_closeable_action_to_close_myself_done_func_t close_myself_done);
-
 TEN_RUNTIME_API void ten_protocol_on_impl_intends_to_close(
     ten_closeable_t *impl, void *self_closeable, void *on_intend_to_close_data);
 

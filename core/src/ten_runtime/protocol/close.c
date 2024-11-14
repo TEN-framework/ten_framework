@@ -115,31 +115,10 @@ void ten_protocol_set_on_closed(ten_protocol_t *self,
   self->on_closed_data = on_closed_data;
 }
 
-/**
- * @brief The overall closing flow is as follows.
- *
- * ten_protocol_close
- *   => close implemented protocol
- *      (when the implementation protocol is closed)
- *         => ten_protocol_on_close
- */
 void ten_protocol_close(ten_protocol_t *self) {
   TEN_ASSERT(self, "Should not happen.");
   TEN_ASSERT(ten_protocol_check_integrity(self, true), "Should not happen.");
 
-  // As a design principle, the resources must be closed from top to bottom. So
-  // the 'ten_protocol_close()' is expected to be called in the connection
-  // (i.e., a 'ten_connection_t' object, and the protocol is used in
-  // communication) or app (i.e., a 'ten_app_t' object, and the protocol is used
-  // as endpoint).
-  //
-  // The brief closing flow is as follows:
-  //
-  // ten_connection_close()
-  //   => ten_protocol_close()
-  //     => ten_closeable_close()
-  //       => ten_protocol_action_to_close_myself()
-  //         => ten_protocol_t::close()  // closes the implementation
   if (ten_atomic_bool_compare_swap(&self->is_closing, 0, 1)) {
     switch (self->role) {
       case TEN_PROTOCOL_ROLE_LISTEN:
@@ -158,24 +137,8 @@ void ten_protocol_close(ten_protocol_t *self) {
         break;
     }
 
-    // TODO(Wei): Change to intend_to_close()?
-    ten_closeable_close(&self->closeable);
+    self->close(self);
   }
-}
-
-/**
- * TODO(Wei): After the implementation protocol implements the 'ten_closeable_t'
- * interface, refine this function accordingly.
- */
-void ten_protocol_action_to_close_myself(
-    ten_closeable_t *self_, TEN_UNUSED void *close_myself_data,
-    TEN_UNUSED ten_closeable_action_to_close_myself_done_func_t
-        close_myself_done) {
-  ten_protocol_t *self = CONTAINER_OF_FROM_OFFSET(self_, self_->offset_in_impl);
-  TEN_ASSERT(self && ten_protocol_check_integrity(self, true),
-             "Should not happen.");
-
-  self->close(self);
 }
 
 void ten_protocol_on_impl_intends_to_close(
