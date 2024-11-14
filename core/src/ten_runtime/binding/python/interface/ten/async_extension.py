@@ -18,12 +18,6 @@ from .data import Data
 from .async_ten_env import AsyncTenEnv
 
 
-def _exit_on_exception(ten_env: TenEnv, e: Exception):
-    traceback_info = traceback.format_exc()
-    ten_env.log_fatal(f"Uncaught exception: {e} \ntraceback: {traceback_info}")
-    os._exit(1)
-
-
 class AsyncExtension(_Extension):
     def __init__(self, name: str) -> None:
         self._ten_stop_event = asyncio.Event()
