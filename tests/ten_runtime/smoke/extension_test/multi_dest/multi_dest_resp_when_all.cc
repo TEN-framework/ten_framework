@@ -167,10 +167,6 @@ TEST(ExtensionTest, MultiDestRespWhenAll) {
   ten_test::check_result_is(resp, "137", TEN_STATUS_CODE_OK,
                             "hello world, too");
 
-  // Wait for some time to ensure that the extension 1 will not receive any more
-  // results.
-  ten_sleep(100);
-
   delete client;
 
   ten_thread_join(app_thread, -1);

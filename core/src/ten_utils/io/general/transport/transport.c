@@ -50,6 +50,10 @@ ten_transport_t *ten_transport_create(ten_runloop_t *loop) {
   self->loop = loop;
   self->user_data = NULL;
   self->backend = NULL;
+  self->on_server_connected = NULL;
+  self->on_server_connected_data = NULL;
+  self->on_client_accepted = NULL;
+  self->on_client_accepted_data = NULL;
   self->on_closed = NULL;
   self->on_closed_data = NULL;
   self->drop_type = TEN_TRANSPORT_DROP_NEW;

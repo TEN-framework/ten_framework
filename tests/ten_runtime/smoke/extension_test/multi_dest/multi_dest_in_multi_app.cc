@@ -156,14 +156,6 @@ TEST(ExtensionTest, MultiDestInMultiApp) {  // NOLINT
   START_APP(4)
   START_APP(5)
 
-  // TODO(Wei): When apps are not started completely, and the client sends the
-  // 'start_graph' command to them, apps could not form a complete graph (ex:
-  // app 3 is not started completely yet, and app 2 tries to send the
-  // 'start_graph' command to it), so we need to add a delay here, or we need to
-  // design a mechanism which could tell us that the apps in question are all
-  // ready to accept incoming messages.
-  ten_sleep(1000);
-
   // Create a client and connect to the app.
   ten::msgpack_tcp_client_t *client = nullptr;
 

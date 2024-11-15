@@ -135,6 +135,13 @@ static void ten_timer_on_trigger(ten_timer_t *self,
       self->on_trigger(self, self->on_trigger_data);
     }
 
+    if (self->resettable) {
+      // If the timer is resettable, it will not automatically start the next
+      // round of timing or close itself after each timeout trigger. Instead, it
+      // will only do so when the user manually enables the timer again.
+      return;
+    }
+
     if (self->requested_times == TEN_TIMER_INFINITE ||
         self->times < self->requested_times) {
       // Setup the next timeout.
@@ -164,6 +171,7 @@ static ten_timer_t *ten_timer_create_internal(ten_runloop_t *runloop) {
 
   self->id = 0;
   self->times = 0;
+  self->resettable = false;
 
   ten_loc_init_empty(&self->src_loc);
 
@@ -194,7 +202,7 @@ error:
 }
 
 ten_timer_t *ten_timer_create(ten_runloop_t *runloop, uint64_t timeout_in_us,
-                              int32_t requested_times) {
+                              int32_t requested_times, bool resettable) {
   TEN_ASSERT(runloop && ten_runloop_check_integrity(runloop, true),
              "Should not happen.");
 
@@ -205,6 +213,7 @@ ten_timer_t *ten_timer_create(ten_runloop_t *runloop, uint64_t timeout_in_us,
 
   self->timeout_in_us = timeout_in_us;
   self->requested_times = requested_times;
+  self->resettable = resettable;
 
   return self;
 }
@@ -257,6 +266,13 @@ void ten_timer_enable(ten_timer_t *self) {
   TEN_ASSERT(self && ten_timer_check_integrity(self, true) &&
                  ten_runloop_check_integrity(self->runloop, true),
              "Should not happen.");
+
+  if (self->requested_times != TEN_TIMER_INFINITE &&
+      self->times >= self->requested_times) {
+    ten_timer_stop_async(self);
+    ten_timer_close_async(self);
+    return;
+  }
 
   ten_runloop_timer_set_timeout(self->backend, self->timeout_in_us / 1000, 0);
 

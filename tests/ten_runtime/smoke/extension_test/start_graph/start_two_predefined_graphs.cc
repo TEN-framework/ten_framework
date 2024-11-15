@@ -264,8 +264,6 @@ TEST(ExtensionTest, StartTwoPredefinedGraphs) {  // NOLINT
   auto *app_2_thread =
       ten_thread_create("app thread 2", app_thread_2_main, nullptr);
 
-  ten_sleep(300);
-
   // Create a client and connect to the app.
   auto *client = new ten::msgpack_tcp_client_t("msgpack://127.0.0.1:8001/");
 

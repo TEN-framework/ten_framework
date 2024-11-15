@@ -133,8 +133,6 @@ TEST(ExtensionTest, BasicMultiAppCloseThroughEngine) {  // NOLINT
   auto *app_thread_1 =
       ten_thread_create("app thread 1", app_thread_1_main, nullptr);
 
-  ten_sleep(300);
-
   ten::msgpack_tcp_client_t *client = nullptr;
 
   for (size_t i = 0; i < MULTIPLE_APP_SCENARIO_GRAPH_CONSTRUCTION_RETRY_TIMES;
