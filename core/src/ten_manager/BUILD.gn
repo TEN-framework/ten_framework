@@ -48,20 +48,20 @@ if (ten_enable_package_manager) {
         "//third_party/clingo",
       ]
     }
-  }
 
-  rust_clean("tman_test_cargo_clean") {
-    project_path = "//core/src/ten_manager"
-    target_path = get_label_info("tman_test", "target_gen_dir")
+    rust_clean("tman_test_cargo_clean") {
+      project_path = "//core/src/ten_manager"
+      target_path = get_label_info("tman_test", "target_gen_dir")
 
-    deps = [ ":tman_test_cargo_build" ]
-  }
-
-  group("tman_test") {
-    if (ten_enable_cargo_clean) {
-      deps = [ ":tman_test_cargo_clean" ]
-    } else {
       deps = [ ":tman_test_cargo_build" ]
+    }
+
+    group("tman_test") {
+      if (ten_enable_cargo_clean) {
+        deps = [ ":tman_test_cargo_clean" ]
+      } else {
+        deps = [ ":tman_test_cargo_build" ]
+      }
     }
   }
 
