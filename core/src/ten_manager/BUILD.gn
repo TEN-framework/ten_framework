@@ -100,6 +100,7 @@ if (ten_enable_package_manager) {
   # Assembling the final ten manager package.
   ten_package("ten_manager_package") {
     package_kind = "custom"
+    package_output_root_dir_name = "ten_manager"
 
     tman_output = get_target_outputs(":tman")
 
