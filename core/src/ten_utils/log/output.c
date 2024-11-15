@@ -7,7 +7,6 @@
 #include "ten_utils/ten_config.h"
 
 #include "ten_utils/lib/string.h"
-#include "ten_utils/macro/memory.h"
 
 #if defined(_WIN32) || defined(_WIN64)
 #include <io.h>
@@ -34,8 +33,8 @@
 
 // Function to create directories recursively.
 static bool create_directories(const char *path) {
-  char *path_copy = TEN_STRDUP(path);
-  TEN_ASSERT(path_copy, "Failed to allocate memory.");
+  char *path_copy = strdup(path);
+  assert(path_copy && "Failed to allocate memory.");
   if (!path_copy) {
     return false;
   }
@@ -64,14 +63,14 @@ static bool create_directories(const char *path) {
       if (!CreateDirectoryA(path_copy, NULL)) {
         DWORD err = GetLastError();
         if (err != ERROR_ALREADY_EXISTS) {
-          TEN_FREE(path_copy);
+          free(path_copy);
           return false;
         }
       }
 #else
       if (mkdir(path_copy, 0755) != 0) {
         if (errno != EEXIST) {
-          TEN_FREE(path_copy);
+          free(path_copy);
           return false;
         }
       }
@@ -84,20 +83,20 @@ static bool create_directories(const char *path) {
   if (!CreateDirectoryA(path_copy, NULL)) {
     DWORD err = GetLastError();
     if (err != ERROR_ALREADY_EXISTS) {
-      TEN_FREE(path_copy);
+      free(path_copy);
       return false;
     }
   }
 #else
   if (mkdir(path_copy, 0755) != 0) {
     if (errno != EEXIST) {
-      TEN_FREE(path_copy);
+      free(path_copy);
       return false;
     }
   }
 #endif
 
-  TEN_FREE(path_copy);
+  free(path_copy);
   return true;
 }
 
@@ -128,11 +127,11 @@ static void ten_log_close_file_cb(void *user_data) {
 }
 
 static int *get_log_fd(const char *log_path) {
-  TEN_ASSERT(log_path, "log_path cannot be NULL.");
+  assert(log_path && "log_path cannot be NULL.");
 
   // Duplicate the log_path to manipulate it.
-  char *path_copy = TEN_STRDUP(log_path);
-  TEN_ASSERT(path_copy, "Failed to allocate memory.");
+  char *path_copy = strdup(log_path);
+  assert(path_copy && "Failed to allocate memory.");
   if (!path_copy) {
     return NULL;
   }
@@ -145,12 +144,12 @@ static int *get_log_fd(const char *log_path) {
     // Create directories recursively.
     if (create_directories(path_copy) != true) {
       // Failed to create directories
-      TEN_FREE(path_copy);
+      free(path_copy);
       return NULL;
     }
   }
 
-  TEN_FREE(path_copy);
+  free(path_copy);
 
   // Now, attempt to open the file.
   FILE *fp = fopen(log_path, "ab");
@@ -159,14 +158,14 @@ static int *get_log_fd(const char *log_path) {
     return NULL;
   }
 
-  int *fd_ptr = TEN_MALLOC(sizeof(int));
+  int *fd_ptr = malloc(sizeof(int));
+  assert(fd_ptr && "Failed to allocate memory.");
   if (!fd_ptr) {
     (void)fclose(fp);
     return NULL;
   }
 
-  *fd_ptr =
-      ten_file_get_fd(fp);  // Ensure ten_file_get_fd handles FILE* correctly
+  *fd_ptr = ten_file_get_fd(fp);
   return fd_ptr;
 }
 
