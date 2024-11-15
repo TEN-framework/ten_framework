@@ -7,6 +7,7 @@
 #include "ten_utils/ten_config.h"
 
 #include "ten_utils/lib/string.h"
+#include "ten_utils/macro/memory.h"
 
 #if defined(_WIN32) || defined(_WIN64)
 #include <io.h>
@@ -20,6 +21,85 @@
 #include "include_internal/ten_utils/log/log.h"
 #include "include_internal/ten_utils/log/output.h"
 #include "ten_utils/lib/file.h"
+
+#if defined(_WIN32) || defined(_WIN64)
+#include <windows.h>
+#define PATH_SEPARATOR '\\'
+#else
+#include <errno.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#define PATH_SEPARATOR '/'
+#endif
+
+// Function to create directories recursively.
+static bool create_directories(const char *path) {
+  char *path_copy = TEN_STRDUP(path);
+  TEN_ASSERT(path_copy, "Failed to allocate memory.");
+  if (!path_copy) {
+    return false;
+  }
+
+  size_t len = strlen(path_copy);
+  // Remove trailing separators.
+  while (len > 0 && (path_copy[len - 1] == '/' || path_copy[len - 1] == '\\')) {
+    path_copy[len - 1] = '\0';
+    len--;
+  }
+
+  for (size_t i = 1; i < len; i++) {
+    if (path_copy[i] == '/' || path_copy[i] == '\\') {
+      char temp = path_copy[i];
+      path_copy[i] = '\0';
+
+      // Skip if path is root on Unix or drive letter on Windows.
+#if defined(_WIN32) || defined(_WIN64)
+      if (i == 2 && path_copy[1] == ':') {
+        path_copy[i] = temp;
+        continue;
+      }
+#endif
+
+#if defined(_WIN32) || defined(_WIN64)
+      if (!CreateDirectoryA(path_copy, NULL)) {
+        DWORD err = GetLastError();
+        if (err != ERROR_ALREADY_EXISTS) {
+          TEN_FREE(path_copy);
+          return false;
+        }
+      }
+#else
+      if (mkdir(path_copy, 0755) != 0) {
+        if (errno != EEXIST) {
+          TEN_FREE(path_copy);
+          return false;
+        }
+      }
+#endif
+      path_copy[i] = temp;
+    }
+  }
+
+#if defined(_WIN32) || defined(_WIN64)
+  if (!CreateDirectoryA(path_copy, NULL)) {
+    DWORD err = GetLastError();
+    if (err != ERROR_ALREADY_EXISTS) {
+      TEN_FREE(path_copy);
+      return false;
+    }
+  }
+#else
+  if (mkdir(path_copy, 0755) != 0) {
+    if (errno != EEXIST) {
+      TEN_FREE(path_copy);
+      return false;
+    }
+  }
+#endif
+
+  TEN_FREE(path_copy);
+  return true;
+}
 
 static void ten_log_output_set(ten_log_t *self,
                                const ten_log_output_func_t output_cb,
@@ -48,12 +128,45 @@ static void ten_log_close_file_cb(void *user_data) {
 }
 
 static int *get_log_fd(const char *log_path) {
-  int *fd_ptr = malloc(sizeof(int));
-  assert(fd_ptr && "Failed to allocate memory.");
+  TEN_ASSERT(log_path, "log_path cannot be NULL.");
 
+  // Duplicate the log_path to manipulate it.
+  char *path_copy = TEN_STRDUP(log_path);
+  TEN_ASSERT(path_copy, "Failed to allocate memory.");
+  if (!path_copy) {
+    return NULL;
+  }
+
+  // Find the directory part of the path.
+  char *last_sep = strrchr(path_copy, PATH_SEPARATOR);
+  if (last_sep) {
+    *last_sep = '\0';  // Terminate the string to get the directory path.
+
+    // Create directories recursively.
+    if (create_directories(path_copy) != true) {
+      // Failed to create directories
+      TEN_FREE(path_copy);
+      return NULL;
+    }
+  }
+
+  TEN_FREE(path_copy);
+
+  // Now, attempt to open the file.
   FILE *fp = fopen(log_path, "ab");
-  *fd_ptr = ten_file_get_fd(fp);
+  if (!fp) {
+    // Handle fopen failure.
+    return NULL;
+  }
 
+  int *fd_ptr = TEN_MALLOC(sizeof(int));
+  if (!fd_ptr) {
+    (void)fclose(fp);
+    return NULL;
+  }
+
+  *fd_ptr =
+      ten_file_get_fd(fp);  // Ensure ten_file_get_fd handles FILE* correctly
   return fd_ptr;
 }
 
@@ -88,6 +201,12 @@ void ten_log_set_output_to_file(ten_log_t *self, const char *log_path) {
   assert(log_path && "Invalid argument.");
 
   int *fd = get_log_fd(log_path);
+  if (!fd) {
+    // Failed to open log file or create directories.
+    ten_log_set_output_to_stderr(self);
+    return;
+  }
+
   ten_log_output_set(self, ten_log_output_to_file_cb, ten_log_close_file_cb,
                      fd);
 
