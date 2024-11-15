@@ -8,8 +8,7 @@
 
 void ten_protocol_integrated_retry_config_default_init(
     ten_protocol_integrated_retry_config_t *self) {
-  // TODO(xilin): Disable the retry mechanism by default.
-  self->enable = true;
-  self->max_retries = 5;
-  self->interval_ms = 500;
+  self->enable = false;
+  self->max_retries = 0;
+  self->interval_ms = 0;
 }

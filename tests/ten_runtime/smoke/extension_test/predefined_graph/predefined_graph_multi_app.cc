@@ -69,7 +69,7 @@ class test_app_1 : public ten::app_t {
                         "log_level": 2,
                         "predefined_graphs": [{
                            "name": "default",
-                           "auto_start": false,
+                           "auto_start": true,
                            "singleton": true,
                            "nodes": [{
                               "type": "extension",
