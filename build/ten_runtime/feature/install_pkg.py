@@ -173,8 +173,10 @@ if __name__ == "__main__":
         if args.log_level > 0:
             print(f"> {cmd}")
 
-        returncode, _ = cmd_exec.run_cmd(cmd, args.log_level)
+        returncode, output_text = cmd_exec.run_cmd(cmd, args.log_level)
         if returncode:
+            if args.log_level > 0:
+                print(output_text)
             raise Exception("Failed to install app.")
         else:
             timestamp_proxy.touch_timestamp_proxy_file(

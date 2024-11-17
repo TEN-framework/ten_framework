@@ -34,6 +34,7 @@ def test_invalid_package_type():
 
         cmds = [
             tman_bin,
+            "--verbose",
             f"--config-file={config_file}",
             "install",
         ]
