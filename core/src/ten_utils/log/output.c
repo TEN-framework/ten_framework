@@ -152,7 +152,7 @@ static int *get_log_fd(const char *log_path) {
   free(path_copy);
 
   // Now, attempt to open the file.
-  FILE *fp = fopen(log_path, "eab");
+  FILE *fp = fopen(log_path, "ab");
   if (!fp) {
     // Handle fopen failure.
     return NULL;
