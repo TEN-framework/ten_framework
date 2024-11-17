@@ -31,7 +31,8 @@ typedef struct ten_protocol_integrated_connect_to_context_t {
 
   // The callback function to be called when the connection is established or
   // failed.
-  // Set to NULL if the callback has been called.
+  //
+  // @note Set to NULL if the callback has been called.
   ten_protocol_on_server_connected_func_t on_server_connected;
 
   void *user_data;

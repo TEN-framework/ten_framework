@@ -6,7 +6,7 @@
 //
 #include "include_internal/ten_runtime/protocol/integrated/retry.h"
 
-void ten_protocol_integrated_retry_config_default_init(
+void ten_protocol_integrated_retry_config_init(
     ten_protocol_integrated_retry_config_t *self) {
   self->enable = false;
   self->max_retries = 0;

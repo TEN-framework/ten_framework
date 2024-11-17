@@ -329,6 +329,8 @@ static void ten_transport_on_client_accepted(ten_transport_t *transport,
   ten_protocol_integrated_t *listening_protocol = transport->user_data;
   TEN_ASSERT(listening_protocol, "Should not happen.");
 
+  // The `on_client_accepted_data` in transport stores the `on_client_accepted`
+  // callback function set by the TEN runtime.
   ten_protocol_on_client_accepted_func_t on_client_accepted =
       transport->on_client_accepted_data;
   TEN_ASSERT(on_client_accepted, "Should not happen.");
@@ -384,6 +386,11 @@ static void ten_protocol_integrated_listen(
   self->role_facility.listening_transport = transport;
 
   transport->user_data = self;
+  // When a client connects, it is first handled using
+  // `ten_transport_on_client_accepted`, and only afterward is the
+  // `on_client_accepted` defined from TEN runtime. This way, some tasks can be
+  // performed within the protocol at the transport/stream layer first, before
+  // switching to the TEN runtime's `on_client_accepted` callback.
   transport->on_client_accepted = ten_transport_on_client_accepted;
   transport->on_client_accepted_data = on_client_accepted;
 
@@ -552,6 +559,9 @@ static void ten_protocol_integrated_on_retry_timer_triggered(
 
   int rc = ten_transport_connect(transport, &connect_to_context->server_uri);
   if (rc) {
+    // If the 'ten_transport_connect' directly returns error, it could be due to
+    // invalid parameters or other errors which cannot be solved by retrying.
+
     TEN_LOGW(
         "Failed to connect to %s due to invalid parameters or other fatal "
         "errors.",
@@ -883,7 +893,7 @@ void ten_protocol_integrated_init(
 
   self->on_input = on_input;
   self->on_output = on_output;
-  ten_protocol_integrated_retry_config_default_init(&self->retry_config);
+  ten_protocol_integrated_retry_config_init(&self->retry_config);
   self->retry_timer = NULL;
 }
 

@@ -24,5 +24,5 @@ typedef struct ten_protocol_integrated_retry_config_t {
   uint32_t interval_ms;
 } ten_protocol_integrated_retry_config_t;
 
-TEN_RUNTIME_PRIVATE_API void ten_protocol_integrated_retry_config_default_init(
+TEN_RUNTIME_PRIVATE_API void ten_protocol_integrated_retry_config_init(
     ten_protocol_integrated_retry_config_t *self);

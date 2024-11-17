@@ -6,7 +6,6 @@
 //
 #include <nlohmann/json.hpp>
 #include <string>
-#include <vector>
 
 #include "gtest/gtest.h"
 #include "include_internal/ten_runtime/binding/cpp/ten.h"
@@ -57,8 +56,9 @@
     return nullptr;                                                            \
   }
 
-#define REGISTER_EXTENSION(N) \
-  TEN_CPP_REGISTER_ADDON_AS_EXTENSION(multi_dest_in_multi_app__extension_##N, test_extension_##N);
+#define REGISTER_EXTENSION(N)                                                 \
+  TEN_CPP_REGISTER_ADDON_AS_EXTENSION(multi_dest_in_multi_app__extension_##N, \
+                                      test_extension_##N);
 
 #define START_APP(N)           \
   auto test_app_##N##_thread = \
