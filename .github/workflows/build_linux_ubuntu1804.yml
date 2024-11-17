@@ -99,19 +99,6 @@ jobs:
           ./unit_test || { echo "ten_rust unit test failed"; exit 1; }
           ./integration_test || { echo "ten_rust integration test failed"; exit 1; }
 
-      - name: Set up Python
-        run: |
-          apt update
-          apt-get install -y software-properties-common
-          add-apt-repository -y ppa:deadsnakes/ppa
-          apt-get install -y python3.8
-          ln -s `which python3.8` /usr/local/bin/python
-          python --version
-
-      - name: Install Python dependencies via script
-        run: |
-          python .github/tools/setup_pytest_dependencies.py
-
       - name: Upload ten_packages
         uses: actions/upload-artifact@v3
         with:

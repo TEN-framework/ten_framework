@@ -141,6 +141,9 @@ if __name__ == "__main__":
             args.tman_path,
         ]
 
+        if args.log_level > 0:
+            cmd += ["--verbose"]
+
         if args.config_file is not None:
             list.append(cmd, "--config-file=" + args.config_file)
 
