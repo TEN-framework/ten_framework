@@ -84,6 +84,20 @@ jobs:
           chmod +x out/linux/x64/tests/standalone/ten_runtime_smoke_test
           out/linux/x64/tests/standalone/ten_runtime_smoke_test || { echo "test failed"; exit 1; }
 
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: "pip"
+
+      - name: Install Python dependencies via script
+        run: |
+          python .github/tools/setup_pytest_dependencies.py
+
+      - name: Run Pytest
+        run: |
+          pytest -s tests/ten_manager/
+
       - name: Upload ten_packages
         uses: actions/upload-artifact@v3
         with:
