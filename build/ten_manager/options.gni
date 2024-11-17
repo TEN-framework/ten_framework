@@ -5,7 +5,7 @@
 # Refer to the "LICENSE" file in the root directory for more information.
 #
 declare_args() {
-  ten_package_manager_enable_publish = target_cpu != "arm64"
+  ten_package_manager_enable_publish = true
 }
 
 declare_args() {
