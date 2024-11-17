@@ -117,7 +117,7 @@ jobs:
         run: |
           python .github/tools/setup_pytest_dependencies.py
 
-      - name: Run Pytest
+      - name: Run Tests (ten_manager pytest tests)
         run: |
           pytest -s tests/ten_manager/
 
