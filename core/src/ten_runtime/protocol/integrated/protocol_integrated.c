@@ -661,7 +661,7 @@ static void ten_transport_on_server_connected(ten_transport_t *transport,
 
     ten_timer_t *timer = ten_timer_create(
         loop, (uint64_t)protocol->retry_config.interval_ms * 1000,
-        (int32_t)protocol->retry_config.max_retries, true);
+        (int32_t)protocol->retry_config.max_retries, false);
     TEN_ASSERT(timer, "Should not happen.");
 
     protocol->retry_timer = timer;
