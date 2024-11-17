@@ -21,6 +21,7 @@ use ten_rust::pkg_info::PkgInfo;
 use super::config::TmanConfig;
 use super::registry::{get_package_list, SearchCriteria};
 use super::utils::pathbuf_to_string;
+use crate::log::tman_verbose_println;
 use crate::package_info::pkg_info_from_find_package_data;
 
 // TODO(Wei): Should use the union of the semantic versioning rather than the
@@ -199,6 +200,12 @@ async fn process_dependencies_to_get_candidates(
                 // Record the package's compatible_score so that we can later
                 // select the most appropriate one.
                 candidate_pkg_info.compatible_score = compatible_score;
+
+                tman_verbose_println!(
+                    tman_config,
+                    "Find candidate {:?}",
+                    candidate_pkg_info
+                );
 
                 all_candidates
                     .entry(dependency.pkg_identity.clone())
