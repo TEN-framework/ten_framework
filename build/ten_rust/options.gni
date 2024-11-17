@@ -94,5 +94,5 @@ declare_args() {
 }
 
 declare_args() {
-  ten_rust_enable_tests = (is_linux && target_cpu == "x64") || is_win || is_mac
+  ten_rust_enable_tests = true
 }

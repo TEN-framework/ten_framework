@@ -82,7 +82,7 @@ jobs:
 
       - name: Run Tests (ten_utils_unit_test)
         env:
-          ASAN_OPTIONS: detect_stack_use_after_return=1:color=always:disable_core=0:unmap_shadow_on_exit=1:abort_on_error=1:detect_container_overflow=0:use_sigaltstack=0:handle_segv=0:handle_abort=0
+          ASAN_OPTIONS: detect_stack_use_after_return=1:color=always:unmap_shadow_on_exit=1:abort_on_error=1
           MALLOC_CHECK_: 3
           TEN_ENABLE_MEMORY_TRACKING: "true"
           TEN_ENABLE_BACKTRACE_DUMP: "true"
@@ -92,7 +92,7 @@ jobs:
 
       - name: Run Tests (ten_runtime_unit_test)
         env:
-          ASAN_OPTIONS: detect_stack_use_after_return=1:color=always:disable_core=0:unmap_shadow_on_exit=1:abort_on_error=1:detect_container_overflow=0:use_sigaltstack=0:handle_segv=0:handle_abort=0
+          ASAN_OPTIONS: detect_stack_use_after_return=1:color=always:unmap_shadow_on_exit=1:abort_on_error=1
           MALLOC_CHECK_: 3
           TEN_ENABLE_MEMORY_TRACKING: "true"
           TEN_ENABLE_BACKTRACE_DUMP: "true"
@@ -100,19 +100,19 @@ jobs:
           chmod +x out/mac/arm64/tests/standalone/ten_runtime_unit_test
           out/mac/arm64/tests/standalone/ten_runtime_unit_test
 
-      # - name: Run Tests (ten_runtime_smoke_test)
-      #   env:
-      #     ASAN_OPTIONS: detect_stack_use_after_return=1:color=always:disable_core=0:unmap_shadow_on_exit=1:abort_on_error=1:detect_container_overflow=0:use_sigaltstack=0:handle_segv=0:handle_abort=0
-      #     MALLOC_CHECK_: 3
-      #     TEN_ENABLE_MEMORY_TRACKING: "true"
-      #     TEN_ENABLE_BACKTRACE_DUMP: "true"
-      #   run: |
-      #     chmod +x out/mac/arm64/tests/standalone/ten_runtime_smoke_test
-      #     out/mac/arm64/tests/standalone/ten_runtime_smoke_test
+      - name: Run Tests (ten_runtime_smoke_test)
+        env:
+          ASAN_OPTIONS: detect_stack_use_after_return=1:color=always:unmap_shadow_on_exit=1:abort_on_error=1
+          MALLOC_CHECK_: 3
+          TEN_ENABLE_MEMORY_TRACKING: "true"
+          TEN_ENABLE_BACKTRACE_DUMP: "true"
+        run: |
+          chmod +x out/mac/arm64/tests/standalone/ten_runtime_smoke_test
+          out/mac/arm64/tests/standalone/ten_runtime_smoke_test
 
       - name: Run Tests (ten_rust standalone tests)
         env:
-          ASAN_OPTIONS: detect_stack_use_after_return=1:color=always:disable_core=0:unmap_shadow_on_exit=1:abort_on_error=1:detect_container_overflow=0:use_sigaltstack=0:handle_segv=0:handle_abort=0
+          ASAN_OPTIONS: detect_stack_use_after_return=1:color=always:unmap_shadow_on_exit=1:abort_on_error=1
           MALLOC_CHECK_: 3
           TEN_ENABLE_MEMORY_TRACKING: "true"
           TEN_ENABLE_BACKTRACE_DUMP: "true"
@@ -127,7 +127,7 @@ jobs:
 
       - name: Run Tests (ten_manager standalone tests)
         env:
-          ASAN_OPTIONS: detect_stack_use_after_return=1:color=always:disable_core=0:unmap_shadow_on_exit=1:abort_on_error=1:detect_container_overflow=0:use_sigaltstack=0:handle_segv=0:handle_abort=0
+          ASAN_OPTIONS: detect_stack_use_after_return=1:color=always:unmap_shadow_on_exit=1:abort_on_error=1
           MALLOC_CHECK_: 3
           TEN_ENABLE_MEMORY_TRACKING: "true"
           TEN_ENABLE_BACKTRACE_DUMP: "true"
@@ -149,7 +149,7 @@ jobs:
 
       - name: Run Tests (ten_manager pytest tests)
         env:
-          ASAN_OPTIONS: detect_stack_use_after_return=1:color=always:disable_core=0:unmap_shadow_on_exit=1:abort_on_error=1:detect_container_overflow=0:use_sigaltstack=0:handle_segv=0:handle_abort=0
+          ASAN_OPTIONS: detect_stack_use_after_return=1:color=always:unmap_shadow_on_exit=1:abort_on_error=1
           MALLOC_CHECK_: 3
           TEN_ENABLE_MEMORY_TRACKING: "true"
           TEN_ENABLE_BACKTRACE_DUMP: "true"
@@ -226,7 +226,7 @@ jobs:
 
       - name: Run Tests (ten_utils_unit_test)
         env:
-          ASAN_OPTIONS: detect_stack_use_after_return=1:color=always:disable_core=0:unmap_shadow_on_exit=1:abort_on_error=1:detect_container_overflow=0:use_sigaltstack=0:handle_segv=0:handle_abort=0
+          ASAN_OPTIONS: detect_stack_use_after_return=1:color=always:unmap_shadow_on_exit=1:abort_on_error=1
           MALLOC_CHECK_: 3
           TEN_ENABLE_MEMORY_TRACKING: "true"
           TEN_ENABLE_BACKTRACE_DUMP: "true"
@@ -236,7 +236,7 @@ jobs:
 
       - name: Run Tests (ten_runtime_unit_test)
         env:
-          ASAN_OPTIONS: detect_stack_use_after_return=1:color=always:disable_core=0:unmap_shadow_on_exit=1:abort_on_error=1:detect_container_overflow=0:use_sigaltstack=0:handle_segv=0:handle_abort=0
+          ASAN_OPTIONS: detect_stack_use_after_return=1:color=always:unmap_shadow_on_exit=1:abort_on_error=1
           MALLOC_CHECK_: 3
           TEN_ENABLE_MEMORY_TRACKING: "true"
           TEN_ENABLE_BACKTRACE_DUMP: "true"
@@ -244,19 +244,19 @@ jobs:
           chmod +x out/mac/x64/tests/standalone/ten_runtime_unit_test
           out/mac/x64/tests/standalone/ten_runtime_unit_test
 
-      # - name: Run Tests (ten_runtime_smoke_test)
-      #   env:
-      #     ASAN_OPTIONS: detect_stack_use_after_return=1:color=always:disable_core=0:unmap_shadow_on_exit=1:abort_on_error=1:detect_container_overflow=0:use_sigaltstack=0:handle_segv=0:handle_abort=0
-      #     MALLOC_CHECK_: 3
-      #     TEN_ENABLE_MEMORY_TRACKING: "true"
-      #     TEN_ENABLE_BACKTRACE_DUMP: "true"
-      #   run: |
-      #     chmod +x out/mac/x64/tests/standalone/ten_runtime_smoke_test
-      #     out/mac/x64/tests/standalone/ten_runtime_smoke_test
+      - name: Run Tests (ten_runtime_smoke_test)
+        env:
+          ASAN_OPTIONS: detect_stack_use_after_return=1:color=always:unmap_shadow_on_exit=1:abort_on_error=1
+          MALLOC_CHECK_: 3
+          TEN_ENABLE_MEMORY_TRACKING: "true"
+          TEN_ENABLE_BACKTRACE_DUMP: "true"
+        run: |
+          chmod +x out/mac/x64/tests/standalone/ten_runtime_smoke_test
+          out/mac/x64/tests/standalone/ten_runtime_smoke_test
 
       - name: Run Tests (ten_rust standalone tests)
         env:
-          ASAN_OPTIONS: detect_stack_use_after_return=1:color=always:disable_core=0:unmap_shadow_on_exit=1:abort_on_error=1:detect_container_overflow=0:use_sigaltstack=0:handle_segv=0:handle_abort=0
+          ASAN_OPTIONS: detect_stack_use_after_return=1:color=always:unmap_shadow_on_exit=1:abort_on_error=1
           MALLOC_CHECK_: 3
           TEN_ENABLE_MEMORY_TRACKING: "true"
           TEN_ENABLE_BACKTRACE_DUMP: "true"
@@ -271,7 +271,7 @@ jobs:
 
       - name: Run Tests (ten_manager standalone tests)
         env:
-          ASAN_OPTIONS: detect_stack_use_after_return=1:color=always:disable_core=0:unmap_shadow_on_exit=1:abort_on_error=1:detect_container_overflow=0:use_sigaltstack=0:handle_segv=0:handle_abort=0
+          ASAN_OPTIONS: detect_stack_use_after_return=1:color=always:unmap_shadow_on_exit=1:abort_on_error=1
           MALLOC_CHECK_: 3
           TEN_ENABLE_MEMORY_TRACKING: "true"
           TEN_ENABLE_BACKTRACE_DUMP: "true"
@@ -293,7 +293,7 @@ jobs:
 
       - name: Run Tests (ten_manager pytest tests)
         env:
-          ASAN_OPTIONS: detect_stack_use_after_return=1:color=always:disable_core=0:unmap_shadow_on_exit=1:abort_on_error=1:detect_container_overflow=0:use_sigaltstack=0:handle_segv=0:handle_abort=0
+          ASAN_OPTIONS: detect_stack_use_after_return=1:color=always:unmap_shadow_on_exit=1:abort_on_error=1
           MALLOC_CHECK_: 3
           TEN_ENABLE_MEMORY_TRACKING: "true"
           TEN_ENABLE_BACKTRACE_DUMP: "true"
@@ -371,7 +371,7 @@ jobs:
 
       - name: Run Tests (ten_runtime_smoke_test)
         env:
-          ASAN_OPTIONS: detect_stack_use_after_return=1:color=always:disable_core=0:unmap_shadow_on_exit=1:abort_on_error=1:detect_container_overflow=0:use_sigaltstack=0:handle_segv=0:handle_abort=0
+          ASAN_OPTIONS: detect_stack_use_after_return=1:color=always:unmap_shadow_on_exit=1:abort_on_error=1
           MALLOC_CHECK_: 3
           TEN_ENABLE_MEMORY_TRACKING: "true"
           TEN_ENABLE_BACKTRACE_DUMP: "true"
