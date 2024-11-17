@@ -80,7 +80,7 @@ jobs:
           TEN_ENABLE_MEMORY_TRACKING: "true"
           TEN_ENABLE_BACKTRACE_DUMP: "true"
         run: |
-          cd out/linux/x64/tests/standalone/ten_rust
+          cd out/win/x64/tests/standalone/ten_rust
 
           chmod +x unit_test
           chmod +x integration_test
@@ -95,7 +95,7 @@ jobs:
           TEN_ENABLE_MEMORY_TRACKING: "true"
           TEN_ENABLE_BACKTRACE_DUMP: "true"
         run: |
-          cd out/linux/x64/tests/standalone/ten_manager
+          cd out/win/x64/tests/standalone/ten_manager
 
           chmod +x unit_test
 
