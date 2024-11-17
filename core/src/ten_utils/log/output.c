@@ -7,7 +7,6 @@
 #include "ten_utils/ten_config.h"
 
 #include "ten_utils/lib/string.h"
-#include "ten_utils/macro/memory.h"
 
 #if defined(_WIN32) || defined(_WIN64)
 #include <io.h>

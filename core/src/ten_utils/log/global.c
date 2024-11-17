@@ -12,7 +12,6 @@
 #include "include_internal/ten_utils/log/level.h"
 #include "include_internal/ten_utils/log/log.h"
 #include "include_internal/ten_utils/log/output.h"
-#include "ten_utils/macro/memory.h"
 
 ten_log_t ten_global_log = {TEN_LOG_SIGNATURE,
                             TEN_LOG_LEVEL_DEBUG,
