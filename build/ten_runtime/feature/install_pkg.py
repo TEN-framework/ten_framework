@@ -167,6 +167,9 @@ if __name__ == "__main__":
         if args.build_type is not None:
             list.append(cmd, "--build-type=" + args.build_type)
 
+        if args.log_level > 0:
+            print(f"> {cmd}")
+
         returncode, _ = cmd_exec.run_cmd(cmd, args.log_level)
         if returncode:
             raise Exception("Failed to install app.")
