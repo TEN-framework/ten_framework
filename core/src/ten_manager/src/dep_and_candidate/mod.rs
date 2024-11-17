@@ -170,6 +170,12 @@ async fn process_dependencies_to_get_candidates(
             candidate_pkg_info.url = pathbuf_to_string(result.url)?;
             candidate_pkg_info.is_local_installed = false;
 
+            tman_verbose_println!(
+                tman_config,
+                "Collect candidate: {:?}",
+                candidate_pkg_info
+            );
+
             candidate_pkg_infos.push(candidate_pkg_info);
         }
 
@@ -183,6 +189,12 @@ async fn process_dependencies_to_get_candidates(
         if let Some(candidates) = all_candidates.get(&dependency.pkg_identity) {
             for candidate in candidates {
                 if dependency.version_req.matches(&candidate.version) {
+                    tman_verbose_println!(
+                        tman_config,
+                        "Collect candidate: {:?}",
+                        candidate
+                    );
+
                     candidate_pkg_infos.push(candidate.clone());
                 }
             }
