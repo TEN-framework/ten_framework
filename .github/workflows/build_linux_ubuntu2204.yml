@@ -118,6 +118,7 @@ jobs:
 
       - name: Run Tests (ten_manager pytest tests)
         run: |
+          cd out/linux/x64/
           pytest -s tests/ten_manager/
 
       - name: Update supports before upload or publish

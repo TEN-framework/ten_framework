@@ -149,6 +149,7 @@ jobs:
 
       - name: Run Tests (ten_manager pytest tests)
         run: |
+          cd out/mac/arm64/
           pytest -s tests/ten_manager/
 
   build-mac-x64:
@@ -287,6 +288,7 @@ jobs:
 
       - name: Run Tests (ten_manager pytest tests)
         run: |
+          cd out/mac/x64/
           pytest -s tests/ten_manager/
 
   # Building ten_runtime without the ten_rust library (i.e., ten_enable_ten_rust_apis=false).

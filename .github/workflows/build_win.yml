@@ -112,4 +112,5 @@ jobs:
 
       - name: Run Tests (ten_manager pytest tests)
         run: |
+          cd out/win/x64/
           pytest -s tests/ten_manager/
