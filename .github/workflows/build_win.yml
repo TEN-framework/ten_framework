@@ -75,8 +75,6 @@ jobs:
 
       - name: Run Tests (ten_rust standalone tests)
         env:
-          ASAN_OPTIONS: detect_leaks=1:detect_stack_use_after_return=1:color=always:unmap_shadow_on_exit=1:abort_on_error=1
-          MALLOC_CHECK_: 3
           TEN_ENABLE_MEMORY_TRACKING: "true"
           TEN_ENABLE_BACKTRACE_DUMP: "true"
         run: |
@@ -90,8 +88,6 @@ jobs:
 
       - name: Run Tests (ten_manager standalone tests)
         env:
-          ASAN_OPTIONS: detect_leaks=1:detect_stack_use_after_return=1:color=always:unmap_shadow_on_exit=1:abort_on_error=1
-          MALLOC_CHECK_: 3
           TEN_ENABLE_MEMORY_TRACKING: "true"
           TEN_ENABLE_BACKTRACE_DUMP: "true"
         run: |
@@ -111,6 +107,9 @@ jobs:
           python .github/tools/setup_pytest_dependencies.py
 
       - name: Run Tests (ten_manager pytest tests)
+        env:
+          TEN_ENABLE_MEMORY_TRACKING: "true"
+          TEN_ENABLE_BACKTRACE_DUMP: "true"
         run: |
           cd out/win/x64/
           pytest -s tests/ten_manager/
