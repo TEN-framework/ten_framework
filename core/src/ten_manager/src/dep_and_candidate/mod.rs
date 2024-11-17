@@ -189,6 +189,12 @@ async fn process_dependencies_to_get_candidates(
         }
 
         for mut candidate_pkg_info in candidate_pkg_infos {
+            tman_verbose_println!(
+                tman_config,
+                "Check candidate support: {:?}",
+                candidate_pkg_info
+            );
+
             let compatible_score = is_pkg_supports_compatible_with(
                 &candidate_pkg_info.supports,
                 support,
@@ -203,7 +209,7 @@ async fn process_dependencies_to_get_candidates(
 
                 tman_verbose_println!(
                     tman_config,
-                    "Find candidate {:?}",
+                    "Found a candidate: {:?}",
                     candidate_pkg_info
                 );
 
