@@ -41,9 +41,19 @@ class extension_tester_t {
     ten_extension_tester_set_test_mode_single(c_extension_tester, addon_name);
   }
 
+  void set_test_mode_graph(const char *graph_name) {
+    TEN_ASSERT(graph_name, "Invalid argument.");
+    ten_extension_tester_set_test_mode_graph(c_extension_tester, graph_name);
+  }
+
   void add_addon_base_dir(const char *addon_path) {
     TEN_ASSERT(addon_path, "Invalid argument.");
     ten_extension_tester_add_addon_base_dir(c_extension_tester, addon_path);
+  }
+
+  void set_test_app_property_json(const char *json) {
+    TEN_ASSERT(json, "Invalid argument.");
+    ten_extension_tester_set_test_app_property_json(c_extension_tester, json);
   }
 
   bool run(error_t *err = nullptr) {

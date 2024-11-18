@@ -4,12 +4,21 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
+#pragma once
+
 #include "ten_runtime/ten_config.h"
 
 #include "ten_utils/lib/smart_ptr.h"
 
 typedef struct ten_extension_tester_t ten_extension_tester_t;
 typedef struct ten_env_tester_t ten_env_tester_t;
+
+typedef enum TEN_EXTENSION_TESTER_TEST_MODE {
+  TEN_EXTENSION_TESTER_TEST_MODE_INVALID,
+
+  TEN_EXTENSION_TESTER_TEST_MODE_SINGLE,
+  TEN_EXTENSION_TESTER_TEST_MODE_GRAPH,
+} TEN_EXTENSION_TESTER_TEST_MODE;
 
 typedef void (*ten_extension_tester_on_start_func_t)(
     ten_extension_tester_t *self, ten_env_tester_t *ten_env);
@@ -45,8 +54,17 @@ TEN_RUNTIME_API void ten_extension_tester_destroy(ten_extension_tester_t *self);
 TEN_RUNTIME_API void ten_extension_tester_set_test_mode_single(
     ten_extension_tester_t *self, const char *addon_name);
 
+// Testing a complete graph which must contain exactly one proxy extension. All
+// messages input by the tester will be directed to this extension, and all
+// outputs from the extension will be sent back to the tester.
+TEN_RUNTIME_API void ten_extension_tester_set_test_mode_graph(
+    ten_extension_tester_t *self, const char *graph_name);
+
 TEN_RUNTIME_API void ten_extension_tester_add_addon_base_dir(
     ten_extension_tester_t *self, const char *addon_base_dir);
+
+TEN_RUNTIME_API void ten_extension_tester_set_test_app_property_json(
+    ten_extension_tester_t *self, const char *json);
 
 TEN_RUNTIME_API bool ten_extension_tester_run(ten_extension_tester_t *self);
 

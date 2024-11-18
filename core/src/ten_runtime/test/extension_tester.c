@@ -74,8 +74,8 @@ ten_extension_tester_t *ten_extension_tester_create(
   ten_signature_set(&self->signature, TEN_EXTENSION_TESTER_SIGNATURE);
   ten_sanitizer_thread_check_init_with_current_thread(&self->thread_check);
 
-  ten_list_init(&self->addon_names);
   ten_list_init(&self->addon_base_dirs);
+  ten_string_init(&self->test_app_property_json);
 
   self->on_start = on_start;
   self->on_cmd = on_cmd;
@@ -95,6 +95,8 @@ ten_extension_tester_t *ten_extension_tester_create(
   self->test_app_thread = NULL;
   self->user_data = NULL;
 
+  self->test_mode = TEN_EXTENSION_TESTER_TEST_MODE_INVALID;
+
   return self;
 }
 
@@ -104,7 +106,20 @@ void ten_extension_tester_set_test_mode_single(ten_extension_tester_t *self,
              "Invalid argument.");
   TEN_ASSERT(addon_name, "Invalid argument.");
 
-  ten_list_push_str_back(&self->addon_names, addon_name);
+  self->test_mode = TEN_EXTENSION_TESTER_TEST_MODE_SINGLE;
+  ten_string_init_from_c_str(&self->test_target.addon.addon_name, addon_name,
+                             strlen(addon_name));
+}
+
+void ten_extension_tester_set_test_mode_graph(ten_extension_tester_t *self,
+                                              const char *graph_name) {
+  TEN_ASSERT(self && ten_extension_tester_check_integrity(self, true),
+             "Invalid argument.");
+  TEN_ASSERT(graph_name, "Invalid argument.");
+
+  self->test_mode = TEN_EXTENSION_TESTER_TEST_MODE_GRAPH;
+  ten_string_init_from_c_str(&self->test_target.graph.graph_name, graph_name,
+                             strlen(graph_name));
 }
 
 void ten_extension_tester_add_addon_base_dir(ten_extension_tester_t *self,
@@ -114,6 +129,15 @@ void ten_extension_tester_add_addon_base_dir(ten_extension_tester_t *self,
   TEN_ASSERT(addon_base_dir, "Invalid argument.");
 
   ten_list_push_str_back(&self->addon_base_dirs, addon_base_dir);
+}
+
+void ten_extension_tester_set_test_app_property_json(
+    ten_extension_tester_t *self, const char *json) {
+  TEN_ASSERT(self && ten_extension_tester_check_integrity(self, true),
+             "Invalid argument.");
+  TEN_ASSERT(json, "Invalid argument.");
+
+  ten_string_init_from_c_str(&self->test_app_property_json, json, strlen(json));
 }
 
 static void send_cmd_to_app_callback(ten_extension_t *extension,
@@ -143,6 +167,18 @@ void test_app_ten_env_send_cmd(ten_env_t *ten_env, void *user_data) {
   TEN_ASSERT(rc, "Should not happen.");
 }
 
+static void ten_extension_tester_destroy_test_target(
+    ten_extension_tester_t *self) {
+  TEN_ASSERT(self && ten_extension_tester_check_integrity(self, true),
+             "Invalid argument.");
+
+  if (self->test_mode == TEN_EXTENSION_TESTER_TEST_MODE_SINGLE) {
+    ten_string_deinit(&self->test_target.addon.addon_name);
+  } else if (self->test_mode == TEN_EXTENSION_TESTER_TEST_MODE_GRAPH) {
+    ten_string_deinit(&self->test_target.graph.graph_name);
+  }
+}
+
 void ten_extension_tester_destroy(ten_extension_tester_t *self) {
   TEN_ASSERT(self && ten_extension_tester_check_integrity(self, true),
              "Invalid argument.");
@@ -164,8 +200,9 @@ void ten_extension_tester_destroy(ten_extension_tester_t *self) {
 
   ten_thread_join(self->test_app_thread, -1);
 
-  ten_list_clear(&self->addon_names);
+  ten_extension_tester_destroy_test_target(self);
   ten_list_clear(&self->addon_base_dirs);
+  ten_string_deinit(&self->test_app_property_json);
 
   ten_env_tester_destroy(self->ten_env_tester);
   ten_sanitizer_thread_check_deinit(&self->thread_check);
@@ -180,15 +217,8 @@ static void ten_extension_tester_create_and_start_graph(
     ten_extension_tester_t *self) {
   TEN_ASSERT(self && ten_extension_tester_check_integrity(self, true),
              "Invalid argument.");
-
-  TEN_ASSERT(!ten_list_is_empty(&self->addon_names),
-             "No addon name is specified.");
-  ten_listnode_t *first_addon_name_node = ten_list_front(&self->addon_names);
-  TEN_ASSERT(first_addon_name_node, "Should not happen.");
-
-  ten_string_t *first_addon_name = ten_str_listnode_get(first_addon_name_node);
-  TEN_ASSERT(first_addon_name, "Should not happen.");
-  TEN_ASSERT(ten_string_len(first_addon_name), "No addon name is specified.");
+  TEN_ASSERT(self->test_mode != TEN_EXTENSION_TESTER_TEST_MODE_INVALID,
+             "Invalid test mode.");
 
   ten_shared_ptr_t *start_graph_cmd = ten_cmd_start_graph_create();
   TEN_ASSERT(start_graph_cmd, "Should not happen.");
@@ -198,15 +228,22 @@ static void ten_extension_tester_create_and_start_graph(
                                        NULL, NULL, NULL);
   TEN_ASSERT(rc, "Should not happen.");
 
-  ten_string_t start_graph_cmd_json_str;
-  ten_string_init_formatted(&start_graph_cmd_json_str,
-                            "{\
+  if (self->test_mode == TEN_EXTENSION_TESTER_TEST_MODE_SINGLE) {
+    TEN_ASSERT(ten_string_check_integrity(&self->test_target.addon.addon_name),
+               "Invalid test target.");
+
+    const char *addon_name =
+        ten_string_get_raw_str(&self->test_target.addon.addon_name);
+
+    ten_string_t start_graph_cmd_json_str;
+    ten_string_init_formatted(&start_graph_cmd_json_str,
+                              "{\
          \"_ten\": {\
            \"type\": \"start_graph\",\
            \"nodes\": [{\
               \"type\": \"extension\",\
-              \"name\": \"ten:test_extension\",\
-              \"addon\": \"ten:test_extension\",\
+              \"name\": \"_ten_test_extension\",\
+              \"addon\": \"_ten_test_extension\",\
               \"extension_group\": \"test_extension_group_1\",\
               \"app\": \"localhost\"\
            },{\
@@ -219,7 +256,7 @@ static void ten_extension_tester_create_and_start_graph(
            \"connections\": [{\
              \"app\": \"localhost\",\
              \"extension_group\": \"test_extension_group_1\",\
-             \"extension\": \"ten:test_extension\",\
+             \"extension\": \"_ten_test_extension\",\
              \"cmd\": [{\
                \"name\": \"*\",\
                \"dest\": [{\
@@ -261,7 +298,7 @@ static void ten_extension_tester_create_and_start_graph(
                \"dest\": [{\
                   \"app\": \"localhost\",\
                   \"extension_group\": \"test_extension_group_1\",\
-                  \"extension\": \"ten:test_extension\"\
+                  \"extension\": \"_ten_test_extension\"\
                }]\
              }],\
              \"data\": [{\
@@ -269,7 +306,7 @@ static void ten_extension_tester_create_and_start_graph(
                \"dest\": [{\
                   \"app\": \"localhost\",\
                   \"extension_group\": \"test_extension_group_1\",\
-                  \"extension\": \"ten:test_extension\"\
+                  \"extension\": \"_ten_test_extension\"\
                }]\
              }],\
              \"video_frame\": [{\
@@ -277,7 +314,7 @@ static void ten_extension_tester_create_and_start_graph(
                \"dest\": [{\
                   \"app\": \"localhost\",\
                   \"extension_group\": \"test_extension_group_1\",\
-                  \"extension\": \"ten:test_extension\"\
+                  \"extension\": \"_ten_test_extension\"\
                }]\
              }],\
              \"audio_frame\": [{\
@@ -285,29 +322,52 @@ static void ten_extension_tester_create_and_start_graph(
                \"dest\": [{\
                   \"app\": \"localhost\",\
                   \"extension_group\": \"test_extension_group_1\",\
-                  \"extension\": \"ten:test_extension\"\
+                  \"extension\": \"_ten_test_extension\"\
                }]\
              }]\
            }]\
          }\
        }",
-                            ten_string_get_raw_str(first_addon_name),
-                            ten_string_get_raw_str(first_addon_name),
-                            ten_string_get_raw_str(first_addon_name),
-                            ten_string_get_raw_str(first_addon_name),
-                            ten_string_get_raw_str(first_addon_name),
-                            ten_string_get_raw_str(first_addon_name),
-                            ten_string_get_raw_str(first_addon_name));
+                              addon_name, addon_name, addon_name, addon_name,
+                              addon_name, addon_name, addon_name);
 
-  ten_json_t *start_graph_cmd_json = ten_json_from_string(
-      ten_string_get_raw_str(&start_graph_cmd_json_str), NULL);
+    ten_json_t *start_graph_cmd_json = ten_json_from_string(
+        ten_string_get_raw_str(&start_graph_cmd_json_str), NULL);
 
-  ten_string_deinit(&start_graph_cmd_json_str);
+    ten_string_deinit(&start_graph_cmd_json_str);
 
-  rc = ten_msg_from_json(start_graph_cmd, start_graph_cmd_json, NULL);
-  TEN_ASSERT(rc, "Should not happen.");
+    int rc = ten_msg_from_json(start_graph_cmd, start_graph_cmd_json, NULL);
+    TEN_ASSERT(rc, "Should not happen.");
 
-  ten_json_destroy(start_graph_cmd_json);
+    ten_json_destroy(start_graph_cmd_json);
+  } else if (self->test_mode == TEN_EXTENSION_TESTER_TEST_MODE_GRAPH) {
+    TEN_ASSERT(ten_string_check_integrity(&self->test_target.graph.graph_name),
+               "Invalid test target.");
+
+    const char *graph_name =
+        ten_string_get_raw_str(&self->test_target.graph.graph_name);
+    TEN_ASSERT(graph_name, "Should not happen.");
+
+    ten_string_t start_graph_cmd_json_str;
+    ten_string_init_formatted(&start_graph_cmd_json_str,
+                              "{\
+         \"_ten\": {\
+           \"type\": \"start_graph\",\
+           \"predefined_graph\": \"%s\"\
+         }\
+       }",
+                              graph_name);
+
+    ten_json_t *start_graph_cmd_json = ten_json_from_string(
+        ten_string_get_raw_str(&start_graph_cmd_json_str), NULL);
+
+    ten_string_deinit(&start_graph_cmd_json_str);
+
+    int rc = ten_msg_from_json(start_graph_cmd, start_graph_cmd_json, NULL);
+    TEN_ASSERT(rc, "Should not happen.");
+
+    ten_json_destroy(start_graph_cmd_json);
+  }
 
   rc = ten_env_proxy_notify(self->test_app_ten_env_proxy,
                             test_app_ten_env_send_cmd, start_graph_cmd, false,
@@ -399,22 +459,8 @@ static void ten_extension_tester_on_first_task(void *self_,
 bool ten_extension_tester_run(ten_extension_tester_t *self) {
   TEN_ASSERT(self && ten_extension_tester_check_integrity(self, true),
              "Invalid argument.");
-
-  if (ten_list_is_empty(&self->addon_names)) {
-    TEN_LOGE("No addon name is specified.");
-    return false;
-  }
-
-  ten_listnode_t *first_addon_name_node = ten_list_front(&self->addon_names);
-  TEN_ASSERT(first_addon_name_node, "Should not happen.");
-
-  ten_string_t *first_addon_name = ten_str_listnode_get(first_addon_name_node);
-  TEN_ASSERT(first_addon_name, "Should not happen.");
-
-  if (!ten_string_len(first_addon_name)) {
-    TEN_LOGE("No addon name is specified.");
-    return false;
-  }
+  TEN_ASSERT(self->test_mode != TEN_EXTENSION_TESTER_TEST_MODE_INVALID,
+             "Invalid test mode.");
 
   // Inject the task that calls the first task into the runloop of
   // extension_tester, ensuring that the first task is called within the
