@@ -19,6 +19,13 @@ from ten import (
 
 
 class HttpServerExtension(AsyncExtension):
+    async def _send_close_app_cmd(self):
+        close_app_cmd_json = (
+            '{"_ten":{"type":"close_app",' '"dest":[{"app":"localhost"}]}}'
+        )
+        async for _ in self.ten_env.send_json(close_app_cmd_json):
+            pass
+
     async def default_handler(self, request: web_request.Request):
         # Parse the json body.
         try:
@@ -37,11 +44,7 @@ class HttpServerExtension(AsyncExtension):
         else:
             # If the command is a 'close_app' command, send it to the app.
             if "type" in data["_ten"] and data["_ten"]["type"] == "close_app":
-                close_app_cmd_json = (
-                    '{"_ten":{"type":"close_app",'
-                    '"dest":[{"app":"localhost"}]}}'
-                )
-                asyncio.create_task(self.ten_env.send_json(close_app_cmd_json))
+                asyncio.create_task(self._send_close_app_cmd())
                 return web.Response(status=200, text="OK")
             elif "name" in data["_ten"]:
                 # Send the command to the TEN runtime.
@@ -53,7 +56,7 @@ class HttpServerExtension(AsyncExtension):
                 if cmd is None:
                     return web.Response(status=400, text="Bad request")
 
-                cmd_result = await self.ten_env.send_cmd(cmd)
+                cmd_result = await anext(self.ten_env.send_cmd(cmd))
             else:
                 return web.Response(status=404, text="Not found")
 
