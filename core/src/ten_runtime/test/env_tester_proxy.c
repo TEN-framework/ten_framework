@@ -6,6 +6,7 @@
 //
 #include "ten_runtime/test/env_tester_proxy.h"
 
+#include "include_internal/ten_runtime/ten_env_proxy/ten_env_proxy.h"
 #include "include_internal/ten_runtime/test/env_tester.h"
 #include "include_internal/ten_runtime/test/extension_tester.h"
 #include "ten_runtime/common/errno.h"
@@ -42,10 +43,12 @@ ten_env_tester_proxy_t *ten_env_tester_proxy_create(
   ten_signature_set(&self->signature, TEN_ENV_TESTER_PROXY_SIGNATURE);
   self->ten_env_tester = ten_env_tester;
 
-  // The created `ten_env_tester_proxy` needs to be recorded, and the
-  // corresponding `ten_env_tester` cannot be destroyed as long as any
-  // `ten_env_tester_proxy` has not yet been destroyed.
-  ten_env_tester_add_ten_proxy(ten_env_tester, self);
+  ten_extension_tester_t *tester = ten_env_tester->tester;
+  TEN_ASSERT(tester && ten_extension_tester_check_integrity(tester, true),
+             "Should not happen.");
+
+  // Add a reference to the `ten_env_proxy` object.
+  ten_env_proxy_acquire(tester->test_extension_ten_env_proxy, NULL);
 
   return self;
 }
@@ -58,10 +61,13 @@ static void ten_env_tester_on_proxy_deleted(void *self_, void *arg) {
   TEN_ASSERT(self && ten_env_tester_proxy_check_integrity(self),
              "Should not happen.");
 
-  // The `ten_env_tester_proxy` has been deleted, and the corresponding
-  // `ten_env_tester` can be destroyed if there are no other
-  // `ten_env_tester_proxy` objects.
-  ten_env_tester_remove_ten_proxy(ten_env_tester, self);
+  ten_extension_tester_t *tester = ten_env_tester->tester;
+  TEN_ASSERT(tester && ten_extension_tester_check_integrity(tester, true),
+             "Should not happen.");
+
+  // Release the reference to the `ten_env_proxy` object.
+  ten_env_proxy_release(tester->test_extension_ten_env_proxy, NULL);
+
   TEN_FREE(self);
 }
 

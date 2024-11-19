@@ -60,15 +60,18 @@ class ten_env_tester_t {
     }
 
     if (result_handler == nullptr) {
-      rc = ten_env_tester_send_cmd(c_ten_env_tester, cmd->get_underlying_msg(),
-                                   nullptr, nullptr);
+      rc = ten_env_tester_send_cmd(
+          c_ten_env_tester, cmd->get_underlying_msg(), nullptr, nullptr,
+          err != nullptr ? err->get_internal_representation() : nullptr);
     } else {
       auto *result_handler_ptr =
           new ten_env_tester_send_cmd_result_handler_func_t(
               std::move(result_handler));
 
-      rc = ten_env_tester_send_cmd(c_ten_env_tester, cmd->get_underlying_msg(),
-                                   proxy_handle_result, result_handler_ptr);
+      rc = ten_env_tester_send_cmd(
+          c_ten_env_tester, cmd->get_underlying_msg(), proxy_handle_result,
+          result_handler_ptr,
+          err != nullptr ? err->get_internal_representation() : nullptr);
       if (!rc) {
         delete result_handler_ptr;
       }
@@ -110,7 +113,9 @@ class ten_env_tester_t {
       return rc;
     }
 
-    rc = ten_env_tester_send_data(c_ten_env_tester, data->get_underlying_msg());
+    rc = ten_env_tester_send_data(
+        c_ten_env_tester, data->get_underlying_msg(),
+        err != nullptr ? err->get_internal_representation() : nullptr);
 
     if (rc) {
       // Only when the data has been sent successfully, we should give back the
@@ -128,9 +133,11 @@ class ten_env_tester_t {
     return send_data(std::move(data), nullptr);
   }
 
-  void stop_test() {
+  bool stop_test(error_t *err = nullptr) {
     TEN_ASSERT(c_ten_env_tester, "Should not happen.");
-    ten_env_tester_stop_test(c_ten_env_tester);
+    return ten_env_tester_stop_test(
+        c_ten_env_tester,
+        err != nullptr ? err->get_internal_representation() : nullptr);
   }
 
  private:

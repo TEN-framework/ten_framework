@@ -34,8 +34,6 @@ typedef struct ten_env_tester_t {
   ten_env_tester_close_handler_in_target_lang_func_t close_handler;
 
   ten_env_tester_destroy_handler_in_target_lang_func_t destroy_handler;
-
-  ten_list_t ten_env_tester_proxy_list;
 } ten_env_tester_t;
 
 TEN_RUNTIME_API bool ten_env_tester_check_integrity(ten_env_tester_t *self);
@@ -52,9 +50,3 @@ TEN_RUNTIME_API void ten_env_tester_set_close_handler_in_target_lang(
 TEN_RUNTIME_API void ten_env_tester_set_destroy_handler_in_target_lang(
     ten_env_tester_t *self,
     ten_env_tester_destroy_handler_in_target_lang_func_t handler);
-
-TEN_RUNTIME_PRIVATE_API void ten_env_tester_add_ten_proxy(
-    ten_env_tester_t *self, void *ten_proxy);
-
-TEN_RUNTIME_PRIVATE_API void ten_env_tester_remove_ten_proxy(
-    ten_env_tester_t *self, void *ten_proxy);

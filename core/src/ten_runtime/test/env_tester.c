@@ -56,8 +56,6 @@ ten_env_tester_t *ten_env_tester_create(ten_extension_tester_t *tester) {
   self->close_handler = NULL;
   self->destroy_handler = NULL;
 
-  ten_list_init(&self->ten_env_tester_proxy_list);
-
   return self;
 }
 
@@ -67,9 +65,6 @@ void ten_env_tester_destroy(ten_env_tester_t *self) {
   if (self->destroy_handler && self->binding_handle.me_in_target_lang) {
     self->destroy_handler(self->binding_handle.me_in_target_lang);
   }
-
-  TEN_ASSERT(ten_list_is_empty(&self->ten_env_tester_proxy_list),
-             "Should not happen.");
 
   TEN_FREE(self);
 }
@@ -259,9 +254,8 @@ static void test_extension_ten_env_send_video_frame(ten_env_t *ten_env,
 
 bool ten_env_tester_send_cmd(ten_env_tester_t *self, ten_shared_ptr_t *cmd,
                              ten_env_tester_cmd_result_handler_func_t handler,
-                             void *user_data) {
+                             void *user_data, ten_error_t *error) {
   TEN_ASSERT(self && ten_env_tester_check_integrity(self), "Invalid argument.");
-
   ten_env_tester_send_cmd_info_t *send_cmd_info =
       ten_extension_tester_send_cmd_info_create(
           self->tester, ten_shared_ptr_clone(cmd), handler, user_data);
@@ -269,10 +263,11 @@ bool ten_env_tester_send_cmd(ten_env_tester_t *self, ten_shared_ptr_t *cmd,
   TEN_ASSERT(self->tester->test_extension_ten_env_proxy, "Invalid argument.");
   return ten_env_proxy_notify(self->tester->test_extension_ten_env_proxy,
                               test_extension_ten_env_send_cmd, send_cmd_info,
-                              false, NULL);
+                              false, error);
 }
 
-bool ten_env_tester_send_data(ten_env_tester_t *self, ten_shared_ptr_t *data) {
+bool ten_env_tester_send_data(ten_env_tester_t *self, ten_shared_ptr_t *data,
+                              ten_error_t *error) {
   TEN_ASSERT(self && ten_env_tester_check_integrity(self), "Invalid argument.");
 
   ten_env_tester_send_msg_info_t *send_msg_info =
@@ -282,11 +277,12 @@ bool ten_env_tester_send_data(ten_env_tester_t *self, ten_shared_ptr_t *data) {
   TEN_ASSERT(self->tester->test_extension_ten_env_proxy, "Invalid argument.");
   return ten_env_proxy_notify(self->tester->test_extension_ten_env_proxy,
                               test_extension_ten_env_send_data, send_msg_info,
-                              false, NULL);
+                              false, error);
 }
 
 bool ten_env_tester_send_audio_frame(ten_env_tester_t *self,
-                                     ten_shared_ptr_t *audio_frame) {
+                                     ten_shared_ptr_t *audio_frame,
+                                     ten_error_t *error) {
   TEN_ASSERT(self && ten_env_tester_check_integrity(self), "Invalid argument.");
 
   ten_env_tester_send_msg_info_t *send_msg_info =
@@ -296,11 +292,12 @@ bool ten_env_tester_send_audio_frame(ten_env_tester_t *self,
   TEN_ASSERT(self->tester->test_extension_ten_env_proxy, "Invalid argument.");
   return ten_env_proxy_notify(self->tester->test_extension_ten_env_proxy,
                               test_extension_ten_env_send_audio_frame,
-                              send_msg_info, false, NULL);
+                              send_msg_info, false, error);
 }
 
 bool ten_env_tester_send_video_frame(ten_env_tester_t *self,
-                                     ten_shared_ptr_t *video_frame) {
+                                     ten_shared_ptr_t *video_frame,
+                                     ten_error_t *error) {
   TEN_ASSERT(self && ten_env_tester_check_integrity(self), "Invalid argument.");
 
   ten_env_tester_send_msg_info_t *send_msg_info =
@@ -310,10 +307,10 @@ bool ten_env_tester_send_video_frame(ten_env_tester_t *self,
   TEN_ASSERT(self->tester->test_extension_ten_env_proxy, "Invalid argument.");
   return ten_env_proxy_notify(self->tester->test_extension_ten_env_proxy,
                               test_extension_ten_env_send_video_frame,
-                              send_msg_info, false, NULL);
+                              send_msg_info, false, error);
 }
 
-void ten_env_tester_stop_test(ten_env_tester_t *self) {
+bool ten_env_tester_stop_test(ten_env_tester_t *self, ten_error_t *error) {
   TEN_ASSERT(self && ten_env_tester_check_integrity(self), "Invalid argument.");
 
   ten_shared_ptr_t *close_app_cmd = ten_cmd_close_app_create();
@@ -324,8 +321,9 @@ void ten_env_tester_stop_test(ten_env_tester_t *self) {
                                        NULL, NULL, NULL);
   TEN_ASSERT(rc, "Should not happen.");
 
-  ten_env_proxy_notify(self->tester->test_app_ten_env_proxy,
-                       test_app_ten_env_send_cmd, close_app_cmd, false, NULL);
+  return ten_env_proxy_notify(self->tester->test_app_ten_env_proxy,
+                              test_app_ten_env_send_cmd, close_app_cmd, false,
+                              error);
 }
 
 bool ten_env_tester_on_start_done(ten_env_tester_t *self, ten_error_t *err) {
@@ -354,19 +352,4 @@ void ten_env_tester_set_destroy_handler_in_target_lang(
              "Invalid use of ten_env_tester %p.", self);
 
   self->destroy_handler = destroy_handler;
-}
-
-void ten_env_tester_add_ten_proxy(ten_env_tester_t *self, void *ten_proxy) {
-  TEN_ASSERT(self && ten_env_tester_check_integrity(self), "Invalid argument.");
-  TEN_ASSERT(ten_proxy, "Invalid argument.");
-
-  ten_list_push_ptr_back(&self->ten_env_tester_proxy_list, ten_proxy, NULL);
-}
-
-void ten_env_tester_remove_ten_proxy(ten_env_tester_t *self, void *ten_proxy) {
-  TEN_ASSERT(self && ten_env_tester_check_integrity(self), "Invalid argument.");
-  TEN_ASSERT(ten_proxy, "Invalid argument.");
-
-  bool found = ten_list_remove_ptr(&self->ten_env_tester_proxy_list, ten_proxy);
-  TEN_ASSERT(found, "Should not happen.");
 }
