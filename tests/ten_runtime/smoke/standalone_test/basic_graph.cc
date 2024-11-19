@@ -151,69 +151,63 @@ TEST(StandaloneTest, BasicGraph) {  // NOLINT
     //        |                                        v
     //         ----------------------------------------
     //
-    tester->set_test_app_property_json(
-        R"({
-	    "_ten": {
-	    	"log_level": 1,
-	    	"predefined_graphs": [{
-	    		"name": "default",
-	    		"auto_start": false,
-	    		"nodes": [{
-	    			"type": "extension",
-	    			"name": "test_extension_1",
-	    			"addon": "standalone_test_basic_graph__test_extension_1",
-	    			"extension_group": "test_extension_group_1"
-	    		},
-	    		{
-	    			"type": "extension",
-	    			"name": "test_extension_2",
-	    			"addon": "standalone_test_basic_graph__test_extension_2",
-	    			"extension_group": "test_extension_group_2"
-	    		},
-	    		{
-	    			"type": "extension",
-	    			"name": "_ten_test_extension",
-	    			"addon": "_ten_test_extension",
-	    			"extension_group": "test_extension_group"
-	    		}],
-	    		"connections": [{
-	    			"extension_group": "test_extension_group",
-	    			"extension": "_ten_test_extension",
-	    			"cmd": [{
-	    				"name": "process",
-	    				"dest": [{
-	    					"extension_group": "test_extension_group_1",
-	    					"extension": "test_extension_1"
-	    				}]
-	    			}]
-	    		},
-	    		{
-	    			"extension_group": "test_extension_group_1",
-	    			"extension": "test_extension_1",
-	    			"cmd": [{
-	    				"name": "process",
-	    				"dest": [{
-	    					"extension_group": "test_extension_group_2",
-	    					"extension": "test_extension_2"
-	    				}]
-	    			}]
-	    		},
-	    		{
-	    			"extension_group": "test_extension_group_2",
-	    			"extension": "test_extension_2",
-	    			"cmd": [{
-	    				"name": "hello_world",
-	    				"dest": [{
-	    					"extension_group": "test_extension_group",
-	    					"extension": "_ten_test_extension"
-	    				}]
-	    			}]
-	    		}]
-	    	}]
-	    }
-    })");
+    tester->set_test_mode_graph(R"({
+	"_ten": {
+		"type": "start_graph",
+		"nodes": [{
+			"type": "extension",
+			"name": "test_extension_1",
+			"addon": "standalone_test_basic_graph__test_extension_1",
+			"extension_group": "test_extension_group_1"
+		},
+		{
+			"type": "extension",
+			"name": "test_extension_2",
+			"addon": "standalone_test_basic_graph__test_extension_2",
+			"extension_group": "test_extension_group_2"
+		},
+		{
+			"type": "extension",
+			"name": "_ten_test_extension",
+			"addon": "_ten_test_extension",
+			"extension_group": "test_extension_group"
+		}],
+		"connections": [{
+			"extension_group": "test_extension_group",
+			"extension": "_ten_test_extension",
+			"cmd": [{
+				"name": "process",
+				"dest": [{
+					"extension_group": "test_extension_group_1",
+					"extension": "test_extension_1"
+				}]
+			}]
+		},
+		{
+			"extension_group": "test_extension_group_1",
+			"extension": "test_extension_1",
+			"cmd": [{
+				"name": "process",
+				"dest": [{
+					"extension_group": "test_extension_group_2",
+					"extension": "test_extension_2"
+				}]
+			}]
+		},
+		{
+			"extension_group": "test_extension_group_2",
+			"extension": "test_extension_2",
+			"cmd": [{
+				"name": "hello_world",
+				"dest": [{
+					"extension_group": "test_extension_group",
+					"extension": "_ten_test_extension"
+				}]
+			}]
+		}]
 
-    tester->set_test_mode_graph("default");
+	}
+})");
 
     tester->set_on_started_callback(
         [&tester_context](ten::ten_env_tester_t &ten_env) {

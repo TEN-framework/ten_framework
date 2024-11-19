@@ -20,21 +20,13 @@ static void test_app_on_configure(TEN_UNUSED ten_app_t *app,
   TEN_ASSERT(tester && ten_extension_tester_check_integrity(tester, false),
              "Should not happen.");
 
-  bool rc = false;
-
-  if (ten_string_is_empty(&tester->test_app_property_json)) {
-    rc = ten_env_init_property_from_json(ten_env,
-                                         "{\
+  bool rc = ten_env_init_property_from_json(ten_env,
+                                            "{\
                                                \"_ten\": {\
                                                  \"log_level\": 2\
                                                }\
                                              }",
-                                         NULL);
-  } else {
-    rc = ten_env_init_property_from_json(
-        ten_env, ten_string_get_raw_str(&tester->test_app_property_json), NULL);
-  }
-
+                                            NULL);
   TEN_ASSERT(rc, "Should not happen.");
 
   rc = ten_env_on_configure_done(ten_env, NULL);

@@ -58,13 +58,10 @@ TEN_RUNTIME_API void ten_extension_tester_set_test_mode_single(
 // messages input by the tester will be directed to this extension, and all
 // outputs from the extension will be sent back to the tester.
 TEN_RUNTIME_API void ten_extension_tester_set_test_mode_graph(
-    ten_extension_tester_t *self, const char *graph_name);
+    ten_extension_tester_t *self, const char *start_graph_cmd_json);
 
 TEN_RUNTIME_API void ten_extension_tester_add_addon_base_dir(
     ten_extension_tester_t *self, const char *addon_base_dir);
-
-TEN_RUNTIME_API void ten_extension_tester_set_test_app_property_json(
-    ten_extension_tester_t *self, const char *json);
 
 TEN_RUNTIME_API bool ten_extension_tester_run(ten_extension_tester_t *self);
 
