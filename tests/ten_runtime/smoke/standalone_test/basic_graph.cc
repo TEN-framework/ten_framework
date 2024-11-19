@@ -13,6 +13,7 @@
 #include "ten_runtime/binding/cpp/internal/extension.h"
 #include "ten_runtime/binding/cpp/internal/ten_env_proxy.h"
 #include "ten_runtime/binding/cpp/internal/test/env_tester.h"
+#include "ten_runtime/binding/cpp/internal/test/env_tester_proxy.h"
 #include "ten_runtime/common/status_code.h"
 #include "ten_utils/lang/cpp/lib/value.h"
 #include "ten_utils/macro/check.h"
@@ -97,6 +98,13 @@ class extension_tester_1 : public ten::extension_tester_t {
     on_started_callback_ = std::move(callback);
   }
 
+  void set_on_hello_world_callback(
+      std::function<void(ten::ten_env_tester_t &ten_env,
+                         std::unique_ptr<ten::cmd_t> cmd)>
+          callback) {
+    on_hello_world_callback_ = std::move(callback);
+  }
+
  protected:
   void on_start(ten::ten_env_tester_t &ten_env) override {
     ten_env.on_start_done();
@@ -109,14 +117,17 @@ class extension_tester_1 : public ten::extension_tester_t {
   void on_cmd(ten::ten_env_tester_t &ten_env,
               std::unique_ptr<ten::cmd_t> cmd) override {
     if (std::string(cmd->get_name()) == "hello_world") {
-      hello_world_cmd_success = true;
-      ten_env.stop_test();
+      if (on_hello_world_callback_) {
+        on_hello_world_callback_(ten_env, std::move(cmd));
+      }
     }
   }
 
  private:
-  bool hello_world_cmd_success = false;
   std::function<void(ten::ten_env_tester_t &ten_env)> on_started_callback_;
+  std::function<void(ten::ten_env_tester_t &ten_env,
+                     std::unique_ptr<ten::cmd_t> cmd)>
+      on_hello_world_callback_;
 };
 
 }  // namespace
@@ -124,7 +135,7 @@ class extension_tester_1 : public ten::extension_tester_t {
 typedef struct tester_context_t {
   std::mutex mtx;
   std::condition_variable cv;
-  ten::ten_env_tester_t *ten_env{nullptr};
+  ten::ten_env_tester_proxy_t *ten_env_proxy{nullptr};
 } tester_context_t;
 
 TEST(StandaloneTest, BasicGraph) {  // NOLINT
@@ -207,9 +218,18 @@ TEST(StandaloneTest, BasicGraph) {  // NOLINT
     tester->set_on_started_callback(
         [&tester_context](ten::ten_env_tester_t &ten_env) {
           std::lock_guard<std::mutex> lock(tester_context.mtx);
-          tester_context.ten_env = &ten_env;
+          tester_context.ten_env_proxy =
+              ten::ten_env_tester_proxy_t::create(ten_env);
           tester_context.cv.notify_all();
         });
+
+    tester->set_on_hello_world_callback(
+        [&tester_context](ten::ten_env_tester_t &ten_env,
+                          std::unique_ptr<ten::cmd_t> cmd) {
+          delete tester_context.ten_env_proxy;
+          ten_env.stop_test();
+        });
+
     bool rc = tester->run();
     TEN_ASSERT(rc, "Should not happen.");
 
@@ -217,14 +237,24 @@ TEST(StandaloneTest, BasicGraph) {  // NOLINT
   });
 
   std::unique_lock<std::mutex> lock(tester_context.mtx);
-  tester_context.cv.wait(
-      lock, [&tester_context]() { return tester_context.ten_env != nullptr; });
+  tester_context.cv.wait(lock, [&tester_context]() {
+    return tester_context.ten_env_proxy != nullptr;
+  });
 
   // Send command to the graph in the role of '_ten_test_extension' and check
   // the returned result.
-  auto new_cmd = ten::cmd_t::create("process");
-  new_cmd->set_property("data", 3);
-  tester_context.ten_env->send_cmd(std::move(new_cmd));
+  tester_context.ten_env_proxy->notify(
+      [](ten::ten_env_tester_t &ten_env) {
+        auto new_cmd = ten::cmd_t::create("process");
+        new_cmd->set_property("data", 3);
+        ten_env.send_cmd(std::move(new_cmd),
+                         [](ten::ten_env_tester_t &ten_env,
+                            std::unique_ptr<ten::cmd_result_t> result) {
+                           auto data = result->get_property_int64("data");
+                           EXPECT_EQ(data, 36);
+                         });
+      },
+      nullptr);
 
   tester_thread.join();
 }

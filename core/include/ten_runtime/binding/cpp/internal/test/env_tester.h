@@ -135,6 +135,7 @@ class ten_env_tester_t {
 
  private:
   friend extension_tester_t;
+  friend class ten_env_tester_proxy_t;
 
   ::ten_env_tester_t *c_ten_env_tester;
 

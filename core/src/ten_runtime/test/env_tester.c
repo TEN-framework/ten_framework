@@ -56,6 +56,8 @@ ten_env_tester_t *ten_env_tester_create(ten_extension_tester_t *tester) {
   self->close_handler = NULL;
   self->destroy_handler = NULL;
 
+  ten_list_init(&self->ten_env_tester_proxy_list);
+
   return self;
 }
 
@@ -65,6 +67,9 @@ void ten_env_tester_destroy(ten_env_tester_t *self) {
   if (self->destroy_handler && self->binding_handle.me_in_target_lang) {
     self->destroy_handler(self->binding_handle.me_in_target_lang);
   }
+
+  TEN_ASSERT(ten_list_is_empty(&self->ten_env_tester_proxy_list),
+             "Should not happen.");
 
   TEN_FREE(self);
 }
@@ -349,4 +354,19 @@ void ten_env_tester_set_destroy_handler_in_target_lang(
              "Invalid use of ten_env_tester %p.", self);
 
   self->destroy_handler = destroy_handler;
+}
+
+void ten_env_tester_add_ten_proxy(ten_env_tester_t *self, void *ten_proxy) {
+  TEN_ASSERT(self && ten_env_tester_check_integrity(self), "Invalid argument.");
+  TEN_ASSERT(ten_proxy, "Invalid argument.");
+
+  ten_list_push_ptr_back(&self->ten_env_tester_proxy_list, ten_proxy, NULL);
+}
+
+void ten_env_tester_remove_ten_proxy(ten_env_tester_t *self, void *ten_proxy) {
+  TEN_ASSERT(self && ten_env_tester_check_integrity(self), "Invalid argument.");
+  TEN_ASSERT(ten_proxy, "Invalid argument.");
+
+  bool found = ten_list_remove_ptr(&self->ten_env_tester_proxy_list, ten_proxy);
+  TEN_ASSERT(found, "Should not happen.");
 }
