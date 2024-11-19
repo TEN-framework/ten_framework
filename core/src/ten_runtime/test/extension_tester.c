@@ -232,8 +232,8 @@ static void ten_extension_tester_create_and_start_graph(
            \"type\": \"start_graph\",\
            \"nodes\": [{\
               \"type\": \"extension\",\
-              \"name\": \"_ten_test_extension\",\
-              \"addon\": \"_ten_test_extension\",\
+              \"name\": \"ten:test_extension\",\
+              \"addon\": \"ten:test_extension\",\
               \"extension_group\": \"test_extension_group_1\",\
               \"app\": \"localhost\"\
            },{\
@@ -246,7 +246,7 @@ static void ten_extension_tester_create_and_start_graph(
            \"connections\": [{\
              \"app\": \"localhost\",\
              \"extension_group\": \"test_extension_group_1\",\
-             \"extension\": \"_ten_test_extension\",\
+             \"extension\": \"ten:test_extension\",\
              \"cmd\": [{\
                \"name\": \"*\",\
                \"dest\": [{\
@@ -288,7 +288,7 @@ static void ten_extension_tester_create_and_start_graph(
                \"dest\": [{\
                   \"app\": \"localhost\",\
                   \"extension_group\": \"test_extension_group_1\",\
-                  \"extension\": \"_ten_test_extension\"\
+                  \"extension\": \"ten:test_extension\"\
                }]\
              }],\
              \"data\": [{\
@@ -296,7 +296,7 @@ static void ten_extension_tester_create_and_start_graph(
                \"dest\": [{\
                   \"app\": \"localhost\",\
                   \"extension_group\": \"test_extension_group_1\",\
-                  \"extension\": \"_ten_test_extension\"\
+                  \"extension\": \"ten:test_extension\"\
                }]\
              }],\
              \"video_frame\": [{\
@@ -304,7 +304,7 @@ static void ten_extension_tester_create_and_start_graph(
                \"dest\": [{\
                   \"app\": \"localhost\",\
                   \"extension_group\": \"test_extension_group_1\",\
-                  \"extension\": \"_ten_test_extension\"\
+                  \"extension\": \"ten:test_extension\"\
                }]\
              }],\
              \"audio_frame\": [{\
@@ -312,7 +312,7 @@ static void ten_extension_tester_create_and_start_graph(
                \"dest\": [{\
                   \"app\": \"localhost\",\
                   \"extension_group\": \"test_extension_group_1\",\
-                  \"extension\": \"_ten_test_extension\"\
+                  \"extension\": \"ten:test_extension\"\
                }]\
              }]\
            }]\

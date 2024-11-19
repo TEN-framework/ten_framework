@@ -83,9 +83,11 @@ class test_extension_2 : public ten::extension_t {
 };
 
 TEN_CPP_REGISTER_ADDON_AS_EXTENSION(
-    standalone_test_basic_graph__test_extension_1, test_extension_1);
+    standalone_test_basic_graph_outer_thread__test_extension_1,
+    test_extension_1);
 TEN_CPP_REGISTER_ADDON_AS_EXTENSION(
-    standalone_test_basic_graph__test_extension_2, test_extension_2);
+    standalone_test_basic_graph_outer_thread__test_extension_2,
+    test_extension_2);
 
 }  // namespace
 
@@ -138,7 +140,7 @@ typedef struct tester_context_t {
   ten::ten_env_tester_proxy_t *ten_env_proxy{nullptr};
 } tester_context_t;
 
-TEST(StandaloneTest, BasicGraph) {  // NOLINT
+TEST(StandaloneTest, BasicGraphOuterThread) {  // NOLINT
   tester_context_t tester_context;
 
   std::thread tester_thread([&tester_context]() {
@@ -146,7 +148,7 @@ TEST(StandaloneTest, BasicGraph) {  // NOLINT
 
     // The graph is like:
     //
-    // _ten_test_extension -> test_extension_1 -> test_extension_2
+    // ten:test_extension -> test_extension_1 -> test_extension_2
     //        ^                                        |
     //        |                                        v
     //         ----------------------------------------
@@ -157,24 +159,24 @@ TEST(StandaloneTest, BasicGraph) {  // NOLINT
 		"nodes": [{
 			"type": "extension",
 			"name": "test_extension_1",
-			"addon": "standalone_test_basic_graph__test_extension_1",
+			"addon": "standalone_test_basic_graph_outer_thread__test_extension_1",
 			"extension_group": "test_extension_group_1"
 		},
 		{
 			"type": "extension",
 			"name": "test_extension_2",
-			"addon": "standalone_test_basic_graph__test_extension_2",
+			"addon": "standalone_test_basic_graph_outer_thread__test_extension_2",
 			"extension_group": "test_extension_group_2"
 		},
 		{
 			"type": "extension",
-			"name": "_ten_test_extension",
-			"addon": "_ten_test_extension",
+			"name": "ten:test_extension",
+			"addon": "ten:test_extension",
 			"extension_group": "test_extension_group"
 		}],
 		"connections": [{
 			"extension_group": "test_extension_group",
-			"extension": "_ten_test_extension",
+			"extension": "ten:test_extension",
 			"cmd": [{
 				"name": "process",
 				"dest": [{
@@ -201,7 +203,7 @@ TEST(StandaloneTest, BasicGraph) {  // NOLINT
 				"name": "hello_world",
 				"dest": [{
 					"extension_group": "test_extension_group",
-					"extension": "_ten_test_extension"
+					"extension": "ten:test_extension"
 				}]
 			}]
 		}]
@@ -235,14 +237,14 @@ TEST(StandaloneTest, BasicGraph) {  // NOLINT
     return tester_context.ten_env_proxy != nullptr;
   });
 
-  // Send command to the graph in the role of '_ten_test_extension' and check
+  // Send command to the graph in the role of 'ten:test_extension' and check
   // the returned result.
   tester_context.ten_env_proxy->notify(
       [](ten::ten_env_tester_t &ten_env) {
         auto new_cmd = ten::cmd_t::create("process");
         new_cmd->set_property("data", 3);
         ten_env.send_cmd(std::move(new_cmd),
-                         [](ten::ten_env_tester_t &ten_env,
+                         [](ten::ten_env_tester_t & /*ten_env*/,
                             std::unique_ptr<ten::cmd_result_t> result) {
                            auto data = result->get_property_int64("data");
                            EXPECT_EQ(data, 36);

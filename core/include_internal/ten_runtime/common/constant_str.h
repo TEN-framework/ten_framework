@@ -160,7 +160,7 @@
 #define TEN_STR_STAR "*"
 
 #define TEN_STR_DEFAULT_EXTENSION_GROUP "default_extension_group"
-#define TEN_STR_TEN_TEST_EXTENSION "_ten_test_extension"
+#define TEN_STR_TEN_TEST_EXTENSION "ten:test_extension"
 
 // Result return policy.
 #define TEN_STR_RESULT_RETURN_POLICY "result_return_policy"
