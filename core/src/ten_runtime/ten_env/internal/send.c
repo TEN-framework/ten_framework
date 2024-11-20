@@ -148,10 +148,10 @@ static void cmd_result_handler_for_send_cmd(
   TEN_ASSERT(ctx, "Invalid argument.");
   TEN_ASSERT(ctx->result_handler, "Should not happen.");
 
+  // The differences between `send_cmd` and `send_cmd_ex` is that `send_cmd`
+  // will only return the final `result` of `is_completed`. If other behaviors
+  // are needed, users can use `send_cmd_ex`.
   if (ten_cmd_result_is_completed(cmd_result, NULL)) {
-    // The meaning of `send_cmd` is that it will only return the final result of
-    // `is_completed`. If other behaviors are needed, you can use `send_cmd_ex`.
-
     ctx->result_handler(extension, ten_env, cmd_result,
                         ctx->result_handler_user_data);
 
