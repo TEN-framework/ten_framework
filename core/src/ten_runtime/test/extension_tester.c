@@ -436,11 +436,28 @@ static void ten_extension_tester_on_first_task(void *self_,
   ten_extension_tester_create_and_start_graph(self);
 }
 
+static void ten_extension_tester_inherit_thread_ownership(
+    ten_extension_tester_t *self) {
+  // TEN_NOLINTNEXTLINE(thread-check)
+  // thread-check: The correct threading ownership will be setup soon, so we can
+  // _not_ check thread safety here.
+  TEN_ASSERT(self && ten_extension_tester_check_integrity(self, false),
+             "Invalid argument.");
+
+  ten_sanitizer_thread_check_set_belonging_thread_to_current_thread(
+      &self->thread_check);
+}
+
 bool ten_extension_tester_run(ten_extension_tester_t *self) {
-  TEN_ASSERT(self && ten_extension_tester_check_integrity(self, true),
+  // TEN_NOLINTNEXTLINE(thread-check)
+  // thread-check: this function could be called in different threads other than
+  // the creation thread.
+  TEN_ASSERT(self && ten_extension_tester_check_integrity(self, false),
              "Invalid argument.");
   TEN_ASSERT(self->test_mode != TEN_EXTENSION_TESTER_TEST_MODE_INVALID,
              "Invalid test mode.");
+
+  ten_extension_tester_inherit_thread_ownership(self);
 
   // Inject the task that calls the first task into the runloop of
   // extension_tester, ensuring that the first task is called within the
