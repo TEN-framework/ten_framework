@@ -129,6 +129,7 @@ void ten_engine_on_remote_closed(ten_remote_t *remote, void *on_closed_data) {
 
       // The remote is not in the 'remotes' list, we just destroy it.
       ten_remote_destroy(remote);
+      return;
     }
   }
 
