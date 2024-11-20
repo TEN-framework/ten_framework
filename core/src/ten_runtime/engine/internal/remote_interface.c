@@ -106,11 +106,30 @@ void ten_engine_on_remote_closed(ten_remote_t *remote, void *on_closed_data) {
     // the closing of the engine. Therefore, we just destroy the remote.
     ten_remote_destroy(remote);
   } else {
+    bool found_in_remotes = false;
+
     ten_hashhandle_t *hh = ten_hashtable_find_string(
         &self->remotes, ten_string_get_raw_str(&remote->uri));
-    TEN_ASSERT(hh, "Should not happen.");
+    if (hh) {
+      ten_remote_t *connected_remote =
+          CONTAINER_OF_FROM_FIELD(hh, ten_remote_t, hh_in_remote_table);
+      TEN_ASSERT(connected_remote, "Invalid argument.");
+      TEN_ASSERT(ten_remote_check_integrity(connected_remote, true),
+                 "Invalid use of remote %p.", connected_remote);
 
-    ten_hashtable_del(&self->remotes, hh);
+      if (connected_remote == remote) {
+        found_in_remotes = true;
+        // The remote is in the 'remotes' list, we just remove it.
+        ten_hashtable_del(&self->remotes, hh);
+      }
+    }
+
+    if (!found_in_remotes) {
+      TEN_LOGI("The remote %p is not found in the 'remotes' list.", remote);
+
+      // The remote is not in the 'remotes' list, we just destroy it.
+      ten_remote_destroy(remote);
+    }
   }
 
   if (ten_engine_is_closing(self)) {

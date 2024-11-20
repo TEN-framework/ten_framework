@@ -209,8 +209,8 @@ ten_remote_t *ten_remote_create_for_engine(const char *uri,
              "Should not happen.");
 
   // NOTE: Whether the remote uri is duplicated in the engine should __not__
-  // be checked when the remote is created, but should be checked when it is
-  // attached to the engine.
+  // be checked when the remote is created, but should be checked when the
+  // engine is trying to connect to the remote.
 
   ten_remote_t *self = ten_remote_create_empty(uri, connection);
   ten_remote_attach_to_engine(self, engine);
