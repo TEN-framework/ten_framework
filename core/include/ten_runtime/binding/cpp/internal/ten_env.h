@@ -72,65 +72,15 @@ class ten_env_t {
   bool send_cmd_ex(std::unique_ptr<cmd_t> &&cmd,
                    result_handler_func_t &&result_handler = nullptr,
                    error_t *err = nullptr) {
-    TEN_ASSERT(c_ten_env, "Should not happen.");
-
-    bool rc = false;
-
-    if (!cmd) {
-      TEN_ASSERT(0, "Invalid argument.");
-      return rc;
-    }
-
-    if (result_handler == nullptr) {
-      rc = ten_env_send_cmd(
-          c_ten_env, cmd->get_underlying_msg(), nullptr, nullptr,
-          err != nullptr ? err->get_internal_representation() : nullptr);
-    } else {
-      auto *result_handler_ptr =
-          new result_handler_func_t(std::move(result_handler));
-
-      rc = ten_env_send_cmd(
-          c_ten_env, cmd->get_underlying_msg(), proxy_handle_result,
-          result_handler_ptr,
-          err != nullptr ? err->get_internal_representation() : nullptr);
-      if (!rc) {
-        delete result_handler_ptr;
-      }
-    }
-
-    if (rc) {
-      // Only when the cmd has been sent successfully, we should give back the
-      // ownership of the cmd to the TEN runtime.
-      auto *cpp_cmd_ptr = cmd.release();
-      delete cpp_cmd_ptr;
-    } else {
-      TEN_LOGE("Failed to send_cmd: %s", cmd->get_name());
-    }
-
-    return rc;
+    return send_cmd_internal(std::move(cmd), std::move(result_handler), true,
+                             err);
   }
 
   bool send_cmd(std::unique_ptr<cmd_t> &&cmd,
                 result_handler_func_t &&result_handler = nullptr,
                 error_t *err = nullptr) {
-    TEN_ASSERT(c_ten_env, "Should not happen.");
-
-    if (result_handler) {
-      return send_cmd_ex(
-          std::move(cmd),
-          [result_handler](ten::ten_env_t &ten_env,
-                           std::unique_ptr<ten::cmd_result_t> cmd_result) {
-            if (cmd_result->is_completed()) {
-              // The meaning of `send_cmd` is that it will only return the final
-              // result of `is_completed`. If other behaviors are needed, you
-              // can use `send_cmd_ex`.
-              result_handler(ten_env, std::move(cmd_result));
-            }
-          },
-          err);
-    } else {
-      return send_cmd_ex(std::move(cmd), nullptr, err);
-    }
+    return send_cmd_internal(std::move(cmd), std::move(result_handler), false,
+                             err);
   }
 
   bool send_json_ex(const char *json_str,
@@ -869,6 +819,54 @@ class ten_env_t {
   ::ten_env_t *get_c_ten_env() { return c_ten_env; }
 
   bool init_manifest_from_json(const char *json_str, error_t *err);
+
+  bool send_cmd_internal(std::unique_ptr<cmd_t> &&cmd,
+                         result_handler_func_t &&result_handler = nullptr,
+                         bool is_ex = false, error_t *err = nullptr) {
+    TEN_ASSERT(c_ten_env, "Should not happen.");
+
+    bool rc = false;
+
+    if (!cmd) {
+      TEN_ASSERT(0, "Invalid argument.");
+      return rc;
+    }
+
+    ten_env_send_cmd_func_t send_cmd_func = nullptr;
+    if (is_ex) {
+      send_cmd_func = ten_env_send_cmd_ex;
+    } else {
+      send_cmd_func = ten_env_send_cmd;
+    }
+
+    if (result_handler == nullptr) {
+      rc = send_cmd_func(
+          c_ten_env, cmd->get_underlying_msg(), nullptr, nullptr,
+          err != nullptr ? err->get_internal_representation() : nullptr);
+    } else {
+      auto *result_handler_ptr =
+          new result_handler_func_t(std::move(result_handler));
+
+      rc = send_cmd_func(
+          c_ten_env, cmd->get_underlying_msg(), proxy_handle_result,
+          result_handler_ptr,
+          err != nullptr ? err->get_internal_representation() : nullptr);
+      if (!rc) {
+        delete result_handler_ptr;
+      }
+    }
+
+    if (rc) {
+      // Only when the cmd has been sent successfully, we should give back the
+      // ownership of the cmd to the TEN runtime.
+      auto *cpp_cmd_ptr = cmd.release();
+      delete cpp_cmd_ptr;
+    } else {
+      TEN_LOGE("Failed to send_cmd: %s", cmd->get_name());
+    }
+
+    return rc;
+  }
 
   ten_value_t *peek_property_value(const char *path, error_t *err) {
     TEN_ASSERT(c_ten_env, "Should not happen.");

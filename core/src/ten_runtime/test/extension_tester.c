@@ -116,21 +116,6 @@ void ten_extension_tester_add_addon_base_dir(ten_extension_tester_t *self,
   ten_list_push_str_back(&self->addon_base_dirs, addon_base_dir);
 }
 
-static void send_cmd_to_app_callback(ten_extension_t *extension,
-                                     ten_env_t *ten_env,
-                                     ten_shared_ptr_t *cmd_result,
-                                     TEN_UNUSED void *callback_info) {
-  TEN_ASSERT(extension && ten_extension_check_integrity(extension, true),
-             "Should not happen.");
-  TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
-             "Should not happen.");
-  TEN_ASSERT(cmd_result && ten_cmd_base_check_integrity(cmd_result),
-             "Should not happen.");
-
-  TEN_STATUS_CODE status_code = ten_cmd_result_get_status_code(cmd_result);
-  TEN_ASSERT(status_code == TEN_STATUS_CODE_OK, "Should not happen.");
-}
-
 void test_app_ten_env_send_cmd(ten_env_t *ten_env, void *user_data) {
   TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
              "Should not happen.");
@@ -138,8 +123,7 @@ void test_app_ten_env_send_cmd(ten_env_t *ten_env, void *user_data) {
   ten_shared_ptr_t *cmd = user_data;
   TEN_ASSERT(cmd && ten_msg_check_integrity(cmd), "Should not happen.");
 
-  bool rc =
-      ten_env_send_cmd(ten_env, cmd, send_cmd_to_app_callback, NULL, NULL);
+  bool rc = ten_env_send_cmd(ten_env, cmd, NULL, NULL, NULL);
   TEN_ASSERT(rc, "Should not happen.");
 }
 
