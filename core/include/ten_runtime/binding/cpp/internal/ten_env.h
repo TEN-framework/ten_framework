@@ -121,6 +121,9 @@ class ten_env_t {
           [result_handler](ten::ten_env_t &ten_env,
                            std::unique_ptr<ten::cmd_result_t> cmd_result) {
             if (cmd_result->is_completed()) {
+              // The meaning of `send_cmd` is that it will only return the final
+              // result of `is_completed`. If other behaviors are needed, you
+              // can use `send_cmd_ex`.
               result_handler(ten_env, std::move(cmd_result));
             }
           },
