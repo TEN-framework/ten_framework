@@ -94,11 +94,11 @@ void *test_app_thread_main(TEN_UNUSED void *args) {
 }
 
 TEN_CPP_REGISTER_ADDON_AS_EXTENSION(
-    graph_loop_multiple_circle_through_cmd_2__extension, test_extension);
+    graph_loop_multiple_circle_2__extension, test_extension);
 
 }  // namespace
 
-TEST(ExtensionTest, GraphLoopMultipleCircleThroughCmd2) {  // NOLINT
+TEST(ExtensionTest, GraphLoopMultipleCircle2) {  // NOLINT
   // Start app.
   auto *app_thread =
       ten_thread_create("app thread", test_app_thread_main, nullptr);
@@ -117,85 +117,85 @@ TEST(ExtensionTest, GraphLoopMultipleCircleThroughCmd2) {  // NOLINT
              "nodes": [{
                "type": "extension",
                "name": "A",
-               "addon": "graph_loop_multiple_circle_through_cmd_2__extension",
+               "addon": "graph_loop_multiple_circle_2__extension",
                "app": "msgpack://127.0.0.1:8001/",
-               "extension_group": "graph_loop_multiple_circle_through_cmd_2__extension_group",
+               "extension_group": "graph_loop_multiple_circle_2__extension_group",
                "property": {
                  "value": 0
                 }
              },{
                "type": "extension",
                "name": "B",
-               "addon": "graph_loop_multiple_circle_through_cmd_2__extension",
+               "addon": "graph_loop_multiple_circle_2__extension",
                "app": "msgpack://127.0.0.1:8001/",
-               "extension_group": "graph_loop_multiple_circle_through_cmd_2__extension_group",
+               "extension_group": "graph_loop_multiple_circle_2__extension_group",
                "property": {
                  "value": 1
                 }
              },{
                "type": "extension",
                "name": "C",
-               "addon": "graph_loop_multiple_circle_through_cmd_2__extension",
+               "addon": "graph_loop_multiple_circle_2__extension",
                "app": "msgpack://127.0.0.1:8001/",
-               "extension_group": "graph_loop_multiple_circle_through_cmd_2__extension_group",
+               "extension_group": "graph_loop_multiple_circle_2__extension_group",
                "property": {
                  "value": 2
                 }
              },{
                "type": "extension",
                "name": "D",
-               "addon": "graph_loop_multiple_circle_through_cmd_2__extension",
+               "addon": "graph_loop_multiple_circle_2__extension",
                "app": "msgpack://127.0.0.1:8001/",
-               "extension_group": "graph_loop_multiple_circle_through_cmd_2__extension_group",
+               "extension_group": "graph_loop_multiple_circle_2__extension_group",
                "property": {
                  "value": 3
                 }
              }],
              "connections": [{
                "app": "msgpack://127.0.0.1:8001/",
-               "extension_group": "graph_loop_multiple_circle_through_cmd_2__extension_group",
+               "extension_group": "graph_loop_multiple_circle_2__extension_group",
                "extension": "A",
                "cmd": [{
                  "name": "sum",
                  "dest": [{
                    "app": "msgpack://127.0.0.1:8001/",
-                   "extension_group": "graph_loop_multiple_circle_through_cmd_2__extension_group",
+                   "extension_group": "graph_loop_multiple_circle_2__extension_group",
                    "extension": "B"
                  }]
                }]
              },{
                "app": "msgpack://127.0.0.1:8001/",
-               "extension_group": "graph_loop_multiple_circle_through_cmd_2__extension_group",
+               "extension_group": "graph_loop_multiple_circle_2__extension_group",
                "extension": "B",
                "cmd": [{
                  "name": "sum",
                  "dest": [{
                    "app": "msgpack://127.0.0.1:8001/",
-                   "extension_group": "graph_loop_multiple_circle_through_cmd_2__extension_group",
+                   "extension_group": "graph_loop_multiple_circle_2__extension_group",
                    "extension": "C"
                  }]
                }]
              },{
                "app": "msgpack://127.0.0.1:8001/",
-               "extension_group": "graph_loop_multiple_circle_through_cmd_2__extension_group",
+               "extension_group": "graph_loop_multiple_circle_2__extension_group",
                "extension": "C",
                "cmd": [{
                  "name": "sum",
                  "dest": [{
                    "app": "msgpack://127.0.0.1:8001/",
-                   "extension_group": "graph_loop_multiple_circle_through_cmd_2__extension_group",
+                   "extension_group": "graph_loop_multiple_circle_2__extension_group",
                    "extension": "D"
                  }]
                }]
              },{
                "app": "msgpack://127.0.0.1:8001/",
-               "extension_group": "graph_loop_multiple_circle_through_cmd_2__extension_group",
+               "extension_group": "graph_loop_multiple_circle_2__extension_group",
                "extension": "D",
                "cmd": [{
                  "name": "sum",
                  "dest": [{
                    "app": "msgpack://127.0.0.1:8001/",
-                   "extension_group": "graph_loop_multiple_circle_through_cmd_2__extension_group",
+                   "extension_group": "graph_loop_multiple_circle_2__extension_group",
                    "extension": "B"
                  }]
                }]
@@ -211,7 +211,7 @@ TEST(ExtensionTest, GraphLoopMultipleCircleThroughCmd2) {  // NOLINT
             "seq_id": "137",
             "dest": [{
               "app": "msgpack://127.0.0.1:8001/",
-              "extension_group": "graph_loop_multiple_circle_through_cmd_2__extension_group",
+              "extension_group": "graph_loop_multiple_circle_2__extension_group",
               "extension": "A"
             }]
            }
