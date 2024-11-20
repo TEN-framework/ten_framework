@@ -355,7 +355,7 @@ static void ten_engine_connect_to_remote_after_remote_is_created(
     TEN_LOGD("Destroy remote %p for %s because it's duplicated.", remote,
              ten_string_get_raw_str(&remote->uri));
 
-    ten_remote_destroy(remote);
+    ten_remote_close(remote);
     ten_shared_ptr_destroy(start_graph_cmd);
     return;
   }
