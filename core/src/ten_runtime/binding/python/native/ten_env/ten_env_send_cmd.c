@@ -147,7 +147,7 @@ PyObject *ten_py_ten_env_send_cmd(PyObject *self, PyObject *args) {
 
   ten_py_cmd_t *py_cmd = NULL;
   PyObject *cb_func = NULL;
-  bool is_ex = false;
+  int is_ex = false;
 
   if (!PyArg_ParseTuple(args, "O!Op", ten_py_cmd_py_type(), &py_cmd, &cb_func,
                         &is_ex)) {
