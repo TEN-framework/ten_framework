@@ -10,7 +10,9 @@
 
 #include "gtest/gtest.h"
 #include "include_internal/ten_runtime/binding/cpp/ten.h"
+#include "ten_runtime/binding/cpp/internal/ten_env.h"
 #include "ten_utils/lib/thread.h"
+#include "ten_utils/log/log.h"
 #include "tests/common/client/cpp/msgpack_tcp.h"
 #include "tests/ten_runtime/smoke/extension_test/util/binding/cpp/check.h"
 
@@ -36,6 +38,10 @@ class test_extension : public ten::extension_t {
 
   void on_cmd(ten::ten_env_t &ten_env,
               std::unique_ptr<ten::cmd_t> cmd) override {
+    TEN_ENV_LOG_INFO(
+        ten_env,
+        (std::string("xxxx on_cmd") + std::string(cmd->get_name())).c_str());
+
     if (std::string(cmd->get_name()) == "sum") {
       if (counter_ == 2) {
         auto json = nlohmann::json::parse(cmd->to_json());
@@ -94,11 +100,12 @@ void *test_app_thread_main(TEN_UNUSED void *args) {
 }
 
 TEN_CPP_REGISTER_ADDON_AS_EXTENSION(
-    graph_loop_multiple_circle_2__extension, test_extension);
+    graph_loop_multiple_circle_through_cmd_with_default__extension,
+    test_extension);
 
 }  // namespace
 
-TEST(ExtensionTest, DISABLED_GraphLoopMultipleCircle2) {  // NOLINT
+TEST(ExtensionTest, GraphLoopMultipleCircleThroughCmdWithDefault) {  // NOLINT
   // Start app.
   auto *app_thread =
       ten_thread_create("app thread", test_app_thread_main, nullptr);
@@ -117,85 +124,85 @@ TEST(ExtensionTest, DISABLED_GraphLoopMultipleCircle2) {  // NOLINT
              "nodes": [{
                "type": "extension",
                "name": "A",
-               "addon": "graph_loop_multiple_circle_2__extension",
+               "addon": "graph_loop_multiple_circle_through_cmd_with_default__extension",
                "app": "msgpack://127.0.0.1:8001/",
-               "extension_group": "graph_loop_multiple_circle_2__extension_group",
+               "extension_group": "graph_loop_multiple_circle_through_cmd_with_default__extension_group",
                "property": {
                  "value": 0
                 }
              },{
                "type": "extension",
                "name": "B",
-               "addon": "graph_loop_multiple_circle_2__extension",
+               "addon": "graph_loop_multiple_circle_through_cmd_with_default__extension",
                "app": "msgpack://127.0.0.1:8001/",
-               "extension_group": "graph_loop_multiple_circle_2__extension_group",
+               "extension_group": "graph_loop_multiple_circle_through_cmd_with_default__extension_group",
                "property": {
                  "value": 1
                 }
              },{
                "type": "extension",
                "name": "C",
-               "addon": "graph_loop_multiple_circle_2__extension",
+               "addon": "graph_loop_multiple_circle_through_cmd_with_default__extension",
                "app": "msgpack://127.0.0.1:8001/",
-               "extension_group": "graph_loop_multiple_circle_2__extension_group",
+               "extension_group": "graph_loop_multiple_circle_through_cmd_with_default__extension_group",
                "property": {
                  "value": 2
                 }
              },{
                "type": "extension",
                "name": "D",
-               "addon": "graph_loop_multiple_circle_2__extension",
+               "addon": "graph_loop_multiple_circle_through_cmd_with_default__extension",
                "app": "msgpack://127.0.0.1:8001/",
-               "extension_group": "graph_loop_multiple_circle_2__extension_group",
+               "extension_group": "graph_loop_multiple_circle_through_cmd_with_default__extension_group",
                "property": {
                  "value": 3
                 }
              }],
              "connections": [{
                "app": "msgpack://127.0.0.1:8001/",
-               "extension_group": "graph_loop_multiple_circle_2__extension_group",
+               "extension_group": "graph_loop_multiple_circle_through_cmd_with_default__extension_group",
                "extension": "A",
                "cmd": [{
                  "name": "sum",
                  "dest": [{
                    "app": "msgpack://127.0.0.1:8001/",
-                   "extension_group": "graph_loop_multiple_circle_2__extension_group",
+                   "extension_group": "graph_loop_multiple_circle_through_cmd_with_default__extension_group",
                    "extension": "B"
                  }]
                }]
              },{
                "app": "msgpack://127.0.0.1:8001/",
-               "extension_group": "graph_loop_multiple_circle_2__extension_group",
+               "extension_group": "graph_loop_multiple_circle_through_cmd_with_default__extension_group",
                "extension": "B",
                "cmd": [{
                  "name": "sum",
                  "dest": [{
                    "app": "msgpack://127.0.0.1:8001/",
-                   "extension_group": "graph_loop_multiple_circle_2__extension_group",
+                   "extension_group": "graph_loop_multiple_circle_through_cmd_with_default__extension_group",
                    "extension": "C"
                  }]
                }]
              },{
                "app": "msgpack://127.0.0.1:8001/",
-               "extension_group": "graph_loop_multiple_circle_2__extension_group",
+               "extension_group": "graph_loop_multiple_circle_through_cmd_with_default__extension_group",
                "extension": "C",
                "cmd": [{
                  "name": "sum",
                  "dest": [{
                    "app": "msgpack://127.0.0.1:8001/",
-                   "extension_group": "graph_loop_multiple_circle_2__extension_group",
+                   "extension_group": "graph_loop_multiple_circle_through_cmd_with_default__extension_group",
                    "extension": "D"
                  }]
                }]
              },{
                "app": "msgpack://127.0.0.1:8001/",
-               "extension_group": "graph_loop_multiple_circle_2__extension_group",
+               "extension_group": "graph_loop_multiple_circle_through_cmd_with_default__extension_group",
                "extension": "D",
                "cmd": [{
                  "name": "sum",
                  "dest": [{
                    "app": "msgpack://127.0.0.1:8001/",
-                   "extension_group": "graph_loop_multiple_circle_2__extension_group",
+                   "extension_group": "graph_loop_multiple_circle_through_cmd_with_default__extension_group",
                    "extension": "B"
                  }]
                }]
@@ -204,6 +211,8 @@ TEST(ExtensionTest, DISABLED_GraphLoopMultipleCircle2) {  // NOLINT
          })"_json);
   ten_test::check_status_code_is(resp, TEN_STATUS_CODE_OK);
 
+  TEN_LOGI("xxxx Start graph done.");
+
   resp = client->send_json_and_recv_resp_in_json(
       R"({
           "_ten": {
@@ -211,15 +220,19 @@ TEST(ExtensionTest, DISABLED_GraphLoopMultipleCircle2) {  // NOLINT
             "seq_id": "137",
             "dest": [{
               "app": "msgpack://127.0.0.1:8001/",
-              "extension_group": "graph_loop_multiple_circle_2__extension_group",
+              "extension_group": "graph_loop_multiple_circle_through_cmd_with_default__extension_group",
               "extension": "A"
             }]
            }
          })"_json);
   ten_test::check_status_code_is(resp, TEN_STATUS_CODE_OK);
 
+  TEN_LOGI("xxxx Send cmd done.");
+
   nlohmann::json detail = resp["detail"];
   EXPECT_EQ((1 + 2 + 3) * 2, detail["total"].get<std::int32_t>());
+
+  TEN_LOGI("xxxx prepare to stop graph.");
 
   delete client;
 
