@@ -133,6 +133,68 @@ class ten_env_tester_t {
     return send_data(std::move(data), nullptr);
   }
 
+  virtual bool send_audio_frame(std::unique_ptr<audio_frame_t> &&audio_frame,
+                                error_t *err) {
+    TEN_ASSERT(c_ten_env_tester, "Should not happen.");
+
+    bool rc = false;
+
+    if (!audio_frame) {
+      TEN_ASSERT(0, "Invalid argument.");
+      return rc;
+    }
+
+    rc = ten_env_tester_send_audio_frame(
+        c_ten_env_tester, audio_frame->get_underlying_msg(),
+        err != nullptr ? err->get_internal_representation() : nullptr);
+
+    if (rc) {
+      // Only when the audio_frame has been sent successfully, we should give
+      // back the ownership of the audio_frame to the TEN runtime.
+      auto *cpp_audio_frame_ptr = audio_frame.release();
+      delete cpp_audio_frame_ptr;
+    } else {
+      TEN_LOGE("Failed to send_audio_frame: %s", audio_frame->get_name());
+    }
+
+    return rc;
+  }
+
+  bool send_audio_frame(std::unique_ptr<audio_frame_t> &&audio_frame) {
+    return send_audio_frame(std::move(audio_frame), nullptr);
+  }
+
+  virtual bool send_video_frame(std::unique_ptr<video_frame_t> &&video_frame,
+                                error_t *err) {
+    TEN_ASSERT(c_ten_env_tester, "Should not happen.");
+
+    bool rc = false;
+
+    if (!video_frame) {
+      TEN_ASSERT(0, "Invalid argument.");
+      return rc;
+    }
+
+    rc = ten_env_tester_send_video_frame(
+        c_ten_env_tester, video_frame->get_underlying_msg(),
+        err != nullptr ? err->get_internal_representation() : nullptr);
+
+    if (rc) {
+      // Only when the video_frame has been sent successfully, we should give
+      // back the ownership of the video_frame to the TEN runtime.
+      auto *cpp_video_frame_ptr = video_frame.release();
+      delete cpp_video_frame_ptr;
+    } else {
+      TEN_LOGE("Failed to send_video_frame: %s", video_frame->get_name());
+    }
+
+    return rc;
+  }
+
+  bool send_video_frame(std::unique_ptr<video_frame_t> &&video_frame) {
+    return send_video_frame(std::move(video_frame), nullptr);
+  }
+
   bool stop_test(error_t *err = nullptr) {
     TEN_ASSERT(c_ten_env_tester, "Should not happen.");
     return ten_env_tester_stop_test(
