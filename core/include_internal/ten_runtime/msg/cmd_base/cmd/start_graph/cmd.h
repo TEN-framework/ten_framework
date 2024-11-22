@@ -77,10 +77,6 @@ TEN_RUNTIME_PRIVATE_API bool ten_raw_cmd_start_graph_init_from_json(
 TEN_RUNTIME_PRIVATE_API void ten_raw_cmd_start_graph_as_msg_destroy(
     ten_msg_t *self);
 
-TEN_RUNTIME_PRIVATE_API ten_msg_t *
-ten_raw_cmd_start_graph_as_msg_create_from_json(ten_json_t *json,
-                                                ten_error_t *err);
-
 TEN_RUNTIME_PRIVATE_API ten_list_t
 ten_cmd_start_graph_get_extension_addon_and_instance_name_pairs_of_specified_extension_group(
     ten_shared_ptr_t *self, const char *app_uri, const char *graph_id,
