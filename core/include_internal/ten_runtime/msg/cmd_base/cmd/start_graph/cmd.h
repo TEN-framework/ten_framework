@@ -71,6 +71,9 @@ TEN_RUNTIME_PRIVATE_API void ten_cmd_start_graph_fill_loc_info(
 TEN_RUNTIME_PRIVATE_API bool ten_raw_cmd_start_graph_as_msg_init_from_json(
     ten_msg_t *self, ten_json_t *json, ten_error_t *err);
 
+TEN_RUNTIME_PRIVATE_API bool ten_raw_cmd_start_graph_init_from_json(
+    ten_cmd_start_graph_t *self, ten_json_t *json, ten_error_t *err);
+
 TEN_RUNTIME_PRIVATE_API void ten_raw_cmd_start_graph_as_msg_destroy(
     ten_msg_t *self);
 

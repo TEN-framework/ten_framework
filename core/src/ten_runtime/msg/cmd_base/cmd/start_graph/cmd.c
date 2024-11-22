@@ -81,9 +81,9 @@ ten_shared_ptr_t *ten_cmd_start_graph_create(void) {
                                ten_raw_cmd_start_graph_destroy);
 }
 
-static bool ten_raw_cmd_start_graph_init_from_json(ten_cmd_start_graph_t *self,
-                                                   ten_json_t *json,
-                                                   ten_error_t *err) {
+bool ten_raw_cmd_start_graph_init_from_json(ten_cmd_start_graph_t *self,
+                                            ten_json_t *json,
+                                            ten_error_t *err) {
   TEN_ASSERT(self && ten_raw_cmd_check_integrity((ten_cmd_t *)self),
              "Should not happen.");
   TEN_ASSERT(json && ten_json_check_integrity(json), "Should not happen.");
