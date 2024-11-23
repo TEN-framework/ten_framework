@@ -268,6 +268,11 @@ TEN_RUNTIME_PRIVATE_API bool ten_raw_msg_get_one_field_from_json(
     ten_msg_t *self, ten_msg_field_process_data_t *field, void *user_data,
     ten_error_t *err);
 
+TEN_RUNTIME_PRIVATE_API bool
+ten_raw_msg_get_one_field_from_json_include_internal_field(
+    ten_msg_t *self, ten_msg_field_process_data_t *field, void *user_data,
+    ten_error_t *err);
+
 TEN_RUNTIME_PRIVATE_API bool ten_raw_msg_put_one_field_to_json(
     ten_msg_t *self, ten_msg_field_process_data_t *field, void *user_data,
     ten_error_t *err);

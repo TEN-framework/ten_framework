@@ -15,15 +15,15 @@ int main(TEN_UNUSED int argc, TEN_UNUSED char **argv) {
 
   auto test_cmd = ten::cmd_t::create("test");
   test_cmd->set_dest("msgpack://127.0.0.1:8007/", "default", "nodetest", "A");
-  cmd_result = client->send_cmd_and_recv_result(std::move(test_cmd));
+  auto cmd_result = client->send_cmd_and_recv_result(std::move(test_cmd));
   TEN_ASSERT(TEN_STATUS_CODE_OK == cmd_result->get_status_code(),
              "Should not happen.");
 
   TEN_LOGD("Got graph result.");
 
-  std::string resp_str = cmd_result->get_property_string("detail");
-  TEN_LOGD("Got result: %s", resp_str.c_str());
-  TEN_ASSERT(resp_str == std::string("okok"), "Should not happen.");
+  std::string detail_str = cmd_result->get_property_string("detail");
+  TEN_LOGD("Got result: %s", detail_str.c_str());
+  TEN_ASSERT(detail_str == std::string("okok"), "Should not happen.");
 
   // NOTE the order: client destroy, then connection lost, then nodejs exits.
   delete client;

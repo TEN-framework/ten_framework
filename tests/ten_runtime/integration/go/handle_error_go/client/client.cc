@@ -20,8 +20,8 @@ int main(TEN_UNUSED int argc, TEN_UNUSED char **argv) {
   TEN_ASSERT(TEN_STATUS_CODE_ERROR == cmd_result->get_status_code(),
              "Should not happen.");
 
-  std::string resp_str = cmd_result->get_property_string("detail");
-  TEN_LOGD("got result: %s", resp_str.c_str());
+  std::string detail_str = cmd_result->get_property_string("detail");
+  TEN_LOGD("got result: %s", detail_str.c_str());
 
   // NOTE the order: client destroy, then connection lost, then nodejs exits
   delete client;

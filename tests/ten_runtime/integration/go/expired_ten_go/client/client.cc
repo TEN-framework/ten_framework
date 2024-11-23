@@ -21,9 +21,9 @@ int main(TEN_UNUSED int argc, TEN_UNUSED char **argv) {
   TEN_ASSERT(TEN_STATUS_CODE_OK == cmd_result->get_status_code(),
              "Should not happen.");
 
-  std::string resp_str = cmd_result->get_property_string("detail");
-  TEN_LOGD("got result: %s", resp_str.c_str());
-  TEN_ASSERT(resp_str == std::string("ten"), "Should not happen.");
+  std::string detail_str = cmd_result->get_property_string("detail");
+  TEN_LOGD("got result: %s", detail_str.c_str());
+  TEN_ASSERT(detail_str == std::string("ten"), "Should not happen.");
 
   // NOTE the order: client destroy, then connection lost, then nodejs exits
   delete client;

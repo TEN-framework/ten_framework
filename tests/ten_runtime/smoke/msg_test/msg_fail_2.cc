@@ -27,38 +27,14 @@ class test_extension : public ten::extension_t {
       hello_world_cmd = std::move(cmd);
 
       // Start a timer.
-      std::unique_ptr<ten::cmd_t> timer_cmd = ten::cmd_timer_t::create();
+      auto timer_cmd = ten::cmd_timer_t::create();
       timer_cmd->set_dest("localhost", nullptr, nullptr, nullptr);
+      timer_cmd->set_timer_id(55);
+      timer_cmd->set_timeout_in_us(100);
+      timer_cmd->set_times(1);
 
-      bool success = timer_cmd->from_json(
-          // clang-format off
-                 R"({
-                      "_ten": {
-                        "type": "incorrect_type",
-                        "timer_id": 55,
-                        "timeout_in_us": 100,
-                        "times": 1
-                      }
-                    })"
-          // clang-format on
-      );
-      EXPECT_EQ(success, false);
-
-      success = timer_cmd->from_json(
-          // clang-format off
-                 R"({
-                      "_ten": {
-                        "timer_id": 55,
-                        "timeout_in_us": 100,
-                        "times": 1
-                      }
-                    })"
-          // clang-format on
-      );
-      EXPECT_EQ(success, true);
-
-      success = ten_env.send_cmd(std::move(timer_cmd));
-      EXPECT_EQ(success, true);
+      bool rc = ten_env.send_cmd(std::move(timer_cmd));
+      EXPECT_EQ(rc, true);
     } else if (cmd->get_type() == TEN_MSG_TYPE_CMD_TIMEOUT &&
                std::unique_ptr<ten::cmd_timeout_t>(
                    static_cast<ten::cmd_timeout_t *>(cmd.release()))
