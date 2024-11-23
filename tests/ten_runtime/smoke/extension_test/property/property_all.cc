@@ -6,7 +6,6 @@
 //
 #include <nlohmann/json.hpp>
 #include <string>
-#include <vector>
 
 #include "gtest/gtest.h"
 #include "include_internal/ten_runtime/binding/cpp/ten.h"
@@ -148,7 +147,7 @@ TEST(ExtensionTest, PropertyAll) {  // NOLINT
   auto *client = new ten::msgpack_tcp_client_t("msgpack://127.0.0.1:8001/");
 
   // Send graph with a property.
-  nlohmann::json command =
+  nlohmann::json start_graph_cmd_content_str =
       R"({
            "_ten": {
              "type": "start_graph",
@@ -163,24 +162,23 @@ TEST(ExtensionTest, PropertyAll) {  // NOLINT
              }]
            }
          })"_json;
-  command["_ten"]["nodes"][0]["property"][CONN_PROP_NAME] = CONN_PROP_VAL;
+  start_graph_cmd_content_str["_ten"]["nodes"][0]["property"][CONN_PROP_NAME] =
+      CONN_PROP_VAL;
 
-  auto cmd_result = client->send_json_and_recv_result(command);
+  auto start_graph_cmd = ten::cmd_start_graph_t::create();
+  start_graph_cmd->set_nodes_and_connections_from_json(
+      start_graph_cmd_content_str.dump().c_str());
+
+  auto cmd_result =
+      client->send_cmd_and_recv_result(std::move(start_graph_cmd));
+
   ten_test::check_status_code(cmd_result, TEN_STATUS_CODE_OK);
 
   // Send a user-defined 'hello world' command.
-  cmd_result = client->send_json_and_recv_result(
-      R"({
-           "_ten": {
-             "name": "hello_world",
-             "seq_id": "137",
-             "dest":[{
-               "app": "msgpack://127.0.0.1:8001/",
-               "extension_group": "property_all__extension_group",
-               "extension": "test_extension"
-             }]
-           }
-         })"_json);
+  auto hello_world_cmd = ten::cmd_t::create("hello_world");
+  hello_world_cmd->set_dest("msgpack://127.0.0.1:8001/", nullptr,
+                            "property_all__extension_group", "test_extension");
+  cmd_result = client->send_cmd_and_recv_result(std::move(hello_world_cmd));
   ten_test::check_status_code(cmd_result, TEN_STATUS_CODE_OK);
   ten_test::check_detail_with_string(cmd_result, "hello world, too");
 

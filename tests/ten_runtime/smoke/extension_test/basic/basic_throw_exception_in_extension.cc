@@ -183,12 +183,9 @@ TEST(ExtensionTest, BasicThrowExceptionInExtension) {  // NOLINT
     client = new ten::msgpack_tcp_client_t("msgpack://127.0.0.1:8001/");
 
     // Send graph.
-    auto cmd_result = client->send_json_and_recv_result(
-        R"({
-             "_ten": {
-               "type": "start_graph",
-               "seq_id": "55",
-               "nodes": [{
+    auto start_graph_cmd = ten::cmd_start_graph_t::create();
+    start_graph_cmd->set_nodes_and_connections_from_json(R"({
+           "_ten": {"nodes": [{
                  "type": "extension",
                  "name": "test_extension_1",
                  "addon": "basic_throw_exception_in_extension__extension_1",
@@ -251,8 +248,9 @@ TEST(ExtensionTest, BasicThrowExceptionInExtension) {  // NOLINT
                  }]
                }]
              }
-           })"_json);
-
+           })");
+    auto cmd_result =
+        client->send_cmd_and_recv_result(std::move(start_graph_cmd));
     if (cmd_result) {
       ten_test::check_status_code(cmd_result, TEN_STATUS_CODE_OK);
       break;
@@ -266,18 +264,11 @@ TEST(ExtensionTest, BasicThrowExceptionInExtension) {  // NOLINT
   }
 
   // Send a user-defined 'hello world' command to 'extension 1'.
-  client->send_json(
-      R"({
-           "_ten": {
-             "name": "hello_world",
-             "seq_id": "137",
-             "dest":[{
-               "app": "msgpack://127.0.0.1:8001/",
-               "extension_group": "basic_throw_exception_in_extension_1",
-               "extension": "test_extension_1"
-             }]
-           }
-         })"_json);
+  auto hello_world_cmd = ten::cmd_t::create("hello_world");
+  hello_world_cmd->set_dest("msgpack://127.0.0.1:8001/", nullptr,
+                            "basic_throw_exception_in_extension_1",
+                            "test_extension_1");
+  client->send_cmd(std::move(hello_world_cmd));
 
   delete client;
 

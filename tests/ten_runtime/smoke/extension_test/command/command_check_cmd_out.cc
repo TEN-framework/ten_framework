@@ -6,13 +6,10 @@
 //
 #include <nlohmann/json.hpp>
 #include <string>
-#include <vector>
 
 #include "gtest/gtest.h"
 #include "include_internal/ten_runtime/binding/cpp/ten.h"
-#include "ten_utils/lib/json.h"
 #include "ten_utils/lib/thread.h"
-#include "ten_utils/lib/time.h"
 #include "tests/common/client/cpp/msgpack_tcp.h"
 #include "tests/ten_runtime/smoke/extension_test/util/binding/cpp/check.h"
 
@@ -132,36 +129,19 @@ TEST(ExtensionTest, CommandCheckCmdOut) {  // NOLINT
   auto *client = new ten::msgpack_tcp_client_t("msgpack://127.0.0.1:8001/");
 
   // Send a custom command which no other extensions can deal with.
-  auto cmd_result = client->send_json_and_recv_result(
-      R"({
-         "_ten": {
-           "name": "hello",
-           "seq_id": "136",
-           "dest": [{
-             "app": "msgpack://127.0.0.1:8001/",
-             "graph": "default",
-             "extension_group": "command_check_cmd_out_extension_1",
-             "extension": "test_extension_1"
-           }]
-         }
-       })"_json);
+  auto hello_cmd = ten::cmd_t::create("hello");
+  hello_cmd->set_dest("msgpack://127.0.0.1:8001/", "default",
+                      "command_check_cmd_out_extension_1", "test_extension_1");
+  auto cmd_result = client->send_cmd_and_recv_result(std::move(hello_cmd));
   ten_test::check_status_code(cmd_result, TEN_STATUS_CODE_OK);
   ten_test::check_detail_with_string(cmd_result, "can not find a way out");
 
   // Send a user-defined 'hello world' command.
-  cmd_result = client->send_json_and_recv_result(
-      R"({
-         "_ten": {
-           "name": "hello_world",
-           "seq_id": "137",
-           "dest": [{
-             "app": "msgpack://127.0.0.1:8001/",
-             "graph": "default",
-             "extension_group": "command_check_cmd_out_extension_1",
-             "extension": "test_extension_1"
-           }]
-         }
-       })"_json);
+  auto hello_world_cmd = ten::cmd_t::create("hello_world");
+  hello_world_cmd->set_dest("msgpack://127.0.0.1:8001/", "default",
+                            "command_check_cmd_out_extension_1",
+                            "test_extension_1");
+  cmd_result = client->send_cmd_and_recv_result(std::move(hello_world_cmd));
   ten_test::check_status_code(cmd_result, TEN_STATUS_CODE_OK);
   ten_test::check_detail_with_string(cmd_result, "hello world, too");
 

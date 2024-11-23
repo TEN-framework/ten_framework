@@ -92,19 +92,10 @@ TEST(ExtensionTest, BatchSendMsgsInMigration) {  // NOLINT
   // transfer one message to the runtime before the connection migration is
   // completed.
   for (int i = 0; i < size; i++) {
-    client->send_json(
-        R"({
-             "_ten": {
-               "name": "test",
-               "seq_id": "123",
-               "dest": [{
-                 "app": "msgpack://127.0.0.1:8001/",
-                 "graph": "default",
-                 "extension_group": "migration_group",
-                 "extension": "migration"
-               }]
-             }
-           })"_json);
+    auto test_cmd = ten::cmd_t::create("test");
+    test_cmd->set_dest("msgpack://127.0.0.1:8001/", "default",
+                       "migration_group", "migration");
+    client->send_cmd(std::move(test_cmd));
   }
 
   int count = 0;

@@ -168,12 +168,9 @@ TEST(VideoFrameTest, MultiDestVideoFrame) {  // NOLINT
   auto *client = new ten::msgpack_tcp_client_t("msgpack://127.0.0.1:8001/");
 
   // Send graph.
-  auto cmd_result = client->send_json_and_recv_result(
-      R"({
-           "_ten": {
-             "type": "start_graph",
-             "seq_id": "55",
-             "nodes": [{
+  auto start_graph_cmd = ten::cmd_start_graph_t::create();
+  start_graph_cmd->set_nodes_and_connections_from_json(R"({
+           "_ten": {"nodes": [{
                "type": "extension",
                "name": "extension 1",
                "addon": "multi_dest_video_frame__extension_1",
@@ -210,52 +207,30 @@ TEST(VideoFrameTest, MultiDestVideoFrame) {  // NOLINT
                }]
              }]
            }
-         })"_json);
+         })");
+  auto cmd_result =
+      client->send_cmd_and_recv_result(std::move(start_graph_cmd));
   ten_test::check_status_code(cmd_result, TEN_STATUS_CODE_OK);
 
   // Send a user-defined 'dispatch_data' command.
-  cmd_result = client->send_json_and_recv_result(
-      R"({
-           "_ten": {
-             "name": "dispatch_data",
-             "seq_id": "137",
-             "dest": [{
-               "app": "msgpack://127.0.0.1:8001/",
-               "extension_group": "test_extension_group",
-               "extension": "extension 1"
-             }]
-           }
-         })"_json);
+  auto dispatch_data_cmd = ten::cmd_t::create("dispatch_data");
+  dispatch_data_cmd->set_dest("msgpack://127.0.0.1:8001/", nullptr,
+                              "test_extension_group", "extension 1");
+  cmd_result = client->send_cmd_and_recv_result(std::move(dispatch_data_cmd));
   ten_test::check_status_code(cmd_result, TEN_STATUS_CODE_OK);
   ten_test::check_detail_with_string(cmd_result, "done");
 
-  cmd_result = client->send_json_and_recv_result(
-      R"({
-           "_ten": {
-             "name": "check_received",
-             "seq_id": "137",
-             "dest": [{
-               "app": "msgpack://127.0.0.1:8001/",
-               "extension_group": "test_extension_group",
-               "extension": "extension 2"
-             }]
-           }
-         })"_json);
+  auto check_received_cmd = ten::cmd_t::create("check_received");
+  check_received_cmd->set_dest("msgpack://127.0.0.1:8001/", nullptr,
+                               "test_extension_group", "extension 2");
+  cmd_result = client->send_cmd_and_recv_result(std::move(check_received_cmd));
   ten_test::check_status_code(cmd_result, TEN_STATUS_CODE_OK);
   ten_test::check_detail_with_string(cmd_result, "received confirmed");
 
-  cmd_result = client->send_json_and_recv_result(
-      R"({
-           "_ten": {
-             "name": "check_received",
-             "seq_id": "137",
-             "dest": [{
-               "app": "msgpack://127.0.0.1:8001/",
-               "extension_group": "test_extension_group",
-               "extension": "extension 3"
-             }]
-           }
-         })"_json);
+  check_received_cmd = ten::cmd_t::create("check_received");
+  check_received_cmd->set_dest("msgpack://127.0.0.1:8001/", nullptr,
+                               "test_extension_group", "extension 3");
+  cmd_result = client->send_cmd_and_recv_result(std::move(check_received_cmd));
   ten_test::check_status_code(cmd_result, TEN_STATUS_CODE_OK);
   ten_test::check_detail_with_string(cmd_result, "received confirmed");
 

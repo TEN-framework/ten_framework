@@ -1084,14 +1084,13 @@ static bool ten_raw_msg_dump_internal(ten_msg_t *msg, ten_error_t *err,
                                       const char *fmt, va_list ap) {
   TEN_ASSERT(msg && ten_raw_msg_check_integrity(msg), "Should not happen.");
 
-  ten_json_t *msg_json = ten_raw_msg_to_json(msg, err);
+  ten_json_t *msg_json = ten_raw_msg_to_json_include_internal_field(msg, err);
+  TEN_ASSERT(msg_json, "Failed to convert msg type(%s), name(%s) to JSON.",
+             ten_msg_type_to_string(msg->type),
+             ten_value_peek_raw_str(&msg->name));
   if (!msg_json) {
     return false;
   }
-
-  TEN_ASSERT(msg_json, "Failed to convert msg type(%s), key(%s) to JSON.",
-             ten_msg_type_to_string(msg->type),
-             ten_value_peek_raw_str(&msg->name));
 
   bool must_free = false;
   const char *msg_json_str = ten_json_to_string(msg_json, NULL, &must_free);

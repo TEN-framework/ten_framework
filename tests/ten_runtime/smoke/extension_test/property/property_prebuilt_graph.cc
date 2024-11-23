@@ -107,35 +107,21 @@ TEST(ExtensionTest, PropertyPredefinedGraph) {  // NOLINT
   auto *client = new ten::msgpack_tcp_client_t("msgpack://127.0.0.1:8001/");
 
   // Send a user-defined 'hello world' command.
-  auto cmd_result = client->send_json_and_recv_result(
-      R"({
-           "_ten": {
-             "name": "hello_world",
-             "seq_id": "137",
-             "dest":[{
-               "app": "msgpack://127.0.0.1:8001/",
-               "graph": "default",
-               "extension_group": "property_predefined_graph",
-               "extension": "property_predefined_graph"
-             }]
-           }
-         })"_json);
+  auto hello_world_cmd = ten::cmd_t::create("hello_world");
+  hello_world_cmd->set_dest("msgpack://127.0.0.1:8001/", "default",
+                            "property_predefined_graph",
+                            "property_predefined_graph");
+  auto cmd_result =
+      client->send_cmd_and_recv_result(std::move(hello_world_cmd));
+
   ten_test::check_status_code(cmd_result, TEN_STATUS_CODE_OK);
   ten_test::check_detail_with_string(cmd_result, "1");
+  hello_world_cmd = ten::cmd_t::create("hello_world");
+  hello_world_cmd->set_dest("msgpack://127.0.0.1:8001/", "default",
+                            "property_predefined_graph",
+                            "property_predefined_graph_no_prop");
+  cmd_result = client->send_cmd_and_recv_result(std::move(hello_world_cmd));
 
-  cmd_result = client->send_json_and_recv_result(
-      R"({
-           "_ten": {
-             "name": "hello_world",
-             "seq_id": "137",
-             "dest":[{
-               "app": "msgpack://127.0.0.1:8001/",
-               "graph": "default",
-               "extension_group": "property_predefined_graph",
-               "extension": "property_predefined_graph_no_prop"
-             }]
-           }
-         })"_json);
   ten_test::check_status_code(cmd_result, TEN_STATUS_CODE_OK);
   ten_test::check_detail_with_string(cmd_result, "default");
 

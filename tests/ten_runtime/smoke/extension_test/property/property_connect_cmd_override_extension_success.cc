@@ -6,13 +6,11 @@
 //
 #include <nlohmann/json.hpp>
 #include <string>
-#include <vector>
 
 #include "gtest/gtest.h"
 #include "include_internal/ten_runtime/binding/cpp/ten.h"
 #include "ten_utils/lang/cpp/lib/value.h"
 #include "ten_utils/lib/thread.h"
-#include "ten_utils/macro/macros.h"
 #include "tests/common/client/cpp/msgpack_tcp.h"
 #include "tests/ten_runtime/smoke/extension_test/util/binding/cpp/check.h"
 
@@ -80,11 +78,9 @@ TEST(ExtensionTest, PropertyConnectCmdOverrideExtensionSuccess) {  // NOLINT
   auto *client = new ten::msgpack_tcp_client_t("msgpack://127.0.0.1:8001/");
 
   // Send graph.
-  nlohmann::json command =
+  nlohmann::json start_graph_cmd_content_str =
       R"({
            "_ten": {
-             "type": "start_graph",
-             "seq_id": "55",
              "nodes": [{
                "type": "extension",
                "name": "test_extension",
@@ -95,24 +91,24 @@ TEST(ExtensionTest, PropertyConnectCmdOverrideExtensionSuccess) {  // NOLINT
              }]
            }
          })"_json;
-  command["_ten"]["nodes"][0]["property"]["test_prop"] = PROP_NEW_VAL;
+  start_graph_cmd_content_str["_ten"]["nodes"][0]["property"]["test_prop"] =
+      PROP_NEW_VAL;
 
-  auto cmd_result = client->send_json_and_recv_result(command);
+  auto start_graph_cmd = ten::cmd_start_graph_t::create();
+  start_graph_cmd->set_nodes_and_connections_from_json(
+      start_graph_cmd_content_str.dump().c_str());
+
+  auto cmd_result =
+      client->send_cmd_and_recv_result(std::move(start_graph_cmd));
   ten_test::check_status_code(cmd_result, TEN_STATUS_CODE_OK);
 
   // Send a user-defined 'hello world' command.
-  cmd_result = client->send_json_and_recv_result(
-      R"({
-           "_ten": {
-             "name": "hello_world",
-             "seq_id": "137",
-             "dest":[{
-               "app": "msgpack://127.0.0.1:8001/",
-               "extension_group": "property_start_graph_cmd_override_extension_success__extension_group",
-               "extension": "test_extension"
-             }]
-           }
-         })"_json);
+  auto hello_world_cmd = ten::cmd_t::create("hello_world");
+  hello_world_cmd->set_dest(
+      "msgpack://127.0.0.1:8001/", nullptr,
+      "property_start_graph_cmd_override_extension_success__extension_group",
+      "test_extension");
+  cmd_result = client->send_cmd_and_recv_result(std::move(hello_world_cmd));
   ten_test::check_status_code(cmd_result, TEN_STATUS_CODE_OK);
   ten_test::check_detail_with_string(cmd_result, "hello world, too");
 

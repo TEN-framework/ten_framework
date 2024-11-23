@@ -185,12 +185,9 @@ TEST(ExtensionTest, GraphLoopInMultiApp) {  // NOLINT
     client = new ten::msgpack_tcp_client_t("msgpack://127.0.0.1:8001/");
 
     // Send graph.
-    auto cmd_result = client->send_json_and_recv_result(
-        R"({
-             "_ten": {
-               "type": "start_graph",
-               "seq_id": "55",
-               "nodes": [{
+    auto start_graph_cmd = ten::cmd_start_graph_t::create();
+    start_graph_cmd->set_nodes_and_connections_from_json(R"({
+           "_ten": {"nodes": [{
                  "type": "extension",
                  "name": "test_extension_1",
                  "addon": "graph_loop_in_multi_app__extension_1",
@@ -265,7 +262,9 @@ TEST(ExtensionTest, GraphLoopInMultiApp) {  // NOLINT
                   }]
                 }]
               }
-            })"_json);
+         })");
+    auto cmd_result =
+        client->send_cmd_and_recv_result(std::move(start_graph_cmd));
 
     if (cmd_result) {
       ten_test::check_status_code(cmd_result, TEN_STATUS_CODE_OK);
@@ -283,18 +282,12 @@ TEST(ExtensionTest, GraphLoopInMultiApp) {  // NOLINT
   TEN_ASSERT(client, "Failed to connect to the TEN app.");
 
   // Send a user-defined 'hello world' command to 'extension 1'.
-  auto cmd_result = client->send_json_and_recv_result(
-      R"({
-           "_ten": {
-           "name": "hello_world",
-           "seq_id": "137",
-           "dest":[{
-             "app": "msgpack://127.0.0.1:8001/",
-             "extension_group": "graph_loop_in_multi_app__extension_group_1",
-             "extension": "test_extension_1"
-           }]
-         }
-       })"_json);
+  auto hello_world_cmd = ten::cmd_t::create("hello_world");
+  hello_world_cmd->set_dest("msgpack://127.0.0.1:8001/", nullptr,
+                            "graph_loop_in_multi_app__extension_group_1",
+                            "test_extension_1");
+  auto cmd_result =
+      client->send_cmd_and_recv_result(std::move(hello_world_cmd));
   ten_test::check_status_code(cmd_result, TEN_STATUS_CODE_OK);
   ten_test::check_detail_with_string(cmd_result, "hello world, too");
 
@@ -302,20 +295,12 @@ TEST(ExtensionTest, GraphLoopInMultiApp) {  // NOLINT
   // The command MUST be sent to the dest directly.
   auto *client2 = new ten::msgpack_tcp_client_t("msgpack://127.0.0.1:8002/");
 
-  nlohmann::json request_2 =
-      R"({
-          "_ten": {
-            "name": "hello_world",
-            "seq_id": "138",
-            "dest":[{
-              "app": "msgpack://127.0.0.1:8002/",
-              "extension_group": "graph_loop_in_multi_app__extension_group_2",
-              "extension": "test_extension_2"
-            }]
-          }
-        })"_json;
-  request_2["_ten"]["dest"][0]["graph"] = graph_id;
-  cmd_result = client2->send_json_and_recv_result(request_2);
+  hello_world_cmd = ten::cmd_t::create("hello_world");
+  hello_world_cmd->set_dest("msgpack://127.0.0.1:8002/", graph_id.c_str(),
+                            "graph_loop_in_multi_app__extension_group_2",
+                            "test_extension_2");
+
+  cmd_result = client2->send_cmd_and_recv_result(std::move(hello_world_cmd));
 
   ten_test::check_status_code(cmd_result, TEN_STATUS_CODE_OK);
   ten_test::check_detail_with_string(cmd_result, "hello world, too");

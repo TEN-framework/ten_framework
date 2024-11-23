@@ -183,18 +183,10 @@ TEST(SchemaTest, CmdResult) {  // NOLINT
   ten_test::check_status_code(cmd_result, TEN_STATUS_CODE_OK);
 
   // Send a user-defined 'hello world' command.
-  cmd_result = client->send_json_and_recv_result(
-      R"({
-           "_ten": {
-             "name": "hello_world",
-             "seq_id": "137",
-             "dest": [{
-               "app": "msgpack://127.0.0.1:8001/",
-               "extension_group": "basic_extension_group",
-               "extension": "test_extension_1"
-             }]
-           }
-         })"_json);
+  auto hello_world_cmd = ten::cmd_t::create("hello_world");
+  hello_world_cmd->set_dest("msgpack://127.0.0.1:8001/", nullptr,
+                            "basic_extension_group", "test_extension_1");
+  cmd_result = client->send_cmd_and_recv_result(std::move(hello_world_cmd));
   ten_test::check_status_code(cmd_result, TEN_STATUS_CODE_OK);
 
   delete client;

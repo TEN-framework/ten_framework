@@ -151,12 +151,9 @@ TEST(GraphTest, GroupNodeMissing2Apps) {  // NOLINT
 
       // Send graph.
 
-      auto cmd_result = client->send_json_and_recv_result(
-          R"({
-               "_ten": {
-                 "type": "start_graph",
-                 "seq_id": "55",
-                 "nodes": [{
+      auto start_graph_cmd = ten::cmd_start_graph_t::create();
+      start_graph_cmd->set_nodes_and_connections_from_json(R"({
+           "_ten": {"nodes": [{
                    "type": "extension",
                    "addon": "group_node_missing_2_apps__extension_1",
                    "name": "test_extension_1",
@@ -183,7 +180,9 @@ TEST(GraphTest, GroupNodeMissing2Apps) {  // NOLINT
                    }]
                  }]
                }
-             })"_json);
+         })");
+      auto cmd_result =
+          client->send_cmd_and_recv_result(std::move(start_graph_cmd));
 
       if (cmd_result) {
         ten_test::check_status_code(cmd_result, TEN_STATUS_CODE_OK);
@@ -199,18 +198,13 @@ TEST(GraphTest, GroupNodeMissing2Apps) {  // NOLINT
     TEN_ASSERT(client, "Failed to connect to the TEN app.");
 
     // Send a user-defined 'hello world' command.
-    auto cmd_result = client->send_json_and_recv_result(
-        R"({
-             "_ten": {
-               "name": "hello_world",
-               "seq_id": "137",
-               "dest": [{
-                 "app": "msgpack://127.0.0.1:8001/",
-                 "extension_group": "test_extension_group 1",
-                 "extension": "test_extension_1"
-               }]
-             }
-           })"_json);
+    auto hello_world_cmd = ten::cmd_t::create("hello_world");
+    hello_world_cmd->set_dest("msgpack://127.0.0.1:8001/", nullptr,
+                              "test_extension_group 1", "test_extension_1");
+
+    auto cmd_result =
+        client->send_cmd_and_recv_result(std::move(hello_world_cmd));
+
     ten_test::check_status_code(cmd_result, TEN_STATUS_CODE_OK);
     ten_test::check_detail_with_string(cmd_result, "hello world, too");
 

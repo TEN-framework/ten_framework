@@ -128,19 +128,12 @@ TEST(ExtensionTest, PredefinedGraphMultiExtension1) {  // NOLINT
   auto *client = new ten::msgpack_tcp_client_t("msgpack://127.0.0.1:8001/");
 
   // Send a user-defined 'hello world' command.
-  auto cmd_result = client->send_json_and_recv_result(
-      R"({
-           "_ten": {
-             "name": "hello_world",
-             "seq_id": "137",
-             "dest": [{
-               "app": "msgpack://127.0.0.1:8001/",
-               "graph": "default",
-               "extension_group": "predefined_graph_multi_extension_1",
-               "extension": "test_extension_1"
-             }]
-           }
-         })"_json);
+  auto hello_world_cmd = ten::cmd_t::create("hello_world");
+  hello_world_cmd->set_dest("msgpack://127.0.0.1:8001/", "default",
+                            "predefined_graph_multi_extension_1",
+                            "test_extension_1");
+  auto cmd_result =
+      client->send_cmd_and_recv_result(std::move(hello_world_cmd));
   ten_test::check_status_code(cmd_result, TEN_STATUS_CODE_OK);
   ten_test::check_detail_with_string(cmd_result, "hello world, too");
 

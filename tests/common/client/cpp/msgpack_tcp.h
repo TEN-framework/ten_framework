@@ -51,33 +51,6 @@ class msgpack_tcp_client_t {
     return success;
   }
 
-  bool send_json(const nlohmann::json &cmd_json) {
-    if (cmd_json.contains("_ten")) {
-      if (cmd_json["_ten"].contains("type")) {
-        if (cmd_json["_ten"]["type"] == "start_graph") {
-          std::unique_ptr<cmd_t> cmd = ten::cmd_start_graph_t::create();
-          cmd->from_json(cmd_json.dump().c_str());
-          return send_cmd(std::move(cmd));
-        } else if (cmd_json["_ten"]["type"] == "close_app") {
-          std::unique_ptr<ten::cmd_t> cmd = ten::cmd_close_app_t::create();
-          cmd->from_json(cmd_json.dump().c_str());
-          return send_cmd(std::move(cmd));
-        } else {
-          TEN_ASSERT(0, "Handle more TEN builtin command type.");
-        }
-      } else {
-        std::unique_ptr<ten::cmd_t> cmd = ten::cmd_t::create(
-            cmd_json["_ten"]["name"].get<std::string>().c_str());
-        cmd->from_json(cmd_json.dump().c_str());
-        return send_cmd(std::move(cmd));
-      }
-    } else {
-      TEN_ASSERT(0, "Should not happen.");
-    }
-
-    return false;
-  }
-
   std::unique_ptr<ten::cmd_result_t> send_cmd_and_recv_result(
       std::unique_ptr<ten::cmd_t> &&cmd) {
     send_cmd(std::move(cmd));
