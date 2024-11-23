@@ -26,18 +26,11 @@ class test_extension_1 : public ten::extension_t {
       hello_world_cmd = std::move(cmd);
 
       auto video_frame = ten::video_frame_t::create("video_frame");
-      video_frame->from_json(
-          // clang-format off
-          R"({
-               "_ten": {
-                 "width": 345,
-                 "height": 567,
-                 "pixel_fmt": 1,
-                 "timestamp": 12341234
-               }
-             })"
-          // clang-format on
-      );
+      video_frame->set_width(345);
+      video_frame->set_height(567);
+      video_frame->set_pixel_fmt(TEN_PIXEL_FMT_RGB24);
+      video_frame->set_timestamp(12341234);
+
       ten_env.send_video_frame(std::move(video_frame));
     } else if (std::string(cmd->get_name()) == "video_frame_ack") {
       auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
