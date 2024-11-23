@@ -72,8 +72,7 @@ class test_extension : public ten::extension_t {
 
   void on_cmd(ten::ten_env_t &ten_env,
               std::unique_ptr<ten::cmd_t> cmd) override {
-    nlohmann::json json = nlohmann::json::parse(cmd->to_json());
-    if (json["_ten"]["name"] == "hello_world") {
+    if (std::string(cmd->get_name()) == "hello_world") {
       auto conn_property_value = ten_env.get_property_float64(CONN_PROP_NAME);
 
       auto extension_property_value_int64 =
@@ -166,11 +165,11 @@ TEST(ExtensionTest, PropertyAll) {  // NOLINT
          })"_json;
   command["_ten"]["nodes"][0]["property"][CONN_PROP_NAME] = CONN_PROP_VAL;
 
-  nlohmann::json resp = client->send_json_and_recv_resp_in_json(command);
-  ten_test::check_status_code_is(resp, TEN_STATUS_CODE_OK);
+  auto cmd_result = client->send_json_and_recv_result(command);
+  ten_test::check_status_code(cmd_result, TEN_STATUS_CODE_OK);
 
   // Send a user-defined 'hello world' command.
-  resp = client->send_json_and_recv_resp_in_json(
+  cmd_result = client->send_json_and_recv_result(
       R"({
            "_ten": {
              "name": "hello_world",
@@ -182,8 +181,8 @@ TEST(ExtensionTest, PropertyAll) {  // NOLINT
              }]
            }
          })"_json);
-  ten_test::check_result_is(resp, "137", TEN_STATUS_CODE_OK,
-                            "hello world, too");
+  ten_test::check_status_code(cmd_result, TEN_STATUS_CODE_OK);
+  ten_test::check_detail_with_string(cmd_result, "hello world, too");
 
   delete client;
 

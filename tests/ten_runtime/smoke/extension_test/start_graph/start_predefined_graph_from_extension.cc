@@ -18,8 +18,7 @@ class test_normal_extension : public ten::extension_t {
 
   void on_cmd(ten::ten_env_t &ten_env,
               std::unique_ptr<ten::cmd_t> cmd) override {
-    nlohmann::json json = nlohmann::json::parse(cmd->to_json());
-    if (json["_ten"]["name"] == "hello_world") {
+    if (std::string(cmd->get_name()) == "hello_world") {
       auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
       cmd_result->set_property("detail", "hello world, too");
       ten_env.return_result(std::move(cmd_result), std::move(cmd));
@@ -76,8 +75,7 @@ class test_predefined_graph : public ten::extension_t {
 
   void on_cmd(ten::ten_env_t &ten_env,
               std::unique_ptr<ten::cmd_t> cmd) override {
-    nlohmann::json json = nlohmann::json::parse(cmd->to_json());
-    if (json["_ten"]["name"] == "test") {
+    if (std::string(cmd->get_name()) == "test") {
       if (received_hello_world_resp) {
         nlohmann::json detail = {{"id", 1}, {"name", "a"}};
 
@@ -175,7 +173,7 @@ TEST(ExtensionTest, StartPredefinedGraphFromExtension) {  // NOLINT
   // Do not need to send 'start_graph' command first.
   // The 'graph_id' MUST be "default" (a special string) if we want to send the
   // request to predefined graph.
-  nlohmann::json resp = client->send_json_and_recv_resp_in_json(
+  auto cmd_result = client->send_json_and_recv_result(
       R"({
            "_ten": {
              "name": "test",
@@ -188,8 +186,8 @@ TEST(ExtensionTest, StartPredefinedGraphFromExtension) {  // NOLINT
              }]
            }
          })"_json);
-  ten_test::check_result_is(resp, "111", TEN_STATUS_CODE_OK,
-                            R"({"id": 1, "name": "a"})");
+  ten_test::check_status_code(cmd_result, TEN_STATUS_CODE_OK);
+  ten_test::check_detail_with_json(cmd_result, R"({"id": 1, "name": "a"})");
 
   delete client;
 

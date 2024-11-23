@@ -197,7 +197,7 @@ TEST(ExtensionTest, CommandStopGraphActivelyThroughCmd) {  // NOLINT
     client = new ten::msgpack_tcp_client_t("msgpack://127.0.0.1:8001/");
 
     // Send graph.
-    nlohmann::json resp = client->send_json_and_recv_resp_in_json(
+    auto cmd_result = client->send_json_and_recv_result(
         R"({
              "_ten": {
                "type": "start_graph",
@@ -267,8 +267,8 @@ TEST(ExtensionTest, CommandStopGraphActivelyThroughCmd) {  // NOLINT
              }
            })"_json);
 
-    if (!resp.empty()) {
-      ten_test::check_status_code_is(resp, TEN_STATUS_CODE_OK);
+    if (cmd_result) {
+      ten_test::check_status_code(cmd_result, TEN_STATUS_CODE_OK);
       break;
     } else {
       delete client;

@@ -131,9 +131,9 @@ void *client_thread_main(TEN_UNUSED void *args) {
   request["_ten"]["dest"][0]["graph"] = graph_id;
   request["_ten"]["seq_id"] = seq_id_str;
 
-  nlohmann::json resp = client->send_json_and_recv_resp_in_json(request);
-  ten_test::check_result_is(resp, seq_id_str, TEN_STATUS_CODE_OK,
-                            R"({"a": "b"})");
+  auto cmd_result = client->send_json_and_recv_result(request);
+  ten_test::check_status_code(cmd_result, TEN_STATUS_CODE_OK);
+  ten_test::check_detail_with_json(cmd_result, R"({"a": "b"})");
 
   // Destroy the client.
   delete client;
@@ -164,7 +164,7 @@ TEST(ExtensionTest, OneEngineConcurrent) {  // NOLINT
     client = new ten::msgpack_tcp_client_t("msgpack://127.0.0.1:8001/");
 
     // Send graph.
-    nlohmann::json resp = client->send_json_and_recv_resp_in_json(
+    auto cmd_result = client->send_json_and_recv_result(
         R"({
              "_ten": {
                "type": "start_graph",
@@ -199,9 +199,9 @@ TEST(ExtensionTest, OneEngineConcurrent) {  // NOLINT
              }
            })"_json);
 
-    if (!resp.empty()) {
-      ten_test::check_status_code_is(resp, TEN_STATUS_CODE_OK);
-      graph_id = resp.value("detail", "");
+    if (cmd_result) {
+      ten_test::check_status_code(cmd_result, TEN_STATUS_CODE_OK);
+      graph_id = cmd_result->get_property_string("detail");
 
       break;
     } else {

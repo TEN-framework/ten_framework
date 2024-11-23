@@ -245,7 +245,7 @@ TEST(ExtensionTest, SpecifyDest) {  // NOLINT
   auto *client = new ten::msgpack_tcp_client_t("msgpack://127.0.0.1:8001/");
 
   // Send the "initial_request" to the "business extension".
-  nlohmann::json const resp = client->send_json_and_recv_resp_in_json(
+  auto cmd_result = client->send_json_and_recv_result(
       R"({
            "_ten": {
              "name": "initial_request",
@@ -260,7 +260,8 @@ TEST(ExtensionTest, SpecifyDest) {  // NOLINT
          })"_json);
 
   // Check whether the correct result has been received.
-  ten_test::check_result_is(resp, "111", TEN_STATUS_CODE_OK, "success");
+  ten_test::check_status_code(cmd_result, TEN_STATUS_CODE_OK);
+  ten_test::check_detail_with_string(cmd_result, "success");
 
   delete client;
 

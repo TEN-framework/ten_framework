@@ -136,7 +136,7 @@ TEST(SchemaTest, OnCmd) {  // NOLINT
   auto *client = new ten::msgpack_tcp_client_t("msgpack://127.0.0.1:8001/");
 
   // Send graph.
-  nlohmann::json resp = client->send_json_and_recv_resp_in_json(
+  auto cmd_result = client->send_json_and_recv_result(
       R"({
            "_ten": {
              "type": "start_graph",
@@ -169,10 +169,10 @@ TEST(SchemaTest, OnCmd) {  // NOLINT
              }]
            }
          })"_json);
-  ten_test::check_status_code_is(resp, TEN_STATUS_CODE_OK);
+  ten_test::check_status_code(cmd_result, TEN_STATUS_CODE_OK);
 
   // Send a user-defined 'hello world' command.
-  resp = client->send_json_and_recv_resp_in_json(
+  cmd_result = client->send_json_and_recv_result(
       R"({
            "_ten": {
              "name": "hello_world",
@@ -187,7 +187,7 @@ TEST(SchemaTest, OnCmd) {  // NOLINT
 
   // The cmd does not match the schema defined in `test_extension_2`, so we will
   // receive an error result.
-  ten_test::check_status_code_is(resp, TEN_STATUS_CODE_ERROR);
+  ten_test::check_status_code(cmd_result, TEN_STATUS_CODE_ERROR);
 
   delete client;
 

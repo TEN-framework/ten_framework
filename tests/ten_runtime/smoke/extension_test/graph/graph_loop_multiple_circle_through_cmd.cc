@@ -109,7 +109,7 @@ TEST(ExtensionTest, DISABLED_GraphLoopMultipleCircleThroughCmd) {  // NOLINT
   // Create a client and connect to the app.
   auto *client = new ten::msgpack_tcp_client_t("msgpack://127.0.0.1:8001/");
 
-  nlohmann::json resp = client->send_json_and_recv_resp_in_json(
+  auto cmd_result = client->send_json_and_recv_result(
       R"({
            "_ten": {
              "type": "start_graph",
@@ -205,9 +205,9 @@ TEST(ExtensionTest, DISABLED_GraphLoopMultipleCircleThroughCmd) {  // NOLINT
              }]
            }
          })"_json);
-  ten_test::check_status_code_is(resp, TEN_STATUS_CODE_OK);
+  ten_test::check_status_code(cmd_result, TEN_STATUS_CODE_OK);
 
-  resp = client->send_json_and_recv_resp_in_json(
+  cmd_result = client->send_json_and_recv_result(
       R"({
           "_ten": {
             "name": "sum",
@@ -219,9 +219,10 @@ TEST(ExtensionTest, DISABLED_GraphLoopMultipleCircleThroughCmd) {  // NOLINT
             }]
            }
          })"_json);
-  ten_test::check_status_code_is(resp, TEN_STATUS_CODE_OK);
+  ten_test::check_status_code(cmd_result, TEN_STATUS_CODE_OK);
 
-  nlohmann::json detail = resp["detail"];
+  nlohmann::json detail =
+      nlohmann::json::parse(cmd_result->get_property_to_json("detail"));
   EXPECT_EQ((1 + 2 + 3) * 2, detail["total"].get<std::int32_t>());
 
   delete client;

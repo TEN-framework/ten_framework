@@ -102,7 +102,7 @@ TEST(ExtensionTest, CleanWhenStopped) {  // NOLINT
   auto *client = new ten::msgpack_tcp_client_t("msgpack://127.0.0.1:8001/");
 
   // Send graph.
-  nlohmann::json resp = client->send_json_and_recv_resp_in_json(
+  auto cmd_result = client->send_json_and_recv_result(
       R"({
            "_ten": {
              "type": "start_graph",
@@ -142,7 +142,7 @@ TEST(ExtensionTest, CleanWhenStopped) {  // NOLINT
              }]
            }
          })"_json);
-  ten_test::check_status_code_is(resp, TEN_STATUS_CODE_OK);
+  ten_test::check_status_code(cmd_result, TEN_STATUS_CODE_OK);
 
   // Send 'hello world' command and ignore the result.
   client->send_json(
@@ -159,7 +159,7 @@ TEST(ExtensionTest, CleanWhenStopped) {  // NOLINT
          })"_json);
 
   // Send a user-defined 'hello world2' command.
-  resp = client->send_json_and_recv_resp_in_json(
+  cmd_result = client->send_json_and_recv_result(
       R"({
            "_ten": {
              "name": "hello_world2",
@@ -171,8 +171,8 @@ TEST(ExtensionTest, CleanWhenStopped) {  // NOLINT
              }]
            }
          })"_json);
-  ten_test::check_result_is(resp, "138", TEN_STATUS_CODE_OK,
-                            "hello world, too");
+  ten_test::check_status_code(cmd_result, TEN_STATUS_CODE_OK);
+  ten_test::check_detail_with_string(cmd_result, "hello world, too");
 
   delete client;
 

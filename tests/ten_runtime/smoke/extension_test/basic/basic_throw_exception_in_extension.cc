@@ -23,8 +23,7 @@ class test_extension_1 : public ten::extension_t {
 
   void on_cmd(ten::ten_env_t &ten_env,
               std::unique_ptr<ten::cmd_t> cmd) override {
-    nlohmann::json json = nlohmann::json::parse(cmd->to_json());
-    if (json["_ten"]["name"] == "hello_world") {
+    if (std::string(cmd->get_name()) == "hello_world") {
       ten_env.send_cmd(std::move(cmd));
       return;
     }
@@ -37,8 +36,7 @@ class test_extension_2 : public ten::extension_t {
 
   void on_cmd(ten::ten_env_t &ten_env,
               std::unique_ptr<ten::cmd_t> cmd) override {
-    nlohmann::json json = nlohmann::json::parse(cmd->to_json());
-    if (json["_ten"]["name"] == "hello_world") {
+    if (std::string(cmd->get_name()) == "hello_world") {
       ten_env.send_cmd(std::move(cmd));
       return;
     }
@@ -51,8 +49,7 @@ class test_extension_3 : public ten::extension_t {
 
   void on_cmd(ten::ten_env_t &ten_env,
               std::unique_ptr<ten::cmd_t> cmd) override {
-    nlohmann::json json = nlohmann::json::parse(cmd->to_json());
-    if (json["_ten"]["name"] == "hello_world") {
+    if (std::string(cmd->get_name()) == "hello_world") {
       ten_env.send_cmd(std::move(cmd));
       return;
     }
@@ -65,8 +62,7 @@ class test_extension_4 : public ten::extension_t {
 
   void on_cmd(TEN_UNUSED ten::ten_env_t &ten_env,
               std::unique_ptr<ten::cmd_t> cmd) override {
-    nlohmann::json json = nlohmann::json::parse(cmd->to_json());
-    if (json["_ten"]["name"] == "hello_world") {
+    if (std::string(cmd->get_name()) == "hello_world") {
       throw std::exception();
     }
   }
@@ -187,7 +183,7 @@ TEST(ExtensionTest, BasicThrowExceptionInExtension) {  // NOLINT
     client = new ten::msgpack_tcp_client_t("msgpack://127.0.0.1:8001/");
 
     // Send graph.
-    nlohmann::json resp = client->send_json_and_recv_resp_in_json(
+    auto cmd_result = client->send_json_and_recv_result(
         R"({
              "_ten": {
                "type": "start_graph",
@@ -257,8 +253,8 @@ TEST(ExtensionTest, BasicThrowExceptionInExtension) {  // NOLINT
              }
            })"_json);
 
-    if (!resp.empty()) {
-      ten_test::check_status_code_is(resp, TEN_STATUS_CODE_OK);
+    if (cmd_result) {
+      ten_test::check_status_code(cmd_result, TEN_STATUS_CODE_OK);
       break;
     } else {
       delete client;

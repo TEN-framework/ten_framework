@@ -677,11 +677,16 @@ bool ten_raw_msg_put_one_field_to_json(ten_msg_t *self,
 
   if (!field->is_user_defined_properties) {
     // Internal fields are uniformly stored in the "_ten" section.
-    json = ten_json_object_peek_object_forcibly(json, TEN_STR_UNDERLINE_TEN);
-    TEN_ASSERT(json, "Should not happen.");
+    //
+    // Note: The `to/from_json` of `msg` does not affect the built-in fields of
+    // the TEN runtime under the `_ten` field. Therefore, the following code is
+    // for reference only.
 
-    ten_json_object_set_new(json, field->field_name,
-                            ten_value_to_json(field->field_value));
+    // json = ten_json_object_peek_object_forcibly(json, TEN_STR_UNDERLINE_TEN);
+    // TEN_ASSERT(json, "Should not happen.");
+    //
+    // ten_json_object_set_new(json, field->field_name,
+    //                         ten_value_to_json(field->field_value));
   } else {
     TEN_ASSERT(ten_value_is_object(field->field_value), "Should not happen.");
 

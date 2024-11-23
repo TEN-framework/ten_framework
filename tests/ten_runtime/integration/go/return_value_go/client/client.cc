@@ -13,7 +13,7 @@ int main(TEN_UNUSED int argc, TEN_UNUSED char **argv) {
   // Create a client and connect to the app.
   auto *client = new ten::msgpack_tcp_client_t("msgpack://127.0.0.1:8007/");
 
-  nlohmann::json resp = client->send_json_and_recv_resp_in_json(
+  auto cmd_result = client->send_json_and_recv_result(
       R"({
     "_ten": {
       "name": "hello",
@@ -26,10 +26,10 @@ int main(TEN_UNUSED int argc, TEN_UNUSED char **argv) {
       }]
     }
   })"_json);
-  TEN_ASSERT(TEN_STATUS_CODE_OK == resp["_ten"]["status_code"],
+  TEN_ASSERT(TEN_STATUS_CODE_OK == cmd_result->get_status_code(),
              "Should not happen.");
 
-  std::string resp_str = resp["detail"];
+  std::string resp_str = cmd_result->get_property_string("detail");
   TEN_LOGD("got result: %s", resp_str.c_str());
   TEN_ASSERT(resp_str == std::string("ten"), "Should not happen.");
 

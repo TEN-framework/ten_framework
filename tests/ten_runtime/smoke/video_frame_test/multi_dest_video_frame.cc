@@ -39,8 +39,7 @@ class test_extension_1 : public ten::extension_t {
 
   void on_cmd(ten::ten_env_t &ten_env,
               std::unique_ptr<ten::cmd_t> cmd) override {
-    nlohmann::json json = nlohmann::json::parse(cmd->to_json());
-    if (json["_ten"]["name"] == "dispatch_data") {
+    if (std::string(cmd->get_name()) == "dispatch_data") {
       auto video_frame = create420Buffer(WIDTH, HEIGHT);
       video_frame->set_property("test_prop", "test_prop_value");
 
@@ -71,8 +70,7 @@ class test_extension_2 : public ten::extension_t {
 
   void on_cmd(ten::ten_env_t &ten_env,
               std::unique_ptr<ten::cmd_t> cmd) override {
-    nlohmann::json json = nlohmann::json::parse(cmd->to_json());
-    if (json["_ten"]["name"] == "check_received") {
+    if (std::string(cmd->get_name()) == "check_received") {
       if (received) {
         auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
         cmd_result->set_property("detail", "received confirmed");
@@ -107,8 +105,7 @@ class test_extension_3 : public ten::extension_t {
 
   void on_cmd(ten::ten_env_t &ten_env,
               std::unique_ptr<ten::cmd_t> cmd) override {
-    nlohmann::json json = nlohmann::json::parse(cmd->to_json());
-    if (json["_ten"]["name"] == "check_received") {
+    if (std::string(cmd->get_name()) == "check_received") {
       if (received) {
         auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
         cmd_result->set_property("detail", "received confirmed");
@@ -171,7 +168,7 @@ TEST(VideoFrameTest, MultiDestVideoFrame) {  // NOLINT
   auto *client = new ten::msgpack_tcp_client_t("msgpack://127.0.0.1:8001/");
 
   // Send graph.
-  nlohmann::json resp = client->send_json_and_recv_resp_in_json(
+  auto cmd_result = client->send_json_and_recv_result(
       R"({
            "_ten": {
              "type": "start_graph",
@@ -214,10 +211,10 @@ TEST(VideoFrameTest, MultiDestVideoFrame) {  // NOLINT
              }]
            }
          })"_json);
-  ten_test::check_status_code_is(resp, TEN_STATUS_CODE_OK);
+  ten_test::check_status_code(cmd_result, TEN_STATUS_CODE_OK);
 
   // Send a user-defined 'dispatch_data' command.
-  resp = client->send_json_and_recv_resp_in_json(
+  cmd_result = client->send_json_and_recv_result(
       R"({
            "_ten": {
              "name": "dispatch_data",
@@ -229,9 +226,10 @@ TEST(VideoFrameTest, MultiDestVideoFrame) {  // NOLINT
              }]
            }
          })"_json);
-  ten_test::check_result_is(resp, "137", TEN_STATUS_CODE_OK, "done");
+  ten_test::check_status_code(cmd_result, TEN_STATUS_CODE_OK);
+  ten_test::check_detail_with_string(cmd_result, "done");
 
-  resp = client->send_json_and_recv_resp_in_json(
+  cmd_result = client->send_json_and_recv_result(
       R"({
            "_ten": {
              "name": "check_received",
@@ -243,10 +241,10 @@ TEST(VideoFrameTest, MultiDestVideoFrame) {  // NOLINT
              }]
            }
          })"_json);
-  ten_test::check_result_is(resp, "137", TEN_STATUS_CODE_OK,
-                            "received confirmed");
+  ten_test::check_status_code(cmd_result, TEN_STATUS_CODE_OK);
+  ten_test::check_detail_with_string(cmd_result, "received confirmed");
 
-  resp = client->send_json_and_recv_resp_in_json(
+  cmd_result = client->send_json_and_recv_result(
       R"({
            "_ten": {
              "name": "check_received",
@@ -258,8 +256,8 @@ TEST(VideoFrameTest, MultiDestVideoFrame) {  // NOLINT
              }]
            }
          })"_json);
-  ten_test::check_result_is(resp, "137", TEN_STATUS_CODE_OK,
-                            "received confirmed");
+  ten_test::check_status_code(cmd_result, TEN_STATUS_CODE_OK);
+  ten_test::check_detail_with_string(cmd_result, "received confirmed");
 
   delete client;
 

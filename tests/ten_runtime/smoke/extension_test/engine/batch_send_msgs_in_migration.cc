@@ -109,11 +109,11 @@ TEST(ExtensionTest, BatchSendMsgsInMigration) {  // NOLINT
 
   int count = 0;
   while (count < size) {
-    auto results = client->batch_recv_resp_in_json();
+    auto cmd_results = client->batch_recv_cmd_results();
 
-    for (auto &resp : results) {
-      ten_test::check_result_is(resp, "123", TEN_STATUS_CODE_OK,
-                                R"({"id":1,"name":"a"})");
+    for (auto &cmd_result : cmd_results) {
+      ten_test::check_status_code(cmd_result, TEN_STATUS_CODE_OK);
+      ten_test::check_detail_with_json(cmd_result, R"({"id":1,"name":"a"})");
       count++;
     }
   }

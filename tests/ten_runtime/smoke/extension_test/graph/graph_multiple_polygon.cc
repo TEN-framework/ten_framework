@@ -47,14 +47,16 @@ class test_extension : public ten::extension_t {
 
     if (is_leaf_node_) {
       json["return_from"] = name_;
+
       auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
       cmd_result->set_property_from_json("detail", json.dump().c_str());
+
       ten_env.return_result(std::move(cmd_result), std::move(cmd));
       return;
     }
 
     std::vector<std::string> edges = {"B", "C", "D", "E", "F", "G"};
-    if (json["_ten"]["name"] == "send") {
+    if (std::string(cmd->get_name()) == "send") {
       json["from"] = name_;
       if (std::find(edges.begin(), edges.end(), name_) != edges.end()) {
         json[name_] = name_;
@@ -222,7 +224,7 @@ TEST(ExtensionTest, GraphMultiplePolygon) {  // NOLINT
        ++i) {
     client = new ten::msgpack_tcp_client_t("msgpack://127.0.0.1:8001/");
 
-    nlohmann::json resp = client->send_json_and_recv_resp_in_json(
+    auto cmd_result = client->send_json_and_recv_result(
         R"({
              "_ten": {
                "type": "start_graph",
@@ -403,8 +405,8 @@ TEST(ExtensionTest, GraphMultiplePolygon) {  // NOLINT
              }
            })"_json);
 
-    if (!resp.empty()) {
-      ten_test::check_status_code_is(resp, TEN_STATUS_CODE_OK);
+    if (cmd_result) {
+      ten_test::check_status_code(cmd_result, TEN_STATUS_CODE_OK);
       break;
     } else {
       delete client;
@@ -417,7 +419,7 @@ TEST(ExtensionTest, GraphMultiplePolygon) {  // NOLINT
 
   TEN_ASSERT(client, "Failed to connect to the TEN app.");
 
-  nlohmann::json resp = client->send_json_and_recv_resp_in_json(
+  auto cmd_result = client->send_json_and_recv_result(
       R"({
            "_ten": {
              "name": "send",
@@ -430,7 +432,8 @@ TEST(ExtensionTest, GraphMultiplePolygon) {  // NOLINT
            }
          })"_json);
 
-  nlohmann::json detail = resp["detail"];
+  nlohmann::json detail =
+      nlohmann::json::parse(cmd_result->get_property_to_json("detail"));
   EXPECT_EQ(detail["return_from"], "A");
   EXPECT_EQ(detail["success"], true);
   EXPECT_EQ(detail["received_count"], 1);

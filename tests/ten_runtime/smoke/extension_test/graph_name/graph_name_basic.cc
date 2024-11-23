@@ -32,9 +32,11 @@ class test_extension : public ten::extension_t {
 
     // extension1(app1) -> extension3(app2) -> extension2(app1) -> return
     if (name_ == "extension2") {
-      const nlohmann::json resp = {{"id", 1}, {"name", "aa"}};
+      const nlohmann::json detail = {{"id", 1}, {"name", "aa"}};
+
       auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
-      cmd_result->set_property_from_json("detail", resp.dump().c_str());
+      cmd_result->set_property_from_json("detail", detail.dump().c_str());
+
       ten_env.return_result(std::move(cmd_result), std::move(cmd));
     } else {
       ten_env.send_cmd(std::move(cmd),
@@ -132,7 +134,7 @@ TEST(ExtensionTest, GraphNameBasic) {  // NOLINT
        ++i) {
     client = new ten::msgpack_tcp_client_t("msgpack://127.0.0.1:8001/");
 
-    nlohmann::json resp = client->send_json_and_recv_resp_in_json(
+    auto cmd_result = client->send_json_and_recv_result(
         R"({
              "_ten": {
                "type": "start_graph",
@@ -187,9 +189,9 @@ TEST(ExtensionTest, GraphNameBasic) {  // NOLINT
              }
            })"_json);
 
-    if (!resp.empty()) {
-      ten_test::check_status_code_is(resp, TEN_STATUS_CODE_OK);
-      graph_id = resp["detail"].get<std::string>();
+    if (cmd_result) {
+      ten_test::check_status_code(cmd_result, TEN_STATUS_CODE_OK);
+      graph_id = cmd_result->get_property_string("detail");
 
       break;
     } else {
@@ -205,7 +207,7 @@ TEST(ExtensionTest, GraphNameBasic) {  // NOLINT
 
   // Send data to extension_1, it will return from extension_2 with json
   // result.
-  nlohmann::json resp = client->send_json_and_recv_resp_in_json(
+  auto cmd_result = client->send_json_and_recv_result(
       R"({
            "_ten": {
              "name": "send_message",
@@ -216,7 +218,7 @@ TEST(ExtensionTest, GraphNameBasic) {  // NOLINT
              }]
            }
          })"_json);
-  ten_test::check_detail_is(resp, R"({"id": 1, "name": "aa"})");
+  ten_test::check_detail_with_json(cmd_result, R"({"id": 1, "name": "aa"})");
 
   // Send data to extension_3, it will return from extension_2 with json
   // result.
@@ -236,8 +238,8 @@ TEST(ExtensionTest, GraphNameBasic) {  // NOLINT
   command_2["_ten"]["dest"][0]["graph"] = graph_id;
 
   // It must be sent directly to 127.0.0.1:8002, not 127.0.0.1:8001
-  resp = client2->send_json_and_recv_resp_in_json(command_2);
-  ten_test::check_detail_is(resp, R"({"id": 1, "name": "aa"})");
+  cmd_result = client2->send_json_and_recv_result(command_2);
+  ten_test::check_detail_with_json(cmd_result, R"({"id": 1, "name": "aa"})");
 
   // Send data to extension_2 directly.
   nlohmann::json command_3 =
@@ -252,8 +254,8 @@ TEST(ExtensionTest, GraphNameBasic) {  // NOLINT
            }
          })"_json;
   command_3["_ten"]["dest"][0]["graph"] = graph_id;
-  resp = client->send_json_and_recv_resp_in_json(command_3);
-  ten_test::check_detail_is(resp, R"({"id": 1, "name": "aa"})");
+  cmd_result = client->send_json_and_recv_result(command_3);
+  ten_test::check_detail_with_json(cmd_result, R"({"id": 1, "name": "aa"})");
 
   delete client;
   delete client2;

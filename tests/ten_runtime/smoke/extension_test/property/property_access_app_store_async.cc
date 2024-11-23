@@ -111,7 +111,7 @@ TEST(ExtensionTest, PropertyAccessAppStoreAsync) {  // NOLINT
   // Do not need to send 'start_graph' command first.
   // The 'graph_id' MUST be "default" (a special string) if we want to send the
   // request to predefined graph.
-  nlohmann::json resp = client->send_json_and_recv_resp_in_json(
+  auto cmd_result = client->send_json_and_recv_result(
       R"({
          "_ten": {
            "name": "test",
@@ -124,7 +124,8 @@ TEST(ExtensionTest, PropertyAccessAppStoreAsync) {  // NOLINT
            }]
          }
        })"_json);
-  ten_test::check_result_is(resp, "111", TEN_STATUS_CODE_OK, "success");
+  ten_test::check_status_code(cmd_result, TEN_STATUS_CODE_OK);
+  ten_test::check_detail_with_string(cmd_result, "success");
 
   delete client;
 

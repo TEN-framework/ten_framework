@@ -21,9 +21,7 @@ class test_extension_1 : public ten::extension_t {
 
   void on_cmd(ten::ten_env_t &ten_env,
               std::unique_ptr<ten::cmd_t> cmd) override {
-    nlohmann::json json = nlohmann::json::parse(cmd->to_json());
-
-    if (json["_ten"]["name"] == "send_data") {
+    if (std::string(cmd->get_name()) == "send_data") {
       auto data = ten::data_t::create("aaa");
       data->set_property("prop_bool", true);
       ten_env.send_data(std::move(data));
@@ -42,8 +40,7 @@ class test_extension_2 : public ten::extension_t {
 
   void on_cmd(ten::ten_env_t &ten_env,
               std::unique_ptr<ten::cmd_t> cmd) override {
-    nlohmann::json json = nlohmann::json::parse(cmd->to_json());
-    if (json["_ten"]["name"] == "data_received_check") {
+    if (std::string(cmd->get_name()) == "data_received_check") {
       if (data_received) {
         auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
         cmd_result->set_property("detail", "data received");
@@ -182,7 +179,7 @@ TEST(CmdConversionTest, CmdConversionData) {  // NOLINT
   auto *client = new ten::msgpack_tcp_client_t("msgpack://127.0.0.1:8001/");
 
   // Send a user-defined 'send_data' command.
-  nlohmann::json resp = client->send_json_and_recv_resp_in_json(
+  auto cmd_result = client->send_json_and_recv_result(
       R"({
            "_ten": {
              "name": "send_data",
@@ -195,10 +192,11 @@ TEST(CmdConversionTest, CmdConversionData) {  // NOLINT
              }]
            }
          })"_json);
-  ten_test::check_result_is(resp, "137", TEN_STATUS_CODE_OK, "data sent");
+  ten_test::check_status_code(cmd_result, TEN_STATUS_CODE_OK);
+  ten_test::check_detail_with_string(cmd_result, "data sent");
 
   // Send 'data_received_check' command.
-  resp = client->send_json_and_recv_resp_in_json(
+  cmd_result = client->send_json_and_recv_result(
       R"({
            "_ten": {
              "name": "data_received_check",
@@ -211,7 +209,8 @@ TEST(CmdConversionTest, CmdConversionData) {  // NOLINT
              }]
            }
          })"_json);
-  ten_test::check_result_is(resp, "138", TEN_STATUS_CODE_OK, "data received");
+  ten_test::check_status_code(cmd_result, TEN_STATUS_CODE_OK);
+  ten_test::check_detail_with_string(cmd_result, "data received");
 
   delete client;
 

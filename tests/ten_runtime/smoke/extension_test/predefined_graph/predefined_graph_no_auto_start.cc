@@ -76,8 +76,9 @@ void *app_thread_main(TEN_UNUSED void *args) {
   return nullptr;
 }
 
-TEN_CPP_REGISTER_ADDON_AS_EXTENSION(predefined_graph_no_auto_start__predefined_graph_extension,
-                                          test_predefined_graph);
+TEN_CPP_REGISTER_ADDON_AS_EXTENSION(
+    predefined_graph_no_auto_start__predefined_graph_extension,
+    test_predefined_graph);
 
 }  // namespace
 
@@ -90,7 +91,7 @@ TEST(ExtensionTest, PredefinedGraphNoAutoStart) {  // NOLINT
   // Do not need to send 'start_graph' command first.
   // The 'graph_id' MUST be "default" (a special string) if we want to send the
   // request to predefined graph.
-  nlohmann::json const resp = client->send_json_and_recv_resp_in_json(
+  auto cmd_result = client->send_json_and_recv_result(
       R"({
          "_ten": {
            "name": "test",
@@ -103,8 +104,8 @@ TEST(ExtensionTest, PredefinedGraphNoAutoStart) {  // NOLINT
            }]
          }
        })"_json);
-  ten_test::check_result_is(resp, "111", TEN_STATUS_CODE_OK,
-                            R"({"id": 1, "name": "a"})");
+  ten_test::check_status_code(cmd_result, TEN_STATUS_CODE_OK);
+  ten_test::check_detail_with_json(cmd_result, R"({"id": 1, "name": "a"})");
 
   delete client;
 

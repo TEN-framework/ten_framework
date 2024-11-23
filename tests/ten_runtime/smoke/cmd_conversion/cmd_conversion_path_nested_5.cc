@@ -37,12 +37,12 @@ class test_extension_2 : public ten::extension_t {
   void on_cmd(ten::ten_env_t &ten_env,
               std::unique_ptr<ten::cmd_t> cmd) override {
     if (std::string(cmd->get_name()) == "hello_mapping") {
-      auto json_str = cmd->get_property_to_json("test_group");
-      auto json = nlohmann::json::parse(json_str);
+      auto json =
+          nlohmann::json::parse(cmd->get_property_to_json("test_group"));
       if (json["test_property_name"] == 32) {
-        auto resp = ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
-        resp->set_property("detail", "hello world, too");
-        ten_env.return_result(std::move(resp), std::move(cmd));
+        auto result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
+        result->set_property("detail", "hello world, too");
+        ten_env.return_result(std::move(result), std::move(cmd));
       }
     }
   }
@@ -147,7 +147,7 @@ TEST(CmdConversionTest, CmdConversionPathNested5) {  // NOLINT
   auto *client = new ten::msgpack_tcp_client_t("msgpack://127.0.0.1:8001/");
 
   // Send a user-defined 'hello world' command.
-  nlohmann::json resp = client->send_json_and_recv_resp_in_json(
+  auto cmd_result = client->send_json_and_recv_result(
       R"({
            "_ten": {
              "name": "hello_world",
@@ -161,8 +161,8 @@ TEST(CmdConversionTest, CmdConversionPathNested5) {  // NOLINT
            },
            "test_property": 32
          })"_json);
-  ten_test::check_result_is(resp, "137", TEN_STATUS_CODE_OK,
-                            "hello world, too");
+  ten_test::check_status_code(cmd_result, TEN_STATUS_CODE_OK);
+  ten_test::check_detail_with_string(cmd_result, "hello world, too");
 
   delete client;
 
