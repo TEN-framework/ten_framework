@@ -33,7 +33,9 @@ void test_extension_in_app1_not_installed() {
                "extension_group": "test_extension_group"
              }]
            }
-         })"_json);
+         })");
+  auto cmd_result =
+      client->send_cmd_and_recv_result(std::move(start_graph_cmd));
   TEN_ASSERT(TEN_STATUS_CODE_ERROR == cmd_result->get_status_code(),
              "Should not happen.");
 
@@ -118,8 +120,6 @@ int main(int argc, char **argv) {
              }]
            }
          })");
-  auto cmd_result =
-      client->send_cmd_and_recv_result(std::move(start_graph_cmd));
   TEN_ASSERT(TEN_STATUS_CODE_OK == cmd_result->get_status_code(),
              "Should not happen.");
 
