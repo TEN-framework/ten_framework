@@ -67,7 +67,10 @@ class TenEnv:
         return self._internal.set_property_from_json(path, json_str)
 
     def send_cmd(self, cmd: Cmd, result_handler: ResultHandler) -> None:
-        return self._internal.send_cmd(cmd, result_handler)
+        return self._internal.send_cmd(cmd, result_handler, False)
+
+    def send_cmd_ex(self, cmd: Cmd, result_handler: ResultHandler) -> None:
+        return self._internal.send_cmd(cmd, result_handler, True)
 
     def send_data(self, data: Data) -> None:
         return self._internal.send_data(data)
@@ -77,9 +80,6 @@ class TenEnv:
 
     def send_audio_frame(self, audio_frame: AudioFrame) -> None:
         return self._internal.send_audio_frame(audio_frame)
-
-    def send_json(self, json_str: str, result_handler: ResultHandler) -> None:
-        return self._internal.send_json(json_str, result_handler)
 
     def return_result(self, result: CmdResult, target_cmd: Cmd) -> None:
         return self._internal.return_result(result, target_cmd)

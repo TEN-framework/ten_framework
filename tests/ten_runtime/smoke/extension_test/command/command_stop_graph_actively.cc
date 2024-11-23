@@ -6,10 +6,10 @@
 //
 #include <nlohmann/json.hpp>
 #include <string>
-#include <vector>
 
 #include "gtest/gtest.h"
 #include "include_internal/ten_runtime/binding/cpp/ten.h"
+#include "ten_runtime/binding/cpp/internal/msg/cmd/stop_graph.h"
 #include "ten_utils/lib/thread.h"
 #include "ten_utils/lib/time.h"
 #include "tests/common/client/cpp/msgpack_tcp.h"
@@ -73,15 +73,9 @@ class test_extension_4 : public ten::extension_t {
                                "must return result before close engine");
       ten_env.return_result(std::move(cmd_result), std::move(cmd));
 
-      ten_env.send_json(R"({
-        "_ten": {
-          "type": "stop_graph",
-          "dest": [{
-            "app": "localhost"
-          }]
-        }
-      })"_json.dump()
-                            .c_str());
+      auto stop_graph_cmd = ten::cmd_stop_graph_t::create();
+      stop_graph_cmd->set_dest("localhost", nullptr, nullptr, nullptr);
+      ten_env.send_cmd(std::move(stop_graph_cmd));
     }
   }
 };
@@ -190,8 +184,6 @@ TEST(ExtensionTest, CommandStopGraphActively) {  // NOLINT
       ten_thread_create("app thread 2", app_thread_2_main, nullptr);
   auto *app_thread_1 =
       ten_thread_create("app thread 1", app_thread_1_main, nullptr);
-
-  ten_sleep(300);
 
   // Create a client and connect to the app.
   ten::msgpack_tcp_client_t *client = nullptr;

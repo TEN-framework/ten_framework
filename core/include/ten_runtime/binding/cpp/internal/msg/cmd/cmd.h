@@ -40,17 +40,6 @@ class cmd_t : public msg_t {
     return std::make_unique<cmd_t>(c_cmd, ctor_passkey_t());
   }
 
-  static std::unique_ptr<cmd_t> create_from_json(const char *json_str,
-                                                 error_t *err = nullptr)
-      __attribute__((warning("This method may access the '_ten' field. Use "
-                             "caution if '_ten' is provided."))) {
-    ten_shared_ptr_t *c_cmd = ten_cmd_create_from_json_string(
-        json_str,
-        err != nullptr ? err->get_internal_representation() : nullptr);
-
-    return std::make_unique<cmd_t>(c_cmd, ctor_passkey_t());
-  }
-
   explicit cmd_t(ten_shared_ptr_t *cmd, ctor_passkey_t /*unused*/)
       : msg_t(cmd) {}
 

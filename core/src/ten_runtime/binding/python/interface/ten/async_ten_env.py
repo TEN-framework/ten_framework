@@ -10,6 +10,7 @@ import threading
 from .cmd import Cmd
 from .cmd_result import CmdResult
 from .ten_env import TenEnv
+from typing import AsyncGenerator
 
 
 class AsyncTenEnv(TenEnv):
@@ -26,24 +27,35 @@ class AsyncTenEnv(TenEnv):
         pass
 
     async def send_cmd(self, cmd: Cmd) -> CmdResult:
-        q = asyncio.Queue(1)
+        q = asyncio.Queue(maxsize=1)
         self._internal.send_cmd(
             cmd,
-            lambda ten_env, result: asyncio.run_coroutine_threadsafe(
+            lambda _, result: asyncio.run_coroutine_threadsafe(
                 q.put(result), self._ten_loop
-            ),  # type: ignore
+            ),
+            False,
         )
-        return await q.get()
+        result: CmdResult = await q.get()
+        assert result.is_completed()
+        return result
 
-    async def send_json(self, json_str: str) -> CmdResult:
-        q = asyncio.Queue(1)
-        self._internal.send_json(
-            json_str,
-            lambda ten_env, result: asyncio.run_coroutine_threadsafe(
+    async def send_cmd_ex(self, cmd: Cmd) -> AsyncGenerator[CmdResult, None]:
+        q = asyncio.Queue(maxsize=10)
+        self._internal.send_cmd(
+            cmd,
+            lambda _, result: asyncio.run_coroutine_threadsafe(
                 q.put(result), self._ten_loop
-            ),  # type: ignore
+            ),
+            True,
         )
-        return await q.get()
+
+        while True:
+            result: CmdResult = await q.get()
+            if result.is_completed():
+                yield result
+                # This is the final result, so break the while loop.
+                break
+            yield result
 
     def _deinit_routine(self) -> None:
         # Wait for the internal thread to finish.
