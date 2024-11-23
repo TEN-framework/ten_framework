@@ -93,11 +93,9 @@ TEST(ExtensionTest, PropertyConnectCmd) {  // NOLINT
   auto *client = new ten::msgpack_tcp_client_t("msgpack://127.0.0.1:8001/");
 
   // Send graph.
-  nlohmann::json command =
+  nlohmann::json start_graph_cmd_content_str =
       R"({
            "_ten": {
-             "type": "start_graph",
-             "seq_id": "55",
              "nodes": [{
                "type": "extension",
                "name": "test_extension",
@@ -108,9 +106,15 @@ TEST(ExtensionTest, PropertyConnectCmd) {  // NOLINT
              }]
            }
          })"_json;
-  command["_ten"]["nodes"][0]["property"]["test_prop"] = CONNECT_CMD_PROP_VAL;
+  start_graph_cmd_content_str["_ten"]["nodes"][0]["property"]["test_prop"] =
+      CONNECT_CMD_PROP_VAL;
 
-  auto cmd_result = client->send_json_and_recv_result(command);
+  auto start_graph_cmd = ten::cmd_start_graph_t::create();
+  start_graph_cmd->set_nodes_and_connections_from_json(
+      start_graph_cmd_content_str.dump().c_str());
+
+  auto cmd_result =
+      client->send_cmd_and_recv_result(std::move(start_graph_cmd));
   ten_test::check_status_code(cmd_result, TEN_STATUS_CODE_OK);
 
   // Send a user-defined 'hello world' command.

@@ -63,30 +63,6 @@ class msgpack_tcp_client_t {
     }
   }
 
-  std::unique_ptr<ten::cmd_result_t> send_json_and_recv_result(
-      const nlohmann::json &cmd_json) {
-    if (cmd_json.contains("_ten")) {
-      if (cmd_json["_ten"].contains("type")) {
-        if (cmd_json["_ten"]["type"] == "start_graph") {
-          std::unique_ptr<ten::cmd_start_graph_t> start_graph_cmd =
-              ten::cmd_start_graph_t::create();
-          start_graph_cmd->from_json(cmd_json.dump().c_str());
-          return send_cmd_and_recv_result(std::move(start_graph_cmd));
-        } else {
-          TEN_ASSERT(0, "Handle more TEN builtin command type.");
-        }
-      } else {
-        std::unique_ptr<ten::cmd_t> custom_cmd = ten::cmd_t::create(
-            cmd_json["_ten"]["name"].get<std::string>().c_str());
-        custom_cmd->from_json(cmd_json.dump().c_str());
-        return send_cmd_and_recv_result(std::move(custom_cmd));
-      }
-    } else {
-      TEN_ASSERT(0, "Should not happen.");
-    }
-    return {};
-  }
-
   std::vector<std::unique_ptr<ten::cmd_result_t>> batch_recv_cmd_results() {
     ten_list_t msgs = TEN_LIST_INIT_VAL;
     ten_test_msgpack_tcp_client_recv_msgs_batch(c_client, &msgs);

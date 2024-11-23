@@ -86,11 +86,10 @@ TEST(CmdConversionTest, CmdConversionConnectCmd) {  // NOLINT
   auto *client = new ten::msgpack_tcp_client_t("msgpack://127.0.0.1:8001/");
 
   // Send graph.
-  auto cmd_result = client->send_json_and_recv_result(
+  auto start_graph_cmd = ten::cmd_start_graph_t::create();
+  start_graph_cmd->set_nodes_and_connections_from_json(
       R"###({
           "_ten": {
-            "type": "start_graph",
-            "seq_id": "55",
             "nodes": [{
               "type": "extension",
               "name": "test_extension_1",
@@ -126,7 +125,9 @@ TEST(CmdConversionTest, CmdConversionConnectCmd) {  // NOLINT
               }]
             }]
           }
-        })###"_json);
+        })###");
+  auto cmd_result =
+      client->send_cmd_and_recv_result(std::move(start_graph_cmd));
   ten_test::check_status_code(cmd_result, TEN_STATUS_CODE_OK);
 
   // Send a user-defined 'hello world' command.

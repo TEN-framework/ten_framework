@@ -6,6 +6,7 @@
 //
 #include <nlohmann/json.hpp>
 
+#include "ten_runtime/binding/cpp/internal/msg/cmd/start_graph.h"
 #include "ten_utils/macro/check.h"
 #include "tests/common/client/cpp/msgpack_tcp.h"
 
@@ -53,11 +54,10 @@ void test_extension_in_app2_not_installed() {
 
   // Send a start_graph cmd to app 8001. However, because there is no extension
   // addon named `ext_e` in app 8002, the `start_graph` command will fail.
-  auto cmd_result = client->send_json_and_recv_result(
+  auto start_graph_cmd = ten::cmd_start_graph_t::create();
+  start_graph_cmd->set_nodes_and_connections_from_json(
       R"({
            "_ten": {
-             "type": "start_graph",
-             "seq_id": "56",
              "nodes": [{
                "type": "extension",
                "name": "ext_a",
@@ -85,7 +85,9 @@ void test_extension_in_app2_not_installed() {
                }]
              }]
            }
-         })"_json);
+         })");
+  auto cmd_result =
+      client->send_cmd_and_recv_result(std::move(start_graph_cmd));
   TEN_ASSERT(TEN_STATUS_CODE_ERROR == cmd_result->get_status_code(),
              "Should not happen.");
 
@@ -106,11 +108,10 @@ int main(int argc, char **argv) {
   // Create a client and connect to the app.
   auto *client = new ten::msgpack_tcp_client_t("msgpack://127.0.0.1:8001/");
 
-  auto cmd_result = client->send_json_and_recv_result(
+  auto start_graph_cmd = ten::cmd_start_graph_t::create();
+  start_graph_cmd->set_nodes_and_connections_from_json(
       R"({
            "_ten": {
-             "type": "start_graph",
-             "seq_id": "55",
              "nodes": [{
                "type": "extension",
                "name": "ext_a",
@@ -120,6 +121,8 @@ int main(int argc, char **argv) {
              }]
            }
          })");
+  auto cmd_result =
+      client->send_cmd_and_recv_result(std::move(start_graph_cmd));
   TEN_ASSERT(TEN_STATUS_CODE_OK == cmd_result->get_status_code(),
              "Should not happen.");
 
