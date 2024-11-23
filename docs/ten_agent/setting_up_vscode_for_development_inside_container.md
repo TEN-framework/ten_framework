@@ -40,7 +40,7 @@ In the Docker extension within VSCode, find the `astra_agents_dev` container in 
 
 In the Dev Container environment connected to the container, your local extensions and settings will not be applied, as this environment is within the container. Therefore, you will need to install extensions and configure settings inside the container. To install extensions within the container, open the newly launched VSCode window, click on `Extensions` in the left sidebar, search for the required extension, and follow the prompts to install it inside the container.
 
-## Step 5: Setup breakpoint for debuggin
+## Step 5: Setup breakpoint for debugging
 
 Setting breakpoints in the code is a common practice when debugging. To set a breakpoint in the code, click on the left margin of the line number where you want to set the breakpoint. A red dot will appear, indicating that a breakpoint has been set.
 
