@@ -663,9 +663,9 @@ bool ten_raw_msg_get_field_from_json(ten_msg_t *self, ten_json_t *json,
                                    json, err);
 }
 
-bool ten_raw_msg_put_one_field_to_json(ten_msg_t *self,
-                                       ten_msg_field_process_data_t *field,
-                                       void *user_data, ten_error_t *err) {
+static bool ten_raw_msg_put_one_field_to_json_include_internal_field(
+    ten_msg_t *self, ten_msg_field_process_data_t *field, void *user_data,
+    ten_error_t *err) {
   TEN_ASSERT(self && ten_raw_msg_check_integrity(self), "Should not happen.");
   TEN_ASSERT(field, "Should not happen.");
   TEN_ASSERT(
@@ -677,16 +677,12 @@ bool ten_raw_msg_put_one_field_to_json(ten_msg_t *self,
 
   if (!field->is_user_defined_properties) {
     // Internal fields are uniformly stored in the "_ten" section.
-    //
-    // Note: The `to/from_json` of `msg` does not affect the built-in fields of
-    // the TEN runtime under the `_ten` field. Therefore, the following code is
-    // for reference only.
 
-    // json = ten_json_object_peek_object_forcibly(json, TEN_STR_UNDERLINE_TEN);
-    // TEN_ASSERT(json, "Should not happen.");
-    //
-    // ten_json_object_set_new(json, field->field_name,
-    //                         ten_value_to_json(field->field_value));
+    json = ten_json_object_peek_object_forcibly(json, TEN_STR_UNDERLINE_TEN);
+    TEN_ASSERT(json, "Should not happen.");
+
+    ten_json_object_set_new(json, field->field_name,
+                            ten_value_to_json(field->field_value));
   } else {
     TEN_ASSERT(ten_value_is_object(field->field_value), "Should not happen.");
 
@@ -706,13 +702,35 @@ bool ten_raw_msg_put_one_field_to_json(ten_msg_t *self,
   return true;
 }
 
-bool ten_raw_msg_put_field_to_json(ten_msg_t *self, ten_json_t *json,
-                                   ten_error_t *err) {
-  TEN_ASSERT(self && ten_raw_msg_check_integrity(self) && json,
-             "Should not happen.");
+bool ten_raw_msg_put_one_field_to_json(ten_msg_t *self,
+                                       ten_msg_field_process_data_t *field,
+                                       void *user_data, ten_error_t *err) {
+  TEN_ASSERT(self && ten_raw_msg_check_integrity(self), "Should not happen.");
+  TEN_ASSERT(field, "Should not happen.");
+  TEN_ASSERT(
+      field->field_value && ten_value_check_integrity(field->field_value),
+      "Should not happen.");
 
-  return ten_raw_msg_process_field(self, ten_raw_msg_put_one_field_to_json,
-                                   json, err);
+  ten_json_t *json = (ten_json_t *)user_data;
+  TEN_ASSERT(json, "Should not happen.");
+
+  if (field->is_user_defined_properties) {
+    TEN_ASSERT(ten_value_is_object(field->field_value), "Should not happen.");
+
+    ten_value_object_foreach(field->field_value, iter) {
+      ten_value_kv_t *kv = ten_ptr_listnode_get(iter.node);
+      TEN_ASSERT(kv && ten_value_kv_check_integrity(kv), "Should not happen.");
+
+      // The User-defined fields are stored in the root of the JSON.
+      ten_json_object_set_new(json, ten_string_get_raw_str(&kv->key),
+                              ten_value_to_json(kv->value));
+    }
+  }
+
+  // The field value is not modified during JSON serialization.
+  field->value_is_changed_after_process = false;
+
+  return true;
 }
 
 bool ten_raw_msg_process_field(ten_msg_t *self,
@@ -754,6 +772,32 @@ ten_json_t *ten_msg_to_json(ten_shared_ptr_t *self, ten_error_t *err) {
   TEN_ASSERT(self && ten_msg_check_integrity(self), "Should not happen.");
 
   return ten_raw_msg_to_json(ten_msg_get_raw_msg(self), err);
+}
+
+static ten_json_t *ten_raw_msg_to_json_include_internal_field(
+    ten_msg_t *self, ten_error_t *err) {
+  TEN_ASSERT(self && ten_raw_msg_check_integrity(self), "Should not happen.");
+  ten_json_t *json = ten_json_create_object();
+  TEN_ASSERT(json, "Should not happen.");
+
+  bool rc = ten_raw_msg_loop_all_fields(
+      self, ten_raw_msg_put_one_field_to_json_include_internal_field, json,
+      err);
+
+  if (!rc) {
+    ten_json_destroy(json);
+    return NULL;
+  }
+
+  return json;
+}
+
+ten_json_t *ten_msg_to_json_include_internal_field(ten_shared_ptr_t *self,
+                                                   ten_error_t *err) {
+  TEN_ASSERT(self && ten_msg_check_integrity(self), "Should not happen.");
+
+  return ten_raw_msg_to_json_include_internal_field(ten_msg_get_raw_msg(self),
+                                                    err);
 }
 
 void ten_raw_msg_copy_field(ten_msg_t *self, ten_msg_t *src,
