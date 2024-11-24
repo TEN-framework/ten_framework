@@ -164,3 +164,5 @@
 
 #define TEN_STR_ADDON_REGISTER_FUNCTION_PREFIX "____ten_addon_"
 #define TEN_STR_ADDON_REGISTER_FUNCTION_POSTFIX "_register____"
+
+#define TEN_STR_MANIFEST_JSON "manifest.json"

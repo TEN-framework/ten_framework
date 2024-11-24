@@ -112,5 +112,7 @@ bool ten_manifest_get_type_and_name(const char *filename, TEN_ADDON_TYPE *type,
   const char *name_str = ten_json_object_peek_string(json, TEN_STR_NAME);
   ten_string_set_from_c_str(name, name_str, strlen(name_str));
 
+  ten_json_destroy(json);
+
   return true;
 }

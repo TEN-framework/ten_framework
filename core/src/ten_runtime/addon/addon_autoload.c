@@ -409,8 +409,17 @@ bool ten_addon_load_all_from_ten_package_base_dirs(ten_app_t *app,
     ten_string_t addon_name;
     ten_string_init(&addon_name);
 
-    ten_manifest_get_type_and_name(ten_string_get_raw_str(ten_package_base_dir),
-                                   &addon_type, &addon_name, NULL);
+    // Construct `manifest.json` path.
+    ten_string_t manifest_json_file_path;
+    ten_string_init_from_string(&manifest_json_file_path, ten_package_base_dir);
+    ten_path_join_c_str(&manifest_json_file_path, TEN_STR_MANIFEST_JSON);
+
+    // Get type and name from manifest file.
+    ten_manifest_get_type_and_name(
+        ten_string_get_raw_str(&manifest_json_file_path), &addon_type,
+        &addon_name, NULL);
+
+    ten_string_deinit(&manifest_json_file_path);
 
     ten_addon_load_from_base_dir(app, addon_type,
                                  ten_string_get_raw_str(&addon_name),
