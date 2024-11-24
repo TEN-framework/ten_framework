@@ -63,14 +63,14 @@ void *ten_module_get_symbol(void *handle, const char *symbol_name) {
 
   void *symbol = dlsym(handle, symbol_name);
 
-  // Enable the code below if debugging is needed.
-#if 0
   const char *error = dlerror();
   if (error != NULL) {
+    // Enable the code below if debugging is needed.
+#if 0
     TEN_LOGD("Failed to find symbol %s: %s", symbol_name, error);
+#endif
     return NULL;
   }
-#endif
 
   return symbol;
 }

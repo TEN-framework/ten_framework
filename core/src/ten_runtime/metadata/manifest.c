@@ -12,6 +12,7 @@
 #include "ten_utils/lib/json.h"
 #include "ten_utils/lib/string.h"
 #include "ten_utils/log/log.h"
+#include "ten_utils/macro/memory.h"
 
 static void ten_manifest_dependencies_get_dependencies_type_and_name(
     ten_value_t *manifest_dependencies, ten_list_t *extension_list,
@@ -102,6 +103,7 @@ bool ten_manifest_get_type_and_name(const char *filename, TEN_ADDON_TYPE *type,
   }
 
   ten_json_t *json = ten_json_from_string(buf, err);
+  TEN_FREE(buf);
   if (!json) {
     return false;
   }

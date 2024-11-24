@@ -42,8 +42,6 @@ void *ten_module_get_symbol(void *handle, const char *symbol_name) {
 
   FARPROC symbol = GetProcAddress((HMODULE)handle, symbol_name);
   if (!symbol) {
-    // Enable the code below if debugging is needed.
-#if 0
     DWORD error_code = GetLastError();
     LPVOID error_message = NULL;
     FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM |
@@ -51,13 +49,15 @@ void *ten_module_get_symbol(void *handle, const char *symbol_name) {
                    NULL, error_code, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
                    (LPSTR)&error_message, 0, NULL);
 
+    // Enable the code below if debugging is needed.
+#if 0
     TEN_LOGE("Failed to find symbol %s: %s", symbol_name,
              error_message ? (char *)error_message : "Unknown error");
+#endif
 
     if (error_message) {
       LocalFree(error_message);
     }
-#endif
 
     return NULL;
   }
