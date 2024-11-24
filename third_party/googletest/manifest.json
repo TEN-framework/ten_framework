@@ -1,0 +1,15 @@
+{
+    "type": "system",
+    "name": "googletest",
+    "version": "1.7.0-rc1",
+    "dependencies": [],
+    "package": {
+        "include": [
+            "manifest.json",
+            "src/**",
+            "include/**",
+            "BUILD.gn"
+        ]
+    },
+    "supports": []
+}
