@@ -8,8 +8,6 @@ config("gtest_header") {
   include_dirs = [
     ".",
     "include",
-    "../googlemock",
-    "../googlemock/include",
   ]
 }
 
@@ -23,4 +21,20 @@ source_set("gtest_main") {
   public_configs = [ ":gtest_header" ]
 
   sources = [ "src/gtest_main.cc" ]
+}
+
+config("googletest_common_config") {
+  include_dirs = [ "//ten_packages/system/googletest/include" ]
+}
+
+config("config_for_app") {
+  configs = [ ":googletest_common_config" ]
+}
+
+config("config_for_ten_packages") {
+  configs = [ ":googletest_common_config" ]
+}
+
+config("config_for_standalone_ten_packages") {
+  include_dirs = [ "//.ten/app/ten_packages/system/googletest/include" ]
 }
