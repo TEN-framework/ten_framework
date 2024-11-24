@@ -15,6 +15,7 @@
 #include "include_internal/ten_runtime/ten_env/ten_env.h"
 #include "ten_runtime/addon/addon.h"
 #include "ten_runtime/ten_env/ten_env.h"
+#include "ten_utils/backtrace/backtrace.h"
 #include "ten_utils/macro/check.h"
 #include "ten_utils/macro/mark.h"
 
@@ -125,7 +126,9 @@ ten_addon_host_t *ten_addon_register_extension(const char *name,
 
   ten_addon_host_t *addon_host =
       ten_addon_store_find(ten_extension_get_global_store(), name);
-  TEN_ASSERT(!addon_host, "Should not happen.");
+  if (addon_host) {
+    return addon_host;
+  }
 
   addon_host = ten_addon_host_create(TEN_ADDON_TYPE_EXTENSION);
   TEN_ASSERT(addon_host, "Should not happen.");
