@@ -25,6 +25,16 @@ class Addon(_Addon):
         with open(manifest_path, "r") as f:
             manifest = json.load(f)
 
+        # Note: The logic for loading extensions based on the `dependencies`
+        # specified in the app's `manifest.json` is currently implemented
+        # separately in both C and Python where addons need to be loaded. Since
+        # the logic is fairly simple, a standalone implementation is directly
+        # written at each required location. In the future, this could be
+        # consolidated into a unified implementation in C, which could then be
+        # reused across multiple languages. However, this would require handling
+        # cross-language information exchange, which may not necessarily be
+        # cost-effective.
+
         # Collect names of extensions from dependencies.
         extension_names = []
         dependencies = manifest.get("dependencies", [])
