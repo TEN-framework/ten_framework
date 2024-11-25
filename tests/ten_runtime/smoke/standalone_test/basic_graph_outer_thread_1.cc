@@ -50,8 +50,10 @@ class test_extension_2 : public ten::extension_t {
               std::unique_ptr<ten::cmd_t> cmd) override {
     if (std::string(cmd->get_name()) == "process") {
       auto data = cmd->get_property_int64("data");
+
       auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
       cmd_result->set_property("data", data * data);
+
       ten_env.return_result(std::move(cmd_result), std::move(cmd));
 
       // Send another command after 1 second.
@@ -102,7 +104,7 @@ class extension_tester_1 : public ten::extension_tester_t {
     }
   }
 
-  int64_t get_calcu_result() const { return calcu_result; }
+  int64_t get_calculated_result() const { return calculated_result; }
 
  protected:
   void on_start(ten::ten_env_tester_t &ten_env) override {
@@ -110,14 +112,16 @@ class extension_tester_1 : public ten::extension_tester_t {
 
     outer_thread = std::thread([this, ten_env_tester_proxy]() {
       ten_sleep(1000);
+
       ten_env_tester_proxy->notify(
           [this](ten::ten_env_tester_t &ten_env) {
-            auto new_cmd = ten::cmd_t::create("process");
-            new_cmd->set_property("data", 3);
-            ten_env.send_cmd(std::move(new_cmd),
-                             [this](ten::ten_env_tester_t &ten_env,
+            auto process_cmd = ten::cmd_t::create("process");
+            process_cmd->set_property("data", 3);
+
+            ten_env.send_cmd(std::move(process_cmd),
+                             [this](ten::ten_env_tester_t & /*ten_env*/,
                                     std::unique_ptr<ten::cmd_result_t> result) {
-                               calcu_result =
+                               calculated_result =
                                    result->get_property_int64("data");
                              });
           },
@@ -138,7 +142,7 @@ class extension_tester_1 : public ten::extension_tester_t {
 
  private:
   std::thread outer_thread;
-  int64_t calcu_result = 0;
+  int64_t calculated_result = 0;
 };
 
 }  // namespace
@@ -153,7 +157,8 @@ TEST(StandaloneTest, BasicGraphOuterThread1) {  // NOLINT
   //        |                                        v
   //         ----------------------------------------
   //
-  tester->set_test_mode_graph(R"({"nodes": [{
+  tester->set_test_mode_graph(R"({
+    "nodes": [{
 			"type": "extension",
 			"name": "test_extension_1",
 			"addon": "standalone_test_basic_graph_outer_thread_1__test_extension_1",
@@ -209,7 +214,7 @@ TEST(StandaloneTest, BasicGraphOuterThread1) {  // NOLINT
   TEN_ASSERT(rc, "Should not happen.");
 
   tester->join_outer_thread();
-  EXPECT_EQ(tester->get_calcu_result(), 36);
+  EXPECT_EQ(tester->get_calculated_result(), 36);
 
   delete tester;
 }

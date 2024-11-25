@@ -49,8 +49,10 @@ class test_extension_2 : public ten::extension_t {
               std::unique_ptr<ten::cmd_t> cmd) override {
     if (std::string(cmd->get_name()) == "process") {
       auto data = cmd->get_property_int64("data");
+
       auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
       cmd_result->set_property("data", data * data);
+
       ten_env.return_result(std::move(cmd_result), std::move(cmd));
 
       // Send another command after 1 second.
@@ -153,7 +155,8 @@ TEST(StandaloneTest, BasicGraphOuterThread2) {  // NOLINT
     //        |                                        v
     //         ----------------------------------------
     //
-    tester->set_test_mode_graph(R"({"nodes": [{
+    tester->set_test_mode_graph(R"({
+    "nodes": [{
 			"type": "extension",
 			"name": "test_extension_1",
 			"addon": "standalone_test_basic_graph_outer_thread_2__test_extension_1",
@@ -215,7 +218,7 @@ TEST(StandaloneTest, BasicGraphOuterThread2) {  // NOLINT
 
     tester->set_on_hello_world_callback(
         [&tester_context](ten::ten_env_tester_t &ten_env,
-                          std::unique_ptr<ten::cmd_t> cmd) {
+                          std::unique_ptr<ten::cmd_t> /*cmd*/) {
           delete tester_context.ten_env_proxy;
           ten_env.stop_test();
         });
@@ -235,9 +238,10 @@ TEST(StandaloneTest, BasicGraphOuterThread2) {  // NOLINT
   // the returned result.
   tester_context.ten_env_proxy->notify(
       [](ten::ten_env_tester_t &ten_env) {
-        auto new_cmd = ten::cmd_t::create("process");
-        new_cmd->set_property("data", 3);
-        ten_env.send_cmd(std::move(new_cmd),
+        auto process_cmd = ten::cmd_t::create("process");
+        process_cmd->set_property("data", 3);
+
+        ten_env.send_cmd(std::move(process_cmd),
                          [](ten::ten_env_tester_t & /*ten_env*/,
                             std::unique_ptr<ten::cmd_result_t> result) {
                            auto data = result->get_property_int64("data");

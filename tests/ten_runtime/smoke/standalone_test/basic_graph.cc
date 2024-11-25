@@ -47,8 +47,10 @@ class test_extension_2 : public ten::extension_t {
               std::unique_ptr<ten::cmd_t> cmd) override {
     if (std::string(cmd->get_name()) == "process") {
       auto data = cmd->get_property_int64("data");
+
       auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
       cmd_result->set_property("data", data * data);
+
       ten_env.return_result(std::move(cmd_result), std::move(cmd));
 
       // Send another command after 1 second.
@@ -92,14 +94,16 @@ namespace {
 class extension_tester_1 : public ten::extension_tester_t {
  protected:
   void on_start(ten::ten_env_tester_t &ten_env) override {
-    auto new_cmd = ten::cmd_t::create("process");
-    new_cmd->set_property("data", 3);
-    ten_env.send_cmd(std::move(new_cmd),
+    auto process_cmd = ten::cmd_t::create("process");
+    process_cmd->set_property("data", 3);
+
+    ten_env.send_cmd(std::move(process_cmd),
                      [](ten::ten_env_tester_t & /*ten_env*/,
                         std::unique_ptr<ten::cmd_result_t> result) {
                        auto data = result->get_property_int64("data");
                        EXPECT_EQ(data, 36);
                      });
+
     ten_env.on_start_done();
   }
 
@@ -123,7 +127,8 @@ TEST(StandaloneTest, BasicGraph) {  // NOLINT
   //        |                                        v
   //         ----------------------------------------
   //
-  tester->set_test_mode_graph(R"({"nodes": [{
+  tester->set_test_mode_graph(R"({"
+    nodes": [{
 			"type": "extension",
 			"name": "test_extension_1",
 			"addon": "standalone_test_basic_graph__test_extension_1",
