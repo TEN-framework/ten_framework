@@ -278,10 +278,19 @@ void ten_extension_thread_dispatch_msg(ten_extension_thread_t *self,
 
           ten_engine_push_to_extension_msgs_queue(engine, msg);
         } else {
+#if defined(__i386__) || defined(__arm__)
+          // In a 32-bit environment, directly calling the `on_xxx` or
+          // `result_handler` of the destination extension within the same
+          // thread as the source/destination extension might cause the function
+          // call stack to become too deep, potentially leading to a stack
+          // overflow. Therefore, in a 32-bit environment, avoid direct function
+          // calls; instead, always push the message to the message queue.
+          ten_engine_push_to_extension_msgs_queue(engine, msg);
+#else
           // The message should be handled in the current extension thread, so
           // dispatch the message to the current extension thread.
-
           ten_extension_thread_handle_in_msg_sync(self, msg);
+#endif
         }
       }
     }
