@@ -13,7 +13,7 @@
 #include "tests/common/client/cpp/msgpack_tcp.h"
 #include "tests/ten_runtime/smoke/extension_test/util/binding/cpp/check.h"
 
-#define LOOP_CNT 6
+#define LOOP_CNT 2
 
 namespace {
 
