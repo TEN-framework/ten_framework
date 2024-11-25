@@ -17,6 +17,7 @@ using ten_client_proxy_send_cmd_result_handler_func_t =
 
 class ten_client_proxy_event_handler_t {
  public:
+  ten_client_proxy_event_handler_t() = default;
   virtual ~ten_client_proxy_event_handler_t() = default;
 
   ten_client_proxy_event_handler_t(const ten_client_proxy_event_handler_t &) =
@@ -176,6 +177,17 @@ class ten_client_proxy_internal_impl_t : public ten::extension_tester_t {
         [video_frame_shared](ten::ten_env_tester_t &env_tester) {
           env_tester.send_video_frame(std::move(*video_frame_shared));
         },
+        nullptr);
+  }
+
+  bool stop() {
+    if (ten_env_tester_proxy_ == nullptr) {
+      TEN_LOGE("Failed to stop before started.");
+      return false;
+    }
+
+    return ten_env_tester_proxy_->notify(
+        [](ten::ten_env_tester_t &env_tester) { env_tester.stop_test(); },
         nullptr);
   }
 
