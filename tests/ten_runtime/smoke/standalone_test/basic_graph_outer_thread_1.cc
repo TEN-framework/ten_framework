@@ -153,10 +153,7 @@ TEST(StandaloneTest, BasicGraphOuterThread1) {  // NOLINT
   //        |                                        v
   //         ----------------------------------------
   //
-  tester->set_test_mode_graph(R"({
-	"_ten": {
-		"type": "start_graph",
-		"nodes": [{
+  tester->set_test_mode_graph(R"("nodes": [{
 			"type": "extension",
 			"name": "test_extension_1",
 			"addon": "standalone_test_basic_graph_outer_thread_1__test_extension_1",
@@ -206,10 +203,7 @@ TEST(StandaloneTest, BasicGraphOuterThread1) {  // NOLINT
 					"extension": "ten:test_extension"
 				}]
 			}]
-		}]
-
-	}
-})");
+		}])");
 
   bool rc = tester->run();
   TEN_ASSERT(rc, "Should not happen.");

@@ -8,7 +8,10 @@
 
 #include "include_internal/ten_runtime/app/app.h"
 #include "include_internal/ten_runtime/app/base_dir.h"
+#include "include_internal/ten_runtime/msg/msg.h"
 #include "ten_runtime/app/app.h"
+#include "ten_utils/lib/json.h"
+#include "ten_utils/lib/smart_ptr.h"
 #include "ten_utils/macro/mark.h"
 
 #if defined(TEN_ENABLE_TEN_RUST_APIS)
@@ -17,11 +20,11 @@
 #include "ten_utils/macro/memory.h"
 #endif
 
-bool ten_app_check_start_graph_cmd_json(ten_app_t *self,
-                                        ten_json_t *start_graph_cmd_json,
-                                        TEN_UNUSED ten_error_t *err) {
+bool ten_app_check_start_graph_cmd(ten_app_t *self,
+                                   ten_shared_ptr_t *start_graph_cmd,
+                                   TEN_UNUSED ten_error_t *err) {
   TEN_ASSERT(self && ten_app_check_integrity(self, true), "Should not happen.");
-  TEN_ASSERT(start_graph_cmd_json, "Invalid argument.");
+  TEN_ASSERT(start_graph_cmd, "Invalid argument.");
 
 #if defined(TEN_ENABLE_TEN_RUST_APIS)
   const char *base_dir = ten_app_get_base_dir(self);
@@ -34,6 +37,14 @@ bool ten_app_check_start_graph_cmd_json(ten_app_t *self,
     TEN_LOGD("The base dir of app [%s] is not set, skip checking graph.",
              ten_app_get_uri(self));
     return true;
+  }
+
+  ten_json_t *start_graph_cmd_json =
+      ten_msg_to_json_include_internal_field(start_graph_cmd, err);
+  if (!start_graph_cmd_json) {
+    TEN_ASSERT(0,
+               "Failed to convert start graph cmd to json, should not happen.");
+    return false;
   }
 
   bool free_json_string = false;
@@ -52,6 +63,8 @@ bool ten_app_check_start_graph_cmd_json(ten_app_t *self,
     ten_error_set(err, TEN_ERRNO_INVALID_GRAPH, err_msg);
     ten_rust_free_cstring(err_msg);
   }
+
+  ten_json_destroy(start_graph_cmd_json);
 
   return rc;
 #else

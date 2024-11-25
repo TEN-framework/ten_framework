@@ -28,8 +28,6 @@ type TenEnv interface {
 	postSyncJob(payload job) any
 	postAsyncJob(payload job) any
 
-	SendJSON(json string, handler ResultHandler) error
-	SendJSONBytes(json []byte, handler ResultHandler) error
 	SendCmd(cmd Cmd, handler ResultHandler) error
 	SendData(data Data) error
 	SendVideoFrame(videoFrame VideoFrame) error
@@ -117,15 +115,6 @@ func (p *tenEnv) attachToExtension(ext *extension) {
 	p.attachTo = unsafe.Pointer(ext)
 }
 
-func (p *tenEnv) attachToExtensionGroup(extGroup *extensionGroup) {
-	if p.attachToType != tenAttachToInvalid {
-		panic("The ten object can only be attached once.")
-	}
-
-	p.attachToType = tenAttachToExtensionGroup
-	p.attachTo = unsafe.Pointer(extGroup)
-}
-
 func (p *tenEnv) postSyncJob(payload job) any {
 	// To prevent deadlock, we refuse to post jobs to the pool. So it's
 	// recommended for developers to call async ten apis in goroutines other
@@ -135,67 +124,6 @@ func (p *tenEnv) postSyncJob(payload job) any {
 
 func (p *tenEnv) postAsyncJob(payload job) any {
 	return p.process(payload)
-}
-
-func (p *tenEnv) sendJSON(
-	bytes unsafe.Pointer,
-	size int,
-	handler ResultHandler,
-) error {
-	cb := goHandleNil
-	if handler != nil {
-		cb = newGoHandle(handler)
-	}
-
-	apiStatus := C.ten_go_ten_env_send_json(
-		p.cPtr,
-		bytes,
-		C.int(size),
-		cHandle(cb),
-	)
-	err := withGoStatus(&apiStatus)
-
-	return err
-}
-
-// SendJSON sends a json string to TEN runtime, and the handler function will be
-// called when the result (i.e., CmdResult) is received. The result will be
-// discarded if the handler is nil.
-func (p *tenEnv) SendJSON(json string, handler ResultHandler) error {
-	if len(json) == 0 {
-		return newTenError(
-			ErrnoInvalidArgument,
-			"json data is required.",
-		)
-	}
-
-	return withCGO(func() error {
-		return p.sendJSON(
-			unsafe.Pointer(unsafe.StringData(json)),
-			len(json),
-			handler,
-		)
-	})
-}
-
-// SendJSONBytes sends a json bytes to TEN runtime, and the handler function
-// will be called when the result (i.e., CmdResult) is received. The result
-// will be discarded if the handler is nil.
-func (p *tenEnv) SendJSONBytes(json []byte, handler ResultHandler) error {
-	if len(json) == 0 {
-		return newTenError(
-			ErrnoInvalidArgument,
-			"json data is required.",
-		)
-	}
-
-	return withCGO(func() error {
-		return p.sendJSON(
-			unsafe.Pointer(unsafe.SliceData(json)),
-			len(json),
-			handler,
-		)
-	})
 }
 
 func (p *tenEnv) SendCmd(cmd Cmd, handler ResultHandler) error {
@@ -427,9 +355,7 @@ func (p *tenEnv) OnDestroyExtensionsDone() error {
 func (p *tenEnv) OnCreateInstanceDone(instance any, context uintptr) error {
 	switch instance := instance.(type) {
 	case *extension:
-		C.ten_go_ten_env_on_create_instance_done(p.cPtr, C.bool(true), instance.cPtr, C.uintptr_t(context))
-	case *extensionGroup:
-		C.ten_go_ten_env_on_create_instance_done(p.cPtr, C.bool(false), instance.cPtr, C.uintptr_t(context))
+		C.ten_go_ten_env_on_create_instance_done(p.cPtr, instance.cPtr, C.uintptr_t(context))
 	default:
 		panic("instance must be extension or extension group.")
 	}

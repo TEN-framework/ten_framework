@@ -6,6 +6,7 @@
 //
 #include "gtest/gtest.h"
 #include "include_internal/ten_runtime/binding/cpp/ten.h"
+#include "ten_runtime/binding/cpp/internal/msg/cmd/start_graph.h"
 #include "ten_runtime/common/status_code.h"
 #include "tests/common/client/cpp/msgpack_tcp.h"
 #include "tests/ten_runtime/smoke/extension_test/util/binding/cpp/check.h"
@@ -17,21 +18,12 @@ class test_predefined_graph : public ten::extension_t {
       : ten::extension_t(name) {}
 
   void on_start(ten::ten_env_t &ten_env) override {
-    std::string start_graph_json = R"({
-             "_ten": {
-               "type": "start_graph",
-               "seq_id": "222",
-               "dest": [{
-                 "app": "localhost"
-               }],
-               "predefined_graph": "graph_1"
-             }
-          })"_json.dump();
-
-    ten_env.send_json(
-        start_graph_json.c_str(),
-        [start_graph_json](ten::ten_env_t &ten_env,
-                           std::unique_ptr<ten::cmd_result_t> cmd) {
+    auto start_graph_cmd = ten::cmd_start_graph_t::create();
+    start_graph_cmd->set_dest("localhost", nullptr, nullptr, nullptr);
+    start_graph_cmd->set_predefined_graph_name("graph_1");
+    ten_env.send_cmd(
+        std::move(start_graph_cmd),
+        [](ten::ten_env_t &ten_env, std::unique_ptr<ten::cmd_result_t> cmd) {
           auto status_code = cmd->get_status_code();
           ASSERT_EQ(status_code, TEN_STATUS_CODE_ERROR);
 
@@ -47,8 +39,7 @@ class test_predefined_graph : public ten::extension_t {
 
   void on_cmd(ten::ten_env_t &ten_env,
               std::unique_ptr<ten::cmd_t> cmd) override {
-    nlohmann::json json = nlohmann::json::parse(cmd->to_json());
-    if (json["_ten"]["name"] == "test") {
+    if (std::string(cmd->get_name()) == "test") {
       nlohmann::json detail = {{"id", 1}, {"name", "a"}};
 
       auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
@@ -157,21 +148,13 @@ TEST(ExtensionTest, FailedToConnectToRemote) {  // NOLINT
   // Do not need to send 'start_graph' command first.
   // The 'graph_id' MUST be "default" if we want to send the request to
   // predefined graph.
-  nlohmann::json resp = client->send_json_and_recv_resp_in_json(
-      R"({
-           "_ten": {
-             "name": "test",
-             "seq_id": "111",
-             "dest": [{
-               "app": "msgpack://127.0.0.1:8001/",
-               "graph": "default",
-               "extension_group": "failed_to_connect_to_remote__predefined_graph_group",
-               "extension": "predefined_graph"
-             }]
-           }
-         })"_json);
-  ten_test::check_result_is(resp, "111", TEN_STATUS_CODE_OK,
-                            R"({"id": 1, "name": "a"})");
+  auto test_cmd = ten::cmd_t::create("test");
+  test_cmd->set_dest("msgpack://127.0.0.1:8001/", "default",
+                     "failed_to_connect_to_remote__predefined_graph_group",
+                     "predefined_graph");
+  auto cmd_result = client->send_cmd_and_recv_result(std::move(test_cmd));
+  ten_test::check_status_code(cmd_result, TEN_STATUS_CODE_OK);
+  ten_test::check_detail_with_json(cmd_result, R"({"id": 1, "name": "a"})");
 
   delete client;
 

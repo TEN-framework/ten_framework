@@ -57,21 +57,30 @@ class AsyncTenEnv(TenEnv):
                 break
             yield result
 
-    async def send_json(self, json_str: str) -> AsyncGenerator[CmdResult, None]:
-        q = asyncio.Queue(maxsize=10)
-        self._internal.send_json(
-            json_str,
-            lambda ten_env, result: asyncio.run_coroutine_threadsafe(
-                q.put(result), self._ten_loop
-            ),
+    async def on_configure_done(self) -> None:
+        raise NotImplementedError(
+            "No need to call this method in async extension"
         )
-        while True:
-            result: CmdResult = await q.get()
-            if result.is_completed():
-                yield result
-                # This is the final result, so break the while loop.
-                break
-            yield result
+
+    async def on_init_done(self) -> None:
+        raise NotImplementedError(
+            "No need to call this method in async extension"
+        )
+
+    async def on_start_done(self) -> None:
+        raise NotImplementedError(
+            "No need to call this method in async extension"
+        )
+
+    async def on_stop_done(self) -> None:
+        raise NotImplementedError(
+            "No need to call this method in async extension"
+        )
+
+    async def on_deinit_done(self) -> None:
+        raise NotImplementedError(
+            "No need to call this method in async extension"
+        )
 
     def _deinit_routine(self) -> None:
         # Wait for the internal thread to finish.
@@ -87,28 +96,3 @@ class AsyncTenEnv(TenEnv):
         # Start the deinit thread to avoid blocking the extension thread.
         self._deinit_thread = threading.Thread(target=self._deinit_routine)
         self._deinit_thread.start()
-
-    def on_configure_done(self) -> None:
-        raise NotImplementedError(
-            "No need to call this method in async extension"
-        )
-
-    def on_init_done(self) -> None:
-        raise NotImplementedError(
-            "No need to call this method in async extension"
-        )
-
-    def on_start_done(self) -> None:
-        raise NotImplementedError(
-            "No need to call this method in async extension"
-        )
-
-    def on_stop_done(self) -> None:
-        raise NotImplementedError(
-            "No need to call this method in async extension"
-        )
-
-    def on_deinit_done(self) -> None:
-        raise NotImplementedError(
-            "No need to call this method in async extension"
-        )

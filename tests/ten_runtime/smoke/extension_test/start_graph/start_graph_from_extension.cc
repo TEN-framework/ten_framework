@@ -23,24 +23,21 @@ class test_predefined_graph : public ten::extension_t {
       : ten::extension_t(name) {}
 
   void on_start(ten::ten_env_t &ten_env) override {
-    ten_env.send_json(
-        R"({
-             "_ten": {
-               "type": "start_graph",
-               "seq_id": "222",
-               "dest": [{
-                 "app": "localhost"
-               }],
-               "nodes": [{
-                 "type": "extension",
-                 "name": "normal_extension",
-                 "addon": "start_graph_from_extension__normal_extension",
-                 "app": "msgpack://127.0.0.1:8001/",
-                "extension_group": "start_graph_from_extension__normal_extension_group"
-               }]
-             }
-          })"_json.dump()
-            .c_str(),
+    auto start_graph_cmd = ten::cmd_start_graph_t::create();
+    start_graph_cmd->set_dest("localhost", nullptr, nullptr, nullptr);
+    start_graph_cmd->set_graph_from_json(R"({
+      "nodes": [{
+        "type": "extension",
+        "name": "normal_extension",
+        "addon": "start_graph_from_extension__normal_extension",
+        "app": "msgpack://127.0.0.1:8001/",
+        "extension_group": "start_graph_from_extension__normal_extension_group"
+      }]
+    })"_json.dump()
+                                             .c_str());
+
+    ten_env.send_cmd(
+        std::move(start_graph_cmd),
         [this](ten::ten_env_t &ten_env,
                std::unique_ptr<ten::cmd_result_t> cmd) {
           // result for the 'start_graph' command
@@ -62,8 +59,7 @@ class test_predefined_graph : public ten::extension_t {
 
   void on_cmd(ten::ten_env_t &ten_env,
               std::unique_ptr<ten::cmd_t> cmd) override {
-    nlohmann::json json = nlohmann::json::parse(cmd->to_json());
-    if (json["_ten"]["name"] == "test") {
+    if (std::string(cmd->get_name()) == "test") {
       if (start_graph_cmd_is_done) {
         nlohmann::json detail = {{"id", 1}, {"name", "a"}};
 
@@ -151,21 +147,13 @@ TEST(ExtensionTest, StartGraphFromExtension) {  // NOLINT
   // Do not need to send 'start_graph' command first.
   // The 'graph_id' MUST be "default" (a special string) if we want to send the
   // request to predefined graph.
-  nlohmann::json resp = client->send_json_and_recv_resp_in_json(
-      R"({
-           "_ten": {
-             "name": "test",
-             "seq_id": "111",
-             "dest": [{
-               "app": "msgpack://127.0.0.1:8001/",
-               "graph": "default",
-               "extension_group": "start_graph_from_extension__predefined_graph_group",
-               "extension": "predefined_graph"
-             }]
-           }
-         })"_json);
-  ten_test::check_result_is(resp, "111", TEN_STATUS_CODE_OK,
-                            R"({"id": 1, "name": "a"})");
+  auto test_cmd = ten::cmd_t::create("test");
+  test_cmd->set_dest("msgpack://127.0.0.1:8001/", "default",
+                     "start_graph_from_extension__predefined_graph_group",
+                     "predefined_graph");
+  auto cmd_result = client->send_cmd_and_recv_result(std::move(test_cmd));
+  ten_test::check_status_code(cmd_result, TEN_STATUS_CODE_OK);
+  ten_test::check_detail_with_json(cmd_result, R"({"id": 1, "name": "a"})");
 
   delete client;
 

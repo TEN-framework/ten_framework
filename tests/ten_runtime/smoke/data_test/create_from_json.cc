@@ -10,6 +10,7 @@
 
 #include "gtest/gtest.h"
 #include "include_internal/ten_runtime/binding/cpp/ten.h"
+#include "ten_runtime/binding/cpp/internal/msg/data.h"
 #include "ten_utils/lib/thread.h"
 #include "tests/common/client/cpp/msgpack_tcp.h"
 #include "tests/ten_runtime/smoke/extension_test/util/binding/cpp/check.h"
@@ -25,16 +26,9 @@ class test_extension_1 : public ten::extension_t {
     if (std::string(cmd->get_name()) == "hello_world") {
       hello_world_cmd = std::move(cmd);
 
-      auto data = ten::data_t::create_from_json(
-          // clang-format off
-          R"({
-               "_ten": {
-                 "name": "data"
-               },
-               "payload": 3
-             })"
-          // clang-format on
-      );
+      auto data = ten::data_t::create("data");
+      data->set_property("payload", 3);
+
       ten_env.send_data(std::move(data));
     } else if (std::string(cmd->get_name()) == "data_ack") {
       auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
@@ -104,12 +98,9 @@ TEST(DataTest, CreateFromJson) {  // NOLINT
   auto *client = new ten::msgpack_tcp_client_t("msgpack://127.0.0.1:8001/");
 
   // Send graph.
-  nlohmann::json resp = client->send_json_and_recv_resp_in_json(
-      R"({
-           "_ten": {
-             "type": "start_graph",
-             "seq_id": "55",
-             "nodes": [{
+  auto start_graph_cmd = ten::cmd_start_graph_t::create();
+  start_graph_cmd->set_graph_from_json(R"({
+           "nodes": [{
                 "type": "extension",
                 "name": "test_extension_1",
                 "addon": "data_create_from_json__test_extension_1",
@@ -147,25 +138,18 @@ TEST(DataTest, CreateFromJson) {  // NOLINT
                  }]
                }]
              }]
-           }
-         })"_json);
-  ten_test::check_status_code_is(resp, TEN_STATUS_CODE_OK);
+           })");
+  auto cmd_result =
+      client->send_cmd_and_recv_result(std::move(start_graph_cmd));
+  ten_test::check_status_code(cmd_result, TEN_STATUS_CODE_OK);
 
   // Send a user-defined 'hello world' command.
-  resp = client->send_json_and_recv_resp_in_json(
-      R"({
-           "_ten": {
-             "name": "hello_world",
-             "seq_id": "137",
-             "dest": [{
-               "app": "msgpack://127.0.0.1:8001/",
-               "extension_group": "basic_extension_group",
-               "extension": "test_extension_1"
-             }]
-           }
-         })"_json);
-  ten_test::check_result_is(resp, "137", TEN_STATUS_CODE_OK,
-                            "hello world, too");
+  auto hello_world_cmd = ten::cmd_t::create("hello_world");
+  hello_world_cmd->set_dest("msgpack://127.0.0.1:8001/", nullptr,
+                            "basic_extension_group", "test_extension_1");
+  cmd_result = client->send_cmd_and_recv_result(std::move(hello_world_cmd));
+  ten_test::check_status_code(cmd_result, TEN_STATUS_CODE_OK);
+  ten_test::check_detail_with_string(cmd_result, "hello world, too");
 
   delete client;
 

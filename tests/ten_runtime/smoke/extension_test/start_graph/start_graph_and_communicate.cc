@@ -18,8 +18,7 @@ class test_normal_extension : public ten::extension_t {
 
   void on_cmd(ten::ten_env_t &ten_env,
               std::unique_ptr<ten::cmd_t> cmd) override {
-    nlohmann::json json = nlohmann::json::parse(cmd->to_json());
-    if (json["_ten"]["name"] == "hello_world") {
+    if (std::string(cmd->get_name()) == "hello_world") {
       auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
       cmd_result->set_property("detail", "hello world, too");
       ten_env.return_result(std::move(cmd_result), std::move(cmd));
@@ -33,44 +32,32 @@ class test_predefined_graph : public ten::extension_t {
       : ten::extension_t(name) {}
 
   void on_start(ten::ten_env_t &ten_env) override {
-    ten_env.send_json(
-        R"({
-             "_ten": {
-               "type": "start_graph",
-               "seq_id": "222",
-               "dest": [{
-                 "app": "localhost"
-               }],
-               "nodes": [{
-                 "type": "extension",
-                 "name": "normal_extension",
-                 "addon": "start_graph_and_communication__normal_extension",
-                 "app": "msgpack://127.0.0.1:8001/",
-                 "extension_group": "start_graph_and_communication__normal_extension_group"
-               }]
-             }
-          })"_json.dump()
-            .c_str(),
+    auto start_graph_cmd = ten::cmd_start_graph_t::create();
+    start_graph_cmd->set_dest("localhost", nullptr, nullptr, nullptr);
+    start_graph_cmd->set_graph_from_json(R"({
+      "nodes": [{
+        "type": "extension",
+        "name": "normal_extension",
+        "addon": "start_graph_and_communication__normal_extension",
+        "app": "msgpack://127.0.0.1:8001/",
+        "extension_group": "start_graph_and_communication__normal_extension_group"
+      }]
+    })"_json.dump()
+                                             .c_str());
+
+    ten_env.send_cmd(
+        std::move(start_graph_cmd),
         [this](ten::ten_env_t &ten_env,
                std::unique_ptr<ten::cmd_result_t> cmd) {
           auto graph_id = cmd->get_property_string("detail");
 
-          nlohmann::json hello_cmd =
-              R"({
-                   "_ten": {
-                     "name": "hello_world",
-                     "seq_id": "137",
-                     "dest":[{
-                       "app": "msgpack://127.0.0.1:8001/",
-                       "extension_group": "start_graph_and_communication__normal_extension_group",
-                       "extension": "normal_extension"
-                     }]
-                   }
-                 })"_json;
-          hello_cmd["_ten"]["dest"][0]["graph"] = graph_id;
-
-          ten_env.send_json(
-              hello_cmd.dump().c_str(),
+          auto hello_world_cmd = ten::cmd_t::create("hello_world");
+          hello_world_cmd->set_dest(
+              "msgpack://127.0.0.1:8001/", graph_id.c_str(),
+              "start_graph_and_communication__normal_extension_group",
+              "normal_extension");
+          ten_env.send_cmd(
+              std::move(hello_world_cmd),
               [this](ten::ten_env_t &ten_env,
                      std::unique_ptr<ten::cmd_result_t> cmd) {
                 received_hello_world_resp = true;
@@ -93,8 +80,7 @@ class test_predefined_graph : public ten::extension_t {
 
   void on_cmd(ten::ten_env_t &ten_env,
               std::unique_ptr<ten::cmd_t> cmd) override {
-    nlohmann::json json = nlohmann::json::parse(cmd->to_json());
-    if (json["_ten"]["name"] == "test") {
+    if (std::string(cmd->get_name()) == "test") {
       if (received_hello_world_resp) {
         nlohmann::json detail = {{"id", 1}, {"name", "a"}};
 
@@ -182,21 +168,13 @@ TEST(ExtensionTest, StartGraphAndCommunication) {  // NOLINT
   // Do not need to send 'start_graph' command first.
   // The 'graph_id' MUST be "default" (a special string) if we want to send the
   // request to predefined graph.
-  nlohmann::json resp = client->send_json_and_recv_resp_in_json(
-      R"({
-           "_ten": {
-             "name": "test",
-             "seq_id": "111",
-             "dest": [{
-               "app": "msgpack://127.0.0.1:8001/",
-               "graph": "default",
-               "extension_group": "start_graph_and_communication__predefined_graph_group",
-               "extension": "predefined_graph"
-             }]
-           }
-         })"_json);
-  ten_test::check_result_is(resp, "111", TEN_STATUS_CODE_OK,
-                            R"({"id": 1, "name": "a"})");
+  auto test_cmd = ten::cmd_t::create("test");
+  test_cmd->set_dest("msgpack://127.0.0.1:8001/", "default",
+                     "start_graph_and_communication__predefined_graph_group",
+                     "predefined_graph");
+  auto cmd_result = client->send_cmd_and_recv_result(std::move(test_cmd));
+  ten_test::check_status_code(cmd_result, TEN_STATUS_CODE_OK);
+  ten_test::check_detail_with_json(cmd_result, R"({"id": 1, "name": "a"})");
 
   delete client;
 

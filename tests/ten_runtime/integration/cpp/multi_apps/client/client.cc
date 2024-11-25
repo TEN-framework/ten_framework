@@ -6,6 +6,7 @@
 //
 #include <nlohmann/json.hpp>
 
+#include "ten_runtime/binding/cpp/internal/msg/cmd/start_graph.h"
 #include "ten_utils/macro/check.h"
 #include "tests/common/client/cpp/msgpack_tcp.h"
 
@@ -17,12 +18,9 @@ void test_extension_in_app1_not_installed() {
 
   // Send a start_graph cmd to app 8001. However, because there is no extension
   // addon named `ext_e` in app 8001, the `start_graph` command will fail.
-  nlohmann::json resp = client->send_json_and_recv_resp_in_json(
-      R"({
-           "_ten": {
-             "type": "start_graph",
-             "seq_id": "55",
-             "nodes": [{
+  auto start_graph_cmd = ten::cmd_start_graph_t::create();
+  start_graph_cmd->set_graph_from_json(R"({
+           "nodes": [{
                "type": "extension",
                "name": "ext_a",
                "addon": "ext_e",
@@ -35,12 +33,13 @@ void test_extension_in_app1_not_installed() {
                "app": "msgpack://127.0.0.1:8002/",
                "extension_group": "test_extension_group"
              }]
-           }
-         })"_json);
-  TEN_ASSERT(TEN_STATUS_CODE_ERROR == resp["_ten"]["status_code"],
+           })");
+  auto cmd_result =
+      client->send_cmd_and_recv_result(std::move(start_graph_cmd));
+  TEN_ASSERT(TEN_STATUS_CODE_ERROR == cmd_result->get_status_code(),
              "Should not happen.");
 
-  auto detail = resp.value("detail", "");
+  auto detail = cmd_result->get_property_string("detail");
   // NOLINTNEXTLINE
   TEN_ASSERT(!detail.empty() && detail.find("ext_e") != std::string::npos,
              "Should not happen.");
@@ -54,11 +53,9 @@ void test_extension_in_app2_not_installed() {
 
   // Send a start_graph cmd to app 8001. However, because there is no extension
   // addon named `ext_e` in app 8002, the `start_graph` command will fail.
-  auto resp = client->send_json_and_recv_resp_in_json(
+  auto start_graph_cmd = ten::cmd_start_graph_t::create();
+  start_graph_cmd->set_graph_from_json(
       R"({
-           "_ten": {
-             "type": "start_graph",
-             "seq_id": "56",
              "nodes": [{
                "type": "extension",
                "name": "ext_a",
@@ -85,12 +82,13 @@ void test_extension_in_app2_not_installed() {
                  }]
                }]
              }]
-           }
-         })"_json);
-  TEN_ASSERT(TEN_STATUS_CODE_ERROR == resp["_ten"]["status_code"],
+         })");
+  auto cmd_result =
+      client->send_cmd_and_recv_result(std::move(start_graph_cmd));
+  TEN_ASSERT(TEN_STATUS_CODE_ERROR == cmd_result->get_status_code(),
              "Should not happen.");
 
-  auto detail = resp.value("detail", "");
+  auto detail = cmd_result->get_property_string("detail");
   // NOLINTNEXTLINE
   TEN_ASSERT(!detail.empty() && detail.find("ext_e") != std::string::npos,
              "Should not happen.");
@@ -107,11 +105,9 @@ int main(int argc, char **argv) {
   // Create a client and connect to the app.
   auto *client = new ten::msgpack_tcp_client_t("msgpack://127.0.0.1:8001/");
 
-  auto resp = client->send_json_and_recv_resp_in_json(
+  auto start_graph_cmd = ten::cmd_start_graph_t::create();
+  start_graph_cmd->set_graph_from_json(
       R"({
-           "_ten": {
-             "type": "start_graph",
-             "seq_id": "55",
              "nodes": [{
                "type": "extension",
                "name": "ext_a",
@@ -119,29 +115,21 @@ int main(int argc, char **argv) {
                "app": "msgpack://127.0.0.1:8001/",
                "extension_group": "test_extension_group"
              }]
-           }
-         })"_json);
-  TEN_ASSERT(TEN_STATUS_CODE_OK == resp["_ten"]["status_code"],
+         })");
+  auto cmd_result =
+      client->send_cmd_and_recv_result(std::move(start_graph_cmd));
+  TEN_ASSERT(TEN_STATUS_CODE_OK == cmd_result->get_status_code(),
              "Should not happen.");
 
   // Send a user-defined 'hello world' command.
-  resp = client->send_json_and_recv_resp_in_json(
-      R"({
-           "_ten": {
-             "name": "hello_world",
-             "seq_id": "137",
-             "dest": [{
-               "app": "msgpack://127.0.0.1:8001/",
-               "extension_group": "test_extension_group",
-               "extension": "ext_a"
-             }]
-           }
-       })"_json);
-  TEN_ASSERT(TEN_STATUS_CODE_OK == resp["_ten"]["status_code"],
+  auto hello_world_cmd = ten::cmd_t::create("hello_world");
+  hello_world_cmd->set_dest("msgpack://127.0.0.1:8001/", nullptr,
+                            "test_extension_group", "ext_a");
+  cmd_result = client->send_cmd_and_recv_result(std::move(hello_world_cmd));
+  TEN_ASSERT(TEN_STATUS_CODE_OK == cmd_result->get_status_code(),
              "Should not happen.");
-  TEN_ASSERT(static_cast<std::string>("137") == resp["_ten"]["seq_id"],
-             "Should not happen.");
-  TEN_ASSERT(static_cast<std::string>("hello world, too") == resp["detail"],
+  TEN_ASSERT(static_cast<std::string>("hello world, too") ==
+                 cmd_result->get_property_string("detail"),
              "Should not happen.");
 
   client->close_app();

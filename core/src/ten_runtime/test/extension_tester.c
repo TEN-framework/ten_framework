@@ -30,7 +30,6 @@
 #include "ten_utils/container/list_str.h"
 #include "ten_utils/io/runloop.h"
 #include "ten_utils/lib/event.h"
-#include "ten_utils/lib/json.h"
 #include "ten_utils/lib/signature.h"
 #include "ten_utils/lib/smart_ptr.h"
 #include "ten_utils/lib/string.h"
@@ -210,8 +209,6 @@ static void ten_extension_tester_create_and_start_graph(
     ten_string_t start_graph_cmd_json_str;
     ten_string_init_formatted(&start_graph_cmd_json_str,
                               "{\
-         \"_ten\": {\
-           \"type\": \"start_graph\",\
            \"nodes\": [{\
               \"type\": \"extension\",\
               \"name\": \"ten:test_extension\",\
@@ -298,37 +295,27 @@ static void ten_extension_tester_create_and_start_graph(
                }]\
              }]\
            }]\
-         }\
        }",
                               addon_name, addon_name, addon_name, addon_name,
                               addon_name, addon_name, addon_name);
-
-    ten_json_t *start_graph_cmd_json = ten_json_from_string(
-        ten_string_get_raw_str(&start_graph_cmd_json_str), NULL);
-
-    ten_string_deinit(&start_graph_cmd_json_str);
-
-    int rc = ten_msg_from_json(start_graph_cmd, start_graph_cmd_json, NULL);
+    rc = ten_cmd_start_graph_set_graph_from_json_str(
+        start_graph_cmd, ten_string_get_raw_str(&start_graph_cmd_json_str),
+        NULL);
     TEN_ASSERT(rc, "Should not happen.");
 
-    ten_json_destroy(start_graph_cmd_json);
+    ten_string_deinit(&start_graph_cmd_json_str);
   } else if (self->test_mode == TEN_EXTENSION_TESTER_TEST_MODE_GRAPH) {
     TEN_ASSERT(ten_string_check_integrity(
                    &self->test_target.graph.start_graph_cmd_json),
                "Invalid test target.");
+    TEN_ASSERT(&self->test_target.graph.start_graph_cmd_json,
+               "Should not happen.");
 
-    const char *start_graph_cmd_json_c_str =
-        ten_string_get_raw_str(&self->test_target.graph.start_graph_cmd_json);
-    TEN_ASSERT(start_graph_cmd_json_c_str, "Should not happen.");
-
-    ten_json_t *start_graph_cmd_json =
-        ten_json_from_string(start_graph_cmd_json_c_str, NULL);
-    TEN_ASSERT(start_graph_cmd_json, "Should not happen.");
-
-    int rc = ten_msg_from_json(start_graph_cmd, start_graph_cmd_json, NULL);
+    rc = ten_cmd_start_graph_set_graph_from_json_str(
+        start_graph_cmd,
+        ten_string_get_raw_str(&self->test_target.graph.start_graph_cmd_json),
+        NULL);
     TEN_ASSERT(rc, "Should not happen.");
-
-    ten_json_destroy(start_graph_cmd_json);
   }
 
   rc = ten_env_proxy_notify(self->test_app_ten_env_proxy,
