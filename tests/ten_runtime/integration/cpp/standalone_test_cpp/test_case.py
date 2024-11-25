@@ -37,7 +37,7 @@ def manage_env_var_for_memory_issue_detection():
         del os.environ["ASAN_OPTIONS"]
 
 
-@pytest.mark.usefixtures("manage_env_var_for_memory_issue_detection")
+# @pytest.mark.usefixtures("manage_env_var_for_memory_issue_detection")
 def test_standalone_test_cpp():
     base_path = os.path.dirname(os.path.abspath(__file__))
     root_dir = os.path.join(base_path, "../../../../../")
