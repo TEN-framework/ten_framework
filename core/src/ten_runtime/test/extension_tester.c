@@ -25,8 +25,6 @@
 #include "ten_runtime/ten_env/internal/on_xxx_done.h"
 #include "ten_runtime/ten_env_proxy/ten_env_proxy.h"
 #include "ten_utils/container/list.h"
-#include "ten_utils/container/list_node.h"
-#include "ten_utils/container/list_node_str.h"
 #include "ten_utils/container/list_str.h"
 #include "ten_utils/io/runloop.h"
 #include "ten_utils/lib/event.h"
@@ -107,16 +105,15 @@ void ten_extension_tester_set_test_mode_single(ten_extension_tester_t *self,
                              strlen(addon_name));
 }
 
-void ten_extension_tester_set_test_mode_graph(
-    ten_extension_tester_t *self, const char *start_graph_cmd_json) {
+void ten_extension_tester_set_test_mode_graph(ten_extension_tester_t *self,
+                                              const char *graph_json) {
   TEN_ASSERT(self && ten_extension_tester_check_integrity(self, true),
              "Invalid argument.");
-  TEN_ASSERT(start_graph_cmd_json, "Invalid argument.");
+  TEN_ASSERT(graph_json, "Invalid argument.");
 
   self->test_mode = TEN_EXTENSION_TESTER_TEST_MODE_GRAPH;
-  ten_string_init_from_c_str(&self->test_target.graph.start_graph_cmd_json,
-                             start_graph_cmd_json,
-                             strlen(start_graph_cmd_json));
+  ten_string_init_from_c_str(&self->test_target.graph.graph_json, graph_json,
+                             strlen(graph_json));
 }
 
 void ten_extension_tester_add_addon_base_dir(ten_extension_tester_t *self,
@@ -147,7 +144,7 @@ static void ten_extension_tester_destroy_test_target(
   if (self->test_mode == TEN_EXTENSION_TESTER_TEST_MODE_SINGLE) {
     ten_string_deinit(&self->test_target.addon.addon_name);
   } else if (self->test_mode == TEN_EXTENSION_TESTER_TEST_MODE_GRAPH) {
-    ten_string_deinit(&self->test_target.graph.start_graph_cmd_json);
+    ten_string_deinit(&self->test_target.graph.graph_json);
   }
 }
 
@@ -305,16 +302,13 @@ static void ten_extension_tester_create_and_start_graph(
 
     ten_string_deinit(&start_graph_cmd_json_str);
   } else if (self->test_mode == TEN_EXTENSION_TESTER_TEST_MODE_GRAPH) {
-    TEN_ASSERT(ten_string_check_integrity(
-                   &self->test_target.graph.start_graph_cmd_json),
+    TEN_ASSERT(ten_string_check_integrity(&self->test_target.graph.graph_json),
                "Invalid test target.");
-    TEN_ASSERT(&self->test_target.graph.start_graph_cmd_json,
-               "Should not happen.");
+    TEN_ASSERT(&self->test_target.graph.graph_json, "Should not happen.");
 
     rc = ten_cmd_start_graph_set_graph_from_json_str(
         start_graph_cmd,
-        ten_string_get_raw_str(&self->test_target.graph.start_graph_cmd_json),
-        NULL);
+        ten_string_get_raw_str(&self->test_target.graph.graph_json), NULL);
     TEN_ASSERT(rc, "Should not happen.");
   }
 

@@ -55,10 +55,10 @@ TEN_RUNTIME_API void ten_extension_tester_set_test_mode_single(
     ten_extension_tester_t *self, const char *addon_name);
 
 // Testing a complete graph which must contain exactly one proxy extension. All
-// messages input by the tester will be directed to this extension, and all
-// outputs from the extension will be sent back to the tester.
+// messages input by the tester will be directed to this proxy extension, and
+// all outputs from the proxy extension will be sent back to the tester.
 TEN_RUNTIME_API void ten_extension_tester_set_test_mode_graph(
-    ten_extension_tester_t *self, const char *start_graph_cmd_json);
+    ten_extension_tester_t *self, const char *graph_json);
 
 TEN_RUNTIME_API void ten_extension_tester_add_addon_base_dir(
     ten_extension_tester_t *self, const char *addon_base_dir);

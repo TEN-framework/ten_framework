@@ -40,7 +40,7 @@ struct ten_extension_tester_t {
     } addon;
 
     struct {
-      ten_string_t start_graph_cmd_json;
+      ten_string_t graph_json;
     } graph;
   } test_target;
 

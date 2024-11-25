@@ -108,19 +108,24 @@ void ten_engine_on_remote_closed(ten_remote_t *remote, void *on_closed_data) {
   } else {
     bool found_in_remotes = false;
 
-    ten_hashhandle_t *hh = ten_hashtable_find_string(
+    ten_hashhandle_t *connected_remote_hh = ten_hashtable_find_string(
         &self->remotes, ten_string_get_raw_str(&remote->uri));
-    if (hh) {
-      ten_remote_t *connected_remote =
-          CONTAINER_OF_FROM_FIELD(hh, ten_remote_t, hh_in_remote_table);
+    if (connected_remote_hh) {
+      ten_remote_t *connected_remote = CONTAINER_OF_FROM_FIELD(
+          connected_remote_hh, ten_remote_t, hh_in_remote_table);
       TEN_ASSERT(connected_remote, "Invalid argument.");
       TEN_ASSERT(ten_remote_check_integrity(connected_remote, true),
                  "Invalid use of remote %p.", connected_remote);
 
       if (connected_remote == remote) {
         found_in_remotes = true;
+
         // The remote is in the 'remotes' list, we just remove it.
-        ten_hashtable_del(&self->remotes, hh);
+        ten_hashtable_del(&self->remotes, connected_remote_hh);
+      } else {
+        // Search the engine's remotes using the URI and find that there is
+        // already another remote instance present. This situation can occur in
+        // the case of a duplicated remote.
       }
     }
 

@@ -41,6 +41,7 @@ class ten_client_proxy_event_handler_t {
 };
 
 namespace {
+
 class ten_client_proxy_internal_impl_t : public ten::extension_tester_t {
  protected:
   void on_start(ten::ten_env_tester_t &cpp_ten_env_tester) override {
@@ -197,6 +198,7 @@ class ten_client_proxy_internal_impl_t : public ten::extension_tester_t {
   // The thread-safety should be guaranteed by the caller.
   std::unique_ptr<ten::ten_env_tester_proxy_t> ten_env_tester_proxy_;
 };
+
 }  // namespace
 
 class ten_client_proxy_t {

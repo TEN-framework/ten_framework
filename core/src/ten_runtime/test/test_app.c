@@ -13,13 +13,6 @@
 
 static void test_app_on_configure(TEN_UNUSED ten_app_t *app,
                                   ten_env_t *ten_env) {
-  // Since the tester will wait for the
-  // `test_app_ten_env_proxy_create_completed` event after the app starts,
-  // using the tester here is thread-safe.
-  ten_extension_tester_t *tester = app->user_data;
-  TEN_ASSERT(tester && ten_extension_tester_check_integrity(tester, false),
-             "Should not happen.");
-
   bool rc = ten_env_init_property_from_json(ten_env,
                                             "{\
                                                \"_ten\": {\

@@ -18,6 +18,7 @@ using ten_env_tester_proxy_t = struct ten_env_tester_proxy_t;
 namespace ten {
 
 namespace {
+
 using tester_notify_std_func_t = std::function<void(ten_env_tester_t &)>;
 
 struct tester_proxy_notify_info_t {
@@ -28,7 +29,8 @@ struct tester_proxy_notify_info_t {
 
   // @{
   tester_proxy_notify_info_t(const tester_proxy_notify_info_t &) = delete;
-  tester_proxy_notify_info_t &operator=(const tester_proxy_notify_info_t &) = delete;
+  tester_proxy_notify_info_t &operator=(const tester_proxy_notify_info_t &) =
+      delete;
   tester_proxy_notify_info_t(tester_proxy_notify_info_t &&) = delete;
   tester_proxy_notify_info_t &operator=(tester_proxy_notify_info_t &&) = delete;
   // @}
@@ -51,6 +53,7 @@ inline void proxy_notify(::ten_env_tester_t *ten_env, void *data = nullptr) {
 
   delete info;
 }
+
 }  // namespace
 
 class ten_env_tester_proxy_t {
@@ -92,7 +95,7 @@ class ten_env_tester_proxy_t {
     c_ten_env_tester_proxy = nullptr;
   };
 
-  bool notify(tester_notify_std_func_t &&notify_func, error_t *err) {
+  bool notify(tester_notify_std_func_t &&notify_func, error_t *err = nullptr) {
     if (c_ten_env_tester_proxy == nullptr) {
       TEN_ASSERT(0, "Invalid argument.");
       return false;

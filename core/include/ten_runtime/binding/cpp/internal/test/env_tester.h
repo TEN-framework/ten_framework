@@ -37,19 +37,17 @@ class ten_env_tester_t {
   ten_env_tester_t &operator=(const ten_env_tester_t &&) = delete;
   // @}};
 
-  virtual bool on_start_done(error_t *err) {
+  bool on_start_done(error_t *err = nullptr) {
     TEN_ASSERT(c_ten_env_tester, "Should not happen.");
     return ten_env_tester_on_start_done(
         c_ten_env_tester,
         err != nullptr ? err->get_internal_representation() : nullptr);
   }
 
-  bool on_start_done() { return on_start_done(nullptr); }
-
-  virtual bool send_cmd(
+  bool send_cmd(
       std::unique_ptr<cmd_t> &&cmd,
-      ten_env_tester_send_cmd_result_handler_func_t &&result_handler,
-      error_t *err) {
+      ten_env_tester_send_cmd_result_handler_func_t &&result_handler = nullptr,
+      error_t *err = nullptr) {
     TEN_ASSERT(c_ten_env_tester, "Should not happen.");
 
     bool rc = false;
@@ -89,21 +87,7 @@ class ten_env_tester_t {
     return rc;
   }
 
-  bool send_cmd(std::unique_ptr<cmd_t> &&cmd, error_t *err) {
-    return send_cmd(std::move(cmd), nullptr, err);
-  }
-
-  bool send_cmd(
-      std::unique_ptr<cmd_t> &&cmd,
-      ten_env_tester_send_cmd_result_handler_func_t &&result_handler) {
-    return send_cmd(std::move(cmd), std::move(result_handler), nullptr);
-  }
-
-  bool send_cmd(std::unique_ptr<cmd_t> &&cmd) {
-    return send_cmd(std::move(cmd), nullptr, nullptr);
-  }
-
-  virtual bool send_data(std::unique_ptr<data_t> &&data, error_t *err) {
+  bool send_data(std::unique_ptr<data_t> &&data, error_t *err = nullptr) {
     TEN_ASSERT(c_ten_env_tester, "Should not happen.");
 
     bool rc = false;
@@ -129,12 +113,8 @@ class ten_env_tester_t {
     return rc;
   }
 
-  bool send_data(std::unique_ptr<data_t> &&data) {
-    return send_data(std::move(data), nullptr);
-  }
-
-  virtual bool send_audio_frame(std::unique_ptr<audio_frame_t> &&audio_frame,
-                                error_t *err) {
+  bool send_audio_frame(std::unique_ptr<audio_frame_t> &&audio_frame,
+                        error_t *err = nullptr) {
     TEN_ASSERT(c_ten_env_tester, "Should not happen.");
 
     bool rc = false;
@@ -160,12 +140,8 @@ class ten_env_tester_t {
     return rc;
   }
 
-  bool send_audio_frame(std::unique_ptr<audio_frame_t> &&audio_frame) {
-    return send_audio_frame(std::move(audio_frame), nullptr);
-  }
-
-  virtual bool send_video_frame(std::unique_ptr<video_frame_t> &&video_frame,
-                                error_t *err) {
+  bool send_video_frame(std::unique_ptr<video_frame_t> &&video_frame,
+                        error_t *err = nullptr) {
     TEN_ASSERT(c_ten_env_tester, "Should not happen.");
 
     bool rc = false;
@@ -189,10 +165,6 @@ class ten_env_tester_t {
     }
 
     return rc;
-  }
-
-  bool send_video_frame(std::unique_ptr<video_frame_t> &&video_frame) {
-    return send_video_frame(std::move(video_frame), nullptr);
   }
 
   bool stop_test(error_t *err = nullptr) {
