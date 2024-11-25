@@ -101,7 +101,7 @@ TEN_CPP_REGISTER_ADDON_AS_EXTENSION(
 
 }  // namespace
 
-TEST(ExtensionTest, DISABLED_GraphLoopMultipleCircleThroughCmd) {  // NOLINT
+TEST(ExtensionTest, GraphLoopMultipleCircleThroughCmd) {  // NOLINT
   // Start app.
   auto *app_thread =
       ten_thread_create("app thread", test_app_thread_main, nullptr);
