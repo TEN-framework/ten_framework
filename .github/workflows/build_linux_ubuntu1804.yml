@@ -20,8 +20,6 @@ jobs:
       group: build-linux-ubuntu1804-${{ github.head_ref }}-${{ matrix.build_type }}
       cancel-in-progress: true
     runs-on: ubuntu-22.04
-    env:
-      ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
     strategy:
       matrix:
         build_type: [release]
