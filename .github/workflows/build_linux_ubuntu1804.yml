@@ -102,7 +102,7 @@ jobs:
       #     ./integration_test || { echo "ten_rust integration test failed"; exit 1; }
 
       - name: Install jq
-        run: apt-get install -y jq
+        run: apt-get update && apt-get install -y jq
 
       - name: Compress ten_packages
         run: |
