@@ -221,7 +221,7 @@ class ten_client_proxy_t {
 
   void init_app_property_json(const char *app_property_json) {
     TEN_ASSERT(app_property_json, "Invalid argument.");
-    impl_.init_test_app_property_json(app_property_json);
+    impl_.init_test_app_property_from_json(app_property_json);
   }
 
   void start_graph(const char *graph_json) {

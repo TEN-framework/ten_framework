@@ -9,9 +9,6 @@
 
 #include "gtest/gtest.h"
 #include "include_internal/ten_runtime/binding/cpp/ten.h"
-#include "ten_runtime/binding/cpp/internal/extension.h"
-#include "ten_runtime/binding/cpp/internal/ten_env_proxy.h"
-#include "ten_runtime/binding/cpp/internal/test/env_tester.h"
 #include "ten_runtime/common/status_code.h"
 #include "ten_utils/lang/cpp/lib/value.h"
 #include "ten_utils/lib/thread.h"
@@ -152,7 +149,7 @@ TEST(StandaloneTest, BasicGraphCrossApp) {  // NOLINT
 
   auto *tester = new extension_tester_1();
 
-  tester->init_test_app_property_json(
+  tester->init_test_app_property_from_json(
       R"({
            "_ten": {
              "uri": "device:aaa"
@@ -166,7 +163,8 @@ TEST(StandaloneTest, BasicGraphCrossApp) {  // NOLINT
   //        |                                        v
   //         ----------------------------------------
   //
-  tester->set_test_mode_graph(R"({"nodes": [{
+  tester->set_test_mode_graph(R"({
+    "nodes": [{
 			"type": "extension",
 			"name": "test_extension_1",
       "app": "device:aaa",
