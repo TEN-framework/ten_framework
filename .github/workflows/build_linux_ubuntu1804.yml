@@ -101,6 +101,9 @@ jobs:
           ./unit_test || { echo "ten_rust unit test failed"; exit 1; }
           ./integration_test || { echo "ten_rust integration test failed"; exit 1; }
 
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
+
       - name: Compress ten_packages
         run: |
           zip -r artifact.zip \
