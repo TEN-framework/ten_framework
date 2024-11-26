@@ -262,6 +262,14 @@ static void ten_cmd_start_graph_get_next_list_through_dests(
       ten_extension_info_t *target_extension_info =
           from_src_point_of_view ? dest_extension_info : extension_info;
 
+      // If the uri of the target app represents a client uri, it means that the
+      // target app cannot establish a passive connection. Therefore, we only
+      // need to wait for it to connect to current app.
+      if (ten_string_starts_with(&target_extension_info->loc.app_uri,
+                                 TEN_STR_PREFIX_DEVICE)) {
+        continue;
+      }
+
       ten_listnode_t *found = ten_list_find_string(
           next, ten_string_get_raw_str(&target_extension_info->loc.app_uri));
       if (!found) {
