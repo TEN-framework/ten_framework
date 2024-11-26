@@ -15,30 +15,47 @@ on:
       - "**.md"
 
 jobs:
-  build-linux-ubuntu1804:
+  checkout-code:
+    name: Checkout Code on Ubuntu 22.04
+    runs-on: ubuntu-latest
+    container:
+      image: ubuntu:22.04
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: "0"
+          submodules: "true"
+
+      - name: Upload code as artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: repo-code
+          path: .
+
+  build-and-test:
+    name: Build and Test on Ubuntu 18.04
+    needs: checkout-code
     concurrency:
       group: build-linux-ubuntu1804-${{ github.head_ref }}-${{ matrix.build_type }}
       cancel-in-progress: true
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     strategy:
       matrix:
         build_type: [release]
     container:
       image: ghcr.io/ten-framework/ten_building_ubuntu1804
     steps:
-      - name: Run on old node
-        run: |
-          apt update && apt -y install wget
-          touch "$HOME/.bashrc"
-          wget -qO- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
-          export NVM_DIR="$HOME/.nvm"
-          [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
-          nvm install 16
-
-      - uses: actions/checkout@v3
+      - name: Download code artifact
+        uses: actions/download-artifact@v3
         with:
-          fetch-depth: "0"
-          submodules: "true"
+          name: repo-code
+          path: ./repo
+
+      - name: Move to repository directory
+        run: |
+          mv ./repo/* ./
+          rm -rf ./repo
 
       - name: Update version
         run: |
