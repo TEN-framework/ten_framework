@@ -13,7 +13,7 @@
 #include "include_internal/ten_runtime/common/base_dir.h"
 #include "include_internal/ten_runtime/common/constant_str.h"
 #include "include_internal/ten_runtime/metadata/manifest.h"
-#include "include_internal/ten_runtime/ten_env/metadata.h"
+#include "include_internal/ten_runtime/ten_env/ten_env.h"
 #include "ten_runtime/binding/cpp/detail/ten_env.h"
 #include "ten_runtime/binding/cpp/ten.h"
 #include "ten_utils/container/list_str.h"
