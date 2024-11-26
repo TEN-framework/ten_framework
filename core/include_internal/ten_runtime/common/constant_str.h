@@ -112,7 +112,7 @@
 // App uri.
 #define TEN_STR_URI "uri"
 #define TEN_STR_LOCALHOST "localhost"
-#define TEN_STR_PREFIX_DEVICE "device:"
+#define TEN_STR_CLIENT "client:"
 
 // Data.
 #define TEN_STR_BUF "buf"

@@ -45,8 +45,10 @@ class test_extension_2 : public ten::extension_t {
               std::unique_ptr<ten::cmd_t> cmd) override {
     if (std::string(cmd->get_name()) == "process") {
       auto data = cmd->get_property_int64("data");
+
       auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
       cmd_result->set_property("data", data * data);
+
       ten_env.return_result(std::move(cmd_result), std::move(cmd));
 
       // Send another command after 1 second.
@@ -118,14 +120,16 @@ namespace {
 class extension_tester_1 : public ten::extension_tester_t {
  protected:
   void on_start(ten::ten_env_tester_t &ten_env) override {
-    auto new_cmd = ten::cmd_t::create("process");
-    new_cmd->set_property("data", 3);
-    ten_env.send_cmd(std::move(new_cmd),
+    auto process_cmd = ten::cmd_t::create("process");
+    process_cmd->set_property("data", 3);
+
+    ten_env.send_cmd(std::move(process_cmd),
                      [](ten::ten_env_tester_t & /*ten_env*/,
                         std::unique_ptr<ten::cmd_result_t> result) {
                        auto data = result->get_property_int64("data");
                        EXPECT_EQ(data, 36);
                      });
+
     ten_env.on_start_done();
   }
 
@@ -141,10 +145,8 @@ class extension_tester_1 : public ten::extension_tester_t {
 
 TEST(StandaloneTest, BasicGraphCrossApp) {  // NOLINT
   // Start the remote app.
-  ten_thread_t *remote_app_thread = nullptr;
-
-  remote_app_thread = ten_thread_create("remote app thread",
-                                        test_remote_app_thread_main, nullptr);
+  ten_thread_t *remote_app_thread = ten_thread_create(
+      "remote app thread", test_remote_app_thread_main, nullptr);
   ASSERT_NE(remote_app_thread, nullptr);
 
   auto *tester = new extension_tester_1();
@@ -152,8 +154,8 @@ TEST(StandaloneTest, BasicGraphCrossApp) {  // NOLINT
   tester->init_test_app_property_from_json(
       R"({
            "_ten": {
-             "uri": "device:aaa"
-            }
+             "uri": "client:aaa"
+           }
         })");
 
   // The graph is like:
@@ -167,7 +169,7 @@ TEST(StandaloneTest, BasicGraphCrossApp) {  // NOLINT
     "nodes": [{
 			"type": "extension",
 			"name": "test_extension_1",
-      "app": "device:aaa",
+      "app": "client:aaa",
 			"addon": "standalone_test_basic_graph_cross_app__test_extension_1",
 			"extension_group": "test_extension_group_1"
 		},
@@ -182,24 +184,24 @@ TEST(StandaloneTest, BasicGraphCrossApp) {  // NOLINT
 			"type": "extension",
 			"name": "ten:test_extension",
 			"addon": "ten:test_extension",
-      "app": "device:aaa",
+      "app": "client:aaa",
 			"extension_group": "test_extension_group"
 		}],
 		"connections": [{
-      "app": "device:aaa",
+      "app": "client:aaa",
 			"extension_group": "test_extension_group",
 			"extension": "ten:test_extension",
 			"cmd": [{
 				"name": "process",
 				"dest": [{
-          "app": "device:aaa",
+          "app": "client:aaa",
 					"extension_group": "test_extension_group_1",
 					"extension": "test_extension_1"
 				}]
 			}]
 		},
 		{
-      "app": "device:aaa",
+      "app": "client:aaa",
 			"extension_group": "test_extension_group_1",
 			"extension": "test_extension_1",
 			"cmd": [{
@@ -218,7 +220,7 @@ TEST(StandaloneTest, BasicGraphCrossApp) {  // NOLINT
 			"cmd": [{
 				"name": "hello_world",
 				"dest": [{
-          "app": "device:aaa",
+          "app": "client:aaa",
 					"extension_group": "test_extension_group",
 					"extension": "ten:test_extension"
 				}]

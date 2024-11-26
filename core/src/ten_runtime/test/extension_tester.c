@@ -10,7 +10,6 @@
 #include <string.h>
 
 #include "include_internal/ten_runtime/app/app.h"
-#include "include_internal/ten_runtime/common/constant_str.h"
 #include "include_internal/ten_runtime/extension_group/builtin/builtin_extension_group.h"
 #include "include_internal/ten_runtime/extension_group/extension_group.h"
 #include "include_internal/ten_runtime/msg/msg.h"
