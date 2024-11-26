@@ -19,7 +19,7 @@ jobs:
     name: Checkout Code on Ubuntu 22.04
     runs-on: ubuntu-latest
     container:
-      image: ubuntu:22.04
+      image: ghcr.io/ten-framework/ten_building_ubuntu2204
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
