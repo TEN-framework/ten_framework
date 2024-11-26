@@ -15,47 +15,32 @@ on:
       - "**.md"
 
 jobs:
-  checkout-code:
-    name: Checkout Code on Ubuntu 22.04
-    runs-on: ubuntu-latest
-    container:
-      image: ghcr.io/ten-framework/ten_building_ubuntu2204
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: "0"
-          submodules: "true"
-
-      - name: Upload code as artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: repo-code
-          path: .
-
-  build-and-test:
-    name: Build and Test on Ubuntu 18.04
-    needs: checkout-code
+  build-linux-ubuntu1804:
     concurrency:
       group: build-linux-ubuntu1804-${{ github.head_ref }}-${{ matrix.build_type }}
       cancel-in-progress: true
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     strategy:
       matrix:
         build_type: [release]
     container:
       image: ghcr.io/ten-framework/ten_building_ubuntu1804
     steps:
-      - name: Download code artifact
-        uses: actions/download-artifact@v3
-        with:
-          name: repo-code
-          path: ./repo
-
-      - name: Move to repository directory
+      - name: Configure Git
         run: |
-          mv ./repo/* ./
-          rm -rf ./repo
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Manual Checkout Repository
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git clone --depth=1 https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git .
+          git checkout ${{ github.sha }}
+
+      - name: Initialize and Update Submodules
+        run: |
+          git submodule update --init --recursive
 
       - name: Update version
         run: |
