@@ -10,11 +10,11 @@
 #include <memory>
 
 #include "ten_runtime/binding/common.h"
-#include "ten_runtime/binding/cpp/internal/msg/audio_frame.h"
-#include "ten_runtime/binding/cpp/internal/msg/cmd/cmd.h"
-#include "ten_runtime/binding/cpp/internal/msg/cmd_result.h"
-#include "ten_runtime/binding/cpp/internal/msg/data.h"
-#include "ten_runtime/binding/cpp/internal/msg/video_frame.h"
+#include "ten_runtime/binding/cpp/detail/msg/audio_frame.h"
+#include "ten_runtime/binding/cpp/detail/msg/cmd/cmd.h"
+#include "ten_runtime/binding/cpp/detail/msg/cmd_result.h"
+#include "ten_runtime/binding/cpp/detail/msg/data.h"
+#include "ten_runtime/binding/cpp/detail/msg/video_frame.h"
 #include "ten_runtime/common/errno.h"
 #include "ten_runtime/msg/cmd_result/cmd_result.h"
 #include "ten_runtime/ten.h"
