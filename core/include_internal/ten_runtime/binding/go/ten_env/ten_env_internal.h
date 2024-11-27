@@ -60,7 +60,7 @@ typedef struct ten_go_callback_info_t {
 extern void tenGoOnCmdResult(ten_go_handle_t ten_env_bridge,
                              ten_go_handle_t cmd_result_bridge,
                              ten_go_handle_t result_handler,
-                             ten_go_status_t status);
+                             ten_go_error_t cgo_error);
 
 TEN_RUNTIME_PRIVATE_API ten_go_callback_info_t *ten_go_callback_info_create(
     ten_go_handle_t handler_id);

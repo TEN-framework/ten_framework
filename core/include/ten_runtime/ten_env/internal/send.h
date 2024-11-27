@@ -11,7 +11,6 @@
 #include <stdbool.h>
 
 #include "ten_utils/lib/error.h"
-#include "ten_utils/lib/json.h"
 #include "ten_utils/lib/smart_ptr.h"
 
 typedef struct ten_env_t ten_env_t;

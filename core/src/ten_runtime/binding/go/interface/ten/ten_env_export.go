@@ -56,7 +56,7 @@ func tenGoOnCmdResult(
 	tenEnvObjID C.uintptr_t,
 	cmdResultBridge C.uintptr_t,
 	resultHandler C.uintptr_t,
-	status C.ten_go_status_t,
+	cgoError C.ten_go_error_t,
 ) {
 	tenEnvObj, ok := handle(tenEnvObjID).get().(TenEnv)
 	if !ok {
@@ -69,7 +69,7 @@ func tenGoOnCmdResult(
 	}
 
 	var cr *cmdResult = nil
-	if (cmdResultBridge == 0) {
+	if cmdResultBridge == 0 {
 		cr = nil
 	} else {
 		cr = newCmdResult(cmdResultBridge)
@@ -81,7 +81,7 @@ func tenGoOnCmdResult(
 		panic("The result handler is not found from handle map.")
 	}
 
-	err := withGoStatus(&status)
+	err := withCGoError(&cgoError)
 
 	cb.(ResultHandler)(tenEnvObj, cr, err)
 }

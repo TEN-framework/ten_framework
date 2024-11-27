@@ -119,13 +119,17 @@ done:
 
   if (result && result_handler && !msg_is_cmd) {
     // If the method synchronously returns true, it means that the callback must
-    // be called. For command-type messages, its result handler will be invoked
-    // when the target extension returns a response.
+    // be called.
+    //
+    // For command-type messages, its result handler will be invoked when the
+    // target extension returns a response.
+    //
     // For other types of messages, such as data/audio_frame/video_frame, we
-    // will temporarily consider the sending to be successful right after the
-    // message is enqueued. Therefore, it is necessary to execute the callback
-    // function and set the error to NULL to indicate that no error has
-    // occurred.
+    // temporarily consider the sending to be successful right after the message
+    // is enqueued (In the future, this time point might change, but overall, as
+    // long as the result handler is provided, it must be invoked in this case).
+    // Therefore, it is necessary to execute the callback function and set the
+    // error to NULL to indicate that no error has occurred.
     result_handler(self, NULL, result_handler_user_data, NULL);
   }
 

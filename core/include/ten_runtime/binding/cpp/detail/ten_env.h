@@ -28,7 +28,6 @@
 #include "ten_utils/lib/error.h"
 #include "ten_utils/log/log.h"
 #include "ten_utils/macro/check.h"
-#include "ten_utils/macro/mark.h"
 #include "ten_utils/value/value.h"
 #include "ten_utils/value/value_json.h"
 
@@ -789,7 +788,7 @@ class ten_env_t {
       (*error_handler)(*cpp_ten_env, &cpp_err);
     }
 
-    // The error handler should be cleared
+    // The error handler should be cleared.
     delete error_handler;
   };
 };

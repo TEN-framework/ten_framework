@@ -86,7 +86,7 @@ class ten_client_proxy_internal_impl_t : public ten::extension_tester_t {
     }
   }
 
-  static void proxy_on_cmd_response(
+  static void proxy_on_cmd_result(
       std::unique_ptr<ten::cmd_result_t> cmd_result,
       const ten::ten_client_proxy_send_cmd_result_handler_func_t
           &result_handler,
@@ -121,8 +121,7 @@ class ten_client_proxy_internal_impl_t : public ten::extension_tester_t {
               [result_handler](ten::ten_env_tester_t & /*ten_env_tester*/,
                                std::unique_ptr<ten::cmd_result_t> cmd_result,
                                error_t *err) {
-                proxy_on_cmd_response(std::move(cmd_result), result_handler,
-                                      err);
+                proxy_on_cmd_result(std::move(cmd_result), result_handler, err);
               });
         },
         nullptr);

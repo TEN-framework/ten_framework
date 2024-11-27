@@ -43,8 +43,7 @@ ten_package_test_prepare_client("no_dest_go_app_client") {
   ]
 }
 
-ten_package_test_prepare_auxiliary_resources(
-    "no_dest_go_app_test_files") {
+ten_package_test_prepare_auxiliary_resources("no_dest_go_app_test_files") {
   resources = [
     "//tests/ten_runtime/integration/common=>common",
     "__init__.py",

@@ -52,16 +52,16 @@ void proxy_send_xxx_callback(ten_env_t *ten_env, ten_shared_ptr_t *cmd_result,
   ten_go_msg_t *cmd_result_bridge = ten_go_msg_create(cmd_result);
   uintptr_t cmd_result_bridge_addr = (uintptr_t)cmd_result_bridge;
 
-  ten_go_status_t status;
+  ten_go_error_t cgo_error;
 
   if (err) {
-    ten_go_status_from_error(&status, err);
+    ten_go_error_from_error(&cgo_error, err);
   } else {
-    ten_go_status_init_with_errno(&status, TEN_ERRNO_OK);
+    ten_go_error_init_with_errno(&cgo_error, TEN_ERRNO_OK);
   }
 
   tenGoOnCmdResult(ten_env_bridge->bridge.go_instance, cmd_result_bridge_addr,
-                   handler_id, status);
+                   handler_id, cgo_error);
 
   ten_go_callback_info_destroy(callback_info);
 }

@@ -26,8 +26,6 @@ class ffmpeg_client_extension : public ten::extension_t {
             TEN_ASSERT(0, "should not happen.");
           }
 
-          cmd_result_json.erase("_ten");
-
           auto start_muxer_cmd = ten::cmd_t::create("start_muxer");
           start_muxer_cmd->from_json(
               nlohmann::to_string(cmd_result_json).c_str());
