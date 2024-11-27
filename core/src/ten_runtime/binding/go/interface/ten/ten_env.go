@@ -20,7 +20,7 @@ import (
 type (
 	// ResultHandler is a function type that represents a handler for the result
 	// of a command.
-	ResultHandler func(TenEnv, CmdResult)
+	ResultHandler func(TenEnv, CmdResult, error)
 )
 
 // TenEnv represents the interface for the TEN (Run Time Environment) component.

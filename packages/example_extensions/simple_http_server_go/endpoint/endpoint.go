@@ -37,7 +37,7 @@ func (s *Endpoint) defaultHandler(
 		statusChan := make(chan ten.CmdResult, 1)
 		cmd, _ := ten.NewCmd("demo")
 
-		s.tenEnv.SendCmd(cmd, func(tenEnv ten.TenEnv, cmdStatus ten.CmdResult) {
+		s.tenEnv.SendCmd(cmd, func(tenEnv ten.TenEnv, cmdStatus ten.CmdResult, e error) {
 			statusChan <- cmdStatus
 		})
 

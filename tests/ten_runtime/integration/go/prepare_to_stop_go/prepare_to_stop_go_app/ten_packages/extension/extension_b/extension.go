@@ -37,11 +37,11 @@ func (p *bExtension) OnCmd(
 				cmdName,
 		)
 		if cmdName == "start" {
-			tenEnv.SendCmd(cmd, func(r ten.TenEnv, cs ten.CmdResult) {
+			tenEnv.SendCmd(cmd, func(r ten.TenEnv, cs ten.CmdResult, e error) {
 				r.ReturnResultDirectly(cs)
 			})
 		} else if cmdName == "stop" {
-			tenEnv.SendCmd(cmd, func(r ten.TenEnv, cs ten.CmdResult) {
+			tenEnv.SendCmd(cmd, func(r ten.TenEnv, cs ten.CmdResult, e error) {
 				r.ReturnResultDirectly(cs)
 
 				close(p.stopChan)

@@ -44,7 +44,7 @@ func (p *aExtension) OnCmd(
 			"receive command: " + cmdName,
 		)
 		if cmdName == "start" {
-			tenEnv.SendCmd(cmd, func(r ten.TenEnv, cs ten.CmdResult) {
+			tenEnv.SendCmd(cmd, func(r ten.TenEnv, cs ten.CmdResult, e error) {
 				r.ReturnResultDirectly(cs)
 			})
 		}
@@ -58,7 +58,7 @@ func (p *aExtension) OnStop(tenEnv ten.TenEnv) {
 		cmd, _ := ten.NewCmd("stop")
 		respChan := make(chan ten.CmdResult, 1)
 
-		tenEnv.SendCmd(cmd, func(tenEnv ten.TenEnv, cmdStatus ten.CmdResult) {
+		tenEnv.SendCmd(cmd, func(tenEnv ten.TenEnv, cmdStatus ten.CmdResult, e error) {
 			respChan <- cmdStatus
 		})
 

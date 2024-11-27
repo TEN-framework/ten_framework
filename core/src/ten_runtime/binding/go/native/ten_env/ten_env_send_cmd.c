@@ -72,14 +72,31 @@ static void ten_env_proxy_notify_send_cmd(ten_env_t *ten_env, void *user_data) {
     send_cmd_func = ten_env_send_cmd;
   }
 
-  TEN_UNUSED bool res = false;
+  bool res = false;
   if (notify_info->handler_id == TEN_GO_NO_RESPONSE_HANDLER) {
-    res = send_cmd_func(ten_env, notify_info->c_cmd, NULL, NULL, NULL);
+    res = send_cmd_func(ten_env, notify_info->c_cmd, NULL, NULL, &err);
   } else {
     ten_go_callback_info_t *info =
         ten_go_callback_info_create(notify_info->handler_id);
     res = send_cmd_func(ten_env, notify_info->c_cmd, proxy_send_xxx_callback,
-                        info, NULL);
+                        info, &err);
+
+    if (!res) {
+      ten_go_callback_info_destroy(info);
+    }
+  }
+
+  if (!res) {
+    if (notify_info->handler_id != TEN_GO_NO_RESPONSE_HANDLER) {
+      ten_go_ten_env_t *ten_env_bridge = ten_go_ten_env_wrap(ten_env);
+
+      TEN_ASSERT(err.err_no != TEN_ERRNO_OK, "Should not happen.");
+      ten_go_status_t status;
+      ten_go_status_from_error(&status, &err);
+
+      tenGoOnCmdResult(ten_env_bridge->bridge.go_instance, 0,
+                       notify_info->handler_id, status);
+    }
   }
 
   ten_error_deinit(&err);

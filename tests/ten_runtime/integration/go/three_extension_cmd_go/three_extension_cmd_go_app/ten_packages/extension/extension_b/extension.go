@@ -48,7 +48,7 @@ func (p *bExtension) OnCmd(
 
 			err = tenEnv.SendCmd(
 				cmdC,
-				func(tenEnv ten.TenEnv, cmdStatus ten.CmdResult) {
+				func(tenEnv ten.TenEnv, cmdStatus ten.CmdResult, e error) {
 					detail, err := cmdStatus.GetPropertyString("detail")
 					if err != nil {
 						panic("Should not happen.")
