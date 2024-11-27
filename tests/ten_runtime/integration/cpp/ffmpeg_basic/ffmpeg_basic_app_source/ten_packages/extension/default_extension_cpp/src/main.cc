@@ -6,8 +6,8 @@
 //
 #include <nlohmann/json.hpp>
 
-#include "ten_utils/macro/check.h"
 #include "ten_runtime/binding/cpp/ten.h"
+#include "ten_utils/macro/check.h"
 
 class ffmpeg_client_extension : public ten::extension_t {
  public:
@@ -18,7 +18,8 @@ class ffmpeg_client_extension : public ten::extension_t {
     auto cmd = ten::cmd_t::create("prepare_demuxer");
     ten_env.send_cmd(
         std::move(cmd), [](ten::ten_env_t &ten_env,
-                           std::unique_ptr<ten::cmd_result_t> cmd_result) {
+                           std::unique_ptr<ten::cmd_result_t> cmd_result,
+                           ten::error_t * /*error*/) {
           nlohmann::json cmd_result_json =
               nlohmann::json::parse(cmd_result->to_json());
           if (cmd_result->get_status_code() != TEN_STATUS_CODE_OK) {
@@ -33,7 +34,8 @@ class ffmpeg_client_extension : public ten::extension_t {
           ten_env.send_cmd(
               std::move(start_muxer_cmd),
               [](ten::ten_env_t &ten_env,
-                 std::unique_ptr<ten::cmd_result_t> cmd_result) {
+                 std::unique_ptr<ten::cmd_result_t> cmd_result,
+                 ten::error_t * /*error*/) {
                 nlohmann::json json =
                     nlohmann::json::parse(cmd_result->to_json());
                 if (cmd_result->get_status_code() != TEN_STATUS_CODE_OK) {

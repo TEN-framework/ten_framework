@@ -62,7 +62,8 @@ static void ten_env_proxy_notify_send_data(ten_env_t *ten_env,
   ten_error_t err;
   ten_error_init(&err);
 
-  bool res = ten_env_send_data(ten_env, notify_info->data_bridge->c_msg, &err);
+  bool res = ten_env_send_data(ten_env, notify_info->data_bridge->c_msg, NULL,
+                               NULL, &err);
   if (res) {
     // `send_data` succeeded, transferring the ownership of the data message out
     // of the Go data message.
