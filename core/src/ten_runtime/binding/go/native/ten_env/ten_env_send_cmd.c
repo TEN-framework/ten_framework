@@ -18,7 +18,6 @@
 #include "ten_utils/lib/alloc.h"
 #include "ten_utils/lib/error.h"
 #include "ten_utils/macro/check.h"
-#include "ten_utils/macro/mark.h"
 
 typedef struct ten_env_notify_send_cmd_info_t {
   ten_shared_ptr_t *c_cmd;

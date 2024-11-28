@@ -21,7 +21,8 @@ type (
 	// of a command.
 	ResultHandler func(TenEnv, CmdResult, error)
 
-	// ErrorHandler is a function type that represents a handler for errors of a non-command type message.
+	// ErrorHandler is a function type that represents a handler for errors of a
+	// non-command type message.
 	ErrorHandler func(TenEnv, error)
 )
 
@@ -228,7 +229,10 @@ func (p *tenEnv) SendData(data Data, handler ErrorHandler) error {
 	return err
 }
 
-func (p *tenEnv) SendVideoFrame(videoFrame VideoFrame, handler ErrorHandler) error {
+func (p *tenEnv) SendVideoFrame(
+	videoFrame VideoFrame,
+	handler ErrorHandler,
+) error {
 	if videoFrame == nil {
 		return newTenError(
 			ErrnoInvalidArgument,
@@ -260,7 +264,10 @@ func (p *tenEnv) SendVideoFrame(videoFrame VideoFrame, handler ErrorHandler) err
 	return err
 }
 
-func (p *tenEnv) SendAudioFrame(audioFrame AudioFrame, handler ErrorHandler) error {
+func (p *tenEnv) SendAudioFrame(
+	audioFrame AudioFrame,
+	handler ErrorHandler,
+) error {
 	if audioFrame == nil {
 		return newTenError(
 			ErrnoInvalidArgument,
