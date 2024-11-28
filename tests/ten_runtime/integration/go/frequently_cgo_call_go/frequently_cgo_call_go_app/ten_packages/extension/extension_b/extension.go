@@ -66,7 +66,12 @@ func (p *extensionB) OnCmd(
 						panic("should not happen")
 					}
 
-					if atomic.AddUint32(&count, 1) == concurrency {
+					total := atomic.AddUint32(&count, 1)
+					if total%5000 == 0 {
+						fmt.Printf("extension_b %d goroutine done\n", total)
+					}
+
+					if total == concurrency {
 						done <- struct{}{}
 					}
 				}(i % 100)

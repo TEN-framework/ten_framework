@@ -61,6 +61,7 @@ static void ten_env_proxy_notify_send_cmd(ten_env_t *ten_env, void *user_data) {
              "Should not happen.");
 
   ten_env_notify_send_cmd_info_t *notify_info = user_data;
+  TEN_ASSERT(notify_info, "Should not happen.");
 
   ten_error_t err;
   ten_error_init(&err);
