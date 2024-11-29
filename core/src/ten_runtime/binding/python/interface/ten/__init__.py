@@ -21,6 +21,7 @@ from .audio_frame import AudioFrame, AudioFrameDataFmt
 from .data import Data
 from .log_level import LogLevel
 from .test import ExtensionTester, TenEnvTester
+from .error import TenError
 
 # Specify what should be imported when a user imports * from the
 # ten_runtime_python package.
@@ -44,4 +45,5 @@ __all__ = [
     "LogLevel",
     "ExtensionTester",
     "TenEnvTester",
+    "TenError",
 ]

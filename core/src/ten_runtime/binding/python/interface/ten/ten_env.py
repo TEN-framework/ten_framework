@@ -4,9 +4,10 @@
 # Licensed under the Apache License, Version 2.0, with certain conditions.
 # Refer to the "LICENSE" file in the root directory for more information.
 #
-from typing import Callable
+from typing import Callable, Optional
 import inspect
 from libten_runtime_python import _Extension, _TenEnv
+from .error import TenError
 from .ten_env_attach_to_enum import _TenEnvAttachTo
 from .cmd_result import CmdResult
 from .cmd import Cmd
@@ -19,7 +20,9 @@ from .log_level import LogLevel
 class TenEnv: ...  # type: ignore
 
 
-ResultHandler = Callable[[TenEnv, CmdResult], None] | None
+ResultHandler = (
+    Callable[[TenEnv, Optional[CmdResult], Optional[TenError]], None] | None
+)
 
 
 class TenEnv:

@@ -35,8 +35,9 @@ static void proxy_send_xxx_callback(ten_env_tester_t *ten_env_tester,
   ten_py_cmd_result_t *cmd_result_bridge = ten_py_cmd_result_wrap(cmd_result);
 
   PyObject *cb_func = callback_info;
-  PyObject *arglist = Py_BuildValue(
-      "(OO)", py_ten_env_tester->actual_py_ten_env_tester, cmd_result_bridge);
+  PyObject *arglist =
+      Py_BuildValue("(OOO)", py_ten_env_tester->actual_py_ten_env_tester,
+                    cmd_result_bridge, Py_None);
 
   PyObject *result = PyObject_CallObject(cb_func, arglist);
   Py_XDECREF(result);  // Ensure cleanup if an error occurred.

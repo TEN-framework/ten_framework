@@ -7,6 +7,7 @@
 from asyncio import AbstractEventLoop
 import asyncio
 import threading
+
 from .cmd import Cmd
 from .cmd_result import CmdResult
 from .ten_env import TenEnv
@@ -30,12 +31,17 @@ class AsyncTenEnv(TenEnv):
         q = asyncio.Queue(maxsize=1)
         self._internal.send_cmd(
             cmd,
-            lambda _, result: asyncio.run_coroutine_threadsafe(
-                q.put(result), self._ten_loop
+            lambda _, result, error: asyncio.run_coroutine_threadsafe(
+                q.put([result, error]),
+                self._ten_loop,
             ),
             False,
         )
-        result: CmdResult = await q.get()
+
+        [result, error] = await q.get()
+        if error is not None:
+            raise Exception(error.err_msg())
+
         assert result.is_completed()
         return result
 
@@ -43,19 +49,23 @@ class AsyncTenEnv(TenEnv):
         q = asyncio.Queue(maxsize=10)
         self._internal.send_cmd(
             cmd,
-            lambda _, result: asyncio.run_coroutine_threadsafe(
-                q.put(result), self._ten_loop
+            lambda _, result, error: asyncio.run_coroutine_threadsafe(
+                q.put([result, error]),
+                self._ten_loop,
             ),
             True,
         )
 
         while True:
-            result: CmdResult = await q.get()
-            if result.is_completed():
+            [result, error] = await q.get()
+            if error is not None:
+                raise Exception(error.err_msg())
+            else:
+                if result.is_completed():
+                    yield result
+                    # This is the final result, so break the while loop.
+                    break
                 yield result
-                # This is the final result, so break the while loop.
-                break
-            yield result
 
     async def on_configure_done(self) -> None:
         raise NotImplementedError(

@@ -49,7 +49,12 @@ class DefaultExtension(Extension):
         q = queue.Queue(maxsize=1)
 
         def task():
-            ten_env.send_cmd(cmd, lambda ten_env, result: q.put(result))
+            ten_env.send_cmd(
+                cmd,
+                lambda ten_env, result, error: q.put(
+                    error if error is not None else result
+                ),
+            )
 
         t = threading.Thread(target=task)
         t.start()
@@ -64,6 +69,9 @@ class DefaultExtension(Extension):
         generator = self.echo_cmd_result_generator(ten_env, cmd_hello)
 
         result = next(generator)
+
+        if isinstance(result, Exception):
+            raise result
 
         ten_env.return_result(result, cmd)
 

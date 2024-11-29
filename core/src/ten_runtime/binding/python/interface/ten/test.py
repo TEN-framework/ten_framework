@@ -4,11 +4,12 @@
 # Licensed under the Apache License, Version 2.0, with certain conditions.
 # Refer to the "LICENSE" file in the root directory for more information.
 #
-from typing import Callable, final
+from typing import Callable, Optional, final
 import sys
 import importlib
 from pathlib import Path
 from libten_runtime_python import _ExtensionTester, _TenEnvTester
+from .error import TenError
 from .cmd import Cmd
 from .data import Data
 from .audio_frame import AudioFrame
@@ -19,7 +20,10 @@ from .cmd_result import CmdResult
 class TenEnvTester: ...  # type: ignore
 
 
-ResultHandler = Callable[[TenEnvTester, CmdResult], None] | None
+ResultHandler = (
+    Callable[[TenEnvTester, Optional[CmdResult], Optional[TenError]], None]
+    | None
+)
 
 
 class TenEnvTester:

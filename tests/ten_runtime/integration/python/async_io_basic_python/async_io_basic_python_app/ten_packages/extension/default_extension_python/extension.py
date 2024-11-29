@@ -36,11 +36,15 @@ class DefaultExtension(Extension):
         q = asyncio.Queue(maxsize=10)
         ten_env.send_cmd(
             cmd,
-            lambda ten_env, result: asyncio.run_coroutine_threadsafe(
-                q.put(result), self.loop
+            lambda ten_env, result, error: asyncio.run_coroutine_threadsafe(
+                q.put([result, error]), self.loop
             ),  # type: ignore
         )
-        return await q.get()
+
+        [result, error] = await q.get()
+        if error is not None:
+            raise Exception(error.err_msg())
+        return result
 
     def __init__(self, name: str) -> None:
         super().__init__(name)

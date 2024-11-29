@@ -5,13 +5,8 @@
 # Refer to the "LICENSE" file in the root directory for more information.
 #
 import threading
-from ten import (
-    Extension,
-    TenEnv,
-    Cmd,
-    StatusCode,
-    CmdResult,
-)
+from typing import Optional
+from ten import Extension, TenEnv, Cmd, StatusCode, CmdResult, TenError
 
 
 class DefaultExtension(Extension):
@@ -120,7 +115,17 @@ class DefaultExtension(Extension):
         print("DefaultExtension on_deinit")
         ten_env.on_deinit_done()
 
-    def check_hello(self, ten_env: TenEnv, result: CmdResult, receivedCmd: Cmd):
+    def check_hello(
+        self,
+        ten_env: TenEnv,
+        result: Optional[CmdResult],
+        exception: Optional[TenError],
+        receivedCmd: Cmd,
+    ):
+        if exception is not None:
+            assert False, exception
+
+        assert result is not None
         statusCode = result.get_status_code()
         detail = result.get_property_string("detail")
         print(
@@ -182,5 +187,7 @@ class DefaultExtension(Extension):
 
         ten_env.send_cmd(
             new_cmd,
-            lambda ten_env, result: self.check_hello(ten_env, result, cmd),
+            lambda ten_env, result, error: self.check_hello(
+                ten_env, result, error, cmd
+            ),
         )
