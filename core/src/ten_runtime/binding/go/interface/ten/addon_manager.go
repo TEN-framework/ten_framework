@@ -100,14 +100,14 @@ func RegisterAddonAsExtensionV2(addonName string, instance Addon) error {
 		)
 	}
 
-	addonWrapper := &addon{
-		Addon: instance,
-	}
-
-	addonID := newImmutableHandle(addonWrapper)
-
 	// Define the registration function that will be stored in the registry.
 	registerFunc := func(registerCtx interface{}) error {
+		addonWrapper := &addon{
+			Addon: instance,
+		}
+
+		addonID := newImmutableHandle(addonWrapper)
+
 		var bridge C.uintptr_t
 		status := C.ten_go_addon_register_extension_v2(
 			unsafe.Pointer(unsafe.StringData(addonName)),
