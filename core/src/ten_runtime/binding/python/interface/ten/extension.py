@@ -15,8 +15,12 @@ from .data import Data
 
 
 class Extension(_Extension):
+    def __new__(cls, name: str):
+        instance = super().__new__(cls, name)
+        return instance
+
     def __init__(self, name: str) -> None:
-        pass
+        super().__init__(name)
 
     @final
     def _proxy_on_configure(self, ten_env: TenEnv) -> None:

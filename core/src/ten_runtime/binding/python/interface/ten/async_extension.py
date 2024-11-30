@@ -19,7 +19,12 @@ from .async_ten_env import AsyncTenEnv
 
 
 class AsyncExtension(_Extension):
+    def __new__(cls, name: str):
+        instance = super().__new__(cls, name)
+        return instance
+
     def __init__(self, name: str) -> None:
+        super().__init__(name)
         self._ten_stop_event = asyncio.Event()
 
     def __del__(self) -> None:

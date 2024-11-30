@@ -5,6 +5,7 @@
 // Refer to the "LICENSE" file in the root directory for more information.
 //
 #include "include_internal/ten_runtime/addon/addon_autoload.h"
+#include "include_internal/ten_runtime/addon/addon_manager.h"
 #include "include_internal/ten_runtime/addon/protocol/protocol.h"
 #include "include_internal/ten_runtime/app/app.h"
 #include "include_internal/ten_runtime/app/base_dir.h"
@@ -168,6 +169,13 @@ void ten_app_on_configure_done(ten_env_t *ten_env) {
   ten_list_clear(&extension_dependencies);
   ten_list_clear(&extension_group_dependencies);
   ten_list_clear(&protocol_dependencies);
+
+  // Register all addons.
+  ten_addon_manager_t *manager = ten_addon_manager_get_instance();
+  ten_addon_register_ctx_t *register_ctx = ten_addon_register_ctx_create();
+  register_ctx->app = self;
+  ten_addon_manager_register_all_addons(manager, (void *)register_ctx);
+  ten_addon_register_ctx_destroy(register_ctx);
 
   if (!ten_app_get_predefined_graphs_from_property(self)) {
     goto error;

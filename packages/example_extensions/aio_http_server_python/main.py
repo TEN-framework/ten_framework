@@ -98,10 +98,6 @@ class HttpServerExtension(AsyncExtension):
         self.tcpSite = web.TCPSite(runner, host, port)
         await self.tcpSite.start()
 
-    def __init__(self, name: str) -> None:
-        super().__init__(name)
-        self.name = name
-
     async def on_init(self, ten_env: AsyncTenEnv) -> None:
         self.ten_env = ten_env
 

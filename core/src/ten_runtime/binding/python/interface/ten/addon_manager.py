@@ -23,7 +23,7 @@ class _AddonManager:
     # TEN runtime. This avoids using `setattr` on the module, which may not be
     # supported in advanced environments like Cython. The global array method
     # is simple enough that it should work in all environments.
-    _registration_registry: Dict[str, Callable[[Any], None]] = {}
+    _registry: Dict[str, Callable[[Any], None]] = {}
 
     @classmethod
     def load_all_addons(cls, register_ctx: object):
@@ -110,13 +110,8 @@ class _AddonManager:
                     )
                 finally:
                     # Remove the registration function from the global registry.
-                    if (
-                        registration_func_name
-                        in _AddonManager._registration_registry
-                    ):
-                        del _AddonManager._registration_registry[
-                            registration_func_name
-                        ]
+                    if registration_func_name in _AddonManager._registry:
+                        del _AddonManager._registry[registration_func_name]
                         print(
                             (
                                 "Removed registration function for addon "
@@ -135,7 +130,7 @@ class _AddonManager:
 
     @staticmethod
     def _get_registration_func(addon_name: str) -> Callable[[Any], None] | None:
-        return _AddonManager._registration_registry.get(
+        return _AddonManager._registry.get(
             _AddonManager._get_registration_func_name(addon_name)
         )
 
@@ -155,9 +150,7 @@ class _AddonManager:
             )
         )
 
-        _AddonManager._registration_registry[registration_func_name] = (
-            registration_func
-        )
+        _AddonManager._registry[registration_func_name] = registration_func
 
     @staticmethod
     def _find_app_base_dir():
@@ -234,13 +227,6 @@ def register_addon_as_extension_v2(name: str, base_dir: str | None = None):
         # Define the registration function that will be called by the Addon
         # loader.
         def registration_func(register_ctx):
-            """
-            Registration function injected into the module to handle addon
-            registration.
-
-            Args:
-                register_ctx: An opaque parameter provided by the Addon loader.
-            """
             # Instantiate the addon class.
             instance = cls()
 
