@@ -277,6 +277,8 @@ class py_init_addon_t : public ten::addon_t {
     load_all_python_modules(ten_env, addon_extensions_path,
                             &extension_dependencies);
 
+    register_all_addons();
+
     ten_list_clear(&extension_dependencies);
 
     ten_string_destroy(addon_extensions_path);
@@ -387,8 +389,6 @@ class py_init_addon_t : public ten::addon_t {
               "ten_packages.extension.%s", ten_string_get_raw_str(short_name));
           ten_py_import_module(ten_string_get_raw_str(full_module_name));
           ten_string_destroy(full_module_name);
-
-          // =-=-= 之后应该要执行 python 的 load_all_addons
         } else {
           TEN_ENV_LOG_INFO(ten_env, (std::string("Skipping python module '") +
                                      ten_string_get_raw_str(short_name) +
@@ -404,6 +404,12 @@ class py_init_addon_t : public ten::addon_t {
     if (dir != nullptr) {
       ten_path_close_dir(dir);
     }
+  }
+
+  static void register_all_addons() {
+    ten_py_run_simple_string(
+        "from ten import _AddonManager\n"
+        "_AddonManager.register_all_addons(None)\n");
   }
 
   static void load_python_lib() {
@@ -422,23 +428,24 @@ class py_init_addon_t : public ten::addon_t {
   }
 };
 
-// =-=-= 需不需要也改成 factory pattern?
-static void ____ten_addon_py_init_extension_cpp_register____(
+static void ____ten_addon_py_init_extension_cpp_register_handler____(
     void *register_ctx) {
   auto *addon_instance = new py_init_addon_t();
   ten_string_t *base_dir =
       ten_path_get_module_path(/* NOLINTNEXTLINE */
                                (void *)
-                                   ____ten_addon_py_init_extension_cpp_register____);
-  ten_addon_register_extension_v2("py_init_extension_cpp",
-                                  ten_string_get_raw_str(base_dir),
-                                  addon_instance->get_c_addon(), register_ctx);
+                                   ____ten_addon_py_init_extension_cpp_register_handler____);
+  ten_addon_register_extension("py_init_extension_cpp",
+                               ten_string_get_raw_str(base_dir),
+                               addon_instance->get_c_addon(), register_ctx);
+  ten_string_destroy(base_dir);
 }
 
 TEN_CONSTRUCTOR(____ten_addon_py_init_extension_cpp_registrar____) {
   ten_addon_manager_t *manager = ten_addon_manager_get_instance();
-  ten_addon_manager_add_addon(manager, "py_init_extension_cpp",
-                              ____ten_addon_py_init_extension_cpp_register____);
+  ten_addon_manager_add_addon(
+      manager, "py_init_extension_cpp",
+      ____ten_addon_py_init_extension_cpp_register_handler____);
 }
 
 }  // namespace default_extension

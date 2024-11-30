@@ -24,7 +24,6 @@ class AsyncExtension(_Extension):
         return instance
 
     def __init__(self, name: str) -> None:
-        super().__init__(name)
         self._ten_stop_event = asyncio.Event()
 
     def __del__(self) -> None:

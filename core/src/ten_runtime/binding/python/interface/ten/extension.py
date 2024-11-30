@@ -20,7 +20,7 @@ class Extension(_Extension):
         return instance
 
     def __init__(self, name: str) -> None:
-        super().__init__(name)
+        pass
 
     @final
     def _proxy_on_configure(self, ten_env: TenEnv) -> None:
