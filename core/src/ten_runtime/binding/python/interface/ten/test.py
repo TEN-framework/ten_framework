@@ -14,6 +14,7 @@ from .data import Data
 from .audio_frame import AudioFrame
 from .video_frame import VideoFrame
 from .cmd_result import CmdResult
+from .addon_manager import _AddonManager
 
 
 class TenEnvTester: ...  # type: ignore
@@ -59,6 +60,9 @@ class ExtensionTester(_ExtensionTester):
         if str(addon_base_dir.parent) not in sys.path:
             sys.path.insert(0, str(addon_base_dir.parent))
         importlib.import_module(addon_base_dir.name)
+
+        # =-=-=
+        _AddonManager.register_all_addons(None)
 
     @final
     def add_addon_base_dir(self, base_dir: str) -> None:
