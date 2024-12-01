@@ -14,6 +14,12 @@ class GlobalTestEnvironment : public ::testing::Environment {
  public:
   // This method is run before any test cases.
   void SetUp() override {
+    if (setenv("TEN_DISABLE_ADDON_UNREGISTER_AFTER_APP_CLOSE", "true", 1) !=
+        0) {
+      perror("Failed to set TEN_DISABLE_ADDON_UNREGISTER_AFTER_APP_CLOSE");
+      exit(-1);
+    }
+
     ten_addon_manager_t *manager = ten_addon_manager_get_instance();
 
     // In the context of smoke testing, there is no need to register
