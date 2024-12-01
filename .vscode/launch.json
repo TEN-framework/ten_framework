@@ -571,6 +571,36 @@
       },
     },
     {
+      "name": "app (Python Standalone Test) (cppdbg, launch)",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "/usr/bin/python3",
+      "args": [
+        "tests/test_basic.py"
+      ],
+      "environment": [
+        {
+          "name": "PYTHONPATH",
+          "value": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/python/standalone_test_python/default_extension_python/.ten/app/ten_packages/system/ten_runtime_python/lib:${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/python/standalone_test_python/default_extension_python/.ten/app/ten_packages/system/ten_runtime_python/interface"
+        },
+        {
+          "name": "LD_PRELOAD",
+          "value": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/python/standalone_test_python/default_extension_python/.ten/app/ten_packages/system/ten_runtime/lib/libasan.so"
+        },
+        {
+          "name": "PYTHONMALLOC",
+          "value": "malloc"
+        },
+        {
+          "name": "PYTHONDEVMODE",
+          "value": "1"
+        }
+      ],
+      "cwd": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/python/standalone_test_python/default_extension_python",
+      "additionalSOLibSearchPath": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/python/standalone_test_python/default_extension_python/.ten/app/ten_packages/system/ten_runtime_python/lib:${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/python/standalone_test_python/default_extension_python/.ten/app/ten_packages/system/ten_runtime/lib",
+      "MIMode": "gdb",
+    },
+    {
       "name": "app (Java) (cppdbg, attach)",
       "type": "cppdbg",
       "request": "attach",
