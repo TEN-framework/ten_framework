@@ -114,6 +114,10 @@ void ten_addon_on_deinit_done(ten_env_t *self) {
   TEN_ASSERT(addon_host && ten_addon_host_check_integrity(addon_host),
              "Should not happen.");
 
+  if (addon_host->addon->on_destroy) {
+    addon_host->addon->on_destroy(addon_host->addon);
+  }
+
   ten_addon_host_destroy(addon_host);
 }
 

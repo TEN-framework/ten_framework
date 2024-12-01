@@ -236,7 +236,7 @@ static PyObject *ten_py_addon_create(PyTypeObject *type,
   py_addon->type = TEN_ADDON_TYPE_EXTENSION;  // Now we only support extension.
   py_addon->c_addon_host = NULL;
 
-  ten_addon_init(&py_addon->c_addon, proxy_on_init, proxy_on_deinit, NULL,
+  ten_addon_init(&py_addon->c_addon, proxy_on_init, proxy_on_deinit, NULL, NULL,
                  NULL);
 
   py_addon->c_addon.on_create_instance = proxy_on_create_instance_async;

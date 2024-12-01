@@ -106,6 +106,7 @@ jobs:
           MALLOC_CHECK_: 3
           TEN_ENABLE_MEMORY_TRACKING: "true"
           TEN_ENABLE_BACKTRACE_DUMP: "true"
+          TEN_DISABLE_ADDON_UNREGISTER_AFTER_APP_CLOSE: "true"
         run: |
           chmod +x out/mac/arm64/tests/standalone/ten_runtime_smoke_test
           out/mac/arm64/tests/standalone/ten_runtime_smoke_test
@@ -250,6 +251,7 @@ jobs:
           MALLOC_CHECK_: 3
           TEN_ENABLE_MEMORY_TRACKING: "true"
           TEN_ENABLE_BACKTRACE_DUMP: "true"
+          TEN_DISABLE_ADDON_UNREGISTER_AFTER_APP_CLOSE: "true"
         run: |
           chmod +x out/mac/x64/tests/standalone/ten_runtime_smoke_test
           out/mac/x64/tests/standalone/ten_runtime_smoke_test
@@ -375,6 +377,7 @@ jobs:
           MALLOC_CHECK_: 3
           TEN_ENABLE_MEMORY_TRACKING: "true"
           TEN_ENABLE_BACKTRACE_DUMP: "true"
+          TEN_DISABLE_ADDON_UNREGISTER_AFTER_APP_CLOSE: "true"
         run: |
           chmod +x out/mac/arm64/tests/standalone/ten_runtime_smoke_test
           out/mac/arm64/tests/standalone/ten_runtime_smoke_test

@@ -50,7 +50,6 @@ class TenEnv:
             # passing `None` is sufficient. If needed in the future, we can
             # consider what information should be passed to the register
             # handler of the Python addon.
-            # =-=-= register_ctx 是啥?
             _AddonManager.register_all_addons(None)
         return self._internal.on_configure_done()
 

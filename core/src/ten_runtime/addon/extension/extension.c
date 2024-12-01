@@ -152,3 +152,7 @@ ten_addon_t *ten_addon_unregister_extension(const char *name) {
 
   return ten_addon_unregister(ten_extension_get_global_store(), name);
 }
+
+void ten_addon_unregister_all_extension(void) {
+  ten_addon_store_del_all(ten_extension_get_global_store());
+}

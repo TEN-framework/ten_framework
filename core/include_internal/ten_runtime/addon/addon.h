@@ -50,6 +50,8 @@ typedef struct ten_addon_t {
   ten_addon_on_create_instance_func_t on_create_instance;
   ten_addon_on_destroy_instance_func_t on_destroy_instance;
 
+  ten_addon_on_destroy_func_t on_destroy;
+
   void *user_data;
 } ten_addon_t;
 

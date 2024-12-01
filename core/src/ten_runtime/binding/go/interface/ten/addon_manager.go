@@ -75,7 +75,12 @@ func (am *AddonManager) RegisterAddonAsExtension(
 			unsafe.Pointer(unsafe.StringData(absBaseDir)),
 			C.int(len(absBaseDir)),
 			cHandle(addonID),
-			// TODO(Wei): Pass `register_ctx` to the actual cgo function.
+			// In the current use of the TEN framework's GO environment, there
+			// is no need to pass any `register_ctx` object into the register
+			// handler of the GO addon. Therefore, for now, simply passing `nil`
+			// is sufficient. If needed in the future, we can consider what
+			// information should be passed to the register handler of the GO
+			// addon.
 			nil,
 			&bridge,
 		)

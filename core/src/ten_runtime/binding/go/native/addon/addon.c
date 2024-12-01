@@ -240,14 +240,14 @@ static ten_go_addon_t *ten_go_addon_register(
       ten_addon_init(&addon_bridge->c_addon, ten_go_addon_on_init_helper,
                      ten_go_addon_on_deinit_helper,
                      ten_go_addon_create_extension_async_helper,
-                     ten_go_addon_destroy_instance_helper);
+                     ten_go_addon_destroy_instance_helper, NULL);
       break;
 
     case TEN_ADDON_TYPE_EXTENSION_GROUP:
       ten_addon_init(&addon_bridge->c_addon, ten_go_addon_on_init_helper,
                      ten_go_addon_on_deinit_helper,
                      ten_go_addon_create_extension_group_async_helper,
-                     ten_go_addon_destroy_instance_helper);
+                     ten_go_addon_destroy_instance_helper, NULL);
       break;
 
     default:
@@ -279,7 +279,6 @@ static ten_go_addon_t *ten_go_addon_register(
   return addon_bridge;
 }
 
-// =-=-= register_ctx 是啥?
 ten_go_error_t ten_go_addon_register_extension(
     const void *addon_name, int addon_name_len, const void *base_dir,
     int base_dir_len, uintptr_t go_addon, uintptr_t *register_ctx,

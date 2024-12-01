@@ -45,7 +45,7 @@ PyObject *ten_py_addon_manager_register_addon_as_extension(PyObject *self,
   ten_py_addon_t *py_addon = (ten_py_addon_t *)py_addon_object;
 
   ten_addon_host_t *c_addon_host = ten_addon_register_extension(
-      name, base_dir_str, &py_addon->c_addon, NULL);
+      name, base_dir_str, &py_addon->c_addon, /* register_ctx= */ NULL);
   if (!c_addon_host) {
     return ten_py_raise_py_value_error_exception(
         "Failed to register addon in ten_addon_register_extension.");

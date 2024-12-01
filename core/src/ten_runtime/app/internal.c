@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "include_internal/ten_runtime/addon/extension/extension.h"
 #include "include_internal/ten_runtime/app/app.h"
 #include "include_internal/ten_runtime/app/base_dir.h"
 #include "include_internal/ten_runtime/app/close.h"
@@ -50,6 +51,17 @@ static void ten_app_handle_metadata_task(void *self_, void *arg) {
   ten_app_handle_metadata(self);
 }
 
+void ten_app_unregister_addons_after_app_close(ten_app_t *self) {
+  TEN_ASSERT(self && ten_app_check_integrity(self, true), "Should not happen.");
+
+  const char *disabled = getenv("TEN_DISABLE_ADDON_UNREGISTER_AFTER_APP_CLOSE");
+  if (disabled && !strcmp(disabled, "true")) {
+    return;
+  }
+
+  ten_addon_unregister_all_extension();
+}
+
 void ten_app_start(ten_app_t *self) {
   TEN_ASSERT(self && ten_app_check_integrity(self, true), "Should not happen.");
 
@@ -60,6 +72,8 @@ void ten_app_start(ten_app_t *self) {
                              NULL);
 
   ten_runloop_run(self->loop);
+
+  ten_app_unregister_addons_after_app_close(self);
 
   TEN_LOGD("TEN app runloop ends.");
 }
