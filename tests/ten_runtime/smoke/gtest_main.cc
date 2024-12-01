@@ -9,13 +9,13 @@
 #include "gtest/gtest.h"
 #include "include_internal/ten_runtime/addon/addon_manager.h"
 #include "include_internal/ten_runtime/addon/extension/extension.h"
+#include "include_internal/ten_utils/lib/env.h"
 
 class GlobalTestEnvironment : public ::testing::Environment {
  public:
   // This method is run before any test cases.
   void SetUp() override {
-    if (setenv("TEN_DISABLE_ADDON_UNREGISTER_AFTER_APP_CLOSE", "true", 1) !=
-        0) {
+    if (!ten_env_set("TEN_DISABLE_ADDON_UNREGISTER_AFTER_APP_CLOSE", "true")) {
       perror("Failed to set TEN_DISABLE_ADDON_UNREGISTER_AFTER_APP_CLOSE");
       exit(-1);
     }
