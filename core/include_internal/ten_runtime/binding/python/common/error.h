@@ -16,7 +16,7 @@
 typedef struct ten_py_error_t {
   PyObject_HEAD
 
-  ten_error_t *c_error;
+  ten_error_t c_error;
 } ten_py_error_t;
 
 TEN_RUNTIME_PRIVATE_API PyTypeObject *ten_py_error_py_type(void);

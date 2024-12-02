@@ -251,28 +251,10 @@ PyTypeObject *ten_py_error_py_type(void) {
       .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
       .tp_dealloc = ten_py_error_destroy,
       .tp_methods = py_methods,
+      .tp_init = NULL,
+      .tp_getset = NULL,
+      .tp_new = NULL,
   };
 
   return &py_type;
-}
-
-bool ten_py_error_init_for_module(PyObject *module) {
-  PyTypeObject *py_type = ten_py_error_py_type();
-
-  if (PyType_Ready(py_type) < 0) {
-    ten_py_raise_py_system_error_exception("Python Error class is not ready.");
-
-    TEN_ASSERT(0, "Should not happen.");
-    return false;
-  }
-
-  if (PyModule_AddObjectRef(module, "_TenError", (PyObject *)py_type) < 0) {
-    ten_py_raise_py_import_error_exception(
-        "Failed to add Python type to module.");
-
-    TEN_ASSERT(0, "Should not happen.");
-    return false;
-  }
-
-  return true;
 }

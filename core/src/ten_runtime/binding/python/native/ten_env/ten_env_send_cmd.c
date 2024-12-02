@@ -146,6 +146,12 @@ static void ten_env_proxy_notify_send_cmd(ten_env_t *ten_env, void *user_data) {
     res = send_cmd_func(ten_env, notify_info->c_cmd, proxy_send_xxx_callback,
                         notify_info->py_cb_func, &err);
     if (!res) {
+      // About to call the Python function, so it's necessary to ensure that the
+      // GIL has been acquired.
+      //
+      // Allows C codes to work safely with Python objects.
+      PyGILState_STATE prev_state = ten_py_gil_state_ensure();
+
       ten_py_ten_env_t *py_ten_env = ten_py_ten_env_wrap(ten_env);
       ten_py_error_t *py_err = ten_py_error_wrap(&err);
 
@@ -161,6 +167,8 @@ static void ten_env_proxy_notify_send_cmd(ten_env_t *ten_env, void *user_data) {
       Py_XDECREF(arglist);
 
       ten_py_error_invalidate(py_err);
+
+      ten_py_gil_state_release(prev_state);
     }
   }
 
