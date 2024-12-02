@@ -20,7 +20,7 @@ static bool ten_env_return_result_internal(
     ten_env_t *self, ten_shared_ptr_t *result_cmd, const char *cmd_id,
     const char *seq_id,
     ten_env_return_result_error_handler_func_t error_handler,
-    void *error_handler_data, ten_error_t *err) {
+    void *error_handler_user_data, ten_error_t *err) {
   TEN_ASSERT(self, "Invalid argument.");
   TEN_ASSERT(ten_env_check_integrity(self, true), "Invalid use of ten_env %p.",
              self);
@@ -53,10 +53,11 @@ static bool ten_env_return_result_internal(
   if (result && error_handler) {
     // If the method synchronously returns true, it means that the callback must
     // be called.
+    //
     // We temporarily assume that the message enqueue represents success;
     // therefore, in this case, we set the error to NULL to indicate that the
-    // sending was successful.
-    error_handler(self, error_handler_data, NULL);
+    // returning was successful.
+    error_handler(self, error_handler_user_data, NULL);
   }
 
   if (err_new_created) {
@@ -71,7 +72,7 @@ static bool ten_env_return_result_internal(
 bool ten_env_return_result_directly(
     ten_env_t *self, ten_shared_ptr_t *result_cmd,
     ten_env_return_result_error_handler_func_t error_handler,
-    void *error_handler_data, ten_error_t *err) {
+    void *error_handler_user_data, ten_error_t *err) {
   TEN_ASSERT(self, "Invalid argument.");
   TEN_ASSERT(ten_env_check_integrity(self, true), "Invalid use of ten_env %p.",
              self);
@@ -81,13 +82,14 @@ bool ten_env_return_result_directly(
              "The target cmd must be a cmd result.");
 
   return ten_env_return_result_internal(self, result_cmd, NULL, NULL,
-                                        error_handler, error_handler_data, err);
+                                        error_handler, error_handler_user_data,
+                                        err);
 }
 
 bool ten_env_return_result(
     ten_env_t *self, ten_shared_ptr_t *result_cmd, ten_shared_ptr_t *target_cmd,
     ten_env_return_result_error_handler_func_t error_handler,
-    void *error_handler_data, ten_error_t *err) {
+    void *error_handler_user_data, ten_error_t *err) {
   TEN_ASSERT(self, "Invalid argument.");
   TEN_ASSERT(ten_env_check_integrity(self, true), "Invalid use of ten_env %p.",
              self);
@@ -98,8 +100,8 @@ bool ten_env_return_result(
   TEN_ASSERT(ten_msg_get_type(target_cmd) != TEN_MSG_TYPE_CMD_RESULT,
              "The target cmd should not be a cmd result.");
 
-  return ten_env_return_result_internal(self, result_cmd,
-                                        ten_cmd_base_get_cmd_id(target_cmd),
-                                        ten_cmd_base_get_seq_id(target_cmd),
-                                        error_handler, error_handler_data, err);
+  return ten_env_return_result_internal(
+      self, result_cmd, ten_cmd_base_get_cmd_id(target_cmd),
+      ten_cmd_base_get_seq_id(target_cmd), error_handler,
+      error_handler_user_data, err);
 }

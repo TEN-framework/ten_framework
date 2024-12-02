@@ -10,7 +10,11 @@ package ten
 //#include "ten_env.h"
 import "C"
 
-func (p *tenEnv) ReturnResult(statusCmd CmdResult, cmd Cmd, handler ErrorHandler) error {
+func (p *tenEnv) ReturnResult(
+	statusCmd CmdResult,
+	cmd Cmd,
+	handler ErrorHandler,
+) error {
 	if statusCmd == nil {
 		return newTenError(
 			ErrnoInvalidArgument,
@@ -54,7 +58,10 @@ func (p *tenEnv) ReturnResult(statusCmd CmdResult, cmd Cmd, handler ErrorHandler
 	return err
 }
 
-func (p *tenEnv) ReturnResultDirectly(statusCmd CmdResult, handler ErrorHandler) error {
+func (p *tenEnv) ReturnResultDirectly(
+	statusCmd CmdResult,
+	handler ErrorHandler,
+) error {
 	if statusCmd == nil {
 		return newTenError(
 			ErrnoInvalidArgument,

@@ -15,15 +15,12 @@
 #include "ten_runtime/binding/go/interface/ten/msg.h"
 #include "ten_runtime/binding/go/interface/ten/ten_env.h"
 #include "ten_runtime/common/errno.h"
-#include "ten_runtime/common/status_code.h"
-#include "ten_runtime/msg/cmd_result/cmd_result.h"
 #include "ten_runtime/ten_env/internal/return.h"
 #include "ten_runtime/ten_env_proxy/ten_env_proxy.h"
 #include "ten_utils/lib/alloc.h"
 #include "ten_utils/lib/error.h"
 #include "ten_utils/log/log.h"
 #include "ten_utils/macro/check.h"
-#include "ten_utils/value/value.h"
 
 typedef struct ten_env_notify_return_result_info_t {
   ten_shared_ptr_t *c_cmd;
