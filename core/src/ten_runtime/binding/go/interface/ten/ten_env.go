@@ -11,7 +11,6 @@ package ten
 import "C"
 
 import (
-	"fmt"
 	"runtime"
 	"strings"
 	"unsafe"
@@ -21,14 +20,18 @@ type (
 	// ResultHandler is a function type that represents a handler for the result
 	// of a command.
 	ResultHandler func(TenEnv, CmdResult, error)
+
+	// ErrorHandler is a function type that represents a handler for errors of a
+	// non-command type message.
+	ErrorHandler func(TenEnv, error)
 )
 
 // TenEnv represents the interface for the TEN (Run Time Environment) component.
 type TenEnv interface {
 	SendCmd(cmd Cmd, handler ResultHandler) error
-	SendData(data Data) error
-	SendVideoFrame(videoFrame VideoFrame) error
-	SendAudioFrame(audioFrame AudioFrame) error
+	SendData(data Data, handler ErrorHandler) error
+	SendVideoFrame(videoFrame VideoFrame, handler ErrorHandler) error
+	SendAudioFrame(audioFrame AudioFrame, handler ErrorHandler) error
 
 	ReturnResult(result CmdResult, cmd Cmd) error
 	ReturnResultDirectly(result CmdResult) error
@@ -97,6 +100,15 @@ func (p *tenEnv) attachToExtension(ext *extension) {
 
 	p.attachToType = tenAttachToExtension
 	p.attachTo = unsafe.Pointer(ext)
+}
+
+func (p *tenEnv) attachToApp(app *app) {
+	if p.attachToType != tenAttachToInvalid {
+		panic("The ten object can only be attached once.")
+	}
+
+	p.attachToType = tenAttachToApp
+	p.attachTo = unsafe.Pointer(app)
 }
 
 func (p *tenEnv) postSyncJob(payload job) any {
@@ -193,7 +205,7 @@ func tenGoCAsyncApiCallback(
 	}()
 }
 
-func (p *tenEnv) SendData(data Data) error {
+func (p *tenEnv) SendData(data Data, handler ErrorHandler) error {
 	if data == nil {
 		return newTenError(
 			ErrnoInvalidArgument,
@@ -203,15 +215,16 @@ func (p *tenEnv) SendData(data Data) error {
 
 	defer data.keepAlive()
 
-	// Create a channel to wait for the async operation in C to complete.
-	done := make(chan error, 1)
-	callbackHandle := newGoHandle(done)
+	cb := goHandleNil
+	if handler != nil {
+		cb = newGoHandle(handler)
+	}
 
 	err := withCGO(func() error {
 		apiStatus := C.ten_go_ten_env_send_data(
 			p.cPtr,
 			data.getCPtr(),
-			C.uintptr_t(callbackHandle),
+			cHandle(cb),
 		)
 		err := withCGoError(&apiStatus)
 		return err
@@ -219,17 +232,16 @@ func (p *tenEnv) SendData(data Data) error {
 
 	if err != nil {
 		// Clean up the handle if there was an error.
-		loadAndDeleteGoHandle(callbackHandle)
-		return err
+		loadAndDeleteGoHandle(cb)
 	}
-
-	// Wait for the async operation to complete.
-	err = <-done
 
 	return err
 }
 
-func (p *tenEnv) SendVideoFrame(videoFrame VideoFrame) error {
+func (p *tenEnv) SendVideoFrame(
+	videoFrame VideoFrame,
+	handler ErrorHandler,
+) error {
 	if videoFrame == nil {
 		return newTenError(
 			ErrnoInvalidArgument,
@@ -239,16 +251,32 @@ func (p *tenEnv) SendVideoFrame(videoFrame VideoFrame) error {
 
 	defer videoFrame.keepAlive()
 
-	return withCGO(func() error {
+	cb := goHandleNil
+	if handler != nil {
+		cb = newGoHandle(handler)
+	}
+
+	err := withCGO(func() error {
 		apiStatus := C.ten_go_ten_env_send_video_frame(
 			p.cPtr,
 			videoFrame.getCPtr(),
+			cHandle(cb),
 		)
 		return withCGoError(&apiStatus)
 	})
+
+	if err != nil {
+		// Clean up the handle if there was an error.
+		loadAndDeleteGoHandle(cb)
+	}
+
+	return err
 }
 
-func (p *tenEnv) SendAudioFrame(audioFrame AudioFrame) error {
+func (p *tenEnv) SendAudioFrame(
+	audioFrame AudioFrame,
+	handler ErrorHandler,
+) error {
 	if audioFrame == nil {
 		return newTenError(
 			ErrnoInvalidArgument,
@@ -256,26 +284,40 @@ func (p *tenEnv) SendAudioFrame(audioFrame AudioFrame) error {
 		)
 	}
 
-	res, ok := p.process(func() any {
-		defer audioFrame.keepAlive()
+	defer audioFrame.keepAlive()
 
-		if res := C.ten_go_ten_env_send_audio_frame(p.cPtr, audioFrame.getCPtr()); !res {
-			return newTenError(
-				ErrnoGeneric,
-				fmt.Sprintf("Failed to SendAudioFrame (%v)", audioFrame),
-			)
-		}
-		return nil
-	}).(error)
-	if ok {
-		return res
+	cb := goHandleNil
+	if handler != nil {
+		cb = newGoHandle(handler)
 	}
 
-	return nil
+	err := withCGO(func() error {
+		apiStatus := C.ten_go_ten_env_send_audio_frame(
+			p.cPtr,
+			audioFrame.getCPtr(),
+			cHandle(cb),
+		)
+		return withCGoError(&apiStatus)
+	})
+
+	if err != nil {
+		// Clean up the handle if there was an error.
+		loadAndDeleteGoHandle(cb)
+	}
+
+	return err
 }
 
 func (p *tenEnv) OnConfigureDone() error {
 	p.LogDebug("OnConfigureDone")
+
+	if p.attachToType == tenAttachToApp {
+		if err := RegisterAllAddons(nil); err != nil {
+			p.LogFatal("Failed to register all GO addons: " + err.Error())
+			return nil
+		}
+	}
+
 	C.ten_go_ten_env_on_configure_done(p.cPtr)
 
 	return nil

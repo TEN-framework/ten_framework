@@ -8,6 +8,7 @@
 #include <stdlib.h>
 
 #include "include_internal/ten_runtime/addon/addon.h"
+#include "include_internal/ten_runtime/addon/extension_group/extension_group.h"
 #include "include_internal/ten_runtime/common/constant_str.h"
 #include "include_internal/ten_runtime/extension/extension.h"
 #include "include_internal/ten_runtime/extension_group/extension_group.h"
@@ -15,7 +16,6 @@
 #include "include_internal/ten_runtime/test/env_tester.h"
 #include "include_internal/ten_runtime/test/extension_tester.h"
 #include "ten_runtime/addon/addon.h"
-#include "ten_runtime/addon/extension_group/extension_group.h"
 #include "ten_runtime/extension_group/extension_group.h"
 #include "ten_runtime/ten.h"
 #include "ten_runtime/ten_env/internal/log.h"
@@ -282,11 +282,12 @@ static ten_addon_t ten_builtin_test_extension_addon = {
     test_extension_addon_create_instance,
     test_extension_addon_destroy_instance,
     NULL,
+    NULL,
 };
 
 void ten_builtin_test_extension_addon_register(void) {
   ten_addon_register_extension(TEN_STR_TEN_TEST_EXTENSION, NULL,
-                               &ten_builtin_test_extension_addon);
+                               &ten_builtin_test_extension_addon, NULL);
 }
 
 void ten_builtin_test_extension_addon_unregister(void) {

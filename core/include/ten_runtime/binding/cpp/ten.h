@@ -10,8 +10,8 @@
 // include in the C++ programming language.
 
 #include "ten_runtime/addon/extension/extension.h"  // IWYU pragma: export
-#include "ten_runtime/addon/extension_group/extension_group.h"  // IWYU pragma: export
-#include "ten_runtime/binding/cpp/detail/addon.h"      // IWYU pragma: export
+#include "ten_runtime/binding/cpp/detail/addon.h"   // IWYU pragma: export
+#include "ten_runtime/binding/cpp/detail/addon_manager.h"  // IWYU pragma: export
 #include "ten_runtime/binding/cpp/detail/app.h"        // IWYU pragma: export
 #include "ten_runtime/binding/cpp/detail/common.h"     // IWYU pragma: export
 #include "ten_runtime/binding/cpp/detail/extension.h"  // IWYU pragma: export
@@ -25,7 +25,7 @@
 #include "ten_runtime/binding/cpp/detail/msg/data.h"  // IWYU pragma: export
 #include "ten_runtime/binding/cpp/detail/msg/msg.h"   // IWYU pragma: export
 #include "ten_runtime/binding/cpp/detail/msg/video_frame.h"  // IWYU pragma: export
-#include "ten_runtime/binding/cpp/detail/ten_env.h"  // IWYU pragma: export
+#include "ten_runtime/binding/cpp/detail/ten_env.h"       // IWYU pragma: export
 #include "ten_runtime/binding/cpp/detail/ten_env_impl.h"  // IWYU pragma: export
 #include "ten_runtime/binding/cpp/detail/ten_env_proxy.h"  // IWYU pragma: export
 #include "ten_runtime/binding/cpp/detail/test/env_tester.h"  // IWYU pragma: export

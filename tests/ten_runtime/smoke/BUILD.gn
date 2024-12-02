@@ -39,8 +39,10 @@ ten_executable("ten_runtime_smoke_test") {
     "extension_test",
     "graph_test",
     "log_test",
+    "msg_property",
     "msg_test",
     "notify_test",
+    "property",
     "result_conversion",
     "standalone_test",
     "ten_env_call_timing",
@@ -74,7 +76,6 @@ ten_executable("ten_runtime_smoke_test") {
   public_deps = [
     "//third_party/googlemock",
     "//third_party/googletest",
-    "//third_party/googletest:gtest_main",
   ]
 }
 

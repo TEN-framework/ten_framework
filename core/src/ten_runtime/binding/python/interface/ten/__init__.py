@@ -9,10 +9,7 @@ from .extension import Extension
 from .async_extension import AsyncExtension
 from .async_ten_env import AsyncTenEnv
 from .addon import Addon
-from .decorator import (
-    register_addon_as_extension,
-    register_addon_as_extension_v2,
-)
+from .addon_manager import register_addon_as_extension, _AddonManager
 from .ten_env import TenEnv
 from .cmd import Cmd
 from .cmd_result import CmdResult, StatusCode
@@ -27,8 +24,8 @@ from .error import TenError
 # ten_runtime_python package.
 __all__ = [
     "Addon",
+    "_AddonManager",
     "register_addon_as_extension",
-    "register_addon_as_extension_v2",
     "App",
     "Extension",
     "AsyncExtension",
