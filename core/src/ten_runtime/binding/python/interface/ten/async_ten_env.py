@@ -37,7 +37,7 @@ class AsyncTenEnv(TenEnv):
             lambda _, result, error: asyncio.run_coroutine_threadsafe(
                 q.put([result, error]),
                 self._ten_loop,
-            ),
+            ),  # type: ignore
             False,
         )
 
@@ -55,7 +55,7 @@ class AsyncTenEnv(TenEnv):
             lambda _, result, error: asyncio.run_coroutine_threadsafe(
                 q.put([result, error]),
                 self._ten_loop,
-            ),
+            ),  # type: ignore
             True,
         )
 
@@ -77,7 +77,7 @@ class AsyncTenEnv(TenEnv):
             lambda _, error: asyncio.run_coroutine_threadsafe(
                 q.put(error),
                 self._ten_loop,
-            ),
+            ),  # type: ignore
         )
 
         error = await q.get()
@@ -91,7 +91,7 @@ class AsyncTenEnv(TenEnv):
             lambda _, error: asyncio.run_coroutine_threadsafe(
                 q.put(error),
                 self._ten_loop,
-            ),
+            ),  # type: ignore
         )
 
         error = await q.get()
@@ -105,7 +105,36 @@ class AsyncTenEnv(TenEnv):
             lambda _, error: asyncio.run_coroutine_threadsafe(
                 q.put(error),
                 self._ten_loop,
-            ),
+            ),  # type: ignore
+        )
+
+        error = await q.get()
+        if error is not None:
+            raise Exception(error.err_msg())
+
+    async def return_result(self, result: CmdResult, target_cmd: Cmd) -> None:
+        q = asyncio.Queue(maxsize=1)
+        self._internal.return_result(
+            result,
+            target_cmd,
+            lambda _, error: asyncio.run_coroutine_threadsafe(
+                q.put(error),
+                self._ten_loop,
+            ),  # type: ignore
+        )
+
+        error = await q.get()
+        if error is not None:
+            raise Exception(error.err_msg())
+
+    async def return_result_directly(self, result: CmdResult) -> None:
+        q = asyncio.Queue(maxsize=1)
+        self._internal.return_result_directly(
+            result,
+            lambda _, error: asyncio.run_coroutine_threadsafe(
+                q.put(error),
+                self._ten_loop,
+            ),  # type: ignore
         )
 
         error = await q.get()
