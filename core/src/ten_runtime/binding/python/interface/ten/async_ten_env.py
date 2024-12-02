@@ -9,6 +9,9 @@ import asyncio
 import threading
 
 from .cmd import Cmd
+from .data import Data
+from .video_frame import VideoFrame
+from .audio_frame import AudioFrame
 from .cmd_result import CmdResult
 from .ten_env import TenEnv
 from typing import AsyncGenerator
@@ -66,6 +69,48 @@ class AsyncTenEnv(TenEnv):
                     # This is the final result, so break the while loop.
                     break
                 yield result
+
+    async def send_data(self, data: Data) -> None:
+        q = asyncio.Queue(maxsize=1)
+        self._internal.send_data(
+            data,
+            lambda _, error: asyncio.run_coroutine_threadsafe(
+                q.put(error),
+                self._ten_loop,
+            ),
+        )
+
+        error = await q.get()
+        if error is not None:
+            raise Exception(error.err_msg())
+
+    async def send_video_frame(self, video_frame: VideoFrame) -> None:
+        q = asyncio.Queue(maxsize=1)
+        self._internal.send_video_frame(
+            video_frame,
+            lambda _, error: asyncio.run_coroutine_threadsafe(
+                q.put(error),
+                self._ten_loop,
+            ),
+        )
+
+        error = await q.get()
+        if error is not None:
+            raise Exception(error.err_msg())
+
+    async def send_audio_frame(self, audio_frame: AudioFrame) -> None:
+        q = asyncio.Queue(maxsize=1)
+        self._internal.send_audio_frame(
+            audio_frame,
+            lambda _, error: asyncio.run_coroutine_threadsafe(
+                q.put(error),
+                self._ten_loop,
+            ),
+        )
+
+        error = await q.get()
+        if error is not None:
+            raise Exception(error.err_msg())
 
     async def on_configure_done(self) -> None:
         raise NotImplementedError(

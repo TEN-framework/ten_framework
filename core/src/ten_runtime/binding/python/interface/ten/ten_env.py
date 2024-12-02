@@ -24,6 +24,8 @@ ResultHandler = (
     Callable[[TenEnv, Optional[CmdResult], Optional[TenError]], None] | None
 )
 
+ErrorHandler = Callable[[TenEnv, Optional[TenError]], None] | None
+
 
 class TenEnv:
 
@@ -82,14 +84,18 @@ class TenEnv:
     def send_cmd_ex(self, cmd: Cmd, result_handler: ResultHandler) -> None:
         return self._internal.send_cmd(cmd, result_handler, True)
 
-    def send_data(self, data: Data) -> None:
-        return self._internal.send_data(data)
+    def send_data(self, data: Data, error_handler: ErrorHandler = None) -> None:
+        return self._internal.send_data(data, error_handler)
 
-    def send_video_frame(self, video_frame: VideoFrame) -> None:
-        return self._internal.send_video_frame(video_frame)
+    def send_video_frame(
+        self, video_frame: VideoFrame, error_handler: ErrorHandler = None
+    ) -> None:
+        return self._internal.send_video_frame(video_frame, error_handler)
 
-    def send_audio_frame(self, audio_frame: AudioFrame) -> None:
-        return self._internal.send_audio_frame(audio_frame)
+    def send_audio_frame(
+        self, audio_frame: AudioFrame, error_handler: ErrorHandler = None
+    ) -> None:
+        return self._internal.send_audio_frame(audio_frame, error_handler)
 
     def return_result(self, result: CmdResult, target_cmd: Cmd) -> None:
         return self._internal.return_result(result, target_cmd)
