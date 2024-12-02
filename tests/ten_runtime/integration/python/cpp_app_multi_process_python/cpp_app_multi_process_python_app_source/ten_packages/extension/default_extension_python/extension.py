@@ -33,7 +33,7 @@ class DefaultExtension(Extension):
         ten_env.set_property_from_json("testKey2", '"testValue2"')
         testValue = ten_env.get_property_to_json("testKey")
         testValue2 = ten_env.get_property_to_json("testKey2")
-        print("testValue: ", testValue, " testValue2: ", testValue2)
+        ten_env.log_info(f"testValue: {testValue}, testValue2: {testValue2}")
 
         ten_env.on_start_done()
 
@@ -56,18 +56,16 @@ class DefaultExtension(Extension):
             assert False, error.err_msg()
 
         assert result is not None
+
         statusCode = result.get_status_code()
         detail = result.get_property_string("detail")
-        print(
-            "DefaultExtension check_hello: status:"
-            + str(statusCode)
-            + " detail:"
-            + detail
+        ten_env.log_info(
+            "check_hello: status:" + str(statusCode) + " detail:" + detail
         )
 
         respCmd = CmdResult.create(StatusCode.OK)
         respCmd.set_property_string("detail", detail + " nbnb")
-        print("DefaultExtension create respCmd")
+        ten_env.log_info("create respCmd")
 
         ten_env.return_result(respCmd, receivedCmd)
 
@@ -102,8 +100,8 @@ class DefaultExtension(Extension):
 
         ten_env.send_cmd(
             new_cmd,
-            lambda ten_env, result, exception: self.check_hello(
-                ten_env, result, exception, cmd
+            lambda ten_env, result, error: self.check_hello(
+                ten_env, result, error, cmd
             ),
         )
 

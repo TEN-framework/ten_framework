@@ -36,55 +36,52 @@ class DefaultExtension(Extension):
         ten_env.set_property_from_json("testKey2", '"testValue2"')
         testValue = ten_env.get_property_to_json("testKey")
         testValue2 = ten_env.get_property_to_json("testKey2")
-        print("testValue: ", testValue, " testValue2: ", testValue2)
+        ten_env.log_info(f"testValue: {testValue}, testValue2: {testValue2}")
 
         ten_env.on_start_done()
 
     def on_stop(self, ten_env: TenEnv) -> None:
-        print("DefaultExtension on_stop")
+        ten_env.log_info("on_stop")
         ten_env.on_stop_done()
 
     def on_deinit(self, ten_env: TenEnv) -> None:
-        print("DefaultExtension on_deinit")
+        ten_env.log_info("on_deinit")
         ten_env.on_deinit_done()
 
     def check_hello(
         self,
         ten_env: TenEnv,
         result: Optional[CmdResult],
-        exception: Optional[TenError],
+        error: Optional[TenError],
         receivedCmd: Cmd,
     ):
-        if exception is not None:
-            assert False, exception
+        if error is not None:
+            assert False, error
 
         assert result is not None
 
         statusCode = result.get_status_code()
         detail = result.get_property_string("detail")
-        print(
-            "DefaultExtension check_hello: status:"
-            + str(statusCode)
-            + " detail:"
-            + detail
+        ten_env.log_info(
+            "check_hello: status:" + str(statusCode) + " detail:" + detail
         )
 
         respCmd = CmdResult.create(StatusCode.OK)
         respCmd.set_property_string("detail", detail + " nbnb")
-        print("DefaultExtension create respCmd")
+        ten_env.log_info("create respCmd")
 
         ten_env.return_result(respCmd, receivedCmd)
 
     def on_cmd(self, ten_env: TenEnv, cmd: Cmd) -> None:
-        print("DefaultExtension on_cmd")
+        ten_env.log_info("on_cmd")
 
         cmd_json = cmd.to_json()
-        print("DefaultExtension on_cmd json: " + cmd_json)
+        ten_env.log_info("on_cmd json: " + cmd_json)
 
         new_cmd = Cmd.create("hello")
         new_cmd.set_property_from_json("test", '"testValue2"')
         test_value = new_cmd.get_property_to_json("test")
-        print("DefaultExtension on_cmd test_value: " + test_value)
+        ten_env.log_info("on_cmd test_value: " + test_value)
 
         ten_env.send_cmd(
             new_cmd,

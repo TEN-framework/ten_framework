@@ -5,13 +5,13 @@
 #
 from ten import (
     Addon,
-    register_addon_as_extension_v2,
+    register_addon_as_extension,
     TenEnv,
 )
 from .extension import DefaultExtension
 
 
-@register_addon_as_extension_v2("default_extension_python")
+@register_addon_as_extension("default_extension_python")
 class DefaultExtensionAddon(Addon):
 
     def on_create_instance(self, ten_env: TenEnv, name: str, context) -> None:

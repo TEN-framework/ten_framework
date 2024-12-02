@@ -4,8 +4,9 @@
 # Licensed under the Apache License, Version 2.0, with certain conditions.
 # Refer to the "LICENSE" file in the root directory for more information.
 #
-from typing import Callable, Optional
 import inspect
+from typing import Callable, Optional
+
 from libten_runtime_python import _Extension, _TenEnv
 from .error import TenError
 from .ten_env_attach_to_enum import _TenEnvAttachTo

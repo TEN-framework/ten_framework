@@ -22,11 +22,11 @@ class DefaultExtension(Extension):
         self,
         ten_env: TenEnv,
         result: Optional[CmdResult],
-        exception: Optional[TenError],
+        error: Optional[TenError],
         receivedCmd: Cmd,
     ):
-        if exception is not None:
-            assert False, exception
+        if error is not None:
+            assert False, error
 
         assert result is not None
 
@@ -51,8 +51,8 @@ class DefaultExtension(Extension):
             new_cmd = Cmd.create("hello")
             ten_env.send_cmd_ex(
                 new_cmd,
-                lambda ten_env, result, exception: self.check_hello(
-                    ten_env, result, exception, cmd
+                lambda ten_env, result, error: self.check_hello(
+                    ten_env, result, error, cmd
                 ),
             )
         elif self.name == "default_extension_python_2":

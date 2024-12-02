@@ -39,11 +39,11 @@ class DefaultExtension(Extension):
         self,
         ten_env: TenEnv,
         result: Optional[CmdResult],
-        exception: Optional[TenError],
+        error: Optional[TenError],
         receivedCmd: Cmd,
     ):
-        if exception is not None:
-            assert False, exception
+        if error is not None:
+            assert False, error
 
         assert result is not None
 

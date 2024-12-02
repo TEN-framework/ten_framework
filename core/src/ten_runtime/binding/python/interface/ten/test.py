@@ -4,10 +4,11 @@
 # Licensed under the Apache License, Version 2.0, with certain conditions.
 # Refer to the "LICENSE" file in the root directory for more information.
 #
-from typing import Callable, Optional, final
 import sys
 import importlib
 from pathlib import Path
+from typing import Callable, Optional, final
+
 from libten_runtime_python import _ExtensionTester, _TenEnvTester
 from .error import TenError
 from .cmd import Cmd

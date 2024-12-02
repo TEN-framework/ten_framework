@@ -9,6 +9,7 @@
 #include "include_internal/ten_runtime/binding/python/msg/audio_frame.h"
 #include "include_internal/ten_runtime/binding/python/msg/msg.h"
 #include "include_internal/ten_runtime/binding/python/ten_env/ten_env.h"
+#include "ten_utils/macro/mark.h"
 #include "ten_utils/macro/memory.h"
 
 typedef struct ten_env_notify_send_audio_frame_info_t {
@@ -49,10 +50,9 @@ static void ten_env_notify_send_audio_frame_info_destroy(
   TEN_FREE(info);
 }
 
-static void proxy_send_audio_frame_callback(ten_env_t *ten_env,
-                                            ten_shared_ptr_t *cmd_result,
-                                            void *callback_info,
-                                            ten_error_t *err) {
+static void proxy_send_audio_frame_callback(
+    ten_env_t *ten_env, TEN_UNUSED ten_shared_ptr_t *cmd_result,
+    void *callback_info, ten_error_t *err) {
   TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
              "Should not happen.");
   TEN_ASSERT(callback_info, "Should not happen.");

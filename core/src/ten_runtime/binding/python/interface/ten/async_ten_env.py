@@ -4,9 +4,10 @@
 # Licensed under the Apache License, Version 2.0, with certain conditions.
 # Refer to the "LICENSE" file in the root directory for more information.
 #
-from asyncio import AbstractEventLoop
 import asyncio
 import threading
+from asyncio import AbstractEventLoop
+from typing import AsyncGenerator
 
 from .cmd import Cmd
 from .data import Data
@@ -14,7 +15,6 @@ from .video_frame import VideoFrame
 from .audio_frame import AudioFrame
 from .cmd_result import CmdResult
 from .ten_env import TenEnv
-from typing import AsyncGenerator
 
 
 class AsyncTenEnv(TenEnv):

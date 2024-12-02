@@ -21,10 +21,10 @@ class ExtensionTesterBasic(ExtensionTester):
         self,
         ten_env: TenEnvTester,
         result: Optional[CmdResult],
-        exception: Optional[TenError],
+        error: Optional[TenError],
     ):
-        if exception is not None:
-            assert False, exception
+        if error is not None:
+            assert False, error
 
         assert result is not None
 
