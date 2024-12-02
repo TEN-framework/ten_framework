@@ -89,7 +89,7 @@ static void ten_env_proxy_notify_return_result(ten_env_t *ten_env,
           ten_error_errno(&err), ten_error_errmsg(&err));
     }
   } else {
-    // TODO(xilin) : Transfrom the return_xxx C function into an async API and
+    // TODO(xilin) : Transform the return_xxx C function into an async API and
     // set the callback here. Wait for the PR 357 to be merged.
     if (info->c_target_cmd) {
       rc =
@@ -101,8 +101,7 @@ static void ten_env_proxy_notify_return_result(ten_env_t *ten_env,
     ten_py_error_t *py_err = NULL;
 
     // About to call the Python function, so it's necessary to ensure that the
-    // GIL
-    // has been acquired.
+    // GIL has been acquired.
     //
     // Allows C codes to work safely with Python objects.
     PyGILState_STATE prev_state = ten_py_gil_state_ensure();
