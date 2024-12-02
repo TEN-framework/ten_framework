@@ -646,6 +646,7 @@ void send_ten_msg_with_req_body(
                                            std::string(error->errmsg()));
                 return;
               }
+
               auto *ext = static_cast<http_server_extension_t *>(
                   ten_env.get_attached_target());
               assert(ext && "Failed to get the attached extension.");
@@ -682,7 +683,9 @@ void send_ten_msg_without_req_body(
                 prepare_response_data_from_ten_world(
                     http_session_data, "The command is not supported. err:" +
                                            std::string(error->errmsg()));
+                return;
               }
+
               auto *ext = static_cast<http_server_extension_t *>(
                   ten_env.get_attached_target());
               assert(ext && "Failed to get the attached extension.");
