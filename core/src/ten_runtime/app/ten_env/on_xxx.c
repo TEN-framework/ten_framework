@@ -318,7 +318,7 @@ void ten_app_on_deinit_done(ten_env_t *ten_env) {
   self->state = TEN_APP_STATE_CLOSED;
   ten_mutex_unlock(self->state_lock);
 
-  TEN_ENV_INTERNAL_LOG_DEBUG(ten_env, "app on_deinit_done().");
+  TEN_ENV_LOG_DEBUG_INTERNAL(ten_env, "app on_deinit_done().");
 
   ten_env_close(self->ten_env);
   ten_runloop_stop(self->loop);
