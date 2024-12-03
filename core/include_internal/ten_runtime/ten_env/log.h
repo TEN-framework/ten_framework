@@ -10,6 +10,42 @@
 
 #include "ten_utils/log/log.h"
 
+#define TEN_ENV_INTERNAL_LOG_VERBOSE(ten_env, msg)                            \
+  do {                                                                        \
+    ten_env_log(ten_env, TEN_LOG_LEVEL_VERBOSE, __func__, __FILE__, __LINE__, \
+                (msg));                                                       \
+  } while (0)
+
+#define TEN_ENV_INTERNAL_LOG_DEBUG(ten_env, msg)                            \
+  do {                                                                      \
+    ten_env_log(ten_env, TEN_LOG_LEVEL_DEBUG, __func__, __FILE__, __LINE__, \
+                (msg));                                                     \
+  } while (0)
+
+#define TEN_ENV_INTERNAL_LOG_INFO(ten_env, msg)                            \
+  do {                                                                     \
+    ten_env_log(ten_env, TEN_LOG_LEVEL_INFO, __func__, __FILE__, __LINE__, \
+                (msg));                                                    \
+  } while (0)
+
+#define TEN_ENV_INTERNAL_LOG_WARN(ten_env, msg)                            \
+  do {                                                                     \
+    ten_env_log(ten_env, TEN_LOG_LEVEL_WARN, __func__, __FILE__, __LINE__, \
+                (msg));                                                    \
+  } while (0)
+
+#define TEN_ENV_INTERNAL_LOG_ERROR(ten_env, msg)                            \
+  do {                                                                      \
+    ten_env_log(ten_env, TEN_LOG_LEVEL_ERROR, __func__, __FILE__, __LINE__, \
+                (msg));                                                     \
+  } while (0)
+
+#define TEN_ENV_INTERNAL_LOG_FATAL(ten_env, msg)                            \
+  do {                                                                      \
+    ten_env_log(ten_env, TEN_LOG_LEVEL_FATAL, __func__, __FILE__, __LINE__, \
+                (msg));                                                     \
+  } while (0)
+
 typedef struct ten_env_t ten_env_t;
 
 TEN_RUNTIME_API void ten_env_log_with_size_formatted_without_check_thread(
