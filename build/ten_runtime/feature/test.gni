@@ -5,6 +5,7 @@
 # Refer to the "LICENSE" file in the root directory for more information.
 #
 import("//.gnfiles/build/feature/base_options.gni")
+import("//build/options.gni")
 import("//core/src/ten_runtime/output_libs.gni")
 
 template("ten_package_test_prepare_app") {
@@ -349,6 +350,12 @@ template("ten_package_test_prepare_app") {
       } else {
         args += [ rebase_path("//core/ten_gn/tgn") ]
       }
+    }
+
+    if (ten_integration_tests_lazy_build) {
+      args += [ "--lazy-build" ]
+    } else {
+      args += [ "--no-lazy-build" ]
     }
 
     sources = replace_files_after_install_app_dests +

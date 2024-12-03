@@ -27,6 +27,7 @@ class ArgumentInfo(argparse.Namespace):
         self.enable_sanitizer: bool
         self.vs_version: str
         self.log_level: int
+        self.lazy_build: bool
 
 
 def construct_extra_args_for_cpp_ag(args: ArgumentInfo) -> list[str]:
@@ -198,9 +199,21 @@ if __name__ == "__main__":
     parser.add_argument(
         "--log-level", type=int, required=True, help="specify log level"
     )
+    parser.add_argument(
+        "--lazy-build", action=argparse.BooleanOptionalAction, default=False
+    )
 
     arg_info = ArgumentInfo()
     args = parser.parse_args(namespace=arg_info)
+
+    # Skip building if lazy build is enabled.
+    if args.lazy_build:
+        if args.log_level > 0:
+            msg = (
+                f"Lazy build is enabled, skip building package({args.pkg_name})"
+            )
+            print(msg)
+        sys.exit(0)
 
     if args.log_level > 0:
         msg = (
