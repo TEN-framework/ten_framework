@@ -6,7 +6,7 @@ import subprocess
 import os
 import sys
 from sys import stdout
-from .common import http
+from .common import http, build_config
 
 
 def http_request():
@@ -81,7 +81,11 @@ def test_get_set_prop_python():
     bootstrap_process.wait()
 
     if sys.platform == "linux":
-        if os.path.exists(os.path.join(base_path, "use_asan_lib_marker")):
+        build_config_args = build_config.parse_build_config(
+            os.path.join(root_dir, "ten_args.gn"),
+        )
+
+        if build_config_args.enable_sanitizer:
             libasan_path = os.path.join(
                 base_path,
                 "get_set_prop_python_app/ten_packages/system/ten_runtime/lib/libasan.so",

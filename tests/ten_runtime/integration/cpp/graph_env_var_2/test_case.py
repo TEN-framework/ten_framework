@@ -91,7 +91,10 @@ def test_graph_env_var_2_app():
         )
         client_cmd = os.path.join(base_path, "graph_env_var_2_app_client")
 
-        if os.path.exists(os.path.join(base_path, "use_asan_lib_marker")):
+        if (
+            build_config_args.enable_sanitizer
+            and not build_config_args.is_clang
+        ):
             libasan_path = os.path.join(
                 base_path,
                 "graph_env_var_2_app/ten_packages/system/ten_runtime/lib/libasan.so",

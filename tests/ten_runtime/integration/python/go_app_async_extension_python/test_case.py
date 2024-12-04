@@ -75,7 +75,6 @@ def test_go_app_async_extension_python():
         if rc != 0:
             assert False, "Failed to build package."
 
-
     tman_install_cmd = [
         os.path.join(root_dir, "ten_manager/bin/tman"),
         "--config-file",
@@ -92,7 +91,9 @@ def test_go_app_async_extension_python():
     )
     tman_install_process.wait()
 
-    bootstrap_cmd = os.path.join(base_path, "go_app_async_extension_python_app/bin/bootstrap")
+    bootstrap_cmd = os.path.join(
+        base_path, "go_app_async_extension_python_app/bin/bootstrap"
+    )
 
     bootstrap_process = subprocess.Popen(
         bootstrap_cmd, stdout=stdout, stderr=subprocess.STDOUT, env=my_env
@@ -100,7 +101,10 @@ def test_go_app_async_extension_python():
     bootstrap_process.wait()
 
     if sys.platform == "linux":
-        if os.path.exists(os.path.join(base_path, "use_asan_lib_marker")):
+        if (
+            build_config_args.enable_sanitizer
+            and not build_config_args.is_clang
+        ):
             libasan_path = os.path.join(
                 base_path,
                 "go_app_async_extension_python_app/ten_packages/system/ten_runtime/lib/libasan.so",
@@ -109,7 +113,9 @@ def test_go_app_async_extension_python():
             if os.path.exists(libasan_path):
                 my_env["LD_PRELOAD"] = libasan_path
 
-    server_cmd = os.path.join(base_path, "go_app_async_extension_python_app/bin/start")
+    server_cmd = os.path.join(
+        base_path, "go_app_async_extension_python_app/bin/start"
+    )
 
     server = subprocess.Popen(
         server_cmd,
@@ -121,7 +127,9 @@ def test_go_app_async_extension_python():
 
     is_started = http.is_app_started("127.0.0.1", 8002, 30)
     if not is_started:
-        print("The go_app_async_extension_python is not started after 30 seconds.")
+        print(
+            "The go_app_async_extension_python is not started after 30 seconds."
+        )
 
         server.kill()
         exit_code = server.wait()
@@ -140,7 +148,9 @@ def test_go_app_async_extension_python():
     finally:
         is_stopped = http.stop_app("127.0.0.1", 8002, 30)
         if not is_stopped:
-            print("The go_app_async_extension_python can not stop after 30 seconds.")
+            print(
+                "The go_app_async_extension_python can not stop after 30 seconds."
+            )
             server.kill()
 
         exit_code = server.wait()

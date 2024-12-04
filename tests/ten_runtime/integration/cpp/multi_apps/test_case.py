@@ -87,7 +87,15 @@ def start_app(app_name: str, port: int) -> subprocess.Popen:
             base_path, f"{app_name}/bin/{app_name}_source"
         )
 
-        if os.path.exists(os.path.join(base_path, "use_asan_lib_marker")):
+        root_dir = os.path.join(base_path, "../../../../../")
+        build_config_args = build_config.parse_build_config(
+            os.path.join(root_dir, "ten_args.gn"),
+        )
+
+        if (
+            build_config_args.enable_sanitizer
+            and not build_config_args.is_clang
+        ):
             libasan_path = os.path.join(
                 base_path,
                 f"{app_name}/ten_packages/system/ten_runtime/lib/libasan.so",
@@ -143,7 +151,14 @@ def start_client(app_name: str) -> subprocess.Popen:
         )
         client_cmd = os.path.join(base_path, "multi_apps_client")
 
-        if os.path.exists(os.path.join(base_path, "use_asan_lib_marker")):
+        root_dir = os.path.join(base_path, "../../../../../")
+        build_config_args = build_config.parse_build_config(
+            os.path.join(root_dir, "ten_args.gn"),
+        )
+        if (
+            build_config_args.enable_sanitizer
+            and not build_config_args.is_clang
+        ):
             libasan_path = os.path.join(
                 base_path,
                 f"{app_name}/ten_packages/system/ten_runtime/lib/libasan.so",

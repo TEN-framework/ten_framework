@@ -7,7 +7,7 @@ import os
 import sys
 import pytest
 from sys import stdout
-from .common import http
+from .common import http, build_config
 
 
 @pytest.fixture(scope="function")
@@ -114,7 +114,11 @@ def test_resp_handler_yield_python():
     bootstrap_process.wait()
 
     if sys.platform == "linux":
-        if os.path.exists(os.path.join(base_path, "use_asan_lib_marker")):
+        build_config_args = build_config.parse_build_config(
+            os.path.join(root_dir, "ten_args.gn"),
+        )
+
+        if build_config_args.enable_sanitizer:
             libasan_path = os.path.join(
                 base_path,
                 "resp_handler_yield_python_app/ten_packages/system/ten_runtime/lib/libasan.so",

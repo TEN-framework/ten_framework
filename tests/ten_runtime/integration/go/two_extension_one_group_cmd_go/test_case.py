@@ -70,7 +70,10 @@ def test_two_extension_on_group_cmd_go():
             "two_extension_one_group_cmd_go_app/ten_packages/system/ten_runtime/lib",
         )
 
-        if os.path.exists(os.path.join(base_path, "use_asan_lib_marker")):
+        if (
+            build_config_args.enable_sanitizer
+            and not build_config_args.is_clang
+        ):
             libasan_path = os.path.join(
                 base_path,
                 "two_extension_one_group_cmd_go_app/ten_packages/system/ten_runtime/lib/libasan.so",

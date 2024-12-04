@@ -168,7 +168,10 @@ def test_go_app_cythonize():
     compile_pyx(app_root_path)
 
     if sys.platform == "linux":
-        if os.path.exists(os.path.join(base_path, "use_asan_lib_marker")):
+        if (
+            build_config_args.enable_sanitizer
+            and not build_config_args.is_clang
+        ):
             libasan_path = os.path.join(
                 base_path,
                 "go_app_cythonize_app/ten_packages/system/ten_runtime/lib/libasan.so",

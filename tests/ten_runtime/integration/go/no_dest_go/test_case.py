@@ -70,7 +70,10 @@ def test_no_dest_go():
             "no_dest_go_app/ten_packages/system/ten_runtime/lib",
         )
 
-        if os.path.exists(os.path.join(base_path, "use_asan_lib_marker")):
+        if (
+            build_config_args.enable_sanitizer
+            and not build_config_args.is_clang
+        ):
             libasan_path = os.path.join(
                 base_path,
                 "no_dest_go_app/ten_packages/system/ten_runtime/lib/libasan.so",

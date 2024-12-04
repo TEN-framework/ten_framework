@@ -101,7 +101,10 @@ def test_unused_addon_python():
     bootstrap_process.wait()
 
     if sys.platform == "linux":
-        if os.path.exists(os.path.join(base_path, "use_asan_lib_marker")):
+        if (
+            build_config_args.enable_sanitizer
+            and not build_config_args.is_clang
+        ):
             libasan_path = os.path.join(
                 base_path,
                 "unused_addon_python_app/ten_packages/system/ten_runtime/lib/libasan.so",

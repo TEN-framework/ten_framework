@@ -78,7 +78,10 @@ def test_ffmpeg_bypass_app():
         )
         server_cmd = "bin/ffmpeg_bypass_app_source"
 
-        if os.path.exists(os.path.join(base_path, "use_asan_lib_marker")):
+        if (
+            build_config_args.enable_sanitizer
+            and not build_config_args.is_clang
+        ):
             libasan_path = os.path.join(
                 base_path,
                 "ffmpeg_bypass_app/ten_packages/system/ten_runtime/lib/libasan.so",
