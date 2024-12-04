@@ -6,8 +6,6 @@
 //
 #pragma once
 
-#include <vector>
-
 #include "ten_runtime/binding/cpp/detail/addon.h"
 #include "ten_runtime/binding/cpp/detail/extension.h"
 #include "ten_runtime/binding/cpp/detail/ten_env.h"
@@ -27,7 +25,7 @@ inline bool ten_env_t::on_create_instance_done(void *instance, void *context,
 
   switch (cpp_context->task) {
     case ADDON_TASK_CREATE_EXTENSION:
-      extension_internal_accessor_t::get_c_extension(
+      c_instance = extension_internal_accessor_t::get_c_extension(
           static_cast<extension_t *>(instance));
       break;
     default:
