@@ -4,19 +4,17 @@
 # Licensed under the Apache License, Version 2.0, with certain conditions.
 # Refer to the "LICENSE" file in the root directory for more information.
 #
-import argparse
 import json
 import os
-import sys
 from datetime import datetime
-from build.scripts import fs_utils, cmd_exec, timestamp_proxy
+from typing import Optional
+from . import cmd_exec, fs_utils, build_config
 
 
-class ArgumentInfo(argparse.Namespace):
+class ArgumentInfo:
     def __init__(self):
         self.pkg_src_root_dir: str
         self.pkg_run_root_dir: str
-        self.tg_timestamp_proxy_file: str
         self.pkg_name: str
         self.pkg_language: str
         self.os: str
@@ -29,7 +27,7 @@ class ArgumentInfo(argparse.Namespace):
         self.log_level: int
 
 
-def construct_extra_args_for_cpp_ag(args: ArgumentInfo) -> list[str]:
+def _construct_extra_args_for_cpp_ag(args: ArgumentInfo) -> list[str]:
     cmd = ["--"]
 
     if args.is_clang is True:
@@ -48,10 +46,10 @@ def construct_extra_args_for_cpp_ag(args: ArgumentInfo) -> list[str]:
     return cmd
 
 
-def build_cpp_app(args: ArgumentInfo) -> int:
+def _build_cpp_app(args: ArgumentInfo) -> int:
     # tgn gen ...
     cmd = [f"{args.tgn_path}", "gen", args.os, args.cpu, args.build]
-    cmd += construct_extra_args_for_cpp_ag(args)
+    cmd += _construct_extra_args_for_cpp_ag(args)
 
     returncode, output = cmd_exec.run_cmd(cmd, args.log_level)
 
@@ -83,10 +81,10 @@ def build_cpp_app(args: ArgumentInfo) -> int:
     return returncode
 
 
-def build_cpp_extension(args: ArgumentInfo) -> int:
+def _build_cpp_extension(args: ArgumentInfo) -> int:
     # tgn gen ...
     cmd = [f"{args.tgn_path}", "gen", args.os, args.cpu, args.build]
-    cmd += construct_extra_args_for_cpp_ag(args)
+    cmd += _construct_extra_args_for_cpp_ag(args)
 
     returncode, _ = cmd_exec.run_cmd(cmd, args.log_level)
 
@@ -104,7 +102,7 @@ def build_cpp_extension(args: ArgumentInfo) -> int:
     return returncode
 
 
-def build_go_app(args: ArgumentInfo) -> int:
+def _build_go_app(args: ArgumentInfo) -> int:
     # Determine the path to the main.go script. Some cases require a customized
     # Go build script, but in most situations, the build script provided by the
     # TEN runtime Go binding can be used directly.
@@ -145,20 +143,20 @@ def build_go_app(args: ArgumentInfo) -> int:
     return returncode
 
 
-def get_pkg_type(pkg_root: str) -> str:
+def _get_pkg_type(pkg_root: str) -> str:
     manifest_path = os.path.join(pkg_root, "manifest.json")
     with open(manifest_path, "r") as f:
         manifest_json = json.load(f)
     return manifest_json["type"]
 
 
-def build_app(args: ArgumentInfo) -> int:
+def _build_app(args: ArgumentInfo) -> int:
     returncode = 0
 
     if args.pkg_language == "cpp":
-        returncode = build_cpp_app(args)
+        returncode = _build_cpp_app(args)
     elif args.pkg_language == "go":
-        returncode = build_go_app(args)
+        returncode = _build_go_app(args)
     elif args.pkg_language == "python":
         returncode = 0
     else:
@@ -167,18 +165,47 @@ def build_app(args: ArgumentInfo) -> int:
     return returncode
 
 
-def build_extension(args: ArgumentInfo) -> int:
+def _build_extension(args: ArgumentInfo) -> int:
     returncode = 0
 
     if args.pkg_language == "cpp":
-        returncode = build_cpp_extension(args)
+        returncode = _build_cpp_extension(args)
     else:
         returncode = 0
 
     return returncode
 
 
-def build(args: ArgumentInfo) -> int:
+def build(
+    build_config: build_config.BuildConfig,
+    pkg_src_root_dir: str,
+    pkg_run_root_dir: str,
+    pkg_name: str,
+    pkg_language: str,
+    log_level: Optional[int] = 0,
+) -> int:
+    args = ArgumentInfo()
+    args.pkg_src_root_dir = pkg_src_root_dir
+    args.pkg_run_root_dir = pkg_run_root_dir
+    args.pkg_name = pkg_name
+    args.pkg_language = pkg_language
+    args.os = build_config.target_os
+    args.cpu = build_config.target_cpu
+    args.build = build_config.target_build
+    args.is_clang = build_config.is_clang
+    args.enable_sanitizer = build_config.enable_sanitizer
+    args.vs_version = build_config.vs_version
+    args.log_level = log_level if log_level else 0
+
+    if args.os == "win":
+        tgn_path_in_env = os.getenv("tgn")
+        if tgn_path_in_env:
+            args.tgn_path = tgn_path_in_env
+        else:
+            return 1
+    else:
+        args.tgn_path = "tgn"
+
     if args.log_level > 0:
         msg = (
             f"> Start to build package({args.pkg_name})"
@@ -191,64 +218,25 @@ def build(args: ArgumentInfo) -> int:
 
     try:
         os.chdir(args.pkg_src_root_dir)
-        pkg_type = get_pkg_type(args.pkg_src_root_dir)
+        pkg_type = _get_pkg_type(args.pkg_src_root_dir)
         if pkg_type == "app":
-            returncode = build_app(args)
+            returncode = _build_app(args)
         elif pkg_type == "extension":
-            returncode = build_extension(args)
+            returncode = _build_extension(args)
         else:
             returncode = 0
 
         if returncode > 0:
             raise Exception(f"Failed to build {pkg_type}({args.pkg_name})")
 
-        # Success to build the app, update the stamp file to represent this
-        # fact.
-        if args.tg_timestamp_proxy_file:
-            timestamp_proxy.touch_timestamp_proxy_file(
-                args.tg_timestamp_proxy_file
-            )
-
         if args.log_level > 0:
             print(f"Build {pkg_type}({args.pkg_name}) success")
 
     except Exception as e:
         returncode = 1
-        if args.tg_timestamp_proxy_file:
-            timestamp_proxy.remove_timestamp_proxy_file(
-                args.tg_timestamp_proxy_file
-            )
         print(f"Build package({args.pkg_name}) failed: {repr(e)}")
 
     finally:
         os.chdir(origin_wd)
 
     return returncode
-
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-
-    parser.add_argument("--pkg-src-root-dir", type=str, required=True)
-    parser.add_argument("--pkg-run-root-dir", type=str, required=True)
-    parser.add_argument("--tg-timestamp-proxy-file", type=str, required=False)
-    parser.add_argument("--pkg-name", type=str, required=True)
-    parser.add_argument("--pkg-language", type=str, required=True)
-    parser.add_argument("--os", type=str, required=True)
-    parser.add_argument("--cpu", type=str, required=True)
-    parser.add_argument("--build", type=str, required=True)
-    parser.add_argument("--tgn-path", type=str, required=False)
-    parser.add_argument("--is-clang", action=argparse.BooleanOptionalAction)
-    parser.add_argument(
-        "--enable-sanitizer", action=argparse.BooleanOptionalAction
-    )
-    parser.add_argument("--vs-version", type=str, required=False)
-    parser.add_argument(
-        "--log-level", type=int, required=True, help="specify log level"
-    )
-
-    arg_info = ArgumentInfo()
-    args = parser.parse_args(namespace=arg_info)
-
-    return_code = build(arg_info)
-    sys.exit(return_code)

@@ -9,6 +9,7 @@ import sys
 from sys import stdout
 import signal
 import time
+from .common import build_config, build_pkg
 
 
 def start_app():
@@ -18,7 +19,27 @@ def start_app():
 
     my_env = os.environ.copy()
 
-    app_root_path = os.path.join(base_path, "exit_signal_app")
+    source_pkg_name = "exit_signal_app"
+    app_root_path = os.path.join(base_path, source_pkg_name)
+    app_language = "go"
+
+    build_config_args = build_config.parse_build_config(
+        os.path.join(root_dir, "ten_args.gn"),
+    )
+
+    if build_config_args.enable_prebuilt is False:
+        print("Build package first.")
+
+        source_root_path = os.path.join(base_path, source_pkg_name)
+        rc = build_pkg.build(
+            build_config_args,
+            source_root_path,
+            app_root_path,
+            source_pkg_name,
+            app_language,
+        )
+        if rc != 0:
+            assert False, "Failed to build package."
 
     tman_install_cmd = [
         os.path.join(root_dir, "ten_manager/bin/tman"),

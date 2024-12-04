@@ -352,12 +352,6 @@ template("ten_package_test_prepare_app") {
       }
     }
 
-    if (ten_integration_tests_lazy_build) {
-      args += [ "--lazy-build" ]
-    } else {
-      args += [ "--no-lazy-build" ]
-    }
-
     sources = replace_files_after_install_app_dests +
               replace_files_after_install_all_dests
     outputs = [ build_app_dummy_output_file ]
@@ -380,7 +374,16 @@ template("ten_package_test_prepare_app") {
   }
 
   group("${_target_name}") {
-    deps = [ ":${test_case_unique_target_name}_${_target_name}_build" ]
+    deps = []
+    if (ten_enable_integration_tests_prebuilt) {
+      deps += [ ":${test_case_unique_target_name}_${_target_name}_build" ]
+    } else {
+      deps += [
+                ":${test_case_unique_target_name}_${_target_name}_install_all",
+                ":${test_case_unique_target_name}_${_target_name}_install_app",
+              ] + replace_files_after_install_app_deps +
+              replace_files_after_install_all_deps
+    }
   }
 }
 

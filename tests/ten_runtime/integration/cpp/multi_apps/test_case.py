@@ -6,7 +6,7 @@ import subprocess
 import os
 import sys
 from sys import stdout
-from .common import msgpack
+from .common import msgpack, build_config, build_pkg
 
 
 def install_app(app_name: str):
@@ -16,6 +16,26 @@ def install_app(app_name: str):
     my_env = os.environ.copy()
 
     app_root_path = os.path.join(base_path, app_name)
+    source_pkg_name = app_name + "_source"
+    app_language = "cpp"
+
+    build_config_args = build_config.parse_build_config(
+        os.path.join(root_dir, "ten_args.gn"),
+    )
+
+    if build_config_args.enable_prebuilt is False:
+        print("Build package first.")
+
+        source_root_path = os.path.join(base_path, source_pkg_name)
+        rc = build_pkg.build(
+            build_config_args,
+            source_root_path,
+            app_root_path,
+            source_pkg_name,
+            app_language,
+        )
+        if rc != 0:
+            assert False, "Failed to build package."
 
     tman_install_cmd = [
         os.path.join(root_dir, "ten_manager/bin/tman"),
