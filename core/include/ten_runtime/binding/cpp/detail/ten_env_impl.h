@@ -27,7 +27,8 @@ inline bool ten_env_t::on_create_instance_done(void *instance, void *context,
 
   switch (cpp_context->task) {
     case ADDON_TASK_CREATE_EXTENSION:
-      c_instance = static_cast<extension_t *>(instance)->get_c_extension();
+      extension_internal_accessor_t::get_c_extension(
+          static_cast<extension_t *>(instance));
       break;
     default:
       TEN_ASSERT(0, "Should not happen.");
