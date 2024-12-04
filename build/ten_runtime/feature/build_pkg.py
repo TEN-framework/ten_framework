@@ -230,7 +230,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
     parser.add_argument("--pkg-src-root-dir", type=str, required=True)
-    parser.add_argument("--pkg-run-root-dir", type=str, required=True)
+    parser.add_argument("--pkg-run-root-dir", type=str, required=False)
     parser.add_argument("--tg-timestamp-proxy-file", type=str, required=False)
     parser.add_argument("--pkg-name", type=str, required=True)
     parser.add_argument("--pkg-language", type=str, required=True)
