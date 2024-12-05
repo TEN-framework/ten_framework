@@ -62,12 +62,13 @@ def test_unused_addon_python():
     )
 
     if build_config_args.enable_prebuilt is False:
-        print("Build package first.")
+        print('Assembling and building package "{}".'.format(source_pkg_name))
 
         source_root_path = os.path.join(base_path, source_pkg_name)
-        rc = build_pkg.build(
+        rc = build_pkg.prepare_and_build(
             build_config_args,
-            source_root_path,
+            root_dir,
+            base_path,
             app_root_path,
             source_pkg_name,
             app_language,
@@ -151,3 +152,8 @@ def test_unused_addon_python():
         print("The exit code of unused_addon_python: ", exit_code)
 
         assert exit_code == 0
+
+        if build_config_args.enable_prebuilt is False:
+            source_root_path = os.path.join(base_path, source_pkg_name)
+
+            build_pkg.cleanup(source_root_path, app_root_path)

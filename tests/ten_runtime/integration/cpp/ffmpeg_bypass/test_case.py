@@ -26,12 +26,12 @@ def test_ffmpeg_bypass_app():
     )
 
     if build_config_args.enable_prebuilt is False:
-        print("Build package first.")
+        print('Assembling and building package "{}".'.format(source_pkg_name))
 
-        source_root_path = os.path.join(base_path, source_pkg_name)
-        rc = build_pkg.build(
+        rc = build_pkg.prepare_and_build(
             build_config_args,
-            source_root_path,
+            root_dir,
+            base_path,
             app_root_path,
             source_pkg_name,
             app_language,
@@ -130,3 +130,8 @@ def test_ffmpeg_bypass_app():
     except Exception as e:
         # Maybe 'LD_LIBRARY_PATH' has been unset.
         print(e)
+
+    if build_config_args.enable_prebuilt is False:
+        source_root_path = os.path.join(base_path, source_pkg_name)
+
+        build_pkg.cleanup(source_root_path, app_root_path)

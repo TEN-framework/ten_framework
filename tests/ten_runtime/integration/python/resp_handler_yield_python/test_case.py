@@ -7,7 +7,7 @@ import os
 import sys
 import pytest
 from sys import stdout
-from .common import http, build_config
+from .common import http, build_config, build_pkg
 
 
 @pytest.fixture(scope="function")
@@ -86,7 +86,27 @@ def test_resp_handler_yield_python():
             base_path, "resp_handler_yield_python_app/lib"
         )
 
-    app_root_path = os.path.join(base_path, "resp_handler_yield_python_app")
+    source_pkg_name = "resp_handler_yield_python_app"
+    app_root_path = os.path.join(base_path, source_pkg_name)
+    app_language = "python"
+
+    build_config_args = build_config.parse_build_config(
+        os.path.join(root_dir, "ten_args.gn"),
+    )
+
+    if build_config_args.enable_prebuilt is False:
+        print('Assembling and building package "{}".'.format(source_pkg_name))
+
+        rc = build_pkg.prepare_and_build(
+            build_config_args,
+            root_dir,
+            base_path,
+            app_root_path,
+            source_pkg_name,
+            app_language,
+        )
+        if rc != 0:
+            assert False, "Failed to build package."
 
     tman_install_cmd = [
         os.path.join(root_dir, "ten_manager/bin/tman"),
@@ -114,10 +134,6 @@ def test_resp_handler_yield_python():
     bootstrap_process.wait()
 
     if sys.platform == "linux":
-        build_config_args = build_config.parse_build_config(
-            os.path.join(root_dir, "ten_args.gn"),
-        )
-
         if build_config_args.enable_sanitizer:
             libasan_path = os.path.join(
                 base_path,
@@ -169,3 +185,8 @@ def test_resp_handler_yield_python():
         print("The exit code of resp_handler_yield_python: ", exit_code)
 
         assert exit_code == 0
+
+        if build_config_args.enable_prebuilt is False:
+            source_root_path = os.path.join(base_path, source_pkg_name)
+
+            build_pkg.cleanup(source_root_path, app_root_path)

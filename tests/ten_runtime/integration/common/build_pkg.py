@@ -7,8 +7,14 @@
 import json
 import os
 from datetime import datetime
-from typing import Optional
-from . import cmd_exec, fs_utils, build_config
+from . import (
+    cmd_exec,
+    fs_utils,
+    build_config,
+    install_pkg,
+    install_all,
+    replace,
+)
 
 
 class ArgumentInfo:
@@ -176,13 +182,173 @@ def _build_extension(args: ArgumentInfo) -> int:
     return returncode
 
 
+def prepare_app(
+    build_config: build_config.BuildConfig,
+    root_dir: str,
+    test_case_base_dir: str,
+    source_pkg_name: str,
+    log_level: int,
+) -> int:
+    if log_level and log_level > 0:
+        print(f"> Install app to {source_pkg_name}")
+
+    tman_path = os.path.join(root_dir, "ten_manager/bin/tman")
+    tman_config_file = os.path.join(
+        root_dir, "tests/local_registry/config.json"
+    )
+    local_registry_path = os.path.join(
+        root_dir, "tests/local_registry/registry"
+    )
+
+    # read the assembly info from <test_case_base_dir>/.assemble_info/<source_pkg_name>/info.json
+    assemble_info_dir = os.path.join(
+        test_case_base_dir, ".assemble_info", source_pkg_name
+    )
+    info_file = os.path.join(assemble_info_dir, "info.json")
+    with open(info_file, "r") as f:
+        info = json.load(f)
+        pkg_name = info["src_app"]
+        generated_app_src_root_dir_name = info[
+            "generated_app_src_root_dir_name"
+        ]
+
+    app_src_root_dir = os.path.join(
+        test_case_base_dir, generated_app_src_root_dir_name
+    )
+
+    arg = install_pkg.ArgumentInfo()
+    arg.tman_path = tman_path
+    arg.pkg_type = "app"
+    arg.pkg_src_root_dir = app_src_root_dir
+    arg.src_pkg = pkg_name
+    arg.build_type = build_config.target_build
+    arg.config_file = tman_config_file
+    arg.log_level = log_level
+    arg.local_registry_path = local_registry_path
+
+    install_res = install_pkg.main(arg)
+    if install_res != 0:
+        raise Exception("Failed to install app")
+
+    if log_level and log_level > 0:
+        print(f"> Replace files after install app")
+
+    rc = _replace_after_install_app(test_case_base_dir, source_pkg_name)
+    if rc != 0:
+        raise Exception("Failed to replace files after install app")
+
+    if log_level and log_level > 0:
+        print(f"> Install all")
+
+    install_all_args = install_all.ArgumentInfo()
+    install_all_args.tman_path = tman_path
+    install_all_args.pkg_src_root_dir = app_src_root_dir
+    install_all_args.build_type = build_config.target_build
+    install_all_args.config_file = tman_config_file
+    install_all_args.log_level = log_level
+    install_all_args.assume_yes = True
+
+    rc = install_all.main(install_all_args)
+
+    if log_level and log_level > 0:
+        print(f"> Replace files after install all")
+
+    rc = _replace_after_install_all(test_case_base_dir, source_pkg_name)
+    if rc != 0:
+        raise Exception("Failed to replace files after install all")
+
+    return rc
+
+
+def _replace_after_install_app(
+    test_case_base_dir: str, source_pkg_name: str
+) -> int:
+    assemble_info_dir = os.path.join(
+        test_case_base_dir, ".assemble_info", source_pkg_name
+    )
+    assemble_info_file = os.path.join(assemble_info_dir, "info.json")
+
+    replace_files_after_install_app: list[str] = []
+
+    with open(assemble_info_file, "r") as f:
+        info = json.load(f)
+        replace_files_after_install_app = info[
+            "replace_files_after_install_app"
+        ]
+
+    if (
+        not replace_files_after_install_app
+        or len(replace_files_after_install_app) == 0
+    ):
+        return 0
+
+    replaced_files = []
+    for replace_file in replace_files_after_install_app:
+        src_file = os.path.join(
+            assemble_info_dir,
+            "files_to_be_replaced_after_install_app",
+            replace_file,
+        )
+
+        if not os.path.exists(src_file):
+            raise Exception(f"{src_file} does not exist.")
+
+        dst_file = os.path.join(test_case_base_dir, replace_file)
+        replaced_files.append((src_file, dst_file))
+
+    replace.replace_normal_files_or_merge_json_files(replaced_files)
+
+    return 0
+
+
+def _replace_after_install_all(
+    test_case_base_dir: str, source_pkg_name: str
+) -> int:
+    assemble_info_dir = os.path.join(
+        test_case_base_dir, ".assemble_info", source_pkg_name
+    )
+    assemble_info_file = os.path.join(assemble_info_dir, "info.json")
+
+    replace_files_after_install_all: list[str] = []
+
+    with open(assemble_info_file, "r") as f:
+        info = json.load(f)
+        replace_files_after_install_all = info[
+            "replace_files_after_install_all"
+        ]
+
+    if (
+        not replace_files_after_install_all
+        or len(replace_files_after_install_all) == 0
+    ):
+        return 0
+
+    replaced_files = []
+    for replace_file in replace_files_after_install_all:
+        src_file = os.path.join(
+            assemble_info_dir,
+            "files_to_be_replaced_after_install_all",
+            replace_file,
+        )
+
+        if not os.path.exists(src_file):
+            raise Exception(f"{src_file} does not exist.")
+
+        dst_file = os.path.join(test_case_base_dir, replace_file)
+        replaced_files.append((src_file, dst_file))
+
+    replace.replace_normal_files_or_merge_json_files(replaced_files)
+
+    return 0
+
+
 def build(
     build_config: build_config.BuildConfig,
     pkg_src_root_dir: str,
     pkg_run_root_dir: str,
     pkg_name: str,
     pkg_language: str,
-    log_level: Optional[int] = 0,
+    log_level: int = 0,
 ) -> int:
     args = ArgumentInfo()
     args.pkg_src_root_dir = pkg_src_root_dir
@@ -195,7 +361,7 @@ def build(
     args.is_clang = build_config.is_clang
     args.enable_sanitizer = build_config.enable_sanitizer
     args.vs_version = build_config.vs_version
-    args.log_level = log_level if log_level else 0
+    args.log_level = log_level
 
     if args.os == "win":
         tgn_path_in_env = os.getenv("tgn")
@@ -240,3 +406,45 @@ def build(
         os.chdir(origin_wd)
 
     return returncode
+
+
+def prepare_and_build(
+    build_config: build_config.BuildConfig,
+    root_dir: str,
+    test_case_base_dir: str,
+    pkg_run_root_dir: str,
+    source_pkg_name: str,
+    pkg_language: str,
+    log_level: int = 2,
+):
+    rc = prepare_app(
+        build_config,
+        root_dir,
+        test_case_base_dir,
+        source_pkg_name,
+        log_level,
+    )
+    if rc != 0:
+        return rc
+
+    pkg_src_root_dir = os.path.join(test_case_base_dir, source_pkg_name)
+
+    rc = build(
+        build_config,
+        pkg_src_root_dir,
+        pkg_run_root_dir,
+        source_pkg_name,
+        pkg_language,
+        log_level,
+    )
+
+    return rc
+
+
+def cleanup(
+    pkg_src_dir: str,
+    pkg_run_dir: str,
+):
+    fs_utils.remove_tree(pkg_src_dir)
+    fs_utils.remove_tree(pkg_run_dir)
+    return 0

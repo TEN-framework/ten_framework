@@ -373,16 +373,61 @@ template("ten_package_test_prepare_app") {
             replace_files_after_install_all_deps
   }
 
+  action(
+      "${test_case_unique_target_name}_${_target_name}_dump_integration_test_assembly_info") {
+    # All information will be dumped to the .assembly_resources directory.
+    script = "//build/ten_runtime/feature/dump_integration_test_info.py"
+
+    test_case_out_dir =
+        rebase_path("${root_out_dir}/${test_case_root_dir_relative_path}")
+
+    args = [
+      "--test-case-src-dir",
+      rebase_path("."),
+      "--test-case-out-dir",
+      test_case_out_dir,
+      "--src-app",
+      invoker.src_app,
+      "--src-app-language",
+      invoker.src_app_language,
+      "--generated-app-src-root-dir-name",
+      invoker.generated_app_src_root_dir_name,
+    ]
+
+    if (defined(invoker.replace_files_after_install_app) &&
+        invoker.replace_files_after_install_app != []) {
+      foreach(replace_file, invoker.replace_files_after_install_app) {
+        args += [
+          "--replace-files-after-install-app",
+          replace_file,
+        ]
+      }
+    }
+
+    if (defined(invoker.replace_files_after_install_all) &&
+        invoker.replace_files_after_install_all != []) {
+      foreach(replace_file, invoker.replace_files_after_install_all) {
+        args += [
+          "--replace-files-after-install-all",
+          replace_file,
+        ]
+      }
+    }
+
+    sources = []
+    outputs = [ "${test_case_root_dir}/.assemble_info/${invoker.generated_app_src_root_dir_name}" ]
+
+    deps = invoker.deps
+  }
+
   group("${_target_name}") {
     deps = []
     if (ten_enable_integration_tests_prebuilt) {
       deps += [ ":${test_case_unique_target_name}_${_target_name}_build" ]
     } else {
-      deps += [
-                ":${test_case_unique_target_name}_${_target_name}_install_all",
-                ":${test_case_unique_target_name}_${_target_name}_install_app",
-              ] + replace_files_after_install_app_deps +
-              replace_files_after_install_all_deps
+      # Only dump all the information needed to assemble the test app,
+      # and then assemble and compile it when actually running the test.
+      deps += [ ":${test_case_unique_target_name}_${_target_name}_dump_integration_test_assembly_info" ]
     }
   }
 }

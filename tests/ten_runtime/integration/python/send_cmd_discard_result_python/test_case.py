@@ -6,7 +6,7 @@ import subprocess
 import os
 import sys
 from sys import stdout
-from .common import http, build_config
+from .common import http, build_config, build_pkg
 
 
 def http_request():
@@ -52,10 +52,27 @@ def test_send_cmd_discard_result_python():
         my_env["LD_LIBRARY_PATH"] = os.path.join(
             base_path, "send_cmd_discard_result_python_app/lib"
         )
+    source_pkg_name = "send_cmd_discard_result_python_app"
+    app_root_path = os.path.join(base_path, source_pkg_name)
+    app_language = "python"
 
-    app_root_path = os.path.join(
-        base_path, "send_cmd_discard_result_python_app"
+    build_config_args = build_config.parse_build_config(
+        os.path.join(root_dir, "ten_args.gn"),
     )
+
+    if build_config_args.enable_prebuilt is False:
+        print('Assembling and building package "{}".'.format(source_pkg_name))
+
+        rc = build_pkg.prepare_and_build(
+            build_config_args,
+            root_dir,
+            base_path,
+            app_root_path,
+            source_pkg_name,
+            app_language,
+        )
+        if rc != 0:
+            assert False, "Failed to build package."
 
     tman_install_cmd = [
         os.path.join(root_dir, "ten_manager/bin/tman"),
@@ -83,10 +100,6 @@ def test_send_cmd_discard_result_python():
     bootstrap_process.wait()
 
     if sys.platform == "linux":
-        build_config_args = build_config.parse_build_config(
-            os.path.join(root_dir, "ten_args.gn"),
-        )
-
         if build_config_args.enable_sanitizer:
             libasan_path = os.path.join(
                 base_path,
@@ -140,3 +153,8 @@ def test_send_cmd_discard_result_python():
         print("The exit code of send_cmd_discard_result_python: ", exit_code)
 
         assert exit_code == 0
+
+        if build_config_args.enable_prebuilt is False:
+            source_root_path = os.path.join(base_path, source_pkg_name)
+
+            build_pkg.cleanup(source_root_path, app_root_path)
