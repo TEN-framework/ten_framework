@@ -16,7 +16,6 @@ if (ten_enable_package_manager) {
       "//core/src/ten_manager",
       "//core/src/ten_runtime:upload_ten_runtime_system_package_to_server",
       "//packages/core_extensions/default_extension_cpp:upload_default_extension_cpp_to_server",
-      "//third_party/googletest:upload_gtest_to_server",
     ]
   }
 }
