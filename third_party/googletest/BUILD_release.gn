@@ -8,7 +8,7 @@ import("//build/feature/ten_package.gni")
 
 config("gtest_libs") {
   if (is_win) {
-    libs = [ "gtest.dll.lib" ]
+    libs = [ "gtest.lib" ]
   } else {
     libs = [ "gtest" ]
   }
@@ -23,23 +23,10 @@ config("gtest_common_config") {
 
 config("config_for_app") {
   configs = [ ":gtest_common_config" ]
-
-  if (is_linux) {
-    ldflags = [ "-Wl,-rpath=\$ORIGIN/../ten_packages/system/googletest/lib" ]
-  } else if (is_mac) {
-    ldflags =
-        [ "-Wl,-rpath,@loader_path/../ten_packages/system/googletest/lib" ]
-  }
 }
 
 config("config_for_ten_packages") {
   configs = [ ":gtest_common_config" ]
-
-  if (is_linux) {
-    ldflags = [ "-Wl,-rpath=\$ORIGIN/../../../system/googletest/lib" ]
-  } else if (is_mac) {
-    ldflags = [ "-Wl,-rpath,@loader_path/../../../system/googletest/lib" ]
-  }
 }
 
 config("config_for_standalone_ten_packages") {
@@ -47,13 +34,6 @@ config("config_for_standalone_ten_packages") {
 
   include_dirs = [ "//.ten/app/ten_packages/system/googletest/include" ]
   lib_dirs = [ "//.ten/app/ten_packages/system/googletest/lib" ]
-
-  if (is_linux) {
-    ldflags = [ "-Wl,-rpath=\$ORIGIN/../ten_packages/system/googletest/lib" ]
-  } else if (is_mac) {
-    ldflags =
-        [ "-Wl,-rpath,@loader_path/../ten_packages/system/googletest/lib" ]
-  }
 }
 
 ten_package("googletest") {

@@ -21,7 +21,7 @@ config("gtest_header") {
 
 ten_target("gtest_library") {
   output_name = "gtest"
-  type = "shared_library"
+  type = "static_library"
   sources = [ "src/gtest-all.cc" ]
   configs = [ ":gtest_header" ]
 }
