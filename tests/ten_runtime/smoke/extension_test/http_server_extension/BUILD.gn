@@ -19,7 +19,7 @@ glob("http_server_extension") {
   ]
   public_deps = [
     "//third_party/googlemock",
-    "//third_party/googletest",
+    "//third_party/googletest:gtest_all_sources",
     "//third_party/libwebsockets",
   ]
 }

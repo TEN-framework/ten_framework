@@ -19,6 +19,6 @@ glob("prepare_to_stop") {
   ]
   public_deps = [
     "//third_party/googlemock",
-    "//third_party/googletest",
+    "//third_party/googletest:gtest_all_sources",
   ]
 }
