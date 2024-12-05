@@ -7,7 +7,10 @@
 gtest_output_libs = []
 
 if (is_win) {
-  gtest_output_libs += [ "${root_out_dir}/gtest.dll" ]
+  gtest_output_libs += [
+    "${root_out_dir}/gtest.dll",
+    "${root_out_dir}/gtest.dll.lib",
+  ]
 } else if (is_mac) {
   gtest_output_libs += [ "${root_out_dir}/libgtest.dylib" ]
 } else if (is_linux) {
