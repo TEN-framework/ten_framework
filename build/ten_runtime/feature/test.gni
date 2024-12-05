@@ -423,8 +423,11 @@ template("ten_package_test_prepare_app") {
   group("${_target_name}") {
     deps = []
     if (ten_enable_integration_tests_prebuilt) {
+      print("Prebuilt integration tests are enabled.")
       deps += [ ":${test_case_unique_target_name}_${_target_name}_build" ]
     } else {
+      print("Prebuilt integration tests are disable.")
+
       # Only dump all the information needed to assemble the test app,
       # and then assemble and compile it when actually running the test.
       deps += [ ":${test_case_unique_target_name}_${_target_name}_dump_integration_test_assembly_info" ]
