@@ -17,6 +17,10 @@ ten_package_test_prepare_auxiliary_resources("standalone_test_cpp_files") {
   if (enable_sanitizer && !is_clang) {
     resources += [ "//tests/ten_runtime/integration/tools/use_asan_lib_marker=>use_asan_lib_marker" ]
   }
+
+  if (ten_enable_package_manager) {
+    deps = [ "//third_party/googletest:upload_gtest_to_server" ]
+  }
 }
 
 group("standalone_test_cpp") {
