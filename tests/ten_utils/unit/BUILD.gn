@@ -33,7 +33,7 @@ ten_utils_glob("unit") {
 
   public_deps = [
     "//core/src/ten_utils/io/general/loops",
-    "//third_party/googletest",
+    "//third_party/googletest:gtest_all_sources",
     "//third_party/nlohmann_json",
   ]
 

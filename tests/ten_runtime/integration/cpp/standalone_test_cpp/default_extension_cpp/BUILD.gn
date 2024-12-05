@@ -18,18 +18,25 @@ ten_package("default_extension_cpp") {
   ]
 
   sources = [ "src/main.cc" ]
-  include_dirs = [ "//core/include" ]
+  include_dirs = [
+    "include",
+    "include/nlohmann_json",
+  ]
 }
 
 if (ten_enable_standalone_test) {
   ten_package_test("default_extension_cpp_test") {
     package_kind = "extension"
 
-    sources = [ "tests/basic.cc" ]
-
-    public_deps = [
-      "third_party/googletest",
-      "third_party/googletest:gtest_main",
+    sources = [
+      # This file is merely provided for the convenience of development. C++
+      # extensions are not required to use this file provided by the gtest
+      # system package. Extensions can define their own `main` function within
+      # their test cases. However, the gtest system package offers this file as
+      # a convenience for C++ extensions that do not have customized testing
+      # requirements.
+      ".ten/app/ten_packages/system/googletest/src/gtest_main.cc",
+      "tests/basic.cc",
     ]
   }
 }

@@ -1,0 +1,18 @@
+#
+# Copyright © 2024 Agora
+# This file is part of TEN Framework, an open source project.
+# Licensed under the Apache License, Version 2.0, with certain conditions.
+# Refer to the "LICENSE" file in the root directory for more information.
+#
+gtest_output_libs = []
+
+if (is_win) {
+  gtest_output_libs += [
+    "${root_out_dir}/gtest.dll",
+    "${root_out_dir}/gtest.dll.lib",
+  ]
+} else if (is_mac) {
+  gtest_output_libs += [ "${root_out_dir}/libgtest.dylib" ]
+} else if (is_linux) {
+  gtest_output_libs += [ "${root_out_dir}/libgtest.so" ]
+}
