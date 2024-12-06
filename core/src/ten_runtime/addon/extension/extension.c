@@ -7,7 +7,9 @@
 #include "ten_runtime/addon/extension/extension.h"
 
 #include "include_internal/ten_runtime/addon/addon.h"
+#include "include_internal/ten_runtime/addon/addon_manager.h"
 #include "include_internal/ten_runtime/addon/common/store.h"
+#include "include_internal/ten_runtime/addon/extension/extension.h"
 #include "include_internal/ten_runtime/extension/extension.h"
 #include "include_internal/ten_runtime/extension_group/extension_group.h"
 #include "include_internal/ten_runtime/extension_thread/extension_thread.h"
@@ -15,7 +17,6 @@
 #include "include_internal/ten_runtime/ten_env/ten_env.h"
 #include "ten_runtime/addon/addon.h"
 #include "ten_runtime/ten_env/ten_env.h"
-#include "ten_utils/backtrace/backtrace.h"
 #include "ten_utils/macro/check.h"
 #include "ten_utils/macro/mark.h"
 
@@ -32,7 +33,7 @@ ten_addon_store_t *ten_extension_get_global_store(void) {
 
 bool ten_addon_create_extension(ten_env_t *ten_env, const char *addon_name,
                                 const char *instance_name,
-                                ten_env_addon_on_create_instance_async_cb_t cb,
+                                ten_env_addon_create_instance_done_cb_t cb,
                                 void *cb_data, TEN_UNUSED ten_error_t *err) {
   TEN_ASSERT(addon_name && instance_name, "Should not happen.");
 
@@ -74,10 +75,9 @@ bool ten_addon_create_extension(ten_env_t *ten_env, const char *addon_name,
   }
 }
 
-bool ten_addon_destroy_extension(
-    ten_env_t *ten_env, ten_extension_t *extension,
-    ten_env_addon_on_destroy_instance_async_cb_t cb, void *cb_data,
-    TEN_UNUSED ten_error_t *err) {
+bool ten_addon_destroy_extension(ten_env_t *ten_env, ten_extension_t *extension,
+                                 ten_env_addon_destroy_instance_done_cb_t cb,
+                                 void *cb_data, TEN_UNUSED ten_error_t *err) {
   TEN_ASSERT(ten_env, "Invalid argument.");
   TEN_ASSERT(ten_env_check_integrity(ten_env, true),
              "Invalid use of ten_env %p.", ten_env);
@@ -118,7 +118,8 @@ bool ten_addon_destroy_extension(
 
 ten_addon_host_t *ten_addon_register_extension(const char *name,
                                                const char *base_dir,
-                                               ten_addon_t *addon) {
+                                               ten_addon_t *addon,
+                                               void *register_ctx) {
   if (!name || strlen(name) == 0) {
     TEN_LOGE("The addon name is required.");
     exit(EXIT_FAILURE);
@@ -133,29 +134,26 @@ ten_addon_host_t *ten_addon_register_extension(const char *name,
   addon_host = ten_addon_host_create(TEN_ADDON_TYPE_EXTENSION);
   TEN_ASSERT(addon_host, "Should not happen.");
 
+  if (register_ctx) {
+    // If `register_ctx` exists, its content will be used to assist in the addon
+    // registration process.
+    ten_addon_register_ctx_t *register_ctx_ =
+        (ten_addon_register_ctx_t *)register_ctx;
+    addon_host->user_data = register_ctx_->app;
+  }
+
   ten_addon_register(ten_extension_get_global_store(), addon_host, name,
                      base_dir, addon);
 
   return addon_host;
 }
 
-// TODO(Wei): Reconsider the `register` and `unregister` mechanisms of the
-// addon.
-void ten_addon_register_extension_v2(const char *name, const char *base_dir,
-                                     void *register_ctx, ten_addon_t *addon) {
-  if (!name || strlen(name) == 0) {
-    TEN_LOGE("The addon name is required.");
-    exit(EXIT_FAILURE);
-  }
-
-  ten_addon_host_t *addon_host = (ten_addon_host_t *)register_ctx;
-
-  ten_addon_register(ten_extension_get_global_store(), addon_host, name,
-                     base_dir, addon);
-}
-
 ten_addon_t *ten_addon_unregister_extension(const char *name) {
   TEN_ASSERT(name, "Should not happen.");
 
   return ten_addon_unregister(ten_extension_get_global_store(), name);
+}
+
+void ten_addon_unregister_all_extension(void) {
+  ten_addon_store_del_all(ten_extension_get_global_store());
 }

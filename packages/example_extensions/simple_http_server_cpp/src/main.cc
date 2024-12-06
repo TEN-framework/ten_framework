@@ -12,8 +12,8 @@
 #include <nlohmann/json.hpp>
 #include <thread>
 
+#include "include_internal/ten_runtime/binding/cpp/ten.h"
 #include "include_internal/ten_utils/lib/buf.h"
-#include "ten_runtime/binding/cpp/ten.h"
 #include "ten_utils/lib/buf.h"
 
 #define DEFAULT_BUF_CAPACITY 512
@@ -634,20 +634,22 @@ void send_ten_msg_with_req_body(
         // command.
         cmd->from_json(cmd_json.dump().c_str());
 
-        if (cmd->get_type() == TEN_MSG_TYPE_CMD &&
-            !ten_env.is_cmd_connected(cmd->get_name())) {
-          prepare_response_data_from_ten_world(http_session_data,
-                                               "The command is not supported.");
-          return;
-        }
-
         // Send out the command to the TEN runtime.
         ten_env.send_cmd(
             std::move(cmd),
             [http_session_data](ten::ten_env_t &ten_env,
-                                std::unique_ptr<ten::cmd_result_t> cmd) {
+                                std::unique_ptr<ten::cmd_result_t> cmd,
+                                ten::error_t *error) {
+              if (error != nullptr) {
+                prepare_response_data_from_ten_world(
+                    http_session_data, "The command is not supported. err:" +
+                                           std::string(error->errmsg()));
+                return;
+              }
+
               auto *ext = static_cast<http_server_extension_t *>(
-                  ten_env.get_attached_target());
+                  ten::ten_env_internal_accessor_t::get_attached_target(
+                      ten_env));
               assert(ext && "Failed to get the attached extension.");
 
               if (!ext->is_stopping) {
@@ -672,20 +674,22 @@ void send_ten_msg_without_req_body(
         cmd->set_property("method", method);
         cmd->set_property("url", http_session_data->url);
 
-        if (cmd->get_type() == TEN_MSG_TYPE_CMD &&
-            !ten_env.is_cmd_connected(cmd->get_name())) {
-          prepare_response_data_from_ten_world(http_session_data,
-                                               "The command is not supported.");
-          return;
-        }
-
         // Send out the command to the TEN runtime.
         ten_env.send_cmd(
             std::move(cmd),
             [http_session_data](ten::ten_env_t &ten_env,
-                                std::unique_ptr<ten::cmd_result_t> cmd) {
+                                std::unique_ptr<ten::cmd_result_t> cmd,
+                                ten::error_t *error) {
+              if (error != nullptr) {
+                prepare_response_data_from_ten_world(
+                    http_session_data, "The command is not supported. err:" +
+                                           std::string(error->errmsg()));
+                return;
+              }
+
               auto *ext = static_cast<http_server_extension_t *>(
-                  ten_env.get_attached_target());
+                  ten::ten_env_internal_accessor_t::get_attached_target(
+                      ten_env));
               assert(ext && "Failed to get the attached extension.");
 
               if (!ext->is_stopping) {

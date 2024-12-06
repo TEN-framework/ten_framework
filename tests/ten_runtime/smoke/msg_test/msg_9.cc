@@ -10,7 +10,7 @@
 
 #include "gtest/gtest.h"
 #include "include_internal/ten_runtime/binding/cpp/ten.h"
-#include "ten_runtime/binding/cpp/internal/msg/cmd/cmd.h"
+#include "ten_runtime/binding/cpp/detail/msg/cmd/cmd.h"
 #include "ten_utils/lib/thread.h"
 #include "tests/common/client/cpp/msgpack_tcp.h"
 #include "tests/ten_runtime/smoke/extension_test/util/binding/cpp/check.h"
@@ -25,8 +25,8 @@ class test_extension_1 : public ten::extension_t {
 
   void on_configure(ten::ten_env_t &ten_env) override {
     // clang-format off
-        ten::ten_env_internal_accessor_t ten_env_internal_accessor(&ten_env);
-    bool rc = ten_env_internal_accessor.init_manifest_from_json(
+
+    bool rc = ten::ten_env_internal_accessor_t::init_manifest_from_json(ten_env,
                  R"({
                       "type": "extension",
                       "name": "msg_9__extension_1",
@@ -59,8 +59,9 @@ class test_extension_1 : public ten::extension_t {
       new_cmd->set_property("test_data", TEST_DATA);
 
       ten_env.send_cmd(
-          std::move(new_cmd), [this](ten::ten_env_t &ten_env,
-                                     std::unique_ptr<ten::cmd_result_t> cmd) {
+          std::move(new_cmd),
+          [this](ten::ten_env_t &ten_env,
+                 std::unique_ptr<ten::cmd_result_t> cmd, ten::error_t *err) {
             auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
             cmd_result->set_property(
                 "detail", cmd->get_property_string("detail").c_str());

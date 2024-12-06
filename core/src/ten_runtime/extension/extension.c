@@ -863,7 +863,7 @@ void ten_extension_on_cmd(ten_extension_t *self, ten_shared_ptr_t *msg) {
     // and return an 'OK' result to the previous stage.
     ten_shared_ptr_t *cmd_result =
         ten_cmd_result_create_from_cmd(TEN_STATUS_CODE_OK, msg);
-    ten_env_return_result(self->ten_env, cmd_result, msg, NULL);
+    ten_env_return_result(self->ten_env, cmd_result, msg, NULL, NULL, NULL);
     ten_shared_ptr_destroy(cmd_result);
   }
 }
@@ -880,7 +880,7 @@ void ten_extension_on_data(ten_extension_t *self, ten_shared_ptr_t *msg) {
     self->on_data(self, self->ten_env, msg);
   } else {
     // Bypass the data.
-    ten_env_send_data(self->ten_env, msg, NULL);
+    ten_env_send_data(self->ten_env, msg, NULL, NULL, NULL);
   }
 }
 
@@ -897,7 +897,7 @@ void ten_extension_on_video_frame(ten_extension_t *self,
     self->on_video_frame(self, self->ten_env, msg);
   } else {
     // Bypass the video frame.
-    ten_env_send_video_frame(self->ten_env, msg, NULL);
+    ten_env_send_video_frame(self->ten_env, msg, NULL, NULL, NULL);
   }
 }
 
@@ -914,7 +914,7 @@ void ten_extension_on_audio_frame(ten_extension_t *self,
     self->on_audio_frame(self, self->ten_env, msg);
   } else {
     // Bypass the audio frame.
-    ten_env_send_audio_frame(self->ten_env, msg, NULL);
+    ten_env_send_audio_frame(self->ten_env, msg, NULL, NULL, NULL);
   }
 }
 
@@ -1041,7 +1041,8 @@ bool ten_extension_validate_msg_schema(ten_extension_t *self,
           ten_msg_set_property(cmd_result, "detail",
                                ten_value_create_string(ten_error_errmsg(err)),
                                NULL);
-          ten_env_return_result(self->ten_env, cmd_result, msg, NULL);
+          ten_env_return_result(self->ten_env, cmd_result, msg, NULL, NULL,
+                                NULL);
           ten_shared_ptr_destroy(cmd_result);
           break;
         }

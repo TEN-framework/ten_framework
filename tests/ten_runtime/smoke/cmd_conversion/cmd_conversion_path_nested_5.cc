@@ -9,7 +9,7 @@
 #include <string>
 
 #include "gtest/gtest.h"
-#include "include_internal/ten_runtime/binding/cpp/internal/ten_env_internal_accessor.h"
+#include "include_internal/ten_runtime/binding/cpp/detail/ten_env_internal_accessor.h"
 #include "include_internal/ten_runtime/binding/cpp/ten.h"
 #include "ten_utils/lib/thread.h"
 #include "tests/common/client/cpp/msgpack_tcp.h"
@@ -51,9 +51,8 @@ class test_extension_2 : public ten::extension_t {
 class test_app : public ten::app_t {
  public:
   void on_configure(ten::ten_env_t &ten_env) override {
-    ten::ten_env_internal_accessor_t ten_env_internal_accessor(&ten_env);
-
-    bool rc = ten_env_internal_accessor.init_manifest_from_json(
+    bool rc = ten::ten_env_internal_accessor_t::init_manifest_from_json(
+        ten_env,
         // clang-format off
                  R"###({
                    "type": "app",

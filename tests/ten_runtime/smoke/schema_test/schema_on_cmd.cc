@@ -8,7 +8,7 @@
 #include <string>
 
 #include "gtest/gtest.h"
-#include "include_internal/ten_runtime/binding/cpp/internal/ten_env_internal_accessor.h"
+#include "include_internal/ten_runtime/binding/cpp/detail/ten_env_internal_accessor.h"
 #include "include_internal/ten_runtime/binding/cpp/ten.h"
 #include "ten_runtime/common/status_code.h"
 #include "ten_utils/lib/thread.h"
@@ -43,12 +43,12 @@ class test_extension_2 : public ten::extension_t {
   explicit test_extension_2(const std::string &name) : ten::extension_t(name) {}
 
   void on_configure(ten::ten_env_t &ten_env) override {
-    ten::ten_env_internal_accessor_t ten_env_internal_accessor(&ten_env);
-    bool rc = ten_env_internal_accessor.init_manifest_from_json(
-        "invalid json string");
+    bool rc = ten::ten_env_internal_accessor_t::init_manifest_from_json(
+        ten_env, "invalid json string");
     ASSERT_EQ(rc, false);
 
-    rc = ten_env_internal_accessor.init_manifest_from_json(
+    rc = ten::ten_env_internal_accessor_t::init_manifest_from_json(
+        ten_env,
         // clang-format off
                  R"({
                       "type": "extension",

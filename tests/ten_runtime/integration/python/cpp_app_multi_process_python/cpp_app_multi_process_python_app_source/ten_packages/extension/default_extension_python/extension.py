@@ -7,19 +7,15 @@
 import multiprocessing as mp
 import os
 import time
-from ten import (
-    Extension,
-    TenEnv,
-    Cmd,
-    StatusCode,
-    CmdResult,
-)
+from typing import Optional
+from ten import Extension, TenEnv, Cmd, StatusCode, CmdResult, TenError
 
 
 class DefaultExtension(Extension):
     def __init__(self, name: str) -> None:
         super().__init__(name)
         self.name = name
+
         mp.set_start_method("spawn", force=True)
         print("start method", mp.get_start_method())
         self.ready = mp.Value("b", False)
@@ -29,7 +25,6 @@ class DefaultExtension(Extension):
         assert self.name == "default_extension_python"
 
         ten_env.init_property_from_json('{"testKey": "testValue"}')
-
         ten_env.on_configure_done()
 
     def on_start(self, ten_env: TenEnv) -> None:
@@ -38,7 +33,7 @@ class DefaultExtension(Extension):
         ten_env.set_property_from_json("testKey2", '"testValue2"')
         testValue = ten_env.get_property_to_json("testKey")
         testValue2 = ten_env.get_property_to_json("testKey2")
-        print("testValue: ", testValue, " testValue2: ", testValue2)
+        ten_env.log_info(f"testValue: {testValue}, testValue2: {testValue2}")
 
         ten_env.on_start_done()
 
@@ -50,19 +45,27 @@ class DefaultExtension(Extension):
         ten_env.log_debug("on_deinit")
         ten_env.on_deinit_done()
 
-    def check_hello(self, ten_env: TenEnv, result: CmdResult, receivedCmd: Cmd):
+    def check_hello(
+        self,
+        ten_env: TenEnv,
+        result: Optional[CmdResult],
+        error: Optional[TenError],
+        receivedCmd: Cmd,
+    ):
+        if error is not None:
+            assert False, error.err_msg()
+
+        assert result is not None
+
         statusCode = result.get_status_code()
         detail = result.get_property_string("detail")
-        print(
-            "DefaultExtension check_hello: status:"
-            + str(statusCode)
-            + " detail:"
-            + detail
+        ten_env.log_info(
+            "check_hello: status:" + str(statusCode) + " detail:" + detail
         )
 
         respCmd = CmdResult.create(StatusCode.OK)
         respCmd.set_property_string("detail", detail + " nbnb")
-        print("DefaultExtension create respCmd")
+        ten_env.log_info("create respCmd")
 
         ten_env.return_result(respCmd, receivedCmd)
 
@@ -97,7 +100,9 @@ class DefaultExtension(Extension):
 
         ten_env.send_cmd(
             new_cmd,
-            lambda ten_env, result: self.check_hello(ten_env, result, cmd),
+            lambda ten_env, result, error: self.check_hello(
+                ten_env, result, error, cmd
+            ),
         )
 
 

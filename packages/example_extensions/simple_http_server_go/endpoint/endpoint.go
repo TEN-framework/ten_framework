@@ -34,18 +34,21 @@ func (s *Endpoint) defaultHandler(
 	case "/health":
 		writer.WriteHeader(http.StatusOK)
 	default:
-		statusChan := make(chan ten.CmdResult, 1)
+		cmdResultChan := make(chan ten.CmdResult, 1)
 		cmd, _ := ten.NewCmd("demo")
 
-		s.tenEnv.SendCmd(cmd, func(tenEnv ten.TenEnv, cmdStatus ten.CmdResult) {
-			statusChan <- cmdStatus
-		})
+		s.tenEnv.SendCmd(
+			cmd,
+			func(tenEnv ten.TenEnv, cmdResult ten.CmdResult, e error) {
+				cmdResultChan <- cmdResult
+			},
+		)
 
 		select {
-		case status := <-statusChan:
+		case cmdResult := <-cmdResultChan:
 			writer.WriteHeader(http.StatusOK)
 
-			detail, _ := status.GetPropertyString("detail")
+			detail, _ := cmdResult.GetPropertyString("detail")
 			writer.Write([]byte(detail))
 		}
 	}

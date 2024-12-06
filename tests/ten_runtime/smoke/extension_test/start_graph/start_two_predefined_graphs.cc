@@ -8,7 +8,7 @@
 
 #include "gtest/gtest.h"
 #include "include_internal/ten_runtime/binding/cpp/ten.h"
-#include "ten_runtime/binding/cpp/internal/msg/cmd/start_graph.h"
+#include "ten_runtime/binding/cpp/detail/msg/cmd/start_graph.h"
 #include "tests/common/client/cpp/msgpack_tcp.h"
 #include "tests/ten_runtime/smoke/extension_test/util/binding/cpp/check.h"
 
@@ -55,7 +55,8 @@ class test_predefined_graph : public ten::extension_t {
 
     ten_env.send_cmd(
         std::move(start_graph_cmd),
-        [cb](ten::ten_env_t &ten_env, std::unique_ptr<ten::cmd_result_t> cmd) {
+        [cb](ten::ten_env_t &ten_env, std::unique_ptr<ten::cmd_result_t> cmd,
+             ten::error_t *err) {
           auto status_code = cmd->get_status_code();
           ASSERT_EQ(status_code, TEN_STATUS_CODE_OK);
 
@@ -67,17 +68,18 @@ class test_predefined_graph : public ten::extension_t {
               "start_two_predefined_graphs__normal_extension_group",
               "normal_extension_1");
 
-          ten_env.send_cmd(std::move(hello_world_cmd),
-                           [cb](ten::ten_env_t &ten_env,
-                                std::unique_ptr<ten::cmd_result_t> cmd) {
-                             auto status_code = cmd->get_status_code();
-                             ASSERT_EQ(status_code, TEN_STATUS_CODE_OK);
+          ten_env.send_cmd(
+              std::move(hello_world_cmd),
+              [cb](ten::ten_env_t &ten_env,
+                   std::unique_ptr<ten::cmd_result_t> cmd, ten::error_t *err) {
+                auto status_code = cmd->get_status_code();
+                ASSERT_EQ(status_code, TEN_STATUS_CODE_OK);
 
-                             auto detail = cmd->get_property_string("detail");
-                             ASSERT_EQ(detail, "hello world, too");
+                auto detail = cmd->get_property_string("detail");
+                ASSERT_EQ(detail, "hello world, too");
 
-                             cb(ten_env);
-                           });
+                cb(ten_env);
+              });
         });
   }
 
@@ -106,8 +108,8 @@ class test_predefined_graph : public ten::extension_t {
 class test_app_1 : public ten::app_t {
  public:
   void on_configure(ten::ten_env_t &ten_env) override {
-    ten::ten_env_internal_accessor_t ten_env_internal_accessor(&ten_env);
-    bool rc = ten_env_internal_accessor.init_manifest_from_json(
+    bool rc = ten::ten_env_internal_accessor_t::init_manifest_from_json(
+        ten_env,
         // clang-format off
                  R"({
                       "type": "app",

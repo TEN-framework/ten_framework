@@ -112,6 +112,7 @@
 // App uri.
 #define TEN_STR_URI "uri"
 #define TEN_STR_LOCALHOST "localhost"
+#define TEN_STR_CLIENT "client:"
 
 // Data.
 #define TEN_STR_BUF "buf"
@@ -131,11 +132,6 @@
 #define TEN_STR_NUMBER_OF_CHANNEL "number_of_channel"
 #define TEN_STR_SAMPLE_RATE "sample_rate"
 #define TEN_STR_SAMPLES_PER_CHANNEL "samples_per_channel"
-
-// Msgpack hack.
-#define TEN_STR_SPECIAL_CMD_FOR_SERIALIZATION \
-  "__special_cmd_for_serialization__"
-#define TEN_STR_MSGPACK_SERIALIZATION_HACK "msgpack_serialization_hack"
 
 // Graph.
 #define TEN_STR_AUTO_START "auto_start"
@@ -161,8 +157,5 @@
 
 #define TEN_STR_DEFAULT_EXTENSION_GROUP "default_extension_group"
 #define TEN_STR_TEN_TEST_EXTENSION "ten:test_extension"
-
-#define TEN_STR_ADDON_REGISTER_FUNCTION_PREFIX "____ten_addon_"
-#define TEN_STR_ADDON_REGISTER_FUNCTION_POSTFIX "_register____"
 
 #define TEN_STR_MANIFEST_JSON "manifest.json"

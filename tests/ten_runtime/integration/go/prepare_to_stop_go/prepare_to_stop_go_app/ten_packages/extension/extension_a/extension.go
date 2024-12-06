@@ -44,8 +44,8 @@ func (p *aExtension) OnCmd(
 			"receive command: " + cmdName,
 		)
 		if cmdName == "start" {
-			tenEnv.SendCmd(cmd, func(r ten.TenEnv, cs ten.CmdResult) {
-				r.ReturnResultDirectly(cs)
+			tenEnv.SendCmd(cmd, func(r ten.TenEnv, cs ten.CmdResult, e error) {
+				r.ReturnResultDirectly(cs, nil)
 			})
 		}
 	}()
@@ -58,9 +58,12 @@ func (p *aExtension) OnStop(tenEnv ten.TenEnv) {
 		cmd, _ := ten.NewCmd("stop")
 		respChan := make(chan ten.CmdResult, 1)
 
-		tenEnv.SendCmd(cmd, func(tenEnv ten.TenEnv, cmdStatus ten.CmdResult) {
-			respChan <- cmdStatus
-		})
+		tenEnv.SendCmd(
+			cmd,
+			func(tenEnv ten.TenEnv, cmdResult ten.CmdResult, e error) {
+				respChan <- cmdResult
+			},
+		)
 
 		select {
 		case resp := <-respChan:
@@ -79,7 +82,10 @@ func init() {
 	fmt.Println("call init")
 
 	// Register addon
-	err := ten.RegisterAddonAsExtension("extension_a", ten.NewDefaultExtensionAddon(newAExtension))
+	err := ten.RegisterAddonAsExtension(
+		"extension_a",
+		ten.NewDefaultExtensionAddon(newAExtension),
+	)
 	if err != nil {
 		fmt.Println("register addon failed", err)
 	}

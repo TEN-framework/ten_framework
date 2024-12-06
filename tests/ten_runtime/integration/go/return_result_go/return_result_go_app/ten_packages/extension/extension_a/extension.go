@@ -31,19 +31,19 @@ func (p *extensionA) OnCmd(
 		fmt.Println("extensionA OnCmd")
 
 		cmdB, _ := ten.NewCmd("B")
-		tenEnv.SendCmd(cmdB, func(r ten.TenEnv, cs ten.CmdResult) {
+		tenEnv.SendCmd(cmdB, func(r ten.TenEnv, cs ten.CmdResult, e error) {
 			detail, err := cs.GetPropertyString("detail")
 			if err != nil {
 				cmdResult, _ := ten.NewCmdResult(ten.StatusCodeError)
 				cmdResult.SetPropertyString("detail", err.Error())
-				tenEnv.ReturnResult(cmdResult, cmd)
+				tenEnv.ReturnResult(cmdResult, cmd, nil)
 				return
 			}
 
 			if detail != "this is extensionB." {
 				cmdResult, _ := ten.NewCmdResult(ten.StatusCodeError)
 				cmdResult.SetPropertyString("detail", "wrong detail")
-				tenEnv.ReturnResult(cmdResult, cmd)
+				tenEnv.ReturnResult(cmdResult, cmd, nil)
 				return
 			}
 
@@ -51,13 +51,13 @@ func (p *extensionA) OnCmd(
 			if err != nil {
 				cmdResult, _ := ten.NewCmdResult(ten.StatusCodeError)
 				cmdResult.SetPropertyString("detail", err.Error())
-				tenEnv.ReturnResult(cmdResult, cmd)
+				tenEnv.ReturnResult(cmdResult, cmd, nil)
 				return
 			}
 
 			cmdResult, _ := ten.NewCmdResult(ten.StatusCodeOk)
 			cmdResult.SetPropertyString("detail", password)
-			tenEnv.ReturnResult(cmdResult, cmd)
+			tenEnv.ReturnResult(cmdResult, cmd, nil)
 		})
 	}()
 }

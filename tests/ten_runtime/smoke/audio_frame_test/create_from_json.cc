@@ -10,7 +10,7 @@
 
 #include "gtest/gtest.h"
 #include "include_internal/ten_runtime/binding/cpp/ten.h"
-#include "ten_runtime/binding/cpp/internal/msg/audio_frame.h"
+#include "ten_runtime/binding/cpp/detail/msg/audio_frame.h"
 #include "ten_runtime/msg/audio_frame/audio_frame.h"
 #include "ten_utils/lib/thread.h"
 #include "tests/common/client/cpp/msgpack_tcp.h"
@@ -56,10 +56,9 @@ class test_extension_2 : public ten::extension_t {
       ten::ten_env_t &ten_env,
       std::unique_ptr<ten::audio_frame_t> audio_frame) override {
     auto cmd = ten::cmd_t::create("audio_frame_ack");
-    if (audio_frame->get_property_int64("_ten.bytes_per_sample") == 3 &&
-        audio_frame->get_property_int64("_ten.number_of_channel") == 555 &&
-        audio_frame->get_property_int64("_ten.data_fmt") ==
-            TEN_AUDIO_FRAME_DATA_FMT_INTERLEAVE) {
+    if (audio_frame->get_bytes_per_sample() == 3 &&
+        audio_frame->get_number_of_channels() == 555 &&
+        audio_frame->get_data_fmt() == TEN_AUDIO_FRAME_DATA_FMT_INTERLEAVE) {
       ten_env.send_cmd(std::move(cmd));
     }
   }

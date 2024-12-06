@@ -28,6 +28,7 @@ func newExtensionA(name string) ten.Extension {
 func (p *extensionA) OnStart(tenEnv ten.TenEnv) {
 	go func() {
 		var wg sync.WaitGroup
+		var counter int32
 
 		wg.Add(concurrency)
 
@@ -43,6 +44,11 @@ func (p *extensionA) OnStart(tenEnv ten.TenEnv) {
 				if err != nil {
 					fmt.Printf("Error in goroutine %d: %v\n", i, err)
 				}
+
+				if atomic.AddInt32(&counter, 1)%5000 == 0 {
+					fmt.Printf("extension_a %d goroutines completed\n", counter)
+				}
+
 			}(i % 100)
 		}
 
@@ -114,19 +120,19 @@ func (p *extensionA) OnCmd(
 			panic("Should not happen.")
 		}
 
-		tenEnv.SendCmd(cmdB, func(r ten.TenEnv, cs ten.CmdResult) {
+		tenEnv.SendCmd(cmdB, func(r ten.TenEnv, cs ten.CmdResult, e error) {
 			detail, err := cs.GetPropertyString("detail")
 			if err != nil {
 				cmdResult, _ := ten.NewCmdResult(ten.StatusCodeError)
 				cmdResult.SetPropertyString("detail", err.Error())
-				r.ReturnResult(cmdResult, cmd)
+				r.ReturnResult(cmdResult, cmd, nil)
 				return
 			}
 
 			if detail != "this is extensionB." {
 				cmdResult, _ := ten.NewCmdResult(ten.StatusCodeError)
 				cmdResult.SetPropertyString("detail", "wrong detail")
-				r.ReturnResult(cmdResult, cmd)
+				r.ReturnResult(cmdResult, cmd, nil)
 				return
 			}
 
@@ -134,13 +140,13 @@ func (p *extensionA) OnCmd(
 			if err != nil {
 				cmdResult, _ := ten.NewCmdResult(ten.StatusCodeError)
 				cmdResult.SetPropertyString("detail", err.Error())
-				r.ReturnResult(cmdResult, cmd)
+				r.ReturnResult(cmdResult, cmd, nil)
 				return
 			}
 
 			cmdResult, _ := ten.NewCmdResult(ten.StatusCodeOk)
 			cmdResult.SetPropertyString("detail", password)
-			r.ReturnResult(cmdResult, cmd)
+			r.ReturnResult(cmdResult, cmd, nil)
 		})
 	}()
 }

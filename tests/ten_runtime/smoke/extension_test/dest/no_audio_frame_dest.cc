@@ -10,8 +10,8 @@
 
 #include "gtest/gtest.h"
 #include "include_internal/ten_runtime/binding/cpp/ten.h"
-#include "ten_runtime/binding/cpp/internal/msg/cmd/start_graph.h"
-#include "ten_runtime/binding/cpp/internal/ten_env.h"
+#include "ten_runtime/binding/cpp/detail/msg/cmd/start_graph.h"
+#include "ten_runtime/binding/cpp/detail/ten_env.h"
 #include "ten_utils/lang/cpp/lib/error.h"
 #include "ten_utils/lib/thread.h"
 #include "tests/common/client/cpp/msgpack_tcp.h"
@@ -32,7 +32,8 @@ class test_extension_1 : public ten::extension_t {
 
       auto audio_frame_no_dest =
           ten::audio_frame_t::create("audio_frame_no_dest");
-      bool rc = ten_env.send_audio_frame(std::move(audio_frame_no_dest), &err);
+      bool rc = ten_env.send_audio_frame(std::move(audio_frame_no_dest),
+                                         nullptr, &err);
       ASSERT_EQ(rc, false);
       ASSERT_EQ(err.is_success(), false);
 

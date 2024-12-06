@@ -131,6 +131,14 @@ func tenGoAppOnConfigure(
 		)
 	}
 
+	tenEnvInstance, ok := tenEnvObj.(*tenEnv)
+	if !ok {
+		// Should not happen.
+		panic("Invalid ten object type.")
+	}
+
+	tenEnvInstance.attachToApp(appObj)
+
 	appObj.OnConfigure(tenEnvObj)
 }
 

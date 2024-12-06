@@ -9,7 +9,7 @@
 
 #include "gtest/gtest.h"
 #include "include_internal/ten_runtime/binding/cpp/ten.h"
-#include "ten_runtime/binding/cpp/internal/ten_env.h"
+#include "ten_runtime/binding/cpp/detail/ten_env.h"
 #include "ten_utils/lib/thread.h"
 #include "tests/common/client/cpp/msgpack_tcp.h"
 #include "tests/ten_runtime/smoke/extension_test/util/binding/cpp/check.h"
@@ -24,9 +24,9 @@ class test_extension_1 : public ten::extension_t {
               std::unique_ptr<ten::cmd_t> cmd) override {
     if (std::string(cmd->get_name()) == "hello_world") {
       ten_env.send_cmd_ex(
-          std::move(cmd),
-          [this](ten::ten_env_t &ten_env,
-                 std::unique_ptr<ten::cmd_result_t> cmd_result) {
+          std::move(cmd), [this](ten::ten_env_t &ten_env,
+                                 std::unique_ptr<ten::cmd_result_t> cmd_result,
+                                 ten::error_t *err) {
             ++received_result_cnt;
 
             TEN_ENV_LOG_INFO(ten_env,

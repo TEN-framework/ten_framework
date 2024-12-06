@@ -30,12 +30,12 @@ func (p *extensionA) OnCmd(
 		fmt.Println("extensionA OnCmd")
 
 		cmdB, _ := ten.NewCmd("B")
-		tenEnv.SendCmd(cmdB, func(r ten.TenEnv, cs ten.CmdResult) {
+		tenEnv.SendCmd(cmdB, func(r ten.TenEnv, cs ten.CmdResult, e error) {
 			detail, err := cs.GetPropertyString("detail")
 			if err != nil {
 				cmdResult, _ := ten.NewCmdResult(ten.StatusCodeError)
 				cmdResult.SetPropertyString("detail", err.Error())
-				r.ReturnResult(cmdResult, cmd)
+				r.ReturnResult(cmdResult, cmd, nil)
 				return
 			}
 
@@ -50,11 +50,12 @@ func (p *extensionA) OnCmd(
 				panic("should not happen")
 			}
 
-			fmt.Println("getPropertyAsync agora error, ", err)
+			fmt.Println("GetPropertyString error, ", err)
+
 			statusCode, _ := cs.GetStatusCode()
 			cmdResult, _ := ten.NewCmdResult(statusCode)
 			cmdResult.SetPropertyString("detail", detail)
-			r.ReturnResult(cmdResult, cmd)
+			r.ReturnResult(cmdResult, cmd, nil)
 		})
 	}()
 }

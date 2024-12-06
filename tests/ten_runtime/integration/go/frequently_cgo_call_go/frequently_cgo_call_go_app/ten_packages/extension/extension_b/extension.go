@@ -31,21 +31,18 @@ func (p *extensionB) OnCmd(
 	go func() {
 		fmt.Println("extensionB OnCmd")
 
-		connected, err := tenEnv.IsCmdConnected("cmd_not_exist")
-		if err != nil || connected {
-			panic("Should not happen.")
-		}
-
 		cmdName, _ := cmd.GetName()
 		if cmdName == "B" {
 			var count uint32 = 0
 
 			// An empty string in cmd is permitted.
-			if em, err := cmd.GetPropertyString("empty_string"); err != nil || em != "" {
+			if em, err := cmd.GetPropertyString("empty_string"); err != nil ||
+				em != "" {
 				panic("Should not happen.")
 			}
 
-			if em, err := cmd.GetPropertyBytes("some_bytes"); err != nil || len(em) != 3 {
+			if em, err := cmd.GetPropertyBytes("some_bytes"); err != nil ||
+				len(em) != 3 {
 				panic("Should not happen.")
 			}
 
@@ -66,7 +63,12 @@ func (p *extensionB) OnCmd(
 						panic("should not happen")
 					}
 
-					if atomic.AddUint32(&count, 1) == concurrency {
+					total := atomic.AddUint32(&count, 1)
+					if total%5000 == 0 {
+						fmt.Printf("extension_b %d goroutine done\n", total)
+					}
+
+					if total == concurrency {
 						done <- struct{}{}
 					}
 				}(i % 100)
@@ -79,17 +81,17 @@ func (p *extensionB) OnCmd(
 			if err != nil {
 				cmdResult, _ := ten.NewCmdResult(ten.StatusCodeError)
 				cmdResult.SetPropertyString("detail", err.Error())
-				tenEnv.ReturnResult(cmdResult, cmd)
+				tenEnv.ReturnResult(cmdResult, cmd, nil)
 				return
 			}
 
 			statusCmd.SetProperty("detail", "this is extensionB.")
 			statusCmd.SetProperty("password", "password")
-			tenEnv.ReturnResult(statusCmd, cmd)
+			tenEnv.ReturnResult(statusCmd, cmd, nil)
 		} else {
 			cmdResult, _ := ten.NewCmdResult(ten.StatusCodeError)
 			cmdResult.SetPropertyString("detail", "wrong cmd name")
-			tenEnv.ReturnResult(cmdResult, cmd)
+			tenEnv.ReturnResult(cmdResult, cmd, nil)
 		}
 	}()
 }

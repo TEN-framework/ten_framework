@@ -6,7 +6,7 @@
 //
 #include "gtest/gtest.h"
 #include "include_internal/ten_runtime/binding/cpp/ten.h"
-#include "ten_runtime/binding/cpp/internal/msg/cmd/start_graph.h"
+#include "ten_runtime/binding/cpp/detail/msg/cmd/start_graph.h"
 #include "ten_runtime/common/status_code.h"
 #include "tests/common/client/cpp/msgpack_tcp.h"
 #include "tests/ten_runtime/smoke/extension_test/util/binding/cpp/check.h"
@@ -23,7 +23,8 @@ class test_predefined_graph : public ten::extension_t {
     start_graph_cmd->set_predefined_graph_name("graph_1");
     ten_env.send_cmd(
         std::move(start_graph_cmd),
-        [](ten::ten_env_t &ten_env, std::unique_ptr<ten::cmd_result_t> cmd) {
+        [](ten::ten_env_t &ten_env, std::unique_ptr<ten::cmd_result_t> cmd,
+           ten::error_t *err) {
           auto status_code = cmd->get_status_code();
           ASSERT_EQ(status_code, TEN_STATUS_CODE_ERROR);
 
@@ -54,8 +55,8 @@ class test_predefined_graph : public ten::extension_t {
 class test_app_1 : public ten::app_t {
  public:
   void on_configure(ten::ten_env_t &ten_env) override {
-    ten::ten_env_internal_accessor_t ten_env_internal_accessor(&ten_env);
-    bool rc = ten_env_internal_accessor.init_manifest_from_json(
+    bool rc = ten::ten_env_internal_accessor_t::init_manifest_from_json(
+        ten_env,
         // clang-format off
                  R"({
                       "type": "app",

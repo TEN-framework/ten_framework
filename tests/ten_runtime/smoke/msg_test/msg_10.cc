@@ -24,8 +24,8 @@ class test_extension_1 : public ten::extension_t {
 
   void on_configure(ten::ten_env_t &ten_env) override {
     // clang-format off
-        ten::ten_env_internal_accessor_t ten_env_internal_accessor(&ten_env);
-    bool rc = ten_env_internal_accessor.init_manifest_from_json(
+
+    bool rc = ten::ten_env_internal_accessor_t::init_manifest_from_json(ten_env,
                  R"({
                       "type": "extension",
                       "name": "msg_10__extension_1",
@@ -58,8 +58,9 @@ class test_extension_1 : public ten::extension_t {
       hello_world_cmd = std::move(cmd);
 
       ten_env.send_cmd(
-          std::move(new_cmd), [this](ten::ten_env_t &ten_env,
-                                     std::unique_ptr<ten::cmd_result_t> cmd) {
+          std::move(new_cmd),
+          [this](ten::ten_env_t &ten_env,
+                 std::unique_ptr<ten::cmd_result_t> cmd, ten::error_t *err) {
             auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
             cmd_result->set_property(
                 "detail", cmd->get_property_string("detail").c_str());

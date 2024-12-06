@@ -21,7 +21,7 @@
 #include "tests/common/client/cpp/msgpack_tcp.h"
 #include "tests/ten_runtime/smoke/extension_test/util/binding/cpp/check.h"
 
-#if defined(__i386__)
+#if defined(__i386__) || defined(__arm__)
 #define OUTER_THREAD_FOR_LOOP_CNT 100
 #define FROM_EXTENSION_2_CMD_CNT 500
 #define OUTER_THREAD_CNT 16
@@ -119,7 +119,7 @@ class test_extension_1 : public ten::extension_t {
   OUTER_THREAD_MAIN(15)
   OUTER_THREAD_MAIN(16)
 
-#if !defined(__i386__)
+#if !defined(__i386__) && !defined(__arm__)
   OUTER_THREAD_MAIN(17)
   OUTER_THREAD_MAIN(18)
   OUTER_THREAD_MAIN(19)
@@ -238,7 +238,8 @@ class test_extension_1 : public ten::extension_t {
     auto start_to_send_cmd = ten::cmd_t::create("start_to_send");
     ten_env.send_cmd(std::move(start_to_send_cmd),
                      [this](ten::ten_env_t &ten_env,
-                            std::unique_ptr<ten::cmd_result_t> cmd_result) {
+                            std::unique_ptr<ten::cmd_result_t> cmd_result,
+                            ten::error_t *err) {
                        TEN_ASSERT(
                            cmd_result->get_status_code() == TEN_STATUS_CODE_OK,
                            "Failed to send 'start_to_send' command.");
@@ -267,7 +268,7 @@ class test_extension_1 : public ten::extension_t {
                        CREATE_OUTER_THREAD(15);
                        CREATE_OUTER_THREAD(16);
 
-#if !defined(__i386__)
+#if !defined(__i386__) && !defined(__arm__)
                        CREATE_OUTER_THREAD(17);
                        CREATE_OUTER_THREAD(18);
                        CREATE_OUTER_THREAD(19);
@@ -413,7 +414,7 @@ class test_extension_1 : public ten::extension_t {
     NOTIFY_OUTER_THREAD_TO_STOP(15);
     NOTIFY_OUTER_THREAD_TO_STOP(16);
 
-#if !defined(__i386__)
+#if !defined(__i386__) && !defined(__arm__)
     NOTIFY_OUTER_THREAD_TO_STOP(17);
     NOTIFY_OUTER_THREAD_TO_STOP(18);
     NOTIFY_OUTER_THREAD_TO_STOP(19);
@@ -551,7 +552,7 @@ class test_extension_1 : public ten::extension_t {
     RECLAIM_OUTER_THREAD(15);
     RECLAIM_OUTER_THREAD(16);
 
-#if !defined(__i386__)
+#if !defined(__i386__) && !defined(__arm__)
     RECLAIM_OUTER_THREAD(17);
     RECLAIM_OUTER_THREAD(18);
     RECLAIM_OUTER_THREAD(19);
@@ -704,7 +705,7 @@ class test_extension_1 : public ten::extension_t {
   OTHER_THREAD_CB_PACK(15)
   OTHER_THREAD_CB_PACK(16)
 
-#if !defined(__i386__)
+#if !defined(__i386__) && !defined(__arm__)
   OTHER_THREAD_CB_PACK(17)
   OTHER_THREAD_CB_PACK(18)
   OTHER_THREAD_CB_PACK(19)
@@ -890,7 +891,8 @@ class test_extension_2 : public ten::extension_t {
                 ten_env.send_cmd(
                     std::move(from_extension_2_cmd),
                     [this](ten::ten_env_t &ten_env,
-                           std::unique_ptr<ten::cmd_result_t> cmd_result) {
+                           std::unique_ptr<ten::cmd_result_t> cmd_result,
+                           ten::error_t *err) {
                       TEN_ASSERT(
                           cmd_result->get_status_code() == TEN_STATUS_CODE_OK,
                           "Failed to send 'from_extension_2' command.");

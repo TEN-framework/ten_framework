@@ -44,18 +44,18 @@ func (p *extensionA) OnCmd(
 		cmdB.SetProperty("struct", data)
 		data.Uid = 3
 
-		tenEnv.SendCmd(cmdB, func(r ten.TenEnv, cs ten.CmdResult) {
+		tenEnv.SendCmd(cmdB, func(r ten.TenEnv, cs ten.CmdResult, e error) {
 			detail, err := cs.GetPropertyString("detail")
 			if err != nil {
 				cmdResult, _ := ten.NewCmdResult(ten.StatusCodeError)
 				cmdResult.SetPropertyString("detail", err.Error())
-				r.ReturnResult(cmdResult, cmd)
+				r.ReturnResult(cmdResult, cmd, nil)
 				return
 			}
 
 			cmdResult, _ := ten.NewCmdResult(ten.StatusCodeOk)
 			cmdResult.SetPropertyString("detail", detail)
-			r.ReturnResult(cmdResult, cmd)
+			r.ReturnResult(cmdResult, cmd, nil)
 		})
 	}()
 }

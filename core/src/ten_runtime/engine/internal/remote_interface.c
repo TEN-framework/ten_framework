@@ -68,7 +68,7 @@ static size_t ten_engine_weak_remotes_cnt_in_specified_uri(ten_engine_t *self,
   return cnt;
 }
 
-ten_engine_on_protocol_created_info_t *
+static ten_engine_on_protocol_created_info_t *
 ten_engine_on_protocol_created_info_create(ten_engine_on_remote_created_cb_t cb,
                                            void *user_data) {
   ten_engine_on_protocol_created_info_t *self =
@@ -81,7 +81,7 @@ ten_engine_on_protocol_created_info_create(ten_engine_on_remote_created_cb_t cb,
   return self;
 }
 
-void ten_engine_on_protocol_created_info_destroy(
+static void ten_engine_on_protocol_created_info_destroy(
     ten_engine_on_protocol_created_info_t *self) {
   TEN_ASSERT(self, "Invalid argument.");
 
@@ -106,11 +106,36 @@ void ten_engine_on_remote_closed(ten_remote_t *remote, void *on_closed_data) {
     // the closing of the engine. Therefore, we just destroy the remote.
     ten_remote_destroy(remote);
   } else {
-    ten_hashhandle_t *hh = ten_hashtable_find_string(
-        &self->remotes, ten_string_get_raw_str(&remote->uri));
-    TEN_ASSERT(hh, "Should not happen.");
+    bool found_in_remotes = false;
 
-    ten_hashtable_del(&self->remotes, hh);
+    ten_hashhandle_t *connected_remote_hh = ten_hashtable_find_string(
+        &self->remotes, ten_string_get_raw_str(&remote->uri));
+    if (connected_remote_hh) {
+      ten_remote_t *connected_remote = CONTAINER_OF_FROM_FIELD(
+          connected_remote_hh, ten_remote_t, hh_in_remote_table);
+      TEN_ASSERT(connected_remote, "Invalid argument.");
+      TEN_ASSERT(ten_remote_check_integrity(connected_remote, true),
+                 "Invalid use of remote %p.", connected_remote);
+
+      if (connected_remote == remote) {
+        found_in_remotes = true;
+
+        // The remote is in the 'remotes' list, we just remove it.
+        ten_hashtable_del(&self->remotes, connected_remote_hh);
+      } else {
+        // Search the engine's remotes using the URI and find that there is
+        // already another remote instance present. This situation can occur in
+        // the case of a duplicated remote.
+      }
+    }
+
+    if (!found_in_remotes) {
+      TEN_LOGI("The remote %p is not found in the 'remotes' list.", remote);
+
+      // The remote is not in the 'remotes' list, we just destroy it.
+      ten_remote_destroy(remote);
+      return;
+    }
   }
 
   if (ten_engine_is_closing(self)) {
@@ -125,7 +150,7 @@ void ten_engine_on_remote_closed(ten_remote_t *remote, void *on_closed_data) {
   }
 }
 
-void ten_engine_add_remote(ten_engine_t *self, ten_remote_t *remote) {
+static void ten_engine_add_remote(ten_engine_t *self, ten_remote_t *remote) {
   TEN_ASSERT(self, "Invalid argument.");
   TEN_ASSERT(ten_engine_check_integrity(self, true),
              "Invalid use of engine %p.", self);
@@ -142,7 +167,8 @@ void ten_engine_add_remote(ten_engine_t *self, ten_remote_t *remote) {
                            ten_remote_destroy);
 }
 
-void ten_engine_add_weak_remote(ten_engine_t *self, ten_remote_t *remote) {
+static void ten_engine_add_weak_remote(ten_engine_t *self,
+                                       ten_remote_t *remote) {
   TEN_ASSERT(self, "Invalid argument.");
   TEN_ASSERT(ten_engine_check_integrity(self, true),
              "Invalid use of engine %p.", self);
@@ -178,6 +204,22 @@ void ten_engine_upgrade_weak_remote_to_normal_remote(ten_engine_t *self,
 
   ten_engine_del_weak_remote(self, remote);
   ten_engine_add_remote(self, remote);
+}
+
+static ten_remote_t *ten_engine_find_remote(ten_engine_t *self,
+                                            const char *uri) {
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_engine_check_integrity(self, true),
+             "Invalid use of engine %p.", self);
+
+  TEN_ASSERT(uri, "Should not happen.");
+
+  ten_hashhandle_t *hh = ten_hashtable_find_string(&self->remotes, uri);
+  if (hh) {
+    return CONTAINER_OF_FROM_FIELD(hh, ten_remote_t, hh_in_remote_table);
+  }
+
+  return NULL;
 }
 
 void ten_engine_link_connection_to_remote(ten_engine_t *self,
@@ -355,7 +397,12 @@ static void ten_engine_connect_to_remote_after_remote_is_created(
     TEN_LOGD("Destroy remote %p for %s because it's duplicated.", remote,
              ten_string_get_raw_str(&remote->uri));
 
-    ten_remote_destroy(remote);
+    if (engine->original_start_graph_cmd_of_enabling_engine) {
+      ten_engine_return_ok_for_cmd_start_graph(
+          engine, engine->original_start_graph_cmd_of_enabling_engine);
+    }
+
+    ten_remote_close(remote);
     ten_shared_ptr_destroy(start_graph_cmd);
     return;
   }
@@ -575,19 +622,4 @@ bool ten_engine_receive_msg_from_remote(ten_remote_t *remote,
   }
 
   return true;
-}
-
-ten_remote_t *ten_engine_find_remote(ten_engine_t *self, const char *uri) {
-  TEN_ASSERT(self, "Invalid argument.");
-  TEN_ASSERT(ten_engine_check_integrity(self, true),
-             "Invalid use of engine %p.", self);
-
-  TEN_ASSERT(uri, "Should not happen.");
-
-  ten_hashhandle_t *hh = ten_hashtable_find_string(&self->remotes, uri);
-  if (hh) {
-    return CONTAINER_OF_FROM_FIELD(hh, ten_remote_t, hh_in_remote_table);
-  }
-
-  return NULL;
 }

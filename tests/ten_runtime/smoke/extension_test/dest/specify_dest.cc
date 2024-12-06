@@ -78,7 +78,8 @@ class business_extension : public ten::extension_t {
     ten_env.send_cmd(
         std::move(cmd_to_plugin_1),
         [this, cmd_shared](ten::ten_env_t &ten_env,
-                           std::unique_ptr<ten::cmd_result_t> cmd_result) {
+                           std::unique_ptr<ten::cmd_result_t> cmd_result,
+                           ten::error_t *err) {
           // Receive the result from plugin_1, and decide the next step based
           // on the content of the result.
           nlohmann::json json = nlohmann::json::parse(cmd_result->to_json());
@@ -108,7 +109,8 @@ class business_extension : public ten::extension_t {
     ten_env.send_cmd(
         std::move(cmd_to_plugin_2),
         [cmd_shared](ten::ten_env_t &ten_env,
-                     std::unique_ptr<ten::cmd_result_t> cmd_result) {
+                     std::unique_ptr<ten::cmd_result_t> cmd_result,
+                     ten::error_t *err) {
           // Receive result from plugin_2.
           nlohmann::json json = nlohmann::json::parse(cmd_result->to_json());
           if (json["detail"] == "plugin_2_result") {
@@ -170,8 +172,9 @@ class business_app : public ten::app_t {
     // The graph merely describes which extensions are included, nothing more.
     // It does not contain any logic for interaction; all logic for interaction
     // is written in the code.
-    ten::ten_env_internal_accessor_t ten_env_internal_accessor(&ten_env);
-    bool rc = ten_env_internal_accessor.init_manifest_from_json(
+
+    bool rc = ten::ten_env_internal_accessor_t::init_manifest_from_json(
+        ten_env,
         // clang-format off
                  R"({
                       "type": "app",
