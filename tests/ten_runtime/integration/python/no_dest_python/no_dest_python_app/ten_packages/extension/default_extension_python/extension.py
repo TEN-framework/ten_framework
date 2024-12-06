@@ -76,8 +76,6 @@ class DefaultExtension(Extension):
         #     lambda ten_env, error: self.handle_error(ten_env, error),
         # )
 
-        ten_env.on_start_done()
-
     def on_stop(self, ten_env: TenEnv) -> None:
         print("DefaultExtension on_stop")
         ten_env.on_stop_done()
