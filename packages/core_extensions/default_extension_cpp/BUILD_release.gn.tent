@@ -39,6 +39,9 @@ if (ten_enable_standalone_test) {
       "tests/basic.cc",
     ]
 
-    include_dirs = [ ".ten/app/ten_packages/system/googletest/include" ]
+    include_dirs = [
+      ".ten/app/ten_packages/system/googletest",
+      ".ten/app/ten_packages/system/googletest/include",
+    ]
   }
 }
