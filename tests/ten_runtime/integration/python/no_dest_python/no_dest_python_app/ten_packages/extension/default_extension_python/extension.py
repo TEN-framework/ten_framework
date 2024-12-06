@@ -35,7 +35,7 @@ class DefaultExtension(Extension):
         ten_env.log_error("DefaultExtension handle_error: " + error.err_msg())
 
         self.no_dest_error_recv_count += 1
-        if self.no_dest_error_recv_count == 1:
+        if self.no_dest_error_recv_count == 4:
             ten_env.on_start_done()
 
     def on_start(self, ten_env: TenEnv) -> None:
@@ -55,26 +55,26 @@ class DefaultExtension(Extension):
             lambda ten_env, result, error: self.handle_error(ten_env, error),
         )
 
-        # # Send an unconnected data
-        # data = Data.create("unconnected_data")
-        # ten_env.send_data(
-        #     data,
-        #     lambda ten_env, error: self.handle_error(ten_env, error),
-        # )
+        # Send an unconnected data
+        data = Data.create("unconnected_data")
+        ten_env.send_data(
+            data,
+            lambda ten_env, error: self.handle_error(ten_env, error),
+        )
 
-        # # Send an unconnected video frame
-        # video_frame = VideoFrame.create("unconnected_video_frame")
-        # ten_env.send_video_frame(
-        #     video_frame,
-        #     lambda ten_env, error: self.handle_error(ten_env, error),
-        # )
+        # Send an unconnected video frame
+        video_frame = VideoFrame.create("unconnected_video_frame")
+        ten_env.send_video_frame(
+            video_frame,
+            lambda ten_env, error: self.handle_error(ten_env, error),
+        )
 
-        # # Send an unconnected audio frame
-        # audio_frame = AudioFrame.create("unconnected_audio_frame")
-        # ten_env.send_audio_frame(
-        #     audio_frame,
-        #     lambda ten_env, error: self.handle_error(ten_env, error),
-        # )
+        # Send an unconnected audio frame
+        audio_frame = AudioFrame.create("unconnected_audio_frame")
+        ten_env.send_audio_frame(
+            audio_frame,
+            lambda ten_env, error: self.handle_error(ten_env, error),
+        )
 
     def on_stop(self, ten_env: TenEnv) -> None:
         print("DefaultExtension on_stop")
