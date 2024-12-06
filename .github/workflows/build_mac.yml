@@ -164,6 +164,7 @@ jobs:
           TEN_ENABLE_MEMORY_TRACKING: "true"
           TEN_ENABLE_BACKTRACE_DUMP: "true"
         run: |
+          export PATH=$(pwd)/core/ten_gn:$PATH
           cd out/mac/arm64/
           pytest -s tests/ten_runtime/integration/ || { echo "ten_runtime integration test failed"; exit 1; }
 
@@ -318,6 +319,7 @@ jobs:
           TEN_ENABLE_MEMORY_TRACKING: "true"
           TEN_ENABLE_BACKTRACE_DUMP: "true"
         run: |
+          export PATH=$(pwd)/core/ten_gn:$PATH
           cd out/mac/x64/
           pytest -s tests/ten_runtime/integration/ || { echo "ten_runtime integration test failed"; exit 1; }
 
