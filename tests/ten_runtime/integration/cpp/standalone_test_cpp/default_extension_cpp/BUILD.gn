@@ -28,6 +28,8 @@ if (ten_enable_standalone_test) {
   ten_package_test("default_extension_cpp_test") {
     package_kind = "extension"
 
+    include_dirs = [ ".ten/app/ten_packages/system/googletest/include" ]
+
     sources = [
       "tests/basic.cc",
 
