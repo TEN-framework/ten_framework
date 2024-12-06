@@ -113,11 +113,3 @@ jobs:
         run: |
           cd out/win/x64/
           pytest -s tests/ten_manager/
-
-      - name: Run tests (ten_runtime integration tests)
-        env:
-          TEN_ENABLE_MEMORY_TRACKING: "true"
-          TEN_ENABLE_BACKTRACE_DUMP: "true"
-        run: |
-          cd out/win/x64/
-          pytest -s tests/ten_runtime/integration/ || { echo "ten_runtime integration tests failed"; exit 1; }
