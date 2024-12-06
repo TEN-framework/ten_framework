@@ -37,13 +37,6 @@ if (ten_enable_standalone_test) {
       # ```shell
       # tman install system googletest
       # ```
-      #
-      # The following file is merely provided for the convenience of
-      # development. C++ extensions are not required to use this file provided
-      # by the gtest system package. Extensions can define their own `main`
-      # function within their test cases. However, the gtest system package
-      # offers this file as a convenience for C++ extensions that do not have
-      # customized testing requirements.
       ".ten/app/ten_packages/system/googletest/src/gtest-all.cc",
       ".ten/app/ten_packages/system/googletest/src/gtest_main.cc",
     ]

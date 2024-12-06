@@ -19,7 +19,9 @@ ten_package_test_prepare_auxiliary_resources("standalone_test_cpp_files") {
   }
 
   if (ten_enable_package_manager) {
-    deps = [ "//third_party/googletest:upload_gtest_to_server" ]
+    # The standalone testing for the C++ extension depends on the Googletest
+    # system package.
+    deps = [ "//third_party/googletest:googletest_system_package" ]
   }
 }
 

@@ -34,6 +34,14 @@ ten_package("gtest_system_package") {
   resources = [
     "include",
     "manifest.json",
+
+    # The source code of googletest is all written in C++, making it less
+    # suitable for being compiled into a library. Doing so could expose users to
+    # C++ ABI incompatibility issues, especially when the compiler used to build
+    # the googletest library differs from the one used by the user. Therefore,
+    # the approach taken by the googletest system package is to include the
+    # source code in the system package rather than precompiling it into a
+    # library.
     "src",
   ]
 }
