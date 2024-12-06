@@ -7,8 +7,6 @@
 import("//build/feature/ten_package.gni")
 import("//build/options.gni")
 import("//build/ten_runtime/feature/publish.gni")
-import("//build/ten_runtime/ten.gni")
-import("//third_party/googletest/output_libs.gni")
 
 config("gtest_header") {
   include_dirs = [
@@ -19,14 +17,7 @@ config("gtest_header") {
   ]
 }
 
-ten_target("gtest_library") {
-  output_name = "gtest"
-  type = "static_library"
-  sources = [ "src/gtest-all.cc" ]
-  configs = [ ":gtest_header" ]
-}
-
-source_set("gtest_all_sources") {
+source_set("googletest") {
   public_configs = [ ":gtest_header" ]
   sources = [ "src/gtest-all.cc" ]
 }
@@ -41,18 +32,10 @@ ten_package("gtest_system_package") {
   package_output_root_dir_name = "googletest"
 
   resources = [
-    "BUILD_release.gn=>BUILD.gn",
     "include",
     "manifest.json",
-    "src/gtest_main.cc",
+    "src",
   ]
-
-  foreach(lib, gtest_output_libs) {
-    libname = get_path_info(rebase_path(lib), "file")
-    resources += [ "${lib}=>lib/${libname}" ]
-  }
-
-  deps = [ ":gtest_library" ]
 }
 
 if (ten_enable_package_manager) {
@@ -62,7 +45,7 @@ if (ten_enable_package_manager) {
   }
 }
 
-group("googletest") {
+group("googletest_system_package") {
   deps = [ ":gtest_system_package" ]
 
   if (ten_enable_package_manager) {

@@ -19,6 +19,6 @@ glob("outer_thread") {
   ]
   public_deps = [
     "//third_party/googlemock",
-    "//third_party/googletest:gtest_all_sources",
+    "//third_party/googletest",
   ]
 }

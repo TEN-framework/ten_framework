@@ -20,7 +20,7 @@ config("third_party_config") {
 }
 
 group("third_party") {
-  deps = [ "googletest" ]
+  deps = [ "googletest:googletest_system_package" ]
 
   public_deps = [
     "jansson",
