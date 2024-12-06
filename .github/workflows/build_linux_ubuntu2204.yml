@@ -38,6 +38,19 @@ jobs:
           python3 tools/version/update_version_in_ten_framework.py
           python3 tools/version/check_version_in_ten_framework.py
 
+      - name: Set ulimit and sysctl
+        run: |
+          # Because there are concurrent test cases which involves many concurrent socket
+          # connections, we need to enlarge the maximum number of the opened file
+          # descriptor.
+          ulimit -n 102400
+
+          # Because there are concurrent test cases (in 'smoke' and 'dev') which will
+          # create many concurrent connections simutaneously, we increase the TCP
+          # listening backlog value to 8192.
+          sysctl -w net.core.somaxconn=8192
+        shell: bash
+
       - name: Build
         run: |
           export PATH=$(pwd)/core/ten_gn:$PATH
