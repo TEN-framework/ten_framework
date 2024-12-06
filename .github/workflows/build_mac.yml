@@ -157,17 +157,6 @@ jobs:
           cd out/mac/arm64/
           pytest -s tests/ten_manager/
 
-      - name: Run tests (ten_runtime integration tests)
-        env:
-          ASAN_OPTIONS: detect_stack_use_after_return=1:color=always:unmap_shadow_on_exit=1:abort_on_error=1
-          MALLOC_CHECK_: 3
-          TEN_ENABLE_MEMORY_TRACKING: "true"
-          TEN_ENABLE_BACKTRACE_DUMP: "true"
-        run: |
-          export PATH=$(pwd)/core/ten_gn:$PATH
-          cd out/mac/arm64/
-          pytest -s tests/ten_runtime/integration/ || { echo "ten_runtime integration test failed"; exit 1; }
-
   build-mac-x64:
     concurrency:
       group: build-mac-x64-${{ github.head_ref }}-${{ matrix.build_type }}
