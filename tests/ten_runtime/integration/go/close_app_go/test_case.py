@@ -87,11 +87,11 @@ def test_close_app_go():
 
     if not os.path.isfile(server_cmd):
         print(f"Server command '{server_cmd}' does not exist.")
-        assert 0
+        assert False
 
     if not os.path.isfile(client_cmd):
         print(f"Client command '{client_cmd}' does not exist.")
-        assert 0
+        assert False
 
     server = subprocess.Popen(
         server_cmd,
@@ -110,7 +110,7 @@ def test_close_app_go():
         print("The exit code of close_app_go: ", exit_code)
 
         assert exit_code == 0
-        assert 0
+        assert False
 
         return
 

@@ -107,7 +107,7 @@ def test_graph_env_var_1_app():
 
     if not os.path.isfile(server_cmd):
         print(f"Server command '{server_cmd}' does not exist.")
-        assert 0
+        assert False
 
     try:
         server = subprocess.Popen(
@@ -136,7 +136,7 @@ def test_graph_env_var_1_app():
         print("The exit code of graph_env_var_1_app: ", exit_code)
 
         assert exit_code == 0
-        assert 0
+        assert False
 
     client = subprocess.Popen(
         client_cmd, stdout=stdout, stderr=subprocess.STDOUT, env=my_env

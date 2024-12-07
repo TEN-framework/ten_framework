@@ -56,9 +56,8 @@ def _build_cpp_app(args: ArgumentInfo) -> int:
     returncode, output = cmd_exec.run_cmd(cmd, args.log_level)
 
     if returncode:
-        if args.log_level > 0:
-            print(output)
-        raise Exception("Failed to build c++ app")
+        print(output)
+        return 1
 
     # tgn build ...
     cmd = [f"{args.tgn_path}", "build", args.os, args.cpu, args.build]
@@ -73,9 +72,8 @@ def _build_cpp_app(args: ArgumentInfo) -> int:
         print(f"Build c++ app({args.pkg_name}) costs {duration} seconds.")
 
     if returncode:
-        if args.log_level > 0:
-            print(output)
-        raise Exception("Failed to build c++ app")
+        print(output)
+        return 1
 
     # Copy the build result to the specified run folder.
     fs_utils.copy(
@@ -430,14 +428,15 @@ def build_app(
             returncode = 0
 
         if returncode > 0:
-            raise Exception(f"Failed to build {pkg_type}({args.pkg_name})")
+            print(f"Failed to build {pkg_type}({args.pkg_name})")
+            return 1
 
         if args.log_level > 0:
             print(f"Build {pkg_type}({args.pkg_name}) success")
 
     except Exception as e:
         returncode = 1
-        print(f"Build package({args.pkg_name}) failed: {repr(e)}")
+        print(f"Failed to build {pkg_type}({args.pkg_name}): {repr(e)}")
 
     finally:
         os.chdir(origin_wd)

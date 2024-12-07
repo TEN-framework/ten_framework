@@ -109,7 +109,7 @@ def test_graph_env_var_3_app():
 
     if not os.path.isfile(server_cmd):
         print(f"Server command '{server_cmd}' does not exist.")
-        assert 0
+        assert False
 
     server = subprocess.Popen(
         server_cmd,
@@ -131,7 +131,7 @@ def test_graph_env_var_3_app():
         )
 
         assert exit_code == 0
-        assert 0
+        assert False
 
         return
 

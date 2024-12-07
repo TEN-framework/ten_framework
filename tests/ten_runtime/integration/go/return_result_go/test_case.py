@@ -89,11 +89,11 @@ def test_return_result_go():
 
     if not os.path.isfile(server_cmd):
         print(f"Server command '{server_cmd}' does not exist.")
-        assert 0
+        assert False
 
     if not os.path.isfile(client_cmd):
         print(f"Client command '{client_cmd}' does not exist.")
-        assert 0
+        assert False
 
     server = subprocess.Popen(
         server_cmd,
@@ -112,7 +112,7 @@ def test_return_result_go():
         print("The exit code of return_result_go: ", exit_code)
 
         assert exit_code == 0
-        assert 0
+        assert False
 
         return
 

@@ -109,7 +109,7 @@ def start_app(app_name: str, port: int) -> subprocess.Popen:
 
     if not os.path.isfile(server_cmd):
         print(f"Server command '{server_cmd}' does not exist.")
-        assert 0
+        assert False
 
     server = subprocess.Popen(
         server_cmd,
@@ -127,7 +127,7 @@ def start_app(app_name: str, port: int) -> subprocess.Popen:
         exit_code = server.wait()
         print(f"The exit code of {app_name}: {exit_code}")
 
-        assert 0
+        assert False
 
     sock.close()
     return server

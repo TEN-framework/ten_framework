@@ -187,7 +187,7 @@ def test_go_app_cythonize():
 
     if not os.path.isfile(server_cmd):
         print(f"Server command '{server_cmd}' does not exist.")
-        assert 0
+        assert False
 
     server = subprocess.Popen(
         server_cmd,
@@ -206,7 +206,7 @@ def test_go_app_cythonize():
         print("The exit code of go_app_cythonize: ", exit_code)
 
         assert exit_code == 0
-        assert 0
+        assert False
 
         return
 

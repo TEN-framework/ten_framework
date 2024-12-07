@@ -119,7 +119,7 @@ def test_multiple_results_python_2():
 
     if not os.path.isfile(server_cmd):
         print(f"Server command '{server_cmd}' does not exist.")
-        assert 0
+        assert False
 
     server = subprocess.Popen(
         server_cmd,
@@ -138,7 +138,7 @@ def test_multiple_results_python_2():
         print("The exit code of multiple_results_python_2: ", exit_code)
 
         assert exit_code == 0
-        assert 0
+        assert False
 
         return
 
