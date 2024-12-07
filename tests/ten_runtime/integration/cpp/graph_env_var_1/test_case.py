@@ -127,15 +127,15 @@ def test_graph_env_var_1_app():
         print("The graph_env_var_1_app is not started after 30 seconds.")
 
         server.kill()
-        exit_code = server.wait()
+        server_rc = server.wait()
 
         server_output, _ = server.communicate()
         print("Server output:")
         print(server_output)
 
-        print("The exit code of graph_env_var_1_app: ", exit_code)
+        print("The exit code of graph_env_var_1_app: ", server_rc)
 
-        assert exit_code == 0
+        assert server_rc == 0, f"Server exited with code {server_rc}"
         assert False
 
     client = subprocess.Popen(
@@ -160,8 +160,8 @@ def test_graph_env_var_1_app():
 
     print("server: ", server_rc)
     print("client: ", client_rc)
-    assert server_rc == 0
-    assert client_rc == 0
+    assert server_rc == 0, f"Server exited with code {server_rc}"
+    assert client_rc == 0, f"Client exited with code {client_rc}"
 
     if build_config_args.ten_enable_integration_tests_prebuilt is False:
         source_root_path = os.path.join(base_path, source_pkg_name)
