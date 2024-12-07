@@ -27,7 +27,6 @@ class ArgumentInfo:
         self.os: str
         self.cpu: str
         self.build: str
-        self.tgn_path: str
         self.is_clang: bool
         self.enable_sanitizer: bool
         self.vs_version: str
@@ -50,7 +49,7 @@ def _construct_cpp_additional_args(args: ArgumentInfo) -> list[str]:
 
 def _build_cpp_app(args: ArgumentInfo) -> int:
     # tgn gen ...
-    cmd = [f"{args.tgn_path}", "gen", args.os, args.cpu, args.build]
+    cmd = ["tgn", "gen", args.os, args.cpu, args.build]
     cmd += _construct_cpp_additional_args(args)
 
     returncode, output = cmd_exec.run_cmd(cmd, args.log_level)
@@ -60,7 +59,7 @@ def _build_cpp_app(args: ArgumentInfo) -> int:
         return 1
 
     # tgn build ...
-    cmd = [f"{args.tgn_path}", "build", args.os, args.cpu, args.build]
+    cmd = ["tgn", "build", args.os, args.cpu, args.build]
 
     t1 = datetime.now()
     returncode, output = cmd_exec.run_cmd(cmd, args.log_level)
@@ -87,7 +86,7 @@ def _build_cpp_app(args: ArgumentInfo) -> int:
 
 def _build_cpp_extension(args: ArgumentInfo) -> int:
     # tgn gen ...
-    cmd = [f"{args.tgn_path}", "gen", args.os, args.cpu, args.build]
+    cmd = ["tgn", "gen", args.os, args.cpu, args.build]
     cmd += _construct_cpp_additional_args(args)
 
     returncode, output = cmd_exec.run_cmd(cmd, args.log_level)
@@ -98,7 +97,7 @@ def _build_cpp_extension(args: ArgumentInfo) -> int:
         raise Exception("Failed to build c++ extension.")
 
     # tgn build ...
-    cmd = [f"{args.tgn_path}", "build", args.os, args.cpu, args.build]
+    cmd = ["tgn", "build", args.os, args.cpu, args.build]
 
     returncode, output = cmd_exec.run_cmd(cmd, args.log_level)
 
@@ -397,15 +396,6 @@ def build_app(
     args.enable_sanitizer = build_config.enable_sanitizer
     args.vs_version = build_config.vs_version
     args.log_level = log_level
-
-    if args.os == "win":
-        tgn_path_in_env = os.getenv("tgn")
-        if tgn_path_in_env:
-            args.tgn_path = tgn_path_in_env
-        else:
-            return 1
-    else:
-        args.tgn_path = "tgn"
 
     if args.log_level > 0:
         msg = (
