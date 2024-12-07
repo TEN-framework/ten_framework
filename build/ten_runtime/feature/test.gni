@@ -305,7 +305,7 @@ template("ten_package_test_prepare_app") {
     action("${test_case_unique_target_name}_${_target_name}_build") {
       script = "//build/ten_runtime/feature/build_pkg.py"
 
-      print("sxl  Building app: ${invoker.generated_app_src_root_dir_name}")
+      print("Building app: ${invoker.generated_app_src_root_dir_name}")
 
       args = [
         "--pkg-src-root-dir",
