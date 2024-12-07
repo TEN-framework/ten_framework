@@ -241,9 +241,10 @@ def prepare_app(
     arg.log_level = log_level
     arg.local_registry_path = local_registry_path
 
-    install_res = install_pkg.main(arg)
-    if install_res != 0:
-        raise Exception("Failed to install app")
+    rc = install_pkg.main(arg)
+    if rc != 0:
+        print("Failed to install app")
+        return 1
 
     # ========
     # Step 2: Replace files after install app.
@@ -252,7 +253,8 @@ def prepare_app(
 
     rc = _replace_after_install_app(test_case_base_dir, source_pkg_name)
     if rc != 0:
-        raise Exception("Failed to replace files after install app")
+        print("Failed to replace files after install app")
+        return 1
 
     # ========
     # Step 3: Install all.
@@ -268,6 +270,9 @@ def prepare_app(
     install_all_args.assume_yes = True
 
     rc = install_all.main(install_all_args)
+    if rc != 0:
+        print("Failed to install all")
+        return 1
 
     # ========
     # Step 4: Replace files after install all.
@@ -276,7 +281,8 @@ def prepare_app(
 
     rc = _replace_after_install_all(test_case_base_dir, source_pkg_name)
     if rc != 0:
-        raise Exception("Failed to replace files after install all")
+        print("Failed to replace files after install all")
+        return 1
 
     return rc
 
@@ -312,7 +318,8 @@ def _replace_after_install_app(
         )
 
         if not os.path.exists(src_file):
-            raise Exception(f"{src_file} does not exist.")
+            print(f"{src_file} does not exist.")
+            return 1
 
         dst_file = os.path.join(test_case_base_dir, replace_file)
         replaced_files.append((src_file, dst_file))
@@ -353,7 +360,8 @@ def _replace_after_install_all(
         )
 
         if not os.path.exists(src_file):
-            raise Exception(f"{src_file} does not exist.")
+            print(f"{src_file} does not exist.")
+            return 1
 
         dst_file = os.path.join(test_case_base_dir, replace_file)
         replaced_files.append((src_file, dst_file))
