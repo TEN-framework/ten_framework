@@ -8,6 +8,7 @@ import argparse
 import json
 import os
 import sys
+import platform
 from datetime import datetime
 from build.scripts import fs_utils, cmd_exec, timestamp_proxy
 
@@ -104,6 +105,13 @@ def build_cpp_extension(args: ArgumentInfo) -> int:
     return returncode
 
 
+def is_mac_arm64() -> bool:
+    return (
+        platform.system().lower() == "darwin"
+        and platform.machine().lower() == "arm64"
+    )
+
+
 def build_go_app(args: ArgumentInfo) -> int:
     # Determine the path to the main.go script. Some cases require a customized
     # Go build script, but in most situations, the build script provided by the
@@ -116,7 +124,8 @@ def build_go_app(args: ArgumentInfo) -> int:
     if args.log_level > 0:
         cmd += ["--verbose"]
 
-    if args.enable_sanitizer:
+    # `-asan` is not supported by go compiler on darwin/arm64.
+    if args.enable_sanitizer and not is_mac_arm64():
         cmd += ["-asan"]
 
     envs = os.environ.copy()
