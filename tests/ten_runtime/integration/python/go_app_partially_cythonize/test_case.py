@@ -190,6 +190,10 @@ def test_go_app_partially_cythonize():
         base_path, "go_app_partially_cythonize_app/bin/start"
     )
 
+    if not os.path.isfile(server_cmd):
+        print(f"Server command '{server_cmd}' does not exist.")
+        assert 0
+
     server = subprocess.Popen(
         server_cmd,
         stdout=stdout,

@@ -88,6 +88,10 @@ def test_large_result_http():
     if return_code != 0:
         assert False, "Failed to install package."
 
+    if not os.path.isfile(server_cmd):
+        print(f"Server command '{server_cmd}' does not exist.")
+        assert 0
+
     server = subprocess.Popen(
         server_cmd,
         stdout=stdout,

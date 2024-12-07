@@ -75,6 +75,15 @@ def test_frequently_cgo_call_go():
 
     server_cmd = os.path.join(base_path, "frequently_cgo_call_go_app/bin/start")
     client_cmd = os.path.join(base_path, "frequently_cgo_call_go_app_client")
+
+    if not os.path.isfile(server_cmd):
+        print(f"Server command '{server_cmd}' does not exist.")
+        assert 0
+
+    if not os.path.isfile(client_cmd):
+        print(f"Client command '{client_cmd}' does not exist.")
+        assert 0
+
     server = subprocess.Popen(
         server_cmd,
         stdout=stdout,

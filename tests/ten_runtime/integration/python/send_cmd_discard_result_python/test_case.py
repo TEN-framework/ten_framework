@@ -116,6 +116,10 @@ def test_send_cmd_discard_result_python():
         base_path, "send_cmd_discard_result_python_app/bin/start"
     )
 
+    if not os.path.isfile(server_cmd):
+        print(f"Server command '{server_cmd}' does not exist.")
+        assert 0
+
     server = subprocess.Popen(
         server_cmd,
         stdout=stdout,

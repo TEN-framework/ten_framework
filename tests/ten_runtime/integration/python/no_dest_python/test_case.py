@@ -113,6 +113,10 @@ def test_no_dest_python():
 
     server_cmd = os.path.join(base_path, "no_dest_python_app/bin/start")
 
+    if not os.path.isfile(server_cmd):
+        print(f"Server command '{server_cmd}' does not exist.")
+        assert 0
+
     server = subprocess.Popen(
         server_cmd,
         stdout=stdout,

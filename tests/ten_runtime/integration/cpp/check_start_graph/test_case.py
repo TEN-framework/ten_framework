@@ -87,6 +87,10 @@ def test_check_start_graph():
             if os.path.exists(libasan_path):
                 my_env["LD_PRELOAD"] = libasan_path
 
+    if not os.path.isfile(server_cmd):
+        print(f"Server command '{server_cmd}' does not exist.")
+        assert 0
+
     server = subprocess.Popen(
         server_cmd,
         stdout=stdout,

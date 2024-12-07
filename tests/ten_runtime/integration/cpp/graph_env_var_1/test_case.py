@@ -105,6 +105,10 @@ def test_graph_env_var_1_app():
 
     my_env["TEST_ENV_VAR"] = "set_from_real_env_var"
 
+    if not os.path.isfile(server_cmd):
+        print(f"Server command '{server_cmd}' does not exist.")
+        assert 0
+
     try:
         server = subprocess.Popen(
             server_cmd,
