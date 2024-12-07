@@ -386,9 +386,9 @@ template("ten_package_test_prepare_app") {
     all_deps += [ ":${test_case_unique_target_name}_${_target_name}_build" ]
   } else {
     action(
-        "${test_case_unique_target_name}_${_target_name}_dump_integration_test_assembly_info") {
-      # All information will be dumped to the .assembly_resources directory.
-      script = "//build/ten_runtime/feature/dump_integration_test_info.py"
+        "${test_case_unique_target_name}_${_target_name}_prepare_integration_test_resources") {
+      script =
+          "//build/ten_runtime/feature/prepare_integration_test_resources.py"
 
       test_case_out_dir =
           rebase_path("${root_out_dir}/${test_case_root_dir_relative_path}")
@@ -432,7 +432,7 @@ template("ten_package_test_prepare_app") {
       deps = invoker.deps
     }
 
-    all_deps += [ ":${test_case_unique_target_name}_${_target_name}_dump_integration_test_assembly_info" ]
+    all_deps += [ ":${test_case_unique_target_name}_${_target_name}_prepare_integration_test_resources" ]
   }
 
   group("${_target_name}") {

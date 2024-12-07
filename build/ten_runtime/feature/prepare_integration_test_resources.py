@@ -24,7 +24,7 @@ class ArgumentInfo(argparse.Namespace):
         self.replace_files_after_install_all: list[str]
 
 
-def dump_info_json(args: ArgumentInfo):
+def dump_integration_test_preparation_info_json(args: ArgumentInfo):
     info = {
         "test_case_src_dir": args.test_case_src_dir,
         "src_app": args.src_app,
@@ -128,7 +128,7 @@ if __name__ == "__main__":
     arg_info = ArgumentInfo()
     args = parser.parse_args(namespace=arg_info)
 
-    dump_info_json(args)
+    dump_integration_test_preparation_info_json(args)
 
     copy_replacement_files(
         args,
