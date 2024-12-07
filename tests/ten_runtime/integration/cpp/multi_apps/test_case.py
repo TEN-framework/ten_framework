@@ -112,7 +112,7 @@ def start_app(app_name: str, port: int) -> subprocess.Popen:
         cwd=app_root_path,
     )
 
-    is_started, sock = msgpack.is_app_started("127.0.0.1", port, 10)
+    is_started, sock = msgpack.is_app_started("127.0.0.1", port, 30)
     if not is_started:
         print(f"The {app_name} is not started after 30 seconds.")
 

@@ -112,7 +112,7 @@ def test_graph_env_var_3_app():
         cwd=app_root_path,
     )
 
-    is_started, sock = msgpack.is_app_started("127.0.0.1", 8001, 10)
+    is_started, sock = msgpack.is_app_started("127.0.0.1", 8001, 30)
     if not is_started:
         print("The graph_env_var_3_app is not started after 30 seconds.")
 

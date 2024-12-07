@@ -191,7 +191,7 @@ def build(args: ArgumentInfo) -> int:
     if args.log_level > 0:
         msg = (
             f"> Start to build package({args.pkg_name})"
-            " in {args.pkg_src_root_dir}"
+            f" in {args.pkg_src_root_dir}"
         )
         print(msg)
 
