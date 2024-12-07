@@ -48,7 +48,7 @@ def test_standalone_test_python():
 
     if sys.platform == "linux":
         build_config_args = build_config.parse_build_config(
-            os.path.join(root_dir, "ten_args.gn"),
+            os.path.join(root_dir, "tgn_args.txt"),
         )
 
         if build_config_args.enable_sanitizer:

@@ -58,7 +58,7 @@ def setup_logger(logger):
 
         return new
 
-    sh.emit = decorate_emit(sh.emit) # type: ignore
+    sh.emit = decorate_emit(sh.emit)  # type: ignore
     logger.addHandler(sh)
 
     def decorate_loglevel():

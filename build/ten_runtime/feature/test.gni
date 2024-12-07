@@ -17,19 +17,19 @@ template("ten_package_test_prepare_app") {
 
   _target_name = target_name
 
-  test_case_root_dir_relative_path =
+  test_case_out_dir_rel_path_str =
       get_path_info(get_path_info(target_name, "abspath"), "dir")
-  test_case_root_dir = "${root_out_dir}/${test_case_root_dir_relative_path}"
+  test_case_out_dir_rel_path =
+      "${root_out_dir}/${test_case_out_dir_rel_path_str}"
 
   test_case_unique_target_name =
-      string_replace(test_case_root_dir_relative_path, "/", "_")
+      string_replace(test_case_out_dir_rel_path_str, "/", "_")
 
   all_deps = []
 
   if (ten_enable_integration_tests_prebuilt) {
-    app_src_root_dir =
-        "${test_case_root_dir}/${invoker.generated_app_src_root_dir_name}"
-    app_run_root_dir = "${test_case_root_dir}/${_target_name}"
+    app_src_root_dir = "${test_case_out_dir_rel_path}/${invoker.generated_app_src_root_dir_name}"
+    app_run_root_dir = "${test_case_out_dir_rel_path}/${_target_name}"
     install_app_dummy_output_file =
         "${target_gen_dir}/${_target_name}/install_app_dummy_output_file"
     install_app_depfile = "${target_gen_dir}/install_app_depfile"
@@ -142,7 +142,7 @@ template("ten_package_test_prepare_app") {
         replace_file_src_paths = replace_file_info.sources
         replace_file_src_path = replace_file_src_paths[0]
         replace_file_dest_path =
-            "${test_case_root_dir}/${replace_file_info.destination}"
+            "${test_case_out_dir_rel_path}/${replace_file_info.destination}"
 
         replace_file_src_abs_path = rebase_path(replace_file_src_path)
         replace_file_dest_abs_path = rebase_path(replace_file_dest_path)
@@ -269,7 +269,7 @@ template("ten_package_test_prepare_app") {
         replace_file_src_paths = replace_file_info.sources
         replace_file_src_path = replace_file_src_paths[0]
         replace_file_dest_path =
-            "${test_case_root_dir}/${replace_file_info.destination}"
+            "${test_case_out_dir_rel_path}/${replace_file_info.destination}"
 
         replace_file_src_abs_path = rebase_path(replace_file_src_path)
         replace_file_dest_abs_path = rebase_path(replace_file_dest_path)
@@ -390,14 +390,14 @@ template("ten_package_test_prepare_app") {
       script =
           "//build/ten_runtime/feature/prepare_integration_test_resources.py"
 
-      test_case_out_dir =
-          rebase_path("${root_out_dir}/${test_case_root_dir_relative_path}")
+      test_case_out_dir_abs_path =
+          rebase_path("${root_out_dir}/${test_case_out_dir_rel_path_str}")
 
       args = [
         "--test-case-src-dir",
         rebase_path("."),
         "--test-case-out-dir",
-        test_case_out_dir,
+        test_case_out_dir_abs_path,
         "--src-app",
         invoker.src_app,
         "--src-app-language",
@@ -427,7 +427,7 @@ template("ten_package_test_prepare_app") {
       }
 
       sources = []
-      outputs = [ "${test_case_root_dir}/.assemble_info/${invoker.generated_app_src_root_dir_name}" ]
+      outputs = [ "${test_case_out_dir_rel_path}/.assemble_info/${invoker.generated_app_src_root_dir_name}" ]
 
       deps = invoker.deps
     }
@@ -443,14 +443,15 @@ template("ten_package_test_prepare_app") {
 template("ten_package_test_prepare_client") {
   _target_name = target_name
 
-  test_case_root_dir_relative_path =
+  test_case_out_dir_rel_path_str =
       get_path_info(get_path_info(target_name, "abspath"), "dir")
   test_case_unique_target_name =
-      string_replace(test_case_root_dir_relative_path, "/", "_")
-  test_case_root_dir = "${root_out_dir}/${test_case_root_dir_relative_path}"
+      string_replace(test_case_out_dir_rel_path_str, "/", "_")
+  test_case_out_dir_rel_path =
+      "${root_out_dir}/${test_case_out_dir_rel_path_str}"
 
   executable("${test_case_unique_target_name}_client_${target_name}") {
-    output_dir = "${test_case_root_dir}"
+    output_dir = "${test_case_out_dir_rel_path}"
     output_name = _target_name
 
     forward_variables_from(invoker,
@@ -521,11 +522,12 @@ template("ten_package_test_prepare_client") {
 }
 
 template("ten_package_test_prepare_auxiliary_resources") {
-  test_case_root_dir_relative_path =
+  test_case_out_dir_rel_path_str =
       get_path_info(get_path_info(target_name, "abspath"), "dir")
-  test_case_root_dir = "${root_out_dir}/${test_case_root_dir_relative_path}"
+  test_case_out_dir_rel_path =
+      "${root_out_dir}/${test_case_out_dir_rel_path_str}"
   test_case_unique_target_name =
-      string_replace(test_case_root_dir_relative_path, "/", "_")
+      string_replace(test_case_out_dir_rel_path_str, "/", "_")
 
   # The collection of all the deps related to the specified resources.
   res_deps = []
@@ -552,7 +554,8 @@ template("ten_package_test_prepare_auxiliary_resources") {
       resource_src_paths = []
       resource_src_paths = resource_info.sources
       resource_src_path = resource_src_paths[0]
-      resource_dest_path = "${test_case_root_dir}/${resource_info.destination}"
+      resource_dest_path =
+          "${test_case_out_dir_rel_path}/${resource_info.destination}"
 
       action(
           "${test_case_unique_target_name}_${target_name}_resource_${resource_index}") {
@@ -597,14 +600,15 @@ template("ten_package_standalone_pkg") {
 
   _target_name = target_name
 
-  test_case_root_dir_relative_path =
+  test_case_out_dir_rel_path_str =
       get_path_info(get_path_info(target_name, "abspath"), "dir")
-  test_case_root_dir = "${root_out_dir}/${test_case_root_dir_relative_path}"
+  test_case_out_dir_rel_path =
+      "${root_out_dir}/${test_case_out_dir_rel_path_str}"
 
   test_case_unique_target_name =
-      string_replace(test_case_root_dir_relative_path, "/", "_")
+      string_replace(test_case_out_dir_rel_path_str, "/", "_")
 
-  pkg_root_dir = "${test_case_root_dir}/${_target_name}"
+  pkg_root_dir = "${test_case_out_dir_rel_path}/${_target_name}"
 
   install_standalone_dummy_output_file =
       "${target_gen_dir}/${_target_name}/install_standalone_dummy_output_file"

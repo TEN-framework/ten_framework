@@ -20,14 +20,14 @@ def install_app(app_name: str):
     app_language = "cpp"
 
     build_config_args = build_config.parse_build_config(
-        os.path.join(root_dir, "ten_args.gn"),
+        os.path.join(root_dir, "tgn_args.txt"),
     )
 
-    if build_config_args.enable_prebuilt is False:
+    if build_config_args.ten_enable_integration_tests_prebuilt is False:
         print('Assembling and building package "{}".'.format(source_pkg_name))
 
         source_root_path = os.path.join(base_path, source_pkg_name)
-        rc = build_pkg.prepare_and_build(
+        rc = build_pkg.prepare_and_build_app(
             build_config_args,
             root_dir,
             base_path,
@@ -90,7 +90,7 @@ def start_app(app_name: str, port: int) -> subprocess.Popen:
 
         root_dir = os.path.join(base_path, "../../../../../")
         build_config_args = build_config.parse_build_config(
-            os.path.join(root_dir, "ten_args.gn"),
+            os.path.join(root_dir, "tgn_args.txt"),
         )
 
         if (
@@ -154,7 +154,7 @@ def start_client(app_name: str) -> subprocess.Popen:
 
         root_dir = os.path.join(base_path, "../../../../../")
         build_config_args = build_config.parse_build_config(
-            os.path.join(root_dir, "ten_args.gn"),
+            os.path.join(root_dir, "tgn_args.txt"),
         )
         if (
             build_config_args.enable_sanitizer

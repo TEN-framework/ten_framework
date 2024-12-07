@@ -33,18 +33,13 @@ class ArgumentInfo:
         self.log_level: int
 
 
-def _construct_extra_args_for_cpp_ag(args: ArgumentInfo) -> list[str]:
+def _construct_cpp_additional_args(args: ArgumentInfo) -> list[str]:
     cmd = ["--"]
 
-    if args.is_clang is True:
-        cmd += ["is_clang=true"]
-    else:
-        cmd += ["is_clang=false"]
-
-    if args.enable_sanitizer is True:
-        cmd += ["enable_sanitizer=true"]
-    else:
-        cmd += ["enable_sanitizer=false"]
+    cmd.append(f"is_clang={'true' if args.is_clang else 'false'}")
+    cmd.append(
+        f"enable_sanitizer={'true' if args.enable_sanitizer else 'false'}"
+    )
 
     if args.vs_version:
         cmd += [f"vs_version={args.vs_version}"]
@@ -55,11 +50,13 @@ def _construct_extra_args_for_cpp_ag(args: ArgumentInfo) -> list[str]:
 def _build_cpp_app(args: ArgumentInfo) -> int:
     # tgn gen ...
     cmd = [f"{args.tgn_path}", "gen", args.os, args.cpu, args.build]
-    cmd += _construct_extra_args_for_cpp_ag(args)
+    cmd += _construct_cpp_additional_args(args)
 
     returncode, output = cmd_exec.run_cmd(cmd, args.log_level)
 
     if returncode:
+        if args.log_level > 0:
+            print(output)
         raise Exception("Failed to build c++ app")
 
     # tgn build ...
@@ -75,6 +72,8 @@ def _build_cpp_app(args: ArgumentInfo) -> int:
         print(f"Build c++ app({args.pkg_name}) costs {duration} seconds.")
 
     if returncode:
+        if args.log_level > 0:
+            print(output)
         raise Exception("Failed to build c++ app")
 
     # Copy the build result to the specified run folder.
@@ -90,19 +89,23 @@ def _build_cpp_app(args: ArgumentInfo) -> int:
 def _build_cpp_extension(args: ArgumentInfo) -> int:
     # tgn gen ...
     cmd = [f"{args.tgn_path}", "gen", args.os, args.cpu, args.build]
-    cmd += _construct_extra_args_for_cpp_ag(args)
+    cmd += _construct_cpp_additional_args(args)
 
-    returncode, _ = cmd_exec.run_cmd(cmd, args.log_level)
+    returncode, output = cmd_exec.run_cmd(cmd, args.log_level)
 
     if returncode:
+        if args.log_level > 0:
+            print(output)
         raise Exception("Failed to build c++ extension.")
 
     # tgn build ...
     cmd = [f"{args.tgn_path}", "build", args.os, args.cpu, args.build]
 
-    returncode, _ = cmd_exec.run_cmd(cmd, args.log_level)
+    returncode, output = cmd_exec.run_cmd(cmd, args.log_level)
 
     if returncode:
+        if args.log_level > 0:
+            print(output)
         raise Exception("Failed to build c++ extension.")
 
     return returncode
@@ -143,7 +146,8 @@ def _build_go_app(args: ArgumentInfo) -> int:
         print(f"Build go app({args.pkg_name}) costs {duration} seconds.")
 
     if returncode:
-        print(output)
+        if args.log_level > 0:
+            print(output)
         raise Exception("Failed to build go app.")
 
     return returncode
@@ -189,9 +193,6 @@ def prepare_app(
     source_pkg_name: str,
     log_level: int,
 ) -> int:
-    if log_level and log_level > 0:
-        print(f"> Install app to {source_pkg_name}")
-
     tman_path = os.path.join(root_dir, "ten_manager/bin/tman")
     tman_config_file = os.path.join(
         root_dir, "tests/local_registry/config.json"
@@ -200,7 +201,8 @@ def prepare_app(
         root_dir, "tests/local_registry/registry"
     )
 
-    # read the assembly info from <test_case_base_dir>/.assemble_info/<source_pkg_name>/info.json
+    # Read the assembly info from
+    # <test_case_base_dir>/.assemble_info/<source_pkg_name>/info.json
     assemble_info_dir = os.path.join(
         test_case_base_dir, ".assemble_info", source_pkg_name
     )
@@ -216,6 +218,11 @@ def prepare_app(
         test_case_base_dir, generated_app_src_root_dir_name
     )
 
+    # ========
+    # Step 1: Install app.
+    if log_level and log_level > 0:
+        print(f"> Install app to {source_pkg_name}")
+
     arg = install_pkg.ArgumentInfo()
     arg.tman_path = tman_path
     arg.pkg_type = "app"
@@ -230,15 +237,19 @@ def prepare_app(
     if install_res != 0:
         raise Exception("Failed to install app")
 
+    # ========
+    # Step 2: Replace files after install app.
     if log_level and log_level > 0:
-        print(f"> Replace files after install app")
+        print("> Replace files after install app")
 
     rc = _replace_after_install_app(test_case_base_dir, source_pkg_name)
     if rc != 0:
         raise Exception("Failed to replace files after install app")
 
+    # ========
+    # Step 3: Install all.
     if log_level and log_level > 0:
-        print(f"> Install all")
+        print("> Install all")
 
     install_all_args = install_all.ArgumentInfo()
     install_all_args.tman_path = tman_path
@@ -250,8 +261,10 @@ def prepare_app(
 
     rc = install_all.main(install_all_args)
 
+    # ========
+    # Step 4: Replace files after install all.
     if log_level and log_level > 0:
-        print(f"> Replace files after install all")
+        print("> Replace files after install all")
 
     rc = _replace_after_install_all(test_case_base_dir, source_pkg_name)
     if rc != 0:
@@ -342,7 +355,7 @@ def _replace_after_install_all(
     return 0
 
 
-def build(
+def build_app(
     build_config: build_config.BuildConfig,
     pkg_src_root_dir: str,
     pkg_run_root_dir: str,
@@ -408,7 +421,7 @@ def build(
     return returncode
 
 
-def prepare_and_build(
+def prepare_and_build_app(
     build_config: build_config.BuildConfig,
     root_dir: str,
     test_case_base_dir: str,
@@ -416,7 +429,7 @@ def prepare_and_build(
     source_pkg_name: str,
     pkg_language: str,
     log_level: int = 2,
-):
+) -> int:
     rc = prepare_app(
         build_config,
         root_dir,
@@ -429,7 +442,7 @@ def prepare_and_build(
 
     pkg_src_root_dir = os.path.join(test_case_base_dir, source_pkg_name)
 
-    rc = build(
+    rc = build_app(
         build_config,
         pkg_src_root_dir,
         pkg_run_root_dir,
@@ -444,7 +457,6 @@ def prepare_and_build(
 def cleanup(
     pkg_src_dir: str,
     pkg_run_dir: str,
-):
+) -> None:
     fs_utils.remove_tree(pkg_src_dir)
     fs_utils.remove_tree(pkg_run_dir)
-    return 0

@@ -13,7 +13,7 @@ class BuildConfig:
         is_clang,
         enable_sanitizer,
         vs_version,
-        enable_prebuilt,
+        ten_enable_integration_tests_prebuilt,
     ):
         self.target_os = target_os
         self.target_cpu = target_cpu
@@ -21,7 +21,9 @@ class BuildConfig:
         self.is_clang = is_clang
         self.enable_sanitizer = enable_sanitizer
         self.vs_version = vs_version
-        self.enable_prebuilt = enable_prebuilt
+        self.ten_enable_integration_tests_prebuilt = (
+            ten_enable_integration_tests_prebuilt
+        )
 
 
 def parse_build_config(file_path: str) -> BuildConfig:
@@ -31,7 +33,7 @@ def parse_build_config(file_path: str) -> BuildConfig:
     is_clang = None
     enable_sanitizer = None
     vs_version = None
-    enable_prebuilt = None
+    ten_enable_integration_tests_prebuilt = None
 
     with open(file_path, "r") as file:
         for line in file:
@@ -49,7 +51,9 @@ def parse_build_config(file_path: str) -> BuildConfig:
             elif line.startswith("vs_version"):
                 vs_version = line.split("=")[1].strip().strip('"')
             elif line.startswith("ten_enable_integration_tests_prebuilt"):
-                enable_prebuilt = line.split("=")[1].strip().lower() == "true"
+                ten_enable_integration_tests_prebuilt = (
+                    line.split("=")[1].strip().lower() == "true"
+                )
 
     target_build = "debug" if is_debug else "release"
 
@@ -60,5 +64,5 @@ def parse_build_config(file_path: str) -> BuildConfig:
         is_clang,
         enable_sanitizer,
         vs_version,
-        enable_prebuilt,
+        ten_enable_integration_tests_prebuilt,
     )
