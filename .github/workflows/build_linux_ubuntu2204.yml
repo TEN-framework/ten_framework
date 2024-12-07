@@ -148,7 +148,7 @@ jobs:
         run: |
           export PATH=$(pwd)/core/ten_gn:$PATH
           cd out/linux/x64/
-          pytest -s tests/ten_runtime/integration/ || { echo "ten_runtime integration test failed"; exit 1; }
+          pytest -s tests/ten_runtime/integration/
 
       - name: Update supports before upload or publish
         run: |
