@@ -64,7 +64,6 @@ def test_unused_addon_python():
     if build_config_args.ten_enable_integration_tests_prebuilt is False:
         print('Assembling and building package "{}".'.format(source_pkg_name))
 
-        source_root_path = os.path.join(base_path, source_pkg_name)
         rc = build_pkg.prepare_and_build_app(
             build_config_args,
             root_dir,
@@ -91,6 +90,9 @@ def test_unused_addon_python():
         cwd=app_root_path,
     )
     tman_install_process.wait()
+    return_code = tman_install_process.returncode
+    if return_code != 0:
+        assert False, "Failed to install package."
 
     bootstrap_cmd = os.path.join(
         base_path, "unused_addon_python_app/bin/bootstrap"

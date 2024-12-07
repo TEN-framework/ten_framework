@@ -90,6 +90,9 @@ def test_get_set_prop_python():
         cwd=app_root_path,
     )
     tman_install_process.wait()
+    return_code = tman_install_process.returncode
+    if return_code != 0:
+        assert False, "Failed to install package."
 
     bootstrap_cmd = os.path.join(
         base_path, "get_set_prop_python_app/bin/bootstrap"

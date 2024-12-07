@@ -123,6 +123,9 @@ def test_resp_handler_yield_python():
         cwd=app_root_path,
     )
     tman_install_process.wait()
+    return_code = tman_install_process.returncode
+    if return_code != 0:
+        assert False, "Failed to install package."
 
     bootstrap_cmd = os.path.join(
         base_path, "resp_handler_yield_python_app/bin/bootstrap"

@@ -90,6 +90,9 @@ def test_send_data_python():
         cwd=app_root_path,
     )
     tman_install_process.wait()
+    return_code = tman_install_process.returncode
+    if return_code != 0:
+        assert False, "Failed to install package."
 
     bootstrap_cmd = os.path.join(
         base_path, "send_data_python_app/bin/bootstrap"

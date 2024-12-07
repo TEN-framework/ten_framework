@@ -155,6 +155,9 @@ def test_go_app_cythonize():
         cwd=app_root_path,
     )
     tman_install_process.wait()
+    return_code = tman_install_process.returncode
+    if return_code != 0:
+        assert False, "Failed to install package."
 
     bootstrap_cmd = os.path.join(
         base_path, "go_app_cythonize_app/bin/bootstrap"

@@ -57,7 +57,8 @@ def build_cpp_app(args: ArgumentInfo) -> int:
     returncode, output = cmd_exec.run_cmd(cmd, args.log_level)
 
     if returncode:
-        raise Exception("Failed to build c++ app")
+        print(f"Failed to build c++ app: {output}")
+        return 1
 
     # tgn build ...
     cmd = [f"{args.tgn_path}", "build", args.os, args.cpu, args.build]
@@ -72,7 +73,8 @@ def build_cpp_app(args: ArgumentInfo) -> int:
         print(f"Build c++ app({args.pkg_name}) costs {duration} seconds.")
 
     if returncode:
-        raise Exception("Failed to build c++ app")
+        print(f"Failed to build c++ app: {output}")
+        return 1
 
     # Copy the build result to the specified run folder.
     fs_utils.copy(
@@ -89,18 +91,20 @@ def build_cpp_extension(args: ArgumentInfo) -> int:
     cmd = [f"{args.tgn_path}", "gen", args.os, args.cpu, args.build]
     cmd += construct_extra_args_for_cpp_ag(args)
 
-    returncode, _ = cmd_exec.run_cmd(cmd, args.log_level)
+    returncode, output = cmd_exec.run_cmd(cmd, args.log_level)
 
     if returncode:
-        raise Exception("Failed to build c++ extension.")
+        print(f"Failed to build c++ extension: {output}")
+        return 1
 
     # tgn build ...
     cmd = [f"{args.tgn_path}", "build", args.os, args.cpu, args.build]
 
-    returncode, _ = cmd_exec.run_cmd(cmd, args.log_level)
+    returncode, output = cmd_exec.run_cmd(cmd, args.log_level)
 
     if returncode:
-        raise Exception("Failed to build c++ extension.")
+        print(f"Failed to build c++ extension: {output}")
+        return 1
 
     return returncode
 
@@ -148,8 +152,8 @@ def build_go_app(args: ArgumentInfo) -> int:
         print(f"Build go app({args.pkg_name}) costs {duration} seconds.")
 
     if returncode:
-        print(output)
-        raise Exception("Failed to build go app.")
+        print(f"Failed to build go app: {output}")
+        return 1
 
     return returncode
 
@@ -171,7 +175,8 @@ def build_app(args: ArgumentInfo) -> int:
     elif args.pkg_language == "python":
         returncode = 0
     else:
-        raise Exception(f"Unknown app language: {args.pkg_language}")
+        print(f"Unknown app language: {args.pkg_language}")
+        returncode = 1
 
     return returncode
 
@@ -209,7 +214,8 @@ def build(args: ArgumentInfo) -> int:
             returncode = 0
 
         if returncode > 0:
-            raise Exception(f"Failed to build {pkg_type}({args.pkg_name})")
+            print(f"Failed to build {pkg_type}({args.pkg_name})")
+            return 1
 
         # Success to build the app, update the stamp file to represent this
         # fact.

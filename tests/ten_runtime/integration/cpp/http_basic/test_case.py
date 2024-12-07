@@ -83,6 +83,9 @@ def test_restful_http_app():
         cwd=app_root_path,
     )
     tman_install_process.wait()
+    return_code = tman_install_process.returncode
+    if return_code != 0:
+        assert False, "Failed to install package."
 
     server = subprocess.Popen(
         server_cmd,

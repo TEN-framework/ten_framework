@@ -53,6 +53,9 @@ def test_start_app_sync_go():
         cwd=app_root_path,
     )
     tman_install_process.wait()
+    return_code = tman_install_process.returncode
+    if return_code != 0:
+        assert False, "Failed to install package."
 
     if sys.platform == "win32":
         print("test_start_app_sync_go doesn't support win32")
