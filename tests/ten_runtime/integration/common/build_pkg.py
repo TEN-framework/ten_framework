@@ -6,6 +6,7 @@
 #
 import json
 import os
+import platform
 from datetime import datetime
 from . import (
     cmd_exec,
@@ -111,6 +112,13 @@ def _build_cpp_extension(args: ArgumentInfo) -> int:
     return returncode
 
 
+def is_mac_arm64() -> bool:
+    return (
+        platform.system().lower() == "darwin"
+        and platform.machine().lower() == "arm64"
+    )
+
+
 def _build_go_app(args: ArgumentInfo) -> int:
     # Determine the path to the main.go script. Some cases require a customized
     # Go build script, but in most situations, the build script provided by the
@@ -123,7 +131,7 @@ def _build_go_app(args: ArgumentInfo) -> int:
     if args.log_level > 0:
         cmd += ["--verbose"]
 
-    if args.enable_sanitizer:
+    if args.enable_sanitizer and not is_mac_arm64():
         cmd += ["-asan"]
 
     envs = os.environ.copy()
