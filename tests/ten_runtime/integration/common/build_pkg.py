@@ -324,7 +324,11 @@ def _replace_after_install_app(
         dst_file = os.path.join(test_case_base_dir, replace_file)
         replaced_files.append((src_file, dst_file))
 
-    replace.replace_normal_files_or_merge_json_files(replaced_files)
+    try:
+        replace.replace_normal_files_or_merge_json_files(replaced_files)
+    except Exception as exc:
+        print(exc)
+        return 1
 
     return 0
 
@@ -366,7 +370,11 @@ def _replace_after_install_all(
         dst_file = os.path.join(test_case_base_dir, replace_file)
         replaced_files.append((src_file, dst_file))
 
-    replace.replace_normal_files_or_merge_json_files(replaced_files)
+    try:
+        replace.replace_normal_files_or_merge_json_files(replaced_files)
+    except Exception as exc:
+        print(exc)
+        return 1
 
     return 0
 
