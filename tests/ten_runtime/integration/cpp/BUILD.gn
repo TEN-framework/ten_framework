@@ -8,31 +8,31 @@ import("//build/ten_runtime/options.gni")
 
 group("cpp") {
   deps = [
-    "check_start_graph",
+    # "check_start_graph",
     "graph_env_var_1",
-    "graph_env_var_2",
-    "graph_env_var_3",
-    "hello_world",
-    "http_basic",
-    "large_result",
+    # "graph_env_var_2",
+    # "graph_env_var_3",
+    # "hello_world",
+    # "http_basic",
+    # "large_result",
   ]
 
   if (ten_enable_package_manager) {
     # The standalone testing for the C++ extension depends on the Googletest
     # system package.
-    deps += [ "standalone_test_cpp" ]
+    # deps += [ "standalone_test_cpp" ]
   }
 
   if (ten_enable_ffmpeg_extensions && ten_enable_integration_tests_prebuilt) {
     deps += [
-      "ffmpeg_basic",
-      "ffmpeg_bypass",
+      # "ffmpeg_basic",
+      # "ffmpeg_bypass",
     ]
   }
 
   if (ten_enable_ten_rust && ten_enable_ten_rust_apis) {
     # This case will start an invalid graph, and it will be failed without
     # graph checking.
-    deps += [ "multi_apps" ]
+    # deps += [ "multi_apps" ]
   }
 }

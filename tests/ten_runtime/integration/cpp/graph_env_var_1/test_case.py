@@ -129,9 +129,10 @@ def test_graph_env_var_1_app():
         server.kill()
         server_rc = server.wait()
 
-        server_output, _ = server.communicate()
+        server_stdout, server_stderr = server.communicate()
         print("Server output:")
-        print(server_output)
+        print(server_stdout)
+        print(server_stderr)
 
         print("The exit code of graph_env_var_1_app: ", server_rc)
 
@@ -153,10 +154,10 @@ def test_graph_env_var_1_app():
 
     server_rc = server.wait()
 
-    server_output, _ = server.communicate()
+    server_stdout, _ = server.communicate()
     if server_rc != 0:
         print("Server output:")
-        print(server_output)
+        print(server_stdout)
 
     print("server: ", server_rc)
     print("client: ", client_rc)
