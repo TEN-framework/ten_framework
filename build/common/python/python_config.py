@@ -5,9 +5,9 @@
 # Refer to the "LICENSE" file in the root directory for more information.
 #
 import argparse
-import os
 import sys
 import sysconfig
+import platform
 from build.scripts import cmd_exec
 
 
@@ -141,35 +141,115 @@ if __name__ == "__main__":
             else:
                 raise Exception(f"Unknown config_type: {args.config_type}")
         else:
+            is_mac = platform.system().lower() == "darwin"
+
             if args.config_type == "cflags":
+                # For mac, same as Linux: just run python-config --embed
+                # --cflags
                 cmd = [
                     f"python{args.python_version}-config",
                     "--embed",
                     "--cflags",
                 ]
+
+                returncode, output_text = cmd_exec.run_cmd(cmd, args.log_level)
+                if returncode:
+                    raise Exception("Failed to run python-config.")
+
+                outputs = output_text.split()
+                for output in outputs:
+                    print(output)
+
             elif args.config_type == "ldflags":
-                cmd = [
+                # On mac, in addition to python-config --embed --ldflags, we
+                # also need to add the framework pairs extracted from libs.
+                cmd_ld = [
                     f"python{args.python_version}-config",
                     "--embed",
                     "--ldflags",
                 ]
+
+                returncode, ld_output = cmd_exec.run_cmd(cmd_ld, args.log_level)
+                if returncode:
+                    raise Exception("Failed to run python-config.")
+
+                ld_outputs = ld_output.split()
+
+                if is_mac:
+                    # Extract framework pairs from libs.
+                    cmd_libs = [
+                        f"python{args.python_version}-config",
+                        "--embed",
+                        "--libs",
+                    ]
+                    returncode, libs_output = cmd_exec.run_cmd(
+                        cmd_libs, args.log_level
+                    )
+                    if returncode:
+                        raise Exception("Failed to run python-config for libs.")
+
+                    libs_outputs = libs_output.split()
+
+                    frameworks_pairs = []
+                    skip_next = False
+                    prev_token = None
+                    for token in libs_outputs:
+                        if skip_next:
+                            # 'prev_token' was '-framework', 'token' is the
+                            # framework name.
+                            frameworks_pairs.append((prev_token, token))
+                            skip_next = False
+                            continue
+                        if token == "-framework":
+                            prev_token = token
+                            skip_next = True
+
+                    # Add the framework pairs to ldflags.
+                    for pair in frameworks_pairs:
+                        ld_outputs.append(pair[0])
+                        ld_outputs.append(pair[1])
+
+                for out in ld_outputs:
+                    print(out)
+
             elif args.config_type == "libs":
+                # On mac, we need to remove -framework <something> pairs from
+                # the output. On linux, just remove the '-l' prefix.
                 cmd = [
                     f"python{args.python_version}-config",
                     "--embed",
                     "--libs",
-                    "| sed 's/-l//g'",  # remove -l prefix
                 ]
+
+                returncode, output_text = cmd_exec.run_cmd(cmd, args.log_level)
+                if returncode:
+                    raise Exception("Failed to run python-config.")
+
+                outputs = output_text.split()
+
+                if is_mac:
+                    filtered_libs = []
+                    skip_next = False
+                    for token in outputs:
+                        if skip_next:
+                            skip_next = False
+                            continue
+                        if token == "-framework":
+                            skip_next = True
+                        else:
+                            filtered_libs.append(
+                                token.replace("-l", "")
+                            )  # remove -l
+                    for lib in filtered_libs:
+                        print(lib)
+                else:
+                    # Linux-like behavior.
+                    filtered_libs = [lib.replace("-l", "") for lib in outputs]
+                    for lib in filtered_libs:
+                        print(lib)
+
             else:
                 raise Exception(f"Unknown option: {args.config_type}")
-
-            returncode, output_text = cmd_exec.run_cmd(cmd, args.log_level)
-            if returncode:
-                raise Exception("Failed to run python-config.")
-
-            outputs = output_text.split()
-            for output in outputs:
-                print(output)
 
     except Exception as exc:
         print(exc)
