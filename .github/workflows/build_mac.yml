@@ -164,7 +164,10 @@ jobs:
           TEN_ENABLE_MEMORY_TRACKING: "true"
           TEN_ENABLE_BACKTRACE_DUMP: "true"
         run: |
-          export PATH=$(pwd)/core/ten_gn:/opt/homebrew/opt/llvm@18/bin:$PATH
+          export PATH=$(pwd)/core/ten_gn:$PATH
+          if [ ${{ matrix.build_type }} == "debug" ]; then
+            export PATH="/usr/local/opt/llvm@18/bin:$PATH"
+          fi
           cd out/mac/arm64/
           pytest -s tests/ten_runtime/integration/
         # continue-on-error: true
@@ -324,6 +327,9 @@ jobs:
           TEN_ENABLE_BACKTRACE_DUMP: "true"
         run: |
           export PATH=$(pwd)/core/ten_gn:$PATH
+          if [ ${{ matrix.build_type }} == "debug" ]; then
+            export PATH="/usr/local/opt/llvm@18/bin:$PATH"
+          fi
           cd out/mac/x64/
           pytest -s tests/ten_runtime/integration/
 
