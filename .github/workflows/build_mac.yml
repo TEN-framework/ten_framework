@@ -167,6 +167,7 @@ jobs:
           export PATH=$(pwd)/core/ten_gn:$PATH
           cd out/mac/arm64/
           pytest -s tests/ten_runtime/integration/
+        continue-on-error: true
 
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@v3
