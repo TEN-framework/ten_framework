@@ -92,9 +92,8 @@ def _build_cpp_extension(args: ArgumentInfo) -> int:
     returncode, output = cmd_exec.run_cmd(cmd, args.log_level)
 
     if returncode:
-        if args.log_level > 0:
-            print(output)
-        raise Exception("Failed to build c++ extension.")
+        print(output)
+        assert False, "Failed to build c++ extension."
 
     # tgn build ...
     cmd = ["tgn", "build", args.os, args.cpu, args.build]
@@ -102,9 +101,8 @@ def _build_cpp_extension(args: ArgumentInfo) -> int:
     returncode, output = cmd_exec.run_cmd(cmd, args.log_level)
 
     if returncode:
-        if args.log_level > 0:
-            print(output)
-        raise Exception("Failed to build c++ extension.")
+        print(output)
+        assert False, "Failed to build c++ extension."
 
     return returncode
 
@@ -151,9 +149,8 @@ def _build_go_app(args: ArgumentInfo) -> int:
         print(f"Build go app({args.pkg_name}) costs {duration} seconds.")
 
     if returncode:
-        if args.log_level > 0:
-            print(output)
-        raise Exception("Failed to build go app.")
+        print(output)
+        assert False, "Failed to build go app."
 
     return returncode
 

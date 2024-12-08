@@ -27,9 +27,6 @@ jobs:
           fetch-depth: "0"
           submodules: "true"
 
-      - name: Setup tmate session
-        uses: mxschmitt/action-tmate@v3
-
       - uses: actions/setup-python@v5
         with:
           python-version: "3.10"
@@ -170,6 +167,9 @@ jobs:
           export PATH=$(pwd)/core/ten_gn:$PATH
           cd out/mac/arm64/
           pytest -s tests/ten_runtime/integration/
+
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
 
   # build-mac-x64:
   #   concurrency:
