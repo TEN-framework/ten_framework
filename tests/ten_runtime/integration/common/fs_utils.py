@@ -8,10 +8,9 @@ import sys
 import stat
 import os
 import shutil
-import tempfile
-from . import log
 import subprocess
 import inspect
+from . import log
 
 
 def mkdir_p(path: str) -> None:
@@ -23,44 +22,7 @@ def mkdir_p(path: str) -> None:
 
 def remove_tree(path: str) -> None:
     if os.path.exists(path):
-        if sys.platform == "win32":
-            # There are many corner cases in Windows which will prevent the
-            # target path from deleting.
-            #
-            # Therefore, we use robocopy to empty a folder before deleting it in
-            # Windows. robocopy could handle more cases in Windows when
-            # deleting a folder.
-            #
-            # 1. Create an empty tmp folder.
-            tmp_folder = tempfile.mkdtemp()
-
-            # 2. Use 'robocopy' to clear the contents of the target folder. The
-            # important argument is '/mir'.
-            rt = subprocess.call(
-                [
-                    "robocopy",
-                    tmp_folder,
-                    path,
-                    "/r:3",
-                    "/w:2",
-                    "/mir",
-                    "/sl",
-                    "/purge",
-                    "/mt",
-                    "/LOG:robocopy_remove_tree_log.txt",
-                ]
-            )
-            if rt >= 8:
-                log.error(f"Failed to remove_tree({path}): {str(rt)}")
-                exit(rt)
-
-            # 3. The target folder is empty now, its safe to remove it.
-            shutil.rmtree(path)
-
-            # 4. Remove the tmp folder, too.
-            shutil.rmtree(tmp_folder)
-        else:
-            shutil.rmtree(path)
+        shutil.rmtree(path)
 
 
 def copy_tree(src_path: str, dst_path: str, rm_dst=False) -> None:
