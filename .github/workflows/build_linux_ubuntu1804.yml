@@ -40,10 +40,6 @@ jobs:
           git checkout ${{ github.event.pull_request.head.sha }}
           git submodule update --init --recursive
 
-      - uses: jcs090218/setup-emacs@master
-        with:
-          version: 24.5
-
       - name: Update version
         run: |
           git config --global --add safe.directory $(pwd)

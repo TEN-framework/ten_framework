@@ -41,73 +41,60 @@ def copy_tree(src_path: str, dst_path: str, rm_dst=False) -> None:
         raise Exception(src_path + " is not a directory.")
 
     try:
-        try:
-            if rm_dst:
-                remove_tree(dst_path)
-                # shutil.copytree requires the destination folder is empty,
-                # otherwise, this function will throw exceptions. So use it
-                # in this case.
-                shutil.copytree(
-                    src_path,
-                    dst_path,
-                    symlinks=True,
-                    copy_function=shutil.copy,
-                )
-            # Loop all immediate items in src_path, and copy them one by
-            # one.
-            for name in os.listdir(src_path):
-                src_item_path = os.path.join(src_path, name)
-                dest_item_path = os.path.join(dst_path, name)
-                if os.path.isdir(src_item_path):
-                    # Create the destination folder if not exist.
-                    if not os.path.exists(dest_item_path):
-                        os.makedirs(dest_item_path, exist_ok=True)
-                    copy_tree(src_item_path, dest_item_path)
-                else:
-                    copy_file(src_item_path, dest_item_path, rm_dst=rm_dst)
-        except Exception as exc:
-            log.error(
-                inspect.cleandoc(
-                    f"""Failed to copy tree:
-                    {src_path} =>
-                    {dst_path}
-                    Exception: {exc}
-                    rm_dst: {rm_dst}"""
-                )
+        if rm_dst:
+            remove_tree(dst_path)
+            # shutil.copytree requires the destination folder is empty,
+            # otherwise, this function will throw exceptions. So use it
+            # in this case.
+            shutil.copytree(
+                src_path,
+                dst_path,
+                symlinks=True,
+                copy_function=shutil.copy,
             )
-            raise
-
-        try:
-            # Update the file access and modify time to the current time.
-            os.utime(dst_path, follow_symlinks=False)
-        except Exception:
-            try:
-                # If follow_symlinks parameter is not supported, fall back to
-                # default behavior
-                os.utime(dst_path)
-            except Exception as exc:
-                log.error(
-                    inspect.cleandoc(
-                        f"""Failed to copy_tree:
-                    {src_path} =>
-                    {dst_path}
-                    Exception: {exc}
-                    rm_dst: {rm_dst}"""
-                    )
-                )
-                exit(1)
-
+        # Loop all immediate items in src_path, and copy them one by
+        # one.
+        for name in os.listdir(src_path):
+            src_item_path = os.path.join(src_path, name)
+            dest_item_path = os.path.join(dst_path, name)
+            if os.path.isdir(src_item_path):
+                # Create the destination folder if not exist.
+                if not os.path.exists(dest_item_path):
+                    os.makedirs(dest_item_path, exist_ok=True)
+                copy_tree(src_item_path, dest_item_path)
+            else:
+                copy_file(src_item_path, dest_item_path, rm_dst=rm_dst)
     except Exception as exc:
         log.error(
             inspect.cleandoc(
                 f"""Failed to copy_tree:
-            {src_path} =>
-            {dst_path}
-            Exception: {exc}
-            rm_dst: {rm_dst}"""
+                {src_path} =>
+                {dst_path}
+                Exception: {exc}
+                rm_dst: {rm_dst}"""
             )
         )
         exit(1)
+
+    try:
+        # Update the file access and modify time to the current time.
+        os.utime(dst_path, follow_symlinks=False)
+    except Exception:
+        try:
+            # If follow_symlinks parameter is not supported, fall back to
+            # default behavior
+            os.utime(dst_path)
+        except Exception as exc:
+            log.error(
+                inspect.cleandoc(
+                    f"""Failed to update utime after copy_tree:
+                {src_path} =>
+                {dst_path}
+                Exception: {exc}
+                rm_dst: {rm_dst}"""
+                )
+            )
+            exit(1)
 
 
 def copy_file(src_file: str, dst_file: str, rm_dst=False) -> None:
