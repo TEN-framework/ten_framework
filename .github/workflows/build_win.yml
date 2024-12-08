@@ -96,6 +96,18 @@ jobs:
         with:
           python-version: "3.10"
 
+      - name: Get Python executable path
+        run: |
+          $pythonPath = python -c "import sys; print(sys.executable)"
+          Write-Output "Python executable path: $pythonPath"
+          echo "PYTHON3_PATH=$pythonPath" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+        shell: pwsh
+
+      - name: Use Python path
+        run: |
+          echo "The Python executable is located at: $env:PYTHON3_PATH"
+        shell: pwsh
+
       - name: Install Python dependencies via script
         run: |
           python .github/tools/setup_pytest_dependencies.py
