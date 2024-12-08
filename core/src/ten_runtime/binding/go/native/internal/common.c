@@ -64,7 +64,7 @@ void ten_go_bridge_destroy_go_part(ten_go_bridge_t *self) {
 void ten_go_error_init_with_errno(ten_go_error_t *self, ten_errno_t errno) {
   TEN_ASSERT(self, "Should not happen.");
 
-  self->errno = errno;
+  self->err_no = errno;
   self->err_msg_size = 0;
   self->err_msg = NULL;
 }
@@ -78,14 +78,14 @@ void ten_go_error_from_error(ten_go_error_t *self, ten_error_t *err) {
 void ten_go_error_set_errno(ten_go_error_t *self, ten_errno_t errno) {
   TEN_ASSERT(self, "Should not happen.");
 
-  self->errno = errno;
+  self->err_no = errno;
 }
 
 void ten_go_error_set(ten_go_error_t *self, ten_errno_t errno,
                       const char *msg) {
   TEN_ASSERT(self, "Should not happen.");
 
-  self->errno = errno;
+  self->err_no = errno;
   if (msg == NULL || strlen(msg) == 0) {
     return;
   }
