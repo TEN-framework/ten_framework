@@ -126,6 +126,7 @@ def _build_go_app(args: ArgumentInfo) -> int:
     if args.log_level > 0:
         cmd += ["--verbose"]
 
+    # `-asan` is not supported by go compiler on darwin/arm64.
     if args.enable_sanitizer and not is_mac_arm64():
         cmd += ["-asan"]
 
@@ -421,9 +422,9 @@ def build_app(
         if args.log_level > 0:
             print(f"Build {pkg_type}({args.pkg_name}) success")
 
-    except Exception as e:
+    except Exception:
         returncode = 1
-        print(f"Failed to build {pkg_type}({args.pkg_name}): {repr(e)}")
+        print(f"Failed to build {pkg_type}({args.pkg_name})")
 
     finally:
         os.chdir(origin_wd)

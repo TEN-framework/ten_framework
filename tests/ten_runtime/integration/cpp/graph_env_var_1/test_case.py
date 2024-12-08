@@ -109,30 +109,20 @@ def test_graph_env_var_1_app():
         print(f"Server command '{server_cmd}' does not exist.")
         assert False
 
-    try:
-        server = subprocess.Popen(
-            server_cmd,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            env=my_env,
-            cwd=app_root_path,
-            text=True,
-        )
-    except Exception as e:
-        print(f"Failed to start server command '{server_cmd}': {e}")
-        assert False, "Failed to start server."
+    server = subprocess.Popen(
+        server_cmd,
+        stdout=stdout,
+        stderr=subprocess.STDOUT,
+        env=my_env,
+        cwd=app_root_path,
+    )
 
-    is_started, sock = msgpack.is_app_started("127.0.0.1", 8001, 30)
+    is_started, sock = msgpack.is_app_started("127.0.0.1", 8001, 10)
     if not is_started:
-        print("The graph_env_var_1_app is not started after 30 seconds.")
+        print("The graph_env_var_1_app is not started after 10 seconds.")
 
         server.kill()
         server_rc = server.wait()
-
-        server_stdout, server_stderr = server.communicate()
-        print("Server output:")
-        print(server_stdout)
-        print(server_stderr)
 
         print("The exit code of graph_env_var_1_app: ", server_rc)
 

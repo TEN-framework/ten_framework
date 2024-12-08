@@ -102,7 +102,7 @@ def test_large_result_http():
 
     is_started = http.is_app_started("127.0.0.1", 8001, 30)
     if not is_started:
-        print("The large_result_http is not started after 30 seconds.")
+        print("The large_result_http is not started after 10 seconds.")
 
         server.kill()
         exit_code = server.wait()

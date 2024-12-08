@@ -8,7 +8,7 @@ import socket
 import time
 
 
-def is_app_started(ip: str, port: int, timeout=30):
+def is_app_started(ip: str, port: int, timeout=10):
     duration = 0
 
     while duration < timeout:

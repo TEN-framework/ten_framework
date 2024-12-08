@@ -92,7 +92,7 @@ def detect_port(ip: str, port: int) -> bool:
         return False
 
 
-def is_app_started(ip: str, port: int, timeout=30) -> bool:
+def is_app_started(ip: str, port: int, timeout=10) -> bool:
     duration = 0
     is_started = False
 

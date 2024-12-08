@@ -101,9 +101,9 @@ def test_return_value_go():
         cwd=app_root_path,
     )
 
-    is_started, sock = msgpack.is_app_started("127.0.0.1", 8007, 30)
+    is_started, sock = msgpack.is_app_started("127.0.0.1", 8007, 10)
     if not is_started:
-        print("The return_value_go is not started after 30 seconds.")
+        print("The return_value_go is not started after 10 seconds.")
 
         server.kill()
         exit_code = server.wait()

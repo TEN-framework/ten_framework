@@ -23,7 +23,6 @@ class ArgumentInfo(argparse.Namespace):
         self.os: str
         self.cpu: str
         self.build: str
-        self.tgn_path: str
         self.is_clang: bool
         self.enable_sanitizer: bool
         self.vs_version: str
@@ -51,7 +50,7 @@ def construct_extra_args_for_cpp_ag(args: ArgumentInfo) -> list[str]:
 
 def build_cpp_app(args: ArgumentInfo) -> int:
     # tgn gen ...
-    cmd = [f"{args.tgn_path}", "gen", args.os, args.cpu, args.build]
+    cmd = ["tgn", "gen", args.os, args.cpu, args.build]
     cmd += construct_extra_args_for_cpp_ag(args)
 
     returncode, output = cmd_exec.run_cmd(cmd, args.log_level)
@@ -61,7 +60,7 @@ def build_cpp_app(args: ArgumentInfo) -> int:
         return 1
 
     # tgn build ...
-    cmd = [f"{args.tgn_path}", "build", args.os, args.cpu, args.build]
+    cmd = ["tgn", "build", args.os, args.cpu, args.build]
 
     t1 = datetime.now()
     returncode, output = cmd_exec.run_cmd(cmd, args.log_level)
@@ -88,7 +87,7 @@ def build_cpp_app(args: ArgumentInfo) -> int:
 
 def build_cpp_extension(args: ArgumentInfo) -> int:
     # tgn gen ...
-    cmd = [f"{args.tgn_path}", "gen", args.os, args.cpu, args.build]
+    cmd = ["tgn", "gen", args.os, args.cpu, args.build]
     cmd += construct_extra_args_for_cpp_ag(args)
 
     returncode, output = cmd_exec.run_cmd(cmd, args.log_level)
@@ -98,7 +97,7 @@ def build_cpp_extension(args: ArgumentInfo) -> int:
         return 1
 
     # tgn build ...
-    cmd = [f"{args.tgn_path}", "build", args.os, args.cpu, args.build]
+    cmd = ["tgn", "build", args.os, args.cpu, args.build]
 
     returncode, output = cmd_exec.run_cmd(cmd, args.log_level)
 
@@ -252,7 +251,6 @@ if __name__ == "__main__":
     parser.add_argument("--os", type=str, required=True)
     parser.add_argument("--cpu", type=str, required=True)
     parser.add_argument("--build", type=str, required=True)
-    parser.add_argument("--tgn-path", type=str, required=False)
     parser.add_argument("--is-clang", action=argparse.BooleanOptionalAction)
     parser.add_argument(
         "--enable-sanitizer", action=argparse.BooleanOptionalAction

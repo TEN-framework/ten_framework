@@ -122,3 +122,7 @@ jobs:
       #     $ENV:PATH += ";$PWD/core/ten_gn"
       #     cd out/win/x64/
       #     pytest -s tests/ten_runtime/integration/
+      #   continue-on-error: true
+
+      # - name: Setup tmate session
+      #   uses: mxschmitt/action-tmate@v3

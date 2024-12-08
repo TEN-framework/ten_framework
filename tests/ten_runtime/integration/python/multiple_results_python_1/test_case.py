@@ -131,7 +131,7 @@ def test_multiple_results_python_1():
 
     is_started = http.is_app_started("127.0.0.1", 8002, 30)
     if not is_started:
-        print("The multiple_results_python_1 is not started after 30 seconds.")
+        print("The multiple_results_python_1 is not started after 10 seconds.")
 
         server.kill()
         exit_code = server.wait()
