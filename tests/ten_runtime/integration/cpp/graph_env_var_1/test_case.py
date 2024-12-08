@@ -143,12 +143,6 @@ def test_graph_env_var_1_app():
     sock.close()
 
     server_rc = server.wait()
-
-    server_stdout, _ = server.communicate()
-    if server_rc != 0:
-        print("Server output:")
-        print(server_stdout)
-
     print("server: ", server_rc)
     print("client: ", client_rc)
     assert server_rc == 0, f"Server exited with code {server_rc}"
