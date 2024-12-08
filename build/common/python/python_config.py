@@ -7,6 +7,7 @@
 import argparse
 import os
 import sys
+import sysconfig
 from build.scripts import cmd_exec
 
 
@@ -17,6 +18,91 @@ class ArgumentInfo(argparse.Namespace):
         self.target_os: str
         self.config_type: str
         self.log_level: int
+
+
+def get_embed_flags():
+    config = sysconfig.get_config_vars()
+
+    # Include directories.
+    include_dirs = config.get("INCLUDEPY", "")
+
+    # Library directories.
+    lib_dirs = config.get("LIBDIR", "")
+    # On some builds, you might need to add 'LIBPL' or similar.
+    lib_dirs_extra = config.get("LIBPL", "")
+    if lib_dirs_extra:
+        lib_dirs += f" {lib_dirs_extra}"
+
+    # Libraries.
+    libs = config.get("LIBS", "")
+    # Include the Python library.
+    python_lib = config.get("LIBRARY", "").replace("lib", "").replace(".a", "")
+    if python_lib:
+        libs += f" {python_lib}"
+
+    # C Flags.
+    cflags = config.get("CFLAGS", "")
+
+    return {
+        "include_dirs": include_dirs,
+        "lib_dirs": lib_dirs,
+        "libs": libs.strip(),
+        "cflags": cflags.strip(),
+    }
+
+
+def transform_flags_for_windows(embed_flags):
+    transformed = {"include_dirs": [], "lib_dirs": [], "libs": [], "cflags": []}
+
+    # Transform include directories.
+    for include_dir in embed_flags["include_dirs"].split():
+        transformed["include_dirs"].append(f'/I"{include_dir}"')
+
+    # Transform library directories.
+    for lib_dir in embed_flags["lib_dirs"].split():
+        transformed["lib_dirs"].append(f'/LIBPATH:"{lib_dir}"')
+
+    # Transform libraries.
+    for lib in embed_flags["libs"].split():
+        # Remove '-l' if present.
+        if lib.startswith("-l"):
+            lib = lib[2:]
+        # Append .lib extension if not present.
+        if not lib.endswith(".lib"):
+            lib = f'"{lib}.lib"'
+        else:
+            lib = f'"{lib}"'
+        transformed["libs"].append(lib)
+
+    # Transform CFLAGS.
+    transformed["cflags"] = embed_flags["cflags"].split()
+
+    return transformed
+
+
+def get_config_flags(config_type: str):
+    config = sysconfig.get_config_vars()
+
+    if config_type == "cflags":
+        return config.get("CFLAGS", "")
+    elif config_type == "ldflags":
+        return config.get("LDFLAGS", "")
+    elif config_type == "libs":
+        libs = config.get("LIBS", "")
+        # Remove '-l' prefixes if necessary.
+        libs = libs.replace("-l", "")
+        return libs
+    else:
+        raise ValueError(f"Unknown config_type: {config_type}")
+
+
+def build_cmd(config_type):
+    if config_type in ["cflags", "ldflags", "libs"]:
+        flag = get_config_flags(config_type)
+        cmd = flag.split()
+        return cmd
+    else:
+        raise ValueError(f"Unknown config_type: {config_type}")
 
 
 if __name__ == "__main__":
@@ -34,18 +120,26 @@ if __name__ == "__main__":
 
     try:
         if args.target_os == "win":
-            py_path = os.environ.get("PYTHON3_PATH")
-            if py_path is None:
-                raise SystemError("PYTHON3_PATH is not provided")
+            # Retrieve embed flags using sysconfig.
+            embed_flags = get_embed_flags()
+            transformed_flags = transform_flags_for_windows(embed_flags)
+
+            if args.config_type == "cflags":
+                # Print include directories and any additional CFLAGS.
+                for flag in transformed_flags["include_dirs"]:
+                    print(flag)
+                for flag in transformed_flags["cflags"]:
+                    print(flag)
+            elif args.config_type == "ldflags":
+                # Print library directories.
+                for lib_dir in transformed_flags["lib_dirs"]:
+                    print(lib_dir)
+            elif args.config_type == "libs":
+                # Print libraries.
+                for lib in transformed_flags["libs"]:
+                    print(lib)
             else:
-                if args.config_type == "cflags":
-                    print('/I"' + os.path.join(py_path, "include") + '"')
-                elif args.config_type == "ldflags":
-                    print('/LIBPATH:"' + os.path.join(py_path, "libs" + '"'))
-                elif args.config_type == "libs":
-                    print('/Libs:"' + os.path.join(py_path, "libs" + '"'))
-                else:
-                    raise Exception(f"Unknown option: {args.config_type}")
+                raise Exception(f"Unknown config_type: {args.config_type}")
         else:
             if args.config_type == "cflags":
                 cmd = [
