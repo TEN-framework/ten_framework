@@ -27,6 +27,13 @@ jobs:
           fetch-depth: "0"
           submodules: "true"
 
+      - name: Setup upterm session
+        uses: lhotari/action-upterm@v1
+        if: success() || failure()
+        with:
+          limit-access-to-actor: true
+          limit-access-to-users: halajohn
+
       - uses: actions/setup-python@v5
         with:
           python-version: "3.10"
