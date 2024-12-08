@@ -87,8 +87,7 @@ def main(args: ArgumentInfo) -> int:
 
         returncode, output_text = cmd_exec.run_cmd(cmd, args.log_level)
         if returncode:
-            if args.log_level > 0:
-                print(output_text)
+            print(output_text)
             raise Exception("Failed to install app.")
 
     except Exception as exc:
