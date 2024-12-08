@@ -27,6 +27,10 @@ jobs:
           fetch-depth: "0"
           submodules: "true"
 
+      - uses: jcs090218/setup-emacs@master
+        with:
+          version: 24.5
+
       - uses: actions/setup-python@v5
         with:
           python-version: "3.10"
@@ -189,6 +193,10 @@ jobs:
           fetch-depth: "0"
           submodules: "true"
 
+      - uses: jcs090218/setup-emacs@master
+        with:
+          version: 24.5
+
       - uses: actions/setup-python@v5
         with:
           python-version: "3.10"
@@ -347,6 +355,10 @@ jobs:
         with:
           fetch-depth: "0"
           submodules: "true"
+
+      - uses: jcs090218/setup-emacs@master
+        with:
+          version: 24.5
 
       - uses: actions/setup-python@v5
         with:

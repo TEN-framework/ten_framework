@@ -20,9 +20,17 @@ def mkdir_p(path: str) -> None:
         raise Exception("tgn supports Python 3 only")
 
 
+def remove_readonly(func, path, excinfo):
+    if not os.access(path, os.W_OK):
+        os.chmod(path, stat.S_IWUSR)
+        func(path)
+    else:
+        raise
+
+
 def remove_tree(path: str) -> None:
     if os.path.exists(path):
-        shutil.rmtree(path)
+        shutil.rmtree(path, onerror=remove_readonly)
 
 
 def copy_tree(src_path: str, dst_path: str, rm_dst=False) -> None:

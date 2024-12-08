@@ -27,6 +27,10 @@ jobs:
           fetch-depth: "0"
           submodules: "true"
 
+      - uses: jcs090218/setup-emacs@master
+        with:
+          version: 24.5
+
       - uses: ilammy/msvc-dev-cmd@v1
 
       - uses: actions/setup-python@v5
