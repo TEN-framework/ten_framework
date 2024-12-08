@@ -66,12 +66,12 @@ jobs:
           chmod +x out/win/x64/tests/standalone/ten_runtime_unit_test
           out/win/x64/tests/standalone/ten_runtime_unit_test
 
-      # - name: Run Tests (ten_runtime_smoke_test)
-      #   env:
-      #     TEN_ENABLE_BACKTRACE_DUMP: "true"
-      #   run: |
-      #     chmod +x out/win/x64/tests/standalone/ten_runtime_smoke_test
-      #     out/win/x64/tests/standalone/ten_runtime_smoke_test
+      - name: Run Tests (ten_runtime_smoke_test)
+        env:
+          TEN_ENABLE_BACKTRACE_DUMP: "true"
+        run: |
+          chmod +x out/win/x64/tests/standalone/ten_runtime_smoke_test
+          out/win/x64/tests/standalone/ten_runtime_smoke_test
 
       - name: Run Tests (ten_rust standalone tests)
         run: |
@@ -112,7 +112,7 @@ jobs:
           $ENV:PATH += ";$PWD/core/ten_gn"
           cd out/win/x64/
           pytest -s tests/ten_runtime/integration/
-        continue-on-error: true
+      #   continue-on-error: true
 
-      - name: Setup tmate session
-        uses: mxschmitt/action-tmate@v3
+      # - name: Setup tmate session
+      #   uses: mxschmitt/action-tmate@v3
