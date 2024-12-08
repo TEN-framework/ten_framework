@@ -58,6 +58,8 @@ def test_standalone_test_cpp():
     ]
 
     if sys.platform == "win32":
+        if build_config_args.vs_version:
+            tgn_gen_cmd.append(f"vs-version={build_config_args.vs_version}")
         tgn_gen_cmd = ["cmd", "/c"] + tgn_gen_cmd
 
     tgn_gen_process = subprocess.Popen(

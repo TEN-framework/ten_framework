@@ -33,96 +33,41 @@ def copy_tree(src_path: str, dst_path: str, rm_dst=False) -> None:
         raise Exception(src_path + " is not a directory.")
 
     try:
-        if sys.platform == "win32":
-            # Use 'robocopy' in Windows to perform copying.
-            cmd = [
-                "robocopy",
-                src_path,
-                dst_path,
-                # Copies subdirectories. This option automatically includes
-                # empty directories.
-                "/e",
-                # Creates multi-threaded copies with n threads. The default
-                # value for n is 8.
-                "/mt",
-                # Specifies the number of retries on failed copies.
-                "/r:30",
-                # Specifies the wait time between retries, in seconds.
-                "/w:3",
-                # Specifies that there's no job header.
-                "/njh",
-                # Specifies that there's no job summary.
-                "/njs",
-                # Specifies that directory names aren't to be logged.
-                "/ndl",
-                # Specifies that file classes aren't to be logged.
-                "/nc",
-                # Specifies that file sizes aren't to be logged.
-                "/ns",
-                # Specifies that the progress of the copying operation (the
-                # number of files or directories copied so far) won't be
-                # displayed.
-                "/np",
-                # Specifies that file names aren't to be logged.
-                "/nfl",
-                "/LOG:robocopy_tree_log.txt",
-                # Specifies what to copy in directories. DA (data and
-                # attributes).
-                "/dcopy:DA",
-                "/sl",
-            ]
-
-            if rm_dst is True:
-                cmd += [
-                    # Mirrors a directory tree (equivalent to /e plus /purge).
-                    "/mir"
-                ]
-
-            rt = subprocess.call(cmd)
-            if rt >= 8:
-                log.error(
-                    f"Failed to copy_tree: {src_path} => {dst_path}: {str(rt)}"
+        try:
+            if rm_dst:
+                remove_tree(dst_path)
+                # shutil.copytree requires the destination folder is empty,
+                # otherwise, this function will throw exceptions. So use it
+                # in this case.
+                shutil.copytree(
+                    src_path,
+                    dst_path,
+                    symlinks=True,
+                    copy_function=shutil.copy,
                 )
-                exit(rt)
-        else:
-            try:
-                if rm_dst:
-                    remove_tree(dst_path)
-
-                    # shutil.copytree requires the destination folder is empty,
-                    # otherwise, this function will throw exceptions. So use it
-                    # in this case.
-                    shutil.copytree(
-                        src_path,
-                        dst_path,
-                        symlinks=True,
-                        copy_function=shutil.copy,
-                    )
-
-                # Loop all immediate items in src_path, and copy them one by
-                # one.
-                for name in os.listdir(src_path):
-                    src_item_path = os.path.join(src_path, name)
-                    dest_item_path = os.path.join(dst_path, name)
-
-                    if os.path.isdir(src_item_path):
-                        # Create the destination folder if not exist.
-                        if not os.path.exists(dest_item_path):
-                            os.makedirs(dest_item_path, exist_ok=True)
-                        copy_tree(src_item_path, dest_item_path)
-                    else:
-                        copy_file(src_item_path, dest_item_path, rm_dst=rm_dst)
-            except Exception as exc:
-                log.error(
-                    inspect.cleandoc(
-                        f"""Failed to copy tree:
-                        {src_path} =>
-                        {dst_path}
-                        Exception: {exc}
-                        rm_dst: {rm_dst}"""
-                    )
+            # Loop all immediate items in src_path, and copy them one by
+            # one.
+            for name in os.listdir(src_path):
+                src_item_path = os.path.join(src_path, name)
+                dest_item_path = os.path.join(dst_path, name)
+                if os.path.isdir(src_item_path):
+                    # Create the destination folder if not exist.
+                    if not os.path.exists(dest_item_path):
+                        os.makedirs(dest_item_path, exist_ok=True)
+                    copy_tree(src_item_path, dest_item_path)
+                else:
+                    copy_file(src_item_path, dest_item_path, rm_dst=rm_dst)
+        except Exception as exc:
+            log.error(
+                inspect.cleandoc(
+                    f"""Failed to copy tree:
+                    {src_path} =>
+                    {dst_path}
+                    Exception: {exc}
+                    rm_dst: {rm_dst}"""
                 )
-                raise
+            )
+            raise
 
         try:
             # Update the file access and modify time to the current time.
