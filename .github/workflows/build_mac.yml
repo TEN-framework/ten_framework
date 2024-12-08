@@ -28,7 +28,6 @@ jobs:
           submodules: "true"
 
       - name: Setup tmate session
-        if: ${{ failure() }}
         uses: mxschmitt/action-tmate@v3
 
       - uses: actions/setup-python@v5
