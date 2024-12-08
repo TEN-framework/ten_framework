@@ -166,7 +166,7 @@ jobs:
         run: |
           export PATH=$(pwd)/core/ten_gn:$PATH
           if [ ${{ matrix.build_type }} == "debug" ]; then
-            export PATH="/usr/local/opt/llvm@18/bin:$PATH"
+            export PATH="/opt/homebrew/opt/llvm@18/bin:$PATH"
           fi
           cd out/mac/arm64/
           pytest -s tests/ten_runtime/integration/
