@@ -224,7 +224,7 @@ def prepare_app(
     # ========
     # Step 1: Install app.
     if log_level and log_level > 0:
-        print(f"> Install app to {source_pkg_name}")
+        print(f"> Install app to {app_src_root_dir}")
 
     arg = install_pkg.ArgumentInfo()
     arg.tman_path = tman_path
@@ -254,7 +254,7 @@ def prepare_app(
     # ========
     # Step 3: Install all.
     if log_level and log_level > 0:
-        print("> Install all")
+        print(f"> Install_all: {app_src_root_dir}")
 
     install_all_args = install_all.ArgumentInfo()
     install_all_args.tman_path = tman_path

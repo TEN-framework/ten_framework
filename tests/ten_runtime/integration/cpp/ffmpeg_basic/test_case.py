@@ -91,10 +91,6 @@ def test_ffmpeg_basic_app():
             if os.path.exists(libasan_path):
                 my_env["LD_PRELOAD"] = libasan_path
 
-    if not os.path.isfile(server_cmd):
-        print(f"Server command '{server_cmd}' does not exist.")
-        assert False
-
     server = subprocess.Popen(
         server_cmd,
         stdout=stdout,

@@ -44,6 +44,7 @@ def remove_tree(path: str) -> None:
                     "/r:3",
                     "/w:2",
                     "/mir",
+                    "/sl",
                     "/purge",
                     "/mt",
                     "/LOG:robocopy_remove_tree_log.txt",
@@ -106,6 +107,7 @@ def copy_tree(src_path: str, dst_path: str, rm_dst=False) -> None:
                 # Specifies what to copy in directories. DA (data and
                 # attributes).
                 "/dcopy:DA",
+                "/sl",
             ]
 
             if rm_dst is True:
