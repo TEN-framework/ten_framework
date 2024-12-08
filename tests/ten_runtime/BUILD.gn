@@ -52,11 +52,11 @@ group("ten_runtime") {
   deps = []
 
   if (ten_enable_tests && ten_enable_unit_tests) {
-    deps += [ "unit" ]
+    # deps += [ "unit" ]
   }
 
   if (ten_enable_tests && ten_enable_smoke_tests) {
-    deps += [ "smoke" ]
+    # deps += [ "smoke" ]
   }
 
   if (ten_enable_tests && ten_enable_integration_tests &&

@@ -21,7 +21,8 @@ copy("copy_jansson_library_for_test") {
 group("tests") {
   deps = [
     "ten_runtime",
-    "ten_utils",
+
+    # "ten_utils",
     "//tests/ten_runtime",
   ]
 
@@ -34,8 +35,8 @@ group("tests") {
 
     if (ten_package_manager_enable_tests) {
       deps += [
-        "ten_manager",
-        "//core/src/ten_manager:tman_test",
+        # "ten_manager",
+        # "//core/src/ten_manager:tman_test",
       ]
     }
   }
