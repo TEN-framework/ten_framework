@@ -81,11 +81,11 @@ void ten_go_error_set_errno(ten_go_error_t *self, ten_errno_t errno) {
   self->err_no = errno;
 }
 
-void ten_go_error_set(ten_go_error_t *self, ten_errno_t errno,
+void ten_go_error_set(ten_go_error_t *self, ten_errno_t err_no,
                       const char *msg) {
   TEN_ASSERT(self, "Should not happen.");
 
-  self->err_no = errno;
+  self->err_no = err_no;
   if (msg == NULL || strlen(msg) == 0) {
     return;
   }

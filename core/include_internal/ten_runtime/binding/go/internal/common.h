@@ -39,5 +39,5 @@ TEN_RUNTIME_PRIVATE_API void ten_go_error_set_errno(ten_go_error_t *self,
                                                     ten_errno_t errno);
 
 TEN_RUNTIME_PRIVATE_API void ten_go_error_set(ten_go_error_t *self,
-                                              ten_errno_t errno,
+                                              ten_errno_t err_no,
                                               const char *msg);
