@@ -30,6 +30,8 @@ if __name__ == "__main__":
     arg_info = ArgumentInfo()
     args = parser.parse_args(namespace=arg_info)
 
+    returncode = 0
+
     try:
         if args.target_os == "win":
             py_path = os.environ.get("PYTHON3_PATH")
