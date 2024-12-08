@@ -107,25 +107,25 @@ def test_large_json_python():
         )
         if rc != 0:
             assert False, "Failed to build package."
-    else:
-        tman_install_cmd = [
-            os.path.join(root_dir, "ten_manager/bin/tman"),
-            "--config-file",
-            os.path.join(root_dir, "tests/local_registry/config.json"),
-            "install",
-        ]
 
-        tman_install_process = subprocess.Popen(
-            tman_install_cmd,
-            stdout=stdout,
-            stderr=subprocess.STDOUT,
-            env=my_env,
-            cwd=app_root_path,
-        )
-        tman_install_process.wait()
-        return_code = tman_install_process.returncode
-        if return_code != 0:
-            assert False, "Failed to install package."
+    tman_install_cmd = [
+        os.path.join(root_dir, "ten_manager/bin/tman"),
+        "--config-file",
+        os.path.join(root_dir, "tests/local_registry/config.json"),
+        "install",
+    ]
+
+    tman_install_process = subprocess.Popen(
+        tman_install_cmd,
+        stdout=stdout,
+        stderr=subprocess.STDOUT,
+        env=my_env,
+        cwd=app_root_path,
+    )
+    tman_install_process.wait()
+    return_code = tman_install_process.returncode
+    if return_code != 0:
+        assert False, "Failed to install package."
 
     bootstrap_cmd = os.path.join(
         base_path, "large_json_python_app/bin/bootstrap"

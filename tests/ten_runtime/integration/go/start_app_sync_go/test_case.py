@@ -37,25 +37,25 @@ def test_start_app_sync_go():
         )
         if rc != 0:
             assert False, "Failed to build package."
-    else:
-        tman_install_cmd = [
-            os.path.join(root_dir, "ten_manager/bin/tman"),
-            "--config-file",
-            os.path.join(root_dir, "tests/local_registry/config.json"),
-            "install",
-        ]
 
-        tman_install_process = subprocess.Popen(
-            tman_install_cmd,
-            stdout=stdout,
-            stderr=subprocess.STDOUT,
-            env=my_env,
-            cwd=app_root_path,
-        )
-        tman_install_process.wait()
-        return_code = tman_install_process.returncode
-        if return_code != 0:
-            assert False, "Failed to install package."
+    tman_install_cmd = [
+        os.path.join(root_dir, "ten_manager/bin/tman"),
+        "--config-file",
+        os.path.join(root_dir, "tests/local_registry/config.json"),
+        "install",
+    ]
+
+    tman_install_process = subprocess.Popen(
+        tman_install_cmd,
+        stdout=stdout,
+        stderr=subprocess.STDOUT,
+        env=my_env,
+        cwd=app_root_path,
+    )
+    tman_install_process.wait()
+    return_code = tman_install_process.returncode
+    if return_code != 0:
+        assert False, "Failed to install package."
 
     if sys.platform == "win32":
         print("test_start_app_sync_go doesn't support win32")

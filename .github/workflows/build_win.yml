@@ -114,15 +114,15 @@ jobs:
           cd out/win/x64/
           pytest -s tests/ten_manager/
 
-      # - name: Run Tests (ten_runtime pytest tests)
-      #   env:
-      #     TEN_ENABLE_MEMORY_TRACKING: "true"
-      #     TEN_ENABLE_BACKTRACE_DUMP: "true"
-      #   run: |
-      #     $ENV:PATH += ";$PWD/core/ten_gn"
-      #     cd out/win/x64/
-      #     pytest -s tests/ten_runtime/integration/
-      #   continue-on-error: true
+      - name: Run Tests (ten_runtime pytest tests)
+        env:
+          TEN_ENABLE_MEMORY_TRACKING: "true"
+          TEN_ENABLE_BACKTRACE_DUMP: "true"
+        run: |
+          $ENV:PATH += ";$PWD/core/ten_gn"
+          cd out/win/x64/
+          pytest -s tests/ten_runtime/integration/
+        continue-on-error: true
 
-      # - name: Setup tmate session
-      #   uses: mxschmitt/action-tmate@v3
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3

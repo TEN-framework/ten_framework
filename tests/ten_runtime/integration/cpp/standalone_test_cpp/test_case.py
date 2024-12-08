@@ -4,6 +4,7 @@ Test standalone_test_cpp.
 
 import subprocess
 import os
+import sys
 from sys import stdout
 from .common import build_config
 
@@ -56,6 +57,9 @@ def test_standalone_test_cpp():
         "ten_enable_standalone_test=true",
     ]
 
+    if sys.platform == "win32":
+        tgn_gen_cmd = ["cmd", "/c"] + tgn_gen_cmd
+
     tgn_gen_process = subprocess.Popen(
         tgn_gen_cmd,
         stdout=stdout,
@@ -76,6 +80,9 @@ def test_standalone_test_cpp():
         build_config_args.target_cpu,
         build_config_args.target_build,
     ]
+
+    if sys.platform == "win32":
+        tgn_build_cmd = ["cmd", "/c"] + tgn_build_cmd
 
     tgn_build_process = subprocess.Popen(
         tgn_build_cmd,
