@@ -29,7 +29,7 @@ if (is_linux) {
 } else if (is_mac) {
   ten_runtime_go_output_libs = [ "${root_out_dir}/libten_runtime_go.dylib" ]
   ten_runtime_python_output_libs =
-      [ "${root_out_dir}/libten_runtime_python.dylib" ]
+      [ "${root_out_dir}/libten_runtime_python.so" ]
   ten_runtime_nodejs_output_libs =
       [ "${root_out_dir}/libten_runtime_nodejs.dylib" ]
 } else if (is_win) {
