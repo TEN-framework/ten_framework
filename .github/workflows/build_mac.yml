@@ -76,81 +76,91 @@ jobs:
           fi
           export PATH=$(pwd)/core/ten_gn:$PATH
           echo $PATH
+
+          # The ASan on Mac is too difficult to use. We will install a new
+          # version of Clang on Mac, which can easily lead to issues caused by
+          # loading different versions of ASan. Additionally, in the Python
+          # environment, there are constant errors indicating that the ASan
+          # library is not the first library loaded, among other problems.
+          # Therefore, it's better to disable ASan on Mac and only enable it in
+          # the Linux environment.
+
           tgn gen mac arm64 ${{ matrix.build_type }} -- log_level=1 enable_sanitizer=false enable_serialized_actions=true ten_enable_private_tests=false ten_rust_enable_gen_cargo_config=false ten_enable_cargo_clean=true
+
           tgn build mac arm64 ${{ matrix.build_type }}
           tree -I 'gen|obj' out
 
-      # - name: Run Tests (ten_utils_unit_test)
-      #   env:
-      #     ASAN_OPTIONS: detect_stack_use_after_return=1:color=always:unmap_shadow_on_exit=1:abort_on_error=1
-      #     MALLOC_CHECK_: 3
-      #     TEN_ENABLE_MEMORY_TRACKING: "true"
-      #     TEN_ENABLE_BACKTRACE_DUMP: "true"
-      #   run: |
-      #     chmod +x out/mac/arm64/tests/standalone/ten_utils_unit_test
-      #     out/mac/arm64/tests/standalone/ten_utils_unit_test
+      - name: Run Tests (ten_utils_unit_test)
+        env:
+          ASAN_OPTIONS: detect_stack_use_after_return=1:color=always:unmap_shadow_on_exit=1:abort_on_error=1
+          MALLOC_CHECK_: 3
+          TEN_ENABLE_MEMORY_TRACKING: "true"
+          TEN_ENABLE_BACKTRACE_DUMP: "true"
+        run: |
+          chmod +x out/mac/arm64/tests/standalone/ten_utils_unit_test
+          out/mac/arm64/tests/standalone/ten_utils_unit_test
 
-      # - name: Run Tests (ten_runtime_unit_test)
-      #   env:
-      #     ASAN_OPTIONS: detect_stack_use_after_return=1:color=always:unmap_shadow_on_exit=1:abort_on_error=1
-      #     MALLOC_CHECK_: 3
-      #     TEN_ENABLE_MEMORY_TRACKING: "true"
-      #     TEN_ENABLE_BACKTRACE_DUMP: "true"
-      #   run: |
-      #     chmod +x out/mac/arm64/tests/standalone/ten_runtime_unit_test
-      #     out/mac/arm64/tests/standalone/ten_runtime_unit_test
+      - name: Run Tests (ten_runtime_unit_test)
+        env:
+          ASAN_OPTIONS: detect_stack_use_after_return=1:color=always:unmap_shadow_on_exit=1:abort_on_error=1
+          MALLOC_CHECK_: 3
+          TEN_ENABLE_MEMORY_TRACKING: "true"
+          TEN_ENABLE_BACKTRACE_DUMP: "true"
+        run: |
+          chmod +x out/mac/arm64/tests/standalone/ten_runtime_unit_test
+          out/mac/arm64/tests/standalone/ten_runtime_unit_test
 
-      # - name: Run Tests (ten_runtime_smoke_test)
-      #   env:
-      #     ASAN_OPTIONS: detect_stack_use_after_return=1:color=always:unmap_shadow_on_exit=1:abort_on_error=1
-      #     MALLOC_CHECK_: 3
-      #     TEN_ENABLE_MEMORY_TRACKING: "true"
-      #     TEN_ENABLE_BACKTRACE_DUMP: "true"
-      #   run: |
-      #     chmod +x out/mac/arm64/tests/standalone/ten_runtime_smoke_test
-      #     out/mac/arm64/tests/standalone/ten_runtime_smoke_test
+      - name: Run Tests (ten_runtime_smoke_test)
+        env:
+          ASAN_OPTIONS: detect_stack_use_after_return=1:color=always:unmap_shadow_on_exit=1:abort_on_error=1
+          MALLOC_CHECK_: 3
+          TEN_ENABLE_MEMORY_TRACKING: "true"
+          TEN_ENABLE_BACKTRACE_DUMP: "true"
+        run: |
+          chmod +x out/mac/arm64/tests/standalone/ten_runtime_smoke_test
+          out/mac/arm64/tests/standalone/ten_runtime_smoke_test
 
-      # - name: Run Tests (ten_rust standalone tests)
-      #   env:
-      #     ASAN_OPTIONS: detect_stack_use_after_return=1:color=always:unmap_shadow_on_exit=1:abort_on_error=1
-      #     MALLOC_CHECK_: 3
-      #     TEN_ENABLE_MEMORY_TRACKING: "true"
-      #     TEN_ENABLE_BACKTRACE_DUMP: "true"
-      #   run: |
-      #     cd out/mac/arm64/tests/standalone/ten_rust
+      - name: Run Tests (ten_rust standalone tests)
+        env:
+          ASAN_OPTIONS: detect_stack_use_after_return=1:color=always:unmap_shadow_on_exit=1:abort_on_error=1
+          MALLOC_CHECK_: 3
+          TEN_ENABLE_MEMORY_TRACKING: "true"
+          TEN_ENABLE_BACKTRACE_DUMP: "true"
+        run: |
+          cd out/mac/arm64/tests/standalone/ten_rust
 
-      #     chmod +x unit_test
-      #     chmod +x integration_test
+          chmod +x unit_test
+          chmod +x integration_test
 
-      #     ./unit_test || { echo "ten_rust unit test failed"; exit 1; }
-      #     ./integration_test || { echo "ten_rust integration test failed"; exit 1; }
+          ./unit_test || { echo "ten_rust unit test failed"; exit 1; }
+          ./integration_test || { echo "ten_rust integration test failed"; exit 1; }
 
-      # - name: Run Tests (ten_manager standalone tests)
-      #   env:
-      #     ASAN_OPTIONS: detect_stack_use_after_return=1:color=always:unmap_shadow_on_exit=1:abort_on_error=1
-      #     MALLOC_CHECK_: 3
-      #     TEN_ENABLE_MEMORY_TRACKING: "true"
-      #     TEN_ENABLE_BACKTRACE_DUMP: "true"
-      #   run: |
-      #     cd out/mac/arm64/tests/standalone/ten_manager
+      - name: Run Tests (ten_manager standalone tests)
+        env:
+          ASAN_OPTIONS: detect_stack_use_after_return=1:color=always:unmap_shadow_on_exit=1:abort_on_error=1
+          MALLOC_CHECK_: 3
+          TEN_ENABLE_MEMORY_TRACKING: "true"
+          TEN_ENABLE_BACKTRACE_DUMP: "true"
+        run: |
+          cd out/mac/arm64/tests/standalone/ten_manager
 
-      #     chmod +x unit_test
+          chmod +x unit_test
 
-      #     ./unit_test || { echo "ten_manager unit test failed"; exit 1; }
+          ./unit_test || { echo "ten_manager unit test failed"; exit 1; }
 
       - name: Install Python dependencies via script
         run: |
           python .github/tools/setup_pytest_dependencies.py
 
-      # - name: Run Tests (ten_manager pytest tests)
-      #   env:
-      #     ASAN_OPTIONS: detect_stack_use_after_return=1:color=always:unmap_shadow_on_exit=1:abort_on_error=1
-      #     MALLOC_CHECK_: 3
-      #     TEN_ENABLE_MEMORY_TRACKING: "true"
-      #     TEN_ENABLE_BACKTRACE_DUMP: "true"
-      #   run: |
-      #     cd out/mac/arm64/
-      #     pytest -s tests/ten_manager/
+      - name: Run Tests (ten_manager pytest tests)
+        env:
+          ASAN_OPTIONS: detect_stack_use_after_return=1:color=always:unmap_shadow_on_exit=1:abort_on_error=1
+          MALLOC_CHECK_: 3
+          TEN_ENABLE_MEMORY_TRACKING: "true"
+          TEN_ENABLE_BACKTRACE_DUMP: "true"
+        run: |
+          cd out/mac/arm64/
+          pytest -s tests/ten_manager/
 
       - name: Run tests (ten_runtime integration tests)
         env:
@@ -165,10 +175,10 @@ jobs:
           export PATH=$(pwd)/core/ten_gn:$PATH
           cd out/mac/arm64/
           pytest -s tests/ten_runtime/integration/
-        continue-on-error: true
+      #   continue-on-error: true
 
-      - name: Setup tmate session
-        uses: mxschmitt/action-tmate@v3
+      # - name: Setup tmate session
+      #   uses: mxschmitt/action-tmate@v3
 
   build-mac-x64:
     concurrency:
@@ -233,81 +243,91 @@ jobs:
           fi
           export PATH=$(pwd)/core/ten_gn:$PATH
           echo $PATH
-          tgn gen mac x64 ${{ matrix.build_type }} -- log_level=1 enable_sanitizer=false enable_serialized_actions=true ten_enable_private_tests=false ten_rust_enable_gen_cargo_config=false ten_enable_cargo_clean=true ten_enable_python_binding=false
+
+          # The ASan on Mac is too difficult to use. We will install a new
+          # version of Clang on Mac, which can easily lead to issues caused by
+          # loading different versions of ASan. Additionally, in the Python
+          # environment, there are constant errors indicating that the ASan
+          # library is not the first library loaded, among other problems.
+          # Therefore, it's better to disable ASan on Mac and only enable it in
+          # the Linux environment.
+
+          tgn gen mac x64 ${{ matrix.build_type }} -- log_level=1 enable_sanitizer=false enable_serialized_actions=true ten_enable_private_tests=false ten_rust_enable_gen_cargo_config=false ten_enable_cargo_clean=true
+
           tgn build mac x64 ${{ matrix.build_type }}
           tree -I 'gen|obj' out
 
-      # - name: Run Tests (ten_utils_unit_test)
-      #   env:
-      #     ASAN_OPTIONS: detect_stack_use_after_return=1:color=always:unmap_shadow_on_exit=1:abort_on_error=1
-      #     MALLOC_CHECK_: 3
-      #     TEN_ENABLE_MEMORY_TRACKING: "true"
-      #     TEN_ENABLE_BACKTRACE_DUMP: "true"
-      #   run: |
-      #     chmod +x out/mac/x64/tests/standalone/ten_utils_unit_test
-      #     out/mac/x64/tests/standalone/ten_utils_unit_test
+      - name: Run Tests (ten_utils_unit_test)
+        env:
+          ASAN_OPTIONS: detect_stack_use_after_return=1:color=always:unmap_shadow_on_exit=1:abort_on_error=1
+          MALLOC_CHECK_: 3
+          TEN_ENABLE_MEMORY_TRACKING: "true"
+          TEN_ENABLE_BACKTRACE_DUMP: "true"
+        run: |
+          chmod +x out/mac/x64/tests/standalone/ten_utils_unit_test
+          out/mac/x64/tests/standalone/ten_utils_unit_test
 
-      # - name: Run Tests (ten_runtime_unit_test)
-      #   env:
-      #     ASAN_OPTIONS: detect_stack_use_after_return=1:color=always:unmap_shadow_on_exit=1:abort_on_error=1
-      #     MALLOC_CHECK_: 3
-      #     TEN_ENABLE_MEMORY_TRACKING: "true"
-      #     TEN_ENABLE_BACKTRACE_DUMP: "true"
-      #   run: |
-      #     chmod +x out/mac/x64/tests/standalone/ten_runtime_unit_test
-      #     out/mac/x64/tests/standalone/ten_runtime_unit_test
+      - name: Run Tests (ten_runtime_unit_test)
+        env:
+          ASAN_OPTIONS: detect_stack_use_after_return=1:color=always:unmap_shadow_on_exit=1:abort_on_error=1
+          MALLOC_CHECK_: 3
+          TEN_ENABLE_MEMORY_TRACKING: "true"
+          TEN_ENABLE_BACKTRACE_DUMP: "true"
+        run: |
+          chmod +x out/mac/x64/tests/standalone/ten_runtime_unit_test
+          out/mac/x64/tests/standalone/ten_runtime_unit_test
 
-      # - name: Run Tests (ten_runtime_smoke_test)
-      #   env:
-      #     ASAN_OPTIONS: detect_stack_use_after_return=1:color=always:unmap_shadow_on_exit=1:abort_on_error=1
-      #     MALLOC_CHECK_: 3
-      #     TEN_ENABLE_MEMORY_TRACKING: "true"
-      #     TEN_ENABLE_BACKTRACE_DUMP: "true"
-      #   run: |
-      #     chmod +x out/mac/x64/tests/standalone/ten_runtime_smoke_test
-      #     out/mac/x64/tests/standalone/ten_runtime_smoke_test
+      - name: Run Tests (ten_runtime_smoke_test)
+        env:
+          ASAN_OPTIONS: detect_stack_use_after_return=1:color=always:unmap_shadow_on_exit=1:abort_on_error=1
+          MALLOC_CHECK_: 3
+          TEN_ENABLE_MEMORY_TRACKING: "true"
+          TEN_ENABLE_BACKTRACE_DUMP: "true"
+        run: |
+          chmod +x out/mac/x64/tests/standalone/ten_runtime_smoke_test
+          out/mac/x64/tests/standalone/ten_runtime_smoke_test
 
-      # - name: Run Tests (ten_rust standalone tests)
-      #   env:
-      #     ASAN_OPTIONS: detect_stack_use_after_return=1:color=always:unmap_shadow_on_exit=1:abort_on_error=1
-      #     MALLOC_CHECK_: 3
-      #     TEN_ENABLE_MEMORY_TRACKING: "true"
-      #     TEN_ENABLE_BACKTRACE_DUMP: "true"
-      #   run: |
-      #     cd out/mac/x64/tests/standalone/ten_rust
+      - name: Run Tests (ten_rust standalone tests)
+        env:
+          ASAN_OPTIONS: detect_stack_use_after_return=1:color=always:unmap_shadow_on_exit=1:abort_on_error=1
+          MALLOC_CHECK_: 3
+          TEN_ENABLE_MEMORY_TRACKING: "true"
+          TEN_ENABLE_BACKTRACE_DUMP: "true"
+        run: |
+          cd out/mac/x64/tests/standalone/ten_rust
 
-      #     chmod +x unit_test
-      #     chmod +x integration_test
+          chmod +x unit_test
+          chmod +x integration_test
 
-      #     ./unit_test || { echo "ten_rust unit test failed"; exit 1; }
-      #     ./integration_test || { echo "ten_rust integration test failed"; exit 1; }
+          ./unit_test || { echo "ten_rust unit test failed"; exit 1; }
+          ./integration_test || { echo "ten_rust integration test failed"; exit 1; }
 
-      # - name: Run Tests (ten_manager standalone tests)
-      #   env:
-      #     ASAN_OPTIONS: detect_stack_use_after_return=1:color=always:unmap_shadow_on_exit=1:abort_on_error=1
-      #     MALLOC_CHECK_: 3
-      #     TEN_ENABLE_MEMORY_TRACKING: "true"
-      #     TEN_ENABLE_BACKTRACE_DUMP: "true"
-      #   run: |
-      #     cd out/mac/x64/tests/standalone/ten_manager
+      - name: Run Tests (ten_manager standalone tests)
+        env:
+          ASAN_OPTIONS: detect_stack_use_after_return=1:color=always:unmap_shadow_on_exit=1:abort_on_error=1
+          MALLOC_CHECK_: 3
+          TEN_ENABLE_MEMORY_TRACKING: "true"
+          TEN_ENABLE_BACKTRACE_DUMP: "true"
+        run: |
+          cd out/mac/x64/tests/standalone/ten_manager
 
-      #     chmod +x unit_test
+          chmod +x unit_test
 
-      #     ./unit_test || { echo "ten_manager unit test failed"; exit 1; }
+          ./unit_test || { echo "ten_manager unit test failed"; exit 1; }
 
       - name: Install Python dependencies via script
         run: |
           python .github/tools/setup_pytest_dependencies.py
 
-      # - name: Run Tests (ten_manager pytest tests)
-      #   env:
-      #     ASAN_OPTIONS: detect_stack_use_after_return=1:color=always:unmap_shadow_on_exit=1:abort_on_error=1
-      #     MALLOC_CHECK_: 3
-      #     TEN_ENABLE_MEMORY_TRACKING: "true"
-      #     TEN_ENABLE_BACKTRACE_DUMP: "true"
-      #   run: |
-      #     cd out/mac/x64/
-      #     pytest -s tests/ten_manager/
+      - name: Run Tests (ten_manager pytest tests)
+        env:
+          ASAN_OPTIONS: detect_stack_use_after_return=1:color=always:unmap_shadow_on_exit=1:abort_on_error=1
+          MALLOC_CHECK_: 3
+          TEN_ENABLE_MEMORY_TRACKING: "true"
+          TEN_ENABLE_BACKTRACE_DUMP: "true"
+        run: |
+          cd out/mac/x64/
+          pytest -s tests/ten_manager/
 
       - name: Run tests (ten_runtime integration tests)
         env:
@@ -322,10 +342,10 @@ jobs:
           export PATH=$(pwd)/core/ten_gn:$PATH
           cd out/mac/x64/
           pytest -s tests/ten_runtime/integration/
-        continue-on-error: true
+      #   continue-on-error: true
 
-      - name: Setup tmate session
-        uses: mxschmitt/action-tmate@v3
+      # - name: Setup tmate session
+      #   uses: mxschmitt/action-tmate@v3
 
   # Building ten_runtime without the ten_rust library (i.e., ten_enable_ten_rust_apis=false).
   build-mac-arm64-without-ten-rust:
@@ -391,10 +411,21 @@ jobs:
           fi
           export PATH=$(pwd)/core/ten_gn:$PATH
           echo $PATH
-          tgn gen mac arm64 ${{ matrix.build_type }} -- log_level=1 enable_sanitizer=false enable_serialized_actions=true ten_enable_private_tests=false ten_rust_enable_gen_cargo_config=false ten_enable_ten_rust_apis=false ten_enable_python_binding=false
+
+          # The ASan on Mac is too difficult to use. We will install a new
+          # version of Clang on Mac, which can easily lead to issues caused by
+          # loading different versions of ASan. Additionally, in the Python
+          # environment, there are constant errors indicating that the ASan
+          # library is not the first library loaded, among other problems.
+          # Therefore, it's better to disable ASan on Mac and only enable it in
+          # the Linux environment.
+
+          tgn gen mac arm64 ${{ matrix.build_type }} -- log_level=1 enable_sanitizer=false enable_serialized_actions=true ten_enable_private_tests=false ten_rust_enable_gen_cargo_config=false ten_enable_ten_rust_apis=false
+
           tgn build mac arm64 ${{ matrix.build_type }}
+
           tree -I 'gen|obj' out
-      #   continue-on-error: true
+      # continue-on-error: true
       # - name: Setup tmate session
       #   uses: mxschmitt/action-tmate@v3
 

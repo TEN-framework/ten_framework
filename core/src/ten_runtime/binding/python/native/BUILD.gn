@@ -113,6 +113,6 @@ ten_shared_library("ten_runtime_python") {
   ]
 
   if (is_mac) {
-    output_extension = ".so"
+    output_extension = "so"
   }
 }

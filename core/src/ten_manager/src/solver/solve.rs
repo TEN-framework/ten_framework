@@ -33,20 +33,20 @@ fn get_model(
         .symbols(ShowType::SHOWN)
         .expect("Failed to retrieve symbols in the model.");
 
-    // tman_verbose_println!(tman_config, "Model:");
+    tman_verbose_println!(tman_config, "Model:");
 
     let mut result = Vec::new();
     *is_usable = true;
 
     for symbol in atoms {
-        // tman_verbose_println!(tman_config, " {}", symbol);
+        tman_verbose_println!(tman_config, " {}", symbol);
 
         result.push(symbol.to_string());
         if symbol.to_string().starts_with("error(") {
             *is_usable = false;
         }
     }
-    // tman_verbose_println!(tman_config, "");
+    tman_verbose_println!(tman_config, "");
 
     Some(result)
 }
