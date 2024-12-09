@@ -111,4 +111,8 @@ ten_shared_library("ten_runtime_python") {
     "test",
     "//core/src/ten_runtime:ten_runtime_library",
   ]
+
+  if (is_mac) {
+    output_extension = ".so"
+  }
 }
