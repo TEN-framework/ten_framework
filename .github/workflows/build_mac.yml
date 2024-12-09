@@ -241,6 +241,10 @@ jobs:
           tgn gen mac x64 ${{ matrix.build_type }} -- log_level=1 enable_serialized_actions=true ten_enable_private_tests=false ten_rust_enable_gen_cargo_config=false ten_enable_cargo_clean=true ten_enable_python_binding=false
           tgn build mac x64 ${{ matrix.build_type }}
           tree -I 'gen|obj' out
+        continue-on-error: tru
+
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
 
       - name: Run Tests (ten_utils_unit_test)
         env:
@@ -400,6 +404,10 @@ jobs:
           tgn gen mac arm64 ${{ matrix.build_type }} -- log_level=1 enable_serialized_actions=true ten_enable_private_tests=false ten_rust_enable_gen_cargo_config=false ten_enable_ten_rust_apis=false ten_enable_python_binding=false
           tgn build mac arm64 ${{ matrix.build_type }}
           tree -I 'gen|obj' out
+        continue-on-error: tru
+
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
 
       - name: Run Tests (ten_runtime_smoke_test)
         env:
