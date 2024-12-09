@@ -19,12 +19,6 @@ type baseExtension struct {
 func (ext *baseExtension) OnStart(tenEnv ten.TenEnv) {
 	tenEnv.LogDebug("OnStart")
 
-	// The environment variable 'ENV_NOT_SET' is not set, but the property
-	// should exist.
-	if _, err := tenEnv.GetPropertyString("env_not_set"); err == nil {
-		panic("The type should be mismatched, as the default value is not set.")
-	}
-
 	if prop, err := tenEnv.GetPropertyString("env_not_set_has_default"); err != nil &&
 		prop != "" {
 		panic("The default value should be used.")
@@ -209,7 +203,7 @@ func (p *aExtension) OnCmd(
 
 	cmdResult, _ := ten.NewCmdResult(ten.StatusCodeOk)
 	cmdResult.SetPropertyString("detail", "okok")
-	err = tenEnv.ReturnResult(cmdResult, cmd)
+	err = tenEnv.ReturnResult(cmdResult, cmd, nil)
 	if err != nil {
 		panic("ReturnResult failed")
 	}

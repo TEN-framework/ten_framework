@@ -31,11 +31,6 @@ func (p *extensionB) OnCmd(
 	go func() {
 		fmt.Println("extensionB OnCmd")
 
-		connected, err := tenEnv.IsCmdConnected("cmd_not_exist")
-		if err != nil || connected {
-			panic("Should not happen.")
-		}
-
 		cmdName, _ := cmd.GetName()
 		if cmdName == "B" {
 			var count uint32 = 0
@@ -86,17 +81,17 @@ func (p *extensionB) OnCmd(
 			if err != nil {
 				cmdResult, _ := ten.NewCmdResult(ten.StatusCodeError)
 				cmdResult.SetPropertyString("detail", err.Error())
-				tenEnv.ReturnResult(cmdResult, cmd)
+				tenEnv.ReturnResult(cmdResult, cmd, nil)
 				return
 			}
 
 			statusCmd.SetProperty("detail", "this is extensionB.")
 			statusCmd.SetProperty("password", "password")
-			tenEnv.ReturnResult(statusCmd, cmd)
+			tenEnv.ReturnResult(statusCmd, cmd, nil)
 		} else {
 			cmdResult, _ := ten.NewCmdResult(ten.StatusCodeError)
 			cmdResult.SetPropertyString("detail", "wrong cmd name")
-			tenEnv.ReturnResult(cmdResult, cmd)
+			tenEnv.ReturnResult(cmdResult, cmd, nil)
 		}
 	}()
 }

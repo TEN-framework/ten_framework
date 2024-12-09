@@ -13,10 +13,6 @@ from ten import (
 
 
 class DefaultAsyncExtension(AsyncExtension):
-    def __init__(self, name: str) -> None:
-        super().__init__(name)
-        self.name = name
-
     async def on_configure(self, ten_env: AsyncTenEnv) -> None:
         await asyncio.sleep(0.5)
 
@@ -42,14 +38,11 @@ class DefaultAsyncExtension(AsyncExtension):
         # Mock async operation, e.g. network, file I/O.
         await asyncio.sleep(0.5)
 
-        assert ten_env.is_cmd_connected("hello") is True
-        assert ten_env.is_cmd_connected("unknown_cmd") is False
-
         # Send a new command to other extensions and wait for the result. The
         # result will be returned to the original sender.
         new_cmd = Cmd.create("hello")
         cmd_result = await ten_env.send_cmd(new_cmd)
-        ten_env.return_result(cmd_result, cmd)
+        await ten_env.return_result(cmd_result, cmd)
 
     async def on_stop(self, ten_env: AsyncTenEnv) -> None:
         ten_env.log_debug("on_stop")

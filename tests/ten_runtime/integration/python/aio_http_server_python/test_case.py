@@ -6,7 +6,7 @@ import subprocess
 import os
 import sys
 from sys import stdout
-from .common import http
+from .common import http, build_config, build_pkg
 
 
 def http_request():
@@ -53,7 +53,27 @@ def test_aio_http_server_python():
             base_path, "aio_http_server_python_app/lib"
         )
 
-    app_root_path = os.path.join(base_path, "aio_http_server_python_app")
+    source_pkg_name = "aio_http_server_python_app"
+    app_root_path = os.path.join(base_path, source_pkg_name)
+    app_language = "python"
+
+    build_config_args = build_config.parse_build_config(
+        os.path.join(root_dir, "tgn_args.txt"),
+    )
+
+    if build_config_args.ten_enable_integration_tests_prebuilt is False:
+        print('Assembling and building package "{}".'.format(source_pkg_name))
+
+        rc = build_pkg.prepare_and_build_app(
+            build_config_args,
+            root_dir,
+            base_path,
+            app_root_path,
+            source_pkg_name,
+            app_language,
+        )
+        if rc != 0:
+            assert False, "Failed to build package."
 
     tman_install_cmd = [
         os.path.join(root_dir, "ten_manager/bin/tman"),
@@ -70,6 +90,9 @@ def test_aio_http_server_python():
         cwd=app_root_path,
     )
     tman_install_process.wait()
+    return_code = tman_install_process.returncode
+    if return_code != 0:
+        assert False, "Failed to install package."
 
     bootstrap_cmd = os.path.join(
         base_path, "aio_http_server_python_app/bin/bootstrap"
@@ -81,7 +104,7 @@ def test_aio_http_server_python():
     bootstrap_process.wait()
 
     if sys.platform == "linux":
-        if os.path.exists(os.path.join(base_path, "use_asan_lib_marker")):
+        if build_config_args.enable_sanitizer:
             libasan_path = os.path.join(
                 base_path,
                 "aio_http_server_python_app/ten_packages/system/ten_runtime/lib/libasan.so",
@@ -91,6 +114,10 @@ def test_aio_http_server_python():
                 my_env["LD_PRELOAD"] = libasan_path
 
     server_cmd = os.path.join(base_path, "aio_http_server_python_app/bin/start")
+
+    if not os.path.isfile(server_cmd):
+        print(f"Server command '{server_cmd}' does not exist.")
+        assert False
 
     server = subprocess.Popen(
         server_cmd,
@@ -102,14 +129,14 @@ def test_aio_http_server_python():
 
     is_started = http.is_app_started("127.0.0.1", 8002, 30)
     if not is_started:
-        print("The aio_http_server_python is not started after 30 seconds.")
+        print("The aio_http_server_python is not started after 10 seconds.")
 
         server.kill()
         exit_code = server.wait()
         print("The exit code of aio_http_server_python: ", exit_code)
 
         assert exit_code == 0
-        assert 0
+        assert False
 
         return
 
@@ -128,3 +155,10 @@ def test_aio_http_server_python():
         print("The exit code of aio_http_server_python: ", exit_code)
 
         assert exit_code == 0
+
+        if build_config_args.ten_enable_integration_tests_prebuilt is False:
+            source_root_path = os.path.join(base_path, source_pkg_name)
+
+            # Testing complete. If builds are only created during the testing
+            # phase, we  can clear the build results to save disk space.
+            build_pkg.cleanup(source_root_path, app_root_path)

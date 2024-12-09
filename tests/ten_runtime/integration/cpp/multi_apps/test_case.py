@@ -6,7 +6,7 @@ import subprocess
 import os
 import sys
 from sys import stdout
-from .common import msgpack
+from .common import msgpack, build_config, build_pkg
 
 
 def install_app(app_name: str):
@@ -16,6 +16,26 @@ def install_app(app_name: str):
     my_env = os.environ.copy()
 
     app_root_path = os.path.join(base_path, app_name)
+    source_pkg_name = app_name + "_source"
+    app_language = "cpp"
+
+    build_config_args = build_config.parse_build_config(
+        os.path.join(root_dir, "tgn_args.txt"),
+    )
+
+    if build_config_args.ten_enable_integration_tests_prebuilt is False:
+        print('Assembling and building package "{}".'.format(source_pkg_name))
+
+        rc = build_pkg.prepare_and_build_app(
+            build_config_args,
+            root_dir,
+            base_path,
+            app_root_path,
+            source_pkg_name,
+            app_language,
+        )
+        if rc != 0:
+            assert False, "Failed to build package."
 
     tman_install_cmd = [
         os.path.join(root_dir, "ten_manager/bin/tman"),
@@ -32,6 +52,9 @@ def install_app(app_name: str):
         cwd=app_root_path,
     )
     tman_install_process.wait()
+    return_code = tman_install_process.returncode
+    if return_code != 0:
+        assert False, "Failed to install package."
 
 
 def start_app(app_name: str, port: int) -> subprocess.Popen:
@@ -67,13 +90,25 @@ def start_app(app_name: str, port: int) -> subprocess.Popen:
             base_path, f"{app_name}/bin/{app_name}_source"
         )
 
-        if os.path.exists(os.path.join(base_path, "use_asan_lib_marker")):
+        root_dir = os.path.join(base_path, "../../../../../")
+        build_config_args = build_config.parse_build_config(
+            os.path.join(root_dir, "tgn_args.txt"),
+        )
+
+        if (
+            build_config_args.enable_sanitizer
+            and not build_config_args.is_clang
+        ):
             libasan_path = os.path.join(
                 base_path,
                 f"{app_name}/ten_packages/system/ten_runtime/lib/libasan.so",
             )
             if os.path.exists(libasan_path):
                 my_env["LD_PRELOAD"] = libasan_path
+
+    if not os.path.isfile(server_cmd):
+        print(f"Server command '{server_cmd}' does not exist.")
+        assert False
 
     server = subprocess.Popen(
         server_cmd,
@@ -85,13 +120,13 @@ def start_app(app_name: str, port: int) -> subprocess.Popen:
 
     is_started, sock = msgpack.is_app_started("127.0.0.1", port, 10)
     if not is_started:
-        print(f"The {app_name} is not started after 30 seconds.")
+        print(f"The {app_name} is not started after 10 seconds.")
 
         server.kill()
         exit_code = server.wait()
         print(f"The exit code of {app_name}: {exit_code}")
 
-        assert 0
+        assert False
 
     sock.close()
     return server
@@ -123,7 +158,14 @@ def start_client(app_name: str) -> subprocess.Popen:
         )
         client_cmd = os.path.join(base_path, "multi_apps_client")
 
-        if os.path.exists(os.path.join(base_path, "use_asan_lib_marker")):
+        root_dir = os.path.join(base_path, "../../../../../")
+        build_config_args = build_config.parse_build_config(
+            os.path.join(root_dir, "tgn_args.txt"),
+        )
+        if (
+            build_config_args.enable_sanitizer
+            and not build_config_args.is_clang
+        ):
             libasan_path = os.path.join(
                 base_path,
                 f"{app_name}/ten_packages/system/ten_runtime/lib/libasan.so",

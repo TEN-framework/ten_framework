@@ -33,8 +33,8 @@ type TenEnv interface {
 	SendVideoFrame(videoFrame VideoFrame, handler ErrorHandler) error
 	SendAudioFrame(audioFrame AudioFrame, handler ErrorHandler) error
 
-	ReturnResult(result CmdResult, cmd Cmd) error
-	ReturnResultDirectly(result CmdResult) error
+	ReturnResult(result CmdResult, cmd Cmd, handler ErrorHandler) error
+	ReturnResultDirectly(result CmdResult, handler ErrorHandler) error
 
 	OnConfigureDone() error
 	OnInitDone() error
@@ -42,8 +42,6 @@ type TenEnv interface {
 	OnStopDone() error
 	OnDeinitDone() error
 	OnCreateInstanceDone(instance any, context uintptr) error
-
-	IsCmdConnected(cmdName string) (bool, error)
 
 	iProperty
 	InitPropertyFromJSONBytes(value []byte) error
@@ -54,7 +52,6 @@ type TenEnv interface {
 	LogWarn(msg string)
 	LogError(msg string)
 	LogFatal(msg string)
-	Log(level LogLevel, msg string)
 
 	// Private functions.
 	postSyncJob(payload job) any
@@ -100,6 +97,15 @@ func (p *tenEnv) attachToExtension(ext *extension) {
 
 	p.attachToType = tenAttachToExtension
 	p.attachTo = unsafe.Pointer(ext)
+}
+
+func (p *tenEnv) attachToApp(app *app) {
+	if p.attachToType != tenAttachToInvalid {
+		panic("The ten object can only be attached once.")
+	}
+
+	p.attachToType = tenAttachToApp
+	p.attachTo = unsafe.Pointer(app)
 }
 
 func (p *tenEnv) postSyncJob(payload job) any {
@@ -301,6 +307,14 @@ func (p *tenEnv) SendAudioFrame(
 
 func (p *tenEnv) OnConfigureDone() error {
 	p.LogDebug("OnConfigureDone")
+
+	if p.attachToType == tenAttachToApp {
+		if err := RegisterAllAddons(nil); err != nil {
+			p.LogFatal("Failed to register all GO addons: " + err.Error())
+			return nil
+		}
+	}
+
 	C.ten_go_ten_env_on_configure_done(p.cPtr)
 
 	return nil
@@ -342,15 +356,6 @@ func (p *tenEnv) OnCreateInstanceDone(instance any, context uintptr) error {
 	return nil
 }
 
-func (p *tenEnv) IsCmdConnected(cmdName string) (bool, error) {
-	return p.process(func() any {
-		cName := C.CString(cmdName)
-		defer C.free(unsafe.Pointer(cName))
-
-		return bool(C.ten_go_ten_env_is_cmd_connected(p.cPtr, cName))
-	}).(bool), nil
-}
-
 func (p *tenEnv) String() string {
 	cString := C.ten_go_ten_env_debug_info(p.cPtr)
 	defer C.free(unsafe.Pointer(cString))
@@ -381,10 +386,6 @@ func (p *tenEnv) LogError(msg string) {
 
 func (p *tenEnv) LogFatal(msg string) {
 	p.logInternal(LogLevelFatal, msg, 2)
-}
-
-func (p *tenEnv) Log(level LogLevel, msg string) {
-	p.logInternal(level, msg, 1)
 }
 
 func (p *tenEnv) logInternal(level LogLevel, msg string, skip int) {

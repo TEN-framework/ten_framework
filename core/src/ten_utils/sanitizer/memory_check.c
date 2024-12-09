@@ -123,15 +123,16 @@ static ten_sanitizer_memory_record_t *ten_sanitizer_memory_record_create(
 
   self->func_name = (char *)malloc(strlen(func_name) + 1);
   TEN_ASSERT(self->func_name, "Failed to allocate memory.");
-  (void)sprintf(self->func_name, "%s", func_name);
+  (void)snprintf(self->func_name, strlen(func_name) + 1, "%s", func_name);
 
   self->file_name = (char *)malloc(strlen(file_name) + 1);
   TEN_ASSERT(self->file_name, "Failed to allocate memory.");
   TEN_ASSERT(strlen(file_name) >= TEN_FILE_PATH_RELATIVE_PREFIX_LENGTH,
              "Should not happen.");
-  (void)sprintf(self->file_name, "%.*s",
-                (int)(strlen(file_name) - TEN_FILE_PATH_RELATIVE_PREFIX_LENGTH),
-                file_name + TEN_FILE_PATH_RELATIVE_PREFIX_LENGTH);
+  (void)snprintf(
+      self->file_name, strlen(file_name) + 1, "%.*s",
+      (int)(strlen(file_name) - TEN_FILE_PATH_RELATIVE_PREFIX_LENGTH),
+      file_name + TEN_FILE_PATH_RELATIVE_PREFIX_LENGTH);
 
   self->lineno = lineno;
 
@@ -260,7 +261,7 @@ void ten_sanitizer_memory_record_dump(void) {
   TEN_ASSERT(!rc, "Failed to lock.");
 
   if (g_memory_records.total_size) {
-    (void)fprintf(stderr, "Memory allocation summary(%zu bytes):",
+    (void)fprintf(stderr, "Memory allocation summary(%zu bytes):\n",
                   g_memory_records.total_size);
   }
 
@@ -280,7 +281,7 @@ void ten_sanitizer_memory_record_dump(void) {
 
     ten_sanitizer_memory_record_t *info = ten_ptr_listnode_get(iter.node);
 
-    (void)fprintf(stderr, "\t#%zu %p(%zu bytes) in %s %s:%d", idx, info->addr,
+    (void)fprintf(stderr, "\t#%zu %p(%zu bytes) in %s %s:%d\n", idx, info->addr,
                   info->size, info->func_name, info->file_name, info->lineno);
 
     idx++;
@@ -304,7 +305,7 @@ void ten_sanitizer_memory_record_dump(void) {
   TEN_ASSERT(!rc, "Failed to unlock.");
 
   if (total_size) {
-    (void)fprintf(stderr, "Memory leak with %zu bytes.", total_size);
+    (void)fprintf(stderr, "Memory leak with %zu bytes.\n", total_size);
 
 #if defined(TEN_USE_ASAN)
     __lsan_enable();

@@ -29,6 +29,8 @@ group("python") {
       "multiple_results_python_1",
       "multiple_results_python_2",
       "multiple_results_python_3",
+      "no_dest_async_python",
+      "no_dest_python",
       "resp_handler_yield_python",
       "send_cmd_discard_result_python",
       "send_cmd_python",
@@ -42,11 +44,16 @@ group("python") {
 
     if (ten_enable_python_binding && ten_enable_go_binding) {
       deps += [
-        "go_app_cythonize",
-        "go_app_partially_cythonize",
         "go_app_python",
         "unused_addon_python",
       ]
+
+      if (ten_enable_integration_tests_prebuilt) {
+        deps += [
+          "go_app_cythonize",
+          "go_app_partially_cythonize",
+        ]
+      }
     }
   }
 

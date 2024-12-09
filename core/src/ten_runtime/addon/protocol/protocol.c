@@ -10,6 +10,7 @@
 #include "include_internal/ten_runtime/addon/common/store.h"
 #include "include_internal/ten_runtime/common/constant_str.h"
 #include "include_internal/ten_runtime/protocol/protocol.h"
+#include "include_internal/ten_runtime/ten_env/log.h"
 #include "include_internal/ten_runtime/ten_env/ten_env.h"
 #include "ten_utils/container/list.h"
 #include "ten_utils/container/list_node.h"
@@ -73,7 +74,8 @@ static bool ten_addon_protocol_match_protocol(ten_addon_host_t *self,
         addon_protocol_value && ten_value_check_integrity(addon_protocol_value),
         "Should not happen.");
 
-    const char *addon_protocol = ten_value_peek_raw_str(addon_protocol_value);
+    const char *addon_protocol =
+        ten_value_peek_raw_str(addon_protocol_value, NULL);
     if (!strcmp(addon_protocol, protocol)) {
       found = true;
       break;
@@ -182,7 +184,8 @@ bool ten_addon_create_protocol_with_uri(
   TEN_ENV_ATTACH_TO attach_to = ten_env_get_attach_to(ten_env);
   if (attach_to != TEN_ENV_ATTACH_TO_APP &&
       attach_to != TEN_ENV_ATTACH_TO_ENGINE) {
-    TEN_LOGE("Invalid ten_env attach_to: %d", attach_to);
+    TEN_ENV_LOG_ERROR_INTERNAL(ten_env, "Invalid ten_env attach_to: %d",
+                               attach_to);
     if (err) {
       ten_error_set(err, TEN_ERRNO_INVALID_ARGUMENT, "Invalid ten_env.");
     }
@@ -193,8 +196,10 @@ bool ten_addon_create_protocol_with_uri(
   ten_addon_host_t *addon_host =
       ten_addon_protocol_find(ten_string_get_raw_str(protocol_str));
   if (!addon_host) {
-    TEN_LOGE("Can not handle protocol '%s' because no addon installed for it",
-             uri);
+    TEN_ENV_LOG_ERROR_INTERNAL(
+        ten_env,
+        "Failed to handle protocol '%s' because no addon installed for it",
+        uri);
     ten_string_destroy(protocol_str);
 
     if (err) {
@@ -204,8 +209,8 @@ bool ten_addon_create_protocol_with_uri(
     return false;
   }
 
-  TEN_LOGD("Loading protocol addon: %s",
-           ten_string_get_raw_str(&addon_host->name));
+  TEN_ENV_LOG_INFO_INTERNAL(ten_env, "Loading protocol addon: %s",
+                            ten_string_get_raw_str(&addon_host->name));
 
   ten_string_destroy(protocol_str);
 
@@ -219,7 +224,8 @@ bool ten_addon_create_protocol_with_uri(
       proxy_on_addon_protocol_created, info);
 
   if (!rc) {
-    TEN_LOGE("Failed to create protocol for %s", uri);
+    TEN_ENV_LOG_ERROR_INTERNAL(ten_env, "Failed to create protocol for %s",
+                               uri);
     ten_addon_create_protocol_info_destroy(info);
 
     if (err) {

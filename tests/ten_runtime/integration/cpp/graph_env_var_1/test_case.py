@@ -6,7 +6,7 @@ import subprocess
 import os
 import sys
 from sys import stdout
-from .common import msgpack
+from .common import msgpack, build_config, build_pkg
 
 
 def test_graph_env_var_1_app():
@@ -17,6 +17,26 @@ def test_graph_env_var_1_app():
     my_env = os.environ.copy()
 
     app_root_path = os.path.join(base_path, "graph_env_var_1_app")
+    source_pkg_name = "graph_env_var_1_app_source"
+    app_language = "cpp"
+
+    build_config_args = build_config.parse_build_config(
+        os.path.join(root_dir, "tgn_args.txt"),
+    )
+
+    if build_config_args.ten_enable_integration_tests_prebuilt is False:
+        print('Assembling and building package "{}".'.format(source_pkg_name))
+
+        rc = build_pkg.prepare_and_build_app(
+            build_config_args,
+            root_dir,
+            base_path,
+            app_root_path,
+            source_pkg_name,
+            app_language,
+        )
+        if rc != 0:
+            assert False, "Failed to build package."
 
     tman_install_cmd = [
         os.path.join(root_dir, "ten_manager/bin/tman"),
@@ -33,6 +53,9 @@ def test_graph_env_var_1_app():
         cwd=app_root_path,
     )
     tman_install_process.wait()
+    return_code = tman_install_process.returncode
+    if return_code != 0:
+        assert False, "Failed to install package."
 
     if sys.platform == "win32":
         my_env["PATH"] = (
@@ -69,7 +92,10 @@ def test_graph_env_var_1_app():
         )
         client_cmd = os.path.join(base_path, "graph_env_var_1_app_client")
 
-        if os.path.exists(os.path.join(base_path, "use_asan_lib_marker")):
+        if (
+            build_config_args.enable_sanitizer
+            and not build_config_args.is_clang
+        ):
             libasan_path = os.path.join(
                 base_path,
                 "graph_env_var_1_app/ten_packages/system/ten_runtime/lib/libasan.so",
@@ -78,6 +104,10 @@ def test_graph_env_var_1_app():
                 my_env["LD_PRELOAD"] = libasan_path
 
     my_env["TEST_ENV_VAR"] = "set_from_real_env_var"
+
+    if not os.path.isfile(server_cmd):
+        print(f"Server command '{server_cmd}' does not exist.")
+        assert False
 
     server = subprocess.Popen(
         server_cmd,
@@ -89,16 +119,15 @@ def test_graph_env_var_1_app():
 
     is_started, sock = msgpack.is_app_started("127.0.0.1", 8001, 10)
     if not is_started:
-        print("The graph_env_var_1_app is not started after 30 seconds.")
+        print("The graph_env_var_1_app is not started after 10 seconds.")
 
         server.kill()
-        exit_code = server.wait()
-        print("The exit code of graph_env_var_1_app: ", exit_code)
+        server_rc = server.wait()
 
-        assert exit_code == 0
-        assert 0
+        print("The exit code of graph_env_var_1_app: ", server_rc)
 
-        return
+        assert server_rc == 0, f"Server exited with code {server_rc}"
+        assert False
 
     client = subprocess.Popen(
         client_cmd, stdout=stdout, stderr=subprocess.STDOUT, env=my_env
@@ -116,5 +145,12 @@ def test_graph_env_var_1_app():
     server_rc = server.wait()
     print("server: ", server_rc)
     print("client: ", client_rc)
-    assert server_rc == 0
-    assert client_rc == 0
+    assert server_rc == 0, f"Server exited with code {server_rc}"
+    assert client_rc == 0, f"Client exited with code {client_rc}"
+
+    if build_config_args.ten_enable_integration_tests_prebuilt is False:
+        source_root_path = os.path.join(base_path, source_pkg_name)
+
+        # Testing complete. If builds are only created during the testing phase,
+        # we  can clear the build results to save disk space.
+        build_pkg.cleanup(source_root_path, app_root_path)

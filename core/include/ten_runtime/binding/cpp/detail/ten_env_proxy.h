@@ -102,38 +102,33 @@ class ten_env_proxy_t {
   ten_env_proxy_t &operator=(ten_env_proxy_t &&other) = delete;
   // @}
 
-  bool acquire_lock_mode(error_t *err) {
+  bool acquire_lock_mode(error_t *err = nullptr) {
     if (c_ten_env_proxy == nullptr) {
       TEN_ASSERT(0, "Invalid argument.");
       return false;
     }
 
     return ten_env_proxy_acquire_lock_mode(
-        c_ten_env_proxy,
-        err != nullptr ? err->get_internal_representation() : nullptr);
+        c_ten_env_proxy, err != nullptr ? err->get_c_error() : nullptr);
   }
 
-  bool acquire_lock_mode() { return acquire_lock_mode(nullptr); }
-
-  bool release_lock_mode(error_t *err) {
+  bool release_lock_mode(error_t *err = nullptr) {
     if (c_ten_env_proxy == nullptr) {
       TEN_ASSERT(0, "Invalid argument.");
       return false;
     }
 
     return ten_env_proxy_release_lock_mode(
-        c_ten_env_proxy,
-        err != nullptr ? err->get_internal_representation() : nullptr);
+        c_ten_env_proxy, err != nullptr ? err->get_c_error() : nullptr);
   }
 
-  bool release_lock_mode() { return release_lock_mode(nullptr); }
-
-  bool notify(notify_std_func_t &&notify_func, bool sync, error_t *err) {
+  bool notify(notify_std_func_t &&notify_func, bool sync = false,
+              error_t *err = nullptr) {
     auto *info = new proxy_notify_info_t(std::move(notify_func));
 
-    auto rc = ten_env_proxy_notify(
-        c_ten_env_proxy, proxy_notify, info, sync,
-        err != nullptr ? err->get_internal_representation() : nullptr);
+    auto rc =
+        ten_env_proxy_notify(c_ten_env_proxy, proxy_notify, info, sync,
+                             err != nullptr ? err->get_c_error() : nullptr);
     if (!rc) {
       delete info;
     }
@@ -141,44 +136,18 @@ class ten_env_proxy_t {
     return rc;
   }
 
-  bool notify(notify_std_func_t &&notify_func, bool sync) {
-    return notify(std::move(notify_func), sync, nullptr);
-  }
-
-  bool notify(notify_std_func_t &&notify_func, error_t *err) {
-    return notify(std::move(notify_func), false, err);
-  }
-
-  bool notify(notify_std_func_t &&notify_func) {
-    return notify(std::move(notify_func), false, nullptr);
-  }
-
   bool notify(notify_std_with_user_data_func_t &&notify_func, void *user_data,
-              bool sync, error_t *err) {
+              bool sync = false, error_t *err = nullptr) {
     auto *info = new proxy_notify_info_t(std::move(notify_func), user_data);
 
-    auto rc = ten_env_proxy_notify(
-        c_ten_env_proxy, proxy_notify, info, sync,
-        err != nullptr ? err->get_internal_representation() : nullptr);
+    auto rc =
+        ten_env_proxy_notify(c_ten_env_proxy, proxy_notify, info, sync,
+                             err != nullptr ? err->get_c_error() : nullptr);
     if (!rc) {
       delete info;
     }
 
     return rc;
-  }
-
-  bool notify(notify_std_with_user_data_func_t &&notify_func, void *user_data,
-              bool sync) {
-    return notify(std::move(notify_func), user_data, sync, nullptr);
-  }
-
-  bool notify(notify_std_with_user_data_func_t &&notify_func, void *user_data,
-              error_t *err) {
-    return notify(std::move(notify_func), user_data, false, err);
-  }
-
-  bool notify(notify_std_with_user_data_func_t &&notify_func, void *user_data) {
-    return notify(std::move(notify_func), user_data, false, nullptr);
   }
 
  private:
@@ -194,7 +163,7 @@ class ten_env_proxy_t {
   //   }
   //   return ten_proxy_acquire(
   //       c_ten_env_proxy,
-  //       err != nullptr ? err->get_internal_representation() : nullptr);
+  //       err != nullptr ? err->get_c_error() : nullptr);
   // }
   //
   // bool release(error_t *err = nullptr) {
@@ -204,7 +173,7 @@ class ten_env_proxy_t {
   //   }
   //   bool rc = ten_proxy_release(
   //       c_ten_env_proxy,
-  //       err != nullptr ? err->get_internal_representation() : nullptr);
+  //       err != nullptr ? err->get_c_error() : nullptr);
   //   TEN_ASSERT(rc, "Should not happen.");
   //   return rc;
   // }
