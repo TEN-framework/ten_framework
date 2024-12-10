@@ -111,10 +111,9 @@ jobs:
         run: |
           chmod +x out/mac/arm64/tests/standalone/ten_runtime_smoke_test
           out/mac/arm64/tests/standalone/ten_runtime_smoke_test
-        continue-on-error: true
-
-      - name: Setup tmate session
-        uses: mxschmitt/action-tmate@v3
+      #   continue-on-error: true
+      # - name: Setup tmate session
+      #   uses: mxschmitt/action-tmate@v3
 
       - name: Run Tests (ten_rust standalone tests)
         env:
@@ -419,7 +418,7 @@ jobs:
         run: |
           chmod +x out/mac/arm64/tests/standalone/ten_runtime_smoke_test
           out/mac/arm64/tests/standalone/ten_runtime_smoke_test
-        continue-on-error: true
+      #   continue-on-error: true
 
-      - name: Setup tmate session
-        uses: mxschmitt/action-tmate@v3
+      # - name: Setup tmate session
+      #   uses: mxschmitt/action-tmate@v3
