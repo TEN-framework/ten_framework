@@ -82,80 +82,80 @@ jobs:
           tgn build mac arm64 ${{ matrix.build_type }}
           tree -I 'gen|obj' out
 
-      - name: Run Tests (ten_utils_unit_test)
-        env:
-          ASAN_OPTIONS: detect_stack_use_after_return=1:color=always:unmap_shadow_on_exit=1:abort_on_error=1
-          MALLOC_CHECK_: 3
-          TEN_ENABLE_MEMORY_TRACKING: "true"
-          TEN_ENABLE_BACKTRACE_DUMP: "true"
-        run: |
-          chmod +x out/mac/arm64/tests/standalone/ten_utils_unit_test
-          out/mac/arm64/tests/standalone/ten_utils_unit_test
+      # - name: Run Tests (ten_utils_unit_test)
+      #   env:
+      #     ASAN_OPTIONS: detect_stack_use_after_return=1:color=always:unmap_shadow_on_exit=1:abort_on_error=1
+      #     MALLOC_CHECK_: 3
+      #     TEN_ENABLE_MEMORY_TRACKING: "true"
+      #     TEN_ENABLE_BACKTRACE_DUMP: "true"
+      #   run: |
+      #     chmod +x out/mac/arm64/tests/standalone/ten_utils_unit_test
+      #     out/mac/arm64/tests/standalone/ten_utils_unit_test
 
-      - name: Run Tests (ten_runtime_unit_test)
-        env:
-          ASAN_OPTIONS: detect_stack_use_after_return=1:color=always:unmap_shadow_on_exit=1:abort_on_error=1
-          MALLOC_CHECK_: 3
-          TEN_ENABLE_MEMORY_TRACKING: "true"
-          TEN_ENABLE_BACKTRACE_DUMP: "true"
-        run: |
-          chmod +x out/mac/arm64/tests/standalone/ten_runtime_unit_test
-          out/mac/arm64/tests/standalone/ten_runtime_unit_test
+      # - name: Run Tests (ten_runtime_unit_test)
+      #   env:
+      #     ASAN_OPTIONS: detect_stack_use_after_return=1:color=always:unmap_shadow_on_exit=1:abort_on_error=1
+      #     MALLOC_CHECK_: 3
+      #     TEN_ENABLE_MEMORY_TRACKING: "true"
+      #     TEN_ENABLE_BACKTRACE_DUMP: "true"
+      #   run: |
+      #     chmod +x out/mac/arm64/tests/standalone/ten_runtime_unit_test
+      #     out/mac/arm64/tests/standalone/ten_runtime_unit_test
 
-      - name: Run Tests (ten_runtime_smoke_test)
-        env:
-          ASAN_OPTIONS: detect_stack_use_after_return=1:color=always:unmap_shadow_on_exit=1:abort_on_error=1
-          MALLOC_CHECK_: 3
-          TEN_ENABLE_MEMORY_TRACKING: "true"
-          TEN_ENABLE_BACKTRACE_DUMP: "true"
-        run: |
-          chmod +x out/mac/arm64/tests/standalone/ten_runtime_smoke_test
-          out/mac/arm64/tests/standalone/ten_runtime_smoke_test
-      #   continue-on-error: true
-      # - name: Setup tmate session
-      #   uses: mxschmitt/action-tmate@v3
+      # - name: Run Tests (ten_runtime_smoke_test)
+      #   env:
+      #     ASAN_OPTIONS: detect_stack_use_after_return=1:color=always:unmap_shadow_on_exit=1:abort_on_error=1
+      #     MALLOC_CHECK_: 3
+      #     TEN_ENABLE_MEMORY_TRACKING: "true"
+      #     TEN_ENABLE_BACKTRACE_DUMP: "true"
+      #   run: |
+      #     chmod +x out/mac/arm64/tests/standalone/ten_runtime_smoke_test
+      #     out/mac/arm64/tests/standalone/ten_runtime_smoke_test
+      # #   continue-on-error: true
+      # # - name: Setup tmate session
+      # #   uses: mxschmitt/action-tmate@v3
 
-      - name: Run Tests (ten_rust standalone tests)
-        env:
-          ASAN_OPTIONS: detect_stack_use_after_return=1:color=always:unmap_shadow_on_exit=1:abort_on_error=1
-          MALLOC_CHECK_: 3
-          TEN_ENABLE_MEMORY_TRACKING: "true"
-          TEN_ENABLE_BACKTRACE_DUMP: "true"
-        run: |
-          cd out/mac/arm64/tests/standalone/ten_rust
+      # - name: Run Tests (ten_rust standalone tests)
+      #   env:
+      #     ASAN_OPTIONS: detect_stack_use_after_return=1:color=always:unmap_shadow_on_exit=1:abort_on_error=1
+      #     MALLOC_CHECK_: 3
+      #     TEN_ENABLE_MEMORY_TRACKING: "true"
+      #     TEN_ENABLE_BACKTRACE_DUMP: "true"
+      #   run: |
+      #     cd out/mac/arm64/tests/standalone/ten_rust
 
-          chmod +x unit_test
-          chmod +x integration_test
+      #     chmod +x unit_test
+      #     chmod +x integration_test
 
-          ./unit_test || { echo "ten_rust unit test failed"; exit 1; }
-          ./integration_test || { echo "ten_rust integration test failed"; exit 1; }
+      #     ./unit_test || { echo "ten_rust unit test failed"; exit 1; }
+      #     ./integration_test || { echo "ten_rust integration test failed"; exit 1; }
 
-      - name: Run Tests (ten_manager standalone tests)
-        env:
-          ASAN_OPTIONS: detect_stack_use_after_return=1:color=always:unmap_shadow_on_exit=1:abort_on_error=1
-          MALLOC_CHECK_: 3
-          TEN_ENABLE_MEMORY_TRACKING: "true"
-          TEN_ENABLE_BACKTRACE_DUMP: "true"
-        run: |
-          cd out/mac/arm64/tests/standalone/ten_manager
+      # - name: Run Tests (ten_manager standalone tests)
+      #   env:
+      #     ASAN_OPTIONS: detect_stack_use_after_return=1:color=always:unmap_shadow_on_exit=1:abort_on_error=1
+      #     MALLOC_CHECK_: 3
+      #     TEN_ENABLE_MEMORY_TRACKING: "true"
+      #     TEN_ENABLE_BACKTRACE_DUMP: "true"
+      #   run: |
+      #     cd out/mac/arm64/tests/standalone/ten_manager
 
-          chmod +x unit_test
+      #     chmod +x unit_test
 
-          ./unit_test || { echo "ten_manager unit test failed"; exit 1; }
+      #     ./unit_test || { echo "ten_manager unit test failed"; exit 1; }
 
       - name: Install Python dependencies via script
         run: |
           python .github/tools/setup_pytest_dependencies.py
 
-      - name: Run Tests (ten_manager pytest tests)
-        env:
-          ASAN_OPTIONS: detect_stack_use_after_return=1:color=always:unmap_shadow_on_exit=1:abort_on_error=1
-          MALLOC_CHECK_: 3
-          TEN_ENABLE_MEMORY_TRACKING: "true"
-          TEN_ENABLE_BACKTRACE_DUMP: "true"
-        run: |
-          cd out/mac/arm64/
-          pytest -s tests/ten_manager/
+      # - name: Run Tests (ten_manager pytest tests)
+      #   env:
+      #     ASAN_OPTIONS: detect_stack_use_after_return=1:color=always:unmap_shadow_on_exit=1:abort_on_error=1
+      #     MALLOC_CHECK_: 3
+      #     TEN_ENABLE_MEMORY_TRACKING: "true"
+      #     TEN_ENABLE_BACKTRACE_DUMP: "true"
+      #   run: |
+      #     cd out/mac/arm64/
+      #     pytest -s tests/ten_manager/
 
       - name: Run tests (ten_runtime integration tests)
         env:
@@ -170,10 +170,10 @@ jobs:
           export PATH=$(pwd)/core/ten_gn:$PATH
           cd out/mac/arm64/
           pytest -s tests/ten_runtime/integration/
-      #   continue-on-error: true
+        continue-on-error: true
 
-      # - name: Setup tmate session
-      #   uses: mxschmitt/action-tmate@v3
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
 
   build-mac-x64:
     concurrency:

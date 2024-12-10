@@ -36,6 +36,9 @@
 
 // TEN_ASSERT is used within `ten_string_t`, so do not use `ten_string_t` inside
 // `TEN_ASSERT` to avoid circular dependencies.
+//
+// This size should not be too large; otherwise, it may cause a stack overflow
+// in the deep call chain.
 #define ASSERT_ERR_MSG_MAX_LENGTH 128
 
 #ifndef NDEBUG

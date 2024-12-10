@@ -42,7 +42,7 @@ static char *__make_abs_path(const char *name) {
   }
 
   int written = snprintf(abs_path, abs_path_size, "/%s", name);
-  assert(written > 0);
+  TEN_ASSERT(written > 0, "Should not happen.");
 
   return abs_path;
 }
