@@ -77,15 +77,7 @@ jobs:
           export PATH=$(pwd)/core/ten_gn:$PATH
           echo $PATH
 
-          # The ASan on Mac is too difficult to use. We will install a new
-          # version of Clang on Mac, which can easily lead to issues caused by
-          # loading different versions of ASan. Additionally, in the Python
-          # environment, there are constant errors indicating that the ASan
-          # library is not the first library loaded, among other problems.
-          # Therefore, it's better to disable ASan on Mac and only enable it in
-          # the Linux environment.
-
-          tgn gen mac arm64 ${{ matrix.build_type }} -- log_level=1 enable_sanitizer=false enable_serialized_actions=true ten_enable_private_tests=false ten_rust_enable_gen_cargo_config=false ten_enable_cargo_clean=true
+          tgn gen mac arm64 ${{ matrix.build_type }} -- log_level=1 enable_serialized_actions=true ten_enable_private_tests=false ten_rust_enable_gen_cargo_config=false ten_enable_cargo_clean=true
 
           tgn build mac arm64 ${{ matrix.build_type }}
           tree -I 'gen|obj' out
@@ -248,15 +240,7 @@ jobs:
           export PATH=$(pwd)/core/ten_gn:$PATH
           echo $PATH
 
-          # The ASan on Mac is too difficult to use. We will install a new
-          # version of Clang on Mac, which can easily lead to issues caused by
-          # loading different versions of ASan. Additionally, in the Python
-          # environment, there are constant errors indicating that the ASan
-          # library is not the first library loaded, among other problems.
-          # Therefore, it's better to disable ASan on Mac and only enable it in
-          # the Linux environment.
-
-          tgn gen mac x64 ${{ matrix.build_type }} -- log_level=1 enable_sanitizer=false enable_serialized_actions=true ten_enable_private_tests=false ten_rust_enable_gen_cargo_config=false ten_enable_cargo_clean=true
+          tgn gen mac x64 ${{ matrix.build_type }} -- log_level=1 enable_serialized_actions=true ten_enable_private_tests=false ten_rust_enable_gen_cargo_config=false ten_enable_cargo_clean=true
 
           tgn build mac x64 ${{ matrix.build_type }}
           tree -I 'gen|obj' out
@@ -420,15 +404,7 @@ jobs:
           export PATH=$(pwd)/core/ten_gn:$PATH
           echo $PATH
 
-          # The ASan on Mac is too difficult to use. We will install a new
-          # version of Clang on Mac, which can easily lead to issues caused by
-          # loading different versions of ASan. Additionally, in the Python
-          # environment, there are constant errors indicating that the ASan
-          # library is not the first library loaded, among other problems.
-          # Therefore, it's better to disable ASan on Mac and only enable it in
-          # the Linux environment.
-
-          tgn gen mac arm64 ${{ matrix.build_type }} -- log_level=1 enable_sanitizer=false enable_serialized_actions=true ten_enable_private_tests=false ten_rust_enable_gen_cargo_config=false ten_enable_ten_rust_apis=false
+          tgn gen mac arm64 ${{ matrix.build_type }} -- log_level=1 enable_serialized_actions=true ten_enable_private_tests=false ten_rust_enable_gen_cargo_config=false ten_enable_ten_rust_apis=false
 
           tgn build mac arm64 ${{ matrix.build_type }}
 
