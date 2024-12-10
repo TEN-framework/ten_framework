@@ -116,3 +116,38 @@ void ten_nodejs_report_and_clear_error_(napi_env env, napi_status orig_status,
     // closing), so we don't throw exceptions into JS runtime here.
   }
 }
+
+napi_value ten_nodejs_get_property(napi_env env, napi_value js_obj,
+                                   const char *property_name) {
+  TEN_ASSERT(env, "Should not happen.");
+  TEN_ASSERT(property_name, "Should not happen.");
+
+  napi_value key = NULL;
+  napi_status status =
+      napi_create_string_utf8(env, property_name, strlen(property_name), &key);
+  ASSERT_IF_NAPI_FAIL(status == napi_ok, "Failed to create JS string: %d",
+                      status);
+
+  napi_value value = NULL;
+  status = napi_get_property(env, js_obj, key, &value);
+  ASSERT_IF_NAPI_FAIL(status == napi_ok, "Failed to get JS property: %d",
+                      status);
+
+  return value;
+}
+
+void ten_nodejs_export_func(napi_env env, napi_value exports,
+                            const char *func_name, napi_callback func) {
+  TEN_ASSERT(func_name && strlen(func_name), "Should not happen.");
+
+  napi_value fn = NULL;
+  napi_status status =
+      napi_create_function(env, func_name, NAPI_AUTO_LENGTH, func, NULL, &fn);
+  ASSERT_IF_NAPI_FAIL(status == napi_ok, "Failed to create JS function: %d",
+                      status);
+
+  status = napi_set_named_property(env, exports, func_name, fn);
+  ASSERT_IF_NAPI_FAIL(
+      status == napi_ok,
+      "Failed to add newly created JS function to 'exports': %d", status);
+}

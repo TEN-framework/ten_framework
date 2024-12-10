@@ -7,6 +7,8 @@
  */
 #pragma once
 
+#include "ten_runtime/ten_config.h"
+
 #include <node_api.h>
 
 #include "ten_utils/lib/mutex.h"
@@ -16,6 +18,14 @@
 #include "ten_utils/sanitizer/thread_check.h"
 
 #define TEN_NODEJS_THREADSAFE_FUNCTION_SIGNATURE 0x1D11D6EF2722D8FBU
+
+#define CREATE_JS_CB_TSFN(ten_tsfn, env, log_name, js_cb, tsfn_proxy_func)   \
+  do {                                                                       \
+    ten_tsfn =                                                               \
+        ten_nodejs_tsfn_create((env), log_name, (js_cb), (tsfn_proxy_func)); \
+    TEN_ASSERT((ten_tsfn), "Should not happen.");                            \
+    ten_nodejs_tsfn_inc_rc((ten_tsfn));                                      \
+  } while (0)
 
 typedef struct ten_nodejs_tsfn_t {
   ten_signature_t signature;
@@ -40,3 +50,19 @@ typedef struct ten_nodejs_tsfn_t {
   // that reference, allowing the JS function to be garbage collected.
   napi_ref js_func_ref;
 } ten_nodejs_tsfn_t;
+
+TEN_RUNTIME_API bool ten_nodejs_tsfn_check_integrity(ten_nodejs_tsfn_t *self,
+                                                     bool check_thread);
+
+TEN_RUNTIME_API ten_nodejs_tsfn_t *ten_nodejs_tsfn_create(
+    napi_env env, const char *name, napi_value js_func,
+    napi_threadsafe_function_call_js tsfn_proxy_func);
+
+TEN_RUNTIME_API void ten_nodejs_tsfn_inc_rc(ten_nodejs_tsfn_t *self);
+
+TEN_RUNTIME_API void ten_nodejs_tsfn_dec_rc(ten_nodejs_tsfn_t *self);
+
+TEN_RUNTIME_API bool ten_nodejs_tsfn_invoke(ten_nodejs_tsfn_t *rte_tsfn,
+                                            void *data);
+
+TEN_RUNTIME_API void ten_nodejs_tsfn_release(ten_nodejs_tsfn_t *self);
