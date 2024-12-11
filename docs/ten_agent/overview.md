@@ -10,19 +10,25 @@ It also serves as a boilerplate for using the TEN framework, offering a great wa
 
 ## How TEN Agent Works
 
-There are three main parts in the TEN Agent:
+The TEN Agent consists of two main parts:
 
-1. An agent worker that defines the TEN Graph using TEN Extensions.
-2. A server that manages the agent worker instances and handles HTTP requests from the client.
-3. A web frontend project that builds the UI for the AI agent.
+1. **Frontend**: **Playground** (Port 3000)
+   - Web interface with API Router and UI
+   - Manages communication and graph control
+
+2. **Backend Services**
+   - DevServer (Port 49463): Handles graph operations
+   - WebServer (Port 8080): Processes commands
+   - AgentApp: Core component with extensions and config
+
+![Components Diagram](https://github.com/TEN-framework/docs/blob/main/assets/jpg/diagram.jpg?raw=true)
 
 ### Containers
 
-There are three Docker containers in TEN Agent:
+There are two Docker containers in TEN Agent:
 
 - `astra_agents_dev`: This is the workspace for development. The code repository will be mirrored into the /app folder in the container, and it provides the build environment. The backend service will also run in this container.
 - `astra_playground`: This is a separate service for the web frontend. The compiled frontend files will be mirrored here.
-- `ten_graph_designer`: This is a separate service for visualizing and editing TEN Graphs.
 
 ### Agents
 
