@@ -12,10 +12,10 @@
   "package": {
     "include": [
       "manifest.json",
-      "BUILD.gn",
-      "interface/**",
-      "tools/**",
-      "lib/**"
+      "build/**",
+      "lib/**",
+      "package.json",
+      "package-lock.json"
     ]
   }
 }

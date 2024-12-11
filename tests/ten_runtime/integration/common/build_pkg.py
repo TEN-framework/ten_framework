@@ -8,6 +8,7 @@ import json
 import os
 import platform
 from datetime import datetime
+import time
 from . import (
     cmd_exec,
     fs_utils,
@@ -114,6 +115,57 @@ def is_mac_arm64() -> bool:
     )
 
 
+def _npm_install() -> int:
+    # 'npm install' might be failed because of the bad network connection, and
+    # it might be stuck in a situation where it cannot be recovered. Therefore,
+    # the best way is to delete the whole node_modules/, and try again.
+    returncode = 0
+
+    for i in range(1, 10):
+        returncode, output = cmd_exec.run_cmd(
+            [
+                "npm",
+                "install",
+            ]
+        )
+
+        if returncode == 0:
+            break
+        else:
+            # Delete node_modules/ and try again.
+            print(
+                "Failed to 'npm install', output: {output} , deleting node_modules"
+            )
+            fs_utils.remove_tree("node_modules")
+            time.sleep(5)
+    if returncode != 0:
+        print("Failed to 'npm install' after 10 times retries")
+
+    return returncode
+
+
+def _build_nodejs_app(args: ArgumentInfo) -> int:
+    t1 = datetime.now()
+
+    status_code = _npm_install()
+    if status_code != 0:
+        return status_code
+
+    cmd = ["npm", "run", "build"]
+    status_code, output = cmd_exec.run_cmd(cmd)
+    if status_code != 0:
+        print(f"Failed to npm run build, output: {output}")
+        return status_code
+
+    t2 = datetime.now()
+    duration = (t2 - t1).seconds
+    print(
+        f"Profiling ====> build node app({args.pkg_name}) costs {duration} seconds."
+    )
+
+    return status_code
+
+
 def _build_go_app(args: ArgumentInfo) -> int:
     # Determine the path to the main.go script. Some cases require a customized
     # Go build script, but in most situations, the build script provided by the
@@ -172,6 +224,8 @@ def _build_app(args: ArgumentInfo) -> int:
         returncode = _build_go_app(args)
     elif args.pkg_language == "python":
         returncode = 0
+    elif args.pkg_language == "nodejs":
+        returncode = _build_nodejs_app(args)
     else:
         raise Exception(f"Unknown app language: {args.pkg_language}")
 

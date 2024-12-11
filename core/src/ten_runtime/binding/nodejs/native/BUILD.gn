@@ -29,7 +29,12 @@ ten_shared_library("ten_runtime_nodejs") {
   ]
 
   deps = [
+    "addon",
     "app",
+    "common",
+    "extension",
+    "msg",
+    "ten_env",
     "//core/src/ten_runtime:ten_runtime_library",
   ]
 }
