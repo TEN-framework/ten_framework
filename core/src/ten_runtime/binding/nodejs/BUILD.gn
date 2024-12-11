@@ -1,0 +1,48 @@
+#
+# Copyright © 2024 Agora
+# This file is part of TEN Framework, an open source project.
+# Licensed under the Apache License, Version 2.0, with certain conditions.
+# Refer to the "LICENSE" file in the root directory for more information.
+#
+import("//build/feature/ten_package.gni")
+import("//build/options.gni")
+import("//build/ten_runtime/feature/publish.gni")
+import("//build/ten_runtime/options.gni")
+import("//build/ten_runtime/ten.gni")
+import("//core/src/ten_runtime/output_libs.gni")
+
+ten_package("ten_nodejs_binding_system_package") {
+  package_kind = "system"
+  package_output_root_dir_name = "ten_runtime_nodejs"
+
+  resources = [
+    "//core/src/ten_runtime/binding/nodejs/interface=>interface",
+    "manifest.json",
+  ]
+
+  foreach(lib, ten_runtime_nodejs_output_libs) {
+    libname = get_path_info(rebase_path(lib), "file")
+    resources += [ "${lib}=>lib/${libname}" ]
+  }
+
+  deps = [ "native:ten_runtime_nodejs" ]
+}
+
+if (ten_enable_package_manager) {
+  ten_package_publish("upload_ten_nodejs_binding_system_package_to_server") {
+    base_dir =
+        rebase_path("${root_out_dir}/ten_packages/system/ten_runtime_nodejs")
+    deps = [
+      ":ten_nodejs_binding_system_package",
+      "native:ten_runtime_nodejs",
+    ]
+  }
+}
+
+group("nodejs") {
+  deps = [ "native:ten_runtime_nodejs" ]
+
+  if (ten_enable_package_manager) {
+    deps += [ ":upload_ten_nodejs_binding_system_package_to_server" ]
+  }
+}

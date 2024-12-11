@@ -47,8 +47,4 @@ group("python") {
   if (ten_enable_package_manager) {
     deps += [ ":upload_ten_python_binding_system_package_to_server" ]
   }
-
-  if (ten_enable_package_manager) {
-    deps += [ ":upload_ten_python_binding_system_package_to_server" ]
-  }
 }

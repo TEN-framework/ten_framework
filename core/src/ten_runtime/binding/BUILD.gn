@@ -18,4 +18,8 @@ glob("binding") {
   if (ten_enable_python_binding) {
     deps += [ "python" ]
   }
+
+  if (ten_enable_nodejs_binding) {
+    deps += [ "nodejs" ]
+  }
 }
