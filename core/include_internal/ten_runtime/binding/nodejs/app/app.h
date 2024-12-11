@@ -29,7 +29,7 @@ typedef struct ten_nodejs_app_t {
   // app's interface API.
   ten_nodejs_tsfn_t *js_on_configure;
   ten_nodejs_tsfn_t *js_on_init;
-  ten_nodejs_tsfn_t *js_on_close;
+  ten_nodejs_tsfn_t *js_on_deinit;
   // @}
 } ten_nodejs_app_t;
 

@@ -5,9 +5,67 @@
 // Refer to the "LICENSE" file in the root directory for more information.
 //
 import ten_addon from '../ten_addon'
+import { TenEnv } from '../ten_env/ten_env';
 
 export class App {
     constructor() {
         ten_addon.ten_nodejs_app_create(this);
+    }
+
+    private async onConfigureProxy(tenEnv: TenEnv): Promise<void> {
+        try {
+            await this.onConfigure(tenEnv);
+        } catch (error) {
+            // tenEnv.log
+        } finally {
+            ten_addon.ten_nodejs_ten_env_on_configure_done(tenEnv);
+        }
+    }
+
+    private async onInitProxy(tenEnv: TenEnv): Promise<void> {
+        try {
+            await this.onInit(tenEnv);
+        } catch (error) {
+            // tenEnv.log
+        } finally {
+            ten_addon.ten_nodejs_ten_env_on_init_done(tenEnv);
+        }
+    }
+
+    private async onDeinitProxy(tenEnv: TenEnv): Promise<void> {
+        try {
+            await this.onDeinit(tenEnv);
+        } catch (error) {
+            // tenEnv.log
+        } finally {
+            ten_addon.ten_nodejs_ten_env_on_deinit_done(tenEnv);
+
+            /**
+            * JS app prepare to be destroyed, so notify the underlying C runtime this
+            * fact.
+            */
+            ten_addon.rte_nodejs_app_on_close(this);
+        }
+    }
+
+    /** The ten app should be run in another native thread not the JS main thread. */
+    run(): void {
+        ten_addon.ten_nodejs_app_run(this);
+    }
+
+    close(): void {
+        ten_addon.ten_nodejs_app_close(this);
+    }
+
+    async onConfigure(tenEnv: TenEnv): Promise<void> {
+        // Stub for override.
+    }
+
+    async onInit(tenEnv: TenEnv): Promise<void> {
+        // Stub for override.
+    }
+
+    async onDeinit(tenEnv: TenEnv): Promise<void> {
+        // Stub for override.
     }
 }

@@ -4,5 +4,9 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-export * from './app/app';
-export * from './ten_env/ten_env';
+#include "ten_runtime/ten_config.h"
+
+#include <node_api.h>
+
+TEN_RUNTIME_API napi_value
+ten_nodejs_audio_frame_module_init(napi_env env, napi_value exports);

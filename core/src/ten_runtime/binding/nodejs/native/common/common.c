@@ -151,3 +151,41 @@ void ten_nodejs_export_func(napi_env env, napi_value exports,
       status == napi_ok,
       "Failed to add newly created JS function to 'exports': %d", status);
 }
+
+/**
+ * @brief Create a JavaScript object by using a 'constructor' function in the
+ * JavaScript world, and binding the newly created JavaScript object to a native
+ * object in 'bridge_obj'.
+ */
+napi_value ten_nodejs_create_new_js_object_and_wrap(
+    napi_env env, napi_ref js_constructor_ref, void *bridge_obj,
+    napi_finalize finalizer, napi_ref *bridge_weak_ref, size_t argc,
+    const napi_value *argv) {
+  TEN_ASSERT(env, "Should not happen.");
+  TEN_ASSERT(js_constructor_ref, "Should not happen.");
+  TEN_ASSERT(bridge_obj, "Should not happen.");
+
+  napi_value js_instance = NULL;
+
+  // Get the JavaScript constructor function corresponding to the
+  // 'constructor_ref'.
+  napi_value js_constructor = NULL;
+  napi_status status =
+      napi_get_reference_value(env, js_constructor_ref, &js_constructor);
+  GOTO_LABEL_IF_NAPI_FAIL(done, status == napi_ok && js_constructor != NULL,
+                          "Failed to get JS constructor: %d", status);
+
+  // Create a JS instance.
+  status = napi_new_instance(env, js_constructor, argc, argv, &js_instance);
+  GOTO_LABEL_IF_NAPI_FAIL(done, status == napi_ok,
+                          "Failed to create JS instance: %d", status);
+
+  // Wrap the native 'bridge_obj' to the newly created JS instance.
+  status =
+      napi_wrap(env, js_instance, bridge_obj, finalizer, NULL, bridge_weak_ref);
+  GOTO_LABEL_IF_NAPI_FAIL(done, status == napi_ok,
+                          "Failed to bind JS instance & bridge: %d", status);
+
+done:
+  return js_instance;
+}

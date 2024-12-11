@@ -621,12 +621,13 @@
       "request": "launch",
       "program": "node",
       "args": [
-        "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/nodejs/default_ui_app_ts_basic/default_ui_app_ts_basic_app/build/start.js"
+        "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/nodejs/send_cmd_nodejs/send_cmd_nodejs_app/build/start.js"
       ],
-      "cwd": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/nodejs/default_ui_app_ts_basic/default_ui_app_ts_basic_app/",
+      "cwd": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/nodejs/send_cmd_nodejs/send_cmd_nodejs_app/",
       "env": {
-        "LD_PRELOAD": "lib/libasan.so",
-        "NODE_PATH": "lib:$NODE_PATH",
+        "LD_PRELOAD": "ten_packages/system/ten_runtime/lib/libasan.so",
+        "NODE_PATH": "ten_packages/system/ten_runtime_nodejs/lib:$NODE_PATH",
+        "LD_LIBRARY_PATH": "ten_packages/system/ten_runtime/lib",
       },
     },
     {

@@ -4,5 +4,9 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-export * from './app/app';
-export * from './ten_env/ten_env';
+import ten_addon from '../ten_addon'
+import { Msg } from './msg';
+
+export class VideoFrame extends Msg {
+
+}

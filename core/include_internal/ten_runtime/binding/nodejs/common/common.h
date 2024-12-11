@@ -50,6 +50,17 @@ typedef struct ten_nodejs_bridge_t {
     }                                       \
   } while (0)
 
+#define RETURN_UNDEFINED_IF_NAPI_FAIL(expr, fmt, ...) \
+  do {                                                \
+    if (!(expr)) {                                    \
+      ten_nodejs_report_and_clear_error(env, status); \
+      TEN_LOGE(fmt, ##__VA_ARGS__);                   \
+      /* NOLINTNEXTLINE */                            \
+      TEN_ASSERT(0, "Should not happen.");            \
+      return js_undefined(env);                       \
+    }                                                 \
+  } while (0)
+
 TEN_RUNTIME_PRIVATE_API napi_value js_undefined(napi_env env);
 
 TEN_RUNTIME_PRIVATE_API bool ten_nodejs_get_js_func_args(
@@ -68,3 +79,8 @@ TEN_RUNTIME_PRIVATE_API void ten_nodejs_export_func(napi_env env,
                                                     napi_value exports,
                                                     const char *func_name,
                                                     napi_callback func);
+
+TEN_RUNTIME_PRIVATE_API napi_value ten_nodejs_create_new_js_object_and_wrap(
+    napi_env env, napi_ref constructor_ref, void *bridge_obj,
+    napi_finalize finalizer, napi_ref *bridge_weak_ref, size_t argc,
+    const napi_value *argv);

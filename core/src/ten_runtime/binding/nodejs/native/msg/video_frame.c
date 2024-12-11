@@ -4,5 +4,9 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-export * from './app/app';
-export * from './ten_env/ten_env';
+#include "include_internal/ten_runtime/binding/nodejs/msg/video_frame.h"
+
+napi_value ten_nodejs_video_frame_module_init(napi_env env,
+                                              napi_value exports) {
+  return exports;
+}

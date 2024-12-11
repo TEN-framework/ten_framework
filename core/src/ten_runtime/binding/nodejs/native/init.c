@@ -5,10 +5,26 @@
 // Refer to the "LICENSE" file in the root directory for more information.
 //
 #include "include_internal/ten_runtime/binding/nodejs/app/app.h"
-#include "include_internal/ten_runtime/binding/nodejs/common/common.h"
+#include "include_internal/ten_runtime/binding/nodejs/extension/extension.h"
+#include "include_internal/ten_runtime/binding/nodejs/msg/audio_frame.h"
+#include "include_internal/ten_runtime/binding/nodejs/msg/cmd.h"
+#include "include_internal/ten_runtime/binding/nodejs/msg/cmd_result.h"
+#include "include_internal/ten_runtime/binding/nodejs/msg/data.h"
+#include "include_internal/ten_runtime/binding/nodejs/msg/msg.h"
+#include "include_internal/ten_runtime/binding/nodejs/msg/video_frame.h"
+#include "include_internal/ten_runtime/binding/nodejs/ten_env/ten_env.h"
 
 napi_value Init(napi_env env, napi_value exports) {
   ten_nodejs_app_module_init(env, exports);
+  ten_nodejs_ten_env_module_init(env, exports);
+  ten_nodejs_extension_module_init(env, exports);
+  ten_nodejs_msg_module_init(env, exports);
+  ten_nodejs_data_module_init(env, exports);
+  ten_nodejs_cmd_module_init(env, exports);
+  ten_nodejs_cmd_result_module_init(env, exports);
+  ten_nodejs_video_frame_module_init(env, exports);
+  ten_nodejs_audio_frame_module_init(env, exports);
+
   return exports;
 }
 

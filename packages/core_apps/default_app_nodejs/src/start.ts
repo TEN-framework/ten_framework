@@ -4,4 +4,15 @@
 // See the LICENSE file for more information.
 //
 
+import { App, TenEnv } from 'ten-runtime-nodejs';
+
 console.log('Hello, World!');
+
+class DefaultApp extends App {
+    async onConfigure(tenEnv: TenEnv): Promise<void> {
+        console.log('Default App onConfigure');
+    }
+}
+
+const app = new DefaultApp();
+app.run();
