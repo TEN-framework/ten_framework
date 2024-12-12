@@ -8,6 +8,10 @@ from .ten_env_attach_to_enum import _TenEnvAttachTo
 from .log_level import LogLevel
 from .addon import Addon
 from .ten_env import ResultHandler, ErrorHandler
+from .test import (
+    ResultHandler as TestResultHandler,
+    ErrorHandler as TestErrorHandler,
+)
 
 class _TenError:
     def errno(self) -> int: ...
@@ -184,13 +188,17 @@ class _Addon:
 
 class _TenEnvTester:
     def on_start_done(self) -> None: ...
-    def send_cmd(self, cmd: _Cmd, result_handler) -> None: ...
-    def send_data(self, data: _Data, error_handler) -> None: ...
+    def send_cmd(
+        self, cmd: _Cmd, result_handler: TestResultHandler
+    ) -> None: ...
+    def send_data(
+        self, data: _Data, error_handler: TestErrorHandler
+    ) -> None: ...
     def send_audio_frame(
-        self, audio_frame: _AudioFrame, error_handler
+        self, audio_frame: _AudioFrame, error_handler: TestErrorHandler
     ) -> None: ...
     def send_video_frame(
-        self, video_frame: _VideoFrame, error_handler
+        self, video_frame: _VideoFrame, error_handler: TestErrorHandler
     ) -> None: ...
     def stop_test(self) -> None: ...
 
