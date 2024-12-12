@@ -23,10 +23,9 @@ ten_go_error_t ten_go_data_create(const void *msg_name, int msg_name_len,
   ten_go_error_t cgo_error;
   ten_go_error_init_with_errno(&cgo_error, TEN_ERRNO_OK);
 
-  ten_shared_ptr_t *c_data = ten_data_create();
+  ten_shared_ptr_t *c_data =
+      ten_data_create_with_name_len(msg_name, msg_name_len, NULL);
   TEN_ASSERT(c_data, "Should not happen.");
-
-  ten_msg_set_name_with_size(c_data, msg_name, msg_name_len, NULL);
 
   ten_go_msg_t *data_bridge = ten_go_msg_create(c_data);
   TEN_ASSERT(data_bridge && ten_go_msg_check_integrity(data_bridge),

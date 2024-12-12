@@ -13,7 +13,7 @@ class DefaultExtension(Extension):
         self.name = name
 
     def on_cmd(self, ten_env: TenEnv, cmd: Cmd) -> None:
-        cmd_json = cmd.to_json()
+        cmd_json = cmd.get_property_to_json()
         ten_env.log_info("DefaultExtension on_cmd json: " + cmd_json)
 
         if cmd.get_name() == "hello_world":

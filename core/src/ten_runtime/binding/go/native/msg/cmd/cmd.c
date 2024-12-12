@@ -30,10 +30,10 @@ ten_go_error_t ten_go_cmd_create_cmd(const void *cmd_name, int cmd_name_len,
   ten_go_error_t cgo_error;
   ten_go_error_init_with_errno(&cgo_error, TEN_ERRNO_OK);
 
-  ten_shared_ptr_t *cmd = ten_cmd_custom_create();
+  ten_shared_ptr_t *cmd = ten_cmd_custom_create_empty();
   TEN_ASSERT(cmd && ten_cmd_check_integrity(cmd), "Should not happen.");
 
-  ten_msg_set_name_with_size(cmd, cmd_name, cmd_name_len, NULL);
+  ten_msg_set_name_with_len(cmd, cmd_name, cmd_name_len, NULL);
 
   ten_go_msg_t *msg_bridge = ten_go_msg_create(cmd);
   TEN_ASSERT(msg_bridge, "Should not happen.");
