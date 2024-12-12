@@ -32,14 +32,17 @@ class DefaultExtension(Extension):
 
     def on_data(self, ten_env: TenEnv, data: Data) -> None:
         if data.get_name() == "test":
-            ten_env.log_info("DefaultExtension on_data: " + data.to_json())
+            ten_env.log_info(
+                "DefaultExtension on_data: " + data.get_property_to_json()
+            )
             self.recv_data_count += 1
             self.return_if_all_data_received(ten_env)
 
     def on_audio_frame(self, ten_env: TenEnv, audio_frame: AudioFrame) -> None:
         if audio_frame.get_name() == "test":
             ten_env.log_info(
-                "DefaultExtension on_audio_frame: " + audio_frame.to_json()
+                "DefaultExtension on_audio_frame: "
+                + audio_frame.get_property_to_json()
             )
             self.recv_data_count += 1
             self.return_if_all_data_received(ten_env)
@@ -47,7 +50,8 @@ class DefaultExtension(Extension):
     def on_video_frame(self, ten_env: TenEnv, video_frame: VideoFrame) -> None:
         if video_frame.get_name() == "test":
             ten_env.log_info(
-                "DefaultExtension on_video_frame: " + video_frame.to_json()
+                "DefaultExtension on_video_frame: "
+                + video_frame.get_property_to_json()
             )
             self.recv_data_count += 1
             self.return_if_all_data_received(ten_env)
