@@ -38,9 +38,11 @@ class extension_tester_t {
   extension_tester_t &operator=(const extension_tester_t &&) = delete;
   // @}
 
-  void set_test_mode_single(const char *addon_name) {
+  void set_test_mode_single(const char *addon_name,
+                            const char *property_json_str = nullptr) {
     TEN_ASSERT(addon_name, "Invalid argument.");
-    ten_extension_tester_set_test_mode_single(c_extension_tester, addon_name);
+    ten_extension_tester_set_test_mode_single(c_extension_tester, addon_name,
+                                              property_json_str);
   }
 
   void set_test_mode_graph(const char *graph_json) {
