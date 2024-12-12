@@ -125,7 +125,9 @@ void ten_extension_tester_set_test_mode_single(ten_extension_tester_t *self,
     ten_string_init_from_c_str(&self->test_target.addon.property_json,
                                property_json_str, strlen(property_json_str));
   } else {
-    ten_string_init(&self->test_target.addon.property_json);
+    const char *empty_json = "{}";
+    ten_string_init_from_c_str(&self->test_target.addon.property_json,
+                               empty_json, strlen(empty_json));
   }
 }
 
@@ -275,7 +277,7 @@ static void ten_extension_tester_create_and_start_graph(
               \"addon\": \"%s\",\
               \"extension_group\": \"test_extension_group_2\",\
               \"app\": \"localhost\",\
-              \"property\": {%s}\
+              \"property\": %s\
            }],\
            \"connections\": [{\
              \"app\": \"localhost\",\
