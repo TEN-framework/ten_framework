@@ -15,8 +15,8 @@ class Data(_Data):
         raise NotImplementedError("Use Data.create instead.")
 
     @classmethod
-    def create(cls: Type[T], msg_name: str) -> T:
-        return cls.__new__(cls, msg_name)
+    def create(cls: Type[T], name: str) -> T:
+        return cls.__new__(cls, name)
 
     alloc_buf = _Data.alloc_buf
     lock_buf = _Data.lock_buf

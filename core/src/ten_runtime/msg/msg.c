@@ -27,13 +27,10 @@
 #include "include_internal/ten_utils/value/value_path.h"
 #include "ten_runtime/app/app.h"
 #include "ten_runtime/common/errno.h"
-#include "ten_runtime/msg/audio_frame/audio_frame.h"
 #include "ten_runtime/msg/cmd/close_app/cmd.h"
 #include "ten_runtime/msg/cmd/stop_graph/cmd.h"
 #include "ten_runtime/msg/cmd_result/cmd_result.h"
-#include "ten_runtime/msg/data/data.h"
 #include "ten_runtime/msg/msg.h"
-#include "ten_runtime/msg/video_frame/video_frame.h"
 #include "ten_runtime/ten_env/ten_env.h"
 #include "ten_utils/container/list.h"
 #include "ten_utils/lib/error.h"
@@ -1056,10 +1053,13 @@ static bool ten_raw_msg_set_property(ten_msg_t *self, const char *path,
   TEN_ASSERT(value && ten_value_check_integrity(value), "Should not happen.");
 
   if (!path || !strlen(path)) {
+    // If the path is empty, clear and set all properties.
     ten_value_deinit(&self->properties);
     bool result = ten_value_init_object_with_move(&self->properties,
                                                   ten_value_peek_object(value));
     if (result) {
+      // The contents of `value` have been completely moved into `properties`,
+      // so the outer `value` wrapper is removed to avoid memory leaks.
       ten_value_destroy(value);
     }
     return result;
@@ -1130,6 +1130,7 @@ ten_value_t *ten_raw_msg_peek_property(ten_msg_t *self, const char *path,
   TEN_ASSERT(self && ten_raw_msg_check_integrity(self), "Should not happen.");
 
   if (!path || !strlen(path)) {
+    // If the path is empty, return all properties.
     return &self->properties;
   }
 

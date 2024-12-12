@@ -32,8 +32,8 @@ class VideoFrame(_VideoFrame):
         raise NotImplementedError("Use VideoFrame.create instead.")
 
     @classmethod
-    def create(cls: Type[T], msg_name: str) -> T:
-        return cls.__new__(cls, msg_name)
+    def create(cls: Type[T], name: str) -> T:
+        return cls.__new__(cls, name)
 
     alloc_buf = _VideoFrame.alloc_buf
     lock_buf = _VideoFrame.lock_buf

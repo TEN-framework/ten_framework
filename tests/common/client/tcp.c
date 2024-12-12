@@ -8,7 +8,6 @@
 
 #include <stddef.h>
 
-#include "include_internal/ten_runtime/msg/data/data.h"
 #include "include_internal/ten_runtime/msg/msg.h"
 #include "ten_runtime/msg/cmd/close_app/cmd.h"
 #include "ten_runtime/ten.h"

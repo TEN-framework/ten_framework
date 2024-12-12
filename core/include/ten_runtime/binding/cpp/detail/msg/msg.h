@@ -17,7 +17,6 @@
 #include "ten_utils/lib/buf.h"
 #include "ten_utils/lib/json.h"
 #include "ten_utils/lib/smart_ptr.h"
-#include "ten_utils/log/log.h"
 #include "ten_utils/macro/check.h"
 #include "ten_utils/value/value.h"
 #include "ten_utils/value/value_get.h"
@@ -322,7 +321,6 @@ class msg_t {
       return result;
     }
     ten_json_t *c_json = ten_value_to_json(value);
-
     if (c_json == nullptr) {
       if (err != nullptr && err->get_c_error() != nullptr) {
         ten_error_set(err->get_c_error(), TEN_ERRNO_GENERIC,

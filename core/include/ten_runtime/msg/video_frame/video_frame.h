@@ -34,11 +34,8 @@ typedef enum TEN_PIXEL_FMT {
 
 typedef struct ten_video_frame_t ten_video_frame_t;
 
-TEN_RUNTIME_API ten_shared_ptr_t *ten_video_frame_create_empty(void);
 TEN_RUNTIME_API ten_shared_ptr_t *ten_video_frame_create(const char *name,
                                                          ten_error_t *err);
-TEN_RUNTIME_API ten_shared_ptr_t *ten_video_frame_create_with_name_len(
-    const char *name, size_t name_len, ten_error_t *err);
 
 TEN_RUNTIME_API int32_t ten_video_frame_get_width(ten_shared_ptr_t *self);
 TEN_RUNTIME_API bool ten_video_frame_set_width(ten_shared_ptr_t *self,

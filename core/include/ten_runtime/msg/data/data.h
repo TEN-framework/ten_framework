@@ -19,9 +19,6 @@ typedef struct ten_data_t ten_data_t;
 TEN_RUNTIME_API ten_shared_ptr_t *ten_data_create(const char *name,
                                                   ten_error_t *err);
 
-TEN_RUNTIME_API ten_shared_ptr_t *ten_data_create_with_name_len(
-    const char *name, size_t name_len, ten_error_t *err);
-
 TEN_RUNTIME_API ten_buf_t *ten_data_peek_buf(ten_shared_ptr_t *self);
 
 TEN_RUNTIME_API void ten_data_set_buf_with_move(ten_shared_ptr_t *self,

@@ -35,13 +35,10 @@ TEN_RUNTIME_API ten_shared_ptr_t *ten_cmd_custom_create_empty(void);
 TEN_RUNTIME_PRIVATE_API ten_cmd_t *ten_raw_cmd_custom_create(const char *name,
                                                              ten_error_t *err);
 
-TEN_RUNTIME_PRIVATE_API ten_cmd_t *ten_raw_cmd_custom_create_with_name_len(
-    const char *name, size_t cmd_name_len, ten_error_t *err);
-
 TEN_RUNTIME_PRIVATE_API ten_shared_ptr_t *ten_cmd_custom_create(
     const char *name, ten_error_t *err);
 
-TEN_RUNTIME_PRIVATE_API ten_shared_ptr_t *ten_cmd_custom_create_with_name_len(
+TEN_RUNTIME_API ten_shared_ptr_t *ten_cmd_custom_create_with_name_len(
     const char *name, size_t name_len, ten_error_t *err);
 
 TEN_RUNTIME_PRIVATE_API bool ten_raw_cmd_custom_loop_all_fields(

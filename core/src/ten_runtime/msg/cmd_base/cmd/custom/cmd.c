@@ -67,9 +67,9 @@ ten_cmd_t *ten_raw_cmd_custom_create(const char *name, ten_error_t *err) {
   return cmd;
 }
 
-ten_cmd_t *ten_raw_cmd_custom_create_with_name_len(const char *name,
-                                                   size_t name_len,
-                                                   ten_error_t *err) {
+static ten_cmd_t *ten_raw_cmd_custom_create_with_name_len(const char *name,
+                                                          size_t name_len,
+                                                          ten_error_t *err) {
   TEN_ASSERT(name, "Should not happen.");
 
   ten_cmd_t *cmd = ten_raw_cmd_custom_create_empty();
