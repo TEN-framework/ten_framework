@@ -19,6 +19,8 @@
 
 namespace ten {
 
+class extension_tester_internal_accessor_t;
+
 class extension_tester_t {
  public:
   virtual ~extension_tester_t() {
@@ -49,12 +51,6 @@ class extension_tester_t {
   void add_addon_base_dir(const char *addon_path) {
     TEN_ASSERT(addon_path, "Invalid argument.");
     ten_extension_tester_add_addon_base_dir(c_extension_tester, addon_path);
-  }
-
-  void init_test_app_property_from_json(const char *property_json_str) {
-    TEN_ASSERT(property_json_str, "Invalid argument.");
-    ten_extension_tester_init_test_app_property_from_json(c_extension_tester,
-                                                          property_json_str);
   }
 
   bool run(error_t *err = nullptr) {
@@ -237,6 +233,8 @@ class extension_tester_t {
     cpp_extension_tester->invoke_cpp_extension_on_video_frame(
         *cpp_ten_env_tester, std::move(cpp_video_frame_unique_ptr));
   }
+
+  friend class extension_tester_internal_accessor_t;
 
   ::ten_extension_tester_t *c_extension_tester;
   ten_env_tester_t *cpp_ten_env_tester;
