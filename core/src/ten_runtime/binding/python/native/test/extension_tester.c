@@ -314,7 +314,7 @@ static PyObject *ten_py_extension_tester_set_test_mode_single(PyObject *self,
 
   const char *addon_name = NULL;
   const char *property_json_str = NULL;
-  if (!PyArg_ParseTuple(args, "ss", &addon_name, &property_json_str)) {
+  if (!PyArg_ParseTuple(args, "sz", &addon_name, &property_json_str)) {
     return ten_py_raise_py_value_error_exception(
         "Failed to parse arguments when "
         "extension_tester.set_test_mode_single.");

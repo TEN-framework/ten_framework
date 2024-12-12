@@ -100,6 +100,8 @@ class extension_tester_t {
                               std::unique_ptr<video_frame_t> video_frame) {}
 
  private:
+  friend class extension_tester_internal_accessor_t;
+
   void invoke_cpp_extension_tester_on_start(
       ten_env_tester_t &cpp_ten_env_tester) {
     on_start(cpp_ten_env_tester);
@@ -235,8 +237,6 @@ class extension_tester_t {
     cpp_extension_tester->invoke_cpp_extension_on_video_frame(
         *cpp_ten_env_tester, std::move(cpp_video_frame_unique_ptr));
   }
-
-  friend class extension_tester_internal_accessor_t;
 
   ::ten_extension_tester_t *c_extension_tester;
   ten_env_tester_t *cpp_ten_env_tester;

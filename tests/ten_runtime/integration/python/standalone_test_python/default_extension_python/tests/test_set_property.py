@@ -38,10 +38,10 @@ class ExtensionTesterSetProperty(ExtensionTester):
             ten_env.stop_test()
 
     def on_start(self, ten_env: TenEnvTester) -> None:
-        new_cmd = Cmd.create("greeting")
+        cmd = Cmd.create("greeting")
 
         ten_env.send_cmd(
-            new_cmd,
+            cmd,
             lambda ten_env, result, error: self.check_greeting(
                 ten_env, result, error
             ),

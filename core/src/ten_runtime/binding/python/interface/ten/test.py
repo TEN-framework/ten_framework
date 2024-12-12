@@ -86,7 +86,7 @@ class ExtensionTester(_ExtensionTester):
 
     @final
     def set_test_mode_single(
-        self, addon_name: str, property_json_str: str = ""
+        self, addon_name: str, property_json_str: str | None = None
     ) -> None:
         return _ExtensionTester.set_test_mode_single(
             self, addon_name, property_json_str
