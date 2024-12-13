@@ -44,7 +44,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Cython compiler")
     parser.add_argument(
         "-r",
-        "--compile_root_dir",
+        "--compile-root-dir",
         type=str,
         required=False,
         default=os.path.dirname(os.path.abspath(__file__)),
