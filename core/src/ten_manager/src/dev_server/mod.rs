@@ -6,6 +6,8 @@
 //
 mod addons;
 mod common;
+// TODO(Wei): Enable this.
+// pub mod frontend;
 mod get_all_pkgs;
 pub mod graphs;
 mod manifest;
@@ -18,7 +20,7 @@ mod version;
 
 use std::sync::{Arc, RwLock};
 
-use actix_web::{web, HttpRequest, HttpResponse};
+use actix_web::web;
 
 use ten_rust::pkg_info::PkgInfo;
 
@@ -80,44 +82,5 @@ pub fn configure_routes(
         .route(
             "/api/dev-server/v1/messages/compatible",
             web::post().to(messages::compatible::get_compatible_messages),
-        )
-        .default_service(web::route().to(|req: HttpRequest| async move {
-            let path = req.path().to_string();
-            HttpResponse::NotFound()
-                .body(format!("Endpoint '{}' not found", path))
-        }));
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use actix_web::{http::StatusCode, test, App};
-
-    #[actix_web::test]
-    async fn test_undefined_endpoint() {
-        // Initialize the DevServerState.
-        let state = web::Data::new(Arc::new(RwLock::new(DevServerState {
-            base_dir: None,
-            all_pkgs: None,
-            tman_config: TmanConfig::default(),
-        })));
-
-        // Create the App with the routes configured.
-        let app = test::init_service(
-            App::new().configure(|cfg| configure_routes(cfg, state.clone())),
-        )
-        .await;
-
-        // Send a request to an undefined endpoint.
-        let req = test::TestRequest::get().uri("/undefined/path").to_request();
-        let resp = test::call_service(&app, req).await;
-
-        // Check that the response status is 404 Not Found.
-        assert_eq!(resp.status(), StatusCode::NOT_FOUND);
-
-        // Check the response body.
-        let body = test::read_body(resp).await;
-        let expected_body = "Endpoint '/undefined/path' not found";
-        assert_eq!(body, expected_body);
-    }
+        );
 }
