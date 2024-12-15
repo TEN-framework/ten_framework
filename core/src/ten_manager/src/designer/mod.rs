@@ -29,7 +29,7 @@ use terminal::ws_terminal;
 use super::config::TmanConfig;
 use version::get_version;
 
-pub struct DevServerState {
+pub struct DesignerState {
     pub base_dir: Option<String>,
     pub all_pkgs: Option<Vec<PkgInfo>>,
     pub tman_config: TmanConfig,
@@ -37,7 +37,7 @@ pub struct DevServerState {
 
 pub fn configure_routes(
     cfg: &mut web::ServiceConfig,
-    state: web::Data<Arc<RwLock<DevServerState>>>,
+    state: web::Data<Arc<RwLock<DesignerState>>>,
 ) {
     cfg.app_data(state.clone())
         .route("/api/dev-server/v1/version", web::get().to(get_version))

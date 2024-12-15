@@ -16,25 +16,25 @@ use ten_manager::{
             get_graphs, RespGraph,
         },
         response::{ApiResponse, ErrorResponse},
-        DevServerState,
+        DesignerState,
     },
 };
 
 #[actix_rt::test]
-async fn test_cmd_dev_server_graphs_some_property_invalid() {
-    let dev_server_state = DevServerState {
+async fn test_cmd_designer_graphs_some_property_invalid() {
+    let designer_state = DesignerState {
         base_dir: Some(
-            "tests/test_data/cmd_dev_server_graphs_some_property_invalid"
+            "tests/test_data/cmd_designer_graphs_some_property_invalid"
                 .to_string(),
         ),
         all_pkgs: None,
         tman_config: TmanConfig::default(),
     };
 
-    let dev_server_state = Arc::new(RwLock::new(dev_server_state));
+    let designer_state = Arc::new(RwLock::new(designer_state));
     let app = test::init_service(
         App::new()
-            .app_data(web::Data::new(dev_server_state))
+            .app_data(web::Data::new(designer_state))
             .route("/api/dev-server/v1/graphs", web::get().to(get_graphs)),
     )
     .await;
@@ -58,20 +58,20 @@ async fn test_cmd_dev_server_graphs_some_property_invalid() {
 }
 
 #[actix_rt::test]
-async fn test_cmd_dev_server_graphs_app_property_not_exist() {
-    let dev_server_state = DevServerState {
+async fn test_cmd_designer_graphs_app_property_not_exist() {
+    let designer_state = DesignerState {
         base_dir: Some(
-            "tests/test_data/cmd_dev_server_graphs_app_property_not_exist"
+            "tests/test_data/cmd_designer_graphs_app_property_not_exist"
                 .to_string(),
         ),
         all_pkgs: None,
         tman_config: TmanConfig::default(),
     };
 
-    let dev_server_state = Arc::new(RwLock::new(dev_server_state));
+    let designer_state = Arc::new(RwLock::new(designer_state));
     let app = test::init_service(
         App::new()
-            .app_data(web::Data::new(dev_server_state))
+            .app_data(web::Data::new(designer_state))
             .route("/api/dev-server/v1/graphs", web::get().to(get_graphs)),
     )
     .await;
@@ -94,19 +94,19 @@ async fn test_cmd_dev_server_graphs_app_property_not_exist() {
 }
 
 #[actix_rt::test]
-async fn test_cmd_dev_server_connections_has_msg_conversion() {
-    let dev_server_state = DevServerState {
+async fn test_cmd_designer_connections_has_msg_conversion() {
+    let designer_state = DesignerState {
         base_dir: Some(
-            "tests/test_data/cmd_dev_server_connections_has_msg_conversion"
+            "tests/test_data/cmd_designer_connections_has_msg_conversion"
                 .to_string(),
         ),
         all_pkgs: None,
         tman_config: TmanConfig::default(),
     };
 
-    let dev_server_state = Arc::new(RwLock::new(dev_server_state));
+    let designer_state = Arc::new(RwLock::new(designer_state));
     let app = test::init_service(
-        App::new().app_data(web::Data::new(dev_server_state)).route(
+        App::new().app_data(web::Data::new(designer_state)).route(
             "/api/dev-server/v1/graphs/{graph_name}/connections",
             web::get().to(get_graph_connections),
         ),

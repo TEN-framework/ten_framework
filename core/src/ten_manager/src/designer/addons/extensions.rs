@@ -13,14 +13,14 @@ use ten_rust::pkg_info::{pkg_type::PkgType, PkgInfo};
 
 use crate::designer::{
     common::{
-        get_dev_server_api_cmd_likes_from_pkg,
-        get_dev_server_api_data_likes_from_pkg,
-        get_dev_server_property_hashmap_from_pkg,
+        get_designer_api_cmd_likes_from_pkg,
+        get_designer_api_data_likes_from_pkg,
+        get_designer_property_hashmap_from_pkg,
     },
     get_all_pkgs::get_all_pkgs,
     graphs::nodes::DevServerApi,
     response::{ApiResponse, ErrorResponse, Status},
-    DevServerState,
+    DesignerState,
 };
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
@@ -35,7 +35,7 @@ struct DevServerExtensionAddon {
 }
 
 fn retrieve_extension_addons(
-    state: &mut DevServerState,
+    state: &mut DesignerState,
 ) -> Result<Vec<DevServerExtensionAddon>, ErrorResponse> {
     if let Err(err) = get_all_pkgs(state) {
         return Err(ErrorResponse::from_error(
@@ -74,7 +74,7 @@ fn map_pkg_to_extension_addon(
             property: if api.property.is_empty() {
                 None
             } else {
-                Some(get_dev_server_property_hashmap_from_pkg(
+                Some(get_designer_property_hashmap_from_pkg(
                     api.property.clone(),
                 ))
             },
@@ -82,40 +82,36 @@ fn map_pkg_to_extension_addon(
             cmd_in: if api.cmd_in.is_empty() {
                 None
             } else {
-                Some(get_dev_server_api_cmd_likes_from_pkg(api.cmd_in.clone()))
+                Some(get_designer_api_cmd_likes_from_pkg(api.cmd_in.clone()))
             },
             cmd_out: if api.cmd_out.is_empty() {
                 None
             } else {
-                Some(get_dev_server_api_cmd_likes_from_pkg(api.cmd_out.clone()))
+                Some(get_designer_api_cmd_likes_from_pkg(api.cmd_out.clone()))
             },
 
             data_in: if api.data_in.is_empty() {
                 None
             } else {
-                Some(get_dev_server_api_data_likes_from_pkg(
-                    api.data_in.clone(),
-                ))
+                Some(get_designer_api_data_likes_from_pkg(api.data_in.clone()))
             },
             data_out: if api.data_out.is_empty() {
                 None
             } else {
-                Some(get_dev_server_api_data_likes_from_pkg(
-                    api.data_out.clone(),
-                ))
+                Some(get_designer_api_data_likes_from_pkg(api.data_out.clone()))
             },
 
             audio_frame_in: if api.audio_frame_in.is_empty() {
                 None
             } else {
-                Some(get_dev_server_api_data_likes_from_pkg(
+                Some(get_designer_api_data_likes_from_pkg(
                     api.audio_frame_in.clone(),
                 ))
             },
             audio_frame_out: if api.audio_frame_out.is_empty() {
                 None
             } else {
-                Some(get_dev_server_api_data_likes_from_pkg(
+                Some(get_designer_api_data_likes_from_pkg(
                     api.audio_frame_out.clone(),
                 ))
             },
@@ -123,14 +119,14 @@ fn map_pkg_to_extension_addon(
             video_frame_in: if api.video_frame_in.is_empty() {
                 None
             } else {
-                Some(get_dev_server_api_data_likes_from_pkg(
+                Some(get_designer_api_data_likes_from_pkg(
                     api.video_frame_in.clone(),
                 ))
             },
             video_frame_out: if api.video_frame_out.is_empty() {
                 None
             } else {
-                Some(get_dev_server_api_data_likes_from_pkg(
+                Some(get_designer_api_data_likes_from_pkg(
                     api.video_frame_out.clone(),
                 ))
             },
@@ -139,7 +135,7 @@ fn map_pkg_to_extension_addon(
 }
 
 pub async fn get_extension_addons(
-    state: web::Data<Arc<RwLock<DevServerState>>>,
+    state: web::Data<Arc<RwLock<DesignerState>>>,
 ) -> impl Responder {
     let mut state = state.write().unwrap();
 
@@ -157,7 +153,7 @@ pub async fn get_extension_addons(
 }
 
 pub async fn get_extension_addon_by_name(
-    state: web::Data<Arc<RwLock<DevServerState>>>,
+    state: web::Data<Arc<RwLock<DesignerState>>>,
     path: web::Path<String>, // NEW
 ) -> impl Responder {
     let addon_name = path.into_inner(); // NEW
@@ -209,7 +205,7 @@ mod tests {
 
     #[actix_web::test]
     async fn test_get_extension_addons() {
-        let mut dev_server_state = DevServerState {
+        let mut designer_state = DesignerState {
             base_dir: None,
             all_pkgs: None,
             tman_config: TmanConfig::default(),
@@ -238,13 +234,13 @@ mod tests {
         ];
 
         let inject_ret =
-            inject_all_pkgs_for_mock(&mut dev_server_state, all_pkgs_json);
+            inject_all_pkgs_for_mock(&mut designer_state, all_pkgs_json);
         assert!(inject_ret.is_ok());
 
-        let dev_server_state = Arc::new(RwLock::new(dev_server_state));
+        let designer_state = Arc::new(RwLock::new(designer_state));
 
         let app = test::init_service(
-            App::new().app_data(web::Data::new(dev_server_state)).route(
+            App::new().app_data(web::Data::new(designer_state)).route(
                 "/api/dev-server/v1/addons/extensions",
                 web::get().to(get_extension_addons),
             ),
@@ -429,7 +425,7 @@ mod tests {
 
     #[actix_web::test]
     async fn test_get_extension_addon_by_name() {
-        let mut dev_server_state = DevServerState {
+        let mut designer_state = DesignerState {
             base_dir: None,
             all_pkgs: None,
             tman_config: TmanConfig::default(),
@@ -458,14 +454,14 @@ mod tests {
         ];
 
         let inject_ret =
-            inject_all_pkgs_for_mock(&mut dev_server_state, all_pkgs_json);
+            inject_all_pkgs_for_mock(&mut designer_state, all_pkgs_json);
         assert!(inject_ret.is_ok());
 
-        let dev_server_state = Arc::new(RwLock::new(dev_server_state));
+        let designer_state = Arc::new(RwLock::new(designer_state));
 
         let app = test::init_service(
             App::new()
-                .app_data(web::Data::new(dev_server_state.clone()))
+                .app_data(web::Data::new(designer_state.clone()))
                 .route(
                     "/api/dev-server/v1/addons/extensions/{name}",
                     web::get().to(get_extension_addon_by_name),

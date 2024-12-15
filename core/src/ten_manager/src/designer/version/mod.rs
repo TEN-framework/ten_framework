@@ -11,7 +11,7 @@ use serde::{Deserialize, Serialize};
 
 use super::{
     response::{ApiResponse, Status},
-    DevServerState,
+    DesignerState,
 };
 use crate::version::VERSION;
 
@@ -21,7 +21,7 @@ struct DevServerVersion {
 }
 
 pub async fn get_version(
-    _state: web::Data<Arc<RwLock<DevServerState>>>,
+    _state: web::Data<Arc<RwLock<DesignerState>>>,
 ) -> impl Responder {
     let version_info = DevServerVersion {
         version: VERSION.to_string(),
@@ -45,8 +45,8 @@ mod tests {
 
     #[actix_web::test]
     async fn test_get_version() {
-        // Initialize the DevServerState.
-        let state = web::Data::new(Arc::new(RwLock::new(DevServerState {
+        // Initialize the DesignerState.
+        let state = web::Data::new(Arc::new(RwLock::new(DesignerState {
             base_dir: None,
             all_pkgs: None,
             tman_config: TmanConfig::default(),

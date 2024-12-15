@@ -22,7 +22,7 @@ use crate::{
         configure_routes,
         // TODO(Wei): Enable this.
         // frontend::get_frontend_asset,
-        DevServerState,
+        DesignerState,
     },
     error::TmanError,
     log::tman_verbose_println,
@@ -89,8 +89,8 @@ pub fn create_sub_cmd(_args_cfg: &crate::cmd_line::ArgsCfg) -> Command {
 
 pub fn parse_sub_cmd(
     sub_cmd_args: &ArgMatches,
-) -> crate::cmd::cmd_dev_server::DevServerCommand {
-    let cmd = crate::cmd::cmd_dev_server::DevServerCommand {
+) -> crate::cmd::cmd_designer::DevServerCommand {
+    let cmd = crate::cmd::cmd_designer::DevServerCommand {
         ip_address: sub_cmd_args
             .get_one::<String>("IP_ADDRESS")
             .unwrap()
@@ -118,7 +118,7 @@ pub async fn execute_cmd(
         .base_dir
         .unwrap_or_else(|| cwd.to_str().unwrap().to_string());
 
-    let state = Arc::new(RwLock::new(DevServerState {
+    let state = Arc::new(RwLock::new(DesignerState {
         base_dir: Some(base_dir.clone()),
         all_pkgs: None,
         tman_config: TmanConfig::default(),

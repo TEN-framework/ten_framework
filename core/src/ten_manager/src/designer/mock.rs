@@ -13,10 +13,10 @@ pub mod tests {
     use ten_rust::pkg_info::PkgInfo;
     use ten_rust::pkg_info::{manifest::Manifest, property::Property};
 
-    use crate::designer::DevServerState;
+    use crate::designer::DesignerState;
 
     pub fn inject_all_pkgs_for_mock(
-        state: &mut DevServerState,
+        state: &mut DesignerState,
         all_pkgs_manifest_json: Vec<(String, String)>,
     ) -> Result<()> {
         if state.all_pkgs.is_some() {

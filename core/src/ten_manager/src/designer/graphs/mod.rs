@@ -18,7 +18,7 @@ use ten_rust::pkg_info::pkg_type::PkgType;
 use super::{
     get_all_pkgs::get_all_pkgs,
     response::{ApiResponse, ErrorResponse, Status},
-    DevServerState,
+    DesignerState,
 };
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
@@ -28,7 +28,7 @@ pub struct RespGraph {
 }
 
 pub async fn get_graphs(
-    state: web::Data<Arc<RwLock<DevServerState>>>,
+    state: web::Data<Arc<RwLock<DesignerState>>>,
 ) -> Result<impl Responder, actix_web::Error> {
     let mut state = state.write().unwrap();
 
@@ -90,7 +90,7 @@ mod tests {
 
     #[actix_web::test]
     async fn test_get_graphs_success() {
-        let mut dev_server_state = DevServerState {
+        let mut designer_state = DesignerState {
             base_dir: None,
             all_pkgs: None,
             tman_config: TmanConfig::default(),
@@ -119,14 +119,14 @@ mod tests {
         ];
 
         let inject_ret =
-            inject_all_pkgs_for_mock(&mut dev_server_state, all_pkgs_json);
+            inject_all_pkgs_for_mock(&mut designer_state, all_pkgs_json);
         assert!(inject_ret.is_ok());
 
-        let dev_server_state = Arc::new(RwLock::new(dev_server_state));
+        let designer_state = Arc::new(RwLock::new(designer_state));
 
         let app = test::init_service(
             App::new()
-                .app_data(web::Data::new(dev_server_state))
+                .app_data(web::Data::new(designer_state))
                 .route("/api/dev-server/v1/graphs", web::get().to(get_graphs)),
         )
         .await;
@@ -165,7 +165,7 @@ mod tests {
 
     #[actix_web::test]
     async fn test_get_graphs_no_app_package() {
-        let dev_server_state = Arc::new(RwLock::new(DevServerState {
+        let designer_state = Arc::new(RwLock::new(DesignerState {
             base_dir: None,
             all_pkgs: Some(vec![]),
             tman_config: TmanConfig::default(),
@@ -173,7 +173,7 @@ mod tests {
 
         let app = test::init_service(
             App::new()
-                .app_data(web::Data::new(dev_server_state))
+                .app_data(web::Data::new(designer_state))
                 .route("/api/dev-server/v1/graphs", web::get().to(get_graphs)),
         )
         .await;

@@ -6,10 +6,10 @@
 //
 use anyhow::{anyhow, Result};
 
-use super::DevServerState;
+use super::DesignerState;
 use crate::package_info::tman_get_all_existed_pkgs_info_of_app;
 
-pub fn get_all_pkgs(state: &mut DevServerState) -> Result<()> {
+pub fn get_all_pkgs(state: &mut DesignerState) -> Result<()> {
     use std::path::PathBuf;
 
     if state.all_pkgs.is_none() {

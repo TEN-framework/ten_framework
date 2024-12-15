@@ -12,7 +12,7 @@ use serde::{Deserialize, Serialize};
 
 use super::{
     response::{ApiResponse, Status},
-    DevServerState,
+    DesignerState,
 };
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -22,7 +22,7 @@ struct FileContentResponse {
 
 pub async fn get_file_content(
     path: web::Path<String>,
-    _state: web::Data<Arc<RwLock<DevServerState>>>,
+    _state: web::Data<Arc<RwLock<DesignerState>>>,
 ) -> impl Responder {
     let file_path = path.into_inner();
 

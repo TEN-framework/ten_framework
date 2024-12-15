@@ -20,7 +20,7 @@ use crate::{
     designer::{
         get_all_pkgs::get_all_pkgs,
         response::{ApiResponse, ErrorResponse, Status},
-        DevServerState,
+        DesignerState,
     },
 };
 
@@ -30,7 +30,7 @@ struct DumpResponse {
 }
 
 pub async fn dump_manifest(
-    state: web::Data<Arc<RwLock<DevServerState>>>,
+    state: web::Data<Arc<RwLock<DesignerState>>>,
 ) -> impl Responder {
     let mut state = state.write().unwrap();
 

@@ -24,7 +24,7 @@ use ten_rust::pkg_info::{
 use crate::designer::{
     get_all_pkgs::get_all_pkgs,
     response::{ApiResponse, ErrorResponse, Status},
-    DevServerState,
+    DesignerState,
 };
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -68,7 +68,7 @@ impl From<CompatibleExtensionAndMsg<'_>> for DevServerCompatibleMsg {
 
 pub async fn get_compatible_messages(
     req: HttpRequest,
-    state: web::Data<Arc<RwLock<DevServerState>>>,
+    state: web::Data<Arc<RwLock<DesignerState>>>,
     input: Result<web::Json<InputData>, actix_web::Error>,
 ) -> impl Responder {
     if req.content_type() != "application/json" {
@@ -314,7 +314,7 @@ mod tests {
 
     #[actix_web::test]
     async fn test_get_compatible_messages_success() {
-        let mut dev_server_state = DevServerState {
+        let mut designer_state = DesignerState {
             base_dir: None,
             all_pkgs: None,
             tman_config: TmanConfig::default(),
@@ -338,13 +338,13 @@ mod tests {
         ];
 
         let inject_ret =
-            inject_all_pkgs_for_mock(&mut dev_server_state, all_pkgs_json);
+            inject_all_pkgs_for_mock(&mut designer_state, all_pkgs_json);
         assert!(inject_ret.is_ok());
 
-        let dev_server_state = Arc::new(RwLock::new(dev_server_state));
+        let designer_state = Arc::new(RwLock::new(designer_state));
 
         let app = test::init_service(
-            App::new().app_data(web::Data::new(dev_server_state)).route(
+            App::new().app_data(web::Data::new(designer_state)).route(
                 "/api/dev-server/v1/messages/compatible",
                 web::post().to(get_compatible_messages),
             ),
@@ -394,7 +394,7 @@ mod tests {
 
     #[actix_web::test]
     async fn test_get_compatible_messages_fail() {
-        let mut dev_server_state = DevServerState {
+        let mut designer_state = DesignerState {
             base_dir: None,
             all_pkgs: None,
             tman_config: TmanConfig::default(),
@@ -418,13 +418,13 @@ mod tests {
         ];
 
         let inject_ret =
-            inject_all_pkgs_for_mock(&mut dev_server_state, all_pkgs_json);
+            inject_all_pkgs_for_mock(&mut designer_state, all_pkgs_json);
         assert!(inject_ret.is_ok());
 
-        let dev_server_state = Arc::new(RwLock::new(dev_server_state));
+        let designer_state = Arc::new(RwLock::new(designer_state));
 
         let app = test::init_service(
-            App::new().app_data(web::Data::new(dev_server_state)).route(
+            App::new().app_data(web::Data::new(designer_state)).route(
                 "/api/dev-server/v1/messages/compatible",
                 web::post().to(get_compatible_messages),
             ),
@@ -456,7 +456,7 @@ mod tests {
 
     #[actix_web::test]
     async fn test_get_compatible_messages_cmd_has_required_success() {
-        let mut dev_server_state = DevServerState {
+        let mut designer_state = DesignerState {
             base_dir: None,
             all_pkgs: None,
             tman_config: TmanConfig::default(),
@@ -480,13 +480,13 @@ mod tests {
         ];
 
         let inject_ret =
-            inject_all_pkgs_for_mock(&mut dev_server_state, all_pkgs_json);
+            inject_all_pkgs_for_mock(&mut designer_state, all_pkgs_json);
         assert!(inject_ret.is_ok());
 
-        let dev_server_state = Arc::new(RwLock::new(dev_server_state));
+        let designer_state = Arc::new(RwLock::new(designer_state));
 
         let app = test::init_service(
-            App::new().app_data(web::Data::new(dev_server_state)).route(
+            App::new().app_data(web::Data::new(designer_state)).route(
                 "/api/dev-server/v1/messages/compatible",
                 web::post().to(get_compatible_messages),
             ),
@@ -536,7 +536,7 @@ mod tests {
 
     #[actix_web::test]
     async fn test_get_compatible_messages_has_required_subset() {
-        let mut dev_server_state = DevServerState {
+        let mut designer_state = DesignerState {
             base_dir: None,
             all_pkgs: None,
             tman_config: TmanConfig::default(),
@@ -560,13 +560,13 @@ mod tests {
         ];
 
         let inject_ret =
-            inject_all_pkgs_for_mock(&mut dev_server_state, all_pkgs_json);
+            inject_all_pkgs_for_mock(&mut designer_state, all_pkgs_json);
         assert!(inject_ret.is_ok());
 
-        let dev_server_state = Arc::new(RwLock::new(dev_server_state));
+        let designer_state = Arc::new(RwLock::new(designer_state));
 
         let app = test::init_service(
-            App::new().app_data(web::Data::new(dev_server_state)).route(
+            App::new().app_data(web::Data::new(designer_state)).route(
                 "/api/dev-server/v1/messages/compatible",
                 web::post().to(get_compatible_messages),
             ),
@@ -615,7 +615,7 @@ mod tests {
 
     #[actix_web::test]
     async fn test_get_compatible_messages_cmd_no_property() {
-        let mut dev_server_state = DevServerState {
+        let mut designer_state = DesignerState {
             base_dir: None,
             all_pkgs: None,
             tman_config: TmanConfig::default(),
@@ -641,13 +641,13 @@ mod tests {
         ];
 
         let inject_ret =
-            inject_all_pkgs_for_mock(&mut dev_server_state, all_pkgs_json);
+            inject_all_pkgs_for_mock(&mut designer_state, all_pkgs_json);
         assert!(inject_ret.is_ok());
 
-        let dev_server_state = Arc::new(RwLock::new(dev_server_state));
+        let designer_state = Arc::new(RwLock::new(designer_state));
 
         let app = test::init_service(
-            App::new().app_data(web::Data::new(dev_server_state)).route(
+            App::new().app_data(web::Data::new(designer_state)).route(
                 "/api/dev-server/v1/messages/compatible",
                 web::post().to(get_compatible_messages),
             ),
@@ -707,7 +707,7 @@ mod tests {
 
     #[actix_web::test]
     async fn test_get_compatible_messages_cmd_property_overlap() {
-        let mut dev_server_state = DevServerState {
+        let mut designer_state = DesignerState {
             base_dir: None,
             all_pkgs: None,
             tman_config: TmanConfig::default(),
@@ -733,13 +733,13 @@ mod tests {
         ];
 
         let inject_ret =
-            inject_all_pkgs_for_mock(&mut dev_server_state, all_pkgs_json);
+            inject_all_pkgs_for_mock(&mut designer_state, all_pkgs_json);
         assert!(inject_ret.is_ok());
 
-        let dev_server_state = Arc::new(RwLock::new(dev_server_state));
+        let designer_state = Arc::new(RwLock::new(designer_state));
 
         let app = test::init_service(
-            App::new().app_data(web::Data::new(dev_server_state)).route(
+            App::new().app_data(web::Data::new(designer_state)).route(
                 "/api/dev-server/v1/messages/compatible",
                 web::post().to(get_compatible_messages),
             ),
@@ -789,7 +789,7 @@ mod tests {
 
     #[actix_web::test]
     async fn test_get_compatible_messages_cmd_property_required_missing() {
-        let mut dev_server_state = DevServerState {
+        let mut designer_state = DesignerState {
             base_dir: None,
             all_pkgs: None,
             tman_config: TmanConfig::default(),
@@ -815,13 +815,13 @@ mod tests {
         ];
 
         let inject_ret =
-            inject_all_pkgs_for_mock(&mut dev_server_state, all_pkgs_json);
+            inject_all_pkgs_for_mock(&mut designer_state, all_pkgs_json);
         assert!(inject_ret.is_ok());
 
-        let dev_server_state = Arc::new(RwLock::new(dev_server_state));
+        let designer_state = Arc::new(RwLock::new(designer_state));
 
         let app = test::init_service(
-            App::new().app_data(web::Data::new(dev_server_state)).route(
+            App::new().app_data(web::Data::new(designer_state)).route(
                 "/api/dev-server/v1/messages/compatible",
                 web::post().to(get_compatible_messages),
             ),
@@ -860,7 +860,7 @@ mod tests {
 
     #[actix_web::test]
     async fn test_get_compatible_messages_cmd_result() {
-        let mut dev_server_state = DevServerState {
+        let mut designer_state = DesignerState {
             base_dir: None,
             all_pkgs: None,
             tman_config: TmanConfig::default(),
@@ -886,13 +886,13 @@ mod tests {
         ];
 
         let inject_ret =
-            inject_all_pkgs_for_mock(&mut dev_server_state, all_pkgs_json);
+            inject_all_pkgs_for_mock(&mut designer_state, all_pkgs_json);
         assert!(inject_ret.is_ok());
 
-        let dev_server_state = Arc::new(RwLock::new(dev_server_state));
+        let designer_state = Arc::new(RwLock::new(designer_state));
 
         let app = test::init_service(
-            App::new().app_data(web::Data::new(dev_server_state)).route(
+            App::new().app_data(web::Data::new(designer_state)).route(
                 "/api/dev-server/v1/messages/compatible",
                 web::post().to(get_compatible_messages),
             ),
@@ -941,7 +941,7 @@ mod tests {
 
     #[actix_web::test]
     async fn test_get_compatible_messages_data_no_property() {
-        let mut dev_server_state = DevServerState {
+        let mut designer_state = DesignerState {
             base_dir: None,
             all_pkgs: None,
             tman_config: TmanConfig::default(),
@@ -967,13 +967,13 @@ mod tests {
         ];
 
         let inject_ret =
-            inject_all_pkgs_for_mock(&mut dev_server_state, all_pkgs_json);
+            inject_all_pkgs_for_mock(&mut designer_state, all_pkgs_json);
         assert!(inject_ret.is_ok());
 
-        let dev_server_state = Arc::new(RwLock::new(dev_server_state));
+        let designer_state = Arc::new(RwLock::new(designer_state));
 
         let app = test::init_service(
-            App::new().app_data(web::Data::new(dev_server_state)).route(
+            App::new().app_data(web::Data::new(designer_state)).route(
                 "/api/dev-server/v1/messages/compatible",
                 web::post().to(get_compatible_messages),
             ),
@@ -1024,7 +1024,7 @@ mod tests {
     // properties/items.
     // #[actix_web::test]
     async fn test_get_compatible_messages_data_required_superset() {
-        let mut dev_server_state = DevServerState {
+        let mut designer_state = DesignerState {
             base_dir: None,
             all_pkgs: None,
             tman_config: TmanConfig::default(),
@@ -1050,13 +1050,13 @@ mod tests {
         ];
 
         let inject_ret =
-            inject_all_pkgs_for_mock(&mut dev_server_state, all_pkgs_json);
+            inject_all_pkgs_for_mock(&mut designer_state, all_pkgs_json);
         assert!(inject_ret.is_ok());
 
-        let dev_server_state = Arc::new(RwLock::new(dev_server_state));
+        let designer_state = Arc::new(RwLock::new(designer_state));
 
         let app = test::init_service(
-            App::new().app_data(web::Data::new(dev_server_state)).route(
+            App::new().app_data(web::Data::new(designer_state)).route(
                 "/api/dev-server/v1/messages/compatible",
                 web::post().to(get_compatible_messages),
             ),
@@ -1095,7 +1095,7 @@ mod tests {
 
     #[actix_web::test]
     async fn test_get_compatible_messages_video_target_has_property() {
-        let mut dev_server_state = DevServerState {
+        let mut designer_state = DesignerState {
             base_dir: None,
             all_pkgs: None,
             tman_config: TmanConfig::default(),
@@ -1121,13 +1121,13 @@ mod tests {
         ];
 
         let inject_ret =
-            inject_all_pkgs_for_mock(&mut dev_server_state, all_pkgs_json);
+            inject_all_pkgs_for_mock(&mut designer_state, all_pkgs_json);
         assert!(inject_ret.is_ok());
 
-        let dev_server_state = Arc::new(RwLock::new(dev_server_state));
+        let designer_state = Arc::new(RwLock::new(designer_state));
 
         let app = test::init_service(
-            App::new().app_data(web::Data::new(dev_server_state)).route(
+            App::new().app_data(web::Data::new(designer_state)).route(
                 "/api/dev-server/v1/messages/compatible",
                 web::post().to(get_compatible_messages),
             ),

@@ -18,7 +18,7 @@ use ten_rust::pkg_info::predefined_graphs::pkg_predefined_graphs_find;
 
 use crate::designer::get_all_pkgs::get_all_pkgs;
 use crate::designer::response::{ApiResponse, ErrorResponse, Status};
-use crate::designer::DevServerState;
+use crate::designer::DesignerState;
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
 pub struct DevServerConnection {
@@ -46,17 +46,17 @@ impl From<GraphConnection> for DevServerConnection {
             extension_group: conn.extension_group,
             extension: conn.extension,
 
-            cmd: conn.cmd.map(get_dev_server_msg_flow_from_property),
+            cmd: conn.cmd.map(get_designer_msg_flow_from_property),
 
-            data: conn.data.map(get_dev_server_msg_flow_from_property),
+            data: conn.data.map(get_designer_msg_flow_from_property),
 
             audio_frame: conn
                 .audio_frame
-                .map(get_dev_server_msg_flow_from_property),
+                .map(get_designer_msg_flow_from_property),
 
             video_frame: conn
                 .video_frame
-                .map(get_dev_server_msg_flow_from_property),
+                .map(get_designer_msg_flow_from_property),
         }
     }
 }
@@ -71,12 +71,12 @@ impl From<GraphMessageFlow> for DevServerMessageFlow {
     fn from(msg_flow: GraphMessageFlow) -> Self {
         DevServerMessageFlow {
             name: msg_flow.name,
-            dest: get_dev_server_destination_from_property(msg_flow.dest),
+            dest: get_designer_destination_from_property(msg_flow.dest),
         }
     }
 }
 
-fn get_dev_server_msg_flow_from_property(
+fn get_designer_msg_flow_from_property(
     msg_flow: Vec<GraphMessageFlow>,
 ) -> Vec<DevServerMessageFlow> {
     if msg_flow.is_empty() {
@@ -107,14 +107,14 @@ impl From<GraphDestination> for DevServerDestination {
     }
 }
 
-fn get_dev_server_destination_from_property(
+fn get_designer_destination_from_property(
     destinations: Vec<GraphDestination>,
 ) -> Vec<DevServerDestination> {
     destinations.into_iter().map(|v| v.into()).collect()
 }
 
 pub async fn get_graph_connections(
-    state: web::Data<Arc<RwLock<DevServerState>>>,
+    state: web::Data<Arc<RwLock<DesignerState>>>,
     path: web::Path<String>,
 ) -> impl Responder {
     let graph_name = path.into_inner();
@@ -183,7 +183,7 @@ mod tests {
 
     #[actix_web::test]
     async fn test_get_connections_success() {
-        let mut dev_server_state = DevServerState {
+        let mut designer_state = DesignerState {
             base_dir: None,
             all_pkgs: None,
             tman_config: TmanConfig::default(),
@@ -212,13 +212,13 @@ mod tests {
         ];
 
         let inject_ret =
-            inject_all_pkgs_for_mock(&mut dev_server_state, all_pkgs_json);
+            inject_all_pkgs_for_mock(&mut designer_state, all_pkgs_json);
         assert!(inject_ret.is_ok());
 
-        let dev_server_state = Arc::new(RwLock::new(dev_server_state));
+        let designer_state = Arc::new(RwLock::new(designer_state));
 
         let app = test::init_service(
-            App::new().app_data(web::Data::new(dev_server_state)).route(
+            App::new().app_data(web::Data::new(designer_state)).route(
                 "/api/dev-server/v1/graphs/{graph_name}/connections",
                 web::get().to(get_graph_connections),
             ),
@@ -267,7 +267,7 @@ mod tests {
 
     #[actix_web::test]
     async fn test_get_connections_have_all_data_type() {
-        let mut dev_server_state = DevServerState {
+        let mut designer_state = DesignerState {
             base_dir: None,
             all_pkgs: None,
             tman_config: TmanConfig::default(),
@@ -295,12 +295,12 @@ mod tests {
         ];
 
         let inject_ret =
-            inject_all_pkgs_for_mock(&mut dev_server_state, all_pkgs_json);
+            inject_all_pkgs_for_mock(&mut designer_state, all_pkgs_json);
         assert!(inject_ret.is_ok());
 
-        let dev_server_state = Arc::new(RwLock::new(dev_server_state));
+        let designer_state = Arc::new(RwLock::new(designer_state));
         let app = test::init_service(
-            App::new().app_data(web::Data::new(dev_server_state)).route(
+            App::new().app_data(web::Data::new(designer_state)).route(
                 "/api/dev-server/v1/graphs/{graph_name}/connections",
                 web::get().to(get_graph_connections),
             ),

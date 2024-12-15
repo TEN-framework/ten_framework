@@ -1,11 +1,11 @@
-# TEN Manager - Dev Server
+# TEN Manager - Designer
 
 To start the `tman` development server, use the following command:
 
 {% code title=">_ Terminal" %}
 
 ```shell
-tman dev-server
+tman designer
 ```
 
 {% endcode %}

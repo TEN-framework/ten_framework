@@ -11,11 +11,11 @@ use actix_web::{web, HttpResponse, Responder};
 use crate::designer::{
     get_all_pkgs::get_all_pkgs,
     response::{ApiResponse, ErrorResponse, Status},
-    DevServerState,
+    DesignerState,
 };
 
 pub async fn clear_and_reload_pkgs(
-    state: web::Data<Arc<RwLock<DevServerState>>>,
+    state: web::Data<Arc<RwLock<DesignerState>>>,
 ) -> impl Responder {
     let mut state = state.write().unwrap();
 

@@ -21,13 +21,12 @@ use ten_rust::pkg_info::{
 };
 
 use crate::designer::common::{
-    get_dev_server_api_cmd_likes_from_pkg,
-    get_dev_server_api_data_likes_from_pkg,
-    get_dev_server_property_hashmap_from_pkg,
+    get_designer_api_cmd_likes_from_pkg, get_designer_api_data_likes_from_pkg,
+    get_designer_property_hashmap_from_pkg,
 };
 use crate::designer::get_all_pkgs::get_all_pkgs;
 use crate::designer::response::{ApiResponse, ErrorResponse, Status};
-use crate::designer::DevServerState;
+use crate::designer::DesignerState;
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
 pub struct DevServerExtension {
@@ -151,7 +150,7 @@ impl From<PkgApiCmdLike> for DevServerApiCmdLike {
             property: if api_cmd_like.property.is_empty() {
                 None
             } else {
-                Some(get_dev_server_property_items_from_pkg(
+                Some(get_designer_property_items_from_pkg(
                     api_cmd_like.property,
                 ))
             },
@@ -187,7 +186,7 @@ impl From<PkgApiDataLike> for DevServerApiDataLike {
             property: if api_data_like.property.is_empty() {
                 None
             } else {
-                Some(get_dev_server_property_items_from_pkg(
+                Some(get_designer_property_items_from_pkg(
                     api_data_like.property,
                 ))
             },
@@ -200,14 +199,14 @@ impl From<PkgApiDataLike> for DevServerApiDataLike {
     }
 }
 
-fn get_dev_server_property_items_from_pkg(
+fn get_designer_property_items_from_pkg(
     items: Vec<PkgPropertyItem>,
 ) -> Vec<DevServerPropertyItem> {
     items.into_iter().map(|v| v.into()).collect()
 }
 
 pub async fn get_graph_nodes(
-    state: web::Data<Arc<RwLock<DevServerState>>>,
+    state: web::Data<Arc<RwLock<DesignerState>>>,
     path: web::Path<String>,
 ) -> impl Responder {
     let graph_name = path.into_inner();
@@ -262,7 +261,7 @@ pub async fn get_graph_nodes(
                     property: if api.property.is_empty() {
                         None
                     } else {
-                        Some(get_dev_server_property_hashmap_from_pkg(
+                        Some(get_designer_property_hashmap_from_pkg(
                             api.property.clone(),
                         ))
                     },
@@ -270,14 +269,14 @@ pub async fn get_graph_nodes(
                     cmd_in: if api.cmd_in.is_empty() {
                         None
                     } else {
-                        Some(get_dev_server_api_cmd_likes_from_pkg(
+                        Some(get_designer_api_cmd_likes_from_pkg(
                             api.cmd_in.clone(),
                         ))
                     },
                     cmd_out: if api.cmd_out.is_empty() {
                         None
                     } else {
-                        Some(get_dev_server_api_cmd_likes_from_pkg(
+                        Some(get_designer_api_cmd_likes_from_pkg(
                             api.cmd_out.clone(),
                         ))
                     },
@@ -285,14 +284,14 @@ pub async fn get_graph_nodes(
                     data_in: if api.data_in.is_empty() {
                         None
                     } else {
-                        Some(get_dev_server_api_data_likes_from_pkg(
+                        Some(get_designer_api_data_likes_from_pkg(
                             api.data_in.clone(),
                         ))
                     },
                     data_out: if api.data_out.is_empty() {
                         None
                     } else {
-                        Some(get_dev_server_api_data_likes_from_pkg(
+                        Some(get_designer_api_data_likes_from_pkg(
                             api.data_out.clone(),
                         ))
                     },
@@ -300,14 +299,14 @@ pub async fn get_graph_nodes(
                     audio_frame_in: if api.audio_frame_in.is_empty() {
                         None
                     } else {
-                        Some(get_dev_server_api_data_likes_from_pkg(
+                        Some(get_designer_api_data_likes_from_pkg(
                             api.audio_frame_in.clone(),
                         ))
                     },
                     audio_frame_out: if api.audio_frame_out.is_empty() {
                         None
                     } else {
-                        Some(get_dev_server_api_data_likes_from_pkg(
+                        Some(get_designer_api_data_likes_from_pkg(
                             api.audio_frame_out.clone(),
                         ))
                     },
@@ -315,14 +314,14 @@ pub async fn get_graph_nodes(
                     video_frame_in: if api.video_frame_in.is_empty() {
                         None
                     } else {
-                        Some(get_dev_server_api_data_likes_from_pkg(
+                        Some(get_designer_api_data_likes_from_pkg(
                             api.video_frame_in.clone(),
                         ))
                     },
                     video_frame_out: if api.video_frame_out.is_empty() {
                         None
                     } else {
-                        Some(get_dev_server_api_data_likes_from_pkg(
+                        Some(get_designer_api_data_likes_from_pkg(
                             api.video_frame_out.clone(),
                         ))
                     },
@@ -361,7 +360,7 @@ mod tests {
 
     #[actix_web::test]
     async fn test_get_extensions_success() {
-        let mut dev_server_state = DevServerState {
+        let mut designer_state = DesignerState {
             base_dir: None,
             all_pkgs: None,
             tman_config: TmanConfig::default(),
@@ -390,13 +389,13 @@ mod tests {
         ];
 
         let inject_ret =
-            inject_all_pkgs_for_mock(&mut dev_server_state, all_pkgs_json);
+            inject_all_pkgs_for_mock(&mut designer_state, all_pkgs_json);
         assert!(inject_ret.is_ok());
 
-        let dev_server_state = Arc::new(RwLock::new(dev_server_state));
+        let designer_state = Arc::new(RwLock::new(designer_state));
 
         let app = test::init_service(
-            App::new().app_data(web::Data::new(dev_server_state)).route(
+            App::new().app_data(web::Data::new(designer_state)).route(
                 "/api/dev-server/v1/graphs/{graph_name}/nodes",
                 web::get().to(get_graph_nodes),
             ),
@@ -594,14 +593,14 @@ mod tests {
 
     #[actix_web::test]
     async fn test_get_extensions_no_graph() {
-        let dev_server_state = Arc::new(RwLock::new(DevServerState {
+        let designer_state = Arc::new(RwLock::new(DesignerState {
             base_dir: None,
             all_pkgs: Some(vec![]),
             tman_config: TmanConfig::default(),
         }));
 
         let app = test::init_service(
-            App::new().app_data(web::Data::new(dev_server_state)).route(
+            App::new().app_data(web::Data::new(designer_state)).route(
                 "/api/dev-server/v1/graphs/{graph_name}/extensions",
                 web::get().to(get_graph_nodes),
             ),
@@ -627,7 +626,7 @@ mod tests {
 
     #[actix_web::test]
     async fn test_get_extensions_has_wrong_addon() {
-        let mut dev_server_state = DevServerState {
+        let mut designer_state = DesignerState {
             base_dir: None,
             all_pkgs: None,
             tman_config: TmanConfig::default(),
@@ -656,13 +655,13 @@ mod tests {
         ];
 
         let inject_ret =
-            inject_all_pkgs_for_mock(&mut dev_server_state, all_pkgs_json);
+            inject_all_pkgs_for_mock(&mut designer_state, all_pkgs_json);
         assert!(inject_ret.is_ok());
 
-        let dev_server_state = Arc::new(RwLock::new(dev_server_state));
+        let designer_state = Arc::new(RwLock::new(designer_state));
 
         let app = test::init_service(
-            App::new().app_data(web::Data::new(dev_server_state)).route(
+            App::new().app_data(web::Data::new(designer_state)).route(
                 "/api/dev-server/v1/graphs/{graph_name}/extensions",
                 web::get().to(get_graph_nodes),
             ),

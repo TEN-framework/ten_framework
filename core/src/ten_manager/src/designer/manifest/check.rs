@@ -15,7 +15,7 @@ use crate::designer::{
     common::CheckTypeQuery,
     get_all_pkgs::get_all_pkgs,
     response::{ApiResponse, ErrorResponse, Status},
-    DevServerState,
+    DesignerState,
 };
 
 #[derive(Serialize)]
@@ -24,7 +24,7 @@ struct CheckResponse {
 }
 
 pub async fn check_manifest(
-    state: web::Data<Arc<RwLock<DevServerState>>>,
+    state: web::Data<Arc<RwLock<DesignerState>>>,
     query: web::Query<CheckTypeQuery>,
 ) -> impl Responder {
     let mut state = state.write().unwrap();

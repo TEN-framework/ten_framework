@@ -14,7 +14,7 @@ use ten_rust::pkg_info::predefined_graphs::get_pkg_predefined_graph_from_nodes_a
 
 use super::{connections::DevServerConnection, nodes::DevServerExtension};
 use crate::designer::response::{ApiResponse, ErrorResponse, Status};
-use crate::designer::{get_all_pkgs::get_all_pkgs, DevServerState};
+use crate::designer::{get_all_pkgs::get_all_pkgs, DesignerState};
 
 #[derive(Deserialize, Serialize, Debug, PartialEq, Clone)]
 pub struct GraphUpdateRequest {
@@ -31,7 +31,7 @@ pub struct GraphUpdateResponse {
 pub async fn update_graph(
     req: web::Path<String>,
     body: web::Json<GraphUpdateRequest>,
-    state: web::Data<Arc<RwLock<DevServerState>>>,
+    state: web::Data<Arc<RwLock<DesignerState>>>,
 ) -> impl Responder {
     let graph_name = req.into_inner();
     let mut state = state.write().unwrap();
@@ -123,7 +123,7 @@ mod tests {
         fs::create_dir_all(&test_data_dir)
             .expect("Failed to create test_data directory");
 
-        let mut dev_server_state = DevServerState {
+        let mut designer_state = DesignerState {
             base_dir: Some(test_data_dir.to_string_lossy().to_string()),
             all_pkgs: None,
             tman_config: TmanConfig::default(),
@@ -152,14 +152,14 @@ mod tests {
         ];
 
         let inject_ret =
-            inject_all_pkgs_for_mock(&mut dev_server_state, all_pkgs_json);
+            inject_all_pkgs_for_mock(&mut designer_state, all_pkgs_json);
         assert!(inject_ret.is_ok());
 
-        let dev_server_state = Arc::new(RwLock::new(dev_server_state));
+        let designer_state = Arc::new(RwLock::new(designer_state));
 
         let app = test::init_service(
             App::new()
-                .app_data(web::Data::new(dev_server_state.clone()))
+                .app_data(web::Data::new(designer_state.clone()))
                 .route(
                     "/api/dev-server/v1/graphs/{graph_name}",
                     web::put().to(update_graph),
@@ -181,7 +181,7 @@ mod tests {
 
         assert!(resp.status().is_success());
 
-        match &dev_server_state.clone().read().unwrap().all_pkgs {
+        match &designer_state.clone().read().unwrap().all_pkgs {
             Some(pkgs) => {
                 let app_pkg = pkgs
                     .iter()
