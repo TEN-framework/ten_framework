@@ -8,7 +8,7 @@ use ten_rust::pkg_info::graph::{
     GraphConnection, GraphDestination, GraphMessageFlow,
 };
 
-use crate::dev_server::graphs::connections::{
+use crate::designer::graphs::connections::{
     DevServerConnection, DevServerDestination, DevServerMessageFlow,
 };
 

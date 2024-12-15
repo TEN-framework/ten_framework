@@ -10,7 +10,7 @@ use actix_web::{http::StatusCode, test, web, App};
 
 use ten_manager::{
     config::TmanConfig,
-    dev_server::{
+    designer::{
         graphs::{
             connections::{get_graph_connections, DevServerConnection},
             get_graphs, RespGraph,

@@ -18,7 +18,7 @@ use console::Emoji;
 
 use crate::{
     config::TmanConfig,
-    dev_server::{
+    designer::{
         configure_routes,
         // TODO(Wei): Enable this.
         // frontend::get_frontend_asset,
