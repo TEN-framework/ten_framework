@@ -6,3 +6,6 @@
 //
 export * from './app/app';
 export * from './ten_env/ten_env';
+export * from './addon/addon';
+export * from './extension/extension';
+export * from './addon/addon_manager';

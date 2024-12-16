@@ -12,10 +12,16 @@ ten_package_test_prepare_app("send_cmd_nodejs_app") {
   src_app_language = "nodejs"
   generated_app_src_root_dir_name = "send_cmd_nodejs_app"
 
+  replace_files_after_install_app = [
+    "send_cmd_nodejs_app/manifest.json",
+    "send_cmd_nodejs_app/property.json",
+  ]
+
   if (ten_enable_package_manager) {
     deps = [
       "//core/src/ten_manager",
       "//packages/core_apps/default_app_nodejs:upload_default_app_nodejs_to_server",
+      "//packages/core_extensions/default_extension_ts:upload_default_extension_ts_to_server",
     ]
   }
 }

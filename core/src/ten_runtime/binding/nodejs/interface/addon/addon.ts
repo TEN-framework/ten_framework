@@ -10,7 +10,6 @@ import ten_addon from "../ten_addon";
 import { TenEnv } from "../ten_env/ten_env";
 
 export abstract class Addon {
-
     private async onInitProxy(tenEnv: TenEnv): Promise<void> {
         try {
             await this.onInit(tenEnv);
