@@ -10,7 +10,7 @@ import os
 import subprocess
 
 
-# psutil is not a builtin module, so use it if it exists.
+# `psutil` is not a builtin module, so use it if it exists.
 try:
     import psutil
 
