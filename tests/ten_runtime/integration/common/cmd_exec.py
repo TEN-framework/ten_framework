@@ -5,6 +5,7 @@
 # Refer to the "LICENSE" file in the root directory for more information.
 #
 import sys
+import io
 import os
 import subprocess
 
@@ -16,6 +17,11 @@ try:
     has_psutil = True
 except ImportError:
     has_psutil = False
+
+
+# Reconfigure stdout to use UTF-8 on Windows.
+if sys.platform == "win32":
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")
 
 
 def get_cmd_output(cmd: str, log_level: int = 0) -> tuple[int, str]:
