@@ -8,11 +8,11 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-actix = { version = "0.13.5", default-features = false }
+actix = { version = "0.13.5" }
 actix-cors = { version = "0.7", default-features = false }
 actix-files = { version = "0.6", default-features = false }
-actix-rt = { version = "2.10", default-features = false }
-actix-web = { version = "4.8", default-features = false }
+actix-rt = { version = "2.10", default-features = false, features = ["macros"] }
+actix-web = { version = "4.8", default-features = false, features = ["macros"] }
 actix-web-actors = { version = "4.3.1", default-features = false }
 anyhow = { version = "1.0" }
 clap = { version = "4.5" }
