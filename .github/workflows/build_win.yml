@@ -18,6 +18,8 @@ jobs:
       group: build-win-x64-${{ github.head_ref }}-${{ matrix.build_type }}
       cancel-in-progress: true
     runs-on: windows-latest
+    env:
+      PYTHONIOENCODING: utf-8
     strategy:
       matrix:
         build_type: [debug, release]
