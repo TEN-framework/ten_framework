@@ -35,3 +35,10 @@ declare_args() {
   # allows it to be disabled in CI environments.
   ten_enable_rust_incremental_build = true
 }
+
+declare_args() {
+  # Since `cargo build` can consume a significant amount of disk space, it is
+  # necessary to limit the concurrency of `cargo build` in certain build
+  # environments (e.g., CI) to manage disk space requirements.
+  ten_enable_serialized_rust_action = false
+}
