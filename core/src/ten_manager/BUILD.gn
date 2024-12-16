@@ -18,7 +18,7 @@ copy("ten_manager_test_data") {
   outputs = [ "${root_out_dir}/tests/standalone/ten_manager/tests/test_data" ]
 }
 
-if (ten_enable_package_manager) {
+if (ten_enable_ten_manager) {
   if (ten_package_manager_enable_tests) {
     rust_test("tman_test_cargo_build") {
       project_path = "//core/src/ten_manager"

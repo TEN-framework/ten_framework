@@ -28,7 +28,7 @@ group("ten_framework_all") {
     "//third_party",
   ]
 
-  if (ten_enable_package_manager) {
+  if (ten_enable_ten_manager) {
     deps += [ "//core/src/ten_manager" ]
   }
 
