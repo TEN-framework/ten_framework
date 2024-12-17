@@ -44,4 +44,13 @@ TEN_RUNTIME_PRIVATE_API napi_value
 ten_nodejs_ten_env_on_init_done(napi_env env, napi_callback_info info);
 
 TEN_RUNTIME_PRIVATE_API napi_value
+ten_nodejs_ten_env_on_start_done(napi_env env, napi_callback_info info);
+
+TEN_RUNTIME_PRIVATE_API napi_value
+ten_nodejs_ten_env_on_stop_done(napi_env env, napi_callback_info info);
+
+TEN_RUNTIME_PRIVATE_API napi_value
 ten_nodejs_ten_env_on_deinit_done(napi_env env, napi_callback_info info);
+
+TEN_RUNTIME_PRIVATE_API napi_value ten_nodejs_ten_env_on_create_instance_done(
+    napi_env env, napi_callback_info info);

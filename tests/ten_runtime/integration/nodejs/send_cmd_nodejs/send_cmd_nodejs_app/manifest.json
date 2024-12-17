@@ -14,6 +14,16 @@
       "type": "extension",
       "name": "default_extension_ts",
       "version": "0.4.2"
+    },
+    {
+      "type": "extension",
+      "name": "simple_echo_cpp",
+      "version": "0.1.0"
+    },
+    {
+      "type": "extension",
+      "name": "simple_http_server_cpp",
+      "version": "0.1.0"
     }
   ]
 }

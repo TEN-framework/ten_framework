@@ -4,6 +4,7 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
+import { AddonManager } from '../addon/addon_manager';
 import ten_addon from '../ten_addon'
 import { TenEnv } from '../ten_env/ten_env';
 
@@ -18,6 +19,9 @@ export class App {
         } catch (error) {
             // tenEnv.log
         } finally {
+            AddonManager._load_all_addons();
+            AddonManager._register_all_addons(null);
+
             ten_addon.ten_nodejs_ten_env_on_configure_done(tenEnv);
         }
     }
@@ -44,7 +48,9 @@ export class App {
             * JS app prepare to be destroyed, so notify the underlying C runtime this
             * fact.
             */
-            ten_addon.rte_nodejs_app_on_close(this);
+            ten_addon.ten_nodejs_app_on_end_of_life(this);
+
+            (global as any).gc();
         }
     }
 

@@ -38,6 +38,11 @@ def test_send_cmd_nodejs():
         if rc != 0:
             assert False, "Failed to build package."
 
+        # Compile typescript extensions.
+        rc = build_pkg.build_ts_extensions(app_root_path)
+        if rc != 0:
+            assert False, "Failed to build TypeScript extensions."
+
     if sys.platform == "linux":
         if build_config_args.enable_sanitizer:
             libasan_path = os.path.join(
@@ -62,5 +67,26 @@ def test_send_cmd_nodejs():
         cwd=app_root_path,
     )
 
-    exit_code = server.wait()
-    print("The exit code of send_cmd_nodejs: ", exit_code)
+    is_started = http.is_app_started("127.0.0.1", 8002, 30)
+    if not is_started:
+        print("The send_cmd_nodejs is not started after 10 seconds.")
+
+        server.kill()
+        exit_code = server.wait()
+        print("The exit code of send_cmd_nodejs: ", exit_code)
+
+        assert exit_code == 0
+        assert False
+
+    try:
+        print("Sending HTTP request to the app server.")
+    finally:
+        is_stopped = http.stop_app("127.0.0.1", 8002, 30)
+        if not is_stopped:
+            print("The send_cmd_nodejs can not stop after 30 seconds.")
+            server.kill()
+
+        exit_code = server.wait()
+        print("The exit code of send_cmd_nodejs: ", exit_code)
+
+        assert exit_code == 0

@@ -8,6 +8,7 @@
 
 #include "include_internal/ten_runtime/binding/nodejs/common/common.h"
 #include "include_internal/ten_runtime/binding/nodejs/ten_env/ten_env.h"
+#include "js_native_api.h"
 #include "ten_runtime/binding/common.h"
 #include "ten_runtime/ten_env/internal/on_xxx_done.h"
 #include "ten_runtime/ten_env/ten_env.h"
@@ -21,6 +22,7 @@
 
 typedef struct app_on_xxx_call_info_t {
   ten_nodejs_app_t *app_bridge;
+  ten_nodejs_ten_env_t *ten_env_bridge;
   ten_env_t *ten_env;
   ten_env_proxy_t *ten_env_proxy;
 } app_on_xxx_call_info_t;
@@ -59,12 +61,18 @@ static void invoke_app_js_on_configure(napi_env env, napi_value fn,
   ten_env_bridge->c_ten_env_proxy = call_info->ten_env_proxy;
   TEN_ASSERT(ten_env_bridge->c_ten_env_proxy, "Should not happen.");
 
+  // Increase the reference count of the JS ten_env object to prevent it from
+  // being garbage collected.
+  uint32_t js_ten_env_ref_count = 0;
+  napi_reference_ref(env, ten_env_bridge->bridge.js_instance_ref,
+                     &js_ten_env_ref_count);
+
   napi_status status = napi_ok;
 
   {
-    // Call on_configure() of the RTE JS app.
+    // Call on_configure() of the TEN JS app.
 
-    // Get the RTE JS app.
+    // Get the TEN JS app.
     napi_value js_app = NULL;
     status = napi_get_reference_value(
         env, call_info->app_bridge->bridge.js_instance_ref, &js_app);
@@ -89,10 +97,99 @@ done:
 }
 
 static void invoke_app_js_on_init(napi_env env, napi_value fn,
-                                  TEN_UNUSED void *context, void *data) {}
+                                  TEN_UNUSED void *context, void *data) {
+  app_on_xxx_call_info_t *call_info = data;
+  TEN_ASSERT(call_info, "Should not happen.");
+
+  ten_nodejs_app_t *app_bridge = call_info->app_bridge;
+  TEN_ASSERT(app_bridge && ten_nodejs_app_check_integrity(app_bridge, true),
+             "Should not happen.");
+
+  ten_nodejs_ten_env_t *ten_env_bridge = call_info->ten_env_bridge;
+  TEN_ASSERT(ten_env_bridge &&
+                 ten_nodejs_ten_env_check_integrity(ten_env_bridge, true),
+             "Should not happen.");
+
+  napi_status status = napi_ok;
+
+  {
+    // Call on_init() of the TEN JS app.
+
+    napi_value js_app = NULL;
+    status = napi_get_reference_value(env, app_bridge->bridge.js_instance_ref,
+                                      &js_app);
+    GOTO_LABEL_IF_NAPI_FAIL(error, status == napi_ok && js_app != NULL,
+                            "Failed to get JS app: %d", status);
+
+    napi_value js_ten_env = NULL;
+    status = napi_get_reference_value(
+        env, ten_env_bridge->bridge.js_instance_ref, &js_ten_env);
+    GOTO_LABEL_IF_NAPI_FAIL(error, status == napi_ok && js_ten_env != NULL,
+                            "Failed to get JS ten_env: %d", status);
+
+    napi_value result = NULL;
+    napi_value argv[] = {js_ten_env};
+    status = napi_call_function(env, js_app, fn, 1, argv, &result);
+    GOTO_LABEL_IF_NAPI_FAIL(error, status == napi_ok,
+                            "Failed to call JS app on_init(): %d", status);
+  }
+
+  goto done;
+
+error:
+  TEN_LOGE("Failed to call JS app on_init().");
+
+done:
+  TEN_FREE(call_info);
+}
 
 static void invoke_app_js_on_deinit(napi_env env, napi_value fn,
-                                    TEN_UNUSED void *context, void *data) {}
+                                    TEN_UNUSED void *context, void *data) {
+  app_on_xxx_call_info_t *call_info = data;
+  TEN_ASSERT(call_info, "Should not happen.");
+
+  ten_nodejs_app_t *app_bridge = call_info->app_bridge;
+  TEN_ASSERT(app_bridge && ten_nodejs_app_check_integrity(app_bridge, true),
+             "Should not happen.");
+
+  ten_nodejs_ten_env_t *ten_env_bridge = call_info->ten_env_bridge;
+  TEN_ASSERT(ten_env_bridge &&
+                 ten_nodejs_ten_env_check_integrity(ten_env_bridge, true),
+             "Should not happen.");
+
+  napi_status status = napi_ok;
+
+  {
+    // Call on_deinit() of the TEN JS app.
+
+    napi_value js_app = NULL;
+    status = napi_get_reference_value(env, app_bridge->bridge.js_instance_ref,
+                                      &js_app);
+    GOTO_LABEL_IF_NAPI_FAIL(error, status == napi_ok && js_app != NULL,
+                            "Failed to get JS app: %d", status);
+
+    napi_value js_ten_env = NULL;
+    status = napi_get_reference_value(
+        env, ten_env_bridge->bridge.js_instance_ref, &js_ten_env);
+    GOTO_LABEL_IF_NAPI_FAIL(error, status == napi_ok && js_ten_env != NULL,
+                            "Failed to get JS ten_env: %d", status);
+
+    napi_value result = NULL;
+    napi_value argv[] = {js_ten_env};
+    status = napi_call_function(env, js_app, fn, 1, argv, &result);
+    GOTO_LABEL_IF_NAPI_FAIL(error, status == napi_ok,
+                            "Failed to call JS app on_deinit(): %d", status);
+  }
+
+  goto done;
+
+error:
+  TEN_LOGE("Failed to call JS app on_deinit().");
+  TEN_ASSERT(0, "Should not happen.");
+
+done:
+  TEN_FREE(call_info);
+}
 
 static void proxy_on_configure(ten_app_t *app, ten_env_t *ten_env) {
   TEN_ASSERT(app && ten_app_check_integrity(app, true), "Should not happen.");
@@ -120,6 +217,7 @@ static void proxy_on_configure(ten_app_t *app, ten_env_t *ten_env) {
   bool rc = ten_nodejs_tsfn_invoke(app_bridge->js_on_configure, call_info);
   if (!rc) {
     TEN_LOGE("Failed to call app on_init().");
+    TEN_FREE(call_info);
 
     // Failed to call JS on_init(), so that we need to call on_init_done() here
     // to let RTE runtime proceed.
@@ -128,13 +226,70 @@ static void proxy_on_configure(ten_app_t *app, ten_env_t *ten_env) {
 }
 
 static void proxy_on_init(ten_app_t *app, ten_env_t *ten_env) {
-  TEN_LOGI("proxy_on_init");
-  ten_env_on_init_done(ten_env, NULL);
+  TEN_ASSERT(app && ten_app_check_integrity(app, true), "Should not happen.");
+  TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
+             "Should not happen.");
+
+  ten_nodejs_app_t *app_bridge =
+      ten_binding_handle_get_me_in_target_lang((ten_binding_handle_t *)app);
+  TEN_ASSERT(app_bridge &&
+                 // TEN_NOLINTNEXTLINE(thread-check)
+                 ten_nodejs_app_check_integrity(app_bridge, false),
+             "Should not happen.");
+
+  ten_nodejs_ten_env_t *ten_env_bridge =
+      ten_binding_handle_get_me_in_target_lang((ten_binding_handle_t *)ten_env);
+  TEN_ASSERT(ten_env_bridge &&
+                 // TEN_NOLINTNEXTLINE(thread-check)
+                 ten_nodejs_ten_env_check_integrity(ten_env_bridge, false),
+             "Should not happen.");
+
+  app_on_xxx_call_info_t *call_info =
+      TEN_MALLOC(sizeof(app_on_xxx_call_info_t));
+  TEN_ASSERT(call_info, "Failed to allocate memory.");
+
+  call_info->app_bridge = app_bridge;
+  call_info->ten_env_bridge = ten_env_bridge;
+
+  bool rc = ten_nodejs_tsfn_invoke(app_bridge->js_on_init, call_info);
+  if (!rc) {
+    TEN_LOGE("Failed to call app on_init().");
+    TEN_FREE(call_info);
+
+    // Failed to call JS on_init(), so that we need to call on_init_done() here
+    // to let RTE runtime proceed.
+    ten_env_on_init_done(ten_env, NULL);
+  }
 }
 
 static void proxy_on_deinit(ten_app_t *app, ten_env_t *ten_env) {
-  TEN_LOGI("proxy_on_deinit");
-  ten_env_on_deinit_done(ten_env, NULL);
+  TEN_ASSERT(app && ten_app_check_integrity(app, true), "Should not happen.");
+  TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
+             "Should not happen.");
+
+  ten_nodejs_app_t *app_bridge =
+      ten_binding_handle_get_me_in_target_lang((ten_binding_handle_t *)app);
+  TEN_ASSERT(app_bridge &&
+                 // TEN_NOLINTNEXTLINE(thread-check)
+                 ten_nodejs_app_check_integrity(app_bridge, false),
+             "Should not happen.");
+
+  ten_nodejs_ten_env_t *ten_env_bridge =
+      ten_binding_handle_get_me_in_target_lang((ten_binding_handle_t *)ten_env);
+  TEN_ASSERT(ten_env_bridge &&
+                 // TEN_NOLINTNEXTLINE(thread-check)
+                 ten_nodejs_ten_env_check_integrity(ten_env_bridge, false),
+             "Should not happen.");
+
+  app_on_xxx_call_info_t *call_info =
+      TEN_MALLOC(sizeof(app_on_xxx_call_info_t));
+  TEN_ASSERT(call_info, "Failed to allocate memory.");
+
+  call_info->app_bridge = app_bridge;
+  call_info->ten_env_bridge = ten_env_bridge;
+
+  bool rc = ten_nodejs_tsfn_invoke(app_bridge->js_on_deinit, call_info);
+  TEN_ASSERT(rc, "Failed to call app on_deinit().");
 }
 
 static void ten_nodejs_app_create_and_attach_callbacks(
@@ -203,7 +358,7 @@ static void ten_nodejs_app_destroy(ten_nodejs_app_t *self) {
 
 // Invoked when the JS app finalizes.
 static void ten_nodejs_app_finalize(napi_env env, void *data, void *hint) {
-  TEN_LOGI("RTE JS app is finalized.");
+  TEN_LOGI("TEN JS app is finalized.");
 
   ten_nodejs_app_t *app_bridge = data;
   TEN_ASSERT(app_bridge && ten_nodejs_app_check_integrity(app_bridge, true),
@@ -212,11 +367,9 @@ static void ten_nodejs_app_finalize(napi_env env, void *data, void *hint) {
   napi_status status = napi_ok;
 
   status = napi_delete_reference(env, app_bridge->bridge.js_instance_ref);
-  GOTO_LABEL_IF_NAPI_FAIL(done, status == napi_ok,
-                          "Failed to delete JS rte reference of JS app: %d",
-                          status);
+  TEN_ASSERT(status == napi_ok, "Failed to delete JS app reference: %d",
+             status);
 
-done:
   app_bridge->bridge.js_instance_ref = NULL;
   // Destroy the underlying TEN C app.
   ten_app_destroy(app_bridge->c_app);
@@ -242,7 +395,7 @@ static napi_value ten_nodejs_app_create(napi_env env, napi_callback_info info) {
 
   ten_signature_set(&app_bridge->signature, TEN_NODEJS_APP_SIGNATURE);
 
-  // The ownership of the RTE app_bridge is the JS main thread.
+  // The ownership of the TEN app_bridge is the JS main thread.
   ten_sanitizer_thread_check_init_with_current_thread(
       &app_bridge->thread_check);
 
@@ -294,6 +447,13 @@ static napi_value ten_nodejs_app_run(napi_env env, napi_callback_info info) {
   TEN_ASSERT(app_bridge && ten_nodejs_app_check_integrity(app_bridge, true),
              "Should not happen.");
 
+  // Increase the reference count of the JS app object to prevent it from being
+  // garbage collected. The reference count will be decreased when the app is
+  // deinited.
+  uint32_t js_app_ref_count = 0;
+  status = napi_reference_ref(env, app_bridge->bridge.js_instance_ref,
+                              &js_app_ref_count);
+
   // Create and attach callbacks which will be invoked during the runtime of the
   // TEN app.
   ten_nodejs_app_create_and_attach_callbacks(env, app_bridge);
@@ -332,8 +492,8 @@ static napi_value ten_nodejs_app_close(napi_env env, napi_callback_info info) {
   return js_undefined(env);
 }
 
-static napi_value ten_nodejs_app_on_close(napi_env env,
-                                          napi_callback_info info) {
+static napi_value ten_nodejs_app_on_end_of_life(napi_env env,
+                                                napi_callback_info info) {
   TEN_ASSERT(env && info, "Should not happen.");
 
   const size_t argc = 1;
@@ -356,6 +516,12 @@ static napi_value ten_nodejs_app_on_close(napi_env env,
   // From now on, the JS on_xxx callback(s) are useless, so release them all.
   ten_nodejs_app_release_js_on_xxx_tsfn(app_bridge);
 
+  // Decrease the reference count of the JS app object.
+  uint32_t js_app_ref_count = 0;
+  status = napi_reference_unref(env, app_bridge->bridge.js_instance_ref,
+                                &js_app_ref_count);
+  TEN_ASSERT(status == napi_ok, "Failed to unref JS app.");
+
   return js_undefined(env);
 }
 
@@ -365,7 +531,7 @@ napi_value ten_nodejs_app_module_init(napi_env env, napi_value exports) {
   EXPORT_FUNC(env, exports, ten_nodejs_app_create);
   EXPORT_FUNC(env, exports, ten_nodejs_app_run);
   EXPORT_FUNC(env, exports, ten_nodejs_app_close);
-  EXPORT_FUNC(env, exports, ten_nodejs_app_on_close);
+  EXPORT_FUNC(env, exports, ten_nodejs_app_on_end_of_life);
 
   return exports;
 }

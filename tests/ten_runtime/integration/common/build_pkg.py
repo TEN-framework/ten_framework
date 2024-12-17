@@ -519,6 +519,34 @@ def prepare_and_build_app(
     return rc
 
 
+def build_ts_extensions(app_root_path: str):
+    origin_wd = os.getcwd()
+
+    extension_dir = os.path.join(app_root_path, "ten_packages/extension")
+
+    if os.path.exists(extension_dir):
+        for extension in os.listdir(extension_dir):
+            extension_path = os.path.join(extension_dir, extension)
+            if os.path.isdir(extension_path):
+                # if the extension is a typescript extension, build it
+                if not os.path.exists(
+                    os.path.join(extension_path, "tsconfig.json")
+                ):
+                    continue
+
+                # change to extension directory
+                os.chdir(extension_path)
+                cmd = ["npm", "run", "build"]
+                returncode, output = cmd_exec.run_cmd(cmd)
+                if returncode:
+                    print(f"Failed to build extension {extension_path}")
+                    return 1
+
+    os.chdir(origin_wd)
+
+    return 0
+
+
 def cleanup(
     pkg_src_dir: str,
     pkg_run_dir: str,

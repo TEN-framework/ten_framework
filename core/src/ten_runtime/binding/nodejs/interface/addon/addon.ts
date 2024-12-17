@@ -10,6 +10,10 @@ import ten_addon from "../ten_addon";
 import { TenEnv } from "../ten_env/ten_env";
 
 export abstract class Addon {
+    constructor() {
+        ten_addon.ten_nodejs_addon_create(this);
+    }
+
     private async onInitProxy(tenEnv: TenEnv): Promise<void> {
         try {
             await this.onInit(tenEnv);
@@ -27,16 +31,18 @@ export abstract class Addon {
             // tenEnv.log
         } finally {
             ten_addon.ten_nodejs_ten_env_on_deinit_done(tenEnv);
+
+            /**
+            * JS addon prepare to be destroyed, so notify the underlying C runtime this
+            * fact.
+            */
+            ten_addon.ten_nodejs_addon_on_end_of_life(this);
         }
     }
 
-    private async onCreateInstanceProxy(tenEnv: TenEnv): Promise<void> {
-        try {
-            const extension = await this.onCreateInstance(tenEnv);
-            ten_addon.ten_nodejs_ten_env_on_create_instance_done(tenEnv, extension);
-        } catch (error) {
-            // exit process
-        }
+    private async onCreateInstanceProxy(tenEnv: TenEnv, instanceName: string, context: any): Promise<void> {
+        const extension = await this.onCreateInstance(tenEnv, instanceName);
+        ten_addon.ten_nodejs_ten_env_on_create_instance_done(tenEnv, extension, context);
     }
 
 
@@ -48,5 +54,5 @@ export abstract class Addon {
         // Stub for override.
     }
 
-    abstract onCreateInstance(tenEnv: TenEnv): Promise<Extension>;
+    abstract onCreateInstance(tenEnv: TenEnv, instanceName: string): Promise<Extension>;
 }

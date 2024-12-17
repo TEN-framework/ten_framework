@@ -11,6 +11,7 @@
 #include "ten_runtime/binding/common.h"
 #include "ten_utils/macro/check.h"
 #include "ten_utils/macro/memory.h"
+#include "ten_utils/sanitizer/thread_check.h"
 
 static napi_ref js_ten_env_constructor_ref = NULL;  // NOLINT
 
@@ -39,6 +40,14 @@ static napi_value ten_nodejs_ten_env_register_class(napi_env env,
   return js_undefined(env);
 }
 
+static void ten_nodejs_ten_env_destroy(ten_nodejs_ten_env_t *self) {
+  TEN_ASSERT(self, "Should not happen.");
+
+  ten_sanitizer_thread_check_deinit(&self->thread_check);
+
+  TEN_FREE(self);
+}
+
 static void ten_nodejs_ten_env_finalize(napi_env env, void *data, void *hint) {
   ten_nodejs_ten_env_t *ten_env_bridge = data;
   TEN_ASSERT(ten_env_bridge &&
@@ -55,6 +64,8 @@ static void ten_nodejs_ten_env_finalize(napi_env env, void *data, void *hint) {
   // never be invoked. Therefore, when obtaining a reference a finalize callback
   // is also required in order to enable correct disposal of the reference.
   napi_delete_reference(env, ten_env_bridge->bridge.js_instance_ref);
+
+  ten_nodejs_ten_env_destroy(ten_env_bridge);
 }
 
 bool ten_nodejs_ten_env_check_integrity(ten_nodejs_ten_env_t *self,
@@ -129,7 +140,10 @@ napi_value ten_nodejs_ten_env_module_init(napi_env env, napi_value exports) {
 
   EXPORT_FUNC(env, exports, ten_nodejs_ten_env_on_configure_done);
   EXPORT_FUNC(env, exports, ten_nodejs_ten_env_on_init_done);
+  EXPORT_FUNC(env, exports, ten_nodejs_ten_env_on_start_done);
+  EXPORT_FUNC(env, exports, ten_nodejs_ten_env_on_stop_done);
   EXPORT_FUNC(env, exports, ten_nodejs_ten_env_on_deinit_done);
+  EXPORT_FUNC(env, exports, ten_nodejs_ten_env_on_create_instance_done);
 
   return exports;
 }

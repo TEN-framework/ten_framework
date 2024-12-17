@@ -4,6 +4,7 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
+#include "include_internal/ten_runtime/binding/nodejs/addon/addon.h"
 #include "include_internal/ten_runtime/binding/nodejs/app/app.h"
 #include "include_internal/ten_runtime/binding/nodejs/extension/extension.h"
 #include "include_internal/ten_runtime/binding/nodejs/msg/audio_frame.h"
@@ -15,6 +16,7 @@
 #include "include_internal/ten_runtime/binding/nodejs/ten_env/ten_env.h"
 
 napi_value Init(napi_env env, napi_value exports) {
+  ten_nodejs_addon_module_init(env, exports);
   ten_nodejs_app_module_init(env, exports);
   ten_nodejs_ten_env_module_init(env, exports);
   ten_nodejs_extension_module_init(env, exports);

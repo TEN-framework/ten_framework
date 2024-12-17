@@ -687,17 +687,22 @@
       "request": "launch",
       "program": "/usr/bin/node",
       "args": [
-        "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/nodejs/access_app_property_store/access_app_property_store_app/build/start.js"
+        "--expose-gc",
+        "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/nodejs/send_cmd_nodejs/send_cmd_nodejs_app/build/start.js"
       ],
-      "cwd": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/nodejs/access_app_property_store/access_app_property_store_app",
+      "cwd": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/nodejs/send_cmd_nodejs/send_cmd_nodejs_app/",
       "environment": [
         {
           "name": "LD_PRELOAD",
-          "value": "lib/libasan.so"
+          "value": "ten_packages/system/ten_runtime/lib/libasan.so"
         },
         {
           "name": "NODE_PATH",
-          "value": "lib:$NODE_PATH"
+          "value": "ten_packages/system/ten_runtime_nodejs/lib:$NODE_PATH"
+        },
+        {
+          "name": "LD_LIBRARY_PATH",
+          "value": "ten_packages/system/ten_runtime/lib"
         }
       ],
       "sourceFileMap": {

@@ -21,6 +21,28 @@ napi_value js_undefined(napi_env env) {
   return js_undefined_value;
 }
 
+bool is_js_undefined(napi_env env, napi_value value) {
+  TEN_ASSERT(env, "Should not happen.");
+
+  napi_valuetype valuetype = 0;
+  napi_status status = napi_typeof(env, value, &valuetype);
+  ASSERT_IF_NAPI_FAIL(status == napi_ok,
+                      "Failed to get type of JS instance: %d", status);
+
+  return (valuetype == napi_undefined) ? true : false;
+}
+
+bool is_js_string(napi_env env, napi_value value) {
+  TEN_ASSERT(env, "Should not happen.");
+
+  napi_valuetype valuetype = 0;
+  napi_status status = napi_typeof(env, value, &valuetype);
+  ASSERT_IF_NAPI_FAIL(status == napi_ok,
+                      "Failed to get type of JS instance: %d", status);
+
+  return (valuetype == napi_string) ? true : false;
+}
+
 bool ten_nodejs_get_js_func_args(napi_env env, napi_callback_info info,
                                  napi_value *args, size_t argc) {
   TEN_ASSERT(env, "Should not happen.");
@@ -47,6 +69,35 @@ bool ten_nodejs_get_js_func_args(napi_env env, napi_callback_info info,
     ten_string_deinit(&err);
     return false;
   }
+
+  return true;
+}
+
+bool ten_nodejs_get_str_from_js(napi_env env, napi_value val,
+                                ten_string_t *str) {
+  TEN_ASSERT(env && val && str, "Should not happen.");
+
+  napi_status status = napi_ok;
+
+  if (is_js_string(env, val) == false) {
+    status = napi_throw_error(env, "EINVAL", "Expected a string");
+    ASSERT_IF_NAPI_FAIL(status == napi_ok, "Failed to throw JS exception: %d",
+                        status);
+    return false;
+  }
+
+  size_t str_len = 0;
+  status = napi_get_value_string_utf8(env, val, NULL, 0, &str_len);
+  ASSERT_IF_NAPI_FAIL(status == napi_ok, "Failed to get JS string length: %d",
+                      status);
+
+  ten_string_reserve(str, str_len + 1);
+
+  status =
+      napi_get_value_string_utf8(env, val, str->buf, str_len + 1, &str_len);
+  ASSERT_IF_NAPI_FAIL(status == napi_ok, "Failed to get JS string: %d", status);
+
+  str->buf[str_len] = '\0';
 
   return true;
 }

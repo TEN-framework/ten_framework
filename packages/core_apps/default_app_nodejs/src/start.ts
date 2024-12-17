@@ -12,6 +12,14 @@ class DefaultApp extends App {
     async onConfigure(tenEnv: TenEnv): Promise<void> {
         console.log('Default App onConfigure');
     }
+
+    async onInit(tenEnv: TenEnv): Promise<void> {
+        console.log('Default App onInit');
+    }
+
+    async onDeinit(tenEnv: TenEnv): Promise<void> {
+        console.log('Default App onDeinit');
+    }
 }
 
 const app = new DefaultApp();

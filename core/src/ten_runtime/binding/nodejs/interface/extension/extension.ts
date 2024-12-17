@@ -4,6 +4,10 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
+import { Cmd } from '../msg/cmd';
+import { Data } from '../msg/data';
+import { AudioFrame } from '../msg/audio_frame';
+import { VideoFrame } from '../msg/video_frame';
 import ten_addon from '../ten_addon'
 import { TenEnv } from '../ten_env/ten_env';
 
@@ -20,7 +24,7 @@ export abstract class Extension {
         } catch (e) {
             // log
         } finally {
-            ten_addon.ten_nodejs_ten_env_on_configure_done(this);
+            ten_addon.ten_nodejs_ten_env_on_configure_done(tenEnv);
         }
     }
 
@@ -32,7 +36,7 @@ export abstract class Extension {
         } catch (e) {
             // log
         } finally {
-            ten_addon.ten_nodejs_ten_env_on_init_done(this);
+            ten_addon.ten_nodejs_ten_env_on_init_done(tenEnv);
         }
     }
 
@@ -44,7 +48,7 @@ export abstract class Extension {
         } catch (e) {
             // log
         } finally {
-            ten_addon.ten_nodejs_ten_env_on_start_done(this);
+            ten_addon.ten_nodejs_ten_env_on_start_done(tenEnv);
         }
     }
 
@@ -56,7 +60,7 @@ export abstract class Extension {
         } catch (e) {
             // log
         } finally {
-            ten_addon.ten_nodejs_ten_env_on_stop_done(this);
+            ten_addon.ten_nodejs_ten_env_on_stop_done(tenEnv);
         }
     }
 
@@ -68,8 +72,38 @@ export abstract class Extension {
         } catch (e) {
             // log
         } finally {
-            ten_addon.ten_nodejs_ten_env_on_deinit_done(this);
+            ten_addon.ten_nodejs_ten_env_on_deinit_done(tenEnv);
+
+            /**
+            * JS extension prepare to be destroyed, so notify the underlying C runtime this
+            * fact.
+            */
+            ten_addon.ten_nodejs_extension_on_end_of_life(this);
         }
+    }
+
+    private async onCmdProxy(
+        tenEnv: TenEnv,
+        cmd: Cmd
+    ): Promise<void> {
+    }
+
+    private async onDataProxy(
+        tenEnv: TenEnv,
+        data: Data
+    ): Promise<void> {
+    }
+
+    private async onAudioFrameProxy(
+        tenEnv: TenEnv,
+        frame: AudioFrame
+    ): Promise<void> {
+    }
+
+    private async onVideoFrameProxy(
+        tenEnv: TenEnv,
+        frame: VideoFrame
+    ): Promise<void> {
     }
 
     async onConfigure(

@@ -63,8 +63,16 @@ typedef struct ten_nodejs_bridge_t {
 
 TEN_RUNTIME_PRIVATE_API napi_value js_undefined(napi_env env);
 
+TEN_RUNTIME_PRIVATE_API bool is_js_undefined(napi_env env, napi_value value);
+
+TEN_RUNTIME_PRIVATE_API bool is_js_string(napi_env env, napi_value value);
+
 TEN_RUNTIME_PRIVATE_API bool ten_nodejs_get_js_func_args(
     napi_env env, napi_callback_info info, napi_value *args, size_t argc);
+
+TEN_RUNTIME_PRIVATE_API bool ten_nodejs_get_str_from_js(napi_env env,
+                                                        napi_value val,
+                                                        ten_string_t *str);
 
 TEN_RUNTIME_PRIVATE_API void ten_nodejs_report_and_clear_error_(
     napi_env env, napi_status status, const char *func, int line);

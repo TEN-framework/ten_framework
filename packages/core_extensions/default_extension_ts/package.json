@@ -1,7 +1,7 @@
 {
   "name": "ten-default-extension",
   "version": "1.0.0",
-  "main": "./bin/start.js",
+  "main": "./build/index.js",
   "devDependencies": {
     "typescript": "^4.9.4"
   },
