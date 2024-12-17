@@ -4,7 +4,7 @@ This guide will help you to run the TEN-Agent Playground. The playground is a we
 
 ## Run playground from pre-built Docker image
 
-The easiest way to run the playground is to use the pre-built Docker image. The image contains the latest version of the TEN-Agent and the playground. The project docker compose file already contains the pre-built image, so you can start by following the steps in [getting started guide](/docs/ten_agent/getting_started).
+The easiest way to run the playground is to use the pre-built Docker image. The image contains the latest version of the TEN-Agent and the playground. The project docker compose file already contains the pre-built image, so you can start by following the steps in [getting started guide](../getting_started).
 
 Once finished, you can access the playground by opening the browser and navigating to `http://localhost:3000`.
 

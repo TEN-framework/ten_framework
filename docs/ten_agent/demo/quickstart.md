@@ -31,4 +31,4 @@ pnpm dev
 
 Once the demo is started, you can access it by opening the browser and navigating to `http://localhost:3001`.
 
-> **Note:** The demo depends on the golang web server (located in `server` directory). The web server will start when you run `task run` command in the container after you follow the steps in the [getting started guide](/docs/ten_agent/getting_started).
+> **Note:** The demo depends on the golang web server (located in `server` directory). The web server will start when you run `task run` command in the container after you follow the steps in the [getting started guide](../getting_started).
