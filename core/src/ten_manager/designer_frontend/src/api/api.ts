@@ -8,7 +8,12 @@ import {
   ApiResponse,
   BackendConnection,
   BackendNode,
+  Graph,
+  FileContentResponse,
+  SaveFileRequest,
   SuccessResponse,
+  SetBaseDirResponse,
+  SetBaseDirRequest,
 } from "./interface";
 
 export interface ExtensionAddon {
@@ -17,29 +22,73 @@ export interface ExtensionAddon {
   api?: any;
 }
 
-export const fetchNodes = async (): Promise<BackendNode[]> => {
-  const response = await fetch(`/api/designer/v1/graphs/default/nodes`);
+export const isSuccessResponse = <T>(
+  response: ApiResponse<T>
+): response is SuccessResponse<T> => {
+  return response.status === "ok";
+};
+
+export const fetchDesignerVersion = async (): Promise<string> => {
+  const response = await fetch("/api/designer/v1/version");
+  if (!response.ok) {
+    throw new Error(`Failed to fetch version: ${response.status}`);
+  }
+
+  const data: ApiResponse<{ version: string }> = await response.json();
+
+  if (isSuccessResponse(data) && data.data.version) {
+    return data.data.version;
+  } else {
+    throw new Error("Failed to fetch version information.");
+  }
+};
+
+export const fetchNodes = async (graphName: string): Promise<BackendNode[]> => {
+  const encodedGraphName = encodeURIComponent(graphName);
+  const response = await fetch(
+    `/api/designer/v1/graphs/${encodedGraphName}/nodes`
+  );
   if (!response.ok) {
     throw new Error(`Failed to fetch nodes: ${response.status}`);
   }
   const data: ApiResponse<BackendNode[]> = await response.json();
 
   if (!isSuccessResponse(data)) {
-    throw new Error(`Error fetching nodes: ${data.message}`);
+    throw new Error(`Failed to fetch nodes: ${data.message}`);
   }
 
   return data.data;
 };
 
-export const fetchConnections = async (): Promise<BackendConnection[]> => {
-  const response = await fetch(`/api/designer/v1/graphs/default/connections`);
+export const fetchConnections = async (
+  graphName: string
+): Promise<BackendConnection[]> => {
+  const encodedGraphName = encodeURIComponent(graphName);
+  const response = await fetch(
+    `/api/designer/v1/graphs/${encodedGraphName}/connections`
+  );
   if (!response.ok) {
     throw new Error(`Failed to fetch connections: ${response.status}`);
   }
   const data: ApiResponse<BackendConnection[]> = await response.json();
 
   if (!isSuccessResponse(data)) {
-    throw new Error(`Error fetching connections: ${data.message}`);
+    throw new Error(`Failed to fetch connection: ${data.message}`);
+  }
+
+  return data.data;
+};
+
+export const fetchGraphs = async (): Promise<Graph[]> => {
+  const response = await fetch(`/api/designer/v1/graphs`);
+  if (!response.ok) {
+    throw new Error(`Failed to fetch graphs: ${response.status}`);
+  }
+
+  const data: ApiResponse<Graph[]> = await response.json();
+
+  if (!isSuccessResponse(data)) {
+    throw new Error(`Failed to fetch graphs: ${data.message}`);
   }
 
   return data.data;
@@ -63,12 +112,80 @@ export const fetchExtensionAddonByName = async (
   if (isSuccessResponse(data)) {
     return data.data;
   } else {
-    throw new Error(`Error fetching addon '${name}': ${data.message}`);
+    throw new Error(`Failed to fetch addon '${name}': ${data.message}`);
   }
 };
 
-export const isSuccessResponse = <T>(
-  response: ApiResponse<T>
-): response is SuccessResponse<T> => {
-  return response.status === "ok";
+// Get the contents of the file at the specified path.
+export const getFileContent = async (
+  path: string
+): Promise<FileContentResponse> => {
+  const encodedPath = encodeURIComponent(path);
+  const response = await fetch(`/api/designer/v1/file-content/${encodedPath}`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch file content: ${response.status}`);
+  }
+
+  const data: ApiResponse<FileContentResponse> = await response.json();
+
+  if (!isSuccessResponse(data)) {
+    throw new Error(`Failed to fetch file content: ${data.status}`);
+  }
+
+  return data.data;
+};
+
+// Save the contents of the file at the specified path.
+export const saveFileContent = async (
+  path: string,
+  content: string
+): Promise<void> => {
+  const encodedPath = encodeURIComponent(path);
+  const body: SaveFileRequest = { content };
+
+  const response = await fetch(`/api/designer/v1/file-content/${encodedPath}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(body),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to save file content: ${response.status}`);
+  }
+
+  const data: ApiResponse<null> = await response.json();
+
+  if (data.status !== "ok") {
+    throw new Error(`Failed to save file content: ${data.status}`);
+  }
+};
+
+export const setBaseDir = async (
+  baseDir: string
+): Promise<ApiResponse<SetBaseDirResponse>> => {
+  const requestBody: SetBaseDirRequest = { base_dir: baseDir };
+
+  const response = await fetch("/api/designer/v1/base-dir", {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(requestBody),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to set base directory: ${response.status}`);
+  }
+
+  const data: ApiResponse<SetBaseDirResponse> = await response.json();
+
+  return data;
 };

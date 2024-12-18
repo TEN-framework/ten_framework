@@ -48,3 +48,24 @@ export interface BackendConnection {
     }[];
   }[];
 }
+
+export interface FileContentResponse {
+  content: string;
+}
+
+export interface SaveFileRequest {
+  content: string;
+}
+
+export interface Graph {
+  name: string;
+  auto_start: boolean;
+}
+
+export interface SetBaseDirRequest {
+  base_dir: string;
+}
+
+export interface SetBaseDirResponse {
+  success: boolean;
+}

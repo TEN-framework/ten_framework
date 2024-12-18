@@ -5,9 +5,10 @@
 // Refer to the "LICENSE" file in the root directory for more information.
 //
 mod addons;
+mod base_dir;
 mod common;
 mod file_content;
-// pub mod frontend;
+pub mod frontend;
 mod get_all_pkgs;
 pub mod graphs;
 mod manifest;
@@ -53,10 +54,7 @@ pub fn configure_routes(
             "/api/designer/v1/packages/reload",
             web::post().to(packages::reload::clear_and_reload_pkgs),
         )
-        .route(
-            "/api/designer/v1/graphs",
-            web::get().to(graphs::get_graphs),
-        )
+        .route("/api/designer/v1/graphs", web::get().to(graphs::get_graphs))
         .route(
             "/api/designer/v1/graphs/{graph_name}/nodes",
             web::get().to(graphs::nodes::get_graph_nodes),
@@ -92,6 +90,14 @@ pub fn configure_routes(
         .route(
             "/api/designer/v1/file-content/{path}",
             web::get().to(file_content::get_file_content),
+        )
+        .route(
+            "/api/designer/v1/file-content/{path}",
+            web::put().to(file_content::save_file_content),
+        )
+        .route(
+            "/api/designer/v1/base-dir",
+            web::put().to(base_dir::set_base_dir),
         )
         .route("/ws/terminal", web::get().to(ws_terminal));
 }
