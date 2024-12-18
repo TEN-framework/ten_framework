@@ -702,6 +702,10 @@
         {
           "name": "LD_LIBRARY_PATH",
           "value": "ten_packages/system/ten_runtime/lib"
+        },
+        {
+          "name": "LSAN_OPTIONS",
+          "value": "verbosity=1:log_threads=1"
         }
       ],
       "sourceFileMap": {

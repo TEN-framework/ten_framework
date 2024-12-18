@@ -55,8 +55,8 @@ export class App {
     }
 
     /** The ten app should be run in another native thread not the JS main thread. */
-    run(): void {
-        ten_addon.ten_nodejs_app_run(this);
+    async run(): Promise<void> {
+        await ten_addon.ten_nodejs_app_run(this);
     }
 
     close(): void {

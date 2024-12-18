@@ -20,6 +20,13 @@
 #include "ten_utils/macro/memory.h"
 #include "ten_utils/sanitizer/thread_check.h"
 
+typedef struct app_async_run_data_t {
+  ten_nodejs_app_t *app_bridge;
+  napi_deferred deferred;
+  napi_async_work work;
+  int async_action_status;
+} app_async_run_data_t;
+
 typedef struct app_on_xxx_call_info_t {
   ten_nodejs_app_t *app_bridge;
   ten_nodejs_ten_env_t *ten_env_bridge;
@@ -425,6 +432,41 @@ done:
   return js_undefined(env);
 }
 
+static void ten_nodejs_app_run_async_work(napi_env env, TEN_UNUSED void *data) {
+  TEN_ASSERT(env, "Should not happen.");
+
+  app_async_run_data_t *async_run_data = data;
+  TEN_ASSERT(async_run_data, "Should not happen.");
+
+  // Run the TEN app in another thread, so that the TEN app thread won't block
+  // the JS main thread.
+  ten_app_run(async_run_data->app_bridge->c_app, false, NULL);
+
+  async_run_data->async_action_status = 0;
+}
+
+static void ten_nodejs_app_run_async_work_complete(napi_env env,
+                                                   napi_status status,
+                                                   TEN_UNUSED void *data) {
+  TEN_ASSERT(env, "Should not happen.");
+
+  app_async_run_data_t *async_run_data = data;
+  TEN_ASSERT(async_run_data, "Should not happen.");
+
+  if (async_run_data->async_action_status == 0) {
+    // The TEN app has been run successfully.
+    status =
+        napi_resolve_deferred(env, async_run_data->deferred, js_undefined(env));
+  } else {
+    // The TEN app failed to run.
+    status =
+        napi_reject_deferred(env, async_run_data->deferred, js_undefined(env));
+  }
+
+  napi_delete_async_work(env, async_run_data->work);
+  TEN_FREE(async_run_data);
+}
+
 static napi_value ten_nodejs_app_run(napi_env env, napi_callback_info info) {
   TEN_ASSERT(env && info, "Should not happen.");
 
@@ -458,11 +500,29 @@ static napi_value ten_nodejs_app_run(napi_env env, napi_callback_info info) {
   // TEN app.
   ten_nodejs_app_create_and_attach_callbacks(env, app_bridge);
 
-  // Run the TEN app in another thread, so that the TEN app thread won't block
-  // the JS main thread.
-  ten_app_run(app_bridge->c_app, true, NULL);
+  app_async_run_data_t *async_run_data =
+      TEN_MALLOC(sizeof(app_async_run_data_t));
+  TEN_ASSERT(async_run_data, "Failed to allocate memory.");
 
-  return js_undefined(env);
+  async_run_data->app_bridge = app_bridge;
+  async_run_data->async_action_status = 1;
+
+  napi_value promise = NULL;
+  status = napi_create_promise(env, &async_run_data->deferred, &promise);
+  RETURN_UNDEFINED_IF_NAPI_FAIL(status == napi_ok && promise != NULL,
+                                "Failed to create promise: %d", status);
+
+  // Create an async work to run the TEN app in another thread.
+  status = napi_create_async_work(env, NULL, js_undefined(env),
+                                  ten_nodejs_app_run_async_work,
+                                  ten_nodejs_app_run_async_work_complete,
+                                  async_run_data, &async_run_data->work);
+  RETURN_UNDEFINED_IF_NAPI_FAIL(status == napi_ok,
+                                "Failed to create async work: %d", status);
+
+  status = napi_queue_async_work(env, async_run_data->work);
+
+  return promise;
 }
 
 static napi_value ten_nodejs_app_close(napi_env env, napi_callback_info info) {

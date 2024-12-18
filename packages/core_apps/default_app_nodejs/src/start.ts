@@ -23,4 +23,6 @@ class DefaultApp extends App {
 }
 
 const app = new DefaultApp();
-app.run();
+app.run().then(() => {
+    console.log('Default App run completed');
+});
