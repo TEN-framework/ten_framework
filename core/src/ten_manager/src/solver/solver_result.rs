@@ -78,8 +78,8 @@ pub fn filter_solver_results_by_type_and_name<'a>(
     let mut filtered_results: Vec<&PkgInfo> = vec![];
 
     for result in solver_results.iter() {
-        let matches_type = pkg_type.is_none_or(|pt| result.pkg_type == *pt);
-        let matches_name = name.is_none_or(|n| result.name == *n);
+        let matches_type = pkg_type.map_or(true, |pt| result.pkg_type == *pt);
+        let matches_name = name.map_or(true, |n| result.name == *n);
 
         let matches = matches_type && matches_name;
 
