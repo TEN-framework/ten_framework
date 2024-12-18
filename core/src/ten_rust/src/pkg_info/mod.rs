@@ -14,6 +14,7 @@ pub mod language;
 pub mod manifest;
 pub mod message;
 pub mod pkg_identity;
+mod pkg_info_key;
 pub mod pkg_type;
 pub mod predefined_graphs;
 pub mod property;

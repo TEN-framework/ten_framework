@@ -17,10 +17,7 @@ use ten_rust::pkg_info::pkg_type::PkgType;
 use tokio::sync::RwLock;
 use tokio::time::sleep;
 
-use ten_rust::pkg_info::{
-    pkg_identity::PkgIdentity, supports::get_manifest_supports_from_pkg,
-    PkgInfo,
-};
+use ten_rust::pkg_info::{supports::get_manifest_supports_from_pkg, PkgInfo};
 
 use super::{FoundResult, SearchCriteria};
 use crate::constants::{
