@@ -519,7 +519,7 @@ pub async fn execute_cmd(
             desired_pkg_src_version_,
         ) = parse_pkg_name_version(&command_data.package_name.unwrap())?;
 
-        desired_pkg_type = Some(desired_pkg_type_.clone());
+        desired_pkg_type = Some(desired_pkg_type_);
         desired_pkg_src_name = Some(desired_pkg_src_name_.clone());
 
         // First, check that the package we want to install can be installed
@@ -529,7 +529,7 @@ pub async fn execute_cmd(
         is_standalone_installing =
             is_installing_package_standalone(&cwd, &desired_pkg_type_)?;
         if is_standalone_installing {
-            affected_pkg_type = desired_pkg_type_.clone();
+            affected_pkg_type = desired_pkg_type_;
             affected_pkg_name = desired_pkg_src_name_.clone();
 
             if let Some(desired_pkg_dest_name) = desired_pkg_dest_name {
@@ -577,7 +577,7 @@ pub async fn execute_cmd(
         }
 
         let dep = PkgDependency::new(
-            desired_pkg_type_.clone(),
+            desired_pkg_type_,
             desired_pkg_src_name_.clone(),
             desired_pkg_src_version_,
         );
@@ -585,9 +585,8 @@ pub async fn execute_cmd(
 
         if let Some(desired_pkg_dest_name) = desired_pkg_dest_name {
             let pkg_identity_mapping = PkgIdentityMapping {
-                src_pkg_type: desired_pkg_type_.clone(),
+                pkg_type: desired_pkg_type_,
                 src_pkg_name: desired_pkg_src_name_,
-                dest_pkg_type: desired_pkg_type_,
                 dest_pkg_name: desired_pkg_dest_name.to_string(),
             };
             pkg_identity_mappings.push(pkg_identity_mapping);

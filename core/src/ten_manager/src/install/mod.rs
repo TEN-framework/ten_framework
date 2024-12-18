@@ -23,9 +23,9 @@ use crate::{
 };
 
 pub struct PkgIdentityMapping {
-    pub src_pkg_type: PkgType,
+    pub pkg_type: PkgType,
+
     pub src_pkg_name: String,
-    pub dest_pkg_type: PkgType,
     pub dest_pkg_name: String,
 }
 
@@ -50,7 +50,7 @@ pub async fn install_pkg_info(
 
     let mut found_pkg_identity_mapping = None;
     for pkg_identity_mapping in pkg_identity_mappings {
-        if pkg_info.pkg_type == pkg_identity_mapping.src_pkg_type
+        if pkg_info.pkg_type == pkg_identity_mapping.pkg_type
             && pkg_info.name == pkg_identity_mapping.src_pkg_name
         {
             found_pkg_identity_mapping = Some(pkg_identity_mapping);
