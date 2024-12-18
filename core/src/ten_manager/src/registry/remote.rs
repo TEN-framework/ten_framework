@@ -583,7 +583,8 @@ pub async fn get_package_list(
 pub async fn delete_package(
     tman_config: &TmanConfig,
     base_url: &str,
-    pkg_identity: &PkgIdentity,
+    pkg_type: PkgType,
+    name: &String,
     version: &Version,
     hash: &str,
 ) -> Result<()> {
@@ -592,7 +593,6 @@ pub async fn delete_package(
 
     retry_async(tman_config, max_retries, retry_delay, || {
         let base_url = base_url.to_string();
-        let pkg_identity = pkg_identity.clone();
         let version = version.clone();
         let client = reqwest::Client::new();
 
@@ -611,8 +611,8 @@ pub async fn delete_package(
             let url = url
                 .join(&format!(
                     "{}/{}/{}/{}",
-                    &pkg_identity.pkg_type.to_string(),
-                    &pkg_identity.name,
+                    &pkg_type.to_string(),
+                    &name,
                     version,
                     hash,
                 ))

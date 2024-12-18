@@ -150,7 +150,8 @@ pub async fn delete_package(
         "file" => {
             local::delete_package(
                 &default_registry_url,
-                pkg_identity,
+                pkg_type,
+                name,
                 version,
                 hash,
             )
@@ -160,7 +161,8 @@ pub async fn delete_package(
             remote::delete_package(
                 tman_config,
                 &default_registry_url,
-                pkg_identity,
+                pkg_type,
+                name,
                 version,
                 hash,
             )
