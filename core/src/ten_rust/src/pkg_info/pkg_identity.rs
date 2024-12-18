@@ -9,7 +9,7 @@ use std::hash::{Hash, Hasher};
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 
-use super::pkg_type::PkgType;
+use super::{pkg_type::PkgType, PkgInfo};
 use crate::pkg_info::manifest::Manifest;
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialOrd, Ord)]
@@ -39,5 +39,14 @@ impl PkgIdentity {
             pkg_type: manifest.pkg_type.parse::<PkgType>()?,
             name: manifest.name.clone(),
         })
+    }
+}
+
+impl From<&PkgInfo> for PkgIdentity {
+    fn from(pkg_info: &PkgInfo) -> Self {
+        PkgIdentity {
+            pkg_type: pkg_info.pkg_type.clone(),
+            name: pkg_info.name.clone(),
+        }
     }
 }

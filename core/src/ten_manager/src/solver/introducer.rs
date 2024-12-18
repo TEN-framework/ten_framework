@@ -124,18 +124,12 @@ pub fn get_dependency_chain(
                 // `current_pkg`@`requested_version`, i.e., the
                 // `requested_version` is used to declared the `current_pkg` in
                 // the manifest.json of `introducer_pkg`.
-                chain.push((
-                    requested_version.clone(),
-                    current_pkg.pkg_identity.clone(),
-                ));
+                chain.push((requested_version.clone(), (&current_pkg).into()));
                 current_pkg = introducer_pkg.clone();
             }
             Some((requested_version, None)) => {
                 // Reached the root.
-                chain.push((
-                    requested_version.clone(),
-                    current_pkg.pkg_identity.clone(),
-                ));
+                chain.push((requested_version.clone(), (&current_pkg).into()));
                 break;
             }
             None => {

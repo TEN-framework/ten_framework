@@ -53,19 +53,21 @@ impl MergedVersionReq {
 }
 
 struct FoundDependency {
-    pkg_identity: PkgIdentity,
+    pkg_type: PkgType,
+    name: String,
     version_reqs: MergedVersionReq,
 }
 
 impl Hash for FoundDependency {
     fn hash<H: Hasher>(&self, state: &mut H) {
-        self.pkg_identity.hash(state);
+        self.pkg_type.hash(state);
+        self.name.hash(state);
     }
 }
 
 impl PartialEq for FoundDependency {
     fn eq(&self, other: &Self) -> bool {
-        self.pkg_identity == other.pkg_identity
+        self.pkg_type == other.pkg_type && self.name == other.name
     }
 }
 
@@ -81,7 +83,8 @@ fn merge_dependency_to_dependencies(
     dependency: &PkgDependency,
 ) -> Result<bool> {
     let searched_target = FoundDependency {
-        pkg_identity: dependency.pkg_identity.clone(),
+        pkg_type: dependency.pkg_type,
+        name: dependency.name.clone(),
         version_reqs: MergedVersionReq::default(),
     };
 
@@ -101,7 +104,8 @@ fn merge_dependency_to_dependencies(
         // This is the first time seeing this dependency.
 
         merged_dependencies.insert(FoundDependency {
-            pkg_identity: dependency.pkg_identity.clone(),
+            pkg_type: dependency.pkg_type,
+            name: dependency.name.clone(),
             version_reqs: MergedVersionReq::new(&dependency.version_req),
         });
     }
@@ -154,9 +158,13 @@ async fn process_dependencies_to_get_candidates(
 
         // Retrieve all packages from the registry that meet the specified
         // criteria.
-        let results =
-            get_package_list(tman_config, &dependency.pkg_identity, &criteria)
-                .await?;
+        let results = get_package_list(
+            tman_config,
+            dependency.pkg_type,
+            &dependency.name,
+            &criteria,
+        )
+        .await?;
 
         let mut candidate_pkg_infos: Vec<PkgInfo> = vec![];
 
@@ -186,7 +194,7 @@ async fn process_dependencies_to_get_candidates(
         // searching through `all_candidates` allows those locally installed
         // packages to be added to `new_pkgs_to_be_searched`, ensuring that the
         // dependencies within those packages are processed.
-        if let Some(candidates) = all_candidates.get(&dependency.pkg_identity) {
+        if let Some(candidates) = all_candidates.get(&dependency.into()) {
             for candidate in candidates {
                 if dependency.version_req.matches(&candidate.version) {
                     tman_verbose_println!(
@@ -226,7 +234,7 @@ async fn process_dependencies_to_get_candidates(
                 );
 
                 all_candidates
-                    .entry(dependency.pkg_identity.clone())
+                    .entry(dependency.into())
                     .or_default()
                     .insert(candidate_pkg_info.clone());
 

@@ -12,11 +12,10 @@ use anyhow::{anyhow, Result};
 use semver::{Version, VersionReq};
 use tempfile::NamedTempFile;
 
-use ten_rust::pkg_info::{pkg_identity::PkgIdentity, PkgInfo};
+use ten_rust::pkg_info::{pkg_type::PkgType, PkgInfo};
 
 use super::config::TmanConfig;
 use found_result::FoundResult;
-
 
 pub struct SearchCriteria {
     pub version_req: VersionReq,
@@ -82,7 +81,8 @@ pub async fn get_package(
 
 pub async fn get_package_list(
     tman_config: &TmanConfig,
-    pkg_identity: &PkgIdentity,
+    pkg_type: PkgType,
+    name: &String,
     criteria: &SearchCriteria,
 ) -> Result<Vec<FoundResult>> {
     // Retrieve the default registry URL
@@ -101,7 +101,8 @@ pub async fn get_package_list(
             local::get_package_list(
                 tman_config,
                 &default_registry_url,
-                pkg_identity,
+                pkg_type,
+                name,
                 criteria,
             )
             .await?
@@ -110,7 +111,8 @@ pub async fn get_package_list(
             remote::get_package_list(
                 tman_config,
                 &default_registry_url,
-                pkg_identity,
+                pkg_type,
+                name,
                 criteria,
             )
             .await?
@@ -128,7 +130,8 @@ pub async fn get_package_list(
 
 pub async fn delete_package(
     tman_config: &TmanConfig,
-    pkg_identity: &PkgIdentity,
+    pkg_type: PkgType,
+    name: &String,
     version: &Version,
     hash: &String,
 ) -> Result<()> {

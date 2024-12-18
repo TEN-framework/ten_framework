@@ -295,8 +295,8 @@ fn create_input_str_for_dependency_relationship(
     all_candidates: &HashMap<PkgIdentity, HashSet<PkgInfo>>,
 ) -> Result<()> {
     for dependency_relationship in dependency_relationships {
-        let candidates = all_candidates
-            .get(&dependency_relationship.dependency.pkg_identity);
+        let candidates =
+            all_candidates.get(&(&dependency_relationship.dependency).into());
 
         if let Some(candidates) = candidates {
             for candidate in candidates.iter() {
@@ -307,11 +307,11 @@ fn create_input_str_for_dependency_relationship(
                 {
                     input_str.push_str(&format!(
         "depends_on_declared(\"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\").\n",
-        dependency_relationship.pkg_identity.pkg_type,
-        dependency_relationship.pkg_identity.name,
+        dependency_relationship.pkg_type,
+        dependency_relationship.name,
         dependency_relationship.version,
-        candidate.pkg_identity.pkg_type,
-        candidate.pkg_identity.name,
+        candidate.pkg_type,
+        candidate.name,
         candidate.version,
                   ));
                 }
@@ -320,8 +320,8 @@ fn create_input_str_for_dependency_relationship(
             return Err(TmanError::Custom(
                 format!(
                     "Failed to find candidates for {}:{}@{}",
-                    dependency_relationship.dependency.pkg_identity.pkg_type,
-                    dependency_relationship.dependency.pkg_identity.name,
+                    dependency_relationship.dependency.pkg_type,
+                    dependency_relationship.dependency.name,
                     dependency_relationship.version,
                 )
                 .to_string(),
@@ -346,7 +346,7 @@ fn create_input_str_for_pkg_info_dependencies(
     dumped_pkgs_info.insert(pkg_info.clone());
 
     for dependency in &pkg_info.dependencies {
-        let candidates = all_candidates.get(&dependency.pkg_identity);
+        let candidates = all_candidates.get(&(dependency).into());
 
         if let Some(candidates) = candidates {
             let mut found_matched = false;
@@ -355,11 +355,11 @@ fn create_input_str_for_pkg_info_dependencies(
                 if dependency.version_req.matches(&candidate.version) {
                     input_str.push_str(&format!(
         "depends_on_declared(\"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\").\n",
-        pkg_info.pkg_identity.pkg_type,
-        pkg_info.pkg_identity.name,
+        pkg_info.pkg_type,
+        pkg_info.name,
         pkg_info.version,
-        candidate.pkg_identity.pkg_type,
-        candidate.pkg_identity.name,
+        candidate.pkg_type,
+        candidate.name,
         candidate.version,
                   ));
 
@@ -378,8 +378,8 @@ fn create_input_str_for_pkg_info_dependencies(
                 return Err(TmanError::Custom(
                     format!(
                         "Failed to find candidates for [{}]{}({})",
-                        dependency.pkg_identity.pkg_type,
-                        dependency.pkg_identity.name,
+                        dependency.pkg_type,
+                        dependency.name,
                         dependency.version_req
                     )
                     .to_string(),
@@ -390,8 +390,8 @@ fn create_input_str_for_pkg_info_dependencies(
             return Err(TmanError::Custom(
                 format!(
                     "Failed to find candidates for {}:{}@{}",
-                    dependency.pkg_identity.pkg_type,
-                    dependency.pkg_identity.name,
+                    dependency.pkg_type,
+                    dependency.name,
                     dependency.version_req
                 )
                 .to_string(),
@@ -410,10 +410,7 @@ fn create_input_str_for_pkg_info_without_dependencies(
 ) -> Result<()> {
     input_str.push_str(&format!(
         "version_declared(\"{}\", \"{}\", \"{}\", {}).\n",
-        pkg_info.pkg_identity.pkg_type,
-        pkg_info.pkg_identity.name,
-        pkg_info.version,
-        weight
+        pkg_info.pkg_type, pkg_info.name, pkg_info.version, weight
     ));
 
     Ok(())

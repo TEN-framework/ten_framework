@@ -13,6 +13,7 @@ use semver::Version;
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use tempfile::NamedTempFile;
+use ten_rust::pkg_info::pkg_type::PkgType;
 use tokio::sync::RwLock;
 use tokio::time::sleep;
 
@@ -104,8 +105,8 @@ async fn get_package_upload_info(
 
         Box::pin(async move {
             let payload = json!(RegistryPackageData {
-                pkg_type: pkg_info.pkg_identity.pkg_type.clone(),
-                name: pkg_info.pkg_identity.name.clone(),
+                pkg_type: pkg_info.pkg_type,
+                name: pkg_info.name.clone(),
                 version: pkg_info.version.clone(),
                 dependencies: pkg_info
                     .dependencies
@@ -336,10 +337,10 @@ fn parse_content_range(content_range: &str) -> Option<(u64, u64, u64)> {
     None
 }
 
-pub async fn get_package<'a>(
+pub async fn get_package(
     tman_config: &TmanConfig,
     url: &str,
-    temp_file: &'a mut NamedTempFile,
+    temp_file: &mut NamedTempFile,
 ) -> Result<()> {
     let client = reqwest::Client::new();
 
@@ -478,7 +479,8 @@ struct RegistryPackagesData {
 pub async fn get_package_list(
     tman_config: &TmanConfig,
     base_url: &str,
-    pkg_identity: &PkgIdentity,
+    pkg_type: PkgType,
+    name: &String,
     criteria: &SearchCriteria,
 ) -> Result<Vec<FoundResult>> {
     let max_retries = REMOTE_REGISTRY_MAX_RETRIES;
@@ -486,7 +488,6 @@ pub async fn get_package_list(
 
     retry_async(tman_config, max_retries, retry_delay, || {
         let base_url = base_url.to_string();
-        let pkg_identity = pkg_identity.clone();
         let client = reqwest::Client::new();
 
         Box::pin(async move {
@@ -497,8 +498,8 @@ pub async fn get_package_list(
             loop {
                 let mut url = reqwest::Url::parse(&base_url)?;
                 url.query_pairs_mut()
-                    .append_pair("type", &pkg_identity.pkg_type.to_string())
-                    .append_pair("name", &pkg_identity.name)
+                    .append_pair("type", &pkg_type.to_string())
+                    .append_pair("name", name)
                     .append_pair("version", &criteria.version_req.to_string())
                     .append_pair("pageSize", "10")
                     .append_pair("page", &current_page.to_string());
@@ -569,8 +570,8 @@ pub async fn get_package_list(
                 &tman_config,
                 "Fetched {} packages for {}:{}",
                 results.len(),
-                pkg_identity.pkg_type,
-                pkg_identity.name,
+                pkg_type,
+                name,
             );
 
             Ok(results)
