@@ -4,13 +4,15 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 
 use anyhow::{anyhow, Result};
 use console::Emoji;
 use regex::Regex;
 
-use ten_rust::pkg_info::{pkg_identity::PkgIdentity, PkgInfo};
+use ten_rust::pkg_info::{
+    pkg_basic_info::PkgBasicInfo, pkg_type_and_name::PkgTypeAndName, PkgInfo,
+};
 
 use crate::{
     dep_and_candidate::get_pkg_info_from_candidates,
@@ -120,7 +122,7 @@ pub fn parse_error_statement(clingo_output: &[String]) -> Result<ConflictInfo> {
 }
 
 fn print_dependency_chain(
-    chain: &[(String, PkgIdentity)],
+    chain: &[(String, PkgTypeAndName)],
     pkg_type: &str,
     pkg_name: &str,
     version: &str,
@@ -145,7 +147,7 @@ fn print_dependency_chain(
 pub fn print_conflict_info(
     conflict_info: &ConflictInfo,
     introducer_relations: &HashMap<PkgInfo, (String, Option<PkgInfo>)>,
-    all_candidates: &HashMap<PkgIdentity, HashSet<PkgInfo>>,
+    all_candidates: &HashMap<PkgTypeAndName, HashMap<PkgBasicInfo, PkgInfo>>,
 ) -> Result<()> {
     println!(
         "{}  Error: {}",
@@ -170,7 +172,7 @@ pub fn print_conflict_info(
 
     // The introducer_pkg_info_1/introducer_pkg_info_2 (i.e., the introducer)
     // depends on the pkg identified by `conflict_pkg_identity`.
-    let conflict_pkg_identity = PkgIdentity {
+    let conflict_pkg_identity = PkgTypeAndName {
         pkg_type: conflict_info.conflict_pkg_type.parse()?,
         name: conflict_info.conflict_pkg_name.clone(),
     };

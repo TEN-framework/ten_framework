@@ -5,7 +5,7 @@
 // Refer to the "LICENSE" file in the root directory for more information.
 //
 use std::{
-    collections::{HashMap, HashSet},
+    collections::HashMap,
     env,
     fs::{self, OpenOptions},
     path::{Path, PathBuf},
@@ -20,17 +20,18 @@ use indicatif::HumanDuration;
 use inquire::Confirm;
 use semver::VersionReq;
 
-use ten_rust::pkg_info::manifest::{
-    dependency::ManifestDependency, parse_manifest_in_folder,
-};
 use ten_rust::pkg_info::{
     dependencies::{DependencyRelationship, PkgDependency},
     find_to_be_replaced_local_pkgs, find_untracked_local_packages,
     get_pkg_info_from_path,
-    pkg_identity::PkgIdentity,
     pkg_type::PkgType,
+    pkg_type_and_name::PkgTypeAndName,
     supports::{is_pkg_supports_compatible_with, Arch, Os, PkgSupport},
     PkgInfo,
+};
+use ten_rust::pkg_info::{
+    manifest::{dependency::ManifestDependency, parse_manifest_in_folder},
+    pkg_basic_info::PkgBasicInfo,
 };
 
 use crate::{
@@ -228,22 +229,22 @@ fn update_package_manifest(
         base_pkg_info.manifest.as_mut().unwrap().dependencies
     {
         let is_present = dependencies.iter().any(|dep| {
-            dep.pkg_type == added_pkg_info.pkg_identity.pkg_type.to_string()
-                && dep.name == added_pkg_info.pkg_identity.name
+            dep.pkg_type == added_pkg_info.pkg_type.to_string()
+                && dep.name == added_pkg_info.name
         });
 
         if !is_present {
             dependencies.push(ManifestDependency {
-                pkg_type: added_pkg_info.pkg_identity.pkg_type.to_string(),
-                name: added_pkg_info.pkg_identity.name.clone(),
+                pkg_type: added_pkg_info.pkg_type.to_string(),
+                name: added_pkg_info.name.clone(),
                 version: added_pkg_info.version.to_string(),
             });
         }
     } else {
         base_pkg_info.manifest.clone().unwrap().dependencies =
             Some(vec![ManifestDependency {
-                pkg_type: added_pkg_info.pkg_identity.pkg_type.to_string(),
-                name: added_pkg_info.pkg_identity.name.clone(),
+                pkg_type: added_pkg_info.pkg_type.to_string(),
+                name: added_pkg_info.name.clone(),
                 version: added_pkg_info.version.to_string(),
             }]);
     }
@@ -298,7 +299,10 @@ fn parse_pkg_name_version(
 fn filter_compatible_pkgs_to_candidates(
     tman_config: &TmanConfig,
     all_existing_local_pkgs: &Vec<PkgInfo>,
-    all_candidates: &mut HashMap<PkgIdentity, HashSet<PkgInfo>>,
+    all_candidates: &mut HashMap<
+        PkgTypeAndName,
+        HashMap<PkgBasicInfo, PkgInfo>,
+    >,
     support: &PkgSupport,
 ) {
     for existed_pkg in all_existing_local_pkgs.to_owned().iter_mut() {
@@ -317,14 +321,14 @@ fn filter_compatible_pkgs_to_candidates(
             tman_verbose_println!(
                 tman_config,
                 "The existed {} package {} is compatible with the current system.",
-                existed_pkg.pkg_identity.pkg_type,
-                existed_pkg.pkg_identity.name
+                existed_pkg.pkg_type,
+                existed_pkg.name
             );
 
             all_candidates
-                .entry(existed_pkg.pkg_identity.clone())
+                .entry((&*existed_pkg).into())
                 .or_default()
-                .insert(existed_pkg.clone());
+                .insert((&*existed_pkg).into(), existed_pkg.clone());
         } else {
             // The existed package is not compatible with the current system, so
             // it should not be considered as a candidate.
@@ -332,8 +336,8 @@ fn filter_compatible_pkgs_to_candidates(
                 tman_config,
                 "The existed {} package {} is not compatible \
 with the current system.",
-                existed_pkg.pkg_identity.pkg_type,
-                existed_pkg.pkg_identity.name
+                existed_pkg.pkg_type,
+                existed_pkg.name
             );
         }
     }
@@ -376,10 +380,7 @@ appear in the dependency tree:",
             Emoji("💡", "")
         );
         for pkg in untracked_local_pkgs {
-            println!(
-                " {}:{}@{}",
-                pkg.pkg_identity.pkg_type, pkg.pkg_identity.name, pkg.version
-            );
+            println!(" {}:{}@{}", pkg.pkg_type, pkg.name, pkg.version);
         }
     }
 
@@ -402,23 +403,23 @@ appear in the dependency tree:",
             if old_supports_str != new_supports_str {
                 println!(
                     " {}:{}@{}{} -> {}:{}@{}{}",
-                    old_pkg.pkg_identity.pkg_type,
-                    old_pkg.pkg_identity.name,
+                    old_pkg.pkg_type,
+                    old_pkg.name,
                     old_pkg.version,
                     old_supports_str,
-                    new_pkg.pkg_identity.pkg_type,
-                    new_pkg.pkg_identity.name,
+                    new_pkg.pkg_type,
+                    new_pkg.name,
                     new_pkg.version,
                     new_supports_str
                 );
             } else {
                 println!(
                     " {}:{}@{} -> {}:{}@{}",
-                    old_pkg.pkg_identity.pkg_type,
-                    old_pkg.pkg_identity.name,
+                    old_pkg.pkg_type,
+                    old_pkg.name,
                     old_pkg.version,
-                    new_pkg.pkg_identity.pkg_type,
-                    new_pkg.pkg_identity.name,
+                    new_pkg.pkg_type,
+                    new_pkg.name,
                     new_pkg.version
                 );
             }
@@ -458,8 +459,10 @@ pub async fn execute_cmd(
     // those addons (extensions, extension_groups, ...) installed in the app
     // directory are all considered initial_input_pkgs.
     let mut initial_input_pkgs = vec![];
-    let mut all_candidates: HashMap<PkgIdentity, HashSet<PkgInfo>> =
-        HashMap::new();
+    let mut all_candidates: HashMap<
+        PkgTypeAndName,
+        HashMap<PkgBasicInfo, PkgInfo>,
+    > = HashMap::new();
 
     // 'all_existing_local_pkgs' contains all the packages which are already
     // located in the app directory.
@@ -499,7 +502,7 @@ pub async fn execute_cmd(
     let template_data = serde_json::to_value(&command_data.template_data)?;
 
     // The locked_pkgs comes from a lock file in the app folder.
-    let mut locked_pkgs: Option<HashMap<PkgIdentity, PkgInfo>> = None;
+    let mut locked_pkgs: Option<HashMap<PkgTypeAndName, PkgInfo>> = None;
 
     if command_data.template_mode {
         template_ctx = Some(&template_data);
@@ -522,7 +525,7 @@ pub async fn execute_cmd(
             desired_pkg_src_version_,
         ) = parse_pkg_name_version(&command_data.package_name.unwrap())?;
 
-        desired_pkg_type = Some(desired_pkg_type_.clone());
+        desired_pkg_type = Some(desired_pkg_type_);
         desired_pkg_src_name = Some(desired_pkg_src_name_.clone());
 
         // First, check that the package we want to install can be installed
@@ -532,7 +535,7 @@ pub async fn execute_cmd(
         is_standalone_installing =
             is_installing_package_standalone(&cwd, &desired_pkg_type_)?;
         if is_standalone_installing {
-            affected_pkg_type = desired_pkg_type_.clone();
+            affected_pkg_type = desired_pkg_type_;
             affected_pkg_name = desired_pkg_src_name_.clone();
 
             if let Some(desired_pkg_dest_name) = desired_pkg_dest_name {
@@ -546,7 +549,7 @@ pub async fn execute_cmd(
             // If it is not a standalone install, then the `cwd` must be within
             // the base directory of a TEN app.
             let app_pkg_ = get_pkg_info_from_path(&cwd)?;
-            affected_pkg_name = app_pkg_.pkg_identity.name.clone();
+            affected_pkg_name = app_pkg_.name.clone();
 
             // Push the app itself into the initial_input_pkgs.
             initial_input_pkgs.push(get_pkg_info_from_path(&cwd)?);
@@ -564,13 +567,12 @@ pub async fn execute_cmd(
             );
 
             let extra_dependency_relationship = DependencyRelationship {
-                pkg_identity: app_pkg_.pkg_identity.clone(),
+                pkg_type: app_pkg_.pkg_type,
+                name: app_pkg_.name.clone(),
                 version: app_pkg_.version.clone(),
                 dependency: PkgDependency {
-                    pkg_identity: PkgIdentity {
-                        pkg_type: desired_pkg_type_.clone(),
-                        name: desired_pkg_src_name_.clone(),
-                    },
+                    pkg_type: desired_pkg_type_,
+                    name: desired_pkg_src_name_.clone(),
                     version_req: desired_pkg_src_version_.clone(),
                     version_req_str: desired_pkg_src_version_str_,
                 },
@@ -581,7 +583,7 @@ pub async fn execute_cmd(
         }
 
         let dep = PkgDependency::new(
-            desired_pkg_type_.clone(),
+            desired_pkg_type_,
             desired_pkg_src_name_.clone(),
             desired_pkg_src_version_,
         );
@@ -589,14 +591,9 @@ pub async fn execute_cmd(
 
         if let Some(desired_pkg_dest_name) = desired_pkg_dest_name {
             let pkg_identity_mapping = PkgIdentityMapping {
-                src_pkg_identity: PkgIdentity {
-                    pkg_type: desired_pkg_type_.clone(),
-                    name: desired_pkg_src_name_,
-                },
-                dest_pkg_identity: PkgIdentity {
-                    pkg_type: desired_pkg_type_,
-                    name: desired_pkg_dest_name.to_string(),
-                },
+                pkg_type: desired_pkg_type_,
+                src_pkg_name: desired_pkg_src_name_,
+                dest_pkg_name: desired_pkg_dest_name.to_string(),
             };
             pkg_identity_mappings.push(pkg_identity_mapping);
         }
