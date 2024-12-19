@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/navigation-menu";
 import { Button } from "@/components/ui/button";
 import { FolderOpenIcon, MoveIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface EditMenuProps {
   onAutoLayout: () => void;
@@ -29,7 +30,9 @@ export function EditMenu(props: EditMenuProps) {
       <NavigationMenuTrigger className="submenu-trigger">
         Edit
       </NavigationMenuTrigger>
-      <NavigationMenuContent className="flex flex-col items-center px-1 py-1.5 gap-1.5">
+      <NavigationMenuContent
+        className={cn("flex flex-col items-center px-1 py-1.5 gap-1.5")}
+      >
         <NavigationMenuLink asChild>
           <Button
             className="w-full justify-start"

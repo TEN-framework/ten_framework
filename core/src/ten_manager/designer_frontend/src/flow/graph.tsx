@@ -18,7 +18,7 @@ const NODE_HEIGHT = 36;
 export const getLayoutedElements = (
   nodes: CustomNodeType[],
   edges: CustomEdgeType[],
-  direction = "TB"
+  direction = "TB",
 ) => {
   const dagreGraph = new dagre.graphlib.Graph();
   dagreGraph.setDefaultEdgeLabel(() => ({}));
@@ -63,13 +63,13 @@ export const processNodes = (backendNodes: BackendNode[]): CustomNodeType[] => {
 };
 
 export const processConnections = (
-  backendConnections: BackendConnection[]
+  backendConnections: BackendConnection[],
 ): {
   initialEdges: CustomEdgeType[];
   nodeSourceCmdMap: Record<string, Set<string>>;
   nodeTargetCmdMap: Record<string, Set<string>>;
 } => {
-  let initialEdges: CustomEdgeType[] = [];
+  const initialEdges: CustomEdgeType[] = [];
   const nodeSourceCmdMap: Record<string, Set<string>> = {};
   const nodeTargetCmdMap: Record<string, Set<string>> = {};
 
@@ -116,13 +116,13 @@ export const processConnections = (
 };
 
 export const fetchAddonInfoForNodes = async (
-  nodes: CustomNodeType[]
+  nodes: CustomNodeType[],
 ): Promise<CustomNodeType[]> => {
   return await Promise.all(
     nodes.map(async (node) => {
       try {
         const addonInfo: ExtensionAddon = await fetchExtensionAddonByName(
-          node.data.addon
+          node.data.addon,
         );
         console.log(`URL for addon '${node.data.addon}': ${addonInfo.url}`);
         return {
@@ -132,21 +132,21 @@ export const fetchAddonInfoForNodes = async (
             url: addonInfo.url,
           },
         };
-      } catch (addonError: any) {
+      } catch (addonError: unknown) {
         console.error(
           `Failed to fetch addon info for '${node.data.addon}': ` +
-            `${addonError.message}`
+            `${(addonError as Error).message}`,
         );
         return node;
       }
-    })
+    }),
   );
 };
 
 export const enhanceNodesWithCommands = (
   nodes: CustomNodeType[],
   nodeSourceCmdMap: Record<string, Set<string>>,
-  nodeTargetCmdMap: Record<string, Set<string>>
+  nodeTargetCmdMap: Record<string, Set<string>>,
 ): CustomNodeType[] => {
   return nodes.map((node) => {
     const sourceCmds = nodeSourceCmdMap[node.id]

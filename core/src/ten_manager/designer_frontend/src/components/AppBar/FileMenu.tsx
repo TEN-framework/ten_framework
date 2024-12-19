@@ -18,6 +18,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { FolderOpenIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface FileMenuProps {
   // isOpen: boolean;
@@ -55,7 +56,9 @@ export function FileMenu(props: FileMenuProps) {
         <NavigationMenuTrigger className="submenu-trigger">
           File
         </NavigationMenuTrigger>
-        <NavigationMenuContent className="flex flex-col items-center px-1 py-1.5 gap-1.5">
+        <NavigationMenuContent
+          className={cn("flex flex-col items-center px-1 py-1.5 gap-1.5")}
+        >
           <NavigationMenuLink asChild>
             <Button
               className="w-full justify-start"

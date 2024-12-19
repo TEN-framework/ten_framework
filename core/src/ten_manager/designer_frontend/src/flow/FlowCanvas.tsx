@@ -34,8 +34,8 @@ export interface FlowCanvasRef {
 interface FlowCanvasProps {
   nodes: CustomNodeType[];
   edges: CustomEdgeType[];
-  onNodesChange: (changes: any) => void;
-  onEdgesChange: (changes: any) => void;
+  onNodesChange: (changes: unknown) => void;
+  onEdgesChange: (changes: unknown) => void;
   onConnect: (connection: Connection) => void;
 }
 

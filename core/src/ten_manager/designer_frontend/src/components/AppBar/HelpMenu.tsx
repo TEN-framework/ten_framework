@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/navigation-menu";
 import { Button } from "@/components/ui/button";
 import { InfoIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export function HelpMenu() {
   const [isAboutOpen, setIsAboutOpen] = React.useState(false);
@@ -33,7 +34,9 @@ export function HelpMenu() {
         <NavigationMenuTrigger className="submenu-trigger">
           Help
         </NavigationMenuTrigger>
-        <NavigationMenuContent className="flex flex-col items-center px-1 py-1.5 gap-1.5">
+        <NavigationMenuContent
+          className={cn("flex flex-col items-center px-1 py-1.5 gap-1.5")}
+        >
           <NavigationMenuLink asChild>
             <Button
               className="w-full justify-start max-w-screen-sm"

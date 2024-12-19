@@ -6,6 +6,8 @@
 //
 import React from "react";
 
+import { cn } from "@/lib/utils";
+
 export interface ContextMenuItem {
   label?: string;
   icon?: React.ReactNode;
@@ -25,7 +27,10 @@ const ContextMenu: React.FC<ContextMenuProps> = ({ visible, x, y, items }) => {
 
   return (
     <div
-      className="fixed bg-white border border-gray-300 p-1.5 shadow-lg z-[9999] box-border"
+      className={cn(
+        "fixed p-1.5 z-[9999]",
+        "bg-white border border-gray-300 shadow-lg box-border",
+      )}
       style={{
         left: x,
         top: y,
@@ -37,10 +42,18 @@ const ContextMenu: React.FC<ContextMenuProps> = ({ visible, x, y, items }) => {
           {item.separator && <div className="h-px bg-gray-300 my-1.5"></div>}
           {!item.separator && (
             <div
-              className="flex items-center px-2.5 py-1.5 whitespace-nowrap box-border cursor-pointer hover:bg-gray-100"
+              className={cn(
+                "flex items-center px-2.5 py-1.5 whitespace-nowrap",
+                "box-border hover:bg-gray-100 cursor-pointer",
+              )}
               onClick={item.onClick}
             >
-              <span className="mr-2 flex items-center h-[1em] flex-shrink-0 w-5 justify-center">
+              <span
+                className={cn(
+                  "flex items-center flex-shrink-0 justify-center",
+                  "mr-2 h-[1em] w-5",
+                )}
+              >
                 {item.icon || null}
               </span>
               <span className="flex-1 text-left">{item.label}</span>

@@ -253,7 +253,10 @@ const Popup: React.FC<PopupProps> = ({
       }}
     >
       <div
-        className="bg-muted p-2.5 flex justify-between items-center cursor-move select-none border-b border-border"
+        className={cn(
+          "p-2.5 flex justify-between items-center cursor-move select-none",
+          "bg-muted border-b border-border",
+        )}
         onMouseDown={handleMouseDown}
         ref={headerRef}
       >
@@ -289,7 +292,10 @@ const Popup: React.FC<PopupProps> = ({
 
       {resizable && !isCollapsed && (
         <div
-          className="w-[5px] h-[5px] bg-transparent absolute right-0 bottom-0 cursor-se-resize z-[1002]"
+          className={cn(
+            "w-[5px] h-[5px] bg-transparent cursor-se-resize",
+            "absolute right-0 bottom-0 z-[1002]",
+          )}
           onMouseDown={handleResizeMouseDown}
         />
       )}

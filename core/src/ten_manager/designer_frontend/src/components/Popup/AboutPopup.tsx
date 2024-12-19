@@ -8,6 +8,7 @@ import React from "react";
 
 import Popup from "./Popup";
 import { useTranslation } from "react-i18next";
+import { cn } from "@/lib/utils";
 
 interface AboutPopupProps {
   onClose: () => void;
@@ -19,7 +20,12 @@ const AboutPopup: React.FC<AboutPopupProps> = ({ onClose }) => {
   return (
     <Popup title="About" onClose={onClose}>
       <div className="text-center">
-        <p className="italic text-base font-['Segoe_UI',Tahoma,Geneva,Verdana,sans-serif] mb-5">
+        <p
+          className={cn(
+            "italic text-base mb-5",
+            "font-['Segoe_UI',Tahoma,Geneva,Verdana,sans-serif]",
+          )}
+        >
           Powered by TEN Framework.
         </p>
         <p className="my-1">

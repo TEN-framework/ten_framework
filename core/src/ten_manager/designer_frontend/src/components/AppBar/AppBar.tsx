@@ -17,6 +17,8 @@ import { FileMenu } from "@/components/AppBar/FileMenu";
 import { EditMenu } from "@/components/AppBar/EditMenu";
 import { HelpMenu } from "@/components/AppBar/HelpMenu";
 
+import { cn } from "@/lib/utils";
+
 interface AppBarProps {
   // The current version of tman.
   version: string;
@@ -49,7 +51,12 @@ const AppBar: React.FC<AppBarProps> = ({
   };
 
   return (
-    <div className="flex justify-between items-center bg-[var(--app-bar-bg)] text-[var(--app-bar-fg)] h-10 px-5 text-sm select-none">
+    <div
+      className={cn(
+        "flex justify-between items-center h-10 px-5 text-sm select-none",
+        "bg-[var(--app-bar-bg)] text-[var(--app-bar-fg)]",
+      )}
+    >
       <NavigationMenu onValueChange={onNavChange}>
         <NavigationMenuList>
           <FileMenu onSetBaseDir={onSetBaseDir} />
@@ -65,7 +72,11 @@ const AppBar: React.FC<AppBarProps> = ({
       <div className="ml-auto flex items-center gap-1.5">
         <LanguageToggle />
         <ModeToggle />
-        <div className="text-xs text-muted-foreground flex items-center gap-2 relative">
+        <div
+          className={cn(
+            "text-xs text-muted-foreground flex items-center gap-2 relative",
+          )}
+        >
           <div>
             Powered by{" "}
             <span className="font-bold text-foreground">TEN Framework</span>
