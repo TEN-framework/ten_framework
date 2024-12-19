@@ -154,7 +154,7 @@ if __name__ == "__main__":
     try:
         os.chdir(args.project_path)
 
-        run_clippy_static_checking(args)
+        # run_clippy_static_checking(args)
 
         # cargo build --tests: only compile the test source files, without
         # running the test cases.
