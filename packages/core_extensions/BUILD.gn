@@ -19,4 +19,8 @@ group("core_extensions") {
       "py_init_extension_cpp",
     ]
   }
+
+  if (ten_enable_nodejs_binding) {
+    deps += [ "default_extension_ts" ]
+  }
 }
