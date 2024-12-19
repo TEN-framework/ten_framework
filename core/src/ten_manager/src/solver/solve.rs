@@ -13,8 +13,8 @@ use clingo::{
 };
 
 use ten_rust::pkg_info::{
-    dependencies::DependencyRelationship, pkg_type::PkgType,
-    pkg_type_and_name::PkgTypeAndName, PkgInfo,
+    dependencies::DependencyRelationship, pkg_basic_info::PkgBasicInfo,
+    pkg_type::PkgType, pkg_type_and_name::PkgTypeAndName, PkgInfo,
 };
 
 use crate::{
@@ -338,14 +338,14 @@ fn create_input_str_for_dependency_relationship(
 fn create_input_str_for_pkg_info_dependencies(
     input_str: &mut String,
     pkg_info: &PkgInfo,
-    dumped_pkgs_info: &mut HashSet<PkgInfo>,
+    dumped_pkgs_info: &mut HashSet<PkgBasicInfo>,
     all_candidates: &HashMap<PkgTypeAndName, HashSet<PkgInfo>>,
 ) -> Result<()> {
     // If this package has already been dumped, skip it.
-    if dumped_pkgs_info.contains(pkg_info) {
+    if dumped_pkgs_info.contains(&pkg_info.into()) {
         return Ok(());
     }
-    dumped_pkgs_info.insert(pkg_info.clone());
+    dumped_pkgs_info.insert(pkg_info.into());
 
     for dependency in &pkg_info.dependencies {
         let candidates = all_candidates.get(&(dependency).into());

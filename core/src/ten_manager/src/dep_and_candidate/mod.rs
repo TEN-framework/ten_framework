@@ -11,6 +11,7 @@ use anyhow::{anyhow, Result};
 use semver::{Version, VersionReq};
 
 use ten_rust::pkg_info::dependencies::PkgDependency;
+use ten_rust::pkg_info::pkg_basic_info::PkgBasicInfo;
 use ten_rust::pkg_info::pkg_type::PkgType;
 use ten_rust::pkg_info::pkg_type_and_name::PkgTypeAndName;
 use ten_rust::pkg_info::supports::{
@@ -299,7 +300,7 @@ pub async fn get_all_candidates_from_deps(
     locked_pkgs: Option<&HashMap<PkgTypeAndName, PkgInfo>>,
 ) -> Result<HashMap<PkgTypeAndName, HashSet<PkgInfo>>> {
     let mut merged_dependencies = HashSet::<FoundDependency>::new();
-    let mut processed_pkgs = HashSet::<PkgInfo>::new();
+    let mut processed_pkgs = HashSet::<PkgBasicInfo>::new();
 
     // If there is extra dependencies (ex: specified in the command line),
     // handle those dependencies, too.
@@ -324,7 +325,7 @@ pub async fn get_all_candidates_from_deps(
 
         // Process all packages to be searched.
         while let Some(pkg_to_be_search) = pkgs_to_be_searched.pop() {
-            if processed_pkgs.contains(&pkg_to_be_search) {
+            if processed_pkgs.contains(&(&pkg_to_be_search).into()) {
                 // If this package info has already been processed, do not
                 // process it again.
                 continue;
@@ -341,7 +342,7 @@ pub async fn get_all_candidates_from_deps(
             .await?;
 
             // Remember that this package has already been processed.
-            processed_pkgs.insert(pkg_to_be_search);
+            processed_pkgs.insert((&pkg_to_be_search).into());
         }
 
         if new_pkgs_to_be_searched.is_empty() {
