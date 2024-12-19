@@ -8,5 +8,8 @@ import("//build/ten_runtime/feature/test.gni")
 import("//build/ten_runtime/options.gni")
 
 group("nodejs") {
-  deps = [ "send_cmd_nodejs" ]
+  deps = [
+    "get_set_property_nodejs",
+    "send_cmd_nodejs",
+  ]
 }

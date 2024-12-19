@@ -9,6 +9,7 @@
 #include <node_api.h>
 
 #include "include_internal/ten_runtime/binding/nodejs/common/common.h"
+#include "include_internal/ten_runtime/binding/nodejs/common/tsfn.h"
 #include "ten_runtime/ten_env/ten_env.h"
 #include "ten_runtime/ten_env_proxy/ten_env_proxy.h"
 #include "ten_utils/lib/signature.h"
@@ -26,6 +27,20 @@ typedef struct ten_nodejs_ten_env_t {
   ten_env_proxy_t
       *c_ten_env_proxy;  // Point to the corresponding C ten_env_proxy if any.
 } ten_nodejs_ten_env_t;
+
+typedef struct ten_nodejs_get_property_call_info_t {
+  ten_nodejs_tsfn_t *cb_tsfn;
+  ten_value_t *value;
+  ten_error_t *error;
+} ten_nodejs_get_property_call_info_t;
+
+TEN_RUNTIME_PRIVATE_API ten_nodejs_get_property_call_info_t *
+ten_nodejs_get_property_call_info_create(ten_nodejs_tsfn_t *cb_tsfn,
+                                         ten_value_t *value,
+                                         ten_error_t *error);
+
+TEN_RUNTIME_PRIVATE_API void ten_nodejs_get_property_call_info_destroy(
+    ten_nodejs_get_property_call_info_t *info);
 
 TEN_RUNTIME_API napi_value ten_nodejs_ten_env_module_init(napi_env env,
                                                           napi_value exports);
@@ -54,3 +69,49 @@ ten_nodejs_ten_env_on_deinit_done(napi_env env, napi_callback_info info);
 
 TEN_RUNTIME_PRIVATE_API napi_value ten_nodejs_ten_env_on_create_instance_done(
     napi_env env, napi_callback_info info);
+
+TEN_RUNTIME_PRIVATE_API napi_value
+ten_nodejs_ten_env_send_cmd(napi_env env, napi_callback_info info);
+
+TEN_RUNTIME_PRIVATE_API napi_value
+ten_nodejs_ten_env_send_data(napi_env env, napi_callback_info info);
+
+TEN_RUNTIME_PRIVATE_API napi_value
+ten_nodejs_ten_env_send_video_frame(napi_env env, napi_callback_info info);
+
+TEN_RUNTIME_PRIVATE_API napi_value
+ten_nodejs_ten_env_send_audio_frame(napi_env env, napi_callback_info info);
+
+TEN_RUNTIME_PRIVATE_API napi_value
+ten_nodejs_ten_env_return_result(napi_env env, napi_callback_info info);
+
+TEN_RUNTIME_PRIVATE_API napi_value ten_nodejs_ten_env_return_result_directly(
+    napi_env env, napi_callback_info info);
+
+TEN_RUNTIME_PRIVATE_API bool ten_nodejs_ten_env_get_property_value(
+    ten_nodejs_ten_env_t *self, const char *path, ten_nodejs_tsfn_t *cb_tsfn,
+    ten_error_t *error);
+
+TEN_RUNTIME_PRIVATE_API napi_value
+ten_nodejs_ten_env_is_property_exist(napi_env env, napi_callback_info info);
+
+TEN_RUNTIME_PRIVATE_API napi_value
+ten_nodejs_ten_env_get_property_to_json(napi_env env, napi_callback_info info);
+
+TEN_RUNTIME_PRIVATE_API napi_value ten_nodejs_ten_env_set_property_from_json(
+    napi_env env, napi_callback_info info);
+
+TEN_RUNTIME_PRIVATE_API napi_value
+ten_nodejs_ten_env_get_property_number(napi_env env, napi_callback_info info);
+
+TEN_RUNTIME_PRIVATE_API napi_value
+ten_nodejs_ten_env_set_property_number(napi_env env, napi_callback_info info);
+
+TEN_RUNTIME_PRIVATE_API napi_value
+ten_nodejs_ten_env_get_property_string(napi_env env, napi_callback_info info);
+
+TEN_RUNTIME_PRIVATE_API napi_value
+ten_nodejs_ten_env_set_property_string(napi_env env, napi_callback_info info);
+
+TEN_RUNTIME_PRIVATE_API napi_value
+ten_nodejs_ten_env_log_internal(napi_env env, napi_callback_info info);

@@ -84,6 +84,37 @@ bool ten_nodejs_ten_env_check_integrity(ten_nodejs_ten_env_t *self,
   return true;
 }
 
+ten_nodejs_get_property_call_info_t *ten_nodejs_get_property_call_info_create(
+    ten_nodejs_tsfn_t *cb_tsfn, ten_value_t *value, ten_error_t *error) {
+  TEN_ASSERT(cb_tsfn, "Invalid argument.");
+
+  ten_nodejs_get_property_call_info_t *info =
+      (ten_nodejs_get_property_call_info_t *)TEN_MALLOC(
+          sizeof(ten_nodejs_get_property_call_info_t));
+  TEN_ASSERT(info, "Failed to allocate memory.");
+
+  info->cb_tsfn = cb_tsfn;
+  info->value = value;
+  info->error = error;
+
+  return info;
+}
+
+void ten_nodejs_get_property_call_info_destroy(
+    ten_nodejs_get_property_call_info_t *info) {
+  TEN_ASSERT(info, "Invalid argument.");
+
+  if (info->value) {
+    ten_value_destroy(info->value);
+  }
+
+  if (info->error) {
+    ten_error_destroy(info->error);
+  }
+
+  TEN_FREE(info);
+}
+
 napi_value ten_nodejs_ten_env_create_new_js_object_and_wrap(
     napi_env env, ten_env_t *ten_env,
     ten_nodejs_ten_env_t **out_ten_env_bridge) {
@@ -144,6 +175,20 @@ napi_value ten_nodejs_ten_env_module_init(napi_env env, napi_value exports) {
   EXPORT_FUNC(env, exports, ten_nodejs_ten_env_on_stop_done);
   EXPORT_FUNC(env, exports, ten_nodejs_ten_env_on_deinit_done);
   EXPORT_FUNC(env, exports, ten_nodejs_ten_env_on_create_instance_done);
+  EXPORT_FUNC(env, exports, ten_nodejs_ten_env_send_cmd);
+  EXPORT_FUNC(env, exports, ten_nodejs_ten_env_send_data);
+  EXPORT_FUNC(env, exports, ten_nodejs_ten_env_send_video_frame);
+  EXPORT_FUNC(env, exports, ten_nodejs_ten_env_send_audio_frame);
+  EXPORT_FUNC(env, exports, ten_nodejs_ten_env_return_result);
+  EXPORT_FUNC(env, exports, ten_nodejs_ten_env_return_result_directly);
+  EXPORT_FUNC(env, exports, ten_nodejs_ten_env_is_property_exist);
+  EXPORT_FUNC(env, exports, ten_nodejs_ten_env_get_property_to_json);
+  EXPORT_FUNC(env, exports, ten_nodejs_ten_env_set_property_from_json);
+  EXPORT_FUNC(env, exports, ten_nodejs_ten_env_get_property_number);
+  EXPORT_FUNC(env, exports, ten_nodejs_ten_env_set_property_number);
+  EXPORT_FUNC(env, exports, ten_nodejs_ten_env_get_property_string);
+  EXPORT_FUNC(env, exports, ten_nodejs_ten_env_set_property_string);
+  EXPORT_FUNC(env, exports, ten_nodejs_ten_env_log_internal);
 
   return exports;
 }
