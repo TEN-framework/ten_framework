@@ -1,16 +1,22 @@
-import { useTranslation } from "react-i18next"
-import { LanguagesIcon, CheckIcon } from "lucide-react"
+//
+// Copyright © 2024 Agora
+// This file is part of TEN Framework, an open source project.
+// Licensed under the Apache License, Version 2.0, with certain conditions.
+// Refer to the "LICENSE" file in the root directory for more information.
+//
+import { useTranslation } from "react-i18next";
+import { LanguagesIcon, CheckIcon } from "lucide-react";
 
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/Button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from "@/components/ui/DropdownMenu";
 
 export function LanguageToggle() {
-  const { i18n } = useTranslation()
+  const { i18n } = useTranslation();
 
   return (
     <DropdownMenu>
@@ -33,5 +39,5 @@ export function LanguageToggle() {
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
-  )
+  );
 }

@@ -12,8 +12,9 @@ import {
   EdgeChange,
   NodeChange,
 } from "@xyflow/react";
-import { ThemeProvider } from "@/components/theme-provider";
+import { toast } from "sonner";
 
+import { ThemeProvider } from "@/components/ThemeProvider";
 import AppBar from "@/components/AppBar/AppBar";
 import FlowCanvas from "@/flow/FlowCanvas";
 import {
@@ -22,19 +23,18 @@ import {
   fetchGraphs,
   fetchNodes,
   setBaseDir,
-} from "./api/api";
-import { Graph } from "./api/interface";
-import { CustomNodeType } from "./flow/CustomNode";
-import { CustomEdgeType } from "./flow/CustomEdge";
+} from "@/api/api";
+import { Graph } from "@/api/interface";
+import { CustomNodeType } from "@/flow/CustomNode";
+import { CustomEdgeType } from "@/flow/CustomEdge";
 import {
   enhanceNodesWithCommands,
   fetchAddonInfoForNodes,
   getLayoutedElements,
   processConnections,
   processNodes,
-} from "./flow/graph";
+} from "@/flow/graph";
 import Popup from "@/components/Popup/Popup";
-import { toast } from "sonner";
 
 const App: React.FC = () => {
   const [version, setVersion] = useState<string>("");
@@ -81,7 +81,7 @@ const App: React.FC = () => {
       initialNodes = enhanceNodesWithCommands(
         initialNodes,
         nodeSourceCmdMap,
-        nodeTargetCmdMap,
+        nodeTargetCmdMap
       );
 
       // Fetch additional addon information for each node.
@@ -101,7 +101,7 @@ const App: React.FC = () => {
   const performAutoLayout = useCallback(() => {
     const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(
       nodes,
-      edges,
+      edges
     );
     setNodes(layoutedNodes);
     setEdges(layoutedEdges);
@@ -111,14 +111,14 @@ const App: React.FC = () => {
     (changes: NodeChange<CustomNodeType>[]) => {
       setNodes((nds) => applyNodeChanges(changes, nds));
     },
-    [],
+    []
   );
 
   const handleEdgesChange = useCallback(
     (changes: EdgeChange<CustomEdgeType>[]) => {
       setEdges((eds) => applyEdgeChanges(changes, eds));
     },
-    [],
+    []
   );
 
   const handleSetBaseDir = useCallback(async (folderPath: string) => {

@@ -5,9 +5,10 @@
 // Refer to the "LICENSE" file in the root directory for more information.
 //
 import React, { useState, useEffect, useRef } from "react";
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
 import { ChevronDown, ChevronUp, X } from "lucide-react";
+
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/Button";
 
 const DEFAULT_WIDTH = 800;
 const DEFAULT_HEIGHT = 400;
@@ -66,7 +67,7 @@ const Popup: React.FC<PopupProps> = ({
 
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState<{ x: number; y: number } | null>(
-    null,
+    null
   );
 
   // Center the popup on mount.
@@ -107,17 +108,19 @@ const Popup: React.FC<PopupProps> = ({
       }
     };
 
-    // Only add listener if this popup is focused and preventFocusSteal is
-    // false.
+    // Only add listener if this popup should take focus.
     if (!preventFocusSteal && popupRef.current) {
-      popupRef.current.addEventListener("keydown", handleKeyDown);
+      const current = popupRef.current;
+      current.addEventListener("keydown", handleKeyDown);
+
+      // Cleanup function uses the captured reference.
+      return () => {
+        current.removeEventListener("keydown", handleKeyDown);
+      };
     }
 
-    return () => {
-      if (!preventFocusSteal && popupRef.current) {
-        popupRef.current.removeEventListener("keydown", handleKeyDown);
-      }
-    };
+    // If the condition isn't met, no cleanup is necessary.
+    return undefined;
   }, [onClose, preventFocusSteal]);
 
   const handleMouseDown = (e: React.MouseEvent) => {
@@ -128,30 +131,30 @@ const Popup: React.FC<PopupProps> = ({
     setDragStart({ x: e.clientX - position.x, y: e.clientY - position.y });
   };
 
-  const handleMouseMove = (e: MouseEvent) => {
-    if (isDragging && dragStart) {
-      setPosition({ x: e.clientX - dragStart.x, y: e.clientY - dragStart.y });
-    }
-
-    if (isResizing && resizeStart) {
-      const newWidth = Math.max(e.clientX - resizeStart.x, 300);
-      const newHeight = Math.max(e.clientY - resizeStart.y, 200);
-      setSize({
-        width: newWidth,
-        height: newHeight,
-      });
-    }
-  };
-
-  const handleMouseUp = () => {
-    setIsDragging(false);
-    setDragStart(null);
-
-    setIsResizing(false);
-    setResizeStart(null);
-  };
-
   useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (isDragging && dragStart) {
+        setPosition({ x: e.clientX - dragStart.x, y: e.clientY - dragStart.y });
+      }
+
+      if (isResizing && resizeStart) {
+        const newWidth = Math.max(e.clientX - resizeStart.x, 300);
+        const newHeight = Math.max(e.clientY - resizeStart.y, 200);
+        setSize({
+          width: newWidth,
+          height: newHeight,
+        });
+      }
+    };
+
+    const handleMouseUp = () => {
+      setIsDragging(false);
+      setDragStart(null);
+
+      setIsResizing(false);
+      setResizeStart(null);
+    };
+
     if (isDragging || isResizing) {
       window.addEventListener("mousemove", handleMouseMove);
       window.addEventListener("mouseup", handleMouseUp);
@@ -216,8 +219,8 @@ const Popup: React.FC<PopupProps> = ({
   const bringToFront = () => {
     const highestZIndex = Math.max(
       ...Array.from(document.querySelectorAll(".popup")).map(
-        (el) => parseInt(window.getComputedStyle(el).zIndex) || 0,
-      ),
+        (el) => parseInt(window.getComputedStyle(el).zIndex) || 0
+      )
     );
     if (popupRef.current) {
       popupRef.current.style.zIndex = (highestZIndex + 1).toString();
@@ -232,7 +235,7 @@ const Popup: React.FC<PopupProps> = ({
         isVisible ? "opacity-100" : "opacity-0",
         isResizing && "select-none",
         isDragging && "select-none cursor-move",
-        className,
+        className
       )}
       style={{
         top: position.y,
@@ -255,7 +258,7 @@ const Popup: React.FC<PopupProps> = ({
       <div
         className={cn(
           "p-2.5 flex justify-between items-center cursor-move select-none",
-          "bg-muted border-b border-border",
+          "bg-muted border-b border-border"
         )}
         onMouseDown={handleMouseDown}
         ref={headerRef}
@@ -284,7 +287,7 @@ const Popup: React.FC<PopupProps> = ({
       <div
         className={cn(
           "p-2.5 overflow-hidden flex w-full h-full",
-          isCollapsed ? "invisible h-0 py-0" : "visible",
+          isCollapsed ? "invisible h-0 py-0" : "visible"
         )}
       >
         {children}
@@ -294,7 +297,7 @@ const Popup: React.FC<PopupProps> = ({
         <div
           className={cn(
             "w-[5px] h-[5px] bg-transparent cursor-se-resize",
-            "absolute right-0 bottom-0 z-[1002]",
+            "absolute right-0 bottom-0 z-[1002]"
           )}
           onMouseDown={handleResizeMouseDown}
         />

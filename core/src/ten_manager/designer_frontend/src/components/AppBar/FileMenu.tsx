@@ -5,26 +5,21 @@
 // Refer to the "LICENSE" file in the root directory for more information.
 //
 import * as React from "react";
+import { toast } from "sonner";
+import { FolderOpenIcon } from "lucide-react";
 
 import { setBaseDir } from "@/api/api";
-import Popup from "../Popup/Popup";
-
+import Popup from "@/components/Popup/Popup";
 import {
   NavigationMenuContent,
   NavigationMenuItem,
   NavigationMenuLink,
   NavigationMenuTrigger,
-} from "@/components/ui/navigation-menu";
-import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
-import { FolderOpenIcon } from "lucide-react";
+} from "@/components/ui/NavigationMenu";
+import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
 
 interface FileMenuProps {
-  // isOpen: boolean;
-  // onClick: () => void;
-  // onHover: () => void;
-  // closeMenu: () => void;
   onSetBaseDir: (folderPath: string) => void;
 }
 

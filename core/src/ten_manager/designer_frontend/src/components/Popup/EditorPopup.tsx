@@ -7,10 +7,9 @@
 import React, { useEffect, useState, useContext } from "react";
 import Editor from "@monaco-editor/react";
 
-import Popup from "./Popup";
-
-import { getFileContent, saveFileContent } from "../../api/api";
-import { ThemeProviderContext } from "@/components/theme-provider";
+import Popup from "@/components/Popup/Popup";
+import { getFileContent, saveFileContent } from "@/api/api";
+import { ThemeProviderContext } from "@/components/theme-context";
 
 const DEFAULT_WIDTH = 800;
 const DEFAULT_HEIGHT = 400;
@@ -94,7 +93,7 @@ const EditorPopup: React.FC<EditorPopupProps> = ({ data, onClose }) => {
 
   const handleActionWithOptionalConfirm = (
     action: () => void,
-    needsConfirm: boolean,
+    needsConfirm: boolean
   ) => {
     if (needsConfirm) {
       setPendingAction(() => action);
@@ -145,7 +144,7 @@ const EditorPopup: React.FC<EditorPopupProps> = ({ data, onClose }) => {
                       setFileContent(currentContent);
                       saveFile(currentContent);
                     },
-                    true, // Display a confirmation popup.
+                    true // Display a confirmation popup.
                   );
                 },
               });

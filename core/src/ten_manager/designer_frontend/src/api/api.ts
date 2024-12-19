@@ -23,7 +23,7 @@ export interface ExtensionAddon {
 }
 
 export const isSuccessResponse = <T>(
-  response: ApiResponse<T>,
+  response: ApiResponse<T>
 ): response is SuccessResponse<T> => {
   return response.status === "ok";
 };
@@ -46,7 +46,7 @@ export const fetchDesignerVersion = async (): Promise<string> => {
 export const fetchNodes = async (graphName: string): Promise<BackendNode[]> => {
   const encodedGraphName = encodeURIComponent(graphName);
   const response = await fetch(
-    `/api/designer/v1/graphs/${encodedGraphName}/nodes`,
+    `/api/designer/v1/graphs/${encodedGraphName}/nodes`
   );
   if (!response.ok) {
     throw new Error(`Failed to fetch nodes: ${response.status}`);
@@ -61,11 +61,11 @@ export const fetchNodes = async (graphName: string): Promise<BackendNode[]> => {
 };
 
 export const fetchConnections = async (
-  graphName: string,
+  graphName: string
 ): Promise<BackendConnection[]> => {
   const encodedGraphName = encodeURIComponent(graphName);
   const response = await fetch(
-    `/api/designer/v1/graphs/${encodedGraphName}/connections`,
+    `/api/designer/v1/graphs/${encodedGraphName}/connections`
   );
   if (!response.ok) {
     throw new Error(`Failed to fetch connections: ${response.status}`);
@@ -100,7 +100,7 @@ export const fetchGraphs = async (): Promise<Graph[]> => {
  * @returns The extension addon information.
  */
 export const fetchExtensionAddonByName = async (
-  name: string,
+  name: string
 ): Promise<ExtensionAddon> => {
   const response = await fetch(`/api/designer/v1/addons/extensions/${name}`);
   if (!response.ok) {
@@ -118,7 +118,7 @@ export const fetchExtensionAddonByName = async (
 
 // Get the contents of the file at the specified path.
 export const getFileContent = async (
-  path: string,
+  path: string
 ): Promise<FileContentResponse> => {
   const encodedPath = encodeURIComponent(path);
   const response = await fetch(`/api/designer/v1/file-content/${encodedPath}`, {
@@ -144,7 +144,7 @@ export const getFileContent = async (
 // Save the contents of the file at the specified path.
 export const saveFileContent = async (
   path: string,
-  content: string,
+  content: string
 ): Promise<void> => {
   const encodedPath = encodeURIComponent(path);
   const body: SaveFileRequest = { content };
@@ -169,7 +169,7 @@ export const saveFileContent = async (
 };
 
 export const setBaseDir = async (
-  baseDir: string,
+  baseDir: string
 ): Promise<ApiResponse<SetBaseDirResponse>> => {
   const requestBody: SetBaseDirRequest = { base_dir: baseDir };
 

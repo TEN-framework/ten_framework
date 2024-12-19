@@ -29,7 +29,7 @@ const ContextMenu: React.FC<ContextMenuProps> = ({ visible, x, y, items }) => {
     <div
       className={cn(
         "fixed p-1.5 z-[9999]",
-        "bg-white border border-gray-300 shadow-lg box-border",
+        "bg-white border border-gray-300 shadow-lg box-border"
       )}
       style={{
         left: x,
@@ -44,14 +44,14 @@ const ContextMenu: React.FC<ContextMenuProps> = ({ visible, x, y, items }) => {
             <div
               className={cn(
                 "flex items-center px-2.5 py-1.5 whitespace-nowrap",
-                "box-border hover:bg-gray-100 cursor-pointer",
+                "box-border hover:bg-gray-100 cursor-pointer"
               )}
               onClick={item.onClick}
             >
               <span
                 className={cn(
                   "flex items-center flex-shrink-0 justify-center",
-                  "mr-2 h-[1em] w-5",
+                  "mr-2 h-[1em] w-5"
                 )}
               >
                 {item.icon || null}

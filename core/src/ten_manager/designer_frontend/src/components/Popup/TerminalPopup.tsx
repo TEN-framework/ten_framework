@@ -10,7 +10,7 @@ import { Unicode11Addon } from "@xterm/addon-unicode11";
 import { WebLinksAddon } from "@xterm/addon-web-links";
 import { FitAddon } from "@xterm/addon-fit";
 
-import Popup from "./Popup";
+import Popup from "@/components/Popup/Popup";
 
 import "@xterm/xterm/css/xterm.css";
 
@@ -91,14 +91,14 @@ const TerminalPopup: React.FC<TerminalPopupProps> = ({ data, onClose }) => {
         setTerminalSize({ cols: xterm.cols, rows: xterm.rows });
       } else {
         console.warn(
-          "Terminal container no longer exists during initialization.",
+          "Terminal container no longer exists during initialization."
         );
       }
     }, 0);
 
     // Initialize the websocket connection to the backend.
     const wsUrl = `ws://localhost:49483/ws/terminal?path=${encodeURIComponent(
-      data.url,
+      data.url
     )}`;
     ws.current = new WebSocket(wsUrl);
 
@@ -129,7 +129,7 @@ const TerminalPopup: React.FC<TerminalPopupProps> = ({ data, onClose }) => {
           if (msg.type === "exit") {
             // Display a exit message in the terminal UI.
             xtermRef.current.writeln(
-              `\r\nProcess exited with code ${msg.code}\r\n`,
+              `\r\nProcess exited with code ${msg.code}\r\n`
             );
 
             // Close the websocket actively.
@@ -206,7 +206,7 @@ const TerminalPopup: React.FC<TerminalPopupProps> = ({ data, onClose }) => {
       // Close the xterm.
       xterm.dispose();
     };
-  }, [data]);
+  }, [data, onClose]);
 
   useEffect(() => {
     console.log("Terminal size updated:", terminalSize);

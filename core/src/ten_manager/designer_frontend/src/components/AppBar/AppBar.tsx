@@ -5,18 +5,17 @@
 // Refer to the "LICENSE" file in the root directory for more information.
 //
 import * as React from "react";
+
 import {
   NavigationMenu,
   NavigationMenuList,
-} from "@/components/ui/navigation-menu";
-import { ModeToggle } from "@/components/mode-toggle";
-import { LanguageToggle } from "@/components/lang-switch";
-import { Badge } from "@/components/ui/badge";
-
+} from "@/components/ui/NavigationMenu";
+import { ModeToggle } from "@/components/ModeToggle";
+import { LanguageToggle } from "@/components/LangSwitch";
+import { Badge } from "@/components/ui/Badge";
 import { FileMenu } from "@/components/AppBar/FileMenu";
 import { EditMenu } from "@/components/AppBar/EditMenu";
 import { HelpMenu } from "@/components/AppBar/HelpMenu";
-
 import { cn } from "@/lib/utils";
 
 interface AppBarProps {
@@ -37,7 +36,7 @@ const AppBar: React.FC<AppBarProps> = ({
   const onNavChange = () => {
     setTimeout(() => {
       const triggers = document.querySelectorAll(
-        '.submenu-trigger[data-state="open"]',
+        '.submenu-trigger[data-state="open"]'
       );
       if (triggers.length === 0) return;
 
@@ -45,7 +44,7 @@ const AppBar: React.FC<AppBarProps> = ({
 
       document.documentElement.style.setProperty(
         "--menu-left-position",
-        `${firstTrigger.offsetLeft}px`,
+        `${firstTrigger.offsetLeft}px`
       );
     });
   };
@@ -54,7 +53,7 @@ const AppBar: React.FC<AppBarProps> = ({
     <div
       className={cn(
         "flex justify-between items-center h-10 px-5 text-sm select-none",
-        "bg-[var(--app-bar-bg)] text-[var(--app-bar-fg)]",
+        "bg-[var(--app-bar-bg)] text-[var(--app-bar-fg)]"
       )}
     >
       <NavigationMenu onValueChange={onNavChange}>
@@ -74,7 +73,7 @@ const AppBar: React.FC<AppBarProps> = ({
         <ModeToggle />
         <div
           className={cn(
-            "text-xs text-muted-foreground flex items-center gap-2 relative",
+            "text-xs text-muted-foreground flex items-center gap-2 relative"
           )}
         >
           <div>

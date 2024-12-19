@@ -5,9 +5,9 @@
 // Refer to the "LICENSE" file in the root directory for more information.
 //
 import React from "react";
-
-import Popup from "./Popup";
 import { useTranslation } from "react-i18next";
+
+import Popup from "@/components/Popup/Popup";
 import { cn } from "@/lib/utils";
 
 interface AboutPopupProps {
@@ -23,7 +23,7 @@ const AboutPopup: React.FC<AboutPopupProps> = ({ onClose }) => {
         <p
           className={cn(
             "italic text-base mb-5",
-            "font-['Segoe_UI',Tahoma,Geneva,Verdana,sans-serif]",
+            "font-['Segoe_UI',Tahoma,Geneva,Verdana,sans-serif]"
           )}
         >
           Powered by TEN Framework.

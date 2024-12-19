@@ -5,6 +5,7 @@
 // Refer to the "LICENSE" file in the root directory for more information.
 //
 import * as React from "react";
+import { InfoIcon } from "lucide-react";
 
 import AboutPopup from "@/components/Popup/AboutPopup";
 import {
@@ -12,9 +13,8 @@ import {
   NavigationMenuItem,
   NavigationMenuLink,
   NavigationMenuTrigger,
-} from "@/components/ui/navigation-menu";
-import { Button } from "@/components/ui/button";
-import { InfoIcon } from "lucide-react";
+} from "@/components/ui/NavigationMenu";
+import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
 
 export function HelpMenu() {

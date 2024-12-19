@@ -5,15 +5,15 @@
 // Refer to the "LICENSE" file in the root directory for more information.
 //
 import { useTranslation } from "react-i18next";
+import { FolderOpenIcon, MoveIcon } from "lucide-react";
 
 import {
   NavigationMenuContent,
   NavigationMenuItem,
   NavigationMenuLink,
   NavigationMenuTrigger,
-} from "@/components/ui/navigation-menu";
-import { Button } from "@/components/ui/button";
-import { FolderOpenIcon, MoveIcon } from "lucide-react";
+} from "@/components/ui/NavigationMenu";
+import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
 
 interface EditMenuProps {
