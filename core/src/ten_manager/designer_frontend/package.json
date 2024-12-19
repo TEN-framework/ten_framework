@@ -7,7 +7,9 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "check:precommit": "eslint . && tsc -b && vite build",
+    "preinstall": "./install-hooks.sh"
   },
   "dependencies": {
     "@monaco-editor/react": "^4.6.0",
