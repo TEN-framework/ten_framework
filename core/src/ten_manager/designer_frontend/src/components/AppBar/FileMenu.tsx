@@ -4,37 +4,38 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-import React, { useState } from "react";
-import { FaFolderOpen } from "react-icons/fa";
+import * as React from "react";
 
-import DropdownMenu, { DropdownMenuItem } from "./DropdownMenu";
-import { setBaseDir } from "../../api/api";
+import { setBaseDir } from "@/api/api";
 import Popup from "../Popup/Popup";
 
+import {
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuTrigger,
+} from "@/components/ui/navigation-menu";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
+import { FolderOpenIcon } from "lucide-react";
+
 interface FileMenuProps {
-  isOpen: boolean;
-  onClick: () => void;
-  onHover: () => void;
-  closeMenu: () => void;
+  // isOpen: boolean;
+  // onClick: () => void;
+  // onHover: () => void;
+  // closeMenu: () => void;
   onSetBaseDir: (folderPath: string) => void;
-  onShowMessage: (message: string, type: "success" | "error") => void;
 }
 
-const FileMenu: React.FC<FileMenuProps> = ({
-  isOpen,
-  onClick,
-  onHover,
-  closeMenu,
-  onSetBaseDir,
-  onShowMessage,
-}) => {
+export function FileMenu(props: FileMenuProps) {
+  const { onSetBaseDir } = props;
   const [isFolderPathModalOpen, setIsFolderPathModalOpen] =
-    useState<boolean>(false);
-  const [folderPath, setFolderPath] = useState<string>("");
+    React.useState<boolean>(false);
+  const [folderPath, setFolderPath] = React.useState<string>("");
 
   const handleManualOk = async () => {
     if (!folderPath.trim()) {
-      onShowMessage("The folder path cannot be empty.", "error");
+      toast.error("The folder path cannot be empty.");
       return;
     }
 
@@ -43,31 +44,30 @@ const FileMenu: React.FC<FileMenuProps> = ({
       onSetBaseDir(folderPath.trim());
       setFolderPath("");
     } catch (error) {
-      onShowMessage("Failed to open a new app folder.", "error");
+      toast.error("Failed to open a new app folder.");
       console.error(error);
     }
   };
 
-  const items: DropdownMenuItem[] = [
-    {
-      label: "Open App Folder",
-      icon: <FaFolderOpen />,
-      onClick: () => {
-        setIsFolderPathModalOpen(true);
-        closeMenu();
-      },
-    },
-  ];
-
   return (
     <>
-      <DropdownMenu
-        title="File"
-        isOpen={isOpen}
-        onClick={onClick}
-        onHover={onHover}
-        items={items}
-      />
+      <NavigationMenuItem>
+        <NavigationMenuTrigger className="submenu-trigger">
+          File
+        </NavigationMenuTrigger>
+        <NavigationMenuContent className="flex flex-col items-center px-1 py-1.5 gap-1.5">
+          <NavigationMenuLink asChild>
+            <Button
+              className="w-full justify-start"
+              variant="ghost"
+              onClick={() => setIsFolderPathModalOpen(true)}
+            >
+              <FolderOpenIcon className="w-4 h-4 me-2" />
+              Open app folder
+            </Button>
+          </NavigationMenuLink>
+        </NavigationMenuContent>
+      </NavigationMenuItem>
       {isFolderPathModalOpen && (
         <Popup
           title="Open App Folder"
@@ -98,6 +98,4 @@ const FileMenu: React.FC<FileMenuProps> = ({
       )}
     </>
   );
-};
-
-export default FileMenu;
+}

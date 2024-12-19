@@ -10,6 +10,7 @@ import {
   useCallback,
   forwardRef,
   MouseEvent,
+  useContext,
 } from "react";
 import { ReactFlow, MiniMap, Controls, Connection } from "@xyflow/react";
 
@@ -17,10 +18,14 @@ import CustomNode, { CustomNodeType } from "./CustomNode";
 import CustomEdge, { CustomEdgeType } from "./CustomEdge";
 import NodeContextMenu from "./ContextMenu/NodeContextMenu";
 import EdgeContextMenu from "./ContextMenu/EdgeContextMenu";
-import TerminalPopup, {
-  TerminalData,
-} from "../components/TerminalPopup/TerminalPopup";
-import EditorPopup, { EditorData } from "../components/EditorPopup/EditorPopup";
+import TerminalPopup, { TerminalData } from "../components/Popup/TerminalPopup";
+import EditorPopup, { EditorData } from "../components/Popup/EditorPopup";
+
+// Import react-flow style.
+import "@xyflow/react/dist/style.css";
+import "./reactflow.css";
+
+import { ThemeProviderContext } from "@/components/theme-provider";
 
 export interface FlowCanvasRef {
   performAutoLayout: () => void;
@@ -128,7 +133,7 @@ const FlowCanvas = forwardRef<FlowCanvasRef, FlowCanvasProps>(
           node: node,
         });
       },
-      []
+      [],
     );
 
     // Right click Edges.
@@ -143,7 +148,7 @@ const FlowCanvas = forwardRef<FlowCanvasRef, FlowCanvasProps>(
           edge: edge,
         });
       },
-      []
+      [],
     );
 
     // Close context menu.
@@ -160,12 +165,15 @@ const FlowCanvas = forwardRef<FlowCanvasRef, FlowCanvasProps>(
       return () => window.removeEventListener("click", handleClick);
     }, [closeContextMenu]);
 
+    const { theme } = useContext(ThemeProviderContext);
+
     return (
       <div
         className="flow-container"
         style={{ width: "100%", height: "calc(100vh - 40px)" }}
       >
         <ReactFlow
+          colorMode={theme}
           nodes={nodes}
           edges={edges}
           edgeTypes={{
@@ -207,7 +215,7 @@ const FlowCanvas = forwardRef<FlowCanvasRef, FlowCanvasProps>(
         ))}
       </div>
     );
-  }
+  },
 );
 
 export default FlowCanvas;

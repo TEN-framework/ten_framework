@@ -10,8 +10,8 @@ import { FaEdit, FaTrash, FaTerminal } from "react-icons/fa";
 
 import ContextMenu, { ContextMenuItem } from "./ContextMenu";
 import { CustomNodeType } from "../CustomNode";
-import { TerminalData } from "../../components/TerminalPopup/TerminalPopup";
-import { EditorData } from "../../components/EditorPopup/EditorPopup";
+import { TerminalData } from "../../components/Popup/TerminalPopup";
+import { EditorData } from "../../components/Popup/EditorPopup";
 
 interface NodeContextMenuProps {
   visible: boolean;

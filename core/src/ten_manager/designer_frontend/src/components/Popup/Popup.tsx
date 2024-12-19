@@ -5,9 +5,9 @@
 // Refer to the "LICENSE" file in the root directory for more information.
 //
 import React, { useState, useEffect, useRef } from "react";
-
-import "./Popup.scss";
-import ReactDOM from "react-dom";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { ChevronDown, ChevronUp, X } from "lucide-react";
 
 const DEFAULT_WIDTH = 800;
 const DEFAULT_HEIGHT = 400;
@@ -66,7 +66,7 @@ const Popup: React.FC<PopupProps> = ({
 
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState<{ x: number; y: number } | null>(
-    null
+    null,
   );
 
   // Center the popup on mount.
@@ -216,23 +216,28 @@ const Popup: React.FC<PopupProps> = ({
   const bringToFront = () => {
     const highestZIndex = Math.max(
       ...Array.from(document.querySelectorAll(".popup")).map(
-        (el) => parseInt(window.getComputedStyle(el).zIndex) || 0
-      )
+        (el) => parseInt(window.getComputedStyle(el).zIndex) || 0,
+      ),
     );
     if (popupRef.current) {
       popupRef.current.style.zIndex = (highestZIndex + 1).toString();
     }
   };
 
-  return ReactDOM.createPortal(
+  return (
     <div
-      className={`popup ${isVisible ? "visible" : "hidden"}
-      ${isResizing ? "resizing" : ""} ${isDragging ? "dragging" : ""} ${
-        className || ""
-      }`}
+      className={cn(
+        "fixed bg-background border border-border shadow-lg text-sm",
+        "text-foreground rounded focus:outline-none flex flex-col popup",
+        isVisible ? "opacity-100" : "opacity-0",
+        isResizing && "select-none",
+        isDragging && "select-none cursor-move",
+        className,
+      )}
       style={{
         top: position.y,
         left: position.x,
+        zIndex: 1001,
         ...(size.width !== undefined && size.height !== undefined
           ? { width: size.width, height: size.height }
           : {}),
@@ -240,7 +245,6 @@ const Popup: React.FC<PopupProps> = ({
       ref={popupRef}
       tabIndex={-1}
       onClick={handleClick}
-      // Use `onMouseDownCapture` to ensure all internal clicks bubble up.
       onMouseDownCapture={() => {
         if (!preventFocusSteal) {
           popupRef.current?.focus();
@@ -249,35 +253,47 @@ const Popup: React.FC<PopupProps> = ({
       }}
     >
       <div
-        className="popup-header"
+        className="bg-muted p-2.5 flex justify-between items-center cursor-move select-none border-b border-border"
         onMouseDown={handleMouseDown}
         ref={headerRef}
       >
-        <span className="popup-title">{title}</span>
-        <div className="popup-buttons">
-          <button className="collapse-button" onClick={toggleCollapse}>
-            {isCollapsed ? "▼" : "▲"}
-          </button>
-          <button className="close-button" onClick={onClose}>
-            ×
-          </button>
+        <span className="font-bold">{title}</span>
+        <div className="flex items-center gap-1.5">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-auto p-1.5"
+            onClick={toggleCollapse}
+          >
+            {isCollapsed ? <ChevronDown /> : <ChevronUp />}
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-auto p-1.5"
+            onClick={onClose}
+          >
+            <X />
+          </Button>
         </div>
       </div>
 
       <div
-        className={`popup-content ${isCollapsed ? "collapsed" : ""}`}
-        style={{ width: "100%", height: "100%" }}
+        className={cn(
+          "p-2.5 overflow-hidden flex w-full h-full",
+          isCollapsed ? "invisible h-0 py-0" : "visible",
+        )}
       >
         {children}
       </div>
-      {resizable && (
+
+      {resizable && !isCollapsed && (
         <div
-          className="resize-handle"
+          className="w-[5px] h-[5px] bg-transparent absolute right-0 bottom-0 cursor-se-resize z-[1002]"
           onMouseDown={handleResizeMouseDown}
-        ></div>
+        />
       )}
-    </div>,
-    document.body // Render Popup in the body.
+    </div>
   );
 };
 

@@ -6,8 +6,6 @@
 //
 import React from "react";
 
-import "./ContextMenu.scss";
-
 export interface ContextMenuItem {
   label?: string;
   icon?: React.ReactNode;
@@ -27,7 +25,7 @@ const ContextMenu: React.FC<ContextMenuProps> = ({ visible, x, y, items }) => {
 
   return (
     <div
-      className="context-menu"
+      className="fixed bg-white border border-gray-300 p-1.5 shadow-lg z-[9999] box-border"
       style={{
         left: x,
         top: y,
@@ -36,14 +34,16 @@ const ContextMenu: React.FC<ContextMenuProps> = ({ visible, x, y, items }) => {
     >
       {items.map((item, index) => (
         <React.Fragment key={index}>
-          {/* Separator. */}
-          {item.separator && <div className="separator"></div>}
-          {/* Menu item. */}
+          {item.separator && <div className="h-px bg-gray-300 my-1.5"></div>}
           {!item.separator && (
-            <div className="menu-item" onClick={item.onClick}>
-              {/* Icon. Always render the icon, even if no icon. */}
-              <span className="menu-icon">{item.icon || null}</span>{" "}
-              <span className="menu-label">{item.label}</span>
+            <div
+              className="flex items-center px-2.5 py-1.5 whitespace-nowrap box-border cursor-pointer hover:bg-gray-100"
+              onClick={item.onClick}
+            >
+              <span className="mr-2 flex items-center h-[1em] flex-shrink-0 w-5 justify-center">
+                {item.icon || null}
+              </span>
+              <span className="flex-1 text-left">{item.label}</span>
             </div>
           )}
         </React.Fragment>
