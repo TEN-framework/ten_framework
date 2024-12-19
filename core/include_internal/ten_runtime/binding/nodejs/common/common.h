@@ -10,7 +10,9 @@
 
 #include <node_api.h>
 
+#include "ten_utils/lib/error.h"
 #include "ten_utils/log/log.h"
+#include "ten_utils/value/value.h"
 
 typedef struct ten_smart_ptr_t ten_shared_ptr_t;
 
@@ -92,3 +94,12 @@ TEN_RUNTIME_PRIVATE_API napi_value ten_nodejs_create_new_js_object_and_wrap(
     napi_env env, napi_ref constructor_ref, void *bridge_obj,
     napi_finalize finalizer, napi_ref *bridge_weak_ref, size_t argc,
     const napi_value *argv);
+
+TEN_RUNTIME_PRIVATE_API napi_value ten_nodejs_create_error(napi_env env,
+                                                           ten_error_t *error);
+
+TEN_RUNTIME_PRIVATE_API napi_value ten_nodejs_create_value_number(
+    napi_env env, ten_value_t *value, ten_error_t *error);
+
+TEN_RUNTIME_PRIVATE_API napi_value ten_nodejs_create_value_string(
+    napi_env env, ten_value_t *value, ten_error_t *error);

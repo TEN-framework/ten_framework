@@ -25,6 +25,12 @@ typedef struct extension_on_xxx_call_info_t {
   ten_env_proxy_t *ten_env_proxy;
 } extension_on_xxx_call_info_t;
 
+typedef struct extension_on_msg_call_info_t {
+  ten_nodejs_extension_t *extension_bridge;
+  ten_nodejs_ten_env_t *ten_env_bridge;
+  ten_shared_ptr_t *msg;
+} extension_on_msg_call_info_t;
+
 bool ten_nodejs_extension_check_integrity(ten_nodejs_extension_t *self,
                                           bool check_thread) {
   TEN_ASSERT(self, "Should not happen.");
@@ -343,7 +349,41 @@ done:
 }
 
 static void ten_nodejs_invoke_extension_js_on_cmd(napi_env env, napi_value fn,
-                                                  void *context, void *data) {}
+                                                  void *context, void *data) {
+  extension_on_msg_call_info_t *call_info = data;
+  TEN_ASSERT(call_info, "Should not happen.");
+
+  napi_status status = napi_ok;
+
+  {
+    // Call on_cmd() of the TEN JS extension.
+
+    // Get the TEN JS extension.
+    napi_value js_extension = NULL;
+    status = napi_get_reference_value(
+        env, call_info->extension_bridge->bridge.js_instance_ref,
+        &js_extension);
+    GOTO_LABEL_IF_NAPI_FAIL(error, status == napi_ok && js_extension != NULL,
+                            "Failed to get JS extension: %d", status);
+
+    // Get the TEN JS ten_env.
+    napi_value js_ten_env = NULL;
+    status = napi_get_reference_value(
+        env, call_info->ten_env_bridge->bridge.js_instance_ref, &js_ten_env);
+    GOTO_LABEL_IF_NAPI_FAIL(error, status == napi_ok && js_ten_env != NULL,
+                            "Failed to get JS ten_env: %d", status);
+
+    // TODO(xilin)
+  }
+
+  goto done;
+
+error:
+  TEN_LOGE("Failed to call JS extension on_cmd().");
+
+done:
+  TEN_FREE(call_info);
+}
 
 static void ten_nodejs_invoke_extension_js_on_data(napi_env env, napi_value fn,
                                                    void *context, void *data) {}
@@ -638,7 +678,42 @@ static void proxy_on_deinit(ten_extension_t *self, ten_env_t *ten_env) {
 }
 
 static void proxy_on_cmd(ten_extension_t *self, ten_env_t *ten_env,
-                         ten_shared_ptr_t *cmd) {}
+                         ten_shared_ptr_t *cmd) {
+  TEN_LOGI("extension proxy_on_cmd");
+
+  TEN_ASSERT(self && ten_extension_check_integrity(self, true),
+             "Should not happen.");
+  TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
+             "Should not happen.");
+
+  ten_nodejs_extension_t *extension_bridge =
+      ten_binding_handle_get_me_in_target_lang((ten_binding_handle_t *)self);
+  TEN_ASSERT(extension_bridge &&
+                 // TEN_NOLINTNEXTLINE(thread-check)
+                 ten_nodejs_extension_check_integrity(extension_bridge, false),
+             "Should not happen.");
+
+  ten_nodejs_ten_env_t *ten_env_bridge =
+      ten_binding_handle_get_me_in_target_lang((ten_binding_handle_t *)ten_env);
+  TEN_ASSERT(ten_env_bridge &&
+                 // TEN_NOLINTNEXTLINE(thread-check)
+                 ten_nodejs_ten_env_check_integrity(ten_env_bridge, false),
+             "Should not happen.");
+
+  extension_on_msg_call_info_t *call_info =
+      TEN_MALLOC(sizeof(extension_on_msg_call_info_t));
+  TEN_ASSERT(call_info, "Failed to allocate memory.");
+
+  call_info->extension_bridge = extension_bridge;
+  call_info->ten_env_bridge = ten_env_bridge;
+  call_info->msg = ten_shared_ptr_clone(cmd);
+
+  bool rc = ten_nodejs_tsfn_invoke(extension_bridge->js_on_cmd, call_info);
+  if (!rc) {
+    TEN_LOGE("Failed to call extension on_cmd().");
+    TEN_FREE(call_info);
+  }
+}
 static void proxy_on_data(ten_extension_t *self, ten_env_t *ten_env,
                           ten_shared_ptr_t *data) {}
 static void proxy_on_audio_frame(ten_extension_t *self, ten_env_t *ten_env,

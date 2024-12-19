@@ -124,6 +124,7 @@ export class TenEnv {
     async getPropertyToJson(path: string): Promise<string> {
         return new Promise<string>((resolve, reject) => {
             ten_addon.ten_nodejs_ten_env_get_property_to_json(
+                this,
                 path,
                 async (result: string, error: Error) => {
                     if (error) {
@@ -139,6 +140,7 @@ export class TenEnv {
     async setPropertyFromJson(path: string, jsonStr: string): Promise<void> {
         return new Promise<void>((resolve, reject) => {
             ten_addon.ten_nodejs_ten_env_set_property_from_json(
+                this,
                 path,
                 jsonStr,
                 async (error: Error) => {
@@ -155,6 +157,7 @@ export class TenEnv {
     async getPropertyNumber(path: string): Promise<number> {
         return new Promise<number>((resolve, reject) => {
             ten_addon.ten_nodejs_ten_env_get_property_number(
+                this,
                 path,
                 async (result: number, error: Error) => {
                     if (error) {
@@ -170,6 +173,7 @@ export class TenEnv {
     async setPropertyNumber(path: string, value: number): Promise<void> {
         return new Promise<void>((resolve, reject) => {
             ten_addon.ten_nodejs_ten_env_set_property_number(
+                this,
                 path,
                 value,
                 async (error: Error) => {
@@ -186,6 +190,7 @@ export class TenEnv {
     async getPropertyString(path: string): Promise<string> {
         return new Promise<string>((resolve, reject) => {
             ten_addon.ten_nodejs_ten_env_get_property_string(
+                this,
                 path,
                 async (result: string, error: Error) => {
                     if (error) {
@@ -201,6 +206,7 @@ export class TenEnv {
     async setPropertyString(path: string, value: string): Promise<void> {
         return new Promise<void>((resolve, reject) => {
             ten_addon.ten_nodejs_ten_env_set_property_string(
+                this,
                 path,
                 value,
                 async (error: Error) => {

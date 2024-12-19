@@ -6,9 +6,13 @@
 //
 #include "include_internal/ten_runtime/binding/nodejs/common/common.h"
 
+#include "ten_runtime/common/errno.h"
 #include "ten_utils/lib/string.h"
 #include "ten_utils/macro/check.h"
 #include "ten_utils/macro/memory.h"
+#include "ten_utils/value/value.h"
+#include "ten_utils/value/value_get.h"
+#include "ten_utils/value/value_is.h"
 
 napi_value js_undefined(napi_env env) {
   TEN_ASSERT(env, "Should not happen.");
@@ -239,4 +243,133 @@ napi_value ten_nodejs_create_new_js_object_and_wrap(
 
 done:
   return js_instance;
+}
+
+napi_value ten_nodejs_create_error(napi_env env, ten_error_t *error) {
+  TEN_ASSERT(env, "Should not happen.");
+  TEN_ASSERT(error, "Should not happen.");
+
+  napi_value js_error = NULL;
+  napi_value _code = NULL;
+  napi_value _msg = NULL;
+
+  ten_string_t code_str;
+  ten_string_init_formatted(&code_str, "%d", ten_error_errno(error));
+
+  napi_status status = napi_create_string_utf8(
+      env, ten_string_get_raw_str(&code_str), NAPI_AUTO_LENGTH, &_code);
+  TEN_ASSERT(status == napi_ok, "Failed to create JS string.");
+
+  ten_string_deinit(&code_str);
+
+  status = napi_create_string_utf8(env, ten_error_errmsg(error),
+                                   NAPI_AUTO_LENGTH, &_msg);
+  TEN_ASSERT(status == napi_ok, "Failed to create JS string.");
+
+  status = napi_create_error(env, _code, _msg, &js_error);
+  TEN_ASSERT(status == napi_ok, "Failed to create JS error.");
+
+  return js_error;
+}
+
+napi_value ten_nodejs_create_value_number(napi_env env, ten_value_t *value,
+                                          ten_error_t *error) {
+  TEN_ASSERT(env, "Should not happen.");
+  TEN_ASSERT(value && ten_value_check_integrity(value), "Should not happen.");
+
+  napi_value js_value = NULL;
+  napi_status status = napi_ok;
+
+  switch (value->type) {
+    case TEN_TYPE_INVALID:
+    case TEN_TYPE_NULL:
+    case TEN_TYPE_BOOL:
+    case TEN_TYPE_STRING:
+    case TEN_TYPE_BUF:
+    case TEN_TYPE_ARRAY:
+    case TEN_TYPE_OBJECT:
+    case TEN_TYPE_PTR:
+    case TEN_TYPE_UINT64:
+      break;
+    case TEN_TYPE_INT8:
+      status =
+          napi_create_int32(env, ten_value_get_int8(value, error), &js_value);
+      ASSERT_IF_NAPI_FAIL(status == napi_ok, "Failed to create JS int8: %d",
+                          status);
+      break;
+    case TEN_TYPE_INT16:
+      status =
+          napi_create_int32(env, ten_value_get_int16(value, error), &js_value);
+      ASSERT_IF_NAPI_FAIL(status == napi_ok, "Failed to create JS int16: %d",
+                          status);
+      break;
+    case TEN_TYPE_INT32:
+      status =
+          napi_create_int32(env, ten_value_get_int32(value, error), &js_value);
+      ASSERT_IF_NAPI_FAIL(status == napi_ok, "Failed to create JS int32: %d",
+                          status);
+      break;
+    case TEN_TYPE_INT64:
+      status =
+          napi_create_int64(env, ten_value_get_int64(value, error), &js_value);
+      ASSERT_IF_NAPI_FAIL(status == napi_ok, "Failed to create JS int64: %d",
+                          status);
+      break;
+    case TEN_TYPE_UINT8:
+      status =
+          napi_create_uint32(env, ten_value_get_uint8(value, error), &js_value);
+      ASSERT_IF_NAPI_FAIL(status == napi_ok, "Failed to create JS uint8: %d",
+                          status);
+      break;
+    case TEN_TYPE_UINT16:
+      status = napi_create_uint32(env, ten_value_get_uint16(value, error),
+                                  &js_value);
+      ASSERT_IF_NAPI_FAIL(status == napi_ok, "Failed to create JS uint16: %d",
+                          status);
+      break;
+    case TEN_TYPE_UINT32:
+      status = napi_create_uint32(env, ten_value_get_uint32(value, error),
+                                  &js_value);
+      ASSERT_IF_NAPI_FAIL(status == napi_ok, "Failed to create JS uint32: %d",
+                          status);
+      break;
+    case TEN_TYPE_FLOAT32:
+      status = napi_create_double(env, ten_value_get_float32(value, error),
+                                  &js_value);
+      ASSERT_IF_NAPI_FAIL(status == napi_ok, "Failed to create JS float32: %d",
+                          status);
+      break;
+    case TEN_TYPE_FLOAT64:
+      status = napi_create_double(env, ten_value_get_float64(value, error),
+                                  &js_value);
+      ASSERT_IF_NAPI_FAIL(status == napi_ok, "Failed to create JS float64: %d",
+                          status);
+      break;
+  }
+
+  return js_value;
+}
+
+napi_value ten_nodejs_create_value_string(napi_env env, ten_value_t *value,
+                                          ten_error_t *error) {
+  TEN_ASSERT(env, "Should not happen.");
+  TEN_ASSERT(value && ten_value_check_integrity(value), "Should not happen.");
+
+  napi_value js_value = NULL;
+  napi_status status = napi_ok;
+
+  if (ten_value_is_string(value)) {
+    ten_string_t *value_string = ten_value_peek_string(value);
+
+    status = napi_create_string_utf8(env, ten_string_get_raw_str(value_string),
+                                     ten_string_len(value_string), &js_value);
+    ASSERT_IF_NAPI_FAIL(status == napi_ok, "Failed to create JS string: %d",
+                        status);
+  } else {
+    if (error) {
+      ten_error_set(error, TEN_ERRNO_INVALID_TYPE, "Invalid value type.");
+    }
+  }
+
+  return js_value;
 }

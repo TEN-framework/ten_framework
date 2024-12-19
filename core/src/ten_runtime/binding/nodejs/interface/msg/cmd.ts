@@ -8,5 +8,20 @@ import ten_addon from '../ten_addon'
 import { Msg } from './msg';
 
 export class Cmd extends Msg {
+    private constructor(name: string, createShellOnly: boolean) {
+        super();
+
+        if (createShellOnly) {
+            return;
+        }
+
+        ten_addon.ten_nodejs_cmd_create(this, name);
+    }
+
+    static Create(name: string): Cmd {
+        return new Cmd(name, false);
+    }
 
 }
+
+ten_addon.ten_nodejs_cmd_register_class(Cmd);

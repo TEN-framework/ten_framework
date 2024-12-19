@@ -14,44 +14,31 @@ export class App {
     }
 
     private async onConfigureProxy(tenEnv: TenEnv): Promise<void> {
-        try {
-            await this.onConfigure(tenEnv);
-        } catch (error) {
-            // tenEnv.log
-        } finally {
-            AddonManager._load_all_addons();
-            AddonManager._register_all_addons(null);
+        await this.onConfigure(tenEnv);
 
-            ten_addon.ten_nodejs_ten_env_on_configure_done(tenEnv);
-        }
+        AddonManager._load_all_addons();
+        AddonManager._register_all_addons(null);
+
+        ten_addon.ten_nodejs_ten_env_on_configure_done(tenEnv);
     }
 
     private async onInitProxy(tenEnv: TenEnv): Promise<void> {
-        try {
-            await this.onInit(tenEnv);
-        } catch (error) {
-            // tenEnv.log
-        } finally {
-            ten_addon.ten_nodejs_ten_env_on_init_done(tenEnv);
-        }
+        await this.onInit(tenEnv);
+        ten_addon.ten_nodejs_ten_env_on_init_done(tenEnv);
     }
 
     private async onDeinitProxy(tenEnv: TenEnv): Promise<void> {
-        try {
-            await this.onDeinit(tenEnv);
-        } catch (error) {
-            // tenEnv.log
-        } finally {
-            ten_addon.ten_nodejs_ten_env_on_deinit_done(tenEnv);
+        await this.onDeinit(tenEnv);
 
-            /**
-            * JS app prepare to be destroyed, so notify the underlying C runtime this
-            * fact.
-            */
-            ten_addon.ten_nodejs_app_on_end_of_life(this);
+        ten_addon.ten_nodejs_ten_env_on_deinit_done(tenEnv);
 
-            (global as any).gc();
-        }
+        /**
+        * JS app prepare to be destroyed, so notify the underlying C runtime this
+        * fact.
+        */
+        ten_addon.ten_nodejs_app_on_end_of_life(this);
+
+        (global as any).gc();
     }
 
     /** The ten app should be run in another native thread not the JS main thread. */

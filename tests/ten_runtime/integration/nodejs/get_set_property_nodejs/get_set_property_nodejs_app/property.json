@@ -21,7 +21,14 @@
             "addon": "default_extension_ts",
             "extension_group": "default_extension_group",
             "property": {
-              "aaa": 123
+              "aaa": 123,
+              "keyInt": -32141,
+              "keyFloat": 3.14159,
+              "keyString": "hello",
+              "keyObject": {
+                "key1": "value1",
+                "key2": 2
+              }
             }
           },
           {

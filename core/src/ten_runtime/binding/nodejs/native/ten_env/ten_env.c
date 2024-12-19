@@ -115,6 +115,33 @@ void ten_nodejs_get_property_call_info_destroy(
   TEN_FREE(info);
 }
 
+ten_nodejs_set_property_call_info_t *ten_nodejs_set_property_call_info_create(
+    ten_nodejs_tsfn_t *cb_tsfn, bool success, ten_error_t *error) {
+  TEN_ASSERT(cb_tsfn, "Invalid argument.");
+
+  ten_nodejs_set_property_call_info_t *info =
+      (ten_nodejs_set_property_call_info_t *)TEN_MALLOC(
+          sizeof(ten_nodejs_set_property_call_info_t));
+  TEN_ASSERT(info, "Failed to allocate memory.");
+
+  info->cb_tsfn = cb_tsfn;
+  info->success = success;
+  info->error = error;
+
+  return info;
+}
+
+void ten_nodejs_set_property_call_info_destroy(
+    ten_nodejs_set_property_call_info_t *info) {
+  TEN_ASSERT(info, "Invalid argument.");
+
+  if (info->error) {
+    ten_error_destroy(info->error);
+  }
+
+  TEN_FREE(info);
+}
+
 napi_value ten_nodejs_ten_env_create_new_js_object_and_wrap(
     napi_env env, ten_env_t *ten_env,
     ten_nodejs_ten_env_t **out_ten_env_bridge) {
