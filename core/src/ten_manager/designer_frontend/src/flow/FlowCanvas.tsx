@@ -11,66 +11,73 @@ import {
   forwardRef,
   MouseEvent,
   useContext,
-} from "react";
-import { ReactFlow, MiniMap, Controls, Connection } from "@xyflow/react";
+} from "react"
+import {
+  ReactFlow,
+  MiniMap,
+  Controls,
+  Connection,
+  type NodeChange,
+  type EdgeChange,
+} from "@xyflow/react"
 
-import CustomNode, { CustomNodeType } from "./CustomNode";
-import CustomEdge, { CustomEdgeType } from "./CustomEdge";
-import NodeContextMenu from "./ContextMenu/NodeContextMenu";
-import EdgeContextMenu from "./ContextMenu/EdgeContextMenu";
-import TerminalPopup, { TerminalData } from "../components/Popup/TerminalPopup";
-import EditorPopup, { EditorData } from "../components/Popup/EditorPopup";
+import CustomNode, { CustomNodeType } from "./CustomNode"
+import CustomEdge, { CustomEdgeType } from "./CustomEdge"
+import NodeContextMenu from "./ContextMenu/NodeContextMenu"
+import EdgeContextMenu from "./ContextMenu/EdgeContextMenu"
+import TerminalPopup, { TerminalData } from "../components/Popup/TerminalPopup"
+import EditorPopup, { EditorData } from "../components/Popup/EditorPopup"
 
 // Import react-flow style.
-import "@xyflow/react/dist/style.css";
-import "./reactflow.css";
+import "@xyflow/react/dist/style.css"
+import "./reactflow.css"
 
-import { ThemeProviderContext } from "@/components/theme-provider";
+import { ThemeProviderContext } from "@/components/theme-provider"
 
 export interface FlowCanvasRef {
-  performAutoLayout: () => void;
+  performAutoLayout: () => void
 }
 
 interface FlowCanvasProps {
-  nodes: CustomNodeType[];
-  edges: CustomEdgeType[];
-  onNodesChange: (changes: unknown) => void;
-  onEdgesChange: (changes: unknown) => void;
-  onConnect: (connection: Connection) => void;
+  nodes: CustomNodeType[]
+  edges: CustomEdgeType[]
+  onNodesChange: (changes: NodeChange<CustomNodeType>[]) => void
+  onEdgesChange: (changes: EdgeChange<CustomEdgeType>[]) => void
+  onConnect: (connection: Connection) => void
 }
 
 const FlowCanvas = forwardRef<FlowCanvasRef, FlowCanvasProps>(
   ({ nodes, edges, onNodesChange, onEdgesChange, onConnect }) => {
     const [terminalPopups, setTerminalPopups] = useState<
       { id: string; data: TerminalData }[]
-    >([]);
+    >([])
     const [editorPopups, setEditorPopups] = useState<
       { id: string; data: EditorData }[]
-    >([]);
+    >([])
 
     const [contextMenu, setContextMenu] = useState<{
-      visible: boolean;
-      x: number;
-      y: number;
-      type?: "node" | "edge";
-      edge?: CustomEdgeType;
-      node?: CustomNodeType;
-    }>({ visible: false, x: 0, y: 0 });
+      visible: boolean
+      x: number
+      y: number
+      type?: "node" | "edge"
+      edge?: CustomEdgeType
+      node?: CustomNodeType
+    }>({ visible: false, x: 0, y: 0 })
 
     const launchTerminal = (data: TerminalData) => {
-      const newPopup = { id: `${data.title}-${Date.now()}`, data };
-      setTerminalPopups((prev) => [...prev, newPopup]);
-    };
+      const newPopup = { id: `${data.title}-${Date.now()}`, data }
+      setTerminalPopups((prev) => [...prev, newPopup])
+    }
 
     const closeTerminal = (id: string) => {
-      setTerminalPopups((prev) => prev.filter((popup) => popup.id !== id));
-    };
+      setTerminalPopups((prev) => prev.filter((popup) => popup.id !== id))
+    }
 
     const launchEditor = (data: EditorData) => {
       setEditorPopups((prev) => {
-        const existingPopup = prev.find((popup) => popup.data.url === data.url);
+        const existingPopup = prev.find((popup) => popup.data.url === data.url)
         if (existingPopup) {
-          return prev;
+          return prev
         } else {
           return [
             ...prev,
@@ -85,14 +92,14 @@ const FlowCanvas = forwardRef<FlowCanvasRef, FlowCanvasProps>(
                 content: "",
               },
             },
-          ];
+          ]
         }
-      });
-    };
+      })
+    }
 
     const closeEditor = (id: string) => {
-      setEditorPopups((prev) => prev.filter((popup) => popup.id !== id));
-    };
+      setEditorPopups((prev) => prev.filter((popup) => popup.id !== id))
+    }
 
     const renderContextMenu = () => {
       if (contextMenu.type === "node" && contextMenu.node) {
@@ -106,7 +113,7 @@ const FlowCanvas = forwardRef<FlowCanvasRef, FlowCanvasProps>(
             onLaunchTerminal={launchTerminal}
             onLaunchEditor={launchEditor}
           />
-        );
+        )
       } else if (contextMenu.type === "edge" && contextMenu.edge) {
         return (
           <EdgeContextMenu
@@ -116,56 +123,56 @@ const FlowCanvas = forwardRef<FlowCanvasRef, FlowCanvasProps>(
             edge={contextMenu.edge}
             onClose={closeContextMenu}
           />
-        );
+        )
       }
-      return null;
-    };
+      return null
+    }
 
     // Right click nodes.
     const clickNodeContextMenu = useCallback(
       (event: MouseEvent, node: CustomNodeType) => {
-        event.preventDefault();
+        event.preventDefault()
         setContextMenu({
           visible: true,
           x: event.clientX,
           y: event.clientY,
           type: "node",
           node: node,
-        });
+        })
       },
-      [],
-    );
+      []
+    )
 
     // Right click Edges.
     const clickEdgeContextMenu = useCallback(
       (event: MouseEvent, edge: CustomEdgeType) => {
-        event.preventDefault();
+        event.preventDefault()
         setContextMenu({
           visible: true,
           x: event.clientX,
           y: event.clientY,
           type: "edge",
           edge: edge,
-        });
+        })
       },
-      [],
-    );
+      []
+    )
 
     // Close context menu.
     const closeContextMenu = useCallback(() => {
-      setContextMenu({ visible: false, x: 0, y: 0 });
-    }, []);
+      setContextMenu({ visible: false, x: 0, y: 0 })
+    }, [])
 
     // Click empty space to close context menu.
     useEffect(() => {
       const handleClick = () => {
-        closeContextMenu();
-      };
-      window.addEventListener("click", handleClick);
-      return () => window.removeEventListener("click", handleClick);
-    }, [closeContextMenu]);
+        closeContextMenu()
+      }
+      window.addEventListener("click", handleClick)
+      return () => window.removeEventListener("click", handleClick)
+    }, [closeContextMenu])
 
-    const { theme } = useContext(ThemeProviderContext);
+    const { theme } = useContext(ThemeProviderContext)
 
     return (
       <div
@@ -214,8 +221,8 @@ const FlowCanvas = forwardRef<FlowCanvasRef, FlowCanvasProps>(
           />
         ))}
       </div>
-    );
-  },
-);
+    )
+  }
+)
 
-export default FlowCanvas;
+export default FlowCanvas

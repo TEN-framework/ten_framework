@@ -1,17 +1,16 @@
-import * as React from "react";
-import { useTranslation } from "react-i18next";
-import { LanguagesIcon, CheckIcon } from "lucide-react";
+import { useTranslation } from "react-i18next"
+import { LanguagesIcon, CheckIcon } from "lucide-react"
 
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from "@/components/ui/dropdown-menu"
 
 export function LanguageToggle() {
-  const { i18n } = useTranslation();
+  const { i18n } = useTranslation()
 
   return (
     <DropdownMenu>
@@ -34,5 +33,5 @@ export function LanguageToggle() {
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
-  );
+  )
 }
