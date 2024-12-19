@@ -52,12 +52,13 @@ pub fn extract_solver_results_from_raw_solver_results(
                 })
                 .unwrap()
             {
-                if candidate.1.pkg_type != pkg_type || candidate.1.name != name
+                if candidate.1.basic_info.type_and_name.pkg_type != pkg_type
+                    || candidate.1.basic_info.type_and_name.name != name
                 {
                     panic!("Should not happen.");
                 }
 
-                if candidate.1.version == semver {
+                if candidate.1.basic_info.version == semver {
                     results_info.push(candidate.1.clone());
                     continue 'outer;
                 }
@@ -77,8 +78,19 @@ pub fn filter_solver_results_by_type_and_name<'a>(
     let mut filtered_results: Vec<&PkgInfo> = vec![];
 
     for result in solver_results.iter() {
-        let matches_type = pkg_type.map_or(true, |pt| result.pkg_type == *pt);
-        let matches_name = name.map_or(true, |n| result.name == *n);
+        // After Rust 1.82, there is an `is_none_or` method, and Clippy will
+        // suggest using `is_none_or` for simplicity. However, since Ten
+        // currently needs to rely on Rust 1.81 on macOS (mainly because debug
+        // mode on Mac enables ASAN, and rustc must match the versions of
+        // LLVM/Clang to prevent ASAN linking errors), we disable this specific
+        // Clippy warning here.
+        #[allow(clippy::unnecessary_map_or)]
+        let matches_type = pkg_type
+            .map_or(true, |pt| result.basic_info.type_and_name.pkg_type == *pt);
+
+        #[allow(clippy::unnecessary_map_or)]
+        let matches_name =
+            name.map_or(true, |n| result.basic_info.type_and_name.name == *n);
 
         let matches = matches_type && matches_name;
 
@@ -114,10 +126,11 @@ pub async fn install_solver_results_in_app_folder(
         bar.inc(1);
         bar.set_message(format!(
             "{}/{}",
-            solver_result.pkg_type, solver_result.name
+            solver_result.basic_info.type_and_name.pkg_type,
+            solver_result.basic_info.type_and_name.name
         ));
 
-        let base_dir = match solver_result.pkg_type {
+        let base_dir = match solver_result.basic_info.type_and_name.pkg_type {
             PkgType::Extension => {
                 app_dir.join(TEN_PACKAGES_DIR).join(EXTENSION_DIR)
             }
