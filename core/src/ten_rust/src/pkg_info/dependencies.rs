@@ -13,7 +13,7 @@ use anyhow::Result;
 use semver::{Version, VersionReq};
 use serde::{Deserialize, Serialize};
 
-use super::{pkg_identity::PkgIdentity, pkg_type::PkgType};
+use super::{pkg_type::PkgType, pkg_type_and_name::PkgTypeAndName};
 use crate::pkg_info::manifest::{dependency::ManifestDependency, Manifest};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -31,9 +31,9 @@ pub struct PkgDependency {
     pub version_req_str: Option<String>,
 }
 
-impl From<&PkgDependency> for PkgIdentity {
+impl From<&PkgDependency> for PkgTypeAndName {
     fn from(dependency: &PkgDependency) -> Self {
-        PkgIdentity {
+        PkgTypeAndName {
             pkg_type: dependency.pkg_type,
             name: dependency.name.clone(),
         }

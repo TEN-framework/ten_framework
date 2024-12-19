@@ -13,8 +13,8 @@ use clingo::{
 };
 
 use ten_rust::pkg_info::{
-    dependencies::DependencyRelationship, pkg_identity::PkgIdentity,
-    pkg_type::PkgType, PkgInfo,
+    dependencies::DependencyRelationship, pkg_type::PkgType,
+    pkg_type_and_name::PkgTypeAndName, PkgInfo,
 };
 
 use crate::{
@@ -155,11 +155,13 @@ fn print_statistics(
     }
 }
 
+type UsableModel = Option<Vec<String>>;
+type NonUsableModels = Vec<Vec<String>>;
+type SolveOutcome = (UsableModel, NonUsableModels);
+type SolveResult = Result<SolveOutcome>;
+
 #[allow(unused_assignments)]
-fn solve(
-    tman_config: &TmanConfig,
-    input: &str,
-) -> Result<(Option<Vec<String>>, Vec<Vec<String>>)> {
+fn solve(tman_config: &TmanConfig, input: &str) -> SolveResult {
     // Create a control object.
     // i.e., clingo_control_new
     let mut ctl = control({
@@ -292,7 +294,7 @@ fn solve(
 fn create_input_str_for_dependency_relationship(
     input_str: &mut String,
     dependency_relationships: &Vec<DependencyRelationship>,
-    all_candidates: &HashMap<PkgIdentity, HashSet<PkgInfo>>,
+    all_candidates: &HashMap<PkgTypeAndName, HashSet<PkgInfo>>,
 ) -> Result<()> {
     for dependency_relationship in dependency_relationships {
         let candidates =
@@ -337,7 +339,7 @@ fn create_input_str_for_pkg_info_dependencies(
     input_str: &mut String,
     pkg_info: &PkgInfo,
     dumped_pkgs_info: &mut HashSet<PkgInfo>,
-    all_candidates: &HashMap<PkgIdentity, HashSet<PkgInfo>>,
+    all_candidates: &HashMap<PkgTypeAndName, HashSet<PkgInfo>>,
 ) -> Result<()> {
     // If this package has already been dumped, skip it.
     if dumped_pkgs_info.contains(pkg_info) {
@@ -418,8 +420,8 @@ fn create_input_str_for_pkg_info_without_dependencies(
 
 fn create_input_str_for_all_possible_pkgs_info(
     input_str: &mut String,
-    all_candidates: &HashMap<PkgIdentity, HashSet<PkgInfo>>,
-    locked_pkgs: Option<&HashMap<PkgIdentity, PkgInfo>>,
+    all_candidates: &HashMap<PkgTypeAndName, HashSet<PkgInfo>>,
+    locked_pkgs: Option<&HashMap<PkgTypeAndName, PkgInfo>>,
 ) -> Result<()> {
     for candidates in all_candidates {
         let mut candidates_vec: Vec<_> = candidates.1.iter().collect();
@@ -464,8 +466,8 @@ fn create_input_str(
     pkg_name: &String,
     pkg_type: &PkgType,
     extra_dependency_relationships: &Vec<DependencyRelationship>,
-    all_candidates: &HashMap<PkgIdentity, HashSet<PkgInfo>>,
-    locked_pkgs: Option<&HashMap<PkgIdentity, PkgInfo>>,
+    all_candidates: &HashMap<PkgTypeAndName, HashSet<PkgInfo>>,
+    locked_pkgs: Option<&HashMap<PkgTypeAndName, PkgInfo>>,
 ) -> Result<String> {
     let mut input_str = String::new();
 
@@ -517,9 +519,9 @@ pub fn solve_all(
     pkg_name: &String,
     pkg_type: &PkgType,
     extra_dependency_relationships: &Vec<DependencyRelationship>,
-    all_candidates: &HashMap<PkgIdentity, HashSet<PkgInfo>>,
-    locked_pkgs: Option<&HashMap<PkgIdentity, PkgInfo>>,
-) -> Result<(Option<Vec<String>>, Vec<Vec<String>>)> {
+    all_candidates: &HashMap<PkgTypeAndName, HashSet<PkgInfo>>,
+    locked_pkgs: Option<&HashMap<PkgTypeAndName, PkgInfo>>,
+) -> SolveResult {
     let input_str = create_input_str(
         tman_config,
         pkg_name,

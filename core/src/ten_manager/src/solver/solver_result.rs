@@ -16,7 +16,7 @@ use regex::Regex;
 use semver::Version;
 
 use ten_rust::pkg_info::{
-    pkg_identity::PkgIdentity, pkg_type::PkgType, PkgInfo,
+    pkg_type::PkgType, pkg_type_and_name::PkgTypeAndName, PkgInfo,
 };
 
 use crate::{
@@ -30,7 +30,7 @@ use crate::{
 
 pub fn extract_solver_results_from_raw_solver_results(
     results: &[String],
-    all_candidates: &HashMap<PkgIdentity, HashSet<PkgInfo>>,
+    all_candidates: &HashMap<PkgTypeAndName, HashSet<PkgInfo>>,
 ) -> Result<Vec<PkgInfo>> {
     let re =
         Regex::new(r#"selected_pkg_version\("([^"]+)","([^"]+)","([^"]+)"\)"#)
@@ -48,7 +48,7 @@ pub fn extract_solver_results_from_raw_solver_results(
             let semver = semver_str.parse::<Version>()?;
 
             for candidate in all_candidates
-                .get(&PkgIdentity {
+                .get(&PkgTypeAndName {
                     pkg_type,
                     name: name.to_string(),
                 })

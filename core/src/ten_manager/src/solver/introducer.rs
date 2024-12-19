@@ -9,14 +9,14 @@ use std::collections::{HashMap, HashSet};
 use anyhow::Result;
 use regex::Regex;
 
-use ten_rust::pkg_info::{pkg_identity::PkgIdentity, PkgInfo};
+use ten_rust::pkg_info::{pkg_type_and_name::PkgTypeAndName, PkgInfo};
 
 use crate::dep_and_candidate::get_pkg_info_from_candidates;
 
 /// Returns a map from a package to its introducer and the requested version.
 pub fn extract_introducer_relations_from_raw_solver_results(
     results: &[String],
-    all_candidates: &HashMap<PkgIdentity, HashSet<PkgInfo>>,
+    all_candidates: &HashMap<PkgTypeAndName, HashSet<PkgInfo>>,
 ) -> Result<HashMap<PkgInfo, (String, Option<PkgInfo>)>> {
     let re = Regex::new(
       r#"introducer\("([^"]+)","([^"]+)","([^"]+)","([^"]+)","([^"]*)","([^"]*)"\)"#,
@@ -88,9 +88,9 @@ pub fn extract_introducer_relations_from_raw_solver_results(
 
 pub fn get_dependency_chain(
     introducer: &PkgInfo,
-    conflict_pkg_identity: &PkgIdentity,
+    conflict_pkg_identity: &PkgTypeAndName,
     introducer_relations: &HashMap<PkgInfo, (String, Option<PkgInfo>)>,
-) -> Vec<(String, PkgIdentity)> {
+) -> Vec<(String, PkgTypeAndName)> {
     let mut chain = Vec::new();
     let mut current_pkg = introducer.clone();
     let mut visited = HashSet::new();

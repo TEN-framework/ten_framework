@@ -13,9 +13,9 @@ pub mod hash;
 pub mod language;
 pub mod manifest;
 pub mod message;
-pub mod pkg_identity;
-mod pkg_info_key;
 pub mod pkg_type;
+pub mod pkg_type_and_name;
+pub mod pkg_type_name_version_supports;
 pub mod predefined_graphs;
 pub mod property;
 pub mod supports;
@@ -24,13 +24,14 @@ pub mod value_type;
 
 use std::{
     cmp::Ordering,
-    collections::{HashMap, HashSet},
+    collections::HashMap,
     hash::{Hash, Hasher},
     path::{Path, PathBuf},
 };
 
 use anyhow::Result;
 use graph::Graph;
+use pkg_type_and_name::PkgTypeAndName;
 use semver::Version;
 
 use crate::schema::store::SchemaStore;
@@ -253,11 +254,12 @@ pub fn get_pkg_info_from_path(pkg_path: &Path) -> Result<PkgInfo> {
 
 fn collect_pkg_info_from_path(
     base_path: &Path,
-    pkgs_info: &mut HashSet<PkgInfo>,
+    pkgs_info: &mut HashMap<PkgTypeAndName, PkgInfo>,
 ) -> Result<Manifest> {
     let pkg_info = get_pkg_info_from_path(base_path)?;
 
-    if pkgs_info.contains(&pkg_info) {
+    let pkg_type_name = PkgTypeAndName::from(&pkg_info);
+    if pkgs_info.contains_key(&pkg_type_name) {
         return Err(anyhow::anyhow!(
             "Duplicated package, type: {}, name: {}",
             pkg_info.pkg_type,
@@ -267,15 +269,15 @@ fn collect_pkg_info_from_path(
 
     let manifest = pkg_info.manifest.clone().unwrap().clone();
 
-    pkgs_info.insert(pkg_info);
+    pkgs_info.insert(pkg_type_name, pkg_info);
 
     Ok(manifest)
 }
 
-pub fn get_all_existed_pkgs_info_of_app_to_hashset(
+pub fn get_all_existed_pkgs_info_of_app_to_hashmap(
     app_path: &Path,
-) -> Result<HashSet<PkgInfo>> {
-    let mut pkgs_info: HashSet<PkgInfo> = HashSet::new();
+) -> Result<HashMap<PkgTypeAndName, PkgInfo>> {
+    let mut pkgs_info: HashMap<PkgTypeAndName, PkgInfo> = HashMap::new();
 
     // Process the manifest.json file in the root path.
     let app_pkg_manifest =
@@ -347,8 +349,8 @@ pub fn get_all_existed_pkgs_info_of_app_to_hashset(
 pub fn get_all_existed_pkgs_info_of_app(
     app_path: &Path,
 ) -> Result<Vec<PkgInfo>> {
-    let result = get_all_existed_pkgs_info_of_app_to_hashset(app_path)?;
-    Ok(result.into_iter().collect())
+    let result = get_all_existed_pkgs_info_of_app_to_hashmap(app_path)?;
+    Ok(result.into_values().collect())
 }
 
 pub fn find_untracked_local_packages<'a>(

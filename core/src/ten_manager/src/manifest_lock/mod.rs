@@ -18,7 +18,7 @@ use ten_rust::pkg_info::supports::{
     get_manifest_supports_from_pkg, get_pkg_supports_from_manifest_supports,
 };
 use ten_rust::pkg_info::{
-    pkg_identity::PkgIdentity, pkg_type::PkgType, PkgInfo,
+    pkg_type::PkgType, pkg_type_and_name::PkgTypeAndName, PkgInfo,
 };
 
 use super::constants::MANIFEST_LOCK_JSON_FILENAME;
@@ -63,7 +63,7 @@ impl FromStr for ManifestLock {
 }
 
 impl ManifestLock {
-    pub fn get_pkgs(&self) -> HashMap<PkgIdentity, PkgInfo> {
+    pub fn get_pkgs(&self) -> HashMap<PkgTypeAndName, PkgInfo> {
         self.packages
             .as_ref()
             .map(|pkgs| {

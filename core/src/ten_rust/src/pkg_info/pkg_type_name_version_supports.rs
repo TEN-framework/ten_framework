@@ -11,7 +11,7 @@ use semver::Version;
 use super::{pkg_type::PkgType, supports::PkgSupport, PkgInfo};
 
 #[derive(Clone, Debug, PartialOrd, Ord)]
-pub struct PkgInfoKey {
+pub struct PkgTypeNameVersionSupports {
     pub pkg_type: PkgType,
     pub name: String,
     pub version: Version,
@@ -25,24 +25,24 @@ pub struct PkgInfoKey {
     pub supports: Vec<PkgSupport>,
 }
 
-impl Hash for PkgInfoKey {
+impl Hash for PkgTypeNameVersionSupports {
     fn hash<H: Hasher>(&self, state: &mut H) {
         self.pkg_type.hash(state);
         self.name.hash(state);
     }
 }
 
-impl PartialEq for PkgInfoKey {
+impl PartialEq for PkgTypeNameVersionSupports {
     fn eq(&self, other: &Self) -> bool {
         self.pkg_type == other.pkg_type && self.name == other.name
     }
 }
 
-impl Eq for PkgInfoKey {}
+impl Eq for PkgTypeNameVersionSupports {}
 
-impl From<&PkgInfo> for PkgInfoKey {
+impl From<&PkgInfo> for PkgTypeNameVersionSupports {
     fn from(pkg_info: &PkgInfo) -> Self {
-        PkgInfoKey {
+        PkgTypeNameVersionSupports {
             pkg_type: pkg_info.pkg_type,
             name: pkg_info.name.clone(),
             version: pkg_info.version.clone(),

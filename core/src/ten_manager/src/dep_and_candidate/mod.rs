@@ -11,8 +11,8 @@ use anyhow::{anyhow, Result};
 use semver::{Version, VersionReq};
 
 use ten_rust::pkg_info::dependencies::PkgDependency;
-use ten_rust::pkg_info::pkg_identity::PkgIdentity;
 use ten_rust::pkg_info::pkg_type::PkgType;
+use ten_rust::pkg_info::pkg_type_and_name::PkgTypeAndName;
 use ten_rust::pkg_info::supports::{
     is_pkg_supports_compatible_with, PkgSupport,
 };
@@ -135,7 +135,7 @@ async fn process_dependencies_to_get_candidates(
     support: &PkgSupport,
     input_dependencies: &Vec<PkgDependency>,
     merged_dependencies: &mut HashSet<FoundDependency>,
-    all_candidates: &mut HashMap<PkgIdentity, HashSet<PkgInfo>>,
+    all_candidates: &mut HashMap<PkgTypeAndName, HashSet<PkgInfo>>,
     new_pkgs_to_be_searched: &mut Vec<PkgInfo>,
 ) -> Result<()> {
     for dependency in input_dependencies {
@@ -250,15 +250,15 @@ async fn process_dependencies_to_get_candidates(
 /// suitable one is the package with the highest compatible_score. If there are
 /// multiple packages with the highest score, just pick one at random.
 fn clean_up_all_candidates(
-    all_candidates: &mut HashMap<PkgIdentity, HashSet<PkgInfo>>,
-    locked_pkgs: Option<&HashMap<PkgIdentity, PkgInfo>>,
+    all_candidates: &mut HashMap<PkgTypeAndName, HashSet<PkgInfo>>,
+    locked_pkgs: Option<&HashMap<PkgTypeAndName, PkgInfo>>,
 ) {
-    for (pkg_identity, pkg_infos) in all_candidates.iter_mut() {
+    for (pkg_type_name, pkg_infos) in all_candidates.iter_mut() {
         let mut version_map: HashMap<Version, &PkgInfo> = HashMap::new();
         let mut locked_pkgs_map: HashMap<Version, &PkgInfo> = HashMap::new();
 
         let locked_pkg =
-            locked_pkgs.and_then(|locked_pkgs| locked_pkgs.get(pkg_identity));
+            locked_pkgs.and_then(|locked_pkgs| locked_pkgs.get(pkg_type_name));
 
         for pkg_info in pkg_infos.iter() {
             // Check if the candidate is a locked one.
@@ -294,10 +294,10 @@ pub async fn get_all_candidates_from_deps(
     tman_config: &TmanConfig,
     support: &PkgSupport,
     mut pkgs_to_be_searched: Vec<PkgInfo>,
-    mut all_candidates: HashMap<PkgIdentity, HashSet<PkgInfo>>,
+    mut all_candidates: HashMap<PkgTypeAndName, HashSet<PkgInfo>>,
     extra_dependencies: &Vec<PkgDependency>,
-    locked_pkgs: Option<&HashMap<PkgIdentity, PkgInfo>>,
-) -> Result<HashMap<PkgIdentity, HashSet<PkgInfo>>> {
+    locked_pkgs: Option<&HashMap<PkgTypeAndName, PkgInfo>>,
+) -> Result<HashMap<PkgTypeAndName, HashSet<PkgInfo>>> {
     let mut merged_dependencies = HashSet::<FoundDependency>::new();
     let mut processed_pkgs = HashSet::<PkgInfo>::new();
 
@@ -359,16 +359,15 @@ pub fn get_pkg_info_from_candidates(
     pkg_type: &str,
     pkg_name: &str,
     version: &str,
-    all_candidates: &HashMap<PkgIdentity, HashSet<PkgInfo>>,
+    all_candidates: &HashMap<PkgTypeAndName, HashSet<PkgInfo>>,
 ) -> Result<PkgInfo> {
-    let pkg_type_enum = pkg_type.parse::<PkgType>()?;
-    let pkg_identity = PkgIdentity {
-        pkg_type: pkg_type_enum,
+    let pkg_type_name = PkgTypeAndName {
+        pkg_type: pkg_type.parse::<PkgType>()?,
         name: pkg_name.to_string(),
     };
     let version_parsed = Version::parse(version)?;
     let pkg_info = all_candidates
-        .get(&pkg_identity)
+        .get(&pkg_type_name)
         .and_then(|set| set.iter().find(|pkg| pkg.version == version_parsed))
         .ok_or_else(|| {
             anyhow!(

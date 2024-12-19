@@ -27,8 +27,8 @@ use ten_rust::pkg_info::{
     dependencies::{DependencyRelationship, PkgDependency},
     find_to_be_replaced_local_pkgs, find_untracked_local_packages,
     get_pkg_info_from_path,
-    pkg_identity::PkgIdentity,
     pkg_type::PkgType,
+    pkg_type_and_name::PkgTypeAndName,
     supports::{is_pkg_supports_compatible_with, Arch, Os, PkgSupport},
     PkgInfo,
 };
@@ -298,7 +298,7 @@ fn parse_pkg_name_version(
 fn filter_compatible_pkgs_to_candidates(
     tman_config: &TmanConfig,
     all_existing_local_pkgs: &Vec<PkgInfo>,
-    all_candidates: &mut HashMap<PkgIdentity, HashSet<PkgInfo>>,
+    all_candidates: &mut HashMap<PkgTypeAndName, HashSet<PkgInfo>>,
     support: &PkgSupport,
 ) {
     for existed_pkg in all_existing_local_pkgs.to_owned().iter_mut() {
@@ -455,7 +455,7 @@ pub async fn execute_cmd(
     // those addons (extensions, extension_groups, ...) installed in the app
     // directory are all considered initial_input_pkgs.
     let mut initial_input_pkgs = vec![];
-    let mut all_candidates: HashMap<PkgIdentity, HashSet<PkgInfo>> =
+    let mut all_candidates: HashMap<PkgTypeAndName, HashSet<PkgInfo>> =
         HashMap::new();
 
     // 'all_existing_local_pkgs' contains all the packages which are already
@@ -496,7 +496,7 @@ pub async fn execute_cmd(
     let template_data = serde_json::to_value(&command_data.template_data)?;
 
     // The locked_pkgs comes from a lock file in the app folder.
-    let mut locked_pkgs: Option<HashMap<PkgIdentity, PkgInfo>> = None;
+    let mut locked_pkgs: Option<HashMap<PkgTypeAndName, PkgInfo>> = None;
 
     if command_data.template_mode {
         template_ctx = Some(&template_data);
