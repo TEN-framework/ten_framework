@@ -23,9 +23,7 @@ mod utils;
 pub mod value_type;
 
 use std::{
-    cmp::Ordering,
     collections::HashMap,
-    hash::{Hash, Hasher},
     path::{Path, PathBuf},
 };
 
@@ -81,56 +79,6 @@ pub struct PkgInfo {
     pub property: Option<Property>,
 
     pub schema_store: Option<SchemaStore>,
-}
-
-// Two PkgInfo(s) are equal if their package identify (type & name), version and
-// supports are the same.
-impl Hash for PkgInfo {
-    fn hash<H: Hasher>(&self, state: &mut H) {
-        self.pkg_type.hash(state);
-        self.name.hash(state);
-        self.version.hash(state);
-        self.supports.hash(state);
-    }
-}
-
-impl PartialEq for PkgInfo {
-    fn eq(&self, other: &Self) -> bool {
-        self.pkg_type == other.pkg_type
-            && self.name == other.name
-            && self.version == other.version
-            && self.supports == other.supports
-    }
-}
-
-impl Eq for PkgInfo {}
-
-impl PartialOrd for PkgInfo {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(self.cmp(other))
-    }
-}
-
-impl Ord for PkgInfo {
-    fn cmp(&self, other: &Self) -> Ordering {
-        // Compare pkg_type.
-        if self.pkg_type != other.pkg_type {
-            return self.pkg_type.cmp(&other.pkg_type);
-        }
-
-        // Compare name.
-        if self.name != other.name {
-            return self.name.cmp(&other.name);
-        }
-
-        // Compare version.
-        if self.version != other.version {
-            return self.version.cmp(&other.version);
-        }
-
-        // Compare supports.
-        self.supports.cmp(&other.supports)
-    }
 }
 
 impl PkgInfo {

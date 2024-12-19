@@ -407,12 +407,15 @@ fn create_input_str_for_pkg_info_dependencies(
 
 fn create_input_str_for_pkg_info_without_dependencies(
     input_str: &mut String,
-    pkg_info: &PkgInfo,
+    pkg_info: &PkgBasicInfo,
     weight: &usize,
 ) -> Result<()> {
     input_str.push_str(&format!(
         "version_declared(\"{}\", \"{}\", \"{}\", {}).\n",
-        pkg_info.pkg_type, pkg_info.name, pkg_info.version, weight
+        pkg_info.type_and_name.pkg_type,
+        pkg_info.type_and_name.name,
+        pkg_info.version,
+        weight
     ));
 
     Ok(())
@@ -424,8 +427,11 @@ fn create_input_str_for_all_possible_pkgs_info(
     locked_pkgs: Option<&HashMap<PkgTypeAndName, PkgInfo>>,
 ) -> Result<()> {
     for candidates in all_candidates {
-        let mut candidates_vec: Vec<PkgInfo> =
-            candidates.1.values().cloned().collect();
+        let mut candidates_vec: Vec<PkgBasicInfo> = candidates
+            .1
+            .values()
+            .map(|pkg_info| pkg_info.into())
+            .collect();
 
         // The sorting below places the larger versions at the front, thus
         // having smaller indexes. This is correct because, in the Clingo
@@ -448,7 +454,7 @@ fn create_input_str_for_all_possible_pkgs_info(
 
             if let Some(idx) = idx {
                 candidates_vec.remove(idx);
-                candidates_vec.insert(0, locked_pkg.clone());
+                candidates_vec.insert(0, locked_pkg.into());
             }
         }
 

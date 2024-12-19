@@ -4,7 +4,10 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-use std::hash::{Hash, Hasher};
+use std::{
+    cmp::Ordering,
+    hash::{Hash, Hasher},
+};
 
 use semver::Version;
 
@@ -49,5 +52,36 @@ impl From<&PkgInfo> for PkgBasicInfo {
             version: pkg_info.version.clone(),
             supports: pkg_info.supports.clone(),
         }
+    }
+}
+
+impl PartialOrd for PkgBasicInfo {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl Ord for PkgBasicInfo {
+    fn cmp(&self, other: &Self) -> Ordering {
+        // Compare pkg_type.
+        if self.type_and_name.pkg_type != other.type_and_name.pkg_type {
+            return self
+                .type_and_name
+                .pkg_type
+                .cmp(&other.type_and_name.pkg_type);
+        }
+
+        // Compare name.
+        if self.type_and_name.name != other.type_and_name.name {
+            return self.type_and_name.name.cmp(&other.type_and_name.name);
+        }
+
+        // Compare version.
+        if self.version != other.version {
+            return self.version.cmp(&other.version);
+        }
+
+        // Compare supports.
+        self.supports.cmp(&other.supports)
     }
 }
