@@ -43,7 +43,7 @@ def main():
 
     try:
         # npm install
-        install_cmd = "npm ci"
+        install_cmd = "npm install"
         returncode, output = cmd_exec.run_cmd_realtime(
             install_cmd, cwd=frontend_dir, log_level=log_level
         )
