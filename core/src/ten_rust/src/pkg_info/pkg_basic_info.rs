@@ -9,9 +9,15 @@ use std::{
     hash::{Hash, Hasher},
 };
 
+use anyhow::Result;
 use semver::Version;
 
-use super::{pkg_type_and_name::PkgTypeAndName, supports::PkgSupport, PkgInfo};
+use super::{
+    manifest::Manifest,
+    pkg_type_and_name::PkgTypeAndName,
+    supports::{get_pkg_supports_from_manifest, PkgSupport},
+    PkgInfo,
+};
 
 #[derive(Clone, Debug, Eq)]
 pub struct PkgBasicInfo {
@@ -49,8 +55,8 @@ impl From<&PkgInfo> for PkgBasicInfo {
     fn from(pkg_info: &PkgInfo) -> Self {
         PkgBasicInfo {
             type_and_name: pkg_info.into(),
-            version: pkg_info.version.clone(),
-            supports: pkg_info.supports.clone(),
+            version: pkg_info.basic_info.version.clone(),
+            supports: pkg_info.basic_info.supports.clone(),
         }
     }
 }
@@ -83,5 +89,17 @@ impl Ord for PkgBasicInfo {
 
         // Compare supports.
         self.supports.cmp(&other.supports)
+    }
+}
+
+impl TryFrom<&Manifest> for PkgBasicInfo {
+    type Error = anyhow::Error;
+
+    fn try_from(manifest: &Manifest) -> Result<Self> {
+        Ok(PkgBasicInfo {
+            type_and_name: PkgTypeAndName::try_from(manifest)?,
+            version: Version::parse(&manifest.version)?,
+            supports: get_pkg_supports_from_manifest(manifest)?,
+        })
     }
 }

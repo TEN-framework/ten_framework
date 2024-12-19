@@ -29,8 +29,8 @@ use std::{
 
 use anyhow::Result;
 use graph::Graph;
+use pkg_basic_info::PkgBasicInfo;
 use pkg_type_and_name::PkgTypeAndName;
-use semver::Version;
 
 use crate::schema::store::SchemaStore;
 use api::PkgApi;
@@ -45,7 +45,6 @@ use property::{
     parse_property_from_file, parse_property_in_folder,
     predefined_graph::PropertyPredefinedGraph, Property,
 };
-use supports::{get_pkg_supports_from_manifest, PkgSupport};
 
 pub fn localhost() -> String {
     "localhost".to_string()
@@ -53,17 +52,7 @@ pub fn localhost() -> String {
 
 #[derive(Clone, Debug)]
 pub struct PkgInfo {
-    pub pkg_type: PkgType,
-    pub name: String,
-    pub version: Version,
-
-    // Since the declaration 'does not support all environments' has no
-    // practical meaning, not specifying the 'supports' field or specifying an
-    // empty 'supports' field both represent support for all environments.
-    // Therefore, the 'supports' field here is not an option. An empty
-    // 'supports' field represents support for all combinations of
-    // environments.
-    pub supports: Vec<PkgSupport>,
+    pub basic_info: PkgBasicInfo,
 
     pub dependencies: Vec<PkgDependency>,
     pub api: Option<PkgApi>,
@@ -87,12 +76,10 @@ impl PkgInfo {
         property: &Option<Property>,
     ) -> Result<Self> {
         Ok(PkgInfo {
-            pkg_type: manifest.pkg_type.parse::<PkgType>()?,
-            name: manifest.name.clone(),
-            version: Version::parse(&manifest.version)?,
+            basic_info: PkgBasicInfo::try_from(manifest)?,
+
             dependencies: get_pkg_dependencies_from_manifest(manifest)?,
             api: PkgApi::from_manifest(manifest)?,
-            supports: get_pkg_supports_from_manifest(manifest)?,
             compatible_score: -1,
 
             is_local_installed: false,
@@ -210,8 +197,8 @@ fn collect_pkg_info_from_path(
     if pkgs_info.contains_key(&pkg_type_name) {
         return Err(anyhow::anyhow!(
             "Duplicated package, type: {}, name: {}",
-            pkg_info.pkg_type,
-            pkg_info.name
+            pkg_info.basic_info.type_and_name.pkg_type,
+            pkg_info.basic_info.type_and_name.name
         ));
     }
 
@@ -308,14 +295,16 @@ pub fn find_untracked_local_packages<'a>(
     let mut untracked_local_packages: Vec<&PkgInfo> = vec![];
 
     for local_pkg in local_pkgs {
-        if local_pkg.pkg_type == PkgType::App {
+        if local_pkg.basic_info.type_and_name.pkg_type == PkgType::App {
             continue;
         }
 
         // Check if the package is in dependencies list.
         if !dependencies.iter().any(|dependency| {
-            dependency.pkg_type == local_pkg.pkg_type
-                && dependency.name == local_pkg.name
+            dependency.basic_info.type_and_name.pkg_type
+                == local_pkg.basic_info.type_and_name.pkg_type
+                && dependency.basic_info.type_and_name.name
+                    == local_pkg.basic_info.type_and_name.name
         }) {
             untracked_local_packages.push(local_pkg);
         }
@@ -340,7 +329,10 @@ pub fn find_to_be_replaced_local_pkgs<'a>(
 
     for local_pkg in local_pkgs {
         let pkg_in_dependencies = dependencies.iter().find(|pkg| {
-            pkg.pkg_type == local_pkg.pkg_type && pkg.name == local_pkg.name
+            pkg.basic_info.type_and_name.pkg_type
+                == local_pkg.basic_info.type_and_name.pkg_type
+                && pkg.basic_info.type_and_name.name
+                    == local_pkg.basic_info.type_and_name.name
         });
 
         if let Some(pkg_in_dependencies) = pkg_in_dependencies {
