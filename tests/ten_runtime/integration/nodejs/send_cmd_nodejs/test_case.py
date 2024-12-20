@@ -9,6 +9,17 @@ from sys import stdout
 from .common import http, build_config, build_pkg
 
 
+def http_request():
+    return http.post(
+        "http://127.0.0.1:8002/",
+        {
+            "_ten": {
+                "name": "test",
+            },
+        },
+    )
+
+
 def test_send_cmd_nodejs():
     """Test client and app server."""
     base_path = os.path.dirname(os.path.abspath(__file__))
@@ -80,6 +91,9 @@ def test_send_cmd_nodejs():
 
     try:
         print("Sending HTTP request to the app server.")
+        resp = http_request()
+        assert resp != 500
+        print(resp)
     finally:
         is_stopped = http.stop_app("127.0.0.1", 8002, 30)
         if not is_stopped:

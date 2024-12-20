@@ -17,6 +17,8 @@ ten_package_test_prepare_app("send_cmd_nodejs_app") {
     "send_cmd_nodejs_app/property.json",
   ]
 
+  replace_files_after_install_all = [ "send_cmd_nodejs_app/ten_packages/extension/default_extension_ts/src/index.ts" ]
+
   if (ten_enable_ten_manager) {
     deps = [
       "//core/src/ten_manager",

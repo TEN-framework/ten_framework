@@ -7,12 +7,14 @@
 #include "include_internal/ten_runtime/binding/nodejs/extension/extension.h"
 
 #include "include_internal/ten_runtime/binding/nodejs/common/common.h"
+#include "include_internal/ten_runtime/binding/nodejs/msg/cmd.h"
 #include "include_internal/ten_runtime/binding/nodejs/ten_env/ten_env.h"
 #include "js_native_api.h"
 #include "js_native_api_types.h"
 #include "ten_runtime/extension/extension.h"
 #include "ten_runtime/ten_env/ten_env.h"
 #include "ten_utils/lib/signature.h"
+#include "ten_utils/lib/smart_ptr.h"
 #include "ten_utils/lib/string.h"
 #include "ten_utils/log/log.h"
 #include "ten_utils/macro/check.h"
@@ -373,7 +375,15 @@ static void ten_nodejs_invoke_extension_js_on_cmd(napi_env env, napi_value fn,
     GOTO_LABEL_IF_NAPI_FAIL(error, status == napi_ok && js_ten_env != NULL,
                             "Failed to get JS ten_env: %d", status);
 
-    // TODO(xilin)
+    napi_value js_cmd = ten_nodejs_cmd_wrap(env, call_info->msg);
+    GOTO_LABEL_IF_NAPI_FAIL(error, js_cmd != NULL, "Failed to wrap JS Cmd.");
+
+    // Call on_cmd().
+    napi_value result = NULL;
+    napi_value argv[] = {js_ten_env, js_cmd};
+    status = napi_call_function(env, js_extension, fn, 2, argv, &result);
+    GOTO_LABEL_IF_NAPI_FAIL(error, status == napi_ok,
+                            "Failed to call JS extension on_cmd(): %d", status);
   }
 
   goto done;
@@ -382,6 +392,7 @@ error:
   TEN_LOGE("Failed to call JS extension on_cmd().");
 
 done:
+  ten_shared_ptr_destroy(call_info->msg);
   TEN_FREE(call_info);
 }
 
