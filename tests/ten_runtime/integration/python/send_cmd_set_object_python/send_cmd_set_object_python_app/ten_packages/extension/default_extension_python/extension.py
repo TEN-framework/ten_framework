@@ -88,7 +88,7 @@ class DefaultExtension(Extension):
                             "name": "location",
                             "type": "string",
                             "description": "The city and state (use only English) e.g. San Francisco, CA",
-                            "required": True,
+                            "required": "true",
                         }
                     ],
                 }
