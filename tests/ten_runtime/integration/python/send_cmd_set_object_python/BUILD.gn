@@ -17,7 +17,10 @@ ten_package_test_prepare_app("send_cmd_set_object_python_app") {
     "send_cmd_set_object_python_app/property.json",
   ]
 
-  replace_files_after_install_all = [ "send_cmd_set_object_python_app/ten_packages/extension/default_extension_python/extension.py" ]
+  replace_files_after_install_all = [
+    "send_cmd_set_object_python_app/ten_packages/extension/default_extension_python/extension.py",
+    "send_cmd_set_object_python_app/ten_packages/extension/default_extension_python/manifest.json",
+  ]
 
   if (ten_enable_ten_manager) {
     deps = [
