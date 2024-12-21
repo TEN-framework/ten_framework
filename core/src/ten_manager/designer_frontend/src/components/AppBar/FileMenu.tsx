@@ -39,8 +39,12 @@ export function FileMenu(props: FileMenuProps) {
       await setBaseDir(folderPath.trim());
       onSetBaseDir(folderPath.trim());
       setFolderPath("");
-    } catch (error) {
-      toast.error("Failed to open a new app folder.");
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        toast.error(`Failed to open a new app folder: ${error.message}`);
+      } else {
+        toast.error("An unknown error occurred.");
+      }
       console.error(error);
     }
   };

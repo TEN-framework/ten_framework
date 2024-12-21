@@ -181,11 +181,15 @@ export const setBaseDir = async (
     body: JSON.stringify(requestBody),
   });
 
-  if (!response.ok) {
-    throw new Error(`Failed to set base directory: ${response.status}`);
-  }
-
   const data: ApiResponse<SetBaseDirResponse> = await response.json();
+
+  if (!response.ok) {
+    if (!isSuccessResponse(data)) {
+      throw new Error(`${data.message}`);
+    } else {
+      throw new Error("Should not happen.");
+    }
+  }
 
   return data;
 };
