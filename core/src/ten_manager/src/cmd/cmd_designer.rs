@@ -107,24 +107,39 @@ pub async fn execute_cmd(
     tman_verbose_println!(tman_config, "{:?}", command_data);
     tman_verbose_println!(tman_config, "{:?}", tman_config);
 
-    let cwd = get_cwd()?;
-    let base_dir = command_data
-        .base_dir
-        .unwrap_or_else(|| cwd.to_str().unwrap().to_string());
+    let mut base_dir = match command_data.base_dir {
+        Some(base_dir) => {
+            println!("Base directory: {}", base_dir);
+            base_dir
+        }
+        None => {
+            let cwd = get_cwd()?.to_str().unwrap_or_default().to_string();
+
+            println!(
+                "{}  Doesn't specify the base directory, use current working directory instead: {}",
+                Emoji("💡", "!"),
+                &cwd
+            );
+
+            cwd
+        }
+    };
+
+    // Check if the base_dir is an app folder.
+    if let Err(e) = check_is_app_folder(Path::new(&base_dir)) {
+        println!(
+            "{}  base_dir is not an app folder: {}",
+            Emoji("🚨", ":-("),
+            e
+        );
+        base_dir = String::new();
+    }
 
     let state = Arc::new(RwLock::new(DesignerState {
         base_dir: Some(base_dir.clone()),
         all_pkgs: None,
         tman_config: TmanConfig::default(),
     }));
-
-    if let Err(e) = check_is_app_folder(Path::new(&base_dir)) {
-        return Err(TmanError::Custom(format!(
-            "base_dir '{}' is not app base directory: {}",
-            base_dir, e
-        ))
-        .into());
-    }
 
     let server = HttpServer::new(move || {
         let state = web::Data::new(state.clone());
