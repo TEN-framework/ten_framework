@@ -102,6 +102,7 @@ fn create_cmd() -> clap::ArgMatches {
         .subcommand(crate::cmd::cmd_delete::create_sub_cmd(&args_cfg))
         .subcommand(crate::cmd::cmd_designer::create_sub_cmd(&args_cfg))
         .subcommand(crate::cmd::cmd_check::create_sub_cmd(&args_cfg))
+        .subcommand(crate::cmd::cmd_modify::create_sub_cmd(&args_cfg))
         .subcommand(crate::cmd::cmd_run::create_sub_cmd(&args_cfg))
         .get_matches()
 }
