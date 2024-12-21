@@ -35,7 +35,7 @@ pub struct UninstallCommand {
 
 pub fn create_sub_cmd(args_cfg: &crate::cmd_line::ArgsCfg) -> Command {
     Command::new("uninstall")
-        .about("Uninstall a package.")
+        .about("Uninstall a package")
         .arg(
             Arg::new("PACKAGE_TYPE")
                 .help("The type of the package")

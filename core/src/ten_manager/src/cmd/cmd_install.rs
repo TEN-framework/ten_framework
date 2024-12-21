@@ -70,7 +70,7 @@ pub struct InstallCommand {
 
 pub fn create_sub_cmd(args_cfg: &crate::cmd_line::ArgsCfg) -> Command {
     Command::new("install")
-        .about("Install a package.")
+        .about("Install a package")
         .arg(
             Arg::new("PACKAGE_TYPE")
                 .help("The type of the package")

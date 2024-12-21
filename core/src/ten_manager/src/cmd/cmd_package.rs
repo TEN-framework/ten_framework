@@ -24,7 +24,7 @@ pub struct PackageCommand {}
 
 pub fn create_sub_cmd(_args_cfg: &crate::cmd_line::ArgsCfg) -> Command {
     Command::new("package")
-        .about("Create a package file.")
+        .about("Create a package file")
         .after_help("Switch to the base directory of the TEN package you want to package, then simply run 'tman package' directly in that directory.")
 }
 
