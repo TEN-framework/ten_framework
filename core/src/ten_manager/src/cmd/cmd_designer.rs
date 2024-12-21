@@ -20,7 +20,6 @@ use console::Emoji;
 use crate::{
     config::TmanConfig,
     designer::{configure_routes, frontend::get_frontend_asset, DesignerState},
-    error::TmanError,
     log::tman_verbose_println,
     utils::{check_is_app_folder, get_cwd},
 };
