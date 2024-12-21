@@ -204,7 +204,7 @@ pub async fn execute_cmd(
             Ok(_) => println!("{}", Emoji("✅", "Passed")),
             Err(e) => {
                 err_count += 1;
-                println!("{}. Details:", Emoji("❌", "Failed"));
+                println!("{}. Details:", Emoji("🔴", "Failed"));
                 display_error(&e);
                 println!();
             }
