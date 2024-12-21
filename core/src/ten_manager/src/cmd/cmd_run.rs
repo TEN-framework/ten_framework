@@ -25,7 +25,7 @@ pub struct RunCommand {
 
 pub fn create_sub_cmd(_args_cfg: &crate::cmd_line::ArgsCfg) -> Command {
     Command::new("run")
-        .about("Run a custom script from the manifest.json's scripts field. For more detailed usage, run 'run -h'")
+        .about("Run a custom script from the manifest.json's scripts field.")
         .arg(
             Arg::new("SCRIPT_NAME")
                 .required(true)
