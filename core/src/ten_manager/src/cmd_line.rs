@@ -142,6 +142,9 @@ pub fn parse_cmd(
         Some(("check", sub_cmd_args)) => crate::cmd::CommandData::Check(
             crate::cmd::cmd_check::parse_sub_cmd(sub_cmd_args),
         ),
+        Some(("modify", sub_cmd_args)) => crate::cmd::CommandData::Modify(
+            crate::cmd::cmd_modify::parse_sub_cmd(sub_cmd_args),
+        ),
         Some(("run", sub_cmd_args)) => crate::cmd::CommandData::Run(
             crate::cmd::cmd_run::parse_sub_cmd(sub_cmd_args),
         ),
