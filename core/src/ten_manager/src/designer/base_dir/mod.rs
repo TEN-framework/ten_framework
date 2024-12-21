@@ -87,20 +87,18 @@ mod tests {
         .await;
 
         let new_base_dir = SetBaseDirRequest {
-            base_dir: "/new/path".to_string(),
+            base_dir: "/not/a/correct/app/folder/path".to_string(),
         };
 
         let req = test::TestRequest::put()
             .uri("/api/designer/v1/base-dir")
             .set_json(&new_base_dir)
             .to_request();
-        let resp: ApiResponse<SetBaseDirResponse> =
-            test::call_and_read_body_json(&app, req).await;
+        let resp: Result<
+            ApiResponse<SetBaseDirResponse>,
+            std::boxed::Box<dyn std::error::Error>,
+        > = test::try_call_and_read_body_json(&app, req).await;
 
-        assert_eq!(resp.status, Status::Ok);
-        assert!(resp.data.success);
-
-        let state = designer_state.read().unwrap();
-        assert_eq!(state.base_dir.as_ref().unwrap(), "/new/path");
+        assert!(resp.is_err());
     }
 }
