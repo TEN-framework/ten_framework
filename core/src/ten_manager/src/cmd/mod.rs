@@ -8,6 +8,7 @@ pub mod cmd_check;
 pub mod cmd_delete;
 pub mod cmd_designer;
 pub mod cmd_install;
+pub mod cmd_modify;
 pub mod cmd_package;
 pub mod cmd_publish;
 pub mod cmd_run;

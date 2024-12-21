@@ -9,7 +9,7 @@ use clap::{Arg, ArgMatches, Command};
 use console::Emoji;
 use ten_rust::json_schema::ten_validate_manifest_json_string;
 
-use crate::config::TmanConfig;
+use crate::{config::TmanConfig, utils::read_file_to_string};
 
 #[derive(Debug)]
 pub struct CheckManifestJsonCommand {
@@ -42,7 +42,7 @@ pub async fn execute_cmd(
     _tman_config: &TmanConfig,
     command_data: CheckManifestJsonCommand,
 ) -> Result<()> {
-    let content = std::fs::read_to_string(&command_data.path)?;
+    let content = read_file_to_string(&command_data.path)?;
     match ten_validate_manifest_json_string(&content) {
         Ok(_) => {
             println!("{}  Conforms to JSON schema.", Emoji("👍", "Passed"));
