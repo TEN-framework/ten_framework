@@ -75,8 +75,8 @@ pub async fn execute_cmd(
     // Find `property.json`.
     let property_file_path =
         PathBuf::from(&command_data.app_dir).join(PROPERTY_JSON_FILENAME);
-    let mut property_str = read_file_to_string(&property_file_path)
-        .with_context(|| {
+    let property_str =
+        read_file_to_string(&property_file_path).with_context(|| {
             format!("Failed to read file: {:?}", property_file_path)
         })?;
 
