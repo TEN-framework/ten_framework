@@ -42,7 +42,6 @@ int main(TEN_UNUSED int argc, TEN_UNUSED char **argv) {
       "connections": [
         {
           "app": "msgpack://127.0.0.1:8007/",
-          "extension_group": "nodetest_group",
           "extension": "A",
           "cmd": [{
             "name": "B",
@@ -55,7 +54,6 @@ int main(TEN_UNUSED int argc, TEN_UNUSED char **argv) {
         },
         {
           "app": "msgpack://127.0.0.1:8007/",
-          "extension_group": "nodetest_group",
           "extension": "B",
           "cmd": [{
             "name": "C",

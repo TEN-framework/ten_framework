@@ -139,7 +139,6 @@ A complete example is as follows:
   "connections": [
     {
       "app": "msgpack://127.0.0.1:8001/",
-      "extension_group": "default_extension_group",
       "extension": "simple_http_server_cpp",
       "cmd": [
         {
@@ -166,7 +165,6 @@ A complete example is as follows:
     },
     {
       "app": "msgpack://127.0.0.1:8001/",
-      "extension_group": "gateway_group",
       "extension": "gateway",
       "cmd": [
         {
