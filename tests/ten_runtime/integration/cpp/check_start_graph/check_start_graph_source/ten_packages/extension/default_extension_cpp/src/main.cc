@@ -45,14 +45,12 @@ class test_extension : public ten::extension_t {
             "connections": [
               {
                 "extension": "default_extension_cpp",
-                "extension_group": "default_extension_group",
                 "cmd": [
                   {
                     "name": "test",
                     "dest": [
                       {
-                        "extension": "default_extension_cpp_2",
-                        "extension_group": "default_extension_group_2"
+                        "extension": "default_extension_cpp_2"
                       }
                     ]
                   }
