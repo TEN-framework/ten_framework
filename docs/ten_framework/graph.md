@@ -146,7 +146,6 @@ A complete example is as follows:
           "dest": [
             {
               "app": "msgpack://127.0.0.1:8001/",
-              "extension_group": "gateway_group",
               "extension": "gateway"
             }
           ]
@@ -156,7 +155,6 @@ A complete example is as follows:
           "dest": [
             {
               "app": "msgpack://127.0.0.1:8001/",
-              "extension_group": "gateway_group",
               "extension": "gateway"
             }
           ]
@@ -172,7 +170,6 @@ A complete example is as follows:
           "dest": [
             {
               "app": "msgpack://127.0.0.1:8001/",
-              "extension_group": "uap_group",
               "extension": "uap"
             }
           ]
@@ -229,7 +226,6 @@ So it looks like this:
     "connections": [
       {
         "app": "msgpack://127.0.0.1:8001/",
-        "extension_group": "default_extension_group",
         "extension": "simple_http_server_cpp",
         "cmd": [
           {
@@ -237,7 +233,6 @@ So it looks like this:
             "dest": [
               {
                 "app": "msgpack://127.0.0.1:8001/",
-                "extension_group": "gateway_group",
                 "extension": "gateway"
               }
             ]
@@ -247,7 +242,6 @@ So it looks like this:
             "dest": [
               {
                 "app": "msgpack://127.0.0.1:8001/",
-                "extension_group": "gateway_group",
                 "extension": "gateway"
               }
             ]
@@ -256,7 +250,6 @@ So it looks like this:
       },
       {
         "app": "msgpack://127.0.0.1:8001/",
-        "extension_group": "gateway_group",
         "extension": "gateway",
         "cmd": [
           {
@@ -264,7 +257,6 @@ So it looks like this:
             "dest": [
               {
                 "app": "msgpack://127.0.0.1:8001/",
-                "extension_group": "uap_group",
                 "extension": "uap"
               }
             ]
@@ -320,7 +312,6 @@ The following is a complete definition of the `start_graph` command:
     "connections": [
       {
         "app": "msgpack://127.0.0.1:8001/",
-        "extension_group": "default_extension_group",
         "extension": "simple_http_server_cpp",
         "cmd": [
           {
@@ -328,7 +319,6 @@ The following is a complete definition of the `start_graph` command:
             "dest": [
               {
                 "app": "msgpack://127.0.0.1:8001/",
-                "extension_group": "gateway_group",
                 "extension": "gateway"
               }
             ]
@@ -338,7 +328,6 @@ The following is a complete definition of the `start_graph` command:
             "dest": [
               {
                 "app": "msgpack://127.0.0.1:8001/",
-                "extension_group": "gateway_group",
                 "extension": "gateway"
               }
             ]
@@ -346,14 +335,12 @@ The following is a complete definition of the `start_graph` command:
         ]
       },
       {
-        "extension_group": "gateway_group",
         "extension": "gateway",
         "cmd": [
           {
             "name": "push_status_online",
             "dest": [
               {
-                "extension_group": "uap_group",
                 "extension": "uap"
               }
             ]
@@ -412,14 +399,12 @@ The following is a complete definition of the `start_graph` command:
     ],
     "connections": [
       {
-        "extension_group": "some_group",
         "extension": "ext_1",
         "cmd": [
           {
             "name": "hello",
             "dest": [
               {
-                "extension_group": "some_group",
                 "extension": "ext_2"
               }
             ]
@@ -439,14 +424,12 @@ The following is a complete definition of the `start_graph` command:
   {
     "connections": [
       {
-        "extension_group": "some_group",
         "extension": "ext_1",
         "cmd": [
           {
             "name": "hello",
             "dest": [
               {
-                "extension_group": "some_group",
                 "extension": "ext_2"
               }
             ]
@@ -454,14 +437,12 @@ The following is a complete definition of the `start_graph` command:
         ]
       },
       {
-        "extension_group": "some_group",
         "extension": "ext_1",
         "data": [
           {
             "name": "hello",
             "dest": [
               {
-                "extension_group": "some_group",
                 "extension": "ext_2"
               }
             ]
@@ -478,14 +459,12 @@ The following is a complete definition of the `start_graph` command:
   {
     "connections": [
       {
-        "extension_group": "some_group",
         "extension": "ext_1",
         "cmd": [
           {
             "name": "hello",
             "dest": [
               {
-                "extension_group": "some_group",
                 "extension": "ext_2"
               }
             ]
@@ -496,7 +475,6 @@ The following is a complete definition of the `start_graph` command:
             "name": "hello",
             "dest": [
               {
-                "extension_group": "some_group",
                 "extension": "ext_2"
               }
             ]
@@ -516,14 +494,12 @@ The following is a complete definition of the `start_graph` command:
   {
     "connections": [
       {
-        "extension_group": "some_group",
         "extension": "ext_1",
         "cmd": [
           {
             "name": "hello",
             "dest": [
               {
-                "extension_group": "some_group",
                 "extension": "ext_2"
               }
             ]
@@ -532,7 +508,6 @@ The following is a complete definition of the `start_graph` command:
             "name": "hello",
             "dest": [
               {
-                "extension_group": "some_group",
                 "extension": "ext_3"
               }
             ]
@@ -549,18 +524,15 @@ The following is a complete definition of the `start_graph` command:
   {
     "connections": [
       {
-        "extension_group": "some_group",
         "extension": "ext_1",
         "cmd": [
           {
             "name": "hello",
             "dest": [
               {
-                "extension_group": "some_group",
                 "extension": "ext_2"
               },
               {
-                "extension_group": "some_group",
                 "extension": "ext_3"
               }
             ]

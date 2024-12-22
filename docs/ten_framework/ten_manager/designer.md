@@ -394,7 +394,6 @@ Input data (body):
           "dest": [
             {
               "app": "localhost",
-              "extension_group": "extension_group_1",
               "extension": "extension_2"
             }
           ]
