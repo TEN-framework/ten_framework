@@ -80,14 +80,12 @@
             ]
           },
           {
-            "extension_group": "demuxer_group",
             "extension": "ffmpeg_demuxer",
             "cmd": [
               {
                 "name": "complete",
                 "dest": [
                   {
-                    "extension_group": "default_extension_group",
                     "extension": "ffmpeg_client",
                     "msg_conversion": {
                       "type": "per_property",
@@ -108,7 +106,6 @@
                 "name": "video_frame",
                 "dest": [
                   {
-                    "extension_group": "muxer_group",
                     "extension": "ffmpeg_muxer"
                   }
                 ]
@@ -119,7 +116,6 @@
                 "name": "audio_frame",
                 "dest": [
                   {
-                    "extension_group": "muxer_group",
                     "extension": "ffmpeg_muxer"
                   }
                 ]

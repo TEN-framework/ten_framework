@@ -14,7 +14,7 @@
         ],
         "connections": [
           {
-            "extension": "some_extension",
+            "extension": "some_extension_1",
             "cmd": [
               {
                 "name": "hello",
