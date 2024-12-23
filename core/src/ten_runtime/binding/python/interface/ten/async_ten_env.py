@@ -7,7 +7,7 @@
 import asyncio
 import threading
 from asyncio import AbstractEventLoop
-from typing import AsyncGenerator
+from typing import AsyncGenerator, Optional
 
 from .cmd import Cmd
 from .data import Data
@@ -15,6 +15,9 @@ from .video_frame import VideoFrame
 from .audio_frame import AudioFrame
 from .cmd_result import CmdResult
 from .ten_env import TenEnv
+from .error import TenError
+
+CmdResultTuple = tuple[Optional[CmdResult], Optional[TenError]]
 
 
 class AsyncTenEnv(TenEnv):
@@ -30,7 +33,7 @@ class AsyncTenEnv(TenEnv):
     def __del__(self) -> None:
         pass
 
-    async def send_cmd(self, cmd: Cmd) -> CmdResult:
+    async def send_cmd(self, cmd: Cmd) -> CmdResultTuple:
         q = asyncio.Queue(maxsize=1)
         self._internal.send_cmd(
             cmd,
@@ -42,13 +45,15 @@ class AsyncTenEnv(TenEnv):
         )
 
         [result, error] = await q.get()
-        if error is not None:
-            raise Exception(error.err_msg())
 
-        assert result.is_completed()
-        return result
+        if result is not None:
+            assert result.is_completed()
 
-    async def send_cmd_ex(self, cmd: Cmd) -> AsyncGenerator[CmdResult, None]:
+        return result, error
+
+    async def send_cmd_ex(
+        self, cmd: Cmd
+    ) -> AsyncGenerator[CmdResultTuple, None]:
         q = asyncio.Queue(maxsize=10)
         self._internal.send_cmd(
             cmd,
@@ -61,16 +66,15 @@ class AsyncTenEnv(TenEnv):
 
         while True:
             [result, error] = await q.get()
-            if error is not None:
-                raise Exception(error.err_msg())
-            else:
-                if result.is_completed():
-                    yield result
-                    # This is the final result, so break the while loop.
-                    break
-                yield result
+            yield result, error
 
-    async def send_data(self, data: Data) -> None:
+            if error is not None:
+                break
+            elif result is not None and result.is_completed():
+                # This is the final result, so break the while loop.
+                break
+
+    async def send_data(self, data: Data) -> Optional[TenError]:
         q = asyncio.Queue(maxsize=1)
         self._internal.send_data(
             data,
@@ -81,10 +85,11 @@ class AsyncTenEnv(TenEnv):
         )
 
         error = await q.get()
-        if error is not None:
-            raise Exception(error.err_msg())
+        return error
 
-    async def send_video_frame(self, video_frame: VideoFrame) -> None:
+    async def send_video_frame(
+        self, video_frame: VideoFrame
+    ) -> Optional[TenError]:
         q = asyncio.Queue(maxsize=1)
         self._internal.send_video_frame(
             video_frame,
@@ -95,10 +100,11 @@ class AsyncTenEnv(TenEnv):
         )
 
         error = await q.get()
-        if error is not None:
-            raise Exception(error.err_msg())
+        return error
 
-    async def send_audio_frame(self, audio_frame: AudioFrame) -> None:
+    async def send_audio_frame(
+        self, audio_frame: AudioFrame
+    ) -> Optional[TenError]:
         q = asyncio.Queue(maxsize=1)
         self._internal.send_audio_frame(
             audio_frame,
@@ -109,10 +115,11 @@ class AsyncTenEnv(TenEnv):
         )
 
         error = await q.get()
-        if error is not None:
-            raise Exception(error.err_msg())
+        return error
 
-    async def return_result(self, result: CmdResult, target_cmd: Cmd) -> None:
+    async def return_result(
+        self, result: CmdResult, target_cmd: Cmd
+    ) -> Optional[TenError]:
         q = asyncio.Queue(maxsize=1)
         self._internal.return_result(
             result,
@@ -124,10 +131,11 @@ class AsyncTenEnv(TenEnv):
         )
 
         error = await q.get()
-        if error is not None:
-            raise Exception(error.err_msg())
+        return error
 
-    async def return_result_directly(self, result: CmdResult) -> None:
+    async def return_result_directly(
+        self, result: CmdResult
+    ) -> Optional[TenError]:
         q = asyncio.Queue(maxsize=1)
         self._internal.return_result_directly(
             result,
@@ -138,8 +146,7 @@ class AsyncTenEnv(TenEnv):
         )
 
         error = await q.get()
-        if error is not None:
-            raise Exception(error.err_msg())
+        return error
 
     async def on_configure_done(self) -> None:
         raise NotImplementedError(
