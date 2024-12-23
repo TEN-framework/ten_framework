@@ -28,8 +28,8 @@ impl Graph {
         self.nodes
             .iter()
             .find_map(|node| {
-                if node.node_type == PkgType::Extension
-                    && node.name.as_str() == extension
+                if node.type_and_name.pkg_type == PkgType::Extension
+                    && node.type_and_name.name.as_str() == extension
                     && node.get_app_uri() == app
                 {
                     Some(node.addon.as_str())
@@ -71,7 +71,10 @@ impl Graph {
             if let Err(e) =
                 are_ten_schemas_compatible(src_msg_schema, dest_msg_schema)
             {
-                errors.push(format!("Schema incompatible to [extension_group: {}, extension: {}], {}", dest.extension_group, dest.extension, e));
+                errors.push(format!(
+                    "Schema incompatible to [extension: {}], {}",
+                    dest.extension, e
+                ));
             }
         }
 
@@ -120,7 +123,10 @@ impl Graph {
             if let Err(e) =
                 are_cmd_schemas_compatible(src_cmd_schema, dest_cmd_schema)
             {
-                errors.push(format!("Schema incompatible to [extension_group: {}, extension: {}], {}", dest.extension_group, dest.extension, e));
+                errors.push(format!(
+                    "Schema incompatible to [extension: {}], {}",
+                    dest.extension, e
+                ));
             }
         }
 

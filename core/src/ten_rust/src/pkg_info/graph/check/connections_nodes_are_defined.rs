@@ -20,20 +20,15 @@ impl Graph {
     ) -> Result<()> {
         for (flow_idx, flow) in flows.iter().enumerate() {
             for dest in &flow.dest {
-                let dest_extension = format!(
-                    "{}:{}:{}",
-                    dest.get_app_uri(),
-                    dest.extension_group,
-                    dest.extension
-                );
+                let dest_extension =
+                    format!("{}:{}", dest.get_app_uri(), dest.extension);
 
                 if !all_extensions.contains(&dest_extension) {
                     return Err(anyhow::anyhow!(
-                        "The extension declared in connections[{}].{}[{}] is not defined in nodes, extension_group: {}, extension: {}.",
+                        "The extension declared in connections[{}].{}[{}] is not defined in nodes, extension: {}.",
                         conn_idx,
                         msg_type,
                         flow_idx,
-                        dest.extension_group,
                         dest.extension
                     ));
                 }
@@ -52,12 +47,11 @@ impl Graph {
 
         let mut all_extensions: Vec<String> = Vec::new();
         for node in &self.nodes {
-            if node.node_type == PkgType::Extension {
+            if node.type_and_name.pkg_type == PkgType::Extension {
                 let unique_ext_name = format!(
-                    "{}:{}:{}",
+                    "{}:{}",
                     node.get_app_uri(),
-                    node.extension_group.as_ref().unwrap(),
-                    node.name
+                    node.type_and_name.name
                 );
                 all_extensions.push(unique_ext_name);
             }
@@ -66,16 +60,14 @@ impl Graph {
         let connections = self.connections.as_ref().unwrap();
         for (conn_idx, connection) in connections.iter().enumerate() {
             let src_extension = format!(
-                "{}:{}:{}",
+                "{}:{}",
                 connection.get_app_uri(),
-                connection.extension_group,
                 connection.extension
             );
             if !all_extensions.contains(&src_extension) {
                 return Err(anyhow::anyhow!(
-                    "The extension declared in connections[{}] is not defined in nodes, extension_group: {}, extension: {}.",
+                    "The extension declared in connections[{}] is not defined in nodes, extension: {}.",
                     conn_idx,
-                    connection.extension_group,
                     connection.extension
                 ));
             }
