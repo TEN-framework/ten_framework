@@ -134,7 +134,8 @@ napi_value ten_nodejs_cmd_result_wrap(napi_env env,
 
   napi_value js_cmd_result = ten_nodejs_create_new_js_object_and_wrap(
       env, js_cmd_result_constructor_ref, cmd_result_bridge,
-      ten_nodejs_cmd_result_finalize, NULL, 2, argv);
+      ten_nodejs_cmd_result_finalize,
+      &cmd_result_bridge->msg.bridge.js_instance_ref, 2, argv);
   ASSERT_IF_NAPI_FAIL(js_cmd_result != NULL, "Failed to create JS Cmd object.");
 
   return js_cmd_result;

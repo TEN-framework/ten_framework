@@ -4,7 +4,8 @@
 // See the LICENSE file for more information.
 //
 
-import { Addon, AddonManager, RegisterAddonAsExtension, Extension, TenEnv, Cmd, CmdResult, StatusCode } from 'ten-runtime-nodejs';
+import { assert } from 'console';
+import { Addon, AddonManager, RegisterAddonAsExtension, Extension, TenEnv, Cmd, Data, CmdResult, StatusCode } from 'ten-runtime-nodejs';
 
 console.log('Im a default ts extension');
 
@@ -38,6 +39,22 @@ class DefaultExtension extends Extension {
 
     async onStart(tenEnv: TenEnv) {
         console.log('DefaultExtension onStart');
+
+        const testData = Data.Create('testData');
+        testData.allocBuf(10);
+        let buf = testData.lockBuf();
+
+        let view = new Uint8Array(buf);
+        view[0] = 1;
+        view[1] = 2;
+        view[2] = 3;
+        testData.unlockBuf(buf);
+
+        let copiedBuf = testData.getBuf();
+        let copiedView = new Uint8Array(copiedBuf);
+        assert(copiedView[0] === 1, 'copiedView[0] incorrect');
+        assert(copiedView[1] === 2, 'copiedView[1] incorrect');
+        assert(copiedView[2] === 3, 'copiedView[2] incorrect');
     }
 
     async onStop(tenEnv: TenEnv) {
@@ -49,16 +66,20 @@ class DefaultExtension extends Extension {
     }
 
     async onCmd(tenEnv: TenEnv, cmd: Cmd) {
-        console.log('DefaultExtension onCmd');
+        tenEnv.logDebug('DefaultExtension onCmd');
 
         const cmdName = cmd.getName();
-        console.log('cmdName:', cmdName);
+        tenEnv.logVerbose('cmdName:' + cmdName);
+
+        const testCmd = Cmd.Create('test');
+        const result = await tenEnv.sendCmd(testCmd);
+        tenEnv.logInfo('received result detail:' + result.getPropertyToJson('detail'));
 
         const cmdResult = CmdResult.Create(StatusCode.OK);
         cmdResult.setPropertyFromJson('detail', JSON.stringify({ key1: 'value1', key2: 2 }))
 
         const detailJson = cmdResult.getPropertyToJson('detail');
-        console.log('detailJson:', detailJson);
+        tenEnv.logInfo('detailJson:' + detailJson);
 
         tenEnv.returnResult(cmdResult, cmd);
     }

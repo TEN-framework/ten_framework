@@ -8,5 +8,19 @@ import ten_addon from '../ten_addon'
 import { Msg } from './msg';
 
 export class AudioFrame extends Msg {
+    private constructor(name: string, createShellOnly: boolean) {
+        super();
 
+        if (createShellOnly) {
+            return;
+        }
+
+        ten_addon.ten_nodejs_audio_frame_create(this, name);
+    }
+
+    static Create(name: string): AudioFrame {
+        return new AudioFrame(name, false);
+    }
 }
+
+ten_addon.ten_nodejs_audio_frame_register_class(AudioFrame);

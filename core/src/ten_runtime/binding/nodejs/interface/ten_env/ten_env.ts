@@ -17,7 +17,7 @@ export class TenEnv {
             ten_addon.ten_nodejs_ten_env_send_cmd(
                 this,
                 cmd,
-                async (tenEnv: TenEnv, cmdResult: CmdResult, error: Error) => {
+                async (cmdResult: CmdResult, error: Error) => {
                     if (error) {
                         reject(error);
                     } else {
@@ -33,7 +33,7 @@ export class TenEnv {
             ten_addon.ten_nodejs_ten_env_send_data(
                 this,
                 data,
-                async (tenEnv: TenEnv, error: Error) => {
+                async (error: Error) => {
                     if (error) {
                         reject(error);
                     } else {
@@ -49,7 +49,7 @@ export class TenEnv {
             ten_addon.ten_nodejs_ten_env_send_video_frame(
                 this,
                 videoFrame,
-                async (tenEnv: TenEnv, error: Error) => {
+                async (error: Error) => {
                     if (error) {
                         reject(error);
                     } else {
@@ -65,7 +65,7 @@ export class TenEnv {
             ten_addon.ten_nodejs_ten_env_send_audio_frame(
                 this,
                 audioFrame,
-                async (tenEnv: TenEnv, error: Error) => {
+                async (error: Error) => {
                     if (error) {
                         reject(error);
                     } else {
@@ -82,7 +82,7 @@ export class TenEnv {
                 this,
                 cmdResult,
                 targetCmd,
-                async (tenEnv: TenEnv, error: Error) => {
+                async (error: Error) => {
                     if (error) {
                         reject(error);
                     } else {
@@ -98,7 +98,7 @@ export class TenEnv {
             ten_addon.ten_nodejs_ten_env_return_result_directly(
                 this,
                 cmdResult,
-                async (tenEnv: TenEnv, error: Error) => {
+                async (error: Error) => {
                     if (error) {
                         reject(error);
                     } else {
@@ -220,32 +220,46 @@ export class TenEnv {
         });
     }
 
-    log_verbose(message: string): void {
+    logVerbose(message: string): void {
         this._log_internal(LogLevel.VERBOSE, message)
     }
 
-    log_debug(message: string): void {
+    logDebug(message: string): void {
         this._log_internal(LogLevel.DEBUG, message)
     }
 
-    log_info(message: string): void {
+    logInfo(message: string): void {
         this._log_internal(LogLevel.INFO, message)
     }
 
-    log_warn(message: string): void {
+    logWarn(message: string): void {
         this._log_internal(LogLevel.WARN, message)
     }
 
-    log_error(message: string): void {
+    logError(message: string): void {
         this._log_internal(LogLevel.ERROR, message)
     }
 
-    log_fatal(message: string): void {
+    logFatal(message: string): void {
         this._log_internal(LogLevel.FATAL, message)
     }
 
     _log_internal(level: number, message: string): void {
-        ten_addon.ten_nodejs_ten_env_log_internal(this, level, message);
+        const _prepareStackTrace = Error.prepareStackTrace;
+        Error.prepareStackTrace = (_, stack): NodeJS.CallSite[] => stack;
+        const stack_ = new Error().stack as unknown as NodeJS.CallSite[];
+        const stack = stack_.slice(1);
+        Error.prepareStackTrace = _prepareStackTrace;
+
+        const _callerFile = stack[1].getFileName();
+        const _callerLine = stack[1].getLineNumber();
+        const _callerFunction = stack[1].getFunctionName();
+
+        const callerFile = _callerFile ? _callerFile : "unknown";
+        const callerLine = _callerLine ? _callerLine : 0;
+        const callerFunction = _callerFunction ? _callerFunction : "anonymous";
+
+        ten_addon.ten_nodejs_ten_env_log_internal(this, level, callerFunction, callerFile, callerLine, message);
     }
 }
 

@@ -8,5 +8,35 @@ import ten_addon from '../ten_addon'
 import { Msg } from './msg';
 
 export class Data extends Msg {
+    private constructor(name: string, createShellOnly: boolean) {
+        super();
 
+        if (createShellOnly) {
+            return;
+        }
+
+        ten_addon.ten_nodejs_data_create(this, name);
+    }
+
+    static Create(name: string): Data {
+        return new Data(name, false);
+    }
+
+    allocBuf(size: number): void {
+        ten_addon.ten_nodejs_data_alloc_buf(this, size);
+    }
+
+    lockBuf(): ArrayBuffer {
+        return ten_addon.ten_nodejs_data_lock_buf(this);
+    }
+
+    unlockBuf(buf: ArrayBuffer): void {
+        ten_addon.ten_nodejs_data_unlock_buf(this, buf);
+    }
+
+    getBuf(): ArrayBuffer {
+        return ten_addon.ten_nodejs_data_get_buf(this);
+    }
 }
+
+ten_addon.ten_nodejs_data_register_class(Data);
