@@ -4,7 +4,6 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-use anyhow::Result;
 use semver::Version;
 use sha2::{Digest, Sha256};
 
@@ -14,7 +13,7 @@ use super::{
 };
 
 impl PkgInfo {
-    pub fn gen_hash_hex(&self) -> Result<String> {
+    pub fn gen_hash_hex(&self) -> String {
         gen_hash_hex(
             &self.basic_info.type_and_name.pkg_type,
             &self.basic_info.type_and_name.name,
@@ -25,13 +24,13 @@ impl PkgInfo {
     }
 }
 
-pub fn gen_hash_hex(
+fn gen_hash_hex(
     pkg_type: &PkgType,
     name: &String,
     version: &Version,
     dependencies: &Vec<PkgDependency>,
     supports: &Vec<PkgSupport>,
-) -> Result<String> {
+) -> String {
     let mut hasher = Sha256::new();
 
     // Hash type.
@@ -47,8 +46,10 @@ pub fn gen_hash_hex(
 
     // Hash dependencies.
     for dep in dependencies {
-        let dep_string =
-            format!("{}:{}@{}", dep.pkg_type, dep.name, dep.version_req);
+        let dep_string = format!(
+            "{}:{}@{}",
+            dep.type_and_name.pkg_type, dep.type_and_name.name, dep.version_req
+        );
         hasher.update(dep_string);
     }
 
@@ -61,5 +62,5 @@ pub fn gen_hash_hex(
     let hash_result = hasher.finalize();
     let hash_hex = format!("{:x}", hash_result);
 
-    Ok(hash_hex)
+    hash_hex
 }

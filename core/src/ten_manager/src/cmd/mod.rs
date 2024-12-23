@@ -8,8 +8,10 @@ pub mod cmd_check;
 pub mod cmd_delete;
 pub mod cmd_designer;
 pub mod cmd_install;
+pub mod cmd_modify;
 pub mod cmd_package;
 pub mod cmd_publish;
+pub mod cmd_run;
 pub mod cmd_uninstall;
 
 use anyhow::Result;
@@ -24,6 +26,8 @@ pub enum CommandData {
     Delete(self::cmd_delete::DeleteCommand),
     Designer(self::cmd_designer::DesignerCommand),
     Check(self::cmd_check::CheckCommandData),
+    Modify(self::cmd_modify::ModifyCommandData),
+    Run(self::cmd_run::RunCommand),
 }
 
 pub async fn execute_cmd(
@@ -51,6 +55,12 @@ pub async fn execute_cmd(
         }
         CommandData::Check(cmd) => {
             crate::cmd::cmd_check::execute_cmd(tman_config, cmd).await
+        }
+        CommandData::Modify(cmd) => {
+            crate::cmd::cmd_modify::execute_cmd(tman_config, cmd).await
+        }
+        CommandData::Run(cmd) => {
+            crate::cmd::cmd_run::execute_cmd(tman_config, cmd).await
         }
     }
 }

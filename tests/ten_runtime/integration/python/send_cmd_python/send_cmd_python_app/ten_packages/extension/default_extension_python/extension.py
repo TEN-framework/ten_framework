@@ -11,7 +11,6 @@ from ten import (
     Cmd,
     StatusCode,
     CmdResult,
-    LogLevel,
     TenError,
 )
 

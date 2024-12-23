@@ -11,11 +11,12 @@ use std::{
 
 use anyhow::Result;
 use semver::Version;
+use serde::{Deserialize, Serialize};
 
 use super::{
     manifest::Manifest,
     pkg_type_and_name::PkgTypeAndName,
-    supports::{get_pkg_supports_from_manifest, PkgSupport},
+    supports::{get_pkg_supports_from_manifest_supports, PkgSupport},
     PkgInfo,
 };
 
@@ -23,7 +24,7 @@ use super::{
 // package. It includes the fields: type, name, version, and supports, which
 // together can be thought of as a unique ID representing a specific TEN
 // package.
-#[derive(Clone, Debug, Eq)]
+#[derive(Clone, Debug, Eq, Serialize, Deserialize)]
 pub struct PkgBasicInfo {
     pub type_and_name: PkgTypeAndName,
     pub version: Version,
@@ -34,13 +35,13 @@ pub struct PkgBasicInfo {
     // Therefore, the 'supports' field here is not an option. An empty
     // 'supports' field represents support for all combinations of
     // environments.
+    #[serde(skip_serializing_if = "Vec::is_empty", default)]
     pub supports: Vec<PkgSupport>,
 }
 
 impl Hash for PkgBasicInfo {
     fn hash<H: Hasher>(&self, state: &mut H) {
-        self.type_and_name.pkg_type.hash(state);
-        self.type_and_name.name.hash(state);
+        self.type_and_name.hash(state);
         self.version.hash(state);
         self.supports.hash(state);
     }
@@ -103,7 +104,9 @@ impl TryFrom<&Manifest> for PkgBasicInfo {
         Ok(PkgBasicInfo {
             type_and_name: PkgTypeAndName::try_from(manifest)?,
             version: Version::parse(&manifest.version)?,
-            supports: get_pkg_supports_from_manifest(manifest)?,
+            supports: get_pkg_supports_from_manifest_supports(
+                &manifest.supports,
+            )?,
         })
     }
 }

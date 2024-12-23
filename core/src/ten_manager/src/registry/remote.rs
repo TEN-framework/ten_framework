@@ -13,11 +13,12 @@ use semver::Version;
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use tempfile::NamedTempFile;
+use ten_rust::pkg_info::pkg_basic_info::PkgBasicInfo;
 use ten_rust::pkg_info::pkg_type::PkgType;
 use tokio::sync::RwLock;
 use tokio::time::sleep;
 
-use ten_rust::pkg_info::{supports::get_manifest_supports_from_pkg, PkgInfo};
+use ten_rust::pkg_info::PkgInfo;
 
 use super::{FoundResult, SearchCriteria};
 use crate::constants::{
@@ -26,7 +27,7 @@ use crate::constants::{
 };
 use crate::{
     config::TmanConfig, error::TmanError, log::tman_verbose_println,
-    registry::found_result::RegistryPackageData,
+    registry::found_result::PkgRegistryInfo,
 };
 
 async fn retry_async<'a, F, T>(
@@ -101,19 +102,13 @@ async fn get_package_upload_info(
         let pkg_info = pkg_info.clone();
 
         Box::pin(async move {
-            let payload = json!(RegistryPackageData {
-                pkg_type: pkg_info.basic_info.type_and_name.pkg_type,
-                name: pkg_info.basic_info.type_and_name.name.clone(),
-                version: pkg_info.basic_info.version.clone(),
+            let payload = json!(PkgRegistryInfo {
+                basic_info: PkgBasicInfo::from(&pkg_info),
                 dependencies: pkg_info
                     .dependencies
                     .clone()
                     .into_iter()
-                    .map(|d| d.into())
                     .collect(),
-                supports: Some(get_manifest_supports_from_pkg(
-                    &pkg_info.basic_info.supports
-                )),
                 hash: pkg_info.hash.clone(),
             });
 
@@ -470,7 +465,7 @@ struct ApiResponse {
 struct RegistryPackagesData {
     #[serde(rename = "totalSize")]
     total_size: u32,
-    packages: Vec<RegistryPackageData>,
+    packages: Vec<PkgRegistryInfo>,
 }
 
 pub async fn get_package_list(
@@ -544,16 +539,19 @@ pub async fn get_package_list(
 
                 total_size = api_response.data.total_size as usize;
 
-                for package_data in api_response.data.packages {
+                for pkg_registry_info in api_response.data.packages {
                     let url = PathBuf::from(format!(
                         "{}/{}/{}/{}/{}",
                         &base_url,
-                        package_data.pkg_type,
-                        package_data.name,
-                        package_data.version,
-                        package_data.hash,
+                        pkg_registry_info.basic_info.type_and_name.pkg_type,
+                        pkg_registry_info.basic_info.type_and_name.name,
+                        pkg_registry_info.basic_info.version,
+                        pkg_registry_info.hash,
                     ));
-                    results.push(FoundResult { url, package_data });
+                    results.push(FoundResult {
+                        url,
+                        pkg_registry_info,
+                    });
                 }
 
                 // Check if we've fetched all packages based on totalSize.
