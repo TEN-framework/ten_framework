@@ -30,7 +30,14 @@ class AsyncTenEnv(TenEnv):
     def __del__(self) -> None:
         pass
 
-    async def send_cmd(self, cmd: Cmd) -> CmdResult:
+    a = send_cmd(...)   ==> x, a.0, a.1
+    a, e = send_cmd(...)
+    a, _ = send_cmd(...)
+
+    send_cmd
+    asend_cmd
+
+    async def send_cmd(self, cmd: Cmd) -> (CmdResult, TenError):
         q = asyncio.Queue(maxsize=1)
         self._internal.send_cmd(
             cmd,
@@ -70,7 +77,7 @@ class AsyncTenEnv(TenEnv):
                     break
                 yield result
 
-    async def send_data(self, data: Data) -> None:
+    async def send_data(self, data: Data) -> TenError:
         q = asyncio.Queue(maxsize=1)
         self._internal.send_data(
             data,
