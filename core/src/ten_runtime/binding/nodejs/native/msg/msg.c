@@ -11,6 +11,8 @@
 #include "ten_utils/lib/signature.h"
 #include "ten_utils/lib/string.h"
 #include "ten_utils/macro/memory.h"
+#include "ten_utils/value/value.h"
+#include "ten_utils/value/value_get.h"
 
 void ten_nodejs_msg_init_from_c_msg(ten_nodejs_msg_t *self,
                                     ten_shared_ptr_t *msg) {
@@ -208,10 +210,385 @@ done:
   return js_res;
 }
 
+static napi_value ten_nodejs_msg_set_property_number(napi_env env,
+                                                     napi_callback_info info) {
+  const size_t argc = 3;
+  napi_value args[argc];  // this, path, value
+  if (!ten_nodejs_get_js_func_args(env, info, args, argc)) {
+    napi_fatal_error(NULL, NAPI_AUTO_LENGTH,
+                     "Incorrect number of parameters passed.",
+                     NAPI_AUTO_LENGTH);
+    TEN_ASSERT(0, "Should not happen.");
+    return js_undefined(env);
+  }
+
+  ten_nodejs_msg_t *msg_bridge = NULL;
+  napi_status status = napi_unwrap(env, args[0], (void **)&msg_bridge);
+  RETURN_UNDEFINED_IF_NAPI_FAIL(status == napi_ok && msg_bridge != NULL,
+                                "Failed to get msg bridge: %d", status);
+  TEN_ASSERT(msg_bridge, "Should not happen.");
+
+  ten_error_t err;
+  ten_error_init(&err);
+
+  ten_string_t path;
+  ten_string_init(&path);
+
+  napi_value js_value = args[2];
+  double value = 0;
+  status = napi_get_value_double(env, js_value, &value);
+  RETURN_UNDEFINED_IF_NAPI_FAIL(status == napi_ok, "Failed to get value", NULL);
+
+  bool rc = ten_nodejs_get_str_from_js(env, args[1], &path);
+  RETURN_UNDEFINED_IF_NAPI_FAIL(rc, "Failed to get property path", NULL);
+
+  ten_value_t *c_value = ten_value_create_float64(value);
+  TEN_ASSERT(c_value, "Should not happen.");
+
+  rc = ten_msg_set_property(msg_bridge->msg, ten_string_get_raw_str(&path),
+                            c_value, &err);
+  if (!rc) {
+    ten_string_t code_str;
+    ten_string_init_formatted(&code_str, "%d", ten_error_errno(&err));
+
+    napi_throw_error(env, ten_string_get_raw_str(&code_str),
+                     ten_error_errmsg(&err));
+
+    ten_string_deinit(&code_str);
+  }
+
+  ten_string_deinit(&path);
+  ten_error_deinit(&err);
+
+  return js_undefined(env);
+}
+
+static napi_value ten_nodejs_msg_get_property_number(napi_env env,
+                                                     napi_callback_info info) {
+  const size_t argc = 2;
+  napi_value args[argc];  // this, path
+  if (!ten_nodejs_get_js_func_args(env, info, args, argc)) {
+    napi_fatal_error(NULL, NAPI_AUTO_LENGTH,
+                     "Incorrect number of parameters passed.",
+                     NAPI_AUTO_LENGTH);
+    TEN_ASSERT(0, "Should not happen.");
+    return js_undefined(env);
+  }
+
+  ten_nodejs_msg_t *msg_bridge = NULL;
+  napi_status status = napi_unwrap(env, args[0], (void **)&msg_bridge);
+  RETURN_UNDEFINED_IF_NAPI_FAIL(status == napi_ok && msg_bridge != NULL,
+                                "Failed to get msg bridge: %d", status);
+  TEN_ASSERT(msg_bridge, "Should not happen.");
+
+  ten_error_t err;
+  ten_error_init(&err);
+
+  ten_string_t path;
+  ten_string_init(&path);
+
+  napi_value js_res = NULL;
+
+  bool rc = ten_nodejs_get_str_from_js(env, args[1], &path);
+  RETURN_UNDEFINED_IF_NAPI_FAIL(rc, "Failed to get property path", NULL);
+
+  ten_value_t *c_value = ten_msg_peek_property(
+      msg_bridge->msg, ten_string_get_raw_str(&path), &err);
+  if (!c_value) {
+    ten_string_t code_str;
+    ten_string_init_formatted(&code_str, "%d", ten_error_errno(&err));
+
+    napi_throw_error(env, ten_string_get_raw_str(&code_str),
+                     ten_error_errmsg(&err));
+
+    ten_string_deinit(&code_str);
+    goto done;
+  }
+
+  double value = ten_value_get_float64(c_value, &err);
+  if (ten_error_errno(&err) != TEN_ERRNO_OK) {
+    ten_string_t code_str;
+    ten_string_init_formatted(&code_str, "%d", ten_error_errno(&err));
+
+    napi_throw_error(env, ten_string_get_raw_str(&code_str),
+                     ten_error_errmsg(&err));
+
+    ten_string_deinit(&code_str);
+    goto done;
+  }
+
+  status = napi_create_double(env, value, &js_res);
+  RETURN_UNDEFINED_IF_NAPI_FAIL(status == napi_ok && js_res != NULL,
+                                "Failed to create JS number: %d", status);
+
+done:
+  ten_string_deinit(&path);
+  ten_error_deinit(&err);
+
+  if (!js_res) {
+    js_res = js_undefined(env);
+  }
+
+  return js_res;
+}
+
+static napi_value ten_nodejs_msg_set_property_string(napi_env env,
+                                                     napi_callback_info info) {
+  const size_t argc = 3;
+  napi_value args[argc];  // this, path, value
+  if (!ten_nodejs_get_js_func_args(env, info, args, argc)) {
+    napi_fatal_error(NULL, NAPI_AUTO_LENGTH,
+                     "Incorrect number of parameters passed.",
+                     NAPI_AUTO_LENGTH);
+    TEN_ASSERT(0, "Should not happen.");
+  }
+
+  ten_nodejs_msg_t *msg_bridge = NULL;
+  napi_status status = napi_unwrap(env, args[0], (void **)&msg_bridge);
+  RETURN_UNDEFINED_IF_NAPI_FAIL(status == napi_ok && msg_bridge != NULL,
+                                "Failed to get msg bridge: %d", status);
+  TEN_ASSERT(msg_bridge, "Should not happen.");
+
+  ten_error_t err;
+  ten_error_init(&err);
+
+  ten_string_t path;
+  ten_string_init(&path);
+
+  bool rc = ten_nodejs_get_str_from_js(env, args[1], &path);
+  RETURN_UNDEFINED_IF_NAPI_FAIL(rc, "Failed to get property path", NULL);
+
+  ten_string_t value_str;
+  ten_string_init(&value_str);
+
+  rc = ten_nodejs_get_str_from_js(env, args[2], &value_str);
+  RETURN_UNDEFINED_IF_NAPI_FAIL(rc, "Failed to get property value", NULL);
+
+  ten_value_t *c_value =
+      ten_value_create_string(ten_string_get_raw_str(&value_str));
+  TEN_ASSERT(c_value, "Failed to create string value.");
+
+  rc = ten_msg_set_property(msg_bridge->msg, ten_string_get_raw_str(&path),
+                            c_value, &err);
+  if (!rc) {
+    ten_string_t code_str;
+    ten_string_init_formatted(&code_str, "%d", ten_error_errno(&err));
+
+    napi_throw_error(env, ten_string_get_raw_str(&code_str),
+                     ten_error_errmsg(&err));
+
+    ten_string_deinit(&code_str);
+  }
+
+  ten_string_deinit(&path);
+  ten_string_deinit(&value_str);
+  ten_error_deinit(&err);
+
+  return js_undefined(env);
+}
+
+static napi_value ten_nodejs_msg_get_property_string(napi_env env,
+                                                     napi_callback_info info) {
+  const size_t argc = 2;
+  napi_value args[argc];  // this, path
+  if (!ten_nodejs_get_js_func_args(env, info, args, argc)) {
+    napi_fatal_error(NULL, NAPI_AUTO_LENGTH,
+                     "Incorrect number of parameters passed.",
+                     NAPI_AUTO_LENGTH);
+    TEN_ASSERT(0, "Should not happen.");
+    return js_undefined(env);
+  }
+
+  ten_nodejs_msg_t *msg_bridge = NULL;
+  napi_status status = napi_unwrap(env, args[0], (void **)&msg_bridge);
+  RETURN_UNDEFINED_IF_NAPI_FAIL(status == napi_ok && msg_bridge != NULL,
+                                "Failed to get msg bridge: %d", status);
+  TEN_ASSERT(msg_bridge, "Should not happen.");
+
+  napi_value js_res = NULL;
+
+  ten_error_t err;
+  ten_error_init(&err);
+
+  ten_string_t path;
+  ten_string_init(&path);
+
+  bool rc = ten_nodejs_get_str_from_js(env, args[1], &path);
+  RETURN_UNDEFINED_IF_NAPI_FAIL(rc, "Failed to get property path", NULL);
+
+  ten_value_t *c_value = ten_msg_peek_property(
+      msg_bridge->msg, ten_string_get_raw_str(&path), &err);
+  if (!c_value) {
+    ten_string_t code_str;
+    ten_string_init_formatted(&code_str, "%d", ten_error_errno(&err));
+
+    napi_throw_error(env, ten_string_get_raw_str(&code_str),
+                     ten_error_errmsg(&err));
+
+    ten_string_deinit(&code_str);
+    goto done;
+  }
+
+  const char *value = ten_value_peek_raw_str(c_value, &err);
+  if (!value) {
+    ten_string_t code_str;
+    ten_string_init_formatted(&code_str, "%d", ten_error_errno(&err));
+
+    napi_throw_error(env, ten_string_get_raw_str(&code_str),
+                     ten_error_errmsg(&err));
+
+    ten_string_deinit(&code_str);
+    goto done;
+  }
+
+  status = napi_create_string_utf8(env, value, NAPI_AUTO_LENGTH, &js_res);
+  RETURN_UNDEFINED_IF_NAPI_FAIL(status == napi_ok && js_res != NULL,
+                                "Failed to create JS string: %d", status);
+
+done:
+  ten_string_deinit(&path);
+  ten_error_deinit(&err);
+
+  if (!js_res) {
+    js_res = js_undefined(env);
+  }
+
+  return js_res;
+}
+
+static napi_value ten_nodejs_msg_set_property_bool(napi_env env,
+                                                   napi_callback_info info) {
+  const size_t argc = 3;
+  napi_value args[argc];  // this, path, value
+  if (!ten_nodejs_get_js_func_args(env, info, args, argc)) {
+    napi_fatal_error(NULL, NAPI_AUTO_LENGTH,
+                     "Incorrect number of parameters passed.",
+                     NAPI_AUTO_LENGTH);
+    TEN_ASSERT(0, "Should not happen.");
+  }
+
+  ten_nodejs_msg_t *msg_bridge = NULL;
+  napi_status status = napi_unwrap(env, args[0], (void **)&msg_bridge);
+  RETURN_UNDEFINED_IF_NAPI_FAIL(status == napi_ok && msg_bridge != NULL,
+                                "Failed to get msg bridge: %d", status);
+  TEN_ASSERT(msg_bridge, "Should not happen.");
+
+  ten_error_t err;
+  ten_error_init(&err);
+
+  ten_string_t path;
+  ten_string_init(&path);
+
+  bool rc = ten_nodejs_get_str_from_js(env, args[1], &path);
+  RETURN_UNDEFINED_IF_NAPI_FAIL(rc, "Failed to get property path", NULL);
+
+  napi_value js_value = args[2];
+  bool value = false;
+  status = napi_get_value_bool(env, js_value, &value);
+  RETURN_UNDEFINED_IF_NAPI_FAIL(status == napi_ok, "Failed to get value", NULL);
+
+  ten_value_t *c_value = ten_value_create_bool(value);
+  TEN_ASSERT(c_value, "Failed to create bool value.");
+
+  rc = ten_msg_set_property(msg_bridge->msg, ten_string_get_raw_str(&path),
+                            c_value, &err);
+  if (!rc) {
+    ten_string_t code_str;
+    ten_string_init_formatted(&code_str, "%d", ten_error_errno(&err));
+
+    napi_throw_error(env, ten_string_get_raw_str(&code_str),
+                     ten_error_errmsg(&err));
+
+    ten_string_deinit(&code_str);
+  }
+
+  ten_string_deinit(&path);
+  ten_error_deinit(&err);
+
+  return js_undefined(env);
+}
+
+static napi_value ten_nodejs_msg_get_property_bool(napi_env env,
+                                                   napi_callback_info info) {
+  const size_t argc = 2;
+  napi_value args[argc];  // this, path
+  if (!ten_nodejs_get_js_func_args(env, info, args, argc)) {
+    napi_fatal_error(NULL, NAPI_AUTO_LENGTH,
+                     "Incorrect number of parameters passed.",
+                     NAPI_AUTO_LENGTH);
+    TEN_ASSERT(0, "Should not happen.");
+    return js_undefined(env);
+  }
+
+  ten_nodejs_msg_t *msg_bridge = NULL;
+  napi_status status = napi_unwrap(env, args[0], (void **)&msg_bridge);
+  RETURN_UNDEFINED_IF_NAPI_FAIL(status == napi_ok && msg_bridge != NULL,
+                                "Failed to get msg bridge: %d", status);
+  TEN_ASSERT(msg_bridge, "Should not happen.");
+
+  ten_error_t err;
+  ten_error_init(&err);
+
+  ten_string_t path;
+  ten_string_init(&path);
+
+  napi_value js_res = NULL;
+
+  bool rc = ten_nodejs_get_str_from_js(env, args[1], &path);
+  RETURN_UNDEFINED_IF_NAPI_FAIL(rc, "Failed to get property path", NULL);
+
+  ten_value_t *c_value = ten_msg_peek_property(
+      msg_bridge->msg, ten_string_get_raw_str(&path), &err);
+  if (!c_value) {
+    ten_string_t code_str;
+    ten_string_init_formatted(&code_str, "%d", ten_error_errno(&err));
+
+    napi_throw_error(env, ten_string_get_raw_str(&code_str),
+                     ten_error_errmsg(&err));
+
+    ten_string_deinit(&code_str);
+    goto done;
+  }
+
+  bool value = ten_value_get_bool(c_value, &err);
+  if (ten_error_errno(&err) != TEN_ERRNO_OK) {
+    ten_string_t code_str;
+    ten_string_init_formatted(&code_str, "%d", ten_error_errno(&err));
+
+    napi_throw_error(env, ten_string_get_raw_str(&code_str),
+                     ten_error_errmsg(&err));
+
+    ten_string_deinit(&code_str);
+    goto done;
+  }
+
+  status = napi_get_boolean(env, value, &js_res);
+  RETURN_UNDEFINED_IF_NAPI_FAIL(status == napi_ok && js_res != NULL,
+                                "Failed to create JS boolean: %d", status);
+
+done:
+  ten_string_deinit(&path);
+  ten_error_deinit(&err);
+
+  if (!js_res) {
+    js_res = js_undefined(env);
+  }
+
+  return js_res;
+}
+
 napi_value ten_nodejs_msg_module_init(napi_env env, napi_value exports) {
   EXPORT_FUNC(env, exports, ten_nodejs_msg_get_name);
   EXPORT_FUNC(env, exports, ten_nodejs_msg_set_property_from_json);
   EXPORT_FUNC(env, exports, ten_nodejs_msg_get_property_to_json);
+  EXPORT_FUNC(env, exports, ten_nodejs_msg_set_property_number);
+  EXPORT_FUNC(env, exports, ten_nodejs_msg_get_property_number);
+  EXPORT_FUNC(env, exports, ten_nodejs_msg_set_property_string);
+  EXPORT_FUNC(env, exports, ten_nodejs_msg_get_property_string);
+  EXPORT_FUNC(env, exports, ten_nodejs_msg_set_property_bool);
+  EXPORT_FUNC(env, exports, ten_nodejs_msg_get_property_bool);
+  EXPORT_FUNC(env, exports, ten_nodejs_msg_set_property_buf);
+  EXPORT_FUNC(env, exports, ten_nodejs_msg_get_property_buf);
 
   return exports;
 }

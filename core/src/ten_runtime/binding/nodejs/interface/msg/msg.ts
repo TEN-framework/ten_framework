@@ -18,4 +18,36 @@ export class Msg {
     getPropertyToJson(path: string): string {
         return ten_addon.ten_nodejs_msg_get_property_to_json(this, path);
     }
+
+    setPropertyNumber(path: string, value: number): void {
+        ten_addon.ten_nodejs_msg_set_property_number(this, path, value);
+    }
+
+    getPropertyNumber(path: string): number {
+        return ten_addon.ten_nodejs_msg_get_property_number(this, path);
+    }
+
+    setPropertyString(path: string, value: string): void {
+        ten_addon.ten_nodejs_msg_set_property_string(this, path, value);
+    }
+
+    getPropertyString(path: string): string {
+        return ten_addon.ten_nodejs_msg_get_property_string(this, path);
+    }
+
+    setPropertyBool(path: string, value: boolean): void {
+        ten_addon.ten_nodejs_msg_set_property_bool(this, path, value);
+    }
+
+    getPropertyBool(path: string): boolean {
+        return ten_addon.ten_nodejs_msg_get_property_bool(this, path);
+    }
+
+    setPropertyBuf(path: string, value: ArrayBuffer): void {
+        ten_addon.ten_nodejs_msg_set_property_buf(this, path, value);
+    }
+
+    getPropertyBuf(path: string): ArrayBuffer {
+        return ten_addon.ten_nodejs_msg_get_property_buf(this, path);
+    }
 }

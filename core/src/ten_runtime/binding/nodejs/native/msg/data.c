@@ -257,6 +257,7 @@ static napi_value ten_nodejs_data_unlock_buf(napi_env env,
 
   return js_undefined(env);
 }
+
 static napi_value ten_nodejs_data_get_buf(napi_env env,
                                           napi_callback_info info) {
   const size_t argc = 1;
