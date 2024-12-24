@@ -22,7 +22,7 @@ class test_extension_1 : public ten::extension_t {
 
   void on_cmd(ten::ten_env_t &ten_env,
               std::unique_ptr<ten::cmd_t> cmd) override {
-    if (std::string(cmd->get_name().c_str()) == "hello_world") {
+    if (cmd->get_name() == "hello_world") {
       ten_env.send_cmd(std::move(cmd));
       return;
     }
@@ -35,7 +35,7 @@ class test_extension_2 : public ten::extension_t {
 
   void on_cmd(ten::ten_env_t &ten_env,
               std::unique_ptr<ten::cmd_t> cmd) override {
-    if (std::string(cmd->get_name().c_str()) == "hello_mapping") {
+    if (cmd->get_name() == "hello_mapping") {
       auto json =
           nlohmann::json::parse(cmd->get_property_to_json("dest_test_group"));
       if (json["test_property_name"] == 32) {

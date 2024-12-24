@@ -369,9 +369,8 @@ class test_extension_2 : public ten::extension_t {
       timer_cmd->set_times(1);
 
       ten_env.send_cmd(std::move(timer_cmd));
-    } else if (ten::msg_internal_accessor_t::get_type(
-                   std::unique_ptr<ten::msg_t>(static_cast<ten::msg_t *>(
-                       cmd.release()))) == TEN_MSG_TYPE_CMD_TIMEOUT &&
+    } else if (ten::msg_internal_accessor_t::get_type(cmd.get()) ==
+                   TEN_MSG_TYPE_CMD_TIMEOUT &&
                static_cast<ten::cmd_timeout_t *>(cmd.get())->get_timer_id() ==
                    55) {
       TEN_ASSERT(timeout_thread == nullptr, "Should not happen.");

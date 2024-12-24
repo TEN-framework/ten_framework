@@ -31,7 +31,7 @@ class test_normal_extension_2 : public ten::extension_t {
 
   void on_cmd(ten::ten_env_t &ten_env,
               std::unique_ptr<ten::cmd_t> cmd) override {
-    if (std::string(cmd->get_name().c_str()) == "hello_world") {
+    if (cmd->get_name() == "hello_world") {
       auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
       cmd_result->set_property("detail", "hello world, too");
       ten_env.return_result(std::move(cmd_result), std::move(cmd));
@@ -90,7 +90,7 @@ class test_predefined_graph : public ten::extension_t {
 
   void on_cmd(ten::ten_env_t &ten_env,
               std::unique_ptr<ten::cmd_t> cmd) override {
-    if (std::string(cmd->get_name().c_str()) == "test") {
+    if (cmd->get_name() == "test") {
       nlohmann::json detail = {{"id", 1}, {"name", "a"}};
 
       auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK);

@@ -57,7 +57,7 @@ class test_predefined_graph : public ten::extension_t {
 
   void on_cmd(ten::ten_env_t &ten_env,
               std::unique_ptr<ten::cmd_t> cmd) override {
-    if (std::string(cmd->get_name().c_str()) == "test") {
+    if (cmd->get_name() == "test") {
       if (start_graph_cmd_is_done) {
         nlohmann::json detail = {{"id", 1}, {"name", "a"}};
 

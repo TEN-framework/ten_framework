@@ -24,7 +24,7 @@ class test_extension_1 : public ten::extension_t {
 
   void on_cmd(ten::ten_env_t &ten_env,
               std::unique_ptr<ten::cmd_t> cmd) override {
-    if (std::string(cmd->get_name().c_str()) == "hello_world") {
+    if (cmd->get_name() == "hello_world") {
       hello_world_cmd = std::move(cmd);
 
       auto new_cmd = ten::cmd_t::create("send enum");
@@ -55,7 +55,7 @@ class test_extension_2 : public ten::extension_t {
 
   void on_cmd(ten::ten_env_t &ten_env,
               std::unique_ptr<ten::cmd_t> cmd) override {
-    if (std::string(cmd->get_name().c_str()) == "send enum") {
+    if (cmd->get_name() == "send enum") {
       auto u_test_data = cmd->get_property_int32("test data");
       auto test_data = static_cast<TEST_ENUM>(u_test_data);
       if (test_data != TEST_1) {

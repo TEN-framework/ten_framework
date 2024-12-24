@@ -28,7 +28,7 @@ class test_extension_1 : public ten::extension_t {
 
   void on_cmd(ten::ten_env_t &ten_env,
               std::unique_ptr<ten::cmd_t> cmd) override {
-    if (std::string(cmd->get_name().c_str()) == "process") {
+    if (cmd->get_name() == "process") {
       auto data = cmd->get_property_int64("data");
       cmd->set_property("data", data * 2);
 
@@ -45,7 +45,7 @@ class test_extension_2 : public ten::extension_t {
 
   void on_cmd(ten::ten_env_t &ten_env,
               std::unique_ptr<ten::cmd_t> cmd) override {
-    if (std::string(cmd->get_name().c_str()) == "process") {
+    if (cmd->get_name() == "process") {
       auto data = cmd->get_property_int64("data");
 
       auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
@@ -110,7 +110,7 @@ class extension_tester_1 : public ten::extension_tester_t {
 
   void on_cmd(ten::ten_env_tester_t &ten_env,
               std::unique_ptr<ten::cmd_t> cmd) override {
-    if (std::string(cmd->get_name().c_str()) == "hello_world") {
+    if (cmd->get_name() == "hello_world") {
       ten_env.stop_test();
     }
   }

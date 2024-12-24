@@ -24,8 +24,7 @@ class msg_internal_accessor_t {
   msg_internal_accessor_t &operator=(msg_internal_accessor_t &&) = delete;
   // @}
 
-  static TEN_MSG_TYPE get_type(const std::unique_ptr<msg_t> &msg,
-                               error_t *err = nullptr) {
+  static TEN_MSG_TYPE get_type(const msg_t *msg, error_t *err = nullptr) {
     return msg->get_type(err);
   }
 };

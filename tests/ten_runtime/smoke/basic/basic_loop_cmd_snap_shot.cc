@@ -55,7 +55,7 @@ class test_extension_2 : public ten::extension_t {
 
   void on_cmd(ten::ten_env_t &ten_env,
               std::unique_ptr<ten::cmd_t> cmd) override {
-    if (std::string(cmd->get_name().c_str()) == "hello_world_1") {
+    if (cmd->get_name() == "hello_world_1") {
       // waiting for result
       pending_request = std::move(cmd);
       auto hello_world_2_cmd = ten::cmd_t::create("hello_world_2");

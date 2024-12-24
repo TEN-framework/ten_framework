@@ -23,7 +23,7 @@ class test_extension : public ten::extension_t {
 
   void on_cmd(ten::ten_env_t &ten_env,
               std::unique_ptr<ten::cmd_t> cmd) override {
-    if (std::string(cmd->get_name().c_str()) == "hello_world") {
+    if (cmd->get_name() == "hello_world") {
       hello_world_cmd = std::move(cmd);
       // Start a timer.
       auto timer_cmd = ten::cmd_timer_t::create();
@@ -34,9 +34,8 @@ class test_extension : public ten::extension_t {
 
       bool success = ten_env.send_cmd(std::move(timer_cmd));
       EXPECT_EQ(success, true);
-    } else if (ten::msg_internal_accessor_t::get_type(
-                   std::unique_ptr<ten::msg_t>(static_cast<ten::msg_t *>(
-                       cmd.release()))) == TEN_MSG_TYPE_CMD_TIMEOUT &&
+    } else if (ten::msg_internal_accessor_t::get_type(cmd.get()) ==
+                   TEN_MSG_TYPE_CMD_TIMEOUT &&
                std::unique_ptr<ten::cmd_timeout_t>(
                    static_cast<ten::cmd_timeout_t *>(cmd.release()))
                        ->get_timer_id() == 55) {

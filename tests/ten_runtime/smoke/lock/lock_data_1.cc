@@ -25,7 +25,7 @@ class test_extension_1 : public ten::extension_t {
 
   void on_cmd(ten::ten_env_t &ten_env,
               std::unique_ptr<ten::cmd_t> cmd) override {
-    if (std::string(cmd->get_name().c_str()) == "dispatch_data") {
+    if (cmd->get_name() == "dispatch_data") {
       const char *str = DATA;
       auto length = strlen(str);
 
@@ -69,7 +69,7 @@ class test_extension_2 : public ten::extension_t {
 
   void on_cmd(ten::ten_env_t &ten_env,
               std::unique_ptr<ten::cmd_t> cmd) override {
-    if (std::string(cmd->get_name().c_str()) == "check_received") {
+    if (cmd->get_name() == "check_received") {
       if (received) {
         auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
         cmd_result->set_property("detail", "received confirmed");
@@ -103,7 +103,7 @@ class test_extension_3 : public ten::extension_t {
 
   void on_cmd(ten::ten_env_t &ten_env,
               std::unique_ptr<ten::cmd_t> cmd) override {
-    if (std::string(cmd->get_name().c_str()) == "check_received") {
+    if (cmd->get_name() == "check_received") {
       if (received) {
         auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
         cmd_result->set_property("detail", "received confirmed");

@@ -61,7 +61,7 @@ class test_extension : public ten::extension_t {
 
   void on_cmd(ten::ten_env_t &ten_env,
               std::unique_ptr<ten::cmd_t> cmd) override {
-    if (std::string(cmd->get_name().c_str()) == "hello_world") {
+    if (cmd->get_name() == "hello_world") {
       // The get/set property actions of the message itself will not immediately
       // trigger schema validation. This is because the message might be
       // manipulated in other threads, and schema information is tied to the
