@@ -24,7 +24,7 @@ class test_extension : public ten::extension_t {
 
   void on_cmd(ten::ten_env_t &ten_env,
               std::unique_ptr<ten::cmd_t> cmd) override {
-    if (std::string(cmd->get_name()) == "hello_world") {
+    if (std::string(cmd->get_name().c_str()) == "hello_world") {
       // The property does not exist, the app should not crash here.
       auto prop_value = ten_env.get_property_to_json("app:" PROP_NAME);
       if (prop_value.empty()) {

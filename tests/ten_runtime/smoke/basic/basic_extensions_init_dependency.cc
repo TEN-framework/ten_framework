@@ -29,9 +29,9 @@ class test_extension_1 : public ten::extension_t {
 
   void on_cmd(ten::ten_env_t &ten_env,
               std::unique_ptr<ten::cmd_t> cmd) override {
-    if (std::string(cmd->get_name()) == "hello_world") {
+    if (std::string(cmd->get_name().c_str()) == "hello_world") {
       ten_env.send_cmd(std::move(cmd));
-    } else if (std::string(cmd->get_name()) == "get_name") {
+    } else if (std::string(cmd->get_name().c_str()) == "get_name") {
       auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
       cmd_result->set_property("detail", "test_extension_1");
       ten_env.return_result(std::move(cmd_result), std::move(cmd));
@@ -74,7 +74,7 @@ class test_extension_2 : public ten::extension_t {
 
   void on_cmd(ten::ten_env_t &ten_env,
               std::unique_ptr<ten::cmd_t> cmd) override {
-    if (std::string(cmd->get_name()) == "hello_world") {
+    if (std::string(cmd->get_name().c_str()) == "hello_world") {
       auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
       cmd_result->set_property("detail", greeting_);
       ten_env.return_result(std::move(cmd_result), std::move(cmd));

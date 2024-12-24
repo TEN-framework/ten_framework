@@ -26,7 +26,7 @@ class test_extension : public ten::extension_t {
 
   void on_cmd(ten::ten_env_t &ten_env,
               std::unique_ptr<ten::cmd_t> cmd) override {
-    if (std::string(cmd->get_name()) == "hello_world") {
+    if (std::string(cmd->get_name().c_str()) == "hello_world") {
       auto prop_value = ten_env.get_property_float64("app:" PROP_NAME);
       if (fabs(prop_value - PROP_VAL) < 0.01) {
         auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK);

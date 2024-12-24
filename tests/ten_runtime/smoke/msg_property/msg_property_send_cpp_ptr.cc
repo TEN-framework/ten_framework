@@ -40,7 +40,7 @@ class test_extension_1 : public ten::extension_t {
 
   void on_cmd(ten::ten_env_t &ten_env,
               std::unique_ptr<ten::cmd_t> cmd) override {
-    if (std::string(cmd->get_name()) == "hello_world") {
+    if (std::string(cmd->get_name().c_str()) == "hello_world") {
       auto new_cmd = ten::cmd_t::create("send_ptr");
 
       // Create a C++ object.
@@ -74,7 +74,7 @@ class test_extension_2 : public ten::extension_t {
 
   void on_cmd(ten::ten_env_t &ten_env,
               std::unique_ptr<ten::cmd_t> cmd) override {
-    if (std::string(cmd->get_name()) == "send_ptr") {
+    if (std::string(cmd->get_name().c_str()) == "send_ptr") {
       // Get the TEN message property.
       auto *test_data =
           static_cast<test_data_t *>(cmd->get_property_ptr("test data"));

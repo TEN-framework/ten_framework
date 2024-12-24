@@ -16,7 +16,7 @@ class demuxer_extension_t : public extension_t {
   void on_start(ten_env_t &ten_env) override { ten_env.on_start_done(); }
 
   void on_cmd(ten_env_t &ten_env, std::unique_ptr<ten::cmd_t> cmd) override {
-    const auto *cmd_name = cmd->get_name();
+    const auto cmd_name = cmd->get_name();
 
     if (std::string(cmd_name) == "prepare_demuxer") {
       auto input_stream_name = cmd->get_property_string("input_stream");

@@ -48,7 +48,7 @@ class test_extension : public ten::extension_t {
     }
 
     std::vector<std::string> edges = {"B", "C", "D", "E", "F", "G"};
-    if (std::string(cmd->get_name()) == "send") {
+    if (std::string(cmd->get_name().c_str()) == "send") {
       json["from"] = name_;
       if (std::find(edges.begin(), edges.end(), name_) != edges.end()) {
         json[name_] = name_;

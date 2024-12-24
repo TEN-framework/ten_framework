@@ -22,7 +22,7 @@ class test_extension_1 : public ten::extension_t {
 
   void on_cmd(ten::ten_env_t &ten_env,
               std::unique_ptr<ten::cmd_t> cmd) override {
-    if (std::string(cmd->get_name()) == "hello_world") {
+    if (std::string(cmd->get_name().c_str()) == "hello_world") {
       hello_world_cmd = std::move(cmd);
 
       auto data = ten::data_t::create("data");
@@ -34,7 +34,7 @@ class test_extension_1 : public ten::extension_t {
                                    // clang-format on
       );
       ten_env.send_data(std::move(data));
-    } else if (std::string(cmd->get_name()) == "data_ack") {
+    } else if (std::string(cmd->get_name().c_str()) == "data_ack") {
       auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
       cmd_result->set_property("detail", "hello world, too");
       ten_env.return_result(std::move(cmd_result), std::move(hello_world_cmd));

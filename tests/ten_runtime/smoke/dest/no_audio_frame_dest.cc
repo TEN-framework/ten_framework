@@ -25,7 +25,7 @@ class test_extension_1 : public ten::extension_t {
 
   void on_cmd(ten::ten_env_t &ten_env,
               std::unique_ptr<ten::cmd_t> cmd) override {
-    if (std::string(cmd->get_name()) == "hello_world") {
+    if (std::string(cmd->get_name().c_str()) == "hello_world") {
       hello_world_cmd = std::move(cmd);
 
       ten::error_t err;
@@ -42,7 +42,7 @@ class test_extension_1 : public ten::extension_t {
       auto audio_frame = ten::audio_frame_t::create("audio_frame");
       rc = ten_env.send_audio_frame(std::move(audio_frame));
       ASSERT_EQ(rc, true);
-    } else if (std::string(cmd->get_name()) == "audio_frame_ack") {
+    } else if (std::string(cmd->get_name().c_str()) == "audio_frame_ack") {
       auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
       cmd_result->set_property("detail", "hello world, too");
       bool rc = ten_env.return_result(std::move(cmd_result),

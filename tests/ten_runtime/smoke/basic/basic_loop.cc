@@ -21,7 +21,7 @@ class test_extension_1 : public ten::extension_t {
 
   void on_cmd(ten::ten_env_t &ten_env,
               std::unique_ptr<ten::cmd_t> cmd) override {
-    if (std::string(cmd->get_name()) == "hello_world") {
+    if (std::string(cmd->get_name().c_str()) == "hello_world") {
       hello_world_cmd = std::move(cmd);
       auto hello_world_1_cmd = ten::cmd_t::create("hello_world_1");
       ten_env.send_cmd(
@@ -36,7 +36,7 @@ class test_extension_1 : public ten::extension_t {
                                   std::move(hello_world_cmd));
           });
       return;
-    } else if (std::string(cmd->get_name()) == "hello_world_2") {
+    } else if (std::string(cmd->get_name().c_str()) == "hello_world_2") {
       auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
       cmd_result->set_property("detail", "hello world, too");
       ten_env.return_result(std::move(cmd_result), std::move(cmd));
@@ -53,7 +53,7 @@ class test_extension_2 : public ten::extension_t {
 
   void on_cmd(ten::ten_env_t &ten_env,
               std::unique_ptr<ten::cmd_t> cmd) override {
-    if (std::string(cmd->get_name()) == "hello_world_1") {
+    if (std::string(cmd->get_name().c_str()) == "hello_world_1") {
       // waiting for result
       pending_request = std::move(cmd);
       auto hello_world_2_cmd = ten::cmd_t::create("hello_world_2");

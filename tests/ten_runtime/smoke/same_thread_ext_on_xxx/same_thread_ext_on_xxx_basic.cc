@@ -26,7 +26,7 @@ class test_extension_1 : public ten::extension_t {
 
   void on_cmd(ten::ten_env_t &ten_env,
               std::unique_ptr<ten::cmd_t> cmd) override {
-    if (std::string(cmd->get_name()) == "hello_world") {
+    if (std::string(cmd->get_name().c_str()) == "hello_world") {
       // Create a memory buffer to contain some important data.
       auto *test_data = static_cast<uint64_t *>(ten_malloc(sizeof(uint64_t)));
       TEN_ASSERT(test_data, "Failed to allocate memory.");
@@ -58,7 +58,7 @@ class test_extension_2 : public ten::extension_t {
 
   void on_cmd(ten::ten_env_t &ten_env,
               std::unique_ptr<ten::cmd_t> cmd) override {
-    if (std::string(cmd->get_name()) == "hello_world") {
+    if (std::string(cmd->get_name().c_str()) == "hello_world") {
       // Wait 1 second to test if test_extension_2::on_cmd() is called directly
       // by test_extension_1::on_cmd(). If yes, the following checking would be
       // success, otherwise, 'test_data' would be freed by test_extension_1, so

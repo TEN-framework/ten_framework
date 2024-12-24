@@ -52,7 +52,7 @@ class ffmpeg_client_extension : public ten::extension_t {
 
   void on_cmd(ten::ten_env_t &ten_env,
               std::unique_ptr<ten::cmd_t> cmd) override {
-    const auto *cmd_name = cmd->get_name();
+    const auto cmd_name = cmd->get_name();
 
     if (std::string(cmd_name) == "muxer_complete") {
       muxer_completed = true;

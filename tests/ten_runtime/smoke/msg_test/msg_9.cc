@@ -52,7 +52,7 @@ class test_extension_1 : public ten::extension_t {
 
   void on_cmd(ten::ten_env_t &ten_env,
               std::unique_ptr<ten::cmd_t> cmd) override {
-    if (std::string(cmd->get_name()) == "hello_world") {
+    if (std::string(cmd->get_name().c_str()) == "hello_world") {
       hello_world_cmd = std::move(cmd);
 
       auto new_cmd = ten::cmd_t::create("test");
@@ -81,7 +81,7 @@ class test_extension_2 : public ten::extension_t {
 
   void on_cmd(ten::ten_env_t &ten_env,
               std::unique_ptr<ten::cmd_t> cmd) override {
-    if (std::string(cmd->get_name()) == "test") {
+    if (std::string(cmd->get_name().c_str()) == "test") {
       auto const test_data = cmd->get_property_int32("test_data");
       TEN_ASSERT(test_data == TEST_DATA, "Invalid argument.");
 

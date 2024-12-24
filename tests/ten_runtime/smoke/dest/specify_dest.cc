@@ -46,7 +46,7 @@ class business_extension : public ten::extension_t {
               std::unique_ptr<ten::cmd_t> cmd) override {
     // Check whether the initial request has been received and start processing
     // it.
-    if (std::string(cmd->get_name()) == "initial_request") {
+    if (std::string(cmd->get_name().c_str()) == "initial_request") {
       // Start the handling process of "initial_request".
       handle_initial_request(ten_env, std::move(cmd));
     }
@@ -134,7 +134,7 @@ class plugin_extension_1 : public ten::extension_t {
   void on_cmd(ten::ten_env_t &ten_env,
               std::unique_ptr<ten::cmd_t> cmd) override {
     // Simulate the action of receiving a command, and return a result.
-    if (std::string(cmd->get_name()) == "plugin_1_cmd") {
+    if (std::string(cmd->get_name().c_str()) == "plugin_1_cmd") {
       auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
       cmd_result->set_property("detail", "plugin_1_result");
       ten_env.return_result(std::move(cmd_result), std::move(cmd));
@@ -149,7 +149,7 @@ class plugin_extension_2 : public ten::extension_t {
   void on_cmd(ten::ten_env_t &ten_env,
               std::unique_ptr<ten::cmd_t> cmd) override {
     // Simulate the action of receiving a command, and return a result.
-    if (std::string(cmd->get_name()) == "plugin_2_cmd") {
+    if (std::string(cmd->get_name().c_str()) == "plugin_2_cmd") {
       auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
       cmd_result->set_property("detail", "plugin_2_result");
       ten_env.return_result(std::move(cmd_result), std::move(cmd));

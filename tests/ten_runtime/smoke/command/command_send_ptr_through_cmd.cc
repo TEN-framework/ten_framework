@@ -23,7 +23,7 @@ class test_extension_1 : public ten::extension_t {
 
   void on_cmd(ten::ten_env_t &ten_env,
               std::unique_ptr<ten::cmd_t> cmd) override {
-    if (std::string(cmd->get_name()) == "hello_world") {
+    if (std::string(cmd->get_name().c_str()) == "hello_world") {
       int *test_data = reinterpret_cast<int *>(ten_malloc(sizeof(int)));
       *test_data = 12344321;
 
@@ -56,7 +56,7 @@ class test_extension_2 : public ten::extension_t {
 
   void on_cmd(ten::ten_env_t &ten_env,
               std::unique_ptr<ten::cmd_t> cmd) override {
-    if (std::string(cmd->get_name()) == "send_ptr") {
+    if (std::string(cmd->get_name().c_str()) == "send_ptr") {
       auto *const test_data = cmd->get_property_ptr("test data");
       ten_free(test_data);
 

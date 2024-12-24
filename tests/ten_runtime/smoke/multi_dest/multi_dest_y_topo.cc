@@ -21,7 +21,7 @@ class test_extension_1 : public ten::extension_t {
 
   void on_cmd(ten::ten_env_t &ten_env,
               std::unique_ptr<ten::cmd_t> cmd) override {
-    if (std::string(cmd->get_name()) == "hello_world") {
+    if (std::string(cmd->get_name().c_str()) == "hello_world") {
       // Remember the command sent from the client, so that we can send its
       // result back to the client.
       client_cmd = std::move(cmd);
@@ -55,7 +55,7 @@ class test_extension_2 : public ten::extension_t {
     // Extension 2 is just a forwarding proxy, forward all the commands it
     // received out.
 
-    if (std::string(cmd->get_name()) == "hello_world") {
+    if (std::string(cmd->get_name().c_str()) == "hello_world") {
       ten_env.send_cmd(std::move(cmd));
       return;
     }

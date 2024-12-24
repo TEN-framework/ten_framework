@@ -60,7 +60,7 @@ class test_extension_1 : public ten::extension_t {
 
   void on_cmd(ten::ten_env_t &ten_env,
               std::unique_ptr<ten::cmd_t> cmd) override {
-    if (std::string(cmd->get_name()) == "hello_world") {
+    if (std::string(cmd->get_name().c_str()) == "hello_world") {
       hello_world_cmd = std::move(cmd);
 
       auto internal_cmd = ten::cmd_t::create("internal_cmd");
@@ -94,7 +94,7 @@ class test_extension_2 : public ten::extension_t {
 
   void on_cmd(ten::ten_env_t &ten_env,
               std::unique_ptr<ten::cmd_t> cmd) override {
-    if (std::string(cmd->get_name()) == "internal_cmd") {
+    if (std::string(cmd->get_name().c_str()) == "internal_cmd") {
       auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
       cmd_result->set_property("detail", "ack for internal_cmd");
       ten_env.return_result(std::move(cmd_result), std::move(cmd));

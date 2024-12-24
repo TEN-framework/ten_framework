@@ -26,7 +26,7 @@ class test_extension : public ten::extension_t {
 
   void on_cmd(ten::ten_env_t &ten_env,
               std::unique_ptr<ten::cmd_t> cmd) override {
-    if (std::string(cmd->get_name()) == "hello_world") {
+    if (std::string(cmd->get_name().c_str()) == "hello_world") {
       auto int8_prop_value = ten_env.get_property_int8("app:" PROP_NAME);
       EXPECT_EQ(int8_prop_value, 0);
 
