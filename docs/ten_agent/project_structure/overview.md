@@ -4,7 +4,7 @@ The TEN Agent project is built on top of the TEN Framework. For basic concepts o
 
 Below is the folder structure of TEN Agent project,
 
-[folder_structure](https://raw.githubusercontent.com/TEN-framework/docs/refs/heads/main/assets/png/folder_structure.png)
+![folder_structure](https://raw.githubusercontent.com/TEN-framework/docs/refs/heads/main/assets/png/folder_structure.png)
 
 It contains the following important folders and files:
 
