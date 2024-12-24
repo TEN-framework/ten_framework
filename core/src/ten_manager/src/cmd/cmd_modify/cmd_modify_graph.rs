@@ -8,6 +8,7 @@ use std::{fs, path::PathBuf};
 
 use anyhow::{Context, Result};
 use clap::{Arg, ArgMatches, Command};
+use console::Emoji;
 use serde_json::Value;
 
 use crate::{
@@ -133,9 +134,8 @@ pub async fn execute_cmd(
     let output =
         jq_run(target_graph.clone(), &command_data.modification).unwrap();
 
-    println!("{}", output);
-
     if !command_data.inplace {
+        println!("{}", output);
         return Ok(());
     }
 
@@ -148,8 +148,10 @@ pub async fn execute_cmd(
     fs::write(&property_file_path, new_property_str)?;
 
     println!(
-        "Successfully modified the graph '{}'",
+        "{}  Successfully modified the graph '{}'",
+        Emoji("🏆", ":-)"),
         command_data.predefined_graph_name
     );
+
     Ok(())
 }
