@@ -9,7 +9,7 @@
 
 * [Overview](ten_agent/overview.md)
 * [Getting Started](ten_agent/getting_started.md)
-* [Folder Structure](ten_agent/project_structure/overview.md)
+* [Project Structure](ten_agent/project_structure/overview.md)
   * [property.json](ten_agent/project_structure/property_json.md)
 * [Run Demo](ten_agent/demo/quickstart.md)
 * [Run Playground](ten_agent/playground/quickstart.md)
