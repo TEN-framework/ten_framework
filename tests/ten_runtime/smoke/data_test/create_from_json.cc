@@ -19,7 +19,7 @@ namespace {
 
 class test_extension_1 : public ten::extension_t {
  public:
-  explicit test_extension_1(const std::string &name) : ten::extension_t(name) {}
+  explicit test_extension_1(const char *name) : ten::extension_t(name) {}
 
   void on_cmd(ten::ten_env_t &ten_env,
               std::unique_ptr<ten::cmd_t> cmd) override {
@@ -43,7 +43,7 @@ class test_extension_1 : public ten::extension_t {
 
 class test_extension_2 : public ten::extension_t {
  public:
-  explicit test_extension_2(const std::string &name) : ten::extension_t(name) {}
+  explicit test_extension_2(const char *name) : ten::extension_t(name) {}
 
   void on_data(ten::ten_env_t &ten_env,
                std::unique_ptr<ten::data_t> data) override {

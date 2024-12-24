@@ -20,7 +20,7 @@ namespace {
 
 class test_extension : public ten::extension_t {
  public:
-  explicit test_extension(const std::string &name) : ten::extension_t(name) {}
+  explicit test_extension(const char *name) : ten::extension_t(name) {}
 
   void on_cmd(ten::ten_env_t &ten_env,
               std::unique_ptr<ten::cmd_t> cmd) override {
@@ -36,7 +36,9 @@ class test_extension : public ten::extension_t {
 
       bool success = ten_env.send_cmd(std::move(timer_cmd));
       EXPECT_EQ(success, true);
-    } else if (cmd->get_type() == TEN_MSG_TYPE_CMD_TIMEOUT &&
+    } else if (ten::msg_internal_accessor_t::get_type(
+                   std::unique_ptr<ten::msg_t>(static_cast<ten::msg_t *>(
+                       cmd.release()))) == TEN_MSG_TYPE_CMD_TIMEOUT &&
                std::unique_ptr<ten::cmd_timeout_t>(
                    static_cast<ten::cmd_timeout_t *>(cmd.release()))
                        ->get_timer_id() == 55) {

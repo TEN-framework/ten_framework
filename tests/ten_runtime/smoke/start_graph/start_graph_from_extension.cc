@@ -13,14 +13,12 @@ namespace {
 
 class test_normal_extension : public ten::extension_t {
  public:
-  explicit test_normal_extension(const std::string &name)
-      : ten::extension_t(name) {}
+  explicit test_normal_extension(const char *name) : ten::extension_t(name) {}
 };
 
 class test_predefined_graph : public ten::extension_t {
  public:
-  explicit test_predefined_graph(const std::string &name)
-      : ten::extension_t(name) {}
+  explicit test_predefined_graph(const char *name) : ten::extension_t(name) {}
 
   void on_start(ten::ten_env_t &ten_env) override {
     auto start_graph_cmd = ten::cmd_start_graph_t::create();

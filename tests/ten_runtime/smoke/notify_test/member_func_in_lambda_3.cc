@@ -26,7 +26,7 @@ void outer_thread_main(test_extension *ext,
 
 class test_extension : public ten::extension_t {
  public:
-  explicit test_extension(const std::string &name) : ten::extension_t(name) {}
+  explicit test_extension(const char *name) : ten::extension_t(name) {}
 
   void on_start(ten::ten_env_t &ten_env) override {
     auto *ten_env_proxy = ten::ten_env_proxy_t::create(ten_env);

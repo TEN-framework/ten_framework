@@ -23,7 +23,7 @@ void extension_on_notify(ten::extension_t &extension, ten::ten_env_t &ten_env);
 
 class test_extension : public ten::extension_t {
  public:
-  explicit test_extension(const std::string &name) : ten::extension_t(name) {}
+  explicit test_extension(const char *name) : ten::extension_t(name) {}
 
   void outer_thread_main(ten::ten_env_proxy_t *ten_env_proxy) {
     while (true) {

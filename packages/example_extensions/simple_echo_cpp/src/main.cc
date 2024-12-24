@@ -14,8 +14,7 @@ namespace {
 
 class simple_echo_extension_t : public ten::extension_t {
  public:
-  explicit simple_echo_extension_t(const std::string &name)
-      : ten::extension_t(name) {}
+  explicit simple_echo_extension_t(const char *name) : ten::extension_t(name) {}
 
   void on_cmd(ten::ten_env_t &ten_env,
               std::unique_ptr<ten::cmd_t> cmd) override {

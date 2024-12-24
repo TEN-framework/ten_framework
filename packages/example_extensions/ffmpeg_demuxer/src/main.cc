@@ -11,7 +11,7 @@ namespace ffmpeg_extension {
 
 class demuxer_extension_t : public extension_t {
  public:
-  explicit demuxer_extension_t(const std::string &name) : extension_t(name) {}
+  explicit demuxer_extension_t(const char *name) : extension_t(name) {}
 
   void on_start(ten_env_t &ten_env) override { ten_env.on_start_done(); }
 

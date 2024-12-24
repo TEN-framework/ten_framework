@@ -22,7 +22,7 @@ namespace {
 
 class test_extension_1 : public ten::extension_t {
  public:
-  explicit test_extension_1(const std::string &name) : ten::extension_t(name) {}
+  explicit test_extension_1(const char *name) : ten::extension_t(name) {}
 
   static std::unique_ptr<ten::video_frame_t> create420Buffer(int width,
                                                              int height) {
@@ -54,7 +54,7 @@ class test_extension_1 : public ten::extension_t {
 
 class test_extension_2 : public ten::extension_t {
  public:
-  explicit test_extension_2(const std::string &name) : ten::extension_t(name) {}
+  explicit test_extension_2(const char *name) : ten::extension_t(name) {}
 
   void on_video_frame(
       TEN_UNUSED ten::ten_env_t &ten_env,
@@ -89,7 +89,7 @@ class test_extension_2 : public ten::extension_t {
 
 class test_extension_3 : public ten::extension_t {
  public:
-  explicit test_extension_3(const std::string &name) : ten::extension_t(name) {}
+  explicit test_extension_3(const char *name) : ten::extension_t(name) {}
 
   void on_video_frame(
       TEN_UNUSED ten::ten_env_t &ten_env,

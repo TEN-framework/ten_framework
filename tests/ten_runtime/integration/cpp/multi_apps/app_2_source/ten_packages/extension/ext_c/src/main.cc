@@ -11,7 +11,7 @@
 
 class ext_c : public ten::extension_t {
  public:
-  explicit ext_c(const std::string &name) : ten::extension_t(name) {}
+  explicit ext_c(const char *name) : ten::extension_t(name) {}
 
   void on_init(ten::ten_env_t &ten_env) override { ten_env.on_init_done(); }
 

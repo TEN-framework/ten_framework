@@ -11,8 +11,7 @@
 
 class ffmpeg_client_extension : public ten::extension_t {
  public:
-  explicit ffmpeg_client_extension(const std::string &name)
-      : ten::extension_t(name) {}
+  explicit ffmpeg_client_extension(const char *name) : ten::extension_t(name) {}
 
   void on_start(ten::ten_env_t &ten_env) override {
     auto cmd = ten::cmd_t::create("prepare_demuxer");

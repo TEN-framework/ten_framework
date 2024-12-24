@@ -18,7 +18,7 @@ namespace {
 
 class test_extension : public ten::extension_t {
  public:
-  explicit test_extension(const std::string &name) : ten::extension_t(name) {}
+  explicit test_extension(const char *name) : ten::extension_t(name) {}
 
   void on_configure(ten::ten_env_t &ten_env) override {
     bool rc = ten_env.on_init_done();

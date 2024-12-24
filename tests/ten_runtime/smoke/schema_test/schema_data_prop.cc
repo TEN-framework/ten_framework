@@ -26,7 +26,7 @@ int data_received = 0;
 
 class test_extension_1 : public ten::extension_t {
  public:
-  explicit test_extension_1(const std::string &name) : ten::extension_t(name) {}
+  explicit test_extension_1(const char *name) : ten::extension_t(name) {}
 
   void on_configure(ten::ten_env_t &ten_env) override {
     // clang-format off
@@ -96,7 +96,7 @@ class test_extension_1 : public ten::extension_t {
 
 class test_extension_2 : public ten::extension_t {
  public:
-  explicit test_extension_2(const std::string &name) : ten::extension_t(name) {}
+  explicit test_extension_2(const char *name) : ten::extension_t(name) {}
 
   void on_configure(ten::ten_env_t &ten_env) override {
     bool rc = ten::ten_env_internal_accessor_t::init_manifest_from_json(
