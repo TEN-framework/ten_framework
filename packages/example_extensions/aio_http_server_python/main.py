@@ -4,7 +4,6 @@
 # See the LICENSE file for more information.
 #
 import asyncio
-import json
 from aiohttp import web, web_request, WSMsgType
 from ten import (
     Addon,
@@ -51,11 +50,14 @@ class HttpServerExtension(AsyncExtension):
                 if cmd is None:
                     return web.Response(status=400, text="Bad request")
 
-                cmd_result = await self.ten_env.send_cmd(cmd)
+                cmd_result, _ = await self.ten_env.send_cmd(cmd)
             else:
                 return web.Response(status=404, text="Not found")
 
-        if cmd_result.get_status_code() == StatusCode.OK:
+        if (
+            cmd_result is not None
+            and cmd_result.get_status_code() == StatusCode.OK
+        ):
             try:
                 detail = cmd_result.get_property_string("detail")
                 return web.Response(text=detail)
