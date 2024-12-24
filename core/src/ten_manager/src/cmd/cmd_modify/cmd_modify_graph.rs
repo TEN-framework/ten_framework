@@ -20,6 +20,7 @@ pub struct ModifyGraphCommand {
     pub app_dir: String,
     pub predefined_graph_name: String,
     pub modification: String,
+    pub inplace: bool,
 }
 
 pub fn create_sub_cmd(_args_cfg: &crate::cmd_line::ArgsCfg) -> Command {
@@ -43,9 +44,17 @@ pub fn create_sub_cmd(_args_cfg: &crate::cmd_line::ArgsCfg) -> Command {
             Arg::new("MODIFICATION")
                 .long("modification")
                 .short('m')
-                .help("The path=JsonString to modify in the selected graph. E.g. nodes[1].property.a=\"\\\"foo\\\"\"")
+                .help("The path=JsonString to modify in the selected graph. E.g. .name=\"test\"")
                 .required(true)
                 .num_args(1)
+        )
+        .arg(
+            Arg::new("INPLACE")
+                .long("inplace")
+                .short('i')
+                .help("Overwrite the original property.json file")
+                .required(false)
+                .action(clap::ArgAction::SetTrue)
         )
 }
 
@@ -63,6 +72,7 @@ pub fn parse_sub_cmd(sub_cmd_args: &ArgMatches) -> ModifyGraphCommand {
             .get_one::<String>("MODIFICATION")
             .unwrap()
             .to_string(),
+        inplace: sub_cmd_args.get_flag("INPLACE"),
     };
 
     cmd
@@ -122,6 +132,14 @@ pub async fn execute_cmd(
 
     let output =
         jq_run(target_graph.clone(), &command_data.modification).unwrap();
+
+    println!("{}", output);
+
+    if !command_data.inplace {
+        return Ok(());
+    }
+
+    // If inplace is true, overwrite the original property.json file.
 
     // Update target_graph with the output.
     *target_graph = output.clone();
