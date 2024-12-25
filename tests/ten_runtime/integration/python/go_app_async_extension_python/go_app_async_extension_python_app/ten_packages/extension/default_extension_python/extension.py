@@ -24,7 +24,7 @@ class DefaultExtension(AsyncExtension):
     async def on_configure(self, ten_env: AsyncTenEnv) -> None:
         ten_env.log_debug("on_init")
 
-        ten_env.init_property_from_json('{"testKey": "testValue"}')
+        await ten_env.init_property_from_json('{"testKey": "testValue"}')
 
         await asyncio.sleep(0.5)
 
@@ -33,9 +33,9 @@ class DefaultExtension(AsyncExtension):
 
         await asyncio.sleep(0.5)
 
-        ten_env.set_property_from_json("testKey2", '"testValue2"')
-        testValue = ten_env.get_property_to_json("testKey")
-        testValue2 = ten_env.get_property_to_json("testKey2")
+        await ten_env.set_property_from_json("testKey2", '"testValue2"')
+        testValue = await ten_env.get_property_to_json("testKey")
+        testValue2 = await ten_env.get_property_to_json("testKey2")
         ten_env.log_info(f"testValue: {testValue}, testValue2: {testValue2}")
 
     async def on_stop(self, ten_env: AsyncTenEnv) -> None:

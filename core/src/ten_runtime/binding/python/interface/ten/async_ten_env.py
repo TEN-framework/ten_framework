@@ -148,6 +148,191 @@ class AsyncTenEnv(TenEnv):
         error = await q.get()
         return error
 
+    async def get_property_to_json(self, path: str) -> str:
+        q = asyncio.Queue(maxsize=1)
+        self._internal.get_property_string_async(
+            path,
+            lambda result, error: asyncio.run_coroutine_threadsafe(
+                q.put([result, error]),
+                self._ten_loop,
+            ),  # type: ignore
+        )
+
+        [result, error] = await q.get()
+
+        if error is not None:
+            raise RuntimeError(error.err_msg())
+
+        return result
+
+    async def set_property_from_json(self, path: str, json_str: str) -> None:
+        q = asyncio.Queue(maxsize=1)
+        self._internal.set_property_string_async(
+            path,
+            json_str,
+            lambda error: asyncio.run_coroutine_threadsafe(
+                q.put(error),
+                self._ten_loop,
+            ),  # type: ignore
+        )
+
+        error: TenError = await q.get()
+        if error is not None:
+            raise RuntimeError(error.err_msg())
+
+    async def get_property_int(self, path: str) -> int:
+        q = asyncio.Queue(maxsize=1)
+        self._internal.get_property_int_async(
+            path,
+            lambda result, error: asyncio.run_coroutine_threadsafe(
+                q.put([result, error]),
+                self._ten_loop,
+            ),  # type: ignore
+        )
+
+        [result, error] = await q.get()
+
+        if error is not None:
+            raise RuntimeError(error.err_msg())
+
+        return result
+
+    async def set_property_int(self, path: str, value: int) -> None:
+        q = asyncio.Queue(maxsize=1)
+        self._internal.set_property_int_async(
+            path,
+            value,
+            lambda error: asyncio.run_coroutine_threadsafe(
+                q.put(error),
+                self._ten_loop,
+            ),  # type: ignore
+        )
+
+        error: TenError = await q.get()
+        if error is not None:
+            raise RuntimeError(error.err_msg())
+
+    async def get_property_string(self, path: str) -> str:
+        q = asyncio.Queue(maxsize=1)
+        self._internal.get_property_string_async(
+            path,
+            lambda result, error: asyncio.run_coroutine_threadsafe(
+                q.put([result, error]),
+                self._ten_loop,
+            ),  # type: ignore
+        )
+
+        [result, error] = await q.get()
+
+        if error is not None:
+            raise RuntimeError(error.err_msg())
+
+        return result
+
+    async def set_property_string(self, path: str, value: str) -> None:
+        q = asyncio.Queue(maxsize=1)
+        self._internal.set_property_string_async(
+            path,
+            value,
+            lambda error: asyncio.run_coroutine_threadsafe(
+                q.put(error),
+                self._ten_loop,
+            ),  # type: ignore
+        )
+
+        error: TenError = await q.get()
+        if error is not None:
+            raise RuntimeError(error.err_msg())
+
+    async def get_property_bool(self, path: str) -> bool:
+        q = asyncio.Queue(maxsize=1)
+        self._internal.get_property_bool_async(
+            path,
+            lambda result, error: asyncio.run_coroutine_threadsafe(
+                q.put([result, error]),
+                self._ten_loop,
+            ),  # type: ignore
+        )
+
+        [result, error] = await q.get()
+
+        if error is not None:
+            raise RuntimeError(error.err_msg())
+        return result
+
+    async def set_property_bool(self, path: str, value: int) -> None:
+        q = asyncio.Queue(maxsize=1)
+        self._internal.set_property_bool_async(
+            path,
+            value,
+            lambda error: asyncio.run_coroutine_threadsafe(
+                q.put(error),
+                self._ten_loop,
+            ),  # type: ignore
+        )
+
+        error: TenError = await q.get()
+        if error is not None:
+            raise RuntimeError(error.err_msg())
+
+    async def get_property_float(self, path: str) -> float:
+        q = asyncio.Queue(maxsize=1)
+        self._internal.get_property_float_async(
+            path,
+            lambda result, error: asyncio.run_coroutine_threadsafe(
+                q.put([result, error]),
+                self._ten_loop,
+            ),  # type: ignore
+        )
+
+        [result, error] = await q.get()
+
+        if error is not None:
+            raise RuntimeError(error.err_msg())
+        return result
+
+    async def set_property_float(self, path: str, value: float) -> None:
+        q = asyncio.Queue(maxsize=1)
+        self._internal.set_property_float_async(
+            path,
+            value,
+            lambda error: asyncio.run_coroutine_threadsafe(
+                q.put(error),
+                self._ten_loop,
+            ),  # type: ignore
+        )
+
+        error: TenError = await q.get()
+        if error is not None:
+            raise RuntimeError(error.err_msg())
+
+    async def is_property_exist(self, path: str) -> bool:
+        q = asyncio.Queue(maxsize=1)
+        self._internal.is_property_exist_async(
+            path,
+            lambda result: asyncio.run_coroutine_threadsafe(
+                q.put(result),
+                self._ten_loop,
+            ),  # type: ignore
+        )
+
+        result = await q.get()
+        return result
+
+    async def init_property_from_json(self, json_str: str) -> None:
+        q = asyncio.Queue(maxsize=1)
+        self._internal.init_property_from_json_async(
+            json_str,
+            lambda error: asyncio.run_coroutine_threadsafe(
+                q.put(error),
+                self._ten_loop,
+            ),  # type: ignore
+        )
+
+        error: TenError = await q.get()
+        if error is not None:
+            raise RuntimeError(error.err_msg())
+
     async def on_configure_done(self) -> None:
         raise NotImplementedError(
             "No need to call this method in async extension"

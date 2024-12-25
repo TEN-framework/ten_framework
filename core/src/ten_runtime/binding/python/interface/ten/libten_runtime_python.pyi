@@ -4,7 +4,7 @@
 # Licensed under the Apache License, Version 2.0, with certain conditions.
 # Refer to the "LICENSE" file in the root directory for more information.
 #
-from typing import Optional
+from typing import Callable, Optional
 from .ten_env_attach_to_enum import _TenEnvAttachTo
 from .log_level import LogLevel
 from .addon import Addon
@@ -122,6 +122,59 @@ class _TenEnv:
     def set_property_bool(self, path: str, value: int) -> None: ...
     def get_property_float(self, path: str) -> float: ...
     def set_property_float(self, path: str, value: float) -> None: ...
+    def is_property_exist(self, path: str) -> bool: ...
+    def init_property_from_json(self, json_str: str) -> None: ...
+    def get_property_to_json_async(
+        self, path: str, callback: Callable[[str, Optional[TenError]], None]
+    ) -> None: ...
+    def set_property_from_json_async(
+        self,
+        path: str,
+        json_str: str,
+        callback: Callable[[Optional[TenError]], None],
+    ) -> None: ...
+    def get_property_int_async(
+        self, path: str, callback: Callable[[int, Optional[TenError]], None]
+    ) -> None: ...
+    def set_property_int_async(
+        self,
+        path: str,
+        value: int,
+        callback: Callable[[Optional[TenError]], None],
+    ) -> None: ...
+    def get_property_string_async(
+        self, path: str, callback: Callable[[str, Optional[TenError]], None]
+    ) -> None: ...
+    def set_property_string_async(
+        self,
+        path: str,
+        value: str,
+        callback: Callable[[Optional[TenError]], None],
+    ) -> None: ...
+    def get_property_bool_async(
+        self, path: str, callback: Callable[[bool, Optional[TenError]], None]
+    ) -> None: ...
+    def set_property_bool_async(
+        self,
+        path: str,
+        value: int,
+        callback: Callable[[Optional[TenError]], None],
+    ) -> None: ...
+    def get_property_float_async(
+        self, path: str, callback: Callable[[float, Optional[TenError]], None]
+    ) -> None: ...
+    def set_property_float_async(
+        self,
+        path: str,
+        value: float,
+        callback: Callable[[Optional[TenError]], None],
+    ) -> None: ...
+    def is_property_exist_async(
+        self, path: str, callback: Callable[[bool], None]
+    ) -> None: ...
+    def init_property_from_json_async(
+        self, json_str: str, callback: Callable[[Optional[TenError]], None]
+    ) -> None: ...
     def send_cmd(
         self, cmd: _Cmd, result_handler: ResultHandler, is_ex: bool
     ) -> Optional[TenError]: ...
@@ -140,8 +193,6 @@ class _TenEnv:
     def return_result_directly(
         self, result: _CmdResult, error_handler: ErrorHandler
     ) -> Optional[TenError]: ...
-    def is_property_exist(self, path: str) -> bool: ...
-    def init_property_from_json(self, json_str: str) -> None: ...
     def log(
         self,
         level: LogLevel,

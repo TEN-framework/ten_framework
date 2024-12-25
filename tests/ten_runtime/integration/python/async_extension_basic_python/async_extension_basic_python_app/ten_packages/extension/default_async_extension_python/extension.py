@@ -23,10 +23,10 @@ class DefaultAsyncExtension(AsyncExtension):
         await asyncio.sleep(0.5)
         ten_env.log_debug("on_start")
 
-        assert ten_env.is_property_exist("unknown_field") is False
+        assert await ten_env.is_property_exist("unknown_field") is False
 
-        ten_env.set_property_string("string_field", "hello")
-        assert ten_env.is_property_exist("string_field") is True
+        await ten_env.set_property_string("string_field", "hello")
+        assert await ten_env.is_property_exist("string_field") is True
 
     async def on_deinit(self, ten_env: AsyncTenEnv) -> None:
         await asyncio.sleep(0.5)

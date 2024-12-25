@@ -111,7 +111,7 @@ class HttpServerExtension(AsyncExtension):
         ten_env.log_debug("on_start")
 
         try:
-            self.server_port = ten_env.get_property_int("server_port")
+            self.server_port = await ten_env.get_property_int("server_port")
         except Exception as e:
             ten_env.log_error(
                 "Could not read 'server_port' from properties." + str(e)

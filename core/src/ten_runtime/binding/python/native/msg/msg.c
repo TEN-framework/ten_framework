@@ -7,6 +7,7 @@
 #include "include_internal/ten_runtime/binding/python/msg/msg.h"
 
 #include "include_internal/ten_runtime/binding/python/common/error.h"
+#include "object.h"
 #include "ten_runtime/common/errno.h"
 #include "ten_runtime/msg/msg.h"
 #include "ten_utils/lib/buf.h"
@@ -204,6 +205,10 @@ PyObject *ten_py_msg_get_property_string(PyObject *self, PyObject *args) {
     return ten_py_raise_py_value_error_exception("Failed to parse arguments.");
   }
 
+  ten_py_error_t *py_error = NULL;
+  const char *value = "";  // Default value
+  PyObject *arglist = NULL;
+
   ten_error_t err;
   ten_error_init(&err);
 
@@ -216,23 +221,20 @@ PyObject *ten_py_msg_get_property_string(PyObject *self, PyObject *args) {
 
   ten_value_t *c_value = ten_msg_peek_property(c_msg, path, &err);
   if (!c_value) {
-    ten_py_raise_py_value_error_exception(ten_error_errmsg(&err));
-    ten_error_deinit(&err);
-    return NULL;
-  }
-
-  if (!ten_value_is_string(c_value)) {
+    py_error = ten_py_error_wrap(&err);
+  } else if (!ten_value_is_string(c_value)) {
     ten_error_set(&err, TEN_ERRNO_INVALID_ARGUMENT, "Value is not string.");
-    ten_py_raise_py_value_error_exception(ten_error_errmsg(&err));
-    ten_error_deinit(&err);
-    return NULL;
+    py_error = ten_py_error_wrap(&err);
+  } else {
+    value = ten_value_peek_raw_str(c_value, &err);
   }
 
-  const char *value = ten_value_peek_raw_str(c_value, &err);
+  arglist =
+      Py_BuildValue("sO", value, py_error ? (PyObject *)py_error : Py_None);
 
-  PyObject *res = Py_BuildValue("s", value);
+  ten_error_deinit(&err);
 
-  return res;
+  return arglist;
 }
 
 PyObject *ten_py_msg_set_property_from_json(PyObject *self, PyObject *args) {
@@ -304,28 +306,32 @@ PyObject *ten_py_msg_get_property_to_json(PyObject *self, PyObject *args) {
         "Invalid argument count when msg.get_property_to_json.");
   }
 
+  ten_py_error_t *py_error = NULL;
+  const char *value = "";  // Default value
+  PyObject *arglist = NULL;
+
   ten_error_t err;
   ten_error_init(&err);
 
   ten_value_t *c_value = ten_msg_peek_property(c_msg, path, &err);
   if (!c_value) {
-    ten_py_raise_py_value_error_exception(ten_error_errmsg(&err));
-    ten_error_deinit(&err);
-    return NULL;
+    py_error = ten_py_error_wrap(&err);
+    arglist = Py_BuildValue("sO", value, py_error);
+  } else {
+    ten_json_t *c_json = ten_value_to_json(c_value);
+
+    bool must_free = true;
+    value = ten_json_to_string(c_json, NULL, &must_free);
+    arglist = Py_BuildValue("sO", value, Py_None);
+    if (must_free) {
+      TEN_FREE(value);
+    }
+    ten_json_destroy(c_json);
   }
 
-  ten_json_t *c_json = ten_value_to_json(c_value);
+  ten_error_deinit(&err);
 
-  bool must_free = true;
-  const char *json_string = ten_json_to_string(c_json, NULL, &must_free);
-  PyObject *res = Py_BuildValue("s", json_string);
-  if (must_free) {
-    TEN_FREE(json_string);
-  }
-
-  ten_json_destroy(c_json);
-
-  return res;
+  return arglist;
 }
 
 PyObject *ten_py_msg_get_property_int(PyObject *self, PyObject *args) {
@@ -345,6 +351,10 @@ PyObject *ten_py_msg_get_property_int(PyObject *self, PyObject *args) {
     return ten_py_raise_py_value_error_exception("Failed to parse arguments.");
   }
 
+  ten_py_error_t *py_error = NULL;
+  int64_t value = 0;
+  PyObject *arglist = NULL;
+
   ten_error_t err;
   ten_error_init(&err);
 
@@ -357,21 +367,20 @@ PyObject *ten_py_msg_get_property_int(PyObject *self, PyObject *args) {
 
   ten_value_t *c_value = ten_msg_peek_property(c_msg, path, &err);
   if (!c_value) {
-    ten_py_raise_py_value_error_exception(ten_error_errmsg(&err));
-    ten_error_deinit(&err);
-    return NULL;
+    py_error = ten_py_error_wrap(&err);
+  } else {
+    value = ten_value_get_int64(c_value, &err);
+    if (!ten_error_is_success(&err)) {
+      py_error = ten_py_error_wrap(&err);
+    }
   }
 
-  int64_t value = ten_value_get_int64(c_value, &err);
-  if (!ten_error_is_success(&err)) {
-    ten_py_raise_py_value_error_exception(ten_error_errmsg(&err));
-    ten_error_deinit(&err);
-    return NULL;
-  }
+  arglist =
+      Py_BuildValue("lO", value, py_error ? (PyObject *)py_error : Py_None);
 
-  PyObject *res = Py_BuildValue("l", value);
+  ten_error_deinit(&err);
 
-  return res;
+  return arglist;
 }
 
 PyObject *ten_py_msg_set_property_int(PyObject *self, PyObject *args) {
@@ -435,6 +444,10 @@ PyObject *ten_py_msg_get_property_bool(PyObject *self, PyObject *args) {
     return ten_py_raise_py_value_error_exception("Failed to parse arguments.");
   }
 
+  ten_py_error_t *py_error = NULL;
+  bool value = false;
+  PyObject *arglist = NULL;
+
   ten_error_t err;
   ten_error_init(&err);
 
@@ -447,19 +460,20 @@ PyObject *ten_py_msg_get_property_bool(PyObject *self, PyObject *args) {
 
   ten_value_t *c_value = ten_msg_peek_property(c_msg, path, &err);
   if (!c_value) {
-    ten_py_raise_py_value_error_exception(ten_error_errmsg(&err));
-    ten_error_deinit(&err);
-    return NULL;
+    py_error = ten_py_error_wrap(&err);
+  } else {
+    value = ten_value_get_bool(c_value, &err);
+    if (!ten_error_is_success(&err)) {
+      py_error = ten_py_error_wrap(&err);
+    }
   }
 
-  bool value = ten_value_get_bool(c_value, &err);
-  if (!ten_error_is_success(&err)) {
-    ten_py_raise_py_value_error_exception(ten_error_errmsg(&err));
-    ten_error_deinit(&err);
-    return NULL;
-  }
+  arglist = Py_BuildValue("OO", value ? Py_True : Py_False,
+                          py_error ? (PyObject *)py_error : Py_None);
 
-  return PyBool_FromLong(value);
+  ten_error_deinit(&err);
+
+  return arglist;
 }
 
 PyObject *ten_py_msg_set_property_bool(PyObject *self, PyObject *args) {
@@ -523,6 +537,10 @@ PyObject *ten_py_msg_get_property_float(PyObject *self, PyObject *args) {
     return ten_py_raise_py_value_error_exception("Failed to parse arguments.");
   }
 
+  ten_py_error_t *py_error = NULL;
+  double value = 0.0;
+  PyObject *arglist = NULL;
+
   ten_error_t err;
   ten_error_init(&err);
 
@@ -535,21 +553,20 @@ PyObject *ten_py_msg_get_property_float(PyObject *self, PyObject *args) {
 
   ten_value_t *c_value = ten_msg_peek_property(c_msg, path, &err);
   if (!c_value) {
-    ten_py_raise_py_value_error_exception(ten_error_errmsg(&err));
-    ten_error_deinit(&err);
-    return NULL;
+    py_error = ten_py_error_wrap(&err);
+  } else {
+    value = ten_value_get_float64(c_value, &err);
+    if (!ten_error_is_success(&err)) {
+      py_error = ten_py_error_wrap(&err);
+    }
   }
 
-  double value = ten_value_get_float64(c_value, &err);
-  if (!ten_error_is_success(&err)) {
-    ten_py_raise_py_value_error_exception(ten_error_errmsg(&err));
-    ten_error_deinit(&err);
-    return NULL;
-  }
+  arglist =
+      Py_BuildValue("dO", value, py_error ? (PyObject *)py_error : Py_None);
 
-  PyObject *res = Py_BuildValue("d", value);
+  ten_error_deinit(&err);
 
-  return res;
+  return arglist;
 }
 
 PyObject *ten_py_msg_set_property_float(PyObject *self, PyObject *args) {
@@ -612,6 +629,10 @@ PyObject *ten_py_msg_get_property_buf(PyObject *self, PyObject *args) {
     return ten_py_raise_py_value_error_exception("Failed to parse arguments.");
   }
 
+  ten_py_error_t *py_error = NULL;
+  ten_buf_t *buf = NULL;
+  PyObject *arglist = NULL;
+
   ten_error_t err;
   ten_error_init(&err);
 
@@ -624,23 +645,21 @@ PyObject *ten_py_msg_get_property_buf(PyObject *self, PyObject *args) {
 
   ten_value_t *c_value = ten_msg_peek_property(c_msg, path, &err);
   if (!c_value) {
-    ten_py_raise_py_value_error_exception(ten_error_errmsg(&err));
-    ten_error_deinit(&err);
-    return NULL;
-  }
-
-  if (!ten_value_is_buf(c_value)) {
+    py_error = ten_py_error_wrap(&err);
+  } else if (!ten_value_is_buf(c_value)) {
     ten_error_set(&err, TEN_ERRNO_INVALID_ARGUMENT, "Value is not buf.");
-    ten_py_raise_py_value_error_exception(ten_error_errmsg(&err));
-    ten_error_deinit(&err);
-    return NULL;
+    py_error = ten_py_error_wrap(&err);
+  } else {
+    buf = ten_value_peek_buf(c_value);
+    TEN_ASSERT(buf && ten_buf_check_integrity(buf), "Invalid buf.");
   }
 
-  ten_buf_t *buf = ten_value_peek_buf(c_value);
-  TEN_ASSERT(buf && ten_buf_check_integrity(buf), "Invalid buf.");
+  arglist = Py_BuildValue("y#O", buf->data, (Py_ssize_t)buf->size,
+                          py_error ? (PyObject *)py_error : Py_None);
 
-  return PyByteArray_FromStringAndSize((const char *)buf->data,
-                                       (Py_ssize_t)buf->size);
+  ten_error_deinit(&err);
+
+  return arglist;
 }
 
 PyObject *ten_py_msg_set_property_buf(PyObject *self, PyObject *args) {
