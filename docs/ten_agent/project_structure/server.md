@@ -10,9 +10,9 @@ The server provides a simple layer for managing agent processes. The API resourc
 
 ### API Resources
 
-    - [POST /start](#post-start)
-    - [POST /stop](#post-stop)
-    - [POST /ping](#post-ping)
+- [POST /start](#post-start)
+- [POST /stop](#post-stop)
+- [POST /ping](#post-ping)
 
 ### POST /start
 
