@@ -18,6 +18,8 @@ import {
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
 
+import { ThreeColumnFileManager } from "@/components/FileManager/AppFolder";
+
 interface FileMenuProps {
   onSetBaseDir: (folderPath: string) => void;
 }
@@ -64,26 +66,25 @@ export function FileMenu(props: FileMenuProps) {
           title="Open App Folder"
           onClose={() => setIsFolderPathModalOpen(false)}
           resizable={false}
-          initialWidth={400}
-          initialHeight={200}
+          initialWidth={600}
+          initialHeight={400}
           onCollapseToggle={() => {}}
         >
-          <div>
-            <label htmlFor="folderPath">Folder Path:</label>
-            <input
-              type="text"
-              id="folderPath"
-              value={folderPath}
-              onChange={(e) => setFolderPath(e.target.value)}
-              style={{ width: "100%", padding: "8px", marginTop: "5px" }}
-              placeholder="Enter folder path"
+          <div className="flex flex-col gap-2 w-full h-full">
+            <ThreeColumnFileManager
+              allowSelectTypes={["folder"]}
+              className="w-full h-[calc(100%-3rem)]"
+              onSelect={(path) => setFolderPath(path)}
             />
-            <button
-              onClick={handleManualOk}
-              style={{ marginTop: "10px", padding: "8px 16px" }}
-            >
-              Ok
-            </button>
+            <div className="flex justify-end h-fit gap-2">
+              <Button
+                variant="outline"
+                onClick={() => setIsFolderPathModalOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button onClick={handleManualOk}>Save</Button>
+            </div>
           </div>
         </Popup>
       )}
