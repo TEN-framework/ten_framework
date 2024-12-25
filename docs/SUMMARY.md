@@ -9,6 +9,7 @@
 
 * [Overview](ten_agent/overview.md)
 * [Getting Started](ten_agent/getting_started.md)
+* [Architecture](ten_agent/architecture_flow.md)
 * [Project Structure](ten_agent/project_structure/overview.md)
   * [Understand property.json](ten_agent/project_structure/property_json.md)
   * [Understand extension folder](ten_agent/project_structure/extension.md)
