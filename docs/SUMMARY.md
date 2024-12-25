@@ -12,6 +12,7 @@
 * [Project Structure](ten_agent/project_structure/overview.md)
   * [Understand property.json](ten_agent/project_structure/property_json.md)
   * [Understand extension folder](ten_agent/project_structure/extension.md)
+  * [Understand web server](ten_agent/project_structure/server.md)
 * [Run Demo](ten_agent/demo/quickstart.md)
 * [Run Playground](ten_agent/playground/quickstart.md)
   * [Configure Modules](ten_agent/playground/configure_modules.md)
