@@ -27,6 +27,22 @@ export class CmdResult extends Msg {
     static Create(statusCode: StatusCode): CmdResult {
         return new CmdResult(statusCode, false);
     }
+
+    getStatusCode(): StatusCode {
+        return ten_addon.ten_nodejs_cmd_result_get_status_code(this);
+    }
+
+    setFinal(isFinal: boolean): void {
+        ten_addon.ten_nodejs_cmd_result_set_final(this, isFinal);
+    }
+
+    isFinal(): boolean {
+        return ten_addon.ten_nodejs_cmd_result_is_final(this);
+    }
+
+    isCompleted(): boolean {
+        return ten_addon.ten_nodejs_cmd_result_is_completed(this);
+    }
 }
 
 ten_addon.ten_nodejs_cmd_result_register_class(CmdResult);

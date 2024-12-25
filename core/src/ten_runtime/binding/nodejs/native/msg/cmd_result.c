@@ -108,6 +108,148 @@ static napi_value ten_nodejs_cmd_result_create(napi_env env,
   return js_undefined(env);
 }
 
+static napi_value ten_nodejs_cmd_result_get_status_code(
+    napi_env env, napi_callback_info info) {
+  const size_t argc = 1;
+  napi_value args[argc];  // this
+  if (!ten_nodejs_get_js_func_args(env, info, args, argc)) {
+    napi_fatal_error(NULL, NAPI_AUTO_LENGTH,
+                     "Incorrect number of parameters passed.",
+                     NAPI_AUTO_LENGTH);
+    TEN_ASSERT(0, "Should not happen.");
+  }
+
+  ten_nodejs_cmd_result_t *cmd_result_bridge = NULL;
+  napi_status status = napi_unwrap(env, args[0], (void **)&cmd_result_bridge);
+  if (status != napi_ok) {
+    napi_fatal_error(NULL, NAPI_AUTO_LENGTH,
+                     "Failed to unwrap JS CmdResult object.", NAPI_AUTO_LENGTH);
+    TEN_ASSERT(0, "Failed to unwrap JS CmdResult object: %d", status);
+  }
+
+  TEN_ASSERT(cmd_result_bridge, "Should not happen.");
+
+  TEN_STATUS_CODE status_code =
+      ten_cmd_result_get_status_code(cmd_result_bridge->msg.msg);
+
+  napi_value js_status_code = NULL;
+  status = napi_create_uint32(env, (uint32_t)status_code, &js_status_code);
+  if (status != napi_ok) {
+    napi_fatal_error(NULL, NAPI_AUTO_LENGTH, "Failed to create status_code.",
+                     NAPI_AUTO_LENGTH);
+    TEN_ASSERT(0, "Failed to create status_code: %d", status);
+  }
+
+  return js_status_code;
+}
+
+static napi_value ten_nodejs_cmd_result_set_final(napi_env env,
+                                                  napi_callback_info info) {
+  const size_t argc = 2;
+  napi_value args[argc];  // this, is_final
+
+  if (!ten_nodejs_get_js_func_args(env, info, args, argc)) {
+    napi_fatal_error(NULL, NAPI_AUTO_LENGTH,
+                     "Incorrect number of parameters passed.",
+                     NAPI_AUTO_LENGTH);
+    TEN_ASSERT(0, "Should not happen.");
+  }
+
+  ten_nodejs_cmd_result_t *cmd_result_bridge = NULL;
+  napi_status status = napi_unwrap(env, args[0], (void **)&cmd_result_bridge);
+
+  if (status != napi_ok) {
+    napi_fatal_error(NULL, NAPI_AUTO_LENGTH,
+                     "Failed to unwrap JS CmdResult object.", NAPI_AUTO_LENGTH);
+    TEN_ASSERT(0, "Failed to unwrap JS CmdResult object: %d", status);
+  }
+
+  bool is_final = false;
+  status = napi_get_value_bool(env, args[1], &is_final);
+
+  if (status != napi_ok) {
+    napi_fatal_error(NULL, NAPI_AUTO_LENGTH, "Failed to get is_final.",
+                     NAPI_AUTO_LENGTH);
+    TEN_ASSERT(0, "Failed to get is_final: %d", status);
+  }
+
+  if (!ten_cmd_result_set_final(cmd_result_bridge->msg.msg, is_final, NULL)) {
+    napi_fatal_error(NULL, NAPI_AUTO_LENGTH, "Failed to set final.",
+                     NAPI_AUTO_LENGTH);
+    TEN_ASSERT(0, "Failed to set final.");
+  }
+
+  return js_undefined(env);
+}
+
+static napi_value ten_nodejs_cmd_result_is_final(napi_env env,
+                                                 napi_callback_info info) {
+  const size_t argc = 1;
+  napi_value args[argc];  // this
+
+  if (!ten_nodejs_get_js_func_args(env, info, args, argc)) {
+    napi_fatal_error(NULL, NAPI_AUTO_LENGTH,
+                     "Incorrect number of parameters passed.",
+                     NAPI_AUTO_LENGTH);
+    TEN_ASSERT(0, "Should not happen.");
+  }
+
+  ten_nodejs_cmd_result_t *cmd_result_bridge = NULL;
+  napi_status status = napi_unwrap(env, args[0], (void **)&cmd_result_bridge);
+  if (status != napi_ok) {
+    napi_fatal_error(NULL, NAPI_AUTO_LENGTH,
+                     "Failed to unwrap JS CmdResult object.", NAPI_AUTO_LENGTH);
+    TEN_ASSERT(0, "Failed to unwrap JS CmdResult object: %d", status);
+  }
+
+  bool is_final = ten_cmd_result_is_final(cmd_result_bridge->msg.msg, NULL);
+
+  napi_value js_is_final = NULL;
+  status = napi_get_boolean(env, is_final, &js_is_final);
+  if (status != napi_ok) {
+    napi_fatal_error(NULL, NAPI_AUTO_LENGTH, "Failed to create is_final.",
+                     NAPI_AUTO_LENGTH);
+    TEN_ASSERT(0, "Failed to create is_final: %d", status);
+  }
+
+  return js_is_final;
+}
+
+static napi_value ten_nodejs_cmd_result_is_completed(napi_env env,
+                                                     napi_callback_info info) {
+  const size_t argc = 1;
+  napi_value args[argc];  // this
+
+  if (!ten_nodejs_get_js_func_args(env, info, args, argc)) {
+    napi_fatal_error(NULL, NAPI_AUTO_LENGTH,
+                     "Incorrect number of parameters passed.",
+                     NAPI_AUTO_LENGTH);
+    TEN_ASSERT(0, "Should not happen.");
+  }
+
+  ten_nodejs_cmd_result_t *cmd_result_bridge = NULL;
+  napi_status status = napi_unwrap(env, args[0], (void **)&cmd_result_bridge);
+
+  if (status != napi_ok) {
+    napi_fatal_error(NULL, NAPI_AUTO_LENGTH,
+                     "Failed to unwrap JS CmdResult object.", NAPI_AUTO_LENGTH);
+    TEN_ASSERT(0, "Failed to unwrap JS CmdResult object: %d", status);
+  }
+
+  bool is_completed =
+      ten_cmd_result_is_completed(cmd_result_bridge->msg.msg, NULL);
+
+  napi_value js_is_completed = NULL;
+  status = napi_get_boolean(env, is_completed, &js_is_completed);
+  if (status != napi_ok) {
+    napi_fatal_error(NULL, NAPI_AUTO_LENGTH, "Failed to create is_completed.",
+                     NAPI_AUTO_LENGTH);
+    TEN_ASSERT(0, "Failed to create is_completed: %d", status);
+  }
+
+  return js_is_completed;
+}
+
 napi_value ten_nodejs_cmd_result_wrap(napi_env env,
                                       ten_shared_ptr_t *cmd_result) {
   TEN_ASSERT(cmd_result && ten_msg_check_integrity(cmd_result),
@@ -144,6 +286,10 @@ napi_value ten_nodejs_cmd_result_wrap(napi_env env,
 napi_value ten_nodejs_cmd_result_module_init(napi_env env, napi_value exports) {
   EXPORT_FUNC(env, exports, ten_nodejs_cmd_result_register_class);
   EXPORT_FUNC(env, exports, ten_nodejs_cmd_result_create);
+  EXPORT_FUNC(env, exports, ten_nodejs_cmd_result_get_status_code);
+  EXPORT_FUNC(env, exports, ten_nodejs_cmd_result_set_final);
+  EXPORT_FUNC(env, exports, ten_nodejs_cmd_result_is_final);
+  EXPORT_FUNC(env, exports, ten_nodejs_cmd_result_is_completed);
 
   return exports;
 }
