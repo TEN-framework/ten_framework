@@ -22,6 +22,7 @@
   * [Run Voice Assistant with Realtime API](ten_agent/playground/run_va_realtime.md)
   * [Run Dify Chat Bot](ten_agent/playground/run_dify.md)
   * [Run Coze Chat Bot](ten_agent/playground/run_coze.md)
+  * [Change Language](ten_agent/playground/change_language.md)
 * [Customize TEN Agent](ten_agent/customize_your_agent.md)
 * [Create a Hello World Extension](ten_agent/create_a_hello_world_extension.md)
 * [Setup VSCode Inside Container](ten_agent/setting_up_vscode_for_development_inside_container.md)
