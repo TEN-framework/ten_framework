@@ -196,6 +196,22 @@ export class TenEnv {
         });
     }
 
+    async initPropertyFromJson(jsonStr: string): Promise<void> {
+        return new Promise<void>((resolve, reject) => {
+            ten_addon.ten_nodejs_ten_env_init_property_from_json(
+                this,
+                jsonStr,
+                async (error: Error) => {
+                    if (error) {
+                        reject(error);
+                    } else {
+                        resolve();
+                    }
+                }
+            )
+        });
+    }
+
     logVerbose(message: string): void {
         this._log_internal(LogLevel.VERBOSE, message)
     }

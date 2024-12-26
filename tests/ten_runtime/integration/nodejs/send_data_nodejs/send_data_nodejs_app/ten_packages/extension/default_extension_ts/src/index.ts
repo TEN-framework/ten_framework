@@ -9,8 +9,6 @@ import { assert } from 'console';
 // import { Addon, RegisterAddonAsExtension, Extension, TenEnv, Cmd, Data, CmdResult, StatusCode } from '../../../../../../../../../../core/src/ten_runtime/binding/nodejs/interface'
 import { Addon, RegisterAddonAsExtension, Extension, TenEnv, Cmd, Data, CmdResult, StatusCode } from 'ten-runtime-nodejs'
 
-console.log('Im a default ts extension');
-
 @RegisterAddonAsExtension("default_extension_ts")
 class DefaultAddon extends Addon {
     async onInit() {
@@ -33,11 +31,20 @@ class DefaultExtension extends Extension {
 
     async onConfigure(tenEnv: TenEnv) {
         console.log('DefaultExtension onConfigure');
-        tenEnv.
+        await tenEnv.initPropertyFromJson(JSON.stringify({ key1: 'value1', key2: 2 }));
     }
 
     async onInit(tenEnv: TenEnv) {
         console.log('DefaultExtension onInit');
+
+        const value1 = await tenEnv.getPropertyString('key1');
+        const value2 = await tenEnv.getPropertyNumber('key2');
+
+        console.log('value1:', value1);
+        console.log('value2:', value2);
+
+        assert(value1 === 'value1', 'value1 incorrect');
+        assert(value2 === 2, 'value2 incorrect');
     }
 
     async onStart(tenEnv: TenEnv) {
@@ -74,19 +81,72 @@ class DefaultExtension extends Extension {
         const cmdName = cmd.getName();
         tenEnv.logVerbose('cmdName:' + cmdName);
 
-        const testCmd = Cmd.Create('test');
-        const [result, _] = await tenEnv.sendCmd(testCmd);
-        assert(result !== null, 'result is null');
+        const newData = Data.Create('data');
 
-        tenEnv.logInfo('received result detail:' + result?.getPropertyToJson('detail'));
+        const str = "Hello, World!";
 
+        const encoder = new TextEncoder();
+        const uint8Array = encoder.encode(str);
+
+        newData.allocBuf(uint8Array.byteLength);
+        let dataBuf = newData.lockBuf()
+        let dataBufView = new Uint8Array(dataBuf);
+        dataBufView.set(uint8Array);
+
+        newData.unlockBuf(dataBuf);
+
+        await tenEnv.sendData(newData);
+
+        const data2 = Data.Create('data2');
+        data2.setPropertyString('key1', 'value1');
+        data2.setPropertyNumber('key2', 2);
+        data2.setPropertyBool('key3', true);
+
+        const valueBuf = new Uint8Array([1, 2, 3]);
+        data2.setPropertyBuf('key4', valueBuf);
+
+        await tenEnv.sendData(data2);
 
         const cmdResult = CmdResult.Create(StatusCode.OK);
-        cmdResult.setPropertyFromJson('detail', JSON.stringify({ key1: 'value1', key2: 2 }))
-
-        const detailJson = cmdResult.getPropertyToJson('detail');
-        tenEnv.logInfo('detailJson:' + detailJson);
+        cmdResult.setPropertyString('detail', 'send data done')
 
         tenEnv.returnResult(cmdResult, cmd);
+    }
+
+    async onData(tenEnv: TenEnv, data: Data) {
+        tenEnv.logDebug('DefaultExtension onCmd');
+
+        if (data.getName() === 'data2') {
+            const value1 = data.getPropertyString('key1');
+            const value2 = data.getPropertyNumber('key2');
+            const value3 = data.getPropertyBool('key3');
+            const value4 = data.getPropertyBuf('key4');
+
+            assert(value1 === 'value1', 'value1 incorrect');
+            assert(value2 === 2, 'value2 incorrect');
+            assert(value3 === true, 'value3 incorrect');
+
+            const value4Uint8Array = new Uint8Array(value4);
+            assert(value4Uint8Array[0] === 1, 'value4[0] incorrect');
+            assert(value4Uint8Array[1] === 2, 'value4[1] incorrect');
+            assert(value4Uint8Array[2] === 3, 'value4[2] incorrect');
+
+            return;
+        }
+
+        const buf = data.getBuf();
+        const bufView = new Uint8Array(buf);
+
+        for (let i = 0; i < buf.byteLength; i++) {
+            console.log('buf[' + i + ']:', bufView[i]);
+            bufView[i] += 1;
+        }
+
+        let lockedBuf = data.lockBuf();
+        let view = new String(lockedBuf);
+
+        assert(view === 'Hello, World!', 'view incorrect');
+
+        data.unlockBuf(lockedBuf);
     }
 }

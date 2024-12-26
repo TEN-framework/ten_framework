@@ -134,3 +134,6 @@ ten_nodejs_ten_env_set_property_string(napi_env env, napi_callback_info info);
 
 TEN_RUNTIME_PRIVATE_API napi_value
 ten_nodejs_ten_env_log_internal(napi_env env, napi_callback_info info);
+
+TEN_RUNTIME_PRIVATE_API napi_value ten_nodejs_ten_env_init_property_from_json(
+    napi_env env, napi_callback_info info);

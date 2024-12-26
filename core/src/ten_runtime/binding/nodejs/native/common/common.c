@@ -289,8 +289,6 @@ napi_value ten_nodejs_create_value_number(napi_env env, ten_value_t *value,
     case TEN_TYPE_ARRAY:
     case TEN_TYPE_OBJECT:
     case TEN_TYPE_PTR:
-    case TEN_TYPE_UINT64:
-      break;
     case TEN_TYPE_INT8:
       status =
           napi_create_int32(env, ten_value_get_int8(value, error), &js_value);
@@ -331,6 +329,12 @@ napi_value ten_nodejs_create_value_number(napi_env env, ten_value_t *value,
       status = napi_create_uint32(env, ten_value_get_uint32(value, error),
                                   &js_value);
       ASSERT_IF_NAPI_FAIL(status == napi_ok, "Failed to create JS uint32: %d",
+                          status);
+      break;
+    case TEN_TYPE_UINT64:
+      status = napi_create_bigint_uint64(
+          env, ten_value_get_uint64(value, error), &js_value);
+      ASSERT_IF_NAPI_FAIL(status == napi_ok, "Failed to create JS uint64: %d",
                           status);
       break;
     case TEN_TYPE_FLOAT32:

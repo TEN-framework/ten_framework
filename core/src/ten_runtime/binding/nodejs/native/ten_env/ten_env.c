@@ -216,6 +216,7 @@ napi_value ten_nodejs_ten_env_module_init(napi_env env, napi_value exports) {
   EXPORT_FUNC(env, exports, ten_nodejs_ten_env_get_property_string);
   EXPORT_FUNC(env, exports, ten_nodejs_ten_env_set_property_string);
   EXPORT_FUNC(env, exports, ten_nodejs_ten_env_log_internal);
+  EXPORT_FUNC(env, exports, ten_nodejs_ten_env_init_property_from_json);
 
   return exports;
 }
