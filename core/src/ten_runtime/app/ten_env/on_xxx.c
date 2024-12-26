@@ -270,7 +270,9 @@ static void ten_app_unregister_addons_after_app_close(ten_app_t *self) {
 
   ten_addon_unregister_all_extension();
   ten_addon_unregister_all_extension_group();
-  ten_addon_unregister_all_protocol();
+
+  // BUG(Wei): Refer to the bug in `ten_app_destroy`.
+  // ten_addon_unregister_all_protocol();
 }
 
 void ten_app_on_deinit(ten_app_t *self) {
