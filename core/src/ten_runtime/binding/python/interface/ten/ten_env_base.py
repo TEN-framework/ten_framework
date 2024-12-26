@@ -5,8 +5,8 @@
 # Refer to the "LICENSE" file in the root directory for more information.
 #
 import inspect
-from libten_runtime_python import _TenEnv
 
+from libten_runtime_python import _TenEnv
 from .log_level import LogLevel
 
 
