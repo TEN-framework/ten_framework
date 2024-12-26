@@ -41,24 +41,20 @@ class TenEnvTester:
     def on_start_done(self) -> None:
         return self._internal.on_start_done()
 
-    def send_cmd(
-        self, cmd: Cmd, result_handler: ResultHandler
-    ) -> Optional[TenError]:
+    def send_cmd(self, cmd: Cmd, result_handler: ResultHandler) -> None:
         return self._internal.send_cmd(cmd, result_handler)
 
-    def send_data(
-        self, data: Data, error_handler: ErrorHandler = None
-    ) -> Optional[TenError]:
+    def send_data(self, data: Data, error_handler: ErrorHandler = None) -> None:
         return self._internal.send_data(data, error_handler)
 
     def send_audio_frame(
         self, audio_frame: AudioFrame, error_handler: ErrorHandler = None
-    ) -> Optional[TenError]:
+    ) -> None:
         return self._internal.send_audio_frame(audio_frame, error_handler)
 
     def send_video_frame(
         self, video_frame: VideoFrame, error_handler: ErrorHandler = None
-    ) -> Optional[TenError]:
+    ) -> None:
         return self._internal.send_video_frame(video_frame, error_handler)
 
     def stop_test(self) -> None:
