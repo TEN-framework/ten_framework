@@ -5,6 +5,7 @@
 # Refer to the "LICENSE" file in the root directory for more information.
 #
 from typing import Callable, Optional
+
 from .ten_env_attach_to_enum import _TenEnvAttachTo
 from .log_level import LogLevel
 from .addon import Addon
