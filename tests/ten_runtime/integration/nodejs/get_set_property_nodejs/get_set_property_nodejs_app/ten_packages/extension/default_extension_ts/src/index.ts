@@ -4,7 +4,8 @@
 // See the LICENSE file for more information.
 //
 
-import { Addon, AddonManager, RegisterAddonAsExtension, Extension, TenEnv, Cmd } from 'ten-runtime-nodejs';
+// import { Addon, RegisterAddonAsExtension, Extension, TenEnv, Cmd } from '../../../../../../../../../../core/src/ten_runtime/binding/nodejs/interface';
+import { Addon, RegisterAddonAsExtension, Extension, TenEnv, Cmd } from 'ten-runtime-nodejs';
 
 console.log('Im a default ts extension');
 

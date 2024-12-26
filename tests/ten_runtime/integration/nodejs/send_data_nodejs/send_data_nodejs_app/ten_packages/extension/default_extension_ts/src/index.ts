@@ -6,8 +6,8 @@
 
 import { assert } from 'console';
 
-// import { Addon, RegisterAddonAsExtension, Extension, TenEnv, Cmd, Data, CmdResult, StatusCode } from '../../../../../../../../../../core/src/ten_runtime/binding/nodejs/interface';
-import { Addon, RegisterAddonAsExtension, Extension, TenEnv, Cmd, Data, CmdResult, StatusCode } from 'ten-runtime-nodejs';
+// import { Addon, RegisterAddonAsExtension, Extension, TenEnv, Cmd, Data, CmdResult, StatusCode } from '../../../../../../../../../../core/src/ten_runtime/binding/nodejs/interface'
+import { Addon, RegisterAddonAsExtension, Extension, TenEnv, Cmd, Data, CmdResult, StatusCode } from 'ten-runtime-nodejs'
 
 console.log('Im a default ts extension');
 
@@ -33,6 +33,7 @@ class DefaultExtension extends Extension {
 
     async onConfigure(tenEnv: TenEnv) {
         console.log('DefaultExtension onConfigure');
+        tenEnv.
     }
 
     async onInit(tenEnv: TenEnv) {
@@ -78,6 +79,7 @@ class DefaultExtension extends Extension {
         assert(result !== null, 'result is null');
 
         tenEnv.logInfo('received result detail:' + result?.getPropertyToJson('detail'));
+
 
         const cmdResult = CmdResult.Create(StatusCode.OK);
         cmdResult.setPropertyFromJson('detail', JSON.stringify({ key1: 'value1', key2: 2 }))

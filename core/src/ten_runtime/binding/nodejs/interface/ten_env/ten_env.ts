@@ -12,98 +12,74 @@ import ten_addon from '../ten_addon'
 import { LogLevel } from './log_level';
 
 export class TenEnv {
-    async sendCmd(cmd: Cmd): Promise<CmdResult> {
-        return new Promise<CmdResult>((resolve, reject) => {
+    async sendCmd(cmd: Cmd): Promise<[CmdResult | null, Error | null]> {
+        return new Promise<[CmdResult | null, Error | null]>((resolve) => {
             ten_addon.ten_nodejs_ten_env_send_cmd(
                 this,
                 cmd,
                 async (cmdResult: CmdResult, error: Error) => {
-                    if (error) {
-                        reject(error);
-                    } else {
-                        resolve(cmdResult);
-                    }
+                    resolve([cmdResult, error]);
                 }
             )
         });
     }
 
-    async sendData(data: Data): Promise<void> {
-        return new Promise<void>((resolve, reject) => {
+    async sendData(data: Data): Promise<Error | null> {
+        return new Promise<Error | null>((resolve) => {
             ten_addon.ten_nodejs_ten_env_send_data(
                 this,
                 data,
                 async (error: Error) => {
-                    if (error) {
-                        reject(error);
-                    } else {
-                        resolve();
-                    }
+                    resolve(error);
                 }
             )
         });
     }
 
-    async sendVideoFrame(videoFrame: VideoFrame) {
-        return new Promise<void>((resolve, reject) => {
+    async sendVideoFrame(videoFrame: VideoFrame): Promise<Error | null> {
+        return new Promise<Error | null>((resolve) => {
             ten_addon.ten_nodejs_ten_env_send_video_frame(
                 this,
                 videoFrame,
                 async (error: Error) => {
-                    if (error) {
-                        reject(error);
-                    } else {
-                        resolve();
-                    }
+                    resolve(error);
                 }
             )
         });
     }
 
-    async sendAudioFrame(audioFrame: AudioFrame) {
-        return new Promise<void>((resolve, reject) => {
+    async sendAudioFrame(audioFrame: AudioFrame): Promise<Error | null> {
+        return new Promise<Error | null>((resolve) => {
             ten_addon.ten_nodejs_ten_env_send_audio_frame(
                 this,
                 audioFrame,
                 async (error: Error) => {
-                    if (error) {
-                        reject(error);
-                    } else {
-                        resolve();
-                    }
+                    resolve(error);
                 }
             )
         });
     }
 
-    async returnResult(cmdResult: CmdResult, targetCmd: Cmd) {
-        return new Promise<void>((resolve, reject) => {
+    async returnResult(cmdResult: CmdResult, targetCmd: Cmd): Promise<Error | null> {
+        return new Promise<Error | null>((resolve) => {
             ten_addon.ten_nodejs_ten_env_return_result(
                 this,
                 cmdResult,
                 targetCmd,
                 async (error: Error) => {
-                    if (error) {
-                        reject(error);
-                    } else {
-                        resolve();
-                    }
+                    resolve(error);
                 }
             )
         });
     }
 
-    async returnResultDirectly(cmdResult: CmdResult) {
-        return new Promise<void>((resolve, reject) => {
+    async returnResultDirectly(cmdResult: CmdResult): Promise<Error | null> {
+        return new Promise<Error | null>((resolve) => {
             ten_addon.ten_nodejs_ten_env_return_result_directly(
                 this,
                 cmdResult,
                 async (error: Error) => {
-                    if (error) {
-                        reject(error);
-                    } else {
-                        resolve();
-                    }
+                    resolve(error);
                 }
             )
         });
