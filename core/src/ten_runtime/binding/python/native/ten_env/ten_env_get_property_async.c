@@ -297,7 +297,8 @@ static void ten_py_get_property_bool_cb(ten_env_t *ten_env, ten_value_t *value,
       arglist = Py_BuildValue("(OO)", bool_value ? Py_True : Py_False, Py_None);
     } else {
       py_error = ten_py_error_wrap(&err);
-      arglist = Py_BuildValue("(OO)", bool_value ? Py_True : Py_False, py_error);
+      arglist =
+          Py_BuildValue("(OO)", bool_value ? Py_True : Py_False, py_error);
     }
 
     ten_error_deinit(&err);
