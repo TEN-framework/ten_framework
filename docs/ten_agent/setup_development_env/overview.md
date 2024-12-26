@@ -4,5 +4,5 @@ The easiest way to get started with TEN Agent is to use the provided Docker cont
 
 While if you want to develop the agent, using suitable development tools can save you lots of time. This guide will contain following tutorials,
 
-- Setting up local development environment with VSCode to connect with your Docker container.
-- Setting up cloud development environment with Github Codespace.
+- Setup local development environment with VSCode to connect with your Docker container.
+- Setup cloud development environment with Github Codespace.
