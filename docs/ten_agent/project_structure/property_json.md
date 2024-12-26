@@ -7,6 +7,10 @@ This file contains the orchestration of extensions. It is the main runtime confi
 
 The `property.json` file contains the following orchestration info,
 
+- Graphs
+- Nodes
+- Connections
+
 ## Graphs
 
 The `predefined_graphs` property contains a list of available graphs. Each graph defines how agent should behave in a specific scenario. Each graph has a `name` property which is used to identify a graph.
@@ -35,7 +39,7 @@ The `property` section of a node contains the configuration of the extension. It
 }
 ```
 
-![Property JSON nodes](https://github.com/TEN-framework/docs/blob/main/assets/png/property_json_nodes.png?raw=true)
+![Property JSON nodes](https://github.com/TEN-framework/docs/blob/main/assets/png/property_json_connections.png?raw=true)
 
 #### Read environment variables
 
@@ -71,6 +75,6 @@ The `connections` section contains the list of connections between nodes. Each c
 }
 ```
 
-![Property JSON Connections](https://github.com/TEN-framework/docs/blob/main/assets/png/property_json_connections.png?raw=true)
+![Property JSON Connections](https://github.com/TEN-framework/docs/blob/main/assets/png/property_json_nodes.png?raw=true)
 
 In the above example, we are connecting `agora_rtc` extension to `deepgram_asr` extension. The `agora_rtc` extension is sending `pcm_frame` data to `deepgram_asr` extension.
