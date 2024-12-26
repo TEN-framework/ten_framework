@@ -93,7 +93,7 @@ typedef struct ten_extension_group_t {
   size_t extensions_cnt_of_being_destroyed;
 } ten_extension_group_t;
 
-TEN_RUNTIME_PRIVATE_API bool ten_extension_group_check_integrity(
+TEN_RUNTIME_API bool ten_extension_group_check_integrity(
     ten_extension_group_t *self, bool check_thread);
 
 TEN_RUNTIME_PRIVATE_API ten_extension_group_t *ten_extension_group_create(
