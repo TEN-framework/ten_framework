@@ -82,7 +82,7 @@ class DefaultAsyncExtension(AsyncExtension):
             error_occurred = False
 
         try:
-            unknown_field, err = await ten_env.get_property_to_json(
+            unknown_field = await ten_env.get_property_to_json(
                 "unknown_field"
             )
         except Exception as e:
@@ -94,7 +94,7 @@ class DefaultAsyncExtension(AsyncExtension):
         await asyncio.sleep(0.5)
 
     async def on_cmd(self, ten_env: AsyncTenEnv, cmd: Cmd) -> None:
-        cmd_json, _ = cmd.get_property_to_json()
+        cmd_json = cmd.get_property_to_json()
         ten_env.log_debug(f"on_cmd: {cmd_json}")
 
         # Mock async operation, e.g. network, file I/O.

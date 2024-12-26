@@ -16,16 +16,18 @@ from .audio_frame import AudioFrame
 from .cmd_result import CmdResult
 from .ten_env import TenEnv
 from .error import TenError
+from .ten_env_base import TenEnvBase
 
 CmdResultTuple = tuple[Optional[CmdResult], Optional[TenError]]
 
 
-class AsyncTenEnv(TenEnv):
+class AsyncTenEnv(TenEnvBase):
 
     def __init__(
         self, ten_env: TenEnv, loop: AbstractEventLoop, thread: threading.Thread
     ) -> None:
-        self._internal = ten_env._internal
+        super().__init__(ten_env._internal)
+
         self._ten_loop = loop
         self._ten_thread = thread
         ten_env._set_release_handler(lambda: self._on_release())
@@ -332,31 +334,6 @@ class AsyncTenEnv(TenEnv):
         error: TenError = await q.get()
         if error is not None:
             raise RuntimeError(error.err_msg())
-
-    async def on_configure_done(self) -> None:
-        raise NotImplementedError(
-            "No need to call this method in async extension"
-        )
-
-    async def on_init_done(self) -> None:
-        raise NotImplementedError(
-            "No need to call this method in async extension"
-        )
-
-    async def on_start_done(self) -> None:
-        raise NotImplementedError(
-            "No need to call this method in async extension"
-        )
-
-    async def on_stop_done(self) -> None:
-        raise NotImplementedError(
-            "No need to call this method in async extension"
-        )
-
-    async def on_deinit_done(self) -> None:
-        raise NotImplementedError(
-            "No need to call this method in async extension"
-        )
 
     def _deinit_routine(self) -> None:
         # Wait for the internal thread to finish.
