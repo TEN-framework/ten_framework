@@ -20,11 +20,11 @@ from .ten_env_base import TenEnvBase
 class TenEnv: ...  # type: ignore
 
 
-ResultHandler = (
-    Callable[[TenEnv, Optional[CmdResult], Optional[TenError]], None] | None
-)
+ResultHandler = Optional[
+    Callable[[TenEnv, Optional[CmdResult], Optional[TenError]], None]
+]
 
-ErrorHandler = Callable[[TenEnv, Optional[TenError]], None] | None
+ErrorHandler = Optional[Callable[[TenEnv, Optional[TenError]], None]]
 
 
 class TenEnv(TenEnvBase):

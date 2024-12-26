@@ -50,42 +50,40 @@ class DefaultAsyncExtension(AsyncExtension):
         error_occurred = False
 
         try:
-            unknown_field = await ten_env.get_property_string("unknown_field")
-        except Exception as e:
+            _ = await ten_env.get_property_string("unknown_field")
+        except Exception:
             error_occurred = True
         finally:
             assert error_occurred is True
             error_occurred = False
 
         try:
-            unknown_field = await ten_env.get_property_bool("unknown_field")
-        except Exception as e:
+            _ = await ten_env.get_property_bool("unknown_field")
+        except Exception:
             error_occurred = True
         finally:
             assert error_occurred is True
             error_occurred = False
 
         try:
-            unknown_field = await ten_env.get_property_int("unknown_field")
-        except Exception as e:
+            _ = await ten_env.get_property_int("unknown_field")
+        except Exception:
             error_occurred = True
         finally:
             assert error_occurred is True
             error_occurred = False
 
         try:
-            unknown_field = await ten_env.get_property_float("unknown_field")
-        except Exception as e:
+            _ = await ten_env.get_property_float("unknown_field")
+        except Exception:
             error_occurred = True
         finally:
             assert error_occurred is True
             error_occurred = False
 
         try:
-            unknown_field = await ten_env.get_property_to_json(
-                "unknown_field"
-            )
-        except Exception as e:
+            _ = await ten_env.get_property_to_json("unknown_field")
+        except Exception:
             error_occurred = True
         finally:
             assert error_occurred is True

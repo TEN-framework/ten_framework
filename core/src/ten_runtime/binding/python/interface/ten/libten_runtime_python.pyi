@@ -24,15 +24,15 @@ class _Msg:
     def set_name(self, name: str) -> None: ...
     def set_dest(
         self,
-        app_uri: str | None,
-        graph_id: str | None,
-        extension_group: str | None,
-        extension: str | None,
+        app_uri: Optional[str],
+        graph_id: Optional[str],
+        extension_group: Optional[str],
+        extension: Optional[str],
     ) -> None: ...
     def set_property_from_json(
-        self, path: str | None, json_str: str
+        self, path: Optional[str], json_str: str
     ) -> None: ...
-    def get_property_to_json(self, path: str | None = None) -> str: ...
+    def get_property_to_json(self, path: Optional[str] = None) -> str: ...
     def get_property_int(self, path: str) -> int: ...
     def set_property_int(self, path: str, value: int) -> None: ...
     def get_property_string(self, path: str) -> str: ...
@@ -194,8 +194,8 @@ class _TenEnv:
     def log(
         self,
         level: LogLevel,
-        func_name: str | None,
-        file_name: str | None,
+        func_name: Optional[str],
+        file_name: Optional[str],
         line_no: int,
         msg: str,
     ) -> None: ...
@@ -260,10 +260,10 @@ class _TenEnvTester:
 
 class _ExtensionTester:
     def set_test_mode_single(
-        self, addon_name: str, property_json_str: str | None
+        self, addon_name: str, property_json_str: Optional[str]
     ) -> None: ...
     def run(self) -> None: ...
 
 def _register_addon_as_extension(
-    name: str, base_dir: str | None, instance: Addon, register_ctx: object
+    name: str, base_dir: Optional[str], instance: Addon, register_ctx: object
 ): ...
