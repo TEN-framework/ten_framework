@@ -22,7 +22,7 @@ ten_addon_manager_t *ten_addon_manager_get_instance(void) {
   ten_mutex_lock(init_mutex);
 
   if (!instance) {
-    instance = (ten_addon_manager_t *)TEN_MALLOC(sizeof(ten_addon_manager_t));
+    instance = (ten_addon_manager_t *)ten_malloc(sizeof(ten_addon_manager_t));
     TEN_ASSERT(instance, "Failed to allocate memory for ten_addon_manager_t.");
 
     ten_list_init(&instance->registry);
