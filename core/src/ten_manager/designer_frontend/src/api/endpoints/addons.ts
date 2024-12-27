@@ -13,7 +13,7 @@ export const ENDPOINT_ADDONS = {
       pathParams: ["name"],
       responseSchema: genResSchema<IExtensionAddon>(
         z.object({
-          addon_name: z.string(),
+          name: z.string(),
           url: z.string(),
           api: z.unknown().optional(),
         })
