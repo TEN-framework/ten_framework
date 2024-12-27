@@ -4,8 +4,6 @@
 // See the LICENSE file for more information.
 //
 
-import { assert } from 'console';
-
 // import { Addon, RegisterAddonAsExtension, Extension, TenEnv, Cmd, Data, CmdResult, StatusCode } from '../../../../../../../../../../core/src/ten_runtime/binding/nodejs/interface';
 import { Addon, RegisterAddonAsExtension, Extension, TenEnv, Cmd, Data, CmdResult, StatusCode } from 'ten-runtime-nodejs';
 
@@ -23,6 +21,12 @@ class DefaultAddon extends Addon {
 
     async onDeinit() {
         console.log('DefaultAddon onDeinit');
+    }
+}
+
+function assert(condition: boolean, message: string) {
+    if (!condition) {
+        throw new Error(message);
     }
 }
 

@@ -7,7 +7,10 @@
 #include "include_internal/ten_runtime/binding/nodejs/extension/extension.h"
 
 #include "include_internal/ten_runtime/binding/nodejs/common/common.h"
+#include "include_internal/ten_runtime/binding/nodejs/msg/audio_frame.h"
 #include "include_internal/ten_runtime/binding/nodejs/msg/cmd.h"
+#include "include_internal/ten_runtime/binding/nodejs/msg/data.h"
+#include "include_internal/ten_runtime/binding/nodejs/msg/video_frame.h"
 #include "include_internal/ten_runtime/binding/nodejs/ten_env/ten_env.h"
 #include "js_native_api.h"
 #include "js_native_api_types.h"
@@ -397,17 +400,153 @@ done:
 }
 
 static void ten_nodejs_invoke_extension_js_on_data(napi_env env, napi_value fn,
-                                                   void *context, void *data) {}
+                                                   void *context, void *data) {
+  extension_on_msg_call_info_t *call_info = data;
+  TEN_ASSERT(call_info, "Should not happen.");
+
+  napi_status status = napi_ok;
+
+  {
+    // Call on_data() of the TEN JS extension.
+
+    // Get the TEN JS extension.
+    napi_value js_extension = NULL;
+    status = napi_get_reference_value(
+        env, call_info->extension_bridge->bridge.js_instance_ref,
+        &js_extension);
+    GOTO_LABEL_IF_NAPI_FAIL(error, status == napi_ok && js_extension != NULL,
+                            "Failed to get JS extension: %d", status);
+
+    // Get the TEN JS ten_env.
+    napi_value js_ten_env = NULL;
+    status = napi_get_reference_value(
+        env, call_info->ten_env_bridge->bridge.js_instance_ref, &js_ten_env);
+    GOTO_LABEL_IF_NAPI_FAIL(error, status == napi_ok && js_ten_env != NULL,
+                            "Failed to get JS ten_env: %d", status);
+
+    napi_value js_data = ten_nodejs_data_wrap(env, call_info->msg);
+    GOTO_LABEL_IF_NAPI_FAIL(error, js_data != NULL, "Failed to wrap JS Data.");
+
+    // Call on_data().
+    napi_value result = NULL;
+    napi_value argv[] = {js_ten_env, js_data};
+    status = napi_call_function(env, js_extension, fn, 2, argv, &result);
+    GOTO_LABEL_IF_NAPI_FAIL(error, status == napi_ok,
+                            "Failed to call JS extension on_data(): %d",
+                            status);
+  }
+
+  goto done;
+
+error:
+  TEN_LOGE("Failed to call JS extension on_data().");
+
+done:
+  ten_shared_ptr_destroy(call_info->msg);
+  TEN_FREE(call_info);
+}
 
 static void ten_nodejs_invoke_extension_js_on_audio_frame(napi_env env,
                                                           napi_value fn,
                                                           void *context,
-                                                          void *data) {}
+                                                          void *data) {
+  extension_on_msg_call_info_t *call_info = data;
+  TEN_ASSERT(call_info, "Should not happen.");
+
+  napi_status status = napi_ok;
+
+  {
+    // Call on_audio_frame() of the TEN JS extension.
+
+    // Get the TEN JS extension.
+    napi_value js_extension = NULL;
+    status = napi_get_reference_value(
+        env, call_info->extension_bridge->bridge.js_instance_ref,
+        &js_extension);
+    GOTO_LABEL_IF_NAPI_FAIL(error, status == napi_ok && js_extension != NULL,
+                            "Failed to get JS extension: %d", status);
+
+    // Get the TEN JS ten_env.
+    napi_value js_ten_env = NULL;
+    status = napi_get_reference_value(
+        env, call_info->ten_env_bridge->bridge.js_instance_ref, &js_ten_env);
+    GOTO_LABEL_IF_NAPI_FAIL(error, status == napi_ok && js_ten_env != NULL,
+                            "Failed to get JS ten_env: %d", status);
+
+    napi_value js_audio_frame =
+        ten_nodejs_audio_frame_wrap(env, call_info->msg);
+    GOTO_LABEL_IF_NAPI_FAIL(error, js_audio_frame != NULL,
+                            "Failed to wrap JS Data.");
+
+    // Call on_audio_frame().
+    napi_value result = NULL;
+    napi_value argv[] = {js_ten_env, js_audio_frame};
+    status = napi_call_function(env, js_extension, fn, 2, argv, &result);
+    GOTO_LABEL_IF_NAPI_FAIL(error, status == napi_ok,
+                            "Failed to call JS extension on_audio_frame(): %d",
+                            status);
+  }
+
+  goto done;
+
+error:
+  TEN_LOGE("Failed to call JS extension on_audio_frame().");
+
+done:
+  ten_shared_ptr_destroy(call_info->msg);
+  TEN_FREE(call_info);
+}
 
 static void ten_nodejs_invoke_extension_js_on_video_frame(napi_env env,
                                                           napi_value fn,
                                                           void *context,
-                                                          void *data) {}
+                                                          void *data) {
+  extension_on_msg_call_info_t *call_info = data;
+  TEN_ASSERT(call_info, "Should not happen.");
+
+  napi_status status = napi_ok;
+
+  {
+    // Call on_video_frame() of the TEN JS extension.
+
+    // Get the TEN JS extension.
+    napi_value js_extension = NULL;
+    status = napi_get_reference_value(
+        env, call_info->extension_bridge->bridge.js_instance_ref,
+        &js_extension);
+    GOTO_LABEL_IF_NAPI_FAIL(error, status == napi_ok && js_extension != NULL,
+                            "Failed to get JS extension: %d", status);
+
+    // Get the TEN JS ten_env.
+    napi_value js_ten_env = NULL;
+    status = napi_get_reference_value(
+        env, call_info->ten_env_bridge->bridge.js_instance_ref, &js_ten_env);
+    GOTO_LABEL_IF_NAPI_FAIL(error, status == napi_ok && js_ten_env != NULL,
+                            "Failed to get JS ten_env: %d", status);
+
+    napi_value js_video_frame =
+        ten_nodejs_video_frame_wrap(env, call_info->msg);
+    GOTO_LABEL_IF_NAPI_FAIL(error, js_video_frame != NULL,
+                            "Failed to wrap JS Data.");
+
+    // Call on_video_frame().
+    napi_value result = NULL;
+    napi_value argv[] = {js_ten_env, js_video_frame};
+    status = napi_call_function(env, js_extension, fn, 2, argv, &result);
+    GOTO_LABEL_IF_NAPI_FAIL(error, status == napi_ok,
+                            "Failed to call JS extension on_video_frame(): %d",
+                            status);
+  }
+
+  goto done;
+
+error:
+  TEN_LOGE("Failed to call JS extension on_video_frame().");
+
+done:
+  ten_shared_ptr_destroy(call_info->msg);
+  TEN_FREE(call_info);
+}
 
 static void ten_nodejs_extension_create_and_attach_callbacks(
     napi_env env, ten_nodejs_extension_t *extension_bridge) {
@@ -726,11 +865,116 @@ static void proxy_on_cmd(ten_extension_t *self, ten_env_t *ten_env,
   }
 }
 static void proxy_on_data(ten_extension_t *self, ten_env_t *ten_env,
-                          ten_shared_ptr_t *data) {}
+                          ten_shared_ptr_t *data) {
+  TEN_LOGI("extension proxy_on_data");
+
+  TEN_ASSERT(self && ten_extension_check_integrity(self, true),
+             "Should not happen.");
+  TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
+             "Should not happen.");
+
+  ten_nodejs_extension_t *extension_bridge =
+      ten_binding_handle_get_me_in_target_lang((ten_binding_handle_t *)self);
+  TEN_ASSERT(extension_bridge &&
+                 // TEN_NOLINTNEXTLINE(thread-check)
+                 ten_nodejs_extension_check_integrity(extension_bridge, false),
+             "Should not happen.");
+
+  ten_nodejs_ten_env_t *ten_env_bridge =
+      ten_binding_handle_get_me_in_target_lang((ten_binding_handle_t *)ten_env);
+  TEN_ASSERT(ten_env_bridge &&
+                 // TEN_NOLINTNEXTLINE(thread-check)
+                 ten_nodejs_ten_env_check_integrity(ten_env_bridge, false),
+             "Should not happen.");
+
+  extension_on_msg_call_info_t *call_info =
+      TEN_MALLOC(sizeof(extension_on_msg_call_info_t));
+  TEN_ASSERT(call_info, "Failed to allocate memory.");
+
+  call_info->extension_bridge = extension_bridge;
+  call_info->ten_env_bridge = ten_env_bridge;
+  call_info->msg = ten_shared_ptr_clone(data);
+
+  bool rc = ten_nodejs_tsfn_invoke(extension_bridge->js_on_data, call_info);
+  if (!rc) {
+    TEN_LOGE("Failed to call extension on_data().");
+    TEN_FREE(call_info);
+  }
+}
 static void proxy_on_audio_frame(ten_extension_t *self, ten_env_t *ten_env,
-                                 ten_shared_ptr_t *frame) {}
+                                 ten_shared_ptr_t *frame) {
+  TEN_LOGI("extension proxy_on_audio_frame");
+
+  TEN_ASSERT(self && ten_extension_check_integrity(self, true),
+             "Should not happen.");
+
+  ten_nodejs_extension_t *extension_bridge =
+      ten_binding_handle_get_me_in_target_lang((ten_binding_handle_t *)self);
+  TEN_ASSERT(extension_bridge &&
+                 // TEN_NOLINTNEXTLINE(thread-check)
+                 ten_nodejs_extension_check_integrity(extension_bridge, false),
+             "Should not happen.");
+
+  ten_nodejs_ten_env_t *ten_env_bridge =
+      ten_binding_handle_get_me_in_target_lang((ten_binding_handle_t *)ten_env);
+  TEN_ASSERT(ten_env_bridge &&
+                 // TEN_NOLINTNEXTLINE(thread-check)
+                 ten_nodejs_ten_env_check_integrity(ten_env_bridge, false),
+             "Should not happen.");
+
+  extension_on_msg_call_info_t *call_info =
+      TEN_MALLOC(sizeof(extension_on_msg_call_info_t));
+  TEN_ASSERT(call_info, "Failed to allocate memory.");
+
+  call_info->extension_bridge = extension_bridge;
+  call_info->ten_env_bridge = ten_env_bridge;
+  call_info->msg = ten_shared_ptr_clone(frame);
+
+  bool rc =
+      ten_nodejs_tsfn_invoke(extension_bridge->js_on_audio_frame, call_info);
+  if (!rc) {
+    TEN_LOGE("Failed to call extension on_audio_frame().");
+    TEN_FREE(call_info);
+  }
+}
 static void proxy_on_video_frame(ten_extension_t *self, ten_env_t *ten_env,
-                                 ten_shared_ptr_t *frame) {}
+                                 ten_shared_ptr_t *frame) {
+  TEN_LOGI("extension proxy_on_video_frame");
+
+  TEN_ASSERT(self && ten_extension_check_integrity(self, true),
+             "Should not happen.");
+  TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
+             "Should not happen.");
+
+  ten_nodejs_extension_t *extension_bridge =
+      ten_binding_handle_get_me_in_target_lang((ten_binding_handle_t *)self);
+  TEN_ASSERT(extension_bridge &&
+                 // TEN_NOLINTNEXTLINE(thread-check)
+                 ten_nodejs_extension_check_integrity(extension_bridge, false),
+             "Should not happen.");
+
+  ten_nodejs_ten_env_t *ten_env_bridge =
+      ten_binding_handle_get_me_in_target_lang((ten_binding_handle_t *)ten_env);
+  TEN_ASSERT(ten_env_bridge &&
+                 // TEN_NOLINTNEXTLINE(thread-check)
+                 ten_nodejs_ten_env_check_integrity(ten_env_bridge, false),
+             "Should not happen.");
+
+  extension_on_msg_call_info_t *call_info =
+      TEN_MALLOC(sizeof(extension_on_msg_call_info_t));
+  TEN_ASSERT(call_info, "Failed to allocate memory.");
+
+  call_info->extension_bridge = extension_bridge;
+  call_info->ten_env_bridge = ten_env_bridge;
+  call_info->msg = ten_shared_ptr_clone(frame);
+
+  bool rc =
+      ten_nodejs_tsfn_invoke(extension_bridge->js_on_video_frame, call_info);
+  if (!rc) {
+    TEN_LOGE("Failed to call extension on_video_frame().");
+    TEN_FREE(call_info);
+  }
+}
 
 static napi_value ten_nodejs_extension_create(napi_env env,
                                               napi_callback_info info) {

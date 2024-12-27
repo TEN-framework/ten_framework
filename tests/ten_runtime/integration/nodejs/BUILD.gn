@@ -10,7 +10,9 @@ import("//build/ten_runtime/options.gni")
 group("nodejs") {
   deps = [
     "get_set_property_nodejs",
+    "send_audio_frame_nodejs",
     "send_cmd_nodejs",
     "send_data_nodejs",
+    "send_video_frame_nodejs",
   ]
 }

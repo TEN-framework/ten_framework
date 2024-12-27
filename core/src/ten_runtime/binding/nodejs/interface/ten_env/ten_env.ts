@@ -5,6 +5,7 @@
 // Refer to the "LICENSE" file in the root directory for more information.
 //
 import { AudioFrame } from '../msg/audio_frame';
+import { VideoFrame } from '../msg/video_frame';
 import { Cmd } from '../msg/cmd';
 import { CmdResult } from '../msg/cmd_result';
 import { Data } from '../msg/data';

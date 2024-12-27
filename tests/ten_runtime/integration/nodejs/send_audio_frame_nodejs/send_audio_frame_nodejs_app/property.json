@@ -23,12 +23,6 @@
           },
           {
             "type": "extension",
-            "name": "default_extension_ts2",
-            "addon": "default_extension_ts",
-            "extension_group": "default_extension_group"
-          },
-          {
-            "type": "extension",
             "name": "simple_echo_cpp",
             "addon": "simple_echo_cpp",
             "extension_group": "default_extension_group"
@@ -50,30 +44,12 @@
           },
           {
             "extension": "default_extension_ts",
-            "cmd": [
+            "audio_frame": [
               {
-                "name": "hello",
+                "name": "audio_frame",
                 "dest": [
                   {
                     "extension": "simple_echo_cpp"
-                  }
-                ]
-              }
-            ],
-            "data": [
-              {
-                "name": "data",
-                "dest": [
-                  {
-                    "extension": "simple_echo_cpp"
-                  }
-                ]
-              },
-              {
-                "name": "data2",
-                "dest": [
-                  {
-                    "extension": "default_extension_ts2"
                   }
                 ]
               }
@@ -81,22 +57,9 @@
           },
           {
             "extension": "simple_echo_cpp",
-            "data": [
+            "audio_frame": [
               {
-                "name": "data",
-                "dest": [
-                  {
-                    "extension": "default_extension_ts"
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "extension": "default_extension_ts2",
-            "data": [
-              {
-                "name": "data2_return",
+                "name": "audio_frame",
                 "dest": [
                   {
                     "extension": "default_extension_ts"
