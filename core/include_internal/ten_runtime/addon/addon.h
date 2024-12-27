@@ -29,6 +29,13 @@ typedef enum TEN_ADDON_TYPE {
   TEN_ADDON_TYPE_EXTENSION_GROUP,
 } TEN_ADDON_TYPE;
 
+typedef void (*ten_env_addon_create_instance_done_cb_t)(ten_env_t *ten_env,
+                                                        void *instance,
+                                                        void *cb_data);
+
+typedef void (*ten_env_addon_destroy_instance_done_cb_t)(ten_env_t *ten_env,
+                                                         void *cb_data);
+
 typedef struct ten_addon_context_t {
   ten_env_t *caller_ten;
 
