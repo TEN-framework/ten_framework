@@ -32,10 +32,6 @@ typedef void (*ten_env_is_cmd_connected_async_cb_t)(ten_env_t *ten_env,
 TEN_RUNTIME_API bool ten_env_check_integrity(ten_env_t *self,
                                              bool check_thread);
 
-TEN_RUNTIME_API bool ten_env_is_cmd_connected(ten_env_t *self,
-                                              const char *cmd_name,
-                                              ten_error_t *err);
-
 TEN_RUNTIME_API void *ten_env_get_attached_target(ten_env_t *self);
 
 TEN_RUNTIME_API void ten_env_destroy(ten_env_t *self);

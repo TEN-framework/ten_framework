@@ -107,10 +107,10 @@ static void ten_env_proxy_notify_addon_create_extension(ten_env_t *ten_env,
                                                         void *user_data) {
   TEN_ASSERT(user_data, "Invalid argument.");
   TEN_ASSERT(
-      ten_env &&
-          ten_env_check_integrity(
-              ten_env,
-              ten_env->attach_to != TEN_ENV_ATTACH_TO_ADDON ? true : false),
+      ten_env && ten_env_check_integrity(
+                     ten_env, ten_env->attach_to != TEN_ENV_ATTACH_TO_ADDON_HOST
+                                  ? true
+                                  : false),
       "Should not happen.");
 
   ten_env_notify_addon_create_extension_info_t *info = user_data;
