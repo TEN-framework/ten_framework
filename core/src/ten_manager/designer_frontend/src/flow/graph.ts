@@ -9,8 +9,10 @@ import dagre from "dagre";
 
 import { CustomNodeType } from "@/flow/CustomNode";
 import { CustomEdgeType } from "@/flow/CustomEdge";
-import { BackendNode, BackendConnection } from "@/api/interface";
-import { fetchExtensionAddonByName, ExtensionAddon } from "@/api/api";
+import { getExtensionAddonByName } from "@/api/services/addons";
+
+import type { IExtensionAddon } from "@/types/addons";
+import type { IBackendNode, IBackendConnection } from "@/types/graphs";
 
 const NODE_WIDTH = 172;
 const NODE_HEIGHT = 36;
@@ -48,7 +50,9 @@ export const getLayoutedElements = (
   return { nodes: layoutedNodes, edges };
 };
 
-export const processNodes = (backendNodes: BackendNode[]): CustomNodeType[] => {
+export const processNodes = (
+  backendNodes: IBackendNode[]
+): CustomNodeType[] => {
   return backendNodes.map((n, index) => ({
     id: n.name,
     position: { x: index * 200, y: 100 },
@@ -63,7 +67,7 @@ export const processNodes = (backendNodes: BackendNode[]): CustomNodeType[] => {
 };
 
 export const processConnections = (
-  backendConnections: BackendConnection[]
+  backendConnections: IBackendConnection[]
 ): {
   initialEdges: CustomEdgeType[];
   nodeSourceCmdMap: Record<string, Set<string>>;
@@ -121,7 +125,7 @@ export const fetchAddonInfoForNodes = async (
   return await Promise.all(
     nodes.map(async (node) => {
       try {
-        const addonInfo: ExtensionAddon = await fetchExtensionAddonByName(
+        const addonInfo: IExtensionAddon = await getExtensionAddonByName(
           node.data.addon
         );
         console.log(`URL for addon '${node.data.addon}': ${addonInfo.url}`);
