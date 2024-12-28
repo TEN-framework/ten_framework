@@ -132,7 +132,7 @@ static void ten_go_addon_create_extension_async_helper(ten_addon_t *addon,
                                                        void *context) {
   TEN_ASSERT(addon && ten_addon_check_integrity(addon) && name && ten_env,
              "Should not happen.");
-  TEN_ASSERT(ten_env->attach_to == TEN_ENV_ATTACH_TO_ADDON_HOST,
+  TEN_ASSERT(ten_env->attach_to == TEN_ENV_ATTACH_TO_ADDON,
              "Should not happen.");
 
   ten_go_addon_t *addon_bridge =
@@ -155,7 +155,7 @@ static void ten_go_addon_create_extension_group_async_helper(ten_addon_t *addon,
                                                              void *context) {
   TEN_ASSERT(addon && ten_addon_check_integrity(addon) && name && ten_env,
              "Should not happen.");
-  TEN_ASSERT(ten_env->attach_to == TEN_ENV_ATTACH_TO_ADDON_HOST,
+  TEN_ASSERT(ten_env->attach_to == TEN_ENV_ATTACH_TO_ADDON,
              "Should not happen.");
 
   ten_go_addon_t *addon_bridge =
@@ -178,7 +178,7 @@ static void ten_go_addon_destroy_instance_helper(ten_addon_t *addon,
                                                  void *context) {
   TEN_ASSERT(addon && ten_addon_check_integrity(addon) && instance && ten_env,
              "Should not happen.");
-  TEN_ASSERT(ten_env->attach_to == TEN_ENV_ATTACH_TO_ADDON_HOST,
+  TEN_ASSERT(ten_env->attach_to == TEN_ENV_ATTACH_TO_ADDON,
              "Should not happen.");
 
   ten_go_addon_t *addon_bridge =
