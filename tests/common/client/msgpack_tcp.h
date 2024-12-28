@@ -8,7 +8,7 @@
 
 #include "ten_runtime/ten_config.h"
 
-#include "core_protocols/msgpack/common/parser.h"
+#include "core_generics/msgpack/common/parser.h"
 #include "ten_utils/lib/smart_ptr.h"
 #include "tests/common/client/tcp.h"
 

@@ -23,7 +23,7 @@ ten_package_test_prepare_app("close_app_go_app") {
       "//core/src/ten_manager",
       "//packages/core_apps/default_app_go:upload_default_app_go_to_server",
       "//packages/core_extensions/default_extension_go:upload_default_extension_go_to_server",
-      "//packages/core_protocols/msgpack:upload_protocol_msgpack_to_server",
+      "//packages/core_generics/msgpack:upload_protocol_msgpack_to_server",
     ]
   }
 }
@@ -38,7 +38,7 @@ ten_package_test_prepare_client("close_app_go_app_client") {
   ]
   deps = [
     "//core/src/ten_runtime",
-    "//packages/core_protocols/msgpack:msgpack_files",
+    "//packages/core_generics/msgpack:msgpack_files",
     "//tests/common/client:msgpack_client",
     "//third_party/msgpack:msgpackc",
     "//third_party/nlohmann_json",

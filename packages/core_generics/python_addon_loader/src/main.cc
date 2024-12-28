@@ -6,6 +6,7 @@
 #include <cstring>
 #include <string>
 
+#include "include_internal/ten_runtime/addon/lang_addon_loader/lang_addon_loader.h"
 #include "include_internal/ten_runtime/app/metadata.h"
 #include "include_internal/ten_runtime/binding/cpp/detail/ten_env_internal_accessor.h"
 #include "include_internal/ten_runtime/binding/python/common.h"
@@ -40,17 +41,20 @@ static void foo() {}
  *    being loaded, which triggers this addon to be dlopen-ed.
  *
  * 2) libten_runtime will call 'ten_addon_register_extension()' synchronously,
- *    then py_init_addon_t::on_init() will be called from libten_runtime.
+ *    then python_addon_loader_addon_t::on_init() will be called from
+ * libten_runtime.
  *
- * 3) py_init_addon_t::on_init() will handle things including Py_Initialize,
- *    setup sys.path, load all python addons in the app's addon/ folder.
+ * 3) python_addon_loader_addon_t::on_init() will handle things including
+ * Py_Initialize, setup sys.path, load all python addons in the app's addon/
+ * folder.
  *
  * 4) libten_runtime_python will be loaded when any python addon is loaded (due
  *    to the python code: 'import libten_runtime_python')
  *
- * 5) After all python addons are registered, py_init_addon_t::on_init() will
- *    release the python GIL so that other python codes can be executed in any
- *    other threads after they acquiring the GIL.
+ * 5) After all python addons are registered,
+ * python_addon_loader_addon_t::on_init() will release the python GIL so that
+ * other python codes can be executed in any other threads after they acquiring
+ * the GIL.
  *
  * ================================================
  * What will happen if the app is a python program?
@@ -71,8 +75,8 @@ static void foo() {}
  *
  * 2. If the main program is a python program and it loaded this addon
  *    _synchronously_ in the python main thread (see above), then if the GIL is
- *    released in py_init_addon_t::on_init, then no more further python codes
- *    can be executed normally in the python main thread.
+ *    released in python_addon_loader_addon_t::on_init, then no more further
+ * python codes can be executed normally in the python main thread.
  *
  * 3. Even though the app is not a python program, if the python
  *    multiprocessing mode is set to 'spawn', then the subprocess will be
@@ -92,19 +96,20 @@ static void foo() {}
  * reasons mentioned above, python main and py_init_extension are being used
  * together. Therefore, what we need to do in this situation is to detect this
  * case and then essentially disable py_init_extension. By checking
- * 'ten_py_is_initialized' on py_init_addon_t::on_init, we can know whether the
- * python runtime has been initialized. And the calling operation here is thread
- * safe, because if the app is not a python program, the python runtime is not
- * initialized for sure, and if the app is a python program, then the
- * py_init_addon_t::on_init will be called in the python main thread and the GIL
- * is held, so it is thread safe to call 'ten_py_is_initialized'.
+ * 'ten_py_is_initialized' on python_addon_loader_addon_t::on_init, we can know
+ * whether the python runtime has been initialized. And the calling operation
+ * here is thread safe, because if the app is not a python program, the python
+ * runtime is not initialized for sure, and if the app is a python program, then
+ * the python_addon_loader_addon_t::on_init will be called in the python main
+ * thread and the GIL is held, so it is thread safe to call
+ * 'ten_py_is_initialized'.
  */
 
-namespace default_extension {
+namespace {
 
-class py_init_addon_t : public ten::addon_t {
+class python_addon_loader_addon_t : public ten::addon_t {
  public:
-  explicit py_init_addon_t() = default;
+  explicit python_addon_loader_addon_t() = default;
 
   void on_init(ten::ten_env_t &ten_env) override {
     // Do some initializations.
@@ -159,18 +164,6 @@ class py_init_addon_t : public ten::addon_t {
     py_thread_state_ = ten_py_eval_save_thread();
 
     ten_env.on_init_done();
-  }
-
-  void on_create_instance(ten::ten_env_t &ten_env, const char *name,
-                          void *context) override {
-    // Create instance.
-    TEN_ASSERT(0, "Should not happen.");
-  }
-
-  void on_destroy_instance(ten::ten_env_t &ten_env, void *instance,
-                           void *context) override {
-    // Destroy instance.
-    TEN_ASSERT(0, "Should not happen.");
   }
 
   void on_deinit(ten::ten_env_t &ten_env) override {
@@ -423,25 +416,25 @@ class py_init_addon_t : public ten::addon_t {
   }
 };
 
-static void ____ten_addon_py_init_extension_cpp_register_handler____(
+void ____ten_addon_python_addon_loader_register_handler____(
     void *register_ctx) {
-  auto *addon_instance = new py_init_addon_t();
+  auto *addon_instance = new python_addon_loader_addon_t();
   ten_string_t *base_dir =
       ten_path_get_module_path(/* NOLINTNEXTLINE */
                                (void *)
-                                   ____ten_addon_py_init_extension_cpp_register_handler____);
-  ten_addon_register_extension(
-      "py_init_extension_cpp", ten_string_get_raw_str(base_dir),
+                                   ____ten_addon_python_addon_loader_register_handler____);
+  ten_addon_register_lang_addon_loader(
+      "python_addon_loader", ten_string_get_raw_str(base_dir),
       ten::addon_internal_accessor_t::get_c_addon(addon_instance),
       register_ctx);
   ten_string_destroy(base_dir);
 }
 
-TEN_CONSTRUCTOR(____ten_addon_py_init_extension_cpp_registrar____) {
+TEN_CONSTRUCTOR(____ten_addon_python_addon_loader_registrar____) {
   ten_addon_manager_t *manager = ten_addon_manager_get_instance();
   ten_addon_manager_add_addon(
-      manager, "py_init_extension_cpp",
-      ____ten_addon_py_init_extension_cpp_register_handler____);
+      manager, "python_addon_loader",
+      ____ten_addon_python_addon_loader_register_handler____);
 }
 
-}  // namespace default_extension
+}  // namespace

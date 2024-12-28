@@ -5,9 +5,9 @@
 //
 #include "include_internal/ten_runtime/addon/protocol/protocol.h"
 
-#include "core_protocols/msgpack/common/constant_str.h"
-#include "core_protocols/msgpack/common/parser.h"
-#include "core_protocols/msgpack/msg/msg.h"
+#include "core_generics/msgpack/common/constant_str.h"
+#include "core_generics/msgpack/common/parser.h"
+#include "core_generics/msgpack/msg/msg.h"
 #include "include_internal/ten_runtime/addon/addon.h"
 #include "include_internal/ten_runtime/common/constant_str.h"
 #include "include_internal/ten_runtime/metadata/metadata.h"

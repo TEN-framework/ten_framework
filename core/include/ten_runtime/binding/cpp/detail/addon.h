@@ -49,9 +49,26 @@ class addon_t {
   virtual void on_deinit(ten_env_t &ten_env) { ten_env.on_deinit_done(); }
 
   virtual void on_create_instance(ten_env_t &ten_env, const char *name,
-                                  void *context) = 0;
+                                  void *context) {
+    (void)ten_env;
+    (void)name;
+    (void)context;
+
+    // If a subclass requires the functionality of this function, it needs to
+    // override this function.
+    TEN_ASSERT(0, "Should not happen.");
+  };
+
   virtual void on_destroy_instance(ten_env_t &ten_env, void *instance,
-                                   void *context) = 0;
+                                   void *context) {
+    (void)ten_env;
+    (void)instance;
+    (void)context;
+
+    // If a subclass requires the functionality of this function, it needs to
+    // override this function.
+    TEN_ASSERT(0, "Should not happen.");
+  };
 
  private:
   ten_addon_t *c_addon;

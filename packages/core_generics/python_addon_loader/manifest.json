@@ -1,6 +1,6 @@
 {
   "type": "extension",
-  "name": "py_init_extension_cpp",
+  "name": "python_addon_loader",
   "version": "0.6.0",
   "dependencies": [
     {

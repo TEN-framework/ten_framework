@@ -3,11 +3,11 @@
 // Licensed under the Apache License, Version 2.0.
 // See the LICENSE file for more information.
 //
-#include "core_protocols/msgpack/msg/field/type.h"
+#include "core_generics/msgpack/msg/field/type.h"
 
 #include <assert.h>
 
-#include "core_protocols/msgpack/common/common.h"
+#include "core_generics/msgpack/common/common.h"
 #include "include_internal/ten_runtime/msg/msg.h"
 #include "msgpack/pack.h"
 #include "msgpack/unpack.h"

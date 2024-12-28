@@ -3,12 +3,12 @@
 // Licensed under the Apache License, Version 2.0.
 // See the LICENSE file for more information.
 //
-#include "core_protocols/msgpack/common/parser.h"
+#include "core_generics/msgpack/common/parser.h"
 
 #include <stdlib.h>
 
-#include "core_protocols/msgpack/common/common.h"
-#include "core_protocols/msgpack/msg/msg.h"
+#include "core_generics/msgpack/common/common.h"
+#include "core_generics/msgpack/msg/msg.h"
 #include "msgpack.h"
 #include "ten_utils/lib/smart_ptr.h"
 #include "ten_utils/log/log.h"

@@ -8,8 +8,8 @@
 
 #include <string.h>
 
-#include "core_protocols/msgpack/common/parser.h"
-#include "core_protocols/msgpack/msg/msg.h"
+#include "core_generics/msgpack/common/parser.h"
+#include "core_generics/msgpack/msg/msg.h"
 #include "include_internal/ten_runtime/msg/msg.h"
 #include "ten_utils/container/list.h"
 #include "ten_utils/lib/alloc.h"

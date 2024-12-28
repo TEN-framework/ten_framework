@@ -27,6 +27,7 @@ typedef enum TEN_ADDON_TYPE {
   TEN_ADDON_TYPE_PROTOCOL,
   TEN_ADDON_TYPE_EXTENSION,
   TEN_ADDON_TYPE_EXTENSION_GROUP,
+  TEN_ADDON_TYPE_LANG_ADDON_LOADER,
 } TEN_ADDON_TYPE;
 
 typedef void (*ten_env_addon_create_instance_done_cb_t)(ten_env_t *ten_env,
