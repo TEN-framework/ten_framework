@@ -14,7 +14,7 @@
 
 namespace ten {
 
-class lang_addon_loader_addon_t : public addon_t {
+class addon_loader_addon_t : public addon_t {
  protected:
   void on_load(ten_env_t &ten_env, const char *name, void *context) override {
     (void)ten_env;
