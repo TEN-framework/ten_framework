@@ -78,11 +78,6 @@ class addon_t {
 
   ::ten_addon_t *get_c_addon() const { return c_addon; }
 
-  virtual void on_create_instance_impl(ten_env_t &ten_env, const char *name,
-                                       void *context) {
-    on_create_instance(ten_env, name, context);
-  }
-
   void invoke_cpp_addon_on_init(ten_env_t &ten_env) {
     try {
       on_init(ten_env);
@@ -101,10 +96,11 @@ class addon_t {
     }
   }
 
-  void invoke_cpp_addon_on_create_instance(ten_env_t &ten_env, const char *name,
-                                           void *context) {
+  virtual void invoke_cpp_addon_on_create_instance(ten_env_t &ten_env,
+                                                   const char *name,
+                                                   void *context) {
     try {
-      on_create_instance_impl(ten_env, name, context);
+      on_create_instance(ten_env, name, context);
     } catch (...) {
       TEN_LOGD("Caught a exception '%s' in addon on_create_instance().",
                curr_exception_type_name().c_str());
@@ -229,13 +225,18 @@ class addon_internal_accessor_t {
 
 class extension_addon_t : public addon_t {
  private:
-  void on_create_instance_impl(ten_env_t &ten_env, const char *name,
-                               void *context) override {
-    auto *cpp_context = new addon_context_t();
-    cpp_context->task = ADDON_TASK_CREATE_EXTENSION;
-    cpp_context->c_context = context;
+  void invoke_cpp_addon_on_create_instance(ten_env_t &ten_env, const char *name,
+                                           void *context) override {
+    try {
+      auto *cpp_context = new addon_context_t();
+      cpp_context->task = ADDON_TASK_CREATE_EXTENSION;
+      cpp_context->c_context = context;
 
-    on_create_instance(ten_env, name, cpp_context);
+      on_create_instance(ten_env, name, cpp_context);
+    } catch (...) {
+      TEN_LOGD("Caught a exception '%s' in addon on_create_instance().",
+               curr_exception_type_name().c_str());
+    }
   }
 };
 
