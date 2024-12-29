@@ -49,7 +49,7 @@ ten_extension_thread_on_addon_create_extension_done(void *self_, void *arg);
 TEN_RUNTIME_PRIVATE_API void
 ten_extension_thread_on_addon_destroy_extension_done(void *self_, void *arg);
 
-TEN_RUNTIME_PRIVATE_API void ten_extension_thread_create_addon_instance(
+TEN_RUNTIME_PRIVATE_API void ten_extension_thread_create_extension_instance(
     void *self_, void *arg);
 
 TEN_RUNTIME_PRIVATE_API void ten_extension_thread_destroy_addon_instance(

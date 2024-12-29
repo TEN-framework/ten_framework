@@ -1,7 +1,7 @@
 {
   "type": "extension",
-  "name": "default_extension_cpp",
-  "version": "0.6.0",
+  "name": "ffmpeg_client",
+  "version": "0.1.0",
   "dependencies": [
     {
       "type": "system",

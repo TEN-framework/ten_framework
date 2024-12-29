@@ -7,11 +7,14 @@
 #include "ten_runtime/addon/addon.h"
 
 #include "include_internal/ten_runtime/addon/addon.h"
+#include "include_internal/ten_runtime/addon/addon_autoload.h"
 #include "include_internal/ten_runtime/addon/addon_manager.h"
 #include "include_internal/ten_runtime/addon/common/store.h"
 #include "include_internal/ten_runtime/addon/extension/extension.h"
 #include "include_internal/ten_runtime/addon/extension_group/extension_group.h"
+#include "include_internal/ten_runtime/addon/lang_addon_loader/lang_addon_loader.h"
 #include "include_internal/ten_runtime/addon/protocol/protocol.h"
+#include "include_internal/ten_runtime/app/app.h"
 #include "include_internal/ten_runtime/app/base_dir.h"
 #include "include_internal/ten_runtime/common/base_dir.h"
 #include "include_internal/ten_runtime/common/constant_str.h"
@@ -236,15 +239,16 @@ static void ten_addon_register_internal(ten_addon_store_t *addon_store,
                           addon_host->addon->on_init);
 }
 
-ten_addon_on_create_instance_info_t *ten_addon_on_create_instance_info_create(
-    const char *addon_name, const char *instance_name,
-    TEN_ADDON_TYPE addon_type, ten_env_addon_create_instance_done_cb_t cb,
+ten_addon_on_create_extension_instance_info_t *
+ten_addon_on_create_extension_instance_info_create(
+    TEN_ADDON_TYPE addon_type, const char *addon_name,
+    const char *instance_name, ten_env_addon_create_instance_done_cb_t cb,
     void *cb_data) {
   TEN_ASSERT(addon_name && instance_name, "Should not happen.");
 
-  ten_addon_on_create_instance_info_t *self =
-      (ten_addon_on_create_instance_info_t *)TEN_MALLOC(
-          sizeof(ten_addon_on_create_instance_info_t));
+  ten_addon_on_create_extension_instance_info_t *self =
+      (ten_addon_on_create_extension_instance_info_t *)TEN_MALLOC(
+          sizeof(ten_addon_on_create_extension_instance_info_t));
   TEN_ASSERT(self, "Failed to allocate memory.");
 
   ten_string_init_formatted(&self->addon_name, "%s", addon_name);
@@ -256,8 +260,8 @@ ten_addon_on_create_instance_info_t *ten_addon_on_create_instance_info_create(
   return self;
 }
 
-void ten_addon_on_create_instance_info_destroy(
-    ten_addon_on_create_instance_info_t *self) {
+void ten_addon_on_create_extension_instance_info_destroy(
+    ten_addon_on_create_extension_instance_info_t *self) {
   TEN_ASSERT(self, "Should not happen.");
 
   ten_string_deinit(&self->addon_name);
@@ -324,8 +328,8 @@ ten_addon_t *ten_addon_unregister(ten_addon_store_t *store,
   return ten_addon_store_del(store, addon_name);
 }
 
-ten_addon_host_t *ten_addon_host_find(const char *addon_name,
-                                      TEN_ADDON_TYPE type) {
+static ten_addon_host_t *ten_addon_host_find(TEN_ADDON_TYPE type,
+                                             const char *addon_name) {
   TEN_ASSERT(addon_name, "Should not happen.");
 
   switch (type) {
@@ -338,6 +342,10 @@ ten_addon_host_t *ten_addon_host_find(const char *addon_name,
 
     case TEN_ADDON_TYPE_PROTOCOL:
       return ten_addon_store_find(ten_protocol_get_global_store(), addon_name);
+
+    case TEN_ADDON_TYPE_LANG_ADDON_LOADER:
+      return ten_addon_store_find(ten_lang_addon_loader_get_global_store(),
+                                  addon_name);
 
     default:
       TEN_ASSERT(0, "Should not happen.");
@@ -385,7 +393,7 @@ static void ten_addon_host_create_instance_async(
              "Should not happen.");
 
   ten_addon_context_t *addon_context = ten_addon_context_create();
-  addon_context->caller_ten = ten_env;
+  addon_context->caller_ten_env = ten_env;
   addon_context->create_instance_done_cb = cb;
   addon_context->create_instance_done_cb_data = cb_data;
 
@@ -417,9 +425,10 @@ static void ten_addon_host_create_instance_async(
  * later in the call flow when the 'ten' object at that time belongs to a more
  * specific scope, so that we can minimize the parameters count then.
  */
-bool ten_addon_create_instance_async(ten_env_t *ten_env, const char *addon_name,
+bool ten_addon_create_instance_async(ten_env_t *ten_env,
+                                     TEN_ADDON_TYPE addon_type,
+                                     const char *addon_name,
                                      const char *instance_name,
-                                     TEN_ADDON_TYPE type,
                                      ten_env_addon_create_instance_done_cb_t cb,
                                      void *cb_data) {
   // We increase the refcount of the 'addon' here, and will decrease the
@@ -427,15 +436,39 @@ bool ten_addon_create_instance_async(ten_env_t *ten_env, const char *addon_name,
   // extension/extension_group instance has been created.
   TEN_LOGD("Try to find addon for %s", addon_name);
 
-  ten_addon_host_t *addon = ten_addon_host_find(addon_name, type);
-  if (!addon) {
-    return false;
-  }
-
   TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
              "Should not happen.");
 
-  ten_addon_host_create_instance_async(addon, ten_env, instance_name, cb,
+  ten_addon_host_t *addon_host = ten_addon_host_find(addon_type, addon_name);
+  if (!addon_host) {
+    ten_app_t *app = ten_env_get_belonging_app(ten_env);
+    TEN_ASSERT(app && ten_app_check_integrity(
+                          app,
+                          // This function only needs to use the `base_dir`
+                          // field of the app, and this field does not change
+                          // after the app starts. Therefore, this function can
+                          // be called outside of the app thread.
+                          false),
+               "Should not happen.");
+
+    if (!ten_addon_load_specific_addon_from_app_base_dir(
+            ten_string_get_raw_str(&app->base_dir), addon_type, addon_name,
+            NULL)) {
+      return false;
+    }
+    if (!ten_addon_register_specific_addon(addon_type, addon_name, NULL,
+                                           NULL)) {
+      return false;
+    }
+
+    addon_host = ten_addon_host_find(addon_type, addon_name);
+  }
+
+  if (!addon_host) {
+    return false;
+  }
+
+  ten_addon_host_create_instance_async(addon_host, ten_env, instance_name, cb,
                                        cb_data);
 
   return true;
@@ -467,7 +500,7 @@ bool ten_addon_host_destroy_instance_async(
   TEN_ASSERT(instance, "Should not happen.");
 
   ten_addon_context_t *addon_context = ten_addon_context_create();
-  addon_context->caller_ten = ten_env;
+  addon_context->caller_ten_env = ten_env;
   addon_context->destroy_instance_done_cb = cb;
   addon_context->destroy_instance_done_cb_data = cb_data;
 
