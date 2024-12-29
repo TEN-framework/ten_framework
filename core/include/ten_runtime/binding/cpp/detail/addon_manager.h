@@ -1,5 +1,5 @@
 //
-// Copyright © 2024 Agora
+// Copyright © 2025 Agora
 // This file is part of TEN Framework, an open source project.
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
@@ -13,7 +13,7 @@
 #include "ten_runtime/addon/addon_manager.h"  // IWYU pragma: export
 
 #define TEN_CPP_REGISTER_ADDON_AS_EXTENSION(NAME, CLASS)                         \
-  class NAME##_extension_addon_t : public ten::extension_addon_t {               \
+  class NAME##_default_extension_addon_t : public ten::extension_addon_t {       \
    public:                                                                       \
     void on_create_instance(ten::ten_env_t &ten_env, const char *name,           \
                             void *context) override {                            \
@@ -27,7 +27,7 @@
     }                                                                            \
   };                                                                             \
   static void ____ten_addon_##NAME##_register_handler__(void *register_ctx) {    \
-    auto *addon_instance = new NAME##_extension_addon_t();                       \
+    auto *addon_instance = new NAME##_default_extension_addon_t();               \
     ten_string_t *base_dir =                                                     \
         ten_path_get_module_path(/* NOLINTNEXTLINE */                            \
                                  (void *)                                        \
