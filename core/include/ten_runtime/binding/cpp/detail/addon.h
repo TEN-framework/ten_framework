@@ -21,9 +21,9 @@ namespace ten {
 class addon_t {
  public:
   addon_t()
-      : c_addon(ten_addon_create(proxy_on_init, proxy_on_deinit,
-                                 proxy_on_create_instance,
-                                 proxy_on_destroy_instance, proxy_on_destroy)) {
+      : c_addon(ten_addon_create(
+            proxy_on_init, proxy_on_deinit, proxy_on_create_instance,
+            proxy_on_destroy_instance, proxy_on_load, proxy_on_destroy)) {
     ten_binding_handle_set_me_in_target_lang(
         reinterpret_cast<ten_binding_handle_t *>(c_addon), this);
   }
@@ -118,6 +118,16 @@ class addon_t {
     TEN_ASSERT(0, "Should not happen.");
   }
 
+  void invoke_cpp_addon_on_load(ten_env_t &ten_env, const char *name,
+                                void *context) {
+    try {
+      on_load(ten_env, name, context);
+    } catch (...) {
+      TEN_LOGD("Caught a exception '%s' in addon on_load().",
+               curr_exception_type_name().c_str());
+    }
+  }
+
   void invoke_cpp_addon_on_destroy_instance(ten_env_t &ten_env, void *instance,
                                             void *context) {
     try {
@@ -198,6 +208,24 @@ class addon_t {
 
     cpp_addon->invoke_cpp_addon_on_destroy_instance(*cpp_ten_env, cpp_instance,
                                                     context);
+  }
+
+  static void proxy_on_load(ten_addon_t *addon, ::ten_env_t *ten_env,
+                            const char *addon_name, void *context) {
+    TEN_ASSERT(addon && ten_env && addon_name && strlen(addon_name),
+               "Invalid argument.");
+
+    auto *cpp_addon =
+        static_cast<addon_t *>(ten_binding_handle_get_me_in_target_lang(
+            reinterpret_cast<ten_binding_handle_t *>(addon)));
+    TEN_ASSERT(cpp_addon, "Should not happen.");
+
+    auto *cpp_ten_env =
+        static_cast<ten_env_t *>(ten_binding_handle_get_me_in_target_lang(
+            reinterpret_cast<ten_binding_handle_t *>(ten_env)));
+    TEN_ASSERT(cpp_ten_env, "Should not happen.");
+
+    cpp_addon->invoke_cpp_addon_on_load(*cpp_ten_env, addon_name, context);
   }
 
   static void proxy_on_destroy(ten_addon_t *addon) {

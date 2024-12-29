@@ -12,6 +12,7 @@
 #include "ten_utils/container/list_node_str.h"
 #include "ten_utils/lib/string.h"
 #include "ten_utils/macro/check.h"
+#include "ten_utils/macro/memory.h"
 
 int ten_py_is_initialized(void) { return Py_IsInitialized(); }
 
@@ -161,4 +162,20 @@ void ten_py_gil_state_release(PyGILState_STATE state) {
 bool ten_py_is_holding_gil(void) {
   // Judge whether the current thread holds the GIL, 1: true, 0: false.
   return PyGILState_Check() == 1;
+}
+
+typedef struct aaa_t {
+  PyGILState_STATE state;
+} aaa_t;
+
+void *ten_py_gil_state_ensure_external(void) {
+  aaa_t *aaa = TEN_MALLOC(sizeof(aaa_t));
+  aaa->state = PyGILState_Ensure();
+  return aaa;
+}
+
+void ten_py_gil_state_release_external(void *state) {
+  aaa_t *aaa = state;
+  PyGILState_Release(aaa->state);
+  TEN_FREE(aaa);
 }

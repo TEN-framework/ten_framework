@@ -29,3 +29,7 @@ TEN_RUNTIME_API void ten_py_import_module(const char *module_name);
 TEN_RUNTIME_API void *ten_py_eval_save_thread(void);
 
 TEN_RUNTIME_API void ten_py_eval_restore_thread(void *state);
+
+TEN_RUNTIME_API void *ten_py_gil_state_ensure_external(void);
+
+TEN_RUNTIME_API void ten_py_gil_state_release_external(void *state);
