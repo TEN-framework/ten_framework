@@ -6,6 +6,8 @@
 //
 #include "include_internal/ten_runtime/addon/addon_autoload.h"
 
+#include "ten_runtime/common/errno.h"
+
 #if defined(OS_LINUX)
 #define _GNU_SOURCE
 #endif
@@ -50,9 +52,8 @@
  * Neither Android nor iOS support unload library.
  */
 #if defined(OS_MACOS) || defined(OS_LINUX) || defined(OS_WINDOWS)
-static void load_all_dynamic_libraries_under_path(ten_app_t *app,
-                                                  const char *path) {
-  TEN_ASSERT(app && ten_app_check_integrity(app, true), "Invalid argument.");
+
+static void load_all_dynamic_libraries_under_path(const char *path) {
   TEN_ASSERT(path, "Invalid argument.");
 
   ten_dir_fd_t *dir = NULL;
@@ -156,7 +157,7 @@ static void ten_addon_load_from_base_dir(ten_app_t *app, const char *path) {
   }
 
   // Load self first.
-  load_all_dynamic_libraries_under_path(app, ten_string_get_raw_str(&lib_dir));
+  load_all_dynamic_libraries_under_path(ten_string_get_raw_str(&lib_dir));
 
 done:
   ten_string_deinit(&lib_dir);
@@ -267,7 +268,8 @@ bool ten_addon_load_all_from_app_base_dir(ten_app_t *app, ten_error_t *err) {
     const char *path;
   } folders[] = {
       {"/ten_packages/extension"},
-      {"/ten_packages/generic"},
+      {"/ten_packages/protocol"},
+      {"/ten_packages/lang_addon_loader"},
   };
 
   for (int i = 0; i < sizeof(folders) / sizeof(folders[0]); i++) {
@@ -343,6 +345,88 @@ bool ten_addon_load_all_from_ten_package_base_dirs(ten_app_t *app,
                                  ten_string_get_raw_str(ten_package_base_dir));
 
     ten_string_deinit(&addon_name);
+  }
+
+  return success;
+}
+
+bool ten_addon_load_specific_addon(TEN_ADDON_TYPE addon_type,
+                                   const char *addon_name, ten_app_t *app,
+                                   ten_error_t *err) {
+  TEN_ASSERT(app, "Invalid argument.");
+  TEN_ASSERT(
+      ten_app_check_integrity(
+          app,
+          // This function only needs to use the `base_dir` field of the app,
+          // and this field does not change after the app starts. Therefore,
+          // this function can be called outside of the app thread.
+          false),
+      "Invalid argument.");
+  TEN_ASSERT(addon_name, "Addon name cannot be NULL.");
+
+  bool success = true;
+  ten_string_t *addon_lib_folder_path = NULL;
+
+  // Construct the path to the specific addon lib/ folder.
+  addon_lib_folder_path = ten_string_clone(&app->base_dir);
+  if (!addon_lib_folder_path) {
+    TEN_LOGE("Failed to clone app base directory.");
+    success = false;
+    goto done;
+  }
+
+  ten_string_append_formatted(addon_lib_folder_path, "/ten_packages/%s/%s/lib",
+                              ten_addon_type_to_string(addon_type), addon_name);
+  if (ten_path_to_system_flavor(addon_lib_folder_path) != 0) {
+    TEN_LOGE("Failed to convert path to system flavor: %s",
+             ten_string_get_raw_str(addon_lib_folder_path));
+    success = false;
+    goto done;
+  }
+
+  if (!ten_path_exists(ten_string_get_raw_str(addon_lib_folder_path)) ||
+      !ten_path_is_dir(addon_lib_folder_path)) {
+    TEN_LOGE("Addon lib/ folder does not exist or is not a directory: %s",
+             ten_string_get_raw_str(addon_lib_folder_path));
+    success = false;
+    goto done;
+  }
+
+  // Load the library from the 'lib/' directory.
+  load_all_dynamic_libraries_under_path(
+      ten_string_get_raw_str(addon_lib_folder_path));
+
+done:
+  if (addon_lib_folder_path) {
+    ten_string_destroy(addon_lib_folder_path);
+  }
+
+  if (!success && err) {
+    ten_error_set(err, TEN_ERRNO_GENERIC,
+                  "Failed to load specific addon: %s:%s",
+                  ten_addon_type_to_string(addon_type), addon_name);
+  }
+
+  return success;
+}
+
+bool ten_addon_register_specific_addon(TEN_ADDON_TYPE addon_type,
+                                       const char *addon_name, ten_app_t *app,
+                                       ten_error_t *err) {
+  ten_addon_manager_t *manager = ten_addon_manager_get_instance();
+
+  ten_addon_register_ctx_t *register_ctx = ten_addon_register_ctx_create();
+  register_ctx->app = app;
+
+  bool success = ten_addon_manager_register_specific_addon(
+      manager, addon_type, addon_name, (void *)register_ctx);
+
+  ten_addon_register_ctx_destroy(register_ctx);
+
+  if (!success && err) {
+    ten_error_set(err, TEN_ERRNO_GENERIC,
+                  "Failed to register specific addon: %s:%s",
+                  ten_addon_type_to_string(addon_type), addon_name);
   }
 
   return success;

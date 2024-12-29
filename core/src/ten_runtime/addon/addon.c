@@ -175,12 +175,14 @@ TEN_ADDON_TYPE ten_addon_type_from_string(const char *addon_type_str) {
     return TEN_ADDON_TYPE_EXTENSION_GROUP;
   } else if (ten_c_string_is_equal(addon_type_str, TEN_STR_PROTOCOL)) {
     return TEN_ADDON_TYPE_PROTOCOL;
+  } else if (ten_c_string_is_equal(addon_type_str, TEN_STR_LANG_ADDON_LOADER)) {
+    return TEN_ADDON_TYPE_LANG_ADDON_LOADER;
   } else {
     return TEN_ADDON_TYPE_INVALID;
   }
 }
 
-static const char *ten_addon_type_to_string(TEN_ADDON_TYPE type) {
+const char *ten_addon_type_to_string(TEN_ADDON_TYPE type) {
   switch (type) {
     case TEN_ADDON_TYPE_EXTENSION:
       return TEN_STR_EXTENSION;
@@ -188,6 +190,8 @@ static const char *ten_addon_type_to_string(TEN_ADDON_TYPE type) {
       return TEN_STR_EXTENSION_GROUP;
     case TEN_ADDON_TYPE_PROTOCOL:
       return TEN_STR_PROTOCOL;
+    case TEN_ADDON_TYPE_LANG_ADDON_LOADER:
+      return TEN_STR_LANG_ADDON_LOADER;
     default:
       TEN_ASSERT(0, "Should not happen.");
       return NULL;

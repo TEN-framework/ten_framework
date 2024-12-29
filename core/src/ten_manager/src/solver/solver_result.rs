@@ -13,8 +13,14 @@ use regex::Regex;
 use semver::Version;
 
 use ten_rust::pkg_info::{
-    constants::TEN_PACKAGES_DIR, pkg_basic_info::PkgBasicInfo,
-    pkg_type::PkgType, pkg_type_and_name::PkgTypeAndName, PkgInfo,
+    constants::{
+        EXTENSION_DIR, LANG_ADDON_LOADER_DIR, PROTOCOL_DIR, SYSTEM_DIR,
+        TEN_PACKAGES_DIR,
+    },
+    pkg_basic_info::PkgBasicInfo,
+    pkg_type::PkgType,
+    pkg_type_and_name::PkgTypeAndName,
+    PkgInfo,
 };
 
 use crate::{
@@ -127,15 +133,17 @@ pub async fn install_solver_results_in_app_folder(
         ));
 
         let base_dir = match solver_result.basic_info.type_and_name.pkg_type {
-            PkgType::App => app_dir.to_path_buf(),
-            pkg_type => {
-                let namespace = pkg_type.namespace();
-                if namespace.is_empty() {
-                    panic!("Should not happen.");
-                } else {
-                    app_dir.join(TEN_PACKAGES_DIR).join(namespace)
-                }
+            PkgType::Extension => {
+                app_dir.join(TEN_PACKAGES_DIR).join(EXTENSION_DIR)
             }
+            PkgType::Protocol => {
+                app_dir.join(TEN_PACKAGES_DIR).join(PROTOCOL_DIR)
+            }
+            PkgType::System => app_dir.join(TEN_PACKAGES_DIR).join(SYSTEM_DIR),
+            PkgType::LangAddonLoader => {
+                app_dir.join(TEN_PACKAGES_DIR).join(LANG_ADDON_LOADER_DIR)
+            }
+            PkgType::App => app_dir.to_path_buf(),
         };
 
         install_pkg_info(

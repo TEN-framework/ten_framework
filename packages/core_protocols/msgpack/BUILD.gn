@@ -23,7 +23,7 @@ glob("msgpack_files") {
 }
 
 ten_package("msgpack") {
-  package_kind = "generic"
+  package_kind = "protocol"
   enable_build = true
 
   resources = [
@@ -46,7 +46,7 @@ ten_package("msgpack") {
 
 if (ten_enable_ten_manager) {
   ten_package_publish("upload_protocol_msgpack_to_server") {
-    base_dir = rebase_path("${root_out_dir}/ten_packages/generic/msgpack")
+    base_dir = rebase_path("${root_out_dir}/ten_packages/protocol/msgpack")
     deps = [ ":msgpack" ]
   }
 }

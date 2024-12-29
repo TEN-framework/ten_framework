@@ -5,8 +5,8 @@
 //
 #include "ten_utils/value/value.h"
 
-#include "core_generics/msgpack/common/common.h"
-#include "core_generics/msgpack/common/value.h"
+#include "core_protocols/msgpack/common/common.h"
+#include "core_protocols/msgpack/common/value.h"
 #include "include_internal/ten_utils/value/value_kv.h"
 #include "include_internal/ten_utils/value/value_set.h"
 #include "msgpack/object.h"

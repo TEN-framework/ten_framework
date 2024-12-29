@@ -39,7 +39,7 @@ ten_package_test_prepare_app("hello_world_app") {
       "//core/src/ten_runtime:upload_ten_runtime_system_package_to_server",
       "//packages/core_apps/default_app_cpp:upload_default_app_cpp_to_server",
       "//packages/core_extensions/default_extension_cpp:upload_default_extension_cpp_to_server",
-      "//packages/core_generics/msgpack:upload_protocol_msgpack_to_server",
+      "//packages/core_protocols/msgpack:upload_protocol_msgpack_to_server",
     ]
   }
 }
@@ -54,7 +54,7 @@ ten_package_test_prepare_client("hello_world_app_client") {
   ]
   deps = [
     "//core/src/ten_runtime",
-    "//packages/core_generics/msgpack:msgpack_files",
+    "//packages/core_protocols/msgpack:msgpack_files",
     "//tests/common/client:msgpack_client",
     "//third_party/msgpack:msgpackc",
     "//third_party/nlohmann_json",

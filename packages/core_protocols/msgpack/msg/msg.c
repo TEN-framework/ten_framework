@@ -7,11 +7,11 @@
 
 #include <string.h>
 
-#include "core_generics/msgpack/common/common.h"
-#include "core_generics/msgpack/common/parser.h"
-#include "core_generics/msgpack/common/value.h"
-#include "core_generics/msgpack/msg/field/type.h"
-#include "core_generics/msgpack/msg/msg.h"
+#include "core_protocols/msgpack/common/common.h"
+#include "core_protocols/msgpack/common/parser.h"
+#include "core_protocols/msgpack/common/value.h"
+#include "core_protocols/msgpack/msg/field/type.h"
+#include "core_protocols/msgpack/msg/msg.h"
 #include "ten_utils/lib/smart_ptr.h"
 #include "ten_utils/macro/check.h"
 #include "ten_utils/macro/memory.h"

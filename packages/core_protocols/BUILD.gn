@@ -5,10 +5,6 @@
 #
 import("//build/ten_runtime/options.gni")
 
-group("core_generics") {
+group("core_protocols") {
   deps = [ "msgpack" ]
-
-  if (ten_enable_python_binding) {
-    deps += [ "python_addon_loader" ]
-  }
 }

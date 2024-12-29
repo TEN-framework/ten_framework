@@ -399,9 +399,13 @@ void ____ten_addon_python_addon_loader_register_handler____(
 
 TEN_CONSTRUCTOR(____ten_addon_python_addon_loader_registrar____) {
   ten_addon_manager_t *manager = ten_addon_manager_get_instance();
-  ten_addon_manager_add_addon(
-      manager, "python_addon_loader",
+  bool success = ten_addon_manager_add_addon(
+      manager, "lang_addon_loader", "python_addon_loader",
       ____ten_addon_python_addon_loader_register_handler____);
+  if (!success) {
+    TEN_LOGF("Failed to register addon: python_addon_loader");
+    exit(EXIT_FAILURE);
+  }
 }
 
 }  // namespace

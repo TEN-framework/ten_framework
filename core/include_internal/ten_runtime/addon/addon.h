@@ -24,10 +24,11 @@ typedef struct ten_app_t ten_app_t;
 typedef enum TEN_ADDON_TYPE {
   TEN_ADDON_TYPE_INVALID,
 
-  TEN_ADDON_TYPE_PROTOCOL,
   TEN_ADDON_TYPE_EXTENSION,
-  TEN_ADDON_TYPE_EXTENSION_GROUP,
+  TEN_ADDON_TYPE_PROTOCOL,
   TEN_ADDON_TYPE_LANG_ADDON_LOADER,
+
+  TEN_ADDON_TYPE_EXTENSION_GROUP,  // Internal use only.
 } TEN_ADDON_TYPE;
 
 typedef void (*ten_env_addon_create_instance_done_cb_t)(ten_env_t *ten_env,
@@ -156,10 +157,13 @@ TEN_RUNTIME_PRIVATE_API bool ten_addon_host_destroy_instance_async(
 TEN_RUNTIME_PRIVATE_API bool ten_addon_host_destroy_instance(
     ten_addon_host_t *self, ten_env_t *ten_env, void *instance);
 
+TEN_RUNTIME_PRIVATE_API const char *ten_addon_type_to_string(
+    TEN_ADDON_TYPE type);
+
 /**
- * @brief The base directory of the loaded addon. This function can be called
- * before any TEN app starts. Note that the returned string must be destroyed by
- * users.
+ * @brief The base directory of the loaded addon. This function can be
+ * called before any TEN app starts. Note that the returned string must be
+ * destroyed by users.
  */
 TEN_RUNTIME_PRIVATE_API const char *ten_addon_host_get_base_dir(
     ten_addon_host_t *self);
