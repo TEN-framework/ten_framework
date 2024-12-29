@@ -10,7 +10,7 @@ import re
 import os
 import ast
 from build.scripts import cmd_exec, timestamp_proxy
-from common.scripts import env
+from ten_common.scripts import env
 
 
 class ArgumentInfo(argparse.Namespace):

@@ -8,6 +8,7 @@
 
 #include "include_internal/ten_runtime/addon/lang_addon_loader/lang_addon_loader.h"
 #include "include_internal/ten_runtime/app/metadata.h"
+#include "include_internal/ten_runtime/binding/cpp/detail/addon.h"
 #include "include_internal/ten_runtime/binding/cpp/detail/ten_env_internal_accessor.h"
 #include "include_internal/ten_runtime/binding/python/common.h"
 #include "include_internal/ten_runtime/common/base_dir.h"
@@ -68,8 +69,8 @@ static void foo() {}
  *    libten_runtime_python is imported (because libten_runtime_python will
  *    loads libten_runtime, and libten_runtime will loop addon/ folder to
  *    load/dlopen all the _native_ addons in it, and it will load
- *    py_init_extension, and this py_init_extension will load all python addons
- *    in addon/ folder). And if these loaded Python addons load
+ *    python_addon_loader, and this python_addon_loader will load all python
+ * addons in addon/ folder). And if these loaded Python addons load
  *    libten_runtime_python (because they need to use its functionalities),
  *    which will create a circular import.
  *
@@ -91,11 +92,11 @@ static void foo() {}
  *
  * How to avoid any side effects?
  *
- * The main reason is that, theoretically, python main and py_init_extension
+ * The main reason is that, theoretically, python main and python_addon_loader
  * should not be used together. However, due to some reasonable or unreasonable
- * reasons mentioned above, python main and py_init_extension are being used
+ * reasons mentioned above, python main and python_addon_loader are being used
  * together. Therefore, what we need to do in this situation is to detect this
- * case and then essentially disable py_init_extension. By checking
+ * case and then essentially disable python_addon_loader. By checking
  * 'ten_py_is_initialized' on python_addon_loader_addon_t::on_init, we can know
  * whether the python runtime has been initialized. And the calling operation
  * here is thread safe, because if the app is not a python program, the python
@@ -107,7 +108,7 @@ static void foo() {}
 
 namespace {
 
-class python_addon_loader_addon_t : public ten::addon_t {
+class python_addon_loader_addon_t : public ten::lang_addon_loader_addon_t {
  public:
   explicit python_addon_loader_addon_t() = default;
 
@@ -256,18 +257,9 @@ class python_addon_loader_addon_t : public ten::addon_t {
         c_ten_env->attached_target.addon_host->user_data);
     TEN_ASSERT(c_app, "Should not happen.");
 
-    ten_list_t extension_dependencies;
-    ten_list_init(&extension_dependencies);
-
-    ten_app_get_extension_dependencies_for_extension(c_app,
-                                                     &extension_dependencies);
-
-    load_all_python_modules(ten_env, addon_extensions_path,
-                            &extension_dependencies);
+    load_all_python_modules(ten_env, addon_extensions_path);
 
     register_all_addons();
-
-    ten_list_clear(&extension_dependencies);
 
     ten_string_destroy(addon_extensions_path);
   }
@@ -318,8 +310,7 @@ class python_addon_loader_addon_t : public ten::addon_t {
 
   // Load all python addons by import modules.
   static void load_all_python_modules(ten::ten_env_t &ten_env,
-                                      ten_string_t *addon_extensions_path,
-                                      ten_list_t *extension_dependencies) {
+                                      ten_string_t *addon_extensions_path) {
     if (addon_extensions_path == nullptr ||
         ten_string_is_empty(addon_extensions_path)) {
       TEN_ENV_LOG_ERROR(
@@ -354,35 +345,11 @@ class python_addon_loader_addon_t : public ten::addon_t {
 
       if (!(ten_string_is_equal_c_str(short_name, ".") ||
             ten_string_is_equal_c_str(short_name, ".."))) {
-        // Check if short_name is in extension_dependencies list.
-        bool should_load = false;
-        if (extension_dependencies != nullptr) {
-          // Iterate over extension_dependencies to check if short_name matches
-          // any.
-          ten_list_foreach (extension_dependencies, dep_iter) {
-            ten_string_t *dep_name = ten_str_listnode_get(dep_iter.node);
-            if (ten_string_is_equal(short_name, dep_name)) {
-              should_load = true;
-              break;
-            }
-          }
-        } else {
-          // If extension_dependencies is NULL, we load all extensions.
-          should_load = true;
-        }
-
-        if (should_load) {
-          // The full module name is "ten_packages.extension.<short_name>"
-          ten_string_t *full_module_name = ten_string_create_formatted(
-              "ten_packages.extension.%s", ten_string_get_raw_str(short_name));
-          ten_py_import_module(ten_string_get_raw_str(full_module_name));
-          ten_string_destroy(full_module_name);
-        } else {
-          TEN_ENV_LOG_INFO(ten_env, (std::string("Skipping python module '") +
-                                     ten_string_get_raw_str(short_name) +
-                                     "' as it's not in extension dependencies.")
-                                        .c_str());
-        }
+        // The full module name is "ten_packages.extension.<short_name>"
+        ten_string_t *full_module_name = ten_string_create_formatted(
+            "ten_packages.extension.%s", ten_string_get_raw_str(short_name));
+        ten_py_import_module(ten_string_get_raw_str(full_module_name));
+        ten_string_destroy(full_module_name);
       }
 
       ten_string_destroy(short_name);

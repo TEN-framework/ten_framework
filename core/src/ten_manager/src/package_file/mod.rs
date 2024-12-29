@@ -15,14 +15,15 @@ use globset::{GlobBuilder, GlobSetBuilder};
 use ignore::{overrides::OverrideBuilder, WalkBuilder};
 use zip::zip_files_to_file;
 
-use ten_rust::pkg_info::manifest::parse_manifest_in_folder;
 use ten_rust::pkg_info::PkgInfo;
+use ten_rust::pkg_info::{
+    constants::TEN_PACKAGES_DIR, manifest::parse_manifest_in_folder,
+};
 
 use super::{config::TmanConfig, constants::TEN_PACKAGE_FILE_EXTENSION};
 use crate::{
     constants::{
         DOT_TEN_DIR, MANIFEST_JSON_FILENAME, PACKAGE_DIR_IN_DOT_TEN_DIR,
-        TEN_PACKAGES_DIR,
     },
     log::tman_verbose_println,
     utils::pathbuf_to_string_lossy,

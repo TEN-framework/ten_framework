@@ -28,9 +28,6 @@ typedef struct ten_app_ten_namespace_prop_info_t {
 
 TEN_RUNTIME_PRIVATE_API void ten_app_handle_metadata(ten_app_t *self);
 
-TEN_RUNTIME_API void ten_app_get_extension_dependencies_for_extension(
-    ten_app_t *self, ten_list_t *extension_dependencies);
-
 TEN_RUNTIME_PRIVATE_API bool ten_app_handle_ten_namespace_properties(
     ten_app_t *self);
 

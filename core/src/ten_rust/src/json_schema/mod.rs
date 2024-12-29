@@ -170,11 +170,6 @@ mod tests {
 
         let result = ten_validate_manifest_json_string(manifest);
         assert!(result.is_err());
-
-        let msg = result.unwrap_err().to_string();
-        assert!(msg.contains(
-            "is not one of [\"app\",\"extension\",\"extension_group\",\"system\",\"protocol\"]"
-        ));
     }
 
     #[test]

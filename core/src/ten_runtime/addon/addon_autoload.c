@@ -162,8 +162,7 @@ done:
   ten_string_deinit(&lib_dir);
 }
 
-static void load_all_dynamic_libraries(ten_app_t *app, const char *path,
-                                       ten_list_t *dependencies) {
+static void load_all_dynamic_libraries(ten_app_t *app, const char *path) {
   ten_string_t *cur = NULL;
   ten_string_t *short_name = NULL;
   ten_string_t *self = NULL;
@@ -190,28 +189,6 @@ static void load_all_dynamic_libraries(ten_app_t *app, const char *path,
     }
 
     if (ten_path_is_special_dir(short_name)) {
-      goto continue_loop;
-    }
-
-    // Check if short_name is in dependencies list.
-    bool should_load = false;
-    if (dependencies) {
-      // Iterate over dependencies and check if short_name matches any.
-      ten_list_foreach (dependencies, dep_iter) {
-        ten_string_t *dep_name = ten_str_listnode_get(dep_iter.node);
-        if (ten_string_is_equal(short_name, dep_name)) {
-          should_load = true;
-          break;
-        }
-      }
-    } else {
-      // If dependencies list is NULL, we load all addons.
-      should_load = true;
-    }
-
-    if (!should_load) {
-      TEN_LOGI("Skipping addon '%s' as it's not in dependencies.",
-               ten_string_get_raw_str(short_name));
       goto continue_loop;
     }
 
@@ -256,10 +233,7 @@ done:
   }
 }
 
-bool ten_addon_load_all_from_app_base_dir(
-    ten_app_t *app, ten_list_t *extension_dependencies,
-    ten_list_t *extension_group_dependencies, ten_list_t *protocol_dependencies,
-    ten_error_t *err) {
+bool ten_addon_load_all_from_app_base_dir(ten_app_t *app, ten_error_t *err) {
   TEN_ASSERT(app && ten_app_check_integrity(app, true), "Invalid argument.");
 
   bool success = true;
@@ -291,24 +265,9 @@ bool ten_addon_load_all_from_app_base_dir(
 
   struct {
     const char *path;
-    TEN_ADDON_TYPE addon_type;
-    ten_list_t *dependencies;
   } folders[] = {
-      {
-          "/ten_packages/extension",
-          TEN_ADDON_TYPE_EXTENSION,
-          extension_dependencies,
-      },
-      {
-          "/ten_packages/extension_group",
-          TEN_ADDON_TYPE_EXTENSION_GROUP,
-          extension_group_dependencies,
-      },
-      {
-          "/ten_packages/protocol",
-          TEN_ADDON_TYPE_PROTOCOL,
-          protocol_dependencies,
-      },
+      {"/ten_packages/extension"},
+      {"/ten_packages/generic"},
   };
 
   for (int i = 0; i < sizeof(folders) / sizeof(folders[0]); i++) {
@@ -330,8 +289,7 @@ bool ten_addon_load_all_from_app_base_dir(
       // The modules (e.g., extensions/protocols) do not exist if only the TEN
       // app has been installed.
       if (ten_path_exists(ten_string_get_raw_str(&module_path))) {
-        load_all_dynamic_libraries(app, ten_string_get_raw_str(&module_path),
-                                   folders[i].dependencies);
+        load_all_dynamic_libraries(app, ten_string_get_raw_str(&module_path));
       }
     } while (0);
 

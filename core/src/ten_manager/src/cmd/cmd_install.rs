@@ -958,7 +958,7 @@ do you want to continue?",
         }
 
         // If there are no error models or unable to parse, return a generic
-        // error
+        // error.
         Err(TmanError::Custom(
             "Dependency resolution failed without specific error details."
                 .to_string(),

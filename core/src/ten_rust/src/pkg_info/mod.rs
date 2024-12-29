@@ -6,7 +6,7 @@
 //
 pub mod api;
 mod binding;
-mod constants;
+pub mod constants;
 pub mod dependencies;
 pub mod graph;
 pub mod hash;
@@ -35,8 +35,8 @@ use pkg_type_and_name::PkgTypeAndName;
 use crate::schema::store::SchemaStore;
 use api::PkgApi;
 use constants::{
-    ERR_STR_NOT_APP_DIR, EXTENSION_DIR, EXTENSION_GROUP_DIR,
-    MANIFEST_JSON_FILENAME, PROTOCOL_DIR, SYSTEM_DIR, TEN_PACKAGES_DIR,
+    ERR_STR_NOT_APP_DIR, EXTENSION_DIR, GENERIC_DIR, MANIFEST_JSON_FILENAME,
+    SYSTEM_DIR, TEN_PACKAGES_DIR,
 };
 use dependencies::{get_pkg_dependencies_from_manifest, PkgDependency};
 use manifest::{parse_manifest_from_file, parse_manifest_in_folder, Manifest};
@@ -223,11 +223,11 @@ pub fn get_all_existed_pkgs_info_of_app_to_hashmap(
     }
 
     // Define paths to include manifest.json files from.
-    let addon_types =
-        vec![EXTENSION_DIR, EXTENSION_GROUP_DIR, PROTOCOL_DIR, SYSTEM_DIR];
+    let addon_namespace_dirs = vec![EXTENSION_DIR, GENERIC_DIR, SYSTEM_DIR];
 
-    for addon_type in addon_types {
-        let allowed_path = app_path.join(TEN_PACKAGES_DIR).join(addon_type);
+    for addon_namespace_dir in addon_namespace_dirs {
+        let allowed_path =
+            app_path.join(TEN_PACKAGES_DIR).join(addon_namespace_dir);
 
         if allowed_path.exists() && allowed_path.is_dir() {
             for entry in allowed_path.read_dir()?.flatten() {
@@ -246,26 +246,26 @@ pub fn get_all_existed_pkgs_info_of_app_to_hashmap(
                         {
                             return Err(anyhow::anyhow!(
                                 "The path '{}' is not valid: {}.",
-                                format!("{}:{}",manifest.type_and_name.pkg_type, manifest.type_and_name.name),
+                                format!("{}/{}",addon_namespace_dir, manifest.type_and_name.name),
                                 format!(
                                     "the path '{}' and the name '{}' of the package are different",
                                     path.file_name().unwrap().to_str().unwrap(), manifest.type_and_name.name
                             )));
                         }
 
-                        if manifest.type_and_name.pkg_type.to_string()
-                            != addon_type
+                        if manifest.type_and_name.pkg_type.namespace()
+                            != addon_namespace_dir
                         {
                             return Err(anyhow::anyhow!(
                                 "The path '{}' is not valid: {}.",
                                 format!(
-                                    "{}:{}",
-                                    manifest.type_and_name.pkg_type,
+                                    "{}/{}",
+                                    addon_namespace_dir,
                                     manifest.type_and_name.name
                                 ),
                                 format!(
-                                "the package type '{}' is not as expected '{}'",
-                                manifest.type_and_name.pkg_type, addon_type)
+                                "the package namespace '{}' is not as expected '{}'",
+                                manifest.type_and_name.pkg_type.namespace(), addon_namespace_dir)
                             ));
                         }
 

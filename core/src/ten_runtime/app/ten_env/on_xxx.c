@@ -151,26 +151,8 @@ void ten_app_on_configure_done(ten_env_t *ten_env) {
                               strlen(TEN_STR_LOCALHOST));
   }
 
-  ten_list_t extension_dependencies;
-  ten_list_t extension_group_dependencies;
-  ten_list_t protocol_dependencies;
-
-  ten_list_init(&extension_dependencies);
-  ten_list_init(&extension_group_dependencies);
-  ten_list_init(&protocol_dependencies);
-
-  ten_manifest_get_dependencies_type_and_name(
-      &self->manifest, &extension_dependencies, &extension_group_dependencies,
-      &protocol_dependencies);
-
-  ten_addon_load_all_from_app_base_dir(self, &extension_dependencies,
-                                       &extension_group_dependencies,
-                                       &protocol_dependencies, &err);
+  ten_addon_load_all_from_app_base_dir(self, &err);
   ten_addon_load_all_from_ten_package_base_dirs(self, &err);
-
-  ten_list_clear(&extension_dependencies);
-  ten_list_clear(&extension_group_dependencies);
-  ten_list_clear(&protocol_dependencies);
 
   // Register all addons.
   ten_addon_manager_t *manager = ten_addon_manager_get_instance();

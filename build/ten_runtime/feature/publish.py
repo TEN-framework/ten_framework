@@ -11,7 +11,7 @@ import sys
 from typing import Optional
 import subprocess
 from build.scripts import cmd_exec, touch
-from common.scripts import delete_files
+from ten_common.scripts import delete_files
 
 
 class ArgumentInfo(argparse.Namespace):

@@ -23,8 +23,14 @@ pub struct ArgsCfg {
 fn get_args_cfg() -> ArgsCfg {
     ArgsCfg {
         pkg_type: ArgCfg {
-            possible_values: ["system", "protocol", "extension", "app"]
-                .to_vec(),
+            possible_values: [
+                "system",
+                "protocol",
+                "lang_addon_loader",
+                "extension",
+                "app",
+            ]
+            .to_vec(),
         },
         os: ArgCfg {
             possible_values: ["linux", "mac", "win"].to_vec(),

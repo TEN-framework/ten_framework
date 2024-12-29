@@ -58,7 +58,7 @@ template("ten_runtime_copy_deps") {
     runtime_libs_src_dir = "${root_out_dir}"
     runtime_libs_dest_dir = basedir + "/lib"
 
-    script = "//build/common/scripts/copy_files_with_pattern.py"
+    script = "//build/ten_common/scripts/copy_files_with_pattern.py"
     args = [
       "--sources",
       rebase_path(runtime_libs_src_dir),

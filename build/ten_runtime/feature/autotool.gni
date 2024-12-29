@@ -93,7 +93,7 @@ template("autotool_project") {
     }
 
     # Find source files in current autotool project.
-    inputs = exec_script("//build/common/scripts/find_all_c_cpp_files.py",
+    inputs = exec_script("//build/ten_common/scripts/find_all_c_cpp_files.py",
                          [ rebase_path(invoker.project_path) ],
                          "list lines")
 

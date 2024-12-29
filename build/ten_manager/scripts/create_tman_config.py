@@ -8,7 +8,7 @@ import argparse
 import json
 import os
 import sys
-from common.scripts import delete_files
+from ten_common.scripts import delete_files
 
 
 class ArgumentInfo(argparse.Namespace):
