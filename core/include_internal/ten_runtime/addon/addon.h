@@ -109,9 +109,6 @@ TEN_RUNTIME_API bool ten_addon_check_integrity(ten_addon_t *self);
 
 TEN_RUNTIME_PRIVATE_API void ten_addon_host_init(ten_addon_host_t *self);
 
-TEN_RUNTIME_PRIVATE_API ten_addon_host_t *ten_addon_host_create(
-    TEN_ADDON_TYPE type);
-
 TEN_RUNTIME_API void ten_addon_host_destroy(ten_addon_host_t *self);
 
 TEN_RUNTIME_PRIVATE_API TEN_ADDON_TYPE

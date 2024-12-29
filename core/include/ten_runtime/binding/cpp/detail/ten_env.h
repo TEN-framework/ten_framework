@@ -39,7 +39,6 @@ class app_t;
 class extension_t;
 class extension_group_t;
 class addon_t;
-class extension_group_addon_t;
 class extension_addon_t;
 class ten_env_t;
 class ten_env_proxy_t;
@@ -749,7 +748,6 @@ class ten_env_t {
   friend class extension_t;
   friend class extension_group_t;
   friend class addon_t;
-  friend class extension_group_addon_t;
   friend class extension_addon_t;
   friend class ten_env_internal_accessor_t;
 

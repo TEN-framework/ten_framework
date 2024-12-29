@@ -10,6 +10,7 @@
 #include "include_internal/ten_runtime/addon/addon_manager.h"
 #include "include_internal/ten_runtime/addon/extension/extension.h"
 #include "include_internal/ten_runtime/addon/extension_group/extension_group.h"
+#include "include_internal/ten_runtime/addon/lang_addon_loader/lang_addon_loader.h"
 #include "include_internal/ten_runtime/addon/protocol/protocol.h"
 #include "include_internal/ten_utils/lib/env.h"
 
@@ -33,6 +34,7 @@ class GlobalTestEnvironment : public ::testing::Environment {
   void TearDown() override {
     ten_addon_unregister_all_extension();
     ten_addon_unregister_all_extension_group();
+    ten_addon_unregister_all_lang_addon_loader();
     ten_addon_unregister_all_protocol();
   }
 };

@@ -39,8 +39,8 @@ ten_addon_host_t *ten_addon_register_lang_addon_loader(const char *name,
                                                        const char *base_dir,
                                                        ten_addon_t *addon,
                                                        void *register_ctx) {
-  return ten_addon_register(TEN_ADDON_TYPE_PROTOCOL, name, base_dir, addon,
-                            register_ctx);
+  return ten_addon_register(TEN_ADDON_TYPE_LANG_ADDON_LOADER, name, base_dir,
+                            addon, register_ctx);
 }
 
 static bool ten_addon_lang_addon_loader_match_lang_addon_loader(

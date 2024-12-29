@@ -295,7 +295,7 @@ void ten_addon_on_destroy_instance_info_destroy(
   TEN_FREE(self);
 }
 
-ten_addon_host_t *ten_addon_host_create(TEN_ADDON_TYPE type) {
+static ten_addon_host_t *ten_addon_host_create(TEN_ADDON_TYPE type) {
   ten_addon_host_t *self =
       (ten_addon_host_t *)TEN_MALLOC(sizeof(ten_addon_host_t));
   TEN_ASSERT(self, "Failed to allocate memory.");
@@ -603,6 +603,9 @@ ten_addon_host_t *ten_addon_register(TEN_ADDON_TYPE addon_type,
       break;
     case TEN_ADDON_TYPE_PROTOCOL:
       addon_store = ten_protocol_get_global_store();
+      break;
+    case TEN_ADDON_TYPE_LANG_ADDON_LOADER:
+      addon_store = ten_lang_addon_loader_get_global_store();
       break;
     default:
       break;
