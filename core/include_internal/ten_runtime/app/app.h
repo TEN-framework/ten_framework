@@ -1,5 +1,5 @@
 //
-// Copyright © 2024 Agora
+// Copyright © 2025 Agora
 // This file is part of TEN Framework, an open source project.
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
@@ -137,3 +137,6 @@ TEN_RUNTIME_PRIVATE_API void ten_app_on_deinit(ten_app_t *self);
 TEN_RUNTIME_PRIVATE_API void ten_app_on_deinit_done(ten_env_t *ten_env);
 
 TEN_RUNTIME_PRIVATE_API void ten_app_on_configure_done(ten_env_t *ten_env);
+
+TEN_RUNTIME_PRIVATE_API void ten_app_add_ten_package_base_dir(
+    ten_app_t *self, const char *base_dir);

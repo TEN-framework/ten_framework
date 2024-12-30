@@ -1,5 +1,5 @@
 //
-// Copyright © 2024 Agora
+// Copyright © 2025 Agora
 // This file is part of TEN Framework, an open source project.
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
@@ -16,6 +16,7 @@ use ten_rust::pkg_info::PkgInfo;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct PkgRegistryInfo {
+    #[serde(flatten)]
     pub basic_info: PkgBasicInfo,
 
     #[serde(with = "dependencies_conversion")]

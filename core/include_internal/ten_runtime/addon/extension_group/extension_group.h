@@ -1,5 +1,5 @@
 //
-// Copyright © 2024 Agora
+// Copyright © 2025 Agora
 // This file is part of TEN Framework, an open source project.
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
@@ -10,6 +10,7 @@
 
 #include <stdbool.h>
 
+#include "include_internal/ten_runtime/addon/addon.h"
 #include "ten_runtime/ten_env/ten_env.h"
 
 typedef struct ten_env_t ten_env_t;
@@ -37,3 +38,5 @@ TEN_RUNTIME_PRIVATE_API ten_addon_host_t *ten_addon_register_extension_group(
 
 TEN_RUNTIME_PRIVATE_API ten_addon_t *ten_addon_unregister_extension_group(
     const char *name);
+
+TEN_RUNTIME_API void ten_addon_unregister_all_extension_group(void);

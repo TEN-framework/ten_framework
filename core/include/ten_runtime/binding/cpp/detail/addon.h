@@ -1,5 +1,5 @@
 //
-// Copyright © 2024 Agora
+// Copyright © 2025 Agora
 // This file is part of TEN Framework, an open source project.
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
@@ -21,9 +21,9 @@ namespace ten {
 class addon_t {
  public:
   addon_t()
-      : c_addon(ten_addon_create(proxy_on_init, proxy_on_deinit,
-                                 proxy_on_create_instance,
-                                 proxy_on_destroy_instance, proxy_on_destroy)) {
+      : c_addon(ten_addon_create(
+            proxy_on_init, proxy_on_deinit, proxy_on_create_instance,
+            proxy_on_destroy_instance, proxy_on_load_addon, proxy_on_destroy)) {
     ten_binding_handle_set_me_in_target_lang(
         reinterpret_cast<ten_binding_handle_t *>(c_addon), this);
   }
@@ -49,9 +49,38 @@ class addon_t {
   virtual void on_deinit(ten_env_t &ten_env) { ten_env.on_deinit_done(); }
 
   virtual void on_create_instance(ten_env_t &ten_env, const char *name,
-                                  void *context) = 0;
+                                  void *context) {
+    (void)ten_env;
+    (void)name;
+    (void)context;
+
+    // If a subclass requires the functionality of this function, it needs to
+    // override this function.
+    TEN_ASSERT(0, "Should not happen.");
+  };
+
   virtual void on_destroy_instance(ten_env_t &ten_env, void *instance,
-                                   void *context) = 0;
+                                   void *context) {
+    (void)ten_env;
+    (void)instance;
+    (void)context;
+
+    // If a subclass requires the functionality of this function, it needs to
+    // override this function.
+    TEN_ASSERT(0, "Should not happen.");
+  };
+
+  virtual void on_load_addon(ten_env_t &ten_env, TEN_ADDON_TYPE addon_type,
+                             const char *addon_name, void *context) {
+    (void)ten_env;
+    (void)addon_type;
+    (void)addon_name;
+    (void)context;
+
+    // If a subclass requires the functionality of this function, it needs to
+    // override this function.
+    TEN_ASSERT(0, "Should not happen.");
+  }
 
  private:
   ten_addon_t *c_addon;
@@ -60,9 +89,6 @@ class addon_t {
   friend class addon_internal_accessor_t;
 
   ::ten_addon_t *get_c_addon() const { return c_addon; }
-
-  virtual void on_create_instance_impl(ten_env_t &ten_env, const char *name,
-                                       void *context) = 0;
 
   void invoke_cpp_addon_on_init(ten_env_t &ten_env) {
     try {
@@ -77,18 +103,31 @@ class addon_t {
     try {
       on_deinit(ten_env);
     } catch (...) {
-      TEN_LOGD("Caught a exception '%s' in addon on_deinit().",
+      TEN_LOGW("Caught a exception '%s' in addon on_deinit().",
                curr_exception_type_name().c_str());
     }
   }
 
-  void invoke_cpp_addon_on_create_instance(ten_env_t &ten_env, const char *name,
-                                           void *context) {
+  virtual void invoke_cpp_addon_on_create_instance(ten_env_t &ten_env,
+                                                   const char *name,
+                                                   void *context) {
+    (void)ten_env;
+    (void)name;
+    (void)context;
+
+    // If a subclass requires the functionality of this function, it needs to
+    // override this function.
+    TEN_ASSERT(0, "Should not happen.");
+  }
+
+  void invoke_cpp_addon_on_load_addon(ten_env_t &ten_env,
+                                      TEN_ADDON_TYPE addon_type,
+                                      const char *addon_name, void *context) {
     try {
-      on_create_instance_impl(ten_env, name, context);
+      on_load_addon(ten_env, addon_type, addon_name, context);
     } catch (...) {
-      TEN_LOGD("Caught a exception '%s' in addon on_create_instance().",
-               curr_exception_type_name().c_str());
+      TEN_LOGW("Caught a exception '%s' in addon on_load_addon(%s).",
+               curr_exception_type_name().c_str(), addon_name);
     }
   }
 
@@ -97,7 +136,7 @@ class addon_t {
     try {
       on_destroy_instance(ten_env, instance, context);
     } catch (...) {
-      TEN_LOGD("Caught a exception '%s' in addon on_destroy_instance().",
+      TEN_LOGW("Caught a exception '%s' in addon on_destroy_instance().",
                curr_exception_type_name().c_str());
     }
   }
@@ -174,6 +213,26 @@ class addon_t {
                                                     context);
   }
 
+  static void proxy_on_load_addon(ten_addon_t *addon, ::ten_env_t *ten_env,
+                                  TEN_ADDON_TYPE addon_type,
+                                  const char *addon_name, void *context) {
+    TEN_ASSERT(addon && ten_env && addon_name && strlen(addon_name),
+               "Invalid argument.");
+
+    auto *cpp_addon =
+        static_cast<addon_t *>(ten_binding_handle_get_me_in_target_lang(
+            reinterpret_cast<ten_binding_handle_t *>(addon)));
+    TEN_ASSERT(cpp_addon, "Should not happen.");
+
+    auto *cpp_ten_env =
+        static_cast<ten_env_t *>(ten_binding_handle_get_me_in_target_lang(
+            reinterpret_cast<ten_binding_handle_t *>(ten_env)));
+    TEN_ASSERT(cpp_ten_env, "Should not happen.");
+
+    cpp_addon->invoke_cpp_addon_on_load_addon(*cpp_ten_env, addon_type,
+                                              addon_name, context);
+  }
+
   static void proxy_on_destroy(ten_addon_t *addon) {
     TEN_ASSERT(addon, "Invalid argument.");
 
@@ -210,13 +269,18 @@ class addon_internal_accessor_t {
 
 class extension_addon_t : public addon_t {
  private:
-  void on_create_instance_impl(ten_env_t &ten_env, const char *name,
-                               void *context) override {
-    auto *cpp_context = new addon_context_t();
-    cpp_context->task = ADDON_TASK_CREATE_EXTENSION;
-    cpp_context->c_context = context;
+  void invoke_cpp_addon_on_create_instance(ten_env_t &ten_env, const char *name,
+                                           void *context) override {
+    try {
+      auto *cpp_context = new addon_context_t();
+      cpp_context->task = ADDON_TASK_CREATE_EXTENSION;
+      cpp_context->c_context = context;
 
-    on_create_instance(ten_env, name, cpp_context);
+      on_create_instance(ten_env, name, cpp_context);
+    } catch (...) {
+      TEN_LOGW("Caught a exception '%s' in addon on_create_instance(%s).",
+               curr_exception_type_name().c_str(), name);
+    }
   }
 };
 

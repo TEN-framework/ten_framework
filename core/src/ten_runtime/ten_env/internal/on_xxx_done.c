@@ -1,5 +1,5 @@
 //
-// Copyright © 2024 Agora
+// Copyright © 2025 Agora
 // This file is part of TEN Framework, an open source project.
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
@@ -15,6 +15,7 @@
 #include "include_internal/ten_runtime/extension_group/extension_group.h"
 #include "include_internal/ten_runtime/extension_group/on_xxx.h"
 #include "include_internal/ten_runtime/metadata/metadata_info.h"
+#include "include_internal/ten_runtime/ten_env/on_xxx_done.h"
 #include "include_internal/ten_runtime/ten_env/ten_env.h"
 #include "ten_runtime/ten_env/ten_env.h"
 #include "ten_utils/macro/check.h"

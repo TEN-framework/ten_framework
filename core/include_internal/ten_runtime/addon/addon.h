@@ -1,5 +1,5 @@
 //
-// Copyright © 2024 Agora
+// Copyright © 2025 Agora
 // This file is part of TEN Framework, an open source project.
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
@@ -21,16 +21,15 @@
 
 typedef struct ten_app_t ten_app_t;
 
-typedef enum TEN_ADDON_TYPE {
-  TEN_ADDON_TYPE_INVALID,
+typedef void (*ten_env_addon_create_instance_done_cb_t)(ten_env_t *ten_env,
+                                                        void *instance,
+                                                        void *cb_data);
 
-  TEN_ADDON_TYPE_PROTOCOL,
-  TEN_ADDON_TYPE_EXTENSION,
-  TEN_ADDON_TYPE_EXTENSION_GROUP,
-} TEN_ADDON_TYPE;
+typedef void (*ten_env_addon_destroy_instance_done_cb_t)(ten_env_t *ten_env,
+                                                         void *cb_data);
 
 typedef struct ten_addon_context_t {
-  ten_env_t *caller_ten;
+  ten_env_t *caller_ten_env;
 
   ten_env_addon_create_instance_done_cb_t create_instance_done_cb;
   void *create_instance_done_cb_data;
@@ -49,6 +48,8 @@ typedef struct ten_addon_t {
 
   ten_addon_on_create_instance_func_t on_create_instance;
   ten_addon_on_destroy_instance_func_t on_destroy_instance;
+
+  ten_addon_on_load_addon_func_t on_load_addon;
 
   ten_addon_on_destroy_func_t on_destroy;
 
@@ -78,13 +79,13 @@ typedef struct ten_addon_host_t {
   void *user_data;
 } ten_addon_host_t;
 
-typedef struct ten_addon_on_create_instance_info_t {
+typedef struct ten_addon_on_create_extension_instance_info_t {
   ten_string_t addon_name;
   ten_string_t instance_name;
   TEN_ADDON_TYPE addon_type;  // Used to retrieve addon from the correct store.
   ten_env_addon_create_instance_done_cb_t cb;
   void *cb_data;
-} ten_addon_on_create_instance_info_t;
+} ten_addon_on_create_extension_instance_info_t;
 
 typedef struct ten_addon_on_destroy_instance_info_t {
   ten_addon_host_t *addon_host;
@@ -100,19 +101,10 @@ TEN_RUNTIME_API bool ten_addon_check_integrity(ten_addon_t *self);
 
 TEN_RUNTIME_PRIVATE_API void ten_addon_host_init(ten_addon_host_t *self);
 
-TEN_RUNTIME_PRIVATE_API ten_addon_host_t *ten_addon_host_create(
-    TEN_ADDON_TYPE type);
-
 TEN_RUNTIME_API void ten_addon_host_destroy(ten_addon_host_t *self);
 
 TEN_RUNTIME_PRIVATE_API TEN_ADDON_TYPE
 ten_addon_type_from_string(const char *addon_type_str);
-
-TEN_RUNTIME_PRIVATE_API void ten_addon_register(ten_addon_store_t *addon_store,
-                                                ten_addon_host_t *addon_host,
-                                                const char *name,
-                                                const char *base_dir,
-                                                ten_addon_t *addon);
 
 TEN_RUNTIME_PRIVATE_API ten_addon_t *ten_addon_unregister(
     ten_addon_store_t *store, const char *addon_name);
@@ -120,17 +112,15 @@ TEN_RUNTIME_PRIVATE_API ten_addon_t *ten_addon_unregister(
 TEN_RUNTIME_PRIVATE_API const char *ten_addon_host_get_name(
     ten_addon_host_t *self);
 
-TEN_RUNTIME_API ten_addon_host_t *ten_addon_host_find(const char *addon_name,
-                                                      TEN_ADDON_TYPE type);
-
-TEN_RUNTIME_PRIVATE_API ten_addon_on_create_instance_info_t *
-ten_addon_on_create_instance_info_create(
-    const char *addon_name, const char *instance_name,
-    TEN_ADDON_TYPE addon_type, ten_env_addon_create_instance_done_cb_t cb,
+TEN_RUNTIME_PRIVATE_API ten_addon_on_create_extension_instance_info_t *
+ten_addon_on_create_extension_instance_info_create(
+    TEN_ADDON_TYPE addon_type, const char *addon_name,
+    const char *instance_name, ten_env_addon_create_instance_done_cb_t cb,
     void *cb_data);
 
-TEN_RUNTIME_PRIVATE_API void ten_addon_on_create_instance_info_destroy(
-    ten_addon_on_create_instance_info_t *self);
+TEN_RUNTIME_PRIVATE_API void
+ten_addon_on_create_extension_instance_info_destroy(
+    ten_addon_on_create_extension_instance_info_t *self);
 
 TEN_RUNTIME_PRIVATE_API ten_addon_on_destroy_instance_info_t *
 ten_addon_host_on_destroy_instance_info_create(
@@ -143,8 +133,8 @@ TEN_RUNTIME_PRIVATE_API void ten_addon_on_destroy_instance_info_destroy(
 TEN_RUNTIME_PRIVATE_API ten_addon_store_t *ten_addon_get_store(void);
 
 TEN_RUNTIME_PRIVATE_API bool ten_addon_create_instance_async(
-    ten_env_t *ten_env, const char *addon_name, const char *instance_name,
-    TEN_ADDON_TYPE type, ten_env_addon_create_instance_done_cb_t cb,
+    ten_env_t *ten_env, TEN_ADDON_TYPE addon_type, const char *addon_name,
+    const char *instance_name, ten_env_addon_create_instance_done_cb_t cb,
     void *cb_data);
 
 TEN_RUNTIME_PRIVATE_API bool ten_addon_host_destroy_instance_async(
@@ -154,10 +144,12 @@ TEN_RUNTIME_PRIVATE_API bool ten_addon_host_destroy_instance_async(
 TEN_RUNTIME_PRIVATE_API bool ten_addon_host_destroy_instance(
     ten_addon_host_t *self, ten_env_t *ten_env, void *instance);
 
+TEN_RUNTIME_API const char *ten_addon_type_to_string(TEN_ADDON_TYPE type);
+
 /**
- * @brief The base directory of the loaded addon. This function can be called
- * before any TEN app starts. Note that the returned string must be destroyed by
- * users.
+ * @brief The base directory of the loaded addon. This function can be
+ * called before any TEN app starts. Note that the returned string must be
+ * destroyed by users.
  */
 TEN_RUNTIME_PRIVATE_API const char *ten_addon_host_get_base_dir(
     ten_addon_host_t *self);
@@ -170,3 +162,15 @@ TEN_RUNTIME_PRIVATE_API ten_string_t *ten_addon_find_base_dir_from_app(
 
 TEN_RUNTIME_PRIVATE_API void ten_addon_find_and_set_base_dir(
     ten_addon_host_t *self, const char *path);
+
+TEN_RUNTIME_PRIVATE_API ten_addon_host_t *ten_addon_register(
+    TEN_ADDON_TYPE addon_type, const char *name, const char *base_dir,
+    ten_addon_t *addon, void *register_ctx);
+
+TEN_RUNTIME_API void ten_addon_init(
+    ten_addon_t *self, ten_addon_on_init_func_t on_init,
+    ten_addon_on_deinit_func_t on_deinit,
+    ten_addon_on_create_instance_func_t on_create_instance,
+    ten_addon_on_destroy_instance_func_t on_destroy_instance,
+    ten_addon_on_load_addon_func_t on_load_addon,
+    ten_addon_on_destroy_func_t on_destroy);

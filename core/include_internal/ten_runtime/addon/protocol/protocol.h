@@ -1,5 +1,5 @@
 //
-// Copyright © 2024 Agora
+// Copyright © 2025 Agora
 // This file is part of TEN Framework, an open source project.
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
@@ -8,8 +8,8 @@
 
 #include "ten_runtime/ten_config.h"
 
+#include "include_internal/ten_runtime/protocol/protocol.h"
 #include "ten_runtime/addon/addon.h"
-#include "ten_runtime/protocol/protocol.h"
 
 typedef struct ten_addon_host_t ten_addon_host_t;
 typedef struct ten_addon_store_t ten_addon_store_t;
@@ -42,8 +42,9 @@ TEN_RUNTIME_PRIVATE_API ten_addon_store_t *ten_protocol_get_global_store(void);
 TEN_RUNTIME_PRIVATE_API ten_addon_host_t *ten_addon_protocol_find(
     const char *protocol);
 
-TEN_RUNTIME_API void ten_addon_register_protocol(const char *name,
-                                                 const char *base_dir,
-                                                 ten_addon_t *addon);
+TEN_RUNTIME_API ten_addon_host_t *ten_addon_register_protocol(
+    const char *name, const char *base_dir, ten_addon_t *addon);
 
 TEN_RUNTIME_API ten_addon_t *ten_addon_unregister_protocol(const char *name);
+
+TEN_RUNTIME_API void ten_addon_unregister_all_protocol(void);

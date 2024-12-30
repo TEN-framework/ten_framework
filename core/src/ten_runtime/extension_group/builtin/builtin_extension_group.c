@@ -1,5 +1,5 @@
 //
-// Copyright © 2024 Agora
+// Copyright © 2025 Agora
 // This file is part of TEN Framework, an open source project.
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
@@ -8,11 +8,13 @@
 #include <stdlib.h>
 
 #include "include_internal/ten_runtime/addon/addon.h"
+#include "include_internal/ten_runtime/addon/extension/extension.h"
 #include "include_internal/ten_runtime/addon/extension_group/extension_group.h"
 #include "include_internal/ten_runtime/common/constant_str.h"
 #include "include_internal/ten_runtime/extension/extension_addon_and_instance_name_pair.h"
 #include "include_internal/ten_runtime/extension_group/extension_group.h"
 #include "include_internal/ten_runtime/ten_env/metadata.h"
+#include "include_internal/ten_runtime/ten_env/on_xxx_done.h"
 #include "include_internal/ten_runtime/ten_env/ten_env.h"
 #include "ten_runtime/addon/addon.h"
 #include "ten_runtime/ten.h"
@@ -214,6 +216,7 @@ static ten_addon_t builtin_extension_group_addon = {
     NULL,
     ten_builtin_extension_group_addon_create_instance,
     ten_builtin_extension_group_addon_destroy_instance,
+    NULL,
     NULL,
     NULL,
 };

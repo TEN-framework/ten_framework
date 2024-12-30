@@ -1,5 +1,5 @@
 //
-// Copyright © 2024 Agora
+// Copyright © 2025 Agora
 // This file is part of TEN Framework, an open source project.
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
@@ -11,6 +11,7 @@
 #include <stdlib.h>
 
 #include "include_internal/ten_runtime/addon/addon.h"
+#include "include_internal/ten_runtime/addon/extension/extension.h"
 #include "include_internal/ten_runtime/binding/go/addon/addon.h"
 #include "include_internal/ten_runtime/binding/go/extension/extension.h"
 #include "include_internal/ten_runtime/binding/go/internal/common.h"
@@ -240,14 +241,14 @@ static ten_go_addon_t *ten_go_addon_register(
       ten_addon_init(&addon_bridge->c_addon, ten_go_addon_on_init_helper,
                      ten_go_addon_on_deinit_helper,
                      ten_go_addon_create_extension_async_helper,
-                     ten_go_addon_destroy_instance_helper, NULL);
+                     ten_go_addon_destroy_instance_helper, NULL, NULL);
       break;
 
     case TEN_ADDON_TYPE_EXTENSION_GROUP:
       ten_addon_init(&addon_bridge->c_addon, ten_go_addon_on_init_helper,
                      ten_go_addon_on_deinit_helper,
                      ten_go_addon_create_extension_group_async_helper,
-                     ten_go_addon_destroy_instance_helper, NULL);
+                     ten_go_addon_destroy_instance_helper, NULL, NULL);
       break;
 
     default:

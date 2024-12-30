@@ -53,7 +53,7 @@ jobs:
           go env -w GOFLAGS="-buildvcs=false"
           rustup default nightly
           df -h .
-          tgn gen linux x64 ${{ matrix.build_type }} -- is_clang=false log_level=1 enable_serialized_actions=true ten_enable_serialized_rust_action=true ten_enable_integration_tests=false ten_enable_ten_manager=false ten_rust_enable_gen_cargo_config=false ten_enable_cargo_clean=true ten_enable_rust_incremental_build=false ten_manager_enable_frontend=false
+          tgn gen linux x64 ${{ matrix.build_type }} -- is_clang=false log_level=1 enable_serialized_actions=true ten_enable_serialized_rust_action=true ten_enable_integration_tests=false ten_enable_ten_manager=false ten_rust_enable_gen_cargo_config=false ten_enable_cargo_clean=true ten_enable_rust_incremental_build=false ten_manager_enable_frontend=false ten_enable_integration_tests_prebuilt=false
           tgn build linux x64 ${{ matrix.build_type }}
           df -h .
           tree -I 'gen|obj' out
@@ -119,38 +119,4 @@ jobs:
             ten_packages/extension/default_extension_go \
             ten_packages/extension/default_extension_python \
             ten_packages/extension/default_async_extension_python \
-            ten_packages/extension/py_init_extension_cpp
-
-      - name: Upload Release Asset
-        if: startsWith(github.ref, 'refs/tags/')
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          ASSET_PATH: out/linux/x64/ten_packages-linux-ubuntu1804-x64-gcc-${{ matrix.build_type }}.zip
-          ASSET_NAME: ten_packages-linux-ubuntu1804-x64-gcc-${{ matrix.build_type }}.zip
-        run: |
-          TAG_NAME=${GITHUB_REF#refs/tags/}
-          echo "Tag: $TAG_NAME"
-
-          # Get the release information
-          response=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
-            https://api.github.com/repos/${GITHUB_REPOSITORY}/releases/tags/$TAG_NAME)
-
-          # Check if the release was found
-          if echo "$response" | grep -q '"id":'; then
-            echo "Release found."
-          else
-            echo "Release not found. Exiting."
-            exit 1
-          fi
-
-          # Extract upload_url
-          upload_url=$(echo "$response" | jq -r .upload_url | sed -e "s/{?name,label}//")
-          echo "Upload URL: $upload_url"
-
-          # Upload the asset
-          curl -s -H "Authorization: token $GITHUB_TOKEN" \
-            -H "Content-Type: application/zip" \
-            --data-binary @"$ASSET_PATH" \
-            "$upload_url?name=$ASSET_NAME"
-
-          echo "Asset uploaded successfully."
+            ten_packages/addon_loader/python_addon_loader

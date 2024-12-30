@@ -1,5 +1,5 @@
 //
-// Copyright © 2024 Agora
+// Copyright © 2025 Agora
 // This file is part of TEN Framework, an open source project.
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
@@ -59,15 +59,6 @@ ten_go_error_t ten_go_ten_env_send_video_frame(
 ten_go_error_t ten_go_ten_env_send_audio_frame(
     uintptr_t bridge_addr, uintptr_t audio_frame_bridge_addr,
     ten_go_handle_t handler_id);
-
-bool ten_go_ten_env_addon_create_extension(uintptr_t bridge_addr,
-                                           const char *addon_name,
-                                           const char *instance_name,
-                                           ten_go_handle_t callback);
-
-void ten_go_ten_env_addon_destroy_extension(uintptr_t bridge_addr,
-                                            uintptr_t extension_bridge_addr,
-                                            ten_go_handle_t callback);
 
 void ten_go_ten_env_finalize(uintptr_t bridge_addr);
 

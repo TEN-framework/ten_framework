@@ -1,5 +1,5 @@
 //
-// Copyright © 2024 Agora
+// Copyright © 2025 Agora
 // This file is part of TEN Framework, an open source project.
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
@@ -29,3 +29,12 @@ TEN_RUNTIME_API void ten_py_import_module(const char *module_name);
 TEN_RUNTIME_API void *ten_py_eval_save_thread(void);
 
 TEN_RUNTIME_API void ten_py_eval_restore_thread(void *state);
+
+// @{
+// To prevent callers from needing to include Python's header files, which would
+// require `-I` and `-L` command-line parameters, the two functions below
+// deliberately use `void *` as the parameter type for passing arguments.
+TEN_RUNTIME_API void *ten_py_gil_state_ensure(void);
+
+TEN_RUNTIME_API void ten_py_gil_state_release(void *state);
+// @}
