@@ -124,13 +124,14 @@ bool ten_addon_loader_create_singleton(ten_env_t *ten_env) {
   return need_to_wait_all_addon_loaders_created;
 }
 
-bool ten_addon_loader_destroy_singleton(ten_env_t *ten_env) {
+bool ten_addon_loader_destroy_singleton(void) {
   ten_list_foreach (&g_addon_loaders, iter) {
     ten_addon_loader_t *addon_loader = ten_ptr_listnode_get(iter.node);
     TEN_ASSERT(addon_loader, "Should not happen.");
 
     addon_loader->addon_host->addon->on_destroy_instance(
-        addon_loader->addon_host->addon, ten_env, addon_loader, NULL);
+        addon_loader->addon_host->addon, addon_loader->addon_host->ten_env,
+        addon_loader, NULL);
   }
 
   ten_list_clear(&g_addon_loaders);

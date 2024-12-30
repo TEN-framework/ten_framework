@@ -267,7 +267,7 @@ static void ten_app_unregister_addons_after_app_close(ten_app_t *self) {
     return;
   }
 
-  ten_addon_loader_destroy_singleton(self->ten_env);
+  ten_addon_loader_destroy_singleton();
 
   ten_addon_unregister_all_extension();
   ten_addon_unregister_all_extension_group();
