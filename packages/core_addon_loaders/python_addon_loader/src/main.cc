@@ -117,7 +117,7 @@ class python_addon_loader_addon_t : public ten::addon_t {
 
     TEN_ENV_LOG_DEBUG(ten_env, "on_init");
 
-    load_all_on_init = ten_env.get_property_bool("load_all_on_init");
+    // load_all_on_init = ten_env.get_property_bool("load_all_on_init");
 
     int py_initialized = ten_py_is_initialized();
     if (py_initialized != 0) {
