@@ -11,6 +11,10 @@
         "addon_loader"
       ]
     },
+    "path": {
+      "type": "string",
+      "minLength": 1
+    },
     "os": {
       "type": "string",
       "enum": [
@@ -71,22 +75,36 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "type",
-          "name",
-          "version"
-        ],
-        "properties": {
-          "type": {
-            "$ref": "#/$defs/packageType"
+        "oneOf": [
+          {
+            "required": [
+              "path"
+            ],
+            "properties": {
+              "path": {
+                "$ref": "#/$defs/path"
+              }
+            }
           },
-          "name": {
-            "$ref": "#/$defs/alphanumericCharacters"
-          },
-          "version": {
-            "$ref": "#/$defs/versionRequirement"
+          {
+            "required": [
+              "type",
+              "name",
+              "version"
+            ],
+            "properties": {
+              "type": {
+                "$ref": "#/$defs/packageType"
+              },
+              "name": {
+                "$ref": "#/$defs/alphanumericCharacters"
+              },
+              "version": {
+                "$ref": "#/$defs/versionRequirement"
+              }
+            }
           }
-        }
+        ]
       }
     },
     "valueType": {
