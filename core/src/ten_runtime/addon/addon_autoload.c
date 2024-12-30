@@ -415,8 +415,7 @@ bool ten_addon_try_load_specific_addon_using_all_addon_loaders(
 
     // =-=-=
     if (addon_loader) {
-      addon_loader->on_load_addon(addon_loader, addon_loader->ten_env,
-                                  addon_type, addon_name);
+      addon_loader->on_load_addon(addon_loader, addon_type, addon_name);
     }
   }
 

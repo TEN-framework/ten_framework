@@ -10,6 +10,7 @@
 
 #include "include_internal/ten_runtime/addon/addon.h"
 #include "include_internal/ten_runtime/addon/common/store.h"
+#include "include_internal/ten_runtime/addon_loader/addon_loader.h"
 #include "include_internal/ten_runtime/app/on_xxx.h"
 #include "include_internal/ten_runtime/common/constant_str.h"
 #include "include_internal/ten_runtime/engine/engine.h"
@@ -361,6 +362,8 @@ static void ten_addon_addon_loader_on_create_instance_done(
 
   ten_addon_loader_t *addon_loader = instance;
   TEN_ASSERT(addon_loader, "Should not happen.");
+
+  addon_loader->addon_host = addon_host;
 
   ten_addon_context_t *addon_context = (ten_addon_context_t *)context;
   if (!addon_context) {

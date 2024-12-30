@@ -26,11 +26,11 @@ ten_addon_loader_t *ten_addon_loader_create(
       (ten_addon_loader_t *)TEN_MALLOC(sizeof(ten_addon_loader_t));
   TEN_ASSERT(addon_loader, "Failed to allocate memory.");
 
+  addon_loader->addon_host = NULL;
+
   addon_loader->on_init = on_init;
   addon_loader->on_deinit = on_deinit;
   addon_loader->on_load_addon = on_load_addon;
-
-  addon_loader->ten_env = ten_env_create_for_addon_loader(addon_loader);
 
   return addon_loader;
 }
@@ -38,43 +38,33 @@ ten_addon_loader_t *ten_addon_loader_create(
 void ten_addon_loader_destroy(ten_addon_loader_t *addon_loader) {
   TEN_ASSERT(addon_loader, "Invalid argument.");
 
-  ten_env_destroy(addon_loader->ten_env);
-
   TEN_FREE(addon_loader);
 }
 
-void ten_addon_loader_init(ten_addon_loader_t *addon_loader,
-                           ten_env_t *ten_env) {
+void ten_addon_loader_init(ten_addon_loader_t *addon_loader) {
   TEN_ASSERT(addon_loader, "Invalid argument.");
 
   if (addon_loader->on_init) {
-    addon_loader->on_init(addon_loader, ten_env);
+    addon_loader->on_init(addon_loader);
   }
 }
 
-void ten_addon_loader_deinit(ten_addon_loader_t *addon_loader,
-                             ten_env_t *ten_env) {
+void ten_addon_loader_deinit(ten_addon_loader_t *addon_loader) {
   TEN_ASSERT(addon_loader, "Invalid argument.");
 
   if (addon_loader->on_deinit) {
-    addon_loader->on_deinit(addon_loader, ten_env);
+    addon_loader->on_deinit(addon_loader);
   }
 }
 
 void ten_addon_loader_load_addon(ten_addon_loader_t *addon_loader,
-                                 ten_env_t *ten_env, TEN_ADDON_TYPE addon_type,
+                                 TEN_ADDON_TYPE addon_type,
                                  const char *addon_name) {
   TEN_ASSERT(addon_loader, "Invalid argument.");
 
   if (addon_loader->on_load_addon) {
-    addon_loader->on_load_addon(addon_loader, ten_env, addon_type, addon_name);
+    addon_loader->on_load_addon(addon_loader, addon_type, addon_name);
   }
-}
-
-ten_env_t *ten_addon_loader_get_ten_env(ten_addon_loader_t *self) {
-  TEN_ASSERT(self, "Invalid argument.");
-
-  return self->ten_env;
 }
 
 static void create_addon_loader_done(ten_env_t *ten_env,
@@ -91,6 +81,8 @@ static void create_addon_loader_done(ten_env_t *ten_env,
 
   size_t desired_count = (size_t)cb_data;
 
+  addon_loader->on_init(addon_loader);
+
   ten_list_push_ptr_back(&g_addon_loaders, addon_loader, NULL);
 
   if (ten_list_size(&g_addon_loaders) == desired_count) {
@@ -105,12 +97,9 @@ bool ten_addon_loader_create_singleton(ten_env_t *ten_env) {
   ten_addon_store_t *addon_loader_store = ten_addon_loader_get_global_store();
   TEN_ASSERT(addon_loader_store, "Should not happen.");
 
-  ten_mutex_lock(addon_loader_store->lock);
-
   size_t desired_count = ten_list_size(&addon_loader_store->store);
   if (!desired_count) {
     need_to_wait_all_addon_loaders_created = false;
-    goto done;
   }
 
   ten_list_foreach (&addon_loader_store->store, iter) {
@@ -132,7 +121,19 @@ bool ten_addon_loader_create_singleton(ten_env_t *ten_env) {
     }
   }
 
-done:
-  ten_mutex_unlock(addon_loader_store->lock);
   return need_to_wait_all_addon_loaders_created;
+}
+
+bool ten_addon_loader_destroy_singleton(ten_env_t *ten_env) {
+  ten_list_foreach (&g_addon_loaders, iter) {
+    ten_addon_loader_t *addon_loader = ten_ptr_listnode_get(iter.node);
+    TEN_ASSERT(addon_loader, "Should not happen.");
+
+    addon_loader->addon_host->addon->on_destroy_instance(
+        addon_loader->addon_host->addon, ten_env, addon_loader, NULL);
+  }
+
+  ten_list_clear(&g_addon_loaders);
+
+  return true;
 }

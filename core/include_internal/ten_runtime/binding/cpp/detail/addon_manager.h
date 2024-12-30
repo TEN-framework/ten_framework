@@ -10,10 +10,13 @@
 #include <cstddef>
 #include <cstdlib>
 
-#include "ten_runtime/addon/addon_manager.h"  // IWYU pragma: export
+#include "include_internal/ten_runtime/addon/addon_loader/addon_loader.h"  // IWYU pragma: keep
+#include "include_internal/ten_runtime/binding/cpp/detail/addon.h"  // IWYU pragma: keep
+#include "ten_runtime/addon/addon_manager.h"  // IWYU pragma: keep
 
 #define TEN_CPP_REGISTER_ADDON_AS_ADDON_LOADER(NAME, CLASS)                      \
-  class NAME##_default_addon_loader_addon_t : public ten::addon_t {              \
+  class NAME##_default_addon_loader_addon_t                                      \
+      : public ten::addon_loader_addon_t {                                       \
    public:                                                                       \
     void on_create_instance(ten::ten_env_t &ten_env, const char *name,           \
                             void *context) override {                            \

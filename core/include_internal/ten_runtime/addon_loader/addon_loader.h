@@ -12,25 +12,26 @@
 #include "ten_runtime/addon/addon.h"
 
 typedef struct ten_addon_loader_t ten_addon_loader_t;
+typedef struct ten_addon_host_t ten_addon_host_t;
 
 typedef void (*ten_addon_loader_on_init_func_t)(
-    ten_addon_loader_t *addon_loader, ten_env_t *ten_env);
+    ten_addon_loader_t *addon_loader);
 
 typedef void (*ten_addon_loader_on_deinit_func_t)(
-    ten_addon_loader_t *addon_loader, ten_env_t *ten_env);
+    ten_addon_loader_t *addon_loader);
 
 typedef void (*ten_addon_loader_on_load_addon_func_t)(
-    ten_addon_loader_t *addon_loader, ten_env_t *ten_env,
-    TEN_ADDON_TYPE addon_type, const char *addon_name);
+    ten_addon_loader_t *addon_loader, TEN_ADDON_TYPE addon_type,
+    const char *addon_name);
 
 typedef struct ten_addon_loader_t {
   ten_binding_handle_t binding_handle;
 
+  ten_addon_host_t *addon_host;
+
   ten_addon_loader_on_init_func_t on_init;
   ten_addon_loader_on_deinit_func_t on_deinit;
   ten_addon_loader_on_load_addon_func_t on_load_addon;
-
-  ten_env_t *ten_env;
 } ten_addon_loader_t;
 
 TEN_RUNTIME_PRIVATE_API ten_list_t *ten_addon_loader_get_global(void);
@@ -43,14 +44,11 @@ TEN_RUNTIME_API ten_addon_loader_t *ten_addon_loader_create(
 TEN_RUNTIME_API void ten_addon_loader_destroy(ten_addon_loader_t *addon_loader);
 
 TEN_RUNTIME_PRIVATE_API void ten_addon_loader_init(
-    ten_addon_loader_t *addon_loader, ten_env_t *ten_env);
+    ten_addon_loader_t *addon_loader);
 
 TEN_RUNTIME_PRIVATE_API void ten_addon_loader_deinit(
-    ten_addon_loader_t *addon_loader, ten_env_t *ten_env);
+    ten_addon_loader_t *addon_loaderv);
 
 TEN_RUNTIME_PRIVATE_API void ten_addon_loader_load_addon(
-    ten_addon_loader_t *addon_loader, ten_env_t *ten_env,
-    TEN_ADDON_TYPE addon_type, const char *addon_name);
-
-TEN_RUNTIME_API ten_env_t *ten_addon_loader_get_ten_env(
-    ten_addon_loader_t *self);
+    ten_addon_loader_t *addon_loader, TEN_ADDON_TYPE addon_type,
+    const char *addon_name);

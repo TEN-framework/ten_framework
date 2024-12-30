@@ -11,14 +11,13 @@
 #include <cstdlib>
 
 #include "include_internal/ten_runtime/addon_loader/addon_loader.h"
-#include "ten_runtime/binding/cpp/detail/ten_env.h"
+#include "ten_runtime/binding/common.h"
 #include "ten_utils/macro/check.h"
 
 using ten_addon_loader_t = struct ten_addon_loader_t;
 
 namespace ten {
 
-class ten_env_t;
 class extension_group_t;
 
 class addon_loader_t {
@@ -26,9 +25,6 @@ class addon_loader_t {
   virtual ~addon_loader_t() {
     TEN_ASSERT(c_addon_loader, "Should not happen.");
     ten_addon_loader_destroy(c_addon_loader);
-
-    TEN_ASSERT(cpp_ten_env, "Should not happen.");
-    delete cpp_ten_env;
   }
 
   // @{
@@ -51,49 +47,41 @@ class addon_loader_t {
     ten_binding_handle_set_me_in_target_lang(
         reinterpret_cast<ten_binding_handle_t *>(c_addon_loader),
         static_cast<void *>(this));
-
-    cpp_ten_env = new ten_env_t(ten_addon_loader_get_ten_env(c_addon_loader));
-    TEN_ASSERT(cpp_ten_env, "Should not happen.");
   }
 
-  virtual void on_init(ten_env_t &ten_env) = 0;
+  virtual void on_init() = 0;
 
-  virtual void on_deinit(ten_env_t &ten_env) = 0;
+  virtual void on_deinit() = 0;
 
-  virtual void on_load_addon(ten_env_t &ten_env, TEN_ADDON_TYPE addon_type,
+  virtual void on_load_addon(TEN_ADDON_TYPE addon_type,
                              const char *addon_name) = 0;
 
  private:
-  static void proxy_on_init(ten_addon_loader_t *addon_loader,
-                            ::ten_env_t *ten_env) {
+  friend class addon_loader_internal_accessor_t;
+
+  ::ten_addon_loader_t *get_c_addon_loader() const { return c_addon_loader; }
+
+  static void proxy_on_init(ten_addon_loader_t *addon_loader) {
     TEN_ASSERT(addon_loader, "Should not happen.");
 
     auto *cpp_addon_loader =
         static_cast<addon_loader_t *>(ten_binding_handle_get_me_in_target_lang(
             reinterpret_cast<ten_binding_handle_t *>(addon_loader)));
-    auto *cpp_ten_env =
-        static_cast<ten_env_t *>(ten_binding_handle_get_me_in_target_lang(
-            reinterpret_cast<ten_binding_handle_t *>(ten_env)));
 
-    cpp_addon_loader->invoke_cpp_addon_loader_on_init(*cpp_ten_env);
+    cpp_addon_loader->invoke_cpp_addon_loader_on_init();
   }
 
-  static void proxy_on_deinit(ten_addon_loader_t *addon_loader,
-                              ::ten_env_t *ten_env) {
+  static void proxy_on_deinit(ten_addon_loader_t *addon_loader) {
     TEN_ASSERT(addon_loader, "Should not happen.");
 
     auto *cpp_addon_loader =
         static_cast<addon_loader_t *>(ten_binding_handle_get_me_in_target_lang(
             reinterpret_cast<ten_binding_handle_t *>(addon_loader)));
-    auto *cpp_ten_env =
-        static_cast<ten_env_t *>(ten_binding_handle_get_me_in_target_lang(
-            reinterpret_cast<ten_binding_handle_t *>(ten_env)));
 
-    cpp_addon_loader->invoke_cpp_addon_loader_on_deinit(*cpp_ten_env);
+    cpp_addon_loader->invoke_cpp_addon_loader_on_deinit();
   }
 
   static void proxy_on_load_addon(ten_addon_loader_t *addon_loader,
-                                  ::ten_env_t *ten_env,
                                   TEN_ADDON_TYPE addon_type,
                                   const char *addon_name) {
     TEN_ASSERT(addon_loader, "Should not happen.");
@@ -101,37 +89,33 @@ class addon_loader_t {
     auto *cpp_addon_loader =
         static_cast<addon_loader_t *>(ten_binding_handle_get_me_in_target_lang(
             reinterpret_cast<ten_binding_handle_t *>(addon_loader)));
-    auto *cpp_ten_env =
-        static_cast<ten_env_t *>(ten_binding_handle_get_me_in_target_lang(
-            reinterpret_cast<ten_binding_handle_t *>(ten_env)));
 
-    cpp_addon_loader->invoke_cpp_addon_loader_on_load_addon(
-        *cpp_ten_env, addon_type, addon_name);
+    cpp_addon_loader->invoke_cpp_addon_loader_on_load_addon(addon_type,
+                                                            addon_name);
   }
 
-  void invoke_cpp_addon_loader_on_init(ten_env_t &ten_env) {
+  void invoke_cpp_addon_loader_on_init() {
     try {
-      on_init(ten_env);
+      on_init();
     } catch (...) {
       TEN_ASSERT(0, "Should not happen.");
       exit(EXIT_FAILURE);
     }
   }
 
-  void invoke_cpp_addon_loader_on_deinit(ten_env_t &ten_env) {
+  void invoke_cpp_addon_loader_on_deinit() {
     try {
-      on_deinit(ten_env);
+      on_deinit();
     } catch (...) {
       TEN_ASSERT(0, "Should not happen.");
       exit(EXIT_FAILURE);
     }
   }
 
-  void invoke_cpp_addon_loader_on_load_addon(ten_env_t &ten_env,
-                                             TEN_ADDON_TYPE addon_type,
+  void invoke_cpp_addon_loader_on_load_addon(TEN_ADDON_TYPE addon_type,
                                              const char *addon_name) {
     try {
-      on_load_addon(ten_env, addon_type, addon_name);
+      on_load_addon(addon_type, addon_name);
     } catch (...) {
       TEN_ASSERT(0, "Should not happen.");
       exit(EXIT_FAILURE);
@@ -139,7 +123,14 @@ class addon_loader_t {
   }
 
   ::ten_addon_loader_t *c_addon_loader;
-  ten_env_t *cpp_ten_env;
+};
+
+class addon_loader_internal_accessor_t {
+ public:
+  static ::ten_addon_loader_t *get_c_addon_loader(
+      const addon_loader_t *addon_loader) {
+    return addon_loader->get_c_addon_loader();
+  }
 };
 
 }  // namespace ten

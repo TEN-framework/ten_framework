@@ -33,7 +33,6 @@ typedef enum TEN_ENV_ATTACH_TO {
   TEN_ENV_ATTACH_TO_APP,
   TEN_ENV_ATTACH_TO_ADDON,
   TEN_ENV_ATTACH_TO_ENGINE,
-  TEN_ENV_ATTACH_TO_ADDON_LOADER,
 } TEN_ENV_ATTACH_TO;
 
 typedef struct ten_env_t {
@@ -80,9 +79,6 @@ TEN_RUNTIME_PRIVATE_API ten_env_t *ten_env_create_for_addon(
 
 TEN_RUNTIME_PRIVATE_API ten_env_t *ten_env_create_for_extension(
     ten_extension_t *extension);
-
-TEN_RUNTIME_PRIVATE_API ten_env_t *ten_env_create_for_addon_loader(
-    ten_addon_loader_t *addon_loader);
 
 TEN_RUNTIME_PRIVATE_API ten_env_t *ten_env_create_for_app(ten_app_t *app);
 
