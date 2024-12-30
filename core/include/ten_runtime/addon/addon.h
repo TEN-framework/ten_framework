@@ -32,10 +32,9 @@ typedef enum TEN_ADDON_TYPE {
   TEN_ADDON_TYPE_INVALID,
 
   TEN_ADDON_TYPE_EXTENSION,
+  TEN_ADDON_TYPE_EXTENSION_GROUP,  // Internal use only.
   TEN_ADDON_TYPE_PROTOCOL,
   TEN_ADDON_TYPE_ADDON_LOADER,
-
-  TEN_ADDON_TYPE_EXTENSION_GROUP,  // Internal use only.
 } TEN_ADDON_TYPE;
 
 typedef void (*ten_addon_on_init_func_t)(ten_addon_t *addon,
