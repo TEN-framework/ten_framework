@@ -35,27 +35,32 @@ static void ten_env_notify_get_property_info_destroy(
   TEN_FREE(info);
 }
 
-static void proxy_peek_property_cb(ten_env_t *ten_env, ten_value_t *value,
-                                   void *cb_data, ten_error_t *err) {
+static void ten_env_proxy_notify_get_property(ten_env_t *ten_env,
+                                              void *user_data) {
+  TEN_ASSERT(user_data, "Invalid argument.");
   TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
              "Should not happen.");
 
-  ten_env_notify_get_property_info_t *info = cb_data;
+  ten_env_notify_get_property_info_t *info = user_data;
   TEN_ASSERT(info, "Should not happen.");
 
   ten_nodejs_tsfn_t *js_cb = info->js_cb;
   TEN_ASSERT(js_cb && ten_nodejs_tsfn_check_integrity(js_cb, false),
              "Should not happen.");
 
+  ten_error_t err;
+  ten_error_init(&err);
+
+  ten_value_t *value =
+      ten_env_peek_property(ten_env, ten_string_get_raw_str(&info->path), &err);
+
   ten_value_t *cloned_value = NULL;
   ten_error_t *cloned_error = NULL;
   if (value) {
     cloned_value = ten_value_clone(value);
-  }
-
-  if (err) {
+  } else {
     cloned_error = ten_error_create();
-    ten_error_copy(cloned_error, err);
+    ten_error_copy(cloned_error, &err);
   }
 
   ten_nodejs_get_property_call_info_t *call_info =
@@ -67,27 +72,6 @@ static void proxy_peek_property_cb(ten_env_t *ten_env, ten_value_t *value,
   TEN_ASSERT(rc, "Should not happen.");
 
   ten_env_notify_get_property_info_destroy(info);
-}
-
-static void ten_env_proxy_notify_get_property(ten_env_t *ten_env,
-                                              void *user_data) {
-  TEN_ASSERT(user_data, "Invalid argument.");
-  TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
-             "Should not happen.");
-
-  ten_env_notify_get_property_info_t *info = user_data;
-  TEN_ASSERT(info, "Should not happen.");
-  TEN_ASSERT(info->js_cb, "Should not happen.");
-
-  ten_error_t err;
-  ten_error_init(&err);
-
-  bool rc =
-      ten_env_peek_property_async(ten_env, ten_string_get_raw_str(&info->path),
-                                  proxy_peek_property_cb, info, &err);
-  if (!rc) {
-    proxy_peek_property_cb(ten_env, NULL, info, &err);
-  }
 
   ten_error_deinit(&err);
 }
