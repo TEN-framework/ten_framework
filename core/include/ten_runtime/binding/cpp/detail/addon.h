@@ -21,9 +21,9 @@ namespace ten {
 class addon_t {
  public:
   addon_t()
-      : c_addon(ten_addon_create(
-            proxy_on_init, proxy_on_deinit, proxy_on_create_instance,
-            proxy_on_destroy_instance, proxy_on_load_addon, proxy_on_destroy)) {
+      : c_addon(ten_addon_create(proxy_on_init, proxy_on_deinit,
+                                 proxy_on_create_instance,
+                                 proxy_on_destroy_instance, proxy_on_destroy)) {
     ten_binding_handle_set_me_in_target_lang(
         reinterpret_cast<ten_binding_handle_t *>(c_addon), this);
   }
@@ -70,18 +70,6 @@ class addon_t {
     TEN_ASSERT(0, "Should not happen.");
   };
 
-  virtual void on_load_addon(ten_env_t &ten_env, TEN_ADDON_TYPE addon_type,
-                             const char *addon_name, void *context) {
-    (void)ten_env;
-    (void)addon_type;
-    (void)addon_name;
-    (void)context;
-
-    // If a subclass requires the functionality of this function, it needs to
-    // override this function.
-    TEN_ASSERT(0, "Should not happen.");
-  }
-
  private:
   ten_addon_t *c_addon;
   ten_env_t *cpp_ten_env{};
@@ -118,17 +106,6 @@ class addon_t {
     // If a subclass requires the functionality of this function, it needs to
     // override this function.
     TEN_ASSERT(0, "Should not happen.");
-  }
-
-  void invoke_cpp_addon_on_load_addon(ten_env_t &ten_env,
-                                      TEN_ADDON_TYPE addon_type,
-                                      const char *addon_name, void *context) {
-    try {
-      on_load_addon(ten_env, addon_type, addon_name, context);
-    } catch (...) {
-      TEN_LOGW("Caught a exception '%s' in addon on_load_addon(%s).",
-               curr_exception_type_name().c_str(), addon_name);
-    }
   }
 
   void invoke_cpp_addon_on_destroy_instance(ten_env_t &ten_env, void *instance,
@@ -211,26 +188,6 @@ class addon_t {
 
     cpp_addon->invoke_cpp_addon_on_destroy_instance(*cpp_ten_env, cpp_instance,
                                                     context);
-  }
-
-  static void proxy_on_load_addon(ten_addon_t *addon, ::ten_env_t *ten_env,
-                                  TEN_ADDON_TYPE addon_type,
-                                  const char *addon_name, void *context) {
-    TEN_ASSERT(addon && ten_env && addon_name && strlen(addon_name),
-               "Invalid argument.");
-
-    auto *cpp_addon =
-        static_cast<addon_t *>(ten_binding_handle_get_me_in_target_lang(
-            reinterpret_cast<ten_binding_handle_t *>(addon)));
-    TEN_ASSERT(cpp_addon, "Should not happen.");
-
-    auto *cpp_ten_env =
-        static_cast<ten_env_t *>(ten_binding_handle_get_me_in_target_lang(
-            reinterpret_cast<ten_binding_handle_t *>(ten_env)));
-    TEN_ASSERT(cpp_ten_env, "Should not happen.");
-
-    cpp_addon->invoke_cpp_addon_on_load_addon(*cpp_ten_env, addon_type,
-                                              addon_name, context);
   }
 
   static void proxy_on_destroy(ten_addon_t *addon) {

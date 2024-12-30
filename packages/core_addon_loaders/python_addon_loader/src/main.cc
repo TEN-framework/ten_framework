@@ -8,6 +8,8 @@
 
 #include "include_internal/ten_runtime/addon/addon_loader/addon_loader.h"
 #include "include_internal/ten_runtime/app/metadata.h"
+#include "include_internal/ten_runtime/binding/cpp/detail/addon_loader.h"
+#include "include_internal/ten_runtime/binding/cpp/detail/addon_manager.h"
 #include "include_internal/ten_runtime/binding/cpp/detail/ten_env_internal_accessor.h"
 #include "include_internal/ten_runtime/binding/python/common.h"
 #include "include_internal/ten_runtime/common/base_dir.h"
@@ -15,8 +17,6 @@
 #include "include_internal/ten_runtime/metadata/manifest.h"
 #include "include_internal/ten_runtime/ten_env/ten_env.h"
 #include "ten_runtime/addon/addon.h"
-#include "ten_runtime/addon/addon_manager.h"
-#include "ten_runtime/binding/cpp/detail/addon.h"
 #include "ten_runtime/binding/cpp/detail/ten_env.h"
 #include "ten_runtime/binding/cpp/ten.h"
 #include "ten_utils/container/list_str.h"
@@ -108,9 +108,9 @@ static void foo() {}
 
 namespace {
 
-class python_addon_loader_addon_t : public ten::addon_t {
+class python_addon_loader_t : public ten::addon_loader_t {
  public:
-  explicit python_addon_loader_addon_t() = default;
+  explicit python_addon_loader_t(const char *name) { (void)name; };
 
   void on_init(ten::ten_env_t &ten_env) override {
     // Do some initializations.
@@ -197,10 +197,9 @@ class python_addon_loader_addon_t : public ten::addon_t {
   }
 
   void on_load_addon(ten::ten_env_t &ten_env, TEN_ADDON_TYPE addon_type,
-                     const char *addon_name, void *context) override {
+                     const char *addon_name) override {
     // Load the specified addon.
     (void)ten_env;
-    (void)context;
 
     void *ten_py_gil_state = ten_py_gil_state_ensure();
 
@@ -426,29 +425,7 @@ class python_addon_loader_addon_t : public ten::addon_t {
   }
 };
 
-void ____ten_addon_python_addon_loader_register_handler____(
-    void *register_ctx) {
-  auto *addon_instance = new python_addon_loader_addon_t();
-  ten_string_t *base_dir =
-      ten_path_get_module_path(/* NOLINTNEXTLINE */
-                               (void *)
-                                   ____ten_addon_python_addon_loader_register_handler____);
-  ten_addon_register_addon_loader(
-      "python_addon_loader", ten_string_get_raw_str(base_dir),
-      ten::addon_internal_accessor_t::get_c_addon(addon_instance),
-      register_ctx);
-  ten_string_destroy(base_dir);
-}
-
-TEN_CONSTRUCTOR(____ten_addon_python_addon_loader_registrar____) {
-  ten_addon_manager_t *manager = ten_addon_manager_get_instance();
-  bool success = ten_addon_manager_add_addon(
-      manager, "addon_loader", "python_addon_loader",
-      ____ten_addon_python_addon_loader_register_handler____);
-  if (!success) {
-    TEN_LOGF("Failed to register addon: python_addon_loader");
-    exit(EXIT_FAILURE);
-  }
-}
+TEN_CPP_REGISTER_ADDON_AS_ADDON_LOADER(python_addon_loader,
+                                       python_addon_loader_t);
 
 }  // namespace

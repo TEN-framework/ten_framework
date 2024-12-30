@@ -749,6 +749,7 @@ class ten_env_t {
   friend class extension_group_t;
   friend class addon_t;
   friend class extension_addon_t;
+  friend class addon_loader_t;
   friend class ten_env_internal_accessor_t;
 
   ::ten_env_t *c_ten_env;

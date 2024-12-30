@@ -110,6 +110,13 @@ ten_env_t *ten_env_create_for_extension(ten_extension_t *extension) {
   return ten_create_with_attach_to(TEN_ENV_ATTACH_TO_EXTENSION, extension);
 }
 
+ten_env_t *ten_env_create_for_addon_loader(ten_addon_loader_t *addon_loader) {
+  TEN_ASSERT(addon_loader, "Invalid argument.");
+
+  return ten_create_with_attach_to(TEN_ENV_ATTACH_TO_ADDON_LOADER,
+                                   addon_loader);
+}
+
 ten_env_t *ten_env_create_for_extension_group(
     ten_extension_group_t *extension_group) {
   TEN_ASSERT(extension_group &&
