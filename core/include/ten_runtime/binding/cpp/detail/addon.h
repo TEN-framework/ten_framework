@@ -9,7 +9,6 @@
 #include <cassert>
 #include <cstddef>
 
-#include "include_internal/ten_runtime/addon/addon.h"
 #include "ten_runtime/addon/addon.h"
 #include "ten_runtime/addon/extension/extension.h"
 #include "ten_runtime/binding/common.h"
