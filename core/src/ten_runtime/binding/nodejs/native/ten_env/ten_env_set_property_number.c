@@ -36,7 +36,8 @@ static void tsfn_proxy_set_property_number_callback(napi_env env,
 
   napi_value args[] = {js_error};
   napi_value result = NULL;
-  napi_status status = napi_call_function(env, NULL, js_cb, 1, args, &result);
+  napi_status status =
+      napi_call_function(env, js_undefined(env), js_cb, 1, args, &result);
   ASSERT_IF_NAPI_FAIL(
       status == napi_ok,
       "Failed to call JS callback of TenEnv::setPropertyNumber: %d", status);

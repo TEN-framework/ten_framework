@@ -1,7 +1,4 @@
 {
-  "type": "app",
-  "name": "{{package_name}}",
-  "version": "0.6.0",
   "dependencies": [
     {
       "type": "system",
@@ -12,6 +9,16 @@
       "type": "system",
       "name": "ten_runtime_nodejs",
       "version": "0.6.0"
+    },
+    {
+      "type": "extension",
+      "name": "http_server_extension_ts",
+      "version": "0.6.0"
+    },
+    {
+      "type": "extension",
+      "name": "simple_echo_cpp",
+      "version": "0.1.0"
     }
   ]
 }

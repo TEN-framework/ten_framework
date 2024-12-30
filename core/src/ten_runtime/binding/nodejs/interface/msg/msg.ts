@@ -11,6 +11,14 @@ export class Msg {
         return ten_addon.ten_nodejs_msg_get_name(this);
     }
 
+    setDest(
+        appUri: string | undefined = undefined,
+        graphId: string | undefined = undefined,
+        extensionGroup: string | undefined = undefined,
+        extension: string | undefined = undefined) {
+        ten_addon.ten_nodejs_msg_set_dest(this, appUri, graphId, extensionGroup, extension);
+    }
+
     setPropertyFromJson(path: string, jsonStr: string): void {
         ten_addon.ten_nodejs_msg_set_property_from_json(this, path, jsonStr);
     }

@@ -6,6 +6,7 @@
 //
 #include "include_internal/ten_runtime/binding/nodejs/msg/msg.h"
 
+#include "include_internal/ten_runtime/binding/nodejs/common/common.h"
 #include "include_internal/ten_runtime/msg/msg.h"
 #include "ten_utils/lib/buf.h"
 #include "ten_utils/lib/json.h"
@@ -66,6 +67,83 @@ static napi_value ten_nodejs_msg_get_name(napi_env env,
                                 "Failed to create JS string: %d", status);
 
   return js_msg_name;
+}
+
+static napi_value ten_nodejs_msg_set_dest(napi_env env,
+                                          napi_callback_info info) {
+  const size_t argc = 5;
+  napi_value args[argc];  // this, app_uri, graph_id, extension_group, extension
+  if (!ten_nodejs_get_js_func_args(env, info, args, argc)) {
+    napi_fatal_error(NULL, NAPI_AUTO_LENGTH,
+                     "Incorrect number of parameters passed.",
+                     NAPI_AUTO_LENGTH);
+    TEN_ASSERT(0, "Should not happen.");
+    return js_undefined(env);
+  }
+
+  ten_nodejs_msg_t *msg_bridge = NULL;
+  napi_status status = napi_unwrap(env, args[0], (void **)&msg_bridge);
+  RETURN_UNDEFINED_IF_NAPI_FAIL(status == napi_ok && msg_bridge != NULL,
+                                "Failed to get msg bridge: %d", status);
+  TEN_ASSERT(msg_bridge, "Should not happen.");
+
+  ten_error_t err;
+  ten_error_init(&err);
+
+  ten_string_t app_uri;
+  ten_string_init(&app_uri);
+
+  ten_string_t graph_id;
+  ten_string_init(&graph_id);
+
+  ten_string_t extension_group;
+  ten_string_init(&extension_group);
+
+  ten_string_t extension;
+  ten_string_init(&extension);
+
+  if (!is_js_undefined(env, args[1])) {
+    bool rc = ten_nodejs_get_str_from_js(env, args[1], &app_uri);
+    RETURN_UNDEFINED_IF_NAPI_FAIL(rc, "Failed to get app URI", NULL);
+  }
+
+  if (!is_js_undefined(env, args[2])) {
+    bool rc = ten_nodejs_get_str_from_js(env, args[2], &graph_id);
+    RETURN_UNDEFINED_IF_NAPI_FAIL(rc, "Failed to get graph ID", NULL);
+  }
+
+  if (!is_js_undefined(env, args[3])) {
+    bool rc = ten_nodejs_get_str_from_js(env, args[3], &extension_group);
+    RETURN_UNDEFINED_IF_NAPI_FAIL(rc, "Failed to get extension group", NULL);
+  }
+
+  if (!is_js_undefined(env, args[4])) {
+    bool rc = ten_nodejs_get_str_from_js(env, args[4], &extension);
+    RETURN_UNDEFINED_IF_NAPI_FAIL(rc, "Failed to get extension", NULL);
+  }
+
+  bool rc = ten_msg_clear_and_set_dest(
+      msg_bridge->msg, ten_string_get_raw_str(&app_uri),
+      ten_string_get_raw_str(&graph_id),
+      ten_string_get_raw_str(&extension_group),
+      ten_string_get_raw_str(&extension), &err);
+  if (!rc) {
+    ten_string_t code_str;
+    ten_string_init_formatted(&code_str, "%d", ten_error_errno(&err));
+
+    napi_throw_error(env, ten_string_get_raw_str(&code_str),
+                     ten_error_errmsg(&err));
+
+    ten_string_deinit(&code_str);
+  }
+
+  ten_string_deinit(&app_uri);
+  ten_string_deinit(&graph_id);
+  ten_string_deinit(&extension_group);
+  ten_string_deinit(&extension);
+  ten_error_deinit(&err);
+
+  return js_undefined(env);
 }
 
 static napi_value ten_nodejs_msg_set_property_from_json(
@@ -703,6 +781,7 @@ done:
 
 napi_value ten_nodejs_msg_module_init(napi_env env, napi_value exports) {
   EXPORT_FUNC(env, exports, ten_nodejs_msg_get_name);
+  EXPORT_FUNC(env, exports, ten_nodejs_msg_set_dest);
   EXPORT_FUNC(env, exports, ten_nodejs_msg_set_property_from_json);
   EXPORT_FUNC(env, exports, ten_nodejs_msg_get_property_to_json);
   EXPORT_FUNC(env, exports, ten_nodejs_msg_set_property_number);
