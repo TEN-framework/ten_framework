@@ -1,5 +1,5 @@
 //
-// Copyright © 2024 Agora
+// Copyright © 2025 Agora
 // This file is part of TEN Framework, an open source project.
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
@@ -40,17 +40,11 @@ ten_addon_t *ten_addon_unregister_protocol(const char *name) {
   return ten_addon_unregister(ten_protocol_get_global_store(), name);
 }
 
-void ten_addon_register_protocol(const char *name, const char *base_dir,
-                                 ten_addon_t *addon) {
-  ten_addon_host_t *addon_host =
-      (ten_addon_host_t *)TEN_MALLOC(sizeof(ten_addon_host_t));
-  TEN_ASSERT(addon_host, "Failed to allocate memory.");
-
-  addon_host->type = TEN_ADDON_TYPE_PROTOCOL;
-  ten_addon_host_init(addon_host);
-
-  ten_addon_register(ten_protocol_get_global_store(), addon_host, name,
-                     base_dir, addon);
+ten_addon_host_t *ten_addon_register_protocol(const char *name,
+                                              const char *base_dir,
+                                              ten_addon_t *addon) {
+  return ten_addon_register(TEN_ADDON_TYPE_PROTOCOL, name, base_dir, addon,
+                            NULL);
 }
 
 static bool ten_addon_protocol_match_protocol(ten_addon_host_t *self,
@@ -218,10 +212,11 @@ bool ten_addon_create_protocol_with_uri(
       ten_addon_create_protocol_info_create(uri, role, cb, user_data);
   TEN_ASSERT(info, "Failed to allocate memory.");
 
-  bool rc = ten_addon_create_instance_async(
-      ten_env, ten_string_get_raw_str(&addon_host->name),
-      ten_string_get_raw_str(&addon_host->name), TEN_ADDON_TYPE_PROTOCOL,
-      proxy_on_addon_protocol_created, info);
+  bool rc =
+      ten_addon_create_instance_async(ten_env, TEN_ADDON_TYPE_PROTOCOL,
+                                      ten_string_get_raw_str(&addon_host->name),
+                                      ten_string_get_raw_str(&addon_host->name),
+                                      proxy_on_addon_protocol_created, info);
 
   if (!rc) {
     TEN_ENV_LOG_ERROR_INTERNAL(ten_env, "Failed to create protocol for %s",
@@ -265,7 +260,7 @@ bool ten_addon_create_protocol(ten_env_t *ten_env, const char *addon_name,
   TEN_ASSERT(info, "Failed to allocate memory.");
 
   bool rc = ten_addon_create_instance_async(
-      ten_env, addon_name, instance_name, TEN_ADDON_TYPE_PROTOCOL,
+      ten_env, TEN_ADDON_TYPE_PROTOCOL, addon_name, instance_name,
       proxy_on_addon_protocol_created, info);
 
   if (!rc) {

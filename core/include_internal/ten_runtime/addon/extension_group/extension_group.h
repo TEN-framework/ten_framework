@@ -1,5 +1,5 @@
 //
-// Copyright © 2024 Agora
+// Copyright © 2025 Agora
 // This file is part of TEN Framework, an open source project.
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
@@ -10,6 +10,7 @@
 
 #include <stdbool.h>
 
+#include "include_internal/ten_runtime/addon/addon.h"
 #include "ten_runtime/ten_env/ten_env.h"
 
 typedef struct ten_env_t ten_env_t;

@@ -1,5 +1,5 @@
 //
-// Copyright © 2024 Agora
+// Copyright © 2025 Agora
 // This file is part of TEN Framework, an open source project.
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
@@ -28,19 +28,8 @@ ten_addon_host_t *ten_addon_register_extension_group(const char *name,
                                                      const char *base_dir,
                                                      ten_addon_t *addon,
                                                      void *register_ctx) {
-  if (!name || strlen(name) == 0) {
-    TEN_LOGE("The addon name is required.");
-    exit(EXIT_FAILURE);
-  }
-
-  ten_addon_host_t *addon_host =
-      ten_addon_host_create(TEN_ADDON_TYPE_EXTENSION_GROUP);
-  TEN_ASSERT(addon_host, "Should not happen.");
-
-  ten_addon_register(ten_extension_group_get_global_store(), addon_host, name,
-                     base_dir, addon);
-
-  return addon_host;
+  return ten_addon_register(TEN_ADDON_TYPE_EXTENSION_GROUP, name, base_dir,
+                            addon, register_ctx);
 }
 
 ten_addon_t *ten_addon_unregister_extension_group(const char *name) {
@@ -68,9 +57,9 @@ bool ten_addon_create_extension_group(
   TEN_ASSERT(engine && ten_engine_check_integrity(engine, true),
              "Should not happen.");
 
-  return ten_addon_create_instance_async(ten_env, addon_name, instance_name,
-                                         TEN_ADDON_TYPE_EXTENSION_GROUP, cb,
-                                         user_data);
+  return ten_addon_create_instance_async(
+      ten_env, TEN_ADDON_TYPE_EXTENSION_GROUP, addon_name, instance_name, cb,
+      user_data);
 }
 
 bool ten_addon_destroy_extension_group(
