@@ -30,6 +30,11 @@ TEN_RUNTIME_API void *ten_py_eval_save_thread(void);
 
 TEN_RUNTIME_API void ten_py_eval_restore_thread(void *state);
 
-TEN_RUNTIME_API void *ten_py_gil_state_ensure_external(void);
+// @{
+// To prevent callers from needing to include Python's header files, which would
+// require `-I` and `-L` command-line parameters, the two functions below
+// deliberately use `void *` as the parameter type for passing arguments.
+TEN_RUNTIME_API void *ten_py_gil_state_ensure(void);
 
-TEN_RUNTIME_API void ten_py_gil_state_release_external(void *state);
+TEN_RUNTIME_API void ten_py_gil_state_release(void *state);
+// @}

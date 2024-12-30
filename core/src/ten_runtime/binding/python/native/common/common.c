@@ -138,7 +138,7 @@ void ten_py_eval_restore_thread(void *state) {
   PyEval_RestoreThread(state);
 }
 
-PyGILState_STATE ten_py_gil_state_ensure(void) {
+PyGILState_STATE ten_py_gil_state_ensure_internal(void) {
   // The logic inside PyGILState_Ensure is as follows:
   //
   // 1) Retrieves the PyThreadState for the current thread using
@@ -152,7 +152,7 @@ PyGILState_STATE ten_py_gil_state_ensure(void) {
   return PyGILState_Ensure();
 }
 
-void ten_py_gil_state_release(PyGILState_STATE state) {
+void ten_py_gil_state_release_internal(PyGILState_STATE state) {
   // Acquire the 'PyThreadState' of the current thread and determine whether the
   // thread holding the GIL is the current thread. If not, it will cause a fatal
   // error.
@@ -164,18 +164,23 @@ bool ten_py_is_holding_gil(void) {
   return PyGILState_Check() == 1;
 }
 
-typedef struct aaa_t {
+typedef struct ten_py_gil_state_t {
   PyGILState_STATE state;
-} aaa_t;
+} ten_py_gil_state_t;
 
-void *ten_py_gil_state_ensure_external(void) {
-  aaa_t *aaa = TEN_MALLOC(sizeof(aaa_t));
-  aaa->state = PyGILState_Ensure();
-  return aaa;
+void *ten_py_gil_state_ensure(void) {
+  ten_py_gil_state_t *ten_py_gil_state = TEN_MALLOC(sizeof(ten_py_gil_state_t));
+  TEN_ASSERT(ten_py_gil_state, "Failed to allocate memory.");
+
+  ten_py_gil_state->state = ten_py_gil_state_ensure_internal();
+  return (void *)ten_py_gil_state;
 }
 
-void ten_py_gil_state_release_external(void *state) {
-  aaa_t *aaa = state;
-  PyGILState_Release(aaa->state);
-  TEN_FREE(aaa);
+void ten_py_gil_state_release(void *state) {
+  TEN_ASSERT(state, "Invalid argument.");
+
+  ten_py_gil_state_t *ten_py_gil_state = state;
+  ten_py_gil_state_release_internal(ten_py_gil_state->state);
+
+  TEN_FREE(ten_py_gil_state);
 }

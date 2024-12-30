@@ -14,6 +14,7 @@
 #include "include_internal/ten_runtime/common/constant_str.h"
 #include "include_internal/ten_runtime/metadata/manifest.h"
 #include "include_internal/ten_runtime/ten_env/ten_env.h"
+#include "ten_runtime/addon/addon.h"
 #include "ten_runtime/addon/addon_manager.h"
 #include "ten_runtime/binding/cpp/detail/addon.h"
 #include "ten_runtime/binding/cpp/detail/ten_env.h"
@@ -116,6 +117,8 @@ class python_addon_loader_addon_t : public ten::addon_t {
 
     TEN_ENV_LOG_DEBUG(ten_env, "on_init");
 
+    load_all_on_init = ten_env.get_property_bool("load_all_on_init");
+
     int py_initialized = ten_py_is_initialized();
     if (py_initialized != 0) {
       TEN_ENV_LOG_INFO(ten_env, "Python runtime has been initialized.");
@@ -154,9 +157,14 @@ class python_addon_loader_addon_t : public ten::addon_t {
 
     start_debugpy_server_if_needed(ten_env);
 
-    // Traverse `ten_packages/extension` directory and import module.
-    // =-=-=
-    // load_python_extensions_according_to_app_manifest_dependencies(ten_env);
+    if (load_all_on_init) {
+      // Traverse `ten_packages/extension` directory and import module.
+      load_python_extensions_according_to_app_manifest_dependencies(ten_env);
+    } else {
+      TEN_ENV_LOG_INFO(ten_env,
+                       "load_all_on_init is false, skip loading all python "
+                       "extensions when startup.");
+    }
 
     // The `app_base_dir` is no longer needed afterwards, so it is released.
     ten_string_destroy(app_base_dir);
@@ -188,15 +196,17 @@ class python_addon_loader_addon_t : public ten::addon_t {
     ten_env.on_deinit_done();
   }
 
-  void on_load(ten::ten_env_t &ten_env, const char *addon_name,
-               void *context) override {
+  void on_load_addon(ten::ten_env_t &ten_env, TEN_ADDON_TYPE addon_type,
+                     const char *addon_name, void *context) override {
     // Load the specified addon.
+    (void)ten_env;
+    (void)context;
 
-    void *aaa = ten_py_gil_state_ensure_external();
+    void *ten_py_gil_state = ten_py_gil_state_ensure();
 
     // Construct the full module name.
-    ten_string_t *full_module_name =
-        ten_string_create_formatted("ten_packages.extension.%s", addon_name);
+    ten_string_t *full_module_name = ten_string_create_formatted(
+        "ten_packages.%s.%s", ten_addon_type_to_string(addon_type), addon_name);
 
     // Import the specified Python module.
     ten_py_import_module(ten_string_get_raw_str(full_module_name));
@@ -204,14 +214,15 @@ class python_addon_loader_addon_t : public ten::addon_t {
     ten_string_destroy(full_module_name);
 
     // Register the addon if necessary.
-    register_single_addon(addon_name);
+    register_single_addon(addon_type, addon_name);
 
-    ten_py_gil_state_release_external(aaa);
+    ten_py_gil_state_release(ten_py_gil_state);
   }
 
  private:
   void *py_thread_state_ = nullptr;
   bool py_init_by_self_ = false;
+  bool load_all_on_init = false;
   ten_string_t *app_base_dir = nullptr;
 
   void find_app_base_dir() {
@@ -264,7 +275,6 @@ class python_addon_loader_addon_t : public ten::addon_t {
     return result;
   }
 
-  // =-=-=
   void load_python_extensions_according_to_app_manifest_dependencies(
       ten::ten_env_t &ten_env) {
     ten_string_t *addon_extensions_path = get_addon_extensions_path();
@@ -330,7 +340,6 @@ class python_addon_loader_addon_t : public ten::addon_t {
                                   .c_str());
   }
 
-  // =-=-=
   // Load all python addons by import modules.
   static void load_all_python_modules(ten::ten_env_t &ten_env,
                                       ten_string_t *addon_extensions_path) {
@@ -390,7 +399,10 @@ class python_addon_loader_addon_t : public ten::addon_t {
         "_AddonManager.register_all_addons(None)\n");
   }
 
-  static void register_single_addon(const char *addon_name) {
+  static void register_single_addon(TEN_ADDON_TYPE addon_type,
+                                    const char *addon_name) {
+    (void)addon_type;
+
     std::string register_script =
         "from ten import _AddonManager\n"
         "_AddonManager.register_addon('" +
