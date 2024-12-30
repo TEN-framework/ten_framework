@@ -73,11 +73,10 @@
     "dependencies": {
       "type": "array",
       "items": {
-        "type": "object",
-        "additionalProperties": false,
         "oneOf": [
           {
             "type": "object",
+            "additionalProperties": false,
             "required": [
               "path"
             ],
@@ -89,6 +88,7 @@
           },
           {
             "type": "object",
+            "additionalProperties": false,
             "required": [
               "type",
               "name",
