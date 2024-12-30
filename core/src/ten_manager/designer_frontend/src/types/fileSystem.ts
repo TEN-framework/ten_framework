@@ -5,3 +5,13 @@ export interface IFileContentResponse {
 export interface ISetBaseDirResponse {
   success: boolean;
 }
+
+export type TBaseDirEntry = {
+  name: string;
+  path: string;
+  is_dir?: boolean;
+};
+
+export interface IBaseDirResponse {
+  entries: TBaseDirEntry[];
+}

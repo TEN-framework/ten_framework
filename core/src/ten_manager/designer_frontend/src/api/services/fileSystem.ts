@@ -7,6 +7,8 @@ import {
 import { ENDPOINT_FILE_SYSTEM } from "@/api/endpoints";
 import { ENDPOINT_METHOD } from "@/api/endpoints/constant";
 
+// request functions -------------------------------
+
 export const getFileContent = async (path: string) => {
   const encodedPath = encodeURIComponent(path);
   const template = ENDPOINT_FILE_SYSTEM.fileContent.get;
@@ -44,6 +46,18 @@ export const putBaseDir = async (baseDir: string) => {
   return template.responseSchema.parse(res).data;
 };
 
+export const getDirList = async (path: string) => {
+  const encodedPath = encodeURIComponent(path);
+  const template = ENDPOINT_FILE_SYSTEM.dirList[ENDPOINT_METHOD.GET];
+  const req = makeAPIRequest(template, {
+    pathParams: { path: encodedPath },
+  });
+  const res = await req;
+  return template.responseSchema.parse(res).data;
+};
+
+// query hooks -------------------------------
+
 export const useFileContent = (path: string) => {
   const template = ENDPOINT_FILE_SYSTEM.fileContent[ENDPOINT_METHOD.GET];
   const url = prepareReqUrl(template, {
@@ -61,5 +75,26 @@ export const useFileContent = (path: string) => {
     content: data?.data.content,
     error,
     isLoading,
+  };
+};
+
+export const useDirList = (path: string) => {
+  const template = ENDPOINT_FILE_SYSTEM.dirList[ENDPOINT_METHOD.GET];
+  const url = prepareReqUrl(template, {
+    pathParams: { path: encodeURIComponent(path) },
+  });
+  const [{ data, error, isLoading, mutate }, controller] = useCancelableSWR<
+    z.infer<typeof template.responseSchema>
+  >(url, {
+    revalidateOnFocus: false,
+    refreshInterval: 0,
+    errorRetryCount: 0,
+  });
+  return {
+    data: data?.data,
+    error,
+    isLoading,
+    mutate,
+    controller,
   };
 };

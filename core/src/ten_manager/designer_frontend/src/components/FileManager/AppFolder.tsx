@@ -2,341 +2,66 @@ import * as React from "react";
 import { FolderClosedIcon, FileIcon, FolderOpenIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/Button";
+import { SpinnerLoading } from "@/components/Status/Loading";
 import { cn } from "@/lib/utils";
 
-// TODO: remove mock data
-const _MOCK_APP_FOLDER: IFileManagerData[] = [
-  {
-    name: "root",
-    type: "folder",
-    children: [
-      {
-        name: "folder1",
-        type: "folder",
-        children: [
-          {
-            name: "file1.txt",
-            type: "file",
-          },
-          {
-            name: "file2.txt",
-            type: "file",
-          },
-          {
-            name: "folder2",
-            type: "folder",
-            children: [
-              {
-                name: "file3.txt",
-                type: "file",
-              },
-              {
-                name: "file4.txt",
-                type: "file",
-              },
-              {
-                name: "folder3",
-                type: "folder",
-                children: [
-                  {
-                    name: "file5.txt",
-                    type: "file",
-                  },
-                  {
-                    name: "file6.txt",
-                    type: "file",
-                  },
-                  {
-                    name: "folder4",
-                    type: "folder",
-                    children: [
-                      {
-                        name: "file7.txt",
-                        type: "file",
-                      },
-                      {
-                        name: "file8.txt",
-                        type: "file",
-                      },
-                      {
-                        name: "folder5",
-                        type: "folder",
-                        children: [
-                          {
-                            name: "file9.txt",
-                            type: "file",
-                          },
-                          {
-                            name: "file10.txt",
-                            type: "file",
-                          },
-                        ],
-                      },
-                    ],
-                  },
-                ],
-              },
-              {
-                name: "file11.txt",
-                type: "file",
-              },
-              {
-                name: "file12.txt",
-                type: "file",
-              },
-              {
-                name: "folder6",
-                type: "folder",
-                children: [
-                  {
-                    name: "file13.txt",
-                    type: "file",
-                  },
-                  {
-                    name: "file14.txt",
-                    type: "file",
-                  },
-                ],
-              },
-              {
-                name: "folder7",
-                type: "folder",
-                children: [
-                  {
-                    name: "file15.txt",
-                    type: "file",
-                  },
-                  {
-                    name: "file16.txt",
-                    type: "file",
-                  },
-                  {
-                    name: "folder8",
-                    type: "folder",
-                    children: [
-                      {
-                        name: "file17.txt",
-                        type: "file",
-                      },
-                      {
-                        name: "file18.txt",
-                        type: "file",
-                      },
-                    ],
-                  },
-                ],
-              },
-              {
-                name: "file19.txt",
-                type: "file",
-              },
-              {
-                name: "file20.txt",
-                type: "file",
-              },
-            ],
-          },
-          {
-            name: "file21.txt",
-            type: "file",
-          },
-          {
-            name: "file22.txt",
-            type: "file",
-          },
-          {
-            name: "file23.txt",
-            type: "file",
-          },
-          {
-            name: "file24.txt",
-            type: "file",
-          },
-          {
-            name: "file25.txt",
-            type: "file",
-          },
-          {
-            name: "file26.txt",
-            type: "file",
-          },
-          {
-            name: "file27.txt",
-            type: "file",
-          },
-          {
-            name: "file28.txt",
-            type: "file",
-          },
-          {
-            name: "file29.txt",
-            type: "file",
-          },
-          {
-            name: "file30.txt",
-            type: "file",
-          },
-          {
-            name: "folder9",
-            type: "folder",
-            children: [
-              {
-                name: "file31.txt",
-                type: "file",
-              },
-              {
-                name: "file32.txt",
-                type: "file",
-              },
-              {
-                name: "folder10",
-                type: "folder",
-                children: [
-                  {
-                    name: "file33.txt",
-                    type: "file",
-                  },
-                  {
-                    name: "file34.txt",
-                    type: "file",
-                  },
-                ],
-              },
-            ],
-          },
-          {
-            name: "folder11",
-            type: "folder",
-            children: [
-              {
-                name: "file35.txt",
-                type: "file",
-              },
-              {
-                name: "file36.txt",
-                type: "file",
-              },
-              {
-                name: "folder12",
-                type: "folder",
-                children: [
-                  {
-                    name: "file37.txt",
-                    type: "file",
-                  },
-                  {
-                    name: "file38.txt",
-                    type: "file",
-                  },
-                ],
-              },
-            ],
-          },
-          {
-            name: "file39.txt",
-            type: "file",
-          },
-          {
-            name: "file40.txt",
-            type: "file",
-          },
-          {
-            name: "file41.txt",
-            type: "file",
-          },
-          {
-            name: "file42.txt",
-            type: "file",
-          },
-          {
-            name: "file43.txt",
-            type: "file",
-          },
-          {
-            name: "file44.txt",
-            type: "file",
-          },
-          {
-            name: "file45.txt",
-            type: "file",
-          },
-          {
-            name: "file46.txt",
-            type: "file",
-          },
-          {
-            name: "file47.txt",
-            type: "file",
-          },
-          {
-            name: "file48.txt",
-            type: "file",
-          },
-          {
-            name: "file49.txt",
-            type: "file",
-          },
-          {
-            name: "file50.txt",
-            type: "file",
-          },
-        ],
-      },
-    ],
-  },
-];
+import type { IFMItem } from "@/components/FileManager/utils";
+import {
+  EFMItemType,
+  calculateDirDepth,
+  getSelectedPathAndNeighbors,
+} from "@/components/FileManager/utils";
 
-export interface IFileManagerData {
-  name: string;
-  type: "file" | "folder";
-  children?: IFileManagerData[];
-}
-export interface IFMTreeItem extends IFileManagerData {
-  id: string;
-  children?: IFMTreeItem[];
-}
+const DEFAULT_SELECTED_PATH = "/";
 
 export function ThreeColumnFileManager(props: {
-  // TODO: use enum
-  allowSelectTypes?: ("file" | "folder")[];
+  allowSelectTypes?: EFMItemType[];
   onSelect?: (path: string) => void;
-  data?: IFileManagerData[];
-  defaultSelectedId?: string;
+  data?: IFMItem[][];
+  selectedPath?: string;
   className?: string;
+  isLoading?: boolean;
 }) {
   const {
     onSelect,
-    data = _MOCK_APP_FOLDER, // TODO: remove mock data
-    defaultSelectedId = null,
+    data,
+    selectedPath = DEFAULT_SELECTED_PATH,
     allowSelectTypes,
     className,
+    isLoading,
   } = props;
-  const [selectedId, setSelectedId] = React.useState<string | null>(
-    defaultSelectedId
-  );
 
-  const treeMemo = React.useMemo(() => parseFMTree(data), [data]);
-
-  const colsMemo = React.useMemo(
-    () => getFMTreeItemCols(treeMemo, selectedId),
-    [treeMemo, selectedId]
-  );
-
-  const selectedPathStringMemo = React.useMemo(
-    () => getFMTreeItemPath(treeMemo, selectedId),
-    [treeMemo, selectedId]
-  );
-
-  const handleSelect = (id: string) => {
-    setSelectedId(id);
-    onSelect?.(getFMTreeItemPath(treeMemo, id));
-  };
-
-  const calculateDisabled = (data: IFMTreeItem) => {
-    if (!allowSelectTypes || allowSelectTypes.length === 0) {
-      return false;
+  const [colsMemo, metaMemo] = React.useMemo(() => {
+    const cols = getSelectedPathAndNeighbors(data || [], selectedPath);
+    const selectedPathDepth = calculateDirDepth(selectedPath);
+    if (selectedPathDepth === 1) {
+      return [
+        [cols.current, cols.next1, cols.next2],
+        { selectedPathDepth, currentSelectedCol: 0 },
+      ];
+    } else if (selectedPathDepth === 2) {
+      return [
+        [cols.prev1, cols.current, cols.next1],
+        { selectedPathDepth, currentSelectedCol: 1 },
+      ];
+    } else {
+      // if selectedPathDepth > 2, we need to check if the last path is empty
+      const colChild = cols.next1;
+      if (colChild.length === 0) {
+        return [
+          [cols.prev2, cols.prev1, cols.current],
+          { selectedPathDepth, currentSelectedCol: 2 },
+        ];
+      }
     }
-    return !allowSelectTypes.includes(data.type);
+    return [
+      [cols.prev1, cols.current, cols.next1],
+      { selectedPathDepth, currentSelectedCol: 1 },
+    ];
+  }, [data, selectedPath]);
+
+  const handleSelect = (path: string) => {
+    onSelect?.(path);
   };
 
   return (
@@ -348,7 +73,7 @@ export function ThreeColumnFileManager(props: {
         )}
       >
         <span className="text-xs text-gray-500 dark:text-gray-400">
-          {selectedPathStringMemo}
+          {selectedPath}
         </span>
       </div>
       <div
@@ -357,108 +82,67 @@ export function ThreeColumnFileManager(props: {
           "bg-gray-50 dark:bg-gray-900 rounded-lg"
         )}
       >
-        <FileManagerColumn className="w-1/3 border-r border-gray-300">
-          {colsMemo.length >= 3
-            ? colsMemo[colsMemo.length - 3].map((item) => (
-                <FileManagerColumnItem
-                  key={item.id}
-                  data={item}
-                  selectStatus={
-                    selectedId === item.id
-                      ? "selected"
-                      : selectedId?.startsWith(item.id)
-                        ? "selected-parent"
-                        : "unselected"
-                  }
-                  onClick={() => handleSelect(item.id)}
-                  disabled={calculateDisabled(item)}
-                />
-              ))
-            : colsMemo.length === 2
-              ? colsMemo[colsMemo.length - 2].map((item) => (
-                  <FileManagerColumnItem
-                    key={item.id}
-                    data={item}
-                    selectStatus={
-                      selectedId === item.id
-                        ? "selected"
-                        : selectedId?.startsWith(item.id)
-                          ? "selected-parent"
-                          : "unselected"
-                    }
-                    onClick={() => handleSelect(item.id)}
-                    disabled={calculateDisabled(item)}
-                  />
-                ))
-              : colsMemo[0].map((item) => (
-                  <FileManagerColumnItem
-                    key={item.id}
-                    data={item}
-                    selectStatus={
-                      selectedId === item.id
-                        ? "selected"
-                        : selectedId?.startsWith(item.id)
-                          ? "selected-parent"
-                          : "unselected"
-                    }
-                    onClick={() => handleSelect(item.id)}
-                    disabled={calculateDisabled(item)}
-                  />
-                ))}
+        <FileManagerColumn
+          className="w-1/3 border-r border-gray-300"
+          isLoading={isLoading && metaMemo.currentSelectedCol === 0}
+        >
+          {colsMemo[0].map((item) => (
+            <FMColumnItem
+              key={item.path}
+              data={item}
+              onClick={() => handleSelect(item.path)}
+              selectStatus={
+                selectedPath.startsWith(item.path)
+                  ? metaMemo.currentSelectedCol === 0
+                    ? "selected"
+                    : "selected-parent"
+                  : "unselected"
+              }
+              disabled={
+                allowSelectTypes ? !allowSelectTypes.includes(item.type) : false
+              }
+            />
+          ))}
         </FileManagerColumn>
-        <FileManagerColumn className="w-1/3 border-r border-gray-300">
-          {colsMemo.length >= 3
-            ? colsMemo[colsMemo.length - 2].map((item) => (
-                <FileManagerColumnItem
-                  key={item.id}
-                  data={item}
-                  selectStatus={
-                    selectedId === item.id
-                      ? "selected"
-                      : selectedId?.startsWith(item.id)
-                        ? "selected-parent"
-                        : "unselected"
-                  }
-                  onClick={() => handleSelect(item.id)}
-                  disabled={calculateDisabled(item)}
-                />
-              ))
-            : colsMemo.length === 2
-              ? colsMemo[colsMemo.length - 1].map((item) => (
-                  <FileManagerColumnItem
-                    key={item.id}
-                    data={item}
-                    selectStatus={
-                      selectedId === item.id
-                        ? "selected"
-                        : selectedId?.startsWith(item.id)
-                          ? "selected-parent"
-                          : "unselected"
-                    }
-                    onClick={() => handleSelect(item.id)}
-                    disabled={calculateDisabled(item)}
-                  />
-                ))
-              : []}
+        <FileManagerColumn
+          className="w-1/3 border-r border-gray-300"
+          isLoading={isLoading && metaMemo.currentSelectedCol === 1}
+        >
+          {colsMemo[1].map((item) => (
+            <FMColumnItem
+              key={item.path}
+              data={item}
+              onClick={() => handleSelect(item.path)}
+              selectStatus={
+                selectedPath.startsWith(item.path)
+                  ? metaMemo.currentSelectedCol === 1
+                    ? "selected"
+                    : "selected-parent"
+                  : "unselected"
+              }
+              disabled={
+                allowSelectTypes ? !allowSelectTypes.includes(item.type) : false
+              }
+            />
+          ))}
         </FileManagerColumn>
-        <FileManagerColumn className="w-1/3 px-2 overflow-y-auto">
-          {colsMemo.length >= 3
-            ? colsMemo[colsMemo.length - 1].map((item) => (
-                <FileManagerColumnItem
-                  key={item.id}
-                  data={item}
-                  selectStatus={
-                    selectedId === item.id
-                      ? "selected"
-                      : selectedId?.startsWith(item.id)
-                        ? "selected-parent"
-                        : "unselected"
-                  }
-                  onClick={() => handleSelect(item.id)}
-                  disabled={calculateDisabled(item)}
-                />
-              ))
-            : []}
+        <FileManagerColumn
+          className="w-1/3 px-2 overflow-y-auto"
+          isLoading={isLoading && metaMemo.currentSelectedCol === 2}
+        >
+          {colsMemo[2].map((item) => (
+            <FMColumnItem
+              key={item.path}
+              data={item}
+              onClick={() => handleSelect(item.path)}
+              selectStatus={
+                selectedPath.startsWith(item.path) ? "selected" : "unselected"
+              }
+              disabled={
+                allowSelectTypes ? !allowSelectTypes.includes(item.type) : false
+              }
+            />
+          ))}
         </FileManagerColumn>
       </div>
     </div>
@@ -468,14 +152,28 @@ export function ThreeColumnFileManager(props: {
 function FileManagerColumn(props: {
   className?: string;
   children?: React.ReactNode;
+  isLoading?: boolean;
 }) {
-  const { className, children } = props;
+  const { className, children, isLoading } = props;
 
-  return <ul className={cn("px-2 overflow-y-auto", className)}>{children}</ul>;
+  return (
+    <ul
+      className={cn(
+        "px-2 overflow-y-auto",
+        {
+          "flex items-center justify-center text-gray-500 dark:text-gray-400":
+            isLoading,
+        },
+        className
+      )}
+    >
+      {isLoading ? <SpinnerLoading /> : children}
+    </ul>
+  );
 }
 
-function FileManagerColumnItem(props: {
-  data: IFMTreeItem;
+function FMColumnItem(props: {
+  data: IFMItem;
   onClick?: () => void;
   className?: string;
   selectStatus?: "unselected" | "selected" | "selected-parent";
@@ -490,7 +188,7 @@ function FileManagerColumnItem(props: {
   } = props;
 
   return (
-    <li key={data.name}>
+    <li key={data.path}>
       <Button
         variant="ghost"
         size="sm"
@@ -506,114 +204,19 @@ function FileManagerColumnItem(props: {
         onClick={onClick}
         disabled={disabled}
       >
-        {data.type === "folder" &&
+        {data.type === EFMItemType.FOLDER &&
           (selectStatus === "selected" ||
             selectStatus === "selected-parent") && (
             <FolderOpenIcon className="" />
           )}
-        {data.type === "folder" && selectStatus === "unselected" && (
+        {data.type === EFMItemType.FOLDER && selectStatus === "unselected" && (
           <FolderClosedIcon className="" />
         )}
-        {data.type !== "folder" && <FileIcon className="" />}
-        {data.name} {selectStatus === "selected" ? "(Selected)" : ""}
+        {data.type !== EFMItemType.FOLDER && <FileIcon className="" />}
+        <span className="overflow-hidden text-ellipsis whitespace-nowrap">
+          {data.name} {selectStatus === "selected" ? "(Selected)" : ""}
+        </span>
       </Button>
     </li>
   );
 }
-
-const parseFMTree = (data: IFileManagerData[]): IFMTreeItem[] => {
-  const updateFMTree = (
-    data: IFileManagerData[],
-    currentDepth: number,
-    parentId: string
-  ): IFMTreeItem[] => {
-    return data.map((item, index) => {
-      const id = parentId ? `${parentId}-${index}` : `${index}`;
-      const hasChildren = item.children && item.children.length > 0;
-      const children = hasChildren
-        ? updateFMTree(item.children!, currentDepth + 1, id)
-        : [];
-
-      return {
-        ...item,
-        id,
-        children,
-      };
-    });
-  };
-
-  return updateFMTree(data, 0, "");
-};
-
-const getFMTreeItemCols = (
-  tree: IFMTreeItem[],
-  selectedId?: string | null
-): Omit<IFMTreeItem, "children">[][] => {
-  if (selectedId == null) {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    return [tree.map(({ children, ...rest }) => rest)];
-  }
-
-  const selectedIdParts = selectedId.split("-");
-  const result: Omit<IFMTreeItem, "children">[][] = [];
-  let currentLevelItems = tree;
-  let currentId = "";
-
-  for (let i = 0; i < selectedIdParts.length; i++) {
-    const part = selectedIdParts[i];
-    const selectedIndex = parseInt(part, 10);
-
-    currentId = currentLevelItems[selectedIndex]?.id || "";
-
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    result.push(currentLevelItems.map(({ children, ...rest }) => rest));
-
-    const selectedItem = currentLevelItems.find(
-      (item) => item.id === currentId
-    );
-    if (selectedItem && selectedItem.children) {
-      currentLevelItems = selectedItem.children;
-    } else {
-      break;
-    }
-  }
-
-  if (currentLevelItems.length > 0) {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    result.push(currentLevelItems.map(({ children, ...rest }) => rest));
-  }
-
-  return result;
-};
-
-const getFMTreeItemPath = (
-  tree: IFMTreeItem[],
-  selectedId?: string | null
-): string => {
-  if (selectedId == null) {
-    return tree[0].name;
-  }
-
-  const selectedIdParts = selectedId.split("-");
-  let currentLevelItems = tree;
-  let path = "";
-
-  for (let i = 0; i < selectedIdParts.length; i++) {
-    const part = selectedIdParts[i];
-    const selectedIndex = parseInt(part, 10);
-
-    const selectedItem = currentLevelItems[selectedIndex];
-    if (selectedItem) {
-      path += selectedItem.name + "/";
-      if (selectedItem.children) {
-        currentLevelItems = selectedItem.children;
-      } else {
-        break;
-      }
-    } else {
-      break;
-    }
-  }
-
-  return path.slice(0, -1); // Remove the trailing slash
-};

@@ -125,7 +125,9 @@ const App: React.FC = () => {
       setEdges([]);
     } catch (error: unknown) {
       if (error instanceof Error) {
-        toast.error(`Failed to open a new app folder: ${error.message}`);
+        toast.error(`Failed to open a new app folder`, {
+          description: error.message,
+        });
       } else {
         toast.error("An unknown error occurred.");
       }
