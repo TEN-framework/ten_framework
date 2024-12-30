@@ -126,9 +126,8 @@ class addon_t {
     try {
       on_load_addon(ten_env, addon_type, addon_name, context);
     } catch (...) {
-      TEN_LOGW("Caught a exception '%s' in addon on_load_addon(%s:%s).",
-               curr_exception_type_name().c_str(),
-               ten_addon_type_to_string(addon_type), addon_name);
+      TEN_LOGW("Caught a exception '%s' in addon on_load_addon(%s).",
+               curr_exception_type_name().c_str(), addon_name);
     }
   }
 

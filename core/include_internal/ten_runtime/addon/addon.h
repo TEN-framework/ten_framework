@@ -144,7 +144,8 @@ TEN_RUNTIME_PRIVATE_API bool ten_addon_host_destroy_instance_async(
 TEN_RUNTIME_PRIVATE_API bool ten_addon_host_destroy_instance(
     ten_addon_host_t *self, ten_env_t *ten_env, void *instance);
 
-TEN_RUNTIME_API const char *ten_addon_type_to_string(TEN_ADDON_TYPE type);
+TEN_RUNTIME_PRIVATE_API const char *ten_addon_type_to_string(
+    TEN_ADDON_TYPE type);
 
 /**
  * @brief The base directory of the loaded addon. This function can be
