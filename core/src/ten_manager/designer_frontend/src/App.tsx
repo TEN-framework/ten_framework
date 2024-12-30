@@ -34,7 +34,6 @@ import {
   processNodes,
 } from "@/flow/graph";
 import Popup from "@/components/Popup/Popup";
-
 import type { IGraph } from "@/types/graphs";
 
 const App: React.FC = () => {

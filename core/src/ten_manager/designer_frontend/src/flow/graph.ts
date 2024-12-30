@@ -10,7 +10,6 @@ import dagre from "dagre";
 import { CustomNodeType } from "@/flow/CustomNode";
 import { CustomEdgeType } from "@/flow/CustomEdge";
 import { getExtensionAddonByName } from "@/api/services/addons";
-
 import type { IExtensionAddon } from "@/types/addons";
 import type { IBackendNode, IBackendConnection } from "@/types/graphs";
 

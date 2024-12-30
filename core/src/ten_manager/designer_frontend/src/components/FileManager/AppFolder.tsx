@@ -1,10 +1,15 @@
+//
+// Copyright © 2025 Agora
+// This file is part of TEN Framework, an open source project.
+// Licensed under the Apache License, Version 2.0, with certain conditions.
+// Refer to the "LICENSE" file in the root directory for more information.
+//
 import * as React from "react";
 import { FolderClosedIcon, FileIcon, FolderOpenIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/Button";
 import { SpinnerLoading } from "@/components/Status/Loading";
 import { cn } from "@/lib/utils";
-
 import type { IFMItem } from "@/components/FileManager/utils";
 import {
   EFMItemType,
