@@ -13,12 +13,14 @@
 #include "ten_runtime/addon/addon_manager.h"  // IWYU pragma: export
 
 #define TEN_CPP_REGISTER_ADDON_AS_EXTENSION(NAME, CLASS)                         \
-  class NAME##_default_extension_addon_t : public ten::extension_addon_t {       \
+  class NAME##_default_extension_addon_t : public ten::addon_t {                 \
    public:                                                                       \
     void on_create_instance(ten::ten_env_t &ten_env, const char *name,           \
                             void *context) override {                            \
       auto *instance = new CLASS(name);                                          \
-      ten_env.on_create_instance_done(instance, context);                        \
+      TEN_LOGE("1 %s %p", name, instance);                                       \
+      ten_env.on_create_instance_done(                                           \
+          static_cast<binding_handle_t *>(instance), context);                   \
     }                                                                            \
     void on_destroy_instance(ten::ten_env_t &ten_env, void *instance,            \
                              void *context) override {                           \
@@ -34,7 +36,7 @@
                                      ____ten_addon_##NAME##_register_handler__); \
     ten_addon_register_extension(                                                \
         #NAME, ten_string_get_raw_str(base_dir),                                 \
-        ten::addon_internal_accessor_t::get_c_addon(addon_instance),             \
+        static_cast<ten_addon_t *>(addon_instance->get_c_instance()),            \
         register_ctx);                                                           \
     ten_string_destroy(base_dir);                                                \
   }                                                                              \

@@ -12,25 +12,26 @@
 #include "ten_runtime/addon/addon.h"
 #include "ten_runtime/addon/extension/extension.h"
 #include "ten_runtime/binding/common.h"
+#include "ten_runtime/binding/cpp/detail/binding_handle.h"
 #include "ten_runtime/binding/cpp/detail/common.h"
 #include "ten_runtime/binding/cpp/detail/ten_env.h"
 #include "ten_runtime/ten_env/ten_env.h"
 
 namespace ten {
 
-class addon_t {
+class addon_t : public binding_handle_t {
  public:
   addon_t()
-      : c_addon(ten_addon_create(proxy_on_init, proxy_on_deinit,
-                                 proxy_on_create_instance,
-                                 proxy_on_destroy_instance, proxy_on_destroy)) {
+      : binding_handle_t(ten_addon_create(
+            proxy_on_init, proxy_on_deinit, proxy_on_create_instance,
+            proxy_on_destroy_instance, proxy_on_destroy)) {
     ten_binding_handle_set_me_in_target_lang(
-        reinterpret_cast<ten_binding_handle_t *>(c_addon), this);
+        reinterpret_cast<ten_binding_handle_t *>(get_c_instance()), this);
   }
 
   virtual ~addon_t() {
-    ten_addon_destroy(c_addon);
-    c_addon = nullptr;
+    ten_addon_destroy(static_cast<ten_addon_t *>(get_c_instance()));
+    set_c_instance(nullptr);
 
     TEN_ASSERT(cpp_ten_env, "Should not happen.");
     delete cpp_ten_env;
@@ -71,12 +72,7 @@ class addon_t {
   };
 
  private:
-  ten_addon_t *c_addon;
   ten_env_t *cpp_ten_env{};
-
-  friend class addon_internal_accessor_t;
-
-  ::ten_addon_t *get_c_addon() const { return c_addon; }
 
   void invoke_cpp_addon_on_init(ten_env_t &ten_env) {
     try {
@@ -96,16 +92,14 @@ class addon_t {
     }
   }
 
-  virtual void invoke_cpp_addon_on_create_instance(ten_env_t &ten_env,
-                                                   const char *name,
-                                                   void *context) {
-    (void)ten_env;
-    (void)name;
-    (void)context;
-
-    // If a subclass requires the functionality of this function, it needs to
-    // override this function.
-    TEN_ASSERT(0, "Should not happen.");
+  void invoke_cpp_addon_on_create_instance(ten_env_t &ten_env, const char *name,
+                                           void *context) {
+    try {
+      on_create_instance(ten_env, name, context);
+    } catch (...) {
+      TEN_LOGW("Caught a exception '%s' in addon on_create_instance(%s).",
+               curr_exception_type_name().c_str(), name);
+    }
   }
 
   void invoke_cpp_addon_on_destroy_instance(ten_env_t &ten_env, void *instance,
@@ -198,47 +192,6 @@ class addon_t {
             reinterpret_cast<ten_binding_handle_t *>(addon)));
 
     delete cpp_addon;
-  }
-};
-
-namespace {
-
-enum ADDON_TASK {
-  ADDON_TASK_INVALID,
-
-  ADDON_TASK_CREATE_EXTENSION,
-  ADDON_TASK_CREATE_EXTENSION_GROUP,
-  ADDON_TASK_CREATE_ADDON_LOADER,
-};
-
-struct addon_context_t {
-  ADDON_TASK task;
-  void *c_context;
-};
-
-}  // namespace
-
-class addon_internal_accessor_t {
- public:
-  static ::ten_addon_t *get_c_addon(const addon_t *addon) {
-    return addon->get_c_addon();
-  }
-};
-
-class extension_addon_t : public addon_t {
- private:
-  void invoke_cpp_addon_on_create_instance(ten_env_t &ten_env, const char *name,
-                                           void *context) override {
-    try {
-      auto *cpp_context = new addon_context_t();
-      cpp_context->task = ADDON_TASK_CREATE_EXTENSION;
-      cpp_context->c_context = context;
-
-      on_create_instance(ten_env, name, cpp_context);
-    } catch (...) {
-      TEN_LOGW("Caught a exception '%s' in addon on_create_instance(%s).",
-               curr_exception_type_name().c_str(), name);
-    }
   }
 };
 

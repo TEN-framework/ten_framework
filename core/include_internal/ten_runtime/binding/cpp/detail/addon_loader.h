@@ -12,6 +12,7 @@
 
 #include "include_internal/ten_runtime/addon_loader/addon_loader.h"
 #include "ten_runtime/binding/common.h"
+#include "ten_runtime/binding/cpp/detail/binding_handle.h"
 #include "ten_utils/macro/check.h"
 
 using ten_addon_loader_t = struct ten_addon_loader_t;
@@ -20,11 +21,12 @@ namespace ten {
 
 class extension_group_t;
 
-class addon_loader_t {
+class addon_loader_t : public binding_handle_t {
  public:
   virtual ~addon_loader_t() {
-    TEN_ASSERT(c_addon_loader, "Should not happen.");
-    ten_addon_loader_destroy(c_addon_loader);
+    TEN_ASSERT(get_c_instance(), "Should not happen.");
+    ten_addon_loader_destroy(
+        static_cast<ten_addon_loader_t *>(get_c_instance()));
   }
 
   // @{
@@ -36,16 +38,16 @@ class addon_loader_t {
 
  protected:
   explicit addon_loader_t()
-      : c_addon_loader(::ten_addon_loader_create(
+      : binding_handle_t(::ten_addon_loader_create(
             reinterpret_cast<ten_addon_loader_on_init_func_t>(&proxy_on_init),
             reinterpret_cast<ten_addon_loader_on_deinit_func_t>(
                 &proxy_on_deinit),
             reinterpret_cast<ten_addon_loader_on_load_addon_func_t>(
                 &proxy_on_load_addon))) {
-    TEN_ASSERT(c_addon_loader, "Should not happen.");
+    TEN_ASSERT(get_c_instance(), "Should not happen.");
 
     ten_binding_handle_set_me_in_target_lang(
-        reinterpret_cast<ten_binding_handle_t *>(c_addon_loader),
+        reinterpret_cast<ten_binding_handle_t *>(get_c_instance()),
         static_cast<void *>(this));
   }
 
@@ -57,10 +59,6 @@ class addon_loader_t {
                              const char *addon_name) = 0;
 
  private:
-  friend class addon_loader_internal_accessor_t;
-
-  ::ten_addon_loader_t *get_c_addon_loader() const { return c_addon_loader; }
-
   static void proxy_on_init(ten_addon_loader_t *addon_loader) {
     TEN_ASSERT(addon_loader, "Should not happen.");
 
@@ -120,16 +118,6 @@ class addon_loader_t {
       TEN_ASSERT(0, "Should not happen.");
       exit(EXIT_FAILURE);
     }
-  }
-
-  ::ten_addon_loader_t *c_addon_loader;
-};
-
-class addon_loader_internal_accessor_t {
- public:
-  static ::ten_addon_loader_t *get_c_addon_loader(
-      const addon_loader_t *addon_loader) {
-    return addon_loader->get_c_addon_loader();
   }
 };
 

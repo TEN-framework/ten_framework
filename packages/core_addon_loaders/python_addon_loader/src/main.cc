@@ -9,7 +9,6 @@
 #include "include_internal/ten_runtime/app/metadata.h"
 #include "include_internal/ten_runtime/binding/cpp/detail/addon_loader.h"
 #include "include_internal/ten_runtime/binding/cpp/detail/addon_manager.h"
-#include "include_internal/ten_runtime/binding/cpp/detail/ten_env_impl.h"  // IWYU pragma: keep
 #include "include_internal/ten_runtime/binding/python/common.h"
 #include "include_internal/ten_runtime/common/base_dir.h"
 #include "include_internal/ten_runtime/common/constant_str.h"
