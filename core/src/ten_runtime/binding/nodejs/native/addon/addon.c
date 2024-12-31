@@ -425,7 +425,7 @@ static napi_value ten_nodejs_addon_create(napi_env env,
 
   // Create the underlying TEN C addon.
   ten_addon_init(&addon_bridge->c_addon, proxy_on_init, proxy_on_deinit,
-                 proxy_on_create_instance, proxy_on_destroy_instance, NULL, NULL);
+                 proxy_on_create_instance, proxy_on_destroy_instance, NULL);
 
   ten_binding_handle_set_me_in_target_lang(
       (ten_binding_handle_t *)&addon_bridge->c_addon, addon_bridge);
