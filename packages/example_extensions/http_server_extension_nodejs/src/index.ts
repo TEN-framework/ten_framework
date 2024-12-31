@@ -16,8 +16,8 @@ import {
 } from "ten-runtime-nodejs";
 
 class HttpServerExtension extends Extension {
-  tenEnv: TenEnv | null;
-  httpServer: http.Server;
+  tenEnv: TenEnv | null = null;
+  httpServer: http.Server | null = null;
 
   constructor(name: string) {
     super(name);
@@ -139,7 +139,7 @@ class HttpServerExtension extends Extension {
     console.log("HttpServerExtension onStop");
 
     await new Promise<void>((resolve, reject) => {
-      this.httpServer.close((err: any) => {
+      this.httpServer!.close((err: any) => {
         if (err) {
           reject(err);
         } else {
