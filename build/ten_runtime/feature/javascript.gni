@@ -43,23 +43,25 @@ template("npm_install") {
   }
 }
 
+# Build the TEN library based on Node.js. It first ensures the necessary NPM
+# dependencies are installed, then syncs the source code, modifies the
+# `tsconfig.json`, runs the build scripts, and generates the required
+# `path.json` file.
 template("nodejs_library") {
   _target_name = target_name
 
   npm_install("${target_name}_ensure_npm") {
     package_json = invoker.package_json
     output_dir = invoker.output_dir
+
     if (defined(invoker.package_lock_json) && invoker.package_lock_json != "") {
       package_lock_json = invoker.package_lock_json
     }
   }
 
   action(target_name) {
-    # Switch the following two lines to execute 'npm run build' or 'tsc' to
-    # complete the building. We use 'npm run build' now is because it allows
-    # the project to decide which build method is preferred.
-    # The parameters of these two Python scripts are exactly the same, so these
-    # two Python scripts could be exchanged seamlessly.
+    # We use 'npm run build' is because it allows the project to decide which
+    # build method is preferred.
     script = "//.gnfiles/build/scripts/npm_run_build.py"
 
     args = [
