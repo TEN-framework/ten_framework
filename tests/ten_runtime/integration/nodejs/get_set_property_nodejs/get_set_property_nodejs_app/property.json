@@ -17,8 +17,8 @@
           },
           {
             "type": "extension",
-            "name": "default_extension_ts",
-            "addon": "default_extension_ts",
+            "name": "default_extension_nodejs",
+            "addon": "default_extension_nodejs",
             "extension_group": "default_extension_group",
             "property": {
               "aaa": 123,
@@ -46,14 +46,14 @@
                 "name": "test",
                 "dest": [
                   {
-                    "extension": "default_extension_ts"
+                    "extension": "default_extension_nodejs"
                   }
                 ]
               }
             ]
           },
           {
-            "extension": "default_extension_ts",
+            "extension": "default_extension_nodejs",
             "cmd": [
               {
                 "name": "test",

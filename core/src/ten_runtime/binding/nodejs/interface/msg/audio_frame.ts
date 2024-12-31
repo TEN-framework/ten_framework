@@ -4,108 +4,114 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-import ten_addon from '../ten_addon'
-import { Msg } from './msg';
+import ten_addon from "../ten_addon";
+import { Msg } from "./msg";
 
 export enum AudioFrameDataFmt {
-    INTERLEAVE = 1,
-    NON_INTERLEAVE = 2
+  INTERLEAVE = 1,
+  NON_INTERLEAVE = 2,
 }
 
 export class AudioFrame extends Msg {
-    private constructor(name: string, createShellOnly: boolean) {
-        super();
+  private constructor(name: string, createShellOnly: boolean) {
+    super();
 
-        if (createShellOnly) {
-            return;
-        }
-
-        ten_addon.ten_nodejs_audio_frame_create(this, name);
+    if (createShellOnly) {
+      return;
     }
 
-    static Create(name: string): AudioFrame {
-        return new AudioFrame(name, false);
-    }
+    ten_addon.ten_nodejs_audio_frame_create(this, name);
+  }
 
-    allocBuf(size: number): void {
-        ten_addon.ten_nodejs_audio_frame_alloc_buf(this, size);
-    }
+  static Create(name: string): AudioFrame {
+    return new AudioFrame(name, false);
+  }
 
-    lockBuf(): ArrayBuffer {
-        return ten_addon.ten_nodejs_audio_frame_lock_buf(this);
-    }
+  allocBuf(size: number): void {
+    ten_addon.ten_nodejs_audio_frame_alloc_buf(this, size);
+  }
 
-    unlockBuf(buf: ArrayBuffer): void {
-        ten_addon.ten_nodejs_audio_frame_unlock_buf(this, buf);
-    }
+  lockBuf(): ArrayBuffer {
+    return ten_addon.ten_nodejs_audio_frame_lock_buf(this);
+  }
 
-    getBuf(): ArrayBuffer {
-        return ten_addon.ten_nodejs_audio_frame_get_buf(this);
-    }
+  unlockBuf(buf: ArrayBuffer): void {
+    ten_addon.ten_nodejs_audio_frame_unlock_buf(this, buf);
+  }
 
-    getTimestamp(): number {
-        return ten_addon.ten_nodejs_audio_frame_get_timestamp(this);
-    }
+  getBuf(): ArrayBuffer {
+    return ten_addon.ten_nodejs_audio_frame_get_buf(this);
+  }
 
-    setTimestamp(timestamp: number): void {
-        ten_addon.ten_nodejs_audio_frame_set_timestamp(this, timestamp);
-    }
+  getTimestamp(): number {
+    return ten_addon.ten_nodejs_audio_frame_get_timestamp(this);
+  }
 
-    getSampleRate(): number {
-        return ten_addon.ten_nodejs_audio_frame_get_sample_rate(this);
-    }
+  setTimestamp(timestamp: number): void {
+    ten_addon.ten_nodejs_audio_frame_set_timestamp(this, timestamp);
+  }
 
-    setSampleRate(sampleRate: number): void {
-        ten_addon.ten_nodejs_audio_frame_set_sample_rate(this, sampleRate);
-    }
+  getSampleRate(): number {
+    return ten_addon.ten_nodejs_audio_frame_get_sample_rate(this);
+  }
 
-    getSamplesPerChannel(): number {
-        return ten_addon.ten_nodejs_audio_frame_get_samples_per_channel(this);
-    }
+  setSampleRate(sampleRate: number): void {
+    ten_addon.ten_nodejs_audio_frame_set_sample_rate(this, sampleRate);
+  }
 
-    setSamplesPerChannel(samplesPerChannel: number): void {
-        ten_addon.ten_nodejs_audio_frame_set_samples_per_channel(this, samplesPerChannel);
-    }
+  getSamplesPerChannel(): number {
+    return ten_addon.ten_nodejs_audio_frame_get_samples_per_channel(this);
+  }
 
-    getBytesPerSample(): number {
-        return ten_addon.ten_nodejs_audio_frame_get_bytes_per_sample(this);
-    }
+  setSamplesPerChannel(samplesPerChannel: number): void {
+    ten_addon.ten_nodejs_audio_frame_set_samples_per_channel(
+      this,
+      samplesPerChannel
+    );
+  }
 
-    setBytesPerSample(bytesPerSample: number): void {
-        ten_addon.ten_nodejs_audio_frame_set_bytes_per_sample(this, bytesPerSample);
-    }
+  getBytesPerSample(): number {
+    return ten_addon.ten_nodejs_audio_frame_get_bytes_per_sample(this);
+  }
 
-    getNumberOfChannels(): number {
-        return ten_addon.ten_nodejs_audio_frame_get_number_of_channels(this);
-    }
+  setBytesPerSample(bytesPerSample: number): void {
+    ten_addon.ten_nodejs_audio_frame_set_bytes_per_sample(this, bytesPerSample);
+  }
 
-    setNumberOfChannels(numberOfChannels: number): void {
-        ten_addon.ten_nodejs_audio_frame_set_number_of_channels(this, numberOfChannels);
-    }
+  getNumberOfChannels(): number {
+    return ten_addon.ten_nodejs_audio_frame_get_number_of_channels(this);
+  }
 
-    getDataFmt(): AudioFrameDataFmt {
-        return ten_addon.ten_nodejs_audio_frame_get_data_fmt(this);
-    }
+  setNumberOfChannels(numberOfChannels: number): void {
+    ten_addon.ten_nodejs_audio_frame_set_number_of_channels(
+      this,
+      numberOfChannels
+    );
+  }
 
-    setDataFmt(dataFmt: AudioFrameDataFmt): void {
-        ten_addon.ten_nodejs_audio_frame_set_data_fmt(this, dataFmt);
-    }
+  getDataFmt(): AudioFrameDataFmt {
+    return ten_addon.ten_nodejs_audio_frame_get_data_fmt(this);
+  }
 
-    getLineSize(): number {
-        return ten_addon.ten_nodejs_audio_frame_get_line_size(this);
-    }
+  setDataFmt(dataFmt: AudioFrameDataFmt): void {
+    ten_addon.ten_nodejs_audio_frame_set_data_fmt(this, dataFmt);
+  }
 
-    setLineSize(lineSize: number): void {
-        ten_addon.ten_nodejs_audio_frame_set_line_size(this, lineSize);
-    }
+  getLineSize(): number {
+    return ten_addon.ten_nodejs_audio_frame_get_line_size(this);
+  }
 
-    isEof(): boolean {
-        return ten_addon.ten_nodejs_audio_frame_is_eof(this);
-    }
+  setLineSize(lineSize: number): void {
+    ten_addon.ten_nodejs_audio_frame_set_line_size(this, lineSize);
+  }
 
-    setEof(eof: boolean): void {
-        ten_addon.ten_nodejs_audio_frame_set_eof(this, eof);
-    }
+  isEof(): boolean {
+    return ten_addon.ten_nodejs_audio_frame_is_eof(this);
+  }
+
+  setEof(eof: boolean): void {
+    ten_addon.ten_nodejs_audio_frame_set_eof(this, eof);
+  }
 }
 
 ten_addon.ten_nodejs_audio_frame_register_class(AudioFrame);

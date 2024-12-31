@@ -17,14 +17,14 @@
           },
           {
             "type": "extension",
-            "name": "default_extension_ts",
-            "addon": "default_extension_ts",
+            "name": "default_extension_nodejs",
+            "addon": "default_extension_nodejs",
             "extension_group": "default_extension_group"
           },
           {
             "type": "extension",
             "name": "default_extension_ts2",
-            "addon": "default_extension_ts",
+            "addon": "default_extension_nodejs",
             "extension_group": "default_extension_group"
           },
           {
@@ -42,14 +42,14 @@
                 "name": "test",
                 "dest": [
                   {
-                    "extension": "default_extension_ts"
+                    "extension": "default_extension_nodejs"
                   }
                 ]
               }
             ]
           },
           {
-            "extension": "default_extension_ts",
+            "extension": "default_extension_nodejs",
             "cmd": [
               {
                 "name": "hello",
@@ -86,7 +86,7 @@
                 "name": "data",
                 "dest": [
                   {
-                    "extension": "default_extension_ts"
+                    "extension": "default_extension_nodejs"
                   }
                 ]
               }
@@ -99,7 +99,7 @@
                 "name": "data2_return",
                 "dest": [
                   {
-                    "extension": "default_extension_ts"
+                    "extension": "default_extension_nodejs"
                   }
                 ]
               }

@@ -25,9 +25,11 @@ typedef struct ten_nodejs_ten_env_t {
 
   ten_nodejs_bridge_t bridge;
 
-  ten_env_t *c_ten_env;  // Point to the corresponding C ten_env.
-  ten_env_proxy_t
-      *c_ten_env_proxy;  // Point to the corresponding C ten_env_proxy if any.
+  // Point to the corresponding C ten_env.
+  ten_env_t *c_ten_env;
+
+  // Point to the corresponding C ten_env_proxy if any.
+  ten_env_proxy_t *c_ten_env_proxy;
 } ten_nodejs_ten_env_t;
 
 typedef struct ten_nodejs_get_property_call_info_t {

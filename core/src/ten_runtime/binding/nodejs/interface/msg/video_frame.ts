@@ -4,90 +4,90 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-import ten_addon from '../ten_addon'
-import { Msg } from './msg';
+import ten_addon from "../ten_addon";
+import { Msg } from "./msg";
 
 export enum PixelFmt {
-    RGB24 = 1,
-    RGBA = 2,
-    BGR24 = 3,
-    BGRA = 4,
-    I422 = 5,
-    I420 = 6,
-    NV21 = 7,
-    NV12 = 8,
+  RGB24 = 1,
+  RGBA = 2,
+  BGR24 = 3,
+  BGRA = 4,
+  I422 = 5,
+  I420 = 6,
+  NV21 = 7,
+  NV12 = 8,
 }
 
 export class VideoFrame extends Msg {
-    private constructor(name: string, createShellOnly: boolean) {
-        super();
+  private constructor(name: string, createShellOnly: boolean) {
+    super();
 
-        if (createShellOnly) {
-            return;
-        }
-
-        ten_addon.ten_nodejs_video_frame_create(this, name);
+    if (createShellOnly) {
+      return;
     }
 
-    static Create(name: string): VideoFrame {
-        return new VideoFrame(name, false);
-    }
+    ten_addon.ten_nodejs_video_frame_create(this, name);
+  }
 
-    allocBuf(size: number): void {
-        ten_addon.ten_nodejs_video_frame_alloc_buf(this, size);
-    }
+  static Create(name: string): VideoFrame {
+    return new VideoFrame(name, false);
+  }
 
-    lockBuf(): ArrayBuffer {
-        return ten_addon.ten_nodejs_video_frame_lock_buf(this);
-    }
+  allocBuf(size: number): void {
+    ten_addon.ten_nodejs_video_frame_alloc_buf(this, size);
+  }
 
-    unlockBuf(buf: ArrayBuffer): void {
-        ten_addon.ten_nodejs_video_frame_unlock_buf(this, buf);
-    }
+  lockBuf(): ArrayBuffer {
+    return ten_addon.ten_nodejs_video_frame_lock_buf(this);
+  }
 
-    getBuf(): ArrayBuffer {
-        return ten_addon.ten_nodejs_video_frame_get_buf(this);
-    }
+  unlockBuf(buf: ArrayBuffer): void {
+    ten_addon.ten_nodejs_video_frame_unlock_buf(this, buf);
+  }
 
-    getWidth(): number {
-        return ten_addon.ten_nodejs_video_frame_get_width(this);
-    }
+  getBuf(): ArrayBuffer {
+    return ten_addon.ten_nodejs_video_frame_get_buf(this);
+  }
 
-    setWidth(width: number): void {
-        ten_addon.ten_nodejs_video_frame_set_width(this, width);
-    }
+  getWidth(): number {
+    return ten_addon.ten_nodejs_video_frame_get_width(this);
+  }
 
-    getHeight(): number {
-        return ten_addon.ten_nodejs_video_frame_get_height(this);
-    }
+  setWidth(width: number): void {
+    ten_addon.ten_nodejs_video_frame_set_width(this, width);
+  }
 
-    setHeight(height: number): void {
-        ten_addon.ten_nodejs_video_frame_set_height(this, height);
-    }
+  getHeight(): number {
+    return ten_addon.ten_nodejs_video_frame_get_height(this);
+  }
 
-    getTimestamp(): number {
-        return ten_addon.ten_nodejs_video_frame_get_timestamp(this);
-    }
+  setHeight(height: number): void {
+    ten_addon.ten_nodejs_video_frame_set_height(this, height);
+  }
 
-    setTimestamp(timestamp: number): void {
-        ten_addon.ten_nodejs_video_frame_set_timestamp(this, timestamp);
-    }
+  getTimestamp(): number {
+    return ten_addon.ten_nodejs_video_frame_get_timestamp(this);
+  }
 
-    getPixelFmt(): PixelFmt {
-        return ten_addon.ten_nodejs_video_frame_get_pixel_fmt(this);
-    }
+  setTimestamp(timestamp: number): void {
+    ten_addon.ten_nodejs_video_frame_set_timestamp(this, timestamp);
+  }
 
-    setPixelFmt(pixelFmt: PixelFmt): void {
-        ten_addon.ten_nodejs_video_frame_set_pixel_fmt(this, pixelFmt);
-    }
+  getPixelFmt(): PixelFmt {
+    return ten_addon.ten_nodejs_video_frame_get_pixel_fmt(this);
+  }
 
-    isEof(): boolean {
-        return ten_addon.ten_nodejs_video_frame_is_eof(this);
-    }
+  setPixelFmt(pixelFmt: PixelFmt): void {
+    ten_addon.ten_nodejs_video_frame_set_pixel_fmt(this, pixelFmt);
+  }
 
-    setEof(eof: boolean): void {
-        ten_addon.ten_nodejs_video_frame_set_eof(this, eof);
-    }
+  isEof(): boolean {
+    return ten_addon.ten_nodejs_video_frame_is_eof(this);
+  }
+
+  setEof(eof: boolean): void {
+    ten_addon.ten_nodejs_video_frame_set_eof(this, eof);
+  }
 }
 
 ten_addon.ten_nodejs_video_frame_register_class(VideoFrame);

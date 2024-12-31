@@ -7,9 +7,9 @@
 let addon = {};
 
 try {
-    addon = require('libten_runtime_nodejs');
+  addon = require("libten_runtime_nodejs");
 } catch (e) {
-    console.warn(`Could not load libten_runtime_nodejs module: ${e}`);
+  console.error(`Failed to load libten_runtime_nodejs module: ${e}`);
 }
 
 export default addon as any;

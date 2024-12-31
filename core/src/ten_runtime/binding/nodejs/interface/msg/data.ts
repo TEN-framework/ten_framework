@@ -4,39 +4,39 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-import ten_addon from '../ten_addon'
-import { Msg } from './msg';
+import ten_addon from "../ten_addon";
+import { Msg } from "./msg";
 
 export class Data extends Msg {
-    private constructor(name: string, createShellOnly: boolean) {
-        super();
+  private constructor(name: string, createShellOnly: boolean) {
+    super();
 
-        if (createShellOnly) {
-            return;
-        }
-
-        ten_addon.ten_nodejs_data_create(this, name);
+    if (createShellOnly) {
+      return;
     }
 
-    static Create(name: string): Data {
-        return new Data(name, false);
-    }
+    ten_addon.ten_nodejs_data_create(this, name);
+  }
 
-    allocBuf(size: number): void {
-        ten_addon.ten_nodejs_data_alloc_buf(this, size);
-    }
+  static Create(name: string): Data {
+    return new Data(name, false);
+  }
 
-    lockBuf(): ArrayBuffer {
-        return ten_addon.ten_nodejs_data_lock_buf(this);
-    }
+  allocBuf(size: number): void {
+    ten_addon.ten_nodejs_data_alloc_buf(this, size);
+  }
 
-    unlockBuf(buf: ArrayBuffer): void {
-        ten_addon.ten_nodejs_data_unlock_buf(this, buf);
-    }
+  lockBuf(): ArrayBuffer {
+    return ten_addon.ten_nodejs_data_lock_buf(this);
+  }
 
-    getBuf(): ArrayBuffer {
-        return ten_addon.ten_nodejs_data_get_buf(this);
-    }
+  unlockBuf(buf: ArrayBuffer): void {
+    ten_addon.ten_nodejs_data_unlock_buf(this, buf);
+  }
+
+  getBuf(): ArrayBuffer {
+    return ten_addon.ten_nodejs_data_get_buf(this);
+  }
 }
 
 ten_addon.ten_nodejs_data_register_class(Data);

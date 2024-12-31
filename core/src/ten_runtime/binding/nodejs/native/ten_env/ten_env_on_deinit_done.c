@@ -10,7 +10,6 @@
 #include "ten_runtime/ten_env/internal/on_xxx_done.h"
 #include "ten_utils/lib/error.h"
 #include "ten_utils/lib/string.h"
-#include "ten_utils/macro/mark.h"
 
 static void ten_env_proxy_notify_on_deinit_done(ten_env_t *ten_env,
                                                 void *user_data) {

@@ -12,7 +12,7 @@
     },
     {
       "type": "extension",
-      "name": "http_server_extension_ts",
+      "name": "http_server_extension_nodejs",
       "version": "0.6.0"
     },
     {

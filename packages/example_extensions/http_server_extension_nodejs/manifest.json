@@ -1,6 +1,6 @@
 {
   "type": "extension",
-  "name": "default_extension_ts",
+  "name": "http_server_extension_nodejs",
   "version": "0.6.0",
   "dependencies": [
     {

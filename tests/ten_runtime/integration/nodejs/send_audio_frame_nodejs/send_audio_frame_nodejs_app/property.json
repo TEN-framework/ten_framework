@@ -17,8 +17,8 @@
           },
           {
             "type": "extension",
-            "name": "default_extension_ts",
-            "addon": "default_extension_ts",
+            "name": "default_extension_nodejs",
+            "addon": "default_extension_nodejs",
             "extension_group": "default_extension_group"
           },
           {
@@ -36,14 +36,14 @@
                 "name": "test",
                 "dest": [
                   {
-                    "extension": "default_extension_ts"
+                    "extension": "default_extension_nodejs"
                   }
                 ]
               }
             ]
           },
           {
-            "extension": "default_extension_ts",
+            "extension": "default_extension_nodejs",
             "audio_frame": [
               {
                 "name": "audio_frame",
@@ -62,7 +62,7 @@
                 "name": "audio_frame",
                 "dest": [
                   {
-                    "extension": "default_extension_ts"
+                    "extension": "default_extension_nodejs"
                   }
                 ]
               }

@@ -7,7 +7,7 @@
 // import { Addon, RegisterAddonAsExtension, Extension, TenEnv, Cmd, Data, CmdResult, StatusCode } from '../../../../../../../../../../core/src/ten_runtime/binding/nodejs/interface'
 import { Addon, RegisterAddonAsExtension, Extension, TenEnv, Cmd, Data, CmdResult, StatusCode } from 'ten-runtime-nodejs'
 
-@RegisterAddonAsExtension("default_extension_ts")
+@RegisterAddonAsExtension("default_extension_nodejs")
 class DefaultAddon extends Addon {
     async onInit() {
         console.log('DefaultAddon onInit');
@@ -119,8 +119,8 @@ class DefaultExtension extends Extension {
         uint8View[2] = 3;
         data2.setPropertyBuf('key4', valueBuf);
 
-        // This data is sent to default_extension_ts extension
-        // The default_extension_ts extension will check the data
+        // This data is sent to default_extension_nodejs extension
+        // The default_extension_nodejs extension will check the data
         // and return a 'data2_return' data back.
         await tenEnv.sendData(data2);
 

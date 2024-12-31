@@ -27,8 +27,8 @@ typedef struct ten_nodejs_extension_t {
   ten_extension_t *c_extension;  // The corresponding C extension.
 
   // @{
-  // The following function is the Javascript functions corresponding to the
-  // extension's interface API.
+  // The following functions represent the JavaScript functions corresponding to
+  // the extension interface API.
   ten_nodejs_tsfn_t *js_on_configure;
   ten_nodejs_tsfn_t *js_on_init;
   ten_nodejs_tsfn_t *js_on_start;

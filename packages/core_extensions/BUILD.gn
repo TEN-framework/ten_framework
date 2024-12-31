@@ -20,6 +20,6 @@ group("core_extensions") {
   }
 
   if (ten_enable_nodejs_binding) {
-    deps += [ "default_extension_ts" ]
+    deps += [ "default_extension_nodejs" ]
   }
 }

@@ -8,7 +8,7 @@ import("//build/ten_runtime/feature/publish.gni")
 import("//build/ten_runtime/glob.gni")
 import("//build/ten_runtime/options.gni")
 
-ten_package("http_server_extension_ts") {
+ten_package("default_extension_nodejs") {
   package_kind = "extension"
 
   resources = [
@@ -24,9 +24,9 @@ ten_package("http_server_extension_ts") {
 }
 
 if (ten_enable_ten_manager) {
-  ten_package_publish("upload_http_server_extension_ts_to_server") {
+  ten_package_publish("upload_default_extension_ts_to_server") {
     base_dir = rebase_path(
-            "${root_out_dir}/ten_packages/extension/http_server_extension_ts")
-    deps = [ ":http_server_extension_ts" ]
+            "${root_out_dir}/ten_packages/extension/default_extension_nodejs")
+    deps = [ ":default_extension_nodejs" ]
   }
 }

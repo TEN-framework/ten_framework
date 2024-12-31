@@ -14,7 +14,9 @@
     "strictNullChecks": true,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
-    "rootDir": "interface"
+    "rootDir": "interface",
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
   },
   "exclude": [
     "node_modules"

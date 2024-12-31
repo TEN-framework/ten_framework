@@ -9,7 +9,7 @@ import { Addon, RegisterAddonAsExtension, Extension, TenEnv, Cmd, Data, CmdResul
 
 console.log('Im a default ts extension');
 
-@RegisterAddonAsExtension("default_extension_ts")
+@RegisterAddonAsExtension("default_extension_nodejs")
 class DefaultAddon extends Addon {
     async onInit() {
         console.log('DefaultAddon onInit');

@@ -7,7 +7,7 @@
 // import { Addon, RegisterAddonAsExtension, Extension, TenEnv, Cmd, CmdResult, StatusCode, VideoFrame, PixelFmt } from '../../../../../../../../../../core/src/ten_runtime/binding/nodejs/interface'
 import { Addon, RegisterAddonAsExtension, Extension, TenEnv, Cmd, CmdResult, StatusCode, VideoFrame, PixelFmt } from 'ten-runtime-nodejs'
 
-@RegisterAddonAsExtension("default_extension_ts")
+@RegisterAddonAsExtension("default_extension_nodejs")
 class DefaultAddon extends Addon {
     async onInit() {
         console.log('DefaultAddon onInit');

@@ -8,8 +8,8 @@
         "nodes": [
           {
             "type": "extension",
-            "name": "http_server_extension_ts",
-            "addon": "http_server_extension_ts",
+            "name": "http_server_extension_nodejs",
+            "addon": "http_server_extension_nodejs",
             "extension_group": "default_extension_group",
             "property": {
               "server_port": 8002
@@ -24,7 +24,7 @@
         ],
         "connections": [
           {
-            "extension": "http_server_extension_ts",
+            "extension": "http_server_extension_nodejs",
             "cmd": [
               {
                 "name": "test",

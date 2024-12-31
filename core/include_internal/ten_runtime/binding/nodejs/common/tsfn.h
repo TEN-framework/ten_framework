@@ -40,13 +40,13 @@ typedef struct ten_nodejs_tsfn_t {
   // The JS function which this tsfn calling.
   //
   // Because the JS functions pointed to by thread-safe functions may not
-  // necessarily be original functions existing in the RTE JS world, they could
-  // be dynamically created JS functions, such as the unlink handler function of
-  // js_ref. The life cycle of dynamically generated JS functions is bound to
-  // the thread-safe functions. Therefore, for unified handling, RTE first
-  // acquires a reference to a JS function to prevent it from being garbage
-  // collected. Then, when the thread-safe function is finalized, RTE cancels
-  // that reference, allowing the JS function to be garbage collected.
+  // necessarily be normal functions existing in the JS world, they could be
+  // dynamically created JS functions. The life cycle of dynamically generated
+  // JS functions is bound to the thread-safe functions. Therefore, for unified
+  // handling, TEN first acquires a reference to the JS function to prevent it
+  // from being garbage collected. Then, when the thread-safe function is
+  // finalized, TEN releases that reference, allowing the JS function to be
+  // garbage collected.
   napi_ref js_func_ref;
 } ten_nodejs_tsfn_t;
 
