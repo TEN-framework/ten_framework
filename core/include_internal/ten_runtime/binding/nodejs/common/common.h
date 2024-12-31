@@ -42,13 +42,14 @@ typedef struct ten_nodejs_bridge_t {
     }                                                  \
   } while (0)
 
-#define ASSERT_IF_NAPI_FAIL(expr, fmt, ...) \
-  do {                                      \
-    if (!(expr)) {                          \
-      TEN_LOGE(fmt, ##__VA_ARGS__);         \
-      TEN_ASSERT(0, "Should not happen.");  \
-      exit(-1);                             \
-    }                                       \
+#define ASSERT_IF_NAPI_FAIL(expr, fmt, ...)       \
+  do {                                            \
+    if (!(expr)) {                                \
+      TEN_LOGE(fmt, ##__VA_ARGS__);               \
+      TEN_ASSERT(0, "Should not happen.");        \
+      /* NOLINTNEXTLINE(concurrency-mt-unsafe) */ \
+      exit(EXIT_FAILURE);                         \
+    }                                             \
   } while (0)
 
 #define RETURN_UNDEFINED_IF_NAPI_FAIL(expr, fmt, ...) \

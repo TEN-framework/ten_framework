@@ -217,30 +217,30 @@ export class TenEnv {
   }
 
   logVerbose(message: string): void {
-    this._log_internal(LogLevel.VERBOSE, message);
+    this.log_internal(LogLevel.VERBOSE, message);
   }
 
   logDebug(message: string): void {
-    this._log_internal(LogLevel.DEBUG, message);
+    this.log_internal(LogLevel.DEBUG, message);
   }
 
   logInfo(message: string): void {
-    this._log_internal(LogLevel.INFO, message);
+    this.log_internal(LogLevel.INFO, message);
   }
 
   logWarn(message: string): void {
-    this._log_internal(LogLevel.WARN, message);
+    this.log_internal(LogLevel.WARN, message);
   }
 
   logError(message: string): void {
-    this._log_internal(LogLevel.ERROR, message);
+    this.log_internal(LogLevel.ERROR, message);
   }
 
   logFatal(message: string): void {
-    this._log_internal(LogLevel.FATAL, message);
+    this.log_internal(LogLevel.FATAL, message);
   }
 
-  _log_internal(level: number, message: string): void {
+  private log_internal(level: number, message: string): void {
     const _prepareStackTrace = Error.prepareStackTrace;
     Error.prepareStackTrace = (_, stack): NodeJS.CallSite[] => stack;
     const stack_ = new Error().stack as unknown as NodeJS.CallSite[];

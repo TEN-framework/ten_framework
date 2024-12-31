@@ -18,32 +18,35 @@ export abstract class Extension {
 
   private async onConfigureProxy(tenEnv: TenEnv): Promise<void> {
     await this.onConfigure(tenEnv);
+
     ten_addon.ten_nodejs_ten_env_on_configure_done(tenEnv);
   }
 
   private async onInitProxy(tenEnv: TenEnv): Promise<void> {
     await this.onInit(tenEnv);
+
     ten_addon.ten_nodejs_ten_env_on_init_done(tenEnv);
   }
 
   private async onStartProxy(tenEnv: TenEnv): Promise<void> {
     await this.onStart(tenEnv);
+
     ten_addon.ten_nodejs_ten_env_on_start_done(tenEnv);
   }
 
   private async onStopProxy(tenEnv: TenEnv): Promise<void> {
     await this.onStop(tenEnv);
+
     ten_addon.ten_nodejs_ten_env_on_stop_done(tenEnv);
   }
 
   private async onDeinitProxy(tenEnv: TenEnv): Promise<void> {
     await this.onDeinit(tenEnv);
+
     ten_addon.ten_nodejs_ten_env_on_deinit_done(tenEnv);
 
-    /**
-     * JS extension prepare to be destroyed, so notify the underlying C runtime this
-     * fact.
-     */
+    // JS extension prepare to be destroyed, so notify the underlying C runtime this
+    // fact.
     ten_addon.ten_nodejs_extension_on_end_of_life(this);
   }
 

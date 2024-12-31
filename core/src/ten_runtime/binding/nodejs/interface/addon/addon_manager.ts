@@ -20,7 +20,10 @@ type addonRegisterHandler = (registerContext: any) => void;
 export class AddonManager {
   private static _registry: Map<string, addonRegisterHandler> = new Map();
 
-  static _set_register_handler(name: string, handler: addonRegisterHandler) {
+  static _set_register_handler(
+    name: string,
+    handler: addonRegisterHandler
+  ): void {
     AddonManager._registry.set(name, handler);
   }
 
@@ -48,7 +51,7 @@ export class AddonManager {
     throw new Error("Cannot find app base dir");
   }
 
-  static _load_all_addons() {
+  static _load_all_addons(): void {
     const app_base_dir = AddonManager._find_app_base_dir();
 
     const manifest_path = path.join(app_base_dir, "manifest.json");
@@ -91,10 +94,11 @@ export class AddonManager {
     }
   }
 
-  static _register_all_addons(registerContext: any) {
+  static _register_all_addons(registerContext: any): void {
     for (let [name, handler] of AddonManager._registry) {
       try {
         handler(registerContext);
+
         console.log(`Addon ${name} registered`);
       } catch (error) {
         console.error(`Failed to register addon ${name}: ${error}`);

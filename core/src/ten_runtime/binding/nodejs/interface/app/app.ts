@@ -24,6 +24,7 @@ export class App {
 
   private async onInitProxy(tenEnv: TenEnv): Promise<void> {
     await this.onInit(tenEnv);
+
     ten_addon.ten_nodejs_ten_env_on_init_done(tenEnv);
   }
 
@@ -32,21 +33,19 @@ export class App {
 
     ten_addon.ten_nodejs_ten_env_on_deinit_done(tenEnv);
 
-    /**
-     * JS app prepare to be destroyed, so notify the underlying C runtime this
-     * fact.
-     */
+    // JS app prepare to be destroyed, so notify the underlying C runtime this
+    // fact.
     ten_addon.ten_nodejs_app_on_end_of_life(this);
 
     (global as any).gc();
   }
 
-  /** The ten app should be run in another native thread not the JS main thread. */
+  // The ten app should be run in another native thread not the JS main thread.
   async run(): Promise<void> {
     await ten_addon.ten_nodejs_app_run(this);
   }
 
-  close(): void {
+  async close(): Promise<void> {
     ten_addon.ten_nodejs_app_close(this);
   }
 

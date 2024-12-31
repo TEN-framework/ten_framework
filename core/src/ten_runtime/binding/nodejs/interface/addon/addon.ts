@@ -17,7 +17,7 @@ export abstract class Addon {
     try {
       await this.onInit(tenEnv);
     } catch (error) {
-      // tenEnv.log
+      // TODO: What should we do in this situation?
     } finally {
       ten_addon.ten_nodejs_ten_env_on_init_done(tenEnv);
     }
@@ -27,14 +27,12 @@ export abstract class Addon {
     try {
       await this.onDeinit(tenEnv);
     } catch (error) {
-      // tenEnv.log
+      // TODO: What should we do in this situation?
     } finally {
       ten_addon.ten_nodejs_ten_env_on_deinit_done(tenEnv);
 
-      /**
-       * JS addon prepare to be destroyed, so notify the underlying C runtime this
-       * fact.
-       */
+      // JS addon prepare to be destroyed, so notify the underlying C runtime this
+      // fact.
       ten_addon.ten_nodejs_addon_on_end_of_life(this);
     }
   }
@@ -45,6 +43,7 @@ export abstract class Addon {
     context: any
   ): Promise<void> {
     const extension = await this.onCreateInstance(tenEnv, instanceName);
+
     ten_addon.ten_nodejs_ten_env_on_create_instance_done(
       tenEnv,
       extension,

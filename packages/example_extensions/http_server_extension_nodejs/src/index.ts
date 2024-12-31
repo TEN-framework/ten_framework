@@ -86,7 +86,7 @@ class HttpServerExtension extends Extension {
           cmd.setPropertyFromJson("", body);
 
           this.tenEnv!.sendCmd(cmd).then(
-            ([cmdResult, error]: [CmdResult, Error]) => {
+            ([cmdResult, error]: [CmdResult | null, Error | null]) => {
               if (error) {
                 res.writeHead(500, { "Content-Type": "text/plain" });
                 res.end("Error: " + error.message);

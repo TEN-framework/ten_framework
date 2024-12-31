@@ -10,20 +10,20 @@
 #include "ten_utils/lib/string.h"
 #include "ten_utils/macro/memory.h"
 
-typedef struct ten_env_notify_init_property_json_info_t {
+typedef struct ten_env_notify_init_property_from_json_info_t {
   ten_string_t json_str;
   ten_nodejs_tsfn_t *js_cb;
-} ten_env_notify_init_property_json_info_t;
+} ten_env_notify_init_property_from_json_info_t;
 
-typedef struct ten_nodejs_init_property_json_call_info_t {
+typedef struct ten_nodejs_init_property_from_json_call_info_t {
   ten_nodejs_tsfn_t *js_cb;
   ten_error_t *error;
-} ten_nodejs_init_property_json_call_info_t;
+} ten_nodejs_init_property_from_json_call_info_t;
 
-static ten_env_notify_init_property_json_info_t *
-ten_env_notify_init_property_json_info_create(ten_nodejs_tsfn_t *js_cb) {
-  ten_env_notify_init_property_json_info_t *info =
-      TEN_MALLOC(sizeof(ten_env_notify_init_property_json_info_t));
+static ten_env_notify_init_property_from_json_info_t *
+ten_env_notify_init_property_from_json_info_create(ten_nodejs_tsfn_t *js_cb) {
+  ten_env_notify_init_property_from_json_info_t *info =
+      TEN_MALLOC(sizeof(ten_env_notify_init_property_from_json_info_t));
   TEN_ASSERT(info, "Failed to allocate memory.");
 
   ten_string_init(&info->json_str);
@@ -32,8 +32,8 @@ ten_env_notify_init_property_json_info_create(ten_nodejs_tsfn_t *js_cb) {
   return info;
 }
 
-static void ten_env_notify_init_property_json_info_destroy(
-    ten_env_notify_init_property_json_info_t *info) {
+static void ten_env_notify_init_property_from_json_info_destroy(
+    ten_env_notify_init_property_from_json_info_t *info) {
   TEN_ASSERT(info, "Invalid argument.");
 
   ten_string_deinit(&info->json_str);
@@ -46,8 +46,8 @@ static void tsfn_proxy_init_property_from_json_callback(napi_env env,
                                                         napi_value js_cb,
                                                         void *context,
                                                         void *data) {
-  ten_nodejs_init_property_json_call_info_t *call_info =
-      (ten_nodejs_init_property_json_call_info_t *)data;
+  ten_nodejs_init_property_from_json_call_info_t *call_info =
+      (ten_nodejs_init_property_from_json_call_info_t *)data;
   TEN_ASSERT(call_info, "Should not happen.");
 
   napi_value js_error = NULL;
@@ -80,7 +80,7 @@ static void ten_env_proxy_notify_init_property_from_json(ten_env_t *ten_env,
   TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
              "Should not happen.");
 
-  ten_env_notify_init_property_json_info_t *info = user_data;
+  ten_env_notify_init_property_from_json_info_t *info = user_data;
   TEN_ASSERT(info, "Should not happen.");
 
   ten_nodejs_tsfn_t *js_cb = info->js_cb;
@@ -99,8 +99,8 @@ static void ten_env_proxy_notify_init_property_from_json(ten_env_t *ten_env,
     ten_error_copy(cloned_error, &err);
   }
 
-  ten_nodejs_init_property_json_call_info_t *call_info =
-      TEN_MALLOC(sizeof(ten_nodejs_init_property_json_call_info_t));
+  ten_nodejs_init_property_from_json_call_info_t *call_info =
+      TEN_MALLOC(sizeof(ten_nodejs_init_property_from_json_call_info_t));
   TEN_ASSERT(call_info, "Failed to allocate memory.");
 
   call_info->js_cb = js_cb;
@@ -111,7 +111,7 @@ static void ten_env_proxy_notify_init_property_from_json(ten_env_t *ten_env,
 
   ten_error_deinit(&err);
 
-  ten_env_notify_init_property_json_info_destroy(info);
+  ten_env_notify_init_property_from_json_info_destroy(info);
 }
 
 napi_value ten_nodejs_ten_env_init_property_from_json(napi_env env,
@@ -141,8 +141,8 @@ napi_value ten_nodejs_ten_env_init_property_from_json(napi_env env,
       tsfn_proxy_init_property_from_json_callback);
   RETURN_UNDEFINED_IF_NAPI_FAIL(cb_tsfn, "Failed to create TSFN.");
 
-  ten_env_notify_init_property_json_info_t *notify_info =
-      ten_env_notify_init_property_json_info_create(cb_tsfn);
+  ten_env_notify_init_property_from_json_info_t *notify_info =
+      ten_env_notify_init_property_from_json_info_create(cb_tsfn);
   TEN_ASSERT(notify_info, "Failed to create notify info.");
 
   bool rc = ten_nodejs_get_str_from_js(env, args[1], &notify_info->json_str);
@@ -165,7 +165,7 @@ napi_value ten_nodejs_ten_env_init_property_from_json(napi_env env,
 
     ten_string_deinit(&code_str);
 
-    ten_env_notify_init_property_json_info_destroy(notify_info);
+    ten_env_notify_init_property_from_json_info_destroy(notify_info);
 
     // The JS callback will not be called, so we need to clean up the tsfn.
     ten_nodejs_tsfn_release(cb_tsfn);
