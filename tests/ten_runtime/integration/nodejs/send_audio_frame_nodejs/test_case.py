@@ -64,7 +64,9 @@ def test_send_audio_frame_nodejs():
             if os.path.exists(libasan_path):
                 my_env["LD_PRELOAD"] = libasan_path
 
-    server_cmd = os.path.join(base_path, "send_audio_frame_nodejs_app/bin/start")
+    server_cmd = os.path.join(
+        base_path, "send_audio_frame_nodejs_app/bin/start"
+    )
 
     if not os.path.isfile(server_cmd):
         print(f"Server command '{server_cmd}' does not exist.")
