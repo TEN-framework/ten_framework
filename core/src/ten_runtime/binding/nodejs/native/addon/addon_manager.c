@@ -1,5 +1,5 @@
 //
-// Copyright © 2024 Agora
+// Copyright © 2025 Agora
 // This file is part of TEN Framework, an open source project.
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
@@ -38,11 +38,12 @@ static void ten_nodejs_addon_create_and_attach_callbacks(
                     ten_nodejs_invoke_addon_js_on_create_instance);
 }
 
-napi_value ten_nodejs_register_addon_as_extension(napi_env env,
-                                                  napi_callback_info info) {
+napi_value ten_nodejs_addon_manager_register_addon_as_extension(
+    napi_env env, napi_callback_info info) {
   TEN_ASSERT(env && info, "Should not happen.");
 
-  TEN_LOGD("TEN JS Addon: ten_nodejs_register_addon_as_extension");
+  TEN_LOGD(
+      "TEN JS Addon: ten_nodejs_addon_manager_register_addon_as_extension");
 
   ten_string_t addon_name;
   ten_string_init(&addon_name);

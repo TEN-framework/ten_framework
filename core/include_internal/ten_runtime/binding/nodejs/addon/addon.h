@@ -1,5 +1,5 @@
 //
-// Copyright © 2024 Agora
+// Copyright © 2025 Agora
 // This file is part of TEN Framework, an open source project.
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
@@ -31,8 +31,8 @@ typedef struct ten_nodejs_addon_t {
   ten_addon_host_t *c_addon_host;
 
   // @{
-  // The following function is the Javascript functions corresponding to the
-  // addon's interface API.
+  // The following functions represent the JavaScript functions corresponding to
+  // the addon interface API.
   ten_nodejs_tsfn_t *js_on_init;
   ten_nodejs_tsfn_t *js_on_deinit;
   ten_nodejs_tsfn_t *js_on_create_instance;

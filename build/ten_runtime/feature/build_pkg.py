@@ -158,7 +158,7 @@ def build_go_app(args: ArgumentInfo) -> int:
     return returncode
 
 
-def _npm_install() -> int:
+def npm_install() -> int:
     # 'npm install' might be failed because of the bad network connection, and
     # it might be stuck in a situation where it cannot be recovered. Therefore,
     # the best way is to delete the whole node_modules/, and try again.
@@ -177,7 +177,10 @@ def _npm_install() -> int:
         else:
             # Delete node_modules/ and try again.
             print(
-                "Failed to 'npm install', output: {output} , deleting node_modules"
+                (
+                    f"Failed to 'npm install', output: {output}, "
+                    "deleting node_modules/ and try again."
+                )
             )
             fs_utils.remove_tree("node_modules")
             time.sleep(5)
@@ -196,25 +199,33 @@ def build_ts_extensions(app_root_path: str) -> int:
         for extension in os.listdir(extension_dir):
             extension_path = os.path.join(extension_dir, extension)
             if os.path.isdir(extension_path):
-                # if the extension is a typescript extension, build it
+                # If the extension is a typescript extension, build it.
                 if not os.path.exists(
                     os.path.join(extension_path, "tsconfig.json")
                 ):
                     continue
 
-                # change to extension directory
+                # Change to extension directory.
                 os.chdir(extension_path)
 
                 now = datetime.now()
                 cmd = ["npm", "run", "build"]
                 returncode, output = cmd_exec.run_cmd(cmd)
                 if returncode:
-                    print(f"Failed to build extension {extension_path}")
+                    print(
+                        (
+                            f"Failed to build extension {extension_path}: "
+                            f"{output}"
+                        )
+                    )
                     return 1
 
                 duration = (datetime.now() - now).seconds
                 print(
-                    f"Profiling ====> build ts extension({extension}) costs {duration} seconds."
+                    (
+                        f"Profiling ====> build ts extension({extension}) "
+                        f"costs {duration} seconds."
+                    )
                 )
 
     os.chdir(origin_wd)
@@ -225,7 +236,7 @@ def build_ts_extensions(app_root_path: str) -> int:
 def build_nodejs_app(args: ArgumentInfo) -> int:
     t1 = datetime.now()
 
-    status_code = _npm_install()
+    status_code = npm_install()
     if status_code != 0:
         return status_code
 
@@ -238,7 +249,10 @@ def build_nodejs_app(args: ArgumentInfo) -> int:
     t2 = datetime.now()
     duration = (t2 - t1).seconds
     print(
-        f"Profiling ====> build node app({args.pkg_name}) costs {duration} seconds."
+        (
+            f"Profiling ====> build node app({args.pkg_name}) "
+            f"costs {duration} seconds."
+        )
     )
 
     status_code = build_ts_extensions(os.getcwd())

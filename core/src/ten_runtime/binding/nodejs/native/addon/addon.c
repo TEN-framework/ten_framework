@@ -1,5 +1,5 @@
 //
-// Copyright © 2024 Agora
+// Copyright © 2025 Agora
 // This file is part of TEN Framework, an open source project.
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
@@ -487,7 +487,8 @@ napi_value ten_nodejs_addon_module_init(napi_env env, napi_value exports) {
   TEN_ASSERT(env && exports, "Should not happen.");
 
   EXPORT_FUNC(env, exports, ten_nodejs_addon_create);
-  EXPORT_FUNC(env, exports, ten_nodejs_register_addon_as_extension);
+  EXPORT_FUNC(env, exports,
+              ten_nodejs_addon_manager_register_addon_as_extension);
   EXPORT_FUNC(env, exports, ten_nodejs_addon_on_end_of_life);
 
   return exports;

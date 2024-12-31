@@ -27,8 +27,8 @@ typedef struct ten_nodejs_app_t {
   ten_app_t *c_app;  // The corresponding C app.
 
   // @{
-  // The following function is the Javascript functions corresponding to the
-  // app's interface API.
+  // The following functions represent the JavaScript functions corresponding to
+  // the app interface API.
   ten_nodejs_tsfn_t *js_on_configure;
   ten_nodejs_tsfn_t *js_on_init;
   ten_nodejs_tsfn_t *js_on_deinit;

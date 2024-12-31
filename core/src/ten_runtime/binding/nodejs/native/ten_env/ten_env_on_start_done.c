@@ -1,5 +1,5 @@
 //
-// Copyright © 2024 Agora
+// Copyright © 2025 Agora
 // This file is part of TEN Framework, an open source project.
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
@@ -13,7 +13,7 @@
 #include "ten_utils/macro/mark.h"
 
 static void ten_env_proxy_notify_on_start_done(ten_env_t *ten_env,
-                                                TEN_UNUSED void *user_data) {
+                                               TEN_UNUSED void *user_data) {
   TEN_ASSERT(
       ten_env &&
           ten_env_check_integrity(
@@ -31,7 +31,7 @@ static void ten_env_proxy_notify_on_start_done(ten_env_t *ten_env,
 }
 
 napi_value ten_nodejs_ten_env_on_start_done(napi_env env,
-                                             napi_callback_info info) {
+                                            napi_callback_info info) {
   TEN_ASSERT(env, "Should not happen.");
 
   const size_t argc = 1;

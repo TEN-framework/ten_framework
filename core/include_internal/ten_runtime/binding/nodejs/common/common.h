@@ -18,8 +18,9 @@ typedef struct ten_smart_ptr_t ten_shared_ptr_t;
 
 typedef struct ten_nodejs_bridge_t {
   // The following two fields are used to prevent the bridge instance from being
-  // finalized. The bridge instance is finalized when both of the following two
-  // fields are destroyed.
+  // finalized. The bridge instance must only be destroyed after the
+  // corresponding instances in both the C world and the JavaScript world have
+  // been destroyed.
   ten_shared_ptr_t *sp_ref_by_c;
   ten_shared_ptr_t *sp_ref_by_js;
 
@@ -35,8 +36,8 @@ typedef struct ten_nodejs_bridge_t {
 #define GOTO_LABEL_IF_NAPI_FAIL(label, expr, fmt, ...) \
   do {                                                 \
     if (!(expr)) {                                     \
-      ten_nodejs_report_and_clear_error(env, status);  \
       TEN_LOGE(fmt, ##__VA_ARGS__);                    \
+      ten_nodejs_report_and_clear_error(env, status);  \
       goto label;                                      \
     }                                                  \
   } while (0)
@@ -45,9 +46,7 @@ typedef struct ten_nodejs_bridge_t {
   do {                                      \
     if (!(expr)) {                          \
       TEN_LOGE(fmt, ##__VA_ARGS__);         \
-      /* NOLINTNEXTLINE */                  \
       TEN_ASSERT(0, "Should not happen.");  \
-      /* NOLINTNEXTLINE */                  \
       exit(-1);                             \
     }                                       \
   } while (0)
@@ -55,9 +54,8 @@ typedef struct ten_nodejs_bridge_t {
 #define RETURN_UNDEFINED_IF_NAPI_FAIL(expr, fmt, ...) \
   do {                                                \
     if (!(expr)) {                                    \
-      ten_nodejs_report_and_clear_error(env, status); \
       TEN_LOGE(fmt, ##__VA_ARGS__);                   \
-      /* NOLINTNEXTLINE */                            \
+      ten_nodejs_report_and_clear_error(env, status); \
       TEN_ASSERT(0, "Should not happen.");            \
       return js_undefined(env);                       \
     }                                                 \

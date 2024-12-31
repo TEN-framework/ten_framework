@@ -1,5 +1,5 @@
 #
-# Copyright © 2024 Agora
+# Copyright © 2025 Agora
 # This file is part of TEN Framework, an open source project.
 # Licensed under the Apache License, Version 2.0, with certain conditions.
 # Refer to the "LICENSE" file in the root directory for more information.
@@ -7,28 +7,33 @@
 template("npm_install") {
   action(target_name) {
     script = "//.gnfiles/build/scripts/npm_install.py"
+
     args = [
-      "-project_dir",
+      "--project-dir",
       rebase_path("//"),
-      "-package_json",
+      "--package-json",
       rebase_path(invoker.package_json),
-      "-output_dir",
+      "--output-dir",
       rebase_path(invoker.output_dir),
-      "-platform",
+      "--platform",
       target_os,
-      "-log_level",
+      "--log-level",
       "${log_level}",
     ]
+
     sources = [ rebase_path(invoker.package_json) ]
     outputs = [ invoker.output_dir + "/node_modules" ]
+
     if (defined(invoker.package_lock_json) && invoker.package_lock_json != "") {
       args += [
-        "-package_lock_json",
+        "--package-lock-json",
         rebase_path(invoker.package_lock_json),
       ]
+
       sources += [ rebase_path(invoker.package_lock_json) ]
       outputs += [ invoker.output_dir + "/package-lock.json" ]
     }
+
     forward_variables_from(invoker,
                            [
                              "deps",
@@ -40,6 +45,7 @@ template("npm_install") {
 
 template("nodejs_library") {
   _target_name = target_name
+
   npm_install("${target_name}_ensure_npm") {
     package_json = invoker.package_json
     output_dir = invoker.output_dir
@@ -57,57 +63,57 @@ template("nodejs_library") {
     script = "//.gnfiles/build/scripts/npm_run_build.py"
 
     args = [
-      "-project_dir",
+      "--project-dir",
       rebase_path("//"),
-      "-log_level",
+      "--log-level",
       "${log_level}",
     ]
     args += [
-      "-tsconfig_file",
+      "--tsconfig-file",
       rebase_path(invoker.tsconfig),
     ]
     args += [
-      "-out_dir",
+      "--out-dir",
       rebase_path(invoker.output_dir),
     ]
     if (defined(invoker.references) && invoker.references != []) {
       args += [
-        "-ref",
+        "--ref",
         string_join(",", invoker.references),
       ]
     }
     args += [
-      "-platform",
+      "--platform",
       target_os,
     ]
     if (defined(invoker.remove_node_modules) &&
         invoker.remove_node_modules == true) {
       args += [
-        "-remove_node_modules",
+        "--remove-node_modules",
         "True",
       ]
     }
     if (defined(invoker.remove_tsbuildinfo) &&
         invoker.remove_tsbuildinfo == true) {
       args += [
-        "-remove_tsbuildinfo",
+        "--remove-tsbuildinfo",
         "True",
       ]
     }
     if (defined(invoker.remove_src) && invoker.remove_src == true) {
       args += [
-        "-remove_src",
+        "--remove-src",
         "True",
       ]
     }
     if (defined(invoker.library_path) && invoker.library_path != "") {
       args += [
-        "-library_path",
+        "--library-path",
         invoker.library_path,
       ]
     }
 
-    args += [ "-build_target" ]
+    args += [ "--build-target" ]
     if (defined(invoker.build_target) && invoker.build_target != "") {
       args += [ invoker.build_target ]
     } else {
@@ -117,7 +123,7 @@ template("nodejs_library") {
     if (defined(invoker.extra_args) && invoker.extra_args != []) {
       foreach(arg, invoker.extra_args) {
         args += [
-          "-extra_args",
+          "--extra-args",
           "${arg}",
         ]
       }
@@ -129,25 +135,19 @@ template("nodejs_library") {
                              "public_deps",
                              "data_deps",
                            ])
+
     if (defined(deps)) {
       deps += [ ":${_target_name}_ensure_npm" ]
     } else {
       deps = [ ":${_target_name}_ensure_npm" ]
     }
-    sources = exec_script("//.gnfiles/build/scripts/glob_tsconfig_files.py",
-                          [ rebase_path(invoker.tsconfig) ],
-                          "list lines") + [ rebase_path(invoker.tsconfig) ]
 
     tsc_output_dir_relative_path =
         exec_script("//.gnfiles/build/scripts/get_tsc_output_dir.py",
                     [ rebase_path(invoker.tsconfig) ],
                     "trim string")
 
-    # print("The sources of $target_name are: $sources")
-    outputs = [
-      # "${invoker.output_dir}/build/.files",
-      "${invoker.output_dir}/${tsc_output_dir_relative_path}",
-    ]
+    outputs = [ "${invoker.output_dir}/${tsc_output_dir_relative_path}" ]
     if (defined(invoker.library_path) && invoker.library_path != "") {
       outputs += [ "${invoker.output_dir}/path.json" ]
     }
