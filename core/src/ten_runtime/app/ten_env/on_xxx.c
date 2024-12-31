@@ -114,6 +114,40 @@ static void ten_app_on_endpoint_protocol_created(ten_env_t *ten_env,
   ten_app_start_auto_start_predefined_graph_and_trigger_on_init(self);
 }
 
+void ten_app_on_all_addon_loaders_created(ten_app_t *self) {
+  TEN_ASSERT(self && ten_app_check_integrity(self, true), "Should not happen.");
+
+  ten_error_t err;
+  ten_error_init(&err);
+
+  if (!ten_app_get_predefined_graphs_from_property(self)) {
+    goto error;
+  }
+
+  if (!ten_string_is_equal_c_str(&self->uri, TEN_STR_LOCALHOST) &&
+      !ten_string_starts_with(&self->uri, TEN_STR_CLIENT)) {
+    // Create the app listening endpoint protocol if specifying one.
+    bool rc = ten_addon_create_protocol_with_uri(
+        self->ten_env, ten_string_get_raw_str(&self->uri),
+        TEN_PROTOCOL_ROLE_LISTEN, ten_app_on_endpoint_protocol_created, NULL,
+        &err);
+    if (!rc) {
+      TEN_LOGW("Failed to create app endpoint protocol, %s.",
+               ten_error_errmsg(&err));
+      goto error;
+    }
+  } else {
+    ten_app_start_auto_start_predefined_graph_and_trigger_on_init(self);
+  }
+
+  goto done;
+
+error:
+  ten_app_close(self, NULL);
+done:
+  ten_error_deinit(&err);
+}
+
 void ten_app_on_configure_done(ten_env_t *ten_env) {
   TEN_ASSERT(ten_env, "Invalid argument.");
   TEN_ASSERT(ten_env_check_integrity(ten_env, true),
@@ -164,31 +198,11 @@ void ten_app_on_configure_done(ten_env_t *ten_env) {
   ten_addon_manager_register_all_addons(manager, (void *)register_ctx);
   ten_addon_register_ctx_destroy(register_ctx);
 
-  if (!ten_app_get_predefined_graphs_from_property(self)) {
-    goto error;
+  bool need_to_wait_all_addon_loaders_created =
+      ten_addon_loader_addons_create_singleton_instance(ten_env);
+  if (!need_to_wait_all_addon_loaders_created) {
+    ten_app_on_all_addon_loaders_created(self);
   }
-
-  if (!ten_string_is_equal_c_str(&self->uri, TEN_STR_LOCALHOST) &&
-      !ten_string_starts_with(&self->uri, TEN_STR_CLIENT)) {
-    // Create the app listening endpoint protocol if specifying one.
-    rc = ten_addon_create_protocol_with_uri(
-        self->ten_env, ten_string_get_raw_str(&self->uri),
-        TEN_PROTOCOL_ROLE_LISTEN, ten_app_on_endpoint_protocol_created, NULL,
-        &err);
-    if (!rc) {
-      TEN_LOGW("Failed to create app endpoint protocol, %s.",
-               ten_error_errmsg(&err));
-      goto error;
-    }
-  } else {
-    ten_app_start_auto_start_predefined_graph_and_trigger_on_init(self);
-  }
-
-  return;
-
-error:
-  ten_error_deinit(&err);
-  ten_app_close(self, NULL);
 }
 
 void ten_app_on_configure(ten_env_t *ten_env) {
@@ -251,6 +265,9 @@ static void ten_app_unregister_addons_after_app_close(ten_app_t *self) {
   if (disabled && !strcmp(disabled, "true")) {
     return;
   }
+
+  // App is close, so unregister all addon loaders to avoid memory leak.
+  ten_addon_loader_addons_destroy_singleton_instance();
 
   ten_addon_unregister_all_extension();
   ten_addon_unregister_all_extension_group();
