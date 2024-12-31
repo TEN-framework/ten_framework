@@ -27,12 +27,12 @@ const CustomHandle: React.FC<CustomHandleProps> = ({
   style = {},
 }) => {
   return (
-    <div style={{ position: "relative" }}>
+    <div className="relative">
       {/* Render the actual handle */}
       <Handle id={id} type={type} position={position} style={style} />
 
       {/* Render the label */}
-      <div
+      {/* <div
         style={{
           position: "absolute",
           left: labelOffsetX,
@@ -43,7 +43,7 @@ const CustomHandle: React.FC<CustomHandleProps> = ({
         }}
       >
         {label}
-      </div>
+      </div> */}
     </div>
   );
 };

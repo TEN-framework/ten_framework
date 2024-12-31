@@ -4,7 +4,15 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-import { EdgeProps, getBezierPath, Edge } from "@xyflow/react";
+import {
+  type EdgeProps,
+  getBezierPath,
+  type Edge,
+  BaseEdge,
+  EdgeLabelRenderer,
+} from "@xyflow/react";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/Button";
 
 export type CustomEdgeType = Edge<
   { labelOffsetX: number; labelOffsetY: number },
@@ -22,45 +30,74 @@ export function CustomEdge({
   id,
   style,
   label,
+  selected,
 }: EdgeProps<CustomEdgeType>) {
   const [edgePath, labelX, labelY] = getBezierPath({
     sourceX,
     sourceY,
+    sourcePosition,
     targetX,
     targetY,
-    sourcePosition,
     targetPosition,
   });
 
-  // Customize label position offset for left alignment.
-  // Adjust to move label closer to the left.
-  const labelOffsetX = data?.labelOffsetX || -50;
-  // Adjust for vertical positioning.
-  const labelOffsetY = data?.labelOffsetY || -10;
-
-  // Compute position closer to the source point.
-  // 25% from source.
-  const leftLabelX = sourceX + (labelX - sourceX) * 0.25 + labelOffsetX;
-  const leftLabelY = sourceY + (labelY - sourceY) * 0.25 + labelOffsetY;
+  // const onEdgeClick = () => {
+  //   console.log("onEdgeClick === ", id, data);
+  // };
 
   return (
     <>
-      <path
-        id={id}
-        style={style}
-        className="react-flow__edge-path"
-        d={edgePath}
-      />
-      {label && (
-        <text
-          x={leftLabelX}
-          y={leftLabelY}
-          textAnchor="start"
-          style={{ fontSize: 12, fill: "#000" }}
+      <BaseEdge id={id} path={edgePath} style={style} />
+      {selected && (
+        <path
+          id={id}
+          d={edgePath}
+          fill="none"
+          strokeDasharray="5,5"
+          stroke="url(#edge-gradient)"
+          strokeWidth="2"
+          opacity="0.75"
         >
-          {label}
-        </text>
+          <animate
+            attributeName="stroke-dashoffset"
+            values="10;0"
+            dur="0.75s"
+            repeatCount="indefinite"
+          />
+        </path>
       )}
+      <EdgeLabelRenderer>
+        <div
+          className="absolute pointer-events-all origin-center nodrag nopan"
+          style={{
+            // eslint-disable-next-line max-len
+            transform: `translate(-50%, -50%) translate(${labelX}px,${labelY}px)`,
+          }}
+        >
+          <div
+            className={cn(
+              "cursor-pointer rounded-lg border bg-background",
+              "hover:bg-muted text-xs pt-0 px-2 py-1"
+            )}
+            // onClick={onEdgeClick}
+          >
+            <div className="flex flex-col gap-0.5">
+              <div className="flex gap-1">
+                <span className="text-muted-foreground">C:</span>2
+              </div>
+              <div className="flex gap-1">
+                <span className="text-muted-foreground">D:</span>1
+              </div>
+              <div className="flex gap-1">
+                <span className="text-muted-foreground">A:</span>0
+              </div>
+              <div className="flex gap-1">
+                <span className="text-muted-foreground">V:</span>5
+              </div>
+            </div>
+          </div>
+        </div>
+      </EdgeLabelRenderer>
     </>
   );
 }
