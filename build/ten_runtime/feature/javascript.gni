@@ -142,12 +142,12 @@ template("nodejs_library") {
       deps = [ ":${_target_name}_ensure_npm" ]
     }
 
-    tsc_output_dir_relative_path =
-        exec_script("//.gnfiles/build/scripts/get_tsc_output_dir.py",
+    ts_config_outdir_relative_path =
+        exec_script("//.gnfiles/build/scripts/get_tsconfig_outdir.py",
                     [ rebase_path(invoker.tsconfig) ],
                     "trim string")
 
-    outputs = [ "${invoker.output_dir}/${tsc_output_dir_relative_path}" ]
+    outputs = [ "${invoker.output_dir}/${ts_config_outdir_relative_path}" ]
     if (defined(invoker.library_path) && invoker.library_path != "") {
       outputs += [ "${invoker.output_dir}/path.json" ]
     }
