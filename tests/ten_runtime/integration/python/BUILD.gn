@@ -23,6 +23,7 @@ group("python") {
       # "async_io_basic_python",
       # "cpp_app_multi_process_python",
       "cpp_app_python",
+
       # "get_set_prop_python",
       # "go_app_async_extension_python",
       # "large_json_python",
@@ -34,7 +35,8 @@ group("python") {
       # "no_dest_python",
       # "resp_handler_yield_python",
       # "send_cmd_discard_result_python",
-      # "send_cmd_python",
+      "send_cmd_python",
+
       # "send_cmd_set_object_python",
       # "send_data_python",
       # "send_recv_image_python",
@@ -46,10 +48,10 @@ group("python") {
 
     if (ten_enable_python_binding && ten_enable_go_binding) {
       deps += [
-        "go_app_cythonize",
-        "go_app_partially_cythonize",
-        "go_app_python",
-        "unused_addon_python",
+        # "go_app_cythonize",
+        # "go_app_partially_cythonize",
+        # "go_app_python",
+        # "unused_addon_python",
       ]
     }
   }
