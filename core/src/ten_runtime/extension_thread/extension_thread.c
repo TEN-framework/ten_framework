@@ -79,9 +79,6 @@ ten_extension_thread_t *ten_extension_thread_create(void) {
       (ten_extension_thread_t *)TEN_MALLOC(sizeof(ten_extension_thread_t));
   TEN_ASSERT(self, "Failed to allocate memory.");
 
-  volatile int *a = malloc(4);
-  *a = 4;
-
   ten_signature_set(&self->signature,
                     (ten_signature_t)TEN_EXTENSION_THREAD_SIGNATURE);
 
