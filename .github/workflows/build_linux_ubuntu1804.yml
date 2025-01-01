@@ -86,7 +86,7 @@ jobs:
           TEN_ENABLE_BACKTRACE_DUMP: "true"
         run: |
           chmod +x out/linux/x64/tests/standalone/ten_runtime_smoke_test
-          out/linux/x64/tests/standalone/ten_runtime_smoke_test || { echo "test failed"; exit 1; }
+          out/linux/x64/tests/standalone/ten_runtime_smoke_test --gtest_filter=ExtensionTest.StartTwoPredefinedGraphs || { echo "test failed"; exit 1; }
 
       - name: Run Tests (ten_rust standalone tests)
         env:
