@@ -38,8 +38,6 @@ export type CustomNodeType = Node<
 >;
 
 export function CustomNode({ data, isConnectable }: NodeProps<CustomNodeType>) {
-  console.log("CustomNode data === ", data);
-
   return (
     <>
       <div
@@ -63,7 +61,6 @@ export function CustomNode({ data, isConnectable }: NodeProps<CustomNodeType>) {
               "cursor-pointer"
             )}
             onClick={() => {
-              console.log("clicked CableIcon === ", data);
               dispatchCustomNodeActionPopup("connections", data.name);
             }}
           >

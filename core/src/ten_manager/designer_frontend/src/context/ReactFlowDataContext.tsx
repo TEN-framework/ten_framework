@@ -17,12 +17,9 @@ export const ReactFlowDataContext = React.createContext<TReactFlowDataContext>({
 // --- hooks ---
 export const useCDAVInfoByEdgeId = (edgeId: string) => {
   const { nodes, edges } = React.useContext(ReactFlowDataContext);
-  console.log("[useCDAVInfoByEdgeId] nodes === ", nodes);
-  console.log("[useCDAVInfoByEdgeId] edges === ", edges);
+
   const edge = edges.find((e) => e.id === edgeId);
   if (!edge) return null;
-
-  console.log("[useCDAVInfoByEdgeId] edge === ", edge);
 
   const source = nodes.find((n) => n.id === edge.source);
   const target = nodes.find((n) => n.id === edge.target);

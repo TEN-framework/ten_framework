@@ -109,7 +109,6 @@ const FlowCanvas = forwardRef<FlowCanvasRef, FlowCanvasProps>(
     };
 
     const launchConnPopup = (source: string, target?: string) => {
-      console.log("launchConnPopup", source, target);
       setConnPopups((prev) => {
         const existingPopup = prev.find(
           (popup) => popup.source === source && popup.target === target
@@ -193,10 +192,8 @@ const FlowCanvas = forwardRef<FlowCanvasRef, FlowCanvasProps>(
         closeContextMenu();
       };
       const handleCustomNodeAction = (event: CustomEvent) => {
-        console.log("handleCustomNodeAction", event);
         switch (event.detail.action) {
           case "connections":
-            console.log("handleCustomNodeAction: launching conn popup");
             launchConnPopup(event.detail.source, event.detail.target);
             break;
           default:
@@ -243,9 +240,9 @@ const FlowCanvas = forwardRef<FlowCanvasRef, FlowCanvasProps>(
           style={{ width: "100%", height: "100%" }}
           onNodeContextMenu={clickNodeContextMenu}
           onEdgeContextMenu={clickEdgeContextMenu}
-          onEdgeClick={(e, edge) => {
-            console.log("clicked", e, edge);
-          }}
+          // onEdgeClick={(e, edge) => {
+          //   console.log("clicked", e, edge);
+          // }}
         >
           <Controls />
           <MiniMap zoomable pannable />
