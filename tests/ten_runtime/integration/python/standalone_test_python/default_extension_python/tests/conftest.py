@@ -11,8 +11,8 @@ import os
 
 @pytest.fixture(scope="session", autouse=True)
 def global_setup_and_teardown(monkeypatch):
-    # Set the environment variable using monkeypatch.
-    monkeypatch.setenv("TEN_DISABLE_ADDON_UNREGISTER_AFTER_APP_CLOSE", "true")
+    # Set the environment variable.
+    os.environ["TEN_DISABLE_ADDON_UNREGISTER_AFTER_APP_CLOSE"] = "true"
 
     # Verify the environment variable is correctly set.
     if (
