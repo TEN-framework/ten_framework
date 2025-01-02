@@ -74,7 +74,7 @@ ten_go_error_t ten_go_video_frame_lock_buf(uintptr_t bridge_addr,
       "Invalid argument.");
 
   ten_shared_ptr_t *c_video_frame = ten_go_msg_c_msg(video_frame_bridge);
-  ten_buf_t *c_video_frame_data = ten_video_frame_peek_data(c_video_frame);
+  ten_buf_t *c_video_frame_data = ten_video_frame_peek_buf(c_video_frame);
 
   ten_error_t c_err;
   ten_error_init(&c_err);
@@ -135,11 +135,11 @@ ten_go_error_t ten_go_video_frame_get_buf(uintptr_t bridge_addr,
       "Invalid argument.");
 
   ten_shared_ptr_t *c_video_frame = ten_go_msg_c_msg(video_frame_bridge);
-  uint64_t size = ten_video_frame_peek_data(c_video_frame)->size;
+  uint64_t size = ten_video_frame_peek_buf(c_video_frame)->size;
   if (buf_size < size) {
     ten_go_error_set(&cgo_error, TEN_ERRNO_GENERIC, "buffer is not enough");
   } else {
-    ten_buf_t *data = ten_video_frame_peek_data(c_video_frame);
+    ten_buf_t *data = ten_video_frame_peek_buf(c_video_frame);
     memcpy((void *)buf_addr, data->data, size);
   }
 
@@ -159,7 +159,7 @@ ten_go_error_t ten_go_video_frame_get_buf_size(uintptr_t bridge_addr,
       "Invalid argument.");
 
   ten_shared_ptr_t *c_video_frame = ten_go_msg_c_msg(video_frame_bridge);
-  *buf_size = ten_video_frame_peek_data(c_video_frame)->size;
+  *buf_size = ten_video_frame_peek_buf(c_video_frame)->size;
 
   return cgo_error;
 }
