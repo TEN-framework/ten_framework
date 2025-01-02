@@ -1,0 +1,211 @@
+import {
+  ColumnDef,
+  flexRender,
+  getCoreRowModel,
+  useReactTable,
+} from "@tanstack/react-table";
+import { BlocksIcon, ArrowBigRightDashIcon } from "lucide-react";
+
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/Badge";
+import { Button } from "@/components/ui/Button";
+import { cn } from "@/lib/utils";
+import { dispatchCustomNodeActionPopup } from "@/utils/popup";
+
+import { EConnectionType } from "@/types/graphs";
+
+export type TConnection = {
+  id: string;
+  source: string;
+  target: string;
+  type?: EConnectionType;
+};
+
+// eslint-disable-next-line react-refresh/only-export-components
+export const commonConnectionColumns: ColumnDef<TConnection>[] = [
+  {
+    accessorKey: "id",
+    header: () => <div className="">No.</div>,
+    cell: ({ row }) => {
+      const index = row.index + 1;
+      return <div className="font-medium">{index}</div>;
+    },
+  },
+  {
+    accessorKey: "type",
+    header: "Type",
+    cell: ({ row }) => {
+      const type = row.getValue("type") as EConnectionType;
+      if (!type) return null;
+      return <ConnectionTypeWithBadge type={type} />;
+    },
+  },
+];
+
+// eslint-disable-next-line react-refresh/only-export-components
+export const connectionColumns: ColumnDef<TConnection>[] = [
+  ...commonConnectionColumns,
+  {
+    accessorKey: "source",
+    header: "Source",
+  },
+  {
+    accessorKey: "target",
+    header: "Target",
+  },
+];
+
+// eslint-disable-next-line react-refresh/only-export-components
+export const extensionConnectionColumns1: ColumnDef<TConnection>[] = [
+  ...commonConnectionColumns,
+  {
+    accessorKey: "downstream",
+    header: "Downstream",
+    cell: ({ row }) => {
+      const downstream = row.getValue("downstream") as string;
+      if (!downstream) return null;
+      return (
+        <div className="flex items-center">
+          <BlocksIcon className="w-4 h-4 me-1" />
+          <ArrowBigRightDashIcon className="w-4 h-4 me-1" />
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() =>
+              dispatchCustomNodeActionPopup("connections", downstream)
+            }
+          >
+            <BlocksIcon className="w-3 h-3 me-1" />
+            <span className="text-xs">{downstream}</span>
+          </Button>
+        </div>
+      );
+    },
+  },
+];
+
+// eslint-disable-next-line react-refresh/only-export-components
+export const extensionConnectionColumns2: ColumnDef<TConnection>[] = [
+  ...commonConnectionColumns,
+  {
+    accessorKey: "upstream",
+    header: "Upstream",
+    cell: ({ row }) => {
+      const upstream = row.getValue("upstream") as string;
+      if (!upstream) return null;
+      return (
+        <div className="flex items-center">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() =>
+              dispatchCustomNodeActionPopup("connections", upstream)
+            }
+          >
+            <BlocksIcon className="w-3 h-3 me-1" />
+            <span className="text-xs">{upstream}</span>
+          </Button>
+          <ArrowBigRightDashIcon className="w-4 h-4 ms-1" />
+          <BlocksIcon className="w-4 h-4 ms-1" />
+        </div>
+      );
+    },
+  },
+];
+
+interface DataTableProps<TData, TValue> {
+  columns: ColumnDef<TData, TValue>[];
+  data: TData[];
+}
+
+export function DataTable<TData, TValue>({
+  columns,
+  data,
+  className,
+}: DataTableProps<TData, TValue> & { className?: string }) {
+  const table = useReactTable({
+    data,
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+  });
+
+  return (
+    <div className={cn("rounded-md border", className)}>
+      <Table>
+        <TableHeader>
+          {table.getHeaderGroups().map((headerGroup) => (
+            <TableRow key={headerGroup.id}>
+              {headerGroup.headers.map((header) => {
+                return (
+                  <TableHead key={header.id}>
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
+                  </TableHead>
+                );
+              })}
+            </TableRow>
+          ))}
+        </TableHeader>
+        <TableBody>
+          {table.getRowModel().rows?.length ? (
+            table.getRowModel().rows.map((row) => (
+              <TableRow
+                key={row.id}
+                data-state={row.getIsSelected() && "selected"}
+              >
+                {row.getVisibleCells().map((cell) => (
+                  <TableCell key={cell.id}>
+                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  </TableCell>
+                ))}
+              </TableRow>
+            ))
+          ) : (
+            <TableRow>
+              <TableCell colSpan={columns.length} className="h-24 text-center">
+                No results.
+              </TableCell>
+            </TableRow>
+          )}
+        </TableBody>
+      </Table>
+    </div>
+  );
+}
+
+// eslint-disable-next-line react-refresh/only-export-components
+export const connectionTypeBadgeStyle = {
+  [EConnectionType.CMD]: "bg-blue-100 text-blue-800 border-blue-200",
+  [EConnectionType.DATA]: "bg-green-100 text-green-800 border-green-200",
+  [EConnectionType.AUDIO_FRAME]:
+    "bg-purple-100 text-purple-800 border-purple-200",
+  [EConnectionType.VIDEO_FRAME]: "bg-red-100 text-red-800 border-red-200",
+};
+
+export function ConnectionTypeWithBadge({
+  type,
+  className,
+}: {
+  type: EConnectionType;
+  className?: string;
+}) {
+  return (
+    <Badge
+      variant="outline"
+      className={cn(connectionTypeBadgeStyle[type], className)}
+    >
+      {type}
+    </Badge>
+  );
+}

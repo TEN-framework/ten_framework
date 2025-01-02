@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
-
+import { dispatchCustomNodeActionPopup } from "@/utils/popup";
 import CustomHandle from "@/flow/CustomHandle";
 
 const onConnect = (params: Connection | Edge) =>
@@ -26,12 +26,20 @@ export type CustomNodeType = Node<
     addon: string;
     sourceCmds: string[];
     targetCmds: string[];
+    sourceData: string[];
+    targetData: string[];
+    sourceAudioFrame: string[];
+    targetAudioFrame: string[];
+    sourceVideoFrame: string[];
+    targetVideoFrame: string[];
     url?: string;
   },
   "customNode"
 >;
 
 export function CustomNode({ data, isConnectable }: NodeProps<CustomNodeType>) {
+  console.log("CustomNode data === ", data);
+
   return (
     <>
       <div
@@ -56,14 +64,7 @@ export function CustomNode({ data, isConnectable }: NodeProps<CustomNodeType>) {
             )}
             onClick={() => {
               console.log("clicked CableIcon === ", data);
-              if (typeof window !== "undefined") {
-                console.log("dispatching customNodeAction");
-                window.dispatchEvent(
-                  new CustomEvent("customNodeAction", {
-                    detail: { action: "connections", source: data.name },
-                  })
-                );
-              }
+              dispatchCustomNodeActionPopup("connections", data.name);
             }}
           >
             <CableIcon className="w-3 h-3" />
@@ -133,7 +134,7 @@ export function CustomNode({ data, isConnectable }: NodeProps<CustomNodeType>) {
           </div>
 
           {/* Render target handles (for incoming edges) */}
-          {data.targetCmds.map((cmd, index) => (
+          {/* {data.targetCmds.map((cmd, index) => (
             <CustomHandle
               key={`target-${cmd}`}
               type="target"
@@ -146,10 +147,22 @@ export function CustomNode({ data, isConnectable }: NodeProps<CustomNodeType>) {
               isConnectable={isConnectable}
               onConnect={onConnect}
             />
-          ))}
+          ))} */}
+          <CustomHandle
+            key={`target-${data.addon}`}
+            type="target"
+            position={Position.Left}
+            id={`target-${data.addon}`}
+            label={data.addon}
+            labelOffsetX={0}
+            // labelOffsetY={index * 20}
+            // style={{ top: index * 20, background: "#555" }}
+            isConnectable={isConnectable}
+            onConnect={onConnect}
+          />
 
           {/* Render source handles (for outgoing edges) */}
-          {data.sourceCmds.map((cmd, index) => (
+          {/* {data.sourceCmds.map((cmd, index) => (
             <CustomHandle
               key={`source-${cmd}`}
               type="source"
@@ -161,7 +174,18 @@ export function CustomNode({ data, isConnectable }: NodeProps<CustomNodeType>) {
               // style={{ top: index * 20, background: "#555" }}
               isConnectable={isConnectable}
             />
-          ))}
+          ))} */}
+          <CustomHandle
+            key={`source-${data.addon}`}
+            type="source"
+            position={Position.Right}
+            id={`source-${data.addon}`}
+            label={data.addon}
+            labelOffsetX={0}
+            // labelOffsetY={index * 20}
+            // style={{ top: index * 20, background: "#555" }}
+            isConnectable={isConnectable}
+          />
         </div>
       </div>
     </>

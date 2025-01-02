@@ -63,11 +63,13 @@ const FlowCanvas = forwardRef<FlowCanvasRef, FlowCanvasProps>(
       edge?: CustomEdgeType;
       node?: CustomNodeType;
     }>({ visible: false, x: 0, y: 0 });
-    const [connPopup, setConnPopup] = useState<{
-      visible: boolean;
-      source: string;
-      target?: string;
-    }>({ visible: false, source: "", target: "" });
+    const [connPopups, setConnPopups] = useState<
+      {
+        id: string;
+        source: string;
+        target?: string;
+      }[]
+    >([]);
 
     const launchTerminal = (data: TerminalData) => {
       const newPopup = { id: `${data.title}-${Date.now()}`, data };
@@ -108,11 +110,19 @@ const FlowCanvas = forwardRef<FlowCanvasRef, FlowCanvasProps>(
 
     const launchConnPopup = (source: string, target?: string) => {
       console.log("launchConnPopup", source, target);
-      setConnPopup({ visible: true, source, target });
+      setConnPopups((prev) => {
+        const existingPopup = prev.find(
+          (popup) => popup.source === source && popup.target === target
+        );
+        if (existingPopup) {
+          return prev;
+        }
+        return [...prev, { source, target, id: `${source}-${target ?? ""}` }];
+      });
     };
 
-    const closeConnPopup = () => {
-      setConnPopup({ visible: false, source: "", target: "" });
+    const closeConnPopup = (id: string) => {
+      setConnPopups((prev) => prev.filter((popup) => popup.id !== id));
     };
 
     const renderContextMenu = () => {
@@ -286,14 +296,14 @@ const FlowCanvas = forwardRef<FlowCanvasRef, FlowCanvasProps>(
           />
         ))}
 
-        {connPopup.visible && (
+        {connPopups.map((popup) => (
           <CustomNodeConnPopup
-            key={`${connPopup.source}-${connPopup.target ?? ""}`}
-            source={connPopup.source}
-            target={connPopup.target}
-            onClose={closeConnPopup}
+            key={popup.id}
+            source={popup.source}
+            target={popup.target}
+            onClose={() => closeConnPopup(popup.id)}
           />
-        )}
+        ))}
       </div>
     );
   }

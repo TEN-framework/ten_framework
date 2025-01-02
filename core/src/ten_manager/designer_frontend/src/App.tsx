@@ -35,6 +35,7 @@ import {
 } from "@/flow/graph";
 import Popup from "@/components/Popup/Popup";
 import type { IGraph } from "@/types/graphs";
+import { ReactFlowDataContext } from "@/context/ReactFlowDataContext";
 
 const App: React.FC = () => {
   const [graphs, setGraphs] = useState<IGraph[]>([]);
@@ -69,16 +70,30 @@ const App: React.FC = () => {
 
       let initialNodes: CustomNodeType[] = processNodes(backendNodes);
 
-      const { initialEdges, nodeSourceCmdMap, nodeTargetCmdMap } =
-        processConnections(backendConnections);
+      const {
+        initialEdges,
+        nodeSourceCmdMap,
+        nodeSourceDataMap,
+        nodeSourceAudioFrameMap,
+        nodeSourceVideoFrameMap,
+        nodeTargetCmdMap,
+        nodeTargetDataMap,
+        nodeTargetAudioFrameMap,
+        nodeTargetVideoFrameMap,
+      } = processConnections(backendConnections);
 
       // Write back the cmd information to nodes, so that CustomNode could
       // generate corresponding handles.
-      initialNodes = enhanceNodesWithCommands(
-        initialNodes,
+      initialNodes = enhanceNodesWithCommands(initialNodes, {
         nodeSourceCmdMap,
-        nodeTargetCmdMap
-      );
+        nodeTargetCmdMap,
+        nodeSourceDataMap,
+        nodeTargetDataMap,
+        nodeSourceAudioFrameMap,
+        nodeSourceVideoFrameMap,
+        nodeTargetAudioFrameMap,
+        nodeTargetVideoFrameMap,
+      });
 
       // Fetch additional addon information for each node.
       const nodesWithAddonInfo = await fetchAddonInfoForNodes(initialNodes);
@@ -136,43 +151,45 @@ const App: React.FC = () => {
 
   return (
     <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
-      <AppBar
-        version={version}
-        onAutoLayout={performAutoLayout}
-        onOpenExistingGraph={handleOpenExistingGraph}
-        onSetBaseDir={handleSetBaseDir}
-      />
-      <FlowCanvas
-        nodes={nodes}
-        edges={edges}
-        onNodesChange={handleNodesChange}
-        onEdgesChange={handleEdgesChange}
-        onConnect={(connection) => {
-          setEdges((eds) => addEdge(connection, eds));
-        }}
-      />
-      {showGraphSelection && (
-        <Popup
-          title="Select a Graph"
-          onClose={() => setShowGraphSelection(false)}
-          resizable={false}
-          initialWidth={400}
-          initialHeight={300}
-          onCollapseToggle={() => {}}
-        >
-          <ul>
-            {graphs.map((graph) => (
-              <li
-                key={graph.name}
-                style={{ cursor: "pointer", padding: "5px 0" }}
-                onClick={() => handleSelectGraph(graph.name)}
-              >
-                {graph.name} {graph.auto_start ? "(Auto Start)" : ""}
-              </li>
-            ))}
-          </ul>
-        </Popup>
-      )}
+      <ReactFlowDataContext.Provider value={{ nodes, edges }}>
+        <AppBar
+          version={version}
+          onAutoLayout={performAutoLayout}
+          onOpenExistingGraph={handleOpenExistingGraph}
+          onSetBaseDir={handleSetBaseDir}
+        />
+        <FlowCanvas
+          nodes={nodes}
+          edges={edges}
+          onNodesChange={handleNodesChange}
+          onEdgesChange={handleEdgesChange}
+          onConnect={(connection) => {
+            setEdges((eds) => addEdge(connection, eds));
+          }}
+        />
+        {showGraphSelection && (
+          <Popup
+            title="Select a Graph"
+            onClose={() => setShowGraphSelection(false)}
+            resizable={false}
+            initialWidth={400}
+            initialHeight={300}
+            onCollapseToggle={() => {}}
+          >
+            <ul>
+              {graphs.map((graph) => (
+                <li
+                  key={graph.name}
+                  style={{ cursor: "pointer", padding: "5px 0" }}
+                  onClick={() => handleSelectGraph(graph.name)}
+                >
+                  {graph.name} {graph.auto_start ? "(Auto Start)" : ""}
+                </li>
+              ))}
+            </ul>
+          </Popup>
+        )}
+      </ReactFlowDataContext.Provider>
     </ThemeProvider>
   );
 };
