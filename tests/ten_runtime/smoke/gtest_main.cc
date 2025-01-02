@@ -7,38 +7,28 @@
 #include <cstdio>
 
 #include "gtest/gtest.h"
-#include "include_internal/ten_runtime/addon/addon_loader/addon_loader.h"
-#include "include_internal/ten_runtime/addon/addon_manager.h"
-#include "include_internal/ten_runtime/addon/extension/extension.h"
-#include "include_internal/ten_runtime/addon/extension_group/extension_group.h"
-#include "include_internal/ten_runtime/addon/protocol/protocol.h"
+#include "include_internal/ten_runtime/addon/addon.h"
 #include "include_internal/ten_utils/lib/env.h"
 
 class GlobalTestEnvironment : public ::testing::Environment {
  public:
   // This method is run before any test cases.
   void SetUp() override {
+    // In a smoke test, the relationship between the app and the process is not
+    // one-to-one. Therefore, addons cannot be unloaded when the app ends; they
+    // should only be unloaded when the entire process ends. Currently, the
+    // following environment variable is used to control whether to perform the
+    // addon unload action when the app ends.
     if (!ten_env_set("TEN_DISABLE_ADDON_UNREGISTER_AFTER_APP_CLOSE", "true")) {
       perror("Failed to set TEN_DISABLE_ADDON_UNREGISTER_AFTER_APP_CLOSE");
 
       // NOLINTNEXTLINE(concurrency-mt-unsafe)
       exit(EXIT_FAILURE);
     }
-
-    ten_addon_manager_t *manager = ten_addon_manager_get_instance();
-
-    // In the context of smoke testing, there is no need to register
-    // `register_ctx`.
-    ten_addon_manager_register_all_addons(manager, nullptr);
   }
 
   // This method is run after all test cases.
-  void TearDown() override {
-    ten_addon_unregister_all_extension();
-    ten_addon_unregister_all_extension_group();
-    ten_addon_unregister_all_addon_loader();
-    ten_addon_unregister_all_protocol();
-  }
+  void TearDown() override { ten_unregister_all_addons_and_cleanup(); }
 };
 
 GTEST_API_ int main(int argc, char **argv) {

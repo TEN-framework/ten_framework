@@ -9,6 +9,7 @@
 #include <stdlib.h>
 
 #include "include_internal/ten_runtime/addon/addon.h"
+#include "include_internal/ten_runtime/addon/addon_host.h"
 #include "include_internal/ten_runtime/addon/common/store.h"
 #include "include_internal/ten_runtime/addon_loader/addon_loader.h"
 #include "include_internal/ten_runtime/app/on_xxx.h"
@@ -28,7 +29,6 @@
 #include "ten_runtime/ten_env/ten_env.h"
 #include "ten_utils/lib/string.h"
 #include "ten_utils/macro/check.h"
-#include "ten_utils/macro/mark.h"
 
 void ten_addon_on_init_done(ten_env_t *self) {
   TEN_ASSERT(self, "Invalid argument.");
@@ -95,13 +95,6 @@ void ten_addon_on_init_done(ten_env_t *self) {
       ten_string_set_from_c_str(&addon_host->name, manifest_name,
                                 strlen(manifest_name));
     }
-  }
-
-  rc = ten_addon_store_add(addon_host->store, addon_host);
-  if (!rc) {
-    TEN_ASSERT(0, "Should not happen.");
-    // NOLINTNEXTLINE(concurrency-mt-unsafe)
-    exit(EXIT_FAILURE);
   }
 }
 
