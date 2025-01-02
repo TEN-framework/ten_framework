@@ -37,16 +37,16 @@ class DefaultAsyncExtension(AsyncExtension):
         ten_env.log_debug("on_cmd name {}".format(cmd_name))
 
         if cmd_name == "query_weather":
-            # send a command to query weather
+            # Send a command to query weather.
             query_cmd = Cmd.create("query_weather")
             cmd_result, error = await ten_env.send_cmd(query_cmd)
             assert error is None
             assert cmd_result is not None
 
-            # get the weather detail
+            # Get the weather detail.
             weather = cmd_result.get_property_string("detail")
 
-            # return the weather detail
+            # Return the weather detail.
             cmd_result = CmdResult.create(StatusCode.OK)
             cmd_result.set_property_string("detail", weather)
             await ten_env.return_result(cmd_result, cmd)

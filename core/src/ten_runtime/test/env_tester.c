@@ -22,6 +22,7 @@
 #include "ten_utils/io/runloop.h"
 #include "ten_utils/lib/error.h"
 #include "ten_utils/lib/signature.h"
+#include "ten_utils/macro/mark.h"
 #include "ten_utils/macro/memory.h"
 
 bool ten_env_tester_check_integrity(ten_env_tester_t *self) {
@@ -302,7 +303,7 @@ static void send_cmd_callback(ten_env_t *ten_env, ten_shared_ptr_t *cmd_result,
 }
 
 static void send_data_like_msg_callback(ten_env_t *ten_env,
-                                        ten_shared_ptr_t *cmd_result,
+                                        TEN_UNUSED ten_shared_ptr_t *cmd_result,
                                         void *callback_user_data,
                                         ten_error_t *err) {
   TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),

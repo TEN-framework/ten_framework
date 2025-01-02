@@ -175,9 +175,9 @@ class ten_env_tester_t {
         err != nullptr ? err->get_c_error() : nullptr);
 
     if (rc) {
-      // Only when is_final is true does the ownership of target_cmd
-      // transfer. Otherwise, target_cmd remains with the extension,
-      // allowing the extension to return more results.
+      // Only when is_final is true does the ownership of target_cmd transfer.
+      // Otherwise, target_cmd remains with the extension, allowing the
+      // extension to return more results.
       if (cmd_result->is_final()) {
         auto *cpp_target_cmd_ptr = target_cmd.release();
         delete cpp_target_cmd_ptr;
@@ -228,8 +228,7 @@ class ten_env_tester_t {
 
     if (c_cmd_result != nullptr) {
       cmd_result = cmd_result_t::create(
-          // Clone a C shared_ptr to be owned by the C++
-          // instance.
+          // Clone a C shared_ptr to be owned by the C++ instance.
           ten_shared_ptr_clone(c_cmd_result));
     }
 
@@ -241,10 +240,9 @@ class ten_env_tester_t {
     }
 
     if (ten_cmd_result_is_final(c_cmd_result, nullptr)) {
-      // Only when is_final is true should the result handler
-      // be cleared. Otherwise, since more result handlers
-      // are expected, the result handler should not be
-      // cleared.
+      // Only when is_final is true should the result handler be cleared.
+      // Otherwise, since more result handlers are expected, the result handler
+      // should not be cleared.
       delete result_handler;
     }
   }
