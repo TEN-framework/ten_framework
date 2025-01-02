@@ -278,6 +278,30 @@ void ten_app_on_deinit(ten_app_t *self) {
   // returns, so it's best to perform the on_deinit callback _before_ the
   // runloop is stopped.
 
+  // @{
+  // **Note:** The two functions below will invoke functions like `on_deinit`,
+  // which may call into different language environments, such as the
+  // `on_deinit` function of a Python addon. Therefore, these two functions must
+  // not be called within the call flow of the C API initiated by those
+  // languages. In other words, these two functions cannot be invoked within the
+  // call flow of functions like `on_deinit_done`. Instead, they must be called
+  // within the call flow of a purely C-native thread; otherwise, it may
+  // potentially lead to a deadlock.
+
+  // The `on_deinit` of the protocol instance needs to call the `on_deinit_done`
+  // of the addon host, so this logic must be performed before unregistering the
+  // protocol addons.
+  if (self->endpoint_protocol) {
+    ten_ref_dec_ref(&self->endpoint_protocol->ref);
+  }
+
+  // At the final stage of addon deinitialization, `ten_env_t::on_deinit_done`
+  // is required, which in turn depends on the runloop. Therefore, the addon
+  // deinitialization process must be performed _before_ the app's runloop
+  // ends.
+  ten_app_unregister_addons_after_app_close(self);
+  // @}
+
   if (self->on_deinit) {
     // Call the registered on_deinit callback if exists.
     self->on_deinit(self, self->ten_env);
@@ -310,19 +334,6 @@ void ten_app_on_deinit_done(ten_env_t *ten_env) {
   }
   self->state = TEN_APP_STATE_CLOSED;
   ten_mutex_unlock(self->state_lock);
-
-  // The `on_deinit` of the protocol instance needs to call the `on_deinit_done`
-  // of the addon host, so this logic must be performed before unregistering the
-  // protocol addons.
-  if (self->endpoint_protocol) {
-    ten_ref_dec_ref(&self->endpoint_protocol->ref);
-  }
-
-  // At the final stage of addon deinitialization, `ten_env_t::on_deinit_done`
-  // is required, which in turn depends on the runloop. Therefore, the addon
-  // deinitialization process must be performed _before_ the app's runloop
-  // ends.
-  ten_app_unregister_addons_after_app_close(self);
 
   TEN_ENV_LOG_DEBUG_INTERNAL(ten_env, "app on_deinit_done().");
 
