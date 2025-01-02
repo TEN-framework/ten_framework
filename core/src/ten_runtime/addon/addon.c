@@ -293,7 +293,7 @@ static void ten_addon_unregister_all(void) {
   ten_addon_unregister_all_protocol();
 }
 
-void ten_addon_unregister_all_and_cleanup(void) {
+void ten_unregister_all_addons_and_cleanup(void) {
   // Destroy all addon loaders' singleton to avoid memory leak.
   ten_addon_loader_addons_destroy_singleton_instance();
 

@@ -268,7 +268,7 @@ static void ten_app_unregister_addons_after_app_close(ten_app_t *self) {
     return;
   }
 
-  ten_addon_unregister_all_and_cleanup();
+  ten_unregister_all_addons_and_cleanup();
 }
 
 void ten_app_on_deinit(ten_app_t *self) {
