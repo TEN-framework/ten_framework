@@ -294,25 +294,29 @@ ten_addon_host_t *ten_addon_host_find(TEN_ADDON_TYPE addon_type,
 }
 
 ten_addon_host_t *ten_addon_host_find_or_create_one_if_not_found(
-    TEN_ADDON_TYPE addon_type, const char *addon_name) {
+    TEN_ADDON_TYPE addon_type, const char *addon_name, bool *newly_created) {
   TEN_ASSERT(addon_name, "Should not happen.");
 
   switch (addon_type) {
     case TEN_ADDON_TYPE_EXTENSION:
       return ten_addon_store_find_or_create_one_if_not_found(
-          ten_extension_get_global_store(), addon_type, addon_name);
+          ten_extension_get_global_store(), addon_type, addon_name,
+          newly_created);
 
     case TEN_ADDON_TYPE_EXTENSION_GROUP:
       return ten_addon_store_find_or_create_one_if_not_found(
-          ten_extension_group_get_global_store(), addon_type, addon_name);
+          ten_extension_group_get_global_store(), addon_type, addon_name,
+          newly_created);
 
     case TEN_ADDON_TYPE_PROTOCOL:
       return ten_addon_store_find_or_create_one_if_not_found(
-          ten_protocol_get_global_store(), addon_type, addon_name);
+          ten_protocol_get_global_store(), addon_type, addon_name,
+          newly_created);
 
     case TEN_ADDON_TYPE_ADDON_LOADER:
       return ten_addon_store_find_or_create_one_if_not_found(
-          ten_addon_loader_get_global_store(), addon_type, addon_name);
+          ten_addon_loader_get_global_store(), addon_type, addon_name,
+          newly_created);
 
     default:
       TEN_ASSERT(0, "Should not happen.");

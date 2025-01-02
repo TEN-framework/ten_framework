@@ -117,12 +117,14 @@ ten_addon_host_t *ten_addon_store_find(ten_addon_store_t *store,
 }
 
 ten_addon_host_t *ten_addon_store_find_or_create_one_if_not_found(
-    ten_addon_store_t *store, TEN_ADDON_TYPE addon_type,
-    const char *addon_name) {
+    ten_addon_store_t *store, TEN_ADDON_TYPE addon_type, const char *addon_name,
+    bool *newly_created) {
   TEN_ASSERT(store, "Invalid argument.");
   TEN_ASSERT(addon_name, "Invalid argument.");
+  TEN_ASSERT(newly_created, "Invalid argument.");
 
   ten_addon_host_t *result = NULL;
+  *newly_created = false;
 
   ten_mutex_lock(store->lock);
 
@@ -133,6 +135,8 @@ ten_addon_host_t *ten_addon_store_find_or_create_one_if_not_found(
     TEN_ASSERT(result, "Should not happen.");
 
     ten_addon_store_add(store, result);
+
+    *newly_created = true;
   }
 
   ten_mutex_unlock(store->lock);

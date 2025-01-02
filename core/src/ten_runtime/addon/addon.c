@@ -227,9 +227,14 @@ ten_addon_host_t *ten_addon_register(TEN_ADDON_TYPE addon_type,
   // extension addons, the action of checking for unregistered addons and adding
   // a new addon needs to be atomic. This ensures that the same addon is not
   // loaded multiple times.
-  ten_addon_host_t *addon_host =
-      ten_addon_host_find_or_create_one_if_not_found(addon_type, addon_name);
+  bool newly_created = false;
+  ten_addon_host_t *addon_host = ten_addon_host_find_or_create_one_if_not_found(
+      addon_type, addon_name, &newly_created);
   TEN_ASSERT(addon_host, "Should not happen.");
+
+  if (!newly_created) {
+    goto done;
+  }
 
   if (register_ctx) {
     // If `register_ctx` exists, its content will be used to assist in the addon
@@ -261,6 +266,7 @@ ten_addon_host_t *ten_addon_register(TEN_ADDON_TYPE addon_type,
   ten_addon_register_internal(addon_store, addon_host, addon_name, base_dir,
                               addon);
 
+done:
   return addon_host;
 }
 

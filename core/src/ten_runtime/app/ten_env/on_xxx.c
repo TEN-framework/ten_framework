@@ -29,6 +29,7 @@
 #include "include_internal/ten_runtime/ten_env/log.h"
 #include "include_internal/ten_runtime/ten_env/metadata_cb.h"
 #include "include_internal/ten_runtime/ten_env/ten_env.h"
+#include "include_internal/ten_runtime/test/test_extension.h"
 #include "ten_runtime/app/app.h"
 #include "ten_runtime/ten_env/internal/on_xxx_done.h"
 #include "ten_runtime/ten_env/ten_env.h"
@@ -193,13 +194,19 @@ void ten_app_on_configure_done(ten_env_t *ten_env) {
   ten_addon_load_all_from_ten_package_base_dirs(&self->ten_package_base_dirs,
                                                 &err);
 
+  // @{
   // Register all addons.
+  ten_builtin_extension_group_addon_register();
+  ten_builtin_test_extension_addon_register();
+
   ten_addon_manager_t *manager = ten_addon_manager_get_instance();
   ten_addon_register_ctx_t *register_ctx = ten_addon_register_ctx_create();
   register_ctx->app = self;
   ten_addon_manager_register_all_addons(manager, (void *)register_ctx);
   ten_addon_register_ctx_destroy(register_ctx);
+  // @}
 
+  // Create addon loader singleton instances.
   bool need_to_wait_all_addon_loaders_created =
       ten_addon_loader_addons_create_singleton_instance(ten_env);
   if (!need_to_wait_all_addon_loaders_created) {
