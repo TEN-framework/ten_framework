@@ -208,6 +208,11 @@ def build_nodejs_extensions(app_root_path: str) -> int:
                 # Change to extension directory.
                 os.chdir(extension_path)
 
+                status = npm_install()
+                if status != 0:
+                    print(f"Failed to npm install in {extension_path}")
+                    return 1
+
                 now = datetime.now()
                 cmd = ["npm", "run", "build"]
                 returncode, output = cmd_exec.run_cmd(cmd)
