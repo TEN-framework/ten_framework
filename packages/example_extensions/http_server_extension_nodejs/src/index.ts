@@ -81,9 +81,9 @@ class HttpServerExtension extends Extension {
         } else if ("name" in _ten) {
           const name = _ten["name"];
           const cmd = Cmd.Create(name);
+          cmd.setPropertyFromJson("", body);
           cmd.setPropertyString("method", req.method!);
           cmd.setPropertyString("url", req.url!);
-          cmd.setPropertyFromJson("", body);
 
           this.tenEnv!.sendCmd(cmd).then(
             ([cmdResult, error]: [CmdResult | null, Error | null]) => {

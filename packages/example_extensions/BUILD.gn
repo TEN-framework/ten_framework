@@ -25,5 +25,12 @@ group("example_extensions") {
         "pil_demo_python",
       ]
     }
+
+    if (ten_enable_nodejs_binding) {
+      deps += [
+        "http_server_extension_nodejs",
+        "websocket_server_extension_nodejs",
+      ]
+    }
   }
 }
