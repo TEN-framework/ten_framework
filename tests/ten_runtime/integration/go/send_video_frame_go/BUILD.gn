@@ -27,7 +27,8 @@ ten_package_test_prepare_app("send_video_frame_go_app") {
   ]
 }
 
-ten_package_test_prepare_auxiliary_resources("send_video_frame_go_app_test_files") {
+ten_package_test_prepare_auxiliary_resources(
+    "send_video_frame_go_app_test_files") {
   resources = [
     "//tests/ten_runtime/integration/common=>common",
     "__init__.py",

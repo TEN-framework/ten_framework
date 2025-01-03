@@ -24,7 +24,7 @@ func (ext *defaultExtension) OnConfigure(tenEnv ten.TenEnv) {
 	tenEnv.OnConfigureDone()
 }
 
-func (p *defaultExtension) OnCmd(
+func (ext *defaultExtension) OnCmd(
 	tenEnv ten.TenEnv,
 	cmd ten.Cmd,
 ) {
@@ -35,7 +35,7 @@ func (p *defaultExtension) OnCmd(
 
 	tenEnv.LogDebug("OnCmd" + cmdName)
 
-	p.cachedCmd = cmd
+	ext.cachedCmd = cmd
 
 	videoFrame, error := ten.NewVideoFrame("video_frame")
 	if error != nil {
@@ -73,7 +73,7 @@ func (p *defaultExtension) OnCmd(
 	}
 }
 
-func (p *defaultExtension) OnVideoFrame(
+func (ext *defaultExtension) OnVideoFrame(
 	tenEnv ten.TenEnv,
 	frame ten.VideoFrame,
 ) {
@@ -138,7 +138,7 @@ func (p *defaultExtension) OnVideoFrame(
 		panic("Failed to unlock buf.")
 	}
 
-	if p.cachedCmd == nil {
+	if ext.cachedCmd == nil {
 		panic("Cached cmd is nil.")
 	}
 
@@ -148,7 +148,7 @@ func (p *defaultExtension) OnVideoFrame(
 	}
 
 	cmdResult.SetPropertyString("detail", "success")
-	if err := tenEnv.ReturnResult(cmdResult, p.cachedCmd, nil); err != nil {
+	if err := tenEnv.ReturnResult(cmdResult, ext.cachedCmd, nil); err != nil {
 		panic("Failed to return result.")
 	}
 }
@@ -158,7 +158,7 @@ func newAExtension(name string) ten.Extension {
 }
 
 func init() {
-	// Register addon
+	// Register addon.
 	err := ten.RegisterAddonAsExtension(
 		"default_extension_go",
 		ten.NewDefaultExtensionAddon(newAExtension),

@@ -23,7 +23,7 @@ func (ext *defaultExtension) OnConfigure(tenEnv ten.TenEnv) {
 	tenEnv.OnConfigureDone()
 }
 
-func (p *defaultExtension) OnCmd(
+func (ext *defaultExtension) OnCmd(
 	tenEnv ten.TenEnv,
 	cmd ten.Cmd,
 ) {
@@ -78,7 +78,7 @@ func (p *defaultExtension) OnCmd(
 	}
 }
 
-func (p *defaultExtension) OnData(
+func (ext *defaultExtension) OnData(
 	tenEnv ten.TenEnv,
 	data ten.Data,
 ) {
@@ -136,7 +136,7 @@ func newAExtension(name string) ten.Extension {
 }
 
 func init() {
-	// Register addon
+	// Register addon.
 	err := ten.RegisterAddonAsExtension(
 		"default_extension_go",
 		ten.NewDefaultExtensionAddon(newAExtension),
