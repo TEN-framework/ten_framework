@@ -105,7 +105,7 @@ def setup():
             "-m",
             "pip",
             "install",
-            "websocket",
+            "websocket-client",
         ]
     )
 
