@@ -99,6 +99,15 @@ def setup():
             "python-dotenv",
         ]
     )
+    utils.run_cmd_with_retry(
+        [
+            sys.executable,
+            "-m",
+            "pip",
+            "install",
+            "websocket",
+        ]
+    )
 
 
 if __name__ == "__main__":

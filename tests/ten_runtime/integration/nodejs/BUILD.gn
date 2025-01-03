@@ -11,6 +11,7 @@ group("nodejs") {
   deps = [
     "get_set_property_nodejs",
     "http_server_nodejs",
+    "mix_python_ext_nodejs",
     "send_audio_frame_nodejs",
     "send_cmd_nodejs",
     "send_data_nodejs",
