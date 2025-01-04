@@ -6,6 +6,7 @@
 #
 group("install") {
   deps = [
+    # "local_dependency_link",
     "mock_app",
     "mock_extension",
 

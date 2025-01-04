@@ -1,0 +1,11 @@
+{
+  "extension": [
+    {
+      "name": "ext_b",
+      "version": "0.2.6"
+    },
+    {
+      "path": "/home/wei/MyData/MyProject/ten_framework_internal_base/ten_framework/out/linux/x64/tests/ten_manager/install/mock_app/mock_app/local_c"
+    }
+  ]
+}
