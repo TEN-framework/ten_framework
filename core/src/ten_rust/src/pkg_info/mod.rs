@@ -59,8 +59,11 @@ pub struct PkgInfo {
 
     pub compatible_score: i32,
 
-    // Source information.
+    /// This indicates that the package has been installed in the correct
+    /// location. For example, in the case of an extension, it means it has
+    /// been installed under the `ten_packages/` directory.
     pub is_installed: bool,
+
     pub url: String,
     pub hash: String,
 
@@ -69,6 +72,7 @@ pub struct PkgInfo {
 
     pub schema_store: Option<SchemaStore>,
 
+    /// Indicates that the `pkg_info` represents a local dependency package.
     pub is_local_dependency: bool,
     pub local_dependency_path: Option<String>,
 }
@@ -182,13 +186,16 @@ impl PkgInfo {
     }
 }
 
-pub fn get_pkg_info_from_path(pkg_path: &Path) -> Result<PkgInfo> {
+pub fn get_pkg_info_from_path(
+    pkg_path: &Path,
+    is_installed: bool,
+) -> Result<PkgInfo> {
     let manifest = parse_manifest_in_folder(pkg_path)?;
     let property = parse_property_in_folder(pkg_path)?;
 
     let mut pkg_info: PkgInfo = PkgInfo::from_metadata(&manifest, &property)?;
 
-    pkg_info.is_installed = true;
+    pkg_info.is_installed = is_installed;
     pkg_info.url = pkg_path.to_string_lossy().to_string();
 
     Ok(pkg_info)
@@ -198,7 +205,7 @@ fn collect_pkg_info_from_path(
     base_path: &Path,
     pkgs_info: &mut HashMap<PkgTypeAndName, PkgInfo>,
 ) -> Result<Manifest> {
-    let pkg_info = get_pkg_info_from_path(base_path)?;
+    let pkg_info = get_pkg_info_from_path(base_path, true)?;
 
     let pkg_type_name = PkgTypeAndName::from(&pkg_info);
     if pkgs_info.contains_key(&pkg_type_name) {

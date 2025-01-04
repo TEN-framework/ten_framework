@@ -38,24 +38,29 @@ impl From<&PkgDependency> for ManifestDependency {
 }
 
 impl From<&PkgInfo> for ManifestDependency {
-    fn from(pkg_dependency: &PkgInfo) -> Self {
-        if pkg_dependency.is_local_dependency {
+    fn from(pkg_info: &PkgInfo) -> Self {
+        if pkg_info.is_local_dependency {
             ManifestDependency::LocalDependency {
-                path: pkg_dependency
-                    .local_dependency_path
-                    .as_ref()
-                    .unwrap()
-                    .clone(),
+                path: {
+                    assert!(
+                        pkg_info.local_dependency_path.is_some(),
+                        "Should not happen."
+                    );
+
+                    pkg_info.local_dependency_path.as_ref().unwrap().clone()
+                },
             }
         } else {
             ManifestDependency::RegistryDependency {
-                pkg_type: pkg_dependency
+                pkg_type: pkg_info
                     .basic_info
                     .type_and_name
                     .pkg_type
                     .to_string(),
-                name: pkg_dependency.basic_info.type_and_name.name.clone(),
-                version: pkg_dependency.basic_info.version.to_string(),
+                name: pkg_info.basic_info.type_and_name.name.clone(),
+
+                // Use the package's version as the declared dependency version.
+                version: pkg_info.basic_info.version.to_string(),
             }
         }
     }

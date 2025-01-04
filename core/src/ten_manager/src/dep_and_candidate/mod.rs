@@ -116,11 +116,14 @@ async fn process_dependencies_to_get_candidates(
     for dependency in input_dependencies {
         if dependency.is_local() {
             // Enforce having only one candidate: the package info parsed from
-            // the specified path. First, construct a `PkgInfo` to
-            // represent the package corresponding to the specified path.
-            let pkg_info: PkgInfo = get_pkg_info_from_path(Path::new(
-                &dependency.path.as_ref().unwrap(),
-            ))?;
+            // the specified path.
+
+            // Construct a `PkgInfo` to represent the package corresponding to
+            // the specified path.
+            let pkg_info: PkgInfo = get_pkg_info_from_path(
+                Path::new(&dependency.path.as_ref().unwrap()),
+                false,
+            )?;
 
             let candidate_map =
                 all_candidates.entry((&pkg_info).into()).or_default();
