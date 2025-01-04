@@ -6,10 +6,7 @@
 #
 group("install") {
   deps = [
-    # "local_dependency_link",
     "mock_app",
     "mock_extension",
-
-    # "template_mode_with_same_name_extension",
   ]
 }
