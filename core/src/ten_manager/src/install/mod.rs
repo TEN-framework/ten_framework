@@ -36,7 +36,9 @@ pub async fn install_pkg_info(
     template_ctx: Option<&serde_json::Value>,
     base_dir: &Path,
 ) -> Result<()> {
-    if pkg_info.is_local_installed {
+    // =-=-=
+
+    if pkg_info.is_installed {
         tman_verbose_println!(
             tman_config,
             "{}:{} has already been installed.\n",

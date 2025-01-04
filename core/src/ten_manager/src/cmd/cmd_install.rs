@@ -256,39 +256,43 @@ fn is_installing_package_standalone(
 
 fn update_package_manifest(
     base_pkg_info: &mut PkgInfo,
-    added_pkg_info: &PkgInfo,
+    added_dependency: &PkgInfo,
 ) -> Result<()> {
     if let Some(ref mut dependencies) =
         base_pkg_info.manifest.as_mut().unwrap().dependencies
     {
-        let is_present = dependencies.iter().any(|dep| {
-            dep.pkg_type
-                == added_pkg_info.basic_info.type_and_name.pkg_type.to_string()
-                && dep.name == added_pkg_info.basic_info.type_and_name.name
+        let is_present = dependencies.iter().any(|dep| match dep {
+            ManifestDependency::RegistryDependency {
+                pkg_type, name, ..
+            } => {
+                *pkg_type
+                    == added_dependency
+                        .basic_info
+                        .type_and_name
+                        .pkg_type
+                        .to_string()
+                    && *name == added_dependency.basic_info.type_and_name.name
+            }
+            ManifestDependency::LocalDependency { path } => {
+                added_dependency.is_local_dependency
+                    && path
+                        == added_dependency
+                            .local_dependency_path
+                            .as_ref()
+                            .unwrap()
+            }
         });
 
+        // If the added dependency does not exist in the `manifest.json`, add
+        // it.
         if !is_present {
-            dependencies.push(ManifestDependency {
-                pkg_type: added_pkg_info
-                    .basic_info
-                    .type_and_name
-                    .pkg_type
-                    .to_string(),
-                name: added_pkg_info.basic_info.type_and_name.name.clone(),
-                version: added_pkg_info.basic_info.version.to_string(),
-            });
+            dependencies.push(added_dependency.into());
         }
     } else {
+        // If the `manifest.json` does not have a `dependencies` field, add the
+        // dependency directly.
         base_pkg_info.manifest.clone().unwrap().dependencies =
-            Some(vec![ManifestDependency {
-                pkg_type: added_pkg_info
-                    .basic_info
-                    .type_and_name
-                    .pkg_type
-                    .to_string(),
-                name: added_pkg_info.basic_info.type_and_name.name.clone(),
-                version: added_pkg_info.basic_info.version.to_string(),
-            }]);
+            Some(vec![added_dependency.into()]);
     }
 
     let manifest_path: PathBuf =
@@ -621,6 +625,7 @@ pub async fn execute_cmd(
                         name: desired_pkg_src_name_.clone(),
                     },
                     version_req: desired_pkg_src_version_.clone(),
+                    path: None,
                 },
             };
             extra_dependency_relationships.push(extra_dependency_relationship);
@@ -896,6 +901,7 @@ do you want to continue?",
                     ))
                     .into());
                 }
+
                 if desired_pkg.len() > 1 {
                     return Err(TmanError::Custom(format!(
                     "Found the possibility of multiple {}:{} being incorrect.",

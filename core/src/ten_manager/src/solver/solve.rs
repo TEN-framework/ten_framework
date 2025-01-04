@@ -459,13 +459,15 @@ fn create_input_str_for_all_possible_pkgs_info(
             locked_pkgs.and_then(|locked_pkgs| locked_pkgs.get(candidates.0));
 
         if let Some(locked_pkg) = locked_pkg {
-            let idx = candidates_vec.iter().position(|pkg_info| {
-                pkg_info.version == locked_pkg.basic_info.version
-            });
+            if !locked_pkg.is_local_dependency {
+                let idx = candidates_vec.iter().position(|pkg_info| {
+                    pkg_info.version == locked_pkg.basic_info.version
+                });
 
-            if let Some(idx) = idx {
-                candidates_vec.remove(idx);
-                candidates_vec.insert(0, locked_pkg.into());
+                if let Some(idx) = idx {
+                    candidates_vec.remove(idx);
+                    candidates_vec.insert(0, locked_pkg.into());
+                }
             }
         }
 

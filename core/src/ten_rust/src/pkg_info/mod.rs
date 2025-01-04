@@ -60,7 +60,7 @@ pub struct PkgInfo {
     pub compatible_score: i32,
 
     // Source information.
-    pub is_local_installed: bool,
+    pub is_installed: bool,
     pub url: String,
     pub hash: String,
 
@@ -68,6 +68,9 @@ pub struct PkgInfo {
     pub property: Option<Property>,
 
     pub schema_store: Option<SchemaStore>,
+
+    pub is_local_dependency: bool,
+    pub local_dependency_path: Option<String>,
 }
 
 impl PkgInfo {
@@ -82,13 +85,16 @@ impl PkgInfo {
             api: PkgApi::from_manifest(manifest)?,
             compatible_score: -1,
 
-            is_local_installed: false,
+            is_installed: false,
             url: String::new(),
             hash: String::new(),
 
             manifest: Some(manifest.clone()),
             property: property.clone(),
             schema_store: SchemaStore::from_manifest(manifest)?,
+
+            is_local_dependency: false,
+            local_dependency_path: None,
         };
 
         pkg_info.hash = pkg_info.gen_hash_hex();
@@ -182,7 +188,7 @@ pub fn get_pkg_info_from_path(pkg_path: &Path) -> Result<PkgInfo> {
 
     let mut pkg_info: PkgInfo = PkgInfo::from_metadata(&manifest, &property)?;
 
-    pkg_info.is_local_installed = true;
+    pkg_info.is_installed = true;
     pkg_info.url = pkg_path.to_string_lossy().to_string();
 
     Ok(pkg_info)
@@ -350,7 +356,7 @@ pub fn find_to_be_replaced_local_pkgs<'a>(
             // `is_local_installed` of that package in the dependency tree will
             // also not be `true`. Therefore, we will uniformly use
             // `is_local_installed` to make overall judgments.
-            if !pkg_in_dependencies.is_local_installed {
+            if !pkg_in_dependencies.is_installed {
                 result.push((pkg_in_dependencies, local_pkg));
             }
         }
