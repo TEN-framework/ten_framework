@@ -93,7 +93,7 @@ pub async fn install_pkg_info(
                 std::os::unix::fs::symlink(src_path, &output_dir)?;
 
                 #[cfg(windows)]
-                std::os::windows::fs::symlink_dir(path, &output_dir)?;
+                std::os::windows::fs::symlink_dir(src_path, &output_dir)?;
             }
         }
     }

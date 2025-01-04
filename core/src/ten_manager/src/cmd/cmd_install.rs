@@ -635,7 +635,7 @@ pub async fn execute_cmd(
         let desired_pkg_type_: PkgType = package_type_str.parse()?;
         let (desired_pkg_src_name_, desired_pkg_src_version_) =
             parse_pkg_name_version(
-                &command_data.package_name.as_ref().unwrap(),
+                command_data.package_name.as_ref().unwrap(),
             )?;
 
         desired_pkg_type = Some(desired_pkg_type_);
