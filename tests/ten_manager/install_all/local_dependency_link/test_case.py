@@ -6,6 +6,7 @@
 #
 import os
 import sys
+from pathlib import Path
 from .common import cmd_exec
 
 
@@ -83,16 +84,17 @@ def test_tman_dependency_resolve():
 
     # On Windows, `os.readlink` may return paths with backslashes, so it's
     # necessary to standardize the path separators.
-    symlink_target = os.path.abspath(symlink_target)
-    expected_target = os.path.abspath(expected_target)
+    symlink_target_path = Path(symlink_target).resolve()
+    expected_target_path = Path(expected_target).resolve()
 
-    assert symlink_target == expected_target, (
+    assert symlink_target_path == expected_target_path, (
         f"Symbolic link target mismatch for '{ext_c_path}'. "
-        f"Expected: '{expected_target}', Found: '{symlink_target}'."
+        f"Expected: '{expected_target_path}', Found: '{symlink_target_path}'."
     )
 
     print(
-        f"Symbolic link '{ext_c_path}' correctly points to '{symlink_target}'."
+        f"Symbolic link '{ext_c_path}' correctly points to "
+        f"'{expected_target_path}'."
     )
 
 
