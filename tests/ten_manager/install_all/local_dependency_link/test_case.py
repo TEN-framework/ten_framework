@@ -6,7 +6,6 @@
 #
 import os
 import sys
-from pathlib import Path
 from .common import cmd_exec
 
 
@@ -15,6 +14,12 @@ def get_installed_extensions_count(app_dir: str):
     extensions = os.listdir(extension_dir)
 
     return len(extensions)
+
+
+def normalize_path(path):
+    if path.startswith("\\\\?\\"):
+        return path[4:]
+    return path
 
 
 def test_tman_dependency_resolve():
@@ -84,17 +89,20 @@ def test_tman_dependency_resolve():
 
     # On Windows, `os.readlink` may return paths with backslashes, so it's
     # necessary to standardize the path separators.
-    symlink_target_path = Path(symlink_target).resolve()
-    expected_target_path = Path(expected_target).resolve()
+    symlink_target = os.path.abspath(symlink_target)
+    expected_target = os.path.abspath(expected_target)
 
-    assert symlink_target_path == expected_target_path, (
+    # Normalize paths by removing '\\?\' prefix if present
+    symlink_target = normalize_path(symlink_target)
+    expected_target = normalize_path(expected_target)
+
+    assert symlink_target == expected_target, (
         f"Symbolic link target mismatch for '{ext_c_path}'. "
-        f"Expected: '{expected_target_path}', Found: '{symlink_target_path}'."
+        f"Expected: '{expected_target}', Found: '{symlink_target}'."
     )
 
     print(
-        f"Symbolic link '{ext_c_path}' correctly points to "
-        f"'{expected_target_path}'."
+        f"Symbolic link '{ext_c_path}' correctly points to '{symlink_target}'."
     )
 
 
