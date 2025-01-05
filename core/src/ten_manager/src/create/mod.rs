@@ -61,7 +61,7 @@ pub async fn create_pkg_in_path(
     };
 
     // Search for the package in the registry.
-    let found_packages = get_package_list(
+    let mut found_packages = get_package_list(
         tman_config,
         *pkg_type,
         template_pkg_name,
@@ -79,8 +79,13 @@ pub async fn create_pkg_in_path(
         ));
     }
 
-    // Ensure only one package is found.
-    assert!(found_packages.len() == 1, "Should not happen.");
+    // Get the latest package that meets the requirements.
+    found_packages.sort_by(|a, b| {
+        b.pkg_registry_info
+            .basic_info
+            .version
+            .cmp(&a.pkg_registry_info.basic_info.version)
+    });
 
     let package = &found_packages[0];
     let package_url = package
