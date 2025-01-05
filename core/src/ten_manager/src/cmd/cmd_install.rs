@@ -7,7 +7,7 @@
 use std::{
     collections::HashMap,
     env,
-    fs::{self, OpenOptions},
+    fs::{self},
     path::{Path, PathBuf},
     str::FromStr,
     time::Instant,
@@ -21,28 +21,30 @@ use inquire::Confirm;
 
 use ten_rust::pkg_info::{
     dependencies::PkgDependency,
-    find_to_be_replaced_local_pkgs, find_untracked_local_packages,
     get_pkg_info_from_path,
     pkg_type::PkgType,
     pkg_type_and_name::PkgTypeAndName,
-    supports::{is_pkg_supports_compatible_with, Arch, Os, PkgSupport},
+    supports::{Arch, Os, PkgSupport},
     PkgInfo,
 };
 use ten_rust::pkg_info::{
-    manifest::{dependency::ManifestDependency, parse_manifest_in_folder},
-    pkg_basic_info::PkgBasicInfo,
+    manifest::parse_manifest_in_folder, pkg_basic_info::PkgBasicInfo,
 };
 
 use crate::{
     config::TmanConfig,
-    constants::{APP_DIR_IN_DOT_TEN_DIR, DOT_TEN_DIR, MANIFEST_JSON_FILENAME},
+    constants::{APP_DIR_IN_DOT_TEN_DIR, DOT_TEN_DIR},
     dep_and_candidate::get_all_candidates_from_deps,
     error::TmanError,
-    fs::{check_is_app_folder, check_is_package_folder},
-    log::tman_verbose_println,
-    manifest_lock::{
-        parse_manifest_lock_in_folder, write_pkg_lockfile, ManifestLock,
+    fs::check_is_app_folder,
+    install::{
+        compare_solver_results_with_existed_pkgs,
+        filter_compatible_pkgs_to_candidates, is_installing_package_standalone,
+        is_package_installable_in_cwd, update_package_manifest,
+        write_pkgs_into_lock,
     },
+    log::tman_verbose_println,
+    manifest_lock::parse_manifest_lock_in_folder,
     package_info::tman_get_all_existed_pkgs_info_of_app,
     solver::{
         introducer::extract_introducer_relations_from_raw_solver_results,
@@ -148,350 +150,6 @@ pub fn parse_sub_cmd(sub_cmd_args: &ArgMatches) -> Result<InstallCommand> {
     }
 
     Ok(cmd)
-}
-
-fn is_package_installable_in_cwd(
-    cwd: &Path,
-    installing_pkg_type: &PkgType,
-) -> Result<()> {
-    match installing_pkg_type {
-        PkgType::App => {
-            // The app must not be installed into a TEN package folder.
-            if check_is_package_folder(cwd).is_ok() {
-                return Err(TmanError::Custom(
-                    "There is already a TEN package in the current folder. The TEN APP must be installed in a separate folder."
-                        .to_string(),
-                )
-                .into());
-            }
-        }
-
-        PkgType::Extension => {
-            let manifest_path = cwd.join(MANIFEST_JSON_FILENAME);
-            if !manifest_path.exists() {
-                // An extension can be independently installed in a non-TEN
-                // directory. This is mainly to allow developers to easily
-                // develop, compile, test, and release an extension.
-                return Ok(());
-            }
-
-            // Otherwise, the extension must be installed in a TEN app folder.
-            check_is_app_folder(cwd)?;
-        }
-
-        _ => {
-            // All other package types must be installed into a TEN app folder.
-            check_is_app_folder(cwd)?;
-        }
-    }
-
-    Ok(())
-}
-
-// The so-called "standalone" package installation means directly installing the
-// package into the current working directory without considering the directory
-// structure of the TEN app.
-fn is_installing_package_standalone(
-    cwd: &Path,
-    installing_pkg_type: &PkgType,
-) -> Result<bool> {
-    match installing_pkg_type {
-        PkgType::App | PkgType::Extension => {
-            let manifest_path = cwd.join(MANIFEST_JSON_FILENAME);
-            if !manifest_path.exists() {
-                // An extension can be independently installed in a non-TEN
-                // directory. This is mainly to allow developers to easily
-                // develop, compile, test, and release an extension.
-                return Ok(true);
-            }
-
-            if parse_manifest_in_folder(cwd).is_ok() {
-                return Ok(false);
-            }
-
-            Ok(true)
-        }
-        // Currently, other standalone installation methods are not supported.
-        _ => Ok(false),
-    }
-}
-
-fn update_package_manifest(
-    base_pkg_info: &mut PkgInfo,
-    added_dependency: &PkgInfo,
-) -> Result<()> {
-    if let Some(ref mut dependencies) =
-        base_pkg_info.manifest.as_mut().unwrap().dependencies
-    {
-        let mut is_present = false;
-        let mut deps_to_remove = Vec::new();
-
-        for (i, dep) in dependencies.iter().enumerate() {
-            match dep {
-                ManifestDependency::RegistryDependency {
-                    pkg_type,
-                    name,
-                    ..
-                } => {
-                    let manifest_dependency_type_and_name = PkgTypeAndName {
-                        pkg_type: PkgType::from_str(pkg_type)?,
-                        name: name.clone(),
-                    };
-
-                    if manifest_dependency_type_and_name
-                        == added_dependency.basic_info.type_and_name
-                    {
-                        if !added_dependency.is_local_dependency {
-                            is_present = true;
-                        } else {
-                            // The `manifest.json` specifies a registry
-                            // dependency, but a local dependency is being
-                            // added. Therefore, remove the original dependency
-                            // item from `manifest.json`.
-                            deps_to_remove.push(i);
-                        }
-                        break;
-                    }
-                }
-                ManifestDependency::LocalDependency { path, .. } => {
-                    let manifest_dependency_pkg_info =
-                        match get_pkg_info_from_path(Path::new(&path), false) {
-                            Ok(info) => info,
-                            Err(_) => {
-                                panic!(
-                                    "Failed to get package info from path: {}",
-                                    path
-                                );
-                            }
-                        };
-
-                    if manifest_dependency_pkg_info.basic_info.type_and_name
-                        == added_dependency.basic_info.type_and_name
-                    {
-                        if added_dependency.is_local_dependency {
-                            assert!(
-                                added_dependency
-                                    .local_dependency_path
-                                    .is_some(),
-                                "Should not happen."
-                            );
-
-                            if path
-                                == added_dependency
-                                    .local_dependency_path
-                                    .as_ref()
-                                    .unwrap()
-                            {
-                                is_present = true;
-                            } else {
-                                // The `manifest.json` specifies a local
-                                // dependency, but a different local dependency
-                                // is being added. Therefore, remove the
-                                // original dependency item from
-                                // `manifest.json`.
-                                deps_to_remove.push(i);
-                            }
-                        } else {
-                            // The `manifest.json` specifies a local dependency,
-                            // but a registry dependency is being added.
-                            // Therefore, remove the original dependency item
-                            // from `manifest.json`.
-                            deps_to_remove.push(i);
-                        }
-                        break;
-                    }
-                }
-            }
-        }
-
-        // Remove dependencies to remove in reverse order to prevent index shift
-        for &i in deps_to_remove.iter().rev() {
-            dependencies.remove(i);
-        }
-
-        // If the added dependency does not exist in the `manifest.json`, add
-        // it.
-        if !is_present {
-            dependencies.push(added_dependency.into());
-        }
-    } else {
-        // If the `manifest.json` does not have a `dependencies` field, add the
-        // dependency directly.
-        base_pkg_info.manifest.clone().unwrap().dependencies =
-            Some(vec![added_dependency.into()]);
-    }
-
-    let manifest_path: PathBuf =
-        Path::new(&base_pkg_info.url).join(MANIFEST_JSON_FILENAME);
-    let manifest_file = OpenOptions::new()
-        .write(true)
-        .truncate(true)
-        .open(manifest_path)?;
-    serde_json::to_writer_pretty(manifest_file, &base_pkg_info.manifest)?;
-
-    Ok(())
-}
-
-fn write_pkgs_into_lock(pkgs: &Vec<&PkgInfo>, app_dir: &Path) -> Result<()> {
-    // Check if manifest-lock.json exists.
-    let old_manifest_lock = parse_manifest_lock_in_folder(app_dir);
-    if old_manifest_lock.is_err() {
-        println!("{}  Creating manifest-lock.json...", Emoji("🔒", ""));
-    }
-
-    let new_manifest_lock = ManifestLock::from(pkgs);
-
-    let changed = write_pkg_lockfile(&new_manifest_lock, app_dir)?;
-
-    // If the lock file is changed, print all changes.
-    if changed && old_manifest_lock.is_ok() {
-        println!("{}  Breaking manifest-lock.json...", Emoji("🔒", ""));
-
-        new_manifest_lock.print_changes(&old_manifest_lock.ok().unwrap());
-    }
-
-    Ok(())
-}
-
-fn filter_compatible_pkgs_to_candidates(
-    tman_config: &TmanConfig,
-    all_existing_local_pkgs: &Vec<PkgInfo>,
-    all_candidates: &mut HashMap<
-        PkgTypeAndName,
-        HashMap<PkgBasicInfo, PkgInfo>,
-    >,
-    support: &PkgSupport,
-) {
-    for existed_pkg in all_existing_local_pkgs.to_owned().iter_mut() {
-        tman_verbose_println!(
-            tman_config,
-            "Check support score for {:?}",
-            existed_pkg
-        );
-
-        let compatible_score = is_pkg_supports_compatible_with(
-            &existed_pkg.basic_info.supports,
-            support,
-        );
-
-        if compatible_score >= 0 {
-            existed_pkg.compatible_score = compatible_score;
-
-            tman_verbose_println!(
-                tman_config,
-                "The existed {} package {} is compatible with the current system.",
-                existed_pkg.basic_info.type_and_name.pkg_type,
-                existed_pkg.basic_info.type_and_name.name
-            );
-
-            all_candidates
-                .entry((&*existed_pkg).into())
-                .or_default()
-                .insert((&*existed_pkg).into(), existed_pkg.clone());
-        } else {
-            // The existed package is not compatible with the current system, so
-            // it should not be considered as a candidate.
-            tman_verbose_println!(
-                tman_config,
-                "The existed {} package {} is not compatible \
-with the current system.",
-                existed_pkg.basic_info.type_and_name.pkg_type,
-                existed_pkg.basic_info.type_and_name.name
-            );
-        }
-    }
-}
-
-fn get_supports_str(pkg: &PkgInfo) -> String {
-    let support_items: Vec<String> = pkg
-        .basic_info
-        .supports
-        .iter()
-        .filter_map(|s| match (s.os.as_ref(), s.arch.as_ref()) {
-            (Some(os), Some(arch)) => {
-                Some(format!("{:?}, {:?}", os, arch).to_lowercase())
-            }
-            (Some(os), None) => Some(format!("{:?}", os).to_lowercase()),
-            (None, Some(arch)) => Some(format!("{:?}", arch).to_lowercase()),
-            (None, None) => None,
-        })
-        .collect();
-
-    if !support_items.is_empty() {
-        format!(" ({})", support_items.join(", "))
-    } else {
-        String::new()
-    }
-}
-
-fn compare_solver_results_with_existed_pkgs(
-    solver_results: &[&PkgInfo],
-    all_existing_local_pkgs: &[PkgInfo],
-) -> bool {
-    let local_pkgs = all_existing_local_pkgs.iter().collect::<Vec<&PkgInfo>>();
-
-    let untracked_local_pkgs: Vec<&PkgInfo> =
-        find_untracked_local_packages(solver_results, &local_pkgs);
-
-    if !untracked_local_pkgs.is_empty() {
-        println!(
-            "{}  The following local packages do not \
-appear in the dependency tree:",
-            Emoji("💡", "")
-        );
-        for pkg in untracked_local_pkgs {
-            println!(
-                " {}:{}@{}",
-                pkg.basic_info.type_and_name.pkg_type,
-                pkg.basic_info.type_and_name.name,
-                pkg.basic_info.version
-            );
-        }
-    }
-
-    let to_be_replaced_local_pkgs: Vec<(&PkgInfo, &PkgInfo)> =
-        find_to_be_replaced_local_pkgs(solver_results, &local_pkgs);
-
-    let mut conflict = false;
-
-    if !to_be_replaced_local_pkgs.is_empty() {
-        conflict = true;
-
-        println!(
-            "{}  The following packages will be replaced:",
-            Emoji("🔄", "")
-        );
-        for (new_pkg, old_pkg) in to_be_replaced_local_pkgs {
-            let old_supports_str = get_supports_str(old_pkg);
-            let new_supports_str = get_supports_str(new_pkg);
-
-            if old_supports_str != new_supports_str {
-                println!(
-                    " {}:{}@{}{} -> {}:{}@{}{}",
-                    old_pkg.basic_info.type_and_name.pkg_type,
-                    old_pkg.basic_info.type_and_name.name,
-                    old_pkg.basic_info.version,
-                    old_supports_str,
-                    new_pkg.basic_info.type_and_name.pkg_type,
-                    new_pkg.basic_info.type_and_name.name,
-                    new_pkg.basic_info.version,
-                    new_supports_str
-                );
-            } else {
-                println!(
-                    " {}:{}@{} -> {}:{}@{}",
-                    old_pkg.basic_info.type_and_name.pkg_type,
-                    old_pkg.basic_info.type_and_name.name,
-                    old_pkg.basic_info.version,
-                    new_pkg.basic_info.type_and_name.pkg_type,
-                    new_pkg.basic_info.type_and_name.name,
-                    new_pkg.basic_info.version
-                );
-            }
-        }
-    }
-
-    conflict
 }
 
 pub async fn execute_cmd(
