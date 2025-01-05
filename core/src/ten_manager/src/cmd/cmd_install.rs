@@ -14,7 +14,7 @@ use std::{
 };
 
 use anyhow::Result;
-use clap::{Arg, ArgAction, ArgMatches, Command};
+use clap::{Arg, ArgMatches, Command};
 use console::Emoji;
 use indicatif::HumanDuration;
 use inquire::Confirm;
@@ -39,7 +39,6 @@ use crate::{
     dep_and_candidate::get_all_candidates_from_deps,
     error::TmanError,
     fs::{check_is_app_folder, check_is_package_folder},
-    install::PkgIdentityMapping,
     log::tman_verbose_println,
     manifest_lock::{
         parse_manifest_lock_in_folder, write_pkg_lockfile, ManifestLock,
@@ -83,8 +82,6 @@ pub struct InstallCommand {
     pub package_type: Option<String>,
     pub package_name: Option<String>,
     pub support: PkgSupport,
-    pub template_mode: bool,
-    pub template_data: HashMap<String, String>,
     pub local_install_mode: LocalInstallMode,
 }
 
@@ -119,22 +116,6 @@ pub fn create_sub_cmd(args_cfg: &crate::cmd_line::ArgsCfg) -> Command {
                 .required(false),
         )
         .arg(
-            Arg::new("TEMPLATE_MODE")
-                .long("template-mode")
-                .action(ArgAction::SetTrue)
-                .requires("PACKAGE_TYPE")
-                .requires("PACKAGE_NAME")
-                .help("If provided, 'template-mode' is true; otherwise, it's false"),
-        )
-        .arg(
-            Arg::new("TEMPLATE_DATA")
-                .long("template-data")
-                .value_name("KEY=VALUE")
-                .action(ArgAction::Append)
-                .requires("TEMPLATE_MODE")
-                .help("Sets a key-value pair, e.g., --template-data key=value")
-        )
-        .arg(
             Arg::new("LOCAL_INSTALL_MODE")
                 .long("local-install-mode")
                 .help("Local install mode: copy or link")
@@ -156,24 +137,10 @@ pub fn parse_sub_cmd(sub_cmd_args: &ArgMatches) -> Result<InstallCommand> {
                 .get_one::<String>("ARCH")
                 .and_then(|s| s.parse::<Arch>().ok()),
         },
-        template_mode: *sub_cmd_args
-            .get_one::<bool>("TEMPLATE_MODE")
-            .unwrap_or(&false),
-        template_data: HashMap::new(),
-
         local_install_mode: LocalInstallMode::Invalid,
     };
 
     let _ = cmd.support.set_defaults();
-
-    if let Some(kv_pairs) = sub_cmd_args.get_many::<String>("TEMPLATE_DATA") {
-        for pair in kv_pairs {
-            let mut split = pair.splitn(2, '=');
-            if let (Some(key), Some(value)) = (split.next(), split.next()) {
-                cmd.template_data.insert(key.to_string(), value.to_string());
-            }
-        }
-    }
 
     if let Some(mode_str) = sub_cmd_args.get_one::<String>("LOCAL_INSTALL_MODE")
     {
@@ -185,9 +152,9 @@ pub fn parse_sub_cmd(sub_cmd_args: &ArgMatches) -> Result<InstallCommand> {
 
 fn is_package_installable_in_cwd(
     cwd: &Path,
-    desired_pkg_type: &PkgType,
+    installing_pkg_type: &PkgType,
 ) -> Result<()> {
-    match desired_pkg_type {
+    match installing_pkg_type {
         PkgType::App => {
             // The app must not be installed into a TEN package folder.
             if check_is_package_folder(cwd).is_ok() {
@@ -226,9 +193,9 @@ fn is_package_installable_in_cwd(
 // structure of the TEN app.
 fn is_installing_package_standalone(
     cwd: &Path,
-    desired_pkg_type: &PkgType,
+    installing_pkg_type: &PkgType,
 ) -> Result<bool> {
-    match desired_pkg_type {
+    match installing_pkg_type {
         PkgType::App | PkgType::Extension => {
             let manifest_path = cwd.join(MANIFEST_JSON_FILENAME);
             if !manifest_path.exists() {
@@ -545,7 +512,7 @@ pub async fn execute_cmd(
     // 1. If installing a package in standalone mode, the affected package is
     //    the installed package itself, ex: app or extension.
     //
-    // 2. Otherwise, the affected package is always the app, as the desired
+    // 2. Otherwise, the affected package is always the app, as the installing
     //    package must be installed in a TEN app in this case.
     let affected_pkg_name;
     let mut affected_pkg_type = PkgType::App;
@@ -583,65 +550,44 @@ pub async fn execute_cmd(
 
     // The initial value of extra_dependencies is the package specified to be
     // installed via the command line (if any).
-    let mut extra_dependencies = vec![];
+    let mut extra_dependencies_specified_in_cmd_line = vec![];
 
     // `extra_dependency_relationships` contain TEN packages, and each TEN
     // package is the main entity depended upon by its corresponding
     // extra_dependencies."
     let mut extra_dependency_relationships = vec![];
 
-    // If template mode is used, the final name of the installed package is a
-    // new name. Therefore, pkg_identity_mappings represent the mapping between
-    // the source package name and the destination package name.
-    let mut pkg_identity_mappings = vec![];
-
-    // Get the specified template data.
-    let mut template_ctx = None;
-    let template_data = serde_json::to_value(&command_data.template_data)?;
-
     // The locked_pkgs comes from a lock file in the app folder.
     let mut locked_pkgs: Option<HashMap<PkgTypeAndName, PkgInfo>> = None;
 
-    if command_data.template_mode {
-        template_ctx = Some(&template_data);
-    }
-
     let mut app_pkg: Option<PkgInfo> = None;
-    let mut desired_pkg_type: Option<PkgType> = None;
-    let mut desired_pkg_src_name: Option<String> = None;
-
-    let desired_pkg_dest_name = template_ctx
-        .and_then(|ctx| ctx.get("package_name").and_then(|val| val.as_str()));
+    let mut installing_pkg_type: Option<PkgType> = None;
+    let mut installing_pkg_name: Option<String> = None;
 
     if let Some(package_type_str) = command_data.package_type.as_ref() {
         // Case 1: tman install <package_type> <package_name>
 
-        let desired_pkg_type_: PkgType = package_type_str.parse()?;
-        let (desired_pkg_src_name_, desired_pkg_src_version_) =
+        let installing_pkg_type_: PkgType = package_type_str.parse()?;
+        let (installing_pkg_name_, installing_pkg_version_req_) =
             parse_pkg_name_version_req(
                 command_data.package_name.as_ref().unwrap(),
             )?;
 
-        desired_pkg_type = Some(desired_pkg_type_);
-        desired_pkg_src_name = Some(desired_pkg_src_name_.clone());
+        installing_pkg_type = Some(installing_pkg_type_);
+        installing_pkg_name = Some(installing_pkg_name_.clone());
 
         // First, check that the package we want to install can be installed
         // within the current directory structure.
-        is_package_installable_in_cwd(&cwd, &desired_pkg_type_)?;
+        is_package_installable_in_cwd(&cwd, &installing_pkg_type_)?;
 
         is_standalone_installing =
-            is_installing_package_standalone(&cwd, &desired_pkg_type_)?;
+            is_installing_package_standalone(&cwd, &installing_pkg_type_)?;
         if is_standalone_installing {
-            affected_pkg_type = desired_pkg_type_;
-            affected_pkg_name = desired_pkg_src_name_.clone();
+            affected_pkg_type = installing_pkg_type_;
+            affected_pkg_name = installing_pkg_name_.clone();
 
-            if let Some(desired_pkg_dest_name) = desired_pkg_dest_name {
-                preinstall_chdir_path =
-                    Some(PathBuf::from_str(desired_pkg_dest_name)?);
-            } else {
-                preinstall_chdir_path =
-                    Some(PathBuf::from_str(&desired_pkg_src_name_)?);
-            }
+            preinstall_chdir_path =
+                Some(PathBuf::from_str(&installing_pkg_name_)?);
         } else {
             // If it is not a standalone install, then the `cwd` must be within
             // the base directory of a TEN app.
@@ -671,10 +617,10 @@ pub async fn execute_cmd(
                 version: app_pkg_.basic_info.version.clone(),
                 dependency: PkgDependency {
                     type_and_name: PkgTypeAndName {
-                        pkg_type: desired_pkg_type_,
-                        name: desired_pkg_src_name_.clone(),
+                        pkg_type: installing_pkg_type_,
+                        name: installing_pkg_name_.clone(),
                     },
-                    version_req: desired_pkg_src_version_.clone(),
+                    version_req: installing_pkg_version_req_.clone(),
                     path: None,
                     base_dir: None,
                 },
@@ -685,20 +631,11 @@ pub async fn execute_cmd(
         }
 
         let dep = PkgDependency::new(
-            desired_pkg_type_,
-            desired_pkg_src_name_.clone(),
-            desired_pkg_src_version_,
+            installing_pkg_type_,
+            installing_pkg_name_.clone(),
+            installing_pkg_version_req_,
         );
-        extra_dependencies.push(dep);
-
-        if let Some(desired_pkg_dest_name) = desired_pkg_dest_name {
-            let pkg_identity_mapping = PkgIdentityMapping {
-                pkg_type: desired_pkg_type_,
-                src_pkg_name: desired_pkg_src_name_,
-                dest_pkg_name: desired_pkg_dest_name.to_string(),
-            };
-            pkg_identity_mappings.push(pkg_identity_mapping);
-        }
+        extra_dependencies_specified_in_cmd_line.push(dep);
     } else {
         // Case 2: tman install
 
@@ -774,7 +711,7 @@ pub async fn execute_cmd(
         &command_data.support,
         initial_input_pkgs,
         all_candidates,
-        &extra_dependencies,
+        &extra_dependencies_specified_in_cmd_line,
         locked_pkgs.as_ref(),
     )
     .await?;
@@ -847,8 +784,6 @@ pub async fn execute_cmd(
                 tman_config,
                 &command_data,
                 &affected_pkg,
-                &pkg_identity_mappings,
-                template_ctx,
                 &cwd,
             )
             .await?;
@@ -921,8 +856,6 @@ do you want to continue?",
                 tman_config,
                 &command_data,
                 &remaining_solver_results,
-                &pkg_identity_mappings,
-                template_ctx,
                 &app_dir,
             )
             .await?;
@@ -935,36 +868,33 @@ do you want to continue?",
 
         // Write package info to manifest.json.
         if let Some(mut app_pkg) = app_pkg {
-            if !command_data.template_mode
-                && desired_pkg_type.is_some()
-                && desired_pkg_src_name.is_some()
-            {
-                let desired_pkg = filter_solver_results_by_type_and_name(
+            if installing_pkg_type.is_some() && installing_pkg_name.is_some() {
+                let suitable_pkgs = filter_solver_results_by_type_and_name(
                     &solver_results,
-                    desired_pkg_type.as_ref(),
-                    desired_pkg_src_name.as_ref(),
+                    installing_pkg_type.as_ref(),
+                    installing_pkg_name.as_ref(),
                     true,
                 )?;
 
-                if desired_pkg.is_empty() {
+                if suitable_pkgs.is_empty() {
                     return Err(TmanError::Custom(format!(
                         "Failed to find any of {}:{}.",
-                        desired_pkg_type.unwrap(),
-                        desired_pkg_src_name.unwrap(),
+                        installing_pkg_type.unwrap(),
+                        installing_pkg_name.unwrap(),
                     ))
                     .into());
                 }
 
-                if desired_pkg.len() > 1 {
+                if suitable_pkgs.len() > 1 {
                     return Err(TmanError::Custom(format!(
                     "Found the possibility of multiple {}:{} being incorrect.",
-                    desired_pkg_type.unwrap(),
-                    desired_pkg_src_name.unwrap()
+                    installing_pkg_type.unwrap(),
+                    installing_pkg_name.unwrap()
                 ))
                     .into());
                 }
 
-                update_package_manifest(&mut app_pkg, desired_pkg[0])?;
+                update_package_manifest(&mut app_pkg, suitable_pkgs[0])?;
             }
         }
 

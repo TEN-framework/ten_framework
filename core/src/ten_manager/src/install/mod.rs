@@ -15,7 +15,7 @@ use std::{
 use anyhow::{Context, Result};
 use tempfile::NamedTempFile;
 
-use ten_rust::pkg_info::{pkg_type::PkgType, PkgInfo};
+use ten_rust::pkg_info::PkgInfo;
 
 use super::{config::TmanConfig, registry::get_package};
 use crate::{
@@ -25,13 +25,6 @@ use crate::{
     package_file::unzip::extract_and_process_zip,
 };
 use installed_paths::save_installed_paths;
-
-pub struct PkgIdentityMapping {
-    pub pkg_type: PkgType,
-
-    pub src_pkg_name: String,
-    pub dest_pkg_name: String,
-}
 
 fn install_local_dependency_pkg_info(
     command_data: &InstallCommand,
@@ -100,7 +93,6 @@ fn install_local_dependency_pkg_info(
 async fn install_non_local_dependency_pkg_info(
     tman_config: &TmanConfig,
     pkg_info: &PkgInfo,
-    template_ctx: Option<&serde_json::Value>,
     dest_dir_path: &String,
 ) -> Result<()> {
     let mut temp_file = NamedTempFile::new()?;
@@ -109,7 +101,7 @@ async fn install_non_local_dependency_pkg_info(
     let mut installed_paths = extract_and_process_zip(
         &temp_file.path().to_string_lossy(),
         dest_dir_path,
-        template_ctx,
+        None,
     )?;
 
     // After installation (after decompression), check whether the content
@@ -148,8 +140,6 @@ pub async fn install_pkg_info(
     tman_config: &TmanConfig,
     command_data: &InstallCommand,
     pkg_info: &PkgInfo,
-    pkg_identity_mappings: &Vec<PkgIdentityMapping>,
-    template_ctx: Option<&serde_json::Value>,
     base_dir: &Path,
 ) -> Result<()> {
     if pkg_info.is_installed {
@@ -162,25 +152,8 @@ pub async fn install_pkg_info(
         return Ok(());
     }
 
-    let mut found_pkg_identity_mapping = None;
-    for pkg_identity_mapping in pkg_identity_mappings {
-        if pkg_info.basic_info.type_and_name.pkg_type
-            == pkg_identity_mapping.pkg_type
-            && pkg_info.basic_info.type_and_name.name
-                == pkg_identity_mapping.src_pkg_name
-        {
-            found_pkg_identity_mapping = Some(pkg_identity_mapping);
-        }
-    }
-
-    let target_path;
-    if let Some(found_pkg_identity_mapping) = found_pkg_identity_mapping {
-        target_path = Path::new(&base_dir)
-            .join(found_pkg_identity_mapping.dest_pkg_name.clone());
-    } else {
-        target_path = PathBuf::from(&base_dir)
-            .join(pkg_info.basic_info.type_and_name.name.clone());
-    }
+    let target_path = PathBuf::from(&base_dir)
+        .join(pkg_info.basic_info.type_and_name.name.clone());
 
     let dest_dir_path = target_path.to_string_lossy().to_string();
 
@@ -194,7 +167,6 @@ pub async fn install_pkg_info(
         install_non_local_dependency_pkg_info(
             tman_config,
             pkg_info,
-            template_ctx,
             &dest_dir_path,
         )
         .await?;

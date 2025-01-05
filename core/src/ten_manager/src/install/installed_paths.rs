@@ -5,7 +5,6 @@
 // Refer to the "LICENSE" file in the root directory for more information.
 //
 use std::{
-    collections::HashSet,
     fs::{self, File},
     io::Write,
     path::Path,
@@ -16,8 +15,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::json;
 
 use crate::constants::{
-    DOT_TEN_DIR, INSTALLED_PATHS_JSON_FILENAME, INSTALL_PATHS_APP_PREFIX,
-    PACKAGE_INFO_DIR_IN_DOT_TEN_DIR,
+    DOT_TEN_DIR, INSTALLED_PATHS_JSON_FILENAME, PACKAGE_INFO_DIR_IN_DOT_TEN_DIR,
 };
 
 #[derive(Serialize, Deserialize)]
@@ -35,30 +33,6 @@ pub fn sort_installed_paths(installed_paths: &mut InstalledPaths) {
 
         a_depth.cmp(&b_depth).reverse()
     });
-}
-
-pub fn modify_installed_paths_for_system_package(
-    installed_paths: &mut InstalledPaths,
-    inclusions: &[String],
-) {
-    let inclusions_set: HashSet<String> = inclusions.iter().cloned().collect();
-
-    let processed: Vec<String> = installed_paths
-        .paths
-        .iter_mut()
-        .map(|path| {
-            if inclusions_set.contains(path) {
-                format!("{}/{}", INSTALL_PATHS_APP_PREFIX, path)
-            } else {
-                path.clone()
-            }
-        })
-        .collect();
-
-    // Modify the original paths.
-    for (i, new_path) in processed.into_iter().enumerate() {
-        installed_paths.paths[i] = new_path;
-    }
 }
 
 pub fn save_installed_paths(
