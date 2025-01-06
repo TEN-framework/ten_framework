@@ -407,58 +407,56 @@ pub async fn execute_cmd(
         // In case 2, after the package has been installed, its dependencies can
         // NOT be installed automatically, as the installation directory
         // of dependencies is different in this case.
-        if affected_pkg_type == PkgType::App {
-            // Install all the dependencies which the app depends on.
-            let remaining_solver_results =
-                filter_solver_results_by_type_and_name(
-                    &solver_results,
-                    Some(&affected_pkg_type),
-                    Some(&affected_pkg_name),
-                    false,
-                )?;
 
-            // Compare the remaining_solver_results with the
-            // all_existing_local_pkgs to check if there are any
-            // local packages that need to be deleted or replaced.
-            let has_conflict = compare_solver_results_with_existed_pkgs(
-                &remaining_solver_results,
-                &all_existing_local_pkgs,
-            );
+        // Install all the dependencies which the app depends on.
+        let remaining_solver_results = filter_solver_results_by_type_and_name(
+            &solver_results,
+            Some(&affected_pkg_type),
+            Some(&affected_pkg_name),
+            false,
+        )?;
 
-            if has_conflict && !tman_config.assume_yes {
-                // "y" for continuing to install, "n" for stopping.
-                let ans = Confirm::new(
-                    "Warning!!! Some local packages will be overwritten, \
+        // Compare the remaining_solver_results with the
+        // all_existing_local_pkgs to check if there are any
+        // local packages that need to be deleted or replaced.
+        let has_conflict = compare_solver_results_with_existed_pkgs(
+            &remaining_solver_results,
+            &all_existing_local_pkgs,
+        );
+
+        if has_conflict && !tman_config.assume_yes {
+            // "y" for continuing to install, "n" for stopping.
+            let ans = Confirm::new(
+                "Warning!!! Some local packages will be overwritten, \
 do you want to continue?",
-                )
-                .with_default(false)
-                .prompt();
+            )
+            .with_default(false)
+            .prompt();
 
-                match ans {
-                    std::result::Result::Ok(true) => {
-                        // continue to install
-                    }
-                    std::result::Result::Ok(false) => {
-                        // stop
-                        return Ok(());
-                    }
-                    Err(_) => {
-                        // stop
-                        return Ok(());
-                    }
+            match ans {
+                std::result::Result::Ok(true) => {
+                    // continue to install
+                }
+                std::result::Result::Ok(false) => {
+                    // stop
+                    return Ok(());
+                }
+                Err(_) => {
+                    // stop
+                    return Ok(());
                 }
             }
-
-            write_pkgs_into_lock(&remaining_solver_results, &app_dir)?;
-
-            install_solver_results_in_app_folder(
-                tman_config,
-                &command_data,
-                &remaining_solver_results,
-                &app_dir,
-            )
-            .await?;
         }
+
+        write_pkgs_into_lock(&remaining_solver_results, &app_dir)?;
+
+        install_solver_results_in_app_folder(
+            tman_config,
+            &command_data,
+            &remaining_solver_results,
+            &app_dir,
+        )
+        .await?;
 
         // Change back to the original folder.
         if preinstall_chdir_path.is_some() {
