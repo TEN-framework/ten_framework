@@ -6,7 +6,7 @@
 //
 use std::collections::{HashMap, HashSet};
 
-use anyhow::Result;
+use anyhow::{anyhow, Result};
 use clingo::{
     control, Configuration, ConfigurationType, Id, Model, Part, ShowType,
     SolveMode, Statistics, StatisticsType,
@@ -20,7 +20,6 @@ use ten_rust::pkg_info::{
 
 use crate::{
     config::TmanConfig,
-    error::TmanError,
     log::{tman_verbose_print, tman_verbose_println},
 };
 
@@ -327,16 +326,12 @@ fn create_input_str_for_dependency_relationship(
                 }
             }
         } else {
-            return Err(TmanError::Custom(
-                format!(
-                    "Failed to find candidates for {}:{}@{}",
-                    dep_relationship.dependency.type_and_name.pkg_type,
-                    dep_relationship.dependency.type_and_name.name,
-                    dep_relationship.version,
-                )
-                .to_string(),
-            )
-            .into());
+            return Err(anyhow!(
+                "Failed to find candidates for {}:{}@{}",
+                dep_relationship.dependency.type_and_name.pkg_type,
+                dep_relationship.dependency.type_and_name.name,
+                dep_relationship.version,
+            ));
         }
     }
 
@@ -388,28 +383,20 @@ fn create_input_str_for_pkg_info_dependencies(
             }
 
             if !found_matched {
-                return Err(TmanError::Custom(
-                    format!(
-                        "Failed to find candidates for [{}]{}({})",
-                        dependency.type_and_name.pkg_type,
-                        dependency.type_and_name.name,
-                        dependency.version_req
-                    )
-                    .to_string(),
-                )
-                .into());
-            }
-        } else {
-            return Err(TmanError::Custom(
-                format!(
-                    "Failed to find candidates for {}:{}@{}",
+                return Err(anyhow!(
+                    "Failed to find candidates for [{}]{}({})",
                     dependency.type_and_name.pkg_type,
                     dependency.type_and_name.name,
                     dependency.version_req
-                )
-                .to_string(),
-            )
-            .into());
+                ));
+            }
+        } else {
+            return Err(anyhow!(
+                "Failed to find candidates for {}:{}@{}",
+                dependency.type_and_name.pkg_type,
+                dependency.type_and_name.name,
+                dependency.version_req
+            ));
         }
     }
 
@@ -485,8 +472,8 @@ fn create_input_str_for_all_possible_pkgs_info(
 
 fn create_input_str(
     tman_config: &TmanConfig,
-    pkg_name: &String,
     pkg_type: &PkgType,
+    pkg_name: &String,
     extra_dep_relationship: Option<&DependencyRelationship>,
     all_candidates: &HashMap<PkgTypeAndName, HashMap<PkgBasicInfo, PkgInfo>>,
     locked_pkgs: Option<&HashMap<PkgTypeAndName, PkgInfo>>,
@@ -538,16 +525,16 @@ fn create_input_str(
 
 pub fn solve_all(
     tman_config: &TmanConfig,
-    pkg_name: &String,
     pkg_type: &PkgType,
+    pkg_name: &String,
     extra_dep_relationship: Option<&DependencyRelationship>,
     all_candidates: &HashMap<PkgTypeAndName, HashMap<PkgBasicInfo, PkgInfo>>,
     locked_pkgs: Option<&HashMap<PkgTypeAndName, PkgInfo>>,
 ) -> SolveResult {
     let input_str = create_input_str(
         tman_config,
-        pkg_name,
         pkg_type,
+        pkg_name,
         extra_dep_relationship,
         all_candidates,
         locked_pkgs,

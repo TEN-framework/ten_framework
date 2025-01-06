@@ -34,11 +34,11 @@ use crate::{
     config::TmanConfig,
     constants::{APP_DIR_IN_DOT_TEN_DIR, DOT_TEN_DIR},
     dep_and_candidate::get_all_candidates_from_deps,
-    error::TmanError,
     install::{
         compare_solver_results_with_existed_pkgs,
         filter_compatible_pkgs_to_candidates, is_package_installable_in_path,
-        update_package_manifest, write_pkgs_into_lock,
+        write_installing_pkg_into_manifest_file,
+        write_pkgs_into_manifest_lock_file,
     },
     log::tman_verbose_println,
     manifest_lock::parse_manifest_lock_in_folder,
@@ -175,10 +175,11 @@ pub async fn execute_cmd(
     //
     // 2. Otherwise, the affected package is always the app, as the installing
     //    package must be installed in a TEN app in this case.
-    let affected_pkg_name;
-    let mut affected_pkg_type = PkgType::App;
+    let mut cwd_pkg_type = PkgType::App;
+    let cwd_pkg_name;
 
-    let mut preinstall_chdir_path: Option<PathBuf> = None;
+    // The path of `.ten/app/` if we needed.
+    let mut dot_ten_app_dir_path: Option<PathBuf> = None;
 
     // If `tman install` is run within the scope of an app, then the app and
     // those addons (extensions, ...) installed in the app directory are all
@@ -190,7 +191,8 @@ pub async fn execute_cmd(
     > = HashMap::new();
 
     // 'all_existing_local_pkgs' contains all the packages which are already
-    // located in the app directory.
+    // located in the `app` directory, including the `app` itself, and all the
+    // addons located in `ten_packages/<foo>/<bar>`
     //
     // After the completed dependency tree is resolved,
     // 'all_existing_local_pkgs' will be compared with the solver results:
@@ -202,10 +204,6 @@ pub async fn execute_cmd(
     // *) If some of these packages are not compatible with packages in
     // the dependency tree, then users will be questioned whether to overwrite
     // them with the new packages or quit the installation.
-    //
-    // 'all_existing_local_pkgs' is only used in non-standalone mode and is not
-    // used for standalone installation (execute 'tman install' in an extension
-    // folder).
     let mut all_existing_local_pkgs: Vec<PkgInfo> = vec![];
 
     let mut dep_relationship_from_cmd_line: Option<DependencyRelationship> =
@@ -234,7 +232,7 @@ pub async fn execute_cmd(
 
         // The `cwd` must be the base directory of a TEN app.
         let app_pkg_ = get_pkg_info_from_path(&cwd, true)?;
-        affected_pkg_name = app_pkg_.basic_info.type_and_name.name.clone();
+        cwd_pkg_name = app_pkg_.basic_info.type_and_name.name.clone();
 
         initial_pkgs_to_find_candidates.push(app_pkg_.clone());
 
@@ -270,10 +268,10 @@ pub async fn execute_cmd(
         // Case 2: tman install
 
         let manifest = parse_manifest_in_folder(&cwd)?;
-        affected_pkg_type = manifest.type_and_name.pkg_type;
-        affected_pkg_name = manifest.type_and_name.name.clone();
+        cwd_pkg_type = manifest.type_and_name.pkg_type;
+        cwd_pkg_name = manifest.type_and_name.name.clone();
 
-        match affected_pkg_type {
+        match cwd_pkg_type {
             PkgType::App => {
                 // The TEN app itself is also a package. Extensions can declare
                 // dependencies on a specific version of an app, so the app also
@@ -296,10 +294,10 @@ pub async fn execute_cmd(
             PkgType::Extension => {
                 // Install all dependencies of the extension package, but a APP
                 // folder (i.e., `.ten/app`) should be created first.
-                preinstall_chdir_path =
+                dot_ten_app_dir_path =
                     Some(Path::new(DOT_TEN_DIR).join(APP_DIR_IN_DOT_TEN_DIR));
 
-                if let Some(ref path) = preinstall_chdir_path {
+                if let Some(ref path) = dot_ten_app_dir_path {
                     fs::create_dir_all(path)?;
                 }
 
@@ -325,7 +323,7 @@ pub async fn execute_cmd(
 
     // Get the locked pkgs from the lock file in the app folder.
     let mut app_dir = cwd.clone();
-    if let Some(preinstall_chdir_path) = &preinstall_chdir_path {
+    if let Some(preinstall_chdir_path) = &dot_ten_app_dir_path {
         app_dir = cwd.join(preinstall_chdir_path);
     }
     let locked_pkgs = get_locked_pkgs(&app_dir);
@@ -349,8 +347,8 @@ pub async fn execute_cmd(
     // Find an answer (a dependency tree) that satisfies all dependencies.
     let (usable_model, non_usable_models) = solve_all(
         tman_config,
-        &affected_pkg_name,
-        &affected_pkg_type,
+        &cwd_pkg_type,
+        &cwd_pkg_name,
         dep_relationship_from_cmd_line.as_ref(),
         &all_candidates,
         locked_pkgs.as_ref(),
@@ -376,34 +374,25 @@ pub async fn execute_cmd(
         // If we need to switch to a specific folder before installing other
         // packages, do so now.
         let mut app_dir = cwd.clone();
-        if let Some(preinstall_chdir_path) = &preinstall_chdir_path {
+        if let Some(preinstall_chdir_path) = &dot_ten_app_dir_path {
             env::set_current_dir(cwd.join(preinstall_chdir_path))?;
             app_dir = cwd.join(preinstall_chdir_path);
         }
 
-        // We have the following three cases:
-        //
-        // Case 1: install a standalone app, i.e.: tman install app ...
-        // Case 2: install a standalone extension, i.e.: tman install extension
-        // ... Case 3: install dependencies of a package, i.e.: run
-        // `tman install` in a package folder, which is either a TEN app
-        // or extension.
-        //
-        // In case 2, after the package has been installed, its dependencies can
-        // NOT be installed automatically, as the installation directory
-        // of dependencies is different in this case.
-
         // Install all the dependencies which the app depends on.
+        //
+        // The first step is to filter out the package represented by `cwd`, as
+        // this package already exists and does not need to be installed.
         let remaining_solver_results = filter_solver_results_by_type_and_name(
             &solver_results,
-            Some(&affected_pkg_type),
-            Some(&affected_pkg_name),
+            Some(&cwd_pkg_type),
+            Some(&cwd_pkg_name),
             false,
         )?;
 
-        // Compare the remaining_solver_results with the
-        // all_existing_local_pkgs to check if there are any
-        // local packages that need to be deleted or replaced.
+        // Compare the solver results with the already installed packages to
+        // check if there are any installed packages that need to be deleted
+        // or replaced.
         let has_conflict = compare_solver_results_with_existed_pkgs(
             &remaining_solver_results,
             &all_existing_local_pkgs,
@@ -413,7 +402,7 @@ pub async fn execute_cmd(
             // "y" for continuing to install, "n" for stopping.
             let ans = Confirm::new(
                 "Warning!!! Some local packages will be overwritten, \
-do you want to continue?",
+                do you want to continue?",
             )
             .with_default(false)
             .prompt();
@@ -433,7 +422,10 @@ do you want to continue?",
             }
         }
 
-        write_pkgs_into_lock(&remaining_solver_results, &app_dir)?;
+        write_pkgs_into_manifest_lock_file(
+            &remaining_solver_results,
+            &app_dir,
+        )?;
 
         install_solver_results_in_app_folder(
             tman_config,
@@ -444,39 +436,19 @@ do you want to continue?",
         .await?;
 
         // Change back to the original folder.
-        if preinstall_chdir_path.is_some() {
+        if dot_ten_app_dir_path.is_some() {
             env::set_current_dir(cwd)?;
         }
 
-        // Write package info to manifest.json.
+        // Write the installing package info to manifest.json.
         if let Some(mut app_pkg) = app_pkg {
             if installing_pkg_type.is_some() && installing_pkg_name.is_some() {
-                let suitable_pkgs = filter_solver_results_by_type_and_name(
+                write_installing_pkg_into_manifest_file(
+                    &mut app_pkg,
                     &solver_results,
-                    installing_pkg_type.as_ref(),
-                    installing_pkg_name.as_ref(),
-                    true,
+                    &installing_pkg_type.unwrap(),
+                    &installing_pkg_name.unwrap(),
                 )?;
-
-                if suitable_pkgs.is_empty() {
-                    return Err(TmanError::Custom(format!(
-                        "Failed to find any of {}:{}.",
-                        installing_pkg_type.unwrap(),
-                        installing_pkg_name.unwrap(),
-                    ))
-                    .into());
-                }
-
-                if suitable_pkgs.len() > 1 {
-                    return Err(TmanError::Custom(format!(
-                    "Found the possibility of multiple {}:{} being incorrect.",
-                    installing_pkg_type.unwrap(),
-                    installing_pkg_name.unwrap()
-                ))
-                    .into());
-                }
-
-                update_package_manifest(&mut app_pkg, suitable_pkgs[0])?;
             }
         }
 
@@ -554,19 +526,14 @@ do you want to continue?",
                 )?;
 
                 // Since there is an error, we need to exit.
-                return Err(TmanError::Custom(
-                    "Dependency resolution failed.".to_string(),
-                )
-                .into());
+                return Err(anyhow!("Dependency resolution failed."));
             }
         }
 
         // If there are no error models or unable to parse, return a generic
         // error.
-        Err(TmanError::Custom(
+        Err(anyhow!(
             "Dependency resolution failed without specific error details."
-                .to_string(),
-        )
-        .into())
+        ))
     }
 }

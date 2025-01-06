@@ -26,7 +26,7 @@ use crate::constants::{
     REMOTE_REGISTRY_RETRY_DELAY_MS,
 };
 use crate::{
-    config::TmanConfig, error::TmanError, log::tman_verbose_println,
+    config::TmanConfig, log::tman_verbose_println,
     registry::found_result::PkgRegistryInfo,
 };
 
@@ -134,10 +134,7 @@ async fn get_package_upload_info(
                     tman_config,
                     "Authorization token is missing"
                 );
-                return Err(TmanError::Custom(
-                    "Authorization token is missing".to_string(),
-                )
-                .into());
+                return Err(anyhow!("Authorization token is missing"));
             }
 
             let response = client
@@ -221,11 +218,10 @@ async fn upload_package_to_remote(
                     if resp.status().is_success() {
                         Ok(())
                     } else {
-                        Err(TmanError::Custom(format!(
+                        Err(anyhow!(
                             "Failed to upload package with HTTP status {:?}",
                             resp.text().await
                         ))
-                        .into())
                     }
                 }
                 Err(e) => Err(e.into()),
@@ -274,11 +270,10 @@ async fn ack_of_uploading(
                     if resp.status().is_success() {
                         Ok(())
                     } else {
-                        Err(TmanError::Custom(format!(
+                        Err(anyhow!(
                     "Failed to acknowledge uploading with HTTP status {}",
                     resp.status()
                 ))
-                        .into())
                     }
                 }
                 Err(e) => Err(e.into()),
@@ -631,10 +626,7 @@ pub async fn delete_package(
                     &tman_config,
                     "Authorization token is missing"
                 );
-                return Err(TmanError::Custom(
-                    "Authorization token is missing".to_string(),
-                )
-                .into());
+                return Err(anyhow!("Authorization token is missing"));
             }
 
             // Sending the DELETE request.
@@ -652,11 +644,7 @@ pub async fn delete_package(
                     if resp.status().is_success() {
                         Ok(())
                     } else {
-                        Err(TmanError::Custom(format!(
-                            "HTTP error: {}",
-                            resp.status()
-                        ))
-                        .into())
+                        Err(anyhow!("HTTP error: {}", resp.status()))
                     }
                 }
                 Err(e) => Err(e.into()),
