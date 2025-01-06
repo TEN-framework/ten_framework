@@ -4,87 +4,19 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
+use std::{env, io};
 use std::{
-    collections::HashSet,
-    fs,
     fs::File,
     io::Read,
     path::{Path, PathBuf},
 };
-use std::{env, io};
 
 use anyhow::{anyhow, Result};
 use fs_extra::dir::CopyOptions;
-use walkdir::WalkDir;
 
-use super::error::TmanError;
-use remove_dir_all::remove_dir_all;
 use ten_rust::pkg_info::pkg_type::PkgType;
 
-fn merge_folders_internal(
-    source_base: &Path,
-    source: &Path,
-    destination: &Path,
-    inclusions: Option<&HashSet<PathBuf>>,
-) -> Result<()> {
-    for src_entry in WalkDir::new(source).into_iter().filter_map(|e| e.ok()) {
-        let src_path = src_entry.path();
-        let relative_src_path = src_path.strip_prefix(source).unwrap();
-        let relative_src_path_on_base =
-            src_path.strip_prefix(source_base).unwrap();
-
-        // Check if current path is in the inclusions list.
-        if inclusions.is_some() {
-            let inclusions = inclusions.unwrap();
-            if !inclusions.contains(relative_src_path_on_base) {
-                continue;
-            }
-        }
-
-        if src_path.exists() {
-            let dest_path = destination.join(relative_src_path);
-
-            if src_entry.file_type().is_dir() {
-                if src_path == Path::new(source) {
-                    continue;
-                }
-
-                if !dest_path.exists() {
-                    fs::create_dir_all(&dest_path)?;
-                }
-
-                merge_folders_internal(
-                    source_base,
-                    src_path,
-                    &dest_path,
-                    None,
-                )?;
-                remove_dir_all(src_path)?;
-            } else if src_entry.file_type().is_file() {
-                if let Some(parent) = dest_path.parent() {
-                    fs::create_dir_all(parent)?;
-                }
-
-                fs::copy(src_path, &dest_path)?;
-                fs::remove_file(src_path)?;
-            }
-        }
-    }
-
-    Ok(())
-}
-
-pub fn merge_folders(
-    source: &Path,
-    destination: &Path,
-    inclusions: &[String],
-) -> Result<()> {
-    // Adjust exclude paths for platform-specifics.
-    let inclusions_set: HashSet<PathBuf> =
-        inclusions.iter().map(PathBuf::from).collect();
-
-    merge_folders_internal(source, source, destination, Some(&inclusions_set))
-}
+use super::error::TmanError;
 
 pub fn copy_folder_recursively(
     src_dir_path: &String,
