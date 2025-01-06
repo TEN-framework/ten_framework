@@ -153,16 +153,3 @@ pub async fn install_solver_results_in_app_folder(
 
     Ok(())
 }
-
-pub async fn install_solver_results_in_standalone_mode(
-    tman_config: &TmanConfig,
-    command_data: &InstallCommand,
-    solver_results: &Vec<&PkgInfo>,
-    dir: &Path,
-) -> Result<()> {
-    for solver_result in solver_results {
-        install_pkg_info(tman_config, command_data, solver_result, dir).await?;
-    }
-
-    Ok(())
-}
