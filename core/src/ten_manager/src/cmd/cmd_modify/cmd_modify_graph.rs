@@ -47,7 +47,7 @@ pub fn create_sub_cmd(_args_cfg: &crate::cmd_line::ArgsCfg) -> Command {
                 .short('m')
                 .help(
                     "The path=JsonString to modify in the selected graph. \
-                E.g. .name=\"test\"",
+                    E.g. .name=\"test\"",
                 )
                 .required(true)
                 .num_args(1),
