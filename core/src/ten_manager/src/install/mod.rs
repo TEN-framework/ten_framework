@@ -193,7 +193,7 @@ pub async fn install_pkg_info(
     Ok(())
 }
 
-pub fn is_package_installable_in_cwd(
+pub fn is_package_installable_in_path(
     cwd: &Path,
     installing_pkg_type: &PkgType,
 ) -> Result<()> {
@@ -398,16 +398,18 @@ pub fn write_pkgs_into_lock(
     Ok(())
 }
 
+/// Filter out the packages in `all_pkgs` that meet the current environment's
+/// requirements and treat them as candidates.
 pub fn filter_compatible_pkgs_to_candidates(
     tman_config: &TmanConfig,
-    all_existing_local_pkgs: &Vec<PkgInfo>,
+    all_pkgs: &Vec<PkgInfo>,
     all_candidates: &mut HashMap<
         PkgTypeAndName,
         HashMap<PkgBasicInfo, PkgInfo>,
     >,
     support: &PkgSupport,
 ) {
-    for existed_pkg in all_existing_local_pkgs.to_owned().iter_mut() {
+    for existed_pkg in all_pkgs.to_owned().iter_mut() {
         tman_verbose_println!(
             tman_config,
             "Check support score for {:?}",

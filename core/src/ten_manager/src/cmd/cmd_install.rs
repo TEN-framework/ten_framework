@@ -13,7 +13,7 @@ use std::{
     time::Instant,
 };
 
-use anyhow::Result;
+use anyhow::{anyhow, Result};
 use clap::{Arg, ArgMatches, Command};
 use console::Emoji;
 use indicatif::HumanDuration;
@@ -39,7 +39,7 @@ use crate::{
     install::{
         compare_solver_results_with_existed_pkgs,
         filter_compatible_pkgs_to_candidates, is_installing_package_standalone,
-        is_package_installable_in_cwd, update_package_manifest,
+        is_package_installable_in_path, update_package_manifest,
         write_pkgs_into_lock,
     },
     log::tman_verbose_println,
@@ -180,7 +180,7 @@ pub async fn execute_cmd(
     // If `tman install` is run within the scope of an app, then the app and
     // those addons (extensions, ...) installed in the app directory are all
     // considered initial_input_pkgs.
-    let mut initial_input_pkgs = vec![];
+    let mut initial_pkgs_to_find_candidates = vec![];
     let mut all_candidates: HashMap<
         PkgTypeAndName,
         HashMap<PkgBasicInfo, PkgInfo>,
@@ -235,7 +235,7 @@ pub async fn execute_cmd(
 
         // First, check that the package we want to install can be installed
         // within the current directory structure.
-        is_package_installable_in_cwd(&cwd, &installing_pkg_type_)?;
+        is_package_installable_in_path(&cwd, &installing_pkg_type_)?;
 
         is_standalone_installing =
             is_installing_package_standalone(&cwd, &installing_pkg_type_)?;
@@ -252,7 +252,7 @@ pub async fn execute_cmd(
             affected_pkg_name = app_pkg_.basic_info.type_and_name.name.clone();
 
             // Push the app itself into the initial_input_pkgs.
-            initial_input_pkgs.push(app_pkg_.clone());
+            initial_pkgs_to_find_candidates.push(app_pkg_.clone());
 
             all_existing_local_pkgs =
                 tman_get_all_existed_pkgs_info_of_app(tman_config, &cwd)?;
@@ -306,7 +306,8 @@ pub async fn execute_cmd(
                 // dependencies on a specific version of an app, so the app also
                 // needs to be included in the package list for dependency tree
                 // calculation.
-                initial_input_pkgs.push(get_pkg_info_from_path(&cwd, true)?);
+                initial_pkgs_to_find_candidates
+                    .push(get_pkg_info_from_path(&cwd, true)?);
 
                 all_existing_local_pkgs =
                     tman_get_all_existed_pkgs_info_of_app(tman_config, &cwd)?;
@@ -321,7 +322,7 @@ pub async fn execute_cmd(
 
             PkgType::Extension => {
                 // Install all dependencies of the extension package, but a APP
-                // folder should be created first.
+                // folder (i.e., `.ten/app`) should be created first.
                 preinstall_chdir_path =
                     Some(Path::new(DOT_TEN_DIR).join(APP_DIR_IN_DOT_TEN_DIR));
 
@@ -329,22 +330,22 @@ pub async fn execute_cmd(
                     fs::create_dir_all(path)?;
                 }
 
-                initial_input_pkgs.push(get_pkg_info_from_path(&cwd, true)?);
+                initial_pkgs_to_find_candidates
+                    .push(get_pkg_info_from_path(&cwd, true)?);
 
                 filter_compatible_pkgs_to_candidates(
                     tman_config,
-                    &initial_input_pkgs,
+                    &initial_pkgs_to_find_candidates,
                     &mut all_candidates,
                     &command_data.support,
                 );
             }
 
             _ => {
-                return Err(TmanError::Custom(
+                return Err(anyhow!(
                     "Current folder should be a TEN APP or Extension package."
                         .to_string(),
-                )
-                .into());
+                ));
             }
         }
     }
@@ -356,11 +357,8 @@ pub async fn execute_cmd(
             app_dir = cwd.join(preinstall_chdir_path);
         }
 
-        let manifest_lock = parse_manifest_lock_in_folder(&app_dir);
-
-        if manifest_lock.is_ok() {
-            locked_pkgs = Some(manifest_lock.unwrap().get_pkgs());
-        }
+        let manifest_lock = parse_manifest_lock_in_folder(&app_dir)?;
+        locked_pkgs = Some(manifest_lock.get_pkgs());
     }
 
     // Get all possible candidates according to the input packages and extra
@@ -368,7 +366,7 @@ pub async fn execute_cmd(
     let all_candidates = get_all_candidates_from_deps(
         tman_config,
         &command_data.support,
-        initial_input_pkgs,
+        initial_pkgs_to_find_candidates,
         all_candidates,
         &extra_dependencies_specified_in_cmd_line,
         locked_pkgs.as_ref(),
@@ -377,7 +375,7 @@ pub async fn execute_cmd(
 
     println!("{}  Resolving packages...", Emoji("🔍", ""),);
 
-    // Find the answer that satisfies all dependencies.
+    // Find an answer (a dependency tree) that satisfies all dependencies.
     let (usable_model, non_usable_models) = solve_all(
         tman_config,
         &affected_pkg_name,
@@ -387,7 +385,7 @@ pub async fn execute_cmd(
         locked_pkgs.as_ref(),
     )?;
 
-    // Print out the answer.
+    // If there are answers are found, print out all the answers.
     tman_verbose_println!(tman_config, "\n");
     tman_verbose_println!(tman_config, "Result:");
     if let Some(ref usable_model) = usable_model {
