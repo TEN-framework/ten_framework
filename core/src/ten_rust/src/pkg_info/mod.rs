@@ -266,8 +266,8 @@ pub fn get_all_existed_pkgs_info_of_app_to_hashmap(
                             parse_manifest_from_file(&manifest_path)?;
 
                         manifest.check_fs_location(
-                            path.file_name().and_then(|os_str| os_str.to_str()),
                             Some(addon_type_dir),
+                            path.file_name().and_then(|os_str| os_str.to_str()),
                         )?;
 
                         // This folder contains a manifest.json file and
