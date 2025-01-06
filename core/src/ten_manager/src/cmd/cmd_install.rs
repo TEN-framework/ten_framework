@@ -36,7 +36,6 @@ use crate::{
     constants::{APP_DIR_IN_DOT_TEN_DIR, DOT_TEN_DIR},
     dep_and_candidate::get_all_candidates_from_deps,
     error::TmanError,
-    fs::check_is_app_folder,
     install::{
         compare_solver_results_with_existed_pkgs,
         filter_compatible_pkgs_to_candidates, is_installing_package_standalone,
@@ -303,13 +302,15 @@ pub async fn execute_cmd(
 
         match affected_pkg_type {
             PkgType::App => {
-                check_is_app_folder(&cwd)?;
-
-                // Push the app itself into the initial_input_pkgs.
+                // The TEN app itself is also a package. Extensions can declare
+                // dependencies on a specific version of an app, so the app also
+                // needs to be included in the package list for dependency tree
+                // calculation.
                 initial_input_pkgs.push(get_pkg_info_from_path(&cwd, true)?);
 
                 all_existing_local_pkgs =
                     tman_get_all_existed_pkgs_info_of_app(tman_config, &cwd)?;
+
                 filter_compatible_pkgs_to_candidates(
                     tman_config,
                     &all_existing_local_pkgs,

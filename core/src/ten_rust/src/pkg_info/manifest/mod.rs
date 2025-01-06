@@ -11,7 +11,7 @@ pub mod support;
 
 use std::{fmt, fs, path::Path, str::FromStr};
 
-use anyhow::{Context, Result};
+use anyhow::{anyhow, Context, Result};
 use serde::{Deserialize, Serialize};
 
 use crate::pkg_info::utils::read_file_to_string;
@@ -70,6 +70,41 @@ impl fmt::Display for Manifest {
 
 impl Manifest {
     pub fn validate_and_complete(&mut self) -> Result<()> {
+        Ok(())
+    }
+
+    pub fn check_fs_location(
+        &self,
+        addon_type_folder_name: Option<&str>,
+        addon_folder_name: Option<&str>,
+    ) -> Result<()> {
+        if let Some(addon_folder_name) = addon_folder_name {
+            // The package `Foo` must be located inside the folder
+            // `Foo/`, so that during runtime dynamic loading, the
+            // desired package can be identified simply by searching
+            // for the folder name. Additionally, the unique nature
+            // of package names can be ensured through the file
+            // system's restriction that prevents duplicate folder
+            // names within the same directory.
+            if self.type_and_name.name != addon_folder_name {
+                return Err(anyhow!(format!(
+                    "the name of the folder '{}' and the package '{}' are different",
+                    addon_folder_name, self.type_and_name.name
+                )));
+            }
+        }
+
+        if let Some(addon_type_folder_name) = addon_type_folder_name {
+            if self.type_and_name.pkg_type.to_string() != addon_type_folder_name
+            {
+                return Err(anyhow!(format!(
+                    "The folder name '{}' does not match the expected package type '{}'",
+                    addon_type_folder_name,
+                    self.type_and_name.pkg_type.to_string(),
+                )));
+            }
+        }
+
         Ok(())
     }
 }
