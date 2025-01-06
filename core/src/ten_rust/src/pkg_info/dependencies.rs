@@ -70,11 +70,19 @@ impl TryFrom<&ManifestDependency> for PkgDependency {
 
             ManifestDependency::LocalDependency { path, base_dir } => {
                 // Check if there is a manifest.json file under the path.
-                let manifest_path = std::path::Path::new(base_dir)
-                    .join(path)
-                    .join(MANIFEST_JSON_FILENAME);
+                let dep_folder_path = std::path::Path::new(base_dir).join(path);
 
-                if !manifest_path.exists() {
+                if !dep_folder_path.exists() {
+                    return Err(anyhow!(
+                        "Local dependency path '{}' does not exist",
+                        path
+                    ));
+                }
+
+                let dep_manifest_path =
+                    dep_folder_path.join(MANIFEST_JSON_FILENAME);
+
+                if !dep_manifest_path.exists() {
                     return Err(anyhow!("Local dependency path '{}' does not contain manifest.json", path));
                 }
 
@@ -82,7 +90,7 @@ impl TryFrom<&ManifestDependency> for PkgDependency {
                 // `name`, and `version`.
                 let local_manifest =
                     crate::pkg_info::manifest::parse_manifest_from_file(
-                        &manifest_path,
+                        &dep_manifest_path,
                     )?;
 
                 Ok(PkgDependency {
