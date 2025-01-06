@@ -33,9 +33,7 @@ use ten_rust::pkg_info::{
 use super::{config::TmanConfig, registry::get_package};
 use crate::{
     cmd::cmd_install::{InstallCommand, LocalInstallMode},
-    fs::{
-        check_is_app_folder, check_is_package_folder, copy_folder_recursively,
-    },
+    fs::{check_is_app_folder, copy_folder_recursively},
     log::tman_verbose_println,
     manifest_lock::{
         parse_manifest_lock_in_folder, write_pkg_lockfile, ManifestLock,
@@ -199,26 +197,10 @@ pub fn is_package_installable_in_path(
 ) -> Result<()> {
     match installing_pkg_type {
         PkgType::App => {
-            // The app must not be installed into a TEN package folder.
-            if check_is_package_folder(cwd).is_ok() {
-                return Err(anyhow!(
-                    "There is already a TEN package in the current folder. The TEN APP must be installed in a separate folder."
-                        .to_string(),
-                ));
-            }
-        }
-
-        PkgType::Extension => {
-            let manifest_path = cwd.join(MANIFEST_JSON_FILENAME);
-            if !manifest_path.exists() {
-                // An extension can be independently installed in a non-TEN
-                // directory. This is mainly to allow developers to easily
-                // develop, compile, test, and release an extension.
-                return Ok(());
-            }
-
-            // Otherwise, the extension must be installed in a TEN app folder.
-            check_is_app_folder(cwd)?;
+            return Err(anyhow!(
+                "The package type 'app' is not allowed to be installed. \
+                Use the 'create' command instead."
+            ));
         }
 
         _ => {
@@ -413,7 +395,7 @@ pub fn filter_compatible_pkgs_to_candidates(
             tman_verbose_println!(
                 tman_config,
                 "The existed {} package {} is not compatible \
-with the current system.",
+                with the current system.",
                 existed_pkg.basic_info.type_and_name.pkg_type,
                 existed_pkg.basic_info.type_and_name.name
             );
@@ -455,7 +437,7 @@ pub fn compare_solver_results_with_existed_pkgs(
     if !untracked_local_pkgs.is_empty() {
         println!(
             "{}  The following local packages do not \
-appear in the dependency tree:",
+            appear in the dependency tree:",
             Emoji("💡", "")
         );
         for pkg in untracked_local_pkgs {

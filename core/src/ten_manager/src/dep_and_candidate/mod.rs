@@ -351,8 +351,8 @@ pub async fn get_all_candidates_from_deps(
     tman_config: &TmanConfig,
     support: &PkgSupport,
     mut pkgs_to_be_searched: Vec<PkgInfo>,
+    extra_dep: Option<&PkgDependency>,
     mut all_candidates: HashMap<PkgTypeAndName, HashMap<PkgBasicInfo, PkgInfo>>,
-    extra_dependencies: &Vec<PkgDependency>,
     locked_pkgs: Option<&HashMap<PkgTypeAndName, PkgInfo>>,
 ) -> Result<HashMap<PkgTypeAndName, HashMap<PkgBasicInfo, PkgInfo>>> {
     let mut merged_dependencies = HashMap::new();
@@ -360,13 +360,13 @@ pub async fn get_all_candidates_from_deps(
 
     // If there is extra dependencies (ex: specified in the command line),
     // handle those dependencies, too.
-    if !extra_dependencies.is_empty() {
+    if extra_dep.is_some() {
         let mut new_pkgs_to_be_searched: Vec<PkgInfo> = vec![];
 
         process_dependencies_to_get_candidates(
             tman_config,
             support,
-            extra_dependencies,
+            &vec![extra_dep.unwrap().clone()],
             &mut merged_dependencies,
             &mut all_candidates,
             &mut new_pkgs_to_be_searched,

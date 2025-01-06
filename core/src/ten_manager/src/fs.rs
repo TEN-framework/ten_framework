@@ -92,28 +92,3 @@ pub fn check_is_app_folder(path: &Path) -> Result<()> {
 
     Ok(())
 }
-
-pub fn check_is_package_folder(path: &Path) -> Result<()> {
-    match ten_rust::pkg_info::manifest::parse_manifest_in_folder(path) {
-        Ok(_) => Ok(()),
-        Err(err) => Err(err),
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    // use super::*;
-    // use crate::constants::PROPERTY_JSON_FILENAME;
-
-    // #[test]
-    // fn it_merge_files() -> Result<()> {
-    //     let source = Path::new("/home/wei/MyData/Temp/tests/A");
-    //     let destination = Path::new("/home/wei/MyData/Temp/tests/B");
-    //     let inclusions = vec![
-    //         "xxx/manifest.json".to_string(),
-    //         PROPERTY_JSON_FILENAME.to_string(),
-    //     ];
-
-    //     merge_folders(source, destination, &inclusions)
-    // }
-}

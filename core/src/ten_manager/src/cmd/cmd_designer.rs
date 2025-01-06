@@ -114,7 +114,8 @@ pub async fn execute_cmd(
             let cwd = get_cwd()?.to_str().unwrap_or_default().to_string();
 
             println!(
-                "{}  Doesn't specify the base directory, use current working directory instead: {}",
+                "{}  Doesn't specify the base directory, use current working \
+                directory instead: {}",
                 Emoji("💡", "!"),
                 &cwd
             );

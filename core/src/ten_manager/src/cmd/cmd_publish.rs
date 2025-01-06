@@ -25,7 +25,10 @@ pub struct PublishCommand {}
 pub fn create_sub_cmd(_args_cfg: &crate::cmd_line::ArgsCfg) -> Command {
     Command::new("publish")
         .about("Publish a package")
-        .after_help("Switch to the base directory of the TEN package you want to publish, then simply run 'tman publish' directly in that directory.")
+        .after_help(
+            "Switch to the base directory of the TEN package you want to \
+        publish, then simply run 'tman publish' directly in that directory.",
+        )
 }
 
 pub fn parse_sub_cmd(
