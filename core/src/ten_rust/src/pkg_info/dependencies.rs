@@ -83,7 +83,11 @@ impl TryFrom<&ManifestDependency> for PkgDependency {
                     dep_folder_path.join(MANIFEST_JSON_FILENAME);
 
                 if !dep_manifest_path.exists() {
-                    return Err(anyhow!("Local dependency path '{}' does not contain manifest.json", path));
+                    return Err(anyhow!(
+                        "Local dependency path '{}' does not contain \
+                        manifest.json",
+                        path
+                    ));
                 }
 
                 // Parse the `manifest.json` file to retrieve the `type`,
