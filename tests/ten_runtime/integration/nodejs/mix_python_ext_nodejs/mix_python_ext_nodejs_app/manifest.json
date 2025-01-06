@@ -17,12 +17,12 @@
     },
     {
       "type": "extension",
-      "name": "simple_echo_cpp",
+      "name": "pil_demo_python",
       "version": "0.1.0"
     },
     {
       "type": "extension",
-      "name": "aio_http_server_python",
+      "name": "simple_http_server_cpp",
       "version": "0.1.0"
     }
   ]

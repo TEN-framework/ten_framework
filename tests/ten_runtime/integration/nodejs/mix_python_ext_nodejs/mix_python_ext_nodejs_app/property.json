@@ -8,8 +8,8 @@
         "nodes": [
           {
             "type": "extension",
-            "name": "aio_http_server_python",
-            "addon": "aio_http_server_python",
+            "name": "simple_http_server_cpp",
+            "addon": "simple_http_server_cpp",
             "extension_group": "default_extension_group",
             "property": {
               "server_port": 8002
@@ -23,14 +23,14 @@
           },
           {
             "type": "extension",
-            "name": "simple_echo_cpp",
-            "addon": "simple_echo_cpp",
+            "name": "pil_demo_python",
+            "addon": "pil_demo_python",
             "extension_group": "default_extension_group"
           }
         ],
         "connections": [
           {
-            "extension": "aio_http_server_python",
+            "extension": "simple_http_server_cpp",
             "cmd": [
               {
                 "name": "test",
@@ -49,7 +49,7 @@
                 "name": "test",
                 "dest": [
                   {
-                    "extension": "simple_echo_cpp"
+                    "extension": "pil_demo_python"
                   }
                 ]
               }
