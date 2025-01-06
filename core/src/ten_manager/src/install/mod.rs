@@ -22,7 +22,7 @@ use ten_rust::pkg_info::{
     constants::MANIFEST_JSON_FILENAME,
     find_to_be_replaced_local_pkgs, find_untracked_local_packages,
     get_pkg_info_from_path,
-    manifest::{dependency::ManifestDependency, parse_manifest_in_folder},
+    manifest::dependency::ManifestDependency,
     pkg_basic_info::PkgBasicInfo,
     pkg_type::PkgType,
     pkg_type_and_name::PkgTypeAndName,
@@ -193,7 +193,7 @@ pub async fn install_pkg_info(
     Ok(())
 }
 
-pub fn is_package_installable_in_cwd(
+pub fn is_package_installable_in_path(
     cwd: &Path,
     installing_pkg_type: &PkgType,
 ) -> Result<()> {
@@ -228,34 +228,6 @@ pub fn is_package_installable_in_cwd(
     }
 
     Ok(())
-}
-
-// The so-called "standalone" package installation means directly installing the
-// package into the current working directory without considering the directory
-// structure of the TEN app.
-pub fn is_installing_package_standalone(
-    cwd: &Path,
-    installing_pkg_type: &PkgType,
-) -> Result<bool> {
-    match installing_pkg_type {
-        PkgType::App | PkgType::Extension => {
-            let manifest_path = cwd.join(MANIFEST_JSON_FILENAME);
-            if !manifest_path.exists() {
-                // An extension can be independently installed in a non-TEN
-                // directory. This is mainly to allow developers to easily
-                // develop, compile, test, and release an extension.
-                return Ok(true);
-            }
-
-            if parse_manifest_in_folder(cwd).is_ok() {
-                return Ok(false);
-            }
-
-            Ok(true)
-        }
-        // Currently, other standalone installation methods are not supported.
-        _ => Ok(false),
-    }
 }
 
 pub fn update_package_manifest(
@@ -398,16 +370,18 @@ pub fn write_pkgs_into_lock(
     Ok(())
 }
 
+/// Filter out the packages in `all_pkgs` that meet the current environment's
+/// requirements and treat them as candidates.
 pub fn filter_compatible_pkgs_to_candidates(
     tman_config: &TmanConfig,
-    all_existing_local_pkgs: &Vec<PkgInfo>,
+    all_pkgs: &Vec<PkgInfo>,
     all_candidates: &mut HashMap<
         PkgTypeAndName,
         HashMap<PkgBasicInfo, PkgInfo>,
     >,
     support: &PkgSupport,
 ) {
-    for existed_pkg in all_existing_local_pkgs.to_owned().iter_mut() {
+    for existed_pkg in all_pkgs.to_owned().iter_mut() {
         tman_verbose_println!(
             tman_config,
             "Check support score for {:?}",
