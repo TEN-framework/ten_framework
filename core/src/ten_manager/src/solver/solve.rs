@@ -301,25 +301,25 @@ fn solve(tman_config: &TmanConfig, input: &str) -> SolveResult {
 
 fn create_input_str_for_dependency_relationship(
     input_str: &mut String,
-    dependency_relationships: &Vec<DependencyRelationship>,
+    dep_relationship: Option<&DependencyRelationship>,
     all_candidates: &HashMap<PkgTypeAndName, HashMap<PkgBasicInfo, PkgInfo>>,
 ) -> Result<()> {
-    for dependency_relationship in dependency_relationships {
+    if let Some(dep_relationship) = dep_relationship {
         let candidates =
-            all_candidates.get(&(&dependency_relationship.dependency).into());
+            all_candidates.get(&(&dep_relationship.dependency).into());
 
         if let Some(candidates) = candidates {
             for candidate in candidates.iter() {
-                if dependency_relationship
+                if dep_relationship
                     .dependency
                     .version_req
                     .matches(&candidate.1.basic_info.version)
                 {
                     input_str.push_str(&format!(
         "depends_on_declared(\"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\").\n",
-        dependency_relationship.type_and_name.pkg_type,
-        dependency_relationship.type_and_name.name,
-        dependency_relationship.version,
+        dep_relationship.type_and_name.pkg_type,
+        dep_relationship.type_and_name.name,
+        dep_relationship.version,
         candidate.1.basic_info.type_and_name.pkg_type,
         candidate.1.basic_info.type_and_name.name,
         candidate.1.basic_info.version,
@@ -330,9 +330,9 @@ fn create_input_str_for_dependency_relationship(
             return Err(TmanError::Custom(
                 format!(
                     "Failed to find candidates for {}:{}@{}",
-                    dependency_relationship.dependency.type_and_name.pkg_type,
-                    dependency_relationship.dependency.type_and_name.name,
-                    dependency_relationship.version,
+                    dep_relationship.dependency.type_and_name.pkg_type,
+                    dep_relationship.dependency.type_and_name.name,
+                    dep_relationship.version,
                 )
                 .to_string(),
             )
@@ -487,7 +487,7 @@ fn create_input_str(
     tman_config: &TmanConfig,
     pkg_name: &String,
     pkg_type: &PkgType,
-    extra_dependency_relationships: &Vec<DependencyRelationship>,
+    extra_dep_relationship: Option<&DependencyRelationship>,
     all_candidates: &HashMap<PkgTypeAndName, HashMap<PkgBasicInfo, PkgInfo>>,
     locked_pkgs: Option<&HashMap<PkgTypeAndName, PkgInfo>>,
 ) -> Result<String> {
@@ -506,7 +506,7 @@ fn create_input_str(
 
     create_input_str_for_dependency_relationship(
         &mut input_str,
-        extra_dependency_relationships,
+        extra_dep_relationship,
         all_candidates,
     )?;
 
@@ -540,7 +540,7 @@ pub fn solve_all(
     tman_config: &TmanConfig,
     pkg_name: &String,
     pkg_type: &PkgType,
-    extra_dependency_relationships: &Vec<DependencyRelationship>,
+    extra_dep_relationship: Option<&DependencyRelationship>,
     all_candidates: &HashMap<PkgTypeAndName, HashMap<PkgBasicInfo, PkgInfo>>,
     locked_pkgs: Option<&HashMap<PkgTypeAndName, PkgInfo>>,
 ) -> SolveResult {
@@ -548,7 +548,7 @@ pub fn solve_all(
         tman_config,
         pkg_name,
         pkg_type,
-        extra_dependency_relationships,
+        extra_dep_relationship,
         all_candidates,
         locked_pkgs,
     )?;

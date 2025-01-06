@@ -69,7 +69,11 @@ pub fn create_sub_cmd(args_cfg: &crate::cmd_line::ArgsCfg) -> Command {
         .arg(
             Arg::new("TEMPLATE_DATA")
                 .long("template-data")
-                .help("The placeholders used within the template and their corresponding values. The format is key-value pairs, e.g., `--template-data key=value`")
+                .help(
+                    "The placeholders used within the template and their \
+                corresponding values. The format is key-value pairs, e.g., \
+                `--template-data key=value`",
+                )
                 .value_name("KEY=VALUE")
                 .action(ArgAction::Append),
         )
@@ -120,7 +124,8 @@ pub fn parse_sub_cmd(sub_cmd_args: &ArgMatches) -> Result<CreateCommand> {
 
     if cmd.template_data.contains_key("package_name") {
         return Err(anyhow!(
-            "The 'package_name' is set via the command line as '{}', and cannot be modified through '--template-data'.",
+            "The 'package_name' is set via the command line as '{}', \
+            and cannot be modified through '--template-data'.",
             cmd.pkg_name
         ));
     }

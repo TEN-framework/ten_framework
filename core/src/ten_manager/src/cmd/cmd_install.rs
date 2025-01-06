@@ -208,14 +208,8 @@ pub async fn execute_cmd(
     // folder).
     let mut all_existing_local_pkgs: Vec<PkgInfo> = vec![];
 
-    // The initial value of extra_dependencies is the package specified to be
-    // installed via the command line (if any).
-    let mut extra_dependencies_specified_in_cmd_line = vec![];
-
-    // `extra_dependency_relationships` contain TEN packages, and each TEN
-    // package is the main entity depended upon by its corresponding
-    // extra_dependencies."
-    let mut extra_dependency_relationships = vec![];
+    let mut dep_relationship_from_cmd_line: Option<DependencyRelationship> =
+        None;
 
     let mut app_pkg: Option<PkgInfo> = None;
     let mut installing_pkg_type: Option<PkgType> = None;
@@ -225,6 +219,11 @@ pub async fn execute_cmd(
         // Case 1: tman install <package_type> <package_name>
 
         let installing_pkg_type_: PkgType = package_type_str.parse()?;
+
+        // First, check that the package we want to install can be installed
+        // within the current directory structure.
+        is_package_installable_in_path(&cwd, &installing_pkg_type_)?;
+
         let (installing_pkg_name_, installing_pkg_version_req_) =
             parse_pkg_name_version_req(
                 command_data.package_name.as_ref().unwrap(),
@@ -233,23 +232,15 @@ pub async fn execute_cmd(
         installing_pkg_type = Some(installing_pkg_type_);
         installing_pkg_name = Some(installing_pkg_name_.clone());
 
-        // First, check that the package we want to install can be installed
-        // within the current directory structure.
-        is_package_installable_in_path(&cwd, &installing_pkg_type_)?;
-
-        // If it is not a standalone install, then the `cwd` must be within
-        // the base directory of a TEN app.
+        // The `cwd` must be the base directory of a TEN app.
         let app_pkg_ = get_pkg_info_from_path(&cwd, true)?;
         affected_pkg_name = app_pkg_.basic_info.type_and_name.name.clone();
 
-        // Push the app itself into the initial_input_pkgs.
         initial_pkgs_to_find_candidates.push(app_pkg_.clone());
 
         all_existing_local_pkgs =
             tman_get_all_existed_pkgs_info_of_app(tman_config, &cwd)?;
 
-        // Add existing packages into all_candidates only if the compatible
-        // score of the package is >= 0.
         filter_compatible_pkgs_to_candidates(
             tman_config,
             &all_existing_local_pkgs,
@@ -257,7 +248,7 @@ pub async fn execute_cmd(
             &command_data.support,
         );
 
-        let extra_dependency_relationship = DependencyRelationship {
+        dep_relationship_from_cmd_line = Some(DependencyRelationship {
             type_and_name: PkgTypeAndName {
                 pkg_type: app_pkg_.basic_info.type_and_name.pkg_type,
                 name: app_pkg_.basic_info.type_and_name.name.clone(),
@@ -272,17 +263,9 @@ pub async fn execute_cmd(
                 path: None,
                 base_dir: None,
             },
-        };
-        extra_dependency_relationships.push(extra_dependency_relationship);
+        });
 
         app_pkg = Some(app_pkg_);
-
-        let dep = PkgDependency::new(
-            installing_pkg_type_,
-            installing_pkg_name_.clone(),
-            installing_pkg_version_req_,
-        );
-        extra_dependencies_specified_in_cmd_line.push(dep);
     } else {
         // Case 2: tman install
 
@@ -353,8 +336,10 @@ pub async fn execute_cmd(
         tman_config,
         &command_data.support,
         initial_pkgs_to_find_candidates,
+        dep_relationship_from_cmd_line
+            .as_ref()
+            .map(|rel| &rel.dependency),
         all_candidates,
-        &extra_dependencies_specified_in_cmd_line,
         locked_pkgs.as_ref(),
     )
     .await?;
@@ -366,7 +351,7 @@ pub async fn execute_cmd(
         tman_config,
         &affected_pkg_name,
         &affected_pkg_type,
-        &extra_dependency_relationships,
+        dep_relationship_from_cmd_line.as_ref(),
         &all_candidates,
         locked_pkgs.as_ref(),
     )?;
