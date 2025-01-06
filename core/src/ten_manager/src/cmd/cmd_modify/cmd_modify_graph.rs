@@ -32,22 +32,25 @@ pub fn create_sub_cmd(_args_cfg: &crate::cmd_line::ArgsCfg) -> Command {
                 .long("app-dir")
                 .help("Specify the app directory")
                 .required(true)
-                .num_args(1)
+                .num_args(1),
         )
         .arg(
             Arg::new("PREDEFINED_GRAPH_NAME")
                 .long("predefined-graph-name")
                 .help("Specify the predefined graph name to be modified")
                 .required(true)
-                .num_args(1)
+                .num_args(1),
         )
         .arg(
             Arg::new("MODIFICATION")
                 .long("modification")
                 .short('m')
-                .help("The path=JsonString to modify in the selected graph. E.g. .name=\"test\"")
+                .help(
+                    "The path=JsonString to modify in the selected graph. \
+                    E.g. .name=\"test\"",
+                )
                 .required(true)
-                .num_args(1)
+                .num_args(1),
         )
         .arg(
             Arg::new("INPLACE")
@@ -55,7 +58,7 @@ pub fn create_sub_cmd(_args_cfg: &crate::cmd_line::ArgsCfg) -> Command {
                 .short('i')
                 .help("Overwrite the original property.json file")
                 .required(false)
-                .action(clap::ArgAction::SetTrue)
+                .action(clap::ArgAction::SetTrue),
         )
 }
 

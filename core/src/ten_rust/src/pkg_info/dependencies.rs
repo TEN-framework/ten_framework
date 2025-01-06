@@ -38,19 +38,6 @@ pub struct PkgDependency {
 }
 
 impl PkgDependency {
-    pub fn new(
-        pkg_type: PkgType,
-        name: String,
-        version_req: VersionReq,
-    ) -> Self {
-        PkgDependency {
-            type_and_name: PkgTypeAndName { pkg_type, name },
-            version_req,
-            path: None,
-            base_dir: None,
-        }
-    }
-
     pub fn is_local(&self) -> bool {
         self.path.is_some()
     }

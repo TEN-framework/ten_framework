@@ -33,14 +33,13 @@ use ten_rust::pkg_info::{
 use super::{config::TmanConfig, registry::get_package};
 use crate::{
     cmd::cmd_install::{InstallCommand, LocalInstallMode},
-    fs::{
-        check_is_app_folder, check_is_package_folder, copy_folder_recursively,
-    },
+    fs::{check_is_app_folder, copy_folder_recursively},
     log::tman_verbose_println,
     manifest_lock::{
         parse_manifest_lock_in_folder, write_pkg_lockfile, ManifestLock,
     },
     package_file::unzip::extract_and_process_zip,
+    solver::solver_result::filter_solver_results_by_type_and_name,
 };
 use installed_paths::save_installed_paths;
 
@@ -199,26 +198,10 @@ pub fn is_package_installable_in_path(
 ) -> Result<()> {
     match installing_pkg_type {
         PkgType::App => {
-            // The app must not be installed into a TEN package folder.
-            if check_is_package_folder(cwd).is_ok() {
-                return Err(anyhow!(
-                    "There is already a TEN package in the current folder. The TEN APP must be installed in a separate folder."
-                        .to_string(),
-                ));
-            }
-        }
-
-        PkgType::Extension => {
-            let manifest_path = cwd.join(MANIFEST_JSON_FILENAME);
-            if !manifest_path.exists() {
-                // An extension can be independently installed in a non-TEN
-                // directory. This is mainly to allow developers to easily
-                // develop, compile, test, and release an extension.
-                return Ok(());
-            }
-
-            // Otherwise, the extension must be installed in a TEN app folder.
-            check_is_app_folder(cwd)?;
+            return Err(anyhow!(
+                "The package type 'app' is not allowed to be installed. \
+                Use the 'create' command instead."
+            ));
         }
 
         _ => {
@@ -346,7 +329,7 @@ pub fn update_package_manifest(
     Ok(())
 }
 
-pub fn write_pkgs_into_lock(
+pub fn write_pkgs_into_manifest_lock_file(
     pkgs: &Vec<&PkgInfo>,
     app_dir: &Path,
 ) -> Result<()> {
@@ -366,6 +349,40 @@ pub fn write_pkgs_into_lock(
 
         new_manifest_lock.print_changes(&old_manifest_lock.ok().unwrap());
     }
+
+    Ok(())
+}
+
+pub fn write_installing_pkg_into_manifest_file(
+    pkg_info: &mut PkgInfo,
+    solver_results: &[PkgInfo],
+    pkg_type: &PkgType,
+    pkg_name: &String,
+) -> Result<()> {
+    let suitable_pkgs = filter_solver_results_by_type_and_name(
+        solver_results,
+        Some(pkg_type),
+        Some(pkg_name),
+        true,
+    )?;
+
+    if suitable_pkgs.is_empty() {
+        return Err(anyhow!(
+            "Failed to find any of {}:{}.",
+            pkg_type,
+            pkg_name,
+        ));
+    }
+
+    if suitable_pkgs.len() > 1 {
+        return Err(anyhow!(
+            "Found the possibility of multiple {}:{} being incorrect.",
+            pkg_type,
+            pkg_name
+        ));
+    }
+
+    update_package_manifest(pkg_info, suitable_pkgs[0])?;
 
     Ok(())
 }
@@ -412,8 +429,8 @@ pub fn filter_compatible_pkgs_to_candidates(
             // it should not be considered as a candidate.
             tman_verbose_println!(
                 tman_config,
-                "The existed {} package {} is not compatible \
-with the current system.",
+                "The existed {} package {} is not compatible with the current \
+                system.",
                 existed_pkg.basic_info.type_and_name.pkg_type,
                 existed_pkg.basic_info.type_and_name.name
             );
@@ -454,8 +471,8 @@ pub fn compare_solver_results_with_existed_pkgs(
 
     if !untracked_local_pkgs.is_empty() {
         println!(
-            "{}  The following local packages do not \
-appear in the dependency tree:",
+            "{}  The following local packages do not appear in the dependency \
+            tree:",
             Emoji("💡", "")
         );
         for pkg in untracked_local_pkgs {
