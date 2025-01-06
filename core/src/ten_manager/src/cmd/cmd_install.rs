@@ -9,7 +9,6 @@ use std::{
     env,
     fs::{self},
     path::{Path, PathBuf},
-    str::FromStr,
     time::Instant,
 };
 
@@ -38,9 +37,8 @@ use crate::{
     error::TmanError,
     install::{
         compare_solver_results_with_existed_pkgs,
-        filter_compatible_pkgs_to_candidates, is_installing_package_standalone,
-        is_package_installable_in_path, update_package_manifest,
-        write_pkgs_into_lock,
+        filter_compatible_pkgs_to_candidates, is_package_installable_in_path,
+        update_package_manifest, write_pkgs_into_lock,
     },
     log::tman_verbose_println,
     manifest_lock::parse_manifest_lock_in_folder,
@@ -53,7 +51,6 @@ use crate::{
             extract_solver_results_from_raw_solver_results,
             filter_solver_results_by_type_and_name,
             install_solver_results_in_app_folder,
-            install_solver_results_in_standalone_mode,
         },
     },
     version_utils::parse_pkg_name_version_req,
@@ -151,6 +148,13 @@ pub fn parse_sub_cmd(sub_cmd_args: &ArgMatches) -> Result<InstallCommand> {
     Ok(cmd)
 }
 
+fn get_locked_pkgs(app_dir: &Path) -> Option<HashMap<PkgTypeAndName, PkgInfo>> {
+    match parse_manifest_lock_in_folder(app_dir) {
+        Ok(manifest_lock) => Some(manifest_lock.get_pkgs()),
+        Err(_) => None,
+    }
+}
+
 pub async fn execute_cmd(
     tman_config: &TmanConfig,
     command_data: InstallCommand,
@@ -174,7 +178,6 @@ pub async fn execute_cmd(
     let affected_pkg_name;
     let mut affected_pkg_type = PkgType::App;
 
-    let mut is_standalone_installing = false;
     let mut preinstall_chdir_path: Option<PathBuf> = None;
 
     // If `tman install` is run within the scope of an app, then the app and
@@ -214,9 +217,6 @@ pub async fn execute_cmd(
     // extra_dependencies."
     let mut extra_dependency_relationships = vec![];
 
-    // The locked_pkgs comes from a lock file in the app folder.
-    let mut locked_pkgs: Option<HashMap<PkgTypeAndName, PkgInfo>> = None;
-
     let mut app_pkg: Option<PkgInfo> = None;
     let mut installing_pkg_type: Option<PkgType> = None;
     let mut installing_pkg_name: Option<String> = None;
@@ -237,55 +237,45 @@ pub async fn execute_cmd(
         // within the current directory structure.
         is_package_installable_in_path(&cwd, &installing_pkg_type_)?;
 
-        is_standalone_installing =
-            is_installing_package_standalone(&cwd, &installing_pkg_type_)?;
-        if is_standalone_installing {
-            affected_pkg_type = installing_pkg_type_;
-            affected_pkg_name = installing_pkg_name_.clone();
+        // If it is not a standalone install, then the `cwd` must be within
+        // the base directory of a TEN app.
+        let app_pkg_ = get_pkg_info_from_path(&cwd, true)?;
+        affected_pkg_name = app_pkg_.basic_info.type_and_name.name.clone();
 
-            preinstall_chdir_path =
-                Some(PathBuf::from_str(&installing_pkg_name_)?);
-        } else {
-            // If it is not a standalone install, then the `cwd` must be within
-            // the base directory of a TEN app.
-            let app_pkg_ = get_pkg_info_from_path(&cwd, true)?;
-            affected_pkg_name = app_pkg_.basic_info.type_and_name.name.clone();
+        // Push the app itself into the initial_input_pkgs.
+        initial_pkgs_to_find_candidates.push(app_pkg_.clone());
 
-            // Push the app itself into the initial_input_pkgs.
-            initial_pkgs_to_find_candidates.push(app_pkg_.clone());
+        all_existing_local_pkgs =
+            tman_get_all_existed_pkgs_info_of_app(tman_config, &cwd)?;
 
-            all_existing_local_pkgs =
-                tman_get_all_existed_pkgs_info_of_app(tman_config, &cwd)?;
+        // Add existing packages into all_candidates only if the compatible
+        // score of the package is >= 0.
+        filter_compatible_pkgs_to_candidates(
+            tman_config,
+            &all_existing_local_pkgs,
+            &mut all_candidates,
+            &command_data.support,
+        );
 
-            // Add existing packages into all_candidates only if the compatible
-            // score of the package is >= 0.
-            filter_compatible_pkgs_to_candidates(
-                tman_config,
-                &all_existing_local_pkgs,
-                &mut all_candidates,
-                &command_data.support,
-            );
-
-            let extra_dependency_relationship = DependencyRelationship {
+        let extra_dependency_relationship = DependencyRelationship {
+            type_and_name: PkgTypeAndName {
+                pkg_type: app_pkg_.basic_info.type_and_name.pkg_type,
+                name: app_pkg_.basic_info.type_and_name.name.clone(),
+            },
+            version: app_pkg_.basic_info.version.clone(),
+            dependency: PkgDependency {
                 type_and_name: PkgTypeAndName {
-                    pkg_type: app_pkg_.basic_info.type_and_name.pkg_type,
-                    name: app_pkg_.basic_info.type_and_name.name.clone(),
+                    pkg_type: installing_pkg_type_,
+                    name: installing_pkg_name_.clone(),
                 },
-                version: app_pkg_.basic_info.version.clone(),
-                dependency: PkgDependency {
-                    type_and_name: PkgTypeAndName {
-                        pkg_type: installing_pkg_type_,
-                        name: installing_pkg_name_.clone(),
-                    },
-                    version_req: installing_pkg_version_req_.clone(),
-                    path: None,
-                    base_dir: None,
-                },
-            };
-            extra_dependency_relationships.push(extra_dependency_relationship);
+                version_req: installing_pkg_version_req_.clone(),
+                path: None,
+                base_dir: None,
+            },
+        };
+        extra_dependency_relationships.push(extra_dependency_relationship);
 
-            app_pkg = Some(app_pkg_);
-        }
+        app_pkg = Some(app_pkg_);
 
         let dep = PkgDependency::new(
             installing_pkg_type_,
@@ -351,15 +341,11 @@ pub async fn execute_cmd(
     }
 
     // Get the locked pkgs from the lock file in the app folder.
-    if !is_standalone_installing {
-        let mut app_dir = cwd.clone();
-        if let Some(preinstall_chdir_path) = &preinstall_chdir_path {
-            app_dir = cwd.join(preinstall_chdir_path);
-        }
-
-        let manifest_lock = parse_manifest_lock_in_folder(&app_dir)?;
-        locked_pkgs = Some(manifest_lock.get_pkgs());
+    let mut app_dir = cwd.clone();
+    if let Some(preinstall_chdir_path) = &preinstall_chdir_path {
+        app_dir = cwd.join(preinstall_chdir_path);
     }
+    let locked_pkgs = get_locked_pkgs(&app_dir);
 
     // Get all possible candidates according to the input packages and extra
     // dependencies.
@@ -402,50 +388,6 @@ pub async fn execute_cmd(
             &all_candidates,
         )?;
 
-        if is_standalone_installing {
-            // If installing a standalone package (ex: app or extension), the
-            // package itself must be installed first.
-
-            let affected_pkg = filter_solver_results_by_type_and_name(
-                &solver_results,
-                Some(&affected_pkg_type),
-                Some(&affected_pkg_name),
-                true,
-            )?;
-
-            if affected_pkg.is_empty() {
-                return Err(TmanError::Custom(format!(
-                    "Failed to find any of {}:{}.",
-                    affected_pkg_type, affected_pkg_name,
-                ))
-                .into());
-            }
-            if affected_pkg.len() > 1 {
-                return Err(TmanError::Custom(format!(
-                    "Found the possibility of multiple {}:{} being incorrect.",
-                    affected_pkg_type, affected_pkg_name
-                ))
-                .into());
-            }
-
-            // TODO(Liu): Do some check after the installation. Ex: the package
-            // is installed in the template mode, however the
-            // package might not have a manifest.json template file
-            // to rerender the package name. In this
-            // case, the installed package is invalid, because as a spec of TEN
-            // package, the installed folder name should be the same as the
-            // package name. Anyway, the package name in
-            // manifest.json should be forced to replace with the
-            // `package-name` arg?
-            install_solver_results_in_standalone_mode(
-                tman_config,
-                &command_data,
-                &affected_pkg,
-                &cwd,
-            )
-            .await?;
-        }
-
         // If we need to switch to a specific folder before installing other
         // packages, do so now.
         let mut app_dir = cwd.clone();
@@ -465,7 +407,7 @@ pub async fn execute_cmd(
         // In case 2, after the package has been installed, its dependencies can
         // NOT be installed automatically, as the installation directory
         // of dependencies is different in this case.
-        if affected_pkg_type == PkgType::App || !is_standalone_installing {
+        if affected_pkg_type == PkgType::App {
             // Install all the dependencies which the app depends on.
             let remaining_solver_results =
                 filter_solver_results_by_type_and_name(
