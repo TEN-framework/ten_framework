@@ -17,7 +17,7 @@ i18n
   // Pass the i18n instance to react-i18next.
   .use(initReactI18next)
   .init({
-    fallbackLng: "en", // Default language.
+    fallbackLng: "en-US", // Default language.
     debug: true, // Enable debug mode, can be turned off in production.
 
     ns: ["common"], // Define namespace.

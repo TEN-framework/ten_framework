@@ -9,6 +9,7 @@ import { useTranslation } from "react-i18next";
 
 import Popup from "@/components/Popup/Popup";
 import { cn } from "@/lib/utils";
+import { TEN_FRAMEWORK_URL, TEN_FRAMEWORK_GITHUB_URL } from "@/constants";
 
 interface AboutPopupProps {
   onClose: () => void;
@@ -18,7 +19,7 @@ const AboutPopup: React.FC<AboutPopupProps> = ({ onClose }) => {
   const { t } = useTranslation();
 
   return (
-    <Popup title="About" onClose={onClose}>
+    <Popup title={t("header.menu.about")} onClose={onClose}>
       <div className="text-center">
         <p
           className={cn(
@@ -26,28 +27,28 @@ const AboutPopup: React.FC<AboutPopupProps> = ({ onClose }) => {
             "font-['Segoe_UI',Tahoma,Geneva,Verdana,sans-serif]"
           )}
         >
-          Powered by TEN Framework.
+          {t("header.poweredBy")}&nbsp;{t("tenFramework")}.
         </p>
         <p className="my-1">
-          {t("Official site")}:{" "}
+          {t("header.officialSite")}:&nbsp;
           <a
-            href="https://www.theten.ai/"
+            href={TEN_FRAMEWORK_URL}
             target="_blank"
             rel="noopener noreferrer"
             className="text-blue-600 underline"
           >
-            https://www.theten.ai/
+            {TEN_FRAMEWORK_URL}
           </a>
         </p>
         <p className="my-1">
-          Github:{" "}
+          {t("header.github")}:&nbsp;
           <a
-            href="https://github.com/TEN-framework/"
+            href={TEN_FRAMEWORK_GITHUB_URL}
             target="_blank"
             rel="noopener noreferrer"
             className="text-blue-600 underline"
           >
-            https://github.com/TEN-framework/
+            {TEN_FRAMEWORK_GITHUB_URL}
           </a>
         </p>
       </div>

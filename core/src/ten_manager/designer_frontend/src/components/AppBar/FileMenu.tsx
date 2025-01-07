@@ -7,6 +7,7 @@
 import * as React from "react";
 import { toast } from "sonner";
 import { FolderOpenIcon } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import Popup from "@/components/Popup/Popup";
 import {
@@ -33,6 +34,7 @@ interface FileMenuProps {
 
 export function FileMenu(props: FileMenuProps) {
   const { defaultBaseDir = "/", onSetBaseDir } = props;
+  const { t } = useTranslation();
 
   const [isFolderPathModalOpen, setIsFolderPathModalOpen] =
     React.useState<boolean>(false);
@@ -76,7 +78,7 @@ export function FileMenu(props: FileMenuProps) {
     <>
       <NavigationMenuItem>
         <NavigationMenuTrigger className="submenu-trigger">
-          File
+          {t("header.menu.file")}
         </NavigationMenuTrigger>
         <NavigationMenuContent
           className={cn("flex flex-col items-center px-1 py-1.5 gap-1.5")}
@@ -88,14 +90,14 @@ export function FileMenu(props: FileMenuProps) {
               onClick={() => setIsFolderPathModalOpen(true)}
             >
               <FolderOpenIcon className="w-4 h-4 me-2" />
-              Open app folder
+              {t("header.menu.openAppFolder")}
             </Button>
           </NavigationMenuLink>
         </NavigationMenuContent>
       </NavigationMenuItem>
       {isFolderPathModalOpen && (
         <Popup
-          title="Open App Folder"
+          title={t("header.menu.openAppFolder")}
           onClose={() => setIsFolderPathModalOpen(false)}
           resizable={false}
           initialWidth={600}
@@ -116,9 +118,9 @@ export function FileMenu(props: FileMenuProps) {
                 variant="outline"
                 onClick={() => setIsFolderPathModalOpen(false)}
               >
-                Cancel
+                {t("action.cancel")}
               </Button>
-              <Button onClick={handleManualOk}>OK</Button>
+              <Button onClick={handleManualOk}>{t("action.ok")}</Button>
             </div>
           </div>
         </Popup>

@@ -5,6 +5,7 @@
 // Refer to the "LICENSE" file in the root directory for more information.
 //
 import * as React from "react";
+import { useTranslation } from "react-i18next";
 
 import {
   NavigationMenu,
@@ -16,6 +17,7 @@ import { Badge } from "@/components/ui/Badge";
 import { FileMenu } from "@/components/AppBar/FileMenu";
 import { EditMenu } from "@/components/AppBar/EditMenu";
 import { HelpMenu } from "@/components/AppBar/HelpMenu";
+import { AppStatus } from "@/components/AppBar/AppStatus";
 import { cn } from "@/lib/utils";
 
 interface AppBarProps {
@@ -33,6 +35,8 @@ const AppBar: React.FC<AppBarProps> = ({
   onAutoLayout,
   onSetBaseDir,
 }) => {
+  const { t } = useTranslation();
+
   const onNavChange = () => {
     setTimeout(() => {
       const triggers = document.querySelectorAll(
@@ -67,8 +71,16 @@ const AppBar: React.FC<AppBarProps> = ({
         </NavigationMenuList>
       </NavigationMenu>
 
+      {/* Middle part is the status bar. */}
+      <AppStatus
+        className={cn(
+          "flex-1 flex justify-center items-center",
+          "text-xs text-muted-foreground"
+        )}
+      />
+
       {/* Right part is the logo. */}
-      <div className="ml-auto flex items-center gap-1.5">
+      <div className="flex items-center gap-1.5">
         <LanguageToggle />
         <ModeToggle />
         <div
@@ -77,8 +89,10 @@ const AppBar: React.FC<AppBarProps> = ({
           )}
         >
           <div>
-            Powered by{" "}
-            <span className="font-bold text-foreground">TEN Framework</span>
+            {t("header.poweredBy2")}&nbsp;
+            <span className="font-bold text-foreground">
+              {t("tenFramework")}
+            </span>
           </div>
           <Badge variant="secondary">{version}</Badge>
         </div>

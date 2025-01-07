@@ -51,8 +51,10 @@
  */
 #if defined(OS_MACOS) || defined(OS_LINUX) || defined(OS_WINDOWS)
 
-static void load_all_dynamic_libraries_under_path(const char *path) {
+static bool load_all_dynamic_libraries_under_path(const char *path) {
   TEN_ASSERT(path, "Invalid argument.");
+
+  bool load_at_least_one = false;
 
   ten_dir_fd_t *dir = NULL;
   ten_path_itor_t *itor = NULL;
@@ -103,6 +105,8 @@ static void load_all_dynamic_libraries_under_path(const char *path) {
       goto continue_loop;
     }
 
+    load_at_least_one = true;
+
     TEN_LOGD("Loaded module: %s", ten_string_get_raw_str(file_path));
 
   continue_loop:
@@ -123,6 +127,8 @@ done:
   if (dir) {
     ten_path_close_dir(dir);
   }
+
+  return load_at_least_one;
 }
 
 static void ten_addon_load_from_base_dir(const char *path) {
@@ -315,7 +321,7 @@ bool ten_addon_load_all_from_ten_package_base_dirs(
   return success;
 }
 
-static bool ten_addon_load_specific_addon_from_app_base_dir(
+static bool ten_addon_load_specific_addon_using_native_addon_loader(
     const char *app_base_dir, TEN_ADDON_TYPE addon_type, const char *addon_name,
     ten_error_t *err) {
   TEN_ASSERT(app_base_dir, "Invalid argument.");
@@ -346,7 +352,7 @@ static bool ten_addon_load_specific_addon_from_app_base_dir(
   }
 
   // Load the library from the 'lib/' directory.
-  load_all_dynamic_libraries_under_path(
+  success = load_all_dynamic_libraries_under_path(
       ten_string_get_raw_str(&addon_lib_folder_path));
 
 done:
@@ -380,11 +386,11 @@ static bool ten_addon_register_specific_addon(
   return success;
 }
 
-bool ten_addon_try_load_specific_addon_from_app_base_dir(
+bool ten_addon_try_load_specific_addon_using_native_addon_loader(
     const char *app_base_dir, TEN_ADDON_TYPE addon_type,
     const char *addon_name) {
-  if (ten_addon_load_specific_addon_from_app_base_dir(app_base_dir, addon_type,
-                                                      addon_name, NULL)) {
+  if (ten_addon_load_specific_addon_using_native_addon_loader(
+          app_base_dir, addon_type, addon_name, NULL)) {
     if (!ten_addon_register_specific_addon(addon_type, addon_name, NULL,
                                            NULL)) {
       return false;

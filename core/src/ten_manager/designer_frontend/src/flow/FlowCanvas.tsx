@@ -27,6 +27,7 @@ import NodeContextMenu from "@/flow/ContextMenu/NodeContextMenu";
 import EdgeContextMenu from "@/flow/ContextMenu/EdgeContextMenu";
 import TerminalPopup, { TerminalData } from "@/components/Popup/TerminalPopup";
 import EditorPopup, { EditorData } from "@/components/Popup/EditorPopup";
+import CustomNodeConnPopup from "@/components/Popup/CustomNodeConnPopup";
 import { ThemeProviderContext } from "@/components/theme-context";
 
 // Import react-flow style.
@@ -62,6 +63,13 @@ const FlowCanvas = forwardRef<FlowCanvasRef, FlowCanvasProps>(
       edge?: CustomEdgeType;
       node?: CustomNodeType;
     }>({ visible: false, x: 0, y: 0 });
+    const [connPopups, setConnPopups] = useState<
+      {
+        id: string;
+        source: string;
+        target?: string;
+      }[]
+    >([]);
 
     const launchTerminal = (data: TerminalData) => {
       const newPopup = { id: `${data.title}-${Date.now()}`, data };
@@ -98,6 +106,22 @@ const FlowCanvas = forwardRef<FlowCanvasRef, FlowCanvasProps>(
 
     const closeEditor = (id: string) => {
       setEditorPopups((prev) => prev.filter((popup) => popup.id !== id));
+    };
+
+    const launchConnPopup = (source: string, target?: string) => {
+      setConnPopups((prev) => {
+        const existingPopup = prev.find(
+          (popup) => popup.source === source && popup.target === target
+        );
+        if (existingPopup) {
+          return prev;
+        }
+        return [...prev, { source, target, id: `${source}-${target ?? ""}` }];
+      });
+    };
+
+    const closeConnPopup = (id: string) => {
+      setConnPopups((prev) => prev.filter((popup) => popup.id !== id));
     };
 
     const renderContextMenu = () => {
@@ -167,8 +191,27 @@ const FlowCanvas = forwardRef<FlowCanvasRef, FlowCanvasProps>(
       const handleClick = () => {
         closeContextMenu();
       };
+      const handleCustomNodeAction = (event: CustomEvent) => {
+        switch (event.detail.action) {
+          case "connections":
+            launchConnPopup(event.detail.source, event.detail.target);
+            break;
+          default:
+            break;
+        }
+      };
       window.addEventListener("click", handleClick);
-      return () => window.removeEventListener("click", handleClick);
+      window.addEventListener(
+        "customNodeAction",
+        handleCustomNodeAction as EventListener
+      );
+      return () => {
+        window.removeEventListener("click", handleClick);
+        window.removeEventListener(
+          "customNodeAction",
+          handleCustomNodeAction as EventListener
+        );
+      };
     }, [closeContextMenu]);
 
     const { theme } = useContext(ThemeProviderContext);
@@ -197,9 +240,39 @@ const FlowCanvas = forwardRef<FlowCanvasRef, FlowCanvasProps>(
           style={{ width: "100%", height: "100%" }}
           onNodeContextMenu={clickNodeContextMenu}
           onEdgeContextMenu={clickEdgeContextMenu}
+          // onEdgeClick={(e, edge) => {
+          //   console.log("clicked", e, edge);
+          // }}
         >
           <Controls />
-          <MiniMap />
+          <MiniMap zoomable pannable />
+          <svg className="">
+            <defs>
+              <linearGradient id="edge-gradient">
+                <stop offset="0%" stopColor="#ae53ba" />
+                <stop offset="100%" stopColor="#2a8af6" />
+              </linearGradient>
+
+              <marker
+                id="edge-circle"
+                viewBox="-5 -5 10 10"
+                refX="0"
+                refY="0"
+                markerUnits="strokeWidth"
+                markerWidth="10"
+                markerHeight="10"
+                orient="auto"
+              >
+                <circle
+                  stroke="#2a8af6"
+                  strokeOpacity="0.75"
+                  r="2"
+                  cx="0"
+                  cy="0"
+                />
+              </marker>
+            </defs>
+          </svg>
         </ReactFlow>
 
         {renderContextMenu()}
@@ -217,6 +290,15 @@ const FlowCanvas = forwardRef<FlowCanvasRef, FlowCanvasProps>(
             key={popup.id}
             data={popup.data}
             onClose={() => closeEditor(popup.id)}
+          />
+        ))}
+
+        {connPopups.map((popup) => (
+          <CustomNodeConnPopup
+            key={popup.id}
+            source={popup.source}
+            target={popup.target}
+            onClose={() => closeConnPopup(popup.id)}
           />
         ))}
       </div>

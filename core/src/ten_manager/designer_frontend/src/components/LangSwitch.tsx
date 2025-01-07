@@ -16,23 +16,25 @@ import {
 } from "@/components/ui/DropdownMenu";
 
 export function LanguageToggle() {
-  const { i18n } = useTranslation();
+  const { i18n, t } = useTranslation();
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="icon" className="bg-transparent">
           <LanguagesIcon className="h-[1.2rem] w-[1.2rem]" />
-          <span className="sr-only">Select language</span>
+          <span className="sr-only">{t("header.menu.language")}</span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuItem onClick={() => i18n.changeLanguage("en")}>
-          <span>English</span>
-          {i18n.language === "en" && <CheckIcon className="ml-auto h-4 w-4" />}
+        <DropdownMenuItem onClick={() => i18n.changeLanguage("en-US")}>
+          <span>{t("header.menu.language.enUS")}</span>
+          {i18n.language === "en-US" && (
+            <CheckIcon className="ml-auto h-4 w-4" />
+          )}
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => i18n.changeLanguage("zh-CN")}>
-          <span>简体中文</span>
+          <span>{t("header.menu.language.zhCN")}</span>
           {i18n.language === "zh-CN" && (
             <CheckIcon className="ml-auto h-4 w-4" />
           )}

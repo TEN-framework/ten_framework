@@ -6,6 +6,7 @@
 //
 import * as React from "react";
 import { FolderClosedIcon, FileIcon, FolderOpenIcon } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/ui/Button";
 import { SpinnerLoading } from "@/components/Status/Loading";
@@ -74,10 +75,15 @@ export function ThreeColumnFileManager(props: {
       <div
         className={cn(
           "w-full h-10 bg-gray-50 dark:bg-gray-900 rounded-lg",
-          "px-4 flex items-center"
+          "px-4 flex items-center select-text"
         )}
       >
-        <span className="text-xs text-gray-500 dark:text-gray-400">
+        <span
+          className={cn(
+            "text-xs text-gray-500 dark:text-gray-400",
+            "whitespace-nowrap overflow-x-scroll"
+          )}
+        >
           {selectedPath}
         </span>
       </div>
@@ -192,6 +198,8 @@ function FMColumnItem(props: {
     disabled,
   } = props;
 
+  const { t } = useTranslation();
+
   return (
     <li key={data.path}>
       <Button
@@ -219,7 +227,8 @@ function FMColumnItem(props: {
         )}
         {data.type !== EFMItemType.FOLDER && <FileIcon className="" />}
         <span className="overflow-hidden text-ellipsis whitespace-nowrap">
-          {data.name} {selectStatus === "selected" ? "(Selected)" : ""}
+          {data.name}{" "}
+          {selectStatus === "selected" ? `(${t("action.selected")})` : ""}
         </span>
       </Button>
     </li>

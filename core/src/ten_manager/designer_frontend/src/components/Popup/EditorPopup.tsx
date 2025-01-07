@@ -7,6 +7,7 @@
 import React, { useEffect, useState, useContext } from "react";
 import Editor from "@monaco-editor/react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 
 import Popup from "@/components/Popup/Popup";
 import { getFileContent, putFileContent } from "@/api/services/fileSystem";
@@ -42,9 +43,11 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
   onConfirm,
   onCancel,
 }) => {
+  const { t } = useTranslation();
+
   return (
     <Popup
-      title="Confirmation"
+      title={t("action.confirm")}
       onClose={onCancel}
       preventFocusSteal={true}
       resizable={false}
@@ -55,10 +58,10 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
         <p className="text-sm text-foreground">{message}</p>
         <div className="flex items-center gap-4 mt-6 w-full justify-end">
           <Button variant="outline" size="sm" onClick={onCancel}>
-            Cancel
+            {t("action.cancel")}
           </Button>
           <Button variant="default" size="sm" onClick={onConfirm}>
-            OK
+            {t("action.ok")}
           </Button>
         </div>
       </div>
@@ -68,9 +71,10 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
 
 const EditorPopup: React.FC<EditorPopupProps> = ({ data, onClose }) => {
   const [fileContent, setFileContent] = useState(data.content);
-
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [pendingAction, setPendingAction] = useState<null | (() => void)>(null);
+
+  const { t } = useTranslation();
 
   // Fetch the specified file content from the backend.
   useEffect(() => {
@@ -90,13 +94,14 @@ const EditorPopup: React.FC<EditorPopupProps> = ({ data, onClose }) => {
   const saveFile = async (content: string) => {
     try {
       await putFileContent(data.url, { content });
-      console.log("File saved successfully");
-      toast.success("File saved successfully");
+      console.log(t("toast.saveFileSuccess"));
+      toast.success(t("toast.saveFileSuccess"));
       // We can add UI prompts, such as displaying a success notification.
     } catch (error: unknown) {
       console.error("Failed to save file content:", error);
-      toast.error("Failed to save file content", {
-        description: error instanceof Error ? error.message : "Unknown error",
+      toast.error(t("toast.saveFileFailed"), {
+        description:
+          error instanceof Error ? error.message : t("toast.saveFileFailed"),
       });
     }
   };
@@ -203,7 +208,7 @@ const EditorPopup: React.FC<EditorPopupProps> = ({ data, onClose }) => {
       {/* Conditional Rendering Confirmation Popup. */}
       {showConfirmDialog && pendingAction && (
         <ConfirmDialog
-          message="Are you sure you want to save this file?"
+          message={t("popup.editor.confirmSaveFile")}
           onConfirm={() => {
             setShowConfirmDialog(false);
             pendingAction();
