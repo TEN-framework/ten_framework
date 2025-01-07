@@ -71,19 +71,11 @@ The TEN framework uses `ten_gn` as its build system. `ten_gn` is a build system 
 
 We provide pre-written Docker files that allow you to create a container with all the necessary packages required to build the TEN framework from source.
 
-### Ubuntu 18.04
+### Ubuntu 22.04
 
-Navigate to `tools/docker_for_building/ubuntu/18.04` and run the following commands to create and enter the build environment.
+Navigate to `tools/docker_for_building/ubuntu/22.04` and run the following commands to create and enter the build environment.
 
 ```shell
 docker-compose up -d
-docker-compose run ten-building-ubuntu-1804
-```
-
-### Ubuntu 21.10
-
-Follow the same steps as for Ubuntu 18.04, but use the following command to enter the Ubuntu 21.10 build container.
-
-```shell
-docker-compose run ten-building-ubuntu-2110
+docker-compose run ten-building-ubuntu-2204
 ```

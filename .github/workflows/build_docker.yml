@@ -19,9 +19,6 @@ jobs:
           - image_name: "ubuntu2204"
             workdir: "tools/docker_for_building/ubuntu/22.04"
             platforms: linux/amd64,linux/arm64
-          - image_name: "ubuntu1804"
-            workdir: "tools/docker_for_building/ubuntu/18.04"
-            platforms: linux/amd64
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
