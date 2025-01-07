@@ -6,6 +6,7 @@
 //
 import * as React from "react";
 import { FolderClosedIcon, FileIcon, FolderOpenIcon } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/ui/Button";
 import { SpinnerLoading } from "@/components/Status/Loading";
@@ -192,6 +193,8 @@ function FMColumnItem(props: {
     disabled,
   } = props;
 
+  const { t } = useTranslation();
+
   return (
     <li key={data.path}>
       <Button
@@ -219,7 +222,8 @@ function FMColumnItem(props: {
         )}
         {data.type !== EFMItemType.FOLDER && <FileIcon className="" />}
         <span className="overflow-hidden text-ellipsis whitespace-nowrap">
-          {data.name} {selectStatus === "selected" ? "(Selected)" : ""}
+          {data.name}{" "}
+          {selectStatus === "selected" ? `(${t("action.selected")})` : ""}
         </span>
       </Button>
     </li>

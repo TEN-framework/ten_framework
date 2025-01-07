@@ -28,7 +28,7 @@ export function EditMenu(props: EditMenuProps) {
   return (
     <NavigationMenuItem>
       <NavigationMenuTrigger className="submenu-trigger">
-        Edit
+        {t("header.menu.edit")}
       </NavigationMenuTrigger>
       <NavigationMenuContent
         className={cn("flex flex-col items-center px-1 py-1.5 gap-1.5")}
@@ -40,7 +40,7 @@ export function EditMenu(props: EditMenuProps) {
             onClick={onOpenExistingGraph}
           >
             <FolderOpenIcon />
-            {t("Open Existing Graph")}
+            {t("header.menu.openExistingGraph")}
           </Button>
         </NavigationMenuLink>
         <NavigationMenuLink asChild>
@@ -50,7 +50,7 @@ export function EditMenu(props: EditMenuProps) {
             onClick={onAutoLayout}
           >
             <MoveIcon />
-            {t("Auto Layout")}
+            {t("header.menu.autoLayout")}
           </Button>
         </NavigationMenuLink>
       </NavigationMenuContent>

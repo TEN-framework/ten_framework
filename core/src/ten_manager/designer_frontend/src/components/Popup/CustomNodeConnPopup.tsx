@@ -5,7 +5,7 @@
 // Refer to the "LICENSE" file in the root directory for more information.
 //
 import * as React from "react";
-
+import { useTranslation } from "react-i18next";
 import { BlocksIcon, ArrowBigRightDashIcon } from "lucide-react";
 
 import Popup from "@/components/Popup/Popup";
@@ -34,14 +34,16 @@ const CustomNodeConnPopup: React.FC<CustomNodeConnPopupProps> = ({
   target,
   onClose,
 }) => {
+  const { t } = useTranslation();
+
   const titleMemo = React.useMemo(() => {
     if (source && !target) {
-      return `Node[${source}] Connection`;
+      return t("popup.customNodeConn.title", { source });
     }
     if (source && target) {
-      return `Connection Details`;
+      return t("popup.customNodeConn.title", { source, target });
     }
-    return "Connection";
+    return t("popup.customNodeConn.title");
   }, [source, target]);
 
   return (

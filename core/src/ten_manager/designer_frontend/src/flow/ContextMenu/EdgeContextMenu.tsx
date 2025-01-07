@@ -29,14 +29,14 @@ const EdgeContextMenu: React.FC<EdgeContextMenuProps> = ({
 
   const items: ContextMenuItem[] = [
     {
-      label: t("Edit"),
+      label: t("action.edit"),
       icon: <FaEdit />,
       onClick: () => {
         onClose();
       },
     },
     {
-      label: t("Delete"),
+      label: t("action.delete"),
       icon: <FaTrash />,
       onClick: () => {
         onClose();

@@ -5,6 +5,7 @@
 // Refer to the "LICENSE" file in the root directory for more information.
 //
 import * as React from "react";
+import { useTranslation } from "react-i18next";
 
 import {
   NavigationMenu,
@@ -34,6 +35,8 @@ const AppBar: React.FC<AppBarProps> = ({
   onAutoLayout,
   onSetBaseDir,
 }) => {
+  const { t } = useTranslation();
+
   const onNavChange = () => {
     setTimeout(() => {
       const triggers = document.querySelectorAll(
@@ -86,8 +89,10 @@ const AppBar: React.FC<AppBarProps> = ({
           )}
         >
           <div>
-            Powered by{" "}
-            <span className="font-bold text-foreground">TEN Framework</span>
+            {t("header.poweredBy2")}&nbsp;
+            <span className="font-bold text-foreground">
+              {t("tenFramework")}
+            </span>
           </div>
           <Badge variant="secondary">{version}</Badge>
         </div>

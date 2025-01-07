@@ -13,6 +13,7 @@ import {
   NodeChange,
 } from "@xyflow/react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 
 import { ThemeProvider } from "@/components/ThemeProvider";
 import AppBar from "@/components/AppBar/AppBar";
@@ -45,6 +46,7 @@ const App: React.FC = () => {
 
   // Get the version of tman.
   const { version } = useVersion();
+  const { t } = useTranslation();
 
   const handleOpenExistingGraph = useCallback(async () => {
     try {
@@ -169,7 +171,7 @@ const App: React.FC = () => {
         />
         {showGraphSelection && (
           <Popup
-            title="Select a Graph"
+            title={t("popup.selectGraph.title")}
             onClose={() => setShowGraphSelection(false)}
             resizable={false}
             initialWidth={400}
@@ -183,7 +185,8 @@ const App: React.FC = () => {
                   style={{ cursor: "pointer", padding: "5px 0" }}
                   onClick={() => handleSelectGraph(graph.name)}
                 >
-                  {graph.name} {graph.auto_start ? "(Auto Start)" : ""}
+                  {graph.name}{" "}
+                  {graph.auto_start ? `(${t("action.autoStart")})` : ""}
                 </li>
               ))}
             </ul>
