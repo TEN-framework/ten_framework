@@ -17,7 +17,16 @@ ten_package_test_prepare_app("send_cmd_python_app") {
     "send_cmd_python_app/property.json",
   ]
 
-  replace_files_after_install_all = [ "send_cmd_python_app/ten_packages/extension/default_extension_python/extension.py" ]
+  replace_files_after_install_all = [
+    "send_cmd_python_app/ten_packages/extension/default_extension_python/extension.py",
+
+    # Simulate a scenario where there is a `lib/` directory under the directory
+    # of a Python extension addon, and test the case where the native addon
+    # loader (`dlopen`) fails to load. Ensure that this does not block other
+    # installed addon loaders (such as the Python addon loader) from continuing
+    # to load the addon.
+    "send_cmd_python_app/ten_packages/extension/default_extension_python/lib",
+  ]
 
   if (ten_enable_ten_manager) {
     deps = [

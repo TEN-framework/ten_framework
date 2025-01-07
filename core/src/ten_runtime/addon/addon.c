@@ -187,14 +187,20 @@ bool ten_addon_create_instance_async(ten_env_t *ten_env,
                           false),
                "Should not happen.");
 
-    if (!ten_addon_try_load_specific_addon_from_app_base_dir(
+    // First, try to load it using the built-in native addon loader (i.e.,
+    // `dlopen`).
+    if (!ten_addon_try_load_specific_addon_using_native_addon_loader(
             ten_string_get_raw_str(&app->base_dir), addon_type, addon_name)) {
-      return false;
+      TEN_LOGI(
+          "Unable to load addon %s:%s using native addon loader, will try "
+          "other methods.",
+          ten_addon_type_to_string(addon_type), addon_name);
     }
 
     if (!ten_addon_try_load_specific_addon_using_all_addon_loaders(
             addon_type, addon_name)) {
-      return false;
+      TEN_LOGI("Unable to load addon %s:%s using all installed addon loaders.",
+               ten_addon_type_to_string(addon_type), addon_name);
     }
 
     // Find again.
@@ -202,6 +208,9 @@ bool ten_addon_create_instance_async(ten_env_t *ten_env,
   }
 
   if (!addon_host) {
+    TEN_LOGE(
+        "Failed to find addon %s:%s, please make sure the addon is installed.",
+        ten_addon_type_to_string(addon_type), addon_name);
     return false;
   }
 
