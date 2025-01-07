@@ -90,7 +90,6 @@ const EditorPopup: React.FC<EditorPopupProps> = ({ data, onClose }) => {
   const saveFile = async (content: string) => {
     try {
       await putFileContent(data.url, { content });
-      console.log("File saved successfully");
       toast.success("File saved successfully");
       // We can add UI prompts, such as displaying a success notification.
     } catch (error: unknown) {

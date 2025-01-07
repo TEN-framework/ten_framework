@@ -53,6 +53,45 @@ export const ENDPOINT_GRAPHS = {
                 })
               )
               .optional(),
+            data: z
+              .array(
+                z.object({
+                  name: z.string(),
+                  dest: z.array(
+                    z.object({
+                      app: z.string(),
+                      extension: z.string(),
+                    })
+                  ),
+                })
+              )
+              .optional(),
+            audio_frame: z
+              .array(
+                z.object({
+                  name: z.string(),
+                  dest: z.array(
+                    z.object({
+                      app: z.string(),
+                      extension: z.string(),
+                    })
+                  ),
+                })
+              )
+              .optional(),
+            video_frame: z
+              .array(
+                z.object({
+                  name: z.string(),
+                  dest: z.array(
+                    z.object({
+                      app: z.string(),
+                      extension: z.string(),
+                    })
+                  ),
+                })
+              )
+              .optional(),
           })
         )
       ),

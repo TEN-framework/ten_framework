@@ -16,6 +16,7 @@ import { Badge } from "@/components/ui/Badge";
 import { FileMenu } from "@/components/AppBar/FileMenu";
 import { EditMenu } from "@/components/AppBar/EditMenu";
 import { HelpMenu } from "@/components/AppBar/HelpMenu";
+import { AppStatus } from "@/components/AppBar/AppStatus";
 import { cn } from "@/lib/utils";
 
 interface AppBarProps {
@@ -67,8 +68,16 @@ const AppBar: React.FC<AppBarProps> = ({
         </NavigationMenuList>
       </NavigationMenu>
 
+      {/* Middle part is the status bar. */}
+      <AppStatus
+        className={cn(
+          "flex-1 flex justify-center items-center",
+          "text-xs text-muted-foreground"
+        )}
+      />
+
       {/* Right part is the logo. */}
-      <div className="ml-auto flex items-center gap-1.5">
+      <div className="flex items-center gap-1.5">
         <LanguageToggle />
         <ModeToggle />
         <div

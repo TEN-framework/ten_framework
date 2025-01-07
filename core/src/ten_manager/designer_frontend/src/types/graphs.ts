@@ -13,10 +13,38 @@ export interface IBackendNode {
   api?: unknown;
 }
 
+export enum EConnectionType {
+  CMD = "cmd",
+  DATA = "data",
+  AUDIO_FRAME = "audio_frame",
+  VIDEO_FRAME = "video_frame",
+}
+
 export interface IBackendConnection {
   app: string;
   extension: string;
-  cmd?: {
+  [EConnectionType.CMD]?: {
+    name: string;
+    dest: {
+      app: string;
+      extension: string;
+    }[];
+  }[];
+  [EConnectionType.DATA]?: {
+    name: string;
+    dest: {
+      app: string;
+      extension: string;
+    }[];
+  }[];
+  [EConnectionType.AUDIO_FRAME]?: {
+    name: string;
+    dest: {
+      app: string;
+      extension: string;
+    }[];
+  }[];
+  [EConnectionType.VIDEO_FRAME]?: {
     name: string;
     dest: {
       app: string;
