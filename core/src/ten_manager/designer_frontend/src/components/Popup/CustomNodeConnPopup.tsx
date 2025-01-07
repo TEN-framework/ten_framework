@@ -5,7 +5,7 @@
 // Refer to the "LICENSE" file in the root directory for more information.
 //
 import * as React from "react";
-
+import { useTranslation } from "react-i18next";
 import { BlocksIcon, ArrowBigRightDashIcon } from "lucide-react";
 
 import Popup from "@/components/Popup/Popup";
@@ -34,14 +34,17 @@ const CustomNodeConnPopup: React.FC<CustomNodeConnPopupProps> = ({
   target,
   onClose,
 }) => {
+  const { t } = useTranslation();
+
   const titleMemo = React.useMemo(() => {
     if (source && !target) {
-      return `Node[${source}] Connection`;
+      return t("popup.customNodeConn.srcTitle", { source });
     }
     if (source && target) {
-      return `Connection Details`;
+      return t("popup.customNodeConn.connectTitle", { source, target });
     }
-    return "Connection";
+    return t("popup.customNodeConn.title");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [source, target]);
 
   return (
@@ -114,10 +117,11 @@ function EdgeInfoContent(props: { source: string; target: string }) {
 
 function CustomNodeConnPopupContent(props: { source: string }) {
   const { source } = props;
-
   const [flowDirection, setFlowDirection] = React.useState<
     "upstream" | "downstream"
   >("upstream");
+
+  const { t } = useTranslation();
 
   const { edges } = React.useContext(ReactFlowDataContext);
 
@@ -144,8 +148,8 @@ function CustomNodeConnPopupContent(props: { source: string }) {
         className="w-[400px]"
       >
         <TabsList>
-          <TabsTrigger value="upstream">Upstream</TabsTrigger>
-          <TabsTrigger value="downstream">Downstream</TabsTrigger>
+          <TabsTrigger value="upstream">{t("action.upstream")}</TabsTrigger>
+          <TabsTrigger value="downstream">{t("action.downstream")}</TabsTrigger>
         </TabsList>
       </Tabs>
       <ConnectionDataTable

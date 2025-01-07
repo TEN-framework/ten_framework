@@ -5,6 +5,7 @@
 // Refer to the "LICENSE" file in the root directory for more information.
 //
 import * as React from "react";
+import { useTranslation, Translation } from "react-i18next";
 
 import {
   ColumnDef,
@@ -60,7 +61,11 @@ export type TConnection = {
 export const commonConnectionColumns: ColumnDef<TConnection>[] = [
   {
     accessorKey: "id",
-    header: () => <div className="">No.</div>,
+    header: () => (
+      <Translation>
+        {(t) => <div className="">{t("dataTable.no")}</div>}
+      </Translation>
+    ),
     cell: ({ row }) => {
       const index = row.index + 1;
       return <div className="font-medium">{index}</div>;
@@ -74,7 +79,9 @@ export const commonConnectionColumns: ColumnDef<TConnection>[] = [
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Type
+          <Translation>
+            {(t) => <div className="">{t("dataTable.type")}</div>}
+          </Translation>
           {column.getIsSorted() === "asc" && (
             <ArrowUpIcon className="ml-2 h-4 w-4" />
           )}
@@ -98,15 +105,27 @@ export const connectionColumns: ColumnDef<TConnection>[] = [
   ...commonConnectionColumns,
   {
     accessorKey: "source",
-    header: "Source",
+    header: () => (
+      <Translation>
+        {(t) => <div className="">{t("dataTable.source")}</div>}
+      </Translation>
+    ),
   },
   {
     accessorKey: "target",
-    header: "Target",
+    header: () => (
+      <Translation>
+        {(t) => <div className="">{t("dataTable.target")}</div>}
+      </Translation>
+    ),
   },
   {
     id: "actions",
-    header: "Actions",
+    header: () => (
+      <Translation>
+        {(t) => <div className="">{t("dataTable.actions")}</div>}
+      </Translation>
+    ),
     cell: ({ row }) => {
       const connection = row.original;
       const { id, source, target, type } = connection;
@@ -115,12 +134,20 @@ export const connectionColumns: ColumnDef<TConnection>[] = [
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">Open menu</span>
+              <span className="sr-only">
+                <Translation>
+                  {(t) => <div className="">{t("dataTable.openMenu")}</div>}
+                </Translation>
+              </span>
               <MoreHorizontal className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="z-[2000]">
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+            <DropdownMenuLabel>
+              <Translation>
+                {(t) => <div className="">{t("dataTable.actions")}</div>}
+              </Translation>
+            </DropdownMenuLabel>
             <DropdownMenuItem
               onClick={() => {
                 toast.info("View Details", {
@@ -134,7 +161,9 @@ export const connectionColumns: ColumnDef<TConnection>[] = [
                 });
               }}
             >
-              View Details
+              <Translation>
+                {(t) => <div className="">{t("dataTable.viewDetails")}</div>}
+              </Translation>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem
@@ -144,7 +173,9 @@ export const connectionColumns: ColumnDef<TConnection>[] = [
                 });
               }}
             >
-              Delete
+              <Translation>
+                {(t) => <div className="">{t("dataTable.delete")}</div>}
+              </Translation>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -158,7 +189,11 @@ export const extensionConnectionColumns1: ColumnDef<TConnection>[] = [
   ...commonConnectionColumns,
   {
     accessorKey: "downstream",
-    header: "Downstream",
+    header: () => (
+      <Translation>
+        {(t) => <div className="">{t("dataTable.downstream")}</div>}
+      </Translation>
+    ),
     cell: ({ row }) => {
       const downstream = row.getValue("downstream") as string;
       if (!downstream) return null;
@@ -187,7 +222,11 @@ export const extensionConnectionColumns2: ColumnDef<TConnection>[] = [
   ...commonConnectionColumns,
   {
     accessorKey: "upstream",
-    header: "Upstream",
+    header: () => (
+      <Translation>
+        {(t) => <div className="">{t("dataTable.upstream")}</div>}
+      </Translation>
+    ),
     cell: ({ row }) => {
       const upstream = row.getValue("upstream") as string;
       if (!upstream) return null;
@@ -225,6 +264,8 @@ export function DataTable<TData, TValue>({
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
   );
+
+  const { t } = useTranslation();
 
   const table = useReactTable({
     data,
@@ -285,7 +326,7 @@ export function DataTable<TData, TValue>({
                   colSpan={columns.length}
                   className="h-24 text-center"
                 >
-                  No results.
+                  {t("dataTable.noResults")}
                 </TableCell>
               </TableRow>
             )}

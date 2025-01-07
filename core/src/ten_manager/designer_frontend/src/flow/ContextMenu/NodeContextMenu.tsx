@@ -36,7 +36,7 @@ const NodeContextMenu: React.FC<NodeContextMenuProps> = ({
 
   const items: ContextMenuItem[] = [
     {
-      label: t("Edit manifest.json"),
+      label: t("action.edit") + " manifest.json",
       icon: <FilePenLineIcon />,
       onClick: () => {
         onClose();
@@ -49,7 +49,7 @@ const NodeContextMenu: React.FC<NodeContextMenuProps> = ({
       },
     },
     {
-      label: t("Edit property.json"),
+      label: t("action.edit") + " property.json",
       icon: <FilePenLineIcon />,
       onClick: () => {
         onClose();
@@ -65,7 +65,7 @@ const NodeContextMenu: React.FC<NodeContextMenuProps> = ({
       separator: true,
     },
     {
-      label: t("Launch terminal"),
+      label: t("action.launchTerminal"),
       icon: <TerminalIcon />,
       onClick: () => {
         onClose();
@@ -76,7 +76,7 @@ const NodeContextMenu: React.FC<NodeContextMenuProps> = ({
       separator: true,
     },
     {
-      label: t("Delete"),
+      label: t("action.delete"),
       icon: <Trash2Icon />,
       onClick: () => {
         onClose();

@@ -5,6 +5,7 @@
 // Refer to the "LICENSE" file in the root directory for more information.
 //
 import { Moon, Sun } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/ui/Button";
 import {
@@ -18,6 +19,7 @@ import { cn } from "@/lib/utils";
 
 export function ModeToggle() {
   const { setTheme } = useTheme();
+  const { t } = useTranslation();
 
   return (
     <DropdownMenu>
@@ -35,18 +37,18 @@ export function ModeToggle() {
               "dark:rotate-0 dark:scale-100"
             )}
           />
-          <span className="sr-only">Toggle theme</span>
+          <span className="sr-only">{t("header.menu.theme")}</span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuItem onClick={() => setTheme("light")}>
-          Light
+          {t("header.menu.theme.light")}
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => setTheme("dark")}>
-          Dark
+          {t("header.menu.theme.dark")}
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => setTheme("system")}>
-          System
+          {t("header.menu.theme.system")}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
