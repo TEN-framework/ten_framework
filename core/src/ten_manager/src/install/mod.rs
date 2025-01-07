@@ -74,32 +74,42 @@ fn install_local_dependency_pkg_info(
         "Source path must be a directory."
     );
 
-    match command_data.local_install_mode {
-        LocalInstallMode::Invalid => panic!("Should not happen."),
-        LocalInstallMode::Copy => {
-            copy_folder_recursively(
-                &src_dir_path.to_string_lossy().to_string(),
-                dest_dir_path,
-            )?;
-        }
-        LocalInstallMode::Link => {
-            #[cfg(unix)]
-            {
-                std::os::unix::fs::symlink(src_dir_path, dest_dir_path)
-                    .map_err(|e| {
-                        anyhow::anyhow!("Failed to create symlink: {}", e)
-                    })?;
+    if Path::new(dest_dir_path).exists() {
+        println!(
+            "Destination directory '{}' already exists. Skipping copy/link.",
+            dest_dir_path
+        );
+    } else {
+        match command_data.local_install_mode {
+            LocalInstallMode::Invalid => panic!("Should not happen."),
+            LocalInstallMode::Copy => {
+                copy_folder_recursively(
+                    &src_dir_path.to_string_lossy().to_string(),
+                    dest_dir_path,
+                )?;
             }
+            LocalInstallMode::Link => {
+                #[cfg(unix)]
+                {
+                    std::os::unix::fs::symlink(src_dir_path, dest_dir_path)
+                        .map_err(|e| {
+                            anyhow::anyhow!("Failed to create symlink: {}", e)
+                        })?;
+                }
 
-            #[cfg(windows)]
-            {
-                std::os::windows::fs::symlink_dir(src_dir_path, &dest_dir_path)
+                #[cfg(windows)]
+                {
+                    std::os::windows::fs::symlink_dir(
+                        src_dir_path,
+                        &dest_dir_path,
+                    )
                     .map_err(|e| {
                         anyhow::anyhow!(
                             "Failed to create directory symlink: {}",
                             e
                         )
                     })?;
+                }
             }
         }
     }

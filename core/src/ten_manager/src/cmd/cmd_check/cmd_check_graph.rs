@@ -11,7 +11,7 @@ use clap::{Arg, ArgMatches, Command};
 use console::Emoji;
 
 use ten_rust::pkg_info::{
-    get_all_existed_pkgs_info_of_app, graph::Graph, localhost,
+    get_all_installed_pkgs_info_of_app, graph::Graph, localhost,
     property::parse_property_in_folder, PkgInfo,
 };
 
@@ -107,7 +107,7 @@ fn get_existed_pkgs_of_all_apps(
 
     for app in &command.app_dir {
         let app_path = path::Path::new(app);
-        let app_existed_pkgs = get_all_existed_pkgs_info_of_app(app_path)?;
+        let app_existed_pkgs = get_all_installed_pkgs_info_of_app(app_path)?;
 
         let app_property = parse_property_in_folder(app_path)?;
         let app_uri = if let Some(property) = app_property {
