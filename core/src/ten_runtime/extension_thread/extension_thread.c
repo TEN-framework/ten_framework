@@ -14,6 +14,7 @@
 #include "include_internal/ten_runtime/common/loc.h"
 #include "include_internal/ten_runtime/engine/engine.h"
 #include "include_internal/ten_runtime/engine/internal/thread.h"
+#include "include_internal/ten_runtime/engine/msg_interface/common.h"
 #include "include_internal/ten_runtime/engine/on_xxx.h"
 #include "include_internal/ten_runtime/extension/extension.h"
 #include "include_internal/ten_runtime/extension_context/extension_context.h"
@@ -25,6 +26,7 @@
 #include "include_internal/ten_runtime/ten_env/ten_env.h"
 #include "include_internal/ten_utils/sanitizer/thread_check.h"
 #include "ten_runtime/extension/extension.h"
+#include "ten_runtime/msg/cmd_result/cmd_result.h"
 #include "ten_runtime/ten_env/ten_env.h"
 #include "ten_utils/container/list.h"
 #include "ten_utils/io/runloop.h"
@@ -410,6 +412,163 @@ static void ten_extension_thread_add_extension(ten_extension_thread_t *self,
   TEN_UNUSED bool rc =
       ten_extension_store_add_extension(self->extension_store, extension);
   TEN_ASSERT(rc, "Should not happen.");
+}
+
+static void ten_extension_thread_stop_life_cycle_of_all_extensions_task(
+    void *self, TEN_UNUSED void *arg) {
+  ten_extension_thread_t *extension_thread = self;
+  TEN_ASSERT(extension_thread &&
+                 ten_extension_thread_check_integrity(extension_thread, true),
+             "Invalid argument.");
+
+  ten_extension_thread_stop_life_cycle_of_all_extensions(extension_thread);
+}
+
+static void ten_extension_thread_start_life_cycle_of_all_extensions_task(
+    void *self_, TEN_UNUSED void *arg) {
+  ten_extension_thread_t *self = self_;
+  TEN_ASSERT(ten_extension_thread_check_integrity(self, true),
+             "Should not happen.");
+
+  if (self->is_close_triggered) {
+    return;
+  }
+
+  ten_extension_thread_set_state(self, TEN_EXTENSION_THREAD_STATE_NORMAL);
+
+  ten_list_foreach (&self->extensions, iter) {
+    ten_extension_t *extension = ten_ptr_listnode_get(iter.node);
+    TEN_ASSERT(extension && ten_extension_check_integrity(extension, true),
+               "Should not happen.");
+
+    ten_extension_load_metadata(extension);
+  }
+}
+
+static void ten_engine_on_extension_thread_is_ready(
+    ten_engine_t *self, ten_extension_thread_t *extension_thread) {
+  TEN_ASSERT(self && ten_engine_check_integrity(self, true),
+             "Should not happen.");
+  TEN_ASSERT(
+      extension_thread &&
+          // TEN_NOLINTNEXTLINE(thread-check)
+          // thread-check: this function does not access this extension_thread,
+          // we just check if the arg is an ten_extension_thread_t.
+          ten_extension_thread_check_integrity(extension_thread, false),
+      "Should not happen.");
+
+  ten_extension_context_t *extension_context = self->extension_context;
+  TEN_ASSERT(extension_context &&
+                 ten_extension_context_check_integrity(extension_context, true),
+             "Should not happen.");
+
+  extension_context->extension_threads_cnt_of_initted++;
+  if (extension_context->extension_threads_cnt_of_initted ==
+      ten_list_size(&extension_context->extension_threads)) {
+    TEN_LOGD("[%s] All extension threads are initted.",
+             ten_engine_get_id(self, true));
+
+    // All the extension threads requested by this command have been completed,
+    // return the result for this command.
+    //
+    // After notifying the engine, the engine would send a 'OK' status back to
+    // the previous graph stage, and finally notifying the client that the whole
+    // graph is built-up successfully, so that the client will start to send
+    // commands into the graph.
+
+    ten_string_t *graph_id = &self->graph_id;
+
+    const char *body_str =
+        ten_string_is_empty(graph_id) ? "" : ten_string_get_raw_str(graph_id);
+
+    ten_shared_ptr_t *state_requester_cmd =
+        extension_context->state_requester_cmd;
+
+    ten_shared_ptr_t *returned_cmd =
+        ten_cmd_result_create_from_cmd(TEN_STATUS_CODE_OK, state_requester_cmd);
+    ten_msg_set_property(returned_cmd, "detail",
+                         ten_value_create_string(body_str), NULL);
+
+    // We have sent the result for the original state_requester_cmd, so it is
+    // useless now, destroy it.
+    ten_shared_ptr_destroy(state_requester_cmd);
+    extension_context->state_requester_cmd = NULL;
+
+#if defined(_DEBUG)
+    // ten_msg_dump(
+    //     returned_cmd, NULL,
+    //     "Return extension-system-initted-result to previous stage: ^m");
+#endif
+
+    ten_engine_dispatch_msg(self, returned_cmd);
+
+    ten_shared_ptr_destroy(returned_cmd);
+
+    // Mark the engine that it could start to handle messages.
+    self->is_ready_to_handle_msg = true;
+
+    TEN_LOGD("[%s] Engine is ready to handle messages.",
+             ten_engine_get_id(self, true));
+
+    // Because the engine is just ready to handle messages, hence, we trigger
+    // the engine to handle any external messages if any.
+    ten_engine_handle_in_msgs_async(self);
+  }
+}
+
+static void
+ten_engine_find_extension_info_for_all_extensions_of_extension_thread(
+    void *self_, void *arg) {
+  ten_engine_t *self = self_;
+  TEN_ASSERT(self && ten_engine_check_integrity(self, true),
+             "Should not happen.");
+
+  ten_extension_context_t *extension_context = self->extension_context;
+  TEN_ASSERT(extension_context &&
+                 ten_extension_context_check_integrity(extension_context, true),
+             "Should not happen.");
+
+  TEN_UNUSED ten_extension_thread_t *extension_thread = arg;
+  TEN_ASSERT(extension_thread &&
+                 // TEN_NOLINTNEXTLINE(thread-check)
+                 // thread-check: this function does not access this
+                 // extension_thread, we just check if the arg is an
+                 // ten_extension_thread_t.
+                 ten_extension_thread_check_integrity(extension_thread, false),
+             "Should not happen.");
+
+  ten_list_foreach (&extension_thread->extensions, iter) {
+    ten_extension_t *extension = ten_ptr_listnode_get(iter.node);
+    TEN_ASSERT(ten_extension_check_integrity(extension, false),
+               "Should not happen.");
+
+    // Setup 'extension_context' field, this is the most important field when
+    // extension is initiating.
+    extension->extension_context = extension_context;
+
+    // Find the extension_info of the specified 'extension'.
+    extension->extension_info =
+        ten_extension_context_get_extension_info_by_name(
+            extension_context, ten_app_get_uri(extension_context->engine->app),
+            ten_engine_get_id(extension_context->engine, true),
+            ten_extension_group_get_name(extension_thread->extension_group,
+                                         false),
+            ten_extension_get_name(extension, false));
+  }
+
+  if (extension_thread->is_close_triggered) {
+    ten_runloop_post_task_tail(
+        ten_extension_thread_get_attached_runloop(extension_thread),
+        ten_extension_thread_stop_life_cycle_of_all_extensions_task,
+        extension_thread, NULL);
+  } else {
+    ten_engine_on_extension_thread_is_ready(self, extension_thread);
+
+    ten_runloop_post_task_tail(
+        ten_extension_thread_get_attached_runloop(extension_thread),
+        ten_extension_thread_start_life_cycle_of_all_extensions_task,
+        extension_thread, NULL);
+  }
 }
 
 void ten_extension_thread_add_all_created_extensions(

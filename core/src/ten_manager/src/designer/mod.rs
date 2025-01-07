@@ -23,14 +23,11 @@ mod version;
 
 use std::sync::{Arc, RwLock};
 
-use actix_files::Files;
 use actix_web::web;
 
-use frontend::get_frontend_asset;
 use ten_rust::pkg_info::PkgInfo;
 
 use super::config::TmanConfig;
-use crate::cmd::cmd_designer::DesignerCommand;
 use terminal::ws_terminal;
 use version::get_version;
 
@@ -42,7 +39,6 @@ pub struct DesignerState {
 
 pub fn configure_routes(
     cfg: &mut web::ServiceConfig,
-    command_data: &DesignerCommand,
     state: web::Data<Arc<RwLock<DesignerState>>>,
 ) {
     cfg.service(
@@ -100,21 +96,4 @@ pub fn configure_routes(
             .route("/dir-list/{path}", web::get().to(dir_list::list_dir))
             .route("/ws/terminal", web::get().to(ws_terminal)),
     );
-
-    if let Some(external_frontend_asset_path) =
-        &command_data.external_frontend_asset_path
-    {
-        cfg.service(
-            Files::new("/", external_frontend_asset_path)
-                .index_file("index.html")
-                .use_last_modified(true)
-                .use_etag(true),
-        );
-    } else {
-        cfg.service(
-            web::scope("/")
-                .app_data(state.clone())
-                .default_service(web::route().to(get_frontend_asset)),
-        );
-    }
 }
