@@ -4,7 +4,7 @@ import { BlocksIcon, ArrowBigRightDashIcon } from "lucide-react";
 
 import Popup from "@/components/Popup/Popup";
 import { Button } from "@/components/ui/Button";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/Tabs";
 import { ReactFlowDataContext } from "@/context/ReactFlowDataContext";
 import {
   DataTable as ConnectionDataTable,
