@@ -8,8 +8,8 @@
         "nodes": [
           {
             "type": "extension",
-            "name": "websocket_server_extension_nodejs",
-            "addon": "websocket_server_extension_nodejs",
+            "name": "websocket_server_nodejs",
+            "addon": "websocket_server_nodejs",
             "extension_group": "default_extension_group",
             "property": {
               "server_port": 8007

@@ -50,7 +50,7 @@ class WebsocketServerExtension extends Extension {
     });
 
     this.httpServer = server;
-    
+
 
     const wss = new WebSocketServer({ server });
 
@@ -82,7 +82,7 @@ class WebsocketServerExtension extends Extension {
   }
 }
 
-@RegisterAddonAsExtension("websocket_server_extension_nodejs")
+@RegisterAddonAsExtension("websocket_server_nodejs")
 class WebsocketServerExtensionAddon extends Addon {
   async onInit(_tenEnv: TenEnv): Promise<void> {
     console.log("WS server addon onInit");

@@ -22,7 +22,7 @@ ten_package_test_prepare_app("websocket_server_nodejs_app") {
       "//core/src/ten_manager",
       "//packages/core_apps/default_app_nodejs:upload_default_app_nodejs_to_server",
       "//packages/example_extensions/http_server_extension_nodejs:upload_http_server_extension_nodejs_to_server",
-      "//packages/example_extensions/websocket_server_extension_nodejs:upload_websocket_server_extension_nodejs_to_server",
+      "//packages/example_extensions/websocket_server_nodejs:upload_websocket_server_nodejs_to_server",
     ]
   }
 }

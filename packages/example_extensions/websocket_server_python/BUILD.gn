@@ -8,25 +8,24 @@ import("//build/ten_runtime/feature/publish.gni")
 import("//build/ten_runtime/glob.gni")
 import("//build/ten_runtime/options.gni")
 
-ten_package("websocket_server_extension_nodejs") {
+ten_package("websocket_server_python") {
   package_kind = "extension"
 
   resources = [
-    "BUILD.gn",
+    "__init__.py",
+    "main.py",
     "manifest.json",
-    "package.json",
     "property.json",
-    "src/index.ts",
-    "tsconfig.json",
+    "requirements.txt",
   ]
 
   deps = [ "//core/src/ten_runtime" ]
 }
 
 if (ten_enable_ten_manager) {
-  ten_package_publish("upload_websocket_server_extension_nodejs_to_server") {
+  ten_package_publish("upload_websocket_server_python_to_server") {
     base_dir = rebase_path(
-            "${root_out_dir}/ten_packages/extension/websocket_server_extension_nodejs")
-    deps = [ ":websocket_server_extension_nodejs" ]
+            "${root_out_dir}/ten_packages/extension/websocket_server_python")
+    deps = [ ":websocket_server_python" ]
   }
 }

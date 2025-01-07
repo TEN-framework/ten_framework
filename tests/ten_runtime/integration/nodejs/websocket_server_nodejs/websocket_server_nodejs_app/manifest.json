@@ -12,7 +12,7 @@
     },
     {
       "type": "extension",
-      "name": "websocket_server_extension_nodejs",
+      "name": "websocket_server_nodejs",
       "version": "0.6.0"
     },
     {

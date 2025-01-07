@@ -29,7 +29,7 @@ group("example_extensions") {
     if (ten_enable_nodejs_binding) {
       deps += [
         "http_server_extension_nodejs",
-        "websocket_server_extension_nodejs",
+        "websocket_server_nodejs",
       ]
     }
   }
