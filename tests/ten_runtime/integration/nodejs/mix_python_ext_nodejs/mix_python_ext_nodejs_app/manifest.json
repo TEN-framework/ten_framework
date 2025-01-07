@@ -17,7 +17,7 @@
     },
     {
       "type": "extension",
-      "name": "pil_demo_python",
+      "name": "simple_echo_python",
       "version": "0.1.0"
     },
     {

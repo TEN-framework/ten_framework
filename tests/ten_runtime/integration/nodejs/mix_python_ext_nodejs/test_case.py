@@ -33,7 +33,6 @@ def test_mix_python_ext_nodejs():
 
     # Set the required environment variables for the test.
     my_env["PYTHONMALLOC"] = "malloc"
-    my_env["PYTHONDEVMODE"] = "1"
 
     # Launch virtual environment.
     my_env["VIRTUAL_ENV"] = venv_dir
