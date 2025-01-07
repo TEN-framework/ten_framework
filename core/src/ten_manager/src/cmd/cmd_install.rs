@@ -223,6 +223,9 @@ pub async fn execute_cmd(
     let mut installing_pkg_name: Option<String> = None;
 
     let mut cwd_pkg = get_pkg_info_from_path(&cwd, true)?;
+
+    // We need to start looking for dependencies outward from the cwd package,
+    // and the cwd package itself is considered a candidate.
     add_pkg_to_initial_pkg_to_find_candidates_and_all_candidates(
         &cwd_pkg,
         &mut initial_pkgs_to_find_candidates,
