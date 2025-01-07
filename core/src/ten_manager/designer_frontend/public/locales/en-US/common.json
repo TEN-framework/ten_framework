@@ -31,7 +31,9 @@
     "cancel": "Cancel",
     "selected": "Selected",
     "autoStart": "Auto Start",
-    "confirm": "Confirm"
+    "confirm": "Confirm",
+    "upstream": "Upstream",
+    "downstream": "Downstream"
   },
   "toast": {
     "saveFileSuccess": "File saved successfully",
@@ -43,6 +45,24 @@
     },
     "selectGraph": {
       "title": "Select a Graph"
+    },
+    "customNodeConn": {
+      "srcTitle": "Node[{{source}}] Connection",
+      "connectTitle": "Connection Details",
+      "title": "Connection"
     }
+  },
+  "dataTable": {
+    "no": "No.",
+    "upstream": "Upstream",
+    "downstream": "Downstream",
+    "type": "Type",
+    "source": "Source",
+    "target": "Target",
+    "actions": "Actions",
+    "viewDetails": "View Details",
+    "delete": "Delete",
+    "openMenu": "Open Menu",
+    "noResults": "No results."
   }
 }

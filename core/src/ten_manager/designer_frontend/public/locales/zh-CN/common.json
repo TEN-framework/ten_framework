@@ -29,7 +29,11 @@
     "launchTerminal": "启动终端",
     "ok": "确定",
     "cancel": "取消",
-    "selected": "已选择"
+    "selected": "已选择",
+    "autoStart": "自动启动",
+    "confirm": "确认",
+    "upstream": "上游",
+    "downstream": "下游"
   },
   "toast": {
     "saveFileSuccess": "文件保存成功",
@@ -41,6 +45,24 @@
     },
     "selectGraph": {
       "title": "选择图表"
+    },
+    "customNodeConn": {
+      "srcTitle": "节点[{{source}}]连接",
+      "connectTitle": "连接详情",
+      "title": "连接"
     }
+  },
+  "dataTable": {
+    "no": "序号",
+    "upstream": "上游",
+    "downstream": "下游",
+    "type": "类型",
+    "source": "源",
+    "target": "目标",
+    "actions": "操作",
+    "viewDetails": "查看详情",
+    "delete": "删除",
+    "openMenu": "打开菜单",
+    "noResults": "无结果"
   }
 }

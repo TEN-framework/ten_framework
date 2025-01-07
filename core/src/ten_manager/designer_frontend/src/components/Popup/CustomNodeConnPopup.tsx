@@ -38,12 +38,13 @@ const CustomNodeConnPopup: React.FC<CustomNodeConnPopupProps> = ({
 
   const titleMemo = React.useMemo(() => {
     if (source && !target) {
-      return t("popup.customNodeConn.title", { source });
+      return t("popup.customNodeConn.srcTitle", { source });
     }
     if (source && target) {
-      return t("popup.customNodeConn.title", { source, target });
+      return t("popup.customNodeConn.connectTitle", { source, target });
     }
     return t("popup.customNodeConn.title");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [source, target]);
 
   return (
@@ -116,10 +117,11 @@ function EdgeInfoContent(props: { source: string; target: string }) {
 
 function CustomNodeConnPopupContent(props: { source: string }) {
   const { source } = props;
-
   const [flowDirection, setFlowDirection] = React.useState<
     "upstream" | "downstream"
   >("upstream");
+
+  const { t } = useTranslation();
 
   const { edges } = React.useContext(ReactFlowDataContext);
 
@@ -146,8 +148,8 @@ function CustomNodeConnPopupContent(props: { source: string }) {
         className="w-[400px]"
       >
         <TabsList>
-          <TabsTrigger value="upstream">Upstream</TabsTrigger>
-          <TabsTrigger value="downstream">Downstream</TabsTrigger>
+          <TabsTrigger value="upstream">{t("action.upstream")}</TabsTrigger>
+          <TabsTrigger value="downstream">{t("action.downstream")}</TabsTrigger>
         </TabsList>
       </Tabs>
       <ConnectionDataTable
