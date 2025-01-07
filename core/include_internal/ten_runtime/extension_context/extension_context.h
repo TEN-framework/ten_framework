@@ -58,8 +58,10 @@ struct ten_extension_context_t {
   ten_engine_t *engine;
 
   // 'state_requester_cmd' will be used in the following scenarios:
-  // 1. starting all extension threads when client sends 'start_graph' cmd.
-  // 2. closing all extension threads when receiving a close cmd.
+  // 1. starting all extension threads when client sends 'start_graph' cmd, and
+  //    the state_requester_cmd is the start_graph cmd.
+  // 2. closing all extension threads when receiving a close cmd, and the
+  //    state_requester_cmd is the close cmd.
   ten_shared_ptr_t *state_requester_cmd;
 };
 
