@@ -42,7 +42,7 @@ use crate::{
     },
     log::tman_verbose_println,
     manifest_lock::parse_manifest_lock_in_folder,
-    package_info::tman_get_all_existed_pkgs_info_of_app,
+    package_info::tman_get_all_installed_pkgs_info_of_app,
     solver::{
         introducer::extract_introducer_relations_from_raw_solver_results,
         solve::{solve_all, DependencyRelationship},
@@ -155,6 +155,26 @@ fn get_locked_pkgs(app_dir: &Path) -> Option<HashMap<PkgTypeAndName, PkgInfo>> {
     }
 }
 
+fn add_cwd_pkg_to_initial_pkg_to_find_candidates_and_all_candidates(
+    cwd: &Path,
+    initial_pkgs_to_find_candidates: &mut Vec<PkgInfo>,
+    all_candidates: &mut HashMap<
+        PkgTypeAndName,
+        HashMap<PkgBasicInfo, PkgInfo>,
+    >,
+) -> Result<PkgInfo> {
+    let cwd_pkg = get_pkg_info_from_path(cwd, true)?;
+
+    initial_pkgs_to_find_candidates.push(cwd_pkg.clone());
+
+    all_candidates
+        .entry((&cwd_pkg).into())
+        .or_default()
+        .insert((&cwd_pkg).into(), cwd_pkg.clone());
+
+    Ok(cwd_pkg)
+}
+
 pub async fn execute_cmd(
     tman_config: &TmanConfig,
     command_data: InstallCommand,
@@ -204,8 +224,8 @@ pub async fn execute_cmd(
     // *) If some of these packages are not compatible with packages in
     // the dependency tree, then users will be questioned whether to overwrite
     // them with the new packages or quit the installation.
-    let mut all_existing_local_pkgs: Vec<PkgInfo> = vec![];
-    let mut all_compatible_existing_local_pkgs: HashMap<
+    let mut all_installed_pkgs: Vec<PkgInfo> = vec![];
+    let mut all_compatible_installed_pkgs: HashMap<
         PkgTypeAndName,
         HashMap<PkgBasicInfo, PkgInfo>,
     > = HashMap::new();
@@ -235,24 +255,22 @@ pub async fn execute_cmd(
         installing_pkg_name = Some(installing_pkg_name_.clone());
 
         // The `cwd` must be the base directory of a TEN app.
-        let app_pkg_ = get_pkg_info_from_path(&cwd, true)?;
+        let app_pkg_ =
+            add_cwd_pkg_to_initial_pkg_to_find_candidates_and_all_candidates(
+                &cwd,
+                &mut initial_pkgs_to_find_candidates,
+                &mut all_candidates,
+            )?;
+
         cwd_pkg_name = app_pkg_.basic_info.type_and_name.name.clone();
 
-        initial_pkgs_to_find_candidates.push(app_pkg_.clone());
-
-        all_existing_local_pkgs =
-            tman_get_all_existed_pkgs_info_of_app(tman_config, &cwd)?;
-
-        all_candidates
-            .entry((&app_pkg_).into())
-            .or_default()
-            .insert((&app_pkg_).into(), app_pkg_.clone());
+        all_installed_pkgs =
+            tman_get_all_installed_pkgs_info_of_app(tman_config, &cwd)?;
 
         filter_compatible_pkgs_to_candidates(
             tman_config,
-            &all_existing_local_pkgs,
-            // &mut all_candidates,
-            &mut all_compatible_existing_local_pkgs,
+            &all_installed_pkgs,
+            &mut all_compatible_installed_pkgs,
             &command_data.support,
         );
 
@@ -287,23 +305,20 @@ pub async fn execute_cmd(
                 // dependencies on a specific version of an app, so the app also
                 // needs to be included in the package list for dependency tree
                 // calculation.
-                let app_pkg_ = get_pkg_info_from_path(&cwd, true)?;
 
-                initial_pkgs_to_find_candidates.push(app_pkg_.clone());
+                add_cwd_pkg_to_initial_pkg_to_find_candidates_and_all_candidates(
+                    &cwd,
+                    &mut initial_pkgs_to_find_candidates,
+                    &mut all_candidates,
+                )?;
 
-                all_existing_local_pkgs =
-                    tman_get_all_existed_pkgs_info_of_app(tman_config, &cwd)?;
-
-                all_candidates
-                    .entry((&app_pkg_).into())
-                    .or_default()
-                    .insert((&app_pkg_).into(), app_pkg_.clone());
+                all_installed_pkgs =
+                    tman_get_all_installed_pkgs_info_of_app(tman_config, &cwd)?;
 
                 filter_compatible_pkgs_to_candidates(
                     tman_config,
-                    &all_existing_local_pkgs,
-                    // &mut all_candidates,
-                    &mut all_compatible_existing_local_pkgs,
+                    &all_installed_pkgs,
+                    &mut all_compatible_installed_pkgs,
                     &command_data.support,
                 );
             }
@@ -318,20 +333,16 @@ pub async fn execute_cmd(
                     fs::create_dir_all(path)?;
                 }
 
-                let extension_pkg_ = get_pkg_info_from_path(&cwd, true)?;
-
-                initial_pkgs_to_find_candidates.push(extension_pkg_.clone());
-
-                all_candidates
-                    .entry((&extension_pkg_).into())
-                    .or_default()
-                    .insert((&extension_pkg_).into(), extension_pkg_.clone());
+                add_cwd_pkg_to_initial_pkg_to_find_candidates_and_all_candidates(
+                    &cwd,
+                    &mut initial_pkgs_to_find_candidates,
+                    &mut all_candidates,
+                )?;
 
                 filter_compatible_pkgs_to_candidates(
                     tman_config,
                     &initial_pkgs_to_find_candidates,
-                    // &mut all_candidates,
-                    &mut all_compatible_existing_local_pkgs,
+                    &mut all_compatible_installed_pkgs,
                     &command_data.support,
                 );
             }
@@ -361,8 +372,7 @@ pub async fn execute_cmd(
         dep_relationship_from_cmd_line
             .as_ref()
             .map(|rel| &rel.dependency),
-        // &all_existing_local_pkgs,
-        &all_compatible_existing_local_pkgs,
+        &all_compatible_installed_pkgs,
         all_candidates,
         locked_pkgs.as_ref(),
     )
@@ -421,7 +431,7 @@ pub async fn execute_cmd(
         // or replaced.
         let has_conflict = compare_solver_results_with_existed_pkgs(
             &remaining_solver_results,
-            &all_existing_local_pkgs,
+            &all_installed_pkgs,
         );
 
         if has_conflict && !tman_config.assume_yes {
