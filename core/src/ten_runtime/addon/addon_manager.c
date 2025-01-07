@@ -187,7 +187,7 @@ bool ten_addon_manager_register_specific_addon(ten_addon_manager_t *self,
   } else {
     TEN_ASSERT(!found_node, "Should not happen.");
 
-    TEN_LOGW("Addon '%s:%s' not found in registry.",
+    TEN_LOGI("Unable to find '%s:%s' in registry.",
              ten_addon_type_to_string(addon_type), addon_name);
   }
 
