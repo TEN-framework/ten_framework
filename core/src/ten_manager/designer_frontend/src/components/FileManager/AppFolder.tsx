@@ -75,10 +75,15 @@ export function ThreeColumnFileManager(props: {
       <div
         className={cn(
           "w-full h-10 bg-gray-50 dark:bg-gray-900 rounded-lg",
-          "px-4 flex items-center"
+          "px-4 flex items-center select-text"
         )}
       >
-        <span className="text-xs text-gray-500 dark:text-gray-400">
+        <span
+          className={cn(
+            "text-xs text-gray-500 dark:text-gray-400",
+            "whitespace-nowrap overflow-x-scroll"
+          )}
+        >
           {selectedPath}
         </span>
       </div>
