@@ -13,6 +13,7 @@
 #include "include_internal/ten_runtime/extension/extension.h"
 #include "include_internal/ten_runtime/extension/msg_not_connected_cnt.h"
 #include "include_internal/ten_runtime/extension_context/extension_context.h"
+#include "include_internal/ten_runtime/extension_group/msg_interface/common.h"
 #include "include_internal/ten_runtime/extension_thread/extension_thread.h"
 #include "include_internal/ten_runtime/msg/cmd_base/cmd_base.h"
 #include "include_internal/ten_runtime/msg/msg.h"
@@ -101,6 +102,15 @@ static bool ten_send_msg_internal(
       TEN_ASSERT(extension, "Should not happen.");
 
       result = ten_extension_handle_out_msg(extension, msg, err);
+      break;
+    }
+
+    case TEN_ENV_ATTACH_TO_EXTENSION_GROUP: {
+      ten_extension_group_t *extension_group =
+          ten_env_get_attached_extension_group(self);
+      TEN_ASSERT(extension_group, "Should not happen.");
+
+      result = ten_extension_group_handle_out_msg(extension_group, msg, err);
       break;
     }
 
@@ -220,7 +230,9 @@ bool ten_env_send_cmd(ten_env_t *self, ten_shared_ptr_t *cmd,
       ten_cmd_result_handler_for_send_cmd_ctx_destroy(ctx);
     }
   } else {
-    rc = ten_send_msg_internal(self, cmd, NULL, result_handler_user_data, err);
+    TEN_ASSERT(!result_handler_user_data, "Should not happen.");
+
+    rc = ten_send_msg_internal(self, cmd, NULL, NULL, err);
   }
 
   return rc;

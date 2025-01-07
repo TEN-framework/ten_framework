@@ -17,6 +17,7 @@
 #include "include_internal/ten_runtime/ten_env/ten_env.h"
 #include "ten_runtime/addon/addon.h"
 #include "ten_runtime/ten_env/ten_env.h"
+#include "ten_utils/lib/string.h"
 #include "ten_utils/macro/check.h"
 #include "ten_utils/macro/mark.h"
 #include "ten_utils/macro/memory.h"
@@ -59,6 +60,27 @@ void ten_addon_on_create_extension_instance_ctx_destroy(
 
   ten_string_deinit(&self->addon_name);
   ten_string_deinit(&self->instance_name);
+
+  TEN_FREE(self);
+}
+
+ten_addon_create_extension_done_ctx_t *
+ten_addon_create_extension_done_ctx_create(ten_list_t *results) {
+  ten_addon_create_extension_done_ctx_t *self =
+      TEN_MALLOC(sizeof(ten_addon_create_extension_done_ctx_t));
+  TEN_ASSERT(self, "Failed to allocate memory.");
+
+  self->results = results;
+  ten_error_init(&self->err);
+
+  return self;
+}
+
+void ten_addon_create_extension_done_ctx_destroy(
+    ten_addon_create_extension_done_ctx_t *self) {
+  TEN_ASSERT(self, "Should not happen.");
+
+  ten_error_deinit(&self->err);
 
   TEN_FREE(self);
 }
