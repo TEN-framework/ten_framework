@@ -18,6 +18,7 @@ use console::Emoji;
 use indicatif::HumanDuration;
 use inquire::Confirm;
 
+use ten_rust::pkg_info::pkg_basic_info::PkgBasicInfo;
 use ten_rust::pkg_info::{
     dependencies::PkgDependency,
     get_pkg_info_from_path,
@@ -25,9 +26,6 @@ use ten_rust::pkg_info::{
     pkg_type_and_name::PkgTypeAndName,
     supports::{Arch, Os, PkgSupport},
     PkgInfo,
-};
-use ten_rust::pkg_info::{
-    manifest::parse_manifest_in_folder, pkg_basic_info::PkgBasicInfo,
 };
 
 use crate::{
@@ -155,24 +153,22 @@ fn get_locked_pkgs(app_dir: &Path) -> Option<HashMap<PkgTypeAndName, PkgInfo>> {
     }
 }
 
-fn add_cwd_pkg_to_initial_pkg_to_find_candidates_and_all_candidates(
-    cwd: &Path,
+fn add_pkg_to_initial_pkg_to_find_candidates_and_all_candidates(
+    pkg: &PkgInfo,
     initial_pkgs_to_find_candidates: &mut Vec<PkgInfo>,
     all_candidates: &mut HashMap<
         PkgTypeAndName,
         HashMap<PkgBasicInfo, PkgInfo>,
     >,
-) -> Result<PkgInfo> {
-    let cwd_pkg = get_pkg_info_from_path(cwd, true)?;
-
-    initial_pkgs_to_find_candidates.push(cwd_pkg.clone());
+) -> Result<()> {
+    initial_pkgs_to_find_candidates.push(pkg.clone());
 
     all_candidates
-        .entry((&cwd_pkg).into())
+        .entry(pkg.into())
         .or_default()
-        .insert((&cwd_pkg).into(), cwd_pkg.clone());
+        .insert(pkg.into(), pkg.clone());
 
-    Ok(cwd_pkg)
+    Ok(())
 }
 
 pub async fn execute_cmd(
@@ -187,35 +183,24 @@ pub async fn execute_cmd(
 
     let cwd = crate::fs::get_cwd()?;
 
-    // The package affected by tman install command, which is the root declared
-    // in the resolver.
-    //
-    // 1. If installing a package in standalone mode, the affected package is
-    //    the installed package itself, ex: app or extension.
-    //
-    // 2. Otherwise, the affected package is always the app, as the installing
-    //    package must be installed in a TEN app in this case.
-    let mut cwd_pkg_type = PkgType::App;
-    let cwd_pkg_name;
-
     // The path of `.ten/app/` if we needed.
     let mut dot_ten_app_dir_path: Option<PathBuf> = None;
 
     // If `tman install` is run within the scope of an app, then the app and
     // those addons (extensions, ...) installed in the app directory are all
-    // considered initial_input_pkgs.
+    // considered initial_pkgs_to_find_candidates.
     let mut initial_pkgs_to_find_candidates = vec![];
     let mut all_candidates: HashMap<
         PkgTypeAndName,
         HashMap<PkgBasicInfo, PkgInfo>,
     > = HashMap::new();
 
-    // 'all_existing_local_pkgs' contains all the packages which are already
-    // located in the `app` directory, including the `app` itself, and all the
+    // 'all_installed_pkgs' contains all the packages which are already located
+    // in the `app` directory, including the `app` itself, and all the
     // addons located in `ten_packages/<foo>/<bar>`
     //
     // After the completed dependency tree is resolved,
-    // 'all_existing_local_pkgs' will be compared with the solver results:
+    // 'all_installed_pkgs' will be compared with the solver results:
     //
     // *) If some of these packages are not included in the dependency tree,
     // then users will be prompted that these packages can be added to the
@@ -233,12 +218,21 @@ pub async fn execute_cmd(
     let mut dep_relationship_from_cmd_line: Option<DependencyRelationship> =
         None;
 
-    let mut app_pkg: Option<PkgInfo> = None;
+    let mut is_install_all = false;
     let mut installing_pkg_type: Option<PkgType> = None;
     let mut installing_pkg_name: Option<String> = None;
 
+    let mut cwd_pkg = get_pkg_info_from_path(&cwd, true)?;
+    add_pkg_to_initial_pkg_to_find_candidates_and_all_candidates(
+        &cwd_pkg,
+        &mut initial_pkgs_to_find_candidates,
+        &mut all_candidates,
+    )?;
+
     if let Some(package_type_str) = command_data.package_type.as_ref() {
         // Case 1: tman install <package_type> <package_name>
+        //
+        // The `cwd` must be the base directory of a TEN app.
 
         let installing_pkg_type_: PkgType = package_type_str.parse()?;
 
@@ -254,16 +248,6 @@ pub async fn execute_cmd(
         installing_pkg_type = Some(installing_pkg_type_);
         installing_pkg_name = Some(installing_pkg_name_.clone());
 
-        // The `cwd` must be the base directory of a TEN app.
-        let app_pkg_ =
-            add_cwd_pkg_to_initial_pkg_to_find_candidates_and_all_candidates(
-                &cwd,
-                &mut initial_pkgs_to_find_candidates,
-                &mut all_candidates,
-            )?;
-
-        cwd_pkg_name = app_pkg_.basic_info.type_and_name.name.clone();
-
         all_installed_pkgs =
             tman_get_all_installed_pkgs_info_of_app(tman_config, &cwd)?;
 
@@ -276,10 +260,10 @@ pub async fn execute_cmd(
 
         dep_relationship_from_cmd_line = Some(DependencyRelationship {
             type_and_name: PkgTypeAndName {
-                pkg_type: app_pkg_.basic_info.type_and_name.pkg_type,
-                name: app_pkg_.basic_info.type_and_name.name.clone(),
+                pkg_type: cwd_pkg.basic_info.type_and_name.pkg_type,
+                name: cwd_pkg.basic_info.type_and_name.name.clone(),
             },
-            version: app_pkg_.basic_info.version.clone(),
+            version: cwd_pkg.basic_info.version.clone(),
             dependency: PkgDependency {
                 type_and_name: PkgTypeAndName {
                     pkg_type: installing_pkg_type_,
@@ -290,27 +274,17 @@ pub async fn execute_cmd(
                 base_dir: None,
             },
         });
-
-        app_pkg = Some(app_pkg_);
     } else {
         // Case 2: tman install
 
-        let manifest = parse_manifest_in_folder(&cwd)?;
-        cwd_pkg_type = manifest.type_and_name.pkg_type;
-        cwd_pkg_name = manifest.type_and_name.name.clone();
+        is_install_all = true;
 
-        match cwd_pkg_type {
+        match cwd_pkg.basic_info.type_and_name.pkg_type {
             PkgType::App => {
                 // The TEN app itself is also a package. Extensions can declare
                 // dependencies on a specific version of an app, so the app also
                 // needs to be included in the package list for dependency tree
                 // calculation.
-
-                add_cwd_pkg_to_initial_pkg_to_find_candidates_and_all_candidates(
-                    &cwd,
-                    &mut initial_pkgs_to_find_candidates,
-                    &mut all_candidates,
-                )?;
 
                 all_installed_pkgs =
                     tman_get_all_installed_pkgs_info_of_app(tman_config, &cwd)?;
@@ -332,12 +306,6 @@ pub async fn execute_cmd(
                 if let Some(ref path) = dot_ten_app_dir_path {
                     fs::create_dir_all(path)?;
                 }
-
-                add_cwd_pkg_to_initial_pkg_to_find_candidates_and_all_candidates(
-                    &cwd,
-                    &mut initial_pkgs_to_find_candidates,
-                    &mut all_candidates,
-                )?;
 
                 filter_compatible_pkgs_to_candidates(
                     tman_config,
@@ -383,8 +351,8 @@ pub async fn execute_cmd(
     // Find an answer (a dependency tree) that satisfies all dependencies.
     let (usable_model, non_usable_models) = solve_all(
         tman_config,
-        &cwd_pkg_type,
-        &cwd_pkg_name,
+        &cwd_pkg.basic_info.type_and_name.pkg_type,
+        &cwd_pkg.basic_info.type_and_name.name,
         dep_relationship_from_cmd_line.as_ref(),
         &all_candidates,
         locked_pkgs.as_ref(),
@@ -421,8 +389,8 @@ pub async fn execute_cmd(
         // this package already exists and does not need to be installed.
         let remaining_solver_results = filter_solver_results_by_type_and_name(
             &solver_results,
-            Some(&cwd_pkg_type),
-            Some(&cwd_pkg_name),
+            Some(&cwd_pkg.basic_info.type_and_name.pkg_type),
+            Some(&cwd_pkg.basic_info.type_and_name.name),
             false,
         )?;
 
@@ -477,15 +445,16 @@ pub async fn execute_cmd(
         }
 
         // Write the installing package info to manifest.json.
-        if let Some(mut app_pkg) = app_pkg {
-            if installing_pkg_type.is_some() && installing_pkg_name.is_some() {
-                write_installing_pkg_into_manifest_file(
-                    &mut app_pkg,
-                    &solver_results,
-                    &installing_pkg_type.unwrap(),
-                    &installing_pkg_name.unwrap(),
-                )?;
-            }
+        if !is_install_all
+            && installing_pkg_type.is_some()
+            && installing_pkg_name.is_some()
+        {
+            write_installing_pkg_into_manifest_file(
+                &mut cwd_pkg,
+                &solver_results,
+                &installing_pkg_type.unwrap(),
+                &installing_pkg_name.unwrap(),
+            )?;
         }
 
         println!(

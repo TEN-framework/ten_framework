@@ -7,7 +7,7 @@
 use std::{collections::HashMap, path::Path, str::FromStr};
 
 use ten_rust::pkg_info::{
-    get_all_existed_pkgs_info_of_app, graph::Graph, localhost,
+    get_all_installed_pkgs_info_of_app, graph::Graph, localhost,
     pkg_type::PkgType, property::predefined_graph::PredefinedGraph, PkgInfo,
 };
 
@@ -15,7 +15,7 @@ use ten_rust::pkg_info::{
 fn test_graph_check_extension_not_installed_1() {
     let app_dir = "tests/test_data/graph_check_extension_not_installed_1";
     let pkg_infos =
-        get_all_existed_pkgs_info_of_app(Path::new(app_dir)).unwrap();
+        get_all_installed_pkgs_info_of_app(Path::new(app_dir)).unwrap();
     assert!(!pkg_infos.is_empty());
 
     let app_pkg_info = pkg_infos
@@ -40,7 +40,7 @@ fn test_graph_check_extension_not_installed_1() {
 fn test_graph_check_extension_not_installed_2() {
     let app_dir = "tests/test_data/graph_check_extension_not_installed_2";
     let pkg_infos =
-        get_all_existed_pkgs_info_of_app(Path::new(app_dir)).unwrap();
+        get_all_installed_pkgs_info_of_app(Path::new(app_dir)).unwrap();
     assert!(!pkg_infos.is_empty());
 
     let app_pkg_info = pkg_infos
@@ -65,7 +65,7 @@ fn test_graph_check_extension_not_installed_2() {
 fn test_graph_check_predefined_graph_success() {
     let app_dir = "tests/test_data/graph_check_predefined_graph_success";
     let pkg_infos =
-        get_all_existed_pkgs_info_of_app(Path::new(app_dir)).unwrap();
+        get_all_installed_pkgs_info_of_app(Path::new(app_dir)).unwrap();
     assert!(!pkg_infos.is_empty());
 
     let app_pkg_info = pkg_infos
@@ -89,7 +89,7 @@ fn test_graph_check_predefined_graph_success() {
 fn test_graph_check_all_msgs_schema_incompatible() {
     let app_dir = "tests/test_data/graph_check_all_msgs_schema_incompatible";
     let pkg_infos =
-        get_all_existed_pkgs_info_of_app(Path::new(app_dir)).unwrap();
+        get_all_installed_pkgs_info_of_app(Path::new(app_dir)).unwrap();
     assert!(!pkg_infos.is_empty());
 
     let app_pkg_info = pkg_infos
@@ -114,7 +114,7 @@ fn test_graph_check_all_msgs_schema_incompatible() {
 fn test_graph_check_single_app() {
     let app_dir = "tests/test_data/graph_check_single_app";
     let pkg_infos =
-        get_all_existed_pkgs_info_of_app(Path::new(app_dir)).unwrap();
+        get_all_installed_pkgs_info_of_app(Path::new(app_dir)).unwrap();
     assert!(!pkg_infos.is_empty());
 
     let graph_str = include_str!("test_data/graph_check_single_app/graph.json");
@@ -133,7 +133,7 @@ fn test_graph_check_single_app() {
 fn test_graph_check_single_app_schema_incompatible() {
     let app_dir = "tests/test_data/graph_check_single_app_schema_incompatible";
     let pkg_infos =
-        get_all_existed_pkgs_info_of_app(Path::new(app_dir)).unwrap();
+        get_all_installed_pkgs_info_of_app(Path::new(app_dir)).unwrap();
     assert!(!pkg_infos.is_empty());
 
     let graph_str = include_str!(
