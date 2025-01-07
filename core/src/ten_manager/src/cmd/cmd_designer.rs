@@ -18,7 +18,7 @@ use console::Emoji;
 
 use crate::{
     config::TmanConfig,
-    designer::{configure_routes, DesignerState},
+    designer::{configure_routes, frontend::get_frontend_asset, DesignerState},
     fs::{check_is_app_folder, get_cwd},
     log::tman_verbose_println,
 };
@@ -28,7 +28,6 @@ pub struct DesignerCommand {
     pub ip_address: String,
     pub port: u16,
     pub base_dir: Option<String>,
-    pub external_frontend_asset_path: Option<String>,
 }
 
 pub fn create_sub_cmd(_args_cfg: &crate::cmd_line::ArgsCfg) -> Command {
@@ -66,17 +65,6 @@ pub fn create_sub_cmd(_args_cfg: &crate::cmd_line::ArgsCfg) -> Command {
                 .help("The base directory")
                 .required(false),
         )
-        // This is a hidden feature that allows the use of frontend asset
-        // resources from the file system instead of the frontend resources
-        // originally bundled into the tman executable, providing a bit more
-        // flexibility.
-        .arg(
-            Arg::new("EXTERNAL_FRONTEND_ASSET_PATH")
-                .long("external-frontend-asset-path")
-                .help("Sets the external frontend asset path")
-                .required(false)
-                .hide(true),
-        )
 }
 
 pub fn parse_sub_cmd(
@@ -89,9 +77,6 @@ pub fn parse_sub_cmd(
             .to_string(),
         port: *sub_cmd_args.get_one::<u16>("PORT").unwrap(),
         base_dir: sub_cmd_args.get_one::<String>("BASE_DIR").cloned(),
-        external_frontend_asset_path: sub_cmd_args
-            .get_one::<String>("EXTERNAL_FRONTEND_ASSET_PATH")
-            .cloned(),
     };
 
     Ok(cmd)
@@ -144,8 +129,6 @@ pub async fn execute_cmd(
         tman_config: TmanConfig::default(),
     }));
 
-    let command_data_cloned = command_data.clone();
-
     let server = HttpServer::new(move || {
         let state = web::Data::new(state.clone());
 
@@ -159,9 +142,8 @@ pub async fn execute_cmd(
         App::new()
             .app_data(state.clone())
             .wrap(cors)
-            .configure(|cfg| {
-                configure_routes(cfg, &command_data_cloned, state.clone())
-            })
+            .configure(|cfg| configure_routes(cfg, state.clone()))
+            .default_service(web::to(get_frontend_asset))
     });
 
     let bind_address =
