@@ -80,6 +80,7 @@ def test_tman_dependency_resolve():
 
     command = [
         tman_bin,
+        "--yes",
         f"--config-file={config_file}",
         "install",
     ]

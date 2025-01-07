@@ -231,7 +231,7 @@ fn collect_pkg_info_from_path<'a>(
     }
 }
 
-pub fn get_all_existed_pkgs_info_of_app_to_hashmap(
+pub fn get_all_installed_pkgs_info_of_app_to_hashmap(
     app_path: &Path,
 ) -> Result<HashMap<PkgTypeAndName, PkgInfo>> {
     let mut pkgs_info: HashMap<PkgTypeAndName, PkgInfo> = HashMap::new();
@@ -286,10 +286,10 @@ pub fn get_all_existed_pkgs_info_of_app_to_hashmap(
     Ok(pkgs_info)
 }
 
-pub fn get_all_existed_pkgs_info_of_app(
+pub fn get_all_installed_pkgs_info_of_app(
     app_path: &Path,
 ) -> Result<Vec<PkgInfo>> {
-    let result = get_all_existed_pkgs_info_of_app_to_hashmap(app_path)?;
+    let result = get_all_installed_pkgs_info_of_app_to_hashmap(app_path)?;
     Ok(result.into_values().collect())
 }
 
@@ -383,7 +383,7 @@ pub fn ten_rust_check_graph_for_app(
     }
 
     let mut pkgs_of_app: HashMap<String, Vec<PkgInfo>> = HashMap::new();
-    let pkgs_info = get_all_existed_pkgs_info_of_app(app_path)?;
+    let pkgs_info = get_all_installed_pkgs_info_of_app(app_path)?;
     pkgs_of_app.insert(app_uri.to_string(), pkgs_info);
 
     // `Graph::from_str` calls `validate`, and `validate` checks that there are

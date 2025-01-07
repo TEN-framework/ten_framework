@@ -128,6 +128,10 @@ async fn process_non_local_dependency_to_get_candidate(
     tman_config: &TmanConfig,
     support: &PkgSupport,
     dependency: &PkgDependency,
+    all_compatible_installed_pkgs: &HashMap<
+        PkgTypeAndName,
+        HashMap<PkgBasicInfo, PkgInfo>,
+    >,
     all_candidates: &mut HashMap<
         PkgTypeAndName,
         HashMap<PkgBasicInfo, PkgInfo>,
@@ -175,20 +179,17 @@ async fn process_non_local_dependency_to_get_candidate(
         candidate_pkg_infos.push(candidate_pkg_info);
     }
 
-    // Find packages from the all_candidates that meet the specified
-    // criteria and add them to the candidate_pkg_infos.
-    //
-    // Since `all_candidates` includes the ten packages installed
-    // locally, searching through `all_candidates` allows
-    // those locally installed packages to be added to
-    // `new_pkgs_to_be_searched`, ensuring that the
-    // dependencies within those packages are processed.
-    if let Some(candidates) = all_candidates.get(&dependency.into()) {
+    // Find packages from the installed packages that meet the specified
+    // criteria and add them to the candidate_pkg_infos. This action ensures
+    // that the dependencies within those packages are processed.
+    if let Some(candidates) =
+        all_compatible_installed_pkgs.get(&dependency.into())
+    {
         for candidate in candidates {
             if dependency.version_req.matches(&candidate.0.version) {
                 tman_verbose_println!(
                     tman_config,
-                    "Collect candidate: {:?}",
+                    "Collect candidate from an already installed package: {:?}",
                     candidate
                 );
 
@@ -197,6 +198,7 @@ async fn process_non_local_dependency_to_get_candidate(
         }
     }
 
+    // Filter suitable candidate packages according to `supports`.
     for mut candidate_pkg_info in candidate_pkg_infos {
         tman_verbose_println!(
             tman_config,
@@ -209,12 +211,10 @@ async fn process_non_local_dependency_to_get_candidate(
             support,
         );
 
-        // A package is considered a candidate only when
-        // compatible_score >= 0.
+        // A package is considered a candidate only when compatible_score >= 0.
         if compatible_score >= 0 {
-            // Record the package's compatible_score so that we can
-            // later select the most appropriate
-            // one.
+            // Record the package's compatible_score so that we can later select
+            // the most appropriate one.
             candidate_pkg_info.compatible_score = compatible_score;
 
             tman_verbose_println!(
@@ -256,6 +256,10 @@ async fn process_dependencies_to_get_candidates(
     support: &PkgSupport,
     input_dependencies: &Vec<PkgDependency>,
     merged_dependencies: &mut HashMap<PkgTypeAndName, MergedVersionReq>,
+    all_compatible_installed_pkgs: &HashMap<
+        PkgTypeAndName,
+        HashMap<PkgBasicInfo, PkgInfo>,
+    >,
     all_candidates: &mut HashMap<
         PkgTypeAndName,
         HashMap<PkgBasicInfo, PkgInfo>,
@@ -283,6 +287,7 @@ async fn process_dependencies_to_get_candidates(
                 tman_config,
                 support,
                 dependency,
+                all_compatible_installed_pkgs,
                 all_candidates,
                 new_pkgs_to_be_searched,
             )
@@ -352,6 +357,10 @@ pub async fn get_all_candidates_from_deps(
     support: &PkgSupport,
     mut pkgs_to_be_searched: Vec<PkgInfo>,
     extra_dep: Option<&PkgDependency>,
+    all_compatible_installed_pkgs: &HashMap<
+        PkgTypeAndName,
+        HashMap<PkgBasicInfo, PkgInfo>,
+    >,
     mut all_candidates: HashMap<PkgTypeAndName, HashMap<PkgBasicInfo, PkgInfo>>,
     locked_pkgs: Option<&HashMap<PkgTypeAndName, PkgInfo>>,
 ) -> Result<HashMap<PkgTypeAndName, HashMap<PkgBasicInfo, PkgInfo>>> {
@@ -368,6 +377,7 @@ pub async fn get_all_candidates_from_deps(
             support,
             &vec![extra_dep.unwrap().clone()],
             &mut merged_dependencies,
+            all_compatible_installed_pkgs,
             &mut all_candidates,
             &mut new_pkgs_to_be_searched,
         )
@@ -392,6 +402,7 @@ pub async fn get_all_candidates_from_deps(
                 support,
                 &pkg_to_be_search.dependencies,
                 &mut merged_dependencies,
+                all_compatible_installed_pkgs,
                 &mut all_candidates,
                 &mut new_pkgs_to_be_searched,
             )
