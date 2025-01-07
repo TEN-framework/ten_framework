@@ -24,8 +24,8 @@ use ten_rust::pkg_info::{
 };
 
 use crate::{
-    config::TmanConfig,
-    install::{install_pkg_info, PkgIdentityMapping},
+    cmd::cmd_install::InstallCommand, config::TmanConfig,
+    install::install_pkg_info,
 };
 
 pub fn extract_solver_results_from_raw_solver_results(
@@ -110,9 +110,8 @@ pub fn filter_solver_results_by_type_and_name<'a>(
 
 pub async fn install_solver_results_in_app_folder(
     tman_config: &TmanConfig,
+    command_data: &InstallCommand,
     solver_results: &Vec<&PkgInfo>,
-    pkg_identity_mappings: &Vec<PkgIdentityMapping>,
-    template_ctx: Option<&serde_json::Value>,
     app_dir: &Path,
 ) -> Result<()> {
     println!("{}  Installing packages...", Emoji("📥", "+"));
@@ -146,38 +145,11 @@ pub async fn install_solver_results_in_app_folder(
             PkgType::App => app_dir.to_path_buf(),
         };
 
-        install_pkg_info(
-            tman_config,
-            solver_result,
-            pkg_identity_mappings,
-            template_ctx,
-            &base_dir,
-        )
-        .await?;
+        install_pkg_info(tman_config, command_data, solver_result, &base_dir)
+            .await?;
     }
 
     bar.finish_with_message("Done");
-
-    Ok(())
-}
-
-pub async fn install_solver_results_in_standalone_mode(
-    tman_config: &TmanConfig,
-    solver_results: &Vec<&PkgInfo>,
-    pkg_identity_mappings: &Vec<PkgIdentityMapping>,
-    template_ctx: Option<&serde_json::Value>,
-    dir: &Path,
-) -> Result<()> {
-    for solver_result in solver_results {
-        install_pkg_info(
-            tman_config,
-            solver_result,
-            pkg_identity_mappings,
-            template_ctx,
-            dir,
-        )
-        .await?;
-    }
 
     Ok(())
 }

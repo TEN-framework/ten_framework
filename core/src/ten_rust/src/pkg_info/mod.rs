@@ -27,7 +27,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use anyhow::Result;
+use anyhow::{anyhow, Result};
 use graph::Graph;
 use pkg_basic_info::PkgBasicInfo;
 use pkg_type_and_name::PkgTypeAndName;
@@ -35,8 +35,8 @@ use pkg_type_and_name::PkgTypeAndName;
 use crate::schema::store::SchemaStore;
 use api::PkgApi;
 use constants::{
-    ADDON_LOADER_DIR, ERR_STR_NOT_APP_DIR, EXTENSION_DIR,
-    MANIFEST_JSON_FILENAME, PROTOCOL_DIR, SYSTEM_DIR, TEN_PACKAGES_DIR,
+    ADDON_LOADER_DIR, EXTENSION_DIR, MANIFEST_JSON_FILENAME, PROTOCOL_DIR,
+    SYSTEM_DIR, TEN_PACKAGES_DIR,
 };
 use dependencies::{get_pkg_dependencies_from_manifest, PkgDependency};
 use manifest::{parse_manifest_from_file, parse_manifest_in_folder, Manifest};
@@ -59,8 +59,11 @@ pub struct PkgInfo {
 
     pub compatible_score: i32,
 
-    // Source information.
-    pub is_local_installed: bool,
+    /// This indicates that the package has been installed in the correct
+    /// location. For example, in the case of an extension, it means it has
+    /// been installed under the `ten_packages/` directory.
+    pub is_installed: bool,
+
     pub url: String,
     pub hash: String,
 
@@ -68,6 +71,11 @@ pub struct PkgInfo {
     pub property: Option<Property>,
 
     pub schema_store: Option<SchemaStore>,
+
+    /// Indicates that the `pkg_info` represents a local dependency package.
+    pub is_local_dependency: bool,
+    pub local_dependency_path: Option<String>,
+    pub local_dependency_base_dir: Option<String>,
 }
 
 impl PkgInfo {
@@ -82,13 +90,17 @@ impl PkgInfo {
             api: PkgApi::from_manifest(manifest)?,
             compatible_score: -1,
 
-            is_local_installed: false,
+            is_installed: false,
             url: String::new(),
             hash: String::new(),
 
             manifest: Some(manifest.clone()),
             property: property.clone(),
             schema_store: SchemaStore::from_manifest(manifest)?,
+
+            is_local_dependency: false,
+            local_dependency_path: None,
+            local_dependency_base_dir: None,
         };
 
         pkg_info.hash = pkg_info.gen_hash_hex();
@@ -176,104 +188,93 @@ impl PkgInfo {
     }
 }
 
-pub fn get_pkg_info_from_path(pkg_path: &Path) -> Result<PkgInfo> {
-    let manifest = parse_manifest_in_folder(pkg_path)?;
-    let property = parse_property_in_folder(pkg_path)?;
+/// Retrieve the package represented by the specified path from the information
+/// within that path.
+pub fn get_pkg_info_from_path(
+    path: &Path,
+    is_installed: bool,
+) -> Result<PkgInfo> {
+    let manifest = parse_manifest_in_folder(path)?;
+    let property = parse_property_in_folder(path)?;
 
     let mut pkg_info: PkgInfo = PkgInfo::from_metadata(&manifest, &property)?;
 
-    pkg_info.is_local_installed = true;
-    pkg_info.url = pkg_path.to_string_lossy().to_string();
+    pkg_info.is_installed = is_installed;
+
+    // This package comes from a path, not from a registry, so the value of
+    // `url` will be the path.
+    pkg_info.url = path.to_string_lossy().to_string();
 
     Ok(pkg_info)
 }
 
-fn collect_pkg_info_from_path(
-    base_path: &Path,
-    pkgs_info: &mut HashMap<PkgTypeAndName, PkgInfo>,
-) -> Result<Manifest> {
-    let pkg_info = get_pkg_info_from_path(base_path)?;
-
+/// Collect the corresponding package from the information within the specified
+/// path, add it to the collection provided as a parameter, and return the newly
+/// collected package.
+fn collect_pkg_info_from_path<'a>(
+    path: &Path,
+    pkgs_info: &'a mut HashMap<PkgTypeAndName, PkgInfo>,
+) -> Result<&'a PkgInfo> {
+    let pkg_info = get_pkg_info_from_path(path, true)?;
     let pkg_type_name = PkgTypeAndName::from(&pkg_info);
-    if pkgs_info.contains_key(&pkg_type_name) {
-        return Err(anyhow::anyhow!(
+
+    match pkgs_info.entry(pkg_type_name) {
+        std::collections::hash_map::Entry::Occupied(_) => Err(anyhow!(
             "Duplicated package, type: {}, name: {}",
             pkg_info.basic_info.type_and_name.pkg_type,
             pkg_info.basic_info.type_and_name.name
-        ));
+        )),
+        std::collections::hash_map::Entry::Vacant(entry) => {
+            let inserted = entry.insert(pkg_info);
+            Ok(inserted)
+        }
     }
-
-    let manifest = pkg_info.manifest.clone().unwrap().clone();
-
-    pkgs_info.insert(pkg_type_name, pkg_info);
-
-    Ok(manifest)
 }
 
-pub fn get_all_existed_pkgs_info_of_app_to_hashmap(
+pub fn get_all_installed_pkgs_info_of_app_to_hashmap(
     app_path: &Path,
 ) -> Result<HashMap<PkgTypeAndName, PkgInfo>> {
     let mut pkgs_info: HashMap<PkgTypeAndName, PkgInfo> = HashMap::new();
 
     // Process the manifest.json file in the root path.
-    let app_pkg_manifest =
-        collect_pkg_info_from_path(app_path, &mut pkgs_info)?;
-    if app_pkg_manifest.type_and_name.pkg_type != PkgType::App {
-        return Err(anyhow::anyhow!(ERR_STR_NOT_APP_DIR));
+    let app_pkg = collect_pkg_info_from_path(app_path, &mut pkgs_info)?;
+    if app_pkg.basic_info.type_and_name.pkg_type != PkgType::App {
+        return Err(anyhow!(
+            "The current working directory does not belong to the `app`."
+        ));
     }
 
-    // Define paths to include manifest.json files from.
+    // Define the sub-folders for searching packages.
     let addon_type_dirs =
         vec![EXTENSION_DIR, PROTOCOL_DIR, ADDON_LOADER_DIR, SYSTEM_DIR];
 
     for addon_type_dir in addon_type_dirs {
-        let allowed_path = app_path.join(TEN_PACKAGES_DIR).join(addon_type_dir);
+        let addon_type_dir_path =
+            app_path.join(TEN_PACKAGES_DIR).join(addon_type_dir);
 
-        if allowed_path.exists() && allowed_path.is_dir() {
-            for entry in allowed_path.read_dir()?.flatten() {
+        if addon_type_dir_path.exists() && addon_type_dir_path.is_dir() {
+            for entry in addon_type_dir_path.read_dir()?.flatten() {
                 let path = entry.path();
 
                 if path.is_dir() {
+                    // An essential component of a TEN package folder is its
+                    // `manifest.json` file that adheres to the TEN standard.
                     let manifest_path = path.join(MANIFEST_JSON_FILENAME);
 
                     if manifest_path.exists() && manifest_path.is_file() {
                         let manifest =
                             parse_manifest_from_file(&manifest_path)?;
 
-                        // Do some simple checks.
-                        if manifest.type_and_name.name
-                            != path.file_name().unwrap().to_str().unwrap()
-                        {
-                            return Err(anyhow::anyhow!(
-                                "The path '{}' is not valid: {}.",
-                                format!("{}/{}",addon_type_dir, manifest.type_and_name.name),
-                                format!(
-                                    "the path '{}' and the name '{}' of the package are different",
-                                    path.file_name().unwrap().to_str().unwrap(), manifest.type_and_name.name
-                            )));
-                        }
-
-                        if manifest.type_and_name.pkg_type.to_string()
-                            != addon_type_dir
-                        {
-                            return Err(anyhow::anyhow!(
-                                "The path '{}' is not valid: {}.",
-                                format!(
-                                    "{}/{}",
-                                    addon_type_dir,
-                                    manifest.type_and_name.name
-                                ),
-                                format!(
-                                "the package type '{}' is not as expected '{}'",
-                                manifest.type_and_name.pkg_type.to_string(), addon_type_dir)
-                            ));
-                        }
+                        manifest.check_fs_location(
+                            Some(addon_type_dir),
+                            path.file_name().and_then(|os_str| os_str.to_str()),
+                        )?;
 
                         // This folder contains a manifest.json file and
                         // that manifest.json file is a correct TEN
-                        // manifest.json file, and this package is a
-                        // dependency of app, so read it to treat it as a
-                        // local dependency.
+                        // manifest.json file, so that it means the folder
+                        // represents a valid TEN package, and this package is a
+                        // _local_ dependency of app.
 
                         collect_pkg_info_from_path(&path, &mut pkgs_info)?;
                     }
@@ -285,10 +286,10 @@ pub fn get_all_existed_pkgs_info_of_app_to_hashmap(
     Ok(pkgs_info)
 }
 
-pub fn get_all_existed_pkgs_info_of_app(
+pub fn get_all_installed_pkgs_info_of_app(
     app_path: &Path,
 ) -> Result<Vec<PkgInfo>> {
-    let result = get_all_existed_pkgs_info_of_app_to_hashmap(app_path)?;
+    let result = get_all_installed_pkgs_info_of_app_to_hashmap(app_path)?;
     Ok(result.into_values().collect())
 }
 
@@ -350,7 +351,7 @@ pub fn find_to_be_replaced_local_pkgs<'a>(
             // `is_local_installed` of that package in the dependency tree will
             // also not be `true`. Therefore, we will uniformly use
             // `is_local_installed` to make overall judgments.
-            if !pkg_in_dependencies.is_local_installed {
+            if !pkg_in_dependencies.is_installed {
                 result.push((pkg_in_dependencies, local_pkg));
             }
         }
@@ -382,7 +383,7 @@ pub fn ten_rust_check_graph_for_app(
     }
 
     let mut pkgs_of_app: HashMap<String, Vec<PkgInfo>> = HashMap::new();
-    let pkgs_info = get_all_existed_pkgs_info_of_app(app_path)?;
+    let pkgs_info = get_all_installed_pkgs_info_of_app(app_path)?;
     pkgs_of_app.insert(app_uri.to_string(), pkgs_info);
 
     // `Graph::from_str` calls `validate`, and `validate` checks that there are

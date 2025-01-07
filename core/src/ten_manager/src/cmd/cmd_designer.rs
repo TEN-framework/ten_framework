@@ -19,8 +19,8 @@ use console::Emoji;
 use crate::{
     config::TmanConfig,
     designer::{configure_routes, DesignerState},
+    fs::{check_is_app_folder, get_cwd},
     log::tman_verbose_println,
-    utils::{check_is_app_folder, get_cwd},
 };
 
 #[derive(Clone, Debug)]
@@ -114,7 +114,8 @@ pub async fn execute_cmd(
             let cwd = get_cwd()?.to_str().unwrap_or_default().to_string();
 
             println!(
-                "{}  Doesn't specify the base directory, use current working directory instead: {}",
+                "{}  Doesn't specify the base directory, use current working \
+                directory instead: {}",
                 Emoji("💡", "!"),
                 &cwd
             );

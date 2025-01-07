@@ -9,7 +9,6 @@ pub enum TmanError {
     FileNotFound(String),
     ReadFileContentError(String),
     InvalidPath(String, String),
-    Custom(String),
 }
 
 // One of the purposes of an error is to be displayed, so it needs to implement
@@ -25,9 +24,6 @@ impl std::fmt::Display for TmanError {
             }
             TmanError::InvalidPath(path, root_cause) => {
                 write!(f, "The path '{}' is not valid: {}.", path, root_cause)
-            }
-            TmanError::Custom(str) => {
-                write!(f, "{}", str)
             }
         }
     }

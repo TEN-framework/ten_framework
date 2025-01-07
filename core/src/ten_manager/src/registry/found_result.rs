@@ -85,13 +85,17 @@ impl From<&PkgRegistryInfo> for PkgInfo {
             api: None,
             compatible_score: -1,
 
-            is_local_installed: false,
+            is_installed: false,
             url: String::new(),
             hash: String::new(),
 
             manifest: None,
             property: None,
             schema_store: None,
+
+            is_local_dependency: false,
+            local_dependency_path: None,
+            local_dependency_base_dir: None,
         };
 
         pkg_info.hash = pkg_info.gen_hash_hex();

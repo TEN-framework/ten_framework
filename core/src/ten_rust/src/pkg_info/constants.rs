@@ -13,6 +13,3 @@ pub const EXTENSION_DIR: &str = "extension";
 pub const PROTOCOL_DIR: &str = "protocol";
 pub const ADDON_LOADER_DIR: &str = "addon_loader";
 pub const SYSTEM_DIR: &str = "system";
-
-pub const ERR_STR_NOT_APP_DIR: &str =
-    "The current working directory does not belong to the `app`.";

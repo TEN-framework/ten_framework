@@ -40,7 +40,7 @@ class DefaultExtension(Extension):
                 i += 1
                 throw_exception = True
 
-            assert throw_exception == True
+            assert throw_exception is True
 
         self.queue.get()
 

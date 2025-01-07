@@ -72,6 +72,7 @@ def run_test(tman_bin: str, root_dir: str, test_app_root_folder: str) -> None:
 
     command = [
         tman_bin,
+        "--yes",
         f"--config-file={config_file}",
         "install",
     ]

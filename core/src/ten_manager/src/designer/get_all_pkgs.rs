@@ -7,7 +7,7 @@
 use anyhow::{anyhow, Result};
 
 use super::DesignerState;
-use crate::package_info::tman_get_all_existed_pkgs_info_of_app;
+use crate::package_info::tman_get_all_installed_pkgs_info_of_app;
 
 pub fn get_all_pkgs(state: &mut DesignerState) -> Result<()> {
     use std::path::PathBuf;
@@ -15,7 +15,7 @@ pub fn get_all_pkgs(state: &mut DesignerState) -> Result<()> {
     if state.all_pkgs.is_none() {
         if let Some(base_dir) = &state.base_dir {
             let app_path = PathBuf::from(base_dir);
-            match tman_get_all_existed_pkgs_info_of_app(
+            match tman_get_all_installed_pkgs_info_of_app(
                 &state.tman_config,
                 &app_path,
             ) {

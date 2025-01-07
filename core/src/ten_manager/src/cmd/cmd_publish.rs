@@ -25,7 +25,10 @@ pub struct PublishCommand {}
 pub fn create_sub_cmd(_args_cfg: &crate::cmd_line::ArgsCfg) -> Command {
     Command::new("publish")
         .about("Publish a package")
-        .after_help("Switch to the base directory of the TEN package you want to publish, then simply run 'tman publish' directly in that directory.")
+        .after_help(
+            "Switch to the base directory of the TEN package you want to \
+        publish, then simply run 'tman publish' directly in that directory.",
+        )
 }
 
 pub fn parse_sub_cmd(
@@ -43,9 +46,9 @@ pub async fn execute_cmd(
 
     let started = Instant::now();
 
-    let cwd = crate::utils::get_cwd()?;
+    let cwd = crate::fs::get_cwd()?;
 
-    let pkg_info = get_pkg_info_from_path(&cwd)?;
+    let pkg_info = get_pkg_info_from_path(&cwd, true)?;
     let output_zip_file_name = get_package_zip_file_name(&pkg_info)?;
 
     // Generate the zip file.

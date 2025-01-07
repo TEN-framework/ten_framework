@@ -6,7 +6,7 @@
 //
 use std::collections::{HashMap, HashSet};
 
-use anyhow::Result;
+use anyhow::{anyhow, Result};
 use clingo::{
     control, Configuration, ConfigurationType, Id, Model, Part, ShowType,
     SolveMode, Statistics, StatisticsType,
@@ -20,7 +20,6 @@ use ten_rust::pkg_info::{
 
 use crate::{
     config::TmanConfig,
-    error::TmanError,
     log::{tman_verbose_print, tman_verbose_println},
 };
 
@@ -301,25 +300,25 @@ fn solve(tman_config: &TmanConfig, input: &str) -> SolveResult {
 
 fn create_input_str_for_dependency_relationship(
     input_str: &mut String,
-    dependency_relationships: &Vec<DependencyRelationship>,
+    dep_relationship: Option<&DependencyRelationship>,
     all_candidates: &HashMap<PkgTypeAndName, HashMap<PkgBasicInfo, PkgInfo>>,
 ) -> Result<()> {
-    for dependency_relationship in dependency_relationships {
+    if let Some(dep_relationship) = dep_relationship {
         let candidates =
-            all_candidates.get(&(&dependency_relationship.dependency).into());
+            all_candidates.get(&(&dep_relationship.dependency).into());
 
         if let Some(candidates) = candidates {
             for candidate in candidates.iter() {
-                if dependency_relationship
+                if dep_relationship
                     .dependency
                     .version_req
                     .matches(&candidate.1.basic_info.version)
                 {
                     input_str.push_str(&format!(
         "depends_on_declared(\"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\").\n",
-        dependency_relationship.type_and_name.pkg_type,
-        dependency_relationship.type_and_name.name,
-        dependency_relationship.version,
+        dep_relationship.type_and_name.pkg_type,
+        dep_relationship.type_and_name.name,
+        dep_relationship.version,
         candidate.1.basic_info.type_and_name.pkg_type,
         candidate.1.basic_info.type_and_name.name,
         candidate.1.basic_info.version,
@@ -327,16 +326,12 @@ fn create_input_str_for_dependency_relationship(
                 }
             }
         } else {
-            return Err(TmanError::Custom(
-                format!(
-                    "Failed to find candidates for {}:{}@{}",
-                    dependency_relationship.dependency.type_and_name.pkg_type,
-                    dependency_relationship.dependency.type_and_name.name,
-                    dependency_relationship.version,
-                )
-                .to_string(),
-            )
-            .into());
+            return Err(anyhow!(
+                "Failed to find candidates for {}:{}@{}",
+                dep_relationship.dependency.type_and_name.pkg_type,
+                dep_relationship.dependency.type_and_name.name,
+                dep_relationship.version,
+            ));
         }
     }
 
@@ -388,28 +383,20 @@ fn create_input_str_for_pkg_info_dependencies(
             }
 
             if !found_matched {
-                return Err(TmanError::Custom(
-                    format!(
-                        "Failed to find candidates for [{}]{}({})",
-                        dependency.type_and_name.pkg_type,
-                        dependency.type_and_name.name,
-                        dependency.version_req
-                    )
-                    .to_string(),
-                )
-                .into());
-            }
-        } else {
-            return Err(TmanError::Custom(
-                format!(
-                    "Failed to find candidates for {}:{}@{}",
+                return Err(anyhow!(
+                    "Failed to find candidates for [{}]{}({})",
                     dependency.type_and_name.pkg_type,
                     dependency.type_and_name.name,
                     dependency.version_req
-                )
-                .to_string(),
-            )
-            .into());
+                ));
+            }
+        } else {
+            return Err(anyhow!(
+                "Failed to find candidates for {}:{}@{}",
+                dependency.type_and_name.pkg_type,
+                dependency.type_and_name.name,
+                dependency.version_req
+            ));
         }
     }
 
@@ -459,13 +446,17 @@ fn create_input_str_for_all_possible_pkgs_info(
             locked_pkgs.and_then(|locked_pkgs| locked_pkgs.get(candidates.0));
 
         if let Some(locked_pkg) = locked_pkg {
-            let idx = candidates_vec.iter().position(|pkg_info| {
-                pkg_info.version == locked_pkg.basic_info.version
-            });
+            // If the package recorded in `manifest-lock.json` is a local
+            // dependency, do not prioritize any candidate packages.
+            if !locked_pkg.is_local_dependency {
+                let idx = candidates_vec.iter().position(|pkg_info| {
+                    pkg_info.version == locked_pkg.basic_info.version
+                });
 
-            if let Some(idx) = idx {
-                candidates_vec.remove(idx);
-                candidates_vec.insert(0, locked_pkg.into());
+                if let Some(idx) = idx {
+                    candidates_vec.remove(idx);
+                    candidates_vec.insert(0, locked_pkg.into());
+                }
             }
         }
 
@@ -481,9 +472,9 @@ fn create_input_str_for_all_possible_pkgs_info(
 
 fn create_input_str(
     tman_config: &TmanConfig,
-    pkg_name: &String,
     pkg_type: &PkgType,
-    extra_dependency_relationships: &Vec<DependencyRelationship>,
+    pkg_name: &String,
+    extra_dep_relationship: Option<&DependencyRelationship>,
     all_candidates: &HashMap<PkgTypeAndName, HashMap<PkgBasicInfo, PkgInfo>>,
     locked_pkgs: Option<&HashMap<PkgTypeAndName, PkgInfo>>,
 ) -> Result<String> {
@@ -502,7 +493,7 @@ fn create_input_str(
 
     create_input_str_for_dependency_relationship(
         &mut input_str,
-        extra_dependency_relationships,
+        extra_dep_relationship,
         all_candidates,
     )?;
 
@@ -534,17 +525,17 @@ fn create_input_str(
 
 pub fn solve_all(
     tman_config: &TmanConfig,
-    pkg_name: &String,
     pkg_type: &PkgType,
-    extra_dependency_relationships: &Vec<DependencyRelationship>,
+    pkg_name: &String,
+    extra_dep_relationship: Option<&DependencyRelationship>,
     all_candidates: &HashMap<PkgTypeAndName, HashMap<PkgBasicInfo, PkgInfo>>,
     locked_pkgs: Option<&HashMap<PkgTypeAndName, PkgInfo>>,
 ) -> SolveResult {
     let input_str = create_input_str(
         tman_config,
-        pkg_name,
         pkg_type,
-        extra_dependency_relationships,
+        pkg_name,
+        extra_dep_relationship,
         all_candidates,
         locked_pkgs,
     )?;

@@ -53,6 +53,7 @@ def test_tman_dependency_resolve():
     returncode, output_text = cmd_exec.run_cmd_realtime(
         [
             tman_bin,
+            "--yes",
             f"--config-file={config_file}",
             "install",
         ],
@@ -62,7 +63,7 @@ def test_tman_dependency_resolve():
         print(output_text)
         assert False
 
-    assert check_installed_extensions(app_dir) == True
+    assert check_installed_extensions(app_dir) is True
 
 
 if __name__ == "__main__":

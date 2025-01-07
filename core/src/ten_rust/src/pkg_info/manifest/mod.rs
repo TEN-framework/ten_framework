@@ -11,7 +11,7 @@ pub mod support;
 
 use std::{fmt, fs, path::Path, str::FromStr};
 
-use anyhow::{Context, Result};
+use anyhow::{anyhow, Context, Result};
 use serde::{Deserialize, Serialize};
 
 use crate::pkg_info::utils::read_file_to_string;
@@ -72,6 +72,41 @@ impl Manifest {
     pub fn validate_and_complete(&mut self) -> Result<()> {
         Ok(())
     }
+
+    pub fn check_fs_location(
+        &self,
+        addon_type_folder_name: Option<&str>,
+        addon_folder_name: Option<&str>,
+    ) -> Result<()> {
+        if let Some(addon_folder_name) = addon_folder_name {
+            // The package `Foo` must be located inside the folder
+            // `Foo/`, so that during runtime dynamic loading, the
+            // desired package can be identified simply by searching
+            // for the folder name. Additionally, the unique nature
+            // of package names can be ensured through the file
+            // system's restriction that prevents duplicate folder
+            // names within the same directory.
+            if self.type_and_name.name != addon_folder_name {
+                return Err(anyhow!(format!(
+                    "the name of the folder '{}' and the package '{}' are different",
+                    addon_folder_name, self.type_and_name.name
+                )));
+            }
+        }
+
+        if let Some(addon_type_folder_name) = addon_type_folder_name {
+            if self.type_and_name.pkg_type.to_string() != addon_type_folder_name
+            {
+                return Err(anyhow!(format!(
+                    "The folder name '{}' does not match the expected package type '{}'",
+                    addon_type_folder_name,
+                    self.type_and_name.pkg_type.to_string(),
+                )));
+            }
+        }
+
+        Ok(())
+    }
 }
 
 pub fn dump_manifest_str_to_file<P: AsRef<Path>>(
@@ -86,9 +121,42 @@ pub fn parse_manifest_from_file<P: AsRef<Path>>(
     manifest_file_path: P,
 ) -> Result<Manifest> {
     // Read the contents of the manifest.json file.
-    let content = read_file_to_string(manifest_file_path)?;
+    let content = read_file_to_string(&manifest_file_path)?;
 
-    Manifest::from_str(&content)
+    let mut manifest: Manifest =
+        serde_json::from_str(&content).with_context(|| {
+            format!(
+                "Failed to parse JSON from '{}'",
+                manifest_file_path.as_ref().display()
+            )
+        })?;
+
+    let manifest_folder_path =
+        manifest_file_path.as_ref().parent().ok_or_else(|| {
+            anyhow::anyhow!(
+                "Failed to determine the parent directory of '{}'",
+                manifest_file_path.as_ref().display()
+            )
+        })?;
+
+    if let Some(dependencies) = &mut manifest.dependencies {
+        for dep in dependencies.iter_mut() {
+            if let ManifestDependency::LocalDependency { base_dir, .. } = dep {
+                let base_dir_str = manifest_folder_path
+                    .to_str()
+                    .ok_or_else(|| {
+                        anyhow::anyhow!(
+                            "Failed to convert folder path to string"
+                        )
+                    })?
+                    .to_string();
+
+                *base_dir = base_dir_str;
+            }
+        }
+    }
+
+    Ok(manifest)
 }
 
 pub fn parse_manifest_in_folder(folder_path: &Path) -> Result<Manifest> {

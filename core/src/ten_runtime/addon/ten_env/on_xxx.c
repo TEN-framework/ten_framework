@@ -9,6 +9,7 @@
 #include <stdlib.h>
 
 #include "include_internal/ten_runtime/addon/addon.h"
+#include "include_internal/ten_runtime/addon/addon_host.h"
 #include "include_internal/ten_runtime/addon/common/store.h"
 #include "include_internal/ten_runtime/addon_loader/addon_loader.h"
 #include "include_internal/ten_runtime/app/on_xxx.h"
@@ -28,7 +29,6 @@
 #include "ten_runtime/ten_env/ten_env.h"
 #include "ten_utils/lib/string.h"
 #include "ten_utils/macro/check.h"
-#include "ten_utils/macro/mark.h"
 
 void ten_addon_on_init_done(ten_env_t *self) {
   TEN_ASSERT(self, "Invalid argument.");
@@ -48,6 +48,7 @@ void ten_addon_on_init_done(ten_env_t *self) {
       &addon_host->manifest_info, NULL, &addon_host->manifest, &err);
   if (!rc) {
     TEN_LOGW("Failed to load addon manifest data, FATAL ERROR.");
+    // NOLINTNEXTLINE(concurrency-mt-unsafe)
     exit(EXIT_FAILURE);
   }
 
@@ -55,6 +56,7 @@ void ten_addon_on_init_done(ten_env_t *self) {
       &addon_host->property_info, NULL, &addon_host->property, &err);
   if (!rc) {
     TEN_LOGW("Failed to load addon property data, FATAL ERROR.");
+    // NOLINTNEXTLINE(concurrency-mt-unsafe)
     exit(EXIT_FAILURE);
   }
 
@@ -93,12 +95,6 @@ void ten_addon_on_init_done(ten_env_t *self) {
       ten_string_set_from_c_str(&addon_host->name, manifest_name,
                                 strlen(manifest_name));
     }
-  }
-
-  rc = ten_addon_store_add(addon_host->store, addon_host);
-  if (!rc) {
-    TEN_ASSERT(0, "Should not happen.");
-    exit(EXIT_FAILURE);
   }
 }
 
@@ -183,16 +179,16 @@ static void ten_extension_addon_on_create_instance_done(ten_env_t *self,
               ten_extension_thread_check_integrity(extension_thread, false),
           "Should not happen.");
 
-      ten_extension_thread_on_addon_create_extension_done_info_t *info =
-          ten_extension_thread_on_addon_create_extension_done_info_create();
+      ten_extension_thread_on_addon_create_extension_done_ctx_t *ctx =
+          ten_extension_thread_on_addon_create_extension_done_ctx_create();
 
-      info->extension = extension;
-      info->addon_context = addon_context;
+      ctx->extension = extension;
+      ctx->addon_context = addon_context;
 
       ten_runloop_post_task_tail(
           ten_extension_group_get_attached_runloop(extension_group),
           ten_extension_thread_on_addon_create_extension_done, extension_thread,
-          info);
+          ctx);
       break;
     }
 
@@ -247,15 +243,15 @@ static void ten_extension_group_addon_on_create_instance_done(ten_env_t *self,
       // main thread), and all the function calls in this case are thread safe.
       ten_engine_check_integrity(engine, false);
 
-      ten_extension_context_on_addon_create_extension_group_done_info_t *info =
-          ten_extension_context_on_addon_create_extension_group_done_info_create();
+      ten_extension_context_on_addon_create_extension_group_done_ctx_t *ctx =
+          ten_extension_context_on_addon_create_extension_group_done_ctx_create();
 
-      info->extension_group = extension_group;
-      info->addon_context = addon_context;
+      ctx->extension_group = extension_group;
+      ctx->addon_context = addon_context;
 
       ten_runloop_post_task_tail(
           ten_engine_get_attached_runloop(engine),
-          ten_engine_on_addon_create_extension_group_done, engine, info);
+          ten_engine_on_addon_create_extension_group_done, engine, ctx);
       break;
     }
 
@@ -311,15 +307,15 @@ static void ten_protocol_addon_on_create_instance_done(ten_env_t *self,
       TEN_ASSERT(engine && ten_engine_check_integrity(engine, true),
                  "Should not happen.");
 
-      ten_engine_thread_on_addon_create_protocol_done_info_t *info =
-          ten_engine_thread_on_addon_create_protocol_done_info_create();
+      ten_engine_thread_on_addon_create_protocol_done_ctx_t *ctx =
+          ten_engine_thread_on_addon_create_protocol_done_ctx_create();
 
-      info->protocol = protocol;
-      info->addon_context = addon_context;
+      ctx->protocol = protocol;
+      ctx->addon_context = addon_context;
 
       ten_runloop_post_task_tail(
           ten_engine_get_attached_runloop(engine),
-          ten_engine_thread_on_addon_create_protocol_done, engine, info);
+          ten_engine_thread_on_addon_create_protocol_done, engine, ctx);
       break;
     }
 
@@ -328,15 +324,15 @@ static void ten_protocol_addon_on_create_instance_done(ten_env_t *self,
       TEN_ASSERT(app && ten_app_check_integrity(app, true),
                  "Should not happen.");
 
-      ten_app_thread_on_addon_create_protocol_done_info_t *info =
-          ten_app_thread_on_addon_create_protocol_done_info_create();
+      ten_app_thread_on_addon_create_protocol_done_ctx_t *ctx =
+          ten_app_thread_on_addon_create_protocol_done_ctx_create();
 
-      info->protocol = instance;
-      info->addon_context = addon_context;
+      ctx->protocol = instance;
+      ctx->addon_context = addon_context;
 
       ten_runloop_post_task_tail(ten_app_get_attached_runloop(app),
                                  ten_app_thread_on_addon_create_protocol_done,
-                                 app, info);
+                                 app, ctx);
       break;
     }
 
@@ -385,15 +381,15 @@ static void ten_addon_loader_addon_on_create_instance_done(ten_env_t *self,
       TEN_ASSERT(app && ten_app_check_integrity(app, true),
                  "Should not happen.");
 
-      ten_app_thread_on_addon_create_addon_loader_done_info_t *info =
-          ten_app_thread_on_addon_create_addon_loader_done_info_create();
+      ten_app_thread_on_addon_create_addon_loader_done_ctx_t *ctx =
+          ten_app_thread_on_addon_create_addon_loader_done_ctx_create();
 
-      info->addon_loader = instance;
-      info->addon_context = addon_context;
+      ctx->addon_loader = instance;
+      ctx->addon_context = addon_context;
 
       ten_runloop_post_task_tail(
           ten_app_get_attached_runloop(app),
-          ten_app_thread_on_addon_create_addon_loader_done, app, info);
+          ten_app_thread_on_addon_create_addon_loader_done, app, ctx);
       break;
     }
 

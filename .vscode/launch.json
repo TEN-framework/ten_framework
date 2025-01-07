@@ -137,7 +137,7 @@
       "request": "launch",
       "program": "${workspaceFolder}/out/linux/x64/tests/standalone/ten_runtime_smoke_test",
       "args": [
-        "--gtest_filter=BasicTest.HelloWorld1"
+        "--gtest_filter=AudioFrameTest.FromJson"
       ],
       "cwd": "${workspaceFolder}/out/linux/x64/tests/standalone/",
       "env": {
@@ -388,10 +388,14 @@
       "type": "lldb",
       "request": "launch",
       "program": "${workspaceFolder}/out/linux/x64/ten_manager/bin/tman",
-      "cwd": "${workspaceFolder}/out/linux/x64/tests/ten_manager/install_all/install_all_in_local_file_system/test_app",
+      "cwd": "${workspaceFolder}/out/linux/x64/tests/ten_manager/install/mock_app/mock_app",
       "args": [
         "--config-file=${workspaceFolder}/out/linux/x64/tests/local_registry/config.json",
         "install",
+        "extension",
+        "ext_a",
+        "--os=linux",
+        "--arch=x64"
       ],
       "preRunCommands": [
         "script import pathlib;import subprocess;import lldb;rustc_sysroot = subprocess.getoutput(\"rustc --print sysroot\");rustlib_etc = pathlib.Path(rustc_sysroot) / \"lib\" / \"rustlib\" / \"etc\";lldb.debugger.HandleCommand(f'command script import \"{rustlib_etc / \"lldb_lookup.py\"}\"');lldb.debugger.HandleCommand(f'command source -s 0 \"{rustlib_etc / \"lldb_commands\"}\"')"
@@ -669,12 +673,13 @@
       "request": "launch",
       "program": "node",
       "args": [
-        "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/nodejs/default_ui_app_ts_basic/default_ui_app_ts_basic_app/build/start.js"
+        "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/nodejs/http_server_nodejs/http_server_nodejs_app/build/start.js"
       ],
-      "cwd": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/nodejs/default_ui_app_ts_basic/default_ui_app_ts_basic_app/",
+      "cwd": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/nodejs/http_server_nodejs/http_server_nodejs_app/",
       "env": {
-        "LD_PRELOAD": "lib/libasan.so",
-        "NODE_PATH": "lib:$NODE_PATH",
+        "LD_PRELOAD": "ten_packages/system/ten_runtime/lib/libasan.so",
+        "NODE_PATH": "ten_packages/system/ten_runtime_nodejs/lib:$NODE_PATH",
+        "LD_LIBRARY_PATH": "ten_packages/system/ten_runtime/lib",
       },
     },
     {
@@ -683,17 +688,26 @@
       "request": "launch",
       "program": "/usr/bin/node",
       "args": [
-        "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/nodejs/access_app_property_store/access_app_property_store_app/build/start.js"
+        "--expose-gc",
+        "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/nodejs/http_server_nodejs/http_server_nodejs_app/build/start.js"
       ],
-      "cwd": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/nodejs/access_app_property_store/access_app_property_store_app",
+      "cwd": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/nodejs/http_server_nodejs/http_server_nodejs_app/",
       "environment": [
         {
           "name": "LD_PRELOAD",
-          "value": "lib/libasan.so"
+          "value": "ten_packages/system/ten_runtime/lib/libasan.so"
         },
         {
           "name": "NODE_PATH",
-          "value": "lib:$NODE_PATH"
+          "value": "ten_packages/system/ten_runtime_nodejs/lib:$NODE_PATH"
+        },
+        {
+          "name": "LD_LIBRARY_PATH",
+          "value": "ten_packages/system/ten_runtime/lib"
+        },
+        {
+          "name": "LSAN_OPTIONS",
+          "value": "verbosity=1:log_threads=1"
         }
       ],
       "sourceFileMap": {

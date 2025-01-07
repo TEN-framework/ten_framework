@@ -11,7 +11,7 @@ use clap::{Arg, ArgMatches, Command};
 use console::Emoji;
 
 use ten_rust::pkg_info::{
-    get_all_existed_pkgs_info_of_app, graph::Graph, localhost,
+    get_all_installed_pkgs_info_of_app, graph::Graph, localhost,
     property::parse_property_in_folder, PkgInfo,
 };
 
@@ -27,7 +27,8 @@ pub struct CheckGraphCommand {
 pub fn create_sub_cmd(_args_cfg: &crate::cmd_line::ArgsCfg) -> Command {
     Command::new("graph")
         .about(
-            "Check whether the graph content of the predefined graph or start_graph command is correct",
+            "Check whether the graph content of the predefined graph or \
+            start_graph command is correct",
         )
         .arg(
             Arg::new("APP_DIR")
@@ -37,7 +38,8 @@ pub fn create_sub_cmd(_args_cfg: &crate::cmd_line::ArgsCfg) -> Command {
                     default, the predefined graph will be read from the first \
                     one in the list.",
                 )
-                .required(true).num_args(1..),
+                .required(true)
+                .num_args(1..),
         )
         .arg(
             Arg::new("PREDEFINED_GRAPH_NAME")
@@ -105,7 +107,7 @@ fn get_existed_pkgs_of_all_apps(
 
     for app in &command.app_dir {
         let app_path = path::Path::new(app);
-        let app_existed_pkgs = get_all_existed_pkgs_info_of_app(app_path)?;
+        let app_existed_pkgs = get_all_installed_pkgs_info_of_app(app_path)?;
 
         let app_property = parse_property_in_folder(app_path)?;
         let app_uri = if let Some(property) = app_property {
@@ -145,7 +147,10 @@ fn get_graphs_to_be_checked(command: &CheckGraphCommand) -> Result<Vec<Graph>> {
         let first_app_path = path::Path::new(&command.app_dir[0]);
         let first_app_property = parse_property_in_folder(first_app_path)?;
         if first_app_property.is_none() {
-            return Err(anyhow::anyhow!("The property.json is not found in the first app, which is required to retrieve the predefined graphs."));
+            return Err(anyhow::anyhow!(
+                "The property.json is not found in the first app, which is \
+                required to retrieve the predefined graphs."
+            ));
         }
 
         let predefined_graphs = first_app_property
