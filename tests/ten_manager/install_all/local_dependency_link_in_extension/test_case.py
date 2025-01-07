@@ -44,6 +44,7 @@ def test_tman_dependency_resolve():
     returncode, output_text = cmd_exec.run_cmd_realtime(
         [
             tman_bin,
+            "--yes",
             f"--config-file={config_file}",
             "install",
         ],
@@ -56,7 +57,7 @@ def test_tman_dependency_resolve():
     installed_count = get_installed_extensions_count(app_dir)
     assert (
         installed_count == 3
-    ), f"Expected 2 extensions, found {installed_count}."
+    ), f"Expected 3 extensions, found {installed_count}."
 
     ext_c_path = os.path.join(app_dir, "ten_packages/extension/ext_c")
     local_c_path = os.path.join(app_dir, "local_c")

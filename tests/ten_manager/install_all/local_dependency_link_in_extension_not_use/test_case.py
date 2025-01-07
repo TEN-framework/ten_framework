@@ -10,60 +10,74 @@ import json
 from .common import cmd_exec
 
 
-def analyze_resolve_result(ext_root_folder: str) -> None:
-    deps_folder = os.path.join(
-        ext_root_folder, ".ten", "app", "ten_packages", "extension"
+def get_installed_extensions_count(app_dir: str):
+    extension_dir = os.path.join(app_dir, "ten_packages/extension/")
+    extensions = os.listdir(extension_dir)
+
+    return len(extensions)
+
+
+def normalize_path(path):
+    if path.startswith("\\\\?\\"):
+        return path[4:]
+    return path
+
+
+def analyze_resolve_result(app_root_folder: str) -> None:
+    extension_folder = os.path.join(
+        app_root_folder, "ten_packages", "extension"
     )
 
     with open(
-        os.path.join(ext_root_folder, "expected.json"), "r"
+        os.path.join(app_root_folder, "expected.json"), "r"
     ) as expected_json_file:
         expected_json = json.load(expected_json_file)
 
         # @{
         # Check all expected extensions are installed.
         for ext in expected_json["extension"]:
-            found = False
-            for dir_item in os.listdir(deps_folder):
+            found_in_folder = False
+
+            for dir_item in os.listdir(extension_folder):
                 if dir_item == ext["name"]:
-                    found = True
+                    found_in_folder = True
                     with open(
-                        os.path.join(deps_folder, ext["name"], "manifest.json"),
+                        os.path.join(
+                            extension_folder, ext["name"], "manifest.json"
+                        ),
                         "r",
                     ) as ext_manifest_file:
                         ext_manifest_json = json.load(ext_manifest_file)
                         assert ext_manifest_json["name"] == ext["name"]
                         assert ext_manifest_json["version"] == ext["version"]
                     break
-            assert found is True
+
+            assert found_in_folder is True
         # @}
 
         # @{
         # Check there is no other unexpected extensions be installed.
         installed_extension_cnt = 0
-        if os.path.exists(deps_folder):
-            for dir_item in os.listdir(deps_folder):
+        if os.path.exists(extension_folder):
+            for dir_item in os.listdir(extension_folder):
                 installed_extension_cnt += 1
         assert len(expected_json["extension"]) == installed_extension_cnt
         # @}
 
 
-def test_tman_install():
-    """Test tman install."""
+def test_tman_dependency_resolve():
     base_path = os.path.dirname(os.path.abspath(__file__))
     root_dir = os.path.join(base_path, "../../../../")
 
-    my_env = os.environ.copy()
     if sys.platform == "win32":
-        my_env["PATH"] = (
-            os.path.join(root_dir, "ten_manager/lib") + ";" + my_env["PATH"]
+        os.environ["PATH"] = (
+            os.path.join(root_dir, "ten_manager/lib") + ";" + os.getenv("PATH")
         )
         tman_bin = os.path.join(root_dir, "ten_manager/bin/tman.exe")
     else:
         tman_bin = os.path.join(root_dir, "ten_manager/bin/tman")
 
-    mock_extension_path = os.path.join(base_path, "mock_extension")
-    os.chdir(mock_extension_path)
+    app_dir = os.path.join(base_path, "test_app")
 
     config_file = os.path.join(
         root_dir,
@@ -77,10 +91,19 @@ def test_tman_install():
             f"--config-file={config_file}",
             "install",
         ],
-        env=my_env,
+        cwd=app_dir,
     )
     if returncode != 0:
         print(output_text)
         assert False
 
-    analyze_resolve_result(mock_extension_path)
+    installed_count = get_installed_extensions_count(app_dir)
+    assert (
+        installed_count == 2
+    ), f"Expected 2 extensions, found {installed_count}."
+
+    analyze_resolve_result(app_dir)
+
+
+if __name__ == "__main__":
+    test_tman_dependency_resolve()

@@ -205,6 +205,10 @@ pub async fn execute_cmd(
     // the dependency tree, then users will be questioned whether to overwrite
     // them with the new packages or quit the installation.
     let mut all_existing_local_pkgs: Vec<PkgInfo> = vec![];
+    let mut all_compatible_existing_local_pkgs: HashMap<
+        PkgTypeAndName,
+        HashMap<PkgBasicInfo, PkgInfo>,
+    > = HashMap::new();
 
     let mut dep_relationship_from_cmd_line: Option<DependencyRelationship> =
         None;
@@ -239,10 +243,16 @@ pub async fn execute_cmd(
         all_existing_local_pkgs =
             tman_get_all_existed_pkgs_info_of_app(tman_config, &cwd)?;
 
+        all_candidates
+            .entry((&app_pkg_).into())
+            .or_default()
+            .insert((&app_pkg_).into(), app_pkg_.clone());
+
         filter_compatible_pkgs_to_candidates(
             tman_config,
             &all_existing_local_pkgs,
-            &mut all_candidates,
+            // &mut all_candidates,
+            &mut all_compatible_existing_local_pkgs,
             &command_data.support,
         );
 
@@ -277,16 +287,23 @@ pub async fn execute_cmd(
                 // dependencies on a specific version of an app, so the app also
                 // needs to be included in the package list for dependency tree
                 // calculation.
-                initial_pkgs_to_find_candidates
-                    .push(get_pkg_info_from_path(&cwd, true)?);
+                let app_pkg_ = get_pkg_info_from_path(&cwd, true)?;
+
+                initial_pkgs_to_find_candidates.push(app_pkg_.clone());
 
                 all_existing_local_pkgs =
                     tman_get_all_existed_pkgs_info_of_app(tman_config, &cwd)?;
 
+                all_candidates
+                    .entry((&app_pkg_).into())
+                    .or_default()
+                    .insert((&app_pkg_).into(), app_pkg_.clone());
+
                 filter_compatible_pkgs_to_candidates(
                     tman_config,
                     &all_existing_local_pkgs,
-                    &mut all_candidates,
+                    // &mut all_candidates,
+                    &mut all_compatible_existing_local_pkgs,
                     &command_data.support,
                 );
             }
@@ -301,13 +318,20 @@ pub async fn execute_cmd(
                     fs::create_dir_all(path)?;
                 }
 
-                initial_pkgs_to_find_candidates
-                    .push(get_pkg_info_from_path(&cwd, true)?);
+                let extension_pkg_ = get_pkg_info_from_path(&cwd, true)?;
+
+                initial_pkgs_to_find_candidates.push(extension_pkg_.clone());
+
+                all_candidates
+                    .entry((&extension_pkg_).into())
+                    .or_default()
+                    .insert((&extension_pkg_).into(), extension_pkg_.clone());
 
                 filter_compatible_pkgs_to_candidates(
                     tman_config,
                     &initial_pkgs_to_find_candidates,
-                    &mut all_candidates,
+                    // &mut all_candidates,
+                    &mut all_compatible_existing_local_pkgs,
                     &command_data.support,
                 );
             }
@@ -337,6 +361,8 @@ pub async fn execute_cmd(
         dep_relationship_from_cmd_line
             .as_ref()
             .map(|rel| &rel.dependency),
+        // &all_existing_local_pkgs,
+        &all_compatible_existing_local_pkgs,
         all_candidates,
         locked_pkgs.as_ref(),
     )

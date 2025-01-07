@@ -36,7 +36,7 @@ class DefaultExtension(Extension):
         cmd_json = cmd.get_property_to_json()
         ten_env.log_info(f"DefaultExtension on_cmd json: {cmd_json}")
 
-        assert hasattr(self, "request_cmd") != True
+        assert hasattr(self, "request_cmd") is not True
 
         self.request_cmd = cmd
 
@@ -57,7 +57,10 @@ class DefaultExtension(Extension):
         pixel_fmt = new_image.get_pixel_fmt()
         timestamp = new_image.get_timestamp()
         print(
-            "DefaultExtension send video frame, width: %d, height: %d, pixel_fmt: %d, timestamp: %d"
+            (
+                "DefaultExtension send video frame, width: %d, height: %d, "
+                "pixel_fmt: %d, timestamp: %d"
+            )
             % (width, height, pixel_fmt, timestamp)
         )
 
@@ -66,7 +69,7 @@ class DefaultExtension(Extension):
     def on_video_frame(self, ten_env: TenEnv, video_frame: VideoFrame) -> None:
         ten_env.log_debug("on_video_frame")
 
-        assert hasattr(self, "request_cmd") == True
+        assert hasattr(self, "request_cmd") is True
 
         assert video_frame.get_height() == self.pixels.height
         assert video_frame.get_width() == self.pixels.width

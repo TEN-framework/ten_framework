@@ -51,6 +51,7 @@ def test_tman_publish():
     returncode, output_text = cmd_exec.run_cmd_realtime(
         [
             tman_bin,
+            "--yes",
             f"--config-file={config_file}",
             "publish",
         ],
