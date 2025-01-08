@@ -6,6 +6,7 @@
 //
 #include "gtest/gtest.h"
 #include "include_internal/ten_runtime/binding/cpp/ten.h"
+#include "ten_runtime/common/status_code.h"
 #include "tests/common/client/cpp/msgpack_tcp.h"
 #include "tests/ten_runtime/smoke/util/binding/cpp/check.h"
 
@@ -27,7 +28,7 @@ class test_predefined_graph : public ten::extension_t {
       "nodes": [{
         "type": "extension",
         "name": "normal_extension",
-        "addon": "start_incorrect_graph__normal_extension",
+        "addon": "not_existed_extension_addon",
         "app": "msgpack://127.0.0.1:8001/",
         "extension_group": "start_incorrect_graph__normal_extension_group"
       }]
@@ -39,7 +40,11 @@ class test_predefined_graph : public ten::extension_t {
         [this](ten::ten_env_t &ten_env, std::unique_ptr<ten::cmd_result_t> cmd,
                ten::error_t *err) {
           // result for the 'start_graph' command
+          auto status_code = cmd->get_status_code();
+          EXPECT_EQ(status_code, TEN_STATUS_CODE_ERROR);
+
           auto graph_id = cmd->get_property_string("detail");
+          EXPECT_EQ(graph_id, "");
 
           start_graph_cmd_is_done = true;
 

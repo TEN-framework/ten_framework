@@ -45,7 +45,7 @@ struct ten_extension_context_t {
   // thread, so we don't need to apply any locking mechanism for it.
   ten_list_t extension_threads;
 
-  size_t extension_threads_cnt_of_initted;
+  size_t extension_threads_cnt_of_ready;
   size_t extension_threads_cnt_of_closed;
 
   ten_list_t extension_groups_info_from_graph;

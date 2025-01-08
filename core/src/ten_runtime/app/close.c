@@ -175,19 +175,21 @@ void ten_app_check_termination_when_engine_closed(ten_app_t *self,
   if (self->long_running_mode) {
     TEN_LOGD("[%s] Don't close App due to it's in long running mode.",
              ten_app_get_uri(self));
-  }
-
-  // If we don't want to close/clean the app just because there is no
-  // 'works' behind, then just remove the following logic is enough.
-  //
-  // TODO(Wei): There might be orphan connections left just because there are no
-  // connection commands send through those connections before. If the client is
-  // bad, this will prevent the app from closing. If we continue to close the
-  // app if there are only orphan connections left, we can solve this issue.
-  // However, we need to carefully consider what is the correct solution for
-  // this situation.
-  if (/* ten_app_has_no_work(self) && */ !self->long_running_mode) {
-    ten_app_close(self, NULL);
+  } else {
+    // Here, we do not rely on whether the app has any remaining orphan
+    // connections to decide whether to shut it down. This is because if a bad
+    // client connects to the app but does not perform any subsequent actions,
+    // such as failing to send a `start_graph` command, the orphan connection
+    // will remain indefinitely. Consequently, if the decision to close the app
+    // is based on whether there are orphan connections, the app may never be
+    // able to shut down. If you want to prevent the app from terminating itself
+    // simply because there are no engines at a certain moment, you can use the
+    // app's `long_running_mode` mechanism. Once `long_running_mode` is enabled,
+    // the app must be explicitly closed using the `close_app` command. This is
+    // both normal and reasonable behavior.
+    if (ten_list_is_empty(&self->engines)) {
+      ten_app_close(self, NULL);
+    }
   }
 
   if (ten_app_is_closing(self)) {

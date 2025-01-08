@@ -6,6 +6,7 @@
 //
 #include "gtest/gtest.h"
 #include "include_internal/ten_runtime/binding/cpp/ten.h"
+#include "ten_runtime/binding/cpp/detail/msg/cmd/stop_graph.h"
 #include "tests/common/client/cpp/msgpack_tcp.h"
 #include "tests/ten_runtime/smoke/util/binding/cpp/check.h"
 
@@ -51,6 +52,8 @@ class test_predefined_graph : public ten::extension_t {
           nlohmann::json json =
               nlohmann::json::parse(cmd_result->get_property_to_json());
           if (cmd_result->get_status_code() == TEN_STATUS_CODE_OK) {
+            auto graph_id = cmd_result->get_property_string("detail");
+
             auto hello_world_cmd = ten::cmd_t::create("hello_world");
             hello_world_cmd->set_dest("msgpack://127.0.0.1:8001/",
                                       json["detail"].get<std::string>().c_str(),
@@ -58,24 +61,37 @@ class test_predefined_graph : public ten::extension_t {
                                       "normal_extension");
             ten_env.send_cmd(
                 std::move(hello_world_cmd),
-                [&](ten::ten_env_t &ten_env,
-                    std::unique_ptr<ten::cmd_result_t> cmd_result,
-                    ten::error_t *err) {
+                [&, graph_id](ten::ten_env_t &ten_env,
+                              std::unique_ptr<ten::cmd_result_t> cmd_result,
+                              ten::error_t *err) {
                   nlohmann::json json =
                       nlohmann::json::parse(cmd_result->get_property_to_json());
                   if (cmd_result->get_status_code() == TEN_STATUS_CODE_OK) {
-                    normal_extension_is_ready = true;
+                    // Shut down the graph; otherwise, the app won't be able to
+                    // close because there is still a running engine/graph.
+                    auto stop_graph_cmd = ten::cmd_stop_graph_t::create();
+                    stop_graph_cmd->set_dest("localhost", nullptr, nullptr,
+                                             nullptr);
+                    stop_graph_cmd->set_graph_id(graph_id.c_str());
 
-                    if (command_1 != nullptr) {
-                      nlohmann::json const detail =
-                          R"({"id": 1, "name": "a"})"_json;
-                      auto cmd_result =
-                          ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
-                      cmd_result->set_property_from_json("detail",
-                                                         detail.dump().c_str());
-                      ten_env.return_result(std::move(cmd_result),
-                                            std::move(command_1));
-                    }
+                    ten_env.send_cmd(
+                        std::move(stop_graph_cmd),
+                        [&](ten::ten_env_t &ten_env,
+                            std::unique_ptr<ten::cmd_result_t> cmd_result,
+                            ten::error_t *err) {
+                          normal_extension_is_ready = true;
+
+                          if (command_1 != nullptr) {
+                            nlohmann::json const detail =
+                                R"({"id": 1, "name": "a"})"_json;
+                            auto cmd_result =
+                                ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
+                            cmd_result->set_property_from_json(
+                                "detail", detail.dump().c_str());
+                            ten_env.return_result(std::move(cmd_result),
+                                                  std::move(command_1));
+                          }
+                        });
                   }
                 });
           }

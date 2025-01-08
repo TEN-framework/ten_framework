@@ -45,7 +45,7 @@ class test_predefined_graph : public ten::extension_t {
 
   static void start_graph_and_greet(
       std::string graph_name, ten::ten_env_t &ten_env,
-      const std::function<void(ten::ten_env_t &)> &cb) {
+      const std::function<void(ten::ten_env_t &, const std::string &)> &cb) {
     auto start_graph_cmd = ten::cmd_start_graph_t::create();
     start_graph_cmd->set_dest("localhost", nullptr, nullptr, nullptr);
     start_graph_cmd->set_predefined_graph_name(graph_name.c_str());
@@ -67,39 +67,83 @@ class test_predefined_graph : public ten::extension_t {
 
           ten_env.send_cmd(
               std::move(hello_world_cmd),
-              [cb](ten::ten_env_t &ten_env,
-                   std::unique_ptr<ten::cmd_result_t> cmd, ten::error_t *err) {
+              [cb, graph_id](ten::ten_env_t &ten_env,
+                             std::unique_ptr<ten::cmd_result_t> cmd,
+                             ten::error_t *err) {
                 auto status_code = cmd->get_status_code();
                 ASSERT_EQ(status_code, TEN_STATUS_CODE_OK);
 
                 auto detail = cmd->get_property_string("detail");
                 ASSERT_EQ(detail, "hello world, too");
 
-                cb(ten_env);
+                cb(ten_env, graph_id);
               });
         });
   }
 
   void on_start(ten::ten_env_t &ten_env) override {
-    start_graph_and_greet("graph_1", ten_env, [](ten::ten_env_t &ten_env) {
-      start_graph_and_greet("graph_2", ten_env, [](ten::ten_env_t &ten_env) {
-        ten_env.on_start_done();
-      });
-    });
+    start_graph_and_greet(
+        "graph_1", ten_env,
+        [this](ten::ten_env_t &ten_env, const std::string &graph_id) {
+          this->graph_id_1 = graph_id;
+
+          start_graph_and_greet(
+              "graph_2", ten_env,
+              [this](ten::ten_env_t &ten_env, const std::string &graph_id) {
+                this->graph_id_2 = graph_id;
+
+                ten_env.on_start_done();
+              });
+        });
   }
 
   void on_cmd(ten::ten_env_t &ten_env,
               std::unique_ptr<ten::cmd_t> cmd) override {
     if (cmd->get_name() == "test") {
-      nlohmann::json detail = {{"id", 1}, {"name", "a"}};
+      test_cmd = std::move(cmd);
 
-      auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
-      cmd_result->set_property_from_json("detail", detail.dump().c_str());
-      ten_env.return_result(std::move(cmd_result), std::move(cmd));
+      // Shut down the graph 1; otherwise, the app won't be able to close
+      // because there is still a running engine/graph.
+      auto stop_graph_1_cmd = ten::cmd_stop_graph_t::create();
+      stop_graph_1_cmd->set_dest("localhost", nullptr, nullptr, nullptr);
+      stop_graph_1_cmd->set_graph_id(graph_id_1.c_str());
+
+      ten_env.send_cmd(
+          std::move(stop_graph_1_cmd),
+          [&](ten::ten_env_t &ten_env,
+              std::unique_ptr<ten::cmd_result_t> cmd_result,
+              ten::error_t *err) {
+            // Shut down the graph 2; otherwise, the app won't be able to close
+            // because there is still a running engine/graph.
+            auto stop_graph_2_cmd = ten::cmd_stop_graph_t::create();
+            stop_graph_2_cmd->set_dest("localhost", nullptr, nullptr, nullptr);
+            stop_graph_2_cmd->set_graph_id(graph_id_2.c_str());
+
+            ten_env.send_cmd(
+                std::move(stop_graph_2_cmd),
+                [&](ten::ten_env_t &ten_env,
+                    std::unique_ptr<ten::cmd_result_t> cmd_result,
+                    ten::error_t *err) {
+                  nlohmann::json detail = {{"id", 1}, {"name", "a"}};
+
+                  auto final_cmd_result =
+                      ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
+                  final_cmd_result->set_property_from_json(
+                      "detail", detail.dump().c_str());
+                  ten_env.return_result(std::move(final_cmd_result),
+                                        std::move(test_cmd));
+                });
+          });
     } else {
       TEN_ASSERT(0, "Should not happen.");
     }
   }
+
+ private:
+  std::string graph_id_1;
+  std::string graph_id_2;
+
+  std::unique_ptr<ten::cmd_t> test_cmd;
 };
 
 class test_app_1 : public ten::app_t {

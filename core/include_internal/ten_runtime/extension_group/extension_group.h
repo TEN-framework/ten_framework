@@ -84,6 +84,11 @@ typedef struct ten_extension_group_t {
   // ten_extension_addon_and_instance_name_pair_t
   ten_list_t extension_addon_and_instance_name_pairs;
 
+  // The error encountered in the extension thread before completing all
+  // initializations (i.e., before starting the lifecycle stages of all included
+  // extensions). For example, a failure to create extensions.
+  ten_error_t err_before_ready;
+
   ten_value_t manifest;
   ten_value_t property;
 
