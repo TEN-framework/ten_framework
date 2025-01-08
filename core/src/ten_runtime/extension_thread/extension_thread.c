@@ -449,10 +449,6 @@ static void ten_extension_thread_start_life_cycle_of_all_extensions_task(
 
   ten_list_foreach (&self->extensions, iter) {
     ten_extension_t *extension = ten_ptr_listnode_get(iter.node);
-    if (extension == (ten_extension_t *)-1) {
-      continue;
-    }
-
     TEN_ASSERT(extension && ten_extension_check_integrity(extension, true),
                "Should not happen.");
 
@@ -488,6 +484,11 @@ static void ten_engine_on_all_extension_threads_are_ready(
       ten_list_size(&extension_context->extension_threads)) {
     bool error_occurred = false;
 
+    // Check if there were any errors during the creation and/or initialization
+    // of any extension thread/group. If errors are found, shut down the
+    // engine/graph and return the corresponding result to the original
+    // requester.
+
     ten_list_foreach (&extension_context->extension_groups, iter) {
       ten_extension_group_t *extension_group = ten_ptr_listnode_get(iter.node);
       TEN_ASSERT(extension_group && ten_extension_group_check_integrity(
@@ -522,7 +523,6 @@ static void ten_engine_on_all_extension_threads_are_ready(
       ten_msg_set_property(cmd_result, "detail",
                            ten_value_create_string(body_str), NULL);
 
-      // =-=-=
       // Mark the engine that it could start to handle messages.
       self->is_ready_to_handle_msg = true;
 
@@ -537,7 +537,6 @@ static void ten_engine_on_all_extension_threads_are_ready(
     ten_shared_ptr_destroy(state_requester_cmd);
     extension_context->state_requester_cmd = NULL;
 
-    // =-=-=
     if (error_occurred) {
       ten_app_t *app = self->app;
       TEN_ASSERT(app && ten_app_check_integrity(app, false),
@@ -549,11 +548,13 @@ static void ten_engine_on_all_extension_threads_are_ready(
       ten_msg_clear_and_set_dest(stop_graph_cmd, ten_app_get_uri(app),
                                  ten_engine_get_id(self, false), NULL, NULL,
                                  NULL);
+
       ten_env_send_cmd(self->ten_env, stop_graph_cmd, NULL, NULL, NULL);
+
       ten_shared_ptr_destroy(stop_graph_cmd);
     } else {
       // Because the engine is just ready to handle messages, hence, we trigger
-      // the engine to handle any external messages if any.
+      // the engine to handle any _pending_/_cached_ external messages if any.
       ten_engine_handle_in_msgs_async(self);
     }
   }
@@ -582,11 +583,6 @@ ten_engine_find_extension_info_for_all_extensions_of_extension_thread(
 
   ten_list_foreach (&extension_thread->extensions, iter) {
     ten_extension_t *extension = ten_ptr_listnode_get(iter.node);
-
-    if (extension == (ten_extension_t *)-1) {
-      continue;
-    }
-
     TEN_ASSERT(ten_extension_check_integrity(extension, false),
                "Should not happen.");
 
@@ -640,11 +636,6 @@ void ten_extension_thread_add_all_created_extensions(
 
   ten_list_foreach (&self->extensions, iter) {
     ten_extension_t *extension = ten_ptr_listnode_get(iter.node);
-
-    if (extension == (ten_extension_t *)-1) {
-      continue;
-    }
-
     TEN_ASSERT(ten_extension_check_integrity(extension, true),
                "Should not happen.");
 

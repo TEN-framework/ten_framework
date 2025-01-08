@@ -26,6 +26,11 @@
 
 #define TEN_EXTENSION_SIGNATURE 0xE1627776E09A723CU
 
+// In most modern operating systems, `-1` is not a valid user-space address.
+// Therefore, we use this tricky approach to represent the value of a pointer to
+// an extension that was not successfully created.
+#define TEN_EXTENSION_UNSUCCESSFULLY_CREATED ((ten_extension_t *)-1)
+
 typedef struct ten_env_t ten_env_t;
 typedef struct ten_extension_t ten_extension_t;
 typedef struct ten_audio_frame_t ten_audio_frame_t;

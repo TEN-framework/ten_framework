@@ -112,6 +112,7 @@ static bool ten_send_msg_internal(
           ten_env_get_attached_extension_group(self);
       TEN_ASSERT(extension_group, "Should not happen.");
 
+      // =-=-=
       result = ten_extension_group_handle_out_msg(extension_group, msg, err);
       break;
     }

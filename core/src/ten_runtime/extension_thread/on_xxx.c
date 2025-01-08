@@ -116,16 +116,14 @@ void ten_extension_thread_stop_life_cycle_of_all_extensions(
   ten_extension_thread_set_state(self,
                                  TEN_EXTENSION_THREAD_STATE_PREPARE_TO_CLOSE);
 
-  // =-=-=
   if (ten_list_is_empty(&self->extensions)) {
+    // This extension group does not contain any extensions, so it can directly
+    // proceed to the deinitialization phase of the extension group.
     ten_extension_group_on_deinit(self->extension_group);
   } else {
     // Loop for all the containing extensions, and call their on_stop().
     ten_list_foreach (&self->extensions, iter) {
       ten_extension_t *extension = ten_ptr_listnode_get(iter.node);
-      if (extension == (ten_extension_t *)-1) {
-        continue;
-      }
       TEN_ASSERT(ten_extension_check_integrity(extension, true),
                  "Should not happen.");
 

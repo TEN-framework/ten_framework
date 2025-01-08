@@ -15,12 +15,6 @@ typedef struct ten_cmd_stop_graph_t {
   ten_value_t graph_id;  // string. The target engine ID to be shut down.
 } ten_cmd_stop_graph_t;
 
-TEN_RUNTIME_PRIVATE_API ten_string_t *ten_raw_cmd_stop_graph_get_graph_id(
-    ten_cmd_stop_graph_t *self);
-
-TEN_RUNTIME_PRIVATE_API ten_string_t *ten_cmd_stop_graph_get_graph_id(
-    ten_shared_ptr_t *self);
-
 TEN_RUNTIME_PRIVATE_API void ten_raw_cmd_stop_graph_as_msg_destroy(
     ten_msg_t *self);
 

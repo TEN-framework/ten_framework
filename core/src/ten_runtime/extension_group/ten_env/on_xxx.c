@@ -142,7 +142,10 @@ void ten_extension_group_on_create_extensions_done(ten_extension_group_t *self,
                  ten_extension_thread_check_integrity(extension_thread, true),
              "Should not happen.");
 
-  // =-=-=
+  // Remove the extensions that were not successfully created from the list of
+  // created extensions to determine the actual extensions for this extension
+  // group/thread. Later, when this extension group/thread needs to shut down,
+  // only these actual extensions need to be handled, ensuring correctness.
   ten_list_iterator_t iter = ten_list_begin(extensions);
   while (!ten_list_iterator_is_end(iter)) {
     ten_extension_t *extension = (ten_extension_t *)ten_ptr_listnode_get(
@@ -151,7 +154,7 @@ void ten_extension_group_on_create_extensions_done(ten_extension_group_t *self,
     ten_listnode_t *current_node = iter.node;
     iter = ten_list_iterator_next(iter);
 
-    if (extension == (ten_extension_t *)-1) {
+    if (extension == TEN_EXTENSION_UNSUCCESSFULLY_CREATED) {
       ten_list_remove_node(extensions, current_node);
     }
   }
@@ -161,10 +164,6 @@ void ten_extension_group_on_create_extensions_done(ten_extension_group_t *self,
   ten_list_foreach (&extension_thread->extensions, iter) {
     ten_extension_t *extension = ten_ptr_listnode_get(iter.node);
     TEN_ASSERT(extension, "Invalid argument.");
-
-    if (extension == (ten_extension_t *)-1) {
-      continue;
-    }
 
     ten_extension_inherit_thread_ownership(extension, extension_thread);
     TEN_ASSERT(ten_extension_check_integrity(extension, true),

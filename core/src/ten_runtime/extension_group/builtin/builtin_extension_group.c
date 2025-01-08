@@ -15,6 +15,7 @@
 #include "include_internal/ten_runtime/addon/extension_group/extension_group.h"
 #include "include_internal/ten_runtime/common/constant_str.h"
 #include "include_internal/ten_runtime/engine/engine.h"
+#include "include_internal/ten_runtime/extension/extension.h"
 #include "include_internal/ten_runtime/extension/extension_addon_and_instance_name_pair.h"
 #include "include_internal/ten_runtime/extension_context/extension_context.h"
 #include "include_internal/ten_runtime/extension_group/extension_group.h"
@@ -102,8 +103,13 @@ static void on_addon_create_extension_done(ten_env_t *ten_env,
         "Failed to create extension %s",
         ten_string_get_raw_str(&create_extension_done_ctx->extension_name));
 
-    // =-=-=
-    ten_list_push_ptr_back(results, (void *)-1, NULL);
+    // Use a value that is absolutely incorrect to represent an extension that
+    // could not be successfully created. This ensures that the final count in
+    // the `results` matches the expected number; otherwise, it would get stuck,
+    // endlessly waiting for the desired number of extensions to be created. In
+    // later steps, these special, unsuccessfully created extension instances
+    // will be removed.
+    ten_list_push_ptr_back(results, TEN_EXTENSION_UNSUCCESSFULLY_CREATED, NULL);
   }
 
   if (ten_list_size(results) ==

@@ -134,7 +134,6 @@ static void ten_engine_handle_in_msgs_sync(ten_engine_t *self) {
     } else {
       switch (ten_msg_get_type(msg)) {
         case TEN_MSG_TYPE_CMD_START_GRAPH:
-        case TEN_MSG_TYPE_CMD_STOP_GRAPH:
         case TEN_MSG_TYPE_CMD_RESULT:
           // The only message types which can be handled before the engine is
           // ready is relevant to 'start_graph' command.
@@ -200,7 +199,7 @@ void ten_engine_append_to_in_msgs_queue(ten_engine_t *self,
   ten_engine_handle_in_msgs_async(self);
 }
 
-void ten_engine_handle_msg(ten_engine_t *self, ten_shared_ptr_t *msg) {
+static void ten_engine_handle_msg(ten_engine_t *self, ten_shared_ptr_t *msg) {
   TEN_ASSERT(self && ten_engine_check_integrity(self, true),
              "Invalid argument.");
   TEN_ASSERT(msg && ten_msg_check_integrity(msg), "Should not happen.");
