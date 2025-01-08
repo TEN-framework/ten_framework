@@ -15,5 +15,5 @@
 
 typedef struct ten_extension_group_t ten_extension_group_t;
 
-TEN_RUNTIME_PRIVATE_API bool ten_extension_group_handle_out_msg(
+TEN_RUNTIME_PRIVATE_API bool ten_extension_group_dispatch_msg(
     ten_extension_group_t *self, ten_shared_ptr_t *msg, ten_error_t *err);

@@ -103,7 +103,7 @@ static bool ten_send_msg_internal(
       ten_extension_t *extension = ten_env_get_attached_extension(self);
       TEN_ASSERT(extension, "Should not happen.");
 
-      result = ten_extension_handle_out_msg(extension, msg, err);
+      result = ten_extension_dispatch_msg(extension, msg, err);
       break;
     }
 
@@ -112,8 +112,7 @@ static bool ten_send_msg_internal(
           ten_env_get_attached_extension_group(self);
       TEN_ASSERT(extension_group, "Should not happen.");
 
-      // =-=-=
-      result = ten_extension_group_handle_out_msg(extension_group, msg, err);
+      result = ten_extension_group_dispatch_msg(extension_group, msg, err);
       break;
     }
 
@@ -129,7 +128,7 @@ static bool ten_send_msg_internal(
       ten_app_t *app = ten_env_get_attached_app(self);
       TEN_ASSERT(app, "Should not happen.");
 
-      result = ten_app_handle_out_msg(app, msg, err);
+      result = ten_app_dispatch_msg(app, msg, err);
       break;
     }
 

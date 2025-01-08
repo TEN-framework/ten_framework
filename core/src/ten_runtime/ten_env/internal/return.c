@@ -57,7 +57,7 @@ static bool ten_env_return_result_internal(
       TEN_ASSERT(extension && ten_extension_check_integrity(extension, true),
                  "Invalid use of extension %p.", extension);
 
-      result = ten_extension_handle_out_msg(extension, result_cmd, err);
+      result = ten_extension_dispatch_msg(extension, result_cmd, err);
       break;
     }
 
@@ -68,9 +68,8 @@ static bool ten_env_return_result_internal(
                      ten_extension_group_check_integrity(extension_group, true),
                  "Invalid use of extension_group %p.", extension_group);
 
-      // =-=-=
       result =
-          ten_extension_group_handle_out_msg(extension_group, result_cmd, err);
+          ten_extension_group_dispatch_msg(extension_group, result_cmd, err);
       break;
     }
 

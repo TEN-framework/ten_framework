@@ -611,17 +611,8 @@ static TEN_EXTENSION_DETERMINE_OUT_MSGS_RESULT ten_extension_determine_out_msgs(
   }
 }
 
-static void ten_extension_dispatch_msg(ten_extension_t *self,
-                                       ten_shared_ptr_t *msg) {
-  TEN_ASSERT(self && ten_extension_check_integrity(self, true) && msg &&
-                 ten_msg_check_integrity(msg),
-             "Should not happen.");
-
-  ten_extension_thread_dispatch_msg(self->extension_thread, msg);
-}
-
-bool ten_extension_handle_out_msg(ten_extension_t *self, ten_shared_ptr_t *msg,
-                                  ten_error_t *err) {
+bool ten_extension_dispatch_msg(ten_extension_t *self, ten_shared_ptr_t *msg,
+                                ten_error_t *err) {
   TEN_ASSERT(self && ten_extension_check_integrity(self, true),
              "Should not happen.");
   TEN_ASSERT(msg && ten_msg_check_integrity(msg), "Should not happen.");
@@ -739,7 +730,7 @@ bool ten_extension_handle_out_msg(ten_extension_t *self, ten_shared_ptr_t *msg,
     TEN_ASSERT(result_msg && ten_msg_check_integrity(result_msg),
                "Invalid argument.");
 
-    ten_extension_dispatch_msg(self, result_msg);
+    ten_extension_thread_dispatch_msg(self->extension_thread, msg);
   }
 
 done:

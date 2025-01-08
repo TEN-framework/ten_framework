@@ -14,10 +14,8 @@
 #include "include_internal/ten_runtime/extension_group/extension_group.h"
 #include "include_internal/ten_runtime/msg/msg.h"
 
-// =-=-= handle_out_msg 统一成 dispatch_msg?
-bool ten_extension_group_handle_out_msg(ten_extension_group_t *self,
-                                        ten_shared_ptr_t *msg,
-                                        ten_error_t *err) {
+bool ten_extension_group_dispatch_msg(ten_extension_group_t *self,
+                                      ten_shared_ptr_t *msg, ten_error_t *err) {
   ten_msg_set_src_to_extension_group(msg, self);
 
   ten_loc_t *dest_loc = ten_msg_get_first_dest_loc(msg);

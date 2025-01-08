@@ -249,7 +249,7 @@ TEN_RUNTIME_PRIVATE_API ten_path_in_t *
 ten_extension_get_cmd_return_path_from_itself(ten_extension_t *self,
                                               const char *cmd_id);
 
-TEN_RUNTIME_PRIVATE_API bool ten_extension_handle_out_msg(
+TEN_RUNTIME_PRIVATE_API bool ten_extension_dispatch_msg(
     ten_extension_t *extension, ten_shared_ptr_t *msg, ten_error_t *err);
 
 TEN_RUNTIME_PRIVATE_API ten_runloop_t *ten_extension_get_attached_runloop(

@@ -274,8 +274,8 @@ static bool ten_app_handle_stop_graph_cmd(ten_app_t *self,
   return true;
 }
 
-bool ten_app_handle_out_msg(ten_app_t *self, ten_shared_ptr_t *msg,
-                            ten_error_t *err) {
+bool ten_app_dispatch_msg(ten_app_t *self, ten_shared_ptr_t *msg,
+                          ten_error_t *err) {
   // The source of the out message is the current app.
   ten_msg_set_src_to_app(msg, self);
 
