@@ -6,18 +6,25 @@
 //
 #include "ten_runtime/ten_env/internal/on_xxx_done.h"
 
+#include "include_internal/ten_runtime/addon/extension/extension.h"
 #include "include_internal/ten_runtime/addon/ten_env/on_xxx.h"
 #include "include_internal/ten_runtime/app/app.h"
+#include "include_internal/ten_runtime/engine/engine.h"
 #include "include_internal/ten_runtime/engine/on_xxx.h"
 #include "include_internal/ten_runtime/extension/extension.h"
 #include "include_internal/ten_runtime/extension/on_xxx.h"
+#include "include_internal/ten_runtime/extension_context/extension_context.h"
 #include "include_internal/ten_runtime/extension_context/ten_env/on_xxx.h"
+#include "include_internal/ten_runtime/extension_group/builtin/builtin_extension_group.h"
 #include "include_internal/ten_runtime/extension_group/extension_group.h"
 #include "include_internal/ten_runtime/extension_group/on_xxx.h"
 #include "include_internal/ten_runtime/metadata/metadata_info.h"
 #include "include_internal/ten_runtime/ten_env/on_xxx_done.h"
 #include "include_internal/ten_runtime/ten_env/ten_env.h"
+#include "ten_runtime/msg/cmd/stop_graph/cmd.h"
+#include "ten_runtime/msg/cmd_result/cmd_result.h"
 #include "ten_runtime/ten_env/ten_env.h"
+#include "ten_utils/lib/error.h"
 #include "ten_utils/macro/check.h"
 #include "ten_utils/macro/mark.h"
 
@@ -111,8 +118,9 @@ bool ten_env_on_deinit_done(ten_env_t *self, TEN_UNUSED ten_error_t *err) {
   return true;
 }
 
-bool ten_env_on_create_extensions_done(ten_env_t *self, ten_list_t *extensions,
-                                       TEN_UNUSED ten_error_t *err) {
+bool ten_env_on_create_extensions_done(
+    ten_env_t *self, ten_extension_group_create_extensions_done_ctx_t *ctx,
+    TEN_UNUSED ten_error_t *err) {
   TEN_ASSERT(self, "Invalid argument.");
   TEN_ASSERT(ten_env_check_integrity(self, true), "Invalid use of ten_env %p.",
              self);
@@ -125,7 +133,7 @@ bool ten_env_on_create_extensions_done(ten_env_t *self, ten_list_t *extensions,
                  ten_extension_group_check_integrity(extension_group, true),
              "Should not happen.");
 
-  ten_extension_group_on_create_extensions_done(extension_group, extensions);
+  ten_extension_group_on_create_extensions_done(extension_group, &ctx->results);
 
   return true;
 }

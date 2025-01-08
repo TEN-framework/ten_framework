@@ -47,7 +47,7 @@ struct ten_engine_t {
 
   // This means that the engine can start to handle messages, i.e. all the
   // extension threads are started successfully.
-  bool is_ready_to_handle_msg;
+  bool is_ready_to_handle_msg;  // =-=-= 可以拿掉?
 
   // When app creates an engine, it will create a randomized graph ID for the
   // engine. It _must_ be a UUID4 string.

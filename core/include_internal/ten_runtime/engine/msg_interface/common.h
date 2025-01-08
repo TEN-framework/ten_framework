@@ -23,5 +23,5 @@ TEN_RUNTIME_PRIVATE_API void ten_engine_handle_in_msgs_async(
 TEN_RUNTIME_PRIVATE_API void ten_engine_handle_msg(ten_engine_t *self,
                                                    ten_shared_ptr_t *msg);
 
-TEN_RUNTIME_PRIVATE_API void ten_engine_dispatch_msg(ten_engine_t *self,
+TEN_RUNTIME_PRIVATE_API bool ten_engine_dispatch_msg(ten_engine_t *self,
                                                      ten_shared_ptr_t *msg);

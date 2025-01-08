@@ -22,6 +22,7 @@
 #include "ten_runtime/ten_env/ten_env.h"
 #include "ten_utils/container/list_node.h"
 #include "ten_utils/lib/alloc.h"
+#include "ten_utils/lib/error.h"
 #include "ten_utils/lib/ref.h"
 #include "ten_utils/lib/smart_ptr.h"
 #include "ten_utils/macro/check.h"
@@ -87,6 +88,7 @@ ten_extension_group_t *ten_extension_group_create_internal(
   self->ten_env = NULL;
 
   ten_list_init(&self->extension_addon_and_instance_name_pairs);
+  ten_error_init(&self->err_before_ready);
 
   ten_value_init_object_with_move(&self->manifest, NULL);
   ten_value_init_object_with_move(&self->property, NULL);
@@ -134,6 +136,7 @@ void ten_extension_group_destroy(ten_extension_group_t *self) {
     ten_env_destroy(self->ten_env);
   }
 
+  ten_error_deinit(&self->err_before_ready);
   ten_list_clear(&self->extension_addon_and_instance_name_pairs);
 
   ten_value_deinit(&self->manifest);

@@ -14,6 +14,7 @@
 #include "include_internal/ten_runtime/extension_group/extension_group.h"
 #include "include_internal/ten_runtime/msg/msg.h"
 
+// =-=-= handle_out_msg 统一成 dispatch_msg?
 bool ten_extension_group_handle_out_msg(ten_extension_group_t *self,
                                         ten_shared_ptr_t *msg,
                                         ten_error_t *err) {

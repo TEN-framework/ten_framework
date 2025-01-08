@@ -6,7 +6,6 @@
 //
 #include "include_internal/ten_runtime/app/app.h"
 #include "include_internal/ten_runtime/app/msg_interface/common.h"
-#include "include_internal/ten_runtime/common/loc.h"
 #include "include_internal/ten_runtime/connection/connection.h"
 #include "include_internal/ten_runtime/engine/engine.h"
 #include "include_internal/ten_runtime/engine/msg_interface/stop_graph.h"

@@ -7,6 +7,8 @@
 #include "ten_runtime/ten_env/internal/return.h"
 
 #include "include_internal/ten_runtime/common/loc.h"
+#include "include_internal/ten_runtime/engine/engine.h"
+#include "include_internal/ten_runtime/engine/msg_interface/common.h"
 #include "include_internal/ten_runtime/extension/extension.h"
 #include "include_internal/ten_runtime/extension_group/extension_group.h"
 #include "include_internal/ten_runtime/extension_group/msg_interface/common.h"
@@ -68,6 +70,15 @@ static bool ten_env_return_result_internal(
 
       result =
           ten_extension_group_handle_out_msg(extension_group, result_cmd, err);
+      break;
+    }
+
+    case TEN_ENV_ATTACH_TO_ENGINE: {
+      ten_engine_t *engine = ten_env_get_attached_engine(self);
+      TEN_ASSERT(engine && ten_engine_check_integrity(engine, true),
+                 "Invalid use of engine %p.", engine);
+
+      result = ten_engine_dispatch_msg(engine, result_cmd);
       break;
     }
 
