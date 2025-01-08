@@ -65,12 +65,15 @@ void ten_addon_on_create_extension_instance_ctx_destroy(
 }
 
 ten_addon_create_extension_done_ctx_t *
-ten_addon_create_extension_done_ctx_create(ten_list_t *results) {
+ten_addon_create_extension_done_ctx_create(ten_list_t *results,
+                                           const char *extension_name) {
   ten_addon_create_extension_done_ctx_t *self =
       TEN_MALLOC(sizeof(ten_addon_create_extension_done_ctx_t));
   TEN_ASSERT(self, "Failed to allocate memory.");
 
   self->results = results;
+  ten_string_init_from_c_str(&self->extension_name, extension_name,
+                             strlen(extension_name));
   ten_error_init(&self->err);
 
   return self;
@@ -80,6 +83,7 @@ void ten_addon_create_extension_done_ctx_destroy(
     ten_addon_create_extension_done_ctx_t *self) {
   TEN_ASSERT(self, "Should not happen.");
 
+  ten_string_deinit(&self->extension_name);
   ten_error_deinit(&self->err);
 
   TEN_FREE(self);

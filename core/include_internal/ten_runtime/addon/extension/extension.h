@@ -20,6 +20,7 @@ typedef struct ten_extension_t ten_extension_t;
 
 typedef struct ten_addon_create_extension_done_ctx_t {
   ten_list_t *results;
+  ten_string_t extension_name;
   ten_error_t err;
 } ten_addon_create_extension_done_ctx_t;
 
@@ -28,7 +29,8 @@ TEN_RUNTIME_PRIVATE_API ten_addon_store_t *ten_extension_get_global_store(void);
 TEN_RUNTIME_PRIVATE_API void ten_addon_unregister_all_extension(void);
 
 TEN_RUNTIME_PRIVATE_API ten_addon_create_extension_done_ctx_t *
-ten_addon_create_extension_done_ctx_create(ten_list_t *results);
+ten_addon_create_extension_done_ctx_create(ten_list_t *results,
+                                           const char *extension_name);
 
 TEN_RUNTIME_PRIVATE_API void ten_addon_create_extension_done_ctx_destroy(
     ten_addon_create_extension_done_ctx_t *self);
