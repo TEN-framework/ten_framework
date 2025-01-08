@@ -199,9 +199,10 @@ const char *ten_msg_get_first_dest_uri(ten_shared_ptr_t *self) {
   return ten_raw_msg_get_first_dest_uri(ten_msg_get_raw_msg(self));
 }
 
-void ten_raw_msg_set_src(ten_msg_t *self, const char *uri, const char *graph_id,
-                         const char *extension_group_name,
-                         const char *extension_name) {
+static void ten_raw_msg_set_src(ten_msg_t *self, const char *uri,
+                                const char *graph_id,
+                                const char *extension_group_name,
+                                const char *extension_name) {
   TEN_ASSERT(self && ten_raw_msg_check_integrity(self), "Should not happen.");
   ten_loc_set(&self->src_loc, uri, graph_id, extension_group_name,
               extension_name);
@@ -276,7 +277,7 @@ void ten_msg_set_src_to_extension_group(
              "Should not happen.");
 
   ten_msg_set_src(self, ten_app_get_uri(engine->app),
-                  ten_engine_get_id(engine, true),
+                  ten_engine_get_id(engine, false),
                   ten_extension_group_get_name(extension_group, true), NULL);
 }
 
