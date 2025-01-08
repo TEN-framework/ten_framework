@@ -18,11 +18,11 @@
 #include "include_internal/ten_runtime/engine/engine.h"
 #include "include_internal/ten_runtime/engine/internal/migration.h"
 #include "include_internal/ten_runtime/engine/msg_interface/common.h"
-#include "include_internal/ten_runtime/msg/cmd_base/cmd/stop_graph/cmd.h"
 #include "include_internal/ten_runtime/msg/cmd_base/cmd_base.h"
 #include "include_internal/ten_runtime/msg/msg.h"
 #include "include_internal/ten_runtime/protocol/protocol.h"
 #include "ten_runtime/app/app.h"
+#include "ten_runtime/msg/cmd/stop_graph/cmd.h"
 #include "ten_runtime/msg/cmd_result/cmd_result.h"
 #include "ten_runtime/msg/msg.h"
 #include "ten_utils/container/list.h"
@@ -226,8 +226,10 @@ static bool ten_app_handle_stop_graph_cmd(ten_app_t *self,
              "Should not happen.");
   TEN_ASSERT(ten_msg_get_dest_cnt(cmd) == 1, "Should not happen.");
 
-  ten_string_t *dest_graph_id = ten_cmd_stop_graph_get_graph_id(cmd);
-  TEN_ASSERT(!ten_string_is_empty(dest_graph_id), "Should not happen.");
+  const char *dest_graph_id = ten_cmd_stop_graph_get_graph_id(cmd);
+  // If the app needs to handle the `stop_graph` command, it means the app must
+  // know the target's graph ID.
+  TEN_ASSERT(strlen(dest_graph_id), "Should not happen.");
 
   ten_engine_t *dest_engine = NULL;
 
@@ -235,7 +237,7 @@ static bool ten_app_handle_stop_graph_cmd(ten_app_t *self,
   ten_list_foreach (&self->engines, iter) {
     ten_engine_t *engine = ten_ptr_listnode_get(iter.node);
 
-    if (ten_string_is_equal(&engine->graph_id, dest_graph_id)) {
+    if (ten_string_is_equal_c_str(&engine->graph_id, dest_graph_id)) {
       dest_engine = engine;
       break;
     }
@@ -272,8 +274,8 @@ static bool ten_app_handle_stop_graph_cmd(ten_app_t *self,
   return true;
 }
 
-bool ten_app_handle_out_msg(ten_app_t *self, ten_shared_ptr_t *msg,
-                            ten_error_t *err) {
+bool ten_app_dispatch_msg(ten_app_t *self, ten_shared_ptr_t *msg,
+                          ten_error_t *err) {
   // The source of the out message is the current app.
   ten_msg_set_src_to_app(msg, self);
 

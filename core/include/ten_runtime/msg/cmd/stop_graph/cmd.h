@@ -13,3 +13,9 @@
 typedef struct ten_msg_t ten_msg_t;
 
 TEN_RUNTIME_API ten_shared_ptr_t *ten_cmd_stop_graph_create(void);
+
+TEN_RUNTIME_API const char *ten_cmd_stop_graph_get_graph_id(
+    ten_shared_ptr_t *self);
+
+TEN_RUNTIME_API bool ten_cmd_stop_graph_set_graph_id(ten_shared_ptr_t *self,
+                                                     const char *graph_id);

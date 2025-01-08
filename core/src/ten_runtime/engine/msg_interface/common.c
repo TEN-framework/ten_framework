@@ -25,6 +25,7 @@
 #include "include_internal/ten_runtime/msg/msg_info.h"
 #include "include_internal/ten_runtime/remote/remote.h"
 #include "ten_runtime/app/app.h"
+#include "ten_runtime/msg/msg.h"
 #include "ten_utils/container/list.h"
 #include "ten_utils/container/list_node.h"
 #include "ten_utils/io/runloop.h"
@@ -198,7 +199,7 @@ void ten_engine_append_to_in_msgs_queue(ten_engine_t *self,
   ten_engine_handle_in_msgs_async(self);
 }
 
-void ten_engine_handle_msg(ten_engine_t *self, ten_shared_ptr_t *msg) {
+static void ten_engine_handle_msg(ten_engine_t *self, ten_shared_ptr_t *msg) {
   TEN_ASSERT(self && ten_engine_check_integrity(self, true),
              "Invalid argument.");
   TEN_ASSERT(msg && ten_msg_check_integrity(msg), "Should not happen.");
@@ -229,7 +230,7 @@ void ten_engine_handle_msg(ten_engine_t *self, ten_shared_ptr_t *msg) {
   ten_error_deinit(&err);
 }
 
-void ten_engine_dispatch_msg(ten_engine_t *self, ten_shared_ptr_t *msg) {
+bool ten_engine_dispatch_msg(ten_engine_t *self, ten_shared_ptr_t *msg) {
   TEN_ASSERT(self && ten_engine_check_integrity(self, true),
              "Should not happen.");
   TEN_ASSERT(msg && ten_msg_check_integrity(msg), "Should not happen.");
@@ -239,7 +240,7 @@ void ten_engine_dispatch_msg(ten_engine_t *self, ten_shared_ptr_t *msg) {
 
   if (ten_engine_is_closing(self)) {
     // Do not dispatch the message if the engine is closing.
-    return;
+    return true;
   }
 
   ten_loc_t *dest_loc = ten_msg_get_first_dest_loc(msg);
@@ -331,4 +332,6 @@ void ten_engine_dispatch_msg(ten_engine_t *self, ten_shared_ptr_t *msg) {
       }
     }
   }
+
+  return true;
 }

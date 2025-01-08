@@ -6,13 +6,12 @@
 //
 #include "include_internal/ten_runtime/app/app.h"
 #include "include_internal/ten_runtime/app/msg_interface/common.h"
-#include "include_internal/ten_runtime/common/loc.h"
 #include "include_internal/ten_runtime/connection/connection.h"
 #include "include_internal/ten_runtime/engine/engine.h"
 #include "include_internal/ten_runtime/engine/msg_interface/stop_graph.h"
-#include "include_internal/ten_runtime/msg/cmd_base/cmd/stop_graph/cmd.h"
 #include "include_internal/ten_runtime/msg/msg.h"
 #include "include_internal/ten_runtime/remote/remote.h"
+#include "ten_runtime/msg/cmd/stop_graph/cmd.h"
 #include "ten_utils/lib/smart_ptr.h"
 #include "ten_utils/lib/string.h"
 #include "ten_utils/macro/check.h"
@@ -25,9 +24,9 @@ void ten_engine_handle_cmd_stop_graph(ten_engine_t *self, ten_shared_ptr_t *cmd,
   TEN_ASSERT(cmd && ten_msg_get_type(cmd) == TEN_MSG_TYPE_CMD_STOP_GRAPH,
              "Should not happen.");
 
-  ten_string_t *graph_id = ten_cmd_stop_graph_get_graph_id(cmd);
-  if (graph_id == NULL || ten_string_is_empty(graph_id) ||
-      ten_string_is_equal(graph_id, &self->graph_id)) {
+  const char *graph_id = ten_cmd_stop_graph_get_graph_id(cmd);
+  if (graph_id == NULL || !strlen(graph_id) ||
+      ten_string_is_equal_c_str(&self->graph_id, graph_id)) {
     // Suicide. Store the stop_graph command temporarily, so that it can be
     // used to return the cmd_result when the engine is shut down later.
     self->cmd_stop_graph = ten_shared_ptr_clone(cmd);

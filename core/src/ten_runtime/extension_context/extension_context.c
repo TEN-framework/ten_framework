@@ -81,7 +81,7 @@ ten_extension_context_t *ten_extension_context_create(ten_engine_t *engine) {
   ten_list_init(&self->extension_groups);
   ten_list_init(&self->extension_threads);
 
-  self->extension_threads_cnt_of_initted = 0;
+  self->extension_threads_cnt_of_ready = 0;
   self->extension_threads_cnt_of_closed = 0;
 
   self->extension_groups_cnt_of_being_destroyed = 0;

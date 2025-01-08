@@ -50,10 +50,6 @@ TEN_RUNTIME_API ten_addon_loader_t *ten_addon_loader_create(
 
 TEN_RUNTIME_API void ten_addon_loader_destroy(ten_addon_loader_t *self);
 
-TEN_RUNTIME_PRIVATE_API void ten_addon_loader_init(ten_addon_loader_t *self);
-
-TEN_RUNTIME_PRIVATE_API void ten_addon_loader_deinit(ten_addon_loader_t *self);
-
 TEN_RUNTIME_PRIVATE_API void ten_addon_loader_load_addon(
     ten_addon_loader_t *self, TEN_ADDON_TYPE addon_type,
     const char *addon_name);
