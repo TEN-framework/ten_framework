@@ -65,7 +65,9 @@ def test_mix_python_ext_nodejs():
         if rc != 0:
             assert False, "Failed to build TypeScript extensions."
 
-    bootstrap_cmd = os.path.join(base_path, "mix_python_ext_nodejs_app/bin/bootstrap")
+    bootstrap_cmd = os.path.join(
+        base_path, "mix_python_ext_nodejs_app/bin/bootstrap"
+    )
 
     bootstrap_process = subprocess.Popen(
         bootstrap_cmd, stdout=stdout, stderr=subprocess.STDOUT, env=my_env
@@ -128,5 +130,5 @@ def test_mix_python_ext_nodejs():
             source_root_path = os.path.join(base_path, source_pkg_name)
 
             # Testing complete. If builds are only created during the testing
-            # phase, we  can clear the build results to save disk space.
+            # phase, we can clear the build results to save disk space.
             build_pkg.cleanup(source_root_path, app_root_path)

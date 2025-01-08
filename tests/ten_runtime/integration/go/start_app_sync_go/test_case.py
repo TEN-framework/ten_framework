@@ -137,5 +137,5 @@ def test_start_app_sync_go():
         source_root_path = os.path.join(base_path, source_pkg_name)
 
         # Testing complete. If builds are only created during the testing phase,
-        # we  can clear the build results to save disk space.
+        # we can clear the build results to save disk space.
         build_pkg.cleanup(source_root_path, app_root_path)

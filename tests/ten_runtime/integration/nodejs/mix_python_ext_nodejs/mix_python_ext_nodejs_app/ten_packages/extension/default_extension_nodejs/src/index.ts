@@ -15,7 +15,7 @@ import {
   StatusCode,
 } from "ten-runtime-nodejs";
 
-function assert(condition: boolean, message: string) {
+function assert(condition: boolean, message: string): asserts condition {
   if (!condition) {
     throw new Error(message);
   }
@@ -72,17 +72,12 @@ class DefaultExtension extends Extension {
     const [result, _] = await tenEnv.sendCmd(testCmd);
     assert(result !== null, "result is null");
 
-    const detailJson = result!.getPropertyToJson("detail");
+    const detailJson = result.getPropertyToJson("detail");
 
-    tenEnv.logInfo(
-      "received result detail:" + detailJson
-    );
+    tenEnv.logInfo("received result detail:" + detailJson);
 
     const cmdResult = CmdResult.Create(StatusCode.OK);
-    cmdResult.setPropertyString(
-      "detail",
-      detailJson
-    );
+    cmdResult.setPropertyString("detail", detailJson);
     tenEnv.returnResult(cmdResult, cmd);
   }
 }

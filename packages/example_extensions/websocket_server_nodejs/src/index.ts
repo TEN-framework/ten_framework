@@ -51,7 +51,6 @@ class WebsocketServerExtension extends Extension {
 
     this.httpServer = server;
 
-
     const wss = new WebSocketServer({ server });
 
     wss.on("connection", (ws) => {
@@ -65,7 +64,7 @@ class WebsocketServerExtension extends Extension {
       ws.on("close", () => {
         console.log("Client disconnected");
       });
-    })
+    });
   }
 
   async onStop(_tenEnv: TenEnv): Promise<void> {

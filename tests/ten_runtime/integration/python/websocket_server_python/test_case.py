@@ -115,7 +115,9 @@ def test_websocket_server_python():
                 print("Using AddressSanitizer library.")
                 my_env["LD_PRELOAD"] = libasan_path
 
-    server_cmd = os.path.join(base_path, "websocket_server_python_app/bin/start")
+    server_cmd = os.path.join(
+        base_path, "websocket_server_python_app/bin/start"
+    )
 
     if not os.path.isfile(server_cmd):
         print(f"Server command '{server_cmd}' does not exist.")
@@ -162,5 +164,5 @@ def test_websocket_server_python():
             source_root_path = os.path.join(base_path, source_pkg_name)
 
             # Testing complete. If builds are only created during the testing
-            # phase, we  can clear the build results to save disk space.
+            # phase, we can clear the build results to save disk space.
             build_pkg.cleanup(source_root_path, app_root_path)

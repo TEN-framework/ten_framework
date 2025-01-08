@@ -112,5 +112,5 @@ def test_send_video_frame_nodejs():
             source_root_path = os.path.join(base_path, source_pkg_name)
 
             # Testing complete. If builds are only created during the testing
-            # phase, we  can clear the build results to save disk space.
+            # phase, we can clear the build results to save disk space.
             build_pkg.cleanup(source_root_path, app_root_path)
