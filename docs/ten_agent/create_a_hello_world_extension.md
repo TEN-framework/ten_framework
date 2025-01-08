@@ -75,9 +75,7 @@ By running the following commands, an extension called `hello_world` will be cre
 
 {% tabs %}
 {% tab title="Python" %}
-<pre class="language-bash" data-title=">_ Bash" data-overflow="wrap"><code class="lang-bash">cd agents
-
-<strong>tman install extension default_async_extension_python --template-mode --template-data package_name=hello_world --template-data class_name_prefix=HelloWorld
+<strong>tman create extension ./agents/ten_packages/extension/hello_world --template=default_async_extension_python --template-data class_name_prefix=HelloWorld
 </strong>
 </code></pre>
 {% endtab %}
@@ -85,7 +83,7 @@ By running the following commands, an extension called `hello_world` will be cre
 {% tab title="Go" %}
 <pre class="language-bash" data-title=">_ Bash" data-overflow="wrap"><code class="lang-bash">cd agents
 
-<strong>tman install extension default_extension_go --template-mode --template-data package_name=hello_world --template-data class_name_prefix=HelloWorld
+<strong>tman create extension ./agents/ten_packages/extension/hello_world --template=default_extension_go --template-data class_name_prefix=HelloWorld
 </strong>
 </code></pre>
 {% endtab %}
@@ -93,7 +91,7 @@ By running the following commands, an extension called `hello_world` will be cre
 {% tab title="C++" %}
 <pre class="language-bash" data-title=">_ Bash" data-overflow="wrap"><code class="lang-bash">cd agents
 
-<strong>tman install extension default_extension_cpp --template-mode --template-data package_name=hello_world --template-data class_name_prefix=HelloWorld
+<strong>tman create extension ./agents/ten_packages/extension/hello_world --template=default_extension_cpp --template-data class_name_prefix=HelloWorld
 </strong>
 </code></pre>
 {% endtab %}
@@ -102,11 +100,7 @@ By running the following commands, an extension called `hello_world` will be cre
 After running the command, the log will display something like this:
 
 <pre class="language-bash" data-title=">_ Bash"><code class="lang-bash">...
-  Creating manifest-lock.json...
-+  Installing packages...
-  <strong>[00:00:01] [########################################]      11/11      Done</strong>
-                <strong>:-)  Install successfully in 20 seconds</strong>
-...
+Package 'extension:./agents/ten_packages/extension/hello_world' created successfully in '/app' in 3 seconds.
 </code></pre>
 
 ## 4. Adding API to the extension
