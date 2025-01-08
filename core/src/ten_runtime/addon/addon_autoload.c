@@ -410,7 +410,7 @@ bool ten_addon_try_load_specific_addon_using_all_addon_loaders(
     TEN_ASSERT(addon_loader, "Should not happen.");
 
     if (addon_loader) {
-      addon_loader->on_load_addon(addon_loader, addon_type, addon_name);
+      ten_addon_loader_load_addon(addon_loader, addon_type, addon_name);
     }
   }
 
