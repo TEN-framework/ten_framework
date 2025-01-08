@@ -57,7 +57,7 @@ void ten_addon_loader_destroy(ten_addon_loader_t *self) {
   TEN_FREE(self);
 }
 
-void ten_addon_loader_init(ten_addon_loader_t *self) {
+static void ten_addon_loader_init(ten_addon_loader_t *self) {
   TEN_ASSERT(self && ten_addon_loader_check_integrity(self),
              "Invalid argument.");
 
@@ -66,7 +66,7 @@ void ten_addon_loader_init(ten_addon_loader_t *self) {
   }
 }
 
-void ten_addon_loader_deinit(ten_addon_loader_t *self) {
+static void ten_addon_loader_deinit(ten_addon_loader_t *self) {
   TEN_ASSERT(self && ten_addon_loader_check_integrity(self),
              "Invalid argument.");
 
