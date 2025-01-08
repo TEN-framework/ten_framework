@@ -57,7 +57,7 @@ void ten_addon_loader_destroy(ten_addon_loader_t *self) {
   TEN_FREE(self);
 }
 
-void ten_addon_loader_init(ten_addon_loader_t *self) {
+static void ten_addon_loader_init(ten_addon_loader_t *self) {
   TEN_ASSERT(self && ten_addon_loader_check_integrity(self),
              "Invalid argument.");
 
@@ -66,7 +66,7 @@ void ten_addon_loader_init(ten_addon_loader_t *self) {
   }
 }
 
-void ten_addon_loader_deinit(ten_addon_loader_t *self) {
+static void ten_addon_loader_deinit(ten_addon_loader_t *self) {
   TEN_ASSERT(self && ten_addon_loader_check_integrity(self),
              "Invalid argument.");
 
@@ -102,7 +102,7 @@ static void create_addon_loader_done(ten_env_t *ten_env,
   size_t desired_count = (size_t)cb_data;
 
   // Call `on_init` of the addon_loader to initialize the addon_loader.
-  addon_loader->on_init(addon_loader);
+  ten_addon_loader_init(addon_loader);
 
   ten_list_push_ptr_back(&g_addon_loaders, addon_loader, NULL);
 
@@ -154,6 +154,8 @@ void ten_addon_loader_addons_destroy_singleton_instance(void) {
     ten_addon_host_t *addon_host = addon_loader->addon_host;
     TEN_ASSERT(addon_host && ten_addon_host_check_integrity(addon_host),
                "Should not happen.");
+
+    ten_addon_loader_deinit(addon_loader);
 
     ten_addon_t *addon = addon_host->addon;
     TEN_ASSERT(addon && ten_addon_check_integrity(addon), "Should not happen.");
