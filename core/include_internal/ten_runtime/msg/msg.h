@@ -111,10 +111,6 @@ TEN_RUNTIME_PRIVATE_API ten_loc_t *ten_raw_msg_get_src_loc(ten_msg_t *self);
 TEN_RUNTIME_PRIVATE_API ten_loc_t *ten_raw_msg_get_first_dest_loc(
     ten_msg_t *self);
 
-TEN_RUNTIME_PRIVATE_API void ten_raw_msg_set_src(
-    ten_msg_t *self, const char *app_uri, const char *graph_id,
-    const char *extension_group_name, const char *extension_name);
-
 TEN_RUNTIME_PRIVATE_API void ten_msg_set_src(ten_shared_ptr_t *self,
                                              const char *app_uri,
                                              const char *graph_id,
