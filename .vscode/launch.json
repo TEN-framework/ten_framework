@@ -673,9 +673,9 @@
       "request": "launch",
       "program": "node",
       "args": [
-        "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/nodejs/http_server_nodejs/http_server_nodejs_app/build/start.js"
+        "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/nodejs/mix_python_ext_nodejs/mix_python_ext_nodejs_app/build/start.js"
       ],
-      "cwd": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/nodejs/http_server_nodejs/http_server_nodejs_app/",
+      "cwd": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/nodejs/mix_python_ext_nodejs/mix_python_ext_nodejs_app/",
       "env": {
         "LD_PRELOAD": "ten_packages/system/ten_runtime/lib/libasan.so",
         "NODE_PATH": "ten_packages/system/ten_runtime_nodejs/lib:$NODE_PATH",
@@ -689,9 +689,9 @@
       "program": "/usr/bin/node",
       "args": [
         "--expose-gc",
-        "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/nodejs/http_server_nodejs/http_server_nodejs_app/build/start.js"
+        "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/nodejs/mix_python_ext_nodejs/mix_python_ext_nodejs_app/build/start.js"
       ],
-      "cwd": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/nodejs/http_server_nodejs/http_server_nodejs_app/",
+      "cwd": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/nodejs/mix_python_ext_nodejs/mix_python_ext_nodejs_app/",
       "environment": [
         {
           "name": "LD_PRELOAD",
@@ -708,6 +708,10 @@
         {
           "name": "LSAN_OPTIONS",
           "value": "verbosity=1:log_threads=1"
+        },
+        {
+          "name": "TEN_ENABLE_MEMORY_TRACKING",
+          "value": "true"
         }
       ],
       "sourceFileMap": {

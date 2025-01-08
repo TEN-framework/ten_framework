@@ -43,6 +43,7 @@ group("python") {
       "standalone_test_python",
       "two_async_exts_one_group_python",
       "two_async_exts_python",
+      "websocket_server_python",
     ]
 
     if (ten_enable_python_binding && ten_enable_go_binding) {

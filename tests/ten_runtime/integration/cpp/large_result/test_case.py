@@ -131,5 +131,5 @@ def test_large_result_http():
         if build_config_args.ten_enable_integration_tests_prebuilt is False:
             source_root_path = os.path.join(base_path, source_pkg_name)
             # Testing complete. If builds are only created during the testing
-            # phase, we  can clear the build results to save disk space.
+            # phase, we can clear the build results to save disk space.
             build_pkg.cleanup(source_root_path, app_root_path)
