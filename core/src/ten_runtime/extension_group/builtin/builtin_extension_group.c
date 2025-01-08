@@ -32,6 +32,7 @@
 #include "ten_runtime/ten_env/internal/return.h"
 #include "ten_runtime/ten_env/ten_env.h"
 #include "ten_utils/container/list_ptr.h"
+#include "ten_utils/lib/string.h"
 #include "ten_utils/log/log.h"
 #include "ten_utils/macro/check.h"
 #include "ten_utils/macro/mark.h"
@@ -50,6 +51,10 @@ static void on_addon_create_extension_done(ten_env_t *ten_env,
       ten_env_get_attach_to(ten_env) == TEN_ENV_ATTACH_TO_EXTENSION_GROUP,
       "Invalid argument.");
 
+  ten_addon_create_extension_done_ctx_t *ctx =
+      (ten_addon_create_extension_done_ctx_t *)cb_data;
+  TEN_ASSERT(ctx, "Should not happen.");
+
   ten_extension_group_t *extension_group = ten_env_get_attached_target(ten_env);
   TEN_ASSERT(extension_group &&
                  ten_extension_group_check_integrity(extension_group, true),
@@ -61,14 +66,11 @@ static void on_addon_create_extension_done(ten_env_t *ten_env,
     TEN_ASSERT(ten_extension_check_integrity(extension, true),
                "Invalid argument.");
 
-    ten_addon_create_extension_done_ctx_t *ctx =
-        (ten_addon_create_extension_done_ctx_t *)cb_data;
-    TEN_ASSERT(ctx, "Should not happen.");
+    TEN_LOGI("Success to create extension %s",
+             ten_string_get_raw_str(&ctx->extension_name));
 
     ten_list_t *results = ctx->results;
     TEN_ASSERT(results, "Should not happen.");
-
-    ten_addon_create_extension_done_ctx_destroy(ctx);
 
     ten_list_push_ptr_back(results, extension, NULL);
 
@@ -85,6 +87,9 @@ static void on_addon_create_extension_done(ten_env_t *ten_env,
     }
   } else {
     // Failed to create the extension, failure path.
+
+    TEN_LOGI("Failed to create extension %s",
+             ten_string_get_raw_str(&ctx->extension_name));
 
     ten_extension_context_t *extension_context =
         extension_group->extension_context;
@@ -114,6 +119,8 @@ static void on_addon_create_extension_done(ten_env_t *ten_env,
                                NULL);
     ten_env_send_cmd(ten_env, stop_graph_cmd, NULL, NULL, NULL);
   }
+
+  ten_addon_create_extension_done_ctx_destroy(ctx);
 }
 
 static void on_addon_destroy_instance_done(ten_env_t *ten_env,
@@ -166,6 +173,11 @@ static void ten_builtin_extension_group_on_create_extensions(
     ten_env_on_create_extensions_done(ten_env, results, NULL);
     ten_list_destroy(results);
 
+    TEN_LOGI(
+        "%s is a group without any extensions, so it is considered that all "
+        "extensions have been successfully created.",
+        ten_string_get_raw_str(&self->name));
+
     // This extension group is empty, so it can be considered that all the
     // required extensions have been successfully created.
     return;
@@ -184,7 +196,8 @@ static void ten_builtin_extension_group_on_create_extensions(
     ten_string_t *extension_instance_name = &extension_name_info->instance_name;
 
     ten_addon_create_extension_done_ctx_t *ctx =
-        ten_addon_create_extension_done_ctx_create(results);
+        ten_addon_create_extension_done_ctx_create(
+            results, ten_string_get_raw_str(extension_instance_name));
 
     bool res = ten_addon_create_extension(
         ten_env, ten_string_get_raw_str(extension_addon_name),
