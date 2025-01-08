@@ -730,7 +730,7 @@ bool ten_extension_dispatch_msg(ten_extension_t *self, ten_shared_ptr_t *msg,
     TEN_ASSERT(result_msg && ten_msg_check_integrity(result_msg),
                "Invalid argument.");
 
-    ten_extension_thread_dispatch_msg(self->extension_thread, msg);
+    ten_extension_thread_dispatch_msg(self->extension_thread, result_msg);
   }
 
 done:
