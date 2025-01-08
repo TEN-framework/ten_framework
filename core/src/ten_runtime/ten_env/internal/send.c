@@ -10,6 +10,7 @@
 
 #include "include_internal/ten_runtime/app/msg_interface/common.h"
 #include "include_internal/ten_runtime/common/loc.h"
+#include "include_internal/ten_runtime/engine/msg_interface/common.h"
 #include "include_internal/ten_runtime/extension/extension.h"
 #include "include_internal/ten_runtime/extension/msg_not_connected_cnt.h"
 #include "include_internal/ten_runtime/extension_context/extension_context.h"
@@ -19,6 +20,7 @@
 #include "include_internal/ten_runtime/msg/msg.h"
 #include "include_internal/ten_runtime/ten_env/send.h"
 #include "include_internal/ten_runtime/ten_env/ten_env.h"
+#include "ten_runtime/app/app.h"
 #include "ten_runtime/common/errno.h"
 #include "ten_runtime/msg/cmd_result/cmd_result.h"
 #include "ten_runtime/msg/msg.h"
@@ -111,6 +113,14 @@ static bool ten_send_msg_internal(
       TEN_ASSERT(extension_group, "Should not happen.");
 
       result = ten_extension_group_handle_out_msg(extension_group, msg, err);
+      break;
+    }
+
+    case TEN_ENV_ATTACH_TO_ENGINE: {
+      ten_engine_t *engine = ten_env_get_attached_engine(self);
+      TEN_ASSERT(engine, "Should not happen.");
+
+      result = ten_engine_dispatch_msg(engine, msg);
       break;
     }
 

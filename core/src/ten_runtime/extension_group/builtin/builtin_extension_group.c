@@ -103,7 +103,7 @@ static void on_addon_create_extension_done(ten_env_t *ten_env,
         ten_string_get_raw_str(&create_extension_done_ctx->extension_name));
 
     // =-=-=
-    ten_list_push_ptr_back(results, (void *)1, NULL);
+    ten_list_push_ptr_back(results, (void *)-1, NULL);
   }
 
   if (ten_list_size(results) ==

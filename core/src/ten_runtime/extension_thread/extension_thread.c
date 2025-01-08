@@ -449,6 +449,10 @@ static void ten_extension_thread_start_life_cycle_of_all_extensions_task(
 
   ten_list_foreach (&self->extensions, iter) {
     ten_extension_t *extension = ten_ptr_listnode_get(iter.node);
+    if (extension == (ten_extension_t *)-1) {
+      continue;
+    }
+
     TEN_ASSERT(extension && ten_extension_check_integrity(extension, true),
                "Should not happen.");
 
@@ -546,6 +550,7 @@ static void ten_engine_on_all_extension_threads_are_ready(
                                  ten_engine_get_id(self, false), NULL, NULL,
                                  NULL);
       ten_env_send_cmd(self->ten_env, stop_graph_cmd, NULL, NULL, NULL);
+      ten_shared_ptr_destroy(stop_graph_cmd);
     } else {
       // Because the engine is just ready to handle messages, hence, we trigger
       // the engine to handle any external messages if any.
@@ -577,6 +582,11 @@ ten_engine_find_extension_info_for_all_extensions_of_extension_thread(
 
   ten_list_foreach (&extension_thread->extensions, iter) {
     ten_extension_t *extension = ten_ptr_listnode_get(iter.node);
+
+    if (extension == (ten_extension_t *)-1) {
+      continue;
+    }
+
     TEN_ASSERT(ten_extension_check_integrity(extension, false),
                "Should not happen.");
 
@@ -630,6 +640,11 @@ void ten_extension_thread_add_all_created_extensions(
 
   ten_list_foreach (&self->extensions, iter) {
     ten_extension_t *extension = ten_ptr_listnode_get(iter.node);
+
+    if (extension == (ten_extension_t *)-1) {
+      continue;
+    }
+
     TEN_ASSERT(ten_extension_check_integrity(extension, true),
                "Should not happen.");
 

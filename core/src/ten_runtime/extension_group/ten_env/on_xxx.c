@@ -142,11 +142,29 @@ void ten_extension_group_on_create_extensions_done(ten_extension_group_t *self,
                  ten_extension_thread_check_integrity(extension_thread, true),
              "Should not happen.");
 
+  // =-=-=
+  ten_list_iterator_t iter = ten_list_begin(extensions);
+  while (!ten_list_iterator_is_end(iter)) {
+    ten_extension_t *extension = (ten_extension_t *)ten_ptr_listnode_get(
+        ten_list_iterator_to_listnode(iter));
+
+    ten_listnode_t *current_node = iter.node;
+    iter = ten_list_iterator_next(iter);
+
+    if (extension == (ten_extension_t *)-1) {
+      ten_list_remove_node(extensions, current_node);
+    }
+  }
+
   ten_list_swap(&extension_thread->extensions, extensions);
 
   ten_list_foreach (&extension_thread->extensions, iter) {
     ten_extension_t *extension = ten_ptr_listnode_get(iter.node);
     TEN_ASSERT(extension, "Invalid argument.");
+
+    if (extension == (ten_extension_t *)-1) {
+      continue;
+    }
 
     ten_extension_inherit_thread_ownership(extension, extension_thread);
     TEN_ASSERT(ten_extension_check_integrity(extension, true),
