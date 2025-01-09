@@ -507,6 +507,9 @@ static void ten_engine_on_all_extension_threads_are_ready(
 
     ten_shared_ptr_t *cmd_result = NULL;
     if (error_occurred) {
+      TEN_LOGE("[%s] Failed to start the graph successfully, shutting it down.",
+               ten_engine_get_id(self, true));
+
       cmd_result = ten_cmd_result_create_from_cmd(TEN_STATUS_CODE_ERROR,
                                                   state_requester_cmd);
     } else {

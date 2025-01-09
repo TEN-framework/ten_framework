@@ -139,7 +139,7 @@ TEN_CPP_REGISTER_ADDON_AS_EXTENSION(predefined_graph_multi_app__extension_2,
 
 }  // namespace
 
-TEST(ExtensionTest, PredefinedGraphMultiApp) {  // NOLINT
+TEST(PredefinedGraphTest, PredefinedGraphMultiApp) {  // NOLINT
   // Start app.
   auto *app_1_thread =
       ten_thread_create("app thread 1", app_thread_1_main, nullptr);

@@ -6,6 +6,7 @@
 //
 #include "gtest/gtest.h"
 #include "include_internal/ten_runtime/binding/cpp/ten.h"
+#include "ten_runtime/common/status_code.h"
 #include "tests/common/client/cpp/msgpack_tcp.h"
 #include "tests/ten_runtime/smoke/util/binding/cpp/check.h"
 
@@ -27,9 +28,9 @@ class test_predefined_graph : public ten::extension_t {
       "nodes": [{
         "type": "extension",
         "name": "normal_extension",
-        "addon": "start_graph_from_extension__normal_extension",
+        "addon": "not_existed_extension_addon",
         "app": "msgpack://127.0.0.1:8001/",
-        "extension_group": "start_graph_from_extension__normal_extension_group"
+        "extension_group": "start_incorrect_graph_1__normal_extension_group"
       }]
     })"_json.dump()
                                              .c_str());
@@ -39,32 +40,21 @@ class test_predefined_graph : public ten::extension_t {
         [this](ten::ten_env_t &ten_env, std::unique_ptr<ten::cmd_result_t> cmd,
                ten::error_t *err) {
           // result for the 'start_graph' command
+          auto status_code = cmd->get_status_code();
+          EXPECT_EQ(status_code, TEN_STATUS_CODE_ERROR);
+
           auto graph_id = cmd->get_property_string("detail");
+          EXPECT_EQ(graph_id, "");
 
-          // Shut down the graph; otherwise, the app won't be able to close
-          // because there is still a running engine/graph.
-          auto stop_graph_cmd = ten::cmd_stop_graph_t::create();
-          stop_graph_cmd->set_dest("localhost", nullptr, nullptr, nullptr);
-          stop_graph_cmd->set_graph_id(graph_id.c_str());
+          start_graph_cmd_is_done = true;
 
-          ten_env.send_cmd(
-              std::move(stop_graph_cmd),
-              [this](ten::ten_env_t &ten_env,
-                     std::unique_ptr<ten::cmd_result_t> cmd,
-                     ten::error_t *err) {
-                start_graph_cmd_is_done = true;
+          if (test_cmd != nullptr) {
+            nlohmann::json detail = {{"id", 1}, {"name", "a"}};
 
-                if (test_cmd != nullptr) {
-                  nlohmann::json detail = {{"id", 1}, {"name", "a"}};
-
-                  auto cmd_result =
-                      ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
-                  cmd_result->set_property_from_json("detail",
-                                                     detail.dump().c_str());
-                  ten_env.return_result(std::move(cmd_result),
-                                        std::move(test_cmd));
-                }
-              });
+            auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
+            cmd_result->set_property_from_json("detail", detail.dump().c_str());
+            ten_env.return_result(std::move(cmd_result), std::move(test_cmd));
+          }
         });
 
     ten_env.on_start_done();
@@ -121,8 +111,8 @@ class test_app : public ten::app_t {
                           "nodes": [{
                             "type": "extension",
                             "name": "predefined_graph",
-                            "addon": "start_graph_from_extension__predefined_graph_extension",
-                            "extension_group": "start_graph_from_extension__predefined_graph_group"
+                            "addon": "start_incorrect_graph_1__predefined_graph_extension",
+                            "extension_group": "start_incorrect_graph_1__predefined_graph_group"
                           }]
                         }]
                       }
@@ -144,14 +134,13 @@ void *app_thread_main(TEN_UNUSED void *args) {
 }
 
 TEN_CPP_REGISTER_ADDON_AS_EXTENSION(
-    start_graph_from_extension__predefined_graph_extension,
-    test_predefined_graph);
-TEN_CPP_REGISTER_ADDON_AS_EXTENSION(
-    start_graph_from_extension__normal_extension, test_normal_extension);
+    start_incorrect_graph_1__predefined_graph_extension, test_predefined_graph);
+TEN_CPP_REGISTER_ADDON_AS_EXTENSION(start_incorrect_graph_1__normal_extension,
+                                    test_normal_extension);
 
 }  // namespace
 
-TEST(StartGraphTest, StartGraphFromExtension) {  // NOLINT
+TEST(StartGraphTest, StartIncorrectGraph1) {  // NOLINT
   auto *app_thread = ten_thread_create("app thread", app_thread_main, nullptr);
 
   // Create a client and connect to the app.
@@ -162,7 +151,7 @@ TEST(StartGraphTest, StartGraphFromExtension) {  // NOLINT
   // request to predefined graph.
   auto test_cmd = ten::cmd_t::create("test");
   test_cmd->set_dest("msgpack://127.0.0.1:8001/", "default",
-                     "start_graph_from_extension__predefined_graph_group",
+                     "start_incorrect_graph_1__predefined_graph_group",
                      "predefined_graph");
   auto cmd_result = client->send_cmd_and_recv_result(std::move(test_cmd));
   ten_test::check_status_code(cmd_result, TEN_STATUS_CODE_OK);

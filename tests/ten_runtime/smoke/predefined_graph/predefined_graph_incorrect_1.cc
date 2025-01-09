@@ -17,8 +17,10 @@ class test_predefined_graph : public ten::extension_t {
 
   void on_cmd(ten::ten_env_t &ten_env,
               std::unique_ptr<ten::cmd_t> cmd) override {
+    nlohmann::json const detail = {{"id", 1}, {"name", "a"}};
+
     auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
-    cmd_result->set_property("detail", "success");
+    cmd_result->set_property_from_json("detail", detail.dump().c_str());
     ten_env.return_result(std::move(cmd_result), std::move(cmd));
   }
 };
@@ -40,7 +42,7 @@ class test_app : public ten::app_t {
 
     rc = ten_env.init_property_from_json(
         // clang-format off
-                 R"({
+                 R"###({
                       "_ten": {
                         "uri": "msgpack://127.0.0.1:8001/",
                         "log_level": 2,
@@ -49,19 +51,14 @@ class test_app : public ten::app_t {
                           "auto_start": true,
                           "singleton": true,
                           "nodes": [{
-                            "type": "extension",
-                            "name": "two_extensions_group_extension_1",
-                            "addon": "prebuild_two_extensions_2",
-                            "extension_group": "two_extensions_group_1"
-                          },{
-                            "type": "extension",
-                            "name": "two_extensions_group_extension_2",
-                            "addon": "prebuild_two_extensions_2",
-                            "extension_group": "two_extensions_group_2"
+                            "type":  "extension",
+                            "name": "predefined_graph",
+                            "addon": "predefined_graph_incorrect_1__predefined_graph",
+                            "extension_group": "predefined_graph_group"
                           }]
                         }]
                       }
-                    })"
+                    })###"
         // clang-format on
     );
     ASSERT_EQ(rc, true);
@@ -78,27 +75,26 @@ void *app_thread_main(TEN_UNUSED void *args) {
   return nullptr;
 }
 
-TEN_CPP_REGISTER_ADDON_AS_EXTENSION(prebuild_two_extensions_2,
-                                    test_predefined_graph);
+TEN_CPP_REGISTER_ADDON_AS_EXTENSION(
+    predefined_graph_incorrect_1__predefined_graph, test_predefined_graph);
 
 }  // namespace
 
-TEST(PredefinedGraphTest, PredefinedGraphTwoStandaloneExtensions2) {  // NOLINT
+TEST(PredefinedGraphTest, PredefinedGraphIncorrect1) {  // NOLINT
   auto *app_thread = ten_thread_create("app thread", app_thread_main, nullptr);
 
   // Create a client and connect to the app.
   auto *client = new ten::msgpack_tcp_client_t("msgpack://127.0.0.1:8001/");
 
   // Do not need to send 'start_graph' command first.
-  // The 'graph_id' MUST be "default" (a special string) if we want to send the
-  // request to predefined graph.
+  // The 'graph_id' MUST be "default" if we want to send the request to
+  // predefined graph.
   auto test_cmd = ten::cmd_t::create("test");
   test_cmd->set_dest("msgpack://127.0.0.1:8001/", "default",
-                     "two_extensions_group_2",
-                     "two_extensions_group_extension_2");
+                     "predefined_graph_group", "predefined_graph");
   auto cmd_result = client->send_cmd_and_recv_result(std::move(test_cmd));
   ten_test::check_status_code(cmd_result, TEN_STATUS_CODE_OK);
-  ten_test::check_detail_with_string(cmd_result, "success");
+  ten_test::check_detail_with_json(cmd_result, R"({"id": 1, "name": "a"})");
 
   delete client;
 
