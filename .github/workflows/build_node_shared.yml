@@ -22,15 +22,14 @@ jobs:
           ref: v22.12.0
 
       - name: Configure and Build
-        if: matrix.compiler == 'gcc'
         run: |
-          export CC=gcc
-          export CXX=g++
-          ./configure --shared
-          make -j$(nproc)
-        if: matrix.compiler == 'clang'
-        run: |
-          export CC=clang
-          export CXX=clang++
+          if [ "$compiler" == "gcc" ]; then
+            export CC=gcc
+            export CXX=g++
+          else
+            export CC=clang
+            export CXX=clang++
+          fi
+          
           ./configure --shared
           make -j$(nproc)
