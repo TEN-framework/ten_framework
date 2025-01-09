@@ -99,7 +99,7 @@ static void on_addon_create_extension_done(ten_env_t *ten_env,
   } else {
     // Failed to create the specified extension.
 
-    TEN_LOGI(
+    TEN_LOGE(
         "Failed to create extension %s",
         ten_string_get_raw_str(&create_extension_done_ctx->extension_name));
 
