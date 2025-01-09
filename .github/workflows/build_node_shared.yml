@@ -45,4 +45,4 @@ jobs:
           credentials: ${{ secrets.GOOGLE_DRIVE_CREDENTIALS }}
           actionType: upload
           localPath: ./LICENSE
-          googleFolderId: aaa
+          googleFolderId: 15CgtCatt1Ai1W4O-bgWpMf6ufqHunoMZ
