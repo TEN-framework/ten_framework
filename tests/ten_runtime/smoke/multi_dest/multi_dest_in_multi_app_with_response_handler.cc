@@ -149,7 +149,7 @@ DEFINE_APP(3, 8003)
 DEFINE_APP(4, 8004)
 DEFINE_APP(5, 8005)
 
-TEST(ExtensionTest, MultiDestInMultiAppWithResponseHandler) {  // NOLINT
+TEST(MultiDestTest, MultiDestInMultiAppWithResponseHandler) {  // NOLINT
   // Start app.
   START_APP(1)
   START_APP(2)

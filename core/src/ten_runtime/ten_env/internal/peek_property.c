@@ -133,9 +133,10 @@ static void ten_app_peek_property_async_cb_go_back_to_extension(
 
   context->res = res;
 
-  ten_runloop_post_task_tail(
+  int rc = ten_runloop_post_task_tail(
       ten_extension_get_attached_runloop(context->from.extension),
       ten_env_peek_property_done_task, NULL, context);
+  TEN_ASSERT(!rc, "Should not happen.");
 }
 
 static void ten_app_peek_property_async_cb_go_back_to_extension_group(
@@ -148,9 +149,10 @@ static void ten_app_peek_property_async_cb_go_back_to_extension_group(
 
   context->res = res;
 
-  ten_runloop_post_task_tail(
+  int rc = ten_runloop_post_task_tail(
       ten_extension_group_get_attached_runloop(context->from.extension_group),
       ten_env_peek_property_done_task, NULL, context);
+  TEN_ASSERT(!rc, "Should not happen.");
 }
 
 static void ten_app_peek_property_async_cb(ten_app_t *app, ten_value_t *res,

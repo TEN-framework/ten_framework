@@ -126,10 +126,12 @@ bool ten_addon_create_extension(ten_env_t *ten_env, const char *addon_name,
         ten_addon_on_create_extension_instance_ctx_create(
             TEN_ADDON_TYPE_EXTENSION, addon_name, instance_name, cb, cb_data);
 
-    ten_runloop_post_task_tail(
+    int rc = ten_runloop_post_task_tail(
         ten_extension_group_get_attached_runloop(extension_group),
         ten_extension_thread_create_extension_instance,
         extension_group->extension_thread, ctx);
+    TEN_ASSERT(!rc, "Should not happen.");
+
     return true;
   }
 }
@@ -167,10 +169,12 @@ bool ten_addon_destroy_extension(ten_env_t *ten_env, ten_extension_t *extension,
         ten_addon_host_on_destroy_instance_ctx_create(addon_host, extension, cb,
                                                       cb_data);
 
-    ten_runloop_post_task_tail(
+    int rc = ten_runloop_post_task_tail(
         ten_extension_group_get_attached_runloop(extension_group),
         ten_extension_thread_destroy_addon_instance,
         extension_group->extension_thread, destroy_instance_info);
+    TEN_ASSERT(!rc, "Should not happen.");
+
     return true;
   }
 }

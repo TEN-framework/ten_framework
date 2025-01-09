@@ -107,8 +107,9 @@ bool ten_app_close(ten_app_t *self, TEN_UNUSED ten_error_t *err) {
 
   self->state = TEN_APP_STATE_CLOSING;
 
-  ten_runloop_post_task_tail(ten_app_get_attached_runloop(self),
-                             ten_app_close_task, self, NULL);
+  int rc = ten_runloop_post_task_tail(ten_app_get_attached_runloop(self),
+                                      ten_app_close_task, self, NULL);
+  TEN_ASSERT(!rc, "Should not happen.");
 
 done:
   ten_mutex_unlock(self->state_lock);

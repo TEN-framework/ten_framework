@@ -108,9 +108,10 @@ bool ten_extension_set_property_async(ten_extension_t *self, const char *path,
   ten_extension_set_property_context_t *set_property_context =
       set_property_context_create(path, value, cb, cb_data);
 
-  ten_runloop_post_task_tail(ten_extension_get_attached_runloop(self),
-                             ten_extension_set_property_task, self,
-                             set_property_context);
+  int rc = ten_runloop_post_task_tail(ten_extension_get_attached_runloop(self),
+                                      ten_extension_set_property_task, self,
+                                      set_property_context);
+  TEN_ASSERT(!rc, "Should not happen.");
 
   return true;
 }
@@ -205,8 +206,10 @@ bool ten_extension_peek_property_async(
   ten_extension_peek_property_context_t *context =
       ten_extension_peek_property_context_create(path, cb, cb_data);
 
-  ten_runloop_post_task_tail(self->extension_thread->runloop,
-                             ten_extension_peek_property_task, self, context);
+  int rc = ten_runloop_post_task_tail(self->extension_thread->runloop,
+                                      ten_extension_peek_property_task, self,
+                                      context);
+  TEN_ASSERT(!rc, "Should not happen.");
 
   return true;
 }
@@ -300,8 +303,10 @@ bool ten_extension_peek_manifest_async(
   ten_extension_peek_manifest_context_t *context =
       ten_extension_peek_manifest_context_create(path, cb, cb_data);
 
-  ten_runloop_post_task_tail(self->extension_thread->runloop,
-                             ten_extension_peek_manifest_task, self, context);
+  int rc = ten_runloop_post_task_tail(self->extension_thread->runloop,
+                                      ten_extension_peek_manifest_task, self,
+                                      context);
+  TEN_ASSERT(!rc, "Should not happen.");
 
   return true;
 }

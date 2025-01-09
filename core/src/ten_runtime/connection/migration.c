@@ -116,8 +116,10 @@ static void ten_connection_on_migration_is_done_or_reset(
     // thread if the migration is completed. We must make sure the engine handle
     // all the messages in the original order.
     ten_runloop_t *loop = ten_connection_get_attached_runloop(self);
-    ten_runloop_post_task_tail(loop, ten_protocol_on_cleaned_task, protocol,
-                               (void *)is_migration_state_reset);
+    int rc =
+        ten_runloop_post_task_tail(loop, ten_protocol_on_cleaned_task, protocol,
+                                   (void *)is_migration_state_reset);
+    TEN_ASSERT(!rc, "Should not happen.");
   } else {
     TEN_ASSERT(0, "Should not happen.");
   }

@@ -279,10 +279,11 @@ static void send_cmd_callback(ten_env_t *ten_env, ten_shared_ptr_t *cmd_result,
     send_cmd_info->err = err_clone;
     // Inject cmd result into the extension_tester thread to ensure thread
     // safety.
-    ten_runloop_post_task_tail(
+    int rc = ten_runloop_post_task_tail(
         send_cmd_info->tester->tester_runloop,
         ten_extension_tester_execute_cmd_result_handler_task,
         send_cmd_info->tester, send_cmd_info);
+    TEN_ASSERT(!rc, "Should not happen.");
   } else {
     TEN_ASSERT(cmd_result && ten_cmd_base_check_integrity(cmd_result),
                "Should not happen.");
@@ -290,10 +291,11 @@ static void send_cmd_callback(ten_env_t *ten_env, ten_shared_ptr_t *cmd_result,
     send_cmd_info->cmd_result = ten_shared_ptr_clone(cmd_result);
     // Inject cmd result into the extension_tester thread to ensure thread
     // safety.
-    ten_runloop_post_task_tail(
+    int rc = ten_runloop_post_task_tail(
         send_cmd_info->tester->tester_runloop,
         ten_extension_tester_execute_cmd_result_handler_task,
         send_cmd_info->tester, send_cmd_info);
+    TEN_ASSERT(!rc, "Should not happen.");
   }
 }
 
@@ -319,9 +321,11 @@ static void send_data_like_msg_callback(ten_env_t *ten_env,
     send_msg_info->err = err_clone;
   }
 
-  ten_runloop_post_task_tail(send_msg_info->tester->tester_runloop,
-                             ten_extension_tester_execute_error_handler_task,
-                             send_msg_info->tester, send_msg_info);
+  int rc = ten_runloop_post_task_tail(
+      send_msg_info->tester->tester_runloop,
+      ten_extension_tester_execute_error_handler_task, send_msg_info->tester,
+      send_msg_info);
+  TEN_ASSERT(!rc, "Should not happen.");
 }
 
 static void return_result_callback(ten_env_t *self, void *user_data,
@@ -343,10 +347,11 @@ static void return_result_callback(ten_env_t *self, void *user_data,
     return_result_info->err = err_clone;
   }
 
-  ten_runloop_post_task_tail(
+  int rc = ten_runloop_post_task_tail(
       return_result_info->tester->tester_runloop,
       ten_extension_tester_execute_return_result_handler_task,
       return_result_info->tester, return_result_info);
+  TEN_ASSERT(!rc, "Should not happen.");
 }
 
 static void test_extension_ten_env_send_cmd(ten_env_t *ten_env,
@@ -371,10 +376,11 @@ static void test_extension_ten_env_send_cmd(ten_env_t *ten_env,
 
       // Inject cmd result into the extension_tester thread to ensure thread
       // safety.
-      ten_runloop_post_task_tail(
+      int rc = ten_runloop_post_task_tail(
           send_cmd_info->tester->tester_runloop,
           ten_extension_tester_execute_cmd_result_handler_task,
           send_cmd_info->tester, send_cmd_info);
+      TEN_ASSERT(!rc, "Should not happen.");
     }
   }
 
@@ -408,10 +414,11 @@ static void test_extension_ten_env_return_result(ten_env_t *ten_env,
 
       // Inject cmd result into the extension_tester thread to ensure thread
       // safety.
-      ten_runloop_post_task_tail(
+      int rc = ten_runloop_post_task_tail(
           return_result_info->tester->tester_runloop,
           ten_extension_tester_execute_return_result_handler_task,
           return_result_info->tester, return_result_info);
+      TEN_ASSERT(!rc, "Should not happen.");
     }
   }
 
@@ -446,10 +453,11 @@ static void test_extension_ten_env_send_data(ten_env_t *ten_env,
 
       // Inject cmd result into the extension_tester thread to ensure thread
       // safety.
-      ten_runloop_post_task_tail(
+      int rc = ten_runloop_post_task_tail(
           send_msg_info->tester->tester_runloop,
           ten_extension_tester_execute_error_handler_task,
           send_msg_info->tester, send_msg_info);
+      TEN_ASSERT(!rc, "Should not happen.");
     }
   }
 
@@ -485,10 +493,11 @@ static void test_extension_ten_env_send_audio_frame(ten_env_t *ten_env,
 
       // Inject cmd result into the extension_tester thread to ensure thread
       // safety.
-      ten_runloop_post_task_tail(
+      int rc = ten_runloop_post_task_tail(
           send_msg_info->tester->tester_runloop,
           ten_extension_tester_execute_error_handler_task,
           send_msg_info->tester, send_msg_info);
+      TEN_ASSERT(!rc, "Should not happen.");
     }
   }
 
@@ -524,10 +533,11 @@ static void test_extension_ten_env_send_video_frame(ten_env_t *ten_env,
 
       // Inject cmd result into the extension_tester thread to ensure thread
       // safety.
-      ten_runloop_post_task_tail(
+      int rc = ten_runloop_post_task_tail(
           send_msg_info->tester->tester_runloop,
           ten_extension_tester_execute_error_handler_task,
           send_msg_info->tester, send_msg_info);
+      TEN_ASSERT(!rc, "Should not happen.");
     }
   }
 

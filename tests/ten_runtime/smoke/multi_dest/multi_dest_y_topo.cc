@@ -127,7 +127,7 @@ TEN_CPP_REGISTER_ADDON_AS_EXTENSION(multi_dest_y_graph__extension_4,
 
 }  // namespace
 
-TEST(ExtensionTest, MultiDestYGraph) {  // NOLINT
+TEST(MultiDestTest, MultiDestYGraph) {  // NOLINT
   // Start app.
   auto *app_thread =
       ten_thread_create("app thread", test_app_thread_main, nullptr);

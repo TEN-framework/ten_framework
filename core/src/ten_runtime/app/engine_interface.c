@@ -38,9 +38,10 @@ static void ten_app_check_termination_when_engine_closed_async(
                  ten_app_check_integrity(self, false),
              "Should not happen.");
 
-  ten_runloop_post_task_tail(ten_app_get_attached_runloop(self),
-                             ten_app_check_termination_when_engine_closed_,
-                             self, engine);
+  int rc = ten_runloop_post_task_tail(
+      ten_app_get_attached_runloop(self),
+      ten_app_check_termination_when_engine_closed_, self, engine);
+  TEN_ASSERT(!rc, "Should not happen.");
 }
 
 // This function is called in the engine thread.
