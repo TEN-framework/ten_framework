@@ -288,7 +288,7 @@ ten_dir_fd_t *ten_path_open_dir(const char *path) {
     goto error;
   }
 
-  dir->path = ten_string_create_from_c_str(path, strlen(path));
+  dir->path = ten_string_create_from_c_str(path);
   dir->itor.dir = dir;
   return dir;
 

@@ -20,6 +20,7 @@
 #include "include_internal/ten_runtime/extension_group/extension_group_info/json.h"
 #include "include_internal/ten_runtime/extension_group/extension_group_info/value.h"
 #include "include_internal/ten_runtime/msg/cmd_base/cmd/start_graph/cmd.h"
+#include "include_internal/ten_runtime/msg/cmd_base/cmd_base.h"
 #include "include_internal/ten_runtime/msg/msg.h"
 #include "ten_runtime/msg/cmd/start_graph/cmd.h"
 #include "ten_runtime/msg/msg.h"
@@ -46,6 +47,7 @@ ten_predefined_graph_info_t *ten_predefined_graph_info_create(void) {
   self->auto_start = false;
   self->singleton = false;
   self->engine = NULL;
+  ten_string_init(&self->start_graph_cmd_id);
 
   return self;
 }
@@ -56,6 +58,7 @@ void ten_predefined_graph_info_destroy(ten_predefined_graph_info_t *self) {
   ten_string_deinit(&self->name);
   ten_list_clear(&self->extensions_info);
   ten_list_clear(&self->extension_groups_info);
+  ten_string_deinit(&self->start_graph_cmd_id);
 
   TEN_FREE(self);
 }
@@ -173,6 +176,18 @@ bool ten_app_start_predefined_graph(
   }
 
   ten_msg_set_src_to_app(start_graph_cmd, self);
+
+  // @{
+  // Since the app needs to record the `start_graph` command ID for the
+  // `auto_start` predefined graph, so that it can later identify if the
+  // received command result corresponds to this type of `start_graph` command,
+  // it is necessary to assign the command ID here and record it.
+  if (predefined_graph_info->auto_start) {
+    ten_cmd_base_gen_cmd_id_if_empty(start_graph_cmd);
+    ten_string_set_from_c_str(&predefined_graph_info->start_graph_cmd_id,
+                              ten_cmd_base_get_cmd_id(start_graph_cmd));
+  }
+  // @}
 
   predefined_graph_info->engine = ten_app_create_engine(self, start_graph_cmd);
 
@@ -351,8 +366,7 @@ bool ten_app_get_predefined_graphs_from_property(ten_app_t *self) {
     }
     ten_string_set_from_c_str(
         &predefined_graph_info->name,
-        ten_value_peek_raw_str(predefined_graph_info_name_value, &err),
-        strlen(ten_value_peek_raw_str(predefined_graph_info_name_value, &err)));
+        ten_value_peek_raw_str(predefined_graph_info_name_value, &err));
 
     ten_value_t *predefined_graph_info_auto_start_value =
         ten_value_object_peek(predefined_graph_info_value, TEN_STR_AUTO_START);
