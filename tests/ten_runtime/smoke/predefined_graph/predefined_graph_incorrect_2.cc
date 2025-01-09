@@ -55,6 +55,11 @@ class test_app : public ten::app_t {
                             "name": "predefined_graph",
                             "addon": "incorrect_addon",
                             "extension_group": "predefined_graph_group"
+                          },{
+                            "type":  "extension",
+                            "name": "predefined_graph",
+                            "addon": "predefined_graph_incorrect_1__predefined_graph",
+                            "extension_group": "predefined_graph_group"
                           }]
                         }]
                       }
