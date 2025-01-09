@@ -58,7 +58,7 @@ class test_app : public ten::app_t {
                           },{
                             "type":  "extension",
                             "name": "predefined_graph",
-                            "addon": "predefined_graph_incorrect_1__predefined_graph",
+                            "addon": "predefined_graph_incorrect_2__predefined_graph",
                             "extension_group": "predefined_graph_group"
                           }]
                         }]
@@ -81,11 +81,11 @@ void *app_thread_main(TEN_UNUSED void *args) {
 }
 
 TEN_CPP_REGISTER_ADDON_AS_EXTENSION(
-    predefined_graph_incorrect_1__predefined_graph, test_predefined_graph);
+    predefined_graph_incorrect_2__predefined_graph, test_predefined_graph);
 
 }  // namespace
 
-TEST(PredefinedGraphTest, PredefinedGraphIncorrect1) {  // NOLINT
+TEST(PredefinedGraphTest, PredefinedGraphIncorrect2) {  // NOLINT
   auto *app_thread = ten_thread_create("app thread", app_thread_main, nullptr);
 
   ten_thread_join(app_thread, -1);
