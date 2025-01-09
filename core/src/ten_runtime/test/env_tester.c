@@ -35,9 +35,6 @@ bool ten_env_tester_check_integrity(ten_env_tester_t *self) {
     return false;
   }
 
-  // TODO(Wei): Currently, all calls to ten_env_tester must be made within the
-  // tester thread. If we need to call the ten_env_tester API from a non-tester
-  // thread, a mechanism similar to ten_env_tester_proxy must be created.
   if (!ten_sanitizer_thread_check_do_check(&self->tester->thread_check)) {
     return false;
   }
@@ -688,6 +685,14 @@ bool ten_env_tester_on_start_done(ten_env_tester_t *self, ten_error_t *err) {
   TEN_ASSERT(self && ten_env_tester_check_integrity(self), "Invalid argument.");
 
   ten_extension_tester_on_start_done(self->tester);
+
+  return true;
+}
+
+bool ten_env_tester_on_stop_done(ten_env_tester_t *self, ten_error_t *err) {
+  TEN_ASSERT(self && ten_env_tester_check_integrity(self), "Invalid argument.");
+
+  ten_extension_tester_on_stop_done(self->tester);
 
   return true;
 }

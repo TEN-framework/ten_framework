@@ -420,7 +420,7 @@
       "type": "lldb",
       "request": "launch",
       "program": "${workspaceFolder}/core/src/ten_manager/target/x86_64-unknown-linux-gnu/debug/tman",
-      "cwd": "${workspaceFolder}/core/src/ten_manager/target/x86_64-unknown-linux-gnu/debug/",
+      "cwd": "/home/wei/MyData/MyProject/ten_framework_internal_base/ten_framework/out/linux/x64/tests/ten_runtime/integration/cpp/ffmpeg_basic/ffmpeg_basic_app",
       "args": [
         "designer",
       ],

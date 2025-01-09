@@ -50,6 +50,7 @@ struct ten_extension_tester_t {
   ten_string_t test_app_property_json;
 
   ten_extension_tester_on_start_func_t on_start;
+  ten_extension_tester_on_stop_func_t on_stop;
   ten_extension_tester_on_cmd_func_t on_cmd;
   ten_extension_tester_on_data_func_t on_data;
   ten_extension_tester_on_audio_frame_func_t on_audio_frame;

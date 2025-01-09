@@ -10,7 +10,40 @@
 #include "include_internal/ten_runtime/binding/python/msg/msg.h"
 #include "include_internal/ten_runtime/binding/python/test/env_tester.h"
 #include "ten_runtime/test/env_tester.h"
+#include "ten_runtime/test/env_tester_proxy.h"
 #include "ten_utils/macro/check.h"
+#include "ten_utils/macro/memory.h"
+
+typedef struct ten_py_ten_env_tester_send_data_ctx_t {
+  ten_shared_ptr_t *data;
+  PyObject *cb_func;
+} ten_py_ten_env_tester_send_data_ctx_t;
+
+static ten_py_ten_env_tester_send_data_ctx_t *
+ten_py_ten_env_tester_send_data_ctx_create(ten_shared_ptr_t *data,
+                                           PyObject *cb_func) {
+  ten_py_ten_env_tester_send_data_ctx_t *ctx =
+      TEN_MALLOC(sizeof(ten_py_ten_env_tester_send_data_ctx_t));
+  ctx->data = ten_shared_ptr_clone(data);
+
+  if (cb_func) {
+    Py_INCREF(cb_func);
+  }
+
+  ctx->cb_func = cb_func;
+  return ctx;
+}
+
+static void ten_py_ten_env_tester_send_data_ctx_destroy(
+    ten_py_ten_env_tester_send_data_ctx_t *ctx) {
+  ten_shared_ptr_destroy(ctx->data);
+
+  if (ctx->cb_func) {
+    Py_XDECREF(ctx->cb_func);
+  }
+
+  TEN_FREE(ctx);
+}
 
 static void proxy_send_xxx_callback(ten_env_tester_t *self, void *user_data,
                                     ten_error_t *error) {
@@ -54,6 +87,23 @@ static void proxy_send_xxx_callback(ten_env_tester_t *self, void *user_data,
   ten_py_gil_state_release_internal(prev_state);
 }
 
+static void ten_py_ten_env_tester_send_data_proxy_notify(
+    ten_env_tester_t *ten_env_tester, void *user_data) {
+  ten_py_ten_env_tester_send_data_ctx_t *ctx =
+      (ten_py_ten_env_tester_send_data_ctx_t *)user_data;
+
+  if (ctx->cb_func) {
+    Py_INCREF(ctx->cb_func);
+
+    ten_env_tester_send_data(ten_env_tester, ctx->data, proxy_send_xxx_callback,
+                             ctx->cb_func, NULL);
+  } else {
+    ten_env_tester_send_data(ten_env_tester, ctx->data, NULL, NULL, NULL);
+  }
+
+  ten_py_ten_env_tester_send_data_ctx_destroy(ctx);
+}
+
 PyObject *ten_py_ten_env_tester_send_data(PyObject *self, PyObject *args) {
   ten_py_ten_env_tester_t *py_ten_env_tester = (ten_py_ten_env_tester_t *)self;
   TEN_ASSERT(py_ten_env_tester &&
@@ -86,23 +136,15 @@ PyObject *ten_py_ten_env_tester_send_data(PyObject *self, PyObject *args) {
     cb_func = NULL;
   }
 
-  if (cb_func) {
-    // Increase the reference count of the callback function to ensure that it
-    // will not be destroyed before the callback is called.
-    Py_INCREF(cb_func);
+  ten_py_ten_env_tester_send_data_ctx_t *ctx =
+      ten_py_ten_env_tester_send_data_ctx_create(py_data->msg.c_msg, cb_func);
 
-    success = ten_env_tester_send_data(py_ten_env_tester->c_ten_env_tester,
-                                       py_data->msg.c_msg,
-                                       proxy_send_xxx_callback, cb_func, &err);
-  } else {
-    success = ten_env_tester_send_data(py_ten_env_tester->c_ten_env_tester,
-                                       py_data->msg.c_msg, NULL, NULL, &err);
-  }
+  success = ten_env_tester_proxy_notify(
+      py_ten_env_tester->c_ten_env_tester_proxy,
+      ten_py_ten_env_tester_send_data_proxy_notify, ctx, &err);
 
   if (!success) {
-    if (cb_func) {
-      Py_XDECREF(cb_func);
-    }
+    ten_py_ten_env_tester_send_data_ctx_destroy(ctx);
 
     ten_py_raise_py_runtime_error_exception("Failed to send data.");
     goto done;

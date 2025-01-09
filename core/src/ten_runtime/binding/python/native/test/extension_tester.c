@@ -18,6 +18,8 @@
 #include "include_internal/ten_runtime/msg/msg.h"
 #include "include_internal/ten_runtime/test/extension_tester.h"
 #include "ten_runtime/binding/common.h"
+#include "ten_runtime/test/env_tester.h"
+#include "ten_runtime/test/env_tester_proxy.h"
 #include "ten_utils/macro/check.h"
 #include "ten_utils/macro/mark.h"
 
@@ -73,6 +75,10 @@ static void proxy_on_start(ten_extension_tester_t *extension_tester,
   py_extension_tester->py_ten_env_tester = (PyObject *)py_ten_env_tester;
   TEN_ASSERT(py_ten_env_tester->actual_py_ten_env_tester, "Should not happen.");
 
+  py_ten_env_tester->c_ten_env_tester_proxy =
+      ten_env_tester_proxy_create(ten_env_tester, NULL);
+  TEN_ASSERT(py_ten_env_tester->c_ten_env_tester_proxy, "Should not happen.");
+
   PyObject *py_res =
       PyObject_CallMethod((PyObject *)py_extension_tester, "on_start", "O",
                           py_ten_env_tester->actual_py_ten_env_tester);
@@ -82,6 +88,37 @@ static void proxy_on_start(ten_extension_tester_t *extension_tester,
   TEN_ASSERT(!err_occurred, "Should not happen.");
 
   ten_py_gil_state_release_internal(prev_state);
+}
+
+static void proxy_on_stop(ten_extension_tester_t *extension_tester,
+                          ten_env_tester_t *ten_env_tester) {
+  TEN_ASSERT(extension_tester &&
+                 ten_extension_tester_check_integrity(extension_tester, true),
+             "Invalid argument.");
+  TEN_ASSERT(ten_env_tester && ten_env_tester_check_integrity(ten_env_tester),
+             "Invalid argument.");
+
+  ten_py_extension_tester_t *py_extension_tester =
+      (ten_py_extension_tester_t *)ten_binding_handle_get_me_in_target_lang(
+          (ten_binding_handle_t *)extension_tester);
+  TEN_ASSERT(py_extension_tester &&
+                 ten_py_extension_tester_check_integrity(py_extension_tester),
+             "Invalid argument.");
+
+  PyObject *py_ten_env_tester = py_extension_tester->py_ten_env_tester;
+  TEN_ASSERT(py_ten_env_tester, "Should not happen.");
+  TEN_ASSERT(
+      ((ten_py_ten_env_tester_t *)py_ten_env_tester)->actual_py_ten_env_tester,
+      "Should not happen.");
+
+  // Release the ten_env_tester_proxy.
+  ten_env_tester_proxy_release(
+      ((ten_py_ten_env_tester_t *)py_ten_env_tester)->c_ten_env_tester_proxy,
+      NULL);
+
+  ((ten_py_ten_env_tester_t *)py_ten_env_tester)->c_ten_env_tester_proxy = NULL;
+
+  ten_env_tester_on_stop_done(ten_env_tester, NULL);
 }
 
 static void proxy_on_cmd(ten_extension_tester_t *extension_tester,
@@ -266,9 +303,9 @@ static ten_py_extension_tester_t *ten_py_extension_tester_init(
                      (ten_py_extension_tester_t *)py_extension_tester),
              "Invalid argument.");
 
-  py_extension_tester->c_extension_tester =
-      ten_extension_tester_create(proxy_on_start, proxy_on_cmd, proxy_on_data,
-                                  proxy_on_audio_frame, proxy_on_video_frame);
+  py_extension_tester->c_extension_tester = ten_extension_tester_create(
+      proxy_on_start, proxy_on_stop, proxy_on_cmd, proxy_on_data,
+      proxy_on_audio_frame, proxy_on_video_frame);
 
   ten_binding_handle_set_me_in_target_lang(
       &py_extension_tester->c_extension_tester->binding_handle,

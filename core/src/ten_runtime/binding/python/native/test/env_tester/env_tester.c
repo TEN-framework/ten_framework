@@ -10,6 +10,7 @@
 
 #include "include_internal/ten_runtime/binding/python/common/error.h"
 #include "ten_runtime/binding/common.h"
+#include "ten_runtime/test/env_tester_proxy.h"
 #include "ten_utils/macro/check.h"
 
 bool ten_py_ten_env_tester_check_integrity(ten_py_ten_env_tester_t *self) {
@@ -33,6 +34,12 @@ static void ten_py_ten_env_tester_c_part_destroyed(
              "Should not happen.");
 
   ten_env_tester_bridge->c_ten_env_tester = NULL;
+  if (ten_env_tester_bridge->c_ten_env_tester_proxy) {
+    ten_env_tester_proxy_release(ten_env_tester_bridge->c_ten_env_tester_proxy,
+                                 NULL);
+    ten_env_tester_bridge->c_ten_env_tester_proxy = NULL;
+  }
+
   ten_py_ten_env_tester_invalidate(ten_env_tester_bridge);
 }
 
@@ -100,6 +107,7 @@ ten_py_ten_env_tester_t *ten_py_ten_env_tester_wrap(
   ten_signature_set(&py_ten_env_tester->signature,
                     TEN_PY_TEN_ENV_TESTER_SIGNATURE);
   py_ten_env_tester->c_ten_env_tester = ten_env_tester;
+  py_ten_env_tester->c_ten_env_tester_proxy = NULL;
 
   py_ten_env_tester->actual_py_ten_env_tester =
       create_actual_py_ten_env_tester_instance(py_ten_env_tester);
