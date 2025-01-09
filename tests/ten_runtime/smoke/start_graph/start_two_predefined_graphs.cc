@@ -282,7 +282,7 @@ TEN_CPP_REGISTER_ADDON_AS_EXTENSION(
 
 }  // namespace
 
-TEST(ExtensionTest, StartTwoPredefinedGraphs) {  // NOLINT
+TEST(StartGraphTest, StartTwoPredefinedGraphs) {  // NOLINT
   auto *app_1_thread =
       ten_thread_create("app thread 1", app_thread_1_main, nullptr);
   auto *app_2_thread =

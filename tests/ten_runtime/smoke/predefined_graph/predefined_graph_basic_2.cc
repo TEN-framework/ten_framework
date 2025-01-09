@@ -177,7 +177,7 @@ TEN_CPP_REGISTER_ADDON_AS_EXTENSION(predefined_graph_basic_2__normal_extension,
 
 }  // namespace
 
-TEST(ExtensionTest, PredefinedGraphBasic2) {  // NOLINT
+TEST(PredefinedGraphTest, PredefinedGraphBasic2) {  // NOLINT
   auto *app_thread = ten_thread_create("app thread", app_thread_main, nullptr);
 
   // Create a client and connect to the app.

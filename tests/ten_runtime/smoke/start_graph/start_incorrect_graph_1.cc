@@ -140,7 +140,7 @@ TEN_CPP_REGISTER_ADDON_AS_EXTENSION(start_incorrect_graph_1__normal_extension,
 
 }  // namespace
 
-TEST(ExtensionTest, StartIncorrectGraph1) {  // NOLINT
+TEST(StartGraphTest, StartIncorrectGraph1) {  // NOLINT
   auto *app_thread = ten_thread_create("app thread", app_thread_main, nullptr);
 
   // Create a client and connect to the app.
