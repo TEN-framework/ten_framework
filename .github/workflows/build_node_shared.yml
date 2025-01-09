@@ -3,6 +3,8 @@ name: Build Node.js Shared Library
 on:
   pull_request:
     types: [opened, synchronize, reopened]
+    paths:
+      - '.github/workflows/build_node_shared.yml'
 
 jobs:
   build:
