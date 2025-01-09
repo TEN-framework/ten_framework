@@ -22,6 +22,7 @@ typedef enum TEN_EXTENSION_TESTER_TEST_MODE {
 
 typedef void (*ten_extension_tester_on_start_func_t)(
     ten_extension_tester_t *self, ten_env_tester_t *ten_env);
+
 typedef void (*ten_extension_tester_on_stop_func_t)(
     ten_extension_tester_t *self, ten_env_tester_t *ten_env);
 

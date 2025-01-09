@@ -100,9 +100,10 @@ static void test_extension_on_stop(ten_extension_t *self, ten_env_t *ten_env) {
       test_extension_get_extension_tester_ptr(ten_env);
   self->user_data = tester;
 
-  ten_runloop_post_task_tail(tester->tester_runloop,
-                             ten_extension_tester_on_test_extension_stop_task,
-                             tester, NULL);
+  int rc = ten_runloop_post_task_tail(
+      tester->tester_runloop, ten_extension_tester_on_test_extension_stop_task,
+      tester, NULL);
+  TEN_ASSERT(!rc, "Should not happen.");
 }
 
 void ten_builtin_test_extension_ten_env_notify_on_start_done(

@@ -17,7 +17,7 @@ TEN_RUNTIME_API bool ten_env_tester_on_start_done(ten_env_tester_t *self,
                                                   ten_error_t *err);
 
 TEN_RUNTIME_API bool ten_env_tester_on_stop_done(ten_env_tester_t *self,
-                                                  ten_error_t *err);
+                                                 ten_error_t *err);
 
 typedef void (*ten_env_tester_cmd_result_handler_func_t)(
     ten_env_tester_t *self, ten_shared_ptr_t *cmd_result, void *user_data,
