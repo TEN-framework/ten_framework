@@ -24,7 +24,7 @@
   * [Run Voice Assistant](ten_agent/playground/run_va.md)
   * [Run Dify Chat Bot](ten_agent/playground/run_dify.md)
   * [Run Coze Chat Bot](ten_agent/playground/run_coze.md)
-  * [Run Story Teller](ten_agent/playground/run_story_telling.md)
+  * [Run Story Teller Usecase](ten_agent/playground/run_story_telling.md)
   * [Change Language](ten_agent/playground/change_language.md)
 * [Customize TEN Agent](ten_agent/customize_your_agent.md)
 * [Create a Hello World Extension](ten_agent/create_a_hello_world_extension.md)

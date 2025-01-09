@@ -1,6 +1,6 @@
 # Run Story Teller with Large Language Model
 
-This guide will help you to run the Story Teller with Large Language Model in the TEN-Agent Playground.
+This guide will help you to run the Story Teller usecase with Large Language Model in the TEN-Agent Playground.
 
 ## STT + TTS + LLM
 
