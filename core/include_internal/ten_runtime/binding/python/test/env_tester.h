@@ -12,6 +12,7 @@
 
 #include "include_internal/ten_runtime/binding/python/common/python_stuff.h"
 #include "include_internal/ten_runtime/test/env_tester.h"
+#include "include_internal/ten_runtime/test/env_tester_proxy.h"
 #include "ten_utils/lib/signature.h"
 
 #define TEN_PY_TEN_ENV_TESTER_SIGNATURE 0x9DF807EAFAF9F6D5U
@@ -22,6 +23,8 @@ typedef struct ten_py_ten_env_tester_t {
   ten_signature_t signature;
 
   ten_env_tester_t *c_ten_env_tester;
+  ten_env_tester_proxy_t *c_ten_env_tester_proxy;
+
   PyObject *actual_py_ten_env_tester;
 } ten_py_ten_env_tester_t;
 

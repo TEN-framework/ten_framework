@@ -59,6 +59,7 @@ bool ten_extension_tester_check_integrity(ten_extension_tester_t *self,
 
 ten_extension_tester_t *ten_extension_tester_create(
     ten_extension_tester_on_start_func_t on_start,
+    ten_extension_tester_on_stop_func_t on_stop,
     ten_extension_tester_on_cmd_func_t on_cmd,
     ten_extension_tester_on_data_func_t on_data,
     ten_extension_tester_on_audio_frame_func_t on_audio_frame,
@@ -74,6 +75,7 @@ ten_extension_tester_t *ten_extension_tester_create(
   ten_list_init(&self->addon_base_dirs);
 
   self->on_start = on_start;
+  self->on_stop = on_stop;
   self->on_cmd = on_cmd;
   self->on_data = on_data;
   self->on_audio_frame = on_audio_frame;
@@ -417,6 +419,19 @@ void ten_extension_tester_on_start_done(ten_extension_tester_t *self) {
   TEN_ASSERT(rc, "Should not happen.");
 }
 
+void ten_extension_tester_on_stop_done(ten_extension_tester_t *self) {
+  TEN_ASSERT(self && ten_extension_tester_check_integrity(self, true),
+             "Invalid argument.");
+
+  TEN_LOGI("tester on_stop() done.");
+
+  bool rc = ten_env_proxy_notify(
+      self->test_extension_ten_env_proxy,
+      ten_builtin_test_extension_ten_env_notify_on_stop_done, NULL, false,
+      NULL);
+  TEN_ASSERT(rc, "Should not happen.");
+}
+
 void ten_extension_tester_on_test_extension_start(
     ten_extension_tester_t *self) {
   TEN_ASSERT(self && ten_extension_tester_check_integrity(self, true),
@@ -426,6 +441,18 @@ void ten_extension_tester_on_test_extension_start(
     self->on_start(self, self->ten_env_tester);
   } else {
     ten_extension_tester_on_start_done(self);
+  }
+}
+
+void ten_extension_tester_on_test_extension_stop(
+    ten_extension_tester_t *self) {
+  TEN_ASSERT(self && ten_extension_tester_check_integrity(self, true),
+             "Invalid argument.");
+
+  if (self->on_stop) {
+    self->on_stop(self, self->ten_env_tester);
+  } else {
+    ten_extension_tester_on_stop_done(self);
   }
 }
 

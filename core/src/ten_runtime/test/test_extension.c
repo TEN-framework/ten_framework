@@ -65,6 +65,15 @@ static void ten_extension_tester_on_test_extension_start_task(
   ten_extension_tester_on_test_extension_start(tester);
 }
 
+static void ten_extension_tester_on_test_extension_stop_task(void *self_,
+                                                             void *arg) {
+  ten_extension_tester_t *tester = self_;
+  TEN_ASSERT(tester && ten_extension_tester_check_integrity(tester, true),
+             "Invalid argument.");
+
+  ten_extension_tester_on_test_extension_stop(tester);
+}
+
 static void test_extension_on_start(ten_extension_t *self, ten_env_t *ten_env) {
   TEN_ASSERT(self && ten_env, "Invalid argument.");
 
@@ -80,12 +89,36 @@ static void test_extension_on_start(ten_extension_t *self, ten_env_t *ten_env) {
                              tester, NULL);
 }
 
+static void test_extension_on_stop(ten_extension_t *self, ten_env_t *ten_env) {
+  TEN_ASSERT(self && ten_env, "Invalid argument.");
+
+  // The tester framework needs to ensure that the tester's environment is
+  // always destroyed later than the test_extension, so calling the tester
+  // within the test_extension is always valid.
+  ten_extension_tester_t *tester =
+      test_extension_get_extension_tester_ptr(ten_env);
+  self->user_data = tester;
+
+  ten_runloop_post_task_tail(tester->tester_runloop,
+                             ten_extension_tester_on_test_extension_stop_task,
+                             tester, NULL);
+}
+
 void ten_builtin_test_extension_ten_env_notify_on_start_done(
     ten_env_t *ten_env, TEN_UNUSED void *user_data) {
   TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
              "Should not happen.");
 
   bool rc = ten_env_on_start_done(ten_env, NULL);
+  TEN_ASSERT(rc, "Should not happen.");
+}
+
+void ten_builtin_test_extension_ten_env_notify_on_stop_done(ten_env_t *ten_env,
+                                                            void *user_data) {
+  TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
+             "Should not happen.");
+
+  bool rc = ten_env_on_stop_done(ten_env, NULL);
   TEN_ASSERT(rc, "Should not happen.");
 }
 
@@ -255,9 +288,10 @@ static void test_extension_addon_create_instance(ten_addon_t *addon,
   TEN_ASSERT(addon && name, "Invalid argument.");
 
   ten_extension_t *extension = ten_extension_create(
-      name, test_extension_on_configure, NULL, test_extension_on_start, NULL,
-      test_extension_on_deinit, test_extension_on_cmd, test_extension_on_data,
-      test_extension_on_audio_frame, test_extension_on_video_frame, NULL);
+      name, test_extension_on_configure, NULL, test_extension_on_start,
+      test_extension_on_stop, test_extension_on_deinit, test_extension_on_cmd,
+      test_extension_on_data, test_extension_on_audio_frame,
+      test_extension_on_video_frame, NULL);
 
   ten_env_on_create_instance_done(ten_env, extension, context, NULL);
 }
