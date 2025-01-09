@@ -237,7 +237,7 @@ ten_dir_fd_t *ten_path_open_dir(const char *path) {
 
   dir->itor.entry = NULL;
   dir->itor.dir = dir;
-  dir->path = ten_string_create_from_c_str(path, strlen(path));
+  dir->path = ten_string_create_from_c_str(path);
 
   return dir;
 }

@@ -354,7 +354,7 @@ void ten_loc_set_from_value(ten_loc_t *self, ten_value_t *value) {
 
     const char *app_str = ten_value_peek_raw_str(app_value, NULL);
     if (app_str && strlen(app_str) > 0) {
-      ten_string_set_from_c_str(&self->app_uri, app_str, strlen(app_str));
+      ten_string_set_from_c_str(&self->app_uri, app_str);
     }
   }
 
@@ -363,7 +363,7 @@ void ten_loc_set_from_value(ten_loc_t *self, ten_value_t *value) {
 
     const char *graph_str = ten_value_peek_raw_str(graph_value, NULL);
     if (graph_str && strlen(graph_str) > 0) {
-      ten_string_set_from_c_str(&self->graph_id, graph_str, strlen(graph_str));
+      ten_string_set_from_c_str(&self->graph_id, graph_str);
     }
   }
 
@@ -374,8 +374,7 @@ void ten_loc_set_from_value(ten_loc_t *self, ten_value_t *value) {
     const char *group_name_str =
         ten_value_peek_raw_str(extension_group_value, NULL);
     if (group_name_str && strlen(group_name_str) > 0) {
-      ten_string_set_from_c_str(&self->extension_group_name, group_name_str,
-                                strlen(group_name_str));
+      ten_string_set_from_c_str(&self->extension_group_name, group_name_str);
     }
   }
 
@@ -385,8 +384,7 @@ void ten_loc_set_from_value(ten_loc_t *self, ten_value_t *value) {
     const char *extension_name_str =
         ten_value_peek_raw_str(extension_value, NULL);
     if (extension_name_str && strlen(extension_name_str) > 0) {
-      ten_string_set_from_c_str(&self->extension_name, extension_name_str,
-                                strlen(extension_name_str));
+      ten_string_set_from_c_str(&self->extension_name, extension_name_str);
     }
   }
 }
