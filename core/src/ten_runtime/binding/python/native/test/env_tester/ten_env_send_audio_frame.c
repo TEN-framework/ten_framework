@@ -10,7 +10,40 @@
 #include "include_internal/ten_runtime/binding/python/msg/msg.h"
 #include "include_internal/ten_runtime/binding/python/test/env_tester.h"
 #include "ten_runtime/test/env_tester.h"
+#include "ten_runtime/test/env_tester_proxy.h"
 #include "ten_utils/macro/check.h"
+#include "ten_utils/macro/memory.h"
+
+typedef struct ten_py_ten_env_tester_send_audio_frame_ctx_t {
+  ten_shared_ptr_t *audio_frame;
+  PyObject *cb_func;
+} ten_py_ten_env_tester_send_audio_frame_ctx_t;
+
+static ten_py_ten_env_tester_send_audio_frame_ctx_t *
+ten_py_ten_env_tester_send_audio_frame_ctx_create(ten_shared_ptr_t *audio_frame,
+                                                  PyObject *cb_func) {
+  ten_py_ten_env_tester_send_audio_frame_ctx_t *ctx =
+      TEN_MALLOC(sizeof(ten_py_ten_env_tester_send_audio_frame_ctx_t));
+  ctx->audio_frame = ten_shared_ptr_clone(audio_frame);
+
+  if (cb_func) {
+    Py_INCREF(cb_func);
+  }
+
+  ctx->cb_func = cb_func;
+  return ctx;
+}
+
+static void ten_py_ten_env_tester_send_audio_frame_ctx_destroy(
+    ten_py_ten_env_tester_send_audio_frame_ctx_t *ctx) {
+  ten_shared_ptr_destroy(ctx->audio_frame);
+
+  if (ctx->cb_func) {
+    Py_XDECREF(ctx->cb_func);
+  }
+
+  TEN_FREE(ctx);
+}
 
 static void proxy_send_xxx_callback(ten_env_tester_t *self,
                                     void *user_audio_frame,
@@ -55,6 +88,25 @@ static void proxy_send_xxx_callback(ten_env_tester_t *self,
   ten_py_gil_state_release_internal(prev_state);
 }
 
+static void ten_py_ten_env_tester_send_audio_frame_proxy_notify(
+    ten_env_tester_t *ten_env_tester, void *user_data) {
+  ten_py_ten_env_tester_send_audio_frame_ctx_t *ctx =
+      (ten_py_ten_env_tester_send_audio_frame_ctx_t *)user_data;
+
+  if (ctx->cb_func) {
+    Py_INCREF(ctx->cb_func);
+
+    ten_env_tester_send_audio_frame(ten_env_tester, ctx->audio_frame,
+                                    proxy_send_xxx_callback, ctx->cb_func,
+                                    NULL);
+  } else {
+    ten_env_tester_send_audio_frame(ten_env_tester, ctx->audio_frame, NULL,
+                                    NULL, NULL);
+  }
+
+  ten_py_ten_env_tester_send_audio_frame_ctx_destroy(ctx);
+}
+
 PyObject *ten_py_ten_env_tester_send_audio_frame(PyObject *self,
                                                  PyObject *args) {
   ten_py_ten_env_tester_t *py_ten_env_tester = (ten_py_ten_env_tester_t *)self;
@@ -88,24 +140,16 @@ PyObject *ten_py_ten_env_tester_send_audio_frame(PyObject *self,
     cb_func = NULL;
   }
 
-  if (cb_func) {
-    // Increase the reference count of the callback function to ensure that it
-    // will not be destroyed before the callback is called.
-    Py_INCREF(cb_func);
+  ten_py_ten_env_tester_send_audio_frame_ctx_t *ctx =
+      ten_py_ten_env_tester_send_audio_frame_ctx_create(
+          py_audio_frame->msg.c_msg, cb_func);
 
-    success = ten_env_tester_send_audio_frame(
-        py_ten_env_tester->c_ten_env_tester, py_audio_frame->msg.c_msg,
-        proxy_send_xxx_callback, cb_func, &err);
-  } else {
-    success = ten_env_tester_send_audio_frame(
-        py_ten_env_tester->c_ten_env_tester, py_audio_frame->msg.c_msg, NULL,
-        NULL, &err);
-  }
+  success = ten_env_tester_proxy_notify(
+      py_ten_env_tester->c_ten_env_tester_proxy,
+      ten_py_ten_env_tester_send_audio_frame_proxy_notify, ctx, &err);
 
   if (!success) {
-    if (cb_func) {
-      Py_XDECREF(cb_func);
-    }
+    ten_py_ten_env_tester_send_audio_frame_ctx_destroy(ctx);
 
     ten_py_raise_py_runtime_error_exception("Failed to send audio_frame.");
     goto done;

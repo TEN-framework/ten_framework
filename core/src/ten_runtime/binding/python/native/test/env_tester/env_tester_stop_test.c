@@ -6,8 +6,14 @@
 //
 #include "include_internal/ten_runtime/binding/python/test/env_tester.h"
 #include "ten_runtime/test/env_tester.h"
+#include "ten_runtime/test/env_tester_proxy.h"
 #include "ten_utils/macro/check.h"
 #include "ten_utils/macro/mark.h"
+
+static void ten_py_ten_env_tester_stop_test_proxy_notify(
+    ten_env_tester_t *ten_env_tester, void *user_data) {
+  ten_env_tester_stop_test(ten_env_tester, NULL);
+}
 
 PyObject *ten_py_ten_env_tester_stop_test(PyObject *self,
                                           TEN_UNUSED PyObject *args) {
@@ -16,11 +22,15 @@ PyObject *ten_py_ten_env_tester_stop_test(PyObject *self,
                  ten_py_ten_env_tester_check_integrity(py_ten_env_tester),
              "Invalid argument.");
 
-  bool rc = ten_env_tester_stop_test(py_ten_env_tester->c_ten_env_tester, NULL);
+  ten_error_t err;
+  ten_error_init(&err);
 
-  if (rc) {
-    Py_RETURN_NONE;
-  } else {
-    return NULL;
-  }
+  bool rc = ten_env_tester_proxy_notify(
+      py_ten_env_tester->c_ten_env_tester_proxy,
+      ten_py_ten_env_tester_stop_test_proxy_notify, NULL, &err);
+  TEN_ASSERT(rc, "Should not happen.");
+
+  ten_error_deinit(&err);
+
+  Py_RETURN_NONE;
 }

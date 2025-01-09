@@ -6,9 +6,15 @@
 //
 #include "include_internal/ten_runtime/binding/python/test/env_tester.h"
 #include "ten_runtime/test/env_tester.h"
+#include "ten_runtime/test/env_tester_proxy.h"
 #include "ten_utils/lib/error.h"
 #include "ten_utils/macro/check.h"
 #include "ten_utils/macro/mark.h"
+
+static void ten_py_ten_env_tester_on_start_done_proxy_notify(
+    ten_env_tester_t *ten_env_tester, void *user_data) {
+  ten_env_tester_on_start_done(ten_env_tester, NULL);
+}
 
 PyObject *ten_py_ten_env_tester_on_start_done(PyObject *self,
                                               TEN_UNUSED PyObject *args) {
@@ -20,7 +26,10 @@ PyObject *ten_py_ten_env_tester_on_start_done(PyObject *self,
   ten_error_t err;
   ten_error_init(&err);
 
-  ten_env_tester_on_start_done(py_ten_env_tester->c_ten_env_tester, &err);
+  bool rc = ten_env_tester_proxy_notify(
+      py_ten_env_tester->c_ten_env_tester_proxy,
+      ten_py_ten_env_tester_on_start_done_proxy_notify, NULL, &err);
+  TEN_ASSERT(rc, "Should not happen.");
 
   ten_error_deinit(&err);
 
