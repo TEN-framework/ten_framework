@@ -27,10 +27,16 @@ class test_predefined_graph : public ten::extension_t {
     start_graph_cmd->set_graph_from_json(R"({
       "nodes": [{
         "type": "extension",
-        "name": "normal_extension",
+        "name": "non_existed_extension",
         "addon": "not_existed_extension_addon",
         "app": "msgpack://127.0.0.1:8001/",
-        "extension_group": "start_incorrect_graph__normal_extension_group"
+        "extension_group": "start_incorrect_graph_2__normal_extension_group"
+      },{
+        "type": "extension",
+        "name": "normal_extension",
+        "addon": "start_incorrect_graph_2__normal_extension",
+        "app": "msgpack://127.0.0.1:8001/",
+        "extension_group": "start_incorrect_graph_2__normal_extension_group"
       }]
     })"_json.dump()
                                              .c_str());
@@ -111,8 +117,8 @@ class test_app : public ten::app_t {
                           "nodes": [{
                             "type": "extension",
                             "name": "predefined_graph",
-                            "addon": "start_incorrect_graph__predefined_graph_extension",
-                            "extension_group": "start_incorrect_graph__predefined_graph_group"
+                            "addon": "start_incorrect_graph_2__predefined_graph_extension",
+                            "extension_group": "start_incorrect_graph_2__predefined_graph_group"
                           }]
                         }]
                       }
@@ -134,13 +140,13 @@ void *app_thread_main(TEN_UNUSED void *args) {
 }
 
 TEN_CPP_REGISTER_ADDON_AS_EXTENSION(
-    start_incorrect_graph__predefined_graph_extension, test_predefined_graph);
-TEN_CPP_REGISTER_ADDON_AS_EXTENSION(start_incorrect_graph__normal_extension,
+    start_incorrect_graph_2__predefined_graph_extension, test_predefined_graph);
+TEN_CPP_REGISTER_ADDON_AS_EXTENSION(start_incorrect_graph_2__normal_extension,
                                     test_normal_extension);
 
 }  // namespace
 
-TEST(ExtensionTest, StartIncorrectGraph) {  // NOLINT
+TEST(ExtensionTest, StartIncorrectGraph2) {  // NOLINT
   auto *app_thread = ten_thread_create("app thread", app_thread_main, nullptr);
 
   // Create a client and connect to the app.
@@ -151,7 +157,7 @@ TEST(ExtensionTest, StartIncorrectGraph) {  // NOLINT
   // request to predefined graph.
   auto test_cmd = ten::cmd_t::create("test");
   test_cmd->set_dest("msgpack://127.0.0.1:8001/", "default",
-                     "start_incorrect_graph__predefined_graph_group",
+                     "start_incorrect_graph_2__predefined_graph_group",
                      "predefined_graph");
   auto cmd_result = client->send_cmd_and_recv_result(std::move(test_cmd));
   ten_test::check_status_code(cmd_result, TEN_STATUS_CODE_OK);
