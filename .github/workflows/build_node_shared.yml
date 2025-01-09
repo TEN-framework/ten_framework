@@ -40,9 +40,10 @@ jobs:
           submodules: "true"
 
       - name: Upload to Google drive
-        uses: Fork-on-the-Table-Collective/upload-to-download-from-gdrive@v2.0.0
+        uses: adityak74/google-drive-upload-git-action@main
         with:
           credentials: ${{ secrets.GOOGLE_DRIVE_CREDENTIALS }}
-          actionType: upload
-          localPath: ./LICENSE
-          googleFolderId: 1bx5PZxTkXM2RCEEGgb556juRMGM-SAwa
+          filename: "./LICENSE"
+          folderId: 1bx5PZxTkXM2RCEEGgb556juRMGM-SAwa
+          name: "node-shared-${{ matrix.compiler }}.zip"
+          overwrite: "true"
