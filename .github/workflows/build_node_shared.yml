@@ -35,10 +35,9 @@ jobs:
       #     make -j$(nproc)
 
       - name: Upload to Google drive
-        uses: adityak74/google-drive-upload-git-action@main
+        uses: Fork-on-the-Table-Collective/upload-to-download-from-gdrive@v2.0.0
         with:
           credentials: ${{ secrets.GOOGLE_DRIVE_CREDENTIALS }}
-          filename: "LICENSE"
-          folderId: "aaa"
-          name: "node-shared-${{ matrix.compiler }}.zip" # optional string
-          overwrite: "true" # optional boolean
+          actionType: upload
+          localPath: ./LICENSE
+          googleFolderId: aaa
