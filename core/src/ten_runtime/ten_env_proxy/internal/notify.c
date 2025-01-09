@@ -258,10 +258,11 @@ bool ten_env_proxy_notify_async(ten_env_proxy_t *self,
       TEN_ASSERT(ten_extension_check_integrity(extension, false),
                  "Invalid argument.");
 
-      ten_runloop_post_task_tail(
+      int rc = ten_runloop_post_task_tail(
           ten_extension_get_attached_runloop(extension),
           ten_notify_to_extension_task, extension,
           ten_notify_data_create(notify_func, user_data));
+      TEN_ASSERT(!rc, "Should not happen.");
       break;
     }
 
@@ -275,10 +276,11 @@ bool ten_env_proxy_notify_async(ten_env_proxy_t *self,
       TEN_ASSERT(ten_extension_group_check_integrity(extension_group, false),
                  "Invalid argument.");
 
-      ten_runloop_post_task_tail(
+      int rc = ten_runloop_post_task_tail(
           ten_extension_group_get_attached_runloop(extension_group),
           ten_notify_to_extension_group_task, extension_group,
           ten_notify_data_create(notify_func, user_data));
+      TEN_ASSERT(!rc, "Should not happen.");
       break;
     }
 
@@ -289,9 +291,10 @@ bool ten_env_proxy_notify_async(ten_env_proxy_t *self,
       // thread-check: This function is intended to be called in any threads.
       TEN_ASSERT(ten_app_check_integrity(app, false), "Invalid argument.");
 
-      ten_runloop_post_task_tail(
+      int rc = ten_runloop_post_task_tail(
           ten_app_get_attached_runloop(app), ten_notify_to_app_task, app,
           ten_notify_data_create(notify_func, user_data));
+      TEN_ASSERT(!rc, "Should not happen.");
       break;
     }
 

@@ -142,8 +142,9 @@ void ten_engine_close_async(ten_engine_t *self) {
     return;
   }
 
-  ten_runloop_post_task_tail(ten_engine_get_attached_runloop(self),
-                             ten_engine_close_task, self, NULL);
+  int rc = ten_runloop_post_task_tail(ten_engine_get_attached_runloop(self),
+                                      ten_engine_close_task, self, NULL);
+  TEN_ASSERT(!rc, "Should not happen.");
 }
 
 bool ten_engine_is_closing(ten_engine_t *self) {

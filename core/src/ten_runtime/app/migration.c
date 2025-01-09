@@ -62,6 +62,8 @@ void ten_app_clean_connection_async(ten_app_t *self,
                  ten_connection_check_integrity(connection, false),
              "Should not happen.");
 
-  ten_runloop_post_task_tail(ten_app_get_attached_runloop(self),
-                             ten_app_clean_connection_task, connection, NULL);
+  int rc = ten_runloop_post_task_tail(ten_app_get_attached_runloop(self),
+                                      ten_app_clean_connection_task, connection,
+                                      NULL);
+  TEN_ASSERT(!rc, "Should not happen.");
 }

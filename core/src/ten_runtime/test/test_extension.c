@@ -75,9 +75,10 @@ static void test_extension_on_start(ten_extension_t *self, ten_env_t *ten_env) {
       test_extension_get_extension_tester_ptr(ten_env);
   self->user_data = tester;
 
-  ten_runloop_post_task_tail(tester->tester_runloop,
-                             ten_extension_tester_on_test_extension_start_task,
-                             tester, NULL);
+  int rc = ten_runloop_post_task_tail(
+      tester->tester_runloop, ten_extension_tester_on_test_extension_start_task,
+      tester, NULL);
+  TEN_ASSERT(!rc, "Should not happen.");
 }
 
 void ten_builtin_test_extension_ten_env_notify_on_start_done(
@@ -114,9 +115,10 @@ static void test_extension_on_cmd(ten_extension_t *self, ten_env_t *ten_env,
              "Should not happen.");
 
   // Inject cmd into the extension_tester thread to ensure thread safety.
-  ten_runloop_post_task_tail(tester->tester_runloop,
-                             ten_extension_tester_on_test_extension_cmd_task,
-                             tester, ten_shared_ptr_clone(cmd));
+  int rc = ten_runloop_post_task_tail(
+      tester->tester_runloop, ten_extension_tester_on_test_extension_cmd_task,
+      tester, ten_shared_ptr_clone(cmd));
+  TEN_ASSERT(!rc, "Should not happen.");
 }
 
 static void ten_extension_tester_on_test_extension_data_task(void *self_,
@@ -144,9 +146,10 @@ static void test_extension_on_data(ten_extension_t *self, ten_env_t *ten_env,
              "Should not happen.");
 
   // Inject data into the extension_tester thread to ensure thread safety.
-  ten_runloop_post_task_tail(tester->tester_runloop,
-                             ten_extension_tester_on_test_extension_data_task,
-                             tester, ten_shared_ptr_clone(data));
+  int rc = ten_runloop_post_task_tail(
+      tester->tester_runloop, ten_extension_tester_on_test_extension_data_task,
+      tester, ten_shared_ptr_clone(data));
+  TEN_ASSERT(!rc, "Should not happen.");
 }
 
 static void ten_extension_tester_on_test_extension_audio_frame_task(void *self_,
@@ -176,10 +179,11 @@ static void test_extension_on_audio_frame(ten_extension_t *self,
 
   // Inject audio_frame into the extension_tester thread to ensure thread
   // safety.
-  ten_runloop_post_task_tail(
+  int rc = ten_runloop_post_task_tail(
       tester->tester_runloop,
       ten_extension_tester_on_test_extension_audio_frame_task, tester,
       ten_shared_ptr_clone(audio_frame));
+  TEN_ASSERT(!rc, "Should not happen.");
 }
 
 static void ten_extension_tester_on_test_extension_video_frame_task(void *self_,
@@ -209,10 +213,11 @@ static void test_extension_on_video_frame(ten_extension_t *self,
 
   // Inject video_frame into the extension_tester thread to ensure thread
   // safety.
-  ten_runloop_post_task_tail(
+  int rc = ten_runloop_post_task_tail(
       tester->tester_runloop,
       ten_extension_tester_on_test_extension_video_frame_task, tester,
       ten_shared_ptr_clone(video_frame));
+  TEN_ASSERT(!rc, "Should not happen.");
 }
 
 static void ten_extension_tester_on_test_extension_deinit_task(
@@ -235,9 +240,10 @@ static void test_extension_on_deinit(ten_extension_t *self,
   TEN_ASSERT(tester && ten_extension_tester_check_integrity(tester, false),
              "Should not happen.");
 
-  ten_runloop_post_task_tail(tester->tester_runloop,
-                             ten_extension_tester_on_test_extension_deinit_task,
-                             tester, NULL);
+  int post_status = ten_runloop_post_task_tail(
+      tester->tester_runloop,
+      ten_extension_tester_on_test_extension_deinit_task, tester, NULL);
+  TEN_ASSERT(!post_status, "Should not happen.");
 
   // It is safe to call on_deinit_done here, because as long as the
   // ten_env_proxy has not been destroyed, the test_extension will not be

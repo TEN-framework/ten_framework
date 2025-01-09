@@ -118,9 +118,10 @@ static void test_app_on_deinit(ten_app_t *app, ten_env_t *ten_env) {
   TEN_ASSERT(tester && ten_extension_tester_check_integrity(tester, false),
              "Should not happen.");
 
-  ten_runloop_post_task_tail(tester->tester_runloop,
-                             ten_extension_tester_on_test_app_deinit_task,
-                             tester, NULL);
+  int rc = ten_runloop_post_task_tail(
+      tester->tester_runloop, ten_extension_tester_on_test_app_deinit_task,
+      tester, NULL);
+  TEN_ASSERT(!rc, "Should not happen.");
 
   ten_env_on_deinit_done(ten_env, NULL);
 }

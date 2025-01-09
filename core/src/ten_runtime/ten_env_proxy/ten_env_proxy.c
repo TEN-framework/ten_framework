@@ -239,8 +239,10 @@ bool ten_env_proxy_release(ten_env_proxy_t *self, ten_error_t *err) {
 
     ten_mutex_unlock(self->lock);
 
-    ten_runloop_post_task_tail(ten_env_get_attached_runloop(ten_env),
-                               ten_notify_proxy_is_deleted, ten_env, self);
+    int rc =
+        ten_runloop_post_task_tail(ten_env_get_attached_runloop(ten_env),
+                                   ten_notify_proxy_is_deleted, ten_env, self);
+    TEN_ASSERT(!rc, "Should not happen.");
 
     return true;
   }

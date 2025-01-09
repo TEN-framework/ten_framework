@@ -177,8 +177,10 @@ void ten_engine_handle_in_msgs_async(ten_engine_t *self) {
                  ten_engine_check_integrity(self, false),
              "Should not happen.");
 
-  ten_runloop_post_task_tail(ten_engine_get_attached_runloop(self),
-                             ten_engine_handle_in_msgs_task, self, NULL);
+  int rc =
+      ten_runloop_post_task_tail(ten_engine_get_attached_runloop(self),
+                                 ten_engine_handle_in_msgs_task, self, NULL);
+  TEN_ASSERT(!rc, "Should not happen.");
 }
 
 void ten_engine_append_to_in_msgs_queue(ten_engine_t *self,
@@ -237,11 +239,6 @@ bool ten_engine_dispatch_msg(ten_engine_t *self, ten_shared_ptr_t *msg) {
   TEN_ASSERT(ten_msg_get_dest_cnt(msg) == 1,
              "When this function is executed, there should be only one "
              "destination remaining in the message's dest.");
-
-  if (ten_engine_is_closing(self)) {
-    // Do not dispatch the message if the engine is closing.
-    return true;
-  }
 
   ten_loc_t *dest_loc = ten_msg_get_first_dest_loc(msg);
   TEN_ASSERT(dest_loc && ten_loc_check_integrity(dest_loc),

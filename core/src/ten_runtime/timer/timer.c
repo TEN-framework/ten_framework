@@ -297,7 +297,9 @@ void ten_timer_stop_async(ten_timer_t *self) {
 
   TEN_LOGV("Stop a timer.");
 
-  ten_runloop_post_task_tail(self->runloop, ten_timer_stop_, self, NULL);
+  int rc =
+      ten_runloop_post_task_tail(self->runloop, ten_timer_stop_, self, NULL);
+  TEN_ASSERT(!rc, "Should not happen.");
 }
 
 void ten_timer_set_on_closed(ten_timer_t *self,
@@ -337,7 +339,9 @@ void ten_timer_close_async(ten_timer_t *self) {
   if (ten_atomic_bool_compare_swap(&self->is_closing, 0, 1)) {
     TEN_LOGV("Try to close a timer.");
 
-    ten_runloop_post_task_tail(self->runloop, ten_timer_close_, self, NULL);
+    int rc =
+        ten_runloop_post_task_tail(self->runloop, ten_timer_close_, self, NULL);
+    TEN_ASSERT(!rc, "Should not happen.");
   }
 }
 

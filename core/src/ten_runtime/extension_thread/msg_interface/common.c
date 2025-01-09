@@ -77,12 +77,17 @@ static void ten_extension_thread_handle_in_msg_sync(
 
       ten_shared_ptr_destroy(status);
     } else {
-#if defined(_DEBUG)
-      TEN_ASSERT(0, "Should not happen.");
-#endif
+      // The reason for the disappearance of the extension might be that the
+      // extension's termination process is kind of _smooth_, allowing it to end
+      // directly without waiting for anything to happen. In such a case, it is
+      // possible that the already terminated extension instance cannot be
+      // found.
+      TEN_LOGW(
+          "Unable to send the message %s to the absent destination extension "
+          "%s.",
+          ten_msg_get_name(msg),
+          ten_string_get_raw_str(&dest_loc->extension_name));
     }
-
-    return;
   } else {
     if (extension->extension_thread != self) {
       // ten_msg_dump(msg, NULL, "Unexpected msg ^m for extension %s",
@@ -219,8 +224,15 @@ void ten_extension_thread_handle_in_msg_async(ten_extension_thread_t *self,
 
   msg = ten_shared_ptr_clone(msg);
 
-  ten_runloop_post_task_tail(
+  int rc = ten_runloop_post_task_tail(
       self->runloop, ten_extension_thread_handle_in_msg_task, self, msg);
+  // The extension thread might have already terminated. Therefore, even though
+  // the extension thread instance still exists, attempting to enqueue tasks
+  // into it will not succeed. It is necessary to account for this scenario to
+  // prevent memory leaks.
+  if (rc) {
+    ten_shared_ptr_destroy(msg);
+  }
 }
 
 void ten_extension_thread_dispatch_msg(ten_extension_thread_t *self,

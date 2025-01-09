@@ -87,9 +87,10 @@ bool ten_env_tester_proxy_release(ten_env_tester_proxy_t *self,
   ten_env_tester_t *ten_env_tester = self->ten_env_tester;
   TEN_ASSERT(ten_env_tester, "Should not happen.");
 
-  ten_runloop_post_task_tail(ten_env_tester->tester->tester_runloop,
-                             ten_env_tester_on_proxy_deleted, ten_env_tester,
-                             self);
+  int rc = ten_runloop_post_task_tail(ten_env_tester->tester->tester_runloop,
+                                      ten_env_tester_on_proxy_deleted,
+                                      ten_env_tester, self);
+  TEN_ASSERT(!rc, "Should not happen.");
 
   return true;
 }

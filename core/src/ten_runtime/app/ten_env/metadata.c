@@ -89,9 +89,10 @@ void ten_app_set_property_async(ten_app_t *self, const char *name,
   ten_app_set_property_context_t *set_property_context =
       set_property_context_create(name, value, cb, cb_data);
 
-  ten_runloop_post_task_tail(ten_app_get_attached_runloop(self),
-                             ten_app_set_property_task, self,
-                             set_property_context);
+  int rc = ten_runloop_post_task_tail(ten_app_get_attached_runloop(self),
+                                      ten_app_set_property_task, self,
+                                      set_property_context);
+  TEN_ASSERT(!rc, "Should not happen.");
 }
 
 ten_value_t *ten_app_peek_property(ten_app_t *app, const char *name) {
@@ -162,8 +163,9 @@ void ten_app_peek_property_async(ten_app_t *self, const char *name,
   ten_app_peek_property_context_t *context =
       ten_app_peek_property_context_create(name, cb, cb_data);
 
-  ten_runloop_post_task_tail(self->loop, ten_app_peek_property_task, self,
-                             context);
+  int rc = ten_runloop_post_task_tail(self->loop, ten_app_peek_property_task,
+                                      self, context);
+  TEN_ASSERT(!rc, "Should not happen.");
 }
 
 ten_value_t *ten_app_peek_manifest(ten_app_t *self, const char *name) {
@@ -241,6 +243,7 @@ void ten_app_peek_manifest_async(ten_app_t *self, const char *name,
   ten_app_peek_manifest_context_t *context =
       ten_app_peek_manifest_context_create(name, cb, cb_data);
 
-  ten_runloop_post_task_tail(self->loop, ten_app_peek_manifest_task, self,
-                             context);
+  int rc = ten_runloop_post_task_tail(self->loop, ten_app_peek_manifest_task,
+                                      self, context);
+  TEN_ASSERT(!rc, "Should not happen.");
 }

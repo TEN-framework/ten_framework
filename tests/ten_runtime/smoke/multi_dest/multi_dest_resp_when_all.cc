@@ -93,7 +93,7 @@ TEN_CPP_REGISTER_ADDON_AS_EXTENSION(multi_dest_resp_when_all__extension_3,
 
 }  // namespace
 
-TEST(ExtensionTest, MultiDestRespWhenAll) {
+TEST(MultiDestTest, MultiDestRespWhenAll) {
   // Start app.
   auto *app_thread =
       ten_thread_create("app thread", test_app_thread_main, nullptr);
