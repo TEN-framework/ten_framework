@@ -39,6 +39,6 @@ jobs:
         with:
           credentials: ${{ secrets.GOOGLE_DRIVE_CREDENTIALS }}
           filename: "LICENSE"
-          folderId: ${{ secrets.GOOGLE_DRIVE_FOLDER_ID }}
+          folderId: "aaa"
           name: "node-shared-${{ matrix.compiler }}.zip" # optional string
           overwrite: "true" # optional boolean
