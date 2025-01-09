@@ -120,9 +120,10 @@ void ten_engine_on_connection_cleaned_async(ten_engine_t *self,
   ten_engine_migration_user_data_t *user_data =
       ten_engine_migration_user_data_create(connection, cmd);
 
-  ten_runloop_post_task_tail(ten_engine_get_attached_runloop(self),
-                             ten_engine_on_connection_cleaned_task, self,
-                             user_data);
+  int rc = ten_runloop_post_task_tail(ten_engine_get_attached_runloop(self),
+                                      ten_engine_on_connection_cleaned_task,
+                                      self, user_data);
+  TEN_ASSERT(!rc, "Should not happen.");
 }
 
 void ten_engine_on_connection_closed(ten_connection_t *connection,

@@ -151,7 +151,7 @@ TEN_CPP_REGISTER_ADDON_AS_EXTENSION(
 
 }  // namespace
 
-TEST(ExtensionTest, MultiDestRespWhenAllInMultiApp) {  // NOLINT
+TEST(MultiDestTest, MultiDestRespWhenAllInMultiApp) {  // NOLINT
   // Start app.
   auto *app_3_thread =
       ten_thread_create("app thread 3", app_thread_3_main, nullptr);

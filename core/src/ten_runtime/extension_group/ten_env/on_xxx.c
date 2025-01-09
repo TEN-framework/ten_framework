@@ -79,10 +79,11 @@ void ten_extension_group_on_init_done(ten_env_t *self) {
                  ten_extension_thread_check_integrity(extension_thread, true),
              "Should not happen.");
 
-  ten_runloop_post_task_tail(
+  int rc = ten_runloop_post_task_tail(
       ten_extension_group_get_attached_runloop(extension_group),
       ten_extension_thread_on_extension_group_on_init_done, extension_thread,
       NULL);
+  TEN_ASSERT(!rc, "Should not happen.");
 }
 
 void ten_extension_group_on_deinit_done(ten_env_t *self) {
@@ -122,10 +123,11 @@ void ten_extension_group_on_deinit_done(ten_env_t *self) {
 
   // All extensions belong to this extension thread (group) are deleted, notify
   // this to the extension thread.
-  ten_runloop_post_task_tail(
+  int rc = ten_runloop_post_task_tail(
       ten_extension_group_get_attached_runloop(extension_group),
       ten_extension_thread_on_extension_group_on_deinit_done, extension_thread,
       NULL);
+  TEN_ASSERT(!rc, "Should not happen.");
 }
 
 void ten_extension_group_on_create_extensions_done(ten_extension_group_t *self,
@@ -187,9 +189,10 @@ void ten_extension_group_on_destroy_extensions_done(
                  ten_extension_thread_check_integrity(extension_thread, true),
              "Should not happen.");
 
-  ten_runloop_post_task_tail(ten_extension_group_get_attached_runloop(self),
-                             ten_extension_thread_on_all_extensions_deleted,
-                             extension_thread, NULL);
+  int rc = ten_runloop_post_task_tail(
+      ten_extension_group_get_attached_runloop(self),
+      ten_extension_thread_on_all_extensions_deleted, extension_thread, NULL);
+  TEN_ASSERT(!rc, "Should not happen.");
 }
 
 void ten_extension_group_on_addon_create_extension_done(

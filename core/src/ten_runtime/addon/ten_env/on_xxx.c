@@ -184,10 +184,12 @@ static void ten_extension_addon_on_create_instance_done(ten_env_t *self,
       ctx->extension = extension;
       ctx->addon_context = addon_context;
 
-      ten_runloop_post_task_tail(
+      int rc = ten_runloop_post_task_tail(
           ten_extension_group_get_attached_runloop(extension_group),
           ten_extension_thread_on_addon_create_extension_done, extension_thread,
           ctx);
+      TEN_ASSERT(!rc, "Should not happen.");
+
       break;
     }
 
@@ -248,9 +250,10 @@ static void ten_extension_group_addon_on_create_instance_done(ten_env_t *self,
       ctx->extension_group = extension_group;
       ctx->addon_context = addon_context;
 
-      ten_runloop_post_task_tail(
+      int rc = ten_runloop_post_task_tail(
           ten_engine_get_attached_runloop(engine),
           ten_engine_on_addon_create_extension_group_done, engine, ctx);
+      TEN_ASSERT(!rc, "Should not happen.");
       break;
     }
 
@@ -312,9 +315,10 @@ static void ten_protocol_addon_on_create_instance_done(ten_env_t *self,
       ctx->protocol = protocol;
       ctx->addon_context = addon_context;
 
-      ten_runloop_post_task_tail(
+      int rc = ten_runloop_post_task_tail(
           ten_engine_get_attached_runloop(engine),
           ten_engine_thread_on_addon_create_protocol_done, engine, ctx);
+      TEN_ASSERT(!rc, "Should not happen.");
       break;
     }
 
@@ -329,9 +333,10 @@ static void ten_protocol_addon_on_create_instance_done(ten_env_t *self,
       ctx->protocol = instance;
       ctx->addon_context = addon_context;
 
-      ten_runloop_post_task_tail(ten_app_get_attached_runloop(app),
-                                 ten_app_thread_on_addon_create_protocol_done,
-                                 app, ctx);
+      int rc = ten_runloop_post_task_tail(
+          ten_app_get_attached_runloop(app),
+          ten_app_thread_on_addon_create_protocol_done, app, ctx);
+      TEN_ASSERT(!rc, "Should not happen.");
       break;
     }
 
@@ -386,9 +391,10 @@ static void ten_addon_loader_addon_on_create_instance_done(ten_env_t *self,
       ctx->addon_loader = instance;
       ctx->addon_context = addon_context;
 
-      ten_runloop_post_task_tail(
+      int rc = ten_runloop_post_task_tail(
           ten_app_get_attached_runloop(app),
           ten_app_thread_on_addon_create_addon_loader_done, app, ctx);
+      TEN_ASSERT(!rc, "Should not happen.");
       break;
     }
 
@@ -488,10 +494,11 @@ void ten_addon_on_destroy_instance_done(ten_env_t *self, void *context) {
                      ten_engine_check_integrity(engine, false),
                  "Should not happen.");
 
-      ten_runloop_post_task_tail(
+      int rc = ten_runloop_post_task_tail(
           ten_engine_get_attached_runloop(engine),
           ten_engine_on_addon_destroy_extension_group_done, engine,
           addon_context);
+      TEN_ASSERT(!rc, "Should not happen.");
       break;
     }
 
@@ -518,10 +525,11 @@ void ten_addon_on_destroy_instance_done(ten_env_t *self, void *context) {
               ten_extension_thread_check_integrity(extension_thread, false),
           "Should not happen.");
 
-      ten_runloop_post_task_tail(
+      int rc = ten_runloop_post_task_tail(
           ten_extension_group_get_attached_runloop(extension_group),
           ten_extension_thread_on_addon_destroy_extension_done,
           extension_thread, addon_context);
+      TEN_ASSERT(!rc, "Should not happen.");
       break;
     }
 

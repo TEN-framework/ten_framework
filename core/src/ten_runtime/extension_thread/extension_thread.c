@@ -195,8 +195,9 @@ static void ten_extension_thread_notify_engine_we_are_closed(
 
   ten_extension_thread_set_state(self, TEN_EXTENSION_THREAD_STATE_CLOSED);
 
-  ten_runloop_post_task_tail(engine_loop, ten_engine_on_extension_thread_closed,
-                             engine, self);
+  int rc = ten_runloop_post_task_tail(
+      engine_loop, ten_engine_on_extension_thread_closed, engine, self);
+  TEN_ASSERT(!rc, "Should not happen.");
 }
 
 ten_runloop_t *ten_extension_thread_get_attached_runloop(
@@ -256,8 +257,9 @@ void *ten_extension_thread_main_actual(ten_extension_thread_t *self) {
   self->runloop = ten_runloop_create(NULL);
   TEN_ASSERT(self->runloop, "Should not happen.");
 
-  ten_runloop_post_task_tail(
+  int rc = ten_runloop_post_task_tail(
       self->runloop, ten_extension_thread_handle_start_msg_task, self, NULL);
+  TEN_ASSERT(!rc, "Should not happen.");
 
   // Before actually starting the extension thread's runloop, first notify the
   // engine (extension_context) that the extension thread's runloop is ready for
@@ -356,8 +358,9 @@ void ten_extension_thread_close(ten_extension_thread_t *self) {
   TEN_LOGD("Try to close extension thread.");
 
   // Notify extension thread that it is about to close.
-  ten_runloop_post_task_tail(
+  int rc = ten_runloop_post_task_tail(
       self->runloop, ten_extension_thread_on_triggering_close, self, NULL);
+  TEN_ASSERT(!rc, "Should not happen.");
 }
 
 bool ten_extension_thread_call_by_me(ten_extension_thread_t *self) {
@@ -604,17 +607,19 @@ ten_engine_find_extension_info_for_all_extensions_of_extension_thread(
   }
 
   if (extension_thread->is_close_triggered) {
-    ten_runloop_post_task_tail(
+    int rc = ten_runloop_post_task_tail(
         ten_extension_thread_get_attached_runloop(extension_thread),
         ten_extension_thread_stop_life_cycle_of_all_extensions_task,
         extension_thread, NULL);
+    TEN_ASSERT(!rc, "Should not happen.");
   } else {
     ten_engine_on_all_extension_threads_are_ready(self, extension_thread);
 
-    ten_runloop_post_task_tail(
+    int rc = ten_runloop_post_task_tail(
         ten_extension_thread_get_attached_runloop(extension_thread),
         ten_extension_thread_start_life_cycle_of_all_extensions_task,
         extension_thread, NULL);
+    TEN_ASSERT(!rc, "Should not happen.");
   }
 }
 
@@ -659,8 +664,9 @@ void ten_extension_thread_add_all_created_extensions(
   TEN_ASSERT(engine && ten_engine_check_integrity(engine, false),
              "Should not happen.");
 
-  ten_runloop_post_task_tail(
+  int rc = ten_runloop_post_task_tail(
       ten_engine_get_attached_runloop(engine),
       ten_engine_find_extension_info_for_all_extensions_of_extension_thread,
       engine, self);
+  TEN_ASSERT(!rc, "Should not happen.");
 }

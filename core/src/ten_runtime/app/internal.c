@@ -56,8 +56,9 @@ void ten_app_start(ten_app_t *self) {
   ten_app_find_and_set_base_dir(self);
 
   // Add the first task of app.
-  ten_runloop_post_task_tail(self->loop, ten_app_handle_metadata_task, self,
-                             NULL);
+  int rc = ten_runloop_post_task_tail(self->loop, ten_app_handle_metadata_task,
+                                      self, NULL);
+  TEN_ASSERT(!rc, "Should not happen.");
 
   ten_runloop_run(self->loop);
 

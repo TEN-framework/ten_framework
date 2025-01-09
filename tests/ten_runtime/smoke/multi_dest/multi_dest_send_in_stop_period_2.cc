@@ -9,7 +9,9 @@
 
 #include "gtest/gtest.h"
 #include "include_internal/ten_runtime/binding/cpp/ten.h"
+#include "ten_runtime/binding/cpp/detail/ten_env.h"
 #include "ten_utils/lib/thread.h"
+#include "ten_utils/lib/time.h"
 #include "tests/common/client/cpp/msgpack_tcp.h"
 #include "tests/ten_runtime/smoke/util/binding/cpp/check.h"
 
@@ -23,15 +25,19 @@ class test_extension_1 : public ten::extension_t {
               std::unique_ptr<ten::cmd_t> cmd) override {
     if (cmd->get_name() == "hello_world") {
       ten_env.send_cmd(std::move(cmd));
-      return;
     }
   }
 
   void on_stop(ten::ten_env_t &ten_env) override {
-    auto cmd = ten::cmd_t::create("hello_world");
-    ten_env.send_cmd(std::move(cmd));
-
-    ten_env.on_stop_done();
+    auto cmd = ten::cmd_t::create("extension_1_stop");
+    ten_env.send_cmd(
+        std::move(cmd),
+        [](ten::ten_env_t &ten_env,
+           std::unique_ptr<ten::cmd_result_t> cmd_result, ten::error_t *err) {
+          // After receiving results of the command sent during `on_stop`, we
+          // can `on_stop_done`.
+          ten_env.on_stop_done();
+        });
   }
 };
 
@@ -45,8 +51,34 @@ class test_extension_2 : public ten::extension_t {
       auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
       cmd_result->set_property("detail", "hello world, too");
       ten_env.return_result(std::move(cmd_result), std::move(cmd));
+    } else if (cmd->get_name() == "extension_1_stop") {
+      ten_sleep(500);
+
+      TEN_ENV_LOG_INFO(ten_env, "got extension_1_stop.");
+
+      received_extension_1_stop_cmd = true;
+
+      auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
+      cmd_result->set_property("detail", "extension_1_stop, too");
+      ten_env.return_result(std::move(cmd_result), std::move(cmd));
+
+      if (have_called_on_stop) {
+        ten_env.on_stop_done();
+      }
     }
   }
+
+  void on_stop(ten::ten_env_t &ten_env) override {
+    have_called_on_stop = true;
+
+    if (received_extension_1_stop_cmd) {
+      ten_env.on_stop_done();
+    }
+  }
+
+ private:
+  bool received_extension_1_stop_cmd = false;
+  bool have_called_on_stop = false;
 };
 
 class test_extension_3 : public ten::extension_t {
@@ -59,8 +91,34 @@ class test_extension_3 : public ten::extension_t {
       auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
       cmd_result->set_property("detail", "hello world, too");
       ten_env.return_result(std::move(cmd_result), std::move(cmd));
+    } else if (cmd->get_name() == "extension_1_stop") {
+      ten_sleep(500);
+
+      TEN_ENV_LOG_INFO(ten_env, "got extension_1_stop.");
+
+      received_extension_1_stop_cmd = true;
+
+      auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
+      cmd_result->set_property("detail", "extension_1_stop, too");
+      ten_env.return_result(std::move(cmd_result), std::move(cmd));
+
+      if (have_called_on_stop) {
+        ten_env.on_stop_done();
+      }
     }
   }
+
+  void on_stop(ten::ten_env_t &ten_env) override {
+    have_called_on_stop = true;
+
+    if (received_extension_1_stop_cmd) {
+      ten_env.on_stop_done();
+    }
+  }
+
+ private:
+  bool received_extension_1_stop_cmd = false;
+  bool have_called_on_stop = false;
 };
 
 class test_app : public ten::app_t {
@@ -91,16 +149,16 @@ void *test_app_thread_main(TEN_UNUSED void *args) {
   return nullptr;
 }
 
-TEN_CPP_REGISTER_ADDON_AS_EXTENSION(multi_dest_send_in_stop_period__extension_1,
-                                    test_extension_1);
-TEN_CPP_REGISTER_ADDON_AS_EXTENSION(multi_dest_send_in_stop_period__extension_2,
-                                    test_extension_2);
-TEN_CPP_REGISTER_ADDON_AS_EXTENSION(multi_dest_send_in_stop_period__extension_3,
-                                    test_extension_3);
+TEN_CPP_REGISTER_ADDON_AS_EXTENSION(
+    multi_dest_send_in_stop_period_2__extension_1, test_extension_1);
+TEN_CPP_REGISTER_ADDON_AS_EXTENSION(
+    multi_dest_send_in_stop_period_2__extension_2, test_extension_2);
+TEN_CPP_REGISTER_ADDON_AS_EXTENSION(
+    multi_dest_send_in_stop_period_2__extension_3, test_extension_3);
 
 }  // namespace
 
-TEST(ExtensionTest, MultiDestSendInStopPeriod) {  // NOLINT
+TEST(MultiDestTest, MultiDestSendInStopPeriod2) {  // NOLINT
   // Start app.
   auto *app_thread =
       ten_thread_create("app thread", test_app_thread_main, nullptr);
@@ -114,19 +172,19 @@ TEST(ExtensionTest, MultiDestSendInStopPeriod) {  // NOLINT
            "nodes": [{
                "type": "extension",
                "name": "extension 1",
-               "addon": "multi_dest_send_in_stop_period__extension_1",
+               "addon": "multi_dest_send_in_stop_period_2__extension_1",
                "app": "msgpack://127.0.0.1:8001/",
                "extension_group": "test_extension_group1"
              },{
                "type": "extension",
                "name": "extension 2",
-               "addon": "multi_dest_send_in_stop_period__extension_2",
+               "addon": "multi_dest_send_in_stop_period_2__extension_2",
                "app": "msgpack://127.0.0.1:8001/",
                "extension_group": "test_extension_group2"
              },{
                "type": "extension",
                "name": "extension 3",
-               "addon": "multi_dest_send_in_stop_period__extension_3",
+               "addon": "multi_dest_send_in_stop_period_2__extension_3",
                "app": "msgpack://127.0.0.1:8001/",
                "extension_group": "test_extension_group3"
              }],
@@ -135,6 +193,15 @@ TEST(ExtensionTest, MultiDestSendInStopPeriod) {  // NOLINT
                "extension": "extension 1",
                "cmd": [{
                  "name": "hello_world",
+                 "dest": [{
+                   "app": "msgpack://127.0.0.1:8001/",
+                   "extension": "extension 2"
+                 },{
+                   "app": "msgpack://127.0.0.1:8001/",
+                   "extension": "extension 3"
+                 }]
+               },{
+                 "name": "extension_1_stop",
                  "dest": [{
                    "app": "msgpack://127.0.0.1:8001/",
                    "extension": "extension 2"

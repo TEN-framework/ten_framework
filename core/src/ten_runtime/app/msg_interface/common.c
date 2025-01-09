@@ -461,8 +461,9 @@ static void ten_app_handle_in_msgs_async(ten_app_t *self) {
                  ten_app_check_integrity(self, false),
              "Should not happen.");
 
-  ten_runloop_post_task_tail(ten_app_get_attached_runloop(self),
-                             ten_app_handle_in_msgs_task, self, NULL);
+  int rc = ten_runloop_post_task_tail(ten_app_get_attached_runloop(self),
+                                      ten_app_handle_in_msgs_task, self, NULL);
+  TEN_ASSERT(!rc, "Should not happen.");
 }
 
 void ten_app_push_to_in_msgs_queue(ten_app_t *self, ten_shared_ptr_t *msg) {

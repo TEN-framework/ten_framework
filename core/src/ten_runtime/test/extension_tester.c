@@ -485,8 +485,9 @@ bool ten_extension_tester_run(ten_extension_tester_t *self) {
   // Inject the task that calls the first task into the runloop of
   // extension_tester, ensuring that the first task is called within the
   // extension_tester thread to guarantee thread safety.
-  ten_runloop_post_task_tail(self->tester_runloop,
-                             ten_extension_tester_on_first_task, self, NULL);
+  int rc = ten_runloop_post_task_tail(
+      self->tester_runloop, ten_extension_tester_on_first_task, self, NULL);
+  TEN_ASSERT(!rc, "Should not happen.");
 
   // Start the runloop of tester.
   ten_runloop_run(self->tester_runloop);

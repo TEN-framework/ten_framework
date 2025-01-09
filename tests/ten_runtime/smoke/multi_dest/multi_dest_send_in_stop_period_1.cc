@@ -9,14 +9,13 @@
 
 #include "gtest/gtest.h"
 #include "include_internal/ten_runtime/binding/cpp/ten.h"
+#include "ten_runtime/binding/cpp/detail/ten_env.h"
 #include "ten_utils/lib/thread.h"
 #include "ten_utils/lib/time.h"
 #include "tests/common/client/cpp/msgpack_tcp.h"
 #include "tests/ten_runtime/smoke/util/binding/cpp/check.h"
 
 namespace {
-
-int check = 0;
 
 class test_extension_1 : public ten::extension_t {
  public:
@@ -26,21 +25,18 @@ class test_extension_1 : public ten::extension_t {
               std::unique_ptr<ten::cmd_t> cmd) override {
     if (cmd->get_name() == "hello_world") {
       ten_env.send_cmd(std::move(cmd));
-      return;
     }
   }
 
   void on_stop(ten::ten_env_t &ten_env) override {
     auto cmd = ten::cmd_t::create("extension_1_stop");
-    ten_env.send_cmd(std::move(cmd),
-                     [=](ten::ten_env_t &ten_env,
-                         std::unique_ptr<ten::cmd_result_t> /*cmd_result*/,
-                         ten::error_t *err) {
-                       // Only after receiving the result, we can call
-                       // `on_stop_done`.
-                       ten_env.on_stop_done();
-                       return true;
-                     });
+    ten_env.send_cmd(std::move(cmd));
+
+    // Don't care about the result of the `extension_1_stop` command; just
+    // declare "stop done." It's equivalent to treating the `extension_1_stop`
+    // command as an event.
+
+    ten_env.on_stop_done();
   }
 };
 
@@ -51,22 +47,24 @@ class test_extension_2 : public ten::extension_t {
   void on_cmd(ten::ten_env_t &ten_env,
               std::unique_ptr<ten::cmd_t> cmd) override {
     if (cmd->get_name() == "hello_world") {
-      check = 1;
       auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
       cmd_result->set_property("detail", "hello world, too");
       ten_env.return_result(std::move(cmd_result), std::move(cmd));
     } else if (cmd->get_name() == "extension_1_stop") {
-      // To ensure that extension 1 will be on_stop_done() after the extension 2
-      // completes its job.
+      // Ensure that extension 2 receives the `extension_1_stop` command and
+      // returns a result. However, since extension 1 does not wait for the
+      // result of the `extension_1_stop` command, it may or may not receive
+      // this result.
+
       ten_sleep(500);
 
-      check = 2;
-
-      auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
-      cmd_result->set_property("detail", "");
-      ten_env.return_result(std::move(cmd_result), std::move(cmd));
+      TEN_ENV_LOG_INFO(ten_env, "got extension_1_stop.");
 
       received_extension_1_stop_cmd = true;
+
+      auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
+      cmd_result->set_property("detail", "extension_1_stop, too");
+      ten_env.return_result(std::move(cmd_result), std::move(cmd));
 
       if (have_called_on_stop) {
         ten_env.on_stop_done();
@@ -85,6 +83,30 @@ class test_extension_2 : public ten::extension_t {
  private:
   bool received_extension_1_stop_cmd = false;
   bool have_called_on_stop = false;
+};
+
+class test_extension_3 : public ten::extension_t {
+ public:
+  explicit test_extension_3(const char *name) : ten::extension_t(name) {}
+
+  void on_cmd(ten::ten_env_t &ten_env,
+              std::unique_ptr<ten::cmd_t> cmd) override {
+    if (cmd->get_name() == "hello_world") {
+      auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
+      cmd_result->set_property("detail", "hello world, too");
+      ten_env.return_result(std::move(cmd_result), std::move(cmd));
+    } else if (cmd->get_name() == "extension_1_stop") {
+      // It's possible that the `extension_1_stop` command was received, but
+      // it's also possible that it wasn't received, and the extension thread 3
+      // has already ended.
+
+      ten_sleep(500);
+
+      auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
+      cmd_result->set_property("detail", "extension_1_stop, too");
+      ten_env.return_result(std::move(cmd_result), std::move(cmd));
+    }
+  }
 };
 
 class test_app : public ten::app_t {
@@ -116,15 +138,15 @@ void *test_app_thread_main(TEN_UNUSED void *args) {
 }
 
 TEN_CPP_REGISTER_ADDON_AS_EXTENSION(
-    prepare_to_stop_different_thread__test_extension_1, test_extension_1);
+    multi_dest_send_in_stop_period_1__extension_1, test_extension_1);
 TEN_CPP_REGISTER_ADDON_AS_EXTENSION(
-    prepare_to_stop_different_thread__test_extension_2, test_extension_2);
+    multi_dest_send_in_stop_period_1__extension_2, test_extension_2);
+TEN_CPP_REGISTER_ADDON_AS_EXTENSION(
+    multi_dest_send_in_stop_period_1__extension_3, test_extension_3);
 
 }  // namespace
 
-TEST(ExtensionTest, PrepareToStopDifferentThread) {  // NOLINT
-  EXPECT_EQ(check, 0);
-
+TEST(MultiDestTest, MultiDestSendInStopPeriod1) {  // NOLINT
   // Start app.
   auto *app_thread =
       ten_thread_create("app thread", test_app_thread_main, nullptr);
@@ -137,31 +159,43 @@ TEST(ExtensionTest, PrepareToStopDifferentThread) {  // NOLINT
   start_graph_cmd->set_graph_from_json(R"({
            "nodes": [{
                "type": "extension",
-               "name": "test_extension_1",
-               "addon": "prepare_to_stop_different_thread__test_extension_1",
+               "name": "extension 1",
+               "addon": "multi_dest_send_in_stop_period_1__extension_1",
                "app": "msgpack://127.0.0.1:8001/",
-               "extension_group": "basic_extension_group"
+               "extension_group": "test_extension_group1"
              },{
                "type": "extension",
-               "name": "test_extension_2",
-               "addon": "prepare_to_stop_different_thread__test_extension_2",
+               "name": "extension 2",
+               "addon": "multi_dest_send_in_stop_period_1__extension_2",
                "app": "msgpack://127.0.0.1:8001/",
-               "extension_group": "basic_extension_group_1"
+               "extension_group": "test_extension_group2"
+             },{
+               "type": "extension",
+               "name": "extension 3",
+               "addon": "multi_dest_send_in_stop_period_1__extension_3",
+               "app": "msgpack://127.0.0.1:8001/",
+               "extension_group": "test_extension_group3"
              }],
              "connections": [{
                "app": "msgpack://127.0.0.1:8001/",
-               "extension": "test_extension_1",
+               "extension": "extension 1",
                "cmd": [{
                  "name": "hello_world",
                  "dest": [{
                    "app": "msgpack://127.0.0.1:8001/",
-                   "extension": "test_extension_2"
+                   "extension": "extension 2"
+                 },{
+                   "app": "msgpack://127.0.0.1:8001/",
+                   "extension": "extension 3"
                  }]
                },{
                  "name": "extension_1_stop",
                  "dest": [{
                    "app": "msgpack://127.0.0.1:8001/",
-                   "extension": "test_extension_2"
+                   "extension": "extension 2"
+                 },{
+                   "app": "msgpack://127.0.0.1:8001/",
+                   "extension": "extension 3"
                  }]
                }]
              }]
@@ -173,7 +207,7 @@ TEST(ExtensionTest, PrepareToStopDifferentThread) {  // NOLINT
   // Send a user-defined 'hello world' command.
   auto hello_world_cmd = ten::cmd_t::create("hello_world");
   hello_world_cmd->set_dest("msgpack://127.0.0.1:8001/", nullptr,
-                            "basic_extension_group", "test_extension_1");
+                            "test_extension_group1", "extension 1");
   cmd_result = client->send_cmd_and_recv_result(std::move(hello_world_cmd));
   ten_test::check_status_code(cmd_result, TEN_STATUS_CODE_OK);
   ten_test::check_detail_with_string(cmd_result, "hello world, too");
@@ -181,6 +215,4 @@ TEST(ExtensionTest, PrepareToStopDifferentThread) {  // NOLINT
   delete client;
 
   ten_thread_join(app_thread, -1);
-
-  EXPECT_EQ(check, 2);
 }
