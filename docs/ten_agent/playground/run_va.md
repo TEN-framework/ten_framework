@@ -10,7 +10,7 @@ This guide will help you to run the Voice Assistant with Large Language Model in
 - You will need following information prepared:
   - STT info, any supported STT can be used. [Deepgram](https://deepgram.com/) is relatively easy to register and get started with.
   - TTS info, any supported TTS can be used. [Fish.Audio](https://fish.audio/) is relatively easy to register and get started with.
-  - LLM info, any supported LLM can be used. It's recommended to use [OpenAI](https://openai.com)
+  - LLM info, any supported LLM can be used. It's recommended to use [OpenAI](https://openai.com).
   - RTC info, currently only Agora RTC is supported. You can register your account at [Agora](https://www.agora.io/). We assume you have your App ID and App Certificate ready when you configure your `.env` file.
 
 ### Steps
