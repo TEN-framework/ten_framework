@@ -12,14 +12,14 @@ jobs:
     strategy:
       matrix:
         compiler: [gcc, clang]
-    container:
-      image: ghcr.io/ten-framework/ten_building_ubuntu2204
+    # container:
+    #   image: ghcr.io/ten-framework/ten_building_ubuntu2204
     steps:
-      - name: Checkout Node.js
-        uses: actions/checkout@v4
-        with:
-          repository: nodejs/node
-          ref: v22.12.0
+      # - name: Checkout Node.js
+      #   uses: actions/checkout@v4
+      #   with:
+      #     repository: nodejs/node
+      #     ref: v22.12.0
 
       # - name: Configure and Build
       #   run: |
