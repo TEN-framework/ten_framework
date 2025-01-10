@@ -21,3 +21,7 @@ export type TBaseDirEntry = {
 export interface IBaseDirResponse {
   entries: TBaseDirEntry[];
 }
+
+export interface IGetBaseDirResponse {
+  base_dir: string | null;
+}

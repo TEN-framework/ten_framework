@@ -9,6 +9,7 @@ pub mod dependency;
 pub mod publish;
 pub mod support;
 
+use std::collections::HashMap;
 use std::{fmt, fs, path::Path, str::FromStr};
 
 use anyhow::{anyhow, Context, Result};
@@ -44,6 +45,9 @@ pub struct Manifest {
 
     #[serde(skip_serializing_if = "Option::is_none")]
     pub package: Option<PackageConfig>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub scripts: Option<HashMap<String, String>>,
 }
 
 impl FromStr for Manifest {
