@@ -12,6 +12,7 @@ import type {
   IFileContentResponse,
   ISetBaseDirResponse,
   IBaseDirResponse,
+  IGetBaseDirResponse,
 } from "@/types/fileSystem";
 
 export const ENDPOINT_FILE_SYSTEM = {
@@ -46,6 +47,15 @@ export const ENDPOINT_FILE_SYSTEM = {
       responseSchema: genResSchema<ISetBaseDirResponse>(
         z.object({
           success: z.boolean(),
+        })
+      ),
+    },
+    [ENDPOINT_METHOD.GET]: {
+      url: `${API_DESIGNER_V1}/base-dir`,
+      method: ENDPOINT_METHOD.GET,
+      responseSchema: genResSchema<IGetBaseDirResponse>(
+        z.object({
+          base_dir: z.string().nullable(),
         })
       ),
     },

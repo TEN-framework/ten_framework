@@ -18,6 +18,7 @@ mod mock;
 mod packages;
 mod property;
 pub mod response;
+mod run_app;
 mod terminal;
 mod version;
 
@@ -28,8 +29,6 @@ use actix_web::web;
 use ten_rust::pkg_info::PkgInfo;
 
 use super::config::TmanConfig;
-use terminal::ws_terminal;
-use version::get_version;
 
 pub struct DesignerState {
     pub base_dir: Option<String>,
@@ -44,7 +43,7 @@ pub fn configure_routes(
     cfg.service(
         web::scope("/api/designer/v1")
             .app_data(state.clone())
-            .route("/version", web::get().to(get_version))
+            .route("/version", web::get().to(version::get_version))
             .route(
                 "/addons/extensions",
                 web::get().to(addons::extensions::get_extension_addons),
@@ -93,7 +92,9 @@ pub fn configure_routes(
                 web::put().to(file_content::save_file_content),
             )
             .route("/base-dir", web::put().to(base_dir::set_base_dir))
+            .route("/base-dir", web::get().to(base_dir::get_base_dir))
             .route("/dir-list/{path}", web::get().to(dir_list::list_dir))
-            .route("/ws/terminal", web::get().to(ws_terminal)),
+            .route("/ws/run-app", web::get().to(run_app::run_app))
+            .route("/ws/terminal", web::get().to(terminal::ws_terminal)),
     );
 }

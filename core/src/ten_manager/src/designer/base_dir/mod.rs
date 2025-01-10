@@ -28,6 +28,11 @@ pub struct SetBaseDirResponse {
     pub success: bool,
 }
 
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+pub struct GetBaseDirResponse {
+    pub base_dir: Option<String>,
+}
+
 pub async fn set_base_dir(
     req: web::Json<SetBaseDirRequest>,
     state: web::Data<Arc<RwLock<DesignerState>>>,
@@ -58,6 +63,20 @@ pub async fn set_base_dir(
             HttpResponse::NotFound().json(error_response)
         }
     }
+}
+
+pub async fn get_base_dir(
+    state: web::Data<Arc<RwLock<DesignerState>>>,
+) -> impl Responder {
+    let state = state.read().unwrap();
+    let response = ApiResponse {
+        status: Status::Ok,
+        data: GetBaseDirResponse {
+            base_dir: state.base_dir.clone(),
+        },
+        meta: None,
+    };
+    HttpResponse::Ok().json(response)
 }
 
 #[cfg(test)]
@@ -100,5 +119,68 @@ mod tests {
         > = test::try_call_and_read_body_json(&app, req).await;
 
         assert!(resp.is_err());
+    }
+
+    #[actix_web::test]
+    async fn test_get_base_dir_some() {
+        let designer_state = DesignerState {
+            base_dir: Some("/initial/path".to_string()),
+            all_pkgs: Some(vec![]),
+            tman_config: TmanConfig::default(),
+        };
+        let designer_state = Arc::new(RwLock::new(designer_state));
+
+        let app = test::init_service(
+            App::new()
+                .app_data(web::Data::new(designer_state.clone()))
+                .route(
+                    "/api/designer/v1/base-dir",
+                    web::get().to(get_base_dir),
+                ),
+        )
+        .await;
+
+        let req = test::TestRequest::get()
+            .uri("/api/designer/v1/base-dir")
+            .to_request();
+        let resp: ApiResponse<GetBaseDirResponse> =
+            test::call_and_read_body_json(&app, req).await;
+
+        assert_eq!(resp.status, Status::Ok);
+        assert_eq!(
+            resp.data,
+            GetBaseDirResponse {
+                base_dir: Some("/initial/path".to_string())
+            }
+        );
+    }
+
+    #[actix_web::test]
+    async fn test_get_base_dir_none() {
+        let designer_state = DesignerState {
+            base_dir: None,
+            all_pkgs: Some(vec![]),
+            tman_config: TmanConfig::default(),
+        };
+        let designer_state = Arc::new(RwLock::new(designer_state));
+
+        let app = test::init_service(
+            App::new()
+                .app_data(web::Data::new(designer_state.clone()))
+                .route(
+                    "/api/designer/v1/base-dir",
+                    web::get().to(get_base_dir),
+                ),
+        )
+        .await;
+
+        let req = test::TestRequest::get()
+            .uri("/api/designer/v1/base-dir")
+            .to_request();
+        let resp: ApiResponse<GetBaseDirResponse> =
+            test::call_and_read_body_json(&app, req).await;
+
+        assert_eq!(resp.status, Status::Ok);
+        assert_eq!(resp.data, GetBaseDirResponse { base_dir: None });
     }
 }
