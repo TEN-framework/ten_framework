@@ -9,6 +9,7 @@ import("//build/ten_runtime/options.gni")
 
 group("nodejs") {
   deps = [
+    "cpp_app_nodejs",
     "get_set_property_nodejs",
     "http_server_nodejs",
     "mix_python_ext_nodejs",

@@ -9,6 +9,9 @@ group("core_addon_loaders") {
   deps = []
 
   if (ten_enable_python_binding) {
-    deps += [ "python_addon_loader" ]
+    deps += [
+      "nodejs_addon_loader",
+      "python_addon_loader",
+    ]
   }
 }

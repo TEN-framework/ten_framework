@@ -1,0 +1,25 @@
+#
+# This file is part of the TEN Framework project.
+#
+import("//build/feature/ten_package.gni")
+import("//build/ten_common/prebuilt/prebuilt.gni")
+import("//build/ten_runtime/feature/publish.gni")
+import("//build/ten_runtime/options.gni")
+
+ten_prebuilt_library("prebuilt_node_shared") {
+  name = "node_shared"
+
+  if (is_clang) {
+    url = "https://github.com/TEN-framework/node_shared/releases/download/v1.0.0/node-shared-${target_os}-${target_cpu}-clang-release.zip"
+  } else {
+    url = "https://github.com/TEN-framework/node_shared/releases/download/v1.0.0/node-shared-${target_os}-${target_cpu}-gcc-release.zip"
+  }
+
+  is_shared_library = true
+
+  libs = [ "node" ]
+}
+
+group("node") {
+  public_deps = [ ":prebuilt_node_shared" ]
+}
