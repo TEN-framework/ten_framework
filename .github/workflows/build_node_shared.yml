@@ -34,11 +34,14 @@ jobs:
           ./configure --shared
           make -j$(nproc)
 
+          cd out/Release
+          zip node-shared-linux-x64-${{ matrix.compiler }}.zip libnode.so.127
+
       - name: Upload to Google drive
         uses: adityak74/google-drive-upload-git-action@main
         with:
           credentials: ${{ secrets.GOOGLE_DRIVE_CREDENTIALS }}
-          filename: "out/Release/libnode.so.127"
+          filename: "out/Release/node-shared-linux-x64-${{ matrix.compiler }}.zip"
           folderId: 1bx5PZxTkXM2RCEEGgb556juRMGM-SAwa
-          name: "node-shared-linux-${{ matrix.compiler }}-debug.zip"
+          name: "node-shared-linux-x64-${{ matrix.compiler }}.zip"
           overwrite: "true"
