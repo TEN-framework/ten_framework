@@ -330,7 +330,3 @@ void ten_builtin_test_extension_addon_register(void) {
   ten_addon_register_extension(TEN_STR_TEN_TEST_EXTENSION, NULL,
                                &ten_builtin_test_extension_addon, NULL);
 }
-
-void ten_builtin_test_extension_addon_unregister(void) {
-  ten_addon_unregister_extension(TEN_STR_TEN_TEST_EXTENSION);
-}

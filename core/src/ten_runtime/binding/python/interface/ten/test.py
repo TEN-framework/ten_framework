@@ -4,19 +4,15 @@
 # Licensed under the Apache License, Version 2.0, with certain conditions.
 # Refer to the "LICENSE" file in the root directory for more information.
 #
-import sys
-import importlib
-from pathlib import Path
 from typing import Callable, Optional, final, Optional
 
 from libten_runtime_python import _ExtensionTester, _TenEnvTester
-from ten.cmd_result import CmdResult
-from ten.error import TenError
+from .cmd_result import CmdResult
+from .error import TenError
 from .cmd import Cmd
 from .data import Data
 from .audio_frame import AudioFrame
 from .video_frame import VideoFrame
-from .addon_manager import _AddonManager
 
 
 class TenEnvTester: ...  # type: ignore
@@ -71,27 +67,9 @@ class TenEnvTester:
 
 
 class ExtensionTester(_ExtensionTester):
-    def __init__(self):
-        self.addon_base_dirs = []
-
     @final
     def _on_test_app_configure(self, ten_env_tester: TenEnvTester) -> None:
         self.on_start(ten_env_tester)
-
-    @final
-    def _import_package_from_path(self, addon_base_dir_str: str) -> None:
-        addon_base_dir = Path(addon_base_dir_str).resolve()
-        if str(addon_base_dir.parent) not in sys.path:
-            sys.path.insert(0, str(addon_base_dir.parent))
-        importlib.import_module(addon_base_dir.name)
-
-        # TODO(Wei): This should be done during the `on_configure_done` of the
-        # test app.
-        _AddonManager.register_all_addons(None)
-
-    @final
-    def add_addon_base_dir(self, base_dir: str) -> None:
-        self.addon_base_dirs.append(base_dir)
 
     @final
     def set_test_mode_single(
@@ -103,10 +81,6 @@ class ExtensionTester(_ExtensionTester):
 
     @final
     def run(self) -> None:
-        # Import the addon packages.
-        for addon_base_dir in self.addon_base_dirs:
-            self._import_package_from_path(addon_base_dir)
-
         return _ExtensionTester.run(self)
 
     def on_start(self, ten_env_tester: TenEnvTester) -> None:

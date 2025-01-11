@@ -130,12 +130,9 @@ def test_basic():
     # 1. Create an extension tester to manage the entire standalone testing process.
     tester = ExtensionTesterBasic()
 
-    # 2. Inform the standalone testing framework of the folder containing the extension to be tested.
-    tester.add_addon_base_dir(str(Path(__file__).resolve().parent.parent))
-
-    # 3. Set a testing mode, such as a mode for testing a single extension.
+    # 2. Set a testing mode, such as a mode for testing a single extension.
     tester.set_test_mode_single("default_extension_python")
 
-    # 4. Start the testing.
+    # 3. Start the testing.
     tester.run()
 ```

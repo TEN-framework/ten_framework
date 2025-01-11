@@ -60,7 +60,6 @@ class ExtensionTesterMock(ExtensionTester):
 
 def test_mock_cmd_result():
     tester = ExtensionTesterMock()
-    tester.add_addon_base_dir(str(Path(__file__).resolve().parent.parent))
     tester.set_test_mode_single("default_async_extension_python")
     tester.run()
 

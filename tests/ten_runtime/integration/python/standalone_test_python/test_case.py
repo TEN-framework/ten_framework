@@ -26,6 +26,7 @@ def test_standalone_test_python():
         "--config-file",
         os.path.join(root_dir, "tests/local_registry/config.json"),
         "install",
+        "--standalone",
     ]
 
     tman_install_process = subprocess.Popen(

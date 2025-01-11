@@ -10,12 +10,19 @@
 
 #include "include_internal/ten_runtime/binding/common.h"
 #include "ten_runtime/addon/addon.h"
+#include "ten_utils/lib/mutex.h"
 #include "ten_utils/lib/signature.h"
 
 #define TEN_ADDON_LOADER_SIGNATURE 0xAE4FCDE7983727E4U
 
 typedef struct ten_addon_loader_t ten_addon_loader_t;
 typedef struct ten_addon_host_t ten_addon_host_t;
+
+typedef struct ten_addon_loader_singleton_store_t {
+  ten_atomic_t valid;
+  ten_mutex_t *lock;
+  ten_list_t store;  // ten_addon_loader_t
+} ten_addon_loader_singleton_store_t;
 
 typedef void (*ten_addon_loader_on_init_func_t)(
     ten_addon_loader_t *addon_loader);
@@ -38,10 +45,11 @@ typedef struct ten_addon_loader_t {
   ten_addon_loader_on_load_addon_func_t on_load_addon;
 } ten_addon_loader_t;
 
-TEN_RUNTIME_PRIVATE_API ten_list_t *ten_addon_loader_get_all(void);
+TEN_RUNTIME_PRIVATE_API int ten_addon_loader_singleton_store_lock(void);
 
-TEN_RUNTIME_PRIVATE_API bool ten_addon_loader_check_integrity(
-    ten_addon_loader_t *self);
+TEN_RUNTIME_PRIVATE_API int ten_addon_loader_singleton_store_unlock(void);
+
+TEN_RUNTIME_PRIVATE_API ten_list_t *ten_addon_loader_singleton_get_all(void);
 
 TEN_RUNTIME_API ten_addon_loader_t *ten_addon_loader_create(
     ten_addon_loader_on_init_func_t on_init,

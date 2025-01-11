@@ -33,7 +33,7 @@ use ten_rust::pkg_info::{
 use super::{config::TmanConfig, registry::get_package};
 use crate::{
     cmd::cmd_install::{InstallCommand, LocalInstallMode},
-    fs::{check_is_app_folder, copy_folder_recursively},
+    fs::copy_folder_recursively,
     log::tman_verbose_println,
     manifest_lock::{
         parse_manifest_lock_in_folder, write_pkg_lockfile, ManifestLock,
@@ -80,6 +80,16 @@ fn install_local_dependency_pkg_info(
             dest_dir_path
         );
     } else {
+        let dest_path = Path::new(dest_dir_path);
+        if let Some(parent) = dest_path.parent() {
+            fs::create_dir_all(parent).with_context(|| {
+                format!(
+                    "Failed to create parent directories for '{}'",
+                    dest_dir_path
+                )
+            })?;
+        }
+
         match command_data.local_install_mode {
             LocalInstallMode::Invalid => panic!("Should not happen."),
             LocalInstallMode::Copy => {
@@ -202,28 +212,7 @@ pub async fn install_pkg_info(
     Ok(())
 }
 
-pub fn is_package_installable_in_path(
-    cwd: &Path,
-    installing_pkg_type: &PkgType,
-) -> Result<()> {
-    match installing_pkg_type {
-        PkgType::App => {
-            return Err(anyhow!(
-                "The package type 'app' is not allowed to be installed. \
-                Use the 'create' command instead."
-            ));
-        }
-
-        _ => {
-            // All other package types must be installed into a TEN app folder.
-            check_is_app_folder(cwd)?;
-        }
-    }
-
-    Ok(())
-}
-
-pub fn update_package_manifest(
+fn update_package_manifest(
     base_pkg_info: &mut PkgInfo,
     added_dependency: &PkgInfo,
 ) -> Result<()> {

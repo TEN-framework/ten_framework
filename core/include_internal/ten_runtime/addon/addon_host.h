@@ -93,14 +93,6 @@ TEN_RUNTIME_PRIVATE_API void ten_addon_host_on_destroy_instance_ctx_destroy(
 TEN_RUNTIME_PRIVATE_API ten_addon_host_t *ten_addon_host_create(
     TEN_ADDON_TYPE type);
 
-TEN_RUNTIME_PRIVATE_API ten_addon_host_t *ten_addon_host_find(
-    TEN_ADDON_TYPE addon_type, const char *addon_name);
-
-TEN_RUNTIME_PRIVATE_API ten_addon_host_t *
-ten_addon_host_find_or_create_one_if_not_found(TEN_ADDON_TYPE addon_type,
-                                               const char *addon_name,
-                                               bool *newly_created);
-
 TEN_RUNTIME_PRIVATE_API void ten_addon_host_load_metadata(
     ten_addon_host_t *self, ten_env_t *ten_env,
     ten_addon_on_init_func_t on_init);
