@@ -126,7 +126,7 @@ pub fn create_sub_cmd(args_cfg: &crate::cmd_line::ArgsCfg) -> Command {
         .arg(
             Arg::new("STANDALONE")
                 .long("standalone")
-                .help("Install in standalone mode, only for extension package.")
+                .help("Install in standalone mode, only for extension package")
                 .action(clap::ArgAction::SetTrue)
                 .required(false),
         )
@@ -195,7 +195,8 @@ fn prepare_standalone_app_dir(extension_dir: &Path) -> Result<PathBuf> {
 
     let manifest_json = dot_ten_app_dir.join(MANIFEST_JSON_FILENAME);
     if !manifest_json.exists() {
-        // Create a basic `manifest.json`.
+        // Create a basic `manifest.json`, and in that manifest.json, there will
+        // be a local dependency pointing to the current extension folder.
         let content = r#"{
   "type": "app",
   "name": "app_for_standalone",
@@ -213,6 +214,33 @@ fn prepare_standalone_app_dir(extension_dir: &Path) -> Result<PathBuf> {
     Ok(dot_ten_app_dir)
 }
 
+/// Path logic for standalone mode and non-standalone mode.
+fn determine_app_dir_to_work_with(
+    standalone: bool,
+    original_cwd: &Path,
+) -> Result<PathBuf> {
+    if standalone {
+        // If it is standalone mode, it can only be executed in the extension
+        // directory.
+        check_is_extension_folder(original_cwd)?;
+
+        let dot_ten_app_dir_path = prepare_standalone_app_dir(original_cwd)?;
+
+        env::set_current_dir(&dot_ten_app_dir_path)?;
+
+        Ok(dot_ten_app_dir_path)
+    } else {
+        // Non-standalone mode can only be executed in the extension directory.
+        // If it is an extension, it should search upwards for the nearest app;
+        // if it is an app, it can be used directly.
+        let app_dir = find_nearest_app_dir(original_cwd.to_path_buf())?;
+
+        env::set_current_dir(&app_dir)?;
+
+        Ok(app_dir)
+    }
+}
+
 pub async fn execute_cmd(
     tman_config: &TmanConfig,
     command_data: InstallCommand,
@@ -225,27 +253,10 @@ pub async fn execute_cmd(
 
     let original_cwd = crate::fs::get_cwd()?;
 
-    // Path logic for standalone mode and non-standalone mode.
-    let app_dir_to_work_with = if command_data.standalone {
-        // If it is standalone mode, it can only be executed in the extension
-        // directory.
-        check_is_extension_folder(&original_cwd)?;
-
-        let dot_ten_app_dir_path = prepare_standalone_app_dir(&original_cwd)?;
-
-        env::set_current_dir(&dot_ten_app_dir_path)?;
-
-        dot_ten_app_dir_path.clone()
-    } else {
-        // Non-standalone mode can only be executed in the extension directory.
-        // If it is an extension, it should search upwards for the nearest app;
-        // if it is an app, it can be used directly.
-        let app_dir = find_nearest_app_dir(original_cwd.clone())?;
-
-        env::set_current_dir(&app_dir)?;
-
-        app_dir
-    };
+    let app_dir_to_work_with = determine_app_dir_to_work_with(
+        command_data.standalone,
+        &original_cwd.clone(),
+    )?;
 
     // If `tman install` is run within the scope of an app, then the app and
     // those addons (extensions, ...) installed in the app directory are all
@@ -368,8 +379,7 @@ pub async fn execute_cmd(
             }
 
             PkgType::Extension => {
-                // Install all dependencies of the extension package, but a APP
-                // folder (i.e., `.ten/app`) should be created first.
+                // Install all dependencies of the extension package.
                 filter_compatible_pkgs_to_candidates(
                     tman_config,
                     &initial_pkgs_to_find_candidates,

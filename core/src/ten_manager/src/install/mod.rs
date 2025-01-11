@@ -80,6 +80,7 @@ fn install_local_dependency_pkg_info(
             dest_dir_path
         );
     } else {
+        // Create all parent folders for `dest_dir`.
         let dest_path = Path::new(dest_dir_path);
         if let Some(parent) = dest_path.parent() {
             fs::create_dir_all(parent).with_context(|| {
