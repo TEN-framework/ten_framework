@@ -59,14 +59,10 @@ impl Graph {
         type FilterFn = Box<dyn Fn(&(String, PkgType, String)) -> bool>;
 
         // Define a database for a set of known addons that do not need to exist
-        // in the file system..
-        let filters: Vec<FilterFn> = vec![
-            // Filter out packages with pkg_type == PkgType::Extension and
-            // addon == "ten:test_extension"
-            Box::new(|pkg| {
-                !(pkg.1 == PkgType::Extension && pkg.2 == *"ten:test_extension")
-            }),
-        ];
+        // in the file system.
+        let filters: Vec<FilterFn> = vec![Box::new(|pkg| {
+            !(pkg.1 == PkgType::Extension && pkg.2 == *"ten:test_extension")
+        })];
 
         // Filter out those known addons that do not need to exist in the file
         // system.
