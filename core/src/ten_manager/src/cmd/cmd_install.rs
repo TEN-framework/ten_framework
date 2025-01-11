@@ -281,7 +281,7 @@ pub async fn execute_cmd(
     // *) If some of these packages are not compatible with packages in
     // the dependency tree, then users will be questioned whether to overwrite
     // them with the new packages or quit the installation.
-    let mut all_installed_pkgs: Vec<PkgInfo> = vec![];
+    let all_installed_pkgs: Vec<PkgInfo>;
     let mut all_compatible_installed_pkgs: HashMap<
         PkgTypeAndName,
         HashMap<PkgBasicInfo, PkgInfo>,
@@ -295,7 +295,6 @@ pub async fn execute_cmd(
 
     let app_pkg_to_work_with =
         get_pkg_info_from_path(&app_dir_to_work_with, true)?;
-    let mut origin_cwd_pkg = get_pkg_info_from_path(&original_cwd, true)?;
 
     // We need to start looking for dependencies outward from the cwd package,
     // and the cwd package itself is considered a candidate.
@@ -305,8 +304,20 @@ pub async fn execute_cmd(
         &mut all_candidates,
     )?;
 
+    all_installed_pkgs = tman_get_all_installed_pkgs_info_of_app(
+        tman_config,
+        &app_dir_to_work_with,
+    )?;
+
+    filter_compatible_pkgs_to_candidates(
+        tman_config,
+        &all_installed_pkgs,
+        &mut all_compatible_installed_pkgs,
+        &command_data.support,
+    );
+
     if let Some(package_type_str) = command_data.package_type.as_ref() {
-        // Case 1: tman install <package_type> <package_name>
+        // tman install <package_type> <package_name>
         //
         // The `cwd` must be the base directory of a TEN app.
 
@@ -319,18 +330,6 @@ pub async fn execute_cmd(
 
         installing_pkg_type = Some(installing_pkg_type_);
         installing_pkg_name = Some(installing_pkg_name_.clone());
-
-        all_installed_pkgs = tman_get_all_installed_pkgs_info_of_app(
-            tman_config,
-            &app_dir_to_work_with,
-        )?;
-
-        filter_compatible_pkgs_to_candidates(
-            tman_config,
-            &all_installed_pkgs,
-            &mut all_compatible_installed_pkgs,
-            &command_data.support,
-        );
 
         dep_relationship_from_cmd_line = Some(DependencyRelationship {
             type_and_name: PkgTypeAndName {
@@ -355,46 +354,6 @@ pub async fn execute_cmd(
                 base_dir: None,
             },
         });
-    } else {
-        // Case 2: tman install
-
-        match origin_cwd_pkg.basic_info.type_and_name.pkg_type {
-            PkgType::App => {
-                // The TEN app itself is also a package. Extensions can declare
-                // dependencies on a specific version of an app, so the app also
-                // needs to be included in the package list for dependency tree
-                // calculation.
-
-                all_installed_pkgs = tman_get_all_installed_pkgs_info_of_app(
-                    tman_config,
-                    &app_dir_to_work_with,
-                )?;
-
-                filter_compatible_pkgs_to_candidates(
-                    tman_config,
-                    &all_installed_pkgs,
-                    &mut all_compatible_installed_pkgs,
-                    &command_data.support,
-                );
-            }
-
-            PkgType::Extension => {
-                // Install all dependencies of the extension package.
-                filter_compatible_pkgs_to_candidates(
-                    tman_config,
-                    &initial_pkgs_to_find_candidates,
-                    &mut all_compatible_installed_pkgs,
-                    &command_data.support,
-                );
-            }
-
-            _ => {
-                return Err(anyhow!(
-                    "Current folder should be a TEN APP or Extension package."
-                        .to_string(),
-                ));
-            }
-        }
     }
 
     // Get the locked pkgs from the lock file in the app folder.
@@ -502,6 +461,9 @@ pub async fn execute_cmd(
 
         // Write the installing package info to manifest.json.
         if installing_pkg_type.is_some() && installing_pkg_name.is_some() {
+            let mut origin_cwd_pkg =
+                get_pkg_info_from_path(&original_cwd, true)?;
+
             write_installing_pkg_into_manifest_file(
                 &mut origin_cwd_pkg,
                 &solver_results,
