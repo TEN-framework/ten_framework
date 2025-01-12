@@ -56,7 +56,7 @@ def test_cpp_app_python():
             base_path, "cpp_app_python_app/lib"
         )
 
-    app_dir_name = "cpp_app_python_app_source"
+    app_dir_name = "cpp_app_python_app"
     app_root_path = os.path.join(base_path, "cpp_app_python_app")
     app_language = "cpp"
 
