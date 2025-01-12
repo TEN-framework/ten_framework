@@ -203,6 +203,11 @@ async fn prepare_cpp_standalone_app_dir(
         fs::create_dir_all(&dot_ten_dir)?;
     }
 
+    let dot_ten_app_dir = dot_ten_dir.join(APP_DIR_IN_DOT_TEN_DIR);
+    if dot_ten_dir.exists() {
+        return Ok(dot_ten_app_dir);
+    }
+
     // Use `default_app_cpp` as the app in standalone mode for the C++
     // extension.
     create_pkg_in_path(
@@ -215,8 +220,6 @@ async fn prepare_cpp_standalone_app_dir(
         None,
     )
     .await?;
-
-    let dot_ten_app_dir = dot_ten_dir.join(APP_DIR_IN_DOT_TEN_DIR);
 
     // Read the newly generated `manifest.json` and add a local dependency.
     let newly_created_manifest_path =

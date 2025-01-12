@@ -89,8 +89,8 @@ def test_tman_install():
     returncode, output_text = cmd_exec.run_cmd_realtime(
         [
             tman_bin,
-            "--yes",
             f"--config-file={config_file}",
+            "--yes",
             "install",
             "extension",
             "ext_a",
@@ -107,8 +107,8 @@ def test_tman_install():
     returncode, output_text = cmd_exec.run_cmd_realtime(
         [
             tman_bin,
-            "--yes",
             f"--config-file={config_file}",
+            "--yes",
             "install",
             "extension",
             "ext_b@0.2.6",
