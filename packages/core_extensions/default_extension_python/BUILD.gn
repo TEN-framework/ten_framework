@@ -12,8 +12,6 @@ ten_package("default_extension_python") {
   package_kind = "extension"
 
   resources = [
-    "BUILD_release.gn.tent=>BUILD.gn.tent",
-    "BUILD_release.gn=>BUILD.gn",
     "README.md",
     "README.md.tent",
     "__init__.py",

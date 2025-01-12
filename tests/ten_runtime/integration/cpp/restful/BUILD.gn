@@ -7,14 +7,14 @@
 import("//build/ten_runtime/feature/test.gni")
 import("//build/ten_runtime/ten.gni")
 
-ten_package_test_prepare_app("restful_http_app") {
+ten_package_test_prepare_app("restful_app") {
   src_app = "default_app_cpp"
   src_app_language = "cpp"
-  generated_app_src_root_dir_name = "restful_app_source"
+  generated_app_src_root_dir_name = "restful_app"
 
   replace_files_after_install_app = [
-    "restful_app_source/manifest.json",
-    "restful_app_source/property.json",
+    "restful_app/manifest.json",
+    "restful_app/property.json",
   ]
 
   if (ten_enable_ten_manager) {
@@ -27,7 +27,7 @@ ten_package_test_prepare_app("restful_http_app") {
   }
 }
 
-ten_package_test_prepare_auxiliary_resources("restful_http_app_test_files") {
+ten_package_test_prepare_auxiliary_resources("restful_app_test_files") {
   resources = [
     "//tests/ten_runtime/integration/common=>common",
     "__init__.py",
@@ -35,9 +35,9 @@ ten_package_test_prepare_auxiliary_resources("restful_http_app_test_files") {
   ]
 }
 
-group("http_basic") {
+group("restful") {
   deps = [
-    ":restful_http_app",
-    ":restful_http_app_test_files",
+    ":restful_app",
+    ":restful_app_test_files",
   ]
 }

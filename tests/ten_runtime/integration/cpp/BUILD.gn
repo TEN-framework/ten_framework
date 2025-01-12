@@ -13,8 +13,8 @@ group("cpp") {
     "graph_env_var_2",
     "graph_env_var_3",
     "hello_world",
-    "http_basic",
     "large_result",
+    "restful",
   ]
 
   if (ten_enable_ten_manager) {

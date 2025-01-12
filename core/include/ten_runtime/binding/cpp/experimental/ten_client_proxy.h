@@ -217,11 +217,6 @@ class ten_client_proxy_t {
   ten_client_proxy_t &operator=(const ten_client_proxy_t &) = delete;
   ten_client_proxy_t &operator=(const ten_client_proxy_t &&) = delete;
 
-  void add_addon_base_dir(const char *addon_path) {
-    TEN_ASSERT(addon_path, "Invalid argument.");
-    impl_.add_addon_base_dir(addon_path);
-  }
-
   void start_graph(const char *graph_json) {
     TEN_ASSERT(graph_json, "Invalid argument.");
     impl_.set_test_mode_graph(graph_json);

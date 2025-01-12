@@ -21,8 +21,8 @@ def build_and_install_app():
 
     my_env = os.environ.copy()
 
-    source_pkg_name = "exit_signal_go_app"
-    app_root_path = os.path.join(base_path, source_pkg_name)
+    app_dir_name = "exit_signal_go_app"
+    app_root_path = os.path.join(base_path, app_dir_name)
     app_language = "go"
 
     build_config_args = build_config.parse_build_config(
@@ -30,14 +30,13 @@ def build_and_install_app():
     )
 
     if not build_config_args.ten_enable_integration_tests_prebuilt:
-        print(f'Assembling and building package "{source_pkg_name}".')
+        print(f'Assembling and building package "{app_dir_name}".')
 
         rc = build_pkg.prepare_and_build_app(
             build_config_args,
             root_dir,
             base_path,
-            app_root_path,
-            source_pkg_name,
+            app_dir_name,
             app_language,
         )
         if rc != 0:
