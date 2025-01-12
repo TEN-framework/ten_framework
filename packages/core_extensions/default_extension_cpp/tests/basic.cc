@@ -32,17 +32,7 @@ class default_extension_tester : public ten::extension_tester_t {
 
 TEST(Test, Basic) {  // NOLINT
   auto *tester = new default_extension_tester();
-
-  ten_string_t *path = ten_path_get_executable_path();
-  ten_path_join_c_str(path, "../ten_packages/extension/default_extension_cpp/");
-
-  tester->add_addon_base_dir(ten_string_get_raw_str(path));
-
-  ten_string_destroy(path);
-
   tester->set_test_mode_single("default_extension_cpp");
-
   tester->run();
-
   delete tester;
 }

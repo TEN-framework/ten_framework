@@ -104,9 +104,7 @@ def test_standalone_test_cpp():
         os.path.join(
             extension_root_path,
             (
-                f"out/{build_config_args.target_os}/"
-                f"{build_config_args.target_cpu}/"
-                "tests/default_extension_cpp_test"
+                "bin/default_extension_cpp_test"
                 + (".exe" if build_config_args.target_os == "win" else "")
             ),
         ),

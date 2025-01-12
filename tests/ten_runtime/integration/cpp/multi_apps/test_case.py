@@ -16,7 +16,7 @@ def install_app(app_name: str):
     my_env = os.environ.copy()
 
     app_root_path = os.path.join(base_path, app_name)
-    source_pkg_name = app_name + "_source"
+    app_dir_name = app_name
     app_language = "cpp"
 
     build_config_args = build_config.parse_build_config(
@@ -24,14 +24,13 @@ def install_app(app_name: str):
     )
 
     if build_config_args.ten_enable_integration_tests_prebuilt is False:
-        print('Assembling and building package "{}".'.format(source_pkg_name))
+        print('Assembling and building package "{}".'.format(app_dir_name))
 
         rc = build_pkg.prepare_and_build_app(
             build_config_args,
             root_dir,
             base_path,
-            app_root_path,
-            source_pkg_name,
+            app_dir_name,
             app_language,
         )
         if rc != 0:
@@ -71,24 +70,18 @@ def start_app(app_name: str, port: int) -> subprocess.Popen:
             + ";"
             + my_env["PATH"]
         )
-        server_cmd = os.path.join(
-            base_path, f"{app_name}/bin/{app_name}_source.exe"
-        )
+        server_cmd = os.path.join(base_path, f"{app_name}/bin/{app_name}.exe")
     elif sys.platform == "darwin":
         my_env["DYLD_LIBRARY_PATH"] = os.path.join(
             base_path, f"{app_name}/ten_packages/system/ten_runtime/lib"
         )
-        server_cmd = os.path.join(
-            base_path, f"{app_name}/bin/{app_name}_source"
-        )
+        server_cmd = os.path.join(base_path, f"{app_name}/bin/{app_name}")
     else:
         # client depends on some libraries in the TEN app.
         my_env["LD_LIBRARY_PATH"] = os.path.join(
             base_path, f"{app_name}/ten_packages/system/ten_runtime/lib"
         )
-        server_cmd = os.path.join(
-            base_path, f"{app_name}/bin/{app_name}_source"
-        )
+        server_cmd = os.path.join(base_path, f"{app_name}/bin/{app_name}")
 
         root_dir = os.path.join(base_path, "../../../../../")
         build_config_args = build_config.parse_build_config(

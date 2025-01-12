@@ -68,7 +68,9 @@ TEN_RUNTIME_API void ten_extension_tester_set_test_mode_graph(
 TEN_RUNTIME_API void ten_extension_tester_init_test_app_property_from_json(
     ten_extension_tester_t *self, const char *property_json_str);
 
-TEN_RUNTIME_API void ten_extension_tester_add_addon_base_dir(
+// This function is deprecated and no longer in use, but it is being retained
+// for now.
+TEN_RUNTIME_PRIVATE_API void ten_extension_tester_add_addon_base_dir(
     ten_extension_tester_t *self, const char *addon_base_dir);
 
 TEN_RUNTIME_API bool ten_extension_tester_run(ten_extension_tester_t *self);
