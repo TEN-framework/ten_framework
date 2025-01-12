@@ -7,9 +7,11 @@
 #include "include_internal/ten_runtime/addon/addon_autoload.h"
 #include "include_internal/ten_runtime/addon/addon_loader/addon_loader.h"
 #include "include_internal/ten_runtime/addon/addon_manager.h"
+#include "include_internal/ten_runtime/addon/common/common.h"
 #include "include_internal/ten_runtime/addon/extension/extension.h"
 #include "include_internal/ten_runtime/addon/extension_group/extension_group.h"
 #include "include_internal/ten_runtime/addon/protocol/protocol.h"
+#include "include_internal/ten_runtime/addon_loader/addon_loader.h"
 #include "include_internal/ten_runtime/app/app.h"
 #include "include_internal/ten_runtime/app/base_dir.h"
 #include "include_internal/ten_runtime/app/close.h"
@@ -30,6 +32,7 @@
 #include "include_internal/ten_runtime/ten_env/metadata_cb.h"
 #include "include_internal/ten_runtime/ten_env/ten_env.h"
 #include "include_internal/ten_runtime/test/test_extension.h"
+#include "ten_runtime/addon/addon.h"
 #include "ten_runtime/app/app.h"
 #include "ten_runtime/ten_env/internal/on_xxx_done.h"
 #include "ten_runtime/ten_env/ten_env.h"
@@ -118,6 +121,9 @@ static void ten_app_on_endpoint_protocol_created(ten_env_t *ten_env,
 void ten_app_on_all_addon_loaders_created(ten_app_t *self) {
   TEN_ASSERT(self && ten_app_check_integrity(self, true), "Should not happen.");
 
+  int lock_operation_rc = ten_addon_loader_singleton_store_unlock();
+  TEN_ASSERT(!lock_operation_rc, "Should not happen.");
+
   ten_error_t err;
   ten_error_init(&err);
 
@@ -187,21 +193,30 @@ void ten_app_on_configure_done(ten_env_t *ten_env) {
   if (ten_string_is_empty(&self->uri)) {
     ten_string_set_from_c_str(&self->uri, TEN_STR_LOCALHOST);
   }
+
+  // @{
+  // Addon initialization phase 1: loading.
+  int lock_operation_rc = ten_addon_store_lock_all_type();
+  TEN_ASSERT(!lock_operation_rc, "Should not happen.");
+
   ten_addon_load_all_from_app_base_dir(ten_string_get_raw_str(&self->base_dir),
                                        &err);
   ten_addon_load_all_from_ten_package_base_dirs(&self->ten_package_base_dirs,
                                                 &err);
 
-  // @{
-  // Register all addons.
+  // Addon initialization phase 2: registering.
   ten_builtin_extension_group_addon_register();
   ten_builtin_test_extension_addon_register();
 
   ten_addon_manager_t *manager = ten_addon_manager_get_instance();
   ten_addon_register_ctx_t *register_ctx = ten_addon_register_ctx_create();
   register_ctx->app = self;
+
   ten_addon_manager_register_all_addons(manager, (void *)register_ctx);
   ten_addon_register_ctx_destroy(register_ctx);
+
+  lock_operation_rc = ten_addon_store_unlock_all_type();
+  TEN_ASSERT(!lock_operation_rc, "Should not happen.");
   // @}
 
   // Create addon loader singleton instances.

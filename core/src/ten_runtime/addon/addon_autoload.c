@@ -6,6 +6,8 @@
 //
 #include "include_internal/ten_runtime/addon/addon_autoload.h"
 
+#include "include_internal/ten_runtime/addon/common/common.h"
+
 #if defined(OS_LINUX)
 #define _GNU_SOURCE
 #endif
@@ -160,7 +162,8 @@ done:
   ten_string_deinit(&lib_dir);
 }
 
-static void load_all_dynamic_libraries(const char *path) {
+static void load_all_dynamic_libraries(TEN_ADDON_TYPE addon_type,
+                                       const char *path) {
   ten_string_t *cur = NULL;
   ten_string_t *short_name = NULL;
   ten_string_t *self = NULL;
@@ -183,6 +186,15 @@ static void load_all_dynamic_libraries(const char *path) {
     short_name = ten_path_itor_get_name(itor);
     if (!short_name) {
       TEN_LOGE("Failed to get short name under path: %s", path);
+      goto continue_loop;
+    }
+
+    if (ten_addon_store_find_by_type(addon_type,
+                                     ten_string_get_raw_str(short_name))) {
+      // This addon has already been loaded, so it should not be loaded again to
+      // avoid re-executing any side effects during the loading process (such as
+      // global variable initialization, etc.), which is typically an incorrect
+      // behavior.
       goto continue_loop;
     }
 
@@ -242,10 +254,11 @@ bool ten_addon_load_all_from_app_base_dir(const char *app_base_dir,
   // app starts, it will scan these two folders and load all the addons inside
   // them.
   struct {
+    TEN_ADDON_TYPE addon_type;
     const char *path;
   } folders[] = {
-      {"/ten_packages/protocol"},
-      {"/ten_packages/addon_loader"},
+      {TEN_ADDON_TYPE_PROTOCOL, "/ten_packages/protocol"},
+      {TEN_ADDON_TYPE_ADDON_LOADER, "/ten_packages/addon_loader"},
   };
 
   for (int i = 0; i < sizeof(folders) / sizeof(folders[0]); i++) {
@@ -267,7 +280,8 @@ bool ten_addon_load_all_from_app_base_dir(const char *app_base_dir,
       // The modules (e.g., extensions/protocols) do not exist if only the TEN
       // app has been installed.
       if (ten_path_exists(ten_string_get_raw_str(&module_path))) {
-        load_all_dynamic_libraries(ten_string_get_raw_str(&module_path));
+        load_all_dynamic_libraries(folders[i].addon_type,
+                                   ten_string_get_raw_str(&module_path));
       }
     } while (0);
 
@@ -402,7 +416,9 @@ bool ten_addon_try_load_specific_addon_using_native_addon_loader(
 
 bool ten_addon_try_load_specific_addon_using_all_addon_loaders(
     TEN_ADDON_TYPE addon_type, const char *addon_name) {
-  ten_list_t *addon_loaders = ten_addon_loader_get_all();
+  ten_addon_loader_singleton_store_lock();
+
+  ten_list_t *addon_loaders = ten_addon_loader_singleton_get_all();
   TEN_ASSERT(addon_loaders, "Should not happen.");
 
   ten_list_foreach (addon_loaders, iter) {
@@ -413,6 +429,8 @@ bool ten_addon_try_load_specific_addon_using_all_addon_loaders(
       ten_addon_loader_load_addon(addon_loader, addon_type, addon_name);
     }
   }
+
+  ten_addon_loader_singleton_store_unlock();
 
   return true;
 }

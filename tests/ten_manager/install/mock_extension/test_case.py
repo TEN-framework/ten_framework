@@ -76,6 +76,7 @@ def test_tman_install():
             "--yes",
             f"--config-file={config_file}",
             "install",
+            "--standalone",
         ],
         env=my_env,
     )

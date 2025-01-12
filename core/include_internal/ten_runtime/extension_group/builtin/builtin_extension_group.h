@@ -27,5 +27,3 @@ TEN_RUNTIME_PRIVATE_API void ten_builtin_extension_group_addon_destroy_instance(
     void *context);
 
 TEN_RUNTIME_PRIVATE_API void ten_builtin_extension_group_addon_register(void);
-
-TEN_RUNTIME_PRIVATE_API void ten_builtin_extension_group_addon_unregister(void);

@@ -5,6 +5,7 @@
 // Refer to the "LICENSE" file in the root directory for more information.
 //
 pub const MANIFEST_JSON_FILENAME: &str = "manifest.json";
+pub const MANIFEST_LOCK_JSON_FILENAME: &str = "manifest-lock.json";
 pub const PROPERTY_JSON_FILENAME: &str = "property.json";
 pub const TEN_FIELD_IN_PROPERTY: &str = "_ten";
 

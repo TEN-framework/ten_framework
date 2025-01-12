@@ -13,6 +13,7 @@ use anyhow::Result;
 use console::Emoji;
 use globset::{GlobBuilder, GlobSetBuilder};
 use ignore::{overrides::OverrideBuilder, WalkBuilder};
+use ten_rust::pkg_info::constants::MANIFEST_JSON_FILENAME;
 use zip::zip_files_to_file;
 
 use ten_rust::pkg_info::PkgInfo;
@@ -22,9 +23,7 @@ use ten_rust::pkg_info::{
 
 use super::{config::TmanConfig, constants::TEN_PACKAGE_FILE_EXTENSION};
 use crate::{
-    constants::{
-        DOT_TEN_DIR, MANIFEST_JSON_FILENAME, PACKAGE_DIR_IN_DOT_TEN_DIR,
-    },
+    constants::{DOT_TEN_DIR, PACKAGE_DIR_IN_DOT_TEN_DIR},
     fs::pathbuf_to_string_lossy,
     log::tman_verbose_println,
 };

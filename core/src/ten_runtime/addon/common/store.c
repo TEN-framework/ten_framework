@@ -11,6 +11,10 @@
 
 #include "include_internal/ten_runtime/addon/addon.h"
 #include "include_internal/ten_runtime/addon/addon_host.h"
+#include "include_internal/ten_runtime/addon/addon_loader/addon_loader.h"
+#include "include_internal/ten_runtime/addon/extension/extension.h"
+#include "include_internal/ten_runtime/addon/extension_group/extension_group.h"
+#include "include_internal/ten_runtime/addon/protocol/protocol.h"
 #include "ten_utils/container/list.h"
 #include "ten_utils/lib/atomic.h"
 #include "ten_utils/lib/mutex.h"
@@ -36,8 +40,8 @@ static void ten_addon_host_remove_from_store(ten_addon_host_t *addon_host) {
   ten_ref_dec_ref(&addon_host->ref);
 }
 
-static ten_addon_host_t *ten_addon_store_find_internal(ten_addon_store_t *store,
-                                                       const char *name) {
+ten_addon_host_t *ten_addon_store_find(ten_addon_store_t *store,
+                                       const char *name) {
   TEN_ASSERT(store, "Invalid argument.");
   TEN_ASSERT(name, "Invalid argument.");
 
@@ -56,8 +60,7 @@ static ten_addon_host_t *ten_addon_store_find_internal(ten_addon_store_t *store,
   return result;
 }
 
-static void ten_addon_store_add(ten_addon_store_t *store,
-                                ten_addon_host_t *addon) {
+void ten_addon_store_add(ten_addon_store_t *store, ten_addon_host_t *addon) {
   TEN_ASSERT(store, "Invalid argument.");
   TEN_ASSERT(addon, "Invalid argument.");
 
@@ -102,44 +105,12 @@ void ten_addon_store_del_all(ten_addon_store_t *store) {
   ten_mutex_unlock(store->lock);
 }
 
-ten_addon_host_t *ten_addon_store_find(ten_addon_store_t *store,
-                                       const char *name) {
+int ten_addon_store_lock(ten_addon_store_t *store) {
   TEN_ASSERT(store, "Invalid argument.");
-  TEN_ASSERT(name, "Invalid argument.");
-
-  ten_addon_host_t *result = NULL;
-
-  ten_mutex_lock(store->lock);
-  result = ten_addon_store_find_internal(store, name);
-  ten_mutex_unlock(store->lock);
-
-  return result;
+  return ten_mutex_lock(store->lock);
 }
 
-ten_addon_host_t *ten_addon_store_find_or_create_one_if_not_found(
-    ten_addon_store_t *store, TEN_ADDON_TYPE addon_type, const char *addon_name,
-    bool *newly_created) {
+int ten_addon_store_unlock(ten_addon_store_t *store) {
   TEN_ASSERT(store, "Invalid argument.");
-  TEN_ASSERT(addon_name, "Invalid argument.");
-  TEN_ASSERT(newly_created, "Invalid argument.");
-
-  ten_addon_host_t *result = NULL;
-  *newly_created = false;
-
-  ten_mutex_lock(store->lock);
-
-  result = ten_addon_store_find_internal(store, addon_name);
-
-  if (!result) {
-    result = ten_addon_host_create(addon_type);
-    TEN_ASSERT(result, "Should not happen.");
-
-    ten_addon_store_add(store, result);
-
-    *newly_created = true;
-  }
-
-  ten_mutex_unlock(store->lock);
-
-  return result;
+  return ten_mutex_unlock(store->lock);
 }

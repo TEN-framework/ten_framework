@@ -24,16 +24,17 @@ typedef struct ten_addon_store_t {
 
 TEN_RUNTIME_PRIVATE_API void ten_addon_store_init(ten_addon_store_t *store);
 
+TEN_RUNTIME_PRIVATE_API void ten_addon_store_add(ten_addon_store_t *store,
+                                                 ten_addon_host_t *addon);
+
 TEN_RUNTIME_PRIVATE_API ten_addon_t *ten_addon_store_del(
     ten_addon_store_t *store, const char *name);
 
 TEN_RUNTIME_PRIVATE_API void ten_addon_store_del_all(ten_addon_store_t *store);
 
+TEN_RUNTIME_PRIVATE_API int ten_addon_store_lock(ten_addon_store_t *store);
+
+TEN_RUNTIME_PRIVATE_API int ten_addon_store_unlock(ten_addon_store_t *store);
+
 TEN_RUNTIME_PRIVATE_API ten_addon_host_t *ten_addon_store_find(
     ten_addon_store_t *store, const char *name);
-
-TEN_RUNTIME_PRIVATE_API ten_addon_host_t *
-ten_addon_store_find_or_create_one_if_not_found(ten_addon_store_t *store,
-                                                TEN_ADDON_TYPE addon_type,
-                                                const char *addon_name,
-                                                bool *newly_created);

@@ -19,7 +19,6 @@ void *ten_module_load(const ten_string_t *name, int as_local) {
 
   void *handle = dlopen(ten_string_get_raw_str(name),
                         RTLD_NOW | (as_local ? RTLD_LOCAL : RTLD_GLOBAL));
-
   if (!handle) {
     const char *err_msg = dlerror();
     TEN_LOGE("Failed to dlopen %s: %s", ten_string_get_raw_str(name),
