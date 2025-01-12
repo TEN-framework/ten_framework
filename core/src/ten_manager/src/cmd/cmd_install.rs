@@ -204,7 +204,7 @@ async fn prepare_cpp_standalone_app_dir(
     }
 
     let dot_ten_app_dir = dot_ten_dir.join(APP_DIR_IN_DOT_TEN_DIR);
-    if dot_ten_dir.exists() {
+    if dot_ten_app_dir.exists() {
         return Ok(dot_ten_app_dir);
     }
 
