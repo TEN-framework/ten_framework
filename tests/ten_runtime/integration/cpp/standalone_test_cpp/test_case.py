@@ -116,11 +116,7 @@ def test_standalone_test_cpp():
         my_env["PATH"] = (
             os.path.join(
                 extension_root_path,
-                (
-                    f"out/{build_config_args.target_os}/"
-                    f"{build_config_args.target_cpu}/"
-                    "ten_packages/system/ten_runtime/lib"
-                ),
+                (".ten/app/ten_packages/system/ten_runtime/lib"),
             )
             + ";"
             + my_env["PATH"]
