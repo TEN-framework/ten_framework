@@ -9,6 +9,7 @@ import os
 import platform
 from datetime import datetime
 import time
+
 from . import (
     cmd_exec,
     fs_utils,
@@ -22,7 +23,6 @@ from . import (
 class ArgumentInfo:
     def __init__(self):
         self.pkg_src_root_dir: str
-        self.pkg_run_root_dir: str
         self.pkg_name: str
         self.pkg_language: str
         self.os: str
@@ -74,13 +74,6 @@ def _build_cpp_app(args: ArgumentInfo) -> int:
     if returncode:
         print(output)
         return 1
-
-    # Copy the build result to the specified run folder.
-    fs_utils.copy(
-        f"{args.pkg_src_root_dir}/out/{args.os}/{args.cpu}/app/{args.pkg_name}",
-        args.pkg_run_root_dir,
-        True,
-    )
 
     return returncode
 
@@ -253,7 +246,7 @@ def prepare_app(
     build_config: build_config.BuildConfig,
     root_dir: str,
     test_case_base_dir: str,
-    source_pkg_name: str,
+    app_dir_name: str,
     log_level: int,
 ) -> int:
     tman_path = os.path.join(root_dir, "ten_manager/bin/tman")
@@ -265,9 +258,9 @@ def prepare_app(
     )
 
     # Read the assembly info from
-    # <test_case_base_dir>/.assemble_info/<source_pkg_name>/info.json
+    # <test_case_base_dir>/.assemble_info/<app_dir_name>/info.json
     assemble_info_dir = os.path.join(
-        test_case_base_dir, ".assemble_info", source_pkg_name
+        test_case_base_dir, ".assemble_info", app_dir_name
     )
     info_file = os.path.join(assemble_info_dir, "info.json")
     with open(info_file, "r") as f:
@@ -306,7 +299,7 @@ def prepare_app(
     if log_level and log_level > 0:
         print("> Replace files after install app")
 
-    rc = _replace_after_install_app(test_case_base_dir, source_pkg_name)
+    rc = _replace_after_install_app(test_case_base_dir, app_dir_name)
     if rc != 0:
         print("Failed to replace files after install app")
         return 1
@@ -334,7 +327,7 @@ def prepare_app(
     if log_level and log_level > 0:
         print("> Replace files after install all")
 
-    rc = _replace_after_install_all(test_case_base_dir, source_pkg_name)
+    rc = _replace_after_install_all(test_case_base_dir, app_dir_name)
     if rc != 0:
         print("Failed to replace files after install all")
         return 1
@@ -343,10 +336,10 @@ def prepare_app(
 
 
 def _replace_after_install_app(
-    test_case_base_dir: str, source_pkg_name: str
+    test_case_base_dir: str, app_dir_name: str
 ) -> int:
     assemble_info_dir = os.path.join(
-        test_case_base_dir, ".assemble_info", source_pkg_name
+        test_case_base_dir, ".assemble_info", app_dir_name
     )
     assemble_info_file = os.path.join(assemble_info_dir, "info.json")
 
@@ -389,10 +382,10 @@ def _replace_after_install_app(
 
 
 def _replace_after_install_all(
-    test_case_base_dir: str, source_pkg_name: str
+    test_case_base_dir: str, app_dir_name: str
 ) -> int:
     assemble_info_dir = os.path.join(
-        test_case_base_dir, ".assemble_info", source_pkg_name
+        test_case_base_dir, ".assemble_info", app_dir_name
     )
     assemble_info_file = os.path.join(assemble_info_dir, "info.json")
 
@@ -436,16 +429,14 @@ def _replace_after_install_all(
 
 def build_app(
     build_config: build_config.BuildConfig,
-    pkg_src_root_dir: str,
-    pkg_run_root_dir: str,
-    pkg_name: str,
+    app_dir_path: str,
+    app_dir_name: str,
     pkg_language: str,
     log_level: int = 0,
 ) -> int:
     args = ArgumentInfo()
-    args.pkg_src_root_dir = pkg_src_root_dir
-    args.pkg_run_root_dir = pkg_run_root_dir
-    args.pkg_name = pkg_name
+    args.pkg_src_root_dir = app_dir_path
+    args.pkg_name = app_dir_name
     args.pkg_language = pkg_language
     args.os = build_config.target_os
     args.cpu = build_config.target_cpu
@@ -496,8 +487,7 @@ def prepare_and_build_app(
     build_config: build_config.BuildConfig,
     root_dir: str,
     test_case_base_dir: str,
-    pkg_run_root_dir: str,
-    source_pkg_name: str,
+    app_dir_name: str,
     pkg_language: str,
     log_level: int = 2,
 ) -> int:
@@ -505,19 +495,18 @@ def prepare_and_build_app(
         build_config,
         root_dir,
         test_case_base_dir,
-        source_pkg_name,
+        app_dir_name,
         log_level,
     )
     if rc != 0:
         return rc
 
-    pkg_src_root_dir = os.path.join(test_case_base_dir, source_pkg_name)
+    app_dir_path = os.path.join(test_case_base_dir, app_dir_name)
 
     rc = build_app(
         build_config,
-        pkg_src_root_dir,
-        pkg_run_root_dir,
-        source_pkg_name,
+        app_dir_path,
+        app_dir_name,
         pkg_language,
         log_level,
     )

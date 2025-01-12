@@ -53,8 +53,8 @@ def test_send_cmd_python():
             base_path, "send_cmd_python_app/lib"
         )
 
-    source_pkg_name = "send_cmd_python_app"
-    app_root_path = os.path.join(base_path, source_pkg_name)
+    app_dir_name = "send_cmd_python_app"
+    app_root_path = os.path.join(base_path, app_dir_name)
     app_language = "python"
 
     build_config_args = build_config.parse_build_config(
@@ -62,14 +62,13 @@ def test_send_cmd_python():
     )
 
     if build_config_args.ten_enable_integration_tests_prebuilt is False:
-        print('Assembling and building package "{}".'.format(source_pkg_name))
+        print('Assembling and building package "{}".'.format(app_dir_name))
 
         rc = build_pkg.prepare_and_build_app(
             build_config_args,
             root_dir,
             base_path,
-            app_root_path,
-            source_pkg_name,
+            app_dir_name,
             app_language,
         )
         if rc != 0:
@@ -156,7 +155,7 @@ def test_send_cmd_python():
         assert exit_code == 0
 
         if build_config_args.ten_enable_integration_tests_prebuilt is False:
-            source_root_path = os.path.join(base_path, source_pkg_name)
+            source_root_path = os.path.join(base_path, app_dir_name)
 
             # Testing complete. If builds are only created during the testing
             # phase, we can clear the build results to save disk space.

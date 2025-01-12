@@ -76,13 +76,6 @@ def build_cpp_app(args: ArgumentInfo) -> int:
         print(f"Failed to build c++ app: {output}")
         return 1
 
-    # Copy the build result to the specified run folder.
-    fs_utils.copy(
-        f"{args.pkg_src_root_dir}/out/{args.os}/{args.cpu}/app/{args.pkg_name}",
-        args.pkg_run_root_dir,
-        True,
-    )
-
     return returncode
 
 

@@ -55,10 +55,13 @@ config("config_for_standalone_ten_packages") {
   lib_dirs = [ "//.ten/app/ten_packages/system/ten_runtime/lib" ]
 
   if (is_linux) {
-    ldflags = [ "-Wl,-rpath=\$ORIGIN/../ten_packages/system/ten_runtime/lib" ]
+    ldflags = [
+      "-Wl,-rpath=\$ORIGIN/../.ten/app/ten_packages/system/ten_runtime/lib",
+    ]
   } else if (is_mac) {
-    ldflags =
-        [ "-Wl,-rpath,@loader_path/../ten_packages/system/ten_runtime/lib" ]
+    ldflags = [
+      "-Wl,-rpath,@loader_path/../.ten/app/ten_packages/system/ten_runtime/lib",
+    ]
   }
 }
 

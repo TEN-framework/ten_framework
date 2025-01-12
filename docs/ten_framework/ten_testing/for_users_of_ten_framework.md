@@ -80,18 +80,10 @@ TEST(Test, Basic) {
   // 1. Create an extension tester to manage the entire standalone testing process.
   auto *tester = new extension_tester_basic();
 
-  // 2. Inform the standalone testing framework of the folder containing the extension to be tested.
-  ten_string_t *path = ten_path_get_executable_path();
-  ten_path_join_c_str(path, "../ten_packages/extension/default_extension_cpp/");
-
-  tester->add_addon_base_dir(ten_string_get_raw_str(path));
-
-  ten_string_destroy(path);
-
-  // 3. Set a testing mode, such as a mode for testing a single extension.
+  // 2. Set a testing mode, such as a mode for testing a single extension.
   tester->set_test_mode_single("default_extension_cpp");
 
-  // 4. Start the testing.
+  // 3. Start the testing.
   tester->run();
 
   delete tester;

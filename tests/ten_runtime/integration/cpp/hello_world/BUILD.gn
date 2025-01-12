@@ -10,19 +10,19 @@ import("//build/ten_runtime/ten.gni")
 ten_package_test_prepare_app("hello_world_app") {
   src_app = "default_app_cpp"
   src_app_language = "cpp"
-  generated_app_src_root_dir_name = "hello_world_app_source"
+  generated_app_src_root_dir_name = "hello_world_app"
 
   replace_files_after_install_app = [
-    "hello_world_app_source/manifest.json",
-    "hello_world_app_source/property.json",
+    "hello_world_app/manifest.json",
+    "hello_world_app/property.json",
   ]
 
   replace_files_after_install_all = [
-    "hello_world_app_source/ten_packages/extension/default_extension_cpp/manifest.json",
-    "hello_world_app_source/ten_packages/extension/default_extension_cpp/property.json",
-    "hello_world_app_source/ten_packages/extension/default_extension_cpp/src/main.cc",
+    "hello_world_app/ten_packages/extension/default_extension_cpp/manifest.json",
+    "hello_world_app/ten_packages/extension/default_extension_cpp/property.json",
+    "hello_world_app/ten_packages/extension/default_extension_cpp/src/main.cc",
 
-    "hello_world_app_source/ten_packages/extension/default_extension_cpp/a.json",
+    "hello_world_app/ten_packages/extension/default_extension_cpp/a.json",
 
     # The above `a.json` will be copied to the source folder, but can not be
     # copied to the build target directory with the default `BUILD.gn`. The
@@ -30,7 +30,7 @@ ten_package_test_prepare_app("hello_world_app") {
     # of the extension.
     #
     # TODO(Liu): Provide a better way to enable users to extend the `BUILD.gn`.
-    "hello_world_app_source/ten_packages/extension/default_extension_cpp/BUILD.gn",
+    "hello_world_app/ten_packages/extension/default_extension_cpp/BUILD.gn",
   ]
 
   if (ten_enable_ten_manager) {

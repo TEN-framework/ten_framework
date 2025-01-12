@@ -38,8 +38,8 @@ def test_mix_python_ext_nodejs():
     my_env["VIRTUAL_ENV"] = venv_dir
     my_env["PATH"] = os.path.join(venv_dir, "bin") + os.pathsep + my_env["PATH"]
 
-    source_pkg_name = "mix_python_ext_nodejs_app"
-    app_root_path = os.path.join(base_path, source_pkg_name)
+    app_dir_name = "mix_python_ext_nodejs_app"
+    app_root_path = os.path.join(base_path, app_dir_name)
     app_language = "nodejs"
 
     build_config_args = build_config.parse_build_config(
@@ -47,14 +47,13 @@ def test_mix_python_ext_nodejs():
     )
 
     if build_config_args.ten_enable_integration_tests_prebuilt is False:
-        print('Assembling and building package "{}".'.format(source_pkg_name))
+        print('Assembling and building package "{}".'.format(app_dir_name))
 
         rc = build_pkg.prepare_and_build_app(
             build_config_args,
             root_dir,
             base_path,
-            app_root_path,
-            source_pkg_name,
+            app_dir_name,
             app_language,
         )
         if rc != 0:
@@ -127,7 +126,7 @@ def test_mix_python_ext_nodejs():
         assert exit_code == 0
 
         if build_config_args.ten_enable_integration_tests_prebuilt is False:
-            source_root_path = os.path.join(base_path, source_pkg_name)
+            source_root_path = os.path.join(base_path, app_dir_name)
 
             # Testing complete. If builds are only created during the testing
             # phase, we can clear the build results to save disk space.
