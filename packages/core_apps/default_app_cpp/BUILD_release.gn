@@ -9,10 +9,5 @@ ten_package("default_app_cpp") {
   package_kind = "app"
   enable_build = true
 
-  resources = [
-    "manifest.json",
-    "property.json",
-  ]
-
   sources = [ "src/main.cc" ]
 }

@@ -9,10 +9,5 @@ ten_package("{{package_name}}") {
   package_kind = "app"
   enable_build = true
 
-  resources = [
-    "manifest.json",
-    "property.json",
-  ]
-
   sources = [ "src/main.cc" ]
 }
