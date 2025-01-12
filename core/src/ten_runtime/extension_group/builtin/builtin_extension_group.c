@@ -314,7 +314,3 @@ void ten_builtin_extension_group_addon_register(void) {
   ten_addon_register_extension_group(TEN_STR_DEFAULT_EXTENSION_GROUP, NULL,
                                      &builtin_extension_group_addon, NULL);
 }
-
-void ten_builtin_extension_group_addon_unregister(void) {
-  ten_addon_unregister_extension_group(TEN_STR_DEFAULT_EXTENSION_GROUP);
-}

@@ -3,6 +3,10 @@
     {
       "name": "ext_a",
       "version": "1.2.3"
+    },
+    {
+      "name": "mock_extension",
+      "version": "0.1.0"
     }
   ]
 }

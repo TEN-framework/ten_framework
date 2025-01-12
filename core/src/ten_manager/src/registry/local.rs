@@ -12,6 +12,7 @@ use std::str::FromStr;
 use anyhow::{anyhow, Context, Result};
 use semver::Version;
 use tempfile::NamedTempFile;
+use ten_rust::pkg_info::constants::MANIFEST_JSON_FILENAME;
 use walkdir::WalkDir;
 use zip::ZipArchive;
 
@@ -21,7 +22,7 @@ use ten_rust::pkg_info::PkgInfo;
 
 use super::{FoundResult, SearchCriteria};
 use crate::config::TmanConfig;
-use crate::constants::{MANIFEST_JSON_FILENAME, TEN_PACKAGE_FILE_EXTENSION};
+use crate::constants::TEN_PACKAGE_FILE_EXTENSION;
 
 pub async fn upload_package(
     base_url: &str,

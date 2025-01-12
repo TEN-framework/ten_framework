@@ -92,6 +92,7 @@ fn process_local_dependency_to_get_candidate(
         PkgTypeAndName,
         HashMap<PkgBasicInfo, PkgInfo>,
     >,
+    new_pkgs_to_be_searched: &mut Vec<PkgInfo>,
 ) -> Result<()> {
     // Enforce having only one candidate: the package info parsed from
     // the specified path.
@@ -119,7 +120,9 @@ fn process_local_dependency_to_get_candidate(
 
     let candidate_map = all_candidates.entry((&pkg_info).into()).or_default();
 
-    candidate_map.insert((&pkg_info).into(), pkg_info);
+    candidate_map.insert((&pkg_info).into(), pkg_info.clone());
+
+    new_pkgs_to_be_searched.push(pkg_info);
 
     Ok(())
 }
@@ -271,6 +274,7 @@ async fn process_dependencies_to_get_candidates(
             process_local_dependency_to_get_candidate(
                 dependency,
                 all_candidates,
+                new_pkgs_to_be_searched,
             )?;
         } else {
             // Check if we need to get the package info from the slow path.

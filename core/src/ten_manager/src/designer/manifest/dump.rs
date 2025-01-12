@@ -12,16 +12,15 @@ use std::{
 use actix_web::{web, HttpResponse, Responder};
 use serde::Serialize;
 
-use ten_rust::pkg_info::manifest::dump_manifest_str_to_file;
 use ten_rust::pkg_info::pkg_type::PkgType;
+use ten_rust::pkg_info::{
+    constants::MANIFEST_JSON_FILENAME, manifest::dump_manifest_str_to_file,
+};
 
-use crate::{
-    constants::MANIFEST_JSON_FILENAME,
-    designer::{
-        get_all_pkgs::get_all_pkgs,
-        response::{ApiResponse, ErrorResponse, Status},
-        DesignerState,
-    },
+use crate::designer::{
+    get_all_pkgs::get_all_pkgs,
+    response::{ApiResponse, ErrorResponse, Status},
+    DesignerState,
 };
 
 #[derive(Serialize, Debug, PartialEq)]

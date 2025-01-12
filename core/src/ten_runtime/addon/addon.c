@@ -11,6 +11,7 @@
 #include "include_internal/ten_runtime/addon/addon_host.h"
 #include "include_internal/ten_runtime/addon/addon_loader/addon_loader.h"
 #include "include_internal/ten_runtime/addon/addon_manager.h"
+#include "include_internal/ten_runtime/addon/common/common.h"
 #include "include_internal/ten_runtime/addon/common/store.h"
 #include "include_internal/ten_runtime/addon/extension/extension.h"
 #include "include_internal/ten_runtime/addon/extension_group/extension_group.h"
@@ -175,7 +176,11 @@ bool ten_addon_create_instance_async(ten_env_t *ten_env,
   TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
              "Should not happen.");
 
-  ten_addon_host_t *addon_host = ten_addon_host_find(addon_type, addon_name);
+  int lock_operation_rc = ten_addon_store_lock_by_type(addon_type);
+  TEN_ASSERT(!lock_operation_rc, "Should not happen.");
+
+  ten_addon_host_t *addon_host =
+      ten_addon_store_find_by_type(addon_type, addon_name);
   if (!addon_host) {
     ten_app_t *app = ten_env_get_belonging_app(ten_env);
     TEN_ASSERT(app && ten_app_check_integrity(
@@ -204,8 +209,11 @@ bool ten_addon_create_instance_async(ten_env_t *ten_env,
     }
 
     // Find again.
-    addon_host = ten_addon_host_find(addon_type, addon_name);
+    addon_host = ten_addon_store_find_by_type(addon_type, addon_name);
   }
+
+  lock_operation_rc = ten_addon_store_unlock_by_type(addon_type);
+  TEN_ASSERT(!lock_operation_rc, "Should not happen.");
 
   if (!addon_host) {
     TEN_LOGE(
@@ -232,18 +240,14 @@ ten_addon_host_t *ten_addon_register(TEN_ADDON_TYPE addon_type,
     exit(EXIT_FAILURE);
   }
 
-  // Since addons can be dynamically loaded during the app's runtime, such as
-  // extension addons, the action of checking for unregistered addons and adding
-  // a new addon needs to be atomic. This ensures that the same addon is not
-  // loaded multiple times.
-  bool newly_created = false;
-  ten_addon_host_t *addon_host = ten_addon_host_find_or_create_one_if_not_found(
-      addon_type, addon_name, &newly_created);
-  TEN_ASSERT(addon_host, "Should not happen.");
-
-  if (!newly_created) {
+  ten_addon_host_t *addon_host =
+      ten_addon_store_find_by_type(addon_type, addon_name);
+  if (addon_host) {
+    // This addon already exists; do not register it again.
     goto done;
   }
+
+  addon_host = ten_addon_host_create(addon_type);
 
   if (register_ctx) {
     // If `register_ctx` exists, its content will be used to assist in the addon
@@ -271,6 +275,8 @@ ten_addon_host_t *ten_addon_register(TEN_ADDON_TYPE addon_type,
       break;
   }
   TEN_ASSERT(addon_store, "Should not happen.");
+
+  ten_addon_store_add(addon_store, addon_host);
 
   ten_addon_register_internal(addon_store, addon_host, addon_name, base_dir,
                               addon);

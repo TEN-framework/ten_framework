@@ -11,11 +11,10 @@ use std::{
 
 use anyhow::{anyhow, Result};
 use clap::{Arg, ArgMatches, Command};
+use ten_rust::pkg_info::constants::MANIFEST_JSON_FILENAME;
 
 use crate::{
-    config::TmanConfig,
-    constants::{MANIFEST_JSON_FILENAME, SCRIPTS},
-    log::tman_verbose_println,
+    config::TmanConfig, constants::SCRIPTS, log::tman_verbose_println,
 };
 
 #[derive(Debug)]

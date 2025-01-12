@@ -53,7 +53,6 @@ class ExtensionTesterSetProperty(ExtensionTester):
 
 def test_set_property():
     tester = ExtensionTesterSetProperty()
-    tester.add_addon_base_dir(str(Path(__file__).resolve().parent.parent))
     tester.set_test_mode_single(
         "default_extension_python", '{"greeting": "hola"}'
     )

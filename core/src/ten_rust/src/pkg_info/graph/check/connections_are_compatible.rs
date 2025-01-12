@@ -304,18 +304,16 @@ fn find_cmd_schema_from_all_pkgs_info<'a>(
     cmd_name: &str,
     direction: MsgDirection,
 ) -> Option<&'a CmdSchema> {
-    let addon_pkg = existed_pkgs_of_app
-        .iter()
-        .find(|pkg| {
-            pkg.basic_info.type_and_name.pkg_type == PkgType::Extension
-                && pkg.basic_info.type_and_name.name == addon
-        })
-        .unwrap_or_else(|| {
-            panic!("should not happen.");
-        });
+    // Attempt to find the addon package. If not found, return None.
+    let addon_pkg = existed_pkgs_of_app.iter().find(|pkg| {
+        pkg.basic_info.type_and_name.pkg_type == PkgType::Extension
+            && pkg.basic_info.type_and_name.name == addon
+    })?;
 
+    // Access the schema_store. If it's None, propagate None.
     let schema_store = addon_pkg.schema_store.as_ref()?;
 
+    // Retrieve the command schema based on the direction.
     match direction {
         MsgDirection::In => schema_store.cmd_in.get(cmd_name),
         MsgDirection::Out => schema_store.cmd_out.get(cmd_name),
@@ -335,15 +333,10 @@ fn find_msg_schema_from_all_pkgs_info<'a>(
             panic!("should not happen.");
         });
 
-    let addon_pkg = existed_pkgs_of_app
-        .iter()
-        .find(|pkg| {
-            pkg.basic_info.type_and_name.pkg_type == PkgType::Extension
-                && pkg.basic_info.type_and_name.name == addon
-        })
-        .unwrap_or_else(|| {
-            panic!("should not happen.");
-        });
+    let addon_pkg = existed_pkgs_of_app.iter().find(|pkg| {
+        pkg.basic_info.type_and_name.pkg_type == PkgType::Extension
+            && pkg.basic_info.type_and_name.name == addon
+    })?;
 
     let schema_store = addon_pkg.schema_store.as_ref()?;
 

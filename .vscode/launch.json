@@ -356,11 +356,11 @@
       "type": "lldb",
       "request": "launch",
       "program": "${workspaceFolder}/out/linux/x64/ten_manager/bin/tman",
-      "cwd": "${workspaceFolder}/out/linux/x64/tests/ten_manager/install/template_mode_with_same_name_extension/mock_app",
+      "cwd": "${workspaceFolder}/out/linux/x64/tests/ten_manager/install/mock_extension/mock_extension",
       "args": [
+        "--config-file=${workspaceFolder}/out/linux/x64/tests/local_registry/config.json",
         "install",
-        "extension",
-        "default_extension_cpp"
+        "--standalone",
       ],
       "preRunCommands": [
         "script import pathlib;import subprocess;import lldb;rustc_sysroot = subprocess.getoutput(\"rustc --print sysroot\");rustlib_etc = pathlib.Path(rustc_sysroot) / \"lib\" / \"rustlib\" / \"etc\";lldb.debugger.HandleCommand(f'command script import \"{rustlib_etc / \"lldb_lookup.py\"}\"');lldb.debugger.HandleCommand(f'command source -s 0 \"{rustlib_etc / \"lldb_commands\"}\"')"
@@ -538,6 +538,17 @@
           "useForBreakpoints": "true"
         }
       }
+    },
+    {
+      "name": "extension standalone test (C/C++) (lldb, launch)",
+      "type": "lldb",
+      "request": "launch",
+      "program": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/cpp/standalone_test_cpp/default_extension_cpp/out/linux/x64/tests/default_extension_cpp_test",
+      "args": [],
+      "cwd": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/cpp/standalone_test_cpp/default_extension_cpp/out/linux/x64/tests/",
+      "env": {
+        "ASAN_OPTIONS": "use_sigaltstack=0",
+      },
     },
     {
       "name": "app (Python Main) (debugpy, launch)",

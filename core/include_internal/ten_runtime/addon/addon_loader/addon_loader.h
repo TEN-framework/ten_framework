@@ -20,9 +20,6 @@ typedef struct ten_addon_store_t ten_addon_store_t;
 TEN_RUNTIME_PRIVATE_API ten_addon_store_t *ten_addon_loader_get_global_store(
     void);
 
-TEN_RUNTIME_PRIVATE_API ten_addon_host_t *ten_addon_addon_loader_find(
-    const char *addon_loader);
-
 TEN_RUNTIME_API ten_addon_host_t *ten_addon_register_addon_loader(
     const char *name, const char *base_dir, ten_addon_t *addon,
     void *register_ctx);
