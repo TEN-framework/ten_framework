@@ -15,7 +15,7 @@ def test_standalone_test_cpp():
 
     my_env = os.environ.copy()
 
-    extension_root_path = os.path.join(base_path, "default_extension_cpp")
+    extension_root_path = os.path.join(base_path, "ext")
 
     # Step 1:
     #
@@ -114,7 +114,7 @@ def test_standalone_test_cpp():
         os.path.join(
             extension_root_path,
             (
-                "bin/default_extension_cpp_test"
+                "bin/ext_test"
                 + (".exe" if build_config_args.target_os == "win" else "")
             ),
         ),

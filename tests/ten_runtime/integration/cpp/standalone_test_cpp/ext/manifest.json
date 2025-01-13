@@ -1,6 +1,6 @@
 {
   "type": "extension",
-  "name": "default_extension_cpp",
+  "name": "ext",
   "version": "0.6.2",
   "dependencies": [
     {

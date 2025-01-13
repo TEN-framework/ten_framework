@@ -34,7 +34,7 @@ class extension_tester_1 : public ten::extension_tester_t {
 
 TEST(Test, Basic) {  // NOLINT
   auto *tester = new extension_tester_1();
-  tester->set_test_mode_single("default_extension_cpp");
+  tester->set_test_mode_single("ext");
   tester->run();
   delete tester;
 }

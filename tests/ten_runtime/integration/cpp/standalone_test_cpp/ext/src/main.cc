@@ -36,4 +36,4 @@ class test_extension : public ten::extension_t {
   }
 };
 
-TEN_CPP_REGISTER_ADDON_AS_EXTENSION(default_extension_cpp, test_extension);
+TEN_CPP_REGISTER_ADDON_AS_EXTENSION(ext, test_extension);
