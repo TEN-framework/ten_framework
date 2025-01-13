@@ -24,10 +24,6 @@ jobs:
       matrix:
         build_type: [debug, release]
     steps:
-      - name: Enable Long Paths in Windows
-        run: |
-          reg add HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\FileSystem /v LongPathsEnabled /t REG_DWORD /d 1 /f
-
       - uses: actions/checkout@v4
         with:
           fetch-depth: "0"
