@@ -6,6 +6,8 @@
 //
 #include "ten_utils/ten_config.h"
 
+#include "include_internal/ten_utils/log/formatter.h"
+
 #include <inttypes.h>
 #include <time.h>
 
@@ -16,6 +18,33 @@
 #include "include_internal/ten_utils/log/time.h"
 #include "ten_utils/lib/string.h"
 #include "ten_utils/log/log.h"
+
+typedef struct ten_log_formatter_entry_t {
+  const char *name;
+  ten_log_formatter_func_t formatter_func;
+} ten_log_formatter_entry_t;
+
+static ten_log_formatter_entry_t registered_formatters[] = {
+    {"default", ten_log_default_formatter},
+    {"color", ten_log_colored_formatter},
+};
+
+static const size_t registered_formatters_size =
+    sizeof(registered_formatters) / sizeof(ten_log_formatter_entry_t);
+
+ten_log_formatter_func_t ten_log_get_formatter_by_name(const char *name) {
+  TEN_ASSERT(name, "Invalid argument.");
+
+  ten_log_formatter_func_t result = NULL;
+
+  for (size_t i = 0; i < registered_formatters_size; i++) {
+    if (strcmp(registered_formatters[i].name, name) == 0) {
+      return registered_formatters[i].formatter_func;
+    }
+  }
+
+  return NULL;
+}
 
 void ten_log_set_formatter(ten_log_t *self, ten_log_formatter_func_t format_cb,
                            void *user_data) {

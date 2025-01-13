@@ -250,12 +250,29 @@ void ten_log_output_to_stderr_cb(ten_string_t *msg, void *user_data) {
 void ten_log_set_output_to_stderr(ten_log_t *self) {
   ten_log_output_set(self, ten_log_output_to_stderr_cb, NULL, NULL);
 
+  ten_log_formatter_func_t formatter_func = NULL;
+
 #if defined(OS_LINUX) || defined(OS_MACOS)
-  ten_log_set_formatter(self, ten_log_colored_formatter, NULL);
-  // ten_log_set_formatter(self, ten_log_default_formatter, NULL);
+  formatter_func = ten_log_colored_formatter;
 #else
-  ten_log_set_formatter(self, ten_log_default_formatter, NULL);
+  formatter_func = ten_log_default_formatter;
 #endif
+
+  // The default formatter for `stderr` can be overridden using the below
+  // environment variable.
+  const char *formatter_env = getenv("TEN_LOG_FORMATTER");
+  if (formatter_env) {
+    ten_log_formatter_func_t formatter_func_from_env =
+        ten_log_get_formatter_by_name(formatter_env);
+
+    // If the environment variable specifies a formatter, use it; otherwise,
+    // stick to the default.
+    if (formatter_func_from_env) {
+      formatter_func = formatter_func_from_env;
+    }
+  }
+
+  ten_log_set_formatter(self, formatter_func, NULL);
 }
 
 void ten_log_output_to_file_deinit(ten_log_t *self) {
