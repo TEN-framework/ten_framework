@@ -3,12 +3,12 @@
     {
       "type": "extension",
       "name": "default_extension_go",
-      "version": "0.6.2"
+      "version": "0.7.1"
     },
     {
       "type": "protocol",
       "name": "msgpack",
-      "version": "0.6.2"
+      "version": "0.7.1"
     }
   ]
 }
