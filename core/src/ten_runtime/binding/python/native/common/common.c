@@ -11,6 +11,7 @@
 #include "ten_utils/container/list.h"
 #include "ten_utils/container/list_node_str.h"
 #include "ten_utils/lib/string.h"
+#include "ten_utils/log/log.h"
 #include "ten_utils/macro/check.h"
 #include "ten_utils/macro/memory.h"
 
@@ -97,6 +98,7 @@ void ten_py_add_paths_to_sys(ten_list_t *paths) {
     const char *str = ten_string_get_raw_str(&str_node->str);
     PyObject *path = PyUnicode_FromString(str);
     PyList_Append(sys_path, path);
+
     Py_DECREF(path);
   }
 
@@ -118,14 +120,22 @@ void ten_py_run_file(const char *file_path) {
   PyRun_SimpleFile(fp, file_path);
 }
 
-void ten_py_import_module(const char *module_name) {
+bool ten_py_import_module(const char *module_name) {
   PyObject *module = PyUnicode_DecodeFSDefault(module_name);
   PyObject *imported_module = PyImport_Import(module);
   Py_DECREF(module);
 
   if (imported_module == NULL) {
+    TEN_LOGI(
+        "Failed to load %s. Might because of an incorrect PYTHONPATH or it is "
+        "not a valid Python module.",
+        module_name);
     PyErr_Print();
+
+    return false;
   }
+
+  return true;
 }
 
 void *ten_py_eval_save_thread(void) {
