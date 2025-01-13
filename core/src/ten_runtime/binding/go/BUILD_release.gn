@@ -40,10 +40,3 @@ config("config_for_ten_packages") {
     ldflags = [ "-Wl,-rpath,@loader_path/../../../system/ten_runtime_go/lib" ]
   }
 }
-
-config("config_for_standalone_ten_packages") {
-  configs = [ ":ten_runtime_go_common_libs" ]
-
-  include_dirs = [ "//.ten/app/ten_packages/system/ten_runtime_go/include" ]
-  lib_dirs = [ "//.ten/app/ten_packages/system/ten_runtime_go/lib" ]
-}
