@@ -55,7 +55,7 @@ static void ten_py_ten_env_tester_notify_return_result_ctx_destroy(
 
 static void proxy_return_result_callback(ten_env_tester_t *self,
                                          void *user_data, ten_error_t *error) {
-  TEN_ASSERT(self && ten_env_tester_check_integrity(self),
+  TEN_ASSERT(self && ten_env_tester_check_integrity(self, true),
              "Should not happen.");
   TEN_ASSERT(user_data, "Should not happen.");
 
@@ -123,6 +123,10 @@ PyObject *ten_py_ten_env_tester_return_result(PyObject *self, PyObject *args) {
   if (PyTuple_GET_SIZE(args) != 3) {
     return ten_py_raise_py_value_error_exception(
         "Invalid argument count when ten_env_tester.return_result.");
+  }
+
+  if (!py_ten_env_tester->c_ten_env_tester_proxy) {
+    Py_RETURN_NONE;
   }
 
   bool success = true;

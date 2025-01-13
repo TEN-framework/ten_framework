@@ -5,6 +5,7 @@
 // Refer to the "LICENSE" file in the root directory for more information.
 //
 #include "include_internal/ten_runtime/binding/python/test/env_tester.h"
+#include "object.h"
 #include "ten_runtime/test/env_tester.h"
 #include "ten_runtime/test/env_tester_proxy.h"
 #include "ten_utils/lib/error.h"
@@ -22,6 +23,10 @@ PyObject *ten_py_ten_env_tester_on_start_done(PyObject *self,
   TEN_ASSERT(py_ten_env_tester &&
                  ten_py_ten_env_tester_check_integrity(py_ten_env_tester),
              "Invalid argument.");
+
+  if (!py_ten_env_tester->c_ten_env_tester_proxy) {
+    Py_RETURN_NONE;
+  }
 
   ten_error_t err;
   ten_error_init(&err);

@@ -38,6 +38,10 @@ PyObject *ten_py_ten_env_on_init_done(PyObject *self, PyObject *args) {
   TEN_ASSERT(py_ten_env && ten_py_ten_env_check_integrity(py_ten_env),
              "Invalid argument.");
 
+  if (!py_ten_env->c_ten_env_proxy) {
+    Py_RETURN_NONE;
+  }
+
   ten_error_t err;
   ten_error_init(&err);
 

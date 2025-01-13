@@ -47,6 +47,10 @@ static void ten_env_proxy_notify_on_deinit_done(ten_env_t *ten_env,
 
   ten_py_gil_state_release_internal(prev_state);
 
+  // TODO(Wei): Access to `c_ten_env_proxy` may result in threading issues.
+  // There is a possibility that it could be used simultaneously in a Python
+  // thread and released in a C pthread. A mechanism is needed to resolve this
+  // issue.
   if (py_ten_env->c_ten_env_proxy) {
     TEN_ASSERT(
         ten_env_proxy_get_thread_cnt(py_ten_env->c_ten_env_proxy, NULL) == 1,
@@ -87,6 +91,10 @@ PyObject *ten_py_ten_env_on_deinit_done(PyObject *self,
   ten_py_ten_env_t *py_ten_env = (ten_py_ten_env_t *)self;
   TEN_ASSERT(py_ten_env && ten_py_ten_env_check_integrity(py_ten_env),
              "Invalid argument.");
+
+  if (!py_ten_env->c_ten_env_proxy) {
+    Py_RETURN_NONE;
+  }
 
   ten_error_t err;
   ten_error_init(&err);

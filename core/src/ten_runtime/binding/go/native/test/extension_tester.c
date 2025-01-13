@@ -91,8 +91,9 @@ static void proxy_on_start(ten_extension_tester_t *self,
                            ten_env_tester_t *ten_env_tester) {
   TEN_ASSERT(self && ten_extension_tester_check_integrity(self, true),
              "Should not happen.");
-  TEN_ASSERT(ten_env_tester && ten_env_tester_check_integrity(ten_env_tester),
-             "Should not happen.");
+  TEN_ASSERT(
+      ten_env_tester && ten_env_tester_check_integrity(ten_env_tester, true),
+      "Should not happen.");
   TEN_ASSERT(ten_extension_tester_get_ten_env_tester(self) == ten_env_tester,
              "Should not happen.");
 
@@ -114,8 +115,9 @@ static void proxy_on_cmd(ten_extension_tester_t *self,
                          ten_shared_ptr_t *cmd) {
   TEN_ASSERT(self && ten_extension_tester_check_integrity(self, true),
              "Should not happen.");
-  TEN_ASSERT(ten_env_tester && ten_env_tester_check_integrity(ten_env_tester),
-             "Should not happen.");
+  TEN_ASSERT(
+      ten_env_tester && ten_env_tester_check_integrity(ten_env_tester, true),
+      "Should not happen.");
   TEN_ASSERT(ten_extension_tester_get_ten_env_tester(self) == ten_env_tester,
              "Should not happen.");
   TEN_ASSERT(cmd && ten_cmd_check_integrity(cmd), "Should not happen.");
@@ -141,8 +143,9 @@ static void proxy_on_data(ten_extension_tester_t *self,
                           ten_shared_ptr_t *data) {
   TEN_ASSERT(self && ten_extension_tester_check_integrity(self, true),
              "Should not happen.");
-  TEN_ASSERT(ten_env_tester && ten_env_tester_check_integrity(ten_env_tester),
-             "Should not happen.");
+  TEN_ASSERT(
+      ten_env_tester && ten_env_tester_check_integrity(ten_env_tester, true),
+      "Should not happen.");
   TEN_ASSERT(ten_extension_tester_get_ten_env_tester(self) == ten_env_tester,
              "Should not happen.");
   TEN_ASSERT(data && ten_msg_check_integrity(data), "Should not happen.");
@@ -168,8 +171,9 @@ static void proxy_on_audio_frame(ten_extension_tester_t *self,
                                  ten_shared_ptr_t *audio_frame) {
   TEN_ASSERT(self && ten_extension_tester_check_integrity(self, true),
              "Should not happen.");
-  TEN_ASSERT(ten_env_tester && ten_env_tester_check_integrity(ten_env_tester),
-             "Should not happen.");
+  TEN_ASSERT(
+      ten_env_tester && ten_env_tester_check_integrity(ten_env_tester, true),
+      "Should not happen.");
   TEN_ASSERT(ten_extension_tester_get_ten_env_tester(self) == ten_env_tester,
              "Should not happen.");
   TEN_ASSERT(audio_frame && ten_msg_check_integrity(audio_frame),
@@ -196,8 +200,9 @@ static void proxy_on_video_frame(ten_extension_tester_t *self,
                                  ten_shared_ptr_t *video_frame) {
   TEN_ASSERT(self && ten_extension_tester_check_integrity(self, true),
              "Should not happen.");
-  TEN_ASSERT(ten_env_tester && ten_env_tester_check_integrity(ten_env_tester),
-             "Should not happen.");
+  TEN_ASSERT(
+      ten_env_tester && ten_env_tester_check_integrity(ten_env_tester, true),
+      "Should not happen.");
   TEN_ASSERT(ten_extension_tester_get_ten_env_tester(self) == ten_env_tester,
              "Should not happen.");
   TEN_ASSERT(video_frame && ten_msg_check_integrity(video_frame),

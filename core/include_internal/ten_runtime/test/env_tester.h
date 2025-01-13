@@ -35,7 +35,8 @@ typedef struct ten_env_tester_t {
   ten_env_tester_destroy_handler_in_target_lang_func_t destroy_handler;
 } ten_env_tester_t;
 
-TEN_RUNTIME_API bool ten_env_tester_check_integrity(ten_env_tester_t *self);
+TEN_RUNTIME_API bool ten_env_tester_check_integrity(ten_env_tester_t *self,
+                                                    bool check_thread);
 
 TEN_RUNTIME_PRIVATE_API ten_env_tester_t *ten_env_tester_create(
     ten_extension_tester_t *tester);

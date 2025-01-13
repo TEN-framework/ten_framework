@@ -118,6 +118,10 @@ PyObject *ten_py_ten_env_get_property_to_json(PyObject *self, PyObject *args) {
         "Failed to parse argument when ten_env.get_property_to_json.");
   }
 
+  if (!py_ten_env->c_ten_env_proxy) {
+    Py_RETURN_NONE;
+  }
+
   ten_value_t *value =
       ten_py_ten_property_get_and_check_if_exists(py_ten_env, path);
   if (!value) {
@@ -163,6 +167,10 @@ PyObject *ten_py_ten_env_get_property_int(PyObject *self, PyObject *args) {
         "Failed to parse argument when ten_env.get_property_int.");
   }
 
+  if (!py_ten_env->c_ten_env_proxy) {
+    Py_RETURN_NONE;
+  }
+
   ten_value_t *value =
       ten_py_ten_property_get_and_check_if_exists(py_ten_env, path);
   if (!value) {
@@ -202,6 +210,10 @@ PyObject *ten_py_ten_env_get_property_string(PyObject *self, PyObject *args) {
         "Failed to parse argument when ten_env.get_property_string.");
   }
 
+  if (!py_ten_env->c_ten_env_proxy) {
+    Py_RETURN_NONE;
+  }
+
   ten_value_t *value =
       ten_py_ten_property_get_and_check_if_exists(py_ten_env, path);
   if (!value) {
@@ -238,6 +250,10 @@ PyObject *ten_py_ten_env_get_property_bool(PyObject *self, PyObject *args) {
   if (!PyArg_ParseTuple(args, "s", &path)) {
     return ten_py_raise_py_value_error_exception(
         "Failed to parse argument when ten_env.get_property_bool.");
+  }
+
+  if (!py_ten_env->c_ten_env_proxy) {
+    Py_RETURN_NONE;
   }
 
   ten_value_t *value =
@@ -279,6 +295,10 @@ PyObject *ten_py_ten_env_get_property_float(PyObject *self, PyObject *args) {
         "Failed to parse argument when ten_env.get_property_float.");
   }
 
+  if (!py_ten_env->c_ten_env_proxy) {
+    Py_RETURN_NONE;
+  }
+
   ten_value_t *value =
       ten_py_ten_property_get_and_check_if_exists(py_ten_env, path);
   if (!value) {
@@ -316,6 +336,10 @@ PyObject *ten_py_ten_env_is_property_exist(PyObject *self, PyObject *args) {
   if (!PyArg_ParseTuple(args, "s", &path)) {
     return ten_py_raise_py_value_error_exception(
         "Failed to parse argument when ten_env.is_property_exist.");
+  }
+
+  if (!py_ten_env->c_ten_env_proxy) {
+    Py_RETURN_NONE;
   }
 
   ten_value_t *value =

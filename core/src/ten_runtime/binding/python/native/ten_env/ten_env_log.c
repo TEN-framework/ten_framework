@@ -81,6 +81,10 @@ PyObject *ten_py_ten_env_log(PyObject *self, PyObject *args) {
         "Failed to parse argument when ten_env.log.");
   }
 
+  if (!py_ten_env->c_ten_env_proxy) {
+    Py_RETURN_NONE;
+  }
+
   ten_error_t err;
   ten_error_init(&err);
 

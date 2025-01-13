@@ -151,6 +151,10 @@ PyObject *ten_py_ten_env_set_property_from_json_async(PyObject *self,
         "Failed to parse argument when ten_env.set_property_from_json_async.");
   }
 
+  if (!py_ten_env->c_ten_env_proxy) {
+    Py_RETURN_NONE;
+  }
+
   ten_json_t *json = ten_json_from_string(json_str, NULL);
   if (!json) {
     return ten_py_raise_py_value_error_exception(
@@ -204,6 +208,10 @@ PyObject *ten_py_ten_env_set_property_string_async(PyObject *self,
         "Failed to parse argument when ten_env.set_property_string_async.");
   }
 
+  if (!py_ten_env->c_ten_env_proxy) {
+    Py_RETURN_NONE;
+  }
+
   ten_value_t *c_value = ten_value_create_string(value);
   if (!c_value) {
     return ten_py_raise_py_value_error_exception(
@@ -246,6 +254,10 @@ PyObject *ten_py_ten_env_set_property_int_async(PyObject *self,
   if (!PyArg_ParseTuple(args, "siO", &path, &value, &py_cb_func)) {
     return ten_py_raise_py_value_error_exception(
         "Failed to parse argument when ten_env.set_property_int_async.");
+  }
+
+  if (!py_ten_env->c_ten_env_proxy) {
+    Py_RETURN_NONE;
   }
 
   ten_value_t *c_value = ten_value_create_int64(value);
@@ -292,6 +304,10 @@ PyObject *ten_py_ten_env_set_property_bool_async(PyObject *self,
         "Failed to parse argument when ten_env.set_property_bool_async.");
   }
 
+  if (!py_ten_env->c_ten_env_proxy) {
+    Py_RETURN_NONE;
+  }
+
   ten_value_t *c_value = ten_value_create_bool(value);
   if (!c_value) {
     return ten_py_raise_py_value_error_exception(
@@ -334,6 +350,10 @@ PyObject *ten_py_ten_env_set_property_float_async(PyObject *self,
   if (!PyArg_ParseTuple(args, "sdO", &path, &value, &py_cb_func)) {
     return ten_py_raise_py_value_error_exception(
         "Failed to parse argument when ten_env.set_property_float_async.");
+  }
+
+  if (!py_ten_env->c_ten_env_proxy) {
+    Py_RETURN_NONE;
   }
 
   ten_value_t *c_value = ten_value_create_float64(value);

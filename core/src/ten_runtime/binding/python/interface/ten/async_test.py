@@ -122,8 +122,20 @@ class AsyncExtensionTester(_ExtensionTester):
 
     def __del__(self) -> None:
         self._ten_stop_event.set()
+
+        # TODO(Wei): The `__del__` method of `AsyncExtensionTester` might be
+        # called in the `self._ten_thread`, making it potentially unsuitable for
+        # invoking `self._ten_thread.join()`. Therefore, an explicit mechanism
+        # to trigger the termination of `AsyncExtensionTester` may be needed,
+        # where `self._ten_thread.join()` can be called instead.
         if hasattr(self, "_ten_thread"):
-            self._ten_thread.join()
+            current_thread = threading.current_thread()
+            if current_thread != self._ten_thread:
+                self._ten_thread.join()
+            else:
+                # If `__del__` is called in `self._ten_thread`, do not execute
+                # `join`.
+                pass
 
     def _exit_on_exception(
         self, async_ten_env_tester: AsyncTenEnvTester, e: Exception

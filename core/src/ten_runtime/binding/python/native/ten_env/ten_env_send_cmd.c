@@ -181,6 +181,10 @@ PyObject *ten_py_ten_env_send_cmd(PyObject *self, PyObject *args) {
         "Invalid argument count when ten_env.send_cmd.");
   }
 
+  if (!py_ten_env->c_ten_env_proxy) {
+    Py_RETURN_NONE;
+  }
+
   bool success = true;
 
   ten_error_t err;

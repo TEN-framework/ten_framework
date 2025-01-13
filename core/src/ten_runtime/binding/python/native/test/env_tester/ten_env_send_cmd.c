@@ -51,8 +51,9 @@ static void ten_py_ten_env_tester_send_cmd_ctx_destroy(
 static void proxy_send_xxx_callback(ten_env_tester_t *ten_env_tester,
                                     ten_shared_ptr_t *cmd_result,
                                     void *callback_info, ten_error_t *error) {
-  TEN_ASSERT(ten_env_tester && ten_env_tester_check_integrity(ten_env_tester),
-             "Should not happen.");
+  TEN_ASSERT(
+      ten_env_tester && ten_env_tester_check_integrity(ten_env_tester, true),
+      "Should not happen.");
   TEN_ASSERT(callback_info, "Should not happen.");
 
   // About to call the Python function, so it's necessary to ensure that the GIL
@@ -133,6 +134,10 @@ PyObject *ten_py_ten_env_tester_send_cmd(PyObject *self, PyObject *args) {
   if (PyTuple_GET_SIZE(args) != 2) {
     return ten_py_raise_py_value_error_exception(
         "Invalid argument count when ten_env_tester.send_cmd.");
+  }
+
+  if (!py_ten_env_tester->c_ten_env_tester_proxy) {
+    Py_RETURN_NONE;
   }
 
   bool success = true;

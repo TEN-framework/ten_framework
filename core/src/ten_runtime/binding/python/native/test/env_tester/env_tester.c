@@ -33,6 +33,10 @@ static void ten_py_ten_env_tester_c_part_destroyed(
                  ten_py_ten_env_tester_check_integrity(ten_env_tester_bridge_),
              "Should not happen.");
 
+  // TODO(Wei): Access to `c_ten_env_tester_proxy` may result in threading
+  // issues. There is a possibility that it could be used simultaneously in a
+  // Python thread and released in a C pthread. A mechanism is needed to resolve
+  // this issue.
   ten_env_tester_bridge->c_ten_env_tester = NULL;
   if (ten_env_tester_bridge->c_ten_env_tester_proxy) {
     ten_env_tester_proxy_release(ten_env_tester_bridge->c_ten_env_tester_proxy,
