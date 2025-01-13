@@ -72,7 +72,7 @@ void ten_env_tester_destroy(ten_env_tester_t *self) {
   TEN_FREE(self);
 }
 
-typedef struct ten_extension_tester_send_cmd_info_t {
+typedef struct ten_env_tester_send_cmd_ctx_t {
   ten_extension_tester_t *tester;
   ten_shared_ptr_t *cmd;
   ten_shared_ptr_t *cmd_result;
@@ -81,7 +81,7 @@ typedef struct ten_extension_tester_send_cmd_info_t {
   ten_error_t *err;
 } ten_env_tester_send_cmd_ctx_t;
 
-typedef struct ten_extension_tester_send_msg_info_t {
+typedef struct ten_env_tester_send_msg_ctx_t {
   ten_extension_tester_t *tester;
   ten_shared_ptr_t *msg;
   ten_env_tester_error_handler_func_t handler;
@@ -89,7 +89,7 @@ typedef struct ten_extension_tester_send_msg_info_t {
   ten_error_t *err;
 } ten_env_tester_send_msg_ctx_t;
 
-typedef struct ten_extension_tester_return_result_info_t {
+typedef struct ten_env_tester_return_result_ctx_t {
   ten_extension_tester_t *tester;
   ten_shared_ptr_t *result;
   ten_shared_ptr_t *target_cmd;

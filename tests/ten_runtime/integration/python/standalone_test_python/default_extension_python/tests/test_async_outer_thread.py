@@ -5,7 +5,6 @@
 # Refer to the "LICENSE" file in the root directory for more information.
 #
 import asyncio
-import threading
 from ten import (
     AsyncExtensionTester,
     AsyncTenEnvTester,

@@ -21,18 +21,18 @@ namespace {
 
 using tester_notify_std_func_t = std::function<void(ten_env_tester_t &)>;
 
-struct tester_proxy_notify_info_t {
-  explicit tester_proxy_notify_info_t(tester_notify_std_func_t &&func)
+struct tester_proxy_notify_ctx_t {
+  explicit tester_proxy_notify_ctx_t(tester_notify_std_func_t &&func)
       : notify_std_func(std::move(func)) {}
 
-  ~tester_proxy_notify_info_t() = default;
+  ~tester_proxy_notify_ctx_t() = default;
 
   // @{
-  tester_proxy_notify_info_t(const tester_proxy_notify_info_t &) = delete;
-  tester_proxy_notify_info_t &operator=(const tester_proxy_notify_info_t &) =
+  tester_proxy_notify_ctx_t(const tester_proxy_notify_ctx_t &) = delete;
+  tester_proxy_notify_ctx_t &operator=(const tester_proxy_notify_ctx_t &) =
       delete;
-  tester_proxy_notify_info_t(tester_proxy_notify_info_t &&) = delete;
-  tester_proxy_notify_info_t &operator=(tester_proxy_notify_info_t &&) = delete;
+  tester_proxy_notify_ctx_t(tester_proxy_notify_ctx_t &&) = delete;
+  tester_proxy_notify_ctx_t &operator=(tester_proxy_notify_ctx_t &&) = delete;
   // @}
 
   tester_notify_std_func_t notify_std_func;
@@ -41,17 +41,17 @@ struct tester_proxy_notify_info_t {
 inline void proxy_notify(::ten_env_tester_t *ten_env, void *data = nullptr) {
   TEN_ASSERT(data, "Invalid argument.");
 
-  auto *info = static_cast<tester_proxy_notify_info_t *>(data);
+  auto *ctx = static_cast<tester_proxy_notify_ctx_t *>(data);
   auto *cpp_ten_env =
       static_cast<ten_env_tester_t *>(ten_binding_handle_get_me_in_target_lang(
           reinterpret_cast<ten_binding_handle_t *>(ten_env)));
 
-  if (info->notify_std_func != nullptr) {
-    auto func = info->notify_std_func;
+  if (ctx->notify_std_func != nullptr) {
+    auto func = ctx->notify_std_func;
     func(*cpp_ten_env);
   }
 
-  delete info;
+  delete ctx;
 }
 
 }  // namespace
@@ -101,13 +101,13 @@ class ten_env_tester_proxy_t {
       return false;
     }
 
-    auto *info = new tester_proxy_notify_info_t(std::move(notify_func));
+    auto *ctx = new tester_proxy_notify_ctx_t(std::move(notify_func));
 
     auto rc = ten_env_tester_proxy_notify(
-        c_ten_env_tester_proxy, proxy_notify, info,
+        c_ten_env_tester_proxy, proxy_notify, ctx,
         err != nullptr ? err->get_c_error() : nullptr);
     if (!rc) {
-      delete info;
+      delete ctx;
     }
 
     return rc;
