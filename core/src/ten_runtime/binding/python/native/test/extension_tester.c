@@ -80,8 +80,8 @@ static void proxy_on_start(ten_extension_tester_t *extension_tester,
   TEN_ASSERT(py_ten_env_tester->c_ten_env_tester_proxy, "Should not happen.");
 
   PyObject *py_res =
-      PyObject_CallMethod((PyObject *)py_extension_tester, "_proxy_on_start", "O",
-                          py_ten_env_tester->actual_py_ten_env_tester);
+      PyObject_CallMethod((PyObject *)py_extension_tester, "_proxy_on_start",
+                          "O", py_ten_env_tester->actual_py_ten_env_tester);
   Py_XDECREF(py_res);
 
   bool err_occurred = ten_py_check_and_clear_py_error();
