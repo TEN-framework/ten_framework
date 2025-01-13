@@ -767,6 +767,8 @@ static void ten_extension_on_configure(ten_env_t *ten_env) {
   self->property_info =
       ten_metadata_info_create(TEN_METADATA_ATTACH_TO_PROPERTY, self->ten_env);
 
+  self->state = TEN_EXTENSION_STATE_ON_CONFIGURE;
+
   if (self->on_configure) {
     self->on_configure(self, self->ten_env);
   } else {
@@ -786,6 +788,8 @@ void ten_extension_on_init(ten_env_t *ten_env) {
              "Invalid use of extension %p.", self);
 
   TEN_LOGD("[%s] on_init().", ten_extension_get_name(self, true));
+
+  self->state = TEN_EXTENSION_STATE_ON_INIT;
 
   if (self->on_init) {
     self->on_init(self, self->ten_env);
@@ -816,6 +820,8 @@ void ten_extension_on_stop(ten_extension_t *self) {
              "Invalid use of extension %p.", self);
 
   TEN_LOGI("[%s] on_stop().", ten_extension_get_name(self, true));
+
+  self->state = TEN_EXTENSION_STATE_ON_STOP;
 
   if (self->on_stop) {
     self->on_stop(self, self->ten_env);

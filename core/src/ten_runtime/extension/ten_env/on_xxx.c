@@ -87,7 +87,7 @@ bool ten_extension_on_configure_done(ten_env_t *self) {
   TEN_LOGD("[%s] on_configure() done.",
            ten_extension_get_name(extension, true));
 
-  if (extension->state != TEN_EXTENSION_STATE_INIT) {
+  if (extension->state != TEN_EXTENSION_STATE_ON_CONFIGURE) {
     TEN_LOGI("[%s] Failed to on_configure_done() because of incorrect timing.",
              ten_extension_get_name(extension, true));
     return false;
@@ -185,7 +185,7 @@ bool ten_extension_on_init_done(ten_env_t *self) {
 
   TEN_LOGD("[%s] on_init() done.", ten_extension_get_name(extension, true));
 
-  if (extension->state != TEN_EXTENSION_STATE_ON_CONFIGURE_DONE) {
+  if (extension->state != TEN_EXTENSION_STATE_ON_INIT) {
     // `on_init_done` can only be called at specific times.
     TEN_LOGI("[%s] Failed to on_init_done() because of incorrect timing.",
              ten_extension_get_name(extension, true));
@@ -278,7 +278,7 @@ bool ten_extension_on_stop_done(ten_env_t *self) {
 
   TEN_LOGI("[%s] on_stop() done.", ten_extension_get_name(extension, true));
 
-  if (extension->state != TEN_EXTENSION_STATE_ON_START_DONE) {
+  if (extension->state != TEN_EXTENSION_STATE_ON_STOP) {
     TEN_LOGI("[%s] Failed to on_stop_done() because of incorrect timing.",
              ten_extension_get_name(extension, true));
     return false;

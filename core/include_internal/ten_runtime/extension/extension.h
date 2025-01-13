@@ -65,8 +65,14 @@ typedef struct ten_timer_t ten_timer_t;
 typedef enum TEN_EXTENSION_STATE {
   TEN_EXTENSION_STATE_INIT,
 
+  // on_configure() is called.
+  TEN_EXTENSION_STATE_ON_CONFIGURE,
+
   // on_configure_done() is completed.
   TEN_EXTENSION_STATE_ON_CONFIGURE_DONE,
+
+  // on_init() is called.
+  TEN_EXTENSION_STATE_ON_INIT,
 
   // on_init_done() is completed.
   TEN_EXTENSION_STATE_ON_INIT_DONE,
@@ -76,6 +82,9 @@ typedef enum TEN_EXTENSION_STATE {
 
   // on_start_done() is completed.
   TEN_EXTENSION_STATE_ON_START_DONE,
+
+  // on_stop() is called.
+  TEN_EXTENSION_STATE_ON_STOP,
 
   // on_stop_done() is completed.
   TEN_EXTENSION_STATE_ON_STOP_DONE,
