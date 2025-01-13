@@ -6,13 +6,20 @@ import("//build/ten_common/prebuilt/prebuilt.gni")
 import("//build/ten_runtime/feature/publish.gni")
 import("//build/ten_runtime/options.gni")
 
+config("node_header") {
+  include_dirs = [
+    "include",
+    "include/node",
+  ]
+}
+
 ten_prebuilt_library("prebuilt_node_shared") {
   name = "node_shared"
 
   if (is_clang) {
-    url = "https://github.com/TEN-framework/node_shared/releases/download/v1.0.0/node-shared-${target_os}-${target_cpu}-clang-release.zip"
+    url = "https://github.com/TEN-framework/node_shared/releases/download/v1.0.4/node-shared-${target_os}-${target_cpu}-clang.zip"
   } else {
-    url = "https://github.com/TEN-framework/node_shared/releases/download/v1.0.0/node-shared-${target_os}-${target_cpu}-gcc-release.zip"
+    url = "https://github.com/TEN-framework/node_shared/releases/download/v1.0.4/node-shared-${target_os}-${target_cpu}-gcc.zip"
   }
 
   is_shared_library = true
@@ -21,5 +28,6 @@ ten_prebuilt_library("prebuilt_node_shared") {
 }
 
 group("node") {
+  public_configs = [ ":node_header" ]
   public_deps = [ ":prebuilt_node_shared" ]
 }
