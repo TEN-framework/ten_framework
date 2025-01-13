@@ -110,9 +110,17 @@ bool ten_env_tester_proxy_notify(ten_env_tester_proxy_t *self,
   ten_env_tester_t *ten_env_tester = self->ten_env_tester;
   TEN_ASSERT(ten_env_tester, "Should not happen.");
 
-  int rc = ten_runloop_post_task_tail(ten_env_tester->tester->tester_runloop,
-                                      (ten_runloop_task_func_t)notify_func,
-                                      ten_env_tester, user_data);
+  bool result = true;
 
-  return rc == 0;
+  ten_extension_tester_t *tester = ten_env_tester->tester;
+  if (ten_extension_tester_thread_call_by_me(tester)) {
+    notify_func(self->ten_env_tester, user_data);
+  } else {
+    int rc = ten_runloop_post_task_tail(tester->tester_runloop,
+                                        (ten_runloop_task_func_t)notify_func,
+                                        self->ten_env_tester, user_data);
+    result = rc == 0;
+  }
+
+  return result;
 }

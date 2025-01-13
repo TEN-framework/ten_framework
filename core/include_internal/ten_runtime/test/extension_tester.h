@@ -65,5 +65,8 @@ struct ten_extension_tester_t {
 TEN_RUNTIME_API bool ten_extension_tester_check_integrity(
     ten_extension_tester_t *self, bool check_thread);
 
+TEN_RUNTIME_PRIVATE_API bool ten_extension_tester_thread_call_by_me(
+    ten_extension_tester_t *self);
+
 TEN_RUNTIME_PRIVATE_API void test_app_ten_env_send_cmd(ten_env_t *ten_env,
                                                        void *user_data);

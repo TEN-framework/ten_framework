@@ -57,6 +57,15 @@ bool ten_extension_tester_check_integrity(ten_extension_tester_t *self,
   return true;
 }
 
+bool ten_extension_tester_thread_call_by_me(ten_extension_tester_t *self) {
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_extension_tester_check_integrity(self, false),
+             "Invalid argument.");
+
+  return ten_thread_equal(NULL, ten_sanitizer_thread_check_get_belonging_thread(
+                                    &self->thread_check));
+}
+
 ten_extension_tester_t *ten_extension_tester_create(
     ten_extension_tester_on_start_func_t on_start,
     ten_extension_tester_on_stop_func_t on_stop,
@@ -444,8 +453,7 @@ void ten_extension_tester_on_test_extension_start(
   }
 }
 
-void ten_extension_tester_on_test_extension_stop(
-    ten_extension_tester_t *self) {
+void ten_extension_tester_on_test_extension_stop(ten_extension_tester_t *self) {
   TEN_ASSERT(self && ten_extension_tester_check_integrity(self, true),
              "Invalid argument.");
 
