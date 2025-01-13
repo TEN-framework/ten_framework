@@ -255,20 +255,20 @@ jobs:
         run: |
           TMAN_BIN=$(pwd)/out/linux/x64/ten_manager/bin/tman
 
-          cd out/linux/x64/ten_packages
+          cd out/linux/x64
           ARRAY=(
             "app/default_app_cpp"
             "app/default_app_go"
             "app/default_app_python"
             "app/default_app_nodejs"
-            "system/ten_runtime"
-            "system/ten_runtime_go"
-            "system/ten_runtime_python"
-            "extension/default_extension_cpp"
-            "extension/default_extension_go"
-            "extension/default_extension_python"
-            "extension/default_async_extension_python"
-            "addon_loader/python_addon_loader"
+            "ten_packages/system/ten_runtime"
+            "ten_packages/system/ten_runtime_go"
+            "ten_packages/system/ten_runtime_python"
+            "ten_packages/extension/default_extension_cpp"
+            "ten_packages/extension/default_extension_go"
+            "ten_packages/extension/default_extension_python"
+            "ten_packages/extension/default_async_extension_python"
+            "ten_packages/addon_loader/python_addon_loader"
           )
 
           for item in "${ARRAY[@]}"; do
