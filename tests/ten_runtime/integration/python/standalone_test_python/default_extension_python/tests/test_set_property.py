@@ -28,7 +28,7 @@ class ExtensionTesterSetProperty(ExtensionTester):
         assert result is not None
 
         statusCode = result.get_status_code()
-        print("receive hello_world, status:" + str(statusCode))
+        ten_env.log_info("receive hello_world, status:" + str(statusCode))
 
         if statusCode == StatusCode.OK:
             detail = result.get_property_string("detail")
@@ -46,7 +46,7 @@ class ExtensionTesterSetProperty(ExtensionTester):
             ),
         )
 
-        print("tester on_start_done")
+        ten_env.log_info("tester on_start_done")
         ten_env.on_start_done()
 
 

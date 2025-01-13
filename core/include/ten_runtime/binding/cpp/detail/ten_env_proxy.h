@@ -25,20 +25,20 @@ using notify_std_func_t = std::function<void(ten_env_t &)>;
 using notify_std_with_user_data_func_t =
     std::function<void(ten_env_t &, void *user_data)>;
 
-struct proxy_notify_info_t {
-  explicit proxy_notify_info_t(notify_std_func_t &&func)
+struct proxy_notify_ctx_t {
+  explicit proxy_notify_ctx_t(notify_std_func_t &&func)
       : notify_std_func(std::move(func)) {}
-  explicit proxy_notify_info_t(notify_std_with_user_data_func_t &&func,
-                               void *user_data)
+  explicit proxy_notify_ctx_t(notify_std_with_user_data_func_t &&func,
+                              void *user_data)
       : notify_std_with_user_data_func(std::move(func)), user_data(user_data) {}
 
-  ~proxy_notify_info_t() = default;
+  ~proxy_notify_ctx_t() = default;
 
   // @{
-  proxy_notify_info_t(const proxy_notify_info_t &) = delete;
-  proxy_notify_info_t &operator=(const proxy_notify_info_t &) = delete;
-  proxy_notify_info_t(proxy_notify_info_t &&) = delete;
-  proxy_notify_info_t &operator=(proxy_notify_info_t &&) = delete;
+  proxy_notify_ctx_t(const proxy_notify_ctx_t &) = delete;
+  proxy_notify_ctx_t &operator=(const proxy_notify_ctx_t &) = delete;
+  proxy_notify_ctx_t(proxy_notify_ctx_t &&) = delete;
+  proxy_notify_ctx_t &operator=(proxy_notify_ctx_t &&) = delete;
   // @}
 
   notify_std_func_t notify_std_func;
@@ -50,20 +50,20 @@ struct proxy_notify_info_t {
 inline void proxy_notify(::ten_env_t *ten_env, void *data = nullptr) {
   TEN_ASSERT(data, "Invalid argument.");
 
-  auto *info = static_cast<proxy_notify_info_t *>(data);
+  auto *ctx = static_cast<proxy_notify_ctx_t *>(data);
   auto *cpp_ten_env =
       static_cast<ten_env_t *>(ten_binding_handle_get_me_in_target_lang(
           reinterpret_cast<ten_binding_handle_t *>(ten_env)));
 
-  if (info->notify_std_func != nullptr) {
-    auto func = info->notify_std_func;
+  if (ctx->notify_std_func != nullptr) {
+    auto func = ctx->notify_std_func;
     func(*cpp_ten_env);
-  } else if (info->notify_std_with_user_data_func != nullptr) {
-    auto func = info->notify_std_with_user_data_func;
-    func(*cpp_ten_env, info->user_data);
+  } else if (ctx->notify_std_with_user_data_func != nullptr) {
+    auto func = ctx->notify_std_with_user_data_func;
+    func(*cpp_ten_env, ctx->user_data);
   }
 
-  delete info;
+  delete ctx;
 }
 
 }  // namespace
@@ -124,13 +124,13 @@ class ten_env_proxy_t {
 
   bool notify(notify_std_func_t &&notify_func, bool sync = false,
               error_t *err = nullptr) {
-    auto *info = new proxy_notify_info_t(std::move(notify_func));
+    auto *ctx = new proxy_notify_ctx_t(std::move(notify_func));
 
     auto rc =
-        ten_env_proxy_notify(c_ten_env_proxy, proxy_notify, info, sync,
+        ten_env_proxy_notify(c_ten_env_proxy, proxy_notify, ctx, sync,
                              err != nullptr ? err->get_c_error() : nullptr);
     if (!rc) {
-      delete info;
+      delete ctx;
     }
 
     return rc;
@@ -138,7 +138,7 @@ class ten_env_proxy_t {
 
   bool notify(notify_std_with_user_data_func_t &&notify_func, void *user_data,
               bool sync = false, error_t *err = nullptr) {
-    auto *info = new proxy_notify_info_t(std::move(notify_func), user_data);
+    auto *info = new proxy_notify_ctx_t(std::move(notify_func), user_data);
 
     auto rc =
         ten_env_proxy_notify(c_ten_env_proxy, proxy_notify, info, sync,

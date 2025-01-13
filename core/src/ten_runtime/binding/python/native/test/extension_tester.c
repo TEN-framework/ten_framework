@@ -105,18 +105,28 @@ static void proxy_on_stop(ten_extension_tester_t *extension_tester,
                  ten_py_extension_tester_check_integrity(py_extension_tester),
              "Invalid argument.");
 
-  PyObject *py_ten_env_tester = py_extension_tester->py_ten_env_tester;
+  ten_py_ten_env_tester_t *py_ten_env_tester =
+      (ten_py_ten_env_tester_t *)py_extension_tester->py_ten_env_tester;
   TEN_ASSERT(py_ten_env_tester, "Should not happen.");
-  TEN_ASSERT(
-      ((ten_py_ten_env_tester_t *)py_ten_env_tester)->actual_py_ten_env_tester,
-      "Should not happen.");
+  TEN_ASSERT(py_ten_env_tester->actual_py_ten_env_tester, "Should not happen.");
+
+  // About to call the Python function, so it's necessary to ensure that the GIL
+  // has been acquired.
+  PyGILState_STATE prev_state = ten_py_gil_state_ensure_internal();
+
+  PyObject *py_res =
+      PyObject_CallMethod((PyObject *)py_extension_tester, "_proxy_on_stop",
+                          "O", py_ten_env_tester->actual_py_ten_env_tester);
+  Py_XDECREF(py_res);
+
+  bool err_occurred = ten_py_check_and_clear_py_error();
+  TEN_ASSERT(!err_occurred, "Should not happen.");
+
+  ten_py_gil_state_release_internal(prev_state);
 
   // Release the ten_env_tester_proxy.
-  ten_env_tester_proxy_release(
-      ((ten_py_ten_env_tester_t *)py_ten_env_tester)->c_ten_env_tester_proxy,
-      NULL);
-
-  ((ten_py_ten_env_tester_t *)py_ten_env_tester)->c_ten_env_tester_proxy = NULL;
+  ten_env_tester_proxy_release(py_ten_env_tester->c_ten_env_tester_proxy, NULL);
+  py_ten_env_tester->c_ten_env_tester_proxy = NULL;
 
   ten_env_tester_on_stop_done(ten_env_tester, NULL);
 }

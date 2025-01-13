@@ -28,7 +28,7 @@ class ExtensionTesterMock(ExtensionTester):
         assert result is not None
 
         statusCode = result.get_status_code()
-        print("receive weather, status:" + str(statusCode))
+        ten_env.log_info("receive weather, status:" + str(statusCode))
 
         if statusCode == StatusCode.OK:
             detail = result.get_property_string("detail")
@@ -49,7 +49,7 @@ class ExtensionTesterMock(ExtensionTester):
         ten_env.on_start_done()
 
     def on_cmd(self, ten_env: TenEnvTester, cmd: Cmd) -> None:
-        print("ExtensionTesterMock on_cmd: " + cmd.get_name())
+        ten_env.log_info("ExtensionTesterMock on_cmd: " + cmd.get_name())
 
         if cmd.get_name() == "query_weather":
             cmd_result = CmdResult.create(StatusCode.OK)

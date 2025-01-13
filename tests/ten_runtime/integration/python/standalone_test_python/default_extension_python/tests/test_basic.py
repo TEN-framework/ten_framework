@@ -31,7 +31,7 @@ class ExtensionTesterBasic(ExtensionTester):
         assert result is not None
 
         statusCode = result.get_status_code()
-        print("receive hello_world, status:" + str(statusCode))
+        ten_env.log_info("receive hello_world, status:" + str(statusCode))
 
         if statusCode == StatusCode.OK:
             ten_env.stop_test()
@@ -39,7 +39,7 @@ class ExtensionTesterBasic(ExtensionTester):
     def on_start(self, ten_env: TenEnvTester) -> None:
         new_cmd = Cmd.create("hello_world")
 
-        print("send hello_world")
+        ten_env.log_info("send hello_world")
         ten_env.send_cmd(
             new_cmd,
             lambda ten_env, result, error: self.check_hello(
@@ -51,7 +51,7 @@ class ExtensionTesterBasic(ExtensionTester):
         ten_env.send_audio_frame(AudioFrame.create("test"))
         ten_env.send_video_frame(VideoFrame.create("test"))
 
-        print("tester on_start_done")
+        ten_env.log_info("tester on_start_done")
         ten_env.on_start_done()
 
 

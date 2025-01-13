@@ -7,6 +7,7 @@
 from typing import Callable, Optional, final, Optional
 
 from libten_runtime_python import _ExtensionTester, _TenEnvTester
+from .test_base import TenEnvTesterBase
 from .cmd_result import CmdResult
 from .error import TenError
 from .cmd import Cmd
@@ -25,10 +26,10 @@ ResultHandler = Optional[
 ErrorHandler = Optional[Callable[[TenEnvTester, Optional[TenError]], None]]
 
 
-class TenEnvTester:
+class TenEnvTester(TenEnvTesterBase):
 
     def __init__(self, internal_obj: _TenEnvTester) -> None:
-        self._internal = internal_obj
+        super().__init__(internal_obj)
 
     def __del__(self) -> None:
         pass
@@ -85,6 +86,10 @@ class ExtensionTester(_ExtensionTester):
 
     def on_start(self, ten_env_tester: TenEnvTester) -> None:
         ten_env_tester.on_start_done()
+
+    @final
+    def _proxy_on_stop(self, ten_env_tester: TenEnvTester) -> None:
+        pass
 
     @final
     def _proxy_on_cmd(self, ten_env_tester: TenEnvTester, cmd: Cmd) -> None:
