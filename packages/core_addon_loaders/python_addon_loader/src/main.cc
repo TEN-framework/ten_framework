@@ -3,6 +3,7 @@
 // Licensed under the Apache License, Version 2.0.
 // See the LICENSE file for more information.
 //
+#include <cinttypes>
 #include <cstring>
 #include <string>
 
@@ -112,7 +113,7 @@ class python_addon_loader_t : public ten::addon_loader_t {
 
     int py_initialized = ten_py_is_initialized();
     if (py_initialized != 0) {
-      TEN_LOGI("Python runtime has been initialized.");
+      TEN_LOGI("[Python addon loader] Python runtime has been initialized.");
       return;
     }
 
@@ -139,8 +140,8 @@ class python_addon_loader_t : public ten::addon_loader_t {
         "print(sys.path)\n");
 
     const auto *sys_path = ten_py_get_path();
-    TEN_LOGI(
-        (std::string("python initialized, sys.path: ") + sys_path).c_str());
+    TEN_LOGI("[Python addon loader] python initialized, sys.path: %s",
+             sys_path);
 
     ten_py_mem_free((void *)sys_path);
 
@@ -151,8 +152,8 @@ class python_addon_loader_t : public ten::addon_loader_t {
       load_python_extensions_according_to_app_manifest_dependencies();
     } else {
       TEN_LOGI(
-          "load_all_on_init is false, skip loading all python "
-          "extensions when startup.");
+          "[Python addon loader] load_all_on_init is false, skip loading all "
+          "python extensions when startup.");
     }
 
     // The `app_base_dir` is no longer needed afterwards, so it is released.
@@ -171,9 +172,9 @@ class python_addon_loader_t : public ten::addon_loader_t {
     if (py_init_by_self_) {
       int rc = ten_py_finalize();
       if (rc < 0) {
-        TEN_LOGF((std::string("Failed to finalize python runtime, rc: ") +
-                  std::to_string(rc))
-                     .c_str());
+        TEN_LOGF(
+            "[Python addon loader] Failed to finalize python runtime, rc: %d",
+            rc);
 
         TEN_ASSERT(0, "Should not happen.");
       }
@@ -195,12 +196,15 @@ class python_addon_loader_t : public ten::addon_loader_t {
         "ten_packages.%s.%s", ten_addon_type_to_string(addon_type), addon_name);
 
     // Import the specified Python module.
-    ten_py_import_module(ten_string_get_raw_str(full_module_name));
+    bool import_status =
+        ten_py_import_module(ten_string_get_raw_str(full_module_name));
 
     ten_string_destroy(full_module_name);
 
     // Register the addon if necessary.
-    register_single_addon(addon_type, addon_name);
+    if (import_status) {
+      register_single_addon(addon_type, addon_name);
+    }
 
     ten_py_gil_state_release(ten_py_gil_state);
   }
@@ -294,8 +298,8 @@ class python_addon_loader_t : public ten::addon_loader_t {
     char *endptr = nullptr;
     int64_t port = std::strtol(python_debug_port, &endptr, 10);
     if (*endptr != '\0' || port <= 0 || port > 65535) {
-      TEN_LOGE((std::string("Invalid python debug port: ") + python_debug_port)
-                   .c_str());
+      TEN_LOGE("[Python addon loader] Invalid python debug port: %s",
+               python_debug_port);
       return;
     }
 
@@ -309,9 +313,8 @@ class python_addon_loader_t : public ten::addon_loader_t {
 
     ten_string_destroy(start_debug_server_script);
 
-    TEN_LOGI((std::string("Python debug server started at ") +
-              python_debug_host + std::to_string(port))
-                 .c_str());
+    TEN_LOGI("[Python addon loader] Python debug server started at %s:%" PRId64,
+             python_debug_host, port);
   }
 
   // Load all python addons by import modules.
@@ -319,17 +322,18 @@ class python_addon_loader_t : public ten::addon_loader_t {
     if (addon_extensions_path == nullptr ||
         ten_string_is_empty(addon_extensions_path)) {
       TEN_LOGE(
-          "Failed to load python modules due to empty addon extension path.");
+          "[Python addon loader] Failed to load python modules due to empty "
+          "addon extension path.");
       return;
     }
 
     ten_dir_fd_t *dir =
         ten_path_open_dir(ten_string_get_raw_str(addon_extensions_path));
     if (dir == nullptr) {
-      TEN_LOGE((std::string("Failed to open directory: ") +
-                ten_string_get_raw_str(addon_extensions_path) +
-                " when loading python modules.")
-                   .c_str());
+      TEN_LOGE(
+          "[Python addon loader] Failed to open directory %s when loading "
+          "python modules.",
+          ten_string_get_raw_str(addon_extensions_path));
       return;
     }
 
@@ -337,10 +341,8 @@ class python_addon_loader_t : public ten::addon_loader_t {
     while (itor != nullptr) {
       ten_string_t *short_name = ten_path_itor_get_name(itor);
       if (short_name == nullptr) {
-        TEN_LOGE((std::string("Failed to get short name under path ") +
-                  ten_string_get_raw_str(addon_extensions_path) +
-                  ", when loading python modules.")
-                     .c_str());
+        TEN_LOGE("[Python addon loader] Failed to get short name under path %s",
+                 ten_string_get_raw_str(addon_extensions_path));
         itor = ten_path_get_next(itor);
         continue;
       }
