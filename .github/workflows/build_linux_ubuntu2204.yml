@@ -210,6 +210,10 @@ jobs:
         with:
           name: ten_packages-linux-${{ matrix.compiler }}-${{ matrix.build_type }}-${{ matrix.arch }}
           path: |
+            out/linux/x64/app/default_app_cpp
+            out/linux/x64/app/default_app_go
+            out/linux/x64/app/default_app_python
+            out/linux/x64/app/default_app_nodejs
             out/linux/x64/ten_packages/system/ten_runtime
             out/linux/x64/ten_packages/system/ten_runtime_go
             out/linux/x64/ten_packages/system/ten_runtime_python
@@ -225,6 +229,10 @@ jobs:
           cd out/linux/x64
           zip -vr tman-linux-${{ matrix.compiler }}-${{ matrix.build_type }}-${{ matrix.arch }}.zip ten_manager/bin/tman
           zip -vr ten_packages-linux-${{ matrix.compiler }}-${{ matrix.build_type }}-${{ matrix.arch }}.zip \
+            app/default_app_cpp \
+            app/default_app_go \
+            app/default_app_python \
+            app/default_app_nodejs \
             ten_packages/system/ten_runtime \
             ten_packages/system/ten_runtime_go \
             ten_packages/system/ten_runtime_python \
@@ -249,6 +257,10 @@ jobs:
 
           cd out/linux/x64/ten_packages
           ARRAY=(
+            "app/default_app_cpp"
+            "app/default_app_go"
+            "app/default_app_python"
+            "app/default_app_nodejs"
             "system/ten_runtime"
             "system/ten_runtime_go"
             "system/ten_runtime_python"
