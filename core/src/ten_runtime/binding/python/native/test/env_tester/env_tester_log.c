@@ -15,11 +15,10 @@
 
 typedef struct ten_env_tester_notify_log_ctx_t {
   int32_t level;
-  const char *func_name;
-  const char *file_name;
+  ten_string_t func_name;
+  ten_string_t file_name;
   size_t line_no;
-  const char *msg;
-  ten_event_t *completed;
+  ten_string_t msg;
 } ten_env_tester_notify_log_ctx_t;
 
 static ten_env_tester_notify_log_ctx_t *ten_env_tester_notify_log_ctx_create(
@@ -30,11 +29,25 @@ static ten_env_tester_notify_log_ctx_t *ten_env_tester_notify_log_ctx_create(
   TEN_ASSERT(ctx, "Failed to allocate memory.");
 
   ctx->level = level;
-  ctx->func_name = func_name;
-  ctx->file_name = file_name;
+
+  if (func_name) {
+    ten_string_init_from_c_str(&ctx->func_name, func_name, strlen(func_name));
+  } else {
+    ten_string_init(&ctx->func_name);
+  }
+
+  if (file_name) {
+    ten_string_init_from_c_str(&ctx->file_name, file_name, strlen(file_name));
+  } else {
+    ten_string_init(&ctx->file_name);
+  }
+
   ctx->line_no = line_no;
-  ctx->msg = msg;
-  ctx->completed = ten_event_create(0, 1);
+  if (msg) {
+    ten_string_init_from_c_str(&ctx->msg, msg, strlen(msg));
+  } else {
+    ten_string_init(&ctx->msg);
+  }
 
   return ctx;
 }
@@ -43,7 +56,9 @@ static void ten_env_tester_notify_log_ctx_destroy(
     ten_env_tester_notify_log_ctx_t *ctx) {
   TEN_ASSERT(ctx, "Invalid argument.");
 
-  ten_event_destroy(ctx->completed);
+  ten_string_deinit(&ctx->func_name);
+  ten_string_deinit(&ctx->file_name);
+  ten_string_deinit(&ctx->msg);
 
   TEN_FREE(ctx);
 }
@@ -53,10 +68,12 @@ static void ten_py_ten_env_tester_log_proxy_notify(
   ten_env_tester_notify_log_ctx_t *ctx = user_data;
   TEN_ASSERT(ctx, "Should not happen.");
 
-  ten_env_tester_log(ten_env_tester, ctx->level, ctx->func_name, ctx->file_name,
-                     ctx->line_no, ctx->msg, NULL);
+  ten_env_tester_log(ten_env_tester, ctx->level,
+                     ten_string_get_raw_str(&ctx->func_name),
+                     ten_string_get_raw_str(&ctx->file_name), ctx->line_no,
+                     ten_string_get_raw_str(&ctx->msg), NULL);
 
-  ten_event_set(ctx->completed);
+  ten_env_tester_notify_log_ctx_destroy(ctx);
 }
 
 PyObject *ten_py_ten_env_tester_log(PyObject *self, TEN_UNUSED PyObject *args) {
@@ -90,15 +107,10 @@ PyObject *ten_py_ten_env_tester_log(PyObject *self, TEN_UNUSED PyObject *args) {
   if (!ten_env_tester_proxy_notify(py_ten_env_tester->c_ten_env_tester_proxy,
                                    ten_py_ten_env_tester_log_proxy_notify, ctx,
                                    &err)) {
-    TEN_ASSERT(false, "Should not happen.");
+    ten_env_tester_notify_log_ctx_destroy(ctx);
   }
 
-  PyThreadState *saved_py_thread_state = PyEval_SaveThread();
-  ten_event_wait(ctx->completed, -1);
-  PyEval_RestoreThread(saved_py_thread_state);
-
   ten_error_deinit(&err);
-  ten_env_tester_notify_log_ctx_destroy(ctx);
 
   Py_RETURN_NONE;
 }
