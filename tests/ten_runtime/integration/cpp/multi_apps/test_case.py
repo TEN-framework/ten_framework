@@ -40,6 +40,7 @@ def install_app(app_name: str):
         os.path.join(root_dir, "ten_manager/bin/tman"),
         "--config-file",
         os.path.join(root_dir, "tests/local_registry/config.json"),
+        "--yes",
         "install",
     ]
 

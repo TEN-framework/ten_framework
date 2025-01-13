@@ -78,6 +78,7 @@ def test_two_async_exts_one_group_python():
         os.path.join(root_dir, "ten_manager/bin/tman"),
         "--config-file",
         os.path.join(root_dir, "tests/local_registry/config.json"),
+        "--yes",
         "install",
     ]
 

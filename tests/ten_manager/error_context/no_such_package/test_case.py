@@ -34,8 +34,8 @@ def test_invalid_package_type():
 
         cmds = [
             tman_bin,
-            "--yes",
             f"--config-file={config_file}",
+            "--yes",
             "install",
             "extension",
             "package_does_not_exist",

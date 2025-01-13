@@ -11,11 +11,6 @@ ten_package("default_extension_cpp") {
   package_kind = "extension"
   enable_build = true
 
-  resources = [
-    "manifest.json",
-    "property.json",
-  ]
-
   sources = [ "src/main.cc" ]
   include_dirs = [
     "include",
