@@ -24,7 +24,7 @@ TEN_RUNTIME_API const char *ten_py_get_path(void);
 
 TEN_RUNTIME_API void ten_py_mem_free(void *ptr);
 
-TEN_RUNTIME_API void ten_py_import_module(const char *module_name);
+TEN_RUNTIME_API bool ten_py_import_module(const char *module_name);
 
 TEN_RUNTIME_API void *ten_py_eval_save_thread(void);
 
