@@ -68,10 +68,6 @@ class TenEnvTester:
 
 class ExtensionTester(_ExtensionTester):
     @final
-    def _on_test_app_configure(self, ten_env_tester: TenEnvTester) -> None:
-        self.on_start(ten_env_tester)
-
-    @final
     def set_test_mode_single(
         self, addon_name: str, property_json_str: Optional[str] = None
     ) -> None:
@@ -83,19 +79,43 @@ class ExtensionTester(_ExtensionTester):
     def run(self) -> None:
         return _ExtensionTester.run(self)
 
+    @final
+    def _proxy_on_start(self, ten_env_tester: TenEnvTester) -> None:
+        self.on_start(ten_env_tester)
+
     def on_start(self, ten_env_tester: TenEnvTester) -> None:
         ten_env_tester.on_start_done()
+
+    @final
+    def _proxy_on_cmd(self, ten_env_tester: TenEnvTester, cmd: Cmd) -> None:
+        self.on_cmd(ten_env_tester, cmd)
 
     def on_cmd(self, ten_env_tester: TenEnvTester, cmd: Cmd) -> None:
         pass
 
+    @final
+    def _proxy_on_data(self, ten_env_tester: TenEnvTester, data: Data) -> None:
+        self.on_data(ten_env_tester, data)
+
     def on_data(self, ten_env_tester: TenEnvTester, data: Data) -> None:
         pass
+
+    @final
+    def _proxy_on_audio_frame(
+        self, ten_env_tester: TenEnvTester, audio_frame: AudioFrame
+    ) -> None:
+        self.on_audio_frame(ten_env_tester, audio_frame)
 
     def on_audio_frame(
         self, ten_env_tester: TenEnvTester, audio_frame: AudioFrame
     ) -> None:
         pass
+
+    @final
+    def _proxy_on_video_frame(
+        self, ten_env_tester: TenEnvTester, video_frame: VideoFrame
+    ) -> None:
+        self.on_video_frame(ten_env_tester, video_frame)
 
     def on_video_frame(
         self, ten_env_tester: TenEnvTester, video_frame: VideoFrame

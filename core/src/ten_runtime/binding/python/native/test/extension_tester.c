@@ -80,7 +80,7 @@ static void proxy_on_start(ten_extension_tester_t *extension_tester,
   TEN_ASSERT(py_ten_env_tester->c_ten_env_tester_proxy, "Should not happen.");
 
   PyObject *py_res =
-      PyObject_CallMethod((PyObject *)py_extension_tester, "on_start", "O",
+      PyObject_CallMethod((PyObject *)py_extension_tester, "_proxy_on_start", "O",
                           py_ten_env_tester->actual_py_ten_env_tester);
   Py_XDECREF(py_res);
 
@@ -151,7 +151,7 @@ static void proxy_on_cmd(ten_extension_tester_t *extension_tester,
   ten_py_cmd_t *py_cmd = ten_py_cmd_wrap(cmd);
 
   PyObject *py_res = PyObject_CallMethod(
-      (PyObject *)py_extension_tester, "on_cmd", "OO",
+      (PyObject *)py_extension_tester, "_proxy_on_cmd", "OO",
       ((ten_py_ten_env_tester_t *)py_ten_env_tester)->actual_py_ten_env_tester,
       py_cmd);
   Py_XDECREF(py_res);
@@ -194,7 +194,7 @@ static void proxy_on_data(ten_extension_tester_t *extension_tester,
   ten_py_data_t *py_data = ten_py_data_wrap(data);
 
   PyObject *py_res = PyObject_CallMethod(
-      (PyObject *)py_extension_tester, "on_data", "OO",
+      (PyObject *)py_extension_tester, "_proxy_on_data", "OO",
       ((ten_py_ten_env_tester_t *)py_ten_env_tester)->actual_py_ten_env_tester,
       py_data);
   Py_XDECREF(py_res);
@@ -238,7 +238,7 @@ static void proxy_on_audio_frame(ten_extension_tester_t *extension_tester,
   ten_py_audio_frame_t *py_audio_frame = ten_py_audio_frame_wrap(audio_frame);
 
   PyObject *py_res = PyObject_CallMethod(
-      (PyObject *)py_extension_tester, "on_audio_frame", "OO",
+      (PyObject *)py_extension_tester, "_proxy_on_audio_frame", "OO",
       ((ten_py_ten_env_tester_t *)py_ten_env_tester)->actual_py_ten_env_tester,
       py_audio_frame);
   Py_XDECREF(py_res);
@@ -282,7 +282,7 @@ static void proxy_on_video_frame(ten_extension_tester_t *extension_tester,
   ten_py_video_frame_t *py_video_frame = ten_py_video_frame_wrap(video_frame);
 
   PyObject *py_res = PyObject_CallMethod(
-      (PyObject *)py_extension_tester, "on_video_frame", "OO",
+      (PyObject *)py_extension_tester, "_proxy_on_video_frame", "OO",
       ((ten_py_ten_env_tester_t *)py_ten_env_tester)->actual_py_ten_env_tester,
       py_video_frame);
   Py_XDECREF(py_res);
