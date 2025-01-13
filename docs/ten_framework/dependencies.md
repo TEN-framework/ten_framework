@@ -4,13 +4,21 @@ The TEN framework utilizes several third-party libraries. Some are used specific
 
 ## Google gn
 
-Version: 2112 (1de45d1a11cc)
+Instance ID
 
-Download directly from [Google GN webpage](https://gn.googlesource.com/gn/).
+| OS | Arch | Instance ID |
+|----|------|-------------|
+|Linux|x64|BzX0zkfwFeUn9MaDVqm6FugmTIy-hFpgNUx43O1fN00C|
+|Linux|arm64|rT_12w1Iv6ug8CJ4j0VQekA0qTDq6CwoAqGWasIKFcEC|
+|Mac|x64|B31qpTXmBZpBHIdUtEFogC24WDCQ9W7qAS0d1eSxoZgC|
+|Mac|arm64|5dcmC12_T9JLydmhjTjySyTC7FiYd75j-tyHVokWaFEC|
+|Win|x64|1QlqF0FPVt82ba5f48HxHpv5xPqOmyaThoR3TicuJ8QC|
+
+Download directly from [Google GN webpage](https://chrome-infra-packages.appspot.com/p/gn/gn/).
 
 ## Google ninja
 
-Version: 1.11.1
+Version: 1.12.1
 
 Download directly from [Ninja release page](https://github.com/ninja-build/ninja/releases).
 
