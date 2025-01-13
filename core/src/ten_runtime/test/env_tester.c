@@ -22,6 +22,7 @@
 #include "ten_utils/io/runloop.h"
 #include "ten_utils/lib/error.h"
 #include "ten_utils/lib/signature.h"
+#include "ten_utils/lib/string.h"
 #include "ten_utils/macro/mark.h"
 #include "ten_utils/macro/memory.h"
 
@@ -96,6 +97,15 @@ typedef struct ten_extension_tester_return_result_info_t {
   void *handler_user_data;
   ten_error_t *err;
 } ten_env_tester_return_result_ctx_t;
+
+typedef struct ten_env_tester_notify_log_ctx_t {
+  ten_env_tester_t *ten_env_tester;
+  TEN_LOG_LEVEL level;
+  ten_string_t func_name;
+  ten_string_t file_name;
+  size_t line_no;
+  ten_string_t msg;
+} ten_env_tester_notify_log_ctx_t;
 
 static ten_env_tester_send_cmd_ctx_t *ten_extension_tester_send_cmd_ctx_create(
     ten_extension_tester_t *tester, ten_shared_ptr_t *cmd,
@@ -212,6 +222,52 @@ static void ten_extension_tester_return_result_ctx_destroy(
   }
 
   TEN_FREE(self);
+}
+
+static ten_env_tester_notify_log_ctx_t *ten_env_tester_notify_log_ctx_create(
+    ten_env_tester_t *ten_env_tester, TEN_LOG_LEVEL level,
+    const char *func_name, const char *file_name, size_t line_no,
+    const char *msg) {
+  TEN_ASSERT(ten_env_tester, "Invalid argument.");
+
+  ten_env_tester_notify_log_ctx_t *self =
+      TEN_MALLOC(sizeof(ten_env_tester_notify_log_ctx_t));
+  TEN_ASSERT(self, "Failed to allocate memory.");
+
+  self->ten_env_tester = ten_env_tester;
+  self->level = level;
+  self->line_no = line_no;
+
+  if (func_name) {
+    ten_string_init_from_c_str(&self->func_name, func_name, strlen(func_name));
+  } else {
+    ten_string_init(&self->func_name);
+  }
+
+  if (file_name) {
+    ten_string_init_from_c_str(&self->file_name, file_name, strlen(file_name));
+  } else {
+    ten_string_init(&self->file_name);
+  }
+
+  if (msg) {
+    ten_string_init_from_c_str(&self->msg, msg, strlen(msg));
+  } else {
+    ten_string_init(&self->msg);
+  }
+
+  return self;
+}
+
+static void ten_env_tester_notify_log_ctx_destroy(
+    ten_env_tester_notify_log_ctx_t *ctx) {
+  TEN_ASSERT(ctx, "Invalid argument.");
+
+  ten_string_deinit(&ctx->func_name);
+  ten_string_deinit(&ctx->file_name);
+  ten_string_deinit(&ctx->msg);
+
+  TEN_FREE(ctx);
 }
 
 static void ten_extension_tester_execute_error_handler_task(void *self,
@@ -679,6 +735,35 @@ bool ten_env_tester_stop_test(ten_env_tester_t *self, ten_error_t *err) {
   return ten_env_proxy_notify(self->tester->test_app_ten_env_proxy,
                               test_app_ten_env_send_close_app_cmd, NULL, false,
                               err);
+}
+
+static void test_extension_ten_env_log(ten_env_t *self, void *user_data) {
+  ten_env_tester_notify_log_ctx_t *ctx = user_data;
+  TEN_ASSERT(ctx, "Should not happen.");
+
+  ten_env_log(self, ctx->level, ten_string_get_raw_str(&ctx->func_name),
+              ten_string_get_raw_str(&ctx->file_name), ctx->line_no,
+              ten_string_get_raw_str(&ctx->msg));
+
+  ten_env_tester_notify_log_ctx_destroy(ctx);
+}
+
+bool ten_env_tester_log(ten_env_tester_t *self, TEN_LOG_LEVEL level,
+                        const char *func_name, const char *file_name,
+                        size_t line_no, const char *msg, ten_error_t *error) {
+  TEN_ASSERT(self && ten_env_tester_check_integrity(self), "Invalid argument.");
+
+  ten_env_tester_notify_log_ctx_t *ctx = ten_env_tester_notify_log_ctx_create(
+      self, level, func_name, file_name, line_no, msg);
+  TEN_ASSERT(ctx, "Allocation failed.");
+
+  bool rc = ten_env_proxy_notify(self->tester->test_extension_ten_env_proxy,
+                                 test_extension_ten_env_log, ctx, false, error);
+  if (!rc) {
+    ten_env_tester_notify_log_ctx_destroy(ctx);
+  }
+
+  return rc;
 }
 
 bool ten_env_tester_on_start_done(ten_env_tester_t *self, ten_error_t *err) {

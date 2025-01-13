@@ -10,6 +10,7 @@
 
 #include "ten_utils/lib/error.h"
 #include "ten_utils/lib/smart_ptr.h"
+#include "ten_utils/log/log.h"
 
 typedef struct ten_env_tester_t ten_env_tester_t;
 
@@ -55,3 +56,9 @@ TEN_RUNTIME_API bool ten_env_tester_return_result(
 
 TEN_RUNTIME_API bool ten_env_tester_stop_test(ten_env_tester_t *self,
                                               ten_error_t *error);
+
+TEN_RUNTIME_API bool ten_env_tester_log(ten_env_tester_t *self,
+                                        TEN_LOG_LEVEL level,
+                                        const char *func_name,
+                                        const char *file_name, size_t line_no,
+                                        const char *msg, ten_error_t *error);

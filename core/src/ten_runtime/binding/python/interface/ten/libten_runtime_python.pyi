@@ -264,6 +264,14 @@ class _TenEnvTester:
         error_handler: TestErrorHandler,
     ) -> None: ...
     def stop_test(self) -> None: ...
+    def log(
+        self,
+        level: LogLevel,
+        func_name: Optional[str],
+        file_name: Optional[str],
+        line_no: int,
+        msg: str,
+    ) -> None: ...
 
 class _ExtensionTester:
     def set_test_mode_single(

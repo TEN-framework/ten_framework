@@ -155,6 +155,7 @@ PyTypeObject *ten_py_ten_env_tester_type(void) {
        NULL},
       {"return_result", ten_py_ten_env_tester_return_result, METH_VARARGS,
        NULL},
+      {"log", ten_py_ten_env_tester_log, METH_VARARGS, NULL},
       {NULL, NULL, 0, NULL},
   };
 
