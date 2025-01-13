@@ -34,8 +34,8 @@ def test_invalid_package_type():
 
         cmds = [
             tman_bin,
-            "--yes",
             f"--config-file={config_file}",
+            "--yes",
             "install",
         ]
         returncode, output_text = cmd_exec.get_cmd_output(" ".join(cmds))

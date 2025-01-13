@@ -45,13 +45,6 @@ config("config_for_ten_packages") {
   }
 }
 
-config("config_for_standalone_ten_packages") {
-  configs = [ ":ten_runtime_python_common_libs" ]
-
-  include_dirs = [ "//.ten/app/ten_packages/system/ten_runtime_python/include" ]
-  lib_dirs = [ "//.ten/app/ten_packages/system/ten_runtime_python/lib" ]
-}
-
 ten_package("ten_runtime_python") {
   package_kind = "system"
 
