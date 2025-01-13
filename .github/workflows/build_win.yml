@@ -28,6 +28,9 @@ jobs:
         with:
           fetch-depth: "0"
           submodules: "true"
+          # Check out the repository to a shorter path to avoid Windows long
+          # path length limitations.
+          path: "ten"
 
       - uses: actions/setup-node@v4
         with:
