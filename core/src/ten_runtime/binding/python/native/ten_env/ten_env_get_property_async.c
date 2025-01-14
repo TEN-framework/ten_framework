@@ -428,8 +428,8 @@ static PyObject *ten_py_ten_env_get_property_async(PyObject *self,
 
   if (!py_ten_env->c_ten_env_proxy) {
     return ten_py_raise_py_value_error_exception(
-        "ten_env.get_property_to_json_async() failed because the c_ten_env_proxy "
-        "is invalid.");
+        "ten_env.get_property_to_json_async() failed because ten_env_proxy is "
+        "invalid.");
   }
 
   ten_error_t err;

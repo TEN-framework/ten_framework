@@ -113,7 +113,7 @@ PyObject *ten_py_ten_env_log(PyObject *self, PyObject *args) {
   } else {
     if (!py_ten_env->c_ten_env_proxy) {
       return ten_py_raise_py_value_error_exception(
-          "ten_env.log() failed because the c_ten_env_proxy is invalid.");
+          "ten_env.log() failed because ten_env_proxy is invalid.");
     }
 
     ten_env_notify_log_ctx_t *ctx = ten_env_notify_log_ctx_create(
@@ -126,5 +126,6 @@ PyObject *ten_py_ten_env_log(PyObject *self, PyObject *args) {
   }
 
   ten_error_deinit(&err);
+
   Py_RETURN_NONE;
 }
