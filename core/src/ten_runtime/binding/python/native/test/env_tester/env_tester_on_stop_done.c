@@ -53,8 +53,7 @@ PyObject *ten_py_ten_env_tester_on_stop_done(PyObject *self,
 
   if (!py_ten_env_tester->c_ten_env_tester_proxy) {
     return ten_py_raise_py_value_error_exception(
-        "ten_env_tester.on_stop_done() failed because the "
-        "c_ten_env_tester_proxy is "
+        "ten_env_tester.on_stop_done() failed because ten_env_tester_proxy is "
         "invalid.");
   }
 
