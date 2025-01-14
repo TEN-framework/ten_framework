@@ -119,7 +119,9 @@ PyObject *ten_py_ten_env_get_property_to_json(PyObject *self, PyObject *args) {
   }
 
   if (!py_ten_env->c_ten_env_proxy) {
-    Py_RETURN_NONE;
+    return ten_py_raise_py_value_error_exception(
+        "ten_env.get_property_to_json() failed because the c_ten_env_proxy is "
+        "invalid.");
   }
 
   ten_value_t *value =
@@ -168,7 +170,9 @@ PyObject *ten_py_ten_env_get_property_int(PyObject *self, PyObject *args) {
   }
 
   if (!py_ten_env->c_ten_env_proxy) {
-    Py_RETURN_NONE;
+    return ten_py_raise_py_value_error_exception(
+        "ten_env.get_property_int() failed because the c_ten_env_proxy is "
+        "invalid.");
   }
 
   ten_value_t *value =
@@ -211,7 +215,9 @@ PyObject *ten_py_ten_env_get_property_string(PyObject *self, PyObject *args) {
   }
 
   if (!py_ten_env->c_ten_env_proxy) {
-    Py_RETURN_NONE;
+    return ten_py_raise_py_value_error_exception(
+        "ten_env.get_property_string() failed because the c_ten_env_proxy is "
+        "invalid.");
   }
 
   ten_value_t *value =
@@ -253,7 +259,9 @@ PyObject *ten_py_ten_env_get_property_bool(PyObject *self, PyObject *args) {
   }
 
   if (!py_ten_env->c_ten_env_proxy) {
-    Py_RETURN_NONE;
+    return ten_py_raise_py_value_error_exception(
+        "ten_env.get_property_bool() failed because the c_ten_env_proxy is "
+        "invalid.");
   }
 
   ten_value_t *value =
@@ -296,7 +304,9 @@ PyObject *ten_py_ten_env_get_property_float(PyObject *self, PyObject *args) {
   }
 
   if (!py_ten_env->c_ten_env_proxy) {
-    Py_RETURN_NONE;
+    return ten_py_raise_py_value_error_exception(
+        "ten_env.get_property_float() failed because the c_ten_env_proxy is "
+        "invalid.");
   }
 
   ten_value_t *value =
@@ -339,7 +349,9 @@ PyObject *ten_py_ten_env_is_property_exist(PyObject *self, PyObject *args) {
   }
 
   if (!py_ten_env->c_ten_env_proxy) {
-    Py_RETURN_NONE;
+    return ten_py_raise_py_value_error_exception(
+        "ten_env.is_property_exist() failed because the c_ten_env_proxy is "
+        "invalid.");
   }
 
   ten_value_t *value =

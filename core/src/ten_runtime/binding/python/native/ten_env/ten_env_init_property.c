@@ -9,7 +9,6 @@
 #include "include_internal/ten_runtime/binding/python/common/common.h"
 #include "include_internal/ten_runtime/binding/python/common/error.h"
 #include "include_internal/ten_runtime/binding/python/ten_env/ten_env.h"
-#include "object.h"
 #include "ten_runtime/ten_env/internal/metadata.h"
 #include "ten_runtime/ten_env_proxy/ten_env_proxy.h"
 #include "ten_utils/macro/memory.h"
@@ -165,7 +164,9 @@ PyObject *ten_py_ten_env_init_property_from_json(PyObject *self,
   }
 
   if (!py_ten_env->c_ten_env_proxy) {
-    Py_RETURN_NONE;
+    return ten_py_raise_py_value_error_exception(
+        "ten_env.init_property_from_json() failed because the c_ten_env_proxy "
+        "is invalid.");
   }
 
   ten_error_t err;
@@ -219,7 +220,9 @@ PyObject *ten_py_ten_env_init_property_from_json_async(PyObject *self,
   }
 
   if (!py_ten_env->c_ten_env_proxy) {
-    Py_RETURN_NONE;
+    return ten_py_raise_py_value_error_exception(
+        "ten_env.init_property_from_json_async() failed because the "
+        "c_ten_env_proxy is invalid.");
   }
 
   ten_error_t err;

@@ -113,7 +113,9 @@ PyObject *ten_py_ten_env_set_property_from_json(PyObject *self,
   }
 
   if (!py_ten_env->c_ten_env_proxy) {
-    Py_RETURN_NONE;
+    return ten_py_raise_py_value_error_exception(
+        "ten_env.set_property_from_json() failed because the c_ten_env_proxy is "
+        "invalid.");
   }
 
   ten_json_t *json = ten_json_from_string(json_str, NULL);

@@ -120,7 +120,10 @@ PyObject *ten_py_ten_env_tester_send_audio_frame(PyObject *self,
   }
 
   if (!py_ten_env_tester->c_ten_env_tester_proxy) {
-    Py_RETURN_NONE;
+    return ten_py_raise_py_value_error_exception(
+        "ten_env_tester.send_audio_frame() failed because the "
+        "c_ten_env_tester_proxy is "
+        "invalid.");
   }
 
   bool success = true;

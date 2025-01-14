@@ -34,9 +34,25 @@ class AsyncTenEnvTester(TenEnvTesterBase):
 
         self._ten_loop = loop
         self._ten_thread = thread
+        ten_env_tester._set_release_handler(lambda: self._on_release())
 
     def __del__(self) -> None:
         pass
+
+    def _deinit_routine(self) -> None:
+        # Wait for the internal thread to finish.
+        self._ten_thread.join()
+
+        self._internal.on_stop_done()
+
+    def _on_release(self) -> None:
+        if hasattr(self, "_deinit_thread"):
+            self._deinit_thread.join()
+
+    def _deinit(self) -> None:
+        # Start the deinit thread to avoid blocking the extension tester thread.
+        self._deinit_thread = threading.Thread(target=self._deinit_routine)
+        self._deinit_thread.start()
 
     async def send_cmd(self, cmd: Cmd) -> CmdResultTuple:
         q = asyncio.Queue(maxsize=1)
@@ -121,21 +137,7 @@ class AsyncExtensionTester(_ExtensionTester):
         self._ten_stop_event = asyncio.Event()
 
     def __del__(self) -> None:
-        self._ten_stop_event.set()
-
-        # TODO(Wei): The `__del__` method of `AsyncExtensionTester` might be
-        # called in the `self._ten_thread`, making it potentially unsuitable for
-        # invoking `self._ten_thread.join()`. Therefore, an explicit mechanism
-        # to trigger the termination of `AsyncExtensionTester` may be needed,
-        # where `self._ten_thread.join()` can be called instead.
-        if hasattr(self, "_ten_thread"):
-            current_thread = threading.current_thread()
-            if current_thread != self._ten_thread:
-                self._ten_thread.join()
-            else:
-                # If `__del__` is called in `self._ten_thread`, do not execute
-                # `join`.
-                pass
+        pass
 
     def _exit_on_exception(
         self, async_ten_env_tester: AsyncTenEnvTester, e: Exception
@@ -157,6 +159,8 @@ class AsyncExtensionTester(_ExtensionTester):
 
         # Suspend the thread until stopEvent is set.
         await self._ten_stop_event.wait()
+
+        self._async_ten_env_tester._deinit()
 
     async def _stop_thread(self):
         self._ten_stop_event.set()

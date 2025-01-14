@@ -125,12 +125,6 @@ static void proxy_on_stop(ten_extension_tester_t *extension_tester,
   TEN_ASSERT(!err_occurred, "Should not happen.");
 
   ten_py_gil_state_release_internal(prev_state);
-
-  // Release the ten_env_tester_proxy.
-  ten_env_tester_proxy_release(py_ten_env_tester->c_ten_env_tester_proxy, NULL);
-  py_ten_env_tester->c_ten_env_tester_proxy = NULL;
-
-  ten_env_tester_on_stop_done(ten_env_tester, NULL);
 }
 
 static void proxy_on_cmd(ten_extension_tester_t *extension_tester,

@@ -6,6 +6,7 @@
 //
 #include <string.h>
 
+#include "include_internal/ten_runtime/binding/python/common/error.h"
 #include "include_internal/ten_runtime/binding/python/ten_env/ten_env.h"
 #include "include_internal/ten_runtime/ten_env/ten_env.h"
 #include "ten_runtime/msg/msg.h"
@@ -37,7 +38,9 @@ PyObject *ten_py_ten_env_on_stop_done(PyObject *self,
              "Invalid argument.");
 
   if (!py_ten_env->c_ten_env_proxy) {
-    Py_RETURN_NONE;
+    return ten_py_raise_py_value_error_exception(
+        "ten_env.on_stop_done() failed because the c_ten_env_proxy is "
+        "invalid.");
   }
 
   ten_error_t err;

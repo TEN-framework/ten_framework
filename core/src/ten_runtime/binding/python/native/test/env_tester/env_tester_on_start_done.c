@@ -4,8 +4,8 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
+#include "include_internal/ten_runtime/binding/python/common/error.h"
 #include "include_internal/ten_runtime/binding/python/test/env_tester.h"
-#include "object.h"
 #include "ten_runtime/test/env_tester.h"
 #include "ten_runtime/test/env_tester_proxy.h"
 #include "ten_utils/lib/error.h"
@@ -25,7 +25,10 @@ PyObject *ten_py_ten_env_tester_on_start_done(PyObject *self,
              "Invalid argument.");
 
   if (!py_ten_env_tester->c_ten_env_tester_proxy) {
-    Py_RETURN_NONE;
+    return ten_py_raise_py_value_error_exception(
+        "ten_env_tester.on_start_done() failed because the "
+        "c_ten_env_tester_proxy is "
+        "invalid.");
   }
 
   ten_error_t err;

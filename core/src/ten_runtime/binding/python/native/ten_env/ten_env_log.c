@@ -98,10 +98,6 @@ PyObject *ten_py_ten_env_log(PyObject *self, PyObject *args) {
         "Failed to parse argument when ten_env.log.");
   }
 
-  if (!py_ten_env->c_ten_env_proxy) {
-    Py_RETURN_NONE;
-  }
-
   ten_error_t err;
   ten_error_init(&err);
 
@@ -115,6 +111,11 @@ PyObject *ten_py_ten_env_log(PyObject *self, PyObject *args) {
     ten_env_log_without_check_thread(py_ten_env->c_ten_env, level, func_name,
                                      file_name, line_no, msg);
   } else {
+    if (!py_ten_env->c_ten_env_proxy) {
+      return ten_py_raise_py_value_error_exception(
+          "ten_env.log() failed because the c_ten_env_proxy is invalid.");
+    }
+
     ten_env_notify_log_ctx_t *ctx = ten_env_notify_log_ctx_create(
         level, func_name, file_name, line_no, msg);
 

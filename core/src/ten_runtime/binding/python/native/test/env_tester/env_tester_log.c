@@ -99,7 +99,10 @@ PyObject *ten_py_ten_env_tester_log(PyObject *self, TEN_UNUSED PyObject *args) {
   }
 
   if (!py_ten_env_tester->c_ten_env_tester_proxy) {
-    Py_RETURN_NONE;
+    ten_py_raise_py_value_error_exception(
+        "ten_env_tester.log() failed because the "
+        "c_ten_env_tester_proxy is "
+        "invalid.");
   }
 
   ten_error_t err;

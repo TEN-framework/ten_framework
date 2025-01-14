@@ -151,7 +151,8 @@ PyObject *ten_py_ten_env_send_data(PyObject *self, PyObject *args) {
              "Invalid argument.");
 
   if (!py_ten_env->c_ten_env_proxy) {
-    Py_RETURN_NONE;
+    return ten_py_raise_py_value_error_exception(
+        "ten_env.send_data() failed because the c_ten_env_proxy is invalid.");
   }
 
   bool success = true;

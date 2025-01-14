@@ -182,7 +182,8 @@ PyObject *ten_py_ten_env_send_cmd(PyObject *self, PyObject *args) {
   }
 
   if (!py_ten_env->c_ten_env_proxy) {
-    Py_RETURN_NONE;
+    return ten_py_raise_py_value_error_exception(
+        "ten_env.send_cmd() failed because the c_ten_env_proxy is invalid.");
   }
 
   bool success = true;

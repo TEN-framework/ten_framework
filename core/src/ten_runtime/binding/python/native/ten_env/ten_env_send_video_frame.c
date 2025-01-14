@@ -152,7 +152,9 @@ PyObject *ten_py_ten_env_send_video_frame(PyObject *self, PyObject *args) {
              "Invalid argument.");
 
   if (!py_ten_env->c_ten_env_proxy) {
-    Py_RETURN_NONE;
+    return ten_py_raise_py_value_error_exception(
+        "ten_env.send_video_frame() failed because the c_ten_env_proxy is "
+        "invalid.");
   }
 
   bool success = true;

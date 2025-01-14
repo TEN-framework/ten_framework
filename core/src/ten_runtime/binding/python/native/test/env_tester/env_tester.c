@@ -33,16 +33,7 @@ static void ten_py_ten_env_tester_c_part_destroyed(
                  ten_py_ten_env_tester_check_integrity(ten_env_tester_bridge_),
              "Should not happen.");
 
-  // TODO(Wei): Access to `c_ten_env_tester_proxy` may result in threading
-  // issues. There is a possibility that it could be used simultaneously in a
-  // Python thread and released in a C pthread. A mechanism is needed to resolve
-  // this issue.
   ten_env_tester_bridge->c_ten_env_tester = NULL;
-  if (ten_env_tester_bridge->c_ten_env_tester_proxy) {
-    ten_env_tester_proxy_release(ten_env_tester_bridge->c_ten_env_tester_proxy,
-                                 NULL);
-    ten_env_tester_bridge->c_ten_env_tester_proxy = NULL;
-  }
 
   ten_py_ten_env_tester_invalidate(ten_env_tester_bridge);
 }
@@ -150,6 +141,7 @@ PyTypeObject *ten_py_ten_env_tester_type(void) {
   static PyMethodDef ten_methods[] = {
       {"on_start_done", ten_py_ten_env_tester_on_start_done, METH_VARARGS,
        NULL},
+      {"on_stop_done", ten_py_ten_env_tester_on_stop_done, METH_VARARGS, NULL},
       {"stop_test", ten_py_ten_env_tester_stop_test, METH_VARARGS, NULL},
       {"send_cmd", ten_py_ten_env_tester_send_cmd, METH_VARARGS, NULL},
       {"send_data", ten_py_ten_env_tester_send_data, METH_VARARGS, NULL},

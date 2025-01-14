@@ -175,7 +175,9 @@ PyObject *ten_py_ten_env_return_result(PyObject *self, PyObject *args) {
              "Invalid argument.");
 
   if (!py_ten_env->c_ten_env_proxy) {
-    Py_RETURN_NONE;
+    return ten_py_raise_py_value_error_exception(
+        "ten_env.return_result() failed because the c_ten_env_proxy is "
+        "invalid.");
   }
 
   bool success = true;
@@ -247,7 +249,9 @@ PyObject *ten_py_ten_env_return_result_directly(PyObject *self,
              "Invalid argument.");
 
   if (!py_ten_env->c_ten_env_proxy) {
-    Py_RETURN_NONE;
+    return ten_py_raise_py_value_error_exception(
+        "ten_env.return_result_directly() failed because the c_ten_env_proxy "
+        "is invalid.");
   }
 
   bool success = true;
