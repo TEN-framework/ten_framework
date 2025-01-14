@@ -151,6 +151,14 @@ PyObject *ten_py_ten_env_send_video_frame(PyObject *self, PyObject *args) {
   TEN_ASSERT(py_ten_env && ten_py_ten_env_check_integrity(py_ten_env),
              "Invalid argument.");
 
+  ten_py_video_frame_t *py_video_frame = NULL;
+  PyObject *cb_func = NULL;
+  if (!PyArg_ParseTuple(args, "O!O", ten_py_video_frame_py_type(),
+                        &py_video_frame, &cb_func)) {
+    return ten_py_raise_py_type_error_exception(
+        "Invalid argument type when send video_frame.");
+  }
+
   if (!py_ten_env->c_ten_env_proxy) {
     return ten_py_raise_py_value_error_exception(
         "ten_env.send_video_frame() failed because the c_ten_env_proxy is "
@@ -161,17 +169,6 @@ PyObject *ten_py_ten_env_send_video_frame(PyObject *self, PyObject *args) {
 
   ten_error_t err;
   ten_error_init(&err);
-
-  ten_py_video_frame_t *py_video_frame = NULL;
-  PyObject *cb_func = NULL;
-
-  if (!PyArg_ParseTuple(args, "O!O", ten_py_video_frame_py_type(),
-                        &py_video_frame, &cb_func)) {
-    success = false;
-    ten_py_raise_py_type_error_exception(
-        "Invalid argument type when send video_frame.");
-    goto done;
-  }
 
   // Check if cb_func is callable.
   if (!PyCallable_Check(cb_func)) {
@@ -193,14 +190,12 @@ PyObject *ten_py_ten_env_send_video_frame(PyObject *self, PyObject *args) {
     ten_env_notify_send_video_frame_ctx_destroy(notify_info);
     success = false;
     ten_py_raise_py_runtime_error_exception("Failed to send video_frame.");
-    goto done;
   } else {
     // Destroy the C message from the Python message as the ownership has been
     // transferred to the notify_info.
     ten_py_msg_destroy_c_msg(&py_video_frame->msg);
   }
 
-done:
   ten_error_deinit(&err);
 
   if (success) {

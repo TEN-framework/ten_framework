@@ -114,7 +114,7 @@ PyObject *ten_py_ten_env_set_property_from_json(PyObject *self,
 
   if (!py_ten_env->c_ten_env_proxy) {
     return ten_py_raise_py_value_error_exception(
-        "ten_env.set_property_from_json() failed because the c_ten_env_proxy is "
+        "ten_env.set_property_from_json() failed because ten_env_proxy is "
         "invalid.");
   }
 
@@ -155,7 +155,8 @@ PyObject *ten_py_ten_env_set_property_int(PyObject *self, PyObject *args) {
   }
 
   if (!py_ten_env->c_ten_env_proxy) {
-    Py_RETURN_NONE;
+    return ten_py_raise_py_value_error_exception(
+        "ten_env.set_property_int() failed because ten_env_proxy is invalid.");
   }
 
   ten_value_t *c_value = ten_value_create_int64(value);
@@ -187,7 +188,9 @@ PyObject *ten_py_ten_env_set_property_string(PyObject *self, PyObject *args) {
   }
 
   if (!py_ten_env->c_ten_env_proxy) {
-    Py_RETURN_NONE;
+    return ten_py_raise_py_value_error_exception(
+        "ten_env.set_property_string() failed because ten_env_proxy is "
+        "invalid.");
   }
 
   ten_value_t *c_value = ten_value_create_string(value);
@@ -219,7 +222,8 @@ PyObject *ten_py_ten_env_set_property_bool(PyObject *self, PyObject *args) {
   }
 
   if (!py_ten_env->c_ten_env_proxy) {
-    Py_RETURN_NONE;
+    return ten_py_raise_py_value_error_exception(
+        "ten_env.set_property_bool() failed because ten_env_proxy is invalid.");
   }
 
   ten_value_t *c_value = ten_value_create_bool(value > 0);
@@ -251,7 +255,9 @@ PyObject *ten_py_ten_env_set_property_float(PyObject *self, PyObject *args) {
   }
 
   if (!py_ten_env->c_ten_env_proxy) {
-    Py_RETURN_NONE;
+    return ten_py_raise_py_value_error_exception(
+        "ten_env.set_property_float() failed because ten_env_proxy is "
+        "invalid.");
   }
 
   ten_value_t *c_value = ten_value_create_float64(value);

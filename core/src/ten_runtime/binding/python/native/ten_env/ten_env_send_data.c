@@ -150,6 +150,14 @@ PyObject *ten_py_ten_env_send_data(PyObject *self, PyObject *args) {
   TEN_ASSERT(py_ten_env && ten_py_ten_env_check_integrity(py_ten_env),
              "Invalid argument.");
 
+  ten_py_data_t *py_data = NULL;
+  PyObject *cb_func = NULL;
+  if (!PyArg_ParseTuple(args, "O!O", ten_py_data_py_type(), &py_data,
+                        &cb_func)) {
+    return ten_py_raise_py_type_error_exception(
+        "Invalid argument type when send data.");
+  }
+
   if (!py_ten_env->c_ten_env_proxy) {
     return ten_py_raise_py_value_error_exception(
         "ten_env.send_data() failed because the c_ten_env_proxy is invalid.");
@@ -159,17 +167,6 @@ PyObject *ten_py_ten_env_send_data(PyObject *self, PyObject *args) {
 
   ten_error_t err;
   ten_error_init(&err);
-
-  ten_py_data_t *py_data = NULL;
-  PyObject *cb_func = NULL;
-
-  if (!PyArg_ParseTuple(args, "O!O", ten_py_data_py_type(), &py_data,
-                        &cb_func)) {
-    success = false;
-    ten_py_raise_py_type_error_exception(
-        "Invalid argument type when send data.");
-    goto done;
-  }
 
   // Check if cb_func is callable.
   if (!PyCallable_Check(cb_func)) {
@@ -190,14 +187,12 @@ PyObject *ten_py_ten_env_send_data(PyObject *self, PyObject *args) {
     ten_env_notify_send_data_ctx_destroy(notify_info);
     success = false;
     ten_py_raise_py_runtime_error_exception("Failed to send data.");
-    goto done;
   } else {
     // Destroy the C message from the Python message as the ownership has been
     // transferred to the notify_info.
     ten_py_msg_destroy_c_msg(&py_data->msg);
   }
 
-done:
   ten_error_deinit(&err);
 
   if (success) {
