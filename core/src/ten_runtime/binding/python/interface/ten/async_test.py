@@ -43,6 +43,13 @@ class AsyncTenEnvTester(TenEnvTesterBase):
         # Wait for the internal thread to finish.
         self._ten_thread.join()
 
+        # Since the `_ten_thread` used by the asyncio task queue has already
+        # ended, we can be confident that no Python code will be using `ten_env`
+        # at this point. (Of course, if the user has created their own Python
+        # threads that are holding onto `ten_env`, they will need to handle the
+        # thread-safety issues themselves.) Therefore, it is safe to call
+        # `on_stop_done`, during which `ten_env` (_proxy) will be released.
+
         self._internal.on_stop_done()
 
     def _on_release(self) -> None:
@@ -161,6 +168,12 @@ class AsyncExtensionTester(_ExtensionTester):
         await self._ten_stop_event.wait()
 
         await self._wrapper_on_stop(self._async_ten_env_tester)
+
+        # We cannot directly call `on_stop_done` here as above, because after
+        # `on_stop_done`, `ten_env_proxy` will be released. Therefore, we need
+        # to wait until certain essential tasks are completed before calling
+        # `on_stop_done`. Otherwise, if anything needs to use `ten_env` (_proxy)
+        # after `on_stop_done`, it will cause issues.
 
         self._async_ten_env_tester._deinit()
 
