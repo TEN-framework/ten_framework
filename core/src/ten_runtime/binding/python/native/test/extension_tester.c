@@ -125,6 +125,15 @@ static void proxy_on_stop(ten_extension_tester_t *extension_tester,
   TEN_ASSERT(!err_occurred, "Should not happen.");
 
   ten_py_gil_state_release_internal(prev_state);
+
+  // Do not release `py_ten_env_tester->c_ten_env_tester_proxy` here, because
+  // the upper layer may still need to call the API of `ten_env` (e.g., some
+  // asynchronous operations) before `on_stop_done`. Therefore, the proxy
+  // should only be released after `on_stop_done`.
+  //
+  // This practice of releasing `ten_env_proxy` at the very end (i.e., after the
+  // `on_deinit_done` of the extension and the `on_stop_done` of the app) is a
+  // common feature across all language bindings of TEN.
 }
 
 static void proxy_on_cmd(ten_extension_tester_t *extension_tester,

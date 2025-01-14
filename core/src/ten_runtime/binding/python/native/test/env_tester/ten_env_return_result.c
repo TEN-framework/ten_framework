@@ -125,29 +125,20 @@ PyObject *ten_py_ten_env_tester_return_result(PyObject *self, PyObject *args) {
         "Invalid argument count when ten_env_tester.return_result.");
   }
 
-  if (!py_ten_env_tester->c_ten_env_tester_proxy) {
-    return ten_py_raise_py_value_error_exception(
-        "ten_env_tester.return_result() failed because the "
-        "c_ten_env_tester_proxy is "
-        "invalid.");
-  }
-
-  bool success = true;
-
-  ten_error_t err;
-  ten_error_init(&err);
-
   ten_py_cmd_result_t *py_cmd_result = NULL;
   ten_py_cmd_t *py_target_cmd = NULL;
   PyObject *cb_func = NULL;
-
   if (!PyArg_ParseTuple(args, "O!O!O", ten_py_cmd_result_py_type(),
                         &py_cmd_result, ten_py_cmd_py_type(), &py_target_cmd,
                         &cb_func)) {
-    success = false;
-    ten_py_raise_py_type_error_exception(
+    return ten_py_raise_py_type_error_exception(
         "Invalid argument type when return result.");
-    goto done;
+  }
+
+  if (!py_ten_env_tester->c_ten_env_tester_proxy) {
+    return ten_py_raise_py_value_error_exception(
+        "ten_env_tester.return_result() failed because ten_env_tester_proxy is "
+        "invalid.");
   }
 
   // Check if cb_func is callable.
@@ -155,11 +146,14 @@ PyObject *ten_py_ten_env_tester_return_result(PyObject *self, PyObject *args) {
     cb_func = NULL;
   }
 
+  ten_error_t err;
+  ten_error_init(&err);
+
   ten_py_ten_env_tester_notify_return_result_ctx_t *ctx =
       ten_py_ten_env_tester_notify_return_result_ctx_create(
           py_cmd_result->msg.c_msg, py_target_cmd->msg.c_msg, cb_func);
 
-  success = ten_env_tester_proxy_notify(
+  bool success = ten_env_tester_proxy_notify(
       py_ten_env_tester->c_ten_env_tester_proxy,
       ten_py_ten_env_tester_notify_return_result_proxy_notify, ctx, &err);
 
@@ -167,7 +161,6 @@ PyObject *ten_py_ten_env_tester_return_result(PyObject *self, PyObject *args) {
     ten_py_ten_env_tester_notify_return_result_ctx_destroy(ctx);
 
     ten_py_raise_py_runtime_error_exception("Failed to return result.");
-    goto done;
   } else {
     if (ten_cmd_result_is_final(py_cmd_result->msg.c_msg, &err)) {
       // Remove the C message from the python target message if it is the final
@@ -178,7 +171,6 @@ PyObject *ten_py_ten_env_tester_return_result(PyObject *self, PyObject *args) {
     ten_py_msg_destroy_c_msg(&py_cmd_result->msg);
   }
 
-done:
   ten_error_deinit(&err);
 
   if (success) {
