@@ -160,6 +160,8 @@ class AsyncExtensionTester(_ExtensionTester):
         # Suspend the thread until stopEvent is set.
         await self._ten_stop_event.wait()
 
+        await self._wrapper_on_stop(self._async_ten_env_tester)
+
         self._async_ten_env_tester._deinit()
 
     async def _stop_thread(self):
@@ -177,6 +179,12 @@ class AsyncExtensionTester(_ExtensionTester):
     ) -> None:
         try:
             await self.on_start(ten_env_tester)
+        except Exception as e:
+            self._exit_on_exception(ten_env_tester, e)
+
+    async def _wrapper_on_stop(self, ten_env_tester: AsyncTenEnvTester) -> None:
+        try:
+            await self.on_stop(ten_env_tester)
         except Exception as e:
             self._exit_on_exception(ten_env_tester, e)
 
@@ -265,6 +273,9 @@ class AsyncExtensionTester(_ExtensionTester):
         return _ExtensionTester.run(self)
 
     async def on_start(self, ten_env_tester: AsyncTenEnvTester) -> None:
+        pass
+
+    async def on_stop(self, ten_env_tester: AsyncTenEnvTester) -> None:
         pass
 
     async def on_cmd(self, ten_env_tester: AsyncTenEnvTester, cmd: Cmd) -> None:
