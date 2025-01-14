@@ -98,6 +98,11 @@ PyObject *ten_py_ten_env_tester_log(PyObject *self, TEN_UNUSED PyObject *args) {
         "Failed to parse argument when ten_env.log.");
   }
 
+  if (!py_ten_env_tester->c_ten_env_tester_proxy) {
+    return ten_py_raise_py_value_error_exception(
+        "ten_env_tester.log() failed because ten_env_tester_proxy is invalid.");
+  }
+
   ten_error_t err;
   ten_error_init(&err);
 

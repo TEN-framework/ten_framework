@@ -54,6 +54,10 @@ class ExtensionTesterBasic(ExtensionTester):
         ten_env.log_info("tester on_start_done")
         ten_env.on_start_done()
 
+    def on_stop(self, ten_env: TenEnvTester) -> None:
+        ten_env.log_info("tester on_stop")
+        ten_env.on_stop_done()
+
 
 def test_basic():
     tester = ExtensionTesterBasic()

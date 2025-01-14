@@ -56,8 +56,9 @@ static void proxy_on_start(ten_extension_tester_t *extension_tester,
   TEN_ASSERT(extension_tester &&
                  ten_extension_tester_check_integrity(extension_tester, true),
              "Invalid argument.");
-  TEN_ASSERT(ten_env_tester && ten_env_tester_check_integrity(ten_env_tester),
-             "Invalid argument.");
+  TEN_ASSERT(
+      ten_env_tester && ten_env_tester_check_integrity(ten_env_tester, true),
+      "Invalid argument.");
 
   // About to call the Python function, so it's necessary to ensure that the GIL
   // has been acquired.
@@ -95,8 +96,9 @@ static void proxy_on_stop(ten_extension_tester_t *extension_tester,
   TEN_ASSERT(extension_tester &&
                  ten_extension_tester_check_integrity(extension_tester, true),
              "Invalid argument.");
-  TEN_ASSERT(ten_env_tester && ten_env_tester_check_integrity(ten_env_tester),
-             "Invalid argument.");
+  TEN_ASSERT(
+      ten_env_tester && ten_env_tester_check_integrity(ten_env_tester, true),
+      "Invalid argument.");
 
   ten_py_extension_tester_t *py_extension_tester =
       (ten_py_extension_tester_t *)ten_binding_handle_get_me_in_target_lang(
@@ -124,11 +126,14 @@ static void proxy_on_stop(ten_extension_tester_t *extension_tester,
 
   ten_py_gil_state_release_internal(prev_state);
 
-  // Release the ten_env_tester_proxy.
-  ten_env_tester_proxy_release(py_ten_env_tester->c_ten_env_tester_proxy, NULL);
-  py_ten_env_tester->c_ten_env_tester_proxy = NULL;
-
-  ten_env_tester_on_stop_done(ten_env_tester, NULL);
+  // Do not release `py_ten_env_tester->c_ten_env_tester_proxy` here, because
+  // the upper layer may still need to call the API of `ten_env` (e.g., some
+  // asynchronous operations) before `on_stop_done`. Therefore, the proxy
+  // should only be released after `on_stop_done`.
+  //
+  // This practice of releasing `ten_env_proxy` at the very end (i.e., after the
+  // `on_deinit_done` of the extension and the `on_stop_done` of the app) is a
+  // common feature across all language bindings of TEN.
 }
 
 static void proxy_on_cmd(ten_extension_tester_t *extension_tester,
@@ -137,8 +142,9 @@ static void proxy_on_cmd(ten_extension_tester_t *extension_tester,
   TEN_ASSERT(extension_tester &&
                  ten_extension_tester_check_integrity(extension_tester, true),
              "Invalid argument.");
-  TEN_ASSERT(ten_env_tester && ten_env_tester_check_integrity(ten_env_tester),
-             "Invalid argument.");
+  TEN_ASSERT(
+      ten_env_tester && ten_env_tester_check_integrity(ten_env_tester, true),
+      "Invalid argument.");
   TEN_ASSERT(cmd && ten_msg_check_integrity(cmd), "Invalid argument.");
 
   // About to call the Python function, so it's necessary to ensure that the GIL
@@ -180,8 +186,9 @@ static void proxy_on_data(ten_extension_tester_t *extension_tester,
   TEN_ASSERT(extension_tester &&
                  ten_extension_tester_check_integrity(extension_tester, true),
              "Invalid argument.");
-  TEN_ASSERT(ten_env_tester && ten_env_tester_check_integrity(ten_env_tester),
-             "Invalid argument.");
+  TEN_ASSERT(
+      ten_env_tester && ten_env_tester_check_integrity(ten_env_tester, true),
+      "Invalid argument.");
   TEN_ASSERT(data && ten_msg_check_integrity(data), "Invalid argument.");
 
   // About to call the Python function, so it's necessary to ensure that the GIL
@@ -223,8 +230,9 @@ static void proxy_on_audio_frame(ten_extension_tester_t *extension_tester,
   TEN_ASSERT(extension_tester &&
                  ten_extension_tester_check_integrity(extension_tester, true),
              "Invalid argument.");
-  TEN_ASSERT(ten_env_tester && ten_env_tester_check_integrity(ten_env_tester),
-             "Invalid argument.");
+  TEN_ASSERT(
+      ten_env_tester && ten_env_tester_check_integrity(ten_env_tester, true),
+      "Invalid argument.");
   TEN_ASSERT(audio_frame && ten_msg_check_integrity(audio_frame),
              "Invalid argument.");
 
@@ -267,8 +275,9 @@ static void proxy_on_video_frame(ten_extension_tester_t *extension_tester,
   TEN_ASSERT(extension_tester &&
                  ten_extension_tester_check_integrity(extension_tester, true),
              "Invalid argument.");
-  TEN_ASSERT(ten_env_tester && ten_env_tester_check_integrity(ten_env_tester),
-             "Invalid argument.");
+  TEN_ASSERT(
+      ten_env_tester && ten_env_tester_check_integrity(ten_env_tester, true),
+      "Invalid argument.");
   TEN_ASSERT(video_frame && ten_msg_check_integrity(video_frame),
              "Invalid argument.");
 

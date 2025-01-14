@@ -40,6 +40,9 @@ class AsyncExtensionTesterBasic(AsyncExtensionTester):
         if statusCode == StatusCode.OK:
             ten_env.stop_test()
 
+    async def on_stop(self, ten_env: AsyncTenEnvTester) -> None:
+        ten_env.log_info("tester on_stop")
+
 
 def test_basic():
     tester = AsyncExtensionTesterBasic()

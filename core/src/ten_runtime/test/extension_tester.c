@@ -185,7 +185,11 @@ void test_app_ten_env_send_cmd(ten_env_t *ten_env, void *user_data) {
 
 static void ten_extension_tester_destroy_test_target(
     ten_extension_tester_t *self) {
-  TEN_ASSERT(self && ten_extension_tester_check_integrity(self, true),
+  TEN_ASSERT(self &&
+                 // TEN_NOLINTNEXTLINE(thread-check)
+                 // thread-check: In TEN world, the destroy operations need to
+                 // be performed in any threads.
+                 ten_extension_tester_check_integrity(self, false),
              "Invalid argument.");
 
   if (self->test_mode == TEN_EXTENSION_TESTER_TEST_MODE_SINGLE) {
@@ -197,7 +201,11 @@ static void ten_extension_tester_destroy_test_target(
 }
 
 void ten_extension_tester_destroy(ten_extension_tester_t *self) {
-  TEN_ASSERT(self && ten_extension_tester_check_integrity(self, true),
+  TEN_ASSERT(self &&
+                 // TEN_NOLINTNEXTLINE(thread-check)
+                 // thread-check: In TEN world, the destroy operations need to
+                 // be performed in any threads.
+                 ten_extension_tester_check_integrity(self, false),
              "Invalid argument.");
 
   TEN_ASSERT(self->test_app_ten_env_proxy == NULL,

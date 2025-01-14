@@ -27,9 +27,7 @@ class AsyncExtension(_Extension):
         self._ten_stop_event = asyncio.Event()
 
     def __del__(self) -> None:
-        self._ten_stop_event.set()
-        if hasattr(self, "_ten_thread"):
-            self._ten_thread.join()
+        pass
 
     async def _thread_routine(self, ten_env: TenEnv):
         self._ten_loop = asyncio.get_running_loop()
