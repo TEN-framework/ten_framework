@@ -15,8 +15,8 @@ use ten_rust::pkg_info::get_pkg_info_from_path;
 
 use crate::config::TmanConfig;
 use crate::log::tman_verbose_println;
-use crate::package_file::create_package_zip_file;
-use crate::package_file::get_package_zip_file_name;
+use crate::package_file::create_package_tar_gz_file;
+use crate::package_file::get_package_file_name;
 use crate::registry::upload_package;
 
 #[derive(Debug)]
@@ -49,16 +49,16 @@ pub async fn execute_cmd(
     let cwd = crate::fs::get_cwd()?;
 
     let pkg_info = get_pkg_info_from_path(&cwd, true)?;
-    let output_zip_file_name = get_package_zip_file_name(&pkg_info)?;
+    let output_pkg_file_name = get_package_file_name(&pkg_info)?;
 
-    // Generate the zip file.
-    let output_zip_file_path_str =
-        create_package_zip_file(tman_config, &output_zip_file_name, &cwd)?;
+    // Generate the package file.
+    let output_pkg_file_path_str =
+        create_package_tar_gz_file(tman_config, &output_pkg_file_name, &cwd)?;
 
-    upload_package(tman_config, &output_zip_file_path_str, &pkg_info).await?;
+    upload_package(tman_config, &output_pkg_file_path_str, &pkg_info).await?;
 
     if tman_config.mi_mode {
-        println!("Publish to {:?}", output_zip_file_path_str);
+        println!("Publish to {:?}", output_pkg_file_path_str);
     } else {
         println!(
             "{}  Publish successfully in {}",
@@ -67,8 +67,8 @@ pub async fn execute_cmd(
         );
     }
 
-    // Remove the zip file.
-    std::fs::remove_file(&output_zip_file_path_str)?;
+    // Remove the package file.
+    std::fs::remove_file(&output_pkg_file_path_str)?;
 
     Ok(())
 }

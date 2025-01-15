@@ -16,7 +16,7 @@ use ten_rust::pkg_info::get_pkg_info_from_path;
 use crate::{
     config::TmanConfig,
     log::tman_verbose_println,
-    package_file::{create_package_zip_file, get_package_zip_file_name},
+    package_file::{create_package_tar_gz_file, get_package_file_name},
 };
 
 #[derive(Debug)]
@@ -49,15 +49,15 @@ pub async fn execute_cmd(
     let cwd = crate::fs::get_cwd()?;
 
     let pkg_info = get_pkg_info_from_path(&cwd, true)?;
-    let output_zip_file_name = get_package_zip_file_name(&pkg_info)?;
+    let output_pkg_file_name = get_package_file_name(&pkg_info)?;
 
-    let output_zip_file_path_str =
-        create_package_zip_file(tman_config, &output_zip_file_name, &cwd)?;
+    let output_pkg_file_path_str =
+        create_package_tar_gz_file(tman_config, &output_pkg_file_name, &cwd)?;
 
     println!(
         "{}  Pack package to {:?} in {}",
         Emoji("🏆", ":-)"),
-        output_zip_file_path_str,
+        output_pkg_file_path_str,
         HumanDuration(started.elapsed())
     );
 

@@ -38,7 +38,7 @@ use crate::{
     manifest_lock::{
         parse_manifest_lock_in_folder, write_pkg_lockfile, ManifestLock,
     },
-    package_file::unzip::extract_and_process_zip,
+    package_file::unpackage::extract_and_process_tar_gz,
     solver::solver_result::filter_solver_results_by_type_and_name,
 };
 use installed_paths::save_installed_paths;
@@ -136,7 +136,7 @@ async fn install_non_local_dependency_pkg_info(
     let mut temp_file = NamedTempFile::new()?;
     get_package(tman_config, &pkg_info.url, &mut temp_file).await?;
 
-    let mut installed_paths = extract_and_process_zip(
+    let mut installed_paths = extract_and_process_tar_gz(
         &temp_file.path().to_string_lossy(),
         dest_dir_path,
         None,

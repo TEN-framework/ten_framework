@@ -15,7 +15,7 @@ use ten_rust::pkg_info::pkg_type::PkgType;
 
 use crate::{
     config::TmanConfig,
-    package_file::unzip::extract_and_process_zip,
+    package_file::unpackage::extract_and_process_tar_gz,
     registry::{get_package, get_package_list, SearchCriteria},
 };
 
@@ -116,7 +116,7 @@ pub async fn create_pkg_in_path(
     });
 
     // Extract the downloaded package into the target directory.
-    extract_and_process_zip(
+    extract_and_process_tar_gz(
         &temp_file.path().to_string_lossy(),
         target_path.to_str().unwrap(),
         template_ctx.as_ref(),
