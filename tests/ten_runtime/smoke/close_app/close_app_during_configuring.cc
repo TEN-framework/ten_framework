@@ -43,8 +43,13 @@ class test_extension_2 : public ten::extension_t {
   explicit test_extension_2(const char *name) : ten::extension_t(name) {}
 
   void on_configure(ten::ten_env_t &ten_env) override {
+    // Create a ten_env_proxy to be used in the other thread.
     auto *ten_env_proxy = ten::ten_env_proxy_t::create(ten_env);
 
+    // Start a thread and have it wait for 1 second to explicitly simulate the
+    // `on_xxx_done` event occurring only after the close app action has been
+    // triggered. The actual close app process will only take place after the
+    // `on_xxx_done` event has occurred.
     thread_ = std::thread([ten_env_proxy]() {
       ten_sleep(1000);
 
@@ -57,6 +62,9 @@ class test_extension_2 : public ten::extension_t {
 
   void on_stop(ten::ten_env_t &ten_env) override {
     thread_.join();
+
+    // After ensuring the other thread is joined, we could declare
+    // `on_stop_done`.
     ten_env.on_stop_done();
   }
 
