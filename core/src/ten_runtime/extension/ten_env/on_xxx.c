@@ -107,7 +107,7 @@ bool ten_extension_on_configure_done(ten_env_t *self) {
     // thread is about to shut down.
     TEN_LOGD(
         "[%s] Since the close process has already been triggered, no further "
-        "steps will be carried out after `on_configure_done`. Call on_stop() "
+        "steps will be carried out after `on_configure_done`. Enter `on_stop`"
         "immediately.",
         ten_extension_get_name(extension, true));
 
@@ -211,7 +211,7 @@ bool ten_extension_on_init_done(ten_env_t *self) {
   if (extension_thread->is_close_triggered) {
     TEN_LOGD(
         "[%s] Since the close process has already been triggered, no further "
-        "steps will be carried out after `on_init_done`. Call on_stop() "
+        "steps will be carried out after `on_init_done`. Enter `on_stop`"
         "immediately.",
         ten_extension_get_name(extension, true));
 
@@ -285,7 +285,7 @@ bool ten_extension_on_start_done(ten_env_t *self) {
   if (extension_thread->is_close_triggered) {
     TEN_LOGD(
         "[%s] Since the close process has already been triggered, no further "
-        "steps will be carried out after `on_start_done`. Call on_stop() "
+        "steps will be carried out after `on_start_done`. Enter `on_stop`"
         "immediately.",
         ten_extension_get_name(extension, true));
 
