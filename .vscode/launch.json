@@ -492,7 +492,7 @@
       "name": "app (C/C++) (lldb, launch)",
       "type": "lldb",
       "request": "launch",
-      "program": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/nodejs/cpp_app_nodejs/cpp_app_nodejs_app/bin/cpp_app_nodejs_app_source",
+      "program": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/nodejs/cpp_app_nodejs/cpp_app_nodejs_app/bin/cpp_app_nodejs_app",
       "args": [],
       "cwd": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/nodejs/cpp_app_nodejs/cpp_app_nodejs_app",
       "env": {
@@ -503,7 +503,7 @@
       "name": "app (C/C++) (cppdbg, launch)",
       "type": "cppdbg",
       "request": "launch",
-      "program": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/nodejs/cpp_app_nodejs/cpp_app_nodejs_app/bin/cpp_app_nodejs_app_source",
+      "program": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/nodejs/cpp_app_nodejs/cpp_app_nodejs_app/bin/cpp_app_nodejs_app",
       "args": [],
       "cwd": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/nodejs/cpp_app_nodejs/cpp_app_nodejs_app",
       "sourceFileMap": {

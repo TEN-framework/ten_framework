@@ -115,7 +115,7 @@ class nodejs_addon_loader_t : public ten::addon_loader_t {
     TEN_ASSERT(module_path, "Failed to get module path.");
 
     ten_string_t *nodejs_lib_path = ten_string_create_formatted(
-        "%s/libnode.so", ten_string_get_raw_str(module_path));
+        "%s/libnode.so.127", ten_string_get_raw_str(module_path));
 
     // The libnode.so must be loaded globally using dlopen, and cannot be a
     // regular shared library dependency. Note that the 2nd parameter must be

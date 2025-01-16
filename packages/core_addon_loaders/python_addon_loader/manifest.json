@@ -1,7 +1,7 @@
 {
   "type": "addon_loader",
   "name": "python_addon_loader",
-  "version": "0.6.0",
+  "version": "0.7.1",
   "dependencies": [
     {
       "type": "system",
