@@ -34,9 +34,17 @@ import {
   ContextMenuTrigger,
 } from "@/components/ui/ContextMenu";
 import { useWidgetStore } from "@/store/widget";
+import { useDialogStore } from "@/store/dialog";
 import { EWidgetCategory, EWidgetDisplayType, IWidget } from "@/types/widgets";
 import TerminalWidget from "@/components/Widget/TerminalWidget";
 import EditorWidget from "@/components/Widget/EditorWidget";
+
+import { type TEditorOnClose } from "@/components/Widget/EditorWidget";
+
+type TEditorRef = {
+  onClose: (onClose: TEditorOnClose) => void;
+  id: string;
+};
 
 export default function DockContainer(props: {
   position?: string;
@@ -51,6 +59,9 @@ export default function DockContainer(props: {
 
   const { widgets, removeWidget, removeWidgets, updateWidgetDisplayType } =
     useWidgetStore();
+  const { appendDialog, removeDialog } = useDialogStore();
+
+  const editorRef = React.useRef<TEditorRef | null>(null);
 
   const dockWidgetsMemo = React.useMemo(
     () =>
@@ -75,7 +86,89 @@ export default function DockContainer(props: {
   }, [dockWidgetsMemo, selectedWidgetId]);
 
   const handlePopout = (id: string) => {
+    const isEditor =
+      dockWidgetsMemo.find((w) => w.id === id)?.category ===
+      EWidgetCategory.Editor;
+    if (isEditor) {
+      console.log("[DockContainer] handlePopout:", id, editorRef.current);
+      (editorRef.current as TEditorRef)?.onClose({
+        postConfirm: async () => {
+          updateWidgetDisplayType(id, EWidgetDisplayType.Popup);
+        },
+        postCancel: async () => {
+          updateWidgetDisplayType(id, EWidgetDisplayType.Popup);
+        },
+      });
+      return;
+    }
     updateWidgetDisplayType(id, EWidgetDisplayType.Popup);
+  };
+
+  const handleCloseAllTabs = () => {
+    const hasEditorTabs = dockWidgetsMemo.some(
+      (w) => w.category === EWidgetCategory.Editor
+    );
+    if (hasEditorTabs) {
+      appendDialog({
+        id: "close-all-tabs",
+        title: "Close All Tabs",
+        content:
+          "Are you sure you want to close all tabs? " +
+          "All unsaved changes will be lost.",
+        onConfirm: async () => {
+          console.log("close all tabs");
+          removeDialog("close-all-tabs");
+          await removeWidgets(dockWidgetsMemo.map((w) => w.id));
+        },
+        onCancel: async () => {
+          removeDialog("close-all-tabs");
+        },
+      });
+      return;
+    }
+    removeWidgets(dockWidgetsMemo.map((w) => w.id));
+  };
+
+  const handleCloseTab = (id: string) => () => {
+    const isEditor =
+      dockWidgetsMemo.find((w) => w.id === id)?.category ===
+      EWidgetCategory.Editor;
+    if (isEditor) {
+      (editorRef.current as TEditorRef)?.onClose({
+        postCancel: async () => {
+          removeWidget(id);
+        },
+        postConfirm: async () => {
+          removeWidget(id);
+        },
+      });
+      return;
+    }
+    removeWidget(id);
+  };
+
+  const handleChangePosition = (position: string) => {
+    const hasEditorTabs = dockWidgetsMemo.some(
+      (w) => w.category === EWidgetCategory.Editor
+    );
+    if (hasEditorTabs) {
+      appendDialog({
+        id: "change-position",
+        title: "Change Position",
+        content:
+          "Are you sure you want to change the position? " +
+          "All unsaved changes will be lost.",
+        onConfirm: async () => {
+          removeDialog("change-position");
+          onPositionChange?.(position);
+        },
+        onCancel: async () => {
+          removeDialog("change-position");
+        },
+      });
+      return;
+    }
+    onPositionChange?.(position);
   };
 
   return (
@@ -85,10 +178,8 @@ export default function DockContainer(props: {
       <DockHeader
         className="text-primary"
         position={position}
-        onPositionChange={onPositionChange}
-        onClose={() => {
-          removeWidgets(dockWidgetsMemo.map((w) => w.id));
-        }}
+        onPositionChange={handleChangePosition}
+        onClose={handleCloseAllTabs}
       >
         <ul className="w-full overflow-x-auto flex items-center gap-2">
           {dockWidgetsMemo.map((widget) => (
@@ -98,7 +189,7 @@ export default function DockContainer(props: {
                 selected={selectedWidgetId === widget.id}
                 onSelect={setSelectedWidgetId}
                 onPopout={handlePopout}
-                onClose={() => removeWidget(widget.id)}
+                onClose={handleCloseTab(widget.id)}
               />
             </li>
           ))}
@@ -131,6 +222,7 @@ export default function DockContainer(props: {
             <EditorWidget
               id={selectedWidgetMemo.id}
               data={selectedWidgetMemo.metadata}
+              ref={editorRef}
             />
           )}
         </div>

@@ -23,10 +23,19 @@ import { type IDialog, useDialogStore } from "@/store/dialog";
 
 import type { EditorData } from "@/types/widgets";
 
-interface EditorWidgetProps {
+export interface EditorWidgetProps {
   id: string;
   data: EditorData;
 }
+
+export type TEditorOnClose = {
+  postConfirm?: () => Promise<void>;
+  postCancel?: () => Promise<void>;
+  title?: string;
+  content?: string;
+  confirmLabel?: string;
+  cancelLabel?: string;
+};
 
 const EditorWidget = React.forwardRef<unknown, EditorWidgetProps>(
   ({ id, data }, ref) => {
@@ -70,6 +79,7 @@ const EditorWidget = React.forwardRef<unknown, EditorWidgetProps>(
     const { theme } = useContext(ThemeProviderContext);
 
     useImperativeHandle(ref, () => ({
+      id,
       onClose: ({
         postConfirm = () => Promise.resolve(),
         postCancel = () => Promise.resolve(),
@@ -77,14 +87,8 @@ const EditorWidget = React.forwardRef<unknown, EditorWidgetProps>(
         content = t("popup.editor.confirmSaveFile"),
         confirmLabel = t("action.save"),
         cancelLabel = t("action.discard"),
-      }: {
-        postConfirm?: () => Promise<void>;
-        postCancel?: () => Promise<void>;
-        title?: string;
-        content?: string;
-        confirmLabel?: string;
-        cancelLabel?: string;
-      }) => {
+      }: TEditorOnClose) => {
+        console.log("[EditorWidget] onClose:", id);
         const dialogId = `confirm-dialog-imperative-${id}`;
         appendDialog({
           id: dialogId,

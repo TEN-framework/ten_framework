@@ -9,7 +9,9 @@ import { useTranslation } from "react-i18next";
 import { SaveIcon, PinIcon } from "lucide-react";
 
 import Popup from "@/components/Popup/Popup";
-import EditorWidget from "@/components/Widget/EditorWidget";
+import EditorWidget, {
+  type TEditorOnClose,
+} from "@/components/Widget/EditorWidget";
 import { EWidgetDisplayType } from "@/types/widgets";
 import { useWidgetStore } from "@/store/widget";
 
@@ -24,20 +26,13 @@ interface EditorPopupProps {
   onClose: () => void;
 }
 
-type TEditorPopupRef = {
-  postConfirm?: () => Promise<void>;
-  postCancel?: () => Promise<void>;
-  title?: string;
-  content?: string;
-};
-
 type TEditorPopupRefActions = {
   onClose: ({
     postConfirm,
     postCancel,
     title,
     content,
-  }: TEditorPopupRef) => void;
+  }: TEditorOnClose) => void;
 };
 
 const EditorPopup: React.FC<EditorPopupProps> = ({ id, data, onClose }) => {
