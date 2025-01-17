@@ -26,6 +26,9 @@
   "action": {
     "edit": "Edit",
     "delete": "Delete",
+    "pinToDock": "Pin to Dock",
+    "save": "Save",
+    "discard": "Discard",
     "launchTerminal": "Launch terminal",
     "ok": "OK",
     "cancel": "Cancel",
@@ -41,7 +44,8 @@
   },
   "popup": {
     "editor": {
-      "confirmSaveFile": "Are you sure you want to save the file?"
+      "confirmSaveFile": "Are you sure you want to save the file?",
+      "confirmSaveChanges": "Do you want to save the changes?"
     },
     "selectGraph": {
       "title": "Select a Graph"

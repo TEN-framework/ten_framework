@@ -19,7 +19,7 @@ const AboutPopup: React.FC<AboutPopupProps> = ({ onClose }) => {
   const { t } = useTranslation();
 
   return (
-    <Popup title={t("header.menu.about")} onClose={onClose}>
+    <Popup id="about" title={t("header.menu.about")} onClose={onClose}>
       <div className="text-center">
         <p
           className={cn(

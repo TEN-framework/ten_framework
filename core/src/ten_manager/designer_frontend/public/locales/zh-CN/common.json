@@ -26,6 +26,9 @@
   "action": {
     "edit": "编辑",
     "delete": "删除",
+    "pinToDock": "固定到 Dock",
+    "save": "保存",
+    "discard": "丢弃",
     "launchTerminal": "启动终端",
     "ok": "确定",
     "cancel": "取消",
@@ -41,7 +44,8 @@
   },
   "popup": {
     "editor": {
-      "confirmSaveFile": "确定要保存文件吗？"
+      "confirmSaveFile": "确定要保存文件吗？",
+      "confirmSaveChanges": "确定要保存更改吗？"
     },
     "selectGraph": {
       "title": "选择图表"

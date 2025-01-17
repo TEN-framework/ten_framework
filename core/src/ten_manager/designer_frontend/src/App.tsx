@@ -37,16 +37,39 @@ import {
 import Popup from "@/components/Popup/Popup";
 import type { IGraph } from "@/types/graphs";
 import { ReactFlowDataContext } from "@/context/ReactFlowDataContext";
+import {
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup,
+} from "@/components/ui/Resizable";
+import { GlobalDialogs } from "@/components/GlobalDialogs";
+import Dock from "@/components/Dock";
+import { useWidgetStore } from "@/store/widget";
+import { useDialogStore } from "@/store/dialog";
+import { EWidgetDisplayType } from "@/types/widgets";
 
 const App: React.FC = () => {
   const [graphs, setGraphs] = useState<IGraph[]>([]);
   const [showGraphSelection, setShowGraphSelection] = useState<boolean>(false);
   const [nodes, setNodes] = useState<CustomNodeType[]>([]);
   const [edges, setEdges] = useState<CustomEdgeType[]>([]);
+  const [resizablePanelMode, setResizablePanelMode] = useState<
+    "left" | "bottom" | "right"
+  >("bottom");
 
   // Get the version of tman.
   const { version } = useVersion();
   const { t } = useTranslation();
+  const { widgets } = useWidgetStore();
+  const { dialogs } = useDialogStore();
+
+  const dockWidgetsMemo = React.useMemo(
+    () =>
+      widgets.filter(
+        (widget) => widget.display_type === EWidgetDisplayType.Dock
+      ),
+    [widgets]
+  );
 
   const handleOpenExistingGraph = useCallback(async () => {
     try {
@@ -153,46 +176,83 @@ const App: React.FC = () => {
 
   return (
     <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
-      <ReactFlowDataContext.Provider value={{ nodes, edges }}>
-        <AppBar
-          version={version}
-          onAutoLayout={performAutoLayout}
-          onOpenExistingGraph={handleOpenExistingGraph}
-          onSetBaseDir={handleSetBaseDir}
-        />
-        <FlowCanvas
-          nodes={nodes}
-          edges={edges}
-          onNodesChange={handleNodesChange}
-          onEdgesChange={handleEdgesChange}
-          onConnect={(connection) => {
-            setEdges((eds) => addEdge(connection, eds));
-          }}
-        />
-        {showGraphSelection && (
-          <Popup
-            title={t("popup.selectGraph.title")}
-            onClose={() => setShowGraphSelection(false)}
-            resizable={false}
-            initialWidth={400}
-            initialHeight={300}
-            onCollapseToggle={() => {}}
-          >
-            <ul>
-              {graphs.map((graph) => (
-                <li
-                  key={graph.name}
-                  style={{ cursor: "pointer", padding: "5px 0" }}
-                  onClick={() => handleSelectGraph(graph.name)}
-                >
-                  {graph.name}{" "}
-                  {graph.auto_start ? `(${t("action.autoStart")})` : ""}
-                </li>
-              ))}
-            </ul>
-          </Popup>
-        )}
-      </ReactFlowDataContext.Provider>
+      <ResizablePanelGroup
+        direction={resizablePanelMode === "bottom" ? "vertical" : "horizontal"}
+        className="w-screen h-screen min-h-screen min-w-screen"
+      >
+        <ReactFlowDataContext.Provider value={{ nodes, edges }}>
+          {resizablePanelMode === "left" && dockWidgetsMemo.length > 0 && (
+            <>
+              <ResizablePanel defaultSize={40}>
+                <Dock
+                  position={resizablePanelMode}
+                  onPositionChange={
+                    setResizablePanelMode as (position: string) => void
+                  }
+                />
+              </ResizablePanel>
+              <ResizableHandle />
+            </>
+          )}
+          <ResizablePanel defaultSize={60}>
+            <AppBar
+              version={version}
+              onAutoLayout={performAutoLayout}
+              onOpenExistingGraph={handleOpenExistingGraph}
+              onSetBaseDir={handleSetBaseDir}
+            />
+            <FlowCanvas
+              nodes={nodes}
+              edges={edges}
+              onNodesChange={handleNodesChange}
+              onEdgesChange={handleEdgesChange}
+              onConnect={(connection) => {
+                setEdges((eds) => addEdge(connection, eds));
+              }}
+              className="w-full h-[calc(100%-40px)]"
+            />
+          </ResizablePanel>
+          {resizablePanelMode !== "left" && dockWidgetsMemo.length > 0 && (
+            <>
+              <ResizableHandle />
+              <ResizablePanel defaultSize={40}>
+                <Dock
+                  position={resizablePanelMode}
+                  onPositionChange={
+                    setResizablePanelMode as (position: string) => void
+                  }
+                />
+              </ResizablePanel>
+            </>
+          )}
+          {showGraphSelection && (
+            <Popup
+              title={t("popup.selectGraph.title")}
+              onClose={() => setShowGraphSelection(false)}
+              resizable={false}
+              initialWidth={400}
+              initialHeight={300}
+              onCollapseToggle={() => {}}
+            >
+              <ul>
+                {graphs.map((graph) => (
+                  <li
+                    key={graph.name}
+                    style={{ cursor: "pointer", padding: "5px 0" }}
+                    onClick={() => handleSelectGraph(graph.name)}
+                  >
+                    {graph.name}{" "}
+                    {graph.auto_start ? `(${t("action.autoStart")})` : ""}
+                  </li>
+                ))}
+              </ul>
+            </Popup>
+          )}
+
+          {/* Global dialogs. */}
+          <GlobalDialogs />
+        </ReactFlowDataContext.Provider>
+      </ResizablePanelGroup>
     </ThemeProvider>
   );
 };

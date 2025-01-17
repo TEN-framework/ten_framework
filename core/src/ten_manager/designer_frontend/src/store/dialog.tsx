@@ -1,0 +1,43 @@
+import * as React from "react";
+import { create } from "zustand";
+
+export interface IDialog {
+  id: string;
+  title: string;
+  subTitle?: string;
+  content: string | React.ReactNode;
+  onConfirm?: () => Promise<void>;
+  onCancel?: () => Promise<void>;
+  postConfirm?: () => Promise<void>;
+  postCancel?: () => Promise<void>;
+  cancelLabel?: string | React.ReactNode;
+  confirmLabel?: string | React.ReactNode;
+}
+
+export const useDialogStore = create<{
+  dialogs: IDialog[];
+  appendDialog: (
+    dialog: IDialog,
+    opts?: {
+      force?: boolean;
+    }
+  ) => void;
+  removeDialog: (dialogId: string) => void;
+}>((set) => ({
+  dialogs: [],
+  appendDialog: (dialog: IDialog, opts?: { force?: boolean }) =>
+    set((state) => {
+      const exists = state.dialogs.some((d) => d.id === dialog.id);
+      if (exists) {
+        if (opts?.force) {
+          return { dialogs: [...state.dialogs, dialog] };
+        }
+        return state;
+      }
+      return { dialogs: [...state.dialogs, dialog] };
+    }),
+  removeDialog: (dialogId: string) =>
+    set((state) => ({
+      dialogs: state.dialogs.filter((d) => d.id !== dialogId),
+    })),
+}));

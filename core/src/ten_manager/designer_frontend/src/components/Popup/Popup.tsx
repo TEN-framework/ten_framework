@@ -5,15 +5,24 @@
 // Refer to the "LICENSE" file in the root directory for more information.
 //
 import React, { useState, useEffect, useRef } from "react";
-import { ChevronDown, ChevronUp, X } from "lucide-react";
+import { ChevronDown, ChevronUp, X, PinIcon } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/Tooltip";
+import { useWidgetStore } from "@/store/widget";
+import { EWidgetDisplayType } from "@/types/widgets";
 
 const DEFAULT_WIDTH = 800;
 const DEFAULT_HEIGHT = 400;
 
 interface PopupProps {
+  id: string;
   title: string;
   children: React.ReactNode;
   className?: string;
@@ -29,12 +38,19 @@ interface PopupProps {
   initialWidth?: number;
   initialHeight?: number;
 
-  onClose: () => void;
+  onClose: () => Promise<void> | void;
   onCollapseToggle?: (isCollapsed: boolean) => void;
   contentClassName?: string;
+  customActions?: {
+    id: string;
+    label: string;
+    Icon: (props: React.SVGProps<SVGSVGElement>) => React.ReactNode;
+    onClick: () => void;
+  }[];
 }
 
 const Popup: React.FC<PopupProps> = ({
+  id,
   title,
   children,
   className,
@@ -45,6 +61,7 @@ const Popup: React.FC<PopupProps> = ({
   initialHeight,
   onClose,
   onCollapseToggle,
+  customActions,
 }) => {
   const popupRef = useRef<HTMLDivElement>(null);
   const headerRef = useRef<HTMLDivElement>(null);
@@ -71,6 +88,8 @@ const Popup: React.FC<PopupProps> = ({
   const [dragStart, setDragStart] = useState<{ x: number; y: number } | null>(
     null
   );
+
+  const { updateWidgetDisplayType } = useWidgetStore();
 
   // Center the popup on mount.
   useEffect(() => {
@@ -274,10 +293,29 @@ const Popup: React.FC<PopupProps> = ({
           {title}
         </span>
         <div className="flex items-center gap-1.5">
+          {customActions?.map((action) => (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-auto p-1.5"
+                    onClick={action.onClick}
+                  >
+                    <action.Icon className="opacity-70" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{action.label}</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          ))}
           <Button
             variant="ghost"
             size="sm"
-            className="h-auto p-1.5 hover:bg-background/50 transition-colors"
+            className="h-auto p-1.5 transition-colors"
             onClick={toggleCollapse}
           >
             {isCollapsed ? (
@@ -289,7 +327,7 @@ const Popup: React.FC<PopupProps> = ({
           <Button
             variant="ghost"
             size="sm"
-            className="h-auto p-1.5 hover:bg-background/50 transition-colors"
+            className="h-auto p-1.5 transition-colors"
             onClick={onClose}
           >
             <X className="opacity-70" />
