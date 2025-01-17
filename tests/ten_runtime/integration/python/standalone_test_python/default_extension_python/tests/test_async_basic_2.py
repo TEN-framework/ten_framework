@@ -41,8 +41,7 @@ class AsyncExtensionTesterBasic(AsyncExtensionTester):
         if statusCode == StatusCode.OK:
             ten_env.stop_test()
 
-        # TODO(Wei): Enable this when we done all right.
-        # await asyncio.sleep(3)
+        await asyncio.sleep(3)
 
 
 def test_basic():

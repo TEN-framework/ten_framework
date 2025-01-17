@@ -68,3 +68,10 @@ class DefaultExtension(Extension):
             cmd_result = CmdResult.create(StatusCode.OK)
             cmd_result.set_property_string("detail", greeting)
             ten_env.return_result(cmd_result, cmd)
+        elif cmd.get_name() == "sync":
+            cmd_result = CmdResult.create(StatusCode.OK)
+            cmd_result.set_property_string("detail", "ok")
+            ten_env.return_result(cmd_result, cmd)
+
+            new_cmd = Cmd.create("ack")
+            ten_env.send_cmd(new_cmd, None)
