@@ -6,9 +6,11 @@
 //
 use std::fs::{self, File};
 use std::io::{self};
+#[cfg(unix)]
+use std::os::unix::fs::symlink;
 use std::path::Path;
 
-use anyhow::Result;
+use anyhow::{anyhow, Context, Result};
 use flate2::read::GzDecoder;
 use tar::Archive as TarArchive;
 use zip::ZipArchive;
@@ -145,8 +147,52 @@ fn extract_and_process_tar_gz_normal_part(
 
         let out_path = Path::new(output_dir).join(&entry_str);
 
+        if entry.header().entry_type().is_symlink() {
+            // Recreate the symbolic link.
+            let target = entry
+                .link_name()
+                .with_context(|| {
+                    format!(
+                        "Symlink entry {:?} does not have a target",
+                        entry_path
+                    )
+                })?
+                .ok_or_else(|| {
+                    anyhow!(
+                        "Symlink entry {:?} does not have a target",
+                        entry_path
+                    )
+                })?;
+
+            // Ensure the parent directory exists.
+            if let Some(p) = out_path.parent() {
+                fs::create_dir_all(p).with_context(|| {
+                    format!(
+                        "Failed to create parent directory for {:?}",
+                        out_path
+                    )
+                })?;
+            }
+
+            if out_path.exists() {
+                fs::remove_file(&out_path).with_context(|| {
+                  format!(
+                      "Failed to remove existing file at {:?} before creating symlink",
+                      out_path
+                  )
+              })?;
+            }
+
+            // Create the symbolic link.
+            symlink(&target, &out_path).with_context(|| {
+                format!(
+                    "Failed to create symlink {:?} -> {:?}",
+                    out_path, target
+                )
+            })?;
+        }
         // Check if the entry is a file or directory.
-        if entry.header().entry_type().is_dir() {
+        else if entry.header().entry_type().is_dir() {
             fs::create_dir_all(&out_path)?;
         } else {
             // Ensure that the parent directory exists.
