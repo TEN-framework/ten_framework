@@ -76,21 +76,27 @@ By running the following commands, an extension called `hello_world` will be cre
 {% tabs %}
 {% tab title="Python" %}
 <pre class="language-bash" data-title=">_ Bash" data-overflow="wrap"><code class="lang-bash">
-<strong>tman create extension ./agents/ten_packages/extension/hello_world --template=default_async_extension_python --template-data class_name_prefix=HelloWorld
+<strong>
+cd /app/agents/ten_packages/extension
+tman create extension hello_world --template=default_async_extension_python --template-data class_name_prefix=HelloWorld
 </strong>
 </code></pre>
 {% endtab %}
 
 {% tab title="Go" %}
 <pre class="language-bash" data-title=">_ Bash" data-overflow="wrap"><code class="lang-bash">
-<strong>tman create extension ./agents/ten_packages/extension/hello_world --template=default_extension_go --template-data class_name_prefix=HelloWorld
+<strong>
+cd /app/agents/ten_packages/extension
+tman create extension hello_world --template=default_extension_go --template-data class_name_prefix=HelloWorld
 </strong>
 </code></pre>
 {% endtab %}
 
 {% tab title="C++" %}
 <pre class="language-bash" data-title=">_ Bash" data-overflow="wrap"><code class="lang-bash">
-<strong>tman create extension ./agents/ten_packages/extension/hello_world --template=default_extension_cpp --template-data class_name_prefix=HelloWorld
+<strong>
+cd /app/agents/ten_packages/extension
+tman create extension hello_world --template=default_extension_cpp --template-data class_name_prefix=HelloWorld
 </strong>
 </code></pre>
 {% endtab %}
@@ -99,7 +105,7 @@ By running the following commands, an extension called `hello_world` will be cre
 After running the command, the log will display something like this:
 
 <pre class="language-bash" data-title=">_ Bash"><code class="lang-bash">
-Package 'extension:./agents/ten_packages/extension/hello_world' created successfully in '/app' in 3 seconds.
+Package 'extension:hello_world' created successfully in '/app' in 3 seconds.
 </code></pre>
 
 ## 4. Adding API to the extension
