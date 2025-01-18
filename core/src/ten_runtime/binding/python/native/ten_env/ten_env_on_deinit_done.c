@@ -45,8 +45,9 @@ static void ten_env_proxy_notify_on_deinit_done(ten_env_t *ten_env,
   bool err_occurred = ten_py_check_and_clear_py_error();
   TEN_ASSERT(!err_occurred, "Should not happen.");
 
-  ten_py_gil_state_release_internal(prev_state);
-
+  // This is already the very end, so releasing `ten_env_proxy` here is
+  // appropriate. Additionally, since the Python GIL is held, it ensures that no
+  // other Python code is currently using `ten_env`.
   if (py_ten_env->c_ten_env_proxy) {
     TEN_ASSERT(
         ten_env_proxy_get_thread_cnt(py_ten_env->c_ten_env_proxy, NULL) == 1,
@@ -59,6 +60,8 @@ static void ten_env_proxy_notify_on_deinit_done(ten_env_t *ten_env,
     bool rc = ten_env_proxy_release(ten_env_proxy, &err);
     TEN_ASSERT(rc, "Should not happen.");
   }
+
+  ten_py_gil_state_release_internal(prev_state);
 
   bool rc = ten_env_on_deinit_done(ten_env, &err);
   TEN_ASSERT(rc, "Should not happen.");
@@ -95,6 +98,14 @@ PyObject *ten_py_ten_env_on_deinit_done(PyObject *self,
   if (py_ten_env->c_ten_env->attach_to == TEN_ENV_ATTACH_TO_ADDON) {
     rc = ten_env_on_deinit_done(py_ten_env->c_ten_env, &err);
   } else {
+    if (!py_ten_env->c_ten_env_proxy) {
+      // Avoid memory leak.
+      ten_error_deinit(&err);
+
+      return ten_py_raise_py_value_error_exception(
+          "ten_env.on_deinit_done() failed because ten_env_proxy is invalid.");
+    }
+
     rc = ten_env_proxy_notify(py_ten_env->c_ten_env_proxy,
                               ten_env_proxy_notify_on_deinit_done, py_ten_env,
                               false, &err);

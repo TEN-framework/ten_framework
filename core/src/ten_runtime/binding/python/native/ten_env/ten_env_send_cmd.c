@@ -181,22 +181,24 @@ PyObject *ten_py_ten_env_send_cmd(PyObject *self, PyObject *args) {
         "Invalid argument count when ten_env.send_cmd.");
   }
 
+  ten_py_cmd_t *py_cmd = NULL;
+  PyObject *cb_func = NULL;
+  int is_ex = false;
+  if (!PyArg_ParseTuple(args, "O!Op", ten_py_cmd_py_type(), &py_cmd, &cb_func,
+                        &is_ex)) {
+    return ten_py_raise_py_type_error_exception(
+        "Invalid argument type when send cmd.");
+  }
+
+  if (!py_ten_env->c_ten_env_proxy) {
+    return ten_py_raise_py_value_error_exception(
+        "ten_env.send_cmd() failed because the c_ten_env_proxy is invalid.");
+  }
+
   bool success = true;
 
   ten_error_t err;
   ten_error_init(&err);
-
-  ten_py_cmd_t *py_cmd = NULL;
-  PyObject *cb_func = NULL;
-  int is_ex = false;
-
-  if (!PyArg_ParseTuple(args, "O!Op", ten_py_cmd_py_type(), &py_cmd, &cb_func,
-                        &is_ex)) {
-    success = false;
-    ten_py_raise_py_type_error_exception(
-        "Invalid argument type when send cmd.");
-    goto done;
-  }
 
   // Check if cb_func is callable.
   if (!PyCallable_Check(cb_func)) {
@@ -217,14 +219,12 @@ PyObject *ten_py_ten_env_send_cmd(PyObject *self, PyObject *args) {
     ten_env_notify_send_cmd_ctx_destroy(notify_info);
     success = false;
     ten_py_raise_py_runtime_error_exception("Failed to send cmd.");
-    goto done;
   } else {
     // Destroy the C message from the Python message as the ownership has been
     // transferred to the notify_info.
     ten_py_msg_destroy_c_msg(&py_cmd->msg);
   }
 
-done:
   ten_error_deinit(&err);
 
   if (success) {

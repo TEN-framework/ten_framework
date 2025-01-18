@@ -29,6 +29,7 @@ mod create;
 mod dep_and_candidate;
 pub mod designer;
 mod error;
+mod file_type;
 mod fs;
 mod install;
 mod log;

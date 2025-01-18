@@ -127,7 +127,45 @@ void ten_extension_thread_stop_life_cycle_of_all_extensions(
       TEN_ASSERT(ten_extension_check_integrity(extension, true),
                  "Should not happen.");
 
-      ten_extension_on_stop(extension);
+      TEN_EXTENSION_STATE state = extension->state;
+      // At this point, the state of the extension should __not__ be in
+      // TEN_EXTENSION_STATE_ON_STOP or thereafter.
+      TEN_ASSERT(state < TEN_EXTENSION_STATE_ON_STOP,
+                 "The extension %s is in the TEN_EXTENSION_STATE_ON_STOP or "
+                 "afterward state, this should not happen.",
+                 ten_string_get_raw_str(&extension->name));
+
+      // The `on_xxx` callbacks (such as `on_configure`, `on_init`, `on_start`)
+      // should not directly transition to `on_stop` just because the app or
+      // graph is about to terminate. Instead, the transition to `on_stop` must
+      // wait until `on_xxx_done` is completed. This is because, before
+      // `on_xxx_done` is completed, developers may still actively use the TEN
+      // API (i.e., invoke APIs from `ten_env`). If the system transitions to
+      // `on_stop` (and subsequently `on_deinit_done`) without waiting for
+      // `on_xxx_done`, it would require almost every use of the `ten_env` API
+      // to check whether the TEN environment has already terminated. This would
+      // result in a poor development experience. Allowing the formal closing
+      // flow (i.e., entering `on_stop`) only after `on_xxx_done` seems to avoid
+      // any such issues. Therefore, this process and logic have been adopted
+      // for now.
+      //
+      // For extensions in the TEN_EXTENSION_STATE_ON_XXX state, when their
+      // corresponding on_xxx_done() is called, it will check the
+      // extension_thread_state. If it is
+      // TEN_EXTENSION_THREAD_STATE_PREPARE_TO_CLOSE, the on_stop() method will
+      // be called immediately afterward. That is to say, for extensions in the
+      // TEN_EXTENSION_STATE_ON_XXX_DONE state, their on_stop() method can be
+      // called directly.
+
+      if (state == TEN_EXTENSION_STATE_ON_CONFIGURE_DONE ||
+          state == TEN_EXTENSION_STATE_ON_INIT_DONE ||
+          state == TEN_EXTENSION_STATE_ON_START_DONE) {
+        ten_extension_on_stop(extension);
+      }
+
+      // If the extension is in the TEN_EXTENSION_STATE_ON_XXX state, we need
+      // to wait until the corresponding on_xxx_done() is called, and then
+      // call the on_stop() method.
     }
   }
 }

@@ -34,11 +34,6 @@ static void ten_py_ten_env_tester_c_part_destroyed(
              "Should not happen.");
 
   ten_env_tester_bridge->c_ten_env_tester = NULL;
-  if (ten_env_tester_bridge->c_ten_env_tester_proxy) {
-    ten_env_tester_proxy_release(ten_env_tester_bridge->c_ten_env_tester_proxy,
-                                 NULL);
-    ten_env_tester_bridge->c_ten_env_tester_proxy = NULL;
-  }
 
   ten_py_ten_env_tester_invalidate(ten_env_tester_bridge);
 }
@@ -146,6 +141,7 @@ PyTypeObject *ten_py_ten_env_tester_type(void) {
   static PyMethodDef ten_methods[] = {
       {"on_start_done", ten_py_ten_env_tester_on_start_done, METH_VARARGS,
        NULL},
+      {"on_stop_done", ten_py_ten_env_tester_on_stop_done, METH_VARARGS, NULL},
       {"stop_test", ten_py_ten_env_tester_stop_test, METH_VARARGS, NULL},
       {"send_cmd", ten_py_ten_env_tester_send_cmd, METH_VARARGS, NULL},
       {"send_data", ten_py_ten_env_tester_send_data, METH_VARARGS, NULL},

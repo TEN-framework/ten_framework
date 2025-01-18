@@ -22,6 +22,7 @@
 #include "include_internal/ten_runtime/msg/msg.h"
 #include "include_internal/ten_runtime/ten_env/ten_env.h"
 #include "include_internal/ten_runtime/timer/timer.h"
+#include "ten_utils/log/log.h"
 #include "ten_utils/macro/check.h"
 
 static bool ten_extension_parse_interface_schema(ten_extension_t *self,
@@ -84,14 +85,15 @@ bool ten_extension_on_configure_done(ten_env_t *self) {
   TEN_ASSERT(ten_extension_check_integrity(extension, true),
              "Invalid use of extension %p.", extension);
 
-  TEN_LOGD("[%s] on_configure() done.",
-           ten_extension_get_name(extension, true));
-
-  if (extension->state != TEN_EXTENSION_STATE_INIT) {
-    TEN_LOGI("[%s] Failed to on_configure_done() because of incorrect timing.",
-             ten_extension_get_name(extension, true));
+  if (extension->state != TEN_EXTENSION_STATE_ON_CONFIGURE) {
+    TEN_LOGI(
+        "[%s] Failed to on_configure_done() because of incorrect timing: %d",
+        ten_extension_get_name(extension, true), extension->state);
     return false;
   }
+
+  TEN_LOGD("[%s] on_configure() done.",
+           ten_extension_get_name(extension, true));
 
   extension->state = TEN_EXTENSION_STATE_ON_CONFIGURE_DONE;
 
@@ -103,6 +105,13 @@ bool ten_extension_on_configure_done(ten_env_t *self) {
   if (extension_thread->is_close_triggered) {
     // Do not proceed with the subsequent init/start flow, as the extension
     // thread is about to shut down.
+    TEN_LOGD(
+        "[%s] Since the close process has already been triggered, no further "
+        "steps will be carried out after `on_configure_done`. Enter `on_stop`"
+        "immediately.",
+        ten_extension_get_name(extension, true));
+
+    ten_extension_on_stop(extension);
     return true;
   }
 
@@ -183,14 +192,14 @@ bool ten_extension_on_init_done(ten_env_t *self) {
   TEN_ASSERT(ten_extension_check_integrity(extension, true),
              "Invalid use of extension %p.", extension);
 
-  TEN_LOGD("[%s] on_init() done.", ten_extension_get_name(extension, true));
-
-  if (extension->state != TEN_EXTENSION_STATE_ON_CONFIGURE_DONE) {
+  if (extension->state != TEN_EXTENSION_STATE_ON_INIT) {
     // `on_init_done` can only be called at specific times.
-    TEN_LOGI("[%s] Failed to on_init_done() because of incorrect timing.",
-             ten_extension_get_name(extension, true));
+    TEN_LOGI("[%s] Failed to on_init_done() because of incorrect timing: %d",
+             ten_extension_get_name(extension, true), extension->state);
     return false;
   }
+
+  TEN_LOGD("[%s] on_init() done.", ten_extension_get_name(extension, true));
 
   extension->state = TEN_EXTENSION_STATE_ON_INIT_DONE;
 
@@ -200,6 +209,13 @@ bool ten_extension_on_init_done(ten_env_t *self) {
              "Should not happen.");
 
   if (extension_thread->is_close_triggered) {
+    TEN_LOGD(
+        "[%s] Since the close process has already been triggered, no further "
+        "steps will be carried out after `on_init_done`. Enter `on_stop`"
+        "immediately.",
+        ten_extension_get_name(extension, true));
+
+    ten_extension_on_stop(extension);
     return true;
   }
 
@@ -251,15 +267,31 @@ bool ten_extension_on_start_done(ten_env_t *self) {
   TEN_ASSERT(ten_extension_check_integrity(extension, true),
              "Invalid use of extension %p.", extension);
 
-  TEN_LOGI("[%s] on_start() done.", ten_extension_get_name(extension, true));
-
   if (extension->state != TEN_EXTENSION_STATE_ON_START) {
-    TEN_LOGI("[%s] Failed to on_start_done() because of incorrect timing.",
-             ten_extension_get_name(extension, true));
+    TEN_LOGI("[%s] Failed to on_start_done() because of incorrect timing: %d",
+             ten_extension_get_name(extension, true), extension->state);
     return false;
   }
 
+  TEN_LOGI("[%s] on_start() done.", ten_extension_get_name(extension, true));
+
   extension->state = TEN_EXTENSION_STATE_ON_START_DONE;
+
+  ten_extension_thread_t *extension_thread = extension->extension_thread;
+  TEN_ASSERT(extension_thread &&
+                 ten_extension_thread_check_integrity(extension_thread, true),
+             "Should not happen.");
+
+  if (extension_thread->is_close_triggered) {
+    TEN_LOGD(
+        "[%s] Since the close process has already been triggered, no further "
+        "steps will be carried out after `on_start_done`. Enter `on_stop`"
+        "immediately.",
+        ten_extension_get_name(extension, true));
+
+    ten_extension_on_stop(extension);
+    return true;
+  }
 
   ten_extension_flush_all_pending_msgs(extension);
 
@@ -278,9 +310,9 @@ bool ten_extension_on_stop_done(ten_env_t *self) {
 
   TEN_LOGI("[%s] on_stop() done.", ten_extension_get_name(extension, true));
 
-  if (extension->state != TEN_EXTENSION_STATE_ON_START_DONE) {
-    TEN_LOGI("[%s] Failed to on_stop_done() because of incorrect timing.",
-             ten_extension_get_name(extension, true));
+  if (extension->state != TEN_EXTENSION_STATE_ON_STOP) {
+    TEN_LOGI("[%s] Failed to on_stop_done() because of incorrect timing: %d",
+             ten_extension_get_name(extension, true), extension->state);
     return false;
   }
 
@@ -347,8 +379,8 @@ bool ten_extension_on_deinit_done(ten_env_t *self) {
              "Invalid use of extension %p.", extension);
 
   if (extension->state != TEN_EXTENSION_STATE_ON_DEINIT) {
-    TEN_LOGI("[%s] Failed to on_deinit_done() because of incorrect timing.",
-             ten_extension_get_name(extension, true));
+    TEN_LOGI("[%s] Failed to on_deinit_done() because of incorrect timing: %d",
+             ten_extension_get_name(extension, true), extension->state);
     return false;
   }
 

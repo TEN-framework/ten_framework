@@ -48,7 +48,7 @@ static void ten_py_ten_env_tester_send_video_frame_ctx_destroy(
 static void proxy_send_xxx_callback(ten_env_tester_t *self,
                                     void *user_video_frame,
                                     ten_error_t *error) {
-  TEN_ASSERT(self && ten_env_tester_check_integrity(self),
+  TEN_ASSERT(self && ten_env_tester_check_integrity(self, true),
              "Should not happen.");
   TEN_ASSERT(user_video_frame, "Should not happen.");
 
@@ -119,20 +119,18 @@ PyObject *ten_py_ten_env_tester_send_video_frame(PyObject *self,
         "Invalid argument count when ten_env_tester.send_video_frame.");
   }
 
-  bool success = true;
-
-  ten_error_t err;
-  ten_error_init(&err);
-
   ten_py_video_frame_t *py_video_frame = NULL;
   PyObject *cb_func = NULL;
-
   if (!PyArg_ParseTuple(args, "O!O", ten_py_video_frame_py_type(),
                         &py_video_frame, &cb_func)) {
-    success = false;
-    ten_py_raise_py_type_error_exception(
+    return ten_py_raise_py_type_error_exception(
         "Invalid argument type when send video_frame.");
-    goto done;
+  }
+
+  if (!py_ten_env_tester->c_ten_env_tester_proxy) {
+    return ten_py_raise_py_value_error_exception(
+        "ten_env_tester.send_video_frame() failed because ten_env_tester_proxy "
+        "is invalid.");
   }
 
   // Check if cb_func is callable.
@@ -140,11 +138,14 @@ PyObject *ten_py_ten_env_tester_send_video_frame(PyObject *self,
     cb_func = NULL;
   }
 
+  ten_error_t err;
+  ten_error_init(&err);
+
   ten_py_ten_env_tester_send_video_frame_ctx_t *ctx =
       ten_py_ten_env_tester_send_video_frame_ctx_create(
           py_video_frame->msg.c_msg, cb_func);
 
-  success = ten_env_tester_proxy_notify(
+  bool success = ten_env_tester_proxy_notify(
       py_ten_env_tester->c_ten_env_tester_proxy,
       ten_py_ten_env_tester_send_video_frame_proxy_notify, ctx, &err);
 
@@ -152,14 +153,12 @@ PyObject *ten_py_ten_env_tester_send_video_frame(PyObject *self,
     ten_py_ten_env_tester_send_video_frame_ctx_destroy(ctx);
 
     ten_py_raise_py_runtime_error_exception("Failed to send video_frame.");
-    goto done;
   } else {
     // Destroy the C message from the Python message as the ownership has been
     // transferred to the notify_info.
     ten_py_msg_destroy_c_msg(&py_video_frame->msg);
   }
 
-done:
   ten_error_deinit(&err);
 
   if (success) {

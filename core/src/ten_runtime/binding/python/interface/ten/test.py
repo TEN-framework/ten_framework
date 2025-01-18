@@ -34,8 +34,18 @@ class TenEnvTester(TenEnvTesterBase):
     def __del__(self) -> None:
         pass
 
+    def _set_release_handler(self, handler: Callable[[], None]) -> None:
+        self._release_handler = handler
+
+    def _on_release(self) -> None:
+        if hasattr(self, "_release_handler"):
+            self._release_handler()
+
     def on_start_done(self) -> None:
         return self._internal.on_start_done()
+
+    def on_stop_done(self) -> None:
+        return self._internal.on_stop_done()
 
     def send_cmd(self, cmd: Cmd, result_handler: ResultHandler) -> None:
         return self._internal.send_cmd(cmd, result_handler)
@@ -89,7 +99,10 @@ class ExtensionTester(_ExtensionTester):
 
     @final
     def _proxy_on_stop(self, ten_env_tester: TenEnvTester) -> None:
-        pass
+        self.on_stop(ten_env_tester)
+
+    def on_stop(self, ten_env_tester: TenEnvTester) -> None:
+        ten_env_tester.on_stop_done()
 
     @final
     def _proxy_on_cmd(self, ten_env_tester: TenEnvTester, cmd: Cmd) -> None:

@@ -52,13 +52,13 @@ pub fn pathbuf_to_string(path_buf: PathBuf) -> Result<String> {
     }
 
     Err(TmanError::InvalidPath(
-        pathbuf_to_string_lossy(path_buf),
+        pathbuf_to_string_lossy(&path_buf),
         "invalid characters".to_string(),
     )
     .into())
 }
 
-pub fn pathbuf_to_string_lossy(path_buf: PathBuf) -> String {
+pub fn pathbuf_to_string_lossy(path_buf: &Path) -> String {
     // Convert the PathBuf to a String, replacing invalid UTF-8 sequences with �
     // (U+FFFD)
     path_buf.to_string_lossy().into_owned()

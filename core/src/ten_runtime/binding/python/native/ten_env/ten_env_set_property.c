@@ -112,6 +112,12 @@ PyObject *ten_py_ten_env_set_property_from_json(PyObject *self,
         "Failed to parse arguments when ten_env.set_property_from_json.");
   }
 
+  if (!py_ten_env->c_ten_env_proxy) {
+    return ten_py_raise_py_value_error_exception(
+        "ten_env.set_property_from_json() failed because ten_env_proxy is "
+        "invalid.");
+  }
+
   ten_json_t *json = ten_json_from_string(json_str, NULL);
   if (!json) {
     return ten_py_raise_py_value_error_exception(
@@ -148,6 +154,11 @@ PyObject *ten_py_ten_env_set_property_int(PyObject *self, PyObject *args) {
         "Failed to parse arguments when ten_env.set_property_int.");
   }
 
+  if (!py_ten_env->c_ten_env_proxy) {
+    return ten_py_raise_py_value_error_exception(
+        "ten_env.set_property_int() failed because ten_env_proxy is invalid.");
+  }
+
   ten_value_t *c_value = ten_value_create_int64(value);
   if (!c_value) {
     return ten_py_raise_py_value_error_exception(
@@ -174,6 +185,12 @@ PyObject *ten_py_ten_env_set_property_string(PyObject *self, PyObject *args) {
   if (!PyArg_ParseTuple(args, "ss", &path, &value)) {
     return ten_py_raise_py_value_error_exception(
         "Failed to parse arguments when ten_env.set_property_string.");
+  }
+
+  if (!py_ten_env->c_ten_env_proxy) {
+    return ten_py_raise_py_value_error_exception(
+        "ten_env.set_property_string() failed because ten_env_proxy is "
+        "invalid.");
   }
 
   ten_value_t *c_value = ten_value_create_string(value);
@@ -204,6 +221,11 @@ PyObject *ten_py_ten_env_set_property_bool(PyObject *self, PyObject *args) {
         "Failed to parse arguments when ten_env.set_property_bool.");
   }
 
+  if (!py_ten_env->c_ten_env_proxy) {
+    return ten_py_raise_py_value_error_exception(
+        "ten_env.set_property_bool() failed because ten_env_proxy is invalid.");
+  }
+
   ten_value_t *c_value = ten_value_create_bool(value > 0);
   if (!c_value) {
     return ten_py_raise_py_value_error_exception(
@@ -230,6 +252,12 @@ PyObject *ten_py_ten_env_set_property_float(PyObject *self, PyObject *args) {
   if (!PyArg_ParseTuple(args, "sd", &path, &value)) {
     return ten_py_raise_py_value_error_exception(
         "Failed to parse arguments when ten_env.set_property_float.");
+  }
+
+  if (!py_ten_env->c_ten_env_proxy) {
+    return ten_py_raise_py_value_error_exception(
+        "ten_env.set_property_float() failed because ten_env_proxy is "
+        "invalid.");
   }
 
   ten_value_t *c_value = ten_value_create_float64(value);
