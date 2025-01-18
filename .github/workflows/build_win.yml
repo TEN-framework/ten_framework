@@ -1,6 +1,8 @@
 name: Build - win
 
 on:
+  release:
+    types: [created]
   pull_request:
     types: [opened, synchronize, reopened]
     paths-ignore:
