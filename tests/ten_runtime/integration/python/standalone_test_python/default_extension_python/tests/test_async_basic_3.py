@@ -48,8 +48,9 @@ class AsyncExtensionTesterBasic(AsyncExtensionTester):
             try:
                 await asyncio.sleep(10)
             except asyncio.CancelledError:
-                # Beacuse 'stop_test()' will close the Extension tester, and cancel all remaining tasks,
-                # so we can catch the CancelledError
+                # Beacuse 'stop_test()' will close the Extension tester, and
+                # cancel all remaining tasks, so we can catch the
+                # CancelledError.
                 canceled = True
                 ten_env_tester.log_info("on_cmd ack cancelled")
             finally:
