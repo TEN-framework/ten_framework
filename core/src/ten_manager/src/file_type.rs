@@ -5,18 +5,19 @@
 // Refer to the "LICENSE" file in the root directory for more information.
 //
 use std::fs::File;
-use std::io::{self, Read};
+use std::io::Read;
 use std::path::Path;
 
+use anyhow::{anyhow, Result};
+
 #[derive(Debug, PartialEq)]
-enum FileType {
-    Invalid,
+pub enum FileType {
     Zip,
     TarGz,
 }
 
 /// Manual file type detection.
-fn manual_detect<P: AsRef<Path>>(path: P) -> io::Result<FileType> {
+fn manual_detect<P: AsRef<Path>>(path: P) -> Result<FileType> {
     let mut file = File::open(path)?;
     let mut buffer = [0u8; 4];
 
@@ -30,11 +31,11 @@ fn manual_detect<P: AsRef<Path>>(path: P) -> io::Result<FileType> {
         return Ok(FileType::TarGz);
     }
 
-    Ok(FileType::Invalid)
+    Err(anyhow!("Failed to detect file type."))
 }
 
 /// Detect file type using the `infer` library.
-fn infer_detect<P: AsRef<Path>>(path: P) -> io::Result<FileType> {
+fn infer_detect<P: AsRef<Path>>(path: P) -> Result<FileType> {
     let mut file = File::open(path)?;
     let mut buffer = Vec::new();
     file.read_to_end(&mut buffer)?;
@@ -47,16 +48,15 @@ fn infer_detect<P: AsRef<Path>>(path: P) -> io::Result<FileType> {
         }
     }
 
-    Ok(FileType::Invalid)
+    Err(anyhow!("Failed to detect file type."))
 }
 
-pub fn detect_file_type<P: AsRef<Path>>(path: P) -> io::Result<FileType> {
-    // Use manual detection first.
-    let manual = manual_detect(&path)?;
-    if manual != FileType::Invalid {
-        return Ok(manual);
+pub fn detect_file_type<P: AsRef<Path>>(path: P) -> Result<FileType> {
+    // Use `infer` library to do the detection first.
+    if let Ok(file_type) = infer_detect(&path) {
+        return Ok(file_type);
     }
 
-    // If manual detection fails, use the `infer` library.
-    infer_detect(path)
+    // If `infer` detection fails, use the manual method.
+    manual_detect(path)
 }

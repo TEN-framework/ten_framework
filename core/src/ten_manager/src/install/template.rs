@@ -12,6 +12,7 @@ use anyhow::{Context, Result};
 use flate2::read::GzDecoder;
 use handlebars::Handlebars;
 use tar::Archive as TarArchive;
+use zip::ZipArchive;
 
 fn render_template(
     template: &str,
@@ -22,6 +23,119 @@ fn render_template(
         .render_template(template, template_ctx)
         .with_context(|| "Failed to render template")?;
     Ok(rendered)
+}
+
+fn handle_tent_file<F>(
+    out_path: &Path,
+    is_dir: bool,
+    file_mode: Option<u32>,
+    read_file_content: F,
+    template_ctx: &serde_json::Value,
+) -> Result<()>
+where
+    // Callback: how to write data from the archive to `out_path`.
+    F: FnOnce(&mut File) -> io::Result<()>,
+{
+    if is_dir {
+        fs::create_dir_all(out_path)?;
+    } else {
+        if let Some(parent) = out_path.parent() {
+            if !parent.exists() {
+                fs::create_dir_all(parent)?;
+            }
+        }
+
+        // Copy the data from the archive to `out_path`.
+        let mut out_file = File::create(out_path)?;
+        read_file_content(&mut out_file)?;
+    }
+
+    // If it is a directory, return directly; directories do not have subsequent
+    // reading/rendering processes.
+    if is_dir {
+        return Ok(());
+    }
+
+    // Read the text content of the `*.tent` file for rendering.
+    let mut contents = String::new();
+    {
+        let mut out_file_for_read = File::open(out_path)?;
+        out_file_for_read.read_to_string(&mut contents)?;
+    }
+    let rendered = render_template(&contents, template_ctx)?;
+
+    // Remove the `.tent` suffix.
+    let new_out_path = out_path.with_extension("");
+
+    // Write the template rendering result to a new file path.
+    let mut new_out_file = File::create(&new_out_path)?;
+    new_out_file.write_all(rendered.as_bytes())?;
+
+    // If it is a Unix system and permissions are successfully retrieved from
+    // the archive, set them.
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        if let Some(mode) = file_mode {
+            fs::set_permissions(
+                &new_out_path,
+                fs::Permissions::from_mode(mode),
+            )?;
+        }
+    }
+
+    // Delete the original `*.tent` file.
+    fs::remove_file(out_path)?;
+
+    Ok(())
+}
+
+pub fn extract_and_process_zip_template_part(
+    zip_path: &str,
+    output_dir: &str,
+    template_ctx: &serde_json::Value,
+) -> Result<()> {
+    // Open the ZIP file.
+    let file = File::open(zip_path)?;
+    let mut archive = ZipArchive::new(file)?;
+
+    // Iterate through each entry in the ZIP.
+    for i in 0..archive.len() {
+        let mut file_in_zip = archive.by_index(i)?;
+        let is_template = file_in_zip.name().ends_with(".tent");
+
+        if is_template {
+            let out_path =
+                Path::new(output_dir).join(file_in_zip.mangled_name());
+
+            // Check if the entry is a file or directory.
+            let is_dir = file_in_zip.name().ends_with('/');
+
+            // Retrieve the permission mode on Unix (if it exists).
+            #[cfg(unix)]
+            let file_mode = file_in_zip.unix_mode();
+            #[cfg(not(unix))]
+            let file_mode = None;
+
+            handle_tent_file(
+                &out_path,
+                is_dir,
+                file_mode,
+                // Callback: how to copy the contents from a ZIP file to the
+                // target file.
+                |out_file: &mut File| {
+                    if !is_dir {
+                        // If it is a file, copy it.
+                        io::copy(&mut file_in_zip, out_file)?;
+                    }
+                    Ok(())
+                },
+                template_ctx,
+            )?;
+        }
+    }
+
+    Ok(())
 }
 
 pub fn extract_and_process_tar_gz_template_part(
@@ -46,53 +160,28 @@ pub fn extract_and_process_tar_gz_template_part(
             let out_path = Path::new(output_dir).join(&entry_str);
 
             // Check if the entry is a file or directory.
-            if entry.header().entry_type().is_dir() {
-                fs::create_dir_all(&out_path)?;
-            } else {
-                // Ensure that the parent directory exists.
-                if let Some(p) = out_path.parent() {
-                    if !p.exists() {
-                        fs::create_dir_all(p)?;
-                    }
-                }
+            let is_dir = entry.header().entry_type().is_dir();
 
-                // Read the entry inside the TAR file and write its contents to
-                // `out_path`.
-                let mut out_file = File::create(&out_path)?;
-                io::copy(&mut entry, &mut out_file)?;
-            }
-
-            // Now, `out_path` already contains the `xxx.tent` file. We need to
-            // first read its text content, perform template rendering, and then
-            // write it back.
-
-            let mut contents = String::new();
-            {
-                let mut out_file_for_read = File::open(&out_path)?;
-                out_file_for_read.read_to_string(&mut contents)?;
-            }
-            let rendered = render_template(&contents, template_ctx)?;
-
-            // Removes the .tent extension.
-            let new_out_path = out_path.with_extension("");
-
-            let mut new_out_file = File::create(&new_out_path)?;
-            new_out_file.write_all(rendered.as_bytes())?;
-
+            // Retrieve the permission mode on Unix (if it exists).
             #[cfg(unix)]
-            {
-                // Set file permissions if it's a Unix system.
-                use std::os::unix::fs::PermissionsExt;
-                if let Ok(mode) = entry.header().mode() {
-                    fs::set_permissions(
-                        &new_out_path,
-                        fs::Permissions::from_mode(mode),
-                    )?;
-                }
-            }
+            let file_mode = entry.header().mode().ok();
+            #[cfg(not(unix))]
+            let file_mode = None;
 
-            // Remove the original file.
-            fs::remove_file(out_path)?;
+            handle_tent_file(
+                &out_path,
+                is_dir,
+                file_mode,
+                // Callback: how to copy the contents from a tar.gz file to the
+                // target file.
+                |out_file: &mut File| {
+                    if !is_dir {
+                        io::copy(&mut entry, out_file)?;
+                    }
+                    Ok(())
+                },
+                template_ctx,
+            )?;
         }
     }
 

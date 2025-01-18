@@ -13,7 +13,6 @@ use anyhow::Result;
 use console::Emoji;
 use globset::{GlobBuilder, GlobSetBuilder};
 use ignore::{overrides::OverrideBuilder, WalkBuilder};
-use package::tar_gz_files_to_file;
 
 use ten_rust::pkg_info::constants::MANIFEST_JSON_FILENAME;
 use ten_rust::pkg_info::PkgInfo;
@@ -23,12 +22,12 @@ use ten_rust::pkg_info::{
 
 use super::{config::TmanConfig, constants::TEN_PACKAGE_FILE_EXTENSION};
 use crate::{
-    constants::{DOT_TEN_DIR, PACKAGE_DIR_IN_DOT_TEN_DIR},
-    fs::pathbuf_to_string_lossy,
+    constants::DOT_TEN_DIR, fs::pathbuf_to_string_lossy,
     log::tman_verbose_println,
 };
+use package::tar_gz_files_to_file;
 
-pub fn get_package_file_name(pkg_info: &PkgInfo) -> Result<String> {
+pub fn get_tpkg_file_name(pkg_info: &PkgInfo) -> Result<String> {
     let output_pkg_file_name = format!(
         "{}_{}.{}",
         pkg_info.basic_info.type_and_name.name,
@@ -41,18 +40,10 @@ pub fn get_package_file_name(pkg_info: &PkgInfo) -> Result<String> {
 
 pub fn create_package_tar_gz_file(
     tman_config: &TmanConfig,
-    generated_tar_gz_file_name: &str,
+    output_pkg_file_path: &Path,
     folder_to_tar_gz: &Path,
 ) -> Result<String> {
     println!("{}  Creating package", Emoji("🚚", ":-)"));
-
-    // Create the output directory.
-    let output_dir = folder_to_tar_gz
-        .join(DOT_TEN_DIR)
-        .join(PACKAGE_DIR_IN_DOT_TEN_DIR);
-    if !output_dir.exists() {
-        std::fs::create_dir_all(&output_dir)?;
-    }
 
     let manifest = parse_manifest_in_folder(folder_to_tar_gz)?;
 
@@ -71,13 +62,12 @@ pub fn create_package_tar_gz_file(
     })?;
 
     // Generate the package file.
-    let output_pkg_file_path = output_dir.join(generated_tar_gz_file_name);
     if output_pkg_file_path.exists() {
-        std::fs::remove_file(&output_pkg_file_path)?;
+        std::fs::remove_file(output_pkg_file_path)?;
     }
 
     let output_tar_gz_file_path_str =
-        pathbuf_to_string_lossy(&output_pkg_file_path);
+        pathbuf_to_string_lossy(output_pkg_file_path);
 
     // Collect files to include.
     let mut include_patterns: Option<Vec<String>> = None;
