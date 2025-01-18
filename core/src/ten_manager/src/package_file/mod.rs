@@ -4,8 +4,8 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-pub mod unzip;
-pub mod zip;
+pub mod package;
+pub mod unpackage;
 
 use std::path::Path;
 
@@ -13,9 +13,8 @@ use anyhow::Result;
 use console::Emoji;
 use globset::{GlobBuilder, GlobSetBuilder};
 use ignore::{overrides::OverrideBuilder, WalkBuilder};
-use ten_rust::pkg_info::constants::MANIFEST_JSON_FILENAME;
-use zip::zip_files_to_file;
 
+use ten_rust::pkg_info::constants::MANIFEST_JSON_FILENAME;
 use ten_rust::pkg_info::PkgInfo;
 use ten_rust::pkg_info::{
     constants::TEN_PACKAGES_DIR, manifest::parse_manifest_in_folder,
@@ -23,43 +22,35 @@ use ten_rust::pkg_info::{
 
 use super::{config::TmanConfig, constants::TEN_PACKAGE_FILE_EXTENSION};
 use crate::{
-    constants::{DOT_TEN_DIR, PACKAGE_DIR_IN_DOT_TEN_DIR},
-    fs::pathbuf_to_string_lossy,
+    constants::DOT_TEN_DIR, fs::pathbuf_to_string_lossy,
     log::tman_verbose_println,
 };
+use package::tar_gz_files_to_file;
 
-pub fn get_package_zip_file_name(pkg_info: &PkgInfo) -> Result<String> {
-    let output_zip_file_name = format!(
+pub fn get_tpkg_file_name(pkg_info: &PkgInfo) -> Result<String> {
+    let output_pkg_file_name = format!(
         "{}_{}.{}",
         pkg_info.basic_info.type_and_name.name,
         pkg_info.basic_info.version,
         TEN_PACKAGE_FILE_EXTENSION
     );
 
-    Ok(output_zip_file_name)
+    Ok(output_pkg_file_name)
 }
 
-pub fn create_package_zip_file(
+pub fn create_package_tar_gz_file(
     tman_config: &TmanConfig,
-    generated_zip_file_name: &str,
-    folder_to_zip: &Path,
+    output_pkg_file_path: &Path,
+    folder_to_tar_gz: &Path,
 ) -> Result<String> {
     println!("{}  Creating package", Emoji("🚚", ":-)"));
 
-    // Create the output directory.
-    let output_dir = folder_to_zip
-        .join(DOT_TEN_DIR)
-        .join(PACKAGE_DIR_IN_DOT_TEN_DIR);
-    if !output_dir.exists() {
-        std::fs::create_dir_all(&output_dir)?;
-    }
-
-    let manifest = parse_manifest_in_folder(folder_to_zip)?;
+    let manifest = parse_manifest_in_folder(folder_to_tar_gz)?;
 
     // Before packing the package, first check if the content of property.json
     // is correct.
     ten_rust::pkg_info::property::check_property_json_of_pkg(
-        &folder_to_zip.to_string_lossy(),
+        &folder_to_tar_gz.to_string_lossy(),
     )
     .map_err(|e| {
         anyhow::anyhow!(
@@ -70,14 +61,13 @@ pub fn create_package_zip_file(
         )
     })?;
 
-    // Generate the zip file.
-    let output_zip_file_path = output_dir.join(generated_zip_file_name);
-    if output_zip_file_path.exists() {
-        std::fs::remove_file(&output_zip_file_path)?;
+    // Generate the package file.
+    if output_pkg_file_path.exists() {
+        std::fs::remove_file(output_pkg_file_path)?;
     }
 
-    let output_zip_file_path_str =
-        pathbuf_to_string_lossy(output_zip_file_path);
+    let output_tar_gz_file_path_str =
+        pathbuf_to_string_lossy(output_pkg_file_path);
 
     // Collect files to include.
     let mut include_patterns: Option<Vec<String>> = None;
@@ -111,7 +101,7 @@ pub fn create_package_zip_file(
     }
     let include_globset = globset_builder.build()?;
 
-    let mut ignore_builder = WalkBuilder::new(folder_to_zip);
+    let mut ignore_builder = WalkBuilder::new(folder_to_tar_gz);
 
     // Set the default values for the WalkBuilder.
 
@@ -127,7 +117,7 @@ pub fn create_package_zip_file(
     ignore_builder.ignore(false);
     ignore_builder.git_ignore(false);
 
-    let mut overrides = OverrideBuilder::new(folder_to_zip);
+    let mut overrides = OverrideBuilder::new(folder_to_tar_gz);
 
     // Add exclude pattern for DOT_TEN_DIR.
     overrides.add(&format!("!/{}/", DOT_TEN_DIR))?;
@@ -143,7 +133,7 @@ pub fn create_package_zip_file(
         match result {
             Ok(entry) => {
                 let path = entry.path();
-                let name = path.strip_prefix(folder_to_zip)?;
+                let name = path.strip_prefix(folder_to_tar_gz)?;
 
                 if include_globset.is_match(name) {
                     files_to_include.push(path.to_path_buf());
@@ -158,11 +148,11 @@ pub fn create_package_zip_file(
         tman_verbose_println!(tman_config, "> {:?}", file);
     }
 
-    zip_files_to_file(
+    tar_gz_files_to_file(
         files_to_include,
-        folder_to_zip,
-        &output_zip_file_path_str,
+        folder_to_tar_gz,
+        &output_tar_gz_file_path_str,
     )?;
 
-    Ok(output_zip_file_path_str)
+    Ok(output_tar_gz_file_path_str)
 }
