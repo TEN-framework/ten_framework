@@ -7,6 +7,7 @@
 #include "include_internal/ten_runtime/app/app.h"
 #include "include_internal/ten_runtime/app/close.h"
 #include "include_internal/ten_runtime/extension/extension.h"
+#include "include_internal/ten_runtime/extension/on_xxx.h"
 #include "include_internal/ten_runtime/extension_context/extension_context.h"
 #include "include_internal/ten_runtime/extension_group/extension_group.h"
 #include "include_internal/ten_runtime/ten_env/ten_env.h"
@@ -40,8 +41,8 @@ void ten_env_delete_ten_proxy(ten_env_t *self, ten_env_proxy_t *ten_env_proxy) {
         TEN_ASSERT(extension && ten_extension_check_integrity(extension, true),
                    "Should not happen.");
 
-        if (extension->state == TEN_EXTENSION_STATE_ON_DEINIT) {
-          ten_env_on_deinit_done(self, NULL);
+        if (extension->state == TEN_EXTENSION_STATE_ON_DEINIT_DONE) {
+          ten_extension_on_ten_env_proxy_released(self);
         }
         break;
       }

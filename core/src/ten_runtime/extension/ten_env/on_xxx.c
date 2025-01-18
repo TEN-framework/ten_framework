@@ -384,25 +384,47 @@ bool ten_extension_on_deinit_done(ten_env_t *self) {
     return false;
   }
 
+  extension->state = TEN_EXTENSION_STATE_ON_DEINIT_DONE;
+
+  TEN_LOGD("[%s] on_deinit() done.", ten_extension_get_name(extension, true));
+
   if (!ten_list_is_empty(&self->ten_proxy_list)) {
     // There is still the presence of ten_env_proxy, so the closing process
     // cannot continue.
     TEN_LOGI(
-        "[%s] Failed to on_deinit_done() because of existed ten_env_proxy.",
-        ten_extension_get_name(extension, true));
+        "[%s] Waiting for ten_env_proxy to be released, remaining %d "
+        "ten_env_proxy(s).",
+        ten_extension_get_name(extension, true),
+        ten_list_size(&self->ten_proxy_list));
     return true;
   }
 
-  TEN_ASSERT(extension->state >= TEN_EXTENSION_STATE_ON_DEINIT,
-             "Should not happen.");
+  ten_extension_thread_on_extension_on_deinit_done(extension->extension_thread,
+                                                   extension);
 
-  if (extension->state == TEN_EXTENSION_STATE_ON_DEINIT_DONE) {
-    return false;
+  return true;
+}
+
+bool ten_extension_on_ten_env_proxy_released(ten_env_t *self) {
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_env_check_integrity(self, true), "Invalid use of ten_env %p.",
+             self);
+
+  ten_extension_t *extension = ten_env_get_attached_extension(self);
+  TEN_ASSERT(extension, "Invalid argument.");
+  TEN_ASSERT(ten_extension_check_integrity(extension, true),
+             "Invalid use of extension %p.", extension);
+
+  if (!ten_list_is_empty(&self->ten_proxy_list)) {
+    // There is still the presence of ten_env_proxy, so the closing process
+    // cannot continue.
+    TEN_LOGI(
+        "[%s] Waiting for ten_env_proxy to be released, remaining %d "
+        "ten_env_proxy(s).",
+        ten_extension_get_name(extension, true),
+        ten_list_size(&self->ten_proxy_list));
+    return true;
   }
-
-  extension->state = TEN_EXTENSION_STATE_ON_DEINIT_DONE;
-
-  TEN_LOGD("[%s] on_deinit() done.", ten_extension_get_name(extension, true));
 
   ten_extension_thread_on_extension_on_deinit_done(extension->extension_thread,
                                                    extension);
