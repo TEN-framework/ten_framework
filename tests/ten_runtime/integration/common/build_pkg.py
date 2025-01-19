@@ -357,7 +357,6 @@ def _replace_after_install_app(
     ):
         return 0
 
-    replaced_files = []
     for replace_file in replace_paths_after_install_app:
         src_file = os.path.join(
             assemble_info_dir,
@@ -370,13 +369,12 @@ def _replace_after_install_app(
             return 1
 
         dst_file = os.path.join(test_case_base_dir, replace_file)
-        replaced_files.append((src_file, dst_file))
 
-    try:
-        replace.replace_normal_files_or_merge_json_files(replaced_files)
-    except Exception as exc:
-        print(exc)
-        return 1
+        try:
+            replace.replace_normal_files_or_merge_json_files(src_file, dst_file)
+        except Exception as exc:
+            print(exc)
+            return 1
 
     return 0
 
@@ -403,7 +401,6 @@ def _replace_after_install_all(
     ):
         return 0
 
-    replaced_files = []
     for replace_file in replace_paths_after_install_all:
         src_file = os.path.join(
             assemble_info_dir,
@@ -416,13 +413,12 @@ def _replace_after_install_all(
             return 1
 
         dst_file = os.path.join(test_case_base_dir, replace_file)
-        replaced_files.append((src_file, dst_file))
 
-    try:
-        replace.replace_normal_files_or_merge_json_files(replaced_files)
-    except Exception as exc:
-        print(exc)
-        return 1
+        try:
+            replace.replace_normal_files_or_merge_json_files(src_file, dst_file)
+        except Exception as exc:
+            print(exc)
+            return 1
 
     return 0
 

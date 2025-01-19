@@ -144,12 +144,12 @@ template("ten_package_test_prepare_app") {
           script = "//build/ten_runtime/feature/replace_normal_files_or_merge_json_files.py"
 
           args = [
-            "--replaced-files",
-            "${replace_src_abs_path}=>${replace_dest_abs_path}",
+            "--src",
+            "${replace_src_abs_path}",
+            "--dest",
+            "${replace_dest_abs_path}",
           ]
 
-          # Wait for the completion of 'install_app'.
-          inputs = []
           sources = [ replace_src_path ]
           outputs = [ replace_dest_path ]
 
@@ -261,9 +261,12 @@ template("ten_package_test_prepare_app") {
         action(
             "${test_case_unique_target_name}_${_target_name}_after_install_all_replace_file_${replace_path_index}") {
           script = "//build/ten_runtime/feature/replace_normal_files_or_merge_json_files.py"
+
           args = [
-            "--replaced-files",
-            "${replace_src_abs_path}=>${replace_dest_abs_path}",
+            "--src",
+            "${replace_src_abs_path}",
+            "--dest",
+            "${replace_dest_abs_path}",
           ]
 
           sources = [ replace_src_path ]

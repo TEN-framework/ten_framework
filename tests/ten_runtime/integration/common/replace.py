@@ -13,7 +13,8 @@ from . import fs_utils
 
 class ArgumentInfo(argparse.Namespace):
     def __init__(self):
-        self.replaced_files: list[str]
+        self.src: str
+        self.dest: str
 
 
 def merge_json_file_at_root_level(src: str, dest: str) -> None:
@@ -43,59 +44,31 @@ def merge_json_file_at_root_level(src: str, dest: str) -> None:
         dest_file.truncate()
 
 
-def split(input: str, split_key: str) -> tuple[str, str]:
-    split_key_index = str(input).find(split_key)
-    if split_key_index == -1:
-        # split_key is not found, this means the source and the destination
-        # are equal.
-        return (input, input)
+def replace_normal_files_or_merge_json_files(src: str, dest: str) -> None:
+    if not os.path.exists(src):
+        raise Exception(f"{src} does not exist.")
+
+    if os.path.isdir(src):
+        raise Exception(f"{src} is a directory, not a file.")
+
+    if os.path.exists(dest) and os.path.isdir(dest):
+        raise Exception(f"{dest} is a directory, not a file.")
+
+    if (
+        src.endswith(".json")
+        and dest.endswith(".json")
+        and os.path.exists(dest)
+    ):
+        merge_json_file_at_root_level(src, dest)
     else:
-        return (
-            str(input)[:split_key_index],
-            str(input)[split_key_index + len(split_key) :],
-        )
-
-
-def _parsing_replace_files(
-    replaced_files: list[str],
-) -> list[tuple[str, str]]:
-    result = []
-    for res in replaced_files:
-        res_src, res_dest = split(res, "=>")
-        result.append((res_src, res_dest))
-
-    return result
-
-
-def replace_normal_files_or_merge_json_files(
-    replaced_files: list[tuple[str, str]]
-) -> None:
-    for res in replaced_files:
-        res_src, res_dest = res
-
-        if not os.path.exists(res_src):
-            raise Exception(f"{res_src} does not exist.")
-
-        if (
-            res_src.endswith(".json")
-            and res_dest.endswith(".json")
-            and os.path.exists(res_dest)
-        ):
-            merge_json_file_at_root_level(res_src, res_dest)
-        else:
-            fs_utils.copy(res_src, res_dest)
+        fs_utils.copy(src, dest)
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
-    parser.add_argument(
-        "--replaced-files",
-        type=str,
-        action="append",
-        default=[],
-        help="Resources to be replaced",
-    )
+    parser.add_argument("--src", type=str, required=True)
+    parser.add_argument("--dest", type=str, required=True)
 
     arg_info = ArgumentInfo()
     args = parser.parse_args(namespace=arg_info)
@@ -104,9 +77,7 @@ if __name__ == "__main__":
     returncode = 0
 
     try:
-        replace_normal_files_or_merge_json_files(
-            _parsing_replace_files(args.replaced_files)
-        )
+        replace_normal_files_or_merge_json_files(args.src, args.dest)
     except Exception as exc:
         returncode = 1
         print(exc)
