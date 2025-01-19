@@ -6,10 +6,12 @@
 //
 #include "include_internal/ten_runtime/app/app.h"
 #include "include_internal/ten_runtime/app/close.h"
+#include "include_internal/ten_runtime/app/on_xxx.h"
 #include "include_internal/ten_runtime/extension/extension.h"
 #include "include_internal/ten_runtime/extension/on_xxx.h"
 #include "include_internal/ten_runtime/extension_context/extension_context.h"
 #include "include_internal/ten_runtime/extension_group/extension_group.h"
+#include "include_internal/ten_runtime/extension_group/on_xxx.h"
 #include "include_internal/ten_runtime/ten_env/ten_env.h"
 #include "include_internal/ten_runtime/ten_env_proxy/ten_env_proxy.h"
 #include "ten_runtime/app/app.h"
@@ -54,8 +56,8 @@ void ten_env_delete_ten_proxy(ten_env_t *self, ten_env_proxy_t *ten_env_proxy) {
                                           extension_group, true),
                    "Should not happen.");
 
-        if (extension_group->state == TEN_EXTENSION_GROUP_STATE_DEINITING) {
-          ten_env_on_deinit_done(self, NULL);
+        if (extension_group->state == TEN_EXTENSION_GROUP_STATE_DEINITTED) {
+          ten_extension_group_on_ten_env_proxy_released(self);
         }
         break;
       }
@@ -66,7 +68,7 @@ void ten_env_delete_ten_proxy(ten_env_t *self, ten_env_proxy_t *ten_env_proxy) {
                    "Should not happen.");
 
         if (ten_app_is_closing(app)) {
-          ten_env_on_deinit_done(self, NULL);
+          ten_app_on_ten_env_proxy_released(self);
         }
         break;
       }

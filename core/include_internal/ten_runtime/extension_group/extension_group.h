@@ -132,7 +132,7 @@ TEN_RUNTIME_PRIVATE_API ten_runloop_t *ten_extension_group_get_attached_runloop(
 
 TEN_RUNTIME_PRIVATE_API void ten_extension_group_on_init_done(ten_env_t *self);
 
-TEN_RUNTIME_PRIVATE_API void ten_extension_group_on_deinit_done(
+TEN_RUNTIME_PRIVATE_API bool ten_extension_group_on_deinit_done(
     ten_env_t *self);
 
 TEN_RUNTIME_PRIVATE_API void ten_extension_group_on_destroy_extensions_done(
@@ -160,3 +160,6 @@ ten_extension_group_create_internal(
     ten_extension_group_on_deinit_func_t on_deinit,
     ten_extension_group_on_create_extensions_func_t on_create_extensions,
     ten_extension_group_on_destroy_extensions_func_t on_destroy_extensions);
+
+TEN_RUNTIME_PRIVATE_API const char *ten_extension_group_get_name(
+    ten_extension_group_t *self, bool check_thread);

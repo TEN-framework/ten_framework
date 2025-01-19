@@ -298,3 +298,12 @@ size_t ten_extension_group_decrement_extension_cnt_of_being_destroyed(
 
   return --self->extensions_cnt_of_being_destroyed;
 }
+
+const char *ten_extension_group_get_name(ten_extension_group_t *self,
+                                         bool check_thread) {
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_extension_group_check_integrity(self, check_thread),
+             "Invalid use of extension group %p.", self);
+
+  return ten_string_get_raw_str(&self->name);
+}

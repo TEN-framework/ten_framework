@@ -78,17 +78,21 @@ class test_extension_2 : public ten::extension_t {
 
         bool rc = ten_env_proxy->notify(
             [ten_env_proxy, cmd_shared](ten::ten_env_t &ten_env) {
+              // At this moment, ten_env has been closed because
+              // ten_env.on_deinit_done() has been called. So all API calls to
+              // ten_env will result in an error.
+
               auto rc = ten_env.return_result(
                   ten::cmd_result_t::create(TEN_STATUS_CODE_OK),
                   std::move(*cmd_shared));
 
-              // return_result will fail after on_deinit_done.
               ASSERT_FALSE(rc);
 
               delete ten_env_proxy;
             });
 
-        // Call ten_env api after on_deinit_done(), return false.
+        // The presence of ten_env_proxy prevents the extension runloop from
+        // stopping, so the notify() will succeed.
         ASSERT_TRUE(rc);
       });
 

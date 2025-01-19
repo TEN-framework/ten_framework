@@ -61,6 +61,7 @@ typedef struct ten_env_t {
 
   // TODO(Wei): Do we need this close_handler?
   ten_env_close_handler_in_target_lang_func_t close_handler;
+  bool is_closed;
 
   ten_env_destroy_handler_in_target_lang_func_t destroy_handler;
 
@@ -85,6 +86,8 @@ TEN_RUNTIME_PRIVATE_API ten_env_t *ten_env_create_for_engine(
     ten_engine_t *engine);
 
 TEN_RUNTIME_PRIVATE_API void ten_env_close(ten_env_t *self);
+
+TEN_RUNTIME_PRIVATE_API bool ten_env_is_closed(ten_env_t *self);
 
 TEN_RUNTIME_PRIVATE_API ten_env_t *ten_env_create(void);
 

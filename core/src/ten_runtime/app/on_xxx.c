@@ -7,6 +7,8 @@
 #include "include_internal/ten_runtime/app/on_xxx.h"
 
 #include "include_internal/ten_runtime/addon/addon.h"
+#include "include_internal/ten_runtime/app/app.h"
+#include "include_internal/ten_runtime/ten_env/ten_env.h"
 #include "ten_runtime/app/app.h"
 #include "ten_utils/macro/check.h"
 #include "ten_utils/macro/memory.h"
@@ -89,4 +91,29 @@ void ten_app_thread_on_addon_create_addon_loader_done(void *self, void *arg) {
 
   ten_addon_context_destroy(addon_context);
   ten_app_thread_on_addon_create_addon_loader_done_ctx_destroy(ctx);
+}
+
+bool ten_app_on_ten_env_proxy_released(ten_env_t *self) {
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_env_check_integrity(self, true), "Invalid use of ten_env %p.",
+             self);
+
+  TEN_ASSERT(self->attach_to == TEN_ENV_ATTACH_TO_APP, "Should not happen.");
+
+  ten_app_t *app = self->attached_target.app;
+  TEN_ASSERT(app && ten_app_check_integrity(app, true), "Should not happen.");
+
+  if (!ten_list_is_empty(&self->ten_proxy_list)) {
+    // There is still the presence of ten_env_proxy, so the closing process
+    // cannot continue.
+    TEN_LOGI(
+        "[app %s] Waiting for ten_env_proxy to be released, remaining %d "
+        "ten_env_proxy(s).",
+        ten_app_get_uri(app), ten_list_size(&self->ten_proxy_list));
+    return true;
+  }
+
+  ten_runloop_stop(app->loop);
+
+  return true;
 }

@@ -111,7 +111,7 @@ bool ten_env_is_property_exist(ten_env_t *self, const char *path,
 
   // If the property cannot be found, it should not be an error, just return
   // false.
-  ten_value_t *value = ten_env_peek_property(self, path, NULL);
+  ten_value_t *value = ten_env_peek_property(self, path, err);
   if (value != NULL) {
     return true;
   } else {
@@ -198,6 +198,13 @@ bool ten_env_init_property_from_json(ten_env_t *self, const char *json_string,
       ten_env_check_integrity(
           self, self->attach_to != TEN_ENV_ATTACH_TO_ADDON ? true : false),
       "Invalid use of ten_env %p.", self);
+
+  if (ten_env_is_closed(self)) {
+    if (err) {
+      ten_error_set(err, TEN_ERRNO_TEN_IS_CLOSED, "ten_env is closed.");
+    }
+    return false;
+  }
 
   ten_metadata_info_t *property_info = ten_env_get_property_info(self);
   TEN_ASSERT(property_info && ten_metadata_info_check_integrity(property_info),

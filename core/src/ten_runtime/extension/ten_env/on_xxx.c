@@ -363,7 +363,6 @@ static void ten_extension_thread_on_extension_on_deinit_done(
   TEN_ASSERT(deinit_extension->ten_env &&
                  ten_env_check_integrity(deinit_extension->ten_env, true),
              "Should not happen.");
-  ten_env_close(deinit_extension->ten_env);
 
   ten_extension_thread_del_extension(self, deinit_extension);
 }
@@ -387,6 +386,10 @@ bool ten_extension_on_deinit_done(ten_env_t *self) {
   extension->state = TEN_EXTENSION_STATE_ON_DEINIT_DONE;
 
   TEN_LOGD("[%s] on_deinit() done.", ten_extension_get_name(extension, true));
+
+  // Close the ten_env so that any apis called on the ten_env will return
+  // TEN_ERROR_ENV_CLOSED.
+  ten_env_close(self);
 
   if (!ten_list_is_empty(&self->ten_proxy_list)) {
     // There is still the presence of ten_env_proxy, so the closing process
