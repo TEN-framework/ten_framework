@@ -8,6 +8,8 @@ use std::fs::{self, File};
 use std::io::{self};
 #[cfg(unix)]
 use std::os::unix::fs::symlink;
+#[cfg(windows)]
+use std::os::windows::fs::{symlink_dir, symlink_file};
 use std::path::Path;
 
 use anyhow::{anyhow, Context, Result};
@@ -21,6 +23,46 @@ use crate::install::template::{
     extract_and_process_tar_gz_template_part,
     extract_and_process_zip_template_part,
 };
+
+fn create_symlink(target: &str, link: &Path, output_dir: &str) -> Result<()> {
+    #[cfg(unix)]
+    {
+        // Dummy usage to silence Clippy on non-Windows platforms.
+        let _ = output_dir;
+
+        symlink(target, link).with_context(|| {
+            format!("Failed to create symlink {:?} -> {:?}", link, target)
+        })?;
+    }
+
+    #[cfg(windows)]
+    {
+        // Determine the absolute path of the target.
+        let target_path = Path::new(output_dir).join(target);
+        let target_metadata =
+            fs::metadata(&target_path).with_context(|| {
+                format!("Failed to get metadata for target {:?}", target_path)
+            })?;
+
+        if target_metadata.is_dir() {
+            symlink_dir(target, link).with_context(|| {
+                format!(
+                    "Failed to create directory symlink {:?} -> {:?}",
+                    link, target
+                )
+            })?;
+        } else {
+            symlink_file(target, link).with_context(|| {
+                format!(
+                    "Failed to create file symlink {:?} -> {:?}",
+                    link, target
+                )
+            })?;
+        }
+    }
+
+    Ok(())
+}
 
 fn extract_and_process_zip_normal_part(
     zip_path: &str,
@@ -162,7 +204,9 @@ fn extract_and_process_tar_gz_normal_part(
                         "Symlink entry {:?} does not have a target",
                         entry_path
                     )
-                })?;
+                })?
+                .to_string_lossy()
+                .to_string();
 
             // Ensure the parent directory exists.
             if let Some(p) = out_path.parent() {
@@ -184,12 +228,7 @@ fn extract_and_process_tar_gz_normal_part(
             }
 
             // Create the symbolic link.
-            symlink(&target, &out_path).with_context(|| {
-                format!(
-                    "Failed to create symlink {:?} -> {:?}",
-                    out_path, target
-                )
-            })?;
+            create_symlink(&target, &out_path, output_dir)?;
         }
         // Check if the entry is a file or directory.
         else if entry.header().entry_type().is_dir() {
