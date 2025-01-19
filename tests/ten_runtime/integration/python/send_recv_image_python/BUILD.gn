@@ -12,12 +12,12 @@ ten_package_test_prepare_app("send_recv_image_python_app") {
   src_app_language = "python"
   generated_app_src_root_dir_name = "send_recv_image_python_app"
 
-  replace_files_after_install_app = [
+  replace_paths_after_install_app = [
     "send_recv_image_python_app/manifest.json",
     "send_recv_image_python_app/property.json",
   ]
 
-  replace_files_after_install_all = [
+  replace_paths_after_install_all = [
     "send_recv_image_python_app/ten_packages/extension/default_extension_python/extension.py",
     "send_recv_image_python_app/ten_packages/extension/default_extension_python/requirements.txt",
   ]

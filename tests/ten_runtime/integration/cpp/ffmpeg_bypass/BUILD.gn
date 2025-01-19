@@ -12,12 +12,12 @@ ten_package_test_prepare_app("ffmpeg_bypass_app") {
   src_app_language = "cpp"
   generated_app_src_root_dir_name = "ffmpeg_bypass_app"
 
-  replace_files_after_install_app = [
+  replace_paths_after_install_app = [
     "ffmpeg_bypass_app/manifest.json",
     "ffmpeg_bypass_app/property.json",
   ]
 
-  replace_files_after_install_all = [
+  replace_paths_after_install_all = [
     "ffmpeg_bypass_app/ten_packages/extension/ffmpeg_client/src/main.cc",
     "ffmpeg_bypass_app/ten_packages/extension/ffmpeg_client/manifest.json",
   ]

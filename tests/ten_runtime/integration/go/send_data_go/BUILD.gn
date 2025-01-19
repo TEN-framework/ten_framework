@@ -12,7 +12,7 @@ ten_package_test_prepare_app("send_data_go_app") {
   src_app_language = "go"
   generated_app_src_root_dir_name = "send_data_go_app"
 
-  replace_files_after_install_app = [
+  replace_paths_after_install_app = [
     "send_data_go_app/manifest.json",
     "send_data_go_app/property.json",
     "send_data_go_app/ten_packages",

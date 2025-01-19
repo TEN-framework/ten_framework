@@ -12,7 +12,7 @@ ten_package_test_prepare_app("restful_app") {
   src_app_language = "cpp"
   generated_app_src_root_dir_name = "restful_app"
 
-  replace_files_after_install_app = [
+  replace_paths_after_install_app = [
     "restful_app/manifest.json",
     "restful_app/property.json",
   ]
