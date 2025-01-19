@@ -15,7 +15,18 @@ ten_package_test_prepare_app("prepare_to_stop_go_app") {
   replace_paths_after_install_app = [
     "prepare_to_stop_go_app/manifest.json",
     "prepare_to_stop_go_app/property.json",
-    "prepare_to_stop_go_app/ten_packages",
+    "prepare_to_stop_go_app/ten_packages/extension/extension_a/extension.go",
+    "prepare_to_stop_go_app/ten_packages/extension/extension_a/go.mod",
+    "prepare_to_stop_go_app/ten_packages/extension/extension_a/manifest.json",
+    "prepare_to_stop_go_app/ten_packages/extension/extension_a/property.json",
+    "prepare_to_stop_go_app/ten_packages/extension/extension_b/extension.go",
+    "prepare_to_stop_go_app/ten_packages/extension/extension_b/go.mod",
+    "prepare_to_stop_go_app/ten_packages/extension/extension_b/manifest.json",
+    "prepare_to_stop_go_app/ten_packages/extension/extension_b/property.json",
+    "prepare_to_stop_go_app/ten_packages/extension/extension_c/extension.go",
+    "prepare_to_stop_go_app/ten_packages/extension/extension_c/go.mod",
+    "prepare_to_stop_go_app/ten_packages/extension/extension_c/manifest.json",
+    "prepare_to_stop_go_app/ten_packages/extension/extension_c/property.json",
   ]
 
   if (ten_enable_ten_manager) {
