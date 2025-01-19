@@ -12,7 +12,7 @@ ten_package_test_prepare_app("app_1") {
   src_app_language = "cpp"
   generated_app_src_root_dir_name = "app_1"
 
-  replace_files_after_install_app = [
+  replace_paths_after_install_app = [
     "app_1/manifest.json",
     "app_1/property.json",
     "app_1/ten_packages",
@@ -34,7 +34,7 @@ ten_package_test_prepare_app("app_2") {
   src_app_language = "cpp"
   generated_app_src_root_dir_name = "app_2"
 
-  replace_files_after_install_app = [
+  replace_paths_after_install_app = [
     "app_2/manifest.json",
     "app_2/property.json",
     "app_2/ten_packages",

@@ -12,7 +12,7 @@ ten_package_test_prepare_app("return_value_go_app") {
   src_app_language = "go"
   generated_app_src_root_dir_name = "return_value_go_app"
 
-  replace_files_after_install_app = [
+  replace_paths_after_install_app = [
     "return_value_go_app/manifest.json",
     "return_value_go_app/property.json",
     "return_value_go_app/ten_packages",

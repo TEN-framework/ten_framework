@@ -20,8 +20,8 @@ class ArgumentInfo(argparse.Namespace):
         self.src_app: str
         self.src_app_language: str
         self.generated_app_src_root_dir_name: str
-        self.replace_files_after_install_app: list[str]
-        self.replace_files_after_install_all: list[str]
+        self.replace_paths_after_install_app: list[str]
+        self.replace_paths_after_install_all: list[str]
 
 
 def dump_integration_test_preparation_info_json(args: ArgumentInfo):
@@ -30,8 +30,8 @@ def dump_integration_test_preparation_info_json(args: ArgumentInfo):
         "src_app": args.src_app,
         "src_app_language": args.src_app_language,
         "generated_app_src_root_dir_name": args.generated_app_src_root_dir_name,
-        "replace_files_after_install_app": args.replace_files_after_install_app,
-        "replace_files_after_install_all": args.replace_files_after_install_all,
+        "replace_paths_after_install_app": args.replace_paths_after_install_app,
+        "replace_paths_after_install_all": args.replace_paths_after_install_all,
     }
 
     resource_dir = os.path.join(
@@ -112,14 +112,14 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
-        "--replace-files-after-install-app",
+        "--replace-paths-after-install-app",
         type=str,
         action="append",
         help="List of files to replace after installing app",
     )
 
     parser.add_argument(
-        "--replace-files-after-install-all",
+        "--replace-paths-after-install-all",
         type=str,
         action="append",
         help="List of files to replace after installing all",
@@ -132,13 +132,13 @@ if __name__ == "__main__":
 
     copy_replacement_files(
         args,
-        args.replace_files_after_install_app,
+        args.replace_paths_after_install_app,
         "files_to_be_replaced_after_install_app",
     )
 
     copy_replacement_files(
         args,
-        args.replace_files_after_install_all,
+        args.replace_paths_after_install_all,
         "files_to_be_replaced_after_install_all",
     )
 

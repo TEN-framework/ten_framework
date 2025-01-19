@@ -58,19 +58,19 @@ def split(input: str, split_key: str) -> tuple[str, str]:
 
 def replace_normal_files_or_merge_json_files(replaced_files: list[str]) -> None:
     for res in replaced_files:
-        res_src, res_dest = split(res, "=>")
+        src, dest = split(res, "=>")
 
-        if not os.path.exists(res_src):
-            raise Exception(f"{res_src} does not exist.")
+        if not os.path.exists(src):
+            raise Exception(f"{src} does not exist.")
 
         if (
-            res_src.endswith(".json")
-            and res_dest.endswith(".json")
-            and os.path.exists(res_dest)
+            src.endswith(".json")
+            and dest.endswith(".json")
+            and os.path.exists(dest)
         ):
-            merge_json_file_at_root_level(res_src, res_dest)
+            merge_json_file_at_root_level(src, dest)
         else:
-            fs_utils.copy(res_src, res_dest)
+            fs_utils.copy(src, dest)
 
 
 if __name__ == "__main__":
