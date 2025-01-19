@@ -323,8 +323,10 @@ bool ten_extension_on_stop_done(ten_env_t *self) {
   return true;
 }
 
-static void ten_extension_thread_del_extension(ten_extension_thread_t *self,
-                                               ten_extension_t *extension) {
+static void ten_extension_thread_del_extension(void *self_, void *extension_) {
+  ten_extension_thread_t *self = self_;
+  ten_extension_t *extension = extension_;
+
   TEN_ASSERT(self, "Invalid argument.");
   TEN_ASSERT(ten_extension_thread_check_integrity(self, true),
              "Invalid use of extension_thread %p.", self);
@@ -364,7 +366,25 @@ static void ten_extension_thread_on_extension_on_deinit_done(
                  ten_env_check_integrity(deinit_extension->ten_env, true),
              "Should not happen.");
 
-  ten_extension_thread_del_extension(self, deinit_extension);
+  // Important: All the registered result handlers have to be called.
+  //
+  // Ex: If there are still some _IN_ or _OUT_ paths remaining in the path table
+  // of extensions, in order to prevent memory leaks such as the result handler
+  // in C++ binding, we need to create the corresponding cmd results and send
+  // them into the original source extension.
+  ten_extension_flush_remaining_paths(deinit_extension);
+
+  // Why we need to post task tail instead of executing directly:
+  // At this point, there may still be tasks in the extension thread runloop
+  // queue whose arguments contain __deinit_extension__. If we delete the
+  // extension immediately, those future tasks may access "dangling pointers".
+  // By posting to task tail, since ten_env is closed after on_deinit_done(),
+  // all subsequent ten_env calls will synchronously return failure, so no more
+  // tasks will be posted to the extension thread runloop queue. Therefore,
+  // posting the delete extension task to tail ensures no tasks after it will
+  // access the deinit_extension raw pointer.
+  ten_runloop_post_task_tail(self->runloop, ten_extension_thread_del_extension,
+                             self, deinit_extension);
 }
 
 bool ten_extension_on_deinit_done(ten_env_t *self) {

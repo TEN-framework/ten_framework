@@ -11,6 +11,9 @@
 #include "gtest/gtest.h"
 #include "include_internal/ten_runtime/binding/cpp/ten.h"
 #include "ten_runtime/binding/cpp/detail/ten_env_proxy.h"
+#include "ten_runtime/common/errno.h"
+#include "ten_runtime/common/status_code.h"
+#include "ten_utils/lang/cpp/lib/error.h"
 #include "ten_utils/lib/thread.h"
 #include "ten_utils/lib/time.h"
 #include "tests/common/client/cpp/msgpack_tcp.h"
@@ -21,13 +24,6 @@ namespace {
 class test_extension_1 : public ten::extension_t {
  public:
   explicit test_extension_1(const char *name) : ten::extension_t(name) {}
-
-  void on_start(ten::ten_env_t &ten_env) override {
-    auto cmd = ten::cmd_t::create("return_immediately");
-    ten_env.send_cmd(std::move(cmd));
-
-    ten_env.on_start_done();
-  }
 
   void on_cmd(ten::ten_env_t &ten_env,
               std::unique_ptr<ten::cmd_t> cmd) override {
@@ -41,77 +37,31 @@ class test_extension_1 : public ten::extension_t {
 
       ten_env.return_result(std::move(cmd_result), std::move(cmd));
       return;
-    }
-  }
-};
-
-class test_extension_2 : public ten::extension_t {
- public:
-  explicit test_extension_2(const char *name) : ten::extension_t(name) {}
-
-  void on_start(ten::ten_env_t &ten_env) override {
-    auto *ten_env_proxy = ten::ten_env_proxy_t::create(ten_env);
-
-    start_thread_ = std::thread([ten_env_proxy]() {
-      ten_sleep(1000);
-
-      ten_env_proxy->notify([](ten::ten_env_t &ten_env) {
-        // Only after calling on_start_done(), commands can be processed through
-        // the on_cmd callback
-        ten_env.on_start_done();
-      });
-
-      delete ten_env_proxy;
-    });
-  }
-
-  void on_cmd(ten::ten_env_t &ten_env,
-              std::unique_ptr<ten::cmd_t> cmd) override {
-    if (cmd->get_name() == "return_after_3_second") {
-      auto *ten_env_proxy = ten::ten_env_proxy_t::create(ten_env);
-
-      auto cmd_shared =
-          std::make_shared<std::unique_ptr<ten::cmd_t>>(std::move(cmd));
-
-      thread_ = std::thread([ten_env_proxy, cmd_shared]() {
-        ten_sleep(3000);
-
-        bool rc = ten_env_proxy->notify(
-            [ten_env_proxy, cmd_shared](ten::ten_env_t &ten_env) {
-              // At this moment, ten_env has been closed because
-              // ten_env.on_deinit_done() has been called. So all API calls to
-              // ten_env will result in an error.
-
-              auto rc = ten_env.return_result(
-                  ten::cmd_result_t::create(TEN_STATUS_CODE_OK),
-                  std::move(*cmd_shared));
-
-              ASSERT_FALSE(rc);
-
-              delete ten_env_proxy;
-            });
-
-        // The presence of ten_env_proxy prevents the extension runloop from
-        // stopping, so the notify() will succeed.
-        ASSERT_TRUE(rc);
-      });
-
-      return;
     } else if (cmd->get_name() == "return_immediately") {
       auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
-      cmd_result->set_property("detail", "done");
+      cmd_result->set_property("detail", "ok");
+
       ten_env.return_result(std::move(cmd_result), std::move(cmd));
       return;
     }
   }
 
-  void on_stop(ten::ten_env_t &ten_env) override { ten_env.on_stop_done(); }
+  void on_stop(ten::ten_env_t &ten_env) override {
+    // Delay 3 seconds to ensure commands from test_extension_2 can be
+    // received.
+    auto *ten_env_proxy = ten::ten_env_proxy_t::create(ten_env);
+
+    thread_ = std::thread([ten_env_proxy]() {
+      ten_sleep(3000);
+
+      ten_env_proxy->notify(
+          [](ten::ten_env_t &ten_env) { ten_env.on_stop_done(); });
+
+      delete ten_env_proxy;
+    });
+  }
 
   void on_deinit(ten::ten_env_t &ten_env) override {
-    if (start_thread_.joinable()) {
-      start_thread_.join();
-    }
-
     if (thread_.joinable()) {
       thread_.join();
     }
@@ -120,8 +70,37 @@ class test_extension_2 : public ten::extension_t {
   }
 
  private:
-  std::thread start_thread_;
   std::thread thread_;
+};
+
+class test_extension_2 : public ten::extension_t {
+ public:
+  explicit test_extension_2(const char *name) : ten::extension_t(name) {}
+
+  void on_stop(ten::ten_env_t &ten_env) override { ten_env.on_stop_done(); }
+
+  void on_deinit(ten::ten_env_t &ten_env) override {
+    auto cmd = ten::cmd_t::create("return_immediately");
+    auto rc = ten_env.send_cmd(
+        std::move(cmd),
+        [](ten::ten_env_t &ten_env,
+           std::unique_ptr<ten::cmd_result_t> cmd_result, ten::error_t *err) {
+          auto rc = ten_env.set_property("test_property", "test_value");
+          ASSERT_TRUE(rc);
+
+          auto property = ten_env.get_property_string("test_property", nullptr);
+          ASSERT_EQ(property, "test_value");
+
+          auto status_code = cmd_result->get_status_code();
+          ASSERT_EQ(status_code, TEN_STATUS_CODE_OK);
+
+          auto detail = cmd_result->get_property_string("detail", nullptr);
+          ASSERT_EQ(detail, "ok");
+
+          ten_env.on_deinit_done();
+        });
+    ASSERT_TRUE(rc);
+  }
 };
 
 class test_app : public ten::app_t {
@@ -153,13 +132,13 @@ void *test_app_thread_main(TEN_UNUSED void *args) {
 }
 
 TEN_CPP_REGISTER_ADDON_AS_EXTENSION(
-    call_ten_api_during_closing__test_extension_1, test_extension_1);
+    call_ten_api_during_deiniting_2__test_extension_1, test_extension_1);
 TEN_CPP_REGISTER_ADDON_AS_EXTENSION(
-    call_ten_api_during_closing__test_extension_2, test_extension_2);
+    call_ten_api_during_deiniting_2__test_extension_2, test_extension_2);
 
 }  // namespace
 
-TEST(CloseAppTest, CallTenApiDuringClosing) {  // NOLINT
+TEST(CloseAppTest, CallTenApiDuringDeiniting2) {  // NOLINT
   // Start app.
   auto *app_thread =
       ten_thread_create("app thread", test_app_thread_main, nullptr);
@@ -173,24 +152,27 @@ TEST(CloseAppTest, CallTenApiDuringClosing) {  // NOLINT
            "nodes": [{
                 "type": "extension",
                 "name": "test_extension_1",
-                "addon": "call_ten_api_during_closing__test_extension_1",
+                "addon": "call_ten_api_during_deiniting_2__test_extension_1",
                 "extension_group": "basic_extension_group_1",
                 "app": "msgpack://127.0.0.1:8001/"
              },{
                 "type": "extension",
                 "name": "test_extension_2",
-                "addon": "call_ten_api_during_closing__test_extension_2",
+                "addon": "call_ten_api_during_deiniting_2__test_extension_2",
                 "extension_group": "basic_extension_group_2",
-                "app": "msgpack://127.0.0.1:8001/"
+                "app": "msgpack://127.0.0.1:8001/",
+                "property": {
+                  "test_property": "test_value"
+                }
              }],
              "connections": [{
                "app": "msgpack://127.0.0.1:8001/",
-               "extension": "test_extension_1",
+               "extension": "test_extension_2",
                "cmd": [{
                  "name": "return_immediately",
                  "dest": [{
                    "app": "msgpack://127.0.0.1:8001/",
-                   "extension": "test_extension_2"
+                   "extension": "test_extension_1"
                  }]
                }]
              }]
@@ -198,17 +180,6 @@ TEST(CloseAppTest, CallTenApiDuringClosing) {  // NOLINT
   auto cmd_result =
       client->send_cmd_and_recv_result(std::move(start_graph_cmd));
   ten_test::check_status_code(cmd_result, TEN_STATUS_CODE_OK);
-
-  // Send a return_after_3_second command.
-  auto return_after_3_second_cmd = ten::cmd_t::create("return_after_3_second");
-  return_after_3_second_cmd->set_dest("msgpack://127.0.0.1:8001/", nullptr,
-                                      "basic_extension_group_2",
-                                      "test_extension_2");
-  client->send_cmd(std::move(return_after_3_second_cmd));
-
-  // Wait 1 second to make sure the return_after_3_second command is
-  // processed.
-  ten_sleep(1000);
 
   // Send a close_app command.
   auto close_app_cmd = ten::cmd_t::create("close_app");
