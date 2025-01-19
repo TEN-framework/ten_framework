@@ -12,12 +12,12 @@ ten_package_test_prepare_app("go_app_python_app") {
   src_app_language = "go"
   generated_app_src_root_dir_name = "go_app_python_app"
 
-  replace_files_after_install_app = [
+  replace_paths_after_install_app = [
     "go_app_python_app/manifest.json",
     "go_app_python_app/property.json",
   ]
 
-  replace_files_after_install_all = [
+  replace_paths_after_install_all = [
     "go_app_python_app/ten_packages/extension/default_extension_python/extension.py",
     "go_app_python_app/bin",
   ]
@@ -25,10 +25,10 @@ ten_package_test_prepare_app("go_app_python_app") {
   if (ten_enable_ten_manager) {
     deps = [
       "//core/src/ten_manager",
+      "//packages/core_addon_loaders/python_addon_loader:upload_python_addon_loader_to_server",
       "//packages/core_apps/default_app_go:upload_default_app_go_to_server",
       "//packages/core_extensions/default_extension_go:upload_default_extension_go_to_server",
       "//packages/core_extensions/default_extension_python:upload_default_extension_python_to_server",
-      "//packages/core_addon_loaders/python_addon_loader:upload_python_addon_loader_to_server",
       "//packages/example_extensions/pil_demo_python:upload_pil_demo_python_to_server",
       "//packages/example_extensions/simple_echo_cpp:upload_simple_echo_cpp_to_server",
       "//packages/example_extensions/simple_http_server_cpp:upload_simple_http_server_cpp_to_server",

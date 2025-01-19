@@ -12,12 +12,12 @@ ten_package_test_prepare_app("get_set_property_nodejs_app") {
   src_app_language = "nodejs"
   generated_app_src_root_dir_name = "get_set_property_nodejs_app"
 
-  replace_files_after_install_app = [
+  replace_paths_after_install_app = [
     "get_set_property_nodejs_app/manifest.json",
     "get_set_property_nodejs_app/property.json",
   ]
 
-  replace_files_after_install_all = [ "get_set_property_nodejs_app/ten_packages/extension/default_extension_nodejs/src/index.ts" ]
+  replace_paths_after_install_all = [ "get_set_property_nodejs_app/ten_packages/extension/default_extension_nodejs/src/index.ts" ]
 
   if (ten_enable_ten_manager) {
     deps = [

@@ -12,12 +12,12 @@ ten_package_test_prepare_app("graph_env_var_1_app") {
   src_app_language = "cpp"
   generated_app_src_root_dir_name = "graph_env_var_1_app"
 
-  replace_files_after_install_app = [
+  replace_paths_after_install_app = [
     "graph_env_var_1_app/manifest.json",
     "graph_env_var_1_app/property.json",
   ]
 
-  replace_files_after_install_all = [
+  replace_paths_after_install_all = [
     "graph_env_var_1_app/ten_packages/extension/default_extension_cpp/manifest.json",
     "graph_env_var_1_app/ten_packages/extension/default_extension_cpp/property.json",
     "graph_env_var_1_app/ten_packages/extension/default_extension_cpp/src/main.cc",
