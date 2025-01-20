@@ -14,11 +14,6 @@
       "version": "0.7.1"
     },
     {
-      "type": "system",
-      "name": "ten_runtime",
-      "version": "0.7.1"
-    },
-    {
       "type": "extension",
       "name": "simple_http_server_cpp",
       "version": "0.1.0"

@@ -8,7 +8,7 @@ import("//build/ten_runtime/glob.gni")
 import("//build/ten_runtime/ten.gni")
 import("//third_party/curl/output_libs.gni")
 
-glob("msgpack_client") {
+ten_runtime_glob("msgpack_client") {
   file_list = [
     "msgpack_tcp.c",
     "tcp.c",
@@ -20,7 +20,7 @@ glob("msgpack_client") {
   ]
 }
 
-glob("client") {
+ten_runtime_glob("client") {
   file_list = []
   deps = [ ":msgpack_client" ]
 

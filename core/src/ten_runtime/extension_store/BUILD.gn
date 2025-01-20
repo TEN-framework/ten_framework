@@ -6,6 +6,6 @@
 #
 import("//build/ten_runtime/glob.gni")
 
-glob("extension_store") {
+ten_runtime_glob("extension_store") {
   file_list = all_native_files
 }
