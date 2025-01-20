@@ -110,6 +110,12 @@ PyObject *ten_py_ten_env_log(PyObject *self, PyObject *args) {
       goto done;
     }
 
+    // Currently the log design is fully synchronous. One reason for not making
+    // it asynchronous is this scenario: if exit() is called immediately after
+    // logging, that log message likely won't be written, which is very
+    // unfriendly for problem diagnosis. However in the future we want to
+    // support both async and sync logging, since async logging will have better
+    // performance compared to sync.
     PyThreadState *saved_py_thread_state = PyEval_SaveThread();
     ten_event_wait(ctx->completed, -1);
     PyEval_RestoreThread(saved_py_thread_state);
