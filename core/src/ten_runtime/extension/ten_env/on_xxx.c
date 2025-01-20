@@ -370,8 +370,8 @@ static void ten_extension_thread_on_extension_on_deinit_done(
   //
   // Ex: If there are still some _IN_ or _OUT_ paths remaining in the path table
   // of extensions, in order to prevent memory leaks such as the result handler
-  // in C++ binding, we need to create the corresponding cmd results and send
-  // them into the original source extension.
+  // itself in C++ binding, we need to create the corresponding cmd results
+  // and send them into the original source extension.
   ten_extension_flush_remaining_paths(deinit_extension);
 
   // Why we need to post task tail instead of executing directly:
