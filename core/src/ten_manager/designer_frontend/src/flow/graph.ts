@@ -27,7 +27,7 @@ export const getLayoutedElements = (
   const dagreGraph = new dagre.graphlib.Graph();
   dagreGraph.setDefaultEdgeLabel(() => ({}));
 
-  // Find all bidirectional pairs
+  // Find all bidirectional pairs.
   const nodePairs = new Map<string, Set<string>>();
   edges.forEach((edge) => {
     const hasReverse = edges.some(
@@ -41,19 +41,19 @@ export const getLayoutedElements = (
     }
   });
 
-  // Set graph to flow top to bottom-right
+  // Set graph to flow top to bottom-right.
   dagreGraph.setGraph({
     rankdir: "TB",
     nodesep: NODE_WIDTH * 2,
     ranksep: NODE_HEIGHT * 2,
   });
 
-  // Add nodes to graph
+  // Add nodes to graph.
   nodes.forEach((node) => {
     dagreGraph.setNode(node.id, { width: NODE_WIDTH, height: NODE_HEIGHT });
   });
 
-  // Process pairs in order of first appearance
+  // Process pairs in order of first appearance.
   const processedPairs = new Set<string>();
   let currentX = 0;
   const nodeXPositions = new Map<string, number>();
@@ -61,7 +61,7 @@ export const getLayoutedElements = (
   edges.forEach((edge) => {
     dagreGraph.setEdge(edge.source, edge.target);
 
-    // Check if this forms a pair and hasn't been processed
+    // Check if this forms a pair and hasn't been processed.
     const pairKey = [edge.source, edge.target].sort().join("-");
     if (
       nodePairs.has(edge.source) &&

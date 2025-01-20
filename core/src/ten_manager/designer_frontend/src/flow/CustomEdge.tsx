@@ -54,8 +54,6 @@ export function CustomEdge({
   sourceY,
   targetX,
   targetY,
-  // sourcePosition,
-  // targetPosition,
   id,
   style,
   selected,
