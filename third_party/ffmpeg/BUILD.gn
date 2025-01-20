@@ -72,11 +72,43 @@ ten_package("ffmpeg_system_package") {
   public_deps = [ ":build_ffmpeg" ]
 
   resources = [
-    "${root_gen_dir}/autotool/ffmpeg/install/include=>include/ffmpeg",
-    "${root_gen_dir}/autotool/ffmpeg/install/lib=>lib",
     "BUILD_release.gn=>BUILD.gn",
     "manifest.json",
   ]
+
+  header_files = exec_script(
+          "//build/ten_common/general/glob_file.py",
+          [
+            "--dir",
+            rebase_path("${root_gen_dir}/autotool/ffmpeg/install/include/**/*"),
+            "--dir-base",
+            rebase_path("${root_gen_dir}/autotool/ffmpeg/install/include/"),
+            "--recursive",
+            "--only-output-file",
+          ],
+          "json")
+
+  foreach(header_file, header_files) {
+    header_file_rel_path = header_file.relative_path
+    resources += [ "${root_gen_dir}/autotool/ffmpeg/install/include/${header_file_rel_path}=>include/ffmpeg/${header_file_rel_path}" ]
+  }
+
+  lib_files = exec_script(
+          "//build/ten_common/general/glob_file.py",
+          [
+            "--dir",
+            rebase_path("${root_gen_dir}/autotool/ffmpeg/install/lib/**/*"),
+            "--dir-base",
+            rebase_path("${root_gen_dir}/autotool/ffmpeg/install/lib/"),
+            "--recursive",
+            "--only-output-file",
+          ],
+          "json")
+
+  foreach(lib_file, lib_files) {
+    lib_file_rel_path = lib_file.relative_path
+    resources += [ "${root_gen_dir}/autotool/ffmpeg/install/lib/${lib_file_rel_path}=>lib/${lib_file_rel_path}" ]
+  }
 }
 
 if (ten_enable_ten_manager) {

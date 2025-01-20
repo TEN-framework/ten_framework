@@ -62,11 +62,14 @@ config("config_for_standalone_ten_packages") {
   }
 }
 
+# This is a useless target, included solely because the GN build for the TEN
+# app/extension requires the above `config`. Therefore, this `BUILD.gn` file is
+# necessary. However, in the current GN build process for TEN, a target matching
+# the folder name must exist in the `BUILD.gn` file. As a result, this otherwise
+# useless target is included. Essentially, this target has no actual
+# functionality or tasks to perform.
 ten_package("ten_runtime") {
   package_kind = "system"
 
-  resources = [
-    "lib",
-    "manifest.json",
-  ]
+  resources = [ "manifest.json" ]
 }
