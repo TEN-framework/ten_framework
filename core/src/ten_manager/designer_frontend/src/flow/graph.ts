@@ -18,33 +18,75 @@ import {
 } from "@/types/graphs";
 
 const NODE_WIDTH = 172;
-const NODE_HEIGHT = 36;
+const NODE_HEIGHT = 48;
 
 export const getLayoutedElements = (
   nodes: CustomNodeType[],
-  edges: CustomEdgeType[],
-  direction = "TB"
+  edges: CustomEdgeType[]
 ) => {
   const dagreGraph = new dagre.graphlib.Graph();
   dagreGraph.setDefaultEdgeLabel(() => ({}));
-  dagreGraph.setGraph({ rankdir: direction });
 
+  // Find all bidirectional pairs
+  const nodePairs = new Map<string, Set<string>>();
+  edges.forEach((edge) => {
+    const hasReverse = edges.some(
+      (e) => e.source === edge.target && e.target === edge.source
+    );
+    if (hasReverse) {
+      if (!nodePairs.has(edge.source)) {
+        nodePairs.set(edge.source, new Set());
+      }
+      nodePairs.get(edge.source)?.add(edge.target);
+    }
+  });
+
+  // Set graph to flow top to bottom-right
+  dagreGraph.setGraph({
+    rankdir: "TB",
+    nodesep: NODE_WIDTH * 2,
+    ranksep: NODE_HEIGHT * 2,
+  });
+
+  // Add nodes to graph
   nodes.forEach((node) => {
     dagreGraph.setNode(node.id, { width: NODE_WIDTH, height: NODE_HEIGHT });
   });
 
+  // Process pairs in order of first appearance
+  const processedPairs = new Set<string>();
+  let currentX = 0;
+  const nodeXPositions = new Map<string, number>();
+
   edges.forEach((edge) => {
     dagreGraph.setEdge(edge.source, edge.target);
+
+    // Check if this forms a pair and hasn't been processed
+    const pairKey = [edge.source, edge.target].sort().join("-");
+    if (
+      nodePairs.has(edge.source) &&
+      nodePairs.get(edge.source)?.has(edge.target) &&
+      !processedPairs.has(pairKey)
+    ) {
+      processedPairs.add(pairKey);
+      nodeXPositions.set(edge.source, currentX);
+      nodeXPositions.set(edge.target, currentX + NODE_WIDTH * 2);
+      currentX += NODE_WIDTH * 4;
+    }
   });
 
   dagre.layout(dagreGraph);
 
   const layoutedNodes = nodes.map((node) => {
     const nodeWithPosition = dagreGraph.node(node.id);
+    const xPos = nodeXPositions.has(node.id)
+      ? nodeXPositions.get(node.id)
+      : nodeWithPosition.x;
+
     return {
       ...node,
       position: {
-        x: nodeWithPosition.x - NODE_WIDTH / 2,
+        x: (xPos ?? nodeWithPosition.x) - NODE_WIDTH / 2,
         y: nodeWithPosition.y - NODE_HEIGHT / 2,
       },
     };

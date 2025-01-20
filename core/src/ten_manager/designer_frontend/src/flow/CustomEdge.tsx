@@ -6,7 +6,6 @@
 //
 import {
   type EdgeProps,
-  getBezierPath,
   type Edge,
   BaseEdge,
   getEdgeCenter,
@@ -27,27 +26,46 @@ export type CustomEdgeType = Edge<
   "customEdge"
 >;
 
+const OFFSET_Y = -200;
+
+const getSpecialPath = (
+  {
+    sourceX,
+    sourceY,
+    targetX,
+    targetY,
+  }: {
+    sourceX: number;
+    sourceY: number;
+    targetX: number;
+    targetY: number;
+  },
+  offset: number
+) => {
+  const centerX = (sourceX + targetX) / 2;
+  const centerY = (sourceY + targetY) / 2;
+
+  // eslint-disable-next-line max-len
+  return `M ${sourceX} ${sourceY} Q ${centerX} ${centerY + offset} ${targetX} ${targetY}`;
+};
+
 export function CustomEdge({
   sourceX,
   sourceY,
   targetX,
   targetY,
-  sourcePosition,
-  targetPosition,
+  // sourcePosition,
+  // targetPosition,
   id,
   style,
   selected,
   source,
   target,
 }: EdgeProps<CustomEdgeType>) {
-  const [edgePath] = getBezierPath({
-    sourceX,
-    sourceY,
-    sourcePosition,
-    targetX,
-    targetY,
-    targetPosition,
-  });
+  const edgePath = getSpecialPath(
+    { sourceX, sourceY, targetX, targetY },
+    sourceX < targetX ? 0 : OFFSET_Y
+  );
   const [edgeCenterX, edgeCenterY] = getEdgeCenter({
     sourceX,
     sourceY,
@@ -87,7 +105,7 @@ export function CustomEdge({
         width={80}
         height={60}
         x={edgeCenterX - 40}
-        y={edgeCenterY - 30}
+        y={edgeCenterY + (sourceX < targetX ? 0 : OFFSET_Y) / 2 - 30}
         className="pointer-events-all nodrag nopan"
         requiredExtensions="http://www.w3.org/1999/xhtml"
       >
