@@ -20,7 +20,8 @@ ten_package_test_prepare_app("cpp_app_python_app") {
   replace_paths_after_install_all = [
     "cpp_app_python_app/ten_packages/extension/default_extension_python/extension.py",
     "cpp_app_python_app/BUILD.gn",
-    "cpp_app_python_app/bin",
+    "cpp_app_python_app/bin/bootstrap",
+    "cpp_app_python_app/bin/start",
   ]
 
   if (ten_enable_ten_manager) {

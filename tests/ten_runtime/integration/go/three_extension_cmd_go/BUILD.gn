@@ -15,7 +15,18 @@ ten_package_test_prepare_app("three_extension_cmd_go_app") {
   replace_paths_after_install_app = [
     "three_extension_cmd_go_app/manifest.json",
     "three_extension_cmd_go_app/property.json",
-    "three_extension_cmd_go_app/ten_packages",
+    "three_extension_cmd_go_app/ten_packages/extension/extension_a/extension.go",
+    "three_extension_cmd_go_app/ten_packages/extension/extension_a/go.mod",
+    "three_extension_cmd_go_app/ten_packages/extension/extension_a/manifest.json",
+    "three_extension_cmd_go_app/ten_packages/extension/extension_a/property.json",
+    "three_extension_cmd_go_app/ten_packages/extension/extension_b/extension.go",
+    "three_extension_cmd_go_app/ten_packages/extension/extension_b/go.mod",
+    "three_extension_cmd_go_app/ten_packages/extension/extension_b/manifest.json",
+    "three_extension_cmd_go_app/ten_packages/extension/extension_b/property.json",
+    "three_extension_cmd_go_app/ten_packages/extension/extension_c/extension.go",
+    "three_extension_cmd_go_app/ten_packages/extension/extension_c/go.mod",
+    "three_extension_cmd_go_app/ten_packages/extension/extension_c/manifest.json",
+    "three_extension_cmd_go_app/ten_packages/extension/extension_c/property.json",
   ]
 
   if (ten_enable_ten_manager) {

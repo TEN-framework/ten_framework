@@ -15,7 +15,10 @@ ten_package_test_prepare_app("send_data_go_app") {
   replace_paths_after_install_app = [
     "send_data_go_app/manifest.json",
     "send_data_go_app/property.json",
-    "send_data_go_app/ten_packages",
+    "send_data_go_app/ten_packages/extension/default_extension_go/extension.go",
+    "send_data_go_app/ten_packages/extension/default_extension_go/go.mod",
+    "send_data_go_app/ten_packages/extension/default_extension_go/manifest.json",
+    "send_data_go_app/ten_packages/extension/default_extension_go/property.json",
   ]
 
   deps = [

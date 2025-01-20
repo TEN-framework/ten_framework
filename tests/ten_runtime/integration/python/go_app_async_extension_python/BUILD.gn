@@ -19,7 +19,7 @@ ten_package_test_prepare_app("go_app_async_extension_python_app") {
 
   replace_paths_after_install_all = [
     "go_app_async_extension_python_app/ten_packages/extension/default_extension_python/extension.py",
-    "go_app_async_extension_python_app/bin",
+    "go_app_async_extension_python_app/bin/bootstrap",
   ]
 
   if (ten_enable_ten_manager) {

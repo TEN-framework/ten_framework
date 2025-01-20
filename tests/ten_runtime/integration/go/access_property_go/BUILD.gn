@@ -15,7 +15,10 @@ ten_package_test_prepare_app("access_property_go_app") {
   replace_paths_after_install_app = [
     "access_property_go_app/manifest.json",
     "access_property_go_app/property.json",
-    "access_property_go_app/ten_packages",
+    "access_property_go_app/ten_packages/extension/extension_a/extension.go",
+    "access_property_go_app/ten_packages/extension/extension_a/go.mod",
+    "access_property_go_app/ten_packages/extension/extension_a/manifest.json",
+    "access_property_go_app/ten_packages/extension/extension_a/property.json",
   ]
 
   deps = [
