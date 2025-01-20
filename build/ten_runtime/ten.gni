@@ -223,7 +223,7 @@ template("ten_source_set") {
           rebase_path(f),
         ]
       }
-      sources = exec_script("//.gnfiles/build/scripts/glob_file.py",
+      sources = exec_script("//build/ten_common/general/glob_file.py",
                             rebase_files,
                             "list lines")
       if (defined(invoker.sources)) {
