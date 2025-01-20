@@ -51,7 +51,7 @@ void ten_extension_group_on_deinit(ten_extension_group_t *self) {
   TEN_ASSERT(self->ten_env && ten_env_check_integrity(self->ten_env, true),
              "Should not happen.");
 
-  self->state = TEN_EXTENSION_GROUP_STATE_DEINITING;
+  self->state = TEN_EXTENSION_GROUP_STATE_DEINIT;
 
   if (self->on_deinit) {
     self->on_deinit(self, self->ten_env);
@@ -86,7 +86,7 @@ void ten_extension_group_on_init_done(ten_env_t *self) {
   TEN_ASSERT(!rc, "Should not happen.");
 }
 
-void ten_extension_group_on_deinit_done(ten_env_t *self) {
+bool ten_extension_group_on_deinit_done(ten_env_t *self) {
   TEN_ASSERT(self, "Invalid argument.");
   TEN_ASSERT(ten_env_check_integrity(self, true), "Invalid use of ten_env %p.",
              self);
@@ -96,25 +96,33 @@ void ten_extension_group_on_deinit_done(ten_env_t *self) {
   TEN_ASSERT(extension_group &&
                  ten_extension_group_check_integrity(extension_group, true),
              "Should not happen.");
-  TEN_ASSERT(extension_group->state >= TEN_EXTENSION_GROUP_STATE_DEINITING,
-             "Should not happen.");
+
+  if (extension_group->state != TEN_EXTENSION_GROUP_STATE_DEINIT) {
+    TEN_LOGI("[%s] Failed to on_deinit_done() because of incorrect timing: %d",
+             ten_extension_group_get_name(extension_group, true),
+             extension_group->state);
+    return false;
+  }
+
+  extension_group->state = TEN_EXTENSION_GROUP_STATE_DEINIT_DONE;
+
+  TEN_LOGD("[%s] on_deinit() done.",
+           ten_extension_group_get_name(extension_group, true));
+
+  // Close the ten_env so that any apis called on the ten_env will return
+  // TEN_ERROR_ENV_CLOSED.
+  ten_env_close(self);
 
   if (!ten_list_is_empty(&self->ten_proxy_list)) {
     // There is still the presence of ten_env_proxy, so the closing process
     // cannot continue.
     TEN_LOGI(
-        "[%s] Failed to on_deinit_done() because of existed ten_env_proxy.",
-        ten_extension_group_get_name(extension_group, true));
-    return;
+        "[%s] Waiting for ten_env_proxy to be released, remaining %d "
+        "ten_env_proxy(s).",
+        ten_extension_group_get_name(extension_group, true),
+        ten_list_size(&self->ten_proxy_list));
+    return true;
   }
-
-  if (extension_group->state == TEN_EXTENSION_GROUP_STATE_DEINITTED) {
-    return;
-  }
-  extension_group->state = TEN_EXTENSION_GROUP_STATE_DEINITTED;
-
-  TEN_LOGD("[%s] on_deinit() done.",
-           ten_extension_group_get_name(extension_group, true));
 
   ten_extension_thread_t *extension_thread = extension_group->extension_thread;
   TEN_ASSERT(extension_thread &&
@@ -128,6 +136,8 @@ void ten_extension_group_on_deinit_done(ten_env_t *self) {
       ten_extension_thread_on_extension_group_on_deinit_done, extension_thread,
       NULL);
   TEN_ASSERT(!rc, "Should not happen.");
+
+  return true;
 }
 
 void ten_extension_group_on_create_extensions_done(ten_extension_group_t *self,
@@ -254,11 +264,33 @@ void ten_extension_group_on_addon_destroy_extension_done(
   ten_addon_context_destroy(addon_context);
 }
 
-const char *ten_extension_group_get_name(ten_extension_group_t *self,
-                                         bool check_thread) {
+bool ten_extension_group_on_ten_env_proxy_released(ten_env_t *self) {
   TEN_ASSERT(self, "Invalid argument.");
-  TEN_ASSERT(ten_extension_group_check_integrity(self, check_thread),
-             "Invalid use of extension group %p.", self);
+  TEN_ASSERT(ten_env_check_integrity(self, true), "Invalid use of ten_env %p.",
+             self);
 
-  return ten_string_get_raw_str(&self->name);
+  TEN_ASSERT(self->attach_to == TEN_ENV_ATTACH_TO_EXTENSION_GROUP,
+             "Should not happen.");
+
+  ten_extension_group_t *extension_group =
+      ten_env_get_attached_extension_group(self);
+  TEN_ASSERT(extension_group &&
+                 ten_extension_group_check_integrity(extension_group, true),
+             "Should not happen.");
+
+  if (!ten_list_is_empty(&self->ten_proxy_list)) {
+    // There is still the presence of ten_env_proxy, so the closing process
+    // cannot continue.
+    TEN_LOGI(
+        "[%s] Waiting for ten_env_proxy to be released, remaining %d "
+        "ten_env_proxy(s).",
+        ten_extension_group_get_name(extension_group, true),
+        ten_list_size(&self->ten_proxy_list));
+    return true;
+  }
+
+  ten_extension_thread_on_extension_group_on_deinit_done(
+      extension_group->extension_thread, extension_group);
+
+  return true;
 }

@@ -330,7 +330,7 @@ void ten_app_on_deinit(ten_app_t *self) {
   }
 }
 
-void ten_app_on_deinit_done(ten_env_t *ten_env) {
+bool ten_app_on_deinit_done(ten_env_t *ten_env) {
   TEN_ASSERT(ten_env, "Invalid argument.");
   TEN_ASSERT(ten_env_check_integrity(ten_env, true),
              "Invalid use of ten_env %p.", ten_env);
@@ -338,25 +338,31 @@ void ten_app_on_deinit_done(ten_env_t *ten_env) {
   ten_app_t *self = ten_env_get_attached_app(ten_env);
   TEN_ASSERT(self && ten_app_check_integrity(self, true), "Should not happen.");
 
+  ten_mutex_lock(self->state_lock);
+
+  if (self->state != TEN_APP_STATE_CLOSING) {
+    ten_mutex_unlock(self->state_lock);
+    TEN_LOGI("App %s cannot on_deinit_done() because of incorrect timing: %d.",
+             ten_string_get_raw_str(&self->uri), self->state);
+    return false;
+  }
+
+  self->state = TEN_APP_STATE_CLOSED;
+  ten_mutex_unlock(self->state_lock);
+
+  // Close the ten_env so that any apis called on the ten_env will return
+  // TEN_ERROR_ENV_CLOSED.
+  ten_env_close(ten_env);
+
   if (!ten_list_is_empty(&ten_env->ten_proxy_list)) {
     // There is still the presence of ten_env_proxy, so the closing process
     // cannot continue.
     TEN_LOGI("App %s cannot on_deinit_done() because of existed ten_env_proxy.",
              ten_string_get_raw_str(&self->uri));
-    return;
+    return true;
   }
 
-  ten_mutex_lock(self->state_lock);
-  TEN_ASSERT(self->state >= TEN_APP_STATE_CLOSING, "Should not happen.");
-  if (self->state == TEN_APP_STATE_CLOSED) {
-    ten_mutex_unlock(self->state_lock);
-    return;
-  }
-  self->state = TEN_APP_STATE_CLOSED;
-  ten_mutex_unlock(self->state_lock);
-
-  TEN_ENV_LOG_DEBUG_INTERNAL(ten_env, "app on_deinit_done().");
-
-  ten_env_close(self->ten_env);
   ten_runloop_stop(self->loop);
+
+  return true;
 }

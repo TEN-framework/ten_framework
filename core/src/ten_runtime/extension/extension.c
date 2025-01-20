@@ -618,6 +618,15 @@ bool ten_extension_dispatch_msg(ten_extension_t *self, ten_shared_ptr_t *msg,
   TEN_ASSERT(msg && ten_msg_check_integrity(msg), "Should not happen.");
   TEN_ASSERT(err && ten_error_check_integrity(err), "Invalid argument.");
 
+  if (self->state == TEN_EXTENSION_STATE_ON_DEINIT_DONE) {
+    if (err) {
+      ten_error_set(err, TEN_ERRNO_TEN_IS_CLOSED,
+                    "The extension is closed, so the message cannot be "
+                    "dispatched.");
+    }
+    return false;
+  }
+
   // The source of the out message is the current extension.
   ten_msg_set_src_to_extension(msg, self);
 

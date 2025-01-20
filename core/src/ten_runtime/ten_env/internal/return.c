@@ -33,6 +33,13 @@ static bool ten_env_return_result_internal(
   TEN_ASSERT(ten_msg_get_type(result_cmd) == TEN_MSG_TYPE_CMD_RESULT,
              "Should not happen.");
 
+  if (ten_env_is_closed(self)) {
+    if (err) {
+      ten_error_set(err, TEN_ERRNO_TEN_IS_CLOSED, "ten_env is closed.");
+    }
+    return false;
+  }
+
   bool err_new_created = false;
   if (!err) {
     err = ten_error_create();

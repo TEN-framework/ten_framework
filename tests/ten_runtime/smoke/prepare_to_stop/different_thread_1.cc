@@ -35,7 +35,11 @@ class test_extension_1 : public ten::extension_t {
     ten_env.send_cmd(std::move(cmd),
                      [=](ten::ten_env_t &ten_env,
                          std::unique_ptr<ten::cmd_result_t> /*cmd_result*/,
-                         ten::error_t *err) { ten_env.on_stop_done(); });
+                         ten::error_t *err) {
+                       // Only after receiving the result, we can call
+                       // `on_stop_done`.
+                       ten_env.on_stop_done();
+                     });
   }
 };
 
@@ -60,8 +64,26 @@ class test_extension_2 : public ten::extension_t {
       auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
       cmd_result->set_property("detail", "");
       ten_env.return_result(std::move(cmd_result), std::move(cmd));
+
+      received_extension_1_stop_cmd = true;
+
+      if (have_called_on_stop) {
+        ten_env.on_stop_done();
+      }
     }
   }
+
+  void on_stop(ten::ten_env_t &ten_env) override {
+    have_called_on_stop = true;
+
+    if (received_extension_1_stop_cmd) {
+      ten_env.on_stop_done();
+    }
+  }
+
+ private:
+  bool received_extension_1_stop_cmd = false;
+  bool have_called_on_stop = false;
 };
 
 class test_app : public ten::app_t {
@@ -92,14 +114,14 @@ void *test_app_thread_main(TEN_UNUSED void *args) {
   return nullptr;
 }
 
-TEN_CPP_REGISTER_ADDON_AS_EXTENSION(prepare_to_stop_same_thread__extension_1,
-                                    test_extension_1);
-TEN_CPP_REGISTER_ADDON_AS_EXTENSION(prepare_to_stop_same_thread__extension_2,
-                                    test_extension_2);
+TEN_CPP_REGISTER_ADDON_AS_EXTENSION(
+    prepare_to_stop_different_thread_1__test_extension_1, test_extension_1);
+TEN_CPP_REGISTER_ADDON_AS_EXTENSION(
+    prepare_to_stop_different_thread_1__test_extension_2, test_extension_2);
 
 }  // namespace
 
-TEST(ExtensionTest, PrepareToStopSameThread) {  // NOLINT
+TEST(ExtensionTest, PrepareToStopDifferentThread1) {  // NOLINT
   EXPECT_EQ(check, 0);
 
   // Start app.
@@ -115,15 +137,15 @@ TEST(ExtensionTest, PrepareToStopSameThread) {  // NOLINT
            "nodes": [{
                "type": "extension",
                "name": "test_extension_1",
-               "addon": "prepare_to_stop_same_thread__extension_1",
+               "addon": "prepare_to_stop_different_thread_1__test_extension_1",
                "app": "msgpack://127.0.0.1:8001/",
-               "extension_group": "prepare_to_stop_same_thread"
+               "extension_group": "basic_extension_group"
              },{
                "type": "extension",
                "name": "test_extension_2",
-               "addon": "prepare_to_stop_same_thread__extension_2",
+               "addon": "prepare_to_stop_different_thread_1__test_extension_2",
                "app": "msgpack://127.0.0.1:8001/",
-               "extension_group": "prepare_to_stop_same_thread"
+               "extension_group": "basic_extension_group_1"
              }],
              "connections": [{
                "app": "msgpack://127.0.0.1:8001/",
@@ -150,7 +172,7 @@ TEST(ExtensionTest, PrepareToStopSameThread) {  // NOLINT
   // Send a user-defined 'hello world' command.
   auto hello_world_cmd = ten::cmd_t::create("hello_world");
   hello_world_cmd->set_dest("msgpack://127.0.0.1:8001/", nullptr,
-                            "prepare_to_stop_same_thread", "test_extension_1");
+                            "basic_extension_group", "test_extension_1");
   cmd_result = client->send_cmd_and_recv_result(std::move(hello_world_cmd));
   ten_test::check_status_code(cmd_result, TEN_STATUS_CODE_OK);
   ten_test::check_detail_with_string(cmd_result, "hello world, too");

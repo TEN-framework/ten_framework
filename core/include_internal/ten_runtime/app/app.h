@@ -134,7 +134,7 @@ TEN_RUNTIME_PRIVATE_API void ten_app_on_init_done(ten_env_t *ten_env);
 
 TEN_RUNTIME_PRIVATE_API void ten_app_on_deinit(ten_app_t *self);
 
-TEN_RUNTIME_PRIVATE_API void ten_app_on_deinit_done(ten_env_t *ten_env);
+TEN_RUNTIME_PRIVATE_API bool ten_app_on_deinit_done(ten_env_t *ten_env);
 
 TEN_RUNTIME_PRIVATE_API void ten_app_on_configure_done(ten_env_t *ten_env);
 

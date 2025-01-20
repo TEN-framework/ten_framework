@@ -323,8 +323,10 @@ bool ten_extension_on_stop_done(ten_env_t *self) {
   return true;
 }
 
-static void ten_extension_thread_del_extension(ten_extension_thread_t *self,
-                                               ten_extension_t *extension) {
+static void ten_extension_thread_del_extension(void *self_, void *extension_) {
+  ten_extension_thread_t *self = self_;
+  ten_extension_t *extension = extension_;
+
   TEN_ASSERT(self, "Invalid argument.");
   TEN_ASSERT(ten_extension_thread_check_integrity(self, true),
              "Invalid use of extension_thread %p.", self);
@@ -363,9 +365,35 @@ static void ten_extension_thread_on_extension_on_deinit_done(
   TEN_ASSERT(deinit_extension->ten_env &&
                  ten_env_check_integrity(deinit_extension->ten_env, true),
              "Should not happen.");
-  ten_env_close(deinit_extension->ten_env);
 
-  ten_extension_thread_del_extension(self, deinit_extension);
+  // Important: All the registered result handlers have to be called.
+  //
+  // Ex: If there are still some _IN_ or _OUT_ paths remaining in the path table
+  // of extensions, in order to prevent memory leaks such as the result handler
+  // itself in C++ binding, we need to create the corresponding cmd results
+  // and send them into the original source extension.
+  ten_extension_flush_remaining_paths(deinit_extension);
+
+  // The extensions cannot be deleted immediately at this point. Instead, the
+  // deletion action needs to be turned into an asynchronous task and placed at
+  // the end of the task queue. The reason for this is that at this moment, the
+  // extension thread's runloop may still contain some tasks, and the arguments
+  // of those tasks may reference the `deinit_extension` specified by this
+  // function. If `deinit_extension` is deleted immediately here, those tasks,
+  // which are scheduled to execute in the future, may attempt to access a
+  // dangling pointer to `deinit_extension`. By making the deletion of the
+  // extension asynchronous and placing it at the tail of the task queue, the
+  // situation of accessing a dangling pointer can be avoided. Furthermore,
+  // since `ten_env` is already closed (via `ten_env_close()`) after
+  // `on_deinit_done()`, all `ten_env` API calls made after `on_deinit_done`
+  // will synchronously return failure. This ensures that no new tasks will be
+  // added to the extension thread's runloop. As a result, once the asynchronous
+  // task to destroy the extension is completed, no further tasks will be
+  // executed. Therefore, placing the task to delete the extension at the end of
+  // the queue ensures that no tasks executed afterward will access the raw
+  // pointer to `deinit_extension`.
+  ten_runloop_post_task_tail(self->runloop, ten_extension_thread_del_extension,
+                             self, deinit_extension);
 }
 
 bool ten_extension_on_deinit_done(ten_env_t *self) {
@@ -384,25 +412,51 @@ bool ten_extension_on_deinit_done(ten_env_t *self) {
     return false;
   }
 
+  extension->state = TEN_EXTENSION_STATE_ON_DEINIT_DONE;
+
+  TEN_LOGD("[%s] on_deinit() done.", ten_extension_get_name(extension, true));
+
+  // Close the ten_env so that any apis called on the ten_env will return
+  // TEN_ERROR_ENV_CLOSED.
+  ten_env_close(self);
+
   if (!ten_list_is_empty(&self->ten_proxy_list)) {
     // There is still the presence of ten_env_proxy, so the closing process
     // cannot continue.
     TEN_LOGI(
-        "[%s] Failed to on_deinit_done() because of existed ten_env_proxy.",
-        ten_extension_get_name(extension, true));
+        "[%s] Waiting for ten_env_proxy to be released, remaining %d "
+        "ten_env_proxy(s).",
+        ten_extension_get_name(extension, true),
+        ten_list_size(&self->ten_proxy_list));
     return true;
   }
 
-  TEN_ASSERT(extension->state >= TEN_EXTENSION_STATE_ON_DEINIT,
-             "Should not happen.");
+  ten_extension_thread_on_extension_on_deinit_done(extension->extension_thread,
+                                                   extension);
 
-  if (extension->state == TEN_EXTENSION_STATE_ON_DEINIT_DONE) {
-    return false;
+  return true;
+}
+
+bool ten_extension_on_ten_env_proxy_released(ten_env_t *self) {
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_env_check_integrity(self, true), "Invalid use of ten_env %p.",
+             self);
+
+  ten_extension_t *extension = ten_env_get_attached_extension(self);
+  TEN_ASSERT(extension, "Invalid argument.");
+  TEN_ASSERT(ten_extension_check_integrity(extension, true),
+             "Invalid use of extension %p.", extension);
+
+  if (!ten_list_is_empty(&self->ten_proxy_list)) {
+    // There is still the presence of ten_env_proxy, so the closing process
+    // cannot continue.
+    TEN_LOGI(
+        "[%s] Waiting for ten_env_proxy to be released, remaining %d "
+        "ten_env_proxy(s).",
+        ten_extension_get_name(extension, true),
+        ten_list_size(&self->ten_proxy_list));
+    return true;
   }
-
-  extension->state = TEN_EXTENSION_STATE_ON_DEINIT_DONE;
-
-  TEN_LOGD("[%s] on_deinit() done.", ten_extension_get_name(extension, true));
 
   ten_extension_thread_on_extension_on_deinit_done(extension->extension_thread,
                                                    extension);

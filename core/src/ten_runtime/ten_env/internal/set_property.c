@@ -189,6 +189,14 @@ bool ten_env_set_property(ten_env_t *self, const char *path, ten_value_t *value,
 
   bool result = true;
 
+  if (ten_env_is_closed(self)) {
+    if (err) {
+      ten_error_set(err, TEN_ERRNO_TEN_IS_CLOSED, "ten_env is closed.");
+    }
+    result = false;
+    goto done;
+  }
+
   if (!path || !strlen(path)) {
     if (err) {
       ten_error_set(err, TEN_ERRNO_INVALID_ARGUMENT,
