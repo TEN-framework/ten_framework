@@ -223,9 +223,15 @@ template("ten_source_set") {
           rebase_path(f),
         ]
       }
-      sources = exec_script("//.gnfiles/build/scripts/glob_file.py",
-                            rebase_files,
-                            "list lines")
+
+      sources_info = exec_script("//build/ten_common/general/glob_file.py",
+                                 rebase_files,
+                                 "json")
+
+      foreach(source_info, sources_info) {
+        sources += [ source_info.path ]
+      }
+
       if (defined(invoker.sources)) {
         sources += invoker.sources
       }
@@ -243,7 +249,7 @@ template("ten_extension") {
   }
 
   if (_sources != []) {
-    glob("${_target_name}_files") {
+    ten_runtime_glob("${_target_name}_files") {
       file_list = _sources
 
       if (defined(invoker.deps)) {
@@ -286,7 +292,7 @@ template("ten_plugin") {
   }
 
   if (_file_list != []) {
-    glob("${_target_name}_files") {
+    ten_runtime_glob("${_target_name}_files") {
       file_list = _file_list
 
       if (defined(invoker.deps)) {

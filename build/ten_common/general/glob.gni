@@ -1,0 +1,59 @@
+#
+# Copyright © 2025 Agora
+# This file is part of TEN Framework, an open source project.
+# Licensed under the Apache License, Version 2.0, with certain conditions.
+# Refer to the "LICENSE" file in the root directory for more information.
+#
+all_native_files = [
+  "*.c",
+  "*.cc",
+  "*.cpp",
+  "*.h",
+  "*.hpp",
+  "*.hh",
+  "*.s",
+  "*.S",
+  "*.asm",
+  "*.m",
+  "*.mm",
+]
+
+template("glob") {
+  assert(defined(invoker.file_list) && invoker.file_list != [],
+         "file_list is not defined")
+
+  source_set(target_name) {
+    forward_variables_from(invoker,
+                           "*",
+                           [
+                             "deps",
+                             "sources",
+                             "file_list",
+                           ])
+
+    l = []
+    foreach(f, invoker.file_list) {
+      l += [
+        "--dir",
+        rebase_path(f),
+      ]
+    }
+
+    sources_info =
+        exec_script("//build/ten_common/general/glob_file.py", l, "json")
+
+    sources = []
+    foreach(source_info, sources_info) {
+      sources += [ source_info.path ]
+    }
+
+    if (defined(invoker.sources) && invoker.sources != []) {
+      sources += invoker.sources
+    }
+
+    deps = []
+    if (defined(invoker.deps) && invoker.deps != []) {
+      deps += invoker.deps
+    }
+  }
+}

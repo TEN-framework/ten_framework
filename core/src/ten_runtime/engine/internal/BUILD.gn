@@ -6,6 +6,6 @@
 #
 import("//build/ten_runtime/glob.gni")
 
-glob("internal") {
+ten_runtime_glob("internal") {
   file_list = all_native_files
 }
