@@ -7,7 +7,7 @@
 import("//build/ten_runtime/glob.gni")
 import("//build/ten_runtime/ten.gni")
 
-glob("path") {
+ten_runtime_glob("path") {
   file_list = all_native_files
   deps = [
     "//third_party/msgpack:msgpackc",
