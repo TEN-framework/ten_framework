@@ -20,7 +20,7 @@ all_native_files = [
   "*.mm",
 ]
 
-template("glob") {
+template("ten_runtime_glob") {
   assert(defined(invoker.file_list) || invoker.file_list == [],
          "file_list is not defined")
 

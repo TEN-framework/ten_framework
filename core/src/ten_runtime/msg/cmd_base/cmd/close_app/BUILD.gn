@@ -6,7 +6,7 @@
 #
 import("//build/ten_runtime/glob.gni")
 
-glob("close_app") {
+ten_runtime_glob("close_app") {
   file_list = all_native_files
   deps = [ "field" ]
 }
