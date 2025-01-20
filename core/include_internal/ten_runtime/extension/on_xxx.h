@@ -19,3 +19,6 @@ TEN_RUNTIME_PRIVATE_API bool ten_extension_on_start_done(ten_env_t *self);
 TEN_RUNTIME_PRIVATE_API bool ten_extension_on_stop_done(ten_env_t *self);
 
 TEN_RUNTIME_PRIVATE_API bool ten_extension_on_deinit_done(ten_env_t *self);
+
+TEN_RUNTIME_PRIVATE_API bool ten_extension_on_ten_env_proxy_released(
+    ten_env_t *self);

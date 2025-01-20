@@ -22,6 +22,8 @@ class DefaultExtension(Extension):
         self.name = name
         self.recv_data_count = 0
         self.cached_cmd = None
+        self.register_count = 0
+        self.stopping = False
 
     def return_if_all_data_received(self, ten_env: TenEnv) -> None:
         if self.cached_cmd is not None and self.recv_data_count == 3:
@@ -68,3 +70,28 @@ class DefaultExtension(Extension):
             cmd_result = CmdResult.create(StatusCode.OK)
             cmd_result.set_property_string("detail", greeting)
             ten_env.return_result(cmd_result, cmd)
+        elif cmd.get_name() == "sync":
+            cmd_result = CmdResult.create(StatusCode.OK)
+            cmd_result.set_property_string("detail", "ok")
+            ten_env.return_result(cmd_result, cmd)
+
+            new_cmd = Cmd.create("ack")
+            ten_env.send_cmd(new_cmd, None)
+        elif cmd.get_name() == "register":
+            self.register_count += 1
+            ten_env.return_result(CmdResult.create(StatusCode.OK), cmd)
+        elif cmd.get_name() == "unregister":
+            self.register_count -= 1
+            ten_env.return_result(CmdResult.create(StatusCode.OK), cmd)
+            if self.stopping and self.register_count == 0:
+                ten_env.log_info("received unregister cmd, marking stop done")
+                ten_env.on_stop_done()
+
+    def on_stop(self, ten_env: TenEnv) -> None:
+        self.stopping = True
+
+        if self.register_count == 0:
+            ten_env.log_info("server extension is stopped")
+            ten_env.on_stop_done()
+        else:
+            ten_env.log_info("waiting for unregister cmd")

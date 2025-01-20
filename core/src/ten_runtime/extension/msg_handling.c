@@ -91,7 +91,7 @@ void ten_extension_handle_in_msg(ten_extension_t *self, ten_shared_ptr_t *msg) {
     goto done;
   }
 
-  if (self->state >= TEN_EXTENSION_STATE_ON_DEINIT) {
+  if (!msg_is_cmd_result && self->state >= TEN_EXTENSION_STATE_ON_DEINIT) {
     // The extension is in its de-initialization phase, and is not ready to
     // handle any messages, so drop any messages.
     goto done;

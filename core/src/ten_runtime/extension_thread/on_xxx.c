@@ -182,13 +182,6 @@ void ten_extension_thread_on_extension_group_on_deinit_done(
                  ten_extension_group_check_integrity(extension_group, true),
              "Should not happen.");
 
-  // Notify the 'ten' object of this extension group that we are closing.
-  ten_env_t *extension_group_ten_env = extension_group->ten_env;
-  TEN_ASSERT(extension_group_ten_env &&
-                 ten_env_check_integrity(extension_group_ten_env, true),
-             "Should not happen.");
-  ten_env_close(extension_group_ten_env);
-
   ten_runloop_stop(self->runloop);
 }
 

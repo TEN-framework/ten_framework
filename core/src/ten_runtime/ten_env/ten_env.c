@@ -73,6 +73,8 @@ ten_env_t *ten_env_create(void) {
 
   self->binding_handle.me_in_target_lang = NULL;
   self->close_handler = NULL;
+  self->is_closed = false;
+
   self->destroy_handler = NULL;
   ten_list_init(&self->ten_proxy_list);
 
@@ -158,7 +160,10 @@ void ten_env_destroy(ten_env_t *self) {
 }
 
 void ten_env_close(ten_env_t *self) {
-  TEN_ASSERT(self && ten_env_check_integrity(self, true), "Should not happen.");
+  TEN_ASSERT(
+      ten_env_check_integrity(
+          self, self->attach_to != TEN_ENV_ATTACH_TO_ADDON ? true : false),
+      "Invalid use of ten_env %p.", self);
 
   switch (self->attach_to) {
     case TEN_ENV_ATTACH_TO_APP:
@@ -179,7 +184,7 @@ void ten_env_close(ten_env_t *self) {
                ten_string_get_raw_str(&self->attached_target.extension->name));
       break;
     case TEN_ENV_ATTACH_TO_ADDON:
-      TEN_LOGD("[%s] Close ten of addon.",
+      TEN_LOGV("[%s] Close ten of addon.",
                ten_string_get_raw_str(&self->attached_target.addon_host->name));
       break;
     default:
@@ -190,6 +195,13 @@ void ten_env_close(ten_env_t *self) {
   if (self->close_handler && self->binding_handle.me_in_target_lang) {
     self->close_handler(self->binding_handle.me_in_target_lang);
   }
+
+  self->is_closed = true;
+}
+
+bool ten_env_is_closed(ten_env_t *self) {
+  TEN_ASSERT(self && ten_env_check_integrity(self, true), "Should not happen.");
+  return self->is_closed;
 }
 
 void ten_env_set_close_handler_in_target_lang(

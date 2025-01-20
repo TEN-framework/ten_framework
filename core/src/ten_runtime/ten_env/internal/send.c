@@ -43,6 +43,13 @@ static bool ten_send_msg_internal(
              self);
   TEN_ASSERT(msg && ten_msg_check_integrity(msg), "Should not happen.");
 
+  if (ten_env_is_closed(self)) {
+    if (err) {
+      ten_error_set(err, TEN_ERRNO_TEN_IS_CLOSED, "ten_env is closed.");
+    }
+    return false;
+  }
+
   const bool msg_is_cmd = ten_msg_is_cmd(msg);
 
   // Even if the user does not pass in the `err` parameter, since different

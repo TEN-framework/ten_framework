@@ -8,6 +8,7 @@
 
 #include <stdlib.h>
 
+#include "include_internal/ten_runtime/common/errno.h"
 #include "include_internal/ten_utils/value/constant_str.h"
 #include "ten_runtime/common/errno.h"
 #include "ten_utils/container/list.h"
@@ -276,7 +277,7 @@ done:
 
   if (!result) {
     if (err) {
-      ten_error_set(err, TEN_ERRNO_GENERIC, "Failed to find property: %s",
+      ten_error_set(err, TEN_ERRNO_VALUE_NOT_FOUND, "Failed to find value: %s",
                     path);
     }
   }

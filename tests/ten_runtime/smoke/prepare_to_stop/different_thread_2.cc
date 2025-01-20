@@ -30,16 +30,15 @@ class test_extension_1 : public ten::extension_t {
     }
   }
 
-  void on_stop(ten::ten_env_t &ten_env) override {
-    auto cmd = ten::cmd_t::create("extension_1_stop");
+  void on_deinit(ten::ten_env_t &ten_env) override {
+    auto cmd = ten::cmd_t::create("extension_1_deinit");
     ten_env.send_cmd(std::move(cmd),
                      [=](ten::ten_env_t &ten_env,
                          std::unique_ptr<ten::cmd_result_t> /*cmd_result*/,
                          ten::error_t *err) {
                        // Only after receiving the result, we can call
-                       // `on_stop_done`.
-                       ten_env.on_stop_done();
-                       return true;
+                       // `on_deinit_done`.
+                       ten_env.on_deinit_done();
                      });
   }
 };
@@ -55,8 +54,8 @@ class test_extension_2 : public ten::extension_t {
       auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
       cmd_result->set_property("detail", "hello world, too");
       ten_env.return_result(std::move(cmd_result), std::move(cmd));
-    } else if (cmd->get_name() == "extension_1_stop") {
-      // To ensure that extension 1 will be on_stop_done() after the extension 2
+    } else if (cmd->get_name() == "extension_1_deinit") {
+      // To ensure that extension 1 will be on_deinit_done() after the extension 2
       // completes its job.
       ten_sleep(500);
 
@@ -66,7 +65,7 @@ class test_extension_2 : public ten::extension_t {
       cmd_result->set_property("detail", "");
       ten_env.return_result(std::move(cmd_result), std::move(cmd));
 
-      received_extension_1_stop_cmd = true;
+      received_extension_1_deinit_cmd = true;
 
       if (have_called_on_stop) {
         ten_env.on_stop_done();
@@ -77,13 +76,13 @@ class test_extension_2 : public ten::extension_t {
   void on_stop(ten::ten_env_t &ten_env) override {
     have_called_on_stop = true;
 
-    if (received_extension_1_stop_cmd) {
+    if (received_extension_1_deinit_cmd) {
       ten_env.on_stop_done();
     }
   }
 
  private:
-  bool received_extension_1_stop_cmd = false;
+  bool received_extension_1_deinit_cmd = false;
   bool have_called_on_stop = false;
 };
 
@@ -116,13 +115,13 @@ void *test_app_thread_main(TEN_UNUSED void *args) {
 }
 
 TEN_CPP_REGISTER_ADDON_AS_EXTENSION(
-    prepare_to_stop_different_thread__test_extension_1, test_extension_1);
+    prepare_to_stop_different_thread_2__test_extension_1, test_extension_1);
 TEN_CPP_REGISTER_ADDON_AS_EXTENSION(
-    prepare_to_stop_different_thread__test_extension_2, test_extension_2);
+    prepare_to_stop_different_thread_2__test_extension_2, test_extension_2);
 
 }  // namespace
 
-TEST(ExtensionTest, PrepareToStopDifferentThread) {  // NOLINT
+TEST(ExtensionTest, PrepareToStopDifferentThread2) {  // NOLINT
   EXPECT_EQ(check, 0);
 
   // Start app.
@@ -138,13 +137,13 @@ TEST(ExtensionTest, PrepareToStopDifferentThread) {  // NOLINT
            "nodes": [{
                "type": "extension",
                "name": "test_extension_1",
-               "addon": "prepare_to_stop_different_thread__test_extension_1",
+               "addon": "prepare_to_stop_different_thread_2__test_extension_1",
                "app": "msgpack://127.0.0.1:8001/",
                "extension_group": "basic_extension_group"
              },{
                "type": "extension",
                "name": "test_extension_2",
-               "addon": "prepare_to_stop_different_thread__test_extension_2",
+               "addon": "prepare_to_stop_different_thread_2__test_extension_2",
                "app": "msgpack://127.0.0.1:8001/",
                "extension_group": "basic_extension_group_1"
              }],
@@ -158,7 +157,7 @@ TEST(ExtensionTest, PrepareToStopDifferentThread) {  // NOLINT
                    "extension": "test_extension_2"
                  }]
                },{
-                 "name": "extension_1_stop",
+                 "name": "extension_1_deinit",
                  "dest": [{
                    "app": "msgpack://127.0.0.1:8001/",
                    "extension": "test_extension_2"

@@ -26,8 +26,7 @@ static bool ten_extension_could_be_closed(ten_extension_t *self) {
   return ten_list_is_empty(&self->path_timers);
 }
 
-static void ten_extension_thread_process_remaining_paths(
-    ten_extension_t *extension) {
+void ten_extension_flush_remaining_paths(ten_extension_t *extension) {
   TEN_ASSERT(extension && ten_extension_check_integrity(extension, true),
              "Should not happen.");
 
@@ -96,14 +95,6 @@ static void ten_extension_do_close(ten_extension_t *self) {
   TEN_ASSERT(extension_thread &&
                  ten_extension_thread_check_integrity(extension_thread, true),
              "Should not happen.");
-
-  // Important: All the registered result handlers have to be called.
-  //
-  // Ex: If there are still some _IN_ or _OUT_ paths remaining in the path table
-  // of extensions, in order to prevent memory leaks such as the result handler
-  // in C++ binding, we need to create the corresponding cmd results and send
-  // them into the original source extension.
-  ten_extension_thread_process_remaining_paths(self);
 
   ten_extension_on_deinit(self);
 }
