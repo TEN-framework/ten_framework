@@ -16,10 +16,11 @@
 
 typedef struct ten_env_notify_log_ctx_t {
   int32_t level;
-  ten_string_t func_name;
-  ten_string_t file_name;
+  const char *func_name;
+  const char *file_name;
   size_t line_no;
-  ten_string_t msg;
+  const char *msg;
+  ten_event_t *completed;
 } ten_env_notify_log_ctx_t;
 
 static ten_env_notify_log_ctx_t *ten_env_notify_log_ctx_create(
@@ -29,25 +30,11 @@ static ten_env_notify_log_ctx_t *ten_env_notify_log_ctx_create(
   TEN_ASSERT(ctx, "Failed to allocate memory.");
 
   ctx->level = level;
-
-  if (func_name) {
-    ten_string_init_from_c_str(&ctx->func_name, func_name, strlen(func_name));
-  } else {
-    ten_string_init(&ctx->func_name);
-  }
-
-  if (file_name) {
-    ten_string_init_from_c_str(&ctx->file_name, file_name, strlen(file_name));
-  } else {
-    ten_string_init(&ctx->file_name);
-  }
+  ctx->func_name = func_name;
+  ctx->file_name = file_name;
   ctx->line_no = line_no;
-
-  if (msg) {
-    ten_string_init_from_c_str(&ctx->msg, msg, strlen(msg));
-  } else {
-    ten_string_init(&ctx->msg);
-  }
+  ctx->msg = msg;
+  ctx->completed = ten_event_create(0, 1);
 
   return ctx;
 }
@@ -55,9 +42,7 @@ static ten_env_notify_log_ctx_t *ten_env_notify_log_ctx_create(
 static void ten_env_notify_log_ctx_destroy(ten_env_notify_log_ctx_t *ctx) {
   TEN_ASSERT(ctx, "Invalid argument.");
 
-  ten_string_deinit(&ctx->func_name);
-  ten_string_deinit(&ctx->file_name);
-  ten_string_deinit(&ctx->msg);
+  ten_event_destroy(ctx->completed);
 
   TEN_FREE(ctx);
 }
@@ -70,11 +55,10 @@ static void ten_env_proxy_notify_log(ten_env_t *ten_env, void *user_data) {
   ten_env_notify_log_ctx_t *ctx = user_data;
   TEN_ASSERT(ctx, "Should not happen.");
 
-  ten_env_log(ten_env, ctx->level, ten_string_get_raw_str(&ctx->func_name),
-              ten_string_get_raw_str(&ctx->file_name), ctx->line_no,
-              ten_string_get_raw_str(&ctx->msg));
+  ten_env_log(ten_env, ctx->level, ctx->func_name, ctx->file_name, ctx->line_no,
+              ctx->msg);
 
-  ten_env_notify_log_ctx_destroy(ctx);
+  ten_event_set(ctx->completed);
 }
 
 PyObject *ten_py_ten_env_log(PyObject *self, PyObject *args) {
@@ -98,8 +82,17 @@ PyObject *ten_py_ten_env_log(PyObject *self, PyObject *args) {
         "Failed to parse argument when ten_env.log.");
   }
 
+  if (py_ten_env->c_ten_env->attach_to != TEN_ENV_ATTACH_TO_ADDON &&
+      !py_ten_env->c_ten_env_proxy) {
+    return ten_py_raise_py_value_error_exception(
+        "ten_env.log() failed because ten_env_proxy is invalid.");
+  }
+
   ten_error_t err;
   ten_error_init(&err);
+
+  ten_env_notify_log_ctx_t *ctx =
+      ten_env_notify_log_ctx_create(level, func_name, file_name, line_no, msg);
 
   if (py_ten_env->c_ten_env->attach_to == TEN_ENV_ATTACH_TO_ADDON) {
     // TODO(Wei): This function is currently specifically designed for the addon
@@ -108,24 +101,23 @@ PyObject *ten_py_ten_env_log(PyObject *self, PyObject *args) {
     // in the future, these hacks made specifically for the addon can be
     // completely removed, and comprehensive thread safety checking can be
     // implemented.
-    ten_env_log_without_check_thread(py_ten_env->c_ten_env, level, func_name,
-                                     file_name, line_no, msg);
+    ten_env_log_without_check_thread(py_ten_env->c_ten_env, ctx->level,
+                                     ctx->func_name, ctx->file_name,
+                                     ctx->line_no, ctx->msg);
   } else {
-    if (!py_ten_env->c_ten_env_proxy) {
-      return ten_py_raise_py_value_error_exception(
-          "ten_env.log() failed because ten_env_proxy is invalid.");
-    }
-
-    ten_env_notify_log_ctx_t *ctx = ten_env_notify_log_ctx_create(
-        level, func_name, file_name, line_no, msg);
-
     if (!ten_env_proxy_notify(py_ten_env->c_ten_env_proxy,
                               ten_env_proxy_notify_log, ctx, false, &err)) {
-      ten_env_notify_log_ctx_destroy(ctx);
+      goto done;
     }
+
+    PyThreadState *saved_py_thread_state = PyEval_SaveThread();
+    ten_event_wait(ctx->completed, -1);
+    PyEval_RestoreThread(saved_py_thread_state);
   }
 
+done:
   ten_error_deinit(&err);
+  ten_env_notify_log_ctx_destroy(ctx);
 
   Py_RETURN_NONE;
 }

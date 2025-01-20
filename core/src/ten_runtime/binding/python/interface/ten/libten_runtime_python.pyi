@@ -171,7 +171,7 @@ class _TenEnv:
         callback: Callable[[Optional[TenError]], None],
     ) -> None: ...
     def is_property_exist_async(
-        self, path: str, callback: Callable[[bool], None]
+        self, path: str, callback: Callable[[bool, Optional[TenError]], None]
     ) -> None: ...
     def init_property_from_json_async(
         self, json_str: str, callback: Callable[[Optional[TenError]], None]

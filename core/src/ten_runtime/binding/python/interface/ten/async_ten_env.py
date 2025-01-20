@@ -288,10 +288,13 @@ class AsyncTenEnv(TenEnvBase):
         q = asyncio.Queue(maxsize=1)
         self._internal.is_property_exist_async(
             path,
-            lambda result: self._result_handler(result, None, q),
+            lambda result, error: self._result_handler(result, error, q),
         )
 
-        result = await q.get()
+        [result, error] = await q.get()
+        if error is not None:
+            raise RuntimeError(error.err_msg())
+
         return result
 
     async def init_property_from_json(self, json_str: str) -> None:
