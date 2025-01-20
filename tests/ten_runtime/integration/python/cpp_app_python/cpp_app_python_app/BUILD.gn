@@ -11,7 +11,8 @@ ten_package("cpp_app_python_app") {
   enable_build = true
 
   resources = [
-    "bin",
+    "bin/bootstrap",
+    "bin/start",
     "manifest.json",
     "property.json",
   ]
