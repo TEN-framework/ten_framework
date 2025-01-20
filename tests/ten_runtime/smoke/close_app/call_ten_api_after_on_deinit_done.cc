@@ -19,7 +19,7 @@
 
 namespace {
 
-bool callback_has_called = false;
+bool callback_is_called = false;
 
 class test_extension_1 : public ten::extension_t {
  public:
@@ -65,7 +65,7 @@ class test_extension_2 : public ten::extension_t {
 
         bool rc = ten_env_proxy->notify(
             [ten_env_proxy, cmd_shared](ten::ten_env_t &ten_env) {
-              callback_has_called = true;
+              callback_is_called = true;
 
               // At this moment, ten_env has been closed because
               // ten_env.on_deinit_done() has been called. So all API calls to
@@ -220,5 +220,5 @@ TEST(CloseAppTest, CallTenApiAfterOnDeinitDone) {  // NOLINT
 
   delete client;
 
-  EXPECT_EQ(callback_has_called, true);
+  EXPECT_EQ(callback_is_called, true);
 }

@@ -11,7 +11,6 @@
 #include "gtest/gtest.h"
 #include "include_internal/ten_runtime/binding/cpp/ten.h"
 #include "ten_runtime/binding/cpp/detail/ten_env_proxy.h"
-#include "ten_runtime/common/errno.h"
 #include "ten_runtime/common/status_code.h"
 #include "ten_utils/lang/cpp/lib/error.h"
 #include "ten_utils/lib/thread.h"
@@ -20,6 +19,8 @@
 #include "tests/ten_runtime/smoke/util/binding/cpp/check.h"
 
 namespace {
+
+bool return_immediately_cmd_is_received = false;
 
 class test_extension_1 : public ten::extension_t {
  public:
@@ -38,6 +39,8 @@ class test_extension_1 : public ten::extension_t {
       ten_env.return_result(std::move(cmd_result), std::move(cmd));
       return;
     } else if (cmd->get_name() == "return_immediately") {
+      return_immediately_cmd_is_received = true;
+
       auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
       cmd_result->set_property("detail", "ok");
 
@@ -190,4 +193,6 @@ TEST(CloseAppTest, CallTenApiDuringDeiniting2) {  // NOLINT
   ten_thread_join(app_thread, -1);
 
   delete client;
+
+  EXPECT_EQ(return_immediately_cmd_is_received, true);
 }

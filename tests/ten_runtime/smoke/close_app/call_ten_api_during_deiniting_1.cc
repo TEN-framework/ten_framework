@@ -21,6 +21,8 @@
 
 namespace {
 
+bool return_immediately_cmd_is_received = false;
+
 class test_extension_1 : public ten::extension_t {
  public:
   explicit test_extension_1(const char *name) : ten::extension_t(name) {}
@@ -38,6 +40,8 @@ class test_extension_1 : public ten::extension_t {
       ten_env.return_result(std::move(cmd_result), std::move(cmd));
       return;
     } else if (cmd->get_name() == "return_immediately") {
+      return_immediately_cmd_is_received = true;
+
       auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
       cmd_result->set_property("detail", "ok");
 
@@ -73,6 +77,8 @@ class test_extension_1 : public ten::extension_t {
   std::thread thread_;
 };
 
+bool callback_is_called = false;
+
 class test_extension_2 : public ten::extension_t {
  public:
   explicit test_extension_2(const char *name) : ten::extension_t(name) {}
@@ -85,6 +91,8 @@ class test_extension_2 : public ten::extension_t {
         std::move(cmd),
         [](ten::ten_env_t &ten_env,
            std::unique_ptr<ten::cmd_result_t> cmd_result, ten::error_t *err) {
+          callback_is_called = true;
+
           // This callback will be called after the ten_env on_deinit_done() is
           // called. This cmd_result is the result constructed by the runtime
           // after the extension on_deinit_done flushes the remaining path.
@@ -195,4 +203,7 @@ TEST(CloseAppTest, CallTenApiDuringDeiniting1) {  // NOLINT
   ten_thread_join(app_thread, -1);
 
   delete client;
+
+  EXPECT_EQ(callback_is_called, true);
+  EXPECT_EQ(return_immediately_cmd_is_received, true);
 }

@@ -5,7 +5,6 @@
 // Refer to the "LICENSE" file in the root directory for more information.
 //
 #include <nlohmann/json.hpp>
-#include <string>
 #include <thread>
 
 #include "gtest/gtest.h"
@@ -51,7 +50,7 @@ class test_extension_2 : public ten::extension_t {
 
       ten_env_proxy->notify([this](ten::ten_env_t &ten_env) {
         // Only after calling on_start_done(), commands can be processed through
-        // the on_cmd callback
+        // the on_cmd callback.
 
         // Record the timestamp of on_start_done()
         start_done_time_ms_ = ten_current_time();
@@ -74,8 +73,9 @@ class test_extension_2 : public ten::extension_t {
   void on_cmd(ten::ten_env_t &ten_env,
               std::unique_ptr<ten::cmd_t> cmd) override {
     ASSERT_EQ(cmd->get_name(), "test");
+
     auto current_time = ten_current_time();
-    // current_time should not be less than start_done_time_ms_
+    // current_time should be greater than start_done_time_ms_.
     ASSERT_GE(current_time, start_done_time_ms_);
 
     msg_received_count_++;

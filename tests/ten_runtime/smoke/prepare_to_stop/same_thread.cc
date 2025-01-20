@@ -6,7 +6,6 @@
 //
 #include <nlohmann/json.hpp>
 #include <string>
-#include <vector>
 
 #include "gtest/gtest.h"
 #include "include_internal/ten_runtime/binding/cpp/ten.h"
@@ -36,9 +35,7 @@ class test_extension_1 : public ten::extension_t {
     ten_env.send_cmd(std::move(cmd),
                      [=](ten::ten_env_t &ten_env,
                          std::unique_ptr<ten::cmd_result_t> /*cmd_result*/,
-                         ten::error_t *err) {
-                       ten_env.on_stop_done();
-                     });
+                         ten::error_t *err) { ten_env.on_stop_done(); });
   }
 };
 
