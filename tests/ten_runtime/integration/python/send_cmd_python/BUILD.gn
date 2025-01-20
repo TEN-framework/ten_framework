@@ -12,12 +12,12 @@ ten_package_test_prepare_app("send_cmd_python_app") {
   src_app_language = "python"
   generated_app_src_root_dir_name = "send_cmd_python_app"
 
-  replace_files_after_install_app = [
+  replace_paths_after_install_app = [
     "send_cmd_python_app/manifest.json",
     "send_cmd_python_app/property.json",
   ]
 
-  replace_files_after_install_all = [
+  replace_paths_after_install_all = [
     "send_cmd_python_app/ten_packages/extension/default_extension_python/extension.py",
 
     # Simulate a scenario where there is a `lib/` directory under the directory
@@ -25,7 +25,7 @@ ten_package_test_prepare_app("send_cmd_python_app") {
     # loader (`dlopen`) fails to load. Ensure that this does not block other
     # installed addon loaders (such as the Python addon loader) from continuing
     # to load the addon.
-    "send_cmd_python_app/ten_packages/extension/default_extension_python/lib",
+    "send_cmd_python_app/ten_packages/extension/default_extension_python/lib/.gitkeep",
   ]
 
   if (ten_enable_ten_manager) {
@@ -41,10 +41,26 @@ ten_package_test_prepare_app("send_cmd_python_app") {
 
 ten_package_test_prepare_auxiliary_resources("send_cmd_python_test_files") {
   resources = [
-    "//tests/ten_runtime/integration/common=>common",
     "__init__.py",
     "test_case.py",
   ]
+
+  common_files =
+      exec_script("//build/ten_common/general/glob_file.py",
+                  [
+                    "--dir",
+                    rebase_path("//tests/ten_runtime/integration/common/**/*"),
+                    "--dir-base",
+                    rebase_path("//tests/ten_runtime/integration/common"),
+                    "--recursive",
+                    "--only-output-file",
+                  ],
+                  "json")
+
+  foreach(common_file, common_files) {
+    common_file_rel_path = common_file.relative_path
+    resources += [ "//tests/ten_runtime/integration/common/${common_file_rel_path}=>common/${common_file_rel_path}" ]
+  }
 }
 
 group("send_cmd_python") {

@@ -6,6 +6,6 @@
 #
 import("//build/ten_runtime/glob.gni")
 
-glob("remote") {
+ten_runtime_glob("remote") {
   file_list = all_native_files
 }

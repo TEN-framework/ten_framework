@@ -6,7 +6,7 @@
 #
 import("//build/ten_runtime/glob.gni")
 
-glob("ten_env") {
+ten_runtime_glob("ten_env") {
   configs = [
     "//core/src/ten_runtime/binding/python/native:ten_runtime_python_config",
   ]

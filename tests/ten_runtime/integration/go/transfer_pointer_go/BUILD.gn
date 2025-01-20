@@ -12,11 +12,19 @@ ten_package_test_prepare_app("transfer_pointer_go_app") {
   src_app_language = "go"
   generated_app_src_root_dir_name = "transfer_pointer_go_app"
 
-  replace_files_after_install_app = [
+  replace_paths_after_install_app = [
     "transfer_pointer_go_app/manifest.json",
     "transfer_pointer_go_app/property.json",
-    "transfer_pointer_go_app/ten_packages",
-    "transfer_pointer_go_app/go_common_dep",
+    "transfer_pointer_go_app/ten_packages/extension/extension_a/extension.go",
+    "transfer_pointer_go_app/ten_packages/extension/extension_a/go.mod",
+    "transfer_pointer_go_app/ten_packages/extension/extension_a/manifest.json",
+    "transfer_pointer_go_app/ten_packages/extension/extension_a/property.json",
+    "transfer_pointer_go_app/ten_packages/extension/extension_b/extension.go",
+    "transfer_pointer_go_app/ten_packages/extension/extension_b/go.mod",
+    "transfer_pointer_go_app/ten_packages/extension/extension_b/manifest.json",
+    "transfer_pointer_go_app/ten_packages/extension/extension_b/property.json",
+    "transfer_pointer_go_app/go_common_dep/types/data.go",
+    "transfer_pointer_go_app/go_common_dep/go.mod",
     "transfer_pointer_go_app/go.mod",
   ]
 
@@ -50,10 +58,26 @@ ten_package_test_prepare_client("transfer_pointer_go_app_client") {
 ten_package_test_prepare_auxiliary_resources(
     "transfer_pointer_go_app_test_files") {
   resources = [
-    "//tests/ten_runtime/integration/common=>common",
     "__init__.py",
     "test_case.py",
   ]
+
+  common_files =
+      exec_script("//build/ten_common/general/glob_file.py",
+                  [
+                    "--dir",
+                    rebase_path("//tests/ten_runtime/integration/common/**/*"),
+                    "--dir-base",
+                    rebase_path("//tests/ten_runtime/integration/common"),
+                    "--recursive",
+                    "--only-output-file",
+                  ],
+                  "json")
+
+  foreach(common_file, common_files) {
+    common_file_rel_path = common_file.relative_path
+    resources += [ "//tests/ten_runtime/integration/common/${common_file_rel_path}=>common/${common_file_rel_path}" ]
+  }
 }
 
 group("transfer_pointer_go") {

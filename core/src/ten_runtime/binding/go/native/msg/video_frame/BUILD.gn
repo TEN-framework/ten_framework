@@ -6,6 +6,6 @@
 #
 import("//build/ten_runtime/glob.gni")
 
-glob("video_frame") {
+ten_runtime_glob("video_frame") {
   file_list = all_native_files
 }

@@ -6,7 +6,7 @@
 #
 import("//build/ten_runtime/glob.gni")
 
-glob("cmd_base") {
+ten_runtime_glob("cmd_base") {
   file_list = all_native_files
   deps = [
     "cmd",

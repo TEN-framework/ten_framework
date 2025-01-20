@@ -6,7 +6,7 @@
 #
 import("//build/ten_runtime/glob.gni")
 
-glob("ten_env_proxy") {
+ten_runtime_glob("ten_env_proxy") {
   file_list = all_native_files
 
   deps = [ "internal" ]

@@ -72,11 +72,14 @@ ten_package("ffmpeg_system_package") {
   public_deps = [ ":build_ffmpeg" ]
 
   resources = [
-    "${root_gen_dir}/autotool/ffmpeg/install/include=>include/ffmpeg",
-    "${root_gen_dir}/autotool/ffmpeg/install/lib=>lib",
     "BUILD_release.gn=>BUILD.gn",
     "manifest.json",
   ]
+
+  foreach(lib, ffmpeg_output_libs) {
+    libname = get_path_info(rebase_path(lib), "file")
+    resources += [ "${lib}=>lib/${libname}" ]
+  }
 }
 
 if (ten_enable_ten_manager) {

@@ -16,7 +16,6 @@ from . import (
     build_config,
     install_pkg,
     install_all,
-    replace,
 )
 
 
@@ -343,22 +342,21 @@ def _replace_after_install_app(
     )
     assemble_info_file = os.path.join(assemble_info_dir, "info.json")
 
-    replace_files_after_install_app: list[str] = []
+    replace_paths_after_install_app: list[str] = []
 
     with open(assemble_info_file, "r") as f:
         info = json.load(f)
-        replace_files_after_install_app = info[
-            "replace_files_after_install_app"
+        replace_paths_after_install_app = info[
+            "replace_paths_after_install_app"
         ]
 
     if (
-        not replace_files_after_install_app
-        or len(replace_files_after_install_app) == 0
+        not replace_paths_after_install_app
+        or len(replace_paths_after_install_app) == 0
     ):
         return 0
 
-    replaced_files = []
-    for replace_file in replace_files_after_install_app:
+    for replace_file in replace_paths_after_install_app:
         src_file = os.path.join(
             assemble_info_dir,
             "files_to_be_replaced_after_install_app",
@@ -370,13 +368,12 @@ def _replace_after_install_app(
             return 1
 
         dst_file = os.path.join(test_case_base_dir, replace_file)
-        replaced_files.append((src_file, dst_file))
 
-    try:
-        replace.replace_normal_files_or_merge_json_files(replaced_files)
-    except Exception as exc:
-        print(exc)
-        return 1
+        try:
+            fs_utils.copy(src_file, dst_file)
+        except Exception as exc:
+            print(exc)
+            return 1
 
     return 0
 
@@ -389,22 +386,21 @@ def _replace_after_install_all(
     )
     assemble_info_file = os.path.join(assemble_info_dir, "info.json")
 
-    replace_files_after_install_all: list[str] = []
+    replace_paths_after_install_all: list[str] = []
 
     with open(assemble_info_file, "r") as f:
         info = json.load(f)
-        replace_files_after_install_all = info[
-            "replace_files_after_install_all"
+        replace_paths_after_install_all = info[
+            "replace_paths_after_install_all"
         ]
 
     if (
-        not replace_files_after_install_all
-        or len(replace_files_after_install_all) == 0
+        not replace_paths_after_install_all
+        or len(replace_paths_after_install_all) == 0
     ):
         return 0
 
-    replaced_files = []
-    for replace_file in replace_files_after_install_all:
+    for replace_file in replace_paths_after_install_all:
         src_file = os.path.join(
             assemble_info_dir,
             "files_to_be_replaced_after_install_all",
@@ -416,13 +412,12 @@ def _replace_after_install_all(
             return 1
 
         dst_file = os.path.join(test_case_base_dir, replace_file)
-        replaced_files.append((src_file, dst_file))
 
-    try:
-        replace.replace_normal_files_or_merge_json_files(replaced_files)
-    except Exception as exc:
-        print(exc)
-        return 1
+        try:
+            fs_utils.copy(src_file, dst_file)
+        except Exception as exc:
+            print(exc)
+            return 1
 
     return 0
 

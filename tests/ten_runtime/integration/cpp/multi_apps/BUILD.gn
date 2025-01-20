@@ -12,10 +12,17 @@ ten_package_test_prepare_app("app_1") {
   src_app_language = "cpp"
   generated_app_src_root_dir_name = "app_1"
 
-  replace_files_after_install_app = [
+  replace_paths_after_install_app = [
     "app_1/manifest.json",
     "app_1/property.json",
-    "app_1/ten_packages",
+    "app_1/ten_packages/extension/ext_a/src/main.cc",
+    "app_1/ten_packages/extension/ext_a/BUILD.gn",
+    "app_1/ten_packages/extension/ext_a/manifest.json",
+    "app_1/ten_packages/extension/ext_a/property.json",
+    "app_1/ten_packages/extension/ext_b/src/main.cc",
+    "app_1/ten_packages/extension/ext_b/BUILD.gn",
+    "app_1/ten_packages/extension/ext_b/manifest.json",
+    "app_1/ten_packages/extension/ext_b/property.json",
   ]
 
   if (ten_enable_ten_manager) {
@@ -34,10 +41,17 @@ ten_package_test_prepare_app("app_2") {
   src_app_language = "cpp"
   generated_app_src_root_dir_name = "app_2"
 
-  replace_files_after_install_app = [
+  replace_paths_after_install_app = [
     "app_2/manifest.json",
     "app_2/property.json",
-    "app_2/ten_packages",
+    "app_2/ten_packages/extension/ext_c/src/main.cc",
+    "app_2/ten_packages/extension/ext_c/BUILD.gn",
+    "app_2/ten_packages/extension/ext_c/manifest.json",
+    "app_2/ten_packages/extension/ext_c/property.json",
+    "app_2/ten_packages/extension/ext_d/src/main.cc",
+    "app_2/ten_packages/extension/ext_d/BUILD.gn",
+    "app_2/ten_packages/extension/ext_d/manifest.json",
+    "app_2/ten_packages/extension/ext_d/property.json",
   ]
 
   if (ten_enable_ten_manager) {
@@ -70,10 +84,26 @@ ten_package_test_prepare_client("multi_apps_client") {
 
 ten_package_test_prepare_auxiliary_resources("multi_apps_test_files") {
   resources = [
-    "//tests/ten_runtime/integration/common=>common",
     "__init__.py",
     "test_case.py",
   ]
+
+  common_files =
+      exec_script("//build/ten_common/general/glob_file.py",
+                  [
+                    "--dir",
+                    rebase_path("//tests/ten_runtime/integration/common/**/*"),
+                    "--dir-base",
+                    rebase_path("//tests/ten_runtime/integration/common"),
+                    "--recursive",
+                    "--only-output-file",
+                  ],
+                  "json")
+
+  foreach(common_file, common_files) {
+    common_file_rel_path = common_file.relative_path
+    resources += [ "//tests/ten_runtime/integration/common/${common_file_rel_path}=>common/${common_file_rel_path}" ]
+  }
 }
 
 group("multi_apps") {
