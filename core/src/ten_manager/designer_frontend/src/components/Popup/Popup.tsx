@@ -9,12 +9,19 @@ import { ChevronDown, ChevronUp, X } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/Tooltip";
 
 const DEFAULT_WIDTH = 800;
 const DEFAULT_HEIGHT = 400;
 
 interface PopupProps {
-  title: string;
+  id?: string;
+  title: string | React.ReactNode;
   children: React.ReactNode;
   className?: string;
   resizable?: boolean;
@@ -29,9 +36,15 @@ interface PopupProps {
   initialWidth?: number;
   initialHeight?: number;
 
-  onClose: () => void;
+  onClose: () => Promise<void> | void;
   onCollapseToggle?: (isCollapsed: boolean) => void;
   contentClassName?: string;
+  customActions?: {
+    id: string;
+    label: string;
+    Icon: (props: React.SVGProps<SVGSVGElement>) => React.ReactNode;
+    onClick: () => void;
+  }[];
 }
 
 const Popup: React.FC<PopupProps> = ({
@@ -45,6 +58,7 @@ const Popup: React.FC<PopupProps> = ({
   initialHeight,
   onClose,
   onCollapseToggle,
+  customActions,
 }) => {
   const popupRef = useRef<HTMLDivElement>(null);
   const headerRef = useRef<HTMLDivElement>(null);
@@ -270,14 +284,37 @@ const Popup: React.FC<PopupProps> = ({
         onMouseDown={handleMouseDown}
         ref={headerRef}
       >
-        <span className="font-medium text-foreground/90 font-sans">
-          {title}
-        </span>
+        {typeof title === "string" ? (
+          <span className="font-medium text-foreground/90 font-sans">
+            {title}
+          </span>
+        ) : (
+          title
+        )}
         <div className="flex items-center gap-1.5">
+          {customActions?.map((action) => (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-auto p-1.5"
+                    onClick={action.onClick}
+                  >
+                    <action.Icon className="opacity-70" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{action.label}</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          ))}
           <Button
             variant="ghost"
             size="sm"
-            className="h-auto p-1.5 hover:bg-background/50 transition-colors"
+            className="h-auto p-1.5 transition-colors"
             onClick={toggleCollapse}
           >
             {isCollapsed ? (
@@ -289,7 +326,7 @@ const Popup: React.FC<PopupProps> = ({
           <Button
             variant="ghost"
             size="sm"
-            className="h-auto p-1.5 hover:bg-background/50 transition-colors"
+            className="h-auto p-1.5 transition-colors"
             onClick={onClose}
           >
             <X className="opacity-70" />

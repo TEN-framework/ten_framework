@@ -20,16 +20,17 @@ import {
 } from "@/components/DataTable/ConnectionTable";
 import { dispatchCustomNodeActionPopup } from "@/utils/popup";
 
+import type { CustomConnectionData } from "@/types/widgets";
+
 const DEFAULT_WIDTH = 800;
 const DEFAULT_HEIGHT = 400;
 
-export interface CustomNodeConnPopupProps {
-  source: string;
-  target?: string;
+export interface CustomNodeConnPopupProps extends CustomConnectionData {
   onClose?: () => void;
 }
 
 const CustomNodeConnPopup: React.FC<CustomNodeConnPopupProps> = ({
+  id,
   source,
   target,
   onClose,
@@ -49,6 +50,7 @@ const CustomNodeConnPopup: React.FC<CustomNodeConnPopupProps> = ({
 
   return (
     <Popup
+      id={id}
       title={titleMemo}
       onClose={() => onClose?.()}
       initialWidth={DEFAULT_WIDTH}

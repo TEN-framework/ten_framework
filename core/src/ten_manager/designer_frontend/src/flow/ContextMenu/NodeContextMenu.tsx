@@ -10,8 +10,8 @@ import { FilePenLineIcon, TerminalIcon, Trash2Icon } from "lucide-react";
 
 import ContextMenu, { ContextMenuItem } from "@/flow/ContextMenu/ContextMenu";
 import { CustomNodeType } from "@/flow/CustomNode";
-import { TerminalData } from "@/components/Popup/TerminalPopup";
-import { EditorData } from "@/components/Popup/EditorPopup";
+
+import type { TerminalData, EditorData } from "@/types/widgets";
 
 interface NodeContextMenuProps {
   visible: boolean;

@@ -99,7 +99,7 @@ export function FileMenu(props: FileMenuProps) {
         <Popup
           title={t("header.menu.openAppFolder")}
           onClose={() => setIsFolderPathModalOpen(false)}
-          resizable={false}
+          resizable
           initialWidth={600}
           initialHeight={400}
           onCollapseToggle={() => {}}
