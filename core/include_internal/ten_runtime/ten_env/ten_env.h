@@ -63,12 +63,14 @@ typedef struct ten_env_t {
   ten_env_close_handler_in_target_lang_func_t close_handler;
 
   // This flag indicates whether ten_env has been closed. If closed, no ten_env
-  // methods can be called (except ten_env_log).
+  // methods can be called (except ten_env_log). So it can also be viewed the
+  // other way around: when all APIs of `ten_env` (except for `ten_env_log`) can
+  // no longer be called, the `is_closed` flag can be set.
   //
-  // This flag is only set to true in ten_env_close().
-  // For app/extension/extension_group/addon, ten_env_close is called in
+  // This flag is only set to true in `ten_env_close()`.
+  // For app/extension/extension_group/addon, `ten_env_close()` is called in
   // ten_env_on_deinit_done().
-  // For engine, ten_env_close is called when the engine is closed.
+  // For engine, `ten_env_close()` is called when the engine is closed.
   bool is_closed;
 
   ten_env_destroy_handler_in_target_lang_func_t destroy_handler;
