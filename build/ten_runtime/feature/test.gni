@@ -120,18 +120,15 @@ template("ten_package_test_prepare_app") {
         replace_src_path = replace_path
         replace_dest_path = "${test_case_out_dir_rel_path}/${replace_path}"
 
-        replace_src_abs_path = rebase_path(replace_src_path)
-        replace_dest_abs_path = rebase_path(replace_dest_path)
-
         action(
             "${test_case_unique_target_name}_${_target_name}_after_install_app_replace_file_${replace_path_index}") {
-          script = "//build/ten_runtime/feature/replace_normal_files_or_merge_json_files.py"
+          script = "//.gnfiles/build/scripts/copy_fs_entry.py"
 
           args = [
-            "--src",
-            "${replace_src_abs_path}",
-            "--dest",
-            "${replace_dest_abs_path}",
+            "--source",
+            rebase_path(replace_src_path),
+            "--destination",
+            rebase_path(replace_dest_path),
           ]
 
           sources = [ replace_src_path ]
@@ -223,18 +220,15 @@ template("ten_package_test_prepare_app") {
         replace_src_path = replace_path
         replace_dest_path = "${test_case_out_dir_rel_path}/${replace_path}"
 
-        replace_src_abs_path = rebase_path(replace_src_path)
-        replace_dest_abs_path = rebase_path(replace_dest_path)
-
         action(
             "${test_case_unique_target_name}_${_target_name}_after_install_all_replace_file_${replace_path_index}") {
-          script = "//build/ten_runtime/feature/replace_normal_files_or_merge_json_files.py"
+          script = "//.gnfiles/build/scripts/copy_fs_entry.py"
 
           args = [
-            "--src",
-            "${replace_src_abs_path}",
-            "--dest",
-            "${replace_dest_abs_path}",
+            "--source",
+            rebase_path(replace_src_path),
+            "--destination",
+            rebase_path(replace_dest_path),
           ]
 
           sources = [ replace_src_path ]
@@ -506,12 +500,12 @@ template("ten_package_test_prepare_auxiliary_resources") {
         script = "//.gnfiles/build/scripts/copy_fs_entry.py"
         args = [
           "--source",
-          rebase_path("${resource_src_path}"),
+          rebase_path(resource_src_path),
           "--destination",
           rebase_path(resource_dest_path),
         ]
 
-        inputs = [ rebase_path("${resource_src_path}") ]
+        inputs = [ resource_src_path ]
         outputs = [ resource_dest_path ]
 
         forward_variables_from(invoker,

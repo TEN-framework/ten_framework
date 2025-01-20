@@ -16,7 +16,6 @@ from . import (
     build_config,
     install_pkg,
     install_all,
-    replace,
 )
 
 
@@ -371,7 +370,7 @@ def _replace_after_install_app(
         dst_file = os.path.join(test_case_base_dir, replace_file)
 
         try:
-            replace.replace_normal_files_or_merge_json_files(src_file, dst_file)
+            fs_utils.copy(src_file, dst_file)
         except Exception as exc:
             print(exc)
             return 1
@@ -415,7 +414,7 @@ def _replace_after_install_all(
         dst_file = os.path.join(test_case_base_dir, replace_file)
 
         try:
-            replace.replace_normal_files_or_merge_json_files(src_file, dst_file)
+            fs_utils.copy(src_file, dst_file)
         except Exception as exc:
             print(exc)
             return 1
