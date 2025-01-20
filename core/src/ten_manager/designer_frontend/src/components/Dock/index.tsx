@@ -35,7 +35,12 @@ import {
 } from "@/components/ui/ContextMenu";
 import { useWidgetStore } from "@/store/widget";
 import { useDialogStore } from "@/store/dialog";
-import { EWidgetCategory, EWidgetDisplayType, IWidget } from "@/types/widgets";
+import {
+  EWidgetCategory,
+  EWidgetDisplayType,
+  IEditorWidget,
+  IWidget,
+} from "@/types/widgets";
 import TerminalWidget from "@/components/Widget/TerminalWidget";
 import EditorWidget from "@/components/Widget/EditorWidget";
 
@@ -90,8 +95,18 @@ export default function DockContainer(props: {
       dockWidgetsMemo.find((w) => w.id === id)?.category ===
       EWidgetCategory.Editor;
     if (isEditor) {
-      console.log("[DockContainer] handlePopout:", id, editorRef.current);
+      const isEditing =
+        (dockWidgetsMemo.find((w) => w.id === id) as IEditorWidget | undefined)
+          ?.isEditing ?? false;
+      console.log(
+        "[DockContainer] handlePopout:",
+        id,
+        editorRef.current,
+        "isEditing",
+        isEditing
+      );
       (editorRef.current as TEditorRef)?.onClose({
+        hasUnsavedChanges: isEditing,
         postConfirm: async () => {
           updateWidgetDisplayType(id, EWidgetDisplayType.Popup);
         },
@@ -134,7 +149,11 @@ export default function DockContainer(props: {
       dockWidgetsMemo.find((w) => w.id === id)?.category ===
       EWidgetCategory.Editor;
     if (isEditor) {
+      const isEditing =
+        (dockWidgetsMemo.find((w) => w.id === id) as IEditorWidget | undefined)
+          ?.isEditing ?? false;
       (editorRef.current as TEditorRef)?.onClose({
+        hasUnsavedChanges: isEditing,
         postCancel: async () => {
           removeWidget(id);
         },
@@ -186,6 +205,11 @@ export default function DockContainer(props: {
             <li key={widget.id} className="w-fit">
               <DockerHeaderTabElement
                 widget={widget}
+                hasUnsavedChanges={
+                  widget.category === EWidgetCategory.Editor
+                    ? widget.isEditing
+                    : false
+                }
                 selected={selectedWidgetId === widget.id}
                 onSelect={setSelectedWidgetId}
                 onPopout={handlePopout}
@@ -300,11 +324,13 @@ function DockHeader(props: {
 function DockerHeaderTabElement(props: {
   widget: IWidget;
   selected?: boolean;
+  hasUnsavedChanges?: boolean;
   onClose?: (id: string) => void;
   onPopout?: (id: string) => void;
   onSelect?: (id: string) => void;
 }) {
-  const { widget, selected, onClose, onPopout, onSelect } = props;
+  const { widget, selected, hasUnsavedChanges, onClose, onPopout, onSelect } =
+    props;
   const category = widget.category;
   return (
     <ContextMenu>
@@ -323,6 +349,9 @@ function DockerHeaderTabElement(props: {
           onClick={() => onSelect?.(widget.id)}
         >
           {category}
+          {hasUnsavedChanges && (
+            <span className="text-foreground/50 text-sm font-sans">*</span>
+          )}
           {onClose && (
             <XIcon className="size-3" onClick={() => onClose(widget.id)} />
           )}

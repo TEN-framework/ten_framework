@@ -1,6 +1,10 @@
 import { create } from "zustand";
 
-import type { EWidgetDisplayType, IWidget } from "@/types/widgets";
+import {
+  EWidgetCategory,
+  type EWidgetDisplayType,
+  type IWidget,
+} from "@/types/widgets";
 
 export const useWidgetStore = create<{
   widgets: IWidget[];
@@ -12,6 +16,7 @@ export const useWidgetStore = create<{
     widgetId: string,
     displayType: EWidgetDisplayType
   ) => void;
+  updateEditorStatus: (widgetId: string, isEditing: boolean) => void;
 }>((set) => ({
   widgets: [],
   appendWidget: (widget: IWidget) =>
@@ -37,6 +42,14 @@ export const useWidgetStore = create<{
     set((state) => ({
       widgets: state.widgets.map((w) =>
         w.id === widgetId ? { ...w, display_type: displayType } : w
+      ),
+    })),
+  updateEditorStatus: (widgetId: string, isEditing: boolean) =>
+    set((state) => ({
+      widgets: state.widgets.map((w) =>
+        w.id === widgetId && w.category === EWidgetCategory.Editor
+          ? { ...w, isEditing }
+          : w
       ),
     })),
 }));

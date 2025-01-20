@@ -266,6 +266,7 @@ const FlowCanvas = forwardRef<FlowCanvasRef, FlowCanvasProps>(
                     key={widget.id}
                     data={widget.metadata}
                     onClose={() => removeWidget(widget.id)}
+                    hasUnsavedChanges={widget.isEditing}
                   />
                 );
               case EWidgetCategory.CustomConnection:

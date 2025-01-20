@@ -23,7 +23,7 @@ const DEFAULT_HEIGHT = 400;
 
 interface PopupProps {
   id: string;
-  title: string;
+  title: string | React.ReactNode;
   children: React.ReactNode;
   className?: string;
   resizable?: boolean;
@@ -289,9 +289,13 @@ const Popup: React.FC<PopupProps> = ({
         onMouseDown={handleMouseDown}
         ref={headerRef}
       >
-        <span className="font-medium text-foreground/90 font-sans">
-          {title}
-        </span>
+        {typeof title === "string" ? (
+          <span className="font-medium text-foreground/90 font-sans">
+            {title}
+          </span>
+        ) : (
+          title
+        )}
         <div className="flex items-center gap-1.5">
           {customActions?.map((action) => (
             <TooltipProvider>

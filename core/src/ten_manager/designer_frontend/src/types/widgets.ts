@@ -41,6 +41,7 @@ export interface ITerminalWidget extends IWidgetBase {
 export interface IEditorWidget extends IWidgetBase {
   category: EWidgetCategory.Editor;
   metadata: EditorData;
+  isEditing?: boolean;
 }
 
 export interface ICustomConnectionWidget extends IWidgetBase {

@@ -20,6 +20,7 @@ import { getFileContent, putFileContent } from "@/api/services/fileSystem";
 import { ThemeProviderContext } from "@/components/theme-context";
 import { Button } from "@/components/ui/Button";
 import { type IDialog, useDialogStore } from "@/store/dialog";
+import { useWidgetStore } from "@/store/widget";
 
 import type { EditorData } from "@/types/widgets";
 
@@ -35,6 +36,7 @@ export type TEditorOnClose = {
   content?: string;
   confirmLabel?: string;
   cancelLabel?: string;
+  hasUnsavedChanges?: boolean;
 };
 
 const EditorWidget = React.forwardRef<unknown, EditorWidgetProps>(
@@ -43,7 +45,7 @@ const EditorWidget = React.forwardRef<unknown, EditorWidgetProps>(
 
     const { t } = useTranslation();
     const { appendDialog, removeDialog } = useDialogStore();
-
+    const { updateEditorStatus } = useWidgetStore();
     const editorRef = React.useRef<editor.IStandaloneCodeEditor | null>(null);
 
     // Fetch the specified file content from the backend.
@@ -87,9 +89,15 @@ const EditorWidget = React.forwardRef<unknown, EditorWidgetProps>(
         content = t("popup.editor.confirmSaveFile"),
         confirmLabel = t("action.save"),
         cancelLabel = t("action.discard"),
+        hasUnsavedChanges = false,
       }: TEditorOnClose) => {
         console.log("[EditorWidget] onClose:", id);
         const dialogId = `confirm-dialog-imperative-${id}`;
+        if (!hasUnsavedChanges) {
+          removeDialog(dialogId);
+          postConfirm();
+          return;
+        }
         appendDialog({
           id: dialogId,
           title,
@@ -97,6 +105,7 @@ const EditorWidget = React.forwardRef<unknown, EditorWidgetProps>(
           confirmLabel,
           cancelLabel,
           onConfirm: async () => {
+            updateEditorStatus(id, false);
             await saveFile(fileContent);
             removeDialog(dialogId);
           },
@@ -121,7 +130,10 @@ const EditorWidget = React.forwardRef<unknown, EditorWidgetProps>(
               readOnly: false,
               automaticLayout: true,
             }}
-            onChange={(value) => setFileContent(value || "")}
+            onChange={(value) => {
+              updateEditorStatus(id, true);
+              setFileContent(value || "");
+            }}
             onMount={(editor) => {
               editorRef.current = editor;
               // --- set context menu actions ---
