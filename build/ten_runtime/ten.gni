@@ -223,9 +223,15 @@ template("ten_source_set") {
           rebase_path(f),
         ]
       }
-      sources = exec_script("//build/ten_common/general/glob_file.py",
-                            rebase_files,
-                            "list lines")
+
+      sources_info = exec_script("//build/ten_common/general/glob_file.py",
+                                 rebase_files,
+                                 "json")
+
+      foreach(source_info, sources_info) {
+        sources += [ source_info.path ]
+      }
+
       if (defined(invoker.sources)) {
         sources += invoker.sources
       }
