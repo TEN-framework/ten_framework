@@ -47,10 +47,26 @@ ten_package_test_prepare_client("close_app_go_app_client") {
 
 ten_package_test_prepare_auxiliary_resources("close_app_go_app_test_files") {
   resources = [
-    "//tests/ten_runtime/integration/common=>common",
     "__init__.py",
     "test_case.py",
   ]
+
+  common_files =
+      exec_script("//build/ten_common/general/glob_file.py",
+                  [
+                    "--dir",
+                    rebase_path("//tests/ten_runtime/integration/common/**/*"),
+                    "--dir-base",
+                    rebase_path("//tests/ten_runtime/integration/common"),
+                    "--recursive",
+                    "--only-output-file",
+                  ],
+                  "json")
+
+  foreach(common_file, common_files) {
+    common_file_rel_path = common_file.relative_path
+    resources += [ "//tests/ten_runtime/integration/common/${common_file_rel_path}=>common/${common_file_rel_path}" ]
+  }
 }
 
 group("close_app_go") {

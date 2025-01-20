@@ -25,8 +25,24 @@ ten_package("default_extension_cpp") {
     "property.json",
     "src/main.cc",
     "src/main.cc.tent",
-    "tests",
   ]
+
+  tests_files = exec_script("//build/ten_common/general/glob_file.py",
+                            [
+                              "--dir",
+                              rebase_path("tests/**/*"),
+                              "--dir-base",
+                              rebase_path("tests"),
+                              "--recursive",
+                              "--only-output-file",
+                            ],
+                            "json")
+
+  foreach(tests_file, tests_files) {
+    tests_file_rel_path = tests_file.relative_path
+    resources +=
+        [ "tests/${tests_file_rel_path}=>tests/${tests_file_rel_path}" ]
+  }
 
   deps = [ ":copy_nlohmann_headers_for_default_extension_cpp" ]
 }

@@ -129,6 +129,7 @@ template("ten_package_test_prepare_app") {
             rebase_path(replace_src_path),
             "--destination",
             rebase_path(replace_dest_path),
+            "--files-only",
           ]
 
           sources = [ replace_src_path ]
@@ -229,6 +230,7 @@ template("ten_package_test_prepare_app") {
             rebase_path(replace_src_path),
             "--destination",
             rebase_path(replace_dest_path),
+            "--files-only",
           ]
 
           sources = [ replace_src_path ]
@@ -486,8 +488,6 @@ template("ten_package_test_prepare_auxiliary_resources") {
                         resource,
                         "--src-dest-delimiter",
                         "=>",
-                        "--src-base-delimiter",
-                        ":",
                       ],
                       "json")
 
@@ -503,6 +503,7 @@ template("ten_package_test_prepare_auxiliary_resources") {
           rebase_path(resource_src_path),
           "--destination",
           rebase_path(resource_dest_path),
+          "--files-only",
         ]
 
         inputs = [ resource_src_path ]

@@ -16,6 +16,7 @@ ten_package_test_prepare_auxiliary_resources(
     "test_app/ten_packages/extension/heiheihei_1/manifest.json",
     "test_case.py",
   ]
+
   deps = [
     "//core/src/ten_manager",
     "//tests/local_registry",
