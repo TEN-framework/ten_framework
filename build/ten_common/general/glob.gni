@@ -39,8 +39,14 @@ template("glob") {
       ]
     }
 
-    sources =
-        exec_script("//build/ten_common/general/glob_file.py", l, "list lines")
+    sources_info =
+        exec_script("//build/ten_common/general/glob_file.py", l, "json")
+
+    sources = []
+    foreach(source_info, sources_info) {
+      sources += [ source_info.path ]
+    }
+
     if (defined(invoker.sources) && invoker.sources != []) {
       sources += invoker.sources
     }

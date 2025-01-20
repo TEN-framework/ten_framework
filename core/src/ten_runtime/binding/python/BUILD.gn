@@ -15,12 +15,41 @@ ten_package("ten_python_binding_system_package") {
   package_kind = "system"
   package_output_root_dir_name = "ten_runtime_python"
 
-  resources = [
-    "//core/src/ten_runtime/binding/python/interface=>interface",
-    "//core/src/ten_runtime/binding/python/tools=>tools",
-    "BUILD_release.gn=>BUILD.gn",
-    "manifest.json",
-  ]
+  resources = [ "manifest.json" ]
+
+  interface_files = exec_script(
+          "//build/ten_common/general/glob_file.py",
+          [
+            "--dir",
+            rebase_path("//core/src/ten_runtime/binding/python/interface/**/*"),
+            "--dir-base",
+            rebase_path("//core/src/ten_runtime/binding/python/interface/"),
+            "--recursive",
+            "--only-output-file",
+          ],
+          "json")
+
+  foreach(interface_file, interface_files) {
+    interface_file_rel_path = interface_file.relative_path
+    resources += [ "interface/${interface_file_rel_path}=>interface/${interface_file_rel_path}" ]
+  }
+
+  tools_files = exec_script(
+          "//build/ten_common/general/glob_file.py",
+          [
+            "--dir",
+            rebase_path("//core/src/ten_runtime/binding/python/tools/**/*"),
+            "--dir-base",
+            rebase_path("//core/src/ten_runtime/binding/python/tools/"),
+            "--recursive",
+            "--only-output-file",
+          ],
+          "json")
+
+  foreach(tool_file, tools_files) {
+    tool_file_rel_path = tool_file.relative_path
+    resources += [ "tools/${tool_file_rel_path}=>tools/${tool_file_rel_path}" ]
+  }
 
   foreach(lib, ten_runtime_python_output_libs) {
     libname = get_path_info(rebase_path(lib), "file")
