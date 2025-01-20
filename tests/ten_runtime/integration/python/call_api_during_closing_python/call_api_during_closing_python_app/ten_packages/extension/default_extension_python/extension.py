@@ -38,7 +38,7 @@ class ServerExtension(AsyncExtension):
         if self.register_count == 0:
             return
 
-        # wait for the client to unregister
+        # Wait for the client to unregister.
         while self.register_count > 0:
             await asyncio.sleep(0.5)
 
@@ -65,7 +65,7 @@ class ClientExtension(AsyncExtension):
         assert cmd_result is not None
         assert cmd_result.get_status_code() == StatusCode.OK
 
-        ten_env.log_info("client extension is deinitialized")
+        ten_env.log_info("client extension is de-initialized")
 
     async def on_cmd(self, ten_env: AsyncTenEnv, cmd: Cmd) -> None:
         # bypass the cmd to the next extension
