@@ -30,7 +30,8 @@ class ExtensionTesterBasic(ExtensionTester):
         result: Optional[CmdResult],
         error: Optional[TenError],
     ):
-        # All ten_env methods will raise Exception because on_stop_done() is called.
+        # All ten_env_tester methods will raise exception because on_stop_done()
+        # of the extension tester is called.
         exception_caught = False
 
         try:

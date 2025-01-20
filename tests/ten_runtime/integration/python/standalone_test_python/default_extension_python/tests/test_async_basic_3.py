@@ -48,7 +48,7 @@ class AsyncExtensionTesterBasic(AsyncExtensionTester):
             try:
                 await asyncio.sleep(10)
             except asyncio.CancelledError:
-                # Beacuse 'stop_test()' will close the Extension tester, and
+                # Because 'stop_test()' will close the extension tester, and
                 # cancel all remaining tasks, so we can catch the
                 # CancelledError.
                 canceled = True
