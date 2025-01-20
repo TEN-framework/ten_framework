@@ -634,7 +634,7 @@
       "request": "launch",
       "program": "/usr/bin/python3",
       "args": [
-        "tests/test_basic.py"
+        "tests/test_send_during_stopping.py"
       ],
       "environment": [
         {
@@ -834,7 +834,7 @@
       "name": "Python Debugger: Python File",
       "type": "debugpy",
       "request": "launch",
-      "program": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/python/standalone_test_python/default_extension_python/tests/test_async_basic_3.py",
+      "program": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/python/standalone_test_python/default_extension_python/tests/test_send_during_stopping_async.py",
       "env": {
         "PYTHONMALLOC": "malloc",
         "PYTHONPATH": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/python/standalone_test_python/default_extension_python/.ten/app/ten_packages/system/ten_runtime_python/lib:${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/python/standalone_test_python/default_extension_python/.ten/app/ten_packages/system/ten_runtime_python/interface:${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/python/standalone_test_python/default_extension_python/.ten/app",
