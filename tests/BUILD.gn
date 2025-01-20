@@ -26,7 +26,7 @@ group("tests") {
   ]
 
   if (ten_enable_ten_manager) {
-    deps += [ "local_registry:copy_local_registry" ]
+    deps += [ "local_registry" ]
 
     if (ten_manager_enable_tests) {
       deps += [

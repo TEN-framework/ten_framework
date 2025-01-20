@@ -137,14 +137,19 @@ template("rust_target") {
                            ])
 
     rust_source_files =
-        exec_script("//.gnfiles/build/scripts/glob_file.py",
+        exec_script("//build/ten_common/general/glob_file.py",
                     [
                       "--dir",
                       rebase_path("${invoker.project_path}/**/*.rs"),
                       "--recursive",
                     ],
-                    "list lines")
-    sources = rust_source_files
+                    "json")
+
+    sources = []
+    foreach(rust_source_file, rust_source_files) {
+      sources += [ rust_source_file.path ]
+    }
+
     if (defined(invoker.extra_sources)) {
       sources += invoker.extra_sources
     }
@@ -326,28 +331,37 @@ template("rust_test") {
                            ])
 
     rust_source_files =
-        exec_script("//.gnfiles/build/scripts/glob_file.py",
+        exec_script("//build/ten_common/general/glob_file.py",
                     [
                       "--dir",
                       rebase_path("${invoker.project_path}/**/*.rs"),
                       "--recursive",
                     ],
-                    "list lines")
-    sources = rust_source_files
+                    "json")
+
+    sources = []
+    foreach(rust_source_file, rust_source_files) {
+      sources += [ rust_source_file.path ]
+    }
+
     if (defined(invoker.extra_sources)) {
       sources += invoker.extra_sources
     }
 
     cargo_tomls =
-        exec_script("//.gnfiles/build/scripts/glob_file.py",
+        exec_script("//build/ten_common/general/glob_file.py",
                     [
                       "--dir",
                       rebase_path("${invoker.project_path}/**/Cargo.toml"),
                       "--recursive",
                     ],
-                    "list lines")
+                    "json")
 
-    inputs = cargo_tomls
+    inputs = []
+    foreach(cargo_toml, cargo_tomls) {
+      inputs += [ cargo_toml.path ]
+    }
+
     if (defined(invoker.extra_inputs)) {
       inputs += invoker.extra_inputs
     }

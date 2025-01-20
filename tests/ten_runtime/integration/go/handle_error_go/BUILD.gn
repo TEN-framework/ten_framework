@@ -12,10 +12,17 @@ ten_package_test_prepare_app("handle_error_go_app") {
   src_app_language = "go"
   generated_app_src_root_dir_name = "handle_error_go_app"
 
-  replace_files_after_install_app = [
+  replace_paths_after_install_app = [
     "handle_error_go_app/manifest.json",
     "handle_error_go_app/property.json",
-    "handle_error_go_app/ten_packages",
+    "handle_error_go_app/ten_packages/extension/extension_a/extension.go",
+    "handle_error_go_app/ten_packages/extension/extension_a/go.mod",
+    "handle_error_go_app/ten_packages/extension/extension_a/manifest.json",
+    "handle_error_go_app/ten_packages/extension/extension_a/property.json",
+    "handle_error_go_app/ten_packages/extension/extension_b/extension.go",
+    "handle_error_go_app/ten_packages/extension/extension_b/go.mod",
+    "handle_error_go_app/ten_packages/extension/extension_b/manifest.json",
+    "handle_error_go_app/ten_packages/extension/extension_b/property.json",
   ]
 
   if (ten_enable_ten_manager) {

@@ -12,12 +12,12 @@ ten_package_test_prepare_app("check_start_graph_app") {
   src_app_language = "cpp"
   generated_app_src_root_dir_name = "check_start_graph_app"
 
-  replace_files_after_install_app = [
+  replace_paths_after_install_app = [
     "check_start_graph_app/manifest.json",
     "check_start_graph_app/property.json",
   ]
 
-  replace_files_after_install_all = [
+  replace_paths_after_install_all = [
     "check_start_graph_app/ten_packages/extension/default_extension_cpp/manifest.json",
     "check_start_graph_app/ten_packages/extension/default_extension_cpp/property.json",
     "check_start_graph_app/ten_packages/extension/default_extension_cpp/src/main.cc",

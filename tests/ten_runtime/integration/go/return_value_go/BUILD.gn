@@ -12,11 +12,19 @@ ten_package_test_prepare_app("return_value_go_app") {
   src_app_language = "go"
   generated_app_src_root_dir_name = "return_value_go_app"
 
-  replace_files_after_install_app = [
+  replace_paths_after_install_app = [
     "return_value_go_app/manifest.json",
     "return_value_go_app/property.json",
-    "return_value_go_app/ten_packages",
-    "return_value_go_app/go_common_dep",
+    "return_value_go_app/ten_packages/extension/extension_a/extension.go",
+    "return_value_go_app/ten_packages/extension/extension_a/go.mod",
+    "return_value_go_app/ten_packages/extension/extension_a/manifest.json",
+    "return_value_go_app/ten_packages/extension/extension_a/property.json",
+    "return_value_go_app/ten_packages/extension/extension_b/extension.go",
+    "return_value_go_app/ten_packages/extension/extension_b/go.mod",
+    "return_value_go_app/ten_packages/extension/extension_b/manifest.json",
+    "return_value_go_app/ten_packages/extension/extension_b/property.json",
+    "return_value_go_app/go_common_dep/types/data.go",
+    "return_value_go_app/go_common_dep/go.mod",
     "return_value_go_app/go.mod",
   ]
 

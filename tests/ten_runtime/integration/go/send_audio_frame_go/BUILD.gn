@@ -12,10 +12,13 @@ ten_package_test_prepare_app("send_audio_frame_go_app") {
   src_app_language = "go"
   generated_app_src_root_dir_name = "send_audio_frame_go_app"
 
-  replace_files_after_install_app = [
+  replace_paths_after_install_app = [
     "send_audio_frame_go_app/manifest.json",
     "send_audio_frame_go_app/property.json",
-    "send_audio_frame_go_app/ten_packages",
+    "send_audio_frame_go_app/ten_packages/extension/default_extension_go/extension.go",
+    "send_audio_frame_go_app/ten_packages/extension/default_extension_go/go.mod",
+    "send_audio_frame_go_app/ten_packages/extension/default_extension_go/manifest.json",
+    "send_audio_frame_go_app/ten_packages/extension/default_extension_go/property.json",
   ]
 
   deps = [

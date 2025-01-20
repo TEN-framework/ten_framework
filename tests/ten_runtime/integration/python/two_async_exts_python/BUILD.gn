@@ -12,12 +12,12 @@ ten_package_test_prepare_app("two_async_exts_python_app") {
   src_app_language = "python"
   generated_app_src_root_dir_name = "two_async_exts_python_app"
 
-  replace_files_after_install_app = [
+  replace_paths_after_install_app = [
     "two_async_exts_python_app/manifest.json",
     "two_async_exts_python_app/property.json",
   ]
 
-  replace_files_after_install_all = [ "two_async_exts_python_app/ten_packages/extension/default_extension_python/extension.py" ]
+  replace_paths_after_install_all = [ "two_async_exts_python_app/ten_packages/extension/default_extension_python/extension.py" ]
 
   if (ten_enable_ten_manager) {
     deps = [

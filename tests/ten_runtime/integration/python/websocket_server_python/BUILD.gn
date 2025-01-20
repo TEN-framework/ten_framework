@@ -12,7 +12,7 @@ ten_package_test_prepare_app("websocket_server_python_app") {
   src_app_language = "python"
   generated_app_src_root_dir_name = "websocket_server_python_app"
 
-  replace_files_after_install_app = [
+  replace_paths_after_install_app = [
     "websocket_server_python_app/manifest.json",
     "websocket_server_python_app/property.json",
   ]

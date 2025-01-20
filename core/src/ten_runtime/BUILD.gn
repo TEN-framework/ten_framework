@@ -93,11 +93,42 @@ ten_package("ten_runtime_system_package") {
   package_output_root_dir_name = "ten_runtime"
 
   resources = [
-    "//core/include/ten_runtime=>include/ten_runtime",
-    "//core/include/ten_utils=>include/ten_utils",
     "BUILD_release.gn=>BUILD.gn",
     "manifest.json",
   ]
+
+  runtime_headers =
+      exec_script("//build/ten_common/general/glob_file.py",
+                  [
+                    "--dir",
+                    rebase_path("//core/include/ten_runtime/**/*"),
+                    "--dir-base",
+                    rebase_path("//core/include/ten_runtime/"),
+                    "--recursive",
+                    "--only-output-file",
+                  ],
+                  "json")
+
+  foreach(runtime_header, runtime_headers) {
+    runtime_header_rel_path = runtime_header.relative_path
+    resources += [ "//core/include/ten_runtime/${runtime_header_rel_path}=>include/ten_runtime/${runtime_header_rel_path}" ]
+  }
+
+  utils_headers = exec_script("//build/ten_common/general/glob_file.py",
+                              [
+                                "--dir",
+                                rebase_path("//core/include/ten_utils/**/*"),
+                                "--dir-base",
+                                rebase_path("//core/include/ten_utils/"),
+                                "--recursive",
+                                "--only-output-file",
+                              ],
+                              "json")
+
+  foreach(utils_header, utils_headers) {
+    utils_header_rel_path = utils_header.relative_path
+    resources += [ "//core/include/ten_utils/${utils_header_rel_path}=>include/ten_utils/${utils_header_rel_path}" ]
+  }
 
   foreach(lib, ten_runtime_output_libs) {
     libname = get_path_info(rebase_path(lib), "file")

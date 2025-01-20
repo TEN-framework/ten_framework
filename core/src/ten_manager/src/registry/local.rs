@@ -10,7 +10,9 @@ use std::path::{Path, PathBuf};
 use std::str::FromStr;
 
 use anyhow::{anyhow, Context, Result};
+use flate2::read::GzDecoder;
 use semver::Version;
+use tar::Archive as TarArchive;
 use tempfile::NamedTempFile;
 use ten_rust::pkg_info::constants::MANIFEST_JSON_FILENAME;
 use walkdir::WalkDir;
@@ -23,6 +25,7 @@ use ten_rust::pkg_info::PkgInfo;
 use super::{FoundResult, SearchCriteria};
 use crate::config::TmanConfig;
 use crate::constants::TEN_PACKAGE_FILE_EXTENSION;
+use crate::file_type::{detect_file_type, FileType};
 
 pub async fn upload_package(
     base_url: &str,
@@ -114,6 +117,59 @@ pub async fn get_package(
     Ok(())
 }
 
+trait ArchiveFindManifest {
+    /// Attempt to locate and read the contents of `manifest.json` in the
+    /// archive file.
+    fn find_manifest(&mut self) -> Result<Option<String>>;
+}
+
+impl ArchiveFindManifest for ZipArchive<File> {
+    fn find_manifest(&mut self) -> Result<Option<String>> {
+        for i in 0..self.len() {
+            let mut file_in_zip = self
+                .by_index(i)
+                .context("Failed to access file within zip archive")?;
+
+            // Check if the file name is `manifest.json`.
+            if file_in_zip.name() == MANIFEST_JSON_FILENAME {
+                let mut manifest_content = String::new();
+                file_in_zip
+                    .read_to_string(&mut manifest_content)
+                    .context("Failed to read manifest.json from zip")?;
+                return Ok(Some(manifest_content));
+            }
+        }
+
+        // Not found.
+        Ok(None)
+    }
+}
+
+impl ArchiveFindManifest for TarArchive<GzDecoder<File>> {
+    fn find_manifest(&mut self) -> Result<Option<String>> {
+        for entry_result in self.entries()? {
+            let mut entry = entry_result?;
+            let entry_path = entry.path()?;
+
+            // Check if the file name is `manifest.json`.
+            if let Some(file_name) =
+                entry_path.file_name().and_then(|os| os.to_str())
+            {
+                if file_name == MANIFEST_JSON_FILENAME {
+                    let mut manifest_content = String::new();
+                    entry
+                        .read_to_string(&mut manifest_content)
+                        .context("Failed to read manifest.json from tar.gz")?;
+                    return Ok(Some(manifest_content));
+                }
+            }
+        }
+
+        // Not found.
+        Ok(None)
+    }
+}
+
 fn find_file_with_criteria(
     base_url: &Path,
     pkg_type: PkgType,
@@ -124,60 +180,65 @@ fn find_file_with_criteria(
 
     let mut results = Vec::<FoundResult>::new();
 
+    // Traverse the folders of all versions within the specified pkg.
     for version_dir in WalkDir::new(target_path)
         .min_depth(1)
         .max_depth(1)
         .into_iter()
         .filter_map(|e| e.ok())
     {
+        // Check if the folder meets the version requirements.
         if criteria.version_req.matches(
             &Version::parse(
                 version_dir.file_name().to_str().unwrap_or_default(),
             )
             .context("Invalid version format")?,
         ) {
+            // Traverse the files within the folder of that version.
             for entry in WalkDir::new(version_dir.path())
                 .into_iter()
                 .filter_map(|e| e.ok())
             {
                 let path = entry.path();
+
+                // Only process files with the extension equal to the defined
+                // `TEN_PACKAGE_FILE_EXTENSION`.
                 if path.extension().and_then(|s| s.to_str())
                     == Some(TEN_PACKAGE_FILE_EXTENSION)
                 {
                     let file = File::open(path).with_context(|| {
                         format!("Failed to open {:?}", path)
                     })?;
-                    let mut archive = ZipArchive::new(file)
-                        .context("Failed to read zip archive")?;
 
-                    for i in 0..archive.len() {
-                        let mut file = archive.by_index(i).context(
-                            "Failed to access file within zip archive",
-                        )?;
-                        if file.name() == MANIFEST_JSON_FILENAME {
-                            let mut manifest_content = String::new();
+                    let file_type = detect_file_type(path)?;
 
-                            file.read_to_string(&mut manifest_content)
-                                .context("Failed to read manifest.json")?;
-
-                            let manifest =
-                                Manifest::from_str(&manifest_content)?;
-
-                            results.push(FoundResult {
-                                url: PathBuf::from(format!(
-                                    "{}",
-                                    url::Url::from_file_path(path).map_err(
-                                        |_| anyhow!(
-                                            "Failed to convert path to file URL"
-                                        )
-                                    )?,
-                                )),
-                                pkg_registry_info: (&manifest).try_into()?,
-                            });
-
-                            // Stop processing after finding the manifest.
-                            break;
+                    let maybe_manifest = match file_type {
+                        FileType::Zip => {
+                            let mut archive = ZipArchive::new(file)
+                                .context("Failed to read zip archive")?;
+                            archive.find_manifest()?
                         }
+                        FileType::TarGz => {
+                            let mut tar = TarArchive::new(GzDecoder::new(file));
+                            tar.find_manifest()?
+                        }
+                    };
+
+                    // If `find_manifest` finds the manifest content, parse it.
+                    if let Some(manifest_content) = maybe_manifest {
+                        let manifest = Manifest::from_str(&manifest_content)?;
+
+                        results.push(FoundResult {
+                            url: PathBuf::from(format!(
+                                "{}",
+                                url::Url::from_file_path(path).map_err(
+                                    |_| anyhow!(
+                                        "Failed to convert path to file URL"
+                                    )
+                                )?
+                            )),
+                            pkg_registry_info: (&manifest).try_into()?,
+                        });
                     }
                 }
             }

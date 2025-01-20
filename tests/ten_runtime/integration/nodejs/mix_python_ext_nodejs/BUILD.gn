@@ -12,14 +12,14 @@ ten_package_test_prepare_app("mix_python_ext_nodejs_app") {
   src_app_language = "nodejs"
   generated_app_src_root_dir_name = "mix_python_ext_nodejs_app"
 
-  replace_files_after_install_app = [
+  replace_paths_after_install_app = [
     "mix_python_ext_nodejs_app/manifest.json",
     "mix_python_ext_nodejs_app/property.json",
   ]
 
-  replace_files_after_install_all = [
+  replace_paths_after_install_all = [
     "mix_python_ext_nodejs_app/ten_packages/extension/default_extension_nodejs/src/index.ts",
-    "mix_python_ext_nodejs_app/bin",
+    "mix_python_ext_nodejs_app/bin/bootstrap",
   ]
 
   if (ten_enable_ten_manager) {
