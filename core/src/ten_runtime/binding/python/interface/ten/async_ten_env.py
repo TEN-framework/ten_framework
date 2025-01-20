@@ -41,6 +41,9 @@ class AsyncTenEnv(TenEnvBase):
         error: Optional[TenError],
         queue: asyncio.Queue,
     ) -> None:
+        # TODO(Wei): Here, it is still necessary to ensure that the latter part
+        # of the callback can be successfully invoked.
+
         # After _internal.on_deinit_done() is called, self._ten_loop will be
         # closed and the releasing of ten_env_proxy will cause all subsequent
         # ten_env API calls to fail. However, callbacks from previously
