@@ -49,8 +49,9 @@ typedef void (*ten_extension_group_on_destroy_extensions_func_t)(
 
 typedef enum TEN_EXTENSION_GROUP_STATE {
   TEN_EXTENSION_GROUP_STATE_INIT,
-  TEN_EXTENSION_GROUP_STATE_DEINITING,  // on_deinit() is started.
-  TEN_EXTENSION_GROUP_STATE_DEINITTED,  // on_deinit_done() is called.
+
+  TEN_EXTENSION_GROUP_STATE_DEINIT,       // on_deinit() is started.
+  TEN_EXTENSION_GROUP_STATE_DEINIT_DONE,  // on_deinit_done() is called.
 } TEN_EXTENSION_GROUP_STATE;
 
 typedef struct ten_extension_group_t {

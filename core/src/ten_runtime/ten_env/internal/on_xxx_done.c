@@ -94,8 +94,7 @@ bool ten_env_on_deinit_done(ten_env_t *self, TEN_UNUSED ten_error_t *err) {
 
   switch (self->attach_to) {
     case TEN_ENV_ATTACH_TO_ADDON:
-      ten_addon_on_deinit_done(self);
-      break;
+      return ten_addon_on_deinit_done(self);
 
     case TEN_ENV_ATTACH_TO_EXTENSION_GROUP:
       return ten_extension_group_on_deinit_done(self);
@@ -108,10 +107,8 @@ bool ten_env_on_deinit_done(ten_env_t *self, TEN_UNUSED ten_error_t *err) {
 
     default:
       TEN_ASSERT(0, "Should not happen.");
-      break;
+      return false;
   }
-
-  return true;
 }
 
 bool ten_env_on_create_extensions_done(

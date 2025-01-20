@@ -54,7 +54,9 @@ def test_call_api_during_closing_python():
         )
 
     app_dir_name = "call_api_during_closing_python_app"
-    app_root_path = os.path.join(base_path, "call_api_during_closing_python_app")
+    app_root_path = os.path.join(
+        base_path, "call_api_during_closing_python_app"
+    )
     app_language = "python"
 
     build_config_args = build_config.parse_build_config(
@@ -114,7 +116,9 @@ def test_call_api_during_closing_python():
                 print("Using AddressSanitizer library.")
                 my_env["LD_PRELOAD"] = libasan_path
 
-    server_cmd = os.path.join(base_path, "call_api_during_closing_python_app/bin/start")
+    server_cmd = os.path.join(
+        base_path, "call_api_during_closing_python_app/bin/start"
+    )
 
     if not os.path.isfile(server_cmd):
         print(f"Server command '{server_cmd}' does not exist.")
@@ -130,7 +134,9 @@ def test_call_api_during_closing_python():
 
     is_started = http.is_app_started("127.0.0.1", 8002, 30)
     if not is_started:
-        print("The call_api_during_closing_python is not started after 10 seconds.")
+        print(
+            "The call_api_during_closing_python is not started after 10 seconds."
+        )
 
         server.kill()
         exit_code = server.wait()
@@ -149,7 +155,9 @@ def test_call_api_during_closing_python():
     finally:
         is_stopped = http.stop_app("127.0.0.1", 8002, 30)
         if not is_stopped:
-            print("The call_api_during_closing_python can not stop after 30 seconds.")
+            print(
+                "The call_api_during_closing_python can not stop after 30 seconds."
+            )
             server.kill()
 
         exit_code = server.wait()

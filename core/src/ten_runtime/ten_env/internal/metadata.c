@@ -192,7 +192,7 @@ bool ten_env_init_manifest_from_json(ten_env_t *self, const char *json_string,
 }
 
 bool ten_env_init_property_from_json(ten_env_t *self, const char *json_string,
-                                     TEN_UNUSED ten_error_t *err) {
+                                     ten_error_t *err) {
   TEN_ASSERT(self, "Invalid argument.");
   TEN_ASSERT(
       ten_env_check_integrity(

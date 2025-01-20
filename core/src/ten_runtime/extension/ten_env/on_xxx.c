@@ -374,15 +374,24 @@ static void ten_extension_thread_on_extension_on_deinit_done(
   // and send them into the original source extension.
   ten_extension_flush_remaining_paths(deinit_extension);
 
-  // Why we need to post task tail instead of executing directly:
-  // At this point, there may still be tasks in the extension thread runloop
-  // queue whose arguments contain __deinit_extension__. If we delete the
-  // extension immediately, those future tasks may access "dangling pointers".
-  // By posting to task tail, since ten_env is closed after on_deinit_done(),
-  // all subsequent ten_env calls will synchronously return failure, so no more
-  // tasks will be posted to the extension thread runloop queue. Therefore,
-  // posting the delete extension task to tail ensures no tasks after it will
-  // access the deinit_extension raw pointer.
+  // The extensions cannot be deleted immediately at this point. Instead, the
+  // deletion action needs to be turned into an asynchronous task and placed at
+  // the end of the task queue. The reason for this is that at this moment, the
+  // extension thread's runloop may still contain some tasks, and the arguments
+  // of those tasks may reference the `deinit_extension` specified by this
+  // function. If `deinit_extension` is deleted immediately here, those tasks,
+  // which are scheduled to execute in the future, may attempt to access a
+  // dangling pointer to `deinit_extension`. By making the deletion of the
+  // extension asynchronous and placing it at the tail of the task queue, the
+  // situation of accessing a dangling pointer can be avoided. Furthermore,
+  // since `ten_env` is already closed (via `ten_env_close()`) after
+  // `on_deinit_done()`, all `ten_env` API calls made after `on_deinit_done`
+  // will synchronously return failure. This ensures that no new tasks will be
+  // added to the extension thread's runloop. As a result, once the asynchronous
+  // task to destroy the extension is completed, no further tasks will be
+  // executed. Therefore, placing the task to delete the extension at the end of
+  // the queue ensures that no tasks executed afterward will access the raw
+  // pointer to `deinit_extension`.
   ten_runloop_post_task_tail(self->runloop, ten_extension_thread_del_extension,
                              self, deinit_extension);
 }

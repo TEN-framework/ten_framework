@@ -51,7 +51,7 @@ void ten_extension_group_on_deinit(ten_extension_group_t *self) {
   TEN_ASSERT(self->ten_env && ten_env_check_integrity(self->ten_env, true),
              "Should not happen.");
 
-  self->state = TEN_EXTENSION_GROUP_STATE_DEINITING;
+  self->state = TEN_EXTENSION_GROUP_STATE_DEINIT;
 
   if (self->on_deinit) {
     self->on_deinit(self, self->ten_env);
@@ -97,14 +97,14 @@ bool ten_extension_group_on_deinit_done(ten_env_t *self) {
                  ten_extension_group_check_integrity(extension_group, true),
              "Should not happen.");
 
-  if (extension_group->state != TEN_EXTENSION_GROUP_STATE_DEINITING) {
+  if (extension_group->state != TEN_EXTENSION_GROUP_STATE_DEINIT) {
     TEN_LOGI("[%s] Failed to on_deinit_done() because of incorrect timing: %d",
              ten_extension_group_get_name(extension_group, true),
              extension_group->state);
     return false;
   }
 
-  extension_group->state = TEN_EXTENSION_GROUP_STATE_DEINITTED;
+  extension_group->state = TEN_EXTENSION_GROUP_STATE_DEINIT_DONE;
 
   TEN_LOGD("[%s] on_deinit() done.",
            ten_extension_group_get_name(extension_group, true));
@@ -282,8 +282,8 @@ bool ten_extension_group_on_ten_env_proxy_released(ten_env_t *self) {
     // There is still the presence of ten_env_proxy, so the closing process
     // cannot continue.
     TEN_LOGI(
-        "[extension_group %s] Waiting for ten_env_proxy to be released, "
-        "remaining %d ten_env_proxy(s).",
+        "[%s] Waiting for ten_env_proxy to be released, remaining %d "
+        "ten_env_proxy(s).",
         ten_extension_group_get_name(extension_group, true),
         ten_list_size(&self->ten_proxy_list));
     return true;

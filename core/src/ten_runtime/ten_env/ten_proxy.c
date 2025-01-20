@@ -56,7 +56,7 @@ void ten_env_delete_ten_proxy(ten_env_t *self, ten_env_proxy_t *ten_env_proxy) {
                                           extension_group, true),
                    "Should not happen.");
 
-        if (extension_group->state == TEN_EXTENSION_GROUP_STATE_DEINITTED) {
+        if (extension_group->state == TEN_EXTENSION_GROUP_STATE_DEINIT_DONE) {
           ten_extension_group_on_ten_env_proxy_released(self);
         }
         break;
