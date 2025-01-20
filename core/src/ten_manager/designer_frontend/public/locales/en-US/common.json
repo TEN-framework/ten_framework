@@ -20,12 +20,15 @@
     },
     "officialSite": "Official site",
     "poweredBy": "Powered by",
-    "poweredBy2": "Powered by",
+    "poweredByTenFramework": "Powered by <0></0>",
     "github": "GitHub"
   },
   "action": {
     "edit": "Edit",
     "delete": "Delete",
+    "pinToDock": "Pin to Dock",
+    "save": "Save",
+    "discard": "Discard",
     "launchTerminal": "Launch terminal",
     "ok": "OK",
     "cancel": "Cancel",
@@ -33,15 +36,23 @@
     "autoStart": "Auto Start",
     "confirm": "Confirm",
     "upstream": "Upstream",
-    "downstream": "Downstream"
+    "downstream": "Downstream",
+    "popout": "Popout",
+    "close": "Close",
+    "closeAllTabs": "Close All Tabs",
+    "unsaved": "unsaved"
   },
   "toast": {
     "saveFileSuccess": "File saved successfully",
-    "saveFileFailed": "Failed to save file"
+    "saveFileFailed": "Failed to save file",
+    "fetchFileContentFailed": "Failed to fetch file content"
   },
   "popup": {
     "editor": {
-      "confirmSaveFile": "Are you sure you want to save the file?"
+      "confirmSaveFile": "Are you sure you want to save the file?",
+      "confirmSaveChanges": "Do you want to save the changes?",
+      "confirmCloseAllTabs": "Are you sure you want to close all tabs? All unsaved changes will be lost.",
+      "confirmChangePosition": "Are you sure you want to change the position? All unsaved changes will be lost."
     },
     "selectGraph": {
       "title": "Select a Graph"
@@ -51,6 +62,13 @@
       "connectTitle": "Connection Details",
       "title": "Connection"
     }
+  },
+  "dock": {
+    "notSelected": "Not Tab Selected",
+    "dockSide": "Dock Side",
+    "left": "Left",
+    "right": "Right",
+    "bottom": "Bottom"
   },
   "dataTable": {
     "no": "No.",

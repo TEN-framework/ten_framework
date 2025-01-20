@@ -31,19 +31,47 @@ ten_package("gtest_system_package") {
   package_kind = "system"
   package_output_root_dir_name = "googletest"
 
-  resources = [
-    "include",
-    "manifest.json",
+  resources = [ "manifest.json" ]
 
-    # The source code of googletest is all written in C++, making it less
-    # suitable for being compiled into a library. Doing so could expose users to
-    # C++ ABI incompatibility issues, especially when the compiler used to build
-    # the googletest library differs from the one used by the user. Therefore,
-    # the approach taken by the googletest system package is to include the
-    # source code in the system package rather than precompiling it into a
-    # library.
-    "src",
-  ]
+  header_files = exec_script("//build/ten_common/general/glob_file.py",
+                             [
+                               "--dir",
+                               rebase_path("include/**/*"),
+                               "--dir-base",
+                               rebase_path("include/"),
+                               "--recursive",
+                               "--only-output-file",
+                             ],
+                             "json")
+
+  foreach(header_file, header_files) {
+    header_file_rel_path = header_file.relative_path
+    resources +=
+        [ "include/${header_file_rel_path}=>include/${header_file_rel_path}" ]
+  }
+
+  # The source code of googletest is all written in C++, making it less
+  # suitable for being compiled into a library. Doing so could expose users to
+  # C++ ABI incompatibility issues, especially when the compiler used to build
+  # the googletest library differs from the one used by the user. Therefore,
+  # the approach taken by the googletest system package is to include the
+  # source code in the system package rather than precompiling it into a
+  # library.
+  src_files = exec_script("//build/ten_common/general/glob_file.py",
+                          [
+                            "--dir",
+                            rebase_path("src/**/*"),
+                            "--dir-base",
+                            rebase_path("src/"),
+                            "--recursive",
+                            "--only-output-file",
+                          ],
+                          "json")
+
+  foreach(src_file, src_files) {
+    src_file_rel_path = src_file.relative_path
+    resources += [ "src/${src_file_rel_path}=>src/${src_file_rel_path}" ]
+  }
 }
 
 if (ten_enable_ten_manager) {

@@ -143,8 +143,13 @@ template("rust_target") {
                       rebase_path("${invoker.project_path}/**/*.rs"),
                       "--recursive",
                     ],
-                    "list lines")
-    sources = rust_source_files
+                    "json")
+
+    sources = []
+    foreach(rust_source_file, rust_source_files) {
+      sources += [ rust_source_file.path ]
+    }
+
     if (defined(invoker.extra_sources)) {
       sources += invoker.extra_sources
     }
@@ -332,8 +337,13 @@ template("rust_test") {
                       rebase_path("${invoker.project_path}/**/*.rs"),
                       "--recursive",
                     ],
-                    "list lines")
-    sources = rust_source_files
+                    "json")
+
+    sources = []
+    foreach(rust_source_file, rust_source_files) {
+      sources += [ rust_source_file.path ]
+    }
+
     if (defined(invoker.extra_sources)) {
       sources += invoker.extra_sources
     }
@@ -345,9 +355,13 @@ template("rust_test") {
                       rebase_path("${invoker.project_path}/**/Cargo.toml"),
                       "--recursive",
                     ],
-                    "list lines")
+                    "json")
 
-    inputs = cargo_tomls
+    inputs = []
+    foreach(cargo_toml, cargo_tomls) {
+      inputs += [ cargo_toml.path ]
+    }
+
     if (defined(invoker.extra_inputs)) {
       inputs += invoker.extra_inputs
     }

@@ -20,12 +20,15 @@
     },
     "officialSite": "官方网站",
     "poweredBy": "技术支持",
-    "poweredBy2": "Powered by",
+    "poweredByTenFramework": "由 <0></0> 提供支持",
     "github": "GitHub"
   },
   "action": {
     "edit": "编辑",
     "delete": "删除",
+    "pinToDock": "固定到 Dock",
+    "save": "保存",
+    "discard": "丢弃",
     "launchTerminal": "启动终端",
     "ok": "确定",
     "cancel": "取消",
@@ -33,15 +36,23 @@
     "autoStart": "自动启动",
     "confirm": "确认",
     "upstream": "上游",
-    "downstream": "下游"
+    "downstream": "下游",
+    "popout": "弹出",
+    "close": "关闭",
+    "closeAllTabs": "关闭所有标签页",
+    "unsaved": "未保存"
   },
   "toast": {
     "saveFileSuccess": "文件保存成功",
-    "saveFileFailed": "文件保存失败"
+    "saveFileFailed": "文件保存失败",
+    "fetchFileContentFailed": "文件内容获取失败"
   },
   "popup": {
     "editor": {
-      "confirmSaveFile": "确定要保存文件吗？"
+      "confirmSaveFile": "确定要保存文件吗？",
+      "confirmSaveChanges": "确定要保存更改吗？",
+      "confirmCloseAllTabs": "确定要关闭所有标签页吗？所有未保存的更改将会丢失。",
+      "confirmChangePosition": "确定要更改 Dock 位置吗？所有未保存的更改将会丢失。"
     },
     "selectGraph": {
       "title": "选择图表"
@@ -51,6 +62,13 @@
       "connectTitle": "连接详情",
       "title": "连接"
     }
+  },
+  "dock": {
+    "notSelected": "未选择标签页",
+    "dockSide": "停靠位置",
+    "left": "左侧",
+    "right": "右侧",
+    "bottom": "底部"
   },
   "dataTable": {
     "no": "序号",

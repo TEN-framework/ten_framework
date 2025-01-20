@@ -26,9 +26,16 @@ import CustomEdge, { CustomEdgeType } from "@/flow/CustomEdge";
 import NodeContextMenu from "@/flow/ContextMenu/NodeContextMenu";
 import EdgeContextMenu from "@/flow/ContextMenu/EdgeContextMenu";
 import TerminalPopup, { TerminalData } from "@/components/Popup/TerminalPopup";
-import EditorPopup, { EditorData } from "@/components/Popup/EditorPopup";
+import EditorPopup from "@/components/Popup/EditorPopup";
 import CustomNodeConnPopup from "@/components/Popup/CustomNodeConnPopup";
 import { ThemeProviderContext } from "@/components/theme-context";
+import { cn } from "@/lib/utils";
+import { useWidgetStore } from "@/store/widget";
+import {
+  EWidgetDisplayType,
+  EWidgetCategory,
+  type EditorData,
+} from "@/types/widgets";
 
 // Import react-flow style.
 import "@xyflow/react/dist/style.css";
@@ -44,16 +51,13 @@ interface FlowCanvasProps {
   onNodesChange: (changes: NodeChange<CustomNodeType>[]) => void;
   onEdgesChange: (changes: EdgeChange<CustomEdgeType>[]) => void;
   onConnect: (connection: Connection) => void;
+  className?: string;
 }
 
 const FlowCanvas = forwardRef<FlowCanvasRef, FlowCanvasProps>(
-  ({ nodes, edges, onNodesChange, onEdgesChange, onConnect }) => {
-    const [terminalPopups, setTerminalPopups] = useState<
-      { id: string; data: TerminalData }[]
-    >([]);
-    const [editorPopups, setEditorPopups] = useState<
-      { id: string; data: EditorData }[]
-    >([]);
+  ({ nodes, edges, onNodesChange, onEdgesChange, onConnect, className }) => {
+    const { widgets, removeWidget, appendWidget, appendWidgetIfNotExists } =
+      useWidgetStore();
 
     const [contextMenu, setContextMenu] = useState<{
       visible: boolean;
@@ -63,65 +67,34 @@ const FlowCanvas = forwardRef<FlowCanvasRef, FlowCanvasProps>(
       edge?: CustomEdgeType;
       node?: CustomNodeType;
     }>({ visible: false, x: 0, y: 0 });
-    const [connPopups, setConnPopups] = useState<
-      {
-        id: string;
-        source: string;
-        target?: string;
-      }[]
-    >([]);
 
     const launchTerminal = (data: TerminalData) => {
       const newPopup = { id: `${data.title}-${Date.now()}`, data };
-      setTerminalPopups((prev) => [...prev, newPopup]);
-    };
-
-    const closeTerminal = (id: string) => {
-      setTerminalPopups((prev) => prev.filter((popup) => popup.id !== id));
+      appendWidget({
+        id: newPopup.id,
+        category: EWidgetCategory.Terminal,
+        metadata: newPopup.data,
+        display_type: EWidgetDisplayType.Popup,
+      });
     };
 
     const launchEditor = (data: EditorData) => {
-      setEditorPopups((prev) => {
-        const existingPopup = prev.find((popup) => popup.data.url === data.url);
-        if (existingPopup) {
-          return prev;
-        } else {
-          return [
-            ...prev,
-            {
-              id: `${data.url}-${Date.now()}`,
-              data: {
-                title: data.title,
-                url: data.url,
-
-                // Initializes content to empty, the content will be fetched by
-                // EditorPopup.
-                content: "",
-              },
-            },
-          ];
-        }
+      appendWidgetIfNotExists({
+        id: `${data.url}-${Date.now()}`,
+        category: EWidgetCategory.Editor,
+        metadata: data,
+        display_type: EWidgetDisplayType.Popup,
       });
-    };
-
-    const closeEditor = (id: string) => {
-      setEditorPopups((prev) => prev.filter((popup) => popup.id !== id));
     };
 
     const launchConnPopup = (source: string, target?: string) => {
-      setConnPopups((prev) => {
-        const existingPopup = prev.find(
-          (popup) => popup.source === source && popup.target === target
-        );
-        if (existingPopup) {
-          return prev;
-        }
-        return [...prev, { source, target, id: `${source}-${target ?? ""}` }];
+      const id = `${source}-${target ?? ""}`;
+      appendWidgetIfNotExists({
+        id,
+        category: EWidgetCategory.CustomConnection,
+        metadata: { id, source, target },
+        display_type: EWidgetDisplayType.Popup,
       });
-    };
-
-    const closeConnPopup = (id: string) => {
-      setConnPopups((prev) => prev.filter((popup) => popup.id !== id));
     };
 
     const renderContextMenu = () => {
@@ -212,14 +185,14 @@ const FlowCanvas = forwardRef<FlowCanvasRef, FlowCanvasProps>(
           handleCustomNodeAction as EventListener
         );
       };
+      // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [closeContextMenu]);
 
     const { theme } = useContext(ThemeProviderContext);
 
     return (
       <div
-        className="flow-container"
-        style={{ width: "100%", height: "calc(100vh - 40px)" }}
+        className={cn("flow-container w-full h-[calc(100vh-40px)]", className)}
       >
         <ReactFlow
           colorMode={theme}
@@ -277,30 +250,41 @@ const FlowCanvas = forwardRef<FlowCanvasRef, FlowCanvasProps>(
 
         {renderContextMenu()}
 
-        {terminalPopups.map((popup) => (
-          <TerminalPopup
-            key={popup.id}
-            data={popup.data}
-            onClose={() => closeTerminal(popup.id)}
-          />
-        ))}
-
-        {editorPopups.map((popup) => (
-          <EditorPopup
-            key={popup.id}
-            data={popup.data}
-            onClose={() => closeEditor(popup.id)}
-          />
-        ))}
-
-        {connPopups.map((popup) => (
-          <CustomNodeConnPopup
-            key={popup.id}
-            source={popup.source}
-            target={popup.target}
-            onClose={() => closeConnPopup(popup.id)}
-          />
-        ))}
+        {widgets
+          .filter((widget) => widget.display_type === EWidgetDisplayType.Popup)
+          .map((widget) => {
+            switch (widget.category) {
+              case EWidgetCategory.Terminal:
+                return (
+                  <TerminalPopup
+                    id={widget.id}
+                    key={widget.id}
+                    data={widget.metadata}
+                    onClose={() => removeWidget(widget.id)}
+                  />
+                );
+              case EWidgetCategory.Editor:
+                return (
+                  <EditorPopup
+                    id={widget.id}
+                    key={widget.id}
+                    data={widget.metadata}
+                    onClose={() => removeWidget(widget.id)}
+                    hasUnsavedChanges={widget.isEditing}
+                  />
+                );
+              case EWidgetCategory.CustomConnection:
+                return (
+                  <CustomNodeConnPopup
+                    id={widget.id}
+                    key={widget.id}
+                    source={widget.metadata.source}
+                    target={widget.metadata.target}
+                    onClose={() => removeWidget(widget.id)}
+                  />
+                );
+            }
+          })}
       </div>
     );
   }

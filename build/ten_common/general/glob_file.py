@@ -8,28 +8,46 @@ import argparse
 import os
 import sys
 import glob
+import json
 
 
 class ArgumentInfo(argparse.Namespace):
     def __init__(self):
         self.dir: list[str]
+        self.dir_base: list[str] = []
         self.recursive: bool
         self.only_output_file: bool
 
 
-def glob_file(dirs: list[str], recursive: bool, only_file: bool) -> None:
-    for dir in dirs:
+def glob_file(
+    dirs: list[str], dir_bases: list[str], recursive: bool, only_file: bool
+) -> None:
+    output = []
+
+    for index, dir in enumerate(dirs):
+        dir_base = dir_bases[index] if index < len(dir_bases) else ""
         for v in glob.glob(dir, recursive=recursive):
             if only_file:
                 if not os.path.isfile(v):
                     continue
 
-            sys.stdout.write(v.replace("\\", "/") + "\n")
+            relative_path = os.path.relpath(v, dir_base) if dir_base else ""
+
+            output.append(
+                {
+                    "path": v.replace("\\", "/"),
+                    "relative_path": relative_path,
+                }
+            )
+
+    json.dump(output, sys.stdout, indent=2)
+    sys.stdout.write("\n")
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--dir", type=str, action="append", default=[])
+    parser.add_argument("--dir-base", type=str, action="append", default=[])
     parser.add_argument("--recursive", action="store_true")
     # Skip directory in the output.
     parser.add_argument("--only-output-file", action="store_true")
@@ -37,6 +55,6 @@ if __name__ == "__main__":
     arg_info = ArgumentInfo()
     args = parser.parse_args(namespace=arg_info)
 
-    glob_file(args.dir, args.recursive, args.only_output_file)
+    glob_file(args.dir, args.dir_base, args.recursive, args.only_output_file)
 
     sys.exit(0)

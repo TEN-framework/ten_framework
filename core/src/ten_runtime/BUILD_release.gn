@@ -61,12 +61,3 @@ config("config_for_standalone_ten_packages") {
     ]
   }
 }
-
-ten_package("ten_runtime") {
-  package_kind = "system"
-
-  resources = [
-    "lib",
-    "manifest.json",
-  ]
-}

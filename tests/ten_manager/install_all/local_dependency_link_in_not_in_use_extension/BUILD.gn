@@ -11,9 +11,27 @@ ten_package_test_prepare_auxiliary_resources(
   resources = [
     "//.gnfiles/build/scripts/cmd_exec.py=>common/cmd_exec.py",
     "__init__.py",
-    "test_app",
     "test_case.py",
   ]
+
+  test_app_files = exec_script("//build/ten_common/general/glob_file.py",
+                               [
+                                 "--dir",
+                                 rebase_path("test_app/**/*"),
+                                 "--dir-base",
+                                 rebase_path("test_app"),
+                                 "--recursive",
+                                 "--only-output-file",
+                               ],
+                               "json")
+
+  foreach(test_app_file, test_app_files) {
+    test_app_file_rel_path = test_app_file.relative_path
+    resources += [
+      "test_app/${test_app_file_rel_path}=>test_app/${test_app_file_rel_path}",
+    ]
+  }
+
   deps = [
     "//core/src/ten_manager",
     "//tests/local_registry",

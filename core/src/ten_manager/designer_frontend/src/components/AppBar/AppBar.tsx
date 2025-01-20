@@ -5,7 +5,7 @@
 // Refer to the "LICENSE" file in the root directory for more information.
 //
 import * as React from "react";
-import { useTranslation } from "react-i18next";
+import { useTranslation, Trans } from "react-i18next";
 
 import {
   NavigationMenu,
@@ -57,7 +57,8 @@ const AppBar: React.FC<AppBarProps> = ({
     <div
       className={cn(
         "flex justify-between items-center h-10 px-5 text-sm select-none",
-        "bg-[var(--app-bar-bg)] text-[var(--app-bar-fg)]"
+        "bg-[var(--app-bar-bg)] text-[var(--app-bar-fg)]",
+        "border-b border-[#e5e7eb] dark:border-[#374151]"
       )}
     >
       <NavigationMenu onValueChange={onNavChange}>
@@ -89,10 +90,13 @@ const AppBar: React.FC<AppBarProps> = ({
           )}
         >
           <div>
-            {t("header.poweredBy2")}&nbsp;
-            <span className="font-bold text-foreground">
-              {t("tenFramework")}
-            </span>
+            <Trans
+              components={[
+                <PoweredByTenFramework className="font-bold text-foreground" />,
+              ]}
+              t={t}
+              i18nKey="header.poweredByTenFramework"
+            />
           </div>
           <Badge variant="secondary">{version}</Badge>
         </div>
@@ -100,5 +104,17 @@ const AppBar: React.FC<AppBarProps> = ({
     </div>
   );
 };
+
+export function PoweredByTenFramework(props: {
+  className?: string;
+  children?: React.ReactNode;
+}) {
+  const { t } = useTranslation();
+  return (
+    <span className={cn("font-bold text-foreground", props.className)}>
+      {t("tenFramework")}
+    </span>
+  );
+}
 
 export default AppBar;
