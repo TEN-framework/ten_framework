@@ -15,7 +15,14 @@ ten_package_test_prepare_app("return_result_go_app") {
   replace_paths_after_install_app = [
     "return_result_go_app/manifest.json",
     "return_result_go_app/property.json",
-    "return_result_go_app/ten_packages",
+    "return_result_go_app/ten_packages/extension/extension_a/extension.go",
+    "return_result_go_app/ten_packages/extension/extension_a/go.mod",
+    "return_result_go_app/ten_packages/extension/extension_a/manifest.json",
+    "return_result_go_app/ten_packages/extension/extension_a/property.json",
+    "return_result_go_app/ten_packages/extension/extension_b/extension.go",
+    "return_result_go_app/ten_packages/extension/extension_b/go.mod",
+    "return_result_go_app/ten_packages/extension/extension_b/manifest.json",
+    "return_result_go_app/ten_packages/extension/extension_b/property.json",
   ]
 
   if (ten_enable_ten_manager) {

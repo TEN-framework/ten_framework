@@ -15,10 +15,15 @@ ten_package_test_prepare_app("go_app_cythonize_app") {
   replace_paths_after_install_app = [
     "go_app_cythonize_app/manifest.json",
     "go_app_cythonize_app/property.json",
-    "go_app_cythonize_app/ten_packages/extension/default_extension_python",
+    "go_app_cythonize_app/ten_packages/extension/default_extension_python/__init__.pyx",
+    "go_app_cythonize_app/ten_packages/extension/default_extension_python/addon.pyx",
+    "go_app_cythonize_app/ten_packages/extension/default_extension_python/extension.pyx",
+    "go_app_cythonize_app/ten_packages/extension/default_extension_python/log.pyx",
+    "go_app_cythonize_app/ten_packages/extension/default_extension_python/manifest.json",
+    "go_app_cythonize_app/ten_packages/extension/default_extension_python/property.json",
   ]
 
-  replace_paths_after_install_all = [ "go_app_cythonize_app/bin" ]
+  replace_paths_after_install_all = [ "go_app_cythonize_app/bin/bootstrap" ]
 
   if (ten_enable_ten_manager) {
     deps = [

@@ -15,7 +15,14 @@ ten_package_test_prepare_app("app_1") {
   replace_paths_after_install_app = [
     "app_1/manifest.json",
     "app_1/property.json",
-    "app_1/ten_packages",
+    "app_1/ten_packages/extension/ext_a/src/main.cc",
+    "app_1/ten_packages/extension/ext_a/BUILD.gn",
+    "app_1/ten_packages/extension/ext_a/manifest.json",
+    "app_1/ten_packages/extension/ext_a/property.json",
+    "app_1/ten_packages/extension/ext_b/src/main.cc",
+    "app_1/ten_packages/extension/ext_b/BUILD.gn",
+    "app_1/ten_packages/extension/ext_b/manifest.json",
+    "app_1/ten_packages/extension/ext_b/property.json",
   ]
 
   if (ten_enable_ten_manager) {
@@ -37,7 +44,14 @@ ten_package_test_prepare_app("app_2") {
   replace_paths_after_install_app = [
     "app_2/manifest.json",
     "app_2/property.json",
-    "app_2/ten_packages",
+    "app_2/ten_packages/extension/ext_c/src/main.cc",
+    "app_2/ten_packages/extension/ext_c/BUILD.gn",
+    "app_2/ten_packages/extension/ext_c/manifest.json",
+    "app_2/ten_packages/extension/ext_c/property.json",
+    "app_2/ten_packages/extension/ext_d/src/main.cc",
+    "app_2/ten_packages/extension/ext_d/BUILD.gn",
+    "app_2/ten_packages/extension/ext_d/manifest.json",
+    "app_2/ten_packages/extension/ext_d/property.json",
   ]
 
   if (ten_enable_ten_manager) {

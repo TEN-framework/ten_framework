@@ -16,7 +16,7 @@ ten_package("ffmpeg_demuxer") {
   resources = [
     "manifest.json",
     "property.json",
-    "res",
+    "res/test.mp4",
   ]
 
   sources = [

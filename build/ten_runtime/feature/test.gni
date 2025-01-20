@@ -117,24 +117,8 @@ template("ten_package_test_prepare_app") {
       replace_path_index = 0
 
       foreach(replace_path, invoker.replace_paths_after_install_app) {
-        replace_path_info = {
-        }
-
-        replace_path_info =
-            exec_script("//.gnfiles/build/scripts/get_src_and_dest_file.py",
-                        [
-                          "--input-string",
-                          replace_path,
-                          "--src-dest-delimiter",
-                          "=>",
-                          "--src-base-delimiter",
-                          ":",
-                        ],
-                        "json")
-
-        replace_src_path = replace_path_info.source
-        replace_dest_path =
-            "${test_case_out_dir_rel_path}/${replace_path_info.destination}"
+        replace_src_path = replace_path
+        replace_dest_path = "${test_case_out_dir_rel_path}/${replace_path}"
 
         replace_src_abs_path = rebase_path(replace_src_path)
         replace_dest_abs_path = rebase_path(replace_dest_path)
@@ -144,12 +128,12 @@ template("ten_package_test_prepare_app") {
           script = "//build/ten_runtime/feature/replace_normal_files_or_merge_json_files.py"
 
           args = [
-            "--replaced-files",
-            "${replace_src_abs_path}=>${replace_dest_abs_path}",
+            "--src",
+            "${replace_src_abs_path}",
+            "--dest",
+            "${replace_dest_abs_path}",
           ]
 
-          # Wait for the completion of 'install_app'.
-          inputs = []
           sources = [ replace_src_path ]
           outputs = [ replace_dest_path ]
 
@@ -236,24 +220,8 @@ template("ten_package_test_prepare_app") {
       replace_path_index = 0
 
       foreach(replace_path, invoker.replace_paths_after_install_all) {
-        replace_path_info = {
-        }
-
-        replace_path_info =
-            exec_script("//.gnfiles/build/scripts/get_src_and_dest_file.py",
-                        [
-                          "--input-string",
-                          replace_path,
-                          "--src-dest-delimiter",
-                          "=>",
-                          "--src-base-delimiter",
-                          ":",
-                        ],
-                        "json")
-
-        replace_src_path = replace_path_info.source
-        replace_dest_path =
-            "${test_case_out_dir_rel_path}/${replace_path_info.destination}"
+        replace_src_path = replace_path
+        replace_dest_path = "${test_case_out_dir_rel_path}/${replace_path}"
 
         replace_src_abs_path = rebase_path(replace_src_path)
         replace_dest_abs_path = rebase_path(replace_dest_path)
@@ -261,9 +229,12 @@ template("ten_package_test_prepare_app") {
         action(
             "${test_case_unique_target_name}_${_target_name}_after_install_all_replace_file_${replace_path_index}") {
           script = "//build/ten_runtime/feature/replace_normal_files_or_merge_json_files.py"
+
           args = [
-            "--replaced-files",
-            "${replace_src_abs_path}=>${replace_dest_abs_path}",
+            "--src",
+            "${replace_src_abs_path}",
+            "--dest",
+            "${replace_dest_abs_path}",
           ]
 
           sources = [ replace_src_path ]
