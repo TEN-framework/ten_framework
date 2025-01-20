@@ -61,6 +61,7 @@ typedef struct ten_env_t {
 
   // TODO(Wei): Do we need this close_handler?
   ten_env_close_handler_in_target_lang_func_t close_handler;
+
   // This flag indicates whether ten_env has been closed. If closed, no ten_env
   // methods can be called (except ten_env_log).
   //
