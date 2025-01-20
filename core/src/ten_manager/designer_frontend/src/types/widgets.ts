@@ -1,7 +1,14 @@
+//
+// Copyright © 2025 Agora
+// This file is part of TEN Framework, an open source project.
+// Licensed under the Apache License, Version 2.0, with certain conditions.
+// Refer to the "LICENSE" file in the root directory for more information.
+//
 export interface TerminalData {
   title: string;
   url?: string;
 }
+
 export interface EditorData {
   title: string;
 
@@ -11,6 +18,7 @@ export interface EditorData {
   // The content of the editor to display.
   content: string;
 }
+
 export interface CustomConnectionData {
   id: string;
   source: string;
