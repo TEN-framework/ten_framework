@@ -35,14 +35,38 @@ class AsyncTenEnv(TenEnvBase):
     def __del__(self) -> None:
         pass
 
+    def _result_handler(
+        self,
+        result,
+        error: Optional[TenError],
+        queue: asyncio.Queue,
+    ) -> None:
+        # If the _ten_loop is closed, drop the result.
+        if self._ten_loop.is_closed():
+            return
+
+        asyncio.run_coroutine_threadsafe(
+            queue.put([result, error]),
+            self._ten_loop,
+        )
+
+    def _error_handler(
+        self, error: Optional[TenError], queue: asyncio.Queue
+    ) -> None:
+        # If the _ten_loop is closed, drop the error.
+        if self._ten_loop.is_closed():
+            return
+
+        asyncio.run_coroutine_threadsafe(
+            queue.put(error),
+            self._ten_loop,
+        )
+
     async def send_cmd(self, cmd: Cmd) -> CmdResultTuple:
         q = asyncio.Queue(maxsize=1)
         self._internal.send_cmd(
             cmd,
-            lambda _, result, error: asyncio.run_coroutine_threadsafe(
-                q.put([result, error]),
-                self._ten_loop,
-            ),  # type: ignore
+            lambda _, result, error: self._result_handler(result, error, q),
             False,
         )
 
@@ -59,10 +83,7 @@ class AsyncTenEnv(TenEnvBase):
         q = asyncio.Queue(maxsize=10)
         self._internal.send_cmd(
             cmd,
-            lambda _, result, error: asyncio.run_coroutine_threadsafe(
-                q.put([result, error]),
-                self._ten_loop,
-            ),  # type: ignore
+            lambda _, result, error: self._result_handler(result, error, q),
             True,
         )
 
@@ -80,10 +101,7 @@ class AsyncTenEnv(TenEnvBase):
         q = asyncio.Queue(maxsize=1)
         self._internal.send_data(
             data,
-            lambda _, error: asyncio.run_coroutine_threadsafe(
-                q.put(error),
-                self._ten_loop,
-            ),  # type: ignore
+            lambda _, error: self._error_handler(error, q),
         )
 
         error = await q.get()
@@ -95,10 +113,7 @@ class AsyncTenEnv(TenEnvBase):
         q = asyncio.Queue(maxsize=1)
         self._internal.send_video_frame(
             video_frame,
-            lambda _, error: asyncio.run_coroutine_threadsafe(
-                q.put(error),
-                self._ten_loop,
-            ),  # type: ignore
+            lambda _, error: self._error_handler(error, q),
         )
 
         error = await q.get()
@@ -110,10 +125,7 @@ class AsyncTenEnv(TenEnvBase):
         q = asyncio.Queue(maxsize=1)
         self._internal.send_audio_frame(
             audio_frame,
-            lambda _, error: asyncio.run_coroutine_threadsafe(
-                q.put(error),
-                self._ten_loop,
-            ),  # type: ignore
+            lambda _, error: self._error_handler(error, q),
         )
 
         error = await q.get()
@@ -124,10 +136,7 @@ class AsyncTenEnv(TenEnvBase):
         self._internal.return_result(
             result,
             target_cmd,
-            lambda _, error: asyncio.run_coroutine_threadsafe(
-                q.put(error),
-                self._ten_loop,
-            ),  # type: ignore
+            lambda _, error: self._error_handler(error, q),
         )
 
         error = await q.get()
@@ -139,10 +148,7 @@ class AsyncTenEnv(TenEnvBase):
         q = asyncio.Queue(maxsize=1)
         self._internal.return_result_directly(
             result,
-            lambda _, error: asyncio.run_coroutine_threadsafe(
-                q.put(error),
-                self._ten_loop,
-            ),  # type: ignore
+            lambda _, error: self._error_handler(error, q),
         )
 
         error = await q.get()
@@ -154,10 +160,7 @@ class AsyncTenEnv(TenEnvBase):
         q = asyncio.Queue(maxsize=1)
         self._internal.get_property_string_async(
             path,
-            lambda result, error: asyncio.run_coroutine_threadsafe(
-                q.put([result, error]),
-                self._ten_loop,
-            ),  # type: ignore
+            lambda result, error: self._result_handler(result, error, q),
         )
 
         [result, error] = await q.get()
@@ -172,10 +175,7 @@ class AsyncTenEnv(TenEnvBase):
         self._internal.set_property_string_async(
             path,
             json_str,
-            lambda error: asyncio.run_coroutine_threadsafe(
-                q.put(error),
-                self._ten_loop,
-            ),  # type: ignore
+            lambda error: self._error_handler(error, q),
         )
 
         error: TenError = await q.get()
@@ -186,10 +186,7 @@ class AsyncTenEnv(TenEnvBase):
         q = asyncio.Queue(maxsize=1)
         self._internal.get_property_int_async(
             path,
-            lambda result, error: asyncio.run_coroutine_threadsafe(
-                q.put([result, error]),
-                self._ten_loop,
-            ),  # type: ignore
+            lambda result, error: self._result_handler(result, error, q),
         )
 
         [result, error] = await q.get()
@@ -204,10 +201,7 @@ class AsyncTenEnv(TenEnvBase):
         self._internal.set_property_int_async(
             path,
             value,
-            lambda error: asyncio.run_coroutine_threadsafe(
-                q.put(error),
-                self._ten_loop,
-            ),  # type: ignore
+            lambda error: self._error_handler(error, q),
         )
 
         error: TenError = await q.get()
@@ -218,10 +212,7 @@ class AsyncTenEnv(TenEnvBase):
         q = asyncio.Queue(maxsize=1)
         self._internal.get_property_string_async(
             path,
-            lambda result, error: asyncio.run_coroutine_threadsafe(
-                q.put([result, error]),
-                self._ten_loop,
-            ),  # type: ignore
+            lambda result, error: self._result_handler(result, error, q),
         )
 
         [result, error] = await q.get()
@@ -236,10 +227,7 @@ class AsyncTenEnv(TenEnvBase):
         self._internal.set_property_string_async(
             path,
             value,
-            lambda error: asyncio.run_coroutine_threadsafe(
-                q.put(error),
-                self._ten_loop,
-            ),  # type: ignore
+            lambda error: self._error_handler(error, q),
         )
 
         error: TenError = await q.get()
@@ -250,10 +238,7 @@ class AsyncTenEnv(TenEnvBase):
         q = asyncio.Queue(maxsize=1)
         self._internal.get_property_bool_async(
             path,
-            lambda result, error: asyncio.run_coroutine_threadsafe(
-                q.put([result, error]),
-                self._ten_loop,
-            ),  # type: ignore
+            lambda result, error: self._result_handler(result, error, q),
         )
 
         [result, error] = await q.get()
@@ -267,10 +252,7 @@ class AsyncTenEnv(TenEnvBase):
         self._internal.set_property_bool_async(
             path,
             value,
-            lambda error: asyncio.run_coroutine_threadsafe(
-                q.put(error),
-                self._ten_loop,
-            ),  # type: ignore
+            lambda error: self._error_handler(error, q),
         )
 
         error: TenError = await q.get()
@@ -281,10 +263,7 @@ class AsyncTenEnv(TenEnvBase):
         q = asyncio.Queue(maxsize=1)
         self._internal.get_property_float_async(
             path,
-            lambda result, error: asyncio.run_coroutine_threadsafe(
-                q.put([result, error]),
-                self._ten_loop,
-            ),  # type: ignore
+            lambda result, error: self._result_handler(result, error, q),
         )
 
         [result, error] = await q.get()
@@ -298,10 +277,7 @@ class AsyncTenEnv(TenEnvBase):
         self._internal.set_property_float_async(
             path,
             value,
-            lambda error: asyncio.run_coroutine_threadsafe(
-                q.put(error),
-                self._ten_loop,
-            ),  # type: ignore
+            lambda error: self._error_handler(error, q),
         )
 
         error: TenError = await q.get()
@@ -312,10 +288,7 @@ class AsyncTenEnv(TenEnvBase):
         q = asyncio.Queue(maxsize=1)
         self._internal.is_property_exist_async(
             path,
-            lambda result: asyncio.run_coroutine_threadsafe(
-                q.put(result),
-                self._ten_loop,
-            ),  # type: ignore
+            lambda result: self._result_handler(result, None, q),
         )
 
         result = await q.get()
@@ -325,10 +298,7 @@ class AsyncTenEnv(TenEnvBase):
         q = asyncio.Queue(maxsize=1)
         self._internal.init_property_from_json_async(
             json_str,
-            lambda error: asyncio.run_coroutine_threadsafe(
-                q.put(error),
-                self._ten_loop,
-            ),  # type: ignore
+            lambda error: self._error_handler(error, q),
         )
 
         error: TenError = await q.get()
