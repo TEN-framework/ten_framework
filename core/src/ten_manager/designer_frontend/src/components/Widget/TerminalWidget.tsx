@@ -58,22 +58,25 @@ const TerminalWidget = forwardRef<unknown, ITerminalWidgetProps>(
       xterm.loadAddon(new Unicode11Addon());
       xterm.loadAddon(new WebLinksAddon());
 
-      // Due to the introduction of StrictMode in React 18, and the fact that we
-      // enable StrictMode for more comprehensive checks, React components will
-      // render twice under StrictMode. This means that `useEffect` will be called
-      // once, followed by a cleanup, and then called again. The `fit` method of
-      // the `FitAddon` is an asynchronous operation. Therefore, if `fit` is
-      // performed directly during the first `useEffect` call, it may lead to
-      // issues when the `fit` action actually occurs, as the HTML DOM element for
-      // the xterm might have already disappeared. This causes xterm to throw an
-      // error about missing dimensions (essentially due to the disappearance of
+      // Due to the introduction of StrictMode in React 18, and the
+      // fact that we enable StrictMode for more comprehensive checks,
+      // React components will render twice under StrictMode. This
+      // means that `useEffect` will be called once, followed by a
+      // cleanup, and then called again. The `fit` method of the
+      // `FitAddon` is an asynchronous operation. Therefore, if `fit`
+      // is performed directly during the first `useEffect` call, it
+      // may lead to issues when the `fit` action actually occurs, as
+      // the HTML DOM element for the xterm might have already
+      // disappeared. This causes xterm to throw an error about
+      // missing dimensions (essentially due to the disappearance of
       // the xterm HTML DOM element).
       //
-      // To overcome this issue, the direct `fit` action inside `useEffect` is
-      // placed within a timer to asynchronously check if the xterm HTML DOM
-      // element still exists. If the element does not exist, the `fit` call is
-      // skipped to avoid this problem. This workaround logic works properly in
-      // both StrictMode and non-StrictMode environments.
+      // To overcome this issue, the direct `fit` action inside
+      // `useEffect` is placed within a timer to asynchronously check
+      // if the xterm HTML DOM element still exists. If the element
+      // does not exist, the `fit` call is skipped to avoid this
+      // problem. This workaround logic works properly in both
+      // StrictMode and non-StrictMode environments.
       const timeoutId = setTimeout(() => {
         if (terminalRef.current) {
           xterm.open(terminalRef.current);

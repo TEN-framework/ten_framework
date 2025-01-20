@@ -7,6 +7,7 @@ import {
   PanelBottomIcon,
   SquareArrowOutUpRightIcon,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { cn } from "@/lib/utils";
 import {
@@ -20,17 +21,10 @@ import {
 } from "@/components/ui/DropdownMenu";
 import {
   ContextMenu,
-  ContextMenuCheckboxItem,
   ContextMenuContent,
   ContextMenuItem,
-  ContextMenuLabel,
-  ContextMenuRadioGroup,
-  ContextMenuRadioItem,
   ContextMenuSeparator,
   ContextMenuShortcut,
-  ContextMenuSub,
-  ContextMenuSubContent,
-  ContextMenuSubTrigger,
   ContextMenuTrigger,
 } from "@/components/ui/ContextMenu";
 import { useWidgetStore } from "@/store/widget";
@@ -65,6 +59,7 @@ export default function DockContainer(props: {
   const { widgets, removeWidget, removeWidgets, updateWidgetDisplayType } =
     useWidgetStore();
   const { appendDialog, removeDialog } = useDialogStore();
+  const { t } = useTranslation();
 
   const editorRef = React.useRef<TEditorRef | null>(null);
 
@@ -98,13 +93,6 @@ export default function DockContainer(props: {
       const isEditing =
         (dockWidgetsMemo.find((w) => w.id === id) as IEditorWidget | undefined)
           ?.isEditing ?? false;
-      console.log(
-        "[DockContainer] handlePopout:",
-        id,
-        editorRef.current,
-        "isEditing",
-        isEditing
-      );
       (editorRef.current as TEditorRef)?.onClose({
         hasUnsavedChanges: isEditing,
         postConfirm: async () => {
@@ -126,12 +114,9 @@ export default function DockContainer(props: {
     if (hasEditorTabs) {
       appendDialog({
         id: "close-all-tabs",
-        title: "Close All Tabs",
-        content:
-          "Are you sure you want to close all tabs? " +
-          "All unsaved changes will be lost.",
+        title: t("action.closeAllTabs"),
+        content: t("popup.editor.confirmCloseAllTabs"),
         onConfirm: async () => {
-          console.log("close all tabs");
           removeDialog("close-all-tabs");
           await removeWidgets(dockWidgetsMemo.map((w) => w.id));
         },
@@ -174,9 +159,7 @@ export default function DockContainer(props: {
       appendDialog({
         id: "change-position",
         title: "Change Position",
-        content:
-          "Are you sure you want to change the position? " +
-          "All unsaved changes will be lost.",
+        content: t("popup.editor.confirmChangePosition"),
         onConfirm: async () => {
           removeDialog("change-position");
           onPositionChange?.(position);
@@ -222,7 +205,7 @@ export default function DockContainer(props: {
 
       {!selectedWidgetMemo && (
         <div className={cn("w-full h-full flex items-center justify-center")}>
-          Not Tab Selected
+          {t("dock.notSelected")}
         </div>
       )}
 
@@ -270,6 +253,8 @@ function DockHeader(props: {
     onClose,
   } = props;
 
+  const { t } = useTranslation();
+
   return (
     <div
       className={cn(
@@ -287,7 +272,7 @@ function DockHeader(props: {
             <EllipsisVerticalIcon className="w-4 h-4" />
           </DropdownMenuTrigger>
           <DropdownMenuContent>
-            <DropdownMenuLabel>Dock Side</DropdownMenuLabel>
+            <DropdownMenuLabel>{t("dock.dockSide")}</DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuRadioGroup
               value={position}
@@ -295,15 +280,15 @@ function DockHeader(props: {
             >
               <DropdownMenuRadioItem value="left">
                 <PanelLeftIcon className="w-4 h-4 me-2" />
-                Left
+                {t("dock.left")}
               </DropdownMenuRadioItem>
               <DropdownMenuRadioItem value="right">
                 <PanelRightIcon className="w-4 h-4 me-2" />
-                Right
+                {t("dock.right")}
               </DropdownMenuRadioItem>
               <DropdownMenuRadioItem value="bottom">
                 <PanelBottomIcon className="w-4 h-4 me-2" />
-                Bottom
+                {t("dock.bottom")}
               </DropdownMenuRadioItem>
             </DropdownMenuRadioGroup>
           </DropdownMenuContent>
@@ -332,6 +317,8 @@ function DockerHeaderTabElement(props: {
   const { widget, selected, hasUnsavedChanges, onClose, onPopout, onSelect } =
     props;
   const category = widget.category;
+  const { t } = useTranslation();
+
   return (
     <ContextMenu>
       <ContextMenuTrigger>
@@ -363,14 +350,14 @@ function DockerHeaderTabElement(props: {
             onPopout?.(widget.id);
           }}
         >
-          Popout
+          {t("action.popout")}
           <ContextMenuShortcut>
             <SquareArrowOutUpRightIcon className="size-3" />
           </ContextMenuShortcut>
         </ContextMenuItem>
         <ContextMenuSeparator />
         <ContextMenuItem onClick={() => onClose?.(widget.id)}>
-          Close
+          {t("action.close")}
         </ContextMenuItem>
       </ContextMenuContent>
     </ContextMenu>

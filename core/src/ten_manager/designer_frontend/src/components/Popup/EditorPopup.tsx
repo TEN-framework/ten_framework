@@ -93,7 +93,7 @@ const EditorPopup: React.FC<EditorPopupProps> = ({
               {data.title}
             </span>
             <span className="text-foreground/50 text-sm font-sans">
-              {hasUnsavedChanges ? "(unsaved)" : ""}
+              {hasUnsavedChanges ? `(${t("action.unsaved")})` : ""}
             </span>
           </div>
         }

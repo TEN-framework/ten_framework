@@ -5,7 +5,7 @@
 // Refer to the "LICENSE" file in the root directory for more information.
 //
 import React, { useState, useEffect, useRef } from "react";
-import { ChevronDown, ChevronUp, X, PinIcon } from "lucide-react";
+import { ChevronDown, ChevronUp, X } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
@@ -15,14 +15,12 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/Tooltip";
-import { useWidgetStore } from "@/store/widget";
-import { EWidgetDisplayType } from "@/types/widgets";
 
 const DEFAULT_WIDTH = 800;
 const DEFAULT_HEIGHT = 400;
 
 interface PopupProps {
-  id: string;
+  id?: string;
   title: string | React.ReactNode;
   children: React.ReactNode;
   className?: string;
@@ -50,7 +48,6 @@ interface PopupProps {
 }
 
 const Popup: React.FC<PopupProps> = ({
-  id,
   title,
   children,
   className,
@@ -88,8 +85,6 @@ const Popup: React.FC<PopupProps> = ({
   const [dragStart, setDragStart] = useState<{ x: number; y: number } | null>(
     null
   );
-
-  const { updateWidgetDisplayType } = useWidgetStore();
 
   // Center the popup on mount.
   useEffect(() => {

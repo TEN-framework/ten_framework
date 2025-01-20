@@ -15,11 +15,9 @@ import { type editor } from "monaco-editor";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 
-import Popup from "@/components/Popup/Popup";
 import { getFileContent, putFileContent } from "@/api/services/fileSystem";
 import { ThemeProviderContext } from "@/components/theme-context";
-import { Button } from "@/components/ui/Button";
-import { type IDialog, useDialogStore } from "@/store/dialog";
+import { useDialogStore } from "@/store/dialog";
 import { useWidgetStore } from "@/store/widget";
 
 import type { EditorData } from "@/types/widgets";
@@ -56,11 +54,12 @@ const EditorWidget = React.forwardRef<unknown, EditorWidgetProps>(
           setFileContent(respData.content);
         } catch (error) {
           console.error("Failed to fetch file content:", error);
-          toast.error("Failed to fetch file content");
+          toast.error(t("toast.fetchFileContentFailed"));
         }
       };
 
       fetchFileContent();
+      // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [data.url]);
 
     const saveFile = async (content: string) => {
@@ -91,7 +90,6 @@ const EditorWidget = React.forwardRef<unknown, EditorWidgetProps>(
         cancelLabel = t("action.discard"),
         hasUnsavedChanges = false,
       }: TEditorOnClose) => {
-        console.log("[EditorWidget] onClose:", id);
         const dialogId = `confirm-dialog-imperative-${id}`;
         if (!hasUnsavedChanges) {
           removeDialog(dialogId);
@@ -202,7 +200,6 @@ const EditorWidget = React.forwardRef<unknown, EditorWidgetProps>(
                       removeDialog(`confirm-dialog-${id}`);
                     },
                     onCancel: async () => {
-                      console.log("cancel");
                       removeDialog(`confirm-dialog-${id}`);
                     },
                   });

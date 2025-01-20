@@ -26,16 +26,20 @@ import CustomEdge, { CustomEdgeType } from "@/flow/CustomEdge";
 import NodeContextMenu from "@/flow/ContextMenu/NodeContextMenu";
 import EdgeContextMenu from "@/flow/ContextMenu/EdgeContextMenu";
 import TerminalPopup, { TerminalData } from "@/components/Popup/TerminalPopup";
-import EditorPopup, { EditorData } from "@/components/Popup/EditorPopup";
+import EditorPopup from "@/components/Popup/EditorPopup";
 import CustomNodeConnPopup from "@/components/Popup/CustomNodeConnPopup";
 import { ThemeProviderContext } from "@/components/theme-context";
 import { cn } from "@/lib/utils";
 import { useWidgetStore } from "@/store/widget";
+import {
+  EWidgetDisplayType,
+  EWidgetCategory,
+  type EditorData,
+} from "@/types/widgets";
 
 // Import react-flow style.
 import "@xyflow/react/dist/style.css";
 import "@/flow/reactflow.css";
-import { EWidgetDisplayType, EWidgetCategory } from "@/types/widgets";
 
 export interface FlowCanvasRef {
   performAutoLayout: () => void;
@@ -181,6 +185,7 @@ const FlowCanvas = forwardRef<FlowCanvasRef, FlowCanvasProps>(
           handleCustomNodeAction as EventListener
         );
       };
+      // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [closeContextMenu]);
 
     const { theme } = useContext(ThemeProviderContext);
@@ -248,7 +253,6 @@ const FlowCanvas = forwardRef<FlowCanvasRef, FlowCanvasProps>(
         {widgets
           .filter((widget) => widget.display_type === EWidgetDisplayType.Popup)
           .map((widget) => {
-            console.log("widget.id === ", widget.id);
             switch (widget.category) {
               case EWidgetCategory.Terminal:
                 return (

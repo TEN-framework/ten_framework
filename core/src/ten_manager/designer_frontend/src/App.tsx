@@ -45,7 +45,6 @@ import {
 import { GlobalDialogs } from "@/components/GlobalDialogs";
 import Dock from "@/components/Dock";
 import { useWidgetStore } from "@/store/widget";
-import { useDialogStore } from "@/store/dialog";
 import { EWidgetDisplayType } from "@/types/widgets";
 
 const App: React.FC = () => {
@@ -61,7 +60,6 @@ const App: React.FC = () => {
   const { version } = useVersion();
   const { t } = useTranslation();
   const { widgets } = useWidgetStore();
-  const { dialogs } = useDialogStore();
 
   const dockWidgetsMemo = React.useMemo(
     () =>

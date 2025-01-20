@@ -5,11 +5,12 @@
 // Refer to the "LICENSE" file in the root directory for more information.
 //
 import React from "react";
-import { useTranslation } from "react-i18next";
+import { useTranslation, Trans } from "react-i18next";
 
 import Popup from "@/components/Popup/Popup";
 import { cn } from "@/lib/utils";
 import { TEN_FRAMEWORK_URL, TEN_FRAMEWORK_GITHUB_URL } from "@/constants";
+import { PoweredByTenFramework } from "@/components/AppBar/AppBar";
 
 interface AboutPopupProps {
   onClose: () => void;
@@ -27,7 +28,13 @@ const AboutPopup: React.FC<AboutPopupProps> = ({ onClose }) => {
             "font-['Segoe_UI',Tahoma,Geneva,Verdana,sans-serif]"
           )}
         >
-          {t("header.poweredBy")}&nbsp;{t("tenFramework")}.
+          <Trans
+            components={[
+              <PoweredByTenFramework className="font-bold text-foreground" />,
+            ]}
+            t={t}
+            i18nKey="header.poweredByTenFramework"
+          />
         </p>
         <p className="my-1">
           {t("header.officialSite")}:&nbsp;
