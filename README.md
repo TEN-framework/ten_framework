@@ -3,7 +3,6 @@
 <div align="center">
 
 [![Follow on X](https://img.shields.io/twitter/follow/TenFramework?logo=X&color=%20%23f5f5f5)](https://twitter.com/intent/follow?screen_name=TenFramework)
-[![Discussion posts](https://img.shields.io/github/discussions/TEN-framework/ten_framework?labelColor=%20%23FDB062&color=%20%23f79009)](https://github.com/TEN-framework/ten_framework/discussions/)
 [![Commits](https://img.shields.io/github/commit-activity/m/TEN-framework/ten_framework?labelColor=%20%237d89b0&color=%20%235d6b98)](https://github.com/TEN-framework/ten_framework/graphs/commit-activity)
 [![Issues closed](https://img.shields.io/github/issues-search?query=repo%3ATEN-framework%2Ften_framework%20is%3Aclosed&label=issues%20closed&labelColor=green&color=green)](https://github.com/TEN-framework/ten_framework/issues)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](https://github.com/TEN-framework/ten_framework/pulls)
