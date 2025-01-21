@@ -20,7 +20,7 @@ use tokio::time::sleep;
 
 use ten_rust::pkg_info::PkgInfo;
 
-use super::{FoundResult, SearchCriteria};
+use super::SearchCriteria;
 use crate::constants::{
     REMOTE_REGISTRY_MAX_RETRIES, REMOTE_REGISTRY_REQUEST_TIMEOUT_SECS,
     REMOTE_REGISTRY_RETRY_DELAY_MS,
@@ -471,7 +471,7 @@ pub async fn get_package_list(
     pkg_type: PkgType,
     name: &String,
     criteria: &SearchCriteria,
-) -> Result<Vec<FoundResult>> {
+) -> Result<Vec<PkgRegistryInfo>> {
     let max_retries = REMOTE_REGISTRY_MAX_RETRIES;
     let retry_delay = Duration::from_millis(REMOTE_REGISTRY_RETRY_DELAY_MS);
 
@@ -537,7 +537,7 @@ pub async fn get_package_list(
                 total_size = api_response.data.total_size as usize;
 
                 for pkg_registry_info in api_response.data.packages {
-                    results.push(FoundResult { pkg_registry_info });
+                    results.push(pkg_registry_info);
                 }
 
                 // Check if we've fetched all packages based on totalSize.

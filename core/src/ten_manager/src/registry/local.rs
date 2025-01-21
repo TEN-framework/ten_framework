@@ -23,7 +23,7 @@ use ten_rust::pkg_info::pkg_type::PkgType;
 use ten_rust::pkg_info::PkgInfo;
 
 use super::found_result::PkgRegistryInfo;
-use super::{FoundResult, SearchCriteria};
+use super::SearchCriteria;
 use crate::config::TmanConfig;
 use crate::constants::TEN_PACKAGE_FILE_EXTENSION;
 use crate::file_type::{detect_file_type, FileType};
@@ -176,10 +176,10 @@ fn find_file_with_criteria(
     pkg_type: PkgType,
     name: &String,
     criteria: &SearchCriteria,
-) -> Result<Vec<FoundResult>> {
+) -> Result<Vec<PkgRegistryInfo>> {
     let target_path = base_url.join(pkg_type.to_string()).join(name);
 
-    let mut results = Vec::<FoundResult>::new();
+    let mut results = Vec::<PkgRegistryInfo>::new();
 
     // Traverse the folders of all versions within the specified pkg.
     for version_dir in WalkDir::new(target_path)
@@ -242,7 +242,7 @@ fn find_file_with_criteria(
 
                         pkg_registry_info.download_url = download_url;
 
-                        results.push(FoundResult { pkg_registry_info });
+                        results.push(pkg_registry_info);
                     }
                 }
             }
@@ -258,7 +258,7 @@ pub async fn get_package_list(
     pkg_type: PkgType,
     name: &String,
     criteria: &SearchCriteria,
-) -> Result<Vec<FoundResult>> {
+) -> Result<Vec<PkgRegistryInfo>> {
     let mut path_url = url::Url::parse(base_url)
         .map_err(|e| anyhow!("Invalid file URL: {}", e))?
         .to_file_path()

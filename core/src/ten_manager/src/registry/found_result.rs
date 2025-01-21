@@ -105,8 +105,3 @@ impl From<&PkgRegistryInfo> for PkgInfo {
         pkg_info
     }
 }
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct FoundResult {
-    pub pkg_registry_info: PkgRegistryInfo,
-}

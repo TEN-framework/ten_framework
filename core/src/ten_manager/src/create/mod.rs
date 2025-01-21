@@ -80,15 +80,11 @@ pub async fn create_pkg_in_path(
     }
 
     // Get the latest package that meets the requirements.
-    found_packages.sort_by(|a, b| {
-        b.pkg_registry_info
-            .basic_info
-            .version
-            .cmp(&a.pkg_registry_info.basic_info.version)
-    });
+    found_packages
+        .sort_by(|a, b| b.basic_info.version.cmp(&a.basic_info.version));
 
     let package = &found_packages[0];
-    let package_url = &package.pkg_registry_info.download_url;
+    let package_url = &package.download_url;
 
     // Download the package from the registry.
     let mut temp_file = tempfile::NamedTempFile::new().context(

@@ -165,10 +165,9 @@ async fn process_non_local_dependency_to_get_candidate(
     // `candidate_pkg_infos`, making it convenient for `supports`
     // filtering later.
     for result in results {
-        let mut candidate_pkg_info: PkgInfo =
-            (&result.pkg_registry_info).into();
+        let mut candidate_pkg_info: PkgInfo = (&result).into();
 
-        candidate_pkg_info.url = result.pkg_registry_info.download_url;
+        candidate_pkg_info.url = result.download_url;
         candidate_pkg_info.is_installed = false;
 
         tman_verbose_println!(
