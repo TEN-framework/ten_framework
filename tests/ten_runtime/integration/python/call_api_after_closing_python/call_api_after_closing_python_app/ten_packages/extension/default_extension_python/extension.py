@@ -20,6 +20,10 @@ class ServerExtension(AsyncExtension):
         self.name = name
         self.register_count = 0
 
+    async def on_start(self, ten_env: AsyncTenEnv) -> None:
+        cmd = Cmd.create("greeting")
+        asyncio.create_task(ten_env.send_cmd(cmd))
+
     async def on_cmd(self, ten_env: AsyncTenEnv, cmd: Cmd) -> None:
         if cmd.get_name() == "register":
             self.register_count += 1
@@ -31,6 +35,9 @@ class ServerExtension(AsyncExtension):
             cmd_result = CmdResult.create(StatusCode.OK)
             cmd_result.set_property_string("detail", "ok")
             await ten_env.return_result(cmd_result, cmd)
+        elif cmd.get_name() == "hang":
+            # Do nothing
+            pass
         else:
             assert False
 
@@ -69,7 +76,7 @@ class ClientExtension(AsyncExtension):
         cancel_exception_caught = False
 
         try:
-            await asyncio.sleep(1)
+            await asyncio.sleep(5)
         except asyncio.CancelledError:
             cancel_exception_caught = True
         finally:
@@ -99,8 +106,27 @@ class ClientExtension(AsyncExtension):
         )
 
     async def on_cmd(self, ten_env: AsyncTenEnv, cmd: Cmd) -> None:
-        # bypass the cmd to the next extension
-        result, _ = await ten_env.send_cmd(cmd)
-        assert result is not None
+        if cmd.get_name() == "test":
+            # bypass the cmd to the next extension
+            result, _ = await ten_env.send_cmd(cmd)
+            assert result is not None
 
-        await ten_env.return_result_directly(result)
+            await ten_env.return_result_directly(result)
+        elif cmd.get_name() == "greeting":
+            hang_cmd = Cmd.create("hang")
+
+            # This is to verify that this coroutine will not be canceled due to the completion of
+            # the ten_env on_deinit, but will continue due to the flush paths mechanism
+            # before the event loop closes. However, all subsequent ten_env APIs will throw exceptions.
+            result, error = await ten_env.send_cmd(hang_cmd)
+            assert result is not None
+            assert result.get_status_code() == StatusCode.ERROR
+
+            ten_env_api_exception_caught = False
+
+            try:
+                await ten_env.set_property_bool("test", True)
+            except Exception as e:
+                ten_env_api_exception_caught = True
+            finally:
+                assert ten_env_api_exception_caught

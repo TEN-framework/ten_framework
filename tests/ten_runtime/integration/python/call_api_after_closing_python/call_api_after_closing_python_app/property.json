@@ -43,6 +43,19 @@
             ]
           },
           {
+            "extension": "server",
+            "cmd": [
+              {
+                "name": "greeting",
+                "dest": [
+                  {
+                    "extension": "client"
+                  }
+                ]
+              }
+            ]
+          },
+          {
             "extension": "client",
             "cmd": [
               {
@@ -63,6 +76,14 @@
               },
               {
                 "name": "unregister",
+                "dest": [
+                  {
+                    "extension": "server"
+                  }
+                ]
+              },
+              {
+                "name": "hang",
                 "dest": [
                   {
                     "extension": "server"
