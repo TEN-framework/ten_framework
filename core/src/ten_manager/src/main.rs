@@ -25,7 +25,6 @@ fn merge(cmd_line: TmanConfig, config_file: TmanConfig) -> TmanConfig {
         user_token: cmd_line.user_token.or(config_file.user_token),
         verbose: cmd_line.verbose,
         assume_yes: cmd_line.assume_yes,
-        mi_mode: cmd_line.mi_mode,
     }
 }
 

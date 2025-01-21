@@ -6,36 +6,20 @@
 #
 import os
 import argparse
-import re
 import sys
-from typing import Optional
 import subprocess
-from build.scripts import cmd_exec, touch
-from ten_common.scripts import delete_files
+from build.scripts import cmd_exec, timestamp_proxy
 
 
 class ArgumentInfo(argparse.Namespace):
     def __init__(self):
         self.tman_path: str
-        self.published_results: str
         self.base_dir: str
         self.config_file: str
         self.log_level: int
         self.os: str
         self.cpu: str
-
-
-def extract_publish_path(text: str) -> Optional[str]:
-    pattern = r'Publish to "(.+?)"'
-    match = re.search(pattern, text)
-    return match.group(1) if match is not None else None
-
-
-def write_published_results_to_file(
-    published_results: str, file_path: str
-) -> None:
-    with open(file_path, "w") as file:
-        file.write(published_results)
+        self.tg_timestamp_proxy_file: str
 
 
 def update_manifest(
@@ -103,6 +87,7 @@ if __name__ == "__main__":
     )
     parser.add_argument("--os", type=str, required=True)
     parser.add_argument("--cpu", type=str, required=True)
+    parser.add_argument("--tg-timestamp-proxy-file", type=str, required=True)
 
     arg_info = ArgumentInfo()
     args = parser.parse_args(namespace=arg_info)
@@ -127,7 +112,6 @@ if __name__ == "__main__":
         cmd = [
             args.tman_path,
             "--config-file=" + args.config_file,
-            "--mi",
             "publish",
         ]
         returncode, output_text = cmd_exec.run_cmd(cmd)
@@ -135,22 +119,15 @@ if __name__ == "__main__":
             print(output_text)
             raise Exception(f"Failed to publish package: {returncode}")
 
-        published_results = extract_publish_path(output_text)
-        if published_results is None:
-            print(output_text)
-            raise Exception(f"Failed to publish package: {returncode}")
-
-        if args.log_level > 0:
-            print(f"Published to {published_results}")
-
-        write_published_results_to_file(
-            published_results, args.published_results
-        )
-
-        touch.touch(os.path.join(f"{args.published_results}"))
+        # Success to build the app, update the stamp file to represent this
+        # fact.
+        timestamp_proxy.touch_timestamp_proxy_file(args.tg_timestamp_proxy_file)
 
     except Exception as e:
-        delete_files.delete_files([os.path.join(f"{args.published_results}")])
+        returncode = 1
+        timestamp_proxy.remove_timestamp_proxy_file(
+            args.tg_timestamp_proxy_file
+        )
         print(e)
 
     finally:
