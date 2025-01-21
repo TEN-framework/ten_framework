@@ -549,13 +549,13 @@
       "type": "debugpy",
       "python": "/usr/bin/python3",
       "request": "launch",
-      "program": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/python/async_extension_basic_python/async_extension_basic_python_app/main.py",
+      "program": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/python/call_api_after_closing_python/call_api_after_closing_python_app/main.py",
       "console": "integratedTerminal",
-      "cwd": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/python/async_extension_basic_python/async_extension_basic_python_app",
+      "cwd": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/python/call_api_after_closing_python/call_api_after_closing_python_app",
       "env": {
-        "PYTHONPATH": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/python/async_extension_basic_python/async_extension_basic_python_app/ten_packages/system/ten_runtime_python/lib:${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/python/async_extension_basic_python/async_extension_basic_python_app/ten_packages/system/ten_runtime_python/interface",
-        "TEN_APP_BASE_DIR": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/python/async_extension_basic_python/async_extension_basic_python_app/",
-        "LD_PRELOAD": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/python/async_extension_basic_python/async_extension_basic_python_app/ten_packages/system/ten_runtime/lib/libasan.so",
+        "PYTHONPATH": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/python/call_api_after_closing_python/call_api_after_closing_python_app/ten_packages/system/ten_runtime_python/lib:${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/python/call_api_after_closing_python/call_api_after_closing_python_app/ten_packages/system/ten_runtime_python/interface",
+        "TEN_APP_BASE_DIR": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/python/call_api_after_closing_python/call_api_after_closing_python_app/",
+        "LD_PRELOAD": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/python/call_api_after_closing_python/call_api_after_closing_python_app/ten_packages/system/ten_runtime/lib/libasan.so",
         "PYTHONMALLOC": "malloc",
         "TEN_ENABLE_PYTHON_DEBUG": "true",
       },
@@ -613,7 +613,7 @@
       "request": "attach",
       "processId": "${command:pickProcess}",
       "program": "/usr/bin/python3",
-      "additionalSOLibSearchPath": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/python/async_extension_basic_python/async_extension_basic_python_app/ten_packages/system/ten_runtime_python/lib:${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/python/async_extension_basic_python/async_extension_basic_python_app/ten_packages/system/ten_runtime/lib",
+      "additionalSOLibSearchPath": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/python/call_api_after_closing_python/call_api_after_closing_python_app/ten_packages/system/ten_runtime_python/lib:${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/python/call_api_after_closing_python/call_api_after_closing_python_app/ten_packages/system/ten_runtime/lib",
       "MIMode": "gdb",
       "setupCommands": [
         {
