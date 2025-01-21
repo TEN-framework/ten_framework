@@ -88,10 +88,7 @@ pub async fn create_pkg_in_path(
     });
 
     let package = &found_packages[0];
-    let package_url = package
-        .url
-        .to_str()
-        .ok_or_else(|| anyhow!("Invalid package URL"))?;
+    let package_url = &package.pkg_registry_info.download_url;
 
     // Download the package from the registry.
     let mut temp_file = tempfile::NamedTempFile::new().context(

@@ -22,6 +22,7 @@ use ten_rust::pkg_info::manifest::Manifest;
 use ten_rust::pkg_info::pkg_type::PkgType;
 use ten_rust::pkg_info::PkgInfo;
 
+use super::found_result::PkgRegistryInfo;
 use super::{FoundResult, SearchCriteria};
 use crate::config::TmanConfig;
 use crate::constants::TEN_PACKAGE_FILE_EXTENSION;
@@ -228,17 +229,20 @@ fn find_file_with_criteria(
                     if let Some(manifest_content) = maybe_manifest {
                         let manifest = Manifest::from_str(&manifest_content)?;
 
-                        results.push(FoundResult {
-                            url: PathBuf::from(format!(
-                                "{}",
-                                url::Url::from_file_path(path).map_err(
-                                    |_| anyhow!(
-                                        "Failed to convert path to file URL"
-                                    )
-                                )?
-                            )),
-                            pkg_registry_info: (&manifest).try_into()?,
-                        });
+                        // Generate the download URL from the file path.
+                        let download_url = url::Url::from_file_path(path)
+                            .map_err(|_| {
+                                anyhow!("Failed to convert path to file URL")
+                            })?
+                            .to_string();
+
+                        // Convert manifest to PkgRegistryInfo.
+                        let mut pkg_registry_info: PkgRegistryInfo =
+                            (&manifest).try_into()?;
+
+                        pkg_registry_info.download_url = download_url;
+
+                        results.push(FoundResult { pkg_registry_info });
                     }
                 }
             }

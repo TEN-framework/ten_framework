@@ -5,7 +5,7 @@
 // Refer to the "LICENSE" file in the root directory for more information.
 //
 use std::sync::Arc;
-use std::{io::Write, path::PathBuf, time::Duration};
+use std::{io::Write, time::Duration};
 
 use anyhow::{anyhow, Context, Result};
 use reqwest::header::{HeaderMap, AUTHORIZATION, CONTENT_TYPE};
@@ -110,6 +110,7 @@ async fn get_package_upload_info(
                     .into_iter()
                     .collect(),
                 hash: pkg_info.hash.clone(),
+                download_url: String::new(),
             });
 
             tman_verbose_println!(
@@ -460,6 +461,7 @@ struct ApiResponse {
 struct RegistryPackagesData {
     #[serde(rename = "totalSize")]
     total_size: u32,
+
     packages: Vec<PkgRegistryInfo>,
 }
 
@@ -535,18 +537,7 @@ pub async fn get_package_list(
                 total_size = api_response.data.total_size as usize;
 
                 for pkg_registry_info in api_response.data.packages {
-                    let url = PathBuf::from(format!(
-                        "{}/{}/{}/{}/{}",
-                        &base_url,
-                        pkg_registry_info.basic_info.type_and_name.pkg_type,
-                        pkg_registry_info.basic_info.type_and_name.name,
-                        pkg_registry_info.basic_info.version,
-                        pkg_registry_info.hash,
-                    ));
-                    results.push(FoundResult {
-                        url,
-                        pkg_registry_info,
-                    });
+                    results.push(FoundResult { pkg_registry_info });
                 }
 
                 // Check if we've fetched all packages based on totalSize.
