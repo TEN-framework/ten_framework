@@ -22,7 +22,8 @@ use ten_rust::pkg_info::manifest::Manifest;
 use ten_rust::pkg_info::pkg_type::PkgType;
 use ten_rust::pkg_info::PkgInfo;
 
-use super::{FoundResult, SearchCriteria};
+use super::found_result::PkgRegistryInfo;
+use super::SearchCriteria;
 use crate::config::TmanConfig;
 use crate::constants::TEN_PACKAGE_FILE_EXTENSION;
 use crate::file_type::{detect_file_type, FileType};
@@ -175,10 +176,10 @@ fn find_file_with_criteria(
     pkg_type: PkgType,
     name: &String,
     criteria: &SearchCriteria,
-) -> Result<Vec<FoundResult>> {
+) -> Result<Vec<PkgRegistryInfo>> {
     let target_path = base_url.join(pkg_type.to_string()).join(name);
 
-    let mut results = Vec::<FoundResult>::new();
+    let mut results = Vec::<PkgRegistryInfo>::new();
 
     // Traverse the folders of all versions within the specified pkg.
     for version_dir in WalkDir::new(target_path)
@@ -228,17 +229,20 @@ fn find_file_with_criteria(
                     if let Some(manifest_content) = maybe_manifest {
                         let manifest = Manifest::from_str(&manifest_content)?;
 
-                        results.push(FoundResult {
-                            url: PathBuf::from(format!(
-                                "{}",
-                                url::Url::from_file_path(path).map_err(
-                                    |_| anyhow!(
-                                        "Failed to convert path to file URL"
-                                    )
-                                )?
-                            )),
-                            pkg_registry_info: (&manifest).try_into()?,
-                        });
+                        // Generate the download URL from the file path.
+                        let download_url = url::Url::from_file_path(path)
+                            .map_err(|_| {
+                                anyhow!("Failed to convert path to file URL")
+                            })?
+                            .to_string();
+
+                        // Convert manifest to PkgRegistryInfo.
+                        let mut pkg_registry_info: PkgRegistryInfo =
+                            (&manifest).try_into()?;
+
+                        pkg_registry_info.download_url = download_url;
+
+                        results.push(pkg_registry_info);
                     }
                 }
             }
@@ -254,7 +258,7 @@ pub async fn get_package_list(
     pkg_type: PkgType,
     name: &String,
     criteria: &SearchCriteria,
-) -> Result<Vec<FoundResult>> {
+) -> Result<Vec<PkgRegistryInfo>> {
     let mut path_url = url::Url::parse(base_url)
         .map_err(|e| anyhow!("Invalid file URL: {}", e))?
         .to_file_path()

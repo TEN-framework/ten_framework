@@ -137,7 +137,7 @@
       "request": "launch",
       "program": "${workspaceFolder}/out/linux/x64/tests/standalone/ten_runtime_smoke_test",
       "args": [
-        "--gtest_filter=CloseAppTest.CloseAppDuringConfiguring"
+        "--gtest_filter=CloseAppTest.CallTenApiDuringClosing"
       ],
       "cwd": "${workspaceFolder}/out/linux/x64/tests/standalone/",
       "env": {
@@ -300,16 +300,16 @@
       ],
     },
     {
-      "name": "tman install_cpp_app_mock (lldb)",
+      "name": "tman create app (lldb)",
       "type": "lldb",
       "request": "launch",
       "program": "${workspaceFolder}/out/linux/x64/ten_manager/bin/tman",
       "cwd": "${workspaceFolder}/out/linux/x64/",
       "args": [
-        "install",
+        "create",
         "app",
-        "ddd",
-        "--mock=${workspaceFolder}/out/linux/x64/tests/local_registry/"
+        "xxx",
+        "--template=default_app_cpp"
       ],
       "preRunCommands": [
         "script import pathlib;import subprocess;import lldb;rustc_sysroot = subprocess.getoutput(\"rustc --print sysroot\");rustlib_etc = pathlib.Path(rustc_sysroot) / \"lib\" / \"rustlib\" / \"etc\";lldb.debugger.HandleCommand(f'command script import \"{rustlib_etc / \"lldb_lookup.py\"}\"');lldb.debugger.HandleCommand(f'command source -s 0 \"{rustlib_etc / \"lldb_commands\"}\"')"
@@ -555,13 +555,13 @@
       "type": "debugpy",
       "python": "/usr/bin/python3",
       "request": "launch",
-      "program": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/python/send_cmd_python/send_cmd_python_app/main.py",
+      "program": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/python/async_extension_basic_python/async_extension_basic_python_app/main.py",
       "console": "integratedTerminal",
-      "cwd": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/python/send_cmd_python/send_cmd_python_app",
+      "cwd": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/python/async_extension_basic_python/async_extension_basic_python_app",
       "env": {
-        "PYTHONPATH": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/python/send_cmd_python/send_cmd_python_app/ten_packages/system/ten_runtime_python/lib:${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/python/send_cmd_python/send_cmd_python_app/ten_packages/system/ten_runtime_python/interface",
-        "TEN_APP_BASE_DIR": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/python/send_cmd_python/send_cmd_python_app/",
-        "LD_PRELOAD": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/python/send_cmd_python/send_cmd_python_app/ten_packages/system/ten_runtime/lib/libasan.so",
+        "PYTHONPATH": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/python/async_extension_basic_python/async_extension_basic_python_app/ten_packages/system/ten_runtime_python/lib:${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/python/async_extension_basic_python/async_extension_basic_python_app/ten_packages/system/ten_runtime_python/interface",
+        "TEN_APP_BASE_DIR": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/python/async_extension_basic_python/async_extension_basic_python_app/",
+        "LD_PRELOAD": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/python/async_extension_basic_python/async_extension_basic_python_app/ten_packages/system/ten_runtime/lib/libasan.so",
         "PYTHONMALLOC": "malloc",
         "TEN_ENABLE_PYTHON_DEBUG": "true",
       },
@@ -619,7 +619,7 @@
       "request": "attach",
       "processId": "${command:pickProcess}",
       "program": "/usr/bin/python3",
-      "additionalSOLibSearchPath": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/python/send_cmd_python/send_cmd_python_app/ten_packages/system/ten_runtime_python/lib:${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/python/send_cmd_python/send_cmd_python_app/ten_packages/system/ten_runtime/lib",
+      "additionalSOLibSearchPath": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/python/async_extension_basic_python/async_extension_basic_python_app/ten_packages/system/ten_runtime_python/lib:${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/python/async_extension_basic_python/async_extension_basic_python_app/ten_packages/system/ten_runtime/lib",
       "MIMode": "gdb",
       "setupCommands": [
         {
@@ -640,7 +640,7 @@
       "request": "launch",
       "program": "/usr/bin/python3",
       "args": [
-        "tests/test_basic.py"
+        "tests/test_send_during_stopping.py"
       ],
       "environment": [
         {
@@ -840,8 +840,9 @@
       "name": "Python Debugger: Python File",
       "type": "debugpy",
       "request": "launch",
-      "program": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/python/standalone_test_python/default_extension_python/tests/test_basic.py",
+      "program": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/python/standalone_test_python/default_extension_python/tests/test_send_during_stopping_async.py",
       "env": {
+        "PYTHONMALLOC": "malloc",
         "PYTHONPATH": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/python/standalone_test_python/default_extension_python/.ten/app/ten_packages/system/ten_runtime_python/lib:${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/python/standalone_test_python/default_extension_python/.ten/app/ten_packages/system/ten_runtime_python/interface:${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/python/standalone_test_python/default_extension_python/.ten/app",
         "LD_PRELOAD": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/python/standalone_test_python/default_extension_python/.ten/app/ten_packages/system/ten_runtime/lib/libasan.so"
       }

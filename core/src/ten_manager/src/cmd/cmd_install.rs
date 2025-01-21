@@ -18,13 +18,8 @@ use console::Emoji;
 use indicatif::HumanDuration;
 use inquire::Confirm;
 
-use semver::VersionReq;
 use ten_rust::pkg_info::{
-    constants::MANIFEST_JSON_FILENAME,
-    manifest::{
-        dependency::ManifestDependency, dump_manifest_str_to_file,
-        parse_manifest_from_file,
-    },
+    constants::{BUILD_GN_FILENAME, MANIFEST_JSON_FILENAME},
     pkg_basic_info::PkgBasicInfo,
 };
 use ten_rust::pkg_info::{
@@ -39,7 +34,6 @@ use ten_rust::pkg_info::{
 use crate::{
     config::TmanConfig,
     constants::{APP_DIR_IN_DOT_TEN_DIR, DOT_TEN_DIR},
-    create::create_pkg_in_path,
     dep_and_candidate::get_all_candidates_from_deps,
     fs::{check_is_extension_folder, find_nearest_app_dir},
     install::{
@@ -192,64 +186,25 @@ fn add_pkg_to_initial_pkg_to_find_candidates_and_all_candidates(
     Ok(())
 }
 
-/// For C++ extensions, a C++ app needs to be installed before performing the
-/// `tgn` compilation action within the C++ app folder.
-async fn prepare_cpp_standalone_app_dir(
-    tman_config: &TmanConfig,
-    extension_dir: &Path,
-) -> Result<PathBuf> {
-    let dot_ten_dir = extension_dir.join(DOT_TEN_DIR);
-    if !dot_ten_dir.exists() {
-        fs::create_dir_all(&dot_ten_dir)?;
+/// For a C++ extension, a complete and compilable C++ app is required, so a
+/// basic `BUILD.gn` is needed.
+fn prepare_cpp_standalone_app_dir(dot_ten_app_dir: &Path) -> Result<()> {
+    let build_gn_file = dot_ten_app_dir.join(BUILD_GN_FILENAME);
+    if !build_gn_file.exists() {
+        // Create a basic `BUILD.gn` for the C++ app.
+        let content = r#"import("//build/feature/ten_package.gni")
+
+ten_package("app_for_standalone") {
+  package_kind = "app"
+}
+"#;
+        fs::write(&build_gn_file, content)?;
     }
 
-    let dot_ten_app_dir = dot_ten_dir.join(APP_DIR_IN_DOT_TEN_DIR);
-    if dot_ten_app_dir.exists() {
-        return Ok(dot_ten_app_dir);
-    }
-
-    // Use `default_app_cpp` as the app in standalone mode for the C++
-    // extension.
-    create_pkg_in_path(
-        tman_config,
-        &dot_ten_dir,
-        &PkgType::App,
-        &"app".to_string(),
-        &"default_app_cpp".to_string(),
-        &VersionReq::STAR,
-        None,
-    )
-    .await?;
-
-    // Read the newly generated `manifest.json` and add a local dependency.
-    let newly_created_manifest_path =
-        dot_ten_app_dir.join(MANIFEST_JSON_FILENAME);
-
-    let mut manifest = parse_manifest_from_file(&newly_created_manifest_path)?;
-    if manifest.dependencies.is_none() {
-        manifest.dependencies = Some(vec![]);
-    }
-
-    // Add the dependency `{ "path": "../../" }`.
-    manifest.dependencies.as_mut().unwrap().push(
-        ManifestDependency::LocalDependency {
-            path: "../../".to_string(),
-            base_dir: dot_ten_app_dir.to_str().unwrap_or("").to_string(),
-        },
-    );
-
-    // Write back to the original `manifest.json`.
-    let updated_manifest_str = serde_json::to_string_pretty(&manifest)?;
-    dump_manifest_str_to_file(
-        &updated_manifest_str,
-        &newly_created_manifest_path,
-    )?;
-
-    Ok(dot_ten_app_dir)
+    Ok(())
 }
 
-/// Handle the case where the `BUILD.gn` file does not exist (fallback logic).
-fn prepare_fallback_standalone_app_dir(
+fn prepare_basic_standalone_app_dir(
     _tman_config: &TmanConfig,
     extension_dir: &Path,
 ) -> Result<PathBuf> {
@@ -285,12 +240,15 @@ async fn prepare_standalone_app_dir(
     tman_config: &TmanConfig,
     extension_dir: &Path,
 ) -> Result<PathBuf> {
+    let dot_ten_app_dir =
+        prepare_basic_standalone_app_dir(tman_config, extension_dir)?;
+
     let build_gn_path = extension_dir.join("BUILD.gn");
     if build_gn_path.exists() {
-        prepare_cpp_standalone_app_dir(tman_config, extension_dir).await
-    } else {
-        prepare_fallback_standalone_app_dir(tman_config, extension_dir)
+        prepare_cpp_standalone_app_dir(&dot_ten_app_dir)?;
     }
+
+    Ok(dot_ten_app_dir)
 }
 
 /// Path logic for standalone mode and non-standalone mode.

@@ -20,7 +20,6 @@ use ten_rust::pkg_info::supports::{
 use ten_rust::pkg_info::{get_pkg_info_from_path, PkgInfo};
 
 use super::config::TmanConfig;
-use super::fs::pathbuf_to_string;
 use super::registry::{get_package_list, SearchCriteria};
 use crate::log::tman_verbose_println;
 
@@ -141,12 +140,11 @@ async fn process_non_local_dependency_to_get_candidate(
     >,
     new_pkgs_to_be_searched: &mut Vec<PkgInfo>,
 ) -> Result<()> {
-    // With the current design, if there is new information, it will
-    // definitely be only this version requirement. Although there may
-    // be some overlap with previous version requirements,
-    // given the current design, this is the best we can do
-    // for now. The answer won't be wrong, but the
-    // efficiency might be somewhat lower.
+    // With the current design, if there is new information, it will definitely
+    // be only this version requirement. Although there may be some overlap with
+    // previous version requirements, given the current design, this is the best
+    // we can do for now. The answer won't be wrong, but the efficiency might be
+    // somewhat lower.
     let criteria = SearchCriteria {
         version_req: dependency.version_req.clone(),
     };
@@ -167,10 +165,9 @@ async fn process_non_local_dependency_to_get_candidate(
     // `candidate_pkg_infos`, making it convenient for `supports`
     // filtering later.
     for result in results {
-        let mut candidate_pkg_info: PkgInfo =
-            (&result.pkg_registry_info).into();
+        let mut candidate_pkg_info: PkgInfo = (&result).into();
 
-        candidate_pkg_info.url = pathbuf_to_string(result.url)?;
+        candidate_pkg_info.url = result.download_url;
         candidate_pkg_info.is_installed = false;
 
         tman_verbose_println!(

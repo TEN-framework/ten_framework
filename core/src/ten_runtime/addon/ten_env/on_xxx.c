@@ -97,7 +97,7 @@ void ten_addon_on_init_done(ten_env_t *self) {
   }
 }
 
-void ten_addon_on_deinit_done(ten_env_t *self) {
+bool ten_addon_on_deinit_done(ten_env_t *self) {
   TEN_ASSERT(self, "Invalid argument.");
   // TEN_NOLINTNEXTLINE(thread-check)
   // thread-check: This function is intended to be called in any threads.
@@ -110,11 +110,15 @@ void ten_addon_on_deinit_done(ten_env_t *self) {
   TEN_ASSERT(addon_host && ten_addon_host_check_integrity(addon_host),
              "Should not happen.");
 
+  ten_env_close(self);
+
   if (addon_host->addon->on_destroy) {
     addon_host->addon->on_destroy(addon_host->addon);
   }
 
   ten_addon_host_destroy(addon_host);
+
+  return true;
 }
 
 static void ten_extension_addon_on_create_instance_done(ten_env_t *self,

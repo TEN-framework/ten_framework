@@ -43,6 +43,10 @@ void ten_env_log_without_check_thread(ten_env_t *self, TEN_LOG_LEVEL level,
 
 void ten_env_log(ten_env_t *self, TEN_LOG_LEVEL level, const char *func_name,
                  const char *file_name, size_t line_no, const char *msg) {
+  if (ten_env_is_closed(self)) {
+    return;
+  }
+
   ten_env_log_internal(self, level, func_name, file_name, line_no, msg, true);
 }
 

@@ -32,7 +32,7 @@ ten_package("ten_nodejs_binding_system_package") {
   ]
 
   interface_files = exec_script(
-          "//build/ten_common/general/glob_file.py",
+          "//.gnfiles/build/scripts/glob_file.py",
           [
             "--dir",
             rebase_path("//core/src/ten_runtime/binding/nodejs/interface/**/*"),

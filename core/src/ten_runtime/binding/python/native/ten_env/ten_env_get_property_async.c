@@ -9,6 +9,7 @@
 #include "include_internal/ten_runtime/binding/python/common/common.h"
 #include "include_internal/ten_runtime/binding/python/common/error.h"
 #include "include_internal/ten_runtime/binding/python/ten_env/ten_env.h"
+#include "include_internal/ten_runtime/common/errno.h"
 #include "ten_runtime/ten_env_proxy/ten_env_proxy.h"
 #include "ten_utils/lib/error.h"
 #include "ten_utils/lib/json.h"
@@ -385,9 +386,18 @@ static void ten_py_is_property_exist_cb(ten_env_t *ten_env, ten_value_t *value,
   PyGILState_STATE prev_state = ten_py_gil_state_ensure_internal();
 
   PyObject *arglist = NULL;
+  ten_py_error_t *py_error = NULL;
   bool is_exist = value != NULL;
 
-  arglist = Py_BuildValue("(O)", is_exist ? Py_True : Py_False);
+  // If the errno is TEN_ERRNO_VALUE_NOT_FOUND, it means the property does
+  // not exist which is expected not to be an error.
+  if (error && ten_error_errno(error) != TEN_ERRNO_VALUE_NOT_FOUND) {
+    py_error = ten_py_error_wrap(error);
+
+    arglist = Py_BuildValue("(OO)", is_exist ? Py_True : Py_False, py_error);
+  } else {
+    arglist = Py_BuildValue("(OO)", is_exist ? Py_True : Py_False, Py_None);
+  }
 
   PyObject *result = PyObject_CallObject(py_cb_func, arglist);
   Py_XDECREF(result);  // Ensure cleanup if an error occurred.
@@ -397,6 +407,10 @@ static void ten_py_is_property_exist_cb(ten_env_t *ten_env, ten_value_t *value,
 
   Py_XDECREF(arglist);
   Py_XDECREF(py_cb_func);
+
+  if (py_error) {
+    ten_py_error_invalidate(py_error);
+  }
 
   ten_py_gil_state_release_internal(prev_state);
 }

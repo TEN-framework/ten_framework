@@ -4,8 +4,6 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-use std::path::PathBuf;
-
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 
@@ -23,6 +21,9 @@ pub struct PkgRegistryInfo {
     pub dependencies: Vec<PkgDependency>,
 
     pub hash: String,
+
+    #[serde(rename = "downloadUrl")]
+    pub download_url: String,
 }
 
 mod dependencies_conversion {
@@ -73,6 +74,7 @@ impl From<&PkgInfo> for PkgRegistryInfo {
             basic_info: PkgBasicInfo::from(pkg_info),
             dependencies: pkg_info.dependencies.clone(),
             hash: pkg_info.hash.clone(),
+            download_url: String::new(),
         }
     }
 }
@@ -102,10 +104,4 @@ impl From<&PkgRegistryInfo> for PkgInfo {
 
         pkg_info
     }
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct FoundResult {
-    pub url: PathBuf,
-    pub pkg_registry_info: PkgRegistryInfo,
 }
