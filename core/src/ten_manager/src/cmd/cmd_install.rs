@@ -196,7 +196,6 @@ fn prepare_cpp_standalone_app_dir(dot_ten_app_dir: &Path) -> Result<()> {
 
 ten_package("app_for_standalone") {
   package_kind = "app"
-  enable_build = true
 }
 "#;
         fs::write(&build_gn_file, content)?;

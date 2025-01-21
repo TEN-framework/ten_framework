@@ -50,9 +50,13 @@ ten_package_test_prepare_auxiliary_resources("standalone_test_cpp_files") {
   }
 
   if (ten_enable_ten_manager) {
-    # The standalone testing for the C++ extension depends on the googletest
-    # system package.
-    deps = [ "//third_party/googletest:googletest_system_package" ]
+    deps = [
+      "//core/src/ten_runtime:upload_ten_runtime_system_package_to_server",
+
+      # The standalone testing for the C++ extension depends on the googletest
+      # system package.
+      "//third_party/googletest:googletest_system_package",
+    ]
   }
 }
 
