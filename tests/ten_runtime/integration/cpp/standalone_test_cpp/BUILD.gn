@@ -14,7 +14,7 @@ ten_package_test_prepare_auxiliary_resources("standalone_test_cpp_files") {
   ]
 
   common_files =
-      exec_script("//build/ten_common/general/glob_file.py",
+      exec_script("//.gnfiles/build/scripts/glob_file.py",
                   [
                     "--dir",
                     rebase_path("//tests/ten_runtime/integration/common/**/*"),
@@ -31,7 +31,7 @@ ten_package_test_prepare_auxiliary_resources("standalone_test_cpp_files") {
   }
 
   ext_files = exec_script(
-          "//build/ten_common/general/glob_file.py",
+          "//.gnfiles/build/scripts/glob_file.py",
           [
             "--dir",
             rebase_path(

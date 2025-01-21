@@ -25,7 +25,7 @@ ten_package("default_extension_python") {
     "property.json",
   ]
 
-  tests_files = exec_script("//build/ten_common/general/glob_file.py",
+  tests_files = exec_script("//.gnfiles/build/scripts/glob_file.py",
                             [
                               "--dir",
                               rebase_path("tests/**/*"),
