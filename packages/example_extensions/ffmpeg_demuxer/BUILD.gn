@@ -9,9 +9,8 @@ import("//build/ten_runtime/glob.gni")
 import("//build/ten_runtime/options.gni")
 
 ten_package("ffmpeg_demuxer") {
-  enable_build = true
-
   package_kind = "extension"
+  enable_build = true
 
   resources = [
     "manifest.json",

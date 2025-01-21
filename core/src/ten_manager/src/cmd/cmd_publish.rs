@@ -74,15 +74,11 @@ pub async fn execute_cmd(
 
     upload_package(tman_config, &output_path_str, &pkg_info).await?;
 
-    if tman_config.mi_mode {
-        println!("Publish to {:?}", output_path_str);
-    } else {
-        println!(
-            "{}  Publish successfully in {}",
-            Emoji("🏆", ":-)"),
-            HumanDuration(started.elapsed())
-        );
-    }
+    println!(
+        "{}  Publish successfully in {}",
+        Emoji("🏆", ":-)"),
+        HumanDuration(started.elapsed())
+    );
 
     // Remove the package file.
     std::fs::remove_file(&output_path_str)?;
