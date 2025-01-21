@@ -34,7 +34,7 @@ template("ten_runtime_glob") {
     }
 
     sources_info =
-        exec_script("//build/ten_common/general/glob_file.py", l, "json")
+        exec_script("//.gnfiles/build/scripts/glob_file.py", l, "json")
 
     sources = []
     foreach(source_info, sources_info) {

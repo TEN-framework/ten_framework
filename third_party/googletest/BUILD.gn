@@ -33,7 +33,7 @@ ten_package("gtest_system_package") {
 
   resources = [ "manifest.json" ]
 
-  header_files = exec_script("//build/ten_common/general/glob_file.py",
+  header_files = exec_script("//.gnfiles/build/scripts/glob_file.py",
                              [
                                "--dir",
                                rebase_path("include/**/*"),
@@ -57,7 +57,7 @@ ten_package("gtest_system_package") {
   # the approach taken by the googletest system package is to include the
   # source code in the system package rather than precompiling it into a
   # library.
-  src_files = exec_script("//build/ten_common/general/glob_file.py",
+  src_files = exec_script("//.gnfiles/build/scripts/glob_file.py",
                           [
                             "--dir",
                             rebase_path("src/**/*"),

@@ -26,7 +26,7 @@ ten_package("ten_go_binding_system_package") {
   resources = [ "manifest.json" ]
 
   interface_files =
-      exec_script("//build/ten_common/general/glob_file.py",
+      exec_script("//.gnfiles/build/scripts/glob_file.py",
                   [
                     "--dir",
                     rebase_path(
@@ -44,7 +44,7 @@ ten_package("ten_go_binding_system_package") {
   }
 
   tools_files =
-      exec_script("//build/ten_common/general/glob_file.py",
+      exec_script("//.gnfiles/build/scripts/glob_file.py",
                   [
                     "--dir",
                     rebase_path("//core/src/ten_runtime/binding/go/tools/**/*"),

@@ -14,7 +14,7 @@ ten_package_test_prepare_auxiliary_resources(
     "test_case.py",
   ]
 
-  test_app_files = exec_script("//build/ten_common/general/glob_file.py",
+  test_app_files = exec_script("//.gnfiles/build/scripts/glob_file.py",
                                [
                                  "--dir",
                                  rebase_path("test_app/**/*"),

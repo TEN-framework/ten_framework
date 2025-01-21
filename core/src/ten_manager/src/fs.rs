@@ -46,18 +46,6 @@ pub fn get_cwd() -> Result<PathBuf> {
     Ok(cwd)
 }
 
-pub fn pathbuf_to_string(path_buf: PathBuf) -> Result<String> {
-    if let Some(path_str) = path_buf.to_str() {
-        return Ok(path_str.to_string());
-    }
-
-    Err(TmanError::InvalidPath(
-        pathbuf_to_string_lossy(&path_buf),
-        "invalid characters".to_string(),
-    )
-    .into())
-}
-
 pub fn pathbuf_to_string_lossy(path_buf: &Path) -> String {
     // Convert the PathBuf to a String, replacing invalid UTF-8 sequences with �
     // (U+FFFD)

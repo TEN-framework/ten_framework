@@ -44,7 +44,7 @@ ten_package_test_prepare_auxiliary_resources("unused_addon_python_test_files") {
   ]
 
   common_files =
-      exec_script("//build/ten_common/general/glob_file.py",
+      exec_script("//.gnfiles/build/scripts/glob_file.py",
                   [
                     "--dir",
                     rebase_path("//tests/ten_runtime/integration/common/**/*"),
