@@ -42,19 +42,6 @@ class AsyncTenEnv(TenEnvBase):
         error: Optional[TenError],
         queue: asyncio.Queue,
     ) -> None:
-        # TODO(Wei): Here, it is still necessary to ensure that the latter part
-        # of the callback can be successfully invoked.
-
-        # After _internal.on_deinit_done() is called, self._ten_loop will be
-        # closed and the releasing of ten_env_proxy will cause all subsequent
-        # ten_env API calls to fail. However, callbacks from previously
-        # successful API calls may still be invoked until the ten_env itself is
-        # released. To prevent posting tasks to a closed loop in callbacks, we
-        # need to check if the loop is closed. If closed, return directly.
-
-        # if self._ten_loop.is_closed():
-        #     return
-
         asyncio.run_coroutine_threadsafe(
             queue.put([result, error]),
             self._ten_loop,
@@ -64,9 +51,6 @@ class AsyncTenEnv(TenEnvBase):
         self, error: Optional[TenError], queue: asyncio.Queue
     ) -> None:
         # The same reason as _result_handler.
-
-        # if self._ten_loop.is_closed():
-        #     return
 
         asyncio.run_coroutine_threadsafe(
             queue.put(error),
