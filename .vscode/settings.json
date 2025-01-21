@@ -81,5 +81,8 @@
     "**/node_modules/*/**": true,
     "**/out/*/**": true,
     "**/third_party/*/**": true
+  },
+  "go.toolsEnvVars": {
+    "GOENV": "/home/sunxilin/.config/go/env"
   }
 }
