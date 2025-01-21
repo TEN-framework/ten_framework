@@ -18,13 +18,8 @@ use console::Emoji;
 use indicatif::HumanDuration;
 use inquire::Confirm;
 
-use semver::VersionReq;
 use ten_rust::pkg_info::{
     constants::{BUILD_GN_FILENAME, MANIFEST_JSON_FILENAME},
-    manifest::{
-        dependency::ManifestDependency, dump_manifest_str_to_file,
-        parse_manifest_from_file,
-    },
     pkg_basic_info::PkgBasicInfo,
 };
 use ten_rust::pkg_info::{
@@ -39,7 +34,6 @@ use ten_rust::pkg_info::{
 use crate::{
     config::TmanConfig,
     constants::{APP_DIR_IN_DOT_TEN_DIR, DOT_TEN_DIR},
-    create::create_pkg_in_path,
     dep_and_candidate::get_all_candidates_from_deps,
     fs::{check_is_extension_folder, find_nearest_app_dir},
     install::{
@@ -200,7 +194,7 @@ fn prepare_cpp_standalone_app_dir(dot_ten_app_dir: &Path) -> Result<()> {
         // Create a basic `BUILD.gn` for the C++ app.
         let content = r#"import("//build/feature/ten_package.gni")
 
-ten_package("default_app_cpp") {
+ten_package("app_for_standalone") {
   package_kind = "app"
   enable_build = true
 }
