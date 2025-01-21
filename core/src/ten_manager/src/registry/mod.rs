@@ -26,7 +26,7 @@ pub async fn upload_package(
     tman_config: &TmanConfig,
     package_file_path: &str,
     pkg_info: &PkgInfo,
-) -> Result<()> {
+) -> Result<String> {
     let default_registry_url = tman_config
         .registry
         .get("default")

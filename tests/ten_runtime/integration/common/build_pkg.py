@@ -168,7 +168,7 @@ def _build_go_app(args: ArgumentInfo) -> int:
     # Determine the path to the main.go script. Some cases require a customized
     # Go build script, but in most situations, the build script provided by the
     # TEN runtime Go binding can be used directly.
-    main_go_path = "scripts/build/main.go"
+    main_go_path = "tools/build/main.go"
     if not os.path.exists(main_go_path):
         main_go_path = "ten_packages/system/ten_runtime_go/tools/build/main.go"
 
@@ -178,7 +178,7 @@ def _build_go_app(args: ArgumentInfo) -> int:
 
     # `-asan` is not supported by go compiler on darwin/arm64.
     if args.enable_sanitizer and not is_mac_arm64():
-        cmd += ["-asan"]
+        cmd += ['--build_flags="-asan"']
 
     envs = os.environ.copy()
     if args.is_clang:

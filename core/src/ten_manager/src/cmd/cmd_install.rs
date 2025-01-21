@@ -12,7 +12,7 @@ use std::{
     time::Instant,
 };
 
-use anyhow::{anyhow, Result};
+use anyhow::{anyhow, Context, Result};
 use clap::{Arg, ArgMatches, Command};
 use console::Emoji;
 use indicatif::HumanDuration;
@@ -35,7 +35,7 @@ use crate::{
     config::TmanConfig,
     constants::{APP_DIR_IN_DOT_TEN_DIR, DOT_TEN_DIR},
     dep_and_candidate::get_all_candidates_from_deps,
-    fs::{check_is_extension_folder, find_nearest_app_dir},
+    fs::{check_is_addon_folder, find_nearest_app_dir},
     install::{
         compare_solver_results_with_existed_pkgs,
         filter_compatible_pkgs_to_candidates,
@@ -260,7 +260,9 @@ async fn determine_app_dir_to_work_with(
     if standalone {
         // If it is standalone mode, it can only be executed in the extension
         // directory.
-        check_is_extension_folder(original_cwd)?;
+        check_is_addon_folder(original_cwd).with_context(|| {
+            "Standalone mode can only be executed in an addon folder."
+        })?;
 
         let dot_ten_app_dir_path =
             prepare_standalone_app_dir(tman_config, original_cwd).await?;
@@ -345,10 +347,14 @@ pub async fn execute_cmd(
         &mut all_candidates,
     )?;
 
+    println!("{}  Get all installed packages...", Emoji("📦", ""),);
+
     all_installed_pkgs = tman_get_all_installed_pkgs_info_of_app(
         tman_config,
         &app_dir_to_work_with,
     )?;
+
+    println!("{}  Filter compatible packages...", Emoji("🔍", ""),);
 
     filter_compatible_pkgs_to_candidates(
         tman_config,
@@ -397,8 +403,15 @@ pub async fn execute_cmd(
         });
     }
 
+    println!(
+        "{}  Attempting to retrieve information about locked packages from manifest-lock.json...",
+        Emoji("📜", ""),
+    );
+
     // Get the locked pkgs from the lock file in the app folder.
     let locked_pkgs = get_locked_pkgs(&app_dir_to_work_with);
+
+    println!("{}  Collect all candidate packages...", Emoji("📦", ""),);
 
     // Get all possible candidates according to the input packages and extra
     // dependencies.

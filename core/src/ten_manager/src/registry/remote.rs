@@ -320,7 +320,7 @@ pub async fn upload_package(
     base_url: &str,
     package_file_path: &str,
     pkg_info: &PkgInfo,
-) -> Result<()> {
+) -> Result<String> {
     let client = create_client_with_proxies()?;
 
     let upload_info =
@@ -338,7 +338,7 @@ pub async fn upload_package(
     ack_of_uploading(tman_config, base_url, &client, &upload_info.resource_id)
         .await?;
 
-    Ok(())
+    Ok(upload_info.url)
 }
 
 // Parse the header of content-range.

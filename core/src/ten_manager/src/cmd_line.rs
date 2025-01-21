@@ -89,13 +89,6 @@ fn create_cmd() -> clap::ArgMatches {
                 .help("Automatically answer 'yes' to all prompts")
                 .action(clap::ArgAction::SetTrue),
         )
-        .arg(
-            Arg::new("MI")
-                .long("mi")
-                .help("Machine interface mode")
-                .action(clap::ArgAction::SetTrue)
-                .hide(true),
-        )
         .subcommand(crate::cmd::cmd_create::create_sub_cmd(&args_cfg))
         .subcommand(crate::cmd::cmd_install::create_sub_cmd(&args_cfg))
         .subcommand(crate::cmd::cmd_uninstall::create_sub_cmd(&args_cfg))
@@ -119,7 +112,6 @@ pub fn parse_cmd(
     tman_config.user_token = matches.get_one::<String>("USER_TOKEN").cloned();
     tman_config.verbose = matches.get_flag("VERBOSE");
     tman_config.assume_yes = matches.get_flag("ASSUME_YES");
-    tman_config.mi_mode = matches.get_flag("MI");
 
     let command_data = match matches.subcommand() {
         Some(("create", sub_cmd_args)) => crate::cmd::CommandData::Create(
