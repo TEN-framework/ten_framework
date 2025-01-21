@@ -9,13 +9,13 @@ mod local;
 mod remote;
 
 use anyhow::{anyhow, Result};
+use found_result::PkgRegistryInfo;
 use semver::{Version, VersionReq};
 use tempfile::NamedTempFile;
 
 use ten_rust::pkg_info::{pkg_type::PkgType, PkgInfo};
 
 use super::config::TmanConfig;
-use found_result::FoundResult;
 
 pub struct SearchCriteria {
     pub version_req: VersionReq,
@@ -84,7 +84,7 @@ pub async fn get_package_list(
     pkg_type: PkgType,
     name: &String,
     criteria: &SearchCriteria,
-) -> Result<Vec<FoundResult>> {
+) -> Result<Vec<PkgRegistryInfo>> {
     // Retrieve the default registry URL
     let default_registry_url = tman_config
         .registry
