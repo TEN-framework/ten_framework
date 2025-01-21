@@ -30,6 +30,7 @@ class AsyncTenEnv(TenEnvBase):
 
         self._ten_loop = loop
         self._ten_thread = thread
+        self._ten_all_tasks_done_event = asyncio.Event()
         ten_env._set_release_handler(lambda: self._on_release())
 
     def __del__(self) -> None:
@@ -50,8 +51,9 @@ class AsyncTenEnv(TenEnvBase):
         # successful API calls may still be invoked until the ten_env itself is
         # released. To prevent posting tasks to a closed loop in callbacks, we
         # need to check if the loop is closed. If closed, return directly.
-        if self._ten_loop.is_closed():
-            return
+
+        # if self._ten_loop.is_closed():
+        #     return
 
         asyncio.run_coroutine_threadsafe(
             queue.put([result, error]),
@@ -62,8 +64,9 @@ class AsyncTenEnv(TenEnvBase):
         self, error: Optional[TenError], queue: asyncio.Queue
     ) -> None:
         # The same reason as _result_handler.
-        if self._ten_loop.is_closed():
-            return
+
+        # if self._ten_loop.is_closed():
+        #     return
 
         asyncio.run_coroutine_threadsafe(
             queue.put(error),
@@ -316,17 +319,15 @@ class AsyncTenEnv(TenEnvBase):
         if error is not None:
             raise RuntimeError(error.err_msg())
 
-    def _deinit_routine(self) -> None:
-        # Wait for the internal thread to finish.
-        self._ten_thread.join()
-
-        self._internal.on_deinit_done()
+    async def _close_loop(self):
+        self._ten_all_tasks_done_event.set()
 
     def _on_release(self) -> None:
-        if hasattr(self, "_deinit_thread"):
-            self._deinit_thread.join()
+        # At this point, all tasks that were executed before on_deinit_done
+        # have been completed. At this time, the run loop of _ten_thread will
+        # be closed by setting a flag.
 
-    def _deinit(self) -> None:
-        # Start the deinit thread to avoid blocking the extension thread.
-        self._deinit_thread = threading.Thread(target=self._deinit_routine)
-        self._deinit_thread.start()
+        asyncio.run_coroutine_threadsafe(self._close_loop(), self._ten_loop)
+
+        # Wait for the internal thread to finish.
+        self._ten_thread.join()

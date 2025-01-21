@@ -366,14 +366,6 @@ static void ten_extension_thread_on_extension_on_deinit_done(
                  ten_env_check_integrity(deinit_extension->ten_env, true),
              "Should not happen.");
 
-  // Important: All the registered result handlers have to be called.
-  //
-  // Ex: If there are still some _IN_ or _OUT_ paths remaining in the path table
-  // of extensions, in order to prevent memory leaks such as the result handler
-  // itself in C++ binding, we need to create the corresponding cmd results
-  // and send them into the original source extension.
-  ten_extension_flush_remaining_paths(deinit_extension);
-
   // The extensions cannot be deleted immediately at this point. Instead, the
   // deletion action needs to be turned into an asynchronous task and placed at
   // the end of the task queue. The reason for this is that at this moment, the
@@ -419,6 +411,18 @@ bool ten_extension_on_deinit_done(ten_env_t *self) {
   // Close the ten_env so that any apis called on the ten_env will return
   // TEN_ERROR_ENV_CLOSED.
   ten_env_close(self);
+
+  // Important: All the registered result handlers have to be called.
+  //
+  // Ex: If there are still some _IN_ or _OUT_ paths remaining in the path table
+  // of extensions, in order to prevent memory leaks such as the result handler
+  // itself in C++ binding, we need to create the corresponding cmd results
+  // and send them into the original source extension.
+  //
+  // This means that once users call ten_env_on_deinit_done, then no further
+  // messages will be received, and the originally registered cmd_result_handler
+  // will be called back with an error.
+  ten_extension_flush_remaining_paths(extension);
 
   if (!ten_list_is_empty(&self->ten_proxy_list)) {
     // There is still the presence of ten_env_proxy, so the closing process

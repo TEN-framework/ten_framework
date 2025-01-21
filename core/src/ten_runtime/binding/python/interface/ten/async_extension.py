@@ -42,7 +42,13 @@ class AsyncExtension(_Extension):
         await self._ten_stop_event.wait()
 
         await self._wrapper_on_deinit(self._async_ten_env)
-        self._async_ten_env._deinit()
+        self._async_ten_env._internal.on_deinit_done()
+
+        # The completion of async on_deinit() means that all subsequent
+        # ten_env API calls by the user will fail. However, any await ten_env.xxx
+        # before this point may not have finished executing yet. We need to wait for
+        # these tasks to complete before stopping the event loop.
+        await self._async_ten_env._ten_all_tasks_done_event.wait()
 
     async def _stop_thread(self):
         self._ten_stop_event.set()
