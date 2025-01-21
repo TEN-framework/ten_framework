@@ -33,8 +33,6 @@ class nodejs_addon_loader_t : public ten::addon_loader_t {
  public:
   explicit nodejs_addon_loader_t(const char *name) { (void)name; };
 
-  ~nodejs_addon_loader_t() override { on_deinit(); }
-
   int RunNodeInstance(MultiIsolatePlatform *platform,
                       const std::vector<std::string> &args,
                       const std::vector<std::string> &exec_args) {
@@ -106,6 +104,8 @@ class nodejs_addon_loader_t : public ten::addon_loader_t {
       // script->Run(this->setup_->context()).ToLocalChecked();
     }
 
+    this->setup_.reset();
+
     return exit_code;
   }
 
@@ -168,9 +168,13 @@ class nodejs_addon_loader_t : public ten::addon_loader_t {
         V8::Initialize();
 
         int ret = RunNodeInstance(platform.get(), args, {});
-        if (ret != 0) {
-          // exit(ret);
-        }
+        std::cout << "Node Instance run completed with code: " << ret
+                  << std::endl;
+
+        V8::Dispose();
+        V8::DisposePlatform();
+
+        node::TearDownOncePerProcess();
       });
     } catch (const std::exception &e) {
       std::cerr << "Nodejs addon loader init exception: " << e.what()
@@ -186,12 +190,7 @@ class nodejs_addon_loader_t : public ten::addon_loader_t {
 
     this->node_thread_.join();
 
-    this->setup_.reset();  // reset the setup
-
-    V8::Dispose();
-    V8::DisposePlatform();
-
-    node::TearDownOncePerProcess();
+    std::cout << "Nodejs addon loader deinit completed" << std::endl;
   }
 
   // **Note:** This function, used to dynamically load other addons, may be
