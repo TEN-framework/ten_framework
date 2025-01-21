@@ -98,7 +98,7 @@ ten_package("ten_runtime_system_package") {
   ]
 
   runtime_headers =
-      exec_script("//build/ten_common/general/glob_file.py",
+      exec_script("//.gnfiles/build/scripts/glob_file.py",
                   [
                     "--dir",
                     rebase_path("//core/include/ten_runtime/**/*"),
@@ -114,7 +114,7 @@ ten_package("ten_runtime_system_package") {
     resources += [ "//core/include/ten_runtime/${runtime_header_rel_path}=>include/ten_runtime/${runtime_header_rel_path}" ]
   }
 
-  utils_headers = exec_script("//build/ten_common/general/glob_file.py",
+  utils_headers = exec_script("//.gnfiles/build/scripts/glob_file.py",
                               [
                                 "--dir",
                                 rebase_path("//core/include/ten_utils/**/*"),

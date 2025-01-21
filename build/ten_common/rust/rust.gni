@@ -137,7 +137,7 @@ template("rust_target") {
                            ])
 
     rust_source_files =
-        exec_script("//build/ten_common/general/glob_file.py",
+        exec_script("//.gnfiles/build/scripts/glob_file.py",
                     [
                       "--dir",
                       rebase_path("${invoker.project_path}/**/*.rs"),
@@ -331,7 +331,7 @@ template("rust_test") {
                            ])
 
     rust_source_files =
-        exec_script("//build/ten_common/general/glob_file.py",
+        exec_script("//.gnfiles/build/scripts/glob_file.py",
                     [
                       "--dir",
                       rebase_path("${invoker.project_path}/**/*.rs"),
@@ -349,7 +349,7 @@ template("rust_test") {
     }
 
     cargo_tomls =
-        exec_script("//build/ten_common/general/glob_file.py",
+        exec_script("//.gnfiles/build/scripts/glob_file.py",
                     [
                       "--dir",
                       rebase_path("${invoker.project_path}/**/Cargo.toml"),

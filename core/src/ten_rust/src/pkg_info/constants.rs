@@ -8,6 +8,7 @@ pub const MANIFEST_JSON_FILENAME: &str = "manifest.json";
 pub const MANIFEST_LOCK_JSON_FILENAME: &str = "manifest-lock.json";
 pub const PROPERTY_JSON_FILENAME: &str = "property.json";
 pub const TEN_FIELD_IN_PROPERTY: &str = "_ten";
+pub const BUILD_GN_FILENAME: &str = "BUILD.gn";
 
 pub const TEN_PACKAGES_DIR: &str = "ten_packages";
 pub const EXTENSION_DIR: &str = "extension";

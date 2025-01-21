@@ -36,4 +36,4 @@ pub const REMOTE_REGISTRY_MAX_RETRIES: u32 = 30;
 // Delay between retries in milliseconds.
 pub const REMOTE_REGISTRY_RETRY_DELAY_MS: u64 = 500;
 // Timeout duration for requests in seconds.
-pub const REMOTE_REGISTRY_REQUEST_TIMEOUT_SECS: u64 = 10;
+pub const REMOTE_REGISTRY_REQUEST_TIMEOUT_SECS: u64 = 120;
