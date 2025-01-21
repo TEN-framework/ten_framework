@@ -28,6 +28,7 @@ import EdgeContextMenu from "@/flow/ContextMenu/EdgeContextMenu";
 import TerminalPopup, { TerminalData } from "@/components/Popup/TerminalPopup";
 import EditorPopup from "@/components/Popup/EditorPopup";
 import CustomNodeConnPopup from "@/components/Popup/CustomNodeConnPopup";
+import ExtensionsPopup from "@/components/Popup/ExtensionsPopup";
 import { ThemeProviderContext } from "@/components/theme-context";
 import { cn } from "@/lib/utils";
 import { useWidgetStore } from "@/store/widget";
@@ -283,6 +284,8 @@ const FlowCanvas = forwardRef<FlowCanvasRef, FlowCanvasProps>(
                     onClose={() => removeWidget(widget.id)}
                   />
                 );
+              case EWidgetCategory.ExtensionManager:
+                return <ExtensionsPopup id={widget.id} key={widget.id} />;
             }
           })}
       </div>

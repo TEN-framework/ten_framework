@@ -17,6 +17,7 @@ import { Badge } from "@/components/ui/Badge";
 import { FileMenu } from "@/components/AppBar/FileMenu";
 import { EditMenu } from "@/components/AppBar/EditMenu";
 import { HelpMenu } from "@/components/AppBar/HelpMenu";
+import { ExtensionMenu } from "@/components/AppBar/ExtensionMenu";
 import { AppStatus } from "@/components/AppBar/AppStatus";
 import { cn } from "@/lib/utils";
 
@@ -68,6 +69,7 @@ const AppBar: React.FC<AppBarProps> = ({
             onAutoLayout={onAutoLayout}
             onOpenExistingGraph={onOpenExistingGraph}
           />
+          <ExtensionMenu />
           <HelpMenu />
         </NavigationMenuList>
       </NavigationMenu>

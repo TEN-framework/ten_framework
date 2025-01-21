@@ -9,6 +9,8 @@
       "openAppFolder": "Open App Folder",
       "file": "File",
       "help": "Help",
+      "extensions": "Extensions",
+      "extensions.manage": "Manage Extensions",
       "about": "About",
       "language": "Language",
       "language.enUS": "English",
@@ -40,7 +42,14 @@
     "popout": "Popout",
     "close": "Close",
     "closeAllTabs": "Close All Tabs",
-    "unsaved": "unsaved"
+    "unsaved": "unsaved",
+    "searchPlaceholder": "Search Extensions ...",
+    "search": "Search",
+    "filter": "Filter"
+  },
+  "extensions": {
+    "installed": "Installed",
+    "uninstalled": "Uninstalled"
   },
   "toast": {
     "saveFileSuccess": "File saved successfully",

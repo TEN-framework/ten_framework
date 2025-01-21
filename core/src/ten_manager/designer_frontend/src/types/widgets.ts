@@ -34,6 +34,7 @@ export enum EWidgetCategory {
   Terminal = "terminal",
   Editor = "editor",
   CustomConnection = "custom_connection",
+  ExtensionManager = "extension_manager",
 }
 
 export interface IWidgetBase {
@@ -57,4 +58,13 @@ export interface ICustomConnectionWidget extends IWidgetBase {
   metadata: CustomConnectionData;
 }
 
-export type IWidget = ITerminalWidget | IEditorWidget | ICustomConnectionWidget;
+export interface IExtensionManagerWidget extends IWidgetBase {
+  category: EWidgetCategory.ExtensionManager;
+  metadata: unknown;
+}
+
+export type IWidget =
+  | ITerminalWidget
+  | IEditorWidget
+  | ICustomConnectionWidget
+  | IExtensionManagerWidget;
