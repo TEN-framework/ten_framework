@@ -300,16 +300,16 @@
       ],
     },
     {
-      "name": "tman install_cpp_app_mock (lldb)",
+      "name": "tman create app (lldb)",
       "type": "lldb",
       "request": "launch",
       "program": "${workspaceFolder}/out/linux/x64/ten_manager/bin/tman",
       "cwd": "${workspaceFolder}/out/linux/x64/",
       "args": [
-        "install",
+        "create",
         "app",
-        "ddd",
-        "--mock=${workspaceFolder}/out/linux/x64/tests/local_registry/"
+        "xxx",
+        "--template=default_app_cpp"
       ],
       "preRunCommands": [
         "script import pathlib;import subprocess;import lldb;rustc_sysroot = subprocess.getoutput(\"rustc --print sysroot\");rustlib_etc = pathlib.Path(rustc_sysroot) / \"lib\" / \"rustlib\" / \"etc\";lldb.debugger.HandleCommand(f'command script import \"{rustlib_etc / \"lldb_lookup.py\"}\"');lldb.debugger.HandleCommand(f'command source -s 0 \"{rustlib_etc / \"lldb_commands\"}\"')"

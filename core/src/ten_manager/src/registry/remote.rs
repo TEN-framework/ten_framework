@@ -30,6 +30,37 @@ use crate::{
     registry::found_result::PkgRegistryInfo,
 };
 
+fn create_client_with_proxies() -> Result<reqwest::Client> {
+    let mut client_builder = reqwest::Client::builder();
+
+    // Handle HTTP_PROXY and http_proxy.
+    if let Ok(http_proxy) = std::env::var("HTTP_PROXY") {
+        let proxy = reqwest::Proxy::http(&http_proxy)
+            .map_err(|e| anyhow!("Invalid HTTP_PROXY URL: {}", e))?;
+        client_builder = client_builder.proxy(proxy);
+    } else if let Ok(http_proxy_lower) = std::env::var("http_proxy") {
+        let proxy = reqwest::Proxy::http(&http_proxy_lower)
+            .map_err(|e| anyhow!("Invalid http_proxy URL: {}", e))?;
+        client_builder = client_builder.proxy(proxy);
+    }
+
+    // Handle HTTPS_PROXY and https_proxy.
+    if let Ok(https_proxy) = std::env::var("HTTPS_PROXY") {
+        let proxy = reqwest::Proxy::https(&https_proxy)
+            .map_err(|e| anyhow!("Invalid HTTPS_PROXY URL: {}", e))?;
+        client_builder = client_builder.proxy(proxy);
+    } else if let Ok(https_proxy_lower) = std::env::var("https_proxy") {
+        let proxy = reqwest::Proxy::https(&https_proxy_lower)
+            .map_err(|e| anyhow!("Invalid https_proxy URL: {}", e))?;
+        client_builder = client_builder.proxy(proxy);
+    }
+
+    // Build the client.
+    let client = client_builder.build()?;
+
+    Ok(client)
+}
+
 async fn retry_async<'a, F, T>(
     tman_config: &TmanConfig,
     max_retries: u32,
@@ -290,7 +321,7 @@ pub async fn upload_package(
     package_file_path: &str,
     pkg_info: &PkgInfo,
 ) -> Result<()> {
-    let client = reqwest::Client::new();
+    let client = create_client_with_proxies()?;
 
     let upload_info =
         get_package_upload_info(tman_config, base_url, &client, pkg_info)
@@ -330,7 +361,7 @@ pub async fn get_package(
     url: &str,
     temp_file: &mut NamedTempFile,
 ) -> Result<()> {
-    let client = reqwest::Client::new();
+    let client = create_client_with_proxies()?;
 
     let temp_file = Arc::new(RwLock::new(temp_file));
 
@@ -477,7 +508,10 @@ pub async fn get_package_list(
 
     retry_async(tman_config, max_retries, retry_delay, || {
         let base_url = base_url.to_string();
-        let client = reqwest::Client::new();
+        let client = match create_client_with_proxies() {
+            Ok(c) => c,
+            Err(e) => return Box::pin(async { Err(e) }),
+        };
 
         Box::pin(async move {
             let mut results = Vec::new();
@@ -575,7 +609,10 @@ pub async fn delete_package(
     retry_async(tman_config, max_retries, retry_delay, || {
         let base_url = base_url.to_string();
         let version = version.clone();
-        let client = reqwest::Client::new();
+        let client = match create_client_with_proxies() {
+            Ok(c) => c,
+            Err(e) => return Box::pin(async { Err(e) }),
+        };
 
         Box::pin(async move {
             // Ensure the base URL ends with a '/'.
