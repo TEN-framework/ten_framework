@@ -84,12 +84,21 @@ pub fn check_is_app_folder(path: &Path) -> Result<()> {
 }
 
 /// Check if the directory specified by `path` is an extension directory.
-pub fn check_is_extension_folder(path: &Path) -> Result<()> {
+pub fn check_is_addon_folder(path: &Path) -> Result<()> {
     let manifest =
         ten_rust::pkg_info::manifest::parse_manifest_in_folder(path)?;
-    if manifest.type_and_name.pkg_type != PkgType::Extension {
-        return Err(anyhow!("The `type` in manifest.json is not `extension`."));
+
+    let pkg_type = manifest.type_and_name.pkg_type;
+    if pkg_type != PkgType::Extension
+        && pkg_type != PkgType::AddonLoader
+        && pkg_type != PkgType::Protocol
+        && pkg_type != PkgType::System
+    {
+        return Err(anyhow!(
+            "The `type` in manifest.json does not belong to an addon type."
+        ));
     }
+
     Ok(())
 }
 
