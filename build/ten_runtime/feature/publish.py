@@ -74,7 +74,6 @@ if __name__ == "__main__":
             " android, so it's optional."
         ),
     )
-    parser.add_argument("--published-results", type=str, required=True)
     parser.add_argument("--base-dir", type=str, required=False)
     parser.add_argument(
         "--config-file",
