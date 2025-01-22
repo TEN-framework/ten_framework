@@ -38,7 +38,6 @@ template("npm_install") {
                            [
                              "deps",
                              "public_deps",
-                             "data_deps",
                            ])
   }
 }
@@ -135,7 +134,6 @@ template("nodejs_library") {
                            [
                              "deps",
                              "public_deps",
-                             "data_deps",
                            ])
 
     if (defined(deps)) {

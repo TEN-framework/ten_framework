@@ -93,7 +93,6 @@ template("ten_package_test_prepare_app") {
                              [
                                "deps",
                                "public_deps",
-                               "data_deps",
                              ])
 
       if (!defined(deps)) {
@@ -192,7 +191,6 @@ template("ten_package_test_prepare_app") {
                              [
                                "deps",
                                "public_deps",
-                               "data_deps",
                              ])
 
       if (!defined(deps)) {
@@ -311,7 +309,6 @@ template("ten_package_test_prepare_app") {
                              [
                                "deps",
                                "public_deps",
-                               "data_deps",
                              ])
 
       if (!defined(deps)) {
@@ -452,7 +449,6 @@ template("ten_package_test_prepare_client") {
                            [
                              "deps",
                              "public_deps",
-                             "data_deps",
                            ])
 
     if (!defined(deps)) {
@@ -513,7 +509,6 @@ template("ten_package_test_prepare_auxiliary_resources") {
                                [
                                  "deps",
                                  "public_deps",
-                                 "data_deps",
                                ])
       }
 

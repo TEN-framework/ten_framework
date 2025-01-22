@@ -50,12 +50,14 @@ if (ten_enable_ten_manager) {
       ]
     }
 
-    rust_clean("tman_test_cargo_clean") {
-      project_path = "//core/src/ten_manager"
-      target_path = "${root_gen_dir}/core/src/ten_manager_test"
+    if (ten_enable_cargo_clean) {
+      rust_clean("tman_test_cargo_clean") {
+        project_path = "//core/src/ten_manager"
+        target_path = "${root_gen_dir}/core/src/ten_manager_test"
 
-      # Build tman_test first, then `cargo clean` it.
-      deps = [ ":tman_test_cargo_build" ]
+        # Build tman_test first, then `cargo clean` it.
+        deps = [ ":tman_test_cargo_build" ]
+      }
     }
 
     group("tman_test") {
@@ -197,13 +199,15 @@ if (ten_enable_ten_manager) {
     }
   }
 
-  rust_clean("tman_cargo_clean") {
-    project_path = "//core/src/ten_manager"
-    tman_target_gen_dir = get_label_info(":tman", "target_gen_dir")
-    target_path = "${tman_target_gen_dir}/tman"
+  if (ten_enable_cargo_clean) {
+    rust_clean("tman_cargo_clean") {
+      project_path = "//core/src/ten_manager"
+      tman_target_gen_dir = get_label_info(":tman", "target_gen_dir")
+      target_path = "${tman_target_gen_dir}/tman"
 
-    # Build tman first, then `cargo clean` it.
-    deps = [ ":ten_manager_package" ]
+      # Build tman first, then `cargo clean` it.
+      deps = [ ":ten_manager_package" ]
+    }
   }
 
   group("ten_manager") {

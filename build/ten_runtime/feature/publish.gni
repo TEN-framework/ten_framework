@@ -57,8 +57,6 @@ template("ten_package_publish") {
                            [
                              "deps",
                              "public_deps",
-                             "data_deps",
-                             "testonly",
                            ])
 
     if (!defined(deps)) {
@@ -75,9 +73,6 @@ template("ten_package_publish") {
                            [
                              "deps",
                              "public_deps",
-                             "data_deps",
-                             "testonly",
-                             "visibility",
                            ])
 
     if (!defined(deps)) {
