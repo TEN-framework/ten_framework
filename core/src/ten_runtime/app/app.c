@@ -196,7 +196,7 @@ void ten_app_add_ten_package_base_dir(ten_app_t *self, const char *base_dir) {
 bool ten_app_run(ten_app_t *self, bool run_in_background,
                  TEN_UNUSED ten_error_t *error_ctx) {
   TEN_ASSERT(self, "Invalid argument.");
-
+  assert(0);
   self->run_in_background = run_in_background;
 
   // TEN app might be closed before running.

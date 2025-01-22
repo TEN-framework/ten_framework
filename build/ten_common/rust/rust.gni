@@ -132,7 +132,6 @@ template("rust_target") {
                            [
                              "deps",
                              "public_deps",
-                             "data_deps",
                              "public_configs",
                            ])
 
@@ -326,7 +325,6 @@ template("rust_test") {
                            [
                              "deps",
                              "public_deps",
-                             "data_deps",
                              "public_configs",
                            ])
 
@@ -400,7 +398,6 @@ template("rust_cbindgen") {
                            [
                              "deps",
                              "public_deps",
-                             "data_deps",
                              "public_configs",
                            ])
 
@@ -502,7 +499,6 @@ template("rust_gen_cargo_config") {
                            [
                              "deps",
                              "public_deps",
-                             "data_deps",
                              "public_configs",
                            ])
 

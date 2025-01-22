@@ -16,9 +16,12 @@ def test_hello_world_app():
 
     my_env = os.environ.copy()
 
-    app_root_path = os.path.join(base_path, "hello_world_app")
     app_dir_name = "hello_world_app"
+    app_root_path = os.path.join(base_path, app_dir_name)
     app_language = "cpp"
+
+    # Before starting, cleanup the old app package.
+    build_pkg.cleanup(app_root_path)
 
     build_config_args = build_config.parse_build_config(
         os.path.join(root_dir, "tgn_args.txt"),
@@ -148,8 +151,6 @@ def test_hello_world_app():
     assert client_rc == 0
 
     if build_config_args.ten_enable_integration_tests_prebuilt is False:
-        source_root_path = os.path.join(base_path, app_dir_name)
-
         # Testing complete. If builds are only created during the testing phase,
         # we can clear the build results to save disk space.
-        # build_pkg.cleanup(source_root_path, app_root_path)
+        build_pkg.cleanup(app_root_path)

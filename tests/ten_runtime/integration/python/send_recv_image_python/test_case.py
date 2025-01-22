@@ -57,6 +57,9 @@ def test_send_recv_image_python():
     app_root_path = os.path.join(base_path, app_dir_name)
     app_language = "python"
 
+    # Before starting, cleanup the old app package.
+    build_pkg.cleanup(app_root_path)
+
     build_config_args = build_config.parse_build_config(
         os.path.join(root_dir, "tgn_args.txt"),
     )
@@ -162,4 +165,4 @@ def test_send_recv_image_python():
 
             # Testing complete. If builds are only created during the testing
             # phase, we can clear the build results to save disk space.
-            build_pkg.cleanup(source_root_path, app_root_path)
+            build_pkg.cleanup(app_root_path)

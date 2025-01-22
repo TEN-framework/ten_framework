@@ -545,9 +545,5 @@ def build_nodejs_extensions(app_root_path: str):
     return 0
 
 
-def cleanup(
-    pkg_src_dir: str,
-    pkg_run_dir: str,
-) -> None:
-    fs_utils.remove_tree(pkg_src_dir)
-    fs_utils.remove_tree(pkg_run_dir)
+def cleanup(path: str) -> None:
+    fs_utils.remove_tree(path)

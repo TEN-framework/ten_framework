@@ -42,6 +42,9 @@ def test_standalone_test_cpp():
     if return_code != 0:
         assert False, "Failed to install package."
 
+    # Before starting, cleanup the old app package.
+    build_pkg.cleanup(app_root_path)
+
     build_config_args = build_config.parse_build_config(
         os.path.join(root_dir, "tgn_args.txt"),
     )
