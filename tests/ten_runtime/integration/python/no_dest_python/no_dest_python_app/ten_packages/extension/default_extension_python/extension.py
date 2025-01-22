@@ -32,7 +32,9 @@ class DefaultExtension(Extension):
 
     def handle_error(self, ten_env: TenEnv, error: Optional[TenError]) -> None:
         assert error is not None
-        ten_env.log_error("DefaultExtension handle_error: " + error.err_msg())
+        ten_env.log_error(
+            "DefaultExtension handle_error: " + error.error_message()
+        )
 
         self.no_dest_error_recv_count += 1
         if self.no_dest_error_recv_count == 4:
@@ -92,7 +94,7 @@ class DefaultExtension(Extension):
         receivedCmd: Cmd,
     ):
         if error is not None:
-            assert False, error.err_msg()
+            assert False, error.error_message()
 
         assert result is not None
 

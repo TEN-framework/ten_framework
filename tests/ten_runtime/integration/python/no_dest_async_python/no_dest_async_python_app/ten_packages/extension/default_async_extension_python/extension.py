@@ -27,26 +27,26 @@ class DefaultAsyncExtension(AsyncExtension):
         result, err = await ten_env.send_cmd(Cmd.create("unknown_cmd"))
         assert err is not None
 
-        ten_env.log_error(f"Error: {err.err_msg()}")
+        ten_env.log_error(f"Error: {err.error_message()}")
 
         err = await ten_env.send_data(Data.create("unknown_data"))
         assert err is not None
 
-        ten_env.log_error(f"Error: {err.err_msg()}")
+        ten_env.log_error(f"Error: {err.error_message()}")
 
         err = await ten_env.send_audio_frame(
             AudioFrame.create("unknown_audio_frame")
         )
         assert err is not None
 
-        ten_env.log_error(f"Error: {err.err_msg()}")
+        ten_env.log_error(f"Error: {err.error_message()}")
 
         err = await ten_env.send_video_frame(
             VideoFrame.create("unknown_video_frame")
         )
         assert err is not None
 
-        ten_env.log_error(f"Error: {err.err_msg()}")
+        ten_env.log_error(f"Error: {err.error_message()}")
 
     async def on_deinit(self, ten_env: AsyncTenEnv) -> None:
         await asyncio.sleep(0.5)
