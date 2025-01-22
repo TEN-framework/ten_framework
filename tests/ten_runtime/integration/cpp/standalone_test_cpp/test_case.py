@@ -46,10 +46,6 @@ def test_standalone_test_cpp():
         os.path.join(root_dir, "tgn_args.txt"),
     )
 
-    # Before starting, cleanup the old app package.
-    if build_config_args.ten_enable_integration_tests_prebuilt is False:
-        build_pkg.cleanup(app_root_path)
-
     # Step 2:
     #
     # Execute tgn gen to generate the build files.
