@@ -40,13 +40,17 @@ def test_restful_http_app():
     else:
         server_cmd = os.path.join(base_path, "restful_app/bin/restful_app")
 
-    app_root_path = os.path.join(base_path, "restful_app")
     app_dir_name = "restful_app"
+    app_root_path = os.path.join(base_path, app_dir_name)
     app_language = "cpp"
 
     build_config_args = build_config.parse_build_config(
         os.path.join(root_dir, "tgn_args.txt"),
     )
+
+    # Before starting, cleanup the old app package.
+    if build_config_args.ten_enable_integration_tests_prebuilt is False:
+        build_pkg.cleanup(app_root_path)
 
     if build_config_args.ten_enable_integration_tests_prebuilt is False:
         print('Assembling and building package "{}".'.format(app_dir_name))
@@ -122,7 +126,6 @@ def test_restful_http_app():
         assert exit_code == 0
 
         if build_config_args.ten_enable_integration_tests_prebuilt is False:
-            source_root_path = os.path.join(base_path, app_dir_name)
             # Testing complete. If builds are only created during the testing
             # phase, we can clear the build results to save disk space.
-            build_pkg.cleanup(source_root_path, app_root_path)
+            build_pkg.cleanup(app_root_path)

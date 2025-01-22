@@ -132,7 +132,6 @@ template("rust_target") {
                            [
                              "deps",
                              "public_deps",
-                             "data_deps",
                              "public_configs",
                            ])
 
@@ -192,7 +191,7 @@ template("rust_test") {
     target_path = invoker.target_path
   }
 
-  tg_timestamp_proxy_file = "${target_path}/${target_name}_rust_tests"
+  tg_timestamp_proxy_file = "${target_path}/${_target_name}"
 
   action("${_target_name}") {
     if (ten_enable_serialized_rust_action) {
@@ -326,7 +325,6 @@ template("rust_test") {
                            [
                              "deps",
                              "public_deps",
-                             "data_deps",
                              "public_configs",
                            ])
 
@@ -400,7 +398,6 @@ template("rust_cbindgen") {
                            [
                              "deps",
                              "public_deps",
-                             "data_deps",
                              "public_configs",
                            ])
 
@@ -502,7 +499,6 @@ template("rust_gen_cargo_config") {
                            [
                              "deps",
                              "public_deps",
-                             "data_deps",
                              "public_configs",
                            ])
 

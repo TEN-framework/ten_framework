@@ -35,6 +35,10 @@ def test_send_data_go():
         os.path.join(root_dir, "tgn_args.txt"),
     )
 
+    # Before starting, cleanup the old app package.
+    if build_config_args.ten_enable_integration_tests_prebuilt is False:
+        build_pkg.cleanup(app_root_path)
+
     if build_config_args.ten_enable_integration_tests_prebuilt is False:
         print('Assembling and building package "{}".'.format(app_dir_name))
 
@@ -143,4 +147,4 @@ def test_send_data_go():
 
             # Testing complete. If builds are only created during the testing phase,
             # we can clear the build results to save disk space.
-            build_pkg.cleanup(source_root_path, app_root_path)
+            build_pkg.cleanup(app_root_path)

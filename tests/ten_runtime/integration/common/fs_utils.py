@@ -4,20 +4,12 @@
 # Licensed under the Apache License, Version 2.0, with certain conditions.
 # Refer to the "LICENSE" file in the root directory for more information.
 #
-import sys
 import stat
 import os
 import shutil
 import subprocess
 import inspect
 from . import log
-
-
-def mkdir_p(path: str) -> None:
-    if sys.version > "3":
-        os.makedirs(path, exist_ok=True)
-    else:
-        raise Exception("tgn supports Python 3 only")
 
 
 def remove_readonly(func, path, excinfo):
@@ -125,7 +117,7 @@ def copy_file(src_file: str, dst_file: str, rm_dst=False) -> None:
     dst_file = os.path.abspath(dst_file)
 
     try:
-        mkdir_p(os.path.dirname(dst_file))
+        os.makedirs(os.path.dirname(dst_file), exist_ok=True)
     except Exception as exc:
         log.error(
             inspect.cleandoc(
