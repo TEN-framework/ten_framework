@@ -25,12 +25,13 @@ def build_and_install_app():
     app_root_path = os.path.join(base_path, app_dir_name)
     app_language = "go"
 
-    # Before starting, cleanup the old app package.
-    build_pkg.cleanup(app_root_path)
-
     build_config_args = build_config.parse_build_config(
         os.path.join(root_dir, "tgn_args.txt"),
     )
+
+    # Before starting, cleanup the old app package.
+    if build_config_args.ten_enable_integration_tests_prebuilt is False:
+        build_pkg.cleanup(app_root_path)
 
     if not build_config_args.ten_enable_integration_tests_prebuilt:
         print(f'Assembling and building package "{app_dir_name}".')
