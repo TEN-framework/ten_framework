@@ -102,8 +102,7 @@ class test_extension_2 : public ten::extension_t {
           ten::error_t error;
           auto rc = ten_env.set_property("aaa", "bbb", &error);
           ASSERT_FALSE(rc);
-          ASSERT_EQ(error.get_c_error()->error_code,
-                    TEN_ERROR_CODE_TEN_IS_CLOSED);
+          ASSERT_EQ(error.error_code(), TEN_ERROR_CODE_TEN_IS_CLOSED);
         });
     ASSERT_TRUE(rc);
 

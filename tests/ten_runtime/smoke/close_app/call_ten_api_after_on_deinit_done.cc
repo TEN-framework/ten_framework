@@ -77,21 +77,18 @@ class test_extension_2 : public ten::extension_t {
                   ten::cmd_result_t::create(TEN_STATUS_CODE_OK),
                   std::move(*cmd_shared), nullptr, &err);
               ASSERT_FALSE(rc);
-              ASSERT_EQ(err.get_c_error()->error_code,
-                        TEN_ERROR_CODE_TEN_IS_CLOSED);
+              ASSERT_EQ(err.error_code(), TEN_ERROR_CODE_TEN_IS_CLOSED);
 
               ten::error_t err2;
               auto str = ten_env.get_property_to_json("test_property", &err2);
               ASSERT_EQ(str, "");
-              ASSERT_EQ(err2.get_c_error()->error_code,
-                        TEN_ERROR_CODE_TEN_IS_CLOSED);
+              ASSERT_EQ(err2.error_code(), TEN_ERROR_CODE_TEN_IS_CLOSED);
 
               ten::error_t err3;
               auto new_cmd = ten::cmd_t::create("new_cmd");
               auto rc2 = ten_env.send_cmd(std::move(new_cmd), nullptr, &err3);
               ASSERT_FALSE(rc2);
-              ASSERT_EQ(err3.get_c_error()->error_code,
-                        TEN_ERROR_CODE_TEN_IS_CLOSED);
+              ASSERT_EQ(err3.error_code(), TEN_ERROR_CODE_TEN_IS_CLOSED);
 
               delete ten_env_proxy;
             });
