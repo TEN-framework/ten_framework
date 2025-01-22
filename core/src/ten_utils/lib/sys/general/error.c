@@ -54,7 +54,7 @@ void ten_error_copy(ten_error_t *self, ten_error_t *other) {
   ten_string_copy(&self->error_message, &other->error_message);
 }
 
-bool ten_error_prepend_errmsg(ten_error_t *self, const char *fmt, ...) {
+bool ten_error_prepend_error_message(ten_error_t *self, const char *fmt, ...) {
   TEN_ASSERT(self && ten_error_check_integrity(self), "Invalid argument");
 
   va_list ap;
@@ -65,7 +65,7 @@ bool ten_error_prepend_errmsg(ten_error_t *self, const char *fmt, ...) {
   return true;
 }
 
-bool ten_error_append_errmsg(ten_error_t *self, const char *fmt, ...) {
+bool ten_error_append_error_message(ten_error_t *self, const char *fmt, ...) {
   TEN_ASSERT(self && ten_error_check_integrity(self), "Invalid argument");
 
   va_list ap;

@@ -46,11 +46,11 @@ TEN_UTILS_API bool ten_error_vset(ten_error_t *self,
                                   ten_error_code_t error_code, const char *fmt,
                                   va_list ap);
 
-TEN_UTILS_API bool ten_error_prepend_errmsg(ten_error_t *self, const char *fmt,
-                                            ...);
+TEN_UTILS_API bool ten_error_prepend_error_message(ten_error_t *self,
+                                                   const char *fmt, ...);
 
-TEN_UTILS_API bool ten_error_append_errmsg(ten_error_t *self, const char *fmt,
-                                           ...);
+TEN_UTILS_API bool ten_error_append_error_message(ten_error_t *self,
+                                                  const char *fmt, ...);
 
 // Get last errno in current context, return TEN_ERROR_CODE_OK if no error set
 // before.

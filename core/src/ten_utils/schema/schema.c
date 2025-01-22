@@ -289,8 +289,8 @@ bool ten_schema_validate_value(ten_schema_t *self, ten_value_t *value,
   ten_schema_error_init(&err_ctx, err);
   result = ten_schema_validate_value_with_schema_error(self, value, &err_ctx);
   if (!result && !ten_string_is_empty(&err_ctx.path)) {
-    ten_error_prepend_errmsg(err,
-                             "%s: ", ten_string_get_raw_str(&err_ctx.path));
+    ten_error_prepend_error_message(
+        err, "%s: ", ten_string_get_raw_str(&err_ctx.path));
   }
 
   ten_schema_error_deinit(&err_ctx);
@@ -350,8 +350,8 @@ bool ten_schema_adjust_value_type(ten_schema_t *self, ten_value_t *value,
       ten_schema_adjust_value_type_with_schema_error(self, value, &err_ctx);
 
   if (!result && !ten_string_is_empty(&err_ctx.path)) {
-    ten_error_prepend_errmsg(err,
-                             "%s: ", ten_string_get_raw_str(&err_ctx.path));
+    ten_error_prepend_error_message(
+        err, "%s: ", ten_string_get_raw_str(&err_ctx.path));
   }
 
   ten_schema_error_deinit(&err_ctx);
@@ -437,8 +437,8 @@ bool ten_schema_is_compatible(ten_schema_t *self, ten_schema_t *target,
   bool result =
       ten_schema_is_compatible_with_schema_error(self, target, &err_ctx);
   if (!result && !ten_string_is_empty(&err_ctx.path)) {
-    ten_error_prepend_errmsg(err,
-                             "%s: ", ten_string_get_raw_str(&err_ctx.path));
+    ten_error_prepend_error_message(
+        err, "%s: ", ten_string_get_raw_str(&err_ctx.path));
   }
 
   ten_schema_error_deinit(&err_ctx);
