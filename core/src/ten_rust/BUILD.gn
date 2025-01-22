@@ -38,12 +38,14 @@ if (ten_enable_ten_rust) {
       ]
     }
 
-    rust_clean("ten_rust_test_cargo_clean") {
-      project_path = "//core/src/ten_rust"
-      target_path = "${root_gen_dir}/core/src/ten_rust_test"
+    if (ten_enable_cargo_clean) {
+      rust_clean("ten_rust_test_cargo_clean") {
+        project_path = "//core/src/ten_rust"
+        target_path = "${root_gen_dir}/core/src/ten_rust_test"
 
-      # Build ten_rust_test first, then `cargo clean` it.
-      deps = [ ":ten_rust_test_cargo_build" ]
+        # Build ten_rust_test first, then `cargo clean` it.
+        deps = [ ":ten_rust_test_cargo_build" ]
+      }
     }
 
     group("ten_rust_test") {
