@@ -423,7 +423,6 @@ std::unique_ptr<ten::audio_frame_t> demuxer_t::to_ten_audio_frame(
     return nullptr;
   }
 
-  int ffmpeg_rc = 0;
   auto audio_frame = ten::audio_frame_t::create("audio_frame");
 
   // Allocate memory for each audio channel.
@@ -438,9 +437,10 @@ std::unique_ptr<ten::audio_frame_t> demuxer_t::to_ten_audio_frame(
   ten::buf_t locked_out_buf = audio_frame->lock_buf();
   out[0] = locked_out_buf.data();
 
-  ffmpeg_rc = swr_convert(audio_converter_ctx, out, frame->nb_samples,
-                          const_cast<const uint8_t **>(frame->data),  // NOLINT
-                          frame->nb_samples);
+  int ffmpeg_rc =
+      swr_convert(audio_converter_ctx, out, frame->nb_samples,
+                  const_cast<const uint8_t **>(frame->data),  // NOLINT
+                  frame->nb_samples);
   if (ffmpeg_rc < 0) {
     GET_FFMPEG_ERROR_MESSAGE(err_msg, ffmpeg_rc) {
       TEN_LOGD("Failed to convert audio samples: %s", err_msg);
