@@ -6,23 +6,31 @@
 #
 import sys
 import os
+import argparse
 from build.scripts import log
 
 
-def main():
-    if len(sys.argv) != 2:
-        log.error("Usage: mkdir.py <dir>")
-        sys.exit(1)
+class ArgumentInfo(argparse.Namespace):
+    def __init__(self):
+        self.path: str
 
-    dir_path = sys.argv[1]
 
+def mkdir(path: str):
     try:
-        os.makedirs(dir_path, exist_ok=True)
-        log.info(f"Create successfully: {dir_path}")
+        os.makedirs(path, exist_ok=True)
+        log.info(f"Create successfully: {path}")
     except Exception as e:
-        log.error(f"Failed to create directory: {dir_path}\n: {e}")
+        log.error(f"Failed to create directory: {path}\n: {e}")
         sys.exit(1)
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(
+        description="Create a directory at the specified path."
+    )
+    parser.add_argument("path", type=str, help="The path of the file to touch.")
+
+    arg_info = ArgumentInfo()
+    args = parser.parse_args(namespace=arg_info)
+
+    mkdir(args.path)
