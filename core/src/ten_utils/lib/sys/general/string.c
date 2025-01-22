@@ -166,8 +166,8 @@ void ten_string_init_formatted(ten_string_t *self, const char *fmt, ...) {
   va_end(ap);
 }
 
-void ten_string_init_from_c_str(ten_string_t *self, const char *str,
-                                size_t size) {
+void ten_string_init_from_c_str_with_size(ten_string_t *self, const char *str,
+                                          size_t size) {
   TEN_ASSERT(self && str, "Invalid argument.");
 
   ten_string_init(self);

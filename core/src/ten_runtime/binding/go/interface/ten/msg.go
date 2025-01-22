@@ -46,7 +46,12 @@ type Msg interface {
 	keepAlive()
 
 	GetName() (string, error)
-	SetDest(appUri string, graphId string, extensionGroup string, extension string) error
+	SetDest(
+		appUri string,
+		graphId string,
+		extensionGroup string,
+		extension string,
+	) error
 
 	iProperty
 }
@@ -204,10 +209,15 @@ func (p *msg) GetName() (string, error) {
 	return C.GoString(msgName), nil
 }
 
-func (p *msg) SetDest(appUri string, graphId string, extensionGroup string, extension string) error {
+func (p *msg) SetDest(
+	appUri string,
+	graphId string,
+	extensionGroup string,
+	extension string,
+) error {
 	defer p.keepAlive()
 
-	err := withCGO(func() error {
+	err := withCGOLimiter(func() error {
 		apiStatus := C.ten_go_msg_set_dest(
 			p.cPtr,
 			unsafe.Pointer(unsafe.StringData(appUri)),

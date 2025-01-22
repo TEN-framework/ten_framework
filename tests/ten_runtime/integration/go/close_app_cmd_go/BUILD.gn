@@ -30,7 +30,8 @@ ten_package_test_prepare_app("close_app_cmd_go_app") {
   ]
 }
 
-ten_package_test_prepare_auxiliary_resources("close_app_cmd_go_app_test_files") {
+ten_package_test_prepare_auxiliary_resources(
+    "close_app_cmd_go_app_test_files") {
   resources = [
     "__init__.py",
     "test_case.py",

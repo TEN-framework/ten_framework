@@ -369,7 +369,8 @@ int ten_path_create_temp_dir(const char *base_path,
                              ten_string_t *tmp_dir_path) {
   TEN_ASSERT(base_path && tmp_dir_path, "Invalid argument.");
 
-  ten_string_init_from_c_str(tmp_dir_path, base_path, strlen(base_path));
+  ten_string_init_from_c_str_with_size(tmp_dir_path, base_path,
+                                       strlen(base_path));
 
   ten_path_join_c_str(tmp_dir_path, "tmpdir.XXXXXX");
   TEN_UNUSED char *result =

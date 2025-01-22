@@ -12,33 +12,6 @@ const (
 	is64bit = intSize == 64
 )
 
-// must is a helper that wraps a call to a function returning (R, error) and
-// panics if the error is non-nil.
-func must[R any](r R, err error) R {
-	if err != nil {
-		// Should not happen.
-		panic(err)
-	}
-
-	return r
-}
-
-// If a Go function calls a function from the TEN runtime, and the nature of
-// this TEN runtime function is a cgo call, the current implementation will
-// turn this cgo call into a so-called task, which is then queued for execution
-// in the globalCGOPool. Because the globalCGOPool contains a fixed number of
-// goroutines used to execute tasks (cgo calls), the number of parallel cgo
-// calls resulting from calling TEN runtime functions will be limited.
-//
-// The `workerSize` of globalCGOPool should be based on the number of CPUs,
-// i.e., ratio * NCPUs. The ratio is a configurable value.
-//
-// TODO(Liu): determine the optimal value of ratio.
-//
-// TODO(Liu): Need to investigate how to ensure that the result handler is
-// executed when the extension ends.
-var globalCGOPool = must[*executorPool](newExecutorPool(executorPoolConfig{}))
-
 // @{
 // Internal use only.
 

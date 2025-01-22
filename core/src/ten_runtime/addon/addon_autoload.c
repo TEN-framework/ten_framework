@@ -263,8 +263,8 @@ bool ten_addon_load_all_from_app_base_dir(const char *app_base_dir,
 
   for (int i = 0; i < sizeof(folders) / sizeof(folders[0]); i++) {
     ten_string_t module_path;
-    ten_string_init_from_c_str(&module_path, app_base_dir,
-                               strlen(app_base_dir));
+    ten_string_init_from_c_str_with_size(&module_path, app_base_dir,
+                                         strlen(app_base_dir));
 
     do {
       ten_string_append_formatted(&module_path, folders[i].path);
@@ -345,8 +345,8 @@ static bool ten_addon_load_specific_addon_using_native_addon_loader(
   ten_string_t addon_lib_folder_path;
 
   // Construct the path to the specific addon lib/ folder.
-  ten_string_init_from_c_str(&addon_lib_folder_path, app_base_dir,
-                             strlen(app_base_dir));
+  ten_string_init_from_c_str_with_size(&addon_lib_folder_path, app_base_dir,
+                                       strlen(app_base_dir));
 
   ten_string_append_formatted(&addon_lib_folder_path, "/ten_packages/%s/%s/lib",
                               ten_addon_type_to_string(addon_type), addon_name);

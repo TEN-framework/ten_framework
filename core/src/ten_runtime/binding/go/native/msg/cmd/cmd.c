@@ -33,9 +33,10 @@ ten_go_error_t ten_go_cmd_create_cmd(const void *name, int name_len,
   ten_go_error_init_with_errno(&cgo_error, TEN_ERRNO_OK);
 
   ten_string_t cmd_name;
-  ten_string_init_formatted(&cmd_name, "%.*s", name_len, name);
+  ten_string_init_from_c_str_with_size(&cmd_name, name, name_len);
 
-  ten_shared_ptr_t *cmd = ten_cmd_create(ten_string_get_raw_str(&cmd_name), NULL);
+  ten_shared_ptr_t *cmd =
+      ten_cmd_create(ten_string_get_raw_str(&cmd_name), NULL);
   TEN_ASSERT(cmd && ten_cmd_check_integrity(cmd), "Should not happen.");
 
   ten_go_msg_t *msg_bridge = ten_go_msg_create(cmd);

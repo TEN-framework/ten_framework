@@ -233,8 +233,8 @@ static ten_go_addon_t *ten_go_addon_register(
       ten_shared_ptr_clone(addon_bridge->bridge.sp_ref_by_go);
 
   addon_bridge->type = addon_type;
-  ten_string_init_from_c_str(&addon_bridge->addon_name, addon_name,
-                             addon_name_len);
+  ten_string_init_from_c_str_with_size(&addon_bridge->addon_name, addon_name,
+                                       addon_name_len);
 
   switch (addon_type) {
     case TEN_ADDON_TYPE_EXTENSION:
@@ -260,7 +260,7 @@ static ten_go_addon_t *ten_go_addon_register(
       (ten_binding_handle_t *)&addon_bridge->c_addon, addon_bridge);
 
   ten_string_t base_dir_str;
-  ten_string_init_from_c_str(&base_dir_str, base_dir, base_dir_len);
+  ten_string_init_from_c_str_with_size(&base_dir_str, base_dir, base_dir_len);
 
   switch (addon_type) {
     case TEN_ADDON_TYPE_EXTENSION:

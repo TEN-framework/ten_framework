@@ -84,8 +84,8 @@ bool ten_addon_manager_add_addon(ten_addon_manager_t *self,
     TEN_ASSERT(reg, "Failed to allocate memory for ten_addon_registration_t.");
 
     reg->addon_type = addon_type;
-    ten_string_init_from_c_str(&reg->addon_name, addon_name,
-                               strlen(addon_name));
+    ten_string_init_from_c_str_with_size(&reg->addon_name, addon_name,
+                                         strlen(addon_name));
     reg->func = func;
 
     // Add to the registry.

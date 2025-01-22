@@ -74,8 +74,8 @@ ten_addon_create_extension_done_ctx_create(
       TEN_MALLOC(sizeof(ten_addon_create_extension_done_ctx_t));
   TEN_ASSERT(self, "Failed to allocate memory.");
 
-  ten_string_init_from_c_str(&self->extension_name, extension_name,
-                             strlen(extension_name));
+  ten_string_init_from_c_str_with_size(&self->extension_name, extension_name,
+                                       strlen(extension_name));
   self->create_extensions_done_ctx = ctx;
 
   return self;

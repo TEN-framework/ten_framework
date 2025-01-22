@@ -913,8 +913,8 @@ ten_protocol_integrated_connect_to_context_create(
           sizeof(ten_protocol_integrated_connect_to_context_t));
   TEN_ASSERT(context, "Failed to allocate memory.");
 
-  ten_string_init_from_c_str(&context->server_uri, server_uri,
-                             strlen(server_uri));
+  ten_string_init_from_c_str_with_size(&context->server_uri, server_uri,
+                                       strlen(server_uri));
   context->on_server_connected = on_server_connected;
   context->user_data = user_data;
   context->protocol = self;

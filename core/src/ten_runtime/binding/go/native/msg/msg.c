@@ -105,7 +105,7 @@ static ten_value_t *ten_go_msg_property_get_and_check_if_exists(
   if (path_len == 0) {
     ten_string_init(&prop_path);
   } else {
-    ten_string_init_formatted(&prop_path, "%.*s", path_len, path);
+    ten_string_init_from_c_str_with_size(&prop_path, path, path_len);
   }
 
   ten_value_t *value = ten_msg_peek_property(
@@ -495,7 +495,7 @@ static void ten_go_msg_set_property(ten_go_msg_t *self, const void *path,
   if (path_len == 0) {
     ten_string_init(&path_str);
   } else {
-    ten_string_init_formatted(&path_str, "%.*s", path_len, path);
+    ten_string_init_from_c_str_with_size(&path_str, path, path_len);
   }
 
   ten_msg_set_property(self->c_msg, ten_string_get_raw_str(&path_str), value,
@@ -824,24 +824,22 @@ ten_go_error_t ten_go_msg_set_dest(uintptr_t bridge_addr, const void *app_uri,
   ten_go_msg_t *self = ten_go_msg_reinterpret(bridge_addr);
   TEN_ASSERT(self && ten_go_msg_check_integrity(self), "Should not happen.");
 
-  const char *msg_name = ten_msg_get_name(ten_go_msg_c_msg(self));
-  TEN_LOGI("ten_go_msg_set_dest msg_name: %s", msg_name);
-
   ten_go_error_t cgo_error;
   ten_go_error_init_with_errno(&cgo_error, TEN_ERRNO_OK);
 
   ten_string_t app_uri_str;
-  ten_string_init_formatted(&app_uri_str, "%.*s", app_uri_len, app_uri);
+  ten_string_init_from_c_str_with_size(&app_uri_str, app_uri, app_uri_len);
 
   ten_string_t graph_id_str;
-  ten_string_init_formatted(&graph_id_str, "%.*s", graph_id_len, graph_id);
+  ten_string_init_from_c_str_with_size(&graph_id_str, graph_id, graph_id_len);
 
   ten_string_t extension_group_str;
-  ten_string_init_formatted(&extension_group_str, "%.*s", extension_group_len,
-                            extension_group);
+  ten_string_init_from_c_str_with_size(&extension_group_str, extension_group,
+                                       extension_group_len);
 
   ten_string_t extension_str;
-  ten_string_init_formatted(&extension_str, "%.*s", extension_len, extension);
+  ten_string_init_from_c_str_with_size(&extension_str, extension,
+                                       extension_len);
 
   ten_error_t err;
   ten_error_init(&err);

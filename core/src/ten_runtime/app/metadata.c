@@ -120,8 +120,9 @@ bool ten_app_init_log_file(ten_app_t *self, ten_value_t *value) {
   ten_string_t log_file;
   ten_string_init(&log_file);
 
-  ten_string_init_from_c_str(&log_file, ten_value_peek_raw_str(value, NULL),
-                             strlen(ten_value_peek_raw_str(value, NULL)));
+  ten_string_init_from_c_str_with_size(
+      &log_file, ten_value_peek_raw_str(value, NULL),
+      strlen(ten_value_peek_raw_str(value, NULL)));
 
   if (!ten_string_is_empty(&log_file)) {
     ten_log_global_set_output_to_file(ten_string_get_raw_str(&log_file));
