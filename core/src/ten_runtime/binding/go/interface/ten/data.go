@@ -37,7 +37,7 @@ var _ Data = new(data)
 func NewData(dataName string) (Data, error) {
 	if len(dataName) == 0 {
 		return nil, newTenError(
-			ErrnoInvalidArgument,
+			ErrorCodeInvalidArgument,
 			"data name is required.",
 		)
 	}
@@ -60,7 +60,7 @@ func NewData(dataName string) (Data, error) {
 	if bridge == 0 {
 		// Should not happen.
 		return nil, newTenError(
-			ErrnoInvalidArgument,
+			ErrorCodeInvalidArgument,
 			"bridge is nil",
 		)
 	}
@@ -70,7 +70,7 @@ func NewData(dataName string) (Data, error) {
 
 func (p *data) AllocBuf(size int) error {
 	if size <= 0 {
-		return newTenError(ErrnoInvalidArgument, "the size should be > 0")
+		return newTenError(ErrorCodeInvalidArgument, "the size should be > 0")
 	}
 
 	err := withCGOLimiter(func() error {
@@ -107,7 +107,7 @@ func (p *data) LockBuf() ([]byte, error) {
 
 func (p *data) UnlockBuf(buf *[]byte) error {
 	if buf == nil {
-		return newTenError(ErrnoInvalidArgument, "buf is nil")
+		return newTenError(ErrorCodeInvalidArgument, "buf is nil")
 	}
 
 	err := withCGOLimiter(func() error {

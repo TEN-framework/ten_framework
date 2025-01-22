@@ -40,4 +40,4 @@ TEN_RUNTIME_PRIVATE_API void ten_go_error_set_error_code(
 
 TEN_RUNTIME_PRIVATE_API void ten_go_error_set(ten_go_error_t *self,
                                               ten_error_code_t error_code,
-                                              const char *msg);
+                                              const char *error_message);

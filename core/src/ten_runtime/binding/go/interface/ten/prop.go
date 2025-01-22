@@ -134,7 +134,7 @@ func (pt propType) isTypeSupported() error {
 	if pt == propTypeNull || pt == propTypeInvalid || pt == propTypeArray ||
 		pt == propTypeObject {
 		return newTenError(
-			ErrnoInvalidType,
+			ErrorCodeInvalidType,
 			fmt.Sprintf(
 				"the Struct/Array/Slice/Map/Chan are not supported, actually is [%d]",
 				pt,

@@ -29,7 +29,7 @@ type Cmd interface {
 func NewCmd(cmdName string) (Cmd, error) {
 	if len(cmdName) == 0 {
 		return nil, newTenError(
-			ErrnoInvalidArgument,
+			ErrorCodeInvalidArgument,
 			"cmd name is required.",
 		)
 	}

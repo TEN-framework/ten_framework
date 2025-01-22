@@ -83,16 +83,16 @@ func (e *TenError) ErrorMessage() string {
 // Note: To achieve the best compatibility, any new enum item, should be added
 // to the end to avoid changing the value of previous enum items.
 const (
-	// ErrnoGeneric is the default errno, for those users only care error
+	// ErrorCodeGeneric is the default errno, for those users only care error
 	// msgs.
-	ErrnoGeneric = 1
+	ErrorCodeGeneric = 1
 
-	// ErrnoInvalidJSON means the json data is invalid.
-	ErrnoInvalidJSON = 2
+	// ErrorCodeInvalidJSON means the json data is invalid.
+	ErrorCodeInvalidJSON = 2
 
-	// ErrnoInvalidArgument means invalid parameter.
-	ErrnoInvalidArgument = 3
+	// ErrorCodeInvalidArgument means invalid parameter.
+	ErrorCodeInvalidArgument = 3
 
-	// ErrnoInvalidType means unsupported property type.
-	ErrnoInvalidType = 4
+	// ErrorCodeInvalidType means unsupported property type.
+	ErrorCodeInvalidType = 4
 )

@@ -40,14 +40,14 @@ func (am *AddonManager) RegisterAddonAsExtension(
 ) error {
 	if len(addonName) == 0 {
 		return newTenError(
-			ErrnoInvalidArgument,
+			ErrorCodeInvalidArgument,
 			"addon name is empty",
 		)
 	}
 
 	_, file, _, ok := runtime.Caller(1)
 	if !ok {
-		return newTenError(ErrnoGeneric, "Failed to get the caller information")
+		return newTenError(ErrorCodeGeneric, "Failed to get the caller information")
 	}
 
 	baseDir := filepath.Dir(file)
@@ -55,7 +55,7 @@ func (am *AddonManager) RegisterAddonAsExtension(
 	absBaseDir, err := filepath.Abs(baseDir)
 	if err != nil {
 		return newTenError(
-			ErrnoGeneric,
+			ErrorCodeGeneric,
 			fmt.Sprintf("Failed to get the absolute file path: %v", err),
 		)
 	}
@@ -101,7 +101,7 @@ func (am *AddonManager) RegisterAddonAsExtension(
 
 	if _, exists := am.registry[addonName]; exists {
 		return newTenError(
-			ErrnoInvalidArgument,
+			ErrorCodeInvalidArgument,
 			fmt.Sprintf("Addon '%s' is already registered", addonName),
 		)
 	}

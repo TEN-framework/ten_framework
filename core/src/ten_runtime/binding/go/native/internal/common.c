@@ -84,23 +84,24 @@ void ten_go_error_set_error_code(ten_go_error_t *self,
 }
 
 void ten_go_error_set(ten_go_error_t *self, ten_error_code_t error_code,
-                      const char *msg) {
+                      const char *error_message) {
   TEN_ASSERT(self, "Should not happen.");
 
   self->error_code = error_code;
-  if (msg == NULL || strlen(msg) == 0) {
+  if (error_message == NULL || strlen(error_message) == 0) {
     return;
   }
 
   uint8_t max_size = TEN_GO_STATUS_ERR_MSG_BUF_SIZE - 1;
-  self->error_message_size =
-      strlen(msg) > max_size ? max_size : (uint8_t)strlen(msg);
+  self->error_message_size = strlen(error_message) > max_size
+                                 ? max_size
+                                 : (uint8_t)strlen(error_message);
 
   // This allocated memory space will be freed in the GO world.
   //
   // `C.free(unsafe.Pointer(error.error_message))`
   self->error_message = (char *)TEN_MALLOC(self->error_message_size + 1);
-  strncpy(self->error_message, msg, self->error_message_size);
+  strncpy(self->error_message, error_message, self->error_message_size);
   self->error_message[self->error_message_size] = '\0';
 }
 
