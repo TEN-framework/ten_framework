@@ -10,7 +10,7 @@
 #include <stdint.h>
 
 #include "include_internal/ten_utils/value/value_can_convert.h"
-#include "ten_runtime/common/errno.h"
+#include "ten_runtime/common/error_code.h"
 #include "ten_utils/lib/error.h"
 #include "ten_utils/macro/check.h"
 #include "ten_utils/value/type.h"
@@ -23,7 +23,7 @@ bool ten_value_convert_to_int8(ten_value_t *self, ten_error_t *err) {
 
   if (!ten_type_is_compatible(self->type, TEN_TYPE_INT8)) {
     if (err) {
-      ten_error_set(err, TEN_ERRNO_GENERIC,
+      ten_error_set(err, TEN_ERROR_CODE_GENERIC,
                     "unsupported conversion from `%s` to `int8`",
                     ten_type_to_string(self->type));
     }
@@ -96,7 +96,7 @@ bool ten_value_convert_to_int8(ten_value_t *self, ten_error_t *err) {
   }
 
   if (err) {
-    ten_error_set(err, TEN_ERRNO_GENERIC, "out of range of int8");
+    ten_error_set(err, TEN_ERROR_CODE_GENERIC, "out of range of int8");
   }
   return false;
 }
@@ -107,7 +107,7 @@ bool ten_value_convert_to_int16(ten_value_t *self, ten_error_t *err) {
 
   if (!ten_type_is_compatible(self->type, TEN_TYPE_INT16)) {
     if (err) {
-      ten_error_set(err, TEN_ERRNO_GENERIC,
+      ten_error_set(err, TEN_ERROR_CODE_GENERIC,
                     "unsupported conversion from `%s` to `int16`",
                     ten_type_to_string(self->type));
     }
@@ -170,7 +170,7 @@ bool ten_value_convert_to_int16(ten_value_t *self, ten_error_t *err) {
   }
 
   if (err) {
-    ten_error_set(err, TEN_ERRNO_GENERIC, "out of range of int16");
+    ten_error_set(err, TEN_ERROR_CODE_GENERIC, "out of range of int16");
   }
   return false;
 }
@@ -181,7 +181,7 @@ bool ten_value_convert_to_int32(ten_value_t *self, ten_error_t *err) {
 
   if (!ten_type_is_compatible(self->type, TEN_TYPE_INT32)) {
     if (err) {
-      ten_error_set(err, TEN_ERRNO_GENERIC,
+      ten_error_set(err, TEN_ERROR_CODE_GENERIC,
                     "unsupported conversion from `%s` to `int32`",
                     ten_type_to_string(self->type));
     }
@@ -234,7 +234,7 @@ bool ten_value_convert_to_int32(ten_value_t *self, ten_error_t *err) {
   }
 
   if (err) {
-    ten_error_set(err, TEN_ERRNO_GENERIC, "out of range of int32");
+    ten_error_set(err, TEN_ERROR_CODE_GENERIC, "out of range of int32");
   }
   return false;
 }
@@ -245,7 +245,7 @@ bool ten_value_convert_to_int64(ten_value_t *self, ten_error_t *err) {
 
   if (!ten_type_is_compatible(self->type, TEN_TYPE_INT64)) {
     if (err) {
-      ten_error_set(err, TEN_ERRNO_GENERIC,
+      ten_error_set(err, TEN_ERROR_CODE_GENERIC,
                     "unsupported conversion from `%s` to `int64`",
                     ten_type_to_string(self->type));
     }
@@ -288,7 +288,7 @@ bool ten_value_convert_to_int64(ten_value_t *self, ten_error_t *err) {
   }
 
   if (err) {
-    ten_error_set(err, TEN_ERRNO_GENERIC, "out of range of int64");
+    ten_error_set(err, TEN_ERROR_CODE_GENERIC, "out of range of int64");
   }
   return false;
 }
@@ -299,7 +299,7 @@ bool ten_value_convert_to_uint8(ten_value_t *self, ten_error_t *err) {
 
   if (!ten_type_is_compatible(self->type, TEN_TYPE_UINT8)) {
     if (err) {
-      ten_error_set(err, TEN_ERRNO_GENERIC,
+      ten_error_set(err, TEN_ERROR_CODE_GENERIC,
                     "unsupported conversion from `%s` to `uint8`",
                     ten_type_to_string(self->type));
     }
@@ -372,7 +372,7 @@ bool ten_value_convert_to_uint8(ten_value_t *self, ten_error_t *err) {
   }
 
   if (err) {
-    ten_error_set(err, TEN_ERRNO_GENERIC, "out of range of uint8");
+    ten_error_set(err, TEN_ERROR_CODE_GENERIC, "out of range of uint8");
   }
   return false;
 }
@@ -383,7 +383,7 @@ bool ten_value_convert_to_uint16(ten_value_t *self, ten_error_t *err) {
 
   if (!ten_type_is_compatible(self->type, TEN_TYPE_UINT16)) {
     if (err) {
-      ten_error_set(err, TEN_ERRNO_GENERIC,
+      ten_error_set(err, TEN_ERROR_CODE_GENERIC,
                     "unsupported conversion from `%s` to `uint16`",
                     ten_type_to_string(self->type));
     }
@@ -451,7 +451,7 @@ bool ten_value_convert_to_uint16(ten_value_t *self, ten_error_t *err) {
   }
 
   if (err) {
-    ten_error_set(err, TEN_ERRNO_GENERIC, "out of range of uint16");
+    ten_error_set(err, TEN_ERROR_CODE_GENERIC, "out of range of uint16");
   }
   return false;
 }
@@ -462,7 +462,7 @@ bool ten_value_convert_to_uint32(ten_value_t *self, ten_error_t *err) {
 
   if (!ten_type_is_compatible(self->type, TEN_TYPE_UINT32)) {
     if (err) {
-      ten_error_set(err, TEN_ERRNO_GENERIC,
+      ten_error_set(err, TEN_ERROR_CODE_GENERIC,
                     "unsupported conversion from `%s` to `uint32`",
                     ten_type_to_string(self->type));
     }
@@ -525,7 +525,7 @@ bool ten_value_convert_to_uint32(ten_value_t *self, ten_error_t *err) {
   }
 
   if (err) {
-    ten_error_set(err, TEN_ERRNO_GENERIC, "out of range of uint32");
+    ten_error_set(err, TEN_ERROR_CODE_GENERIC, "out of range of uint32");
   }
   return false;
 }
@@ -536,7 +536,7 @@ bool ten_value_convert_to_uint64(ten_value_t *self, ten_error_t *err) {
 
   if (!ten_type_is_compatible(self->type, TEN_TYPE_UINT64)) {
     if (err) {
-      ten_error_set(err, TEN_ERRNO_GENERIC,
+      ten_error_set(err, TEN_ERROR_CODE_GENERIC,
                     "unsupported conversion from `%s` to `uint64`",
                     ten_type_to_string(self->type));
     }
@@ -594,7 +594,7 @@ bool ten_value_convert_to_uint64(ten_value_t *self, ten_error_t *err) {
   }
 
   if (err) {
-    ten_error_set(err, TEN_ERRNO_GENERIC, "out of range of uint64");
+    ten_error_set(err, TEN_ERROR_CODE_GENERIC, "out of range of uint64");
   }
   return false;
 }
@@ -605,7 +605,7 @@ bool ten_value_convert_to_float32(ten_value_t *self, ten_error_t *err) {
 
   if (!ten_type_is_compatible(self->type, TEN_TYPE_FLOAT32)) {
     if (err) {
-      ten_error_set(err, TEN_ERRNO_GENERIC,
+      ten_error_set(err, TEN_ERROR_CODE_GENERIC,
                     "unsupported conversion from `%s` to `float32`",
                     ten_type_to_string(self->type));
     }
@@ -674,7 +674,7 @@ bool ten_value_convert_to_float32(ten_value_t *self, ten_error_t *err) {
   }
 
   if (err) {
-    ten_error_set(err, TEN_ERRNO_GENERIC, "out of range of float32");
+    ten_error_set(err, TEN_ERROR_CODE_GENERIC, "out of range of float32");
   }
   return false;
 }
@@ -685,7 +685,7 @@ bool ten_value_convert_to_float64(ten_value_t *self, ten_error_t *err) {
 
   if (!ten_type_is_compatible(self->type, TEN_TYPE_FLOAT64)) {
     if (err) {
-      ten_error_set(err, TEN_ERRNO_GENERIC,
+      ten_error_set(err, TEN_ERROR_CODE_GENERIC,
                     "unsupported conversion from `%s` to `float64`",
                     ten_type_to_string(self->type));
     }
@@ -739,7 +739,7 @@ bool ten_value_convert_to_float64(ten_value_t *self, ten_error_t *err) {
   }
 
   if (err) {
-    ten_error_set(err, TEN_ERRNO_GENERIC, "out of range of float64");
+    ten_error_set(err, TEN_ERROR_CODE_GENERIC, "out of range of float64");
   }
   return false;
 }

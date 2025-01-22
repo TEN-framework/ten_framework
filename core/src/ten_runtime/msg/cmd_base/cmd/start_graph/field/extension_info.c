@@ -19,7 +19,7 @@
 #include "include_internal/ten_runtime/msg/cmd_base/cmd/start_graph/cmd.h"
 #include "include_internal/ten_runtime/msg/msg.h"
 #include "include_internal/ten_utils/log/log.h"
-#include "ten_runtime/common/errno.h"
+#include "ten_runtime/common/error_code.h"
 #include "ten_runtime/msg/cmd/start_graph/cmd.h"
 #include "ten_utils/container/list.h"
 #include "ten_utils/container/list_str.h"
@@ -74,7 +74,8 @@ static ten_value_t *ten_cmd_start_graph_extensions_info_to_value(
       TEN_LOGE("Extension %s is duplicated.", ten_string_get_raw_str(&loc_str));
 
       if (err) {
-        ten_error_set(err, TEN_ERRNO_GENERIC, "Extension %s is duplicated.",
+        ten_error_set(err, TEN_ERROR_CODE_GENERIC,
+                      "Extension %s is duplicated.",
                       ten_string_get_raw_str(&loc_str));
       }
 

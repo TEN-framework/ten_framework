@@ -8,9 +8,9 @@
 
 #include <stdlib.h>
 
-#include "include_internal/ten_runtime/common/errno.h"
+#include "include_internal/ten_runtime/common/error_code.h"
 #include "include_internal/ten_utils/value/constant_str.h"
-#include "ten_runtime/common/errno.h"
+#include "ten_runtime/common/error_code.h"
 #include "ten_utils/container/list.h"
 #include "ten_utils/container/list_node.h"
 #include "ten_utils/container/list_node_ptr.h"
@@ -159,7 +159,7 @@ bool ten_value_path_parse(const char *path, ten_list_t *result,
 
   if (!path || !strlen(path)) {
     if (err) {
-      ten_error_set(err, TEN_ERRNO_INVALID_ARGUMENT,
+      ten_error_set(err, TEN_ERROR_CODE_INVALID_ARGUMENT,
                     "path should not be empty.");
     }
     return false;
@@ -198,7 +198,7 @@ ten_value_t *ten_value_peek_from_path(ten_value_t *base, const char *path,
   ten_list_t path_items = TEN_LIST_INIT_VAL;
   if (!ten_value_path_parse(path, &path_items, err)) {
     if (err) {
-      ten_error_set(err, TEN_ERRNO_INVALID_ARGUMENT,
+      ten_error_set(err, TEN_ERROR_CODE_INVALID_ARGUMENT,
                     "Failed to parse the path.");
     }
     goto done;
@@ -218,7 +218,7 @@ ten_value_t *ten_value_peek_from_path(ten_value_t *base, const char *path,
       case TEN_VALUE_PATH_ITEM_TYPE_OBJECT_ITEM:
         if (base->type != TEN_TYPE_OBJECT) {
           if (err) {
-            ten_error_set(err, TEN_ERRNO_INVALID_ARGUMENT,
+            ten_error_set(err, TEN_ERROR_CODE_INVALID_ARGUMENT,
                           "Path is not corresponding to the value type.");
           }
           result = NULL;
@@ -244,7 +244,7 @@ ten_value_t *ten_value_peek_from_path(ten_value_t *base, const char *path,
       case TEN_VALUE_PATH_ITEM_TYPE_ARRAY_ITEM:
         if (base->type != TEN_TYPE_ARRAY) {
           if (err) {
-            ten_error_set(err, TEN_ERRNO_INVALID_ARGUMENT,
+            ten_error_set(err, TEN_ERROR_CODE_INVALID_ARGUMENT,
                           "Path is not corresponding to the value type.");
           }
           result = NULL;
@@ -277,8 +277,8 @@ done:
 
   if (!result) {
     if (err) {
-      ten_error_set(err, TEN_ERRNO_VALUE_NOT_FOUND, "Failed to find value: %s",
-                    path);
+      ten_error_set(err, TEN_ERROR_CODE_VALUE_NOT_FOUND,
+                    "Failed to find value: %s", path);
     }
   }
 

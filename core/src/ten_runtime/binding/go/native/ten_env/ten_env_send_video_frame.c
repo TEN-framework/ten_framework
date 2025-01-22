@@ -61,7 +61,7 @@ static void proxy_handle_video_frame_error(
   TEN_ASSERT(callback_info, "Should not happen.");
 
   ten_go_error_t cgo_error;
-  ten_go_error_init_with_errno(&cgo_error, TEN_ERRNO_OK);
+  ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
 
   if (err) {
     ten_go_error_from_error(&cgo_error, err);
@@ -88,7 +88,7 @@ static void ten_env_proxy_notify_send_video_frame(ten_env_t *ten_env,
   TEN_ASSERT(notify_info, "Should not happen.");
 
   ten_go_error_t cgo_error;
-  ten_go_error_init_with_errno(&cgo_error, TEN_ERRNO_OK);
+  ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
 
   ten_error_t err;
   ten_error_init(&err);
@@ -134,10 +134,11 @@ ten_go_error_t ten_go_ten_env_send_video_frame(
              "Should not happen.");
 
   ten_go_error_t cgo_error;
-  ten_go_error_init_with_errno(&cgo_error, TEN_ERRNO_OK);
+  ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
 
-  TEN_GO_TEN_ENV_IS_ALIVE_REGION_BEGIN(
-      self, { ten_go_error_set_errno(&cgo_error, TEN_ERRNO_TEN_IS_CLOSED); });
+  TEN_GO_TEN_ENV_IS_ALIVE_REGION_BEGIN(self, {
+    ten_go_error_set_error_code(&cgo_error, TEN_ERROR_CODE_TEN_IS_CLOSED);
+  });
 
   ten_error_t err;
   ten_error_init(&err);

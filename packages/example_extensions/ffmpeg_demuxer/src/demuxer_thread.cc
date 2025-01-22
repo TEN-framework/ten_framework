@@ -5,6 +5,8 @@
 //
 #include "demuxer_thread.h"
 
+#include <libavutil/rational.h>
+
 #include <atomic>
 #include <cassert>
 #include <cstdlib>
@@ -13,7 +15,6 @@
 #include <utility>
 
 #include "demuxer.h"
-#include "libavutil/rational.h"
 #include "ten_runtime/binding/cpp/ten.h"
 #include "ten_utils/lang/cpp/lib/value.h"
 #include "ten_utils/lib/event.h"
@@ -45,6 +46,7 @@ demuxer_thread_t::~demuxer_thread_t() {
     delete demuxer_;
     demuxer_ = nullptr;
   }
+
   ten_event_destroy(demuxer_thread_is_started);
   ten_event_destroy(ready_for_demuxer);
 
@@ -62,6 +64,7 @@ void *demuxer_thread_main(void *self_) {
 
   if (!demuxer_thread->create_demuxer()) {
     TEN_LOGW("Failed to create demuxer, stop the demuxer thread.");
+
     demuxer_thread->reply_to_start_cmd(false);
     return nullptr;
   }
@@ -87,7 +90,7 @@ void *demuxer_thread_main(void *self_) {
         TEN_LOGD("Input stream is ended, stop the demuxer thread normally.");
 
         // Send EOF frame, so that the subsequent stages could know this fact.
-        demuxer_thread->send_image_eof();
+        demuxer_thread->send_video_eof();
         demuxer_thread->send_audio_eof();
         break;
 
@@ -146,7 +149,7 @@ bool demuxer_thread_t::create_demuxer() {
 }
 
 // Called from the demuxer thread.
-void demuxer_thread_t::send_image_eof() {
+void demuxer_thread_t::send_video_eof() {
   auto frame = ten::video_frame_t::create("video_frame");
   frame->set_eof(true);
 

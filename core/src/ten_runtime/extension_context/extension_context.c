@@ -27,7 +27,7 @@
 #include "include_internal/ten_runtime/msg/msg.h"
 #include "include_internal/ten_runtime/ten_env/ten_env.h"
 #include "ten_runtime/app/app.h"
-#include "ten_runtime/common/errno.h"
+#include "ten_runtime/common/error_code.h"
 #include "ten_runtime/ten_env/ten_env.h"
 #include "ten_utils/container/list.h"
 #include "ten_utils/container/list_node.h"
@@ -586,7 +586,7 @@ bool ten_extension_context_start_extension_group(
                 &extension_group_info->extension_group_addon_name));
 
         if (err) {
-          ten_error_set(err, TEN_ERRNO_GENERIC, "Unable to find %s",
+          ten_error_set(err, TEN_ERROR_CODE_GENERIC, "Unable to find %s",
                         ten_string_get_raw_str(
                             &extension_group_info->extension_group_addon_name));
         }

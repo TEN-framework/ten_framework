@@ -9,7 +9,7 @@
 #include <stdlib.h>
 
 #include "include_internal/ten_runtime/common/loc.h"
-#include "ten_runtime/common/errno.h"
+#include "ten_runtime/common/error_code.h"
 #include "ten_utils/lib/alloc.h"
 #include "ten_utils/lib/signature.h"
 #include "ten_utils/lib/string.h"
@@ -135,7 +135,7 @@ ten_shared_ptr_t *get_extension_group_info_in_extension_groups_info(
             extension_group_addon_name)) {
       if (err) {
         ten_error_set(
-            err, TEN_ERRNO_INVALID_GRAPH,
+            err, TEN_ERROR_CODE_INVALID_GRAPH,
             "extension group '%s' is associated with different addon '%s', "
             "'%s'",
             extension_group_instance_name, extension_group_addon_name,

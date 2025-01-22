@@ -218,8 +218,8 @@ struct ten_extension_t {
   // @}
 
   // Records the number of occurrences of the error code
-  // `TEN_ERRNO_MSG_NOT_CONNECTED` for each message name when sending output
-  // messages.
+  // `TEN_ERROR_CODE_MSG_NOT_CONNECTED` for each message name when sending
+  // output messages.
   ten_hashtable_t msg_not_connected_count_map;
 
   void *user_data;

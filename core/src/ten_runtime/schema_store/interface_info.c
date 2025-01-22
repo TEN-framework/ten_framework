@@ -5,7 +5,7 @@
 // Refer to the "LICENSE" file in the root directory for more information.
 //
 #include "include_internal/ten_runtime/schema_store/interface.h"
-#include "ten_runtime/common/errno.h"
+#include "ten_runtime/common/error_code.h"
 #include "ten_utils/lib/error.h"
 #include "ten_utils/log/log.h"
 #include "ten_utils/macro/check.h"
@@ -29,7 +29,7 @@ ten_value_t *ten_interface_schema_info_resolve(
   TEN_ASSERT(err && ten_error_check_integrity(err), "Invalid argument.");
 
   if (!ten_value_is_array(unresolved_interface_schema_def)) {
-    ten_error_set(err, TEN_ERRNO_GENERIC,
+    ten_error_set(err, TEN_ERROR_CODE_GENERIC,
                   "The interface schema should be an array.");
     return NULL;
   }
@@ -55,7 +55,7 @@ ten_value_t *ten_interface_schema_info_resolve(
         ten_json_from_string(resolved_interface_schema_str, err);
     if (!resolved_interface_schema_json) {
       TEN_LOGW("Invalid interface schema string after resolved, %s.",
-               ten_error_errmsg(err));
+               ten_error_message(err));
     } else {
       resolved_interface_schema_def =
           ten_value_from_json(resolved_interface_schema_json);
@@ -65,7 +65,7 @@ ten_value_t *ten_interface_schema_info_resolve(
 
     ten_rust_free_cstring(resolved_interface_schema_str);
   } else {
-    ten_error_set(err, TEN_ERRNO_GENERIC, err_msg);
+    ten_error_set(err, TEN_ERROR_CODE_GENERIC, err_msg);
 
     ten_rust_free_cstring(err_msg);
   }

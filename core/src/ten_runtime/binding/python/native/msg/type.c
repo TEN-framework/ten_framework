@@ -235,8 +235,8 @@ PyTypeObject *ten_py_buf_py_type(void) {
 
 PyTypeObject *ten_py_error_py_type(void) {
   static PyMethodDef py_methods[] = {
-      {"errno", ten_py_error_get_errno, METH_VARARGS, NULL},
-      {"err_msg", ten_py_error_get_errmsg, METH_VARARGS, NULL},
+      {"error_code", ten_py_error_get_error_code, METH_VARARGS, NULL},
+      {"error_message", ten_py_error_get_error_message, METH_VARARGS, NULL},
       {NULL, NULL, 0, NULL},
   };
 

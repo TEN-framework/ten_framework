@@ -47,22 +47,22 @@ void ten_py_error_destroy(PyObject *self) {
   Py_TYPE(self)->tp_free(self);
 }
 
-PyObject *ten_py_error_get_errno(PyObject *self, PyObject *args) {
+PyObject *ten_py_error_get_error_code(PyObject *self, PyObject *args) {
   ten_py_error_t *py_error = (ten_py_error_t *)self;
   if (!py_error) {
     return ten_py_raise_py_value_error_exception("Invalid argument.");
   }
 
-  return PyLong_FromLong(ten_error_errno(&py_error->c_error));
+  return PyLong_FromLong(ten_error_code(&py_error->c_error));
 }
 
-PyObject *ten_py_error_get_errmsg(PyObject *self, PyObject *args) {
+PyObject *ten_py_error_get_error_message(PyObject *self, PyObject *args) {
   ten_py_error_t *py_error = (ten_py_error_t *)self;
   if (!py_error) {
     return ten_py_raise_py_value_error_exception("Invalid argument.");
   }
 
-  return PyUnicode_FromString(ten_error_errmsg(&py_error->c_error));
+  return PyUnicode_FromString(ten_error_message(&py_error->c_error));
 }
 
 static void ten_py_print_py_error(void) {

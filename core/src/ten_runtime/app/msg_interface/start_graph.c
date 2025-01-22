@@ -73,7 +73,7 @@ static bool ten_app_check_start_graph_cmd_from_connection(
     ten_shared_ptr_t *ret_cmd =
         ten_cmd_result_create_from_cmd(TEN_STATUS_CODE_ERROR, cmd);
     ten_msg_set_property(ret_cmd, TEN_STR_DETAIL,
-                         ten_value_create_string(ten_error_errmsg(err)), NULL);
+                         ten_value_create_string(ten_error_message(err)), NULL);
     ten_msg_clear_and_set_dest_from_msg_src(ret_cmd, cmd);
     ten_connection_send_msg(connection, ret_cmd);
     ten_shared_ptr_destroy(ret_cmd);
@@ -108,7 +108,7 @@ bool ten_app_handle_start_graph_cmd(ten_app_t *self,
     if (!ten_app_check_start_graph_cmd_from_connection(self, connection, cmd,
                                                        err)) {
       TEN_LOGE("[%s] Failed to check start_graph cmd, %s",
-               ten_app_get_uri(self), ten_error_errmsg(err));
+               ten_app_get_uri(self), ten_error_message(err));
       return false;
     }
 

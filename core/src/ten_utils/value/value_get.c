@@ -8,7 +8,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-#include "ten_runtime/common/errno.h"
+#include "ten_runtime/common/error_code.h"
 #include "ten_utils/container/list.h"
 #include "ten_utils/container/list_node.h"
 #include "ten_utils/lib/error.h"
@@ -26,7 +26,7 @@ int8_t ten_value_get_int8(ten_value_t *self, ten_error_t *err) {
 
   if (!ten_value_is_valid(self)) {
     if (err) {
-      ten_error_set(err, TEN_ERRNO_GENERIC, "Invalid value type.");
+      ten_error_set(err, TEN_ERROR_CODE_GENERIC, "Invalid value type.");
     }
     return 0;
   }
@@ -74,7 +74,7 @@ int8_t ten_value_get_int8(ten_value_t *self, ten_error_t *err) {
   }
 
   if (err) {
-    ten_error_set(err, TEN_ERRNO_GENERIC,
+    ten_error_set(err, TEN_ERROR_CODE_GENERIC,
                   "The conversion from %s to uint32 is unfit.",
                   ten_type_to_string(self->type));
   }
@@ -86,7 +86,7 @@ int16_t ten_value_get_int16(ten_value_t *self, ten_error_t *err) {
 
   if (!ten_value_is_valid(self)) {
     if (err) {
-      ten_error_set(err, TEN_ERRNO_GENERIC, "Invalid value type.");
+      ten_error_set(err, TEN_ERROR_CODE_GENERIC, "Invalid value type.");
     }
     return 0;
   }
@@ -130,7 +130,7 @@ int16_t ten_value_get_int16(ten_value_t *self, ten_error_t *err) {
   }
 
   if (err) {
-    ten_error_set(err, TEN_ERRNO_GENERIC,
+    ten_error_set(err, TEN_ERROR_CODE_GENERIC,
                   "The conversion from %s to uint32 is unfit.",
                   ten_type_to_string(self->type));
   }
@@ -142,7 +142,7 @@ int32_t ten_value_get_int32(ten_value_t *self, ten_error_t *err) {
 
   if (!ten_value_is_valid(self)) {
     if (err) {
-      ten_error_set(err, TEN_ERRNO_GENERIC, "Invalid value type.");
+      ten_error_set(err, TEN_ERROR_CODE_GENERIC, "Invalid value type.");
     }
     return 0;
   }
@@ -179,7 +179,7 @@ int32_t ten_value_get_int32(ten_value_t *self, ten_error_t *err) {
   }
 
   if (err) {
-    ten_error_set(err, TEN_ERRNO_GENERIC,
+    ten_error_set(err, TEN_ERROR_CODE_GENERIC,
                   "The conversion from %s to uint32 is unfit.",
                   ten_type_to_string(self->type));
   }
@@ -191,7 +191,7 @@ int64_t ten_value_get_int64(ten_value_t *self, ten_error_t *err) {
 
   if (!ten_value_is_valid(self)) {
     if (err) {
-      ten_error_set(err, TEN_ERRNO_GENERIC, "Invalid value type.");
+      ten_error_set(err, TEN_ERROR_CODE_GENERIC, "Invalid value type.");
     }
     return 0;
   }
@@ -221,7 +221,7 @@ int64_t ten_value_get_int64(ten_value_t *self, ten_error_t *err) {
   }
 
   if (err) {
-    ten_error_set(err, TEN_ERRNO_GENERIC,
+    ten_error_set(err, TEN_ERROR_CODE_GENERIC,
                   "The conversion from %s to uint32 is unfit.",
                   ten_type_to_string(self->type));
   }
@@ -233,7 +233,7 @@ uint8_t ten_value_get_uint8(ten_value_t *self, ten_error_t *err) {
 
   if (!ten_value_is_valid(self)) {
     if (err) {
-      ten_error_set(err, TEN_ERRNO_GENERIC, "Invalid value type.");
+      ten_error_set(err, TEN_ERROR_CODE_GENERIC, "Invalid value type.");
     }
     return 0;
   }
@@ -281,7 +281,7 @@ uint8_t ten_value_get_uint8(ten_value_t *self, ten_error_t *err) {
   }
 
   if (err) {
-    ten_error_set(err, TEN_ERRNO_GENERIC,
+    ten_error_set(err, TEN_ERROR_CODE_GENERIC,
                   "The conversion from %s to uint32 is unfit.",
                   ten_type_to_string(self->type));
   }
@@ -293,7 +293,7 @@ uint16_t ten_value_get_uint16(ten_value_t *self, ten_error_t *err) {
 
   if (!ten_value_is_valid(self)) {
     if (err) {
-      ten_error_set(err, TEN_ERRNO_GENERIC, "Invalid value type.");
+      ten_error_set(err, TEN_ERROR_CODE_GENERIC, "Invalid value type.");
     }
     return 0;
   }
@@ -338,7 +338,7 @@ uint16_t ten_value_get_uint16(ten_value_t *self, ten_error_t *err) {
   }
 
   if (err) {
-    ten_error_set(err, TEN_ERRNO_GENERIC,
+    ten_error_set(err, TEN_ERROR_CODE_GENERIC,
                   "The conversion from %s to uint32 is unfit.",
                   ten_type_to_string(self->type));
   }
@@ -350,7 +350,7 @@ uint32_t ten_value_get_uint32(ten_value_t *self, ten_error_t *err) {
 
   if (!ten_value_is_valid(self)) {
     if (err) {
-      ten_error_set(err, TEN_ERRNO_GENERIC, "Invalid value type.");
+      ten_error_set(err, TEN_ERROR_CODE_GENERIC, "Invalid value type.");
     }
     return 0;
   }
@@ -392,7 +392,7 @@ uint32_t ten_value_get_uint32(ten_value_t *self, ten_error_t *err) {
   }
 
   if (err) {
-    ten_error_set(err, TEN_ERRNO_GENERIC,
+    ten_error_set(err, TEN_ERROR_CODE_GENERIC,
                   "The conversion from %s to uint32 is unfit.",
                   ten_type_to_string(self->type));
   }
@@ -404,7 +404,7 @@ uint64_t ten_value_get_uint64(ten_value_t *self, ten_error_t *err) {
 
   if (!ten_value_is_valid(self)) {
     if (err) {
-      ten_error_set(err, TEN_ERRNO_GENERIC, "Invalid value type.");
+      ten_error_set(err, TEN_ERROR_CODE_GENERIC, "Invalid value type.");
     }
     return 0;
   }
@@ -443,7 +443,7 @@ uint64_t ten_value_get_uint64(ten_value_t *self, ten_error_t *err) {
   }
 
   if (err) {
-    ten_error_set(err, TEN_ERRNO_GENERIC,
+    ten_error_set(err, TEN_ERROR_CODE_GENERIC,
                   "The conversion from %s to uint32 is unfit.",
                   ten_type_to_string(self->type));
   }
@@ -455,7 +455,7 @@ float ten_value_get_float32(ten_value_t *self, ten_error_t *err) {
 
   if (!ten_value_is_valid(self)) {
     if (err) {
-      ten_error_set(err, TEN_ERRNO_GENERIC, "Invalid value type.");
+      ten_error_set(err, TEN_ERROR_CODE_GENERIC, "Invalid value type.");
     }
     return 0.0F;
   }
@@ -474,7 +474,7 @@ float ten_value_get_float32(ten_value_t *self, ten_error_t *err) {
   }
 
   if (err) {
-    ten_error_set(err, TEN_ERRNO_GENERIC,
+    ten_error_set(err, TEN_ERROR_CODE_GENERIC,
                   "The conversion from %s to float32 is unfit.",
                   ten_type_to_string(self->type));
   }
@@ -486,7 +486,7 @@ double ten_value_get_float64(ten_value_t *self, ten_error_t *err) {
 
   if (!ten_value_is_valid(self)) {
     if (err) {
-      ten_error_set(err, TEN_ERRNO_GENERIC, "Invalid value type.");
+      ten_error_set(err, TEN_ERROR_CODE_GENERIC, "Invalid value type.");
     }
     return 0.0F;
   }
@@ -501,7 +501,7 @@ double ten_value_get_float64(ten_value_t *self, ten_error_t *err) {
   }
 
   if (err) {
-    ten_error_set(err, TEN_ERRNO_GENERIC,
+    ten_error_set(err, TEN_ERROR_CODE_GENERIC,
                   "The conversion from %s to float32 is unfit.",
                   ten_type_to_string(self->type));
   }
@@ -513,7 +513,7 @@ bool ten_value_get_bool(ten_value_t *self, ten_error_t *err) {
 
   if (!ten_value_is_valid(self)) {
     if (err) {
-      ten_error_set(err, TEN_ERRNO_GENERIC, "Invalid value type.");
+      ten_error_set(err, TEN_ERROR_CODE_GENERIC, "Invalid value type.");
     }
     return false;
   }
@@ -526,7 +526,7 @@ bool ten_value_get_bool(ten_value_t *self, ten_error_t *err) {
   }
 
   if (err) {
-    ten_error_set(err, TEN_ERRNO_GENERIC,
+    ten_error_set(err, TEN_ERROR_CODE_GENERIC,
                   "The conversion from %s to uint32 is unfit.",
                   ten_type_to_string(self->type));
   }
@@ -540,7 +540,7 @@ void *ten_value_get_ptr(ten_value_t *self, ten_error_t *err) {
     return self->content.ptr;
   } else {
     if (err) {
-      ten_error_set(err, TEN_ERRNO_GENERIC,
+      ten_error_set(err, TEN_ERROR_CODE_GENERIC,
                     "Not pointer value, actual type: %s",
                     ten_type_to_string(self->type));
     }
@@ -629,7 +629,7 @@ ten_value_t *ten_value_array_peek(ten_value_t *self, size_t index,
 
   if (!ten_value_is_array(self)) {
     if (err) {
-      ten_error_set(err, TEN_ERRNO_GENERIC,
+      ten_error_set(err, TEN_ERROR_CODE_GENERIC,
                     "The conversion from %s to array is unfit.",
                     ten_type_to_string(self->type));
     }

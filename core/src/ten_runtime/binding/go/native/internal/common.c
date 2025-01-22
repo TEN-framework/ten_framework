@@ -61,44 +61,47 @@ void ten_go_bridge_destroy_go_part(ten_go_bridge_t *self) {
   }
 }
 
-void ten_go_error_init_with_errno(ten_go_error_t *self, ten_errno_t err_no) {
+void ten_go_error_init_with_error_code(ten_go_error_t *self,
+                                       ten_error_code_t error_code) {
   TEN_ASSERT(self, "Should not happen.");
 
-  self->err_no = err_no;
-  self->err_msg_size = 0;
-  self->err_msg = NULL;
+  self->error_code = error_code;
+  self->error_message_size = 0;
+  self->error_message = NULL;
 }
 
 void ten_go_error_from_error(ten_go_error_t *self, ten_error_t *err) {
   TEN_ASSERT(self && err, "Should not happen.");
 
-  ten_go_error_set(self, ten_error_errno(err), ten_error_errmsg(err));
+  ten_go_error_set(self, ten_error_code(err), ten_error_message(err));
 }
 
-void ten_go_error_set_errno(ten_go_error_t *self, ten_errno_t err_no) {
+void ten_go_error_set_error_code(ten_go_error_t *self,
+                                 ten_error_code_t error_code) {
   TEN_ASSERT(self, "Should not happen.");
 
-  self->err_no = err_no;
+  self->error_code = error_code;
 }
 
-void ten_go_error_set(ten_go_error_t *self, ten_errno_t err_no,
+void ten_go_error_set(ten_go_error_t *self, ten_error_code_t error_code,
                       const char *msg) {
   TEN_ASSERT(self, "Should not happen.");
 
-  self->err_no = err_no;
+  self->error_code = error_code;
   if (msg == NULL || strlen(msg) == 0) {
     return;
   }
 
   uint8_t max_size = TEN_GO_STATUS_ERR_MSG_BUF_SIZE - 1;
-  self->err_msg_size = strlen(msg) > max_size ? max_size : (uint8_t)strlen(msg);
+  self->error_message_size =
+      strlen(msg) > max_size ? max_size : (uint8_t)strlen(msg);
 
   // This allocated memory space will be freed in the GO world.
   //
-  // `C.free(unsafe.Pointer(error.err_msg))`
-  self->err_msg = (char *)TEN_MALLOC(self->err_msg_size + 1);
-  strncpy(self->err_msg, msg, self->err_msg_size);
-  self->err_msg[self->err_msg_size] = '\0';
+  // `C.free(unsafe.Pointer(error.error_message))`
+  self->error_message = (char *)TEN_MALLOC(self->error_message_size + 1);
+  strncpy(self->error_message, msg, self->error_message_size);
+  self->error_message[self->error_message_size] = '\0';
 }
 
 ten_go_error_t ten_go_copy_c_str_to_slice_and_free(const char *src,
@@ -106,7 +109,7 @@ ten_go_error_t ten_go_copy_c_str_to_slice_and_free(const char *src,
   TEN_ASSERT(src && dest, "Should not happen.");
 
   ten_go_error_t cgo_error;
-  ten_go_error_init_with_errno(&cgo_error, TEN_ERRNO_OK);
+  ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
 
   strcpy(dest, src);
   TEN_FREE(src);

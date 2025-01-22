@@ -24,7 +24,7 @@
 #include "include_internal/ten_runtime/ten_env/on_xxx_done.h"
 #include "include_internal/ten_runtime/ten_env/ten_env.h"
 #include "ten_runtime/addon/addon.h"
-#include "ten_runtime/common/errno.h"
+#include "ten_runtime/common/error_code.h"
 #include "ten_runtime/msg/msg.h"
 #include "ten_runtime/ten.h"
 #include "ten_runtime/ten_env/internal/log.h"
@@ -220,7 +220,7 @@ static void ten_builtin_extension_group_on_create_extensions(
       TEN_LOGE("Failed to find the addon for extension %s",
                ten_string_get_raw_str(extension_addon_name));
 
-      ten_error_set(&self->err_before_ready, TEN_ERRNO_INVALID_GRAPH,
+      ten_error_set(&self->err_before_ready, TEN_ERROR_CODE_INVALID_GRAPH,
                     "Failed to find the addon for extension %s",
                     ten_string_get_raw_str(extension_addon_name));
 

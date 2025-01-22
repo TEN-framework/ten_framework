@@ -123,7 +123,7 @@ ten_value_t *ten_extension_peek_property(ten_extension_t *extension,
 
   if (!path || !strlen(path)) {
     if (err) {
-      ten_error_set(err, TEN_ERRNO_INVALID_ARGUMENT,
+      ten_error_set(err, TEN_ERROR_CODE_INVALID_ARGUMENT,
                     "path should not be empty.");
     }
     return NULL;
@@ -225,7 +225,7 @@ ten_value_t *ten_extension_peek_manifest(ten_extension_t *self,
 
   if (!path || !strlen(path)) {
     if (err) {
-      ten_error_set(err, TEN_ERRNO_INVALID_ARGUMENT,
+      ten_error_set(err, TEN_ERROR_CODE_INVALID_ARGUMENT,
                     "path should not be empty.");
     }
     return NULL;

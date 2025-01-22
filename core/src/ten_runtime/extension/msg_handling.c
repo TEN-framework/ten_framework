@@ -182,7 +182,7 @@ void ten_extension_handle_in_msg(ten_extension_t *self, ten_shared_ptr_t *msg) {
     if (!ten_extension_convert_msg(self, msg, &converted_msgs, &err)) {
       TEN_LOGE("[%s] Failed to convert msg %s: %s",
                ten_extension_get_name(self, true), ten_msg_get_name(msg),
-               ten_error_errmsg(&err));
+               ten_error_message(&err));
     }
     ten_error_deinit(&err);
   } else {

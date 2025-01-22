@@ -128,7 +128,7 @@ void ten_extension_tester_set_test_mode_single(ten_extension_tester_t *self,
       ten_json_destroy(json);
     } else {
       TEN_ASSERT(0, "Failed to parse property json: %s",
-                 ten_error_errmsg(&err));
+                 ten_error_message(&err));
     }
 
     ten_error_deinit(&err);

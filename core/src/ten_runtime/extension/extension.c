@@ -37,7 +37,7 @@
 #include "include_internal/ten_utils/log/log.h"
 #include "ten_runtime/addon/addon.h"
 #include "ten_runtime/app/app.h"
-#include "ten_runtime/common/errno.h"
+#include "ten_runtime/common/error_code.h"
 #include "ten_runtime/msg/cmd_result/cmd_result.h"
 #include "ten_runtime/msg/msg.h"
 #include "ten_runtime/ten_env/internal/on_xxx_done.h"
@@ -508,7 +508,7 @@ static bool ten_extension_determine_out_msg_dest_from_graph(
   // In any case, the user needs to be informed about the error where the graph
   // does not have a specified destination for the message.
   TEN_ASSERT(err, "Should not happen.");
-  ten_error_set(err, TEN_ERRNO_MSG_NOT_CONNECTED,
+  ten_error_set(err, TEN_ERROR_CODE_MSG_NOT_CONNECTED,
                 "Failed to find destination of a '%s' message '%s' from graph.",
                 ten_msg_type_to_string(msg_type), msg_name);
 
@@ -620,7 +620,7 @@ bool ten_extension_dispatch_msg(ten_extension_t *self, ten_shared_ptr_t *msg,
 
   if (self->state == TEN_EXTENSION_STATE_ON_DEINIT_DONE) {
     if (err) {
-      ten_error_set(err, TEN_ERRNO_TEN_IS_CLOSED,
+      ten_error_set(err, TEN_ERROR_CODE_TEN_IS_CLOSED,
                     "The extension is closed, so the message cannot be "
                     "dispatched.");
     }
@@ -1024,7 +1024,7 @@ bool ten_extension_validate_msg_schema(ten_extension_t *self,
     TEN_LOGW("[%s] See %s %s::%s with invalid schema: %s.",
              ten_extension_get_name(self, true), is_msg_out ? "out" : "in",
              ten_msg_get_type_string(msg), ten_msg_get_name(msg),
-             ten_error_errmsg(err));
+             ten_error_message(err));
 
     if (!is_msg_out) {
       // Only when a schema checking error occurs before a message is sent to
@@ -1046,7 +1046,7 @@ bool ten_extension_validate_msg_schema(ten_extension_t *self,
           ten_shared_ptr_t *cmd_result =
               ten_cmd_result_create_from_cmd(TEN_STATUS_CODE_ERROR, msg);
           ten_msg_set_property(cmd_result, "detail",
-                               ten_value_create_string(ten_error_errmsg(err)),
+                               ten_value_create_string(ten_error_message(err)),
                                NULL);
           ten_env_return_result(self->ten_env, cmd_result, msg, NULL, NULL,
                                 NULL);

@@ -15,7 +15,7 @@
 #include "ten_runtime/binding/go/interface/ten/common.h"
 #include "ten_runtime/binding/go/interface/ten/ten_env.h"
 #include "ten_runtime/binding/go/interface/ten/value.h"
-#include "ten_runtime/common/errno.h"
+#include "ten_runtime/common/error_code.h"
 #include "ten_runtime/ten_env_proxy/ten_env_proxy.h"
 #include "ten_utils/lib/alloc.h"
 #include "ten_utils/lib/error.h"
@@ -143,7 +143,7 @@ static ten_value_t *ten_go_ten_env_get_property_and_check_if_exists(
   ten_event_wait(ctx->completed, -1);
   c_value = ctx->c_value;
   if (c_value == NULL) {
-    ten_go_error_set_errno(status, TEN_ERRNO_GENERIC);
+    ten_go_error_set_error_code(status, TEN_ERROR_CODE_GENERIC);
   }
 
 done:
@@ -163,10 +163,11 @@ ten_go_error_t ten_go_ten_env_get_property_type_and_size(
   TEN_ASSERT(type && size, "Should not happen.");
 
   ten_go_error_t cgo_error;
-  ten_go_error_init_with_errno(&cgo_error, TEN_ERRNO_OK);
+  ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
 
-  TEN_GO_TEN_ENV_IS_ALIVE_REGION_BEGIN(
-      self, { ten_go_error_set_errno(&cgo_error, TEN_ERRNO_TEN_IS_CLOSED); });
+  TEN_GO_TEN_ENV_IS_ALIVE_REGION_BEGIN(self, {
+    ten_go_error_set_error_code(&cgo_error, TEN_ERROR_CODE_TEN_IS_CLOSED);
+  });
 
   ten_value_t *c_value = ten_go_ten_env_get_property_and_check_if_exists(
       self, path, path_len, &cgo_error);
@@ -212,10 +213,11 @@ ten_go_error_t ten_go_ten_env_get_property_int8(uintptr_t bridge_addr,
   TEN_ASSERT(value, "Should not happen.");
 
   ten_go_error_t cgo_error;
-  ten_go_error_init_with_errno(&cgo_error, TEN_ERRNO_OK);
+  ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
 
-  TEN_GO_TEN_ENV_IS_ALIVE_REGION_BEGIN(
-      self, { ten_go_error_set_errno(&cgo_error, TEN_ERRNO_TEN_IS_CLOSED); });
+  TEN_GO_TEN_ENV_IS_ALIVE_REGION_BEGIN(self, {
+    ten_go_error_set_error_code(&cgo_error, TEN_ERROR_CODE_TEN_IS_CLOSED);
+  });
 
   ten_value_t *c_value = ten_go_ten_env_get_property_and_check_if_exists(
       self, path, path_len, &cgo_error);
@@ -248,10 +250,11 @@ ten_go_error_t ten_go_ten_env_get_property_int16(uintptr_t bridge_addr,
   TEN_ASSERT(value, "Should not happen.");
 
   ten_go_error_t cgo_error;
-  ten_go_error_init_with_errno(&cgo_error, TEN_ERRNO_OK);
+  ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
 
-  TEN_GO_TEN_ENV_IS_ALIVE_REGION_BEGIN(
-      self, { ten_go_error_set_errno(&cgo_error, TEN_ERRNO_TEN_IS_CLOSED); });
+  TEN_GO_TEN_ENV_IS_ALIVE_REGION_BEGIN(self, {
+    ten_go_error_set_error_code(&cgo_error, TEN_ERROR_CODE_TEN_IS_CLOSED);
+  });
 
   ten_value_t *c_value = ten_go_ten_env_get_property_and_check_if_exists(
       self, path, path_len, &cgo_error);
@@ -284,10 +287,11 @@ ten_go_error_t ten_go_ten_env_get_property_int32(uintptr_t bridge_addr,
   TEN_ASSERT(value, "Should not happen.");
 
   ten_go_error_t cgo_error;
-  ten_go_error_init_with_errno(&cgo_error, TEN_ERRNO_OK);
+  ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
 
-  TEN_GO_TEN_ENV_IS_ALIVE_REGION_BEGIN(
-      self, { ten_go_error_set_errno(&cgo_error, TEN_ERRNO_TEN_IS_CLOSED); });
+  TEN_GO_TEN_ENV_IS_ALIVE_REGION_BEGIN(self, {
+    ten_go_error_set_error_code(&cgo_error, TEN_ERROR_CODE_TEN_IS_CLOSED);
+  });
 
   ten_value_t *c_value = ten_go_ten_env_get_property_and_check_if_exists(
       self, path, path_len, &cgo_error);
@@ -320,10 +324,11 @@ ten_go_error_t ten_go_ten_env_get_property_int64(uintptr_t bridge_addr,
   TEN_ASSERT(value, "Should not happen.");
 
   ten_go_error_t cgo_error;
-  ten_go_error_init_with_errno(&cgo_error, TEN_ERRNO_OK);
+  ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
 
-  TEN_GO_TEN_ENV_IS_ALIVE_REGION_BEGIN(
-      self, { ten_go_error_set_errno(&cgo_error, TEN_ERRNO_TEN_IS_CLOSED); });
+  TEN_GO_TEN_ENV_IS_ALIVE_REGION_BEGIN(self, {
+    ten_go_error_set_error_code(&cgo_error, TEN_ERROR_CODE_TEN_IS_CLOSED);
+  });
 
   ten_value_t *c_value = ten_go_ten_env_get_property_and_check_if_exists(
       self, path, path_len, &cgo_error);
@@ -356,10 +361,11 @@ ten_go_error_t ten_go_ten_env_get_property_uint8(uintptr_t bridge_addr,
   TEN_ASSERT(value, "Should not happen.");
 
   ten_go_error_t cgo_error;
-  ten_go_error_init_with_errno(&cgo_error, TEN_ERRNO_OK);
+  ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
 
-  TEN_GO_TEN_ENV_IS_ALIVE_REGION_BEGIN(
-      self, { ten_go_error_set_errno(&cgo_error, TEN_ERRNO_TEN_IS_CLOSED); });
+  TEN_GO_TEN_ENV_IS_ALIVE_REGION_BEGIN(self, {
+    ten_go_error_set_error_code(&cgo_error, TEN_ERROR_CODE_TEN_IS_CLOSED);
+  });
 
   ten_value_t *c_value = ten_go_ten_env_get_property_and_check_if_exists(
       self, path, path_len, &cgo_error);
@@ -393,10 +399,11 @@ ten_go_error_t ten_go_ten_env_get_property_uint16(uintptr_t bridge_addr,
   TEN_ASSERT(value, "Should not happen.");
 
   ten_go_error_t cgo_error;
-  ten_go_error_init_with_errno(&cgo_error, TEN_ERRNO_OK);
+  ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
 
-  TEN_GO_TEN_ENV_IS_ALIVE_REGION_BEGIN(
-      self, { ten_go_error_set_errno(&cgo_error, TEN_ERRNO_TEN_IS_CLOSED); });
+  TEN_GO_TEN_ENV_IS_ALIVE_REGION_BEGIN(self, {
+    ten_go_error_set_error_code(&cgo_error, TEN_ERROR_CODE_TEN_IS_CLOSED);
+  });
 
   ten_value_t *c_value = ten_go_ten_env_get_property_and_check_if_exists(
       self, path, path_len, &cgo_error);
@@ -430,10 +437,11 @@ ten_go_error_t ten_go_ten_env_get_property_uint32(uintptr_t bridge_addr,
   TEN_ASSERT(value, "Should not happen.");
 
   ten_go_error_t cgo_error;
-  ten_go_error_init_with_errno(&cgo_error, TEN_ERRNO_OK);
+  ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
 
-  TEN_GO_TEN_ENV_IS_ALIVE_REGION_BEGIN(
-      self, { ten_go_error_set_errno(&cgo_error, TEN_ERRNO_TEN_IS_CLOSED); });
+  TEN_GO_TEN_ENV_IS_ALIVE_REGION_BEGIN(self, {
+    ten_go_error_set_error_code(&cgo_error, TEN_ERROR_CODE_TEN_IS_CLOSED);
+  });
 
   ten_value_t *c_value = ten_go_ten_env_get_property_and_check_if_exists(
       self, path, path_len, &cgo_error);
@@ -467,10 +475,11 @@ ten_go_error_t ten_go_ten_env_get_property_uint64(uintptr_t bridge_addr,
   TEN_ASSERT(value, "Should not happen.");
 
   ten_go_error_t cgo_error;
-  ten_go_error_init_with_errno(&cgo_error, TEN_ERRNO_OK);
+  ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
 
-  TEN_GO_TEN_ENV_IS_ALIVE_REGION_BEGIN(
-      self, { ten_go_error_set_errno(&cgo_error, TEN_ERRNO_TEN_IS_CLOSED); });
+  TEN_GO_TEN_ENV_IS_ALIVE_REGION_BEGIN(self, {
+    ten_go_error_set_error_code(&cgo_error, TEN_ERROR_CODE_TEN_IS_CLOSED);
+  });
 
   ten_value_t *c_value = ten_go_ten_env_get_property_and_check_if_exists(
       self, path, path_len, &cgo_error);
@@ -503,10 +512,11 @@ ten_go_error_t ten_go_ten_env_get_property_float32(uintptr_t bridge_addr,
   TEN_ASSERT(value, "Should not happen.");
 
   ten_go_error_t cgo_error;
-  ten_go_error_init_with_errno(&cgo_error, TEN_ERRNO_OK);
+  ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
 
-  TEN_GO_TEN_ENV_IS_ALIVE_REGION_BEGIN(
-      self, { ten_go_error_set_errno(&cgo_error, TEN_ERRNO_TEN_IS_CLOSED); });
+  TEN_GO_TEN_ENV_IS_ALIVE_REGION_BEGIN(self, {
+    ten_go_error_set_error_code(&cgo_error, TEN_ERROR_CODE_TEN_IS_CLOSED);
+  });
 
   ten_value_t *c_value = ten_go_ten_env_get_property_and_check_if_exists(
       self, path, path_len, &cgo_error);
@@ -540,10 +550,11 @@ ten_go_error_t ten_go_ten_env_get_property_float64(uintptr_t bridge_addr,
   TEN_ASSERT(value, "Should not happen.");
 
   ten_go_error_t cgo_error;
-  ten_go_error_init_with_errno(&cgo_error, TEN_ERRNO_OK);
+  ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
 
-  TEN_GO_TEN_ENV_IS_ALIVE_REGION_BEGIN(
-      self, { ten_go_error_set_errno(&cgo_error, TEN_ERRNO_TEN_IS_CLOSED); });
+  TEN_GO_TEN_ENV_IS_ALIVE_REGION_BEGIN(self, {
+    ten_go_error_set_error_code(&cgo_error, TEN_ERROR_CODE_TEN_IS_CLOSED);
+  });
 
   ten_value_t *c_value = ten_go_ten_env_get_property_and_check_if_exists(
       self, path, path_len, &cgo_error);
@@ -576,10 +587,11 @@ ten_go_error_t ten_go_ten_env_get_property_bool(uintptr_t bridge_addr,
   TEN_ASSERT(value, "Should not happen.");
 
   ten_go_error_t cgo_error;
-  ten_go_error_init_with_errno(&cgo_error, TEN_ERRNO_OK);
+  ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
 
-  TEN_GO_TEN_ENV_IS_ALIVE_REGION_BEGIN(
-      self, { ten_go_error_set_errno(&cgo_error, TEN_ERRNO_TEN_IS_CLOSED); });
+  TEN_GO_TEN_ENV_IS_ALIVE_REGION_BEGIN(self, {
+    ten_go_error_set_error_code(&cgo_error, TEN_ERROR_CODE_TEN_IS_CLOSED);
+  });
 
   ten_value_t *c_value = ten_go_ten_env_get_property_and_check_if_exists(
       self, path, path_len, &cgo_error);
@@ -612,10 +624,11 @@ ten_go_error_t ten_go_ten_env_get_property_ptr(uintptr_t bridge_addr,
   TEN_ASSERT(value, "Should not happen.");
 
   ten_go_error_t cgo_error;
-  ten_go_error_init_with_errno(&cgo_error, TEN_ERRNO_OK);
+  ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
 
-  TEN_GO_TEN_ENV_IS_ALIVE_REGION_BEGIN(
-      self, { ten_go_error_set_errno(&cgo_error, TEN_ERRNO_TEN_IS_CLOSED); });
+  TEN_GO_TEN_ENV_IS_ALIVE_REGION_BEGIN(self, {
+    ten_go_error_set_error_code(&cgo_error, TEN_ERROR_CODE_TEN_IS_CLOSED);
+  });
 
   ten_value_t *c_value = ten_go_ten_env_get_property_and_check_if_exists(
       self, path, path_len, &cgo_error);
@@ -642,10 +655,11 @@ ten_go_error_t ten_go_ten_env_get_property_json_and_size(
   TEN_ASSERT(json_str && json_str_len > 0, "Should not happen.");
 
   ten_go_error_t cgo_error;
-  ten_go_error_init_with_errno(&cgo_error, TEN_ERRNO_OK);
+  ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
 
-  TEN_GO_TEN_ENV_IS_ALIVE_REGION_BEGIN(
-      self, { ten_go_error_set_errno(&cgo_error, TEN_ERRNO_TEN_IS_CLOSED); });
+  TEN_GO_TEN_ENV_IS_ALIVE_REGION_BEGIN(self, {
+    ten_go_error_set_error_code(&cgo_error, TEN_ERROR_CODE_TEN_IS_CLOSED);
+  });
 
   ten_value_t *value = ten_go_ten_env_get_property_and_check_if_exists(
       self, path, path_len, &cgo_error);

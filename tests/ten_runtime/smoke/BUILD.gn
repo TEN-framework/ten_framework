@@ -53,6 +53,7 @@ ten_executable("ten_runtime_smoke_test") {
     "msg_property",
     "msg_test",
     "multi_dest",
+    "no_connection",
     "notify_test",
     "outer_thread",
     "path",

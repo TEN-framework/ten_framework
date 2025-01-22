@@ -144,7 +144,7 @@ void ten_path_set_result(ten_path_t *path, ten_shared_ptr_t *cmd_result) {
     cmd_result =
         ten_msg_conversion_convert(path->result_conversion, cmd_result, &err);
     if (!cmd_result) {
-      TEN_LOGE("Failed to convert cmd result: %s", ten_error_errmsg(&err));
+      TEN_LOGE("Failed to convert cmd result: %s", ten_error_message(&err));
 
       // Since the flow of the cmd result must not be interrupted, otherwise
       // the extension, which expects to receive the cmd result, will not

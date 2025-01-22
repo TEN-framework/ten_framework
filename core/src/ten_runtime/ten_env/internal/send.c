@@ -21,7 +21,7 @@
 #include "include_internal/ten_runtime/ten_env/send.h"
 #include "include_internal/ten_runtime/ten_env/ten_env.h"
 #include "ten_runtime/app/app.h"
-#include "ten_runtime/common/errno.h"
+#include "ten_runtime/common/error_code.h"
 #include "ten_runtime/msg/cmd_result/cmd_result.h"
 #include "ten_runtime/msg/msg.h"
 #include "ten_runtime/ten_env/ten_env.h"
@@ -45,7 +45,7 @@ static bool ten_send_msg_internal(
 
   if (ten_env_is_closed(self)) {
     if (err) {
-      ten_error_set(err, TEN_ERRNO_TEN_IS_CLOSED, "ten_env is closed.");
+      ten_error_set(err, TEN_ERROR_CODE_TEN_IS_CLOSED, "ten_env is closed.");
     }
     return false;
   }
@@ -64,7 +64,7 @@ static bool ten_send_msg_internal(
   bool result = true;
 
   if (!msg) {
-    ten_error_set(err, TEN_ERRNO_INVALID_ARGUMENT, "Msg is empty.");
+    ten_error_set(err, TEN_ERROR_CODE_INVALID_ARGUMENT, "Msg is empty.");
     result = false;
     goto done;
   }
@@ -73,14 +73,14 @@ static bool ten_send_msg_internal(
     // The only way to send out the 'status' command from extension is through
     // various 'return_xxx' functions.
     TEN_LOGE("Result commands should be delivered through 'returning'.");
-    ten_error_set(err, TEN_ERRNO_GENERIC,
+    ten_error_set(err, TEN_ERROR_CODE_GENERIC,
                   "Result commands should be delivered through 'returning'.");
     result = false;
     goto done;
   }
 
   if (ten_msg_has_locked_res(msg)) {
-    ten_error_set(err, TEN_ERRNO_GENERIC,
+    ten_error_set(err, TEN_ERROR_CODE_GENERIC,
                   "Locked resources are not allowed in messages sent from an "
                   "extension.");
     result = false;
@@ -146,20 +146,20 @@ static bool ten_send_msg_internal(
 
 done:
   if (!result) {
-    if (ten_error_errno(err) == TEN_ERRNO_MSG_NOT_CONNECTED) {
+    if (ten_error_code(err) == TEN_ERROR_CODE_MSG_NOT_CONNECTED) {
       if (ten_env_get_attach_to(self) == TEN_ENV_ATTACH_TO_EXTENSION) {
         ten_extension_t *extension = ten_env_get_attached_extension(self);
         TEN_ASSERT(extension, "Should not happen.");
 
         if (ten_extension_increment_msg_not_connected_count(
                 extension, ten_msg_get_name(msg))) {
-          TEN_LOGW("Failed to send message: %s", ten_error_errmsg(err));
+          TEN_LOGW("Failed to send message: %s", ten_error_message(err));
         }
       } else {
-        TEN_LOGE("Failed to send message: %s", ten_error_errmsg(err));
+        TEN_LOGE("Failed to send message: %s", ten_error_message(err));
       }
     } else {
-      TEN_LOGE("Failed to send message: %s", ten_error_errmsg(err));
+      TEN_LOGE("Failed to send message: %s", ten_error_message(err));
     }
   }
 

@@ -14,7 +14,7 @@
 #include "ten_runtime/binding/go/interface/ten/common.h"
 #include "ten_runtime/binding/go/interface/ten/msg.h"
 #include "ten_runtime/binding/go/interface/ten/ten_env.h"
-#include "ten_runtime/common/errno.h"
+#include "ten_runtime/common/error_code.h"
 #include "ten_runtime/ten_env/internal/return.h"
 #include "ten_runtime/ten_env_proxy/ten_env_proxy.h"
 #include "ten_utils/lib/alloc.h"
@@ -72,7 +72,7 @@ static void proxy_handle_return_error(ten_env_t *ten_env, void *user_data,
   TEN_ASSERT(callback_info, "Should not happen.");
 
   ten_go_error_t cgo_error;
-  ten_go_error_init_with_errno(&cgo_error, TEN_ERRNO_OK);
+  ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
 
   if (err) {
     ten_go_error_from_error(&cgo_error, err);
@@ -99,7 +99,7 @@ static void ten_env_proxy_notify_return_result(ten_env_t *ten_env,
   TEN_ASSERT(ctx, "Should not happen.");
 
   ten_go_error_t cgo_error;
-  ten_go_error_init_with_errno(&cgo_error, TEN_ERRNO_OK);
+  ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
 
   ten_error_t err;
   ten_error_init(&err);
@@ -162,9 +162,10 @@ ten_go_error_t ten_go_ten_env_return_result(uintptr_t bridge_addr,
              "Should not happen.");
 
   ten_go_error_t cgo_error;
-  ten_go_error_init_with_errno(&cgo_error, TEN_ERRNO_OK);
-  TEN_GO_TEN_ENV_IS_ALIVE_REGION_BEGIN(
-      self, { ten_go_error_set_errno(&cgo_error, TEN_ERRNO_TEN_IS_CLOSED); });
+  ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
+  TEN_GO_TEN_ENV_IS_ALIVE_REGION_BEGIN(self, {
+    ten_go_error_set_error_code(&cgo_error, TEN_ERROR_CODE_TEN_IS_CLOSED);
+  });
 
   ten_error_t err;
   ten_error_init(&err);
@@ -200,10 +201,11 @@ ten_go_error_t ten_go_ten_env_return_result_directly(
              "Should not happen.");
 
   ten_go_error_t cgo_error;
-  ten_go_error_init_with_errno(&cgo_error, TEN_ERRNO_OK);
+  ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
 
-  TEN_GO_TEN_ENV_IS_ALIVE_REGION_BEGIN(
-      self, { ten_go_error_set_errno(&cgo_error, TEN_ERRNO_TEN_IS_CLOSED); });
+  TEN_GO_TEN_ENV_IS_ALIVE_REGION_BEGIN(self, {
+    ten_go_error_set_error_code(&cgo_error, TEN_ERROR_CODE_TEN_IS_CLOSED);
+  });
   ten_error_t err;
   ten_error_init(&err);
 

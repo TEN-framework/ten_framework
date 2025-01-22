@@ -75,10 +75,10 @@ napi_value ten_nodejs_ten_env_is_property_exist(napi_env env,
       ten_env_bridge, ten_string_get_raw_str(&name), cb_tsfn, &err);
   if (!rc) {
     ten_string_t code_str;
-    ten_string_init_formatted(&code_str, "%d", ten_error_errno(&err));
+    ten_string_init_formatted(&code_str, "%d", ten_error_code(&err));
 
     status = napi_throw_error(env, ten_string_get_raw_str(&code_str),
-                              ten_error_errmsg(&err));
+                              ten_error_message(&err));
     ASSERT_IF_NAPI_FAIL(status == napi_ok, "Failed to throw error: %d", status);
 
     ten_string_deinit(&code_str);

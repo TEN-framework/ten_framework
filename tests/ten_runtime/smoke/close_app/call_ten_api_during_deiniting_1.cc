@@ -11,7 +11,7 @@
 #include "gtest/gtest.h"
 #include "include_internal/ten_runtime/binding/cpp/ten.h"
 #include "ten_runtime/binding/cpp/detail/ten_env_proxy.h"
-#include "ten_runtime/common/errno.h"
+#include "ten_runtime/common/error_code.h"
 #include "ten_runtime/common/status_code.h"
 #include "ten_utils/lang/cpp/lib/error.h"
 #include "ten_utils/lib/thread.h"
@@ -102,7 +102,8 @@ class test_extension_2 : public ten::extension_t {
           ten::error_t error;
           auto rc = ten_env.set_property("aaa", "bbb", &error);
           ASSERT_FALSE(rc);
-          ASSERT_EQ(error.get_c_error()->err_no, TEN_ERRNO_TEN_IS_CLOSED);
+          ASSERT_EQ(error.get_c_error()->error_code,
+                    TEN_ERROR_CODE_TEN_IS_CLOSED);
         });
     ASSERT_TRUE(rc);
 

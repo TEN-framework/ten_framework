@@ -278,7 +278,7 @@ bool ten_metadata_info_set(ten_metadata_info_t *self, TEN_METADATA_TYPE type,
 
     if (!validated) {
       TEN_LOGW("Failed to set metadata for %s, %s.",
-               ten_string_get_raw_str(&display), ten_error_errmsg(&err));
+               ten_string_get_raw_str(&display), ten_error_message(&err));
       break;
     }
 

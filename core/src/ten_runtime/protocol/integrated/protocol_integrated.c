@@ -361,7 +361,7 @@ static void ten_transport_on_client_accepted(ten_transport_t *transport,
       ten_string_get_raw_str(&listening_base_protocol->addon_host->name),
       TEN_PROTOCOL_ROLE_IN_DEFAULT, ten_app_thread_on_client_protocol_created,
       stream, &err);
-  TEN_ASSERT(rc, "Failed to create protocol, err: %s", ten_error_errmsg(&err));
+  TEN_ASSERT(rc, "Failed to create protocol, err: %s", ten_error_message(&err));
 
   ten_error_deinit(&err);
 }

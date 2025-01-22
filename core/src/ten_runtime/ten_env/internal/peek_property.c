@@ -6,7 +6,7 @@
 //
 #include "include_internal/ten_runtime/app/app.h"
 #include "include_internal/ten_runtime/app/ten_env/metadata.h"
-#include "include_internal/ten_runtime/common/errno.h"
+#include "include_internal/ten_runtime/common/error_code.h"
 #include "include_internal/ten_runtime/engine/engine.h"
 #include "include_internal/ten_runtime/extension/extension.h"
 #include "include_internal/ten_runtime/extension/metadata.h"
@@ -178,7 +178,7 @@ ten_value_t *ten_env_peek_property(ten_env_t *self, const char *path,
 
   if (ten_env_is_closed(self)) {
     if (err) {
-      ten_error_set(err, TEN_ERRNO_TEN_IS_CLOSED, "ten_env is closed.");
+      ten_error_set(err, TEN_ERROR_CODE_TEN_IS_CLOSED, "ten_env is closed.");
     }
     return NULL;
   }
@@ -325,8 +325,8 @@ ten_value_t *ten_env_peek_property(ten_env_t *self, const char *path,
 
   if (!res) {
     if (err) {
-      ten_error_set(err, TEN_ERRNO_VALUE_NOT_FOUND, "Failed to find value: %s",
-                    path);
+      ten_error_set(err, TEN_ERROR_CODE_VALUE_NOT_FOUND,
+                    "Failed to find value: %s", path);
     }
   }
 

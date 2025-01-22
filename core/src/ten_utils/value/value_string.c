@@ -12,7 +12,7 @@
 
 #include "include_internal/ten_utils/value/constant_str.h"
 #include "include_internal/ten_utils/value/value_convert.h"
-#include "ten_runtime/common/errno.h"
+#include "ten_runtime/common/error_code.h"
 #include "ten_utils/container/list.h"
 #include "ten_utils/lib/error.h"
 #include "ten_utils/lib/string.h"
@@ -216,7 +216,8 @@ ten_value_t *ten_value_from_type_and_string(TEN_TYPE type, const char *str,
       int64_t int64_val = strtol(str, NULL, 10);
       if (errno == ERANGE) {
         if (err) {
-          ten_error_set(err, TEN_ERRNO_GENERIC, "Integer value out of range");
+          ten_error_set(err, TEN_ERROR_CODE_GENERIC,
+                        "Integer value out of range");
         }
         return NULL;
       }
@@ -234,7 +235,8 @@ ten_value_t *ten_value_from_type_and_string(TEN_TYPE type, const char *str,
       uint64_t uint64_val = strtoul(str, NULL, 10);
       if (errno == ERANGE) {
         if (err) {
-          ten_error_set(err, TEN_ERRNO_GENERIC, "Integer value out of range");
+          ten_error_set(err, TEN_ERROR_CODE_GENERIC,
+                        "Integer value out of range");
         }
         return NULL;
       }
@@ -263,7 +265,7 @@ ten_value_t *ten_value_from_type_and_string(TEN_TYPE type, const char *str,
       double double_val = strtod(str, NULL);
       if (errno == ERANGE) {
         if (err) {
-          ten_error_set(err, TEN_ERRNO_GENERIC,
+          ten_error_set(err, TEN_ERROR_CODE_GENERIC,
                         "Floating point value out of range");
         }
         return NULL;

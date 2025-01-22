@@ -18,7 +18,7 @@
 #include "include_internal/ten_runtime/ten_env/metadata_cb.h"
 #include "include_internal/ten_runtime/ten_env/ten_env.h"
 #include "ten_runtime/app/app.h"
-#include "ten_runtime/common/errno.h"
+#include "ten_runtime/common/error_code.h"
 #include "ten_runtime/ten_env/internal/metadata.h"
 #include "ten_runtime/ten_env/ten_env.h"
 #include "ten_utils/lib/alloc.h"
@@ -57,7 +57,7 @@ static void ten_app_set_property_sync_cb(ten_app_t *app, ten_error_t *err,
   ten_env_set_property_sync_context_t *context = cb_data;
   TEN_ASSERT(context, "Should not happen.");
 
-  ten_error_set(context->err, ten_error_errno(err), ten_error_errmsg(err));
+  ten_error_set(context->err, ten_error_code(err), ten_error_message(err));
   ten_event_set(context->completed);
 }
 
@@ -191,7 +191,7 @@ bool ten_env_set_property(ten_env_t *self, const char *path, ten_value_t *value,
 
   if (ten_env_is_closed(self)) {
     if (err) {
-      ten_error_set(err, TEN_ERRNO_TEN_IS_CLOSED, "ten_env is closed.");
+      ten_error_set(err, TEN_ERROR_CODE_TEN_IS_CLOSED, "ten_env is closed.");
     }
     result = false;
     goto done;
@@ -199,7 +199,7 @@ bool ten_env_set_property(ten_env_t *self, const char *path, ten_value_t *value,
 
   if (!path || !strlen(path)) {
     if (err) {
-      ten_error_set(err, TEN_ERRNO_INVALID_ARGUMENT,
+      ten_error_set(err, TEN_ERROR_CODE_INVALID_ARGUMENT,
                     "path should not be empty.");
     }
     result = false;
@@ -208,7 +208,7 @@ bool ten_env_set_property(ten_env_t *self, const char *path, ten_value_t *value,
 
   if (!value) {
     if (err) {
-      ten_error_set(err, TEN_ERRNO_INVALID_ARGUMENT,
+      ten_error_set(err, TEN_ERROR_CODE_INVALID_ARGUMENT,
                     "value should not be empty.");
     }
     result = false;
@@ -241,7 +241,7 @@ bool ten_env_set_property(ten_env_t *self, const char *path, ten_value_t *value,
             result = false;
             if (err) {
               ten_error_set(
-                  err, TEN_ERRNO_GENERIC,
+                  err, TEN_ERROR_CODE_GENERIC,
                   "Setting properties in higher-level scopes is not allowed. "
                   "Properties can only be set within the current scope.");
             }
@@ -264,7 +264,7 @@ bool ten_env_set_property(ten_env_t *self, const char *path, ten_value_t *value,
             result = false;
             if (err) {
               ten_error_set(
-                  err, TEN_ERRNO_GENERIC,
+                  err, TEN_ERROR_CODE_GENERIC,
                   "Setting properties in higher-level scopes is not allowed. "
                   "Properties can only be set within the current scope.");
             }
@@ -333,7 +333,7 @@ bool ten_env_set_property(ten_env_t *self, const char *path, ten_value_t *value,
             result = false;
             if (err) {
               ten_error_set(
-                  err, TEN_ERRNO_GENERIC,
+                  err, TEN_ERROR_CODE_GENERIC,
                   "The set property of extension group is currently not "
                   "supported; use init_property_from_json instead.");
             }
@@ -349,7 +349,7 @@ bool ten_env_set_property(ten_env_t *self, const char *path, ten_value_t *value,
             result = false;
             if (err) {
               ten_error_set(
-                  err, TEN_ERRNO_GENERIC,
+                  err, TEN_ERROR_CODE_GENERIC,
                   "Setting properties in higher-level scopes is not allowed. "
                   "Properties can only be set within the current scope.");
             }
@@ -429,7 +429,7 @@ bool ten_env_set_property(ten_env_t *self, const char *path, ten_value_t *value,
 done:
   if (!result) {
     if (err) {
-      TEN_LOGW("Failed to set property: %s.", ten_error_errmsg(err));
+      TEN_LOGW("Failed to set property: %s.", ten_error_message(err));
     } else {
       TEN_LOGW("Failed to set property.");
     }
@@ -449,7 +449,7 @@ bool ten_env_set_property_async(ten_env_t *self, const char *path,
 
   if (!path || !strlen(path)) {
     if (err) {
-      ten_error_set(err, TEN_ERRNO_INVALID_ARGUMENT,
+      ten_error_set(err, TEN_ERROR_CODE_INVALID_ARGUMENT,
                     "path should not be empty.");
     }
     return false;
@@ -457,7 +457,7 @@ bool ten_env_set_property_async(ten_env_t *self, const char *path,
 
   if (!value) {
     if (err) {
-      ten_error_set(err, TEN_ERRNO_INVALID_ARGUMENT,
+      ten_error_set(err, TEN_ERROR_CODE_INVALID_ARGUMENT,
                     "value should not be empty.");
     }
     return false;
@@ -497,7 +497,7 @@ bool ten_env_set_property_async(ten_env_t *self, const char *path,
             result = false;
             if (err) {
               ten_error_set(
-                  err, TEN_ERRNO_GENERIC,
+                  err, TEN_ERROR_CODE_GENERIC,
                   "Setting properties in higher-level scopes is not allowed. "
                   "Properties can only be set within the current scope.");
             }
@@ -521,7 +521,7 @@ bool ten_env_set_property_async(ten_env_t *self, const char *path,
             result = false;
             if (err) {
               ten_error_set(
-                  err, TEN_ERRNO_GENERIC,
+                  err, TEN_ERROR_CODE_GENERIC,
                   "Setting properties in higher-level scopes is not allowed. "
                   "Properties can only be set within the current scope.");
             }
@@ -569,7 +569,7 @@ bool ten_env_set_property_async(ten_env_t *self, const char *path,
             result = false;
             if (err) {
               ten_error_set(
-                  err, TEN_ERRNO_GENERIC,
+                  err, TEN_ERROR_CODE_GENERIC,
                   "The set property of extension group is currently not "
                   "supported; use init_property_from_json instead.");
             }
@@ -586,7 +586,7 @@ bool ten_env_set_property_async(ten_env_t *self, const char *path,
             result = false;
             if (err) {
               ten_error_set(
-                  err, TEN_ERRNO_GENERIC,
+                  err, TEN_ERROR_CODE_GENERIC,
                   "Setting properties in higher-level scopes is not allowed. "
                   "Properties can only be set within the current scope.");
             }
@@ -626,7 +626,7 @@ bool ten_env_set_property_async(ten_env_t *self, const char *path,
           if (true) {
             result = false;
             if (err) {
-              ten_error_set(err, TEN_ERRNO_GENERIC,
+              ten_error_set(err, TEN_ERROR_CODE_GENERIC,
                             "The set property of app is currently not "
                             "supported; use init_property_from_json instead.");
             }

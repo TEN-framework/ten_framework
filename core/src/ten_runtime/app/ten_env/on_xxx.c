@@ -50,14 +50,14 @@ static void ten_app_adjust_and_validate_property_on_configure_done(
   bool success = ten_schema_store_adjust_properties(&self->schema_store,
                                                     &self->property, &err);
   if (!success) {
-    TEN_LOGW("Failed to adjust property type, %s.", ten_error_errmsg(&err));
+    TEN_LOGW("Failed to adjust property type, %s.", ten_error_message(&err));
     goto done;
   }
 
   success = ten_schema_store_validate_properties(&self->schema_store,
                                                  &self->property, &err);
   if (!success) {
-    TEN_LOGW("Invalid property, %s.", ten_error_errmsg(&err));
+    TEN_LOGW("Invalid property, %s.", ten_error_message(&err));
     goto done;
   }
 
@@ -78,7 +78,7 @@ static void ten_app_start_auto_start_predefined_graph_and_trigger_on_init(
   ten_error_init(&err);
 
   bool rc = ten_app_start_auto_start_predefined_graph(self, &err);
-  TEN_ASSERT(rc, "Should not happen, %s.", ten_error_errmsg(&err));
+  TEN_ASSERT(rc, "Should not happen, %s.", ten_error_message(&err));
 
   ten_error_deinit(&err);
 
@@ -140,7 +140,7 @@ void ten_app_on_all_addon_loaders_created(ten_app_t *self) {
         &err);
     if (!rc) {
       TEN_LOGW("Failed to create app endpoint protocol, %s.",
-               ten_error_errmsg(&err));
+               ten_error_message(&err));
       goto error;
     }
   } else {

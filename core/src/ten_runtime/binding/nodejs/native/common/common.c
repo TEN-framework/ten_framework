@@ -6,7 +6,7 @@
 //
 #include "include_internal/ten_runtime/binding/nodejs/common/common.h"
 
-#include "ten_runtime/common/errno.h"
+#include "ten_runtime/common/error_code.h"
 #include "ten_utils/lib/error.h"
 #include "ten_utils/lib/string.h"
 #include "ten_utils/macro/check.h"
@@ -255,7 +255,7 @@ napi_value ten_nodejs_create_error(napi_env env, ten_error_t *error) {
   napi_value _msg = NULL;
 
   ten_string_t code_str;
-  ten_string_init_formatted(&code_str, "%d", ten_error_errno(error));
+  ten_string_init_formatted(&code_str, "%d", ten_error_code(error));
 
   napi_status status = napi_create_string_utf8(
       env, ten_string_get_raw_str(&code_str), NAPI_AUTO_LENGTH, &_code);
@@ -263,7 +263,7 @@ napi_value ten_nodejs_create_error(napi_env env, ten_error_t *error) {
 
   ten_string_deinit(&code_str);
 
-  status = napi_create_string_utf8(env, ten_error_errmsg(error),
+  status = napi_create_string_utf8(env, ten_error_message(error),
                                    NAPI_AUTO_LENGTH, &_msg);
   TEN_ASSERT(status == napi_ok, "Failed to create JS string.");
 
@@ -391,7 +391,7 @@ napi_value ten_nodejs_create_value_string(napi_env env, ten_value_t *value,
                         status);
   } else {
     if (error) {
-      ten_error_set(error, TEN_ERRNO_INVALID_TYPE, "Invalid value type.");
+      ten_error_set(error, TEN_ERROR_CODE_INVALID_TYPE, "Invalid value type.");
     }
   }
 

@@ -9,7 +9,7 @@
 #include "include_internal/ten_runtime/common/constant_str.h"
 #include "include_internal/ten_runtime/msg/msg.h"
 #include "include_internal/ten_runtime/msg_conversion/msg_conversion/per_property/per_property.h"
-#include "ten_runtime/common/errno.h"
+#include "ten_runtime/common/error_code.h"
 #include "ten_utils/lib/error.h"
 #include "ten_utils/lib/string.h"
 #include "ten_utils/macro/check.h"
@@ -41,7 +41,7 @@ ten_msg_conversion_t *ten_msg_conversion_from_json(ten_json_t *json,
         json, err);
   } else {
     if (err) {
-      ten_error_set(err, TEN_ERRNO_INVALID_JSON,
+      ten_error_set(err, TEN_ERROR_CODE_INVALID_JSON,
                     "Invalid message conversion operation type %s", type);
     }
     TEN_ASSERT(0, "Should not happen.");
@@ -68,14 +68,15 @@ ten_msg_conversion_t *ten_msg_conversion_from_value(ten_value_t *value,
   ten_value_t *type_value = ten_value_object_peek(value, TEN_STR_TYPE);
   if (!type_value) {
     if (err) {
-      ten_error_set(err, TEN_ERRNO_INVALID_JSON, "operation_type is missing.");
+      ten_error_set(err, TEN_ERROR_CODE_INVALID_JSON,
+                    "operation_type is missing.");
     }
     return NULL;
   }
 
   if (!ten_value_is_string(type_value)) {
     if (err) {
-      ten_error_set(err, TEN_ERRNO_INVALID_JSON,
+      ten_error_set(err, TEN_ERROR_CODE_INVALID_JSON,
                     "operation_type is not a string.");
     }
     return NULL;
@@ -92,7 +93,7 @@ ten_msg_conversion_t *ten_msg_conversion_from_value(ten_value_t *value,
         value, err);
   } else {
     if (err) {
-      ten_error_set(err, TEN_ERRNO_INVALID_JSON,
+      ten_error_set(err, TEN_ERROR_CODE_INVALID_JSON,
                     "Unsupported operation type %s", type_str);
     }
     return NULL;
