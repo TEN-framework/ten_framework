@@ -825,7 +825,7 @@ ten_go_error_t ten_go_msg_set_dest(uintptr_t bridge_addr, const void *app_uri,
   TEN_ASSERT(self && ten_go_msg_check_integrity(self), "Should not happen.");
 
   ten_go_error_t cgo_error;
-  ten_go_error_init_with_errno(&cgo_error, TEN_ERRNO_OK);
+  ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
 
   ten_string_t app_uri_str;
   ten_string_init_from_c_str_with_size(&app_uri_str, app_uri, app_uri_len);
@@ -851,7 +851,8 @@ ten_go_error_t ten_go_msg_set_dest(uintptr_t bridge_addr, const void *app_uri,
       ten_string_get_raw_str(&extension_str), &err);
 
   if (!rc) {
-    ten_go_error_set(&cgo_error, TEN_ERRNO_GENERIC, ten_error_errmsg(&err));
+    ten_go_error_set(&cgo_error, TEN_ERROR_CODE_GENERIC,
+                     ten_error_message(&err));
   }
 
   ten_error_deinit(&err);
