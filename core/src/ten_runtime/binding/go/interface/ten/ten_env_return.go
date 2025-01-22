@@ -17,14 +17,14 @@ func (p *tenEnv) ReturnResult(
 ) error {
 	if statusCmd == nil {
 		return newTenError(
-			ErrnoInvalidArgument,
+			ErrorCodeInvalidArgument,
 			"cmd result is required.",
 		)
 	}
 
 	if cmd == nil {
 		return newTenError(
-			ErrnoInvalidArgument,
+			ErrorCodeInvalidArgument,
 			"cmd is required.",
 		)
 	}
@@ -64,7 +64,7 @@ func (p *tenEnv) ReturnResultDirectly(
 ) error {
 	if statusCmd == nil {
 		return newTenError(
-			ErrnoInvalidArgument,
+			ErrorCodeInvalidArgument,
 			"cmd result is required.",
 		)
 	}

@@ -50,7 +50,7 @@ TEST(SchemaTest, ValidStringType) {  // NOLINT
 
   // the value type does not match the schema type, given: int8, expected:
   // string
-  auto err_msg = std::string(ten_error_errmsg(&err));
+  auto err_msg = std::string(ten_error_message(&err));
   ASSERT_EQ(err_msg,
             "the value type does not match the schema type, given: int8, "
             "expected: string");
@@ -109,7 +109,7 @@ TEST(SchemaTest, ValidObjectType) {  // NOLINT
 
   // .name: the value type does not match the schema type, given: uint64,
   // expected: string
-  auto err_msg = std::string(ten_error_errmsg(&err));
+  auto err_msg = std::string(ten_error_message(&err));
   ASSERT_EQ(err_msg.rfind(".name:", 0) == 0, true);
 
   // Testing for required.
@@ -128,7 +128,7 @@ TEST(SchemaTest, ValidObjectType) {  // NOLINT
   ten_value_destroy(missing_value);
 
   // the required properties are absent: 'name'
-  err_msg = std::string(ten_error_errmsg(&err));
+  err_msg = std::string(ten_error_message(&err));
   ASSERT_EQ(err_msg, "the required properties are absent: 'name'");
 
   ten_error_deinit(&err);
@@ -199,7 +199,7 @@ TEST(SchemaTest, CompositeObjectValidateErrMsg) {  // NOLINT
 
   // .a[0].c[1]: the value type does not match the schema type, given: uint64,
   // expected: string
-  auto err_msg = std::string(ten_error_errmsg(&err));
+  auto err_msg = std::string(ten_error_message(&err));
   ASSERT_EQ(err_msg.rfind(".a[0].c[1]", 0), 0);
 
   ten_error_reset(&err);
@@ -228,7 +228,7 @@ TEST(SchemaTest, CompositeObjectValidateErrMsg) {  // NOLINT
   ten_value_destroy(value2);
 
   // .a[0].d: the required properties are absent: 'f'
-  err_msg = std::string(ten_error_errmsg(&err));
+  err_msg = std::string(ten_error_message(&err));
   ASSERT_EQ(err_msg.rfind(".a[0].d:", 0), 0);
 
   ten_error_deinit(&err);
@@ -277,7 +277,7 @@ TEST(SchemaTest, RequiredErrorMessage) {  // NOLINT
   ASSERT_EQ(success, false);
 
   // .body: the required properties are absent: 'height', 'weight'
-  auto err_msg = std::string(ten_error_errmsg(&err));
+  auto err_msg = std::string(ten_error_message(&err));
   ASSERT_EQ(err_msg.rfind(".body:", 0) == 0, true);
 
   ten_value_destroy(value);
@@ -319,7 +319,7 @@ TEST(SchemaTest, ValidArrayType) {  // NOLINT
 
   // [1]: the value type does not match the schema type, given: string,
   // expected: int64
-  auto err_msg = std::string(ten_error_errmsg(&err));
+  auto err_msg = std::string(ten_error_message(&err));
   ASSERT_EQ(err_msg.rfind("[1]:", 0) == 0, true);
 
   ten_value_destroy(value);
@@ -514,7 +514,7 @@ TEST(SchemaTest, CompatibleIntFail) {  // NOLINT
   ASSERT_EQ(success, false);
 
   // type is incompatible, source is [int32], but target is [string]
-  auto err_msg = std::string(ten_error_errmsg(&err));
+  auto err_msg = std::string(ten_error_message(&err));
   ASSERT_EQ(err_msg,
             "type is incompatible, source is [int32], but target is [string]");
 
@@ -681,7 +681,7 @@ TEST(SchemaTest, CompatiblePropertiesMismatchType) {  // NOLINT
   ASSERT_EQ(success, false);
 
   // .a: type is incompatible, source is [string], but target is [int8]
-  auto err_msg = std::string(ten_error_errmsg(&err));
+  auto err_msg = std::string(ten_error_message(&err));
   ASSERT_EQ(err_msg.rfind("{ .a:", 0) == 0, true);
 
   ten_error_deinit(&err);
@@ -1104,7 +1104,7 @@ TEST(SchemaTest, PathInfoInErrMsg) {  // NOLINT
   ten_value_destroy(value_a);
 
   // .a: unsupported conversion from `uint64` to `string`
-  auto err_a = std::string(ten_error_errmsg(&err));
+  auto err_a = std::string(ten_error_message(&err));
   ASSERT_EQ(err_a.rfind(".a", 0) == 0, true);
 
   // Testing for b.
@@ -1122,7 +1122,7 @@ TEST(SchemaTest, PathInfoInErrMsg) {  // NOLINT
   ten_value_destroy(value_b);
 
   // .b[1]: unsupported conversion from `uint64` to `string`
-  auto err_b = std::string(ten_error_errmsg(&err));
+  auto err_b = std::string(ten_error_message(&err));
   ASSERT_EQ(err_b.rfind(".b[1]", 0) == 0, true);
 
   // Testing for c.
@@ -1150,7 +1150,7 @@ TEST(SchemaTest, PathInfoInErrMsg) {  // NOLINT
   ten_value_destroy(value_c);
 
   // .c[0].d: unsupported conversion from `string` to `int32`
-  auto err_c = std::string(ten_error_errmsg(&err));
+  auto err_c = std::string(ten_error_message(&err));
   ASSERT_EQ(err_c.rfind(".c[0].d", 0) == 0, true);
 
   ten_error_deinit(&err);

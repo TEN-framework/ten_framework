@@ -9,7 +9,7 @@
 #include "include_internal/ten_utils/schema/keywords/keyword.h"
 #include "include_internal/ten_utils/schema/schema.h"
 #include "include_internal/ten_utils/schema/types/schema_object.h"
-#include "ten_runtime/common/errno.h"
+#include "ten_runtime/common/error_code.h"
 #include "ten_utils/container/hash_table.h"
 #include "ten_utils/lib/error.h"
 #include "ten_utils/lib/signature.h"
@@ -78,7 +78,7 @@ static bool ten_schema_keyword_properties_validate_value(
   TEN_ASSERT(ten_schema_error_check_integrity(schema_err), "Invalid argument.");
 
   if (!ten_value_is_object(value)) {
-    ten_error_set(schema_err->err, TEN_ERRNO_GENERIC,
+    ten_error_set(schema_err->err, TEN_ERROR_CODE_GENERIC,
                   "the value should be an object, but is: %s",
                   ten_type_to_string(ten_value_get_type(value)));
     return false;
@@ -127,7 +127,7 @@ static bool ten_schema_keyword_properties_adjust_value(
   TEN_ASSERT(ten_schema_error_check_integrity(schema_err), "Invalid argument.");
 
   if (!ten_value_is_object(value)) {
-    ten_error_set(schema_err->err, TEN_ERRNO_GENERIC,
+    ten_error_set(schema_err->err, TEN_ERROR_CODE_GENERIC,
                   "the value should be an object, but is: %s",
                   ten_type_to_string(ten_value_get_type(value)));
     return false;
@@ -210,7 +210,7 @@ static bool ten_schema_keyword_properties_is_compatible(
                                   separator,
                                   ten_string_get_raw_str(&property->name),
                                   ten_string_get_raw_str(&schema_err->path),
-                                  ten_error_errmsg(schema_err->err));
+                                  ten_error_message(schema_err->err));
     }
 
     ten_schema_error_reset(schema_err);
@@ -219,7 +219,7 @@ static bool ten_schema_keyword_properties_is_compatible(
   bool success = ten_string_is_empty(&incompatible_fields);
 
   if (!success) {
-    ten_error_set(schema_err->err, TEN_ERRNO_GENERIC, "{ %s }",
+    ten_error_set(schema_err->err, TEN_ERROR_CODE_GENERIC, "{ %s }",
                   ten_string_get_raw_str(&incompatible_fields));
   }
 

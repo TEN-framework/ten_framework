@@ -14,30 +14,30 @@
 //
 // Note: To achieve the best compatibility, any new enum item, should be added
 // to the end to avoid changing the value of previous enum items.
-typedef enum TEN_ERRNO {
+typedef enum TEN_ERROR_CODE {
   // Generic errno.
-  TEN_ERRNO_GENERIC = 1,
+  TEN_ERROR_CODE_GENERIC = 1,
 
   // Invalid json.
-  TEN_ERRNO_INVALID_JSON = 2,
+  TEN_ERROR_CODE_INVALID_JSON = 2,
 
   // Invalid argument.
-  TEN_ERRNO_INVALID_ARGUMENT = 3,
+  TEN_ERROR_CODE_INVALID_ARGUMENT = 3,
 
   // Invalid type.
-  TEN_ERRNO_INVALID_TYPE = 4,
+  TEN_ERROR_CODE_INVALID_TYPE = 4,
 
   // Invalid graph.
-  TEN_ERRNO_INVALID_GRAPH = 5,
+  TEN_ERROR_CODE_INVALID_GRAPH = 5,
 
   // The TEN world is closed.
-  TEN_ERRNO_TEN_IS_CLOSED = 6,
+  TEN_ERROR_CODE_TEN_IS_CLOSED = 6,
 
   // The msg is not connected in the graph.
-  TEN_ERRNO_MSG_NOT_CONNECTED = 7,
-} TEN_ERRNO;
+  TEN_ERROR_CODE_MSG_NOT_CONNECTED = 7,
+} TEN_ERROR_CODE;
 
 static_assert(
-    sizeof(TEN_ERRNO) <= sizeof(ten_errno_t),
-    "The size of field TEN_ERRNO enum should be less or equal to the size "
-    "of ten_errno_t.");
+    sizeof(TEN_ERROR_CODE) <= sizeof(ten_error_code_t),
+    "The size of field TEN_ERROR_CODE enum should be less or equal to the size "
+    "of ten_error_code_t.");

@@ -6,7 +6,7 @@
 //
 #include "include_internal/ten_runtime/binding/nodejs/ten_env/ten_env.h"
 #include "js_native_api.h"
-#include "ten_runtime/common/errno.h"
+#include "ten_runtime/common/error_code.h"
 #include "ten_utils/lib/json.h"
 #include "ten_utils/macro/check.h"
 #include "ten_utils/value/value_json.h"
@@ -30,7 +30,8 @@ static void tsfn_proxy_set_property_from_json_callback(napi_env env,
     } else {
       ten_error_t err;
       ten_error_init(&err);
-      ten_error_set(&err, TEN_ERRNO_GENERIC, "Failed to set property value");
+      ten_error_set(&err, TEN_ERROR_CODE_GENERIC,
+                    "Failed to set property value");
       js_error = ten_nodejs_create_error(env, &err);
       ASSERT_IF_NAPI_FAIL(js_error, "Failed to create JS error", NULL);
       ten_error_deinit(&err);
@@ -88,7 +89,7 @@ napi_value ten_nodejs_ten_env_set_property_from_json(napi_env env,
       ten_string_get_raw_str(&property_value_json_str), &err);
   if (!json) {
     ten_string_t code_str;
-    ten_string_init_formatted(&code_str, "%d", ten_error_errno(&err));
+    ten_string_init_formatted(&code_str, "%d", ten_error_code(&err));
 
     napi_throw_error(env, ten_string_get_raw_str(&code_str),
                      "Invalid JSON string.");
@@ -114,10 +115,10 @@ napi_value ten_nodejs_ten_env_set_property_from_json(napi_env env,
       ten_env_bridge, ten_string_get_raw_str(&path), value, cb_tsfn, &err);
   if (!rc) {
     ten_string_t code_str;
-    ten_string_init_formatted(&code_str, "%d", ten_error_errno(&err));
+    ten_string_init_formatted(&code_str, "%d", ten_error_code(&err));
 
     status = napi_throw_error(env, ten_string_get_raw_str(&code_str),
-                              ten_error_errmsg(&err));
+                              ten_error_message(&err));
     ASSERT_IF_NAPI_FAIL(status == napi_ok, "Failed to throw error: %d", status);
 
     ten_string_deinit(&code_str);

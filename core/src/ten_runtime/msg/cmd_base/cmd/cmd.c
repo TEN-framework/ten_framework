@@ -15,7 +15,7 @@
 #include "include_internal/ten_runtime/msg/field/field_info.h"
 #include "include_internal/ten_runtime/msg/msg.h"
 #include "include_internal/ten_runtime/msg/msg_info.h"
-#include "ten_runtime/common/errno.h"
+#include "ten_runtime/common/error_code.h"
 #include "ten_runtime/msg/cmd/cmd.h"
 #include "ten_utils/lib/smart_ptr.h"
 #include "ten_utils/lib/string.h"
@@ -169,7 +169,7 @@ static TEN_MSG_TYPE ten_cmd_type_from_name_string(const char *name_str) {
 static ten_cmd_t *ten_raw_cmd_create(const char *name, ten_error_t *err) {
   if (!name) {
     if (err) {
-      ten_error_set(err, TEN_ERRNO_GENERIC,
+      ten_error_set(err, TEN_ERROR_CODE_GENERIC,
                     "Failed to create cmd without a name.");
     }
     return NULL;

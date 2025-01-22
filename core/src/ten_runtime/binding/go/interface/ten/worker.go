@@ -137,7 +137,7 @@ func newJobPool(n int) *pool {
 		f, ok := a.(job)
 		if !ok {
 			return newTenError(
-				ErrnoGeneric,
+				ErrorCodeGeneric,
 				"job is not a function.",
 			)
 		}

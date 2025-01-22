@@ -297,7 +297,7 @@ static bool ten_engine_create_remote_async(
       ten_engine_on_remote_protocol_created, ctx, &err);
   if (!rc) {
     TEN_LOGE("Failed to create protocol for %s. err: %s", uri,
-             ten_error_errmsg(&err));
+             ten_error_message(&err));
     ten_error_deinit(&err);
     ten_engine_on_protocol_created_ctx_destroy(ctx);
     return false;

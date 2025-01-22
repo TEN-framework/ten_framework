@@ -54,7 +54,7 @@ class DefaultExtension(AsyncExtension):
         new_cmd = Cmd.create("greeting")
         result, err = await ten_env.send_cmd(new_cmd)
         if err is not None:
-            ten_env.log_fatal(f"greeting error: {err.err_msg()}")
+            ten_env.log_fatal(f"greeting error: {err.error_message()}")
 
         return result
 

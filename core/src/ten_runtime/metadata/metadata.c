@@ -140,7 +140,7 @@ ten_value_t *ten_metadata_init_schema_store(ten_value_t *manifest,
   ten_error_init(&err);
   if (!ten_schema_store_set_schema_definition(schema_store, api_definition,
                                               &err)) {
-    TEN_LOGW("Failed to set schema definition: %s.", ten_error_errmsg(&err));
+    TEN_LOGW("Failed to set schema definition: %s.", ten_error_message(&err));
   }
 
   ten_error_deinit(&err);
@@ -158,7 +158,7 @@ bool ten_manifest_json_string_is_valid(const char *json_string,
   bool rc = ten_validate_manifest_json_string(json_string, &err_msg);
 
   if (!rc) {
-    ten_error_set(err, TEN_ERRNO_GENERIC, err_msg);
+    ten_error_set(err, TEN_ERROR_CODE_GENERIC, err_msg);
     ten_rust_free_cstring(err_msg);
     return false;
   }
@@ -176,7 +176,7 @@ bool ten_manifest_json_file_is_valid(const char *json_file, ten_error_t *err) {
   bool rc = ten_validate_manifest_json_file(json_file, &err_msg);
 
   if (!rc) {
-    ten_error_set(err, TEN_ERRNO_GENERIC, err_msg);
+    ten_error_set(err, TEN_ERROR_CODE_GENERIC, err_msg);
     ten_rust_free_cstring(err_msg);
     return false;
   }
@@ -195,7 +195,7 @@ bool ten_property_json_string_is_valid(const char *json_string,
   bool rc = ten_validate_property_json_string(json_string, &err_msg);
 
   if (!rc) {
-    ten_error_set(err, TEN_ERRNO_GENERIC, err_msg);
+    ten_error_set(err, TEN_ERROR_CODE_GENERIC, err_msg);
     ten_rust_free_cstring(err_msg);
     return false;
   }
@@ -213,7 +213,7 @@ bool ten_property_json_file_is_valid(const char *json_file, ten_error_t *err) {
   bool rc = ten_validate_property_json_file(json_file, &err_msg);
 
   if (!rc) {
-    ten_error_set(err, TEN_ERRNO_GENERIC, err_msg);
+    ten_error_set(err, TEN_ERROR_CODE_GENERIC, err_msg);
     ten_rust_free_cstring(err_msg);
     return false;
   }

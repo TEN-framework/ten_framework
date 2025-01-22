@@ -9,7 +9,7 @@
 
 #include "include_internal/ten_runtime/common/constant_str.h"
 #include "include_internal/ten_runtime/msg/msg.h"
-#include "ten_runtime/common/errno.h"
+#include "ten_runtime/common/error_code.h"
 #include "ten_utils/container/list.h"
 #include "ten_utils/container/list_node.h"
 #include "ten_utils/lib/smart_ptr.h"
@@ -70,7 +70,7 @@ bool ten_msg_is_property_exist(ten_shared_ptr_t *self, const char *path,
 
   if (!path || !strlen(path)) {
     if (err) {
-      ten_error_set(err, TEN_ERRNO_INVALID_ARGUMENT,
+      ten_error_set(err, TEN_ERROR_CODE_INVALID_ARGUMENT,
                     "path should not be empty.");
     }
     return false;

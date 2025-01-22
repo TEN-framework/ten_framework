@@ -60,7 +60,7 @@ bool ten_app_check_start_graph_cmd(ten_app_t *self,
   }
 
   if (!rc) {
-    ten_error_set(err, TEN_ERRNO_INVALID_GRAPH, err_msg);
+    ten_error_set(err, TEN_ERROR_CODE_INVALID_GRAPH, err_msg);
     ten_rust_free_cstring(err_msg);
   }
 

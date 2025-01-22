@@ -56,7 +56,7 @@ void proxy_send_xxx_callback(ten_env_t *ten_env, ten_shared_ptr_t *cmd_result,
   if (err) {
     ten_go_error_from_error(&cgo_error, err);
   } else {
-    ten_go_error_init_with_errno(&cgo_error, TEN_ERRNO_OK);
+    ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
   }
 
   tenGoOnCmdResult(ten_env_bridge->bridge.go_instance, cmd_result_bridge_addr,

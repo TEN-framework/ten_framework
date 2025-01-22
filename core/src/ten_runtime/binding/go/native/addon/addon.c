@@ -288,7 +288,7 @@ ten_go_error_t ten_go_addon_register_extension(
              "Invalid argument.");
 
   ten_go_error_t cgo_error;
-  ten_go_error_init_with_errno(&cgo_error, TEN_ERRNO_OK);
+  ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
 
   ten_go_addon_t *addon_bridge =
       ten_go_addon_register(addon_name, addon_name_len, base_dir, base_dir_len,

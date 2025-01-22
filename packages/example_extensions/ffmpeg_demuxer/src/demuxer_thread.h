@@ -24,11 +24,12 @@ class demuxer_thread_t {
 
   ~demuxer_thread_t();
 
+  // @{
   demuxer_thread_t(const demuxer_thread_t &other) = delete;
   demuxer_thread_t(demuxer_thread_t &&other) = delete;
-
   demuxer_thread_t &operator=(const demuxer_thread_t &other) = delete;
   demuxer_thread_t &operator=(demuxer_thread_t &&other) = delete;
+  // @}
 
   void start();
   void wait_for_start();
@@ -43,8 +44,9 @@ class demuxer_thread_t {
   friend class demuxer_t;
   friend void *demuxer_thread_main(void *self_);
 
-  void send_image_eof();
+  void send_video_eof();
   void send_audio_eof();
+
   void reply_to_start_cmd(bool success = true);
   bool create_demuxer();
   void wait_for_demuxer();

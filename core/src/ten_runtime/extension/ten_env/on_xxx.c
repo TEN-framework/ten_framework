@@ -38,7 +38,7 @@ static bool ten_extension_parse_interface_schema(ten_extension_t *self,
       err);
   if (!result) {
     TEN_LOGW("[%s] Failed to set interface schema definition: %s.",
-             ten_extension_get_name(self, true), ten_error_errmsg(err));
+             ten_extension_get_name(self, true), ten_error_message(err));
   }
 
   return result;
@@ -56,7 +56,7 @@ static void ten_extension_adjust_and_validate_property_on_configure_done(
                                                     &self->property, &err);
   if (!success) {
     TEN_LOGW("[%s] Failed to adjust property type: %s.",
-             ten_extension_get_name(self, true), ten_error_errmsg(&err));
+             ten_extension_get_name(self, true), ten_error_message(&err));
     goto done;
   }
 
@@ -64,7 +64,7 @@ static void ten_extension_adjust_and_validate_property_on_configure_done(
                                                  &self->property, &err);
   if (!success) {
     TEN_LOGW("[%s] Invalid property: %s.", ten_extension_get_name(self, true),
-             ten_error_errmsg(&err));
+             ten_error_message(&err));
     goto done;
   }
 

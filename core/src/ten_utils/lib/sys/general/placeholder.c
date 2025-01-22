@@ -12,7 +12,7 @@
 #include "include_internal/ten_utils/common/constant_str.h"
 #include "include_internal/ten_utils/macro/memory.h"
 #include "include_internal/ten_utils/value/value.h"
-#include "ten_runtime/common/errno.h"
+#include "ten_runtime/common/error_code.h"
 #include "ten_utils/lib/error.h"
 #include "ten_utils/lib/string.h"
 #include "ten_utils/log/log.h"
@@ -212,7 +212,7 @@ bool ten_placeholder_resolve(ten_placeholder_t *self,
 
     default:
       if (err) {
-        ten_error_set(err, TEN_ERRNO_GENERIC,
+        ten_error_set(err, TEN_ERROR_CODE_GENERIC,
                       "Unsupported placeholder scope: %d", self->scope);
       }
       TEN_ASSERT(0, "Should not happen.");

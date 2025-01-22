@@ -16,7 +16,7 @@
 #include "ten_runtime/binding/cpp/detail/msg/cmd_result.h"
 #include "ten_runtime/binding/cpp/detail/msg/data.h"
 #include "ten_runtime/binding/cpp/detail/msg/video_frame.h"
-#include "ten_runtime/common/errno.h"
+#include "ten_runtime/common/error_code.h"
 #include "ten_runtime/msg/cmd_result/cmd_result.h"
 #include "ten_runtime/ten.h"
 #include "ten_runtime/ten_env/internal/metadata.h"
@@ -84,7 +84,7 @@ class ten_env_t {
 
     if (data->get_underlying_msg() == nullptr) {
       if (err != nullptr && err->get_c_error() != nullptr) {
-        ten_error_set(err->get_c_error(), TEN_ERRNO_INVALID_ARGUMENT,
+        ten_error_set(err->get_c_error(), TEN_ERROR_CODE_INVALID_ARGUMENT,
                       "Invalid data.");
       }
       return false;
@@ -285,7 +285,7 @@ class ten_env_t {
 
     if ((path == nullptr) || (strlen(path) == 0)) {
       if (err != nullptr && err->get_c_error() != nullptr) {
-        ten_error_set(err->get_c_error(), TEN_ERRNO_INVALID_ARGUMENT,
+        ten_error_set(err->get_c_error(), TEN_ERROR_CODE_INVALID_ARGUMENT,
                       "path should not be empty.");
       }
       return false;
@@ -312,7 +312,7 @@ class ten_env_t {
 
     if ((path == nullptr) || (strlen(path) == 0)) {
       if (err != nullptr && err->get_c_error() != nullptr) {
-        ten_error_set(err->get_c_error(), TEN_ERRNO_INVALID_ARGUMENT,
+        ten_error_set(err->get_c_error(), TEN_ERROR_CODE_INVALID_ARGUMENT,
                       "path should not be empty.");
       }
       return result;

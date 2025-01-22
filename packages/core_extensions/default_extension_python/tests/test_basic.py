@@ -23,7 +23,7 @@ class ExtensionTesterBasic(ExtensionTester):
         error: Optional[TenError],
     ):
         if error is not None:
-            assert False, error.err_msg()
+            assert False, error.error_message()
 
         assert result is not None
 

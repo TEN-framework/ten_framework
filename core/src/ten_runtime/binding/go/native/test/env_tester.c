@@ -145,7 +145,7 @@ ten_go_error_t ten_go_ten_env_tester_send_cmd(uintptr_t bridge_addr,
   TEN_ASSERT(ten_go_msg_c_msg(cmd), "Should not happen.");
 
   ten_go_error_t cgo_error;
-  ten_go_error_init_with_errno(&cgo_error, TEN_ERRNO_OK);
+  ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
 
   return cgo_error;
 }

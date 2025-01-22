@@ -13,7 +13,7 @@
 #include "include_internal/ten_runtime/binding/go/value/value.h"
 #include "include_internal/ten_utils/value/value_smart_ptr.h"
 #include "ten_runtime/binding/go/interface/ten/common.h"
-#include "ten_runtime/common/errno.h"
+#include "ten_runtime/common/error_code.h"
 #include "ten_utils/lib/alloc.h"
 #include "ten_utils/lib/buf.h"
 #include "ten_utils/lib/error.h"
@@ -145,7 +145,7 @@ void ten_go_ten_value_get_string(ten_value_t *self, void *value,
   TEN_ASSERT(value && status, "Should not happen.");
 
   if (!ten_value_is_string(self)) {
-    ten_go_error_set_errno(status, TEN_ERRNO_GENERIC);
+    ten_go_error_set_error_code(status, TEN_ERROR_CODE_GENERIC);
     return;
   }
 
@@ -171,7 +171,7 @@ void ten_go_ten_value_get_buf(ten_value_t *self, void *value,
   TEN_ASSERT(value && status, "Should not happen.");
 
   if (!ten_value_is_buf(self)) {
-    ten_go_error_set_errno(status, TEN_ERRNO_GENERIC);
+    ten_go_error_set_error_code(status, TEN_ERROR_CODE_GENERIC);
     return;
   }
 
@@ -292,7 +292,7 @@ bool ten_go_ten_value_to_json(ten_value_t *self, uintptr_t *json_str_len,
     ten_string_init_formatted(&err_msg, "the property type is %s",
                               ten_type_to_string(ten_value_get_type(self)));
 
-    ten_go_error_set(status, TEN_ERRNO_GENERIC,
+    ten_go_error_set(status, TEN_ERROR_CODE_GENERIC,
                      ten_string_get_raw_str(&err_msg));
 
     ten_string_deinit(&err_msg);
@@ -334,7 +334,7 @@ ten_go_error_t ten_go_value_get_string(uintptr_t value_addr, void *value) {
   TEN_ASSERT(value, "Should not happen.");
 
   ten_go_error_t cgo_error;
-  ten_go_error_init_with_errno(&cgo_error, TEN_ERRNO_OK);
+  ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
 
   ten_go_ten_value_get_string(self, value, &cgo_error);
 
@@ -349,7 +349,7 @@ ten_go_error_t ten_go_value_get_buf(uintptr_t value_addr, void *value) {
   TEN_ASSERT(value, "Should not happen.");
 
   ten_go_error_t cgo_error;
-  ten_go_error_init_with_errno(&cgo_error, TEN_ERRNO_OK);
+  ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
 
   ten_go_ten_value_get_buf(self, value, &cgo_error);
 

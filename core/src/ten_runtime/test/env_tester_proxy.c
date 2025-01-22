@@ -10,7 +10,7 @@
 #include "include_internal/ten_runtime/test/env_tester.h"
 #include "include_internal/ten_runtime/test/env_tester_proxy.h"
 #include "include_internal/ten_runtime/test/extension_tester.h"
-#include "ten_runtime/common/errno.h"
+#include "ten_runtime/common/error_code.h"
 #include "ten_utils/io/runloop.h"
 #include "ten_utils/lib/error.h"
 #include "ten_utils/macro/check.h"
@@ -34,7 +34,7 @@ ten_env_tester_proxy_t *ten_env_tester_proxy_create(
         "Create ten_env_tester_proxy without specifying ten_env_tester.";
     TEN_ASSERT(0, "%s", err_msg);
     if (err) {
-      ten_error_set(err, TEN_ERRNO_INVALID_ARGUMENT, err_msg);
+      ten_error_set(err, TEN_ERROR_CODE_INVALID_ARGUMENT, err_msg);
     }
     return NULL;
   }
@@ -80,7 +80,7 @@ bool ten_env_tester_proxy_release(ten_env_tester_proxy_t *self,
     const char *err_msg = "Invalid argument.";
     TEN_ASSERT(0, "%s", err_msg);
     if (err) {
-      ten_error_set(err, TEN_ERRNO_INVALID_ARGUMENT, err_msg);
+      ten_error_set(err, TEN_ERROR_CODE_INVALID_ARGUMENT, err_msg);
     }
     return false;
   }
@@ -103,7 +103,7 @@ bool ten_env_tester_proxy_notify(ten_env_tester_proxy_t *self,
     const char *err_msg = "Invalid argument.";
     TEN_ASSERT(0, "%s", err_msg);
     if (err) {
-      ten_error_set(err, TEN_ERRNO_INVALID_ARGUMENT, err_msg);
+      ten_error_set(err, TEN_ERROR_CODE_INVALID_ARGUMENT, err_msg);
     }
     return false;
   }

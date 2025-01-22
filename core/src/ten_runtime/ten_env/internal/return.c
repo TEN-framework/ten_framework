@@ -35,7 +35,7 @@ static bool ten_env_return_result_internal(
 
   if (ten_env_is_closed(self)) {
     if (err) {
-      ten_error_set(err, TEN_ERRNO_TEN_IS_CLOSED, "ten_env is closed.");
+      ten_error_set(err, TEN_ERROR_CODE_TEN_IS_CLOSED, "ten_env is closed.");
     }
     return false;
   }

@@ -13,7 +13,7 @@
 #include "include_internal/ten_runtime/msg/msg.h"
 #include "include_internal/ten_runtime/msg/video_frame/video_frame.h"
 #include "ten_runtime/binding/go/interface/ten/msg.h"
-#include "ten_runtime/common/errno.h"
+#include "ten_runtime/common/error_code.h"
 #include "ten_runtime/msg/msg.h"
 #include "ten_runtime/msg/video_frame/video_frame.h"
 #include "ten_utils/macro/check.h"
@@ -23,7 +23,7 @@ ten_go_error_t ten_go_video_frame_create(const void *name, int name_len,
   TEN_ASSERT(bridge_addr, "Invalid argument.");
 
   ten_go_error_t cgo_error;
-  ten_go_error_init_with_errno(&cgo_error, TEN_ERRNO_OK);
+  ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
 
   ten_shared_ptr_t *c_video_frame =
       ten_video_frame_create_with_name_len(name, name_len, NULL);
@@ -43,7 +43,7 @@ ten_go_error_t ten_go_video_frame_alloc_buf(uintptr_t bridge_addr, int size) {
   TEN_ASSERT(bridge_addr && size, "Invalid argument.");
 
   ten_go_error_t cgo_error;
-  ten_go_error_init_with_errno(&cgo_error, TEN_ERRNO_OK);
+  ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
 
   ten_go_msg_t *video_frame_bridge = ten_go_msg_reinterpret(bridge_addr);
   TEN_ASSERT(
@@ -53,7 +53,7 @@ ten_go_error_t ten_go_video_frame_alloc_buf(uintptr_t bridge_addr, int size) {
   ten_shared_ptr_t *c_video_frame = ten_go_msg_c_msg(video_frame_bridge);
   uint8_t *data = ten_video_frame_alloc_data(c_video_frame, size);
   if (!data) {
-    ten_go_error_set(&cgo_error, TEN_ERRNO_GENERIC,
+    ten_go_error_set(&cgo_error, TEN_ERROR_CODE_GENERIC,
                      "failed to allocate memory");
   }
 
@@ -66,7 +66,7 @@ ten_go_error_t ten_go_video_frame_lock_buf(uintptr_t bridge_addr,
   TEN_ASSERT(bridge_addr && buf_size, "Invalid argument.");
 
   ten_go_error_t cgo_error;
-  ten_go_error_init_with_errno(&cgo_error, TEN_ERRNO_OK);
+  ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
 
   ten_go_msg_t *video_frame_bridge = ten_go_msg_reinterpret(bridge_addr);
   TEN_ASSERT(
@@ -81,8 +81,8 @@ ten_go_error_t ten_go_video_frame_lock_buf(uintptr_t bridge_addr,
 
   if (!ten_msg_add_locked_res_buf(c_video_frame, c_video_frame_data->data,
                                   &c_err)) {
-    ten_go_error_set(&cgo_error, ten_error_errno(&c_err),
-                     ten_error_errmsg(&c_err));
+    ten_go_error_set(&cgo_error, ten_error_code(&c_err),
+                     ten_error_message(&c_err));
   } else {
     *buf_addr = c_video_frame_data->data;
     *buf_size = c_video_frame_data->size;
@@ -98,7 +98,7 @@ ten_go_error_t ten_go_video_frame_unlock_buf(uintptr_t bridge_addr,
   TEN_ASSERT(bridge_addr && buf_addr, "Invalid argument.");
 
   ten_go_error_t cgo_error;
-  ten_go_error_init_with_errno(&cgo_error, TEN_ERRNO_OK);
+  ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
 
   ten_go_msg_t *video_frame_bridge = ten_go_msg_reinterpret(bridge_addr);
   TEN_ASSERT(
@@ -112,8 +112,8 @@ ten_go_error_t ten_go_video_frame_unlock_buf(uintptr_t bridge_addr,
 
   bool result = ten_msg_remove_locked_res_buf(c_video_frame, buf_addr, &c_err);
   if (!result) {
-    ten_go_error_set(&cgo_error, ten_error_errno(&c_err),
-                     ten_error_errmsg(&c_err));
+    ten_go_error_set(&cgo_error, ten_error_code(&c_err),
+                     ten_error_message(&c_err));
   }
 
   ten_error_deinit(&c_err);
@@ -127,7 +127,7 @@ ten_go_error_t ten_go_video_frame_get_buf(uintptr_t bridge_addr,
   TEN_ASSERT(bridge_addr && buf_addr && buf_size > 0, "Invalid argument.");
 
   ten_go_error_t cgo_error;
-  ten_go_error_init_with_errno(&cgo_error, TEN_ERRNO_OK);
+  ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
 
   ten_go_msg_t *video_frame_bridge = ten_go_msg_reinterpret(bridge_addr);
   TEN_ASSERT(
@@ -137,7 +137,8 @@ ten_go_error_t ten_go_video_frame_get_buf(uintptr_t bridge_addr,
   ten_shared_ptr_t *c_video_frame = ten_go_msg_c_msg(video_frame_bridge);
   uint64_t size = ten_video_frame_peek_buf(c_video_frame)->size;
   if (buf_size < size) {
-    ten_go_error_set(&cgo_error, TEN_ERRNO_GENERIC, "buffer is not enough");
+    ten_go_error_set(&cgo_error, TEN_ERROR_CODE_GENERIC,
+                     "buffer is not enough");
   } else {
     ten_buf_t *data = ten_video_frame_peek_buf(c_video_frame);
     memcpy((void *)buf_addr, data->data, size);
@@ -151,7 +152,7 @@ ten_go_error_t ten_go_video_frame_get_buf_size(uintptr_t bridge_addr,
   TEN_ASSERT(bridge_addr && buf_size, "Invalid argument.");
 
   ten_go_error_t cgo_error;
-  ten_go_error_init_with_errno(&cgo_error, TEN_ERRNO_OK);
+  ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
 
   ten_go_msg_t *video_frame_bridge = ten_go_msg_reinterpret(bridge_addr);
   TEN_ASSERT(
@@ -169,7 +170,7 @@ ten_go_error_t ten_go_video_frame_set_width(uintptr_t bridge_addr,
   TEN_ASSERT(bridge_addr && width > 0, "Invalid argument.");
 
   ten_go_error_t cgo_error;
-  ten_go_error_init_with_errno(&cgo_error, TEN_ERRNO_OK);
+  ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
 
   ten_go_msg_t *video_frame_bridge = ten_go_msg_reinterpret(bridge_addr);
   TEN_ASSERT(
@@ -187,7 +188,7 @@ ten_go_error_t ten_go_video_frame_get_width(uintptr_t bridge_addr,
   TEN_ASSERT(bridge_addr && width, "Invalid argument.");
 
   ten_go_error_t cgo_error;
-  ten_go_error_init_with_errno(&cgo_error, TEN_ERRNO_OK);
+  ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
 
   ten_go_msg_t *video_frame_bridge = ten_go_msg_reinterpret(bridge_addr);
   TEN_ASSERT(
@@ -205,7 +206,7 @@ ten_go_error_t ten_go_video_frame_set_height(uintptr_t bridge_addr,
   TEN_ASSERT(bridge_addr && height > 0, "Invalid argument.");
 
   ten_go_error_t cgo_error;
-  ten_go_error_init_with_errno(&cgo_error, TEN_ERRNO_OK);
+  ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
 
   ten_go_msg_t *video_frame_bridge = ten_go_msg_reinterpret(bridge_addr);
   TEN_ASSERT(
@@ -223,7 +224,7 @@ ten_go_error_t ten_go_video_frame_get_height(uintptr_t bridge_addr,
   TEN_ASSERT(bridge_addr && height, "Invalid argument.");
 
   ten_go_error_t cgo_error;
-  ten_go_error_init_with_errno(&cgo_error, TEN_ERRNO_OK);
+  ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
 
   ten_go_msg_t *video_frame_bridge = ten_go_msg_reinterpret(bridge_addr);
   TEN_ASSERT(
@@ -241,7 +242,7 @@ ten_go_error_t ten_go_video_frame_set_timestamp(uintptr_t bridge_addr,
   TEN_ASSERT(bridge_addr && timestamp > 0, "Invalid argument.");
 
   ten_go_error_t cgo_error;
-  ten_go_error_init_with_errno(&cgo_error, TEN_ERRNO_OK);
+  ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
 
   ten_go_msg_t *video_frame_bridge = ten_go_msg_reinterpret(bridge_addr);
   TEN_ASSERT(
@@ -259,7 +260,7 @@ ten_go_error_t ten_go_video_frame_get_timestamp(uintptr_t bridge_addr,
   TEN_ASSERT(bridge_addr && timestamp, "Invalid argument.");
 
   ten_go_error_t cgo_error;
-  ten_go_error_init_with_errno(&cgo_error, TEN_ERRNO_OK);
+  ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
 
   ten_go_msg_t *video_frame_bridge = ten_go_msg_reinterpret(bridge_addr);
   TEN_ASSERT(
@@ -276,7 +277,7 @@ ten_go_error_t ten_go_video_frame_set_eof(uintptr_t bridge_addr, bool is_eof) {
   TEN_ASSERT(bridge_addr, "Invalid argument.");
 
   ten_go_error_t cgo_error;
-  ten_go_error_init_with_errno(&cgo_error, TEN_ERRNO_OK);
+  ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
 
   ten_go_msg_t *video_frame_bridge = ten_go_msg_reinterpret(bridge_addr);
   TEN_ASSERT(
@@ -293,7 +294,7 @@ ten_go_error_t ten_go_video_frame_is_eof(uintptr_t bridge_addr, bool *is_eof) {
   TEN_ASSERT(bridge_addr && is_eof, "Invalid argument.");
 
   ten_go_error_t cgo_error;
-  ten_go_error_init_with_errno(&cgo_error, TEN_ERRNO_OK);
+  ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
 
   ten_go_msg_t *video_frame_bridge = ten_go_msg_reinterpret(bridge_addr);
   TEN_ASSERT(
@@ -311,7 +312,7 @@ ten_go_error_t ten_go_video_frame_get_pixel_fmt(uintptr_t bridge_addr,
   TEN_ASSERT(bridge_addr && fmt, "Invalid argument.");
 
   ten_go_error_t cgo_error;
-  ten_go_error_init_with_errno(&cgo_error, TEN_ERRNO_OK);
+  ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
 
   ten_go_msg_t *video_frame_bridge = ten_go_msg_reinterpret(bridge_addr);
   TEN_ASSERT(
@@ -331,7 +332,7 @@ ten_go_error_t ten_go_video_frame_set_pixel_fmt(uintptr_t bridge_addr,
              "Invalid argument.");
 
   ten_go_error_t cgo_error;
-  ten_go_error_init_with_errno(&cgo_error, TEN_ERRNO_OK);
+  ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
 
   ten_go_msg_t *video_frame_bridge = ten_go_msg_reinterpret(bridge_addr);
   TEN_ASSERT(

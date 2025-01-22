@@ -9,7 +9,7 @@
 #include "include_internal/ten_utils/schema/keywords/keyword.h"
 #include "include_internal/ten_utils/schema/schema.h"
 #include "include_internal/ten_utils/schema/types/schema_array.h"
-#include "ten_runtime/common/errno.h"
+#include "ten_runtime/common/error_code.h"
 #include "ten_utils/lib/error.h"
 #include "ten_utils/macro/memory.h"
 #include "ten_utils/value/type_operation.h"
@@ -43,7 +43,7 @@ static bool ten_schema_keyword_items_validate_value(
              "Invalid argument.");
 
   if (!ten_value_is_array(value)) {
-    ten_error_set(schema_err->err, TEN_ERRNO_GENERIC,
+    ten_error_set(schema_err->err, TEN_ERROR_CODE_GENERIC,
                   "the value should be an array, but is: %s",
                   ten_type_to_string(ten_value_get_type(value)));
     return false;
@@ -100,7 +100,7 @@ static bool ten_schema_keyword_items_adjust_value(
              "Invalid argument.");
 
   if (!ten_value_is_array(value)) {
-    ten_error_set(schema_err->err, TEN_ERRNO_GENERIC,
+    ten_error_set(schema_err->err, TEN_ERROR_CODE_GENERIC,
                   "the value should be an array, but is: %s",
                   ten_type_to_string(ten_value_get_type(value)));
     return false;

@@ -122,7 +122,7 @@ func (p *tenEnv) postAsyncJob(payload job) any {
 func (p *tenEnv) SendCmd(cmd Cmd, handler ResultHandler) error {
 	if cmd == nil {
 		return newTenError(
-			ErrnoInvalidArgument,
+			ErrorCodeInvalidArgument,
 			"cmd is required.",
 		)
 	}
@@ -153,7 +153,7 @@ func (p *tenEnv) sendCmd(cmd Cmd, handler ResultHandler) error {
 func (p *tenEnv) SendCmdEx(cmd Cmd, handler ResultHandler) error {
 	if cmd == nil {
 		return newTenError(
-			ErrnoInvalidArgument,
+			ErrorCodeInvalidArgument,
 			"cmd is required.",
 		)
 	}
@@ -205,7 +205,7 @@ func tenGoCAsyncApiCallback(
 func (p *tenEnv) SendData(data Data, handler ErrorHandler) error {
 	if data == nil {
 		return newTenError(
-			ErrnoInvalidArgument,
+			ErrorCodeInvalidArgument,
 			"data is required.",
 		)
 	}
@@ -241,7 +241,7 @@ func (p *tenEnv) SendVideoFrame(
 ) error {
 	if videoFrame == nil {
 		return newTenError(
-			ErrnoInvalidArgument,
+			ErrorCodeInvalidArgument,
 			"videoFrame is required.",
 		)
 	}
@@ -276,7 +276,7 @@ func (p *tenEnv) SendAudioFrame(
 ) error {
 	if audioFrame == nil {
 		return newTenError(
-			ErrnoInvalidArgument,
+			ErrorCodeInvalidArgument,
 			"audioFrame is required.",
 		)
 	}

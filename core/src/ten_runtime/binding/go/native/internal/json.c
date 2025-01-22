@@ -7,7 +7,7 @@
 #include "include_internal/ten_runtime/binding/go/internal/json.h"
 
 #include "include_internal/ten_runtime/binding/go/internal/common.h"
-#include "ten_runtime/common/errno.h"
+#include "ten_runtime/common/error_code.h"
 #include "ten_utils/lib/string.h"
 #include "ten_utils/macro/check.h"
 
@@ -27,7 +27,8 @@ ten_json_t *ten_go_json_loads(const void *json_bytes, int json_bytes_len,
 
   ten_string_deinit(&input);
   if (!json) {
-    ten_go_error_set(status, TEN_ERRNO_INVALID_JSON, ten_error_errmsg(&c_err));
+    ten_go_error_set(status, TEN_ERROR_CODE_INVALID_JSON,
+                     ten_error_message(&c_err));
   }
 
   ten_error_deinit(&c_err);

@@ -182,7 +182,7 @@ bool ten_addon_create_protocol_with_uri(
     TEN_ENV_LOG_ERROR_INTERNAL(ten_env, "Invalid ten_env attach_to: %d",
                                attach_to);
     if (err) {
-      ten_error_set(err, TEN_ERRNO_INVALID_ARGUMENT, "Invalid ten_env.");
+      ten_error_set(err, TEN_ERROR_CODE_INVALID_ARGUMENT, "Invalid ten_env.");
     }
     return false;
   }
@@ -198,7 +198,7 @@ bool ten_addon_create_protocol_with_uri(
     ten_string_destroy(protocol_str);
 
     if (err) {
-      ten_error_set(err, TEN_ERRNO_GENERIC,
+      ten_error_set(err, TEN_ERROR_CODE_GENERIC,
                     "No addon installed for the protocol.");
     }
     return false;
@@ -225,7 +225,7 @@ bool ten_addon_create_protocol_with_uri(
     ten_addon_create_protocol_ctx_destroy(ctx);
 
     if (err) {
-      ten_error_set(err, TEN_ERRNO_GENERIC,
+      ten_error_set(err, TEN_ERROR_CODE_GENERIC,
                     "Failed to create protocol for uri: %s.", uri);
     }
     return false;
@@ -249,7 +249,7 @@ bool ten_addon_create_protocol(ten_env_t *ten_env, const char *addon_name,
       attach_to != TEN_ENV_ATTACH_TO_ENGINE) {
     TEN_LOGE("Invalid ten_env attach_to: %d", attach_to);
     if (err) {
-      ten_error_set(err, TEN_ERRNO_INVALID_ARGUMENT, "Invalid ten_env.");
+      ten_error_set(err, TEN_ERROR_CODE_INVALID_ARGUMENT, "Invalid ten_env.");
     }
     return false;
   }
@@ -269,7 +269,7 @@ bool ten_addon_create_protocol(ten_env_t *ten_env, const char *addon_name,
     ten_addon_create_protocol_ctx_destroy(ctx);
 
     if (err) {
-      ten_error_set(err, TEN_ERRNO_GENERIC,
+      ten_error_set(err, TEN_ERROR_CODE_GENERIC,
                     "Failed to create protocol for addon: %s.", addon_name);
     }
     return false;

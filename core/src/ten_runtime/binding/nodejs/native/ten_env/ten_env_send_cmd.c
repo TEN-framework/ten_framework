@@ -210,10 +210,10 @@ napi_value ten_nodejs_ten_env_send_cmd(napi_env env, napi_callback_info info) {
                                  false, &err);
   if (!rc) {
     ten_string_t code_str;
-    ten_string_init_formatted(&code_str, "%d", ten_error_errno(&err));
+    ten_string_init_formatted(&code_str, "%d", ten_error_code(&err));
 
     status = napi_throw_error(env, ten_string_get_raw_str(&code_str),
-                              ten_error_errmsg(&err));
+                              ten_error_message(&err));
     RETURN_UNDEFINED_IF_NAPI_FAIL(status == napi_ok, "Failed to throw error");
 
     ten_string_deinit(&code_str);

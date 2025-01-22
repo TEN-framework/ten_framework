@@ -16,6 +16,16 @@ type baseExtension struct {
 	ten.DefaultExtension
 }
 
+type aExtension struct {
+	baseExtension
+
+	counter int
+}
+
+func newAExtension(name string) ten.Extension {
+	return &aExtension{counter: 0}
+}
+
 func (ext *aExtension) OnStart(tenEnv ten.TenEnv) {
 	tenEnv.LogDebug("OnStart")
 
@@ -84,16 +94,6 @@ func (ext *aExtension) OnStop(tenEnv ten.TenEnv) {
 	tenEnv.LogDebug("OnStop")
 
 	tenEnv.OnStopDone()
-}
-
-type aExtension struct {
-	baseExtension
-
-	counter int
-}
-
-func newAExtension(name string) ten.Extension {
-	return &aExtension{counter: 0}
 }
 
 func (p *aExtension) OnCmd(

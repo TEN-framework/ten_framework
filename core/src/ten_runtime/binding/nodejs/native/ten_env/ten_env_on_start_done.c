@@ -67,10 +67,10 @@ napi_value ten_nodejs_ten_env_on_start_done(napi_env env,
     TEN_LOGD("TEN/JS failed to on_start_done.");
 
     ten_string_t code_str;
-    ten_string_init_formatted(&code_str, "%d", ten_error_errno(&err));
+    ten_string_init_formatted(&code_str, "%d", ten_error_code(&err));
 
     status = napi_throw_error(env, ten_string_get_raw_str(&code_str),
-                              ten_error_errmsg(&err));
+                              ten_error_message(&err));
     ASSERT_IF_NAPI_FAIL(status == napi_ok, "Failed to throw JS exception: %d",
                         status);
 

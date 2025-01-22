@@ -107,7 +107,7 @@ static bool ten_raw_cmd_start_graph_as_msg_get_graph_from_json(
       // If the field value cannot be set from the JSON, it means that the
       // JSON format is incorrect.
       if (err) {
-        ten_error_set(err, TEN_ERRNO_INVALID_JSON,
+        ten_error_set(err, TEN_ERROR_CODE_INVALID_JSON,
                       "Invalid JSON format for field %s.", field->field_name);
       }
 
