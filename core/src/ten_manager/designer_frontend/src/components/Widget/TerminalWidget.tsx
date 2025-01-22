@@ -8,7 +8,6 @@ import {
   forwardRef,
   useEffect,
   useImperativeHandle,
-  useLayoutEffect,
   useRef,
   useState,
 } from "react";
@@ -39,7 +38,7 @@ const TerminalWidget = forwardRef<unknown, ITerminalWidgetProps>(
       rows: number;
     }>({ cols: 80, rows: 24 });
 
-    useLayoutEffect(() => {
+    useEffect(() => {
       if (!terminalRef.current) {
         return;
       }
@@ -213,7 +212,8 @@ const TerminalWidget = forwardRef<unknown, ITerminalWidgetProps>(
         // Close the xterm.
         xterm.dispose();
       };
-    }, [data, onClose]);
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [data.url]);
 
     useEffect(() => {
       console.log("Terminal size updated:", terminalSize);

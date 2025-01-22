@@ -47,13 +47,16 @@ const TerminalPopup: React.FC<TerminalPopupProps> = ({ id, data, onClose }) => {
     updateWidgetDisplayType(id, EWidgetDisplayType.Dock);
   };
 
+  console.log("TerminalPopup === ", id);
+
   return (
     <Popup
       id={id}
       title={data.title}
       onClose={onClose}
-      preventFocusSteal={true}
+      preventFocusSteal
       className="flex-1 p-0"
+      contentClassName="p-0"
       resizable={true}
       onCollapseToggle={handleCollapseToggle}
       initialWidth={DEFAULT_WIDTH}
@@ -67,13 +70,7 @@ const TerminalPopup: React.FC<TerminalPopupProps> = ({ id, data, onClose }) => {
         },
       ]}
     >
-      <TerminalWidget
-        ref={terminalRef}
-        key={id}
-        id={id}
-        data={data}
-        onClose={onClose}
-      />
+      <TerminalWidget ref={terminalRef} id={id} data={data} onClose={onClose} />
     </Popup>
   );
 };
