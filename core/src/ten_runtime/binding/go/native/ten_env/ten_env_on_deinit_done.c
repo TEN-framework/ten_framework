@@ -13,8 +13,7 @@
 #include "ten_utils/lib/rwlock.h"
 #include "ten_utils/macro/check.h"
 
-static void ten_go_ten_env_close(void *ten_env_bridge_) {
-  ten_go_ten_env_t *ten_env_bridge = (ten_go_ten_env_t *)ten_env_bridge_;
+static void ten_go_ten_env_close(ten_go_ten_env_t *ten_env_bridge) {
   TEN_ASSERT(ten_env_bridge && ten_go_ten_env_check_integrity(ten_env_bridge),
              "Should not happen.");
 
