@@ -23,11 +23,11 @@
   av_rescale(ms, static_cast<int64_t>((stream)->time_base.num) * 1000, \
              (stream)->time_base.den)
 
-#define GET_FFMPEG_ERROR_MESSAGE(err_msg, errnum)                            \
-  /* NOLINTNEXTLINE */                                                       \
-  for (char err_msg[AV_ERROR_MAX_STRING_SIZE], times = 0;                    \
-       get_ffmpeg_error_message_(err_msg, AV_ERROR_MAX_STRING_SIZE, errnum), \
-                                               times == 0;                   \
+#define GET_FFMPEG_ERROR_MESSAGE(err_msg, errnum)                           \
+  /* NOLINTNEXTLINE */                                                      \
+  for (char err_msg[AV_ERROR_MAX_STRING_SIZE], times = 0;                   \
+       get_ffmpeg_error_message(err_msg, AV_ERROR_MAX_STRING_SIZE, errnum), \
+                                               times == 0;                  \
        ++times)
 
 #define TEN_VIDEO_FRAME_PIXEL_FMT AV_PIX_FMT_RGB24
@@ -52,7 +52,7 @@
 namespace ten {
 namespace ffmpeg_extension {
 
-void get_ffmpeg_error_message_(char *buf, size_t buf_length, int errnum) {
+void get_ffmpeg_error_message(char *buf, size_t buf_length, int errnum) {
   TEN_ASSERT(buf && buf_length, "Invalid argument.");
 
   // Get error from ffmpeg.
