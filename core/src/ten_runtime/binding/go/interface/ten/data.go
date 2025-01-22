@@ -43,7 +43,7 @@ func NewData(dataName string) (Data, error) {
 	}
 
 	var bridge C.uintptr_t
-	err := withCGO(func() error {
+	err := withCGOLimiter(func() error {
 		cStatus := C.ten_go_data_create(
 			unsafe.Pointer(unsafe.StringData(dataName)),
 			C.int(len(dataName)),

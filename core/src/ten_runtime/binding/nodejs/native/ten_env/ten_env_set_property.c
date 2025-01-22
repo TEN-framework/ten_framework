@@ -21,7 +21,7 @@ ten_env_notify_set_property_ctx_create(const void *path, ten_value_t *value,
       TEN_MALLOC(sizeof(ten_env_notify_set_property_ctx_t));
   TEN_ASSERT(ctx, "Failed to allocate memory.");
 
-  ten_string_init_from_c_str(&ctx->path, path, strlen(path));
+  ten_string_init_from_c_str_with_size(&ctx->path, path, strlen(path));
   ctx->value = value;
   ctx->js_cb = js_cb;
 

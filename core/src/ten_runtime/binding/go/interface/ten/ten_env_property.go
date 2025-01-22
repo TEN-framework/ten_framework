@@ -399,7 +399,7 @@ func (p *tenEnv) SetProperty(path string, value any) error {
 		return err
 	}
 
-	return withCGO(func() error {
+	return withCGOLimiter(func() error {
 		// Create a channel to wait for the async operation in C to complete.
 		done := make(chan error, 1)
 		callbackHandle := newGoHandle(done)
@@ -624,7 +624,7 @@ func (p *tenEnv) SetPropertyString(
 		)
 	}
 
-	return withCGO(func() error {
+	return withCGOLimiter(func() error {
 		// Create a channel to wait for the async operation in C to complete.
 		done := make(chan error, 1)
 		callbackHandle := newGoHandle(done)
@@ -664,7 +664,7 @@ func (p *tenEnv) SetPropertyBytes(
 		)
 	}
 
-	return withCGO(func() error {
+	return withCGOLimiter(func() error {
 		// Create a channel to wait for the async operation in C to complete.
 		done := make(chan error, 1)
 		callbackHandle := newGoHandle(done)
@@ -736,7 +736,7 @@ func (p *tenEnv) SetPropertyFromJSONBytes(path string, value []byte) error {
 		)
 	}
 
-	return withCGO(func() error {
+	return withCGOLimiter(func() error {
 		return p.setPropertyFromJSONBytes(path, value)
 	})
 }

@@ -36,7 +36,7 @@ func (p *tenEnvTester) SendCmd(cmd Cmd, handler TesterResultHandler) error {
 		)
 	}
 
-	return withCGO(func() error {
+	return withCGOLimiter(func() error {
 		return p.sendCmd(cmd, handler)
 	})
 }

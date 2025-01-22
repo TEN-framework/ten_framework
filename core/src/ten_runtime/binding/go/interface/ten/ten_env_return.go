@@ -40,7 +40,7 @@ func (p *tenEnv) ReturnResult(
 		statusCmd.keepAlive()
 	}()
 
-	err := withCGO(func() error {
+	err := withCGOLimiter(func() error {
 		apiStatus := C.ten_go_ten_env_return_result(
 			p.cPtr,
 			statusCmd.getCPtr(),
@@ -79,7 +79,7 @@ func (p *tenEnv) ReturnResultDirectly(
 		cb = newGoHandle(handler)
 	}
 
-	err := withCGO(func() error {
+	err := withCGOLimiter(func() error {
 		apiStatus := C.ten_go_ten_env_return_result_directly(
 			p.cPtr,
 			statusCmd.getCPtr(),

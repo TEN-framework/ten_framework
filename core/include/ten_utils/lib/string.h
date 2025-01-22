@@ -121,8 +121,9 @@ TEN_UTILS_API void ten_string_init_from_string(ten_string_t *self,
  * @param other The other string object.
  * @param size the max size, copy all if size <= 0
  */
-TEN_UTILS_API void ten_string_init_from_c_str(ten_string_t *self,
-                                              const char *str, size_t size);
+TEN_UTILS_API void ten_string_init_from_c_str_with_size(ten_string_t *self,
+                                                        const char *str,
+                                                        size_t size);
 
 /**
  * @brief Destroy a string object and release the memory.

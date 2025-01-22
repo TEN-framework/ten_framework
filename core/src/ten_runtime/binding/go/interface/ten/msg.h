@@ -304,3 +304,10 @@ ten_go_error_t ten_go_msg_property_set_json_bytes(uintptr_t bridge_addr,
 void ten_go_msg_finalize(uintptr_t bridge_addr);
 
 ten_go_error_t ten_go_msg_get_name(uintptr_t bridge_addr, const char **name);
+
+ten_go_error_t ten_go_msg_set_dest(uintptr_t bridge_addr, const void *app_uri,
+                                   int app_uri_len, const void *graph_id,
+                                   int graph_id_len,
+                                   const void *extension_group,
+                                   int extension_group_len,
+                                   const void *extension, int extension_len);

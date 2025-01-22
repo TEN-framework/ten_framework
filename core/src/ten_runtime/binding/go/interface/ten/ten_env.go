@@ -127,7 +127,7 @@ func (p *tenEnv) SendCmd(cmd Cmd, handler ResultHandler) error {
 		)
 	}
 
-	return withCGO(func() error {
+	return withCGOLimiter(func() error {
 		return p.sendCmd(cmd, handler)
 	})
 }
@@ -158,7 +158,7 @@ func (p *tenEnv) SendCmdEx(cmd Cmd, handler ResultHandler) error {
 		)
 	}
 
-	return withCGO(func() error {
+	return withCGOLimiter(func() error {
 		return p.sendCmdEx(cmd, handler)
 	})
 }
@@ -217,7 +217,7 @@ func (p *tenEnv) SendData(data Data, handler ErrorHandler) error {
 		cb = newGoHandle(handler)
 	}
 
-	err := withCGO(func() error {
+	err := withCGOLimiter(func() error {
 		apiStatus := C.ten_go_ten_env_send_data(
 			p.cPtr,
 			data.getCPtr(),
@@ -253,7 +253,7 @@ func (p *tenEnv) SendVideoFrame(
 		cb = newGoHandle(handler)
 	}
 
-	err := withCGO(func() error {
+	err := withCGOLimiter(func() error {
 		apiStatus := C.ten_go_ten_env_send_video_frame(
 			p.cPtr,
 			videoFrame.getCPtr(),
@@ -288,7 +288,7 @@ func (p *tenEnv) SendAudioFrame(
 		cb = newGoHandle(handler)
 	}
 
-	err := withCGO(func() error {
+	err := withCGOLimiter(func() error {
 		apiStatus := C.ten_go_ten_env_send_audio_frame(
 			p.cPtr,
 			audioFrame.getCPtr(),

@@ -35,7 +35,7 @@ func NewCmd(cmdName string) (Cmd, error) {
 	}
 
 	var bridge C.uintptr_t
-	err := withCGO(func() error {
+	err := withCGOLimiter(func() error {
 		// We do not pass the GO string (i.e., cmdName) to the C world in the
 		// normal way -- using the following codes:
 		//

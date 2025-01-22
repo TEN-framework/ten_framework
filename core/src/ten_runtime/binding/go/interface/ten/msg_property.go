@@ -442,7 +442,7 @@ func (p *msg) SetPropertyString(path string, value string) error {
 
 	defer p.keepAlive()
 
-	return withCGO(func() error {
+	return withCGOLimiter(func() error {
 		return p.setPropertyString(path, value)
 	})
 }
@@ -482,7 +482,7 @@ func (p *msg) SetPropertyBytes(path string, value []byte) error {
 
 	defer p.keepAlive()
 
-	return withCGO(func() error {
+	return withCGOLimiter(func() error {
 		return p.setPropertyBytes(path, value)
 	})
 }
@@ -672,7 +672,7 @@ func (p *msg) SetProperty(path string, value any) error {
 
 	defer p.keepAlive()
 
-	return withCGO(func() error {
+	return withCGOLimiter(func() error {
 		return p.setProperty(path, value)
 	})
 }
@@ -698,7 +698,7 @@ func (p *msg) setPropertyFromJSONBytes(path string, value []byte) error {
 // structure is already known beforehand through certain methods, GetProperty
 // can be used to retrieve individual fields.
 func (p *msg) SetPropertyFromJSONBytes(path string, value []byte) error {
-	return withCGO(func() error {
+	return withCGOLimiter(func() error {
 		return p.setPropertyFromJSONBytes(path, value)
 	})
 }
