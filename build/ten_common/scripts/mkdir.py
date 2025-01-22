@@ -5,7 +5,8 @@
 # Refer to the "LICENSE" file in the root directory for more information.
 #
 import sys
-from build.scripts import fs_utils, log
+import os
+from build.scripts import log
 
 
 def main():
@@ -16,7 +17,7 @@ def main():
     dir_path = sys.argv[1]
 
     try:
-        fs_utils.mkdir_p(dir_path)
+        os.makedirs(dir_path, exist_ok=True)
         log.info(f"Create successfully: {dir_path}")
     except Exception as e:
         log.error(f"Failed to create directory: {dir_path}\n: {e}")

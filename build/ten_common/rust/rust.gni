@@ -192,7 +192,7 @@ template("rust_test") {
     target_path = invoker.target_path
   }
 
-  tg_timestamp_proxy_file = "${target_path}/${target_name}_rust_tests"
+  tg_timestamp_proxy_file = "${target_path}/${_target_name}"
 
   action("${_target_name}") {
     if (ten_enable_serialized_rust_action) {
