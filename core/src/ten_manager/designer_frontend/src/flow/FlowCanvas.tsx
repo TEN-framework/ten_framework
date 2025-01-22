@@ -25,9 +25,7 @@ import CustomNode, { CustomNodeType } from "@/flow/CustomNode";
 import CustomEdge, { CustomEdgeType } from "@/flow/CustomEdge";
 import NodeContextMenu from "@/flow/ContextMenu/NodeContextMenu";
 import EdgeContextMenu from "@/flow/ContextMenu/EdgeContextMenu";
-import TerminalPopup, { TerminalData } from "@/components/Popup/TerminalPopup";
-import EditorPopup from "@/components/Popup/EditorPopup";
-import CustomNodeConnPopup from "@/components/Popup/CustomNodeConnPopup";
+import { TerminalData } from "@/components/Popup/TerminalPopup";
 import { ThemeProviderContext } from "@/components/theme-context";
 import { cn } from "@/lib/utils";
 import { useWidgetStore } from "@/store/widget";
@@ -56,8 +54,7 @@ interface FlowCanvasProps {
 
 const FlowCanvas = forwardRef<FlowCanvasRef, FlowCanvasProps>(
   ({ nodes, edges, onNodesChange, onEdgesChange, onConnect, className }) => {
-    const { widgets, removeWidget, appendWidget, appendWidgetIfNotExists } =
-      useWidgetStore();
+    const { appendWidget, appendWidgetIfNotExists } = useWidgetStore();
 
     const [contextMenu, setContextMenu] = useState<{
       visible: boolean;
@@ -249,42 +246,6 @@ const FlowCanvas = forwardRef<FlowCanvasRef, FlowCanvasProps>(
         </ReactFlow>
 
         {renderContextMenu()}
-
-        {widgets
-          .filter((widget) => widget.display_type === EWidgetDisplayType.Popup)
-          .map((widget) => {
-            switch (widget.category) {
-              case EWidgetCategory.Terminal:
-                return (
-                  <TerminalPopup
-                    id={widget.id}
-                    key={widget.id}
-                    data={widget.metadata}
-                    onClose={() => removeWidget(widget.id)}
-                  />
-                );
-              case EWidgetCategory.Editor:
-                return (
-                  <EditorPopup
-                    id={widget.id}
-                    key={widget.id}
-                    data={widget.metadata}
-                    onClose={() => removeWidget(widget.id)}
-                    hasUnsavedChanges={widget.isEditing}
-                  />
-                );
-              case EWidgetCategory.CustomConnection:
-                return (
-                  <CustomNodeConnPopup
-                    id={widget.id}
-                    key={widget.id}
-                    source={widget.metadata.source}
-                    target={widget.metadata.target}
-                    onClose={() => removeWidget(widget.id)}
-                  />
-                );
-            }
-          })}
       </div>
     );
   }
