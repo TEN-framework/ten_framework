@@ -14,7 +14,6 @@
 #include "include_internal/ten_runtime/app/close.h"
 #include "include_internal/ten_runtime/global/global.h"
 #include "ten_runtime/app/app.h"
-#include "ten_runtime/common/error_code.h"
 #include "ten_utils/container/list.h"
 #include "ten_utils/container/list_node_ptr.h"
 #include "ten_utils/log/log.h"
