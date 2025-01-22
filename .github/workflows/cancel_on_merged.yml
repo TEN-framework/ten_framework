@@ -25,6 +25,9 @@ jobs:
             const prNumber = context.payload.pull_request.number;
             const headSha = context.payload.pull_request.head.sha;
 
+            // Get the current workflow's run ID.
+            const currentRunId = context.run_id;
+
             console.log(`Cancelling workflows related to PR #${prNumber} (SHA: ${headSha})`);
 
             // Retrieve all workflow runs associated with the head SHA of the PR.
@@ -42,6 +45,11 @@ jobs:
 
             // Cancel all related workflow runs.
             for (const run of runs.data.workflow_runs) {
+              if (run.id === currentRunId) {
+                console.log(`Skipping cancellation of current workflow run: ${run.id} (${run.name})`);
+                continue;
+              }
+
               console.log(`Cancel workflow run: ${run.id} (${run.name})`);
               await github.rest.actions.cancelWorkflowRun({
                 owner,
