@@ -47,8 +47,6 @@ const TerminalPopup: React.FC<TerminalPopupProps> = ({ id, data, onClose }) => {
     updateWidgetDisplayType(id, EWidgetDisplayType.Dock);
   };
 
-  console.log("TerminalPopup === ", id);
-
   return (
     <Popup
       id={id}
