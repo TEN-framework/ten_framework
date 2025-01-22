@@ -110,6 +110,9 @@ func main() {
 	)
 	flag.Parse()
 
+	// Trim surrounding quotes from BuildFlags.
+	options.BuildFlags = strings.Trim(options.BuildFlags, "\"")
+
 	if err := options.Valid(); err != nil {
 		log.Fatalf("Invalid options: %v", err)
 	}
