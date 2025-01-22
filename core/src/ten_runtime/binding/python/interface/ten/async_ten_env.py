@@ -50,8 +50,6 @@ class AsyncTenEnv(TenEnvBase):
     def _error_handler(
         self, error: Optional[TenError], queue: asyncio.Queue
     ) -> None:
-        # The same reason as _result_handler.
-
         asyncio.run_coroutine_threadsafe(
             queue.put(error),
             self._ten_loop,
@@ -307,10 +305,9 @@ class AsyncTenEnv(TenEnvBase):
         self._ten_all_tasks_done_event.set()
 
     def _on_release(self) -> None:
-        # At this point, all tasks that were executed before on_deinit_done
-        # have been completed. At this time, the run loop of _ten_thread will
-        # be closed by setting a flag.
-
+        # At this point, all tasks that were submitted before `on_deinit_done`
+        # have been completed. Therefore, at this time, the run loop of
+        # `_ten_thread` will be closed by setting a flag.
         asyncio.run_coroutine_threadsafe(self._close_loop(), self._ten_loop)
 
         # Wait for the internal thread to finish.

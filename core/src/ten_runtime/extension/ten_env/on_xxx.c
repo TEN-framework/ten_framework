@@ -421,7 +421,9 @@ bool ten_extension_on_deinit_done(ten_env_t *self) {
   //
   // This means that once users call ten_env_on_deinit_done, then no further
   // messages will be received, and the originally registered cmd_result_handler
-  // will be called back with an error.
+  // will be called back with an error. So, if developers/extensions truly care
+  // about the result, they should perform `on_deinit_done` only after receiving
+  // the result.
   ten_extension_flush_remaining_paths(extension);
 
   if (!ten_list_is_empty(&self->ten_proxy_list)) {

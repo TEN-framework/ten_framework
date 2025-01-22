@@ -88,6 +88,8 @@ void ten_go_ten_env_on_deinit_done(uintptr_t bridge_addr) {
 
   TEN_ASSERT(rc, "Should not happen.");
 
+  // TODO(Wei): The general architecture design of the TEN binding should be
+  // used, and `ten_env_proxy` should be set to `NULL`.
   ten_go_ten_env_close(self);
 
   ten_error_deinit(&err);
