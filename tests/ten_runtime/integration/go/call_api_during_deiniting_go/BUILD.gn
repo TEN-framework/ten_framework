@@ -29,7 +29,8 @@ ten_package_test_prepare_app("call_api_during_deiniting_go_app") {
   ]
 }
 
-ten_package_test_prepare_auxiliary_resources("call_api_during_deiniting_go_app_test_files") {
+ten_package_test_prepare_auxiliary_resources(
+    "call_api_during_deiniting_go_app_test_files") {
   resources = [
     "__init__.py",
     "test_case.py",

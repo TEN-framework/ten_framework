@@ -36,7 +36,7 @@ class ServerExtension(AsyncExtension):
             cmd_result.set_property_string("detail", "ok")
             await ten_env.return_result(cmd_result, cmd)
         elif cmd.get_name() == "hang":
-            # Do nothing
+            # Do nothing.
             pass
         else:
             assert False
@@ -72,7 +72,7 @@ class ClientExtension(AsyncExtension):
     async def on_stop(self, ten_env: AsyncTenEnv) -> None:
         pass
 
-    async def call_api_after_deinit(self, ten_env: AsyncTenEnv) -> str:
+    async def call_api_after_deinited(self, ten_env: AsyncTenEnv) -> str:
         cancel_exception_caught = False
 
         try:
@@ -84,9 +84,9 @@ class ClientExtension(AsyncExtension):
 
             ten_env_api_exception_caught = False
             try:
-                # call ten_env api will throw exception
+                # Call ten_env api will throw exception.
                 ten_env.log_info("call ten_env api will throw exception")
-            except Exception as e:
+            except Exception:
                 ten_env_api_exception_caught = True
             finally:
                 assert ten_env_api_exception_caught
@@ -102,12 +102,12 @@ class ClientExtension(AsyncExtension):
         ten_env.log_info("client extension is de-initialized")
 
         self.task_after_deinited = asyncio.create_task(
-            self.call_api_after_deinit(ten_env)
+            self.call_api_after_deinited(ten_env)
         )
 
     async def on_cmd(self, ten_env: AsyncTenEnv, cmd: Cmd) -> None:
         if cmd.get_name() == "test":
-            # bypass the cmd to the next extension
+            # Bypass the cmd to the next extension.
             result, _ = await ten_env.send_cmd(cmd)
             assert result is not None
 
@@ -115,9 +115,10 @@ class ClientExtension(AsyncExtension):
         elif cmd.get_name() == "greeting":
             hang_cmd = Cmd.create("hang")
 
-            # This is to verify that this coroutine will not be canceled due to the completion of
-            # the ten_env on_deinit, but will continue due to the flush paths mechanism
-            # before the event loop closes. However, all subsequent ten_env APIs will throw exceptions.
+            # This is to verify that this coroutine will not be canceled due to
+            # the completion of the ten_env `on_deinit`, but will continue due
+            # to the paths flushing mechanism before the C event loop closes.
+            # However, all subsequent ten_env APIs will throw exceptions.
             result, error = await ten_env.send_cmd(hang_cmd)
             assert result is not None
             assert result.get_status_code() == StatusCode.ERROR
@@ -126,7 +127,7 @@ class ClientExtension(AsyncExtension):
 
             try:
                 await ten_env.set_property_bool("test", True)
-            except Exception as e:
+            except Exception:
                 ten_env_api_exception_caught = True
             finally:
                 assert ten_env_api_exception_caught

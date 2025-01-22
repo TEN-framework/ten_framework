@@ -308,6 +308,22 @@ class AsyncTenEnv(TenEnvBase):
         # At this point, all tasks that were submitted before `on_deinit_done`
         # have been completed. Therefore, at this time, the run loop of
         # `_ten_thread` will be closed by setting a flag.
+        #
+        # At the `_on_release` point in time, we can guarantee that there are no
+        # TEN API-related tasks in the Python asyncio task queue. However, there
+        # may still be other asyncio tasks (e.g., `await asyncio.sleep(...)`).
+        # Allowing these non-"TEN" API tasks to receive a cancellation exception
+        # caused by the termination of the asyncio runloop is reasonable.
+        #
+        # The reason we can guarantee that there are no TEN API-related tasks in
+        # the Python asyncio task queue at this point is that within
+        # `ten_py_ten_env_on_deinit_done`, an `on_deinit_done` C task is added
+        # as the last task to the C runloop. At the same time, `ten_env_proxy`
+        # is synchronously set to `NULL`, ensuring that no new TEN API-related C
+        # tasks will be added to the C runloop task queue afterward. This is
+        # because Python TEN API calls will immediately return an error
+        # synchronously at the Python binding layer when
+        # `ten_env_proxy == NULL`.
         asyncio.run_coroutine_threadsafe(self._close_loop(), self._ten_loop)
 
         # Wait for the internal thread to finish.

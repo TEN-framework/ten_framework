@@ -82,18 +82,21 @@ func (ext *clientExtension) OnStart(tenEnv ten.TenEnv) {
 	tenEnv.LogDebug("OnStart")
 
 	cmd, _ := ten.NewCmd("register")
-	tenEnv.SendCmd(cmd, func(tenEnv ten.TenEnv, cmdResult ten.CmdResult, err error) {
-		if err != nil {
-			panic("failed to send cmd: " + err.Error())
-		}
+	tenEnv.SendCmd(
+		cmd,
+		func(tenEnv ten.TenEnv, cmdResult ten.CmdResult, err error) {
+			if err != nil {
+				panic("failed to send cmd: " + err.Error())
+			}
 
-		statusCode, _ := cmdResult.GetStatusCode()
-		if statusCode != ten.StatusCodeOk {
-			panic("failed to register")
-		}
+			statusCode, _ := cmdResult.GetStatusCode()
+			if statusCode != ten.StatusCodeOk {
+				panic("failed to register")
+			}
 
-		tenEnv.OnStartDone()
-	})
+			tenEnv.OnStartDone()
+		},
+	)
 }
 
 func (ext *clientExtension) OnCmd(tenEnv ten.TenEnv, cmd ten.Cmd) {
@@ -101,13 +104,16 @@ func (ext *clientExtension) OnCmd(tenEnv ten.TenEnv, cmd ten.Cmd) {
 
 	if cmdName == "test" {
 		// bypass the cmd to the next extension
-		tenEnv.SendCmd(cmd, func(tenEnv ten.TenEnv, cmdResult ten.CmdResult, err error) {
-			if err != nil {
-				panic("failed to send cmd: " + err.Error())
-			}
+		tenEnv.SendCmd(
+			cmd,
+			func(tenEnv ten.TenEnv, cmdResult ten.CmdResult, err error) {
+				if err != nil {
+					panic("failed to send cmd: " + err.Error())
+				}
 
-			tenEnv.ReturnResultDirectly(cmdResult, nil)
-		})
+				tenEnv.ReturnResultDirectly(cmdResult, nil)
+			},
+		)
 	} else if cmdName == "greeting" {
 		cmd, _ := ten.NewCmd("hang")
 		tenEnv.SendCmd(cmd, func(te ten.TenEnv, cr ten.CmdResult, err error) {
@@ -130,23 +136,26 @@ func (ext *clientExtension) OnDeinit(tenEnv ten.TenEnv) {
 	tenEnv.LogDebug("OnDeinit")
 
 	cmd, _ := ten.NewCmd("unregister")
-	tenEnv.SendCmd(cmd, func(tenEnv ten.TenEnv, cmdResult ten.CmdResult, err error) {
-		if err != nil {
-			panic("failed to send cmd: " + err.Error())
-		}
+	tenEnv.SendCmd(
+		cmd,
+		func(tenEnv ten.TenEnv, cmdResult ten.CmdResult, err error) {
+			if err != nil {
+				panic("failed to send cmd: " + err.Error())
+			}
 
-		statusCode, _ := cmdResult.GetStatusCode()
-		if statusCode != ten.StatusCodeOk {
-			panic("failed to unregister")
-		}
+			statusCode, _ := cmdResult.GetStatusCode()
+			if statusCode != ten.StatusCodeOk {
+				panic("failed to unregister")
+			}
 
-		tenEnv.OnDeinitDone()
+			tenEnv.OnDeinitDone()
 
-		err = tenEnv.SetProperty("test", true)
-		if err == nil {
-			panic("Should receive error when setting property")
-		}
-	})
+			err = tenEnv.SetProperty("test", true)
+			if err == nil {
+				panic("Should receive error when setting property")
+			}
+		},
+	)
 }
 
 func newAExtension(name string) ten.Extension {

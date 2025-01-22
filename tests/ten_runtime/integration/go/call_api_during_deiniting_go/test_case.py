@@ -96,7 +96,9 @@ def test_call_api_during_deiniting_go():
                 print("Using AddressSanitizer library.")
                 my_env["LD_PRELOAD"] = libasan_path
 
-    server_cmd = os.path.join(base_path, "call_api_during_deiniting_go_app/bin/start")
+    server_cmd = os.path.join(
+        base_path, "call_api_during_deiniting_go_app/bin/start"
+    )
 
     if not os.path.isfile(server_cmd):
         print(f"Server command '{server_cmd}' does not exist.")
@@ -112,7 +114,9 @@ def test_call_api_during_deiniting_go():
 
     is_started = http.is_app_started("127.0.0.1", 8002, 30)
     if not is_started:
-        print("The call_api_during_deiniting_go is not started after 10 seconds.")
+        print(
+            "The call_api_during_deiniting_go is not started after 10 seconds."
+        )
 
         server.kill()
         exit_code = server.wait()
@@ -130,7 +134,10 @@ def test_call_api_during_deiniting_go():
     finally:
         is_stopped = http.stop_app("127.0.0.1", 8002, 30)
         if not is_stopped:
-            print("The call_api_during_deiniting_go can not stop after 30 seconds.")
+            print(
+                "The call_api_during_deiniting_go can not stop after "
+                "30 seconds."
+            )
             server.kill()
 
         exit_code = server.wait()
@@ -141,6 +148,6 @@ def test_call_api_during_deiniting_go():
         if build_config_args.ten_enable_integration_tests_prebuilt is False:
             source_root_path = os.path.join(base_path, app_dir_name)
 
-            # Testing complete. If builds are only created during the testing phase,
-            # we can clear the build results to save disk space.
+            # Testing complete. If builds are only created during the testing
+            # phase, we can clear the build results to save disk space.
             build_pkg.cleanup(source_root_path, app_root_path)

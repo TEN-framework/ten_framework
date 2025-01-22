@@ -54,9 +54,7 @@ def test_call_api_after_closing_python():
         )
 
     app_dir_name = "call_api_after_closing_python_app"
-    app_root_path = os.path.join(
-        base_path, "call_api_after_closing_python_app"
-    )
+    app_root_path = os.path.join(base_path, "call_api_after_closing_python_app")
     app_language = "python"
 
     build_config_args = build_config.parse_build_config(
@@ -156,7 +154,8 @@ def test_call_api_after_closing_python():
         is_stopped = http.stop_app("127.0.0.1", 8002, 30)
         if not is_stopped:
             print(
-                "The call_api_after_closing_python can not stop after 30 seconds."
+                "The call_api_after_closing_python can not stop after "
+                "30 seconds."
             )
             server.kill()
 
