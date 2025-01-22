@@ -168,19 +168,21 @@ void ten_string_init_formatted(ten_string_t *self, const char *fmt, ...) {
 
 void ten_string_init_from_c_str_with_size(ten_string_t *self, const char *str,
                                           size_t size) {
-  TEN_ASSERT(self && str, "Invalid argument.");
+  TEN_ASSERT(self, "Invalid argument.");
 
   ten_string_init(self);
-  ten_string_set_formatted(self, "%.*s", size, str);
+  if (str) {
+    ten_string_set_formatted(self, "%.*s", size, str);
+  }
 }
 
 void ten_string_set_from_c_str_with_size(ten_string_t *self, const char *str,
                                          size_t size) {
-  TEN_ASSERT(self && ten_string_check_integrity(self) && str,
-             "Invalid argument.");
-  TEN_ASSERT(size, "Invalid argument.");
+  TEN_ASSERT(self && ten_string_check_integrity(self), "Invalid argument.");
 
-  ten_string_set_formatted(self, "%.*s", size, str);
+  if (str) {
+    ten_string_set_formatted(self, "%.*s", size, str);
+  }
 }
 
 void ten_string_set_from_c_str(ten_string_t *self, const char *str) {

@@ -27,25 +27,25 @@ func (ext *defaultExtension) OnCmd(
 ) {
 	cmdName, _ := cmd.GetName()
 	if cmdName == "close" {
-		// testing get/set property to/from json with empty path
+		// Testing get/set property to/from json with empty path.
 		testCmd, _ := ten.NewCmd("test")
 		testCmd.SetPropertyFromJSONBytes("", []byte("{\"key\":\"value\"}"))
 
 		testValue, _ := testCmd.GetPropertyToJSONBytes("")
 		tenEnv.LogDebug("testValue: " + string(testValue))
-		// testing end
+		// Testing end.
 
 		closeAppCmd, _ := ten.NewCmd("ten:close_app")
 
 		err := closeAppCmd.SetDest("localhost", "", "", "")
 		if err != nil {
-			tenEnv.LogError("SetDest failed:" + err.Error())
+			tenEnv.LogError("Failed to SetDest:" + err.Error())
 			return
 		}
 
 		err = tenEnv.SendCmd(closeAppCmd, nil)
 		if err != nil {
-			tenEnv.LogError("Send Close Cmd failed:" + err.Error())
+			tenEnv.LogError("Failed to send close cmd:" + err.Error())
 			return
 		}
 
