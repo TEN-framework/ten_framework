@@ -13,6 +13,15 @@
 #include "ten_utils/lib/rwlock.h"
 #include "ten_utils/macro/check.h"
 
+static void ten_go_ten_env_close(ten_go_ten_env_t *ten_env_bridge) {
+  TEN_ASSERT(ten_env_bridge && ten_go_ten_env_check_integrity(ten_env_bridge),
+             "Should not happen.");
+
+  ten_rwlock_lock(ten_env_bridge->lock, 0);
+  ten_env_bridge->c_ten_env = NULL;
+  ten_rwlock_unlock(ten_env_bridge->lock, 0);
+}
+
 static void ten_env_proxy_notify_on_deinit_done(ten_env_t *ten_env,
                                                 void *user_data) {
   TEN_ASSERT(
@@ -78,6 +87,10 @@ void ten_go_ten_env_on_deinit_done(uintptr_t bridge_addr) {
   }
 
   TEN_ASSERT(rc, "Should not happen.");
+
+  // TODO(Wei): The general architecture design of the TEN binding should be
+  // used, and `ten_env_proxy` should be set to `NULL`.
+  ten_go_ten_env_close(self);
 
   ten_error_deinit(&err);
 }

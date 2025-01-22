@@ -32,6 +32,11 @@ static void ten_env_proxy_notify_on_deinit_done(ten_env_t *ten_env,
   ten_py_ten_env_t *py_ten_env = user_data;
   TEN_ASSERT(py_ten_env, "Should not happen.");
 
+  bool rc = ten_env_on_deinit_done(ten_env, &err);
+  TEN_ASSERT(rc, "Should not happen.");
+
+  ten_error_deinit(&err);
+
   // Notify the Python side to do the cleanup.
   //
   // About to call the Python function, so it's necessary to ensure that the
@@ -45,28 +50,7 @@ static void ten_env_proxy_notify_on_deinit_done(ten_env_t *ten_env,
   bool err_occurred = ten_py_check_and_clear_py_error();
   TEN_ASSERT(!err_occurred, "Should not happen.");
 
-  // This is already the very end, so releasing `ten_env_proxy` here is
-  // appropriate. Additionally, since the Python GIL is held, it ensures that no
-  // other Python code is currently using `ten_env`.
-  if (py_ten_env->c_ten_env_proxy) {
-    TEN_ASSERT(
-        ten_env_proxy_get_thread_cnt(py_ten_env->c_ten_env_proxy, NULL) == 1,
-        "Should not happen.");
-
-    ten_env_proxy_t *ten_env_proxy = py_ten_env->c_ten_env_proxy;
-
-    py_ten_env->c_ten_env_proxy = NULL;
-
-    bool rc = ten_env_proxy_release(ten_env_proxy, &err);
-    TEN_ASSERT(rc, "Should not happen.");
-  }
-
   ten_py_gil_state_release_internal(prev_state);
-
-  bool rc = ten_env_on_deinit_done(ten_env, &err);
-  TEN_ASSERT(rc, "Should not happen.");
-
-  ten_error_deinit(&err);
 
   if (py_ten_env->need_to_release_gil_state) {
     if (!ten_py_is_holding_gil()) {
@@ -109,6 +93,23 @@ PyObject *ten_py_ten_env_on_deinit_done(PyObject *self,
     rc = ten_env_proxy_notify(py_ten_env->c_ten_env_proxy,
                               ten_env_proxy_notify_on_deinit_done, py_ten_env,
                               false, &err);
+  }
+
+  // This is already the very end, so releasing `ten_env_proxy` here is
+  // appropriate. Additionally, since this function is called from Python so
+  // the Python GIL is held, it ensures that no other Python code is currently
+  // using `ten_env`.
+  if (py_ten_env->c_ten_env_proxy) {
+    TEN_ASSERT(
+        ten_env_proxy_get_thread_cnt(py_ten_env->c_ten_env_proxy, NULL) == 1,
+        "Should not happen.");
+
+    ten_env_proxy_t *ten_env_proxy = py_ten_env->c_ten_env_proxy;
+
+    py_ten_env->c_ten_env_proxy = NULL;
+
+    bool rc = ten_env_proxy_release(ten_env_proxy, &err);
+    TEN_ASSERT(rc, "Should not happen.");
   }
 
   ten_error_deinit(&err);
