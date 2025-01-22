@@ -17,7 +17,7 @@ template("cmake_project") {
   assert(invoker.project_name == "" || invoker.project_name != "")
 
   _target_name = target_name
-  tg_timestamp_proxy_file = "${target_gen_dir}/${_target_name}_cmake_action"
+  tg_timestamp_proxy_file = "${target_gen_dir}/cmake_action_dummy_output_file"
 
   # This action include cmake 'gen' and 'build' and 'install' (optional).
   action("${_target_name}_cmake_action") {
