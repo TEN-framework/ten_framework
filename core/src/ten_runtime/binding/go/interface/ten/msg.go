@@ -12,6 +12,7 @@ import "C"
 
 import (
 	"runtime"
+	"unsafe"
 )
 
 // MsgType is an alias of `TEN_MSG_TYPE` from TEN runtime.
@@ -45,6 +46,7 @@ type Msg interface {
 	keepAlive()
 
 	GetName() (string, error)
+	SetDest(appUri string, graphId string, extensionGroup string, extension string) error
 
 	iProperty
 }
@@ -200,4 +202,26 @@ func (p *msg) GetName() (string, error) {
 	}
 
 	return C.GoString(msgName), nil
+}
+
+func (p *msg) SetDest(appUri string, graphId string, extensionGroup string, extension string) error {
+	defer p.keepAlive()
+
+	err := withCGO(func() error {
+		apiStatus := C.ten_go_msg_set_dest(
+			p.cPtr,
+			unsafe.Pointer(unsafe.StringData(appUri)),
+			C.int(len(appUri)),
+			unsafe.Pointer(unsafe.StringData(graphId)),
+			C.int(len(graphId)),
+			unsafe.Pointer(unsafe.StringData(extensionGroup)),
+			C.int(len(extensionGroup)),
+			unsafe.Pointer(unsafe.StringData(extension)),
+			C.int(len(extension)),
+		)
+
+		return withCGoError(&apiStatus)
+	})
+
+	return err
 }

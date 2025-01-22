@@ -16,9 +16,11 @@
 #include "ten_runtime/binding/go/interface/ten/common.h"
 #include "ten_runtime/binding/go/interface/ten/msg.h"
 #include "ten_runtime/common/status_code.h"
+#include "ten_runtime/msg/cmd/cmd.h"
 #include "ten_runtime/msg/cmd_result/cmd_result.h"
 #include "ten_utils/lib/error.h"
 #include "ten_utils/lib/smart_ptr.h"
+#include "ten_utils/lib/string.h"
 #include "ten_utils/macro/check.h"
 
 ten_go_handle_t tenGoCreateCmdResult(uintptr_t);
@@ -30,8 +32,10 @@ ten_go_error_t ten_go_cmd_create_cmd(const void *name, int name_len,
   ten_go_error_t cgo_error;
   ten_go_error_init_with_errno(&cgo_error, TEN_ERRNO_OK);
 
-  ten_shared_ptr_t *cmd =
-      ten_cmd_custom_create_with_name_len(name, name_len, NULL);
+  ten_string_t cmd_name;
+  ten_string_init_formatted(&cmd_name, "%.*s", name_len, name);
+
+  ten_shared_ptr_t *cmd = ten_cmd_create(ten_string_get_raw_str(&cmd_name), NULL);
   TEN_ASSERT(cmd && ten_cmd_check_integrity(cmd), "Should not happen.");
 
   ten_go_msg_t *msg_bridge = ten_go_msg_create(cmd);
@@ -39,6 +43,8 @@ ten_go_error_t ten_go_cmd_create_cmd(const void *name, int name_len,
 
   *bridge = (uintptr_t)msg_bridge;
   ten_shared_ptr_destroy(cmd);
+
+  ten_string_deinit(&cmd_name);
 
   return cgo_error;
 }
