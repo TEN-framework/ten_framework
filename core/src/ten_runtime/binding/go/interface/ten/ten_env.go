@@ -46,17 +46,17 @@ type TenEnv interface {
 	iProperty
 	InitPropertyFromJSONBytes(value []byte) error
 
-	LogVerbose(msg string)
-	LogDebug(msg string)
-	LogInfo(msg string)
-	LogWarn(msg string)
-	LogError(msg string)
-	LogFatal(msg string)
+	LogVerbose(msg string) error
+	LogDebug(msg string) error
+	LogInfo(msg string) error
+	LogWarn(msg string) error
+	LogError(msg string) error
+	LogFatal(msg string) error
 
 	// Private functions.
 	postSyncJob(payload job) any
 	postAsyncJob(payload job) any
-	logInternal(level LogLevel, msg string, skip int)
+	logInternal(level LogLevel, msg string, skip int) error
 }
 
 // Making a compile-time assertion which indicates that if 'ten' type doesn't
@@ -363,32 +363,31 @@ func (p *tenEnv) String() string {
 	return C.GoString(cString)
 }
 
-func (p *tenEnv) LogVerbose(msg string) {
-	p.logInternal(
-		LogLevelVerbose, msg, 2)
+func (p *tenEnv) LogVerbose(msg string) error {
+	return p.logInternal(LogLevelVerbose, msg, 2)
 }
 
-func (p *tenEnv) LogDebug(msg string) {
-	p.logInternal(LogLevelDebug, msg, 2)
+func (p *tenEnv) LogDebug(msg string) error {
+	return p.logInternal(LogLevelDebug, msg, 2)
 }
 
-func (p *tenEnv) LogInfo(msg string) {
-	p.logInternal(LogLevelInfo, msg, 2)
+func (p *tenEnv) LogInfo(msg string) error {
+	return p.logInternal(LogLevelInfo, msg, 2)
 }
 
-func (p *tenEnv) LogWarn(msg string) {
-	p.logInternal(LogLevelWarn, msg, 2)
+func (p *tenEnv) LogWarn(msg string) error {
+	return p.logInternal(LogLevelWarn, msg, 2)
 }
 
-func (p *tenEnv) LogError(msg string) {
-	p.logInternal(LogLevelError, msg, 2)
+func (p *tenEnv) LogError(msg string) error {
+	return p.logInternal(LogLevelError, msg, 2)
 }
 
-func (p *tenEnv) LogFatal(msg string) {
-	p.logInternal(LogLevelFatal, msg, 2)
+func (p *tenEnv) LogFatal(msg string) error {
+	return p.logInternal(LogLevelFatal, msg, 2)
 }
 
-func (p *tenEnv) logInternal(level LogLevel, msg string, skip int) {
+func (p *tenEnv) logInternal(level LogLevel, msg string, skip int) error {
 	// Get caller info.
 	pc, fileName, lineNo, ok := runtime.Caller(skip)
 	funcName := "unknown"
@@ -408,7 +407,7 @@ func (p *tenEnv) logInternal(level LogLevel, msg string, skip int) {
 		lineNo = 0
 	}
 
-	C.ten_go_ten_env_log(
+	cStatus := C.ten_go_ten_env_log(
 		p.cPtr,
 		C.int(level),
 		unsafe.Pointer(unsafe.StringData(funcName)),
@@ -419,4 +418,6 @@ func (p *tenEnv) logInternal(level LogLevel, msg string, skip int) {
 		unsafe.Pointer(unsafe.StringData(msg)),
 		C.int(len(msg)),
 	)
+
+	return withCGoError(&cStatus)
 }

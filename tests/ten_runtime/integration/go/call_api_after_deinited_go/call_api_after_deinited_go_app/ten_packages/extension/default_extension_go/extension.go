@@ -154,6 +154,11 @@ func (ext *clientExtension) OnDeinit(tenEnv ten.TenEnv) {
 			if err == nil {
 				panic("Should receive error when setting property")
 			}
+
+			err = tenEnv.LogInfo("test")
+			if err == nil {
+				panic("Should receive error when logging")
+			}
 		},
 	)
 }
