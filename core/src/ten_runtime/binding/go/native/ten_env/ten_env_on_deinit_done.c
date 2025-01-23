@@ -18,7 +18,24 @@ static void ten_go_ten_env_close(ten_go_ten_env_t *ten_env_bridge) {
              "Should not happen.");
 
   ten_rwlock_lock(ten_env_bridge->lock, 0);
-  ten_env_bridge->c_ten_env = NULL;
+
+  ten_env_t *c_ten_env = ten_env_bridge->c_ten_env;
+  TEN_ASSERT(c_ten_env, "Should not happen.");
+
+  if (c_ten_env->attach_to == TEN_ENV_ATTACH_TO_ADDON) {
+    ten_env_bridge->c_ten_env = NULL;
+  } else {
+    ten_env_proxy_t *c_ten_env_proxy = ten_env_bridge->c_ten_env_proxy;
+    TEN_ASSERT(c_ten_env_proxy, "Should not happen.");
+    TEN_ASSERT(ten_env_proxy_get_thread_cnt(c_ten_env_proxy, NULL) == 1,
+               "Should not happen.");
+
+    ten_env_bridge->c_ten_env_proxy = NULL;
+
+    bool rc = ten_env_proxy_release(c_ten_env_proxy, NULL);
+    TEN_ASSERT(rc, "Should not happen.");
+  }
+
   ten_rwlock_unlock(ten_env_bridge->lock, 0);
 }
 
@@ -36,21 +53,6 @@ static void ten_env_proxy_notify_on_deinit_done(ten_env_t *ten_env,
 
   ten_go_ten_env_t *ten_env_bridge = user_data;
   TEN_ASSERT(ten_env_bridge, "Should not happen.");
-
-  if (ten_env_bridge->c_ten_env_proxy) {
-    TEN_ASSERT(ten_env_proxy_get_thread_cnt(ten_env_bridge->c_ten_env_proxy,
-                                            NULL) == 1,
-               "Should not happen.");
-
-    ten_env_proxy_t *ten_env_proxy = ten_env_bridge->c_ten_env_proxy;
-
-    ten_rwlock_lock(ten_env_bridge->lock, 0);
-    ten_env_bridge->c_ten_env_proxy = NULL;
-    ten_rwlock_unlock(ten_env_bridge->lock, 0);
-
-    bool rc = ten_env_proxy_release(ten_env_proxy, &err);
-    TEN_ASSERT(rc, "Should not happen.");
-  }
 
   bool rc = ten_env_on_deinit_done(ten_env, &err);
   TEN_ASSERT(rc, "Should not happen.");
@@ -88,8 +90,6 @@ void ten_go_ten_env_on_deinit_done(uintptr_t bridge_addr) {
 
   TEN_ASSERT(rc, "Should not happen.");
 
-  // TODO(Wei): The general architecture design of the TEN binding should be
-  // used, and `ten_env_proxy` should be set to `NULL`.
   ten_go_ten_env_close(self);
 
   ten_error_deinit(&err);

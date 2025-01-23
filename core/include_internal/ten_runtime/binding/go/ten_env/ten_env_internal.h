@@ -18,6 +18,13 @@
 #include "ten_runtime/ten_env/ten_env.h"
 #include "ten_utils/lib/rwlock.h"
 
+// Since there is not an runloop attached to ten_addon_t, we cannot create a
+// ten_env_proxy for ten_addon_t. Therefore, the way to determine the closure of
+// the ten_env attached to an addon is to check if the ten_env pointer is null.
+// For other types of ten_env, after calling on_deinit_done, the
+// ten_env_proxy pointer will be set to null. After this, all ten_env APIs
+// should not be able to succeed, and the method is to check if the
+// ten_env_proxy pointer is null.
 #define TEN_GO_TEN_ENV_IS_ALIVE_REGION_BEGIN(ten_env_bridge, err_stmt) \
   do {                                                                 \
     ten_rwlock_lock((ten_env_bridge)->lock, 1);                        \

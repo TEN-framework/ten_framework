@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "include_internal/ten_runtime/binding/go/internal/common.h"
 #include "include_internal/ten_runtime/binding/go/ten_env/ten_env.h"
 #include "include_internal/ten_runtime/binding/go/ten_env/ten_env_internal.h"
 #include "include_internal/ten_runtime/ten_env/log.h"
@@ -73,13 +74,21 @@ static void ten_env_proxy_notify_log(ten_env_t *ten_env, void *user_data) {
   ten_event_set(ctx->completed);
 }
 
-void ten_go_ten_env_log(uintptr_t bridge_addr, int level, const void *func_name,
-                        int func_name_len, const void *file_name,
-                        int file_name_len, int line_no, const void *msg,
-                        int msg_len) {
+ten_go_error_t ten_go_ten_env_log(uintptr_t bridge_addr, int level,
+                                  const void *func_name, int func_name_len,
+                                  const void *file_name, int file_name_len,
+                                  int line_no, const void *msg, int msg_len) {
   ten_go_ten_env_t *self = ten_go_ten_env_reinterpret(bridge_addr);
   TEN_ASSERT(self && ten_go_ten_env_check_integrity(self),
              "Should not happen.");
+
+  ten_go_error_t cgo_error;
+  ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
+
+  TEN_GO_TEN_ENV_IS_ALIVE_REGION_BEGIN(self, {
+    ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_TEN_IS_CLOSED);
+    return cgo_error;
+  });
 
   // According to the document of `unsafe.StringData()`, the underlying data
   // (i.e., value here) of an empty GO string is unspecified. So it's unsafe to
@@ -120,12 +129,16 @@ void ten_go_ten_env_log(uintptr_t bridge_addr, int level, const void *func_name,
   } else {
     if (!ten_env_proxy_notify(self->c_ten_env_proxy, ten_env_proxy_notify_log,
                               ctx, false, &err)) {
-      goto done;
+      ten_go_error_from_error(&cgo_error, &err);
+    } else {
+      ten_event_wait(ctx->completed, -1);
     }
-    ten_event_wait(ctx->completed, -1);
   }
 
-done:
+  TEN_GO_TEN_ENV_IS_ALIVE_REGION_END(self);
   ten_error_deinit(&err);
   ten_env_notify_log_ctx_destroy(ctx);
+
+ten_is_close:
+  return cgo_error;
 }
