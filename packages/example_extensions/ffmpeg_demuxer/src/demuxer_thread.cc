@@ -185,36 +185,42 @@ void demuxer_thread_t::reply_to_start_cmd(bool success) {
     return;
   }
 
-  auto resp = ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
-  resp->set_property("detail", "The demuxer has been started.");
+  auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
+  cmd_result->set_property("detail", "The demuxer has been started.");
 
   // Demuxer video settings.
-  resp->set_property("frame_rate_num", demuxer->video_frame_rate().num);
-  resp->set_property("frame_rate_den", demuxer->video_frame_rate().den);
-  resp->set_property("frame_rate_d",
-                     rational_to_double(demuxer->video_frame_rate()));
+  cmd_result->set_property("frame_rate_num", demuxer->video_frame_rate().num);
+  cmd_result->set_property("frame_rate_den", demuxer->video_frame_rate().den);
+  cmd_result->set_property("frame_rate_d",
+                           rational_to_double(demuxer->video_frame_rate()));
 
-  resp->set_property("video_time_base_num", demuxer->video_time_base().num);
-  resp->set_property("video_time_base_den", demuxer->video_time_base().den);
-  resp->set_property("video_time_base_d",
-                     rational_to_double(demuxer->video_time_base()));
+  cmd_result->set_property("video_time_base_num",
+                           demuxer->video_time_base().num);
+  cmd_result->set_property("video_time_base_den",
+                           demuxer->video_time_base().den);
+  cmd_result->set_property("video_time_base_d",
+                           rational_to_double(demuxer->video_time_base()));
 
-  resp->set_property("width", demuxer->video_width());
-  resp->set_property("height", demuxer->video_height());
-  resp->set_property("bit_rate", demuxer->video_bit_rate());
-  resp->set_property("num_of_frames", demuxer->number_of_video_frames());
+  cmd_result->set_property("width", demuxer->video_width());
+  cmd_result->set_property("height", demuxer->video_height());
+  cmd_result->set_property("bit_rate", demuxer->video_bit_rate());
+  cmd_result->set_property("num_of_frames", demuxer->number_of_video_frames());
 
   // Demuxer audio settings.
-  resp->set_property("audio_sample_rate", demuxer->audio_sample_rate);
-  resp->set_property("audio_channel_layout", demuxer->audio_channel_layout);
-  resp->set_property("audio_num_of_channels", demuxer->audio_num_of_channels);
-  resp->set_property("audio_time_base_num", demuxer->audio_time_base().num);
-  resp->set_property("audio_time_base_den", demuxer->audio_time_base().den);
-  resp->set_property("audio_time_base_d",
-                     rational_to_double(demuxer->audio_time_base()));
+  cmd_result->set_property("audio_sample_rate", demuxer->audio_sample_rate);
+  cmd_result->set_property("audio_channel_layout",
+                           demuxer->audio_channel_layout);
+  cmd_result->set_property("audio_num_of_channels",
+                           demuxer->audio_num_of_channels);
+  cmd_result->set_property("audio_time_base_num",
+                           demuxer->audio_time_base().num);
+  cmd_result->set_property("audio_time_base_den",
+                           demuxer->audio_time_base().den);
+  cmd_result->set_property("audio_time_base_d",
+                           rational_to_double(demuxer->audio_time_base()));
 
-  auto result_shared =
-      std::make_shared<std::unique_ptr<ten::cmd_result_t>>(std::move(resp));
+  auto result_shared = std::make_shared<std::unique_ptr<ten::cmd_result_t>>(
+      std::move(cmd_result));
   ten_env_proxy_->notify([result_shared, this](ten::ten_env_t &ten_env) {
     ten_env.return_result(std::move(*result_shared), std::move(start_cmd_));
   });
