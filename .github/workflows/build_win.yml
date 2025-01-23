@@ -150,9 +150,9 @@ jobs:
         run: |
           cd out/win/x64
 
-          Compress-Archive -Path .\ten_manager\bin\tman\* -DestinationPath .\tman-win-${{ matrix.build_type }}-x64.zip -CompressionLevel Optimal
+          Compress-Archive -Path ./ten_manager/bin/tman/* -DestinationPath ./tman-win-${{ matrix.build_type }}-x64.zip -CompressionLevel Optimal
 
-          Compress-Archive -Path .\app\default_app_cpp\*, .\ten_packages\system\ten_runtime\*, .\ten_packages\extension\default_extension_cpp\* -DestinationPath .\ten_packages-win-${{ matrix.build_type }}-x64.zip -CompressionLevel Optimal
+          Compress-Archive -Path ./app/default_app_cpp/*, ./ten_packages/system/ten_runtime/*, ./ten_packages/extension/default_extension_cpp/* -DestinationPath ./ten_packages-win-${{ matrix.build_type }}-x64.zip -CompressionLevel Optimal
 
       - name: Publish to release assets
         uses: softprops/action-gh-release@v2
