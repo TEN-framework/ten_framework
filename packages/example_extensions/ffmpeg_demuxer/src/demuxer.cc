@@ -475,8 +475,9 @@ std::unique_ptr<ten::audio_frame_t> demuxer_t::to_ten_audio_frame(
   audio_frame->set_data_fmt(TEN_AUDIO_FRAME_DATA_FMT_INTERLEAVE);
   audio_frame->set_bytes_per_sample(
       av_get_bytes_per_sample(DEMUXER_OUTPUT_AUDIO_FRAME_SAMPLE_FMT));
-  // audio_frame->set_sample_rate(out_sample_rate);
-  audio_frame->set_sample_rate(frame->sample_rate);
+  audio_frame->set_sample_rate(out_sample_rate);
+  // =-=-=
+  // audio_frame->set_sample_rate(frame->sample_rate);
   audio_frame->set_channel_layout(out_channel_layout);
   audio_frame->set_number_of_channels(frame->ch_layout.nb_channels);
   audio_frame->set_samples_per_channel(converted_audio_samples_cnt);
