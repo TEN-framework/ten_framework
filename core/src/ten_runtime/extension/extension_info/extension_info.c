@@ -13,7 +13,7 @@
 #include "include_internal/ten_runtime/extension/extension.h"
 #include "include_internal/ten_runtime/extension/msg_dest_info/msg_dest_info.h"
 #include "include_internal/ten_runtime/msg_conversion/msg_conversion_context.h"
-#include "ten_runtime/common/errno.h"
+#include "ten_runtime/common/error_code.h"
 #include "ten_utils/container/list.h"
 #include "ten_utils/container/list_node_ptr.h"
 #include "ten_utils/container/list_node_smart_ptr.h"
@@ -170,7 +170,7 @@ ten_shared_ptr_t *get_extension_info_in_extensions_info(
                                    extension_addon_name)) {
       if (err) {
         ten_error_set(
-            err, TEN_ERRNO_INVALID_GRAPH,
+            err, TEN_ERROR_CODE_INVALID_GRAPH,
             "extension '%s' is associated with different addon '%s', "
             "'%s'",
             extension_instance_name, extension_addon_name,
@@ -189,7 +189,7 @@ ten_shared_ptr_t *get_extension_info_in_extensions_info(
     if (!should_exist) {
       if (extension_info_node) {
         if (err) {
-          ten_error_set(err, TEN_ERRNO_INVALID_GRAPH,
+          ten_error_set(err, TEN_ERROR_CODE_INVALID_GRAPH,
                         "The extension_info is duplicated, extension_group: "
                         "%s, extension : %s.",
                         extension_group_name, extension_instance_name);
@@ -208,7 +208,7 @@ ten_shared_ptr_t *get_extension_info_in_extensions_info(
   } else {
     if (should_exist) {
       if (err) {
-        ten_error_set(err, TEN_ERRNO_INVALID_GRAPH,
+        ten_error_set(err, TEN_ERROR_CODE_INVALID_GRAPH,
                       "The extension_info is not found, extension_group: %s, "
                       "extension: %s.",
                       extension_group_name, extension_instance_name);
@@ -412,7 +412,7 @@ void ten_extension_info_translate_localhost_to_app_uri(
 
   if (ten_string_is_equal_c_str(&self->loc.app_uri, TEN_STR_LOCALHOST) ||
       ten_string_is_empty(&self->loc.app_uri)) {
-    ten_string_init_from_c_str(&self->loc.app_uri, uri, strlen(uri));
+    ten_string_init_from_c_str_with_size(&self->loc.app_uri, uri, strlen(uri));
   }
 }
 

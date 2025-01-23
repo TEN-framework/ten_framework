@@ -12,7 +12,7 @@
 #include "include_internal/ten_runtime/extension/msg_dest_info/msg_dest_info.h"
 #include "include_internal/ten_runtime/extension/msg_dest_info/value.h"
 #include "include_internal/ten_runtime/msg_conversion/msg_conversion_context.h"
-#include "ten_runtime/common/errno.h"
+#include "ten_runtime/common/error_code.h"
 #include "ten_utils/lib/error.h"
 #include "ten_utils/macro/check.h"
 #include "ten_utils/value/value.h"
@@ -107,7 +107,7 @@ ten_shared_ptr_t *ten_extension_info_node_from_value(
   if (props_value) {
     if (!ten_value_is_object(props_value)) {
       if (err) {
-        ten_error_set(err, TEN_ERRNO_GENERIC,
+        ten_error_set(err, TEN_ERROR_CODE_GENERIC,
                       "The `property` in graph node should be an object.");
       } else {
         TEN_ASSERT(0, "The `property` in graph node should be an object.");
@@ -133,7 +133,7 @@ ten_shared_ptr_t *ten_extension_info_parse_connection_src_part_from_value(
       ten_value_object_peek_string(value, TEN_STR_EXTENSION);
   if (!extension_name || ten_c_string_is_empty(extension_name)) {
     if (err) {
-      ten_error_set(err, TEN_ERRNO_INVALID_GRAPH,
+      ten_error_set(err, TEN_ERROR_CODE_INVALID_GRAPH,
                     "The extension in connection is required.");
     } else {
       TEN_ASSERT(0, "The extension in connection is required.");
@@ -222,7 +222,7 @@ ten_shared_ptr_t *ten_extension_info_parse_connection_dest_part_from_value(
       ten_value_object_peek_string(value, TEN_STR_EXTENSION);
   if (!extension_name || ten_c_string_is_empty(extension_name)) {
     if (err) {
-      ten_error_set(err, TEN_ERRNO_INVALID_GRAPH,
+      ten_error_set(err, TEN_ERROR_CODE_INVALID_GRAPH,
                     "The extension in connection is required.");
     } else {
       TEN_ASSERT(0, "The extension in connection is required.");

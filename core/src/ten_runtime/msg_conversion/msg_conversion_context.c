@@ -13,7 +13,7 @@
 #include "include_internal/ten_runtime/msg_conversion/msg_and_its_result_conversion.h"
 #include "include_internal/ten_runtime/msg_conversion/msg_and_result_conversion.h"
 #include "include_internal/ten_runtime/msg_conversion/msg_conversion/base.h"
-#include "ten_runtime/common/errno.h"
+#include "ten_runtime/common/error_code.h"
 #include "ten_utils/container/list.h"
 #include "ten_utils/container/list_node.h"
 #include "ten_utils/lib/alloc.h"
@@ -130,7 +130,7 @@ bool ten_msg_conversion_context_merge(
 
     if (ten_msg_conversion_is_equal(msg_conversion, new_msg_conversion)) {
       if (err) {
-        ten_error_set(err, TEN_ERRNO_INVALID_GRAPH,
+        ten_error_set(err, TEN_ERROR_CODE_INVALID_GRAPH,
                       "Duplicated message conversion.");
       }
       ten_msg_conversion_context_destroy(new_msg_conversion);
@@ -157,7 +157,8 @@ bool ten_extension_convert_msg(ten_extension_t *self, ten_shared_ptr_t *msg,
 
   if (ten_msg_is_cmd_and_result(msg) &&
       ten_msg_get_type(msg) != TEN_MSG_TYPE_CMD) {
-    ten_error_set(err, TEN_ERRNO_GENERIC, "Can not convert a builtin cmd.");
+    ten_error_set(err, TEN_ERROR_CODE_GENERIC,
+                  "Can not convert a builtin cmd.");
     something_wrong = true;
     goto done;
   }

@@ -129,10 +129,10 @@ static napi_value ten_nodejs_msg_set_dest(napi_env env,
       ten_string_get_raw_str(&extension), &err);
   if (!rc) {
     ten_string_t code_str;
-    ten_string_init_formatted(&code_str, "%d", ten_error_errno(&err));
+    ten_string_init_formatted(&code_str, "%d", ten_error_code(&err));
 
     napi_throw_error(env, ten_string_get_raw_str(&code_str),
-                     ten_error_errmsg(&err));
+                     ten_error_message(&err));
 
     ten_string_deinit(&code_str);
   }
@@ -184,10 +184,10 @@ static napi_value ten_nodejs_msg_set_property_from_json(
   c_json = ten_json_from_string(ten_string_get_raw_str(&json_str), &err);
   if (!c_json) {
     ten_string_t code_str;
-    ten_string_init_formatted(&code_str, "%d", ten_error_errno(&err));
+    ten_string_init_formatted(&code_str, "%d", ten_error_code(&err));
 
     napi_throw_error(env, ten_string_get_raw_str(&code_str),
-                     ten_error_errmsg(&err));
+                     ten_error_message(&err));
 
     ten_string_deinit(&code_str);
 
@@ -200,10 +200,10 @@ static napi_value ten_nodejs_msg_set_property_from_json(
                             value, &err);
   if (!rc) {
     ten_string_t code_str;
-    ten_string_init_formatted(&code_str, "%d", ten_error_errno(&err));
+    ten_string_init_formatted(&code_str, "%d", ten_error_code(&err));
 
     napi_throw_error(env, ten_string_get_raw_str(&code_str),
-                     ten_error_errmsg(&err));
+                     ten_error_message(&err));
 
     ten_string_deinit(&code_str);
   }
@@ -252,10 +252,10 @@ static napi_value ten_nodejs_msg_get_property_to_json(napi_env env,
       msg_bridge->msg, ten_string_get_raw_str(&path), &err);
   if (!c_value) {
     ten_string_t code_str;
-    ten_string_init_formatted(&code_str, "%d", ten_error_errno(&err));
+    ten_string_init_formatted(&code_str, "%d", ten_error_code(&err));
 
     napi_throw_error(env, ten_string_get_raw_str(&code_str),
-                     ten_error_errmsg(&err));
+                     ten_error_message(&err));
 
     ten_string_deinit(&code_str);
     goto done;
@@ -328,10 +328,10 @@ static napi_value ten_nodejs_msg_set_property_number(napi_env env,
                             c_value, &err);
   if (!rc) {
     ten_string_t code_str;
-    ten_string_init_formatted(&code_str, "%d", ten_error_errno(&err));
+    ten_string_init_formatted(&code_str, "%d", ten_error_code(&err));
 
     napi_throw_error(env, ten_string_get_raw_str(&code_str),
-                     ten_error_errmsg(&err));
+                     ten_error_message(&err));
 
     ten_string_deinit(&code_str);
   }
@@ -375,22 +375,22 @@ static napi_value ten_nodejs_msg_get_property_number(napi_env env,
       msg_bridge->msg, ten_string_get_raw_str(&path), &err);
   if (!c_value) {
     ten_string_t code_str;
-    ten_string_init_formatted(&code_str, "%d", ten_error_errno(&err));
+    ten_string_init_formatted(&code_str, "%d", ten_error_code(&err));
 
     napi_throw_error(env, ten_string_get_raw_str(&code_str),
-                     ten_error_errmsg(&err));
+                     ten_error_message(&err));
 
     ten_string_deinit(&code_str);
     goto done;
   }
 
   double value = ten_value_get_float64(c_value, &err);
-  if (ten_error_errno(&err) != TEN_ERRNO_OK) {
+  if (ten_error_code(&err) != TEN_ERROR_CODE_OK) {
     ten_string_t code_str;
-    ten_string_init_formatted(&code_str, "%d", ten_error_errno(&err));
+    ten_string_init_formatted(&code_str, "%d", ten_error_code(&err));
 
     napi_throw_error(env, ten_string_get_raw_str(&code_str),
-                     ten_error_errmsg(&err));
+                     ten_error_message(&err));
 
     ten_string_deinit(&code_str);
     goto done;
@@ -451,10 +451,10 @@ static napi_value ten_nodejs_msg_set_property_string(napi_env env,
                             c_value, &err);
   if (!rc) {
     ten_string_t code_str;
-    ten_string_init_formatted(&code_str, "%d", ten_error_errno(&err));
+    ten_string_init_formatted(&code_str, "%d", ten_error_code(&err));
 
     napi_throw_error(env, ten_string_get_raw_str(&code_str),
-                     ten_error_errmsg(&err));
+                     ten_error_message(&err));
 
     ten_string_deinit(&code_str);
   }
@@ -499,10 +499,10 @@ static napi_value ten_nodejs_msg_get_property_string(napi_env env,
       msg_bridge->msg, ten_string_get_raw_str(&path), &err);
   if (!c_value) {
     ten_string_t code_str;
-    ten_string_init_formatted(&code_str, "%d", ten_error_errno(&err));
+    ten_string_init_formatted(&code_str, "%d", ten_error_code(&err));
 
     napi_throw_error(env, ten_string_get_raw_str(&code_str),
-                     ten_error_errmsg(&err));
+                     ten_error_message(&err));
 
     ten_string_deinit(&code_str);
     goto done;
@@ -511,10 +511,10 @@ static napi_value ten_nodejs_msg_get_property_string(napi_env env,
   const char *value = ten_value_peek_raw_str(c_value, &err);
   if (!value) {
     ten_string_t code_str;
-    ten_string_init_formatted(&code_str, "%d", ten_error_errno(&err));
+    ten_string_init_formatted(&code_str, "%d", ten_error_code(&err));
 
     napi_throw_error(env, ten_string_get_raw_str(&code_str),
-                     ten_error_errmsg(&err));
+                     ten_error_message(&err));
 
     ten_string_deinit(&code_str);
     goto done;
@@ -573,10 +573,10 @@ static napi_value ten_nodejs_msg_set_property_bool(napi_env env,
                             c_value, &err);
   if (!rc) {
     ten_string_t code_str;
-    ten_string_init_formatted(&code_str, "%d", ten_error_errno(&err));
+    ten_string_init_formatted(&code_str, "%d", ten_error_code(&err));
 
     napi_throw_error(env, ten_string_get_raw_str(&code_str),
-                     ten_error_errmsg(&err));
+                     ten_error_message(&err));
 
     ten_string_deinit(&code_str);
   }
@@ -620,22 +620,22 @@ static napi_value ten_nodejs_msg_get_property_bool(napi_env env,
       msg_bridge->msg, ten_string_get_raw_str(&path), &err);
   if (!c_value) {
     ten_string_t code_str;
-    ten_string_init_formatted(&code_str, "%d", ten_error_errno(&err));
+    ten_string_init_formatted(&code_str, "%d", ten_error_code(&err));
 
     napi_throw_error(env, ten_string_get_raw_str(&code_str),
-                     ten_error_errmsg(&err));
+                     ten_error_message(&err));
 
     ten_string_deinit(&code_str);
     goto done;
   }
 
   bool value = ten_value_get_bool(c_value, &err);
-  if (ten_error_errno(&err) != TEN_ERRNO_OK) {
+  if (ten_error_code(&err) != TEN_ERROR_CODE_OK) {
     ten_string_t code_str;
-    ten_string_init_formatted(&code_str, "%d", ten_error_errno(&err));
+    ten_string_init_formatted(&code_str, "%d", ten_error_code(&err));
 
     napi_throw_error(env, ten_string_get_raw_str(&code_str),
-                     ten_error_errmsg(&err));
+                     ten_error_message(&err));
 
     ten_string_deinit(&code_str);
     goto done;
@@ -699,10 +699,10 @@ static napi_value ten_nodejs_msg_set_property_buf(napi_env env,
                             c_value, &err);
   if (!rc) {
     ten_string_t code_str;
-    ten_string_init_formatted(&code_str, "%d", ten_error_errno(&err));
+    ten_string_init_formatted(&code_str, "%d", ten_error_code(&err));
 
     napi_throw_error(env, ten_string_get_raw_str(&code_str),
-                     ten_error_errmsg(&err));
+                     ten_error_message(&err));
 
     ten_string_deinit(&code_str);
   }
@@ -746,10 +746,10 @@ static napi_value ten_nodejs_msg_get_property_buf(napi_env env,
       msg_bridge->msg, ten_string_get_raw_str(&path), &err);
   if (!c_value) {
     ten_string_t code_str;
-    ten_string_init_formatted(&code_str, "%d", ten_error_errno(&err));
+    ten_string_init_formatted(&code_str, "%d", ten_error_code(&err));
 
     napi_throw_error(env, ten_string_get_raw_str(&code_str),
-                     ten_error_errmsg(&err));
+                     ten_error_message(&err));
 
     ten_string_deinit(&code_str);
     goto done;

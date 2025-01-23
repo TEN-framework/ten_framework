@@ -12,7 +12,7 @@
 #include "include_internal/ten_utils/schema/types/schema_array.h"
 #include "include_internal/ten_utils/schema/types/schema_object.h"
 #include "include_internal/ten_utils/schema/types/schema_primitive.h"
-#include "ten_runtime/common/errno.h"
+#include "ten_runtime/common/error_code.h"
 #include "ten_utils/container/hash_handle.h"
 #include "ten_utils/container/hash_table.h"
 #include "ten_utils/lib/error.h"
@@ -281,7 +281,7 @@ bool ten_schema_validate_value(ten_schema_t *self, ten_value_t *value,
 
   bool result = false;
   if (!value) {
-    ten_error_set(err, TEN_ERRNO_GENERIC, "Value is required.");
+    ten_error_set(err, TEN_ERROR_CODE_GENERIC, "Value is required.");
     goto done;
   }
 
@@ -289,8 +289,8 @@ bool ten_schema_validate_value(ten_schema_t *self, ten_value_t *value,
   ten_schema_error_init(&err_ctx, err);
   result = ten_schema_validate_value_with_schema_error(self, value, &err_ctx);
   if (!result && !ten_string_is_empty(&err_ctx.path)) {
-    ten_error_prepend_errmsg(err,
-                             "%s: ", ten_string_get_raw_str(&err_ctx.path));
+    ten_error_prepend_error_message(
+        err, "%s: ", ten_string_get_raw_str(&err_ctx.path));
   }
 
   ten_schema_error_deinit(&err_ctx);
@@ -340,7 +340,7 @@ bool ten_schema_adjust_value_type(ten_schema_t *self, ten_value_t *value,
   bool result = false;
 
   if (!value) {
-    ten_error_set(err, TEN_ERRNO_GENERIC, "Value is required.");
+    ten_error_set(err, TEN_ERROR_CODE_GENERIC, "Value is required.");
     goto done;
   }
 
@@ -350,8 +350,8 @@ bool ten_schema_adjust_value_type(ten_schema_t *self, ten_value_t *value,
       ten_schema_adjust_value_type_with_schema_error(self, value, &err_ctx);
 
   if (!result && !ten_string_is_empty(&err_ctx.path)) {
-    ten_error_prepend_errmsg(err,
-                             "%s: ", ten_string_get_raw_str(&err_ctx.path));
+    ten_error_prepend_error_message(
+        err, "%s: ", ten_string_get_raw_str(&err_ctx.path));
   }
 
   ten_schema_error_deinit(&err_ctx);
@@ -437,8 +437,8 @@ bool ten_schema_is_compatible(ten_schema_t *self, ten_schema_t *target,
   bool result =
       ten_schema_is_compatible_with_schema_error(self, target, &err_ctx);
   if (!result && !ten_string_is_empty(&err_ctx.path)) {
-    ten_error_prepend_errmsg(err,
-                             "%s: ", ten_string_get_raw_str(&err_ctx.path));
+    ten_error_prepend_error_message(
+        err, "%s: ", ten_string_get_raw_str(&err_ctx.path));
   }
 
   ten_schema_error_deinit(&err_ctx);
@@ -466,7 +466,7 @@ ten_schema_t *ten_schema_create_from_json_str(const char *json_string,
     }
 
     if (!ten_json_is_object(schema_json)) {
-      ten_error_set(&err, TEN_ERRNO_GENERIC, "Invalid schema json.");
+      ten_error_set(&err, TEN_ERROR_CODE_GENERIC, "Invalid schema json.");
       break;
     }
 
@@ -478,7 +478,7 @@ ten_schema_t *ten_schema_create_from_json_str(const char *json_string,
   }
 
   if (!ten_error_is_success(&err)) {
-    *err_msg = TEN_STRDUP(ten_error_errmsg(&err));
+    *err_msg = TEN_STRDUP(ten_error_message(&err));
   }
 
   ten_error_deinit(&err);
@@ -504,7 +504,7 @@ bool ten_schema_adjust_and_validate_json_str(ten_schema_t *self,
 
     value = ten_value_from_json(json);
     if (!value) {
-      ten_error_set(&err, TEN_ERRNO_GENERIC, "Failed to parse JSON.");
+      ten_error_set(&err, TEN_ERROR_CODE_GENERIC, "Failed to parse JSON.");
       break;
     }
 
@@ -527,7 +527,7 @@ bool ten_schema_adjust_and_validate_json_str(ten_schema_t *self,
 
   bool result = ten_error_is_success(&err);
   if (!result) {
-    *err_msg = TEN_STRDUP(ten_error_errmsg(&err));
+    *err_msg = TEN_STRDUP(ten_error_message(&err));
   }
 
   ten_error_deinit(&err);

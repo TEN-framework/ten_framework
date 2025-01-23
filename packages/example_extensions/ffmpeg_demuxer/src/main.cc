@@ -52,7 +52,7 @@ class demuxer_extension_t : public extension_t {
     // Stop the demuxer thread. ffmpeg is living in its own thread.
     if (demuxer_thread_ != nullptr) {
       demuxer_thread_->stop();
-      demuxer_thread_->wait_for_stop();
+      demuxer_thread_->wait_for_stop_completed();
       delete demuxer_thread_;
     }
     ten_env.on_stop_done();

@@ -30,6 +30,7 @@ class AsyncTenEnv(TenEnvBase):
 
         self._ten_loop = loop
         self._ten_thread = thread
+        self._ten_all_tasks_done_event = asyncio.Event()
         ten_env._set_release_handler(lambda: self._on_release())
 
     def __del__(self) -> None:
@@ -41,18 +42,6 @@ class AsyncTenEnv(TenEnvBase):
         error: Optional[TenError],
         queue: asyncio.Queue,
     ) -> None:
-        # TODO(Wei): Here, it is still necessary to ensure that the latter part
-        # of the callback can be successfully invoked.
-
-        # After _internal.on_deinit_done() is called, self._ten_loop will be
-        # closed and the releasing of ten_env_proxy will cause all subsequent
-        # ten_env API calls to fail. However, callbacks from previously
-        # successful API calls may still be invoked until the ten_env itself is
-        # released. To prevent posting tasks to a closed loop in callbacks, we
-        # need to check if the loop is closed. If closed, return directly.
-        if self._ten_loop.is_closed():
-            return
-
         asyncio.run_coroutine_threadsafe(
             queue.put([result, error]),
             self._ten_loop,
@@ -61,10 +50,6 @@ class AsyncTenEnv(TenEnvBase):
     def _error_handler(
         self, error: Optional[TenError], queue: asyncio.Queue
     ) -> None:
-        # The same reason as _result_handler.
-        if self._ten_loop.is_closed():
-            return
-
         asyncio.run_coroutine_threadsafe(
             queue.put(error),
             self._ten_loop,
@@ -150,7 +135,7 @@ class AsyncTenEnv(TenEnvBase):
         error = await q.get()
 
         if error is not None:
-            raise RuntimeError(error.err_msg())
+            raise RuntimeError(error.error_message())
 
     async def return_result_directly(self, result: CmdResult) -> None:
         q = asyncio.Queue(maxsize=1)
@@ -162,7 +147,7 @@ class AsyncTenEnv(TenEnvBase):
         error = await q.get()
 
         if error is not None:
-            raise RuntimeError(error.err_msg())
+            raise RuntimeError(error.error_message())
 
     async def get_property_to_json(self, path: str) -> str:
         q = asyncio.Queue(maxsize=1)
@@ -174,7 +159,7 @@ class AsyncTenEnv(TenEnvBase):
         [result, error] = await q.get()
 
         if error is not None:
-            raise RuntimeError(error.err_msg())
+            raise RuntimeError(error.error_message())
 
         return result
 
@@ -188,7 +173,7 @@ class AsyncTenEnv(TenEnvBase):
 
         error: TenError = await q.get()
         if error is not None:
-            raise RuntimeError(error.err_msg())
+            raise RuntimeError(error.error_message())
 
     async def get_property_int(self, path: str) -> int:
         q = asyncio.Queue(maxsize=1)
@@ -200,7 +185,7 @@ class AsyncTenEnv(TenEnvBase):
         [result, error] = await q.get()
 
         if error is not None:
-            raise RuntimeError(error.err_msg())
+            raise RuntimeError(error.error_message())
 
         return result
 
@@ -214,7 +199,7 @@ class AsyncTenEnv(TenEnvBase):
 
         error: TenError = await q.get()
         if error is not None:
-            raise RuntimeError(error.err_msg())
+            raise RuntimeError(error.error_message())
 
     async def get_property_string(self, path: str) -> str:
         q = asyncio.Queue(maxsize=1)
@@ -226,7 +211,7 @@ class AsyncTenEnv(TenEnvBase):
         [result, error] = await q.get()
 
         if error is not None:
-            raise RuntimeError(error.err_msg())
+            raise RuntimeError(error.error_message())
 
         return result
 
@@ -240,7 +225,7 @@ class AsyncTenEnv(TenEnvBase):
 
         error: TenError = await q.get()
         if error is not None:
-            raise RuntimeError(error.err_msg())
+            raise RuntimeError(error.error_message())
 
     async def get_property_bool(self, path: str) -> bool:
         q = asyncio.Queue(maxsize=1)
@@ -252,7 +237,7 @@ class AsyncTenEnv(TenEnvBase):
         [result, error] = await q.get()
 
         if error is not None:
-            raise RuntimeError(error.err_msg())
+            raise RuntimeError(error.error_message())
         return result
 
     async def set_property_bool(self, path: str, value: int) -> None:
@@ -265,7 +250,7 @@ class AsyncTenEnv(TenEnvBase):
 
         error: TenError = await q.get()
         if error is not None:
-            raise RuntimeError(error.err_msg())
+            raise RuntimeError(error.error_message())
 
     async def get_property_float(self, path: str) -> float:
         q = asyncio.Queue(maxsize=1)
@@ -277,7 +262,7 @@ class AsyncTenEnv(TenEnvBase):
         [result, error] = await q.get()
 
         if error is not None:
-            raise RuntimeError(error.err_msg())
+            raise RuntimeError(error.error_message())
         return result
 
     async def set_property_float(self, path: str, value: float) -> None:
@@ -290,7 +275,7 @@ class AsyncTenEnv(TenEnvBase):
 
         error: TenError = await q.get()
         if error is not None:
-            raise RuntimeError(error.err_msg())
+            raise RuntimeError(error.error_message())
 
     async def is_property_exist(self, path: str) -> bool:
         q = asyncio.Queue(maxsize=1)
@@ -301,7 +286,7 @@ class AsyncTenEnv(TenEnvBase):
 
         [result, error] = await q.get()
         if error is not None:
-            raise RuntimeError(error.err_msg())
+            raise RuntimeError(error.error_message())
 
         return result
 
@@ -314,19 +299,32 @@ class AsyncTenEnv(TenEnvBase):
 
         error: TenError = await q.get()
         if error is not None:
-            raise RuntimeError(error.err_msg())
+            raise RuntimeError(error.error_message())
 
-    def _deinit_routine(self) -> None:
-        # Wait for the internal thread to finish.
-        self._ten_thread.join()
-
-        self._internal.on_deinit_done()
+    async def _close_loop(self):
+        self._ten_all_tasks_done_event.set()
 
     def _on_release(self) -> None:
-        if hasattr(self, "_deinit_thread"):
-            self._deinit_thread.join()
+        # At this point, all tasks that were submitted before `on_deinit_done`
+        # have been completed. Therefore, at this time, the run loop of
+        # `_ten_thread` will be closed by setting a flag.
+        #
+        # At the `_on_release` point in time, we can guarantee that there are no
+        # TEN API-related tasks in the Python asyncio task queue. However, there
+        # may still be other asyncio tasks (e.g., `await asyncio.sleep(...)`).
+        # Allowing these non-"TEN" API tasks to receive a cancellation exception
+        # caused by the termination of the asyncio runloop is reasonable.
+        #
+        # The reason we can guarantee that there are no TEN API-related tasks in
+        # the Python asyncio task queue at this point is that within
+        # `ten_py_ten_env_on_deinit_done`, an `on_deinit_done` C task is added
+        # as the last task to the C runloop. At the same time, `ten_env_proxy`
+        # is synchronously set to `NULL`, ensuring that no new TEN API-related C
+        # tasks will be added to the C runloop task queue afterward. This is
+        # because Python TEN API calls will immediately return an error
+        # synchronously at the Python binding layer when
+        # `ten_env_proxy == NULL`.
+        asyncio.run_coroutine_threadsafe(self._close_loop(), self._ten_loop)
 
-    def _deinit(self) -> None:
-        # Start the deinit thread to avoid blocking the extension thread.
-        self._deinit_thread = threading.Thread(target=self._deinit_routine)
-        self._deinit_thread.start()
+        # Wait for the internal thread to finish.
+        self._ten_thread.join()

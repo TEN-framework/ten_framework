@@ -103,7 +103,7 @@ bool ten_env_is_property_exist(ten_env_t *self, const char *path,
 
   if (!path || !strlen(path)) {
     if (err) {
-      ten_error_set(err, TEN_ERRNO_INVALID_ARGUMENT,
+      ten_error_set(err, TEN_ERROR_CODE_INVALID_ARGUMENT,
                     "path should not be empty.");
     }
     return false;
@@ -201,7 +201,7 @@ bool ten_env_init_property_from_json(ten_env_t *self, const char *json_string,
 
   if (ten_env_is_closed(self)) {
     if (err) {
-      ten_error_set(err, TEN_ERRNO_TEN_IS_CLOSED, "ten_env is closed.");
+      ten_error_set(err, TEN_ERROR_CODE_TEN_IS_CLOSED, "ten_env is closed.");
     }
     return false;
   }

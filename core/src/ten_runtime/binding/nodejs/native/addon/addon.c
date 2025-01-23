@@ -45,8 +45,8 @@ addon_on_create_instance_callback_ctx_create(ten_nodejs_addon_t *addon_bridge,
 
   ctx->addon_bridge = addon_bridge;
   ctx->ten_env = ten_env;
-  ten_string_init_from_c_str(&ctx->instance_name, instance_name,
-                             strlen(instance_name));
+  ten_string_init_from_c_str_with_size(&ctx->instance_name, instance_name,
+                                       strlen(instance_name));
   ctx->context = context;
 
   return ctx;

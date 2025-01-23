@@ -361,7 +361,7 @@ static void ten_transport_on_client_accepted(ten_transport_t *transport,
       ten_string_get_raw_str(&listening_base_protocol->addon_host->name),
       TEN_PROTOCOL_ROLE_IN_DEFAULT, ten_app_thread_on_client_protocol_created,
       stream, &err);
-  TEN_ASSERT(rc, "Failed to create protocol, err: %s", ten_error_errmsg(&err));
+  TEN_ASSERT(rc, "Failed to create protocol, err: %s", ten_error_message(&err));
 
   ten_error_deinit(&err);
 }
@@ -913,8 +913,8 @@ ten_protocol_integrated_connect_to_context_create(
           sizeof(ten_protocol_integrated_connect_to_context_t));
   TEN_ASSERT(context, "Failed to allocate memory.");
 
-  ten_string_init_from_c_str(&context->server_uri, server_uri,
-                             strlen(server_uri));
+  ten_string_init_from_c_str_with_size(&context->server_uri, server_uri,
+                                       strlen(server_uri));
   context->on_server_connected = on_server_connected;
   context->user_data = user_data;
   context->protocol = self;

@@ -16,7 +16,7 @@
 #include <vector>
 
 #include "buf.h"
-#include "ten_runtime/common/errno.h"
+#include "ten_runtime/common/error_code.h"
 #include "ten_utils/lib/alloc.h"
 #include "ten_utils/lib/buf.h"
 #include "ten_utils/lib/error.h"
@@ -402,7 +402,7 @@ class value_t {
       return result;
     } else {
       // Property is not found.
-      ten_error_set(err, TEN_ERRNO_GENERIC, "Not found.");
+      ten_error_set(err, TEN_ERROR_CODE_GENERIC, "Not found.");
       return {};
     }
   }

@@ -31,12 +31,12 @@ type tenEnvTester struct {
 func (p *tenEnvTester) SendCmd(cmd Cmd, handler TesterResultHandler) error {
 	if cmd == nil {
 		return newTenError(
-			ErrnoInvalidArgument,
+			ErrorCodeInvalidArgument,
 			"cmd is required.",
 		)
 	}
 
-	return withCGO(func() error {
+	return withCGOLimiter(func() error {
 		return p.sendCmd(cmd, handler)
 	})
 }

@@ -17,7 +17,6 @@
 #include "include_internal/ten_runtime/extension/extension_info/extension_info.h"
 #include "include_internal/ten_runtime/extension_context/extension_context.h"
 #include "include_internal/ten_runtime/extension_group/extension_group.h"
-#include "include_internal/ten_runtime/extension_group/on_xxx.h"
 #include "include_internal/ten_runtime/extension_store/extension_store.h"
 #include "include_internal/ten_runtime/extension_thread/extension_thread.h"
 #include "include_internal/ten_runtime/msg/cmd_base/cmd_base.h"
@@ -26,7 +25,7 @@
 #include "include_internal/ten_runtime/schema_store/msg.h"
 #include "include_internal/ten_utils/value/value_path.h"
 #include "ten_runtime/app/app.h"
-#include "ten_runtime/common/errno.h"
+#include "ten_runtime/common/error_code.h"
 #include "ten_runtime/msg/cmd/close_app/cmd.h"
 #include "ten_runtime/msg/cmd/stop_graph/cmd.h"
 #include "ten_runtime/msg/cmd_result/cmd_result.h"
@@ -556,7 +555,7 @@ static bool ten_raw_msg_get_one_field_from_json_internal(
         // If the field value cannot be set from the JSON, it means that the
         // JSON format is incorrect.
         if (err) {
-          ten_error_set(err, TEN_ERRNO_INVALID_JSON,
+          ten_error_set(err, TEN_ERROR_CODE_INVALID_JSON,
                         "Invalid JSON format for field %s.", field->field_name);
         }
 
@@ -581,7 +580,7 @@ static bool ten_raw_msg_get_one_field_from_json_internal(
         // If the value cannot be created from the JSON, it means that the JSON
         // format is incorrect.
         if (err) {
-          ten_error_set(err, TEN_ERRNO_INVALID_JSON,
+          ten_error_set(err, TEN_ERROR_CODE_INVALID_JSON,
                         "Invalid JSON format for field %s.", field->field_name);
         }
 
@@ -789,7 +788,7 @@ static bool ten_raw_msg_init_from_json(ten_msg_t *self, ten_json_t *json,
   if (!rc) {
     if (err) {
       ten_error_set(
-          err, TEN_ERRNO_INVALID_JSON,
+          err, TEN_ERROR_CODE_INVALID_JSON,
           "Failed to init a message from json, because the fields are "
           "incorrect.");
     }
@@ -1220,7 +1219,7 @@ bool ten_raw_msg_set_name_with_len(ten_msg_t *self, const char *msg_name,
 
   if (msg_name == NULL) {
     if (err) {
-      ten_error_set(err, TEN_ERRNO_GENERIC, "%s",
+      ten_error_set(err, TEN_ERROR_CODE_GENERIC, "%s",
                     "Failed to set message name to an empty string.");
     }
     return false;

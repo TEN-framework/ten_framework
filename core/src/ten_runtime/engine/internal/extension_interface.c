@@ -41,7 +41,7 @@ bool ten_engine_enable_extension_system(ten_engine_t *self,
 
     ten_engine_return_error_for_cmd_start_graph(
         self, cmd, "Failed to start extension system: %s",
-        ten_error_errmsg(err));
+        ten_error_message(err));
 
     return false;
   }
@@ -63,7 +63,7 @@ bool ten_engine_enable_extension_system(ten_engine_t *self,
 
       ten_engine_return_error_for_cmd_start_graph(
           self, cmd, "Failed to start extension system: %s",
-          ten_error_errmsg(err));
+          ten_error_message(err));
 
       return false;
     }

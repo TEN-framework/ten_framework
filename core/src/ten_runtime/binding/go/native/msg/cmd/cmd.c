@@ -16,9 +16,11 @@
 #include "ten_runtime/binding/go/interface/ten/common.h"
 #include "ten_runtime/binding/go/interface/ten/msg.h"
 #include "ten_runtime/common/status_code.h"
+#include "ten_runtime/msg/cmd/cmd.h"
 #include "ten_runtime/msg/cmd_result/cmd_result.h"
 #include "ten_utils/lib/error.h"
 #include "ten_utils/lib/smart_ptr.h"
+#include "ten_utils/lib/string.h"
 #include "ten_utils/macro/check.h"
 
 ten_go_handle_t tenGoCreateCmdResult(uintptr_t);
@@ -28,10 +30,13 @@ ten_go_error_t ten_go_cmd_create_cmd(const void *name, int name_len,
   TEN_ASSERT(name && name_len > 0, "Should not happen.");
 
   ten_go_error_t cgo_error;
-  ten_go_error_init_with_errno(&cgo_error, TEN_ERRNO_OK);
+  ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
+
+  ten_string_t cmd_name;
+  ten_string_init_from_c_str_with_size(&cmd_name, name, name_len);
 
   ten_shared_ptr_t *cmd =
-      ten_cmd_custom_create_with_name_len(name, name_len, NULL);
+      ten_cmd_create(ten_string_get_raw_str(&cmd_name), NULL);
   TEN_ASSERT(cmd && ten_cmd_check_integrity(cmd), "Should not happen.");
 
   ten_go_msg_t *msg_bridge = ten_go_msg_create(cmd);
@@ -39,6 +44,8 @@ ten_go_error_t ten_go_cmd_create_cmd(const void *name, int name_len,
 
   *bridge = (uintptr_t)msg_bridge;
   ten_shared_ptr_destroy(cmd);
+
+  ten_string_deinit(&cmd_name);
 
   return cgo_error;
 }
@@ -80,7 +87,7 @@ ten_go_error_t ten_go_cmd_result_set_final(uintptr_t bridge_addr,
   TEN_ASSERT(c_cmd, "Should not happen.");
 
   ten_go_error_t cgo_error;
-  ten_go_error_init_with_errno(&cgo_error, TEN_ERRNO_OK);
+  ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
 
   ten_error_t err;
   ten_error_init(&err);
@@ -90,7 +97,7 @@ ten_go_error_t ten_go_cmd_result_set_final(uintptr_t bridge_addr,
 
   if (!ten_error_is_success(&err)) {
     TEN_ASSERT(!success, "Should not happen.");
-    ten_go_error_set(&cgo_error, ten_error_errno(&err), ten_error_errmsg(&err));
+    ten_go_error_set(&cgo_error, ten_error_code(&err), ten_error_message(&err));
   }
 
   ten_error_deinit(&err);
@@ -109,7 +116,7 @@ ten_go_error_t ten_go_cmd_result_is_final(uintptr_t bridge_addr,
   TEN_ASSERT(c_cmd, "Should not happen.");
 
   ten_go_error_t cgo_error;
-  ten_go_error_init_with_errno(&cgo_error, TEN_ERRNO_OK);
+  ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
 
   ten_error_t err;
   ten_error_init(&err);
@@ -117,7 +124,7 @@ ten_go_error_t ten_go_cmd_result_is_final(uintptr_t bridge_addr,
   bool is_final_ = ten_cmd_result_is_final(ten_go_msg_c_msg(msg_bridge), &err);
 
   if (!ten_error_is_success(&err)) {
-    ten_go_error_set(&cgo_error, ten_error_errno(&err), ten_error_errmsg(&err));
+    ten_go_error_set(&cgo_error, ten_error_code(&err), ten_error_message(&err));
   } else {
     *is_final = is_final_;
   }
@@ -138,7 +145,7 @@ ten_go_error_t ten_go_cmd_result_is_completed(uintptr_t bridge_addr,
   TEN_ASSERT(c_cmd, "Should not happen.");
 
   ten_go_error_t cgo_error;
-  ten_go_error_init_with_errno(&cgo_error, TEN_ERRNO_OK);
+  ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
 
   ten_error_t err;
   ten_error_init(&err);
@@ -147,7 +154,7 @@ ten_go_error_t ten_go_cmd_result_is_completed(uintptr_t bridge_addr,
       ten_cmd_result_is_completed(ten_go_msg_c_msg(msg_bridge), &err);
 
   if (!ten_error_is_success(&err)) {
-    ten_go_error_set(&cgo_error, ten_error_errno(&err), ten_error_errmsg(&err));
+    ten_go_error_set(&cgo_error, ten_error_code(&err), ten_error_message(&err));
   } else {
     *is_completed = is_completed_;
   }

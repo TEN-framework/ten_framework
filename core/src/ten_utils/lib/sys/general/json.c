@@ -9,7 +9,7 @@
 #include <stdbool.h>
 
 #include "jansson.h"
-#include "ten_runtime/common/errno.h"
+#include "ten_runtime/common/error_code.h"
 #include "ten_utils/lib/error.h"
 #include "ten_utils/log/log.h"
 #include "ten_utils/macro/check.h"
@@ -254,7 +254,8 @@ ten_json_t *ten_json_from_string(const char *msg, ten_error_t *err) {
   ret = json_loads(msg, JSON_DECODE_ANY, &error);
   if (!ret) {
     if (err) {
-      ten_error_set(err, TEN_ERRNO_INVALID_JSON, "%s: %s", msg, error.text);
+      ten_error_set(err, TEN_ERROR_CODE_INVALID_JSON, "%s: %s", msg,
+                    error.text);
     }
     TEN_LOGE("Failed to parse %s: %s", msg, error.text);
   }

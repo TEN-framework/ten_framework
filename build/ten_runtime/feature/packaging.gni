@@ -36,7 +36,6 @@ template("ten_package_packaging") {
                            [
                              "deps",
                              "public_deps",
-                             "data_deps",
                              "sources",
                            ])
 
@@ -54,7 +53,6 @@ template("ten_package_packaging") {
                            [
                              "deps",
                              "public_deps",
-                             "data_deps",
                            ])
     public_deps = [ ":ten_package_packaging_${_target_name}" ]
   }

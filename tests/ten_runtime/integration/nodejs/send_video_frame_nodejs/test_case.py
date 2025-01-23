@@ -36,6 +36,9 @@ def test_send_video_frame_nodejs():
     )
 
     if build_config_args.ten_enable_integration_tests_prebuilt is False:
+        # Before starting, cleanup the old app package.
+        build_pkg.cleanup(app_root_path)
+
         print('Assembling and building package "{}".'.format(app_dir_name))
 
         rc = build_pkg.prepare_and_build_app(
@@ -112,4 +115,4 @@ def test_send_video_frame_nodejs():
 
             # Testing complete. If builds are only created during the testing
             # phase, we can clear the build results to save disk space.
-            build_pkg.cleanup(source_root_path, app_root_path)
+            build_pkg.cleanup(app_root_path)

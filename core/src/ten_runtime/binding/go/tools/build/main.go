@@ -96,37 +96,22 @@ func main() {
 		false,
 		"Clean the auto-gen files only, without building the app.",
 	)
-	flag.StringVar(
-		&options.Mod,
-		"mod",
-		"",
-		"Module download mode to use: readonly, vendor, or mod. Same as the -mod flag in go build.",
-	)
-	flag.StringVar(
-		&options.GCFlags,
-		"gcflags",
-		"",
-		"Flags to pass to the Go compiler. Same as the -gcflags flag in go build.",
-	)
-	flag.StringVar(
-		&options.LdFlags,
-		"ldflags",
-		"",
-		"Flags to pass to the Go linker. Same as the -ldflags flag in go build.",
-	)
-	flag.BoolVar(
-		&options.EnableAsan,
-		"asan",
-		false,
-		"Enable address sanitizer. Same as the -asan flag in go build.",
-	)
 	flag.BoolVar(
 		&options.Verbose,
 		"verbose",
 		false,
 		"Displays the verbose output.",
 	)
+	flag.StringVar(
+		&options.BuildFlags,
+		"build_flags",
+		"",
+		"Extra flags to pass to the internal 'go build' command.",
+	)
 	flag.Parse()
+
+	// Trim surrounding quotes from BuildFlags.
+	options.BuildFlags = strings.Trim(options.BuildFlags, "\"")
 
 	if err := options.Valid(); err != nil {
 		log.Fatalf("Invalid options: %v", err)
@@ -616,12 +601,7 @@ type BuildOption struct {
 	AutoGenImportFile string
 	KeepAutoGen       bool
 	CleanAutoGen      bool
-
-	// Same as the flags in 'go build'.
-	Mod        string
-	GCFlags    string
-	LdFlags    string
-	EnableAsan bool
+	BuildFlags        string
 }
 
 func (b *BuildOption) Valid() error {
@@ -687,8 +667,9 @@ func (ab *AppBuilder) buildGoApp(envs []string) error {
 		fmt.Sprintf("bin/%s", ab.pkgName),
 	}
 
-	if ab.options.EnableAsan {
-		cmdline = append(cmdline, "-asan")
+	if ab.options.BuildFlags != "" {
+		extraFlags := strings.Fields(ab.options.BuildFlags)
+		cmdline = append(cmdline, extraFlags...)
 	}
 
 	if ab.options.Verbose {

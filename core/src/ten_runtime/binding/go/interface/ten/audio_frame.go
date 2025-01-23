@@ -79,7 +79,7 @@ var _ AudioFrame = new(audioFrame)
 func NewAudioFrame(audioFrameName string) (AudioFrame, error) {
 	if len(audioFrameName) == 0 {
 		return nil, newTenError(
-			ErrnoInvalidArgument,
+			ErrorCodeInvalidArgument,
 			"audio frame name is required",
 		)
 	}
@@ -99,7 +99,7 @@ func NewAudioFrame(audioFrameName string) (AudioFrame, error) {
 		if bridge == 0 {
 			// Should not happen.
 			return nil, newTenError(
-				ErrnoInvalidArgument,
+				ErrorCodeInvalidArgument,
 				"bridge is nil",
 			)
 		}
@@ -325,7 +325,7 @@ func (p *audioFrame) GetLineSize() (int32, error) {
 
 func (p *audioFrame) AllocBuf(size int) error {
 	if size <= 0 {
-		return newTenError(ErrnoInvalidArgument, "the size should be > 0")
+		return newTenError(ErrorCodeInvalidArgument, "the size should be > 0")
 	}
 
 	err := withCGOLimiter(func() error {
@@ -398,7 +398,7 @@ func (p *audioFrame) LockBuf() ([]byte, error) {
 
 func (p *audioFrame) UnlockBuf(buf *[]byte) error {
 	if buf == nil {
-		return newTenError(ErrnoInvalidArgument, "buf is nil")
+		return newTenError(ErrorCodeInvalidArgument, "buf is nil")
 	}
 
 	err := withCGOLimiter(func() error {

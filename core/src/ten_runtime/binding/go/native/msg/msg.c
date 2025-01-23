@@ -18,7 +18,7 @@
 #include "include_internal/ten_runtime/msg/msg.h"
 #include "ten_runtime/binding/go/interface/ten/common.h"
 #include "ten_runtime/binding/go/interface/ten/value.h"
-#include "ten_runtime/common/errno.h"
+#include "ten_runtime/common/error_code.h"
 #include "ten_runtime/msg/msg.h"
 #include "ten_utils/lib/alloc.h"
 #include "ten_utils/lib/error.h"
@@ -96,13 +96,17 @@ static ten_value_t *ten_go_msg_property_get_and_check_if_exists(
     ten_go_msg_t *self, const void *path, ten_go_handle_t path_len,
     ten_go_error_t *status) {
   TEN_ASSERT(self && ten_go_msg_check_integrity(self), "Should not happen.");
-  TEN_ASSERT(path && path_len > 0, "Should not happen.");
   TEN_ASSERT(status, "Should not happen.");
 
-  ten_go_error_init_with_errno(status, TEN_ERRNO_OK);
+  ten_go_error_init_with_error_code(status, TEN_ERROR_CODE_OK);
 
   ten_string_t prop_path;
-  ten_string_init_formatted(&prop_path, "%.*s", path_len, path);
+
+  if (path_len == 0) {
+    ten_string_init(&prop_path);
+  } else {
+    ten_string_init_from_c_str_with_size(&prop_path, path, path_len);
+  }
 
   ten_value_t *value = ten_msg_peek_property(
       self->c_msg, ten_string_get_raw_str(&prop_path), NULL);
@@ -110,7 +114,7 @@ static ten_value_t *ten_go_msg_property_get_and_check_if_exists(
   ten_string_deinit(&prop_path);
 
   if (value == NULL) {
-    ten_go_error_set_errno(status, TEN_ERRNO_GENERIC);
+    ten_go_error_set_error_code(status, TEN_ERROR_CODE_GENERIC);
   }
 
   return value;
@@ -486,12 +490,18 @@ static void ten_go_msg_set_property(ten_go_msg_t *self, const void *path,
   TEN_ASSERT(self && ten_go_msg_check_integrity(self), "Should not happen.");
   TEN_ASSERT(value && ten_value_check_integrity(value), "Should not happen.");
 
-  ten_string_t key;
-  ten_string_init_formatted(&key, "%.*s", path_len, path);
+  ten_string_t path_str;
 
-  ten_msg_set_property(self->c_msg, ten_string_get_raw_str(&key), value, NULL);
+  if (path_len == 0) {
+    ten_string_init(&path_str);
+  } else {
+    ten_string_init_from_c_str_with_size(&path_str, path, path_len);
+  }
 
-  ten_string_deinit(&key);
+  ten_msg_set_property(self->c_msg, ten_string_get_raw_str(&path_str), value,
+                       NULL);
+
+  ten_string_deinit(&path_str);
 }
 
 ten_go_error_t ten_go_msg_property_set_bool(uintptr_t bridge_addr,
@@ -502,7 +512,7 @@ ten_go_error_t ten_go_msg_property_set_bool(uintptr_t bridge_addr,
   TEN_ASSERT(path && path_len > 0, "Should not happen.");
 
   ten_go_error_t cgo_error;
-  ten_go_error_init_with_errno(&cgo_error, TEN_ERRNO_OK);
+  ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
 
   ten_value_t *c_value = ten_value_create_bool(value);
   ten_go_msg_set_property(self, path, path_len, c_value);
@@ -518,7 +528,7 @@ ten_go_error_t ten_go_msg_property_set_int8(uintptr_t bridge_addr,
   TEN_ASSERT(path && path_len > 0, "Should not happen.");
 
   ten_go_error_t cgo_error;
-  ten_go_error_init_with_errno(&cgo_error, TEN_ERRNO_OK);
+  ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
 
   ten_value_t *c_value = ten_value_create_int8(value);
   ten_go_msg_set_property(self, path, path_len, c_value);
@@ -534,7 +544,7 @@ ten_go_error_t ten_go_msg_property_set_int16(uintptr_t bridge_addr,
   TEN_ASSERT(path && path_len > 0, "Should not happen.");
 
   ten_go_error_t cgo_error;
-  ten_go_error_init_with_errno(&cgo_error, TEN_ERRNO_OK);
+  ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
 
   ten_value_t *c_value = ten_value_create_int16(value);
   ten_go_msg_set_property(self, path, path_len, c_value);
@@ -550,7 +560,7 @@ ten_go_error_t ten_go_msg_property_set_int32(uintptr_t bridge_addr,
   TEN_ASSERT(path && path_len > 0, "Should not happen.");
 
   ten_go_error_t cgo_error;
-  ten_go_error_init_with_errno(&cgo_error, TEN_ERRNO_OK);
+  ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
 
   ten_value_t *c_value = ten_value_create_int32(value);
   ten_go_msg_set_property(self, path, path_len, c_value);
@@ -566,7 +576,7 @@ ten_go_error_t ten_go_msg_property_set_int64(uintptr_t bridge_addr,
   TEN_ASSERT(path && path_len > 0, "Should not happen.");
 
   ten_go_error_t cgo_error;
-  ten_go_error_init_with_errno(&cgo_error, TEN_ERRNO_OK);
+  ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
 
   ten_value_t *c_value = ten_value_create_int64(value);
   ten_go_msg_set_property(self, path, path_len, c_value);
@@ -582,7 +592,7 @@ ten_go_error_t ten_go_msg_property_set_uint8(uintptr_t bridge_addr,
   TEN_ASSERT(path && path_len > 0, "Should not happen.");
 
   ten_go_error_t cgo_error;
-  ten_go_error_init_with_errno(&cgo_error, TEN_ERRNO_OK);
+  ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
 
   ten_value_t *c_value = ten_value_create_uint8(value);
   ten_go_msg_set_property(self, path, path_len, c_value);
@@ -598,7 +608,7 @@ ten_go_error_t ten_go_msg_property_set_uint16(uintptr_t bridge_addr,
   TEN_ASSERT(path && path_len > 0, "Should not happen.");
 
   ten_go_error_t cgo_error;
-  ten_go_error_init_with_errno(&cgo_error, TEN_ERRNO_OK);
+  ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
 
   ten_value_t *c_value = ten_value_create_uint16(value);
   ten_go_msg_set_property(self, path, path_len, c_value);
@@ -614,7 +624,7 @@ ten_go_error_t ten_go_msg_property_set_uint32(uintptr_t bridge_addr,
   TEN_ASSERT(path && path_len > 0, "Should not happen.");
 
   ten_go_error_t cgo_error;
-  ten_go_error_init_with_errno(&cgo_error, TEN_ERRNO_OK);
+  ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
 
   ten_value_t *c_value = ten_value_create_uint32(value);
   ten_go_msg_set_property(self, path, path_len, c_value);
@@ -630,7 +640,7 @@ ten_go_error_t ten_go_msg_property_set_uint64(uintptr_t bridge_addr,
   TEN_ASSERT(path && path_len > 0, "Should not happen.");
 
   ten_go_error_t cgo_error;
-  ten_go_error_init_with_errno(&cgo_error, TEN_ERRNO_OK);
+  ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
 
   ten_value_t *c_value = ten_value_create_uint64(value);
   ten_go_msg_set_property(self, path, path_len, c_value);
@@ -646,7 +656,7 @@ ten_go_error_t ten_go_msg_property_set_float32(uintptr_t bridge_addr,
   TEN_ASSERT(path && path_len > 0, "Should not happen.");
 
   ten_go_error_t cgo_error;
-  ten_go_error_init_with_errno(&cgo_error, TEN_ERRNO_OK);
+  ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
 
   ten_value_t *c_value = ten_value_create_float32(value);
   ten_go_msg_set_property(self, path, path_len, c_value);
@@ -662,7 +672,7 @@ ten_go_error_t ten_go_msg_property_set_float64(uintptr_t bridge_addr,
   TEN_ASSERT(path && path_len > 0, "Should not happen.");
 
   ten_go_error_t cgo_error;
-  ten_go_error_init_with_errno(&cgo_error, TEN_ERRNO_OK);
+  ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
 
   ten_value_t *c_value = ten_value_create_float64(value);
   ten_go_msg_set_property(self, path, path_len, c_value);
@@ -679,7 +689,7 @@ ten_go_error_t ten_go_msg_property_set_string(uintptr_t bridge_addr,
   TEN_ASSERT(path && path_len > 0, "Should not happen.");
 
   ten_go_error_t cgo_error;
-  ten_go_error_init_with_errno(&cgo_error, TEN_ERRNO_OK);
+  ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
 
   const char *str_value = "";
 
@@ -708,7 +718,7 @@ ten_go_error_t ten_go_msg_property_set_buf(uintptr_t bridge_addr,
   TEN_ASSERT(value && value_len > 0, "Invalid argument.");
 
   ten_go_error_t cgo_error;
-  ten_go_error_init_with_errno(&cgo_error, TEN_ERRNO_OK);
+  ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
 
   ten_value_t *c_value = ten_go_ten_value_create_buf(value, value_len);
   ten_go_msg_set_property(self, path, path_len, c_value);
@@ -724,7 +734,7 @@ ten_go_error_t ten_go_msg_property_set_ptr(uintptr_t bridge_addr,
   TEN_ASSERT(path && path_len > 0, "Should not happen.");
 
   ten_go_error_t cgo_error;
-  ten_go_error_init_with_errno(&cgo_error, TEN_ERRNO_OK);
+  ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
 
   ten_value_t *c_value = ten_go_ten_value_create_ptr(value);
   ten_go_msg_set_property(self, path, path_len, c_value);
@@ -739,11 +749,10 @@ ten_go_error_t ten_go_msg_property_get_json_and_size(uintptr_t bridge_addr,
                                                      const char **json_str) {
   ten_go_msg_t *self = ten_go_msg_reinterpret(bridge_addr);
   TEN_ASSERT(self && ten_go_msg_check_integrity(self), "Should not happen.");
-  TEN_ASSERT(path && path_len > 0, "Should not happen.");
   TEN_ASSERT(json_str_len && json_str, "Should not happen.");
 
   ten_go_error_t cgo_error;
-  ten_go_error_init_with_errno(&cgo_error, TEN_ERRNO_OK);
+  ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
 
   ten_value_t *value = ten_go_msg_property_get_and_check_if_exists(
       self, path, path_len, &cgo_error);
@@ -763,11 +772,10 @@ ten_go_error_t ten_go_msg_property_set_json_bytes(uintptr_t bridge_addr,
                                                   int json_str_len) {
   ten_go_msg_t *self = ten_go_msg_reinterpret(bridge_addr);
   TEN_ASSERT(self && ten_go_msg_check_integrity(self), "Should not happen.");
-  TEN_ASSERT(path && path_len > 0, "Should not happen.");
   TEN_ASSERT(json_str && json_str_len > 0, "Should not happen.");
 
   ten_go_error_t cgo_error;
-  ten_go_error_init_with_errno(&cgo_error, TEN_ERRNO_OK);
+  ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
 
   ten_json_t *json = ten_go_json_loads(json_str, json_str_len, &cgo_error);
   if (json == NULL) {
@@ -797,12 +805,61 @@ ten_go_error_t ten_go_msg_get_name(uintptr_t bridge_addr, const char **name) {
   TEN_ASSERT(bridge_addr && name, "Invalid argument.");
 
   ten_go_error_t cgo_error;
-  ten_go_error_init_with_errno(&cgo_error, TEN_ERRNO_OK);
+  ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
 
   ten_go_msg_t *self = ten_go_msg_reinterpret(bridge_addr);
   const char *msg_name = ten_msg_get_name(ten_go_msg_c_msg(self));
   TEN_ASSERT(msg_name, "Should not happen.");
 
   *name = msg_name;
+  return cgo_error;
+}
+
+ten_go_error_t ten_go_msg_set_dest(uintptr_t bridge_addr, const void *app_uri,
+                                   int app_uri_len, const void *graph_id,
+                                   int graph_id_len,
+                                   const void *extension_group,
+                                   int extension_group_len,
+                                   const void *extension, int extension_len) {
+  ten_go_msg_t *self = ten_go_msg_reinterpret(bridge_addr);
+  TEN_ASSERT(self && ten_go_msg_check_integrity(self), "Should not happen.");
+
+  ten_go_error_t cgo_error;
+  ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
+
+  ten_string_t app_uri_str;
+  ten_string_init_from_c_str_with_size(&app_uri_str, app_uri, app_uri_len);
+
+  ten_string_t graph_id_str;
+  ten_string_init_from_c_str_with_size(&graph_id_str, graph_id, graph_id_len);
+
+  ten_string_t extension_group_str;
+  ten_string_init_from_c_str_with_size(&extension_group_str, extension_group,
+                                       extension_group_len);
+
+  ten_string_t extension_str;
+  ten_string_init_from_c_str_with_size(&extension_str, extension,
+                                       extension_len);
+
+  ten_error_t err;
+  ten_error_init(&err);
+
+  bool rc = ten_msg_clear_and_set_dest(
+      ten_go_msg_c_msg(self), ten_string_get_raw_str(&app_uri_str),
+      ten_string_get_raw_str(&graph_id_str),
+      ten_string_get_raw_str(&extension_group_str),
+      ten_string_get_raw_str(&extension_str), &err);
+
+  if (!rc) {
+    ten_go_error_set(&cgo_error, TEN_ERROR_CODE_GENERIC,
+                     ten_error_message(&err));
+  }
+
+  ten_error_deinit(&err);
+  ten_string_deinit(&app_uri_str);
+  ten_string_deinit(&graph_id_str);
+  ten_string_deinit(&extension_group_str);
+  ten_string_deinit(&extension_str);
+
   return cgo_error;
 }

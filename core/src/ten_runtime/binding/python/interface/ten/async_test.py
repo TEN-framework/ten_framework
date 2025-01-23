@@ -133,7 +133,7 @@ class AsyncTenEnvTester(TenEnvTesterBase):
         )
         error = await q.get()
         if error is not None:
-            raise RuntimeError(error.err_msg())
+            raise RuntimeError(error.error_message())
 
     def stop_test(self) -> None:
         return self._internal.stop_test()

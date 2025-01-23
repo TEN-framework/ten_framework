@@ -24,30 +24,29 @@ class demuxer_thread_t {
 
   ~demuxer_thread_t();
 
+  // @{
   demuxer_thread_t(const demuxer_thread_t &other) = delete;
   demuxer_thread_t(demuxer_thread_t &&other) = delete;
-
   demuxer_thread_t &operator=(const demuxer_thread_t &other) = delete;
   demuxer_thread_t &operator=(demuxer_thread_t &&other) = delete;
+  // @}
 
   void start();
-  void wait_for_start();
-
   void start_demuxing();
 
   void stop() { stop_ = true; }
-  void wait_for_stop();
+  void wait_for_stop_completed();
   bool is_stopped() const { return stop_; }
 
  private:
   friend class demuxer_t;
   friend void *demuxer_thread_main(void *self_);
 
-  void send_image_eof();
+  void send_video_eof();
   void send_audio_eof();
-  void reply_to_start_cmd(bool success = true);
+  void reply_to_start_cmd(bool success);
   bool create_demuxer();
-  void wait_for_demuxer();
+  void wait_to_start_demuxing();
   void notify_completed(bool success = true);
 
   ten::ten_env_proxy_t *ten_env_proxy_;
@@ -55,10 +54,9 @@ class demuxer_thread_t {
 
   std::atomic<bool> stop_;
 
-  demuxer_t *demuxer_;
+  demuxer_t *demuxer;
   ten_thread_t *demuxer_thread;
-  ten_event_t *demuxer_thread_is_started;
-  ten_event_t *ready_for_demuxer;
+  ten_event_t *event_for_start_demuxing;
 
   std::string input_stream_loc_;
   std::unique_ptr<ten::cmd_t> start_cmd_;

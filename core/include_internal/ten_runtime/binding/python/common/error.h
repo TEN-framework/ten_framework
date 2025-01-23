@@ -29,11 +29,11 @@ TEN_RUNTIME_PRIVATE_API void ten_py_error_invalidate(ten_py_error_t *error);
 
 TEN_RUNTIME_PRIVATE_API void ten_py_error_destroy(PyObject *self);
 
-TEN_RUNTIME_PRIVATE_API PyObject *ten_py_error_get_errno(PyObject *self,
-                                                         PyObject *args);
+TEN_RUNTIME_PRIVATE_API PyObject *ten_py_error_get_error_code(PyObject *self,
+                                                              PyObject *args);
 
-TEN_RUNTIME_PRIVATE_API PyObject *ten_py_error_get_errmsg(PyObject *self,
-                                                          PyObject *args);
+TEN_RUNTIME_PRIVATE_API PyObject *ten_py_error_get_error_message(
+    PyObject *self, PyObject *args);
 
 TEN_RUNTIME_PRIVATE_API bool ten_py_check_and_clear_py_error(void);
 

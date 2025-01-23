@@ -9,7 +9,7 @@
 #include "include_internal/ten_runtime/common/constant_str.h"
 #include "include_internal/ten_runtime/schema_store/cmd.h"
 #include "include_internal/ten_runtime/schema_store/msg.h"
-#include "ten_runtime/common/errno.h"
+#include "ten_runtime/common/error_code.h"
 #include "ten_utils/container/list.h"
 #include "ten_utils/container/list_node_ptr.h"
 #include "ten_utils/container/list_ptr.h"
@@ -216,7 +216,7 @@ bool ten_interface_schema_merge_into_msg_schema(ten_interface_schema_t *self,
             msg_schema_map,
             ten_msg_schema_get_msg_name(msg_schema_in_interface))) {
       // There should not be duplicate schemas.
-      ten_error_set(err, TEN_ERRNO_GENERIC, "Schema for %s is duplicated.",
+      ten_error_set(err, TEN_ERROR_CODE_GENERIC, "Schema for %s is duplicated.",
                     ten_msg_schema_get_msg_name(msg_schema_in_interface));
       return false;
     }

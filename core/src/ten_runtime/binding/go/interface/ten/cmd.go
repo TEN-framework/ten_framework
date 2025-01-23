@@ -29,13 +29,13 @@ type Cmd interface {
 func NewCmd(cmdName string) (Cmd, error) {
 	if len(cmdName) == 0 {
 		return nil, newTenError(
-			ErrnoInvalidArgument,
+			ErrorCodeInvalidArgument,
 			"cmd name is required.",
 		)
 	}
 
 	var bridge C.uintptr_t
-	err := withCGO(func() error {
+	err := withCGOLimiter(func() error {
 		// We do not pass the GO string (i.e., cmdName) to the C world in the
 		// normal way -- using the following codes:
 		//

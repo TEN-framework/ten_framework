@@ -116,8 +116,8 @@ void ten_extension_tester_set_test_mode_single(ten_extension_tester_t *self,
   TEN_ASSERT(addon_name, "Invalid argument.");
 
   self->test_mode = TEN_EXTENSION_TESTER_TEST_MODE_SINGLE;
-  ten_string_init_from_c_str(&self->test_target.addon.addon_name, addon_name,
-                             strlen(addon_name));
+  ten_string_init_from_c_str_with_size(&self->test_target.addon.addon_name,
+                                       addon_name, strlen(addon_name));
 
   if (property_json_str && strlen(property_json_str) > 0) {
     ten_error_t err;
@@ -128,17 +128,18 @@ void ten_extension_tester_set_test_mode_single(ten_extension_tester_t *self,
       ten_json_destroy(json);
     } else {
       TEN_ASSERT(0, "Failed to parse property json: %s",
-                 ten_error_errmsg(&err));
+                 ten_error_message(&err));
     }
 
     ten_error_deinit(&err);
 
-    ten_string_init_from_c_str(&self->test_target.addon.property_json,
-                               property_json_str, strlen(property_json_str));
+    ten_string_init_from_c_str_with_size(&self->test_target.addon.property_json,
+                                         property_json_str,
+                                         strlen(property_json_str));
   } else {
     const char *empty_json = "{}";
-    ten_string_init_from_c_str(&self->test_target.addon.property_json,
-                               empty_json, strlen(empty_json));
+    ten_string_init_from_c_str_with_size(&self->test_target.addon.property_json,
+                                         empty_json, strlen(empty_json));
   }
 }
 
@@ -149,8 +150,8 @@ void ten_extension_tester_set_test_mode_graph(ten_extension_tester_t *self,
   TEN_ASSERT(graph_json, "Invalid argument.");
 
   self->test_mode = TEN_EXTENSION_TESTER_TEST_MODE_GRAPH;
-  ten_string_init_from_c_str(&self->test_target.graph.graph_json, graph_json,
-                             strlen(graph_json));
+  ten_string_init_from_c_str_with_size(&self->test_target.graph.graph_json,
+                                       graph_json, strlen(graph_json));
 }
 
 void ten_extension_tester_init_test_app_property_from_json(

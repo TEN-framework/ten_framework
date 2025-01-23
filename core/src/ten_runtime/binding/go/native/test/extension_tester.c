@@ -229,7 +229,7 @@ ten_go_error_t ten_go_extension_tester_create(
   TEN_ASSERT(go_extension_tester > 0 && bridge_addr, "Invalid argument.");
 
   ten_go_error_t cgo_error;
-  ten_go_error_init_with_errno(&cgo_error, TEN_ERRNO_OK);
+  ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
 
   ten_go_extension_tester_t *extension_tester =
       ten_go_extension_tester_create_internal(go_extension_tester);

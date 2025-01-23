@@ -9,7 +9,6 @@ package ten
 
 import (
 	"runtime"
-	"sync"
 )
 
 type iRateLimiter interface {
@@ -35,12 +34,6 @@ func (tbl *tokenBucketLimiter) release() {
 	<-tbl.tokens
 }
 
-var errChanPool = sync.Pool{
-	New: func() any {
-		return make(chan error, 1)
-	},
-}
-
 // TODO(Liu): `runtime.GOMAXPROCS(0)` returns the CPUs in the host, the number
 // maybe incorrect if the application runs in a docker container with cpu
 // limits. Determine the actually number of CPUs in a docker container.
@@ -55,9 +48,9 @@ var defaultTokenBuckets = func() int {
 
 var limiter iRateLimiter = newTokenBucketLimiter(defaultTokenBuckets)
 
-// withCGO is used to ensure that the number of OS threads in the application
-// will be limited, as new OS thread might be created due to a syscall such as
-// cgo call.
+// withCGOLimiter is used to ensure that the number of OS threads in the
+// application will be limited, as new OS thread might be created due to a
+// syscall such as cgo call.
 //
 // Why a new OS thread might be created when there is a syscall (ex: cgo call)
 // in a Goroutine?
@@ -113,33 +106,7 @@ var limiter iRateLimiter = newTokenBucketLimiter(defaultTokenBuckets)
 //
 // So we can say, the maximum of M = the number of concurrent syscall +
 // GOMAXPROCS. If we want to limit the maximum of M, we have to limit the number
-// of concurrent syscall. That's what withCGO does.
-//
-// withCGO has two implementations, one is using a goroutine pool (i.e.,
-// withCGOPool) and another is using a rate limiter (i.e., withCGOLimiter).
-// And we use withCGOLimiter as default.
-var withCGO = withCGOLimiter
-
-// withCGOPool executes the function in one worker (i.e., a goroutine) of the
-// globalCGOPool, and withCGOPool is a sync call using channels inside. However,
-// the fn might not be executed immediately, as the execution timing of the
-// worker depends on the golang scheduler.
-func withCGOPool(fn func() error) error {
-	ec := errChanPool.Get().(chan error)
-	defer errChanPool.Put(ec)
-
-	err := globalCGOPool.submit(func() {
-		e := fn()
-		ec <- e
-	})
-	if err != nil {
-		// Failed to submit task to pool.
-		return err
-	}
-
-	err = <-ec
-	return err
-}
+// of concurrent syscall. That's what withCGOLimiter does.
 
 // Essentially, the functions `withCGOLimiter` and
 // `withCGOLimiterHasReturnValue` serve the same purpose, acting as rate

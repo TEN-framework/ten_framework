@@ -72,7 +72,6 @@ ten_env_t *ten_env_create(void) {
   ten_sanitizer_thread_check_init_with_current_thread(&self->thread_check);
 
   self->binding_handle.me_in_target_lang = NULL;
-  self->close_handler = NULL;
   self->is_closed = false;
 
   self->destroy_handler = NULL;
@@ -192,28 +191,12 @@ void ten_env_close(ten_env_t *self) {
       break;
   }
 
-  if (self->close_handler && self->binding_handle.me_in_target_lang) {
-    self->close_handler(self->binding_handle.me_in_target_lang);
-  }
-
   self->is_closed = true;
 }
 
 bool ten_env_is_closed(ten_env_t *self) {
   TEN_ASSERT(self && ten_env_check_integrity(self, true), "Should not happen.");
   return self->is_closed;
-}
-
-void ten_env_set_close_handler_in_target_lang(
-    ten_env_t *self,
-    ten_env_close_handler_in_target_lang_func_t close_handler) {
-  TEN_ASSERT(self, "Invalid argument.");
-  // TEN_NOLINTNEXTLINE(thread-check)
-  // thread-check: This function is intended to be called in any threads.
-  TEN_ASSERT(ten_env_check_integrity(self, false), "Invalid use of ten_env %p.",
-             self);
-
-  self->close_handler = close_handler;
 }
 
 void ten_env_set_destroy_handler_in_target_lang(

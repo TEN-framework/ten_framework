@@ -9,7 +9,7 @@
 #include "include_internal/ten_runtime/common/constant_str.h"
 #include "include_internal/ten_runtime/msg/msg.h"
 #include "include_internal/ten_runtime/msg_conversion/msg_conversion/per_property/fixed_value.h"
-#include "ten_runtime/common/errno.h"
+#include "ten_runtime/common/error_code.h"
 #include "ten_utils/lib/alloc.h"
 #include "ten_utils/lib/error.h"
 #include "ten_utils/lib/json.h"
@@ -105,8 +105,8 @@ ten_msg_conversion_per_property_rule_conversion_mode_from_string(
     return TEN_MSG_CONVERSION_PER_PROPERTY_RULE_CONVERSION_MODE_FROM_ORIGINAL;
   } else {
     if (err) {
-      ten_error_set(err, TEN_ERRNO_GENERIC, "Unsupported conversion mode '%s'",
-                    conversion_mode_str);
+      ten_error_set(err, TEN_ERROR_CODE_GENERIC,
+                    "Unsupported conversion mode '%s'", conversion_mode_str);
     }
     TEN_ASSERT(0, "Should not happen.");
     return TEN_MSG_CONVERSION_PER_PROPERTY_RULE_CONVERSION_MODE_INVALID;
@@ -164,7 +164,7 @@ ten_msg_conversion_per_property_rule_conversion_mode_to_string(
       return TEN_STR_FROM_ORIGINAL;
     default:
       if (err) {
-        ten_error_set(err, TEN_ERRNO_GENERIC,
+        ten_error_set(err, TEN_ERROR_CODE_GENERIC,
                       "Unsupported conversion mode '%d'", conversion_mode);
       }
       TEN_ASSERT(0, "Should not happen.");

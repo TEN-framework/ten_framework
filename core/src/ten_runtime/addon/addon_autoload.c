@@ -28,7 +28,7 @@
 #include "include_internal/ten_runtime/metadata/manifest.h"
 #include "include_internal/ten_utils/log/log.h"
 #include "ten_runtime/addon/addon.h"
-#include "ten_runtime/common/errno.h"
+#include "ten_runtime/common/error_code.h"
 #include "ten_utils/container/list.h"
 #include "ten_utils/container/list_node_str.h"
 #include "ten_utils/lib/error.h"
@@ -263,8 +263,8 @@ bool ten_addon_load_all_from_app_base_dir(const char *app_base_dir,
 
   for (int i = 0; i < sizeof(folders) / sizeof(folders[0]); i++) {
     ten_string_t module_path;
-    ten_string_init_from_c_str(&module_path, app_base_dir,
-                               strlen(app_base_dir));
+    ten_string_init_from_c_str_with_size(&module_path, app_base_dir,
+                                         strlen(app_base_dir));
 
     do {
       ten_string_append_formatted(&module_path, folders[i].path);
@@ -345,8 +345,8 @@ static bool ten_addon_load_specific_addon_using_native_addon_loader(
   ten_string_t addon_lib_folder_path;
 
   // Construct the path to the specific addon lib/ folder.
-  ten_string_init_from_c_str(&addon_lib_folder_path, app_base_dir,
-                             strlen(app_base_dir));
+  ten_string_init_from_c_str_with_size(&addon_lib_folder_path, app_base_dir,
+                                       strlen(app_base_dir));
 
   ten_string_append_formatted(&addon_lib_folder_path, "/ten_packages/%s/%s/lib",
                               ten_addon_type_to_string(addon_type), addon_name);
@@ -373,7 +373,7 @@ done:
   ten_string_deinit(&addon_lib_folder_path);
 
   if (!success && err) {
-    ten_error_set(err, TEN_ERRNO_GENERIC,
+    ten_error_set(err, TEN_ERROR_CODE_GENERIC,
                   "Failed to load specific addon: %s:%s",
                   ten_addon_type_to_string(addon_type), addon_name);
   }
@@ -392,7 +392,7 @@ static bool ten_addon_register_specific_addon(
       manager, addon_type, addon_name, (void *)register_ctx);
 
   if (!success && err) {
-    ten_error_set(err, TEN_ERRNO_GENERIC,
+    ten_error_set(err, TEN_ERROR_CODE_GENERIC,
                   "Failed to register specific addon: %s:%s",
                   ten_addon_type_to_string(addon_type), addon_name);
   }

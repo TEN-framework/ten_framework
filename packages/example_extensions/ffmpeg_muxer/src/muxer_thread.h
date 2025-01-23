@@ -5,7 +5,6 @@
 //
 #pragma once
 
-#include <atomic>
 #include <cassert>
 #include <cstdint>
 #include <list>
@@ -23,19 +22,19 @@ namespace ffmpeg_extension {
 struct demuxer_settings_t {
   // @{
   // Source video settings.
-  int src_video_width_;
-  int src_video_height_;
-  int64_t src_video_bit_rate_;
-  int64_t src_video_number_of_frames_;
-  AVRational src_video_frame_rate_;
-  AVRational src_video_time_base_;
+  int src_video_width;
+  int src_video_height;
+  int64_t src_video_bit_rate;
+  int64_t src_video_number_of_frames;
+  AVRational src_video_frame_rate;
+  AVRational src_video_time_base;
   // @}
 
   // @{
   // Source audio settings.
-  int src_audio_sample_rate_;
-  AVRational src_audio_time_base_;
-  uint64_t src_audio_channel_layout_;
+  int src_audio_sample_rate;
+  AVRational src_audio_time_base;
+  uint64_t src_audio_channel_layout_mask;
   // @}
 };
 
@@ -61,29 +60,29 @@ class muxer_thread_t {
   void on_ten_video_frame(std::unique_ptr<ten::video_frame_t> frame);
 
  private:
-  friend void *muxer_thread_main_(void *self_);
+  friend void *muxer_thread_main(void *self);
 
-  void create_muxer_();
-  void wait_for_the_first_av_frame_();
+  void create_muxer();
+  void wait_for_the_first_av_frame();
   void notify_completed(bool success = true);
 
-  ten_thread_t *muxer_thread_;
-  ten_event_t *muxer_thread_is_started_;
-  ten_atomic_t stop_;
-  muxer_t *muxer_;
+  ten_thread_t *muxer_thread;
+  ten_event_t *muxer_thread_is_started;
+  ten_atomic_t is_stop;
+  muxer_t *muxer;
 
-  ten_mutex_t *out_lock_;
-  ten_event_t *out_available_;
-  std::list<std::unique_ptr<ten::audio_frame_t>> out_audios_;
-  std::list<std::unique_ptr<ten::video_frame_t>> out_images_;
+  ten_mutex_t *out_lock;
+  ten_event_t *out_available;
+  std::list<std::unique_ptr<ten::audio_frame_t>> out_audios;
+  std::list<std::unique_ptr<ten::video_frame_t>> out_images;
 
   demuxer_settings_t settings;
-  std::string output_stream_;
+  std::string output_stream;
 
-  bool audio_eof_;
-  bool video_eof_;
+  bool audio_eof;
+  bool video_eof;
 
-  ten::ten_env_proxy_t *ten_env_proxy_;
+  ten::ten_env_proxy_t *ten_env_proxy;
 };
 
 }  // namespace ffmpeg_extension

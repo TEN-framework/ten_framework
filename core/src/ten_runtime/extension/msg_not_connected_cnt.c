@@ -22,7 +22,8 @@ ten_extension_output_msg_not_connected_count_create(const char *msg_name) {
           sizeof(ten_extension_output_msg_not_connected_count_t));
   TEN_ASSERT(self, "Failed to allocate memory.");
 
-  ten_string_init_from_c_str(&self->msg_name, msg_name, strlen(msg_name));
+  ten_string_init_from_c_str_with_size(&self->msg_name, msg_name,
+                                       strlen(msg_name));
   self->count = 0;
 
   return self;

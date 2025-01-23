@@ -12,7 +12,7 @@
 #include "include_internal/ten_runtime/extension_thread/extension_thread.h"
 #include "include_internal/ten_runtime/ten_env/ten_env.h"
 #include "include_internal/ten_runtime/ten_env_proxy/ten_env_proxy.h"
-#include "ten_runtime/common/errno.h"
+#include "ten_runtime/common/error_code.h"
 #include "ten_runtime/extension/extension.h"
 #include "ten_runtime/ten_env/ten_env.h"
 #include "ten_runtime/ten_env_proxy/ten_env_proxy.h"
@@ -47,7 +47,7 @@ ten_env_proxy_t *ten_env_proxy_create(ten_env_t *ten_env,
     const char *err_msg = "Create ten_env_proxy without specifying ten_env.";
     TEN_ASSERT(0, "%s", err_msg);
     if (err) {
-      ten_error_set(err, TEN_ERRNO_INVALID_ARGUMENT, err_msg);
+      ten_error_set(err, TEN_ERROR_CODE_INVALID_ARGUMENT, err_msg);
     }
     return NULL;
   }
@@ -64,7 +64,7 @@ ten_env_proxy_t *ten_env_proxy_create(ten_env_t *ten_env,
       const char *err_msg = "Create ten_env_proxy from unsupported ten.";
       TEN_ASSERT(0, "%s", err_msg);
       if (err) {
-        ten_error_set(err, TEN_ERRNO_INVALID_ARGUMENT, err_msg);
+        ten_error_set(err, TEN_ERROR_CODE_INVALID_ARGUMENT, err_msg);
       }
       return NULL;
     }
@@ -86,7 +86,7 @@ ten_env_proxy_t *ten_env_proxy_create(ten_env_t *ten_env,
             "ten_env_proxy needs to be created in extension thread.";
         TEN_ASSERT(0, "%s", err_msg);
         if (err) {
-          ten_error_set(err, TEN_ERRNO_GENERIC, err_msg);
+          ten_error_set(err, TEN_ERROR_CODE_GENERIC, err_msg);
         }
         return NULL;
       }
@@ -109,7 +109,7 @@ ten_env_proxy_t *ten_env_proxy_create(ten_env_t *ten_env,
             "ten_env_proxy needs to be created in extension thread.";
         TEN_ASSERT(0, "%s", err_msg);
         if (err) {
-          ten_error_set(err, TEN_ERRNO_GENERIC, err_msg);
+          ten_error_set(err, TEN_ERROR_CODE_GENERIC, err_msg);
         }
         return NULL;
       }
@@ -125,7 +125,7 @@ ten_env_proxy_t *ten_env_proxy_create(ten_env_t *ten_env,
             "ten_env_proxy needs to be created in app thread.";
         TEN_ASSERT(0, "%s", err_msg);
         if (err) {
-          ten_error_set(err, TEN_ERRNO_GENERIC, err_msg);
+          ten_error_set(err, TEN_ERROR_CODE_GENERIC, err_msg);
         }
         return NULL;
       }
@@ -174,7 +174,7 @@ bool ten_env_proxy_acquire(ten_env_proxy_t *self, ten_error_t *err) {
     const char *err_msg = "Invalid argument.";
     TEN_ASSERT(0, "%s", err_msg);
     if (err) {
-      ten_error_set(err, TEN_ERRNO_INVALID_ARGUMENT, err_msg);
+      ten_error_set(err, TEN_ERROR_CODE_INVALID_ARGUMENT, err_msg);
     }
     return false;
   }
@@ -205,7 +205,7 @@ bool ten_env_proxy_release(ten_env_proxy_t *self, ten_error_t *err) {
     const char *err_msg = "Invalid argument.";
     TEN_ASSERT(0, "%s", err_msg);
     if (err) {
-      ten_error_set(err, TEN_ERRNO_INVALID_ARGUMENT, err_msg);
+      ten_error_set(err, TEN_ERROR_CODE_INVALID_ARGUMENT, err_msg);
     }
     return false;
   }
@@ -221,7 +221,7 @@ bool ten_env_proxy_release(ten_env_proxy_t *self, ten_error_t *err) {
         "Unpaired calls of ten_proxy_acquire and ten_proxy_release.";
     TEN_ASSERT(0, "%s", err_msg);
     if (err) {
-      ten_error_set(err, TEN_ERRNO_INVALID_ARGUMENT, err_msg);
+      ten_error_set(err, TEN_ERROR_CODE_INVALID_ARGUMENT, err_msg);
     }
 
     goto done;
@@ -257,7 +257,7 @@ size_t ten_env_proxy_get_thread_cnt(ten_env_proxy_t *self, ten_error_t *err) {
     const char *err_msg = "Invalid argument.";
     TEN_ASSERT(0, "%s", err_msg);
     if (err) {
-      ten_error_set(err, TEN_ERRNO_INVALID_ARGUMENT, err_msg);
+      ten_error_set(err, TEN_ERROR_CODE_INVALID_ARGUMENT, err_msg);
     }
     return -1;
   }

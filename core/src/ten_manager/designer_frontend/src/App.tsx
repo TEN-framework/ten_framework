@@ -4,7 +4,7 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useRef } from "react";
 import {
   addEdge,
   applyEdgeChanges,
@@ -17,7 +17,7 @@ import { useTranslation } from "react-i18next";
 
 import { ThemeProvider } from "@/components/ThemeProvider";
 import AppBar from "@/components/AppBar/AppBar";
-import FlowCanvas from "@/flow/FlowCanvas";
+import FlowCanvas, { type FlowCanvasRef } from "@/flow/FlowCanvas";
 import { useVersion } from "@/api/services/common";
 import {
   getGraphNodes,
@@ -46,6 +46,7 @@ import { GlobalDialogs } from "@/components/GlobalDialogs";
 import Dock from "@/components/Dock";
 import { useWidgetStore } from "@/store/widget";
 import { EWidgetDisplayType } from "@/types/widgets";
+import { GlobalPopups } from "@/components/Popup/GlobalPopups";
 
 const App: React.FC = () => {
   const [graphs, setGraphs] = useState<IGraph[]>([]);
@@ -60,6 +61,8 @@ const App: React.FC = () => {
   const { version } = useVersion();
   const { t } = useTranslation();
   const { widgets } = useWidgetStore();
+
+  const flowCanvasRef = useRef<FlowCanvasRef | null>(null);
 
   const dockWidgetsMemo = React.useMemo(
     () =>
@@ -175,6 +178,7 @@ const App: React.FC = () => {
   return (
     <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
       <ResizablePanelGroup
+        key={`resizable-panel-group-${resizablePanelMode}`}
         direction={resizablePanelMode === "bottom" ? "vertical" : "horizontal"}
         className="w-screen h-screen min-h-screen min-w-screen"
       >
@@ -192,7 +196,7 @@ const App: React.FC = () => {
               <ResizableHandle />
             </>
           )}
-          <ResizablePanel defaultSize={60}>
+          <ResizablePanel defaultSize={dockWidgetsMemo.length > 0 ? 60 : 100}>
             <AppBar
               version={version}
               onAutoLayout={performAutoLayout}
@@ -200,6 +204,7 @@ const App: React.FC = () => {
               onSetBaseDir={handleSetBaseDir}
             />
             <FlowCanvas
+              ref={flowCanvasRef}
               nodes={nodes}
               edges={edges}
               onNodesChange={handleNodesChange}
@@ -246,6 +251,9 @@ const App: React.FC = () => {
               </ul>
             </Popup>
           )}
+
+          {/* Global popups. */}
+          <GlobalPopups />
 
           {/* Global dialogs. */}
           <GlobalDialogs />

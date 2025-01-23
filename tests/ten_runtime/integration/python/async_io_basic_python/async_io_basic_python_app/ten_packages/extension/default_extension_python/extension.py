@@ -43,7 +43,7 @@ class DefaultExtension(Extension):
 
         [result, error] = await q.get()
         if error is not None:
-            raise Exception(error.err_msg())
+            raise Exception(error.error_message())
         return result
 
     def __init__(self, name: str) -> None:

@@ -4,7 +4,7 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-#include "ten_runtime/common/errno.h"
+#include "ten_runtime/common/error_code.h"
 #include "ten_utils/lib/error.h"
 #include "ten_utils/value/value.h"
 #include "ten_utils/value/value_is.h"
@@ -39,7 +39,7 @@ bool ten_value_object_get_bool(ten_value_t *self, const char *key,
   ten_value_t *v = ten_value_object_peek(self, key);
   if (!v) {
     if (err) {
-      ten_error_set(err, TEN_ERRNO_GENERIC, "%s does not exist.", key);
+      ten_error_set(err, TEN_ERROR_CODE_GENERIC, "%s does not exist.", key);
     }
     return false;
   }
@@ -51,7 +51,7 @@ bool ten_value_object_get_bool(ten_value_t *self, const char *key,
     return result;
   } else {
     if (err) {
-      ten_error_set(err, TEN_ERRNO_GENERIC,
+      ten_error_set(err, TEN_ERROR_CODE_GENERIC,
                     "Failed to get boolean value from %s", key);
     }
     return false;

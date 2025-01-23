@@ -46,17 +46,17 @@ type TenEnv interface {
 	iProperty
 	InitPropertyFromJSONBytes(value []byte) error
 
-	LogVerbose(msg string)
-	LogDebug(msg string)
-	LogInfo(msg string)
-	LogWarn(msg string)
-	LogError(msg string)
-	LogFatal(msg string)
+	LogVerbose(msg string) error
+	LogDebug(msg string) error
+	LogInfo(msg string) error
+	LogWarn(msg string) error
+	LogError(msg string) error
+	LogFatal(msg string) error
 
 	// Private functions.
 	postSyncJob(payload job) any
 	postAsyncJob(payload job) any
-	logInternal(level LogLevel, msg string, skip int)
+	logInternal(level LogLevel, msg string, skip int) error
 }
 
 // Making a compile-time assertion which indicates that if 'ten' type doesn't
@@ -122,12 +122,12 @@ func (p *tenEnv) postAsyncJob(payload job) any {
 func (p *tenEnv) SendCmd(cmd Cmd, handler ResultHandler) error {
 	if cmd == nil {
 		return newTenError(
-			ErrnoInvalidArgument,
+			ErrorCodeInvalidArgument,
 			"cmd is required.",
 		)
 	}
 
-	return withCGO(func() error {
+	return withCGOLimiter(func() error {
 		return p.sendCmd(cmd, handler)
 	})
 }
@@ -153,12 +153,12 @@ func (p *tenEnv) sendCmd(cmd Cmd, handler ResultHandler) error {
 func (p *tenEnv) SendCmdEx(cmd Cmd, handler ResultHandler) error {
 	if cmd == nil {
 		return newTenError(
-			ErrnoInvalidArgument,
+			ErrorCodeInvalidArgument,
 			"cmd is required.",
 		)
 	}
 
-	return withCGO(func() error {
+	return withCGOLimiter(func() error {
 		return p.sendCmdEx(cmd, handler)
 	})
 }
@@ -205,7 +205,7 @@ func tenGoCAsyncApiCallback(
 func (p *tenEnv) SendData(data Data, handler ErrorHandler) error {
 	if data == nil {
 		return newTenError(
-			ErrnoInvalidArgument,
+			ErrorCodeInvalidArgument,
 			"data is required.",
 		)
 	}
@@ -217,7 +217,7 @@ func (p *tenEnv) SendData(data Data, handler ErrorHandler) error {
 		cb = newGoHandle(handler)
 	}
 
-	err := withCGO(func() error {
+	err := withCGOLimiter(func() error {
 		apiStatus := C.ten_go_ten_env_send_data(
 			p.cPtr,
 			data.getCPtr(),
@@ -241,7 +241,7 @@ func (p *tenEnv) SendVideoFrame(
 ) error {
 	if videoFrame == nil {
 		return newTenError(
-			ErrnoInvalidArgument,
+			ErrorCodeInvalidArgument,
 			"videoFrame is required.",
 		)
 	}
@@ -253,7 +253,7 @@ func (p *tenEnv) SendVideoFrame(
 		cb = newGoHandle(handler)
 	}
 
-	err := withCGO(func() error {
+	err := withCGOLimiter(func() error {
 		apiStatus := C.ten_go_ten_env_send_video_frame(
 			p.cPtr,
 			videoFrame.getCPtr(),
@@ -276,7 +276,7 @@ func (p *tenEnv) SendAudioFrame(
 ) error {
 	if audioFrame == nil {
 		return newTenError(
-			ErrnoInvalidArgument,
+			ErrorCodeInvalidArgument,
 			"audioFrame is required.",
 		)
 	}
@@ -288,7 +288,7 @@ func (p *tenEnv) SendAudioFrame(
 		cb = newGoHandle(handler)
 	}
 
-	err := withCGO(func() error {
+	err := withCGOLimiter(func() error {
 		apiStatus := C.ten_go_ten_env_send_audio_frame(
 			p.cPtr,
 			audioFrame.getCPtr(),
@@ -363,32 +363,31 @@ func (p *tenEnv) String() string {
 	return C.GoString(cString)
 }
 
-func (p *tenEnv) LogVerbose(msg string) {
-	p.logInternal(
-		LogLevelVerbose, msg, 2)
+func (p *tenEnv) LogVerbose(msg string) error {
+	return p.logInternal(LogLevelVerbose, msg, 2)
 }
 
-func (p *tenEnv) LogDebug(msg string) {
-	p.logInternal(LogLevelDebug, msg, 2)
+func (p *tenEnv) LogDebug(msg string) error {
+	return p.logInternal(LogLevelDebug, msg, 2)
 }
 
-func (p *tenEnv) LogInfo(msg string) {
-	p.logInternal(LogLevelInfo, msg, 2)
+func (p *tenEnv) LogInfo(msg string) error {
+	return p.logInternal(LogLevelInfo, msg, 2)
 }
 
-func (p *tenEnv) LogWarn(msg string) {
-	p.logInternal(LogLevelWarn, msg, 2)
+func (p *tenEnv) LogWarn(msg string) error {
+	return p.logInternal(LogLevelWarn, msg, 2)
 }
 
-func (p *tenEnv) LogError(msg string) {
-	p.logInternal(LogLevelError, msg, 2)
+func (p *tenEnv) LogError(msg string) error {
+	return p.logInternal(LogLevelError, msg, 2)
 }
 
-func (p *tenEnv) LogFatal(msg string) {
-	p.logInternal(LogLevelFatal, msg, 2)
+func (p *tenEnv) LogFatal(msg string) error {
+	return p.logInternal(LogLevelFatal, msg, 2)
 }
 
-func (p *tenEnv) logInternal(level LogLevel, msg string, skip int) {
+func (p *tenEnv) logInternal(level LogLevel, msg string, skip int) error {
 	// Get caller info.
 	pc, fileName, lineNo, ok := runtime.Caller(skip)
 	funcName := "unknown"
@@ -408,7 +407,7 @@ func (p *tenEnv) logInternal(level LogLevel, msg string, skip int) {
 		lineNo = 0
 	}
 
-	C.ten_go_ten_env_log(
+	cStatus := C.ten_go_ten_env_log(
 		p.cPtr,
 		C.int(level),
 		unsafe.Pointer(unsafe.StringData(funcName)),
@@ -419,4 +418,6 @@ func (p *tenEnv) logInternal(level LogLevel, msg string, skip int) {
 		unsafe.Pointer(unsafe.StringData(msg)),
 		C.int(len(msg)),
 	)
+
+	return withCGoError(&cStatus)
 }

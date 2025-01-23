@@ -43,7 +43,7 @@ func (p *tenEnv) getPropertyTypeAndSize(
 func (p *tenEnv) GetPropertyInt8(path string) (int8, error) {
 	if len(path) == 0 {
 		return 0, newTenError(
-			ErrnoInvalidArgument,
+			ErrorCodeInvalidArgument,
 			"property path is required",
 		)
 	}
@@ -62,7 +62,7 @@ func (p *tenEnv) GetPropertyInt8(path string) (int8, error) {
 func (p *tenEnv) GetPropertyInt16(path string) (int16, error) {
 	if len(path) == 0 {
 		return 0, newTenError(
-			ErrnoInvalidArgument,
+			ErrorCodeInvalidArgument,
 			"property path is required",
 		)
 	}
@@ -81,7 +81,7 @@ func (p *tenEnv) GetPropertyInt16(path string) (int16, error) {
 func (p *tenEnv) GetPropertyInt32(path string) (int32, error) {
 	if len(path) == 0 {
 		return 0, newTenError(
-			ErrnoInvalidArgument,
+			ErrorCodeInvalidArgument,
 			"property path is required",
 		)
 	}
@@ -100,7 +100,7 @@ func (p *tenEnv) GetPropertyInt32(path string) (int32, error) {
 func (p *tenEnv) GetPropertyInt64(path string) (int64, error) {
 	if len(path) == 0 {
 		return 0, newTenError(
-			ErrnoInvalidArgument,
+			ErrorCodeInvalidArgument,
 			"property path is required",
 		)
 	}
@@ -119,7 +119,7 @@ func (p *tenEnv) GetPropertyInt64(path string) (int64, error) {
 func (p *tenEnv) GetPropertyUint8(path string) (uint8, error) {
 	if len(path) == 0 {
 		return 0, newTenError(
-			ErrnoInvalidArgument,
+			ErrorCodeInvalidArgument,
 			"property path is required",
 		)
 	}
@@ -138,7 +138,7 @@ func (p *tenEnv) GetPropertyUint8(path string) (uint8, error) {
 func (p *tenEnv) GetPropertyUint16(path string) (uint16, error) {
 	if len(path) == 0 {
 		return 0, newTenError(
-			ErrnoInvalidArgument,
+			ErrorCodeInvalidArgument,
 			"property path is required",
 		)
 	}
@@ -157,7 +157,7 @@ func (p *tenEnv) GetPropertyUint16(path string) (uint16, error) {
 func (p *tenEnv) GetPropertyUint32(path string) (uint32, error) {
 	if len(path) == 0 {
 		return 0, newTenError(
-			ErrnoInvalidArgument,
+			ErrorCodeInvalidArgument,
 			"property path is required",
 		)
 	}
@@ -176,7 +176,7 @@ func (p *tenEnv) GetPropertyUint32(path string) (uint32, error) {
 func (p *tenEnv) GetPropertyUint64(path string) (uint64, error) {
 	if len(path) == 0 {
 		return 0, newTenError(
-			ErrnoInvalidArgument,
+			ErrorCodeInvalidArgument,
 			"property path is required",
 		)
 	}
@@ -195,7 +195,7 @@ func (p *tenEnv) GetPropertyUint64(path string) (uint64, error) {
 func (p *tenEnv) GetPropertyFloat32(path string) (float32, error) {
 	if len(path) == 0 {
 		return 0, newTenError(
-			ErrnoInvalidArgument,
+			ErrorCodeInvalidArgument,
 			"property path is required",
 		)
 	}
@@ -214,7 +214,7 @@ func (p *tenEnv) GetPropertyFloat32(path string) (float32, error) {
 func (p *tenEnv) GetPropertyFloat64(path string) (float64, error) {
 	if len(path) == 0 {
 		return 0, newTenError(
-			ErrnoInvalidArgument,
+			ErrorCodeInvalidArgument,
 			"property path is required",
 		)
 	}
@@ -233,7 +233,7 @@ func (p *tenEnv) GetPropertyFloat64(path string) (float64, error) {
 func (p *tenEnv) GetPropertyBool(path string) (bool, error) {
 	if len(path) == 0 {
 		return false, newTenError(
-			ErrnoInvalidArgument,
+			ErrorCodeInvalidArgument,
 			"property path is required",
 		)
 	}
@@ -252,7 +252,7 @@ func (p *tenEnv) GetPropertyBool(path string) (bool, error) {
 func (p *tenEnv) GetPropertyPtr(path string) (any, error) {
 	if len(path) == 0 {
 		return nil, newTenError(
-			ErrnoInvalidArgument,
+			ErrorCodeInvalidArgument,
 			"property path is required",
 		)
 	}
@@ -280,7 +280,7 @@ func (p *tenEnv) GetPropertyPtr(path string) (any, error) {
 func (p *tenEnv) GetPropertyString(path string) (string, error) {
 	if len(path) == 0 {
 		return "", newTenError(
-			ErrnoInvalidArgument,
+			ErrorCodeInvalidArgument,
 			"the property path is required",
 		)
 	}
@@ -295,7 +295,7 @@ func (p *tenEnv) GetPropertyString(path string) (string, error) {
 	// The value should be found if no error.
 	if cValue == 0 {
 		return "", newTenError(
-			ErrnoGeneric,
+			ErrorCodeGeneric,
 			"Should not happen.",
 		)
 	}
@@ -304,7 +304,7 @@ func (p *tenEnv) GetPropertyString(path string) (string, error) {
 		// The ten_value_t is cloned in TEN runtime, so we have to destroy it.
 		tenValueDestroy(cValue)
 		return "", newTenError(
-			ErrnoInvalidType,
+			ErrorCodeInvalidType,
 			fmt.Sprintf("expected: %s, actual: %s", propTypeStr, realPt),
 		)
 	}
@@ -337,7 +337,7 @@ func (p *tenEnv) GetPropertyString(path string) (string, error) {
 func (p *tenEnv) GetPropertyBytes(path string) ([]byte, error) {
 	if len(path) == 0 {
 		return nil, newTenError(
-			ErrnoInvalidArgument,
+			ErrorCodeInvalidArgument,
 			"the property path is required",
 		)
 	}
@@ -352,7 +352,7 @@ func (p *tenEnv) GetPropertyBytes(path string) ([]byte, error) {
 	// The value should be found if no error.
 	if cValue == 0 {
 		return nil, newTenError(
-			ErrnoGeneric,
+			ErrorCodeGeneric,
 			"Should not happen.",
 		)
 	}
@@ -361,7 +361,7 @@ func (p *tenEnv) GetPropertyBytes(path string) ([]byte, error) {
 		// The ten_value_t is cloned in TEN runtime, so we have to destroy it.
 		tenValueDestroy(cValue)
 		return nil, newTenError(
-			ErrnoInvalidType,
+			ErrorCodeInvalidType,
 			fmt.Sprintf("expected: %s, actual: %s", propTypeBuf, realPt),
 		)
 	}
@@ -389,7 +389,7 @@ func (p *tenEnv) GetPropertyBytes(path string) ([]byte, error) {
 func (p *tenEnv) SetProperty(path string, value any) error {
 	if len(path) == 0 {
 		return newTenError(
-			ErrnoInvalidArgument,
+			ErrorCodeInvalidArgument,
 			"the property path is required",
 		)
 	}
@@ -399,7 +399,7 @@ func (p *tenEnv) SetProperty(path string, value any) error {
 		return err
 	}
 
-	return withCGO(func() error {
+	return withCGOLimiter(func() error {
 		// Create a channel to wait for the async operation in C to complete.
 		done := make(chan error, 1)
 		callbackHandle := newGoHandle(done)
@@ -595,7 +595,7 @@ func (p *tenEnv) SetProperty(path string, value any) error {
 
 		default:
 			// Should not happen.
-			err = newTenError(ErrnoInvalidType, "")
+			err = newTenError(ErrorCodeInvalidType, "")
 		}
 
 		if err != nil {
@@ -619,12 +619,12 @@ func (p *tenEnv) SetPropertyString(
 ) error {
 	if len(path) == 0 {
 		return newTenError(
-			ErrnoInvalidArgument,
+			ErrorCodeInvalidArgument,
 			"the property path is required",
 		)
 	}
 
-	return withCGO(func() error {
+	return withCGOLimiter(func() error {
 		// Create a channel to wait for the async operation in C to complete.
 		done := make(chan error, 1)
 		callbackHandle := newGoHandle(done)
@@ -659,12 +659,12 @@ func (p *tenEnv) SetPropertyBytes(
 ) error {
 	if len(path) == 0 || len(value) == 0 {
 		return newTenError(
-			ErrnoInvalidArgument,
+			ErrorCodeInvalidArgument,
 			"the property value is required",
 		)
 	}
 
-	return withCGO(func() error {
+	return withCGOLimiter(func() error {
 		// Create a channel to wait for the async operation in C to complete.
 		done := make(chan error, 1)
 		callbackHandle := newGoHandle(done)
@@ -731,12 +731,12 @@ func (p *tenEnv) setPropertyFromJSONBytes(path string, value []byte) error {
 func (p *tenEnv) SetPropertyFromJSONBytes(path string, value []byte) error {
 	if len(path) == 0 || len(value) == 0 {
 		return newTenError(
-			ErrnoInvalidArgument,
+			ErrorCodeInvalidArgument,
 			"the property path and value are required",
 		)
 	}
 
-	return withCGO(func() error {
+	return withCGOLimiter(func() error {
 		return p.setPropertyFromJSONBytes(path, value)
 	})
 }
@@ -762,7 +762,7 @@ func (p *tenEnv) getPropertyToJSONBytes(path string) ([]byte, error) {
 	if size == 0 {
 		// The size of any valid json could not be 0.
 		return nil, newTenError(
-			ErrnoInvalidJSON,
+			ErrorCodeInvalidJSON,
 			"the size of json data is 0",
 		)
 	}
@@ -780,7 +780,7 @@ func (p *tenEnv) getPropertyToJSONBytes(path string) ([]byte, error) {
 func (p *tenEnv) GetPropertyToJSONBytes(path string) ([]byte, error) {
 	if len(path) == 0 {
 		return nil, newTenError(
-			ErrnoInvalidArgument,
+			ErrorCodeInvalidArgument,
 			"the property path is required.",
 		)
 	}

@@ -37,7 +37,7 @@ class audio_frame_t : public msg_t {
                                                error_t *err = nullptr) {
     if (name == nullptr || strlen(name) == 0) {
       if (err != nullptr && err->get_c_error() != nullptr) {
-        ten_error_set(err->get_c_error(), TEN_ERRNO_INVALID_ARGUMENT,
+        ten_error_set(err->get_c_error(), TEN_ERROR_CODE_INVALID_ARGUMENT,
                       "audio frame name cannot be empty.");
       }
       return nullptr;

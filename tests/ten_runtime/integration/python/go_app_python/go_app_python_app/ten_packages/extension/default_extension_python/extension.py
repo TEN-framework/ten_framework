@@ -46,7 +46,7 @@ class DefaultExtension(Extension):
         receivedCmd: Cmd,
     ):
         if error is not None:
-            assert False, error.err_msg()
+            assert False, error.error_message()
 
         assert result is not None
 
@@ -67,7 +67,7 @@ class DefaultExtension(Extension):
         receivedCmd: Cmd,
     ):
         if error is not None:
-            assert False, error.err_msg()
+            assert False, error.error_message()
 
         assert result is not None
         statusCode = result.get_status_code()

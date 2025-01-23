@@ -48,7 +48,7 @@ bool ten_schema_is_compatible_proxy(const ten_schema_t *self,
 
   bool result = ten_schema_is_compatible(self_, target_, &err);
   if (!result) {
-    *err_msg = ten_strdup(ten_error_errmsg(&err));
+    *err_msg = ten_strdup(ten_error_message(&err));
   }
 
   ten_error_deinit(&err);

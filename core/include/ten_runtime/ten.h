@@ -14,7 +14,7 @@
 #include "ten_runtime/addon/addon.h"                  // IWYU pragma: export
 #include "ten_runtime/addon/extension/extension.h"    // IWYU pragma: export
 #include "ten_runtime/app/app.h"                      // IWYU pragma: export
-#include "ten_runtime/common/errno.h"                 // IWYU pragma: export
+#include "ten_runtime/common/error_code.h"            // IWYU pragma: export
 #include "ten_runtime/extension/extension.h"          // IWYU pragma: export
 #include "ten_runtime/msg/audio_frame/audio_frame.h"  // IWYU pragma: export
 #include "ten_runtime/msg/cmd/close_app/cmd.h"        // IWYU pragma: export

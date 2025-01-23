@@ -18,9 +18,6 @@
 
 typedef struct ten_engine_t ten_engine_t;
 
-typedef void (*ten_env_close_handler_in_target_lang_func_t)(
-    void *me_in_target_lang);
-
 typedef void (*ten_env_destroy_handler_in_target_lang_func_t)(
     void *me_in_target_lang);
 
@@ -59,9 +56,6 @@ typedef struct ten_env_t {
     ten_engine_t *engine;
   } attached_target;
 
-  // TODO(Wei): Do we need this close_handler?
-  ten_env_close_handler_in_target_lang_func_t close_handler;
-
   // This flag indicates whether ten_env has been closed. If closed, no ten_env
   // methods can be called (except ten_env_log). So it can also be viewed the
   // other way around: when all APIs of `ten_env` (except for `ten_env_log`) can
@@ -73,6 +67,7 @@ typedef struct ten_env_t {
   // For engine, `ten_env_close()` is called when the engine is closed.
   bool is_closed;
 
+  // This handler is called when the ten_env is willing to be destroyed.
   ten_env_destroy_handler_in_target_lang_func_t destroy_handler;
 
   ten_list_t ten_proxy_list;
@@ -100,9 +95,6 @@ TEN_RUNTIME_PRIVATE_API void ten_env_close(ten_env_t *self);
 TEN_RUNTIME_PRIVATE_API bool ten_env_is_closed(ten_env_t *self);
 
 TEN_RUNTIME_PRIVATE_API ten_env_t *ten_env_create(void);
-
-TEN_RUNTIME_API void ten_env_set_close_handler_in_target_lang(
-    ten_env_t *self, ten_env_close_handler_in_target_lang_func_t handler);
 
 TEN_RUNTIME_API void ten_env_set_destroy_handler_in_target_lang(
     ten_env_t *self, ten_env_destroy_handler_in_target_lang_func_t handler);

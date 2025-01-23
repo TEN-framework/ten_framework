@@ -11,9 +11,11 @@ template("ten_go_lint") {
   # lint_dir, and retry in the parent directory if not found.
   assert(defined(invoker.lint_dir), "lint_dir is required.")
 
-  tg_timestamp_proxy_file = "${target_gen_dir}/${target_name}.lint"
+  _target_name = target_name
 
-  action(target_name) {
+  tg_timestamp_proxy_file = "${target_gen_dir}/${_target_name}"
+
+  action(_target_name) {
     script = rebase_path("//build/ten_runtime/feature/ten_go_lint.py")
 
     go_exec = "go"

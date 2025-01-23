@@ -10,7 +10,7 @@
 
 #include <string>
 
-#include "ten_runtime/common/errno.h"
+#include "ten_runtime/common/error_code.h"
 #include "ten_runtime/msg/msg.h"
 #include "ten_utils/lang/cpp/lib/error.h"
 #include "ten_utils/lang/cpp/lib/value.h"
@@ -47,7 +47,7 @@ class msg_t {
 
     if (c_msg == nullptr) {
       if (err != nullptr && err->get_c_error() != nullptr) {
-        ten_error_set(err->get_c_error(), TEN_ERRNO_GENERIC,
+        ten_error_set(err->get_c_error(), TEN_ERROR_CODE_GENERIC,
                       "Invalid TEN message.");
       }
       return "";
@@ -63,7 +63,7 @@ class msg_t {
 
     if (c_msg == nullptr) {
       if (err != nullptr && err->get_c_error() != nullptr) {
-        ten_error_set(err->get_c_error(), TEN_ERRNO_INVALID_ARGUMENT,
+        ten_error_set(err->get_c_error(), TEN_ERROR_CODE_INVALID_ARGUMENT,
                       "Invalid TEN message.");
       }
       return false;
@@ -80,7 +80,7 @@ class msg_t {
 
     if (c_msg == nullptr) {
       if (err != nullptr && err->get_c_error() != nullptr) {
-        ten_error_set(err->get_c_error(), TEN_ERRNO_INVALID_ARGUMENT,
+        ten_error_set(err->get_c_error(), TEN_ERROR_CODE_INVALID_ARGUMENT,
                       "Invalid TEN message.");
       }
       return false;
@@ -226,7 +226,7 @@ class msg_t {
                                    error_t *err = nullptr) const {
     if (c_msg == nullptr) {
       if (err != nullptr && err->get_c_error() != nullptr) {
-        ten_error_set(err->get_c_error(), TEN_ERRNO_INVALID_ARGUMENT,
+        ten_error_set(err->get_c_error(), TEN_ERROR_CODE_INVALID_ARGUMENT,
                       "Invalid TEN message.");
       }
       return "";
@@ -241,7 +241,7 @@ class msg_t {
     ten_json_t *c_json = ten_value_to_json(value);
     if (c_json == nullptr) {
       if (err != nullptr && err->get_c_error() != nullptr) {
-        ten_error_set(err->get_c_error(), TEN_ERRNO_GENERIC,
+        ten_error_set(err->get_c_error(), TEN_ERROR_CODE_GENERIC,
                       "Invalid TEN message.");
       }
       return result;
@@ -308,7 +308,7 @@ class msg_t {
   bool set_property(const char *path, void *value, error_t *err = nullptr) {
     if (value == nullptr) {
       if (err != nullptr && err->get_c_error() != nullptr) {
-        ten_error_set(err->get_c_error(), TEN_ERRNO_INVALID_ARGUMENT,
+        ten_error_set(err->get_c_error(), TEN_ERROR_CODE_INVALID_ARGUMENT,
                       "Invalid argment.");
       }
       return false;
@@ -321,7 +321,7 @@ class msg_t {
                     error_t *err = nullptr) {
     if (value == nullptr) {
       if (err != nullptr && err->get_c_error() != nullptr) {
-        ten_error_set(err->get_c_error(), TEN_ERRNO_INVALID_ARGUMENT,
+        ten_error_set(err->get_c_error(), TEN_ERROR_CODE_INVALID_ARGUMENT,
                       "Invalid argment.");
       }
       return false;
@@ -339,7 +339,7 @@ class msg_t {
                     error_t *err = nullptr) {
     if (value.data() == nullptr) {
       if (err != nullptr && err->get_c_error() != nullptr) {
-        ten_error_set(err->get_c_error(), TEN_ERRNO_INVALID_ARGUMENT,
+        ten_error_set(err->get_c_error(), TEN_ERROR_CODE_INVALID_ARGUMENT,
                       "Invalid argment.");
       }
       return false;
@@ -355,7 +355,7 @@ class msg_t {
 
     if (c_msg == nullptr) {
       if (err != nullptr && err->get_c_error() != nullptr) {
-        ten_error_set(err->get_c_error(), TEN_ERRNO_GENERIC,
+        ten_error_set(err->get_c_error(), TEN_ERROR_CODE_GENERIC,
                       "Invalid TEN message.");
       }
       return false;
@@ -428,7 +428,7 @@ class msg_t {
   TEN_MSG_TYPE get_type(error_t *err = nullptr) const {
     if (c_msg == nullptr) {
       if (err != nullptr && err->get_c_error() != nullptr) {
-        ten_error_set(err->get_c_error(), TEN_ERRNO_INVALID_ARGUMENT,
+        ten_error_set(err->get_c_error(), TEN_ERROR_CODE_INVALID_ARGUMENT,
                       "Invalid TEN message.");
       }
       return TEN_MSG_TYPE_INVALID;

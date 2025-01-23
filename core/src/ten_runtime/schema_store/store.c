@@ -18,7 +18,7 @@
 #include "include_internal/ten_utils/schema/constant_str.h"
 #include "include_internal/ten_utils/schema/schema.h"
 #include "include_internal/ten_utils/schema/types/schema_object.h"
-#include "ten_runtime/common/errno.h"
+#include "ten_runtime/common/error_code.h"
 #include "ten_runtime/msg/msg.h"
 #include "ten_utils/container/hash_table.h"
 #include "ten_utils/container/list.h"
@@ -155,7 +155,8 @@ bool ten_schema_store_set_schema_definition(ten_schema_store_t *self,
   TEN_ASSERT(err && ten_error_check_integrity(err), "Invalid argument.");
 
   if (!ten_value_is_object(schema_def)) {
-    ten_error_set(err, TEN_ERRNO_GENERIC, "The schema should be an object.");
+    ten_error_set(err, TEN_ERROR_CODE_GENERIC,
+                  "The schema should be an object.");
     return false;
   }
 
@@ -164,7 +165,7 @@ bool ten_schema_store_set_schema_definition(ten_schema_store_t *self,
       ten_value_object_peek(schema_def, TEN_SCHEMA_KEYWORD_STR_REQUIRED);
   if (required_schema_value) {
     ten_error_set(
-        err, TEN_ERRNO_GENERIC,
+        err, TEN_ERROR_CODE_GENERIC,
         "The schema keyword [required] is only supported in the msg schema.");
     return false;
   }
@@ -173,7 +174,7 @@ bool ten_schema_store_set_schema_definition(ten_schema_store_t *self,
       ten_value_object_peek(schema_def, TEN_STR_PROPERTY);
   if (props_schema_value) {
     if (!ten_value_is_object(props_schema_value)) {
-      ten_error_set(err, TEN_ERRNO_GENERIC,
+      ten_error_set(err, TEN_ERROR_CODE_GENERIC,
                     "The schema [property] should be an object.");
       return false;
     }
@@ -258,7 +259,7 @@ static void ten_schemas_parse_interface_part(
         interface_schema_value, base_dir, &err);
     if (!resolved_interface_schemas) {
       TEN_LOGW("Failed to resolve interface schema, %s.",
-               ten_error_errmsg(&err));
+               ten_error_message(&err));
       break;
     }
 
@@ -350,7 +351,7 @@ bool ten_schema_store_set_interface_schema_definition(
 
 #if defined(TEN_ENABLE_TEN_RUST_APIS)
   if (!ten_value_is_object(schema_def)) {
-    ten_error_set(err, TEN_ERRNO_GENERIC,
+    ten_error_set(err, TEN_ERROR_CODE_GENERIC,
                   "The interface schema should be an object.");
     return false;
   }

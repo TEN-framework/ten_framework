@@ -17,14 +17,14 @@ func (p *tenEnv) ReturnResult(
 ) error {
 	if statusCmd == nil {
 		return newTenError(
-			ErrnoInvalidArgument,
+			ErrorCodeInvalidArgument,
 			"cmd result is required.",
 		)
 	}
 
 	if cmd == nil {
 		return newTenError(
-			ErrnoInvalidArgument,
+			ErrorCodeInvalidArgument,
 			"cmd is required.",
 		)
 	}
@@ -40,7 +40,7 @@ func (p *tenEnv) ReturnResult(
 		statusCmd.keepAlive()
 	}()
 
-	err := withCGO(func() error {
+	err := withCGOLimiter(func() error {
 		apiStatus := C.ten_go_ten_env_return_result(
 			p.cPtr,
 			statusCmd.getCPtr(),
@@ -64,7 +64,7 @@ func (p *tenEnv) ReturnResultDirectly(
 ) error {
 	if statusCmd == nil {
 		return newTenError(
-			ErrnoInvalidArgument,
+			ErrorCodeInvalidArgument,
 			"cmd result is required.",
 		)
 	}
@@ -79,7 +79,7 @@ func (p *tenEnv) ReturnResultDirectly(
 		cb = newGoHandle(handler)
 	}
 
-	err := withCGO(func() error {
+	err := withCGOLimiter(func() error {
 		apiStatus := C.ten_go_ten_env_return_result_directly(
 			p.cPtr,
 			statusCmd.getCPtr(),

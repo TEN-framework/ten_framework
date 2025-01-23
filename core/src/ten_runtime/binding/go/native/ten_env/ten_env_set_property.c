@@ -14,7 +14,7 @@
 #include "ten_runtime/binding/go/interface/ten/common.h"
 #include "ten_runtime/binding/go/interface/ten/ten_env.h"
 #include "ten_runtime/binding/go/interface/ten/value.h"
-#include "ten_runtime/common/errno.h"
+#include "ten_runtime/common/error_code.h"
 #include "ten_runtime/ten_env_proxy/ten_env_proxy.h"
 #include "ten_utils/lib/alloc.h"
 #include "ten_utils/lib/error.h"
@@ -67,7 +67,7 @@ static void ten_env_proxy_notify_set_property(ten_env_t *ten_env,
   TEN_ASSERT(ctx, "Should not happen.");
 
   ten_go_error_t cgo_error;
-  ten_go_error_init_with_errno(&cgo_error, TEN_ERRNO_OK);
+  ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
 
   ten_error_t err;
   ten_error_init(&err);
@@ -101,11 +101,11 @@ static ten_go_error_t ten_go_ten_env_set_property(ten_go_ten_env_t *self,
   TEN_ASSERT(value && ten_value_check_integrity(value), "Should not happen.");
 
   ten_go_error_t cgo_error;
-  ten_go_error_init_with_errno(&cgo_error, TEN_ERRNO_OK);
+  ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
 
   TEN_GO_TEN_ENV_IS_ALIVE_REGION_BEGIN(self, {
     ten_value_destroy(value);
-    ten_go_error_set_errno(&cgo_error, TEN_ERRNO_TEN_IS_CLOSED);
+    ten_go_error_set_error_code(&cgo_error, TEN_ERROR_CODE_TEN_IS_CLOSED);
   });
 
   ten_error_t err;
@@ -373,7 +373,7 @@ ten_go_error_t ten_go_ten_env_set_property_json_bytes(
   TEN_ASSERT(json_str && json_str_len > 0, "Should not happen.");
 
   ten_go_error_t cgo_error;
-  ten_go_error_init_with_errno(&cgo_error, TEN_ERRNO_OK);
+  ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
 
   ten_json_t *json = ten_go_json_loads(json_str, json_str_len, &cgo_error);
   if (json == NULL) {

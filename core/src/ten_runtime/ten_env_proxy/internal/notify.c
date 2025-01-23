@@ -95,7 +95,7 @@ bool ten_env_proxy_notify(ten_env_proxy_t *self,
     const char *err_msg = "Invalid argument.";
     TEN_ASSERT(0, "%s", err_msg);
     if (err) {
-      ten_error_set(err, TEN_ERRNO_INVALID_ARGUMENT, err_msg);
+      ten_error_set(err, TEN_ERROR_CODE_INVALID_ARGUMENT, err_msg);
     }
     return false;
   }
@@ -141,7 +141,7 @@ bool ten_env_proxy_notify(ten_env_proxy_t *self,
           } else {
             if (err) {
               ten_error_set(
-                  err, TEN_ERRNO_GENERIC,
+                  err, TEN_ERROR_CODE_GENERIC,
                   "Perform synchronous ten_notify without acquiring lock_mode "
                   "first.");
             }
@@ -235,7 +235,7 @@ bool ten_env_proxy_notify_async(ten_env_proxy_t *self,
     const char *err_msg = "Invalid argument.";
     TEN_ASSERT(0, "%s", err_msg);
     if (err) {
-      ten_error_set(err, TEN_ERRNO_INVALID_ARGUMENT, err_msg);
+      ten_error_set(err, TEN_ERROR_CODE_INVALID_ARGUMENT, err_msg);
     }
     return false;
   }

@@ -10,7 +10,8 @@ import("//build/ten_runtime/options.gni")
 template("ten_package_publish") {
   _target_name = target_name
 
-  published_results = "$target_gen_dir/published_results"
+  tg_timestamp_proxy_file =
+      "${target_gen_dir}/ten_package_publish_${_target_name}"
 
   action("ten_package_publish_${_target_name}") {
     script = "//build/ten_runtime/feature/publish.py"
@@ -33,8 +34,8 @@ template("ten_package_publish") {
     ]
 
     args += [
-      "--published-results",
-      rebase_path(published_results),
+      "--tg-timestamp-proxy-file",
+      rebase_path(tg_timestamp_proxy_file),
     ]
 
     args += [
@@ -50,14 +51,12 @@ template("ten_package_publish") {
     ]
 
     sources = []
-    outputs = [ published_results ]
+    outputs = [ tg_timestamp_proxy_file ]
 
     forward_variables_from(invoker,
                            [
                              "deps",
                              "public_deps",
-                             "data_deps",
-                             "testonly",
                            ])
 
     if (!defined(deps)) {
@@ -74,10 +73,11 @@ template("ten_package_publish") {
                            [
                              "deps",
                              "public_deps",
-                             "data_deps",
-                             "testonly",
-                             "visibility",
                            ])
-    public_deps = [ ":ten_package_publish_${_target_name}" ]
+
+    if (!defined(deps)) {
+      deps = []
+    }
+    deps += [ ":ten_package_publish_${_target_name}" ]
   }
 }

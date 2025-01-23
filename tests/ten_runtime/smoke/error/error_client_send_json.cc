@@ -91,7 +91,7 @@ TEST(ExtensionTest, ErrorClientSendJson) {  // NOLINT
       })",
                                                   err);
   EXPECT_EQ(success, false);
-  EXPECT_STREQ(ten_error_errmsg(err),
+  EXPECT_STREQ(ten_error_message(err),
                "extension 'extension_1' is associated with different addon "
                "'error_client_send_json__extension_2', "
                "'error_client_send_json__extension_1'");

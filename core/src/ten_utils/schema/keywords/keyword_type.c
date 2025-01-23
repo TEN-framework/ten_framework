@@ -11,7 +11,7 @@
 #include "include_internal/ten_utils/schema/keywords/keyword.h"
 #include "include_internal/ten_utils/schema/schema.h"
 #include "include_internal/ten_utils/value/value_convert.h"
-#include "ten_runtime/common/errno.h"
+#include "ten_runtime/common/error_code.h"
 #include "ten_utils/lib/error.h"
 #include "ten_utils/lib/signature.h"
 #include "ten_utils/macro/check.h"
@@ -67,7 +67,7 @@ static bool ten_schema_keyword_type_validate_value(
 
   TEN_TYPE value_type = ten_value_get_type(value);
   if (!ten_type_is_compatible(value_type, self->type)) {
-    ten_error_set(schema_err->err, TEN_ERRNO_GENERIC,
+    ten_error_set(schema_err->err, TEN_ERROR_CODE_GENERIC,
                   "the value type does not match the schema type, given: %s, "
                   "expected: %s",
                   ten_type_to_string(value_type),
@@ -124,9 +124,10 @@ static bool ten_schema_keyword_type_adjust_value(
     default:
       // Note that the format of error message should be same as the above
       // functions.
-      ten_error_set(
-          err, TEN_ERRNO_GENERIC, "unsupported conversion from `%s` to `%s`",
-          ten_type_to_string(value_type), ten_type_to_string(self->type));
+      ten_error_set(err, TEN_ERROR_CODE_GENERIC,
+                    "unsupported conversion from `%s` to `%s`",
+                    ten_type_to_string(value_type),
+                    ten_type_to_string(self->type));
       return false;
   }
 }
@@ -152,7 +153,7 @@ static bool ten_schema_keyword_type_is_compatible(
 
   bool success = ten_type_is_compatible(self->type, target->type);
   if (!success) {
-    ten_error_set(schema_err->err, TEN_ERRNO_GENERIC,
+    ten_error_set(schema_err->err, TEN_ERROR_CODE_GENERIC,
                   "type is incompatible, source is [%s], but target is [%s]",
                   ten_type_to_string(self->type),
                   ten_type_to_string(target->type));

@@ -32,7 +32,7 @@ pub async fn upload_package(
     base_url: &str,
     package_file_path: &str,
     pkg_info: &PkgInfo,
-) -> Result<()> {
+) -> Result<String> {
     let mut path_url = url::Url::parse(base_url)
         .map_err(|e| anyhow!("Invalid file URL: {}", e))?
         .to_file_path()
@@ -89,7 +89,7 @@ pub async fn upload_package(
         )
     })?;
 
-    Ok(())
+    Ok(full_path.to_string_lossy().to_string())
 }
 
 pub async fn get_package(
