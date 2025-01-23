@@ -32,12 +32,10 @@ class demuxer_thread_t {
   // @}
 
   void start();
-  void wait_for_start();
-
   void start_demuxing();
 
   void stop() { stop_ = true; }
-  void wait_for_stop();
+  void wait_for_stop_completed();
   bool is_stopped() const { return stop_; }
 
  private:
@@ -46,10 +44,9 @@ class demuxer_thread_t {
 
   void send_video_eof();
   void send_audio_eof();
-
-  void reply_to_start_cmd(bool success = true);
+  void reply_to_start_cmd(bool success);
   bool create_demuxer();
-  void wait_for_demuxer();
+  void wait_to_start_demuxing();
   void notify_completed(bool success = true);
 
   ten::ten_env_proxy_t *ten_env_proxy_;
@@ -59,8 +56,7 @@ class demuxer_thread_t {
 
   demuxer_t *demuxer_;
   ten_thread_t *demuxer_thread;
-  ten_event_t *demuxer_thread_is_started;
-  ten_event_t *ready_for_demuxer;
+  ten_event_t *event_for_start_demuxing;
 
   std::string input_stream_loc_;
   std::unique_ptr<ten::cmd_t> start_cmd_;

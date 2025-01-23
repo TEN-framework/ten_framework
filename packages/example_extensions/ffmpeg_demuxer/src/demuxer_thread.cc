@@ -34,8 +34,7 @@ demuxer_thread_t::demuxer_thread_t(ten::ten_env_proxy_t *ten_env_proxy,
       stop_(false),
       demuxer_(nullptr),
       demuxer_thread(nullptr),
-      demuxer_thread_is_started(ten_event_create(0, 0)),
-      ready_for_demuxer(ten_event_create(0, 0)),
+      event_for_start_demuxing(ten_event_create(0, 0)),
       input_stream_loc_(input_stream_loc),
       start_cmd_(std::move(start_cmd)) {
   TEN_ASSERT(extension, "Invalid argument.");
@@ -47,8 +46,7 @@ demuxer_thread_t::~demuxer_thread_t() {
     demuxer_ = nullptr;
   }
 
-  ten_event_destroy(demuxer_thread_is_started);
-  ten_event_destroy(ready_for_demuxer);
+  ten_event_destroy(event_for_start_demuxing);
 
   delete ten_env_proxy_;
 }
@@ -58,9 +56,6 @@ void *demuxer_thread_main(void *self_) {
 
   auto *demuxer_thread = reinterpret_cast<demuxer_thread_t *>(self_);
   TEN_ASSERT(demuxer_thread, "Invalid argument.");
-
-  // Notify that the demuxer thread is started successfully.
-  ten_event_set(demuxer_thread->demuxer_thread_is_started);
 
   if (!demuxer_thread->create_demuxer()) {
     TEN_LOGW("Failed to create demuxer, stop the demuxer thread.");
@@ -72,10 +67,10 @@ void *demuxer_thread_main(void *self_) {
   TEN_ASSERT(demuxer_thread->demuxer_, "Demuxer should have been created.");
 
   // Notify that the demuxer has been created.
-  demuxer_thread->reply_to_start_cmd();
+  demuxer_thread->reply_to_start_cmd(true);
 
   // The demuxter thread will be blocked until receiving start signal.
-  demuxer_thread->wait_for_demuxer();
+  demuxer_thread->wait_to_start_demuxing();
 
   // Starts the demuxer loop.
   TEN_LOGD("Start the demuxer thread loop.");
@@ -124,17 +119,15 @@ void demuxer_thread_t::start() {
   TEN_ASSERT(demuxer_thread, "Invalid argument.");
 }
 
-void demuxer_thread_t::start_demuxing() { ten_event_set(ready_for_demuxer); }
-
-void demuxer_thread_t::wait_for_start() {
-  ten_event_wait(demuxer_thread_is_started, -1);
+void demuxer_thread_t::start_demuxing() {
+  ten_event_set(event_for_start_demuxing);
 }
 
-void demuxer_thread_t::wait_for_demuxer() {
-  ten_event_wait(ready_for_demuxer, -1);
+void demuxer_thread_t::wait_to_start_demuxing() {
+  ten_event_wait(event_for_start_demuxing, -1);
 }
 
-void demuxer_thread_t::wait_for_stop() {
+void demuxer_thread_t::wait_for_stop_completed() {
   int rc = ten_thread_join(demuxer_thread, -1);
   TEN_ASSERT(!rc, "Invalid argument.");
 
@@ -174,9 +167,13 @@ void demuxer_thread_t::send_audio_eof() {
   });
 }
 
-static inline double rational_to_double(AVRational &&r) {
+namespace {
+
+double rational_to_double(const AVRational &r) {
   return r.num / static_cast<double>(r.den);
 }
+
+}  // namespace
 
 void demuxer_thread_t::reply_to_start_cmd(bool success) {
   if (!success || demuxer_ == nullptr) {
@@ -191,35 +188,35 @@ void demuxer_thread_t::reply_to_start_cmd(bool success) {
   auto resp = ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
   resp->set_property("detail", "The demuxer has been started.");
 
-  // video settings
-  resp->set_property("frame_rate_num", demuxer_->frame_rate().num);
-  resp->set_property("frame_rate_den", demuxer_->frame_rate().den);
+  // Demuxer video settings.
+  resp->set_property("frame_rate_num", demuxer_->video_frame_rate().num);
+  resp->set_property("frame_rate_den", demuxer_->video_frame_rate().den);
   resp->set_property("frame_rate_d",
-                     rational_to_double(demuxer_->frame_rate()));
+                     rational_to_double(demuxer_->video_frame_rate()));
 
   resp->set_property("video_time_base_num", demuxer_->video_time_base().num);
   resp->set_property("video_time_base_den", demuxer_->video_time_base().den);
   resp->set_property("video_time_base_d",
                      rational_to_double(demuxer_->video_time_base()));
 
-  resp->set_property("width", demuxer_->width());
-  resp->set_property("height", demuxer_->height());
-  resp->set_property("bit_rate", demuxer_->bit_rate());
-  resp->set_property("num_of_frames", demuxer_->number_of_frames());
+  resp->set_property("width", demuxer_->video_width());
+  resp->set_property("height", demuxer_->video_height());
+  resp->set_property("bit_rate", demuxer_->video_bit_rate());
+  resp->set_property("num_of_frames", demuxer_->number_of_video_frames());
 
-  // audio settings
-  resp->set_property("audio_sample_rate", demuxer_->audio_sample_rate_);
-  resp->set_property("audio_channel_layout", demuxer_->audio_channel_layout_);
-  resp->set_property("audio_num_of_channels", demuxer_->audio_num_of_channels_);
+  // Demuxer audio settings.
+  resp->set_property("audio_sample_rate", demuxer_->audio_sample_rate);
+  resp->set_property("audio_channel_layout", demuxer_->audio_channel_layout);
+  resp->set_property("audio_num_of_channels", demuxer_->audio_num_of_channels);
   resp->set_property("audio_time_base_num", demuxer_->audio_time_base().num);
   resp->set_property("audio_time_base_den", demuxer_->audio_time_base().den);
   resp->set_property("audio_time_base_d",
                      rational_to_double(demuxer_->audio_time_base()));
 
-  auto resp_shared =
+  auto result_shared =
       std::make_shared<std::unique_ptr<ten::cmd_result_t>>(std::move(resp));
-  ten_env_proxy_->notify([resp_shared, this](ten::ten_env_t &ten_env) {
-    ten_env.return_result(std::move(*resp_shared), std::move(start_cmd_));
+  ten_env_proxy_->notify([result_shared, this](ten::ten_env_t &ten_env) {
+    ten_env.return_result(std::move(*result_shared), std::move(start_cmd_));
   });
 }
 
