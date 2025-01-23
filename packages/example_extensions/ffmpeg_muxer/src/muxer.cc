@@ -201,12 +201,12 @@ muxer_t::~muxer_t() {
   }
 
   if (video_encoder_ctx != nullptr) {
-    avcodec_close(video_encoder_ctx);
+    avcodec_free_context(&video_encoder_ctx);
     avcodec_free_context(&video_encoder_ctx);
   }
 
   if (audio_encoder_ctx != nullptr) {
-    avcodec_close(audio_encoder_ctx);
+    avcodec_free_context(&audio_encoder_ctx);
     avcodec_free_context(&audio_encoder_ctx);
   }
 
@@ -661,13 +661,30 @@ bool muxer_t::open_audio_encoder() {
     return false;
   }
 
-  // The settings of encoder:
-  // - format: Determined by the codec
-  // - sample_rate / channel_layout: Determined by the demuxer, or use default
-  //                                 values
-  AVSampleFormat sample_fmt = audio_encoder->sample_fmts != nullptr
-                                  ? audio_encoder->sample_fmts[0]
-                                  : OUTPUT_AUDIO_FORMAT;
+  AVSampleFormat sample_fmt = OUTPUT_AUDIO_FORMAT;  // fallback
+  {
+    const void *configs = nullptr;
+    int num_configs = 0;
+
+    // AV_CODEC_CONFIG_SAMPLE_FORMAT indicates that obtaining supportable sample
+    // fmt.
+    int ret = avcodec_get_supported_config(nullptr, audio_encoder,
+                                           AV_CODEC_CONFIG_SAMPLE_FORMAT, 0,
+                                           &configs, &num_configs);
+
+    if (ret >= 0 && num_configs > 0 && configs != nullptr) {
+      const auto *avail_fmts =
+          reinterpret_cast<const AVSampleFormat *>(configs);
+
+      // At present, the first one is used directly, and we can also loop them
+      // and choose a more suitable one in the future.
+      sample_fmt = avail_fmts[0];
+    } else {
+      TEN_LOGW(
+          "No supported sample_fmt found by avcodec_get_supported_config, "
+          "fallback to OUTPUT_AUDIO_FORMAT");
+    }
+  }
 
   int sample_rate = OUTPUT_AUDIO_SAMPLE_RATE;
   if (src_audio_sample_rate > 0) {
@@ -1002,13 +1019,11 @@ bool muxer_t::create_audio_converter(AVCodecParameters *encoded_stream_params,
     AVChannelLayout in_ch_layout;
     av_channel_layout_from_mask(&in_ch_layout,
                                 ten_audio_frame.get_channel_layout());
-    av_opt_set_chlayout(audio_converter_ctx, "in_channel_layout", &in_ch_layout,
-                        0);
+    av_opt_set_chlayout(audio_converter_ctx, "in_chlayout", &in_ch_layout, 0);
 
     AVChannelLayout out_ch_layout;
     av_channel_layout_copy(&out_ch_layout, &encoded_stream_params->ch_layout);
-    av_opt_set_chlayout(audio_converter_ctx, "out_channel_layout",
-                        &out_ch_layout, 0);
+    av_opt_set_chlayout(audio_converter_ctx, "out_chlayout", &out_ch_layout, 0);
 
     av_opt_set_int(audio_converter_ctx, "in_sample_rate",
                    ten_audio_frame.get_sample_rate(), 0);

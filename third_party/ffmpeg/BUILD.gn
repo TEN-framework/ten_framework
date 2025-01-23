@@ -50,6 +50,8 @@ autotool_project("build_ffmpeg") {
     "--disable-manpages",
     "--disable-podpages",
     "--disable-txtpages",
+    "--disable-programs",
+    "--disable-large-tests",
   ]
 
   # Refer to https://stackoverflow.com/a/71429999.

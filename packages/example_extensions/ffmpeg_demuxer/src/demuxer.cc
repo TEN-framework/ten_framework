@@ -402,10 +402,13 @@ bool demuxer_t::create_audio_converter(const AVFrame *frame,
     audio_converter_ctx = swr_alloc();
     TEN_ASSERT(audio_converter_ctx, "Failed to create audio resampler");
 
-    av_opt_set_int(audio_converter_ctx, "in_channel_layout",
-                   static_cast<int64_t>(in_channel_layout_mask), 0);
-    av_opt_set_int(audio_converter_ctx, "out_channel_layout",
-                   static_cast<int64_t>(*out_channel_layout_mask), 0);
+    AVChannelLayout in_ch_layout;
+    av_channel_layout_from_mask(&in_ch_layout, in_channel_layout_mask);
+    av_opt_set_chlayout(audio_converter_ctx, "in_chlayout", &in_ch_layout, 0);
+
+    AVChannelLayout out_ch_layout;
+    av_channel_layout_from_mask(&out_ch_layout, *out_channel_layout_mask);
+    av_opt_set_chlayout(audio_converter_ctx, "out_chlayout", &out_ch_layout, 0);
 
     av_opt_set_int(audio_converter_ctx, "in_sample_rate", frame->sample_rate,
                    0);
