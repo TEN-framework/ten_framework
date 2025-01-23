@@ -30,7 +30,7 @@ jobs:
           submodules: false
 
       - name: Trust working directory
-        run: git config --global --add safe.directory $GITHUB_WORKSPACE
+        run: git config --global --add safe.directory "${GITHUB_WORKSPACE}"
 
       - name: Initialize and update submodules except docs/
         run: |
@@ -247,7 +247,7 @@ jobs:
           submodules: false
 
       - name: Trust working directory
-        run: git config --global --add safe.directory $GITHUB_WORKSPACE
+        run: git config --global --add safe.directory "${GITHUB_WORKSPACE}"
 
       - name: Initialize and update submodules except docs/
         run: |
@@ -465,7 +465,7 @@ jobs:
           submodules: false
 
       - name: Trust working directory
-        run: git config --global --add safe.directory $GITHUB_WORKSPACE
+        run: git config --global --add safe.directory "${GITHUB_WORKSPACE}"
 
       - name: Initialize and update submodules except docs/
         run: |
