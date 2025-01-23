@@ -29,6 +29,9 @@ jobs:
           fetch-depth: "0"
           submodules: false
 
+      - name: Trust working directory
+        run: git config --global --add safe.directory $GITHUB_WORKSPACE
+
       - name: Initialize and update submodules except docs/
         run: |
           # Retrieve all submodule paths, excluding `docs/`.
@@ -242,6 +245,9 @@ jobs:
         with:
           fetch-depth: "0"
           submodules: false
+
+      - name: Trust working directory
+        run: git config --global --add safe.directory $GITHUB_WORKSPACE
 
       - name: Initialize and update submodules except docs/
         run: |
@@ -457,6 +463,9 @@ jobs:
         with:
           fetch-depth: "0"
           submodules: false
+
+      - name: Trust working directory
+        run: git config --global --add safe.directory $GITHUB_WORKSPACE
 
       - name: Initialize and update submodules except docs/
         run: |
