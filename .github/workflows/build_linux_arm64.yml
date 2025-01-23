@@ -36,7 +36,7 @@ jobs:
       - name: Initialize and update submodules except docs/
         run: |
           # Retrieve all submodule paths, excluding `docs/`.
-          submodules=$(git config --file .gitmodules --name-only --get-regexp path | grep -v 'path\.docs' | awk '{ print $2 }')
+          submodules=$(git config --file .gitmodules --get-regexp path | awk '$2 != "docs" { print $2 }')
 
           git submodule init
 
