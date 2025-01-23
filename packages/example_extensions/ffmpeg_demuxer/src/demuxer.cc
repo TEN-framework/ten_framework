@@ -181,7 +181,7 @@ demuxer_t::demuxer_t(ten::ten_env_proxy_t *ten_env_proxy,
       frame(av_frame_alloc()),
       rotate_degree(0),
       audio_sample_rate(0),
-      audio_channel_layout(0),
+      audio_channel_layout_mask(0),
       audio_num_of_channels(0) {}
 
 demuxer_t::~demuxer_t() {
@@ -375,9 +375,9 @@ AVCodecParameters *demuxer_t::get_audio_decoder_params() const {
 }
 
 bool demuxer_t::create_audio_converter(const AVFrame *frame,
-                                       uint64_t *out_channel_layout,
+                                       uint64_t *out_channel_layout_mask,
                                        int *out_sample_rate) {
-  TEN_ASSERT(frame && out_channel_layout && out_sample_rate,
+  TEN_ASSERT(frame && out_channel_layout_mask && out_sample_rate,
              "Invalid argument.");
 
   if (audio_converter_ctx == nullptr) {
@@ -390,10 +390,11 @@ bool demuxer_t::create_audio_converter(const AVFrame *frame,
     } else {
       in_layout = frame->ch_layout;
     }
-    uint64_t in_channel_layout = in_layout.u.mask;
+    uint64_t in_channel_layout_mask = in_layout.u.mask;
 
-    *out_channel_layout =
-        (audio_channel_layout != 0) ? audio_channel_layout : in_channel_layout;
+    *out_channel_layout_mask = (audio_channel_layout_mask != 0)
+                                   ? audio_channel_layout_mask
+                                   : in_channel_layout_mask;
 
     *out_sample_rate =
         (audio_sample_rate != 0) ? audio_sample_rate : frame->sample_rate;
@@ -402,9 +403,9 @@ bool demuxer_t::create_audio_converter(const AVFrame *frame,
     TEN_ASSERT(audio_converter_ctx, "Failed to create audio resampler");
 
     av_opt_set_int(audio_converter_ctx, "in_channel_layout",
-                   static_cast<int64_t>(in_channel_layout), 0);
+                   static_cast<int64_t>(in_channel_layout_mask), 0);
     av_opt_set_int(audio_converter_ctx, "out_channel_layout",
-                   static_cast<int64_t>(*out_channel_layout), 0);
+                   static_cast<int64_t>(*out_channel_layout_mask), 0);
 
     av_opt_set_int(audio_converter_ctx, "in_sample_rate", frame->sample_rate,
                    0);
@@ -694,6 +695,7 @@ DECODE_STATUS demuxer_t::decode_next_packet() {
   DECODE_STATUS decode_status = DECODE_STATUS_SUCCESS;
 
   while (true) {
+    // Discard the previous handling packet.
     av_packet_unref(packet);
 
     interrupt_cb_param->last_time = time(nullptr);
@@ -1018,9 +1020,9 @@ void demuxer_t::open_audio_decoder() {
     AVChannelLayout default_layout;
     av_channel_layout_default(&default_layout, params->ch_layout.nb_channels);
 
-    audio_channel_layout = default_layout.u.mask;
+    audio_channel_layout_mask = default_layout.u.mask;
   } else {
-    audio_channel_layout = params->ch_layout.u.mask;
+    audio_channel_layout_mask = params->ch_layout.u.mask;
   }
 }
 

@@ -107,7 +107,7 @@ class muxer_t {
   // Source audio settings.
   int src_audio_sample_rate;
   AVRational src_audio_time_base;
-  uint64_t src_audio_channel_layout;
+  uint64_t src_audio_channel_layout_mask;
   // @}
 
   std::string dest_name;

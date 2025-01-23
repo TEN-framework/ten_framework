@@ -28,7 +28,8 @@ demuxer_settings_t read_settings(cmd_t &cmd) {
   auto num_of_frames = cmd.get_property_int64("num_of_frames");
 
   auto audio_sample_rate = cmd.get_property_int32("audio_sample_rate");
-  auto audio_channel_layout = cmd.get_property_int64("audio_channel_layout");
+  auto audio_channel_layout_mask =
+      cmd.get_property_int64("audio_channel_layout_mask");
 
   auto audio_time_base_num = cmd.get_property_int32("audio_time_base_num");
   auto audio_time_base_den = cmd.get_property_int32("audio_time_base_den");
@@ -42,7 +43,7 @@ demuxer_settings_t read_settings(cmd_t &cmd) {
   settings.src_video_frame_rate = frame_rate;
   settings.src_video_time_base = video_time_base;
   settings.src_audio_time_base = audio_time_base;
-  settings.src_audio_channel_layout = audio_channel_layout;
+  settings.src_audio_channel_layout_mask = audio_channel_layout_mask;
 
   return settings;
 }

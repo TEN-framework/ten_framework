@@ -18,6 +18,8 @@
 #include "ten_utils/log/log.h"
 #include "ten_utils/macro/check.h"
 
+// Convert between milliseconds and PTS (Presentation Timestamp) based on the
+// stream's time base.
 #define ms2pts(pts, stream)                \
   av_rescale(pts, (stream)->time_base.den, \
              static_cast<int64_t>((stream)->time_base.num) * 1000)
@@ -38,10 +40,10 @@
 // @{
 // Output video settings.
 #define OUTPUT_VIDEO_CODEC AV_CODEC_ID_H264
-#define OUTPUT_VIDEO_PIXEL_FORMAT AV_PIX_FMT_YUV420P
+#define OUTPUT_VIDEO_PIXEL_FMT AV_PIX_FMT_YUV420P
 // 1 I-frame for every 10 frames at most
 #define OUTPUT_VIDEO_GOP_SIZE 10
-// Output will be delayed by kVideoMaxBFrame + 1
+// Output will be delayed by OUTPUT_VIDEO_MAX_B_FRAMES + 1
 #define OUTPUT_VIDEO_MAX_B_FRAMES 10
 // @}
 
@@ -50,7 +52,7 @@
 #define OUTPUT_AUDIO_CODEC AV_CODEC_ID_AAC
 #define OUTPUT_AUDIO_FORMAT AV_SAMPLE_FMT_FLTP
 #define OUTPUT_AUDIO_SAMPLE_RATE 48000
-#define OUTPUT_AUDIO_CHANNEL_LAYOUT AV_CH_LAYOUT_STEREO
+#define OUTPUT_AUDIO_CHANNEL_MASK AV_CH_LAYOUT_STEREO
 // @}
 
 namespace ten {
@@ -75,16 +77,16 @@ AVFrame *yuv_frame_create(int width, int height) {
 
   av_frame->width = width;
   av_frame->height = height;
-  av_frame->format = OUTPUT_VIDEO_PIXEL_FORMAT;
+  av_frame->format = OUTPUT_VIDEO_PIXEL_FMT;
 
   av_image_alloc(av_frame->data, av_frame->linesize, width, height,
-                 OUTPUT_VIDEO_PIXEL_FORMAT, 32);
+                 OUTPUT_VIDEO_PIXEL_FMT, 32);
 
   return av_frame;
 }
 
 void yuv_frame_destroy(AVFrame *av_frame) {
-  if (av_frame) {
+  if (av_frame != nullptr) {
     av_freep(&(av_frame->data[0]));
     av_frame_free(&av_frame);
   }
@@ -166,7 +168,7 @@ muxer_t::muxer_t()
       src_video_time_base({}),
       src_audio_sample_rate(0),
       src_audio_time_base({}),
-      src_audio_channel_layout(0),
+      src_audio_channel_layout_mask(0),
       output_format_ctx(nullptr),
       video_stream_idx(-1),
       audio_stream_idx(-1),
@@ -235,27 +237,32 @@ bool muxer_t::is_av_encoder_opened() {
 
 // Convert the video index in the video encoder context to the video index in
 // the video output stream.
+//
+// (next_video_idx / framerate) = x seconds totally.
+// x seconds / time_base = pts according to the time_base of the output
+// stream.
 int64_t muxer_t::next_video_pts() {
-  // (next_video_idx_ / framerate) = x seconds totally
-  // x seconds / time_base = pts according to the time_base of the output stream
   return av_rescale_q(next_video_idx, av_inv_q(video_encoder_ctx->framerate),
                       video_stream->time_base);
 }
 
 // Convert the audio index in the audio encoder context to the audio index in
 // the audio output stream.
+//
+// (next_audio_idx / sample_rate) = x seconds totally
+// x seconds / time_base
+// = x seconds * (1/time_base)
+// = x seconds * time_base.den / time_base.num
+// = pts according to the time_base of the output stream
 int64_t muxer_t::next_audio_pts() {
-  // (next_audio_idx_ / sample_rate) = x seconds totally
-  // x seconds / time_base
-  // = x seconds * (1/time_base)
-  // = x seconds * time_base.den / time_base.num
-  // = pts according to the time_base of the output stream
   return av_rescale(next_audio_idx, audio_stream->time_base.den,
                     static_cast<int64_t>(audio_stream->time_base.num) *
                         audio_encoder_ctx->sample_rate);
 }
 
 void muxer_t::flush_remaining_audio_frames() {
+  // Send a `nullptr` frame to the audio encoder to indicate the end of
+  // encoding.
   int ffmpeg_rc = avcodec_send_frame(audio_encoder_ctx, nullptr);
   if (ffmpeg_rc < 0) {
     GET_FFMPEG_ERROR_MESSAGE(err_msg, ffmpeg_rc) {
@@ -264,7 +271,9 @@ void muxer_t::flush_remaining_audio_frames() {
     return;
   }
 
+  // Retrieve all remaining encoded packets.
   while (ffmpeg_rc >= 0) {
+    // Discard the previous received audio packet.
     av_packet_unref(packet);
 
     ffmpeg_rc = avcodec_receive_packet(audio_encoder_ctx, packet);
@@ -286,6 +295,7 @@ void muxer_t::flush_remaining_audio_frames() {
              ", dts=%" PRId64 ", size=%d",
              packet->pts, packet->dts, packet->size);
 
+    // Write a packet to a output media file ensuring correct interleaving.
     ffmpeg_rc = av_interleaved_write_frame(output_format_ctx, packet);
     if (ffmpeg_rc < 0) {
       GET_FFMPEG_ERROR_MESSAGE(err_msg, ffmpeg_rc) {
@@ -354,6 +364,7 @@ bool muxer_t::encode_audio_silent_frame() {
     return false;
   }
 
+  // The encoding parameters of the audio stream.
   AVCodecParameters *encoded_stream_params = audio_stream->codecpar;
 
   if (audio_frame == nullptr) {
@@ -365,9 +376,10 @@ bool muxer_t::encode_audio_silent_frame() {
 
     audio_frame->nb_samples = encoded_stream_params->frame_size;
     audio_frame->format = encoded_stream_params->format;
-    audio_frame->channel_layout = encoded_stream_params->channel_layout;
+
     av_channel_layout_copy(&audio_frame->ch_layout,
                            &encoded_stream_params->ch_layout);
+
     if (av_frame_get_buffer(audio_frame, 32) < 0) {
       TEN_LOGE("Failed to allocate audio frame");
       return false;
@@ -389,6 +401,8 @@ bool muxer_t::encode_audio_silent_frame() {
 
 // The parameters of the stream we push back should be equal to the parameters
 // of the original stream we pull.
+//
+// dest_name: The path of the output file.
 bool muxer_t::open(const std::string &dest_name, const bool realtime) {
   if (is_av_encoder_opened()) {
     TEN_LOGD("Muxer already opened");
@@ -398,6 +412,8 @@ bool muxer_t::open(const std::string &dest_name, const bool realtime) {
   TEN_LOGD("Preparing to open output stream [%s]", dest_name.c_str());
 
   // Create encoders.
+  //
+  // FLV is used for real-time, while MP4 is used for non-real-time.
   const char *format_str = realtime ? "flv" : "mp4";
 
   this->dest_name = dest_name;
@@ -420,7 +436,7 @@ bool muxer_t::open(const std::string &dest_name, const bool realtime) {
     return false;
   }
 
-  // Open output stream
+  // Open output stream.
   // NOLINTNEXTLINE(hicpp-signed-bitwise)
   if ((output_format_ctx->oformat->flags & AVFMT_NOFILE) == 0) {
     ffmpeg_rc =
@@ -434,6 +450,7 @@ bool muxer_t::open(const std::string &dest_name, const bool realtime) {
     }
   }
 
+  // Write the header information of the output file.
   ffmpeg_rc = avformat_write_header(output_format_ctx, nullptr);
   if (ffmpeg_rc < 0) {
     GET_FFMPEG_ERROR_MESSAGE(err_msg, ffmpeg_rc) {
@@ -444,9 +461,10 @@ bool muxer_t::open(const std::string &dest_name, const bool realtime) {
 
   TEN_LOGD("Output stream [%s] is opened", dest_name.c_str());
 
-  // Encode 2 silent frames for AAC encoder.
+  // Encode 2 silent frames for the AAC encoder.
   encode_audio_silent_frame();
   encode_audio_silent_frame();
+
   audio_prepend_pts = next_audio_pts();
 
   return true;
@@ -482,8 +500,8 @@ void muxer_t::dump_audio_info() {
 bool muxer_t::open_video_encoder(const bool realtime) {
   TEN_ASSERT(output_format_ctx, "Invalid argument.");
 
-  // The ownership of 'video_encoder' belongs to ffmpeg, and it's not necessary
-  // to delete it when encountering errors.
+  // The ownership of 'video_encoder' belongs to ffmpeg, and it's not
+  // necessary to delete it when encountering errors.
   video_encoder = avcodec_find_encoder(OUTPUT_VIDEO_CODEC);
   if (video_encoder == nullptr) {
     TEN_LOGE("Video encoder not supported: %s",
@@ -523,7 +541,7 @@ bool muxer_t::open_video_encoder(const bool realtime) {
   video_encoder_ctx->time_base = time_base;
   video_encoder_ctx->gop_size = OUTPUT_VIDEO_GOP_SIZE;
   video_encoder_ctx->max_b_frames = OUTPUT_VIDEO_MAX_B_FRAMES;
-  video_encoder_ctx->pix_fmt = OUTPUT_VIDEO_PIXEL_FORMAT;
+  video_encoder_ctx->pix_fmt = OUTPUT_VIDEO_PIXEL_FMT;
   video_encoder_ctx->framerate = framerate;
   video_encoder_ctx->sample_aspect_ratio = (AVRational){0, 1};
   video_encoder_ctx->profile = FF_PROFILE_H264_HIGH;
@@ -533,9 +551,11 @@ bool muxer_t::open_video_encoder(const bool realtime) {
   video_stream->avg_frame_rate = video_encoder_ctx->framerate;
   video_stream->sample_aspect_ratio = video_encoder_ctx->sample_aspect_ratio;
 
-  // Enable video codec
+  // Enable video codec.
   AVDictionary *av_options = nullptr;
   if (realtime) {
+    // If it is real-time encoding, configure the encoder with tuning options
+    // such as `"zerolatency"`.
     av_dict_set(&av_options, "tune", "zerolatency", 0);
 
     // The following 'preset' would affect the encoding quality.
@@ -587,6 +607,7 @@ bool muxer_t::open_video_encoder(const bool realtime) {
     video_stream->duration = src_video_number_of_frames * frame_dur;
   }
 
+  // Open the video encoder.
   int ffmpeg_rc = avcodec_open2(video_encoder_ctx, video_encoder, &av_options);
   av_dict_free(&av_options);
   if (ffmpeg_rc < 0) {
@@ -596,6 +617,8 @@ bool muxer_t::open_video_encoder(const bool realtime) {
     return false;
   }
 
+  // Copy the parameters from the encoder context to the video stream's
+  // encoding parameters.
   ffmpeg_rc = avcodec_parameters_from_context(video_stream->codecpar,
                                               video_encoder_ctx);
   if (ffmpeg_rc < 0) {
@@ -647,25 +670,27 @@ bool muxer_t::open_audio_encoder() {
                                   : OUTPUT_AUDIO_FORMAT;
 
   int sample_rate = OUTPUT_AUDIO_SAMPLE_RATE;
-  uint64_t channel_layout = OUTPUT_AUDIO_CHANNEL_LAYOUT;
-  AVRational time_base = (AVRational){1, audio_encoder_ctx->sample_rate};
   if (src_audio_sample_rate > 0) {
     sample_rate = src_audio_sample_rate;
   }
 
-  if (src_audio_channel_layout > 0) {
-    channel_layout = src_audio_channel_layout;
-  }
-
+  AVRational time_base = (AVRational){1, audio_encoder_ctx->sample_rate};
   if (src_audio_time_base.num > 0) {
     time_base = src_audio_time_base;
   }
 
   audio_encoder_ctx->sample_fmt = sample_fmt;
   audio_encoder_ctx->sample_rate = sample_rate;
-  audio_encoder_ctx->channel_layout = channel_layout;
-  audio_encoder_ctx->channels =
-      av_get_channel_layout_nb_channels(audio_encoder_ctx->channel_layout);
+
+  AVChannelLayout desired_ch_layout;
+  if (src_audio_channel_layout_mask != 0) {
+    av_channel_layout_from_mask(&desired_ch_layout,
+                                src_audio_channel_layout_mask);
+  } else {
+    av_channel_layout_from_mask(&desired_ch_layout, OUTPUT_AUDIO_CHANNEL_MASK);
+  }
+  av_channel_layout_copy(&audio_encoder_ctx->ch_layout, &desired_ch_layout);
+
   audio_encoder_ctx->time_base = time_base;
 
   audio_stream->time_base = time_base;
@@ -705,7 +730,7 @@ bool muxer_t::create_video_converter(ten::video_frame_t &video_frame) {
 
     video_converter_ctx = sws_getContext(
         width, height, DEMUXER_OUTPUT_VIDEO_FRAME_PIXEL_FMT, width, height,
-        OUTPUT_VIDEO_PIXEL_FORMAT, SWS_POINT, nullptr, nullptr, nullptr);
+        OUTPUT_VIDEO_PIXEL_FMT, SWS_POINT, nullptr, nullptr, nullptr);
     if (video_converter_ctx == nullptr) {
       TEN_LOGD(
           "Failed to create converter context to convert from RGB frame \
@@ -736,8 +761,8 @@ AVFrame *muxer_t::convert_video_frame(ten::video_frame_t &video_frame) {
     AVFrame *yuv_frame = yuv_frame_create(frame_width, frame_height);
     TEN_ASSERT(yuv_frame, "Failed to create YUV frame.");
 
-    av_image_get_buffer_size(OUTPUT_VIDEO_PIXEL_FORMAT, frame_width,
-                             frame_height, 16);
+    av_image_get_buffer_size(OUTPUT_VIDEO_PIXEL_FMT, frame_width, frame_height,
+                             16);
     av_image_copy_plane(yuv_frame->data[0], yuv_frame->linesize[0], y_data,
                         frame_width, frame_width, frame_height);
     av_image_copy_plane(yuv_frame->data[1], yuv_frame->linesize[1], u_data,
@@ -784,7 +809,9 @@ void muxer_t::flush_remaining_video_frames() {
     return;
   }
 
+  // Retrieve all remaining encoded packets.
   while (ffmpeg_rc >= 0) {
+    // Discard the previous received video packet.
     av_packet_unref(packet);
 
     ffmpeg_rc = avcodec_receive_packet(video_encoder_ctx, packet);
@@ -809,6 +836,7 @@ void muxer_t::flush_remaining_video_frames() {
     packet->dts = av_rescale_q(packet->dts, video_encoder_ctx->time_base,
                                video_stream->time_base);
 
+    // Write the packet to the output.
     ffmpeg_rc = av_interleaved_write_frame(output_format_ctx, packet);
     if (ffmpeg_rc < 0) {
       GET_FFMPEG_ERROR_MESSAGE(err_msg, ffmpeg_rc) {
@@ -845,6 +873,7 @@ ENCODE_STATUS muxer_t::encode_video_frame(
     GET_FFMPEG_ERROR_MESSAGE(err_msg, ffmpeg_rc) {
       TEN_LOGE("Failed to encode a video frame: %s", err_msg);
     }
+
     if (ffmpeg_rc == AVERROR_EOF) {
       TEN_LOGD("encode an EOF video packet.");
       return ENCODE_STATUS_ERROR;
@@ -852,15 +881,18 @@ ENCODE_STATUS muxer_t::encode_video_frame(
     return ENCODE_STATUS_ERROR;
   }
 
-  // Discard the previous received video.
+  // Discard the previous received video packet.
   av_packet_unref(packet);
 
+  // Retrieve the encoded packet.
   ffmpeg_rc = avcodec_receive_packet(video_encoder_ctx, packet);
   if (ffmpeg_rc < 0) {
     yuv_frame_destroy(yuv_frame);
+
     GET_FFMPEG_ERROR_MESSAGE(err_msg, ffmpeg_rc) {
       TEN_LOGE("Failed to encode a video packet: %s", err_msg);
     }
+
     if (ffmpeg_rc == AVERROR(EAGAIN)) {
       TEN_LOGE(
           "Failed to encode a video packet: \
@@ -872,6 +904,7 @@ ENCODE_STATUS muxer_t::encode_video_frame(
       TEN_LOGD("encode an EOF video packet.");
       return ENCODE_STATUS_ERROR;
     }
+
     return ENCODE_STATUS_ERROR;
   }
 
@@ -892,7 +925,9 @@ ENCODE_STATUS muxer_t::encode_video_frame(
     GET_FFMPEG_ERROR_MESSAGE(err_msg, ffmpeg_rc) {
       TEN_LOGD("Error writing video packet: %s", err_msg);
     }
+
     yuv_frame_destroy(yuv_frame);
+
     return ENCODE_STATUS_ERROR;
   }
 
@@ -900,8 +935,8 @@ ENCODE_STATUS muxer_t::encode_video_frame(
   return ENCODE_STATUS_SUCCESS;
 }
 
-// Because the frame_size between the original audio and the requirement of the
-// target audio codec would be different, we need a FIFO to queue samples.
+// Because the frame_size between the original audio and the requirement of
+// the target audio codec would be different, we need a FIFO to queue samples.
 bool muxer_t::allocate_audio_fifo(AVCodecParameters *encoded_stream_params) {
   if (audio_fifo == nullptr) {
     audio_fifo = av_audio_fifo_alloc(
@@ -964,18 +999,24 @@ bool muxer_t::create_audio_converter(AVCodecParameters *encoded_stream_params,
       }
     }
 
-    av_opt_set_channel_layout(
-        audio_converter_ctx, "in_channel_layout",
-        static_cast<int64_t>(ten_audio_frame.get_channel_layout()), 0);
+    AVChannelLayout in_ch_layout;
+    av_channel_layout_from_mask(&in_ch_layout,
+                                ten_audio_frame.get_channel_layout());
+    av_opt_set_chlayout(audio_converter_ctx, "in_channel_layout", &in_ch_layout,
+                        0);
+
+    AVChannelLayout out_ch_layout;
+    av_channel_layout_copy(&out_ch_layout, &encoded_stream_params->ch_layout);
+    av_opt_set_chlayout(audio_converter_ctx, "out_channel_layout",
+                        &out_ch_layout, 0);
+
     av_opt_set_int(audio_converter_ctx, "in_sample_rate",
                    ten_audio_frame.get_sample_rate(), 0);
-    av_opt_set_sample_fmt(audio_converter_ctx, "in_sample_fmt", sample_format,
-                          0);
-    av_opt_set_channel_layout(
-        audio_converter_ctx, "out_channel_layout",
-        static_cast<int64_t>(encoded_stream_params->channel_layout), 0);
     av_opt_set_int(audio_converter_ctx, "out_sample_rate",
                    encoded_stream_params->sample_rate, 0);
+
+    av_opt_set_sample_fmt(audio_converter_ctx, "in_sample_fmt", sample_format,
+                          0);
     av_opt_set_sample_fmt(
         audio_converter_ctx, "out_sample_fmt",
         static_cast<enum AVSampleFormat>(encoded_stream_params->format), 0);

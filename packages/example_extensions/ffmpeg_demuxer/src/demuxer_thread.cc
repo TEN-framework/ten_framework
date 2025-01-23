@@ -208,8 +208,8 @@ void demuxer_thread_t::reply_to_start_cmd(bool success) {
 
   // Demuxer audio settings.
   cmd_result->set_property("audio_sample_rate", demuxer->audio_sample_rate);
-  cmd_result->set_property("audio_channel_layout",
-                           demuxer->audio_channel_layout);
+  cmd_result->set_property("audio_channel_layout_mask",
+                           demuxer->audio_channel_layout_mask);
   cmd_result->set_property("audio_num_of_channels",
                            demuxer->audio_num_of_channels);
   cmd_result->set_property("audio_time_base_num",

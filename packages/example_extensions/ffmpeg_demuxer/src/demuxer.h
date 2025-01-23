@@ -137,7 +137,7 @@ class demuxer_t {
 
   // The audio format output by the demuxer.
   int audio_sample_rate;
-  uint64_t audio_channel_layout;
+  uint64_t audio_channel_layout_mask;
   int audio_num_of_channels;
 };
 

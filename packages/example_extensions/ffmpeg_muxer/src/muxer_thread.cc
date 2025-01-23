@@ -219,7 +219,7 @@ void muxer_thread_t::create_muxer() {
 
   muxer->src_audio_sample_rate = settings.src_audio_sample_rate;
   muxer->src_audio_time_base = settings.src_audio_time_base;
-  muxer->src_audio_channel_layout = settings.src_audio_channel_layout;
+  muxer->src_audio_channel_layout_mask = settings.src_audio_channel_layout_mask;
 
   muxer->open(output_stream, false);
 }
