@@ -54,7 +54,7 @@ class demuxer_thread_t {
 
   std::atomic<bool> stop_;
 
-  demuxer_t *demuxer_;
+  demuxer_t *demuxer;
   ten_thread_t *demuxer_thread;
   ten_event_t *event_for_start_demuxing;
 
