@@ -18,7 +18,7 @@
 #include "ten_runtime/ten_env/ten_env.h"
 #include "ten_utils/lib/rwlock.h"
 
-// Since there is not an runloop attached to ten_addon_t, we cannot create a
+// Since there is no runloop attached to ten_addon_t, we cannot create a
 // ten_env_proxy for ten_addon_t. Therefore, the way to determine the closure of
 // the ten_env attached to an addon is to check if the ten_env pointer is null.
 // For other types of ten_env, after calling on_deinit_done, the
