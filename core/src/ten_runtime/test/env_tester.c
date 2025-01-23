@@ -325,7 +325,8 @@ static void ten_extension_tester_execute_return_result_handler_task(void *self,
 }
 
 static void send_cmd_callback(ten_env_t *ten_env, ten_shared_ptr_t *cmd_result,
-                              void *callback_user_data, ten_error_t *err) {
+                              ten_shared_ptr_t *cmd, void *callback_user_data,
+                              ten_error_t *err) {
   TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
              "Should not happen.");
   ten_env_tester_send_cmd_ctx_t *send_cmd_info = callback_user_data;
@@ -365,6 +366,7 @@ static void send_cmd_callback(ten_env_t *ten_env, ten_shared_ptr_t *cmd_result,
 
 static void send_data_like_msg_callback(ten_env_t *ten_env,
                                         TEN_UNUSED ten_shared_ptr_t *cmd_result,
+                                        ten_shared_ptr_t *msg,
                                         void *callback_user_data,
                                         ten_error_t *err) {
   TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),

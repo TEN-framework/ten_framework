@@ -174,13 +174,14 @@ done:
     // For command-type messages, its result handler will be invoked when the
     // target extension returns a response.
     //
-    // For other types of messages, such as data/audio_frame/video_frame, we
-    // temporarily consider the sending to be successful right after the message
-    // is enqueued (In the future, this time point might change, but overall, as
-    // long as the result handler is provided, it must be invoked in this case).
-    // Therefore, it is necessary to execute the callback function and set the
-    // error to NULL to indicate that no error has occurred.
-    result_handler(self, NULL, result_handler_user_data, NULL);
+    // TODO(Wei): For other types of messages, such as
+    // data/audio_frame/video_frame, we temporarily consider the sending to be
+    // successful right after the message is enqueued (In the future, this time
+    // point might change, but overall, as long as the result handler is
+    // provided, it must be invoked in this case). Therefore, it is necessary to
+    // execute the callback function and set the error to NULL to indicate that
+    // no error has occurred.
+    result_handler(self, NULL, NULL, result_handler_user_data, NULL);
   }
 
   return result;
@@ -209,6 +210,7 @@ static void ten_cmd_result_handler_for_send_cmd_ctx_destroy(
 
 static void cmd_result_handler_for_send_cmd(ten_env_t *ten_env,
                                             ten_shared_ptr_t *cmd_result,
+                                            ten_shared_ptr_t *cmd,
                                             void *cmd_result_handler_user_data,
                                             ten_error_t *err) {
   ten_cmd_result_handler_for_send_cmd_ctx_t *ctx = cmd_result_handler_user_data;
@@ -219,7 +221,7 @@ static void cmd_result_handler_for_send_cmd(ten_env_t *ten_env,
   // will only return the final `result` of `is_completed`. If other behaviors
   // are needed, users can use `send_cmd_ex`.
   if (ten_cmd_result_is_completed(cmd_result, NULL)) {
-    ctx->result_handler(ten_env, cmd_result, ctx->result_handler_user_data,
+    ctx->result_handler(ten_env, cmd_result, cmd, ctx->result_handler_user_data,
                         err);
 
     ten_cmd_result_handler_for_send_cmd_ctx_destroy(ctx);

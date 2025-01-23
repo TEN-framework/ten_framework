@@ -17,8 +17,8 @@ typedef struct ten_env_t ten_env_t;
 typedef struct ten_extension_t ten_extension_t;
 
 typedef void (*ten_env_msg_result_handler_func_t)(
-    ten_env_t *ten_env, ten_shared_ptr_t *cmd_result,
-    void *cmd_result_handler_user_data, ten_error_t *err);
+    ten_env_t *ten_env, ten_shared_ptr_t *cmd_result, ten_shared_ptr_t *msg,
+    void *msg_result_handler_user_data, ten_error_t *err);
 
 typedef bool (*ten_env_send_cmd_func_t)(
     ten_env_t *self, ten_shared_ptr_t *cmd,

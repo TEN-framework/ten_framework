@@ -263,7 +263,7 @@ void ten_extension_handle_in_msg(ten_extension_t *self, ten_shared_ptr_t *msg) {
             ten_cmd_base_get_raw_cmd_base(actual_msg)->result_handler;
         if (result_handler) {
           result_handler(
-              self->ten_env, actual_msg,
+              self->ten_env, actual_msg, NULL,
               ten_cmd_base_get_raw_cmd_base(actual_msg)->result_handler_data,
               NULL);
         } else {

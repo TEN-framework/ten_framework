@@ -871,7 +871,8 @@ class ten_env_t {
   }
 
   static void proxy_handle_result(::ten_env_t *ten_env,
-                                  ten_shared_ptr_t *c_cmd_result, void *cb_data,
+                                  ten_shared_ptr_t *c_cmd_result,
+                                  ten_shared_ptr_t *c_cmd, void *cb_data,
                                   ten_error_t *err) {
     auto *result_handler = static_cast<result_handler_func_t *>(cb_data);
     auto *cpp_ten_env =
@@ -910,7 +911,8 @@ class ten_env_t {
   }
 
   static void proxy_handle_error(::ten_env_t *ten_env,
-                                 ten_shared_ptr_t *c_cmd_result, void *cb_data,
+                                 ten_shared_ptr_t *c_cmd_result,
+                                 ten_shared_ptr_t *c_msg, void *cb_data,
                                  ten_error_t *err) {
     TEN_ASSERT(c_cmd_result == nullptr, "Should not happen.");
 
