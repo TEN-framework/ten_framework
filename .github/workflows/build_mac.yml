@@ -27,7 +27,22 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: "0"
-          submodules: "true"
+          submodules: false
+
+      - name: Trust working directory
+        run: git config --global --add safe.directory "${GITHUB_WORKSPACE}"
+
+      - name: Initialize and update submodules except docs/
+        run: |
+          # Retrieve all submodule paths, excluding `docs/`.
+          submodules=$(git config --file .gitmodules --get-regexp path | awk '$2 != "docs" { print $2 }')
+
+          git submodule init
+
+          for submodule in $submodules; do
+            echo "Initializing submodule: $submodule"
+            git submodule update --init --recursive "$submodule"
+          done
 
       - uses: actions/setup-node@v4
         with:
@@ -229,7 +244,22 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: "0"
-          submodules: "true"
+          submodules: false
+
+      - name: Trust working directory
+        run: git config --global --add safe.directory "${GITHUB_WORKSPACE}"
+
+      - name: Initialize and update submodules except docs/
+        run: |
+          # Retrieve all submodule paths, excluding `docs/`.
+          submodules=$(git config --file .gitmodules --get-regexp path | awk '$2 != "docs" { print $2 }')
+
+          git submodule init
+
+          for submodule in $submodules; do
+            echo "Initializing submodule: $submodule"
+            git submodule update --init --recursive "$submodule"
+          done
 
       - uses: actions/setup-node@v4
         with:
@@ -432,7 +462,22 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: "0"
-          submodules: "true"
+          submodules: false
+
+      - name: Trust working directory
+        run: git config --global --add safe.directory "${GITHUB_WORKSPACE}"
+
+      - name: Initialize and update submodules except docs/
+        run: |
+          # Retrieve all submodule paths, excluding `docs/`.
+          submodules=$(git config --file .gitmodules --get-regexp path | awk '$2 != "docs" { print $2 }')
+
+          git submodule init
+
+          for submodule in $submodules; do
+            echo "Initializing submodule: $submodule"
+            git submodule update --init --recursive "$submodule"
+          done
 
       - uses: actions/setup-node@v4
         with:
