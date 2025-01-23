@@ -93,6 +93,15 @@ const (
 	// ErrorCodeInvalidArgument means invalid parameter.
 	ErrorCodeInvalidArgument = 3
 
-	// ErrorCodeInvalidType means unsupported property type.
+	// ErrorCodeInvalidType means invalid type.
 	ErrorCodeInvalidType = 4
+
+	// ErrorCodeInvalidGraph means invalid graph.
+	ErrorCodeInvalidGraph = 5
+
+	// ErrorCodeTenIsClosed means the TEN world is closed.
+	ErrorCodeTenIsClosed = 6
+
+	// ErrorCodeMsgNotConnected means the msg is not connected in the graph.
+	ErrorCodeMsgNotConnected = 7
 )
