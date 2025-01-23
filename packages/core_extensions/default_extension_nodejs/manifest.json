@@ -1,12 +1,12 @@
 {
   "type": "extension",
   "name": "default_extension_nodejs",
-  "version": "0.8.3",
+  "version": "0.8.5",
   "dependencies": [
     {
       "type": "system",
       "name": "ten_runtime_nodejs",
-      "version": "0.8.3"
+      "version": "0.8.5"
     }
   ],
   "package": {
