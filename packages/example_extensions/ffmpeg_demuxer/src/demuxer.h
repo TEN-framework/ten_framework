@@ -94,14 +94,16 @@ class demuxer_t {
   AVCodecParameters *get_video_decoder_params() const;
   AVCodecParameters *get_audio_decoder_params() const;
 
-  bool create_audio_converter(const AVFrame *frame);
-  bool create_video_converter_(int width, int height);
+  bool create_audio_converter(const AVFrame *frame,
+                              uint64_t *out_channel_layout,
+                              int *out_sample_rate);
+  bool create_video_converter(int width, int height);
 
   std::unique_ptr<ten::audio_frame_t> to_ten_audio_frame(const AVFrame *frame);
-  std::unique_ptr<ten::video_frame_t> to_ten_video_frame_(const AVFrame *frame);
+  std::unique_ptr<ten::video_frame_t> to_ten_video_frame(const AVFrame *frame);
 
-  bool decode_next_video_packet_(DECODE_STATUS &decode_status);
-  bool decode_next_audio_packet_(DECODE_STATUS &decode_status);
+  bool decode_next_video_packet(DECODE_STATUS &decode_status);
+  bool decode_next_audio_packet(DECODE_STATUS &decode_status);
 
   std::string input_stream_loc;
   demuxer_thread_t *demuxer_thread;
@@ -130,7 +132,10 @@ class demuxer_t {
   AVPacket *packet;
   AVFrame *frame;
 
+  // The video format output by the demuxer.
   int rotate_degree;
+
+  // The audio format output by the demuxer.
   int audio_sample_rate;
   uint64_t audio_channel_layout;
   int audio_num_of_channels;

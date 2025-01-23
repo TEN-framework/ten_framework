@@ -37,7 +37,7 @@ declare_args() {
   # not be backward compatible. In order to simplified the coding and the CI
   # environments, we embed a ffmpeg source codes in the TEN framework source
   # tree, and build it by ourselves. This embedded ffmpeg can be built on clang
-  # and gcc, debug or release. To minimize the CI resource comsuption, and
+  # and gcc, debug or release. To minimize the CI resource consumption, and
   # increase the CI efficiency, we just enable the building of the ffmpeg
   # relevant modules in a restricted combination.
   ten_enable_ffmpeg_extensions =

@@ -30,7 +30,7 @@
                                                times == 0;                  \
        ++times)
 
-#define TEN_VIDEO_FRAME_PIXEL_FMT AV_PIX_FMT_RGB24
+#define DEMUXER_OUTPUT_VIDEO_FRAME_PIXEL_FMT AV_PIX_FMT_RGB24
 
 // @{
 // Output video settings.
@@ -634,7 +634,7 @@ bool muxer_t::create_video_converter_(ten::video_frame_t &video_frame) {
     int height = video_frame.get_height();
 
     video_converter_ctx_ = sws_getContext(
-        width, height, TEN_VIDEO_FRAME_PIXEL_FMT, width, height,
+        width, height, DEMUXER_OUTPUT_VIDEO_FRAME_PIXEL_FMT, width, height,
         OUTPUT_VIDEO_PIXEL_FORMAT, SWS_POINT, nullptr, nullptr, nullptr);
     if (video_converter_ctx_ == nullptr) {
       TEN_LOGD(

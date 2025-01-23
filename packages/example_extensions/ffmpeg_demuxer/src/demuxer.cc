@@ -55,8 +55,8 @@ extern "C" {
                                                times == 0;                  \
        ++times)
 
-#define TEN_AUDIO_FRAME_SAMPLE_FMT AV_SAMPLE_FMT_S16
-#define TEN_VIDEO_FRAME_PIXEL_FMT AV_PIX_FMT_RGB24
+#define DEMUXER_OUTPUT_AUDIO_FRAME_SAMPLE_FMT AV_SAMPLE_FMT_S16
+#define DEMUXER_OUTPUT_VIDEO_FRAME_PIXEL_FMT AV_PIX_FMT_RGB24
 
 namespace ten {
 namespace ffmpeg_extension {
@@ -374,34 +374,46 @@ AVCodecParameters *demuxer_t::get_audio_decoder_params() const {
   }
 }
 
-bool demuxer_t::create_audio_converter(const AVFrame *frame) {
+bool demuxer_t::create_audio_converter(const AVFrame *frame,
+                                       uint64_t *out_channel_layout,
+                                       int *out_sample_rate) {
+  TEN_ASSERT(frame && out_channel_layout && out_sample_rate,
+             "Invalid argument.");
+
   if (audio_converter_ctx == nullptr) {
     // Some audio codec (ex: pcm_mclaw) doesn't have channel layout setting.
-    uint64_t src_channel_layout =
-        frame->channel_layout
-            ? frame->channel_layout
-            : (uint64_t)av_get_default_channel_layout(frame->channels);
 
-    uint64_t dst_channel_layout =
-        (audio_channel_layout != 0) ? audio_channel_layout : src_channel_layout;
+    // Get the input channel layout from the received frame.
+    AVChannelLayout in_layout;
+    if (frame->ch_layout.order != AV_CHANNEL_ORDER_NATIVE) {
+      av_channel_layout_default(&in_layout, frame->ch_layout.nb_channels);
+    } else {
+      in_layout = frame->ch_layout;
+    }
+    uint64_t in_channel_layout = in_layout.u.mask;
 
-    int dst_sample_rate =
+    *out_channel_layout =
+        (audio_channel_layout != 0) ? audio_channel_layout : in_channel_layout;
+
+    *out_sample_rate =
         (audio_sample_rate != 0) ? audio_sample_rate : frame->sample_rate;
 
     audio_converter_ctx = swr_alloc();
     TEN_ASSERT(audio_converter_ctx, "Failed to create audio resampler");
 
     av_opt_set_int(audio_converter_ctx, "in_channel_layout",
-                   static_cast<int64_t>(src_channel_layout), 0);
+                   static_cast<int64_t>(in_channel_layout), 0);
     av_opt_set_int(audio_converter_ctx, "out_channel_layout",
-                   static_cast<int64_t>(dst_channel_layout), 0);
+                   static_cast<int64_t>(*out_channel_layout), 0);
+
     av_opt_set_int(audio_converter_ctx, "in_sample_rate", frame->sample_rate,
                    0);
-    av_opt_set_int(audio_converter_ctx, "out_sample_rate", dst_sample_rate, 0);
+    av_opt_set_int(audio_converter_ctx, "out_sample_rate", *out_sample_rate, 0);
+
     av_opt_set_sample_fmt(audio_converter_ctx, "in_sample_fmt",
                           audio_decoder_ctx->sample_fmt, 0);
     av_opt_set_sample_fmt(audio_converter_ctx, "out_sample_fmt",
-                          TEN_AUDIO_FRAME_SAMPLE_FMT, 0);
+                          DEMUXER_OUTPUT_AUDIO_FRAME_SAMPLE_FMT, 0);
 
     int swr_init_rc = swr_init(audio_converter_ctx);
     if (swr_init_rc < 0) {
@@ -419,7 +431,11 @@ std::unique_ptr<ten::audio_frame_t> demuxer_t::to_ten_audio_frame(
     const AVFrame *frame) {
   TEN_ASSERT(frame, "Invalid argument.");
 
-  if (!create_audio_converter(frame)) {
+  uint64_t out_channel_layout = 0;
+  int out_sample_rate = 0;
+
+  if (!create_audio_converter(frame, &out_channel_layout, &out_sample_rate)) {
+    TEN_ASSERT(0, "Should not happen.");
     return nullptr;
   }
 
@@ -428,64 +444,74 @@ std::unique_ptr<ten::audio_frame_t> demuxer_t::to_ten_audio_frame(
   // Allocate memory for each audio channel.
   int dst_channels = frame->ch_layout.nb_channels;
 
-  auto length = frame->nb_samples * dst_channels *
-                av_get_bytes_per_sample(TEN_AUDIO_FRAME_SAMPLE_FMT);
-  audio_frame->alloc_buf(length);
+  auto buf_size =
+      frame->nb_samples * dst_channels *
+      av_get_bytes_per_sample(DEMUXER_OUTPUT_AUDIO_FRAME_SAMPLE_FMT);
+  audio_frame->alloc_buf(buf_size);
 
   // Convert this audio frame to the desired audio format.
   uint8_t *out[8] = {nullptr};
-  ten::buf_t locked_out_buf = audio_frame->lock_buf();
-  out[0] = locked_out_buf.data();
+  ten::buf_t locked_buf = audio_frame->lock_buf();
+  out[0] = locked_buf.data();
 
-  int ffmpeg_rc =
+  // The amount of the converted samples might be less than the expected,
+  // because they might be queued in the swr.
+  int converted_audio_samples_cnt =
       swr_convert(audio_converter_ctx, out, frame->nb_samples,
                   const_cast<const uint8_t **>(frame->data),  // NOLINT
                   frame->nb_samples);
-  if (ffmpeg_rc < 0) {
-    GET_FFMPEG_ERROR_MESSAGE(err_msg, ffmpeg_rc) {
+  if (converted_audio_samples_cnt < 0) {
+    GET_FFMPEG_ERROR_MESSAGE(err_msg, converted_audio_samples_cnt) {
       TEN_LOGD("Failed to convert audio samples: %s", err_msg);
     }
 
-    audio_frame->unlock_buf(locked_out_buf);
+    audio_frame->unlock_buf(locked_buf);
 
     return nullptr;
   }
 
-  audio_frame->unlock_buf(locked_out_buf);
-
-  // The amount of the converted samples might be less than the expected,
-  // because they might be queued in the swr.
-  int actual_audio_samples_cnt = ffmpeg_rc;
+  audio_frame->unlock_buf(locked_buf);
 
   audio_frame->set_data_fmt(TEN_AUDIO_FRAME_DATA_FMT_INTERLEAVE);
   audio_frame->set_bytes_per_sample(
-      av_get_bytes_per_sample(TEN_AUDIO_FRAME_SAMPLE_FMT));
+      av_get_bytes_per_sample(DEMUXER_OUTPUT_AUDIO_FRAME_SAMPLE_FMT));
+  // audio_frame->set_sample_rate(out_sample_rate);
   audio_frame->set_sample_rate(frame->sample_rate);
-  audio_frame->set_channel_layout(frame->channel_layout);
+  audio_frame->set_channel_layout(out_channel_layout);
   audio_frame->set_number_of_channels(frame->ch_layout.nb_channels);
-  audio_frame->set_samples_per_channel(actual_audio_samples_cnt);
+  audio_frame->set_samples_per_channel(converted_audio_samples_cnt);
 
   AVRational time_base =
       input_format_context->streams[audio_stream_idx]->time_base;
   int64_t start_time =
       input_format_context->streams[audio_stream_idx]->start_time;
+
+  // `best_effort_timestamp` is the timestamp provided by FFmpeg for a frame,
+  // used to indicate the frame's position in the media stream (expressed in the
+  // time base `time_base`).
   if (frame->best_effort_timestamp < start_time) {
     TEN_LOGD("Audio timestamp=%" PRId64 " < start_time=%" PRId64 "!",
              frame->best_effort_timestamp, start_time);
   }
 
-  audio_frame->set_timestamp(
-      av_rescale(frame->best_effort_timestamp - start_time,
-                 static_cast<int64_t>(time_base.num) * 1000, time_base.den));
+  audio_frame->set_timestamp(av_rescale(
+      // Subtract the stream's start time (`start_time`) from the frame's
+      // timestamp to normalize the timestamp as an offset from the beginning of
+      // the stream.
+      frame->best_effort_timestamp - start_time,
+      // Scale the numerator of the time base by 1000 to convert the result into
+      // milliseconds.
+      static_cast<int64_t>(time_base.num) * 1000, time_base.den));
 
   return audio_frame;
 }
 
-bool demuxer_t::create_video_converter_(int width, int height) {
+bool demuxer_t::create_video_converter(int width, int height) {
   if (video_converter_ctx == nullptr) {
-    video_converter_ctx = sws_getContext(
-        width, height, video_decoder_ctx->pix_fmt, width, height,
-        TEN_VIDEO_FRAME_PIXEL_FMT, SWS_POINT, nullptr, nullptr, nullptr);
+    video_converter_ctx =
+        sws_getContext(width, height, video_decoder_ctx->pix_fmt, width, height,
+                       DEMUXER_OUTPUT_VIDEO_FRAME_PIXEL_FMT, SWS_POINT, nullptr,
+                       nullptr, nullptr);
     if (video_converter_ctx == nullptr) {
       TEN_LOGD("Failed to create converter context for video frame.");
       return false;
@@ -495,12 +521,13 @@ bool demuxer_t::create_video_converter_(int width, int height) {
   return true;
 }
 
-std::unique_ptr<ten::video_frame_t> demuxer_t::to_ten_video_frame_(
+std::unique_ptr<ten::video_frame_t> demuxer_t::to_ten_video_frame(
     const AVFrame *frame) {
   TEN_ASSERT(frame, "Invalid argument.");
 
   int frame_width = frame->width;
   int frame_height = frame->height;
+
   AVRational video_time_base =
       input_format_context->streams[video_stream_idx]->time_base;
   int64_t video_start_time =
@@ -540,62 +567,6 @@ std::unique_ptr<ten::video_frame_t> demuxer_t::to_ten_video_frame_(
                         frame->linesize[2], frame_width / 2, frame_height / 2);
 
     ten_video_frame->unlock_buf(locked_buf);
-
-    // convert YUV to RGB first.
-
-    // if (!create_video_converter_(frame_width, frame_height)) {
-    //   return ten::video_frame_t();
-    // }
-    // // sws_scale require 16 bytes aligned.
-    // int dst_linesize = ((frame_width * 3 + 15) / 16) * 16;
-    // int size = av_image_get_buffer_size(TEN_VIDEO_FRAME_PIXEL_FMT,
-    // frame_width,
-    //                                     frame_height, 16);
-
-    // ten_video_frame->set_width(frame_width);
-    // ten_video_frame->set_height(frame_height);
-    // ten_video_frame->set_timestamp(av_rescale(
-    //     frame->best_effort_timestamp - video_start_time,
-    //     static_cast<int64_t>(video_time_base.num) * 1000,
-    //     video_time_base.den));
-    // ten_video_frame->set_buf_size(size);
-    // ten_video_frame->set_buf(static_cast<uint8_t*>(TEN_MALLOC(size + 32)));
-
-    // uint8_t* rgb_data[1] = {ten_video_frame->get_buf()};  // NOLINT
-    // int rgb_linesize[1] = {dst_linesize};                // NOLINT
-
-    // sws_scale(video_converter_ctx_, static_cast<uint8_t*
-    // const*>(frame->data),
-    //           frame->linesize, 0, frame_height, rgb_data, rgb_linesize);
-
-    // // DEBUG
-    // // save_avframe(frame);
-
-    // // There would be paddings in the destination image from sws_scale()
-    // // when the width of the source image is not multiple of 16 (ex:
-    // 854x480).
-    // // We use memmove() to eliminate these paddings.
-    // if (dst_linesize != frame_width * 3) {
-    //   // There are paddings at each row, do "dst" => "packed".
-
-    //   // sws_scale's output, with padding.
-    //   uint8_t* dst_ptr = ten_video_frame->get_buf() + dst_linesize;
-
-    //   int packed_linesize = frame_width * 3;
-
-    //   // Packed result, no padding.
-    //   uint8_t* packed_ptr = ten_video_frame->get_buf() + packed_linesize;
-
-    //   int h = frame_height - 1;
-    //   for (; h > 0; h--) {
-    //     memmove(packed_ptr, dst_ptr, packed_linesize);
-    //     dst_ptr += dst_linesize;
-    //     packed_ptr += packed_linesize;
-    //   }
-
-    //   ten_video_frame->set_buf_size(static_cast<int64_t>(packed_linesize) *
-    //                                frame_height);
-    // }
   } else if (frame->format == AV_PIX_FMT_RGB24) {
     ten_video_frame->set_pixel_fmt(TEN_PIXEL_FMT_RGB24);
     ten_video_frame->set_width(frame_width);
@@ -606,6 +577,7 @@ std::unique_ptr<ten::video_frame_t> demuxer_t::to_ten_video_frame_(
 
     ten_video_frame->alloc_buf(
         (static_cast<int64_t>(frame_width) * frame_height * 3) + 32);
+
     ten::buf_t locked_buf = ten_video_frame->lock_buf();
 
     av_image_copy_plane(locked_buf.data(), frame_width * 3, frame->data[0],
@@ -620,7 +592,7 @@ std::unique_ptr<ten::video_frame_t> demuxer_t::to_ten_video_frame_(
   return ten_video_frame;
 }
 
-bool demuxer_t::decode_next_video_packet_(DECODE_STATUS &decode_status) {
+bool demuxer_t::decode_next_video_packet(DECODE_STATUS &decode_status) {
   int ffmpeg_rc = avcodec_send_packet(video_decoder_ctx, packet);
   if (ffmpeg_rc != 0) {
     GET_FFMPEG_ERROR_MESSAGE(err_msg, ffmpeg_rc) {
@@ -643,10 +615,11 @@ bool demuxer_t::decode_next_video_packet_(DECODE_STATUS &decode_status) {
     decode_status = DECODE_STATUS_ERROR;
     return false;
   } else {
-    auto video_frame = to_ten_video_frame_(frame);
+    auto video_frame = to_ten_video_frame(frame);
     if (video_frame != nullptr) {
       // DEBUG
       // save_img_frame(video_frame, frame_->pts);
+
       auto video_frame_shared =
           std::make_shared<std::unique_ptr<ten::video_frame_t>>(
               std::move(video_frame));
@@ -661,7 +634,7 @@ bool demuxer_t::decode_next_video_packet_(DECODE_STATUS &decode_status) {
   }
 }
 
-bool demuxer_t::decode_next_audio_packet_(DECODE_STATUS &decode_status) {
+bool demuxer_t::decode_next_audio_packet(DECODE_STATUS &decode_status) {
   int ffmpeg_rc = avcodec_send_packet(audio_decoder_ctx, packet);
 
   // Skip invalid mp3 packet/frame.
@@ -738,11 +711,11 @@ DECODE_STATUS demuxer_t::decode_next_packet() {
     }
 
     if (packet->stream_index == video_stream_idx) {
-      if (!decode_next_video_packet_(decode_status)) {
+      if (!decode_next_video_packet(decode_status)) {
         break;
       }
     } else if (packet->stream_index == audio_stream_idx) {
-      if (!decode_next_audio_packet_(decode_status)) {
+      if (!decode_next_audio_packet(decode_status)) {
         break;
       }
     }
@@ -814,7 +787,7 @@ void demuxer_t::flush_remaining_video_frames() {
       }
       return;
     } else {
-      auto video_frame = to_ten_video_frame_(frame);
+      auto video_frame = to_ten_video_frame(frame);
       if (video_frame != nullptr) {
         auto video_frame_shared =
             std::make_shared<std::unique_ptr<ten::video_frame_t>>(
@@ -1034,9 +1007,10 @@ void demuxer_t::open_audio_decoder() {
   TEN_LOGD("Successfully open '%s' audio decoder for input stream %d",
            audio_decoder->name, audio_stream_idx);
 
+  // Use the metadata of the audio stream as the unified audio format output by
+  // the demuxer.
   audio_sample_rate = params->sample_rate;
   audio_num_of_channels = params->ch_layout.nb_channels;
-  audio_channel_layout = params->ch_layout.u.mask;
 
   if (params->ch_layout.order != AV_CHANNEL_ORDER_NATIVE) {
     // Some audio codec (e.g., pcm_mulaw) doesn't have channel layout setting.
@@ -1044,6 +1018,8 @@ void demuxer_t::open_audio_decoder() {
     av_channel_layout_default(&default_layout, params->ch_layout.nb_channels);
 
     audio_channel_layout = default_layout.u.mask;
+  } else {
+    audio_channel_layout = params->ch_layout.u.mask;
   }
 }
 
