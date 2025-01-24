@@ -11,7 +11,9 @@
 #include "include_internal/ten_runtime/binding/python/test/env_tester.h"
 #include "ten_runtime/test/env_tester.h"
 #include "ten_runtime/test/env_tester_proxy.h"
+#include "ten_utils/lib/smart_ptr.h"
 #include "ten_utils/macro/check.h"
+#include "ten_utils/macro/mark.h"
 #include "ten_utils/macro/memory.h"
 
 typedef struct ten_py_ten_env_tester_send_data_ctx_t {
@@ -46,6 +48,7 @@ static void ten_py_ten_env_tester_send_data_ctx_destroy(
 }
 
 static void proxy_send_data_callback(ten_env_tester_t *self,
+                                     TEN_UNUSED ten_shared_ptr_t *c_cmd_result,
                                      ten_shared_ptr_t *c_data, void *user_data,
                                      ten_error_t *error) {
   TEN_ASSERT(self && ten_env_tester_check_integrity(self, true),
