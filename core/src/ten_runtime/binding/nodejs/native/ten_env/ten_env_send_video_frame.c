@@ -6,6 +6,7 @@
 //
 #include "include_internal/ten_runtime/binding/nodejs/msg/video_frame.h"
 #include "include_internal/ten_runtime/binding/nodejs/ten_env/ten_env.h"
+#include "ten_utils/macro/mark.h"
 #include "ten_utils/macro/memory.h"
 
 typedef struct ten_env_notify_send_video_frame_ctx_t {
@@ -95,10 +96,9 @@ static void tsfn_proxy_send_video_frame_callback(napi_env env, napi_value js_cb,
   ten_nodejs_send_video_frame_callback_call_ctx_destroy(ctx);
 }
 
-static void proxy_send_video_frame_callback(ten_env_t *ten_env,
-                                            ten_shared_ptr_t *msg,
-                                            void *user_video_frame,
-                                            ten_error_t *err) {
+static void proxy_send_video_frame_callback(
+    ten_env_t *ten_env, TEN_UNUSED ten_shared_ptr_t *c_cmd_result,
+    ten_shared_ptr_t *c_video_frame, void *user_video_frame, ten_error_t *err) {
   TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
              "Should not happen.");
 
@@ -140,7 +140,8 @@ static void ten_env_proxy_notify_send_video_frame(ten_env_t *ten_env,
   bool rc = ten_env_send_video_frame(
       ten_env, ctx->c_video_frame, proxy_send_video_frame_callback, ctx, &err);
   if (!rc) {
-    proxy_send_video_frame_callback(ten_env, NULL, ctx, &err);
+    proxy_send_video_frame_callback(ten_env, NULL, ctx->c_video_frame, ctx,
+                                    &err);
   }
 
   ten_error_deinit(&err);

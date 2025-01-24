@@ -78,10 +78,6 @@ TEN_RUNTIME_PRIVATE_API ten_go_callback_ctx_t *ten_go_callback_ctx_create(
 TEN_RUNTIME_PRIVATE_API void ten_go_callback_ctx_destroy(
     ten_go_callback_ctx_t *self);
 
-TEN_RUNTIME_PRIVATE_API void proxy_send_xxx_callback(
-    ten_env_t *ten_env, ten_shared_ptr_t *cmd_result, void *callback_info,
-    ten_error_t *err);
-
 ten_go_handle_t tenGoCreateTenEnv(uintptr_t);
 
 void tenGoDestroyTenEnv(ten_go_handle_t go_ten_env);
