@@ -60,11 +60,13 @@ class test_extension_1 : public ten::extension_t {
       ten_env.send_cmd(
           std::move(test_cmd),
           [this](ten::ten_env_t &ten_env,
-                 std::unique_ptr<ten::cmd_result_t> cmd, ten::error_t *err) {
-            auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
-            cmd_result->set_property("detail",
-                                     cmd->get_property_string("detail"));
-            ten_env.return_result(std::move(cmd_result),
+                 std::unique_ptr<ten::cmd_result_t> cmd_result,
+                 std::unique_ptr<ten::cmd_t> cmd, ten::error_t *err) {
+            auto cmd_result_for_hello_world =
+                ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
+            cmd_result_for_hello_world->set_property(
+                "detail", cmd_result->get_property_string("detail"));
+            ten_env.return_result(std::move(cmd_result_for_hello_world),
                                   std::move(hello_world_cmd));
           });
     }
