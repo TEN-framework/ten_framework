@@ -112,8 +112,8 @@ static void tsfn_proxy_return_result_callback(napi_env env, napi_value js_cb,
 }
 
 static void proxy_return_result_error_callback(ten_env_t *self,
-                                               ten_shared_ptr_t *cmd_result,
-                                               ten_shared_ptr_t *target_cmd,
+                                               ten_shared_ptr_t *c_cmd_result,
+                                               ten_shared_ptr_t *c_target_cmd,
                                                void *user_data,
                                                ten_error_t *err) {
   TEN_ASSERT(self && ten_env_check_integrity(self, true), "Should not happen.");

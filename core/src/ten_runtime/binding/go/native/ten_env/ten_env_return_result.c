@@ -64,8 +64,8 @@ static void ten_env_notify_return_result_ctx_destroy(
 }
 
 static void proxy_handle_return_error(ten_env_t *ten_env,
-                                      ten_shared_ptr_t *cmd_result,
-                                      ten_shared_ptr_t *target_cmd,
+                                      ten_shared_ptr_t *c_cmd_result,
+                                      ten_shared_ptr_t *c_target_cmd,
                                       void *user_data, ten_error_t *err) {
   TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
              "Should not happen.");

@@ -34,10 +34,9 @@
  * @brief All message-sending code paths will ultimately converge in this
  * function.
  */
-static bool ten_send_msg_internal(
-    ten_env_t *self, ten_shared_ptr_t *msg,
-    ten_env_msg_result_handler_func_t result_handler,
-    void *result_handler_user_data, ten_error_t *err) {
+static bool ten_send_msg_internal(ten_env_t *self, ten_shared_ptr_t *msg,
+                                  ten_env_msg_result_handler_func_t handler,
+                                  void *user_data, ten_error_t *err) {
   TEN_ASSERT(self, "Invalid argument.");
   TEN_ASSERT(ten_env_check_integrity(self, true), "Invalid use of ten_env %p.",
              self);
@@ -89,8 +88,7 @@ static bool ten_send_msg_internal(
 
   if (msg_is_cmd) {
     // 'command' has the mechanism of 'result'.
-    ten_cmd_base_set_result_handler(msg, result_handler,
-                                    result_handler_user_data);
+    ten_cmd_base_set_result_handler(msg, handler, user_data);
 
     // @{
     // All commands sent from an extension will eventually go to this function,
@@ -167,7 +165,7 @@ done:
     ten_error_destroy(err);
   }
 
-  if (result && result_handler && !msg_is_cmd) {
+  if (result && handler && !msg_is_cmd) {
     // If the method synchronously returns true, it means that the callback must
     // be called.
     //
@@ -181,7 +179,7 @@ done:
     // provided, it must be invoked in this case). Therefore, it is necessary to
     // execute the callback function and set the error to NULL to indicate that
     // no error has occurred.
-    result_handler(self, NULL, NULL, result_handler_user_data, NULL);
+    handler(self, NULL, NULL, user_data, NULL);
   }
 
   return result;
@@ -189,14 +187,13 @@ done:
 
 static ten_cmd_result_handler_for_send_cmd_ctx_t *
 ten_cmd_result_handler_for_send_cmd_ctx_create(
-    ten_env_msg_result_handler_func_t result_handler,
-    void *result_handler_user_data) {
+    ten_env_msg_result_handler_func_t handler, void *user_data) {
   ten_cmd_result_handler_for_send_cmd_ctx_t *self =
       TEN_MALLOC(sizeof(ten_cmd_result_handler_for_send_cmd_ctx_t));
   TEN_ASSERT(self, "Failed to allocate memory.");
 
-  self->result_handler = result_handler;
-  self->result_handler_user_data = result_handler_user_data;
+  self->result_handler = handler;
+  self->result_handler_user_data = user_data;
 
   return self;
 }
@@ -229,8 +226,8 @@ static void cmd_result_handler_for_send_cmd(ten_env_t *ten_env,
 }
 
 bool ten_env_send_cmd(ten_env_t *self, ten_shared_ptr_t *cmd,
-                      ten_env_msg_result_handler_func_t result_handler,
-                      void *result_handler_user_data, ten_error_t *err) {
+                      ten_env_msg_result_handler_func_t handler,
+                      void *user_data, ten_error_t *err) {
   TEN_ASSERT(self, "Invalid argument.");
   TEN_ASSERT(ten_env_check_integrity(self, true), "Invalid use of ten_env %p.",
              self);
@@ -238,10 +235,9 @@ bool ten_env_send_cmd(ten_env_t *self, ten_shared_ptr_t *cmd,
 
   bool rc = false;
 
-  if (result_handler) {
+  if (handler) {
     ten_cmd_result_handler_for_send_cmd_ctx_t *ctx =
-        ten_cmd_result_handler_for_send_cmd_ctx_create(
-            result_handler, result_handler_user_data);
+        ten_cmd_result_handler_for_send_cmd_ctx_create(handler, user_data);
 
     rc = ten_send_msg_internal(self, cmd, cmd_result_handler_for_send_cmd, ctx,
                                err);
@@ -249,7 +245,7 @@ bool ten_env_send_cmd(ten_env_t *self, ten_shared_ptr_t *cmd,
       ten_cmd_result_handler_for_send_cmd_ctx_destroy(ctx);
     }
   } else {
-    TEN_ASSERT(!result_handler_user_data, "Should not happen.");
+    TEN_ASSERT(!user_data, "Should not happen.");
 
     rc = ten_send_msg_internal(self, cmd, NULL, NULL, err);
   }
@@ -258,49 +254,45 @@ bool ten_env_send_cmd(ten_env_t *self, ten_shared_ptr_t *cmd,
 }
 
 bool ten_env_send_cmd_ex(ten_env_t *self, ten_shared_ptr_t *cmd,
-                         ten_env_msg_result_handler_func_t error_handler,
-                         void *error_handler_user_data, ten_error_t *err) {
+                         ten_env_msg_result_handler_func_t handler,
+                         void *user_data, ten_error_t *err) {
   TEN_ASSERT(self, "Invalid argument.");
   TEN_ASSERT(ten_env_check_integrity(self, true), "Invalid use of ten_env %p.",
              self);
   TEN_ASSERT(cmd, "Should not happen.");
 
-  return ten_send_msg_internal(self, cmd, error_handler,
-                               error_handler_user_data, err);
+  return ten_send_msg_internal(self, cmd, handler, user_data, err);
 }
 
 bool ten_env_send_data(ten_env_t *self, ten_shared_ptr_t *data,
-                       ten_env_msg_result_handler_func_t error_handler,
-                       void *error_handler_user_data, ten_error_t *err) {
+                       ten_env_msg_result_handler_func_t handler,
+                       void *user_data, ten_error_t *err) {
   TEN_ASSERT(self, "Invalid argument.");
   TEN_ASSERT(ten_env_check_integrity(self, true), "Invalid use of ten_env %p.",
              self);
   TEN_ASSERT(data, "Should not happen.");
 
-  return ten_send_msg_internal(self, data, error_handler,
-                               error_handler_user_data, err);
+  return ten_send_msg_internal(self, data, handler, user_data, err);
 }
 
 bool ten_env_send_video_frame(ten_env_t *self, ten_shared_ptr_t *frame,
-                              ten_env_msg_result_handler_func_t error_handler,
-                              void *error_handler_user_data, ten_error_t *err) {
+                              ten_env_msg_result_handler_func_t handler,
+                              void *user_data, ten_error_t *err) {
   TEN_ASSERT(self, "Invalid argument.");
   TEN_ASSERT(ten_env_check_integrity(self, true), "Invalid use of ten_env %p.",
              self);
   TEN_ASSERT(frame, "Should not happen.");
 
-  return ten_send_msg_internal(self, frame, error_handler,
-                               error_handler_user_data, err);
+  return ten_send_msg_internal(self, frame, handler, user_data, err);
 }
 
 bool ten_env_send_audio_frame(ten_env_t *self, ten_shared_ptr_t *frame,
-                              ten_env_msg_result_handler_func_t error_handler,
-                              void *error_handler_user_data, ten_error_t *err) {
+                              ten_env_msg_result_handler_func_t handler,
+                              void *user_data, ten_error_t *err) {
   TEN_ASSERT(self, "Invalid argument.");
   TEN_ASSERT(ten_env_check_integrity(self, true), "Invalid use of ten_env %p.",
              self);
   TEN_ASSERT(frame, "Should not happen.");
 
-  return ten_send_msg_internal(self, frame, error_handler,
-                               error_handler_user_data, err);
+  return ten_send_msg_internal(self, frame, handler, user_data, err);
 }
