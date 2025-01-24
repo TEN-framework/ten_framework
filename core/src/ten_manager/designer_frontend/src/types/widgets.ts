@@ -34,6 +34,7 @@ export enum EWidgetCategory {
   Terminal = "terminal",
   Editor = "editor",
   CustomConnection = "custom_connection",
+  LogViewer = "log_viewer",
 }
 
 export interface IWidgetBase {
@@ -57,4 +58,13 @@ export interface ICustomConnectionWidget extends IWidgetBase {
   metadata: CustomConnectionData;
 }
 
-export type IWidget = ITerminalWidget | IEditorWidget | ICustomConnectionWidget;
+export interface ILogViewerWidget extends IWidgetBase {
+  category: EWidgetCategory.LogViewer;
+  metadata: unknown;
+}
+
+export type IWidget =
+  | ITerminalWidget
+  | IEditorWidget
+  | ICustomConnectionWidget
+  | ILogViewerWidget;

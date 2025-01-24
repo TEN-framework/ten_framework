@@ -40,7 +40,8 @@
     "popout": "Popout",
     "close": "Close",
     "closeAllTabs": "Close All Tabs",
-    "unsaved": "unsaved"
+    "unsaved": "unsaved",
+    "launchLogViewer": "View Logs"
   },
   "toast": {
     "saveFileSuccess": "File saved successfully",
@@ -61,6 +62,9 @@
       "srcTitle": "Node[{{source}}] Connection",
       "connectTitle": "Connection Details",
       "title": "Connection"
+    },
+    "logViewer": {
+      "title": "Log Viewer"
     }
   },
   "dock": {

@@ -43,6 +43,7 @@ import {
 } from "@/types/widgets";
 import TerminalWidget from "@/components/Widget/TerminalWidget";
 import EditorWidget from "@/components/Widget/EditorWidget";
+import LogViewerWidget from "@/components/Widget/LogViewerWidget";
 
 import { type TEditorOnClose } from "@/components/Widget/EditorWidget";
 
@@ -237,6 +238,9 @@ export default function DockContainer(props: {
               data={selectedWidgetMemo.metadata}
               ref={editorRef}
             />
+          )}
+          {selectedWidgetMemo.category === EWidgetCategory.LogViewer && (
+            <LogViewerWidget id={selectedWidgetMemo.id} />
           )}
         </div>
       )}
