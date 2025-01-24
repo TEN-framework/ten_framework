@@ -32,10 +32,11 @@ class test_extension_1 : public ten::extension_t {
       auto fetch_cmd = ten::cmd_t::create("fetch_greeting");
       rc = ten_env.send_cmd(
           std::move(fetch_cmd),
-          [](ten::ten_env_t &ten_env, std::unique_ptr<ten::cmd_result_t> result,
-             ten::error_t *err) {
-            if (result->get_status_code() == TEN_STATUS_CODE_OK) {
-              auto detail = result->get_property_string("detail");
+          [](ten::ten_env_t &ten_env,
+             std::unique_ptr<ten::cmd_result_t> cmd_result,
+             std::unique_ptr<ten::cmd_t> cmd, ten::error_t *err) {
+            if (cmd_result->get_status_code() == TEN_STATUS_CODE_OK) {
+              auto detail = cmd_result->get_property_string("detail");
               EXPECT_EQ(detail, "hola");
 
               auto data = ten::data_t::create("greeting");
