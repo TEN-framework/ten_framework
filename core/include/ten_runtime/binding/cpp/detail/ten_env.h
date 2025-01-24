@@ -27,6 +27,7 @@
 #include "ten_utils/lang/cpp/lib/value.h"
 #include "ten_utils/lib/buf.h"
 #include "ten_utils/lib/error.h"
+#include "ten_utils/lib/smart_ptr.h"
 #include "ten_utils/log/log.h"
 #include "ten_utils/macro/check.h"
 #include "ten_utils/value/value.h"
@@ -784,8 +785,10 @@ class ten_env_t {
 
   bool init_manifest_from_json(const char *json_str, error_t *err);
 
-  static void proxy_handle_return_error(::ten_env_t *ten_env, void *user_data,
-                                        ::ten_error_t *err) {
+  static void proxy_handle_return_error(::ten_env_t *ten_env,
+                                        ten_shared_ptr_t *result,
+                                        ten_shared_ptr_t *target_cmd,
+                                        void *user_data, ::ten_error_t *err) {
     TEN_ASSERT(ten_env, "Should not happen.");
 
     auto *error_handler = static_cast<error_handler_func_t *>(user_data);
