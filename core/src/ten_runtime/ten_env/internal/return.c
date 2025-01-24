@@ -101,7 +101,7 @@ static bool ten_env_return_result_internal(
     // We temporarily assume that the message enqueue represents success;
     // therefore, in this case, we set the error to NULL to indicate that the
     // returning was successful.
-    error_handler(self, error_handler_user_data, NULL);
+    error_handler(self, NULL, NULL, error_handler_user_data, NULL);
   }
 
   if (err_new_created) {

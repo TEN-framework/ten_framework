@@ -22,6 +22,7 @@
 #include "ten_utils/io/runloop.h"
 #include "ten_utils/lib/error.h"
 #include "ten_utils/lib/signature.h"
+#include "ten_utils/lib/smart_ptr.h"
 #include "ten_utils/lib/string.h"
 #include "ten_utils/macro/mark.h"
 #include "ten_utils/macro/memory.h"
@@ -397,8 +398,10 @@ static void send_data_like_msg_callback(ten_env_t *ten_env,
   TEN_ASSERT(!rc, "Should not happen.");
 }
 
-static void return_result_callback(ten_env_t *self, void *user_data,
-                                   ten_error_t *err) {
+static void return_result_callback(ten_env_t *self,
+                                   ten_shared_ptr_t *cmd_result,
+                                   ten_shared_ptr_t *target_cmd,
+                                   void *user_data, ten_error_t *err) {
   TEN_ASSERT(self && ten_env_check_integrity(self, true), "Should not happen.");
 
   ten_env_tester_return_result_ctx_t *return_result_info = user_data;
