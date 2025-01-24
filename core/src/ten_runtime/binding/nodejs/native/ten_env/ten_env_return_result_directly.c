@@ -105,8 +105,8 @@ static void tsfn_proxy_return_result_directly_callback(napi_env env,
 }
 
 static void proxy_return_result_directly_error_callback(
-    ten_env_t *self, ten_shared_ptr_t *cmd_result, ten_shared_ptr_t *target_cmd,
-    void *user_data, ten_error_t *error) {
+    ten_env_t *self, ten_shared_ptr_t *c_cmd_result,
+    ten_shared_ptr_t *c_target_cmd, void *user_data, ten_error_t *error) {
   TEN_ASSERT(self && ten_env_check_integrity(self, true), "Should not happen.");
 
   ten_env_notify_return_result_directly_ctx_t *ctx = user_data;
