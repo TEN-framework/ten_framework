@@ -9,51 +9,46 @@
 namespace ten {
 namespace ffmpeg_extension {
 
-static demuxer_settings_t read_settings(cmd_t &cmd) {
+namespace {
+
+demuxer_settings_t read_settings(cmd_t &cmd) {
   demuxer_settings_t settings{};
 
-  // Note that the `cmd` is created from json, so the type of integer property
-  // is always int64_t.
-
-  auto frame_rate_num =
-      static_cast<int32_t>(cmd.get_property_int64("frame_rate_num"));
-  auto frame_rate_den =
-      static_cast<int32_t>(cmd.get_property_int64("frame_rate_den"));
+  auto frame_rate_num = cmd.get_property_int32("frame_rate_num");
+  auto frame_rate_den = cmd.get_property_int32("frame_rate_den");
   auto frame_rate = av_make_q(frame_rate_num, frame_rate_den);
 
-  auto video_time_base_num =
-      static_cast<int32_t>(cmd.get_property_int64("video_time_base_num"));
-  auto video_time_base_den =
-      static_cast<int32_t>(cmd.get_property_int64("video_time_base_den"));
+  auto video_time_base_num = cmd.get_property_int32("video_time_base_num");
+  auto video_time_base_den = cmd.get_property_int32("video_time_base_den");
   auto video_time_base = av_make_q(video_time_base_num, video_time_base_den);
 
-  auto width = static_cast<int32_t>(cmd.get_property_int64("width"));
-  auto height = static_cast<int32_t>(cmd.get_property_int64("height"));
+  auto width = cmd.get_property_int32("width");
+  auto height = cmd.get_property_int32("height");
   auto bit_rate = cmd.get_property_int64("bit_rate");
   auto num_of_frames = cmd.get_property_int64("num_of_frames");
 
-  auto audio_sample_rate =
-      static_cast<int32_t>(cmd.get_property_int64("audio_sample_rate"));
-  auto audio_channel_layout = cmd.get_property_int64("audio_channel_layout");
+  auto audio_sample_rate = cmd.get_property_int32("audio_sample_rate");
+  auto audio_channel_layout_mask =
+      cmd.get_property_int64("audio_channel_layout_mask");
 
-  auto audio_time_base_num =
-      static_cast<int32_t>(cmd.get_property_int64("audio_time_base_num"));
-  auto audio_time_base_den =
-      static_cast<int32_t>(cmd.get_property_int64("audio_time_base_den"));
+  auto audio_time_base_num = cmd.get_property_int32("audio_time_base_num");
+  auto audio_time_base_den = cmd.get_property_int32("audio_time_base_den");
   auto audio_time_base = av_make_q(audio_time_base_num, audio_time_base_den);
 
-  settings.src_audio_sample_rate_ = audio_sample_rate;
-  settings.src_video_bit_rate_ = bit_rate;
-  settings.src_video_height_ = height;
-  settings.src_video_width_ = width;
-  settings.src_video_number_of_frames_ = num_of_frames;
-  settings.src_video_frame_rate_ = frame_rate;
-  settings.src_video_time_base_ = video_time_base;
-  settings.src_audio_time_base_ = audio_time_base;
-  settings.src_audio_channel_layout_ = audio_channel_layout;
+  settings.src_audio_sample_rate = audio_sample_rate;
+  settings.src_video_bit_rate = bit_rate;
+  settings.src_video_height = height;
+  settings.src_video_width = width;
+  settings.src_video_number_of_frames = num_of_frames;
+  settings.src_video_frame_rate = frame_rate;
+  settings.src_video_time_base = video_time_base;
+  settings.src_audio_time_base = audio_time_base;
+  settings.src_audio_channel_layout_mask = audio_channel_layout_mask;
 
   return settings;
 }
+
+}  // namespace
 
 class muxer_extension_t : public extension_t {
  public:
@@ -84,7 +79,6 @@ class muxer_extension_t : public extension_t {
       muxer_thread_->wait_for_start();
 
       auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
-      cmd_result->set_property("detail", "I am ready");
       ten_env.return_result(std::move(cmd_result), std::move(cmd));
     }
   }

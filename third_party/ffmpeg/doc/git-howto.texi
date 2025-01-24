@@ -53,7 +53,7 @@ Most distribution and operating system provide a package for it.
 @section Cloning the source tree
 
 @example
-git clone git://source.ffmpeg.org/ffmpeg <target>
+git clone https://git.ffmpeg.org/ffmpeg.git <target>
 @end example
 
 This will put the FFmpeg sources into the directory @var{<target>}.
@@ -66,7 +66,7 @@ This will put the FFmpeg sources into the directory @var{<target>} and let
 you push back your changes to the remote repository.
 
 @example
-git clone gil@@ffmpeg.org:ffmpeg-web <target>
+git clone git@@ffmpeg.org:ffmpeg-web <target>
 @end example
 
 This will put the source of the FFmpeg website into the directory

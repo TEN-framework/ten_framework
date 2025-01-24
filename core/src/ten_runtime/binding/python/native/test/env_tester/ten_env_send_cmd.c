@@ -48,8 +48,9 @@ static void ten_py_ten_env_tester_send_cmd_ctx_destroy(
   TEN_FREE(ctx);
 }
 
-static void proxy_send_xxx_callback(ten_env_tester_t *ten_env_tester,
-                                    ten_shared_ptr_t *cmd_result,
+static void proxy_send_cmd_callback(ten_env_tester_t *ten_env_tester,
+                                    ten_shared_ptr_t *c_cmd_result,
+                                    ten_shared_ptr_t *c_cmd,
                                     void *callback_info, ten_error_t *error) {
   TEN_ASSERT(
       ten_env_tester && ten_env_tester_check_integrity(ten_env_tester, true),
@@ -70,8 +71,8 @@ static void proxy_send_xxx_callback(ten_env_tester_t *ten_env_tester,
   ten_py_cmd_result_t *cmd_result_bridge = NULL;
   ten_py_error_t *py_error = NULL;
 
-  if (cmd_result) {
-    cmd_result_bridge = ten_py_cmd_result_wrap(cmd_result);
+  if (c_cmd_result) {
+    cmd_result_bridge = ten_py_cmd_result_wrap(c_cmd_result);
     arglist =
         Py_BuildValue("(OOO)", py_ten_env_tester->actual_py_ten_env_tester,
                       cmd_result_bridge, Py_None);
@@ -92,7 +93,7 @@ static void proxy_send_xxx_callback(ten_env_tester_t *ten_env_tester,
 
   Py_XDECREF(arglist);
 
-  bool is_completed = ten_cmd_result_is_completed(cmd_result, NULL);
+  bool is_completed = ten_cmd_result_is_completed(c_cmd_result, NULL);
   if (is_completed) {
     Py_XDECREF(cb_func);
   }
@@ -116,7 +117,7 @@ static void ten_py_ten_env_tester_send_cmd_proxy_notify(
   if (ctx->cb_func) {
     Py_INCREF(ctx->cb_func);
 
-    ten_env_tester_send_cmd(ten_env_tester, ctx->cmd, proxy_send_xxx_callback,
+    ten_env_tester_send_cmd(ten_env_tester, ctx->cmd, proxy_send_cmd_callback,
                             ctx->cb_func, NULL);
   } else {
     ten_env_tester_send_cmd(ten_env_tester, ctx->cmd, NULL, NULL, NULL);
