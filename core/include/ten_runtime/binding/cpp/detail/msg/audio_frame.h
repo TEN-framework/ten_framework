@@ -166,6 +166,12 @@ class audio_frame_t : public msg_t {
 
  private:
   friend class extension_t;
+  friend ten_env_t;
+
+  static std::unique_ptr<audio_frame_t> create(ten_shared_ptr_t *audio_frame,
+                                               error_t *err = nullptr) {
+    return std::make_unique<audio_frame_t>(audio_frame, ctor_passkey_t());
+  }
 };
 
 }  // namespace ten

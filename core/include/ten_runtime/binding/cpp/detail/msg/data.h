@@ -21,6 +21,7 @@ namespace ten {
 
 class ten_env_t;
 class extension_t;
+class ten_env_t;
 
 class data_t : public msg_t {
  private:
@@ -110,6 +111,14 @@ class data_t : public msg_t {
   // message from C message.
   explicit data_t(ten_shared_ptr_t *data) : msg_t(data) {}
   // @}
+
+ private:
+  friend ten_env_t;
+
+  static std::unique_ptr<data_t> create(ten_shared_ptr_t *data,
+                                        error_t *err = nullptr) {
+    return std::make_unique<data_t>(data, ctor_passkey_t());
+  }
 };
 
 }  // namespace ten
