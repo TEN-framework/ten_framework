@@ -1,9 +1,9 @@
 import * as React from "react";
 
 import { ScrollArea } from "@/components/ui/ScrollArea";
-import { Separator } from "@/components/ui/Separator";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
+import { cn } from "@/lib/utils";
 
 const MOCK_LOG_VIEWER_DATA = [
   "en_app_1@main.py:17 [localhost] Extension loaded.",
@@ -52,7 +52,7 @@ export default function LogViewerWidget(props: { id: string }) {
   const defferedSearchInput = React.useDeferredValue(searchInput);
 
   return (
-    <div className="flex h-full w-full flex-col">
+    <div className="flex h-full w-full flex-col" id={id}>
       <div className="h-12 w-full flex items-center space-x-2 px-2">
         <Input
           placeholder="Search"
@@ -123,7 +123,13 @@ function LogViewerLogItem(props: ILogViewerLogItemProps & { search?: string }) {
   const { id, extension, file, line, host, message, search } = props;
 
   return (
-    <div className="" id={id}>
+    <div
+      className={cn(
+        "font-mono text-xs py-0.5",
+        "hover:bg-gray-100 dark:hover:bg-gray-800"
+      )}
+      id={id}
+    >
       <span className="text-blue-500 dark:text-blue-400">{extension}</span>
       <span className="text-gray-500 dark:text-gray-400">@</span>
       <span className="text-emerald-600 dark:text-emerald-400">{file}</span>
@@ -133,7 +139,7 @@ function LogViewerLogItem(props: ILogViewerLogItemProps & { search?: string }) {
       <span className="text-purple-600 dark:text-purple-400">{host}</span>
       <span className="text-gray-500 dark:text-gray-400">] </span>
       {search ? (
-        <span>
+        <span className="whitespace-pre-wrap">
           {message.split(search).map((part, i, arr) => (
             <React.Fragment key={i}>
               {part}
@@ -146,7 +152,7 @@ function LogViewerLogItem(props: ILogViewerLogItemProps & { search?: string }) {
           ))}
         </span>
       ) : (
-        message
+        <span className="whitespace-pre-wrap">{message}</span>
       )}
     </div>
   );
