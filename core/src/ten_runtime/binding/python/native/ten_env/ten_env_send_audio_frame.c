@@ -51,8 +51,8 @@ static void ten_env_notify_send_audio_frame_ctx_destroy(
 }
 
 static void proxy_send_audio_frame_callback(
-    ten_env_t *ten_env, TEN_UNUSED ten_shared_ptr_t *cmd_result,
-    void *callback_info, ten_error_t *err) {
+    ten_env_t *ten_env, TEN_UNUSED ten_shared_ptr_t *c_cmd_result,
+    ten_shared_ptr_t *c_audio_frame, void *callback_info, ten_error_t *err) {
   TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
              "Should not happen.");
   TEN_ASSERT(callback_info, "Should not happen.");

@@ -54,6 +54,8 @@ static void ten_py_ten_env_tester_notify_return_result_ctx_destroy(
 }
 
 static void proxy_return_result_callback(ten_env_tester_t *self,
+                                         ten_shared_ptr_t *c_cmd_result,
+                                         ten_shared_ptr_t *c_target_cmd,
                                          void *user_data, ten_error_t *error) {
   TEN_ASSERT(self && ten_env_tester_check_integrity(self, true),
              "Should not happen.");
