@@ -45,8 +45,9 @@ class ten_env_t;
 class ten_env_proxy_t;
 class ten_env_internal_accessor_t;
 
-using result_handler_func_t =
-    std::function<void(ten_env_t &, std::unique_ptr<cmd_result_t>, error_t *)>;
+using send_cmd_result_handler_func_t =
+    std::function<void(ten_env_t &, std::unique_ptr<cmd_result_t>,
+                       std::unique_ptr<cmd_t>, error_t *)>;
 
 using error_handler_func_t = std::function<void(ten_env_t &, error_t *)>;
 
@@ -60,14 +61,14 @@ class ten_env_t {
   // @}
 
   bool send_cmd(std::unique_ptr<cmd_t> &&cmd,
-                result_handler_func_t &&result_handler = nullptr,
+                send_cmd_result_handler_func_t &&result_handler = nullptr,
                 error_t *err = nullptr) {
     return send_cmd_internal(std::move(cmd), std::move(result_handler), false,
                              err);
   }
 
   bool send_cmd_ex(std::unique_ptr<cmd_t> &&cmd,
-                   result_handler_func_t &&result_handler = nullptr,
+                   send_cmd_result_handler_func_t &&result_handler = nullptr,
                    error_t *err = nullptr) {
     return send_cmd_internal(std::move(cmd), std::move(result_handler), true,
                              err);
@@ -806,9 +807,10 @@ class ten_env_t {
     delete error_handler;
   }
 
-  bool send_cmd_internal(std::unique_ptr<cmd_t> &&cmd,
-                         result_handler_func_t &&result_handler = nullptr,
-                         bool is_ex = false, error_t *err = nullptr) {
+  bool send_cmd_internal(
+      std::unique_ptr<cmd_t> &&cmd,
+      send_cmd_result_handler_func_t &&result_handler = nullptr,
+      bool is_ex = false, error_t *err = nullptr) {
     TEN_ASSERT(c_ten_env, "Should not happen.");
 
     bool rc = false;
@@ -830,7 +832,7 @@ class ten_env_t {
                          err != nullptr ? err->get_c_error() : nullptr);
     } else {
       auto *result_handler_ptr =
-          new result_handler_func_t(std::move(result_handler));
+          new send_cmd_result_handler_func_t(std::move(result_handler));
 
       rc = send_cmd_func(c_ten_env, cmd->get_underlying_msg(),
                          proxy_handle_result, result_handler_ptr,
@@ -877,7 +879,8 @@ class ten_env_t {
                                   ten_shared_ptr_t *c_cmd_result,
                                   ten_shared_ptr_t *c_cmd, void *cb_data,
                                   ten_error_t *err) {
-    auto *result_handler = static_cast<result_handler_func_t *>(cb_data);
+    auto *result_handler =
+        static_cast<send_cmd_result_handler_func_t *>(cb_data);
     auto *cpp_ten_env =
         static_cast<ten_env_t *>(ten_binding_handle_get_me_in_target_lang(
             reinterpret_cast<ten_binding_handle_t *>(ten_env)));
@@ -899,10 +902,16 @@ class ten_env_t {
     bool is_completed = ten_cmd_result_is_completed(c_cmd_result, nullptr);
 
     if (err != nullptr) {
+      auto cmd = cmd_t::create(
+          // Clone a C shared_ptr to be owned by the C++ instance.
+          ten_shared_ptr_clone(c_cmd));
+
       error_t cpp_err(err, false);
-      (*result_handler)(*cpp_ten_env, std::move(cmd_result), &cpp_err);
+      (*result_handler)(*cpp_ten_env, std::move(cmd_result), std::move(cmd),
+                        &cpp_err);
     } else {
-      (*result_handler)(*cpp_ten_env, std::move(cmd_result), nullptr);
+      (*result_handler)(*cpp_ten_env, std::move(cmd_result),
+                        std::unique_ptr<cmd_t>(), nullptr);
     }
 
     if (is_completed) {

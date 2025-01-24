@@ -47,12 +47,13 @@ class test_predefined_graph : public ten::extension_t {
     start_graph_cmd->set_predefined_graph_name("graph_1");
     ten_env.send_cmd(
         std::move(start_graph_cmd),
-        [this](ten::ten_env_t &ten_env, std::unique_ptr<ten::cmd_result_t> cmd,
-               ten::error_t *err) {
-          auto status_code = cmd->get_status_code();
+        [this](ten::ten_env_t &ten_env,
+               std::unique_ptr<ten::cmd_result_t> cmd_result,
+               std::unique_ptr<ten::cmd_t> cmd, ten::error_t *err) {
+          auto status_code = cmd_result->get_status_code();
           ASSERT_EQ(status_code, TEN_STATUS_CODE_OK);
 
-          auto graph_id = cmd->get_property_string("detail");
+          auto graph_id = cmd_result->get_property_string("detail");
 
           auto hello_world_cmd = ten::cmd_t::create("hello_world");
           hello_world_cmd->set_dest(
@@ -63,12 +64,13 @@ class test_predefined_graph : public ten::extension_t {
           ten_env.send_cmd(
               std::move(hello_world_cmd),
               [this, graph_id](ten::ten_env_t &ten_env,
-                               std::unique_ptr<ten::cmd_result_t> cmd,
+                               std::unique_ptr<ten::cmd_result_t> cmd_result,
+                               std::unique_ptr<ten::cmd_t> cmd,
                                ten::error_t *err) {
-                auto status_code = cmd->get_status_code();
+                auto status_code = cmd_result->get_status_code();
                 ASSERT_EQ(status_code, TEN_STATUS_CODE_OK);
 
-                auto detail = cmd->get_property_string("detail");
+                auto detail = cmd_result->get_property_string("detail");
                 ASSERT_EQ(detail, "hello world, too");
 
                 // Shut down the graph; otherwise, the app won't be able to
@@ -81,18 +83,18 @@ class test_predefined_graph : public ten::extension_t {
                 ten_env.send_cmd(
                     std::move(stop_graph_cmd),
                     [this](ten::ten_env_t &ten_env,
-                           std::unique_ptr<ten::cmd_result_t> cmd,
-                           ten::error_t *err) {
+                           std::unique_ptr<ten::cmd_result_t> cmd_result,
+                           std::unique_ptr<ten::cmd_t> cmd, ten::error_t *err) {
                       received_hello_world_resp = true;
 
                       if (test_cmd != nullptr) {
                         nlohmann::json detail = {{"id", 1}, {"name", "a"}};
 
-                        auto cmd_result =
+                        auto cmd_result_for_test =
                             ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
-                        cmd_result->set_property_from_json(
+                        cmd_result_for_test->set_property_from_json(
                             "detail", detail.dump().c_str());
-                        ten_env.return_result(std::move(cmd_result),
+                        ten_env.return_result(std::move(cmd_result_for_test),
                                               std::move(test_cmd));
                       }
                     });
