@@ -1,3 +1,9 @@
+//
+// Copyright © 2025 Agora
+// This file is part of TEN Framework, an open source project.
+// Licensed under the Apache License, Version 2.0, with certain conditions.
+// Refer to the "LICENSE" file in the root directory for more information.
+//
 /* eslint-disable max-len */
 import * as React from "react";
 
@@ -46,7 +52,7 @@ const MOCK_LOG_VIEWER_DATA = [
   "en_app_2@security.py:567 [remote] Security audit log: Failed login attempts=23, Blocked IPs=5, SQL Injection Attempts=3, XSS Attempts=7, Rate Limit Exceeded=156, Invalid API Keys=12, Suspicious User Agents=8",
 ];
 
-export default function LogViewerWidget(props: { id: string }) {
+export default function LogViewerWidget(props: { id?: string }) {
   const { id } = props;
 
   const [searchInput, setSearchInput] = React.useState("");
