@@ -57,12 +57,13 @@ static void ten_env_notify_send_cmd_ctx_destroy(
   TEN_FREE(ctx);
 }
 
-static void proxy_send_xxx_callback(ten_env_t *ten_env,
-                                    ten_shared_ptr_t *cmd_result,
+static void proxy_send_cmd_callback(ten_env_t *ten_env,
+                                    ten_shared_ptr_t *c_cmd_result,
+                                    ten_shared_ptr_t *c_cmd,
                                     void *callback_info, ten_error_t *err) {
   TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
              "Should not happen.");
-  TEN_ASSERT(cmd_result && ten_cmd_base_check_integrity(cmd_result),
+  TEN_ASSERT(c_cmd_result && ten_cmd_base_check_integrity(c_cmd_result),
              "Should not happen.");
   TEN_ASSERT(callback_info, "Should not happen.");
 
@@ -85,7 +86,7 @@ static void proxy_send_xxx_callback(ten_env_t *ten_env,
     arglist = Py_BuildValue("(OOO)", py_ten_env->actual_py_ten_env, Py_None,
                             py_error);
   } else {
-    cmd_result_bridge = ten_py_cmd_result_wrap(cmd_result);
+    cmd_result_bridge = ten_py_cmd_result_wrap(c_cmd_result);
 
     arglist = Py_BuildValue("(OOO)", py_ten_env->actual_py_ten_env,
                             cmd_result_bridge, Py_None);
@@ -99,7 +100,7 @@ static void proxy_send_xxx_callback(ten_env_t *ten_env,
 
   Py_XDECREF(arglist);
 
-  bool is_completed = ten_cmd_result_is_completed(cmd_result, NULL);
+  bool is_completed = ten_cmd_result_is_completed(c_cmd_result, NULL);
   if (is_completed) {
     Py_XDECREF(cb_func);
   }
@@ -136,7 +137,7 @@ static void ten_env_proxy_notify_send_cmd(ten_env_t *ten_env, void *user_data) {
   if (notify_info->py_cb_func == NULL) {
     res = send_cmd_func(ten_env, notify_info->c_cmd, NULL, NULL, &err);
   } else {
-    res = send_cmd_func(ten_env, notify_info->c_cmd, proxy_send_xxx_callback,
+    res = send_cmd_func(ten_env, notify_info->c_cmd, proxy_send_cmd_callback,
                         notify_info->py_cb_func, &err);
     if (!res) {
       // About to call the Python function, so it's necessary to ensure that the

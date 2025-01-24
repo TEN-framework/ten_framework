@@ -216,7 +216,8 @@ class ten_env_tester_t {
   }
 
   static void proxy_handle_result(::ten_env_tester_t *c_ten_env_tester,
-                                  ten_shared_ptr_t *c_cmd_result, void *cb_data,
+                                  ten_shared_ptr_t *c_cmd_result,
+                                  ten_shared_ptr_t *c_cmd, void *cb_data,
                                   ten_error_t *err) {
     auto *result_handler =
         static_cast<ten_env_tester_send_cmd_result_handler_func_t *>(cb_data);
