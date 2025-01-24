@@ -95,12 +95,13 @@ class test_extension_1 : public ten::extension_t {
     if (cmd->get_name() == "hello_world") {
       ten_env.send_cmd(
           std::move(cmd),
-          [&](ten::ten_env_t &ten_env, std::unique_ptr<ten::cmd_result_t> cmd,
-              ten::error_t *err) {
+          [&](ten::ten_env_t &ten_env,
+              std::unique_ptr<ten::cmd_result_t> cmd_result,
+              std::unique_ptr<ten::cmd_t> cmd, ten::error_t *err) {
             pending_resp_num--;
             if (pending_resp_num == 0) {
-              cmd->set_property("detail", "return from extension 1");
-              ten_env.return_result_directly(std::move(cmd));
+              cmd_result->set_property("detail", "return from extension 1");
+              ten_env.return_result_directly(std::move(cmd_result));
             }
           });
     }

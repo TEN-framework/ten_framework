@@ -69,17 +69,19 @@ class test_extension_1 : public ten::extension_t {
           bool rc = ten_env.send_cmd(
               std::move(new_cmd),
               [](ten::ten_env_t &ten_env,
-                 std::unique_ptr<ten::cmd_result_t> cmd,
+                 std::unique_ptr<ten::cmd_result_t> cmd_result,
+                 std::unique_ptr<ten::cmd_t> cmd,
                  ten::error_t *err) { TEN_ASSERT(0, "Should not happen."); },
               &err);
           TEN_ASSERT(!rc, "Should send_cmd failed.");
           TEN_ASSERT(err.error_code() == TEN_ERROR_CODE_MSG_NOT_CONNECTED,
                      "The msg should not connected.");
 
-          auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
-          cmd_result->set_property(
+          auto cmd_result_for_hello_world =
+              ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
+          cmd_result_for_hello_world->set_property(
               "detail", hello_world_cmd->get_property_string("detail").c_str());
-          ten_env.return_result(std::move(cmd_result),
+          ten_env.return_result(std::move(cmd_result_for_hello_world),
                                 std::move(hello_world_cmd));
         });
 
