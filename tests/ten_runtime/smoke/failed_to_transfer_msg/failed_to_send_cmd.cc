@@ -68,11 +68,8 @@ class test_extension_1 : public ten::extension_t {
              std::unique_ptr<ten::cmd_t> cmd, ten::error_t *err) {
             result_handler_is_called = true;
 
-            // TODO(Wei): The `cmd_result` should be empty. The `cmd` should
-            // have a value, and the `cmd name` should equal `test`. Inside it,
-            // there should be a field called `test_data`, and its value should
-            // be `TEST_DATA`. Additionally, the value of `err` should equal
-            // `TEN_IS_CLOSED`.
+            // TODO(Wei): The `cmd_result` and `cmd` should be empty.
+            // Additionally, the value of `err` should equal `TEN_IS_CLOSED`.
           },
           &err);
       EXPECT_EQ(rc, true);
@@ -81,11 +78,6 @@ class test_extension_1 : public ten::extension_t {
       close_app_cmd->set_dest("localhost", nullptr, nullptr, nullptr);
       ten_env.send_cmd(std::move(close_app_cmd));
     }
-  }
-
-  void on_deinit(ten::ten_env_t &ten_env) override {
-    EXPECT_EQ(result_handler_is_called, true);
-    ten_env.on_deinit_done();
   }
 };
 
@@ -98,10 +90,6 @@ class test_extension_2 : public ten::extension_t {
     if (cmd->get_name() == "test") {
       auto const test_data = cmd->get_property_int32("test_data");
       TEN_ASSERT(test_data == TEST_DATA, "Invalid argument.");
-
-      auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
-      cmd_result->set_property("detail", "hello world, too");
-      ten_env.return_result(std::move(cmd_result), std::move(cmd));
     }
   }
 };
@@ -156,13 +144,13 @@ TEST(FailedToTransferMsgTest, FailedToSendCmd) {  // NOLINT
                "type": "extension",
                "name": "failed_to_send_cmd__extension_1",
                "addon": "failed_to_send_cmd__extension_1",
-               "extension_group": "basic_extension_group",
+               "extension_group": "basic_extension_group_1",
                "app": "msgpack://127.0.0.1:8001/"
              },{
                "type": "extension",
                "name": "failed_to_send_cmd__extension_2",
                "addon": "failed_to_send_cmd__extension_2",
-               "extension_group": "basic_extension_group",
+               "extension_group": "basic_extension_group_2",
                "app": "msgpack://127.0.0.1:8001/"
              }],
              "connections": [{
@@ -184,7 +172,7 @@ TEST(FailedToTransferMsgTest, FailedToSendCmd) {  // NOLINT
   // Send a user-defined 'hello world' command.
   auto hello_world_cmd = ten::cmd_t::create("hello_world");
   hello_world_cmd->set_dest("msgpack://127.0.0.1:8001/", nullptr,
-                            "basic_extension_group",
+                            "basic_extension_group_1",
                             "failed_to_send_cmd__extension_1");
   cmd_result = client->send_cmd_and_recv_result(std::move(hello_world_cmd));
   TEN_ASSERT(!cmd_result, "Should not happen");
@@ -192,4 +180,6 @@ TEST(FailedToTransferMsgTest, FailedToSendCmd) {  // NOLINT
   delete client;
 
   ten_thread_join(app_thread, -1);
+
+  EXPECT_EQ(result_handler_is_called, true);
 }
