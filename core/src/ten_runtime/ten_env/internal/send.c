@@ -214,9 +214,6 @@ static void cmd_result_handler_for_send_cmd(ten_env_t *ten_env,
   TEN_ASSERT(ctx, "Invalid argument.");
   TEN_ASSERT(ctx->result_handler, "Should not happen.");
 
-  // The differences between `send_cmd` and `send_cmd_ex` is that `send_cmd`
-  // will only return the final `result` of `is_completed`. If other behaviors
-  // are needed, users can use `send_cmd_ex`.
   if (ten_cmd_result_is_completed(cmd_result, NULL)) {
     ctx->result_handler(ten_env, cmd_result, cmd, ctx->result_handler_user_data,
                         err);
@@ -227,7 +224,8 @@ static void cmd_result_handler_for_send_cmd(ten_env_t *ten_env,
 
 bool ten_env_send_cmd(ten_env_t *self, ten_shared_ptr_t *cmd,
                       ten_env_msg_result_handler_func_t handler,
-                      void *user_data, ten_error_t *err) {
+                      void *user_data, ten_env_send_cmd_options_t *options,
+                      ten_error_t *err) {
   TEN_ASSERT(self, "Invalid argument.");
   TEN_ASSERT(ten_env_check_integrity(self, true), "Invalid use of ten_env %p.",
              self);
@@ -236,13 +234,21 @@ bool ten_env_send_cmd(ten_env_t *self, ten_shared_ptr_t *cmd,
   bool rc = false;
 
   if (handler) {
-    ten_cmd_result_handler_for_send_cmd_ctx_t *ctx =
-        ten_cmd_result_handler_for_send_cmd_ctx_create(handler, user_data);
+    if (!options || options->enable_multiple_results == false) {
+      // The TEN runtime will only pass the final result up to the upper layer,
+      // and the upper layer can expect to receive only one result.
+      ten_cmd_result_handler_for_send_cmd_ctx_t *ctx =
+          ten_cmd_result_handler_for_send_cmd_ctx_create(handler, user_data);
 
-    rc = ten_send_msg_internal(self, cmd, cmd_result_handler_for_send_cmd, ctx,
-                               err);
-    if (!rc) {
-      ten_cmd_result_handler_for_send_cmd_ctx_destroy(ctx);
+      rc = ten_send_msg_internal(self, cmd, cmd_result_handler_for_send_cmd,
+                                 ctx, err);
+      if (!rc) {
+        ten_cmd_result_handler_for_send_cmd_ctx_destroy(ctx);
+      }
+    } else {
+      // The TEN runtime will pass all received results up to the upper layer,
+      // where they will be handled.
+      rc = ten_send_msg_internal(self, cmd, handler, user_data, err);
     }
   } else {
     TEN_ASSERT(!user_data, "Should not happen.");
@@ -251,17 +257,6 @@ bool ten_env_send_cmd(ten_env_t *self, ten_shared_ptr_t *cmd,
   }
 
   return rc;
-}
-
-bool ten_env_send_cmd_ex(ten_env_t *self, ten_shared_ptr_t *cmd,
-                         ten_env_msg_result_handler_func_t handler,
-                         void *user_data, ten_error_t *err) {
-  TEN_ASSERT(self, "Invalid argument.");
-  TEN_ASSERT(ten_env_check_integrity(self, true), "Invalid use of ten_env %p.",
-             self);
-  TEN_ASSERT(cmd, "Should not happen.");
-
-  return ten_send_msg_internal(self, cmd, handler, user_data, err);
 }
 
 bool ten_env_send_data(ten_env_t *self, ten_shared_ptr_t *data,

@@ -22,6 +22,7 @@
 #include "ten_runtime/ten_env/internal/metadata.h"
 #include "ten_runtime/ten_env/internal/on_xxx_done.h"
 #include "ten_runtime/ten_env/internal/return.h"
+#include "ten_runtime/ten_env/internal/send.h"
 #include "ten_runtime/ten_env/ten_env.h"
 #include "ten_utils/lang/cpp/lib/error.h"
 #include "ten_utils/lang/cpp/lib/value.h"
@@ -68,15 +69,21 @@ class ten_env_t {
   bool send_cmd(std::unique_ptr<cmd_t> &&cmd,
                 send_cmd_result_handler_func_t &&result_handler = nullptr,
                 error_t *err = nullptr) {
-    return send_cmd_internal(std::move(cmd), std::move(result_handler), false,
+    return send_cmd_internal(std::move(cmd), std::move(result_handler), nullptr,
                              err);
   }
 
+  // The differences between `send_cmd` and `send_cmd_ex` is that `send_cmd`
+  // will only return the final `result` of `is_completed`. If other
+  // behaviors are needed, users can use `send_cmd_ex`.
   bool send_cmd_ex(std::unique_ptr<cmd_t> &&cmd,
                    send_cmd_result_handler_func_t &&result_handler = nullptr,
                    error_t *err = nullptr) {
-    return send_cmd_internal(std::move(cmd), std::move(result_handler), true,
-                             err);
+    ten_env_send_cmd_options_t options{
+        .enable_multiple_results = true,
+    };
+    return send_cmd_internal(std::move(cmd), std::move(result_handler),
+                             &options, err);
   }
 
   bool send_data(
@@ -680,7 +687,7 @@ class ten_env_t {
 
   ::ten_env_t *get_c_ten_env() { return c_ten_env; }
 
-  void *get_attached_target(error_t *err = nullptr) {
+  void *get_attached_target() {
     TEN_ASSERT(c_ten_env, "Should not happen.");
 
     return ten_binding_handle_get_me_in_target_lang(
@@ -693,7 +700,7 @@ class ten_env_t {
   bool send_cmd_internal(
       std::unique_ptr<cmd_t> &&cmd,
       send_cmd_result_handler_func_t &&result_handler = nullptr,
-      bool is_ex = false, error_t *err = nullptr) {
+      ten_env_send_cmd_options_t *options = nullptr, error_t *err = nullptr) {
     TEN_ASSERT(c_ten_env, "Should not happen.");
 
     bool rc = false;
@@ -703,23 +710,18 @@ class ten_env_t {
       return rc;
     }
 
-    ten_env_send_cmd_func_t send_cmd_func = nullptr;
-    if (is_ex) {
-      send_cmd_func = ten_env_send_cmd_ex;
-    } else {
-      send_cmd_func = ten_env_send_cmd;
-    }
-
     if (result_handler == nullptr) {
-      rc = send_cmd_func(c_ten_env, cmd->get_underlying_msg(), nullptr, nullptr,
-                         err != nullptr ? err->get_c_error() : nullptr);
+      rc = ten_env_send_cmd(c_ten_env, cmd->get_underlying_msg(), nullptr,
+                            nullptr, options,
+                            err != nullptr ? err->get_c_error() : nullptr);
     } else {
       auto *result_handler_ptr =
           new send_cmd_result_handler_func_t(std::move(result_handler));
 
-      rc = send_cmd_func(c_ten_env, cmd->get_underlying_msg(),
-                         proxy_handle_send_cmd_result, result_handler_ptr,
-                         err != nullptr ? err->get_c_error() : nullptr);
+      rc = ten_env_send_cmd(c_ten_env, cmd->get_underlying_msg(),
+                            proxy_handle_send_cmd_result, result_handler_ptr,
+                            options,
+                            err != nullptr ? err->get_c_error() : nullptr);
       if (!rc) {
         delete result_handler_ptr;
       }

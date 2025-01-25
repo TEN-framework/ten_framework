@@ -28,6 +28,7 @@ class extension_tester_t;
 using ten_env_tester_send_cmd_result_handler_func_t = std::function<void(
     ten_env_tester_t &, std::unique_ptr<cmd_result_t>, error_t *)>;
 
+// NOLINTNEXTLINE(cppcoreguidelines-virtual-class-destructor)
 class ten_env_tester_t {
  public:
   // @{
@@ -76,7 +77,7 @@ class ten_env_tester_t {
     if (rc) {
       // Only when the cmd has been sent successfully, we should give back the
       // ownership of the cmd to the TEN runtime.
-      auto *cpp_cmd_ptr = cmd.release();
+      auto *cpp_cmd_ptr = std::move(cmd).release();
       delete cpp_cmd_ptr;
     }
 
@@ -100,7 +101,7 @@ class ten_env_tester_t {
     if (rc) {
       // Only when the data has been sent successfully, we should give back the
       // ownership of the data to the TEN runtime.
-      auto *cpp_data_ptr = data.release();
+      auto *cpp_data_ptr = std::move(data).release();
       delete cpp_data_ptr;
     }
 
@@ -125,7 +126,7 @@ class ten_env_tester_t {
     if (rc) {
       // Only when the audio_frame has been sent successfully, we should give
       // back the ownership of the audio_frame to the TEN runtime.
-      auto *cpp_audio_frame_ptr = audio_frame.release();
+      auto *cpp_audio_frame_ptr = std::move(audio_frame).release();
       delete cpp_audio_frame_ptr;
     }
 
@@ -150,7 +151,7 @@ class ten_env_tester_t {
     if (rc) {
       // Only when the video_frame has been sent successfully, we should give
       // back the ownership of the video_frame to the TEN runtime.
-      auto *cpp_video_frame_ptr = video_frame.release();
+      auto *cpp_video_frame_ptr = std::move(video_frame).release();
       delete cpp_video_frame_ptr;
     }
 
@@ -179,11 +180,11 @@ class ten_env_tester_t {
       // Otherwise, target_cmd remains with the extension, allowing the
       // extension to return more results.
       if (cmd_result->is_final()) {
-        auto *cpp_target_cmd_ptr = target_cmd.release();
+        auto *cpp_target_cmd_ptr = std::move(target_cmd).release();
         delete cpp_target_cmd_ptr;
       }
 
-      auto *cpp_cmd_result_ptr = cmd_result.release();
+      auto *cpp_cmd_result_ptr = std::move(cmd_result).release();
       delete cpp_cmd_result_ptr;
     }
 

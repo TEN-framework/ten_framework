@@ -180,7 +180,7 @@ void test_app_ten_env_send_cmd(ten_env_t *ten_env, void *user_data) {
   ten_shared_ptr_t *cmd = user_data;
   TEN_ASSERT(cmd && ten_msg_check_integrity(cmd), "Should not happen.");
 
-  bool rc = ten_env_send_cmd(ten_env, cmd, NULL, NULL, NULL);
+  bool rc = ten_env_send_cmd(ten_env, cmd, NULL, NULL, NULL, NULL);
   TEN_ASSERT(rc, "Should not happen.");
 }
 
@@ -255,7 +255,7 @@ static void test_app_ten_env_send_start_graph_cmd(ten_env_t *ten_env,
                                        NULL, NULL);
   TEN_ASSERT(rc, "Should not happen.");
 
-  rc = ten_env_send_cmd(ten_env, cmd, NULL, NULL, NULL);
+  rc = ten_env_send_cmd(ten_env, cmd, NULL, NULL, NULL, NULL);
   TEN_ASSERT(rc, "Should not happen.");
 }
 

@@ -13,6 +13,7 @@
 #include "include_internal/ten_runtime/msg/cmd_base/cmd_base.h"
 #include "ten_runtime/extension/extension.h"
 #include "ten_runtime/msg/cmd_result/cmd_result.h"
+#include "ten_runtime/ten_env/internal/send.h"
 #include "ten_runtime/ten_env_proxy/ten_env_proxy.h"
 #include "ten_utils/lib/error.h"
 #include "ten_utils/macro/check.h"
@@ -126,19 +127,18 @@ static void ten_env_proxy_notify_send_cmd(ten_env_t *ten_env, void *user_data) {
   ten_error_t err;
   ten_error_init(&err);
 
-  ten_env_send_cmd_func_t send_cmd_func = NULL;
+  ten_env_send_cmd_options_t options = TEN_ENV_SEND_CMD_OPTIONS_INIT_VAL;
   if (notify_info->is_ex) {
-    send_cmd_func = ten_env_send_cmd_ex;
-  } else {
-    send_cmd_func = ten_env_send_cmd;
+    options.enable_multiple_results = true;
   }
 
   bool res = false;
   if (notify_info->py_cb_func == NULL) {
-    res = send_cmd_func(ten_env, notify_info->c_cmd, NULL, NULL, &err);
+    res = ten_env_send_cmd(ten_env, notify_info->c_cmd, NULL, NULL, &options,
+                           &err);
   } else {
-    res = send_cmd_func(ten_env, notify_info->c_cmd, proxy_send_cmd_callback,
-                        notify_info->py_cb_func, &err);
+    res = ten_env_send_cmd(ten_env, notify_info->c_cmd, proxy_send_cmd_callback,
+                           notify_info->py_cb_func, &options, &err);
     if (!res) {
       // About to call the Python function, so it's necessary to ensure that the
       // GIL has been acquired.
