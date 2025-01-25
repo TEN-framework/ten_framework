@@ -15,8 +15,17 @@ import { useWidgetStore } from "@/store/widget";
 const DEFAULT_WIDTH = 800;
 const DEFAULT_HEIGHT = 400;
 
-export function LogViewerPopup(props: { id: string }) {
-  const { id } = props;
+interface LogViewerPopupProps {
+  id: string;
+  data?: {
+    wsUrl?: string;
+    baseDir?: string;
+    scriptName?: string;
+  };
+}
+
+export function LogViewerPopup(props: LogViewerPopupProps) {
+  const { id, data } = props;
 
   const { t } = useTranslation();
   const { updateWidgetDisplayType, removeWidget } = useWidgetStore();
@@ -57,7 +66,7 @@ export function LogViewerPopup(props: { id: string }) {
         },
       ]}
     >
-      <LogViewerWidget />
+      <LogViewerWidget id={id} data={data} />
     </Popup>
   );
 }
