@@ -27,14 +27,18 @@ typedef bool (*ten_env_send_cmd_func_t)(
     ten_env_msg_result_handler_func_t handler, void *user_data,
     ten_error_t *err);
 
+typedef struct ten_env_send_cmd_options_t {
+  bool enable_multiple_results;
+} ten_env_send_cmd_options_t;
+
+#define TEN_ENV_SEND_CMD_OPTIONS_INIT_VAL \
+  (ten_env_send_cmd_options_t) { .enable_multiple_results = false }
+
 TEN_RUNTIME_API bool ten_env_send_cmd(ten_env_t *self, ten_shared_ptr_t *cmd,
                                       ten_env_msg_result_handler_func_t handler,
-                                      void *user_data, ten_error_t *err);
-
-TEN_RUNTIME_API bool ten_env_send_cmd_ex(
-    ten_env_t *self, ten_shared_ptr_t *cmd,
-    ten_env_msg_result_handler_func_t handler, void *user_data,
-    ten_error_t *err);
+                                      void *user_data,
+                                      ten_env_send_cmd_options_t *options,
+                                      ten_error_t *err);
 
 TEN_RUNTIME_API bool ten_env_send_data(
     ten_env_t *self, ten_shared_ptr_t *data,
