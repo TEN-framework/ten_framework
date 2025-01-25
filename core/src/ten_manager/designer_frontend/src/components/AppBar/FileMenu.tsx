@@ -25,7 +25,10 @@ import {
   type IFMItem,
   EFMItemType,
 } from "@/components/FileManager/utils";
-import { useDirList } from "@/api/services/fileSystem";
+import { useDirList, getBaseDir } from "@/api/services/fileSystem";
+import { useWidgetStore } from "@/store/widget";
+import { EWidgetCategory, EWidgetDisplayType } from "@/types/widgets";
+import { PlayIcon } from "lucide-react";
 
 interface FileMenuProps {
   defaultBaseDir?: string;
@@ -42,6 +45,35 @@ export function FileMenu(props: FileMenuProps) {
   const [fmItems, setFmItems] = React.useState<IFMItem[][]>([]);
 
   const { data, error, isLoading } = useDirList(folderPath);
+
+  const { appendWidget } = useWidgetStore();
+
+  const handleRunApp = React.useCallback(async () => {
+    try {
+      const baseDirData = await getBaseDir();
+      const baseDir = baseDirData?.base_dir;
+      if (!baseDir) {
+        toast.error("Base directory is not set.");
+        return;
+      }
+
+      const scriptName = "start";
+
+      appendWidget({
+        id: "run-app-" + Date.now(),
+        category: EWidgetCategory.LogViewer,
+        display_type: EWidgetDisplayType.Popup,
+        metadata: {
+          wsUrl: "ws://localhost:49483/api/designer/v1/ws/run-app",
+          baseDir,
+          scriptName,
+        },
+      });
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to get base directory.");
+    }
+  }, [appendWidget]);
 
   const handleManualOk = async () => {
     if (!folderPath.trim()) {
@@ -91,6 +123,17 @@ export function FileMenu(props: FileMenuProps) {
             >
               <FolderOpenIcon className="w-4 h-4 me-2" />
               {t("header.menu.openAppFolder")}
+            </Button>
+          </NavigationMenuLink>
+
+          <NavigationMenuLink asChild>
+            <Button
+              className="w-full justify-start"
+              variant="ghost"
+              onClick={handleRunApp}
+            >
+              <PlayIcon className="w-4 h-4 me-2" />
+              {t("header.menu.run")}
             </Button>
           </NavigationMenuLink>
         </NavigationMenuContent>
