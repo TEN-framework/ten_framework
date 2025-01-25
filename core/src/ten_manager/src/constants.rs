@@ -37,3 +37,7 @@ pub const REMOTE_REGISTRY_MAX_RETRIES: u32 = 30;
 pub const REMOTE_REGISTRY_RETRY_DELAY_MS: u64 = 500;
 // Timeout duration for requests in seconds.
 pub const REMOTE_REGISTRY_REQUEST_TIMEOUT_SECS: u64 = 120;
+
+// Designer-backend.
+pub const PROCESS_STDOUT_MAX_LINE_CNT: usize = 1000;
+pub const PROCESS_STDERR_MAX_LINE_CNT: usize = 1000;
