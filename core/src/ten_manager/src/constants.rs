@@ -9,6 +9,9 @@
 pub const DEFAULT_REGISTRY: &str =
     "https://ten-store.theten.ai/api/ten-cloud-store/v1/packages";
 
+pub const CN_REGISTRY: &str =
+    "https://registry-ten.rtcdeveloper.cn/api/ten-cloud-store/v1/packages";
+
 // This comment is just for reference.
 //
 // pub const ADMIN_TOKEN: &str =
@@ -37,3 +40,7 @@ pub const REMOTE_REGISTRY_MAX_RETRIES: u32 = 30;
 pub const REMOTE_REGISTRY_RETRY_DELAY_MS: u64 = 500;
 // Timeout duration for requests in seconds.
 pub const REMOTE_REGISTRY_REQUEST_TIMEOUT_SECS: u64 = 120;
+
+// Designer-backend.
+pub const PROCESS_STDOUT_MAX_LINE_CNT: usize = 1000;
+pub const PROCESS_STDERR_MAX_LINE_CNT: usize = 1000;

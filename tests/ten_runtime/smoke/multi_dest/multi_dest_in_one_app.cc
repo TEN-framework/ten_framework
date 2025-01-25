@@ -66,11 +66,12 @@ class test_extension_1 : public ten::extension_t {
       ten_env.send_cmd(
           std::move(cmd),
           [this](ten::ten_env_t &ten_env,
-                 std::unique_ptr<ten::cmd_result_t> result, ten::error_t *err) {
+                 std::unique_ptr<ten::cmd_result_t> cmd_result,
+                 std::unique_ptr<ten::cmd_t> cmd, ten::error_t *err) {
             pending_resp_num--;
             if (pending_resp_num == 0) {
-              result->set_property("detail", "return from extension 1");
-              ten_env.return_result_directly(std::move(result));
+              cmd_result->set_property("detail", "return from extension 1");
+              ten_env.return_result_directly(std::move(cmd_result));
             }
           });
       return;

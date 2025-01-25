@@ -43,13 +43,14 @@ class test_predefined_graph : public ten::extension_t {
 
     ten_env.send_cmd(
         std::move(start_graph_cmd),
-        [this](ten::ten_env_t &ten_env, std::unique_ptr<ten::cmd_result_t> cmd,
-               ten::error_t *err) {
+        [this](ten::ten_env_t &ten_env,
+               std::unique_ptr<ten::cmd_result_t> cmd_result,
+               std::unique_ptr<ten::cmd_t> cmd, ten::error_t *err) {
           // result for the 'start_graph' command
-          auto status_code = cmd->get_status_code();
+          auto status_code = cmd_result->get_status_code();
           EXPECT_EQ(status_code, TEN_STATUS_CODE_ERROR);
 
-          auto graph_id = cmd->get_property_string("detail");
+          auto graph_id = cmd_result->get_property_string("detail");
           EXPECT_EQ(graph_id, "");
 
           start_graph_cmd_is_done = true;
@@ -57,9 +58,12 @@ class test_predefined_graph : public ten::extension_t {
           if (test_cmd != nullptr) {
             nlohmann::json detail = {{"id", 1}, {"name", "a"}};
 
-            auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
-            cmd_result->set_property_from_json("detail", detail.dump().c_str());
-            ten_env.return_result(std::move(cmd_result), std::move(test_cmd));
+            auto cmd_result_for_test =
+                ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
+            cmd_result_for_test->set_property_from_json("detail",
+                                                        detail.dump().c_str());
+            ten_env.return_result(std::move(cmd_result_for_test),
+                                  std::move(test_cmd));
           }
         });
 

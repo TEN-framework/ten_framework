@@ -10,6 +10,7 @@
 #include "include_internal/ten_runtime/binding/go/msg/msg.h"
 #include "include_internal/ten_runtime/binding/go/ten_env/ten_env.h"
 #include "include_internal/ten_runtime/binding/go/ten_env/ten_env_internal.h"
+#include "include_internal/ten_runtime/msg/cmd_base/cmd_base.h"
 #include "ten_runtime/binding/go/interface/ten/common.h"
 #include "ten_runtime/binding/go/interface/ten/msg.h"
 #include "ten_runtime/binding/go/interface/ten/ten_env.h"
@@ -54,6 +55,40 @@ static void ten_env_notify_send_cmd_ctx_destroy(
   TEN_FREE(ctx);
 }
 
+static void proxy_send_cmd_callback(ten_env_t *ten_env,
+                                    ten_shared_ptr_t *c_cmd_result,
+                                    ten_shared_ptr_t *c_cmd,
+                                    void *callback_info, ten_error_t *err) {
+  TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
+             "Should not happen.");
+  TEN_ASSERT(c_cmd_result && ten_cmd_base_check_integrity(c_cmd_result),
+             "Should not happen.");
+  TEN_ASSERT(callback_info, "Should not happen.");
+
+  ten_go_ten_env_t *ten_env_bridge = ten_go_ten_env_wrap(ten_env);
+  ten_go_handle_t handler_id =
+      ((ten_go_callback_ctx_t *)callback_info)->callback_id;
+
+  // Same as Extension::OnCmd, the GO cmd result is only used for the GO
+  // extension, so it can be created in GO world. We do not need to call GO
+  // function to create the GO cmd result in C.
+  ten_go_msg_t *cmd_result_bridge = ten_go_msg_create(c_cmd_result);
+  uintptr_t cmd_result_bridge_addr = (uintptr_t)cmd_result_bridge;
+
+  ten_go_error_t cgo_error;
+
+  if (err) {
+    ten_go_error_from_error(&cgo_error, err);
+  } else {
+    ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
+  }
+
+  tenGoOnCmdResult(ten_env_bridge->bridge.go_instance, cmd_result_bridge_addr,
+                   handler_id, cgo_error);
+
+  ten_go_callback_ctx_destroy(callback_info);
+}
+
 static void ten_env_proxy_notify_send_cmd(ten_env_t *ten_env, void *user_data) {
   TEN_ASSERT(user_data, "Invalid argument.");
   TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
@@ -65,21 +100,20 @@ static void ten_env_proxy_notify_send_cmd(ten_env_t *ten_env, void *user_data) {
   ten_error_t err;
   ten_error_init(&err);
 
-  ten_env_send_cmd_func_t send_cmd_func = NULL;
+  ten_env_send_cmd_options_t options = TEN_ENV_SEND_CMD_OPTIONS_INIT_VAL;
   if (notify_info->is_ex) {
-    send_cmd_func = ten_env_send_cmd_ex;
-  } else {
-    send_cmd_func = ten_env_send_cmd;
+    options.enable_multiple_results = true;
   }
 
   bool res = false;
   if (notify_info->handler_id == TEN_GO_NO_RESPONSE_HANDLER) {
-    res = send_cmd_func(ten_env, notify_info->c_cmd, NULL, NULL, &err);
+    res = ten_env_send_cmd(ten_env, notify_info->c_cmd, NULL, NULL, &options,
+                           &err);
   } else {
     ten_go_callback_ctx_t *ctx =
         ten_go_callback_ctx_create(notify_info->handler_id);
-    res = send_cmd_func(ten_env, notify_info->c_cmd, proxy_send_xxx_callback,
-                        ctx, &err);
+    res = ten_env_send_cmd(ten_env, notify_info->c_cmd, proxy_send_cmd_callback,
+                           ctx, &options, &err);
 
     if (!res) {
       ten_go_callback_ctx_destroy(ctx);

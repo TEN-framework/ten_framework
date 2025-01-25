@@ -555,7 +555,7 @@ static void ten_engine_on_all_extension_threads_are_ready(
                                  ten_engine_get_id(self, false), NULL, NULL,
                                  NULL);
 
-      ten_env_send_cmd(self->ten_env, stop_graph_cmd, NULL, NULL, NULL);
+      ten_env_send_cmd(self->ten_env, stop_graph_cmd, NULL, NULL, NULL, NULL);
 
       ten_shared_ptr_destroy(stop_graph_cmd);
     } else {

@@ -11,7 +11,9 @@
 #include "include_internal/ten_runtime/binding/python/test/env_tester.h"
 #include "ten_runtime/test/env_tester.h"
 #include "ten_runtime/test/env_tester_proxy.h"
+#include "ten_utils/lib/smart_ptr.h"
 #include "ten_utils/macro/check.h"
+#include "ten_utils/macro/mark.h"
 #include "ten_utils/macro/memory.h"
 
 typedef struct ten_py_ten_env_tester_send_data_ctx_t {
@@ -45,8 +47,10 @@ static void ten_py_ten_env_tester_send_data_ctx_destroy(
   TEN_FREE(ctx);
 }
 
-static void proxy_send_xxx_callback(ten_env_tester_t *self, void *user_data,
-                                    ten_error_t *error) {
+static void proxy_send_data_callback(ten_env_tester_t *self,
+                                     TEN_UNUSED ten_shared_ptr_t *c_cmd_result,
+                                     ten_shared_ptr_t *c_data, void *user_data,
+                                     ten_error_t *error) {
   TEN_ASSERT(self && ten_env_tester_check_integrity(self, true),
              "Should not happen.");
   TEN_ASSERT(user_data, "Should not happen.");
@@ -95,8 +99,8 @@ static void ten_py_ten_env_tester_send_data_proxy_notify(
   if (ctx->cb_func) {
     Py_INCREF(ctx->cb_func);
 
-    ten_env_tester_send_data(ten_env_tester, ctx->data, proxy_send_xxx_callback,
-                             ctx->cb_func, NULL);
+    ten_env_tester_send_data(ten_env_tester, ctx->data,
+                             proxy_send_data_callback, ctx->cb_func, NULL);
   } else {
     ten_env_tester_send_data(ten_env_tester, ctx->data, NULL, NULL, NULL);
   }

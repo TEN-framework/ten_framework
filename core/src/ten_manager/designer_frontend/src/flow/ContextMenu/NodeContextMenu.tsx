@@ -6,7 +6,12 @@
 //
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { FilePenLineIcon, TerminalIcon, Trash2Icon } from "lucide-react";
+import {
+  FilePenLineIcon,
+  TerminalIcon,
+  Trash2Icon,
+  LogsIcon,
+} from "lucide-react";
 
 import ContextMenu, { ContextMenuItem } from "@/flow/ContextMenu/ContextMenu";
 import { CustomNodeType } from "@/flow/CustomNode";
@@ -21,6 +26,7 @@ interface NodeContextMenuProps {
   onClose: () => void;
   onLaunchTerminal: (data: TerminalData) => void;
   onLaunchEditor: (data: EditorData) => void;
+  onLaunchLogViewer?: () => void;
 }
 
 const NodeContextMenu: React.FC<NodeContextMenuProps> = ({
@@ -31,6 +37,7 @@ const NodeContextMenu: React.FC<NodeContextMenuProps> = ({
   onClose,
   onLaunchTerminal,
   onLaunchEditor,
+  onLaunchLogViewer,
 }) => {
   const { t } = useTranslation();
 
@@ -70,6 +77,14 @@ const NodeContextMenu: React.FC<NodeContextMenuProps> = ({
       onClick: () => {
         onClose();
         onLaunchTerminal({ title: node.data.name, url: node.data.url });
+      },
+    },
+    {
+      label: t("action.launchLogViewer"),
+      icon: <LogsIcon />,
+      onClick: () => {
+        onClose();
+        onLaunchLogViewer?.();
       },
     },
     {

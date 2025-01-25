@@ -637,7 +637,8 @@ void send_ten_msg_with_req_body(
         ten_env.send_cmd(
             std::move(cmd),
             [http_session_data](ten::ten_env_t &ten_env,
-                                std::unique_ptr<ten::cmd_result_t> cmd,
+                                std::unique_ptr<ten::cmd_result_t> cmd_result,
+                                std::unique_ptr<ten::cmd_t> cmd,
                                 ten::error_t *error) {
               if (error != nullptr) {
                 prepare_response_data_from_ten_world(
@@ -655,7 +656,8 @@ void send_ten_msg_with_req_body(
                 // When stopping, do not push more data into libws thread.
                 // Libws world would clean up itself.
                 prepare_response_data_from_ten_world(
-                    http_session_data, cmd->get_property_to_json("detail"));
+                    http_session_data,
+                    cmd_result->get_property_to_json("detail"));
               }
             });
       });
@@ -677,7 +679,8 @@ void send_ten_msg_without_req_body(
         ten_env.send_cmd(
             std::move(cmd),
             [http_session_data](ten::ten_env_t &ten_env,
-                                std::unique_ptr<ten::cmd_result_t> cmd,
+                                std::unique_ptr<ten::cmd_result_t> cmd_result,
+                                std::unique_ptr<ten::cmd_t> cmd,
                                 ten::error_t *error) {
               if (error != nullptr) {
                 prepare_response_data_from_ten_world(
@@ -695,7 +698,8 @@ void send_ten_msg_without_req_body(
                 // When stopping, do not push more data into libws thread. Libws
                 // world would clean up itself.
                 prepare_response_data_from_ten_world(
-                    http_session_data, cmd->get_property_to_json("detail"));
+                    http_session_data,
+                    cmd_result->get_property_to_json("detail"));
               }
             });
       });
