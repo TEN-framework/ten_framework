@@ -160,8 +160,8 @@ static void ten_env_proxy_notify_send_cmd(ten_env_t *ten_env, void *user_data) {
   ten_error_t err;
   ten_error_init(&err);
 
-  bool rc =
-      ten_env_send_cmd(ten_env, ctx->c_cmd, proxy_send_cmd_callback, ctx, &err);
+  bool rc = ten_env_send_cmd(ten_env, ctx->c_cmd, proxy_send_cmd_callback, ctx,
+                             NULL, &err);
   if (!rc) {
     proxy_send_cmd_callback(ten_env, NULL, ctx->c_cmd, ctx, &err);
   }

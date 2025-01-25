@@ -438,7 +438,7 @@ static void test_extension_ten_env_send_cmd(ten_env_t *ten_env,
   ten_error_t *err = ten_error_create();
 
   bool rc = ten_env_send_cmd(ten_env, send_cmd_info->cmd, send_cmd_callback,
-                             send_cmd_info, err);
+                             send_cmd_info, NULL, err);
   if (!rc) {
     if (send_cmd_info->handler) {
       // Move the error to the send_cmd_info.
@@ -746,7 +746,7 @@ static void test_app_ten_env_send_close_app_cmd(ten_env_t *ten_env,
                                        NULL, NULL, NULL, NULL);
   TEN_ASSERT(rc, "Should not happen.");
 
-  rc = ten_env_send_cmd(ten_env, close_app_cmd, NULL, NULL, NULL);
+  rc = ten_env_send_cmd(ten_env, close_app_cmd, NULL, NULL, NULL, NULL);
   TEN_ASSERT(rc, "Should not happen.");
 }
 

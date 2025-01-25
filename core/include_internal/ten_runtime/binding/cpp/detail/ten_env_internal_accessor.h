@@ -21,8 +21,8 @@ class ten_env_internal_accessor_t {
     return ten_env.get_c_ten_env();
   }
 
-  static void *get_attached_target(ten_env_t &ten_env, error_t *err = nullptr) {
-    return ten_env.get_attached_target(err);
+  static void *get_attached_target(ten_env_t &ten_env) {
+    return ten_env.get_attached_target();
   }
 };
 
