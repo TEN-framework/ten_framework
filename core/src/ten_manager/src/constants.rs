@@ -9,6 +9,9 @@
 pub const DEFAULT_REGISTRY: &str =
     "https://ten-store.theten.ai/api/ten-cloud-store/v1/packages";
 
+pub const CN_REGISTRY: &str =
+    "https://registry-ten.rtcdeveloper.cn/api/ten-cloud-store/v1/packages";
+
 // This comment is just for reference.
 //
 // pub const ADMIN_TOKEN: &str =
