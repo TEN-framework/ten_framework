@@ -307,7 +307,7 @@ static bool ten_app_handle_cmd_result(ten_app_t *self, ten_shared_ptr_t *cmd,
     ten_msg_clear_and_set_dest(close_app_cmd,
                                ten_string_get_raw_str(&self->uri), NULL, NULL,
                                NULL, err);
-    ten_env_send_cmd(self->ten_env, close_app_cmd, NULL, NULL, err);
+    ten_env_send_cmd(self->ten_env, close_app_cmd, NULL, NULL, NULL, err);
   }
 
   return is_auto_start_predefined_graph_cmd_result;

@@ -100,21 +100,20 @@ static void ten_env_proxy_notify_send_cmd(ten_env_t *ten_env, void *user_data) {
   ten_error_t err;
   ten_error_init(&err);
 
-  ten_env_send_cmd_func_t send_cmd_func = NULL;
+  ten_env_send_cmd_options_t options = TEN_ENV_SEND_CMD_OPTIONS_INIT_VAL;
   if (notify_info->is_ex) {
-    send_cmd_func = ten_env_send_cmd_ex;
-  } else {
-    send_cmd_func = ten_env_send_cmd;
+    options.enable_multiple_results = true;
   }
 
   bool res = false;
   if (notify_info->handler_id == TEN_GO_NO_RESPONSE_HANDLER) {
-    res = send_cmd_func(ten_env, notify_info->c_cmd, NULL, NULL, &err);
+    res = ten_env_send_cmd(ten_env, notify_info->c_cmd, NULL, NULL, &options,
+                           &err);
   } else {
     ten_go_callback_ctx_t *ctx =
         ten_go_callback_ctx_create(notify_info->handler_id);
-    res = send_cmd_func(ten_env, notify_info->c_cmd, proxy_send_cmd_callback,
-                        ctx, &err);
+    res = ten_env_send_cmd(ten_env, notify_info->c_cmd, proxy_send_cmd_callback,
+                           ctx, &options, &err);
 
     if (!res) {
       ten_go_callback_ctx_destroy(ctx);
