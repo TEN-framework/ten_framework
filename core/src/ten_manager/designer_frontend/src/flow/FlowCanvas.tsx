@@ -98,7 +98,7 @@ const FlowCanvas = forwardRef<FlowCanvasRef, FlowCanvasProps>(
       appendWidgetIfNotExists({
         id: `logViewer-${Date.now()}`,
         category: EWidgetCategory.LogViewer,
-        metadata: {},
+        metadata: { wsUrl: "", baseDir: "", scriptName: "" },
         display_type: EWidgetDisplayType.Popup,
       });
     };

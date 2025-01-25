@@ -58,9 +58,15 @@ export interface ICustomConnectionWidget extends IWidgetBase {
   metadata: CustomConnectionData;
 }
 
+interface ILogViewerWidgetData {
+  wsUrl: string;
+  baseDir: string;
+  scriptName: string;
+}
+
 export interface ILogViewerWidget extends IWidgetBase {
   category: EWidgetCategory.LogViewer;
-  metadata: unknown;
+  metadata: ILogViewerWidgetData;
 }
 
 export type IWidget =
