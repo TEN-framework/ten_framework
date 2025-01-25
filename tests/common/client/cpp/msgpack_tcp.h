@@ -8,6 +8,7 @@
 
 #include "ten_runtime/ten_config.h"
 
+#include <cstddef>
 #include <exception>
 #include <nlohmann/json.hpp>
 
