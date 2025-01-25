@@ -68,8 +68,6 @@ export default function LogViewerWidget(props: ILogViewerWidgetProps) {
           ]);
 
           wsRef.current?.close();
-        } else if (msg.type === "pong") {
-          console.log("[LogViewerWidget] received pong");
         } else if (msg.status === "fail") {
           setLogs((prev) => [
             ...prev,
