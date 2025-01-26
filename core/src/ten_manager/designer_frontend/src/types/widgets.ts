@@ -62,6 +62,7 @@ interface ILogViewerWidgetData {
   wsUrl: string;
   baseDir: string;
   scriptName: string;
+  supportStop?: boolean;
 }
 
 export interface ILogViewerWidget extends IWidgetBase {

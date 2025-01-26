@@ -100,13 +100,6 @@ export default function LogViewerWidget(props: ILogViewerWidgetProps) {
     };
   }, [data?.wsUrl, data?.baseDir, data?.scriptName]);
 
-  const filteredLogs = React.useMemo(() => {
-    if (!defferedSearchInput) {
-      return logs;
-    }
-    return logs.filter((line) => line.includes(defferedSearchInput));
-  }, [logs, defferedSearchInput]);
-
   return (
     <div className="flex h-full w-full flex-col" id={id}>
       <div className="h-12 w-full flex items-center space-x-2 px-2">
@@ -121,17 +114,132 @@ export default function LogViewerWidget(props: ILogViewerWidgetProps) {
         </Button>
       </div>
       <ScrollArea className="h-[calc(100%-3rem)] w-full">
-        <div className="p-2 text-sm font-mono">
-          {filteredLogs.map((line, idx) => (
-            <div
-              key={`log-line-${idx}`}
-              className={cn("py-0.5 hover:bg-gray-100 dark:hover:bg-gray-800")}
-            >
-              {line}
-            </div>
-          ))}
+        <div className="p-2">
+          <LogViewerLogItemList logs={logs} search={defferedSearchInput} />
         </div>
       </ScrollArea>
     </div>
+  );
+}
+
+const string2uuid = (str: string) => {
+  // Create a deterministic hash from the string
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i);
+    hash = (hash << 5) - hash + char;
+    hash = hash & hash; // Convert to 32-bit integer
+  }
+
+  // Use the hash to create a deterministic UUID-like string
+  const hashStr = Math.abs(hash).toString(16).padStart(8, "0");
+  return (
+    `${hashStr}-${hashStr.slice(0, 4)}` +
+    `-4${hashStr.slice(4, 7)}-${hashStr.slice(7, 11)}-${hashStr.slice(0, 12)}`
+  );
+};
+
+export interface ILogViewerLogItemProps {
+  id: string;
+  extension?: string;
+  file?: string;
+  line?: number;
+  host?: string;
+  message: string;
+}
+
+const string2LogItem = (str: string): ILogViewerLogItemProps => {
+  const regex = /^(\w+)@([^:]+):(\d+)\s+\[([^\]]+)\]\s+(.+)$/;
+  const match = str.match(regex);
+  if (!match) {
+    return {
+      id: string2uuid(str),
+      message: str,
+    };
+  }
+  const [, extension, file, line, host, message] = match;
+  return {
+    id: string2uuid(str),
+    extension,
+    file,
+    line: parseInt(line, 10),
+    host,
+    message,
+  };
+};
+
+function LogViewerLogItem(props: ILogViewerLogItemProps & { search?: string }) {
+  const { id, extension, file, line, host, message, search } = props;
+
+  return (
+    <div
+      className={cn(
+        "font-mono text-xs py-0.5",
+        "hover:bg-gray-100 dark:hover:bg-gray-800"
+      )}
+      id={id}
+    >
+      {extension && (
+        <>
+          <span className="text-blue-500 dark:text-blue-400">{extension}</span>
+          <span className="text-gray-500 dark:text-gray-400">@</span>
+        </>
+      )}
+      {file && (
+        <>
+          <span className="text-emerald-600 dark:text-emerald-400">{file}</span>
+          <span className="text-gray-500 dark:text-gray-400">:</span>
+        </>
+      )}
+      {line && (
+        <span className="text-amber-600 dark:text-amber-400">{line}</span>
+      )}
+      {host && (
+        <>
+          <span className="text-gray-500 dark:text-gray-400"> [</span>
+          <span className="text-purple-600 dark:text-purple-400">{host}</span>
+          <span className="text-gray-500 dark:text-gray-400">] </span>
+        </>
+      )}
+      {search ? (
+        <span className="whitespace-pre-wrap">
+          {message.split(search).map((part, i, arr) => (
+            <React.Fragment key={i}>
+              {part}
+              {i < arr.length - 1 && (
+                <span className="bg-yellow-200 dark:bg-yellow-800">
+                  {search}
+                </span>
+              )}
+            </React.Fragment>
+          ))}
+        </span>
+      ) : (
+        <span className="whitespace-pre-wrap">{message}</span>
+      )}
+    </div>
+  );
+}
+
+function LogViewerLogItemList(props: { logs: string[]; search?: string }) {
+  const { logs: rawLogs, search } = props;
+
+  const logsMemo = React.useMemo(() => {
+    return rawLogs.map(string2LogItem);
+  }, [rawLogs]);
+
+  const filteredLogs = React.useMemo(() => {
+    if (!search) {
+      return logsMemo;
+    }
+    return logsMemo.filter((log) => log.message.includes(search));
+  }, [logsMemo, search]);
+
+  return (
+    <>
+      {filteredLogs.map((log) => (
+        <LogViewerLogItem key={log.id} {...log} search={search} />
+      ))}
+    </>
   );
 }
