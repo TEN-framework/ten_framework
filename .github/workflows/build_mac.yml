@@ -107,17 +107,17 @@ jobs:
           df -h .
           tree -I 'gen|obj' out
 
-          - name: Upload ten_packages
-          uses: actions/upload-artifact@v4
-          with:
-            name: ten_packages-mac-${{ matrix.build_type }}-arm64
-            path: |
-              out/mac/arm64/app/default_app_cpp
-              out/mac/arm64/app/default_app_go
-              out/mac/arm64/ten_packages/system/ten_runtime
-              out/mac/arm64/ten_packages/system/ten_runtime_go
-              out/mac/arm64/ten_packages/extension/default_extension_cpp
-              out/mac/arm64/ten_packages/extension/default_extension_go
+      - name: Upload ten_packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: ten_packages-mac-${{ matrix.build_type }}-arm64
+          path: |
+            out/mac/arm64/app/default_app_cpp
+            out/mac/arm64/app/default_app_go
+            out/mac/arm64/ten_packages/system/ten_runtime
+            out/mac/arm64/ten_packages/system/ten_runtime_go
+            out/mac/arm64/ten_packages/extension/default_extension_cpp
+            out/mac/arm64/ten_packages/extension/default_extension_go
 
       - name: Package assets
         if: startsWith(github.ref, 'refs/tags/')
