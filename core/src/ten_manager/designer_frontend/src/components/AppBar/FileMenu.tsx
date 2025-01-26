@@ -46,9 +46,10 @@ export function FileMenu(props: FileMenuProps) {
 
   const { data, error, isLoading } = useDirList(folderPath);
 
-  const { appendWidget } = useWidgetStore();
+  const { appendWidgetIfNotExists } = useWidgetStore();
 
-  const handleRunApp = React.useCallback(async () => {
+  const handleRunApp = async () => {
+    console.log("handleRunApp ===");
     try {
       const baseDirData = await getBaseDir();
       const baseDir = baseDirData?.base_dir;
@@ -59,7 +60,7 @@ export function FileMenu(props: FileMenuProps) {
 
       const scriptName = "start";
 
-      appendWidget({
+      appendWidgetIfNotExists({
         id: "run-app-" + Date.now(),
         category: EWidgetCategory.LogViewer,
         display_type: EWidgetDisplayType.Popup,
@@ -67,13 +68,14 @@ export function FileMenu(props: FileMenuProps) {
           wsUrl: "ws://localhost:49483/api/designer/v1/ws/run-app",
           baseDir,
           scriptName,
+          supportStop: true,
         },
       });
     } catch (err) {
       console.error(err);
       toast.error("Failed to get base directory.");
     }
-  }, [appendWidget]);
+  };
 
   const handleManualOk = async () => {
     if (!folderPath.trim()) {

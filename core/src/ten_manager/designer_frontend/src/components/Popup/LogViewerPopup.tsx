@@ -5,7 +5,7 @@
 // Refer to the "LICENSE" file in the root directory for more information.
 //
 import { useTranslation } from "react-i18next";
-import { PinIcon } from "lucide-react";
+import { PinIcon, OctagonXIcon } from "lucide-react";
 
 import Popup from "@/components/Popup/Popup";
 import LogViewerWidget from "@/components/Widget/LogViewerWidget";
@@ -22,10 +22,11 @@ interface LogViewerPopupProps {
     baseDir?: string;
     scriptName?: string;
   };
+  supportStop?: boolean;
 }
 
 export function LogViewerPopup(props: LogViewerPopupProps) {
-  const { id, data } = props;
+  const { id, data, supportStop = false } = props;
 
   const { t } = useTranslation();
   const { updateWidgetDisplayType, removeWidget } = useWidgetStore();
@@ -64,6 +65,18 @@ export function LogViewerPopup(props: LogViewerPopupProps) {
           Icon: PinIcon,
           onClick: handlePinToDock,
         },
+        ...(supportStop
+          ? [
+              {
+                id: "stop",
+                label: t("action.stop"),
+                Icon: OctagonXIcon,
+                onClick: () => {
+                  console.log("stop");
+                },
+              },
+            ]
+          : []),
       ]}
     >
       <LogViewerWidget id={id} data={data} />
