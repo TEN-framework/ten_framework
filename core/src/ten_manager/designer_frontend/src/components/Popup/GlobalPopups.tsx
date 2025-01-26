@@ -76,13 +76,11 @@ export function GlobalPopups() {
         />
       ))}
       {logViewerWidgetsMemo.map((widget) => (
-        <LogViewerPopup id={widget.id} key={`LogViewerPopup-${widget.id}`} />
-      ))}
-      {logViewerWidgetsMemo.map((widget) => (
         <LogViewerPopup
           id={widget.id}
           key={`LogViewerPopup-${widget.id}`}
           data={widget.metadata}
+          supportStop={widget.metadata.supportStop}
         />
       ))}
     </>
