@@ -9,6 +9,7 @@
 #include "ten_utils/lib/json.h"
 #include "ten_utils/lib/path.h"
 #include "ten_utils/lib/string.h"
+#include "ten_utils/log/log.h"
 #include "ten_utils/macro/memory.h"
 
 // Traverse up through the parent folders, searching for a folder containing a

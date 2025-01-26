@@ -105,93 +105,6 @@ jobs:
           df -h .
           tree -I 'gen|obj' out
 
-      - name: Run Tests (ten_utils_unit_test)
-        env:
-          ASAN_OPTIONS: detect_leaks=1:detect_stack_use_after_return=1:color=always:unmap_shadow_on_exit=1:abort_on_error=1
-          MALLOC_CHECK_: 3
-          TEN_ENABLE_MEMORY_TRACKING: "true"
-          TEN_ENABLE_BACKTRACE_DUMP: "true"
-        run: |
-          chmod +x out/linux/x64/tests/standalone/ten_utils_unit_test
-          out/linux/x64/tests/standalone/ten_utils_unit_test || { echo "test failed"; exit 1; }
-
-      - name: Run Tests (ten_runtime_unit_test)
-        env:
-          ASAN_OPTIONS: detect_leaks=1:detect_stack_use_after_return=1:color=always:unmap_shadow_on_exit=1:abort_on_error=1
-          MALLOC_CHECK_: 3
-          TEN_ENABLE_MEMORY_TRACKING: "true"
-          TEN_ENABLE_BACKTRACE_DUMP: "true"
-        run: |
-          chmod +x out/linux/x64/tests/standalone/ten_runtime_unit_test
-          out/linux/x64/tests/standalone/ten_runtime_unit_test || { echo "test failed"; exit 1; }
-
-      - name: Run Tests (ten_runtime_smoke_test)
-        env:
-          ASAN_OPTIONS: detect_leaks=1:detect_stack_use_after_return=1:color=always:unmap_shadow_on_exit=1:abort_on_error=1
-          MALLOC_CHECK_: 3
-          TEN_ENABLE_MEMORY_TRACKING: "true"
-          TEN_ENABLE_BACKTRACE_DUMP: "true"
-        run: |
-          chmod +x out/linux/x64/tests/standalone/ten_runtime_smoke_test
-          out/linux/x64/tests/standalone/ten_runtime_smoke_test || { echo "test failed"; exit 1; }
-
-      - name: Run Tests (ten_rust standalone tests)
-        if: matrix.arch == 'x64'
-        env:
-          ASAN_OPTIONS: detect_leaks=1:detect_stack_use_after_return=1:color=always:unmap_shadow_on_exit=1:abort_on_error=1
-          MALLOC_CHECK_: 3
-          TEN_ENABLE_MEMORY_TRACKING: "true"
-          TEN_ENABLE_BACKTRACE_DUMP: "true"
-        run: |
-          cd out/linux/x64/tests/standalone/ten_rust
-
-          chmod +x unit_test
-          chmod +x integration_test
-
-          ./unit_test || { echo "ten_rust unit test failed"; exit 1; }
-          ./integration_test || { echo "ten_rust integration test failed"; exit 1; }
-
-      - name: Run Tests (ten_manager standalone tests)
-        if: matrix.arch == 'x64'
-        env:
-          ASAN_OPTIONS: detect_leaks=1:detect_stack_use_after_return=1:color=always:unmap_shadow_on_exit=1:abort_on_error=1
-          MALLOC_CHECK_: 3
-          TEN_ENABLE_MEMORY_TRACKING: "true"
-          TEN_ENABLE_BACKTRACE_DUMP: "true"
-        run: |
-          cd out/linux/x64/tests/standalone/ten_manager
-
-          chmod +x unit_test
-
-          ./unit_test || { echo "ten_manager unit test failed"; exit 1; }
-
-      - name: Install Python dependencies via script
-        run: |
-          python .github/tools/setup_pytest_dependencies.py
-
-      - name: Run Tests (ten_manager pytest tests)
-        if: matrix.arch == 'x64'
-        env:
-          ASAN_OPTIONS: detect_leaks=1:detect_stack_use_after_return=1:color=always:unmap_shadow_on_exit=1:abort_on_error=1
-          MALLOC_CHECK_: 3
-          TEN_ENABLE_MEMORY_TRACKING: "true"
-          TEN_ENABLE_BACKTRACE_DUMP: "true"
-        run: |
-          cd out/linux/x64/
-          pytest -s tests/ten_manager/
-
-      - name: Run tests (ten_runtime integration tests)
-        if: matrix.arch == 'x64'
-        env:
-          ASAN_OPTIONS: detect_leaks=1:detect_stack_use_after_return=1:color=always:unmap_shadow_on_exit=1:abort_on_error=1
-          MALLOC_CHECK_: 3
-          TEN_ENABLE_MEMORY_TRACKING: "true"
-          TEN_ENABLE_BACKTRACE_DUMP: "true"
-        run: |
-          export PATH=$(pwd)/core/ten_gn:$PATH
-          cd out/linux/x64/
-          pytest -s tests/ten_runtime/integration/
-
       - name: Update supports before upload or publish
         if: matrix.arch == 'x64'
         run: |
@@ -292,3 +205,90 @@ jobs:
             cd -
           done
         shell: bash
+
+      - name: Run Tests (ten_utils_unit_test)
+        env:
+          ASAN_OPTIONS: detect_leaks=1:detect_stack_use_after_return=1:color=always:unmap_shadow_on_exit=1:abort_on_error=1
+          MALLOC_CHECK_: 3
+          TEN_ENABLE_MEMORY_TRACKING: "true"
+          TEN_ENABLE_BACKTRACE_DUMP: "true"
+        run: |
+          chmod +x out/linux/x64/tests/standalone/ten_utils_unit_test
+          out/linux/x64/tests/standalone/ten_utils_unit_test || { echo "test failed"; exit 1; }
+
+      - name: Run Tests (ten_runtime_unit_test)
+        env:
+          ASAN_OPTIONS: detect_leaks=1:detect_stack_use_after_return=1:color=always:unmap_shadow_on_exit=1:abort_on_error=1
+          MALLOC_CHECK_: 3
+          TEN_ENABLE_MEMORY_TRACKING: "true"
+          TEN_ENABLE_BACKTRACE_DUMP: "true"
+        run: |
+          chmod +x out/linux/x64/tests/standalone/ten_runtime_unit_test
+          out/linux/x64/tests/standalone/ten_runtime_unit_test || { echo "test failed"; exit 1; }
+
+      - name: Run Tests (ten_runtime_smoke_test)
+        env:
+          ASAN_OPTIONS: detect_leaks=1:detect_stack_use_after_return=1:color=always:unmap_shadow_on_exit=1:abort_on_error=1
+          MALLOC_CHECK_: 3
+          TEN_ENABLE_MEMORY_TRACKING: "true"
+          TEN_ENABLE_BACKTRACE_DUMP: "true"
+        run: |
+          chmod +x out/linux/x64/tests/standalone/ten_runtime_smoke_test
+          out/linux/x64/tests/standalone/ten_runtime_smoke_test || { echo "test failed"; exit 1; }
+
+      - name: Run Tests (ten_rust standalone tests)
+        if: matrix.arch == 'x64'
+        env:
+          ASAN_OPTIONS: detect_leaks=1:detect_stack_use_after_return=1:color=always:unmap_shadow_on_exit=1:abort_on_error=1
+          MALLOC_CHECK_: 3
+          TEN_ENABLE_MEMORY_TRACKING: "true"
+          TEN_ENABLE_BACKTRACE_DUMP: "true"
+        run: |
+          cd out/linux/x64/tests/standalone/ten_rust
+
+          chmod +x unit_test
+          chmod +x integration_test
+
+          ./unit_test || { echo "ten_rust unit test failed"; exit 1; }
+          ./integration_test || { echo "ten_rust integration test failed"; exit 1; }
+
+      - name: Run Tests (ten_manager standalone tests)
+        if: matrix.arch == 'x64'
+        env:
+          ASAN_OPTIONS: detect_leaks=1:detect_stack_use_after_return=1:color=always:unmap_shadow_on_exit=1:abort_on_error=1
+          MALLOC_CHECK_: 3
+          TEN_ENABLE_MEMORY_TRACKING: "true"
+          TEN_ENABLE_BACKTRACE_DUMP: "true"
+        run: |
+          cd out/linux/x64/tests/standalone/ten_manager
+
+          chmod +x unit_test
+
+          ./unit_test || { echo "ten_manager unit test failed"; exit 1; }
+
+      - name: Install Python dependencies via script
+        run: |
+          python .github/tools/setup_pytest_dependencies.py
+
+      - name: Run Tests (ten_manager pytest tests)
+        if: matrix.arch == 'x64'
+        env:
+          ASAN_OPTIONS: detect_leaks=1:detect_stack_use_after_return=1:color=always:unmap_shadow_on_exit=1:abort_on_error=1
+          MALLOC_CHECK_: 3
+          TEN_ENABLE_MEMORY_TRACKING: "true"
+          TEN_ENABLE_BACKTRACE_DUMP: "true"
+        run: |
+          cd out/linux/x64/
+          pytest -s tests/ten_manager/
+
+      - name: Run tests (ten_runtime integration tests)
+        if: matrix.arch == 'x64'
+        env:
+          ASAN_OPTIONS: detect_leaks=1:detect_stack_use_after_return=1:color=always:unmap_shadow_on_exit=1:abort_on_error=1
+          MALLOC_CHECK_: 3
+          TEN_ENABLE_MEMORY_TRACKING: "true"
+          TEN_ENABLE_BACKTRACE_DUMP: "true"
+        run: |
+          export PATH=$(pwd)/core/ten_gn:$PATH
+          cd out/linux/x64/
+          pytest -s tests/ten_runtime/integration/

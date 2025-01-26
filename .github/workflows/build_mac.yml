@@ -107,6 +107,39 @@ jobs:
           df -h .
           tree -I 'gen|obj' out
 
+      - name: Upload ten_packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: ten_packages-mac-${{ matrix.build_type }}-arm64
+          path: |
+            out/mac/arm64/app/default_app_cpp
+            out/mac/arm64/app/default_app_go
+            out/mac/arm64/ten_packages/system/ten_runtime
+            out/mac/arm64/ten_packages/system/ten_runtime_go
+            out/mac/arm64/ten_packages/extension/default_extension_cpp
+            out/mac/arm64/ten_packages/extension/default_extension_go
+
+      - name: Package assets
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          cd out/mac/arm64
+          zip -vr tman-mac-${{ matrix.build_type }}-arm64.zip ten_manager/bin/tman
+          zip -vr ten_packages-mac-${{ matrix.build_type }}-arm64.zip \
+            app/default_app_cpp \
+            app/default_app_go \
+            ten_packages/system/ten_runtime \
+            ten_packages/system/ten_runtime_go \
+            ten_packages/extension/default_extension_cpp \
+            ten_packages/extension/default_extension_go \
+
+      - name: Publish to release assets
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: |
+            out/mac/arm64/tman-mac-${{ matrix.build_type }}-arm64.zip
+            out/mac/arm64/ten_packages-mac-${{ matrix.build_type }}-arm64.zip
+
       - name: Run Tests (ten_utils_unit_test)
         env:
           ASAN_OPTIONS: detect_stack_use_after_return=1:color=always:unmap_shadow_on_exit=1:abort_on_error=1
@@ -198,39 +231,6 @@ jobs:
       #   continue-on-error: true
       # - name: Setup tmate session
       #   uses: mxschmitt/action-tmate@v3
-
-      - name: Upload ten_packages
-        uses: actions/upload-artifact@v4
-        with:
-          name: ten_packages-mac-${{ matrix.build_type }}-arm64
-          path: |
-            out/mac/arm64/app/default_app_cpp
-            out/mac/arm64/app/default_app_go
-            out/mac/arm64/ten_packages/system/ten_runtime
-            out/mac/arm64/ten_packages/system/ten_runtime_go
-            out/mac/arm64/ten_packages/extension/default_extension_cpp
-            out/mac/arm64/ten_packages/extension/default_extension_go
-
-      - name: Package assets
-        if: startsWith(github.ref, 'refs/tags/')
-        run: |
-          cd out/mac/arm64
-          zip -vr tman-mac-${{ matrix.build_type }}-arm64.zip ten_manager/bin/tman
-          zip -vr ten_packages-mac-${{ matrix.build_type }}-arm64.zip \
-            app/default_app_cpp \
-            app/default_app_go \
-            ten_packages/system/ten_runtime \
-            ten_packages/system/ten_runtime_go \
-            ten_packages/extension/default_extension_cpp \
-            ten_packages/extension/default_extension_go \
-
-      - name: Publish to release assets
-        uses: softprops/action-gh-release@v2
-        if: startsWith(github.ref, 'refs/tags/')
-        with:
-          files: |
-            out/mac/arm64/tman-mac-${{ matrix.build_type }}-arm64.zip
-            out/mac/arm64/ten_packages-mac-${{ matrix.build_type }}-arm64.zip
 
   build-mac-x64:
     concurrency:
@@ -327,6 +327,39 @@ jobs:
       # - name: Setup tmate session
       #   uses: mxschmitt/action-tmate@v3
 
+      - name: Upload ten_packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: ten_packages-mac-${{ matrix.build_type }}-x64
+          path: |
+            out/mac/x64/app/default_app_cpp
+            out/mac/x64/app/default_app_go
+            out/mac/x64/ten_packages/system/ten_runtime
+            out/mac/x64/ten_packages/system/ten_runtime_go
+            out/mac/x64/ten_packages/extension/default_extension_cpp
+            out/mac/x64/ten_packages/extension/default_extension_go
+
+      - name: Package assets
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          cd out/mac/x64
+          zip -vr tman-mac-${{ matrix.build_type }}-x64.zip ten_manager/bin/tman
+          zip -vr ten_packages-mac-${{ matrix.build_type }}-x64.zip \
+            app/default_app_cpp \
+            app/default_app_go \
+            ten_packages/system/ten_runtime \
+            ten_packages/system/ten_runtime_go \
+            ten_packages/extension/default_extension_cpp \
+            ten_packages/extension/default_extension_go \
+
+      - name: Publish to release assets
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: |
+            out/mac/x64/tman-mac-${{ matrix.build_type }}-x64.zip
+            out/mac/x64/ten_packages-mac-${{ matrix.build_type }}-x64.zip
+
       - name: Run Tests (ten_utils_unit_test)
         env:
           ASAN_OPTIONS: detect_stack_use_after_return=1:color=always:unmap_shadow_on_exit=1:abort_on_error=1
@@ -415,39 +448,6 @@ jobs:
       #   continue-on-error: true
       # - name: Setup tmate session
       #   uses: mxschmitt/action-tmate@v3
-
-      - name: Upload ten_packages
-        uses: actions/upload-artifact@v4
-        with:
-          name: ten_packages-mac-${{ matrix.build_type }}-x64
-          path: |
-            out/mac/x64/app/default_app_cpp
-            out/mac/x64/app/default_app_go
-            out/mac/x64/ten_packages/system/ten_runtime
-            out/mac/x64/ten_packages/system/ten_runtime_go
-            out/mac/x64/ten_packages/extension/default_extension_cpp
-            out/mac/x64/ten_packages/extension/default_extension_go
-
-      - name: Package assets
-        if: startsWith(github.ref, 'refs/tags/')
-        run: |
-          cd out/mac/x64
-          zip -vr tman-mac-${{ matrix.build_type }}-x64.zip ten_manager/bin/tman
-          zip -vr ten_packages-mac-${{ matrix.build_type }}-x64.zip \
-            app/default_app_cpp \
-            app/default_app_go \
-            ten_packages/system/ten_runtime \
-            ten_packages/system/ten_runtime_go \
-            ten_packages/extension/default_extension_cpp \
-            ten_packages/extension/default_extension_go \
-
-      - name: Publish to release assets
-        uses: softprops/action-gh-release@v2
-        if: startsWith(github.ref, 'refs/tags/')
-        with:
-          files: |
-            out/mac/x64/tman-mac-${{ matrix.build_type }}-x64.zip
-            out/mac/x64/ten_packages-mac-${{ matrix.build_type }}-x64.zip
 
   # Building ten_runtime without the ten_rust library (i.e., ten_enable_ten_rust_apis=false).
   build-mac-arm64-without-ten-rust:
