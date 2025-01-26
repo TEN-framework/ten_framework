@@ -7,17 +7,20 @@
 import("//build/ten_runtime/feature/test.gni")
 import("//build/ten_runtime/ten.gni")
 
-ten_package_test_prepare_app("get_set_prop_python_app") {
+ten_package_test_prepare_app("get_set_prop_2_python_app") {
   src_app = "default_app_python"
   src_app_language = "python"
-  generated_app_src_root_dir_name = "get_set_prop_python_app"
+  generated_app_src_root_dir_name = "get_set_prop_2_python_app"
 
   replace_paths_after_install_app = [
-    "get_set_prop_python_app/manifest.json",
-    "get_set_prop_python_app/property.json",
+    "get_set_prop_2_python_app/manifest.json",
+    "get_set_prop_2_python_app/property.json",
   ]
 
-  replace_paths_after_install_all = [ "get_set_prop_python_app/ten_packages/extension/default_extension_python/extension.py" ]
+  replace_paths_after_install_all = [
+    "get_set_prop_2_python_app/ten_packages/extension/default_extension_python/extension.py",
+    "get_set_prop_2_python_app/ten_packages/extension/default_extension_python/property.json",
+  ]
 
   if (ten_enable_ten_manager) {
     deps = [
@@ -30,7 +33,8 @@ ten_package_test_prepare_app("get_set_prop_python_app") {
   }
 }
 
-ten_package_test_prepare_auxiliary_resources("get_set_prop_python_test_files") {
+ten_package_test_prepare_auxiliary_resources(
+    "get_set_prop_2_python_test_files") {
   resources = [
     "__init__.py",
     "test_case.py",
@@ -54,9 +58,9 @@ ten_package_test_prepare_auxiliary_resources("get_set_prop_python_test_files") {
   }
 }
 
-group("get_set_prop_python") {
+group("get_set_prop_2_python") {
   deps = [
-    ":get_set_prop_python_app",
-    ":get_set_prop_python_test_files",
+    ":get_set_prop_2_python_app",
+    ":get_set_prop_2_python_test_files",
   ]
 }

@@ -149,7 +149,7 @@ class AsyncTenEnv(TenEnvBase):
         if error is not None:
             raise RuntimeError(error.error_message())
 
-    async def get_property_to_json(self, path: str) -> str:
+    async def get_property_to_json(self, path: Optional[str] = None) -> str:
         q = asyncio.Queue(maxsize=1)
         self._internal.get_property_string_async(
             path,
