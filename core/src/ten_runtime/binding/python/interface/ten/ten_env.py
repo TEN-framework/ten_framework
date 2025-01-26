@@ -59,7 +59,7 @@ class TenEnv(TenEnvBase):
     def on_create_instance_done(self, instance: _Extension, context) -> None:
         return self._internal.on_create_instance_done(instance, context)
 
-    def get_property_to_json(self, path: str) -> str:
+    def get_property_to_json(self, path: Optional[str] = None) -> str:
         return self._internal.get_property_to_json(path)
 
     def set_property_from_json(self, path: str, json_str: str) -> None:

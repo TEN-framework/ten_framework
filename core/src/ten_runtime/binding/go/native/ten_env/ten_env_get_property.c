@@ -25,16 +25,16 @@
 #include "ten_utils/value/value.h"
 #include "ten_utils/value/value_get.h"
 
-typedef struct ten_env_notify_get_property_ctx_t {
+typedef struct ten_env_notify_peek_property_ctx_t {
   ten_string_t path;
   ten_value_t *c_value;
   ten_event_t *completed;
-} ten_env_notify_get_property_ctx_t;
+} ten_env_notify_peek_property_ctx_t;
 
-static ten_env_notify_get_property_ctx_t *
-ten_env_notify_get_property_ctx_create(const void *path, int path_len) {
-  ten_env_notify_get_property_ctx_t *ctx =
-      TEN_MALLOC(sizeof(ten_env_notify_get_property_ctx_t));
+static ten_env_notify_peek_property_ctx_t *
+ten_env_notify_peek_property_ctx_create(const void *path, int path_len) {
+  ten_env_notify_peek_property_ctx_t *ctx =
+      TEN_MALLOC(sizeof(ten_env_notify_peek_property_ctx_t));
   TEN_ASSERT(ctx, "Failed to allocate memory.");
 
   ten_string_init_formatted(&ctx->path, "%.*s", path_len, path);
@@ -44,8 +44,8 @@ ten_env_notify_get_property_ctx_create(const void *path, int path_len) {
   return ctx;
 }
 
-static void ten_env_notify_get_property_ctx_destroy(
-    ten_env_notify_get_property_ctx_t *ctx) {
+static void ten_env_notify_peek_property_ctx_destroy(
+    ten_env_notify_peek_property_ctx_t *ctx) {
   TEN_ASSERT(ctx, "Invalid argument.");
 
   ten_string_deinit(&ctx->path);
@@ -55,13 +55,13 @@ static void ten_env_notify_get_property_ctx_destroy(
   TEN_FREE(ctx);
 }
 
-static void ten_env_proxy_notify_get_property(ten_env_t *ten_env,
-                                              void *user_data) {
+static void ten_env_proxy_notify_peek_property(ten_env_t *ten_env,
+                                               void *user_data) {
   TEN_ASSERT(user_data, "Invalid argument.");
   TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
              "Should not happen.");
 
-  ten_env_notify_get_property_ctx_t *ctx = user_data;
+  ten_env_notify_peek_property_ctx_t *ctx = user_data;
   TEN_ASSERT(ctx, "Should not happen.");
 
   ten_error_t err;
@@ -102,9 +102,9 @@ static void ten_env_proxy_notify_get_property(ten_env_t *ten_env,
   ten_error_deinit(&err);
 }
 
-static ten_value_t *ten_go_ten_env_get_property_and_check_if_exists(
-    ten_go_ten_env_t *self, const void *path, int path_len,
-    ten_go_error_t *status) {
+static ten_value_t *ten_go_ten_env_peek_property(ten_go_ten_env_t *self,
+                                                 const void *path, int path_len,
+                                                 ten_go_error_t *status) {
   TEN_ASSERT(self && ten_go_ten_env_check_integrity(self),
              "Should not happen.");
   TEN_ASSERT(path && path_len > 0, "Should not happen.");
@@ -114,17 +114,17 @@ static ten_value_t *ten_go_ten_env_get_property_and_check_if_exists(
   ten_error_t err;
   ten_error_init(&err);
 
-  ten_env_notify_get_property_ctx_t *ctx =
-      ten_env_notify_get_property_ctx_create(path, path_len);
+  ten_env_notify_peek_property_ctx_t *ctx =
+      ten_env_notify_peek_property_ctx_create(path, path_len);
 
   if (!ten_env_proxy_notify(self->c_ten_env_proxy,
-                            ten_env_proxy_notify_get_property, ctx, false,
+                            ten_env_proxy_notify_peek_property, ctx, false,
                             &err)) {
     ten_go_error_from_error(status, &err);
     goto done;
   }
 
-  // The ten_go_ten_env_get_property_and_check_if_exists() is called from a
+  // The ten_go_ten_env_peek_property() is called from a
   // goroutine in GO world. The goroutine runs on a OS thread (i.e., M is GO
   // world), and the M won't be scheduled to other goroutine until the cgo call
   // is completed (i.e., this function returns). The following
@@ -148,7 +148,7 @@ static ten_value_t *ten_go_ten_env_get_property_and_check_if_exists(
 
 done:
   ten_error_deinit(&err);
-  ten_env_notify_get_property_ctx_destroy(ctx);
+  ten_env_notify_peek_property_ctx_destroy(ctx);
 
   return c_value;
 }
@@ -169,8 +169,8 @@ ten_go_error_t ten_go_ten_env_get_property_type_and_size(
     ten_go_error_set_error_code(&cgo_error, TEN_ERROR_CODE_TEN_IS_CLOSED);
   });
 
-  ten_value_t *c_value = ten_go_ten_env_get_property_and_check_if_exists(
-      self, path, path_len, &cgo_error);
+  ten_value_t *c_value =
+      ten_go_ten_env_peek_property(self, path, path_len, &cgo_error);
   if (c_value != NULL) {
     ten_go_ten_value_get_type_and_size(c_value, type, size);
 
@@ -219,8 +219,8 @@ ten_go_error_t ten_go_ten_env_get_property_int8(uintptr_t bridge_addr,
     ten_go_error_set_error_code(&cgo_error, TEN_ERROR_CODE_TEN_IS_CLOSED);
   });
 
-  ten_value_t *c_value = ten_go_ten_env_get_property_and_check_if_exists(
-      self, path, path_len, &cgo_error);
+  ten_value_t *c_value =
+      ten_go_ten_env_peek_property(self, path, path_len, &cgo_error);
   if (c_value != NULL) {
     ten_error_t err;
     ten_error_init(&err);
@@ -256,8 +256,8 @@ ten_go_error_t ten_go_ten_env_get_property_int16(uintptr_t bridge_addr,
     ten_go_error_set_error_code(&cgo_error, TEN_ERROR_CODE_TEN_IS_CLOSED);
   });
 
-  ten_value_t *c_value = ten_go_ten_env_get_property_and_check_if_exists(
-      self, path, path_len, &cgo_error);
+  ten_value_t *c_value =
+      ten_go_ten_env_peek_property(self, path, path_len, &cgo_error);
   if (c_value != NULL) {
     ten_error_t err;
     ten_error_init(&err);
@@ -293,8 +293,8 @@ ten_go_error_t ten_go_ten_env_get_property_int32(uintptr_t bridge_addr,
     ten_go_error_set_error_code(&cgo_error, TEN_ERROR_CODE_TEN_IS_CLOSED);
   });
 
-  ten_value_t *c_value = ten_go_ten_env_get_property_and_check_if_exists(
-      self, path, path_len, &cgo_error);
+  ten_value_t *c_value =
+      ten_go_ten_env_peek_property(self, path, path_len, &cgo_error);
   if (c_value != NULL) {
     ten_error_t err;
     ten_error_init(&err);
@@ -330,8 +330,8 @@ ten_go_error_t ten_go_ten_env_get_property_int64(uintptr_t bridge_addr,
     ten_go_error_set_error_code(&cgo_error, TEN_ERROR_CODE_TEN_IS_CLOSED);
   });
 
-  ten_value_t *c_value = ten_go_ten_env_get_property_and_check_if_exists(
-      self, path, path_len, &cgo_error);
+  ten_value_t *c_value =
+      ten_go_ten_env_peek_property(self, path, path_len, &cgo_error);
   if (c_value != NULL) {
     ten_error_t err;
     ten_error_init(&err);
@@ -367,8 +367,8 @@ ten_go_error_t ten_go_ten_env_get_property_uint8(uintptr_t bridge_addr,
     ten_go_error_set_error_code(&cgo_error, TEN_ERROR_CODE_TEN_IS_CLOSED);
   });
 
-  ten_value_t *c_value = ten_go_ten_env_get_property_and_check_if_exists(
-      self, path, path_len, &cgo_error);
+  ten_value_t *c_value =
+      ten_go_ten_env_peek_property(self, path, path_len, &cgo_error);
   if (c_value != NULL) {
     ten_error_t err;
     ten_error_init(&err);
@@ -405,8 +405,8 @@ ten_go_error_t ten_go_ten_env_get_property_uint16(uintptr_t bridge_addr,
     ten_go_error_set_error_code(&cgo_error, TEN_ERROR_CODE_TEN_IS_CLOSED);
   });
 
-  ten_value_t *c_value = ten_go_ten_env_get_property_and_check_if_exists(
-      self, path, path_len, &cgo_error);
+  ten_value_t *c_value =
+      ten_go_ten_env_peek_property(self, path, path_len, &cgo_error);
   if (c_value != NULL) {
     ten_error_t err;
     ten_error_init(&err);
@@ -443,8 +443,8 @@ ten_go_error_t ten_go_ten_env_get_property_uint32(uintptr_t bridge_addr,
     ten_go_error_set_error_code(&cgo_error, TEN_ERROR_CODE_TEN_IS_CLOSED);
   });
 
-  ten_value_t *c_value = ten_go_ten_env_get_property_and_check_if_exists(
-      self, path, path_len, &cgo_error);
+  ten_value_t *c_value =
+      ten_go_ten_env_peek_property(self, path, path_len, &cgo_error);
   if (c_value != NULL) {
     ten_error_t err;
     ten_error_init(&err);
@@ -481,8 +481,8 @@ ten_go_error_t ten_go_ten_env_get_property_uint64(uintptr_t bridge_addr,
     ten_go_error_set_error_code(&cgo_error, TEN_ERROR_CODE_TEN_IS_CLOSED);
   });
 
-  ten_value_t *c_value = ten_go_ten_env_get_property_and_check_if_exists(
-      self, path, path_len, &cgo_error);
+  ten_value_t *c_value =
+      ten_go_ten_env_peek_property(self, path, path_len, &cgo_error);
   if (c_value != NULL) {
     ten_error_t err;
     ten_error_init(&err);
@@ -518,8 +518,8 @@ ten_go_error_t ten_go_ten_env_get_property_float32(uintptr_t bridge_addr,
     ten_go_error_set_error_code(&cgo_error, TEN_ERROR_CODE_TEN_IS_CLOSED);
   });
 
-  ten_value_t *c_value = ten_go_ten_env_get_property_and_check_if_exists(
-      self, path, path_len, &cgo_error);
+  ten_value_t *c_value =
+      ten_go_ten_env_peek_property(self, path, path_len, &cgo_error);
   if (c_value != NULL) {
     ten_error_t err;
     ten_error_init(&err);
@@ -556,8 +556,8 @@ ten_go_error_t ten_go_ten_env_get_property_float64(uintptr_t bridge_addr,
     ten_go_error_set_error_code(&cgo_error, TEN_ERROR_CODE_TEN_IS_CLOSED);
   });
 
-  ten_value_t *c_value = ten_go_ten_env_get_property_and_check_if_exists(
-      self, path, path_len, &cgo_error);
+  ten_value_t *c_value =
+      ten_go_ten_env_peek_property(self, path, path_len, &cgo_error);
   if (c_value != NULL) {
     ten_error_t err;
     ten_error_init(&err);
@@ -593,8 +593,8 @@ ten_go_error_t ten_go_ten_env_get_property_bool(uintptr_t bridge_addr,
     ten_go_error_set_error_code(&cgo_error, TEN_ERROR_CODE_TEN_IS_CLOSED);
   });
 
-  ten_value_t *c_value = ten_go_ten_env_get_property_and_check_if_exists(
-      self, path, path_len, &cgo_error);
+  ten_value_t *c_value =
+      ten_go_ten_env_peek_property(self, path, path_len, &cgo_error);
   if (c_value != NULL) {
     ten_error_t err;
     ten_error_init(&err);
@@ -630,8 +630,8 @@ ten_go_error_t ten_go_ten_env_get_property_ptr(uintptr_t bridge_addr,
     ten_go_error_set_error_code(&cgo_error, TEN_ERROR_CODE_TEN_IS_CLOSED);
   });
 
-  ten_value_t *c_value = ten_go_ten_env_get_property_and_check_if_exists(
-      self, path, path_len, &cgo_error);
+  ten_value_t *c_value =
+      ten_go_ten_env_peek_property(self, path, path_len, &cgo_error);
   if (c_value != NULL) {
     ten_go_ten_value_get_ptr(c_value, value, &cgo_error);
 
@@ -661,8 +661,8 @@ ten_go_error_t ten_go_ten_env_get_property_json_and_size(
     ten_go_error_set_error_code(&cgo_error, TEN_ERROR_CODE_TEN_IS_CLOSED);
   });
 
-  ten_value_t *value = ten_go_ten_env_get_property_and_check_if_exists(
-      self, path, path_len, &cgo_error);
+  ten_value_t *value =
+      ten_go_ten_env_peek_property(self, path, path_len, &cgo_error);
   if (value != NULL) {
     ten_go_ten_value_to_json(value, json_str_len, json_str, &cgo_error);
 
