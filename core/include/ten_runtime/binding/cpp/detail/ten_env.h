@@ -310,14 +310,6 @@ class ten_env_t {
   std::string get_property_to_json(const char *path, error_t *err = nullptr) {
     std::string result;
 
-    if ((path == nullptr) || (strlen(path) == 0)) {
-      if (err != nullptr && err->get_c_error() != nullptr) {
-        ten_error_set(err->get_c_error(), TEN_ERROR_CODE_INVALID_ARGUMENT,
-                      "path should not be empty.");
-      }
-      return result;
-    }
-
     auto *value = peek_property_value(path, err);
     if (value == nullptr) {
       return result;

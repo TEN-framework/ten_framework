@@ -16,27 +16,32 @@
 #include "ten_utils/value/value.h"
 #include "ten_utils/value/value_get.h"
 
-typedef struct ten_env_notify_get_property_ctx_t {
+typedef struct ten_env_notify_peek_property_ctx_t {
   ten_string_t path;
   ten_value_t *c_value;
   ten_event_t *completed;
-} ten_env_notify_get_property_ctx_t;
+} ten_env_notify_peek_property_ctx_t;
 
-static ten_env_notify_get_property_ctx_t *
-ten_env_notify_get_property_ctx_create(const void *path) {
-  ten_env_notify_get_property_ctx_t *ctx =
-      TEN_MALLOC(sizeof(ten_env_notify_get_property_ctx_t));
+static ten_env_notify_peek_property_ctx_t *
+ten_env_notify_peek_property_ctx_create(const void *path) {
+  ten_env_notify_peek_property_ctx_t *ctx =
+      TEN_MALLOC(sizeof(ten_env_notify_peek_property_ctx_t));
   TEN_ASSERT(ctx, "Failed to allocate memory.");
 
-  ten_string_init_formatted(&ctx->path, "%s", path);
+  if (path) {
+    ten_string_init_formatted(&ctx->path, "%s", path);
+  } else {
+    ten_string_init(&ctx->path);
+  }
+
   ctx->c_value = NULL;
   ctx->completed = ten_event_create(0, 1);
 
   return ctx;
 }
 
-static void ten_env_notify_get_property_ctx_destroy(
-    ten_env_notify_get_property_ctx_t *ctx) {
+static void ten_env_notify_peek_property_ctx_destroy(
+    ten_env_notify_peek_property_ctx_t *ctx) {
   TEN_ASSERT(ctx, "Invalid argument.");
 
   ten_string_deinit(&ctx->path);
@@ -46,13 +51,13 @@ static void ten_env_notify_get_property_ctx_destroy(
   TEN_FREE(ctx);
 }
 
-static void ten_env_proxy_notify_get_property(ten_env_t *ten_env,
-                                              void *user_data) {
+static void ten_env_proxy_notify_peek_property(ten_env_t *ten_env,
+                                               void *user_data) {
   TEN_ASSERT(user_data, "Invalid argument.");
   TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
              "Should not happen.");
 
-  ten_env_notify_get_property_ctx_t *ctx = user_data;
+  ten_env_notify_peek_property_ctx_t *ctx = user_data;
   TEN_ASSERT(ctx, "Should not happen.");
 
   ten_error_t err;
@@ -71,8 +76,8 @@ static void ten_env_proxy_notify_get_property(ten_env_t *ten_env,
   ten_error_deinit(&err);
 }
 
-static ten_value_t *ten_py_ten_property_get_and_check_if_exists(
-    ten_py_ten_env_t *self, const char *path) {
+static ten_value_t *ten_py_ten_peek_property(ten_py_ten_env_t *self,
+                                             const char *path) {
   TEN_ASSERT(self && ten_py_ten_env_check_integrity(self), "Invalid argument.");
 
   ten_value_t *c_value = NULL;
@@ -80,11 +85,11 @@ static ten_value_t *ten_py_ten_property_get_and_check_if_exists(
   ten_error_t err;
   ten_error_init(&err);
 
-  ten_env_notify_get_property_ctx_t *ctx =
-      ten_env_notify_get_property_ctx_create(path);
+  ten_env_notify_peek_property_ctx_t *ctx =
+      ten_env_notify_peek_property_ctx_create(path);
 
   if (!ten_env_proxy_notify(self->c_ten_env_proxy,
-                            ten_env_proxy_notify_get_property, ctx, false,
+                            ten_env_proxy_notify_peek_property, ctx, false,
                             &err)) {
     goto done;
   }
@@ -97,7 +102,7 @@ static ten_value_t *ten_py_ten_property_get_and_check_if_exists(
 
 done:
   ten_error_deinit(&err);
-  ten_env_notify_get_property_ctx_destroy(ctx);
+  ten_env_notify_peek_property_ctx_destroy(ctx);
 
   return c_value;
 }
@@ -113,7 +118,7 @@ PyObject *ten_py_ten_env_get_property_to_json(PyObject *self, PyObject *args) {
   }
 
   const char *path = NULL;
-  if (!PyArg_ParseTuple(args, "s", &path)) {
+  if (!PyArg_ParseTuple(args, "z", &path)) {
     return ten_py_raise_py_value_error_exception(
         "Failed to parse argument when ten_env.get_property_to_json.");
   }
@@ -124,8 +129,7 @@ PyObject *ten_py_ten_env_get_property_to_json(PyObject *self, PyObject *args) {
         "invalid.");
   }
 
-  ten_value_t *value =
-      ten_py_ten_property_get_and_check_if_exists(py_ten_env, path);
+  ten_value_t *value = ten_py_ten_peek_property(py_ten_env, path);
   if (!value) {
     return ten_py_raise_py_value_error_exception("Failed to get property.");
   }
@@ -174,8 +178,7 @@ PyObject *ten_py_ten_env_get_property_int(PyObject *self, PyObject *args) {
         "ten_env.get_property_int() failed because ten_env_proxy is invalid.");
   }
 
-  ten_value_t *value =
-      ten_py_ten_property_get_and_check_if_exists(py_ten_env, path);
+  ten_value_t *value = ten_py_ten_peek_property(py_ten_env, path);
   if (!value) {
     return ten_py_raise_py_value_error_exception("Failed to get property.");
   }
@@ -219,8 +222,7 @@ PyObject *ten_py_ten_env_get_property_string(PyObject *self, PyObject *args) {
         "invalid.");
   }
 
-  ten_value_t *value =
-      ten_py_ten_property_get_and_check_if_exists(py_ten_env, path);
+  ten_value_t *value = ten_py_ten_peek_property(py_ten_env, path);
   if (!value) {
     return ten_py_raise_py_value_error_exception("Property [%s] is not found.",
                                                  path);
@@ -262,8 +264,7 @@ PyObject *ten_py_ten_env_get_property_bool(PyObject *self, PyObject *args) {
         "ten_env.get_property_bool() failed because ten_env_proxy is invalid.");
   }
 
-  ten_value_t *value =
-      ten_py_ten_property_get_and_check_if_exists(py_ten_env, path);
+  ten_value_t *value = ten_py_ten_peek_property(py_ten_env, path);
   if (!value) {
     return ten_py_raise_py_value_error_exception("Failed to get property.");
   }
@@ -307,8 +308,7 @@ PyObject *ten_py_ten_env_get_property_float(PyObject *self, PyObject *args) {
         "invalid.");
   }
 
-  ten_value_t *value =
-      ten_py_ten_property_get_and_check_if_exists(py_ten_env, path);
+  ten_value_t *value = ten_py_ten_peek_property(py_ten_env, path);
   if (!value) {
     return ten_py_raise_py_value_error_exception("Failed to get property.");
   }
@@ -351,8 +351,7 @@ PyObject *ten_py_ten_env_is_property_exist(PyObject *self, PyObject *args) {
         "ten_env.is_property_exist() failed because ten_env_proxy is invalid.");
   }
 
-  ten_value_t *value =
-      ten_py_ten_property_get_and_check_if_exists(py_ten_env, path);
+  ten_value_t *value = ten_py_ten_peek_property(py_ten_env, path);
   if (!value) {
     return PyBool_FromLong(false);
   }

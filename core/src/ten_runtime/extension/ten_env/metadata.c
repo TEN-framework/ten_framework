@@ -122,11 +122,8 @@ ten_value_t *ten_extension_peek_property(ten_extension_t *extension,
              "Invalid argument.");
 
   if (!path || !strlen(path)) {
-    if (err) {
-      ten_error_set(err, TEN_ERROR_CODE_INVALID_ARGUMENT,
-                    "path should not be empty.");
-    }
-    return NULL;
+    // If the path is empty, return all properties.
+    return &extension->property;
   }
 
   ten_extension_thread_t *extension_thread = extension->extension_thread;

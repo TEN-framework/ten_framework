@@ -115,7 +115,7 @@ napi_value ten_nodejs_ten_env_get_property_to_json(napi_env env,
   ten_error_t err;
   ten_error_init(&err);
 
-  rc = ten_nodejs_ten_env_get_property_value(
+  rc = ten_nodejs_ten_env_peek_property_value(
       ten_env_bridge, ten_string_get_raw_str(&name), cb_tsfn, &err);
   if (!rc) {
     ten_string_t code_str;
