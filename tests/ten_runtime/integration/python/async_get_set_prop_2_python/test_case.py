@@ -1,5 +1,5 @@
 """
-Test async_get_set_prop_python.
+Test async_get_set_prop_2_python.
 """
 
 import subprocess
@@ -20,7 +20,7 @@ def http_request():
     )
 
 
-def test_async_get_set_prop_python():
+def test_async_get_set_prop_2_python():
     """Test client and app server."""
     base_path = os.path.dirname(os.path.abspath(__file__))
     root_dir = os.path.join(base_path, "../../../../../")
@@ -40,20 +40,20 @@ def test_async_get_set_prop_python():
     my_env["PATH"] = os.path.join(venv_dir, "bin") + os.pathsep + my_env["PATH"]
 
     if sys.platform == "win32":
-        print("test_async_get_set_prop_python doesn't support win32")
+        print("test_async_get_set_prop_2_python doesn't support win32")
         assert False
     elif sys.platform == "darwin":
         # client depends on some libraries in the TEN app.
         my_env["DYLD_LIBRARY_PATH"] = os.path.join(
-            base_path, "async_get_set_prop_python_app/lib"
+            base_path, "async_get_set_prop_2_python_app/lib"
         )
     else:
         # client depends on some libraries in the TEN app.
         my_env["LD_LIBRARY_PATH"] = os.path.join(
-            base_path, "async_get_set_prop_python_app/lib"
+            base_path, "async_get_set_prop_2_python_app/lib"
         )
 
-    app_dir_name = "async_get_set_prop_python_app"
+    app_dir_name = "async_get_set_prop_2_python_app"
     app_root_path = os.path.join(base_path, app_dir_name)
     app_language = "python"
 
@@ -98,7 +98,7 @@ def test_async_get_set_prop_python():
         assert False, "Failed to install package."
 
     bootstrap_cmd = os.path.join(
-        base_path, "async_get_set_prop_python_app/bin/bootstrap"
+        base_path, "async_get_set_prop_2_python_app/bin/bootstrap"
     )
 
     bootstrap_process = subprocess.Popen(
@@ -110,7 +110,7 @@ def test_async_get_set_prop_python():
         if build_config_args.enable_sanitizer:
             libasan_path = os.path.join(
                 base_path,
-                "async_get_set_prop_python_app/ten_packages/system/ten_runtime/lib/libasan.so",
+                "async_get_set_prop_2_python_app/ten_packages/system/ten_runtime/lib/libasan.so",
             )
 
             if os.path.exists(libasan_path):
@@ -118,7 +118,7 @@ def test_async_get_set_prop_python():
                 my_env["LD_PRELOAD"] = libasan_path
 
     server_cmd = os.path.join(
-        base_path, "async_get_set_prop_python_app/bin/start"
+        base_path, "async_get_set_prop_2_python_app/bin/start"
     )
 
     if not os.path.isfile(server_cmd):
@@ -135,11 +135,13 @@ def test_async_get_set_prop_python():
 
     is_started = http.is_app_started("127.0.0.1", 8002, 30)
     if not is_started:
-        print("The async_get_set_prop_python is not started after 10 seconds.")
+        print(
+            "The async_get_set_prop_2_python is not started after 10 seconds."
+        )
 
         server.kill()
         exit_code = server.wait()
-        print("The exit code of async_get_set_prop_python: ", exit_code)
+        print("The exit code of async_get_set_prop_2_python: ", exit_code)
 
         assert exit_code == 0
         assert False
@@ -155,12 +157,12 @@ def test_async_get_set_prop_python():
         is_stopped = http.stop_app("127.0.0.1", 8002, 30)
         if not is_stopped:
             print(
-                "The async_get_set_prop_python can not stop after 30 seconds."
+                "The async_get_set_prop_2_python can not stop after 30 seconds."
             )
             server.kill()
 
         exit_code = server.wait()
-        print("The exit code of async_get_set_prop_python: ", exit_code)
+        print("The exit code of async_get_set_prop_2_python: ", exit_code)
 
         assert exit_code == 0
 

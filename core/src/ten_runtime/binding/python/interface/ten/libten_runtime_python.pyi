@@ -126,7 +126,9 @@ class _TenEnv:
     def is_property_exist(self, path: str) -> bool: ...
     def init_property_from_json(self, json_str: str) -> None: ...
     def get_property_to_json_async(
-        self, path: str, callback: Callable[[str, Optional[TenError]], None]
+        self,
+        path: Optional[str],
+        callback: Callable[[str, Optional[TenError]], None],
     ) -> None: ...
     def set_property_from_json_async(
         self,
@@ -144,9 +146,7 @@ class _TenEnv:
         callback: Callable[[Optional[TenError]], None],
     ) -> None: ...
     def get_property_string_async(
-        self,
-        path: Optional[str],
-        callback: Callable[[str, Optional[TenError]], None],
+        self, path: str, callback: Callable[[str, Optional[TenError]], None]
     ) -> None: ...
     def set_property_string_async(
         self,
