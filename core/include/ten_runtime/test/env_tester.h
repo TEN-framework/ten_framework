@@ -20,38 +20,34 @@ TEN_RUNTIME_API bool ten_env_tester_on_start_done(ten_env_tester_t *self,
 TEN_RUNTIME_API bool ten_env_tester_on_stop_done(ten_env_tester_t *self,
                                                  ten_error_t *err);
 
-typedef void (*ten_env_tester_cmd_result_handler_func_t)(
-    ten_env_tester_t *self, ten_shared_ptr_t *cmd_result, void *user_data,
-    ten_error_t *error);
-
-typedef void (*ten_env_tester_error_handler_func_t)(ten_env_tester_t *self,
-                                                    void *user_data,
-                                                    ten_error_t *error);
+typedef void (*ten_env_tester_msg_result_handler_func_t)(
+    ten_env_tester_t *self, ten_shared_ptr_t *cmd_result, ten_shared_ptr_t *msg,
+    void *user_data, ten_error_t *error);
 
 TEN_RUNTIME_API bool ten_env_tester_send_cmd(
     ten_env_tester_t *self, ten_shared_ptr_t *cmd,
-    ten_env_tester_cmd_result_handler_func_t handler, void *user_data,
+    ten_env_tester_msg_result_handler_func_t handler, void *user_data,
     ten_error_t *error);
 
 TEN_RUNTIME_API bool ten_env_tester_send_data(
     ten_env_tester_t *self, ten_shared_ptr_t *data,
-    ten_env_tester_error_handler_func_t handler, void *user_data,
+    ten_env_tester_msg_result_handler_func_t handler, void *user_data,
     ten_error_t *error);
 
 TEN_RUNTIME_API bool ten_env_tester_send_audio_frame(
     ten_env_tester_t *self, ten_shared_ptr_t *audio_frame,
-    ten_env_tester_error_handler_func_t handler, void *user_data,
+    ten_env_tester_msg_result_handler_func_t handler, void *user_data,
     ten_error_t *error);
 
 TEN_RUNTIME_API bool ten_env_tester_send_video_frame(
     ten_env_tester_t *self, ten_shared_ptr_t *video_frame,
-    ten_env_tester_error_handler_func_t handler, void *user_data,
+    ten_env_tester_msg_result_handler_func_t handler, void *user_data,
     ten_error_t *error);
 
 TEN_RUNTIME_API bool ten_env_tester_return_result(
     ten_env_tester_t *self, ten_shared_ptr_t *result,
     ten_shared_ptr_t *target_cmd,
-    ten_env_tester_error_handler_func_t error_handler, void *user_data,
+    ten_env_tester_msg_result_handler_func_t handler, void *user_data,
     ten_error_t *error);
 
 TEN_RUNTIME_API bool ten_env_tester_stop_test(ten_env_tester_t *self,

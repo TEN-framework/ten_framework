@@ -34,8 +34,10 @@ class test_extension_1 : public ten::extension_t {
       ten_env.send_cmd(
           std::move(new_cmd),
           [this](ten::ten_env_t &ten_env,
-                 std::unique_ptr<ten::cmd_result_t> cmd, ten::error_t *err) {
-            ten_env.return_result(std::move(cmd), std::move(hello_world_cmd));
+                 std::unique_ptr<ten::cmd_result_t> cmd_result,
+                 std::unique_ptr<ten::cmd_t> cmd, ten::error_t *err) {
+            ten_env.return_result(std::move(cmd_result),
+                                  std::move(hello_world_cmd));
             hello_world_cmd = nullptr;
           });
     }

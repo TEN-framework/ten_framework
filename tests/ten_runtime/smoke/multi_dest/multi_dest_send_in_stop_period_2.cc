@@ -30,14 +30,14 @@ class test_extension_1 : public ten::extension_t {
 
   void on_stop(ten::ten_env_t &ten_env) override {
     auto cmd = ten::cmd_t::create("extension_1_stop");
-    ten_env.send_cmd(
-        std::move(cmd),
-        [](ten::ten_env_t &ten_env,
-           std::unique_ptr<ten::cmd_result_t> cmd_result, ten::error_t *err) {
-          // After receiving results of the command sent during `on_stop`, we
-          // can `on_stop_done`.
-          ten_env.on_stop_done();
-        });
+    ten_env.send_cmd(std::move(cmd),
+                     [](ten::ten_env_t &ten_env,
+                        std::unique_ptr<ten::cmd_result_t> cmd_result,
+                        std::unique_ptr<ten::cmd_t> cmd, ten::error_t *err) {
+                       // After receiving results of the command sent during
+                       // `on_stop`, we can `on_stop_done`.
+                       ten_env.on_stop_done();
+                     });
   }
 };
 

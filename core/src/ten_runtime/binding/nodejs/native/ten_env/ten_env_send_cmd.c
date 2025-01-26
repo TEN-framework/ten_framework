@@ -113,8 +113,10 @@ static void tsfn_proxy_send_cmd_callback(napi_env env, napi_value js_cb,
   ten_nodejs_send_cmd_callback_call_ctx_destroy(ctx);
 }
 
-static void proxy_send_cmd_callback(ten_env_t *ten_env, ten_shared_ptr_t *msg,
-                                    void *user_data, ten_error_t *err) {
+static void proxy_send_cmd_callback(ten_env_t *ten_env,
+                                    ten_shared_ptr_t *c_cmd_result,
+                                    ten_shared_ptr_t *c_cmd, void *user_data,
+                                    ten_error_t *err) {
   TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
              "Should not happen.");
 
@@ -131,13 +133,13 @@ static void proxy_send_cmd_callback(ten_env_t *ten_env, ten_shared_ptr_t *msg,
     ten_error_copy(cloned_error, err);
   }
 
-  ten_shared_ptr_t *cloned_msg = NULL;
-  if (msg) {
-    cloned_msg = ten_shared_ptr_clone(msg);
+  ten_shared_ptr_t *cloned_c_cmd_result = NULL;
+  if (c_cmd_result) {
+    cloned_c_cmd_result = ten_shared_ptr_clone(c_cmd_result);
   }
 
   ten_nodejs_send_cmd_callback_call_ctx_t *call_info =
-      ten_nodejs_send_cmd_callback_call_ctx_create(js_cb, cloned_msg,
+      ten_nodejs_send_cmd_callback_call_ctx_create(js_cb, cloned_c_cmd_result,
                                                    cloned_error);
   TEN_ASSERT(call_info, "Failed to create callback call info.");
 
@@ -158,10 +160,10 @@ static void ten_env_proxy_notify_send_cmd(ten_env_t *ten_env, void *user_data) {
   ten_error_t err;
   ten_error_init(&err);
 
-  bool rc =
-      ten_env_send_cmd(ten_env, ctx->c_cmd, proxy_send_cmd_callback, ctx, &err);
+  bool rc = ten_env_send_cmd(ten_env, ctx->c_cmd, proxy_send_cmd_callback, ctx,
+                             NULL, &err);
   if (!rc) {
-    proxy_send_cmd_callback(ten_env, NULL, ctx, &err);
+    proxy_send_cmd_callback(ten_env, NULL, ctx->c_cmd, ctx, &err);
   }
 
   ten_error_deinit(&err);

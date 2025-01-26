@@ -33,13 +33,16 @@ class test_extension_1 : public ten::extension_t {
       ten_env.send_cmd(
           std::move(new_cmd),
           [this](ten::ten_env_t &ten_env,
-                 std::unique_ptr<ten::cmd_result_t> result, ten::error_t *err) {
+                 std::unique_ptr<ten::cmd_result_t> cmd_result,
+                 std::unique_ptr<ten::cmd_t> cmd, ten::error_t *err) {
             nlohmann::json json =
-                nlohmann::json::parse(result->get_property_to_json());
+                nlohmann::json::parse(cmd_result->get_property_to_json());
 
-            auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
-            cmd_result->set_property("detail", json.value("detail", ""));
-            ten_env.return_result(std::move(cmd_result),
+            auto cmd_result_for_hello_world =
+                ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
+            cmd_result_for_hello_world->set_property("detail",
+                                                     json.value("detail", ""));
+            ten_env.return_result(std::move(cmd_result_for_hello_world),
                                   std::move(hello_world_cmd));
           });
     }

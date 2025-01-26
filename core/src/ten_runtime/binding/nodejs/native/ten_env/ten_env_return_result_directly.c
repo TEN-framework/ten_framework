@@ -104,9 +104,9 @@ static void tsfn_proxy_return_result_directly_callback(napi_env env,
   ten_nodejs_return_result_directly_callback_call_ctx_destroy(ctx);
 }
 
-static void proxy_return_result_directly_error_callback(ten_env_t *self,
-                                                        void *user_data,
-                                                        ten_error_t *error) {
+static void proxy_return_result_directly_error_callback(
+    ten_env_t *self, ten_shared_ptr_t *c_cmd_result,
+    ten_shared_ptr_t *c_target_cmd, void *user_data, ten_error_t *error) {
   TEN_ASSERT(self && ten_env_check_integrity(self, true), "Should not happen.");
 
   ten_env_notify_return_result_directly_ctx_t *ctx = user_data;
@@ -149,7 +149,7 @@ static void ten_env_proxy_notify_return_result_directly(ten_env_t *ten_env,
       ten_env, ctx->c_cmd_result, proxy_return_result_directly_error_callback,
       ctx, &err);
   if (!rc) {
-    proxy_return_result_directly_error_callback(ten_env, ctx, &err);
+    proxy_return_result_directly_error_callback(ten_env, NULL, NULL, ctx, &err);
   }
 
   ten_error_deinit(&err);

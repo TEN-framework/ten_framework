@@ -59,9 +59,10 @@ class test_extension : public ten::extension_t {
 
         ten_env.send_cmd(
             std::move(cmd),
-            [](ten::ten_env_t &ten_env, std::unique_ptr<ten::cmd_result_t> cmd,
-               ten::error_t *err) {
-              ten_env.return_result_directly(std::move(cmd));
+            [](ten::ten_env_t &ten_env,
+               std::unique_ptr<ten::cmd_result_t> cmd_result,
+               std::unique_ptr<ten::cmd_t> cmd, ten::error_t *err) {
+              ten_env.return_result_directly(std::move(cmd_result));
             });
       }
     }

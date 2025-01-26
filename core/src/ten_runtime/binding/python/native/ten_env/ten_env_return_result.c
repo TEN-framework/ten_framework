@@ -12,6 +12,7 @@
 #include "include_internal/ten_runtime/binding/python/ten_env/ten_env.h"
 #include "ten_runtime/msg/cmd_result/cmd_result.h"
 #include "ten_utils/lib/error.h"
+#include "ten_utils/lib/smart_ptr.h"
 #include "ten_utils/macro/memory.h"
 
 typedef struct ten_env_notify_return_result_ctx_t {
@@ -61,6 +62,8 @@ static void ten_env_notify_return_result_ctx_destroy(
 }
 
 static void proxy_return_result_callback(ten_env_t *ten_env,
+                                         ten_shared_ptr_t *c_cmd_result,
+                                         ten_shared_ptr_t *c_target_cmd,
                                          void *callback_info,
                                          ten_error_t *err) {
   TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),

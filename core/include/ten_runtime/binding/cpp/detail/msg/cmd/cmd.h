@@ -19,6 +19,7 @@ namespace ten {
 
 class extension_t;
 class extension_tester_t;
+class ten_env_t;
 
 class cmd_t : public msg_t {
  private:
@@ -62,6 +63,7 @@ class cmd_t : public msg_t {
  private:
   friend extension_t;
   friend extension_tester_t;
+  friend ten_env_t;
 
   void clone_internal(const cmd_t &cmd) noexcept {
     if (cmd.c_msg != nullptr) {
@@ -69,6 +71,11 @@ class cmd_t : public msg_t {
     } else {
       c_msg = nullptr;
     }
+  }
+
+  static std::unique_ptr<cmd_t> create(ten_shared_ptr_t *cmd,
+                                       error_t *err = nullptr) {
+    return std::make_unique<cmd_t>(cmd, ctor_passkey_t());
   }
 };
 

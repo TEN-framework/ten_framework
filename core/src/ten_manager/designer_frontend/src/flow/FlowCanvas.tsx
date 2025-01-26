@@ -94,6 +94,15 @@ const FlowCanvas = forwardRef<FlowCanvasRef, FlowCanvasProps>(
       });
     };
 
+    const launchLogViewer = () => {
+      appendWidgetIfNotExists({
+        id: `logViewer-${Date.now()}`,
+        category: EWidgetCategory.LogViewer,
+        metadata: { wsUrl: "", baseDir: "", scriptName: "" },
+        display_type: EWidgetDisplayType.Popup,
+      });
+    };
+
     const renderContextMenu = () => {
       if (contextMenu.type === "node" && contextMenu.node) {
         return (
@@ -105,6 +114,7 @@ const FlowCanvas = forwardRef<FlowCanvasRef, FlowCanvasProps>(
             onClose={closeContextMenu}
             onLaunchTerminal={launchTerminal}
             onLaunchEditor={launchEditor}
+            onLaunchLogViewer={launchLogViewer}
           />
         );
       } else if (contextMenu.type === "edge" && contextMenu.edge) {

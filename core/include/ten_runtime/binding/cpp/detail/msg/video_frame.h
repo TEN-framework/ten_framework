@@ -19,6 +19,7 @@
 namespace ten {
 
 class extension_t;
+class ten_env_t;
 
 class video_frame_t : public msg_t {
  private:
@@ -134,6 +135,14 @@ class video_frame_t : public msg_t {
   // message from C message.
   explicit video_frame_t(ten_shared_ptr_t *frame) : msg_t(frame) {}
   // @}
+
+ private:
+  friend ten_env_t;
+
+  static std::unique_ptr<video_frame_t> create(ten_shared_ptr_t *video_frame,
+                                               error_t *err = nullptr) {
+    return std::make_unique<video_frame_t>(video_frame, ctor_passkey_t());
+  }
 };
 
 }  // namespace ten
