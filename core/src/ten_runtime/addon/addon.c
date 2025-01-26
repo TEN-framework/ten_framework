@@ -120,8 +120,6 @@ static ten_string_t *ten_addon_find_base_dir_from_app(const char *addon_type,
     return NULL;
   }
 
-  TEN_LOGE("=-=-= app base_dir 1: %s", ten_string_get_raw_str(base_dir));
-
   ten_string_t *addon_base_dir = ten_string_create_formatted(
       "%s/%s/%s/%s", ten_string_get_raw_str(base_dir), TEN_STR_TEN_PACKAGES,
       addon_type, addon_name);

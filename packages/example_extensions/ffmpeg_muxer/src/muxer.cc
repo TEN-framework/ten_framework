@@ -1128,14 +1128,6 @@ ENCODE_STATUS muxer_t::encode_audio_frame(
 
   AVCodecParameters *encoded_stream_params = audio_stream->codecpar;
 
-  // =-=-=
-  // // Assume no configuration change during the whole process.
-  // TEN_ASSERT(
-  //     ten_audio_frame->get_sample_rate() ==
-  //     encoded_stream_params->sample_rate, "Should not happen %d, %d",
-  //     ten_audio_frame->get_sample_rate(),
-  //     encoded_stream_params->sample_rate);
-
   // Lazy create necessary components (FIFO, frame, resampler)
   if (!allocate_audio_fifo(encoded_stream_params)) {
     return ENCODE_STATUS_ERROR;
