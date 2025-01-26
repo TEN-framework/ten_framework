@@ -108,6 +108,37 @@ const char *ten_addon_type_to_string(TEN_ADDON_TYPE type) {
   }
 }
 
+static ten_string_t *ten_addon_find_base_dir_from_app(const char *addon_type,
+                                                      const char *addon_name) {
+  TEN_ASSERT(
+      addon_type && strlen(addon_type) && addon_name && strlen(addon_name),
+      "Invalid argument.");
+
+  ten_string_t *base_dir = ten_find_app_base_dir();
+  if (!base_dir || ten_string_is_empty(base_dir)) {
+    TEN_ASSERT(0, "Failed to find base_dir of the current TEN app.");
+    return NULL;
+  }
+
+  TEN_LOGE("=-=-= app base_dir 1: %s", ten_string_get_raw_str(base_dir));
+
+  ten_string_t *addon_base_dir = ten_string_create_formatted(
+      "%s/%s/%s/%s", ten_string_get_raw_str(base_dir), TEN_STR_TEN_PACKAGES,
+      addon_type, addon_name);
+
+  ten_string_destroy(base_dir);
+
+  ten_path_to_system_flavor(addon_base_dir);
+
+  if (!ten_path_exists(ten_string_get_raw_str(addon_base_dir))) {
+    // Clear the `base_dir` to avoid users to use an invalid path.
+    ten_string_destroy(addon_base_dir);
+    addon_base_dir = NULL;
+  }
+
+  return addon_base_dir;
+}
+
 /**
  * @brief The registration flow of an addon is as follows.
  *
@@ -132,13 +163,24 @@ static void ten_addon_register_internal(ten_addon_store_t *addon_store,
 
   ten_string_set_formatted(&addon_host->name, "%s", name);
 
-  // In some special cases, such as built-in addons, their logic does not
-  // require a base directory at all, so `NULL` might be passed as the base_dir
-  // parameter value.
   if (base_dir) {
-    TEN_LOGD("Addon %s base_dir: %s", name, base_dir);
-    ten_addon_host_find_and_set_base_dir(addon_host, base_dir);
+    if (!strcmp(base_dir, TEN_STR_ADDON_BASE_DIR_FIND_FROM_APP_BASE_DIR)) {
+      ten_string_t *found_base_dir = ten_addon_find_base_dir_from_app(
+          ten_addon_type_to_string(addon_host->type), name);
+      TEN_ASSERT(found_base_dir, "Failed to find the base_dir of addon.");
+
+      ten_string_copy(&addon_host->base_dir, found_base_dir);
+
+      ten_string_destroy(found_base_dir);
+    } else {
+      // In some special cases, such as built-in addons, their logic does not
+      // require a base directory at all, so `NULL` might be passed as the
+      // base_dir parameter value.
+      TEN_LOGD("Addon %s base_dir: %s", name, base_dir);
+      ten_addon_host_find_and_set_base_dir(addon_host, base_dir);
+    }
   }
+
   TEN_LOGI("Register addon: %s as %s", name,
            ten_addon_type_to_string(addon_host->type));
 

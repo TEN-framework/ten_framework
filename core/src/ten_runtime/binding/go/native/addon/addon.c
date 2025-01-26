@@ -16,6 +16,7 @@
 #include "include_internal/ten_runtime/binding/go/extension/extension.h"
 #include "include_internal/ten_runtime/binding/go/internal/common.h"
 #include "include_internal/ten_runtime/binding/go/ten_env/ten_env.h"
+#include "include_internal/ten_runtime/common/constant_str.h"
 #include "include_internal/ten_runtime/extension/extension.h"
 #include "include_internal/ten_runtime/extension_group/extension_group.h"
 #include "include_internal/ten_runtime/ten_env/ten_env.h"
@@ -213,10 +214,11 @@ static void ten_go_addon_destroy_instance_helper(ten_addon_t *addon,
   ten_env_on_destroy_instance_done(ten_env, context, NULL);
 }
 
-static ten_go_addon_t *ten_go_addon_register(
-    const void *addon_name, int addon_name_len, const void *base_dir,
-    int base_dir_len, uintptr_t go_addon, TEN_ADDON_TYPE addon_type,
-    void *register_ctx) {
+static ten_go_addon_t *ten_go_addon_register(const void *addon_name,
+                                             int addon_name_len,
+                                             uintptr_t go_addon,
+                                             TEN_ADDON_TYPE addon_type,
+                                             void *register_ctx) {
   TEN_ASSERT(addon_name && addon_name_len > 0, "Invalid argument.");
 
   ten_go_addon_t *addon_bridge =
@@ -259,14 +261,22 @@ static ten_go_addon_t *ten_go_addon_register(
   ten_binding_handle_set_me_in_target_lang(
       (ten_binding_handle_t *)&addon_bridge->c_addon, addon_bridge);
 
-  ten_string_t base_dir_str;
-  ten_string_init_from_c_str_with_size(&base_dir_str, base_dir, base_dir_len);
-
   switch (addon_type) {
     case TEN_ADDON_TYPE_EXTENSION:
+      // The Go addon is not dynamically loaded; it is statically compiled
+      // directly into the Go app. As a result, the base_dir captured by the Go
+      // code in the addon during compilation reflects the base_dir at the time
+      // of compilation, which may not correspond to a path under
+      // `ten_packages/`. Therefore, the Go addon does not have the capability
+      // to specify the base_dir via its own code. Instead, it relies on the C
+      // runtime at runtime to first locate the app's base_dir and then
+      // determine the correct runtime base_dir for the Go addon by combining
+      // the path `ten_packages/<addon_type>/<addon_name>`. This behavior is
+      // represented by specifying a special string,
+      // `TEN_STR_ADDON_BASE_DIR_FIND_FROM_APP_BASE_DIR`.
       ten_addon_register_extension(
           ten_string_get_raw_str(&addon_bridge->addon_name),
-          ten_string_get_raw_str(&base_dir_str), &addon_bridge->c_addon,
+          TEN_STR_ADDON_BASE_DIR_FIND_FROM_APP_BASE_DIR, &addon_bridge->c_addon,
           register_ctx);
       break;
 
@@ -275,15 +285,14 @@ static ten_go_addon_t *ten_go_addon_register(
       break;
   }
 
-  ten_string_deinit(&base_dir_str);
-
   return addon_bridge;
 }
 
-ten_go_error_t ten_go_addon_register_extension(
-    const void *addon_name, int addon_name_len, const void *base_dir,
-    int base_dir_len, uintptr_t go_addon, uintptr_t *register_ctx,
-    uintptr_t *bridge_addr) {
+ten_go_error_t ten_go_addon_register_extension(const void *addon_name,
+                                               int addon_name_len,
+                                               uintptr_t go_addon,
+                                               uintptr_t *register_ctx,
+                                               uintptr_t *bridge_addr) {
   TEN_ASSERT(addon_name && addon_name_len > 0 && go_addon && bridge_addr,
              "Invalid argument.");
 
@@ -291,8 +300,8 @@ ten_go_error_t ten_go_addon_register_extension(
   ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
 
   ten_go_addon_t *addon_bridge =
-      ten_go_addon_register(addon_name, addon_name_len, base_dir, base_dir_len,
-                            go_addon, TEN_ADDON_TYPE_EXTENSION, register_ctx);
+      ten_go_addon_register(addon_name, addon_name_len, go_addon,
+                            TEN_ADDON_TYPE_EXTENSION, register_ctx);
 
   *bridge_addr = (uintptr_t)addon_bridge;
 

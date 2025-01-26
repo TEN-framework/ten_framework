@@ -773,12 +773,12 @@
       "name": "app (golang) (lldb, launch)",
       "type": "lldb",
       "request": "launch",
-      "program": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/go/close_app_cmd_go/close_app_cmd_go_app/bin/main",
-      "cwd": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/go/close_app_cmd_go/close_app_cmd_go_app/",
+      "program": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/go/access_property_go/access_property_go_app/bin/main",
+      "cwd": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/go/access_property_go/access_property_go_app/",
       "env": {
-        "LD_LIBRARY_PATH": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/go/close_app_cmd_go/close_app_cmd_go_app/ten_packages/system/ten_runtime/lib:${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/go/close_app_cmd_go/close_app_cmd_go_app/ten_packages/system/ten_runtime_go/lib:${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/go/close_app_cmd_go/close_app_cmd_go_app/ten_packages/system/ten_runtime_go/lib",
-        "DYLD_LIBRARY_PATH": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/go/close_app_cmd_go/close_app_cmd_goo_app/lib",
-        "CGO_LDFLAGS": "-L${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/go/close_app_cmd_go/close_app_cmd_go_app/ten_packages/system/ten_runtime_go/lib -lten_runtime_go -Wl,-rpath,@loader_path/lib -Wl,-rpath,@loader_path/../lib",
+        "LD_LIBRARY_PATH": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/go/access_property_go/access_property_go_app/ten_packages/system/ten_runtime/lib:${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/go/access_property_go/access_property_go_app/ten_packages/system/ten_runtime_go/lib:${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/go/access_property_go/access_property_go_app/ten_packages/system/ten_runtime_go/lib",
+        "DYLD_LIBRARY_PATH": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/go/access_property_go/access_property_go_app/lib",
+        "CGO_LDFLAGS": "-L${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/go/access_property_go/access_property_go_app/ten_packages/system/ten_runtime_go/lib -lten_runtime_go -Wl,-rpath,@loader_path/lib -Wl,-rpath,@loader_path/../lib",
         "TEN_ENABLE_PYTHON_DEBUG": "true",
       },
       "initCommands": [

@@ -12,8 +12,6 @@ import "C"
 
 import (
 	"fmt"
-	"path/filepath"
-	"runtime"
 	"sync"
 	"unsafe"
 )
@@ -45,21 +43,6 @@ func (am *AddonManager) RegisterAddonAsExtension(
 		)
 	}
 
-	_, file, _, ok := runtime.Caller(1)
-	if !ok {
-		return newTenError(ErrorCodeGeneric, "Failed to get the caller information")
-	}
-
-	baseDir := filepath.Dir(file)
-
-	absBaseDir, err := filepath.Abs(baseDir)
-	if err != nil {
-		return newTenError(
-			ErrorCodeGeneric,
-			fmt.Sprintf("Failed to get the absolute file path: %v", err),
-		)
-	}
-
 	// Define the registration function that will be stored in the registry.
 	registerHandler := func(registerCtx interface{}) error {
 		addonWrapper := &addon{
@@ -72,8 +55,6 @@ func (am *AddonManager) RegisterAddonAsExtension(
 		cgo_error := C.ten_go_addon_register_extension(
 			unsafe.Pointer(unsafe.StringData(addonName)),
 			C.int(len(addonName)),
-			unsafe.Pointer(unsafe.StringData(absBaseDir)),
-			C.int(len(absBaseDir)),
 			cHandle(addonID),
 			// In the current use of the TEN framework's GO environment, there
 			// is no need to pass any `register_ctx` object into the register
