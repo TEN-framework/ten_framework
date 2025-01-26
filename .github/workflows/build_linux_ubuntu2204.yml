@@ -105,25 +105,24 @@ jobs:
           df -h .
           tree -I 'gen|obj' out
 
+      - name: Update supports before upload or publish
+        if: matrix.arch == 'x64'
+        run: |
+          UPDATE_SUPPORTS_SCRIPT=$(pwd)/tools/supports/update_supports_in_manifest_json.py
 
-          - name: Update supports before upload or publish
-          if: matrix.arch == 'x64'
-          run: |
-            UPDATE_SUPPORTS_SCRIPT=$(pwd)/tools/supports/update_supports_in_manifest_json.py
+          cd out/linux/x64/ten_packages
+          ARRAY=(
+            "system/ten_runtime"
+            "system/ten_runtime_go"
+            "system/ten_runtime_python"
+            "addon_loader/python_addon_loader"
+          )
 
-            cd out/linux/x64/ten_packages
-            ARRAY=(
-              "system/ten_runtime"
-              "system/ten_runtime_go"
-              "system/ten_runtime_python"
-              "addon_loader/python_addon_loader"
-            )
-
-            for item in "${ARRAY[@]}"; do
-              python3 ${UPDATE_SUPPORTS_SCRIPT} --os-arch-pairs linux:x64 --input-file ${item}/manifest.json --output-file ${item}/manifest.json --log-level 1
-              cat ${item}/manifest.json
-            done
-          shell: bash
+          for item in "${ARRAY[@]}"; do
+            python3 ${UPDATE_SUPPORTS_SCRIPT} --os-arch-pairs linux:x64 --input-file ${item}/manifest.json --output-file ${item}/manifest.json --log-level 1
+            cat ${item}/manifest.json
+          done
+        shell: bash
 
       - name: Upload tman
         if: matrix.arch == 'x64'
