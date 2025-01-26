@@ -174,7 +174,6 @@ ten_value_t *ten_env_peek_property(ten_env_t *self, const char *path,
                                    ten_error_t *err) {
   TEN_ASSERT(self && ten_env_check_integrity(self, true),
              "Invalid use of ten_env %p.", self);
-  TEN_ASSERT(path && strlen(path), "path should not be empty.");
 
   if (ten_env_is_closed(self)) {
     if (err) {
