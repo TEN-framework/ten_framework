@@ -19,11 +19,12 @@ from .video_frame import VideoFrame
 class TenEnvTester: ...  # type: ignore
 
 
-ResultHandler = Optional[
-    Callable[[TenEnvTester, Optional[CmdResult], Optional[TenError]], None]
+ResultHandler = Callable[
+    [TenEnvTester, Optional[CmdResult], Optional[TenError]], None
 ]
 
-ErrorHandler = Optional[Callable[[TenEnvTester, Optional[TenError]], None]]
+
+ErrorHandler = Callable[[TenEnvTester, Optional[TenError]], None]
 
 
 class TenEnvTester(TenEnvTesterBase):
@@ -47,19 +48,27 @@ class TenEnvTester(TenEnvTesterBase):
     def on_stop_done(self) -> None:
         return self._internal.on_stop_done()
 
-    def send_cmd(self, cmd: Cmd, result_handler: ResultHandler) -> None:
+    def send_cmd(
+        self, cmd: Cmd, result_handler: Optional[ResultHandler] = None
+    ) -> None:
         return self._internal.send_cmd(cmd, result_handler)
 
-    def send_data(self, data: Data, error_handler: ErrorHandler = None) -> None:
+    def send_data(
+        self, data: Data, error_handler: Optional[ErrorHandler] = None
+    ) -> None:
         return self._internal.send_data(data, error_handler)
 
     def send_audio_frame(
-        self, audio_frame: AudioFrame, error_handler: ErrorHandler = None
+        self,
+        audio_frame: AudioFrame,
+        error_handler: Optional[ErrorHandler] = None,
     ) -> None:
         return self._internal.send_audio_frame(audio_frame, error_handler)
 
     def send_video_frame(
-        self, video_frame: VideoFrame, error_handler: ErrorHandler = None
+        self,
+        video_frame: VideoFrame,
+        error_handler: Optional[ErrorHandler] = None,
     ) -> None:
         return self._internal.send_video_frame(video_frame, error_handler)
 
@@ -67,7 +76,7 @@ class TenEnvTester(TenEnvTesterBase):
         self,
         cmd_result: CmdResult,
         target_cmd: Cmd,
-        error_handler: ErrorHandler = None,
+        error_handler: Optional[ErrorHandler] = None,
     ) -> None:
         return self._internal.return_result(
             cmd_result, target_cmd, error_handler
