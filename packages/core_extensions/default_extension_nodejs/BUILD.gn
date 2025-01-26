@@ -12,7 +12,7 @@ ten_package("default_extension_nodejs") {
   package_kind = "extension"
 
   resources = [
-    "BUILD.gn",
+    "BUILD_release.gn=>BUILD.gn",
     "manifest.json",
     "package.json",
     "property.json",
@@ -20,11 +20,14 @@ ten_package("default_extension_nodejs") {
     "tsconfig.json",
   ]
 
-  deps = [ "//core/src/ten_runtime" ]
+  deps = [
+    "//core/src/ten_runtime",
+    "//core/src/ten_runtime/binding/nodejs",
+  ]
 }
 
 if (ten_enable_ten_manager) {
-  ten_package_publish("upload_default_extension_ts_to_server") {
+  ten_package_publish("upload_default_extension_nodejs_to_server") {
     base_dir = rebase_path(
             "${root_out_dir}/ten_packages/extension/default_extension_nodejs")
     deps = [ ":default_extension_nodejs" ]
