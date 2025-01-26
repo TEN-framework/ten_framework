@@ -13,6 +13,7 @@
 #include "include_internal/ten_runtime/msg/cmd_base/cmd_base.h"
 #include "ten_runtime/extension/extension.h"
 #include "ten_runtime/msg/cmd_result/cmd_result.h"
+#include "ten_runtime/ten_env/internal/send.h"
 #include "ten_runtime/ten_env_proxy/ten_env_proxy.h"
 #include "ten_utils/lib/error.h"
 #include "ten_utils/macro/check.h"
@@ -57,12 +58,13 @@ static void ten_env_notify_send_cmd_ctx_destroy(
   TEN_FREE(ctx);
 }
 
-static void proxy_send_xxx_callback(ten_env_t *ten_env,
-                                    ten_shared_ptr_t *cmd_result,
+static void proxy_send_cmd_callback(ten_env_t *ten_env,
+                                    ten_shared_ptr_t *c_cmd_result,
+                                    ten_shared_ptr_t *c_cmd,
                                     void *callback_info, ten_error_t *err) {
   TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
              "Should not happen.");
-  TEN_ASSERT(cmd_result && ten_cmd_base_check_integrity(cmd_result),
+  TEN_ASSERT(c_cmd_result && ten_cmd_base_check_integrity(c_cmd_result),
              "Should not happen.");
   TEN_ASSERT(callback_info, "Should not happen.");
 
@@ -85,7 +87,7 @@ static void proxy_send_xxx_callback(ten_env_t *ten_env,
     arglist = Py_BuildValue("(OOO)", py_ten_env->actual_py_ten_env, Py_None,
                             py_error);
   } else {
-    cmd_result_bridge = ten_py_cmd_result_wrap(cmd_result);
+    cmd_result_bridge = ten_py_cmd_result_wrap(c_cmd_result);
 
     arglist = Py_BuildValue("(OOO)", py_ten_env->actual_py_ten_env,
                             cmd_result_bridge, Py_None);
@@ -99,7 +101,7 @@ static void proxy_send_xxx_callback(ten_env_t *ten_env,
 
   Py_XDECREF(arglist);
 
-  bool is_completed = ten_cmd_result_is_completed(cmd_result, NULL);
+  bool is_completed = ten_cmd_result_is_completed(c_cmd_result, NULL);
   if (is_completed) {
     Py_XDECREF(cb_func);
   }
@@ -125,19 +127,18 @@ static void ten_env_proxy_notify_send_cmd(ten_env_t *ten_env, void *user_data) {
   ten_error_t err;
   ten_error_init(&err);
 
-  ten_env_send_cmd_func_t send_cmd_func = NULL;
+  ten_env_send_cmd_options_t options = TEN_ENV_SEND_CMD_OPTIONS_INIT_VAL;
   if (notify_info->is_ex) {
-    send_cmd_func = ten_env_send_cmd_ex;
-  } else {
-    send_cmd_func = ten_env_send_cmd;
+    options.enable_multiple_results = true;
   }
 
   bool res = false;
   if (notify_info->py_cb_func == NULL) {
-    res = send_cmd_func(ten_env, notify_info->c_cmd, NULL, NULL, &err);
+    res = ten_env_send_cmd(ten_env, notify_info->c_cmd, NULL, NULL, &options,
+                           &err);
   } else {
-    res = send_cmd_func(ten_env, notify_info->c_cmd, proxy_send_xxx_callback,
-                        notify_info->py_cb_func, &err);
+    res = ten_env_send_cmd(ten_env, notify_info->c_cmd, proxy_send_cmd_callback,
+                           notify_info->py_cb_func, &options, &err);
     if (!res) {
       // About to call the Python function, so it's necessary to ensure that the
       // GIL has been acquired.

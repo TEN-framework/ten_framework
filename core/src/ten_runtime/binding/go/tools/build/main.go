@@ -1050,9 +1050,44 @@ func (ab *AppBuilder) autoDetectExtensions() error {
 
 	// Collect names of extensions from dependencies.
 	extensionNames := make(map[string]bool)
+
 	for _, dep := range manifest.Dependencies {
 		if dep.Type == "extension" {
 			extensionNames[dep.Name] = true
+		} else if dep.Path != "" {
+			extPath := path.Join(ab.options.AppDir, dep.Path)
+
+			if !IsDirPresent(extPath) {
+				if ab.options.Verbose {
+					log.Printf("Specified path [%s] does not exist or is not a directory.\n", extPath)
+				}
+				continue
+			}
+
+			// Check if the specified path contains a manifest.json.
+			manifestPath := path.Join(extPath, "manifest.json")
+			if !IsFilePresent(manifestPath) {
+				if ab.options.Verbose {
+					log.Printf("Path [%s] does not contain manifest.json. Skipping.\n", extPath)
+				}
+				continue
+			}
+
+			// Load the manifest.json from the specified path.
+			extManifest, err := LoadManifest(extPath)
+			if err != nil {
+				return fmt.Errorf("Failed to load manifest.json from [%s]: %v", extPath, err)
+			}
+
+			// Check if the type is "extension".
+			if err := extManifest.IsExtension(); err != nil {
+				if ab.options.Verbose {
+					log.Printf("Manifest in [%s] is not of type 'extension': %v. Skipping.\n", extPath, err)
+				}
+				continue
+			}
+
+			extensionNames[extManifest.Name] = true
 		}
 	}
 
@@ -1142,6 +1177,7 @@ type Dependency struct {
 	Type    string `json:"type"`
 	Name    string `json:"name"`
 	Version string `json:"version"`
+	Path    string `json:"path"`
 }
 
 type TenPackageManifest struct {

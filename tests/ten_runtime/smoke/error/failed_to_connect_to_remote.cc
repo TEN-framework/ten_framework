@@ -22,12 +22,13 @@ class test_predefined_graph : public ten::extension_t {
     start_graph_cmd->set_predefined_graph_name("graph_1");
     ten_env.send_cmd(
         std::move(start_graph_cmd),
-        [](ten::ten_env_t &ten_env, std::unique_ptr<ten::cmd_result_t> cmd,
-           ten::error_t *err) {
-          auto status_code = cmd->get_status_code();
+        [](ten::ten_env_t &ten_env,
+           std::unique_ptr<ten::cmd_result_t> cmd_result,
+           std::unique_ptr<ten::cmd_t> cmd, ten::error_t *err) {
+          auto status_code = cmd_result->get_status_code();
           ASSERT_EQ(status_code, TEN_STATUS_CODE_ERROR);
 
-          auto detail = cmd->get_property_string("detail");
+          auto detail = cmd_result->get_property_string("detail");
           ASSERT_EQ(detail, "Failed to connect to msgpack://127.0.0.1:8888/");
 
           // The app will not be closed because it is running in

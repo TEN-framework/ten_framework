@@ -85,16 +85,16 @@ class test_extension : public ten::extension_t {
 
       ten_env.send_cmd(
           std::move(start_graph_cmd),
-          [](ten::ten_env_t &env, std::unique_ptr<ten::cmd_result_t> result,
-             ten::error_t * /*error*/) {
+          [](ten::ten_env_t &env, std::unique_ptr<ten::cmd_result_t> cmd_result,
+             std::unique_ptr<ten::cmd_t> cmd, ten::error_t * /*error*/) {
             // The graph check should be passed.
-            if (result->get_status_code() == TEN_STATUS_CODE_OK) {
+            if (cmd_result->get_status_code() == TEN_STATUS_CODE_OK) {
               auto close_app = ten::cmd_close_app_t::create();
               close_app->set_dest("localhost", nullptr, nullptr, nullptr);
               env.send_cmd(std::move(close_app));
             } else {
               std::cout << "Failed to start graph: "
-                        << result->get_property_string("detail") << "\n";
+                        << cmd_result->get_property_string("detail") << "\n";
 
               // NOLINTNEXTLINE(concurrency-mt-unsafe)
               std::exit(EXIT_FAILURE);

@@ -55,8 +55,8 @@ static void ten_env_notify_send_video_frame_ctx_destroy(
 }
 
 static void proxy_handle_video_frame_error(
-    ten_env_t *ten_env, TEN_UNUSED ten_shared_ptr_t *cmd_result,
-    void *callback_info_, ten_error_t *err) {
+    ten_env_t *ten_env, TEN_UNUSED ten_shared_ptr_t *c_cmd_result,
+    ten_shared_ptr_t *c_video_frame, void *callback_info_, ten_error_t *err) {
   ten_go_callback_ctx_t *callback_info = callback_info_;
   TEN_ASSERT(callback_info, "Should not happen.");
 

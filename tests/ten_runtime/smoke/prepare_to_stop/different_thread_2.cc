@@ -34,8 +34,8 @@ class test_extension_1 : public ten::extension_t {
     auto cmd = ten::cmd_t::create("extension_1_deinit");
     ten_env.send_cmd(std::move(cmd),
                      [=](ten::ten_env_t &ten_env,
-                         std::unique_ptr<ten::cmd_result_t> /*cmd_result*/,
-                         ten::error_t *err) {
+                         std::unique_ptr<ten::cmd_result_t> cmd_result,
+                         std::unique_ptr<ten::cmd_t> cmd, ten::error_t *err) {
                        // Only after receiving the result, we can call
                        // `on_deinit_done`.
                        ten_env.on_deinit_done();
@@ -55,8 +55,8 @@ class test_extension_2 : public ten::extension_t {
       cmd_result->set_property("detail", "hello world, too");
       ten_env.return_result(std::move(cmd_result), std::move(cmd));
     } else if (cmd->get_name() == "extension_1_deinit") {
-      // To ensure that extension 1 will be on_deinit_done() after the extension 2
-      // completes its job.
+      // To ensure that extension 1 will be on_deinit_done() after the extension
+      // 2 completes its job.
       ten_sleep(500);
 
       check = 2;
