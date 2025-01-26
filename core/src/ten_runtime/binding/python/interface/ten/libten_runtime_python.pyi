@@ -177,20 +177,25 @@ class _TenEnv:
         self, json_str: str, callback: Callable[[Optional[TenError]], None]
     ) -> None: ...
     def send_cmd(
-        self, cmd: _Cmd, result_handler: ResultHandler, is_ex: bool
+        self, cmd: _Cmd, result_handler: Optional[ResultHandler], is_ex: bool
     ) -> None: ...
-    def send_data(self, data: _Data, error_handler: ErrorHandler) -> None: ...
+    def send_data(
+        self, data: _Data, error_handler: Optional[ErrorHandler]
+    ) -> None: ...
     def send_video_frame(
-        self, video_frame: _VideoFrame, error_handler: ErrorHandler
+        self, video_frame: _VideoFrame, error_handler: Optional[ErrorHandler]
     ) -> None: ...
     def send_audio_frame(
-        self, audio_frame: _AudioFrame, error_handler: ErrorHandler
+        self, audio_frame: _AudioFrame, error_handler: Optional[ErrorHandler]
     ) -> None: ...
     def return_result(
-        self, result: _CmdResult, target_cmd: _Cmd, error_handler: ErrorHandler
+        self,
+        result: _CmdResult,
+        target_cmd: _Cmd,
+        error_handler: Optional[ErrorHandler],
     ) -> None: ...
     def return_result_directly(
-        self, result: _CmdResult, error_handler: ErrorHandler
+        self, result: _CmdResult, error_handler: Optional[ErrorHandler]
     ) -> None: ...
     def log(
         self,
@@ -247,22 +252,26 @@ class _TenEnvTester:
     def on_start_done(self) -> None: ...
     def on_stop_done(self) -> None: ...
     def send_cmd(
-        self, cmd: _Cmd, result_handler: TestResultHandler
+        self, cmd: _Cmd, result_handler: Optional[TestResultHandler]
     ) -> None: ...
     def send_data(
-        self, data: _Data, error_handler: TestErrorHandler
+        self, data: _Data, error_handler: Optional[TestErrorHandler]
     ) -> None: ...
     def send_audio_frame(
-        self, audio_frame: _AudioFrame, error_handler: TestErrorHandler
+        self,
+        audio_frame: _AudioFrame,
+        error_handler: Optional[TestErrorHandler],
     ) -> None: ...
     def send_video_frame(
-        self, video_frame: _VideoFrame, error_handler: TestErrorHandler
+        self,
+        video_frame: _VideoFrame,
+        error_handler: Optional[TestErrorHandler],
     ) -> None: ...
     def return_result(
         self,
         result: _CmdResult,
         target_cmd: _Cmd,
-        error_handler: TestErrorHandler,
+        error_handler: Optional[TestErrorHandler],
     ) -> None: ...
     def stop_test(self) -> None: ...
     def log(
