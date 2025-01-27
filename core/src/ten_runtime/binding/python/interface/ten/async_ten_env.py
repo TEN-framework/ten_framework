@@ -152,7 +152,7 @@ class AsyncTenEnv(TenEnvBase):
 
     async def get_property_to_json(self, path: str) -> str:
         q = asyncio.Queue(maxsize=1)
-        self._internal.get_property_string_async(
+        self._internal.get_property_to_json_async(
             path,
             lambda result, error: asyncio.run_coroutine_threadsafe(
                 q.put([result, error]),
