@@ -89,17 +89,17 @@ jobs:
           go env -w GOFLAGS="-buildvcs=false"
           cargo install --force cbindgen
 
-      - name: Install dependencies
-        run: |
-          # Install Homebrew if not already installed.
-          if ! command -v brew &> /dev/null; then
-            echo "Installing Homebrew..."
-            /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-          fi
+      # - name: Install dependencies
+      #   run: |
+      #     # Install Homebrew if not already installed.
+      #     if ! command -v brew &> /dev/null; then
+      #       echo "Installing Homebrew..."
+      #       /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+      #     fi
 
-          # Update Homebrew and install x264 used by ffmpeg.
-          brew update
-          brew install x264
+      #     # Update Homebrew and install x264 used by ffmpeg.
+      #     brew update
+      #     brew install x264
 
       - name: Build
         run: |
@@ -111,7 +111,7 @@ jobs:
 
           df -h .
 
-          tgn gen mac arm64 ${{ matrix.build_type }} -- log_level=1 enable_serialized_actions=true ten_enable_serialized_rust_action=true ten_rust_enable_gen_cargo_config=false ten_enable_cargo_clean=true ten_enable_python_binding=false ten_enable_rust_incremental_build=false ten_manager_enable_frontend=false ten_enable_integration_tests_prebuilt=false ten_enable_nodejs_binding=false ten_enable_ffmpeg_extensions=true
+          tgn gen mac arm64 ${{ matrix.build_type }} -- log_level=1 enable_serialized_actions=true ten_enable_serialized_rust_action=true ten_rust_enable_gen_cargo_config=false ten_enable_cargo_clean=true ten_enable_python_binding=false ten_enable_rust_incremental_build=false ten_manager_enable_frontend=false ten_enable_integration_tests_prebuilt=false ten_enable_nodejs_binding=false
 
           tgn build mac arm64 ${{ matrix.build_type }}
 
