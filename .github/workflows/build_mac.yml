@@ -97,7 +97,7 @@ jobs:
             /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
           fi
 
-          # Update Homebrew and install x264.
+          # Update Homebrew and install x264 used by ffmpeg.
           brew update
           brew install x264
 
