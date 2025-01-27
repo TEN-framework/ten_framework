@@ -344,6 +344,9 @@ template("ten_package_test_prepare_app") {
         invoker.generated_app_src_root_dir_name,
       ]
 
+      sources = []
+      outputs = []
+
       if (defined(invoker.replace_paths_after_install_app) &&
           invoker.replace_paths_after_install_app != []) {
         foreach(replace_path, invoker.replace_paths_after_install_app) {
@@ -351,6 +354,9 @@ template("ten_package_test_prepare_app") {
             "--replace-paths-after-install-app",
             replace_path,
           ]
+
+          sources += [ replace_path ]
+          outputs += [ "${test_case_out_dir_rel_path}/.assemble_info/${invoker.generated_app_src_root_dir_name}/files_to_be_replaced_after_install_app/${replace_path}" ]
         }
       }
 
@@ -361,11 +367,11 @@ template("ten_package_test_prepare_app") {
             "--replace-paths-after-install-all",
             replace_path,
           ]
+
+          sources += [ replace_path ]
+          outputs += [ "${test_case_out_dir_rel_path}/.assemble_info/${invoker.generated_app_src_root_dir_name}/files_to_be_replaced_after_install_all/${replace_path}" ]
         }
       }
-
-      sources = []
-      outputs = [ "${test_case_out_dir_rel_path}/.assemble_info/${invoker.generated_app_src_root_dir_name}" ]
 
       deps = invoker.deps
     }
