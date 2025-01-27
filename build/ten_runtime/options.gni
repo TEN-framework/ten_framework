@@ -32,16 +32,7 @@ declare_args() {
   ten_enable_example_packages = true
 
   # If set, build native ffmpeg relevant extension and app
-  #
-  # ffmpeg has continuously made modifications, and those modifications might
-  # not be backward compatible. In order to simplified the coding and the CI
-  # environments, we embed a ffmpeg source codes in the TEN framework source
-  # tree, and build it by ourselves. This embedded ffmpeg can be built on clang
-  # and gcc, debug or release. To minimize the CI resource consumption, and
-  # increase the CI efficiency, we just enable the building of the ffmpeg
-  # relevant modules in a restricted combination.
-  ten_enable_ffmpeg_extensions =
-      is_linux && is_debug && is_clang && target_cpu == "x64"
+  ten_enable_ffmpeg_extensions = false
 }
 
 declare_args() {
