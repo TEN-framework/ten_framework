@@ -46,10 +46,10 @@ class test_extension : public ten::extension_t {
       EXPECT_EQ(uint16_prop_value, PROP_VAL);
 
       auto uint32_prop_value = ten_env.get_property_uint32("app:" PROP_NAME);
-      EXPECT_EQ(uint32_prop_value, PROP_VAL);
+      EXPECT_EQ(uint32_prop_value, static_cast<uint32_t>(PROP_VAL));
 
       auto uint64_prop_value = ten_env.get_property_uint64("app:" PROP_NAME);
-      EXPECT_EQ(uint64_prop_value, PROP_VAL);
+      EXPECT_EQ(uint64_prop_value, static_cast<uint64_t>(PROP_VAL));
 
       auto float32_prop_value = ten_env.get_property_float32("app:" PROP_NAME);
       EXPECT_EQ(float32_prop_value, 0.0);
