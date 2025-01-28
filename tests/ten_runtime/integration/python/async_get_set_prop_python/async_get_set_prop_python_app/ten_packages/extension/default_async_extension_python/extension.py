@@ -45,7 +45,7 @@ class DefaultAsyncExtension(AsyncExtension):
         assert string_field == "hello"
 
         json_field = await ten_env.get_property_to_json("json_field")
-        assert json_field == '"testValue2"'
+        assert json_field == '"\\"testValue2\\""'
 
         error_occurred = False
 
