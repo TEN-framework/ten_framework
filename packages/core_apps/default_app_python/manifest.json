@@ -13,5 +13,8 @@
       "name": "ten_runtime_python",
       "version": "0.8.5"
     }
-  ]
+  ],
+  "scripts": {
+    "start": "bin/bootstrap_and_start"
+  }
 }

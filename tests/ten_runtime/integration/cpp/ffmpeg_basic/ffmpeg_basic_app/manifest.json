@@ -28,5 +28,8 @@
       "name": "msgpack",
       "version": "0.8.5"
     }
-  ]
+  ],
+  "scripts": {
+    "start": "bin/ffmpeg_basic_app"
+  }
 }

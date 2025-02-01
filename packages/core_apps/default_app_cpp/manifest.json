@@ -8,5 +8,8 @@
       "name": "ten_runtime",
       "version": "0.8.5"
     }
-  ]
+  ],
+  "scripts": {
+    "start": "bin/default_app_cpp"
+  }
 }
