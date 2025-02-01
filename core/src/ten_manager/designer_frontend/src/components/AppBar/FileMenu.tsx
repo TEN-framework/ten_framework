@@ -6,7 +6,7 @@
 //
 import * as React from "react";
 import { toast } from "sonner";
-import { FolderOpenIcon } from "lucide-react";
+import { FolderOpenIcon, CogIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import Popup from "@/components/Popup/Popup";
@@ -29,6 +29,8 @@ import { useDirList, getBaseDir } from "@/api/services/fileSystem";
 import { useWidgetStore } from "@/store/widget";
 import { EWidgetCategory, EWidgetDisplayType } from "@/types/widgets";
 import { PlayIcon } from "lucide-react";
+import { Input } from "@/components/ui/Input";
+import { TEN_DEFAULT_APP_RUN_SCRIPT } from "@/constants";
 
 interface FileMenuProps {
   defaultBaseDir?: string;
@@ -44,6 +46,12 @@ export function FileMenu(props: FileMenuProps) {
   const [folderPath, setFolderPath] = React.useState<string>(defaultBaseDir);
   const [fmItems, setFmItems] = React.useState<IFMItem[][]>([]);
 
+  const [isPreferencesModalOpen, setIsPreferencesModalOpen] =
+    React.useState<boolean>(false);
+  const [defaultRunScript, setDefaultRunScript] = React.useState<string>(
+    TEN_DEFAULT_APP_RUN_SCRIPT
+  );
+
   const { data, error, isLoading } = useDirList(folderPath);
 
   const { appendWidgetIfNotExists } = useWidgetStore();
@@ -58,7 +66,7 @@ export function FileMenu(props: FileMenuProps) {
         return;
       }
 
-      const scriptName = "start";
+      const scriptName = defaultRunScript;
 
       appendWidgetIfNotExists({
         id: "run-app-" + Date.now(),
@@ -138,6 +146,16 @@ export function FileMenu(props: FileMenuProps) {
               {t("header.menu.run")}
             </Button>
           </NavigationMenuLink>
+          <NavigationMenuLink asChild>
+            <Button
+              className="w-full justify-start"
+              variant="ghost"
+              onClick={() => setIsPreferencesModalOpen(true)}
+            >
+              <CogIcon className="w-4 h-4 me-2" />
+              {t("header.menu.preferences")}
+            </Button>
+          </NavigationMenuLink>
         </NavigationMenuContent>
       </NavigationMenuItem>
       {isFolderPathModalOpen && (
@@ -166,6 +184,39 @@ export function FileMenu(props: FileMenuProps) {
                 {t("action.cancel")}
               </Button>
               <Button onClick={handleManualOk}>{t("action.ok")}</Button>
+            </div>
+          </div>
+        </Popup>
+      )}
+      {isPreferencesModalOpen && (
+        <Popup
+          title={t("header.menu.preferences")}
+          onClose={() => setIsPreferencesModalOpen(false)}
+          resizable={false}
+          initialWidth={400}
+          initialHeight={200}
+          onCollapseToggle={() => {}}
+        >
+          <div className="flex flex-col gap-2">
+            <label htmlFor="defaultRunScript">
+              {t("Default label for app run")}{" "}
+            </label>
+            <Input
+              id="defaultRunScript"
+              type="text"
+              value={defaultRunScript}
+              onChange={(e) => setDefaultRunScript(e.target.value)}
+            />
+            <div className="flex justify-end gap-2">
+              <Button
+                variant="outline"
+                onClick={() => setIsPreferencesModalOpen(false)}
+              >
+                {t("action.cancel")}
+              </Button>
+              <Button onClick={() => setIsPreferencesModalOpen(false)}>
+                {t("action.ok")}
+              </Button>
             </div>
           </div>
         </Popup>
