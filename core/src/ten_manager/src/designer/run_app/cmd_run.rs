@@ -111,6 +111,7 @@ impl WsRunApp {
         let child = match Command::new("sh")
             .arg("-c")
             .arg(&script_cmd)
+            .env("TEN_LOG_FORMATTER", "default")
             .stdout(Stdio::piped())
             .stderr(Stdio::piped())
             .spawn()
