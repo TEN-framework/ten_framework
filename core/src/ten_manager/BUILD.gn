@@ -91,6 +91,36 @@ if (ten_enable_ten_manager) {
     action("build_designer_frontend") {
       script = "//build/ten_manager/scripts/build_frontend.py"
 
+      frontend_files = exec_script(
+              "//.gnfiles/build/scripts/glob_file.py",
+              [
+                "--dir",
+                rebase_path(
+                    "//core/src/ten_manager/designer_frontend/src/**/*.tsx"),
+                "--dir",
+                rebase_path(
+                    "//core/src/ten_manager/designer_frontend/src/**/*.ts"),
+                "--dir",
+                rebase_path(
+                    "//core/src/ten_manager/designer_frontend/src/**/*.css"),
+                "--dir",
+                rebase_path("//core/src/ten_manager/designer_frontend/*.json"),
+                "--dir",
+                rebase_path("//core/src/ten_manager/designer_frontend/*.js"),
+                "--dir",
+                rebase_path("//core/src/ten_manager/designer_frontend/*.ts"),
+                "--dir",
+                rebase_path(
+                    "//core/src/ten_manager/designer_frontend/index.html"),
+                "--recursive",
+              ],
+              "json")
+
+      sources = []
+      foreach(frontend_file, frontend_files) {
+        sources += [ frontend_file.path ]
+      }
+
       args = [
         "--dir",
         rebase_path("//core/src/ten_manager/designer_frontend"),
