@@ -21,5 +21,8 @@
       "tests/bin/start"
     ]
   },
-  "api": {}
+  "api": {},
+  "scripts": {
+    "test": "tests/bin/start"
+  }
 }

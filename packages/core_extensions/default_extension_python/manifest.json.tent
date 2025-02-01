@@ -17,5 +17,8 @@
       "README.md"
     ]
   },
-  "api": {}
+  "api": {},
+  "scripts": {
+    "test": "tests/bin/start"
+  }
 }

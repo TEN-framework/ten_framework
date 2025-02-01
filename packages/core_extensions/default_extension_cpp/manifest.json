@@ -14,5 +14,8 @@
       "**"
     ]
   },
-  "api": {}
+  "api": {},
+  "scripts": {
+    "test": "bin/default_extension_cpp_test"
+  }
 }
