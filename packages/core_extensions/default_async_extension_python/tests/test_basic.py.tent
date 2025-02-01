@@ -50,5 +50,5 @@ class ExtensionTesterBasic(ExtensionTester):
 
 def test_basic():
     tester = ExtensionTesterBasic()
-    tester.set_test_mode_single("default_async_extension_python")
+    tester.set_test_mode_single("{{package_name}}")
     tester.run()
