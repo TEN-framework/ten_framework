@@ -108,7 +108,6 @@ static void ten_extension_thread_handle_in_msg_sync(
   }
 }
 
-// =-=-=
 static void ten_extension_thread_handle_in_msg_task(void *self_, void *arg) {
   ten_extension_thread_t *self = (ten_extension_thread_t *)self_;
   TEN_ASSERT(self, "Invalid argument.");
@@ -119,9 +118,12 @@ static void ten_extension_thread_handle_in_msg_task(void *self_, void *arg) {
   TEN_ASSERT(msg && ten_msg_check_integrity(msg), "Invalid argument.");
   TEN_ASSERT(ten_msg_get_dest_cnt(msg) == 1, "Should not happen.");
 
+#if false
   // =-=-=
   int64_t timestamp = ten_msg_get_timestamp(msg);
-  ten_metric_gauge_set(metric_counter, (double)timestamp);
+  ten_metric_gauge_set(metric_counter,
+                       (double)(ten_current_time_ms() - timestamp));
+#endif
 
   switch (ten_extension_thread_get_state(self)) {
     case TEN_EXTENSION_THREAD_STATE_INIT:
@@ -238,8 +240,10 @@ void ten_extension_thread_handle_in_msg_async(ten_extension_thread_t *self,
 
   msg = ten_shared_ptr_clone(msg);
 
+#if false
   // =-=-=
   ten_msg_set_timestamp(msg, ten_current_time_ms());
+#endif
 
   int rc = ten_runloop_post_task_tail(
       self->runloop, ten_extension_thread_handle_in_msg_task, self, msg);
