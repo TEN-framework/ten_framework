@@ -340,7 +340,7 @@ ten_go_error_t ten_go_audio_frame_alloc_buf(uintptr_t bridge_addr, int size) {
   uint8_t *data = ten_audio_frame_alloc_buf(c_audio_frame, size);
   if (!data) {
     ten_go_error_set(&cgo_error, TEN_ERROR_CODE_GENERIC,
-                     "failed to allocate memory");
+                     "Failed to allocate memory");
   }
 
   return cgo_error;

@@ -20,15 +20,10 @@ func (p *defaultApp) OnDeinit(tenEnv ten.TenEnv) {
 
 	value, _ := tenEnv.GetPropertyString("key")
 	if value != "value" {
-		panic("failed to get property.")
+		panic("Failed to get property.")
 	}
 
 	tenEnv.OnDeinitDone()
-}
-
-func (p *defaultApp) OnConfigure(tenEnv ten.TenEnv) {
-	tenEnv.InitPropertyFromJSONBytes([]byte("{\"key\":\"value\"}"))
-	tenEnv.OnConfigureDone()
 }
 
 func appRoutine(app ten.App, stopped chan<- struct{}) {
@@ -40,7 +35,7 @@ func main() {
 	// test app
 	app, err := ten.NewApp(&defaultApp{})
 	if err != nil {
-		fmt.Println("failed to create app.")
+		fmt.Println("Failed to create app.")
 	}
 
 	stopped := make(chan struct{}, 1)

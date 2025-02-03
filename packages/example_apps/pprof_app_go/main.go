@@ -59,7 +59,7 @@ func (p *defaultApp) OnInit(
 			fmt.Println("heapTimeInterval:", interval)
 
 			if os.MkdirAll(heapDumpDir+"/go", 0755) != nil {
-				fmt.Println("failed to create heapDumpDir")
+				fmt.Println("Failed to create heapDumpDir")
 			}
 
 			heapDumpDir = heapDumpDir + "/go"
@@ -112,7 +112,7 @@ func main() {
 	// test app
 	appInstance, err := ten.NewApp(new())
 	if err != nil {
-		fmt.Println("failed to create app.")
+		fmt.Println("Failed to create app.")
 	}
 
 	appInstance.Run(true)
