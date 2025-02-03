@@ -14,7 +14,6 @@
 #include "ten_utils/lib/alloc.h"
 #include "ten_utils/lib/signature.h"
 #include "ten_utils/lib/thread.h"
-#include "ten_utils/log/log.h"
 
 typedef struct ten_mutex_t {
   ten_signature_t signature;
