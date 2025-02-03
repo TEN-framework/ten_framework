@@ -35,7 +35,7 @@
 #if defined(TEN_ENABLE_TEN_RUST_APIS)
 #include "include_internal/ten_rust/ten_rust.h"
 
-extern MetricSystem *metric_system;
+extern MetricHandle *metric_counter;
 #endif
 
 void ten_extension_thread_handle_start_msg_task(void *self_,
@@ -121,7 +121,7 @@ static void ten_extension_thread_handle_in_msg_task(void *self_, void *arg) {
 
   // =-=-=
   int64_t timestamp = ten_msg_get_timestamp(msg);
-  ten_metric_gauge_set(metric_system, timestamp);
+  ten_metric_gauge_set(metric_counter, (double)timestamp);
 
   switch (ten_extension_thread_get_state(self)) {
     case TEN_EXTENSION_THREAD_STATE_INIT:

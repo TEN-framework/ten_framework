@@ -118,15 +118,19 @@ ten_extension_thread_t *ten_extension_thread_create(void) {
 
 #if defined(TEN_ENABLE_TEN_RUST_APIS)
   // =-=-=
-  const char *url = "127.0.0.1:49484";
-  const char *path = "/metrics";
-  metric_system = ten_metric_system_create(url, path);
-  TEN_ASSERT(metric_system, "Should not happen.");
+  if (!metric_system) {
+    const char *url = "127.0.0.1:49484";
+    const char *path = "/metrics";
+    metric_system = ten_metric_system_create(url, path);
+    TEN_ASSERT(metric_system, "Should not happen.");
+  }
 
-  // 創建一個 Counter 類型的 metric (無標簽)
-  metric_counter = ten_metric_create(metric_system, 1, "my_counter",
-                                     "A simple counter", NULL, 0);
-  TEN_ASSERT(metric_counter, "Should not happen.");
+  if (!metric_counter) {
+    // 創建一個 Counter 類型的 metric (無標簽)
+    metric_counter = ten_metric_create(metric_system, 1, "my_counter",
+                                       "A simple counter", NULL, 0);
+    TEN_ASSERT(metric_counter, "Should not happen.");
+  }
 #endif
 
   return self;
