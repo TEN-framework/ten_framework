@@ -19,7 +19,7 @@
 
 #if defined(TEN_ENABLE_TEN_RUST_APIS)
 
-static MetricHandle *ten_extension_thread_get_msg_queue_stay_time(
+static MetricHandle *ten_extension_thread_get_metric_msg_queue_stay_time_us(
     ten_extension_thread_t *self) {
   TEN_ASSERT(self && ten_extension_thread_check_integrity(self, true),
              "Invalid argument.");
@@ -36,7 +36,7 @@ static MetricHandle *ten_extension_thread_get_msg_queue_stay_time(
   ten_app_t *app = engine->app;
   TEN_ASSERT(app && ten_app_check_integrity(app, false), "Should not happen.");
 
-  return app->msg_queue_stay_time_us;
+  return app->metric_msg_queue_stay_time_us;
 }
 
 void ten_extension_thread_record_msg_queue_stay_time(
@@ -47,7 +47,7 @@ void ten_extension_thread_record_msg_queue_stay_time(
 
   int64_t duration_us = ten_current_time_us() - timestamp;
   MetricHandle *msg_queue_stay_time =
-      ten_extension_thread_get_msg_queue_stay_time(self);
+      ten_extension_thread_get_metric_msg_queue_stay_time_us(self);
   if (msg_queue_stay_time) {
     ten_metric_gauge_set(msg_queue_stay_time, (double)duration_us);
   }

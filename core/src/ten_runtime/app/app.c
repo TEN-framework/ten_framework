@@ -135,7 +135,7 @@ ten_app_t *ten_app_create(ten_app_on_configure_func_t on_configure,
 
 #if defined(TEN_ENABLE_TEN_RUST_APIS)
   self->telemetry_system = NULL;
-  self->msg_queue_stay_time_us = NULL;
+  self->metric_msg_queue_stay_time_us = NULL;
 #endif
 
   self->user_data = NULL;
