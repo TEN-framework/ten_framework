@@ -78,7 +78,7 @@ class test_extension_1 : public ten::extension_t {
         }
       }
 
-      ten_sleep(100);
+      ten_sleep_ms(100);
     }
 
     delete ten_env_proxy;

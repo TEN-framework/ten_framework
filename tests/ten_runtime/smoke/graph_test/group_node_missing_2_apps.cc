@@ -189,7 +189,7 @@ TEST(GraphTest, GroupNodeMissing2Apps) {  // NOLINT
         client.reset();
 
         // To prevent from busy re-trying.
-        ten_sleep(10);
+        ten_sleep_ms(10);
       }
     }
 

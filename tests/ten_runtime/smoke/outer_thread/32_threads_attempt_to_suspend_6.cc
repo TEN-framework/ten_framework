@@ -56,16 +56,16 @@ class test_extension_1 : public ten::extension_t {
       if (!outer_thread_##X##_towards_to_close) {                            \
         (*test_data)++;                                                      \
                                                                              \
-        ten_random_sleep(8);                                                 \
+        ten_random_sleep_ms(8);                                              \
                                                                              \
         bool rc = ten_env_proxy->acquire_lock_mode();                        \
         TEN_ASSERT(rc, "Failed to acquire lock mode.");                      \
                                                                              \
-        ten_random_sleep(6);                                                 \
+        ten_random_sleep_ms(6);                                              \
                                                                              \
         ten_env_proxy->notify(send_data_from_outer_thread, test_data, true); \
                                                                              \
-        ten_random_sleep(2);                                                 \
+        ten_random_sleep_ms(2);                                              \
                                                                              \
         rc = ten_env_proxy->release_lock_mode();                             \
         TEN_ASSERT(rc, "Failed to release lock mode.");                      \
@@ -380,7 +380,7 @@ class test_extension_2 : public ten::extension_t {
       timeout_thread = new std::thread(
           [this](ten::ten_env_proxy_t *ten_env_proxy) {
             for (int i = 0; i < FROM_EXTENSION_2_CMD_CNT; ++i) {
-              ten_random_sleep(17);
+              ten_random_sleep_ms(17);
 
               ten_env_proxy->notify([this](ten::ten_env_t &ten_env) {
                 auto from_extension_2_cmd =

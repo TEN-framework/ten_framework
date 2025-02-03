@@ -11,11 +11,11 @@
 #include <inttypes.h>
 #include <time.h>
 
+#include "include_internal/ten_utils/lib/time.h"
 #include "include_internal/ten_utils/log/level.h"
 #include "include_internal/ten_utils/log/log.h"
 #include "include_internal/ten_utils/log/pid.h"
 #include "include_internal/ten_utils/log/termcolor.h"
-#include "include_internal/ten_utils/log/time.h"
 #include "ten_utils/lib/string.h"
 #include "ten_utils/log/log.h"
 
@@ -63,8 +63,8 @@ void ten_log_default_formatter(ten_string_t *buf, TEN_LOG_LEVEL level,
   struct tm time_info;
   size_t msec = 0;
 
-  ten_log_get_time(&time_info, &msec);
-  ten_log_add_time_string(buf, &time_info, msec);
+  ten_current_time_info(&time_info, &msec);
+  ten_string_append_time_info(buf, &time_info, msec);
 
   int64_t pid = 0;
   int64_t tid = 0;
@@ -96,8 +96,8 @@ void ten_log_colored_formatter(ten_string_t *buf, TEN_LOG_LEVEL level,
                                size_t msg_len) {
   struct tm time_info;
   size_t msec = 0;
-  ten_log_get_time(&time_info, &msec);
-  ten_log_add_time_string(buf, &time_info, msec);
+  ten_current_time_info(&time_info, &msec);
+  ten_string_append_time_info(buf, &time_info, msec);
 
   int64_t pid = 0;
   int64_t tid = 0;

@@ -42,6 +42,10 @@
 #include "ten_utils/macro/mark.h"
 #include "ten_utils/sanitizer/thread_check.h"
 
+#if defined(TEN_ENABLE_TEN_RUST_APIS)
+#include "include_internal/ten_rust/ten_rust.h"
+#endif
+
 bool ten_extension_thread_check_integrity_if_in_lock_mode(
     ten_extension_thread_t *self) {
   TEN_ASSERT(self, "Should not happen.");
@@ -79,6 +83,9 @@ bool ten_extension_thread_check_integrity(ten_extension_thread_t *self,
   return true;
 }
 
+MetricSystem *metric_system = NULL;
+MetricHandle *metric_counter = NULL;
+
 ten_extension_thread_t *ten_extension_thread_create(void) {
   ten_extension_thread_t *self =
       (ten_extension_thread_t *)TEN_MALLOC(sizeof(ten_extension_thread_t));
@@ -107,6 +114,17 @@ ten_extension_thread_t *ten_extension_thread_create(void) {
 
   self->runloop = NULL;
   self->runloop_is_ready_to_use = ten_event_create(0, 0);
+
+  // =-=-=
+  const char *url = "127.0.0.1:49484";
+  const char *path = "/metrics";
+  metric_system = ten_metric_system_create(url, path);
+  TEN_ASSERT(metric_system, "Should not happen.");
+
+  // 創建一個 Counter 類型的 metric (無標簽)
+  metric_counter = ten_metric_create(metric_system, 0, "my_counter",
+                                     "A simple counter", NULL, 0);
+  TEN_ASSERT(metric_counter, "Should not happen.");
 
   return self;
 }
@@ -157,6 +175,13 @@ void ten_extension_thread_destroy(ten_extension_thread_t *self) {
 
   ten_mutex_destroy(self->lock_mode_lock);
   self->lock_mode_lock = NULL;
+
+  // =-=-=
+  // 銷毀 metric handle, 釋放內部申請的內存
+  ten_metric_destroy(metric_counter);
+
+  // 關閉 metric 系統, 停止服務器, 並等待後台線程結束
+  ten_metric_system_shutdown(metric_system);
 
   TEN_FREE(self);
 }

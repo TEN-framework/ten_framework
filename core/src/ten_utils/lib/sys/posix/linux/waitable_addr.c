@@ -9,7 +9,6 @@
 #include "ten_utils/lib/waitable_addr.h"
 
 #include <errno.h>
-#include <stdlib.h>
 #include <sys/syscall.h>
 #include <unistd.h>
 
@@ -73,7 +72,7 @@ int ten_waitable_wait(ten_waitable_t *wb, uint32_t expect, ten_spinlock_t *lock,
     return (__sync_add_and_fetch(&wb->sig, 0) != expect) ? 0 : -1;
   }
 
-  int64_t timeout_time = ten_current_time() + timeout;
+  int64_t timeout_time = ten_current_time_ms() + timeout;
 
   if (timeout > 0) {
     ts = &timespec;
@@ -83,7 +82,7 @@ int ten_waitable_wait(ten_waitable_t *wb, uint32_t expect, ten_spinlock_t *lock,
 
   while (__sync_add_and_fetch(&wb->sig, 0) == expect) {
     if (ts) {
-      int64_t diff = timeout_time - ten_current_time();
+      int64_t diff = timeout_time - ten_current_time_ms();
       if (diff < 0) {
         return -1;
       }

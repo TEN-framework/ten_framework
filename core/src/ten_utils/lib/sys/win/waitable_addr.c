@@ -84,13 +84,13 @@ int ten_waitable_wait(ten_waitable_t *wb, uint32_t expect, ten_spinlock_t *lock,
     return (InterlockedAdd(&wb->sig, 0) != expect) ? 0 : -1;
   }
 
-  int64_t timeout_time = (timeout < 0) ? -1 : (ten_current_time() + timeout);
+  int64_t timeout_time = (timeout < 0) ? -1 : (ten_current_time_ms() + timeout);
 
   while (InterlockedAdd(&wb->sig, 0) == expect) {
     int64_t diff = INFINITE;
 
     if (timeout > 0) {
-      int64_t diff = timeout_time - ten_current_time();
+      int64_t diff = timeout_time - ten_current_time_ms();
       if (diff < 0) {
         return -1;
       }

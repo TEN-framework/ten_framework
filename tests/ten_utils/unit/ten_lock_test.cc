@@ -89,11 +89,11 @@ TEST(SpinLockTest, test) {
   auto thrd_1_op = [start_event, &lock, &lock_cnt, &thread_info1, &val] {
     ten_event_wait(start_event, -1);
 
-    thread_info1.begin_time = ten_current_time();
+    thread_info1.begin_time = ten_current_time_ms();
     ten_spinlock_lock(lock);
     val++;
     EXPECT_EQ(val, 1);
-    thread_info1.acquired_time = ten_current_time();
+    thread_info1.acquired_time = ten_current_time_ms();
     printf("[   LOG    ][thrd_1] acquire spin lock spent %d ms\n",
            (int)(thread_info1.acquired_time - thread_info1.begin_time));
 
@@ -115,11 +115,11 @@ TEST(SpinLockTest, test) {
   auto thrd_2_op = [&start_event, &lock, &lock_cnt, &thread_info2, &val] {
     ten_event_wait(start_event, -1);
 
-    thread_info2.begin_time = ten_current_time();
+    thread_info2.begin_time = ten_current_time_ms();
     ten_spinlock_lock(lock);
     val++;
     EXPECT_EQ(val, 1);
-    thread_info2.acquired_time = ten_current_time();
+    thread_info2.acquired_time = ten_current_time_ms();
     printf("[   LOG    ][thrd_2] acquire spin lock spent %d ms\n",
            (int)(thread_info2.acquired_time - thread_info2.begin_time));
 

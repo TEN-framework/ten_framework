@@ -9,7 +9,6 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <semaphore.h>
-#include <stdlib.h>
 #include <sys/stat.h>
 
 #include "ten_utils/lib/alloc.h"

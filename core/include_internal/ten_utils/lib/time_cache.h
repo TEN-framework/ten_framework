@@ -22,10 +22,10 @@
 #include <sys/syslimits.h>
 #endif
 
-TEN_UTILS_PRIVATE_API bool ten_log_time_cache_get(const struct timeval *tv,
-                                                  struct tm *tm);
+TEN_UTILS_PRIVATE_API bool ten_time_cache_get(const struct timeval *tv,
+                                              struct tm *tm);
 
-TEN_UTILS_PRIVATE_API void ten_log_time_cache_set(const struct timeval *tv,
-                                                  struct tm *tm);
+TEN_UTILS_PRIVATE_API void ten_time_cache_set(const struct timeval *tv,
+                                              struct tm *tm);
 
 #endif

@@ -6,7 +6,6 @@
 //
 #include "ten_utils/lib/event.h"
 
-#include <stdlib.h>
 #include <sys/time.h>
 
 #include "include_internal/ten_utils/lib/mutex.h"

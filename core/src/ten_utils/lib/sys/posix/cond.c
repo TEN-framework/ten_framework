@@ -6,9 +6,8 @@
 //
 #include "ten_utils/lib/cond.h"
 
-#include <errno.h>
+#include <errno.h>  // IWYU pragma: keep
 #include <pthread.h>
-#include <stdlib.h>
 #include <sys/time.h>
 
 #include "ten_utils/lib/alloc.h"

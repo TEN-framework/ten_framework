@@ -32,7 +32,7 @@ int __busy_loop(volatile uint32_t *addr, uint32_t expect, ten_spinlock_t *lock,
     return (ATOMIC_LOAD32(addr) != expect) ? 0 : -1;
   }
 
-  timeout_time = timeout < 0 ? -1 : ten_current_time() + timeout;
+  timeout_time = timeout < 0 ? -1 : ten_current_time_ms() + timeout;
   loops = 0;
 
   ten_spinlock_unlock(lock);
@@ -47,7 +47,7 @@ int __busy_loop(volatile uint32_t *addr, uint32_t expect, ten_spinlock_t *lock,
     int64_t diff = -1;
 
     if (timeout > 0) {
-      diff = timeout_time - ten_current_time();
+      diff = timeout_time - ten_current_time_ms();
       if (timeout_time > 0 && diff < 0) {
         ret = -1;
         break;
@@ -72,7 +72,7 @@ int __busy_loop(volatile uint32_t *addr, uint32_t expect, ten_spinlock_t *lock,
     }
 
     // relax deeply
-    ten_sleep(20);
+    ten_sleep_ms(20);
   }
 
   ten_spinlock_lock(lock);

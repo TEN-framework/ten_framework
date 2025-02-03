@@ -18,6 +18,7 @@ use console::Emoji;
 
 use crate::{
     config::TmanConfig,
+    constants::DESIGNER_BACKEND_DEFAULT_PORT,
     designer::{configure_routes, frontend::get_frontend_asset, DesignerState},
     fs::{check_is_app_folder, get_cwd},
     log::tman_verbose_println,
@@ -57,7 +58,7 @@ pub fn create_sub_cmd(_args_cfg: &crate::cmd_line::ArgsCfg) -> Command {
                 // port_number = (331 % 16384) + 49152
                 //             = 338 + 49152
                 //             = 49483
-                .default_value("49483"),
+                .default_value(DESIGNER_BACKEND_DEFAULT_PORT),
         )
         .arg(
             Arg::new("BASE_DIR")
