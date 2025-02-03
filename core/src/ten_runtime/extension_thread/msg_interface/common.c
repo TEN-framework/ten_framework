@@ -30,6 +30,16 @@
 #include "ten_utils/macro/check.h"
 #include "ten_utils/macro/mark.h"
 
+// =-=-=
+#if false
+#if defined(TEN_ENABLE_TEN_RUST_APIS)
+#include "include_internal/ten_rust/ten_rust.h"
+#include "ten_utils/lib/time.h"
+
+extern MetricHandle *metric_counter;
+#endif
+#endif
+
 void ten_extension_thread_handle_start_msg_task(void *self_,
                                                 TEN_UNUSED void *arg) {
   ten_extension_thread_t *self = (ten_extension_thread_t *)self_;
@@ -110,6 +120,13 @@ static void ten_extension_thread_handle_in_msg_task(void *self_, void *arg) {
   TEN_ASSERT(msg && ten_msg_check_integrity(msg), "Invalid argument.");
   TEN_ASSERT(ten_msg_get_dest_cnt(msg) == 1, "Should not happen.");
 
+#if false
+  // =-=-=
+  int64_t timestamp = ten_msg_get_timestamp(msg);
+  ten_metric_gauge_set(metric_counter,
+                       (double)(ten_current_time_ms() - timestamp));
+#endif
+
   switch (ten_extension_thread_get_state(self)) {
     case TEN_EXTENSION_THREAD_STATE_INIT:
     case TEN_EXTENSION_THREAD_STATE_CREATING_EXTENSIONS:
@@ -124,7 +141,8 @@ static void ten_extension_thread_handle_in_msg_task(void *self_, void *arg) {
       // received messages are placed into a `pending_msgs` list. Once the
       // extensions are created, the messages will be delivered to the
       // corresponding extensions.
-      ten_list_push_smart_ptr_back(&self->pending_msgs, msg);
+      ten_list_push_smart_ptr_back(&self->pending_msgs_received_in_init_stage,
+                                   msg);
       break;
 
     case TEN_EXTENSION_THREAD_STATE_NORMAL:
@@ -223,6 +241,11 @@ void ten_extension_thread_handle_in_msg_async(ten_extension_thread_t *self,
   }
 
   msg = ten_shared_ptr_clone(msg);
+
+#if false
+  // =-=-=
+  ten_msg_set_timestamp(msg, ten_current_time_ms());
+#endif
 
   int rc = ten_runloop_post_task_tail(
       self->runloop, ten_extension_thread_handle_in_msg_task, self, msg);

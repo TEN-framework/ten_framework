@@ -99,9 +99,9 @@ static void RunRWLockTest(ten_rwlock_t *lut, const std::string &impl,
     ten_event_wait(start_event, -1);
 
     while (!stop) {
-      auto now = ten_current_time();
+      auto now = ten_current_time_ms();
       WriterLockGuard _(lut);
-      auto dur = ten_current_time() - now;
+      auto dur = ten_current_time_ms() - now;
       if (actives) {
         (*actives)++;
       }
@@ -154,9 +154,9 @@ static void RunRWLockTest(ten_rwlock_t *lut, const std::string &impl,
     ten_event_wait(start_event, -1);
 
     while (!stop) {
-      auto now = ten_current_time();
+      auto now = ten_current_time_ms();
       ReaderLockGuard _(lut);
-      auto dur = ten_current_time() - now;
+      auto dur = ten_current_time_ms() - now;
       if (actives) {
         (*actives)++;
       }

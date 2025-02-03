@@ -9,7 +9,6 @@
 #include <inttypes.h>
 #include <pthread.h>
 #include <stdbool.h>
-#include <stdlib.h>
 
 #include "include_internal/ten_utils/lib/mutex.h"
 #include "ten_utils/lib/alloc.h"

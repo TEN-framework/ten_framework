@@ -35,7 +35,7 @@ func (p *extensionB) OnCmd(
 		if cmdName == "B" {
 			strArrayPtr, err := cmd.GetPropertyPtr("array")
 			if err != nil {
-				panic("failed to get prop: array")
+				panic("Failed to get prop: array")
 			}
 			strArray := *(strArrayPtr.(*[]string))
 
@@ -49,7 +49,7 @@ func (p *extensionB) OnCmd(
 				"map",
 			)
 			if err != nil {
-				panic("failed to get prop: map")
+				panic("Failed to get prop: map")
 			}
 			m := *(mapPtr.(*map[string]interface{}))
 
@@ -59,7 +59,7 @@ func (p *extensionB) OnCmd(
 
 			structPtr, err := cmd.GetPropertyPtr("struct")
 			if err != nil {
-				panic("failed to get prop: struct")
+				panic("Failed to get prop: struct")
 			}
 
 			structData := structPtr.(*types.UserData)

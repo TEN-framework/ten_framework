@@ -56,7 +56,7 @@ class test_extension_2 : public ten::extension_t {
       // result of the `extension_1_stop` command, it may or may not receive
       // this result.
 
-      ten_sleep(500);
+      ten_sleep_ms(500);
 
       TEN_ENV_LOG_INFO(ten_env, "got extension_1_stop.");
 
@@ -100,7 +100,7 @@ class test_extension_3 : public ten::extension_t {
       // it's also possible that it wasn't received, and the extension thread 3
       // has already ended.
 
-      ten_sleep(500);
+      ten_sleep_ms(500);
 
       auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
       cmd_result->set_property("detail", "extension_1_stop, too");

@@ -69,6 +69,8 @@ void ten_raw_msg_init(ten_msg_t *self, TEN_MSG_TYPE type) {
   ten_value_init_object_with_move(&self->properties, NULL);
 
   ten_list_init(&self->locked_res);
+
+  self->timestamp = 0;
 }
 
 void ten_raw_msg_deinit(ten_msg_t *self) {

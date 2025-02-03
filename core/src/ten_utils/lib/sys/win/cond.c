@@ -76,9 +76,9 @@ int ten_cond_wait_while(ten_cond_t *cond, ten_mutex_t *mutex,
     } else if (wait_ms < 0) {
       return -1;
     } else {
-      int64_t begin = ten_current_time();
+      int64_t begin = ten_current_time_ms();
       ret = SleepConditionVariableCS(&cond->cond, lock, wait_ms);
-      wait_ms -= (ten_current_time() - begin);
+      wait_ms -= (ten_current_time_ms() - begin);
     }
 
     if (!ret) {

@@ -64,12 +64,12 @@ int ten_shared_event_wait(ten_shared_event_t *event, int wait_ms) {
     return 0;
   }
 
-  timeout_time = wait_ms < 0 ? -1 : ten_current_time() + wait_ms;
+  timeout_time = wait_ms < 0 ? -1 : ten_current_time_ms() + wait_ms;
   while (!ten_waitable_get(event->signal)) {
     int64_t diff = -1;
 
     if (wait_ms > 0) {
-      diff = timeout_time - ten_current_time();
+      diff = timeout_time - ten_current_time_ms();
 
       if (timeout_time > 0 && diff < 0) {
         return -1;

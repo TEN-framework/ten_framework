@@ -502,7 +502,7 @@ func ModTidy(location string, envs []string, verbose bool) error {
 
 	if err := ExecCmd([]string{"go", "mod", "tidy"}, location, envs, verbose); err != nil {
 		return fmt.Errorf(
-			"failed to execute 'go mod tidy' on [%s]. \n\t%w",
+			"Failed to execute 'go mod tidy' on [%s]. \n\t%w",
 			location,
 			err,
 		)
@@ -519,7 +519,7 @@ func Generate(location string, envs []string, verbose bool) error {
 	err := ExecCmd([]string{"go", "generate"}, location, envs, verbose)
 	if err != nil {
 		return fmt.Errorf(
-			"failed to execute 'go generate' on [%s]. \n\t%w",
+			"Failed to execute 'go generate' on [%s]. \n\t%w",
 			location,
 			err,
 		)
@@ -774,7 +774,7 @@ func (ab *AppBuilder) checkGoVersion() error {
 
 func (ab *AppBuilder) checkAppIntegrity() error {
 	if len(ab.options.AppDir) == 0 {
-		return errors.New("failed to detect GO app directory")
+		return errors.New("Failed to detect GO app directory")
 	}
 
 	manifest, err := LoadManifest(ab.options.AppDir)
@@ -795,7 +795,7 @@ func (ab *AppBuilder) checkAppIntegrity() error {
 
 func (ab *AppBuilder) checkCGOEnabled() error {
 	if err := ab.getGoEnv(); err != nil {
-		return fmt.Errorf("failed to execute 'go env' command. \n\t%w", err)
+		return fmt.Errorf("Failed to execute 'go env' command. \n\t%w", err)
 	}
 
 	if enabled, ok := ab.cachedEnv[KeyCGOEnabled]; ok {
@@ -1235,7 +1235,7 @@ func (ab *AppBuilder) generateAutoImportFile() error {
 	if IsFilePresent(importFile) {
 		if err := os.Remove(importFile); err != nil {
 			return fmt.Errorf(
-				"failed to remove auto-gen import file. \n\t%w",
+				"Failed to remove auto-gen import file. \n\t%w",
 				err,
 			)
 		}
@@ -1251,7 +1251,7 @@ func (ab *AppBuilder) generateAutoImportFile() error {
 
 	f, err := os.Create(importFile)
 	if err != nil {
-		return fmt.Errorf("failed to create auto-gen import file. \n\t%w", err)
+		return fmt.Errorf("Failed to create auto-gen import file. \n\t%w", err)
 	}
 
 	defer f.Close()
@@ -1288,14 +1288,14 @@ func (ab *AppBuilder) requireExtensionModules() error {
 		path.Join(ab.options.AppDir, BackupGoMod),
 	)
 	if err != nil {
-		return fmt.Errorf("failed to backup go.mod. \n\t%w", err)
+		return fmt.Errorf("Failed to backup go.mod. \n\t%w", err)
 	}
 
 	originSum := path.Join(ab.options.AppDir, "go.sum")
 	if IsFilePresent(originSum) {
 		err = CopyFile(originSum, path.Join(ab.options.AppDir, BackupGoSum))
 		if err != nil {
-			return fmt.Errorf("failed to backup go.sum. \n\t%w", err)
+			return fmt.Errorf("Failed to backup go.sum. \n\t%w", err)
 		}
 	}
 
@@ -1303,7 +1303,7 @@ func (ab *AppBuilder) requireExtensionModules() error {
 	for _, ext := range ab.extensions {
 		if err := ModAddLocalModule(ext, ab.options.AppDir); err != nil {
 			return fmt.Errorf(
-				"failed to add %s as go module of the app. \n\t%w",
+				"Failed to add %s as go module of the app. \n\t%w",
 				ext.location,
 				err,
 			)
@@ -1322,11 +1322,11 @@ func (ab *AppBuilder) restoreGoModAndGoSum() error {
 	originMod := path.Join(ab.options.AppDir, "go.mod")
 	if IsFilePresent(backupMod) {
 		if err := os.Remove(originMod); err != nil {
-			return fmt.Errorf("failed to restore go.mod. \n\t%w", err)
+			return fmt.Errorf("Failed to restore go.mod. \n\t%w", err)
 		}
 
 		if err := MoveFile(backupMod, originMod); err != nil {
-			return fmt.Errorf("failed to restore go.mod. \n\t%w", err)
+			return fmt.Errorf("Failed to restore go.mod. \n\t%w", err)
 		}
 	}
 
@@ -1334,11 +1334,11 @@ func (ab *AppBuilder) restoreGoModAndGoSum() error {
 	originSum := path.Join(ab.options.AppDir, "go.sum")
 	if IsFilePresent(backupSum) {
 		if err := os.Remove(originSum); err != nil {
-			return fmt.Errorf("failed to restore go.sum. \n\t%w", err)
+			return fmt.Errorf("Failed to restore go.sum. \n\t%w", err)
 		}
 
 		if err := MoveFile(backupSum, originSum); err != nil {
-			return fmt.Errorf("failed to restore go.sum. \n\t%w", err)
+			return fmt.Errorf("Failed to restore go.sum. \n\t%w", err)
 		}
 
 	}

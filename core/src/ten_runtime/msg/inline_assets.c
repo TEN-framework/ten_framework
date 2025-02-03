@@ -21,3 +21,13 @@ extern inline bool ten_msg_is_cmd(ten_shared_ptr_t *self);  // NOLINT
 extern inline bool ten_msg_is_cmd_result(ten_shared_ptr_t *self);  // NOLINT
 
 extern inline TEN_MSG_TYPE ten_raw_msg_get_type(ten_msg_t *self);  // NOLINT
+
+extern inline void ten_raw_msg_set_timestamp(ten_msg_t *self,  // NOLINT
+                                             int64_t timestamp);
+
+extern inline int64_t ten_raw_msg_get_timestamp(ten_msg_t *self);  // NOLINT
+
+extern inline void ten_msg_set_timestamp(ten_shared_ptr_t *self,  // NOLINT
+                                         int64_t timestamp);
+
+extern inline int64_t ten_msg_get_timestamp(ten_shared_ptr_t *self);  // NOLINT

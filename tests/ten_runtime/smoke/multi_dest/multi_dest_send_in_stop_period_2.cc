@@ -52,7 +52,7 @@ class test_extension_2 : public ten::extension_t {
       cmd_result->set_property("detail", "hello world, too");
       ten_env.return_result(std::move(cmd_result), std::move(cmd));
     } else if (cmd->get_name() == "extension_1_stop") {
-      ten_sleep(500);
+      ten_sleep_ms(500);
 
       TEN_ENV_LOG_INFO(ten_env, "got extension_1_stop.");
 
@@ -92,7 +92,7 @@ class test_extension_3 : public ten::extension_t {
       cmd_result->set_property("detail", "hello world, too");
       ten_env.return_result(std::move(cmd_result), std::move(cmd));
     } else if (cmd->get_name() == "extension_1_stop") {
-      ten_sleep(500);
+      ten_sleep_ms(500);
 
       TEN_ENV_LOG_INFO(ten_env, "got extension_1_stop.");
 

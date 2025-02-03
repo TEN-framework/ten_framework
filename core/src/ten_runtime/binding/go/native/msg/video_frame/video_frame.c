@@ -54,7 +54,7 @@ ten_go_error_t ten_go_video_frame_alloc_buf(uintptr_t bridge_addr, int size) {
   uint8_t *data = ten_video_frame_alloc_data(c_video_frame, size);
   if (!data) {
     ten_go_error_set(&cgo_error, TEN_ERROR_CODE_GENERIC,
-                     "failed to allocate memory");
+                     "Failed to allocate memory");
   }
 
   return cgo_error;

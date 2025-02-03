@@ -259,7 +259,7 @@ TEST(ExtensionTest, CommandStopGraphActivelyThroughCmd) {  // NOLINT
       client = nullptr;
 
       // To prevent from busy re-trying.
-      ten_sleep(10);
+      ten_sleep_ms(10);
     }
   }
 

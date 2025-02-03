@@ -8,6 +8,7 @@ mod bindings;
 pub mod interface;
 pub mod json;
 pub mod json_schema;
+pub mod metric;
 pub mod pkg_info;
 
 // In the schema/ folder, the Rust API is mainly automatically generated from C

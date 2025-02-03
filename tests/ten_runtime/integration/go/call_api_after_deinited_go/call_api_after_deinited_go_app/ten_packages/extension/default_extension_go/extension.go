@@ -86,12 +86,12 @@ func (ext *clientExtension) OnStart(tenEnv ten.TenEnv) {
 		cmd,
 		func(tenEnv ten.TenEnv, cmdResult ten.CmdResult, err error) {
 			if err != nil {
-				panic("failed to send cmd: " + err.Error())
+				panic("Failed to send cmd: " + err.Error())
 			}
 
 			statusCode, _ := cmdResult.GetStatusCode()
 			if statusCode != ten.StatusCodeOk {
-				panic("failed to register")
+				panic("Failed to register")
 			}
 
 			tenEnv.OnStartDone()
@@ -108,7 +108,7 @@ func (ext *clientExtension) OnCmd(tenEnv ten.TenEnv, cmd ten.Cmd) {
 			cmd,
 			func(tenEnv ten.TenEnv, cmdResult ten.CmdResult, err error) {
 				if err != nil {
-					panic("failed to send cmd: " + err.Error())
+					panic("Failed to send cmd: " + err.Error())
 				}
 
 				tenEnv.ReturnResultDirectly(cmdResult, nil)
@@ -140,12 +140,12 @@ func (ext *clientExtension) OnDeinit(tenEnv ten.TenEnv) {
 		cmd,
 		func(tenEnv ten.TenEnv, cmdResult ten.CmdResult, err error) {
 			if err != nil {
-				panic("failed to send cmd: " + err.Error())
+				panic("Failed to send cmd: " + err.Error())
 			}
 
 			statusCode, _ := cmdResult.GetStatusCode()
 			if statusCode != ten.StatusCodeOk {
-				panic("failed to unregister")
+				panic("Failed to unregister")
 			}
 
 			tenEnv.OnDeinitDone()

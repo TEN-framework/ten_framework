@@ -94,7 +94,7 @@ void *muxer_thread_main(void *self_) {
 
   TEN_LOGD("Starting to mux...");
 
-  const int64_t start_time = ten_current_time();
+  const int64_t start_time = ten_current_time_ms();
   int64_t sleep_overhead = 0;
   bool status = true;
 
@@ -142,16 +142,16 @@ void *muxer_thread_main(void *self_) {
       }
 
       if (status) {
-        int64_t now = ten_current_time();
+        int64_t now = ten_current_time_ms();
         int64_t expected_time = start_time + self->muxer->next_video_timing();
         int64_t sleep_time = expected_time - now - sleep_overhead;
         if (sleep_time > 0) {
-          ten_sleep(sleep_time);
+          ten_sleep_ms(sleep_time);
 
           // 'sleep' would cause thread switching, and thread switching would
           // have time overhead. Based on our frame rate, this time cannot be
           // ignored, so we need to consider it when we muxing next frame.
-          sleep_overhead = ten_current_time() - now - sleep_time;
+          sleep_overhead = ten_current_time_ms() - now - sleep_time;
         } else {
           sleep_overhead = 0;
         }

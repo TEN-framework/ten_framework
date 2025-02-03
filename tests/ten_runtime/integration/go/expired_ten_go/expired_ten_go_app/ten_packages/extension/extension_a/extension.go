@@ -49,7 +49,7 @@ func (p *extensionA) OnCmd(
 		// Use the expired ten object.
 		err := tenEnv.SendCmd(cmdB, nil)
 		if err != nil {
-			fmt.Println("failed to use invalid ten object.")
+			fmt.Println("Failed to use invalid ten object.")
 		} else {
 			panic("should not happen")
 		}

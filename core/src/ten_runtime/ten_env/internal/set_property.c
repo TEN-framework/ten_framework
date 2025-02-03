@@ -181,8 +181,9 @@ static void ten_app_set_property_async_cb(ten_app_t *app, ten_error_t *err,
   ten_env_set_property_async_context_destroy(context);
 }
 
-bool ten_env_set_property(ten_env_t *self, const char *path, ten_value_t *value,
-                          ten_error_t *err) {
+bool ten_env_set_property_internal(ten_env_t *self, const char *path,
+                                   ten_value_t *value, bool internal_use,
+                                   ten_error_t *err) {
   TEN_ASSERT(self && ten_env_check_integrity(self, true),
              "Invalid use of ten_env %p.", self);
   TEN_ASSERT(path && strlen(path), "path should not be empty.");
@@ -406,10 +407,20 @@ bool ten_env_set_property(ten_env_t *self, const char *path, ten_value_t *value,
 
       switch (level) {
         case TEN_METADATA_LEVEL_APP: {
-          if (ten_app_thread_call_by_me(app)) {
-            result = ten_app_set_property(app, path, value, err);
+          if (!internal_use) {
+            result = false;
+            if (err) {
+              ten_error_set(err, TEN_ERROR_CODE_GENERIC,
+                            "The set property of app is currently not "
+                            "supported; use init_property_from_json instead.");
+            }
+            TEN_ASSERT(0, "Should not happen.");
           } else {
-            TEN_ASSERT(0, "Do we really need this?");
+            if (ten_app_thread_call_by_me(app)) {
+              result = ten_app_set_property(app, path, value, err);
+            } else {
+              TEN_ASSERT(0, "Do we really need this?");
+            }
           }
           break;
         }
@@ -436,6 +447,11 @@ done:
   }
 
   return result;
+}
+
+bool ten_env_set_property(ten_env_t *self, const char *path, ten_value_t *value,
+                          ten_error_t *err) {
+  return ten_env_set_property_internal(self, path, value, false, err);
 }
 
 bool ten_env_set_property_async(ten_env_t *self, const char *path,

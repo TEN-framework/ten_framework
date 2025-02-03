@@ -36,7 +36,7 @@ func main() {
 	// test app
 	app, err := ten.NewApp(&defaultApp{})
 	if err != nil {
-		fmt.Println("failed to create app.")
+		fmt.Println("Failed to create app.")
 	}
 
 	stopped := make(chan struct{}, 1)

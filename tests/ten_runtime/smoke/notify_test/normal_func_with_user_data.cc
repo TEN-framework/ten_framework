@@ -36,7 +36,7 @@ class test_extension : public ten::extension_t {
         break;
       }
 
-      ten_sleep(100);
+      ten_sleep_ms(100);
     }
   }
 

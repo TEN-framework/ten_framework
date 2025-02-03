@@ -199,7 +199,7 @@ struct ten_extension_t {
   // Note that the 'pending_msgs' and 'is_started' flag can only be accessed and
   // modified in the extension thread except during the initialization and
   // deinitialization.
-  ten_list_t pending_msgs;
+  ten_list_t pending_msgs_received_before_on_start_done;
   // @}
 
   ten_path_table_t *path_table;

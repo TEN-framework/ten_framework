@@ -6,7 +6,7 @@
 //
 #include "ten_utils/ten_config.h"
 
-#include "include_internal/ten_utils/log/time_cache.h"
+#include "include_internal/ten_utils/lib/time_cache.h"
 
 #include <assert.h>
 #include <stdbool.h>
@@ -35,7 +35,7 @@ static struct timeval g_time_cache_tv = {0, 0};
 // time structure.
 static struct tm g_time_cache_tm;
 
-bool ten_log_time_cache_get(const struct timeval *tv, struct tm *tm) {
+bool ten_time_cache_get(const struct timeval *tv, struct tm *tm) {
   assert(tv && tm && "Invalid argument.");
 
   int64_t mode = ten_atomic_load(&g_time_cache_mode);
@@ -71,7 +71,7 @@ bool ten_log_time_cache_get(const struct timeval *tv, struct tm *tm) {
   return false;
 }
 
-void ten_log_time_cache_set(const struct timeval *tv, struct tm *tm) {
+void ten_time_cache_set(const struct timeval *tv, struct tm *tm) {
   assert(tv && tm && "Invalid argument.");
 
   // Only update the time when the time cache is outdated.

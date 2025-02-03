@@ -37,7 +37,7 @@
     } else if (loop < 1000) { \
       ten_thread_yield();     \
     } else {                  \
-      ten_sleep(10);          \
+      ten_sleep_ms(10);       \
     }                         \
   } while (0)
 

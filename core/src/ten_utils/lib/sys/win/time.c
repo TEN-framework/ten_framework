@@ -7,8 +7,10 @@
 #include "ten_utils/lib/time.h"
 
 #include <Windows.h>
+#include <assert.h>
+#include <time.h>
 
-int64_t ten_current_time(void) {
+int64_t ten_current_time_ms(void) {
   FILETIME ft;
   LARGE_INTEGER li;
 
@@ -45,9 +47,9 @@ int64_t ten_current_time_us(void) {
 }
 
 // Sleep for the requested number of milliseconds.
-void ten_sleep(int64_t msec) { Sleep(msec); }
+void ten_sleep_ms(int64_t msec) { Sleep(msec); }
 
-void ten_usleep(int64_t usec) {
+void ten_sleep_us(int64_t usec) {
   HANDLE timer;
   LARGE_INTEGER ft;
   // Convert to 100 nanosecond interval, negative value indicates relative time
@@ -56,4 +58,19 @@ void ten_usleep(int64_t usec) {
   SetWaitableTimer(timer, &ft, 0, NULL, NULL, 0);
   WaitForSingleObject(timer, INFINITE);
   CloseHandle(timer);
+}
+
+void ten_current_time_info(struct tm *time_info, size_t *msec) {
+  assert(time_info && msec && "Invalid argument.");
+
+  SYSTEMTIME st;
+  GetLocalTime(&st);
+  time_info->tm_year = st.wYear;
+  time_info->tm_mon = st.wMonth - 1;
+  time_info->tm_mday = st.wDay;
+  time_info->tm_wday = st.wDayOfWeek;
+  time_info->tm_hour = st.wHour;
+  time_info->tm_min = st.wMinute;
+  time_info->tm_sec = st.wSecond;
+  *msec = st.wMilliseconds;
 }

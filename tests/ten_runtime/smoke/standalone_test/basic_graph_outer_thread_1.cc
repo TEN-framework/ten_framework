@@ -111,7 +111,7 @@ class extension_tester_1 : public ten::extension_tester_t {
     auto *ten_env_tester_proxy = ten::ten_env_tester_proxy_t::create(ten_env);
 
     outer_thread = std::thread([this, ten_env_tester_proxy]() {
-      ten_sleep(1000);
+      ten_sleep_ms(1000);
 
       ten_env_tester_proxy->notify(
           [this](ten::ten_env_tester_t &ten_env) {

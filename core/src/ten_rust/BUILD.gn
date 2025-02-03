@@ -85,7 +85,10 @@ rust_cbindgen("ten_rust_binding") {
   project_path = "//core/src/ten_rust"
   config_file = "cbindgen.toml"
   output_file = "include_internal/ten_rust/ten_rust.h"
-  binding_files = [ "src/bindings.rs" ]
+  binding_files = [
+    "src/bindings.rs",
+    "src/metric/mod.rs",
+  ]
 
   deps = [ ":ten_rust_static_lib" ]
   public_configs = [ ":ten_rust_config" ]

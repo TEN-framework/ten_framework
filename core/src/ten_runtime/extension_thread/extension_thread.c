@@ -42,6 +42,16 @@
 #include "ten_utils/macro/mark.h"
 #include "ten_utils/sanitizer/thread_check.h"
 
+#if false
+#if defined(TEN_ENABLE_TEN_RUST_APIS)
+#include "include_internal/ten_rust/ten_rust.h"
+
+// =-=-=
+MetricSystem *metric_system = NULL;
+MetricHandle *metric_counter = NULL;
+#endif
+#endif
+
 bool ten_extension_thread_check_integrity_if_in_lock_mode(
     ten_extension_thread_t *self) {
   TEN_ASSERT(self, "Should not happen.");
@@ -98,7 +108,7 @@ ten_extension_thread_t *ten_extension_thread_create(void) {
   ten_list_init(&self->extensions);
   self->extensions_cnt_of_deleted = 0;
 
-  ten_list_init(&self->pending_msgs);
+  ten_list_init(&self->pending_msgs_received_in_init_stage);
 
   self->in_lock_mode = false;
   self->lock_mode_lock = ten_mutex_create();
@@ -107,6 +117,25 @@ ten_extension_thread_t *ten_extension_thread_create(void) {
 
   self->runloop = NULL;
   self->runloop_is_ready_to_use = ten_event_create(0, 0);
+
+#if false
+#if defined(TEN_ENABLE_TEN_RUST_APIS)
+  // =-=-=
+  if (!metric_system) {
+    const char *url = "127.0.0.1:49484";
+    const char *path = "/metrics";
+    metric_system = ten_metric_system_create(url, path);
+    TEN_ASSERT(metric_system, "Should not happen.");
+  }
+
+  if (!metric_counter) {
+    // 創建一個 Counter 類型的 metric (無標簽)
+    metric_counter = ten_metric_create(metric_system, 1, "my_counter",
+                                       "A simple counter", NULL, 0);
+    TEN_ASSERT(metric_counter, "Should not happen.");
+  }
+#endif
+#endif
 
   return self;
 }
@@ -143,7 +172,7 @@ void ten_extension_thread_destroy(ten_extension_thread_t *self) {
 
   ten_signature_set(&self->signature, 0);
 
-  ten_list_clear(&self->pending_msgs);
+  ten_list_clear(&self->pending_msgs_received_in_init_stage);
 
   if (self->runloop) {
     ten_runloop_destroy(self->runloop);
@@ -157,6 +186,17 @@ void ten_extension_thread_destroy(ten_extension_thread_t *self) {
 
   ten_mutex_destroy(self->lock_mode_lock);
   self->lock_mode_lock = NULL;
+
+#if false
+#if defined(TEN_ENABLE_TEN_RUST_APIS)
+  // =-=-=
+  // 銷毀 metric handle, 釋放內部申請的內存
+  // ten_metric_destroy(metric_counter);
+
+  // 關閉 metric 系統, 停止服務器, 並等待後台線程結束
+  // ten_metric_system_shutdown(metric_system);
+#endif
+#endif
 
   TEN_FREE(self);
 }

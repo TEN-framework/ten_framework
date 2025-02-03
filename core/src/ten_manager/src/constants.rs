@@ -44,3 +44,5 @@ pub const REMOTE_REGISTRY_REQUEST_TIMEOUT_SECS: u64 = 120;
 // Designer-backend.
 pub const PROCESS_STDOUT_MAX_LINE_CNT: usize = 1000;
 pub const PROCESS_STDERR_MAX_LINE_CNT: usize = 1000;
+
+pub const DESIGNER_BACKEND_DEFAULT_PORT: &str = "49483";

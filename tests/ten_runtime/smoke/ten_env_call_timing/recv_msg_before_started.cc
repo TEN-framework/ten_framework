@@ -46,14 +46,14 @@ class test_extension_2 : public ten::extension_t {
     auto *ten_env_proxy = ten::ten_env_proxy_t::create(ten_env);
 
     start_thread_ = std::thread([ten_env_proxy, this]() {
-      ten_sleep(1000);
+      ten_sleep_ms(1000);
 
       ten_env_proxy->notify([this](ten::ten_env_t &ten_env) {
         // Only after calling on_start_done(), commands can be processed through
         // the on_cmd callback.
 
         // Record the timestamp of on_start_done()
-        start_done_time_ms_ = ten_current_time();
+        start_done_time_ms_ = ten_current_time_ms();
 
         ten_env.on_start_done();
       });
@@ -74,7 +74,7 @@ class test_extension_2 : public ten::extension_t {
               std::unique_ptr<ten::cmd_t> cmd) override {
     ASSERT_EQ(cmd->get_name(), "test");
 
-    auto current_time = ten_current_time();
+    auto current_time = ten_current_time_ms();
     // current_time should be greater than start_done_time_ms_.
     ASSERT_GE(current_time, start_done_time_ms_);
 
@@ -86,7 +86,7 @@ class test_extension_2 : public ten::extension_t {
   void on_data(ten::ten_env_t &ten_env,
                std::unique_ptr<ten::data_t> data) override {
     ASSERT_EQ(data->get_name(), "test");
-    auto current_time = ten_current_time();
+    auto current_time = ten_current_time_ms();
     // current_time should not be less than start_done_time_ms_
     ASSERT_GE(current_time, start_done_time_ms_);
 
@@ -99,7 +99,7 @@ class test_extension_2 : public ten::extension_t {
       ten::ten_env_t &ten_env,
       std::unique_ptr<ten::audio_frame_t> audio_frame) override {
     ASSERT_EQ(audio_frame->get_name(), "test");
-    auto current_time = ten_current_time();
+    auto current_time = ten_current_time_ms();
     // current_time should not be less than start_done_time_ms_
     ASSERT_GE(current_time, start_done_time_ms_);
 
@@ -112,7 +112,7 @@ class test_extension_2 : public ten::extension_t {
       ten::ten_env_t &ten_env,
       std::unique_ptr<ten::video_frame_t> video_frame) override {
     ASSERT_EQ(video_frame->get_name(), "test");
-    auto current_time = ten_current_time();
+    auto current_time = ten_current_time_ms();
     // current_time should not be less than start_done_time_ms_
     ASSERT_GE(current_time, start_done_time_ms_);
 

@@ -83,7 +83,7 @@ void outer_thread_main(test_extension *ext,
       break;
     }
 
-    ten_sleep(100);
+    ten_sleep_ms(100);
   }
 }
 
