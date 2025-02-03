@@ -8,8 +8,6 @@
 
 #include "ten_runtime/ten_config.h"
 
-#include <cstdint>
-
 #include "include_internal/ten_runtime/common/loc.h"
 #include "include_internal/ten_runtime/msg/loop_fields.h"
 #include "ten_runtime/msg/msg.h"

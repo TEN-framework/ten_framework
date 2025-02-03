@@ -6,6 +6,7 @@
 //
 #include "include_internal/ten_runtime/extension_thread/msg_interface/common.h"
 
+#include "core/src/ten_rust/include_internal/ten_rust/ten_rust.h"
 #include "include_internal/ten_runtime/app/app.h"
 #include "include_internal/ten_runtime/app/msg_interface/common.h"
 #include "include_internal/ten_runtime/common/loc.h"
@@ -30,6 +31,12 @@
 #include "ten_utils/lib/time.h"
 #include "ten_utils/macro/check.h"
 #include "ten_utils/macro/mark.h"
+
+#if defined(TEN_ENABLE_TEN_RUST_APIS)
+#include "include_internal/ten_rust/ten_rust.h"
+
+extern MetricSystem *metric_system;
+#endif
 
 void ten_extension_thread_handle_start_msg_task(void *self_,
                                                 TEN_UNUSED void *arg) {
@@ -111,6 +118,10 @@ static void ten_extension_thread_handle_in_msg_task(void *self_, void *arg) {
   ten_shared_ptr_t *msg = (ten_shared_ptr_t *)arg;
   TEN_ASSERT(msg && ten_msg_check_integrity(msg), "Invalid argument.");
   TEN_ASSERT(ten_msg_get_dest_cnt(msg) == 1, "Should not happen.");
+
+  // =-=-=
+  int64_t timestamp = ten_msg_get_timestamp(msg);
+  ten_metric_gauge_set(metric_system, timestamp);
 
   switch (ten_extension_thread_get_state(self)) {
     case TEN_EXTENSION_THREAD_STATE_INIT:

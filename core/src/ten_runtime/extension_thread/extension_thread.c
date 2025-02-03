@@ -44,6 +44,10 @@
 
 #if defined(TEN_ENABLE_TEN_RUST_APIS)
 #include "include_internal/ten_rust/ten_rust.h"
+
+// =-=-=
+MetricSystem *metric_system = NULL;
+MetricHandle *metric_counter = NULL;
 #endif
 
 bool ten_extension_thread_check_integrity_if_in_lock_mode(
@@ -83,12 +87,6 @@ bool ten_extension_thread_check_integrity(ten_extension_thread_t *self,
   return true;
 }
 
-#if defined(TEN_ENABLE_TEN_RUST_APIS)
-// =-=-=
-MetricSystem *metric_system = NULL;
-MetricHandle *metric_counter = NULL;
-#endif
-
 ten_extension_thread_t *ten_extension_thread_create(void) {
   ten_extension_thread_t *self =
       (ten_extension_thread_t *)TEN_MALLOC(sizeof(ten_extension_thread_t));
@@ -126,7 +124,7 @@ ten_extension_thread_t *ten_extension_thread_create(void) {
   TEN_ASSERT(metric_system, "Should not happen.");
 
   // 創建一個 Counter 類型的 metric (無標簽)
-  metric_counter = ten_metric_create(metric_system, 0, "my_counter",
+  metric_counter = ten_metric_create(metric_system, 1, "my_counter",
                                      "A simple counter", NULL, 0);
   TEN_ASSERT(metric_counter, "Should not happen.");
 #endif
