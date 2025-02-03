@@ -5,6 +5,7 @@
 // Refer to the "LICENSE" file in the root directory for more information.
 //
 #include "include_internal/ten_runtime/app/app.h"
+#include "include_internal/ten_runtime/ten_env/metadata.h"
 #include "include_internal/ten_runtime/test/extension_tester.h"
 #include "ten_runtime/ten_env/ten_env.h"
 #include "ten_utils/container/list.h"
@@ -57,8 +58,8 @@ static void store_tester_as_app_property(ten_extension_tester_t *tester,
   ten_value_t *test_info_ptr_value =
       ten_value_create_ptr(tester, NULL, NULL, NULL);
 
-  bool rc =
-      ten_env_set_property(ten_env, "tester_ptr", test_info_ptr_value, NULL);
+  bool rc = ten_env_set_property_internal(ten_env, "tester_ptr",
+                                          test_info_ptr_value, true, NULL);
   TEN_ASSERT(rc, "Should not happen.");
 }
 

@@ -26,7 +26,8 @@
       ten_env.on_destroy_instance_done(context);                                 \
     }                                                                            \
   };                                                                             \
-  static void ____ten_addon_##NAME##_register_handler__(void *register_ctx) {    \
+  namespace {                                                                    \
+  void ____ten_addon_##NAME##_register_handler__(void *register_ctx) {           \
     auto *addon_instance = new NAME##_default_extension_addon_t();               \
     ten_string_t *base_dir =                                                     \
         ten_path_get_module_path(/* NOLINTNEXTLINE */                            \
@@ -49,4 +50,5 @@
       /* NOLINTNEXTLINE(concurrency-mt-unsafe) */                                \
       exit(EXIT_FAILURE);                                                        \
     }                                                                            \
+  }                                                                              \
   }

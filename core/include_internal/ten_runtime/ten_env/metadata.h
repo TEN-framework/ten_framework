@@ -45,3 +45,9 @@ TEN_RUNTIME_PRIVATE_API bool ten_env_set_property_async(
 TEN_RUNTIME_PRIVATE_API bool ten_env_peek_property_async(
     ten_env_t *self, const char *path, ten_env_peek_property_async_cb_t cb,
     void *cb_data, ten_error_t *err);
+
+TEN_RUNTIME_PRIVATE_API bool ten_env_set_property_internal(ten_env_t *self,
+                                                           const char *path,
+                                                           ten_value_t *value,
+                                                           bool internal_use,
+                                                           ten_error_t *err);
