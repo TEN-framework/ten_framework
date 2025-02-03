@@ -8,6 +8,8 @@
 
 #include "ten_runtime/ten_config.h"
 
+#include <cstdint>
+
 #include "include_internal/ten_runtime/common/loc.h"
 #include "include_internal/ten_runtime/msg/loop_fields.h"
 #include "ten_runtime/msg/msg.h"
@@ -57,6 +59,8 @@ typedef struct ten_msg_t {
   ten_value_t properties;  // object value.
 
   ten_list_t locked_res;
+
+  int64_t timestamp;
 } ten_msg_t;
 
 TEN_RUNTIME_API bool ten_raw_msg_check_integrity(ten_msg_t *self);
@@ -337,4 +341,24 @@ inline bool ten_msg_is_cmd(ten_shared_ptr_t *self) {
 inline bool ten_msg_is_cmd_result(ten_shared_ptr_t *self) {
   TEN_ASSERT(self && ten_msg_check_integrity(self), "Should not happen.");
   return ten_raw_msg_is_cmd_result(ten_msg_get_raw_msg(self));
+}
+
+inline void ten_raw_msg_set_timestamp(ten_msg_t *self, int64_t timestamp) {
+  TEN_ASSERT(self && ten_raw_msg_check_integrity(self), "Should not happen.");
+  self->timestamp = timestamp;
+}
+
+inline int64_t ten_raw_msg_get_timestamp(ten_msg_t *self) {
+  TEN_ASSERT(self && ten_raw_msg_check_integrity(self), "Should not happen.");
+  return self->timestamp;
+}
+
+inline void ten_msg_set_timestamp(ten_shared_ptr_t *self, int64_t timestamp) {
+  TEN_ASSERT(self && ten_msg_check_integrity(self), "Should not happen.");
+  ten_raw_msg_set_timestamp(ten_shared_ptr_get_data(self), timestamp);
+}
+
+inline int64_t ten_msg_get_timestamp(ten_shared_ptr_t *self) {
+  TEN_ASSERT(self && ten_msg_check_integrity(self), "Should not happen.");
+  return ten_raw_msg_get_timestamp(ten_shared_ptr_get_data(self));
 }

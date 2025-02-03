@@ -8,6 +8,8 @@
 
 #include <string.h>
 
+#include <cstdint>
+
 #include "include_internal/ten_runtime/app/app.h"
 #include "include_internal/ten_runtime/app/predefined_graph.h"
 #include "include_internal/ten_runtime/common/constant_str.h"
@@ -69,6 +71,8 @@ void ten_raw_msg_init(ten_msg_t *self, TEN_MSG_TYPE type) {
   ten_value_init_object_with_move(&self->properties, NULL);
 
   ten_list_init(&self->locked_res);
+
+  self->timestamp = 0;
 }
 
 void ten_raw_msg_deinit(ten_msg_t *self) {

@@ -27,6 +27,7 @@
 #include "ten_utils/lib/event.h"
 #include "ten_utils/lib/smart_ptr.h"
 #include "ten_utils/lib/string.h"
+#include "ten_utils/lib/time.h"
 #include "ten_utils/macro/check.h"
 #include "ten_utils/macro/mark.h"
 
@@ -225,7 +226,10 @@ void ten_extension_thread_handle_in_msg_async(ten_extension_thread_t *self,
   }
 
   msg = ten_shared_ptr_clone(msg);
+
   // =-=-=
+  ten_msg_set_timestamp(msg, ten_current_time_ms());
+
   int rc = ten_runloop_post_task_tail(
       self->runloop, ten_extension_thread_handle_in_msg_task, self, msg);
   // The extension thread might have already terminated. Therefore, even though
