@@ -15,7 +15,7 @@ use std::ffi::{c_char, CString};
 /// used after being freed. Passing a null pointer is safe, as the function will
 /// simply return in that case.
 #[no_mangle]
-pub unsafe extern "C" fn ten_rust_free_cstring(ptr: *const c_char) {
+pub extern "C" fn ten_rust_free_cstring(ptr: *const c_char) {
     if ptr.is_null() {
         return;
     }

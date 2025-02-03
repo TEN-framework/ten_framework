@@ -51,7 +51,7 @@ typedef struct ten_extension_thread_t {
   ten_mutex_t *lock_mode_lock;
   bool in_lock_mode;
 
-  ten_list_t pending_msgs;
+  ten_list_t pending_msgs_received_in_init_stage;
 
   ten_list_t extensions;  // ten_extension_t*
   size_t extensions_cnt_of_deleted;

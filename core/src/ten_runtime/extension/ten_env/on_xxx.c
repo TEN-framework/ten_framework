@@ -225,7 +225,8 @@ bool ten_extension_on_init_done(ten_env_t *self) {
   return true;
 }
 
-static void ten_extension_flush_all_pending_msgs(ten_extension_t *self) {
+static void ten_extension_flush_all_pending_msgs_received_in_init_stage(
+    ten_extension_t *self) {
   TEN_ASSERT(self, "Invalid argument.");
   TEN_ASSERT(ten_extension_check_integrity(self, true),
              "Invalid use of extension %p.", self);
@@ -233,7 +234,8 @@ static void ten_extension_flush_all_pending_msgs(ten_extension_t *self) {
   // Flush the previously got messages, which are received before
   // on_init_done(), into the extension.
   ten_extension_thread_t *extension_thread = self->extension_thread;
-  ten_list_foreach (&extension_thread->pending_msgs, iter) {
+  ten_list_foreach (&extension_thread->pending_msgs_received_in_init_stage,
+                    iter) {
     ten_shared_ptr_t *msg = ten_smart_ptr_listnode_get(iter.node);
     TEN_ASSERT(msg, "Should not happen.");
 
@@ -242,19 +244,20 @@ static void ten_extension_flush_all_pending_msgs(ten_extension_t *self) {
 
     if (ten_string_is_equal(&dest_loc->extension_name, &self->name)) {
       ten_extension_handle_in_msg(self, msg);
-      ten_list_remove_node(&extension_thread->pending_msgs, iter.node);
+      ten_list_remove_node(
+          &extension_thread->pending_msgs_received_in_init_stage, iter.node);
     }
   }
 
   // Flush the previously got messages, which are received before
   // on_init_done(), into the extension.
-  ten_list_foreach (&self->pending_msgs, iter) {
+  ten_list_foreach (&self->pending_msgs_received_before_on_start_done, iter) {
     ten_shared_ptr_t *msg = ten_smart_ptr_listnode_get(iter.node);
     TEN_ASSERT(msg, "Should not happen.");
 
     ten_extension_handle_in_msg(self, msg);
   }
-  ten_list_clear(&self->pending_msgs);
+  ten_list_clear(&self->pending_msgs_received_before_on_start_done);
 }
 
 bool ten_extension_on_start_done(ten_env_t *self) {
@@ -293,7 +296,7 @@ bool ten_extension_on_start_done(ten_env_t *self) {
     return true;
   }
 
-  ten_extension_flush_all_pending_msgs(extension);
+  ten_extension_flush_all_pending_msgs_received_in_init_stage(extension);
 
   return true;
 }

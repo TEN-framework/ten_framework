@@ -87,7 +87,8 @@ void ten_extension_handle_in_msg(ten_extension_t *self, ten_shared_ptr_t *msg) {
   if (self->state < TEN_EXTENSION_STATE_ON_START_DONE && !msg_is_cmd_result) {
     // The extension is not initialized, and the msg is not a cmd result, so
     // cache the msg to the pending list.
-    ten_list_push_smart_ptr_back(&self->pending_msgs, msg);
+    ten_list_push_smart_ptr_back(
+        &self->pending_msgs_received_before_on_start_done, msg);
     goto done;
   }
 

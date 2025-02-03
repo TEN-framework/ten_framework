@@ -98,7 +98,7 @@ ten_extension_thread_t *ten_extension_thread_create(void) {
   ten_list_init(&self->extensions);
   self->extensions_cnt_of_deleted = 0;
 
-  ten_list_init(&self->pending_msgs);
+  ten_list_init(&self->pending_msgs_received_in_init_stage);
 
   self->in_lock_mode = false;
   self->lock_mode_lock = ten_mutex_create();
@@ -143,7 +143,7 @@ void ten_extension_thread_destroy(ten_extension_thread_t *self) {
 
   ten_signature_set(&self->signature, 0);
 
-  ten_list_clear(&self->pending_msgs);
+  ten_list_clear(&self->pending_msgs_received_in_init_stage);
 
   if (self->runloop) {
     ten_runloop_destroy(self->runloop);

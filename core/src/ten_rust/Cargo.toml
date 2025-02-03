@@ -22,11 +22,14 @@ crate-type = ["staticlib", "rlib"]
 test = true
 
 [dependencies]
+actix-rt = "2.10.0"
+actix-web = "4.9.0"
 anyhow = { version = "1.0" }
 json5 = { version = "0.4" }
 jsonschema = { version = "0.28", default-features = false }
 libc = { version = "0.2" }
 linked-hash-map = { version = "0.5", features = ["serde_impl"] }
+prometheus = "0.13.4"
 regex = { version = "1.11" }
 semver = { version = "1.0", features = ["serde"] }
 serde = { version = "1.0", features = ["derive"] }

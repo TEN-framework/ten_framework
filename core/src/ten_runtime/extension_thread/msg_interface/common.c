@@ -100,6 +100,7 @@ static void ten_extension_thread_handle_in_msg_sync(
   }
 }
 
+// =-=-=
 static void ten_extension_thread_handle_in_msg_task(void *self_, void *arg) {
   ten_extension_thread_t *self = (ten_extension_thread_t *)self_;
   TEN_ASSERT(self, "Invalid argument.");
@@ -124,7 +125,8 @@ static void ten_extension_thread_handle_in_msg_task(void *self_, void *arg) {
       // received messages are placed into a `pending_msgs` list. Once the
       // extensions are created, the messages will be delivered to the
       // corresponding extensions.
-      ten_list_push_smart_ptr_back(&self->pending_msgs, msg);
+      ten_list_push_smart_ptr_back(&self->pending_msgs_received_in_init_stage,
+                                   msg);
       break;
 
     case TEN_EXTENSION_THREAD_STATE_NORMAL:
@@ -223,7 +225,7 @@ void ten_extension_thread_handle_in_msg_async(ten_extension_thread_t *self,
   }
 
   msg = ten_shared_ptr_clone(msg);
-
+  // =-=-=
   int rc = ten_runloop_post_task_tail(
       self->runloop, ten_extension_thread_handle_in_msg_task, self, msg);
   // The extension thread might have already terminated. Therefore, even though
