@@ -22,7 +22,6 @@
 #include "include_internal/ten_runtime/extension_group/on_xxx.h"
 #include "include_internal/ten_runtime/extension_store/extension_store.h"
 #include "include_internal/ten_runtime/extension_thread/msg_interface/common.h"
-#include "include_internal/ten_runtime/extension_thread/telemetry.h"
 #include "include_internal/ten_runtime/msg/msg.h"
 #include "include_internal/ten_runtime/ten_env/ten_env.h"
 #include "include_internal/ten_utils/sanitizer/thread_check.h"
@@ -109,10 +108,6 @@ ten_extension_thread_t *ten_extension_thread_create(void) {
   self->runloop = NULL;
   self->runloop_is_ready_to_use = ten_event_create(0, 0);
 
-#if defined(TEN_ENABLE_TEN_RUST_APIS)
-  self->msg_queue_stay_time_us = NULL;
-#endif
-
   return self;
 }
 
@@ -145,10 +140,6 @@ void ten_extension_thread_destroy(ten_extension_thread_t *self) {
 
   // All the Extensions should have been destroyed.
   TEN_ASSERT(ten_list_is_empty(&self->extensions), "Should not happen.");
-
-#if defined(TEN_ENABLE_TEN_RUST_APIS)
-  ten_extension_thread_destroy_metric(self);
-#endif
 
   ten_signature_set(&self->signature, 0);
 

@@ -478,10 +478,6 @@ static void ten_extension_context_create_extension_group_done(
       extension_thread, extension_context, extension_group);
   extension_group->extension_thread = extension_thread;
 
-#if defined(TEN_ENABLE_TEN_RUST_APIS)
-  ten_extension_thread_create_metric(extension_thread);
-#endif
-
   ten_list_push_ptr_back(
       &extension_context->extension_threads, extension_thread,
       (ten_ptr_listnode_destroy_func_t)

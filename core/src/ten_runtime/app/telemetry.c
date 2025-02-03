@@ -10,10 +10,42 @@
 #include "include_internal/ten_runtime/common/constant_str.h"
 
 #if defined(TEN_ENABLE_TEN_RUST_APIS)
-
 #include "include_internal/ten_rust/ten_rust.h"
+#endif
+
+#if defined(TEN_ENABLE_TEN_RUST_APIS)
+
+static void ten_app_create_metric(ten_app_t *self) {
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_app_check_integrity(self, true), "Invalid use of app %p.",
+             self);
+  TEN_ASSERT(!self->msg_queue_stay_time_us, "Should not happen.");
+
+  if (self->telemetry_system) {
+    self->msg_queue_stay_time_us = ten_metric_create(
+        self->telemetry_system, 1, "msg_queue_stay_time",
+        "The duration (in micro-seconds) that a message instance stays in the "
+        "message queue before being processed.",
+        NULL, 0);
+    TEN_ASSERT(self->msg_queue_stay_time_us, "Should not happen.");
+  }
+}
+
+static void ten_app_destroy_metric(ten_app_t *self) {
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_app_check_integrity(self, true),
+             "Invalid use of extension_thread %p.", self);
+
+  if (self->msg_queue_stay_time_us) {
+    ten_metric_destroy(self->msg_queue_stay_time_us);
+    self->msg_queue_stay_time_us = NULL;
+  }
+}
+
+#endif
 
 bool ten_app_init_telemetry_system(ten_app_t *self, ten_value_t *value) {
+#if defined(TEN_ENABLE_TEN_RUST_APIS)
   TEN_ASSERT(self && ten_app_check_integrity(self, true), "Should not happen.");
   TEN_ASSERT(value && ten_value_check_integrity(value), "Should not happen.");
 
@@ -53,13 +85,17 @@ bool ten_app_init_telemetry_system(ten_app_t *self, ten_value_t *value) {
     exit(EXIT_FAILURE);
   }
 
+  ten_app_create_metric(self);
+#endif
+
   return true;
 }
 
-TelemetrySystem *ten_app_get_telemetry_system(ten_app_t *self) {
-  TEN_ASSERT(self && ten_app_check_integrity(self, false), "Invalid argument.");
-
-  return self->telemetry_system;
-}
-
+void ten_app_deinit_telemetry_system(ten_app_t *self) {
+#if defined(TEN_ENABLE_TEN_RUST_APIS)
+  if (self->telemetry_system) {
+    ten_app_destroy_metric(self);
+    ten_telemetry_system_shutdown(self->telemetry_system);
+  }
 #endif
+}
