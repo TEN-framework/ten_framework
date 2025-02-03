@@ -353,10 +353,10 @@ inline int64_t ten_raw_msg_get_timestamp(ten_msg_t *self) {
 
 inline void ten_msg_set_timestamp(ten_shared_ptr_t *self, int64_t timestamp) {
   TEN_ASSERT(self && ten_msg_check_integrity(self), "Should not happen.");
-  ten_raw_msg_set_timestamp(ten_shared_ptr_get_data(self), timestamp);
+  ten_raw_msg_set_timestamp(ten_msg_get_raw_msg(self), timestamp);
 }
 
 inline int64_t ten_msg_get_timestamp(ten_shared_ptr_t *self) {
   TEN_ASSERT(self && ten_msg_check_integrity(self), "Should not happen.");
-  return ten_raw_msg_get_timestamp(ten_shared_ptr_get_data(self));
+  return ten_raw_msg_get_timestamp(ten_msg_get_raw_msg(self));
 }
