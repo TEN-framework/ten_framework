@@ -18,18 +18,24 @@
 #include "ten_runtime/addon/addon.h"
 #include "ten_runtime/ten_env/ten_env.h"
 #include "ten_utils/lib/string.h"
+#include "ten_utils/lib/thread_once.h"
 #include "ten_utils/macro/check.h"
 #include "ten_utils/macro/mark.h"
 #include "ten_utils/macro/memory.h"
 
+static ten_thread_once_t g_extension_store_once = TEN_THREAD_ONCE_INIT;
+
 static ten_addon_store_t g_extension_store = {
-    false,
     NULL,
     TEN_LIST_INIT_VAL,
 };
 
-ten_addon_store_t *ten_extension_get_global_store(void) {
+static void init_extension_store(void) {
   ten_addon_store_init(&g_extension_store);
+}
+
+ten_addon_store_t *ten_extension_get_global_store(void) {
+  ten_thread_once(&g_extension_store_once, init_extension_store);
   return &g_extension_store;
 }
 

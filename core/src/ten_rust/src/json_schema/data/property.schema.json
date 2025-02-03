@@ -20,6 +20,10 @@
         "const": "localhost"
       }
     },
+    "telemetry_endpoint": {
+      "type": "string",
+      "format": "uri"
+    },
     "notEmptyString": {
       "type": "string",
       "minLength": 1
@@ -422,6 +426,17 @@
         },
         "one_event_loop_per_engine": {
           "type": "boolean"
+        },
+        "telemetry": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "endpoint": {
+              "$ref": "#/$defs/telemetry_endpoint"
+            }
+          }
         },
         "path_timeout": {
           "oneOf": [

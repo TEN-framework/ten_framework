@@ -14,16 +14,22 @@
 #include "ten_runtime/addon/addon.h"
 #include "ten_runtime/app/app.h"
 #include "ten_utils/container/list.h"
+#include "ten_utils/lib/thread_once.h"
 #include "ten_utils/macro/check.h"
 
+static ten_thread_once_t g_addon_loader_store_once = TEN_THREAD_ONCE_INIT;
+
 static ten_addon_store_t g_addon_loader_store = {
-    false,
     NULL,
     TEN_LIST_INIT_VAL,
 };
 
-ten_addon_store_t *ten_addon_loader_get_global_store(void) {
+static void init_addon_loader_store(void) {
   ten_addon_store_init(&g_addon_loader_store);
+}
+
+ten_addon_store_t *ten_addon_loader_get_global_store(void) {
+  ten_thread_once(&g_addon_loader_store_once, init_addon_loader_store);
   return &g_addon_loader_store;
 }
 

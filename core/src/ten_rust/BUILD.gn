@@ -87,7 +87,7 @@ rust_cbindgen("ten_rust_binding") {
   output_file = "include_internal/ten_rust/ten_rust.h"
   binding_files = [
     "src/bindings.rs",
-    "src/metric/mod.rs",
+    "src/telemetry/mod.rs",
   ]
 
   deps = [ ":ten_rust_static_lib" ]

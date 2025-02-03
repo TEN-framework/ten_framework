@@ -159,6 +159,11 @@
 #define TEN_STR_STAR "*"
 #define TEN_STR_ADDON_BASE_DIR_FIND_FROM_APP_BASE_DIR "=*=find_from_app=*="
 
+// Telemetry.
+#define TEN_STR_TELEMETRY "telemetry"
+#define TEN_STR_ENABLED "enabled"
+#define TEN_STR_ENDPOINT "endpoint"
+
 #define TEN_STR_DEFAULT_EXTENSION_GROUP "default_extension_group"
 #define TEN_STR_TEN_TEST_EXTENSION "ten:test_extension"
 

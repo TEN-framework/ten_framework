@@ -10,10 +10,13 @@ use std::{ffi::CStr, thread};
 
 use actix_web::{web, App, HttpResponse, HttpServer};
 use anyhow::Result;
+use futures::channel::oneshot;
 use prometheus::{
     Counter, CounterVec, Encoder, Gauge, GaugeVec, Histogram, HistogramOpts,
     HistogramVec, Opts, Registry, TextEncoder,
 };
+
+use crate::constants::{TELEMETRY_DEFAULT_ENDPOINT, TELEMETRY_DEFAULT_PATH};
 
 #[repr(C)]
 #[derive(Copy, Clone)]
@@ -22,11 +25,14 @@ pub struct Label {
     pub value: *const c_char,
 }
 
-pub struct MetricSystem {
+pub struct TelemetrySystem {
     registry: Registry,
 
-    actix_server: Option<actix_web::dev::ServerHandle>,
     actix_thread: Option<thread::JoinHandle<()>>,
+
+    /// Used to send a shutdown signal to the actix system where the server is
+    /// located.
+    actix_shutdown_tx: Option<oneshot::Sender<()>>,
 }
 
 pub enum MetricHandle {
@@ -47,39 +53,59 @@ pub enum MetricHandle {
     },
 }
 
-/// Initialize the metric system.
+/// Initialize the telemetry system.
 ///
 /// # Parameter
-/// - `url`: The full address including port information, e.g., "127.0.0.1:9090"
+/// - `endpoint`: The full address including port information, e.g.,
+///   "http://127.0.0.1:9090"
 /// - `path`: The HTTP endpoint path, e.g., "/metrics"
 ///
 /// # Return value
-/// Returns a pointer to `MetricSystem` on success, otherwise returns `null`.
+/// Returns a pointer to `TelemetrySystem` on success, otherwise returns `null`.
 #[no_mangle]
 #[allow(clippy::not_unsafe_ptr_arg_deref)]
-pub extern "C" fn ten_metric_system_create(
-    url: *const c_char,
+pub extern "C" fn ten_telemetry_system_create(
+    endpoint: *const c_char,
     path: *const c_char,
-) -> *mut MetricSystem {
-    debug_assert!(!url.is_null(), "URL is null");
-    debug_assert!(!path.is_null(), "Path is null");
+) -> *mut TelemetrySystem {
+    let endpoint_str = if endpoint.is_null() {
+        TELEMETRY_DEFAULT_ENDPOINT.to_string()
+    } else {
+        let c_str_endpoint = unsafe { CStr::from_ptr(endpoint) };
+        match c_str_endpoint.to_str() {
+            Ok(s) if !s.trim().is_empty() => s.to_string(),
+            _ => TELEMETRY_DEFAULT_ENDPOINT.to_string(),
+        }
+    };
 
-    if url.is_null() || path.is_null() {
+    // If an endpoint is provided, it must start with "http://".
+    if !endpoint.is_null() && !endpoint_str.starts_with("http://") {
+        eprintln!(
+            "Error: endpoint must start with \"http://\". Got: {}",
+            endpoint_str
+        );
         return ptr::null_mut();
     }
 
-    let c_str_url = unsafe { CStr::from_ptr(url) };
-    let c_str_path = unsafe { CStr::from_ptr(path) };
-
-    let url_str = match c_str_url.to_str() {
-        Ok(s) => s.to_string(),
-        Err(_) => return ptr::null_mut(),
-    };
-    let path_str = match c_str_path.to_str() {
-        Ok(s) => s.to_string(),
-        Err(_) => return ptr::null_mut(),
+    let endpoint_for_bind = if endpoint_str.starts_with("http://") {
+        endpoint_str.trim_start_matches("http://").to_string()
+    } else {
+        endpoint_str.clone()
     };
 
+    let path_str = if path.is_null() {
+        TELEMETRY_DEFAULT_PATH.to_string()
+    } else {
+        let c_str_path = unsafe { CStr::from_ptr(path) };
+        match c_str_path.to_str() {
+            Ok(s) if !s.trim().is_empty() => s.to_string(),
+            _ => TELEMETRY_DEFAULT_PATH.to_string(),
+        }
+    };
+
+    // Note: `prometheus::Registry` internally uses `Arc` and `RwLock` to
+    // achieve thread safety, so there is no need to add additional locking
+    // mechanisms. It can be used directly here.
     let registry = Registry::new();
 
     // Start the actix-web server to provide metrics data at the specified path.
@@ -122,37 +148,55 @@ pub extern "C" fn ten_metric_system_create(
             }),
         )
     })
-    .bind(&url_str);
+    .bind(&endpoint_for_bind);
 
     let server_builder = match server_builder {
         Ok(s) => s,
-        Err(_) => return ptr::null_mut(),
+        Err(_) => {
+            eprintln!("Error binding to address: {}", endpoint_str);
+            return ptr::null_mut();
+        }
     };
 
     let server = server_builder.run();
-    let server_handle = server.handle();
+
+    // Create an `oneshot` channel to notify the actix system to shut down.
+    let (shutdown_tx, shutdown_rx) = oneshot::channel::<()>();
 
     let server_thread_handle = thread::spawn(move || {
         let sys = actix_rt::System::new();
+
+        // Register a task in the same actix system to wait for the
+        // `shutdown_rx` signal. Once received, call `System::current().stop()`.
+        actix_rt::spawn(async move {
+            let _ = shutdown_rx.await;
+
+            // Shut down the current actix system, causing `block_on(server)` to
+            // exit.
+            actix_rt::System::current().stop();
+        });
+
+        // Run the server until the system stops.
         let _ = sys.block_on(server);
     });
 
-    let actix_server = Some(server_handle);
     let actix_thread = Some(server_thread_handle);
 
-    let system = MetricSystem {
+    let system = TelemetrySystem {
         registry,
-        actix_server,
         actix_thread,
+        actix_shutdown_tx: Some(shutdown_tx),
     };
 
     Box::into_raw(Box::new(system))
 }
 
-/// Shut down the metric system, stop the server, and clean up all resources.
+/// Shut down the telemetry system, stop the server, and clean up all resources.
 #[no_mangle]
 #[allow(clippy::not_unsafe_ptr_arg_deref)]
-pub extern "C" fn ten_metric_system_shutdown(system_ptr: *mut MetricSystem) {
+pub extern "C" fn ten_telemetry_system_shutdown(
+    system_ptr: *mut TelemetrySystem,
+) {
     debug_assert!(!system_ptr.is_null(), "System pointer is null");
 
     if system_ptr.is_null() {
@@ -163,10 +207,11 @@ pub extern "C" fn ten_metric_system_shutdown(system_ptr: *mut MetricSystem) {
     // released when the function exits.
     let system = unsafe { Box::from_raw(system_ptr) };
 
-    if let Some(server_handle) = system.actix_server {
-        // Await the future returned by stop(true).
-        actix_rt::System::new().block_on(server_handle.stop(true));
+    // Notify the actix system to shut down through the `oneshot` channel.
+    if let Some(shutdown_tx) = system.actix_shutdown_tx {
+        let _ = shutdown_tx.send(());
     }
+
     if let Some(server_thread_handle) = system.actix_thread {
         let _ = server_thread_handle.join();
     }
@@ -209,7 +254,7 @@ fn convert_labels(
 }
 
 fn create_metric_counter(
-    system: &mut MetricSystem,
+    system: &mut TelemetrySystem,
     name_str: &str,
     help_str: &str,
 ) -> Result<MetricHandle> {
@@ -228,7 +273,7 @@ fn create_metric_counter(
 }
 
 fn create_metric_counter_with_labels(
-    system: &mut MetricSystem,
+    system: &mut TelemetrySystem,
     name_str: &str,
     help_str: &str,
     label_names: &Vec<&str>,
@@ -253,7 +298,7 @@ fn create_metric_counter_with_labels(
 }
 
 fn create_metric_gauge(
-    system: &mut MetricSystem,
+    system: &mut TelemetrySystem,
     name_str: &str,
     help_str: &str,
 ) -> Result<MetricHandle> {
@@ -271,7 +316,7 @@ fn create_metric_gauge(
 }
 
 fn create_metric_gauge_with_labels(
-    system: &mut MetricSystem,
+    system: &mut TelemetrySystem,
     name_str: &str,
     help_str: &str,
     label_names: &Vec<&str>,
@@ -296,7 +341,7 @@ fn create_metric_gauge_with_labels(
 }
 
 fn create_metric_histogram(
-    system: &mut MetricSystem,
+    system: &mut TelemetrySystem,
     name_str: &str,
     help_str: &str,
 ) -> Result<MetricHandle> {
@@ -316,7 +361,7 @@ fn create_metric_histogram(
 }
 
 fn create_metric_histogram_with_labels(
-    system: &mut MetricSystem,
+    system: &mut TelemetrySystem,
     name_str: &str,
     help_str: &str,
     label_names: &Vec<&str>,
@@ -343,7 +388,7 @@ fn create_metric_histogram_with_labels(
 /// Create a metric.
 ///
 /// # Parameter
-/// - `system_ptr`: Pointer to the previously created MetricSystem.
+/// - `system_ptr`: Pointer to the previously created TelemetrySystem.
 /// - `metric_type`: 0 for Counter, 1 for Gauge, 2 for Histogram.
 /// - `name`, `help`: The name and description of the metric.
 /// - `labels_ptr` and `labels_len`: If not null, a metric with labels will be
@@ -356,7 +401,7 @@ fn create_metric_histogram_with_labels(
 #[no_mangle]
 #[allow(clippy::not_unsafe_ptr_arg_deref)]
 pub extern "C" fn ten_metric_create(
-    system_ptr: *mut MetricSystem,
+    system_ptr: *mut TelemetrySystem,
     metric_type: u32, // 0=Counter, 1=Gauge, 2=Histogram
     name: *const c_char,
     help: *const c_char,

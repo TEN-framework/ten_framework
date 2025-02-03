@@ -18,6 +18,7 @@
 #include "include_internal/ten_runtime/extension_group/metadata.h"
 #include "include_internal/ten_runtime/extension_store/extension_store.h"
 #include "include_internal/ten_runtime/extension_thread/extension_thread.h"
+#include "include_internal/ten_runtime/extension_thread/telemetry.h"
 #include "include_internal/ten_runtime/msg/msg.h"
 #include "include_internal/ten_utils/value/value.h"
 #include "ten_runtime/app/app.h"
@@ -27,18 +28,9 @@
 #include "ten_utils/lib/event.h"
 #include "ten_utils/lib/smart_ptr.h"
 #include "ten_utils/lib/string.h"
+#include "ten_utils/lib/time.h"
 #include "ten_utils/macro/check.h"
 #include "ten_utils/macro/mark.h"
-
-// =-=-=
-#if false
-#if defined(TEN_ENABLE_TEN_RUST_APIS)
-#include "include_internal/ten_rust/ten_rust.h"
-#include "ten_utils/lib/time.h"
-
-extern MetricHandle *metric_counter;
-#endif
-#endif
 
 void ten_extension_thread_handle_start_msg_task(void *self_,
                                                 TEN_UNUSED void *arg) {
@@ -120,11 +112,9 @@ static void ten_extension_thread_handle_in_msg_task(void *self_, void *arg) {
   TEN_ASSERT(msg && ten_msg_check_integrity(msg), "Invalid argument.");
   TEN_ASSERT(ten_msg_get_dest_cnt(msg) == 1, "Should not happen.");
 
-#if false
-  // =-=-=
+#if defined(TEN_ENABLE_TEN_RUST_APIS)
   int64_t timestamp = ten_msg_get_timestamp(msg);
-  ten_metric_gauge_set(metric_counter,
-                       (double)(ten_current_time_ms() - timestamp));
+  ten_extension_thread_record_msg_queue_stay_time(self, timestamp);
 #endif
 
   switch (ten_extension_thread_get_state(self)) {
@@ -242,9 +232,8 @@ void ten_extension_thread_handle_in_msg_async(ten_extension_thread_t *self,
 
   msg = ten_shared_ptr_clone(msg);
 
-#if false
-  // =-=-=
-  ten_msg_set_timestamp(msg, ten_current_time_ms());
+#if defined(TEN_ENABLE_TEN_RUST_APIS)
+  ten_msg_set_timestamp(msg, ten_current_time_us());
 #endif
 
   int rc = ten_runloop_post_task_tail(

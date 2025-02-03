@@ -12,16 +12,22 @@
 #include "include_internal/ten_runtime/engine/engine.h"
 #include "include_internal/ten_runtime/extension_group/extension_group.h"
 #include "include_internal/ten_runtime/ten_env/ten_env.h"
+#include "ten_utils/lib/thread_once.h"
 #include "ten_utils/macro/check.h"
 
+static ten_thread_once_t g_extension_group_store_once = TEN_THREAD_ONCE_INIT;
+
 static ten_addon_store_t g_extension_group_store = {
-    false,
     NULL,
     TEN_LIST_INIT_VAL,
 };
 
-ten_addon_store_t *ten_extension_group_get_global_store(void) {
+static void init_extension_group_store(void) {
   ten_addon_store_init(&g_extension_group_store);
+}
+
+ten_addon_store_t *ten_extension_group_get_global_store(void) {
+  ten_thread_once(&g_extension_group_store_once, init_extension_group_store);
   return &g_extension_group_store;
 }
 
