@@ -6,7 +6,6 @@
 //
 #include "include_internal/ten_runtime/extension_thread/msg_interface/common.h"
 
-#include "core/src/ten_rust/include_internal/ten_rust/ten_rust.h"
 #include "include_internal/ten_runtime/app/app.h"
 #include "include_internal/ten_runtime/app/msg_interface/common.h"
 #include "include_internal/ten_runtime/common/loc.h"
@@ -28,14 +27,17 @@
 #include "ten_utils/lib/event.h"
 #include "ten_utils/lib/smart_ptr.h"
 #include "ten_utils/lib/string.h"
-#include "ten_utils/lib/time.h"
 #include "ten_utils/macro/check.h"
 #include "ten_utils/macro/mark.h"
 
+// =-=-=
+#if false
 #if defined(TEN_ENABLE_TEN_RUST_APIS)
 #include "include_internal/ten_rust/ten_rust.h"
+#include "ten_utils/lib/time.h"
 
 extern MetricHandle *metric_counter;
+#endif
 #endif
 
 void ten_extension_thread_handle_start_msg_task(void *self_,
