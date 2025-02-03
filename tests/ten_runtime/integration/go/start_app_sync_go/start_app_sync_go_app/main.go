@@ -26,9 +26,9 @@ func (p *defaultApp) OnDeinit(tenEnv ten.TenEnv) {
 	tenEnv.OnDeinitDone()
 }
 
-func (p *defaultApp) OnInit(tenEnv ten.TenEnv) {
-	tenEnv.SetPropertyString("key", "value")
-	tenEnv.OnInitDone()
+func (p *defaultApp) OnConfigure(tenEnv ten.TenEnv) {
+	tenEnv.InitPropertyFromJSONBytes([]byte("{\"key\":\"value\"}"))
+	tenEnv.OnConfigureDone()
 }
 
 func appRoutine(app ten.App, stopped chan<- struct{}) {
