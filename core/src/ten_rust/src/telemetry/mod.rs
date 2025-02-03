@@ -16,7 +16,7 @@ use prometheus::{
     HistogramVec, Opts, Registry, TextEncoder,
 };
 
-use crate::constants::{METRIC_DEFAULT_PATH, METRIC_DEFAULT_URL};
+use crate::constants::{TELEMETRY_DEFAULT_ENDPOINT, TELEMETRY_DEFAULT_PATH};
 
 #[repr(C)]
 #[derive(Copy, Clone)]
@@ -25,7 +25,7 @@ pub struct Label {
     pub value: *const c_char,
 }
 
-pub struct MetricSystem {
+pub struct TelemetrySystem {
     registry: Registry,
 
     actix_thread: Option<thread::JoinHandle<()>>,
@@ -53,37 +53,53 @@ pub enum MetricHandle {
     },
 }
 
-/// Initialize the metric system.
+/// Initialize the telemetry system.
 ///
 /// # Parameter
-/// - `url`: The full address including port information, e.g., "127.0.0.1:9090"
+/// - `endpoint`: The full address including port information, e.g.,
+///   "http://127.0.0.1:9090"
 /// - `path`: The HTTP endpoint path, e.g., "/metrics"
 ///
 /// # Return value
-/// Returns a pointer to `MetricSystem` on success, otherwise returns `null`.
+/// Returns a pointer to `TelemetrySystem` on success, otherwise returns `null`.
 #[no_mangle]
 #[allow(clippy::not_unsafe_ptr_arg_deref)]
-pub extern "C" fn ten_metric_system_create(
-    url: *const c_char,
+pub extern "C" fn ten_telemetry_system_create(
+    endpoint: *const c_char,
     path: *const c_char,
-) -> *mut MetricSystem {
-    let url_str = if url.is_null() {
-        METRIC_DEFAULT_URL.to_string()
+) -> *mut TelemetrySystem {
+    let endpoint_str = if endpoint.is_null() {
+        TELEMETRY_DEFAULT_ENDPOINT.to_string()
     } else {
-        let c_str_url = unsafe { CStr::from_ptr(url) };
-        match c_str_url.to_str() {
+        let c_str_endpoint = unsafe { CStr::from_ptr(endpoint) };
+        match c_str_endpoint.to_str() {
             Ok(s) if !s.trim().is_empty() => s.to_string(),
-            _ => METRIC_DEFAULT_URL.to_string(),
+            _ => TELEMETRY_DEFAULT_ENDPOINT.to_string(),
         }
     };
 
+    // If an endpoint is provided, it must start with "http://".
+    if !endpoint.is_null() && !endpoint_str.starts_with("http://") {
+        eprintln!(
+            "Error: endpoint must start with \"http://\". Got: {}",
+            endpoint_str
+        );
+        return ptr::null_mut();
+    }
+
+    let endpoint_for_bind = if endpoint_str.starts_with("http://") {
+        endpoint_str.trim_start_matches("http://").to_string()
+    } else {
+        endpoint_str.clone()
+    };
+
     let path_str = if path.is_null() {
-        METRIC_DEFAULT_PATH.to_string()
+        TELEMETRY_DEFAULT_PATH.to_string()
     } else {
         let c_str_path = unsafe { CStr::from_ptr(path) };
         match c_str_path.to_str() {
             Ok(s) if !s.trim().is_empty() => s.to_string(),
-            _ => METRIC_DEFAULT_PATH.to_string(),
+            _ => TELEMETRY_DEFAULT_PATH.to_string(),
         }
     };
 
@@ -132,12 +148,12 @@ pub extern "C" fn ten_metric_system_create(
             }),
         )
     })
-    .bind(&url_str);
+    .bind(&endpoint_for_bind);
 
     let server_builder = match server_builder {
         Ok(s) => s,
         Err(_) => {
-            eprintln!("Error binding to address: {}", url_str);
+            eprintln!("Error binding to address: {}", endpoint_str);
             return ptr::null_mut();
         }
     };
@@ -166,7 +182,7 @@ pub extern "C" fn ten_metric_system_create(
 
     let actix_thread = Some(server_thread_handle);
 
-    let system = MetricSystem {
+    let system = TelemetrySystem {
         registry,
         actix_thread,
         actix_shutdown_tx: Some(shutdown_tx),
@@ -175,10 +191,12 @@ pub extern "C" fn ten_metric_system_create(
     Box::into_raw(Box::new(system))
 }
 
-/// Shut down the metric system, stop the server, and clean up all resources.
+/// Shut down the telemetry system, stop the server, and clean up all resources.
 #[no_mangle]
 #[allow(clippy::not_unsafe_ptr_arg_deref)]
-pub extern "C" fn ten_metric_system_shutdown(system_ptr: *mut MetricSystem) {
+pub extern "C" fn ten_telemetry_system_shutdown(
+    system_ptr: *mut TelemetrySystem,
+) {
     debug_assert!(!system_ptr.is_null(), "System pointer is null");
 
     if system_ptr.is_null() {
@@ -236,7 +254,7 @@ fn convert_labels(
 }
 
 fn create_metric_counter(
-    system: &mut MetricSystem,
+    system: &mut TelemetrySystem,
     name_str: &str,
     help_str: &str,
 ) -> Result<MetricHandle> {
@@ -255,7 +273,7 @@ fn create_metric_counter(
 }
 
 fn create_metric_counter_with_labels(
-    system: &mut MetricSystem,
+    system: &mut TelemetrySystem,
     name_str: &str,
     help_str: &str,
     label_names: &Vec<&str>,
@@ -280,7 +298,7 @@ fn create_metric_counter_with_labels(
 }
 
 fn create_metric_gauge(
-    system: &mut MetricSystem,
+    system: &mut TelemetrySystem,
     name_str: &str,
     help_str: &str,
 ) -> Result<MetricHandle> {
@@ -298,7 +316,7 @@ fn create_metric_gauge(
 }
 
 fn create_metric_gauge_with_labels(
-    system: &mut MetricSystem,
+    system: &mut TelemetrySystem,
     name_str: &str,
     help_str: &str,
     label_names: &Vec<&str>,
@@ -323,7 +341,7 @@ fn create_metric_gauge_with_labels(
 }
 
 fn create_metric_histogram(
-    system: &mut MetricSystem,
+    system: &mut TelemetrySystem,
     name_str: &str,
     help_str: &str,
 ) -> Result<MetricHandle> {
@@ -343,7 +361,7 @@ fn create_metric_histogram(
 }
 
 fn create_metric_histogram_with_labels(
-    system: &mut MetricSystem,
+    system: &mut TelemetrySystem,
     name_str: &str,
     help_str: &str,
     label_names: &Vec<&str>,
@@ -370,7 +388,7 @@ fn create_metric_histogram_with_labels(
 /// Create a metric.
 ///
 /// # Parameter
-/// - `system_ptr`: Pointer to the previously created MetricSystem.
+/// - `system_ptr`: Pointer to the previously created TelemetrySystem.
 /// - `metric_type`: 0 for Counter, 1 for Gauge, 2 for Histogram.
 /// - `name`, `help`: The name and description of the metric.
 /// - `labels_ptr` and `labels_len`: If not null, a metric with labels will be
@@ -383,7 +401,7 @@ fn create_metric_histogram_with_labels(
 #[no_mangle]
 #[allow(clippy::not_unsafe_ptr_arg_deref)]
 pub extern "C" fn ten_metric_create(
-    system_ptr: *mut MetricSystem,
+    system_ptr: *mut TelemetrySystem,
     metric_type: u32, // 0=Counter, 1=Gauge, 2=Histogram
     name: *const c_char,
     help: *const c_char,

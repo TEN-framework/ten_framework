@@ -26,7 +26,7 @@
 typedef struct ten_connection_t ten_connection_t;
 typedef struct ten_engine_t ten_engine_t;
 typedef struct ten_protocol_t ten_protocol_t;
-typedef struct MetricSystem MetricSystem;
+typedef struct TelemetrySystem TelemetrySystem;
 
 typedef enum TEN_APP_STATE {
   TEN_APP_STATE_INIT,
@@ -104,7 +104,7 @@ typedef struct ten_app_t {
   ten_list_t ten_package_base_dirs;
 
 #if defined(TEN_ENABLE_TEN_RUST_APIS)
-  MetricSystem *metric_system;
+  TelemetrySystem *telemetry_system;
 #endif
 
   void *user_data;

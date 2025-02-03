@@ -5,5 +5,5 @@
 // Refer to the "LICENSE" file in the root directory for more information.
 //
 
-pub const METRIC_DEFAULT_URL: &str = "0.0.0.0:49484";
-pub const METRIC_DEFAULT_PATH: &str = "/metrics";
+pub const TELEMETRY_DEFAULT_ENDPOINT: &str = "0.0.0.0:49484";
+pub const TELEMETRY_DEFAULT_PATH: &str = "/metrics";

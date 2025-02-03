@@ -7,7 +7,6 @@
 #include "include_internal/ten_runtime/addon/common/store.h"
 
 #include <stdlib.h>
-#include <string.h>
 
 #include "include_internal/ten_runtime/addon/addon.h"
 #include "include_internal/ten_runtime/addon/addon_host.h"
@@ -16,21 +15,19 @@
 #include "include_internal/ten_runtime/addon/extension_group/extension_group.h"
 #include "include_internal/ten_runtime/addon/protocol/protocol.h"
 #include "ten_utils/container/list.h"
-#include "ten_utils/lib/atomic.h"
 #include "ten_utils/lib/mutex.h"
 #include "ten_utils/lib/ref.h"
 #include "ten_utils/lib/string.h"
 #include "ten_utils/macro/check.h"
 
+// The addon store should be initted only once.
 void ten_addon_store_init(ten_addon_store_t *store) {
   TEN_ASSERT(store, "Can not init empty addon store.");
-
-  // The addon store should be initted only once.
-  if (ten_atomic_test_set(&store->valid, 1) == 1) {
-    return;
-  }
+  TEN_ASSERT(!store->lock, "Should not happen.");
 
   store->lock = ten_mutex_create();
+  TEN_ASSERT(store->lock, "Failed to create mutex.");
+
   ten_list_init(&store->store);
 }
 

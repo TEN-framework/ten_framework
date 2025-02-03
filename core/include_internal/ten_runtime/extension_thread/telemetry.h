@@ -10,12 +10,12 @@
 
 #include "include_internal/ten_runtime/extension_thread/extension_thread.h"
 
-typedef struct MetricSystem MetricSystem;
+typedef struct TelemetrySystem TelemetrySystem;
 
 #if defined(TEN_ENABLE_TEN_RUST_APIS)
 
-TEN_RUNTIME_PRIVATE_API MetricSystem *ten_extension_thread_get_metric_system(
-    ten_extension_thread_t *self);
+TEN_RUNTIME_PRIVATE_API TelemetrySystem *
+ten_extension_thread_get_telemetry_system(ten_extension_thread_t *self);
 
 TEN_RUNTIME_PRIVATE_API void ten_extension_thread_create_metric(
     ten_extension_thread_t *self);

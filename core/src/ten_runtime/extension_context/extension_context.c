@@ -22,7 +22,7 @@
 #include "include_internal/ten_runtime/extension_group/extension_group.h"
 #include "include_internal/ten_runtime/extension_group/extension_group_info/extension_group_info.h"
 #include "include_internal/ten_runtime/extension_thread/extension_thread.h"
-#include "include_internal/ten_runtime/extension_thread/metric.h"
+#include "include_internal/ten_runtime/extension_thread/telemetry.h"
 #include "include_internal/ten_runtime/msg/cmd_base/cmd/start_graph/cmd.h"
 #include "include_internal/ten_runtime/msg/msg.h"
 #include "include_internal/ten_runtime/ten_env/ten_env.h"

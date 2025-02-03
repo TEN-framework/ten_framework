@@ -136,10 +136,7 @@ ten_app_t *ten_app_create(ten_app_on_configure_func_t on_configure,
   self->manifest_info = NULL;
   self->property_info = NULL;
 
-#if defined(TEN_ENABLE_TEN_RUST_APIS)
-  self->metric_system = ten_metric_system_create(NULL, NULL);
-  TEN_ASSERT(self->metric_system, "Should not happen.");
-#endif
+  self->telemetry_system = NULL;
 
   self->user_data = NULL;
 
@@ -193,7 +190,9 @@ void ten_app_destroy(ten_app_t *self) {
   ten_list_clear(&self->ten_package_base_dirs);
 
 #if defined(TEN_ENABLE_TEN_RUST_APIS)
-  ten_metric_system_shutdown(self->metric_system);
+  if (self->telemetry_system) {
+    ten_telemetry_system_shutdown(self->telemetry_system);
+  }
 #endif
 
   TEN_FREE(self);

@@ -18,7 +18,7 @@
 #include "include_internal/ten_runtime/extension_group/metadata.h"
 #include "include_internal/ten_runtime/extension_store/extension_store.h"
 #include "include_internal/ten_runtime/extension_thread/extension_thread.h"
-#include "include_internal/ten_runtime/extension_thread/metric.h"
+#include "include_internal/ten_runtime/extension_thread/telemetry.h"
 #include "include_internal/ten_runtime/msg/msg.h"
 #include "include_internal/ten_utils/value/value.h"
 #include "ten_runtime/app/app.h"
