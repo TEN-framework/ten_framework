@@ -7,6 +7,7 @@
 #include "ten_utils/lib/time.h"
 
 #include <Windows.h>
+#include <assert.h>
 
 int64_t ten_current_time_ms(void) {
   FILETIME ft;
