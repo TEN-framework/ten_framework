@@ -8,6 +8,7 @@
 
 #include <Windows.h>
 #include <assert.h>
+#include <time.h>
 
 int64_t ten_current_time_ms(void) {
   FILETIME ft;
