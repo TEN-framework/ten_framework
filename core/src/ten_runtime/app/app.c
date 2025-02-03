@@ -31,10 +31,6 @@
 #include "ten_utils/sanitizer/thread_check.h"
 #include "ten_utils/value/value.h"
 
-#if defined(TEN_ENABLE_TEN_RUST_APIS)
-#include "include_internal/ten_rust/ten_rust.h"
-#endif
-
 static void ten_app_inherit_thread_ownership(ten_app_t *self) {
   TEN_ASSERT(self, "Invalid argument.");
   // TEN_NOLINTNEXTLINE(thread-check)
