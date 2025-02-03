@@ -137,7 +137,7 @@
       "request": "launch",
       "program": "${workspaceFolder}/out/linux/x64/tests/standalone/ten_runtime_smoke_test",
       "args": [
-        "--gtest_filter=StandaloneTest.BasicData"
+        "--gtest_filter=BasicTest.HelloWorld1"
       ],
       "cwd": "${workspaceFolder}/out/linux/x64/tests/standalone/",
       "env": {
@@ -150,7 +150,7 @@
       "name": "ten_runtime_smoke_test testing (cppdbg, attach)",
       "type": "cppdbg",
       "request": "attach",
-      "program": "${workspaceFolder}/out/linux/x64/ten_runtime_smoke_test",
+      "program": "${workspaceFolder}/out/linux/x64/tests/standalone/ten_runtime_smoke_test",
       "processId": "${command:pickProcess}",
       "MIMode": "gdb", // or lldb
       "sourceFileMap": {

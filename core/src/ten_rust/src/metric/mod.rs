@@ -10,10 +10,13 @@ use std::{ffi::CStr, thread};
 
 use actix_web::{web, App, HttpResponse, HttpServer};
 use anyhow::Result;
+use futures::channel::oneshot;
 use prometheus::{
     Counter, CounterVec, Encoder, Gauge, GaugeVec, Histogram, HistogramOpts,
     HistogramVec, Opts, Registry, TextEncoder,
 };
+
+use crate::constants::{METRIC_DEFAULT_PATH, METRIC_DEFAULT_URL};
 
 #[repr(C)]
 #[derive(Copy, Clone)]
@@ -25,8 +28,11 @@ pub struct Label {
 pub struct MetricSystem {
     registry: Registry,
 
-    actix_server: Option<actix_web::dev::ServerHandle>,
     actix_thread: Option<thread::JoinHandle<()>>,
+
+    /// Used to send a shutdown signal to the actix system where the server is
+    /// located.
+    actix_shutdown_tx: Option<oneshot::Sender<()>>,
 }
 
 pub enum MetricHandle {
@@ -61,25 +67,29 @@ pub extern "C" fn ten_metric_system_create(
     url: *const c_char,
     path: *const c_char,
 ) -> *mut MetricSystem {
-    debug_assert!(!url.is_null(), "URL is null");
-    debug_assert!(!path.is_null(), "Path is null");
-
-    if url.is_null() || path.is_null() {
-        return ptr::null_mut();
-    }
-
-    let c_str_url = unsafe { CStr::from_ptr(url) };
-    let c_str_path = unsafe { CStr::from_ptr(path) };
-
-    let url_str = match c_str_url.to_str() {
-        Ok(s) => s.to_string(),
-        Err(_) => return ptr::null_mut(),
-    };
-    let path_str = match c_str_path.to_str() {
-        Ok(s) => s.to_string(),
-        Err(_) => return ptr::null_mut(),
+    let url_str = if url.is_null() {
+        METRIC_DEFAULT_URL.to_string()
+    } else {
+        let c_str_url = unsafe { CStr::from_ptr(url) };
+        match c_str_url.to_str() {
+            Ok(s) if !s.trim().is_empty() => s.to_string(),
+            _ => METRIC_DEFAULT_URL.to_string(),
+        }
     };
 
+    let path_str = if path.is_null() {
+        METRIC_DEFAULT_PATH.to_string()
+    } else {
+        let c_str_path = unsafe { CStr::from_ptr(path) };
+        match c_str_path.to_str() {
+            Ok(s) if !s.trim().is_empty() => s.to_string(),
+            _ => METRIC_DEFAULT_PATH.to_string(),
+        }
+    };
+
+    // Note: `prometheus::Registry` internally uses `Arc` and `RwLock` to
+    // achieve thread safety, so there is no need to add additional locking
+    // mechanisms. It can be used directly here.
     let registry = Registry::new();
 
     // Start the actix-web server to provide metrics data at the specified path.
@@ -126,24 +136,40 @@ pub extern "C" fn ten_metric_system_create(
 
     let server_builder = match server_builder {
         Ok(s) => s,
-        Err(_) => return ptr::null_mut(),
+        Err(_) => {
+            eprintln!("Error binding to address: {}", url_str);
+            return ptr::null_mut();
+        }
     };
 
     let server = server_builder.run();
-    let server_handle = server.handle();
+
+    // Create an `oneshot` channel to notify the actix system to shut down.
+    let (shutdown_tx, shutdown_rx) = oneshot::channel::<()>();
 
     let server_thread_handle = thread::spawn(move || {
         let sys = actix_rt::System::new();
+
+        // Register a task in the same actix system to wait for the
+        // `shutdown_rx` signal. Once received, call `System::current().stop()`.
+        actix_rt::spawn(async move {
+            let _ = shutdown_rx.await;
+
+            // Shut down the current actix system, causing `block_on(server)` to
+            // exit.
+            actix_rt::System::current().stop();
+        });
+
+        // Run the server until the system stops.
         let _ = sys.block_on(server);
     });
 
-    let actix_server = Some(server_handle);
     let actix_thread = Some(server_thread_handle);
 
     let system = MetricSystem {
         registry,
-        actix_server,
         actix_thread,
+        actix_shutdown_tx: Some(shutdown_tx),
     };
 
     Box::into_raw(Box::new(system))
@@ -163,10 +189,11 @@ pub extern "C" fn ten_metric_system_shutdown(system_ptr: *mut MetricSystem) {
     // released when the function exits.
     let system = unsafe { Box::from_raw(system_ptr) };
 
-    if let Some(server_handle) = system.actix_server {
-        // Await the future returned by stop(true).
-        actix_rt::System::new().block_on(server_handle.stop(true));
+    // Notify the actix system to shut down through the `oneshot` channel.
+    if let Some(shutdown_tx) = system.actix_shutdown_tx {
+        let _ = shutdown_tx.send(());
     }
+
     if let Some(server_thread_handle) = system.actix_thread {
         let _ = server_thread_handle.join();
     }

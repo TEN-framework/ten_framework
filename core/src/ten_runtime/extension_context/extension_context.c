@@ -22,6 +22,7 @@
 #include "include_internal/ten_runtime/extension_group/extension_group.h"
 #include "include_internal/ten_runtime/extension_group/extension_group_info/extension_group_info.h"
 #include "include_internal/ten_runtime/extension_thread/extension_thread.h"
+#include "include_internal/ten_runtime/extension_thread/metric.h"
 #include "include_internal/ten_runtime/msg/cmd_base/cmd/start_graph/cmd.h"
 #include "include_internal/ten_runtime/msg/msg.h"
 #include "include_internal/ten_runtime/ten_env/ten_env.h"
@@ -476,6 +477,10 @@ static void ten_extension_context_create_extension_group_done(
   ten_extension_thread_attach_to_context_and_group(
       extension_thread, extension_context, extension_group);
   extension_group->extension_thread = extension_thread;
+
+#if defined(TEN_ENABLE_TEN_RUST_APIS)
+  ten_extension_thread_create_metric(extension_thread);
+#endif
 
   ten_list_push_ptr_back(
       &extension_context->extension_threads, extension_thread,

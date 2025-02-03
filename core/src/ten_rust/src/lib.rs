@@ -5,6 +5,7 @@
 // Refer to the "LICENSE" file in the root directory for more information.
 //
 mod bindings;
+pub mod constants;
 pub mod interface;
 pub mod json;
 pub mod json_schema;

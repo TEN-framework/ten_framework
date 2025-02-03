@@ -24,6 +24,7 @@ typedef struct ten_extension_group_t ten_extension_group_t;
 typedef struct ten_extension_store_t ten_extension_store_t;
 typedef struct ten_extension_context_t ten_extension_context_t;
 typedef struct ten_extension_t ten_extension_t;
+typedef struct MetricHandle MetricHandle;
 
 typedef enum TEN_EXTENSION_THREAD_STATE {
   TEN_EXTENSION_THREAD_STATE_INIT,
@@ -65,6 +66,10 @@ typedef struct ten_extension_thread_t {
 
   ten_runloop_t *runloop;
   ten_event_t *runloop_is_ready_to_use;
+
+#if defined(TEN_ENABLE_TEN_RUST_APIS)
+  MetricHandle *msg_queue_stay_time_us;  // micro-seconds.
+#endif
 } ten_extension_thread_t;
 
 TEN_RUNTIME_API bool ten_extension_thread_not_call_by_me(
