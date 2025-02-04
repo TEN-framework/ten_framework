@@ -26,6 +26,8 @@
 typedef struct ten_connection_t ten_connection_t;
 typedef struct ten_engine_t ten_engine_t;
 typedef struct ten_protocol_t ten_protocol_t;
+typedef struct TelemetrySystem TelemetrySystem;
+typedef struct MetricHandle MetricHandle;
 
 typedef enum TEN_APP_STATE {
   TEN_APP_STATE_INIT,
@@ -101,6 +103,11 @@ typedef struct ten_app_t {
   ten_string_t base_dir;
 
   ten_list_t ten_package_base_dirs;
+
+#if defined(TEN_ENABLE_TEN_RUST_APIS)
+  TelemetrySystem *telemetry_system;
+  MetricHandle *metric_msg_queue_stay_time_us;  // micro-seconds.
+#endif
 
   void *user_data;
 } ten_app_t;

@@ -18,20 +18,26 @@
 #include "ten_utils/lib/alloc.h"
 #include "ten_utils/lib/error.h"
 #include "ten_utils/lib/string.h"
+#include "ten_utils/lib/thread_once.h"
 #include "ten_utils/lib/uri.h"
 #include "ten_utils/macro/check.h"
 #include "ten_utils/value/value.h"
 #include "ten_utils/value/value_get.h"
 #include "ten_utils/value/value_object.h"
 
+static ten_thread_once_t g_protocol_store_once = TEN_THREAD_ONCE_INIT;
+
 static ten_addon_store_t g_protocol_store = {
-    false,
     NULL,
     TEN_LIST_INIT_VAL,
 };
 
-ten_addon_store_t *ten_protocol_get_global_store(void) {
+static void init_protocol_store(void) {
   ten_addon_store_init(&g_protocol_store);
+}
+
+ten_addon_store_t *ten_protocol_get_global_store(void) {
+  ten_thread_once(&g_protocol_store_once, init_protocol_store);
   return &g_protocol_store;
 }
 

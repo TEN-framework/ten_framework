@@ -10,14 +10,12 @@
 
 #include "ten_runtime/addon/addon.h"
 #include "ten_utils/container/list.h"
-#include "ten_utils/lib/atomic.h"
 #include "ten_utils/lib/mutex.h"
 
 typedef struct ten_addon_host_t ten_addon_host_t;
 typedef struct ten_addon_t ten_addon_t;
 
 typedef struct ten_addon_store_t {
-  ten_atomic_t valid;
   ten_mutex_t *lock;
   ten_list_t store;  // ten_addon_host_t
 } ten_addon_store_t;

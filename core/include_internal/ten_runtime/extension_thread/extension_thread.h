@@ -24,6 +24,7 @@ typedef struct ten_extension_group_t ten_extension_group_t;
 typedef struct ten_extension_store_t ten_extension_store_t;
 typedef struct ten_extension_context_t ten_extension_context_t;
 typedef struct ten_extension_t ten_extension_t;
+typedef struct MetricHandle MetricHandle;
 
 typedef enum TEN_EXTENSION_THREAD_STATE {
   TEN_EXTENSION_THREAD_STATE_INIT,

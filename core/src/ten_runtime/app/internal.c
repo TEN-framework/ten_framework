@@ -6,8 +6,6 @@
 //
 #include <stdbool.h>
 #include <stddef.h>
-#include <stdlib.h>
-#include <string.h>
 
 #include "include_internal/ten_runtime/app/app.h"
 #include "include_internal/ten_runtime/app/base_dir.h"
@@ -16,6 +14,7 @@
 #include "include_internal/ten_runtime/app/metadata.h"
 #include "include_internal/ten_runtime/app/msg_interface/common.h"
 #include "include_internal/ten_runtime/app/predefined_graph.h"
+#include "include_internal/ten_runtime/app/telemetry.h"
 #include "include_internal/ten_runtime/connection/connection.h"
 #include "include_internal/ten_runtime/engine/engine.h"
 #include "ten_runtime/app/app.h"
@@ -63,6 +62,8 @@ void ten_app_start(ten_app_t *self) {
   ten_runloop_run(self->loop);
 
   TEN_LOGD("TEN app runloop ends.");
+
+  ten_app_deinit_telemetry_system(self);
 }
 
 void ten_app_add_orphan_connection(ten_app_t *self,
