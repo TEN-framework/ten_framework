@@ -106,7 +106,7 @@ typedef struct ten_app_t {
 
 #if defined(TEN_ENABLE_TEN_RUST_APIS)
   TelemetrySystem *telemetry_system;
-  MetricHandle *metric_msg_queue_stay_time_us;  // micro-seconds.
+  MetricHandle *metric_extension_thread_msg_queue_stay_time_us;
 #endif
 
   void *user_data;

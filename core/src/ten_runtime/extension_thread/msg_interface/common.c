@@ -114,7 +114,8 @@ static void ten_extension_thread_handle_in_msg_task(void *self_, void *arg) {
 
 #if defined(TEN_ENABLE_TEN_RUST_APIS)
   int64_t timestamp = ten_msg_get_timestamp(msg);
-  ten_extension_thread_record_msg_queue_stay_time(self, timestamp);
+  ten_extension_thread_record_extension_thread_msg_queue_stay_time(self,
+                                                                   timestamp);
 #endif
 
   switch (ten_extension_thread_get_state(self)) {

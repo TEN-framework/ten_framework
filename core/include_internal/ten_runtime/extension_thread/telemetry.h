@@ -14,7 +14,8 @@ typedef struct TelemetrySystem TelemetrySystem;
 
 #if defined(TEN_ENABLE_TEN_RUST_APIS)
 
-TEN_RUNTIME_PRIVATE_API void ten_extension_thread_record_msg_queue_stay_time(
-    ten_extension_thread_t *self, int64_t timestamp);
+TEN_RUNTIME_PRIVATE_API void
+ten_extension_thread_record_extension_thread_msg_queue_stay_time(
+    ten_extension_thread_t *self, int64_t msg_timestamp);
 
 #endif
