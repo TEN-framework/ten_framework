@@ -11,6 +11,8 @@ use std::{ffi::CStr, thread};
 use actix_web::{web, App, HttpResponse, HttpServer};
 use anyhow::Result;
 use futures::channel::oneshot;
+use futures::future::select;
+use futures::FutureExt;
 use prometheus::{
     Counter, CounterVec, Encoder, Gauge, GaugeVec, Histogram, HistogramOpts,
     HistogramVec, Opts, Registry, TextEncoder,
@@ -132,6 +134,8 @@ pub extern "C" fn ten_telemetry_system_create(
             }),
         )
     })
+    // Make actix not linger on the socket.
+    .shutdown_timeout(0)
     .bind(&endpoint_for_bind);
 
     let server_builder = match server_builder {
@@ -143,6 +147,7 @@ pub extern "C" fn ten_telemetry_system_create(
     };
 
     let server = server_builder.run();
+    let server_handle = server.handle();
 
     // Create an `oneshot` channel to notify the actix system to shut down.
     let (shutdown_tx, shutdown_rx) = oneshot::channel::<()>();
@@ -150,18 +155,41 @@ pub extern "C" fn ten_telemetry_system_create(
     let server_thread_handle = thread::spawn(move || {
         let sys = actix_rt::System::new();
 
-        // Register a task in the same actix system to wait for the
-        // `shutdown_rx` signal. Once received, call `System::current().stop()`.
-        actix_rt::spawn(async move {
-            let _ = shutdown_rx.await;
+        // Use `sys.block_on(...)` to execute an async block.
+        let result: Result<()> = sys.block_on(async move {
+            // Wait for either the server to finish (unlikely) or the shutdown
+            // signal.
+            let server_future = server.fuse();
 
-            // Shut down the current actix system, causing `block_on(server)` to
-            // exit.
-            actix_rt::System::current().stop();
+            // Instead of just calling `System::current().stop()`, we call
+            // `server_handle.stop(true).await` to shut down the server
+            // gracefully, then stop the system.
+            let shutdown_future = async move {
+                let _ = shutdown_rx.await;
+
+                eprintln!("Shutting down telemetry server (graceful stop)...");
+                server_handle.stop(true).await;
+
+                // The server is actually stopped (socket closed).
+
+                // Terminates the actix system after the server is fully down.
+                actix_rt::System::current().stop();
+            }
+            .fuse();
+
+            // Use `futures::select!` to concurrently execute two futures.
+            futures::pin_mut!(server_future, shutdown_future);
+            select(server_future, shutdown_future).await;
+
+            eprintln!("Telemetry server shut down.");
+            Ok(())
         });
 
-        // Run the server until the system stops.
-        let _ = sys.block_on(server);
+        if let Err(e) = result {
+            eprintln!("Fatal error in telemetry server thread: {:?}", e);
+
+            std::process::exit(-1);
+        }
     });
 
     let actix_thread = Some(server_thread_handle);
@@ -193,10 +221,12 @@ pub extern "C" fn ten_telemetry_system_shutdown(
 
     // Notify the actix system to shut down through the `oneshot` channel.
     if let Some(shutdown_tx) = system.actix_shutdown_tx {
+        eprintln!("Shutting down telemetry server...");
         let _ = shutdown_tx.send(());
     }
 
     if let Some(server_thread_handle) = system.actix_thread {
+        eprintln!("Waiting for telemetry server to shut down...");
         let _ = server_thread_handle.join();
     }
 }

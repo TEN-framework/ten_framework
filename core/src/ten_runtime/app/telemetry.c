@@ -78,6 +78,8 @@ bool ten_app_init_telemetry_system(ten_app_t *self, ten_value_t *value) {
         TEN_LOGE("Failed to create telemetry system with endpoint: %s",
                  endpoint);
         exit(EXIT_FAILURE);
+      } else {
+        TEN_LOGI("Create telemetry system with endpoint: %s", endpoint);
       }
       return true;
     }
@@ -89,6 +91,8 @@ bool ten_app_init_telemetry_system(ten_app_t *self, ten_value_t *value) {
   if (!self->telemetry_system) {
     TEN_LOGE("Failed to create telemetry system with default endpoint.");
     exit(EXIT_FAILURE);
+  } else {
+    TEN_LOGI("Create telemetry system with default endpoint.");
   }
 
   ten_app_create_metric(self);
