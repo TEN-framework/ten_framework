@@ -132,19 +132,84 @@ pub async fn execute_cmd(
         script_cmd
     );
 
-    let mut parts = script_cmd.split_whitespace();
-    let exec = parts.next().unwrap();
-    let mut args: Vec<&str> = parts.collect();
+    // Determine whether it is a shell command.
+    #[cfg(windows)]
+    let is_shell_cmd = script_cmd.to_lowercase().starts_with("cmd.exe /c");
+    #[cfg(not(windows))]
+    let is_shell_cmd = script_cmd.starts_with("sh -c");
 
-    for arg in &cmd.extra_args {
-        args.push(arg);
-    }
+    let mut command_builder = if is_shell_cmd {
+        // If it is a shell command, do not split by spaces; extract the shell
+        // command and its parameters.
+        #[cfg(windows)]
+        {
+            let prefix = "cmd.exe /c";
 
-    let mut child = StdCommand::new(exec)
-        .args(&args)
+            // Extract the command body: remove the prefix and trim the leading
+            // spaces from the remaining part.
+            let command_body = script_cmd[prefix.len()..].trim();
+            if command_body.is_empty() {
+                return Err(anyhow!("No command provided after '{}'", prefix));
+            }
+
+            let mut cmd_builder = StdCommand::new("cmd.exe");
+
+            // Construct the parameter list.
+            let mut args = vec!["/C".to_string(), command_body.to_string()];
+
+            // Append additional parameters, if any.
+            for extra in &cmd.extra_args {
+                args.push(extra.to_string());
+            }
+
+            cmd_builder.args(args);
+            cmd_builder
+        }
+        #[cfg(not(windows))]
+        {
+            let prefix = "sh -c";
+
+            let command_body = script_cmd[prefix.len()..].trim();
+            if command_body.is_empty() {
+                return Err(anyhow!("No command provided after '{}'", prefix));
+            }
+
+            let mut cmd_builder = StdCommand::new("sh");
+
+            // Construct the parameter list.
+            let mut args = vec!["-c".to_string(), command_body.to_string()];
+
+            // Append additional parameters, if any.
+            for extra in &cmd.extra_args {
+                args.push(extra.to_string());
+            }
+
+            cmd_builder.args(args);
+            cmd_builder
+        }
+    } else {
+        // For non-shell commands, split the command and parameters by spaces.
+        let mut parts = script_cmd.split_whitespace();
+        let exec = parts.next().unwrap();
+        let mut args: Vec<String> = parts.map(|s| s.to_string()).collect();
+
+        // Append additional parameters, if any.
+        for arg in &cmd.extra_args {
+            args.push(arg.to_string());
+        }
+
+        let mut cmd_builder = StdCommand::new(exec);
+
+        cmd_builder.args(args);
+        cmd_builder
+    };
+
+    command_builder
         .stdin(Stdio::null())
         .stdout(Stdio::piped())
-        .stderr(Stdio::piped())
+        .stderr(Stdio::piped());
+
+    let mut child = command_builder
         .spawn()
         .map_err(|e| anyhow!("Failed to spawn subprocess: {}", e))?;
 

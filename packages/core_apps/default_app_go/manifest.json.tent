@@ -15,6 +15,7 @@
     }
   ],
   "scripts": {
-    "start": "bin/start"
+    "start": "bin/start",
+    "build": "go run ten_packages/system/ten_runtime_go/tools/build/main.go"
   }
 }
