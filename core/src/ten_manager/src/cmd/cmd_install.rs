@@ -180,6 +180,20 @@ pub fn parse_sub_cmd(sub_cmd_args: &ArgMatches) -> Result<InstallCommand> {
         } else {
             // Otherwise, consider it as `package_type`, and `package_name` must
             // be provided as well.
+
+            // Check if PACKAGE_TYPE is an allowed value.
+            let allowed_package_types: &[&str] =
+                &["system", "protocol", "addon_loader", "extension", "app"];
+            if !allowed_package_types
+                .contains(&first_arg_str.to_lowercase().as_str())
+            {
+                return Err(anyhow::anyhow!(
+                    "Invalid PACKAGE_TYPE: {}. Allowed values are: {}",
+                    first_arg_str,
+                    allowed_package_types.join(", ")
+                ));
+            }
+
             cmd.package_type = Some(first_arg.clone());
 
             if let Some(second_arg) =
