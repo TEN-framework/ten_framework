@@ -139,9 +139,9 @@ def test_ffmpeg_basic_app():
     # ...
     try:
         del os.environ["LD_LIBRARY_PATH"]
-    except Exception as e:
+    except Exception:
         # Maybe 'LD_LIBRARY_PATH' has been unset.
-        print(e)
+        pass
 
     if build_config_args.ten_enable_integration_tests_prebuilt is False:
         # Testing complete. If builds are only created during the testing phase,
