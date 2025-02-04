@@ -19,15 +19,19 @@ static void ten_app_create_metric(ten_app_t *self) {
   TEN_ASSERT(self, "Invalid argument.");
   TEN_ASSERT(ten_app_check_integrity(self, true), "Invalid use of app %p.",
              self);
-  TEN_ASSERT(!self->metric_msg_queue_stay_time_us, "Should not happen.");
+  TEN_ASSERT(!self->metric_extension_thread_msg_queue_stay_time_us,
+             "Should not happen.");
 
   if (self->telemetry_system) {
-    self->metric_msg_queue_stay_time_us = ten_metric_create(
-        self->telemetry_system, 1, "msg_queue_stay_time",
+    const char *label_names[] = {"app", "graph", "extension_group"};
+
+    self->metric_extension_thread_msg_queue_stay_time_us = ten_metric_create(
+        self->telemetry_system, 1, "extension_thread_msg_queue_stay_time",
         "The duration (in micro-seconds) that a message instance stays in the "
-        "message queue before being processed.",
-        NULL, 0);
-    TEN_ASSERT(self->metric_msg_queue_stay_time_us, "Should not happen.");
+        "message queue of extension thread before being processed.",
+        label_names, 3);
+    TEN_ASSERT(self->metric_extension_thread_msg_queue_stay_time_us,
+               "Should not happen.");
   }
 }
 
@@ -36,9 +40,11 @@ static void ten_app_destroy_metric(ten_app_t *self) {
   TEN_ASSERT(ten_app_check_integrity(self, true),
              "Invalid use of extension_thread %p.", self);
 
-  if (self->metric_msg_queue_stay_time_us) {
-    ten_metric_destroy(self->metric_msg_queue_stay_time_us);
-    self->metric_msg_queue_stay_time_us = NULL;
+  if (self->metric_extension_thread_msg_queue_stay_time_us) {
+    TEN_ASSERT(self->telemetry_system, "Should not happen.");
+
+    ten_metric_destroy(self->metric_extension_thread_msg_queue_stay_time_us);
+    self->metric_extension_thread_msg_queue_stay_time_us = NULL;
   }
 }
 
