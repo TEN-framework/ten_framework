@@ -198,7 +198,7 @@ TEN_CPP_REGISTER_ADDON_AS_EXTENSION(auto_free_out_of_scope__test_extension_2,
 
 }  // namespace
 
-TEST(ExtensionTest, AutoFreeOutOfScope) {  // NOLINT
+TEST(OuterThreadTest, AutoFreeOutOfScope) {  // NOLINT
   // Start app.
   auto *app_thread =
       ten_thread_create("app thread", test_app_thread_main, nullptr);

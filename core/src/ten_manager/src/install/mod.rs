@@ -213,6 +213,8 @@ pub async fn install_pkg_info(
 fn update_package_manifest(
     base_pkg_info: &mut PkgInfo,
     added_dependency: &PkgInfo,
+    // If `Some(...)` is passed in, it indicates `local_path` mode.
+    local_path_if_any: Option<String>,
 ) -> Result<()> {
     if let Some(ref mut dependencies) =
         base_pkg_info.manifest.as_mut().unwrap().dependencies
@@ -306,13 +308,32 @@ fn update_package_manifest(
         // If the added dependency does not exist in the `manifest.json`, add
         // it.
         if !is_present {
-            dependencies.push(added_dependency.into());
+            // If `local_path_if_any` has a value, write it as `{ path:
+            // "<local_path>" }`.
+            if let Some(local_path) = local_path_if_any {
+                dependencies.push(ManifestDependency::LocalDependency {
+                    path: local_path,
+                    base_dir: "".to_string(),
+                });
+            } else {
+                dependencies.push(added_dependency.into());
+            }
         }
     } else {
         // If the `manifest.json` does not have a `dependencies` field, add the
         // dependency directly.
-        base_pkg_info.manifest.clone().unwrap().dependencies =
-            Some(vec![added_dependency.into()]);
+        let mut new_deps = vec![];
+
+        if let Some(local_path) = local_path_if_any {
+            new_deps.push(ManifestDependency::LocalDependency {
+                path: local_path,
+                base_dir: "".to_string(),
+            });
+        } else {
+            new_deps.push(added_dependency.into());
+        }
+
+        base_pkg_info.manifest.as_mut().unwrap().dependencies = Some(new_deps);
     }
 
     let manifest_path: PathBuf =
@@ -355,6 +376,8 @@ pub fn write_installing_pkg_into_manifest_file(
     solver_results: &[PkgInfo],
     pkg_type: &PkgType,
     pkg_name: &String,
+    // If `Some(...)` is passed in, it indicates `local_path` mode.
+    local_path_if_any: Option<String>,
 ) -> Result<()> {
     let suitable_pkgs = filter_solver_results_by_type_and_name(
         solver_results,
@@ -379,7 +402,7 @@ pub fn write_installing_pkg_into_manifest_file(
         ));
     }
 
-    update_package_manifest(pkg_info, suitable_pkgs[0])?;
+    update_package_manifest(pkg_info, suitable_pkgs[0], local_path_if_any)?;
 
     Ok(())
 }
