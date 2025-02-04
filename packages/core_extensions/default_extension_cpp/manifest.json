@@ -16,6 +16,7 @@
   },
   "api": {},
   "scripts": {
-    "test": "bin/default_extension_cpp_test"
+    "test": "bin/default_extension_cpp_test",
+    "build": "sh -c cd .ten/app && tgn gen linux x64 debug -- ten_enable_standalone_test=true && tgn build linux x64 debug"
   }
 }

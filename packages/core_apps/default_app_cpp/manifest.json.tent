@@ -10,6 +10,7 @@
     }
   ],
   "scripts": {
-    "start": "bin/{{package_name}}"
+    "start": "bin/{{package_name}}",
+    "build": "sh -c tgn gen linux x64 debug && tgn build linux x64 debug"
   }
 }
