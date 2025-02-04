@@ -159,7 +159,14 @@ pub extern "C" fn ten_telemetry_system_create(
         let result: Result<()> = sys.block_on(async move {
             // Wait for either the server to finish (unlikely) or the shutdown
             // signal.
-            let server_future = server.fuse();
+            let server_future = async {
+                if let Err(e) = server.await {
+                    eprintln!("Telemetry server error: {e}");
+                    // Force the entire process to exit immediately.
+                    std::process::exit(-1);
+                }
+            }
+            .fuse();
 
             // Instead of just calling `System::current().stop()`, we call
             // `server_handle.stop(true).await` to shut down the server
