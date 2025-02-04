@@ -18,6 +18,7 @@ use console::Emoji;
 use indicatif::HumanDuration;
 use inquire::Confirm;
 
+use semver::VersionReq;
 use ten_rust::pkg_info::{
     constants::{BUILD_GN_FILENAME, MANIFEST_JSON_FILENAME},
     pkg_basic_info::PkgBasicInfo,
@@ -84,6 +85,10 @@ pub struct InstallCommand {
     pub support: PkgSupport,
     pub local_install_mode: LocalInstallMode,
     pub standalone: bool,
+
+    /// When the user only inputs a single path parameter, if a `manifest.json`
+    /// exists under that path, it indicates installation from a local path.
+    pub local_path: Option<String>,
 }
 
 pub fn create_sub_cmd(args_cfg: &crate::cmd_line::ArgsCfg) -> Command {
@@ -92,10 +97,7 @@ pub fn create_sub_cmd(args_cfg: &crate::cmd_line::ArgsCfg) -> Command {
         .arg(
             Arg::new("PACKAGE_TYPE")
                 .help("The type of the package")
-                .value_parser(args_cfg.pkg_type.possible_values.clone())
-                .required(false)
-                // If PACKAGE_TYPE is provided, PACKAGE_NAME must be too.
-                .requires("PACKAGE_NAME"),
+                .required(false),
         )
         .arg(
             Arg::new("PACKAGE_NAME")
@@ -135,8 +137,8 @@ pub fn create_sub_cmd(args_cfg: &crate::cmd_line::ArgsCfg) -> Command {
 
 pub fn parse_sub_cmd(sub_cmd_args: &ArgMatches) -> Result<InstallCommand> {
     let mut cmd = InstallCommand {
-        package_type: sub_cmd_args.get_one::<String>("PACKAGE_TYPE").cloned(),
-        package_name: sub_cmd_args.get_one::<String>("PACKAGE_NAME").cloned(),
+        package_type: None,
+        package_name: None,
         support: PkgSupport {
             os: sub_cmd_args
                 .get_one::<String>("OS")
@@ -147,9 +149,50 @@ pub fn parse_sub_cmd(sub_cmd_args: &ArgMatches) -> Result<InstallCommand> {
         },
         local_install_mode: LocalInstallMode::Invalid,
         standalone: false,
+        local_path: None,
     };
 
-    let _ = cmd.support.set_defaults();
+    // Retrieve the first positional parameter (in the `PACKAGE_TYPE`
+    // parameter).
+    if let Some(first_arg) = sub_cmd_args.get_one::<String>("PACKAGE_TYPE") {
+        let first_arg_str = first_arg.as_str();
+
+        // Determine whether it is an absolute path or a relative path starting
+        // with `./` or `../`.
+        let is_path = {
+            let path = std::path::Path::new(first_arg_str);
+            path.is_absolute()
+                || first_arg_str.starts_with("./")
+                || first_arg_str.starts_with("../")
+        };
+
+        if is_path {
+            // If it is a path, treat it as `local_path` mode, and
+            // `package_type` and `package_name` will no longer be needed
+            // afterward.
+            cmd.local_path = Some(first_arg.clone());
+
+            if sub_cmd_args.get_one::<String>("PACKAGE_NAME").is_some() {
+                return Err(anyhow::anyhow!(
+                    "PACKAGE_NAME is not required when a local path is specified."
+                ));
+            }
+        } else {
+            // Otherwise, consider it as `package_type`, and `package_name` must
+            // be provided as well.
+            cmd.package_type = Some(first_arg.clone());
+
+            if let Some(second_arg) =
+                sub_cmd_args.get_one::<String>("PACKAGE_NAME")
+            {
+                cmd.package_name = Some(second_arg.clone());
+            } else {
+                return Err(anyhow::anyhow!(
+                    "PACKAGE_NAME is required when PACKAGE_TYPE is specified."
+                ));
+            }
+        }
+    }
 
     if let Some(mode_str) = sub_cmd_args.get_one::<String>("LOCAL_INSTALL_MODE")
     {
@@ -363,11 +406,85 @@ pub async fn execute_cmd(
         &command_data.support,
     );
 
-    if let Some(package_type_str) = command_data.package_type.as_ref() {
-        // tman install <package_type> <package_name>
-        //
-        // The `cwd` must be the base directory of a TEN app.
+    if command_data.local_path.is_some() {
+        // tman install <local_path>
 
+        // Parse the `manifest.json` inside the local_path.
+        let local_path_str = command_data.local_path.clone().unwrap();
+        let local_path = Path::new(&local_path_str);
+        let local_path = local_path.canonicalize().with_context(|| {
+            format!("Failed to canonicalize local path {}", local_path_str)
+        })?;
+
+        let local_manifest_dir = if local_path.is_dir() {
+            local_path.clone()
+        } else {
+            return Err(anyhow!(
+                "The specified path is not a folder.: {}",
+                local_path_str
+            ));
+        };
+
+        let manifest_json_path =
+            local_manifest_dir.join(MANIFEST_JSON_FILENAME);
+        if !manifest_json_path.exists() {
+            return Err(anyhow!(
+                "No manifest.json found in the provided local path: {}",
+                local_path_str
+            ));
+        }
+
+        // Read the manifest of the local package to obtain the type, name, and
+        // version.
+        let local_pkg_info =
+            get_pkg_info_from_path(&local_manifest_dir, false)?;
+
+        installing_pkg_type =
+            Some(local_pkg_info.basic_info.type_and_name.pkg_type);
+        installing_pkg_name =
+            Some(local_pkg_info.basic_info.type_and_name.name.clone());
+        let installing_pkg_version_req =
+            VersionReq::parse(&local_pkg_info.basic_info.version.to_string())?;
+
+        dep_relationship_from_cmd_line = Some(DependencyRelationship {
+            type_and_name: PkgTypeAndName {
+                pkg_type: app_pkg_to_work_with
+                    .basic_info
+                    .type_and_name
+                    .pkg_type,
+                name: app_pkg_to_work_with
+                    .basic_info
+                    .type_and_name
+                    .name
+                    .clone(),
+            },
+            version: app_pkg_to_work_with.basic_info.version.clone(),
+            dependency: PkgDependency {
+                type_and_name: PkgTypeAndName {
+                    pkg_type: installing_pkg_type.unwrap(),
+                    name: installing_pkg_name.clone().unwrap(),
+                },
+                version_req: installing_pkg_version_req,
+                path: Some(local_path_str.clone()),
+                base_dir: Some("".to_string()),
+            },
+        });
+
+        // The `local_pkg_info` needs to be used as a candidate.
+        let mut local_pkg_clone = local_pkg_info.clone();
+
+        local_pkg_clone.is_local_dependency = true;
+        local_pkg_clone.local_dependency_path = Some(local_path_str.clone());
+        local_pkg_clone.local_dependency_base_dir = Some("".to_string());
+
+        all_candidates
+            .entry((&local_pkg_clone).into())
+            .or_default()
+            .insert((&local_pkg_clone).into(), local_pkg_clone.clone());
+
+        initial_pkgs_to_find_candidates.push(local_pkg_clone);
+    } else if let Some(package_type_str) = command_data.package_type.as_ref() {
+        // tman install <package_type> <package_name>
         let installing_pkg_type_: PkgType = package_type_str.parse()?;
 
         let (installing_pkg_name_, installing_pkg_version_req_) =
@@ -514,16 +631,40 @@ pub async fn execute_cmd(
         .await?;
 
         // Write the installing package info to manifest.json.
-        if installing_pkg_type.is_some() && installing_pkg_name.is_some() {
-            let mut origin_cwd_pkg =
-                get_pkg_info_from_path(&original_cwd, true)?;
+        //
+        // If it's in `local_path` mode, update `manifest.json` by writing `{
+        // "path": "<local_path>" }`. Otherwise, write `type`, `name`, and
+        // `version`.
+        if command_data.local_path.is_some() {
+            // tman install <local_path>
 
-            write_installing_pkg_into_manifest_file(
-                &mut origin_cwd_pkg,
-                &solver_results,
-                &installing_pkg_type.unwrap(),
-                &installing_pkg_name.unwrap(),
-            )?;
+            if installing_pkg_type.is_some() && installing_pkg_name.is_some() {
+                let mut origin_cwd_pkg =
+                    get_pkg_info_from_path(&original_cwd, true)?;
+
+                write_installing_pkg_into_manifest_file(
+                    &mut origin_cwd_pkg,
+                    &solver_results,
+                    &installing_pkg_type.unwrap(),
+                    &installing_pkg_name.unwrap(),
+                    Some(command_data.local_path.clone().unwrap()),
+                )?;
+            }
+        } else {
+            // tman install <package_type> <package_name>
+
+            if installing_pkg_type.is_some() && installing_pkg_name.is_some() {
+                let mut origin_cwd_pkg =
+                    get_pkg_info_from_path(&original_cwd, true)?;
+
+                write_installing_pkg_into_manifest_file(
+                    &mut origin_cwd_pkg,
+                    &solver_results,
+                    &installing_pkg_type.unwrap(),
+                    &installing_pkg_name.unwrap(),
+                    None,
+                )?;
+            }
         }
 
         // Change back to the original folder.
