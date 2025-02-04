@@ -6,8 +6,6 @@
 //
 #include <stdbool.h>
 #include <stddef.h>
-#include <stdlib.h>
-#include <string.h>
 
 #include "include_internal/ten_runtime/app/app.h"
 #include "include_internal/ten_runtime/app/base_dir.h"
@@ -19,7 +17,6 @@
 #include "include_internal/ten_runtime/app/telemetry.h"
 #include "include_internal/ten_runtime/connection/connection.h"
 #include "include_internal/ten_runtime/engine/engine.h"
-#include "include_internal/ten_rust/ten_rust.h"
 #include "ten_runtime/app/app.h"
 #include "ten_utils/container/list.h"
 #include "ten_utils/container/list_node.h"
