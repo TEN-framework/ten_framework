@@ -183,7 +183,7 @@ pub fn parse_sub_cmd(sub_cmd_args: &ArgMatches) -> Result<InstallCommand> {
 
             // Check if PACKAGE_TYPE is an allowed value.
             let allowed_package_types: &[&str] =
-                &["system", "protocol", "addon_loader", "extension", "app"];
+                &["system", "protocol", "addon_loader", "extension"];
             if !allowed_package_types
                 .contains(&first_arg_str.to_lowercase().as_str())
             {
@@ -427,14 +427,17 @@ pub async fn execute_cmd(
         let local_path_str = command_data.local_path.clone().unwrap();
         let local_path = Path::new(&local_path_str);
         let local_path = local_path.canonicalize().with_context(|| {
-            format!("Failed to canonicalize local path {}", local_path_str)
+            format!(
+                "Failed to find the specified local path {}",
+                local_path_str
+            )
         })?;
 
         let local_manifest_dir = if local_path.is_dir() {
             local_path.clone()
         } else {
             return Err(anyhow!(
-                "The specified path is not a folder.: {}",
+                "The specified local path is not a folder.: {}",
                 local_path_str
             ));
         };
@@ -443,13 +446,13 @@ pub async fn execute_cmd(
             local_manifest_dir.join(MANIFEST_JSON_FILENAME);
         if !manifest_json_path.exists() {
             return Err(anyhow!(
-                "No manifest.json found in the provided local path: {}",
+                "No manifest.json found in the specified local path: {}",
                 local_path_str
             ));
         }
 
-        // Read the manifest of the local package to obtain the type, name, and
-        // version.
+        // Read the `manifest.json` of the local package to obtain its `type`,
+        // `name`, and `version`.
         let local_pkg_info =
             get_pkg_info_from_path(&local_manifest_dir, false)?;
 
