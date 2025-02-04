@@ -291,7 +291,7 @@ TEN_CPP_REGISTER_ADDON_AS_EXTENSION(
 
 }  // namespace
 
-TEST(ExtensionTest, SixteenThreadsAttemptToSuspend1) {  // NOLINT
+TEST(OuterThreadTest, SixteenThreadsAttemptToSuspend1) {  // NOLINT
   // Start app.
   auto *app_thread =
       ten_thread_create("app thread", test_app_thread_main, nullptr);

@@ -1032,7 +1032,7 @@ TEN_CPP_REGISTER_ADDON_AS_EXTENSION(
 
 }  // namespace
 
-TEST(ExtensionTest,
+TEST(OuterThreadTest,
      OneHundredAndTwentyEightThreadsAttemptToSuspend1) {  // NOLINT
   // Start app.
   auto *app_thread =
