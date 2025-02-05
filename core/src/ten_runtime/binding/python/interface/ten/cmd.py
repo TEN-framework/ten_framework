@@ -18,4 +18,5 @@ class Cmd(_Cmd):
     def create(cls: Type[T], name: str) -> T:
         return cls.__new__(cls, name)
 
-    clone = _Cmd.clone
+    def clone(self) -> "Cmd":
+        return _Cmd.clone(self)  # type: ignore

@@ -28,7 +28,8 @@ class CmdResult(_CmdResult):
         instance.set_status_code(status_code)
         return instance
 
-    clone = _CmdResult.clone
+    def clone(self) -> "CmdResult":
+        return _CmdResult.clone(self)  # type: ignore
 
     def get_status_code(self) -> StatusCode:
         return StatusCode(_CmdResult.get_status_code(self))
