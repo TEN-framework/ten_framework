@@ -353,9 +353,7 @@ mod tests {
     use serde_json::json;
 
     use super::*;
-    use crate::{
-        config::TmanConfig, designer::mock::tests::inject_all_pkgs_for_mock,
-    };
+    use crate::designer::mock::tests::inject_all_pkgs_for_mock;
     use ten_rust::pkg_info::localhost;
 
     #[actix_web::test]
@@ -363,7 +361,6 @@ mod tests {
         let mut designer_state = DesignerState {
             base_dir: None,
             all_pkgs: None,
-
         };
 
         let all_pkgs_json = vec![
@@ -596,7 +593,6 @@ mod tests {
         let designer_state = Arc::new(RwLock::new(DesignerState {
             base_dir: None,
             all_pkgs: Some(vec![]),
-
         }));
 
         let app = test::init_service(
@@ -629,7 +625,6 @@ mod tests {
         let mut designer_state = DesignerState {
             base_dir: None,
             all_pkgs: None,
-
         };
 
         let all_pkgs_json = vec![

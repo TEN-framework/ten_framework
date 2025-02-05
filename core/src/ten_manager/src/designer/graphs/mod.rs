@@ -80,9 +80,7 @@ pub async fn get_graphs(
 
 #[cfg(test)]
 mod tests {
-    use crate::{
-        config::TmanConfig, designer::mock::tests::inject_all_pkgs_for_mock,
-    };
+    use crate::designer::mock::tests::inject_all_pkgs_for_mock;
 
     use super::*;
     use actix_web::{test, App};
@@ -92,7 +90,6 @@ mod tests {
         let mut designer_state = DesignerState {
             base_dir: None,
             all_pkgs: None,
-
         };
 
         let all_pkgs_json = vec![
@@ -167,7 +164,6 @@ mod tests {
         let designer_state = Arc::new(RwLock::new(DesignerState {
             base_dir: None,
             all_pkgs: Some(vec![]),
-
         }));
 
         let app = test::init_service(

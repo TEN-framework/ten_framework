@@ -86,14 +86,12 @@ mod tests {
     use actix_web::{test, App};
 
     use super::*;
-    use crate::config::TmanConfig;
 
     #[actix_web::test]
     async fn test_set_base_dir_success() {
         let designer_state = DesignerState {
             base_dir: Some("/initial/path".to_string()),
             all_pkgs: Some(vec![]),
-
         };
         let designer_state = Arc::new(RwLock::new(designer_state));
 
@@ -128,7 +126,6 @@ mod tests {
         let designer_state = DesignerState {
             base_dir: Some("/initial/path".to_string()),
             all_pkgs: Some(vec![]),
-
         };
         let designer_state = Arc::new(RwLock::new(designer_state));
 
@@ -162,7 +159,6 @@ mod tests {
         let designer_state = DesignerState {
             base_dir: None,
             all_pkgs: Some(vec![]),
-
         };
         let designer_state = Arc::new(RwLock::new(designer_state));
 

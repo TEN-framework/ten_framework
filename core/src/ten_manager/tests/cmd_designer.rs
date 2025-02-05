@@ -8,16 +8,13 @@ use std::sync::{Arc, RwLock};
 
 use actix_web::{http::StatusCode, test, web, App};
 
-use ten_manager::{
-    config::TmanConfig,
-    designer::{
-        graphs::{
-            connections::{get_graph_connections, DesignerConnection},
-            get_graphs, RespGraph,
-        },
-        response::{ApiResponse, ErrorResponse},
-        DesignerState,
+use ten_manager::designer::{
+    graphs::{
+        connections::{get_graph_connections, DesignerConnection},
+        get_graphs, RespGraph,
     },
+    response::{ApiResponse, ErrorResponse},
+    DesignerState,
 };
 
 #[actix_rt::test]

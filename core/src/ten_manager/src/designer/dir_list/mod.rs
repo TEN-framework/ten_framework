@@ -88,8 +88,6 @@ pub async fn list_dir(
 
 #[cfg(test)]
 mod tests {
-    use crate::config::TmanConfig;
-
     use super::*;
     use actix_web::{test, App};
     use std::fs::{self, File};
@@ -109,7 +107,6 @@ mod tests {
         let state = web::Data::new(Arc::new(RwLock::new(DesignerState {
             base_dir: None,
             all_pkgs: None,
-
         })));
 
         // Configure the `list_dir` route.
@@ -158,7 +155,6 @@ mod tests {
         let state = web::Data::new(Arc::new(RwLock::new(DesignerState {
             base_dir: None,
             all_pkgs: None,
-
         })));
 
         // Configure the `list_dir` route.
@@ -200,7 +196,6 @@ mod tests {
         let state = web::Data::new(Arc::new(RwLock::new(DesignerState {
             base_dir: None,
             all_pkgs: None,
-
         })));
 
         let app = test::init_service(App::new().app_data(state.clone()).route(

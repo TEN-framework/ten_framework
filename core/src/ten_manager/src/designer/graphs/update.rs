@@ -105,9 +105,7 @@ pub async fn update_graph(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{
-        config::TmanConfig, designer::mock::tests::inject_all_pkgs_for_mock,
-    };
+    use crate::designer::mock::tests::inject_all_pkgs_for_mock;
     use actix_web::{test, App};
     use std::{env, fs};
 
@@ -130,7 +128,6 @@ mod tests {
         let mut designer_state = DesignerState {
             base_dir: Some(test_data_dir.to_string_lossy().to_string()),
             all_pkgs: None,
-
         };
 
         let all_pkgs_json = vec![

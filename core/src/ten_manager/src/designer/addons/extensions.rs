@@ -191,15 +191,12 @@ pub async fn get_extension_addon_by_name(
 
 #[cfg(test)]
 mod tests {
-    use crate::{
-        config::TmanConfig,
-        designer::{
-            graphs::nodes::{
-                DesignerApiCmdLike, DesignerApiDataLike,
-                DesignerPropertyAttributes, DesignerPropertyItem,
-            },
-            mock::tests::inject_all_pkgs_for_mock,
+    use crate::designer::{
+        graphs::nodes::{
+            DesignerApiCmdLike, DesignerApiDataLike,
+            DesignerPropertyAttributes, DesignerPropertyItem,
         },
+        mock::tests::inject_all_pkgs_for_mock,
     };
 
     use super::*;

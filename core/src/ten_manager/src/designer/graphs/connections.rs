@@ -172,9 +172,7 @@ mod tests {
     use actix_web::{test, App};
 
     use super::*;
-    use crate::{
-        config::TmanConfig, designer::mock::tests::inject_all_pkgs_for_mock,
-    };
+    use crate::designer::mock::tests::inject_all_pkgs_for_mock;
     use ten_rust::pkg_info::localhost;
 
     #[actix_web::test]
@@ -182,7 +180,6 @@ mod tests {
         let mut designer_state = DesignerState {
             base_dir: None,
             all_pkgs: None,
-
         };
 
         let all_pkgs_json = vec![
@@ -264,7 +261,6 @@ mod tests {
         let mut designer_state = DesignerState {
             base_dir: None,
             all_pkgs: None,
-
         };
 
         // The first item is 'manifest.json', and the second item is

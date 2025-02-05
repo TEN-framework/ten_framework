@@ -99,7 +99,6 @@ mod tests {
 
     use super::*;
     use crate::{
-        config::TmanConfig,
         designer::{
             graphs::update::{update_graph, GraphUpdateRequest},
             mock::tests::inject_all_pkgs_for_mock,
@@ -126,7 +125,6 @@ mod tests {
         let mut designer_state = DesignerState {
             base_dir: Some(test_data_dir.to_string_lossy().to_string()),
             all_pkgs: None,
-
         };
 
         let all_pkgs_json = vec![(
