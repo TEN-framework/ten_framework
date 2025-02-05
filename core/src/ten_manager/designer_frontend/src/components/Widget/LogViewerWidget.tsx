@@ -29,6 +29,7 @@ export default function LogViewerWidget(props: ILogViewerWidgetProps) {
   // Save dynamic logs.
   const [logs, setLogs] = React.useState<string[]>([]);
   const wsRef = React.useRef<WebSocket | null>(null);
+  const scrollSpan = React.useRef<HTMLSpanElement>(null);
 
   React.useEffect(() => {
     if (!data?.wsUrl) {
@@ -100,6 +101,16 @@ export default function LogViewerWidget(props: ILogViewerWidgetProps) {
     };
   }, [data?.wsUrl, data?.baseDir, data?.scriptName]);
 
+  React.useEffect(() => {
+    const debounceTimeout = setTimeout(() => {
+      if (scrollSpan.current) {
+        scrollSpan.current.scrollIntoView({ behavior: "smooth" });
+      }
+    }, 100); // 100ms debounce delay
+
+    return () => clearTimeout(debounceTimeout);
+  }, [logs]);
+
   return (
     <div className="flex h-full w-full flex-col" id={id}>
       <div className="h-12 w-full flex items-center space-x-2 px-2">
@@ -116,6 +127,7 @@ export default function LogViewerWidget(props: ILogViewerWidgetProps) {
       <ScrollArea className="h-[calc(100%-3rem)] w-full">
         <div className="p-2">
           <LogViewerLogItemList logs={logs} search={defferedSearchInput} />
+          <span ref={scrollSpan} />
         </div>
       </ScrollArea>
     </div>
