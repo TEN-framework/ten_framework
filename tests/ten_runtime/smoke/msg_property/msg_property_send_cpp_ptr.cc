@@ -55,7 +55,7 @@ class test_extension_1 : public ten::extension_t {
           std::move(new_cmd),
           [this](ten::ten_env_t &ten_env,
                  std::unique_ptr<ten::cmd_result_t> cmd_result,
-                 std::unique_ptr<ten::cmd_t> cmd, ten::error_t *err) {
+                 ten::error_t *err) {
             auto cmd_result_for_hello_world =
                 ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
             cmd_result_for_hello_world->set_property(

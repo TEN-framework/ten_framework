@@ -31,7 +31,7 @@ class test_extension_1 : public ten::extension_t {
           std::move(hello_world_cmd),
           [&](ten::ten_env_t &ten_env,
               std::unique_ptr<ten::cmd_result_t> cmd_result,
-              std::unique_ptr<ten::cmd_t> cmd, ten::error_t *err) {
+              ten::error_t *err) {
             // Return to the client to notify that the whole process
             // is complete successfully.
             auto cmd_result_for_hello_world =

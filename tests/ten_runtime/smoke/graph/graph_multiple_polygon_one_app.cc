@@ -62,7 +62,7 @@ class test_extension : public ten::extension_t {
           std::move(cmd),
           [this, edges](ten::ten_env_t &ten_env,
                         std::unique_ptr<ten::cmd_result_t> cmd_result,
-                        std::unique_ptr<ten::cmd_t> cmd, ten::error_t *err) {
+                        ten::error_t *err) {
             nlohmann::json json =
                 nlohmann::json::parse(cmd_result->get_property_to_json());
             nlohmann::json detail = json["detail"];

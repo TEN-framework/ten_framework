@@ -39,7 +39,7 @@ class test_extension_1 : public ten::extension_t {
           std::move(cmd),
           [test_data](ten::ten_env_t &ten_env,
                       std::unique_ptr<ten::cmd_result_t> cmd_result,
-                      std::unique_ptr<ten::cmd_t> cmd, ten::error_t *err) {
+                      ten::error_t *err) {
             // Destroy the important data. We must delete 'test_data'
             // only after we can confirm that test_extension_2 has
             // finished using it.

@@ -128,13 +128,13 @@ class test_extension_1 : public ten::extension_t {
 
   void on_start(ten::ten_env_t &ten_env) override {
     auto start_to_send_cmd = ten::cmd_t::create("start_to_send");
-    ten_env.send_cmd(
-        std::move(start_to_send_cmd),
-        [this](ten::ten_env_t &ten_env,
-               std::unique_ptr<ten::cmd_result_t> cmd_result,
-               std::unique_ptr<ten::cmd_t> cmd, ten::error_t *err) {
-          TEN_ASSERT(cmd_result->get_status_code() == TEN_STATUS_CODE_OK,
-                     "Failed to send 'start_to_send' command.");
+    ten_env.send_cmd(std::move(start_to_send_cmd),
+                     [this](ten::ten_env_t &ten_env,
+                            std::unique_ptr<ten::cmd_result_t> cmd_result,
+                            ten::error_t *err) {
+                       TEN_ASSERT(
+                           cmd_result->get_status_code() == TEN_STATUS_CODE_OK,
+                           "Failed to send 'start_to_send' command.");
 
 #define CREATE_OUTER_THREAD(X)                                           \
   do {                                                                   \
@@ -143,41 +143,41 @@ class test_extension_1 : public ten::extension_t {
         &test_extension_1::outer_thread##X##_main, this, ten_env_proxy); \
   } while (0)
 
-          CREATE_OUTER_THREAD(1);
-          CREATE_OUTER_THREAD(2);
-          CREATE_OUTER_THREAD(3);
-          CREATE_OUTER_THREAD(4);
-          CREATE_OUTER_THREAD(5);
-          CREATE_OUTER_THREAD(6);
-          CREATE_OUTER_THREAD(7);
-          CREATE_OUTER_THREAD(8);
-          CREATE_OUTER_THREAD(9);
-          CREATE_OUTER_THREAD(10);
-          CREATE_OUTER_THREAD(11);
-          CREATE_OUTER_THREAD(12);
-          CREATE_OUTER_THREAD(13);
-          CREATE_OUTER_THREAD(14);
-          CREATE_OUTER_THREAD(15);
-          CREATE_OUTER_THREAD(16);
-          CREATE_OUTER_THREAD(17);
-          CREATE_OUTER_THREAD(18);
-          CREATE_OUTER_THREAD(19);
-          CREATE_OUTER_THREAD(20);
-          CREATE_OUTER_THREAD(21);
-          CREATE_OUTER_THREAD(22);
-          CREATE_OUTER_THREAD(23);
-          CREATE_OUTER_THREAD(24);
-          CREATE_OUTER_THREAD(25);
-          CREATE_OUTER_THREAD(26);
-          CREATE_OUTER_THREAD(27);
-          CREATE_OUTER_THREAD(28);
-          CREATE_OUTER_THREAD(29);
-          CREATE_OUTER_THREAD(30);
-          CREATE_OUTER_THREAD(31);
-          CREATE_OUTER_THREAD(32);
+                       CREATE_OUTER_THREAD(1);
+                       CREATE_OUTER_THREAD(2);
+                       CREATE_OUTER_THREAD(3);
+                       CREATE_OUTER_THREAD(4);
+                       CREATE_OUTER_THREAD(5);
+                       CREATE_OUTER_THREAD(6);
+                       CREATE_OUTER_THREAD(7);
+                       CREATE_OUTER_THREAD(8);
+                       CREATE_OUTER_THREAD(9);
+                       CREATE_OUTER_THREAD(10);
+                       CREATE_OUTER_THREAD(11);
+                       CREATE_OUTER_THREAD(12);
+                       CREATE_OUTER_THREAD(13);
+                       CREATE_OUTER_THREAD(14);
+                       CREATE_OUTER_THREAD(15);
+                       CREATE_OUTER_THREAD(16);
+                       CREATE_OUTER_THREAD(17);
+                       CREATE_OUTER_THREAD(18);
+                       CREATE_OUTER_THREAD(19);
+                       CREATE_OUTER_THREAD(20);
+                       CREATE_OUTER_THREAD(21);
+                       CREATE_OUTER_THREAD(22);
+                       CREATE_OUTER_THREAD(23);
+                       CREATE_OUTER_THREAD(24);
+                       CREATE_OUTER_THREAD(25);
+                       CREATE_OUTER_THREAD(26);
+                       CREATE_OUTER_THREAD(27);
+                       CREATE_OUTER_THREAD(28);
+                       CREATE_OUTER_THREAD(29);
+                       CREATE_OUTER_THREAD(30);
+                       CREATE_OUTER_THREAD(31);
+                       CREATE_OUTER_THREAD(32);
 
-          return true;
-        });
+                       return true;
+                     });
 
     ten_env.on_start_done();
   }

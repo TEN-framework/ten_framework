@@ -96,8 +96,7 @@ static void tsfn_proxy_send_data_callback(napi_env env, napi_value js_cb,
 
 static void proxy_send_data_callback(ten_env_t *ten_env,
                                      TEN_UNUSED ten_shared_ptr_t *c_cmd_result,
-                                     ten_shared_ptr_t *c_data, void *user_data,
-                                     ten_error_t *err) {
+                                     void *user_data, ten_error_t *err) {
   TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
              "Should not happen.");
 
@@ -139,7 +138,7 @@ static void ten_env_proxy_notify_send_data(ten_env_t *ten_env,
   bool rc = ten_env_send_data(ten_env, ctx->c_data, proxy_send_data_callback,
                               ctx, &err);
   if (!rc) {
-    proxy_send_data_callback(ten_env, NULL, ctx->c_data, ctx, &err);
+    proxy_send_data_callback(ten_env, NULL, ctx, &err);
   }
 
   ten_error_deinit(&err);
