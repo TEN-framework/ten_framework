@@ -98,7 +98,7 @@ static void tsfn_proxy_send_audio_frame_callback(napi_env env, napi_value js_cb,
 
 static void proxy_send_audio_frame_callback(
     ten_env_t *ten_env, TEN_UNUSED ten_shared_ptr_t *c_cmd_result,
-    ten_shared_ptr_t *c_audio_frame, void *user_audio_frame, ten_error_t *err) {
+    void *user_audio_frame, ten_error_t *err) {
   TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
              "Should not happen.");
 
@@ -140,8 +140,7 @@ static void ten_env_proxy_notify_send_audio_frame(ten_env_t *ten_env,
   bool rc = ten_env_send_audio_frame(
       ten_env, ctx->c_audio_frame, proxy_send_audio_frame_callback, ctx, &err);
   if (!rc) {
-    proxy_send_audio_frame_callback(ten_env, NULL, ctx->c_audio_frame, ctx,
-                                    &err);
+    proxy_send_audio_frame_callback(ten_env, NULL, ctx, &err);
   }
 
   ten_error_deinit(&err);

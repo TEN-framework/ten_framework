@@ -94,10 +94,9 @@ class test_extension_1 : public ten::extension_t {
               std::unique_ptr<ten::cmd_t> cmd) override {
     if (cmd->get_name() == "hello_world") {
       ten_env.send_cmd(
-          std::move(cmd),
-          [&](ten::ten_env_t &ten_env,
-              std::unique_ptr<ten::cmd_result_t> cmd_result,
-              std::unique_ptr<ten::cmd_t> cmd, ten::error_t *err) {
+          std::move(cmd), [&](ten::ten_env_t &ten_env,
+                              std::unique_ptr<ten::cmd_result_t> cmd_result,
+                              ten::error_t *err) {
             pending_resp_num--;
             if (pending_resp_num == 0) {
               cmd_result->set_property("detail", "return from extension 1");

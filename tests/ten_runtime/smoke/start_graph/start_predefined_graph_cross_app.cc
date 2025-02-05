@@ -49,7 +49,7 @@ class test_predefined_graph : public ten::extension_t {
         std::move(start_graph_cmd),
         [this](ten::ten_env_t &ten_env,
                std::unique_ptr<ten::cmd_result_t> cmd_result,
-               std::unique_ptr<ten::cmd_t> cmd, ten::error_t *err) {
+               ten::error_t *err) {
           auto status_code = cmd_result->get_status_code();
           ASSERT_EQ(status_code, TEN_STATUS_CODE_OK);
 
@@ -65,7 +65,6 @@ class test_predefined_graph : public ten::extension_t {
               std::move(hello_world_cmd),
               [this, graph_id](ten::ten_env_t &ten_env,
                                std::unique_ptr<ten::cmd_result_t> cmd_result,
-                               std::unique_ptr<ten::cmd_t> cmd,
                                ten::error_t *err) {
                 auto status_code = cmd_result->get_status_code();
                 ASSERT_EQ(status_code, TEN_STATUS_CODE_OK);
@@ -84,7 +83,7 @@ class test_predefined_graph : public ten::extension_t {
                     std::move(stop_graph_cmd),
                     [this](ten::ten_env_t &ten_env,
                            std::unique_ptr<ten::cmd_result_t> cmd_result,
-                           std::unique_ptr<ten::cmd_t> cmd, ten::error_t *err) {
+                           ten::error_t *err) {
                       received_hello_world_resp = true;
 
                       if (test_cmd != nullptr) {

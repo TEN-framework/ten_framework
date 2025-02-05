@@ -51,7 +51,6 @@ static void ten_env_notify_send_data_ctx_destroy(
 
 static void proxy_send_data_callback(ten_env_t *ten_env,
                                      TEN_UNUSED ten_shared_ptr_t *c_cmd_result,
-                                     ten_shared_ptr_t *c_data,
                                      void *callback_info, ten_error_t *err) {
   TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
              "Should not happen.");

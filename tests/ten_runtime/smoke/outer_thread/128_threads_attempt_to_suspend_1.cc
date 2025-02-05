@@ -236,13 +236,13 @@ class test_extension_1 : public ten::extension_t {
 
   void on_start(ten::ten_env_t &ten_env) override {
     auto start_to_send_cmd = ten::cmd_t::create("start_to_send");
-    ten_env.send_cmd(
-        std::move(start_to_send_cmd),
-        [this](ten::ten_env_t &ten_env,
-               std::unique_ptr<ten::cmd_result_t> cmd_result,
-               std::unique_ptr<ten::cmd_t> cmd, ten::error_t *err) {
-          TEN_ASSERT(cmd_result->get_status_code() == TEN_STATUS_CODE_OK,
-                     "Failed to send 'start_to_send' command.");
+    ten_env.send_cmd(std::move(start_to_send_cmd),
+                     [this](ten::ten_env_t &ten_env,
+                            std::unique_ptr<ten::cmd_result_t> cmd_result,
+                            ten::error_t *err) {
+                       TEN_ASSERT(
+                           cmd_result->get_status_code() == TEN_STATUS_CODE_OK,
+                           "Failed to send 'start_to_send' command.");
 
 #define CREATE_OUTER_THREAD(X)                                           \
   do {                                                                   \
@@ -251,138 +251,138 @@ class test_extension_1 : public ten::extension_t {
         &test_extension_1::outer_thread##X##_main, this, ten_env_proxy); \
   } while (0)
 
-          CREATE_OUTER_THREAD(1);
-          CREATE_OUTER_THREAD(2);
-          CREATE_OUTER_THREAD(3);
-          CREATE_OUTER_THREAD(4);
-          CREATE_OUTER_THREAD(5);
-          CREATE_OUTER_THREAD(6);
-          CREATE_OUTER_THREAD(7);
-          CREATE_OUTER_THREAD(8);
-          CREATE_OUTER_THREAD(9);
-          CREATE_OUTER_THREAD(10);
-          CREATE_OUTER_THREAD(11);
-          CREATE_OUTER_THREAD(12);
-          CREATE_OUTER_THREAD(13);
-          CREATE_OUTER_THREAD(14);
-          CREATE_OUTER_THREAD(15);
-          CREATE_OUTER_THREAD(16);
+                       CREATE_OUTER_THREAD(1);
+                       CREATE_OUTER_THREAD(2);
+                       CREATE_OUTER_THREAD(3);
+                       CREATE_OUTER_THREAD(4);
+                       CREATE_OUTER_THREAD(5);
+                       CREATE_OUTER_THREAD(6);
+                       CREATE_OUTER_THREAD(7);
+                       CREATE_OUTER_THREAD(8);
+                       CREATE_OUTER_THREAD(9);
+                       CREATE_OUTER_THREAD(10);
+                       CREATE_OUTER_THREAD(11);
+                       CREATE_OUTER_THREAD(12);
+                       CREATE_OUTER_THREAD(13);
+                       CREATE_OUTER_THREAD(14);
+                       CREATE_OUTER_THREAD(15);
+                       CREATE_OUTER_THREAD(16);
 
 #if !defined(__i386__) && !defined(__arm__)
-          CREATE_OUTER_THREAD(17);
-          CREATE_OUTER_THREAD(18);
-          CREATE_OUTER_THREAD(19);
-          CREATE_OUTER_THREAD(20);
-          CREATE_OUTER_THREAD(21);
-          CREATE_OUTER_THREAD(22);
-          CREATE_OUTER_THREAD(23);
-          CREATE_OUTER_THREAD(24);
-          CREATE_OUTER_THREAD(25);
-          CREATE_OUTER_THREAD(26);
-          CREATE_OUTER_THREAD(27);
-          CREATE_OUTER_THREAD(28);
-          CREATE_OUTER_THREAD(29);
-          CREATE_OUTER_THREAD(30);
-          CREATE_OUTER_THREAD(31);
-          CREATE_OUTER_THREAD(32);
-          CREATE_OUTER_THREAD(33);
-          CREATE_OUTER_THREAD(34);
-          CREATE_OUTER_THREAD(35);
-          CREATE_OUTER_THREAD(36);
-          CREATE_OUTER_THREAD(37);
-          CREATE_OUTER_THREAD(38);
-          CREATE_OUTER_THREAD(39);
-          CREATE_OUTER_THREAD(40);
-          CREATE_OUTER_THREAD(41);
-          CREATE_OUTER_THREAD(42);
-          CREATE_OUTER_THREAD(43);
-          CREATE_OUTER_THREAD(44);
-          CREATE_OUTER_THREAD(45);
-          CREATE_OUTER_THREAD(46);
-          CREATE_OUTER_THREAD(47);
-          CREATE_OUTER_THREAD(48);
-          CREATE_OUTER_THREAD(49);
-          CREATE_OUTER_THREAD(50);
-          CREATE_OUTER_THREAD(51);
-          CREATE_OUTER_THREAD(52);
-          CREATE_OUTER_THREAD(53);
-          CREATE_OUTER_THREAD(54);
-          CREATE_OUTER_THREAD(55);
-          CREATE_OUTER_THREAD(56);
-          CREATE_OUTER_THREAD(57);
-          CREATE_OUTER_THREAD(58);
-          CREATE_OUTER_THREAD(59);
-          CREATE_OUTER_THREAD(60);
-          CREATE_OUTER_THREAD(61);
-          CREATE_OUTER_THREAD(62);
-          CREATE_OUTER_THREAD(63);
-          CREATE_OUTER_THREAD(64);
-          CREATE_OUTER_THREAD(65);
-          CREATE_OUTER_THREAD(66);
-          CREATE_OUTER_THREAD(67);
-          CREATE_OUTER_THREAD(68);
-          CREATE_OUTER_THREAD(69);
-          CREATE_OUTER_THREAD(70);
-          CREATE_OUTER_THREAD(71);
-          CREATE_OUTER_THREAD(72);
-          CREATE_OUTER_THREAD(73);
-          CREATE_OUTER_THREAD(74);
-          CREATE_OUTER_THREAD(75);
-          CREATE_OUTER_THREAD(76);
-          CREATE_OUTER_THREAD(77);
-          CREATE_OUTER_THREAD(78);
-          CREATE_OUTER_THREAD(79);
-          CREATE_OUTER_THREAD(80);
-          CREATE_OUTER_THREAD(81);
-          CREATE_OUTER_THREAD(82);
-          CREATE_OUTER_THREAD(83);
-          CREATE_OUTER_THREAD(84);
-          CREATE_OUTER_THREAD(85);
-          CREATE_OUTER_THREAD(86);
-          CREATE_OUTER_THREAD(87);
-          CREATE_OUTER_THREAD(88);
-          CREATE_OUTER_THREAD(89);
-          CREATE_OUTER_THREAD(90);
-          CREATE_OUTER_THREAD(91);
-          CREATE_OUTER_THREAD(92);
-          CREATE_OUTER_THREAD(93);
-          CREATE_OUTER_THREAD(94);
-          CREATE_OUTER_THREAD(95);
-          CREATE_OUTER_THREAD(96);
-          CREATE_OUTER_THREAD(97);
-          CREATE_OUTER_THREAD(98);
-          CREATE_OUTER_THREAD(99);
-          CREATE_OUTER_THREAD(100);
-          CREATE_OUTER_THREAD(101);
-          CREATE_OUTER_THREAD(102);
-          CREATE_OUTER_THREAD(103);
-          CREATE_OUTER_THREAD(104);
-          CREATE_OUTER_THREAD(105);
-          CREATE_OUTER_THREAD(106);
-          CREATE_OUTER_THREAD(107);
-          CREATE_OUTER_THREAD(108);
-          CREATE_OUTER_THREAD(109);
-          CREATE_OUTER_THREAD(110);
-          CREATE_OUTER_THREAD(111);
-          CREATE_OUTER_THREAD(112);
-          CREATE_OUTER_THREAD(113);
-          CREATE_OUTER_THREAD(114);
-          CREATE_OUTER_THREAD(115);
-          CREATE_OUTER_THREAD(116);
-          CREATE_OUTER_THREAD(117);
-          CREATE_OUTER_THREAD(118);
-          CREATE_OUTER_THREAD(119);
-          CREATE_OUTER_THREAD(120);
-          CREATE_OUTER_THREAD(121);
-          CREATE_OUTER_THREAD(122);
-          CREATE_OUTER_THREAD(123);
-          CREATE_OUTER_THREAD(124);
-          CREATE_OUTER_THREAD(125);
-          CREATE_OUTER_THREAD(126);
-          CREATE_OUTER_THREAD(127);
-          CREATE_OUTER_THREAD(128);
+                       CREATE_OUTER_THREAD(17);
+                       CREATE_OUTER_THREAD(18);
+                       CREATE_OUTER_THREAD(19);
+                       CREATE_OUTER_THREAD(20);
+                       CREATE_OUTER_THREAD(21);
+                       CREATE_OUTER_THREAD(22);
+                       CREATE_OUTER_THREAD(23);
+                       CREATE_OUTER_THREAD(24);
+                       CREATE_OUTER_THREAD(25);
+                       CREATE_OUTER_THREAD(26);
+                       CREATE_OUTER_THREAD(27);
+                       CREATE_OUTER_THREAD(28);
+                       CREATE_OUTER_THREAD(29);
+                       CREATE_OUTER_THREAD(30);
+                       CREATE_OUTER_THREAD(31);
+                       CREATE_OUTER_THREAD(32);
+                       CREATE_OUTER_THREAD(33);
+                       CREATE_OUTER_THREAD(34);
+                       CREATE_OUTER_THREAD(35);
+                       CREATE_OUTER_THREAD(36);
+                       CREATE_OUTER_THREAD(37);
+                       CREATE_OUTER_THREAD(38);
+                       CREATE_OUTER_THREAD(39);
+                       CREATE_OUTER_THREAD(40);
+                       CREATE_OUTER_THREAD(41);
+                       CREATE_OUTER_THREAD(42);
+                       CREATE_OUTER_THREAD(43);
+                       CREATE_OUTER_THREAD(44);
+                       CREATE_OUTER_THREAD(45);
+                       CREATE_OUTER_THREAD(46);
+                       CREATE_OUTER_THREAD(47);
+                       CREATE_OUTER_THREAD(48);
+                       CREATE_OUTER_THREAD(49);
+                       CREATE_OUTER_THREAD(50);
+                       CREATE_OUTER_THREAD(51);
+                       CREATE_OUTER_THREAD(52);
+                       CREATE_OUTER_THREAD(53);
+                       CREATE_OUTER_THREAD(54);
+                       CREATE_OUTER_THREAD(55);
+                       CREATE_OUTER_THREAD(56);
+                       CREATE_OUTER_THREAD(57);
+                       CREATE_OUTER_THREAD(58);
+                       CREATE_OUTER_THREAD(59);
+                       CREATE_OUTER_THREAD(60);
+                       CREATE_OUTER_THREAD(61);
+                       CREATE_OUTER_THREAD(62);
+                       CREATE_OUTER_THREAD(63);
+                       CREATE_OUTER_THREAD(64);
+                       CREATE_OUTER_THREAD(65);
+                       CREATE_OUTER_THREAD(66);
+                       CREATE_OUTER_THREAD(67);
+                       CREATE_OUTER_THREAD(68);
+                       CREATE_OUTER_THREAD(69);
+                       CREATE_OUTER_THREAD(70);
+                       CREATE_OUTER_THREAD(71);
+                       CREATE_OUTER_THREAD(72);
+                       CREATE_OUTER_THREAD(73);
+                       CREATE_OUTER_THREAD(74);
+                       CREATE_OUTER_THREAD(75);
+                       CREATE_OUTER_THREAD(76);
+                       CREATE_OUTER_THREAD(77);
+                       CREATE_OUTER_THREAD(78);
+                       CREATE_OUTER_THREAD(79);
+                       CREATE_OUTER_THREAD(80);
+                       CREATE_OUTER_THREAD(81);
+                       CREATE_OUTER_THREAD(82);
+                       CREATE_OUTER_THREAD(83);
+                       CREATE_OUTER_THREAD(84);
+                       CREATE_OUTER_THREAD(85);
+                       CREATE_OUTER_THREAD(86);
+                       CREATE_OUTER_THREAD(87);
+                       CREATE_OUTER_THREAD(88);
+                       CREATE_OUTER_THREAD(89);
+                       CREATE_OUTER_THREAD(90);
+                       CREATE_OUTER_THREAD(91);
+                       CREATE_OUTER_THREAD(92);
+                       CREATE_OUTER_THREAD(93);
+                       CREATE_OUTER_THREAD(94);
+                       CREATE_OUTER_THREAD(95);
+                       CREATE_OUTER_THREAD(96);
+                       CREATE_OUTER_THREAD(97);
+                       CREATE_OUTER_THREAD(98);
+                       CREATE_OUTER_THREAD(99);
+                       CREATE_OUTER_THREAD(100);
+                       CREATE_OUTER_THREAD(101);
+                       CREATE_OUTER_THREAD(102);
+                       CREATE_OUTER_THREAD(103);
+                       CREATE_OUTER_THREAD(104);
+                       CREATE_OUTER_THREAD(105);
+                       CREATE_OUTER_THREAD(106);
+                       CREATE_OUTER_THREAD(107);
+                       CREATE_OUTER_THREAD(108);
+                       CREATE_OUTER_THREAD(109);
+                       CREATE_OUTER_THREAD(110);
+                       CREATE_OUTER_THREAD(111);
+                       CREATE_OUTER_THREAD(112);
+                       CREATE_OUTER_THREAD(113);
+                       CREATE_OUTER_THREAD(114);
+                       CREATE_OUTER_THREAD(115);
+                       CREATE_OUTER_THREAD(116);
+                       CREATE_OUTER_THREAD(117);
+                       CREATE_OUTER_THREAD(118);
+                       CREATE_OUTER_THREAD(119);
+                       CREATE_OUTER_THREAD(120);
+                       CREATE_OUTER_THREAD(121);
+                       CREATE_OUTER_THREAD(122);
+                       CREATE_OUTER_THREAD(123);
+                       CREATE_OUTER_THREAD(124);
+                       CREATE_OUTER_THREAD(125);
+                       CREATE_OUTER_THREAD(126);
+                       CREATE_OUTER_THREAD(127);
+                       CREATE_OUTER_THREAD(128);
 #endif
-        });
+                     });
 
     ten_env.on_start_done();
   }
@@ -893,7 +893,7 @@ class test_extension_2 : public ten::extension_t {
                     std::move(from_extension_2_cmd),
                     [this](ten::ten_env_t &ten_env,
                            std::unique_ptr<ten::cmd_result_t> cmd_result,
-                           std::unique_ptr<ten::cmd_t> cmd, ten::error_t *err) {
+                           ten::error_t *err) {
                       TEN_ASSERT(
                           cmd_result->get_status_code() == TEN_STATUS_CODE_OK,
                           "Failed to send 'from_extension_2' command.");

@@ -638,12 +638,11 @@ void send_ten_msg_with_req_body(
             std::move(cmd),
             [http_session_data](ten::ten_env_t &ten_env,
                                 std::unique_ptr<ten::cmd_result_t> cmd_result,
-                                std::unique_ptr<ten::cmd_t> cmd,
-                                ten::error_t *error) {
-              if (error != nullptr) {
+                                ten::error_t *err) {
+              if (err != nullptr) {
                 prepare_response_data_from_ten_world(
                     http_session_data, "The command is not supported. err:" +
-                                           std::string(error->error_message()));
+                                           std::string(err->error_message()));
                 return;
               }
 
@@ -680,12 +679,11 @@ void send_ten_msg_without_req_body(
             std::move(cmd),
             [http_session_data](ten::ten_env_t &ten_env,
                                 std::unique_ptr<ten::cmd_result_t> cmd_result,
-                                std::unique_ptr<ten::cmd_t> cmd,
-                                ten::error_t *error) {
-              if (error != nullptr) {
+                                ten::error_t *err) {
+              if (err != nullptr) {
                 prepare_response_data_from_ten_world(
                     http_session_data, "The command is not supported. err:" +
-                                           std::string(error->error_message()));
+                                           std::string(err->error_message()));
                 return;
               }
 
