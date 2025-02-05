@@ -196,8 +196,9 @@ export function FileMenu(props: FileMenuProps) {
           initialWidth={400}
           initialHeight={200}
           onCollapseToggle={() => {}}
+          preventFocusSteal={true}
         >
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-2 w-full h-full">
             <label htmlFor="defaultRunScript">
               {t("Default label for app run")}{" "}
             </label>
@@ -207,7 +208,7 @@ export function FileMenu(props: FileMenuProps) {
               value={defaultRunScript}
               onChange={(e) => setDefaultRunScript(e.target.value)}
             />
-            <div className="flex justify-end gap-2">
+            <div className="flex justify-end gap-2 mt-auto">
               <Button
                 variant="outline"
                 onClick={() => setIsPreferencesModalOpen(false)}
