@@ -11,6 +11,8 @@ import { ScrollArea } from "@/components/ui/ScrollArea";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
+import { useWidgetStore } from "@/store/widget";
+import { ILogViewerWidget } from "@/types/widgets";
 
 export interface ILogViewerWidgetProps {
   id: string;
@@ -21,33 +23,27 @@ export interface ILogViewerWidgetProps {
   };
 }
 
-export default function LogViewerWidget(props: ILogViewerWidgetProps) {
-  const { id, data } = props;
+export function LogViewerBackstageWidget(props: ILogViewerWidget) {
+  const { id, metadata } = props;
 
-  const [searchInput, setSearchInput] = React.useState("");
-  const defferedSearchInput = React.useDeferredValue(searchInput);
+  const { appendLogViewerHistory } = useWidgetStore();
 
-  // Save dynamic logs.
-  const [logs, setLogs] = React.useState<string[]>([]);
   const wsRef = React.useRef<WebSocket | null>(null);
-  const scrollSpan = React.useRef<HTMLSpanElement>(null);
-
-  const { t } = useTranslation();
 
   React.useEffect(() => {
-    if (!data?.wsUrl) {
+    if (!metadata?.wsUrl) {
       return;
     }
 
-    wsRef.current = new WebSocket(data.wsUrl);
+    wsRef.current = new WebSocket(metadata.wsUrl);
 
     wsRef.current.onopen = () => {
       console.log("[LogViewerWidget] WebSocket connected!");
 
       // Immediately send the "run" command after establishing a successful
       // connection.
-      const baseDir = data.baseDir || "";
-      const name = data.scriptName || "";
+      const baseDir = metadata.baseDir || "";
+      const name = metadata.scriptName || "";
 
       const runMsg = {
         type: "run",
@@ -63,30 +59,27 @@ export default function LogViewerWidget(props: ILogViewerWidgetProps) {
 
         if (msg.type === "stdout" || msg.type === "stderr") {
           const line = msg.data;
-          setLogs((prev) => [...prev, line]);
+          appendLogViewerHistory(id, [line]);
         } else if (msg.type === "exit") {
           const code = msg.code;
-          setLogs((prev) => [
-            ...prev,
+          appendLogViewerHistory(id, [
             `Process exited with code ${code}. Closing...`,
           ]);
 
           wsRef.current?.close();
         } else if (msg.status === "fail") {
-          setLogs((prev) => [
-            ...prev,
+          appendLogViewerHistory(id, [
             `Error: ${msg.message || "Unknown error"}\n`,
           ]);
         } else {
-          setLogs((prev) => [
-            ...prev,
+          appendLogViewerHistory(id, [
             `Unknown message: ${JSON.stringify(msg)}`,
           ]);
         }
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
       } catch (err) {
         // If it's not JSON, output it directly as text.
-        setLogs((prev) => [...prev, event.data]);
+        appendLogViewerHistory(id, [event.data]);
       }
     };
 
@@ -102,7 +95,27 @@ export default function LogViewerWidget(props: ILogViewerWidgetProps) {
       // Close the connection when the component is unmounted.
       wsRef.current?.close();
     };
-  }, [data?.wsUrl, data?.baseDir, data?.scriptName]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id, metadata?.wsUrl, metadata?.baseDir, metadata?.scriptName]);
+
+  return <></>;
+}
+
+export function LogViewerFrontStageWidget(props: ILogViewerWidgetProps) {
+  const { id } = props;
+
+  const [searchInput, setSearchInput] = React.useState("");
+  const defferedSearchInput = React.useDeferredValue(searchInput);
+
+  const { logViewerHistory } = useWidgetStore();
+
+  const scrollSpan = React.useRef<HTMLSpanElement>(null);
+
+  const { t } = useTranslation();
+
+  const logsMemo = React.useMemo(() => {
+    return logViewerHistory[id]?.history || [];
+  }, [logViewerHistory, id]);
 
   React.useEffect(() => {
     const debounceTimeout = setTimeout(() => {
@@ -112,7 +125,7 @@ export default function LogViewerWidget(props: ILogViewerWidgetProps) {
     }, 100); // 100ms debounce delay
 
     return () => clearTimeout(debounceTimeout);
-  }, [logs]);
+  }, [logsMemo]);
 
   return (
     <div className="flex h-full w-full flex-col" id={id}>
@@ -129,7 +142,7 @@ export default function LogViewerWidget(props: ILogViewerWidgetProps) {
       </div>
       <ScrollArea className="h-[calc(100%-3rem)] w-full">
         <div className="p-2">
-          <LogViewerLogItemList logs={logs} search={defferedSearchInput} />
+          <LogViewerLogItemList logs={logsMemo} search={defferedSearchInput} />
           <span ref={scrollSpan} />
         </div>
       </ScrollArea>
