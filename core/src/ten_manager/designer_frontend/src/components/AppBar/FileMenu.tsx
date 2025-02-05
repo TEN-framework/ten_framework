@@ -205,8 +205,7 @@ export function FileMenu(props: FileMenuProps) {
             <Input
               id="defaultRunScript"
               type="text"
-              value={defaultRunScript}
-              onChange={(e) => setDefaultRunScript(e.target.value)}
+              defaultValue={defaultRunScript}
             />
             <div className="flex justify-end gap-2 mt-auto">
               <Button
@@ -215,7 +214,15 @@ export function FileMenu(props: FileMenuProps) {
               >
                 {t("action.cancel")}
               </Button>
-              <Button onClick={() => setIsPreferencesModalOpen(false)}>
+              <Button
+                onClick={() => {
+                  const inputElement = document.getElementById(
+                    "defaultRunScript"
+                  ) as HTMLInputElement;
+                  setDefaultRunScript(inputElement?.value || defaultRunScript);
+                  setIsPreferencesModalOpen(false);
+                }}
+              >
                 {t("action.ok")}
               </Button>
             </div>

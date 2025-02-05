@@ -47,6 +47,7 @@ import Dock from "@/components/Dock";
 import { useWidgetStore } from "@/store/widget";
 import { EWidgetDisplayType } from "@/types/widgets";
 import { GlobalPopups } from "@/components/Popup/GlobalPopups";
+import { BackstageWidgets } from "@/components/Widget/BackstageWidgets";
 
 const App: React.FC = () => {
   const [graphs, setGraphs] = useState<IGraph[]>([]);
@@ -186,6 +187,7 @@ const App: React.FC = () => {
           {resizablePanelMode === "left" && dockWidgetsMemo.length > 0 && (
             <>
               <ResizablePanel defaultSize={40}>
+                {/* Global dock widgets. */}
                 <Dock
                   position={resizablePanelMode}
                   onPositionChange={
@@ -219,6 +221,7 @@ const App: React.FC = () => {
             <>
               <ResizableHandle />
               <ResizablePanel defaultSize={40}>
+                {/* Global dock widgets. */}
                 <Dock
                   position={resizablePanelMode}
                   onPositionChange={
@@ -257,6 +260,9 @@ const App: React.FC = () => {
 
           {/* Global dialogs. */}
           <GlobalDialogs />
+
+          {/* [invisible] Global backstage widgets. */}
+          <BackstageWidgets />
         </ReactFlowDataContext.Provider>
       </ResizablePanelGroup>
     </ThemeProvider>

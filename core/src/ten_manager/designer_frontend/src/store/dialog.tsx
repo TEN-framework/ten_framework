@@ -6,6 +6,7 @@
 //
 import * as React from "react";
 import { create } from "zustand";
+import { devtools } from "zustand/middleware";
 
 export interface IDialog {
   id: string;
@@ -29,21 +30,23 @@ export const useDialogStore = create<{
     }
   ) => void;
   removeDialog: (dialogId: string) => void;
-}>((set) => ({
-  dialogs: [],
-  appendDialog: (dialog: IDialog, opts?: { force?: boolean }) =>
-    set((state) => {
-      const exists = state.dialogs.some((d) => d.id === dialog.id);
-      if (exists) {
-        if (opts?.force) {
-          return { dialogs: [...state.dialogs, dialog] };
+}>()(
+  devtools((set) => ({
+    dialogs: [],
+    appendDialog: (dialog: IDialog, opts?: { force?: boolean }) =>
+      set((state) => {
+        const exists = state.dialogs.some((d) => d.id === dialog.id);
+        if (exists) {
+          if (opts?.force) {
+            return { dialogs: [...state.dialogs, dialog] };
+          }
+          return state;
         }
-        return state;
-      }
-      return { dialogs: [...state.dialogs, dialog] };
-    }),
-  removeDialog: (dialogId: string) =>
-    set((state) => ({
-      dialogs: state.dialogs.filter((d) => d.id !== dialogId),
-    })),
-}));
+        return { dialogs: [...state.dialogs, dialog] };
+      }),
+    removeDialog: (dialogId: string) =>
+      set((state) => ({
+        dialogs: state.dialogs.filter((d) => d.id !== dialogId),
+      })),
+  }))
+);
