@@ -38,7 +38,7 @@ class test_predefined_graph : public ten::extension_t {
         std::move(start_graph_cmd),
         [this](ten::ten_env_t &ten_env,
                std::unique_ptr<ten::cmd_result_t> cmd_result,
-               std::unique_ptr<ten::cmd_t> cmd, ten::error_t *err) {
+               ten::error_t *err) {
           // result for the 'start_graph' command
           auto graph_id = cmd_result->get_property_string("detail");
 
@@ -52,7 +52,7 @@ class test_predefined_graph : public ten::extension_t {
               std::move(stop_graph_cmd),
               [this](ten::ten_env_t &ten_env,
                      std::unique_ptr<ten::cmd_result_t> cmd_result,
-                     std::unique_ptr<ten::cmd_t> cmd, ten::error_t *err) {
+                     ten::error_t *err) {
                 start_graph_cmd_is_done = true;
 
                 if (test_cmd != nullptr) {

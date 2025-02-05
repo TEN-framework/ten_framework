@@ -88,9 +88,9 @@ class test_extension_2 : public ten::extension_t {
   void on_deinit(ten::ten_env_t &ten_env) override {
     auto cmd = ten::cmd_t::create("return_immediately");
     auto rc = ten_env.send_cmd(
-        std::move(cmd), [](ten::ten_env_t &ten_env,
-                           std::unique_ptr<ten::cmd_result_t> cmd_result,
-                           std::unique_ptr<ten::cmd_t> cmd, ten::error_t *err) {
+        std::move(cmd),
+        [](ten::ten_env_t &ten_env,
+           std::unique_ptr<ten::cmd_result_t> cmd_result, ten::error_t *err) {
           callback_is_called = true;
 
           // This callback will be called after the ten_env on_deinit_done() is

@@ -53,8 +53,7 @@ class test_predefined_graph : public ten::extension_t {
     ten_env.send_cmd(
         std::move(start_graph_cmd),
         [cb](ten::ten_env_t &ten_env,
-             std::unique_ptr<ten::cmd_result_t> cmd_result,
-             std::unique_ptr<ten::cmd_t> cmd, ten::error_t *err) {
+             std::unique_ptr<ten::cmd_result_t> cmd_result, ten::error_t *err) {
           auto status_code = cmd_result->get_status_code();
           ASSERT_EQ(status_code, TEN_STATUS_CODE_OK);
 
@@ -70,7 +69,6 @@ class test_predefined_graph : public ten::extension_t {
               std::move(hello_world_cmd),
               [cb, graph_id](ten::ten_env_t &ten_env,
                              std::unique_ptr<ten::cmd_result_t> cmd_result,
-                             std::unique_ptr<ten::cmd_t> cmd,
                              ten::error_t *err) {
                 auto status_code = cmd_result->get_status_code();
                 ASSERT_EQ(status_code, TEN_STATUS_CODE_OK);
@@ -114,7 +112,7 @@ class test_predefined_graph : public ten::extension_t {
           std::move(stop_graph_1_cmd),
           [&](ten::ten_env_t &ten_env,
               std::unique_ptr<ten::cmd_result_t> cmd_result,
-              std::unique_ptr<ten::cmd_t> cmd, ten::error_t *err) {
+              ten::error_t *err) {
             // Shut down the graph 2; otherwise, the app won't be able to close
             // because there is still a running engine/graph.
             auto stop_graph_2_cmd = ten::cmd_stop_graph_t::create();
@@ -125,7 +123,7 @@ class test_predefined_graph : public ten::extension_t {
                 std::move(stop_graph_2_cmd),
                 [&](ten::ten_env_t &ten_env,
                     std::unique_ptr<ten::cmd_result_t> cmd_result,
-                    std::unique_ptr<ten::cmd_t> cmd, ten::error_t *err) {
+                    ten::error_t *err) {
                   nlohmann::json detail = {{"id", 1}, {"name", "a"}};
 
                   auto final_cmd_result =

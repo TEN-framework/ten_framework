@@ -22,7 +22,7 @@
 
 static bool ten_env_return_result_internal(
     ten_env_t *self, ten_shared_ptr_t *result_cmd, const char *cmd_id,
-    const char *seq_id, ten_env_msg_result_handler_func_t handler,
+    const char *seq_id, ten_env_transfer_msg_result_handler_func_t handler,
     void *user_data, ten_error_t *err) {
   TEN_ASSERT(self, "Invalid argument.");
   TEN_ASSERT(ten_env_check_integrity(self, true), "Invalid use of ten_env %p.",
@@ -100,7 +100,7 @@ static bool ten_env_return_result_internal(
     // We temporarily assume that the message enqueue represents success;
     // therefore, in this case, we set the error to NULL to indicate that the
     // returning was successful.
-    handler(self, NULL, NULL, user_data, NULL);
+    handler(self, NULL, user_data, NULL);
   }
 
   if (err_new_created) {
@@ -112,10 +112,10 @@ static bool ten_env_return_result_internal(
 
 // If the 'cmd' has already been a command in the backward path, a extension
 // could use this API to return the 'cmd' further.
-bool ten_env_return_result_directly(ten_env_t *self,
-                                    ten_shared_ptr_t *cmd_result,
-                                    ten_env_msg_result_handler_func_t handler,
-                                    void *user_data, ten_error_t *err) {
+bool ten_env_return_result_directly(
+    ten_env_t *self, ten_shared_ptr_t *cmd_result,
+    ten_env_transfer_msg_result_handler_func_t handler, void *user_data,
+    ten_error_t *err) {
   TEN_ASSERT(self, "Invalid argument.");
   TEN_ASSERT(ten_env_check_integrity(self, true), "Invalid use of ten_env %p.",
              self);
@@ -130,7 +130,7 @@ bool ten_env_return_result_directly(ten_env_t *self,
 
 bool ten_env_return_result(ten_env_t *self, ten_shared_ptr_t *cmd_result,
                            ten_shared_ptr_t *target_cmd,
-                           ten_env_msg_result_handler_func_t handler,
+                           ten_env_transfer_msg_result_handler_func_t handler,
                            void *user_data, ten_error_t *err) {
   TEN_ASSERT(self, "Invalid argument.");
   TEN_ASSERT(ten_env_check_integrity(self, true), "Invalid use of ten_env %p.",

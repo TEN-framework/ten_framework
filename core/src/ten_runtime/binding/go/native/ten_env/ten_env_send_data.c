@@ -4,8 +4,6 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-#include <stdlib.h>
-
 #include "include_internal/ten_runtime/binding/go/internal/common.h"
 #include "include_internal/ten_runtime/binding/go/msg/msg.h"
 #include "include_internal/ten_runtime/binding/go/ten_env/ten_env.h"
@@ -57,7 +55,6 @@ static void ten_env_notify_send_data_ctx_destroy(
 
 static void proxy_handle_data_error(ten_env_t *ten_env,
                                     TEN_UNUSED ten_shared_ptr_t *c_cmd_result,
-                                    ten_shared_ptr_t *c_data,
                                     void *callback_info_, ten_error_t *err) {
   ten_go_callback_ctx_t *callback_info = callback_info_;
   TEN_ASSERT(callback_info, "Should not happen.");

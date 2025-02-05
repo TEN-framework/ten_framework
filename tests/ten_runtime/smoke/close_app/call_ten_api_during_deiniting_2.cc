@@ -85,9 +85,9 @@ class test_extension_2 : public ten::extension_t {
   void on_deinit(ten::ten_env_t &ten_env) override {
     auto cmd = ten::cmd_t::create("return_immediately");
     auto rc = ten_env.send_cmd(
-        std::move(cmd), [](ten::ten_env_t &ten_env,
-                           std::unique_ptr<ten::cmd_result_t> cmd_result,
-                           std::unique_ptr<ten::cmd_t> cmd, ten::error_t *err) {
+        std::move(cmd),
+        [](ten::ten_env_t &ten_env,
+           std::unique_ptr<ten::cmd_result_t> cmd_result, ten::error_t *err) {
           auto rc = ten_env.set_property("test_property", "test_value");
           ASSERT_TRUE(rc);
 

@@ -18,7 +18,6 @@ class ffmpeg_client_extension : public ten::extension_t {
     ten_env.send_cmd(
         std::move(cmd), [](ten::ten_env_t &ten_env,
                            std::unique_ptr<ten::cmd_result_t> cmd_result,
-                           std::unique_ptr<ten::cmd_t> cmd,
                            TEN_UNUSED ten::error_t * /*error*/) {
           nlohmann::json cmd_result_json =
               nlohmann::json::parse(cmd_result->get_property_to_json());
@@ -33,7 +32,6 @@ class ffmpeg_client_extension : public ten::extension_t {
               std::move(start_muxer_cmd),
               [](ten::ten_env_t &ten_env,
                  std::unique_ptr<ten::cmd_result_t> cmd_result,
-                 std::unique_ptr<ten::cmd_t> cmd,
                  TEN_UNUSED ten::error_t * /*error*/) {
                 nlohmann::json json =
                     nlohmann::json::parse(cmd_result->get_property_to_json());

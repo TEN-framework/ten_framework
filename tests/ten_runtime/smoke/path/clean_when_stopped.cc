@@ -24,12 +24,12 @@ class test_extension_1 : public ten::extension_t {
     if (cmd->get_name() == "hello_world") {
       // If the path table is not cleaned when stopped, then memory leak will be
       // detected.
-      ten_env.send_cmd(std::move(cmd),
-                       [](ten::ten_env_t &ten_env,
-                          std::unique_ptr<ten::cmd_result_t> cmd_result,
-                          std::unique_ptr<ten::cmd_t> cmd, ten::error_t *err) {
-                         ten_env.return_result_directly(std::move(cmd_result));
-                       });
+      ten_env.send_cmd(
+          std::move(cmd),
+          [](ten::ten_env_t &ten_env,
+             std::unique_ptr<ten::cmd_result_t> cmd_result, ten::error_t *err) {
+            ten_env.return_result_directly(std::move(cmd_result));
+          });
       return;
     }
 

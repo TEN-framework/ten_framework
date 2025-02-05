@@ -70,7 +70,6 @@ class test_extension_1 : public ten::extension_t {
               std::move(new_cmd),
               [](ten::ten_env_t &ten_env,
                  std::unique_ptr<ten::cmd_result_t> cmd_result,
-                 std::unique_ptr<ten::cmd_t> cmd,
                  ten::error_t *err) { TEN_ASSERT(0, "Should not happen."); },
               &err);
           TEN_ASSERT(!rc, "Should send_cmd failed.");

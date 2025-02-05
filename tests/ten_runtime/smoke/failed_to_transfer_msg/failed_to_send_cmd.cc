@@ -64,8 +64,7 @@ class test_extension_1 : public ten::extension_t {
       bool rc = ten_env.send_cmd(
           std::move(new_cmd),
           [](ten::ten_env_t &ten_env,
-             std::unique_ptr<ten::cmd_result_t> cmd_result,
-             std::unique_ptr<ten::cmd_t> cmd, ten::error_t *err) {
+             std::unique_ptr<ten::cmd_result_t> cmd_result, ten::error_t *err) {
             result_handler_is_called = true;
 
             // TODO(Wei): The `cmd_result` and `cmd` should be empty.
