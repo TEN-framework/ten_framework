@@ -12,9 +12,11 @@ use std::{
 use actix_web::{web, HttpResponse, Responder};
 use serde::{Deserialize, Serialize};
 
-use super::{response::ErrorResponse, DesignerState};
 use crate::{
-    designer::response::{ApiResponse, Status},
+    designer::{
+        response::{ApiResponse, ErrorResponse, Status},
+        DesignerState,
+    },
     fs::check_is_app_folder,
 };
 
@@ -99,7 +101,7 @@ mod tests {
             App::new()
                 .app_data(web::Data::new(designer_state.clone()))
                 .route(
-                    "/api/designer/v1/base-dir",
+                    "/api/designer/v1/app/base-dir",
                     web::put().to(set_base_dir),
                 ),
         )
@@ -110,7 +112,7 @@ mod tests {
         };
 
         let req = test::TestRequest::put()
-            .uri("/api/designer/v1/base-dir")
+            .uri("/api/designer/v1/app/base-dir")
             .set_json(&new_base_dir)
             .to_request();
         let resp: Result<
@@ -134,14 +136,14 @@ mod tests {
             App::new()
                 .app_data(web::Data::new(designer_state.clone()))
                 .route(
-                    "/api/designer/v1/base-dir",
+                    "/api/designer/v1/app/base-dir",
                     web::get().to(get_base_dir),
                 ),
         )
         .await;
 
         let req = test::TestRequest::get()
-            .uri("/api/designer/v1/base-dir")
+            .uri("/api/designer/v1/app/base-dir")
             .to_request();
         let resp: ApiResponse<GetBaseDirResponse> =
             test::call_and_read_body_json(&app, req).await;
@@ -168,14 +170,14 @@ mod tests {
             App::new()
                 .app_data(web::Data::new(designer_state.clone()))
                 .route(
-                    "/api/designer/v1/base-dir",
+                    "/api/designer/v1/app/base-dir",
                     web::get().to(get_base_dir),
                 ),
         )
         .await;
 
         let req = test::TestRequest::get()
-            .uri("/api/designer/v1/base-dir")
+            .uri("/api/designer/v1/app/base-dir")
             .to_request();
         let resp: ApiResponse<GetBaseDirResponse> =
             test::call_and_read_body_json(&app, req).await;

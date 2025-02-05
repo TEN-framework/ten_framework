@@ -10,9 +10,7 @@ import { API_DESIGNER_V1, ENDPOINT_METHOD } from "@/api/endpoints/constant";
 import { genResSchema } from "@/api/endpoints/utils";
 import type {
   IFileContentResponse,
-  ISetBaseDirResponse,
   IBaseDirResponse,
-  IGetBaseDirResponse,
 } from "@/types/fileSystem";
 
 export const ENDPOINT_FILE_SYSTEM = {
@@ -35,29 +33,6 @@ export const ENDPOINT_FILE_SYSTEM = {
         content: z.string(),
       }),
       responseSchema: genResSchema<null>(z.null()),
-    },
-  },
-  baseDir: {
-    [ENDPOINT_METHOD.PUT]: {
-      url: `${API_DESIGNER_V1}/base-dir`,
-      method: ENDPOINT_METHOD.PUT,
-      requestSchema: z.object({
-        base_dir: z.string(),
-      }),
-      responseSchema: genResSchema<ISetBaseDirResponse>(
-        z.object({
-          success: z.boolean(),
-        })
-      ),
-    },
-    [ENDPOINT_METHOD.GET]: {
-      url: `${API_DESIGNER_V1}/base-dir`,
-      method: ENDPOINT_METHOD.GET,
-      responseSchema: genResSchema<IGetBaseDirResponse>(
-        z.object({
-          base_dir: z.string().nullable(),
-        })
-      ),
     },
   },
   dirList: {
