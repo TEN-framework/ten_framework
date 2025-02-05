@@ -43,6 +43,8 @@ TEST(TenMsgTest, CmdClone) {
   ten::buf_t cloned_buf = cloned_cmd->get_property_buf("buf");
   EXPECT_EQ(cloned_buf.size(), 10);
   EXPECT_EQ(std::memcmp(cloned_buf.data(), buf_data, 10), 0);
+
+  ten_free(buf_data);
 }
 
 TEST(TenMsgTest, DataClone) {
