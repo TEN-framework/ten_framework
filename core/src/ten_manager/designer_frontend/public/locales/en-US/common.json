@@ -17,7 +17,7 @@
       "theme.light": "Light",
       "theme.dark": "Dark",
       "theme.system": "System",
-      "run": "Run",
+      "start": "Start",
       "preferences": "Preferences"
     },
     "officialSite": "Official site",

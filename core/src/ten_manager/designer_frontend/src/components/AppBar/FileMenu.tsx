@@ -56,7 +56,7 @@ export function FileMenu(props: FileMenuProps) {
 
   const { appendWidgetIfNotExists } = useWidgetStore();
 
-  const handleRunApp = async () => {
+  const handleAppStart = async () => {
     console.log("handleRunApp ===");
     try {
       const baseDirData = await getBaseDir();
@@ -69,11 +69,11 @@ export function FileMenu(props: FileMenuProps) {
       const scriptName = defaultRunScript;
 
       appendWidgetIfNotExists({
-        id: "run-app-" + Date.now(),
+        id: "app-start-" + Date.now(),
         category: EWidgetCategory.LogViewer,
         display_type: EWidgetDisplayType.Popup,
         metadata: {
-          wsUrl: "ws://localhost:49483/api/designer/v1/ws/run-app",
+          wsUrl: "ws://localhost:49483/api/designer/v1/ws/app/start",
           baseDir,
           scriptName,
           supportStop: true,
@@ -140,10 +140,10 @@ export function FileMenu(props: FileMenuProps) {
             <Button
               className="w-full justify-start"
               variant="ghost"
-              onClick={handleRunApp}
+              onClick={handleAppStart}
             >
               <PlayIcon className="w-4 h-4 me-2" />
-              {t("header.menu.run")}
+              {t("header.menu.start")}
             </Button>
           </NavigationMenuLink>
 

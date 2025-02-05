@@ -4,22 +4,26 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-mod msg_in;
-
 use std::sync::{Arc, RwLock};
 
 use actix_web::{web, Error, HttpRequest, HttpResponse};
 use actix_web_actors::ws;
 use anyhow::{Context, Result};
-use msg_in::InboundMsg;
+use serde::{Deserialize, Serialize};
 use ten_rust::pkg_info::{pkg_type::PkgType, PkgInfo};
 
-use crate::designer::DesignerState;
-
-use super::{
+use crate::designer::{
     get_all_pkgs::get_all_pkgs,
     run_cmd::{CmdParser, WsRunCmd},
+    DesignerState,
 };
+
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(tag = "type")]
+enum InboundMsg {
+    #[serde(rename = "start")]
+    Start { base_dir: String, name: String },
+}
 
 pub fn extract_command_from_manifest(
     base_dir: &String,
@@ -84,7 +88,7 @@ pub fn extract_command_from_manifest(
     Ok(script_cmd)
 }
 
-pub async fn run_app(
+pub async fn run(
     req: HttpRequest,
     stream: web::Payload,
     state: web::Data<Arc<RwLock<DesignerState>>>,
@@ -99,13 +103,13 @@ pub async fn run_app(
             .with_context(|| format!("Failed to parse {} into JSON", text))?;
 
         match inbound {
-            InboundMsg::Run { base_dir, name } => {
+            InboundMsg::Start { base_dir, name } => {
                 let cmd = extract_command_from_manifest(
                     &base_dir,
                     &name,
                     state_clone.clone(),
                 )?;
-                Ok(cmd)
+                Ok((cmd, Some(base_dir)))
             }
         }
     });

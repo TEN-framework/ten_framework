@@ -5,3 +5,5 @@
 // Refer to the "LICENSE" file in the root directory for more information.
 //
 pub mod base_dir;
+pub mod install;
+pub mod start;

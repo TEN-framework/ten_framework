@@ -22,15 +22,21 @@ impl WsRunCmd {
         cmd: &String,
         ctx: &mut WebsocketContext<WsRunCmd>,
     ) {
-        // Run the command line, capture stdout/stderr.
-        let child = match Command::new("sh")
+        let mut command = Command::new("sh");
+        command
             .arg("-c")
             .arg(cmd)
             .env("TEN_LOG_FORMATTER", "default")
-            .stdout(Stdio::piped())
-            .stderr(Stdio::piped())
-            .spawn()
-        {
+            // Capture stdout/stderr.
+            .stdout(std::process::Stdio::piped())
+            .stderr(std::process::Stdio::piped());
+
+        if let Some(ref dir) = self.working_directory {
+            command.current_dir(dir);
+        }
+
+        // Run the command.
+        let child = match command.spawn() {
             Ok(c) => c,
             Err(e) => {
                 let err_msg = OutboundMsg::Error {

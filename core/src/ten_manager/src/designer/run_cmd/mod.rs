@@ -32,7 +32,10 @@ pub enum RunCmdOutput {
     Exit(i32),
 }
 
-pub type CmdParser = Box<dyn Fn(&str) -> Result<String> + Send + Sync>;
+/// `CmdParser` returns a tuple: the 1st element is the command string, and
+/// the 2nd is an optional working directory.
+pub type CmdParser =
+    Box<dyn Fn(&str) -> Result<(String, Option<String>)> + Send + Sync>;
 
 #[derive(Serialize, Deserialize)]
 struct MsgFromFrontend {
@@ -45,6 +48,7 @@ pub struct WsRunCmd {
     buffer_stdout: Arc<Mutex<VecDeque<String>>>,
     buffer_stderr: Arc<Mutex<VecDeque<String>>>,
     cmd_parser: CmdParser,
+    working_directory: Option<String>,
 }
 
 impl WsRunCmd {
@@ -54,6 +58,7 @@ impl WsRunCmd {
             buffer_stdout: Arc::new(Mutex::new(VecDeque::new())),
             buffer_stderr: Arc::new(Mutex::new(VecDeque::new())),
             cmd_parser,
+            working_directory: None,
         }
     }
 }
@@ -148,7 +153,11 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WsRunCmd {
     ) {
         match item {
             Ok(ws::Message::Text(text)) => match (self.cmd_parser)(&text) {
-                Ok(cmd) => {
+                Ok((cmd, working_directory)) => {
+                    if let Some(dir) = working_directory {
+                        self.working_directory = Some(dir);
+                    }
+
                     self.cmd_run(&cmd, ctx);
                 }
                 Err(e) => {

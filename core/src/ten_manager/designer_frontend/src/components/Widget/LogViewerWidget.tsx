@@ -40,13 +40,13 @@ export function LogViewerBackstageWidget(props: ILogViewerWidget) {
     wsRef.current.onopen = () => {
       console.log("[LogViewerWidget] WebSocket connected!");
 
-      // Immediately send the "run" command after establishing a successful
+      // Immediately send the "start" command after establishing a successful
       // connection.
       const baseDir = metadata.baseDir || "";
       const name = metadata.scriptName || "";
 
       const runMsg = {
-        type: "run",
+        type: "start",
         base_dir: baseDir,
         name: name,
       };
