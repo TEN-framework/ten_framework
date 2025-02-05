@@ -47,11 +47,10 @@ class ten_env_t;
 class ten_env_proxy_t;
 class ten_env_internal_accessor_t;
 
-using send_cmd_result_handler_func_t =
+using result_handler_func_t =
     std::function<void(ten_env_t &, std::unique_ptr<cmd_result_t>, error_t *)>;
 
-using transfer_msg_error_handler_func_t =
-    std::function<void(ten_env_t &, error_t *)>;
+using error_handler_func_t = std::function<void(ten_env_t &, error_t *)>;
 
 class ten_env_t {
  public:
@@ -63,7 +62,7 @@ class ten_env_t {
   // @}
 
   bool send_cmd(std::unique_ptr<cmd_t> &&cmd,
-                send_cmd_result_handler_func_t &&result_handler = nullptr,
+                result_handler_func_t &&result_handler = nullptr,
                 error_t *err = nullptr) {
     return send_cmd_internal(std::move(cmd), std::move(result_handler), nullptr,
                              err);
@@ -73,7 +72,7 @@ class ten_env_t {
   // will only return the final `result` of `is_completed`. If other
   // behaviors are needed, users can use `send_cmd_ex`.
   bool send_cmd_ex(std::unique_ptr<cmd_t> &&cmd,
-                   send_cmd_result_handler_func_t &&result_handler = nullptr,
+                   result_handler_func_t &&result_handler = nullptr,
                    error_t *err = nullptr) {
     ten_env_send_cmd_options_t options{
         .enable_multiple_results = true,
@@ -83,26 +82,24 @@ class ten_env_t {
   }
 
   bool send_data(std::unique_ptr<data_t> &&data,
-                 transfer_msg_error_handler_func_t &&error_handler = nullptr,
+                 error_handler_func_t &&error_handler = nullptr,
                  error_t *err = nullptr) {
     return send_data_like_msg_internal<data_t>(
         std::move(data), std::move(error_handler), ten_env_send_data,
         proxy_handle_send_msg_error, err);
   }
 
-  bool send_video_frame(
-      std::unique_ptr<video_frame_t> &&frame,
-      transfer_msg_error_handler_func_t &&error_handler = nullptr,
-      error_t *err = nullptr) {
+  bool send_video_frame(std::unique_ptr<video_frame_t> &&frame,
+                        error_handler_func_t &&error_handler = nullptr,
+                        error_t *err = nullptr) {
     return send_data_like_msg_internal<video_frame_t>(
         std::move(frame), std::move(error_handler), ten_env_send_data,
         proxy_handle_send_msg_error, err);
   }
 
-  bool send_audio_frame(
-      std::unique_ptr<audio_frame_t> &&frame,
-      transfer_msg_error_handler_func_t &&error_handler = nullptr,
-      error_t *err = nullptr) {
+  bool send_audio_frame(std::unique_ptr<audio_frame_t> &&frame,
+                        error_handler_func_t &&error_handler = nullptr,
+                        error_t *err = nullptr) {
     return send_data_like_msg_internal<audio_frame_t>(
         std::move(frame), std::move(error_handler), ten_env_send_data,
         proxy_handle_send_msg_error, err);
@@ -110,10 +107,9 @@ class ten_env_t {
 
   // If the 'cmd' has already been a command in the backward path, a extension
   // could use this API to return the 'cmd' further.
-  bool return_result_directly(
-      std::unique_ptr<cmd_result_t> &&cmd,
-      transfer_msg_error_handler_func_t &&error_handler = nullptr,
-      error_t *err = nullptr) {
+  bool return_result_directly(std::unique_ptr<cmd_result_t> &&cmd,
+                              error_handler_func_t &&error_handler = nullptr,
+                              error_t *err = nullptr) {
     if (!cmd) {
       TEN_ASSERT(0, "Invalid argument.");
       return false;
@@ -126,7 +122,7 @@ class ten_env_t {
           err != nullptr ? err->get_c_error() : nullptr);
     } else {
       auto *error_handler_ptr =
-          new transfer_msg_error_handler_func_t(std::move(error_handler));
+          new error_handler_func_t(std::move(error_handler));
 
       rc = ten_env_return_result_directly(
           c_ten_env, cmd->get_underlying_msg(),
@@ -147,10 +143,10 @@ class ten_env_t {
     return rc;
   }
 
-  bool return_result(
-      std::unique_ptr<cmd_result_t> &&cmd, std::unique_ptr<cmd_t> &&target_cmd,
-      transfer_msg_error_handler_func_t &&error_handler = nullptr,
-      error_t *err = nullptr) {
+  bool return_result(std::unique_ptr<cmd_result_t> &&cmd,
+                     std::unique_ptr<cmd_t> &&target_cmd,
+                     error_handler_func_t &&error_handler = nullptr,
+                     error_t *err = nullptr) {
     if (!cmd) {
       TEN_ASSERT(0, "Invalid argument.");
       return false;
@@ -169,7 +165,7 @@ class ten_env_t {
                                  err != nullptr ? err->get_c_error() : nullptr);
     } else {
       auto *error_handler_ptr =
-          new transfer_msg_error_handler_func_t(std::move(error_handler));
+          new error_handler_func_t(std::move(error_handler));
 
       rc = ten_env_return_result(
           c_ten_env, cmd->get_underlying_msg(),
@@ -692,10 +688,10 @@ class ten_env_t {
 
   bool init_manifest_from_json(const char *json_str, error_t *err);
 
-  bool send_cmd_internal(
-      std::unique_ptr<cmd_t> &&cmd,
-      send_cmd_result_handler_func_t &&result_handler = nullptr,
-      ten_env_send_cmd_options_t *options = nullptr, error_t *err = nullptr) {
+  bool send_cmd_internal(std::unique_ptr<cmd_t> &&cmd,
+                         result_handler_func_t &&result_handler = nullptr,
+                         ten_env_send_cmd_options_t *options = nullptr,
+                         error_t *err = nullptr) {
     TEN_ASSERT(c_ten_env, "Should not happen.");
 
     bool rc = false;
@@ -711,7 +707,7 @@ class ten_env_t {
                             err != nullptr ? err->get_c_error() : nullptr);
     } else {
       auto *result_handler_ptr =
-          new send_cmd_result_handler_func_t(std::move(result_handler));
+          new result_handler_func_t(std::move(result_handler));
 
       rc = ten_env_send_cmd(c_ten_env, cmd->get_underlying_msg(),
                             proxy_handle_send_cmd_result, result_handler_ptr,
@@ -734,8 +730,7 @@ class ten_env_t {
 
   template <typename T>
   bool send_data_like_msg_internal(
-      std::unique_ptr<T> &&msg,
-      transfer_msg_error_handler_func_t &&error_handler = nullptr,
+      std::unique_ptr<T> &&msg, error_handler_func_t &&error_handler = nullptr,
       bool (*send_func)(::ten_env_t *, ten_shared_ptr_t *,
                         void (*)(::ten_env_t *, ten_shared_ptr_t *, void *,
                                  ten_error_t *),
@@ -761,7 +756,7 @@ class ten_env_t {
                      err != nullptr ? err->get_c_error() : nullptr);
     } else {
       auto *error_handler_ptr =
-          new transfer_msg_error_handler_func_t(std::move(error_handler));
+          new error_handler_func_t(std::move(error_handler));
 
       rc = send_func(c_ten_env, msg->get_underlying_msg(), proxy_func,
                      error_handler_ptr,
@@ -807,8 +802,7 @@ class ten_env_t {
   static void proxy_handle_send_cmd_result(::ten_env_t *ten_env,
                                            ten_shared_ptr_t *c_cmd_result,
                                            void *cb_data, ten_error_t *err) {
-    auto *result_handler =
-        static_cast<send_cmd_result_handler_func_t *>(cb_data);
+    auto *result_handler = static_cast<result_handler_func_t *>(cb_data);
     auto *cpp_ten_env =
         static_cast<ten_env_t *>(ten_binding_handle_get_me_in_target_lang(
             reinterpret_cast<ten_binding_handle_t *>(ten_env)));
@@ -849,8 +843,7 @@ class ten_env_t {
       void *cb_data, ten_error_t *err) {
     TEN_ASSERT(c_cmd_result == nullptr, "Should not happen.");
 
-    auto *error_handler =
-        static_cast<transfer_msg_error_handler_func_t *>(cb_data);
+    auto *error_handler = static_cast<error_handler_func_t *>(cb_data);
     auto *cpp_ten_env =
         static_cast<ten_env_t *>(ten_binding_handle_get_me_in_target_lang(
             reinterpret_cast<ten_binding_handle_t *>(ten_env)));
@@ -871,8 +864,7 @@ class ten_env_t {
       void *user_data, ::ten_error_t *err) {
     TEN_ASSERT(ten_env, "Should not happen.");
 
-    auto *error_handler =
-        static_cast<transfer_msg_error_handler_func_t *>(user_data);
+    auto *error_handler = static_cast<error_handler_func_t *>(user_data);
     auto *cpp_ten_env =
         static_cast<ten_env_t *>(ten_binding_handle_get_me_in_target_lang(
             reinterpret_cast<ten_binding_handle_t *>(ten_env)));
