@@ -109,17 +109,17 @@ TEN_UNUSED void save_avframe(const AVFrame *avFrame) {
   uint8_t *avU = avFrame->data[1];
   uint8_t *avV = avFrame->data[2];
 
-  for (uint32_t i = 0; i < avFrame->height; i++) {
+  for (int i = 0; i < avFrame->height; i++) {
     (void)fwrite(avY, avFrame->width, 1, fDump);
     avY += pitchY;
   }
 
-  for (uint32_t i = 0; i < avFrame->height / 2; i++) {
+  for (int i = 0; i < avFrame->height / 2; i++) {
     (void)fwrite(avU, avFrame->width / 2, 1, fDump);
     avU += pitchU;
   }
 
-  for (uint32_t i = 0; i < avFrame->height / 2; i++) {
+  for (int i = 0; i < avFrame->height / 2; i++) {
     (void)fwrite(avV, avFrame->width / 2, 1, fDump);
     avV += pitchV;
   }

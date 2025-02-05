@@ -43,7 +43,7 @@ import {
 } from "@/types/widgets";
 import TerminalWidget from "@/components/Widget/TerminalWidget";
 import EditorWidget from "@/components/Widget/EditorWidget";
-import LogViewerWidget from "@/components/Widget/LogViewerWidget";
+import { LogViewerFrontStageWidget } from "@/components/Widget/LogViewerWidget";
 
 import { type TEditorOnClose } from "@/components/Widget/EditorWidget";
 
@@ -63,8 +63,16 @@ export default function DockContainer(props: {
     null
   );
 
-  const { widgets, removeWidget, removeWidgets, updateWidgetDisplayType } =
-    useWidgetStore();
+  const {
+    widgets,
+    removeWidget,
+    removeWidgets,
+    updateWidgetDisplayType,
+    removeBackstageWidget,
+    removeLogViewerHistory,
+    removeBackstageWidgets,
+    removeLogViewerHistories,
+  } = useWidgetStore();
   const { appendDialog, removeDialog } = useDialogStore();
   const { t } = useTranslation();
 
@@ -133,14 +141,15 @@ export default function DockContainer(props: {
       });
       return;
     }
+    removeBackstageWidgets(dockWidgetsMemo.map((w) => w.id));
+    removeLogViewerHistories(dockWidgetsMemo.map((w) => w.id));
     removeWidgets(dockWidgetsMemo.map((w) => w.id));
   };
 
   const handleCloseTab = (id: string) => () => {
-    const isEditor =
-      dockWidgetsMemo.find((w) => w.id === id)?.category ===
-      EWidgetCategory.Editor;
-    if (isEditor) {
+    const tabCategory =
+      dockWidgetsMemo.find((w) => w.id === id)?.category ?? undefined;
+    if (tabCategory === EWidgetCategory.Editor) {
       const isEditing =
         (dockWidgetsMemo.find((w) => w.id === id) as IEditorWidget | undefined)
           ?.isEditing ?? false;
@@ -153,6 +162,12 @@ export default function DockContainer(props: {
           removeWidget(id);
         },
       });
+      return;
+    }
+    if (tabCategory === EWidgetCategory.LogViewer) {
+      removeBackstageWidget(id);
+      removeLogViewerHistory(id);
+      removeWidget(id);
       return;
     }
     removeWidget(id);
@@ -240,7 +255,7 @@ export default function DockContainer(props: {
             />
           )}
           {selectedWidgetMemo.category === EWidgetCategory.LogViewer && (
-            <LogViewerWidget id={selectedWidgetMemo.id} />
+            <LogViewerFrontStageWidget id={selectedWidgetMemo.id} />
           )}
         </div>
       )}
