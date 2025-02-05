@@ -19,6 +19,7 @@ mod packages;
 mod property;
 pub mod response;
 mod run_app;
+mod run_cmd;
 mod terminal;
 mod version;
 

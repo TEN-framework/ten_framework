@@ -12,105 +12,20 @@ use std::{
 use actix::AsyncContext;
 use actix_web_actors::ws::WebsocketContext;
 
-use ten_rust::pkg_info::{pkg_type::PkgType, PkgInfo};
+use crate::designer::run_cmd::RunCmdOutput;
 
-use crate::designer::{get_all_pkgs::get_all_pkgs, run_app::RunAppOutput};
+use super::{msg_out::OutboundMsg, WsRunCmd};
 
-use super::{msg_out::OutboundMsg, WsRunApp};
-
-impl WsRunApp {
+impl WsRunCmd {
     pub fn cmd_run(
         &mut self,
-        base_dir: &String,
-        name: &String,
-        ctx: &mut WebsocketContext<WsRunApp>,
+        cmd: &String,
+        ctx: &mut WebsocketContext<WsRunCmd>,
     ) {
-        // 1) Check if base_dir matches the state.
-        let mut guard = self.state.write().unwrap();
-        if guard.base_dir.as_deref() != Some(base_dir) {
-            let err_msg = OutboundMsg::Error {
-                msg: format!("Base directory [{}] is not opened.", base_dir),
-            };
-
-            ctx.text(serde_json::to_string(&err_msg).unwrap());
-            ctx.close(None);
-
-            return;
-        }
-
-        // 2) Get all packages in the base_dir.
-        if let Err(err) = get_all_pkgs(&mut guard) {
-            let err_msg = OutboundMsg::Error {
-                msg: format!("Error fetching packages: {}", err),
-            };
-
-            ctx.text(serde_json::to_string(&err_msg).unwrap());
-            ctx.close(None);
-
-            return;
-        }
-
-        // 3) find the package of type == app.
-        let app_pkgs: Vec<&PkgInfo> = guard
-            .all_pkgs
-            .as_ref()
-            .map(|v| {
-                v.iter()
-                    .filter(|p| {
-                        p.basic_info.type_and_name.pkg_type == PkgType::App
-                    })
-                    .collect()
-            })
-            .unwrap_or_default();
-
-        if app_pkgs.len() != 1 {
-            let err_msg = OutboundMsg::Error {
-                msg: "There should be exactly one app package, found 0 or more"
-                    .to_string(),
-            };
-
-            ctx.text(serde_json::to_string(&err_msg).unwrap());
-            ctx.close(None);
-
-            return;
-        }
-
-        let app_pkg = app_pkgs[0];
-
-        // 4) Read the `scripts` field from the `manifest.json`.
-        let scripts = match &app_pkg.manifest {
-            Some(m) => m.scripts.clone().unwrap_or_default(),
-            None => {
-                let err_msg = OutboundMsg::Error {
-                    msg: "No manifest found in the app package".to_string(),
-                };
-
-                ctx.text(serde_json::to_string(&err_msg).unwrap());
-                ctx.close(None);
-
-                return;
-            }
-        };
-
-        // 5) Find script that matches `name`.
-        let script_cmd = match scripts.get(name) {
-            Some(cmd) => cmd.clone(),
-            None => {
-                let err_msg = OutboundMsg::Error {
-                    msg: format!("Script '{}' not found in app manifest", name),
-                };
-
-                ctx.text(serde_json::to_string(&err_msg).unwrap());
-                ctx.close(None);
-
-                return;
-            }
-        };
-
-        // 6) Run the command line, capture stdout/stderr.
+        // Run the command line, capture stdout/stderr.
         let child = match Command::new("sh")
             .arg("-c")
-            .arg(&script_cmd)
+            .arg(cmd)
             .env("TEN_LOG_FORMATTER", "default")
             .stdout(Stdio::piped())
             .stderr(Stdio::piped())
@@ -155,7 +70,7 @@ impl WsRunApp {
                             // to an actor. This method does not wait for the
                             // message to be processed, making it suitable for
                             // messages that do not require a response.
-                            addr_stdout.do_send(RunAppOutput::StdOut(line));
+                            addr_stdout.do_send(RunCmdOutput::StdOut(line));
                         }
                         Err(_) => break,
                     }
@@ -175,7 +90,7 @@ impl WsRunApp {
                 for line_res in reader.lines() {
                     match line_res {
                         Ok(line) => {
-                            addr_stderr.do_send(RunAppOutput::StdErr(line));
+                            addr_stderr.do_send(RunCmdOutput::StdErr(line));
                         }
                         Err(_) => break,
                     }
@@ -189,11 +104,11 @@ impl WsRunApp {
         if let Some(mut child) = self.child.take() {
             thread::spawn(move || {
                 if let Ok(status) = child.wait() {
-                    addr2.do_send(RunAppOutput::Exit(
+                    addr2.do_send(RunCmdOutput::Exit(
                         status.code().unwrap_or(-1),
                     ));
                 } else {
-                    addr2.do_send(RunAppOutput::Exit(-1));
+                    addr2.do_send(RunCmdOutput::Exit(-1));
                 }
             });
         }
