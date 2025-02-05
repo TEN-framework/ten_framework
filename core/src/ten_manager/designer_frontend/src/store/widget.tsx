@@ -37,6 +37,14 @@ export const useWidgetStore = create<{
   appendLogViewerHistory: (id: string, history: string[]) => void;
   removeLogViewerHistory: (id: string) => void;
   removeLogViewerHistories: (ids: string[]) => void;
+  terminalViewerHistory: {
+    [id: string]: {
+      history: string[];
+    };
+  };
+  appendTerminalViewerHistory: (id: string, history: string[]) => void;
+  removeTerminalViewerHistory: (id: string) => void;
+  removeTerminalViewerHistories: (ids: string[]) => void;
 }>()(
   devtools((set) => ({
     widgets: [],
@@ -118,6 +126,41 @@ export const useWidgetStore = create<{
       set((state) => ({
         logViewerHistory: Object.fromEntries(
           Object.entries(state.logViewerHistory).filter(
+            ([key]) => !ids.includes(key)
+          )
+        ),
+      })),
+    terminalViewerHistory: {},
+    appendTerminalViewerHistory: (
+      id: string,
+      history: string[],
+      override = false
+    ) =>
+      set((state) => ({
+        terminalViewerHistory: {
+          ...state.terminalViewerHistory,
+          [id]: {
+            history: override
+              ? history
+              : [
+                  ...(state.terminalViewerHistory[id]?.history || []),
+                  ...history,
+                ],
+          },
+        },
+      })),
+    removeTerminalViewerHistory: (id: string) =>
+      set((state) => ({
+        terminalViewerHistory: Object.fromEntries(
+          Object.entries(state.terminalViewerHistory).filter(
+            ([key]) => key !== id
+          )
+        ),
+      })),
+    removeTerminalViewerHistories: (ids: string[]) =>
+      set((state) => ({
+        terminalViewerHistory: Object.fromEntries(
+          Object.entries(state.terminalViewerHistory).filter(
             ([key]) => !ids.includes(key)
           )
         ),

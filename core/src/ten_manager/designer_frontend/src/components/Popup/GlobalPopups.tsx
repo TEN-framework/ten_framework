@@ -38,12 +38,16 @@ export function GlobalPopups() {
     const logViewerWidgets = popupWidgets.filter(
       (widget) => widget.category === EWidgetCategory.LogViewer
     );
+    const terminalViewerWidgets = popupWidgets.filter(
+      (widget) => widget.category === EWidgetCategory.TerminalViewer
+    );
     return [
       popupWidgets,
       editorWidgets,
       terminalWidgets,
       customConnectionWidgets,
       logViewerWidgets,
+      terminalViewerWidgets,
     ];
   }, [widgets]);
 
