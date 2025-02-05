@@ -5,6 +5,7 @@
 // Refer to the "LICENSE" file in the root directory for more information.
 //
 import { create } from "zustand";
+import { devtools } from "zustand/middleware";
 
 import {
   EWidgetCategory,
@@ -23,39 +24,41 @@ export const useWidgetStore = create<{
     displayType: EWidgetDisplayType
   ) => void;
   updateEditorStatus: (widgetId: string, isEditing: boolean) => void;
-}>((set) => ({
-  widgets: [],
-  appendWidget: (widget: IWidget) =>
-    set((state) => ({ widgets: [...state.widgets, widget] })),
-  appendWidgetIfNotExists: (widget: IWidget) =>
-    set((state) => ({
-      widgets: state.widgets.find((w) => w.id === widget.id)
-        ? state.widgets
-        : [...state.widgets, widget],
-    })),
-  removeWidget: (widgetId: string) =>
-    set((state) => ({
-      widgets: state.widgets.filter((w) => w.id !== widgetId),
-    })),
-  removeWidgets: (widgetIds: string[]) =>
-    set((state) => ({
-      widgets: state.widgets.filter((w) => !widgetIds.includes(w.id)),
-    })),
-  updateWidgetDisplayType: (
-    widgetId: string,
-    displayType: EWidgetDisplayType
-  ) =>
-    set((state) => ({
-      widgets: state.widgets.map((w) =>
-        w.id === widgetId ? { ...w, display_type: displayType } : w
-      ),
-    })),
-  updateEditorStatus: (widgetId: string, isEditing: boolean) =>
-    set((state) => ({
-      widgets: state.widgets.map((w) =>
-        w.id === widgetId && w.category === EWidgetCategory.Editor
-          ? { ...w, isEditing }
-          : w
-      ),
-    })),
-}));
+}>()(
+  devtools((set) => ({
+    widgets: [],
+    appendWidget: (widget: IWidget) =>
+      set((state) => ({ widgets: [...state.widgets, widget] })),
+    appendWidgetIfNotExists: (widget: IWidget) =>
+      set((state) => ({
+        widgets: state.widgets.find((w) => w.id === widget.id)
+          ? state.widgets
+          : [...state.widgets, widget],
+      })),
+    removeWidget: (widgetId: string) =>
+      set((state) => ({
+        widgets: state.widgets.filter((w) => w.id !== widgetId),
+      })),
+    removeWidgets: (widgetIds: string[]) =>
+      set((state) => ({
+        widgets: state.widgets.filter((w) => !widgetIds.includes(w.id)),
+      })),
+    updateWidgetDisplayType: (
+      widgetId: string,
+      displayType: EWidgetDisplayType
+    ) =>
+      set((state) => ({
+        widgets: state.widgets.map((w) =>
+          w.id === widgetId ? { ...w, display_type: displayType } : w
+        ),
+      })),
+    updateEditorStatus: (widgetId: string, isEditing: boolean) =>
+      set((state) => ({
+        widgets: state.widgets.map((w) =>
+          w.id === widgetId && w.category === EWidgetCategory.Editor
+            ? { ...w, isEditing }
+            : w
+        ),
+      })),
+  }))
+);

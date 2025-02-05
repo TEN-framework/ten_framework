@@ -12,8 +12,8 @@ import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
 
-interface ILogViewerWidgetProps {
-  id?: string;
+export interface ILogViewerWidgetProps {
+  id: string;
   data?: {
     wsUrl?: string;
     baseDir?: string;

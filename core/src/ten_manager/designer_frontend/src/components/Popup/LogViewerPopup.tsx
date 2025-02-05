@@ -8,24 +8,20 @@ import { useTranslation } from "react-i18next";
 import { PinIcon, OctagonXIcon } from "lucide-react";
 
 import Popup from "@/components/Popup/Popup";
-import LogViewerWidget from "@/components/Widget/LogViewerWidget";
+import LogViewerWidget, {
+  type ILogViewerWidgetProps,
+} from "@/components/Widget/LogViewerWidget";
 import { EWidgetDisplayType } from "@/types/widgets";
 import { useWidgetStore } from "@/store/widget";
 
 const DEFAULT_WIDTH = 800;
 const DEFAULT_HEIGHT = 400;
 
-interface LogViewerPopupProps {
-  id: string;
-  data?: {
-    wsUrl?: string;
-    baseDir?: string;
-    scriptName?: string;
-  };
+export interface ILogViewerPopupProps extends ILogViewerWidgetProps {
   supportStop?: boolean;
 }
 
-export function LogViewerPopup(props: LogViewerPopupProps) {
+export function LogViewerPopup(props: ILogViewerPopupProps) {
   const { id, data, supportStop = false } = props;
 
   const { t } = useTranslation();
