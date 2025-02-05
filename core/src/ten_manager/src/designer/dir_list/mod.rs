@@ -109,7 +109,7 @@ mod tests {
         let state = web::Data::new(Arc::new(RwLock::new(DesignerState {
             base_dir: None,
             all_pkgs: None,
-            tman_config: TmanConfig::default(),
+
         })));
 
         // Configure the `list_dir` route.
@@ -158,7 +158,7 @@ mod tests {
         let state = web::Data::new(Arc::new(RwLock::new(DesignerState {
             base_dir: None,
             all_pkgs: None,
-            tman_config: TmanConfig::default(),
+
         })));
 
         // Configure the `list_dir` route.
@@ -200,7 +200,7 @@ mod tests {
         let state = web::Data::new(Arc::new(RwLock::new(DesignerState {
             base_dir: None,
             all_pkgs: None,
-            tman_config: TmanConfig::default(),
+
         })));
 
         let app = test::init_service(App::new().app_data(state.clone()).route(

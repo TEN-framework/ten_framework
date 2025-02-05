@@ -127,7 +127,6 @@ pub async fn execute_cmd(
     let state = Arc::new(RwLock::new(DesignerState {
         base_dir: actual_base_dir_opt,
         all_pkgs: None,
-        tman_config: TmanConfig::default(),
     }));
 
     let server = HttpServer::new(move || {

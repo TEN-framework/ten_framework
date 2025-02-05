@@ -15,10 +15,7 @@ pub fn get_all_pkgs(state: &mut DesignerState) -> Result<()> {
     if state.all_pkgs.is_none() {
         if let Some(base_dir) = &state.base_dir {
             let app_path = PathBuf::from(base_dir);
-            match tman_get_all_installed_pkgs_info_of_app(
-                &state.tman_config,
-                &app_path,
-            ) {
+            match tman_get_all_installed_pkgs_info_of_app(&app_path) {
                 Ok(pkgs) => state.all_pkgs = Some(pkgs),
                 Err(err) => {
                     return Err(err);

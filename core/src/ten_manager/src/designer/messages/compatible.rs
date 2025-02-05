@@ -317,7 +317,7 @@ mod tests {
         let mut designer_state = DesignerState {
             base_dir: None,
             all_pkgs: None,
-            tman_config: TmanConfig::default(),
+
         };
 
         let all_pkgs_json = vec![
@@ -397,7 +397,7 @@ mod tests {
         let mut designer_state = DesignerState {
             base_dir: None,
             all_pkgs: None,
-            tman_config: TmanConfig::default(),
+
         };
 
         let all_pkgs_json = vec![
@@ -459,7 +459,7 @@ mod tests {
         let mut designer_state = DesignerState {
             base_dir: None,
             all_pkgs: None,
-            tman_config: TmanConfig::default(),
+
         };
 
         let all_pkgs_json = vec![
@@ -539,7 +539,7 @@ mod tests {
         let mut designer_state = DesignerState {
             base_dir: None,
             all_pkgs: None,
-            tman_config: TmanConfig::default(),
+
         };
 
         let all_pkgs_json = vec![
@@ -618,7 +618,7 @@ mod tests {
         let mut designer_state = DesignerState {
             base_dir: None,
             all_pkgs: None,
-            tman_config: TmanConfig::default(),
+
         };
 
         // The first item is 'manifest.json', and the second item is
@@ -710,7 +710,7 @@ mod tests {
         let mut designer_state = DesignerState {
             base_dir: None,
             all_pkgs: None,
-            tman_config: TmanConfig::default(),
+
         };
 
         // The first item is 'manifest.json', and the second item is
@@ -792,7 +792,7 @@ mod tests {
         let mut designer_state = DesignerState {
             base_dir: None,
             all_pkgs: None,
-            tman_config: TmanConfig::default(),
+
         };
 
         // The first item is 'manifest.json', and the second item is
@@ -863,7 +863,7 @@ mod tests {
         let mut designer_state = DesignerState {
             base_dir: None,
             all_pkgs: None,
-            tman_config: TmanConfig::default(),
+
         };
 
         // The first item is 'manifest.json', and the second item is
@@ -944,7 +944,7 @@ mod tests {
         let mut designer_state = DesignerState {
             base_dir: None,
             all_pkgs: None,
-            tman_config: TmanConfig::default(),
+
         };
 
         // The first item is 'manifest.json', and the second item is
@@ -1025,7 +1025,7 @@ mod tests {
         let mut designer_state = DesignerState {
             base_dir: None,
             all_pkgs: None,
-            tman_config: TmanConfig::default(),
+
         };
 
         // The first item is 'manifest.json', and the second item is

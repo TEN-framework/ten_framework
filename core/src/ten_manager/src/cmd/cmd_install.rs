@@ -406,10 +406,8 @@ pub async fn execute_cmd(
 
     println!("{}  Get all installed packages...", Emoji("📦", ""),);
 
-    all_installed_pkgs = tman_get_all_installed_pkgs_info_of_app(
-        tman_config,
-        &app_dir_to_work_with,
-    )?;
+    all_installed_pkgs =
+        tman_get_all_installed_pkgs_info_of_app(&app_dir_to_work_with)?;
 
     println!("{}  Filter compatible packages...", Emoji("🔍", ""),);
 

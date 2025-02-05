@@ -130,7 +130,7 @@ mod tests {
         let mut designer_state = DesignerState {
             base_dir: Some(test_data_dir.to_string_lossy().to_string()),
             all_pkgs: None,
-            tman_config: TmanConfig::default(),
+
         };
 
         let all_pkgs_json = vec![

@@ -28,7 +28,6 @@ async fn test_cmd_designer_graphs_some_property_invalid() {
                 .to_string(),
         ),
         all_pkgs: None,
-        tman_config: TmanConfig::default(),
     };
 
     let designer_state = Arc::new(RwLock::new(designer_state));
@@ -65,7 +64,6 @@ async fn test_cmd_designer_graphs_app_property_not_exist() {
                 .to_string(),
         ),
         all_pkgs: None,
-        tman_config: TmanConfig::default(),
     };
 
     let designer_state = Arc::new(RwLock::new(designer_state));
@@ -101,7 +99,6 @@ async fn test_cmd_designer_connections_has_msg_conversion() {
                 .to_string(),
         ),
         all_pkgs: None,
-        tman_config: TmanConfig::default(),
     };
 
     let designer_state = Arc::new(RwLock::new(designer_state));

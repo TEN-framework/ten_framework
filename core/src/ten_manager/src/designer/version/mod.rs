@@ -38,8 +38,6 @@ pub async fn get_version(
 
 #[cfg(test)]
 mod tests {
-    use crate::config::TmanConfig;
-
     use super::*;
     use actix_web::{http::StatusCode, test, App};
 
@@ -49,7 +47,6 @@ mod tests {
         let state = web::Data::new(Arc::new(RwLock::new(DesignerState {
             base_dir: None,
             all_pkgs: None,
-            tman_config: TmanConfig::default(),
         })));
 
         // Create the App with the routes configured.

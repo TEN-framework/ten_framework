@@ -363,7 +363,7 @@ mod tests {
         let mut designer_state = DesignerState {
             base_dir: None,
             all_pkgs: None,
-            tman_config: TmanConfig::default(),
+
         };
 
         let all_pkgs_json = vec![
@@ -596,7 +596,7 @@ mod tests {
         let designer_state = Arc::new(RwLock::new(DesignerState {
             base_dir: None,
             all_pkgs: Some(vec![]),
-            tman_config: TmanConfig::default(),
+
         }));
 
         let app = test::init_service(
@@ -629,7 +629,7 @@ mod tests {
         let mut designer_state = DesignerState {
             base_dir: None,
             all_pkgs: None,
-            tman_config: TmanConfig::default(),
+
         };
 
         let all_pkgs_json = vec![

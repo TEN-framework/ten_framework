@@ -93,7 +93,7 @@ mod tests {
         let designer_state = DesignerState {
             base_dir: Some("/initial/path".to_string()),
             all_pkgs: Some(vec![]),
-            tman_config: TmanConfig::default(),
+
         };
         let designer_state = Arc::new(RwLock::new(designer_state));
 
@@ -128,7 +128,7 @@ mod tests {
         let designer_state = DesignerState {
             base_dir: Some("/initial/path".to_string()),
             all_pkgs: Some(vec![]),
-            tman_config: TmanConfig::default(),
+
         };
         let designer_state = Arc::new(RwLock::new(designer_state));
 
@@ -162,7 +162,7 @@ mod tests {
         let designer_state = DesignerState {
             base_dir: None,
             all_pkgs: Some(vec![]),
-            tman_config: TmanConfig::default(),
+
         };
         let designer_state = Arc::new(RwLock::new(designer_state));
 
