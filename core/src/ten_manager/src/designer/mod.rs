@@ -5,7 +5,7 @@
 // Refer to the "LICENSE" file in the root directory for more information.
 //
 mod addons;
-mod base_dir;
+mod app;
 mod common;
 mod dir_list;
 mod file_content;
@@ -91,8 +91,8 @@ pub fn configure_routes(
                 "/file-content/{path}",
                 web::put().to(file_content::save_file_content),
             )
-            .route("/base-dir", web::put().to(base_dir::set_base_dir))
-            .route("/base-dir", web::get().to(base_dir::get_base_dir))
+            .route("/app/base-dir", web::put().to(app::base_dir::set_base_dir))
+            .route("/app/base-dir", web::get().to(app::base_dir::get_base_dir))
             .route("/dir-list/{path}", web::get().to(dir_list::list_dir))
             .route("/ws/run-app", web::get().to(run_app::run_app))
             .route("/ws/terminal", web::get().to(terminal::ws_terminal)),
