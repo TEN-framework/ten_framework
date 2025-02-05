@@ -403,3 +403,16 @@ PyObject *ten_py_audio_frame_set_eof(PyObject *self, PyObject *args) {
 
   Py_RETURN_NONE;
 }
+
+PyObject *ten_py_audio_frame_clone(PyObject *self, PyObject *args) {
+  ten_py_audio_frame_t *py_audio_frame = (ten_py_audio_frame_t *)self;
+  TEN_ASSERT(py_audio_frame &&
+                 ten_py_msg_check_integrity((ten_py_msg_t *)py_audio_frame),
+             "Invalid argument.");
+
+  ten_shared_ptr_t *cloned_msg = ten_msg_clone(py_audio_frame->msg.c_msg, NULL);
+  ten_py_audio_frame_t *cloned_py_audio_frame =
+      ten_py_audio_frame_create_internal(NULL);
+  cloned_py_audio_frame->msg.c_msg = cloned_msg;
+  return (PyObject *)cloned_py_audio_frame;
+}

@@ -37,6 +37,8 @@ func (s StatusCode) valid() bool {
 // CmdResult is the interface for the cmd result.
 type CmdResult interface {
 	CmdBase
+
+	Clone() (CmdResult, error)
 	GetStatusCode() (StatusCode, error)
 	SetFinal(isFinal bool) error
 	IsFinal() (bool, error)
@@ -134,4 +136,26 @@ func (p *cmdResult) IsCompleted() (bool, error) {
 	}
 
 	return bool(isCompleted), nil
+}
+
+func (p *cmdResult) Clone() (CmdResult, error) {
+	var bridge C.uintptr_t
+	err := withCGOLimiter(func() error {
+		apiStatus := C.ten_go_cmd_result_clone(p.getCPtr(), &bridge)
+		return withCGoError(&apiStatus)
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if bridge == 0 {
+		// Should not happen.
+		return nil, newTenError(
+			ErrorCodeInvalidArgument,
+			"bridge is nil",
+		)
+	}
+
+	return newCmdResult(bridge), nil
 }

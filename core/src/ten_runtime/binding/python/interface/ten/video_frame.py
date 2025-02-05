@@ -35,6 +35,7 @@ class VideoFrame(_VideoFrame):
     def create(cls: Type[T], name: str) -> T:
         return cls.__new__(cls, name)
 
+    clone = _VideoFrame.clone
     alloc_buf = _VideoFrame.alloc_buf
     lock_buf = _VideoFrame.lock_buf
     unlock_buf = _VideoFrame.unlock_buf

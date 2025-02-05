@@ -17,3 +17,5 @@ class Cmd(_Cmd):
     @classmethod
     def create(cls: Type[T], name: str) -> T:
         return cls.__new__(cls, name)
+
+    clone = _Cmd.clone

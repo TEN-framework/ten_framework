@@ -63,6 +63,17 @@ class cmd_result_t : public msg_t {
         c_msg, final, err != nullptr ? err->get_c_error() : nullptr);
   }
 
+  std::unique_ptr<cmd_result_t> clone() const {
+    TEN_ASSERT(c_msg, "Should not happen.");
+
+    ten_shared_ptr_t *cloned_msg = ten_msg_clone(c_msg, nullptr);
+    if (cloned_msg == nullptr) {
+      return nullptr;
+    }
+
+    return std::make_unique<cmd_result_t>(cloned_msg, ctor_passkey_t());
+  }
+
   // @{
   cmd_result_t(cmd_result_t &other) = delete;
   cmd_result_t(cmd_result_t &&other) = delete;

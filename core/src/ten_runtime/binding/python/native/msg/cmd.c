@@ -68,6 +68,17 @@ void ten_py_cmd_invalidate(ten_py_cmd_t *self) {
   Py_DECREF(self);
 }
 
+PyObject *ten_py_cmd_clone(PyObject *self, PyObject *args) {
+  ten_py_cmd_t *py_cmd = (ten_py_cmd_t *)self;
+  TEN_ASSERT(py_cmd && ten_py_msg_check_integrity((ten_py_msg_t *)py_cmd),
+             "Invalid argument.");
+
+  ten_shared_ptr_t *cloned_msg = ten_msg_clone(py_cmd->msg.c_msg, NULL);
+  ten_py_cmd_t *cloned_py_cmd = ten_py_cmd_create_internal(NULL);
+  cloned_py_cmd->msg.c_msg = cloned_msg;
+  return (PyObject *)cloned_py_cmd;
+}
+
 bool ten_py_cmd_init_for_module(PyObject *module) {
   PyTypeObject *py_type = ten_py_cmd_py_type();
   if (PyType_Ready(py_type) < 0) {

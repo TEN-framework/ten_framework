@@ -22,6 +22,8 @@ type CmdBase interface {
 // Cmd is the interface for the command.
 type Cmd interface {
 	CmdBase
+
+	Clone() (Cmd, error)
 }
 
 // NewCmd creates a custom cmd which is intended to be sent to another
@@ -112,6 +114,31 @@ func newCmd(bridge C.uintptr_t) *cmd {
 	return &cmd{
 		msg: newMsg(bridge),
 	}
+}
+
+func (p *cmd) Clone() (Cmd, error) {
+	var bridge C.uintptr_t
+	err := withCGOLimiter(func() error {
+		apiStatus := C.ten_go_cmd_clone(
+			p.getCPtr(),
+			&bridge,
+		)
+		return withCGoError(&apiStatus)
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if bridge == 0 {
+		// Should not happen.
+		return nil, newTenError(
+			ErrorCodeInvalidArgument,
+			"bridge is nil",
+		)
+	}
+
+	return newCmd(bridge), nil
 }
 
 var _ Cmd = new(cmd)

@@ -57,6 +57,17 @@ class data_t : public msg_t {
 
   ~data_t() override = default;
 
+  std::unique_ptr<data_t> clone() const {
+    TEN_ASSERT(c_msg, "Should not happen.");
+
+    ten_shared_ptr_t *cloned_msg = ten_msg_clone(c_msg, nullptr);
+    if (cloned_msg == nullptr) {
+      return nullptr;
+    }
+
+    return std::make_unique<data_t>(cloned_msg, ctor_passkey_t());
+  }
+
   bool alloc_buf(size_t size, error_t *err = nullptr) {
     return ten_data_alloc_buf(c_msg, size) != nullptr;
   }

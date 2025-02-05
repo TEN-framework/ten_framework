@@ -33,6 +33,8 @@ const (
 type AudioFrame interface {
 	Msg
 
+	Clone() (AudioFrame, error)
+
 	AllocBuf(size int) error
 	LockBuf() ([]byte, error)
 	UnlockBuf(buf *[]byte) error
@@ -443,4 +445,26 @@ func (p *audioFrame) SetEOF(isEOF bool) error {
 		)
 		return withCGoError(&apiStatus)
 	})
+}
+
+func (p *audioFrame) Clone() (AudioFrame, error) {
+	var bridge C.uintptr_t
+	err := withCGOLimiter(func() error {
+		apiStatus := C.ten_go_audio_frame_clone(p.getCPtr(), &bridge)
+		return withCGoError(&apiStatus)
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if bridge == 0 {
+		// Should not happen.
+		return nil, newTenError(
+			ErrorCodeInvalidArgument,
+			"bridge is nil",
+		)
+	}
+
+	return newAudioFrame(bridge), nil
 }

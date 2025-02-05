@@ -199,6 +199,19 @@ PyObject *ten_py_cmd_result_is_completed(PyObject *self, PyObject *args) {
   return PyBool_FromLong(is_completed);
 }
 
+PyObject *ten_py_cmd_result_clone(PyObject *self, PyObject *args) {
+  ten_py_cmd_result_t *py_cmd_result = (ten_py_cmd_result_t *)self;
+  TEN_ASSERT(py_cmd_result &&
+                 ten_py_msg_check_integrity((ten_py_msg_t *)py_cmd_result),
+             "Invalid argument.");
+
+  ten_shared_ptr_t *cloned_msg = ten_msg_clone(py_cmd_result->msg.c_msg, NULL);
+  ten_py_cmd_result_t *cloned_py_cmd_result =
+      ten_py_cmd_result_create_internal(NULL);
+  cloned_py_cmd_result->msg.c_msg = cloned_msg;
+  return (PyObject *)cloned_py_cmd_result;
+}
+
 bool ten_py_cmd_result_init_for_module(PyObject *module) {
   PyTypeObject *py_type = ten_py_cmd_result_py_type();
   if (PyType_Ready(py_type) < 0) {

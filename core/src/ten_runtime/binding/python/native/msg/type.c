@@ -52,6 +52,11 @@ static PyTypeObject ten_py_msg_type_internal = {
 
 PyTypeObject *ten_py_msg_py_type(void) { return &ten_py_msg_type_internal; }
 
+static PyMethodDef ten_py_cmd_type_methods[] = {
+    {"clone", ten_py_cmd_clone, METH_VARARGS, NULL},
+    {NULL, NULL, 0, NULL},
+};
+
 PyTypeObject *ten_py_cmd_py_type(void) {
   static PyTypeObject ty = {
       PyVarObject_HEAD_INIT(NULL, 0).tp_name = "libten_runtime_python._Cmd",
@@ -64,7 +69,7 @@ PyTypeObject *ten_py_cmd_py_type(void) {
       .tp_init = NULL,
       .tp_dealloc = ten_py_cmd_destroy,
       .tp_getset = NULL,
-      .tp_methods = NULL,
+      .tp_methods = ten_py_cmd_type_methods,
   };
 
   return &ty;
@@ -72,6 +77,7 @@ PyTypeObject *ten_py_cmd_py_type(void) {
 
 PyTypeObject *ten_py_cmd_result_py_type(void) {
   static PyMethodDef py_methods[] = {
+      {"clone", ten_py_cmd_result_clone, METH_VARARGS, NULL},
       {"get_status_code", ten_py_cmd_result_get_status_code, METH_VARARGS,
        NULL},
       {"set_status_code", ten_py_cmd_result_set_status_code, METH_VARARGS,
@@ -102,6 +108,7 @@ PyTypeObject *ten_py_cmd_result_py_type(void) {
 
 PyTypeObject *ten_py_data_py_type(void) {
   static PyMethodDef py_methods[] = {
+      {"clone", ten_py_data_clone, METH_VARARGS, NULL},
       {"alloc_buf", ten_py_data_alloc_buf, METH_VARARGS, NULL},
       {"lock_buf", ten_py_data_lock_buf, METH_VARARGS, NULL},
       {"unlock_buf", ten_py_data_unlock_buf, METH_VARARGS, NULL},
@@ -128,6 +135,7 @@ PyTypeObject *ten_py_data_py_type(void) {
 
 PyTypeObject *ten_py_video_frame_py_type(void) {
   static PyMethodDef py_methods[] = {
+      {"clone", ten_py_video_frame_clone, METH_VARARGS, NULL},
       {"alloc_buf", ten_py_video_frame_alloc_buf, METH_VARARGS, NULL},
       {"lock_buf", ten_py_video_frame_lock_buf, METH_VARARGS, NULL},
       {"unlock_buf", ten_py_video_frame_unlock_buf, METH_VARARGS, NULL},
@@ -165,6 +173,7 @@ PyTypeObject *ten_py_video_frame_py_type(void) {
 
 PyTypeObject *ten_py_audio_frame_py_type(void) {
   static PyMethodDef py_methods[] = {
+      {"clone", ten_py_audio_frame_clone, METH_VARARGS, NULL},
       {"alloc_buf", ten_py_audio_frame_alloc_buf, METH_VARARGS,
        PyDoc_STR("alloc buf")},
       {"lock_buf", ten_py_audio_frame_lock_buf, METH_VARARGS, NULL},

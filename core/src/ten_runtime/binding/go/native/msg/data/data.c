@@ -161,3 +161,26 @@ ten_go_error_t ten_go_data_get_buf_size(uintptr_t bridge_addr,
 
   return cgo_error;
 }
+
+ten_go_error_t ten_go_data_clone(uintptr_t bridge_addr,
+                                 uintptr_t *cloned_bridge) {
+  TEN_ASSERT(bridge_addr && cloned_bridge, "Invalid argument.");
+
+  ten_go_msg_t *data_bridge = ten_go_msg_reinterpret(bridge_addr);
+  TEN_ASSERT(data_bridge && ten_go_msg_check_integrity(data_bridge),
+             "Should not happen.");
+
+  ten_go_error_t cgo_error;
+  ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
+
+  ten_shared_ptr_t *c_data = ten_go_msg_c_msg(data_bridge);
+  ten_shared_ptr_t *cloned_c_data = ten_msg_clone(c_data, NULL);
+  TEN_ASSERT(cloned_c_data, "Should not happen.");
+
+  ten_go_msg_t *cloned_msg_bridge = ten_go_msg_create(cloned_c_data);
+  TEN_ASSERT(cloned_msg_bridge, "Should not happen.");
+
+  *cloned_bridge = (uintptr_t)cloned_msg_bridge;
+
+  return cgo_error;
+}

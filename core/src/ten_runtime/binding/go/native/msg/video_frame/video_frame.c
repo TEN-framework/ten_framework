@@ -344,3 +344,27 @@ ten_go_error_t ten_go_video_frame_set_pixel_fmt(uintptr_t bridge_addr,
 
   return cgo_error;
 }
+
+ten_go_error_t ten_go_video_frame_clone(uintptr_t bridge_addr,
+                                        uintptr_t *cloned_bridge) {
+  TEN_ASSERT(bridge_addr && cloned_bridge, "Invalid argument.");
+
+  ten_go_msg_t *video_frame_bridge = ten_go_msg_reinterpret(bridge_addr);
+  TEN_ASSERT(
+      video_frame_bridge && ten_go_msg_check_integrity(video_frame_bridge),
+      "Should not happen.");
+
+  ten_go_error_t cgo_error;
+  ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
+
+  ten_shared_ptr_t *c_video_frame = ten_go_msg_c_msg(video_frame_bridge);
+  ten_shared_ptr_t *cloned_c_video_frame = ten_msg_clone(c_video_frame, NULL);
+  TEN_ASSERT(cloned_c_video_frame, "Should not happen.");
+
+  ten_go_msg_t *cloned_msg_bridge = ten_go_msg_create(cloned_c_video_frame);
+  TEN_ASSERT(cloned_msg_bridge, "Should not happen.");
+
+  *cloned_bridge = (uintptr_t)cloned_msg_bridge;
+
+  return cgo_error;
+}

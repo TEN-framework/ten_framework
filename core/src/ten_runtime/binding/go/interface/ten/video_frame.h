@@ -14,6 +14,9 @@
 ten_go_error_t ten_go_video_frame_create(const void *msg_name, int msg_name_len,
                                          uintptr_t *bridge_addr);
 
+ten_go_error_t ten_go_video_frame_clone(uintptr_t bridge_addr,
+                                        uintptr_t *cloned_bridge);
+
 ten_go_error_t ten_go_video_frame_alloc_buf(uintptr_t bridge_addr, int size);
 
 ten_go_error_t ten_go_video_frame_lock_buf(uintptr_t bridge_addr,

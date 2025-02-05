@@ -306,6 +306,19 @@ PyObject *ten_py_video_frame_set_pixel_fmt(PyObject *self, PyObject *args) {
   Py_RETURN_NONE;
 }
 
+PyObject *ten_py_video_frame_clone(PyObject *self, PyObject *args) {
+  ten_py_video_frame_t *py_video_frame = (ten_py_video_frame_t *)self;
+  TEN_ASSERT(py_video_frame &&
+                 ten_py_msg_check_integrity((ten_py_msg_t *)py_video_frame),
+             "Invalid argument.");
+
+  ten_shared_ptr_t *cloned_msg = ten_msg_clone(py_video_frame->msg.c_msg, NULL);
+  ten_py_video_frame_t *cloned_py_video_frame =
+      ten_py_video_frame_create_internal(NULL);
+  cloned_py_video_frame->msg.c_msg = cloned_msg;
+  return (PyObject *)cloned_py_video_frame;
+}
+
 bool ten_py_video_frame_init_for_module(PyObject *module) {
   PyTypeObject *py_type = ten_py_video_frame_py_type();
   if (PyType_Ready(py_type) < 0) {

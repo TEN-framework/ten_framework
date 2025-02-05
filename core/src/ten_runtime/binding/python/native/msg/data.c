@@ -162,6 +162,17 @@ void ten_py_data_invalidate(ten_py_data_t *self) {
   Py_DECREF(self);
 }
 
+PyObject *ten_py_data_clone(PyObject *self, PyObject *args) {
+  ten_py_data_t *py_data = (ten_py_data_t *)self;
+  TEN_ASSERT(py_data && ten_py_msg_check_integrity((ten_py_msg_t *)py_data),
+             "Invalid argument.");
+
+  ten_shared_ptr_t *cloned_msg = ten_msg_clone(py_data->msg.c_msg, NULL);
+  ten_py_data_t *cloned_py_data = ten_py_data_create_internal(NULL);
+  cloned_py_data->msg.c_msg = cloned_msg;
+  return (PyObject *)cloned_py_data;
+}
+
 bool ten_py_data_init_for_module(PyObject *module) {
   PyTypeObject *py_type = ten_py_data_py_type();
   if (PyType_Ready(py_type) < 0) {
