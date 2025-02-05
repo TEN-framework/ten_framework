@@ -16,7 +16,9 @@
       "theme": "Theme",
       "theme.light": "Light",
       "theme.dark": "Dark",
-      "theme.system": "System"
+      "theme.system": "System",
+      "run": "Run",
+      "preferences": "Preferences"
     },
     "officialSite": "Official site",
     "poweredBy": "Powered by",
@@ -41,7 +43,9 @@
     "close": "Close",
     "closeAllTabs": "Close All Tabs",
     "unsaved": "unsaved",
-    "launchLogViewer": "View Logs"
+    "launchLogViewer": "View Logs",
+    "stop": "Stop",
+    "search": "Search"
   },
   "toast": {
     "saveFileSuccess": "File saved successfully",

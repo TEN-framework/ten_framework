@@ -5,6 +5,7 @@
 // Refer to the "LICENSE" file in the root directory for more information.
 //
 import * as React from "react";
+import { useTranslation } from "react-i18next";
 
 import { ScrollArea } from "@/components/ui/ScrollArea";
 import { Input } from "@/components/ui/Input";
@@ -30,6 +31,8 @@ export default function LogViewerWidget(props: ILogViewerWidgetProps) {
   const [logs, setLogs] = React.useState<string[]>([]);
   const wsRef = React.useRef<WebSocket | null>(null);
   const scrollSpan = React.useRef<HTMLSpanElement>(null);
+
+  const { t } = useTranslation();
 
   React.useEffect(() => {
     if (!data?.wsUrl) {
@@ -121,7 +124,7 @@ export default function LogViewerWidget(props: ILogViewerWidgetProps) {
           onChange={(e) => setSearchInput(e.target.value)}
         />
         <Button variant="outline" className="hidden">
-          Search
+          {t("action.search")}
         </Button>
       </div>
       <ScrollArea className="h-[calc(100%-3rem)] w-full">
