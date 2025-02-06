@@ -8,10 +8,7 @@ import z from "zod";
 
 import { API_DESIGNER_V1, ENDPOINT_METHOD } from "@/api/endpoints/constant";
 import { genResSchema } from "@/api/endpoints/utils";
-import type {
-  ISetBaseDirResponse,
-  IGetBaseDirResponse,
-} from "@/types/fileSystem";
+import type { ISetBaseDirResponse, IGetBaseDirResponse } from "@/types/app";
 
 export const ENDPOINT_APP = {
   baseDir: {

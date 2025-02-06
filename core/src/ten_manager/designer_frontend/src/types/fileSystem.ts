@@ -8,10 +8,6 @@ export interface IFileContentResponse {
   content: string;
 }
 
-export interface ISetBaseDirResponse {
-  success: boolean;
-}
-
 export type TBaseDirEntry = {
   name: string;
   path: string;
@@ -20,8 +16,4 @@ export type TBaseDirEntry = {
 
 export interface IBaseDirResponse {
   entries: TBaseDirEntry[];
-}
-
-export interface IGetBaseDirResponse {
-  base_dir: string | null;
 }
