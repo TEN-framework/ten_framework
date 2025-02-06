@@ -25,6 +25,7 @@
 #include "include_internal/ten_runtime/msg/msg_info.h"
 #include "include_internal/ten_runtime/remote/remote.h"
 #include "ten_runtime/app/app.h"
+#include "ten_runtime/msg/cmd_result/cmd_result.h"
 #include "ten_runtime/msg/msg.h"
 #include "ten_utils/container/list.h"
 #include "ten_utils/container/list_node.h"
@@ -32,6 +33,7 @@
 #include "ten_utils/lib/mutex.h"
 #include "ten_utils/lib/smart_ptr.h"
 #include "ten_utils/lib/string.h"
+#include "ten_utils/lib/time.h"
 #include "ten_utils/macro/check.h"
 #include "ten_utils/macro/mark.h"
 
@@ -232,6 +234,66 @@ static void ten_engine_handle_msg(ten_engine_t *self, ten_shared_ptr_t *msg) {
   ten_error_deinit(&err);
 }
 
+static void ten_engine_post_msg_to_extension_thread(
+    ten_engine_t *self, ten_extension_thread_t *extension_thread,
+    ten_shared_ptr_t *msg) {
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_engine_check_integrity(self, true),
+             "Invalid use of engine %p.", self);
+
+  TEN_ASSERT(extension_thread, "Invalid argument.");
+  TEN_ASSERT(ten_extension_thread_check_integrity(extension_thread, false),
+             "Invalid use of extension %p.", extension_thread);
+  TEN_ASSERT(msg && (ten_msg_get_dest_cnt(msg) == 1),
+             "When this function is executed, there should be only one "
+             "destination remaining in the message's dest.");
+
+  // This function would be called from threads other than the specified
+  // extension thread. However, because the runloop relevant functions called in
+  // this function have thread-safety protection of mutex in them, we do not
+  // need to use any further locking mechanisms in this function to do any
+  // protection.
+
+  if (ten_runloop_task_queue_size(extension_thread->runloop) >=
+      EXTENSION_THREAD_QUEUE_SIZE) {
+    if (!ten_msg_is_cmd_and_result(msg)) {
+      TEN_LOGW(
+          "Discard a data-like message (%s) because extension thread input "
+          "buffer is full.",
+          ten_msg_get_name(msg));
+      return;
+    }
+  }
+
+  msg = ten_shared_ptr_clone(msg);
+
+#if defined(TEN_ENABLE_TEN_RUST_APIS)
+  ten_msg_set_timestamp(msg, ten_current_time_us());
+#endif
+
+  int rc = ten_runloop_post_task_tail(extension_thread->runloop,
+                                      ten_extension_thread_handle_in_msg_task,
+                                      extension_thread, msg);
+  // The extension thread might have already terminated. Therefore, even though
+  // the extension thread instance still exists, attempting to enqueue tasks
+  // into it will not succeed. It is necessary to account for this scenario to
+  // prevent memory leaks.
+  if (rc) {
+    // Create a cmd result to inform the sender that the destination extension
+    // has been terminated.
+    ten_shared_ptr_t *cmd_result =
+        ten_cmd_result_create_from_cmd(TEN_STATUS_CODE_ERROR, msg);
+    ten_msg_set_property(cmd_result, "detail",
+                         ten_value_create_string(
+                             "The destination extension has been terminated."),
+                         NULL);
+
+    ten_engine_dispatch_msg(self, cmd_result);
+    ten_shared_ptr_destroy(cmd_result);
+    ten_shared_ptr_destroy(msg);
+  }
+}
+
 bool ten_engine_dispatch_msg(ten_engine_t *self, ten_shared_ptr_t *msg) {
   TEN_ASSERT(self && ten_engine_check_integrity(self, true),
              "Should not happen.");
@@ -307,8 +369,8 @@ bool ten_engine_dispatch_msg(ten_engine_t *self, ten_shared_ptr_t *msg) {
                                   &dest_loc->extension_group_name)) {
             // Find the correct extension thread, ask it to handle the message.
             found = true;
-            ten_extension_thread_handle_in_msg_async(
-                extension_group->extension_thread, msg);
+            ten_engine_post_msg_to_extension_thread(
+                self, extension_group->extension_thread, msg);
             break;
           }
         }
