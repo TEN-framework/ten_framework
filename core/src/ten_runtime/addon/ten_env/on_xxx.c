@@ -151,14 +151,17 @@ static void ten_extension_addon_on_create_instance_done(ten_env_t *self,
   switch (caller_ten->attach_to) {
     case TEN_ENV_ATTACH_TO_EXTENSION_GROUP: {
       ten_extension_t *extension = instance;
-      // TEN_NOLINTNEXTLINE(thread-check)
-      // thread-check: Maybe in the thread other than the extension thread
-      // (ex: JS main thread), and all the function calls in this case are
-      // thread safe.
-      TEN_ASSERT(extension && ten_extension_check_integrity(extension, false),
-                 "Should not happen.");
 
-      ten_extension_set_addon(extension, addon_host);
+      if (extension) {
+        // TEN_NOLINTNEXTLINE(thread-check)
+        // thread-check: Maybe in the thread other than the extension thread
+        // (ex: JS main thread), and all the function calls in this case are
+        // thread safe.
+        TEN_ASSERT(ten_extension_check_integrity(extension, false),
+                   "Should not happen.");
+
+        ten_extension_set_addon(extension, addon_host);
+      }
 
       ten_extension_group_t *extension_group =
           ten_env_get_attached_extension_group(caller_ten);
