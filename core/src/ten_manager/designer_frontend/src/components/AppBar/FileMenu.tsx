@@ -6,7 +6,7 @@
 //
 import * as React from "react";
 import { toast } from "sonner";
-import { FolderOpenIcon, CogIcon } from "lucide-react";
+import { FolderOpenIcon, CogIcon, PlayIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import Popup from "@/components/Popup/Popup";
@@ -28,7 +28,6 @@ import {
 import { useDirList, getBaseDir } from "@/api/services/fileSystem";
 import { useWidgetStore } from "@/store/widget";
 import { EWidgetCategory, EWidgetDisplayType } from "@/types/widgets";
-import { PlayIcon } from "lucide-react";
 import { Input } from "@/components/ui/Input";
 import { TEN_DEFAULT_APP_RUN_SCRIPT } from "@/constants";
 
@@ -56,8 +55,7 @@ export function FileMenu(props: FileMenuProps) {
 
   const { appendWidgetIfNotExists } = useWidgetStore();
 
-  const handleRunApp = async () => {
-    console.log("handleRunApp ===");
+  const handleAppStart = async () => {
     try {
       const baseDirData = await getBaseDir();
       const baseDir = baseDirData?.base_dir;
@@ -69,13 +67,38 @@ export function FileMenu(props: FileMenuProps) {
       const scriptName = defaultRunScript;
 
       appendWidgetIfNotExists({
-        id: "run-app-" + Date.now(),
+        id: "app-start-" + Date.now(),
         category: EWidgetCategory.LogViewer,
         display_type: EWidgetDisplayType.Popup,
         metadata: {
-          wsUrl: "ws://localhost:49483/api/designer/v1/ws/run-app",
+          wsUrl: "ws://localhost:49483/api/designer/v1/ws/app/start",
           baseDir,
           scriptName,
+          supportStop: true,
+        },
+      });
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to get base directory.");
+    }
+  };
+
+  const handleAppInstall = async () => {
+    try {
+      const baseDirData = await getBaseDir();
+      const baseDir = baseDirData?.base_dir;
+      if (!baseDir) {
+        toast.error("Base directory is not set.");
+        return;
+      }
+
+      appendWidgetIfNotExists({
+        id: "app-install-" + Date.now(),
+        category: EWidgetCategory.TerminalViewer,
+        display_type: EWidgetDisplayType.Popup,
+        metadata: {
+          wsUrl: "ws://localhost:49483/api/designer/v1/ws/app/install",
+          baseDir,
           supportStop: true,
         },
       });
@@ -140,12 +163,24 @@ export function FileMenu(props: FileMenuProps) {
             <Button
               className="w-full justify-start"
               variant="ghost"
-              onClick={handleRunApp}
+              onClick={handleAppStart}
             >
               <PlayIcon className="w-4 h-4 me-2" />
-              {t("header.menu.run")}
+              {t("header.menu.start")}
             </Button>
           </NavigationMenuLink>
+
+          <NavigationMenuLink asChild>
+            <Button
+              className="w-full justify-start"
+              variant="ghost"
+              onClick={handleAppInstall}
+            >
+              <PlayIcon className="w-4 h-4 me-2" />
+              {t("header.menu.installAll")}
+            </Button>
+          </NavigationMenuLink>
+
           <NavigationMenuLink asChild>
             <Button
               className="w-full justify-start"

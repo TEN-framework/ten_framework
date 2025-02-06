@@ -12,9 +12,9 @@ import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
 import { useWidgetStore } from "@/store/widget";
-import { ILogViewerWidget } from "@/types/widgets";
+import { ITerminalViewerWidget } from "@/types/widgets";
 
-export interface ILogViewerWidgetProps {
+export interface ITerminalViewerWidgetProps {
   id: string;
   data?: {
     wsUrl?: string;
@@ -23,10 +23,10 @@ export interface ILogViewerWidgetProps {
   };
 }
 
-export function LogViewerBackstageWidget(props: ILogViewerWidget) {
+export function TerminalViewerBackstageWidget(props: ITerminalViewerWidget) {
   const { id, metadata } = props;
 
-  const { appendLogViewerHistory } = useWidgetStore();
+  const { appendTerminalViewerHistory } = useWidgetStore();
 
   const wsRef = React.useRef<WebSocket | null>(null);
 
@@ -38,17 +38,15 @@ export function LogViewerBackstageWidget(props: ILogViewerWidget) {
     wsRef.current = new WebSocket(metadata.wsUrl);
 
     wsRef.current.onopen = () => {
-      console.log("[LogViewerWidget] WebSocket connected!");
+      console.log("[TerminalViewerWidget] WebSocket connected!");
 
       // Immediately send the "start" command after establishing a successful
       // connection.
       const baseDir = metadata.baseDir || "";
-      const name = metadata.scriptName || "";
 
       const runMsg = {
-        type: "start",
+        type: "install",
         base_dir: baseDir,
-        name: name,
       };
       wsRef.current?.send(JSON.stringify(runMsg));
     };
@@ -59,36 +57,36 @@ export function LogViewerBackstageWidget(props: ILogViewerWidget) {
 
         if (msg.type === "stdout" || msg.type === "stderr") {
           const line = msg.data;
-          appendLogViewerHistory(id, [line]);
+          appendTerminalViewerHistory(id, [line]);
         } else if (msg.type === "exit") {
           const code = msg.code;
-          appendLogViewerHistory(id, [
+          appendTerminalViewerHistory(id, [
             `Process exited with code ${code}. Closing...`,
           ]);
 
           wsRef.current?.close();
         } else if (msg.status === "fail") {
-          appendLogViewerHistory(id, [
+          appendTerminalViewerHistory(id, [
             `Error: ${msg.message || "Unknown error"}\n`,
           ]);
         } else {
-          appendLogViewerHistory(id, [
+          appendTerminalViewerHistory(id, [
             `Unknown message: ${JSON.stringify(msg)}`,
           ]);
         }
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
       } catch (err) {
         // If it's not JSON, output it directly as text.
-        appendLogViewerHistory(id, [event.data]);
+        appendTerminalViewerHistory(id, [event.data]);
       }
     };
 
     wsRef.current.onerror = (err) => {
-      console.error("[LogViewerWidget] WebSocket error:", err);
+      console.error("[TerminalViewerWidget] WebSocket error:", err);
     };
 
     wsRef.current.onclose = () => {
-      console.log("[LogViewerWidget] WebSocket closed!");
+      console.log("[TerminalViewerWidget] WebSocket closed!");
     };
 
     return () => {
@@ -96,12 +94,14 @@ export function LogViewerBackstageWidget(props: ILogViewerWidget) {
       wsRef.current?.close();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id, metadata?.wsUrl, metadata?.baseDir, metadata?.scriptName]);
+  }, [id, metadata?.wsUrl, metadata?.baseDir]);
 
   return <></>;
 }
 
-export function LogViewerFrontStageWidget(props: ILogViewerWidgetProps) {
+export function TerminalViewerFrontStageWidget(
+  props: ITerminalViewerWidgetProps
+) {
   const { id } = props;
 
   const [searchInput, setSearchInput] = React.useState("");
@@ -142,7 +142,10 @@ export function LogViewerFrontStageWidget(props: ILogViewerWidgetProps) {
       </div>
       <ScrollArea className="h-[calc(100%-3rem)] w-full">
         <div className="p-2">
-          <LogViewerLogItemList logs={logsMemo} search={defferedSearchInput} />
+          <TerminalViewerLogItemList
+            logs={logsMemo}
+            search={defferedSearchInput}
+          />
           <span ref={scrollSpan} />
         </div>
       </ScrollArea>
@@ -167,7 +170,7 @@ const string2uuid = (str: string) => {
   );
 };
 
-export interface ILogViewerLogItemProps {
+export interface ITerminalViewerLogItemProps {
   id: string;
   extension?: string;
   file?: string;
@@ -176,7 +179,7 @@ export interface ILogViewerLogItemProps {
   message: string;
 }
 
-const string2LogItem = (str: string): ILogViewerLogItemProps => {
+const string2LogItem = (str: string): ITerminalViewerLogItemProps => {
   const regex = /^(\w+)@([^:]+):(\d+)\s+\[([^\]]+)\]\s+(.+)$/;
   const match = str.match(regex);
   if (!match) {
@@ -196,7 +199,9 @@ const string2LogItem = (str: string): ILogViewerLogItemProps => {
   };
 };
 
-function LogViewerLogItem(props: ILogViewerLogItemProps & { search?: string }) {
+function TerminalViewerLogItem(
+  props: ITerminalViewerLogItemProps & { search?: string }
+) {
   const { id, extension, file, line, host, message, search } = props;
 
   return (
@@ -249,7 +254,7 @@ function LogViewerLogItem(props: ILogViewerLogItemProps & { search?: string }) {
   );
 }
 
-function LogViewerLogItemList(props: { logs: string[]; search?: string }) {
+function TerminalViewerLogItemList(props: { logs: string[]; search?: string }) {
   const { logs: rawLogs, search } = props;
 
   const logsMemo = React.useMemo(() => {
@@ -266,7 +271,7 @@ function LogViewerLogItemList(props: { logs: string[]; search?: string }) {
   return (
     <>
       {filteredLogs.map((log) => (
-        <LogViewerLogItem key={log.id} {...log} search={search} />
+        <TerminalViewerLogItem key={log.id} {...log} search={search} />
       ))}
     </>
   );

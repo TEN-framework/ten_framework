@@ -14,7 +14,7 @@ import {
 import { ENDPOINT_FILE_SYSTEM } from "@/api/endpoints";
 import { ENDPOINT_APP } from "@/api/endpoints";
 import { ENDPOINT_METHOD } from "@/api/endpoints/constant";
-import { IGetBaseDirResponse, ISetBaseDirResponse } from "@/types/fileSystem";
+import { IGetBaseDirResponse, ISetBaseDirResponse } from "@/types/app";
 
 // request functions -------------------------------
 

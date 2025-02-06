@@ -17,7 +17,7 @@
       "theme.light": "明亮",
       "theme.dark": "暗黑",
       "theme.system": "系统",
-      "run": "运行",
+      "start": "启动",
       "preferences": "偏好设置"
     },
     "officialSite": "官方网站",
