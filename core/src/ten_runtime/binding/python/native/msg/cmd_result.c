@@ -21,6 +21,7 @@ static ten_py_cmd_result_t *ten_py_cmd_result_create_internal(
 
   ten_py_cmd_result_t *py_cmd_result =
       (ten_py_cmd_result_t *)py_type->tp_alloc(py_type, 0);
+  TEN_ASSERT(py_cmd_result, "Failed to allocate memory.");
 
   ten_signature_set(&py_cmd_result->msg.signature, TEN_PY_MSG_SIGNATURE);
   py_cmd_result->msg.c_msg = NULL;
@@ -197,6 +198,22 @@ PyObject *ten_py_cmd_result_is_completed(PyObject *self, PyObject *args) {
   ten_error_deinit(&err);
 
   return PyBool_FromLong(is_completed);
+}
+
+PyObject *ten_py_cmd_result_clone(PyObject *self, PyObject *args) {
+  ten_py_cmd_result_t *py_cmd_result = (ten_py_cmd_result_t *)self;
+  TEN_ASSERT(py_cmd_result &&
+                 ten_py_msg_check_integrity((ten_py_msg_t *)py_cmd_result),
+             "Invalid argument.");
+  TEN_ASSERT(py_cmd_result->msg.c_msg, "Invalid argument.");
+
+  ten_shared_ptr_t *cloned_msg = ten_msg_clone(py_cmd_result->msg.c_msg, NULL);
+  TEN_ASSERT(cloned_msg, "Should not happen.");
+
+  ten_py_cmd_result_t *cloned_py_cmd_result =
+      ten_py_cmd_result_create_internal(NULL);
+  cloned_py_cmd_result->msg.c_msg = cloned_msg;
+  return (PyObject *)cloned_py_cmd_result;
 }
 
 bool ten_py_cmd_result_init_for_module(PyObject *module) {

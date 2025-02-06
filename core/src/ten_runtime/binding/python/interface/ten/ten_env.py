@@ -16,14 +16,11 @@ from .data import Data
 from .ten_env_base import TenEnvBase
 
 
-class TenEnv: ...  # type: ignore
-
-
 ResultHandler = Callable[
-    [TenEnv, Optional[CmdResult], Optional[TenError]], None
+    ["TenEnv", Optional[CmdResult], Optional[TenError]], None
 ]
 
-ErrorHandler = Callable[[TenEnv, Optional[TenError]], None]
+ErrorHandler = Callable[["TenEnv", Optional[TenError]], None]
 
 
 class TenEnv(TenEnvBase):

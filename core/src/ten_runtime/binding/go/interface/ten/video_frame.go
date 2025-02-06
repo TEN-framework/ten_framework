@@ -38,6 +38,8 @@ const (
 type VideoFrame interface {
 	Msg
 
+	Clone() (VideoFrame, error)
+
 	AllocBuf(size int) error
 	LockBuf() ([]byte, error)
 	UnlockBuf(buf *[]byte) error
@@ -256,7 +258,10 @@ func (p *videoFrame) GetHeight() (int32, error) {
 
 func (p *videoFrame) SetTimestamp(timestamp int64) error {
 	if timestamp <= 0 {
-		return newTenError(ErrorCodeInvalidArgument, "the timestamp should be > 0")
+		return newTenError(
+			ErrorCodeInvalidArgument,
+			"the timestamp should be > 0",
+		)
 	}
 
 	return withCGOLimiter(func() error {
@@ -331,4 +336,26 @@ func (p *videoFrame) SetPixelFmt(pixelFmt PixelFmt) error {
 		)
 		return withCGoError(&apiStatus)
 	})
+}
+
+func (p *videoFrame) Clone() (VideoFrame, error) {
+	var bridge C.uintptr_t
+	err := withCGOLimiter(func() error {
+		apiStatus := C.ten_go_video_frame_clone(p.getCPtr(), &bridge)
+		return withCGoError(&apiStatus)
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if bridge == 0 {
+		// Should not happen.
+		return nil, newTenError(
+			ErrorCodeInvalidArgument,
+			"bridge is nil",
+		)
+	}
+
+	return newVideoFrame(bridge), nil
 }

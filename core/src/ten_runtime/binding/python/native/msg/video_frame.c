@@ -22,6 +22,7 @@ static ten_py_video_frame_t *ten_py_video_frame_create_internal(
 
   ten_py_video_frame_t *py_video_frame =
       (ten_py_video_frame_t *)py_type->tp_alloc(py_type, 0);
+  TEN_ASSERT(py_video_frame, "Failed to allocate memory.");
 
   ten_signature_set(&py_video_frame->msg.signature, TEN_PY_MSG_SIGNATURE);
   py_video_frame->msg.c_msg = NULL;
@@ -304,6 +305,22 @@ PyObject *ten_py_video_frame_set_pixel_fmt(PyObject *self, PyObject *args) {
   ten_video_frame_set_pixel_fmt(py_video_frame->msg.c_msg, pixel_fmt);
 
   Py_RETURN_NONE;
+}
+
+PyObject *ten_py_video_frame_clone(PyObject *self, PyObject *args) {
+  ten_py_video_frame_t *py_video_frame = (ten_py_video_frame_t *)self;
+  TEN_ASSERT(py_video_frame &&
+                 ten_py_msg_check_integrity((ten_py_msg_t *)py_video_frame),
+             "Invalid argument.");
+  TEN_ASSERT(py_video_frame->msg.c_msg, "Invalid argument.");
+
+  ten_shared_ptr_t *cloned_msg = ten_msg_clone(py_video_frame->msg.c_msg, NULL);
+  TEN_ASSERT(cloned_msg, "Should not happen.");
+
+  ten_py_video_frame_t *cloned_py_video_frame =
+      ten_py_video_frame_create_internal(NULL);
+  cloned_py_video_frame->msg.c_msg = cloned_msg;
+  return (PyObject *)cloned_py_video_frame;
 }
 
 bool ten_py_video_frame_init_for_module(PyObject *module) {

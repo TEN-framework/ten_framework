@@ -37,22 +37,34 @@ pub struct TmanConfig {
     pub assume_yes: bool,
 }
 
-// Determine the config file path based on the platform.
-fn get_default_config_path() -> PathBuf {
-    match dirs::home_dir() {
-        Some(mut path) => {
-            if cfg!(target_os = "windows") {
-                // Windows path.
-                path.push("AppData\\Roaming\\tman\\config.json");
-            } else {
-                // Linux and macOS path
-                path.push(".tman");
-                path.push("config.json");
-            }
-            path
-        }
-        None => panic!("Cannot determine home directory."),
+// Determine the tman home directory based on the platform.
+fn get_default_home_dir() -> PathBuf {
+    let mut home_dir =
+        dirs::home_dir().expect("Cannot determine home directory.");
+    if cfg!(target_os = "windows") {
+        home_dir.push("AppData");
+        home_dir.push("Roaming");
+        home_dir.push("tman");
+    } else {
+        home_dir.push(".tman");
     }
+    home_dir
+}
+
+/// Get the default configuration file path, located under the default home
+/// directory as `config.json`.
+fn get_default_config_path() -> PathBuf {
+    let mut config_path = get_default_home_dir();
+    config_path.push("config.json");
+    config_path
+}
+
+/// Get the default package cache folder, located under the default home
+/// directory as `package_cache/`.
+pub fn get_default_package_cache_folder() -> PathBuf {
+    let mut cache_path = get_default_home_dir();
+    cache_path.push("package_cache");
+    cache_path
 }
 
 // Read the configuration from the specified path.

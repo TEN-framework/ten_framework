@@ -6,8 +6,6 @@
 //
 #include "ten_runtime/binding/go/interface/ten/app.h"
 
-#include <stdlib.h>
-
 #include "include_internal/ten_runtime/app/app.h"
 #include "include_internal/ten_runtime/binding/go/app/app.h"
 #include "include_internal/ten_runtime/binding/go/internal/common.h"

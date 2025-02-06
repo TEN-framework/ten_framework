@@ -10,8 +10,8 @@
 
 #include <stdbool.h>
 
-#include "include_internal/ten_runtime/binding/go/ten_env/ten_env_internal.h"
 #include "include_internal/ten_runtime/test/env_tester.h"
+#include "ten_runtime/binding/go/interface/ten/common.h"
 
 typedef struct ten_go_ten_env_tester_t {
   ten_signature_t signature;

@@ -14,6 +14,9 @@
 ten_go_error_t ten_go_audio_frame_create(const void *msg_name, int msg_name_len,
                                          uintptr_t *bridge_addr);
 
+ten_go_error_t ten_go_audio_frame_clone(uintptr_t bridge_addr,
+                                        uintptr_t *cloned_bridge);
+
 ten_go_error_t ten_go_audio_frame_set_timestamp(uintptr_t bridge_addr,
                                                 int64_t timestamp);
 

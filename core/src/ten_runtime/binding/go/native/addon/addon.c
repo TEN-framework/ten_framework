@@ -7,8 +7,6 @@
 #include "ten_runtime/binding/go/interface/ten/addon.h"
 
 #include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
 
 #include "include_internal/ten_runtime/addon/addon.h"
 #include "include_internal/ten_runtime/addon/extension/extension.h"
@@ -191,6 +189,9 @@ static void ten_go_addon_destroy_instance_helper(ten_addon_t *addon,
   switch (addon_bridge->type) {
     case TEN_ADDON_TYPE_EXTENSION: {
       ten_extension_t *extension = (ten_extension_t *)instance;
+      TEN_ASSERT(extension && ten_extension_check_integrity(extension, true),
+                 "Invalid argument.");
+
       ten_go_extension_t *extension_bridge =
           ten_binding_handle_get_me_in_target_lang(
               (ten_binding_handle_t *)extension);

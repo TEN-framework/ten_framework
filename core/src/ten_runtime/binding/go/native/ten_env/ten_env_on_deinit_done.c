@@ -4,8 +4,6 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-#include <stdlib.h>
-
 #include "include_internal/ten_runtime/binding/go/ten_env/ten_env.h"
 #include "include_internal/ten_runtime/binding/go/ten_env/ten_env_internal.h"
 #include "ten_runtime/binding/go/interface/ten/ten_env.h"
@@ -13,18 +11,17 @@
 #include "ten_utils/lib/rwlock.h"
 #include "ten_utils/macro/check.h"
 
-static void ten_go_ten_env_close(ten_go_ten_env_t *ten_env_bridge) {
+static void ten_go_ten_env_detach_proxy(ten_go_ten_env_t *ten_env_bridge) {
   TEN_ASSERT(ten_env_bridge && ten_go_ten_env_check_integrity(ten_env_bridge),
              "Should not happen.");
 
   ten_rwlock_lock(ten_env_bridge->lock, 0);
 
   ten_env_t *c_ten_env = ten_env_bridge->c_ten_env;
-  TEN_ASSERT(c_ten_env, "Should not happen.");
+  if (c_ten_env) {
+    TEN_ASSERT(c_ten_env->attach_to != TEN_ENV_ATTACH_TO_ADDON,
+               "Should not happen.");
 
-  if (c_ten_env->attach_to == TEN_ENV_ATTACH_TO_ADDON) {
-    ten_env_bridge->c_ten_env = NULL;
-  } else {
     ten_env_proxy_t *c_ten_env_proxy = ten_env_bridge->c_ten_env_proxy;
     TEN_ASSERT(c_ten_env_proxy, "Should not happen.");
     TEN_ASSERT(ten_env_proxy_get_thread_cnt(c_ten_env_proxy, NULL) == 1,
@@ -90,7 +87,7 @@ void ten_go_ten_env_on_deinit_done(uintptr_t bridge_addr) {
 
   TEN_ASSERT(rc, "Should not happen.");
 
-  ten_go_ten_env_close(self);
+  ten_go_ten_env_detach_proxy(self);
 
   ten_error_deinit(&err);
 }

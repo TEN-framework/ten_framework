@@ -34,6 +34,7 @@ group("python") {
       "multiple_results_python_1",
       "multiple_results_python_2",
       "multiple_results_python_3",
+      "msg_clone_python",
       "no_dest_async_python",
       "no_dest_python",
       "resp_handler_yield_python",
