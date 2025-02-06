@@ -53,16 +53,10 @@ napi_value ten_nodejs_ten_env_on_start_done(napi_env env,
 
   ten_error_t err;
   ten_error_init(&err);
-  bool rc = false;
 
-  if (ten_env_bridge->c_ten_env->attach_to == TEN_ENV_ATTACH_TO_ADDON) {
-    rc = ten_env_on_start_done(ten_env_bridge->c_ten_env, &err);
-  } else {
-    rc = ten_env_proxy_notify_async(ten_env_bridge->c_ten_env_proxy,
-                                    ten_env_proxy_notify_on_start_done, NULL,
-                                    &err);
-  }
-
+  bool rc = ten_env_proxy_notify_async(ten_env_bridge->c_ten_env_proxy,
+                                       ten_env_proxy_notify_on_start_done, NULL,
+                                       &err);
   if (!rc) {
     TEN_LOGD("TEN/JS failed to on_start_done.");
 
