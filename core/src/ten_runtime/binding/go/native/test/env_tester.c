@@ -6,8 +6,6 @@
 //
 #include "include_internal/ten_runtime/binding/go/test/env_tester.h"
 
-#include <stdlib.h>
-
 #include "include_internal/ten_runtime/binding/go/internal/common.h"
 #include "include_internal/ten_runtime/binding/go/msg/msg.h"
 #include "include_internal/ten_runtime/binding/go/ten_env/ten_env_internal.h"
@@ -56,11 +54,11 @@ static void ten_go_ten_env_tester_destroy_c_part(void *ten_env_tester_bridge_) {
   ten_env_tester_bridge->c_ten_env_tester = NULL;
   ten_go_bridge_destroy_c_part(&ten_env_tester_bridge->bridge);
 
-  // Remove the Go ten object from the global map.
+  // Remove the Go ten_env object from the global map.
   tenGoDestroyTenEnv(ten_env_tester_bridge->bridge.go_instance);
 }
 
-static void ten_go_ten_env_tester_close(void *ten_env_tester_bridge_) {
+static void ten_go_ten_env_tester_detach_c_part(void *ten_env_tester_bridge_) {
   ten_go_ten_env_tester_t *ten_env_tester_bridge =
       (ten_go_ten_env_tester_t *)ten_env_tester_bridge_;
   TEN_ASSERT(ten_env_tester_bridge &&
@@ -102,10 +100,11 @@ ten_go_ten_env_tester_t *ten_go_ten_env_tester_wrap(
 
   ten_binding_handle_set_me_in_target_lang(
       (ten_binding_handle_t *)c_ten_env_tester, ten_env_tester_bridge);
+
   ten_env_tester_set_destroy_handler_in_target_lang(
       c_ten_env_tester, ten_go_ten_env_tester_destroy_c_part);
-  ten_env_tester_set_close_handler_in_target_lang(c_ten_env_tester,
-                                                  ten_go_ten_env_tester_close);
+  ten_env_tester_set_close_handler_in_target_lang(
+      c_ten_env_tester, ten_go_ten_env_tester_detach_c_part);
 
   return ten_env_tester_bridge;
 }

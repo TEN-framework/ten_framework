@@ -6,12 +6,9 @@
 //
 #include "ten_runtime/binding/go/interface/ten/cmd.h"
 
-#include <stdlib.h>
-
 #include "include_internal/ten_runtime/binding/go/internal/common.h"
 #include "include_internal/ten_runtime/binding/go/msg/msg.h"
 #include "include_internal/ten_runtime/msg/cmd_base/cmd/cmd.h"
-#include "include_internal/ten_runtime/msg/cmd_base/cmd/custom/cmd.h"
 #include "include_internal/ten_runtime/msg/msg.h"
 #include "ten_runtime/binding/go/interface/ten/common.h"
 #include "ten_runtime/binding/go/interface/ten/msg.h"

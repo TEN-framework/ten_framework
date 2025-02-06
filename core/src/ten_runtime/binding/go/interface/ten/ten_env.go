@@ -346,11 +346,19 @@ func (p *tenEnv) OnDeinitDone() error {
 }
 
 func (p *tenEnv) OnCreateInstanceDone(instance any, context uintptr) error {
-	switch instance := instance.(type) {
-	case *extension:
-		C.ten_go_ten_env_on_create_instance_done(p.cPtr, instance.cPtr, C.uintptr_t(context))
-	default:
-		panic("instance must be extension or extension group.")
+	if instance == nil {
+		C.ten_go_ten_env_on_create_instance_done(
+			p.cPtr,
+			C.uintptr_t(0), // Represent NULL in C.
+			C.uintptr_t(context),
+		)
+	} else {
+		switch instance := instance.(type) {
+		case *extension:
+			C.ten_go_ten_env_on_create_instance_done(p.cPtr, instance.cPtr, C.uintptr_t(context))
+		default:
+			panic("instance must be extension or extension group.")
+		}
 	}
 
 	return nil

@@ -117,24 +117,6 @@ func WrapExtension(
 	return extInstance
 }
 
-func newExtensionWithBridge(
-	ext Extension,
-	_name string,
-	bridge C.uintptr_t,
-) goHandle {
-	instance := &extension{
-		Extension: ext,
-	}
-
-	instance.cPtr = bridge
-
-	runtime.SetFinalizer(instance, func(p *extension) {
-		C.ten_go_extension_finalize(p.cPtr)
-	})
-
-	return newImmutableHandle(instance)
-}
-
 //export tenGoExtensionOnConfigure
 func tenGoExtensionOnConfigure(
 	extensionID C.uintptr_t,
