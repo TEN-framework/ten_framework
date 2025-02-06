@@ -102,7 +102,7 @@ static void ten_extension_thread_handle_in_msg_sync(
   }
 }
 
-static void ten_extension_thread_handle_in_msg_task(void *self_, void *arg) {
+void ten_extension_thread_handle_in_msg_task(void *self_, void *arg) {
   ten_extension_thread_t *self = (ten_extension_thread_t *)self_;
   TEN_ASSERT(self, "Invalid argument.");
   TEN_ASSERT(ten_extension_thread_check_integrity(self, true),
@@ -203,49 +203,6 @@ void ten_extension_thread_process_acquire_lock_mode_task(void *self_,
 
   rc = ten_mutex_lock(self->lock_mode_lock);
   TEN_ASSERT(!rc, "Should not happen.");
-}
-
-void ten_extension_thread_handle_in_msg_async(ten_extension_thread_t *self,
-                                              ten_shared_ptr_t *msg) {
-  TEN_ASSERT(self, "Invalid argument.");
-  TEN_ASSERT(ten_extension_thread_check_integrity(self, false),
-             "Invalid use of extension %p.", self);
-  TEN_ASSERT(msg && (ten_msg_get_dest_cnt(msg) == 1),
-             "When this function is executed, there should be only one "
-             "destination remaining in the message's dest.");
-
-  // This function would be called from threads other than the specified
-  // extension thread. However, because the runloop relevant functions called in
-  // this function have thread-safety protection of mutex in them, we do not
-  // need to use any further locking mechanisms in this function to do any
-  // protection.
-
-  if (ten_runloop_task_queue_size(self->runloop) >=
-      EXTENSION_THREAD_QUEUE_SIZE) {
-    if (!ten_msg_is_cmd_and_result(msg)) {
-      TEN_LOGW(
-          "Discard a data-like message (%s) because extension thread input "
-          "buffer is full.",
-          ten_msg_get_name(msg));
-      return;
-    }
-  }
-
-  msg = ten_shared_ptr_clone(msg);
-
-#if defined(TEN_ENABLE_TEN_RUST_APIS)
-  ten_msg_set_timestamp(msg, ten_current_time_us());
-#endif
-
-  int rc = ten_runloop_post_task_tail(
-      self->runloop, ten_extension_thread_handle_in_msg_task, self, msg);
-  // The extension thread might have already terminated. Therefore, even though
-  // the extension thread instance still exists, attempting to enqueue tasks
-  // into it will not succeed. It is necessary to account for this scenario to
-  // prevent memory leaks.
-  if (rc) {
-    ten_shared_ptr_destroy(msg);
-  }
 }
 
 void ten_extension_thread_dispatch_msg(ten_extension_thread_t *self,
