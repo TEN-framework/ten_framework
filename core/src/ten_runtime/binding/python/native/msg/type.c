@@ -52,12 +52,12 @@ static PyTypeObject ten_py_msg_type_internal = {
 
 PyTypeObject *ten_py_msg_py_type(void) { return &ten_py_msg_type_internal; }
 
-static PyMethodDef ten_py_cmd_type_methods[] = {
-    {"clone", ten_py_cmd_clone, METH_VARARGS, NULL},
-    {NULL, NULL, 0, NULL},
-};
-
 PyTypeObject *ten_py_cmd_py_type(void) {
+  static PyMethodDef py_methods[] = {
+      {"clone", ten_py_cmd_clone, METH_VARARGS, NULL},
+      {NULL, NULL, 0, NULL},
+  };
+
   static PyTypeObject ty = {
       PyVarObject_HEAD_INIT(NULL, 0).tp_name = "libten_runtime_python._Cmd",
       .tp_doc = PyDoc_STR("_Cmd"),
@@ -69,7 +69,7 @@ PyTypeObject *ten_py_cmd_py_type(void) {
       .tp_init = NULL,
       .tp_dealloc = ten_py_cmd_destroy,
       .tp_getset = NULL,
-      .tp_methods = ten_py_cmd_type_methods,
+      .tp_methods = py_methods,
   };
 
   return &ty;
@@ -91,7 +91,7 @@ PyTypeObject *ten_py_cmd_result_py_type(void) {
   static PyTypeObject py_type = {
       PyVarObject_HEAD_INIT(NULL, 0).tp_name =
           "libten_runtime_python._CmdResult",
-      .tp_doc = PyDoc_STR("CmdResult"),
+      .tp_doc = PyDoc_STR("_CmdResult"),
       .tp_basicsize = sizeof(ten_py_cmd_result_t),
       .tp_itemsize = 0,
       .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,

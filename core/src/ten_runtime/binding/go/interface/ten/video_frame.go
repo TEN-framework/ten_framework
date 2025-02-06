@@ -258,7 +258,10 @@ func (p *videoFrame) GetHeight() (int32, error) {
 
 func (p *videoFrame) SetTimestamp(timestamp int64) error {
 	if timestamp <= 0 {
-		return newTenError(ErrorCodeInvalidArgument, "the timestamp should be > 0")
+		return newTenError(
+			ErrorCodeInvalidArgument,
+			"the timestamp should be > 0",
+		)
 	}
 
 	return withCGOLimiter(func() error {

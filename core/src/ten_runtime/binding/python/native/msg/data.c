@@ -22,6 +22,7 @@ static ten_py_data_t *ten_py_data_create_internal(PyTypeObject *py_type) {
   }
 
   ten_py_data_t *py_data = (ten_py_data_t *)py_type->tp_alloc(py_type, 0);
+  TEN_ASSERT(py_data, "Failed to allocate memory.");
 
   ten_signature_set(&py_data->msg.signature, TEN_PY_MSG_SIGNATURE);
   py_data->msg.c_msg = NULL;
@@ -166,8 +167,11 @@ PyObject *ten_py_data_clone(PyObject *self, PyObject *args) {
   ten_py_data_t *py_data = (ten_py_data_t *)self;
   TEN_ASSERT(py_data && ten_py_msg_check_integrity((ten_py_msg_t *)py_data),
              "Invalid argument.");
+  TEN_ASSERT(py_data->msg.c_msg, "Invalid argument.");
 
   ten_shared_ptr_t *cloned_msg = ten_msg_clone(py_data->msg.c_msg, NULL);
+  TEN_ASSERT(cloned_msg, "Should not happen.");
+
   ten_py_data_t *cloned_py_data = ten_py_data_create_internal(NULL);
   cloned_py_data->msg.c_msg = cloned_msg;
   return (PyObject *)cloned_py_data;

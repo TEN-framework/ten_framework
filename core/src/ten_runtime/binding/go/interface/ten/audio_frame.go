@@ -13,6 +13,7 @@ import "C"
 
 import "unsafe"
 
+// AudioFrameDataFmt is the audio frame data format.
 type AudioFrameDataFmt int32
 
 // AudioFrameDataFmt values. These definitions need to be the same as the
@@ -30,6 +31,7 @@ const (
 	AudioFrameDataFmtNonInterleave
 )
 
+// AudioFrame is the interface for the audio frame.
 type AudioFrame interface {
 	Msg
 
@@ -78,6 +80,7 @@ func newAudioFrame(bridge C.uintptr_t) *audioFrame {
 
 var _ AudioFrame = new(audioFrame)
 
+// NewAudioFrame creates a new audio frame.
 func NewAudioFrame(audioFrameName string) (AudioFrame, error) {
 	if len(audioFrameName) == 0 {
 		return nil, newTenError(

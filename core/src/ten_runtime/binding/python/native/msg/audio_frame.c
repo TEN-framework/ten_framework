@@ -24,6 +24,7 @@ static ten_py_audio_frame_t *ten_py_audio_frame_create_internal(
 
   ten_py_audio_frame_t *py_audio_frame =
       (ten_py_audio_frame_t *)py_type->tp_alloc(py_type, 0);
+  TEN_ASSERT(py_audio_frame, "Failed to allocate memory.");
 
   ten_signature_set(&py_audio_frame->msg.signature, TEN_PY_MSG_SIGNATURE);
   py_audio_frame->msg.c_msg = NULL;
@@ -409,8 +410,11 @@ PyObject *ten_py_audio_frame_clone(PyObject *self, PyObject *args) {
   TEN_ASSERT(py_audio_frame &&
                  ten_py_msg_check_integrity((ten_py_msg_t *)py_audio_frame),
              "Invalid argument.");
+  TEN_ASSERT(py_audio_frame->msg.c_msg, "Invalid argument.");
 
   ten_shared_ptr_t *cloned_msg = ten_msg_clone(py_audio_frame->msg.c_msg, NULL);
+  TEN_ASSERT(cloned_msg, "Should not happen.");
+
   ten_py_audio_frame_t *cloned_py_audio_frame =
       ten_py_audio_frame_create_internal(NULL);
   cloned_py_audio_frame->msg.c_msg = cloned_msg;

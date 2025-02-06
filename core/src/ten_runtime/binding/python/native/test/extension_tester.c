@@ -43,6 +43,7 @@ static ten_py_extension_tester_t *ten_py_extension_tester_create_internal(
 
   ten_py_extension_tester_t *py_extension_tester =
       (ten_py_extension_tester_t *)py_type->tp_alloc(py_type, 0);
+  TEN_ASSERT(py_extension_tester, "Failed to allocate memory.");
 
   ten_signature_set(&py_extension_tester->signature,
                     TEN_PY_EXTENSION_TESTER_SIGNATURE);
