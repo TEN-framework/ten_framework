@@ -58,7 +58,10 @@ class data_t : public msg_t {
   ~data_t() override = default;
 
   std::unique_ptr<data_t> clone() const {
-    TEN_ASSERT(c_msg, "Should not happen.");
+    if (c_msg == nullptr) {
+      TEN_ASSERT(0, "Should not happen.");
+      return nullptr;
+    }
 
     ten_shared_ptr_t *cloned_msg = ten_msg_clone(c_msg, nullptr);
     if (cloned_msg == nullptr) {
