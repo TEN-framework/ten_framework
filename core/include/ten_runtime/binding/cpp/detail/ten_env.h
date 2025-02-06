@@ -602,8 +602,12 @@ class ten_env_t {
 
   bool on_create_instance_done(binding_handle_t *instance, void *context,
                                error_t *err = nullptr) {
-    void *c_instance = instance->get_c_instance();
-    TEN_ASSERT(c_instance, "Should not happen.");
+    void *c_instance = nullptr;
+
+    if (instance != nullptr) {
+      c_instance = instance->get_c_instance();
+      TEN_ASSERT(c_instance, "Should not happen.");
+    }
 
     bool rc = ten_env_on_create_instance_done(
         c_ten_env, c_instance, context,
