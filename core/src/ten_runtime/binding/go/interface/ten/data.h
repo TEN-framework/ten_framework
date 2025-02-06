@@ -13,6 +13,9 @@
 ten_go_error_t ten_go_data_create(const void *msg_name, int msg_name_len,
                                   uintptr_t *bridge);
 
+ten_go_error_t ten_go_data_clone(uintptr_t bridge_addr,
+                                 uintptr_t *cloned_bridge);
+
 ten_go_error_t ten_go_data_alloc_buf(uintptr_t bridge_addr, int size);
 
 ten_go_error_t ten_go_data_lock_buf(uintptr_t bridge_addr, uint8_t **buf_addr,

@@ -29,6 +29,9 @@ class AudioFrame(_AudioFrame):
     def create(cls: Type[T], name: str) -> T:
         return cls.__new__(cls, name)
 
+    def clone(self) -> "AudioFrame":
+        return _AudioFrame.clone(self)  # type: ignore
+
     alloc_buf = _AudioFrame.alloc_buf
     lock_buf = _AudioFrame.lock_buf
     unlock_buf = _AudioFrame.unlock_buf

@@ -55,6 +55,20 @@ class audio_frame_t : public msg_t {
 
   ~audio_frame_t() override = default;
 
+  std::unique_ptr<audio_frame_t> clone() const {
+    if (c_msg == nullptr) {
+      TEN_ASSERT(0, "Should not happen.");
+      return nullptr;
+    }
+
+    ten_shared_ptr_t *cloned_msg = ten_msg_clone(c_msg, nullptr);
+    if (cloned_msg == nullptr) {
+      return nullptr;
+    }
+
+    return std::make_unique<audio_frame_t>(cloned_msg, ctor_passkey_t());
+  }
+
   int64_t get_timestamp(error_t *err = nullptr) const {
     return ten_audio_frame_get_timestamp(c_msg);
   }

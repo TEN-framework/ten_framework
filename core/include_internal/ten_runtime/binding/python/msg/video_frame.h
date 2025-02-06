@@ -74,3 +74,6 @@ TEN_RUNTIME_PRIVATE_API PyObject *ten_py_video_frame_get_pixel_fmt(
 
 TEN_RUNTIME_PRIVATE_API PyObject *ten_py_video_frame_set_pixel_fmt(
     PyObject *self, PyObject *args);
+
+TEN_RUNTIME_PRIVATE_API PyObject *ten_py_video_frame_clone(PyObject *self,
+                                                           PyObject *args);

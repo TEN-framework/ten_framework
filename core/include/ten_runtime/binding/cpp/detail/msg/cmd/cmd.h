@@ -53,6 +53,20 @@ class cmd_t : public msg_t {
   cmd_t &operator=(cmd_t &&cmd) noexcept = delete;
   // @}
 
+  std::unique_ptr<cmd_t> clone() const {
+    if (c_msg == nullptr) {
+      TEN_ASSERT(0, "Should not happen.");
+      return nullptr;
+    }
+
+    ten_shared_ptr_t *cloned_msg = ten_msg_clone(c_msg, nullptr);
+    if (cloned_msg == nullptr) {
+      return nullptr;
+    }
+
+    return std::make_unique<cmd_t>(cloned_msg, ctor_passkey_t());
+  }
+
  protected:
   // @{
   // Used by the constructor of the real command class to create a base command
@@ -64,14 +78,6 @@ class cmd_t : public msg_t {
   friend extension_t;
   friend extension_tester_t;
   friend ten_env_t;
-
-  void clone_internal(const cmd_t &cmd) noexcept {
-    if (cmd.c_msg != nullptr) {
-      c_msg = ten_msg_clone(cmd.c_msg, nullptr);
-    } else {
-      c_msg = nullptr;
-    }
-  }
 
   static std::unique_ptr<cmd_t> create(ten_shared_ptr_t *cmd,
                                        error_t *err = nullptr) {

@@ -18,6 +18,7 @@ import (
 type Data interface {
 	Msg
 
+	Clone() (Data, error)
 	AllocBuf(size int) error
 	LockBuf() ([]byte, error)
 	UnlockBuf(buf *[]byte) error
@@ -159,4 +160,26 @@ func (p *data) GetBuf() ([]byte, error) {
 	}
 
 	return buf, nil
+}
+
+func (p *data) Clone() (Data, error) {
+	var bridge C.uintptr_t
+	err := withCGOLimiter(func() error {
+		apiStatus := C.ten_go_data_clone(p.getCPtr(), &bridge)
+		return withCGoError(&apiStatus)
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if bridge == 0 {
+		// Should not happen.
+		return nil, newTenError(
+			ErrorCodeInvalidArgument,
+			"bridge is nil",
+		)
+	}
+
+	return newData(bridge), nil
 }

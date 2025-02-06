@@ -47,6 +47,31 @@ ten_go_error_t ten_go_cmd_create_cmd(const void *name, int name_len,
   return cgo_error;
 }
 
+ten_go_error_t ten_go_cmd_clone(uintptr_t bridge_addr,
+                                uintptr_t *cloned_bridge) {
+  TEN_ASSERT(bridge_addr && cloned_bridge, "Invalid argument.");
+
+  ten_go_msg_t *msg_bridge = ten_go_msg_reinterpret(bridge_addr);
+  TEN_ASSERT(msg_bridge && ten_go_msg_check_integrity(msg_bridge),
+             "Should not happen.");
+
+  ten_shared_ptr_t *c_cmd = ten_go_msg_c_msg(msg_bridge);
+  TEN_ASSERT(c_cmd, "Should not happen.");
+
+  ten_go_error_t cgo_error;
+  ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
+
+  ten_shared_ptr_t *cloned_c_cmd = ten_msg_clone(c_cmd, NULL);
+  TEN_ASSERT(cloned_c_cmd, "Should not happen.");
+
+  ten_go_msg_t *cloned_msg_bridge = ten_go_msg_create(cloned_c_cmd);
+  TEN_ASSERT(cloned_msg_bridge, "Should not happen.");
+
+  *cloned_bridge = (uintptr_t)cloned_msg_bridge;
+
+  return cgo_error;
+}
+
 uintptr_t ten_go_cmd_create_cmd_result(int status_code) {
   TEN_ASSERT(
       status_code == TEN_STATUS_CODE_OK || status_code == TEN_STATUS_CODE_ERROR,
@@ -157,5 +182,30 @@ ten_go_error_t ten_go_cmd_result_is_completed(uintptr_t bridge_addr,
   }
 
   ten_error_deinit(&err);
+  return cgo_error;
+}
+
+ten_go_error_t ten_go_cmd_result_clone(uintptr_t bridge_addr,
+                                       uintptr_t *cloned_bridge) {
+  TEN_ASSERT(bridge_addr && cloned_bridge, "Invalid argument.");
+
+  ten_go_msg_t *msg_bridge = ten_go_msg_reinterpret(bridge_addr);
+  TEN_ASSERT(msg_bridge && ten_go_msg_check_integrity(msg_bridge),
+             "Should not happen.");
+
+  ten_go_error_t cgo_error;
+  ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
+
+  ten_shared_ptr_t *c_cmd = ten_go_msg_c_msg(msg_bridge);
+  TEN_ASSERT(c_cmd, "Should not happen.");
+
+  ten_shared_ptr_t *cloned_c_cmd = ten_msg_clone(c_cmd, NULL);
+  TEN_ASSERT(cloned_c_cmd, "Should not happen.");
+
+  ten_go_msg_t *cloned_msg_bridge = ten_go_msg_create(cloned_c_cmd);
+  TEN_ASSERT(cloned_msg_bridge, "Should not happen.");
+
+  *cloned_bridge = (uintptr_t)cloned_msg_bridge;
+
   return cgo_error;
 }
