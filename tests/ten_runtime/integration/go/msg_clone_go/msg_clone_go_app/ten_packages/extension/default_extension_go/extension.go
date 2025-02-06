@@ -37,7 +37,10 @@ func (ext *serverExtension) OnData(tenEnv ten.TenEnv, data ten.Data) {
 	}
 }
 
-func (ext *serverExtension) OnVideoFrame(tenEnv ten.TenEnv, videoFrame ten.VideoFrame) {
+func (ext *serverExtension) OnVideoFrame(
+	tenEnv ten.TenEnv,
+	videoFrame ten.VideoFrame,
+) {
 	name, _ := videoFrame.GetName()
 	if name == "test" {
 		clonedVideoFrame, _ := videoFrame.Clone()
@@ -47,7 +50,10 @@ func (ext *serverExtension) OnVideoFrame(tenEnv ten.TenEnv, videoFrame ten.Video
 	}
 }
 
-func (ext *serverExtension) OnAudioFrame(tenEnv ten.TenEnv, audioFrame ten.AudioFrame) {
+func (ext *serverExtension) OnAudioFrame(
+	tenEnv ten.TenEnv,
+	audioFrame ten.AudioFrame,
+) {
 	name, _ := audioFrame.GetName()
 	if name == "test" {
 		clonedAudioFrame, _ := audioFrame.Clone()
@@ -79,19 +85,22 @@ func (ext *clientExtension) OnCmd(tenEnv ten.TenEnv, cmd ten.Cmd) {
 		tenEnv.SendAudioFrame(audioFrame, nil)
 
 		clonedCmd, _ := cmd.Clone()
-		tenEnv.SendCmd(clonedCmd, func(tenEnv ten.TenEnv, cmdResult ten.CmdResult, err error) {
-			if err != nil {
-				panic("Failed to send cmd: " + err.Error())
-			}
+		tenEnv.SendCmd(
+			clonedCmd,
+			func(tenEnv ten.TenEnv, cmdResult ten.CmdResult, err error) {
+				if err != nil {
+					panic("Failed to send cmd: " + err.Error())
+				}
 
-			statusCode, _ := cmdResult.GetStatusCode()
-			if statusCode != ten.StatusCodeOk {
-				panic("Failed to send cmd")
-			}
+				statusCode, _ := cmdResult.GetStatusCode()
+				if statusCode != ten.StatusCodeOk {
+					panic("Failed to send cmd")
+				}
 
-			ext.msgCount++
-			ext.returnIfAllDone(tenEnv)
-		})
+				ext.msgCount++
+				ext.returnIfAllDone(tenEnv)
+			},
+		)
 	}
 }
 
@@ -114,7 +123,10 @@ func (ext *clientExtension) OnData(tenEnv ten.TenEnv, data ten.Data) {
 	}
 }
 
-func (ext *clientExtension) OnVideoFrame(tenEnv ten.TenEnv, videoFrame ten.VideoFrame) {
+func (ext *clientExtension) OnVideoFrame(
+	tenEnv ten.TenEnv,
+	videoFrame ten.VideoFrame,
+) {
 	name, _ := videoFrame.GetName()
 	if name == "test" {
 		ext.msgCount++
@@ -124,7 +136,10 @@ func (ext *clientExtension) OnVideoFrame(tenEnv ten.TenEnv, videoFrame ten.Video
 	}
 }
 
-func (ext *clientExtension) OnAudioFrame(tenEnv ten.TenEnv, audioFrame ten.AudioFrame) {
+func (ext *clientExtension) OnAudioFrame(
+	tenEnv ten.TenEnv,
+	audioFrame ten.AudioFrame,
+) {
 	name, _ := audioFrame.GetName()
 	if name == "test" {
 		ext.msgCount++
