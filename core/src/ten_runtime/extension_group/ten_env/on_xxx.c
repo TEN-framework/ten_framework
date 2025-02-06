@@ -221,13 +221,15 @@ void ten_extension_group_on_addon_create_extension_done(
              "Should not happen.");
 
   ten_extension_t *extension = instance;
-  TEN_ASSERT(extension && ten_extension_check_integrity(extension, true),
-             "Should not happen.");
+  if (extension) {
+    TEN_ASSERT(ten_extension_check_integrity(extension, true),
+               "Should not happen.");
 
-  ten_env_t *extension_ten_env = extension->ten_env;
-  TEN_ASSERT(
-      extension_ten_env && ten_env_check_integrity(extension_ten_env, true),
-      "Should not happen.");
+    ten_env_t *extension_ten_env = extension->ten_env;
+    TEN_ASSERT(
+        extension_ten_env && ten_env_check_integrity(extension_ten_env, true),
+        "Should not happen.");
+  }
 
   // This happens on the extension thread, so it's thread safe.
 

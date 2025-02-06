@@ -218,9 +218,11 @@ void ten_extension_thread_on_addon_create_extension_done(void *self_,
   TEN_ASSERT(arg, "Should not happen.");
 
   ten_extension_t *extension = ctx->extension;
-  ten_extension_inherit_thread_ownership(extension, self);
-  TEN_ASSERT(extension && ten_extension_check_integrity(extension, true),
-             "Should not happen.");
+  if (extension) {
+    ten_extension_inherit_thread_ownership(extension, self);
+    TEN_ASSERT(ten_extension_check_integrity(extension, true),
+               "Should not happen.");
+  }
 
   ten_extension_group_on_addon_create_extension_done(
       extension_group->ten_env, extension, ctx->addon_context);

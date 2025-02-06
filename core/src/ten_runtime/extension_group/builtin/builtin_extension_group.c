@@ -6,9 +6,7 @@
 //
 #include "include_internal/ten_runtime/extension_group/builtin/builtin_extension_group.h"
 
-#include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 
 #include "include_internal/ten_runtime/addon/addon.h"
 #include "include_internal/ten_runtime/addon/extension/extension.h"
