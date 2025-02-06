@@ -7,8 +7,6 @@
 #include "ten_runtime/binding/go/interface/ten/msg.h"
 
 #include <stdint.h>
-#include <stdlib.h>
-#include <string.h>
 
 #include "include_internal/ten_runtime/binding/go/internal/common.h"
 #include "include_internal/ten_runtime/binding/go/internal/json.h"

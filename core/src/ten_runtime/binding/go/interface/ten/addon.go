@@ -51,13 +51,15 @@ func (p *ExtensionAddon) OnCreateInstance(
 		panic("Extension constructor is not provided")
 	}
 
+	var extWrapper Extension = nil
+
 	ext := p.constructor(name)
-	if ext == nil {
-		// Should not happen.
-		panic("The extension constructor returns nil.")
+	if ext != nil {
+		extWrapper = WrapExtension(ext, name)
+	} else {
+		tenEnv.LogError("Failed to create extension " + name)
 	}
 
-	extWrapper := WrapExtension(ext, name)
 	tenEnv.OnCreateInstanceDone(extWrapper, context)
 }
 

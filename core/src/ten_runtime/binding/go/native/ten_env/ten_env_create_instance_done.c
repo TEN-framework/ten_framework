@@ -17,15 +17,17 @@ void ten_go_ten_env_on_create_instance_done(uintptr_t bridge_addr,
                                             uintptr_t context_addr) {
   ten_go_ten_env_t *self = ten_go_ten_env_reinterpret(bridge_addr);
   TEN_ASSERT(self && ten_go_ten_env_check_integrity(self), "Invalid argument.");
-  TEN_ASSERT(instance_bridge_addr, "Invalid argument.");
   TEN_ASSERT(context_addr, "Invalid argument.");
 
-  ten_go_extension_t *extension_bridge =
-      ten_go_extension_reinterpret(instance_bridge_addr);
-  TEN_ASSERT(ten_go_extension_check_integrity(extension_bridge),
-             "Should not happen.");
-  ten_extension_t *c_extension_or_extension_group =
-      ten_go_extension_c_extension(extension_bridge);
+  ten_extension_t *c_extension_or_extension_group = NULL;
+  if (instance_bridge_addr) {
+    ten_go_extension_t *extension_bridge =
+        ten_go_extension_reinterpret(instance_bridge_addr);
+    TEN_ASSERT(ten_go_extension_check_integrity(extension_bridge),
+               "Should not happen.");
+    c_extension_or_extension_group =
+        ten_go_extension_c_extension(extension_bridge);
+  }
 
   TEN_GO_TEN_ENV_IS_ALIVE_REGION_BEGIN(self, {});
 

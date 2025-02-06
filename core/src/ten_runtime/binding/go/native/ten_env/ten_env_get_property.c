@@ -5,8 +5,6 @@
 // Refer to the "LICENSE" file in the root directory for more information.
 //
 #include <stdint.h>
-#include <stdlib.h>
-#include <string.h>
 
 #include "include_internal/ten_runtime/binding/go/internal/common.h"
 #include "include_internal/ten_runtime/binding/go/ten_env/ten_env.h"
