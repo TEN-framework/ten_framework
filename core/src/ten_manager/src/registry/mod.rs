@@ -4,6 +4,7 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
+mod cache_utils;
 pub mod found_result;
 mod local;
 mod remote;
@@ -66,6 +67,9 @@ pub async fn upload_package(
 
 pub async fn get_package(
     tman_config: &TmanConfig,
+    pkg_type: &PkgType,
+    pkg_name: &str,
+    pkg_version: &Version,
     url: &str,
     temp_path: &mut NamedTempFile,
 ) -> Result<()> {
@@ -73,8 +77,28 @@ pub async fn get_package(
         url::Url::parse(url).map_err(|_| anyhow!("Invalid URL: {}", url))?;
 
     match parsed_url.scheme() {
-        "file" => local::get_package(tman_config, url, temp_path).await,
-        "https" => remote::get_package(tman_config, url, temp_path).await,
+        "file" => {
+            local::get_package(
+                tman_config,
+                pkg_type,
+                pkg_name,
+                pkg_version,
+                url,
+                temp_path,
+            )
+            .await
+        }
+        "https" => {
+            remote::get_package(
+                tman_config,
+                pkg_type,
+                pkg_name,
+                pkg_version,
+                url,
+                temp_path,
+            )
+            .await
+        }
         _ => Err(anyhow!("Failed to get package to any configured registry.")),
     }
 }

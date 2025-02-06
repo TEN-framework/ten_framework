@@ -10,8 +10,10 @@ use std::path::{Path, PathBuf};
 use std::str::FromStr;
 
 use anyhow::{anyhow, Context, Result};
+use console::Emoji;
 use flate2::read::GzDecoder;
 use semver::Version;
+use sha2::{Digest, Sha256};
 use tar::Archive as TarArchive;
 use tempfile::NamedTempFile;
 use ten_rust::pkg_info::constants::MANIFEST_JSON_FILENAME;
@@ -22,6 +24,7 @@ use ten_rust::pkg_info::manifest::Manifest;
 use ten_rust::pkg_info::pkg_type::PkgType;
 use ten_rust::pkg_info::PkgInfo;
 
+use super::cache_utils::{find_in_package_cache, store_file_to_package_cache};
 use super::found_result::PkgRegistryInfo;
 use super::SearchCriteria;
 use crate::config::TmanConfig;
@@ -92,11 +95,99 @@ pub async fn upload_package(
     Ok(full_path.to_string_lossy().to_string())
 }
 
+/// Calculate the hash of the file content to determine whether the file content
+/// is the same when using the local registry.
+fn calc_file_hash(path: &Path) -> Result<String> {
+    let mut file = File::open(path)?;
+    let mut hasher = Sha256::new();
+    let mut buffer = [0u8; 8192];
+
+    loop {
+        let n = file.read(&mut buffer)?;
+        if n == 0 {
+            break;
+        }
+        hasher.update(&buffer[..n]);
+    }
+
+    let hash = hasher.finalize();
+    Ok(format!("{:x}", hash))
+}
+
+/// Determine whether the locally cached file and the target file in the local
+/// registry have the same hash.
+fn is_same_file_by_hash(
+    cache_file: &Path,
+    registry_file_url: &str,
+) -> Result<bool> {
+    let registry_file_path = url::Url::parse(registry_file_url)
+        .map_err(|e| anyhow::anyhow!("Invalid file URL: {}", e))?
+        .to_file_path()
+        .map_err(|_| anyhow::anyhow!("Failed to convert file URL to path"))?;
+
+    if !registry_file_path.exists() {
+        panic!(
+            "Should not happen. The file does not exist in the local registry: {}",
+            registry_file_path.display()
+        );
+    }
+
+    let hash_cache = calc_file_hash(cache_file)?;
+    let hash_registry = calc_file_hash(&registry_file_path)?;
+
+    Ok(hash_cache == hash_registry)
+}
+
 pub async fn get_package(
     _tman_config: &TmanConfig,
+    pkg_type: &PkgType,
+    pkg_name: &str,
+    pkg_version: &Version,
     url: &str,
     temp_path: &mut NamedTempFile,
 ) -> Result<()> {
+    // First, try to retrieve the same package file from the cache.
+    let registry_file_path = url::Url::parse(url)
+        .map_err(|e| anyhow::anyhow!("Invalid file URL: {}", e))?
+        .to_file_path()
+        .map_err(|_| anyhow::anyhow!("Failed to convert file URL to path"))?;
+
+    let file_name = registry_file_path
+        .file_name()
+        .ok_or_else(|| anyhow::anyhow!("downloaded file has invalid name"))?;
+
+    if let Some(cached_file_path) = find_in_package_cache(
+        pkg_type,
+        pkg_name,
+        pkg_version,
+        &file_name.to_string_lossy(),
+    )? {
+        // We need to check whether the cached file and the target file have the
+        // same content (i.e., the same hash).
+        if let Ok(true) = is_same_file_by_hash(&cached_file_path, url) {
+            // If the content is the same, directly copy the cached file to
+            // `temp_path`.
+            eprintln!(
+                "{}  Found the package file ({}) in the package cache, using it directly.",
+                Emoji("🚀", ":-("),
+                cached_file_path.to_string_lossy()
+            );
+
+            fs::copy(&cached_file_path, temp_path.path()).with_context(
+                || {
+                    format!(
+                        "Failed to copy from cache {}",
+                        cached_file_path.display()
+                    )
+                },
+            )?;
+            return Ok(());
+        }
+    }
+
+    // Not found in the package cache, so proceed with the standard process to
+    // retrieve it from the registry.
+
     let path_url_str = url::Url::parse(url)
         .map_err(|e| anyhow!("Invalid file URL: {}", e))?
         .to_file_path()
@@ -114,6 +205,15 @@ pub async fn get_package(
     }
 
     fs::copy(&path_url, temp_path.path())?;
+
+    // Place the downloaded file into the cache.
+    store_file_to_package_cache(
+        pkg_type,
+        pkg_name,
+        pkg_version,
+        &file_name.to_string_lossy(),
+        &path_url,
+    )?;
 
     Ok(())
 }
