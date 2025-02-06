@@ -7,7 +7,6 @@
 #include "ten_runtime/binding/go/interface/ten/value.h"
 
 #include <stdint.h>
-#include <stdlib.h>
 
 #include "include_internal/ten_runtime/binding/go/internal/common.h"
 #include "include_internal/ten_runtime/binding/go/value/value.h"

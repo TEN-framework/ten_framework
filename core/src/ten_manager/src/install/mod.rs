@@ -134,7 +134,15 @@ async fn install_non_local_dependency_pkg_info(
     dest_dir_path: &String,
 ) -> Result<()> {
     let mut temp_file = NamedTempFile::new()?;
-    get_package(tman_config, &pkg_info.url, &mut temp_file).await?;
+    get_package(
+        tman_config,
+        &pkg_info.basic_info.type_and_name.pkg_type,
+        &pkg_info.basic_info.type_and_name.name,
+        &pkg_info.basic_info.version,
+        &pkg_info.url,
+        &mut temp_file,
+    )
+    .await?;
 
     let mut installed_paths =
         extract_and_process_tpkg_file(temp_file.path(), dest_dir_path, None)?;

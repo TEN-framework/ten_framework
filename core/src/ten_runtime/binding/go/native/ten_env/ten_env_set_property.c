@@ -4,8 +4,6 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-#include <stdlib.h>
-
 #include "include_internal/ten_runtime/binding/go/internal/common.h"
 #include "include_internal/ten_runtime/binding/go/internal/json.h"
 #include "include_internal/ten_runtime/binding/go/ten_env/ten_env.h"

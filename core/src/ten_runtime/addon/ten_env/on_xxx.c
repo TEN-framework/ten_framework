@@ -151,7 +151,6 @@ static void ten_extension_addon_on_create_instance_done(ten_env_t *self,
   switch (caller_ten->attach_to) {
     case TEN_ENV_ATTACH_TO_EXTENSION_GROUP: {
       ten_extension_t *extension = instance;
-
       if (extension) {
         // TEN_NOLINTNEXTLINE(thread-check)
         // thread-check: Maybe in the thread other than the extension thread

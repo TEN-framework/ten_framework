@@ -90,9 +90,16 @@ pub async fn create_pkg_in_path(
     let mut temp_file = tempfile::NamedTempFile::new().context(
         "Failed to create a temporary file for downloading the package",
     )?;
-    get_package(tman_config, package_url, &mut temp_file)
-        .await
-        .context("Failed to download the package from the registry")?;
+    get_package(
+        tman_config,
+        &package.basic_info.type_and_name.pkg_type,
+        &package.basic_info.type_and_name.name,
+        &package.basic_info.version,
+        package_url,
+        &mut temp_file,
+    )
+    .await
+    .context("Failed to download the package from the registry")?;
 
     // Define the target directory where the package will be extracted.
     let target_path = path.join(pkg_name);

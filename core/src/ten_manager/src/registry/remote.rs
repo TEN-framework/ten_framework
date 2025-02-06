@@ -4,10 +4,12 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
+use std::fs;
 use std::sync::Arc;
 use std::{io::Write, time::Duration};
 
 use anyhow::{anyhow, Context, Result};
+use console::Emoji;
 use reqwest::header::{HeaderMap, AUTHORIZATION, CONTENT_TYPE};
 use semver::Version;
 use serde::{Deserialize, Serialize};
@@ -20,6 +22,7 @@ use tokio::time::sleep;
 
 use ten_rust::pkg_info::PkgInfo;
 
+use super::cache_utils::{find_in_package_cache, store_file_to_package_cache};
 use super::SearchCriteria;
 use crate::constants::{
     REMOTE_REGISTRY_MAX_RETRIES, REMOTE_REGISTRY_REQUEST_TIMEOUT_SECS,
@@ -237,7 +240,7 @@ async fn upload_package_to_remote(
 
             headers.insert(
                 CONTENT_TYPE,
-                "application/zip".parse().map_err(|e| {
+                "application/gzip".parse().map_err(|e| {
                     eprintln!("Failed to parse content type: {}", e);
                     e
                 })?,
@@ -358,9 +361,43 @@ fn parse_content_range(content_range: &str) -> Option<(u64, u64, u64)> {
 
 pub async fn get_package(
     tman_config: &TmanConfig,
+    pkg_type: &PkgType,
+    pkg_name: &str,
+    pkg_version: &Version,
     url: &str,
     temp_file: &mut NamedTempFile,
 ) -> Result<()> {
+    // First, check the cache. If there is a matching filename, use the cached
+    // file directly.
+    let parsed_url = url::Url::parse(url)
+        .map_err(|e| anyhow::anyhow!("Invalid URL: {}", e))?;
+    let file_name = parsed_url
+        .path_segments()
+        .and_then(|segments| segments.last())
+        .ok_or_else(|| {
+            anyhow::anyhow!("Failed to extract file name from URL")
+        })?;
+
+    if let Some(cached_file_path) =
+        find_in_package_cache(pkg_type, pkg_name, pkg_version, file_name)?
+    {
+        // If the filename matches, directly copy the cached file to
+        // `temp_file`.
+        eprintln!(
+            "{}  Found the package file ({}) in the package cache, using it directly.",
+            Emoji("🚀", ":-("),
+            cached_file_path.to_string_lossy()
+        );
+
+        fs::copy(&cached_file_path, temp_file.path()).with_context(|| {
+            format!("Failed to copy from cache {}", cached_file_path.display())
+        })?;
+        return Ok(());
+    }
+
+    // Not found in the package cache, so proceed with the standard process to
+    // retrieve it from the registry.
+
     let client = create_client_with_proxies()?;
 
     let temp_file = Arc::new(RwLock::new(temp_file));
@@ -476,6 +513,16 @@ pub async fn get_package(
             url,
             temp_file_borrow.path().display()
         );
+
+        // Place the downloaded file into the cache.
+        let downloaded_path = temp_file_borrow.path();
+        store_file_to_package_cache(
+            pkg_type,
+            pkg_name,
+            pkg_version,
+            file_name,
+            downloaded_path,
+        )?;
     }
 
     Ok(())

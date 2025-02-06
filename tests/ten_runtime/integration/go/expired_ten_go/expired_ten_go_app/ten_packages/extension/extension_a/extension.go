@@ -46,8 +46,10 @@ func (p *extensionA) OnCmd(
 		})
 
 		time.Sleep(time.Second * 3)
-		// Use the expired ten object.
-		err := tenEnv.SendCmd(cmdB, nil)
+
+		// Use the expired tenEnv object.
+		newCmdB, _ := ten.NewCmd("B")
+		err := tenEnv.SendCmd(newCmdB, nil)
 		if err != nil {
 			fmt.Println("Failed to use invalid ten object.")
 		} else {
