@@ -18,7 +18,11 @@ use prometheus::{
     HistogramVec, Opts, Registry, TextEncoder,
 };
 
-use crate::constants::{TELEMETRY_DEFAULT_ENDPOINT, TELEMETRY_DEFAULT_PATH};
+use crate::constants::{
+    TELEMETRY_DEFAULT_ENDPOINT, TELEMETRY_DEFAULT_PATH,
+    TELEMETRY_SERVER_START_RETRY_INTERVAL,
+    TELEMETRY_SERVER_START_RETRY_MAX_ATTEMPTS,
+};
 
 pub struct TelemetrySystem {
     registry: Registry,
@@ -95,54 +99,74 @@ pub extern "C" fn ten_telemetry_system_create(
     let registry = Registry::new();
 
     // Start the actix-web server to provide metrics data at the specified path.
-    let registry_clone = registry.clone();
-    let path_clone = path_str.clone();
 
-    let server_builder = HttpServer::new(move || {
-        App::new().route(
-            &path_clone,
-            web::get().to({
-                let registry_handler = registry_clone.clone();
+    let mut attempts = 0;
+    let max_attempts = TELEMETRY_SERVER_START_RETRY_MAX_ATTEMPTS;
+    let wait_duration =
+        std::time::Duration::from_secs(TELEMETRY_SERVER_START_RETRY_INTERVAL);
 
-                move || {
-                    let registry_for_request = registry_handler.clone();
+    let server_builder = loop {
+        let registry_clone = registry.clone();
+        let path_clone = path_str.clone();
 
-                    async move {
-                        let metric_families = registry_for_request.gather();
-                        let encoder = TextEncoder::new();
-                        let mut buffer = Vec::new();
+        let result = HttpServer::new(move || {
+            App::new().route(
+                &path_clone,
+                web::get().to({
+                    let registry_handler = registry_clone.clone();
 
-                        if encoder
-                            .encode(&metric_families, &mut buffer)
-                            .is_err()
-                        {
-                            return HttpResponse::InternalServerError()
-                                .finish();
-                        }
+                    move || {
+                        let registry_for_request = registry_handler.clone();
 
-                        let response = match String::from_utf8(buffer) {
-                            Ok(v) => v,
-                            Err(_) => {
+                        async move {
+                            let metric_families = registry_for_request.gather();
+                            let encoder = TextEncoder::new();
+                            let mut buffer = Vec::new();
+
+                            if encoder
+                                .encode(&metric_families, &mut buffer)
+                                .is_err()
+                            {
                                 return HttpResponse::InternalServerError()
-                                    .finish()
+                                    .finish();
                             }
-                        };
 
-                        HttpResponse::Ok().body(response)
+                            let response = match String::from_utf8(buffer) {
+                                Ok(v) => v,
+                                Err(_) => {
+                                    return HttpResponse::InternalServerError()
+                                        .finish()
+                                }
+                            };
+
+                            HttpResponse::Ok().body(response)
+                        }
                     }
-                }
-            }),
-        )
-    })
-    // Make actix not linger on the socket.
-    .shutdown_timeout(0)
-    .bind(&endpoint_for_bind);
+                }),
+            )
+        })
+        // Make actix not linger on the socket.
+        .shutdown_timeout(0)
+        .bind(&endpoint_for_bind);
 
-    let server_builder = match server_builder {
-        Ok(s) => s,
-        Err(_) => {
-            eprintln!("Error binding to address: {}", endpoint_str);
-            return ptr::null_mut();
+        match result {
+            Ok(server) => break server,
+            Err(e) => {
+                attempts += 1;
+                if attempts >= max_attempts {
+                    eprintln!(
+                        "Error binding to address: {} after {} attempts: {:?}",
+                        endpoint_str, attempts, e
+                    );
+                    return ptr::null_mut();
+                }
+
+                eprintln!(
+              "Failed to bind to address: {}. Attempt {} of {}. Retrying in {} second...",
+              endpoint_str, attempts, max_attempts, TELEMETRY_SERVER_START_RETRY_INTERVAL
+          );
+                std::thread::sleep(wait_duration);
+            }
         }
     };
 
