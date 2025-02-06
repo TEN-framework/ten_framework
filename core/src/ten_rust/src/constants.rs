@@ -7,3 +7,6 @@
 
 pub const TELEMETRY_DEFAULT_ENDPOINT: &str = "0.0.0.0:49484";
 pub const TELEMETRY_DEFAULT_PATH: &str = "/metrics";
+
+pub const TELEMETRY_SERVER_START_RETRY_MAX_ATTEMPTS: u32 = 3;
+pub const TELEMETRY_SERVER_START_RETRY_INTERVAL: u64 = 1; // seconds
