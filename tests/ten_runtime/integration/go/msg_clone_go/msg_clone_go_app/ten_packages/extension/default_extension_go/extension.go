@@ -88,12 +88,15 @@ func (ext *clientExtension) OnCmd(tenEnv ten.TenEnv, cmd ten.Cmd) {
 			if statusCode != ten.StatusCodeOk {
 				panic("Failed to send cmd")
 			}
+
+			ext.msgCount++
+			ext.returnIfAllDone(tenEnv)
 		})
 	}
 }
 
 func (ext *clientExtension) returnIfAllDone(tenEnv ten.TenEnv) {
-	if ext.msgCount == 3 {
+	if ext.msgCount == 4 {
 		cmdResult, _ := ten.NewCmdResult(ten.StatusCodeOk)
 		cmdResult.SetPropertyString("detail", "ok")
 

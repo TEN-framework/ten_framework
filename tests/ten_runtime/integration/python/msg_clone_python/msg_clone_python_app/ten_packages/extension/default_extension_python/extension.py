@@ -68,6 +68,9 @@ class ClientExtension(AsyncExtension):
             result, _ = await ten_env.send_cmd(cloned_cmd)
             assert result is not None
             assert result.get_status_code() == StatusCode.OK
+
+            self.msg_count += 1
+            await self.return_if_all_done(ten_env)
         else:
             assert False
 
@@ -94,7 +97,7 @@ class ClientExtension(AsyncExtension):
         if self.test_cmd is None:
             return
 
-        if self.msg_count == 3:
+        if self.msg_count == 4:
             result = CmdResult.create(StatusCode.OK)
             result.set_property_string("detail", "ok")
             await ten_env.return_result(result, self.test_cmd)
