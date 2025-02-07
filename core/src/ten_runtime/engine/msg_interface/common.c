@@ -281,15 +281,10 @@ static void ten_engine_post_msg_to_extension_thread(
   if (rc) {
     // Create a cmd result to inform the sender that the destination extension
     // has been terminated.
-    ten_shared_ptr_t *cmd_result =
-        ten_cmd_result_create_from_cmd(TEN_STATUS_CODE_ERROR, msg);
-    ten_msg_set_property(cmd_result, "detail",
-                         ten_value_create_string(
-                             "The destination extension has been terminated."),
-                         NULL);
+    ten_engine_create_cmd_result_and_dispatch(
+        self, msg, TEN_STATUS_CODE_ERROR,
+        "The destination extension has been terminated.");
 
-    ten_engine_dispatch_msg(self, cmd_result);
-    ten_shared_ptr_destroy(cmd_result);
     ten_shared_ptr_destroy(msg);
   }
 }
@@ -393,4 +388,26 @@ bool ten_engine_dispatch_msg(ten_engine_t *self, ten_shared_ptr_t *msg) {
   }
 
   return true;
+}
+
+void ten_engine_create_cmd_result_and_dispatch(ten_engine_t *self,
+                                               ten_shared_ptr_t *origin_cmd,
+                                               TEN_STATUS_CODE status_code,
+                                               const char *detail) {
+  TEN_ASSERT(self && ten_engine_check_integrity(self, true),
+             "Invalid argument.");
+  TEN_ASSERT(origin_cmd && ten_msg_is_cmd_and_result(origin_cmd),
+             "Invalid argument.");
+
+  ten_shared_ptr_t *cmd_result =
+      ten_cmd_result_create_from_cmd(status_code, origin_cmd);
+
+  if (detail) {
+    ten_msg_set_property(cmd_result, "detail", ten_value_create_string(detail),
+                         NULL);
+  }
+
+  ten_engine_dispatch_msg(self, cmd_result);
+
+  ten_shared_ptr_destroy(cmd_result);
 }

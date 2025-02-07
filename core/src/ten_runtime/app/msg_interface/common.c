@@ -247,16 +247,10 @@ static bool ten_app_handle_stop_graph_cmd(ten_app_t *self,
 
   if (dest_engine == NULL) {
     // Failed to find the engine by graph_id, send back an error message.
-    ten_shared_ptr_t *ret_cmd =
-        ten_cmd_result_create_from_cmd(TEN_STATUS_CODE_ERROR, cmd);
-    ten_msg_set_property(
-        ret_cmd, "detail",
-        ten_value_create_string("Failed to find the engine to be shut down."),
-        NULL);
+    ten_app_create_cmd_result_and_dispatch(
+        self, cmd, TEN_STATUS_CODE_ERROR,
+        "Failed to find the engine to be shut down.");
 
-    ten_app_push_to_in_msgs_queue(self, ret_cmd);
-
-    ten_shared_ptr_destroy(ret_cmd);
     return true;
   }
 
@@ -507,4 +501,25 @@ ten_connection_t *ten_app_find_src_connection_for_msg(ten_app_t *self,
   }
 
   return NULL;
+}
+
+void ten_app_create_cmd_result_and_dispatch(ten_app_t *self,
+                                            ten_shared_ptr_t *origin_cmd,
+                                            TEN_STATUS_CODE status_code,
+                                            const char *detail) {
+  TEN_ASSERT(self && ten_app_check_integrity(self, true), "Invalid argument.");
+  TEN_ASSERT(origin_cmd && ten_msg_is_cmd_and_result(origin_cmd),
+             "Invalid argument.");
+
+  ten_shared_ptr_t *cmd_result =
+      ten_cmd_result_create_from_cmd(status_code, origin_cmd);
+
+  if (detail) {
+    ten_msg_set_property(cmd_result, "detail", ten_value_create_string(detail),
+                         NULL);
+  }
+
+  ten_app_push_to_in_msgs_queue(self, cmd_result);
+
+  ten_shared_ptr_destroy(cmd_result);
 }

@@ -8,6 +8,7 @@
 
 #include "ten_runtime/ten_config.h"
 
+#include "ten_runtime/common/status_code.h"
 #include "ten_utils/lib/error.h"
 #include "ten_utils/lib/smart_ptr.h"
 
@@ -33,3 +34,7 @@ TEN_RUNTIME_PRIVATE_API ten_connection_t *ten_app_find_src_connection_for_msg(
 TEN_RUNTIME_PRIVATE_API void
 ten_app_do_connection_migration_or_push_to_engine_queue(
     ten_connection_t *connection, ten_engine_t *engine, ten_shared_ptr_t *msg);
+
+TEN_RUNTIME_PRIVATE_API void ten_app_create_cmd_result_and_dispatch(
+    ten_app_t *self, ten_shared_ptr_t *origin_cmd, TEN_STATUS_CODE status_code,
+    const char *detail);

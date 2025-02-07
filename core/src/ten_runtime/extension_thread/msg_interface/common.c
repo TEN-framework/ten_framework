@@ -66,18 +66,15 @@ static void ten_extension_thread_handle_in_msg_sync(
 
     // Return a result, so that the sender can know what's going on.
     if (ten_msg_get_type(msg) == TEN_MSG_TYPE_CMD) {
-      ten_shared_ptr_t *status =
-          ten_cmd_result_create_from_cmd(TEN_STATUS_CODE_ERROR, msg);
-      ten_msg_set_property(
-          status, "detail",
-          ten_value_create_vstring(
-              "The extension[%s] is invalid.",
-              ten_string_get_raw_str(&dest_loc->extension_name)),
-          NULL);
+      ten_string_t detail;
+      ten_string_init_formatted(
+          &detail, "The extension[%s] is invalid.",
+          ten_string_get_raw_str(&dest_loc->extension_name));
 
-      ten_extension_thread_dispatch_msg(self, status);
+      ten_extension_thread_create_cmd_result_and_dispatch(
+          self, msg, TEN_STATUS_CODE_ERROR, ten_string_get_raw_str(&detail));
 
-      ten_shared_ptr_destroy(status);
+      ten_string_deinit(&detail);
     } else {
       // The reason for the disappearance of the extension might be that the
       // extension's termination process is kind of _smooth_, allowing it to end
@@ -267,4 +264,29 @@ void ten_extension_thread_dispatch_msg(ten_extension_thread_t *self,
       }
     }
   }
+}
+
+void ten_extension_thread_create_cmd_result_and_dispatch(
+    ten_extension_thread_t *self, ten_shared_ptr_t *origin_cmd,
+    TEN_STATUS_CODE status_code, const char *detail) {
+  TEN_ASSERT(self && ten_extension_thread_check_integrity(self, true),
+             "Invalid argument.");
+  TEN_ASSERT(origin_cmd && ten_msg_is_cmd_and_result(origin_cmd),
+             "Invalid argument.");
+
+  ten_shared_ptr_t *cmd_result =
+      ten_cmd_result_create_from_cmd(status_code, origin_cmd);
+
+  if (detail) {
+    ten_msg_set_property(cmd_result, "detail", ten_value_create_string(detail),
+                         NULL);
+  }
+
+  ten_engine_t *engine = self->extension_context->engine;
+  TEN_ASSERT(engine && ten_engine_check_integrity(engine, false),
+             "Should not happen.");
+
+  ten_engine_push_to_extension_msgs_queue(engine, cmd_result);
+
+  ten_shared_ptr_destroy(cmd_result);
 }

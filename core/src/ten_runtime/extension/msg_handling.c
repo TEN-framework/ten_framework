@@ -8,11 +8,10 @@
 
 #include <stdbool.h>
 
-#include "include_internal/ten_runtime/engine/engine.h"
-#include "include_internal/ten_runtime/engine/internal/extension_interface.h"
 #include "include_internal/ten_runtime/extension/extension.h"
 #include "include_internal/ten_runtime/extension/extension_info/extension_info.h"
 #include "include_internal/ten_runtime/extension_context/extension_context.h"
+#include "include_internal/ten_runtime/extension_thread/msg_interface/common.h"
 #include "include_internal/ten_runtime/msg/cmd_base/cmd_base.h"
 #include "include_internal/ten_runtime/msg/cmd_base/cmd_result/cmd.h"
 #include "include_internal/ten_runtime/msg/msg.h"
@@ -105,19 +104,10 @@ void ten_extension_handle_in_msg(ten_extension_t *self, ten_shared_ptr_t *msg) {
     // because it is waiting indefinitely for a response.
 
     if (ten_msg_is_cmd(msg)) {
-      ten_engine_t *engine = self->extension_context->engine;
-      TEN_ASSERT(engine && ten_engine_check_integrity(engine, false),
-                 "Should not happen.");
-
-      ten_shared_ptr_t *cmd_result =
-          ten_cmd_result_create_from_cmd(TEN_STATUS_CODE_ERROR, msg);
-      ten_msg_set_property(
-          cmd_result, "detail",
-          ten_value_create_string("The destination extension is in its "
-                                  "de-initialization phase."),
-          NULL);
-      ten_engine_push_to_extension_msgs_queue(engine, cmd_result);
-      ten_shared_ptr_destroy(cmd_result);
+      ten_extension_thread_create_cmd_result_and_dispatch(
+          self->extension_thread, msg, TEN_STATUS_CODE_ERROR,
+          "The destination extension is in its "
+          "de-initialization phase.");
     }
 
     goto done;

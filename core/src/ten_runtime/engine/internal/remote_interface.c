@@ -476,13 +476,8 @@ void ten_engine_route_msg_to_remote(ten_engine_t *self, ten_shared_ptr_t *msg) {
     // If the message is a cmd, we should create a cmdResult to notify the
     // sender that the cmd is not successfully sent.
     if (ten_msg_is_cmd(msg)) {
-      ten_shared_ptr_t *cmd_result =
-          ten_cmd_result_create_from_cmd(TEN_STATUS_CODE_ERROR, msg);
-      ten_msg_set_property(cmd_result, "detail",
-                           ten_value_create_string(ten_error_message(&err)),
-                           NULL);
-      ten_engine_push_to_extension_msgs_queue(self, cmd_result);
-      ten_shared_ptr_destroy(cmd_result);
+      ten_engine_create_cmd_result_and_dispatch(
+          self, msg, TEN_STATUS_CODE_ERROR, ten_error_message(&err));
     }
   }
 

@@ -156,14 +156,9 @@ void ten_app_check_termination_when_engine_closed(ten_app_t *self,
     if (!ten_string_is_equal_c_str(&engine->graph_id, src_graph_id)) {
       // This engine is _not_ suicidal.
 
-      ten_shared_ptr_t *ret_cmd = ten_cmd_result_create_from_cmd(
-          TEN_STATUS_CODE_OK, engine->cmd_stop_graph);
-      ten_msg_set_property(ret_cmd, "detail",
-                           ten_value_create_string("close engine done"), NULL);
-
-      ten_app_push_to_in_msgs_queue(self, ret_cmd);
-
-      ten_shared_ptr_destroy(ret_cmd);
+      ten_app_create_cmd_result_and_dispatch(self, engine->cmd_stop_graph,
+                                             TEN_STATUS_CODE_OK,
+                                             "close engine done");
     }
   }
 

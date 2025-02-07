@@ -160,12 +160,8 @@ void ten_engine_return_ok_for_cmd_start_graph(
   TEN_ASSERT(cmd_start_graph && ten_cmd_base_check_integrity(cmd_start_graph),
              "Invalid argument.");
 
-  ten_shared_ptr_t *ret_cmd =
-      ten_cmd_result_create_from_cmd(TEN_STATUS_CODE_OK, cmd_start_graph);
-  ten_msg_set_property(ret_cmd, "detail", ten_value_create_string(""), NULL);
-
-  ten_engine_dispatch_msg(self, ret_cmd);  // Send back the cmd result.
-  ten_shared_ptr_destroy(ret_cmd);         // Delete the cmd result.
+  ten_engine_create_cmd_result_and_dispatch(self, cmd_start_graph,
+                                            TEN_STATUS_CODE_OK, "");
 }
 
 void ten_engine_return_error_for_cmd_start_graph(
@@ -182,17 +178,14 @@ void ten_engine_return_error_for_cmd_start_graph(
     va_list ap;
     va_start(ap, fmt);
 
-    // Return an error to the previous graph stage.
-    ten_shared_ptr_t *ret_cmd =
-        ten_cmd_result_create_from_cmd(TEN_STATUS_CODE_ERROR, cmd_start_graph);
-    ten_msg_set_property(ret_cmd, "detail", ten_value_create_vastring(fmt, ap),
-                         NULL);
+    ten_string_t *detail = ten_string_create_from_va_list(fmt, ap);
 
     va_end(ap);
 
-    ten_engine_dispatch_msg(self, ret_cmd);  // Send out the returned cmd.
-
-    ten_shared_ptr_destroy(ret_cmd);  // Delete the returned cmd.
+    ten_engine_create_cmd_result_and_dispatch(self, cmd_start_graph,
+                                              TEN_STATUS_CODE_ERROR,
+                                              ten_string_get_raw_str(detail));
+    ten_string_destroy(detail);
   }
 
   if (self->original_start_graph_cmd_of_enabling_engine) {
