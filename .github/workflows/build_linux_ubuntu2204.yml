@@ -209,6 +209,7 @@ jobs:
       - name: Run Tests (ten_utils_unit_test)
         env:
           ASAN_OPTIONS: detect_leaks=1:detect_stack_use_after_return=1:color=always:unmap_shadow_on_exit=1:abort_on_error=1
+          LSAN_OPTIONS: fast_unwind_on_malloc=1:max_leaks=5
           MALLOC_CHECK_: 3
           TEN_ENABLE_MEMORY_TRACKING: "true"
           TEN_ENABLE_BACKTRACE_DUMP: "true"
@@ -219,6 +220,7 @@ jobs:
       - name: Run Tests (ten_runtime_unit_test)
         env:
           ASAN_OPTIONS: detect_leaks=1:detect_stack_use_after_return=1:color=always:unmap_shadow_on_exit=1:abort_on_error=1
+          LSAN_OPTIONS: fast_unwind_on_malloc=1:max_leaks=5
           MALLOC_CHECK_: 3
           TEN_ENABLE_MEMORY_TRACKING: "true"
           TEN_ENABLE_BACKTRACE_DUMP: "true"
@@ -229,6 +231,7 @@ jobs:
       - name: Run Tests (ten_runtime_smoke_test)
         env:
           ASAN_OPTIONS: detect_leaks=1:detect_stack_use_after_return=1:color=always:unmap_shadow_on_exit=1:abort_on_error=1
+          LSAN_OPTIONS: fast_unwind_on_malloc=1:max_leaks=5
           MALLOC_CHECK_: 3
           TEN_ENABLE_MEMORY_TRACKING: "true"
           TEN_ENABLE_BACKTRACE_DUMP: "true"
@@ -240,6 +243,7 @@ jobs:
         if: matrix.arch == 'x64'
         env:
           ASAN_OPTIONS: detect_leaks=1:detect_stack_use_after_return=1:color=always:unmap_shadow_on_exit=1:abort_on_error=1
+          LSAN_OPTIONS: fast_unwind_on_malloc=1:max_leaks=5
           MALLOC_CHECK_: 3
           TEN_ENABLE_MEMORY_TRACKING: "true"
           TEN_ENABLE_BACKTRACE_DUMP: "true"
@@ -256,6 +260,7 @@ jobs:
         if: matrix.arch == 'x64'
         env:
           ASAN_OPTIONS: detect_leaks=1:detect_stack_use_after_return=1:color=always:unmap_shadow_on_exit=1:abort_on_error=1
+          LSAN_OPTIONS: fast_unwind_on_malloc=1:max_leaks=5
           MALLOC_CHECK_: 3
           TEN_ENABLE_MEMORY_TRACKING: "true"
           TEN_ENABLE_BACKTRACE_DUMP: "true"
@@ -274,6 +279,7 @@ jobs:
         if: matrix.arch == 'x64'
         env:
           ASAN_OPTIONS: detect_leaks=1:detect_stack_use_after_return=1:color=always:unmap_shadow_on_exit=1:abort_on_error=1
+          LSAN_OPTIONS: fast_unwind_on_malloc=1:max_leaks=5
           MALLOC_CHECK_: 3
           TEN_ENABLE_MEMORY_TRACKING: "true"
           TEN_ENABLE_BACKTRACE_DUMP: "true"
@@ -285,6 +291,7 @@ jobs:
         if: matrix.arch == 'x64'
         env:
           ASAN_OPTIONS: detect_leaks=1:detect_stack_use_after_return=1:color=always:unmap_shadow_on_exit=1:abort_on_error=1
+          LSAN_OPTIONS: fast_unwind_on_malloc=1:max_leaks=5
           MALLOC_CHECK_: 3
           TEN_ENABLE_MEMORY_TRACKING: "true"
           TEN_ENABLE_BACKTRACE_DUMP: "true"
