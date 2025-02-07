@@ -3,6 +3,7 @@
 # Licensed under the Apache License, Version 2.0.
 # See the LICENSE file for more information.
 #
+import asyncio
 from ten import (
     AudioFrame,
     VideoFrame,
@@ -23,11 +24,6 @@ class DefaultAsyncExtension(AsyncExtension):
         ten_env.log_debug("on_start")
 
         # TODO: read properties, initialize resources
-
-    async def on_stop(self, ten_env: AsyncTenEnv) -> None:
-        ten_env.log_debug("on_stop")
-
-        # TODO: clean up resources
 
     async def on_deinit(self, ten_env: AsyncTenEnv) -> None:
         ten_env.log_debug("on_deinit")
@@ -75,3 +71,10 @@ class DefaultAsyncExtension(AsyncExtension):
 
         # TODO: process video frame
         pass
+
+    async def on_stop(self, ten_env: AsyncTenEnv) -> None:
+        await asyncio.sleep(3)
+
+        # send a cmd
+        cmd = Cmd.create("test")
+        cmd_result, error = await ten_env.send_cmd(cmd)
