@@ -14,6 +14,7 @@
 #include "include_internal/ten_runtime/connection/connection.h"
 #include "include_internal/ten_runtime/connection/migration.h"
 #include "include_internal/ten_runtime/engine/engine.h"
+#include "include_internal/ten_runtime/engine/internal/extension_interface.h"
 #include "include_internal/ten_runtime/engine/internal/thread.h"
 #include "include_internal/ten_runtime/engine/msg_interface/common.h"
 #include "include_internal/ten_runtime/engine/msg_interface/start_graph.h"
@@ -454,14 +455,33 @@ void ten_engine_route_msg_to_remote(ten_engine_t *self, ten_shared_ptr_t *msg) {
   const char *dest_uri = ten_msg_get_first_dest_uri(msg);
   ten_remote_t *remote = ten_engine_find_remote(self, dest_uri);
 
+  ten_error_t err;
+  ten_error_init(&err);
+
+  bool success = false;
+
   if (remote) {
-    ten_remote_send_msg(remote, msg);
+    success = ten_remote_send_msg(remote, msg, &err);
   } else {
     TEN_LOGW("Could not find suitable remote based on uri: %s", dest_uri);
+
+    ten_error_set(&err, TEN_ERROR_CODE_GENERIC,
+                  "Could not find suitable remote based on uri: %s", dest_uri);
   }
 
   // It's unnecessary to search weak remotes, because weak remotes are not
   // ready to transfer messages.
+
+  if (!success) {
+    // If the message is a cmd, we should create a cmdResult to notify the
+    // sender that the cmd is not successfully sent.
+    if (ten_msg_is_cmd(msg)) {
+      ten_engine_create_cmd_result_and_dispatch(
+          self, msg, TEN_STATUS_CODE_ERROR, ten_error_message(&err));
+    }
+  }
+
+  ten_error_deinit(&err);
 }
 
 ten_remote_t *ten_engine_check_remote_is_existed(ten_engine_t *self,

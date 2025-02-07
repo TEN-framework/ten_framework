@@ -63,13 +63,8 @@ void ten_engine_handle_cmd_timer(ten_engine_t *self, ten_shared_ptr_t *cmd,
       ten_timer_close_async(timer);
 
       // Return a cmd result for the timer cancel command this time.
-      ten_shared_ptr_t *ret_cmd =
-          ten_cmd_result_create_from_cmd(TEN_STATUS_CODE_OK, cmd);
-      ten_msg_set_property(ret_cmd, "detail",
-                           ten_value_create_string("Operation is success."),
-                           NULL);
-      ten_engine_dispatch_msg(self, ret_cmd);
-      ten_shared_ptr_destroy(ret_cmd);
+      ten_engine_create_cmd_result_and_dispatch(self, cmd, TEN_STATUS_CODE_OK,
+                                                "Operation is success.");
     } else {
       TEN_ASSERT(
           0 && "Should not happen, because if we can find the timer, the timer "
@@ -93,23 +88,12 @@ void ten_engine_handle_cmd_timer(ten_engine_t *self, ten_shared_ptr_t *cmd,
 
       ten_timer_enable(timer);
 
-      ten_shared_ptr_t *ret_cmd =
-          ten_cmd_result_create_from_cmd(TEN_STATUS_CODE_OK, cmd);
-      ten_msg_set_property(ret_cmd, "detail",
-                           ten_value_create_string("Operation is success."),
-                           NULL);
-
-      ten_engine_dispatch_msg(self, ret_cmd);
-      ten_shared_ptr_destroy(ret_cmd);
+      ten_engine_create_cmd_result_and_dispatch(self, cmd, TEN_STATUS_CODE_OK,
+                                                "Operation is success.");
     } else {
-      ten_shared_ptr_t *ret_cmd =
-          ten_cmd_result_create_from_cmd(TEN_STATUS_CODE_ERROR, cmd);
-      ten_msg_set_property(
-          ret_cmd, "detail",
-          ten_value_create_string("Failed to cancel an un-existed timer."),
-          NULL);
-      ten_engine_dispatch_msg(self, ret_cmd);
-      ten_shared_ptr_destroy(ret_cmd);
+      ten_engine_create_cmd_result_and_dispatch(
+          self, cmd, TEN_STATUS_CODE_ERROR,
+          "Failed to cancel an un-existed timer.");
     }
   }
 }

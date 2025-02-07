@@ -20,7 +20,6 @@
 #include "include_internal/ten_runtime/extension_thread/extension_thread.h"
 #include "include_internal/ten_runtime/extension_thread/telemetry.h"
 #include "include_internal/ten_runtime/msg/msg.h"
-#include "include_internal/ten_utils/value/value.h"
 #include "ten_runtime/app/app.h"
 #include "ten_runtime/msg/cmd_result/cmd_result.h"
 #include "ten_runtime/ten_env/ten_env.h"
@@ -28,7 +27,6 @@
 #include "ten_utils/lib/event.h"
 #include "ten_utils/lib/smart_ptr.h"
 #include "ten_utils/lib/string.h"
-#include "ten_utils/lib/time.h"
 #include "ten_utils/macro/check.h"
 #include "ten_utils/macro/mark.h"
 
@@ -66,18 +64,15 @@ static void ten_extension_thread_handle_in_msg_sync(
 
     // Return a result, so that the sender can know what's going on.
     if (ten_msg_get_type(msg) == TEN_MSG_TYPE_CMD) {
-      ten_shared_ptr_t *status =
-          ten_cmd_result_create_from_cmd(TEN_STATUS_CODE_ERROR, msg);
-      ten_msg_set_property(
-          status, "detail",
-          ten_value_create_vstring(
-              "The extension[%s] is invalid.",
-              ten_string_get_raw_str(&dest_loc->extension_name)),
-          NULL);
+      ten_string_t detail;
+      ten_string_init_formatted(
+          &detail, "The extension[%s] is invalid.",
+          ten_string_get_raw_str(&dest_loc->extension_name));
 
-      ten_extension_thread_dispatch_msg(self, status);
+      ten_extension_thread_create_cmd_result_and_dispatch(
+          self, msg, TEN_STATUS_CODE_ERROR, ten_string_get_raw_str(&detail));
 
-      ten_shared_ptr_destroy(status);
+      ten_string_deinit(&detail);
     } else {
       // The reason for the disappearance of the extension might be that the
       // extension's termination process is kind of _smooth_, allowing it to end
@@ -102,7 +97,7 @@ static void ten_extension_thread_handle_in_msg_sync(
   }
 }
 
-static void ten_extension_thread_handle_in_msg_task(void *self_, void *arg) {
+void ten_extension_thread_handle_in_msg_task(void *self_, void *arg) {
   ten_extension_thread_t *self = (ten_extension_thread_t *)self_;
   TEN_ASSERT(self, "Invalid argument.");
   TEN_ASSERT(ten_extension_thread_check_integrity(self, true),
@@ -205,49 +200,6 @@ void ten_extension_thread_process_acquire_lock_mode_task(void *self_,
   TEN_ASSERT(!rc, "Should not happen.");
 }
 
-void ten_extension_thread_handle_in_msg_async(ten_extension_thread_t *self,
-                                              ten_shared_ptr_t *msg) {
-  TEN_ASSERT(self, "Invalid argument.");
-  TEN_ASSERT(ten_extension_thread_check_integrity(self, false),
-             "Invalid use of extension %p.", self);
-  TEN_ASSERT(msg && (ten_msg_get_dest_cnt(msg) == 1),
-             "When this function is executed, there should be only one "
-             "destination remaining in the message's dest.");
-
-  // This function would be called from threads other than the specified
-  // extension thread. However, because the runloop relevant functions called in
-  // this function have thread-safety protection of mutex in them, we do not
-  // need to use any further locking mechanisms in this function to do any
-  // protection.
-
-  if (ten_runloop_task_queue_size(self->runloop) >=
-      EXTENSION_THREAD_QUEUE_SIZE) {
-    if (!ten_msg_is_cmd_and_result(msg)) {
-      TEN_LOGW(
-          "Discard a data-like message (%s) because extension thread input "
-          "buffer is full.",
-          ten_msg_get_name(msg));
-      return;
-    }
-  }
-
-  msg = ten_shared_ptr_clone(msg);
-
-#if defined(TEN_ENABLE_TEN_RUST_APIS)
-  ten_msg_set_timestamp(msg, ten_current_time_us());
-#endif
-
-  int rc = ten_runloop_post_task_tail(
-      self->runloop, ten_extension_thread_handle_in_msg_task, self, msg);
-  // The extension thread might have already terminated. Therefore, even though
-  // the extension thread instance still exists, attempting to enqueue tasks
-  // into it will not succeed. It is necessary to account for this scenario to
-  // prevent memory leaks.
-  if (rc) {
-    ten_shared_ptr_destroy(msg);
-  }
-}
-
 void ten_extension_thread_dispatch_msg(ten_extension_thread_t *self,
                                        ten_shared_ptr_t *msg) {
   TEN_ASSERT(self, "Invalid argument.");
@@ -310,4 +262,38 @@ void ten_extension_thread_dispatch_msg(ten_extension_thread_t *self,
       }
     }
   }
+}
+
+void ten_extension_thread_create_cmd_result_and_dispatch(
+    ten_extension_thread_t *self, ten_shared_ptr_t *origin_cmd,
+    TEN_STATUS_CODE status_code, const char *detail) {
+  TEN_ASSERT(self && ten_extension_thread_check_integrity(self, true),
+             "Invalid argument.");
+  TEN_ASSERT(origin_cmd && ten_msg_is_cmd(origin_cmd), "Invalid argument.");
+
+  ten_shared_ptr_t *cmd_result =
+      ten_cmd_result_create_from_cmd(status_code, origin_cmd);
+
+  if (detail) {
+    ten_msg_set_property(cmd_result, "detail", ten_value_create_string(detail),
+                         NULL);
+  }
+
+  // TODO(Wei): Here, an optimization can be made: check whether
+  // cmd_result.dest_loc is the current extension_thread (i.e., `self`), and
+  // avoid post the `cmd_result` to the engine msg queue.
+  //
+  // - If it is, `cmd_result` can be directly placed into `self`'s message
+  //   queue.
+  // - Alternatively, the specific `extension` within this extension thread can
+  //   be identified, and its corresponding `on_xxx` function can be called
+  //   directly.
+
+  ten_engine_t *engine = self->extension_context->engine;
+  TEN_ASSERT(engine && ten_engine_check_integrity(engine, false),
+             "Should not happen.");
+
+  ten_engine_push_to_extension_msgs_queue(engine, cmd_result);
+
+  ten_shared_ptr_destroy(cmd_result);
 }

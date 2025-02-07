@@ -15,6 +15,7 @@
 #include "include_internal/ten_runtime/engine/internal/thread.h"
 #include "include_internal/ten_runtime/msg/msg.h"
 #include "include_internal/ten_runtime/protocol/protocol.h"
+#include "ten_runtime/common/error_code.h"
 #include "ten_utils/lib/alloc.h"
 #include "ten_utils/lib/smart_ptr.h"
 #include "ten_utils/lib/string.h"
@@ -257,14 +258,20 @@ bool ten_remote_on_input(ten_remote_t *self, ten_shared_ptr_t *msg,
   return true;
 }
 
-void ten_remote_send_msg(ten_remote_t *self, ten_shared_ptr_t *msg) {
+bool ten_remote_send_msg(ten_remote_t *self, ten_shared_ptr_t *msg,
+                         ten_error_t *err) {
   TEN_ASSERT(self && ten_remote_check_integrity(self, true),
              "Should not happen.");
 
   if (self->is_closing) {
     // The remote is closing, do not proceed to send this message to
     // 'connection'.
-    return;
+    if (err) {
+      ten_error_set(err, TEN_ERROR_CODE_TEN_IS_CLOSED,
+                    "Remote is closing, do not proceed to send this message.");
+    }
+
+    return false;
   }
 
   ten_connection_t *connection = self->connection;
@@ -276,6 +283,8 @@ void ten_remote_send_msg(ten_remote_t *self, ten_shared_ptr_t *msg) {
              "Connection should attach to remote.");
 
   ten_connection_send_msg(connection, msg);
+
+  return true;
 }
 
 static void on_server_connected(ten_protocol_t *protocol, bool success) {

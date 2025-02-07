@@ -10,6 +10,8 @@
 
 #include "include_internal/ten_runtime/extension/extension.h"
 #include "include_internal/ten_runtime/extension/extension_info/extension_info.h"
+#include "include_internal/ten_runtime/extension_context/extension_context.h"
+#include "include_internal/ten_runtime/extension_thread/msg_interface/common.h"
 #include "include_internal/ten_runtime/msg/cmd_base/cmd_base.h"
 #include "include_internal/ten_runtime/msg/cmd_base/cmd_result/cmd.h"
 #include "include_internal/ten_runtime/msg/msg.h"
@@ -94,7 +96,20 @@ void ten_extension_handle_in_msg(ten_extension_t *self, ten_shared_ptr_t *msg) {
 
   if (!msg_is_cmd_result && self->state >= TEN_EXTENSION_STATE_ON_DEINIT) {
     // The extension is in its de-initialization phase, and is not ready to
-    // handle any messages, so drop any messages.
+    // handle any messages.
+    //
+    // The runtime will create a cmdResult to notify the sender that the
+    // recipient cannot process the message due to being in an incorrect
+    // lifecycle. If the message is simply discarded, the sender may hang
+    // because it is waiting indefinitely for a response.
+
+    if (ten_msg_is_cmd(msg)) {
+      ten_extension_thread_create_cmd_result_and_dispatch(
+          self->extension_thread, msg, TEN_STATUS_CODE_ERROR,
+          "The destination extension is in its "
+          "de-initialization phase.");
+    }
+
     goto done;
   }
 

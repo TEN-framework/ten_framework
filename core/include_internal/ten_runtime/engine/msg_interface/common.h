@@ -10,6 +10,7 @@
 
 #include <stdbool.h>
 
+#include "ten_runtime/common/status_code.h"
 #include "ten_utils/lib/smart_ptr.h"
 
 typedef struct ten_engine_t ten_engine_t;
@@ -22,3 +23,7 @@ TEN_RUNTIME_PRIVATE_API void ten_engine_handle_in_msgs_async(
 
 TEN_RUNTIME_PRIVATE_API bool ten_engine_dispatch_msg(ten_engine_t *self,
                                                      ten_shared_ptr_t *msg);
+
+TEN_RUNTIME_PRIVATE_API void ten_engine_create_cmd_result_and_dispatch(
+    ten_engine_t *self, ten_shared_ptr_t *origin_cmd,
+    TEN_STATUS_CODE status_code, const char *detail);
