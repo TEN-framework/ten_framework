@@ -240,7 +240,7 @@ async fn upload_package_to_remote(
 
             headers.insert(
                 CONTENT_TYPE,
-                "application/gzip".parse().map_err(|e| {
+                "application/zip".parse().map_err(|e| {
                     eprintln!("Failed to parse content type: {}", e);
                     e
                 })?,
