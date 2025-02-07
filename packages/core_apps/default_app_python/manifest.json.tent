@@ -1,17 +1,17 @@
 {
   "type": "app",
   "name": "{{package_name}}",
-  "version": "0.8.11",
+  "version": "0.8.12",
   "dependencies": [
     {
       "type": "system",
       "name": "ten_runtime",
-      "version": "0.8.11"
+      "version": "0.8.12"
     },
     {
       "type": "system",
       "name": "ten_runtime_python",
-      "version": "0.8.11"
+      "version": "0.8.12"
     }
   ],
   "scripts": {
