@@ -136,6 +136,7 @@ ten_go_error_t ten_go_ten_env_log(uintptr_t bridge_addr, int level,
   }
 
   TEN_GO_TEN_ENV_IS_ALIVE_REGION_END(self);
+
   ten_error_deinit(&err);
   ten_env_notify_log_ctx_destroy(ctx);
 

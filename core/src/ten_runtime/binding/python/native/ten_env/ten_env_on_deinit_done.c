@@ -4,8 +4,6 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-#include <string.h>
-
 #include "include_internal/ten_runtime/binding/python/common.h"
 #include "include_internal/ten_runtime/binding/python/common/common.h"
 #include "include_internal/ten_runtime/binding/python/common/error.h"
@@ -69,6 +67,28 @@ static void ten_env_proxy_notify_on_deinit_done(ten_env_t *ten_env,
   }
 }
 
+static void ten_py_ten_env_detach_proxy(ten_py_ten_env_t *ten_env_bridge,
+                                        ten_error_t *err) {
+  TEN_ASSERT(ten_env_bridge && ten_py_ten_env_check_integrity(ten_env_bridge),
+             "Should not happen.");
+
+  ten_env_t *c_ten_env = ten_env_bridge->c_ten_env;
+  if (c_ten_env) {
+    TEN_ASSERT(c_ten_env->attach_to != TEN_ENV_ATTACH_TO_ADDON,
+               "Should not happen.");
+
+    ten_env_proxy_t *c_ten_env_proxy = ten_env_bridge->c_ten_env_proxy;
+    TEN_ASSERT(c_ten_env_proxy, "Should not happen.");
+    TEN_ASSERT(ten_env_proxy_get_thread_cnt(c_ten_env_proxy, err) == 1,
+               "Should not happen.");
+
+    ten_env_bridge->c_ten_env_proxy = NULL;
+
+    bool rc = ten_env_proxy_release(c_ten_env_proxy, err);
+    TEN_ASSERT(rc, "Should not happen.");
+  }
+}
+
 PyObject *ten_py_ten_env_on_deinit_done(PyObject *self,
                                         TEN_UNUSED PyObject *args) {
   ten_py_ten_env_t *py_ten_env = (ten_py_ten_env_t *)self;
@@ -99,18 +119,7 @@ PyObject *ten_py_ten_env_on_deinit_done(PyObject *self,
   // appropriate. Additionally, since this function is called from Python so
   // the Python GIL is held, it ensures that no other Python code is currently
   // using `ten_env`.
-  if (py_ten_env->c_ten_env_proxy) {
-    TEN_ASSERT(
-        ten_env_proxy_get_thread_cnt(py_ten_env->c_ten_env_proxy, NULL) == 1,
-        "Should not happen.");
-
-    ten_env_proxy_t *ten_env_proxy = py_ten_env->c_ten_env_proxy;
-
-    py_ten_env->c_ten_env_proxy = NULL;
-
-    bool rc = ten_env_proxy_release(ten_env_proxy, &err);
-    TEN_ASSERT(rc, "Should not happen.");
-  }
+  ten_py_ten_env_detach_proxy(py_ten_env, &err);
 
   ten_error_deinit(&err);
 
