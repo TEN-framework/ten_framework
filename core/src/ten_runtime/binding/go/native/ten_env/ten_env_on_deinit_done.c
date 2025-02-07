@@ -16,22 +16,17 @@ static void ten_go_ten_env_detach_proxy(ten_go_ten_env_t *ten_env_bridge,
   TEN_ASSERT(ten_env_bridge && ten_go_ten_env_check_integrity(ten_env_bridge),
              "Should not happen.");
 
-  ten_env_t *c_ten_env = ten_env_bridge->c_ten_env;
-  if (c_ten_env) {
-    TEN_ASSERT(c_ten_env->attach_to != TEN_ENV_ATTACH_TO_ADDON,
-               "Should not happen.");
-
-    ten_env_proxy_t *c_ten_env_proxy = ten_env_bridge->c_ten_env_proxy;
-    TEN_ASSERT(c_ten_env_proxy, "Should not happen.");
+  ten_env_proxy_t *c_ten_env_proxy = ten_env_bridge->c_ten_env_proxy;
+  if (c_ten_env_proxy) {
     TEN_ASSERT(ten_env_proxy_get_thread_cnt(c_ten_env_proxy, err) == 1,
                "Should not happen.");
-
-    ten_env_bridge->c_ten_env = NULL;
-    ten_env_bridge->c_ten_env_proxy = NULL;
 
     bool rc = ten_env_proxy_release(c_ten_env_proxy, err);
     TEN_ASSERT(rc, "Should not happen.");
   }
+
+  ten_env_bridge->c_ten_env = NULL;
+  ten_env_bridge->c_ten_env_proxy = NULL;
 }
 
 static void ten_env_proxy_notify_on_deinit_done(ten_env_t *ten_env,
