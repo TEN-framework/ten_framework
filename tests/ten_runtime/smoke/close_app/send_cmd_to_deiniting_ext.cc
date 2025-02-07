@@ -11,7 +11,6 @@
 #include "gtest/gtest.h"
 #include "include_internal/ten_runtime/binding/cpp/ten.h"
 #include "ten_runtime/binding/cpp/detail/ten_env_proxy.h"
-#include "ten_runtime/common/error_code.h"
 #include "ten_runtime/common/status_code.h"
 #include "ten_utils/lang/cpp/lib/error.h"
 #include "ten_utils/lib/thread.h"
@@ -21,15 +20,22 @@
 
 namespace {
 
-class test_extension_1 : public ten::extension_t {
+class test_extension_1 final : public ten::extension_t {
  public:
   explicit test_extension_1(const char *name) : ten::extension_t(name) {}
 
-  ~test_extension_1() {
+  ~test_extension_1() final {
     if (deinit_thread_.joinable()) {
       deinit_thread_.join();
     }
   }
+
+  // @{
+  test_extension_1(const test_extension_1 &other) noexcept = delete;
+  test_extension_1(test_extension_1 &&other) noexcept = delete;
+  test_extension_1 &operator=(const test_extension_1 &cmd) noexcept = delete;
+  test_extension_1 &operator=(test_extension_1 &&cmd) noexcept = delete;
+  // @}
 
   void on_cmd(ten::ten_env_t &ten_env,
               std::unique_ptr<ten::cmd_t> cmd) override {

@@ -274,6 +274,7 @@ static void ten_engine_post_msg_to_extension_thread(
   int rc = ten_runloop_post_task_tail(extension_thread->runloop,
                                       ten_extension_thread_handle_in_msg_task,
                                       extension_thread, msg);
+
   // The extension thread might have already terminated. Therefore, even though
   // the extension thread instance still exists, attempting to enqueue tasks
   // into it will not succeed. It is necessary to account for this scenario to

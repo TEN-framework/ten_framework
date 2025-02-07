@@ -11,7 +11,6 @@
 #include "gtest/gtest.h"
 #include "include_internal/ten_runtime/binding/cpp/ten.h"
 #include "ten_runtime/binding/cpp/detail/ten_env_proxy.h"
-#include "ten_runtime/common/error_code.h"
 #include "ten_runtime/common/status_code.h"
 #include "ten_utils/lang/cpp/lib/error.h"
 #include "ten_utils/lib/thread.h"
