@@ -83,8 +83,9 @@ TEN_RUNTIME_PRIVATE_API bool ten_remote_on_input(ten_remote_t *self,
                                                  ten_shared_ptr_t *msg,
                                                  ten_error_t *err);
 
-TEN_RUNTIME_PRIVATE_API void ten_remote_send_msg(ten_remote_t *self,
-                                                 ten_shared_ptr_t *msg);
+TEN_RUNTIME_PRIVATE_API bool ten_remote_send_msg(ten_remote_t *self,
+                                                 ten_shared_ptr_t *msg,
+                                                 ten_error_t *err);
 
 TEN_RUNTIME_PRIVATE_API bool ten_remote_is_uri_equal_to(ten_remote_t *self,
                                                         const char *uri);
