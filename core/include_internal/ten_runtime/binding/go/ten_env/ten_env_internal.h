@@ -28,10 +28,8 @@
 #define TEN_GO_TEN_ENV_IS_ALIVE_REGION_BEGIN(ten_env_bridge, err_stmt) \
   do {                                                                 \
     ten_rwlock_lock((ten_env_bridge)->lock, 1);                        \
-    if (((ten_env_bridge)->c_ten_env == NULL) ||                       \
-        (((ten_env_bridge)->c_ten_env->attach_to !=                    \
-          TEN_ENV_ATTACH_TO_ADDON) &&                                  \
-         ((ten_env_bridge)->c_ten_env_proxy == NULL))) {               \
+    if (((ten_env_bridge)->c_ten_env == NULL) &&                       \
+        ((ten_env_bridge)->c_ten_env_proxy == NULL)) {                 \
       ten_rwlock_unlock((ten_env_bridge)->lock, 1);                    \
       {                                                                \
         err_stmt                                                       \

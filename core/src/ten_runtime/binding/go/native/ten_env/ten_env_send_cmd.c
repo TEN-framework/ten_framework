@@ -168,8 +168,9 @@ ten_go_error_t ten_go_ten_env_send_cmd(uintptr_t bridge_addr,
     ten_go_error_from_error(&cgo_error, &err);
   }
 
-  TEN_GO_TEN_ENV_IS_ALIVE_REGION_END(self);
   ten_error_deinit(&err);
+
+  TEN_GO_TEN_ENV_IS_ALIVE_REGION_END(self);
 
 ten_is_close:
   return cgo_error;

@@ -56,14 +56,6 @@ static void ten_go_ten_env_destroy_c_part(void *ten_env_bridge_) {
   TEN_ASSERT(ten_env_bridge && ten_go_ten_env_check_integrity(ten_env_bridge),
              "Should not happen.");
 
-  // The C `ten_env` has already been destroyed, so the pointer needs to be
-  // updated to prevent the Go world from using the C `ten_env` again.
-  // Additionally, the writer lock must be held to avoid race conditions between
-  // the Go routine thread and the TEN internal thread.
-  ten_rwlock_lock(ten_env_bridge->lock, 0);
-  ten_env_bridge->c_ten_env = NULL;
-  ten_rwlock_unlock(ten_env_bridge->lock, 0);
-
   ten_go_bridge_destroy_c_part(&ten_env_bridge->bridge);
 
   // Remove the Go ten_env object from the global map.

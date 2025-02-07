@@ -9,7 +9,6 @@
 #include "ten_runtime/binding/go/interface/ten/ten_env.h"
 #include "ten_runtime/ten_env_proxy/ten_env_proxy.h"
 #include "ten_utils/lib/error.h"
-#include "ten_utils/lib/rwlock.h"
 #include "ten_utils/macro/check.h"
 
 static void ten_go_ten_env_detach_proxy(ten_go_ten_env_t *ten_env_bridge,
@@ -27,6 +26,7 @@ static void ten_go_ten_env_detach_proxy(ten_go_ten_env_t *ten_env_bridge,
     TEN_ASSERT(ten_env_proxy_get_thread_cnt(c_ten_env_proxy, err) == 1,
                "Should not happen.");
 
+    ten_env_bridge->c_ten_env = NULL;
     ten_env_bridge->c_ten_env_proxy = NULL;
 
     bool rc = ten_env_proxy_release(c_ten_env_proxy, err);
@@ -77,21 +77,29 @@ void ten_go_ten_env_on_deinit_done(uintptr_t bridge_addr) {
   ten_error_init(&err);
 
   bool rc = true;
-  if (self->c_ten_env->attach_to == TEN_ENV_ATTACH_TO_ADDON) {
-    rc = ten_env_on_deinit_done(self->c_ten_env, &err);
-  } else {
+
+  if (self->c_ten_env_proxy) {
     rc = ten_env_proxy_notify(self->c_ten_env_proxy,
                               ten_env_proxy_notify_on_deinit_done, self, false,
                               &err);
-  }
+  } else {
+    // TODO(Wei): This function is currently specifically designed for the addon
+    // because the addon currently does not have a main thread, so it's unable
+    // to use the ten_env_proxy mechanism to maintain thread safety. Once the
+    // main thread for the addon is determined in the future, these hacks made
+    // specifically for the addon can be completely removed, and comprehensive
+    // thread safety mechanism can be implemented.
+    TEN_ASSERT(self->c_ten_env->attach_to == TEN_ENV_ATTACH_TO_ADDON,
+               "Should not happen.");
 
+    rc = ten_env_on_deinit_done(self->c_ten_env, &err);
+  }
   TEN_ASSERT(rc, "Should not happen.");
 
   ten_go_ten_env_detach_proxy(self, &err);
+  ten_error_deinit(&err);
 
   TEN_GO_TEN_ENV_IS_ALIVE_REGION_END(self);
-
-  ten_error_deinit(&err);
 
 ten_is_close:
   return;

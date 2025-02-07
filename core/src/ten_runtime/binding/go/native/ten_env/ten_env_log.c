@@ -115,30 +115,33 @@ ten_go_error_t ten_go_ten_env_log(uintptr_t bridge_addr, int level,
   ten_error_t err;
   ten_error_init(&err);
 
-  if (self->c_ten_env->attach_to == TEN_ENV_ATTACH_TO_ADDON) {
-    // TODO(Wei): This function is currently specifically designed for the addon
-    // because the addon currently does not have a main thread, so it's unable
-    // to check thread safety. Once the main thread for the addon is determined
-    // in the future, these hacks made specifically for the addon can be
-    // completely removed, and comprehensive thread safety checking can be
-    // implemented.
-    ten_env_log_with_size_formatted_without_check_thread(
-        self->c_ten_env, ctx->level, ctx->func_name, ctx->func_name_len,
-        ctx->file_name, ctx->file_name_len, ctx->line_no, "%.*s", ctx->msg_len,
-        ctx->msg);
-  } else {
+  if (self->c_ten_env_proxy) {
     if (!ten_env_proxy_notify(self->c_ten_env_proxy, ten_env_proxy_notify_log,
                               ctx, false, &err)) {
       ten_go_error_from_error(&cgo_error, &err);
     } else {
       ten_event_wait(ctx->completed, -1);
     }
-  }
+  } else {
+    // TODO(Wei): This function is currently specifically designed for the addon
+    // because the addon currently does not have a main thread, so it's unable
+    // to use the ten_env_proxy mechanism to maintain thread safety. Once the
+    // main thread for the addon is determined in the future, these hacks made
+    // specifically for the addon can be completely removed, and comprehensive
+    // thread safety mechanism can be implemented.
+    TEN_ASSERT(self->c_ten_env->attach_to == TEN_ENV_ATTACH_TO_ADDON,
+               "Should not happen.");
 
-  TEN_GO_TEN_ENV_IS_ALIVE_REGION_END(self);
+    ten_env_log_with_size_formatted_without_check_thread(
+        self->c_ten_env, ctx->level, ctx->func_name, ctx->func_name_len,
+        ctx->file_name, ctx->file_name_len, ctx->line_no, "%.*s", ctx->msg_len,
+        ctx->msg);
+  }
 
   ten_error_deinit(&err);
   ten_env_notify_log_ctx_destroy(ctx);
+
+  TEN_GO_TEN_ENV_IS_ALIVE_REGION_END(self);
 
 ten_is_close:
   return cgo_error;
