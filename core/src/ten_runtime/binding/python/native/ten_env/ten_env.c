@@ -27,7 +27,6 @@ bool ten_py_ten_env_check_integrity(ten_py_ten_env_t *self) {
 
 static void ten_py_ten_env_c_part_destroyed(void *ten_env_bridge_) {
   ten_py_ten_env_t *ten_env_bridge = (ten_py_ten_env_t *)ten_env_bridge_;
-
   TEN_ASSERT(ten_env_bridge && ten_py_ten_env_check_integrity(ten_env_bridge),
              "Should not happen.");
 

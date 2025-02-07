@@ -51,7 +51,7 @@ static void ten_go_ten_env_destroy(ten_go_ten_env_t *self) {
   TEN_FREE(self);
 }
 
-static void ten_go_ten_env_destroy_c_part(void *ten_env_bridge_) {
+static void ten_go_ten_env_c_part_destroyed(void *ten_env_bridge_) {
   ten_go_ten_env_t *ten_env_bridge = (ten_go_ten_env_t *)ten_env_bridge_;
   TEN_ASSERT(ten_env_bridge && ten_go_ten_env_check_integrity(ten_env_bridge),
              "Should not happen.");
@@ -91,7 +91,7 @@ ten_go_ten_env_t *ten_go_ten_env_wrap(ten_env_t *c_ten_env) {
   ten_binding_handle_set_me_in_target_lang((ten_binding_handle_t *)c_ten_env,
                                            ten_env_bridge);
   ten_env_set_destroy_handler_in_target_lang(c_ten_env,
-                                             ten_go_ten_env_destroy_c_part);
+                                             ten_go_ten_env_c_part_destroyed);
 
   ten_env_bridge->lock = ten_rwlock_create(TEN_RW_DEFAULT_FAIRNESS);
 
