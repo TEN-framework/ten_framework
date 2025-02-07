@@ -20,8 +20,16 @@ typedef struct ten_py_ten_env_t {
 
   ten_signature_t signature;
 
+  // @{
+  // Above the binding layer, `c_ten_env_proxy` is used to interact with the C
+  // runtime. However, since addon does not have the concept of a main thread,
+  // it does not have the concept of `c_ten_env_proxy`. Therefore, only the
+  // addon path uses `c_ten_env`, while all other TEN types use
+  // `c_ten_env_proxy` for the associated `ten_env` concept.
   ten_env_t *c_ten_env;
   ten_env_proxy_t *c_ten_env_proxy;
+  // @}
+
   PyObject *actual_py_ten_env;
 
   // Mark whether the gil state need to be released after 'on_deinit_done'.

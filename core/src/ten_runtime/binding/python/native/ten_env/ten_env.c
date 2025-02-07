@@ -6,8 +6,6 @@
 //
 #include "include_internal/ten_runtime/ten_env/ten_env.h"
 
-#include <string.h>
-
 #include "include_internal/ten_runtime/binding/python/common/error.h"
 #include "include_internal/ten_runtime/binding/python/ten_env/ten_env.h"
 #include "object.h"

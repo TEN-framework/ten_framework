@@ -48,11 +48,15 @@ typedef struct ten_go_ten_env_t {
 
   ten_go_bridge_t bridge;
 
-  // Point to the corresponding C ten.
+  // @{
+  // Above the binding layer, `c_ten_env_proxy` is used to interact with the C
+  // runtime. However, since addon does not have the concept of a main thread,
+  // it does not have the concept of `c_ten_env_proxy`. Therefore, only the
+  // addon path uses `c_ten_env`, while all other TEN types use
+  // `c_ten_env_proxy` for the associated `ten_env` concept.
   ten_env_t *c_ten_env;
-
-  // Point to the corresponding C ten_env_proxy if any.
   ten_env_proxy_t *c_ten_env_proxy;
+  // @}
 
   ten_rwlock_t *lock;
 } ten_go_ten_env_t;
