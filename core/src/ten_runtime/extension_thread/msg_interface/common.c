@@ -279,6 +279,16 @@ void ten_extension_thread_create_cmd_result_and_dispatch(
                          NULL);
   }
 
+  // TODO(Wei): Here, an optimization can be made: check whether
+  // cmd_result.dest_loc is the current extension_thread (i.e., `self`), and
+  // avoid post the `cmd_result` to the engine msg queue.
+  //
+  // - If it is, `cmd_result` can be directly placed into `self`'s message
+  //   queue.
+  // - Alternatively, the specific `extension` within this extension thread can
+  //   be identified, and its corresponding `on_xxx` function can be called
+  //   directly.
+
   ten_engine_t *engine = self->extension_context->engine;
   TEN_ASSERT(engine && ten_engine_check_integrity(engine, false),
              "Should not happen.");
