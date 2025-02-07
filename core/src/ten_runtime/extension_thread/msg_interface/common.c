@@ -271,8 +271,7 @@ void ten_extension_thread_create_cmd_result_and_dispatch(
     TEN_STATUS_CODE status_code, const char *detail) {
   TEN_ASSERT(self && ten_extension_thread_check_integrity(self, true),
              "Invalid argument.");
-  TEN_ASSERT(origin_cmd && ten_msg_is_cmd_and_result(origin_cmd),
-             "Invalid argument.");
+  TEN_ASSERT(origin_cmd && ten_msg_is_cmd(origin_cmd), "Invalid argument.");
 
   ten_shared_ptr_t *cmd_result =
       ten_cmd_result_create_from_cmd(status_code, origin_cmd);
