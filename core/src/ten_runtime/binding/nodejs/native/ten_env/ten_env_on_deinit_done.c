@@ -62,6 +62,7 @@ napi_value ten_nodejs_ten_env_on_deinit_done(napi_env env,
 
   ten_error_t err;
   ten_error_init(&err);
+
   bool rc = false;
 
   if (ten_env_bridge->c_ten_env->attach_to == TEN_ENV_ATTACH_TO_ADDON) {

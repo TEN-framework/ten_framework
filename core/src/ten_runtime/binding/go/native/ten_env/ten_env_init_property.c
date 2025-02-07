@@ -96,6 +96,7 @@ ten_go_error_t ten_go_ten_env_init_property_from_json_bytes(
 done:
   ten_go_error_from_error(&cgo_error, &ctx->err);
   ten_env_notify_init_property_ctx_destroy(ctx);
+
   TEN_GO_TEN_ENV_IS_ALIVE_REGION_END(self);
 
 ten_is_close:

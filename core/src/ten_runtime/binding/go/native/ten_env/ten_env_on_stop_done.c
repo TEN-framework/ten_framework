@@ -45,7 +45,9 @@ void ten_go_ten_env_on_stop_done(uintptr_t bridge_addr) {
   TEN_ASSERT(rc, "Should not happen.");
 
   ten_error_deinit(&err);
+
   TEN_GO_TEN_ENV_IS_ALIVE_REGION_END(self);
+
 ten_is_close:
   return;
 }

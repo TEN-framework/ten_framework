@@ -186,7 +186,7 @@ PyObject *ten_py_ten_env_return_result(PyObject *self, PyObject *args) {
         "Invalid argument type when return result.");
   }
 
-  if (!py_ten_env->c_ten_env_proxy) {
+  if (!py_ten_env->c_ten_env_proxy && !py_ten_env->c_ten_env) {
     return ten_py_raise_py_value_error_exception(
         "ten_env.return_result() failed because the c_ten_env_proxy is "
         "invalid.");
@@ -253,7 +253,7 @@ PyObject *ten_py_ten_env_return_result_directly(PyObject *self,
         "Invalid argument type when return result directly.");
   }
 
-  if (!py_ten_env->c_ten_env_proxy) {
+  if (!py_ten_env->c_ten_env_proxy && !py_ten_env->c_ten_env) {
     return ten_py_raise_py_value_error_exception(
         "ten_env.return_result_directly() failed because the c_ten_env_proxy "
         "is invalid.");

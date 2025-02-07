@@ -40,15 +40,10 @@ void ten_go_ten_env_on_configure_done(uintptr_t bridge_addr) {
   ten_error_t err;
   ten_error_init(&err);
 
-  bool rc = true;
+  bool rc = ten_env_proxy_notify(self->c_ten_env_proxy,
+                                 ten_env_proxy_notify_on_configure_done, NULL,
+                                 false, &err);
 
-  if (self->c_ten_env->attach_to == TEN_ENV_ATTACH_TO_ADDON) {
-    rc = ten_env_on_configure_done(self->c_ten_env, &err);
-  } else {
-    rc = ten_env_proxy_notify(self->c_ten_env_proxy,
-                              ten_env_proxy_notify_on_configure_done, NULL,
-                              false, &err);
-  }
   TEN_ASSERT(rc, "Should not happen.");
 
   ten_error_deinit(&err);

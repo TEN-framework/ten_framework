@@ -6,8 +6,6 @@
 //
 #include "include_internal/ten_runtime/ten_env/ten_env.h"
 
-#include <string.h>
-
 #include "include_internal/ten_runtime/binding/python/common/error.h"
 #include "include_internal/ten_runtime/binding/python/ten_env/ten_env.h"
 #include "object.h"
@@ -29,11 +27,9 @@ bool ten_py_ten_env_check_integrity(ten_py_ten_env_t *self) {
 
 static void ten_py_ten_env_c_part_destroyed(void *ten_env_bridge_) {
   ten_py_ten_env_t *ten_env_bridge = (ten_py_ten_env_t *)ten_env_bridge_;
-
   TEN_ASSERT(ten_env_bridge && ten_py_ten_env_check_integrity(ten_env_bridge),
              "Should not happen.");
 
-  ten_env_bridge->c_ten_env = NULL;
   ten_py_ten_env_invalidate(ten_env_bridge);
 }
 
