@@ -72,21 +72,17 @@ static void ten_py_ten_env_detach_proxy(ten_py_ten_env_t *ten_env_bridge,
   TEN_ASSERT(ten_env_bridge && ten_py_ten_env_check_integrity(ten_env_bridge),
              "Should not happen.");
 
-  ten_env_t *c_ten_env = ten_env_bridge->c_ten_env;
-  if (c_ten_env) {
-    TEN_ASSERT(c_ten_env->attach_to != TEN_ENV_ATTACH_TO_ADDON,
-               "Should not happen.");
-
-    ten_env_proxy_t *c_ten_env_proxy = ten_env_bridge->c_ten_env_proxy;
-    TEN_ASSERT(c_ten_env_proxy, "Should not happen.");
+  ten_env_proxy_t *c_ten_env_proxy = ten_env_bridge->c_ten_env_proxy;
+  if (c_ten_env_proxy) {
     TEN_ASSERT(ten_env_proxy_get_thread_cnt(c_ten_env_proxy, err) == 1,
                "Should not happen.");
-
-    ten_env_bridge->c_ten_env_proxy = NULL;
 
     bool rc = ten_env_proxy_release(c_ten_env_proxy, err);
     TEN_ASSERT(rc, "Should not happen.");
   }
+
+  ten_env_bridge->c_ten_env = NULL;
+  ten_env_bridge->c_ten_env_proxy = NULL;
 }
 
 PyObject *ten_py_ten_env_on_deinit_done(PyObject *self,
@@ -95,25 +91,33 @@ PyObject *ten_py_ten_env_on_deinit_done(PyObject *self,
   TEN_ASSERT(py_ten_env && ten_py_ten_env_check_integrity(py_ten_env),
              "Invalid argument.");
 
+  if (!py_ten_env->c_ten_env_proxy && !py_ten_env->c_ten_env) {
+    return ten_py_raise_py_value_error_exception(
+        "ten_env.on_deinit_done() failed because ten_env(_proxy) is invalid.");
+  }
+
   ten_error_t err;
   ten_error_init(&err);
 
   bool rc = true;
-  if (py_ten_env->c_ten_env->attach_to == TEN_ENV_ATTACH_TO_ADDON) {
-    rc = ten_env_on_deinit_done(py_ten_env->c_ten_env, &err);
-  } else {
-    if (!py_ten_env->c_ten_env_proxy) {
-      // Avoid memory leak.
-      ten_error_deinit(&err);
 
-      return ten_py_raise_py_value_error_exception(
-          "ten_env.on_deinit_done() failed because ten_env_proxy is invalid.");
-    }
-
+  if (py_ten_env->c_ten_env_proxy) {
     rc = ten_env_proxy_notify(py_ten_env->c_ten_env_proxy,
                               ten_env_proxy_notify_on_deinit_done, py_ten_env,
                               false, &err);
+  } else {
+    // TODO(Wei): This function is currently specifically designed for the addon
+    // because the addon currently does not have a main thread, so it's unable
+    // to use the ten_env_proxy mechanism to maintain thread safety. Once the
+    // main thread for the addon is determined in the future, these hacks made
+    // specifically for the addon can be completely removed, and comprehensive
+    // thread safety mechanism can be implemented.
+    TEN_ASSERT(py_ten_env->c_ten_env->attach_to == TEN_ENV_ATTACH_TO_ADDON,
+               "Should not happen.");
+
+    rc = ten_env_on_deinit_done(py_ten_env->c_ten_env, &err);
   }
+  TEN_ASSERT(rc, "Should not happen.");
 
   // This is already the very end, so releasing `ten_env_proxy` here is
   // appropriate. Additionally, since this function is called from Python so
@@ -122,8 +126,6 @@ PyObject *ten_py_ten_env_on_deinit_done(PyObject *self,
   ten_py_ten_env_detach_proxy(py_ten_env, &err);
 
   ten_error_deinit(&err);
-
-  TEN_ASSERT(rc, "Should not happen.");
 
   Py_RETURN_NONE;
 }

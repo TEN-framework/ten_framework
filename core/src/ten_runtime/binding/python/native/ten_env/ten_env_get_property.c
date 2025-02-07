@@ -121,7 +121,7 @@ PyObject *ten_py_ten_env_get_property_to_json(PyObject *self, PyObject *args) {
         "Failed to parse argument when ten_env.get_property_to_json.");
   }
 
-  if (!py_ten_env->c_ten_env_proxy) {
+  if (!py_ten_env->c_ten_env_proxy && !py_ten_env->c_ten_env) {
     return ten_py_raise_py_value_error_exception(
         "ten_env.get_property_to_json() failed because ten_env_proxy is "
         "invalid.");
@@ -171,7 +171,7 @@ PyObject *ten_py_ten_env_get_property_int(PyObject *self, PyObject *args) {
         "Failed to parse argument when ten_env.get_property_int.");
   }
 
-  if (!py_ten_env->c_ten_env_proxy) {
+  if (!py_ten_env->c_ten_env_proxy && !py_ten_env->c_ten_env) {
     return ten_py_raise_py_value_error_exception(
         "ten_env.get_property_int() failed because ten_env_proxy is invalid.");
   }
@@ -214,7 +214,7 @@ PyObject *ten_py_ten_env_get_property_string(PyObject *self, PyObject *args) {
         "Failed to parse argument when ten_env.get_property_string.");
   }
 
-  if (!py_ten_env->c_ten_env_proxy) {
+  if (!py_ten_env->c_ten_env_proxy && !py_ten_env->c_ten_env) {
     return ten_py_raise_py_value_error_exception(
         "ten_env.get_property_string() failed because ten_env_proxy is "
         "invalid.");
@@ -257,7 +257,7 @@ PyObject *ten_py_ten_env_get_property_bool(PyObject *self, PyObject *args) {
         "Failed to parse argument when ten_env.get_property_bool.");
   }
 
-  if (!py_ten_env->c_ten_env_proxy) {
+  if (!py_ten_env->c_ten_env_proxy && !py_ten_env->c_ten_env) {
     return ten_py_raise_py_value_error_exception(
         "ten_env.get_property_bool() failed because ten_env_proxy is invalid.");
   }
@@ -300,7 +300,7 @@ PyObject *ten_py_ten_env_get_property_float(PyObject *self, PyObject *args) {
         "Failed to parse argument when ten_env.get_property_float.");
   }
 
-  if (!py_ten_env->c_ten_env_proxy) {
+  if (!py_ten_env->c_ten_env_proxy && !py_ten_env->c_ten_env) {
     return ten_py_raise_py_value_error_exception(
         "ten_env.get_property_float() failed because ten_env_proxy is "
         "invalid.");
@@ -344,7 +344,7 @@ PyObject *ten_py_ten_env_is_property_exist(PyObject *self, PyObject *args) {
         "Failed to parse argument when ten_env.is_property_exist.");
   }
 
-  if (!py_ten_env->c_ten_env_proxy) {
+  if (!py_ten_env->c_ten_env_proxy && !py_ten_env->c_ten_env) {
     return ten_py_raise_py_value_error_exception(
         "ten_env.is_property_exist() failed because ten_env_proxy is invalid.");
   }

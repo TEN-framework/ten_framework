@@ -39,10 +39,9 @@ PyObject *ten_py_ten_env_on_configure_done(PyObject *self, PyObject *args) {
   ten_error_t err;
   ten_error_init(&err);
 
-  if (!py_ten_env->c_ten_env_proxy) {
+  if (!py_ten_env->c_ten_env_proxy && !py_ten_env->c_ten_env) {
     return ten_py_raise_py_value_error_exception(
-        "ten_env.on_configure_done() failed because ten_env_proxy is "
-        "invalid.");
+        "ten_env.on_configure_done() failed because ten_env_proxy is invalid.");
   }
 
   bool rc = ten_env_proxy_notify_async(py_ten_env->c_ten_env_proxy,

@@ -35,7 +35,7 @@ PyObject *ten_py_ten_env_on_start_done(PyObject *self,
   TEN_ASSERT(py_ten_env && ten_py_ten_env_check_integrity(py_ten_env),
              "Invalid argument.");
 
-  if (!py_ten_env->c_ten_env_proxy) {
+  if (!py_ten_env->c_ten_env_proxy && !py_ten_env->c_ten_env) {
     return ten_py_raise_py_value_error_exception(
         "ten_env.on_start_done() failed because ten_env_proxy is invalid.");
   }

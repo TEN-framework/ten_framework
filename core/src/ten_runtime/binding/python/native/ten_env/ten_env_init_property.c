@@ -163,7 +163,7 @@ PyObject *ten_py_ten_env_init_property_from_json(PyObject *self,
         "ten_env.init_property_from_json.");
   }
 
-  if (!py_ten_env->c_ten_env_proxy) {
+  if (!py_ten_env->c_ten_env_proxy && !py_ten_env->c_ten_env) {
     return ten_py_raise_py_value_error_exception(
         "ten_env.init_property_from_json() failed because ten_env_proxy is "
         "invalid.");
@@ -219,7 +219,7 @@ PyObject *ten_py_ten_env_init_property_from_json_async(PyObject *self,
         "ten_env.init_property_from_json_async.");
   }
 
-  if (!py_ten_env->c_ten_env_proxy) {
+  if (!py_ten_env->c_ten_env_proxy && !py_ten_env->c_ten_env) {
     return ten_py_raise_py_value_error_exception(
         "ten_env.init_property_from_json_async() failed because ten_env_proxy "
         "is invalid.");

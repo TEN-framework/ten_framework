@@ -149,7 +149,7 @@ PyObject *ten_py_ten_env_set_property_from_json_async(PyObject *self,
         "Failed to parse argument when ten_env.set_property_from_json_async.");
   }
 
-  if (!py_ten_env->c_ten_env_proxy) {
+  if (!py_ten_env->c_ten_env_proxy && !py_ten_env->c_ten_env) {
     return ten_py_raise_py_value_error_exception(
         "ten_env.set_property_from_json_async() failed because ten_env_proxy "
         "is invalid.");
@@ -207,7 +207,7 @@ PyObject *ten_py_ten_env_set_property_string_async(PyObject *self,
         "Failed to parse argument when ten_env.set_property_string_async.");
   }
 
-  if (!py_ten_env->c_ten_env_proxy) {
+  if (!py_ten_env->c_ten_env_proxy && !py_ten_env->c_ten_env) {
     return ten_py_raise_py_value_error_exception(
         "ten_env.set_property_string_async() failed because ten_env_proxy is "
         "invalid.");
@@ -256,7 +256,7 @@ PyObject *ten_py_ten_env_set_property_int_async(PyObject *self,
         "Failed to parse argument when ten_env.set_property_int_async.");
   }
 
-  if (!py_ten_env->c_ten_env_proxy) {
+  if (!py_ten_env->c_ten_env_proxy && !py_ten_env->c_ten_env) {
     return ten_py_raise_py_value_error_exception(
         "ten_env.set_property_int_async() failed because ten_env_proxy is "
         "invalid.");
@@ -305,7 +305,7 @@ PyObject *ten_py_ten_env_set_property_bool_async(PyObject *self,
         "Failed to parse argument when ten_env.set_property_bool_async.");
   }
 
-  if (!py_ten_env->c_ten_env_proxy) {
+  if (!py_ten_env->c_ten_env_proxy && !py_ten_env->c_ten_env) {
     return ten_py_raise_py_value_error_exception(
         "ten_env.set_property_bool_async() failed because ten_env_proxy is "
         "invalid.");
@@ -354,7 +354,7 @@ PyObject *ten_py_ten_env_set_property_float_async(PyObject *self,
         "Failed to parse argument when ten_env.set_property_float_async.");
   }
 
-  if (!py_ten_env->c_ten_env_proxy) {
+  if (!py_ten_env->c_ten_env_proxy && !py_ten_env->c_ten_env) {
     return ten_py_raise_py_value_error_exception(
         "ten_env.set_property_float_async() failed because ten_env_proxy is "
         "invalid.");

@@ -158,7 +158,7 @@ PyObject *ten_py_ten_env_send_data(PyObject *self, PyObject *args) {
         "Invalid argument type when send data.");
   }
 
-  if (!py_ten_env->c_ten_env_proxy) {
+  if (!py_ten_env->c_ten_env_proxy && !py_ten_env->c_ten_env) {
     return ten_py_raise_py_value_error_exception(
         "ten_env.send_data() failed because the c_ten_env_proxy is invalid.");
   }
