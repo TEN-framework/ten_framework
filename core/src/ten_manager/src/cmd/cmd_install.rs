@@ -152,6 +152,8 @@ pub fn parse_sub_cmd(sub_cmd_args: &ArgMatches) -> Result<InstallCommand> {
         local_path: None,
     };
 
+    let _ = cmd.support.set_defaults();
+
     // Retrieve the first positional parameter (in the `PACKAGE_TYPE`
     // parameter).
     if let Some(first_arg) = sub_cmd_args.get_one::<String>("PACKAGE_TYPE") {
