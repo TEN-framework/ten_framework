@@ -32,26 +32,34 @@ jobs:
             console.log(`Cancelling workflows related to PR #${prNumber} (SHA: ${headSha})`);
 
             // Retrieve all workflow runs associated with the head SHA of the PR.
-            const runs = await github.rest.actions.listWorkflowRunsForRepo({
+
+            // Query and cancel workflows in the in_progress status.
+            const inProgressRuns = await github.rest.actions.listWorkflowRunsForRepo({
               owner,
               repo,
               head_sha: headSha,
               status: 'in_progress',
             });
 
-            if (runs.data.workflow_runs.length === 0) {
-              console.log('No workflow runs found to cancel.');
-              return;
-            }
+            // Query and cancel workflows in the queued status.
+            const queuedRuns = await github.rest.actions.listWorkflowRunsForRepo({
+              owner,
+              repo,
+              head_sha: headSha,
+              status: 'queued',
+            });
+
+            // Merge the two results and then proceed with cancellation.
+            const runsToCancel = [...inProgressRuns.data.workflow_runs, ...queuedRuns.data.workflow_runs];
 
             // Cancel all related workflow runs.
-            for (const run of runs.data.workflow_runs) {
+            for (const run of runsToCancel) {
               if (run.id.toString() === currentRunId) {
-                console.log(`Skipping cancellation of current workflow run: ${run.id} (${run.name})`);
+                console.log(`Skipping current run: ${run.id} (${run.name})`);
                 continue;
               }
 
-              console.log(`Cancel workflow run: ${run.id} (${run.name})`);
+              console.log(`Cancelling workflow run: ${run.id} (${run.name})`);
               await github.rest.actions.cancelWorkflowRun({
                 owner,
                 repo,
