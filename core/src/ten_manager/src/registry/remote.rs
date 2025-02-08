@@ -145,6 +145,7 @@ async fn get_package_upload_info(
                     .collect(),
                 hash: pkg_info.hash.clone(),
                 download_url: String::new(),
+                content_format: Some("gzip".to_string()),
             });
 
             tman_verbose_println!(
@@ -240,7 +241,7 @@ async fn upload_package_to_remote(
 
             headers.insert(
                 CONTENT_TYPE,
-                "application/zip".parse().map_err(|e| {
+                "application/gzip".parse().map_err(|e| {
                     eprintln!("Failed to parse content type: {}", e);
                     e
                 })?,

@@ -7,10 +7,10 @@
 
 // Go to https://ten-console.theten.ai/ to get user token.
 pub const DEFAULT_REGISTRY: &str =
-    "https://ten-store.theten.ai/api/ten-cloud-store/v1/packages";
+    "https://ten-store.theten.ai/api/ten-cloud-store/v2/packages";
 
 pub const CN_REGISTRY: &str =
-    "https://registry-ten.rtcdeveloper.cn/api/ten-cloud-store/v1/packages";
+    "https://registry-ten.rtcdeveloper.cn/api/ten-cloud-store/v2/packages";
 
 // This comment is just for reference.
 //
