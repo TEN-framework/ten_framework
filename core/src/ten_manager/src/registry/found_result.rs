@@ -24,6 +24,10 @@ pub struct PkgRegistryInfo {
 
     #[serde(rename = "downloadUrl")]
     pub download_url: String,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(rename = "contentFormat")]
+    pub content_format: Option<String>,
 }
 
 mod dependencies_conversion {
@@ -75,6 +79,7 @@ impl From<&PkgInfo> for PkgRegistryInfo {
             dependencies: pkg_info.dependencies.clone(),
             hash: pkg_info.hash.clone(),
             download_url: String::new(),
+            content_format: None,
         }
     }
 }
