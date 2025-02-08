@@ -13,6 +13,7 @@ ten_package_test_prepare_app("local_dependency_1_go_app") {
   generated_app_src_root_dir_name = "local_dependency_1_go_app"
 
   replace_paths_after_install_app = [
+    "local_dependency_1_go_app/main.go",
     "local_dependency_1_go_app/manifest.json",
     "local_dependency_1_go_app/property.json",
     "local_dependency_1_go_app/ten_packages/extension/extension_a/extension.go",

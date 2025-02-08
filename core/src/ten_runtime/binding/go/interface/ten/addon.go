@@ -175,3 +175,18 @@ func tenGoAddonDestroyInstance(
 		)
 	}
 }
+
+//export tenGoAddonOnDestroy
+func tenGoAddonOnDestroy(
+	addonID C.uintptr_t,
+) {
+	obj := loadAndDeleteImmutableHandle(goHandle(addonID))
+	if obj == nil {
+		panic(
+			fmt.Sprintf(
+				"Failed to find addon from handle map, id: %d.",
+				uintptr(addonID),
+			),
+		)
+	}
+}

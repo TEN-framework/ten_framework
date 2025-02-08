@@ -7,13 +7,25 @@
 
 package ten
 
+// LogLevel is the log level.
 type LogLevel int32
 
 const (
+	// LogLevelVerbose is the verbose log level.
 	LogLevelVerbose = 1
-	LogLevelDebug   = 2
-	LogLevelInfo    = 3
-	LogLevelWarn    = 4
-	LogLevelError   = 5
-	LogLevelFatal   = 6
+
+	// LogLevelDebug is the debug log level.
+	LogLevelDebug = 2
+
+	// LogLevelInfo is the info log level.
+	LogLevelInfo = 3
+
+	// LogLevelWarn is the warn log level.
+	LogLevelWarn = 4
+
+	// LogLevelError is the error log level.
+	LogLevelError = 5
+
+	// LogLevelFatal is the fatal log level.
+	LogLevelFatal = 6
 )

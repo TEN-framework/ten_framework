@@ -7,7 +7,7 @@
 
 package ten
 
-//#include "msg.h"
+// #include "msg.h"
 import "C"
 
 import (
@@ -42,7 +42,6 @@ const (
 type Msg interface {
 	getCPtr() C.uintptr_t
 	free()
-	postSyncJob(payload job) any
 	keepAlive()
 
 	GetName() (string, error)
@@ -187,10 +186,6 @@ var (
 // private field, just access the field directly.
 func (p *msg) getCPtr() C.uintptr_t {
 	return p.cPtr
-}
-
-func (p *msg) postSyncJob(payload job) any {
-	return p.process(payload)
 }
 
 func (p *msg) GetName() (string, error) {

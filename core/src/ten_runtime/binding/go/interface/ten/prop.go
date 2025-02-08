@@ -7,8 +7,8 @@
 
 package ten
 
-//#include <stdbool.h>
-//#include "common.h"
+// #include <stdbool.h>
+// #include "common.h"
 import "C"
 
 import (

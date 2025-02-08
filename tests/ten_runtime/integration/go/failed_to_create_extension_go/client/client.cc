@@ -23,6 +23,6 @@ int main(TEN_UNUSED int argc, TEN_UNUSED char **argv) {
                  "The extension[A] is invalid.",
              "Should not happen.");
 
-  // NOTE the order: client destroy, then connection lost, then nodejs exits.
+  // NOTE the order: client destroy, then connection lost, then go app exits.
   delete client;
 }

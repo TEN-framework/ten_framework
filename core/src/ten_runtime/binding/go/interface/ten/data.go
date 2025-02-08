@@ -7,7 +7,8 @@
 
 package ten
 
-//#include "data.h"
+// #include "msg.h"
+// #include "data.h"
 import "C"
 
 import (
@@ -35,6 +36,7 @@ func newData(bridge C.uintptr_t) *data {
 
 var _ Data = new(data)
 
+// NewData creates a new data message.
 func NewData(dataName string) (Data, error) {
 	if len(dataName) == 0 {
 		return nil, newTenError(

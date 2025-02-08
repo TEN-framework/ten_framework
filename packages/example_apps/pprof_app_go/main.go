@@ -117,6 +117,4 @@ func main() {
 
 	appInstance.Run(true)
 	appInstance.Wait()
-
-	fmt.Println("ten leak obj Size:", ten.LeakObjSize())
 }

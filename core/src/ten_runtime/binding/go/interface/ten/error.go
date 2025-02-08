@@ -7,7 +7,7 @@
 
 package ten
 
-//#include "common.h"
+// #include "common.h"
 import "C"
 
 import (

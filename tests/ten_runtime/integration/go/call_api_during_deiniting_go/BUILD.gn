@@ -13,6 +13,7 @@ ten_package_test_prepare_app("call_api_during_deiniting_go_app") {
   generated_app_src_root_dir_name = "call_api_during_deiniting_go_app"
 
   replace_paths_after_install_app = [
+    "call_api_during_deiniting_go_app/main.go",
     "call_api_during_deiniting_go_app/manifest.json",
     "call_api_during_deiniting_go_app/property.json",
     "call_api_during_deiniting_go_app/ten_packages/extension/default_extension_go/extension.go",

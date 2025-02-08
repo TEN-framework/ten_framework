@@ -14,8 +14,11 @@ import (
 )
 
 var (
+	// ErrPoolNotRunning is returned when the pool is not running.
 	ErrPoolNotRunning = errors.New("the pool is not running")
-	ErrWorkerClosed   = errors.New("worker was closed")
+
+	// ErrWorkerClosed is returned when the worker is closed.
+	ErrWorkerClosed = errors.New("worker was closed")
 )
 
 // The global pool is used to execute cgo functions without creating two many

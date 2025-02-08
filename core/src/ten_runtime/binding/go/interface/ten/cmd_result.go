@@ -7,7 +7,7 @@
 
 package ten
 
-//#include "cmd.h"
+// #include "cmd.h"
 import "C"
 
 // StatusCode is an alias of TEN_STATUS_CODE from TEN runtime.

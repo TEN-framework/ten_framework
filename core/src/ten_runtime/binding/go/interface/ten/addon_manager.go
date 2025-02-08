@@ -12,10 +12,12 @@ import "C"
 
 import (
 	"fmt"
+	"runtime"
 	"sync"
 	"unsafe"
 )
 
+// AddonManager is a manager for addons.
 type AddonManager struct {
 	// Define a registry map to store addon registration functions.
 	// The key is the addonName (string), and the value is a function that takes
@@ -52,7 +54,7 @@ func (am *AddonManager) RegisterAddonAsExtension(
 		addonID := newImmutableHandle(addonWrapper)
 
 		var bridge C.uintptr_t
-		cgo_error := C.ten_go_addon_register_extension(
+		cgoError := C.ten_go_addon_register_extension(
 			unsafe.Pointer(unsafe.StringData(addonName)),
 			C.int(len(addonName)),
 			cHandle(addonID),
@@ -66,12 +68,16 @@ func (am *AddonManager) RegisterAddonAsExtension(
 			&bridge,
 		)
 
-		if err := withCGoError(&cgo_error); err != nil {
+		if err := withCGoError(&cgoError); err != nil {
 			loadAndDeleteImmutableHandle(addonID)
 			return err
 		}
 
 		addonWrapper.cPtr = bridge
+
+		runtime.SetFinalizer(addonWrapper, func(p *addon) {
+			C.ten_go_addon_unregister(p.cPtr)
+		})
 
 		return nil
 	}
@@ -109,23 +115,14 @@ func (am *AddonManager) RegisterAllAddons(registerCtx interface{}) error {
 	return nil
 }
 
-// unloadAllAddons unloads all addons.
-func (am *AddonManager) unloadAllAddons() error {
-	clearImmutableHandles(func(value any) {
-		if addon, ok := value.(*addon); ok {
-			C.ten_go_addon_unregister(addon.cPtr)
-		}
-	})
-
-	return nil
-}
-
 var defaultAddonManager = newAddonManager()
 
+// RegisterAddonAsExtension registers the addon as an extension.
 func RegisterAddonAsExtension(addonName string, instance Addon) error {
 	return defaultAddonManager.RegisterAddonAsExtension(addonName, instance)
 }
 
+// RegisterAllAddons executes all registered addon registration functions.
 func RegisterAllAddons(registerCtx interface{}) error {
 	return defaultAddonManager.RegisterAllAddons(registerCtx)
 }

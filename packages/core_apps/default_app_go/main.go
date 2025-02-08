@@ -6,16 +6,8 @@
 
 package main
 
-// To detect memory leaks with ASan, need to enable the following cgo code.
-
-// void __lsan_do_leak_check(void);
-// import "C"
-
 import (
 	"fmt"
-	"runtime"
-	"runtime/debug"
-	"time"
 
 	"ten_framework/ten"
 )
@@ -43,15 +35,4 @@ func main() {
 
 	app.Run(true)
 	app.Wait()
-
-	// Explicitly trigger GC to increase the likelihood of finalizer execution.
-	debug.FreeOSMemory()
-	runtime.GC()
-
-	// Wait for a short period to give the GC time to run.
-	runtime.Gosched()
-	time.Sleep(3 * time.Second)
-
-	// To detect memory leaks with ASan, need to enable the following cgo code.
-	// C.__lsan_do_leak_check()
 }
