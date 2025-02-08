@@ -20,18 +20,40 @@ class ArgumentInfo(argparse.Namespace):
         self.src_app: str
         self.src_app_language: str
         self.generated_app_src_root_dir_name: str
-        self.replace_paths_after_install_app: list[str]
-        self.replace_paths_after_install_all: list[str]
+        self.replace_paths_after_install_app: list[list[str]]
+        self.replace_paths_after_install_all: list[list[str]]
 
 
 def dump_integration_test_preparation_info_json(args: ArgumentInfo):
+    def extract_dest(item):
+        if isinstance(item, list):
+            if len(item) >= 2:
+                return item[1]
+            elif len(item) == 1:
+                return item[0]
+        return None
+
     info = {
         "test_case_src_dir": args.test_case_src_dir,
         "src_app": args.src_app,
         "src_app_language": args.src_app_language,
         "generated_app_src_root_dir_name": args.generated_app_src_root_dir_name,
-        "replace_paths_after_install_app": args.replace_paths_after_install_app,
-        "replace_paths_after_install_all": args.replace_paths_after_install_all,
+        "replace_paths_after_install_app": (
+            [
+                extract_dest(item)
+                for item in args.replace_paths_after_install_app
+            ]
+            if args.replace_paths_after_install_app
+            else []
+        ),
+        "replace_paths_after_install_all": (
+            [
+                extract_dest(item)
+                for item in args.replace_paths_after_install_all
+            ]
+            if args.replace_paths_after_install_all
+            else []
+        ),
     }
 
     resource_dir = os.path.join(
@@ -48,7 +70,7 @@ def dump_integration_test_preparation_info_json(args: ArgumentInfo):
 
 
 def copy_replacement_files(
-    args: ArgumentInfo, replaced_files: list[str], dest_dir: str
+    args: ArgumentInfo, replaced_files: list[list[str]], dest_dir: str
 ):
     if replaced_files is None:
         return
@@ -60,9 +82,25 @@ def copy_replacement_files(
         dest_dir,
     )
 
-    for file in replaced_files:
-        src_file = os.path.join(args.test_case_src_dir, file)
-        dst_file = os.path.join(out_dir, file)
+    for entry in replaced_files:
+        if isinstance(entry, list):
+            if len(entry) == 1:
+                src_rel = entry[0]
+                dst_rel = entry[0]
+            elif len(entry) == 2:
+                src_rel, dst_rel = entry
+            else:
+                print(
+                    f"Invalid replacement specification: {entry}."
+                    "Must be one or two strings."
+                )
+                continue
+        else:
+            src_rel = entry
+            dst_rel = entry
+
+        src_file = os.path.join(args.test_case_src_dir, src_rel)
+        dst_file = os.path.join(out_dir, dst_rel)
         if not os.path.exists(src_file):
             print(f"File {src_file} does not exist")
             continue
@@ -114,15 +152,21 @@ if __name__ == "__main__":
     parser.add_argument(
         "--replace-paths-after-install-app",
         type=str,
+        nargs="+",
         action="append",
-        help="List of files to replace after installing app",
+        help="List of files to replace after installing app. "
+        "Each occurrence can be one string (source path) or two strings "
+        "(source and destination paths).",
     )
 
     parser.add_argument(
         "--replace-paths-after-install-all",
         type=str,
+        nargs="+",
         action="append",
-        help="List of files to replace after installing all",
+        help="List of files to replace after installing all. "
+        "Each occurrence can be one string (source path) or two strings "
+        "(source and destination paths).",
     )
 
     arg_info = ArgumentInfo()

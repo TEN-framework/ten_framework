@@ -116,8 +116,19 @@ template("ten_package_test_prepare_app") {
       replace_path_index = 0
 
       foreach(replace_path, invoker.replace_paths_after_install_app) {
-        replace_src_path = replace_path
-        replace_dest_path = "${test_case_out_dir_rel_path}/${replace_path}"
+        replace_info =
+            exec_script("//.gnfiles/build/scripts/get_src_and_dest_file.py",
+                        [
+                          "--input-string",
+                          replace_path,
+                          "--src-dest-delimiter",
+                          "=>",
+                        ],
+                        "json")
+
+        replace_src_path = replace_info.source
+        replace_dest_path =
+            "${test_case_out_dir_rel_path}/${replace_info.destination}"
 
         action(
             "${test_case_unique_target_name}_${_target_name}_after_install_app_replace_file_${replace_path_index}") {
@@ -216,8 +227,19 @@ template("ten_package_test_prepare_app") {
       replace_path_index = 0
 
       foreach(replace_path, invoker.replace_paths_after_install_all) {
-        replace_src_path = replace_path
-        replace_dest_path = "${test_case_out_dir_rel_path}/${replace_path}"
+        replace_info =
+            exec_script("//.gnfiles/build/scripts/get_src_and_dest_file.py",
+                        [
+                          "--input-string",
+                          replace_path,
+                          "--src-dest-delimiter",
+                          "=>",
+                        ],
+                        "json")
+
+        replace_src_path = replace_info.source
+        replace_dest_path =
+            "${test_case_out_dir_rel_path}/${replace_info.destination}"
 
         action(
             "${test_case_unique_target_name}_${_target_name}_after_install_all_replace_file_${replace_path_index}") {
@@ -350,26 +372,56 @@ template("ten_package_test_prepare_app") {
       if (defined(invoker.replace_paths_after_install_app) &&
           invoker.replace_paths_after_install_app != []) {
         foreach(replace_path, invoker.replace_paths_after_install_app) {
+          replace_info = []
+          replace_info =
+              exec_script("//.gnfiles/build/scripts/get_src_and_dest_file.py",
+                          [
+                            "--input-string",
+                            replace_path,
+                            "--src-dest-delimiter",
+                            "=>",
+                          ],
+                          "json")
+
+          replace_src_path = replace_info.source
+          replace_dest_path = replace_info.destination
+
           args += [
             "--replace-paths-after-install-app",
-            replace_path,
+            replace_src_path,
+            replace_dest_path,
           ]
 
-          sources += [ replace_path ]
-          outputs += [ "${test_case_out_dir_rel_path}/.assemble_info/${invoker.generated_app_src_root_dir_name}/files_to_be_replaced_after_install_app/${replace_path}" ]
+          sources += [ replace_src_path ]
+          outputs += [ "${test_case_out_dir_rel_path}/.assemble_info/${invoker.generated_app_src_root_dir_name}/files_to_be_replaced_after_install_app/${replace_dest_path}" ]
         }
       }
 
       if (defined(invoker.replace_paths_after_install_all) &&
           invoker.replace_paths_after_install_all != []) {
         foreach(replace_path, invoker.replace_paths_after_install_all) {
+          replace_info = []
+          replace_info =
+              exec_script("//.gnfiles/build/scripts/get_src_and_dest_file.py",
+                          [
+                            "--input-string",
+                            replace_path,
+                            "--src-dest-delimiter",
+                            "=>",
+                          ],
+                          "json")
+
+          replace_src_path = replace_info.source
+          replace_dest_path = replace_info.destination
+
           args += [
             "--replace-paths-after-install-all",
-            replace_path,
+            replace_src_path,
+            replace_dest_path,
           ]
 
-          sources += [ replace_path ]
-          outputs += [ "${test_case_out_dir_rel_path}/.assemble_info/${invoker.generated_app_src_root_dir_name}/files_to_be_replaced_after_install_all/${replace_path}" ]
+          sources += [ replace_src_path ]
+          outputs += [ "${test_case_out_dir_rel_path}/.assemble_info/${invoker.generated_app_src_root_dir_name}/files_to_be_replaced_after_install_all/${replace_dest_path}" ]
         }
       }
 
