@@ -13,7 +13,6 @@ ten_package_test_prepare_app("local_dependency_2_go_app") {
   generated_app_src_root_dir_name = "local_dependency_2_go_app"
 
   replace_paths_after_install_app = [
-    "local_dependency_2_go_app/main.go",
     "local_dependency_2_go_app/manifest.json",
     "local_dependency_2_go_app/property.json",
     "local_dependency_2_go_app/extension_a/extension.go",
@@ -21,6 +20,10 @@ ten_package_test_prepare_app("local_dependency_2_go_app") {
     "local_dependency_2_go_app/extension_a/manifest.json",
     "local_dependency_2_go_app/extension_a/property.json",
   ]
+
+  if (ten_enable_go_app_leak_check) {
+    replace_paths_after_install_app += [ "local_dependency_2_go_app/main.go" ]
+  }
 
   deps = [
     "//core/src/ten_manager",

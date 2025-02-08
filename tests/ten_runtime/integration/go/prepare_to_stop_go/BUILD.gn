@@ -13,7 +13,6 @@ ten_package_test_prepare_app("prepare_to_stop_go_app") {
   generated_app_src_root_dir_name = "prepare_to_stop_go_app"
 
   replace_paths_after_install_app = [
-    "prepare_to_stop_go_app/main.go",
     "prepare_to_stop_go_app/manifest.json",
     "prepare_to_stop_go_app/property.json",
     "prepare_to_stop_go_app/ten_packages/extension/extension_a/extension.go",
@@ -29,6 +28,10 @@ ten_package_test_prepare_app("prepare_to_stop_go_app") {
     "prepare_to_stop_go_app/ten_packages/extension/extension_c/manifest.json",
     "prepare_to_stop_go_app/ten_packages/extension/extension_c/property.json",
   ]
+
+  if (ten_enable_go_app_leak_check) {
+    replace_paths_after_install_app += [ "prepare_to_stop_go_app/main.go" ]
+  }
 
   if (ten_enable_ten_manager) {
     deps = [

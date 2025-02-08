@@ -13,7 +13,6 @@ ten_package_test_prepare_app("send_data_go_app") {
   generated_app_src_root_dir_name = "send_data_go_app"
 
   replace_paths_after_install_app = [
-    "send_data_go_app/main.go",
     "send_data_go_app/manifest.json",
     "send_data_go_app/property.json",
     "send_data_go_app/ten_packages/extension/default_extension_go/extension.go",
@@ -21,6 +20,10 @@ ten_package_test_prepare_app("send_data_go_app") {
     "send_data_go_app/ten_packages/extension/default_extension_go/manifest.json",
     "send_data_go_app/ten_packages/extension/default_extension_go/property.json",
   ]
+
+  if (ten_enable_go_app_leak_check) {
+    replace_paths_after_install_app += [ "send_data_go_app/main.go" ]
+  }
 
   deps = [
     "//core/src/ten_manager",

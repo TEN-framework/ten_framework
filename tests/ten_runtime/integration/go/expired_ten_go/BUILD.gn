@@ -13,7 +13,6 @@ ten_package_test_prepare_app("expired_ten_go_app") {
   generated_app_src_root_dir_name = "expired_ten_go_app"
 
   replace_paths_after_install_app = [
-    "expired_ten_go_app/main.go",
     "expired_ten_go_app/manifest.json",
     "expired_ten_go_app/property.json",
     "expired_ten_go_app/ten_packages/extension/extension_a/extension.go",
@@ -28,6 +27,10 @@ ten_package_test_prepare_app("expired_ten_go_app") {
     "expired_ten_go_app/go_common_dep/types/data.go",
     "expired_ten_go_app/go.mod",
   ]
+
+  if (ten_enable_go_app_leak_check) {
+    replace_paths_after_install_app += [ "expired_ten_go_app/main.go" ]
+  }
 
   if (ten_enable_ten_manager) {
     deps = [
