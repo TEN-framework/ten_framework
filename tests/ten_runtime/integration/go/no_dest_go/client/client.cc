@@ -25,6 +25,6 @@ int main(TEN_UNUSED int argc, TEN_UNUSED char **argv) {
   TEN_LOGD("Got result: %s", detail_str.c_str());
   TEN_ASSERT(detail_str == std::string("okok"), "Should not happen.");
 
-  // NOTE the order: client destroy, then connection lost, then nodejs exits.
+  // NOTE the order: client destroy, then connection lost, then go app exits.
   delete client;
 }

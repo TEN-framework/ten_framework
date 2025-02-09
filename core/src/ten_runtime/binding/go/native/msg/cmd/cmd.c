@@ -67,6 +67,8 @@ ten_go_error_t ten_go_cmd_clone(uintptr_t bridge_addr,
   ten_go_msg_t *cloned_msg_bridge = ten_go_msg_create(cloned_c_cmd);
   TEN_ASSERT(cloned_msg_bridge, "Should not happen.");
 
+  ten_shared_ptr_destroy(cloned_c_cmd);
+
   *cloned_bridge = (uintptr_t)cloned_msg_bridge;
 
   return cgo_error;
@@ -204,6 +206,8 @@ ten_go_error_t ten_go_cmd_result_clone(uintptr_t bridge_addr,
 
   ten_go_msg_t *cloned_msg_bridge = ten_go_msg_create(cloned_c_cmd);
   TEN_ASSERT(cloned_msg_bridge, "Should not happen.");
+
+  ten_shared_ptr_destroy(cloned_c_cmd);
 
   *cloned_bridge = (uintptr_t)cloned_msg_bridge;
 

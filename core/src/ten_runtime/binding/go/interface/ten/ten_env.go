@@ -7,7 +7,7 @@
 
 package ten
 
-//#include "ten_env.h"
+// #include "ten_env.h"
 import "C"
 
 import (
@@ -54,8 +54,6 @@ type TenEnv interface {
 	LogFatal(msg string) error
 
 	// Private functions.
-	postSyncJob(payload job) any
-	postAsyncJob(payload job) any
 	logInternal(level LogLevel, msg string, skip int) error
 }
 
@@ -87,36 +85,22 @@ type tenEnv struct {
 	baseTenObject[C.uintptr_t]
 
 	attachToType tenAttachTo
-	attachTo     unsafe.Pointer
 }
 
-func (p *tenEnv) attachToExtension(ext *extension) {
+func (p *tenEnv) attachToExtension() {
 	if p.attachToType != tenAttachToInvalid {
 		panic("The ten object can only be attached once.")
 	}
 
 	p.attachToType = tenAttachToExtension
-	p.attachTo = unsafe.Pointer(ext)
 }
 
-func (p *tenEnv) attachToApp(app *app) {
+func (p *tenEnv) attachToApp() {
 	if p.attachToType != tenAttachToInvalid {
 		panic("The ten object can only be attached once.")
 	}
 
 	p.attachToType = tenAttachToApp
-	p.attachTo = unsafe.Pointer(app)
-}
-
-func (p *tenEnv) postSyncJob(payload job) any {
-	// To prevent deadlock, we refuse to post jobs to the pool. So it's
-	// recommended for developers to call async ten apis in goroutines other
-	// than the ten goroutine.
-	return payload()
-}
-
-func (p *tenEnv) postAsyncJob(payload job) any {
-	return p.process(payload)
 }
 
 func (p *tenEnv) SendCmd(cmd Cmd, handler ResultHandler) error {

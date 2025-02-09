@@ -342,7 +342,7 @@ ten_addon_t *ten_addon_unregister(ten_addon_store_t *store,
                                   const char *addon_name) {
   TEN_ASSERT(store && addon_name, "Should not happen.");
 
-  TEN_LOGV("Unregistered addon '%s'", addon_name);
+  TEN_LOGI("Unregistered addon '%s'", addon_name);
 
   return ten_addon_store_del(store, addon_name);
 }

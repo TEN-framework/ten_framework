@@ -17,17 +17,33 @@ import (
 )
 
 type payload struct {
-	MsgId     string `json:"msg_id"`
-	OpenId    string `json:"openid"`
-	Content   string `json:"content"`
-	AvatarUrl string `json:"avatar_url"`
-	Nickname  string `json:"nickname"`
-	Timestamp int64  `json:"timestamp"`
+	// MsgID is the message id.
+	MsgID string `json:"msg_id"`
+
+	// OpenID is the open id.
+	OpenID string `json:"openid"`
+
+	// Content is the content.
+	Content string `json:"content"`
+
+	// AvatarURL is the avatar url.
+	AvatarURL string `json:"avatar_url"`
+
+	// Nickname is the nickname.
+	Nickname string `json:"nickname"`
+
+	// Timestamp is the timestamp.
+	Timestamp int64 `json:"timestamp"`
 }
 
 type liveMessage struct {
-	RoomId   string    `json:"room_id"`
-	AppId    string    `json:"app_id"`
+	// RoomID is the room id.
+	RoomID string `json:"room_id"`
+
+	// AppID is the app id.
+	AppID string `json:"app_id"`
+
+	// Payloads is the payloads.
 	Payloads []payload `json:"payloads"`
 }
 
@@ -37,8 +53,8 @@ type liveMessage struct {
 // N = 20, size = 3861
 func TestBytesSize(t *testing.T) {
 	msg := &liveMessage{
-		RoomId: strconv.FormatInt(rand.Int63(), 10),
-		AppId:  strconv.FormatInt(rand.Int63(), 10),
+		RoomID: strconv.FormatInt(rand.Int63(), 10),
+		AppID:  strconv.FormatInt(rand.Int63(), 10),
 	}
 
 	N := 20
@@ -46,10 +62,10 @@ func TestBytesSize(t *testing.T) {
 	msg.Payloads = make([]payload, 0, N)
 	for i := 0; i < N; i++ {
 		msg.Payloads = append(msg.Payloads, payload{
-			MsgId:     strconv.FormatInt(rand.Int63(), 10),
-			OpenId:    strconv.FormatInt(rand.Int63(), 10),
+			MsgID:     strconv.FormatInt(rand.Int63(), 10),
+			OpenID:    strconv.FormatInt(rand.Int63(), 10),
 			Content:   strconv.FormatInt(rand.Int63(), 10),
-			AvatarUrl: strconv.FormatInt(rand.Int63(), 10),
+			AvatarURL: strconv.FormatInt(rand.Int63(), 10),
 			Nickname:  strconv.FormatInt(rand.Int63(), 10),
 			Timestamp: time.Now().UnixMilli(),
 		})

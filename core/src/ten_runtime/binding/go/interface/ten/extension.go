@@ -17,6 +17,7 @@ import (
 	"unsafe"
 )
 
+// Extension is the interface for the extension.
 type Extension interface {
 	OnConfigure(tenEnv TenEnv)
 	OnInit(
@@ -36,40 +37,49 @@ type DefaultExtension struct{}
 
 var _ Extension = new(DefaultExtension)
 
+// OnConfigure configures the extension.
 func (p *DefaultExtension) OnConfigure(tenEnv TenEnv) {
 	tenEnv.OnConfigureDone()
 }
 
+// OnInit initializes the extension.
 func (p *DefaultExtension) OnInit(
 	tenEnv TenEnv,
 ) {
 	tenEnv.OnInitDone()
 }
 
+// OnStart starts the extension.
 func (p *DefaultExtension) OnStart(tenEnv TenEnv) {
 	tenEnv.OnStartDone()
 }
 
+// OnStop stops the extension.
 func (p *DefaultExtension) OnStop(tenEnv TenEnv) {
 	tenEnv.OnStopDone()
 }
 
+// OnDeinit deinitializes the extension.
 func (p *DefaultExtension) OnDeinit(tenEnv TenEnv) {
 	tenEnv.OnDeinitDone()
 }
 
+// OnCmd handles the command.
 func (p *DefaultExtension) OnCmd(tenEnv TenEnv, cmd Cmd) {
 }
 
+// OnData handles the data.
 func (p *DefaultExtension) OnData(tenEnv TenEnv, data Data) {
 }
 
+// OnVideoFrame handles the video frame.
 func (p *DefaultExtension) OnVideoFrame(
 	tenEnv TenEnv,
 	videoFrame VideoFrame,
 ) {
 }
 
+// OnAudioFrame handles the audio frame.
 func (p *DefaultExtension) OnAudioFrame(
 	tenEnv TenEnv,
 	audioFrame AudioFrame,
@@ -86,6 +96,7 @@ type extension struct {
 	baseTenObject[C.uintptr_t]
 }
 
+// WrapExtension wraps the user-defined extension instance as an Extension.
 func WrapExtension(
 	ext Extension,
 	name string,
@@ -97,13 +108,13 @@ func WrapExtension(
 	extObjID := newImmutableHandle(extInstance)
 
 	var bridge C.uintptr_t
-	cgo_error := C.ten_go_extension_create(
+	cgoError := C.ten_go_extension_create(
 		cHandle(extObjID),
 		unsafe.Pointer(unsafe.StringData(name)),
 		C.int(len(name)),
 		&bridge,
 	)
-	if err := withCGoError(&cgo_error); err != nil {
+	if err := withCGoError(&cgoError); err != nil {
 		log.Printf("Failed to create extension, %v\n", err)
 		return nil
 	}
@@ -148,7 +159,7 @@ func tenGoExtensionOnConfigure(
 		panic("Invalid ten object type.")
 	}
 
-	tenEnvInstance.attachToExtension(extensionObj)
+	tenEnvInstance.attachToExtension()
 
 	extensionObj.OnConfigure(tenEnvObj)
 }

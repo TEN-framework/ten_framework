@@ -21,6 +21,11 @@ ten_package_test_prepare_app("failed_to_create_extension_go_app") {
     "failed_to_create_extension_go_app/ten_packages/extension/extension_a/property.json",
   ]
 
+  if (ten_enable_go_app_leak_check) {
+    replace_paths_after_install_app +=
+        [ "failed_to_create_extension_go_app/main.go" ]
+  }
+
   deps = [
     "//core/src/ten_manager",
     "//packages/core_apps/default_app_go:upload_default_app_go_to_server",

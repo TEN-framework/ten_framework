@@ -7,7 +7,7 @@
 
 package ten
 
-//#include <stdint.h>
+// #include <stdint.h>
 import "C"
 
 import (
@@ -51,15 +51,6 @@ func (id handle) free() any {
 
 	return v
 }
-
-// @{
-// Internal use only.
-func LeakObjSize() int {
-	// TODO(Liu): Add for-range in ConcurrentMap.
-	return 0
-}
-
-// @}
 
 // @}
 

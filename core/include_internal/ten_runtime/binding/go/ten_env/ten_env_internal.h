@@ -89,11 +89,3 @@ void tenGoSetPropertyCallback(ten_go_handle_t ten_env, ten_go_handle_t handler,
 
 void tenGoGetPropertyCallback(ten_go_handle_t ten_env, ten_go_handle_t handler,
                               ten_go_handle_t value);
-
-void tenGoOnAddonCreateExtensionDone(ten_go_handle_t ten_env,
-                                     ten_go_handle_t addon,
-                                     ten_go_handle_t extension,
-                                     ten_go_handle_t handler);
-
-void tenGoOnAddonDestroyExtensionDone(ten_go_handle_t ten_env,
-                                      ten_go_handle_t handler);

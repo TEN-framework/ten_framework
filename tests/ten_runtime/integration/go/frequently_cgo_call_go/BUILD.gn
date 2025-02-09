@@ -25,6 +25,10 @@ ten_package_test_prepare_app("frequently_cgo_call_go_app") {
     "frequently_cgo_call_go_app/ten_packages/extension/extension_b/property.json",
   ]
 
+  if (ten_enable_go_app_leak_check) {
+    replace_paths_after_install_app += [ "frequently_cgo_call_go_app/main.go" ]
+  }
+
   if (ten_enable_ten_manager) {
     deps = [
       "//core/src/ten_manager",

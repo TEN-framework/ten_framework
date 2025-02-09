@@ -16,38 +16,44 @@ import (
 	"runtime"
 )
 
+// ExtensionTester is the interface for the extension tester.
 type ExtensionTester interface {
 	OnStart(tenEnv TenEnvTester)
 	OnCmd(tenEnv TenEnvTester, cmd Cmd)
 	OnData(tenEnv TenEnvTester, data Data)
-	OnAudioFrame(tenEnv TenEnvTester, audio_frame AudioFrame)
-	OnVideoFrame(tenEnv TenEnvTester, video_frame VideoFrame)
+	OnAudioFrame(tenEnv TenEnvTester, audioFrame AudioFrame)
+	OnVideoFrame(tenEnv TenEnvTester, videoFrame VideoFrame)
 }
 
-// DefaultExtension implements the Extension interface.
+// DefaultExtensionTester implements the Extension interface.
 type DefaultExtensionTester struct{}
 
 var _ ExtensionTester = new(DefaultExtensionTester)
 
+// OnStart starts the extension.
 func (p *DefaultExtensionTester) OnStart(tenEnv TenEnvTester) {
 	tenEnv.OnStartDone()
 }
 
+// OnCmd handles the command.
 func (p *DefaultExtensionTester) OnCmd(tenEnv TenEnvTester, cmd Cmd) {
 }
 
+// OnData handles the data.
 func (p *DefaultExtensionTester) OnData(tenEnv TenEnvTester, data Data) {
 }
 
+// OnAudioFrame handles the audio frame.
 func (p *DefaultExtensionTester) OnAudioFrame(
 	tenEnv TenEnvTester,
-	audio_frame AudioFrame,
+	audioFrame AudioFrame,
 ) {
 }
 
+// OnVideoFrame handles the video frame.
 func (p *DefaultExtensionTester) OnVideoFrame(
 	tenEnv TenEnvTester,
-	video_frame VideoFrame,
+	videoFrame VideoFrame,
 ) {
 }
 
@@ -57,6 +63,7 @@ type extTester struct {
 	baseTenObject[C.uintptr_t]
 }
 
+// WrapExtensionTester wraps the extension tester.
 func WrapExtensionTester(
 	extensionTester ExtensionTester,
 ) ExtensionTester {
@@ -67,12 +74,13 @@ func WrapExtensionTester(
 	extTesterObjID := newImmutableHandle(extTesterInstance)
 
 	var bridge C.uintptr_t
-	cgo_error := C.ten_go_extension_tester_create(
+	cgoError := C.ten_go_extension_tester_create(
 		cHandle(extTesterObjID),
 		&bridge,
 	)
-	if err := withCGoError(&cgo_error); err != nil {
+	if err := withCGoError(&cgoError); err != nil {
 		log.Printf("Failed to create extension tester, %v\n", err)
+		loadAndDeleteImmutableHandle(extTesterObjID)
 		return nil
 	}
 

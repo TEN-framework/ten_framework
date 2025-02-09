@@ -7,7 +7,7 @@
 
 package ten
 
-//#include "cmd.h"
+// #include "cmd.h"
 import "C"
 
 import (

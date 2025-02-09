@@ -7,7 +7,7 @@
 
 package ten
 
-//#include "msg.h"
+// #include "msg.h"
 import "C"
 import (
 	"fmt"

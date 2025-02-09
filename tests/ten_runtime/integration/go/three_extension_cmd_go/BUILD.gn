@@ -29,6 +29,10 @@ ten_package_test_prepare_app("three_extension_cmd_go_app") {
     "three_extension_cmd_go_app/ten_packages/extension/extension_c/property.json",
   ]
 
+  if (ten_enable_go_app_leak_check) {
+    replace_paths_after_install_app += [ "three_extension_cmd_go_app/main.go" ]
+  }
+
   if (ten_enable_ten_manager) {
     deps = [
       "//core/src/ten_manager",

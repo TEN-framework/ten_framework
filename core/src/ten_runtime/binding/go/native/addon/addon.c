@@ -40,6 +40,8 @@ void tenGoAddonCreateInstance(ten_go_handle_t go_addon,
 
 void tenGoAddonDestroyInstance(ten_go_handle_t go_instance);
 
+void tenGoAddonOnDestroy(ten_go_handle_t go_addon);
+
 bool ten_go_addon_check_integrity(ten_go_addon_t *self) {
   TEN_ASSERT(self, "Should not happen.");
 
@@ -215,6 +217,17 @@ static void ten_go_addon_destroy_instance_helper(ten_addon_t *addon,
   ten_env_on_destroy_instance_done(ten_env, context, NULL);
 }
 
+static void ten_go_addon_on_destroy(ten_addon_t *addon) {
+  TEN_ASSERT(addon && ten_addon_check_integrity(addon), "Should not happen.");
+
+  ten_go_addon_t *addon_bridge =
+      (ten_go_addon_t *)addon->binding_handle.me_in_target_lang;
+  TEN_ASSERT(addon_bridge && ten_go_addon_check_integrity(addon_bridge),
+             "Should not happen.");
+
+  tenGoAddonOnDestroy(addon_bridge->bridge.go_instance);
+}
+
 static ten_go_addon_t *ten_go_addon_register(const void *addon_name,
                                              int addon_name_len,
                                              uintptr_t go_addon,
@@ -244,7 +257,8 @@ static ten_go_addon_t *ten_go_addon_register(const void *addon_name,
       ten_addon_init(&addon_bridge->c_addon, ten_go_addon_on_init_helper,
                      ten_go_addon_on_deinit_helper,
                      ten_go_addon_create_extension_async_helper,
-                     ten_go_addon_destroy_instance_helper, NULL);
+                     ten_go_addon_destroy_instance_helper,
+                     ten_go_addon_on_destroy);
       break;
 
     case TEN_ADDON_TYPE_EXTENSION_GROUP:

@@ -168,8 +168,7 @@ void ten_extension_destroy(ten_extension_t *self) {
 
   TEN_ASSERT(self->ten_env, "Should not happen.");
 
-  // TODO(xilin): Make sure the thread safety.
-  // TEN_LOGD("[%s] Destroyed.", ten_extension_get_name(self, true));
+  TEN_LOGI("[%s] Destroyed.", ten_extension_get_name(self, false));
 
   ten_sanitizer_thread_check_deinit(&self->thread_check);
   ten_signature_set(&self->signature, 0);

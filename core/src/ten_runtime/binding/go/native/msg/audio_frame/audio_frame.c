@@ -16,6 +16,7 @@
 #include "ten_runtime/common/error_code.h"
 #include "ten_runtime/msg/msg.h"
 #include "ten_utils/lib/error.h"
+#include "ten_utils/lib/smart_ptr.h"
 #include "ten_utils/macro/check.h"
 
 ten_go_error_t ten_go_audio_frame_create(const void *name, int name_len,
@@ -469,6 +470,8 @@ ten_go_error_t ten_go_audio_frame_clone(uintptr_t bridge_addr,
 
   ten_go_msg_t *cloned_msg_bridge = ten_go_msg_create(cloned_c_audio_frame);
   TEN_ASSERT(cloned_msg_bridge, "Should not happen.");
+
+  ten_shared_ptr_destroy(cloned_c_audio_frame);
 
   *cloned_bridge = (uintptr_t)cloned_msg_bridge;
 
