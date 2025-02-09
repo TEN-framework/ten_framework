@@ -9,10 +9,12 @@
 #include <assert.h>
 #include <stdint.h>
 
+// clang-format off
 // Stupid Windows doesn't handle header files well
 // Include order matters in Windows
-#include <synchapi.h>
 #include <windows.h>
+#include <synchapi.h>
+// clang-format on
 
 #include "include_internal/ten_utils/lib/rwlock.h"
 
