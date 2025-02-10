@@ -24,12 +24,12 @@ typedef int64_t ten_error_code_t;
 #define TEN_ERROR_INIT_VAL                                             \
   (ten_error_t) {                                                      \
     .signature = TEN_ERROR_SIGNATURE, .error_code = TEN_ERROR_CODE_OK, \
+    .error_message = TEN_STRING_INIT_VAL                               \
   }
 
 #define TEN_ERROR_INIT(var)                                \
   do {                                                     \
     (var) = TEN_ERROR_INIT_VAL;                            \
-    (var).error_message = TEN_STRING_INIT_VAL;             \
     (var).error_message.buf = (var).error_message.pre_buf; \
   } while (0)
 
