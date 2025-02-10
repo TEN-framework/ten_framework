@@ -255,8 +255,12 @@ class AsyncExtensionTester(_ExtensionTester):
 
     @final
     def run(self) -> None:
+        # This is a blocking operation.
         _ExtensionTester.run(self)
 
+        # If execution reaches this point, it means that the TEN app thread used
+        # for testing has already ended. Therefore, the process to terminate the
+        # asyncio thread/runloop is initiated.
         if hasattr(self, "_ten_thread") and self._ten_thread.is_alive():
             asyncio.run_coroutine_threadsafe(
                 self._stop_thread(), self._ten_loop
