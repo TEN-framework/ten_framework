@@ -186,7 +186,7 @@ void ten_go_ten_value_get_ptr(ten_value_t *self, ten_go_handle_t *value,
   TEN_ASSERT(value && status, "Should not happen.");
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   ten_shared_ptr_t *handle_ptr = ten_value_get_ptr(self, &err);
   if (ten_error_is_success(&err)) {

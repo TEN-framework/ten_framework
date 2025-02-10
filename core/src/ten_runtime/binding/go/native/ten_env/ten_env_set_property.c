@@ -68,7 +68,7 @@ static void ten_env_proxy_notify_set_property(ten_env_t *ten_env,
   ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   bool res = ten_env_set_property(ten_env, ten_string_get_raw_str(&ctx->path),
                                   ctx->c_value, &err);
@@ -107,7 +107,7 @@ static ten_go_error_t ten_go_ten_env_set_property(ten_go_ten_env_t *self,
   });
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   ten_env_notify_set_property_ctx_t *ctx =
       ten_env_notify_set_property_ctx_create(path, path_len, value,

@@ -202,7 +202,7 @@ error:
   return NULL;
 }
 
-ten_timer_t *ten_timer_create(ten_runloop_t *runloop, uint64_t timeout_in_us,
+ten_timer_t *ten_timer_create(ten_runloop_t *runloop, uint64_t timeout_us,
                               int32_t requested_times, bool auto_restart) {
   TEN_ASSERT(runloop && ten_runloop_check_integrity(runloop, true),
              "Should not happen.");
@@ -212,7 +212,7 @@ ten_timer_t *ten_timer_create(ten_runloop_t *runloop, uint64_t timeout_in_us,
     return NULL;
   }
 
-  self->timeout_in_us = timeout_in_us;
+  self->timeout_us = timeout_us;
   self->requested_times = requested_times;
   self->auto_restart = auto_restart;
 
@@ -231,7 +231,7 @@ ten_timer_t *ten_timer_create_with_cmd(ten_shared_ptr_t *cmd,
   }
 
   self->id = ten_cmd_timer_get_timer_id(cmd);
-  self->timeout_in_us = ten_cmd_timer_get_timeout_in_us(cmd);
+  self->timeout_us = ten_cmd_timer_get_timeout_us(cmd);
   self->requested_times = ten_cmd_timer_get_times(cmd);
   ten_loc_set_from_loc(&self->src_loc, ten_msg_get_src_loc(cmd));
 
@@ -276,7 +276,7 @@ void ten_timer_enable(ten_timer_t *self) {
     return;
   }
 
-  ten_runloop_timer_set_timeout(self->backend, self->timeout_in_us / 1000, 0);
+  ten_runloop_timer_set_timeout(self->backend, self->timeout_us / 1000, 0);
 
   ten_runloop_timer_start(self->backend, self->runloop,
                           ten_runloop_timer_on_triggered, self);

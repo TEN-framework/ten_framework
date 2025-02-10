@@ -166,7 +166,7 @@ static napi_value ten_nodejs_audio_frame_lock_buf(napi_env env,
   }
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   if (!ten_msg_add_locked_res_buf(
           audio_frame_bridge->msg.msg,
@@ -220,7 +220,7 @@ static napi_value ten_nodejs_audio_frame_unlock_buf(napi_env env,
   }
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   if (!ten_msg_remove_locked_res_buf(audio_frame_bridge->msg.msg, data, &err)) {
     napi_fatal_error(NULL, NAPI_AUTO_LENGTH, "Failed to unlock buffer.",

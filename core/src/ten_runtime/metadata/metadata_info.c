@@ -211,7 +211,7 @@ bool ten_metadata_info_set(ten_metadata_info_t *self, TEN_METADATA_TYPE type,
   ten_string_t *absolute_path = NULL;
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   do {
     if (!value) {

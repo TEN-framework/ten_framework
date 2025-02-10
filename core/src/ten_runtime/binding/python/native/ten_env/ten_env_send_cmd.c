@@ -124,7 +124,7 @@ static void ten_env_proxy_notify_send_cmd(ten_env_t *ten_env, void *user_data) {
   ten_env_notify_send_cmd_ctx_t *notify_info = user_data;
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   ten_env_send_cmd_options_t options = TEN_ENV_SEND_CMD_OPTIONS_INIT_VAL;
   if (notify_info->is_ex) {
@@ -198,7 +198,7 @@ PyObject *ten_py_ten_env_send_cmd(PyObject *self, PyObject *args) {
   bool success = true;
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   // Check if cb_func is callable.
   if (!PyCallable_Check(cb_func)) {

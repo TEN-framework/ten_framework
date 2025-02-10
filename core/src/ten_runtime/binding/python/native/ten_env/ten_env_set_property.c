@@ -55,7 +55,7 @@ static void ten_env_proxy_notify_set_property(ten_env_t *ten_env,
   TEN_ASSERT(ctx, "Should not happen.");
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   ctx->result = ten_env_set_property(
       ten_env, ten_string_get_raw_str(&ctx->path), ctx->c_value, &err);
@@ -72,7 +72,7 @@ static void ten_py_ten_env_set_property(ten_py_ten_env_t *self,
   TEN_ASSERT(value && ten_value_check_integrity(value), "Invalid argument.");
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   ten_env_notify_set_property_ctx_t *ctx =
       ten_env_notify_set_property_ctx_create(path, value);

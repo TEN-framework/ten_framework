@@ -36,6 +36,19 @@
 #define BUFFER_ENLARGE_RATIO 30
 #endif
 
+#define TEN_STRING_INIT_VAL                           \
+  (ten_string_t){.signature = TEN_STRING_SIGNATURE,   \
+                 .buf = NULL,                         \
+                 .pre_buf = {0},                      \
+                 .buf_size = TEN_STRING_PRE_BUF_SIZE, \
+                 .first_unused_idx = 0}
+
+#define TEN_STRING_INIT(var)     \
+  do {                           \
+    (var) = TEN_STRING_INIT_VAL; \
+    (var).buf = (var).pre_buf;   \
+  } while (0)
+
 typedef struct ten_list_t ten_list_t;
 
 typedef struct ten_string_t {

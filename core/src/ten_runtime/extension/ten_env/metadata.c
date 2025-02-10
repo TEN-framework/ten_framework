@@ -78,7 +78,7 @@ static void ten_extension_set_property_task(void *self_, void *arg) {
   TEN_ASSERT(set_property_context, "Should not happen.");
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   set_property_context->res = ten_extension_set_property(
       self, ten_string_get_raw_str(&set_property_context->path),
@@ -174,7 +174,7 @@ static void ten_extension_peek_property_task(void *self_, void *arg) {
   TEN_ASSERT(context, "Should not happen.");
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   context->res = ten_extension_peek_property(
       self, ten_string_get_raw_str(&context->path), &err);
@@ -271,7 +271,7 @@ static void ten_extension_peek_manifest_task(void *self_, void *arg) {
   TEN_ASSERT(context, "Should not happen.");
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   context->res = ten_extension_peek_manifest(
       self, ten_string_get_raw_str(&context->path), &err);

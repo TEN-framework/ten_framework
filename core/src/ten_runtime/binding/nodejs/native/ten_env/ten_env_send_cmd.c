@@ -157,7 +157,7 @@ static void ten_env_proxy_notify_send_cmd(ten_env_t *ten_env, void *user_data) {
   TEN_ASSERT(ctx, "Should not happen.");
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   bool rc = ten_env_send_cmd(ten_env, ctx->c_cmd, proxy_send_cmd_callback, ctx,
                              NULL, &err);
@@ -199,7 +199,7 @@ napi_value ten_nodejs_ten_env_send_cmd(napi_env env, napi_callback_info info) {
   RETURN_UNDEFINED_IF_NAPI_FAIL(cb_tsfn, "Failed to create TSFN");
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   ten_env_notify_send_cmd_ctx_t *notify_info =
       ten_env_notify_send_cmd_ctx_create(

@@ -85,7 +85,7 @@ PyObject *ten_py_data_lock_buf(PyObject *self, PyObject *args) {
              "Invalid argument.");
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   if (!ten_msg_add_locked_res_buf(py_data->msg.c_msg,
                                   ten_data_peek_buf(py_data->msg.c_msg)->data,
@@ -122,7 +122,7 @@ PyObject *ten_py_data_unlock_buf(PyObject *self, PyObject *args) {
   }
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   if (!ten_msg_remove_locked_res_buf(py_data->msg.c_msg, data, &err)) {
     return ten_py_raise_py_system_error_exception(
@@ -138,7 +138,7 @@ PyObject *ten_py_data_get_buf(PyObject *self, PyObject *args) {
              "Invalid argument.");
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   ten_buf_t *buf = ten_data_peek_buf(py_data->msg.c_msg);
   if (!buf) {

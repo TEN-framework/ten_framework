@@ -21,6 +21,18 @@ typedef int64_t ten_error_code_t;
 // 0 is a special TEN error code value, representing success/ok.
 #define TEN_ERROR_CODE_OK 0
 
+#define TEN_ERROR_INIT_VAL                                             \
+  (ten_error_t) {                                                      \
+    .signature = TEN_ERROR_SIGNATURE, .error_code = TEN_ERROR_CODE_OK, \
+  }
+
+#define TEN_ERROR_INIT(var)                                \
+  do {                                                     \
+    (var) = TEN_ERROR_INIT_VAL;                            \
+    (var).error_message = TEN_STRING_INIT_VAL;             \
+    (var).error_message.buf = (var).error_message.pre_buf; \
+  } while (0)
+
 typedef struct ten_error_t {
   ten_signature_t signature;
 

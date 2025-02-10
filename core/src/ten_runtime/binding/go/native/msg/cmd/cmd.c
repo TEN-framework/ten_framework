@@ -114,7 +114,7 @@ ten_go_error_t ten_go_cmd_result_set_final(uintptr_t bridge_addr,
   ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   bool success =
       ten_cmd_result_set_final(ten_go_msg_c_msg(msg_bridge), is_final, &err);
@@ -143,7 +143,7 @@ ten_go_error_t ten_go_cmd_result_is_final(uintptr_t bridge_addr,
   ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   bool is_final_ = ten_cmd_result_is_final(ten_go_msg_c_msg(msg_bridge), &err);
 
@@ -172,7 +172,7 @@ ten_go_error_t ten_go_cmd_result_is_completed(uintptr_t bridge_addr,
   ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   bool is_completed_ =
       ten_cmd_result_is_completed(ten_go_msg_c_msg(msg_bridge), &err);

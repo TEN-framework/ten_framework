@@ -223,7 +223,7 @@ static void ten_engine_handle_msg(ten_engine_t *self, ten_shared_ptr_t *msg) {
   }
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   ten_msg_engine_handler_func_t engine_handler =
       ten_msg_info[ten_msg_get_type(msg)].engine_handler;

@@ -126,7 +126,7 @@ PyObject *ten_py_audio_frame_lock_buf(PyObject *self, PyObject *args) {
              "Invalid argument.");
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   ten_buf_t *data = ten_audio_frame_peek_buf(py_audio_frame->msg.c_msg);
 
@@ -163,7 +163,7 @@ PyObject *ten_py_audio_frame_unlock_buf(PyObject *self, PyObject *args) {
   }
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   if (!ten_msg_remove_locked_res_buf(py_audio_frame->msg.c_msg, data, &err)) {
     return ten_py_raise_py_runtime_error_exception(
@@ -180,7 +180,7 @@ PyObject *ten_py_audio_frame_get_buf(PyObject *self, PyObject *args) {
              "Invalid argument.");
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   ten_buf_t *data = ten_audio_frame_peek_buf(py_audio_frame->msg.c_msg);
   if (!data->data) {

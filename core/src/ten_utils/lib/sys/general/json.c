@@ -245,12 +245,14 @@ bool ten_json_object_del(ten_json_t *json, const char *field) {
 }
 
 ten_json_t *ten_json_from_string(const char *msg, ten_error_t *err) {
-  json_error_t error;
-  json_t *ret = NULL;
-
+  TEN_ASSERT(msg, "Invalid argument.");
   if (!msg || !*msg) {
     return NULL;
   }
+
+  json_error_t error;
+  json_t *ret = NULL;
+
   ret = json_loads(msg, JSON_DECODE_ANY, &error);
   if (!ret) {
     if (err) {

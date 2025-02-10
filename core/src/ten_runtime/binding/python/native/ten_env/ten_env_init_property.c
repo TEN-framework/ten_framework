@@ -83,7 +83,7 @@ static void ten_env_proxy_notify_init_property_from_json(ten_env_t *ten_env,
   TEN_ASSERT(ctx, "Should not happen.");
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   ten_env_init_property_from_json(ten_env, ten_string_get_raw_str(&ctx->value),
                                   &err);
@@ -103,7 +103,7 @@ static void ten_env_proxy_notify_init_property_from_json_async(
   TEN_ASSERT(ctx, "Should not happen.");
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   bool rc = ten_env_init_property_from_json(
       ten_env, ten_string_get_raw_str(&ctx->value), &err);
@@ -170,7 +170,7 @@ PyObject *ten_py_ten_env_init_property_from_json(PyObject *self,
   }
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   ten_env_notify_init_property_ctx_t *ctx =
       ten_env_notify_init_property_ctx_create(json_str, strlen(json_str));
@@ -226,7 +226,7 @@ PyObject *ten_py_ten_env_init_property_from_json_async(PyObject *self,
   }
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   bool success = true;
 

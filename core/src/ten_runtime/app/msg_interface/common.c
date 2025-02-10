@@ -380,7 +380,7 @@ static void ten_app_handle_in_msgs_sync(ten_app_t *self) {
   TEN_ASSERT(self && ten_app_check_integrity(self, true), "Should not happen.");
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   ten_list_t in_msgs_ = TEN_LIST_INIT_VAL;
 

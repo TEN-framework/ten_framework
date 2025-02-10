@@ -21,7 +21,7 @@ static void ten_env_proxy_notify_on_stop_done(ten_env_t *ten_env,
       "Should not happen.");
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   bool rc = ten_env_on_stop_done(ten_env, &err);
   TEN_ASSERT(rc, "Should not happen.");
@@ -37,7 +37,7 @@ void ten_go_ten_env_on_stop_done(uintptr_t bridge_addr) {
   TEN_GO_TEN_ENV_IS_ALIVE_REGION_BEGIN(self, {});
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   TEN_UNUSED bool rc = ten_env_proxy_notify(self->c_ten_env_proxy,
                                             ten_env_proxy_notify_on_stop_done,

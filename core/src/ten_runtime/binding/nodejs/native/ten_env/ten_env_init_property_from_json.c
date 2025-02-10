@@ -88,7 +88,7 @@ static void ten_env_proxy_notify_init_property_from_json(ten_env_t *ten_env,
              "Should not happen.");
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   bool rc = ten_env_init_property_from_json(
       ten_env, ten_string_get_raw_str(&ctx->json_str), &err);
@@ -149,7 +149,7 @@ napi_value ten_nodejs_ten_env_init_property_from_json(napi_env env,
   RETURN_UNDEFINED_IF_NAPI_FAIL(rc, "Failed to get JSON string from JS.");
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   rc = ten_env_proxy_notify(ten_env_bridge->c_ten_env_proxy,
                             ten_env_proxy_notify_init_property_from_json,

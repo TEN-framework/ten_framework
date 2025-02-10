@@ -156,7 +156,7 @@ PyObject *ten_py_ten_env_tester_send_cmd(PyObject *self, PyObject *args) {
   }
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   ten_py_ten_env_tester_send_cmd_ctx_t *ctx =
       ten_py_ten_env_tester_send_cmd_ctx_create(py_cmd->msg.c_msg, cb_func);

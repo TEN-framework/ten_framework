@@ -22,7 +22,7 @@ static void ten_env_proxy_notify_on_stop_done(ten_env_t *ten_env,
       "Should not happen.");
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   bool rc = ten_env_on_stop_done(ten_env, &err);
   TEN_ASSERT(rc, "Should not happen.");
@@ -52,7 +52,7 @@ napi_value ten_nodejs_ten_env_on_stop_done(napi_env env,
              "Should not happen.");
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   bool rc =
       ten_env_proxy_notify_async(ten_env_bridge->c_ten_env_proxy,

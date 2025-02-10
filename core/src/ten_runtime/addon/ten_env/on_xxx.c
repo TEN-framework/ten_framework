@@ -42,7 +42,7 @@ void ten_addon_on_init_done(ten_env_t *self) {
              "Should not happen.");
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   bool rc = ten_handle_manifest_info_when_on_configure_done(
       &addon_host->manifest_info, NULL, &addon_host->manifest, &err);

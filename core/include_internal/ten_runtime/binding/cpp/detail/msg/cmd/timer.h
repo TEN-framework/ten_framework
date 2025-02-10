@@ -48,8 +48,8 @@ class cmd_timer_t : public cmd_t {
     return ten_cmd_timer_set_times(c_msg, times);
   }
 
-  bool set_timeout_in_us(int64_t timeout_in_us) {
-    return ten_cmd_timer_set_timeout_in_us(c_msg, timeout_in_us);
+  bool set_timeout_us(int64_t timeout_us) {
+    return ten_cmd_timer_set_timeout_us(c_msg, timeout_us);
   }
 
   // @{

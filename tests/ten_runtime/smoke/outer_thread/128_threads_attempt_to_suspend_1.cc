@@ -866,7 +866,7 @@ class test_extension_2 : public ten::extension_t {
       auto timer_cmd = ten::cmd_timer_t::create();
       timer_cmd->set_dest("localhost", nullptr, nullptr, nullptr);
       timer_cmd->set_timer_id(55);
-      timer_cmd->set_timeout_in_us(1000);
+      timer_cmd->set_timeout_us(1000);
       timer_cmd->set_times(1);
 
       ten_env.send_cmd(std::move(timer_cmd));

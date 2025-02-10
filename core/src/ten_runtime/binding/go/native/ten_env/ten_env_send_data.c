@@ -90,7 +90,7 @@ static void ten_env_proxy_notify_send_data(ten_env_t *ten_env,
   ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   bool res = false;
 
@@ -140,7 +140,7 @@ ten_go_error_t ten_go_ten_env_send_data(uintptr_t bridge_addr,
   });
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   ten_env_notify_send_data_ctx_t *notify_info =
       ten_env_notify_send_data_ctx_create(

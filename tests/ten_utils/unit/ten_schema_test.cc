@@ -33,7 +33,7 @@ TEST(SchemaTest, ValidStringType) {  // NOLINT
   auto *schema = create_ten_schema_from_string(schema_str);
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   auto *str_value = ten_value_create_string("demo");
 
@@ -87,7 +87,7 @@ TEST(SchemaTest, ValidObjectType) {  // NOLINT
   ten_json_destroy(value_json);
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   bool success = ten_schema_validate_value(schema, value, &err);
   ASSERT_EQ(success, true);
@@ -190,7 +190,7 @@ TEST(SchemaTest, CompositeObjectValidateErrMsg) {  // NOLINT
   ten_json_destroy(value_json);
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   bool success = ten_schema_validate_value(schema, value, &err);
   ASSERT_EQ(success, false);
@@ -271,7 +271,7 @@ TEST(SchemaTest, RequiredErrorMessage) {  // NOLINT
   ten_json_destroy(value_json);
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   bool success = ten_schema_validate_value(schema, value, &err);
   ASSERT_EQ(success, false);
@@ -303,7 +303,7 @@ TEST(SchemaTest, ValidArrayType) {  // NOLINT
   ten_json_destroy(value_json);
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   bool success = ten_schema_validate_value(schema, value, &err);
   ASSERT_EQ(success, true);
@@ -338,7 +338,7 @@ TEST(SchemaTest, AdjustIntValue) {  // NOLINT
   auto *value = ten_value_create_int8(1);
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   bool success = ten_schema_adjust_value_type(schema, value, &err);
   ASSERT_EQ(success, true);
@@ -377,7 +377,7 @@ TEST(SchemaTest, AdjustObject) {  // NOLINT
   ten_json_destroy(value_json);
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   auto *value_age = ten_value_object_peek(value, "age");
   ASSERT_EQ(true, ten_value_get_uint8(value_age, &err) == 18);
@@ -411,7 +411,7 @@ TEST(SchemaTest, AdjustArray) {  // NOLINT
   ten_json_destroy(value_json);
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   auto *value_one = ten_value_array_peek(value, 0, &err);
   ASSERT_EQ(true, ten_value_get_int32(value_one, &err) == 1);
@@ -453,7 +453,7 @@ TEST(SchemaTest, Required) {  // NOLINT
   ten_json_destroy(value_json);
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   bool success = ten_schema_adjust_value_type(schema, value, &err);
   ASSERT_EQ(success, true);
@@ -482,7 +482,7 @@ TEST(SchemaTest, CompatibleIntSuccess) {  // NOLINT
   auto *target_schema = create_ten_schema_from_string(target_schema_str);
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   bool success = ten_schema_is_compatible(source_schema, target_schema, &err);
   ASSERT_EQ(success, true);
@@ -508,7 +508,7 @@ TEST(SchemaTest, CompatibleIntFail) {  // NOLINT
   auto *target_schema = create_ten_schema_from_string(target_schema_str);
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   bool success = ten_schema_is_compatible(source_schema, target_schema, &err);
   ASSERT_EQ(success, false);
@@ -555,7 +555,7 @@ TEST(SchemaTest, CompatibleProperties) {  // NOLINT
   auto *target_schema = create_ten_schema_from_string(target_schema_str);
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   bool success = ten_schema_is_compatible(source_schema, target_schema, &err);
   ASSERT_EQ(success, true);
@@ -594,7 +594,7 @@ TEST(SchemaTest, CompatiblePropertiesSuperSet) {  // NOLINT
   auto *target_schema = create_ten_schema_from_string(target_schema_str);
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   bool success = ten_schema_is_compatible(source_schema, target_schema, &err);
   ASSERT_EQ(success, true);
@@ -633,7 +633,7 @@ TEST(SchemaTest, CompatiblePropertiesSubset) {  // NOLINT
   auto *target_schema = create_ten_schema_from_string(target_schema_str);
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   bool success = ten_schema_is_compatible(source_schema, target_schema, &err);
   ASSERT_EQ(success, true);
@@ -675,7 +675,7 @@ TEST(SchemaTest, CompatiblePropertiesMismatchType) {  // NOLINT
   auto *target_schema = create_ten_schema_from_string(target_schema_str);
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   bool success = ten_schema_is_compatible(source_schema, target_schema, &err);
   ASSERT_EQ(success, false);
@@ -723,7 +723,7 @@ TEST(SchemaTest, CompatibleRequired) {  // NOLINT
   auto *target_schema = create_ten_schema_from_string(target_schema_str);
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   bool success = ten_schema_is_compatible(source_schema, target_schema, &err);
   ASSERT_EQ(success, true);
@@ -767,7 +767,7 @@ TEST(SchemaTest, CompatibleRequiredSubset) {  // NOLINT
   auto *target_schema = create_ten_schema_from_string(target_schema_str);
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   bool success = ten_schema_is_compatible(source_schema, target_schema, &err);
   ASSERT_EQ(success, false);
@@ -811,7 +811,7 @@ TEST(SchemaTest, CompatibleRequiredSuperset) {  // NOLINT
   auto *target_schema = create_ten_schema_from_string(target_schema_str);
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   bool success = ten_schema_is_compatible(source_schema, target_schema, &err);
   ASSERT_EQ(success, true);
@@ -854,7 +854,7 @@ TEST(SchemaTest, CompatibleRequiredSourceUndefined) {  // NOLINT
   auto *target_schema = create_ten_schema_from_string(target_schema_str);
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   bool success = ten_schema_is_compatible(source_schema, target_schema, &err);
   ASSERT_EQ(success, false);
@@ -897,7 +897,7 @@ TEST(SchemaTest, CompatibleRequiredTargetUndefined) {  // NOLINT
   auto *target_schema = create_ten_schema_from_string(target_schema_str);
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   bool success = ten_schema_is_compatible(source_schema, target_schema, &err);
   ASSERT_EQ(success, true);
@@ -929,7 +929,7 @@ TEST(SchemaTest, CompatibleItems) {  // NOLINT
   auto *target_schema = create_ten_schema_from_string(target_schema_str);
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   bool success = ten_schema_is_compatible(source_schema, target_schema, &err);
   ASSERT_EQ(success, true);
@@ -961,7 +961,7 @@ TEST(SchemaTest, CompatibleItems2) {  // NOLINT
   auto *target_schema = create_ten_schema_from_string(target_schema_str);
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   bool success = ten_schema_is_compatible(source_schema, target_schema, &err);
   ASSERT_EQ(success, true);
@@ -1043,7 +1043,7 @@ TEST(SchemaTest, CompositeObjectCompatibleFail) {  // NOLINT
   auto *target_schema = create_ten_schema_from_string(target_schema_str);
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   // []: { .a[]: type is incompatible, source is [int32], but target is
   // [string]; .b: type is incompatible, source is [buf], but target is
@@ -1087,7 +1087,7 @@ TEST(SchemaTest, PathInfoInErrMsg) {  // NOLINT
   })";
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   auto *schema = create_ten_schema_from_string(schema_str);
 

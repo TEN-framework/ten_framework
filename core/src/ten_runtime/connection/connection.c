@@ -339,7 +339,7 @@ void ten_connection_on_msgs(ten_connection_t *self, ten_list_t *msgs) {
   }
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   ten_list_foreach (msgs, iter) {
     ten_shared_ptr_t *msg = ten_smart_ptr_listnode_get(iter.node);

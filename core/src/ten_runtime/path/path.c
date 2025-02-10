@@ -139,7 +139,7 @@ void ten_path_set_result(ten_path_t *path, ten_shared_ptr_t *cmd_result) {
     // If there is a cmd result conversion setting, use it.
 
     ten_error_t err;
-    ten_error_init(&err);
+    TEN_ERROR_INIT(err);
 
     cmd_result =
         ten_msg_conversion_convert(path->result_conversion, cmd_result, &err);

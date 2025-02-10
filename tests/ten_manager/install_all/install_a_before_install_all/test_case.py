@@ -35,8 +35,8 @@ def test_tman_dependency_resolve():
         "tests/local_registry/config.json",
     )
 
-    # First, install the extension 'ext_1'. All dependencies in the app including
-    # 'ext_1' will be installed.
+    # First, install the extension 'ext_1'. All dependencies in the app
+    # including 'ext_1' will be installed.
     returncode, output_text = cmd_exec.run_cmd_realtime(
         [
             tman_bin,
@@ -54,8 +54,8 @@ def test_tman_dependency_resolve():
 
     assert get_installed_extensions_count(app_dir) == 3
 
-    # Then, execute 'install_all' in the app, while all extensions have been installed
-    # in the app, so nothing will be installed again.
+    # Then, execute 'install_all' in the app, while all extensions have been
+    # installed in the app, so nothing will be installed again.
     returncode, output_text = cmd_exec.run_cmd_realtime(
         [
             tman_bin,

@@ -134,7 +134,7 @@ PyObject *ten_py_cmd_result_set_final(PyObject *self, PyObject *args) {
   }
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   bool rc =
       ten_cmd_result_set_final(py_cmd_result->msg.c_msg, is_final_flag, &err);
@@ -163,7 +163,7 @@ PyObject *ten_py_cmd_result_is_final(PyObject *self, PyObject *args) {
              "Invalid argument.");
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   bool is_final = ten_cmd_result_is_final(py_cmd_result->msg.c_msg, &err);
 
@@ -185,7 +185,7 @@ PyObject *ten_py_cmd_result_is_completed(PyObject *self, PyObject *args) {
              "Invalid argument.");
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   bool is_completed =
       ten_cmd_result_is_completed(py_cmd_result->msg.c_msg, &err);

@@ -35,7 +35,7 @@ TEN_RUNTIME_PRIVATE_API bool ten_addon_create_addon_loader(
     ten_error_t *err);
 
 TEN_RUNTIME_PRIVATE_API bool ten_addon_loader_addons_create_singleton_instance(
-    ten_env_t *ten_env);
+    ten_env_t *ten_env, ten_error_t *err);
 
 TEN_RUNTIME_PRIVATE_API void ten_addon_loader_addons_destroy_singleton_instance(
     void);
