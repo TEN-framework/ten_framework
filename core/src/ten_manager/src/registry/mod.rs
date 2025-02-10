@@ -4,9 +4,10 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-mod cache_utils;
 pub mod found_result;
 mod local;
+mod pkg_cache;
+pub mod pkg_list_cache;
 mod remote;
 
 use anyhow::{anyhow, Result};
@@ -17,11 +18,6 @@ use tempfile::NamedTempFile;
 use ten_rust::pkg_info::{pkg_type::PkgType, PkgInfo};
 
 use super::config::TmanConfig;
-
-pub struct SearchCriteria {
-    pub version_req: VersionReq,
-    // Future search fields can be added here.
-}
 
 pub async fn upload_package(
     tman_config: &TmanConfig,
@@ -107,7 +103,7 @@ pub async fn get_package_list(
     tman_config: &TmanConfig,
     pkg_type: PkgType,
     name: &String,
-    criteria: &SearchCriteria,
+    version_req: &VersionReq,
 ) -> Result<Vec<PkgRegistryInfo>> {
     // Retrieve the default registry URL
     let default_registry_url = tman_config
@@ -127,7 +123,7 @@ pub async fn get_package_list(
                 &default_registry_url,
                 pkg_type,
                 name,
-                criteria,
+                version_req,
             )
             .await?
         }
@@ -137,7 +133,7 @@ pub async fn get_package_list(
                 &default_registry_url,
                 pkg_type,
                 name,
-                criteria,
+                version_req,
             )
             .await?
         }

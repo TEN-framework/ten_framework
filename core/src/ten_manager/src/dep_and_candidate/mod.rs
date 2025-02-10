@@ -15,13 +15,14 @@ use ten_rust::pkg_info::pkg_basic_info::PkgBasicInfo;
 use ten_rust::pkg_info::pkg_type::PkgType;
 use ten_rust::pkg_info::pkg_type_and_name::PkgTypeAndName;
 use ten_rust::pkg_info::supports::{
-    is_pkg_supports_compatible_with, PkgSupport,
+    is_pkg_supports_compatible_with, PkgSupport, SupportsDisplay,
 };
 use ten_rust::pkg_info::{get_pkg_info_from_path, PkgInfo};
 
 use super::config::TmanConfig;
-use super::registry::{get_package_list, SearchCriteria};
+use super::registry::get_package_list;
 use crate::log::tman_verbose_println;
+use crate::registry::pkg_list_cache::PackageListCache;
 
 // TODO(Wei): Should use the union of the semantic versioning rather than the
 // union of all version requirements.
@@ -139,15 +140,16 @@ async fn process_non_local_dependency_to_get_candidate(
         HashMap<PkgBasicInfo, PkgInfo>,
     >,
     new_pkgs_to_be_searched: &mut Vec<PkgInfo>,
+    pkg_list_cache: &mut PackageListCache,
 ) -> Result<()> {
-    // With the current design, if there is new information, it will definitely
-    // be only this version requirement. Although there may be some overlap with
-    // previous version requirements, given the current design, this is the best
-    // we can do for now. The answer won't be wrong, but the efficiency might be
-    // somewhat lower.
-    let criteria = SearchCriteria {
-        version_req: dependency.version_req.clone(),
-    };
+    // First, check whether the package list cache has already processed the
+    // same or a more permissive version requirement combination.
+    let key: PkgTypeAndName = dependency.into();
+    if !pkg_list_cache.check_and_update(&key, &dependency.version_req) {
+        // If a covering combination already exists in the package list cache,
+        // skip calling `get_package_list`.
+        return Ok(());
+    }
 
     // Retrieve all packages from the registry that meet the specified
     // criteria.
@@ -155,7 +157,12 @@ async fn process_non_local_dependency_to_get_candidate(
         tman_config,
         dependency.type_and_name.pkg_type,
         &dependency.type_and_name.name,
-        &criteria,
+        // With the current design, if there is new information, it will
+        // definitely be only this version requirement. Although there may be
+        // some overlap with previous version requirements, given the current
+        // design, this is the best we can do for now. The answer won't be
+        // wrong, but the efficiency might be somewhat lower.
+        &dependency.version_req,
     )
     .await?;
 
@@ -170,11 +177,11 @@ async fn process_non_local_dependency_to_get_candidate(
         candidate_pkg_info.url = result.download_url;
         candidate_pkg_info.is_installed = false;
 
-        tman_verbose_println!(
-            tman_config,
-            "Collect candidate: {:?}",
-            candidate_pkg_info
-        );
+        // tman_verbose_println!(
+        //     tman_config,
+        //     "Collect candidate: {:?}",
+        //     candidate_pkg_info
+        // );
 
         candidate_pkg_infos.push(candidate_pkg_info);
     }
@@ -187,11 +194,11 @@ async fn process_non_local_dependency_to_get_candidate(
     {
         for candidate in candidates {
             if dependency.version_req.matches(&candidate.0.version) {
-                tman_verbose_println!(
-                    tman_config,
-                    "Collect candidate from an already installed package: {:?}",
-                    candidate
-                );
+                // tman_verbose_println!(
+                //     tman_config,
+                //     "Collect candidate from an already installed package:
+                // {:?}",     candidate
+                // );
 
                 candidate_pkg_infos.push(candidate.1.clone());
             }
@@ -200,12 +207,6 @@ async fn process_non_local_dependency_to_get_candidate(
 
     // Filter suitable candidate packages according to `supports`.
     for mut candidate_pkg_info in candidate_pkg_infos {
-        tman_verbose_println!(
-            tman_config,
-            "Check candidate support: {:?}",
-            candidate_pkg_info
-        );
-
         let compatible_score = is_pkg_supports_compatible_with(
             &candidate_pkg_info.basic_info.supports,
             support,
@@ -219,8 +220,11 @@ async fn process_non_local_dependency_to_get_candidate(
 
             tman_verbose_println!(
                 tman_config,
-                "Found a candidate: {:?}",
-                candidate_pkg_info
+                "=> Found a candidate: {}:{}@{}[{}]",
+                candidate_pkg_info.basic_info.type_and_name.pkg_type,
+                candidate_pkg_info.basic_info.type_and_name.name,
+                candidate_pkg_info.basic_info.version,
+                SupportsDisplay(&candidate_pkg_info.basic_info.supports),
             );
 
             all_candidates.entry(dependency.into()).or_default().insert(
@@ -233,6 +237,18 @@ async fn process_non_local_dependency_to_get_candidate(
     }
 
     Ok(())
+}
+
+struct DependenciesContext<'a> {
+    tman_config: &'a TmanConfig,
+    support: &'a PkgSupport,
+    merged_dependencies: &'a mut HashMap<PkgTypeAndName, MergedVersionReq>,
+    all_compatible_installed_pkgs:
+        &'a HashMap<PkgTypeAndName, HashMap<PkgBasicInfo, PkgInfo>>,
+    all_candidates:
+        &'a mut HashMap<PkgTypeAndName, HashMap<PkgBasicInfo, PkgInfo>>,
+    new_pkgs_to_be_searched: &'a mut Vec<PkgInfo>,
+    pkg_list_cache: &'a mut PackageListCache,
 }
 
 /// Asynchronously processes dependencies to get candidate packages.
@@ -252,31 +268,20 @@ async fn process_non_local_dependency_to_get_candidate(
 /// This function may return an error if there is an issue processing the
 /// dependencies.
 async fn process_dependencies_to_get_candidates(
-    tman_config: &TmanConfig,
-    support: &PkgSupport,
+    ctx: &mut DependenciesContext<'_>,
     input_dependencies: &Vec<PkgDependency>,
-    merged_dependencies: &mut HashMap<PkgTypeAndName, MergedVersionReq>,
-    all_compatible_installed_pkgs: &HashMap<
-        PkgTypeAndName,
-        HashMap<PkgBasicInfo, PkgInfo>,
-    >,
-    all_candidates: &mut HashMap<
-        PkgTypeAndName,
-        HashMap<PkgBasicInfo, PkgInfo>,
-    >,
-    new_pkgs_to_be_searched: &mut Vec<PkgInfo>,
 ) -> Result<()> {
     for dependency in input_dependencies {
         if dependency.is_local() {
             process_local_dependency_to_get_candidate(
                 dependency,
-                all_candidates,
-                new_pkgs_to_be_searched,
+                ctx.all_candidates,
+                ctx.new_pkgs_to_be_searched,
             )?;
         } else {
             // Check if we need to get the package info from the slow path.
             let changed = merge_dependency_to_dependencies(
-                merged_dependencies,
+                ctx.merged_dependencies,
                 dependency,
             )?;
             if !changed {
@@ -285,12 +290,13 @@ async fn process_dependencies_to_get_candidates(
             }
 
             process_non_local_dependency_to_get_candidate(
-                tman_config,
-                support,
+                ctx.tman_config,
+                ctx.support,
                 dependency,
-                all_compatible_installed_pkgs,
-                all_candidates,
-                new_pkgs_to_be_searched,
+                ctx.all_compatible_installed_pkgs,
+                ctx.all_candidates,
+                ctx.new_pkgs_to_be_searched,
+                ctx.pkg_list_cache,
             )
             .await?;
         }
@@ -368,55 +374,56 @@ pub async fn get_all_candidates_from_deps(
     let mut merged_dependencies = HashMap::new();
     let mut processed_pkgs = HashSet::<PkgBasicInfo>::new();
 
+    // Cache used to record combinations processed by `get_package_list`.
+    let mut pkg_list_cache = PackageListCache::default();
+
+    let mut context = DependenciesContext {
+        tman_config,
+        support,
+        merged_dependencies: &mut merged_dependencies,
+        all_compatible_installed_pkgs,
+        all_candidates: &mut all_candidates,
+        new_pkgs_to_be_searched: &mut Vec::new(),
+        pkg_list_cache: &mut pkg_list_cache,
+    };
+
     // If there is extra dependencies (ex: specified in the command line),
     // handle those dependencies, too.
-    if extra_dep.is_some() {
-        let mut new_pkgs_to_be_searched: Vec<PkgInfo> = vec![];
-
+    if let Some(extra) = extra_dep {
         process_dependencies_to_get_candidates(
-            tman_config,
-            support,
-            &vec![extra_dep.unwrap().clone()],
-            &mut merged_dependencies,
-            all_compatible_installed_pkgs,
-            &mut all_candidates,
-            &mut new_pkgs_to_be_searched,
+            &mut context,
+            &vec![extra.clone()],
         )
         .await?;
 
-        pkgs_to_be_searched.extend(new_pkgs_to_be_searched);
+        pkgs_to_be_searched.append(context.new_pkgs_to_be_searched);
     }
 
     loop {
-        let mut new_pkgs_to_be_searched: Vec<PkgInfo> = vec![];
-
         // Process all packages to be searched.
-        while let Some(pkg_to_be_search) = pkgs_to_be_searched.pop() {
-            if processed_pkgs.contains(&(&pkg_to_be_search).into()) {
+        for pkg_to_be_search in &pkgs_to_be_searched {
+            if processed_pkgs.contains(&(pkg_to_be_search).into()) {
                 // If this package info has already been processed, do not
                 // process it again.
                 continue;
             }
 
             process_dependencies_to_get_candidates(
-                tman_config,
-                support,
+                &mut context,
                 &pkg_to_be_search.dependencies,
-                &mut merged_dependencies,
-                all_compatible_installed_pkgs,
-                &mut all_candidates,
-                &mut new_pkgs_to_be_searched,
             )
             .await?;
 
             // Remember that this package has already been processed.
-            processed_pkgs.insert((&pkg_to_be_search).into());
+            processed_pkgs.insert(pkg_to_be_search.into());
         }
 
-        if new_pkgs_to_be_searched.is_empty() {
+        pkgs_to_be_searched.clear();
+
+        if context.new_pkgs_to_be_searched.is_empty() {
             break;
         }
-        pkgs_to_be_searched.extend(new_pkgs_to_be_searched);
+        pkgs_to_be_searched.append(context.new_pkgs_to_be_searched);
     }
 
     clean_up_all_candidates(&mut all_candidates, locked_pkgs);

@@ -163,16 +163,16 @@ async fn install_non_local_dependency_pkg_info(
     // base_dir is also an installed_path.
     installed_paths.paths.push(".".to_string());
 
-    tman_verbose_println!(
-        tman_config,
-        "Install files for {}:{}",
-        pkg_info.basic_info.type_and_name.pkg_type,
-        pkg_info.basic_info.type_and_name.name
-    );
-    for install_path in &installed_paths.paths {
-        tman_verbose_println!(tman_config, "{}", install_path);
-    }
-    tman_verbose_println!(tman_config, "");
+    // tman_verbose_println!(
+    //     tman_config,
+    //     "Install files for {}:{}",
+    //     pkg_info.basic_info.type_and_name.pkg_type,
+    //     pkg_info.basic_info.type_and_name.name
+    // );
+    // for install_path in &installed_paths.paths {
+    //     tman_verbose_println!(tman_config, "{}", install_path);
+    // }
+    // tman_verbose_println!(tman_config, "");
 
     save_installed_paths(&installed_paths, Path::new(&dest_dir_path))?;
 

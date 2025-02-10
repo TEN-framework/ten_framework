@@ -37,7 +37,25 @@ impl fmt::Display for PkgSupport {
             None => "".to_string(),
         };
 
-        write!(f, "os: {}, arch: {}", os_str, arch_str)
+        write!(f, "{}, {}", os_str, arch_str)
+    }
+}
+
+pub struct SupportsDisplay<'a>(pub &'a [PkgSupport]);
+
+impl fmt::Display for SupportsDisplay<'_> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        if self.0.is_empty() {
+            write!(f, "all environments")
+        } else {
+            for (i, support) in self.0.iter().enumerate() {
+                if i > 0 {
+                    write!(f, ", ")?;
+                }
+                write!(f, "({})", support)?;
+            }
+            Ok(())
+        }
     }
 }
 

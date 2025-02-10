@@ -11,7 +11,7 @@ use std::{io::Write, time::Duration};
 use anyhow::{anyhow, Context, Result};
 use console::Emoji;
 use reqwest::header::{HeaderMap, AUTHORIZATION, CONTENT_TYPE};
-use semver::Version;
+use semver::{Version, VersionReq};
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use tempfile::NamedTempFile;
@@ -22,8 +22,7 @@ use tokio::time::sleep;
 
 use ten_rust::pkg_info::PkgInfo;
 
-use super::cache_utils::{find_in_package_cache, store_file_to_package_cache};
-use super::SearchCriteria;
+use super::pkg_cache::{find_in_package_cache, store_file_to_package_cache};
 use crate::constants::{
     REMOTE_REGISTRY_MAX_RETRIES, REMOTE_REGISTRY_REQUEST_TIMEOUT_SECS,
     REMOTE_REGISTRY_RETRY_DELAY_MS,
@@ -549,7 +548,7 @@ pub async fn get_package_list(
     base_url: &str,
     pkg_type: PkgType,
     name: &String,
-    criteria: &SearchCriteria,
+    version_req: &VersionReq,
 ) -> Result<Vec<PkgRegistryInfo>> {
     let max_retries = REMOTE_REGISTRY_MAX_RETRIES;
     let retry_delay = Duration::from_millis(REMOTE_REGISTRY_RETRY_DELAY_MS);
@@ -571,8 +570,8 @@ pub async fn get_package_list(
                 url.query_pairs_mut()
                     .append_pair("type", &pkg_type.to_string())
                     .append_pair("name", name)
-                    .append_pair("version", &criteria.version_req.to_string())
-                    .append_pair("pageSize", "10")
+                    .append_pair("version", &version_req.to_string())
+                    .append_pair("pageSize", "100")
                     .append_pair("page", &current_page.to_string());
 
                 let response = client
@@ -622,20 +621,23 @@ pub async fn get_package_list(
                     results.push(pkg_registry_info);
                 }
 
+                tman_verbose_println!(
+                    &tman_config,
+                    "Fetched {} packages at page {} for {}:{}@{}",
+                    results.len(),
+                    current_page,
+                    pkg_type,
+                    name,
+                    version_req
+                );
+
                 // Check if we've fetched all packages based on totalSize.
                 if results.len() >= total_size {
                     break;
                 }
+
                 current_page += 1;
             }
-
-            tman_verbose_println!(
-                &tman_config,
-                "Fetched {} packages for {}:{}",
-                results.len(),
-                pkg_type,
-                name,
-            );
 
             Ok(results)
         })

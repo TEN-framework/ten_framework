@@ -76,11 +76,11 @@ fn print_configuration(
 ) {
     let configuration_type = conf.configuration_type(key).unwrap();
     if configuration_type.contains(ConfigurationType::VALUE) {
-        let value = conf
+        let _value = conf
             .value_get(key)
             .expect("Failed to retrieve statistics value.");
 
-        tman_verbose_print!(tman_config, "{}", value);
+        // tman_verbose_print!(tman_config, "{}", _value);
     } else if configuration_type.contains(ConfigurationType::ARRAY) {
         let size = conf
             .array_size(key)
@@ -90,7 +90,7 @@ fn print_configuration(
                 .array_at(key, i)
                 .expect("Failed to retrieve statistics array.");
             print_prefix(tman_config, depth);
-            tman_verbose_print!(tman_config, "{}: ", i);
+            // tman_verbose_print!(tman_config, "{}: ", i);
 
             print_configuration(tman_config, conf, subkey, depth + 1);
         }
@@ -100,12 +100,12 @@ fn print_configuration(
             let name = conf.map_subkey_name(key, i).unwrap();
             let subkey = conf.map_at(key, name).unwrap();
             print_prefix(tman_config, depth);
-            tman_verbose_print!(tman_config, "{}: ", name);
+            // tman_verbose_print!(tman_config, "{}: ", name);
 
             print_configuration(tman_config, conf, subkey, depth + 1);
         }
     } else {
-        tman_verbose_println!(tman_config, "Unknown ConfigurationType");
+        // tman_verbose_println!(tman_config, "Unknown ConfigurationType");
         unreachable!()
     }
 }
@@ -122,11 +122,11 @@ fn print_statistics(
     let statistics_type = stats.statistics_type(key).unwrap();
     match statistics_type {
         StatisticsType::Value => {
-            let value = stats
+            let _value = stats
                 .value_get(key)
                 .expect("Failed to retrieve statistics value.");
 
-            tman_verbose_print!(tman_config, " {}", value);
+            // tman_verbose_print!(tman_config, " {}", _value);
         }
 
         StatisticsType::Array => {
@@ -138,7 +138,7 @@ fn print_statistics(
                     .array_at(key, i)
                     .expect("Failed to retrieve statistics array.");
                 print_prefix(tman_config, depth);
-                tman_verbose_print!(tman_config, "{} zu:", i);
+                // tman_verbose_print!(tman_config, "{} zu:", i);
 
                 print_statistics(tman_config, stats, subkey, depth + 1);
             }
@@ -150,14 +150,14 @@ fn print_statistics(
                 let name = stats.map_subkey_name(key, i).unwrap();
                 let subkey = stats.map_at(key, name).unwrap();
                 print_prefix(tman_config, depth);
-                tman_verbose_print!(tman_config, "{}:", name);
+                // tman_verbose_print!(tman_config, "{}:", name);
 
                 print_statistics(tman_config, stats, subkey, depth + 1);
             }
         }
 
         StatisticsType::Empty => {
-            tman_verbose_println!(tman_config, "StatisticsType::Empty");
+            // tman_verbose_println!(tman_config, "StatisticsType::Empty");
         }
     }
 }
@@ -172,10 +172,10 @@ fn solve(tman_config: &TmanConfig, input: &str) -> SolveResult {
     // Create a control object.
     // i.e., clingo_control_new
     let mut ctl = control({
-        let mut args = vec![];
+        let args = vec![];
 
         if tman_config.verbose {
-            args.push("--verbose".to_string());
+            // args.push("--verbose".to_string());
         }
 
         args
@@ -279,11 +279,11 @@ fn solve(tman_config: &TmanConfig, input: &str) -> SolveResult {
 
     // Close the solve handle.
     // i.e., clingo_solve_handle_get
-    let result = handle
+    let _result = handle
         .get()
         .expect("Failed to get result from solve handle.");
 
-    tman_verbose_println!(tman_config, "{:?}", result);
+    // tman_verbose_println!(tman_config, "{:?}", _result);
 
     // Free the solve handle.
     // i.e., clingo_solve_handle_close
