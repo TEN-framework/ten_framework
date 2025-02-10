@@ -58,15 +58,48 @@ impl TryFrom<&ManifestDependency> for PkgDependency {
                 pkg_type,
                 name,
                 version,
-            } => Ok(PkgDependency {
-                type_and_name: PkgTypeAndName {
-                    pkg_type: PkgType::from_str(pkg_type)?,
-                    name: name.clone(),
-                },
-                version_req: VersionReq::parse(version)?,
-                path: None,
-                base_dir: None,
-            }),
+            } => {
+                // Currently, tman uses the Rust semver crate, while the cloud
+                // store uses the npm semver package. The semver requirement
+                // specifications of these two packages are not completely
+                // identical. For example:
+                //
+                // - The Rust semver crate uses "," to separate different
+                //   ranges, whereas the npm semver package uses a space (" ")
+                //   to separate different requirement ranges.
+                // - The npm semver package uses "||" to unify different ranges,
+                //   but the Rust semver crate does not support this feature.
+                //
+                // Since TEN is a cross-language system, it needs to define its
+                // own semver requirement specification. This specification
+                // could follow either the Rust or npm format or other spec, but
+                // in either case, tman or the cloud store would need to make
+                // adaptations.
+                //
+                // Therefore, the current approach is to simplify the
+                // specification to only support a single-range semver
+                // requirement, which is the common subset of both the npm
+                // semver package and the Rust semver crate.
+                if version.contains("||")
+                    || version.chars().any(|c| c.is_whitespace())
+                    || version.contains(",")
+                {
+                    return Err(anyhow!(
+                        "Invalid version requirement '{}' in manifest: contains forbidden characters (||, whitespace, or ,)",
+                        version
+                    ));
+                }
+
+                Ok(PkgDependency {
+                    type_and_name: PkgTypeAndName {
+                        pkg_type: PkgType::from_str(pkg_type)?,
+                        name: name.clone(),
+                    },
+                    version_req: VersionReq::parse(version)?,
+                    path: None,
+                    base_dir: None,
+                })
+            }
 
             ManifestDependency::LocalDependency { path, base_dir } => {
                 // Check if there is a manifest.json file under the path.
@@ -96,6 +129,37 @@ impl TryFrom<&ManifestDependency> for PkgDependency {
                     crate::pkg_info::manifest::parse_manifest_from_file(
                         &dep_manifest_path,
                     )?;
+
+                // Currently, tman uses the Rust semver crate, while the cloud
+                // store uses the npm semver package. The semver requirement
+                // specifications of these two packages are not completely
+                // identical. For example:
+                //
+                // - The Rust semver crate uses "," to separate different
+                //   ranges, whereas the npm semver package uses a space (" ")
+                //   to separate different requirement ranges.
+                // - The npm semver package uses "||" to unify different ranges,
+                //   but the Rust semver crate does not support this feature.
+                //
+                // Since TEN is a cross-language system, it needs to define its
+                // own semver requirement specification. This specification
+                // could follow either the Rust or npm format or other spec, but
+                // in either case, tman or the cloud store would need to make
+                // adaptations.
+                //
+                // Therefore, the current approach is to simplify the
+                // specification to only support a single-range semver
+                // requirement, which is the common subset of both the npm
+                // semver package and the Rust semver crate.
+                if local_manifest.version.contains("||")
+                    || local_manifest.version.chars().any(|c| c.is_whitespace())
+                    || local_manifest.version.contains(",")
+                {
+                    return Err(anyhow!(
+                        "Invalid version requirement '{}' in local manifest: contains forbidden characters (||, whitespace, or ,)",
+                        local_manifest.version
+                    ));
+                }
 
                 Ok(PkgDependency {
                     type_and_name: local_manifest.type_and_name.clone(),

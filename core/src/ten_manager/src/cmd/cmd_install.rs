@@ -462,8 +462,36 @@ pub async fn execute_cmd(
             Some(local_pkg_info.basic_info.type_and_name.pkg_type);
         installing_pkg_name =
             Some(local_pkg_info.basic_info.type_and_name.name.clone());
-        let installing_pkg_version_req =
-            VersionReq::parse(&local_pkg_info.basic_info.version.to_string())?;
+
+        // Currently, tman uses the Rust semver crate, while the cloud store
+        // uses the npm semver package. The semver requirement specifications of
+        // these two packages are not completely identical. For example:
+        //
+        // - The Rust semver crate uses "," to separate different ranges,
+        //   whereas the npm semver package uses a space (" ") to separate
+        //   different requirement ranges.
+        // - The npm semver package uses "||" to unify different ranges, but the
+        //   Rust semver crate does not support this feature.
+        //
+        // Since TEN is a cross-language system, it needs to define its own
+        // semver requirement specification. This specification could follow
+        // either the Rust or npm format or other spec, but in either case, tman
+        // or the cloud store would need to make adaptations.
+        //
+        // Therefore, the current approach is to simplify the specification to
+        // only support a single-range semver requirement, which is the common
+        // subset of both the npm semver package and the Rust semver crate.
+        let local_version_str = local_pkg_info.basic_info.version.to_string();
+        if local_version_str.contains("||")
+            || local_version_str.chars().any(|c| c.is_whitespace())
+            || local_version_str.contains(",")
+        {
+            return Err(anyhow!(
+                    "Invalid version requirement '{}' in local package manifest: contains forbidden characters (||, whitespace, or ,)",
+                    local_version_str
+                ));
+        }
+        let installing_pkg_version_req = VersionReq::parse(&local_version_str)?;
 
         dep_relationship_from_cmd_line = Some(DependencyRelationship {
             type_and_name: PkgTypeAndName {
