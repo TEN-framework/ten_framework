@@ -17,9 +17,6 @@ class AsyncExtensionTesterBasic(AsyncExtensionTester):
         flush_cmd = Cmd.create("flush")
         asyncio.create_task(ten_env.send_cmd(flush_cmd))
 
-    async def on_stop(self, ten_env: AsyncTenEnvTester) -> None:
-        ten_env.log_info("tester on_stop")
-
     async def on_cmd(self, ten_env: AsyncTenEnvTester, cmd: Cmd) -> None:
         cmd_name = cmd.get_name()
         ten_env.log_info("tester on_cmd name {}".format(cmd_name))

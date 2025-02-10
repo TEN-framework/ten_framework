@@ -168,13 +168,16 @@ class AsyncExtensionTester(_ExtensionTester):
             await self.on_stop(ten_env_tester)
         except Exception as e:
             self._exit_on_exception(ten_env_tester, e)
-        finally:
-            ten_env_tester._internal.on_stop_done()
+
+    @final
+    async def _proxy_async_on_stop(self, ten_env_tester: TenEnvTester):
+        await self._wrapper_on_stop(self._async_ten_env_tester)
+        ten_env_tester._internal.on_stop_done()
 
     @final
     def _proxy_on_stop(self, ten_env_tester: TenEnvTester) -> None:
         asyncio.run_coroutine_threadsafe(
-            self._wrapper_on_stop(self._async_ten_env_tester), self._ten_loop
+            self._proxy_async_on_stop(ten_env_tester), self._ten_loop
         )
 
     @final
@@ -258,14 +261,36 @@ class AsyncExtensionTester(_ExtensionTester):
         # This is a blocking operation.
         _ExtensionTester.run(self)
 
+        # The `extension_tester` has two attributes.
+        #
+        # 1. All `on_xxx` APIs of the `extension_tester` act as proxies for
+        # `test_extension`. From this perspective, the `extension_tester` has
+        # the attributes of an `extension`.
+        #
+        # 2. The `extension_tester` also has a `run` API, which is equivalent to
+        # the `run` API of an `app` in a testing scenario. From this
+        # perspective, the `extension_tester` has the attributes of an `app`.
+        #
+        # When the `run` API of the `extension_tester` completes, it signifies
+        # that all tasks in the extension world have finished and no new tasks
+        # will be added (since the extension context has fully ended). At this
+        # point, it is an appropriate time to enqueue a final close task into
+        # the asyncio run loop queue to terminate the asyncio thread.
+        #
+        # In the context of an `async_extension`, since there is no specific
+        # `run` API completion point, a similar behavior is implemented using a
+        # callback triggered after `on_deinit_done`.
+
         # If execution reaches this point, it means that the TEN app thread used
         # for testing has already ended. Therefore, the process to terminate the
         # asyncio thread/runloop is initiated.
+
         if hasattr(self, "_ten_thread") and self._ten_thread.is_alive():
             asyncio.run_coroutine_threadsafe(
                 self._stop_thread(), self._ten_loop
             )
 
+            # Wait for the asyncio thread to finish.
             self._ten_thread.join()
 
     async def on_start(self, ten_env_tester: AsyncTenEnvTester) -> None:
