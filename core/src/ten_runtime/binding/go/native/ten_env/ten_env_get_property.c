@@ -63,7 +63,7 @@ static void ten_env_proxy_notify_peek_property(ten_env_t *ten_env,
   TEN_ASSERT(ctx, "Should not happen.");
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   // In the extension thread now.
 
@@ -110,7 +110,7 @@ static ten_value_t *ten_go_ten_env_peek_property(ten_go_ten_env_t *self,
   ten_value_t *c_value = NULL;
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   ten_env_notify_peek_property_ctx_t *ctx =
       ten_env_notify_peek_property_ctx_create(path, path_len);
@@ -221,7 +221,7 @@ ten_go_error_t ten_go_ten_env_get_property_int8(uintptr_t bridge_addr,
       ten_go_ten_env_peek_property(self, path, path_len, &cgo_error);
   if (c_value != NULL) {
     ten_error_t err;
-    ten_error_init(&err);
+    TEN_ERROR_INIT(err);
 
     *value = ten_value_get_int8(c_value, &err);
 
@@ -258,7 +258,7 @@ ten_go_error_t ten_go_ten_env_get_property_int16(uintptr_t bridge_addr,
       ten_go_ten_env_peek_property(self, path, path_len, &cgo_error);
   if (c_value != NULL) {
     ten_error_t err;
-    ten_error_init(&err);
+    TEN_ERROR_INIT(err);
 
     *value = ten_value_get_int16(c_value, &err);
 
@@ -295,7 +295,7 @@ ten_go_error_t ten_go_ten_env_get_property_int32(uintptr_t bridge_addr,
       ten_go_ten_env_peek_property(self, path, path_len, &cgo_error);
   if (c_value != NULL) {
     ten_error_t err;
-    ten_error_init(&err);
+    TEN_ERROR_INIT(err);
 
     *value = ten_value_get_int32(c_value, &err);
 
@@ -332,7 +332,7 @@ ten_go_error_t ten_go_ten_env_get_property_int64(uintptr_t bridge_addr,
       ten_go_ten_env_peek_property(self, path, path_len, &cgo_error);
   if (c_value != NULL) {
     ten_error_t err;
-    ten_error_init(&err);
+    TEN_ERROR_INIT(err);
 
     *value = ten_value_get_int64(c_value, &err);
 
@@ -369,7 +369,7 @@ ten_go_error_t ten_go_ten_env_get_property_uint8(uintptr_t bridge_addr,
       ten_go_ten_env_peek_property(self, path, path_len, &cgo_error);
   if (c_value != NULL) {
     ten_error_t err;
-    ten_error_init(&err);
+    TEN_ERROR_INIT(err);
 
     *value = ten_value_get_uint8(c_value, &err);
 
@@ -407,7 +407,7 @@ ten_go_error_t ten_go_ten_env_get_property_uint16(uintptr_t bridge_addr,
       ten_go_ten_env_peek_property(self, path, path_len, &cgo_error);
   if (c_value != NULL) {
     ten_error_t err;
-    ten_error_init(&err);
+    TEN_ERROR_INIT(err);
 
     *value = ten_value_get_uint16(c_value, &err);
 
@@ -445,7 +445,7 @@ ten_go_error_t ten_go_ten_env_get_property_uint32(uintptr_t bridge_addr,
       ten_go_ten_env_peek_property(self, path, path_len, &cgo_error);
   if (c_value != NULL) {
     ten_error_t err;
-    ten_error_init(&err);
+    TEN_ERROR_INIT(err);
 
     *value = ten_value_get_uint32(c_value, &err);
 
@@ -483,7 +483,7 @@ ten_go_error_t ten_go_ten_env_get_property_uint64(uintptr_t bridge_addr,
       ten_go_ten_env_peek_property(self, path, path_len, &cgo_error);
   if (c_value != NULL) {
     ten_error_t err;
-    ten_error_init(&err);
+    TEN_ERROR_INIT(err);
 
     *value = ten_value_get_uint64(c_value, &err);
 
@@ -520,7 +520,7 @@ ten_go_error_t ten_go_ten_env_get_property_float32(uintptr_t bridge_addr,
       ten_go_ten_env_peek_property(self, path, path_len, &cgo_error);
   if (c_value != NULL) {
     ten_error_t err;
-    ten_error_init(&err);
+    TEN_ERROR_INIT(err);
 
     *value = ten_value_get_float32(c_value, &err);
 
@@ -558,7 +558,7 @@ ten_go_error_t ten_go_ten_env_get_property_float64(uintptr_t bridge_addr,
       ten_go_ten_env_peek_property(self, path, path_len, &cgo_error);
   if (c_value != NULL) {
     ten_error_t err;
-    ten_error_init(&err);
+    TEN_ERROR_INIT(err);
 
     *value = ten_value_get_float64(c_value, &err);
 
@@ -595,7 +595,7 @@ ten_go_error_t ten_go_ten_env_get_property_bool(uintptr_t bridge_addr,
       ten_go_ten_env_peek_property(self, path, path_len, &cgo_error);
   if (c_value != NULL) {
     ten_error_t err;
-    ten_error_init(&err);
+    TEN_ERROR_INIT(err);
 
     *value = ten_value_get_bool(c_value, &err);
 

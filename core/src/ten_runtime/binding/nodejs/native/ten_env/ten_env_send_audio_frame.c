@@ -135,7 +135,7 @@ static void ten_env_proxy_notify_send_audio_frame(ten_env_t *ten_env,
   TEN_ASSERT(ctx, "Should not happen.");
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   bool rc = ten_env_send_audio_frame(
       ten_env, ctx->c_audio_frame, proxy_send_audio_frame_callback, ctx, &err);
@@ -178,7 +178,7 @@ napi_value ten_nodejs_ten_env_send_audio_frame(napi_env env,
   RETURN_UNDEFINED_IF_NAPI_FAIL(cb_tsfn, "Failed to create TSFN");
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   ten_env_notify_send_audio_frame_ctx_t *notify_info =
       ten_env_notify_send_audio_frame_ctx_create(

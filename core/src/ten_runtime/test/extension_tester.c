@@ -121,7 +121,7 @@ void ten_extension_tester_set_test_mode_single(ten_extension_tester_t *self,
 
   if (property_json_str && strlen(property_json_str) > 0) {
     ten_error_t err;
-    ten_error_init(&err);
+    TEN_ERROR_INIT(err);
 
     ten_json_t *json = ten_json_from_string(property_json_str, &err);
     if (json) {
@@ -272,6 +272,9 @@ static void ten_extension_tester_create_and_start_graph(
 
   bool rc = false;
 
+  ten_error_t err;
+  TEN_ERROR_INIT(err);
+
   if (self->test_mode == TEN_EXTENSION_TESTER_TEST_MODE_SINGLE) {
     TEN_ASSERT(ten_string_check_integrity(&self->test_target.addon.addon_name),
                "Invalid test target.");
@@ -377,7 +380,7 @@ static void ten_extension_tester_create_and_start_graph(
                               addon_name, addon_name, addon_name, addon_name,
                               addon_name);
     rc = ten_cmd_start_graph_set_graph_from_json_str(
-        start_graph_cmd, ten_string_get_raw_str(&graph_json_str), NULL);
+        start_graph_cmd, ten_string_get_raw_str(&graph_json_str), &err);
     TEN_ASSERT(rc, "Should not happen.");
 
     ten_string_deinit(&graph_json_str);
@@ -388,13 +391,13 @@ static void ten_extension_tester_create_and_start_graph(
 
     rc = ten_cmd_start_graph_set_graph_from_json_str(
         start_graph_cmd,
-        ten_string_get_raw_str(&self->test_target.graph.graph_json), NULL);
+        ten_string_get_raw_str(&self->test_target.graph.graph_json), &err);
     TEN_ASSERT(rc, "Should not happen.");
   }
 
   rc = ten_env_proxy_notify(self->test_app_ten_env_proxy,
                             test_app_ten_env_send_start_graph_cmd,
-                            start_graph_cmd, false, NULL);
+                            start_graph_cmd, false, &err);
   TEN_ASSERT(rc, "Should not happen.");
 
   // Wait for the tester extension to create the `ten_env_proxy`.

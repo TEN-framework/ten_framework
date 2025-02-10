@@ -113,7 +113,7 @@ ten_go_error_t ten_go_ten_env_log(uintptr_t bridge_addr, int level,
       line_no, msg_value, msg_len);
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   if (self->c_ten_env_proxy) {
     if (!ten_env_proxy_notify(self->c_ten_env_proxy, ten_env_proxy_notify_log,

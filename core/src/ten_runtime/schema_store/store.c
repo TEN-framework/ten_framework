@@ -252,7 +252,7 @@ static void ten_schemas_parse_interface_part(
   }
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   do {
     ten_value_t *resolved_interface_schemas = ten_interface_schema_info_resolve(

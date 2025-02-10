@@ -58,7 +58,7 @@ PyObject *ten_py_ten_env_tester_on_stop_done(PyObject *self,
   }
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   bool rc = ten_env_tester_proxy_notify(
       py_ten_env_tester->c_ten_env_tester_proxy,

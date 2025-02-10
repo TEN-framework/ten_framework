@@ -49,7 +49,7 @@ static void ten_env_proxy_notify_peek_property(ten_env_t *ten_env,
              "Should not happen.");
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   ten_value_t *value =
       ten_env_peek_property(ten_env, ten_string_get_raw_str(&ctx->path), &err);

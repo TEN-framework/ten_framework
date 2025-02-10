@@ -44,7 +44,7 @@ bool ten_schema_is_compatible_proxy(const ten_schema_t *self,
              "Invalid argument.");
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   bool result = ten_schema_is_compatible(self_, target_, &err);
   if (!result) {

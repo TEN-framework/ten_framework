@@ -59,7 +59,7 @@ static void ten_env_proxy_notify_peek_property(ten_env_t *ten_env,
   TEN_ASSERT(ctx, "Should not happen.");
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   ten_value_t *c_value =
       ten_env_peek_property(ten_env, ten_string_get_raw_str(&ctx->path), &err);
@@ -81,7 +81,7 @@ static ten_value_t *ten_py_ten_peek_property(ten_py_ten_env_t *self,
   ten_value_t *c_value = NULL;
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   ten_env_notify_peek_property_ctx_t *ctx =
       ten_env_notify_peek_property_ctx_create(path);
@@ -182,7 +182,7 @@ PyObject *ten_py_ten_env_get_property_int(PyObject *self, PyObject *args) {
   }
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   int64_t int_value = ten_value_get_int64(value, &err);
   if (!ten_error_is_success(&err)) {
@@ -268,7 +268,7 @@ PyObject *ten_py_ten_env_get_property_bool(PyObject *self, PyObject *args) {
   }
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   bool bool_value = ten_value_get_bool(value, &err);
   if (!ten_error_is_success(&err)) {
@@ -312,7 +312,7 @@ PyObject *ten_py_ten_env_get_property_float(PyObject *self, PyObject *args) {
   }
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   double float_value = ten_value_get_float64(value, &err);
   if (!ten_error_is_success(&err)) {

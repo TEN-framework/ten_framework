@@ -323,7 +323,7 @@ bool ten_addon_load_all_from_ten_package_base_dirs(
     // Get type and name from manifest file.
     ten_manifest_get_type_and_name(
         ten_string_get_raw_str(&manifest_json_file_path), &addon_type,
-        &addon_name, NULL);
+        &addon_name, err);
 
     ten_string_deinit(&manifest_json_file_path);
 

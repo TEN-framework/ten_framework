@@ -88,7 +88,7 @@ static napi_value ten_nodejs_msg_set_dest(napi_env env,
   TEN_ASSERT(msg_bridge, "Should not happen.");
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   ten_string_t app_uri;
   ten_string_init(&app_uri);
@@ -165,7 +165,7 @@ static napi_value ten_nodejs_msg_set_property_from_json(
   TEN_ASSERT(msg_bridge, "Should not happen.");
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   ten_string_t path;
   ten_string_init(&path);
@@ -238,7 +238,7 @@ static napi_value ten_nodejs_msg_get_property_to_json(napi_env env,
   TEN_ASSERT(msg_bridge, "Should not happen.");
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   ten_string_t path;
   ten_string_init(&path);
@@ -308,7 +308,7 @@ static napi_value ten_nodejs_msg_set_property_number(napi_env env,
   TEN_ASSERT(msg_bridge, "Should not happen.");
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   ten_string_t path;
   ten_string_init(&path);
@@ -361,7 +361,7 @@ static napi_value ten_nodejs_msg_get_property_number(napi_env env,
   TEN_ASSERT(msg_bridge, "Should not happen.");
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   ten_string_t path;
   ten_string_init(&path);
@@ -429,7 +429,7 @@ static napi_value ten_nodejs_msg_set_property_string(napi_env env,
   TEN_ASSERT(msg_bridge, "Should not happen.");
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   ten_string_t path;
   ten_string_init(&path);
@@ -487,7 +487,7 @@ static napi_value ten_nodejs_msg_get_property_string(napi_env env,
   napi_value js_res = NULL;
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   ten_string_t path;
   ten_string_init(&path);
@@ -553,7 +553,7 @@ static napi_value ten_nodejs_msg_set_property_bool(napi_env env,
   TEN_ASSERT(msg_bridge, "Should not happen.");
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   ten_string_t path;
   ten_string_init(&path);
@@ -606,7 +606,7 @@ static napi_value ten_nodejs_msg_get_property_bool(napi_env env,
   TEN_ASSERT(msg_bridge, "Should not happen.");
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   ten_string_t path;
   ten_string_init(&path);
@@ -674,7 +674,7 @@ static napi_value ten_nodejs_msg_set_property_buf(napi_env env,
   TEN_ASSERT(msg_bridge, "Should not happen.");
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   ten_string_t path;
   ten_string_init(&path);
@@ -732,7 +732,7 @@ static napi_value ten_nodejs_msg_get_property_buf(napi_env env,
   TEN_ASSERT(msg_bridge, "Should not happen.");
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   ten_string_t path;
   ten_string_init(&path);

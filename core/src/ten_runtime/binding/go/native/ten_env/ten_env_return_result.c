@@ -101,7 +101,7 @@ static void ten_env_proxy_notify_return_result(ten_env_t *ten_env,
   ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   bool rc = false;
   if (ctx->handler_id == TEN_GO_NO_RESPONSE_HANDLER) {
@@ -167,7 +167,7 @@ ten_go_error_t ten_go_ten_env_return_result(uintptr_t bridge_addr,
   });
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   ten_env_notify_return_result_ctx_t *return_result_info =
       ten_env_notify_return_result_ctx_create(
@@ -207,7 +207,7 @@ ten_go_error_t ten_go_ten_env_return_result_directly(
     ten_go_error_set_error_code(&cgo_error, TEN_ERROR_CODE_TEN_IS_CLOSED);
   });
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   ten_env_notify_return_result_ctx_t *return_result_info =
       ten_env_notify_return_result_ctx_create(

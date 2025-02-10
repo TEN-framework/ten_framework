@@ -94,7 +94,7 @@ napi_value ten_nodejs_ten_env_log_internal(napi_env env,
   RETURN_UNDEFINED_IF_NAPI_FAIL(rc, "Failed to get message.");
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   rc = ten_env_proxy_notify(ten_env_bridge->c_ten_env_proxy,
                             ten_env_proxy_notify_log, notify_info, false, &err);

@@ -32,7 +32,7 @@ void ten_go_ten_env_on_create_instance_done(uintptr_t bridge_addr,
   TEN_GO_TEN_ENV_IS_ALIVE_REGION_BEGIN(self, {});
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   bool rc = ten_env_on_create_instance_done(self->c_ten_env,
                                             c_extension_or_extension_group,

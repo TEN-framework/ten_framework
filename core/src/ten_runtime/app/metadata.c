@@ -48,7 +48,7 @@ bool ten_app_init_one_event_loop_per_engine(ten_app_t *self,
   }
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   self->one_event_loop_per_engine = ten_value_get_bool(value, &err);
 
@@ -67,7 +67,7 @@ bool ten_app_init_long_running_mode(ten_app_t *self, ten_value_t *value) {
   }
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   self->long_running_mode = ten_value_get_bool(value, &err);
 
@@ -104,7 +104,7 @@ bool ten_app_init_log_level(ten_app_t *self, ten_value_t *value) {
   TEN_ASSERT(value && ten_value_check_integrity(value), "Should not happen.");
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   ten_log_global_set_output_level(ten_value_get_int64(value, &err));
 

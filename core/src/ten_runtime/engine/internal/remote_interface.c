@@ -287,7 +287,7 @@ static bool ten_engine_create_remote_async(
   TEN_ASSERT(uri, "Should not happen.");
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   ten_engine_on_protocol_created_ctx_t *ctx =
       ten_engine_on_protocol_created_ctx_create(on_remote_created_cb, cb_data);
@@ -456,7 +456,7 @@ void ten_engine_route_msg_to_remote(ten_engine_t *self, ten_shared_ptr_t *msg) {
   ten_remote_t *remote = ten_engine_find_remote(self, dest_uri);
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   bool success = false;
 

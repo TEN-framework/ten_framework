@@ -114,7 +114,7 @@ static void ten_env_proxy_notify_return_result(ten_env_t *ten_env,
   TEN_ASSERT(ctx, "Should not happen.");
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   bool rc = false;
   if (ctx->py_cb_func == NULL) {
@@ -195,7 +195,7 @@ PyObject *ten_py_ten_env_return_result(PyObject *self, PyObject *args) {
   bool success = true;
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   // Check if cb_func is callable.
   if (!PyCallable_Check(cb_func)) {
@@ -262,7 +262,7 @@ PyObject *ten_py_ten_env_return_result_directly(PyObject *self,
   bool success = true;
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   // Check if cb_func is callable.
   if (!PyCallable_Check(cb_func)) {

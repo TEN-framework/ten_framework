@@ -439,7 +439,7 @@ bool ten_cmd_start_graph_get_long_running_mode(ten_shared_ptr_t *self) {
 
 bool ten_cmd_start_graph_set_predefined_graph_name(
     ten_shared_ptr_t *self, const char *predefined_graph_name,
-    ten_error_t *err) {
+    TEN_UNUSED ten_error_t *err) {
   TEN_ASSERT(self && ten_cmd_base_check_integrity(self) &&
                  ten_msg_get_type(self) == TEN_MSG_TYPE_CMD_START_GRAPH,
              "Should not happen.");
@@ -450,7 +450,7 @@ bool ten_cmd_start_graph_set_predefined_graph_name(
 
 bool ten_cmd_start_graph_set_long_running_mode(ten_shared_ptr_t *self,
                                                bool long_running_mode,
-                                               ten_error_t *err) {
+                                               TEN_UNUSED ten_error_t *err) {
   TEN_ASSERT(self && ten_cmd_base_check_integrity(self) &&
                  ten_msg_get_type(self) == TEN_MSG_TYPE_CMD_START_GRAPH,
              "Should not happen.");

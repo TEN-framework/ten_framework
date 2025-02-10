@@ -457,7 +457,7 @@ ten_schema_t *ten_schema_create_from_json_str(const char *json_string,
   ten_schema_t *schema = NULL;
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   ten_json_t *schema_json = ten_json_from_string(json_string, &err);
   do {
@@ -493,7 +493,7 @@ bool ten_schema_adjust_and_validate_json_str(ten_schema_t *self,
   TEN_ASSERT(json_string, "Invalid argument.");
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   ten_json_t *json = ten_json_from_string(json_string, &err);
   ten_value_t *value = NULL;

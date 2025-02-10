@@ -142,7 +142,7 @@ static bool ten_engine_handle_cmd_result_for_cmd_start_graph(
         "command.");
 
     ten_error_t err;
-    ten_error_init(&err);
+    TEN_ERROR_INIT(err);
 
     ten_engine_enable_extension_system(self, original_start_graph_cmd, &err);
 

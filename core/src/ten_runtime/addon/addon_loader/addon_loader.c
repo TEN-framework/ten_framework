@@ -16,6 +16,7 @@
 #include "ten_utils/container/list.h"
 #include "ten_utils/lib/thread_once.h"
 #include "ten_utils/macro/check.h"
+#include "ten_utils/macro/mark.h"
 
 static ten_thread_once_t g_addon_loader_store_once = TEN_THREAD_ONCE_INIT;
 
@@ -56,7 +57,7 @@ void ten_addon_unregister_all_addon_loader(void) {
 bool ten_addon_create_addon_loader(ten_env_t *ten_env, const char *addon_name,
                                    const char *instance_name,
                                    ten_env_addon_create_instance_done_cb_t cb,
-                                   void *cb_data, ten_error_t *err) {
+                                   void *cb_data, TEN_UNUSED ten_error_t *err) {
   TEN_ASSERT(addon_name && instance_name, "Should not happen.");
 
   TEN_ASSERT(ten_env, "Invalid argument.");
