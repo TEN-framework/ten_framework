@@ -20,8 +20,8 @@ typedef struct ten_msg_t ten_msg_t;
 typedef struct ten_cmd_timer_t {
   ten_cmd_t cmd_hdr;
 
-  ten_value_t timer_id;       // uint32
-  ten_value_t timeout_in_us;  // uint64
+  ten_value_t timer_id;    // uint32
+  ten_value_t timeout_us;  // uint64
 
   // TEN_TIMER_INFINITE means "forever"
   // TEN_TIMER_CANCEL means "cancel the timer with 'timer_id'"
@@ -47,13 +47,13 @@ TEN_RUNTIME_API bool ten_cmd_timer_set_timer_id(ten_shared_ptr_t *self,
                                                 uint32_t timer_id);
 
 TEN_RUNTIME_PRIVATE_API uint64_t
-ten_raw_cmd_timer_get_timeout_in_us(ten_cmd_timer_t *self);
+ten_raw_cmd_timer_get_timeout_us(ten_cmd_timer_t *self);
 
 TEN_RUNTIME_PRIVATE_API uint64_t
-ten_cmd_timer_get_timeout_in_us(ten_shared_ptr_t *self);
+ten_cmd_timer_get_timeout_us(ten_shared_ptr_t *self);
 
-TEN_RUNTIME_API bool ten_cmd_timer_set_timeout_in_us(ten_shared_ptr_t *self,
-                                                     uint64_t timeout_in_us);
+TEN_RUNTIME_API bool ten_cmd_timer_set_timeout_us(ten_shared_ptr_t *self,
+                                                  uint64_t timeout_us);
 
 TEN_RUNTIME_PRIVATE_API int32_t
 ten_raw_cmd_timer_get_times(ten_cmd_timer_t *self);

@@ -9,15 +9,15 @@
 #include "include_internal/ten_runtime/msg/msg.h"
 #include "ten_utils/macro/check.h"
 
-bool ten_cmd_timer_process_timeout_in_us(
-    ten_msg_t *self, ten_raw_msg_process_one_field_func_t cb, void *user_data,
-    ten_error_t *err) {
+bool ten_cmd_timer_process_timeout_us(ten_msg_t *self,
+                                      ten_raw_msg_process_one_field_func_t cb,
+                                      void *user_data, ten_error_t *err) {
   TEN_ASSERT(self && ten_raw_msg_check_integrity(self), "Should not happen.");
 
-  ten_msg_field_process_data_t timeout_in_us_field;
-  ten_msg_field_process_data_init(&timeout_in_us_field, TEN_STR_TIMEOUT_IN_US,
-                                  &((ten_cmd_timer_t *)self)->timeout_in_us,
+  ten_msg_field_process_data_t timeout_us_field;
+  ten_msg_field_process_data_init(&timeout_us_field, TEN_STR_TIMEOUT_US,
+                                  &((ten_cmd_timer_t *)self)->timeout_us,
                                   false);
 
-  return cb(self, &timeout_in_us_field, user_data, err);
+  return cb(self, &timeout_us_field, user_data, err);
 }

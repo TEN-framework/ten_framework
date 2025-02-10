@@ -40,7 +40,7 @@ struct ten_timer_t {
   void *on_trigger_data;
 
   uint32_t id;
-  uint64_t timeout_in_us;
+  uint64_t timeout_us;
   int32_t requested_times;  // TEN_TIMER_INFINITE means "forever"
   int32_t times;
 
@@ -67,7 +67,7 @@ TEN_RUNTIME_PRIVATE_API ten_timer_t *ten_timer_create_with_cmd(
     ten_shared_ptr_t *cmd, ten_runloop_t *runloop);
 
 TEN_RUNTIME_PRIVATE_API ten_timer_t *ten_timer_create(ten_runloop_t *runloop,
-                                                      uint64_t timeout_in_us,
+                                                      uint64_t timeout_us,
                                                       int32_t requested_times,
                                                       bool auto_restart);
 
