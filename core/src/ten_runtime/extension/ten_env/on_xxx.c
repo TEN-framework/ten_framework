@@ -50,7 +50,7 @@ static void ten_extension_adjust_and_validate_property_on_configure_done(
              "Should not happen.");
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   bool success = ten_schema_store_adjust_properties(&self->schema_store,
                                                     &self->property, &err);
@@ -116,7 +116,7 @@ bool ten_extension_on_configure_done(ten_env_t *self) {
   }
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   bool rc = ten_handle_manifest_info_when_on_configure_done(
       &extension->manifest_info, ten_extension_get_base_dir(extension),

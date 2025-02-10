@@ -21,7 +21,7 @@ static void ten_env_proxy_notify_on_deinit_done(ten_env_t *ten_env,
       "Should not happen.");
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   ten_env_proxy_t *ten_env_proxy = user_data;
 
@@ -61,7 +61,7 @@ napi_value ten_nodejs_ten_env_on_deinit_done(napi_env env,
              "Should not happen.");
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   bool rc = false;
 

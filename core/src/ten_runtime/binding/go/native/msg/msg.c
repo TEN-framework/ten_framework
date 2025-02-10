@@ -156,7 +156,7 @@ ten_go_error_t ten_go_msg_property_get_int8(uintptr_t bridge_addr,
   }
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   *value = ten_value_get_int8(c_value, &err);
 
@@ -182,7 +182,7 @@ ten_go_error_t ten_go_msg_property_get_int16(uintptr_t bridge_addr,
   }
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   *value = ten_value_get_int16(c_value, &err);
 
@@ -208,7 +208,7 @@ ten_go_error_t ten_go_msg_property_get_int32(uintptr_t bridge_addr,
   }
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   *value = ten_value_get_int32(c_value, &err);
 
@@ -234,7 +234,7 @@ ten_go_error_t ten_go_msg_property_get_int64(uintptr_t bridge_addr,
   }
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   *value = ten_value_get_int64(c_value, &err);
 
@@ -260,7 +260,7 @@ ten_go_error_t ten_go_msg_property_get_uint8(uintptr_t bridge_addr,
   }
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   *value = ten_value_get_uint8(c_value, &err);
 
@@ -286,7 +286,7 @@ ten_go_error_t ten_go_msg_property_get_uint16(uintptr_t bridge_addr,
   }
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   *value = ten_value_get_uint16(c_value, &err);
 
@@ -312,7 +312,7 @@ ten_go_error_t ten_go_msg_property_get_uint32(uintptr_t bridge_addr,
   }
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   *value = ten_value_get_uint32(c_value, &err);
 
@@ -338,7 +338,7 @@ ten_go_error_t ten_go_msg_property_get_uint64(uintptr_t bridge_addr,
   }
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   *value = ten_value_get_uint64(c_value, &err);
 
@@ -364,7 +364,7 @@ ten_go_error_t ten_go_msg_property_get_float32(uintptr_t bridge_addr,
   }
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   *value = ten_value_get_float32(c_value, &err);
 
@@ -390,7 +390,7 @@ ten_go_error_t ten_go_msg_property_get_float64(uintptr_t bridge_addr,
   }
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   *value = ten_value_get_float64(c_value, &err);
 
@@ -416,7 +416,7 @@ ten_go_error_t ten_go_msg_property_get_bool(uintptr_t bridge_addr,
   }
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   *value = ten_value_get_bool(c_value, &err);
 
@@ -840,7 +840,7 @@ ten_go_error_t ten_go_msg_set_dest(uintptr_t bridge_addr, const void *app_uri,
                                        extension_len);
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   bool rc = ten_msg_clear_and_set_dest(
       ten_go_msg_c_msg(self), ten_string_get_raw_str(&app_uri_str),

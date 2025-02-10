@@ -146,7 +146,8 @@ static void create_addon_loader_done(ten_env_t *ten_env,
   }
 }
 
-bool ten_addon_loader_addons_create_singleton_instance(ten_env_t *ten_env) {
+bool ten_addon_loader_addons_create_singleton_instance(ten_env_t *ten_env,
+                                                       ten_error_t *err) {
   bool need_to_wait_all_addon_loaders_created = true;
 
   int lock_operation_rc = ten_addon_loader_singleton_store_lock();
@@ -170,7 +171,7 @@ bool ten_addon_loader_addons_create_singleton_instance(ten_env_t *ten_env) {
         ten_env, ten_string_get_raw_str(&loader_addon_host->name),
         ten_string_get_raw_str(&loader_addon_host->name),
         (ten_env_addon_create_instance_done_cb_t)create_addon_loader_done,
-        (void *)desired_count, NULL);
+        (void *)desired_count, err);
 
     if (!res) {
       TEN_LOGE("Failed to create addon_loader instance %s",

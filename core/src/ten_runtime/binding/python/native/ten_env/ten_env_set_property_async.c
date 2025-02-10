@@ -62,7 +62,7 @@ static void ten_env_proxy_notify_set_property_async(ten_env_t *ten_env,
   TEN_ASSERT(ctx->py_cb_func, "Invalid argument.");
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   bool rc = ten_env_set_property(ten_env, ten_string_get_raw_str(&ctx->path),
                                  ctx->c_value, &err);
@@ -171,7 +171,7 @@ PyObject *ten_py_ten_env_set_property_from_json_async(PyObject *self,
   ten_json_destroy(json);
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   bool rc = ten_py_ten_env_set_property_async(py_ten_env, path, value,
                                               py_cb_func, &err);
@@ -220,7 +220,7 @@ PyObject *ten_py_ten_env_set_property_string_async(PyObject *self,
   }
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   bool rc = ten_py_ten_env_set_property_async(py_ten_env, path, c_value,
                                               py_cb_func, &err);
@@ -269,7 +269,7 @@ PyObject *ten_py_ten_env_set_property_int_async(PyObject *self,
   }
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   bool rc = ten_py_ten_env_set_property_async(py_ten_env, path, c_value,
                                               py_cb_func, &err);
@@ -318,7 +318,7 @@ PyObject *ten_py_ten_env_set_property_bool_async(PyObject *self,
   }
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   bool rc = ten_py_ten_env_set_property_async(py_ten_env, path, c_value,
                                               py_cb_func, &err);
@@ -367,7 +367,7 @@ PyObject *ten_py_ten_env_set_property_float_async(PyObject *self,
   }
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   bool rc = ten_py_ten_env_set_property_async(py_ten_env, path, c_value,
                                               py_cb_func, &err);

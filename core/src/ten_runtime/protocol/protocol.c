@@ -53,7 +53,7 @@ void ten_protocol_determine_default_property_value(ten_protocol_t *self) {
       "Should not happen.");
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   self->cascade_close_upward = ten_value_object_get_bool(
       &self->addon_host->property, TEN_STR_CASCADE_CLOSE_UPWARD, &err);

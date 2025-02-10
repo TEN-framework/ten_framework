@@ -95,7 +95,7 @@ static void ten_env_proxy_notify_send_cmd(ten_env_t *ten_env, void *user_data) {
   TEN_ASSERT(notify_info, "Should not happen.");
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   ten_env_send_cmd_options_t options = TEN_ENV_SEND_CMD_OPTIONS_INIT_VAL;
   if (notify_info->is_ex) {
@@ -154,7 +154,7 @@ ten_go_error_t ten_go_ten_env_send_cmd(uintptr_t bridge_addr,
   });
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   ten_env_notify_send_cmd_ctx_t *notify_info =
       ten_env_notify_send_cmd_ctx_create(

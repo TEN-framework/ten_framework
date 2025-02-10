@@ -45,7 +45,7 @@ static void ten_app_adjust_and_validate_property_on_configure_done(
   TEN_ASSERT(self && ten_app_check_integrity(self, true), "Should not happen.");
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   bool success = ten_schema_store_adjust_properties(&self->schema_store,
                                                     &self->property, &err);
@@ -75,7 +75,7 @@ static void ten_app_start_auto_start_predefined_graph_and_trigger_on_init(
              "Should not happen.");
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   bool rc = ten_app_start_auto_start_predefined_graph(self, &err);
   TEN_ASSERT(rc, "Should not happen, %s.", ten_error_message(&err));
@@ -125,7 +125,7 @@ void ten_app_on_all_addon_loaders_created(ten_app_t *self) {
   TEN_ASSERT(!lock_operation_rc, "Should not happen.");
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   if (!ten_app_get_predefined_graphs_from_property(self)) {
     goto error;
@@ -165,7 +165,7 @@ void ten_app_on_configure_done(ten_env_t *ten_env) {
   TEN_ASSERT(self->loop, "Should not happen.");
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   bool rc = ten_handle_manifest_info_when_on_configure_done(
       &self->manifest_info, ten_app_get_base_dir(self), &self->manifest, &err);
@@ -221,7 +221,7 @@ void ten_app_on_configure_done(ten_env_t *ten_env) {
 
   // Create addon loader singleton instances.
   bool need_to_wait_all_addon_loaders_created =
-      ten_addon_loader_addons_create_singleton_instance(ten_env);
+      ten_addon_loader_addons_create_singleton_instance(ten_env, &err);
   if (!need_to_wait_all_addon_loaders_created) {
     ten_app_on_all_addon_loaders_created(self);
   }

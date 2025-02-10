@@ -22,7 +22,7 @@ static void tsfn_proxy_get_property_to_json_callback(napi_env env,
   napi_value js_error = NULL;
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   ten_value_t *value = ctx->value;
   if (!value) {
@@ -113,7 +113,7 @@ napi_value ten_nodejs_ten_env_get_property_to_json(napi_env env,
   RETURN_UNDEFINED_IF_NAPI_FAIL(cb_tsfn, "Failed to create TSFN", NULL);
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   rc = ten_nodejs_ten_env_peek_property_value(
       ten_env_bridge, ten_string_get_raw_str(&name), cb_tsfn, &err);

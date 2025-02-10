@@ -39,7 +39,7 @@ static void ten_env_proxy_notify_on_deinit_done(ten_env_t *ten_env,
       "Should not happen.");
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   ten_go_ten_env_t *ten_env_bridge = user_data;
   TEN_ASSERT(ten_env_bridge, "Should not happen.");
@@ -69,7 +69,7 @@ void ten_go_ten_env_on_deinit_done(uintptr_t bridge_addr) {
   // already exists.
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   bool rc = true;
 

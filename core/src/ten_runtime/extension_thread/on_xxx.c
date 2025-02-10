@@ -81,7 +81,7 @@ void ten_extension_thread_on_extension_group_on_init_done(
              "Should not happen.");
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   bool rc = ten_handle_manifest_info_when_on_configure_done(
       &extension_group->manifest_info,

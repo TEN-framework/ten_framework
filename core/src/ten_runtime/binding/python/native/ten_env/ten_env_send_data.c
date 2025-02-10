@@ -102,7 +102,7 @@ static void ten_env_proxy_notify_send_data(ten_env_t *ten_env,
   TEN_ASSERT(notify_info, "Invalid argument.");
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   bool res = false;
   if (notify_info->py_cb_func == NULL) {
@@ -166,7 +166,7 @@ PyObject *ten_py_ten_env_send_data(PyObject *self, PyObject *args) {
   bool success = true;
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   // Check if cb_func is callable.
   if (!PyCallable_Check(cb_func)) {

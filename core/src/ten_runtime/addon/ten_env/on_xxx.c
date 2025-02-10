@@ -42,10 +42,10 @@ void ten_addon_on_init_done(ten_env_t *self) {
              "Should not happen.");
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN`
 
-  bool rc = ten_handle_manifest_info_when_on_configure_done(
-      &addon_host->manifest_info, NULL, &addon_host->manifest, &err);
+      bool rc = ten_handle_manifest_info_when_on_configure_done(
+          &addon_host->manifest_info, NULL, &addon_host->manifest, &err);
   if (!rc) {
     TEN_LOGW("Failed to load addon manifest data, FATAL ERROR.");
     // NOLINTNEXTLINE(concurrency-mt-unsafe)

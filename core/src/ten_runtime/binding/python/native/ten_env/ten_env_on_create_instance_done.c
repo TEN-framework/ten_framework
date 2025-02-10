@@ -18,7 +18,7 @@ PyObject *ten_py_ten_env_on_create_instance_done(PyObject *self,
              "Invalid argument.");
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   ten_py_extension_t *extension = NULL;
   void *context = NULL;

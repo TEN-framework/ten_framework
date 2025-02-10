@@ -68,7 +68,7 @@ void ten_extension_handle_in_msg(ten_extension_t *self, ten_shared_ptr_t *msg) {
   TEN_ASSERT(msg && ten_msg_check_integrity(msg), "Invalid argument.");
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   bool delete_msg = false;
 
@@ -194,7 +194,7 @@ void ten_extension_handle_in_msg(ten_extension_t *self, ten_shared_ptr_t *msg) {
   if (should_this_msg_do_msg_conversion) {
     // Perform the command conversion, and get the actual commands.
     ten_error_t err;
-    ten_error_init(&err);
+    TEN_ERROR_INIT(err);
     if (!ten_extension_convert_msg(self, msg, &converted_msgs, &err)) {
       TEN_LOGE("[%s] Failed to convert msg %s: %s",
                ten_extension_get_name(self, true), ten_msg_get_name(msg),

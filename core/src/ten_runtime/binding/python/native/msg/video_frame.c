@@ -107,7 +107,7 @@ PyObject *ten_py_video_frame_lock_buf(PyObject *self, PyObject *args) {
              "Invalid argument.");
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   ten_buf_t *data = ten_video_frame_peek_buf(py_video_frame->msg.c_msg);
 
@@ -148,7 +148,7 @@ PyObject *ten_py_video_frame_unlock_buf(PyObject *self, PyObject *args) {
   }
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   if (!ten_msg_remove_locked_res_buf(py_video_frame->msg.c_msg, data, &err)) {
     TEN_ASSERT(0, "Should not happen.");
@@ -166,7 +166,7 @@ PyObject *ten_py_video_frame_get_buf(PyObject *self, PyObject *args) {
              "Invalid argument.");
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   ten_buf_t *buf = ten_video_frame_peek_buf(py_video_frame->msg.c_msg);
   uint8_t *data = buf->data;

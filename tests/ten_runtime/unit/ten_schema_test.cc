@@ -55,7 +55,7 @@ TEST(SchemaTest, SchemaStoreValidateProperty) {  // NOLINT
   ten_json_destroy(schema_json);
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   ten_schema_store_t schema_store;
   ten_schema_store_init(&schema_store);

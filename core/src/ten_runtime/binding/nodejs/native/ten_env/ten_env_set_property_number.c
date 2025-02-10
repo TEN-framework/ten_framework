@@ -26,7 +26,7 @@ static void tsfn_proxy_set_property_number_callback(napi_env env,
       ASSERT_IF_NAPI_FAIL(js_error, "Failed to create JS error", NULL);
     } else {
       ten_error_t err;
-      ten_error_init(&err);
+      TEN_ERROR_INIT(err);
       ten_error_set(&err, TEN_ERROR_CODE_GENERIC,
                     "Failed to set property value");
       js_error = ten_nodejs_create_error(env, &err);
@@ -85,7 +85,7 @@ napi_value ten_nodejs_ten_env_set_property_number(napi_env env,
   RETURN_UNDEFINED_IF_NAPI_FAIL(cb_tsfn, "Failed to create TSFN", NULL);
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   rc = ten_nodejs_ten_env_set_property_value(
       ten_env_bridge, ten_string_get_raw_str(&name), value, cb_tsfn, &err);

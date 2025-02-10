@@ -29,7 +29,7 @@ static void tsfn_proxy_set_property_from_json_callback(napi_env env,
       ASSERT_IF_NAPI_FAIL(js_error, "Failed to create JS error", NULL);
     } else {
       ten_error_t err;
-      ten_error_init(&err);
+      TEN_ERROR_INIT(err);
       ten_error_set(&err, TEN_ERROR_CODE_GENERIC,
                     "Failed to set property value");
       js_error = ten_nodejs_create_error(env, &err);
@@ -71,7 +71,7 @@ napi_value ten_nodejs_ten_env_set_property_from_json(napi_env env,
              "Should not happen.");
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   ten_string_t path;
   ten_string_init(&path);

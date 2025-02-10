@@ -82,7 +82,7 @@ PyObject *ten_py_msg_set_name(PyObject *self, TEN_UNUSED PyObject *args) {
   }
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   bool rc = ten_msg_set_name(c_msg, name, &err);
 
@@ -125,7 +125,7 @@ PyObject *ten_py_msg_set_dest(PyObject *self, TEN_UNUSED PyObject *args) {
   }
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   bool rc = ten_msg_clear_and_set_dest(
       c_msg, app_uri, graph_id, extension_group_name, extension_name, &err);
@@ -162,7 +162,7 @@ PyObject *ten_py_msg_set_property_string(PyObject *self, PyObject *args) {
   }
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   if (!path || !value) {
     ten_error_set(&err, TEN_ERROR_CODE_INVALID_ARGUMENT, "Invalid argument.");
@@ -205,7 +205,7 @@ PyObject *ten_py_msg_get_property_string(PyObject *self, PyObject *args) {
   }
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   if (!path) {
     ten_error_set(&err, TEN_ERROR_CODE_INVALID_ARGUMENT, "Invalid argument.");
@@ -255,7 +255,7 @@ PyObject *ten_py_msg_set_property_from_json(PyObject *self, PyObject *args) {
   }
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   ten_json_t *c_json = ten_json_from_string(json_str, &err);
   if (!c_json) {
@@ -306,7 +306,7 @@ PyObject *ten_py_msg_get_property_to_json(PyObject *self, PyObject *args) {
   }
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   ten_value_t *c_value = ten_msg_peek_property(c_msg, path, &err);
   if (!c_value) {
@@ -347,7 +347,7 @@ PyObject *ten_py_msg_get_property_int(PyObject *self, PyObject *args) {
   }
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   if (!path) {
     ten_error_set(&err, TEN_ERROR_CODE_INVALID_ARGUMENT, "Invalid argument.");
@@ -394,7 +394,7 @@ PyObject *ten_py_msg_set_property_int(PyObject *self, PyObject *args) {
   }
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   if (!path) {
     ten_error_set(&err, TEN_ERROR_CODE_INVALID_ARGUMENT, "Invalid argument.");
@@ -437,7 +437,7 @@ PyObject *ten_py_msg_get_property_bool(PyObject *self, PyObject *args) {
   }
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   if (!path) {
     ten_error_set(&err, TEN_ERROR_CODE_INVALID_ARGUMENT, "Invalid argument.");
@@ -482,7 +482,7 @@ PyObject *ten_py_msg_set_property_bool(PyObject *self, PyObject *args) {
   }
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   if (!path) {
     ten_error_set(&err, TEN_ERROR_CODE_INVALID_ARGUMENT, "Invalid argument.");
@@ -525,7 +525,7 @@ PyObject *ten_py_msg_get_property_float(PyObject *self, PyObject *args) {
   }
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   if (!path) {
     ten_error_set(&err, TEN_ERROR_CODE_INVALID_ARGUMENT, "Invalid argument.");
@@ -572,7 +572,7 @@ PyObject *ten_py_msg_set_property_float(PyObject *self, PyObject *args) {
   }
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   if (!path) {
     ten_error_set(&err, TEN_ERROR_CODE_INVALID_ARGUMENT, "Invalid argument.");
@@ -614,7 +614,7 @@ PyObject *ten_py_msg_get_property_buf(PyObject *self, PyObject *args) {
   }
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   if (!path) {
     ten_error_set(&err, TEN_ERROR_CODE_INVALID_ARGUMENT, "Invalid argument.");
@@ -674,7 +674,7 @@ PyObject *ten_py_msg_set_property_buf(PyObject *self, PyObject *args) {
   }
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   ten_buf_t buf;
   ten_buf_init_with_owned_data(&buf, size);

@@ -72,7 +72,7 @@ static void ten_env_proxy_notify_peek_property(ten_env_t *ten_env,
   TEN_ASSERT(ctx, "Should not happen.");
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   ten_value_t *c_value =
       ten_env_peek_property(ten_env, ten_string_get_raw_str(&ctx->path), &err);
@@ -188,7 +188,7 @@ static void ten_py_get_property_int_cb(ten_env_t *ten_env, ten_value_t *value,
     arglist = Py_BuildValue("(iO)", int_value, py_error);
   } else {
     ten_error_t err;
-    ten_error_init(&err);
+    TEN_ERROR_INIT(err);
 
     int_value = ten_value_get_int64(value, error);
 
@@ -241,7 +241,7 @@ static void ten_py_get_property_string_cb(ten_env_t *ten_env,
     arglist = Py_BuildValue("(sO)", str_value, py_error);
   } else {
     ten_error_t err;
-    ten_error_init(&err);
+    TEN_ERROR_INIT(err);
 
     str_value = ten_value_peek_raw_str(value, &err);
 
@@ -293,7 +293,7 @@ static void ten_py_get_property_bool_cb(ten_env_t *ten_env, ten_value_t *value,
     arglist = Py_BuildValue("(OO)", bool_value ? Py_True : Py_False, py_error);
   } else {
     ten_error_t err;
-    ten_error_init(&err);
+    TEN_ERROR_INIT(err);
 
     bool_value = ten_value_get_bool(value, &err);
 
@@ -346,7 +346,7 @@ static void ten_py_get_property_float_cb(ten_env_t *ten_env, ten_value_t *value,
     arglist = Py_BuildValue("(dO)", float_value, py_error);
   } else {
     ten_error_t err;
-    ten_error_init(&err);
+    TEN_ERROR_INIT(err);
 
     float_value = ten_value_get_float64(value, &err);
 
@@ -450,7 +450,7 @@ static PyObject *ten_py_ten_env_get_property_async(PyObject *self,
   }
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   bool rc = ten_py_peek_property_async(py_ten_env, path, cb_func, cb, &err);
 

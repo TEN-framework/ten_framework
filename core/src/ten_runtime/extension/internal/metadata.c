@@ -33,7 +33,7 @@ static bool ten_extension_determine_ten_namespace_properties(
       "Invalid argument.");
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   ten_value_object_foreach(ten_namespace_properties, iter) {
     ten_value_kv_t *kv = ten_ptr_listnode_get(iter.node);

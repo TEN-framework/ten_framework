@@ -44,7 +44,7 @@ napi_value ten_nodejs_ten_env_on_create_instance_done(napi_env env,
                                 "Failed to get context: %d", status);
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   TEN_ASSERT(ten_env_bridge->c_ten_env->attach_to == TEN_ENV_ATTACH_TO_ADDON,
              "Should not happen.");

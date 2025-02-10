@@ -23,7 +23,7 @@ static void ten_env_proxy_notify_on_init_done(ten_env_t *ten_env,
       "Should not happen.");
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   bool rc = ten_env_on_init_done(ten_env, &err);
   TEN_ASSERT(rc, "Should not happen.");
@@ -42,7 +42,7 @@ PyObject *ten_py_ten_env_on_init_done(PyObject *self, PyObject *args) {
   }
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   bool rc = true;
 

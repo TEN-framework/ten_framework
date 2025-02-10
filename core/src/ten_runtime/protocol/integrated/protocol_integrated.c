@@ -348,7 +348,7 @@ static void ten_transport_on_client_accepted(ten_transport_t *transport,
   TEN_ASSERT(app && ten_app_check_integrity(app, true), "Should not happen.");
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   // We can _not_ know whether the protocol role is
   // 'TEN_PROTOCOL_ROLE_IN_INTERNAL' or 'TEN_PROTOCOL_ROLE_IN_EXTERNAL' until

@@ -129,7 +129,7 @@ static void test_app_on_deinit(ten_app_t *app, ten_env_t *ten_env) {
 
 void *ten_builtin_test_app_thread_main(void *args) {
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   ten_app_t *test_app = ten_app_create(test_app_on_configure, test_app_on_init,
                                        test_app_on_deinit, &err);

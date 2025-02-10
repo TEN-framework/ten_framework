@@ -181,15 +181,14 @@ bool ten_addon_create_protocol_with_uri(
   TEN_ASSERT(uri && role > TEN_PROTOCOL_ROLE_INVALID, "Should not happen.");
   TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
              "Should not happen.");
+  TEN_ASSERT(err, "Invalid argument.");
 
   TEN_ENV_ATTACH_TO attach_to = ten_env_get_attach_to(ten_env);
   if (attach_to != TEN_ENV_ATTACH_TO_APP &&
       attach_to != TEN_ENV_ATTACH_TO_ENGINE) {
     TEN_ENV_LOG_ERROR_INTERNAL(ten_env, "Invalid ten_env attach_to: %d",
                                attach_to);
-    if (err) {
-      ten_error_set(err, TEN_ERROR_CODE_INVALID_ARGUMENT, "Invalid ten_env.");
-    }
+    ten_error_set(err, TEN_ERROR_CODE_INVALID_ARGUMENT, "Invalid ten_env.");
     return false;
   }
 
@@ -203,10 +202,8 @@ bool ten_addon_create_protocol_with_uri(
         uri);
     ten_string_destroy(protocol_str);
 
-    if (err) {
-      ten_error_set(err, TEN_ERROR_CODE_GENERIC,
-                    "No addon installed for the protocol.");
-    }
+    ten_error_set(err, TEN_ERROR_CODE_GENERIC,
+                  "No addon installed for the protocol.");
     return false;
   }
 
@@ -230,10 +227,8 @@ bool ten_addon_create_protocol_with_uri(
                                uri);
     ten_addon_create_protocol_ctx_destroy(ctx);
 
-    if (err) {
-      ten_error_set(err, TEN_ERROR_CODE_GENERIC,
-                    "Failed to create protocol for uri: %s.", uri);
-    }
+    ten_error_set(err, TEN_ERROR_CODE_GENERIC,
+                  "Failed to create protocol for uri: %s.", uri);
     return false;
   }
 

@@ -322,7 +322,7 @@ bool ten_app_get_predefined_graphs_from_property(ten_app_t *self) {
   TEN_ASSERT(ten_value_check_integrity(app_property), "Should not happen.");
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   ten_value_t *ten_namespace_properties =
       ten_app_get_ten_namespace_properties(self);

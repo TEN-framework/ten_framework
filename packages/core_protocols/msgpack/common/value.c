@@ -562,7 +562,7 @@ void ten_msgpack_value_serialize(ten_value_t *value, msgpack_packer *pck) {
   TEN_ASSERT(rc == 0, "Should not happen.");
 
   ten_error_t err;
-  ten_error_init(&err);
+  TEN_ERROR_INIT(err);
 
   // Pack the data of value second.
   switch (ten_value_get_type(value)) {
