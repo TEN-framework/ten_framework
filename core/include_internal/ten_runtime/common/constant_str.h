@@ -35,7 +35,7 @@
 // Timer relevant fields.
 #define TEN_STR_TIMER_ID "timer_id"
 #define TEN_STR_TIMES "times"
-#define TEN_STR_TIMEOUT_IN_US "timeout_in_us"
+#define TEN_STR_TIMEOUT_US "timeout_us"
 
 // 'api' field relevant.
 #define TEN_STR_API "api"

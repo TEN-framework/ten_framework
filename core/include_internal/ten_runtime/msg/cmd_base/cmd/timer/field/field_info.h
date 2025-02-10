@@ -10,7 +10,7 @@
 
 #include "include_internal/ten_runtime/msg/cmd_base/cmd/cmd.h"
 #include "include_internal/ten_runtime/msg/cmd_base/cmd/timer/field/field.h"
-#include "include_internal/ten_runtime/msg/cmd_base/cmd/timer/field/timeout_in_us.h"
+#include "include_internal/ten_runtime/msg/cmd_base/cmd/timer/field/timeout_us.h"
 #include "include_internal/ten_runtime/msg/cmd_base/cmd/timer/field/timer_id.h"
 #include "include_internal/ten_runtime/msg/cmd_base/cmd/timer/field/times.h"
 #include "include_internal/ten_runtime/msg/field/field_info.h"
@@ -37,7 +37,7 @@ static const ten_msg_field_info_t ten_cmd_timer_fields_info[] = {
         {
             .field_name = NULL,
             .copy_field = NULL,
-            .process_field = ten_cmd_timer_process_timeout_in_us,
+            .process_field = ten_cmd_timer_process_timeout_us,
         },
     [TEN_CMD_TIMER_FIELD_TIMES] =
         {

@@ -51,7 +51,7 @@ static void ten_raw_cmd_timer_destroy(ten_cmd_timer_t *self) {
   ten_raw_cmd_deinit(&self->cmd_hdr);
 
   ten_value_deinit(&self->timer_id);
-  ten_value_deinit(&self->timeout_in_us);
+  ten_value_deinit(&self->timeout_us);
   ten_value_deinit(&self->times);
 
   TEN_FREE(self);
@@ -88,7 +88,7 @@ ten_cmd_timer_t *ten_raw_cmd_timer_create(void) {
   ten_raw_cmd_init(&raw_cmd->cmd_hdr, TEN_MSG_TYPE_CMD_TIMER);
 
   ten_value_init_uint32(&raw_cmd->timer_id, 0);
-  ten_value_init_uint64(&raw_cmd->timeout_in_us, 0);
+  ten_value_init_uint64(&raw_cmd->timeout_us, 0);
   ten_value_init_int32(&raw_cmd->times, 0);
 
   return raw_cmd;
@@ -114,36 +114,35 @@ uint32_t ten_cmd_timer_get_timer_id(ten_shared_ptr_t *self) {
   return ten_raw_cmd_timer_get_timer_id(get_raw_cmd(self));
 }
 
-uint64_t ten_raw_cmd_timer_get_timeout_in_us(ten_cmd_timer_t *self) {
+uint64_t ten_raw_cmd_timer_get_timeout_us(ten_cmd_timer_t *self) {
   TEN_ASSERT(
       self && ten_raw_msg_get_type((ten_msg_t *)self) == TEN_MSG_TYPE_CMD_TIMER,
       "Should not happen.");
 
-  return ten_value_get_uint64(&self->timeout_in_us, NULL);
+  return ten_value_get_uint64(&self->timeout_us, NULL);
 }
 
-uint64_t ten_cmd_timer_get_timeout_in_us(ten_shared_ptr_t *self) {
+uint64_t ten_cmd_timer_get_timeout_us(ten_shared_ptr_t *self) {
   TEN_ASSERT(self && ten_msg_get_type(self) == TEN_MSG_TYPE_CMD_TIMER,
              "Should not happen.");
 
-  return ten_raw_cmd_timer_get_timeout_in_us(get_raw_cmd(self));
+  return ten_raw_cmd_timer_get_timeout_us(get_raw_cmd(self));
 }
 
-static bool ten_raw_cmd_timer_set_timeout_in_us(ten_cmd_timer_t *self,
-                                                uint64_t timeout_in_us) {
+static bool ten_raw_cmd_timer_set_timeout_us(ten_cmd_timer_t *self,
+                                             uint64_t timeout_us) {
   TEN_ASSERT(
       self && ten_raw_msg_get_type((ten_msg_t *)self) == TEN_MSG_TYPE_CMD_TIMER,
       "Should not happen.");
 
-  return ten_value_set_uint64(&self->timeout_in_us, timeout_in_us);
+  return ten_value_set_uint64(&self->timeout_us, timeout_us);
 }
 
-bool ten_cmd_timer_set_timeout_in_us(ten_shared_ptr_t *self,
-                                     uint64_t timeout_in_us) {
+bool ten_cmd_timer_set_timeout_us(ten_shared_ptr_t *self, uint64_t timeout_us) {
   TEN_ASSERT(self && ten_msg_get_type(self) == TEN_MSG_TYPE_CMD_TIMER,
              "Should not happen.");
 
-  return ten_raw_cmd_timer_set_timeout_in_us(get_raw_cmd(self), timeout_in_us);
+  return ten_raw_cmd_timer_set_timeout_us(get_raw_cmd(self), timeout_us);
 }
 
 int32_t ten_raw_cmd_timer_get_times(ten_cmd_timer_t *self) {
@@ -184,9 +183,9 @@ bool ten_raw_cmd_timer_set_ten_property(ten_msg_t *self, ten_list_t *paths,
           ten_value_set_uint32(&timer_cmd->timer_id,
                                ten_value_get_uint32(value, err));
           success = ten_error_is_success(err);
-        } else if (!strcmp(TEN_STR_TIMEOUT_IN_US,
+        } else if (!strcmp(TEN_STR_TIMEOUT_US,
                            ten_string_get_raw_str(&item->obj_item_str))) {
-          ten_value_set_uint64(&timer_cmd->timeout_in_us,
+          ten_value_set_uint64(&timer_cmd->timeout_us,
                                ten_value_get_uint64(value, err));
           success = ten_error_is_success(err);
         } else if (!strcmp(TEN_STR_TIMES,

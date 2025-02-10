@@ -15,6 +15,6 @@
 typedef struct ten_msg_t ten_msg_t;
 typedef struct ten_error_t ten_error_t;
 
-TEN_RUNTIME_PRIVATE_API bool ten_cmd_timer_process_timeout_in_us(
+TEN_RUNTIME_PRIVATE_API bool ten_cmd_timer_process_timeout_us(
     ten_msg_t *self, ten_raw_msg_process_one_field_func_t cb, void *user_data,
     ten_error_t *err);

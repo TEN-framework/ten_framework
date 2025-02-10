@@ -136,7 +136,7 @@ static void ten_extension_adjust_in_path_timeout(ten_extension_t *self) {
   TEN_ASSERT(path_timeout_info, "Should not happen.");
 
   uint64_t in_path_min_timeout = UINT64_MAX;
-  uint64_t one_sec_in_us = (uint64_t)1 * 1000 * 1000;
+  uint64_t one_sec_us = (uint64_t)1 * 1000 * 1000;
 
   // Considering the case of integer overflow, calculate at least what the
   // value of 'in_path timeout' should be.
@@ -147,8 +147,8 @@ static void ten_extension_adjust_in_path_timeout(ten_extension_t *self) {
   }
 
   // An extension by default has one second to process its own operations.
-  if (in_path_min_timeout < UINT64_MAX - one_sec_in_us) {
-    in_path_min_timeout += one_sec_in_us;
+  if (in_path_min_timeout < UINT64_MAX - one_sec_us) {
+    in_path_min_timeout += one_sec_us;
   }
 
   // Update the in_path timeout to the calculated minimal value if the
