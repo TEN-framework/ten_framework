@@ -16,7 +16,7 @@ use ten_rust::pkg_info::pkg_type::PkgType;
 use crate::{
     config::TmanConfig,
     package_file::unpackage::extract_and_process_tpkg_file,
-    registry::{get_package, get_package_list, SearchCriteria},
+    registry::{get_package, get_package_list},
 };
 
 fn can_package_be_created_in_path(
@@ -55,17 +55,13 @@ pub async fn create_pkg_in_path(
 
     can_package_be_created_in_path(path, pkg_name)?;
 
-    let search_criteria = SearchCriteria {
-        // Ensure exact version matching.
-        version_req: template_pkg_version.clone(),
-    };
-
     // Search for the package in the registry.
     let mut found_packages = get_package_list(
         tman_config,
         *pkg_type,
         template_pkg_name,
-        &search_criteria,
+        // Ensure exact version matching.
+        template_pkg_version,
     )
     .await?;
 

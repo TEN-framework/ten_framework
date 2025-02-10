@@ -12,7 +12,7 @@ use std::str::FromStr;
 use anyhow::{anyhow, Context, Result};
 use console::Emoji;
 use flate2::read::GzDecoder;
-use semver::Version;
+use semver::{Version, VersionReq};
 use sha2::{Digest, Sha256};
 use tar::Archive as TarArchive;
 use tempfile::NamedTempFile;
@@ -24,9 +24,8 @@ use ten_rust::pkg_info::manifest::Manifest;
 use ten_rust::pkg_info::pkg_type::PkgType;
 use ten_rust::pkg_info::PkgInfo;
 
-use super::cache_utils::{find_in_package_cache, store_file_to_package_cache};
 use super::found_result::PkgRegistryInfo;
-use super::SearchCriteria;
+use super::pkg_cache::{find_in_package_cache, store_file_to_package_cache};
 use crate::config::TmanConfig;
 use crate::constants::TEN_PACKAGE_FILE_EXTENSION;
 use crate::file_type::{detect_file_type, FileType};
@@ -275,7 +274,7 @@ fn find_file_with_criteria(
     base_url: &Path,
     pkg_type: PkgType,
     name: &String,
-    criteria: &SearchCriteria,
+    version_req: &VersionReq,
 ) -> Result<Vec<PkgRegistryInfo>> {
     let target_path = base_url.join(pkg_type.to_string()).join(name);
 
@@ -289,7 +288,7 @@ fn find_file_with_criteria(
         .filter_map(|e| e.ok())
     {
         // Check if the folder meets the version requirements.
-        if criteria.version_req.matches(
+        if version_req.matches(
             &Version::parse(
                 version_dir.file_name().to_str().unwrap_or_default(),
             )
@@ -357,7 +356,7 @@ pub async fn get_package_list(
     base_url: &str,
     pkg_type: PkgType,
     name: &String,
-    criteria: &SearchCriteria,
+    version_req: &VersionReq,
 ) -> Result<Vec<PkgRegistryInfo>> {
     let mut path_url = url::Url::parse(base_url)
         .map_err(|e| anyhow!("Invalid file URL: {}", e))?
@@ -377,7 +376,7 @@ pub async fn get_package_list(
         Path::new(&path_url),
         pkg_type,
         name,
-        criteria,
+        version_req,
     )?;
 
     Ok(result)
