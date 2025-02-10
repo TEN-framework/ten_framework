@@ -28,13 +28,6 @@ static void ten_py_ten_env_tester_on_stop_done_proxy_notify(
   // GIL has been acquired.
   PyGILState_STATE prev_state = ten_py_gil_state_ensure_internal();
 
-  PyObject *py_res = PyObject_CallMethod(
-      py_ten_env_tester->actual_py_ten_env_tester, "_on_release", NULL);
-  Py_XDECREF(py_res);
-
-  bool err_occurred = ten_py_check_and_clear_py_error();
-  TEN_ASSERT(!err_occurred, "Should not happen.");
-
   // Release the ten_env_tester_proxy.
   ten_env_tester_proxy_release(py_ten_env_tester->c_ten_env_tester_proxy, NULL);
   py_ten_env_tester->c_ten_env_tester_proxy = NULL;

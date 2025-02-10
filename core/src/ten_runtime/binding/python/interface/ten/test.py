@@ -35,13 +35,6 @@ class TenEnvTester(TenEnvTesterBase):
     def __del__(self) -> None:
         pass
 
-    def _set_release_handler(self, handler: Callable[[], None]) -> None:
-        self._release_handler = handler
-
-    def _on_release(self) -> None:
-        if hasattr(self, "_release_handler"):
-            self._release_handler()
-
     def on_start_done(self) -> None:
         return self._internal.on_start_done()
 

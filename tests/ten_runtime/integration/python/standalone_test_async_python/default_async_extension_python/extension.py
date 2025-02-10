@@ -46,6 +46,10 @@ class DefaultAsyncExtension(AsyncExtension):
             cmd_result = CmdResult.create(StatusCode.OK)
             cmd_result.set_property_string("detail", weather)
             await ten_env.return_result(cmd_result, cmd)
+        elif cmd_name == "flush":
+            # Bypass the flush command. The purpose of bypassing this `flush`
+            # command here is to allow the extension tester to call `stop_test`.
+            await ten_env.send_cmd(Cmd.create("flush"))
 
     async def on_data(self, ten_env: AsyncTenEnv, data: Data) -> None:
         data_name = data.get_name()
