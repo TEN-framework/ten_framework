@@ -34,6 +34,10 @@ impl PackageListCache {
             if is_superset_of(cached_req, new_req) {
                 // The current `new_req` is covered by a cached entry, skipping
                 // processing it.
+
+                // println!("Skipping processing of {} ({})", new_req,
+                // cached_req);
+
                 return false;
             }
         }
@@ -42,11 +46,54 @@ impl PackageListCache {
         // covered entries.
         entry.retain(|cached_req| !is_superset_of(new_req, cached_req));
 
+        // println!(
+        //     "Adding to cache: {} ({})",
+        //     new_req,
+        //     entry
+        //         .iter()
+        //         .map(ToString::to_string)
+        //         .collect::<Vec<String>>()
+        //         .join(", ")
+        // );
+
         // Add `new_req` to the cache.
         entry.push(new_req.clone());
 
         true
     }
+}
+
+/// A universal VersionReq (for example, "*" or ">=0.0.0") is considered to
+/// match all versions.
+fn is_universal(req: &VersionReq) -> bool {
+    // Check if the string representation is "*" (after trimming)
+    if req.comparators.is_empty() {
+        return true;
+    }
+
+    if req.comparators.len() > 1 {
+        return false;
+    }
+
+    let cmp = &req.comparators[0];
+
+    if cmp.op == semver::Op::Wildcard {
+        return true;
+    }
+
+    // Alternatively, if the requirement is written as ">=0.0.0", we treat it as
+    // universal. This assumes that a single comparator with op GreaterEq
+    // and version 0.0.0 is canonical.
+    if cmp.op == semver::Op::GreaterEq
+        && cmp.major == 0
+        && cmp.minor == Some(0)
+        && cmp.patch == Some(0)
+        && cmp.pre.is_empty()
+    {
+        return true;
+    }
+
+    false
 }
 
 /// If the version requirement is a caret range (e.g., `^X.Y.Z`), return its
@@ -96,6 +143,12 @@ fn get_caret_bounds(req: &VersionReq) -> Option<(Version, Version)> {
 /// Determine whether `req_a` is a superset of `req_b`, i.e., whether the
 /// version range matched by `req_a` includes all versions matched by `req_b`.
 fn is_superset_of(req_a: &VersionReq, req_b: &VersionReq) -> bool {
+    // If `req_a` is universal (e.g., `*` or `>=0.0.0`), then it is a superset
+    // of all `VersionReq`.
+    if is_universal(req_a) {
+        return true;
+    }
+
     if let (Some((a_lower, a_upper)), Some((b_lower, b_upper))) =
         (get_caret_bounds(req_a), get_caret_bounds(req_b))
     {
