@@ -8,7 +8,7 @@ import asyncio
 import os
 import threading
 import traceback
-from typing import Optional, final, Optional
+from typing import Optional, final
 
 from libten_runtime_python import _ExtensionTester
 from .cmd_result import CmdResult
@@ -34,32 +34,9 @@ class AsyncTenEnvTester(TenEnvTesterBase):
 
         self._ten_loop = loop
         self._ten_thread = thread
-        ten_env_tester._set_release_handler(lambda: self._on_release())
 
     def __del__(self) -> None:
         pass
-
-    def _deinit_routine(self) -> None:
-        # Wait for the internal thread to finish.
-        self._ten_thread.join()
-
-        # Since the `_ten_thread` used by the asyncio task queue has already
-        # ended, we can be confident that no Python code will be using `ten_env`
-        # at this point. (Of course, if the user has created their own Python
-        # threads that are holding onto `ten_env`, they will need to handle the
-        # thread-safety issues themselves.) Therefore, it is safe to call
-        # `on_stop_done`, during which `ten_env` (_proxy) will be released.
-
-        self._internal.on_stop_done()
-
-    def _on_release(self) -> None:
-        if hasattr(self, "_deinit_thread"):
-            self._deinit_thread.join()
-
-    def _deinit(self) -> None:
-        # Start the deinit thread to avoid blocking the extension tester thread.
-        self._deinit_thread = threading.Thread(target=self._deinit_routine)
-        self._deinit_thread.start()
 
     async def send_cmd(self, cmd: Cmd) -> CmdResultTuple:
         q = asyncio.Queue(maxsize=1)
@@ -167,17 +144,8 @@ class AsyncExtensionTester(_ExtensionTester):
         # Suspend the thread until stopEvent is set.
         await self._ten_stop_event.wait()
 
-        await self._wrapper_on_stop(self._async_ten_env_tester)
-
-        # We cannot directly call `on_stop_done` here as above, because after
-        # `on_stop_done`, `ten_env_proxy` will be released. Therefore, we need
-        # to wait until certain essential tasks are completed before calling
-        # `on_stop_done`. Otherwise, if anything needs to use `ten_env` (_proxy)
-        # after `on_stop_done`, it will cause issues.
-
-        self._async_ten_env_tester._deinit()
-
-    async def _stop_thread(self):
+    @final
+    async def _stop_thread(self) -> None:
         self._ten_stop_event.set()
 
     @final
@@ -200,10 +168,14 @@ class AsyncExtensionTester(_ExtensionTester):
             await self.on_stop(ten_env_tester)
         except Exception as e:
             self._exit_on_exception(ten_env_tester, e)
+        finally:
+            ten_env_tester._internal.on_stop_done()
 
     @final
     def _proxy_on_stop(self, ten_env_tester: TenEnvTester) -> None:
-        asyncio.run_coroutine_threadsafe(self._stop_thread(), self._ten_loop)
+        asyncio.run_coroutine_threadsafe(
+            self._wrapper_on_stop(self._async_ten_env_tester), self._ten_loop
+        )
 
     @final
     def _proxy_on_cmd(self, ten_env_tester: TenEnvTester, cmd: Cmd) -> None:
@@ -283,7 +255,14 @@ class AsyncExtensionTester(_ExtensionTester):
 
     @final
     def run(self) -> None:
-        return _ExtensionTester.run(self)
+        _ExtensionTester.run(self)
+
+        if hasattr(self, "_ten_thread") and self._ten_thread.is_alive():
+            asyncio.run_coroutine_threadsafe(
+                self._stop_thread(), self._ten_loop
+            )
+
+            self._ten_thread.join()
 
     async def on_start(self, ten_env_tester: AsyncTenEnvTester) -> None:
         pass
