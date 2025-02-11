@@ -142,7 +142,7 @@ fn get_caret_bounds(req: &VersionReq) -> Option<(Version, Version)> {
 
 /// Determine whether `req_a` is a superset of `req_b`, i.e., whether the
 /// version range matched by `req_a` includes all versions matched by `req_b`.
-fn is_superset_of(req_a: &VersionReq, req_b: &VersionReq) -> bool {
+pub fn is_superset_of(req_a: &VersionReq, req_b: &VersionReq) -> bool {
     // If `req_a` is universal (e.g., `*` or `>=0.0.0`), then it is a superset
     // of all `VersionReq`.
     if is_universal(req_a) {
