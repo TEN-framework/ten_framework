@@ -1279,6 +1279,66 @@ mod tests {
     }
 
     #[test]
+    fn test_validate_manifest_lock_pre_release_version() {
+        // The pre-release version is allowed.
+        let manifest_lock = r#"{
+          "version": 1,
+          "packages": [
+            {
+              "type": "extension",
+              "name": "ext_a",
+              "version": "0.1.0-rc.1",
+              "hash": "e8dc07a47927e9a650d23f77676b798e0856dd169fea70e7db57d57095261a68"
+            }
+          ]
+        }"#;
+
+        let result = validate_manifest_lock_json_string(manifest_lock);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_validate_manifest_lock_invalid_type() {
+        // The type field must be one of the following: extension, system, protocol, addon_loader.
+        let manifest_lock = r#"{
+          "version": 1,
+          "packages": [
+            {
+              "type": "invalid_type",
+              "name": "ext_a",
+              "version": "0.1.0-rc.1",
+              "hash": "e8dc07a47927e9a650d23f77676b798e0856dd169fea70e7db57d57095261a68"
+            }
+          ]
+        }"#;
+
+        let result = validate_manifest_lock_json_string(manifest_lock);
+        assert!(result.is_err());
+
+        let err_reason = result.unwrap_err().to_string();
+        assert!(err_reason.contains("is not one of"));
+    }
+
+    #[test]
+    fn test_validate_manifest_lock_addon_loader_type() {
+        // The type field must be addon_loader.
+        let manifest_lock = r#"{
+          "version": 1,
+          "packages": [
+            {
+              "type": "addon_loader",
+              "name": "addon_loader_a",
+              "version": "0.1.0-rc.1",
+              "hash": "e8dc07a47927e9a650d23f77676b798e0856dd169fea70e7db57d57095261a68"
+            }
+          ]
+        }"#;
+
+        let result = validate_manifest_lock_json_string(manifest_lock);
+        assert!(result.is_ok());
+    }
+
+    #[test]
     fn test_validate_manifest_lock_empty_dependency() {
         let manifest_lock = r#"{
           "version": 1,
