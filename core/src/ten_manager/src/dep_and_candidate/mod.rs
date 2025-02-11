@@ -22,7 +22,7 @@ use ten_rust::pkg_info::{get_pkg_info_from_path, PkgInfo};
 use super::config::TmanConfig;
 use super::registry::get_package_list;
 use crate::log::tman_verbose_println;
-use crate::registry::pkg_list_cache::PackageListCache;
+use crate::registry::pkg_list_cache::{is_superset_of, PackageListCache};
 
 // TODO(Wei): Should use the union of the semantic versioning rather than the
 // union of all version requirements.
@@ -389,34 +389,53 @@ pub async fn get_all_candidates_from_deps(
 
     // If there is extra dependencies (ex: specified in the command line),
     // handle those dependencies, too.
-    if let Some(extra) = extra_dep {
-        process_dependencies_to_get_candidates(
-            &mut context,
-            &vec![extra.clone()],
-        )
-        .await?;
-
-        pkgs_to_be_searched.append(context.new_pkgs_to_be_searched);
-    }
+    let mut extra_dep_opt = extra_dep.cloned();
 
     loop {
-        // Process all packages to be searched.
+        // Merge the dependencies of all pending packages into a single
+        // `Vector`.
+        let mut combined_dependencies: Vec<PkgDependency> = Vec::new();
+
         for pkg_to_be_search in &pkgs_to_be_searched {
             if processed_pkgs.contains(&(pkg_to_be_search).into()) {
-                // If this package info has already been processed, do not
-                // process it again.
                 continue;
             }
 
-            process_dependencies_to_get_candidates(
-                &mut context,
-                &pkg_to_be_search.dependencies,
-            )
-            .await?;
+            // Add all dependencies of the current package to the merged list.
+            combined_dependencies.extend(pkg_to_be_search.dependencies.clone());
 
-            // Remember that this package has already been processed.
+            // Mark the package as processed.
             processed_pkgs.insert(pkg_to_be_search.into());
         }
+
+        // If `extra_dep_opt` exists, add it to `combined_dependencies` (process
+        // only once, i.e., the `take()` API).
+        if let Some(extra) = extra_dep_opt.take() {
+            combined_dependencies.push(extra);
+        }
+
+        // Sort the merged `dependencies` by the coverage range of
+        // `version_req`, with broader scopes ranked first.
+        combined_dependencies.sort_by(|a, b| {
+            if is_superset_of(&a.version_req, &b.version_req)
+                && !is_superset_of(&b.version_req, &a.version_req)
+            {
+                std::cmp::Ordering::Less
+            } else if is_superset_of(&b.version_req, &a.version_req)
+                && !is_superset_of(&a.version_req, &b.version_req)
+            {
+                std::cmp::Ordering::Greater
+            } else {
+                a.version_req.to_string().cmp(&b.version_req.to_string())
+            }
+        });
+
+        // Process all merged dependencies in a single batch.
+        process_dependencies_to_get_candidates(
+            &mut context,
+            &combined_dependencies,
+        )
+        .await?;
 
         pkgs_to_be_searched.clear();
 
