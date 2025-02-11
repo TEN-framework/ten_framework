@@ -31,6 +31,8 @@
 // an extension that was not successfully created.
 #define TEN_EXTENSION_UNSUCCESSFULLY_CREATED ((ten_extension_t *)-1)
 
+#define TEN_EXTENSION_ON_XXX_WARNING_THRESHOLD_MS 100  // milli-seconds
+
 typedef struct ten_env_t ten_env_t;
 typedef struct ten_extension_t ten_extension_t;
 typedef struct ten_audio_frame_t ten_audio_frame_t;

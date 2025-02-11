@@ -6,6 +6,7 @@
 //
 #include "include_internal/ten_runtime/extension/extension.h"
 
+#include <inttypes.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <time.h>
@@ -53,6 +54,7 @@
 #include "ten_utils/lib/ref.h"
 #include "ten_utils/lib/smart_ptr.h"
 #include "ten_utils/lib/string.h"
+#include "ten_utils/lib/time.h"
 #include "ten_utils/macro/check.h"
 #include "ten_utils/macro/mark.h"
 #include "ten_utils/value/value.h"
@@ -778,7 +780,15 @@ static void ten_extension_on_configure(ten_env_t *ten_env) {
   self->state = TEN_EXTENSION_STATE_ON_CONFIGURE;
 
   if (self->on_configure) {
+    int64_t begin = ten_current_time_ms();
+
     self->on_configure(self, self->ten_env);
+
+    int64_t end = ten_current_time_ms();
+    if (end - begin > TEN_EXTENSION_ON_XXX_WARNING_THRESHOLD_MS) {
+      TEN_LOGW("[%s] on_configure() took %" PRId64 " ms.",
+               ten_extension_get_name(self, true), end - begin);
+    }
   } else {
     ten_extension_on_configure_done(self->ten_env);
   }
@@ -800,7 +810,15 @@ void ten_extension_on_init(ten_env_t *ten_env) {
   self->state = TEN_EXTENSION_STATE_ON_INIT;
 
   if (self->on_init) {
+    int64_t begin = ten_current_time_ms();
+
     self->on_init(self, self->ten_env);
+
+    int64_t end = ten_current_time_ms();
+    if (end - begin > TEN_EXTENSION_ON_XXX_WARNING_THRESHOLD_MS) {
+      TEN_LOGW("[%s] on_init() took %" PRId64 " ms.",
+               ten_extension_get_name(self, true), end - begin);
+    }
   } else {
     (void)ten_extension_on_init_done(self->ten_env);
   }
@@ -816,7 +834,15 @@ void ten_extension_on_start(ten_extension_t *self) {
   self->state = TEN_EXTENSION_STATE_ON_START;
 
   if (self->on_start) {
+    int64_t begin = ten_current_time_ms();
+
     self->on_start(self, self->ten_env);
+
+    int64_t end = ten_current_time_ms();
+    if (end - begin > TEN_EXTENSION_ON_XXX_WARNING_THRESHOLD_MS) {
+      TEN_LOGW("[%s] on_start() took %" PRId64 " ms.",
+               ten_extension_get_name(self, true), end - begin);
+    }
   } else {
     ten_extension_on_start_done(self->ten_env);
   }
@@ -832,7 +858,15 @@ void ten_extension_on_stop(ten_extension_t *self) {
   self->state = TEN_EXTENSION_STATE_ON_STOP;
 
   if (self->on_stop) {
+    int64_t begin = ten_current_time_ms();
+
     self->on_stop(self, self->ten_env);
+
+    int64_t end = ten_current_time_ms();
+    if (end - begin > TEN_EXTENSION_ON_XXX_WARNING_THRESHOLD_MS) {
+      TEN_LOGW("[%s] on_stop() took %" PRId64 " ms.",
+               ten_extension_get_name(self, true), end - begin);
+    }
   } else {
     ten_extension_on_stop_done(self->ten_env);
   }
@@ -848,7 +882,15 @@ void ten_extension_on_deinit(ten_extension_t *self) {
   self->state = TEN_EXTENSION_STATE_ON_DEINIT;
 
   if (self->on_deinit) {
+    int64_t begin = ten_current_time_ms();
+
     self->on_deinit(self, self->ten_env);
+
+    int64_t end = ten_current_time_ms();
+    if (end - begin > TEN_EXTENSION_ON_XXX_WARNING_THRESHOLD_MS) {
+      TEN_LOGW("[%s] on_deinit() took %" PRId64 " ms.",
+               ten_extension_get_name(self, true), end - begin);
+    }
   } else {
     ten_extension_on_deinit_done(self->ten_env);
   }
@@ -863,7 +905,16 @@ void ten_extension_on_cmd(ten_extension_t *self, ten_shared_ptr_t *msg) {
            ten_msg_get_name(msg));
 
   if (self->on_cmd) {
+    int64_t begin = ten_current_time_ms();
+
     self->on_cmd(self, self->ten_env, msg);
+
+    int64_t end = ten_current_time_ms();
+    if (end - begin > TEN_EXTENSION_ON_XXX_WARNING_THRESHOLD_MS) {
+      TEN_LOGW("[%s] on_cmd(%s) took %" PRId64 " ms.",
+               ten_extension_get_name(self, true), ten_msg_get_name(msg),
+               end - begin);
+    }
   } else {
     // The default behavior of 'on_cmd' is to _not_ forward this command out,
     // and return an 'OK' result to the previous stage.
@@ -883,7 +934,16 @@ void ten_extension_on_data(ten_extension_t *self, ten_shared_ptr_t *msg) {
            ten_msg_get_name(msg));
 
   if (self->on_data) {
+    int64_t begin = ten_current_time_ms();
+
     self->on_data(self, self->ten_env, msg);
+
+    int64_t end = ten_current_time_ms();
+    if (end - begin > TEN_EXTENSION_ON_XXX_WARNING_THRESHOLD_MS) {
+      TEN_LOGW("[%s] on_data(%s) took %" PRId64 " ms.",
+               ten_extension_get_name(self, true), ten_msg_get_name(msg),
+               end - begin);
+    }
   } else {
     // Bypass the data.
     ten_env_send_data(self->ten_env, msg, NULL, NULL, NULL);
@@ -900,7 +960,16 @@ void ten_extension_on_video_frame(ten_extension_t *self,
            ten_msg_get_name(msg));
 
   if (self->on_video_frame) {
+    int64_t begin = ten_current_time_ms();
+
     self->on_video_frame(self, self->ten_env, msg);
+
+    int64_t end = ten_current_time_ms();
+    if (end - begin > TEN_EXTENSION_ON_XXX_WARNING_THRESHOLD_MS) {
+      TEN_LOGW("[%s] on_video_frame(%s) took %" PRId64 " ms.",
+               ten_extension_get_name(self, true), ten_msg_get_name(msg),
+               end - begin);
+    }
   } else {
     // Bypass the video frame.
     ten_env_send_video_frame(self->ten_env, msg, NULL, NULL, NULL);
@@ -917,7 +986,16 @@ void ten_extension_on_audio_frame(ten_extension_t *self,
            ten_msg_get_name(msg));
 
   if (self->on_audio_frame) {
+    int64_t begin = ten_current_time_ms();
+
     self->on_audio_frame(self, self->ten_env, msg);
+
+    int64_t end = ten_current_time_ms();
+    if (end - begin > TEN_EXTENSION_ON_XXX_WARNING_THRESHOLD_MS) {
+      TEN_LOGW("[%s] on_audio_frame(%s) took %" PRId64 " ms.",
+               ten_extension_get_name(self, true), ten_msg_get_name(msg),
+               end - begin);
+    }
   } else {
     // Bypass the audio frame.
     ten_env_send_audio_frame(self->ten_env, msg, NULL, NULL, NULL);
