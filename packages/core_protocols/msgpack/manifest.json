@@ -1,6 +1,6 @@
 {
   "type": "protocol",
   "name": "msgpack",
-  "version": "0.8.13",
+  "version": "0.8.17",
   "dependencies": []
 }
