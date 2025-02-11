@@ -35,10 +35,10 @@
         "type": {
           "type": "string",
           "enum": [
-            "system",
             "extension",
-            "extension_group",
-            "protocol"
+            "system",
+            "protocol",
+            "addon_loader"
           ]
         },
         "name": {
@@ -55,7 +55,7 @@
       "properties": {
         "version": {
           "type": "string",
-          "pattern": "^\\d+\\.\\d+\\.\\d+$"
+          "pattern": "^\\d+\\.\\d+\\.\\d+(-[0-9A-Za-z-]+(\\.[0-9A-Za-z-]+)*)?(\\+[0-9A-Za-z-]+(\\.[0-9A-Za-z-]+)*)?$"
         },
         "hash": {
           "type": "string",
