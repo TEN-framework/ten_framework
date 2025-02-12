@@ -51,6 +51,9 @@ class DefaultAsyncExtension(AsyncExtension):
             # command here is to allow the extension tester to call `stop_test`.
             await ten_env.send_cmd(Cmd.create("flush"))
 
+            cmd_result = CmdResult.create(StatusCode.OK)
+            await ten_env.return_result(cmd_result, cmd)
+
     async def on_data(self, ten_env: AsyncTenEnv, data: Data) -> None:
         data_name = data.get_name()
         ten_env.log_debug("on_data name {}".format(data_name))

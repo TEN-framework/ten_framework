@@ -187,21 +187,18 @@ struct ten_extension_t {
   ten_metadata_info_t *property_info;
 
   // @{
-  // The following 'pending_msgs' is used to keep the received messages before
-  // the extension is started completely.
+  // The following 'pending_msgs_received_before_on_init_done' is used to keep
+  // the received messages before the extension is inited completely.
   //
-  // The 'is_started' flag is used to indicate whether on_start_done() has been
-  // called. If not, the received messages will be kept in the 'pending_msgs'.
-  // Once the on_start_done() is called, the messages in the 'pending_msgs' will
-  // be handled.
+  // If the state of the extension is earlier than TEN_EXTENSION_STATE_ON_INIT,
+  // the received messages will be kept in the
+  // 'pending_msgs_received_before_on_init_done'. Once the `on_init_done()` is
+  // called, the messages in the 'pending_msgs_received_before_on_init_done'
+  // will be handled.
   //
   // As an exception, the 'cmd result' will be handled normally even if the
-  // 'is_started' flag is false.
-  //
-  // Note that the 'pending_msgs' and 'is_started' flag can only be accessed and
-  // modified in the extension thread except during the initialization and
-  // deinitialization.
-  ten_list_t pending_msgs_received_before_on_start_done;
+  // extension is not inited.
+  ten_list_t pending_msgs_received_before_on_init_done;
   // @}
 
   ten_path_table_t *path_table;

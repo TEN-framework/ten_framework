@@ -42,20 +42,20 @@ class test_extension_2 : public ten::extension_t {
  public:
   explicit test_extension_2(const char *name) : ten::extension_t(name) {}
 
-  void on_start(ten::ten_env_t &ten_env) override {
+  void on_init(ten::ten_env_t &ten_env) override {
     auto *ten_env_proxy = ten::ten_env_proxy_t::create(ten_env);
 
     start_thread_ = std::thread([ten_env_proxy, this]() {
       ten_sleep_ms(1000);
 
       ten_env_proxy->notify([this](ten::ten_env_t &ten_env) {
-        // Only after calling on_start_done(), commands can be processed through
+        // Only after calling on_init_done(), commands can be processed through
         // the on_cmd callback.
 
-        // Record the timestamp of on_start_done()
-        start_done_time_ms_ = ten_current_time_ms();
+        // Record the timestamp of on_init_done()
+        init_done_time_ms_ = ten_current_time_ms();
 
-        ten_env.on_start_done();
+        ten_env.on_init_done();
       });
 
       delete ten_env_proxy;
@@ -75,8 +75,8 @@ class test_extension_2 : public ten::extension_t {
     ASSERT_EQ(cmd->get_name(), "test");
 
     auto current_time = ten_current_time_ms();
-    // current_time should be greater than start_done_time_ms_.
-    ASSERT_GE(current_time, start_done_time_ms_);
+    // current_time should be greater than init_done_time_ms_.
+    ASSERT_GE(current_time, init_done_time_ms_);
 
     msg_received_count_++;
 
@@ -87,8 +87,8 @@ class test_extension_2 : public ten::extension_t {
                std::unique_ptr<ten::data_t> data) override {
     ASSERT_EQ(data->get_name(), "test");
     auto current_time = ten_current_time_ms();
-    // current_time should not be less than start_done_time_ms_
-    ASSERT_GE(current_time, start_done_time_ms_);
+    // current_time should not be less than init_done_time_ms_
+    ASSERT_GE(current_time, init_done_time_ms_);
 
     msg_received_count_++;
 
@@ -100,8 +100,8 @@ class test_extension_2 : public ten::extension_t {
       std::unique_ptr<ten::audio_frame_t> audio_frame) override {
     ASSERT_EQ(audio_frame->get_name(), "test");
     auto current_time = ten_current_time_ms();
-    // current_time should not be less than start_done_time_ms_
-    ASSERT_GE(current_time, start_done_time_ms_);
+    // current_time should not be less than init_done_time_ms_
+    ASSERT_GE(current_time, init_done_time_ms_);
 
     msg_received_count_++;
 
@@ -113,8 +113,8 @@ class test_extension_2 : public ten::extension_t {
       std::unique_ptr<ten::video_frame_t> video_frame) override {
     ASSERT_EQ(video_frame->get_name(), "test");
     auto current_time = ten_current_time_ms();
-    // current_time should not be less than start_done_time_ms_
-    ASSERT_GE(current_time, start_done_time_ms_);
+    // current_time should not be less than init_done_time_ms_
+    ASSERT_GE(current_time, init_done_time_ms_);
 
     msg_received_count_++;
 
@@ -137,7 +137,7 @@ class test_extension_2 : public ten::extension_t {
 
  private:
   std::thread start_thread_;
-  int64_t start_done_time_ms_ = 0;
+  int64_t init_done_time_ms_ = INT64_MAX;
 
   int msg_received_count_ = 0;
 };
@@ -169,16 +169,16 @@ void *test_app_thread_main(TEN_UNUSED void *args) {
   return nullptr;
 }
 
-TEN_CPP_REGISTER_ADDON_AS_EXTENSION(recv_msg_defore_started__test_extension_1,
+TEN_CPP_REGISTER_ADDON_AS_EXTENSION(recv_msg_defore_inited__test_extension_1,
                                     test_extension_1);
-TEN_CPP_REGISTER_ADDON_AS_EXTENSION(recv_msg_defore_started__test_extension_2,
+TEN_CPP_REGISTER_ADDON_AS_EXTENSION(recv_msg_defore_inited__test_extension_2,
                                     test_extension_2);
 
 }  // namespace
 
 // This test is to verify that the extension cannot receive
-// msgs(cmd/data/audio/video) before on_start_done is called.
-TEST(TenEnvCallTimingTest, RecvMsgBeforeStarted) {  // NOLINT
+// msgs(cmd/data/audio/video) before on_init_done is called.
+TEST(TenEnvCallTimingTest, RecvMsgBeforeInited) {  // NOLINT
   // Start app.
   auto *app_thread =
       ten_thread_create("app thread", test_app_thread_main, nullptr);
@@ -192,13 +192,13 @@ TEST(TenEnvCallTimingTest, RecvMsgBeforeStarted) {  // NOLINT
            "nodes": [{
                 "type": "extension",
                 "name": "test_extension_1",
-                "addon": "recv_msg_defore_started__test_extension_1",
+                "addon": "recv_msg_defore_inited__test_extension_1",
                 "extension_group": "basic_extension_group_1",
                 "app": "msgpack://127.0.0.1:8001/"
              },{
                 "type": "extension",
                 "name": "test_extension_2",
-                "addon": "recv_msg_defore_started__test_extension_2",
+                "addon": "recv_msg_defore_inited__test_extension_2",
                 "extension_group": "basic_extension_group_2",
                 "app": "msgpack://127.0.0.1:8001/"
              }],
