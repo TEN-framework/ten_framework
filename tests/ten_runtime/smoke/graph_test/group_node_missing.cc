@@ -34,12 +34,12 @@ class test_app : public ten::app_t {
   void on_configure(ten::ten_env_t &ten_env) override {
     bool rc = ten_env.init_property_from_json(
         // clang-format off
-                 R"({
-                      "_ten": {
-                        "uri": "msgpack://127.0.0.1:8001/",
-                        "log_level": 2
-                      }
-                    })"
+        R"({
+             "_ten": {
+               "uri": "msgpack://127.0.0.1:8001/",
+               "log_level": 2
+             }
+           })"
         // clang-format on
         ,
         nullptr);
@@ -71,15 +71,16 @@ TEST(GraphTest, GroupNodeMissing) {  // NOLINT
 
   // Send graph.
   auto start_graph_cmd = ten::cmd_start_graph_t::create();
-  start_graph_cmd->set_graph_from_json(R"({
+  start_graph_cmd->set_graph_from_json(
+      R"({
            "nodes": [{
                 "type": "extension",
                 "name": "test_extension",
                 "addon": "group_node_missing__test_extension",
                 "extension_group": "test_extension_group",
                 "app": "msgpack://127.0.0.1:8001/"
-             }]
-           })");
+           }]
+         })");
   auto cmd_result =
       client->send_cmd_and_recv_result(std::move(start_graph_cmd));
   ten_test::check_status_code(cmd_result, TEN_STATUS_CODE_OK);

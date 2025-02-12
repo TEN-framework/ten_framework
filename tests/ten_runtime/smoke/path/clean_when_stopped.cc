@@ -64,12 +64,12 @@ class test_app : public ten::app_t {
   void on_configure(ten::ten_env_t &ten_env) override {
     bool rc = ten_env.init_property_from_json(
         // clang-format off
-                 R"({
-                      "_ten": {
-                        "uri": "msgpack://127.0.0.1:8001/",
-                        "log_level": 2
-                      }
-                    })"
+        R"({
+             "_ten": {
+               "uri": "msgpack://127.0.0.1:8001/",
+               "log_level": 2
+             }
+           })"
         // clang-format on
         ,
         nullptr);

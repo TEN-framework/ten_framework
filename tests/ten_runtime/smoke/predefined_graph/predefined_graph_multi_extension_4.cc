@@ -65,11 +65,11 @@ class test_app : public ten::app_t {
     bool rc = ten::ten_env_internal_accessor_t::init_manifest_from_json(
         ten_env,
         // clang-format off
-                 R"({
-                     "type": "app",
-                     "name": "test_app",
-                     "version": "0.1.0"
-                    })"
+        R"({
+             "type": "app",
+             "name": "test_app",
+             "version": "0.1.0"
+           })"
         // clang-format on
     );
     ASSERT_EQ(rc, true);
