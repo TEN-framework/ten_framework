@@ -23,14 +23,14 @@ class DefaultExtension(Extension):
         ten_env.init_property_from_json('{"testKey": "testValue"}')
         ten_env.on_configure_done()
 
-    def on_start(self, ten_env: TenEnv) -> None:
-        ten_env.log_debug("on_start")
+    def on_init(self, ten_env: TenEnv) -> None:
+        ten_env.log_debug("on_init")
 
         im = Image.open("../test_data/tiger.jpg")
         self.pixels = im.convert("RGBA")
         self.image_bytes = self.pixels.tobytes()
 
-        ten_env.on_start_done()
+        ten_env.on_init_done()
 
     def on_cmd(self, ten_env: TenEnv, cmd: Cmd) -> None:
         cmd_json = cmd.get_property_to_json()

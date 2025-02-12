@@ -100,7 +100,7 @@ ten_extension_t *ten_extension_create(
   self->extension_thread = NULL;
   self->extension_info = NULL;
 
-  ten_list_init(&self->pending_msgs_received_before_on_start_done);
+  ten_list_init(&self->pending_msgs_received_before_on_init_done);
   ten_list_init(&self->path_timers);
 
   self->path_timeout_info.in_path_timeout = TEN_DEFAULT_PATH_TIMEOUT;
@@ -191,7 +191,7 @@ void ten_extension_destroy(ten_extension_t *self) {
     self->property_info = NULL;
   }
 
-  ten_list_clear(&self->pending_msgs_received_before_on_start_done);
+  ten_list_clear(&self->pending_msgs_received_before_on_init_done);
 
   ten_path_table_check_empty(self->path_table);
   ten_path_table_destroy(self->path_table);

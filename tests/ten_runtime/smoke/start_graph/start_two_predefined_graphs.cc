@@ -81,7 +81,7 @@ class test_predefined_graph : public ten::extension_t {
         });
   }
 
-  void on_start(ten::ten_env_t &ten_env) override {
+  void on_init(ten::ten_env_t &ten_env) override {
     start_graph_and_greet(
         "graph_1", ten_env,
         [this](ten::ten_env_t &ten_env, const std::string &graph_id) {
@@ -92,7 +92,9 @@ class test_predefined_graph : public ten::extension_t {
               [this](ten::ten_env_t &ten_env, const std::string &graph_id) {
                 this->graph_id_2 = graph_id;
 
-                ten_env.on_start_done();
+                // Only after on_init_done can we receive cmd, so accessing
+                // this->graph_id_1 and this->graph_id_2 in on_cmd is safe.
+                ten_env.on_init_done();
               });
         });
   }
