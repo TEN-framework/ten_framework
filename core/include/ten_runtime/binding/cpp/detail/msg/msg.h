@@ -76,7 +76,6 @@ class msg_t {
 
   bool is_property_exist(const char *path, error_t *err = nullptr) {
     TEN_ASSERT(c_msg, "Should not happen.");
-    TEN_ASSERT(path && strlen(path), "path should not be empty.");
 
     if (c_msg == nullptr) {
       if (err != nullptr && err->get_c_error() != nullptr) {
@@ -85,6 +84,8 @@ class msg_t {
       }
       return false;
     }
+
+    TEN_ASSERT(path && strlen(path), "path should not be empty.");
 
     return ten_msg_is_property_exist(
         c_msg, path, err != nullptr ? err->get_c_error() : nullptr);
@@ -395,6 +396,14 @@ class msg_t {
                          error_t *err = nullptr) {
     TEN_ASSERT(c_msg, "Should not happen.");
 
+    if (c_msg == nullptr) {
+      if (err != nullptr && err->get_c_error() != nullptr) {
+        ten_error_set(err->get_c_error(), TEN_ERROR_CODE_INVALID_ARGUMENT,
+                      "Invalid TEN message.");
+      }
+      return false;
+    }
+
     bool rc = ten_msg_set_property(
         c_msg, path, value, err != nullptr ? err->get_c_error() : nullptr);
 
@@ -418,6 +427,14 @@ class msg_t {
 
   ten_value_t *peek_property_value(const char *path, error_t *err) const {
     TEN_ASSERT(c_msg, "Should not happen.");
+
+    if (c_msg == nullptr) {
+      if (err != nullptr && err->get_c_error() != nullptr) {
+        ten_error_set(err->get_c_error(), TEN_ERROR_CODE_INVALID_ARGUMENT,
+                      "Invalid TEN message.");
+      }
+      return nullptr;
+    }
 
     return ten_msg_peek_property(c_msg, path,
                                  err != nullptr ? err->get_c_error() : nullptr);

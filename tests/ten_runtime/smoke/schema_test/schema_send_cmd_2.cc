@@ -23,26 +23,26 @@ class test_extension_1 : public ten::extension_t {
     bool rc = ten::ten_env_internal_accessor_t::init_manifest_from_json(
         ten_env,
         // clang-format off
-                 R"({
-                      "type": "extension",
-                      "name": "schema_send_cmd__test_extension_1",
-                      "version": "0.1.0",
-                                          "api": {
-                        "cmd_out": [
-                          {
-                            "name": "hello_world",
-                            "property": {
-                              "foo": {
-                                "type": "string"
-                              },
-                              "bar": {
-                                "type": "int8"
-                              }
-                            }
-                          }
-                        ]
-                      }
-                    })"
+        R"({
+             "type": "extension",
+             "name": "schema_send_cmd_2__test_extension_1",
+             "version": "0.1.0",
+             "api": {
+               "cmd_out": [
+                 {
+                   "name": "hello_world",
+                   "property": {
+                     "foo": {
+                       "type": "string"
+                     },
+                     "bar": {
+                       "type": "int8"
+                     }
+                   }
+                 }
+               ]
+             }
+           })"
         // clang-format on
     );
     ASSERT_EQ(rc, true);
@@ -56,19 +56,14 @@ class test_extension_1 : public ten::extension_t {
       bool rc = cmd->set_property("foo", "abc");
       ASSERT_EQ(rc, true);
 
-      // The property value is out of range of int8.
-      rc = cmd->set_property("bar", 1232);
-      ASSERT_EQ(rc, true);
-
-      rc = ten_env.send_cmd(std::move(cmd));
-      ASSERT_EQ(rc, false);
-
-      // The `cmd` is still valid if `send_cmd` fails.
-      rc = cmd->set_property("bar", 123);
-      ASSERT_EQ(rc, true);
-
+      // The current design of the TEN framework's schema system is that the
+      // schema will only take effect if the field exists. If the field does not
+      // exist, the schema will not take effect. Since the `bar` field does not
+      // exist, `send_cmd` is not affected by the schema settings and therefore
+      // does not fail.
       rc = ten_env.send_cmd(std::move(cmd));
       ASSERT_EQ(rc, true);
+      ASSERT_EQ(cmd, nullptr);
 
       return;
     }
@@ -93,15 +88,12 @@ class test_app : public ten::app_t {
  public:
   void on_configure(ten::ten_env_t &ten_env) override {
     bool rc = ten_env.init_property_from_json(
-        // clang-format off
-                 R"({
-                      "_ten": {
-                        "uri": "msgpack://127.0.0.1:8001/",
-                        "log_level": 2
-                      }
-                    })"
-        // clang-format on
-        ,
+        R"({
+             "_ten": {
+               "uri": "msgpack://127.0.0.1:8001/",
+               "log_level": 2
+             }
+           })",
         nullptr);
     ASSERT_EQ(rc, true);
 
@@ -117,14 +109,14 @@ void *test_app_thread_main(TEN_UNUSED void *args) {
   return nullptr;
 }
 
-TEN_CPP_REGISTER_ADDON_AS_EXTENSION(schema_send_cmd__test_extension_1,
+TEN_CPP_REGISTER_ADDON_AS_EXTENSION(schema_send_cmd_2__test_extension_1,
                                     test_extension_1);
-TEN_CPP_REGISTER_ADDON_AS_EXTENSION(schema_send_cmd__test_extension_2,
+TEN_CPP_REGISTER_ADDON_AS_EXTENSION(schema_send_cmd_2__test_extension_2,
                                     test_extension_2);
 
 }  // namespace
 
-TEST(SchemaTest, SendCmd) {  // NOLINT
+TEST(SchemaTest, SendCmd2) {  // NOLINT
   // Start app.
   auto *app_thread =
       ten_thread_create("app thread", test_app_thread_main, nullptr);
@@ -138,13 +130,13 @@ TEST(SchemaTest, SendCmd) {  // NOLINT
            "nodes": [{
                 "type": "extension",
                 "name": "test_extension_1",
-                "addon": "schema_send_cmd__test_extension_1",
+                "addon": "schema_send_cmd_2__test_extension_1",
                 "extension_group": "basic_extension_group",
                 "app": "msgpack://127.0.0.1:8001/"
              },{
                 "type": "extension",
                 "name": "test_extension_2",
-                "addon": "schema_send_cmd__test_extension_2",
+                "addon": "schema_send_cmd_2__test_extension_2",
                 "extension_group": "basic_extension_group",
                 "app": "msgpack://127.0.0.1:8001/"
              }],
