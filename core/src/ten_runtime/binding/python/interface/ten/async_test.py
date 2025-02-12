@@ -39,15 +39,34 @@ class AsyncTenEnvTester(TenEnvTesterBase):
     def __del__(self) -> None:
         pass
 
+    def _result_handler(
+        self,
+        result: Optional[CmdResult],
+        error: Optional[TenError],
+        queue: asyncio.Queue,
+    ) -> None:
+        asyncio.run_coroutine_threadsafe(
+            queue.put([result, error]),
+            self._ten_loop,
+        )
+
+    def _error_handler(
+        self,
+        error: Optional[TenError],
+        queue: asyncio.Queue,
+    ) -> None:
+        asyncio.run_coroutine_threadsafe(
+            queue.put(error),
+            self._ten_loop,
+        )
+
     async def send_cmd(self, cmd: Cmd) -> CmdResultTuple:
         q = asyncio.Queue(maxsize=1)
         self._internal.send_cmd(
             cmd,
-            lambda _, result, error: asyncio.run_coroutine_threadsafe(
-                q.put([result, error]),
-                self._ten_loop,
-            ),  # type: ignore
+            lambda _, result, error: self._result_handler(result, error, q),
         )
+
         [result, error] = await q.get()
 
         if result is not None:
@@ -59,10 +78,7 @@ class AsyncTenEnvTester(TenEnvTesterBase):
         q = asyncio.Queue(maxsize=1)
         self._internal.send_data(
             data,
-            lambda _, error: asyncio.run_coroutine_threadsafe(
-                q.put([error]),
-                self._ten_loop,
-            ),  # type: ignore
+            lambda _, error: self._error_handler(error, q),
         )
         error = await q.get()
         return error
@@ -73,10 +89,7 @@ class AsyncTenEnvTester(TenEnvTesterBase):
         q = asyncio.Queue(maxsize=1)
         self._internal.send_audio_frame(
             audio_frame,
-            lambda _, error: asyncio.run_coroutine_threadsafe(
-                q.put(error),
-                self._ten_loop,
-            ),  # type: ignore
+            lambda _, error: self._error_handler(error, q),
         )
         error = await q.get()
         return error
@@ -87,10 +100,7 @@ class AsyncTenEnvTester(TenEnvTesterBase):
         q = asyncio.Queue(maxsize=1)
         self._internal.send_video_frame(
             video_frame,
-            lambda _, error: asyncio.run_coroutine_threadsafe(
-                q.put(error),
-                self._ten_loop,
-            ),  # type: ignore
+            lambda _, error: self._error_handler(error, q),
         )
         error = await q.get()
         return error
@@ -104,10 +114,7 @@ class AsyncTenEnvTester(TenEnvTesterBase):
         self._internal.return_result(
             cmd_result,
             target_cmd,
-            lambda _, error: asyncio.run_coroutine_threadsafe(
-                q.put(error),
-                self._ten_loop,
-            ),  # type: ignore
+            lambda _, error: self._error_handler(error, q),
         )
         error = await q.get()
         if error is not None:

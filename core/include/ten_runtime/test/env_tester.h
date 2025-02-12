@@ -14,6 +14,9 @@
 
 typedef struct ten_env_tester_t ten_env_tester_t;
 
+TEN_RUNTIME_API bool ten_env_tester_on_init_done(ten_env_tester_t *self,
+                                                 ten_error_t *err);
+
 TEN_RUNTIME_API bool ten_env_tester_on_start_done(ten_env_tester_t *self,
                                                   ten_error_t *err);
 

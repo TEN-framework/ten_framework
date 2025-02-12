@@ -360,7 +360,7 @@ static ten_py_extension_tester_t *ten_py_extension_tester_init(
              "Invalid argument.");
 
   py_extension_tester->c_extension_tester = ten_extension_tester_create(
-      proxy_on_start, proxy_on_stop, proxy_on_deinit, proxy_on_cmd,
+      NULL, proxy_on_start, proxy_on_stop, proxy_on_deinit, proxy_on_cmd,
       proxy_on_data, proxy_on_audio_frame, proxy_on_video_frame);
 
   ten_binding_handle_set_me_in_target_lang(

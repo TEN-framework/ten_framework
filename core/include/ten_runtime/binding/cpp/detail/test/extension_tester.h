@@ -58,6 +58,7 @@ class extension_tester_t {
  protected:
   explicit extension_tester_t()
       : c_extension_tester(::ten_extension_tester_create(
+            nullptr,
             reinterpret_cast<ten_extension_tester_on_start_func_t>(
                 &proxy_on_start),
             nullptr, nullptr,

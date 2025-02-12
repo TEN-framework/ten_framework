@@ -67,6 +67,7 @@ bool ten_extension_tester_thread_call_by_me(ten_extension_tester_t *self) {
 }
 
 ten_extension_tester_t *ten_extension_tester_create(
+    ten_extension_tester_on_init_func_t on_init,
     ten_extension_tester_on_start_func_t on_start,
     ten_extension_tester_on_stop_func_t on_stop,
     ten_extension_tester_on_deinit_func_t on_deinit,
@@ -84,6 +85,7 @@ ten_extension_tester_t *ten_extension_tester_create(
 
   ten_list_init(&self->addon_base_dirs);
 
+  self->on_init = on_init;
   self->on_start = on_start;
   self->on_stop = on_stop;
   self->on_deinit = on_deinit;
@@ -428,10 +430,28 @@ static void ten_extension_tester_create_and_run_app(
              "test_app should have been created its ten_env_proxy.");
 }
 
+void ten_extension_tester_on_init_done(ten_extension_tester_t *self) {
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_extension_tester_check_integrity(self, true),
+             "Invalid use of extension_tester %p.", self);
+  TEN_ASSERT(self->test_extension_ten_env_proxy,
+             "The test extension should have been created its ten_env_proxy.");
+
+  TEN_LOGI("tester on_init() done.");
+
+  bool rc = ten_env_proxy_notify(
+      self->test_extension_ten_env_proxy,
+      ten_builtin_test_extension_ten_env_notify_on_init_done, NULL, false,
+      NULL);
+  TEN_ASSERT(rc, "Should not happen.");
+}
+
 void ten_extension_tester_on_start_done(ten_extension_tester_t *self) {
   TEN_ASSERT(self, "Invalid argument.");
   TEN_ASSERT(ten_extension_tester_check_integrity(self, true),
              "Invalid use of extension_tester %p.", self);
+  TEN_ASSERT(self->test_extension_ten_env_proxy,
+             "The test extension should have been created its ten_env_proxy.");
 
   TEN_LOGI("tester on_start() done.");
 
@@ -445,6 +465,8 @@ void ten_extension_tester_on_start_done(ten_extension_tester_t *self) {
 void ten_extension_tester_on_stop_done(ten_extension_tester_t *self) {
   TEN_ASSERT(self && ten_extension_tester_check_integrity(self, true),
              "Invalid argument.");
+  TEN_ASSERT(self->test_extension_ten_env_proxy,
+             "The test extension should have been created its ten_env_proxy.");
 
   TEN_LOGI("tester on_stop() done.");
 
@@ -458,6 +480,8 @@ void ten_extension_tester_on_stop_done(ten_extension_tester_t *self) {
 void ten_extension_tester_on_deinit_done(ten_extension_tester_t *self) {
   TEN_ASSERT(self && ten_extension_tester_check_integrity(self, true),
              "Invalid argument.");
+  TEN_ASSERT(self->test_extension_ten_env_proxy,
+             "The test extension should have been created its ten_env_proxy.");
 
   TEN_LOGI("tester on_deinit() done.");
 
@@ -480,6 +504,17 @@ void ten_extension_tester_on_deinit_done(ten_extension_tester_t *self) {
   TEN_ASSERT(rc, "Should not happen.");
 
   self->test_extension_ten_env_proxy = NULL;
+}
+
+void ten_extension_tester_on_test_extension_init(ten_extension_tester_t *self) {
+  TEN_ASSERT(self && ten_extension_tester_check_integrity(self, true),
+             "Invalid argument.");
+
+  if (self->on_init) {
+    self->on_init(self, self->ten_env_tester);
+  } else {
+    ten_extension_tester_on_init_done(self);
+  }
 }
 
 void ten_extension_tester_on_test_extension_start(
