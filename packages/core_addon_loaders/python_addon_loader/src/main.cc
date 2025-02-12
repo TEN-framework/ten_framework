@@ -188,12 +188,18 @@ class python_addon_loader_t : public ten::addon_loader_t {
   void on_load_addon(TEN_ADDON_TYPE addon_type,
                      const char *addon_name) override {
     // Load the specified addon.
+    TEN_LOGD(
+        "[Python addon loader] on_load_addon, addon_type: %d, addon_name: %s",
+        addon_type, addon_name);
 
     void *ten_py_gil_state = ten_py_gil_state_ensure();
 
     // Construct the full module name.
     ten_string_t *full_module_name = ten_string_create_formatted(
         "ten_packages.%s.%s", ten_addon_type_to_string(addon_type), addon_name);
+
+    TEN_LOGD("[Python addon loader] acquired GIL, full_module_name: %s",
+             ten_string_get_raw_str(full_module_name));
 
     // Import the specified Python module.
     bool import_status =
@@ -207,6 +213,8 @@ class python_addon_loader_t : public ten::addon_loader_t {
     }
 
     ten_py_gil_state_release(ten_py_gil_state);
+
+    TEN_LOGD("[Python addon loader] released GIL");
   }
 
  private:
