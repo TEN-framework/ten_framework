@@ -812,7 +812,7 @@
         "PYTHONPATH": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/python/standalone_test_async_python/default_async_extension_python/.ten/app/ten_packages/system/ten_runtime_python/lib:${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/python/standalone_test_async_python/default_async_extension_python/.ten/app/ten_packages/system/ten_runtime_python/interface:${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/python/standalone_test_async_python/default_async_extension_python/.ten/app",
         "LD_PRELOAD": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/python/standalone_test_async_python/default_async_extension_python/.ten/app/ten_packages/system/ten_runtime/lib/libasan.so"
       }
-    }
+    },
     {
       "name": "binding test (golang)",
       "type": "go",
@@ -835,7 +835,7 @@
       "name": "mixed (Golang + Python + C++)",
       "configurations": [
         "app (golang) (lldb, launch)",
-        "app (debugpy, remote attach)"
+        "app (python) (debugpy, remote attach)"
       ]
     }
   ],

@@ -19,11 +19,22 @@ from ten import (
 class DefaultAsyncExtension(AsyncExtension):
     async def on_init(self, ten_env: AsyncTenEnv) -> None:
         ten_env.log_debug("on_init")
+        try:
+            self.sleep_time_before_stop_done = await ten_env.get_property_float(
+                "sleep_time_before_stop_done"
+            )
+        except Exception as e:
+            self.sleep_time_before_stop_done = 0
+
+        try:
+            self.send_goodbye_cmd = await ten_env.get_property_bool(
+                "send_goodbye_cmd"
+            )
+        except Exception as e:
+            self.send_goodbye_cmd = False
 
     async def on_start(self, ten_env: AsyncTenEnv) -> None:
         ten_env.log_debug("on_start")
-
-        # TODO: read properties, initialize resources
 
     async def on_deinit(self, ten_env: AsyncTenEnv) -> None:
         ten_env.log_debug("on_deinit")
@@ -80,8 +91,9 @@ class DefaultAsyncExtension(AsyncExtension):
         pass
 
     async def on_stop(self, ten_env: AsyncTenEnv) -> None:
-        await asyncio.sleep(3)
+        if self.sleep_time_before_stop_done > 0:
+            await asyncio.sleep(self.sleep_time_before_stop_done)
 
-        # send a cmd
-        cmd = Cmd.create("test")
-        cmd_result, error = await ten_env.send_cmd(cmd)
+        if self.send_goodbye_cmd:
+            cmd = Cmd.create("goodbye")
+            cmd_result, error = await ten_env.send_cmd(cmd)

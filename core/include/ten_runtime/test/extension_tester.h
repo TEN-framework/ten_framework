@@ -26,6 +26,9 @@ typedef void (*ten_extension_tester_on_start_func_t)(
 typedef void (*ten_extension_tester_on_stop_func_t)(
     ten_extension_tester_t *self, ten_env_tester_t *ten_env);
 
+typedef void (*ten_extension_tester_on_deinit_func_t)(
+    ten_extension_tester_t *self, ten_env_tester_t *ten_env);
+
 typedef void (*ten_extension_tester_on_cmd_func_t)(ten_extension_tester_t *self,
                                                    ten_env_tester_t *ten_env,
                                                    ten_shared_ptr_t *cmd);
@@ -45,6 +48,7 @@ typedef void (*ten_extension_tester_on_video_frame_func_t)(
 TEN_RUNTIME_API ten_extension_tester_t *ten_extension_tester_create(
     ten_extension_tester_on_start_func_t on_start,
     ten_extension_tester_on_stop_func_t on_stop,
+    ten_extension_tester_on_deinit_func_t on_deinit,
     ten_extension_tester_on_cmd_func_t on_cmd,
     ten_extension_tester_on_data_func_t on_data,
     ten_extension_tester_on_audio_frame_func_t on_audio_frame,
@@ -91,4 +95,7 @@ TEN_RUNTIME_PRIVATE_API void ten_extension_tester_on_start_done(
     ten_extension_tester_t *self);
 
 TEN_RUNTIME_PRIVATE_API void ten_extension_tester_on_stop_done(
+    ten_extension_tester_t *self);
+
+TEN_RUNTIME_PRIVATE_API void ten_extension_tester_on_deinit_done(
     ten_extension_tester_t *self);

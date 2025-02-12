@@ -128,9 +128,14 @@ class AsyncExtensionTester(_ExtensionTester):
         self, async_ten_env_tester: AsyncTenEnvTester, e: Exception
     ):
         traceback_info = traceback.format_exc()
-        async_ten_env_tester.log_fatal(
-            f"Uncaught exception: {e} \ntraceback: {traceback_info}"
-        )
+        try:
+            async_ten_env_tester.log_fatal(
+                f"Uncaught exception: {e} \ntraceback: {traceback_info}"
+            )
+        except Exception as e:
+            # If the log_fatal API fails, print the error message to the
+            # console.
+            print(f"Uncaught exception: {e} \ntraceback: {traceback_info}")
 
         # `os._exit` directly calls C's `_exit`, but as a result, it does not
         # flush `stdout/stderr`, which may cause some logs to not be output.
@@ -186,6 +191,28 @@ class AsyncExtensionTester(_ExtensionTester):
     def _proxy_on_stop(self, ten_env_tester: TenEnvTester) -> None:
         asyncio.run_coroutine_threadsafe(
             self._proxy_async_on_stop(ten_env_tester), self._ten_loop
+        )
+
+    async def _wrapper_on_deinit(
+        self, ten_env_tester: AsyncTenEnvTester
+    ) -> None:
+        try:
+            await self.on_deinit(ten_env_tester)
+        except Exception as e:
+            self._exit_on_exception(ten_env_tester, e)
+
+    @final
+    async def _proxy_async_on_deinit(
+        self, ten_env_tester: TenEnvTester
+    ) -> None:
+        await self._wrapper_on_deinit(self._async_ten_env_tester)
+        ten_env_tester._internal.on_deinit_done()
+
+    @final
+    def _proxy_on_deinit(self, ten_env_tester: TenEnvTester) -> None:
+        asyncio.run_coroutine_threadsafe(
+            self._proxy_async_on_deinit(ten_env_tester),
+            self._ten_loop,
         )
 
     @final
@@ -305,6 +332,9 @@ class AsyncExtensionTester(_ExtensionTester):
         pass
 
     async def on_stop(self, ten_env_tester: AsyncTenEnvTester) -> None:
+        pass
+
+    async def on_deinit(self, ten_env_tester: AsyncTenEnvTester) -> None:
         pass
 
     async def on_cmd(self, ten_env_tester: AsyncTenEnvTester, cmd: Cmd) -> None:

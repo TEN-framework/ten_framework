@@ -47,6 +47,9 @@ TEN_RUNTIME_PRIVATE_API PyObject *ten_py_ten_env_tester_on_start_done(
 TEN_RUNTIME_PRIVATE_API PyObject *ten_py_ten_env_tester_on_stop_done(
     PyObject *self, PyObject *args);
 
+TEN_RUNTIME_PRIVATE_API PyObject *ten_py_ten_env_tester_on_deinit_done(
+    PyObject *self, PyObject *args);
+
 TEN_RUNTIME_PRIVATE_API PyObject *ten_py_ten_env_tester_stop_test(
     PyObject *self, PyObject *args);
 

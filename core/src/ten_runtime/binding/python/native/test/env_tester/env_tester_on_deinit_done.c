@@ -13,17 +13,32 @@
 #include "ten_utils/macro/check.h"
 #include "ten_utils/macro/mark.h"
 
-static void ten_py_ten_env_tester_on_stop_done_proxy_notify(
+static void ten_py_ten_env_tester_on_deinit_done_proxy_notify(
     ten_env_tester_t *ten_env_tester, void *user_data) {
   TEN_ASSERT(
       ten_env_tester && ten_env_tester_check_integrity(ten_env_tester, true),
       "Invalid argument.");
 
-  ten_env_tester_on_stop_done(ten_env_tester, NULL);
+  ten_py_ten_env_tester_t *py_ten_env_tester = user_data;
+  TEN_ASSERT(py_ten_env_tester, "Should not happen.");
+
+  // Notify the Python side to do the cleanup.
+  //
+  // About to call the Python function, so it's necessary to ensure that the
+  // GIL has been acquired.
+  PyGILState_STATE prev_state = ten_py_gil_state_ensure_internal();
+
+  // Release the ten_env_tester_proxy.
+  ten_env_tester_proxy_release(py_ten_env_tester->c_ten_env_tester_proxy, NULL);
+  py_ten_env_tester->c_ten_env_tester_proxy = NULL;
+
+  ten_py_gil_state_release_internal(prev_state);
+
+  ten_env_tester_on_deinit_done(ten_env_tester, NULL);
 }
 
-PyObject *ten_py_ten_env_tester_on_stop_done(PyObject *self,
-                                             TEN_UNUSED PyObject *args) {
+PyObject *ten_py_ten_env_tester_on_deinit_done(PyObject *self,
+                                               TEN_UNUSED PyObject *args) {
   ten_py_ten_env_tester_t *py_ten_env_tester = (ten_py_ten_env_tester_t *)self;
   TEN_ASSERT(py_ten_env_tester &&
                  ten_py_ten_env_tester_check_integrity(py_ten_env_tester),
@@ -31,7 +46,8 @@ PyObject *ten_py_ten_env_tester_on_stop_done(PyObject *self,
 
   if (!py_ten_env_tester->c_ten_env_tester_proxy) {
     return ten_py_raise_py_value_error_exception(
-        "ten_env_tester.on_stop_done() failed because ten_env_tester_proxy is "
+        "ten_env_tester.on_deinit_done() failed because ten_env_tester_proxy "
+        "is "
         "invalid.");
   }
 
@@ -40,7 +56,8 @@ PyObject *ten_py_ten_env_tester_on_stop_done(PyObject *self,
 
   bool rc = ten_env_tester_proxy_notify(
       py_ten_env_tester->c_ten_env_tester_proxy,
-      ten_py_ten_env_tester_on_stop_done_proxy_notify, py_ten_env_tester, &err);
+      ten_py_ten_env_tester_on_deinit_done_proxy_notify, py_ten_env_tester,
+      &err);
   TEN_ASSERT(rc, "Should not happen.");
 
   ten_error_deinit(&err);

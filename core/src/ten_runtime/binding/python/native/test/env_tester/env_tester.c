@@ -142,6 +142,8 @@ PyTypeObject *ten_py_ten_env_tester_type(void) {
       {"on_start_done", ten_py_ten_env_tester_on_start_done, METH_VARARGS,
        NULL},
       {"on_stop_done", ten_py_ten_env_tester_on_stop_done, METH_VARARGS, NULL},
+      {"on_deinit_done", ten_py_ten_env_tester_on_deinit_done, METH_VARARGS,
+       NULL},
       {"stop_test", ten_py_ten_env_tester_stop_test, METH_VARARGS, NULL},
       {"send_cmd", ten_py_ten_env_tester_send_cmd, METH_VARARGS, NULL},
       {"send_data", ten_py_ten_env_tester_send_data, METH_VARARGS, NULL},

@@ -52,11 +52,11 @@ class AsyncExtensionTesterBasic(AsyncExtensionTester):
                 # cancel all remaining tasks, so we can catch the
                 # CancelledError.
                 canceled = True
-                ten_env_tester.log_info("on_cmd ack cancelled")
+                print("on_cmd ack cancelled")
             finally:
                 assert canceled is True
                 self.ack_received = True
-                ten_env_tester.log_info("on_cmd ack done")
+                print("on_cmd ack done")
 
 
 def test_basic():
