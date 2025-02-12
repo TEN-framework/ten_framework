@@ -36,10 +36,11 @@ class AsyncExtensionTesterBasic(AsyncExtensionTester):
             self.receive_goodbye_cmd_event.set()
 
     async def on_stop(self, ten_env: AsyncTenEnvTester) -> None:
+        # Wait for "goodbye" cmd to be received
         await self.receive_goodbye_cmd_event.wait()
 
 
-def test_recv_cmd_after_stop_2():
+def test_recv_cmd_after_stop_1():
     tester = AsyncExtensionTesterBasic()
 
     properties = {
@@ -53,4 +54,4 @@ def test_recv_cmd_after_stop_2():
 
 
 if __name__ == "__main__":
-    test_recv_cmd_after_stop_2()
+    test_recv_cmd_after_stop_1()
