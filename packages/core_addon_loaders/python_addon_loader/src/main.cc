@@ -7,6 +7,7 @@
 #include <cstring>
 #include <string>
 
+#include "include_internal/ten_runtime/addon/addon.h"
 #include "include_internal/ten_runtime/app/metadata.h"
 #include "include_internal/ten_runtime/binding/cpp/detail/addon_loader.h"
 #include "include_internal/ten_runtime/binding/cpp/detail/addon_manager.h"
@@ -188,9 +189,8 @@ class python_addon_loader_t : public ten::addon_loader_t {
   void on_load_addon(TEN_ADDON_TYPE addon_type,
                      const char *addon_name) override {
     // Load the specified addon.
-    TEN_LOGD(
-        "[Python addon loader] on_load_addon, addon_type: %d, addon_name: %s",
-        addon_type, addon_name);
+    TEN_LOGD("[Python addon loader] on_load_addon, %s:%s",
+             ten_addon_type_to_string(addon_type), addon_name);
 
     void *ten_py_gil_state = ten_py_gil_state_ensure();
 
