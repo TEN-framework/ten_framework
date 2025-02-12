@@ -441,6 +441,8 @@ static void ten_extension_thread_start_life_cycle_of_all_extensions_task(
   TEN_ASSERT(ten_extension_thread_check_integrity(self, true),
              "Should not happen.");
 
+  // The extension system is about to be shut down, so do not proceed with
+  // initialization anymore.
   if (self->is_close_triggered) {
     return;
   }

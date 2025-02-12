@@ -100,7 +100,7 @@ TEN_CONSTRUCTOR(
 
 }  // namespace
 
-TEST(GraphTest, FailedToCreateExtension) {  // NOLINT
+TEST(GraphErrorTest, FailedToCreateExtension) {  // NOLINT
   auto *app_thread =
       ten_thread_create("app thread", test_app_thread_main, nullptr);
 
