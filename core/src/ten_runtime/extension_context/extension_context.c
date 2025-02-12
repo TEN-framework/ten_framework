@@ -22,7 +22,6 @@
 #include "include_internal/ten_runtime/extension_group/extension_group.h"
 #include "include_internal/ten_runtime/extension_group/extension_group_info/extension_group_info.h"
 #include "include_internal/ten_runtime/extension_thread/extension_thread.h"
-#include "include_internal/ten_runtime/extension_thread/telemetry.h"
 #include "include_internal/ten_runtime/msg/cmd_base/cmd/start_graph/cmd.h"
 #include "include_internal/ten_runtime/msg/msg.h"
 #include "include_internal/ten_runtime/ten_env/ten_env.h"
@@ -86,8 +85,6 @@ ten_extension_context_t *ten_extension_context_create(ten_engine_t *engine) {
 
   self->extension_groups_cnt_of_being_destroyed = 0;
 
-  self->state_requester_cmd = NULL;
-
   return self;
 }
 
@@ -102,10 +99,6 @@ static void ten_extension_context_destroy(ten_extension_context_t *self) {
 
   ten_list_clear(&self->extension_groups_info_from_graph);
   ten_list_clear(&self->extensions_info_from_graph);
-
-  if (self->state_requester_cmd) {
-    ten_shared_ptr_destroy(self->state_requester_cmd);
-  }
 
   ten_signature_set(&self->signature, 0);
   ten_sanitizer_thread_check_deinit(&self->thread_check);
@@ -429,11 +422,12 @@ static void ten_extension_context_create_extension_group_done(
   TEN_ASSERT(ten_extension_context_check_integrity(extension_context, true),
              "Invalid use of extension_context %p.", extension_context);
 
-  ten_shared_ptr_t *requester_cmd = extension_context->state_requester_cmd;
-  TEN_ASSERT(requester_cmd, "Should not happen.");
+  ten_shared_ptr_t *original_start_graph_cmd =
+      engine->original_start_graph_cmd_of_enabling_engine;
+  TEN_ASSERT(original_start_graph_cmd, "Should not happen.");
 
   ten_cmd_start_graph_t *requester_cmd_start_graph =
-      ten_shared_ptr_get_data(requester_cmd);
+      ten_shared_ptr_get_data(original_start_graph_cmd);
   TEN_ASSERT(requester_cmd_start_graph, "Should not happen.");
 
   ten_addon_host_t *addon_host = extension_group->addon_host;
@@ -447,20 +441,21 @@ static void ten_extension_context_create_extension_group_done(
     // default_extension_group is a special group, it needs the 'start_graph'
     // command to fill some important information.
 
-    TEN_ASSERT(
-        requester_cmd &&
-            ten_msg_get_type(requester_cmd) == TEN_MSG_TYPE_CMD_START_GRAPH &&
-            ten_msg_get_dest_cnt(requester_cmd) == 1,
-        "Should not happen.");
+    TEN_ASSERT(original_start_graph_cmd &&
+                   ten_msg_get_type(original_start_graph_cmd) ==
+                       TEN_MSG_TYPE_CMD_START_GRAPH &&
+                   ten_msg_get_dest_cnt(original_start_graph_cmd) == 1,
+               "Should not happen.");
 
-    ten_loc_t *dest_loc = ten_msg_get_first_dest_loc(requester_cmd);
+    ten_loc_t *dest_loc = ten_msg_get_first_dest_loc(original_start_graph_cmd);
     TEN_ASSERT(dest_loc, "Should not happen.");
 
     // Get the information of all the extensions which this extension group
     // should create.
     ten_list_t result =
         ten_cmd_start_graph_get_extension_addon_and_instance_name_pairs_of_specified_extension_group(
-            requester_cmd, ten_string_get_raw_str(&dest_loc->app_uri),
+            original_start_graph_cmd,
+            ten_string_get_raw_str(&dest_loc->app_uri),
             ten_string_get_raw_str(&dest_loc->graph_id),
             ten_string_get_raw_str(&extension_group->name));
 
@@ -500,10 +495,10 @@ static void ten_extension_context_create_extension_group_done(
 
     ten_extension_context_add_extensions_info_from_graph(
         extension_context,
-        ten_cmd_start_graph_get_extensions_info(requester_cmd));
+        ten_cmd_start_graph_get_extensions_info(original_start_graph_cmd));
     ten_extension_context_add_extension_groups_info_from_graph(
-        extension_context,
-        ten_cmd_start_graph_get_extension_groups_info(requester_cmd));
+        extension_context, ten_cmd_start_graph_get_extension_groups_info(
+                               original_start_graph_cmd));
 
     extension_group->extension_group_info =
         ten_extension_context_get_extension_group_info_by_name(
@@ -553,8 +548,6 @@ bool ten_extension_context_start_extension_group(
              "Should not happen.");
   TEN_ASSERT(ten_env->attach_to == TEN_ENV_ATTACH_TO_ENGINE,
              "Should not happen.");
-
-  self->state_requester_cmd = ten_shared_ptr_clone(requester_cmd);
 
   ten_list_foreach (&extension_groups_info, iter) {
     ten_extension_group_info_t *extension_group_info =

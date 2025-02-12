@@ -174,12 +174,12 @@ static void ten_addon_register_internal(ten_addon_store_t *addon_store,
       // In some special cases, such as built-in addons, their logic does not
       // require a base directory at all, so `NULL` might be passed as the
       // base_dir parameter value.
-      TEN_LOGD("Addon %s base_dir: %s", name, base_dir);
+      TEN_LOGV("Addon %s base_dir: %s", name, base_dir);
       ten_addon_host_find_and_set_base_dir(addon_host, base_dir);
     }
   }
 
-  TEN_LOGI("Register addon: %s as %s", name,
+  TEN_LOGV("Register addon: %s as %s", name,
            ten_addon_type_to_string(addon_host->type));
 
   ten_addon_host_load_metadata(addon_host, addon_host->ten_env,

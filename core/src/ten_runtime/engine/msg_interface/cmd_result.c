@@ -129,18 +129,17 @@ static bool ten_engine_handle_cmd_result_for_cmd_start_graph(
 
   // The processing of the 'start_graph' flows are completed.
 
+  ten_shared_ptr_t *original_start_graph_cmd =
+      self->original_start_graph_cmd_of_enabling_engine;
+  TEN_ASSERT(
+      original_start_graph_cmd &&
+          ten_cmd_base_check_integrity(original_start_graph_cmd),
+      "The engine should be started because of receiving a 'start_graph' "
+      "command.");
+
   if (ten_cmd_result_get_status_code(cmd_result) == TEN_STATUS_CODE_OK) {
     // All the later connection stages are completed, enable the Extension
     // system now.
-
-    ten_shared_ptr_t *original_start_graph_cmd =
-        self->original_start_graph_cmd_of_enabling_engine;
-    TEN_ASSERT(
-        original_start_graph_cmd &&
-            ten_cmd_base_check_integrity(original_start_graph_cmd),
-        "The engine should be started because of receiving a 'start_graph' "
-        "command.");
-
     ten_error_t err;
     TEN_ERROR_INIT(err);
 
@@ -149,14 +148,6 @@ static bool ten_engine_handle_cmd_result_for_cmd_start_graph(
     ten_error_deinit(&err);
   } else if (ten_cmd_result_get_status_code(cmd_result) ==
              TEN_STATUS_CODE_ERROR) {
-    ten_shared_ptr_t *original_start_graph_cmd =
-        self->original_start_graph_cmd_of_enabling_engine;
-    TEN_ASSERT(
-        original_start_graph_cmd &&
-            ten_cmd_base_check_integrity(original_start_graph_cmd),
-        "The engine should be started because of receiving a 'start_graph' "
-        "command.");
-
     ten_value_t *err_msg_value =
         ten_msg_peek_property(cmd_result, TEN_STR_DETAIL, NULL);
     if (err_msg_value) {

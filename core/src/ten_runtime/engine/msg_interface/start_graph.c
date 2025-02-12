@@ -45,6 +45,14 @@ void ten_engine_handle_cmd_start_graph(ten_engine_t *self,
   ten_cmd_start_graph_collect_all_immediate_connectable_apps(
       cmd, self->app, &immediate_connectable_apps);
 
+  if (!self->original_start_graph_cmd_of_enabling_engine) {
+    self->original_start_graph_cmd_of_enabling_engine =
+        ten_shared_ptr_clone(cmd);
+  }
+  TEN_ASSERT(ten_msg_check_integrity(
+                 self->original_start_graph_cmd_of_enabling_engine),
+             "Should not happen.");
+
   if (ten_list_is_empty(&immediate_connectable_apps)) {
     TEN_LOGD(
         "No more extensions need to be connected in the graph, enable the "
@@ -117,16 +125,6 @@ void ten_engine_handle_cmd_start_graph(ten_engine_t *self,
       ten_list_clear(&new_works);
     } else {
       if (!ten_list_is_empty(&new_works)) {
-        // This means that we can _not_ start the engine now. We must wait for
-        // these newly submitted 'start_graph' commands to be completed in order
-        // to start the engine, so we must save the current received
-        // 'start_graph' command (to prevent it from being destroyed) in order
-        // to return a correct cmd result according to it.
-        TEN_ASSERT(!self->original_start_graph_cmd_of_enabling_engine,
-                   "Should not happen.");
-        self->original_start_graph_cmd_of_enabling_engine =
-            ten_shared_ptr_clone(cmd);
-
         if (ten_list_size(&new_works) > 1) {
           // Create path group for these newly submitted 'start_graph' commands.
           ten_paths_create_group(
