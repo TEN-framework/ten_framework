@@ -64,7 +64,7 @@ class test_extension_2 : public ten::extension_t {
                       "type": "extension",
                       "name": "schema_on_cmd_different_group__test_extension_2",
                       "version": "0.1.0",
-                                          "api": {
+                      "api": {
                         "cmd_in": [
                           {
                             "name": "hello_world",

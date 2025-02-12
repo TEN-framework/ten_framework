@@ -36,7 +36,7 @@ class test_extension_1 : public ten::extension_t {
                       "type": "extension",
                       "name": "schema_data_prop__test_extension_1",
                       "version": "0.1.0",
-                                          "api": {
+                      "api": {
                         "data_out": [
                           {
                             "name": "data",
@@ -106,7 +106,7 @@ class test_extension_2 : public ten::extension_t {
                       "type": "extension",
                       "name": "schema_data_prop__test_extension_2",
                       "version": "0.1.0",
-                                          "api": {
+                      "api": {
                         "data_in": [
                           {
                             "name": "data",
