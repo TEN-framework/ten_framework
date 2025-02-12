@@ -89,9 +89,8 @@ class test_app : public ten::app_t {
                "uri": "msgpack://127.0.0.1:8001/",
                "log_level": 2
              }
-           })"
+           })",
         // clang-format on
-        ,
         nullptr);
     ASSERT_EQ(rc, true);
 
