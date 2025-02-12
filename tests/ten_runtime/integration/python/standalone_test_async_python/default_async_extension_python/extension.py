@@ -3,7 +3,6 @@
 # Licensed under the Apache License, Version 2.0.
 # See the LICENSE file for more information.
 #
-import asyncio
 from ten import (
     AudioFrame,
     VideoFrame,
@@ -19,13 +18,6 @@ from ten import (
 class DefaultAsyncExtension(AsyncExtension):
     async def on_init(self, ten_env: AsyncTenEnv) -> None:
         ten_env.log_debug("on_init")
-        try:
-            self.sleep_time_before_stop_done = await ten_env.get_property_float(
-                "sleep_time_before_stop_done"
-            )
-        except Exception as e:
-            self.sleep_time_before_stop_done = 0
-
         try:
             self.send_goodbye_cmd = await ten_env.get_property_bool(
                 "send_goodbye_cmd"
@@ -91,9 +83,6 @@ class DefaultAsyncExtension(AsyncExtension):
         pass
 
     async def on_stop(self, ten_env: AsyncTenEnv) -> None:
-        if self.sleep_time_before_stop_done > 0:
-            await asyncio.sleep(self.sleep_time_before_stop_done)
-
         if self.send_goodbye_cmd:
             cmd = Cmd.create("goodbye")
             cmd_result, error = await ten_env.send_cmd(cmd)
