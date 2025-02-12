@@ -191,6 +191,12 @@ bool ten_placeholder_resolve(ten_placeholder_t *self,
               "provided.",
               variable_name);
 
+          // For now, we are handling this issue with a simple direct `exit`.
+          // This might not be too unusual. For example, in Java/Sprintbot, if a
+          // key specified in `application.yaml` is set to be retrieved from an
+          // environment variable, but the environment variable does not exist,
+          // Sprintbot will fail to start and immediately exit the process.
+          //
           // NOLINTNEXTLINE(concurrency-mt-unsafe)
           exit(EXIT_FAILURE);
 
