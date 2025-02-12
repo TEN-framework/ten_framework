@@ -47,6 +47,7 @@ ten_executable("ten_runtime_smoke_test") {
     "extension_group",
     "failed_to_transfer_msg",
     "graph",
+    "graph_error",
     "graph_name",
     "graph_test",
     "lock",

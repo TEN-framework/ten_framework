@@ -84,7 +84,7 @@ TEN_CPP_REGISTER_ADDON_AS_EXTENSION(
 
 }  // namespace
 
-TEST(PredefinedGraphTest, PredefinedGraphIncorrect3) {  // NOLINT
+TEST(GraphErrorTest, PredefinedGraphIncorrect3) {  // NOLINT
   auto *app_thread = ten_thread_create("app thread", app_thread_main, nullptr);
 
   ten_thread_join(app_thread, -1);
