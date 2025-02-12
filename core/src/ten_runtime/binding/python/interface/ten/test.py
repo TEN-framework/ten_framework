@@ -16,15 +16,12 @@ from .audio_frame import AudioFrame
 from .video_frame import VideoFrame
 
 
-class TenEnvTester: ...  # type: ignore
-
-
 ResultHandler = Callable[
-    [TenEnvTester, Optional[CmdResult], Optional[TenError]], None
+    ["TenEnvTester", Optional[CmdResult], Optional[TenError]], None
 ]
 
 
-ErrorHandler = Callable[[TenEnvTester, Optional[TenError]], None]
+ErrorHandler = Callable[["TenEnvTester", Optional[TenError]], None]
 
 
 class TenEnvTester(TenEnvTesterBase):
