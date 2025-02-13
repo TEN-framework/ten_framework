@@ -651,6 +651,22 @@
       "MIMode": "gdb",
     },
     {
+      "name": "app (Python Standalone Test) (lldb, launch)",
+      "type": "lldb",
+      "request": "launch",
+      "program": "/usr/bin/python3",
+      "args": [
+        "tests/test_recv_msg_during_starting.py"
+      ],
+      "cwd": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/python/standalone_test_async_python/default_async_extension_python",
+      "env": {
+        "PYTHONPATH": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/python/standalone_test_async_python/default_async_extension_python/.ten/app/ten_packages/system/ten_runtime_python/lib:${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/python/standalone_test_async_python/default_async_extension_python/.ten/app/ten_packages/system/ten_runtime_python/interface:${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/python/standalone_test_async_python/default_async_extension_python/.ten/app",
+        "LD_PRELOAD": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/python/standalone_test_async_python/default_async_extension_python/.ten/app/ten_packages/system/ten_runtime/lib/libasan.so",
+        "PYTHONMALLOC": "malloc",
+        "PYTHONDEVMODE": "1"
+      },
+    },
+    {
       "name": "app (Java) (cppdbg, attach)",
       "type": "cppdbg",
       "request": "attach",
