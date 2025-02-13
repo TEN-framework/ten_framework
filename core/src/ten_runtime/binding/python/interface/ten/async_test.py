@@ -6,6 +6,7 @@
 #
 import asyncio
 import os
+import sys
 import threading
 import traceback
 from typing import Optional, final
@@ -130,6 +131,13 @@ class AsyncExtensionTester(_ExtensionTester):
         async_ten_env_tester.log_fatal(
             f"Uncaught exception: {e} \ntraceback: {traceback_info}"
         )
+
+        # `os._exit` directly calls C's `_exit`, but as a result, it does not
+        # flush `stdout/stderr`, which may cause some logs to not be output.
+        # Therefore, flushing is proactively called to avoid this issue.
+        sys.stdout.flush()
+        sys.stderr.flush()
+
         os._exit(1)
 
     async def _thread_routine(self, ten_env_tester: TenEnvTester) -> None:
