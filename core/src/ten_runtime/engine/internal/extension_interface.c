@@ -32,20 +32,25 @@
 
 // The 'cmd' parameter is the command triggers the enabling of extension system.
 // If there is no command to trigger the enabling, this parameter would be NULL.
-bool ten_engine_enable_extension_system(ten_engine_t *self,
-                                        ten_shared_ptr_t *cmd,
-                                        ten_error_t *err) {
+bool ten_engine_enable_extension_system(ten_engine_t *self, ten_error_t *err) {
   TEN_ASSERT(self && ten_engine_check_integrity(self, true),
              "Should not happen.");
-  TEN_ASSERT(cmd && ten_msg_get_type(cmd) == TEN_MSG_TYPE_CMD_START_GRAPH,
+
+  ten_shared_ptr_t *original_start_graph_cmd =
+      self->original_start_graph_cmd_of_enabling_engine;
+  TEN_ASSERT(original_start_graph_cmd &&
+                 ten_msg_check_integrity(original_start_graph_cmd),
              "Should not happen.");
 
   if (ten_engine_is_closing(self)) {
     TEN_LOGE("Engine is closing, do not enable extension system.");
 
     ten_engine_return_error_for_cmd_start_graph(
-        self, cmd, "Failed to start extension system: %s",
-        ten_error_message(err));
+        self, original_start_graph_cmd,
+        "Engine is closing, do not enable extension system.");
+
+    ten_shared_ptr_destroy(original_start_graph_cmd);
+    self->original_start_graph_cmd_of_enabling_engine = NULL;
 
     return false;
   }
@@ -53,24 +58,27 @@ bool ten_engine_enable_extension_system(ten_engine_t *self,
   if (self->extension_context) {
     // The engine has already started a extension execution context, so
     // returning OK directly.
-    ten_engine_return_ok_for_cmd_start_graph(self, cmd);
+    ten_engine_return_ok_for_cmd_start_graph(self, original_start_graph_cmd);
+
+    ten_shared_ptr_destroy(original_start_graph_cmd);
+    self->original_start_graph_cmd_of_enabling_engine = NULL;
   } else {
     self->extension_context = ten_extension_context_create(self);
     ten_extension_context_set_on_closed(
         self->extension_context, ten_engine_on_extension_context_closed, self);
 
-    TEN_ASSERT(self->original_start_graph_cmd_of_enabling_engine,
-               "Should not happen.");
-
     if (!ten_extension_context_start_extension_group(self->extension_context,
-                                                     cmd, err)) {
-      TEN_LOGE(
-          "Failed to correctly handle the 'start_graph' command, so stop the "
-          "engine.");
+                                                     err)) {
+      TEN_LOGE("[%s] Failed to start the extension system.",
+               ten_app_get_uri(self->app));
 
       ten_engine_return_error_for_cmd_start_graph(
-          self, cmd, "Failed to start extension system: %s",
-          ten_error_message(err));
+          self, original_start_graph_cmd,
+          "[%s] Failed to start the extension system.",
+          ten_app_get_uri(self->app));
+
+      ten_shared_ptr_destroy(original_start_graph_cmd);
+      self->original_start_graph_cmd_of_enabling_engine = NULL;
 
       return false;
     }

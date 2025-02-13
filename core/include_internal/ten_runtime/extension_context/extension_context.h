@@ -80,5 +80,4 @@ ten_extension_context_get_extension_info_by_name(
     const char *extension_group_name, const char *extension_name);
 
 TEN_RUNTIME_PRIVATE_API bool ten_extension_context_start_extension_group(
-    ten_extension_context_t *self, ten_shared_ptr_t *requester,
-    ten_error_t *err);
+    ten_extension_context_t *self, ten_error_t *err);

@@ -508,38 +508,39 @@ static void ten_extension_context_create_extension_group_done(
   }
 }
 
-bool ten_extension_context_start_extension_group(
-    ten_extension_context_t *self, ten_shared_ptr_t *requester_cmd,
-    ten_error_t *err) {
+bool ten_extension_context_start_extension_group(ten_extension_context_t *self,
+                                                 ten_error_t *err) {
   TEN_ASSERT(self, "Invalid argument.");
   TEN_ASSERT(ten_extension_context_check_integrity(self, true),
              "Invalid use of extension_context %p.", self);
 
-  TEN_ASSERT(requester_cmd && ten_msg_get_type(requester_cmd) ==
-                                  TEN_MSG_TYPE_CMD_START_GRAPH,
+  ten_engine_t *engine = self->engine;
+  TEN_ASSERT(engine && ten_engine_check_integrity(engine, true),
+             "Should not happen.");
+
+  ten_shared_ptr_t *original_start_graph_cmd =
+      engine->original_start_graph_cmd_of_enabling_engine;
+  TEN_ASSERT(original_start_graph_cmd &&
+                 ten_msg_check_integrity(original_start_graph_cmd),
              "Should not happen.");
 
   bool result = true;
 
-  ten_cmd_start_graph_t *start_graph_cmd =
-      (ten_cmd_start_graph_t *)ten_msg_get_raw_msg(requester_cmd);
+  ten_list_t *extension_info =
+      ten_cmd_start_graph_get_extensions_info(original_start_graph_cmd);
+  ten_list_t *extension_groups_info =
+      ten_cmd_start_graph_get_extension_groups_info(original_start_graph_cmd);
 
-  ten_list_t extension_groups_info = start_graph_cmd->extension_groups_info;
+  if (ten_list_is_empty(extension_groups_info)) {
+    ten_extension_context_add_extensions_info_from_graph(self, extension_info);
 
-  if (ten_list_is_empty(&extension_groups_info)) {
-    ten_extension_context_add_extensions_info_from_graph(
-        self, ten_cmd_start_graph_get_extensions_info(requester_cmd));
     ten_extension_context_add_extension_groups_info_from_graph(
-        self, ten_cmd_start_graph_get_extension_groups_info(requester_cmd));
+        self, extension_groups_info);
 
     ten_extension_context_start(self);
 
     goto done;
   }
-
-  ten_engine_t *engine = self->engine;
-  TEN_ASSERT(engine && ten_engine_check_integrity(engine, true),
-             "Should not happen.");
 
   ten_env_t *ten_env = engine->ten_env;
   TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
@@ -547,7 +548,7 @@ bool ten_extension_context_start_extension_group(
   TEN_ASSERT(ten_env->attach_to == TEN_ENV_ATTACH_TO_ENGINE,
              "Should not happen.");
 
-  ten_list_foreach (&extension_groups_info, iter) {
+  ten_list_foreach (extension_groups_info, iter) {
     ten_extension_group_info_t *extension_group_info =
         ten_shared_ptr_get_data(ten_smart_ptr_listnode_get(iter.node));
     TEN_ASSERT(extension_group_info, "Invalid argument.");

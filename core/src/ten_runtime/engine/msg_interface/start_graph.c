@@ -69,7 +69,7 @@ void ten_engine_handle_cmd_start_graph(ten_engine_t *self,
     self->original_start_graph_cmd_of_enabling_engine =
         ten_shared_ptr_clone(cmd);
 
-    ten_engine_enable_extension_system(self, cmd, err);
+    ten_engine_enable_extension_system(self, err);
   } else {
     // There are more apps need to be connected, so connect them now.
     ten_list_t new_works = TEN_LIST_INIT_VAL;
@@ -123,6 +123,7 @@ void ten_engine_handle_cmd_start_graph(ten_engine_t *self,
 
           error_occurred = true;
           ten_shared_ptr_destroy(child_cmd);
+
           ten_engine_return_error_for_cmd_start_graph(
               self, cmd, "Failed to connect to %s.", dest_uri_c_str);
           break;
@@ -183,7 +184,7 @@ void ten_engine_handle_cmd_start_graph(ten_engine_t *self,
           self->original_start_graph_cmd_of_enabling_engine =
               ten_shared_ptr_clone(cmd);
 
-          ten_engine_enable_extension_system(self, cmd, err);
+          ten_engine_enable_extension_system(self, err);
         }
       }
     }
@@ -198,6 +199,9 @@ void ten_engine_return_ok_for_cmd_start_graph(
              "Invalid argument");
   TEN_ASSERT(cmd_start_graph && ten_cmd_base_check_integrity(cmd_start_graph),
              "Invalid argument.");
+  TEN_ASSERT(
+      ten_msg_get_type(cmd_start_graph) == TEN_MSG_TYPE_CMD_START_GRAPH,
+      "The command this function handles should be a 'start_graph' command.");
 
   ten_engine_create_cmd_result_and_dispatch(self, cmd_start_graph,
                                             TEN_STATUS_CODE_OK, "");
@@ -211,6 +215,9 @@ void ten_engine_return_error_for_cmd_start_graph(
   TEN_ASSERT(cmd_start_graph && ten_cmd_base_check_integrity(cmd_start_graph),
              "The engine should be started because of receiving a "
              "'start_graph' command.");
+  TEN_ASSERT(
+      ten_msg_get_type(cmd_start_graph) == TEN_MSG_TYPE_CMD_START_GRAPH,
+      "The command this function handles should be a 'start_graph' command.");
 
   {
     // Return an error result.
@@ -225,13 +232,6 @@ void ten_engine_return_error_for_cmd_start_graph(
                                               TEN_STATUS_CODE_ERROR,
                                               ten_string_get_raw_str(detail));
     ten_string_destroy(detail);
-  }
-
-  // =-=-= 要不要移出去这个 function?
-  if (self->original_start_graph_cmd_of_enabling_engine) {
-    // 'original_start_graph_cmd_of_enabling_engine' is useless from now on.
-    ten_shared_ptr_destroy(self->original_start_graph_cmd_of_enabling_engine);
-    self->original_start_graph_cmd_of_enabling_engine = NULL;
   }
 
   // The graph construction is failed, so the engine have to be closed now.

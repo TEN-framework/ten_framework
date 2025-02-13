@@ -336,30 +336,33 @@ static void ten_engine_on_graph_remote_connected(ten_remote_t *self,
   self->on_server_connected_cmd = NULL;
 }
 
-static void ten_engine_on_graph_remote_connect_error(ten_remote_t *self,
-                                                     ten_shared_ptr_t *cmd) {
+static void ten_engine_on_graph_remote_connect_error(
+    ten_remote_t *self, ten_shared_ptr_t *start_graph_cmd_for_the_remote) {
   TEN_ASSERT(self, "Invalid argument.");
   TEN_ASSERT(ten_remote_check_integrity(self, true),
              "Invalid use of remote %p.", self);
 
-  TEN_ASSERT(cmd && ten_msg_check_integrity(cmd), "Invalid argument.");
+  TEN_ASSERT(start_graph_cmd_for_the_remote &&
+                 ten_msg_check_integrity(start_graph_cmd_for_the_remote),
+             "Invalid argument.");
+
+  ten_engine_t *engine = self->engine;
+  TEN_ASSERT(engine && ten_engine_check_integrity(engine, true),
+             "Invalid use of engine %p.", engine);
+
+  // Just respond to the start_graph command specifically issued for this
+  // `remote` with a response to simulate an ERROR response from the `remote`,
+  // allowing the `engine` to continue its process. After the `engine`
+  // completes its entire start_graph flow, it will then respond to the
+  // `origin_start_graph_cmd`.
+  ten_engine_return_error_for_cmd_start_graph(
+      engine, start_graph_cmd_for_the_remote, "Failed to connect to %s",
+      ten_string_get_raw_str(&self->uri));
 
   // Failed to connect to remote, we must to delete (dereference) the message
   // which was going to be sent originally to prevent from memory leakage.
-  ten_shared_ptr_destroy(cmd);
+  ten_shared_ptr_destroy(start_graph_cmd_for_the_remote);
   self->on_server_connected_cmd = NULL;
-
-  if (self->engine->original_start_graph_cmd_of_enabling_engine) {
-    // Before starting the extension system, the only reason to establish a
-    // connection is to handle the 'start_graph' command, and this variable
-    // enables us to know it is this case.
-    ten_engine_return_error_for_cmd_start_graph(
-        self->engine, self->engine->original_start_graph_cmd_of_enabling_engine,
-        "Failed to connect to %s", ten_string_get_raw_str(&self->uri));
-  } else {
-    // The remote fails to connect to the target, so it's time to close it.
-    ten_remote_close(self);
-  }
 }
 
 static void ten_engine_connect_to_remote_after_remote_is_created(
@@ -384,18 +387,17 @@ static void ten_engine_connect_to_remote_after_remote_is_created(
       "Should not happen.");
 
   if (!remote) {
-    // Failed to create the remote instance. It means that the entire start
-    // graph flow has failed, so we can directly respond to the original
-    // `start_graph` command with an error response.
-
+    // Failed to create the remote instance. Just respond to the start_graph
+    // command specifically issued for this `remote` with a response to simulate
+    // an ERROR response from the `remote`, allowing the `engine` to continue
+    // its process. After the `engine` completes its entire start_graph flow, it
+    // will then respond to the `origin_start_graph_cmd`.
     ten_engine_return_error_for_cmd_start_graph(
-        engine, origin_start_graph_cmd, "Failed to create remote (%s)",
+        engine, start_graph_cmd_for_the_remote, "Failed to create remote (%s)",
         ten_msg_get_first_dest_uri(start_graph_cmd_for_the_remote));
 
-    ten_shared_ptr_destroy(origin_start_graph_cmd);
-    engine->original_start_graph_cmd_of_enabling_engine = NULL;
-
     ten_shared_ptr_destroy(start_graph_cmd_for_the_remote);
+
     return;
   }
 

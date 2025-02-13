@@ -149,12 +149,7 @@ static bool ten_engine_handle_cmd_result_for_cmd_start_graph(
   if (ten_cmd_result_get_status_code(cmd_result) == TEN_STATUS_CODE_OK) {
     // All the later connection stages are completed, enable the extension
     // system now.
-    ten_error_t err;
-    TEN_ERROR_INIT(err);
-
-    ten_engine_enable_extension_system(self, original_start_graph_cmd, &err);
-
-    ten_error_deinit(&err);
+    ten_engine_enable_extension_system(self, err);
   } else if (ten_cmd_result_get_status_code(cmd_result) ==
              TEN_STATUS_CODE_ERROR) {
     ten_value_t *err_msg_value =
@@ -170,6 +165,9 @@ static bool ten_engine_handle_cmd_result_for_cmd_start_graph(
           self, original_start_graph_cmd, "Failed to start engine in app [%s].",
           ten_msg_get_src_app_uri(cmd_result));
     }
+
+    ten_shared_ptr_destroy(original_start_graph_cmd);
+    self->original_start_graph_cmd_of_enabling_engine = NULL;
   } else {
     TEN_ASSERT(0, "Should not happen.");
   }

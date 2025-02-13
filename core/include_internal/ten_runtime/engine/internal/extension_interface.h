@@ -17,7 +17,7 @@ TEN_RUNTIME_PRIVATE_API void ten_engine_push_to_extension_msgs_queue(
     ten_engine_t *self, ten_shared_ptr_t *msg);
 
 TEN_RUNTIME_PRIVATE_API bool ten_engine_enable_extension_system(
-    ten_engine_t *self, ten_shared_ptr_t *cmd, ten_error_t *err);
+    ten_engine_t *self, ten_error_t *err);
 
 TEN_RUNTIME_PRIVATE_API void
 ten_engine_find_extension_info_for_all_extensions_of_extension_thread_task(
