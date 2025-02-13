@@ -156,6 +156,10 @@ static ten_cmd_result_t *ten_raw_cmd_result_create_from_cmd(
 
 ten_shared_ptr_t *ten_cmd_result_create_from_cmd(
     const TEN_STATUS_CODE status_code, ten_shared_ptr_t *original_cmd) {
+  if (original_cmd) {
+    ten_msg_dump(original_cmd, NULL, "=-=-= create cmd_result for ^m");
+  }
+
   return ten_shared_ptr_create(
       ten_raw_cmd_result_create_from_cmd(status_code, original_cmd),
       ten_raw_cmd_result_destroy);

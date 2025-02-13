@@ -55,11 +55,22 @@ bool ten_engine_enable_extension_system(ten_engine_t *self,
   if (self->extension_context) {
     // The engine has already started a extension execution context, so
     // returning OK directly.
+    ten_msg_dump(
+        cmd, NULL,
+        "=-=-= app %s has already started an extension context, return OK: ^m",
+        ten_app_get_uri(self->app));
+
     ten_engine_return_ok_for_cmd_start_graph(self, cmd);
   } else {
     self->extension_context = ten_extension_context_create(self);
     ten_extension_context_set_on_closed(
         self->extension_context, ten_engine_on_extension_context_closed, self);
+
+    // =-=-=
+    TEN_ASSERT(self->original_start_graph_cmd_of_enabling_engine,
+               "Should not happen.");
+    // self->original_start_graph_cmd_of_enabling_engine =
+    //     ten_shared_ptr_clone(cmd);
 
     if (!ten_extension_context_start_extension_group(self->extension_context,
                                                      cmd, err)) {
@@ -225,8 +236,8 @@ static void ten_engine_on_all_extension_threads_are_ready(
       cmd_result = ten_cmd_result_create_from_cmd(TEN_STATUS_CODE_ERROR,
                                                   original_start_graph_cmd);
     } else {
-      TEN_LOGD("[%s] All extension threads are initted.",
-               ten_engine_get_id(self, true));
+      TEN_LOGD("[%s:%s] All extension threads are initted.",
+               ten_app_get_uri(self->app), ten_engine_get_id(self, true));
 
       ten_string_t *graph_id = &self->graph_id;
 
@@ -241,9 +252,15 @@ static void ten_engine_on_all_extension_threads_are_ready(
       // Mark the engine that it could start to handle messages.
       self->is_ready_to_handle_msg = true;
 
-      TEN_LOGD("[%s] Engine is ready to handle messages.",
-               ten_engine_get_id(self, true));
+      TEN_LOGD("=-=-= [%s:%s] Engine is ready to handle messages.",
+               ten_app_get_uri(self->app), ten_engine_get_id(self, true));
     }
+
+    // =-=-=
+    ten_msg_dump(
+        cmd_result, NULL,
+        "=-=-= app %s return cmd_result 因为所有 extension threads 都好了: ^m",
+        ten_app_get_uri(self->app));
 
     ten_env_return_result(self->ten_env, cmd_result, original_start_graph_cmd,
                           NULL, NULL, NULL);

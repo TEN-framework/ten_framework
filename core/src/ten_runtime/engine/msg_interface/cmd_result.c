@@ -25,6 +25,7 @@
 #include "ten_runtime/msg/msg.h"
 #include "ten_utils/lib/smart_ptr.h"
 #include "ten_utils/lib/string.h"
+#include "ten_utils/lib/time.h"
 #include "ten_utils/macro/check.h"
 #include "ten_utils/value/value_get.h"
 #include "ten_utils/value/value_is.h"
@@ -103,6 +104,9 @@ static bool ten_engine_handle_cmd_result_for_cmd_start_graph(
       // Only if the 'start_graph' flow involves a connection, we need to handle
       // situations relevant to that connection.
 
+      ten_msg_dump(cmd_result, NULL, "=-=-= cmd_result ^m: %p, %p", cmd_result,
+                   ten_cmd_base_get_original_connection(cmd_result));
+
       bool rc = ten_engine_close_duplicated_remote_or_upgrade_it_to_normal(
           self, cmd_result, err);
       TEN_ASSERT(rc, "Should not happen.");
@@ -138,10 +142,18 @@ static bool ten_engine_handle_cmd_result_for_cmd_start_graph(
       "command.");
 
   if (ten_cmd_result_get_status_code(cmd_result) == TEN_STATUS_CODE_OK) {
-    // All the later connection stages are completed, enable the Extension
+    // All the later connection stages are completed, enable the extension
     // system now.
     ten_error_t err;
     TEN_ERROR_INIT(err);
+
+    ten_msg_dump(cmd_result, NULL, "=-=-= 111 app %s receives cmd_result: ^m",
+                 ten_app_get_uri(self->app));
+
+    ten_msg_dump(original_start_graph_cmd, NULL,
+                 "=-=-= app %s all subsequence other apps have done, "
+                 "enable_extension_system directly: ^m",
+                 ten_app_get_uri(self->app));
 
     ten_engine_enable_extension_system(self, original_start_graph_cmd, &err);
 
@@ -160,6 +172,9 @@ static bool ten_engine_handle_cmd_result_for_cmd_start_graph(
           self, original_start_graph_cmd, "Failed to start engine in app [%s].",
           ten_msg_get_src_app_uri(cmd_result));
     }
+
+    ten_shared_ptr_destroy(self->original_start_graph_cmd_of_enabling_engine);
+    self->original_start_graph_cmd_of_enabling_engine = NULL;
   } else {
     TEN_ASSERT(0, "Should not happen.");
   }
@@ -178,6 +193,9 @@ void ten_engine_handle_cmd_result(ten_engine_t *self,
                  ten_msg_get_type(cmd_result) == TEN_MSG_TYPE_CMD_RESULT &&
                  ten_msg_get_dest_cnt(cmd_result) == 1,
              "Should not happen.");
+
+  // =-=-=
+  ten_sleep_ms(200);
 
   switch (ten_cmd_result_get_original_cmd_type(cmd_result)) {
     case TEN_MSG_TYPE_CMD_START_GRAPH: {

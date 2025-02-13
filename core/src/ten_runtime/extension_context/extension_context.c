@@ -426,10 +426,6 @@ static void ten_extension_context_create_extension_group_done(
       engine->original_start_graph_cmd_of_enabling_engine;
   TEN_ASSERT(original_start_graph_cmd, "Should not happen.");
 
-  ten_cmd_start_graph_t *requester_cmd_start_graph =
-      ten_shared_ptr_get_data(original_start_graph_cmd);
-  TEN_ASSERT(requester_cmd_start_graph, "Should not happen.");
-
   ten_addon_host_t *addon_host = extension_group->addon_host;
   TEN_ASSERT(addon_host, "Should not happen.");
 
@@ -479,7 +475,9 @@ static void ten_extension_context_create_extension_group_done(
           ten_extension_thread_remove_from_extension_context);
 
   size_t extension_groups_cnt_of_the_current_app = 0;
-  ten_list_foreach (&requester_cmd_start_graph->extension_groups_info, iter) {
+  ten_list_foreach (
+      ten_cmd_start_graph_get_extension_groups_info(original_start_graph_cmd),
+      iter) {
     ten_extension_group_info_t *extension_group_info =
         ten_shared_ptr_get_data(ten_smart_ptr_listnode_get(iter.node));
 
