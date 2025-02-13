@@ -5,6 +5,7 @@
 # Refer to the "LICENSE" file in the root directory for more information.
 #
 import asyncio
+import os
 import sys
 import threading
 import traceback
@@ -131,9 +132,13 @@ class AsyncExtensionTester(_ExtensionTester):
             f"Uncaught exception: {e} \ntraceback: {traceback_info}"
         )
 
-        # Use `sys.exit` to flush `stdout/stderr`. If we use `os._exit`, any
-        # logs still in the `stdout/stderr` buffer may not be output.
-        sys.exit(1)
+        # `os._exit` directly calls C's `_exit`, but as a result, it does not
+        # flush `stdout/stderr`, which may cause some logs to not be output.
+        # Therefore, flushing is proactively called to avoid this issue.
+        sys.stdout.flush()
+        sys.stderr.flush()
+
+        os._exit(1)
 
     async def _thread_routine(self, ten_env_tester: TenEnvTester) -> None:
         self._ten_loop = asyncio.get_running_loop()
