@@ -22,7 +22,7 @@ class DefaultAsyncExtension(AsyncExtension):
             self.send_goodbye_cmd = await ten_env.get_property_bool(
                 "send_goodbye_cmd"
             )
-        except Exception as e:
+        except Exception:
             self.send_goodbye_cmd = False
 
     async def on_start(self, ten_env: AsyncTenEnv) -> None:
@@ -85,4 +85,4 @@ class DefaultAsyncExtension(AsyncExtension):
     async def on_stop(self, ten_env: AsyncTenEnv) -> None:
         if self.send_goodbye_cmd:
             cmd = Cmd.create("goodbye")
-            cmd_result, error = await ten_env.send_cmd(cmd)
+            await ten_env.send_cmd(cmd)

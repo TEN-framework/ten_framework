@@ -27,6 +27,7 @@ class AsyncExtensionTesterBasic(AsyncExtensionTester):
         if cmd_name == "flush":
             cmd_result = CmdResult.create(StatusCode.OK)
             await ten_env.return_result(cmd_result, cmd)
+
             ten_env.stop_test()
         elif cmd_name == "goodbye":
             cmd_result = CmdResult.create(StatusCode.OK)

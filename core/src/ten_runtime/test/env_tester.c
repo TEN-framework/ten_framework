@@ -614,6 +614,7 @@ bool ten_env_tester_send_cmd(ten_env_tester_t *self, ten_shared_ptr_t *cmd,
                              void *user_data, ten_error_t *err) {
   TEN_ASSERT(self && ten_env_tester_check_integrity(self, true),
              "Invalid argument.");
+
   if (!self->tester->test_extension_ten_env_proxy) {
     if (err) {
       ten_error_set(err, TEN_ERROR_CODE_TEN_IS_CLOSED,
@@ -642,6 +643,7 @@ bool ten_env_tester_return_result(
     ten_error_t *error) {
   TEN_ASSERT(self && ten_env_tester_check_integrity(self, true),
              "Invalid argument.");
+
   if (!self->tester->test_extension_ten_env_proxy) {
     if (error) {
       ten_error_set(error, TEN_ERROR_CODE_TEN_IS_CLOSED,
@@ -671,6 +673,7 @@ bool ten_env_tester_send_data(ten_env_tester_t *self, ten_shared_ptr_t *data,
                               void *user_data, ten_error_t *err) {
   TEN_ASSERT(self && ten_env_tester_check_integrity(self, true),
              "Invalid argument.");
+
   if (!self->tester->test_extension_ten_env_proxy) {
     if (err) {
       ten_error_set(err, TEN_ERROR_CODE_TEN_IS_CLOSED,
@@ -728,6 +731,7 @@ bool ten_env_tester_send_video_frame(
     ten_error_t *err) {
   TEN_ASSERT(self && ten_env_tester_check_integrity(self, true),
              "Invalid argument.");
+
   if (!self->tester->test_extension_ten_env_proxy) {
     if (err) {
       ten_error_set(err, TEN_ERROR_CODE_TEN_IS_CLOSED,

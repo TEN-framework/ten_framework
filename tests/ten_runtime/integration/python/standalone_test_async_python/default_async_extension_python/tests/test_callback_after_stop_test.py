@@ -28,16 +28,19 @@ class AsyncExtensionTesterBasic(AsyncExtensionTester):
 
         if cmd_name == "flush":
             ten_env.stop_test()
+
             cmd_result = CmdResult.create(StatusCode.OK)
             await ten_env.return_result(cmd_result, cmd)
         elif cmd_name == "goodbye":
             cmd_result = CmdResult.create(StatusCode.OK)
             await ten_env.return_result(cmd_result, cmd)
+
             self.receive_goodbye_cmd_event.set()
 
     async def on_stop(self, ten_env: AsyncTenEnvTester) -> None:
-        # if the tester stop before the goodbye cmd is received, the default_async_extension_python
-        # will hang in on_stop(). So we need to wait for the goodbye cmd to be received.
+        # If the tester stop before the goodbye cmd is received, the
+        # default_async_extension_python will hang in on_stop(). So we need to
+        # wait for the goodbye cmd to be received.
         await self.receive_goodbye_cmd_event.wait()
 
 

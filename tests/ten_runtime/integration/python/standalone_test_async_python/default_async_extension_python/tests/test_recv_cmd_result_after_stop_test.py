@@ -5,7 +5,6 @@
 # Refer to the "LICENSE" file in the root directory for more information.
 #
 import asyncio
-import json
 from ten import (
     Cmd,
     AsyncExtensionTester,
@@ -27,6 +26,7 @@ class AsyncExtensionTesterBasic(AsyncExtensionTester):
         if cmd_name == "flush":
             cmd_result = CmdResult.create(StatusCode.OK)
             await ten_env.return_result(cmd_result, cmd)
+
             ten_env.stop_test()
 
 
