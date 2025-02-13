@@ -135,6 +135,9 @@ class AsyncExtensionTester(_ExtensionTester):
         self, async_ten_env_tester: AsyncTenEnvTester, e: Exception
     ):
         traceback_info = traceback.format_exc()
+
+        # TODO(xilin): remove this try-catch block after after we change all
+        # ten_env APIs to return errors instead of throwing exceptions
         try:
             async_ten_env_tester.log_fatal(
                 f"Uncaught exception: {e} \ntraceback: {traceback_info}"
