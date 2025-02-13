@@ -5,7 +5,7 @@
 # Refer to the "LICENSE" file in the root directory for more information.
 #
 import asyncio
-import os
+import sys
 import threading
 import traceback
 from typing import Optional, final
@@ -130,7 +130,10 @@ class AsyncExtensionTester(_ExtensionTester):
         async_ten_env_tester.log_fatal(
             f"Uncaught exception: {e} \ntraceback: {traceback_info}"
         )
-        os._exit(1)
+
+        # Use `sys.exit` to flush `stdout/stderr`. If we use `os._exit`, any
+        # logs still in the `stdout/stderr` buffer may not be output.
+        sys.exit(1)
 
     async def _thread_routine(self, ten_env_tester: TenEnvTester) -> None:
         self._ten_loop = asyncio.get_running_loop()

@@ -5,7 +5,7 @@
 # Refer to the "LICENSE" file in the root directory for more information.
 #
 import asyncio
-import os
+import sys
 import threading
 import traceback
 from typing import final
@@ -200,7 +200,10 @@ class AsyncExtension(_Extension):
         async_ten_env.log_fatal(
             f"Uncaught exception: {e} \ntraceback: {traceback_info}"
         )
-        os._exit(1)
+
+        # Use `sys.exit` to flush `stdout/stderr`. If we use `os._exit`, any
+        # logs still in the `stdout/stderr` buffer may not be output.
+        sys.exit(1)
 
     # Override these methods in your extension
 
