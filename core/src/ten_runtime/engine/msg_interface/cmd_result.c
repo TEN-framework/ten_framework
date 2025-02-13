@@ -25,7 +25,6 @@
 #include "ten_runtime/msg/msg.h"
 #include "ten_utils/lib/smart_ptr.h"
 #include "ten_utils/lib/string.h"
-#include "ten_utils/lib/time.h"
 #include "ten_utils/macro/check.h"
 #include "ten_utils/value/value_get.h"
 #include "ten_utils/value/value_is.h"
@@ -104,9 +103,6 @@ static bool ten_engine_handle_cmd_result_for_cmd_start_graph(
       // Only if the 'start_graph' flow involves a connection, we need to handle
       // situations relevant to that connection.
 
-      ten_msg_dump(cmd_result, NULL, "=-=-= cmd_result ^m: %p, %p", cmd_result,
-                   ten_cmd_base_get_original_connection(cmd_result));
-
       bool rc = ten_engine_close_duplicated_remote_or_upgrade_it_to_normal(
           self, cmd_result, err);
       TEN_ASSERT(rc, "Should not happen.");
@@ -123,6 +119,9 @@ static bool ten_engine_handle_cmd_result_for_cmd_start_graph(
     return true;
   }
 
+  // Check whether _all_ cmd_results related to this start_graph command have
+  // been received to determine whether to proceed with the next steps of the
+  // start_graph flow.
   cmd_result = ten_path_table_determine_actual_cmd_result(
       self->path_table, TEN_PATH_OUT, out_path, true);
   if (!cmd_result) {
@@ -133,6 +132,12 @@ static bool ten_engine_handle_cmd_result_for_cmd_start_graph(
 
   // The processing of the 'start_graph' flows are completed.
 
+  // If a cmd_result is received during the start_graph flow, it indicates a
+  // multiple-app start_graph scenario. Before starting to connect to more apps
+  // in the whole start_graph process,
+  // `original_start_graph_cmd_of_enabling_engine` must be set. Otherwise, after
+  // the entire process is completed, there will be no way to determine where to
+  // send the `cmd_result` of the `start_graph` command.
   ten_shared_ptr_t *original_start_graph_cmd =
       self->original_start_graph_cmd_of_enabling_engine;
   TEN_ASSERT(
@@ -147,14 +152,6 @@ static bool ten_engine_handle_cmd_result_for_cmd_start_graph(
     ten_error_t err;
     TEN_ERROR_INIT(err);
 
-    ten_msg_dump(cmd_result, NULL, "=-=-= 111 app %s receives cmd_result: ^m",
-                 ten_app_get_uri(self->app));
-
-    ten_msg_dump(original_start_graph_cmd, NULL,
-                 "=-=-= app %s all subsequence other apps have done, "
-                 "enable_extension_system directly: ^m",
-                 ten_app_get_uri(self->app));
-
     ten_engine_enable_extension_system(self, original_start_graph_cmd, &err);
 
     ten_error_deinit(&err);
@@ -164,6 +161,7 @@ static bool ten_engine_handle_cmd_result_for_cmd_start_graph(
         ten_msg_peek_property(cmd_result, TEN_STR_DETAIL, NULL);
     if (err_msg_value) {
       TEN_ASSERT(ten_value_is_string(err_msg_value), "Should not happen.");
+
       ten_engine_return_error_for_cmd_start_graph(
           self, original_start_graph_cmd,
           ten_value_peek_raw_str(err_msg_value, err));
@@ -173,7 +171,7 @@ static bool ten_engine_handle_cmd_result_for_cmd_start_graph(
           ten_msg_get_src_app_uri(cmd_result));
     }
 
-    ten_shared_ptr_destroy(self->original_start_graph_cmd_of_enabling_engine);
+    ten_shared_ptr_destroy(original_start_graph_cmd);
     self->original_start_graph_cmd_of_enabling_engine = NULL;
   } else {
     TEN_ASSERT(0, "Should not happen.");
@@ -193,9 +191,6 @@ void ten_engine_handle_cmd_result(ten_engine_t *self,
                  ten_msg_get_type(cmd_result) == TEN_MSG_TYPE_CMD_RESULT &&
                  ten_msg_get_dest_cnt(cmd_result) == 1,
              "Should not happen.");
-
-  // =-=-=
-  ten_sleep_ms(200);
 
   switch (ten_cmd_result_get_original_cmd_type(cmd_result)) {
     case TEN_MSG_TYPE_CMD_START_GRAPH: {

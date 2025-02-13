@@ -170,6 +170,9 @@ void ten_extension_group_on_create_extensions_done(ten_extension_group_t *self,
     if (extension == TEN_EXTENSION_UNSUCCESSFULLY_CREATED) {
       ten_list_remove_node(extensions, current_node);
 
+      // If starting the extension system fails, set this `error` to represent
+      // the failure. The extension system will then check this `error` instance
+      // to determine whether to trigger the shutdown of the system.
       ten_error_set(&self->err_before_ready, TEN_ERROR_CODE_INVALID_GRAPH,
                     "Failed to create extensions.");
     }
