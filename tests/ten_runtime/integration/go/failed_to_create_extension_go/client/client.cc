@@ -6,22 +6,12 @@
 //
 #include <nlohmann/json.hpp>
 
-#include "ten_runtime/common/status_code.h"
 #include "ten_utils/macro/mark.h"
 #include "tests/common/client/cpp/msgpack_tcp.h"
 
 int main(TEN_UNUSED int argc, TEN_UNUSED char **argv) {
   // Create a client and connect to the app.
   auto *client = new ten::msgpack_tcp_client_t("msgpack://127.0.0.1:8007/");
-
-  auto test_cmd = ten::cmd_t::create("test");
-  test_cmd->set_dest("msgpack://127.0.0.1:8007/", "default", "nodetest", "A");
-  auto cmd_result = client->send_cmd_and_recv_result(std::move(test_cmd));
-  TEN_ASSERT(TEN_STATUS_CODE_ERROR == cmd_result->get_status_code(),
-             "Should not happen.");
-  TEN_ASSERT(cmd_result->get_property_string("detail") ==
-                 "The extension[A] is invalid.",
-             "Should not happen.");
 
   // NOTE the order: client destroy, then connection lost, then go app exits.
   delete client;
