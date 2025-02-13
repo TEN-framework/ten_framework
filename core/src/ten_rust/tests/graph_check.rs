@@ -158,7 +158,8 @@ fn test_graph_check_builtin_extension() {
         get_all_installed_pkgs_info_of_app(Path::new(app_dir)).unwrap();
     assert!(!pkg_infos.is_empty());
 
-    let graph_str = include_str!("test_data/graph_check_builtin_extension/graph.json");
+    let graph_str =
+        include_str!("test_data/graph_check_builtin_extension/graph.json");
     let graph = Graph::from_str(graph_str).unwrap();
 
     let mut pkg_info_map: HashMap<String, Vec<PkgInfo>> = HashMap::new();
