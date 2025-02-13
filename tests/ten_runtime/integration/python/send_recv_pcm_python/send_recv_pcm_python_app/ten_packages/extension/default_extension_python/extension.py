@@ -20,10 +20,6 @@ from pydub import AudioSegment
 class DefaultExtension(Extension):
     def on_init(self, ten_env: TenEnv) -> None:
         ten_env.log_debug("on_init")
-        ten_env.on_init_done()
-
-    def on_start(self, ten_env: TenEnv) -> None:
-        ten_env.log_debug("on_start")
         self.audio = AudioSegment.from_file(
             "../test_data/speech_16k_1.pcm",
             format="s16le",
@@ -31,20 +27,19 @@ class DefaultExtension(Extension):
             channels=1,
             frame_rate=16000,
         )
-        print("audio duration: ", len(self.audio))
+        ten_env.log_info(f"audio duration: {len(self.audio)}")
 
         self.start_time = int(time.time() * 1000)
-
-        ten_env.on_start_done()
+        ten_env.on_init_done()
 
     def on_cmd(self, ten_env: TenEnv, cmd: Cmd) -> None:
         cmd_json = cmd.get_property_to_json()
-        print("DefaultExtension on_cmd json: " + cmd_json)
+        ten_env.log_info(f"DefaultExtension on_cmd json: {cmd_json}")
 
         self.request_cmd = cmd
 
         raw_data = self.audio.raw_data
-        print("audio raw data len: ", len(raw_data))
+        ten_env.log_info(f"audio raw data len: {len(raw_data)}")
 
         pcm_data = self.audio[0:10].raw_data
         audio_frame = AudioFrame.create("pcm")
@@ -64,7 +59,7 @@ class DefaultExtension(Extension):
         ten_env.send_audio_frame(audio_frame)
 
     def on_audio_frame(self, ten_env: TenEnv, audio_frame: AudioFrame) -> None:
-        print("DefaultExtension on_audio_frame")
+        ten_env.log_info("DefaultExtension on_audio_frame")
 
         assert audio_frame.get_bytes_per_sample() == 2
         assert audio_frame.get_sample_rate() == 16000
@@ -85,5 +80,5 @@ class DefaultExtension(Extension):
         ten_env.return_result(cmd_result, self.request_cmd)
 
     def on_stop(self, ten_env: TenEnv) -> None:
-        print("DefaultExtension on_stop")
+        ten_env.log_info("DefaultExtension on_stop")
         ten_env.on_stop_done()
