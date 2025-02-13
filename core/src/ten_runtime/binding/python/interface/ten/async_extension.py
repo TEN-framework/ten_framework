@@ -6,6 +6,7 @@
 #
 import asyncio
 import os
+import sys
 import threading
 import traceback
 from typing import final
@@ -200,6 +201,13 @@ class AsyncExtension(_Extension):
         async_ten_env.log_fatal(
             f"Uncaught exception: {e} \ntraceback: {traceback_info}"
         )
+
+        # `os._exit` directly calls C's `_exit`, but as a result, it does not
+        # flush `stdout/stderr`, which may cause some logs to not be output.
+        # Therefore, flushing is proactively called to avoid this issue.
+        sys.stdout.flush()
+        sys.stderr.flush()
+
         os._exit(1)
 
     # Override these methods in your extension

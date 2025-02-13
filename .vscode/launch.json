@@ -526,18 +526,18 @@
       }
     },
     {
-      "name": "extension standalone test (C/C++) (lldb, launch)",
+      "name": "app (C/C++) ffmpeg (lldb, launch)",
       "type": "lldb",
       "request": "launch",
-      "program": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/cpp/standalone_test_cpp/default_extension_cpp/out/linux/x64/tests/default_extension_cpp_test",
+      "program": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/cpp/restful/http_basic/restful/http_basic_app/bin/restful/http_basic_app_source",
       "args": [],
-      "cwd": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/cpp/standalone_test_cpp/default_extension_cpp/out/linux/x64/tests/",
       "env": {
-        "ASAN_OPTIONS": "use_sigaltstack=0",
+        "LD_LIBRARY_PATH": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/cpp/restful/http_basic/restful/http_basic_app/lib"
       },
+      "cwd": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/cpp/restful/http_basic/restful/http_basic_app/",
     },
     {
-      "name": "app (Python Main) (debugpy, launch)",
+      "name": "app (python) (debugpy, launch)",
       "type": "debugpy",
       "python": "/usr/bin/python3",
       "request": "launch",
@@ -553,7 +553,7 @@
       },
     },
     {
-      "name": "app (debugpy, remote attach)",
+      "name": "app (python) (debugpy, remote attach)",
       "type": "debugpy",
       "request": "attach",
       "connect": {
@@ -564,13 +564,13 @@
       "justMyCode": false
     },
     {
-      "name": "app (debugpy, local attach)",
+      "name": "app (python) (debugpy, local attach)",
       "type": "debugpy",
       "request": "attach",
       "processId": "${command:pickProcess}",
     },
     {
-      "name": "app (Python Main) (cppdbg, launch)",
+      "name": "app (python) (cppdbg, launch)",
       "type": "cppdbg",
       "request": "launch",
       "program": "/home/wei/.python_venv/bin/python",
@@ -600,7 +600,7 @@
       "MIMode": "gdb",
     },
     {
-      "name": "app (Python) (cppdbg) attach",
+      "name": "app (python) (cppdbg, attach)",
       "type": "cppdbg",
       "request": "attach",
       "processId": "${command:pickProcess}",
@@ -621,57 +621,7 @@
       },
     },
     {
-      "name": "app (Python Standalone Test) (cppdbg, launch)",
-      "type": "cppdbg",
-      "request": "launch",
-      "program": "/usr/bin/python3",
-      "args": [
-        "tests/test_recv_msg_during_starting.py"
-      ],
-      "environment": [
-        {
-          "name": "PYTHONPATH",
-          "value": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/python/standalone_test_async_python/default_async_extension_python/.ten/app/ten_packages/system/ten_runtime_python/lib:${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/python/standalone_test_async_python/default_async_extension_python/.ten/app/ten_packages/system/ten_runtime_python/interface:${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/python/standalone_test_async_python/default_async_extension_python/.ten/app"
-        },
-        {
-          "name": "LD_PRELOAD",
-          "value": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/python/standalone_test_async_python/default_async_extension_python/.ten/app/ten_packages/system/ten_runtime/lib/libasan.so"
-        },
-        {
-          "name": "PYTHONMALLOC",
-          "value": "malloc"
-        },
-        {
-          "name": "PYTHONDEVMODE",
-          "value": "1"
-        }
-      ],
-      "cwd": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/python/standalone_test_async_python/default_async_extension_python",
-      "additionalSOLibSearchPath": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/python/standalone_test_async_python/default_async_extension_python/.ten/app/ten_packages/system/ten_runtime_python/lib:${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/python/standalone_test_async_python/default_async_extension_python/.ten/app/ten_packages/system/ten_runtime/lib",
-      "MIMode": "gdb",
-    },
-    {
-      "name": "app (Java) (cppdbg, attach)",
-      "type": "cppdbg",
-      "request": "attach",
-      "program": "/home/wei/MyData/DevTools/JDK/jdk-11.0.11+9/bin/java",
-      "processId": "${command:pickProcess}",
-      "MIMode": "gdb", // or lldb
-      "setupCommands": [
-        {
-          "text": "-enable-pretty-printing",
-          "ignoreFailures": true
-        }
-      ],
-      "sourceFileMap": {
-        "${workspaceFolder}": {
-          "editorPath": "${workspaceFolder}",
-          "useForBreakpoints": "true"
-        }
-      }
-    },
-    {
-      "name": "app (Nodejs, native) (lldb, launch)",
+      "name": "app (nodejs, native) (lldb, launch)",
       "type": "lldb",
       "request": "launch",
       "program": "node",
@@ -686,7 +636,7 @@
       },
     },
     {
-      "name": "app (Nodejs, native) (cppdbg, launch)",
+      "name": "app (nodejs, native) (cppdbg, launch)",
       "type": "cppdbg",
       "request": "launch",
       "program": "/usr/bin/node",
@@ -725,7 +675,7 @@
       }
     },
     {
-      "name": "app (Nodejs, JS) (lldb, windows)",
+      "name": "app (nodejs, js) (lldb, windows)",
       "type": "lldb",
       "request": "launch",
       "cwd": "${workspaceFolder}/out/win/x64/tests/ten_runtime/integration/default_ui_app_ts/solution/app/default_ui_app_ts",
@@ -736,7 +686,7 @@
       ],
     },
     {
-      "name": "app (Nodejs, JS) (launch)",
+      "name": "app (nodejs, js) (launch)",
       "type": "node",
       "request": "launch",
       "cwd": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/default_ui_app_ts/solution/app/default_ui_app_ts/",
@@ -760,6 +710,14 @@
         "DYLD_LIBRARY_PATH": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/python/go_app_python/go_app_python_app/lib",
         "CGO_LDFLAGS": "-L${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/python/go_app_python/go_app_python_app/lib -lten_runtime_go -Wl,-rpath,@loader_path/lib -Wl,-rpath,@loader_path/../lib"
       }
+    },
+    {
+      "name": "app (golang) (go, attach)",
+      "type": "go",
+      "request": "attach",
+      "mode": "local",
+      "processId": 0,
+      "stopOnEntry": true
     },
     {
       "name": "app (golang) (lldb, launch)",
@@ -788,15 +746,75 @@
       "pid": "${command:pickMyProcess}"
     },
     {
-      "name": "app (golang) (go, attach)",
-      "type": "go",
-      "request": "attach",
-      "mode": "local",
-      "processId": 0,
-      "stopOnEntry": true
+      "name": "standalone test (C/C++) (lldb, launch)",
+      "type": "lldb",
+      "request": "launch",
+      "program": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/cpp/standalone_test_cpp/default_extension_cpp/out/linux/x64/tests/default_extension_cpp_test",
+      "args": [],
+      "cwd": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/cpp/standalone_test_cpp/default_extension_cpp/out/linux/x64/tests/",
+      "env": {
+        "ASAN_OPTIONS": "use_sigaltstack=0",
+      },
     },
     {
-      "name": "go test",
+      "name": "standalone test (python) (cppdbg, launch)",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "/usr/bin/python3",
+      "args": [
+        "tests/test_recv_msg_during_starting.py"
+      ],
+      "environment": [
+        {
+          "name": "PYTHONPATH",
+          "value": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/python/standalone_test_async_python/default_async_extension_python/.ten/app/ten_packages/system/ten_runtime_python/lib:${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/python/standalone_test_async_python/default_async_extension_python/.ten/app/ten_packages/system/ten_runtime_python/interface:${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/python/standalone_test_async_python/default_async_extension_python/.ten/app"
+        },
+        {
+          "name": "LD_PRELOAD",
+          "value": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/python/standalone_test_async_python/default_async_extension_python/.ten/app/ten_packages/system/ten_runtime/lib/libasan.so"
+        },
+        {
+          "name": "PYTHONMALLOC",
+          "value": "malloc"
+        },
+        {
+          "name": "PYTHONDEVMODE",
+          "value": "1"
+        }
+      ],
+      "cwd": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/python/standalone_test_async_python/default_async_extension_python",
+      "additionalSOLibSearchPath": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/python/standalone_test_async_python/default_async_extension_python/.ten/app/ten_packages/system/ten_runtime_python/lib:${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/python/standalone_test_async_python/default_async_extension_python/.ten/app/ten_packages/system/ten_runtime/lib",
+      "MIMode": "gdb",
+    },
+    {
+      "name": "standalone test (python) (lldb, launch)",
+      "type": "lldb",
+      "request": "launch",
+      "program": "/usr/bin/python3",
+      "args": [
+        "tests/test_recv_msg_during_starting.py"
+      ],
+      "cwd": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/python/standalone_test_async_python/default_async_extension_python",
+      "env": {
+        "PYTHONPATH": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/python/standalone_test_async_python/default_async_extension_python/.ten/app/ten_packages/system/ten_runtime_python/lib:${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/python/standalone_test_async_python/default_async_extension_python/.ten/app/ten_packages/system/ten_runtime_python/interface:${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/python/standalone_test_async_python/default_async_extension_python/.ten/app",
+        "LD_PRELOAD": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/python/standalone_test_async_python/default_async_extension_python/.ten/app/ten_packages/system/ten_runtime/lib/libasan.so",
+        "PYTHONMALLOC": "malloc",
+        "PYTHONDEVMODE": "1"
+      },
+    },
+    {
+      "name": "standalone test (python) (debugpy, launch)",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/python/standalone_test_async_python/default_async_extension_python/tests/test_recv_msg_during_starting.py",
+      "env": {
+        "PYTHONMALLOC": "malloc",
+        "PYTHONPATH": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/python/standalone_test_async_python/default_async_extension_python/.ten/app/ten_packages/system/ten_runtime_python/lib:${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/python/standalone_test_async_python/default_async_extension_python/.ten/app/ten_packages/system/ten_runtime_python/interface:${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/python/standalone_test_async_python/default_async_extension_python/.ten/app",
+        "LD_PRELOAD": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/python/standalone_test_async_python/default_async_extension_python/.ten/app/ten_packages/system/ten_runtime/lib/libasan.so"
+      }
+    }
+    {
+      "name": "binding test (golang)",
       "type": "go",
       "request": "launch",
       "mode": "test",
@@ -810,33 +828,11 @@
         "-test.run",
         "TestNewVideoFrame"
       ]
-    },
-    {
-      "name": "ffmpeg app (C/C++) (lldb, launch)",
-      "type": "lldb",
-      "request": "launch",
-      "program": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/cpp/restful/http_basic/restful/http_basic_app/bin/restful/http_basic_app_source",
-      "args": [],
-      "env": {
-        "LD_LIBRARY_PATH": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/cpp/restful/http_basic/restful/http_basic_app/lib"
-      },
-      "cwd": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/cpp/restful/http_basic/restful/http_basic_app/",
-    },
-    {
-      "name": "Python Debugger: Python File",
-      "type": "debugpy",
-      "request": "launch",
-      "program": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/python/standalone_test_async_python/default_async_extension_python/tests/test_recv_msg_during_starting.py",
-      "env": {
-        "PYTHONMALLOC": "malloc",
-        "PYTHONPATH": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/python/standalone_test_async_python/default_async_extension_python/.ten/app/ten_packages/system/ten_runtime_python/lib:${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/python/standalone_test_async_python/default_async_extension_python/.ten/app/ten_packages/system/ten_runtime_python/interface:${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/python/standalone_test_async_python/default_async_extension_python/.ten/app",
-        "LD_PRELOAD": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/python/standalone_test_async_python/default_async_extension_python/.ten/app/ten_packages/system/ten_runtime/lib/libasan.so"
-      }
     }
   ],
   "compounds": [
     {
-      "name": "Mixed (Golang + Python + C++)",
+      "name": "mixed (Golang + Python + C++)",
       "configurations": [
         "app (golang) (lldb, launch)",
         "app (debugpy, remote attach)"

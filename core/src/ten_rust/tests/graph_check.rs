@@ -150,3 +150,21 @@ fn test_graph_check_single_app_schema_incompatible() {
     assert!(result.is_err());
     println!("Error: {:?}", result.err().unwrap());
 }
+
+#[test]
+fn test_graph_check_builtin_extension() {
+    let app_dir = "tests/test_data/graph_check_builtin_extension";
+    let pkg_infos =
+        get_all_installed_pkgs_info_of_app(Path::new(app_dir)).unwrap();
+    assert!(!pkg_infos.is_empty());
+
+    let graph_str =
+        include_str!("test_data/graph_check_builtin_extension/graph.json");
+    let graph = Graph::from_str(graph_str).unwrap();
+
+    let mut pkg_info_map: HashMap<String, Vec<PkgInfo>> = HashMap::new();
+    pkg_info_map.insert("localhost".to_string(), pkg_infos);
+
+    let result = graph.check_for_single_app(&pkg_info_map);
+    assert!(result.is_ok());
+}
