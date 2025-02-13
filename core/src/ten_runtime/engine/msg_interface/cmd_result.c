@@ -170,9 +170,6 @@ static bool ten_engine_handle_cmd_result_for_cmd_start_graph(
           self, original_start_graph_cmd, "Failed to start engine in app [%s].",
           ten_msg_get_src_app_uri(cmd_result));
     }
-
-    ten_shared_ptr_destroy(original_start_graph_cmd);
-    self->original_start_graph_cmd_of_enabling_engine = NULL;
   } else {
     TEN_ASSERT(0, "Should not happen.");
   }
