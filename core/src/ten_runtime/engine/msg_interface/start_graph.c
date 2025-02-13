@@ -6,6 +6,7 @@
 //
 #include "include_internal/ten_runtime/engine/msg_interface/start_graph.h"
 
+#include "include_internal/ten_runtime/app/app.h"
 #include "include_internal/ten_runtime/connection/connection.h"
 #include "include_internal/ten_runtime/engine/engine.h"
 #include "include_internal/ten_runtime/engine/internal/close.h"
@@ -45,12 +46,30 @@ void ten_engine_handle_cmd_start_graph(ten_engine_t *self,
   ten_cmd_start_graph_collect_all_immediate_connectable_apps(
       cmd, self->app, &immediate_connectable_apps);
 
+  // It cannot set `original_start_graph_cmd_of_enabling_engine` here directly
+  // because if the `engine` was started due to a previously received
+  // `start_graph` command, setting
+  // `original_start_graph_cmd_of_enabling_engine` upon receiving a new
+  // `start_graph` command here could result in the engine responding to the
+  // wrong recipient after a successful startup.
+
   if (ten_list_is_empty(&immediate_connectable_apps)) {
+    // This case will be triggered when the graph involves only a single app.
+
     TEN_LOGD(
         "No more extensions need to be connected in the graph, enable the "
         "extension system now.");
 
-    ten_engine_enable_extension_system(self, cmd, err);
+    // Starting the extension system is an asynchronous action, so the
+    // `start_graph` command that triggers this action needs to be saved first.
+    // This ensures that once the startup is successful, a response can be sent
+    // to the correct `start_graph` command.
+    TEN_ASSERT(!self->original_start_graph_cmd_of_enabling_engine,
+               "Should not happen.");
+    self->original_start_graph_cmd_of_enabling_engine =
+        ten_shared_ptr_clone(cmd);
+
+    ten_engine_enable_extension_system(self, err);
   } else {
     // There are more apps need to be connected, so connect them now.
     ten_list_t new_works = TEN_LIST_INIT_VAL;
@@ -99,9 +118,12 @@ void ten_engine_handle_cmd_start_graph(ten_engine_t *self,
         bool rc = ten_engine_connect_to_graph_remote(
             self, ten_string_get_raw_str(dest_uri), child_cmd);
         if (!rc) {
-          TEN_LOGE("Failed to connect to %s.", dest_uri_c_str);
+          TEN_LOGE("[%s] Failed to connect to %s.", ten_app_get_uri(self->app),
+                   dest_uri_c_str);
+
           error_occurred = true;
           ten_shared_ptr_destroy(child_cmd);
+
           ten_engine_return_error_for_cmd_start_graph(
               self, cmd, "Failed to connect to %s.", dest_uri_c_str);
           break;
@@ -116,12 +138,13 @@ void ten_engine_handle_cmd_start_graph(ten_engine_t *self,
       // remaining apps (remotes).
       ten_list_clear(&new_works);
     } else {
-      if (!ten_list_is_empty(&new_works)) {
+      if (ten_list_is_empty(&new_works) == false) {
         // This means that we can _not_ start the engine now. We must wait for
         // these newly submitted 'start_graph' commands to be completed in order
-        // to start the engine, so we must save the current received
-        // 'start_graph' command (to prevent it from being destroyed) in order
-        // to return a correct cmd result according to it.
+        // to start the engine, and this is an asynchronous action, so we must
+        // save the current received 'start_graph' command (to prevent it from
+        // being destroyed) in order to return a correct cmd_result according to
+        // it.
         TEN_ASSERT(!self->original_start_graph_cmd_of_enabling_engine,
                    "Should not happen.");
         self->original_start_graph_cmd_of_enabling_engine =
@@ -134,21 +157,40 @@ void ten_engine_handle_cmd_start_graph(ten_engine_t *self,
         }
         ten_list_clear(&new_works);
 
-        TEN_LOGD(
-            "Create a IN path for the receiving 'start_graph' command: %s.",
-            ten_cmd_base_get_cmd_id(cmd));
+        TEN_LOGV(
+            "[%s] Create a IN path for the receiving 'start_graph' command: "
+            "%s.",
+            ten_app_get_uri(self->app), ten_cmd_base_get_cmd_id(cmd));
+
         ten_path_table_add_in_path(self->path_table, cmd, NULL);
       } else {
-        TEN_LOGD(
-            "No more new connections should be made, enable the extension "
-            "system now.");
+        TEN_LOGV(
+            "[%s] No more new connections should be made, enable the extension "
+            "system now.",
+            ten_app_get_uri(self->app));
 
-        ten_engine_enable_extension_system(self, cmd, err);
+        if (self->original_start_graph_cmd_of_enabling_engine) {
+          // A previous `start_graph` command has already triggered the action
+          // to establish the extension system, so we can simply respond with
+          // an `OK` response to the current `start_graph` command.
+          ten_engine_return_ok_for_cmd_start_graph(self, cmd);
+        } else {
+          // Starting the extension system is an asynchronous action, so the
+          // `start_graph` command that triggers this action needs to be saved
+          // first. This ensures that once the startup is successful, a response
+          // can be sent to the correct `start_graph` command.
+          TEN_ASSERT(!self->original_start_graph_cmd_of_enabling_engine,
+                     "Should not happen.");
+          self->original_start_graph_cmd_of_enabling_engine =
+              ten_shared_ptr_clone(cmd);
+
+          ten_engine_enable_extension_system(self, err);
+        }
       }
     }
-  }
 
-  ten_list_clear(&immediate_connectable_apps);
+    ten_list_clear(&immediate_connectable_apps);
+  }
 }
 
 void ten_engine_return_ok_for_cmd_start_graph(
@@ -157,6 +199,9 @@ void ten_engine_return_ok_for_cmd_start_graph(
              "Invalid argument");
   TEN_ASSERT(cmd_start_graph && ten_cmd_base_check_integrity(cmd_start_graph),
              "Invalid argument.");
+  TEN_ASSERT(
+      ten_msg_get_type(cmd_start_graph) == TEN_MSG_TYPE_CMD_START_GRAPH,
+      "The command this function handles should be a 'start_graph' command.");
 
   ten_engine_create_cmd_result_and_dispatch(self, cmd_start_graph,
                                             TEN_STATUS_CODE_OK, "");
@@ -170,6 +215,9 @@ void ten_engine_return_error_for_cmd_start_graph(
   TEN_ASSERT(cmd_start_graph && ten_cmd_base_check_integrity(cmd_start_graph),
              "The engine should be started because of receiving a "
              "'start_graph' command.");
+  TEN_ASSERT(
+      ten_msg_get_type(cmd_start_graph) == TEN_MSG_TYPE_CMD_START_GRAPH,
+      "The command this function handles should be a 'start_graph' command.");
 
   {
     // Return an error result.
@@ -184,12 +232,6 @@ void ten_engine_return_error_for_cmd_start_graph(
                                               TEN_STATUS_CODE_ERROR,
                                               ten_string_get_raw_str(detail));
     ten_string_destroy(detail);
-  }
-
-  if (self->original_start_graph_cmd_of_enabling_engine) {
-    // 'original_start_graph_cmd_of_enabling_engine' is useless from now on.
-    ten_shared_ptr_destroy(self->original_start_graph_cmd_of_enabling_engine);
-    self->original_start_graph_cmd_of_enabling_engine = NULL;
   }
 
   // The graph construction is failed, so the engine have to be closed now.

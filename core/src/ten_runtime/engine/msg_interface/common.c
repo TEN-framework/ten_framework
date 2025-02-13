@@ -99,8 +99,8 @@ static void ten_engine_handle_in_msgs_sync(ten_engine_t *self) {
             "The connection migration must be completed before the engine "
             "handling the cmd.");
 
-        // The 'start_graph' command should only result in a unique channel
-        // between any two TEN apps in the graph.
+        // The 'start_graph' command should ensure that there is only one unique
+        // channel between any two TEN apps in the graph.
         if ((ten_msg_get_type(msg) == TEN_MSG_TYPE_CMD_START_GRAPH) &&
             // Check if there is already a 'remote' for the other side.
             ten_engine_check_remote_is_duplicated(
@@ -112,7 +112,7 @@ static void ten_engine_handle_in_msgs_sync(ten_engine_t *self) {
           // not an error condition, so does _not_ trigger the closing of the
           // whole engine.
 
-          ten_connection_send_result_for_duplicate_connection(connection, msg);
+          ten_connection_reply_result_for_duplicate_connection(connection, msg);
 
           // The cmd result goes to the other side directly, so do not route
           // 'duplicate' cmd result to engine.

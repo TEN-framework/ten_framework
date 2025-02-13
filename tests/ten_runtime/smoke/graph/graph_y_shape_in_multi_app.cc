@@ -15,6 +15,11 @@
 #include "tests/common/constant.h"
 #include "tests/ten_runtime/smoke/util/binding/cpp/check.h"
 
+/**
+ * 1(8001) --|
+ *           |--> 3(8002) --> 4(8003)
+ * 2(8002) --|
+ */
 namespace {
 
 class test_extension_1 : public ten::extension_t {

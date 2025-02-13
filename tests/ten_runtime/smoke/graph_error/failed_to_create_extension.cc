@@ -5,7 +5,6 @@
 // Refer to the "LICENSE" file in the root directory for more information.
 //
 #include <nlohmann/json.hpp>
-#include <string>
 
 #include "gtest/gtest.h"
 #include "include_internal/ten_runtime/binding/cpp/ten.h"
@@ -120,16 +119,7 @@ TEST(GraphErrorTest, FailedToCreateExtension) {  // NOLINT
            })");
   auto cmd_result =
       client->send_cmd_and_recv_result(std::move(start_graph_cmd));
-  ten_test::check_status_code(cmd_result, TEN_STATUS_CODE_OK);
-
-  // Send a user-defined 'hello world' command.
-  auto hello_world_cmd = ten::cmd_t::create("hello_world");
-  hello_world_cmd->set_dest("msgpack://127.0.0.1:8001/", nullptr,
-                            "test_extension_group", "test_extension");
-  cmd_result = client->send_cmd_and_recv_result(std::move(hello_world_cmd));
   ten_test::check_status_code(cmd_result, TEN_STATUS_CODE_ERROR);
-  ten_test::check_detail_with_string(
-      cmd_result, "The extension[test_extension] is invalid.");
 
   delete client;
 

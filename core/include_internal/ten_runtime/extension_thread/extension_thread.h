@@ -124,3 +124,11 @@ ten_extension_thread_process_acquire_lock_mode_task(void *self_, void *arg);
 TEN_RUNTIME_PRIVATE_API void
 ten_extension_thread_stop_life_cycle_of_all_extensions(
     ten_extension_thread_t *self);
+
+TEN_RUNTIME_PRIVATE_API void
+ten_extension_thread_stop_life_cycle_of_all_extensions_task(void *self,
+                                                            void *arg);
+
+TEN_RUNTIME_PRIVATE_API void
+ten_extension_thread_start_life_cycle_of_all_extensions_task(void *self_,
+                                                             void *arg);
