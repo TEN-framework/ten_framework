@@ -9,6 +9,17 @@ use anyhow::{anyhow, Result};
 use super::DesignerState;
 use crate::package_info::tman_get_all_installed_pkgs_info_of_app;
 
+/// Retrieves and caches all installed packages for the given application.
+///
+/// # Arguments
+///
+/// * `state` - A mutable reference to the designer state containing the base
+///   directory and other relevant configuration.
+///
+/// # Errors
+///
+/// Returns an error if the base directory is not set or if fetching package
+/// information fails.
 pub fn get_all_pkgs(state: &mut DesignerState) -> Result<()> {
     use std::path::PathBuf;
 
