@@ -3,6 +3,8 @@
 # Licensed under the Apache License, Version 2.0.
 # See the LICENSE file for more information.
 #
+import asyncio
+import time
 from ten import (
     AudioFrame,
     VideoFrame,
@@ -24,6 +26,20 @@ class DefaultAsyncExtension(AsyncExtension):
             )
         except Exception:
             self.send_goodbye_cmd = False
+
+        try:
+            self.sleep_ms_before_goodbye = await ten_env.get_property_int(
+                "sleep_ms_before_goodbye"
+            )
+        except Exception:
+            self.sleep_ms_before_goodbye = 0
+
+        try:
+            self.assert_goodbye_result_success = (
+                await ten_env.get_property_bool("assert_goodbye_result_success")
+            )
+        except Exception:
+            self.assert_goodbye_result_success = False
 
     async def on_start(self, ten_env: AsyncTenEnv) -> None:
         ten_env.log_debug("on_start")
@@ -84,5 +100,22 @@ class DefaultAsyncExtension(AsyncExtension):
 
     async def on_stop(self, ten_env: AsyncTenEnv) -> None:
         if self.send_goodbye_cmd:
+            if self.sleep_ms_before_goodbye > 0:
+                await asyncio.sleep(self.sleep_ms_before_goodbye / 1000)
+
+            current_time = time.time()
+
             cmd = Cmd.create("goodbye")
-            await ten_env.send_cmd(cmd)
+            result, error = await ten_env.send_cmd(cmd)
+
+            if self.assert_goodbye_result_success:
+                assert error is None
+                assert result is not None
+                assert result.get_status_code() == StatusCode.OK
+
+            cost_time = time.time() - current_time
+            ten_env.log_info("goodbye cost time {} ms".format(cost_time * 1000))
+
+            # To rule out that the result reply was triggered by path_timeout,
+            # we need to ensure cost_time is less than 1 second.
+            assert cost_time < 1
