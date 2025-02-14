@@ -21,4 +21,5 @@ typedef struct ten_env_tester_proxy_t {
   ten_signature_t signature;
 
   ten_env_tester_t *ten_env_tester;
+  ten_env_proxy_t *ten_env_proxy;
 } ten_env_tester_proxy_t;
