@@ -52,6 +52,17 @@ ten_env_tester_proxy_t *ten_env_tester_proxy_create(
   // Add a reference to the `ten_env_proxy` object.
   ten_env_proxy_acquire(tester->test_extension_ten_env_proxy, NULL);
 
+  // After the `ten_env_proxy_acquire` action above, the result is stored in the
+  // `ten_env_proxy` field below. This ensures that in the below
+  // `ten_env_tester_on_proxy_deleted`, the `ten_env_proxy_release` operation
+  // does not require setting `self->test_extension_ten_env_proxy` to a null
+  // pointer (otherwise, it would feel odd to
+  // `ten_env_proxy_release(tester->test_extension_ten_env_proxy)` without
+  // setting it to null). This way, the last remaining `ten_env_proxy_release`
+  // operation still has the `self->test_extension_ten_env_proxy` pointer
+  // available for release.
+  self->ten_env_proxy = tester->test_extension_ten_env_proxy;
+
   return self;
 }
 
@@ -69,7 +80,8 @@ static void ten_env_tester_on_proxy_deleted(void *self_, void *arg) {
              "Should not happen.");
 
   // Release the reference to the `ten_env_proxy` object.
-  ten_env_proxy_release(tester->test_extension_ten_env_proxy, NULL);
+  ten_env_proxy_release(self->ten_env_proxy, NULL);
+  self->ten_env_proxy = NULL;
 
   TEN_FREE(self);
 }

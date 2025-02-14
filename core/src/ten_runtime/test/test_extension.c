@@ -4,9 +4,6 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-#include <stdio.h>
-#include <stdlib.h>
-
 #include "include_internal/ten_runtime/addon/addon.h"
 #include "include_internal/ten_runtime/addon/extension/extension.h"
 #include "include_internal/ten_runtime/addon/extension_group/extension_group.h"
@@ -49,11 +46,21 @@ static void test_extension_on_configure(ten_extension_t *self,
   // Create the ten_env_proxy, and notify the testing environment that the
   // ten_env_proxy is ready.
   tester->test_extension_ten_env_proxy = ten_env_proxy_create(ten_env, 1, NULL);
+  TEN_ASSERT(tester->test_extension_ten_env_proxy, "Should not happen.");
 
   ten_event_set(tester->test_extension_ten_env_proxy_create_completed);
 
   bool rc = ten_env_on_configure_done(ten_env, NULL);
   TEN_ASSERT(rc, "Should not happen.");
+}
+
+static void ten_extension_tester_on_test_extension_init_task(
+    void *self_, TEN_UNUSED void *arg) {
+  ten_extension_tester_t *tester = self_;
+  TEN_ASSERT(tester && ten_extension_tester_check_integrity(tester, true),
+             "Invalid argument.");
+
+  ten_extension_tester_on_test_extension_init(tester);
 }
 
 static void ten_extension_tester_on_test_extension_start_task(
@@ -72,6 +79,22 @@ static void ten_extension_tester_on_test_extension_stop_task(void *self_,
              "Invalid argument.");
 
   ten_extension_tester_on_test_extension_stop(tester);
+}
+
+static void test_extension_on_init(ten_extension_t *self, ten_env_t *ten_env) {
+  TEN_ASSERT(self && ten_env, "Invalid argument.");
+
+  // The tester framework needs to ensure that the tester's environment is
+  // always destroyed later than the test_extension, so calling the tester
+  // within the test_extension is always valid.
+  ten_extension_tester_t *tester =
+      test_extension_get_extension_tester_ptr(ten_env);
+  self->user_data = tester;
+
+  int rc = ten_runloop_post_task_tail(
+      tester->tester_runloop, ten_extension_tester_on_test_extension_init_task,
+      tester, NULL);
+  TEN_ASSERT(!rc, "Should not happen.");
 }
 
 static void test_extension_on_start(ten_extension_t *self, ten_env_t *ten_env) {
@@ -106,6 +129,15 @@ static void test_extension_on_stop(ten_extension_t *self, ten_env_t *ten_env) {
   TEN_ASSERT(!rc, "Should not happen.");
 }
 
+void ten_builtin_test_extension_ten_env_notify_on_init_done(ten_env_t *ten_env,
+                                                            void *user_data) {
+  TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
+             "Should not happen.");
+
+  bool rc = ten_env_on_init_done(ten_env, NULL);
+  TEN_ASSERT(rc, "Should not happen.");
+}
+
 void ten_builtin_test_extension_ten_env_notify_on_start_done(
     ten_env_t *ten_env, TEN_UNUSED void *user_data) {
   TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
@@ -121,6 +153,15 @@ void ten_builtin_test_extension_ten_env_notify_on_stop_done(ten_env_t *ten_env,
              "Should not happen.");
 
   bool rc = ten_env_on_stop_done(ten_env, NULL);
+  TEN_ASSERT(rc, "Should not happen.");
+}
+
+void ten_builtin_test_extension_ten_env_notify_on_deinit_done(
+    ten_env_t *ten_env, void *user_data) {
+  TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
+             "Should not happen.");
+
+  bool rc = ten_env_on_deinit_done(ten_env, NULL);
   TEN_ASSERT(rc, "Should not happen.");
 }
 
@@ -278,14 +319,6 @@ static void test_extension_on_deinit(ten_extension_t *self,
       tester->tester_runloop,
       ten_extension_tester_on_test_extension_deinit_task, tester, NULL);
   TEN_ASSERT(!post_status, "Should not happen.");
-
-  // It is safe to call on_deinit_done here, because as long as the
-  // ten_env_proxy has not been destroyed, the test_extension will not be
-  // destroyed either. Therefore, any task in the tester environment before the
-  // actual destruction of ten_env_proxy can still use it to interact with the
-  // test_extension as usual.
-  bool rc = ten_env_on_deinit_done(ten_env, NULL);
-  TEN_ASSERT(rc, "Should not happen.");
 }
 
 static void test_extension_addon_create_instance(ten_addon_t *addon,
@@ -295,10 +328,10 @@ static void test_extension_addon_create_instance(ten_addon_t *addon,
   TEN_ASSERT(addon && name, "Invalid argument.");
 
   ten_extension_t *extension = ten_extension_create(
-      name, test_extension_on_configure, NULL, test_extension_on_start,
-      test_extension_on_stop, test_extension_on_deinit, test_extension_on_cmd,
-      test_extension_on_data, test_extension_on_audio_frame,
-      test_extension_on_video_frame, NULL);
+      name, test_extension_on_configure, test_extension_on_init,
+      test_extension_on_start, test_extension_on_stop, test_extension_on_deinit,
+      test_extension_on_cmd, test_extension_on_data,
+      test_extension_on_audio_frame, test_extension_on_video_frame, NULL);
 
   ten_env_on_create_instance_done(ten_env, extension, context, NULL);
 }

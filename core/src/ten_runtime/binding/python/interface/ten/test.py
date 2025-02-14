@@ -38,6 +38,9 @@ class TenEnvTester(TenEnvTesterBase):
     def on_stop_done(self) -> None:
         return self._internal.on_stop_done()
 
+    def on_deinit_done(self) -> None:
+        return self._internal.on_deinit_done()
+
     def send_cmd(
         self, cmd: Cmd, result_handler: Optional[ResultHandler] = None
     ) -> None:
@@ -102,6 +105,13 @@ class ExtensionTester(_ExtensionTester):
 
     def on_stop(self, ten_env_tester: TenEnvTester) -> None:
         ten_env_tester.on_stop_done()
+
+    @final
+    def _proxy_on_deinit(self, ten_env_tester: TenEnvTester) -> None:
+        self.on_deinit(ten_env_tester)
+
+    def on_deinit(self, ten_env_tester: TenEnvTester) -> None:
+        ten_env_tester.on_deinit_done()
 
     @final
     def _proxy_on_cmd(self, ten_env_tester: TenEnvTester, cmd: Cmd) -> None:

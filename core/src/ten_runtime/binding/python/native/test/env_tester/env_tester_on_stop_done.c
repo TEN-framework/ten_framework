@@ -4,7 +4,6 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-#include "include_internal/ten_runtime/binding/python/common/common.h"
 #include "include_internal/ten_runtime/binding/python/common/error.h"
 #include "include_internal/ten_runtime/binding/python/test/env_tester.h"
 #include "ten_runtime/test/env_tester.h"
@@ -18,21 +17,6 @@ static void ten_py_ten_env_tester_on_stop_done_proxy_notify(
   TEN_ASSERT(
       ten_env_tester && ten_env_tester_check_integrity(ten_env_tester, true),
       "Invalid argument.");
-
-  ten_py_ten_env_tester_t *py_ten_env_tester = user_data;
-  TEN_ASSERT(py_ten_env_tester, "Should not happen.");
-
-  // Notify the Python side to do the cleanup.
-  //
-  // About to call the Python function, so it's necessary to ensure that the
-  // GIL has been acquired.
-  PyGILState_STATE prev_state = ten_py_gil_state_ensure_internal();
-
-  // Release the ten_env_tester_proxy.
-  ten_env_tester_proxy_release(py_ten_env_tester->c_ten_env_tester_proxy, NULL);
-  py_ten_env_tester->c_ten_env_tester_proxy = NULL;
-
-  ten_py_gil_state_release_internal(prev_state);
 
   ten_env_tester_on_stop_done(ten_env_tester, NULL);
 }

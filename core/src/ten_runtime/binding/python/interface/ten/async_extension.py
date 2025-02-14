@@ -198,9 +198,17 @@ class AsyncExtension(_Extension):
 
     def _exit_on_exception(self, async_ten_env: AsyncTenEnv, e: Exception):
         traceback_info = traceback.format_exc()
-        async_ten_env.log_fatal(
-            f"Uncaught exception: {e} \ntraceback: {traceback_info}"
-        )
+
+        # TODO(xilin): remove this try-catch block after after we change all
+        # ten_env APIs to return errors instead of throwing exceptions
+        try:
+            async_ten_env.log_fatal(
+                f"Uncaught exception: {e} \ntraceback: {traceback_info}"
+            )
+        except Exception as e:
+            # If the log_fatal API fails, print the error message to the
+            # console.
+            print(f"Uncaught exception: {e} \ntraceback: {traceback_info}")
 
         # `os._exit` directly calls C's `_exit`, but as a result, it does not
         # flush `stdout/stderr`, which may cause some logs to not be output.

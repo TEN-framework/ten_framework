@@ -126,11 +126,47 @@ static void proxy_on_stop(ten_extension_tester_t *extension_tester,
   TEN_ASSERT(!err_occurred, "Should not happen.");
 
   ten_py_gil_state_release_internal(prev_state);
+}
+
+static void proxy_on_deinit(ten_extension_tester_t *extension_tester,
+                            ten_env_tester_t *ten_env_tester) {
+  TEN_ASSERT(extension_tester &&
+                 ten_extension_tester_check_integrity(extension_tester, true),
+             "Invalid argument.");
+  TEN_ASSERT(
+      ten_env_tester && ten_env_tester_check_integrity(ten_env_tester, true),
+      "Invalid argument.");
+
+  ten_py_extension_tester_t *py_extension_tester =
+      (ten_py_extension_tester_t *)ten_binding_handle_get_me_in_target_lang(
+          (ten_binding_handle_t *)extension_tester);
+  TEN_ASSERT(py_extension_tester &&
+                 ten_py_extension_tester_check_integrity(py_extension_tester),
+             "Invalid argument.");
+
+  ten_py_ten_env_tester_t *py_ten_env_tester =
+      (ten_py_ten_env_tester_t *)py_extension_tester->py_ten_env_tester;
+  TEN_ASSERT(py_ten_env_tester, "Should not happen.");
+  TEN_ASSERT(py_ten_env_tester->actual_py_ten_env_tester, "Should not happen.");
+
+  // About to call the Python function, so it's necessary to ensure that the GIL
+  // has been acquired.
+  PyGILState_STATE prev_state = ten_py_gil_state_ensure_internal();
+
+  PyObject *py_res =
+      PyObject_CallMethod((PyObject *)py_extension_tester, "_proxy_on_deinit",
+                          "O", py_ten_env_tester->actual_py_ten_env_tester);
+  Py_XDECREF(py_res);
+
+  bool err_occurred = ten_py_check_and_clear_py_error();
+  TEN_ASSERT(!err_occurred, "Should not happen.");
+
+  ten_py_gil_state_release_internal(prev_state);
 
   // Do not release `py_ten_env_tester->c_ten_env_tester_proxy` here, because
   // the upper layer may still need to call the API of `ten_env` (e.g., some
-  // asynchronous operations) before `on_stop_done`. Therefore, the proxy
-  // should only be released after `on_stop_done`.
+  // asynchronous operations) before `on_deinit_done`. Therefore, the proxy
+  // should only be released after `on_deinit_done`.
   //
   // This practice of releasing `ten_env_proxy` at the very end (i.e., after the
   // `on_deinit_done` of the extension and the `on_stop_done` of the app) is a
@@ -324,8 +360,8 @@ static ten_py_extension_tester_t *ten_py_extension_tester_init(
              "Invalid argument.");
 
   py_extension_tester->c_extension_tester = ten_extension_tester_create(
-      proxy_on_start, proxy_on_stop, proxy_on_cmd, proxy_on_data,
-      proxy_on_audio_frame, proxy_on_video_frame);
+      NULL, proxy_on_start, proxy_on_stop, proxy_on_deinit, proxy_on_cmd,
+      proxy_on_data, proxy_on_audio_frame, proxy_on_video_frame);
 
   ten_binding_handle_set_me_in_target_lang(
       &py_extension_tester->c_extension_tester->binding_handle,
