@@ -30,14 +30,17 @@ pub struct RespGraph {
 pub async fn get_graphs(
     state: web::Data<Arc<RwLock<DesignerState>>>,
 ) -> Result<impl Responder, actix_web::Error> {
-    let mut state = state.write().unwrap();
+    {
+        // Fetch all packages if not already done.
+        let mut state = state.write().unwrap();
 
-    // Fetch all packages if not already done.
-    if let Err(err) = get_all_pkgs(&mut state) {
-        let error_response = ErrorResponse::from_error(&err, "");
-        return Ok(HttpResponse::NotFound().json(error_response));
+        if let Err(err) = get_all_pkgs(&mut state) {
+            let error_response = ErrorResponse::from_error(&err, "");
+            return Ok(HttpResponse::NotFound().json(error_response));
+        }
     }
 
+    let state = state.read().unwrap();
     if let Some(all_pkgs) = &state.all_pkgs {
         if let Some(app_pkg) = all_pkgs
             .iter()
