@@ -17,6 +17,7 @@
 #include "include_internal/ten_runtime/msg/msg.h"
 #include "include_internal/ten_runtime/ten_env/ten_env.h"
 #include "ten_runtime/app/app.h"
+#include "ten_runtime/common/error_code.h"
 #include "ten_runtime/ten_env/ten_env.h"
 #include "ten_utils/container/list.h"
 #include "ten_utils/macro/check.h"
@@ -168,6 +169,12 @@ void ten_extension_group_on_create_extensions_done(ten_extension_group_t *self,
 
     if (extension == TEN_EXTENSION_UNSUCCESSFULLY_CREATED) {
       ten_list_remove_node(extensions, current_node);
+
+      // If starting the extension system fails, set this `error` to represent
+      // the failure. The extension system will then check this `error` instance
+      // to determine whether to trigger the shutdown of the system.
+      ten_error_set(&self->err_before_ready, TEN_ERROR_CODE_INVALID_GRAPH,
+                    "Failed to create extensions.");
     }
   }
 

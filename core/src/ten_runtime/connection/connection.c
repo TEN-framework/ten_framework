@@ -473,7 +473,7 @@ ten_runloop_t *ten_connection_get_attached_runloop(ten_connection_t *self) {
   }
 }
 
-void ten_connection_send_result_for_duplicate_connection(
+void ten_connection_reply_result_for_duplicate_connection(
     ten_connection_t *self, ten_shared_ptr_t *cmd_start_graph) {
   TEN_ASSERT(self, "Invalid argument.");
   TEN_ASSERT(ten_connection_check_integrity(self, true),
