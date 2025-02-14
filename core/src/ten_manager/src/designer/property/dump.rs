@@ -30,23 +30,27 @@ struct DumpResponse {
 pub async fn dump_property(
     state: web::Data<Arc<RwLock<DesignerState>>>,
 ) -> impl Responder {
-    let mut state = state.write().unwrap();
+    {
+        // Fetch all packages if not already done.
+        let mut state = state.write().unwrap();
 
-    // Fetch all packages if not already done.
-    if let Err(err) = get_all_pkgs(&mut state) {
-        let error_response =
-            ErrorResponse::from_error(&err, "Error fetching packages:");
-        return HttpResponse::NotFound().json(error_response);
+        if let Err(err) = get_all_pkgs(&mut state) {
+            let error_response =
+                ErrorResponse::from_error(&err, "Error fetching packages:");
+            return HttpResponse::NotFound().json(error_response);
+        }
     }
+
+    let state = state.read().unwrap();
 
     let property_file_path = Path::join(
         Path::new(state.base_dir.as_ref().unwrap()),
         PROPERTY_JSON_FILENAME,
     );
 
-    if let Some(pkgs) = &mut state.all_pkgs {
+    if let Some(pkgs) = &state.all_pkgs {
         if let Some(app_pkg) = pkgs
-            .iter_mut()
+            .iter()
             .find(|pkg| pkg.basic_info.type_and_name.pkg_type == PkgType::App)
         {
             let response = ApiResponse {
