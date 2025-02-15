@@ -212,6 +212,8 @@ impl Graph {
     }
 }
 
+/// Represents a node in a graph. This struct is completely equivalent to the
+/// node element in the graph JSON.
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct GraphNode {
     #[serde(flatten)]
