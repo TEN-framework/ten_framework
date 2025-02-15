@@ -174,9 +174,9 @@ pub async fn get_compatible_messages(
         desired_msg_dir.toggle();
 
         let pkg_info = get_pkg_info_for_extension(extension, all_pkgs);
-        if let Err(err) = pkg_info {
+        if pkg_info.is_none() {
             let error_response = ErrorResponse::from_error(
-                &err,
+                &anyhow::anyhow!("Extension not found"),
                 format!(
                     "Error fetching runtime extensions for graph '{}'",
                     input.graph

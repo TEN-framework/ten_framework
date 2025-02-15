@@ -10,14 +10,21 @@ use std::{
 };
 
 use actix_web::{web, HttpResponse, Responder};
+use anyhow::anyhow;
 use serde::{Deserialize, Serialize};
 
-use ten_rust::pkg_info::api::{
-    PkgApiCmdLike, PkgApiDataLike, PkgPropertyAttributes, PkgPropertyItem,
-};
-use ten_rust::pkg_info::predefined_graphs::extension::get_extension_nodes_in_graph;
 use ten_rust::pkg_info::{
     api::PkgCmdResult, predefined_graphs::extension::get_pkg_info_for_extension,
+};
+use ten_rust::pkg_info::{
+    api::{
+        PkgApiCmdLike, PkgApiDataLike, PkgPropertyAttributes, PkgPropertyItem,
+    },
+    graph::GraphNode,
+};
+use ten_rust::pkg_info::{
+    pkg_type::PkgType,
+    predefined_graphs::extension::get_extension_nodes_in_graph,
 };
 
 use crate::designer::common::{
@@ -43,6 +50,33 @@ pub struct DesignerExtension {
     pub api: Option<DesignerApi>,
 
     pub property: Option<serde_json::Value>,
+
+    pub installed: bool,
+}
+
+impl TryFrom<GraphNode> for DesignerExtension {
+    type Error = anyhow::Error;
+
+    fn try_from(node: GraphNode) -> Result<Self, Self::Error> {
+        if node.type_and_name.pkg_type != PkgType::Extension {
+            return Err(anyhow!(
+                "Graph node '{}' is not of type 'extension'",
+                node.type_and_name.name
+            ));
+        }
+
+        Ok(DesignerExtension {
+            addon: node.addon,
+            name: node.type_and_name.name,
+            extension_group: node
+                .extension_group
+                .unwrap_or_else(|| "default_extension_group".to_string()),
+            app: node.app.unwrap_or_else(|| "localhost".to_string()),
+            api: None,
+            property: node.property,
+            installed: false,
+        })
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
@@ -228,8 +262,9 @@ pub async fn get_graph_nodes(
     }
 
     let state = state.read().unwrap();
+
     if let Some(all_pkgs) = &state.all_pkgs {
-        let extensions =
+        let extension_graph_nodes =
             match get_extension_nodes_in_graph(&graph_name, all_pkgs) {
                 Ok(exts) => exts,
                 Err(err) => {
@@ -246,97 +281,106 @@ pub async fn get_graph_nodes(
             };
 
         let mut resp_extensions: Vec<DesignerExtension> = Vec::new();
-        for extension in &extensions {
-            let pkg_info = get_pkg_info_for_extension(extension, all_pkgs);
-            if let Err(err) = pkg_info {
-                let error_response = ErrorResponse::from_error(
-                    &err,
-                    format!(
-                        "Error fetching runtime extensions for graph '{}'",
-                        graph_name
-                    )
-                    .as_str(),
-                );
-                return HttpResponse::NotFound().json(error_response);
+
+        for extension_graph_node in &extension_graph_nodes {
+            let pkg_info =
+                get_pkg_info_for_extension(extension_graph_node, all_pkgs);
+            if let Some(pkg_info) = pkg_info {
+                resp_extensions.push(DesignerExtension {
+                    addon: extension_graph_node.addon.clone(),
+                    name: extension_graph_node.type_and_name.name.clone(),
+                    extension_group: extension_graph_node
+                        .extension_group
+                        .clone()
+                        .unwrap(),
+                    app: extension_graph_node.app.as_ref().unwrap().clone(),
+                    api: pkg_info.api.as_ref().map(|api| DesignerApi {
+                        property: if api.property.is_empty() {
+                            None
+                        } else {
+                            Some(get_designer_property_hashmap_from_pkg(
+                                api.property.clone(),
+                            ))
+                        },
+
+                        cmd_in: if api.cmd_in.is_empty() {
+                            None
+                        } else {
+                            Some(get_designer_api_cmd_likes_from_pkg(
+                                api.cmd_in.clone(),
+                            ))
+                        },
+                        cmd_out: if api.cmd_out.is_empty() {
+                            None
+                        } else {
+                            Some(get_designer_api_cmd_likes_from_pkg(
+                                api.cmd_out.clone(),
+                            ))
+                        },
+
+                        data_in: if api.data_in.is_empty() {
+                            None
+                        } else {
+                            Some(get_designer_api_data_likes_from_pkg(
+                                api.data_in.clone(),
+                            ))
+                        },
+                        data_out: if api.data_out.is_empty() {
+                            None
+                        } else {
+                            Some(get_designer_api_data_likes_from_pkg(
+                                api.data_out.clone(),
+                            ))
+                        },
+
+                        audio_frame_in: if api.audio_frame_in.is_empty() {
+                            None
+                        } else {
+                            Some(get_designer_api_data_likes_from_pkg(
+                                api.audio_frame_in.clone(),
+                            ))
+                        },
+                        audio_frame_out: if api.audio_frame_out.is_empty() {
+                            None
+                        } else {
+                            Some(get_designer_api_data_likes_from_pkg(
+                                api.audio_frame_out.clone(),
+                            ))
+                        },
+
+                        video_frame_in: if api.video_frame_in.is_empty() {
+                            None
+                        } else {
+                            Some(get_designer_api_data_likes_from_pkg(
+                                api.video_frame_in.clone(),
+                            ))
+                        },
+                        video_frame_out: if api.video_frame_out.is_empty() {
+                            None
+                        } else {
+                            Some(get_designer_api_data_likes_from_pkg(
+                                api.video_frame_out.clone(),
+                            ))
+                        },
+                    }),
+                    property: extension_graph_node.property.clone(),
+                    installed: true,
+                });
+            } else {
+                match DesignerExtension::try_from(extension_graph_node.clone())
+                {
+                    Ok(designer_ext) => {
+                        resp_extensions.push(designer_ext);
+                    }
+                    Err(e) => {
+                        let error_response = ErrorResponse::from_error(
+                            &e,
+                            "This graph node's content is not a valid graph node.",
+                        );
+                        return HttpResponse::NotFound().json(error_response);
+                    }
+                }
             }
-
-            let pkg_info = pkg_info.unwrap();
-            resp_extensions.push(DesignerExtension {
-                addon: extension.addon.clone(),
-                name: extension.type_and_name.name.clone(),
-                extension_group: extension.extension_group.clone().unwrap(),
-                app: extension.app.as_ref().unwrap().clone(),
-                api: pkg_info.api.as_ref().map(|api| DesignerApi {
-                    property: if api.property.is_empty() {
-                        None
-                    } else {
-                        Some(get_designer_property_hashmap_from_pkg(
-                            api.property.clone(),
-                        ))
-                    },
-
-                    cmd_in: if api.cmd_in.is_empty() {
-                        None
-                    } else {
-                        Some(get_designer_api_cmd_likes_from_pkg(
-                            api.cmd_in.clone(),
-                        ))
-                    },
-                    cmd_out: if api.cmd_out.is_empty() {
-                        None
-                    } else {
-                        Some(get_designer_api_cmd_likes_from_pkg(
-                            api.cmd_out.clone(),
-                        ))
-                    },
-
-                    data_in: if api.data_in.is_empty() {
-                        None
-                    } else {
-                        Some(get_designer_api_data_likes_from_pkg(
-                            api.data_in.clone(),
-                        ))
-                    },
-                    data_out: if api.data_out.is_empty() {
-                        None
-                    } else {
-                        Some(get_designer_api_data_likes_from_pkg(
-                            api.data_out.clone(),
-                        ))
-                    },
-
-                    audio_frame_in: if api.audio_frame_in.is_empty() {
-                        None
-                    } else {
-                        Some(get_designer_api_data_likes_from_pkg(
-                            api.audio_frame_in.clone(),
-                        ))
-                    },
-                    audio_frame_out: if api.audio_frame_out.is_empty() {
-                        None
-                    } else {
-                        Some(get_designer_api_data_likes_from_pkg(
-                            api.audio_frame_out.clone(),
-                        ))
-                    },
-
-                    video_frame_in: if api.video_frame_in.is_empty() {
-                        None
-                    } else {
-                        Some(get_designer_api_data_likes_from_pkg(
-                            api.video_frame_in.clone(),
-                        ))
-                    },
-                    video_frame_out: if api.video_frame_out.is_empty() {
-                        None
-                    } else {
-                        Some(get_designer_api_data_likes_from_pkg(
-                            api.video_frame_out.clone(),
-                        ))
-                    },
-                }),
-                property: extension.property.clone(),
-            });
         }
 
         let response = ApiResponse {
@@ -477,6 +521,7 @@ mod tests {
                     video_frame_out: None,
                 }),
                 property: None,
+                installed: true,
             },
             DesignerExtension {
                 addon: "extension_addon_2".to_string(),
@@ -551,6 +596,7 @@ mod tests {
                 property: Some(json!({
                     "a": 1
                 })),
+                installed: true,
             },
             DesignerExtension {
                 addon: "extension_addon_3".to_string(),
@@ -588,6 +634,7 @@ mod tests {
                     video_frame_out: None,
                 }),
                 property: None,
+                installed: true,
             },
         ];
 
