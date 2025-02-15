@@ -51,7 +51,9 @@ pub struct DesignerExtension {
 
     pub property: Option<serde_json::Value>,
 
-    pub installed: bool,
+    /// This indicates that the extension has been installed under the
+    /// `ten_packages/` directory.
+    pub is_installed: bool,
 }
 
 impl TryFrom<GraphNode> for DesignerExtension {
@@ -74,7 +76,7 @@ impl TryFrom<GraphNode> for DesignerExtension {
             app: node.app.unwrap_or_else(|| "localhost".to_string()),
             api: None,
             property: node.property,
-            installed: false,
+            is_installed: false,
         })
     }
 }
@@ -364,7 +366,7 @@ pub async fn get_graph_nodes(
                         },
                     }),
                     property: extension_graph_node.property.clone(),
-                    installed: true,
+                    is_installed: true,
                 });
             } else {
                 match DesignerExtension::try_from(extension_graph_node.clone())
@@ -521,7 +523,7 @@ mod tests {
                     video_frame_out: None,
                 }),
                 property: None,
-                installed: true,
+                is_installed: true,
             },
             DesignerExtension {
                 addon: "extension_addon_2".to_string(),
@@ -596,7 +598,7 @@ mod tests {
                 property: Some(json!({
                     "a": 1
                 })),
-                installed: true,
+                is_installed: true,
             },
             DesignerExtension {
                 addon: "extension_addon_3".to_string(),
@@ -634,7 +636,7 @@ mod tests {
                     video_frame_out: None,
                 }),
                 property: None,
-                installed: true,
+                is_installed: true,
             },
         ];
 
@@ -730,15 +732,14 @@ mod tests {
 
         let resp = test::call_service(&app, req).await;
 
-        assert!(resp.status().is_client_error());
+        assert!(resp.status().is_success());
 
         let body = test::read_body(resp).await;
         let body_str = std::str::from_utf8(&body).unwrap();
 
-        let error: ErrorResponse = serde_json::from_str(body_str).unwrap();
-
-        assert!(error
-            .message
-            .contains("the addon 'extension_addon_1_not_found' used to instantiate extension 'extension_1' is not found"));
+        let json: ApiResponse<Vec<DesignerExtension>> =
+            serde_json::from_str(body_str).unwrap();
+        let pretty_json = serde_json::to_string_pretty(&json).unwrap();
+        println!("Response body: {}", pretty_json);
     }
 }

@@ -11,7 +11,7 @@ export interface IBackendNode {
   app: string;
   property: unknown;
   api?: unknown;
-  installed: boolean;
+  is_installed: boolean;
 }
 
 export enum EConnectionType {
