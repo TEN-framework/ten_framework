@@ -64,7 +64,16 @@ pub struct PkgInfo {
     /// been installed under the `ten_packages/` directory.
     pub is_installed: bool,
 
+    /// A string that represents the location or path where the package is
+    /// installed or can be accessed.
+    ///
+    /// - If `PkgInfo represents a package in the registry, then the `url`
+    ///   field represents the download URL that can be used to download the
+    ///   package from the registry.
+    /// - If PkgInfo represents a package that already exists locally, then the
+    ///   url field represents the base directory of the package.
     pub url: String,
+
     pub hash: String,
 
     pub manifest: Option<Manifest>,
@@ -188,8 +197,14 @@ impl PkgInfo {
     }
 }
 
-/// Retrieve the package represented by the specified path from the information
-/// within that path.
+/// Retrieve the package represented by the specified path.
+///
+/// # Arguments
+/// * `path` - The base directory of the package, required.
+/// * `is_installed` - Indicates whether the package is installed, required.
+///
+/// # Returns
+/// The package information.
 pub fn get_pkg_info_from_path(
     path: &Path,
     is_installed: bool,
@@ -231,6 +246,8 @@ fn collect_pkg_info_from_path<'a>(
     }
 }
 
+/// Retrieves information about all installed packages related to a specific
+/// application and stores this information in a HashMap.
 pub fn get_all_installed_pkgs_info_of_app_to_hashmap(
     app_path: &Path,
 ) -> Result<HashMap<PkgTypeAndName, PkgInfo>> {
@@ -286,6 +303,14 @@ pub fn get_all_installed_pkgs_info_of_app_to_hashmap(
     Ok(pkgs_info)
 }
 
+/// A wrapper around `get_all_installed_pkgs_info_of_app_to_hashmap` that
+/// converts the resulting HashMap into a Vec of `PkgInfo` objects.
+///
+/// # Arguments
+/// * `app_path` - The absolute path of the app base directory, required.
+///
+/// # Returns
+/// A list of `PkgInfo` objects.
 pub fn get_all_installed_pkgs_info_of_app(
     app_path: &Path,
 ) -> Result<Vec<PkgInfo>> {
@@ -293,6 +318,17 @@ pub fn get_all_installed_pkgs_info_of_app(
     Ok(result.into_values().collect())
 }
 
+/// Identifies local packages that are not tracked in the dependencies list. It
+/// iterates over the local packages and checks if each package is present in
+/// the dependencies list. If a package is not found in the dependencies list,
+/// it is added to the list of untracked local packages.
+///
+/// # Arguments
+/// * `dependencies` - A list of dependencies, required.
+/// * `local_pkgs` - A list of local packages, required.
+///
+/// # Returns
+/// A list of untracked local packages.
 pub fn find_untracked_local_packages<'a>(
     dependencies: &[&'a PkgInfo],
     local_pkgs: &[&'a PkgInfo],
@@ -318,14 +354,12 @@ pub fn find_untracked_local_packages<'a>(
     untracked_local_packages.into_iter().collect()
 }
 
-/**
- * Return a list of tuples, each tuple contains a local installed package
- * and the package with the same identity but not installed locally in the
- * dependencies list.
- *
- * The possible reason could be that the 'supports' is incompatible, or the
- * version calculated by the dependency tree is different.
- */
+/// Return a list of tuples, each tuple contains a local installed package
+/// and the package with the same identity but not installed locally in the
+/// dependencies list.
+///
+/// The possible reason could be that the 'supports' is incompatible, or the
+/// version calculated by the dependency tree is different.
 pub fn find_to_be_replaced_local_pkgs<'a>(
     dependencies: &[&'a PkgInfo],
     local_pkgs: &[&'a PkgInfo],

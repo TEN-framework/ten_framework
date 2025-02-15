@@ -25,7 +25,7 @@ export const ENDPOINT_GRAPHS = {
             app: z.string(),
             property: z.unknown(), // Required property
             api: z.unknown().optional(), // Optional property
-            installed: z.boolean(),
+            is_installed: z.boolean(),
           })
         ) as z.ZodType<IBackendNode[]>
       ),
