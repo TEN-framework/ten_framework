@@ -109,6 +109,14 @@ fn get_designer_destination_from_property(
     destinations.into_iter().map(|v| v.into()).collect()
 }
 
+/// Retrieve the connections of a specified graph.
+///
+/// # Arguments
+/// - `state`: The state of the designer.
+/// - `path`: The path parameter containing the graph name.
+///
+/// # Returns
+/// A JSON response containing the connections of the specified graph.
 pub async fn get_graph_connections(
     state: web::Data<Arc<RwLock<DesignerState>>>,
     path: web::Path<String>,
@@ -127,6 +135,7 @@ pub async fn get_graph_connections(
     }
 
     let state = state.read().unwrap();
+
     if let Some(pkgs) = &state.all_pkgs {
         if let Some(app_pkg) = pkgs
             .iter()

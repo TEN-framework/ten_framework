@@ -22,16 +22,27 @@ use crate::{
     },
 };
 
+/// Retrieves all extension nodes from a specified graph.
+///
+/// # Arguments
+/// - `graph_name`: The name of the graph to retrieve extension nodes from.
+/// - `all_pkgs`: A slice of all package information.
+///
+/// # Returns
+/// A vector of extension nodes from the specified graph.
 pub fn get_extension_nodes_in_graph(
     graph_name: &String,
     all_pkgs: &[PkgInfo],
 ) -> Result<Vec<GraphNode>> {
+    // Find the application package within the `all_pkgs`.
     if let Some(app_pkg) = all_pkgs
         .iter()
         .find(|pkg| pkg.basic_info.type_and_name.pkg_type == PkgType::App)
     {
         if app_pkg.property.is_none() {
-            return Err(anyhow::anyhow!("'property.json' file not found."));
+            return Err(anyhow::anyhow!(
+                "Property information is missing".to_string(),
+            ));
         }
 
         // Look for the graph by name in the predefined_graphs of the app
@@ -54,7 +65,8 @@ pub fn get_extension_nodes_in_graph(
             Ok(extension_nodes)
         } else {
             Err(anyhow::anyhow!(
-                format!("Graph {} not found", graph_name).to_string(),
+                "Graph '{}' not found in predefined graphs of the app",
+                graph_name
             ))
         }
     } else {
@@ -62,24 +74,23 @@ pub fn get_extension_nodes_in_graph(
     }
 }
 
+/// Searches through `all_pkgs` to find a package that matches the extension
+/// specified in the GraphNode.
+///
+/// # Arguments
+/// - `extension`: The extension node to search for.
+/// - `all_pkgs`: A slice of all package information.
+///
+/// # Returns
+/// A reference to the package information of the extension.
 pub fn get_pkg_info_for_extension<'a>(
     extension: &'a GraphNode,
     all_pkgs: &'a [PkgInfo],
-) -> Result<&'a PkgInfo> {
-    all_pkgs
-        .iter()
-        .find(|pkg| {
-            pkg.basic_info.type_and_name.pkg_type == PkgType::Extension
-                && pkg.basic_info.type_and_name.name == extension.addon
-        })
-        .ok_or_else(|| {
-            anyhow::anyhow!(
-                "the addon '{}' used to instantiate extension '{}' is not \
-                found, check your addons in ten_packages/extension.",
-                extension.addon,
-                extension.type_and_name.name
-            )
-        })
+) -> Option<&'a PkgInfo> {
+    all_pkgs.iter().find(|pkg| {
+        pkg.basic_info.type_and_name.pkg_type == PkgType::Extension
+            && pkg.basic_info.type_and_name.name == extension.addon
+    })
 }
 
 pub fn get_extension<'a>(
@@ -117,7 +128,9 @@ pub fn get_compatible_cmd_extension<'a>(
     let mut result = Vec::new();
 
     for ext in extensions {
-        let pkg_info = get_pkg_info_for_extension(ext, all_pkgs)?;
+        let pkg_info = get_pkg_info_for_extension(ext, all_pkgs)
+            .ok_or_else(|| anyhow::anyhow!("Extension not found"))?;
+
         let target_cmd_schema =
             pkg_info.schema_store.as_ref().and_then(|schema_store| {
                 match desired_msg_dir {
@@ -159,7 +172,9 @@ pub fn get_compatible_data_like_msg_extension<'a>(
     let mut result = Vec::new();
 
     for ext in extensions {
-        let pkg_info = get_pkg_info_for_extension(ext, all_pkgs)?;
+        let pkg_info = get_pkg_info_for_extension(ext, all_pkgs)
+            .ok_or_else(|| anyhow::anyhow!("Extension not found"))?;
+
         let target_msg_schema =
             pkg_info.schema_store.as_ref().and_then(|schema_store| {
                 let msg_name = msg_name.as_str();
