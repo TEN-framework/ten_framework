@@ -1,6 +1,6 @@
 {
   "type": "extension",
-  "name": "default_extension_python",
+  "name": "ollama_python",
   "version": "0.8.18",
   "dependencies": [
     {
@@ -13,12 +13,8 @@
     "include": [
       "manifest.json",
       "property.json",
-      "**.tent",
+      "tests/**",
       "**.py",
-      "README.md",
-      "tests/**.py",
-      "tests/**.tent",
-      "tests/bin/start",
       "requirements.txt"
     ]
   },

@@ -78,7 +78,7 @@ void ten_extension_tester_on_start(TEN_UNUSED ten_extension_tester_t *tester,
 
   bool rc = ten_env_tester_send_cmd(ten_env, hello_world_cmd,
                                     hello_world_cmd_result_handler, test_info,
-                                    nullptr);
+                                    nullptr, nullptr);
 
   if (rc) {
     ten_shared_ptr_destroy(hello_world_cmd);

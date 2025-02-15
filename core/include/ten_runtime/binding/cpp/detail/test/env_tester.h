@@ -48,40 +48,22 @@ class ten_env_tester_t {
       std::unique_ptr<cmd_t> &&cmd,
       ten_env_tester_send_cmd_result_handler_func_t &&result_handler = nullptr,
       error_t *err = nullptr) {
-    TEN_ASSERT(c_ten_env_tester, "Should not happen.");
+    return send_cmd_internal(std::move(cmd), std::move(result_handler), nullptr,
+                             err);
+  }
 
-    bool rc = false;
-
-    if (!cmd) {
-      TEN_ASSERT(0, "Invalid argument.");
-      return rc;
-    }
-
-    if (result_handler == nullptr) {
-      rc = ten_env_tester_send_cmd(
-          c_ten_env_tester, cmd->get_underlying_msg(), nullptr, nullptr,
-          err != nullptr ? err->get_c_error() : nullptr);
-    } else {
-      auto *result_handler_ptr =
-          new ten_env_tester_send_cmd_result_handler_func_t(
-              std::move(result_handler));
-
-      rc = ten_env_tester_send_cmd(
-          c_ten_env_tester, cmd->get_underlying_msg(), proxy_handle_result,
-          result_handler_ptr, err != nullptr ? err->get_c_error() : nullptr);
-      if (!rc) {
-        delete result_handler_ptr;
-      }
-    }
-
-    if (rc) {
-      // Only when the cmd has been sent successfully, we should give back the
-      // ownership of the cmd to the TEN runtime.
-      auto *cpp_cmd_ptr = std::move(cmd).release();
-      delete cpp_cmd_ptr;
-    }
-
-    return rc;
+  // The differences between `send_cmd` and `send_cmd_ex` is that `send_cmd`
+  // will only return the final `result` of `is_completed`. If other
+  // behaviors are needed, users can use `send_cmd_ex`.
+  bool send_cmd_ex(
+      std::unique_ptr<cmd_t> &&cmd,
+      ten_env_tester_send_cmd_result_handler_func_t &&result_handler = nullptr,
+      error_t *err = nullptr) {
+    ten_env_send_cmd_options_t options{
+        .enable_multiple_results = true,
+    };
+    return send_cmd_internal(std::move(cmd), std::move(result_handler),
+                             &options, err);
   }
 
   bool send_data(std::unique_ptr<data_t> &&data, error_t *err = nullptr) {
@@ -214,6 +196,47 @@ class ten_env_tester_t {
     ten_binding_handle_set_me_in_target_lang(
         reinterpret_cast<ten_binding_handle_t *>(c_ten_env_tester),
         static_cast<void *>(this));
+  }
+
+  bool send_cmd_internal(
+      std::unique_ptr<cmd_t> &&cmd,
+      ten_env_tester_send_cmd_result_handler_func_t &&result_handler = nullptr,
+      ten_env_send_cmd_options_t *options = nullptr, error_t *err = nullptr) {
+    TEN_ASSERT(c_ten_env_tester, "Should not happen.");
+
+    bool rc = false;
+
+    if (!cmd) {
+      TEN_ASSERT(0, "Invalid argument.");
+      return rc;
+    }
+
+    if (result_handler == nullptr) {
+      rc = ten_env_tester_send_cmd(
+          c_ten_env_tester, cmd->get_underlying_msg(), nullptr, nullptr,
+          options, err != nullptr ? err->get_c_error() : nullptr);
+    } else {
+      auto *result_handler_ptr =
+          new ten_env_tester_send_cmd_result_handler_func_t(
+              std::move(result_handler));
+
+      rc = ten_env_tester_send_cmd(
+          c_ten_env_tester, cmd->get_underlying_msg(), proxy_handle_result,
+          result_handler_ptr, options,
+          err != nullptr ? err->get_c_error() : nullptr);
+      if (!rc) {
+        delete result_handler_ptr;
+      }
+    }
+
+    if (rc) {
+      // Only when the cmd has been sent successfully, we should give back the
+      // ownership of the cmd to the TEN runtime.
+      auto *cpp_cmd_ptr = std::move(cmd).release();
+      delete cpp_cmd_ptr;
+    }
+
+    return rc;
   }
 
   static void proxy_handle_result(::ten_env_tester_t *c_ten_env_tester,

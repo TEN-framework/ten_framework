@@ -281,6 +281,25 @@ jobs:
           cd out/linux/x64/
           pytest -s tests/ten_manager/
 
+      - name: Install Ollama
+        run: |
+          curl -fsSL https://ollama.com/install.sh | sudo -E sh
+
+      - name: Start serving
+        run: |
+          # Run the background, there is no way to daemonise at the moment.
+          ollama serve &
+
+          # A short pause is required before the HTTP port is opened.
+          sleep 5
+
+          # This endpoint blocks until ready.
+          time curl -i http://localhost:11434
+
+      - name: Pull llm model
+        run: |
+          ollama pull smollm:135m
+
       - name: Run tests (ten_runtime integration tests)
         if: matrix.arch == 'x64'
         env:

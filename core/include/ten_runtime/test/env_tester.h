@@ -8,6 +8,7 @@
 
 #include "ten_runtime/ten_config.h"
 
+#include "ten_runtime/ten_env/internal/send.h"
 #include "ten_utils/lib/error.h"
 #include "ten_utils/lib/smart_ptr.h"
 #include "ten_utils/log/log.h"
@@ -33,7 +34,7 @@ typedef void (*ten_env_tester_msg_result_handler_func_t)(
 TEN_RUNTIME_API bool ten_env_tester_send_cmd(
     ten_env_tester_t *self, ten_shared_ptr_t *cmd,
     ten_env_tester_msg_result_handler_func_t handler, void *user_data,
-    ten_error_t *error);
+    ten_env_send_cmd_options_t *options, ten_error_t *error);
 
 TEN_RUNTIME_API bool ten_env_tester_send_data(
     ten_env_tester_t *self, ten_shared_ptr_t *data,

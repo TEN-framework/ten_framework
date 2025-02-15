@@ -8,20 +8,14 @@ import("//build/ten_runtime/feature/publish.gni")
 import("//build/ten_runtime/glob.gni")
 import("//build/ten_runtime/options.gni")
 
-ten_package("default_extension_python") {
+ten_package("ollama_python") {
   package_kind = "extension"
 
   resources = [
-    "README.md",
-    "README.md.tent",
     "__init__.py",
-    "__init__.py.tent",
     "addon.py",
-    "addon.py.tent",
     "extension.py",
-    "extension.py.tent",
     "manifest.json",
-    "manifest.json.tent",
     "property.json",
     "requirements.txt",
   ]
@@ -43,13 +37,13 @@ ten_package("default_extension_python") {
         [ "tests/${tests_file_rel_path}=>tests/${tests_file_rel_path}" ]
   }
 
-  deps = [ "//core/src/ten_runtime" ]
+  deps = [ "//core/src/ten_runtime/binding/python" ]
 }
 
 if (ten_enable_ten_manager) {
-  ten_package_publish("upload_default_extension_python_to_server") {
-    base_dir = rebase_path(
-            "${root_out_dir}/ten_packages/extension/default_extension_python")
-    deps = [ ":default_extension_python" ]
+  ten_package_publish("upload_ollama_python_to_server") {
+    base_dir =
+        rebase_path("${root_out_dir}/ten_packages/extension/ollama_python")
+    deps = [ ":ollama_python" ]
   }
 }

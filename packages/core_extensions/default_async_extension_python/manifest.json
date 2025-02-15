@@ -18,7 +18,8 @@
       "README.md",
       "tests/**.py",
       "tests/**.tent",
-      "tests/bin/start"
+      "tests/bin/start",
+      "requirements.txt"
     ]
   },
   "api": {},

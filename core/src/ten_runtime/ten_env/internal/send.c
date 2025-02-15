@@ -30,6 +30,22 @@
 #include "ten_utils/macro/check.h"
 #include "ten_utils/macro/memory.h"
 
+ten_env_send_cmd_options_t *ten_env_send_cmd_options_create(void) {
+  ten_env_send_cmd_options_t *options =
+      TEN_MALLOC(sizeof(ten_env_send_cmd_options_t));
+  TEN_ASSERT(options, "Failed to allocate memory.");
+
+  *options = TEN_ENV_SEND_CMD_OPTIONS_INIT_VAL;
+
+  return options;
+}
+
+void ten_env_send_cmd_options_destroy(ten_env_send_cmd_options_t *options) {
+  TEN_ASSERT(options, "Invalid argument.");
+
+  TEN_FREE(options);
+}
+
 /**
  * @brief All message-sending code paths will ultimately converge in this
  * function.

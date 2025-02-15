@@ -11,6 +11,7 @@
 #include "include_internal/ten_runtime/binding/python/msg/msg.h"
 #include "include_internal/ten_runtime/binding/python/test/env_tester.h"
 #include "ten_runtime/msg/cmd_result/cmd_result.h"
+#include "ten_runtime/ten_env/internal/send.h"
 #include "ten_runtime/test/env_tester.h"
 #include "ten_runtime/test/env_tester_proxy.h"
 #include "ten_utils/macro/check.h"
@@ -19,11 +20,12 @@
 typedef struct ten_py_ten_env_tester_send_cmd_ctx_t {
   ten_shared_ptr_t *cmd;
   PyObject *cb_func;
+  bool is_ex;
 } ten_py_ten_env_tester_send_cmd_ctx_t;
 
 static ten_py_ten_env_tester_send_cmd_ctx_t *
 ten_py_ten_env_tester_send_cmd_ctx_create(ten_shared_ptr_t *cmd,
-                                          PyObject *cb_func) {
+                                          PyObject *cb_func, bool is_ex) {
   ten_py_ten_env_tester_send_cmd_ctx_t *ctx =
       TEN_MALLOC(sizeof(ten_py_ten_env_tester_send_cmd_ctx_t));
   ctx->cmd = ten_shared_ptr_clone(cmd);
@@ -33,6 +35,7 @@ ten_py_ten_env_tester_send_cmd_ctx_create(ten_shared_ptr_t *cmd,
   }
 
   ctx->cb_func = cb_func;
+  ctx->is_ex = is_ex;
 
   return ctx;
 }
@@ -114,13 +117,19 @@ static void ten_py_ten_env_tester_send_cmd_proxy_notify(
   ten_py_ten_env_tester_send_cmd_ctx_t *ctx =
       (ten_py_ten_env_tester_send_cmd_ctx_t *)user_data;
 
+  ten_env_send_cmd_options_t options = TEN_ENV_SEND_CMD_OPTIONS_INIT_VAL;
+  if (ctx->is_ex) {
+    options.enable_multiple_results = true;
+  }
+
   if (ctx->cb_func) {
     Py_INCREF(ctx->cb_func);
 
     ten_env_tester_send_cmd(ten_env_tester, ctx->cmd, proxy_send_cmd_callback,
-                            ctx->cb_func, NULL);
+                            ctx->cb_func, &options, NULL);
   } else {
-    ten_env_tester_send_cmd(ten_env_tester, ctx->cmd, NULL, NULL, NULL);
+    ten_env_tester_send_cmd(ten_env_tester, ctx->cmd, NULL, NULL, &options,
+                            NULL);
   }
 
   ten_py_ten_env_tester_send_cmd_ctx_destroy(ctx);
@@ -132,14 +141,16 @@ PyObject *ten_py_ten_env_tester_send_cmd(PyObject *self, PyObject *args) {
                  ten_py_ten_env_tester_check_integrity(py_ten_env_tester),
              "Invalid argument.");
 
-  if (PyTuple_GET_SIZE(args) != 2) {
+  if (PyTuple_GET_SIZE(args) != 3) {
     return ten_py_raise_py_value_error_exception(
         "Invalid argument count when ten_env_tester.send_cmd.");
   }
 
   ten_py_cmd_t *py_cmd = NULL;
   PyObject *cb_func = NULL;
-  if (!PyArg_ParseTuple(args, "O!O", ten_py_cmd_py_type(), &py_cmd, &cb_func)) {
+  int is_ex = false;
+  if (!PyArg_ParseTuple(args, "O!Op", ten_py_cmd_py_type(), &py_cmd, &cb_func,
+                        &is_ex)) {
     return ten_py_raise_py_type_error_exception(
         "Invalid argument type when send cmd.");
   }
@@ -159,7 +170,8 @@ PyObject *ten_py_ten_env_tester_send_cmd(PyObject *self, PyObject *args) {
   TEN_ERROR_INIT(err);
 
   ten_py_ten_env_tester_send_cmd_ctx_t *ctx =
-      ten_py_ten_env_tester_send_cmd_ctx_create(py_cmd->msg.c_msg, cb_func);
+      ten_py_ten_env_tester_send_cmd_ctx_create(py_cmd->msg.c_msg, cb_func,
+                                                is_ex);
 
   bool success = ten_env_tester_proxy_notify(
       py_ten_env_tester->c_ten_env_tester_proxy,
