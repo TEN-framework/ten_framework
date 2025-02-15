@@ -206,9 +206,12 @@ struct ten_extension_t {
   // @{
   // The following 'path_timers' is a list of ten_timer_t, each of which is used
   // to check whether paths in the path table are expired and remove them from
-  // the path table. The size of the 'path_timers' could be zero, one (timer
-  // used to handle the in_path __or__ out_path) or two (timers used to handle
-  // in_path __and__ out_path).
+  // the path table.
+  //
+  // The size of the 'path_timers' could be the following:
+  // - 0
+  // - 1 (timer used to handle the in_path __or__ out_path)
+  // - 2 (timers used to handle in_path __and__ out_path).
   ten_list_t path_timers;
 
   // This field is used to store the timeout duration of the in_path and
