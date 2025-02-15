@@ -205,20 +205,29 @@ fn get_designer_property_items_from_pkg(
     items.into_iter().map(|v| v.into()).collect()
 }
 
+/// Retrieve graph nodes for a specific graph.
+///
+/// # Parameters
+/// - `state`: The state of the designer.
+/// - `path`: The name of the graph.
 pub async fn get_graph_nodes(
     state: web::Data<Arc<RwLock<DesignerState>>>,
     path: web::Path<String>,
 ) -> impl Responder {
     let graph_name = path.into_inner();
-    let mut state = state.write().unwrap();
 
-    // Fetch all packages if not already done.
-    if let Err(err) = get_all_pkgs(&mut state) {
-        let error_response =
-            ErrorResponse::from_error(&err, "Error fetching packages:");
-        return HttpResponse::NotFound().json(error_response);
+    {
+        // Fetch all packages if not already done.
+        let mut state = state.write().unwrap();
+
+        if let Err(err) = get_all_pkgs(&mut state) {
+            let error_response =
+                ErrorResponse::from_error(&err, "Error fetching packages:");
+            return HttpResponse::NotFound().json(error_response);
+        }
     }
 
+    let state = state.read().unwrap();
     if let Some(all_pkgs) = &state.all_pkgs {
         let extensions =
             match get_extension_nodes_in_graph(&graph_name, all_pkgs) {
