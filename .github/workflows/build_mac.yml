@@ -457,9 +457,13 @@ jobs:
 
           ./unit_test || { echo "ten_manager unit test failed"; exit 1; }
 
+          df -h .
+
       - name: Install Python dependencies via script
         run: |
           python .github/tools/setup_pytest_dependencies.py
+
+          df -h .
 
       - name: Run Tests (ten_manager pytest tests)
         env:
@@ -470,6 +474,8 @@ jobs:
         run: |
           cd out/mac/x64/
           pytest -s tests/ten_manager/
+
+          df -h .
 
       - name: Run tests (ten_runtime integration tests)
         env:
@@ -484,6 +490,8 @@ jobs:
           export PATH=$(pwd)/core/ten_gn:$PATH
           cd out/mac/x64/
           pytest -s tests/ten_runtime/integration/
+
+          df -h .
       #   continue-on-error: true
       # - name: Setup tmate session
       #   uses: mxschmitt/action-tmate@v3
@@ -590,6 +598,8 @@ jobs:
         run: |
           chmod +x out/mac/arm64/tests/standalone/ten_runtime_smoke_test
           out/mac/arm64/tests/standalone/ten_runtime_smoke_test
+
+          df -h .
       #   continue-on-error: true
 
       # - name: Setup tmate session
