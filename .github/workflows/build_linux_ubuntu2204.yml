@@ -405,6 +405,7 @@ jobs:
 
           sleep 5
           ps
+          netstat -tulnp | grep 11434
 
           # ollama pull smollm:135m
 
@@ -414,9 +415,11 @@ jobs:
         if: matrix.arch == 'x64'
         run: |
           ps
+          netstat -tulnp | grep 11434
 
           sleep 2
           ps
+          netstat -tulnp | grep 11434
 
           ollama list
 
