@@ -83,6 +83,11 @@ jobs:
           apt-get update
           apt-get install -y gcc-multilib g++-multilib
 
+      - name: Install time
+        if: matrix.arch == 'x64'
+        run: |
+          apt-get install -y time
+
       - name: Build
         run: |
           export PATH=$(pwd)/core/ten_gn:$PATH

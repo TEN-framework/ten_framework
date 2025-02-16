@@ -19,6 +19,8 @@ def test_standalone_ollama_async_python():
     my_env = os.environ.copy()
 
     # Step 1:
+    #
+    # Create ollama_python package directly.
     tman_create_cmd = [
         os.path.join(root_dir, "ten_manager/bin/tman"),
         "--config-file",
@@ -44,6 +46,8 @@ def test_standalone_ollama_async_python():
         assert False, "Failed to create package."
 
     # Step 2:
+    #
+    # Install all the dependencies of the ollama_python package.
     tman_install_cmd = [
         os.path.join(root_dir, "ten_manager/bin/tman"),
         "--config-file",
@@ -66,6 +70,8 @@ def test_standalone_ollama_async_python():
         assert False, "Failed to install package."
 
     # Step 3:
+    #
+    # pip install the package.
 
     # Create virtual environment.
     venv_dir = os.path.join(extension_root_path, "venv")
@@ -87,8 +93,9 @@ def test_standalone_ollama_async_python():
     bootstrap_process.wait()
 
     # Step 4:
-
+    #
     # Set the required environment variables for the test.
+
     my_env["PYTHONMALLOC"] = "malloc"
     my_env["PYTHONDEVMODE"] = "1"
 
@@ -108,6 +115,8 @@ def test_standalone_ollama_async_python():
                 my_env["LD_PRELOAD"] = libasan_path
 
     # Step 5:
+    #
+    # Run the test.
     tester_process = subprocess.Popen(
         "tests/bin/start",
         stdout=stdout,
