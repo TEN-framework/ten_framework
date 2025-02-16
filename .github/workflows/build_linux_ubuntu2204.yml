@@ -405,9 +405,6 @@ jobs:
             sleep 2
           done
 
-          ollama pull smollm:135m
-          ollama list
-
           df -h .
 
       - name: Pull and verify LLM model
