@@ -69,6 +69,23 @@ def test_standalone_test_async_python():
             if os.path.exists(libasan_path):
                 print("Using AddressSanitizer library.")
                 my_env["LD_PRELOAD"] = libasan_path
+    elif sys.platform == "darwin":
+        build_config_args = build_config.parse_build_config(
+            os.path.join(root_dir, "tgn_args.txt"),
+        )
+
+        if build_config_args.enable_sanitizer:
+            libasan_path = os.path.join(
+                base_path,
+                (
+                    "default_async_extension_python/.ten/app/ten_packages/"
+                    "system/ten_runtime/lib/libclang_rt.asan_osx_dynamic.dylib"
+                ),
+            )
+
+            if os.path.exists(libasan_path):
+                print("Using AddressSanitizer library.")
+                my_env["DYLD_INSERT_LIBRARIES"] = libasan_path
 
     tester_process = subprocess.Popen(
         "tests/bin/start",
