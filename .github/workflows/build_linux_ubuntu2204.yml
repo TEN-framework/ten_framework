@@ -34,6 +34,8 @@ jobs:
             arch: x86
     container:
       image: ghcr.io/ten-framework/ten_building_ubuntu2204
+      ports:
+        - 11434
     steps:
       - uses: actions/checkout@v4
         with:
