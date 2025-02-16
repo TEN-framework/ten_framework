@@ -25,9 +25,8 @@ class OllamaExtensionTester(AsyncExtensionTester):
                     ten_env.stop_test()
                     break
                 else:
-                    ten_env.log_info(
-                        f"result: {result.get_property_string("response")}"
-                    )
+                    response = result.get_property_string("response")
+                    ten_env.log_info(f"result: {response}")
 
 
 def test_basic():
