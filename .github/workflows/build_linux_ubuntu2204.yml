@@ -379,35 +379,38 @@ jobs:
 
           df -h .
 
+      - name: Set Environment Variables
+        if: matrix.arch == 'x64'
+        run: |
+          echo "OLLAMA_HOST=http://localhost:11434" >> $GITHUB_ENV
+
       - name: Install Ollama
         if: matrix.arch == 'x64'
         run: |
           curl -fsSL https://ollama.com/install.sh | sh
 
-          df -h .
-
-      - name: Set Environment Variables
-        run: |
-          echo "OLLAMA_HOST=0.0.0.0" >> $GITHUB_ENV
-
-      - name: Start serving
-        if: matrix.arch == 'x64'
-        run: |
-          # Run the background, there is no way to daemonise at the moment.
+          # Start Ollama service.
           ollama serve &
 
-          # A short pause is required before the HTTP port is opened.
-          sleep 5
-
-          # This endpoint blocks until ready.
-          time curl -i http://localhost:11434
+          # Wait for Ollama to be fully operational.
+          for i in {1..30}; do
+            if curl -s http://localhost:11434/api/health >/dev/null; then
+              echo "✓ Ollama is running"
+              break
+            fi
+            echo "Waiting for Ollama to start..."
+            sleep 2
+          done
 
           df -h .
 
-      - name: Pull llm model
+      - name: Pull and verify LLM model
         if: matrix.arch == 'x64'
         run: |
           ollama pull smollm:135m
+
+          # Verify model is pulled correctly.
+          ollama list
 
           df -h .
 
