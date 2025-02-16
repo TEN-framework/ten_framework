@@ -315,6 +315,9 @@ static void ten_extension_tester_execute_cmd_result_handler_task(void *self,
 
   if (ctx->err || ten_cmd_result_is_completed(ctx->cmd_result, NULL)) {
     ten_extension_tester_send_cmd_ctx_destroy(ctx);
+  } else {
+    ten_shared_ptr_destroy(ctx->cmd_result);
+    ctx->cmd_result = NULL;
   }
 }
 
