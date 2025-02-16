@@ -383,6 +383,7 @@ jobs:
         if: matrix.arch == 'x64'
         run: |
           echo "OLLAMA_HOST=http://127.0.0.1:11434" >> $GITHUB_ENV
+          echo "OLLAMA_DEBUG=true" >> $GITHUB_ENV
 
       - name: Install Ollama
         if: matrix.arch == 'x64'
@@ -390,7 +391,7 @@ jobs:
           curl -fsSL https://ollama.com/install.sh | sh
 
           # Start Ollama service.
-          nohup ollama serve &
+          ollama serve &
 
           # Wait for Ollama to be fully operational.
           for i in {1..30}; do
