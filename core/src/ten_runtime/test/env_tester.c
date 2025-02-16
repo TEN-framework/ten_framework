@@ -134,7 +134,9 @@ static ten_env_tester_send_cmd_ctx_t *ten_extension_tester_send_cmd_ctx_create(
   self->cmd_result = NULL;
   self->handler = handler;
   self->handler_user_data = handler_user_data;
-  self->options = *options;
+  if (options) {
+    self->options = *options;
+  }
   self->err = NULL;
 
   return self;
