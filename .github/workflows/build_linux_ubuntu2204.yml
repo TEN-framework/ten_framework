@@ -390,7 +390,7 @@ jobs:
         if: matrix.arch == 'x64'
         run: |
           # Run the background, there is no way to daemonise at the moment.
-          ollama serve &
+          OLLAMA_HOST=0.0.0.0 ollama serve &
 
           # A short pause is required before the HTTP port is opened.
           sleep 5
