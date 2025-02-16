@@ -405,7 +405,7 @@ jobs:
 
           ps
 
-          ollama pull smollm:135m
+          # ollama pull smollm:135m
 
           df -h .
 
