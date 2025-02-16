@@ -37,7 +37,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: "0"
+          fetch-depth: 0
           submodules: false
 
       - name: Trust working directory
@@ -381,17 +381,17 @@ jobs:
 
       - name: Install Ollama
         if: matrix.arch == 'x64'
-        env:
-          OLLAMA_HOST: 0.0.0.0
         run: |
           curl -fsSL https://ollama.com/install.sh | sh
 
           df -h .
 
+      - name: Set Environment Variables
+        run: |
+          echo "OLLAMA_HOST=0.0.0.0" >> $GITHUB_ENV
+
       - name: Start serving
         if: matrix.arch == 'x64'
-        env:
-          OLLAMA_HOST: 0.0.0.0
         run: |
           # Run the background, there is no way to daemonise at the moment.
           ollama serve &
