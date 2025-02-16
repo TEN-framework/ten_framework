@@ -437,6 +437,8 @@ jobs:
           # ollama list
 
           ps
+          netstat -tulnp | grep 11434
+          curl -v http://localhost:11434
 
           df -h .
 
