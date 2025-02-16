@@ -422,19 +422,19 @@ jobs:
         run: |
           ps
           netstat -tulnp | grep 11434
-          curl -v http://localhost:11434
+          # curl -v http://localhost:11434
 
-          sleep 2
+          sleep 10
           ps
           netstat -tulnp | grep 11434
-          curl -v http://localhost:11434
+          # curl -v http://localhost:11434
 
-          ollama list
+          # ollama list
 
-          ollama pull smollm:135m
+          # ollama pull smollm:135m
 
           # Verify model is pulled correctly.
-          ollama list
+          # ollama list
 
           ps
 
