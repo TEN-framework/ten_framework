@@ -86,6 +86,7 @@ jobs:
       - name: Install time
         if: matrix.arch == 'x64'
         run: |
+          apt-get update
           apt-get install -y time
 
       - name: Build
