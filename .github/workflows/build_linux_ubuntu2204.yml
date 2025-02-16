@@ -393,7 +393,7 @@ jobs:
           curl -fsSL https://ollama.com/install.sh | sh
 
           # Start Ollama service.
-          ollama serve &
+          nohup ollama serve &
 
           # Wait for Ollama to be fully operational.
           for i in {1..30}; do
