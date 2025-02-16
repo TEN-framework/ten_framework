@@ -182,6 +182,7 @@ jobs:
             out/linux/x64/ten_packages-linux-${{ matrix.compiler }}-${{ matrix.build_type }}-${{ matrix.arch }}.zip
 
       - name: Clean up
+        if: matrix.arch == 'x64' && startsWith(github.ref, 'refs/tags/')
         run: |
           rm -rf out/linux/x64/tman-linux-${{ matrix.compiler }}-${{ matrix.build_type }}-${{ matrix.arch }}.zip
           rm -rf out/linux/x64/ten_packages-linux-${{ matrix.compiler }}-${{ matrix.build_type }}-${{ matrix.arch }}.zip
@@ -317,6 +318,7 @@ jobs:
           df -h .
 
       - name: Clean up
+        if: matrix.arch == 'x64'
         run: |
           rm -rf out/linux/x64/tests/standalone/ten_rust
 
@@ -339,6 +341,7 @@ jobs:
           df -h .
 
       - name: Clean up
+        if: matrix.arch == 'x64'
         run: |
           rm -rf out/linux/x64/tests/standalone/ten_manager
 
@@ -364,18 +367,21 @@ jobs:
           df -h .
 
       - name: Clean up
+        if: matrix.arch == 'x64'
         run: |
           rm -rf out/linux/x64/tests/ten_manager
 
           df -h .
 
       - name: Install Ollama
+        if: matrix.arch == 'x64'
         run: |
           curl -fsSL https://ollama.com/install.sh | sudo -E sh
 
           df -h .
 
       - name: Start serving
+        if: matrix.arch == 'x64'
         run: |
           # Run the background, there is no way to daemonise at the moment.
           ollama serve &
@@ -389,6 +395,7 @@ jobs:
           df -h .
 
       - name: Pull llm model
+        if: matrix.arch == 'x64'
         run: |
           ollama pull smollm:135m
 
