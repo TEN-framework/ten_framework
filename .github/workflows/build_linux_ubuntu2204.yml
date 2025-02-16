@@ -381,6 +381,8 @@ jobs:
 
       - name: Install Ollama
         if: matrix.arch == 'x64'
+        env:
+          OLLAMA_HOST: 0.0.0.0
         run: |
           curl -fsSL https://ollama.com/install.sh | sh
 
