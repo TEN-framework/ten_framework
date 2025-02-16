@@ -403,6 +403,8 @@ jobs:
             sleep 2
           done
 
+          ollama list
+
           df -h .
 
       - name: Pull and verify LLM model
