@@ -17,12 +17,19 @@ pub struct Registry {
     pub index: String,
 }
 
+fn default_enable_package_cache() -> bool {
+    true
+}
+
 #[derive(Serialize, Deserialize, Debug, Default)]
 pub struct TmanConfigFile {
     pub registry: HashMap<String, Registry>,
 
     pub admin_token: Option<String>,
     pub user_token: Option<String>,
+
+    #[serde(default = "default_enable_package_cache")]
+    pub enable_package_cache: bool,
 }
 
 #[derive(Serialize, Deserialize, Debug, Default)]
@@ -35,6 +42,8 @@ pub struct TmanConfig {
 
     pub verbose: bool,
     pub assume_yes: bool,
+
+    pub enable_package_cache: bool,
 }
 
 // Determine the tman home directory based on the platform.
@@ -106,5 +115,6 @@ pub fn read_config(config_file_path: &Option<String>) -> TmanConfig {
         user_token: config_file_content.user_token,
         verbose: false,
         assume_yes: false,
+        enable_package_cache: config_file_content.enable_package_cache,
     }
 }

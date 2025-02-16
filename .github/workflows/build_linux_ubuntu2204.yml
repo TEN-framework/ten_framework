@@ -122,6 +122,8 @@ jobs:
             python3 ${UPDATE_SUPPORTS_SCRIPT} --os-arch-pairs linux:x64 --input-file ${item}/manifest.json --output-file ${item}/manifest.json --log-level 1
             cat ${item}/manifest.json
           done
+
+          df -h .
         shell: bash
 
       - name: Upload tman
@@ -204,7 +206,33 @@ jobs:
             ${TMAN_BIN} --verbose --user-token ${{ secrets.TEN_CLOUD_STORE }} publish
             cd -
           done
+
+          df -h .
         shell: bash
+
+      - name: Clean up
+        run: |
+          cd out/linux/x64
+          ARRAY=(
+            "app/default_app_cpp"
+            "app/default_app_go"
+            "app/default_app_python"
+            "app/default_app_nodejs"
+            "ten_packages/system/ten_runtime"
+            "ten_packages/system/ten_runtime_go"
+            "ten_packages/system/ten_runtime_python"
+            "ten_packages/extension/default_extension_cpp"
+            "ten_packages/extension/default_extension_go"
+            "ten_packages/extension/default_extension_python"
+            "ten_packages/extension/default_async_extension_python"
+            "ten_packages/addon_loader/python_addon_loader"
+          )
+
+          for item in "${ARRAY[@]}"; do
+            rm -rf $item
+          done
+
+          df -h .
 
       - name: Run Tests (ten_utils_unit_test)
         env:
@@ -216,6 +244,14 @@ jobs:
           chmod +x out/linux/x64/tests/standalone/ten_utils_unit_test
           out/linux/x64/tests/standalone/ten_utils_unit_test || { echo "test failed"; exit 1; }
 
+          df -h .
+
+      - name: Clean up
+        run: |
+          rm -rf out/linux/x64/tests/standalone/ten_utils_unit_test
+
+          df -h .
+
       - name: Run Tests (ten_runtime_unit_test)
         env:
           ASAN_OPTIONS: detect_leaks=1:detect_stack_use_after_return=1:color=always:unmap_shadow_on_exit=1:abort_on_error=1
@@ -226,6 +262,14 @@ jobs:
           chmod +x out/linux/x64/tests/standalone/ten_runtime_unit_test
           out/linux/x64/tests/standalone/ten_runtime_unit_test || { echo "test failed"; exit 1; }
 
+          df -h
+
+      - name: Clean up
+        run: |
+          rm -rf out/linux/x64/tests/standalone/ten_runtime_unit_test
+
+          df -h .
+
       - name: Run Tests (ten_runtime_smoke_test)
         env:
           ASAN_OPTIONS: detect_leaks=1:detect_stack_use_after_return=1:color=always:unmap_shadow_on_exit=1:abort_on_error=1
@@ -235,6 +279,14 @@ jobs:
         run: |
           chmod +x out/linux/x64/tests/standalone/ten_runtime_smoke_test
           out/linux/x64/tests/standalone/ten_runtime_smoke_test || { echo "test failed"; exit 1; }
+
+          df -h .
+
+      - name: Clean up
+        run: |
+          rm -rf out/linux/x64/tests/standalone/ten_runtime_smoke_test
+
+          df -h .
 
       - name: Run Tests (ten_rust standalone tests)
         if: matrix.arch == 'x64'
@@ -252,6 +304,14 @@ jobs:
           ./unit_test || { echo "ten_rust unit test failed"; exit 1; }
           ./integration_test || { echo "ten_rust integration test failed"; exit 1; }
 
+          df -h .
+
+      - name: Clean up
+        run: |
+          rm -rf out/linux/x64/tests/standalone/ten_rust
+
+          df -h .
+
       - name: Run Tests (ten_manager standalone tests)
         if: matrix.arch == 'x64'
         env:
@@ -266,9 +326,19 @@ jobs:
 
           ./unit_test || { echo "ten_manager unit test failed"; exit 1; }
 
+          df -h .
+
+      - name: Clean up
+        run: |
+          rm -rf out/linux/x64/tests/standalone/ten_manager
+
+          df -h .
+
       - name: Install Python dependencies via script
         run: |
           python .github/tools/setup_pytest_dependencies.py
+
+          df -h .
 
       - name: Run Tests (ten_manager pytest tests)
         if: matrix.arch == 'x64'
@@ -281,9 +351,19 @@ jobs:
           cd out/linux/x64/
           pytest -s tests/ten_manager/
 
+          df -h .
+
+      - name: Clean up
+        run: |
+          rm -rf out/linux/x64/tests/ten_manager
+
+          df -h .
+
       - name: Install Ollama
         run: |
           curl -fsSL https://ollama.com/install.sh | sudo -E sh
+
+          df -h .
 
       - name: Start serving
         run: |
@@ -296,9 +376,13 @@ jobs:
           # This endpoint blocks until ready.
           time curl -i http://localhost:11434
 
+          df -h .
+
       - name: Pull llm model
         run: |
           ollama pull smollm:135m
+
+          df -h .
 
       - name: Run tests (ten_runtime integration tests)
         if: matrix.arch == 'x64'
@@ -311,3 +395,5 @@ jobs:
           export PATH=$(pwd)/core/ten_gn:$PATH
           cd out/linux/x64/
           pytest -s tests/ten_runtime/integration/
+
+          df -h .
