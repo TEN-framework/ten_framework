@@ -421,6 +421,8 @@ jobs:
           # Verify model is pulled correctly.
           ollama list
 
+          ps
+
           df -h .
 
       # - name: Run tests (ten_runtime integration tests)
