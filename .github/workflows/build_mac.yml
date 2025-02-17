@@ -26,7 +26,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: "0"
+          fetch-depth: 0
           submodules: false
 
       - name: Trust working directory
@@ -111,7 +111,13 @@ jobs:
 
           df -h .
 
-          tgn gen mac arm64 ${{ matrix.build_type }} -- log_level=1 enable_serialized_actions=true ten_enable_serialized_rust_action=true ten_rust_enable_gen_cargo_config=false ten_enable_cargo_clean=true ten_enable_python_binding=false ten_enable_rust_incremental_build=false ten_manager_enable_frontend=false ten_enable_integration_tests_prebuilt=false ten_enable_nodejs_binding=false
+          if [ "${{ matrix.build_type }}" = "debug" ]; then
+            EXTRA_ARGS="ten_enable_python_binding=false"
+          else
+            EXTRA_ARGS="ten_enable_python_binding=true ten_enable_advanced_python_integration_tests=false"
+          fi
+
+          tgn gen mac arm64 ${{ matrix.build_type }} -- log_level=1 enable_serialized_actions=true ten_enable_serialized_rust_action=true ten_rust_enable_gen_cargo_config=false ten_enable_cargo_clean=true ten_enable_rust_incremental_build=false ten_manager_enable_frontend=false ten_enable_integration_tests_prebuilt=false ten_enable_nodejs_binding=false $EXTRA_ARGS
 
           tgn build mac arm64 ${{ matrix.build_type }}
 
@@ -143,6 +149,8 @@ jobs:
             ten_packages/extension/default_extension_cpp \
             ten_packages/extension/default_extension_go \
 
+          df -h .
+
       - name: Publish to release assets
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/')
@@ -161,6 +169,8 @@ jobs:
           chmod +x out/mac/arm64/tests/standalone/ten_utils_unit_test
           out/mac/arm64/tests/standalone/ten_utils_unit_test
 
+          df -h .
+
       - name: Run Tests (ten_runtime_unit_test)
         env:
           ASAN_OPTIONS: detect_stack_use_after_return=1:color=always:unmap_shadow_on_exit=1:abort_on_error=1
@@ -171,6 +181,8 @@ jobs:
           chmod +x out/mac/arm64/tests/standalone/ten_runtime_unit_test
           out/mac/arm64/tests/standalone/ten_runtime_unit_test
 
+          df -h .
+
       - name: Run Tests (ten_runtime_smoke_test)
         env:
           ASAN_OPTIONS: detect_stack_use_after_return=1:color=always:unmap_shadow_on_exit=1:abort_on_error=1
@@ -180,6 +192,8 @@ jobs:
         run: |
           chmod +x out/mac/arm64/tests/standalone/ten_runtime_smoke_test
           out/mac/arm64/tests/standalone/ten_runtime_smoke_test
+
+          df -h .
       #   continue-on-error: true
       # - name: Setup tmate session
       #   uses: mxschmitt/action-tmate@v3
@@ -199,6 +213,8 @@ jobs:
           ./unit_test || { echo "ten_rust unit test failed"; exit 1; }
           ./integration_test || { echo "ten_rust integration test failed"; exit 1; }
 
+          df -h .
+
       - name: Run Tests (ten_manager standalone tests)
         env:
           ASAN_OPTIONS: detect_stack_use_after_return=1:color=always:unmap_shadow_on_exit=1:abort_on_error=1
@@ -212,9 +228,13 @@ jobs:
 
           ./unit_test || { echo "ten_manager unit test failed"; exit 1; }
 
+          df -h .
+
       - name: Install Python dependencies via script
         run: |
           python .github/tools/setup_pytest_dependencies.py
+
+          df -h .
 
       - name: Run Tests (ten_manager pytest tests)
         env:
@@ -225,6 +245,8 @@ jobs:
         run: |
           cd out/mac/arm64/
           pytest -s tests/ten_manager/
+
+          df -h .
 
       - name: Run tests (ten_runtime integration tests)
         env:
@@ -239,6 +261,8 @@ jobs:
           export PATH=$(pwd)/core/ten_gn:$PATH
           cd out/mac/arm64/
           pytest -s tests/ten_runtime/integration/
+
+          df -h .
       #   continue-on-error: true
       # - name: Setup tmate session
       #   uses: mxschmitt/action-tmate@v3
@@ -254,7 +278,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: "0"
+          fetch-depth: 0
           submodules: false
 
       - name: Trust working directory
@@ -328,7 +352,7 @@ jobs:
 
           df -h .
 
-          tgn gen mac x64 ${{ matrix.build_type }} -- log_level=1 enable_serialized_actions=true ten_enable_serialized_rust_action=true ten_rust_enable_gen_cargo_config=false ten_enable_cargo_clean=true ten_enable_python_binding=false ten_enable_rust_incremental_build=false ten_manager_enable_frontend=false ten_enable_integration_tests_prebuilt=false ten_enable_nodejs_binding=false
+          tgn gen mac x64 ${{ matrix.build_type }} -- log_level=1 enable_serialized_actions=true ten_enable_serialized_rust_action=true ten_rust_enable_gen_cargo_config=false ten_enable_cargo_clean=true ten_enable_python_binding=true ten_enable_advanced_python_integration_tests=false ten_enable_rust_incremental_build=false ten_manager_enable_frontend=false ten_enable_integration_tests_prebuilt=false ten_enable_nodejs_binding=false
 
           tgn build mac x64 ${{ matrix.build_type }}
 
@@ -363,6 +387,8 @@ jobs:
             ten_packages/extension/default_extension_cpp \
             ten_packages/extension/default_extension_go \
 
+          df -h .
+
       - name: Publish to release assets
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/')
@@ -381,6 +407,8 @@ jobs:
           chmod +x out/mac/x64/tests/standalone/ten_utils_unit_test
           out/mac/x64/tests/standalone/ten_utils_unit_test
 
+          df -h .
+
       - name: Run Tests (ten_runtime_unit_test)
         env:
           ASAN_OPTIONS: detect_stack_use_after_return=1:color=always:unmap_shadow_on_exit=1:abort_on_error=1
@@ -391,6 +419,8 @@ jobs:
           chmod +x out/mac/x64/tests/standalone/ten_runtime_unit_test
           out/mac/x64/tests/standalone/ten_runtime_unit_test
 
+          df -h .
+
       - name: Run Tests (ten_runtime_smoke_test)
         env:
           ASAN_OPTIONS: detect_stack_use_after_return=1:color=always:unmap_shadow_on_exit=1:abort_on_error=1
@@ -400,6 +430,8 @@ jobs:
         run: |
           chmod +x out/mac/x64/tests/standalone/ten_runtime_smoke_test
           out/mac/x64/tests/standalone/ten_runtime_smoke_test
+
+          df -h .
 
       - name: Run Tests (ten_rust standalone tests)
         env:
@@ -416,6 +448,8 @@ jobs:
           ./unit_test || { echo "ten_rust unit test failed"; exit 1; }
           ./integration_test || { echo "ten_rust integration test failed"; exit 1; }
 
+          df -h .
+
       - name: Run Tests (ten_manager standalone tests)
         env:
           ASAN_OPTIONS: detect_stack_use_after_return=1:color=always:unmap_shadow_on_exit=1:abort_on_error=1
@@ -429,9 +463,13 @@ jobs:
 
           ./unit_test || { echo "ten_manager unit test failed"; exit 1; }
 
+          df -h .
+
       - name: Install Python dependencies via script
         run: |
           python .github/tools/setup_pytest_dependencies.py
+
+          df -h .
 
       - name: Run Tests (ten_manager pytest tests)
         env:
@@ -442,6 +480,8 @@ jobs:
         run: |
           cd out/mac/x64/
           pytest -s tests/ten_manager/
+
+          df -h .
 
       - name: Run tests (ten_runtime integration tests)
         env:
@@ -456,6 +496,8 @@ jobs:
           export PATH=$(pwd)/core/ten_gn:$PATH
           cd out/mac/x64/
           pytest -s tests/ten_runtime/integration/
+
+          df -h .
       #   continue-on-error: true
       # - name: Setup tmate session
       #   uses: mxschmitt/action-tmate@v3
@@ -472,7 +514,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: "0"
+          fetch-depth: 0
           submodules: false
 
       - name: Trust working directory
@@ -546,7 +588,7 @@ jobs:
 
           df -h .
 
-          tgn gen mac arm64 ${{ matrix.build_type }} -- log_level=1 enable_serialized_actions=true ten_enable_serialized_rust_action=true ten_rust_enable_gen_cargo_config=false ten_enable_ten_rust_apis=false ten_enable_rust_incremental_build=false ten_manager_enable_frontend=false ten_enable_integration_tests_prebuilt=false ten_enable_nodejs_binding=false
+          tgn gen mac arm64 ${{ matrix.build_type }} -- log_level=1 enable_serialized_actions=true ten_enable_serialized_rust_action=true ten_rust_enable_gen_cargo_config=false ten_enable_ten_rust_apis=false ten_enable_rust_incremental_build=false ten_manager_enable_frontend=false ten_enable_integration_tests_prebuilt=false ten_enable_nodejs_binding=false ten_enable_python_binding=false
 
           tgn build mac arm64 ${{ matrix.build_type }}
 
@@ -562,6 +604,8 @@ jobs:
         run: |
           chmod +x out/mac/arm64/tests/standalone/ten_runtime_smoke_test
           out/mac/arm64/tests/standalone/ten_runtime_smoke_test
+
+          df -h .
       #   continue-on-error: true
 
       # - name: Setup tmate session

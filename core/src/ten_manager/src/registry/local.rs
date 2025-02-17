@@ -138,7 +138,7 @@ fn is_same_file_by_hash(
 }
 
 pub async fn get_package(
-    _tman_config: &TmanConfig,
+    tman_config: &TmanConfig,
     pkg_type: &PkgType,
     pkg_name: &str,
     pkg_version: &Version,
@@ -205,14 +205,16 @@ pub async fn get_package(
 
     fs::copy(&path_url, temp_path.path())?;
 
-    // Place the downloaded file into the cache.
-    store_file_to_package_cache(
-        pkg_type,
-        pkg_name,
-        pkg_version,
-        &file_name.to_string_lossy(),
-        &path_url,
-    )?;
+    if tman_config.enable_package_cache {
+        // Place the downloaded file into the cache.
+        store_file_to_package_cache(
+            pkg_type,
+            pkg_name,
+            pkg_version,
+            &file_name.to_string_lossy(),
+            &path_url,
+        )?;
+    }
 
     Ok(())
 }

@@ -14,7 +14,8 @@
       "manifest.json",
       "property.json",
       "**.py",
-      "README.md"
+      "README.md",
+      "requirements.txt"
     ]
   },
   "api": {},

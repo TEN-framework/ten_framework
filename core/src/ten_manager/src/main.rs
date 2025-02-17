@@ -25,6 +25,7 @@ fn merge(cmd_line: TmanConfig, config_file: TmanConfig) -> TmanConfig {
         user_token: cmd_line.user_token.or(config_file.user_token),
         verbose: cmd_line.verbose,
         assume_yes: cmd_line.assume_yes,
+        enable_package_cache: config_file.enable_package_cache,
     }
 }
 

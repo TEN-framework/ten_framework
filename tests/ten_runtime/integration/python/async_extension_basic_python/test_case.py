@@ -157,7 +157,8 @@ def test_async_extension_basic_python():
         is_stopped = http.stop_app("127.0.0.1", 8002, 30)
         if not is_stopped:
             print(
-                "The async_extension_basic_python can not stop after 30 seconds."
+                "The async_extension_basic_python can not stop"
+                " after 30 seconds."
             )
             server.kill()
 
@@ -170,3 +171,4 @@ def test_async_extension_basic_python():
             # Testing complete. If builds are only created during the testing
             # phase, we can clear the build results to save disk space.
             build_pkg.cleanup(app_root_path)
+            build_pkg.cleanup(venv_dir)

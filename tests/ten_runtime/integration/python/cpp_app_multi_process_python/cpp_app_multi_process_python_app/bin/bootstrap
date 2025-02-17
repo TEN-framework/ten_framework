@@ -6,12 +6,12 @@ cd "$(dirname "${BASH_SOURCE[0]}")/.."
 
 # Resolve the dependencies of the Python app and generate the 'merged_requirements.txt' file.
 # get the result code of the following python script
-python3 ten_packages/system/ten_runtime_python/tools/deps_resolver.py -i https://pypi.tuna.tsinghua.edu.cn/simple/
+python3 ten_packages/system/ten_runtime_python/tools/deps_resolver.py
 result_code=$?
 
 # If the Python script is executed failed, exit the script.
 if [[ $result_code -ne 0 ]]; then
-  echo "Error: Failed to resolve the dependencies of the Python app. Cannot proceed to start."
+  echo "Error: Failed to resolve the dependencies of the Python app."
   exit $result_code
 fi
 

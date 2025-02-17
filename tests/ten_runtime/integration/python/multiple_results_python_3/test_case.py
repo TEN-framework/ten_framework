@@ -168,3 +168,4 @@ def test_multiple_results_python_3():
             # Testing complete. If builds are only created during the testing
             # phase, we can clear the build results to save disk space.
             build_pkg.cleanup(app_root_path)
+            build_pkg.cleanup(venv_dir)

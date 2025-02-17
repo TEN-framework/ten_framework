@@ -80,7 +80,7 @@ static PyObject *create_actual_py_ten_env_tester_instance(
 
 ten_py_ten_env_tester_t *ten_py_ten_env_tester_wrap(
     ten_env_tester_t *ten_env_tester) {
-  TEN_ASSERT(ten_env_tester, "Invalid argument.");
+  TEN_ASSERT(ten_env_tester, "ten_env_tester should not be NULL.");
 
   ten_py_ten_env_tester_t *py_ten_env_tester =
       ten_binding_handle_get_me_in_target_lang(
@@ -107,7 +107,7 @@ ten_py_ten_env_tester_t *ten_py_ten_env_tester_wrap(
   py_ten_env_tester->actual_py_ten_env_tester =
       create_actual_py_ten_env_tester_instance(py_ten_env_tester);
   if (!py_ten_env_tester->actual_py_ten_env_tester) {
-    TEN_ASSERT(0, "Should not happen.");
+    TEN_ASSERT(0, "Failed to create actual py_ten_env_tester.");
     Py_DECREF(py_ten_env_tester);
     return NULL;
   }

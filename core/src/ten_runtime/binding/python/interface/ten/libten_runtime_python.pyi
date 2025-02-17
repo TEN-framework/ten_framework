@@ -296,7 +296,10 @@ class _TenEnvTester:
     def on_stop_done(self) -> None: ...
     def on_deinit_done(self) -> None: ...
     def send_cmd(
-        self, cmd: _Cmd, result_handler: Optional[TestResultHandler]
+        self,
+        cmd: _Cmd,
+        result_handler: Optional[TestResultHandler],
+        is_ex: bool,
     ) -> None: ...
     def send_data(
         self, data: _Data, error_handler: Optional[TestErrorHandler]

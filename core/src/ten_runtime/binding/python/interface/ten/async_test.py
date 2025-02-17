@@ -9,7 +9,7 @@ import os
 import sys
 import threading
 import traceback
-from typing import Optional, final
+from typing import AsyncGenerator, Optional, final
 
 from libten_runtime_python import _ExtensionTester
 from .cmd_result import CmdResult
@@ -65,6 +65,7 @@ class AsyncTenEnvTester(TenEnvTesterBase):
         self._internal.send_cmd(
             cmd,
             lambda _, result, error: self._result_handler(result, error, q),
+            False,
         )
 
         [result, error] = await q.get()
@@ -73,6 +74,26 @@ class AsyncTenEnvTester(TenEnvTesterBase):
             assert result.is_completed()
 
         return result, error
+
+    async def send_cmd_ex(
+        self, cmd: Cmd
+    ) -> AsyncGenerator[CmdResultTuple, None]:
+        q = asyncio.Queue(maxsize=10)
+        self._internal.send_cmd(
+            cmd,
+            lambda _, result, error: self._result_handler(result, error, q),
+            True,
+        )
+
+        while True:
+            [result, error] = await q.get()
+            yield result, error
+
+            if error is not None:
+                break
+            elif result is not None and result.is_completed():
+                # This is the final result, so break the while loop.
+                break
 
     async def send_data(self, data: Data) -> Optional[TenError]:
         q = asyncio.Queue(maxsize=1)

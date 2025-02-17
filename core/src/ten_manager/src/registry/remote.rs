@@ -514,15 +514,17 @@ pub async fn get_package(
             temp_file_borrow.path().display()
         );
 
-        // Place the downloaded file into the cache.
-        let downloaded_path = temp_file_borrow.path();
-        store_file_to_package_cache(
-            pkg_type,
-            pkg_name,
-            pkg_version,
-            file_name,
-            downloaded_path,
-        )?;
+        if tman_config.enable_package_cache {
+            // Place the downloaded file into the cache.
+            let downloaded_path = temp_file_borrow.path();
+            store_file_to_package_cache(
+                pkg_type,
+                pkg_name,
+                pkg_version,
+                file_name,
+                downloaded_path,
+            )?;
+        }
     }
 
     Ok(())
