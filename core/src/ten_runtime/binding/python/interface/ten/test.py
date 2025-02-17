@@ -44,7 +44,12 @@ class TenEnvTester(TenEnvTesterBase):
     def send_cmd(
         self, cmd: Cmd, result_handler: Optional[ResultHandler] = None
     ) -> None:
-        return self._internal.send_cmd(cmd, result_handler)
+        return self._internal.send_cmd(cmd, result_handler, False)
+
+    def send_cmd_ex(
+        self, cmd: Cmd, result_handler: Optional[ResultHandler] = None
+    ) -> None:
+        return self._internal.send_cmd(cmd, result_handler, True)
 
     def send_data(
         self, data: Data, error_handler: Optional[ErrorHandler] = None

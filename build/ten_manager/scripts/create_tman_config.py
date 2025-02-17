@@ -21,7 +21,10 @@ class ArgumentInfo(argparse.Namespace):
 def create_tman_config_json(
     tman_config_file_path: str, registry_path: str
 ) -> None:
-    data = {"registry": {"default": {"index": registry_path}}}
+    data = {
+        "registry": {"default": {"index": registry_path}},
+        "enable_package_cache": False,
+    }
 
     with open(tman_config_file_path, "w") as file:
         json.dump(data, file, indent=2)

@@ -68,7 +68,7 @@ ten_py_cmd_result_t *ten_py_cmd_result_wrap(ten_shared_ptr_t *cmd) {
 }
 
 void ten_py_cmd_result_invalidate(ten_py_cmd_result_t *self) {
-  TEN_ASSERT(self, "Invalid argument");
+  TEN_ASSERT(self, "self should not be NULL.");
   Py_DECREF(self);
 }
 

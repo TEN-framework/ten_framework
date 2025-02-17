@@ -14,3 +14,9 @@ typedef struct ten_cmd_result_handler_for_send_cmd_ctx_t {
   ten_env_transfer_msg_result_handler_func_t result_handler;
   void *result_handler_user_data;
 } ten_cmd_result_handler_for_send_cmd_ctx_t;
+
+TEN_RUNTIME_PRIVATE_API ten_env_send_cmd_options_t *
+ten_env_send_cmd_options_create(void);
+
+TEN_RUNTIME_PRIVATE_API void ten_env_send_cmd_options_destroy(
+    ten_env_send_cmd_options_t *options);

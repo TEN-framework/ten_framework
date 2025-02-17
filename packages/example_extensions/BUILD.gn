@@ -22,6 +22,7 @@ group("example_extensions") {
     if (ten_enable_python_binding) {
       deps += [
         "aio_http_server_python",
+        "ollama_python",
         "pil_demo_python",
       ]
     }
