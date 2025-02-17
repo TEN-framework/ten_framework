@@ -20,7 +20,7 @@ class OllamaExtension(AsyncExtension):
         ten_env.log_debug("on_cmd name {}".format(cmd_name))
 
         if cmd_name == "ask":
-            question = cmd.get_property_string("question")
+            question, _ = cmd.get_property_string("question")
 
             model = "smollm:135m"
             response: ChatResponse = chat(
