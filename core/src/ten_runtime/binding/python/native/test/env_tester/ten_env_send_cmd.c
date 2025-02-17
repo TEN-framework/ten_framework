@@ -56,9 +56,12 @@ static void proxy_send_cmd_callback(ten_env_tester_t *ten_env_tester,
                                     ten_shared_ptr_t *c_cmd,
                                     void *callback_info, ten_error_t *error) {
   TEN_ASSERT(
-      ten_env_tester && ten_env_tester_check_integrity(ten_env_tester, true),
-      "Should not happen.");
-  TEN_ASSERT(callback_info, "Should not happen.");
+      ten_env_tester,
+      "ten_env_tester should not be NULL in the send_cmd callback function.");
+  TEN_ASSERT(
+      ten_env_tester_check_integrity(ten_env_tester, true),
+      "ten_env_tester should be valid in the send_cmd callback function.");
+  TEN_ASSERT(callback_info, "callback_info should not be NULL.");
 
   // About to call the Python function, so it's necessary to ensure that the GIL
   // has been acquired.
@@ -80,7 +83,7 @@ static void proxy_send_cmd_callback(ten_env_tester_t *ten_env_tester,
         Py_BuildValue("(OOO)", py_ten_env_tester->actual_py_ten_env_tester,
                       cmd_result_bridge, Py_None);
   } else {
-    TEN_ASSERT(error, "Should not happen.");
+    TEN_ASSERT(error, "error should not be NULL.");
 
     py_error = ten_py_error_wrap(error);
     arglist =
@@ -92,7 +95,7 @@ static void proxy_send_cmd_callback(ten_env_tester_t *ten_env_tester,
   Py_XDECREF(result);  // Ensure cleanup if an error occurred.
 
   bool err_occurred = ten_py_check_and_clear_py_error();
-  TEN_ASSERT(!err_occurred, "Should not happen.");
+  TEN_ASSERT(!err_occurred, "Error occurred when calling the callback.");
 
   Py_XDECREF(arglist);
 
