@@ -164,3 +164,4 @@ def test_async_io_basic_python():
             # Testing complete. If builds are only created during the testing
             # phase, we can clear the build results to save disk space.
             build_pkg.cleanup(app_root_path)
+            build_pkg.cleanup(venv_dir)
