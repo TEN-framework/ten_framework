@@ -84,12 +84,17 @@ void ten_env_tester_destroy(ten_env_tester_t *self) {
 typedef struct ten_env_tester_send_cmd_ctx_t {
   ten_extension_tester_t *tester;
   ten_shared_ptr_t *cmd;
-  ten_shared_ptr_t *cmd_result;
   ten_env_tester_transfer_msg_result_handler_func_t handler;
   void *handler_user_data;
   ten_env_send_cmd_options_t options;
   ten_error_t *err;
 } ten_env_tester_send_cmd_ctx_t;
+
+typedef struct ten_env_tester_send_cmd_callback_ctx_t {
+  ten_shared_ptr_t *cmd_result;
+  ten_error_t *err;
+  ten_env_tester_send_cmd_ctx_t *send_cmd_ctx;
+} ten_env_tester_send_cmd_callback_ctx_t;
 
 typedef struct ten_env_tester_send_msg_ctx_t {
   ten_extension_tester_t *tester;
@@ -117,7 +122,7 @@ typedef struct ten_env_tester_notify_log_ctx_t {
   ten_string_t msg;
 } ten_env_tester_notify_log_ctx_t;
 
-static ten_env_tester_send_cmd_ctx_t *ten_extension_tester_send_cmd_ctx_create(
+static ten_env_tester_send_cmd_ctx_t *ten_env_tester_send_cmd_ctx_create(
     ten_extension_tester_t *tester, ten_shared_ptr_t *cmd,
     ten_env_tester_transfer_msg_result_handler_func_t handler,
     void *handler_user_data, ten_env_send_cmd_options_t *options) {
@@ -131,7 +136,6 @@ static ten_env_tester_send_cmd_ctx_t *ten_extension_tester_send_cmd_ctx_create(
 
   self->tester = tester;
   self->cmd = cmd;
-  self->cmd_result = NULL;
   self->handler = handler;
   self->handler_user_data = handler_user_data;
   if (options) {
@@ -142,13 +146,40 @@ static ten_env_tester_send_cmd_ctx_t *ten_extension_tester_send_cmd_ctx_create(
   return self;
 }
 
-static void ten_extension_tester_send_cmd_ctx_destroy(
+static void ten_env_tester_send_cmd_ctx_destroy(
     ten_env_tester_send_cmd_ctx_t *self) {
   TEN_ASSERT(self, "Invalid argument.");
 
   if (self->cmd) {
     ten_shared_ptr_destroy(self->cmd);
   }
+
+  if (self->err) {
+    ten_error_destroy(self->err);
+  }
+
+  TEN_FREE(self);
+}
+
+static ten_env_tester_send_cmd_callback_ctx_t *
+ten_env_tester_send_cmd_callback_ctx_create(
+    ten_env_tester_send_cmd_ctx_t *send_cmd_ctx) {
+  TEN_ASSERT(send_cmd_ctx, "Invalid argument.");
+
+  ten_env_tester_send_cmd_callback_ctx_t *self =
+      TEN_MALLOC(sizeof(ten_env_tester_send_cmd_callback_ctx_t));
+  TEN_ASSERT(self, "Failed to allocate memory.");
+
+  self->cmd_result = NULL;
+  self->err = NULL;
+  self->send_cmd_ctx = send_cmd_ctx;
+
+  return self;
+}
+
+static void ten_env_tester_send_cmd_callback_ctx_destroy(
+    ten_env_tester_send_cmd_callback_ctx_t *self) {
+  TEN_ASSERT(self, "Invalid argument.");
 
   if (self->cmd_result) {
     ten_shared_ptr_destroy(self->cmd_result);
@@ -308,18 +339,20 @@ static void ten_extension_tester_execute_cmd_result_handler_task(void *self,
   TEN_ASSERT(tester && ten_extension_tester_check_integrity(tester, true),
              "Invalid argument.");
 
-  ten_env_tester_send_cmd_ctx_t *ctx = arg;
+  ten_env_tester_send_cmd_callback_ctx_t *ctx = arg;
   TEN_ASSERT(ctx, "Invalid argument.");
 
-  ctx->handler(tester->ten_env_tester, ctx->cmd_result, ctx->handler_user_data,
-               ctx->err);
+  ten_env_tester_send_cmd_ctx_t *send_cmd_ctx = ctx->send_cmd_ctx;
+  TEN_ASSERT(send_cmd_ctx, "Invalid argument.");
+
+  send_cmd_ctx->handler(tester->ten_env_tester, ctx->cmd_result,
+                        send_cmd_ctx->handler_user_data, ctx->err);
 
   if (ctx->err || ten_cmd_result_is_completed(ctx->cmd_result, NULL)) {
-    ten_extension_tester_send_cmd_ctx_destroy(ctx);
-  } else {
-    ten_shared_ptr_destroy(ctx->cmd_result);
-    ctx->cmd_result = NULL;
+    ten_env_tester_send_cmd_ctx_destroy(send_cmd_ctx);
   }
+
+  ten_env_tester_send_cmd_callback_ctx_destroy(ctx);
 }
 
 static void ten_extension_tester_execute_return_result_handler_task(void *self,
@@ -343,37 +376,44 @@ static void send_cmd_callback(ten_env_t *ten_env, ten_shared_ptr_t *cmd_result,
   TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
              "Should not happen.");
 
-  ten_env_tester_send_cmd_ctx_t *ctx = callback_user_data;
-  TEN_ASSERT(ctx, "Invalid argument.");
+  ten_env_tester_send_cmd_ctx_t *send_cmd_ctx = callback_user_data;
+  TEN_ASSERT(send_cmd_ctx, "Invalid argument.");
 
-  if (!ctx->handler) {
+  if (!send_cmd_ctx->handler) {
     if (err || ten_cmd_result_is_completed(cmd_result, NULL)) {
-      ten_extension_tester_send_cmd_ctx_destroy(ctx);
+      ten_env_tester_send_cmd_ctx_destroy(send_cmd_ctx);
     }
     return;
   }
+
+  ten_env_tester_send_cmd_callback_ctx_t *ctx =
+      ten_env_tester_send_cmd_callback_ctx_create(send_cmd_ctx);
 
   if (err) {
     ten_error_t *err_clone = ten_error_create();
     ten_error_copy(err_clone, err);
 
     ctx->err = err_clone;
+
     // Inject cmd result into the extension_tester thread to ensure thread
     // safety.
     int rc = ten_runloop_post_task_tail(
-        ctx->tester->tester_runloop,
-        ten_extension_tester_execute_cmd_result_handler_task, ctx->tester, ctx);
+        send_cmd_ctx->tester->tester_runloop,
+        ten_extension_tester_execute_cmd_result_handler_task,
+        send_cmd_ctx->tester, ctx);
     TEN_ASSERT(!rc, "Should not happen.");
   } else {
     TEN_ASSERT(cmd_result && ten_cmd_base_check_integrity(cmd_result),
                "Should not happen.");
 
     ctx->cmd_result = ten_shared_ptr_clone(cmd_result);
+
     // Inject cmd result into the extension_tester thread to ensure thread
     // safety.
     int rc = ten_runloop_post_task_tail(
-        ctx->tester->tester_runloop,
-        ten_extension_tester_execute_cmd_result_handler_task, ctx->tester, ctx);
+        send_cmd_ctx->tester->tester_runloop,
+        ten_extension_tester_execute_cmd_result_handler_task,
+        send_cmd_ctx->tester, ctx);
     TEN_ASSERT(!rc, "Should not happen.");
   }
 }
@@ -462,7 +502,7 @@ static void test_extension_ten_env_send_cmd(ten_env_t *ten_env,
           ctx);
       TEN_ASSERT(!rc, "Should not happen.");
     } else {
-      ten_extension_tester_send_cmd_ctx_destroy(ctx);
+      ten_env_tester_send_cmd_ctx_destroy(ctx);
     }
   }
 
@@ -635,14 +675,14 @@ bool ten_env_tester_send_cmd(
     return false;
   }
 
-  ten_env_tester_send_cmd_ctx_t *ctx = ten_extension_tester_send_cmd_ctx_create(
+  ten_env_tester_send_cmd_ctx_t *ctx = ten_env_tester_send_cmd_ctx_create(
       self->tester, ten_shared_ptr_clone(cmd), handler, user_data, options);
 
   bool rc =
       ten_env_proxy_notify(self->tester->test_extension_ten_env_proxy,
                            test_extension_ten_env_send_cmd, ctx, false, err);
   if (!rc) {
-    ten_extension_tester_send_cmd_ctx_destroy(ctx);
+    ten_env_tester_send_cmd_ctx_destroy(ctx);
   }
 
   return rc;
