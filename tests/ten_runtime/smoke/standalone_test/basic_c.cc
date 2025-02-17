@@ -45,7 +45,6 @@ namespace {
 
 void hello_world_cmd_result_handler(ten_env_tester_t *ten_env,
                                     ten_shared_ptr_t *cmd_result,
-                                    ten_shared_ptr_t *cmd,
                                     TEN_UNUSED void *user_data,
                                     TEN_UNUSED ten_error_t *err) {
   if (ten_cmd_result_get_status_code(cmd_result) == TEN_STATUS_CODE_OK) {
