@@ -53,7 +53,6 @@ static void ten_py_ten_env_tester_send_cmd_ctx_destroy(
 
 static void proxy_send_cmd_callback(ten_env_tester_t *ten_env_tester,
                                     ten_shared_ptr_t *c_cmd_result,
-                                    ten_shared_ptr_t *c_cmd,
                                     void *callback_info, ten_error_t *error) {
   TEN_ASSERT(
       ten_env_tester,

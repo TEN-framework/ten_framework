@@ -49,8 +49,7 @@ static void ten_py_ten_env_tester_send_data_ctx_destroy(
 
 static void proxy_send_data_callback(ten_env_tester_t *self,
                                      TEN_UNUSED ten_shared_ptr_t *c_cmd_result,
-                                     ten_shared_ptr_t *c_data, void *user_data,
-                                     ten_error_t *error) {
+                                     void *user_data, ten_error_t *error) {
   TEN_ASSERT(self && ten_env_tester_check_integrity(self, true),
              "Should not happen.");
   TEN_ASSERT(user_data, "Should not happen.");
