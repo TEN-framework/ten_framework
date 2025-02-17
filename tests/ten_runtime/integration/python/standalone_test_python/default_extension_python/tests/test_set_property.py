@@ -31,7 +31,7 @@ class ExtensionTesterSetProperty(ExtensionTester):
         ten_env.log_info("receive hello_world, status:" + str(statusCode))
 
         if statusCode == StatusCode.OK:
-            detail = result.get_property_string("detail")
+            detail, _ = result.get_property_string("detail")
             assert detail == "hola"
 
             ten_env.stop_test()

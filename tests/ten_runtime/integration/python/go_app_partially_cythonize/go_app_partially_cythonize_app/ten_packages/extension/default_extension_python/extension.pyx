@@ -24,8 +24,8 @@ class DefaultExtension(Extension):
         ten_env.log_debug("on_start")
 
         ten_env.set_property_from_json("testKey2", '"testValue2"')
-        testValue = ten_env.get_property_to_json("testKey")
-        testValue2 = ten_env.get_property_to_json("testKey2")
+        testValue, _ = ten_env.get_property_to_json("testKey")
+        testValue2, _ = ten_env.get_property_to_json("testKey2")
         ten_env.log_info(f"testValue: {testValue}, testValue2: {testValue2}")
 
         ten_env.on_start_done()
@@ -71,7 +71,7 @@ class DefaultExtension(Extension):
 
         assert result is not None
         statusCode = result.get_status_code()
-        detail = result.get_property_string("detail")
+        detail, _ = result.get_property_string("detail")
         ten_env.log_info(
             f"check_hello: status: {str(statusCode)}, detail: {detail}"
         )
@@ -86,12 +86,12 @@ class DefaultExtension(Extension):
         )
 
     def on_cmd(self, ten_env: TenEnv, cmd: Cmd) -> None:
-        cmd_json = cmd.get_property_to_json()
+        cmd_json, _ = cmd.get_property_to_json()
         ten_env.log_debug("on_cmd: " + cmd_json)
 
         new_cmd = Cmd.create("hello")
         new_cmd.set_property_from_json("test", '"testValue2"')
-        test_value = new_cmd.get_property_to_json("test")
+        test_value, _ = new_cmd.get_property_to_json("test")
         ten_env.log_info(f"on_cmd test_value: {test_value}")
 
         # Send command to a cpp extension.

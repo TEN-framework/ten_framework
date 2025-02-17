@@ -200,7 +200,7 @@ void ten_go_ten_value_get_ptr(ten_value_t *self, ten_go_handle_t *value,
 }
 
 ten_value_t *ten_go_ten_value_create_buf(void *value, int value_len) {
-  TEN_ASSERT(value, "Should not happen.");
+  TEN_ASSERT(value, "value should not be NULL.");
 
   ten_buf_t buf;
   ten_buf_init_with_owned_data(&buf, value_len);
@@ -330,7 +330,7 @@ static ten_value_t *ten_go_value_reinterpret(uintptr_t value_addr) {
 ten_go_error_t ten_go_value_get_string(uintptr_t value_addr, void *value) {
   ten_value_t *self = ten_go_value_reinterpret(value_addr);
   TEN_ASSERT(self && ten_value_check_integrity(self), "Should not happen.");
-  TEN_ASSERT(value, "Should not happen.");
+  TEN_ASSERT(value, "value should not be NULL.");
 
   ten_go_error_t cgo_error;
   ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
@@ -345,7 +345,7 @@ ten_go_error_t ten_go_value_get_string(uintptr_t value_addr, void *value) {
 ten_go_error_t ten_go_value_get_buf(uintptr_t value_addr, void *value) {
   ten_value_t *self = ten_go_value_reinterpret(value_addr);
   TEN_ASSERT(self && ten_value_check_integrity(self), "Should not happen.");
-  TEN_ASSERT(value, "Should not happen.");
+  TEN_ASSERT(value, "value should not be NULL.");
 
   ten_go_error_t cgo_error;
   ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);

@@ -58,12 +58,11 @@ class HttpServerExtension(AsyncExtension):
             cmd_result is not None
             and cmd_result.get_status_code() == StatusCode.OK
         ):
-            try:
-                detail = cmd_result.get_property_string("detail")
-                return web.Response(text=detail)
-            except Exception as e:
-                self.ten_env.log_error("Error: " + str(e))
+            detail, err = cmd_result.get_property_string("detail")
+            if err is not None:
+                self.ten_env.log_error("Error: " + str(err))
                 return web.Response(status=500, text="Internal server error")
+            return web.Response(text=detail)
         else:
             return web.Response(status=500, text="Internal server error")
 
@@ -110,11 +109,10 @@ class HttpServerExtension(AsyncExtension):
     async def on_start(self, ten_env: AsyncTenEnv) -> None:
         ten_env.log_debug("on_start")
 
-        try:
-            self.server_port = await ten_env.get_property_int("server_port")
-        except Exception as e:
+        self.server_port, err = await ten_env.get_property_int("server_port")
+        if err is not None:
             ten_env.log_error(
-                "Could not read 'server_port' from properties." + str(e)
+                "Could not read 'server_port' from properties." + str(err)
             )
             self.server_port = 8002
 

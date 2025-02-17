@@ -8,6 +8,7 @@
 #include "include_internal/ten_runtime/binding/python/common/error.h"
 #include "include_internal/ten_runtime/binding/python/ten_env/ten_env.h"
 #include "include_internal/ten_runtime/common/error_code.h"
+#include "ten_runtime/common/error_code.h"
 #include "ten_runtime/ten_env_proxy/ten_env_proxy.h"
 #include "ten_utils/lib/error.h"
 #include "ten_utils/lib/json.h"
@@ -443,24 +444,26 @@ static PyObject *ten_py_ten_env_get_property_async(PyObject *self,
         "Invalid callback function when ten_env.get_property_to_json_async.");
   }
 
-  if (!py_ten_env->c_ten_env_proxy && !py_ten_env->c_ten_env) {
-    return ten_py_raise_py_value_error_exception(
-        "ten_env.get_property_to_json_async() failed because ten_env_proxy is "
-        "invalid.");
-  }
-
   ten_error_t err;
   TEN_ERROR_INIT(err);
 
-  bool rc = ten_py_peek_property_async(py_ten_env, path, cb_func, cb, &err);
-
-  ten_error_deinit(&err);
-
-  if (!rc) {
-    return NULL;
+  if (!py_ten_env->c_ten_env_proxy && !py_ten_env->c_ten_env) {
+    ten_error_set(&err, TEN_ERROR_CODE_TEN_IS_CLOSED, "ten_env is closed.");
+    PyObject *result = (PyObject *)ten_py_error_wrap(&err);
+    ten_error_deinit(&err);
+    return result;
   }
 
-  Py_RETURN_NONE;
+  bool rc = ten_py_peek_property_async(py_ten_env, path, cb_func, cb, &err);
+  if (rc) {
+    ten_error_deinit(&err);
+    Py_RETURN_NONE;
+  }
+
+  PyObject *result = (PyObject *)ten_py_error_wrap(&err);
+  ten_error_deinit(&err);
+
+  return result;
 }
 
 PyObject *ten_py_ten_env_get_property_to_json_async(PyObject *self,

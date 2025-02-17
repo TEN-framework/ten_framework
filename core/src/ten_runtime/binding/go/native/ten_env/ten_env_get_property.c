@@ -208,7 +208,7 @@ ten_go_error_t ten_go_ten_env_get_property_int8(uintptr_t bridge_addr,
   TEN_ASSERT(self && ten_go_ten_env_check_integrity(self),
              "Should not happen.");
   TEN_ASSERT(path && path_len > 0, "Should not happen.");
-  TEN_ASSERT(value, "Should not happen.");
+  TEN_ASSERT(value, "value should not be NULL.");
 
   ten_go_error_t cgo_error;
   ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
@@ -245,7 +245,7 @@ ten_go_error_t ten_go_ten_env_get_property_int16(uintptr_t bridge_addr,
   TEN_ASSERT(self && ten_go_ten_env_check_integrity(self),
              "Should not happen.");
   TEN_ASSERT(path && path_len > 0, "Should not happen.");
-  TEN_ASSERT(value, "Should not happen.");
+  TEN_ASSERT(value, "value should not be NULL.");
 
   ten_go_error_t cgo_error;
   ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
@@ -282,7 +282,7 @@ ten_go_error_t ten_go_ten_env_get_property_int32(uintptr_t bridge_addr,
   TEN_ASSERT(self && ten_go_ten_env_check_integrity(self),
              "Should not happen.");
   TEN_ASSERT(path && path_len > 0, "Should not happen.");
-  TEN_ASSERT(value, "Should not happen.");
+  TEN_ASSERT(value, "value should not be NULL.");
 
   ten_go_error_t cgo_error;
   ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
@@ -319,7 +319,7 @@ ten_go_error_t ten_go_ten_env_get_property_int64(uintptr_t bridge_addr,
   TEN_ASSERT(self && ten_go_ten_env_check_integrity(self),
              "Should not happen.");
   TEN_ASSERT(path && path_len > 0, "Should not happen.");
-  TEN_ASSERT(value, "Should not happen.");
+  TEN_ASSERT(value, "value should not be NULL.");
 
   ten_go_error_t cgo_error;
   ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
@@ -356,7 +356,7 @@ ten_go_error_t ten_go_ten_env_get_property_uint8(uintptr_t bridge_addr,
   TEN_ASSERT(self && ten_go_ten_env_check_integrity(self),
              "Should not happen.");
   TEN_ASSERT(path && path_len > 0, "Should not happen.");
-  TEN_ASSERT(value, "Should not happen.");
+  TEN_ASSERT(value, "value should not be NULL.");
 
   ten_go_error_t cgo_error;
   ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
@@ -394,7 +394,7 @@ ten_go_error_t ten_go_ten_env_get_property_uint16(uintptr_t bridge_addr,
   TEN_ASSERT(self && ten_go_ten_env_check_integrity(self),
              "Should not happen.");
   TEN_ASSERT(path && path_len > 0, "Should not happen.");
-  TEN_ASSERT(value, "Should not happen.");
+  TEN_ASSERT(value, "value should not be NULL.");
 
   ten_go_error_t cgo_error;
   ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
@@ -432,7 +432,7 @@ ten_go_error_t ten_go_ten_env_get_property_uint32(uintptr_t bridge_addr,
   TEN_ASSERT(self && ten_go_ten_env_check_integrity(self),
              "Should not happen.");
   TEN_ASSERT(path && path_len > 0, "Should not happen.");
-  TEN_ASSERT(value, "Should not happen.");
+  TEN_ASSERT(value, "value should not be NULL.");
 
   ten_go_error_t cgo_error;
   ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
@@ -470,7 +470,7 @@ ten_go_error_t ten_go_ten_env_get_property_uint64(uintptr_t bridge_addr,
   TEN_ASSERT(self && ten_go_ten_env_check_integrity(self),
              "Should not happen.");
   TEN_ASSERT(path && path_len > 0, "Should not happen.");
-  TEN_ASSERT(value, "Should not happen.");
+  TEN_ASSERT(value, "value should not be NULL.");
 
   ten_go_error_t cgo_error;
   ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
@@ -507,7 +507,7 @@ ten_go_error_t ten_go_ten_env_get_property_float32(uintptr_t bridge_addr,
   TEN_ASSERT(self && ten_go_ten_env_check_integrity(self),
              "Should not happen.");
   TEN_ASSERT(path && path_len > 0, "Should not happen.");
-  TEN_ASSERT(value, "Should not happen.");
+  TEN_ASSERT(value, "value should not be NULL.");
 
   ten_go_error_t cgo_error;
   ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
@@ -545,7 +545,7 @@ ten_go_error_t ten_go_ten_env_get_property_float64(uintptr_t bridge_addr,
   TEN_ASSERT(self && ten_go_ten_env_check_integrity(self),
              "Should not happen.");
   TEN_ASSERT(path && path_len > 0, "Should not happen.");
-  TEN_ASSERT(value, "Should not happen.");
+  TEN_ASSERT(value, "value should not be NULL.");
 
   ten_go_error_t cgo_error;
   ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
@@ -582,7 +582,7 @@ ten_go_error_t ten_go_ten_env_get_property_bool(uintptr_t bridge_addr,
   TEN_ASSERT(self && ten_go_ten_env_check_integrity(self),
              "Should not happen.");
   TEN_ASSERT(path && path_len > 0, "Should not happen.");
-  TEN_ASSERT(value, "Should not happen.");
+  TEN_ASSERT(value, "value should not be NULL.");
 
   ten_go_error_t cgo_error;
   ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
@@ -619,7 +619,7 @@ ten_go_error_t ten_go_ten_env_get_property_ptr(uintptr_t bridge_addr,
   TEN_ASSERT(self && ten_go_ten_env_check_integrity(self),
              "Should not happen.");
   TEN_ASSERT(path && path_len > 0, "Should not happen.");
-  TEN_ASSERT(value, "Should not happen.");
+  TEN_ASSERT(value, "value should not be NULL.");
 
   ten_go_error_t cgo_error;
   ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);

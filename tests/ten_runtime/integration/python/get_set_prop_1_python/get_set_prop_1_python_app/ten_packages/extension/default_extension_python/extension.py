@@ -19,14 +19,9 @@ class DefaultExtension(Extension):
     def __test_thread_routine(self, ten_env: TenEnv):
         i = 0
         for _ in range(0, 10000):
-            try:
-                throw_exception = False
-                _ = ten_env.get_property_string("undefinedKey")
-            except Exception:
+            _, err = ten_env.get_property_string("undefinedKey")
+            if err is not None:
                 i += 1
-                throw_exception = True
-
-            assert throw_exception is True
 
         assert i == 10000
         ten_env.log_info("__test_thread_routine done")
@@ -34,39 +29,36 @@ class DefaultExtension(Extension):
     def on_start(self, ten_env: TenEnv) -> None:
         ten_env.log_debug("on_start")
 
-        assert ten_env.is_property_exist("env_not_set_has_default") is True
+        assert ten_env.is_property_exist("env_not_set_has_default")[0] is True
 
-        try:
-            env_value = ten_env.get_property_string("env_not_set_has_default")
-            assert env_value == ""
-        except Exception as e:
-            ten_env.log_info(str(e))
-            assert False
+        env_value, err = ten_env.get_property_string("env_not_set_has_default")
+        assert env_value == ""
+        assert err is None
 
-        assert ten_env.is_property_exist("undefined_key") is False
+        assert ten_env.is_property_exist("undefined_key")[0] is False
 
         ten_env.set_property_from_json("testKey2", '"testValue2"')
 
-        assert ten_env.is_property_exist("testKey") is True
-        assert ten_env.is_property_exist("testKey2") is True
-        testValue = ten_env.get_property_to_json("testKey")
-        testValue2 = ten_env.get_property_to_json("testKey2")
+        assert ten_env.is_property_exist("testKey")[0] is True
+        assert ten_env.is_property_exist("testKey2")[0] is True
+        testValue, _ = ten_env.get_property_to_json("testKey")
+        testValue2, _ = ten_env.get_property_to_json("testKey2")
         assert testValue == '"testValue"'
         assert testValue2 == '"testValue2"'
 
         ten_env.set_property_bool("testBoolTrue", True)
         ten_env.set_property_bool("testBoolFalse", False)
-        assert ten_env.get_property_bool("testBoolTrue") is True
-        assert ten_env.get_property_bool("testBoolFalse") is False
+        assert ten_env.get_property_bool("testBoolTrue")[0] is True
+        assert ten_env.get_property_bool("testBoolFalse")[0] is False
 
         ten_env.set_property_int("testInt", 123)
-        assert ten_env.get_property_int("testInt") == 123
+        assert ten_env.get_property_int("testInt")[0] == 123
 
         ten_env.set_property_float("testFloat", 123.456)
-        assert ten_env.get_property_float("testFloat") == 123.456
+        assert ten_env.get_property_float("testFloat")[0] == 123.456
 
         ten_env.set_property_string("testString", "testString")
-        assert ten_env.get_property_string("testString") == "testString"
+        assert ten_env.get_property_string("testString")[0] == "testString"
 
         self.thread_test = threading.Thread(
             target=self.__test_thread_routine, args=(ten_env,)
@@ -74,14 +66,13 @@ class DefaultExtension(Extension):
 
         self.thread_test.start()
 
+        i = 0
         for _ in range(0, 10000):
-            try:
-                throw_exception = False
-                _ = ten_env.get_property_string("undefinedKey")
-            except Exception:
-                throw_exception = True
+            _, err = ten_env.get_property_string("undefinedKey")
+            if err is not None:
+                i += 1
 
-            assert throw_exception is True
+        assert i == 10000
 
         ten_env.on_start_done()
 
@@ -115,19 +106,18 @@ class DefaultExtension(Extension):
         assert result is not None
 
         statusCode = result.get_status_code()
-        detail = result.get_property_string("detail")
+        detail, _ = result.get_property_string("detail")
         ten_env.log_info(
             "check_hello: status:" + str(statusCode) + " detail:" + detail
         )
 
-        for i in range(0, 10000):
-            try:
-                throw_exception = False
-                _ = result.get_property_string("undefinedKey")
-            except Exception:
-                throw_exception = True
+        i = 0
+        for _ in range(0, 10000):
+            _, err = result.get_property_string("undefinedKey")
+            if err is not None:
+                i += 1
 
-            assert throw_exception is True
+        assert i == 10000
 
         respCmd = CmdResult.create(StatusCode.OK)
         respCmd.set_property_string("detail", detail + " nbnb")
@@ -137,38 +127,33 @@ class DefaultExtension(Extension):
 
     def on_cmd(self, ten_env: TenEnv, cmd: Cmd) -> None:
         ten_env.log_info("on_cmd")
-        cmd_json = cmd.get_property_to_json()
+        cmd_json, _ = cmd.get_property_to_json()
         ten_env.log_info("on_cmd json: " + cmd_json)
 
         new_cmd = Cmd.create("hello")
         new_cmd.set_property_from_json("test", '"testValue2"')
-        test_value = new_cmd.get_property_to_json("test")
+        test_value, _ = new_cmd.get_property_to_json("test")
         assert test_value == '"testValue2"'
 
         new_cmd.set_property_bool("testBoolTrue", True)
         new_cmd.set_property_bool("testBoolFalse", False)
-        assert new_cmd.get_property_bool("testBoolTrue") is True
-        assert new_cmd.get_property_bool("testBoolFalse") is False
+        assert new_cmd.get_property_bool("testBoolTrue")[0] is True
+        assert new_cmd.get_property_bool("testBoolFalse")[0] is False
 
         new_cmd.set_property_int("testInt", 123)
-        assert new_cmd.get_property_int("testInt") == 123
+        assert new_cmd.get_property_int("testInt")[0] == 123
 
         new_cmd.set_property_float("testFloat", 123.456)
-        assert new_cmd.get_property_float("testFloat") == 123.456
+        assert new_cmd.get_property_float("testFloat")[0] == 123.456
 
         new_cmd.set_property_string("testString", "testString")
-        assert new_cmd.get_property_string("testString") == "testString"
+        assert new_cmd.get_property_string("testString")[0] == "testString"
 
         new_cmd.set_property_buf("testBuf", b"testBuf")
-        assert new_cmd.get_property_buf("testBuf") == b"testBuf"
+        assert new_cmd.get_property_buf("testBuf")[0] == b"testBuf"
 
-        try:
-            _ = new_cmd.get_property_string("undefinedKey")
-        except Exception as e:
-            ten_env.log_info(
-                "DefaultExtension on_cmd get_property_string exception: "
-                + str(e)
-            )
+        _, err = new_cmd.get_property_string("undefinedKey")
+        assert err is not None
 
         ten_env.send_cmd(
             new_cmd,

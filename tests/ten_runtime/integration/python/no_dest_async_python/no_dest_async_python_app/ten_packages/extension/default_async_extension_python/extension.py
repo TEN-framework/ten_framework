@@ -19,10 +19,10 @@ class DefaultAsyncExtension(AsyncExtension):
         await asyncio.sleep(0.5)
         ten_env.log_debug("on_start")
 
-        assert await ten_env.is_property_exist("unknown_field") is False
+        assert (await ten_env.is_property_exist("unknown_field"))[0] is False
 
         await ten_env.set_property_string("string_field", "hello")
-        assert await ten_env.is_property_exist("string_field") is True
+        assert (await ten_env.is_property_exist("string_field"))[0] is True
 
         result, err = await ten_env.send_cmd(Cmd.create("unknown_cmd"))
         assert err is not None
@@ -52,7 +52,7 @@ class DefaultAsyncExtension(AsyncExtension):
         await asyncio.sleep(0.5)
 
     async def on_cmd(self, ten_env: AsyncTenEnv, cmd: Cmd) -> None:
-        cmd_json = cmd.get_property_to_json()
+        cmd_json, _ = cmd.get_property_to_json()
         ten_env.log_debug(f"on_cmd: {cmd_json}")
 
         # Mock async operation, e.g. network, file I/O.

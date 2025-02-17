@@ -13,15 +13,15 @@ class DefaultExtension(Extension):
     def on_start(self, ten_env: TenEnv) -> None:
         ten_env.log_debug("on_start")
 
-        env_value = ten_env.get_property_to_json()
+        env_value, _ = ten_env.get_property_to_json()
         env_json = json.loads(env_value)
         assert env_json["test_prop"] == 32
 
-        env_value = ten_env.get_property_to_json("")
+        env_value, _ = ten_env.get_property_to_json("")
         env_json = json.loads(env_value)
         assert env_json["test_prop"] == 32
 
-        env_value = ten_env.get_property_to_json("test_prop")
+        env_value, _ = ten_env.get_property_to_json("test_prop")
         env_json = json.loads(env_value)
         assert env_json == 32
 
@@ -40,7 +40,7 @@ class DefaultExtension(Extension):
         assert result is not None
 
         statusCode = result.get_status_code()
-        detail = result.get_property_string("detail")
+        detail, _ = result.get_property_string("detail")
         ten_env.log_info(
             "check_hello: status:" + str(statusCode) + " detail:" + detail
         )
@@ -53,7 +53,7 @@ class DefaultExtension(Extension):
 
     def on_cmd(self, ten_env: TenEnv, cmd: Cmd) -> None:
         ten_env.log_info("on_cmd")
-        cmd_json = cmd.get_property_to_json()
+        cmd_json, _ = cmd.get_property_to_json()
         ten_env.log_info("on_cmd json: " + cmd_json)
 
         new_cmd = Cmd.create("hello")

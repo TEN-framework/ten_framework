@@ -8,6 +8,7 @@
 #include "include_internal/ten_runtime/binding/python/ten_env/ten_env.h"
 #include "ten_runtime/ten_env/internal/metadata.h"
 #include "ten_runtime/ten_env_proxy/ten_env_proxy.h"
+#include "ten_utils/lib/error.h"
 #include "ten_utils/lib/json.h"
 #include "ten_utils/macro/memory.h"
 #include "ten_utils/value/value.h"
@@ -17,11 +18,13 @@ typedef struct ten_env_notify_set_property_ctx_t {
   bool result;
   ten_string_t path;
   ten_value_t *c_value;
+  ten_error_t *c_error;
   ten_event_t *completed;
 } ten_env_notify_set_property_ctx_t;
 
 static ten_env_notify_set_property_ctx_t *
-ten_env_notify_set_property_ctx_create(const void *path, ten_value_t *value) {
+ten_env_notify_set_property_ctx_create(const void *path, ten_value_t *value,
+                                       ten_error_t *c_error) {
   ten_env_notify_set_property_ctx_t *ctx =
       TEN_MALLOC(sizeof(ten_env_notify_set_property_ctx_t));
   TEN_ASSERT(ctx, "Failed to allocate memory.");
@@ -30,7 +33,7 @@ ten_env_notify_set_property_ctx_create(const void *path, ten_value_t *value) {
   ten_string_init_formatted(&ctx->path, "%s", path);
   ctx->c_value = value;
   ctx->completed = ten_event_create(0, 1);
-
+  ctx->c_error = c_error;
   return ctx;
 }
 
@@ -41,7 +44,7 @@ static void ten_env_notify_set_property_ctx_destroy(
   ten_string_deinit(&self->path);
   self->c_value = NULL;
   ten_event_destroy(self->completed);
-
+  self->c_error = NULL;
   TEN_FREE(self);
 }
 
@@ -67,19 +70,17 @@ static void ten_env_proxy_notify_set_property(ten_env_t *ten_env,
 }
 
 static void ten_py_ten_env_set_property(ten_py_ten_env_t *self,
-                                        const void *path, ten_value_t *value) {
+                                        const void *path, ten_value_t *value,
+                                        ten_error_t *err) {
   TEN_ASSERT(self && ten_py_ten_env_check_integrity(self), "Invalid argument.");
   TEN_ASSERT(value && ten_value_check_integrity(value), "Invalid argument.");
 
-  ten_error_t err;
-  TEN_ERROR_INIT(err);
-
   ten_env_notify_set_property_ctx_t *ctx =
-      ten_env_notify_set_property_ctx_create(path, value);
+      ten_env_notify_set_property_ctx_create(path, value, err);
 
   if (!ten_env_proxy_notify(self->c_ten_env_proxy,
                             ten_env_proxy_notify_set_property, ctx, false,
-                            &err)) {
+                            err)) {
     goto done;
   }
 
@@ -89,7 +90,6 @@ static void ten_py_ten_env_set_property(ten_py_ten_env_t *self,
 
 done:
   ten_env_notify_set_property_ctx_destroy(ctx);
-  ten_error_deinit(&err);
 }
 
 PyObject *ten_py_ten_env_set_property_from_json(PyObject *self,
@@ -110,29 +110,41 @@ PyObject *ten_py_ten_env_set_property_from_json(PyObject *self,
         "Failed to parse arguments when ten_env.set_property_from_json.");
   }
 
+  ten_error_t err;
+  TEN_ERROR_INIT(err);
+
   if (!py_ten_env->c_ten_env_proxy && !py_ten_env->c_ten_env) {
-    return ten_py_raise_py_value_error_exception(
-        "ten_env.set_property_from_json() failed because ten_env_proxy is "
-        "invalid.");
+    ten_error_set(&err, TEN_ERROR_CODE_TEN_IS_CLOSED,
+                  "ten_env.set_property_from_json() failed because "
+                  "ten_env_proxy is invalid.");
+
+    PyObject *result = (PyObject *)ten_py_error_wrap(&err);
+    ten_error_deinit(&err);
+    return result;
   }
 
-  ten_json_t *json = ten_json_from_string(json_str, NULL);
+  ten_json_t *json = ten_json_from_string(json_str, &err);
   if (!json) {
-    return ten_py_raise_py_value_error_exception(
-        "Failed to parse json when ten_env.set_property_from_json.");
+    PyObject *result = (PyObject *)ten_py_error_wrap(&err);
+    ten_error_deinit(&err);
+    return result;
   }
 
   ten_value_t *value = ten_value_from_json(json);
-  if (!value) {
-    return ten_py_raise_py_value_error_exception(
-        "Failed to convert json to value when ten_env.set_property_from_json.");
-  }
+  TEN_ASSERT(value, "value should not be NULL.");
 
   ten_json_destroy(json);
 
-  ten_py_ten_env_set_property(py_ten_env, path, value);
+  ten_py_ten_env_set_property(py_ten_env, path, value, &err);
 
-  Py_RETURN_NONE;
+  if (ten_error_is_success(&err)) {
+    ten_error_deinit(&err);
+    Py_RETURN_NONE;
+  }
+
+  PyObject *result = (PyObject *)ten_py_error_wrap(&err);
+  ten_error_deinit(&err);
+  return result;
 }
 
 PyObject *ten_py_ten_env_set_property_int(PyObject *self, PyObject *args) {
@@ -152,20 +164,31 @@ PyObject *ten_py_ten_env_set_property_int(PyObject *self, PyObject *args) {
         "Failed to parse arguments when ten_env.set_property_int.");
   }
 
+  ten_error_t err;
+  TEN_ERROR_INIT(err);
+
   if (!py_ten_env->c_ten_env_proxy && !py_ten_env->c_ten_env) {
-    return ten_py_raise_py_value_error_exception(
+    ten_error_set(
+        &err, TEN_ERROR_CODE_TEN_IS_CLOSED,
         "ten_env.set_property_int() failed because ten_env_proxy is invalid.");
+
+    PyObject *result = (PyObject *)ten_py_error_wrap(&err);
+    ten_error_deinit(&err);
+    return result;
   }
 
   ten_value_t *c_value = ten_value_create_int64(value);
-  if (!c_value) {
-    return ten_py_raise_py_value_error_exception(
-        "Failed to create value when ten_env.set_property_int.");
+  TEN_ASSERT(c_value, "Should not happen.");
+
+  ten_py_ten_env_set_property(py_ten_env, path, c_value, &err);
+  if (ten_error_is_success(&err)) {
+    ten_error_deinit(&err);
+    Py_RETURN_NONE;
   }
 
-  ten_py_ten_env_set_property(py_ten_env, path, c_value);
-
-  Py_RETURN_NONE;
+  PyObject *result = (PyObject *)ten_py_error_wrap(&err);
+  ten_error_deinit(&err);
+  return result;
 }
 
 PyObject *ten_py_ten_env_set_property_string(PyObject *self, PyObject *args) {
@@ -185,21 +208,31 @@ PyObject *ten_py_ten_env_set_property_string(PyObject *self, PyObject *args) {
         "Failed to parse arguments when ten_env.set_property_string.");
   }
 
+  ten_error_t err;
+  TEN_ERROR_INIT(err);
+
   if (!py_ten_env->c_ten_env_proxy && !py_ten_env->c_ten_env) {
-    return ten_py_raise_py_value_error_exception(
-        "ten_env.set_property_string() failed because ten_env_proxy is "
-        "invalid.");
+    ten_error_set(&err, TEN_ERROR_CODE_TEN_IS_CLOSED,
+                  "ten_env.set_property_string() failed because ten_env_proxy "
+                  "is invalid.");
+
+    PyObject *result = (PyObject *)ten_py_error_wrap(&err);
+    ten_error_deinit(&err);
+    return result;
   }
 
   ten_value_t *c_value = ten_value_create_string(value);
-  if (!c_value) {
-    return ten_py_raise_py_value_error_exception(
-        "Failed to create value when ten_env.set_property_string.");
+  TEN_ASSERT(c_value, "Should not happen.");
+
+  ten_py_ten_env_set_property(py_ten_env, path, c_value, &err);
+  if (ten_error_is_success(&err)) {
+    ten_error_deinit(&err);
+    Py_RETURN_NONE;
   }
 
-  ten_py_ten_env_set_property(py_ten_env, path, c_value);
-
-  Py_RETURN_NONE;
+  PyObject *result = (PyObject *)ten_py_error_wrap(&err);
+  ten_error_deinit(&err);
+  return result;
 }
 
 PyObject *ten_py_ten_env_set_property_bool(PyObject *self, PyObject *args) {
@@ -219,20 +252,31 @@ PyObject *ten_py_ten_env_set_property_bool(PyObject *self, PyObject *args) {
         "Failed to parse arguments when ten_env.set_property_bool.");
   }
 
+  ten_error_t err;
+  TEN_ERROR_INIT(err);
+
   if (!py_ten_env->c_ten_env_proxy && !py_ten_env->c_ten_env) {
-    return ten_py_raise_py_value_error_exception(
+    ten_error_set(
+        &err, TEN_ERROR_CODE_TEN_IS_CLOSED,
         "ten_env.set_property_bool() failed because ten_env_proxy is invalid.");
+
+    PyObject *result = (PyObject *)ten_py_error_wrap(&err);
+    ten_error_deinit(&err);
+    return result;
   }
 
   ten_value_t *c_value = ten_value_create_bool(value > 0);
-  if (!c_value) {
-    return ten_py_raise_py_value_error_exception(
-        "Failed to create value when ten_env.set_property_bool.");
+  TEN_ASSERT(c_value, "Should not happen.");
+
+  ten_py_ten_env_set_property(py_ten_env, path, c_value, &err);
+  if (ten_error_is_success(&err)) {
+    ten_error_deinit(&err);
+    Py_RETURN_NONE;
   }
 
-  ten_py_ten_env_set_property(py_ten_env, path, c_value);
-
-  Py_RETURN_NONE;
+  PyObject *result = (PyObject *)ten_py_error_wrap(&err);
+  ten_error_deinit(&err);
+  return result;
 }
 
 PyObject *ten_py_ten_env_set_property_float(PyObject *self, PyObject *args) {
@@ -252,19 +296,29 @@ PyObject *ten_py_ten_env_set_property_float(PyObject *self, PyObject *args) {
         "Failed to parse arguments when ten_env.set_property_float.");
   }
 
+  ten_error_t err;
+  TEN_ERROR_INIT(err);
+
   if (!py_ten_env->c_ten_env_proxy && !py_ten_env->c_ten_env) {
-    return ten_py_raise_py_value_error_exception(
-        "ten_env.set_property_float() failed because ten_env_proxy is "
-        "invalid.");
+    ten_error_set(&err, TEN_ERROR_CODE_TEN_IS_CLOSED,
+                  "ten_env.set_property_float() failed because ten_env_proxy "
+                  "is invalid.");
+
+    PyObject *result = (PyObject *)ten_py_error_wrap(&err);
+    ten_error_deinit(&err);
+    return result;
   }
 
   ten_value_t *c_value = ten_value_create_float64(value);
-  if (!c_value) {
-    return ten_py_raise_py_value_error_exception(
-        "Failed to create value when ten_env.set_property_float.");
+  TEN_ASSERT(c_value, "Should not happen.");
+
+  ten_py_ten_env_set_property(py_ten_env, path, c_value, &err);
+  if (ten_error_is_success(&err)) {
+    ten_error_deinit(&err);
+    Py_RETURN_NONE;
   }
 
-  ten_py_ten_env_set_property(py_ten_env, path, c_value);
-
-  Py_RETURN_NONE;
+  PyObject *result = (PyObject *)ten_py_error_wrap(&err);
+  ten_error_deinit(&err);
+  return result;
 }

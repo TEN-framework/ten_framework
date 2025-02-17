@@ -33,14 +33,11 @@ class DefaultExtension(Extension):
 
         i = 0
         for _ in range(0, 10000):
-            try:
-                throw_exception = False
-                _ = ten_env.get_property_string("undefinedKey")
-            except Exception:
+            _, err = ten_env.get_property_string("undefinedKey")
+            if err is not None:
                 i += 1
-                throw_exception = True
 
-            assert throw_exception is True
+        assert i == 10000
 
         self.queue.get()
 
@@ -50,8 +47,8 @@ class DefaultExtension(Extension):
         ten_env.log_debug("on_start")
 
         ten_env.set_property_from_json("testKey2", '"testValue2"')
-        testValue = ten_env.get_property_to_json("testKey")
-        testValue2 = ten_env.get_property_to_json("testKey2")
+        testValue, _ = ten_env.get_property_to_json("testKey")
+        testValue2, _ = ten_env.get_property_to_json("testKey2")
         print("testValue: ", testValue, " testValue2: ", testValue2)
 
         self.queue = queue.Queue()
@@ -82,7 +79,7 @@ class DefaultExtension(Extension):
     def on_cmd(self, ten_env: TenEnv, cmd: Cmd) -> None:
         print("DefaultExtension on_cmd")
 
-        cmd_json = cmd.get_property_to_json()
+        cmd_json, _ = cmd.get_property_to_json()
         print("DefaultExtension on_cmd json: " + cmd_json)
 
         cmd_result = CmdResult.create(StatusCode.OK)

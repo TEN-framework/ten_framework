@@ -29,70 +29,47 @@ class DefaultAsyncExtension(AsyncExtension):
         await asyncio.sleep(0.5)
         ten_env.log_debug("on_start")
 
-        assert await ten_env.is_property_exist("unknown_field") is False
-        assert await ten_env.is_property_exist("string_field") is True
+        assert (await ten_env.is_property_exist("unknown_field"))[0] is False
+        assert (await ten_env.is_property_exist("string_field"))[0] is True
 
-        bool_field = await ten_env.get_property_bool("bool_field")
+        bool_field, _ = await ten_env.get_property_bool("bool_field")
         assert bool_field is True
 
-        int_field = await ten_env.get_property_int("int_field")
+        int_field, _ = await ten_env.get_property_int("int_field")
         assert int_field == 1
 
-        float_field = await ten_env.get_property_float("float_field")
+        float_field, _ = await ten_env.get_property_float("float_field")
         assert float_field == 1.0
 
-        string_field = await ten_env.get_property_string("string_field")
+        string_field, _ = await ten_env.get_property_string("string_field")
         assert string_field == "hello"
 
-        json_field = await ten_env.get_property_to_json("json_field")
+        json_field, _ = await ten_env.get_property_to_json("json_field")
         assert json_field == '"\\"testValue2\\""'
 
-        error_occurred = False
+        _, err = await ten_env.get_property_string("unknown_field")
+        assert err is not None
 
-        try:
-            _ = await ten_env.get_property_string("unknown_field")
-        except Exception:
-            error_occurred = True
-        finally:
-            assert error_occurred is True
-            error_occurred = False
+        _, err = await ten_env.get_property_bool("unknown_field")
+        assert err is not None
 
-        try:
-            _ = await ten_env.get_property_bool("unknown_field")
-        except Exception:
-            error_occurred = True
-        finally:
-            assert error_occurred is True
-            error_occurred = False
+        _, err = await ten_env.get_property_float("unknown_field")
+        assert err is not None
 
-        try:
-            _ = await ten_env.get_property_int("unknown_field")
-        except Exception:
-            error_occurred = True
-        finally:
-            assert error_occurred is True
-            error_occurred = False
+        _, err = await ten_env.get_property_int("unknown_field")
+        assert err is not None
 
-        try:
-            _ = await ten_env.get_property_float("unknown_field")
-        except Exception:
-            error_occurred = True
-        finally:
-            assert error_occurred is True
-            error_occurred = False
+        _, err = await ten_env.get_property_float("unknown_field")
+        assert err is not None
 
-        try:
-            _ = await ten_env.get_property_to_json("unknown_field")
-        except Exception:
-            error_occurred = True
-        finally:
-            assert error_occurred is True
+        _, err = await ten_env.get_property_to_json("unknown_field")
+        assert err is not None
 
     async def on_deinit(self, ten_env: AsyncTenEnv) -> None:
         await asyncio.sleep(0.5)
 
     async def on_cmd(self, ten_env: AsyncTenEnv, cmd: Cmd) -> None:
-        cmd_json = cmd.get_property_to_json()
+        cmd_json, _ = cmd.get_property_to_json()
         ten_env.log_debug(f"on_cmd: {cmd_json}")
 
         # Mock async operation, e.g. network, file I/O.

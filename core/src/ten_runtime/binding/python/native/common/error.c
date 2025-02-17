@@ -22,6 +22,7 @@ ten_py_error_t *ten_py_error_wrap(ten_error_t *error) {
   ten_py_error_t *py_error = (ten_py_error_t *)ten_py_error_py_type()->tp_alloc(
       ten_py_error_py_type(), 0);
   if (!py_error) {
+    TEN_ASSERT(0, "Failed to allocate memory.");
     return NULL;
   }
 

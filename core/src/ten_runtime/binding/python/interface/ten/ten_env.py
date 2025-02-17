@@ -56,10 +56,14 @@ class TenEnv(TenEnvBase):
     def on_create_instance_done(self, instance: _Extension, context) -> None:
         return self._internal.on_create_instance_done(instance, context)
 
-    def get_property_to_json(self, path: Optional[str] = None) -> str:
+    def get_property_to_json(
+        self, path: Optional[str] = None
+    ) -> tuple[str, Optional[TenError]]:
         return self._internal.get_property_to_json(path)
 
-    def set_property_from_json(self, path: str, json_str: str) -> None:
+    def set_property_from_json(
+        self, path: str, json_str: str
+    ) -> Optional[TenError]:
         return self._internal.set_property_from_json(path, json_str)
 
     def send_cmd(
@@ -104,34 +108,34 @@ class TenEnv(TenEnvBase):
     ) -> None:
         self._internal.return_result_directly(result, error_handler)
 
-    def is_property_exist(self, path: str) -> bool:
+    def is_property_exist(self, path: str) -> tuple[bool, Optional[TenError]]:
         return self._internal.is_property_exist(path)
 
-    def get_property_int(self, path: str) -> int:
+    def get_property_int(self, path: str) -> tuple[int, Optional[TenError]]:
         return self._internal.get_property_int(path)
 
-    def set_property_int(self, path: str, value: int) -> None:
+    def set_property_int(self, path: str, value: int) -> Optional[TenError]:
         return self._internal.set_property_int(path, value)
 
-    def get_property_string(self, path: str) -> str:
+    def get_property_string(self, path: str) -> tuple[str, Optional[TenError]]:
         return self._internal.get_property_string(path)
 
-    def set_property_string(self, path: str, value: str) -> None:
+    def set_property_string(self, path: str, value: str) -> Optional[TenError]:
         return self._internal.set_property_string(path, value)
 
-    def get_property_bool(self, path: str) -> bool:
+    def get_property_bool(self, path: str) -> tuple[bool, Optional[TenError]]:
         return self._internal.get_property_bool(path)
 
-    def set_property_bool(self, path: str, value: bool) -> None:
+    def set_property_bool(self, path: str, value: bool) -> Optional[TenError]:
         if value:
             return self._internal.set_property_bool(path, 1)
         else:
             return self._internal.set_property_bool(path, 0)
 
-    def get_property_float(self, path: str) -> float:
+    def get_property_float(self, path: str) -> tuple[float, Optional[TenError]]:
         return self._internal.get_property_float(path)
 
-    def set_property_float(self, path: str, value: float) -> None:
+    def set_property_float(self, path: str, value: float) -> Optional[TenError]:
         return self._internal.set_property_float(path, value)
 
     def init_property_from_json(self, json_str: str) -> None:
