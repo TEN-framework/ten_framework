@@ -20,25 +20,33 @@ from ten import (
 class DefaultAsyncExtension(AsyncExtension):
     async def on_init(self, ten_env: AsyncTenEnv) -> None:
         ten_env.log_debug("on_init")
-        try:
-            self.send_goodbye_cmd = await ten_env.get_property_bool(
-                "send_goodbye_cmd"
+        self.send_goodbye_cmd, err = await ten_env.get_property_bool(
+            "send_goodbye_cmd"
+        )
+        if err is not None:
+            ten_env.log_error(
+                "Could not read 'send_goodbye_cmd' from properties." + str(err)
             )
-        except Exception:
             self.send_goodbye_cmd = False
 
-        try:
-            self.sleep_ms_before_goodbye = await ten_env.get_property_int(
-                "sleep_ms_before_goodbye"
+        self.sleep_ms_before_goodbye, err = await ten_env.get_property_int(
+            "sleep_ms_before_goodbye"
+        )
+        if err is not None:
+            ten_env.log_error(
+                "Could not read 'sleep_ms_before_goodbye' from properties."
+                + str(err)
             )
-        except Exception:
             self.sleep_ms_before_goodbye = 0
 
-        try:
-            self.assert_goodbye_result_success = (
-                await ten_env.get_property_bool("assert_goodbye_result_success")
+        self.assert_goodbye_result_success, err = (
+            await ten_env.get_property_bool("assert_goodbye_result_success")
+        )
+        if err is not None:
+            ten_env.log_error(
+                "Could not read 'assert_goodbye_result_success' from properties."
+                + str(err)
             )
-        except Exception:
             self.assert_goodbye_result_success = False
 
     async def on_start(self, ten_env: AsyncTenEnv) -> None:
@@ -59,7 +67,7 @@ class DefaultAsyncExtension(AsyncExtension):
             assert cmd_result is not None
 
             # Get the weather detail.
-            weather = cmd_result.get_property_string("detail")
+            weather, _ = cmd_result.get_property_string("detail")
 
             # Return the weather detail.
             cmd_result = CmdResult.create(StatusCode.OK)

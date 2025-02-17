@@ -33,11 +33,10 @@ class WebsocketServerExtension(AsyncExtension):
     async def on_start(self, ten_env: AsyncTenEnv) -> None:
         ten_env.log_debug("on_start")
 
-        try:
-            self.server_port = await ten_env.get_property_int("server_port")
-        except Exception as e:
+        self.server_port, err = await ten_env.get_property_int("server_port")
+        if err is not None:
             ten_env.log_error(
-                "Could not read 'server_port' from properties." + str(e)
+                "Could not read 'server_port' from properties." + str(err)
             )
             self.server_port = 8002
 

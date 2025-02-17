@@ -123,11 +123,5 @@ class ClientExtension(AsyncExtension):
             assert result is not None
             assert result.get_status_code() == StatusCode.ERROR
 
-            ten_env_api_exception_caught = False
-
-            try:
-                await ten_env.set_property_bool("test", True)
-            except Exception:
-                ten_env_api_exception_caught = True
-            finally:
-                assert ten_env_api_exception_caught
+            err = await ten_env.set_property_bool("test", True)
+            assert err is not None

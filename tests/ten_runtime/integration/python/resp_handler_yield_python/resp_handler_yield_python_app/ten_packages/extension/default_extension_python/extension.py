@@ -29,8 +29,8 @@ class DefaultExtension(Extension):
         ten_env.log_debug("on_start")
 
         ten_env.set_property_from_json("testKey2", '"testValue2"')
-        testValue = ten_env.get_property_to_json("testKey")
-        testValue2 = ten_env.get_property_to_json("testKey2")
+        testValue, _ = ten_env.get_property_to_json("testKey")
+        testValue2, _ = ten_env.get_property_to_json("testKey2")
         ten_env.log_info(f"testValue: {testValue}, testValue2: {testValue2}")
 
         ten_env.on_start_done()
@@ -78,7 +78,7 @@ class DefaultExtension(Extension):
     def on_cmd(self, ten_env: TenEnv, cmd: Cmd) -> None:
         ten_env.log_info("on_cmd")
 
-        cmd_json = cmd.get_property_to_json()
+        cmd_json, _ = cmd.get_property_to_json()
         ten_env.log_info("on_cmd json: " + cmd_json)
 
         self.thread = threading.Thread(

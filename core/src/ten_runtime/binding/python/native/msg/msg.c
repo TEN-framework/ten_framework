@@ -161,30 +161,25 @@ PyObject *ten_py_msg_set_property_string(PyObject *self, PyObject *args) {
     return ten_py_raise_py_value_error_exception("Failed to parse arguments.");
   }
 
+  TEN_ASSERT(path && value, "Should not happen.");
+
   ten_error_t err;
   TEN_ERROR_INIT(err);
 
-  if (!path || !value) {
-    ten_error_set(&err, TEN_ERROR_CODE_INVALID_ARGUMENT, "Invalid argument.");
-    ten_py_raise_py_value_error_exception(ten_error_message(&err));
-    ten_error_deinit(&err);
-    return NULL;
-  }
-
   ten_value_t *c_value = ten_value_create_string(value);
+  TEN_ASSERT(c_value, "Should not happen.");
 
   bool rc = ten_msg_set_property(c_msg, path, c_value, &err);
   if (!rc) {
-    ten_py_raise_py_value_error_exception(ten_error_message(&err));
+    PyObject *result = (PyObject *)ten_py_error_wrap(&err);
+    ten_value_destroy(c_value);
+    ten_error_deinit(&err);
+    return result;
   }
 
   ten_error_deinit(&err);
 
-  if (rc) {
-    Py_RETURN_NONE;
-  } else {
-    return NULL;
-  }
+  Py_RETURN_NONE;
 }
 
 PyObject *ten_py_msg_get_property_string(PyObject *self, PyObject *args) {
@@ -204,36 +199,35 @@ PyObject *ten_py_msg_get_property_string(PyObject *self, PyObject *args) {
     return ten_py_raise_py_value_error_exception("Failed to parse arguments.");
   }
 
+  TEN_ASSERT(path, "Should not happen.");
+
   ten_error_t err;
   TEN_ERROR_INIT(err);
-
-  if (!path) {
-    ten_error_set(&err, TEN_ERROR_CODE_INVALID_ARGUMENT, "Invalid argument.");
-    ten_py_raise_py_value_error_exception(ten_error_message(&err));
-    ten_error_deinit(&err);
-    return NULL;
-  }
+  const char *default_value = "";
 
   ten_value_t *c_value = ten_msg_peek_property(c_msg, path, &err);
   if (!c_value) {
-    ten_py_raise_py_value_error_exception(ten_error_message(&err));
-    ten_error_deinit(&err);
-    return NULL;
+    goto error;
   }
 
   if (!ten_value_is_string(c_value)) {
     ten_error_set(&err, TEN_ERROR_CODE_INVALID_ARGUMENT,
                   "Value is not string.");
-    ten_py_raise_py_value_error_exception(ten_error_message(&err));
-    ten_error_deinit(&err);
-    return NULL;
+    goto error;
   }
 
   const char *value = ten_value_peek_raw_str(c_value, &err);
-
-  PyObject *res = Py_BuildValue("s", value);
-
+  PyObject *res = Py_BuildValue("(sO)", value, Py_None);
+  ten_error_deinit(&err);
   return res;
+
+error: {
+  ten_py_error_t *py_error = ten_py_error_wrap(&err);
+  PyObject *result = Py_BuildValue("(sO)", default_value, py_error);
+  ten_py_error_invalidate(py_error);
+  ten_error_deinit(&err);
+  return result;
+}
 }
 
 PyObject *ten_py_msg_set_property_from_json(PyObject *self, PyObject *args) {
@@ -243,7 +237,6 @@ PyObject *ten_py_msg_set_property_from_json(PyObject *self, PyObject *args) {
 
   ten_shared_ptr_t *c_msg = py_msg->c_msg;
   if (!c_msg) {
-    TEN_ASSERT(0, "Should not happen.");
     return ten_py_raise_py_value_error_exception("Msg is invalidated.");
   }
 
@@ -259,28 +252,28 @@ PyObject *ten_py_msg_set_property_from_json(PyObject *self, PyObject *args) {
 
   ten_json_t *c_json = ten_json_from_string(json_str, &err);
   if (!c_json) {
-    ten_py_raise_py_value_error_exception(ten_error_message(&err));
-    ten_error_deinit(&err);
-    return NULL;
+    goto error;
   }
 
   ten_value_t *value = ten_value_from_json(c_json);
-
-  bool rc = ten_msg_set_property(c_msg, path, value, &err);
-  if (!rc) {
-    ten_py_raise_py_value_error_exception(ten_error_message(&err));
-    ten_value_destroy(value);
-  }
+  TEN_ASSERT(value, "Should not happen.");
 
   ten_json_destroy(c_json);
 
-  ten_error_deinit(&err);
-
-  if (rc) {
-    Py_RETURN_NONE;
-  } else {
-    return NULL;
+  bool rc = ten_msg_set_property(c_msg, path, value, &err);
+  if (!rc) {
+    ten_value_destroy(value);
+    goto error;
   }
+
+  ten_error_deinit(&err);
+  Py_RETURN_NONE;
+
+error: {
+  PyObject *result = (PyObject *)ten_py_error_wrap(&err);
+  ten_error_deinit(&err);
+  return result;
+}
 }
 
 PyObject *ten_py_msg_get_property_to_json(PyObject *self, PyObject *args) {
@@ -290,7 +283,6 @@ PyObject *ten_py_msg_get_property_to_json(PyObject *self, PyObject *args) {
 
   ten_shared_ptr_t *c_msg = py_msg->c_msg;
   if (!c_msg) {
-    TEN_ASSERT(0, "Should not happen.");
     return ten_py_raise_py_value_error_exception("Msg is invalidated.");
   }
 
@@ -307,26 +299,35 @@ PyObject *ten_py_msg_get_property_to_json(PyObject *self, PyObject *args) {
 
   ten_error_t err;
   TEN_ERROR_INIT(err);
+  const char *default_value = "";
 
   ten_value_t *c_value = ten_msg_peek_property(c_msg, path, &err);
   if (!c_value) {
-    ten_py_raise_py_value_error_exception(ten_error_message(&err));
-    ten_error_deinit(&err);
-    return NULL;
+    goto error;
   }
 
   ten_json_t *c_json = ten_value_to_json(c_value);
+  TEN_ASSERT(c_json, "Should not happen.");
 
   bool must_free = true;
   const char *json_string = ten_json_to_string(c_json, NULL, &must_free);
-  PyObject *res = Py_BuildValue("s", json_string);
+  PyObject *res = Py_BuildValue("(sO)", json_string, Py_None);
   if (must_free) {
     TEN_FREE(json_string);
   }
 
   ten_json_destroy(c_json);
+  ten_error_deinit(&err);
 
   return res;
+
+error: {
+  ten_py_error_t *py_error = ten_py_error_wrap(&err);
+  PyObject *result = Py_BuildValue("(sO)", default_value, py_error);
+  ten_py_error_invalidate(py_error);
+  ten_error_deinit(&err);
+  return result;
+}
 }
 
 PyObject *ten_py_msg_get_property_int(PyObject *self, PyObject *args) {
@@ -336,7 +337,6 @@ PyObject *ten_py_msg_get_property_int(PyObject *self, PyObject *args) {
 
   ten_shared_ptr_t *c_msg = py_msg->c_msg;
   if (!c_msg) {
-    TEN_ASSERT(0, "Should not happen.");
     return ten_py_raise_py_value_error_exception("Msg is invalidated.");
   }
 
@@ -346,33 +346,35 @@ PyObject *ten_py_msg_get_property_int(PyObject *self, PyObject *args) {
     return ten_py_raise_py_value_error_exception("Failed to parse arguments.");
   }
 
+  TEN_ASSERT(path, "Should not happen.");
+
   ten_error_t err;
   TEN_ERROR_INIT(err);
-
-  if (!path) {
-    ten_error_set(&err, TEN_ERROR_CODE_INVALID_ARGUMENT, "Invalid argument.");
-    ten_py_raise_py_value_error_exception(ten_error_message(&err));
-    ten_error_deinit(&err);
-    return NULL;
-  }
+  const int64_t default_value = 0;
 
   ten_value_t *c_value = ten_msg_peek_property(c_msg, path, &err);
   if (!c_value) {
-    ten_py_raise_py_value_error_exception(ten_error_message(&err));
-    ten_error_deinit(&err);
-    return NULL;
+    goto error;
   }
 
   int64_t value = ten_value_get_int64(c_value, &err);
   if (!ten_error_is_success(&err)) {
-    ten_py_raise_py_value_error_exception(ten_error_message(&err));
-    ten_error_deinit(&err);
-    return NULL;
+    goto error;
   }
 
-  PyObject *res = Py_BuildValue("l", value);
+  PyObject *res = Py_BuildValue("(lO)", value, Py_None);
+
+  ten_error_deinit(&err);
 
   return res;
+
+error: {
+  ten_py_error_t *py_error = ten_py_error_wrap(&err);
+  PyObject *result = Py_BuildValue("(lO)", default_value, py_error);
+  ten_py_error_invalidate(py_error);
+  ten_error_deinit(&err);
+  return result;
+}
 }
 
 PyObject *ten_py_msg_set_property_int(PyObject *self, PyObject *args) {
@@ -382,7 +384,6 @@ PyObject *ten_py_msg_set_property_int(PyObject *self, PyObject *args) {
 
   ten_shared_ptr_t *c_msg = py_msg->c_msg;
   if (!c_msg) {
-    TEN_ASSERT(0, "Should not happen.");
     return ten_py_raise_py_value_error_exception("Msg is invalidated.");
   }
 
@@ -393,30 +394,25 @@ PyObject *ten_py_msg_set_property_int(PyObject *self, PyObject *args) {
     return ten_py_raise_py_value_error_exception("Failed to parse arguments.");
   }
 
+  TEN_ASSERT(path, "Should not happen.");
+
   ten_error_t err;
   TEN_ERROR_INIT(err);
 
-  if (!path) {
-    ten_error_set(&err, TEN_ERROR_CODE_INVALID_ARGUMENT, "Invalid argument.");
-    ten_py_raise_py_value_error_exception(ten_error_message(&err));
-    ten_error_deinit(&err);
-    return NULL;
-  }
-
   ten_value_t *c_value = ten_value_create_int64(value);
+  TEN_ASSERT(c_value, "Should not happen.");
 
   bool rc = ten_msg_set_property(c_msg, path, c_value, &err);
   if (!rc) {
-    ten_py_raise_py_value_error_exception(ten_error_message(&err));
+    PyObject *result = (PyObject *)ten_py_error_wrap(&err);
+    ten_error_deinit(&err);
+    ten_value_destroy(c_value);
+    return result;
   }
 
   ten_error_deinit(&err);
 
-  if (rc) {
-    Py_RETURN_NONE;
-  } else {
-    return NULL;
-  }
+  Py_RETURN_NONE;
 }
 
 PyObject *ten_py_msg_get_property_bool(PyObject *self, PyObject *args) {
@@ -436,31 +432,38 @@ PyObject *ten_py_msg_get_property_bool(PyObject *self, PyObject *args) {
     return ten_py_raise_py_value_error_exception("Failed to parse arguments.");
   }
 
+  TEN_ASSERT(path, "Should not happen.");
+
   ten_error_t err;
   TEN_ERROR_INIT(err);
-
-  if (!path) {
-    ten_error_set(&err, TEN_ERROR_CODE_INVALID_ARGUMENT, "Invalid argument.");
-    ten_py_raise_py_value_error_exception(ten_error_message(&err));
-    ten_error_deinit(&err);
-    return NULL;
-  }
+  const bool default_value = false;
 
   ten_value_t *c_value = ten_msg_peek_property(c_msg, path, &err);
   if (!c_value) {
-    ten_py_raise_py_value_error_exception(ten_error_message(&err));
-    ten_error_deinit(&err);
-    return NULL;
+    goto error;
   }
 
   bool value = ten_value_get_bool(c_value, &err);
   if (!ten_error_is_success(&err)) {
-    ten_py_raise_py_value_error_exception(ten_error_message(&err));
-    ten_error_deinit(&err);
-    return NULL;
+    goto error;
   }
 
-  return PyBool_FromLong(value);
+  PyObject *py_value = PyBool_FromLong(value);
+  PyObject *res = Py_BuildValue("(OO)", py_value, Py_None);
+  Py_DECREF(py_value);
+  ten_error_deinit(&err);
+
+  return res;
+
+error: {
+  ten_py_error_t *py_error = ten_py_error_wrap(&err);
+  PyObject *py_value = PyBool_FromLong(default_value);
+  PyObject *result = Py_BuildValue("(OO)", py_value, py_error);
+  ten_py_error_invalidate(py_error);
+  Py_DECREF(py_value);
+  ten_error_deinit(&err);
+  return result;
+}
 }
 
 PyObject *ten_py_msg_set_property_bool(PyObject *self, PyObject *args) {
@@ -481,30 +484,25 @@ PyObject *ten_py_msg_set_property_bool(PyObject *self, PyObject *args) {
     return ten_py_raise_py_value_error_exception("Failed to parse arguments.");
   }
 
+  TEN_ASSERT(path, "Should not happen.");
+
   ten_error_t err;
   TEN_ERROR_INIT(err);
 
-  if (!path) {
-    ten_error_set(&err, TEN_ERROR_CODE_INVALID_ARGUMENT, "Invalid argument.");
-    ten_py_raise_py_value_error_exception(ten_error_message(&err));
-    ten_error_deinit(&err);
-    return NULL;
-  }
-
   ten_value_t *c_value = ten_value_create_bool(value > 0);
+  TEN_ASSERT(c_value, "Should not happen.");
 
   bool rc = ten_msg_set_property(c_msg, path, c_value, &err);
   if (!rc) {
-    ten_py_raise_py_value_error_exception(ten_error_message(&err));
+    PyObject *result = (PyObject *)ten_py_error_wrap(&err);
+    ten_error_deinit(&err);
+    ten_value_destroy(c_value);
+    return result;
   }
 
   ten_error_deinit(&err);
 
-  if (rc) {
-    Py_RETURN_NONE;
-  } else {
-    return NULL;
-  }
+  Py_RETURN_NONE;
 }
 
 PyObject *ten_py_msg_get_property_float(PyObject *self, PyObject *args) {
@@ -524,33 +522,34 @@ PyObject *ten_py_msg_get_property_float(PyObject *self, PyObject *args) {
     return ten_py_raise_py_value_error_exception("Failed to parse arguments.");
   }
 
+  TEN_ASSERT(path, "Should not happen.");
+
   ten_error_t err;
   TEN_ERROR_INIT(err);
-
-  if (!path) {
-    ten_error_set(&err, TEN_ERROR_CODE_INVALID_ARGUMENT, "Invalid argument.");
-    ten_py_raise_py_value_error_exception(ten_error_message(&err));
-    ten_error_deinit(&err);
-    return NULL;
-  }
+  const double default_value = 0.0;
 
   ten_value_t *c_value = ten_msg_peek_property(c_msg, path, &err);
   if (!c_value) {
-    ten_py_raise_py_value_error_exception(ten_error_message(&err));
-    ten_error_deinit(&err);
-    return NULL;
+    goto error;
   }
 
   double value = ten_value_get_float64(c_value, &err);
   if (!ten_error_is_success(&err)) {
-    ten_py_raise_py_value_error_exception(ten_error_message(&err));
-    ten_error_deinit(&err);
-    return NULL;
+    goto error;
   }
 
-  PyObject *res = Py_BuildValue("d", value);
+  PyObject *res = Py_BuildValue("(dO)", value, Py_None);
+  ten_error_deinit(&err);
 
   return res;
+
+error: {
+  ten_py_error_t *py_error = ten_py_error_wrap(&err);
+  PyObject *result = Py_BuildValue("(dO)", default_value, py_error);
+  ten_py_error_invalidate(py_error);
+  ten_error_deinit(&err);
+  return result;
+}
 }
 
 PyObject *ten_py_msg_set_property_float(PyObject *self, PyObject *args) {
@@ -560,7 +559,6 @@ PyObject *ten_py_msg_set_property_float(PyObject *self, PyObject *args) {
 
   ten_shared_ptr_t *c_msg = py_msg->c_msg;
   if (!c_msg) {
-    TEN_ASSERT(0, "Should not happen.");
     return ten_py_raise_py_value_error_exception("Msg is invalidated.");
   }
 
@@ -571,30 +569,25 @@ PyObject *ten_py_msg_set_property_float(PyObject *self, PyObject *args) {
     return ten_py_raise_py_value_error_exception("Failed to parse arguments.");
   }
 
+  TEN_ASSERT(path, "Should not happen.");
+
   ten_error_t err;
   TEN_ERROR_INIT(err);
 
-  if (!path) {
-    ten_error_set(&err, TEN_ERROR_CODE_INVALID_ARGUMENT, "Invalid argument.");
-    ten_py_raise_py_value_error_exception(ten_error_message(&err));
-    ten_error_deinit(&err);
-    return NULL;
-  }
-
   ten_value_t *c_value = ten_value_create_float64(value);
+  TEN_ASSERT(c_value, "Should not happen.");
 
   bool rc = ten_msg_set_property(c_msg, path, c_value, &err);
   if (!rc) {
-    ten_py_raise_py_value_error_exception(ten_error_message(&err));
+    PyObject *result = (PyObject *)ten_py_error_wrap(&err);
+    ten_error_deinit(&err);
+    ten_value_destroy(c_value);
+    return result;
   }
 
   ten_error_deinit(&err);
 
-  if (rc) {
-    Py_RETURN_NONE;
-  } else {
-    return NULL;
-  }
+  Py_RETURN_NONE;
 }
 
 PyObject *ten_py_msg_get_property_buf(PyObject *self, PyObject *args) {
@@ -603,7 +596,6 @@ PyObject *ten_py_msg_get_property_buf(PyObject *self, PyObject *args) {
 
   ten_shared_ptr_t *c_msg = py_msg->c_msg;
   if (!c_msg) {
-    TEN_ASSERT(0, "Should not happen.");
     return ten_py_raise_py_value_error_exception("Msg is invalidated.");
   }
 
@@ -613,35 +605,42 @@ PyObject *ten_py_msg_get_property_buf(PyObject *self, PyObject *args) {
     return ten_py_raise_py_value_error_exception("Failed to parse arguments.");
   }
 
+  TEN_ASSERT(path, "Should not happen.");
+
   ten_error_t err;
   TEN_ERROR_INIT(err);
-
-  if (!path) {
-    ten_error_set(&err, TEN_ERROR_CODE_INVALID_ARGUMENT, "Invalid argument.");
-    ten_py_raise_py_value_error_exception(ten_error_message(&err));
-    ten_error_deinit(&err);
-    return NULL;
-  }
+  const char *default_value = "";
 
   ten_value_t *c_value = ten_msg_peek_property(c_msg, path, &err);
   if (!c_value) {
-    ten_py_raise_py_value_error_exception(ten_error_message(&err));
-    ten_error_deinit(&err);
-    return NULL;
+    goto error;
   }
 
   if (!ten_value_is_buf(c_value)) {
     ten_error_set(&err, TEN_ERROR_CODE_INVALID_ARGUMENT, "Value is not buf.");
-    ten_py_raise_py_value_error_exception(ten_error_message(&err));
-    ten_error_deinit(&err);
-    return NULL;
+    goto error;
   }
 
   ten_buf_t *buf = ten_value_peek_buf(c_value);
   TEN_ASSERT(buf && ten_buf_check_integrity(buf), "Invalid buf.");
 
-  return PyByteArray_FromStringAndSize((const char *)buf->data,
-                                       (Py_ssize_t)buf->size);
+  PyObject *py_value = PyByteArray_FromStringAndSize((const char *)buf->data,
+                                                     (Py_ssize_t)buf->size);
+  PyObject *res = Py_BuildValue("(OO)", py_value, Py_None);
+  Py_DECREF(py_value);
+  ten_error_deinit(&err);
+
+  return res;
+
+error: {
+  ten_py_error_t *py_error = ten_py_error_wrap(&err);
+  PyObject *py_value = PyByteArray_FromStringAndSize(default_value, 0);
+  PyObject *result = Py_BuildValue("(OO)", py_value, py_error);
+  Py_DECREF(py_value);
+  ten_py_error_invalidate(py_error);
+  ten_error_deinit(&err);
+  return result;
+}
 }
 
 PyObject *ten_py_msg_set_property_buf(PyObject *self, PyObject *args) {
@@ -651,7 +650,6 @@ PyObject *ten_py_msg_set_property_buf(PyObject *self, PyObject *args) {
 
   ten_shared_ptr_t *c_msg = py_msg->c_msg;
   if (!c_msg) {
-    TEN_ASSERT(0, "Should not happen.");
     return ten_py_raise_py_value_error_exception("Msg is invalidated.");
   }
 
@@ -661,6 +659,8 @@ PyObject *ten_py_msg_set_property_buf(PyObject *self, PyObject *args) {
   if (!PyArg_ParseTuple(args, "sy*", &path, &py_buf)) {
     return ten_py_raise_py_value_error_exception("Failed to parse arguments.");
   }
+
+  TEN_ASSERT(path, "Should not happen.");
 
   Py_ssize_t size = 0;
   uint8_t *data = py_buf.buf;
@@ -687,18 +687,17 @@ PyObject *ten_py_msg_set_property_buf(PyObject *self, PyObject *args) {
 
   bool rc = ten_msg_set_property(c_msg, path, c_value, &err);
   if (!rc) {
-    ten_py_raise_py_value_error_exception(ten_error_message(&err));
+    PyObject *result = (PyObject *)ten_py_error_wrap(&err);
+    ten_error_deinit(&err);
+    PyBuffer_Release(&py_buf);
     ten_value_destroy(c_value);
+    return result;
   }
 
   ten_error_deinit(&err);
   PyBuffer_Release(&py_buf);
 
-  if (rc) {
-    Py_RETURN_NONE;
-  } else {
-    return NULL;
-  }
+  Py_RETURN_NONE;
 }
 
 bool ten_py_msg_init_for_module(PyObject *module) {

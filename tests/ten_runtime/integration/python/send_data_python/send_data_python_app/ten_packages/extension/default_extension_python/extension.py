@@ -21,7 +21,7 @@ class DefaultExtension(Extension):
         ten_env.on_configure_done()
 
     def on_cmd(self, ten_env: TenEnv, cmd: Cmd) -> None:
-        cmd_json = cmd.get_property_to_json()
+        cmd_json, _ = cmd.get_property_to_json()
         print("DefaultExtension on_cmd json: " + cmd_json)
 
         new_data = Data.create("data")
@@ -46,12 +46,10 @@ class DefaultExtension(Extension):
 
     def on_data(self, ten_env: TenEnv, data: Data) -> None:
         if data.get_name() == "data2":
-            try:
-                value = data.get_property_string("test_key")
-                assert value == "test_value"
-            except Exception as e:
+            value, err = data.get_property_string("test_key")
+            if err is not None:
                 assert False, "get_property_string failed"
-
+            assert value == "test_value"
             return
 
         buf = data.get_buf()

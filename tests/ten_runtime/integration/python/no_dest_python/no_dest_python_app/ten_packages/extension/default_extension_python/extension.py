@@ -46,8 +46,8 @@ class DefaultExtension(Extension):
         self.no_dest_error_recv_count = 0
 
         ten_env.set_property_from_json("testKey2", '"testValue2"')
-        testValue = ten_env.get_property_to_json("testKey")
-        testValue2 = ten_env.get_property_to_json("testKey2")
+        testValue, _ = ten_env.get_property_to_json("testKey")
+        testValue2, _ = ten_env.get_property_to_json("testKey2")
         print("testValue: ", testValue, " testValue2: ", testValue2)
 
         # Send an unconnected command
@@ -99,7 +99,7 @@ class DefaultExtension(Extension):
         assert result is not None
 
         statusCode = result.get_status_code()
-        detail = result.get_property_string("detail")
+        detail, _ = result.get_property_string("detail")
         print(
             "DefaultExtension check_hello: status:"
             + str(statusCode)
@@ -116,12 +116,12 @@ class DefaultExtension(Extension):
     def on_cmd(self, ten_env: TenEnv, cmd: Cmd) -> None:
         print("DefaultExtension on_cmd")
 
-        cmd_json = cmd.get_property_to_json()
+        cmd_json, _ = cmd.get_property_to_json()
         print("DefaultExtension on_cmd json: " + cmd_json)
 
         new_cmd = Cmd.create("hello")
         new_cmd.set_property_from_json("test", '"testValue2"')
-        test_value = new_cmd.get_property_to_json("test")
+        test_value, _ = new_cmd.get_property_to_json("test")
         print("DefaultExtension on_cmd test_value: " + test_value)
 
         ten_env.send_cmd(

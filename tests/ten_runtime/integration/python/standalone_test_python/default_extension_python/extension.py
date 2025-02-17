@@ -35,7 +35,7 @@ class DefaultExtension(Extension):
     def on_data(self, ten_env: TenEnv, data: Data) -> None:
         if data.get_name() == "test":
             ten_env.log_info(
-                "DefaultExtension on_data: " + data.get_property_to_json()
+                "DefaultExtension on_data: " + data.get_property_to_json()[0]
             )
             self.recv_data_count += 1
             self.return_if_all_data_received(ten_env)
@@ -44,7 +44,7 @@ class DefaultExtension(Extension):
         if audio_frame.get_name() == "test":
             ten_env.log_info(
                 "DefaultExtension on_audio_frame: "
-                + audio_frame.get_property_to_json()
+                + audio_frame.get_property_to_json()[0]
             )
             self.recv_data_count += 1
             self.return_if_all_data_received(ten_env)
@@ -53,20 +53,20 @@ class DefaultExtension(Extension):
         if video_frame.get_name() == "test":
             ten_env.log_info(
                 "DefaultExtension on_video_frame: "
-                + video_frame.get_property_to_json()
+                + video_frame.get_property_to_json()[0]
             )
             self.recv_data_count += 1
             self.return_if_all_data_received(ten_env)
 
     def on_cmd(self, ten_env: TenEnv, cmd: Cmd) -> None:
-        cmd_json = cmd.get_property_to_json()
+        cmd_json, _ = cmd.get_property_to_json()
         ten_env.log_info("DefaultExtension on_cmd json: " + cmd_json)
 
         if cmd.get_name() == "hello_world":
             self.cached_cmd = cmd
             self.return_if_all_data_received(ten_env)
         elif cmd.get_name() == "greeting":
-            greeting = ten_env.get_property_string("greeting")
+            greeting, _ = ten_env.get_property_string("greeting")
             cmd_result = CmdResult.create(StatusCode.OK)
             cmd_result.set_property_string("detail", greeting)
             ten_env.return_result(cmd_result, cmd)

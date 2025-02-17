@@ -149,7 +149,9 @@ class AsyncTenEnv(TenEnvBase):
         if error is not None:
             raise RuntimeError(error.error_message())
 
-    async def get_property_to_json(self, path: Optional[str] = None) -> str:
+    async def get_property_to_json(
+        self, path: Optional[str] = None
+    ) -> tuple[str, Optional[TenError]]:
         q = asyncio.Queue(maxsize=1)
         self._internal.get_property_to_json_async(
             path,
@@ -158,12 +160,11 @@ class AsyncTenEnv(TenEnvBase):
 
         [result, error] = await q.get()
 
-        if error is not None:
-            raise RuntimeError(error.error_message())
+        return result, error
 
-        return result
-
-    async def set_property_from_json(self, path: str, json_str: str) -> None:
+    async def set_property_from_json(
+        self, path: str, json_str: str
+    ) -> Optional[TenError]:
         q = asyncio.Queue(maxsize=1)
         self._internal.set_property_string_async(
             path,
@@ -172,10 +173,11 @@ class AsyncTenEnv(TenEnvBase):
         )
 
         error: TenError = await q.get()
-        if error is not None:
-            raise RuntimeError(error.error_message())
+        return error
 
-    async def get_property_int(self, path: str) -> int:
+    async def get_property_int(
+        self, path: str
+    ) -> tuple[int, Optional[TenError]]:
         q = asyncio.Queue(maxsize=1)
         self._internal.get_property_int_async(
             path,
@@ -184,12 +186,11 @@ class AsyncTenEnv(TenEnvBase):
 
         [result, error] = await q.get()
 
-        if error is not None:
-            raise RuntimeError(error.error_message())
+        return result, error
 
-        return result
-
-    async def set_property_int(self, path: str, value: int) -> None:
+    async def set_property_int(
+        self, path: str, value: int
+    ) -> Optional[TenError]:
         q = asyncio.Queue(maxsize=1)
         self._internal.set_property_int_async(
             path,
@@ -198,10 +199,11 @@ class AsyncTenEnv(TenEnvBase):
         )
 
         error: TenError = await q.get()
-        if error is not None:
-            raise RuntimeError(error.error_message())
+        return error
 
-    async def get_property_string(self, path: str) -> str:
+    async def get_property_string(
+        self, path: str
+    ) -> tuple[str, Optional[TenError]]:
         q = asyncio.Queue(maxsize=1)
         self._internal.get_property_string_async(
             path,
@@ -210,12 +212,11 @@ class AsyncTenEnv(TenEnvBase):
 
         [result, error] = await q.get()
 
-        if error is not None:
-            raise RuntimeError(error.error_message())
+        return result, error
 
-        return result
-
-    async def set_property_string(self, path: str, value: str) -> None:
+    async def set_property_string(
+        self, path: str, value: str
+    ) -> Optional[TenError]:
         q = asyncio.Queue(maxsize=1)
         self._internal.set_property_string_async(
             path,
@@ -224,10 +225,11 @@ class AsyncTenEnv(TenEnvBase):
         )
 
         error: TenError = await q.get()
-        if error is not None:
-            raise RuntimeError(error.error_message())
+        return error
 
-    async def get_property_bool(self, path: str) -> bool:
+    async def get_property_bool(
+        self, path: str
+    ) -> tuple[bool, Optional[TenError]]:
         q = asyncio.Queue(maxsize=1)
         self._internal.get_property_bool_async(
             path,
@@ -236,11 +238,11 @@ class AsyncTenEnv(TenEnvBase):
 
         [result, error] = await q.get()
 
-        if error is not None:
-            raise RuntimeError(error.error_message())
-        return result
+        return result, error
 
-    async def set_property_bool(self, path: str, value: int) -> None:
+    async def set_property_bool(
+        self, path: str, value: int
+    ) -> Optional[TenError]:
         q = asyncio.Queue(maxsize=1)
         self._internal.set_property_bool_async(
             path,
@@ -249,10 +251,11 @@ class AsyncTenEnv(TenEnvBase):
         )
 
         error: TenError = await q.get()
-        if error is not None:
-            raise RuntimeError(error.error_message())
+        return error
 
-    async def get_property_float(self, path: str) -> float:
+    async def get_property_float(
+        self, path: str
+    ) -> tuple[float, Optional[TenError]]:
         q = asyncio.Queue(maxsize=1)
         self._internal.get_property_float_async(
             path,
@@ -261,11 +264,11 @@ class AsyncTenEnv(TenEnvBase):
 
         [result, error] = await q.get()
 
-        if error is not None:
-            raise RuntimeError(error.error_message())
-        return result
+        return result, error
 
-    async def set_property_float(self, path: str, value: float) -> None:
+    async def set_property_float(
+        self, path: str, value: float
+    ) -> Optional[TenError]:
         q = asyncio.Queue(maxsize=1)
         self._internal.set_property_float_async(
             path,
@@ -274,10 +277,11 @@ class AsyncTenEnv(TenEnvBase):
         )
 
         error: TenError = await q.get()
-        if error is not None:
-            raise RuntimeError(error.error_message())
+        return error
 
-    async def is_property_exist(self, path: str) -> bool:
+    async def is_property_exist(
+        self, path: str
+    ) -> tuple[bool, Optional[TenError]]:
         q = asyncio.Queue(maxsize=1)
         self._internal.is_property_exist_async(
             path,
@@ -285,12 +289,11 @@ class AsyncTenEnv(TenEnvBase):
         )
 
         [result, error] = await q.get()
-        if error is not None:
-            raise RuntimeError(error.error_message())
+        return result, error
 
-        return result
-
-    async def init_property_from_json(self, json_str: str) -> None:
+    async def init_property_from_json(
+        self, json_str: str
+    ) -> Optional[TenError]:
         q = asyncio.Queue(maxsize=1)
         self._internal.init_property_from_json_async(
             json_str,
@@ -298,8 +301,7 @@ class AsyncTenEnv(TenEnvBase):
         )
 
         error: TenError = await q.get()
-        if error is not None:
-            raise RuntimeError(error.error_message())
+        return error
 
     async def _close_loop(self):
         self._ten_all_tasks_done_event.set()

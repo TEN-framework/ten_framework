@@ -15,17 +15,17 @@ from ten import (
 class DefaultAsyncExtension(AsyncExtension):
 
     async def on_init(self, ten_env: AsyncTenEnv) -> None:
-        test_prop_json_str = await ten_env.get_property_to_json(
+        test_prop_json_str, _ = await ten_env.get_property_to_json(
             "params.billing_type"
         )
         test_prop_json = json.loads(test_prop_json_str)
         assert test_prop_json == "agent_billing"
 
-        test_prop_json_str = await ten_env.get_property_to_json()
+        test_prop_json_str, _ = await ten_env.get_property_to_json()
         test_prop_json = json.loads(test_prop_json_str)
         assert test_prop_json["params"]["billing_type"] == "agent_billing"
 
-        test_prop_json_str = await ten_env.get_property_to_json("")
+        test_prop_json_str, _ = await ten_env.get_property_to_json("")
         test_prop_json = json.loads(test_prop_json_str)
         assert test_prop_json["params"]["billing_type"] == "agent_billing"
 

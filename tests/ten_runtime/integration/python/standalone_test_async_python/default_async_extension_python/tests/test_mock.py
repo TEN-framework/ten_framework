@@ -31,7 +31,7 @@ class ExtensionTesterMock(ExtensionTester):
         ten_env.log_info("receive weather, status:" + str(statusCode))
 
         if statusCode == StatusCode.OK:
-            detail = result.get_property_string("detail")
+            detail, _ = result.get_property_string("detail")
             assert detail == "sunny"
 
             ten_env.stop_test()
