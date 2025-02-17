@@ -32,7 +32,7 @@ ten_py_error_t *ten_py_error_wrap(ten_error_t *error) {
 }
 
 void ten_py_error_invalidate(ten_py_error_t *py_error) {
-  TEN_ASSERT(py_error, "Invalid argument.");
+  TEN_ASSERT(py_error, "py_error should not be NULL.");
   Py_DECREF(py_error);
 }
 
