@@ -161,7 +161,8 @@ PyObject *ten_py_msg_set_property_string(PyObject *self, PyObject *args) {
     return ten_py_raise_py_value_error_exception("Failed to parse arguments.");
   }
 
-  TEN_ASSERT(path && value, "Should not happen.");
+  TEN_ASSERT(path, "path should not be NULL.");
+  TEN_ASSERT(value, "value should not be NULL.");
 
   ten_error_t err;
   TEN_ERROR_INIT(err);
@@ -199,7 +200,7 @@ PyObject *ten_py_msg_get_property_string(PyObject *self, PyObject *args) {
     return ten_py_raise_py_value_error_exception("Failed to parse arguments.");
   }
 
-  TEN_ASSERT(path, "Should not happen.");
+  TEN_ASSERT(path, "path should not be NULL.");
 
   ten_error_t err;
   TEN_ERROR_INIT(err);
@@ -256,7 +257,7 @@ PyObject *ten_py_msg_set_property_from_json(PyObject *self, PyObject *args) {
   }
 
   ten_value_t *value = ten_value_from_json(c_json);
-  TEN_ASSERT(value, "Should not happen.");
+  TEN_ASSERT(value, "value should not be NULL.");
 
   ten_json_destroy(c_json);
 
@@ -346,7 +347,7 @@ PyObject *ten_py_msg_get_property_int(PyObject *self, PyObject *args) {
     return ten_py_raise_py_value_error_exception("Failed to parse arguments.");
   }
 
-  TEN_ASSERT(path, "Should not happen.");
+  TEN_ASSERT(path, "path should not be NULL.");
 
   ten_error_t err;
   TEN_ERROR_INIT(err);
@@ -394,7 +395,7 @@ PyObject *ten_py_msg_set_property_int(PyObject *self, PyObject *args) {
     return ten_py_raise_py_value_error_exception("Failed to parse arguments.");
   }
 
-  TEN_ASSERT(path, "Should not happen.");
+  TEN_ASSERT(path, "path should not be NULL.");
 
   ten_error_t err;
   TEN_ERROR_INIT(err);
@@ -432,7 +433,7 @@ PyObject *ten_py_msg_get_property_bool(PyObject *self, PyObject *args) {
     return ten_py_raise_py_value_error_exception("Failed to parse arguments.");
   }
 
-  TEN_ASSERT(path, "Should not happen.");
+  TEN_ASSERT(path, "path should not be NULL.");
 
   ten_error_t err;
   TEN_ERROR_INIT(err);
@@ -484,7 +485,7 @@ PyObject *ten_py_msg_set_property_bool(PyObject *self, PyObject *args) {
     return ten_py_raise_py_value_error_exception("Failed to parse arguments.");
   }
 
-  TEN_ASSERT(path, "Should not happen.");
+  TEN_ASSERT(path, "path should not be NULL.");
 
   ten_error_t err;
   TEN_ERROR_INIT(err);
@@ -522,7 +523,7 @@ PyObject *ten_py_msg_get_property_float(PyObject *self, PyObject *args) {
     return ten_py_raise_py_value_error_exception("Failed to parse arguments.");
   }
 
-  TEN_ASSERT(path, "Should not happen.");
+  TEN_ASSERT(path, "path should not be NULL.");
 
   ten_error_t err;
   TEN_ERROR_INIT(err);
@@ -569,7 +570,7 @@ PyObject *ten_py_msg_set_property_float(PyObject *self, PyObject *args) {
     return ten_py_raise_py_value_error_exception("Failed to parse arguments.");
   }
 
-  TEN_ASSERT(path, "Should not happen.");
+  TEN_ASSERT(path, "path should not be NULL.");
 
   ten_error_t err;
   TEN_ERROR_INIT(err);
@@ -605,7 +606,7 @@ PyObject *ten_py_msg_get_property_buf(PyObject *self, PyObject *args) {
     return ten_py_raise_py_value_error_exception("Failed to parse arguments.");
   }
 
-  TEN_ASSERT(path, "Should not happen.");
+  TEN_ASSERT(path, "path should not be NULL.");
 
   ten_error_t err;
   TEN_ERROR_INIT(err);
@@ -660,7 +661,7 @@ PyObject *ten_py_msg_set_property_buf(PyObject *self, PyObject *args) {
     return ten_py_raise_py_value_error_exception("Failed to parse arguments.");
   }
 
-  TEN_ASSERT(path, "Should not happen.");
+  TEN_ASSERT(path, "path should not be NULL.");
 
   Py_ssize_t size = 0;
   uint8_t *data = py_buf.buf;

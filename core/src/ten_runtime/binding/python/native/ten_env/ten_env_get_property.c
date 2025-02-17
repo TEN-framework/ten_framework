@@ -122,9 +122,9 @@ PyObject *ten_py_ten_env_get_property_to_json(PyObject *self, PyObject *args) {
   const char *default_value = "";
 
   if (!py_ten_env->c_ten_env_proxy && !py_ten_env->c_ten_env) {
-    ten_error_set(&err, TEN_ERROR_CODE_TEN_IS_CLOSED,
-                  "ten_env.get_property_to_json() failed because ten is "
-                  "closed.");
+    ten_error_set(
+        &err, TEN_ERROR_CODE_TEN_IS_CLOSED,
+        "ten_env.get_property_to_json() failed because ten is closed.");
     goto error;
   }
 
@@ -182,8 +182,7 @@ PyObject *ten_py_ten_env_get_property_int(PyObject *self, PyObject *args) {
 
   if (!py_ten_env->c_ten_env_proxy && !py_ten_env->c_ten_env) {
     ten_error_set(&err, TEN_ERROR_CODE_TEN_IS_CLOSED,
-                  "ten_env.get_property_int() failed because ten is "
-                  "closed.");
+                  "ten_env.get_property_int() failed because ten is closed.");
     goto error;
   }
 
@@ -394,8 +393,7 @@ PyObject *ten_py_ten_env_is_property_exist(PyObject *self, PyObject *args) {
 
   if (!py_ten_env->c_ten_env_proxy && !py_ten_env->c_ten_env) {
     ten_error_set(&err, TEN_ERROR_CODE_TEN_IS_CLOSED,
-                  "ten_env.is_property_exist() failed because ten is "
-                  "closed.");
+                  "ten_env.is_property_exist() failed because ten is closed.");
     goto error;
   }
 

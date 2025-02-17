@@ -82,12 +82,17 @@ class DefaultExtension(Extension):
             json.dumps(
                 {
                     "name": "get_current_weather",
-                    "description": "Determine current weather in user's location.",
+                    "description": (
+                        "Determine current weather in user's location."
+                    ),
                     "parameters": [
                         {
                             "name": "location",
                             "type": "string",
-                            "description": "The city and state (use only English) e.g. San Francisco, CA",
+                            "description": (
+                                "The city and state (use only English) "
+                                "e.g. San Francisco, CA"
+                            ),
                             "required": "true",
                         }
                     ],

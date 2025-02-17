@@ -114,10 +114,9 @@ PyObject *ten_py_ten_env_set_property_from_json(PyObject *self,
   TEN_ERROR_INIT(err);
 
   if (!py_ten_env->c_ten_env_proxy && !py_ten_env->c_ten_env) {
-    ten_error_set(
-        &err, TEN_ERROR_CODE_TEN_IS_CLOSED,
-        "ten_env.set_property_from_json() failed because ten_env_proxy "
-        "is invalid.");
+    ten_error_set(&err, TEN_ERROR_CODE_TEN_IS_CLOSED,
+                  "ten_env.set_property_from_json() failed because "
+                  "ten_env_proxy is invalid.");
 
     PyObject *result = (PyObject *)ten_py_error_wrap(&err);
     ten_error_deinit(&err);
@@ -132,7 +131,7 @@ PyObject *ten_py_ten_env_set_property_from_json(PyObject *self,
   }
 
   ten_value_t *value = ten_value_from_json(json);
-  TEN_ASSERT(value, "Should not happen.");
+  TEN_ASSERT(value, "value should not be NULL.");
 
   ten_json_destroy(json);
 
@@ -169,9 +168,9 @@ PyObject *ten_py_ten_env_set_property_int(PyObject *self, PyObject *args) {
   TEN_ERROR_INIT(err);
 
   if (!py_ten_env->c_ten_env_proxy && !py_ten_env->c_ten_env) {
-    ten_error_set(&err, TEN_ERROR_CODE_TEN_IS_CLOSED,
-                  "ten_env.set_property_int() failed because ten_env_proxy "
-                  "is invalid.");
+    ten_error_set(
+        &err, TEN_ERROR_CODE_TEN_IS_CLOSED,
+        "ten_env.set_property_int() failed because ten_env_proxy is invalid.");
 
     PyObject *result = (PyObject *)ten_py_error_wrap(&err);
     ten_error_deinit(&err);
@@ -257,9 +256,9 @@ PyObject *ten_py_ten_env_set_property_bool(PyObject *self, PyObject *args) {
   TEN_ERROR_INIT(err);
 
   if (!py_ten_env->c_ten_env_proxy && !py_ten_env->c_ten_env) {
-    ten_error_set(&err, TEN_ERROR_CODE_TEN_IS_CLOSED,
-                  "ten_env.set_property_bool() failed because ten_env_proxy "
-                  "is invalid.");
+    ten_error_set(
+        &err, TEN_ERROR_CODE_TEN_IS_CLOSED,
+        "ten_env.set_property_bool() failed because ten_env_proxy is invalid.");
 
     PyObject *result = (PyObject *)ten_py_error_wrap(&err);
     ten_error_deinit(&err);

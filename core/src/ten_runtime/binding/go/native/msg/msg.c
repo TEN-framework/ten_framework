@@ -470,7 +470,7 @@ ten_go_error_t ten_go_msg_property_get_ptr(uintptr_t bridge_addr,
   ten_go_msg_t *self = ten_go_msg_reinterpret(bridge_addr);
   TEN_ASSERT(self && ten_go_msg_check_integrity(self), "Should not happen.");
   TEN_ASSERT(path && path_len > 0, "Should not happen.");
-  TEN_ASSERT(value, "Should not happen.");
+  TEN_ASSERT(value, "value should not be NULL.");
 
   ten_go_error_t cgo_error;
   ten_value_t *c_value = ten_go_msg_property_get_and_check_if_exists(

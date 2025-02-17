@@ -44,8 +44,10 @@ class DefaultAsyncExtension(AsyncExtension):
         )
         if err is not None:
             ten_env.log_error(
-                "Could not read 'assert_goodbye_result_success' from properties."
-                + str(err)
+                (
+                    "Could not read 'assert_goodbye_result_success' from "
+                    "properties." + str(err)
+                )
             )
             self.assert_goodbye_result_success = False
 
