@@ -1,7 +1,4 @@
 {
-  "C_Cpp.clang_format_sortIncludes": true,
-  "C_Cpp.clang_format_style": "file",
-  "C_Cpp.errorSquiggles": "enabled",
   "[markdown]": {
     "editor.wordWrap": "bounded",
     "editor.wordWrapColumn": 80
@@ -14,6 +11,9 @@
     "--line-length",
     "80"
   ],
+  "C_Cpp.clang_format_sortIncludes": true,
+  "C_Cpp.clang_format_style": "file",
+  "C_Cpp.errorSquiggles": "enabled",
   "debug.allowBreakpointsEverywhere": true,
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": "explicit"
@@ -34,6 +34,10 @@
     "**/out/*/**": true,
     "**/third_party/*/**": true
   },
+  "flake8.args": [
+    "--ignore=E302,E704,E301",
+    "--max-line-length=80"
+  ],
   "go.inlayHints.constantValues": true,
   "go.inlayHints.parameterNames": true,
   "go.inlayHints.rangeVariableTypes": true,
@@ -45,12 +49,12 @@
     "ui.semanticTokens": true
   },
   "markdownlint.config": {
+    "default": true,
     "MD014": false,
     "MD024": {
       "siblings_only": true
     },
-    "MD033": false,
-    "default": true
+    "MD033": false
   },
   "prettier.configPath": "tools/prettier/.prettierrc.js",
   "pylint.args": [
