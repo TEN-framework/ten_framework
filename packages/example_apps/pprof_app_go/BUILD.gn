@@ -12,6 +12,7 @@ ten_package("pprof_app_go") {
   package_kind = "app"
 
   resources = [
+    "LICENSE",
     "bin/start",
     "go_release.mod=>go.mod",
     "main.go",

@@ -19,6 +19,7 @@ ten_package("ffmpeg_client") {
 
   resources = [
     "BUILD_release.gn=>BUILD.gn",
+    "LICENSE",
     "manifest.json",
     "property.json",
     "src/main.cc",

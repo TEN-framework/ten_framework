@@ -12,6 +12,7 @@ ten_package("pil_demo_python") {
   package_kind = "extension"
 
   resources = [
+    "LICENSE",
     "__init__.py",
     "main.py",
     "manifest.json",

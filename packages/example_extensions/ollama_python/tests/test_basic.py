@@ -13,6 +13,9 @@ from ten import (
 
 class OllamaExtensionTester(AsyncExtensionTester):
     async def on_start(self, ten_env: AsyncTenEnvTester) -> None:
+        await self.test_ask_cmd(ten_env)
+
+    async def test_ask_cmd(self, ten_env: AsyncTenEnvTester) -> None:
         ten_env.log_debug("send ask cmd")
 
         ask_cmd = Cmd.create("ask")

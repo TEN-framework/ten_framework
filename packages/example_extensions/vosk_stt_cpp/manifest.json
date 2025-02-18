@@ -1,0 +1,22 @@
+{
+  "type": "extension",
+  "name": "vosk_stt_cpp",
+  "version": "0.8.18",
+  "dependencies": [
+    {
+      "type": "system",
+      "name": "ten_runtime",
+      "version": "0.8.18"
+    }
+  ],
+  "package": {
+    "include": [
+      "**"
+    ]
+  },
+  "api": {},
+  "scripts": {
+    "test": "bin/vosk_stt_cpp_test",
+    "build": "sh -c cd .ten/app && tgn gen linux x64 debug -- ten_enable_standalone_test=true && tgn build linux x64 debug"
+  }
+}
