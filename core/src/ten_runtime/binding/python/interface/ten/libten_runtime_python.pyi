@@ -247,7 +247,7 @@ class _TenEnv:
         file_name: Optional[str],
         line_no: int,
         msg: str,
-    ) -> None: ...
+    ) -> Optional[TenError]: ...
 
 class _App:
     def run(self, run_in_background_flag: int) -> None: ...
@@ -328,7 +328,7 @@ class _TenEnvTester:
         file_name: Optional[str],
         line_no: int,
         msg: str,
-    ) -> None: ...
+    ) -> Optional[TenError]: ...
 
 class _ExtensionTester:
     def set_test_mode_single(
