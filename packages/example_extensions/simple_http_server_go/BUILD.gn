@@ -12,6 +12,7 @@ ten_package("simple_http_server_go") {
   package_kind = "extension"
 
   resources = [
+    "LICENSE",
     "endpoint/endpoint.go",
     "go_release.mod=>go.mod",
     "main.go",

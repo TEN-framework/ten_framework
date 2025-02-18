@@ -9,11 +9,11 @@ import("//build/ten_runtime/glob.gni")
 import("//build/ten_runtime/options.gni")
 
 ten_package("ffmpeg_muxer") {
+  package_kind = "extension"
   enable_build = true
 
-  package_kind = "extension"
-
   resources = [
+    "LICENSE",
     "manifest.json",
     "property.json",
   ]

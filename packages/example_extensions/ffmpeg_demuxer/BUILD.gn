@@ -13,6 +13,7 @@ ten_package("ffmpeg_demuxer") {
   enable_build = true
 
   resources = [
+    "LICENSE",
     "manifest.json",
     "property.json",
     "res/test.mp4",
