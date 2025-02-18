@@ -9,6 +9,7 @@
 #include "include_internal/ten_runtime/binding/python/msg/audio_frame.h"
 #include "include_internal/ten_runtime/binding/python/msg/msg.h"
 #include "include_internal/ten_runtime/binding/python/test/env_tester.h"
+#include "ten_runtime/common/error_code.h"
 #include "ten_runtime/test/env_tester.h"
 #include "ten_runtime/test/env_tester_proxy.h"
 #include "ten_utils/lib/smart_ptr.h"
@@ -129,19 +130,22 @@ PyObject *ten_py_ten_env_tester_send_audio_frame(PyObject *self,
         "Invalid argument type when send audio_frame.");
   }
 
+  ten_error_t err;
+  TEN_ERROR_INIT(err);
+
   if (!py_ten_env_tester->c_ten_env_tester_proxy) {
-    return ten_py_raise_py_value_error_exception(
-        "ten_env_tester.send_audio_frame() failed because env_tester_proxy is "
-        "invalid.");
+    ten_error_set(&err, TEN_ERROR_CODE_TEN_IS_CLOSED,
+                  "ten_env_tester.send_audio_frame() failed because the TEN is "
+                  "closed.");
+    PyObject *result = (PyObject *)ten_py_error_wrap(&err);
+    ten_error_deinit(&err);
+    return result;
   }
 
   // Check if cb_func is callable.
   if (!PyCallable_Check(cb_func)) {
     cb_func = NULL;
   }
-
-  ten_error_t err;
-  TEN_ERROR_INIT(err);
 
   ten_py_ten_env_tester_send_audio_frame_ctx_t *ctx =
       ten_py_ten_env_tester_send_audio_frame_ctx_create(
@@ -154,7 +158,9 @@ PyObject *ten_py_ten_env_tester_send_audio_frame(PyObject *self,
   if (!success) {
     ten_py_ten_env_tester_send_audio_frame_ctx_destroy(ctx);
 
-    ten_py_raise_py_runtime_error_exception("Failed to send audio_frame.");
+    PyObject *result = (PyObject *)ten_py_error_wrap(&err);
+    ten_error_deinit(&err);
+    return result;
   } else {
     // Destroy the C message from the Python message as the ownership has been
     // transferred to the notify_info.
@@ -163,9 +169,5 @@ PyObject *ten_py_ten_env_tester_send_audio_frame(PyObject *self,
 
   ten_error_deinit(&err);
 
-  if (success) {
-    Py_RETURN_NONE;
-  } else {
-    return NULL;
-  }
+  Py_RETURN_NONE;
 }

@@ -43,31 +43,31 @@ class TenEnvTester(TenEnvTesterBase):
 
     def send_cmd(
         self, cmd: Cmd, result_handler: Optional[ResultHandler] = None
-    ) -> None:
+    ) -> Optional[TenError]:
         return self._internal.send_cmd(cmd, result_handler, False)
 
     def send_cmd_ex(
         self, cmd: Cmd, result_handler: Optional[ResultHandler] = None
-    ) -> None:
+    ) -> Optional[TenError]:
         return self._internal.send_cmd(cmd, result_handler, True)
 
     def send_data(
         self, data: Data, error_handler: Optional[ErrorHandler] = None
-    ) -> None:
+    ) -> Optional[TenError]:
         return self._internal.send_data(data, error_handler)
 
     def send_audio_frame(
         self,
         audio_frame: AudioFrame,
         error_handler: Optional[ErrorHandler] = None,
-    ) -> None:
+    ) -> Optional[TenError]:
         return self._internal.send_audio_frame(audio_frame, error_handler)
 
     def send_video_frame(
         self,
         video_frame: VideoFrame,
         error_handler: Optional[ErrorHandler] = None,
-    ) -> None:
+    ) -> Optional[TenError]:
         return self._internal.send_video_frame(video_frame, error_handler)
 
     def return_result(
@@ -75,7 +75,7 @@ class TenEnvTester(TenEnvTesterBase):
         cmd_result: CmdResult,
         target_cmd: Cmd,
         error_handler: Optional[ErrorHandler] = None,
-    ) -> None:
+    ) -> Optional[TenError]:
         return self._internal.return_result(
             cmd_result, target_cmd, error_handler
         )

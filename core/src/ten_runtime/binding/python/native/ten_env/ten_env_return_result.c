@@ -186,16 +186,16 @@ PyObject *ten_py_ten_env_return_result(PyObject *self, PyObject *args) {
         "Invalid argument type when return result.");
   }
 
-  if (!py_ten_env->c_ten_env_proxy && !py_ten_env->c_ten_env) {
-    return ten_py_raise_py_value_error_exception(
-        "ten_env.return_result() failed because the c_ten_env_proxy is "
-        "invalid.");
-  }
-
-  bool success = true;
-
   ten_error_t err;
   TEN_ERROR_INIT(err);
+
+  if (!py_ten_env->c_ten_env_proxy && !py_ten_env->c_ten_env) {
+    ten_error_set(&err, TEN_ERROR_CODE_TEN_IS_CLOSED,
+                  "ten_env.return_result() failed because the TEN is closed.");
+    PyObject *result = (PyObject *)ten_py_error_wrap(&err);
+    ten_error_deinit(&err);
+    return result;
+  }
 
   // Check if cb_func is callable.
   if (!PyCallable_Check(cb_func)) {
@@ -216,8 +216,10 @@ PyObject *ten_py_ten_env_return_result(PyObject *self, PyObject *args) {
                                  notify_info, false, &err);
   if (!rc) {
     ten_env_notify_return_result_ctx_destroy(notify_info);
-    success = false;
-    ten_py_raise_py_runtime_error_exception("Failed to return result.");
+
+    PyObject *result = (PyObject *)ten_py_error_wrap(&err);
+    ten_error_deinit(&err);
+    return result;
   } else {
     if (ten_cmd_result_is_final(py_cmd_result->msg.c_msg, &err)) {
       // Remove the C message from the python target message if it is the final
@@ -232,11 +234,7 @@ PyObject *ten_py_ten_env_return_result(PyObject *self, PyObject *args) {
 
   ten_error_deinit(&err);
 
-  if (success) {
-    Py_RETURN_NONE;
-  } else {
-    return NULL;
-  }
+  Py_RETURN_NONE;
 }
 
 PyObject *ten_py_ten_env_return_result_directly(PyObject *self,
@@ -253,16 +251,17 @@ PyObject *ten_py_ten_env_return_result_directly(PyObject *self,
         "Invalid argument type when return result directly.");
   }
 
-  if (!py_ten_env->c_ten_env_proxy && !py_ten_env->c_ten_env) {
-    return ten_py_raise_py_value_error_exception(
-        "ten_env.return_result_directly() failed because the c_ten_env_proxy "
-        "is invalid.");
-  }
-
-  bool success = true;
-
   ten_error_t err;
   TEN_ERROR_INIT(err);
+
+  if (!py_ten_env->c_ten_env_proxy && !py_ten_env->c_ten_env) {
+    ten_error_set(&err, TEN_ERROR_CODE_TEN_IS_CLOSED,
+                  "ten_env.return_result_directly() failed because the TEN is "
+                  "closed.");
+    PyObject *result = (PyObject *)ten_py_error_wrap(&err);
+    ten_error_deinit(&err);
+    return result;
+  }
 
   // Check if cb_func is callable.
   if (!PyCallable_Check(cb_func)) {
@@ -279,9 +278,10 @@ PyObject *ten_py_ten_env_return_result_directly(PyObject *self,
                             ten_env_proxy_notify_return_result, notify_info,
                             false, &err)) {
     ten_env_notify_return_result_ctx_destroy(notify_info);
-    success = false;
-    ten_py_raise_py_runtime_error_exception(
-        "Failed to return result directly.");
+
+    PyObject *result = (PyObject *)ten_py_error_wrap(&err);
+    ten_error_deinit(&err);
+    return result;
   } else {
     // Destroy the C message from the Python message as the ownership has been
     // transferred to the notify_info.
@@ -290,9 +290,5 @@ PyObject *ten_py_ten_env_return_result_directly(PyObject *self,
 
   ten_error_deinit(&err);
 
-  if (success) {
-    Py_RETURN_NONE;
-  } else {
-    return NULL;
-  }
+  Py_RETURN_NONE;
 }

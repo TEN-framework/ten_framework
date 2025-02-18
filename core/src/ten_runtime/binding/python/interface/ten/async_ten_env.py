@@ -57,34 +57,39 @@ class AsyncTenEnv(TenEnvBase):
 
     async def send_cmd(self, cmd: Cmd) -> CmdResultTuple:
         q = asyncio.Queue(maxsize=1)
-        self._internal.send_cmd(
+        err = self._internal.send_cmd(
             cmd,
             lambda _, result, error: self._result_handler(result, error, q),
             False,
         )
+        if err is not None:
+            return None, err
 
-        [result, error] = await q.get()
+        [result, err] = await q.get()
 
         if result is not None:
             assert result.is_completed()
 
-        return result, error
+        return result, err
 
     async def send_cmd_ex(
         self, cmd: Cmd
     ) -> AsyncGenerator[CmdResultTuple, None]:
         q = asyncio.Queue(maxsize=10)
-        self._internal.send_cmd(
+        err = self._internal.send_cmd(
             cmd,
             lambda _, result, error: self._result_handler(result, error, q),
             True,
         )
+        if err is not None:
+            yield None, err
+            return
 
         while True:
-            [result, error] = await q.get()
-            yield result, error
+            [result, err] = await q.get()
+            yield result, err
 
-            if error is not None:
+            if err is not None:
                 break
             elif result is not None and result.is_completed():
                 # This is the final result, so break the while loop.
@@ -92,216 +97,250 @@ class AsyncTenEnv(TenEnvBase):
 
     async def send_data(self, data: Data) -> Optional[TenError]:
         q = asyncio.Queue(maxsize=1)
-        self._internal.send_data(
+        err = self._internal.send_data(
             data,
             lambda _, error: self._error_handler(error, q),
         )
+        if err is not None:
+            return err
 
-        error = await q.get()
-        return error
+        err = await q.get()
+        return err
 
     async def send_video_frame(
         self, video_frame: VideoFrame
     ) -> Optional[TenError]:
         q = asyncio.Queue(maxsize=1)
-        self._internal.send_video_frame(
+        err = self._internal.send_video_frame(
             video_frame,
             lambda _, error: self._error_handler(error, q),
         )
+        if err is not None:
+            return err
 
-        error = await q.get()
-        return error
+        err = await q.get()
+        return err
 
     async def send_audio_frame(
         self, audio_frame: AudioFrame
     ) -> Optional[TenError]:
         q = asyncio.Queue(maxsize=1)
-        self._internal.send_audio_frame(
+        err = self._internal.send_audio_frame(
             audio_frame,
             lambda _, error: self._error_handler(error, q),
         )
+        if err is not None:
+            return err
 
-        error = await q.get()
-        return error
+        err = await q.get()
+        return err
 
-    async def return_result(self, result: CmdResult, target_cmd: Cmd) -> None:
+    async def return_result(
+        self, result: CmdResult, target_cmd: Cmd
+    ) -> Optional[TenError]:
         q = asyncio.Queue(maxsize=1)
-        self._internal.return_result(
+        err = self._internal.return_result(
             result,
             target_cmd,
             lambda _, error: self._error_handler(error, q),
         )
+        if err is not None:
+            return err
 
-        error = await q.get()
+        err = await q.get()
+        return err
 
-        if error is not None:
-            raise RuntimeError(error.error_message())
-
-    async def return_result_directly(self, result: CmdResult) -> None:
+    async def return_result_directly(
+        self, result: CmdResult
+    ) -> Optional[TenError]:
         q = asyncio.Queue(maxsize=1)
-        self._internal.return_result_directly(
+        err = self._internal.return_result_directly(
             result,
             lambda _, error: self._error_handler(error, q),
         )
+        if err is not None:
+            return err
 
-        error = await q.get()
-
-        if error is not None:
-            raise RuntimeError(error.error_message())
+        err = await q.get()
+        return err
 
     async def get_property_to_json(
         self, path: Optional[str] = None
     ) -> tuple[str, Optional[TenError]]:
         q = asyncio.Queue(maxsize=1)
-        self._internal.get_property_to_json_async(
+        err = self._internal.get_property_to_json_async(
             path,
             lambda result, error: self._result_handler(result, error, q),
         )
+        if err is not None:
+            return "", err
 
-        [result, error] = await q.get()
+        [result, err] = await q.get()
 
-        return result, error
+        return result, err
 
     async def set_property_from_json(
         self, path: str, json_str: str
     ) -> Optional[TenError]:
         q = asyncio.Queue(maxsize=1)
-        self._internal.set_property_string_async(
+        err = self._internal.set_property_string_async(
             path,
             json_str,
             lambda error: self._error_handler(error, q),
         )
+        if err is not None:
+            return err
 
-        error: TenError = await q.get()
-        return error
+        err = await q.get()
+        return err
 
     async def get_property_int(
         self, path: str
     ) -> tuple[int, Optional[TenError]]:
         q = asyncio.Queue(maxsize=1)
-        self._internal.get_property_int_async(
+        err = self._internal.get_property_int_async(
             path,
             lambda result, error: self._result_handler(result, error, q),
         )
+        if err is not None:
+            return 0, err
 
-        [result, error] = await q.get()
+        [result, err] = await q.get()
 
-        return result, error
+        return result, err
 
     async def set_property_int(
         self, path: str, value: int
     ) -> Optional[TenError]:
         q = asyncio.Queue(maxsize=1)
-        self._internal.set_property_int_async(
+        err = self._internal.set_property_int_async(
             path,
             value,
             lambda error: self._error_handler(error, q),
         )
+        if err is not None:
+            return err
 
-        error: TenError = await q.get()
-        return error
+        err = await q.get()
+        return err
 
     async def get_property_string(
         self, path: str
     ) -> tuple[str, Optional[TenError]]:
         q = asyncio.Queue(maxsize=1)
-        self._internal.get_property_string_async(
+        err = self._internal.get_property_string_async(
             path,
             lambda result, error: self._result_handler(result, error, q),
         )
+        if err is not None:
+            return "", err
 
-        [result, error] = await q.get()
+        [result, err] = await q.get()
 
-        return result, error
+        return result, err
 
     async def set_property_string(
         self, path: str, value: str
     ) -> Optional[TenError]:
         q = asyncio.Queue(maxsize=1)
-        self._internal.set_property_string_async(
+        err = self._internal.set_property_string_async(
             path,
             value,
             lambda error: self._error_handler(error, q),
         )
+        if err is not None:
+            return err
 
-        error: TenError = await q.get()
-        return error
+        err = await q.get()
+        return err
 
     async def get_property_bool(
         self, path: str
     ) -> tuple[bool, Optional[TenError]]:
         q = asyncio.Queue(maxsize=1)
-        self._internal.get_property_bool_async(
+        err = self._internal.get_property_bool_async(
             path,
             lambda result, error: self._result_handler(result, error, q),
         )
+        if err is not None:
+            return False, err
 
-        [result, error] = await q.get()
+        [result, err] = await q.get()
 
-        return result, error
+        return result, err
 
     async def set_property_bool(
         self, path: str, value: int
     ) -> Optional[TenError]:
         q = asyncio.Queue(maxsize=1)
-        self._internal.set_property_bool_async(
+        err = self._internal.set_property_bool_async(
             path,
             value,
             lambda error: self._error_handler(error, q),
         )
+        if err is not None:
+            return err
 
-        error: TenError = await q.get()
-        return error
+        err = await q.get()
+        return err
 
     async def get_property_float(
         self, path: str
     ) -> tuple[float, Optional[TenError]]:
         q = asyncio.Queue(maxsize=1)
-        self._internal.get_property_float_async(
+        err = self._internal.get_property_float_async(
             path,
             lambda result, error: self._result_handler(result, error, q),
         )
+        if err is not None:
+            return 0.0, err
 
-        [result, error] = await q.get()
+        [result, err] = await q.get()
 
-        return result, error
+        return result, err
 
     async def set_property_float(
         self, path: str, value: float
     ) -> Optional[TenError]:
         q = asyncio.Queue(maxsize=1)
-        self._internal.set_property_float_async(
+        err = self._internal.set_property_float_async(
             path,
             value,
             lambda error: self._error_handler(error, q),
         )
+        if err is not None:
+            return err
 
-        error: TenError = await q.get()
-        return error
+        err = await q.get()
+        return err
 
     async def is_property_exist(
         self, path: str
     ) -> tuple[bool, Optional[TenError]]:
         q = asyncio.Queue(maxsize=1)
-        self._internal.is_property_exist_async(
+        err = self._internal.is_property_exist_async(
             path,
             lambda result, error: self._result_handler(result, error, q),
         )
+        if err is not None:
+            return False, err
 
-        [result, error] = await q.get()
-        return result, error
+        [result, err] = await q.get()
+        return result, err
 
     async def init_property_from_json(
         self, json_str: str
     ) -> Optional[TenError]:
         q = asyncio.Queue(maxsize=1)
-        self._internal.init_property_from_json_async(
+        err = self._internal.init_property_from_json_async(
             json_str,
             lambda error: self._error_handler(error, q),
         )
+        if err is not None:
+            return err
 
-        error: TenError = await q.get()
-        return error
+        err = await q.get()
+        return err
 
     async def _close_loop(self):
         self._ten_all_tasks_done_event.set()

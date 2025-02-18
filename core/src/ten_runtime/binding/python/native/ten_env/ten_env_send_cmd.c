@@ -11,6 +11,7 @@
 #include "include_internal/ten_runtime/binding/python/msg/msg.h"
 #include "include_internal/ten_runtime/binding/python/ten_env/ten_env.h"
 #include "include_internal/ten_runtime/msg/cmd_base/cmd_base.h"
+#include "ten_runtime/common/error_code.h"
 #include "ten_runtime/extension/extension.h"
 #include "ten_runtime/msg/cmd_result/cmd_result.h"
 #include "ten_runtime/ten_env/internal/send.h"
@@ -190,15 +191,16 @@ PyObject *ten_py_ten_env_send_cmd(PyObject *self, PyObject *args) {
         "Invalid argument type when send cmd.");
   }
 
-  if (!py_ten_env->c_ten_env_proxy && !py_ten_env->c_ten_env) {
-    return ten_py_raise_py_value_error_exception(
-        "ten_env.send_cmd() failed because the c_ten_env_proxy is invalid.");
-  }
-
-  bool success = true;
-
   ten_error_t err;
   TEN_ERROR_INIT(err);
+
+  if (!py_ten_env->c_ten_env_proxy && !py_ten_env->c_ten_env) {
+    ten_error_set(&err, TEN_ERROR_CODE_TEN_IS_CLOSED,
+                  "ten_env.send_cmd() failed because the TEN is closed.");
+    PyObject *result = (PyObject *)ten_py_error_wrap(&err);
+    ten_error_deinit(&err);
+    return result;
+  }
 
   // Check if cb_func is callable.
   if (!PyCallable_Check(cb_func)) {
@@ -217,8 +219,10 @@ PyObject *ten_py_ten_env_send_cmd(PyObject *self, PyObject *args) {
     }
 
     ten_env_notify_send_cmd_ctx_destroy(notify_info);
-    success = false;
-    ten_py_raise_py_runtime_error_exception("Failed to send cmd.");
+
+    PyObject *result = (PyObject *)ten_py_error_wrap(&err);
+    ten_error_deinit(&err);
+    return result;
   } else {
     // Destroy the C message from the Python message as the ownership has been
     // transferred to the notify_info.
@@ -227,9 +231,5 @@ PyObject *ten_py_ten_env_send_cmd(PyObject *self, PyObject *args) {
 
   ten_error_deinit(&err);
 
-  if (success) {
-    Py_RETURN_NONE;
-  } else {
-    return NULL;
-  }
+  Py_RETURN_NONE;
 }

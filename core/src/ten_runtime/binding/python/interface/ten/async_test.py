@@ -62,34 +62,39 @@ class AsyncTenEnvTester(TenEnvTesterBase):
 
     async def send_cmd(self, cmd: Cmd) -> CmdResultTuple:
         q = asyncio.Queue(maxsize=1)
-        self._internal.send_cmd(
+        err = self._internal.send_cmd(
             cmd,
             lambda _, result, error: self._result_handler(result, error, q),
             False,
         )
+        if err is not None:
+            return None, err
 
-        [result, error] = await q.get()
+        [result, err] = await q.get()
 
         if result is not None:
             assert result.is_completed()
 
-        return result, error
+        return result, err
 
     async def send_cmd_ex(
         self, cmd: Cmd
     ) -> AsyncGenerator[CmdResultTuple, None]:
         q = asyncio.Queue(maxsize=10)
-        self._internal.send_cmd(
+        err = self._internal.send_cmd(
             cmd,
             lambda _, result, error: self._result_handler(result, error, q),
             True,
         )
+        if err is not None:
+            yield None, err
+            return
 
         while True:
-            [result, error] = await q.get()
-            yield result, error
+            [result, err] = await q.get()
+            yield result, err
 
-            if error is not None:
+            if err is not None:
                 break
             elif result is not None and result.is_completed():
                 # This is the final result, so break the while loop.
@@ -97,49 +102,60 @@ class AsyncTenEnvTester(TenEnvTesterBase):
 
     async def send_data(self, data: Data) -> Optional[TenError]:
         q = asyncio.Queue(maxsize=1)
-        self._internal.send_data(
+        err = self._internal.send_data(
             data,
             lambda _, error: self._error_handler(error, q),
         )
-        error = await q.get()
-        return error
+        if err is not None:
+            return err
+
+        err = await q.get()
+        return err
 
     async def send_audio_frame(
         self, audio_frame: AudioFrame
     ) -> Optional[TenError]:
         q = asyncio.Queue(maxsize=1)
-        self._internal.send_audio_frame(
+        err = self._internal.send_audio_frame(
             audio_frame,
             lambda _, error: self._error_handler(error, q),
         )
-        error = await q.get()
-        return error
+        if err is not None:
+            return err
+
+        err = await q.get()
+        return err
 
     async def send_video_frame(
         self, video_frame: VideoFrame
     ) -> Optional[TenError]:
         q = asyncio.Queue(maxsize=1)
-        self._internal.send_video_frame(
+        err = self._internal.send_video_frame(
             video_frame,
             lambda _, error: self._error_handler(error, q),
         )
-        error = await q.get()
-        return error
+        if err is not None:
+            return err
+
+        err = await q.get()
+        return err
 
     async def return_result(
         self,
         cmd_result: CmdResult,
         target_cmd: Cmd,
-    ) -> None:
+    ) -> Optional[TenError]:
         q = asyncio.Queue(maxsize=1)
-        self._internal.return_result(
+        err = self._internal.return_result(
             cmd_result,
             target_cmd,
             lambda _, error: self._error_handler(error, q),
         )
-        error = await q.get()
-        if error is not None:
-            raise RuntimeError(error.error_message())
+        if err is not None:
+            return err
+
+        err = await q.get()
+        return err
 
     def stop_test(self) -> None:
         return self._internal.stop_test()

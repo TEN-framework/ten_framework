@@ -86,6 +86,9 @@ class ClientExtension(AsyncExtension):
             err = ten_env.log_info("call ten_env api will return error")
             assert err is not None
 
+        err = await ten_env.set_property_string("test", "ok")
+        assert err is not None
+
         return "ok"
 
     async def on_deinit(self, ten_env: AsyncTenEnv) -> None:
