@@ -167,6 +167,16 @@ void ten_app_on_configure_done(ten_env_t *ten_env) {
   ten_error_t err;
   TEN_ERROR_INIT(err);
 
+  if (self->state != TEN_APP_STATE_ON_CONFIGURE) {
+    TEN_LOGI(
+        "[%s] Failed to on_configure_done() because of incorrect timing: %d",
+        ten_app_get_uri(self), self->state);
+    ten_error_deinit(&err);
+    return;
+  }
+
+  self->state = TEN_APP_STATE_ON_CONFIGURE_DONE;
+
   bool rc = ten_handle_manifest_info_when_on_configure_done(
       &self->manifest_info, ten_app_get_base_dir(self), &self->manifest, &err);
   if (!rc) {
@@ -241,6 +251,8 @@ void ten_app_on_configure(ten_env_t *ten_env) {
   self->property_info =
       ten_metadata_info_create(TEN_METADATA_ATTACH_TO_PROPERTY, self->ten_env);
 
+  self->state = TEN_APP_STATE_ON_CONFIGURE;
+
   if (self->on_configure) {
     self->on_configure(self, self->ten_env);
   } else {
@@ -256,6 +268,8 @@ void ten_app_on_init(ten_env_t *ten_env) {
 
   ten_app_t *self = ten_env_get_attached_app(ten_env);
   TEN_ASSERT(self && ten_app_check_integrity(self, true), "Should not happen.");
+
+  self->state = TEN_APP_STATE_ON_INIT;
 
   if (self->on_init) {
     self->on_init(self, self->ten_env);
@@ -276,6 +290,14 @@ void ten_app_on_init_done(ten_env_t *ten_env) {
 
   ten_app_t *self = ten_env_get_attached_app(ten_env);
   TEN_ASSERT(self && ten_app_check_integrity(self, true), "Should not happen.");
+
+  if (self->state != TEN_APP_STATE_ON_INIT) {
+    TEN_LOGI("[%s] Failed to on_init_done() because of incorrect timing: %d",
+             ten_app_get_uri(self), self->state);
+    return;
+  }
+
+  self->state = TEN_APP_STATE_ON_INIT_DONE;
 
   ten_app_on_init_done_internal(self);
 }
@@ -347,7 +369,7 @@ bool ten_app_on_deinit_done(ten_env_t *ten_env) {
     return false;
   }
 
-  self->state = TEN_APP_STATE_CLOSED;
+  self->state = TEN_APP_STATE_ON_DEINIT_DONE;
   ten_mutex_unlock(self->state_lock);
 
   // Close the ten_env so that any apis called on the ten_env will return

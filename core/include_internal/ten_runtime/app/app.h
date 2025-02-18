@@ -31,8 +31,24 @@ typedef struct MetricHandle MetricHandle;
 
 typedef enum TEN_APP_STATE {
   TEN_APP_STATE_INIT,
-  TEN_APP_STATE_CLOSING,  // The overall closing flow is started.
-  TEN_APP_STATE_CLOSED,   // on_deinit_done() is called actually.
+
+  // on_configure() is called.
+  TEN_APP_STATE_ON_CONFIGURE,
+
+  // on_configure_done() is called.
+  TEN_APP_STATE_ON_CONFIGURE_DONE,
+
+  // on_init() is called.
+  TEN_APP_STATE_ON_INIT,
+
+  // on_init_done() is called.
+  TEN_APP_STATE_ON_INIT_DONE,
+
+  // The overall closing flow is started.
+  TEN_APP_STATE_CLOSING,
+
+  // on_deinit_done() is called.
+  TEN_APP_STATE_ON_DEINIT_DONE,
 } TEN_APP_STATE;
 
 typedef struct ten_app_t {
