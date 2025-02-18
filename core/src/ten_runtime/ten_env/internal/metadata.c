@@ -206,6 +206,39 @@ bool ten_env_init_property_from_json(ten_env_t *self, const char *json_string,
     return false;
   }
 
+  switch (self->attach_to) {
+    case TEN_ENV_ATTACH_TO_EXTENSION: {
+      ten_extension_t *extension = self->attached_target.extension;
+      TEN_ASSERT(extension && ten_extension_check_integrity(extension, true),
+                 "Should not happen.");
+
+      if (extension->state != TEN_EXTENSION_STATE_ON_CONFIGURE) {
+        ten_error_set(err, TEN_ERROR_CODE_GENERIC,
+                      "Invalid timing to init property.");
+        return false;
+      }
+
+      break;
+    }
+
+    case TEN_ENV_ATTACH_TO_APP: {
+      ten_app_t *app = self->attached_target.app;
+      TEN_ASSERT(app && ten_app_check_integrity(app, true),
+                 "Should not happen.");
+      if (app->state != TEN_APP_STATE_ON_CONFIGURE) {
+        ten_error_set(err, TEN_ERROR_CODE_GENERIC,
+                      "Invalid timing to init property.");
+        return false;
+      }
+
+      break;
+    }
+
+    default:
+      ten_error_set(err, TEN_ERROR_CODE_GENERIC, "Invalid ");
+      return false;
+  }
+
   ten_metadata_info_t *property_info = ten_env_get_property_info(self);
   TEN_ASSERT(property_info && ten_metadata_info_check_integrity(property_info),
              "Should not happen.");
