@@ -369,7 +369,7 @@ bool ten_app_on_deinit_done(ten_env_t *ten_env) {
     return false;
   }
 
-  self->state = TEN_APP_STATE_CLOSED;
+  self->state = TEN_APP_STATE_ON_DEINIT_DONE;
   ten_mutex_unlock(self->state_lock);
 
   // Close the ten_env so that any apis called on the ten_env will return

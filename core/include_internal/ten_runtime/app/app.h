@@ -44,8 +44,11 @@ typedef enum TEN_APP_STATE {
   // on_init_done() is called.
   TEN_APP_STATE_ON_INIT_DONE,
 
-  TEN_APP_STATE_CLOSING,  // The overall closing flow is started.
-  TEN_APP_STATE_CLOSED,   // on_deinit_done() is called actually.
+  // The overall closing flow is started.
+  TEN_APP_STATE_CLOSING,
+
+  // on_deinit_done() is called.
+  TEN_APP_STATE_ON_DEINIT_DONE,
 } TEN_APP_STATE;
 
 typedef struct ten_app_t {

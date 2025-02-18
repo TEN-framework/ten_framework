@@ -213,8 +213,10 @@ bool ten_env_init_property_from_json(ten_env_t *self, const char *json_string,
                  "Should not happen.");
 
       if (extension->state != TEN_EXTENSION_STATE_ON_CONFIGURE) {
-        ten_error_set(err, TEN_ERROR_CODE_GENERIC,
-                      "Invalid timing to init property.");
+        if (err) {
+          ten_error_set(err, TEN_ERROR_CODE_GENERIC,
+                        "Invalid timing to init property.");
+        }
         return false;
       }
 
@@ -226,8 +228,10 @@ bool ten_env_init_property_from_json(ten_env_t *self, const char *json_string,
       TEN_ASSERT(app && ten_app_check_integrity(app, true),
                  "Should not happen.");
       if (app->state != TEN_APP_STATE_ON_CONFIGURE) {
-        ten_error_set(err, TEN_ERROR_CODE_GENERIC,
-                      "Invalid timing to init property.");
+        if (err) {
+          ten_error_set(err, TEN_ERROR_CODE_GENERIC,
+                        "Invalid timing to init property.");
+        }
         return false;
       }
 
@@ -235,7 +239,10 @@ bool ten_env_init_property_from_json(ten_env_t *self, const char *json_string,
     }
 
     default:
-      ten_error_set(err, TEN_ERROR_CODE_GENERIC, "Invalid ");
+      TEN_ASSERT(0, "Should not happen.");
+      if (err) {
+        ten_error_set(err, TEN_ERROR_CODE_GENERIC, "Invalid attach_to.");
+      }
       return false;
   }
 
