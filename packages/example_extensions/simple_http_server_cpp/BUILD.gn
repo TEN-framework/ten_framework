@@ -20,6 +20,7 @@ ten_package("simple_http_server_cpp") {
   enable_build = true
 
   resources = [
+    "LICENSE",
     "manifest.json",
     "property.json",
   ]

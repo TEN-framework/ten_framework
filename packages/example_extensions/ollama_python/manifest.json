@@ -15,7 +15,8 @@
       "property.json",
       "tests/**",
       "**.py",
-      "requirements.txt"
+      "requirements.txt",
+      "LICENSE"
     ]
   },
   "api": {},
