@@ -13,7 +13,8 @@ ten_package("vosk_asr_cpp") {
   resources = [
     "BUILD_release.gn=>BUILD.gn",
     "LICENSE",
-    "lib_private/libvosk.so",
+
+    # "lib_private/libvosk.so",
     "manifest.json",
     "property.json",
     "src/main.cc",
