@@ -199,13 +199,10 @@ class AsyncExtension(_Extension):
     def _exit_on_exception(self, async_ten_env: AsyncTenEnv, e: Exception):
         traceback_info = traceback.format_exc()
 
-        # TODO(xilin): remove this try-catch block after after we change all
-        # ten_env APIs to return errors instead of throwing exceptions
-        try:
-            async_ten_env.log_fatal(
-                f"Uncaught exception: {e} \ntraceback: {traceback_info}"
-            )
-        except Exception as e:
+        err = async_ten_env.log_fatal(
+            f"Uncaught exception: {e} \ntraceback: {traceback_info}"
+        )
+        if err is not None:
             # If the log_fatal API fails, print the error message to the
             # console.
             print(f"Uncaught exception: {e} \ntraceback: {traceback_info}")

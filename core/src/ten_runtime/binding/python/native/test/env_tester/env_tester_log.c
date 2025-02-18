@@ -6,6 +6,7 @@
 //
 #include "include_internal/ten_runtime/binding/python/common/error.h"
 #include "include_internal/ten_runtime/binding/python/test/env_tester.h"
+#include "ten_runtime/common/error_code.h"
 #include "ten_runtime/test/env_tester.h"
 #include "ten_runtime/test/env_tester_proxy.h"
 #include "ten_utils/log/log.h"
@@ -100,13 +101,16 @@ PyObject *ten_py_ten_env_tester_log(PyObject *self, TEN_UNUSED PyObject *args) {
         "Failed to parse argument when ten_env.log.");
   }
 
-  if (!py_ten_env_tester->c_ten_env_tester_proxy) {
-    return ten_py_raise_py_value_error_exception(
-        "ten_env_tester.log() failed because ten_env_tester_proxy is invalid.");
-  }
-
   ten_error_t err;
   TEN_ERROR_INIT(err);
+
+  if (!py_ten_env_tester->c_ten_env_tester_proxy) {
+    ten_error_set(&err, TEN_ERROR_CODE_TEN_IS_CLOSED,
+                  "ten_env_tester.log() failed because ten is closed.");
+    PyObject *result = (PyObject *)ten_py_error_wrap(&err);
+    ten_error_deinit(&err);
+    return result;
+  }
 
   ten_env_tester_notify_log_ctx_t *ctx = ten_env_tester_notify_log_ctx_create(
       level, func_name, file_name, line_no, msg);
@@ -114,7 +118,10 @@ PyObject *ten_py_ten_env_tester_log(PyObject *self, TEN_UNUSED PyObject *args) {
   if (!ten_env_tester_proxy_notify(py_ten_env_tester->c_ten_env_tester_proxy,
                                    ten_py_ten_env_tester_log_proxy_notify, ctx,
                                    &err)) {
+    PyObject *result = (PyObject *)ten_py_error_wrap(&err);
+    ten_error_deinit(&err);
     ten_env_tester_notify_log_ctx_destroy(ctx);
+    return result;
   }
 
   ten_error_deinit(&err);

@@ -30,17 +30,10 @@ class ExtensionTesterBasic(ExtensionTester):
         result: Optional[CmdResult],
         error: Optional[TenError],
     ):
-        # All ten_env_tester methods will raise exception because on_stop_done()
+        # All ten_env_tester methods will return error because on_deinit_done()
         # of the extension tester is called.
-        exception_caught = False
-
-        try:
-            ten_env.log_info("received unregister response")
-        except Exception as e:
-            print("exception caught: " + str(e))
-            exception_caught = True
-
-        assert exception_caught
+        err = ten_env.log_info("received unregister response")
+        assert err is not None
 
     def on_start(self, ten_env: TenEnvTester) -> None:
         new_cmd = Cmd.create("register")
@@ -55,8 +48,8 @@ class ExtensionTesterBasic(ExtensionTester):
 
         ten_env.on_start_done()
 
-    def on_stop(self, ten_env: TenEnvTester) -> None:
-        ten_env.log_info("tester on_stop")
+    def on_deinit(self, ten_env: TenEnvTester) -> None:
+        ten_env.log_info("tester on_deinit")
 
         new_cmd = Cmd.create("unregister")
         ten_env.send_cmd(
@@ -66,7 +59,7 @@ class ExtensionTesterBasic(ExtensionTester):
             ),
         )
 
-        ten_env.on_stop_done()
+        ten_env.on_deinit_done()
 
 
 def test_basic():

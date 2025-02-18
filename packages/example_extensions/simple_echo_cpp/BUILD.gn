@@ -12,6 +12,7 @@ ten_package("simple_echo_cpp") {
   package_kind = "extension"
 
   resources = [
+    "LICENSE",
     "manifest.json",
     "property.json",
   ]

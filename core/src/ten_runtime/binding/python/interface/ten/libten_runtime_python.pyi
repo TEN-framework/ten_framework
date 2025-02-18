@@ -134,7 +134,7 @@ class _TenEnv:
     def on_stop_done(self) -> None: ...
     def on_deinit_done(self) -> None: ...
     def on_create_instance_done(
-        self, instance: _Extension, context
+        self, instance: "_Extension", context
     ) -> None: ...
     def get_property_to_json(
         self, path: Optional[str] = None
@@ -247,7 +247,7 @@ class _TenEnv:
         file_name: Optional[str],
         line_no: int,
         msg: str,
-    ) -> None: ...
+    ) -> Optional[TenError]: ...
 
 class _App:
     def run(self, run_in_background_flag: int) -> None: ...
@@ -328,7 +328,7 @@ class _TenEnvTester:
         file_name: Optional[str],
         line_no: int,
         msg: str,
-    ) -> None: ...
+    ) -> Optional[TenError]: ...
 
 class _ExtensionTester:
     def set_test_mode_single(

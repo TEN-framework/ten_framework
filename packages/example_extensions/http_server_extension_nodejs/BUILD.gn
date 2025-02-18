@@ -13,6 +13,7 @@ ten_package("http_server_extension_nodejs") {
 
   resources = [
     "BUILD.gn",
+    "LICENSE",
     "manifest.json",
     "package.json",
     "property.json",

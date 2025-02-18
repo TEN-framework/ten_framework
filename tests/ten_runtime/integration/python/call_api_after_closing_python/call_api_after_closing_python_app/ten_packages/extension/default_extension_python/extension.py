@@ -82,14 +82,9 @@ class ClientExtension(AsyncExtension):
         finally:
             assert cancel_exception_caught
 
-            ten_env_api_exception_caught = False
-            try:
-                # Call ten_env api will throw exception.
-                ten_env.log_info("call ten_env api will throw exception")
-            except Exception:
-                ten_env_api_exception_caught = True
-            finally:
-                assert ten_env_api_exception_caught
+            # Call ten_env api will return error.
+            err = ten_env.log_info("call ten_env api will return error")
+            assert err is not None
 
         err = await ten_env.set_property_string("test", "ok")
         assert err is not None

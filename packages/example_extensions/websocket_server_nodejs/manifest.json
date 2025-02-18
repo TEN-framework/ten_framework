@@ -16,7 +16,8 @@
       "BUILD.gn",
       "src/**",
       "tsconfig.json",
-      "package.json"
+      "package.json",
+      "LICENSE"
     ]
   },
   "api": {}
