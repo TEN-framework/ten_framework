@@ -10,6 +10,7 @@
 #include "include_internal/ten_runtime/binding/python/msg/cmd_result.h"
 #include "include_internal/ten_runtime/binding/python/msg/msg.h"
 #include "include_internal/ten_runtime/binding/python/test/env_tester.h"
+#include "ten_runtime/common/error_code.h"
 #include "ten_runtime/msg/cmd_result/cmd_result.h"
 #include "ten_runtime/test/env_tester.h"
 #include "ten_runtime/test/env_tester_proxy.h"
@@ -136,19 +137,22 @@ PyObject *ten_py_ten_env_tester_return_result(PyObject *self, PyObject *args) {
         "Invalid argument type when return result.");
   }
 
+  ten_error_t err;
+  TEN_ERROR_INIT(err);
+
   if (!py_ten_env_tester->c_ten_env_tester_proxy) {
-    return ten_py_raise_py_value_error_exception(
-        "ten_env_tester.return_result() failed because ten_env_tester_proxy is "
-        "invalid.");
+    ten_error_set(&err, TEN_ERROR_CODE_TEN_IS_CLOSED,
+                  "ten_env_tester.return_result() failed because the TEN is "
+                  "closed.");
+    PyObject *result = (PyObject *)ten_py_error_wrap(&err);
+    ten_error_deinit(&err);
+    return result;
   }
 
   // Check if cb_func is callable.
   if (!PyCallable_Check(cb_func)) {
     cb_func = NULL;
   }
-
-  ten_error_t err;
-  TEN_ERROR_INIT(err);
 
   ten_py_ten_env_tester_notify_return_result_ctx_t *ctx =
       ten_py_ten_env_tester_notify_return_result_ctx_create(
@@ -161,7 +165,9 @@ PyObject *ten_py_ten_env_tester_return_result(PyObject *self, PyObject *args) {
   if (!success) {
     ten_py_ten_env_tester_notify_return_result_ctx_destroy(ctx);
 
-    ten_py_raise_py_runtime_error_exception("Failed to return result.");
+    PyObject *result = (PyObject *)ten_py_error_wrap(&err);
+    ten_error_deinit(&err);
+    return result;
   } else {
     if (ten_cmd_result_is_final(py_cmd_result->msg.c_msg, &err)) {
       // Remove the C message from the python target message if it is the final
@@ -174,9 +180,5 @@ PyObject *ten_py_ten_env_tester_return_result(PyObject *self, PyObject *args) {
 
   ten_error_deinit(&err);
 
-  if (success) {
-    Py_RETURN_NONE;
-  } else {
-    return NULL;
-  }
+  Py_RETURN_NONE;
 }

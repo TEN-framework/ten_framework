@@ -68,45 +68,45 @@ class TenEnv(TenEnvBase):
 
     def send_cmd(
         self, cmd: Cmd, result_handler: Optional[ResultHandler] = None
-    ) -> None:
-        self._internal.send_cmd(cmd, result_handler, False)
+    ) -> Optional[TenError]:
+        return self._internal.send_cmd(cmd, result_handler, False)
 
     def send_cmd_ex(
         self, cmd: Cmd, result_handler: Optional[ResultHandler] = None
-    ) -> None:
-        self._internal.send_cmd(cmd, result_handler, True)
+    ) -> Optional[TenError]:
+        return self._internal.send_cmd(cmd, result_handler, True)
 
     def send_data(
         self, data: Data, error_handler: Optional[ErrorHandler] = None
-    ) -> None:
-        self._internal.send_data(data, error_handler)
+    ) -> Optional[TenError]:
+        return self._internal.send_data(data, error_handler)
 
     def send_video_frame(
         self,
         video_frame: VideoFrame,
         error_handler: Optional[ErrorHandler] = None,
-    ) -> None:
-        self._internal.send_video_frame(video_frame, error_handler)
+    ) -> Optional[TenError]:
+        return self._internal.send_video_frame(video_frame, error_handler)
 
     def send_audio_frame(
         self,
         audio_frame: AudioFrame,
         error_handler: Optional[ErrorHandler] = None,
-    ) -> None:
-        self._internal.send_audio_frame(audio_frame, error_handler)
+    ) -> Optional[TenError]:
+        return self._internal.send_audio_frame(audio_frame, error_handler)
 
     def return_result(
         self,
         result: CmdResult,
         target_cmd: Cmd,
         error_handler: Optional[ErrorHandler] = None,
-    ) -> None:
-        self._internal.return_result(result, target_cmd, error_handler)
+    ) -> Optional[TenError]:
+        return self._internal.return_result(result, target_cmd, error_handler)
 
     def return_result_directly(
         self, result: CmdResult, error_handler: Optional[ErrorHandler] = None
-    ) -> None:
-        self._internal.return_result_directly(result, error_handler)
+    ) -> Optional[TenError]:
+        return self._internal.return_result_directly(result, error_handler)
 
     def is_property_exist(self, path: str) -> tuple[bool, Optional[TenError]]:
         return self._internal.is_property_exist(path)
@@ -138,5 +138,5 @@ class TenEnv(TenEnvBase):
     def set_property_float(self, path: str, value: float) -> Optional[TenError]:
         return self._internal.set_property_float(path, value)
 
-    def init_property_from_json(self, json_str: str) -> None:
+    def init_property_from_json(self, json_str: str) -> Optional[TenError]:
         return self._internal.init_property_from_json(json_str)

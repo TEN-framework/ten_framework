@@ -163,29 +163,32 @@ PyObject *ten_py_ten_env_init_property_from_json(PyObject *self,
         "ten_env.init_property_from_json.");
   }
 
-  if (!py_ten_env->c_ten_env_proxy && !py_ten_env->c_ten_env) {
-    return ten_py_raise_py_value_error_exception(
-        "ten_env.init_property_from_json() failed because ten_env_proxy is "
-        "invalid.");
-  }
-
   ten_error_t err;
   TEN_ERROR_INIT(err);
+
+  if (!py_ten_env->c_ten_env_proxy && !py_ten_env->c_ten_env) {
+    ten_error_set(&err, TEN_ERROR_CODE_TEN_IS_CLOSED, "ten_env is closed.");
+    PyObject *result = (PyObject *)ten_py_error_wrap(&err);
+    ten_error_deinit(&err);
+    return result;
+  }
 
   ten_env_notify_init_property_ctx_t *ctx =
       ten_env_notify_init_property_ctx_create(json_str, strlen(json_str));
 
   if (!ten_env_proxy_notify(py_ten_env->c_ten_env_proxy,
                             ten_env_proxy_notify_init_property_from_json, ctx,
-                            false, NULL)) {
-    goto done;
+                            false, &err)) {
+    PyObject *result = (PyObject *)ten_py_error_wrap(&err);
+    ten_env_notify_init_property_ctx_destroy(ctx);
+    ten_error_deinit(&err);
+    return result;
   }
 
   PyThreadState *saved_py_thread_state = PyEval_SaveThread();
   ten_event_wait(ctx->completed, -1);
   PyEval_RestoreThread(saved_py_thread_state);
 
-done:
   ten_env_notify_init_property_ctx_destroy(ctx);
   ten_error_deinit(&err);
 
@@ -219,16 +222,15 @@ PyObject *ten_py_ten_env_init_property_from_json_async(PyObject *self,
         "ten_env.init_property_from_json_async.");
   }
 
-  if (!py_ten_env->c_ten_env_proxy && !py_ten_env->c_ten_env) {
-    return ten_py_raise_py_value_error_exception(
-        "ten_env.init_property_from_json_async() failed because ten_env_proxy "
-        "is invalid.");
-  }
-
   ten_error_t err;
   TEN_ERROR_INIT(err);
 
-  bool success = true;
+  if (!py_ten_env->c_ten_env_proxy && !py_ten_env->c_ten_env) {
+    ten_error_set(&err, TEN_ERROR_CODE_TEN_IS_CLOSED, "ten_env is closed.");
+    PyObject *result = (PyObject *)ten_py_error_wrap(&err);
+    ten_error_deinit(&err);
+    return result;
+  }
 
   ten_env_notify_init_property_async_ctx_t *ctx =
       ten_env_notify_init_property_async_ctx_create(json_str, strlen(json_str),
@@ -240,16 +242,12 @@ PyObject *ten_py_ten_env_init_property_from_json_async(PyObject *self,
     Py_XDECREF(py_cb_func);
     ten_env_notify_init_property_async_ctx_destroy(ctx);
 
-    ten_py_raise_py_value_error_exception("Failed to init property from json");
-
-    success = false;
+    PyObject *result = (PyObject *)ten_py_error_wrap(&err);
+    ten_error_deinit(&err);
+    return result;
   }
 
   ten_error_deinit(&err);
-
-  if (!success) {
-    return NULL;
-  }
 
   Py_RETURN_NONE;
 }
