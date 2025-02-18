@@ -7,25 +7,15 @@ import("//build/feature/ten_package.gni")
 import("//build/feature/ten_package_test.gni")
 import("//build/options.gni")
 
-ten_package("vosk_stt_cpp") {
+ten_package("vosk_asr_cpp") {
   package_kind = "extension"
   enable_build = true
-
-  resources = [
-    "LICENSE",
-    "manifest.json",
-    "property.json",
-  ]
 
   sources = [ "src/main.cc" ]
   include_dirs = [
     "include",
     "include/nlohmann_json",
-    "//core/src",
-    "//core",
   ]
-
-  deps = [ "//core/src/ten_runtime" ]
 }
 
 if (ten_enable_standalone_test) {
@@ -35,7 +25,7 @@ if (ten_enable_standalone_test) {
   # ```shell
   # tman install system googletest
   # ```
-  ten_package_test("vosk_stt_cpp_test") {
+  ten_package_test("vosk_asr_cpp_test") {
     package_kind = "extension"
 
     sources = [

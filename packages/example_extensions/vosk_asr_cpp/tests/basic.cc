@@ -5,12 +5,10 @@
 //
 #include "gtest/gtest.h"
 #include "ten_runtime/binding/cpp/ten.h"
-#include "ten_utils/lib/path.h"
-#include "ten_utils/lib/string.h"
 
 namespace {
 
-class vosk_stt_cpp_tester : public ten::extension_tester_t {
+class vosk_asr_cpp_tester : public ten::extension_tester_t {
  public:
   void on_start(ten::ten_env_tester_t &ten_env) override {
     // Send the first command to the extension.
@@ -30,8 +28,8 @@ class vosk_stt_cpp_tester : public ten::extension_tester_t {
 }  // namespace
 
 TEST(Test, Basic) {  // NOLINT
-  auto *tester = new vosk_stt_cpp_tester();
-  tester->set_test_mode_single("vosk_stt_cpp");
+  auto *tester = new vosk_asr_cpp_tester();
+  tester->set_test_mode_single("vosk_asr_cpp");
   tester->run();
   delete tester;
 }
