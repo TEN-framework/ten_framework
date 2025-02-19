@@ -112,7 +112,7 @@ def test_call_api_after_closing_python():
                 base_path,
                 (
                     "call_api_after_closing_python_app/ten_packages/system/"
-                    "ten_runtime/lib/libasan.s"
+                    "ten_runtime/lib/libasan.so"
                 ),
             )
 

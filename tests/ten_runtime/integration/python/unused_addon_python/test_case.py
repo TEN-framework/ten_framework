@@ -115,7 +115,7 @@ def test_unused_addon_python():
                 base_path,
                 (
                     "unused_addon_python_app/ten_packages/system/"
-                    "ten_runtime/lib/libasan.s"
+                    "ten_runtime/lib/libasan.so"
                 ),
             )
 

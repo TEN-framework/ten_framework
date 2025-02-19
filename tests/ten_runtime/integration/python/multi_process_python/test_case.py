@@ -112,7 +112,7 @@ def test_multi_process_python():
                 base_path,
                 (
                     "multi_process_python_app/ten_packages/system/"
-                    "ten_runtime/lib/libasan.s"
+                    "ten_runtime/lib/libasan.so"
                 ),
             )
 

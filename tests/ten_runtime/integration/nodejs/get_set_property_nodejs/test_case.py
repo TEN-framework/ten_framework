@@ -52,7 +52,7 @@ def test_get_set_property_nodejs():
                 base_path,
                 (
                     "get_set_property_nodejs_app/ten_packages/system/"
-                    "ten_runtime/lib/libasan.s"
+                    "ten_runtime/lib/libasan.so"
                 ),
             )
 

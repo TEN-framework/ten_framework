@@ -84,7 +84,7 @@ def test_local_dependency_2_go():
                 base_path,
                 (
                     "local_dependency_2_go_app/ten_packages/system/"
-                    "ten_runtime/lib/libasan.s"
+                    "ten_runtime/lib/libasan.so"
                 ),
             )
             if os.path.exists(libasan_path):

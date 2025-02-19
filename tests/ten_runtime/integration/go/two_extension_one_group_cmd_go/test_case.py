@@ -84,7 +84,7 @@ def test_two_extension_on_group_cmd_go():
                 base_path,
                 (
                     "two_extension_one_group_cmd_go_app/ten_packages/system/"
-                    "ten_runtime/lib/libasan.s"
+                    "ten_runtime/lib/libasan.so"
                 ),
             )
             if os.path.exists(libasan_path):

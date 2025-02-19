@@ -112,7 +112,7 @@ def test_send_cmd_set_object_python():
                 base_path,
                 (
                     "send_cmd_set_object_python_app/ten_packages/system/"
-                    "ten_runtime/lib/libasan.s"
+                    "ten_runtime/lib/libasan.so"
                 ),
             )
 

@@ -112,7 +112,7 @@ def test_two_async_exts_one_group_python():
                 base_path,
                 (
                     "two_async_exts_one_group_python_app/ten_packages/system/"
-                    "ten_runtime/lib/libasan.s"
+                    "ten_runtime/lib/libasan.so"
                 ),
             )
 

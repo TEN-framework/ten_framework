@@ -112,7 +112,7 @@ def test_no_dest_async_python():
                 base_path,
                 (
                     "no_dest_async_python_app/ten_packages/system/"
-                    "ten_runtime/lib/libasan.s"
+                    "ten_runtime/lib/libasan.so"
                 ),
             )
 

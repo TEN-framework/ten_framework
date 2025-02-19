@@ -111,7 +111,7 @@ def test_send_cmd_discard_result_python():
                 base_path,
                 (
                     "send_cmd_discard_result_python_app/ten_packages/system/"
-                    "ten_runtime/lib/libasan.s"
+                    "ten_runtime/lib/libasan.so"
                 ),
             )
 

@@ -88,7 +88,7 @@ def build_and_install_app():
                 base_path,
                 (
                     "exit_signal_go_app/ten_packages/system/"
-                    "ten_runtime/lib/libasan.s"
+                    "ten_runtime/lib/libasan.so"
                 ),
             )
             if os.path.exists(libasan_path):

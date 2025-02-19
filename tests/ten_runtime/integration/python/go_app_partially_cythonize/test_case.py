@@ -185,7 +185,7 @@ def test_go_app_partially_cythonize():
                 base_path,
                 (
                     "go_app_partially_cythonize_app/ten_packages/system/"
-                    "ten_runtime/lib/libasan.s"
+                    "ten_runtime/lib/libasan.so"
                 ),
             )
 

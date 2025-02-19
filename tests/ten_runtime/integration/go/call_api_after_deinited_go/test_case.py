@@ -101,7 +101,7 @@ def test_call_api_after_deinited_go():
                 base_path,
                 (
                     "call_api_after_deinited_go_app/ten_packages/system/"
-                    "ten_runtime/lib/libasan.s"
+                    "ten_runtime/lib/libasan.so"
                 ),
             )
             if os.path.exists(libasan_path):

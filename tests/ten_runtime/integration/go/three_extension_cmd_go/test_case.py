@@ -84,7 +84,7 @@ def test_three_extension_cmd_go():
                 base_path,
                 (
                     "three_extension_cmd_go_app/ten_packages/system/"
-                    "ten_runtime/lib/libasan.s"
+                    "ten_runtime/lib/libasan.so"
                 ),
             )
             if os.path.exists(libasan_path):

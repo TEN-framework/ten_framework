@@ -62,7 +62,7 @@ def test_send_data_nodejs():
                 base_path,
                 (
                     "send_data_nodejs_app/ten_packages/system/"
-                    "ten_runtime/lib/libasan.s"
+                    "ten_runtime/lib/libasan.so"
                 ),
             )
 

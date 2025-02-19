@@ -63,7 +63,7 @@ def test_websocket_server_nodejs():
                 base_path,
                 (
                     "websocket_server_nodejs_app/ten_packages/system/"
-                    "ten_runtime/lib/libasan.s"
+                    "ten_runtime/lib/libasan.so"
                 ),
             )
 

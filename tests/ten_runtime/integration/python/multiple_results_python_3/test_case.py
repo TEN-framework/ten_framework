@@ -112,7 +112,7 @@ def test_multiple_results_python_3():
                 base_path,
                 (
                     "multiple_results_python_3_app/ten_packages/system/"
-                    "ten_runtime/lib/libasan.s"
+                    "ten_runtime/lib/libasan.so"
                 ),
             )
 

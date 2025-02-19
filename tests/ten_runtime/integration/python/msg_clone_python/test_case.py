@@ -112,7 +112,7 @@ def test_msg_clone_python():
                 base_path,
                 (
                     "msg_clone_python_app/ten_packages/system/"
-                    "ten_runtime/lib/libasan.s"
+                    "ten_runtime/lib/libasan.so"
                 ),
             )
 

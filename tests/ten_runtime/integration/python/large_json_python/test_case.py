@@ -112,7 +112,7 @@ def test_large_json_python():
                 base_path,
                 (
                     "large_json_python_app/ten_packages/system/"
-                    "ten_runtime/lib/libasan.s"
+                    "ten_runtime/lib/libasan.so"
                 ),
             )
 

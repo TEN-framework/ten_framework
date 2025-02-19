@@ -84,7 +84,7 @@ def test_start_app_sync_go():
                 base_path,
                 (
                     "start_app_sync_go_app/ten_packages/system/"
-                    "ten_runtime/lib/libasan.s"
+                    "ten_runtime/lib/libasan.so"
                 ),
             )
             if os.path.exists(libasan_path):

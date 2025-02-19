@@ -95,7 +95,7 @@ def test_send_data_go():
                 base_path,
                 (
                     "send_data_go_app/ten_packages/system/"
-                    "ten_runtime/lib/libasan.s"
+                    "ten_runtime/lib/libasan.so"
                 ),
             )
             if os.path.exists(libasan_path):

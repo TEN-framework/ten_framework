@@ -116,7 +116,7 @@ def test_cpp_app_python():
                 base_path,
                 (
                     "cpp_app_python_app/ten_packages/system/"
-                    "ten_runtime/lib/libasan.s"
+                    "ten_runtime/lib/libasan.so"
                 ),
             )
 

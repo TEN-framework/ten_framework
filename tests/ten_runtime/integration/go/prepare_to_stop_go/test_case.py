@@ -84,7 +84,7 @@ def test_prepare_to_stop_go():
                 base_path,
                 (
                     "prepare_to_stop_go_app/ten_packages/system/"
-                    "ten_runtime/lib/libasan.s"
+                    "ten_runtime/lib/libasan.so"
                 ),
             )
             if os.path.exists(libasan_path):

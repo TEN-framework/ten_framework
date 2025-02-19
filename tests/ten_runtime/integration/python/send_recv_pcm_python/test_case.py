@@ -112,7 +112,7 @@ def test_send_recv_pcm_python():
                 base_path,
                 (
                     "send_recv_pcm_python_app/ten_packages/system/"
-                    "ten_runtime/lib/libasan.s"
+                    "ten_runtime/lib/libasan.so"
                 ),
             )
 
