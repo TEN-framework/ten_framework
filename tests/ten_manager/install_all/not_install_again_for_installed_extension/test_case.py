@@ -6,7 +6,7 @@
 #
 import os
 import sys
-from .common import cmd_exec
+from .utils import cmd_exec
 
 
 def check_installed_extensions(app_dir: str) -> bool:

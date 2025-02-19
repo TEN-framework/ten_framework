@@ -12,7 +12,7 @@ import inspect
 from . import log
 
 
-def remove_readonly(func, path, excinfo):
+def remove_readonly(func, path, _excinfo):
     if not os.access(path, os.W_OK):
         os.chmod(path, stat.S_IWUSR)
         func(path)
@@ -27,25 +27,25 @@ def remove_tree(path: str) -> None:
 
 def copy_tree(src_path: str, dst_path: str, rm_dst=False) -> None:
     if not os.path.exists(src_path):
-        raise Exception(src_path + " not exist")
+        raise FileNotFoundError(src_path + " not exist")
 
     if not os.path.isdir(src_path):
-        raise Exception(src_path + " is not a directory.")
+        raise NotADirectoryError(src_path + " is not a directory.")
 
     # Check if dst_path exists and is a directory.
     if not os.path.exists(dst_path):
         try:
             os.makedirs(dst_path)
         except Exception as exc:
-            raise Exception(
+            raise OSError(
                 inspect.cleandoc(
                     f"""Failed to create destination directory:
                     {dst_path}
                     Exception: {exc}"""
                 )
-            )
+            ) from exc
     elif not os.path.isdir(dst_path):
-        raise Exception(
+        raise NotADirectoryError(
             f"Destination path '{dst_path}' exists and is not a directory."
         )
 
@@ -108,10 +108,10 @@ def copy_tree(src_path: str, dst_path: str, rm_dst=False) -> None:
 
 def copy_file(src_file: str, dst_file: str, rm_dst=False) -> None:
     if not os.path.exists(src_file):
-        raise Exception(f"{src_file} not exist")
+        raise FileNotFoundError(f"{src_file} not exist")
 
     if os.path.isdir(src_file):
-        raise Exception(f"{src_file} is a directory.")
+        raise IsADirectoryError(f"{src_file} is a directory.")
 
     src_file = os.path.abspath(src_file)
     dst_file = os.path.abspath(dst_file)
@@ -196,4 +196,4 @@ def copy(src: str, dst: str, rm_dst=False) -> None:
         else:
             copy_file(src, dst, rm_dst)
     else:
-        raise Exception(f"{src} does not exist.")
+        raise FileNotFoundError(f"{src} does not exist.")

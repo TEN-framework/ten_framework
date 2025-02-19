@@ -6,7 +6,7 @@ import subprocess
 import os
 import sys
 from sys import stdout
-from .common import http, build_config, build_pkg
+from .utils import http, build_config, build_pkg
 
 
 def http_request():
@@ -63,7 +63,7 @@ def test_send_cmd_set_object_python():
 
     if build_config_args.ten_enable_integration_tests_prebuilt is False:
         # Before starting, cleanup the old app package.
-        build_pkg.cleanup(app_root_path)
+        fs_utils.remove_tree(app_root_path)
 
         print('Assembling and building package "{}".'.format(app_dir_name))
 
@@ -164,8 +164,8 @@ def test_send_cmd_set_object_python():
 
         assert exit_code == 0
 
-        if build_config_args.ten_enable_integration_tests_prebuilt is False:
+        if build_config_args.ten_enable_tests_cleanup is True:
             # Testing complete. If builds are only created during the testing
             # phase, we can clear the build results to save disk space.
-            build_pkg.cleanup(app_root_path)
-            build_pkg.cleanup(venv_dir)
+            fs_utils.remove_tree(app_root_path)
+            fs_utils.remove_tree(venv_dir)
