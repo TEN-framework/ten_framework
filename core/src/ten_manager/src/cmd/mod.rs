@@ -8,6 +8,7 @@ pub mod cmd_check;
 pub mod cmd_create;
 pub mod cmd_delete;
 pub mod cmd_designer;
+pub mod cmd_fetch;
 pub mod cmd_install;
 pub mod cmd_modify;
 pub mod cmd_package;
@@ -22,6 +23,7 @@ use super::config::TmanConfig;
 pub enum CommandData {
     Create(self::cmd_create::CreateCommand),
     Install(self::cmd_install::InstallCommand),
+    Fetch(crate::cmd::cmd_fetch::FetchCommand),
     Uninstall(self::cmd_uninstall::UninstallCommand),
     Package(self::cmd_package::PackageCommand),
     Publish(self::cmd_publish::PublishCommand),
@@ -42,6 +44,9 @@ pub async fn execute_cmd(
         }
         CommandData::Install(cmd) => {
             crate::cmd::cmd_install::execute_cmd(tman_config, cmd).await
+        }
+        CommandData::Fetch(cmd) => {
+            crate::cmd::cmd_fetch::execute_cmd(tman_config, cmd).await
         }
         CommandData::Uninstall(cmd) => {
             crate::cmd::cmd_uninstall::execute_cmd(tman_config, cmd).await

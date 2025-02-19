@@ -6,7 +6,7 @@ import subprocess
 import os
 import sys
 from sys import stdout
-from .common import build_config, build_pkg
+from .utils import build_config, build_pkg, fs_utils
 
 
 def test_standalone_ollama_async_python():
@@ -14,7 +14,7 @@ def test_standalone_ollama_async_python():
     root_dir = os.path.join(base_path, "../../../../../")
 
     extension_root_path = os.path.join(base_path, "ollama_python")
-    build_pkg.cleanup(extension_root_path)
+    fs_utils.remove_tree(extension_root_path)
 
     my_env = os.environ.copy()
 

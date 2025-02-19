@@ -7,14 +7,14 @@
 import os
 import sys
 import json
-from .common import cmd_exec
+from .utils import cmd_exec
 
 
 def get_package_name():
     base_path = os.path.dirname(os.path.abspath(__file__))
     manifest = os.path.join(base_path, "mock_extension/manifest.json")
     if os.path.exists(manifest):
-        with open(manifest, "r") as f_mani:
+        with open(manifest, "r", encoding="utf-8") as f_mani:
             manifest_json = json.load(f_mani)
 
             items = [
@@ -23,13 +23,13 @@ def get_package_name():
             ]
             return "_".join(items)
     else:
-        raise Exception("manifest.json not exists.")
+        raise FileNotFoundError("manifest.json not exists.")
 
 
 def test_tman_publish():
     """Test tman publish."""
     base_path = os.path.dirname(os.path.abspath(__file__))
-    root_dir = os.path.join(base_path, "../../../")
+    root_dir = os.path.join(base_path, "../../../../")
 
     my_env = os.environ.copy()
     if sys.platform == "win32":

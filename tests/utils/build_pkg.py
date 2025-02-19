@@ -13,7 +13,7 @@ import time
 from . import (
     cmd_exec,
     fs_utils,
-    build_config,
+    build_config as build_config_module,
     install_pkg,
     install_all,
 )
@@ -113,7 +113,7 @@ def _npm_install() -> int:
     # the best way is to delete the whole node_modules/, and try again.
     returncode = 0
 
-    for i in range(1, 10):
+    for _ in range(1, 10):
         returncode, output = cmd_exec.run_cmd(
             [
                 "npm",
@@ -123,16 +123,16 @@ def _npm_install() -> int:
 
         if returncode == 0:
             break
-        else:
-            # Delete node_modules/ and try again.
-            print(
-                (
-                    f"Failed to 'npm install', output: {output}, "
-                    "deleting node_modules/ and try again."
-                )
+
+        # Delete node_modules/ and try again.
+        print(
+            (
+                f"Failed to 'npm install', output: {output}, "
+                "deleting node_modules/ and try again."
             )
-            fs_utils.remove_tree("node_modules")
-            time.sleep(5)
+        )
+        fs_utils.remove_tree("node_modules")
+        time.sleep(5)
     if returncode != 0:
         print("Failed to 'npm install' after 10 times retries")
 
@@ -208,7 +208,7 @@ def _build_go_app(args: ArgumentInfo) -> int:
 
 def _get_pkg_type(pkg_root: str) -> str:
     manifest_path = os.path.join(pkg_root, "manifest.json")
-    with open(manifest_path, "r") as f:
+    with open(manifest_path, "r", encoding="utf-8") as f:
         manifest_json = json.load(f)
     return manifest_json["type"]
 
@@ -225,7 +225,7 @@ def _build_app(args: ArgumentInfo) -> int:
     elif args.pkg_language == "nodejs":
         returncode = _build_nodejs_app(args)
     else:
-        raise Exception(f"Unknown app language: {args.pkg_language}")
+        raise ValueError(f"Unknown app language: {args.pkg_language}")
 
     return returncode
 
@@ -242,7 +242,7 @@ def _build_extension(args: ArgumentInfo) -> int:
 
 
 def prepare_app(
-    build_config: build_config.BuildConfig,
+    build_config: build_config_module.BuildConfig,
     root_dir: str,
     test_case_base_dir: str,
     app_dir_name: str,
@@ -262,7 +262,7 @@ def prepare_app(
         test_case_base_dir, ".assemble_info", app_dir_name
     )
     info_file = os.path.join(assemble_info_dir, "info.json")
-    with open(info_file, "r") as f:
+    with open(info_file, "r", encoding="utf-8") as f:
         info = json.load(f)
         pkg_name = info["src_app"]
         generated_app_src_root_dir_name = info[
@@ -344,7 +344,7 @@ def _replace_after_install_app(
 
     replace_paths_after_install_app: list[str] = []
 
-    with open(assemble_info_file, "r") as f:
+    with open(assemble_info_file, "r", encoding="utf-8") as f:
         info = json.load(f)
         replace_paths_after_install_app = info[
             "replace_paths_after_install_app"
@@ -371,7 +371,7 @@ def _replace_after_install_app(
 
         try:
             fs_utils.copy(src_file, dst_file)
-        except Exception as exc:
+        except FileNotFoundError as exc:
             print(exc)
             return 1
 
@@ -388,7 +388,7 @@ def _replace_after_install_all(
 
     replace_paths_after_install_all: list[str] = []
 
-    with open(assemble_info_file, "r") as f:
+    with open(assemble_info_file, "r", encoding="utf-8") as f:
         info = json.load(f)
         replace_paths_after_install_all = info[
             "replace_paths_after_install_all"
@@ -415,7 +415,7 @@ def _replace_after_install_all(
 
         try:
             fs_utils.copy(src_file, dst_file)
-        except Exception as exc:
+        except FileNotFoundError as exc:
             print(exc)
             return 1
 
@@ -423,7 +423,7 @@ def _replace_after_install_all(
 
 
 def build_app(
-    build_config: build_config.BuildConfig,
+    build_config: build_config_module.BuildConfig,
     app_dir_path: str,
     app_dir_name: str,
     pkg_language: str,
@@ -479,7 +479,7 @@ def build_app(
 
 
 def prepare_and_build_app(
-    build_config: build_config.BuildConfig,
+    build_config: build_config_module.BuildConfig,
     root_dir: str,
     test_case_base_dir: str,
     app_dir_name: str,
@@ -543,7 +543,3 @@ def build_nodejs_extensions(app_root_path: str):
     os.chdir(origin_wd)
 
     return 0
-
-
-def cleanup(path: str) -> None:
-    fs_utils.remove_tree(path)

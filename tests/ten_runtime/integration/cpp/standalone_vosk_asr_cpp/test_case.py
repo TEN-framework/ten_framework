@@ -6,7 +6,7 @@ import subprocess
 import os
 import sys
 from sys import stdout
-from .common import build_pkg
+from .utils import build_pkg
 
 
 def test_standalone_vosk_asr_cpp():
@@ -14,7 +14,7 @@ def test_standalone_vosk_asr_cpp():
     root_dir = os.path.join(base_path, "../../../../../")
 
     extension_root_path = os.path.join(base_path, "vosk_asr_cpp")
-    build_pkg.cleanup(extension_root_path)
+    fs_utils.remove_tree(extension_root_path)
 
     my_env = os.environ.copy()
 

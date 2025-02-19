@@ -33,6 +33,8 @@ declare_args() {
   # `ten_runtime`, `ten_manager`).
   ten_enable_integration_tests_prebuilt = false
 
+  ten_enable_tests_cleanup = true
+
   # Rust's incremental build requires additional disk space, so this option
   # allows it to be disabled in CI environments.
   ten_enable_rust_incremental_build = true

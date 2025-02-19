@@ -14,6 +14,7 @@ class BuildConfig:
         enable_sanitizer,
         vs_version,
         ten_enable_integration_tests_prebuilt,
+        ten_enable_tests_cleanup,
     ):
         self.target_os = target_os
         self.target_cpu = target_cpu
@@ -24,6 +25,7 @@ class BuildConfig:
         self.ten_enable_integration_tests_prebuilt = (
             ten_enable_integration_tests_prebuilt
         )
+        self.ten_enable_tests_cleanup = ten_enable_tests_cleanup
 
 
 def parse_build_config(file_path: str) -> BuildConfig:
@@ -34,6 +36,7 @@ def parse_build_config(file_path: str) -> BuildConfig:
     enable_sanitizer = None
     vs_version = None
     ten_enable_integration_tests_prebuilt = None
+    ten_enable_tests_cleanup = None
 
     with open(file_path, "r") as file:
         for line in file:
@@ -54,6 +57,10 @@ def parse_build_config(file_path: str) -> BuildConfig:
                 ten_enable_integration_tests_prebuilt = (
                     line.split("=")[1].strip().lower() == "true"
                 )
+            elif line.startswith("ten_enable_tests_cleanup"):
+                ten_enable_tests_cleanup = (
+                    line.split("=")[1].strip().lower() == "true"
+                )
 
     target_build = "debug" if is_debug else "release"
 
@@ -65,4 +72,5 @@ def parse_build_config(file_path: str) -> BuildConfig:
         enable_sanitizer,
         vs_version,
         ten_enable_integration_tests_prebuilt,
+        ten_enable_tests_cleanup,
     )

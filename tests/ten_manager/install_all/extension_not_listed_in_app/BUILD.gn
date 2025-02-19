@@ -8,7 +8,7 @@ import("//build/ten_runtime/feature/test.gni")
 
 ten_package_test_prepare_auxiliary_resources("extension_not_listed_in_app") {
   resources = [
-    "//.gnfiles/build/scripts/cmd_exec.py=>common/cmd_exec.py",
+    "//.gnfiles/build/scripts/cmd_exec.py=>utils/cmd_exec.py",
     "__init__.py",
     "test_app/manifest.json",
     "test_app/ten_packages/extension/ext_not_listed/manifest.json",

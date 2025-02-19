@@ -6,7 +6,7 @@
 #
 import os
 import sys
-from .common import cmd_exec
+from .utils import cmd_exec
 
 
 def get_installed_extensions_count(app_dir: str):

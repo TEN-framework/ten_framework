@@ -7,7 +7,7 @@
 import os
 import sys
 import json
-from .common import cmd_exec
+from .utils import cmd_exec
 
 
 def analyze_resolve_result(ext_root_folder: str) -> None:

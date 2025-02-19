@@ -6,7 +6,7 @@ import subprocess
 import os
 import sys
 from sys import stdout
-from .common import build_config
+from .utils import build_config
 
 
 def test_standalone_test_async_python():

@@ -7,7 +7,7 @@
 import json
 import os
 import sys
-from .common import cmd_exec
+from .utils import cmd_exec
 
 
 def analyze_resolve_result(app_root_folder: str) -> None:

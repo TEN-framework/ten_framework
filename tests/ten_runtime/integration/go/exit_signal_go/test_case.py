@@ -10,7 +10,7 @@ from sys import stdout
 import signal
 import time
 import pytest
-from .common import build_config, build_pkg
+from .utils import build_config, build_pkg, fs_utils
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -31,7 +31,7 @@ def build_and_install_app():
 
     # Before starting, cleanup the old app package.
     if build_config_args.ten_enable_integration_tests_prebuilt is False:
-        build_pkg.cleanup(app_root_path)
+        fs_utils.remove_tree(app_root_path)
 
     if not build_config_args.ten_enable_integration_tests_prebuilt:
         print(f'Assembling and building package "{app_dir_name}".')
