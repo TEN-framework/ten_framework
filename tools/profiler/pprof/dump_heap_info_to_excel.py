@@ -10,6 +10,8 @@ import dump_heap_files_to_text
 
 class ArgumentInfo(argparse.Namespace):
     def __init__(self):
+        super().__init__()
+
         self.heap_dir: str
         self.output: str
         self.sample_interval: int

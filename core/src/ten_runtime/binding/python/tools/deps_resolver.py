@@ -6,6 +6,8 @@ import sys
 
 class ArgumentInfo(argparse.Namespace):
     def __init__(self):
+        super().__init__()
+
         self.root: str
         self.output: str
         self.index_url: str
@@ -52,7 +54,7 @@ class DepsManager:
         if not os.path.isfile(manifest_path):
             raise FileNotFoundError("manifest.json not found in root directory")
 
-        with open(manifest_path, "r") as f:
+        with open(manifest_path, "r", encoding="utf-8") as f:
             manifest = json.load(f)
 
         # Collect names of extensions from dependencies.
@@ -96,7 +98,7 @@ class DepsManager:
             os.remove(self.requirements_in_file)
 
         # Create 'requirements.in' file under root dir.
-        with open(self.requirements_in_file, "w") as f:
+        with open(self.requirements_in_file, "w", encoding="utf-8") as f:
             for file in requirements_files:
                 f.write(f"-r {file}\n")
 

@@ -4,7 +4,7 @@ import re
 
 
 def get_total_bytes_from_text(filename, output_unit):
-    with open(filename, "r") as file:
+    with open(filename, "r", encoding="utf-8") as file:
         data = file.read()
 
     # Use regular expression to match the total size value

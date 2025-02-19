@@ -15,6 +15,8 @@ from ten_common.scripts import env
 
 class ArgumentInfo(argparse.Namespace):
     def __init__(self):
+        super().__init__()
+
         self.project_path: str
         self.project_name: str
         self.build_path: str
@@ -49,9 +51,10 @@ class CmakeProject:
         self.exelinkerflags = []
         self.gen_cmds = []
         self.build_cmds = []
+        self.cmake_version = ""
 
     # Cmake must be at least version 3.13.5 or above.
-    def _version_check(self, cur_cmake_version):
+    def _version_check(self, cur_cmake_version: str):
         items = str(cur_cmake_version).split(".")
         if int(items[0]) > 3:
             return True
@@ -66,13 +69,13 @@ class CmakeProject:
     def _env_check(self):
         status, output = cmd_exec.get_cmd_output("cmake --version")
         if status != 0:
-            raise Exception("Failed to get Cmake version.")
+            raise RuntimeError("Failed to get Cmake version.")
         else:
             pattern = re.compile(r"cmake version (\d+.\d+.\d+)", re.DOTALL)
             items = pattern.findall(output)
             self.cmake_version = items[0]
             if not self._version_check(self.cmake_version):
-                raise Exception(
+                raise RuntimeError(
                     f"Your cmake version is {items[0]} less than 3.13.5"
                 )
             else:
@@ -90,7 +93,7 @@ class CmakeProject:
             )
             if returncode != 0:
                 print(output_text)
-                raise Exception("Failed to get cached variable value.")
+                raise RuntimeError("Failed to get cached variable value.")
 
             # The regex pattern is to match {var}:xxx=yyy
             p = re.compile(f"{var}(?::[a-zA-Z0-9]*)?=(.*)")
@@ -203,7 +206,7 @@ cmake.py will consider it as its own command line option."
                         self.sharedlinkerflags.append("-fuse-ld=lld")
                         self.exelinkerflags.append("-fuse-ld=lld")
             else:
-                raise Exception(
+                raise RuntimeError(
                     "Currently can not build Linux target with CPU arch"
                     f" ${self.args.target_cpu}"
                 )
@@ -318,7 +321,7 @@ cmake.py will consider it as its own command line option."
             # Something went wrongs, dump env variables to check.
             env.dump_env_vars()
             print(output_text)
-            raise Exception("Failed to cmake -S.")
+            raise RuntimeError("Failed to cmake -S.")
 
     def clean(self):
         # It seems that 'cmake --target clean' does _not_ clean the CMake cache.
@@ -335,7 +338,7 @@ cmake.py will consider it as its own command line option."
         )
         if returncode != 0:
             print(output_text)
-            raise Exception("Failed to cmake clean.")
+            raise RuntimeError("Failed to cmake clean.")
 
     def build(self):
         cmd = (
@@ -355,7 +358,7 @@ cmake.py will consider it as its own command line option."
         )
         if returncode != 0:
             print(output_text)
-            raise Exception("Failed to cmake build.")
+            raise RuntimeError("Failed to cmake build.")
 
     def install(self):
         cmd = (
@@ -370,7 +373,7 @@ cmake.py will consider it as its own command line option."
         )
         if returncode != 0:
             print(output_text)
-            raise Exception("Failed to cmake install.")
+            raise RuntimeError("Failed to cmake install.")
 
     def run(self):
         self._env_check()

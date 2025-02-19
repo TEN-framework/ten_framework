@@ -10,7 +10,7 @@ import os
 
 def main(argv):
     if len(argv) != 1:
-        raise Exception("Invalid parameter")
+        raise ValueError("Invalid parameter")
 
     path = os.path.abspath(argv[0])
 

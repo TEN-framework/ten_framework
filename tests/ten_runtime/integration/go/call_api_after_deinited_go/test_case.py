@@ -39,7 +39,7 @@ def test_call_api_after_deinited_go():
         # Before starting, cleanup the old app package.
         fs_utils.remove_tree(app_root_path)
 
-        print('Assembling and building package "{}".'.format(app_dir_name))
+        print(f'Assembling and building package "{app_dir_name}".')
 
         rc = build_pkg.prepare_and_build_app(
             build_config_args,
@@ -78,13 +78,19 @@ def test_call_api_after_deinited_go():
         # client depends on some libraries in the TEN app.
         my_env["DYLD_LIBRARY_PATH"] = os.path.join(
             base_path,
-            "call_api_after_deinited_go_app/ten_packages/system/ten_runtime/lib",
+            (
+                "call_api_after_deinited_go_app/ten_packages/"
+                "system/ten_runtime/lib"
+            ),
         )
     else:
         # client depends on some libraries in the TEN app.
         my_env["LD_LIBRARY_PATH"] = os.path.join(
             base_path,
-            "call_api_after_deinited_go_app/ten_packages/system/ten_runtime/lib",
+            (
+                "call_api_after_deinited_go_app/ten_packages/"
+                "system/ten_runtime/lib"
+            ),
         )
 
         if (
@@ -93,7 +99,10 @@ def test_call_api_after_deinited_go():
         ):
             libasan_path = os.path.join(
                 base_path,
-                "call_api_after_deinited_go_app/ten_packages/system/ten_runtime/lib/libasan.so",
+                (
+                    "call_api_after_deinited_go_app/ten_packages/system/"
+                    "ten_runtime/lib/libasan.s"
+                ),
             )
             if os.path.exists(libasan_path):
                 print("Using AddressSanitizer library.")

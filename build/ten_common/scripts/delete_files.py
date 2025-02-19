@@ -15,7 +15,7 @@ def remove_readonly(func, path, excinfo):
         os.chmod(path, stat.S_IWUSR)
         func(path)
     else:
-        raise
+        raise excinfo[1]
 
 
 def delete_files(files: list[str]):

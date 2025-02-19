@@ -12,6 +12,8 @@ from . import cmd_exec
 
 class ArgumentInfo(argparse.Namespace):
     def __init__(self):
+        super().__init__()
+
         self.tman_path: str
         self.pkg_type: str
         self.pkg_src_root_dir: str
@@ -80,7 +82,7 @@ def main(args: ArgumentInfo) -> int:
         returncode, output_text = cmd_exec.run_cmd(cmd, args.log_level)
         if returncode:
             print(output_text)
-            raise Exception("Failed to install app.")
+            raise RuntimeError("Failed to install app.")
 
     except Exception as exc:
         returncode = 1
@@ -88,7 +90,8 @@ def main(args: ArgumentInfo) -> int:
 
     finally:
         os.chdir(origin_wd)
-        return returncode
+
+    return returncode
 
 
 if __name__ == "__main__":
@@ -136,6 +139,6 @@ if __name__ == "__main__":
     )
 
     arg_info = ArgumentInfo()
-    args = parser.parse_args(namespace=arg_info)
+    parsed_args = parser.parse_args(namespace=arg_info)
 
-    sys.exit(main(args))
+    sys.exit(main(parsed_args))

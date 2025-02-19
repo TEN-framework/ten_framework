@@ -27,7 +27,7 @@ def test_two_async_exts_one_group_python():
 
     # Create virtual environment.
     venv_dir = os.path.join(base_path, "venv")
-    subprocess.run([sys.executable, "-m", "venv", venv_dir])
+    subprocess.run([sys.executable, "-m", "venv", venv_dir], check=True)
 
     my_env = os.environ.copy()
 
@@ -110,7 +110,10 @@ def test_two_async_exts_one_group_python():
         if build_config_args.enable_sanitizer:
             libasan_path = os.path.join(
                 base_path,
-                "two_async_exts_one_group_python_app/ten_packages/system/ten_runtime/lib/libasan.so",
+                (
+                    "two_async_exts_one_group_python_app/ten_packages/system/"
+                    "ten_runtime/lib/libasan.s"
+                ),
             )
 
             if os.path.exists(libasan_path):

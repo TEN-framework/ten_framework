@@ -22,7 +22,8 @@ from scripts import package_asan_lib
 #
 # ```toml
 # [target.x86_64-unknown-linux-gnu]
-# rustflags = ["-C", "linker=gcc", "-Z", "external-clangrt", "-Z", "sanitizer=address", "-l", "asan"]
+# rustflags = ["-C", "linker=gcc", "-Z", "external-clangrt", "-Z",
+#              "sanitizer=address", "-l", "asan"]
 #
 # [build]
 # target = "x86_64-unknown-linux-gnu"
@@ -32,7 +33,8 @@ from scripts import package_asan_lib
 #
 # ```toml
 # [target.x86_64-unknown-linux-gnu]
-# rustflags = ["-C", "linker=clang", "-Z", "external-clangrt", "-Z", "sanitizer=address", "-C", "link-args=-fsanitize=address"]
+# rustflags = ["-C", "linker=clang", "-Z", "external-clangrt", "-Z",
+#              "sanitizer=address", "-C", "link-args=-fsanitize=address"]
 #
 # [build]
 # target = "x86_64-unknown-linux-gnu"
@@ -101,7 +103,9 @@ def special_link_args_on_mac(arch: str) -> str:
 
 def gen_cargo_config(args: ArgumentInfo):
     if not os.path.exists(args.project_root):
-        raise Exception(f"Project root {args.project_root} does not exist.")
+        raise FileNotFoundError(
+            f"Project root {args.project_root} does not exist."
+        )
 
     # Create .cargo/ folder if not exist.
     cargo_dir = os.path.join(args.project_root, ".cargo")
@@ -132,7 +136,7 @@ def gen_cargo_config(args: ArgumentInfo):
         incremental_setting=incremental_setting,
     )
 
-    with open(cargo_config, "w") as f:
+    with open(cargo_config, "w", encoding="utf-8") as f:
         f.write(config_content)
 
 

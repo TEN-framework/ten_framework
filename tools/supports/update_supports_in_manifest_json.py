@@ -10,6 +10,8 @@ import argparse
 
 class ArgumentInfo(argparse.Namespace):
     def __init__(self):
+        super().__init__()
+
         self.input_file: str
         self.output_file: str
         self.log_level: int
@@ -22,7 +24,7 @@ def update_supports(
     os_arch_pairs: list[list[str]],
     log_level: int,
 ):
-    with open(input_file, "r") as file:
+    with open(input_file, "r", encoding="utf-8") as file:
         data = json.load(file)
 
     supports = [{"os": pair[0], "arch": pair[1]} for pair in os_arch_pairs]
@@ -32,7 +34,7 @@ def update_supports(
 
     data["supports"] = supports
 
-    with open(output_file, "w") as file:
+    with open(output_file, "w", encoding="utf-8") as file:
         json.dump(data, file, indent=2)
 
     if log_level > 0:

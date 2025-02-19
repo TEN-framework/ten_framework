@@ -12,6 +12,8 @@ from build.scripts import cmd_exec
 
 class ArgumentInfo(argparse.Namespace):
     def __init__(self):
+        super().__init__()
+
         self.dir: str
         self.log_level: int
 

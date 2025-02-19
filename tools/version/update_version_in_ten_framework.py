@@ -22,7 +22,7 @@ MANIFEST_JSON_TENT_FILE = "manifest.json.tent"
 
 
 def __get_pkg_info_from_manifest_file(manifest_file: str) -> PkgInfo:
-    with open(manifest_file, "r") as f:
+    with open(manifest_file, "r", encoding="utf-8") as f:
         manifest = json.load(f)
         return PkgInfo(manifest["type"], manifest["name"])
 

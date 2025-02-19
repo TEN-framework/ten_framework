@@ -28,7 +28,7 @@ def test_no_dest_go():
         # Before starting, cleanup the old app package.
         fs_utils.remove_tree(app_root_path)
 
-        print('Assembling and building package "{}".'.format(app_dir_name))
+        print(f'Assembling and building package "{app_dir_name}".')
 
         rc = build_pkg.prepare_and_build_app(
             build_config_args,
@@ -82,7 +82,10 @@ def test_no_dest_go():
         ):
             libasan_path = os.path.join(
                 base_path,
-                "no_dest_go_app/ten_packages/system/ten_runtime/lib/libasan.so",
+                (
+                    "no_dest_go_app/ten_packages/system/"
+                    "ten_runtime/lib/libasan.s"
+                ),
             )
             if os.path.exists(libasan_path):
                 print("Using AddressSanitizer library.")

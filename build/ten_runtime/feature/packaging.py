@@ -12,6 +12,8 @@ from build.scripts import cmd_exec
 
 class ArgumentInfo(argparse.Namespace):
     def __init__(self):
+        super().__init__()
+
         self.tman_path: str
         self.pkg_src_root_dir: str
         self.output_path: str
@@ -51,6 +53,7 @@ if __name__ == "__main__":
 
     origin_wd = os.getcwd()
     returncode = 0
+    output_text = ""
 
     try:
         os.chdir(args.pkg_src_root_dir)
@@ -59,7 +62,7 @@ if __name__ == "__main__":
 
         returncode, output_text = cmd_exec.run_cmd(cmd, args.log_level)
         if returncode:
-            raise Exception("Failed to package")
+            raise RuntimeError("Failed to package")
 
     except Exception as exc:
         returncode = 1

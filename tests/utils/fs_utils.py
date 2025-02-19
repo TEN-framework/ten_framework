@@ -12,12 +12,12 @@ import inspect
 from . import log
 
 
-def remove_readonly(func, path, _excinfo):
+def remove_readonly(func, path, excinfo):
     if not os.access(path, os.W_OK):
         os.chmod(path, stat.S_IWUSR)
         func(path)
     else:
-        raise
+        raise excinfo[1]
 
 
 def remove_tree(path: str) -> None:

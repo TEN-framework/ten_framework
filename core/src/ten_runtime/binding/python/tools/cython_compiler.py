@@ -22,6 +22,8 @@ from setuptools import Extension, setup
 
 class ArgumentInfo(argparse.Namespace):
     def __init__(self):
+        super().__init__()
+
         self.compile_root_dir: str
 
 

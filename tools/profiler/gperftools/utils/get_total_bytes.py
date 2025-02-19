@@ -2,7 +2,7 @@
 
 
 def get_total_bytes_from_text(pprof_file, output_unit):
-    with open(pprof_file, "r") as f:
+    with open(pprof_file, "r", encoding="utf-8") as f:
         # the file content is like:
 
         # Total: 19.7 MB

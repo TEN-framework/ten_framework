@@ -13,6 +13,7 @@ from build.scripts import cmd_exec
 class ArgumentInfo(argparse.Namespace):
     def __init__(self):
         super().__init__()
+
         self.project_path: str
         self.log_level: int
         self.config_file: str
@@ -46,7 +47,7 @@ if __name__ == "__main__":
 
         returncode, logs = cmd_exec.run_cmd(cmd, args.log_level)
         if returncode:
-            raise Exception(f"Failed to gen header files for rust: {logs}")
+            raise RuntimeError(f"Failed to gen header files for rust: {logs}")
 
     except Exception as exc:
         returncode = 1

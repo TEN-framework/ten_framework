@@ -86,7 +86,10 @@ def build_and_install_app():
         ):
             libasan_path = os.path.join(
                 base_path,
-                "exit_signal_go_app/ten_packages/system/ten_runtime/lib/libasan.so",
+                (
+                    "exit_signal_go_app/ten_packages/system/"
+                    "ten_runtime/lib/libasan.s"
+                ),
             )
             if os.path.exists(libasan_path):
                 print("Using AddressSanitizer library.")
@@ -139,7 +142,7 @@ def check_if_extension_stops():
     if not os.path.exists(exit_file):
         pytest.fail("Exit file does not exist.")
 
-    with open(exit_file, "r") as f:
+    with open(exit_file, "r", encoding="utf-8") as f:
         data = json.load(f)
         assert "extension" in data and data["extension"] == "exit_signal"
 

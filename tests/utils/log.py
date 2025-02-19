@@ -20,7 +20,7 @@ class ColorCodes:
     normal = "\x1b[0m"
 
 
-def setup_logger(logger):
+def setup_logger(logger: logging.Logger):
     logger.setLevel(logging.DEBUG)
 
     sh = logging.StreamHandler()

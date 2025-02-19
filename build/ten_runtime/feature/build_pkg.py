@@ -16,6 +16,8 @@ from build.scripts import fs_utils, cmd_exec, timestamp_proxy
 
 class ArgumentInfo(argparse.Namespace):
     def __init__(self):
+        super().__init__()
+
         self.pkg_src_root_dir: str
         self.pkg_run_root_dir: str
         self.tg_timestamp_proxy_file: str
@@ -157,7 +159,7 @@ def npm_install() -> int:
     # the best way is to delete the whole node_modules/, and try again.
     returncode = 0
 
-    for i in range(1, 10):
+    for _ in range(1, 10):
         returncode, output = cmd_exec.run_cmd(
             [
                 "npm",
@@ -262,7 +264,11 @@ def build_nodejs_app(args: ArgumentInfo) -> int:
 
 def get_pkg_type(pkg_root: str) -> str:
     manifest_path = os.path.join(pkg_root, "manifest.json")
-    with open(manifest_path, "r") as f:
+    with open(
+        manifest_path,
+        "r",
+        encoding="utf-8",
+    ) as f:
         manifest_json = json.load(f)
     return manifest_json["type"]
 
