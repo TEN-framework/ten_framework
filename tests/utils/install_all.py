@@ -12,6 +12,8 @@ from . import cmd_exec
 
 class ArgumentInfo(argparse.Namespace):
     def __init__(self):
+        super().__init__()
+
         self.tman_path: str
         self.pkg_src_root_dir: str
         self.config_file: str
@@ -22,6 +24,7 @@ class ArgumentInfo(argparse.Namespace):
 def main(args: ArgumentInfo) -> int:
     origin_wd = os.getcwd()
     returncode = 0
+    output_text = ""
 
     try:
         os.chdir(args.pkg_src_root_dir)
@@ -38,18 +41,21 @@ def main(args: ArgumentInfo) -> int:
 
         returncode, output_text = cmd_exec.run_cmd(cmd, args.log_level)
         if returncode:
-            raise Exception("Failed to install_all")
+            raise RuntimeError("Failed to install_all")
 
-    except Exception as exc:
+    except RuntimeError as exc:
         returncode = 1
         print(exc)
-
+    except Exception as exc:
+        returncode = 1
+        print(f"An unexpected error occurred: {exc}")
     finally:
         if args.log_level > 0:
             print(output_text)
 
         os.chdir(origin_wd)
-        return returncode
+
+    return returncode
 
 
 if __name__ == "__main__":
@@ -79,6 +85,6 @@ if __name__ == "__main__":
     parser.add_argument("--assume-yes", type=bool, default=False)
 
     arg_info = ArgumentInfo()
-    args = parser.parse_args(namespace=arg_info)
+    parsed_args = parser.parse_args(namespace=arg_info)
 
-    sys.exit(main(args))
+    sys.exit(main(parsed_args))

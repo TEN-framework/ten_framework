@@ -13,6 +13,8 @@ from build.scripts import timestamp_proxy
 
 class ArgumentInfo(argparse.Namespace):
     def __init__(self):
+        super().__init__()
+
         self.go: str
         self.lint_dir: str
         self.tg_timestamp_proxy_file: str
@@ -94,7 +96,7 @@ if __name__ == "__main__":
     try:
         returncode = run_cmd(cmd, module_path)
         if returncode != 0:
-            raise Exception("Failed to go lint.")
+            raise RuntimeError("Failed to go lint.")
 
         # Success to build the app, update the stamp file to represent this
         # fact.

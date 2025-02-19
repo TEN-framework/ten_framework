@@ -17,6 +17,7 @@ from build.scripts import cmd_exec
 class ArgumentInfo(argparse.Namespace):
     def __init__(self):
         super().__init__()
+
         self.library: list[str]
         self.target_path: str
         self.target: str
@@ -25,13 +26,13 @@ class ArgumentInfo(argparse.Namespace):
         self.log_level: int
 
 
-def ar_extract(library: str, target_path: str, log_level: int) -> None:
+def ar_extract(library: str, log_level: int) -> None:
     # No --output option on macos.
     cmd = ["ar", "-x", library]
     returncode, output = cmd_exec.run_cmd(cmd, log_level)
     if returncode:
         print(f"Failed to extract static library: {output}")
-        raise Exception("Failed to extract static library.")
+        raise RuntimeError("Failed to extract static library.")
 
 
 def ar_create(target_library: str, target_path: str, log_level: int) -> None:
@@ -39,7 +40,7 @@ def ar_create(target_library: str, target_path: str, log_level: int) -> None:
     returncode, output = cmd_exec.run_cmd(cmd, log_level)
     if returncode:
         print(f"Failed to create static library: {output}")
-        raise Exception("Failed to create static library.")
+        raise RuntimeError("Failed to create static library.")
 
 
 def read_path_from_env_file(env_file: str) -> Optional[str]:
@@ -126,7 +127,7 @@ if __name__ == "__main__":
 
         try:
             for library in arg_info.library[1:]:
-                ar_extract(library, tmp_output, args.log_level)
+                ar_extract(library, args.log_level)
             ar_create(target_library, tmp_output, args.log_level)
         except Exception as e:
             returncode = -1

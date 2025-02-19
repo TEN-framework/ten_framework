@@ -75,7 +75,7 @@ def test_standalone_ollama_async_python():
 
     # Create virtual environment.
     venv_dir = os.path.join(extension_root_path, "venv")
-    subprocess.run([sys.executable, "-m", "venv", venv_dir])
+    subprocess.run([sys.executable, "-m", "venv", venv_dir], check=True)
 
     # Launch virtual environment.
     my_env["VIRTUAL_ENV"] = venv_dir

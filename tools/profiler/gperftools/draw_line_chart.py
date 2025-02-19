@@ -5,6 +5,8 @@ import argparse
 
 class ArgumentInfo(argparse.Namespace):
     def __init__(self):
+        super().__init__()
+
         self.excel_file: str
         self.output_file: str
         self.title: str

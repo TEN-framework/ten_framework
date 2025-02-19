@@ -22,7 +22,9 @@ def check_preserved_metadata_version_of_ten_runtime(
     )
 
     if os.path.exists(c_preserved_metadata_file_src_file):
-        with open(c_preserved_metadata_file_src_file, "r") as f:
+        with open(
+            c_preserved_metadata_file_src_file, "r", encoding="utf-8"
+        ) as f:
             content = f.read()
 
         if f"version={git_version}" in content:
@@ -42,7 +44,7 @@ def check_version_of_tman(repo_base_dir: str, git_version: str) -> bool:
     )
 
     if os.path.exists(tman_version_src_file):
-        with open(tman_version_src_file, "r") as f:
+        with open(tman_version_src_file, "r", encoding="utf-8") as f:
             content = f.read()
 
         if f'VERSION: &str = "{git_version}"' in content:
@@ -99,7 +101,7 @@ def check_version_of_system_packages(
         if not os.path.exists(manifest_file):
             return False
 
-        with open(manifest_file, "r") as f:
+        with open(manifest_file, "r", encoding="utf-8") as f:
             data = json.load(f)
 
         if data.get("version") != git_version:

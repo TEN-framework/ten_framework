@@ -11,8 +11,8 @@ Test ffmpeg_bypass_app.
 import subprocess
 import os
 import sys
-from . import video_cmp
 from sys import stdout
+from . import video_cmp
 from .utils import build_config, build_pkg, fs_utils
 
 
@@ -35,7 +35,7 @@ def test_ffmpeg_bypass_app():
         # Before starting, cleanup the old app package.
         fs_utils.remove_tree(app_root_path)
 
-        print('Assembling and building package "{}".'.format(app_dir_name))
+        print(f'Assembling and building package "{app_dir_name}".')
 
         rc = build_pkg.prepare_and_build_app(
             build_config_args,
@@ -96,7 +96,10 @@ def test_ffmpeg_bypass_app():
         ):
             libasan_path = os.path.join(
                 base_path,
-                "ffmpeg_bypass_app/ten_packages/system/ten_runtime/lib/libasan.so",
+                (
+                    "ffmpeg_bypass_app/ten_packages/system/"
+                    "ten_runtime/lib/libasan.so"
+                ),
             )
             if os.path.exists(libasan_path):
                 print("Using AddressSanitizer library.")
@@ -125,10 +128,10 @@ def test_ffmpeg_bypass_app():
     )
     assert cmp_rc
     # python cv2 would set LD_LIBRARY_PATH to 'cwd', and this will cause the
-    # TEN app of the subsequent integration test cases to use the 'libten_runtime.so'
-    # under 'out/<OS>/<CPU>/, rather than the one under '<TEN_app>/lib/'. This
-    # is not what TEN runtime expects, so we unset 'LD_LIBRARY_PATH' to prevent
-    # from this happening.
+    # TEN app of the subsequent integration test cases to use the
+    # 'libten_runtime.so' under 'out/<OS>/<CPU>/, rather than the one under
+    # '<TEN_app>/lib/'. This is not what TEN runtime expects, so we unset
+    # 'LD_LIBRARY_PATH' to prevent from this happening.
     #
     # Refer to ~/.local/lib/python3.10/site-packages/cv2/__init__.py after
     # 'cv2' has been installed.

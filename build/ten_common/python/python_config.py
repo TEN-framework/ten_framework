@@ -109,7 +109,7 @@ def python_config_for_win(args: ArgumentInfo) -> None:
         for lib in transformed_flags["libs"]:
             print(lib)
     else:
-        raise Exception(f"Unknown config_type: {args.config_type}")
+        raise ValueError(f"Unknown config_type: {args.config_type}")
 
 
 def python_config_for_mac(args: ArgumentInfo) -> None:
@@ -125,7 +125,7 @@ def python_config_for_mac(args: ArgumentInfo) -> None:
 
         returncode, output_text = cmd_exec.run_cmd(cmd, args.log_level)
         if returncode:
-            raise Exception("Failed to run python-config for cflags.")
+            raise RuntimeError("Failed to run python-config for cflags.")
 
         outputs = output_text.split()
         for output in outputs:
@@ -143,7 +143,7 @@ def python_config_for_mac(args: ArgumentInfo) -> None:
             cmd_ldflags, args.log_level
         )
         if returncode:
-            raise Exception("Failed to run python-config for ldflags.")
+            raise RuntimeError("Failed to run python-config for ldflags.")
 
         ldflags_outputs = ldflags_output.split()
 
@@ -156,7 +156,7 @@ def python_config_for_mac(args: ArgumentInfo) -> None:
         ]
         returncode, libs_output = cmd_exec.run_cmd(cmd_libs, args.log_level)
         if returncode:
-            raise Exception("Failed to run python-config for libs.")
+            raise RuntimeError("Failed to run python-config for libs.")
 
         libs_outputs = libs_output.split()
 
@@ -202,7 +202,7 @@ def python_config_for_mac(args: ArgumentInfo) -> None:
 
         returncode, output_text = cmd_exec.run_cmd(cmd, args.log_level)
         if returncode:
-            raise Exception("Failed to run python-config for libs.")
+            raise RuntimeError("Failed to run python-config for libs.")
 
         outputs = output_text.split()
 
@@ -223,7 +223,7 @@ def python_config_for_mac(args: ArgumentInfo) -> None:
             print(lib)
 
     else:
-        raise Exception(f"Unknown config_type: {args.config_type}")
+        raise ValueError(f"Unknown config_type: {args.config_type}")
 
 
 def python_config_for_linux(args: ArgumentInfo) -> None:
@@ -237,7 +237,7 @@ def python_config_for_linux(args: ArgumentInfo) -> None:
 
         returncode, output_text = cmd_exec.run_cmd(cmd, args.log_level)
         if returncode:
-            raise Exception("Failed to run python-config for cflags.")
+            raise RuntimeError("Failed to run python-config for cflags.")
 
         outputs = output_text.split()
         for output in outputs:
@@ -253,7 +253,7 @@ def python_config_for_linux(args: ArgumentInfo) -> None:
 
         returncode, ld_output = cmd_exec.run_cmd(cmd_ld, args.log_level)
         if returncode:
-            raise Exception("Failed to run python-config for ldflags.")
+            raise RuntimeError("Failed to run python-config for ldflags.")
 
         ld_outputs = ld_output.split()
 
@@ -270,7 +270,7 @@ def python_config_for_linux(args: ArgumentInfo) -> None:
 
         returncode, output_text = cmd_exec.run_cmd(cmd, args.log_level)
         if returncode:
-            raise Exception("Failed to run python-config for libs.")
+            raise RuntimeError("Failed to run python-config for libs.")
 
         outputs = output_text.split()
 
@@ -280,7 +280,7 @@ def python_config_for_linux(args: ArgumentInfo) -> None:
             print(lib)
 
     else:
-        raise Exception(f"Unknown config_type: {args.config_type}")
+        raise ValueError(f"Unknown config_type: {args.config_type}")
 
 
 if __name__ == "__main__":

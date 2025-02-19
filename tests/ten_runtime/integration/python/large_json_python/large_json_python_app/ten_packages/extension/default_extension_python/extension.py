@@ -88,7 +88,7 @@ class DefaultExtension(Extension):
         json_file = os.path.join(current_path, "test.json")
         print("json_file: ", json_file)
 
-        with open(json_file, "r") as f:
+        with open(json_file, "r", encoding="utf-8") as f:
             json = f.read()
 
         self.queue.put(1)

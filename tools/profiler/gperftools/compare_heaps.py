@@ -7,6 +7,8 @@ import utils.pprof_cmd as pprof_cmd
 
 class ArgumentInfo(argparse.Namespace):
     def __init__(self):
+        super().__init__()
+
         self.base_file: str
         self.target_file: str
         self.output_type: str

@@ -38,7 +38,7 @@ def parse_build_config(file_path: str) -> BuildConfig:
     ten_enable_integration_tests_prebuilt = None
     ten_enable_tests_cleanup = None
 
-    with open(file_path, "r") as file:
+    with open(file_path, "r", encoding="utf-8") as file:
         for line in file:
             line = line.strip()
             if line.startswith("target_os"):

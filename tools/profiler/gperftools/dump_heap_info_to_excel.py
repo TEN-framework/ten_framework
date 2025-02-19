@@ -11,6 +11,8 @@ import dump_raw_files_to_text
 
 class ArgumentInfo(argparse.Namespace):
     def __init__(self):
+        super().__init__()
+
         self.heap_dir: str
         self.bin: str
         self.output: str

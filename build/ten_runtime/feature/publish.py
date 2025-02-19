@@ -13,6 +13,8 @@ from build.scripts import cmd_exec, timestamp_proxy
 
 class ArgumentInfo(argparse.Namespace):
     def __init__(self):
+        super().__init__()
+
         self.tman_path: str
         self.base_dir: str
         self.config_file: str
@@ -116,7 +118,7 @@ if __name__ == "__main__":
         returncode, output_text = cmd_exec.run_cmd(cmd)
         if returncode:
             print(output_text)
-            raise Exception(f"Failed to publish package: {returncode}")
+            raise RuntimeError(f"Failed to publish package: {returncode}")
 
         # Success to build the app, update the stamp file to represent this
         # fact.

@@ -20,7 +20,6 @@ def is_app_started(ip: str, port: int, timeout=10):
             return True, s
         except Exception as e:
             print("Can not connect to app server", e)
-            pass
 
         duration += 1
         time.sleep(1)

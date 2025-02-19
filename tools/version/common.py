@@ -59,7 +59,7 @@ def update_c_preserved_metadata_version(
     update_needed = False
 
     if os.path.exists(src_path):
-        with open(src_path, "r") as file:
+        with open(src_path, "r", encoding="utf-8") as file:
             content = file.read()
 
         if f"version={version}" not in content:
@@ -72,7 +72,7 @@ def update_c_preserved_metadata_version(
         update_needed = True
 
     if update_needed:
-        with open(template_path, "r") as file:
+        with open(template_path, "r", encoding="utf-8") as file:
             template_content = file.read()
 
         template = Template(template_content)
@@ -81,7 +81,7 @@ def update_c_preserved_metadata_version(
             VERSION=version, YEAR=year, YEAR_MONTH=year_month
         )
 
-        with open(src_path, "w") as file:
+        with open(src_path, "w", encoding="utf-8") as file:
             file.write(rendered_content)
     else:
         if log_level > 0:
@@ -100,7 +100,7 @@ def update_version_in_manifest_json_file_for_pkgs(
     if not os.path.exists(src_path):
         touch(src_path)
 
-    with open(src_path, "r") as file:
+    with open(src_path, "r", encoding="utf-8") as file:
         data = json.load(file)
 
     pkg_info = PkgInfo(data.get("type"), data.get("name"))
@@ -110,7 +110,7 @@ def update_version_in_manifest_json_file_for_pkgs(
 
         # Update the version in the JSON data.
         data["version"] = version
-        with open(src_path, "w") as file:
+        with open(src_path, "w", encoding="utf-8") as file:
             json.dump(data, file, indent=2)
             # Notify that the content of the src_path has changed.
             touch(src_path)
@@ -133,7 +133,7 @@ def update_version_in_manifest_json_file(
     if not os.path.exists(src_path):
         touch(src_path)
 
-    with open(src_path, "r") as file:
+    with open(src_path, "r", encoding="utf-8") as file:
         data = json.load(file)
 
     if data.get("version") != version:
@@ -143,7 +143,7 @@ def update_version_in_manifest_json_file(
         # Update the version in the JSON data.
         data["version"] = version
 
-        with open(src_path, "w") as file:
+        with open(src_path, "w", encoding="utf-8") as file:
             json.dump(data, file, indent=2)
 
             # Notify that the content of the src_path has changed.
@@ -176,7 +176,7 @@ def update_dependency_version_in_manifest_json_file(
     if not os.path.exists(src_path):
         touch(src_path)
 
-    with open(src_path, "r") as file:
+    with open(src_path, "r", encoding="utf-8") as file:
         data = json.load(file)
 
     updated = False
@@ -191,7 +191,7 @@ def update_dependency_version_in_manifest_json_file(
         if log_level > 0:
             print(f"Updating version in {src_path}.")
 
-        with open(src_path, "w") as file:
+        with open(src_path, "w", encoding="utf-8") as file:
             json.dump(data, file, indent=2)
 
             # Notify that the content of the src_path has changed.
@@ -212,7 +212,7 @@ def update_version_source_file_of_tman(
     update_needed = False
 
     if os.path.exists(src_path):
-        with open(src_path, "r") as file:
+        with open(src_path, "r", encoding="utf-8") as file:
             content = file.read()
 
         if f'VERSION: &str = "{version}"' not in content:
@@ -225,7 +225,7 @@ def update_version_source_file_of_tman(
         update_needed = True
 
     if update_needed:
-        with open(template_path, "r") as file:
+        with open(template_path, "r", encoding="utf-8") as file:
             template_content = file.read()
 
         template = Template(template_content)
@@ -234,7 +234,7 @@ def update_version_source_file_of_tman(
             VERSION=version, YEAR=year, YEAR_MONTH=year_month
         )
 
-        with open(src_path, "w") as file:
+        with open(src_path, "w", encoding="utf-8") as file:
             file.write(rendered_content)
     else:
         if log_level > 0:

@@ -16,7 +16,7 @@ def analyze_resolve_result(app_root_folder: str) -> None:
     )
 
     with open(
-        os.path.join(app_root_folder, "expected.json"), "r"
+        os.path.join(app_root_folder, "expected.json"), "r", encoding="utf-8"
     ) as expected_json_file:
         expected_json = json.load(expected_json_file)
 
@@ -33,6 +33,7 @@ def analyze_resolve_result(app_root_folder: str) -> None:
                             extension_folder, ext["name"], "manifest.json"
                         ),
                         "r",
+                        encoding="utf-8",
                     ) as ext_manifest_file:
                         ext_manifest_json = json.load(ext_manifest_file)
                         assert ext_manifest_json["name"] == ext["name"]
@@ -75,7 +76,7 @@ def test_tman_dependency_resolve():
 
     support_data = {}
     if os.path.exists(support_file):
-        with open(support_file, "r") as file:
+        with open(support_file, "r", encoding="utf-8") as file:
             support_data = json.load(file)
 
     command = [

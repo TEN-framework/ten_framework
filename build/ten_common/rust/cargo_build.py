@@ -13,6 +13,7 @@ from build.scripts import cmd_exec
 class ArgumentInfo(argparse.Namespace):
     def __init__(self):
         super().__init__()
+
         self.project_path: str
         self.manifest_path: str
         self.build_type: str
@@ -51,7 +52,7 @@ def run_clippy_static_checking(args: ArgumentInfo):
 
     returncode, logs = cmd_exec.run_cmd(cmd, args.log_level)
     if returncode:
-        raise Exception(f"Failed to cargo clippy rust tests: {logs}")
+        raise RuntimeError(f"Failed to cargo clippy rust tests: {logs}")
     else:
         print(logs)
 
@@ -77,7 +78,7 @@ if __name__ == "__main__":
             sys.exit(1)
         else:
             os.environ[(str(env)[:split_key_index])] = str(env)[
-                split_key_index + len("=") :
+                split_key_index + len("=") :  # noqa
             ]
 
     origin_wd = os.getcwd()
@@ -109,7 +110,7 @@ if __name__ == "__main__":
 
         returncode, _ = cmd_exec.run_cmd(cmd, args.log_level)
         if returncode:
-            raise Exception("Failed to run cargo build.")
+            raise RuntimeError("Failed to run cargo build.")
 
     except Exception as exc:
         print(exc)

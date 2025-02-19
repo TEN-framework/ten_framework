@@ -15,6 +15,8 @@ assemble_info_dir = ".assemble_info"
 
 class ArgumentInfo(argparse.Namespace):
     def __init__(self):
+        super().__init__()
+
         self.test_case_out_dir: str
         self.test_case_src_dir: str
         self.src_app: str

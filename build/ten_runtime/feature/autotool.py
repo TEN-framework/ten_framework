@@ -14,6 +14,8 @@ from build.scripts import cmd_exec, fs_utils
 
 class ArgumentInfo(argparse.Namespace):
     def __init__(self):
+        super().__init__()
+
         self.project_path: str
         self.build_path: str
         self.install_path: str

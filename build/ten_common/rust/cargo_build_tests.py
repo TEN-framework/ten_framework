@@ -15,6 +15,7 @@ from build.scripts import cmd_exec, fs_utils, timestamp_proxy
 class ArgumentInfo(argparse.Namespace):
     def __init__(self):
         super().__init__()
+
         self.no_run: bool
         self.project_path: str
         self.build_type: str
@@ -30,7 +31,7 @@ def get_crate_test_output_name(log_level: int) -> str:
     cmd = ["cargo", "metadata", "--no-deps", "--format-version", "1"]
     returncode, output = cmd_exec.run_cmd(cmd, log_level)
     if returncode:
-        raise Exception(f"Failed to get crate name: {output}")
+        raise RuntimeError(f"Failed to get crate name: {output}")
 
     # Get the last line of the output, as there might be some note or warning
     # messages from cargo.
@@ -40,7 +41,7 @@ def get_crate_test_output_name(log_level: int) -> str:
         if target["test"]:
             return target["name"]
 
-    raise Exception("Failed to get crate name from targets.")
+    raise RuntimeError("Failed to get crate name from targets.")
 
 
 def copy_test_binaries(
@@ -106,7 +107,7 @@ def run_clippy_static_checking(args: ArgumentInfo):
 
     returncode, logs = cmd_exec.run_cmd(cmd, args.log_level)
     if returncode:
-        raise Exception(f"Failed to cargo clippy rust tests: {logs}")
+        raise RuntimeError(f"Failed to cargo clippy rust tests: {logs}")
     else:
         print(logs)
 
@@ -146,7 +147,7 @@ if __name__ == "__main__":
             sys.exit(1)
         else:
             os.environ[(str(env)[:split_key_index])] = str(env)[
-                split_key_index + len("=") :
+                split_key_index + len("=") :  # noqa
             ]
 
     origin_wd = os.getcwd()
@@ -188,7 +189,7 @@ if __name__ == "__main__":
 
         returncode, logs = cmd_exec.run_cmd(cmd, args.log_level)
         if returncode:
-            raise Exception(f"Failed to build rust tests: {logs}")
+            raise RuntimeError(f"Failed to build rust tests: {logs}")
         else:
             print(logs)
 
