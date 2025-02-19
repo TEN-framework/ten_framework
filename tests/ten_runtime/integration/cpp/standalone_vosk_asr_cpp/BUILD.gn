@@ -33,7 +33,7 @@ ten_package_test_prepare_auxiliary_resources("standalone_vosk_asr_cpp_files") {
   if (ten_enable_ten_manager) {
     deps = [
       "//core/src/ten_runtime:upload_ten_runtime_system_package_to_server",
-      "//packages/example_extensions/vosk_asr_cpp",
+      "//packages/example_extensions/vosk_asr_cpp:upload_vosk_asr_cpp_to_server",
 
       # The standalone testing for the C++ extension depends on the googletest
       # system package.

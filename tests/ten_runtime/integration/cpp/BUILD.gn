@@ -22,7 +22,7 @@ group("cpp") {
     # system package.
     deps += [
       "standalone_test_cpp",
-      # "standalone_vosk_asr_cpp",
+      "standalone_vosk_asr_cpp",
     ]
   }
 
