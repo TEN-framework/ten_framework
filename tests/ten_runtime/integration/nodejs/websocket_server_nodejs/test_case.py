@@ -6,7 +6,7 @@ import subprocess
 import os
 import sys
 from sys import stdout
-from .utils import http, build_config, build_pkg
+from .utils import http, build_config, build_pkg, fs_utils
 
 
 def ws_request():

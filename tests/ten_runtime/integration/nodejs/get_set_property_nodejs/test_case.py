@@ -7,7 +7,7 @@ import os
 import sys
 from sys import stdout
 import time
-from .utils import http, build_config, build_pkg
+from .utils import http, build_config, build_pkg, fs_utils
 
 
 def test_get_set_property_nodejs():
