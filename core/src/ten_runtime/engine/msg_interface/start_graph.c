@@ -162,7 +162,8 @@ void ten_engine_handle_cmd_start_graph(ten_engine_t *self,
             "%s.",
             ten_app_get_uri(self->app), ten_cmd_base_get_cmd_id(cmd));
 
-        ten_path_table_add_in_path(self->path_table, cmd, NULL);
+        // =-=-=
+        // ten_path_table_add_in_path(self->path_table, cmd, NULL);
       } else {
         TEN_LOGV(
             "[%s] No more new connections should be made, enable the extension "

@@ -119,11 +119,14 @@ static bool ten_engine_handle_cmd_result_for_cmd_start_graph(
     return true;
   }
 
+  bool is_final_result = ten_cmd_result_is_final(cmd_result, err);
+  TEN_ASSERT(is_final_result, "Should not happen.");
+
   // Check whether _all_ cmd_results related to this start_graph command have
   // been received to determine whether to proceed with the next steps of the
   // start_graph flow.
   cmd_result = ten_path_table_determine_actual_cmd_result(
-      self->path_table, TEN_PATH_OUT, out_path, true);
+      self->path_table, TEN_PATH_OUT, out_path, is_final_result);
   if (!cmd_result) {
     TEN_LOGD(
         "The 'start_graph' flow is not completed, skip the cmd_result now.");

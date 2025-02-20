@@ -28,8 +28,9 @@ typedef struct ten_msg_conversion_t ten_msg_conversion_t;
 typedef enum TEN_PATH_TABLE_ATTACH_TO {
   TEN_PATH_TABLE_ATTACH_TO_INVALID,
 
-  TEN_PATH_TABLE_ATTACH_TO_EXTENSION,
+  TEN_PATH_TABLE_ATTACH_TO_APP,
   TEN_PATH_TABLE_ATTACH_TO_ENGINE,
+  TEN_PATH_TABLE_ATTACH_TO_EXTENSION,
 } TEN_PATH_TABLE_ATTACH_TO;
 
 typedef struct ten_path_table_t {

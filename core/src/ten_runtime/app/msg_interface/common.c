@@ -304,6 +304,8 @@ static bool ten_app_handle_cmd_result(ten_app_t *self, ten_shared_ptr_t *cmd,
     ten_env_send_cmd(self->ten_env, close_app_cmd, NULL, NULL, NULL, err);
   }
 
+  // =-=-=
+
   return is_auto_start_predefined_graph_cmd_result;
 }
 
@@ -318,9 +320,11 @@ bool ten_app_dispatch_msg(ten_app_t *self, ten_shared_ptr_t *msg,
              "Should not happen.");
   TEN_ASSERT(!ten_string_is_empty(&dest_loc->app_uri),
              "App URI should not be empty.");
-
+  // =-=-=
   if (!ten_string_is_equal_c_str(&dest_loc->app_uri, ten_app_get_uri(self))) {
-    TEN_ASSERT(0, "Handle this condition.");
+    TEN_ASSERT(0, "Handle this condition, msg dest '%s', app '%s'",
+               ten_string_get_raw_str(&dest_loc->app_uri),
+               ten_app_get_uri(self));
   } else {
     if (ten_string_is_empty(&dest_loc->graph_id)) {
       // It means asking the app to do something.

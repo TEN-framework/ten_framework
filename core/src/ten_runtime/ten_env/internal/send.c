@@ -150,6 +150,7 @@ static bool ten_send_msg_internal(
       ten_app_t *app = ten_env_get_attached_app(self);
       TEN_ASSERT(app, "Should not happen.");
 
+      // =-=-=
       result = ten_app_dispatch_msg(app, msg, err);
       break;
     }
@@ -230,6 +231,7 @@ static void cmd_result_handler_for_send_cmd(ten_env_t *ten_env,
   TEN_ASSERT(ctx, "Invalid argument.");
   TEN_ASSERT(ctx->result_handler, "Should not happen.");
 
+  // =-=-=
   if (ten_cmd_result_is_completed(cmd_result, NULL)) {
     ctx->result_handler(ten_env, cmd_result, ctx->result_handler_user_data,
                         err);
