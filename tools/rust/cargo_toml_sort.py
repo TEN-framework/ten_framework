@@ -11,6 +11,8 @@ import argparse
 
 class ArgumentInfo(argparse.Namespace):
     def __init__(self):
+        super().__init__()
+
         self.cargo_toml_path: str
 
 

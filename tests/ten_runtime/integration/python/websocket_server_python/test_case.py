@@ -6,7 +6,7 @@ import subprocess
 import os
 import sys
 from sys import stdout
-from .common import http, build_config, build_pkg
+from .utils import http, build_config, build_pkg, fs_utils
 
 
 def ws_request():
@@ -28,7 +28,7 @@ def test_websocket_server_python():
 
     # Create virtual environment.
     venv_dir = os.path.join(base_path, "venv")
-    subprocess.run([sys.executable, "-m", "venv", venv_dir])
+    subprocess.run([sys.executable, "-m", "venv", venv_dir], check=True)
 
     my_env = os.environ.copy()
 
@@ -64,9 +64,9 @@ def test_websocket_server_python():
 
     if build_config_args.ten_enable_integration_tests_prebuilt is False:
         # Before starting, cleanup the old app package.
-        build_pkg.cleanup(app_root_path)
+        fs_utils.remove_tree(app_root_path)
 
-        print('Assembling and building package "{}".'.format(app_dir_name))
+        print(f'Assembling and building package "{app_dir_name}".')
 
         rc = build_pkg.prepare_and_build_app(
             build_config_args,
@@ -111,7 +111,10 @@ def test_websocket_server_python():
         if build_config_args.enable_sanitizer:
             libasan_path = os.path.join(
                 base_path,
-                "websocket_server_python_app/ten_packages/system/ten_runtime/lib/libasan.so",
+                (
+                    "websocket_server_python_app/ten_packages/system/"
+                    "ten_runtime/lib/libasan.so"
+                ),
             )
 
             if os.path.exists(libasan_path):
@@ -163,8 +166,8 @@ def test_websocket_server_python():
 
         assert exit_code == 0
 
-        if build_config_args.ten_enable_integration_tests_prebuilt is False:
+        if build_config_args.ten_enable_tests_cleanup is True:
             # Testing complete. If builds are only created during the testing
             # phase, we can clear the build results to save disk space.
-            build_pkg.cleanup(app_root_path)
-            build_pkg.cleanup(venv_dir)
+            fs_utils.remove_tree(app_root_path)
+            fs_utils.remove_tree(venv_dir)

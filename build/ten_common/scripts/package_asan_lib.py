@@ -12,6 +12,8 @@ from build.scripts import fs_utils, write_depfile
 
 class ArgumentInfo(argparse.Namespace):
     def __init__(self):
+        super().__init__()
+
         self.target_os: str
         self.target_arch: str
         self.asan_lib_dst_loc: str
@@ -40,11 +42,15 @@ def detect_mac_asan_lib(arch: str) -> str:
             stdout=subprocess.PIPE,
             encoding="utf-8",
         ).communicate()
+    else:
+        raise ValueError(f"Unsupported architecture: {arch}")
 
     libasan_path = out.strip()
 
     if not libasan_path:
-        raise Exception("Failed to find libclang_rt.asan_osx_dynamic.dylib")
+        raise FileNotFoundError(
+            "Failed to find libclang_rt.asan_osx_dynamic.dylib"
+        )
 
     real_libasan_path = os.path.realpath(libasan_path)
 
@@ -66,11 +72,13 @@ def detect_linux_asan_lib(arch: str) -> str:
             stdout=subprocess.PIPE,
             encoding="utf-8",
         ).communicate()
+    else:
+        raise ValueError(f"Unsupported architecture: {arch}")
 
     libasan_path = out.strip()
 
     if not libasan_path:
-        raise Exception("Failed to find libasan.so")
+        raise FileNotFoundError("Failed to find libasan.so")
 
     real_libasan_path = os.path.realpath(libasan_path)
 
@@ -94,11 +102,13 @@ def detect_linux_clang_asan_lib(arch: str) -> str:
             stdout=subprocess.PIPE,
             encoding="utf-8",
         ).communicate()
+    else:
+        raise ValueError(f"Unsupported architecture: {arch}")
 
     libasan_path = out.strip()
 
     if not libasan_path:
-        raise Exception("Failed to find libclang_rt.asan-x86_64.so")
+        raise FileNotFoundError("Failed to find libclang_rt.asan-x86_64.so")
 
     real_libasan_path = os.path.realpath(libasan_path)
 
@@ -123,7 +133,7 @@ if __name__ == "__main__":
     elif args.target_os == "linux_clang":
         asan_lib_src_loc = detect_linux_clang_asan_lib(args.target_arch)
     else:
-        raise Exception("Unsupported OS.")
+        raise ValueError("Unsupported OS.")
 
     fs_utils.copy(asan_lib_src_loc, args.asan_lib_dst_loc)
 

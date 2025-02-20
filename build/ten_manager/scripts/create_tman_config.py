@@ -13,6 +13,8 @@ from ten_common.scripts import delete_files
 
 class ArgumentInfo(argparse.Namespace):
     def __init__(self):
+        super().__init__()
+
         self.tman_config_file_path: str
         self.registry_path: str
         self.log_level: int
@@ -26,7 +28,7 @@ def create_tman_config_json(
         "enable_package_cache": False,
     }
 
-    with open(tman_config_file_path, "w") as file:
+    with open(tman_config_file_path, "w", encoding="utf-8") as file:
         json.dump(data, file, indent=2)
 
 

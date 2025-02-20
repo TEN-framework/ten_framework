@@ -11,6 +11,8 @@ from typing import Optional
 
 class ArgumentInfo(argparse.Namespace):
     def __init__(self):
+        super().__init__()
+
         self.libs: list[str]
         self.target_os: str
 

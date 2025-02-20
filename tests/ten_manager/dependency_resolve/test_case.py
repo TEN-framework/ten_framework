@@ -7,7 +7,7 @@
 import os
 import sys
 import json
-from .common import cmd_exec
+from .utils import cmd_exec
 
 
 def analyze_resolve_result(test_app_root_folder: str) -> None:
@@ -16,7 +16,9 @@ def analyze_resolve_result(test_app_root_folder: str) -> None:
     )
 
     with open(
-        os.path.join(test_app_root_folder, "expected.json"), "r"
+        os.path.join(test_app_root_folder, "expected.json"),
+        "r",
+        encoding="utf-8",
     ) as expected_json_file:
         print(test_app_root_folder)
         expected_json = json.load(expected_json_file)
@@ -33,6 +35,7 @@ def analyze_resolve_result(test_app_root_folder: str) -> None:
                             extension_folder, ext["name"], "manifest.json"
                         ),
                         "r",
+                        encoding="utf-8",
                     ) as ext_manifest_file:
                         ext_manifest_json = json.load(ext_manifest_file)
                         assert ext_manifest_json["name"] == ext["name"]
@@ -67,7 +70,7 @@ def run_test(tman_bin: str, root_dir: str, test_app_root_folder: str) -> None:
 
     support_data = {}
     if os.path.exists(support_file):
-        with open(support_file, "r") as file:
+        with open(support_file, "r", encoding="utf-8") as file:
             support_data = json.load(file)
 
     command = [

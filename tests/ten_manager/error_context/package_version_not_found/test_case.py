@@ -6,7 +6,7 @@
 #
 import os
 import sys
-from .common import cmd_exec
+from .utils import cmd_exec
 
 
 def test_invalid_package_type():
@@ -38,10 +38,11 @@ def test_invalid_package_type():
             "--yes",
             "install",
         ]
+
         returncode, output_text = cmd_exec.get_cmd_output(" ".join(cmds))
         if returncode != 1:
             print(output_text)
-            raise Exception("Incorrect return code")
+            raise RuntimeError("Failed to tman install")
     finally:
         os.chdir(origin_wd)
 

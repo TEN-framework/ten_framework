@@ -6,7 +6,7 @@ import subprocess
 import os
 import sys
 from sys import stdout
-from .common import msgpack, build_config, build_pkg
+from .utils import msgpack, build_config, build_pkg, fs_utils
 
 
 def test_return_result_go():
@@ -26,9 +26,9 @@ def test_return_result_go():
 
     if build_config_args.ten_enable_integration_tests_prebuilt is False:
         # Before starting, cleanup the old app package.
-        build_pkg.cleanup(app_root_path)
+        fs_utils.remove_tree(app_root_path)
 
-        print('Assembling and building package "{}".'.format(app_dir_name))
+        print(f'Assembling and building package "{app_dir_name}".')
 
         rc = build_pkg.prepare_and_build_app(
             build_config_args,
@@ -82,7 +82,10 @@ def test_return_result_go():
         ):
             libasan_path = os.path.join(
                 base_path,
-                "return_result_go_app/ten_packages/system/ten_runtime/lib/libasan.so",
+                (
+                    "return_result_go_app/ten_packages/system/"
+                    "ten_runtime/lib/libasan.so"
+                ),
             )
             if os.path.exists(libasan_path):
                 print("Using AddressSanitizer library.")
@@ -136,7 +139,7 @@ def test_return_result_go():
     assert server_rc == 0
     assert client_rc == 0
 
-    if build_config_args.ten_enable_integration_tests_prebuilt is False:
+    if build_config_args.ten_enable_tests_cleanup is True:
         # Testing complete. If builds are only created during the testing phase,
         # we can clear the build results to save disk space.
-        build_pkg.cleanup(app_root_path)
+        fs_utils.remove_tree(app_root_path)

@@ -7,7 +7,7 @@
 import json
 import os
 import sys
-from .common import cmd_exec
+from .utils import cmd_exec
 
 
 def analyze_resolve_result(app_root_folder: str) -> None:
@@ -18,7 +18,7 @@ def analyze_resolve_result(app_root_folder: str) -> None:
     system_folder = os.path.join(app_root_folder, "ten_packages", "system")
 
     with open(
-        os.path.join(app_root_folder, "expected.json"), "r"
+        os.path.join(app_root_folder, "expected.json"), "r", encoding="utf-8"
     ) as expected_json_file:
         expected_json = json.load(expected_json_file)
 
@@ -35,6 +35,7 @@ def analyze_resolve_result(app_root_folder: str) -> None:
                             extension_folder, ext["name"], "manifest.json"
                         ),
                         "r",
+                        encoding="utf-8",
                     ) as ext_manifest_file:
                         ext_manifest_json = json.load(ext_manifest_file)
                         assert ext_manifest_json["name"] == ext["name"]
@@ -44,21 +45,22 @@ def analyze_resolve_result(app_root_folder: str) -> None:
             assert found_in_folder is True
         # @}
 
-        for sys in expected_json["system"]:
+        for system in expected_json["system"]:
             found_in_folder = False
 
             for dir_item in os.listdir(system_folder):
-                if dir_item == sys["name"]:
+                if dir_item == system["name"]:
                     found_in_folder = True
                     with open(
                         os.path.join(
-                            system_folder, sys["name"], "manifest.json"
+                            system_folder, system["name"], "manifest.json"
                         ),
                         "r",
+                        encoding="utf-8",
                     ) as sys_manifest_file:
                         sys_manifest_json = json.load(sys_manifest_file)
-                        assert sys_manifest_json["name"] == sys["name"]
-                        assert sys_manifest_json["version"] == sys["version"]
+                        assert sys_manifest_json["name"] == system["name"]
+                        assert sys_manifest_json["version"] == system["version"]
                     break
 
             assert found_in_folder is True

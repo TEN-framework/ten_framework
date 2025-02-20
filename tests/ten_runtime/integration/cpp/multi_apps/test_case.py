@@ -6,7 +6,7 @@ import subprocess
 import os
 import sys
 from sys import stdout
-from .common import msgpack, build_config, build_pkg
+from .utils import msgpack, build_config, build_pkg, fs_utils
 
 
 def install_app(app_name: str):
@@ -25,9 +25,9 @@ def install_app(app_name: str):
 
     if build_config_args.ten_enable_integration_tests_prebuilt is False:
         # Before starting, cleanup the old app package.
-        build_pkg.cleanup(app_root_path)
+        fs_utils.remove_tree(app_root_path)
 
-        print('Assembling and building package "{}".'.format(app_dir_name))
+        print(f'Assembling and building package "{app_dir_name}".')
 
         rc = build_pkg.prepare_and_build_app(
             build_config_args,

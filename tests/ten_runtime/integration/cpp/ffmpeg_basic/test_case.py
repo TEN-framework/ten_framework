@@ -11,9 +11,9 @@ Test ffmpeg_basic_app.
 import subprocess
 import os
 import sys
-from . import video_cmp
 from sys import stdout
-from .common import build_config, build_pkg
+from . import video_cmp
+from .utils import build_config, build_pkg, fs_utils
 
 
 def test_ffmpeg_basic_app():
@@ -33,9 +33,9 @@ def test_ffmpeg_basic_app():
 
     if build_config_args.ten_enable_integration_tests_prebuilt is False:
         # Before starting, cleanup the old app package.
-        build_pkg.cleanup(app_root_path)
+        fs_utils.remove_tree(app_root_path)
 
-        print('Assembling and building package "{}".'.format(app_dir_name))
+        print(f'Assembling and building package "{app_dir_name}".')
         rc = build_pkg.prepare_and_build_app(
             build_config_args,
             root_dir,
@@ -95,7 +95,10 @@ def test_ffmpeg_basic_app():
         ):
             libasan_path = os.path.join(
                 base_path,
-                "ffmpeg_basic_app/ten_packages/system/ten_runtime/lib/libasan.so",
+                (
+                    "ffmpeg_basic_app/ten_packages/system/"
+                    "ten_runtime/lib/libasan.so"
+                ),
             )
             if os.path.exists(libasan_path):
                 print("Using AddressSanitizer library.")
@@ -124,10 +127,10 @@ def test_ffmpeg_basic_app():
     )
     assert cmp_rc
     # python cv2 would set LD_LIBRARY_PATH to 'cwd', and this will cause the
-    # TEN app of the subsequent integration test cases to use the 'libten_runtime.so'
-    # under 'out/<OS>/<CPU>/, rather than the one under '<TEN_app>/lib/'. This
-    # is not what TEN runtime expects, so we unset 'LD_LIBRARY_PATH' to prevent
-    # from this happening.
+    # TEN app of the subsequent integration test cases to use the
+    # libten_runtime.so' under 'out/<OS>/<CPU>/, rather than the one under
+    # '<TEN_app>/lib/'. This is not what TEN runtime expects, so we unset
+    # 'LD_LIBRARY_PATH' to prevent from this happening.
     #
     # Refer to ~/.local/lib/python3.10/site-packages/cv2/__init__.py after
     # 'cv2' has been installed.
@@ -143,7 +146,7 @@ def test_ffmpeg_basic_app():
         # Maybe 'LD_LIBRARY_PATH' has been unset.
         pass
 
-    if build_config_args.ten_enable_integration_tests_prebuilt is False:
+    if build_config_args.ten_enable_tests_cleanup is True:
         # Testing complete. If builds are only created during the testing phase,
         # we can clear the build results to save disk space.
-        build_pkg.cleanup(app_root_path)
+        fs_utils.remove_tree(app_root_path)

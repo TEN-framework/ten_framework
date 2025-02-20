@@ -14,6 +14,7 @@ from build.scripts import cmd_exec, timestamp_proxy
 class ArgumentInfo(argparse.Namespace):
     def __init__(self):
         super().__init__()
+
         self.project_path: str
         self.target_path: str
         self.target: str
@@ -52,7 +53,7 @@ if __name__ == "__main__":
 
         returncode, logs = cmd_exec.run_cmd(cmd, args.log_level)
         if returncode:
-            raise Exception(
+            raise RuntimeError(
                 f"Failed to run `cargo clean` on {args.project_path}: {logs}"
             )
         else:

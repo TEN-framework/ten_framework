@@ -91,6 +91,7 @@ fn create_cmd() -> clap::ArgMatches {
         )
         .subcommand(crate::cmd::cmd_create::create_sub_cmd(&args_cfg))
         .subcommand(crate::cmd::cmd_install::create_sub_cmd(&args_cfg))
+        .subcommand(crate::cmd::cmd_fetch::create_sub_cmd(&args_cfg))
         .subcommand(crate::cmd::cmd_uninstall::create_sub_cmd(&args_cfg))
         .subcommand(crate::cmd::cmd_package::create_sub_cmd(&args_cfg))
         .subcommand(crate::cmd::cmd_publish::create_sub_cmd(&args_cfg))
@@ -119,6 +120,9 @@ pub fn parse_cmd(
         ),
         Some(("install", sub_cmd_args)) => crate::cmd::CommandData::Install(
             crate::cmd::cmd_install::parse_sub_cmd(sub_cmd_args)?,
+        ),
+        Some(("fetch", sub_cmd_args)) => crate::cmd::CommandData::Fetch(
+            crate::cmd::cmd_fetch::parse_sub_cmd(sub_cmd_args)?,
         ),
         Some(("uninstall", sub_cmd_args)) => {
             crate::cmd::CommandData::Uninstall(

@@ -8,6 +8,8 @@ import utils.pprof_cmd as pprof_cmd
 
 class ArgumentInfo(argparse.Namespace):
     def __init__(self):
+        super().__init__()
+
         self.heap_dir: str
         self.bin: str
         self.raw_dir: str

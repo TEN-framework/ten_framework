@@ -12,6 +12,8 @@ from build.scripts import cmd_exec, timestamp_proxy, write_depfile
 
 class ArgumentInfo(argparse.Namespace):
     def __init__(self):
+        super().__init__()
+
         self.tman_path: str
         self.pkg_src_root_dir: str
         self.tg_timestamp_proxy_file: str
@@ -43,7 +45,7 @@ def process_possible_published_results(file_paths: list[str]) -> list[str]:
     for base_path in file_paths:
         full_path = os.path.join(base_path, "published_results")
         if os.path.exists(full_path):
-            with open(full_path, "r") as file:
+            with open(full_path, "r", encoding="utf-8") as file:
                 content = file.read()
                 results.append(content)
     return results
@@ -176,7 +178,7 @@ if __name__ == "__main__":
         if returncode:
             if args.log_level > 0:
                 print(output_text)
-            raise Exception("Failed to install app.")
+            raise RuntimeError("Failed to install app.")
         else:
             timestamp_proxy.touch_timestamp_proxy_file(
                 args.tg_timestamp_proxy_file

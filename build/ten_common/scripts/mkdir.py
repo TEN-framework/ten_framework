@@ -12,6 +12,8 @@ from build.scripts import log
 
 class ArgumentInfo(argparse.Namespace):
     def __init__(self):
+        super().__init__()
+
         self.path: str
 
 

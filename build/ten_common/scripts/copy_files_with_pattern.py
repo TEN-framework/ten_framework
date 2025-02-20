@@ -12,6 +12,8 @@ from build.scripts import fs_utils, timestamp_proxy
 
 class ArgumentInfo(argparse.Namespace):
     def __init__(self):
+        super().__init__()
+
         self.sources: list[str]
         self.patterns: list[str]
         self.dest_dir: str
@@ -84,7 +86,7 @@ if __name__ == "__main__":
     for source in args.sources:
         if not os.path.exists(source):
             if not args.allow_non_exist:
-                raise Exception(f"The source file {source} not exists.")
+                raise FileNotFoundError(f"The source file {source} not exists.")
         else:
             copy_files(
                 source, args.patterns, args.dest_dir, args.delete_dest_first

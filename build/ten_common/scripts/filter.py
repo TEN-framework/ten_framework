@@ -10,7 +10,7 @@ import fnmatch
 
 def main(argv):
     if len(argv) < 1:
-        raise Exception("Invalid parameter")
+        raise ValueError("Invalid parameter")
     re_str = argv[0]
     argv = argv[1:]
     for v in fnmatch.filter(argv, re_str):

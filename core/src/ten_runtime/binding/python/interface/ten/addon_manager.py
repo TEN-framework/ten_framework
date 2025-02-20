@@ -35,7 +35,7 @@ class _AddonManager:
         if not os.path.isfile(manifest_path):
             raise FileNotFoundError("manifest.json not found in base_dir")
 
-        with open(manifest_path, "r") as f:
+        with open(manifest_path, "r", encoding="utf-8") as f:
             manifest = json.load(f)
 
         # Note: The logic for loading extensions based on the `dependencies`
@@ -135,7 +135,9 @@ class _AddonManager:
         ):  # Stop at the root directory.
             manifest_path = os.path.join(current_dir, "manifest.json")
             if os.path.isfile(manifest_path):
-                with open(manifest_path, "r") as manifest_file:
+                with open(
+                    manifest_path, "r", encoding="utf-8"
+                ) as manifest_file:
                     try:
                         manifest_data = json.load(manifest_file)
                         if manifest_data.get("type") == "app":

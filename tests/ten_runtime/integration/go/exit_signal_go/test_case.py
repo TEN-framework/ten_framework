@@ -10,7 +10,7 @@ from sys import stdout
 import signal
 import time
 import pytest
-from .common import build_config, build_pkg
+from .utils import build_config, build_pkg, fs_utils
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -31,7 +31,7 @@ def build_and_install_app():
 
     # Before starting, cleanup the old app package.
     if build_config_args.ten_enable_integration_tests_prebuilt is False:
-        build_pkg.cleanup(app_root_path)
+        fs_utils.remove_tree(app_root_path)
 
     if not build_config_args.ten_enable_integration_tests_prebuilt:
         print(f'Assembling and building package "{app_dir_name}".')
@@ -86,7 +86,10 @@ def build_and_install_app():
         ):
             libasan_path = os.path.join(
                 base_path,
-                "exit_signal_go_app/ten_packages/system/ten_runtime/lib/libasan.so",
+                (
+                    "exit_signal_go_app/ten_packages/system/"
+                    "ten_runtime/lib/libasan.so"
+                ),
             )
             if os.path.exists(libasan_path):
                 print("Using AddressSanitizer library.")
@@ -139,7 +142,7 @@ def check_if_extension_stops():
     if not os.path.exists(exit_file):
         pytest.fail("Exit file does not exist.")
 
-    with open(exit_file, "r") as f:
+    with open(exit_file, "r", encoding="utf-8") as f:
         data = json.load(f)
         assert "extension" in data and data["extension"] == "exit_signal"
 
