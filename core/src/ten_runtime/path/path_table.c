@@ -76,6 +76,9 @@ ten_path_table_t *ten_path_table_create(TEN_PATH_TABLE_ATTACH_TO attach_to,
     case TEN_PATH_TABLE_ATTACH_TO_EXTENSION:
       self->attached_target.extension = attached_target;
       break;
+    case TEN_PATH_TABLE_ATTACH_TO_APP:
+      self->attached_target.app = attached_target;
+      break;
     default:
       TEN_ASSERT(0, "Should not happen.");
       break;

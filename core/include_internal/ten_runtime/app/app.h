@@ -26,6 +26,9 @@
 typedef struct ten_connection_t ten_connection_t;
 typedef struct ten_engine_t ten_engine_t;
 typedef struct ten_protocol_t ten_protocol_t;
+typedef struct ten_path_table_t ten_path_table_t;
+// The symbols for these two below are written in Rust code, so the naming
+// convention is a bit different.
 typedef struct TelemetrySystem TelemetrySystem;
 typedef struct MetricHandle MetricHandle;
 
@@ -119,6 +122,8 @@ typedef struct ten_app_t {
   ten_string_t base_dir;
 
   ten_list_t ten_package_base_dirs;
+
+  ten_path_table_t *path_table;
 
 #if defined(TEN_ENABLE_TEN_RUST_APIS)
   TelemetrySystem *telemetry_system;

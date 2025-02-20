@@ -137,7 +137,7 @@
       "request": "launch",
       "program": "${workspaceFolder}/out/linux/x64/tests/standalone/ten_runtime_smoke_test",
       "args": [
-        "--gtest_filter=TenEnvCallTimingTest.InitPropertyFromJson"
+        "--gtest_filter=MultiDestTest.MultiDestInMultiAppWithResponseHandlerLambda"
       ],
       "cwd": "${workspaceFolder}/out/linux/x64/tests/standalone/",
       "env": {
