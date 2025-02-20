@@ -207,6 +207,9 @@ void ten_nodejs_invoke_addon_js_on_deinit(napi_env env, napi_value fn,
 error:
   TEN_LOGE("Failed to call JS addon on_deinit().");
 
+  // Call on_deinit_done() here to release the addon.
+  ten_env_on_deinit_done(call_info->ten_env, NULL);
+
 done:
   TEN_FREE(call_info);
 }

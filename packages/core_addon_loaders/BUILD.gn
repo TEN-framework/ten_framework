@@ -11,4 +11,8 @@ group("core_addon_loaders") {
   if (ten_enable_python_binding) {
     deps += [ "python_addon_loader" ]
   }
+
+  if (ten_enable_nodejs_binding && ten_enable_nodejs_embedder) {
+    deps += [ "nodejs_addon_loader" ]
+  }
 }

@@ -18,4 +18,8 @@ group("nodejs") {
     "send_video_frame_nodejs",
     "websocket_server_nodejs",
   ]
+
+  if (ten_enable_nodejs_embedder) {
+    deps += [ "cpp_app_nodejs" ]
+  }
 }
