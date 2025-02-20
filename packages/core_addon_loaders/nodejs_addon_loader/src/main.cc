@@ -98,6 +98,9 @@ class nodejs_addon_loader_t : public ten::addon_loader_t {
         return 1;
       }
 
+      this->node_thread_started_ = true;
+      this->cv_.notify_one();
+
       exit_code = node::SpinEventLoop(env).FromMaybe(1);
     }
 
@@ -172,11 +175,18 @@ class nodejs_addon_loader_t : public ten::addon_loader_t {
         V8::DisposePlatform();
 
         node::TearDownOncePerProcess();
+
+        this->node_thread_started_ = true;
+        this->cv_.notify_one();
       });
     } catch (const std::exception &e) {
       std::cerr << "Nodejs addon loader init exception: " << e.what() << '\n';
       exit(1);
     }
+
+    // Wait for the node thread to start.
+    std::unique_lock<std::mutex> lock(this->mutex_);
+    this->cv_.wait(lock, [this]() { return this->node_thread_started_; });
   }
 
   void on_deinit() override {
@@ -294,6 +304,7 @@ class nodejs_addon_loader_t : public ten::addon_loader_t {
   std::unique_ptr<CommonEnvironmentSetup> setup_{nullptr};
   uv_loop_s *event_loop_{nullptr};
   std::thread node_thread_;
+  bool node_thread_started_{false};
 
   std::mutex mutex_;
   std::condition_variable cv_;
