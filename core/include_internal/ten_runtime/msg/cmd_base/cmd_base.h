@@ -122,6 +122,12 @@ TEN_RUNTIME_PRIVATE_API void ten_cmd_base_set_result_handler(
     ten_env_transfer_msg_result_handler_func_t result_handler,
     void *result_handler_data);
 
+TEN_RUNTIME_PRIVATE_API ten_env_transfer_msg_result_handler_func_t
+ten_raw_cmd_base_get_result_handler(ten_cmd_base_t *self);
+
+TEN_RUNTIME_PRIVATE_API void *ten_raw_cmd_base_get_result_handler_data(
+    ten_cmd_base_t *self);
+
 /**
  * @brief Whether this cmd comes from the client outside of TEN world, e.g.:
  * browsers.

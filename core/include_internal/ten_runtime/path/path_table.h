@@ -63,9 +63,6 @@ TEN_RUNTIME_PRIVATE_API ten_path_in_t *ten_path_table_add_in_path(
 TEN_RUNTIME_PRIVATE_API ten_path_out_t *ten_path_table_add_out_path(
     ten_path_table_t *self, ten_shared_ptr_t *cmd);
 
-TEN_RUNTIME_PRIVATE_API ten_listnode_t *ten_path_table_find_path_from_cmd_id(
-    ten_path_table_t *self, TEN_PATH_TYPE type, const char *cmd_id);
-
 TEN_RUNTIME_PRIVATE_API ten_shared_ptr_t *
 ten_path_table_determine_actual_cmd_result(ten_path_table_t *self,
                                            TEN_PATH_TYPE path_type,

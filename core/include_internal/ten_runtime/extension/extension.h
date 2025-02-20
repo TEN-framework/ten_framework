@@ -256,10 +256,6 @@ TEN_RUNTIME_PRIVATE_API void ten_extension_load_metadata(ten_extension_t *self);
 TEN_RUNTIME_PRIVATE_API void ten_extension_set_addon(
     ten_extension_t *self, ten_addon_host_t *addon_host);
 
-TEN_RUNTIME_PRIVATE_API ten_path_in_t *
-ten_extension_get_cmd_return_path_from_itself(ten_extension_t *self,
-                                              const char *cmd_id);
-
 TEN_RUNTIME_PRIVATE_API bool ten_extension_dispatch_msg(
     ten_extension_t *extension, ten_shared_ptr_t *msg, ten_error_t *err);
 

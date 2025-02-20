@@ -119,9 +119,8 @@ void ten_path_table_check_empty(ten_path_table_t *self) {
              "There should be no OUT path.");
 }
 
-ten_listnode_t *ten_path_table_find_path_from_cmd_id(ten_path_table_t *self,
-                                                     TEN_PATH_TYPE type,
-                                                     const char *cmd_id) {
+static ten_listnode_t *ten_path_table_find_path_from_cmd_id(
+    ten_path_table_t *self, TEN_PATH_TYPE type, const char *cmd_id) {
   TEN_ASSERT(self && ten_path_table_check_integrity(self, true),
              "Should not happen.");
 

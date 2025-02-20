@@ -359,6 +359,21 @@ void ten_cmd_base_set_result_handler(
                                       result_handler, result_handler_data);
 }
 
+ten_env_transfer_msg_result_handler_func_t ten_raw_cmd_base_get_result_handler(
+    ten_cmd_base_t *self) {
+  TEN_ASSERT(self && ten_raw_cmd_base_check_integrity(self),
+             "Should not happen.");
+
+  return self->result_handler;
+}
+
+void *ten_raw_cmd_base_get_result_handler_data(ten_cmd_base_t *self) {
+  TEN_ASSERT(self && ten_raw_cmd_base_check_integrity(self),
+             "Should not happen.");
+
+  return self->result_handler_data;
+}
+
 bool ten_cmd_base_comes_from_client_outside(ten_shared_ptr_t *self) {
   TEN_ASSERT(
       self && ten_msg_check_integrity(self) && ten_msg_is_cmd_and_result(self),

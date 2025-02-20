@@ -244,12 +244,11 @@ void ten_extension_tester_destroy(ten_extension_tester_t *self) {
   TEN_FREE(self);
 }
 
-// =-=-=
 static void test_app_start_graph_result_handler(ten_env_t *ten_env,
                                                 ten_shared_ptr_t *cmd_result,
                                                 void *user_data,
                                                 ten_error_t *err) {
-  TEN_ASSERT(err == NULL, "Should not happen.");
+  // =-=-=
 }
 
 static void test_app_ten_env_send_start_graph_cmd(ten_env_t *ten_env,

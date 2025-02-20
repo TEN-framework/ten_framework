@@ -1073,21 +1073,6 @@ void ten_extension_set_addon(ten_extension_t *self,
   ten_ref_inc_ref(&addon_host->ref);
 }
 
-ten_path_in_t *ten_extension_get_cmd_return_path_from_itself(
-    ten_extension_t *self, const char *cmd_id) {
-  TEN_ASSERT(self && ten_extension_check_integrity(self, true) && cmd_id,
-             "Should not happen.");
-
-  ten_listnode_t *returned_node = ten_path_table_find_path_from_cmd_id(
-      self->path_table, TEN_PATH_IN, cmd_id);
-
-  if (!returned_node) {
-    return NULL;
-  }
-
-  return ten_ptr_listnode_get(returned_node);
-}
-
 bool ten_extension_validate_msg_schema(ten_extension_t *self,
                                        ten_shared_ptr_t *msg, bool is_msg_out,
                                        ten_error_t *err) {
