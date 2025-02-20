@@ -59,9 +59,6 @@ if (ten_enable_ten_manager) {
   ten_package_publish("upload_vosk_asr_cpp_to_server") {
     base_dir =
         rebase_path("${root_out_dir}/ten_packages/extension/vosk_asr_cpp")
-    deps = [
-      ":vosk_asr_cpp",
-      "//core/src/ten_runtime/binding/python",
-    ]
+    deps = [ ":vosk_asr_cpp" ]
   }
 }
