@@ -150,6 +150,8 @@ void ten_path_set_result(ten_path_t *path, ten_shared_ptr_t *cmd_result) {
     }
 
     ten_error_deinit(&err);
+  } else {
+    path->cached_cmd_result = ten_shared_ptr_clone(cmd_result);
   }
 
   if (ten_path_is_in_a_group(path)) {
