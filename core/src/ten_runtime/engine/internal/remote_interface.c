@@ -223,26 +223,32 @@ static ten_remote_t *ten_engine_find_remote(ten_engine_t *self,
   return NULL;
 }
 
-void ten_engine_link_connection_to_remote(ten_engine_t *self,
-                                          ten_connection_t *connection,
-                                          const char *uri) {
+void ten_engine_link_orphan_connection_to_remote(
+    ten_engine_t *self, ten_connection_t *orphan_connection, const char *uri) {
   TEN_ASSERT(self, "Invalid argument.");
   TEN_ASSERT(ten_engine_check_integrity(self, true),
              "Invalid use of engine %p.", self);
 
-  TEN_ASSERT(connection, "Invalid argument.");
-  TEN_ASSERT(ten_connection_check_integrity(connection, true),
-             "Invalid use of engine %p.", connection);
+  TEN_ASSERT(orphan_connection, "Invalid argument.");
+  TEN_ASSERT(ten_connection_check_integrity(orphan_connection, true),
+             "Invalid use of engine %p.", orphan_connection);
 
   TEN_ASSERT(uri, "Invalid argument.");
 
-  ten_remote_t *remote = ten_engine_find_remote(self, uri);
   TEN_ASSERT(
-      !remote,
+      !ten_engine_find_remote(self, uri),
       "The relationship of remote and connection should be 1-1 mapping.");
 
-  remote = ten_remote_create_for_engine(uri, self, connection);
+  ten_remote_t *remote =
+      ten_remote_create_for_engine(uri, self, orphan_connection);
   ten_engine_add_remote(self, remote);
+
+  ten_engine_del_orphan_connection(self, orphan_connection);
+
+  // Since the connection is already connected to the remote, the remote also
+  // needs to be triggered to close when the connection is closed.
+  ten_connection_set_on_closed(orphan_connection,
+                               ten_remote_on_connection_closed, remote);
 }
 
 static void ten_engine_on_remote_protocol_created(ten_env_t *ten_env,
@@ -261,6 +267,8 @@ static void ten_engine_on_remote_protocol_created(ten_env_t *ten_env,
   ten_connection_t *connection = ten_connection_create(protocol);
   TEN_ASSERT(connection, "Should not happen.");
 
+  ten_string_copy(&connection->uri, &protocol->uri);
+
   // This is in the 'connect_to' stage, the 'connection' already attaches to the
   // engine, no migration is needed.
   ten_connection_set_migration_state(connection,
@@ -269,6 +277,11 @@ static void ten_engine_on_remote_protocol_created(ten_env_t *ten_env,
   ten_remote_t *remote = ten_remote_create_for_engine(
       ten_string_get_raw_str(&protocol->uri), self, connection);
   TEN_ASSERT(remote, "Should not happen.");
+
+  // Since the connection is already connected to the remote, the remote also
+  // needs to be triggered to close when the connection is closed.
+  ten_connection_set_on_closed(connection, ten_remote_on_connection_closed,
+                               remote);
 
   if (ctx->cb) {
     ctx->cb(self, remote, ctx->user_data);

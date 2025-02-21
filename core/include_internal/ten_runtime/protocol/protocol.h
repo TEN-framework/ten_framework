@@ -375,6 +375,8 @@ TEN_RUNTIME_PRIVATE_API ten_string_t *ten_protocol_uri_to_transport_uri(
 TEN_RUNTIME_PRIVATE_API void ten_protocol_set_uri(ten_protocol_t *self,
                                                   ten_string_t *uri);
 
+TEN_RUNTIME_PRIVATE_API const char *ten_protocol_get_uri(ten_protocol_t *self);
+
 TEN_RUNTIME_PRIVATE_API void ten_protocol_set_addon(
     ten_protocol_t *self, ten_addon_host_t *addon_host);
 
