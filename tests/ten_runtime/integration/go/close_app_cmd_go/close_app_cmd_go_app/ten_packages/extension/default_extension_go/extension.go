@@ -49,10 +49,10 @@ func (ext *defaultExtension) OnCmd(
 			return
 		}
 
-		cmdResult, _ := ten.NewCmdResult(ten.StatusCodeOk)
+		cmdResult, _ := ten.NewCmdResult(ten.StatusCodeOk, cmd)
 		cmdResult.SetPropertyString("detail", "ok")
 
-		tenEnv.ReturnResult(cmdResult, cmd, nil)
+		tenEnv.ReturnResult(cmdResult, nil)
 	}
 }
 

@@ -47,15 +47,15 @@ func (p *extensionA) OnCmd(
 		tenEnv.SendCmd(cmdB, func(r ten.TenEnv, cs ten.CmdResult, e error) {
 			detail, err := cs.GetPropertyString("detail")
 			if err != nil {
-				cmdResult, _ := ten.NewCmdResult(ten.StatusCodeError)
+				cmdResult, _ := ten.NewCmdResult(ten.StatusCodeError, cmd)
 				cmdResult.SetPropertyString("detail", err.Error())
-				r.ReturnResult(cmdResult, cmd, nil)
+				r.ReturnResult(cmdResult, nil)
 				return
 			}
 
-			cmdResult, _ := ten.NewCmdResult(ten.StatusCodeOk)
+			cmdResult, _ := ten.NewCmdResult(ten.StatusCodeOk, cmd)
 			cmdResult.SetPropertyString("detail", detail)
-			r.ReturnResult(cmdResult, cmd, nil)
+			r.ReturnResult(cmdResult, nil)
 		})
 	}()
 }

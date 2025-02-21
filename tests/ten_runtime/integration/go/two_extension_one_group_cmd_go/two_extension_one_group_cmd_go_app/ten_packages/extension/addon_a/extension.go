@@ -97,9 +97,9 @@ func (p *aExtension) OnCmd(
 			panic("aExtension SendData failed")
 		}
 
-		cmdResult, _ := ten.NewCmdResult(ten.StatusCodeOk)
+		cmdResult, _ := ten.NewCmdResult(ten.StatusCodeOk, cmd)
 		cmdResult.SetPropertyString("detail", "world")
-		err = tenEnv.ReturnResult(cmdResult, cmd, nil)
+		err = tenEnv.ReturnResult(cmdResult, nil)
 		if err != nil {
 			panic("aExtension ReturnResult failed")
 		}

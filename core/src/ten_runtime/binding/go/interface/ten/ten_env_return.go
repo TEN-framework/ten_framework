@@ -12,7 +12,6 @@ import "C"
 
 func (p *tenEnv) ReturnResult(
 	statusCmd CmdResult,
-	cmd Cmd,
 	handler ErrorHandler,
 ) error {
 	if statusCmd == nil {
@@ -22,65 +21,18 @@ func (p *tenEnv) ReturnResult(
 		)
 	}
 
-	if cmd == nil {
-		return newTenError(
-			ErrorCodeInvalidArgument,
-			"cmd is required.",
-		)
-	}
+	defer func() {
+		p.keepAlive()
+		statusCmd.keepAlive()
+	}()
 
 	cb := goHandleNil
 	if handler != nil {
 		cb = newGoHandle(handler)
 	}
-
-	defer func() {
-		p.keepAlive()
-		cmd.keepAlive()
-		statusCmd.keepAlive()
-	}()
 
 	err := withCGOLimiter(func() error {
 		apiStatus := C.ten_go_ten_env_return_result(
-			p.cPtr,
-			statusCmd.getCPtr(),
-			cmd.getCPtr(),
-			cHandle(cb),
-		)
-		return withCGoError(&apiStatus)
-	})
-
-	if err != nil {
-		// Clean up the handle if there was an error.
-		loadAndDeleteGoHandle(cb)
-	}
-
-	return err
-}
-
-func (p *tenEnv) ReturnResultDirectly(
-	statusCmd CmdResult,
-	handler ErrorHandler,
-) error {
-	if statusCmd == nil {
-		return newTenError(
-			ErrorCodeInvalidArgument,
-			"cmd result is required.",
-		)
-	}
-
-	defer func() {
-		p.keepAlive()
-		statusCmd.keepAlive()
-	}()
-
-	cb := goHandleNil
-	if handler != nil {
-		cb = newGoHandle(handler)
-	}
-
-	err := withCGOLimiter(func() error {
-		apiStatus := C.ten_go_ten_env_return_result_directly(
 			p.cPtr,
 			statusCmd.getCPtr(),
 			cHandle(cb),

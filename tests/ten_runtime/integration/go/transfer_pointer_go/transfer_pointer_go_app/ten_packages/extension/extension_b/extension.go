@@ -68,9 +68,9 @@ func (p *extensionB) OnCmd(
 				panic("should not happen")
 			}
 
-			cmdResult, _ := ten.NewCmdResult(ten.StatusCodeOk)
+			cmdResult, _ := ten.NewCmdResult(ten.StatusCodeOk, cmd)
 			cmdResult.SetPropertyString("detail", "ten")
-			tenEnv.ReturnResult(cmdResult, cmd, nil)
+			tenEnv.ReturnResult(cmdResult, nil)
 		}
 	}()
 }

@@ -34,9 +34,9 @@ func (p *extensionB) OnCmd(
 		cmdName, _ := cmd.GetName()
 		if cmdName == "B" {
 			data := types.UserData{Uid: 1, Name: "ten"}
-			cs, _ := ten.NewCmdResult(ten.StatusCodeOk)
+			cs, _ := ten.NewCmdResult(ten.StatusCodeOk, cmd)
 			cs.SetProperty("data", &data)
-			err := tenEnv.ReturnResult(cs, cmd, nil)
+			err := tenEnv.ReturnResult(cs, nil)
 			if err != nil {
 				panic(err)
 			}

@@ -19,9 +19,9 @@ type serverExtension struct {
 func (ext *serverExtension) OnCmd(tenEnv ten.TenEnv, cmd ten.Cmd) {
 	name, _ := cmd.GetName()
 	if name == "test" {
-		cmdResult, _ := ten.NewCmdResult(ten.StatusCodeOk)
+		cmdResult, _ := ten.NewCmdResult(ten.StatusCodeOk, cmd)
 		cmdResult.SetPropertyString("detail", "ok")
-		tenEnv.ReturnResult(cmdResult, cmd, nil)
+		tenEnv.ReturnResult(cmdResult, nil)
 	} else {
 		panic("unknown cmd name: " + name)
 	}
@@ -106,10 +106,10 @@ func (ext *clientExtension) OnCmd(tenEnv ten.TenEnv, cmd ten.Cmd) {
 
 func (ext *clientExtension) returnIfAllDone(tenEnv ten.TenEnv) {
 	if ext.msgCount == 4 {
-		cmdResult, _ := ten.NewCmdResult(ten.StatusCodeOk)
+		cmdResult, _ := ten.NewCmdResult(ten.StatusCodeOk, ext.testCmd)
 		cmdResult.SetPropertyString("detail", "ok")
 
-		tenEnv.ReturnResult(cmdResult, ext.testCmd, nil)
+		tenEnv.ReturnResult(cmdResult, nil)
 	}
 }
 

@@ -50,10 +50,13 @@ type cmdResult struct {
 }
 
 // NewCmdResult creates a new cmd result.
-func NewCmdResult(statusCode StatusCode) (CmdResult, error) {
+func NewCmdResult(statusCode StatusCode, targetCmd Cmd) (CmdResult, error) {
+	defer targetCmd.keepAlive()
+
 	res := globalPool.process(func() any {
 		cmdBridge := C.ten_go_cmd_create_cmd_result(
 			C.int(statusCode),
+			targetCmd.getCPtr(),
 		)
 		cmdInstance := newCmdResult(cmdBridge)
 		return cmdInstance
