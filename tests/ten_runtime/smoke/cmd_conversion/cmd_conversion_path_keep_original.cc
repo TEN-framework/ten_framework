@@ -39,9 +39,9 @@ class test_extension_2 : public ten::extension_t {
       if (cmd->get_property_int64("test_property_name") == 32 &&
           cmd->get_property_int64("test_original_int") == 33 &&
           cmd->get_property_string("test_original_str") == "abc") {
-        auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
+        auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK, *cmd);
         cmd_result->set_property("detail", "hello world, too");
-        ten_env.return_result(std::move(cmd_result), std::move(cmd));
+        ten_env.return_result(std::move(cmd_result));
       }
     }
   }

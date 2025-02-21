@@ -62,9 +62,9 @@ class test_extension : public ten::extension_t {
       ASSERT_EQ("", prop);
       ASSERT_EQ(err.error_code(), TEN_ERROR_CODE_VALUE_NOT_FOUND);
 
-      auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
+      auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK, *cmd);
       cmd_result->set_property("detail", prop);
-      ten_env.return_result(std::move(cmd_result), std::move(cmd));
+      ten_env.return_result(std::move(cmd_result));
     }
   }
 };

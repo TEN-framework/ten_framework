@@ -178,14 +178,15 @@ double rational_to_double(const AVRational &r) {
 void demuxer_thread_t::reply_to_start_cmd(bool success) {
   if (!success || demuxer == nullptr) {
     ten_env_proxy_->notify([this](ten::ten_env_t &ten_env) {
-      auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_ERROR);
+      auto cmd_result =
+          ten::cmd_result_t::create(TEN_STATUS_CODE_ERROR, *start_cmd_);
       cmd_result->set_property("detail", "fail to prepare demuxer.");
-      ten_env.return_result(std::move(cmd_result), std::move(start_cmd_));
+      ten_env.return_result(std::move(cmd_result));
     });
     return;
   }
 
-  auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
+  auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK, *start_cmd_);
   cmd_result->set_property("detail", "The demuxer has been started.");
 
   // Demuxer video settings.
@@ -222,7 +223,7 @@ void demuxer_thread_t::reply_to_start_cmd(bool success) {
   auto result_shared = std::make_shared<std::unique_ptr<ten::cmd_result_t>>(
       std::move(cmd_result));
   ten_env_proxy_->notify([result_shared, this](ten::ten_env_t &ten_env) {
-    ten_env.return_result(std::move(*result_shared), std::move(start_cmd_));
+    ten_env.return_result(std::move(*result_shared));
   });
 }
 

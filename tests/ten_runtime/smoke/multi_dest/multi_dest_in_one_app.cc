@@ -70,7 +70,7 @@ class test_extension_1 : public ten::extension_t {
             pending_resp_num--;
             if (pending_resp_num == 0) {
               cmd_result->set_property("detail", "return from extension 1");
-              ten_env.return_result_directly(std::move(cmd_result));
+              ten_env.return_result(std::move(cmd_result));
             }
           });
       return;
@@ -81,21 +81,21 @@ class test_extension_1 : public ten::extension_t {
   int pending_resp_num{1};
 };
 
-#define DEFINE_TEST_EXTENSION(N)                                              \
-  class test_extension_##N : public ten::extension_t {                        \
-   public:                                                                    \
-    explicit test_extension_##N(const char *name) : ten::extension_t(name) {} \
-                                                                              \
-    void on_cmd(ten::ten_env_t &ten_env,                                      \
-                std::unique_ptr<ten::cmd_t> cmd) override {                   \
-      nlohmann::json json =                                                   \
-          nlohmann::json::parse(cmd->get_property_to_json());                 \
-      if (cmd->get_name() == "hello_world") {                                 \
-        auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK);      \
-        cmd_result->set_property("detail", "hello world from extension " #N); \
-        ten_env.return_result(std::move(cmd_result), std::move(cmd));         \
-      }                                                                       \
-    }                                                                         \
+#define DEFINE_TEST_EXTENSION(N)                                               \
+  class test_extension_##N : public ten::extension_t {                         \
+   public:                                                                     \
+    explicit test_extension_##N(const char *name) : ten::extension_t(name) {}  \
+                                                                               \
+    void on_cmd(ten::ten_env_t &ten_env,                                       \
+                std::unique_ptr<ten::cmd_t> cmd) override {                    \
+      nlohmann::json json =                                                    \
+          nlohmann::json::parse(cmd->get_property_to_json());                  \
+      if (cmd->get_name() == "hello_world") {                                  \
+        auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK, *cmd); \
+        cmd_result->set_property("detail", "hello world from extension " #N);  \
+        ten_env.return_result(std::move(cmd_result));                          \
+      }                                                                        \
+    }                                                                          \
   };
 
 DEFINE_TEST_EXTENSION(2)

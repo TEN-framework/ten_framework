@@ -27,9 +27,9 @@ class test_property_access_app_store_async_2 : public ten::extension_t {
     auto result = ten_env.get_property_int32("app:aaa");
 
     if (result == 3) {
-      auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
+      auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK, *cmd);
       cmd_result->set_property("detail", "success");
-      ten_env.return_result(std::move(cmd_result), std::move(cmd));
+      ten_env.return_result(std::move(cmd_result));
     }
   }
 };

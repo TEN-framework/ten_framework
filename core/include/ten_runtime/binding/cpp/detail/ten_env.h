@@ -105,11 +105,9 @@ class ten_env_t {
         proxy_handle_send_msg_error, err);
   }
 
-  // If the 'cmd' has already been a command in the backward path, a extension
-  // could use this API to return the 'cmd' further.
-  bool return_result_directly(std::unique_ptr<cmd_result_t> &&cmd,
-                              error_handler_func_t &&error_handler = nullptr,
-                              error_t *err = nullptr) {
+  bool return_result(std::unique_ptr<cmd_result_t> &&cmd,
+                     error_handler_func_t &&error_handler = nullptr,
+                     error_t *err = nullptr) {
     if (!cmd) {
       TEN_ASSERT(0, "Invalid argument.");
       return false;
@@ -136,55 +134,6 @@ class ten_env_t {
     if (rc) {
       // The 'cmd' has been returned, so we should release the ownership of
       // the C msg from the 'cmd'.
-      auto *cpp_cmd_ptr = std::move(cmd).release();
-      delete cpp_cmd_ptr;
-    }
-
-    return rc;
-  }
-
-  bool return_result(std::unique_ptr<cmd_result_t> &&cmd,
-                     std::unique_ptr<cmd_t> &&target_cmd,
-                     error_handler_func_t &&error_handler = nullptr,
-                     error_t *err = nullptr) {
-    if (!cmd) {
-      TEN_ASSERT(0, "Invalid argument.");
-      return false;
-    }
-    if (!target_cmd) {
-      TEN_ASSERT(0, "Invalid argument.");
-      return false;
-    }
-
-    bool rc = false;
-
-    if (error_handler == nullptr) {
-      rc = ten_env_return_result(c_ten_env, cmd->get_underlying_msg(),
-                                 target_cmd->get_underlying_msg(), nullptr,
-                                 nullptr,
-                                 err != nullptr ? err->get_c_error() : nullptr);
-    } else {
-      auto *error_handler_ptr =
-          new error_handler_func_t(std::move(error_handler));
-
-      rc = ten_env_return_result(
-          c_ten_env, cmd->get_underlying_msg(),
-          target_cmd->get_underlying_msg(), proxy_handle_return_result_error,
-          error_handler_ptr, err != nullptr ? err->get_c_error() : nullptr);
-      if (!rc) {
-        delete error_handler_ptr;
-      }
-    }
-
-    if (rc) {
-      if (cmd->is_final()) {
-        // Only when is_final is true does the ownership of target_cmd
-        // transfer. Otherwise, target_cmd remains with the extension,
-        // allowing the extension to return more results.
-        auto *cpp_target_cmd_ptr = std::move(target_cmd).release();
-        delete cpp_target_cmd_ptr;
-      }
-
       auto *cpp_cmd_ptr = std::move(cmd).release();
       delete cpp_cmd_ptr;
     }

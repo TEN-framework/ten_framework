@@ -33,9 +33,9 @@ class vosk_asr_cpp_t : public ten::extension_t {
 
   void on_cmd(ten::ten_env_t &ten_env,
               std::unique_ptr<ten::cmd_t> cmd) override {
-    auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
+    auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK, *cmd);
     cmd_result->set_property("detail", "This is a demo");
-    ten_env.return_result(std::move(cmd_result), std::move(cmd));
+    ten_env.return_result(std::move(cmd_result));
   }
 
   void on_audio_frame(ten::ten_env_t &ten_env,

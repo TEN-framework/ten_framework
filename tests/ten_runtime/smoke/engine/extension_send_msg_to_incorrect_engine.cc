@@ -35,8 +35,12 @@ class test_extension : public ten::extension_t {
           [cmd_shared](ten::ten_env_t &ten_env,
                        std::unique_ptr<ten::cmd_result_t> cmd_result,
                        ten::error_t *err) {
-            ten_env.return_result(std::move(cmd_result),
-                                  std::move(*cmd_shared));
+            auto new_cmd_result = ten::cmd_result_t::create(
+                cmd_result->get_status_code(), **cmd_shared);
+            new_cmd_result->set_property_from_json(
+                nullptr, cmd_result->get_property_to_json().c_str());
+
+            ten_env.return_result(std::move(new_cmd_result));
             return true;
           });
     }

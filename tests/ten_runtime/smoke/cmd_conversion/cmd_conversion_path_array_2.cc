@@ -39,9 +39,9 @@ class test_extension_2 : public ten::extension_t {
       if (cmd->get_property_int64("test_group[3].test_property_name_1") == 32 &&
           cmd->get_property_string("test_group[3].test_property_name_2") ==
               "may the force be with you.") {
-        auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
+        auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK, *cmd);
         cmd_result->set_property("detail", "hello world, too");
-        ten_env.return_result(std::move(cmd_result), std::move(cmd));
+        ten_env.return_result(std::move(cmd_result));
       }
     }
   }

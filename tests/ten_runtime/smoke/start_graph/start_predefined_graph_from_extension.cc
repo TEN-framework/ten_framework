@@ -19,9 +19,9 @@ class test_normal_extension : public ten::extension_t {
   void on_cmd(ten::ten_env_t &ten_env,
               std::unique_ptr<ten::cmd_t> cmd) override {
     if (cmd->get_name() == "hello_world") {
-      auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
+      auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK, *cmd);
       cmd_result->set_property("detail", "hello world, too");
-      ten_env.return_result(std::move(cmd_result), std::move(cmd));
+      ten_env.return_result(std::move(cmd_result));
     }
   }
 };
@@ -73,12 +73,11 @@ class test_predefined_graph : public ten::extension_t {
                       if (test_cmd != nullptr) {
                         nlohmann::json detail = {{"id", 1}, {"name", "a"}};
 
-                        auto cmd_result_for_test =
-                            ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
+                        auto cmd_result_for_test = ten::cmd_result_t::create(
+                            TEN_STATUS_CODE_OK, *test_cmd);
                         cmd_result_for_test->set_property_from_json(
                             "detail", detail.dump().c_str());
-                        ten_env.return_result(std::move(cmd_result_for_test),
-                                              std::move(test_cmd));
+                        ten_env.return_result(std::move(cmd_result_for_test));
                       }
                     });
               });
@@ -93,9 +92,9 @@ class test_predefined_graph : public ten::extension_t {
       if (received_hello_world_resp) {
         nlohmann::json detail = {{"id", 1}, {"name", "a"}};
 
-        auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
+        auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK, *cmd);
         cmd_result->set_property_from_json("detail", detail.dump().c_str());
-        ten_env.return_result(std::move(cmd_result), std::move(cmd));
+        ten_env.return_result(std::move(cmd_result));
       } else {
         test_cmd = std::move(cmd);
         return;

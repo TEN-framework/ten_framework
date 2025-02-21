@@ -67,9 +67,9 @@ class test_extension : public ten::extension_t {
       EXPECT_EQ(bool_prop_value, false);
 
       if (int32_prop_value == PROP_VAL) {
-        auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
+        auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK, *cmd);
         cmd_result->set_property("detail", "hello world, too");
-        ten_env.return_result(std::move(cmd_result), std::move(cmd));
+        ten_env.return_result(std::move(cmd_result));
       }
     }
   }

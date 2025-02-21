@@ -44,9 +44,9 @@ class test_extension : public ten::extension_t {
       all_prop_value = ten_env.get_property_to_json("");
       all_prop_json = nlohmann::json::parse(all_prop_value);
       if (all_prop_json["test_prop"] == 32) {
-        auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
+        auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK, *cmd);
         cmd_result->set_property("detail", "hello world, too");
-        ten_env.return_result(std::move(cmd_result), std::move(cmd));
+        ten_env.return_result(std::move(cmd_result));
       }
     }
   }

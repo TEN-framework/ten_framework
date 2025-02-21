@@ -36,14 +36,15 @@ class demuxer_extension_t : public extension_t {
 
     if (std::string(cmd_name) == "start_demuxer") {
       if (demuxer_thread_ == nullptr) {
-        auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_ERROR);
+        auto cmd_result =
+            ten::cmd_result_t::create(TEN_STATUS_CODE_ERROR, *cmd);
         cmd_result->set_property("detail", "You should prepare first.");
-        ten_env.return_result(std::move(cmd_result), std::move(cmd));
+        ten_env.return_result(std::move(cmd_result));
       } else {
         demuxer_thread_->start_demuxing();
-        auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
+        auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK, *cmd);
         cmd_result->set_property("detail", "The demuxer has been started.");
-        ten_env.return_result(std::move(cmd_result), std::move(cmd));
+        ten_env.return_result(std::move(cmd_result));
       }
     }
   }

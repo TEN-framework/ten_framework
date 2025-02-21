@@ -106,9 +106,9 @@ class extension_t : public binding_handle_t {
   // the C++ extension "might" take a copy and share ownership of the cmd.
 
   virtual void on_cmd(ten_env_t &ten_env, std::unique_ptr<cmd_t> cmd) {
-    auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
+    auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK, *cmd);
     cmd_result->set_property("detail", "default");
-    ten_env.return_result(std::move(cmd_result), std::move(cmd));
+    ten_env.return_result(std::move(cmd_result));
   }
 
   virtual void on_data(ten_env_t &ten_env, std::unique_ptr<data_t> data) {}

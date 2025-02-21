@@ -19,9 +19,9 @@ class test_normal_extension : public ten::extension_t {
   void on_cmd(ten::ten_env_t &ten_env,
               std::unique_ptr<ten::cmd_t> cmd) override {
     if (cmd->get_name() == "hello_world") {
-      auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
+      auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK, *cmd);
       cmd_result->set_property("detail", "hello world, too");
-      ten_env.return_result(std::move(cmd_result), std::move(cmd));
+      ten_env.return_result(std::move(cmd_result));
     }
   }
 };
@@ -84,12 +84,11 @@ class test_predefined_graph : public ten::extension_t {
                           if (command_1 != nullptr) {
                             nlohmann::json const detail =
                                 R"({"id": 1, "name": "a"})"_json;
-                            auto cmd_result =
-                                ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
+                            auto cmd_result = ten::cmd_result_t::create(
+                                TEN_STATUS_CODE_OK, *command_1);
                             cmd_result->set_property_from_json(
                                 "detail", detail.dump().c_str());
-                            ten_env.return_result(std::move(cmd_result),
-                                                  std::move(command_1));
+                            ten_env.return_result(std::move(cmd_result));
                           }
                         });
                   }
@@ -105,9 +104,9 @@ class test_predefined_graph : public ten::extension_t {
     if (cmd->get_name() == "command_1") {
       if (normal_extension_is_ready) {
         auto detail = R"({"id": 1, "name": "a"})"_json;
-        auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
+        auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK, *cmd);
         cmd_result->set_property_from_json("detail", detail.dump().c_str());
-        ten_env.return_result(std::move(cmd_result), std::move(cmd));
+        ten_env.return_result(std::move(cmd_result));
       } else {
         command_1 = std::move(cmd);
         return;

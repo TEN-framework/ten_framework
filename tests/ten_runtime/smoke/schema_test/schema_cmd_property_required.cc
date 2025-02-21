@@ -139,20 +139,20 @@ class test_extension_2 : public ten::extension_t {
   void on_cmd(ten::ten_env_t &ten_env,
               std::unique_ptr<ten::cmd_t> cmd) override {
     if (cmd->get_name() == "hello_world") {
-      auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
+      auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK, *cmd);
 
       auto detail = nlohmann::json::object();
       detail["b"] = 1;
 
       cmd_result->set_property_from_json("detail", detail.dump().c_str());
-      bool rc = ten_env.return_result(std::move(cmd_result), std::move(cmd));
+      bool rc = ten_env.return_result(std::move(cmd_result));
 
       // The property `a` is required.
       ASSERT_EQ(rc, false);
 
       detail["a"] = "demo";
       cmd_result->set_property_from_json("detail", detail.dump().c_str());
-      rc = ten_env.return_result(std::move(cmd_result), std::move(cmd));
+      rc = ten_env.return_result(std::move(cmd_result));
       ASSERT_EQ(rc, true);
     }
   }

@@ -29,10 +29,10 @@ class test_extension_1 : public ten::extension_t {
       close_app_cmd->set_dest("localhost", nullptr, nullptr, nullptr);
       ten_env.send_cmd(std::move(close_app_cmd));
 
-      auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
+      auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK, *cmd);
       cmd_result->set_property("detail", "app closed");
 
-      ten_env.return_result(std::move(cmd_result), std::move(cmd));
+      ten_env.return_result(std::move(cmd_result));
       return;
     }
   }

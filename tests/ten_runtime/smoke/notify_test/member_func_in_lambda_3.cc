@@ -61,9 +61,10 @@ class test_extension : public ten::extension_t {
                                 ten::ten_env_proxy_t *ten_env_proxy);
 
   void extension_on_notify(ten::ten_env_t &ten_env) {
-    auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
+    auto cmd_result =
+        ten::cmd_result_t::create(TEN_STATUS_CODE_OK, *hello_world_cmd);
     cmd_result->set_property("detail", "hello world, too");
-    ten_env.return_result(std::move(cmd_result), std::move(hello_world_cmd));
+    ten_env.return_result(std::move(cmd_result));
   }
 
   std::thread *outer_thread{nullptr};
