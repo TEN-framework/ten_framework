@@ -154,6 +154,12 @@ done:
   return start_graph_cmd;
 }
 
+static void ten_app_start_auto_start_predefined_graph_result_handler(
+    ten_env_t *ten_env, ten_shared_ptr_t *cmd_result, void *user_data,
+    ten_error_t *err) {
+  // =-=-=
+}
+
 bool ten_app_start_predefined_graph(
     ten_app_t *self, ten_predefined_graph_info_t *predefined_graph_info,
     ten_error_t *err) {
@@ -182,10 +188,21 @@ bool ten_app_start_predefined_graph(
   // `auto_start` predefined graph, so that it can later identify if the
   // received command result corresponds to this type of `start_graph` command,
   // it is necessary to assign the command ID here and record it.
+  // =-=-=
   if (predefined_graph_info->auto_start) {
     ten_cmd_base_gen_cmd_id_if_empty(start_graph_cmd);
     ten_string_set_from_c_str(&predefined_graph_info->start_graph_cmd_id,
                               ten_cmd_base_get_cmd_id(start_graph_cmd));
+
+    // =-=-=
+    // ten_cmd_base_set_result_handler(
+    //     start_graph_cmd,
+    //     ten_app_start_auto_start_predefined_graph_result_handler, NULL);
+
+    // ten_path_t *out_path = (ten_path_t *)ten_path_table_add_out_path(
+    //     self->path_table, start_graph_cmd);
+    // TEN_ASSERT(out_path && ten_path_check_integrity(out_path, true),
+    //            "Should not happen.");
   }
   // @}
 

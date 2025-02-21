@@ -23,13 +23,15 @@ typedef struct ten_engine_t ten_engine_t;
 typedef struct ten_path_t ten_path_t;
 typedef struct ten_path_out_t ten_path_out_t;
 typedef struct ten_path_in_t ten_path_in_t;
+typedef struct ten_app_t ten_app_t;
 typedef struct ten_msg_conversion_t ten_msg_conversion_t;
 
 typedef enum TEN_PATH_TABLE_ATTACH_TO {
   TEN_PATH_TABLE_ATTACH_TO_INVALID,
 
-  TEN_PATH_TABLE_ATTACH_TO_EXTENSION,
+  TEN_PATH_TABLE_ATTACH_TO_APP,
   TEN_PATH_TABLE_ATTACH_TO_ENGINE,
+  TEN_PATH_TABLE_ATTACH_TO_EXTENSION,
 } TEN_PATH_TABLE_ATTACH_TO;
 
 typedef struct ten_path_table_t {
@@ -38,8 +40,9 @@ typedef struct ten_path_table_t {
 
   TEN_PATH_TABLE_ATTACH_TO attach_to;
   union {
-    ten_extension_t *extension;
+    ten_app_t *app;
     ten_engine_t *engine;
+    ten_extension_t *extension;
   } attached_target;
 
   ten_list_t in_paths;   // ten_path_in_t
@@ -59,9 +62,6 @@ TEN_RUNTIME_PRIVATE_API ten_path_in_t *ten_path_table_add_in_path(
 
 TEN_RUNTIME_PRIVATE_API ten_path_out_t *ten_path_table_add_out_path(
     ten_path_table_t *self, ten_shared_ptr_t *cmd);
-
-TEN_RUNTIME_PRIVATE_API ten_listnode_t *ten_path_table_find_path_from_cmd_id(
-    ten_path_table_t *self, TEN_PATH_TYPE type, const char *cmd_id);
 
 TEN_RUNTIME_PRIVATE_API ten_shared_ptr_t *
 ten_path_table_determine_actual_cmd_result(ten_path_table_t *self,

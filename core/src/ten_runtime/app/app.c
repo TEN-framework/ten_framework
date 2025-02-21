@@ -15,6 +15,7 @@
 #include "include_internal/ten_runtime/extension_group/extension_group.h"
 #include "include_internal/ten_runtime/global/global.h"
 #include "include_internal/ten_runtime/global/signal.h"
+#include "include_internal/ten_runtime/path/path_table.h"
 #include "include_internal/ten_runtime/protocol/protocol.h"
 #include "include_internal/ten_runtime/schema_store/store.h"
 #include "include_internal/ten_runtime/ten_env/ten_env.h"
@@ -44,6 +45,8 @@ static void ten_app_inherit_thread_ownership(ten_app_t *self) {
   ten_sanitizer_thread_check_set_belonging_thread_to_current_thread(
       &self->thread_check);
   ten_sanitizer_thread_check_inherit_from(&self->ten_env->thread_check,
+                                          &self->thread_check);
+  ten_sanitizer_thread_check_inherit_from(&self->path_table->thread_check,
                                           &self->thread_check);
 }
 
@@ -130,6 +133,8 @@ ten_app_t *ten_app_create(ten_app_on_configure_func_t on_configure,
   ten_string_init(&self->base_dir);
   ten_list_init(&self->ten_package_base_dirs);
 
+  self->path_table = ten_path_table_create(TEN_PATH_TABLE_ATTACH_TO_APP, self);
+
   self->manifest_info = NULL;
   self->property_info = NULL;
 
@@ -188,6 +193,8 @@ void ten_app_destroy(ten_app_t *self) {
 
   ten_string_deinit(&self->base_dir);
   ten_list_clear(&self->ten_package_base_dirs);
+
+  ten_path_table_destroy(self->path_table);
 
   TEN_FREE(self);
 }

@@ -404,6 +404,12 @@ void ten_engine_create_cmd_result_and_dispatch(ten_engine_t *self,
   ten_shared_ptr_t *cmd_result =
       ten_cmd_result_create_from_cmd(status_code, origin_cmd);
 
+  // The engine currently does not support returning streaming cmd_results, so
+  // all cmd_results actively sent by the engine should be considered `final`
+  // cmd_results.
+  bool rc = ten_cmd_result_set_final(cmd_result, true, NULL);
+  TEN_ASSERT(rc, "Should not happen.");
+
   if (detail) {
     ten_msg_set_property(cmd_result, "detail", ten_value_create_string(detail),
                          NULL);

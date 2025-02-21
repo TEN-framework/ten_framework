@@ -50,7 +50,7 @@ void ten_env_send_cmd_options_destroy(ten_env_send_cmd_options_t *options) {
  * @brief All message-sending code paths will ultimately converge in this
  * function.
  */
-static bool ten_send_msg_internal(
+static bool ten_env_send_msg_internal(
     ten_env_t *self, ten_shared_ptr_t *msg,
     ten_env_transfer_msg_result_handler_func_t handler, void *user_data,
     ten_error_t *err) {
@@ -256,20 +256,20 @@ bool ten_env_send_cmd(ten_env_t *self, ten_shared_ptr_t *cmd,
       ten_cmd_result_handler_for_send_cmd_ctx_t *ctx =
           ten_cmd_result_handler_for_send_cmd_ctx_create(handler, user_data);
 
-      rc = ten_send_msg_internal(self, cmd, cmd_result_handler_for_send_cmd,
-                                 ctx, err);
+      rc = ten_env_send_msg_internal(self, cmd, cmd_result_handler_for_send_cmd,
+                                     ctx, err);
       if (!rc) {
         ten_cmd_result_handler_for_send_cmd_ctx_destroy(ctx);
       }
     } else {
       // The TEN runtime will pass all received results up to the upper layer,
       // where they will be handled.
-      rc = ten_send_msg_internal(self, cmd, handler, user_data, err);
+      rc = ten_env_send_msg_internal(self, cmd, handler, user_data, err);
     }
   } else {
     TEN_ASSERT(!user_data, "Should not happen.");
 
-    rc = ten_send_msg_internal(self, cmd, NULL, NULL, err);
+    rc = ten_env_send_msg_internal(self, cmd, NULL, NULL, err);
   }
 
   return rc;
@@ -283,7 +283,7 @@ bool ten_env_send_data(ten_env_t *self, ten_shared_ptr_t *data,
              self);
   TEN_ASSERT(data, "Should not happen.");
 
-  return ten_send_msg_internal(self, data, handler, user_data, err);
+  return ten_env_send_msg_internal(self, data, handler, user_data, err);
 }
 
 bool ten_env_send_video_frame(
@@ -295,7 +295,7 @@ bool ten_env_send_video_frame(
              self);
   TEN_ASSERT(frame, "Should not happen.");
 
-  return ten_send_msg_internal(self, frame, handler, user_data, err);
+  return ten_env_send_msg_internal(self, frame, handler, user_data, err);
 }
 
 bool ten_env_send_audio_frame(
@@ -307,5 +307,5 @@ bool ten_env_send_audio_frame(
              self);
   TEN_ASSERT(frame, "Should not happen.");
 
-  return ten_send_msg_internal(self, frame, handler, user_data, err);
+  return ten_env_send_msg_internal(self, frame, handler, user_data, err);
 }

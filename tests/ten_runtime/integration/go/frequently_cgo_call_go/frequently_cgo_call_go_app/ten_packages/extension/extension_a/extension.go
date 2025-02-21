@@ -15,7 +15,7 @@ import (
 	"ten_framework/ten"
 )
 
-const concurrency = 100000
+const concurrency = 1000
 
 type extensionA struct {
 	ten.DefaultExtension

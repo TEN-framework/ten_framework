@@ -273,13 +273,39 @@ static bool ten_app_handle_stop_graph_cmd(ten_app_t *self,
 /**
  * @return true if this function handles @param cmd, false otherwise.
  */
-static bool ten_app_handle_cmd_result(ten_app_t *self, ten_shared_ptr_t *cmd,
+static bool ten_app_handle_cmd_result(ten_app_t *self,
+                                      ten_shared_ptr_t *cmd_result,
                                       ten_error_t *err) {
   TEN_ASSERT(self && ten_app_check_integrity(self, true), "Should not happen.");
-  TEN_ASSERT(cmd && ten_cmd_base_check_integrity(cmd), "Should not happen.");
+  TEN_ASSERT(cmd_result && ten_cmd_base_check_integrity(cmd_result),
+             "Should not happen.");
 
-  TEN_STATUS_CODE status_code = ten_cmd_result_get_status_code(cmd);
+  TEN_STATUS_CODE status_code = ten_cmd_result_get_status_code(cmd_result);
   bool is_auto_start_predefined_graph_cmd_result = false;
+
+  // =-=-=
+  // ten_path_t *out_path =
+  //     ten_path_table_set_result(self->path_table, TEN_PATH_OUT, cmd_result);
+  // if (!out_path) {
+  //   TEN_LOGD(
+  //       "The 'start_graph' flow was failed before, discard the cmd_result "
+  //       "now.");
+  //   return true;
+  // }
+
+  // bool is_final_result = ten_cmd_result_is_final(cmd_result, err);
+  // TEN_ASSERT(is_final_result, "Should not happen.");
+
+  // // Check whether _all_ cmd_results related to this start_graph command have
+  // // been received to determine whether to proceed with the next steps of the
+  // // start_graph flow.
+  // cmd_result = ten_path_table_determine_actual_cmd_result(
+  //     self->path_table, TEN_PATH_OUT, out_path, is_final_result);
+  // if (!cmd_result) {
+  //   TEN_LOGD(
+  //       "The 'start_graph' flow is not completed, skip the cmd_result now.");
+  //   return true;
+  // }
 
   // Verify whether the received command result corresponds to a previously sent
   // `start_graph` command for the `auto_start` predefined graph.
@@ -288,9 +314,21 @@ static bool ten_app_handle_cmd_result(ten_app_t *self, ten_shared_ptr_t *cmd,
         (ten_predefined_graph_info_t *)ten_ptr_listnode_get(iter.node);
 
     if (ten_string_is_equal_c_str(&predefined_graph_info->start_graph_cmd_id,
-                                  ten_cmd_base_get_cmd_id(cmd))) {
+                                  ten_cmd_base_get_cmd_id(cmd_result))) {
       TEN_ASSERT(predefined_graph_info->auto_start, "Should not happen.");
       is_auto_start_predefined_graph_cmd_result = true;
+
+      // =-=-=
+      // ten_cmd_base_t *raw_cmd_result =
+      //     ten_cmd_base_get_raw_cmd_base(cmd_result);
+
+      // ten_env_transfer_msg_result_handler_func_t result_handler =
+      //     ten_raw_cmd_base_get_result_handler(raw_cmd_result);
+      // if (result_handler) {
+      //   result_handler(self->ten_env, cmd_result,
+      //                  ten_raw_cmd_base_get_result_handler_data(raw_cmd_result),
+      //                  NULL);
+      // }
     }
   }
 
@@ -303,6 +341,8 @@ static bool ten_app_handle_cmd_result(ten_app_t *self, ten_shared_ptr_t *cmd,
                                NULL, err);
     ten_env_send_cmd(self->ten_env, close_app_cmd, NULL, NULL, NULL, err);
   }
+
+  // =-=-= ten_shared_ptr_destroy(cmd_result);
 
   return is_auto_start_predefined_graph_cmd_result;
 }
@@ -320,7 +360,9 @@ bool ten_app_dispatch_msg(ten_app_t *self, ten_shared_ptr_t *msg,
              "App URI should not be empty.");
 
   if (!ten_string_is_equal_c_str(&dest_loc->app_uri, ten_app_get_uri(self))) {
-    TEN_ASSERT(0, "Handle this condition.");
+    TEN_ASSERT(0, "Handle this condition, msg dest '%s', app '%s'",
+               ten_string_get_raw_str(&dest_loc->app_uri),
+               ten_app_get_uri(self));
   } else {
     if (ten_string_is_empty(&dest_loc->graph_id)) {
       // It means asking the app to do something.

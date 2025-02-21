@@ -91,18 +91,18 @@
 // The possible enum values are:
 //
 // - one_fail_return
-//   If receives a fail cmd result, return that fail cmd result
+//   If receives a fail cmd_result, return that fail cmd_result
 //   immediately, and discard all the paths in the path group, and then discard
 //   that path group.
 //
 // - all_ok_return_latest
-//   If a cmd result in each path in the path group are received, and all
-//   those cmd result is OK cmd results, then forward the latest
-//   receiving cmd result to the previous stage, and discard all the paths
+//   If a cmd_result in each path in the path group are received, and all
+//   those cmd_result is OK cmd results, then forward the latest
+//   receiving cmd_result to the previous stage, and discard all the paths
 //   in the path group, and then discard that path group.
 //
 // - all_ok_return_oldest
-//   Similar to the above one, but forward the oldest received cmd result.
+//   Similar to the above one, but forward the oldest received cmd_result.
 //
 // - all_return_latest
 //   Similar to the above ones, do not care about the OK/Fail status in the
@@ -112,18 +112,18 @@
 //
 // The whole process is like the following:
 //
-// 1. When a cmd result is forwarded through a path (whether it is an IN
-//    path, or a OUT path), if the path corresponds to a result conversion
-//    logic, the corresponding new cmd result will be generated according to
-//    the settings of the result conversion setting.
+// 1. When a cmd_result is forwarded through a path (whether it is an IN path,
+//    or a OUT path), if the path corresponds to a result conversion logic, the
+//    corresponding new cmd_result will be generated according to the settings
+//    of the result conversion setting.
 //
-// 2. When the "final" cmd result is got through the above step, if the path
-//    is not in a path group, the handling of that cmd result will be the
+// 2. When the "final" cmd_result is got through the above step, if the path
+//    is not in a path group, the handling of that cmd_result will be the
 //    same as it is now.
 //
 // 3. Otherwise (the path is in a path group), the default behavior is to store
-// the cmd result into the path (ex: into 'cached_cmd_result' field) until
-// the 'forward delivery conditions" of that path group is met.
+//    the cmd_result into the path (ex: into 'cached_cmd_result' field) until
+//    the 'forward delivery conditions" of that path group is met.
 
 #define TEN_PATH_GROUP_SIGNATURE 0x2EB016AECBDE782CU
 
