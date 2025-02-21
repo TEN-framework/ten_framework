@@ -76,6 +76,9 @@ ten_path_table_t *ten_path_table_create(TEN_PATH_TABLE_ATTACH_TO attach_to,
     case TEN_PATH_TABLE_ATTACH_TO_EXTENSION:
       self->attached_target.extension = attached_target;
       break;
+    case TEN_PATH_TABLE_ATTACH_TO_APP:
+      self->attached_target.app = attached_target;
+      break;
     default:
       TEN_ASSERT(0, "Should not happen.");
       break;
@@ -116,9 +119,8 @@ void ten_path_table_check_empty(ten_path_table_t *self) {
              "There should be no OUT path.");
 }
 
-ten_listnode_t *ten_path_table_find_path_from_cmd_id(ten_path_table_t *self,
-                                                     TEN_PATH_TYPE type,
-                                                     const char *cmd_id) {
+static ten_listnode_t *ten_path_table_find_path_from_cmd_id(
+    ten_path_table_t *self, TEN_PATH_TYPE type, const char *cmd_id) {
   TEN_ASSERT(self && ten_path_table_check_integrity(self, true),
              "Should not happen.");
 

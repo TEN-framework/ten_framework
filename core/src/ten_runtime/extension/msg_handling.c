@@ -13,7 +13,6 @@
 #include "include_internal/ten_runtime/extension_context/extension_context.h"
 #include "include_internal/ten_runtime/extension_thread/msg_interface/common.h"
 #include "include_internal/ten_runtime/msg/cmd_base/cmd_base.h"
-#include "include_internal/ten_runtime/msg/cmd_base/cmd_result/cmd.h"
 #include "include_internal/ten_runtime/msg/msg.h"
 #include "include_internal/ten_runtime/msg/msg_info.h"
 #include "include_internal/ten_runtime/msg_conversion/msg_and_its_result_conversion.h"
@@ -30,37 +29,6 @@
 #include "ten_utils/lib/error.h"
 #include "ten_utils/lib/smart_ptr.h"
 #include "ten_utils/macro/check.h"
-
-static void ten_extension_cache_cmd_result_to_in_path_for_auto_return(
-    ten_extension_t *extension, ten_shared_ptr_t *cmd) {
-  TEN_ASSERT(extension && ten_extension_check_integrity(extension, true),
-             "Invalid argument.");
-  TEN_ASSERT(cmd && ten_msg_get_type(cmd) == TEN_MSG_TYPE_CMD_RESULT &&
-                 ten_cmd_base_check_integrity(cmd),
-             "Should not happen.");
-
-  TEN_LOGV(
-      "[%s] Receives a cmd result (%p) for '%s', and will cache it to do some "
-      "post processing later.",
-      ten_extension_get_name(extension, true), ten_shared_ptr_get_data(cmd),
-      ten_msg_type_to_string(ten_cmd_result_get_original_cmd_type(cmd)));
-
-  // ten_msg_dump(cmd, NULL, "The received cmd result: ^m");
-
-  ten_path_t *in_path =
-      (ten_path_t *)ten_extension_get_cmd_return_path_from_itself(
-          extension, ten_cmd_base_get_cmd_id(cmd));
-  if (!in_path) {
-    // The cmd result may has returned before.
-    TEN_LOGV("[%s] No return path found for cmd result (%p) for '%s'.",
-             ten_string_get_raw_str(&extension->name),
-             ten_shared_ptr_get_data(cmd),
-             ten_msg_type_to_string(ten_cmd_result_get_original_cmd_type(cmd)));
-    return;
-  }
-
-  ten_path_set_result(in_path, cmd);
-}
 
 void ten_extension_handle_in_msg(ten_extension_t *self, ten_shared_ptr_t *msg) {
   TEN_ASSERT(self && ten_extension_check_integrity(self, true),
@@ -157,17 +125,7 @@ void ten_extension_handle_in_msg(ten_extension_t *self, ten_shared_ptr_t *msg) {
       msg = ten_path_table_determine_actual_cmd_result(
           self->path_table, TEN_PATH_OUT, out_path, is_final_result);
       if (msg) {
-        // The cmd result should be sent to the extension.
-
-        // Because the cmd result might not be handled in the extension, in
-        // other words, there might not be 'return_xxx' in the extension for
-        // this cmd result, so we cache the cmd result to the
-        // corresponding IN path (if exists), and will handle this status
-        // command (if the IN path still exists) when on_cmd_done().
-        //
-        // TODO(Xilin): Currently, there is no mechanism for auto return, so the
-        // relevant codes should be able to be disabled.
-        ten_extension_cache_cmd_result_to_in_path_for_auto_return(self, msg);
+        // The cmd_result should be sent to the extension.
         delete_msg = true;
       }
     }
@@ -274,14 +232,16 @@ void ten_extension_handle_in_msg(ten_extension_t *self, ten_shared_ptr_t *msg) {
       // according to the graph.
       ten_msg_clear_dest(actual_msg);
 
+      ten_cmd_base_t *raw_actual_msg =
+          ten_cmd_base_get_raw_cmd_base(actual_msg);
+
       if (ten_msg_get_type(actual_msg) == TEN_MSG_TYPE_CMD_RESULT) {
         ten_env_transfer_msg_result_handler_func_t result_handler =
-            ten_cmd_base_get_raw_cmd_base(actual_msg)->result_handler;
+            ten_raw_cmd_base_get_result_handler(raw_actual_msg);
         if (result_handler) {
           result_handler(
               self->ten_env, actual_msg,
-              ten_cmd_base_get_raw_cmd_base(actual_msg)->result_handler_data,
-              NULL);
+              ten_raw_cmd_base_get_result_handler_data(raw_actual_msg), NULL);
         } else {
           // If the cmd result does not have an associated result handler,
           // TEN runtime will return the cmd result to the upstream extension

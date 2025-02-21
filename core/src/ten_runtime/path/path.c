@@ -65,7 +65,6 @@ void ten_path_init(ten_path_t *self, ten_path_table_t *table,
   ten_string_init_formatted(&self->cmd_id, "%s", cmd_id);
 
   ten_loc_init_from_loc(&self->src_loc, src_loc);
-  ten_loc_init_from_loc(&self->dest_loc, dest_loc);
 
   self->group = NULL;
   self->cached_cmd_result = NULL;
@@ -86,7 +85,6 @@ void ten_path_deinit(ten_path_t *self) {
   ten_string_deinit(&self->original_cmd_id);
 
   ten_loc_deinit(&self->src_loc);
-  ten_loc_deinit(&self->dest_loc);
 
   if (self->group) {
     ten_shared_ptr_destroy(self->group);
@@ -110,61 +108,50 @@ void ten_path_set_result(ten_path_t *path, ten_shared_ptr_t *cmd_result) {
              "Invalid argument.");
 
   if (path->cached_cmd_result) {
-    // This situation happened at the time below.
-    //
-    // 1. The cmd result is sent to the extension, and that cmd result
-    //    corresponds to a command which came from the previous node, so TEN
-    //    runtime will cache the cmd result to the IN path, too.
-    //
-    //      <-- IN path <-- extension <-- OUT path
-    //
-    // 2. The extension handles that cmd result, and explicitly call
-    //    return_xxx() for that cmd result in the extension's on_cmd(). TEN
-    //    runtime will cache the cmd result to the IN path in this case. The
-    //    extension might modify the cmd result (ex: add more properties),
-    //    so we must replace the original cached cmd result here.
+    // This situation occurs in the context of streaming `cmd_result`, where
+    // multiple `cmd_results` are carried on the same way back.
 
     // NOTE: We cannot access the contents of `cached_cmd_result` here because
     // it might already be in the `in path_table` of another extension in
     // another extension thread. Accessing `cached_cmd_result` here could lead
     // to a thread safety issue.
-
+    //
     // ten_msg_dump(cmd_result, NULL, "The new cached cmd result: ^m");
 
+    // Delete the previously recorded old `cmd_result` because we are about to
+    // update it with a new `cmd_result`.
     ten_shared_ptr_destroy(path->cached_cmd_result);
     path->cached_cmd_result = NULL;
   }
 
   if (path->result_conversion) {
-    // If there is a cmd result conversion setting, use it.
+    // If there is a cmd_result conversion setting, use it.
 
     ten_error_t err;
     TEN_ERROR_INIT(err);
 
-    cmd_result =
+    ten_shared_ptr_t *converted_cmd_result =
         ten_msg_conversion_convert(path->result_conversion, cmd_result, &err);
-    if (!cmd_result) {
+    if (converted_cmd_result) {
+      path->cached_cmd_result = ten_shared_ptr_clone(converted_cmd_result);
+      ten_shared_ptr_destroy(converted_cmd_result);
+    } else {
       TEN_LOGE("Failed to convert cmd result: %s", ten_error_message(&err));
 
-      // Since the flow of the cmd result must not be interrupted, otherwise
-      // the extension, which expects to receive the cmd result, will not
-      // receive it and will hang. Therefore, if converting the cmd result
+      // Since the flow of the cmd_result must not be interrupted, otherwise
+      // the extension, which expects to receive the cmd_result, will not
+      // receive it and will hang. Therefore, if converting the cmd_result
       // fails here, there will be a fallback path, which is to clone the
-      // original cmd result, allowing the extension to receive 'what may be
-      // an incorrect cmd result'. This at least ensures that the status
-      // command is recognized as incorrect, enabling users to check which part
-      // of the conversion rule is problematic.
-      cmd_result = ten_shared_ptr_clone(cmd_result);
+      // original cmd_result, allowing the extension to receive 'what may be
+      // an incorrect cmd_result'. This at least ensures that the cmd_result is
+      // recognized as incorrect, enabling users to check which part of the
+      // conversion rule is problematic.
+      path->cached_cmd_result = ten_shared_ptr_clone(cmd_result);
     }
 
     ten_error_deinit(&err);
-  }
-
-  path->cached_cmd_result = ten_shared_ptr_clone(cmd_result);
-
-  if (path->result_conversion) {
-    ten_shared_ptr_destroy(cmd_result);
-    cmd_result = NULL;
+  } else {
+    path->cached_cmd_result = ten_shared_ptr_clone(cmd_result);
   }
 
   if (ten_path_is_in_a_group(path)) {

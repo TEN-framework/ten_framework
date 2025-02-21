@@ -244,6 +244,13 @@ void ten_extension_tester_destroy(ten_extension_tester_t *self) {
   TEN_FREE(self);
 }
 
+static void test_app_start_graph_result_handler(ten_env_t *ten_env,
+                                                ten_shared_ptr_t *cmd_result,
+                                                void *user_data,
+                                                ten_error_t *err) {
+  // =-=-=
+}
+
 static void test_app_ten_env_send_start_graph_cmd(ten_env_t *ten_env,
                                                   void *user_data) {
   TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
@@ -259,6 +266,7 @@ static void test_app_ten_env_send_start_graph_cmd(ten_env_t *ten_env,
                                        NULL, NULL);
   TEN_ASSERT(rc, "Should not happen.");
 
+  // =-=-=
   rc = ten_env_send_cmd(ten_env, cmd, NULL, NULL, NULL, NULL);
   TEN_ASSERT(rc, "Should not happen.");
 }
@@ -398,6 +406,9 @@ static void ten_extension_tester_create_and_start_graph(
         ten_string_get_raw_str(&self->test_target.graph.graph_json), &err);
     TEN_ASSERT(rc, "Should not happen.");
   }
+
+  // =-=-=
+  ten_msg_set_src(start_graph_cmd, "ten:extension_tester", NULL, NULL, NULL);
 
   rc = ten_env_proxy_notify(self->test_app_ten_env_proxy,
                             test_app_ten_env_send_start_graph_cmd,

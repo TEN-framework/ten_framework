@@ -156,13 +156,6 @@ void ten_engine_handle_cmd_start_graph(ten_engine_t *self,
               &new_works, TEN_RESULT_RETURN_POLICY_FIRST_ERROR_OR_LAST_OK);
         }
         ten_list_clear(&new_works);
-
-        TEN_LOGV(
-            "[%s] Create a IN path for the receiving 'start_graph' command: "
-            "%s.",
-            ten_app_get_uri(self->app), ten_cmd_base_get_cmd_id(cmd));
-
-        ten_path_table_add_in_path(self->path_table, cmd, NULL);
       } else {
         TEN_LOGV(
             "[%s] No more new connections should be made, enable the extension "
