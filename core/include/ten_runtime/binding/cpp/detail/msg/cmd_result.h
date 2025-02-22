@@ -10,6 +10,7 @@
 
 #include <memory>
 
+#include "ten_runtime/binding/cpp/detail/msg/cmd/cmd.h"
 #include "ten_runtime/binding/cpp/detail/msg/msg.h"
 #include "ten_runtime/common/status_code.h"
 #include "ten_runtime/msg/cmd_result/cmd_result.h"
@@ -33,12 +34,15 @@ class cmd_result_t : public msg_t {
 
  public:
   static std::unique_ptr<cmd_result_t> create(TEN_STATUS_CODE status_code,
+                                              const cmd_t &target_cmd,
                                               error_t *err = nullptr) {
-    return std::make_unique<cmd_result_t>(status_code, ctor_passkey_t());
+    return std::make_unique<cmd_result_t>(status_code, target_cmd,
+                                          ctor_passkey_t());
   }
 
-  explicit cmd_result_t(TEN_STATUS_CODE status_code, ctor_passkey_t /*unused*/)
-      : msg_t(ten_cmd_result_create(status_code)) {}
+  explicit cmd_result_t(TEN_STATUS_CODE status_code, const cmd_t &target_cmd,
+                        ctor_passkey_t /*unused*/)
+      : msg_t(ten_cmd_result_create_from_cmd(status_code, target_cmd.c_msg)) {}
   explicit cmd_result_t(ten_shared_ptr_t *cmd, ctor_passkey_t /*unused*/)
       : msg_t(cmd) {};
 

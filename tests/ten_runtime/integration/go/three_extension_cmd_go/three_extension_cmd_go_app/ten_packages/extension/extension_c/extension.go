@@ -51,9 +51,9 @@ func (p *cExtension) OnCmd(
 
 			fmt.Println("return command C, res:", string(res))
 
-			cmdResult, _ := ten.NewCmdResult(ten.StatusCodeOk)
+			cmdResult, _ := ten.NewCmdResult(ten.StatusCodeOk, cmd)
 			cmdResult.SetPropertyString("detail", string(res))
-			err = tenEnv.ReturnResult(cmdResult, cmd, nil)
+			err = tenEnv.ReturnResult(cmdResult, nil)
 			if err != nil {
 				panic("Should not happen.")
 			}

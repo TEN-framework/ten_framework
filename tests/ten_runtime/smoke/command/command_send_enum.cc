@@ -39,11 +39,10 @@ class test_extension_1 : public ten::extension_t {
                 nlohmann::json::parse(cmd_result->get_property_to_json());
 
             auto cmd_result_for_hello_world =
-                ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
+                ten::cmd_result_t::create(TEN_STATUS_CODE_OK, *hello_world_cmd);
             cmd_result_for_hello_world->set_property("detail",
                                                      json.value("detail", ""));
-            ten_env.return_result(std::move(cmd_result_for_hello_world),
-                                  std::move(hello_world_cmd));
+            ten_env.return_result(std::move(cmd_result_for_hello_world));
           });
     }
   }
@@ -65,9 +64,9 @@ class test_extension_2 : public ten::extension_t {
         TEN_ASSERT(0, "Should not happen.");
       }
 
-      auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
+      auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK, *cmd);
       cmd_result->set_property("detail", "hello world, too");
-      ten_env.return_result(std::move(cmd_result), std::move(cmd));
+      ten_env.return_result(std::move(cmd_result));
     }
   }
 };

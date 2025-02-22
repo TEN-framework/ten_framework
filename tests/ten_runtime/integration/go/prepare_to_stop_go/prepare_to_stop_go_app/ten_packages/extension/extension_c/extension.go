@@ -38,24 +38,24 @@ func (p *cExtension) OnCmd(
 				cmdName,
 		)
 		if cmdName == "start" {
-			cmdResult, _ := ten.NewCmdResult(ten.StatusCodeOk)
+			cmdResult, _ := ten.NewCmdResult(ten.StatusCodeOk, cmd)
 			cmdResult.SetPropertyString("detail", "done")
-			tenEnv.ReturnResult(cmdResult, cmd, nil)
+			tenEnv.ReturnResult(cmdResult, nil)
 		} else if cmdName == "stop" {
 			go func() {
 				time.Sleep(time.Millisecond * 500)
-				cmdResult, _ := ten.NewCmdResult(ten.StatusCodeOk)
+				cmdResult, _ := ten.NewCmdResult(ten.StatusCodeOk, cmd)
 				cmdResult.SetPropertyString("detail", "done")
-				tenEnv.ReturnResult(cmdResult, cmd, nil)
+				tenEnv.ReturnResult(cmdResult, nil)
 
 				tenEnv.LogInfo("Stop command is processed.")
 
 				close(p.stopChan)
 			}()
 		} else {
-			cmdResult, _ := ten.NewCmdResult(ten.StatusCodeError)
+			cmdResult, _ := ten.NewCmdResult(ten.StatusCodeError, cmd)
 			cmdResult.SetPropertyString("detail", "unknown cmd")
-			tenEnv.ReturnResult(cmdResult, cmd, nil)
+			tenEnv.ReturnResult(cmdResult, nil)
 		}
 	}()
 }

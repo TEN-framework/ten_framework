@@ -74,14 +74,19 @@ ten_go_error_t ten_go_cmd_clone(uintptr_t bridge_addr,
   return cgo_error;
 }
 
-uintptr_t ten_go_cmd_create_cmd_result(int status_code) {
+uintptr_t ten_go_cmd_create_cmd_result(int status_code, uintptr_t target_cmd) {
   TEN_ASSERT(
       status_code == TEN_STATUS_CODE_OK || status_code == TEN_STATUS_CODE_ERROR,
       "Should not happen.");
 
+  ten_go_msg_t *target_cmd_bridge = ten_go_msg_reinterpret(target_cmd);
+  TEN_ASSERT(target_cmd_bridge && ten_go_msg_check_integrity(target_cmd_bridge),
+             "Should not happen.");
+
   TEN_STATUS_CODE code = (TEN_STATUS_CODE)status_code;
 
-  ten_shared_ptr_t *c_cmd = ten_cmd_result_create(code);
+  ten_shared_ptr_t *c_cmd =
+      ten_cmd_result_create_from_cmd(code, ten_go_msg_c_msg(target_cmd_bridge));
   TEN_ASSERT(c_cmd, "Should not happen.");
 
   ten_go_msg_t *msg_bridge = ten_go_msg_create(c_cmd);

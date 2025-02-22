@@ -35,15 +35,15 @@ func (p *extensionA) OnCmd(
 		tenEnv.SendCmd(cmdB, func(r ten.TenEnv, cs ten.CmdResult, e error) {
 			detail, err := cs.GetPropertyPtr("data")
 			if err != nil {
-				cmdResult, _ := ten.NewCmdResult(ten.StatusCodeError)
+				cmdResult, _ := ten.NewCmdResult(ten.StatusCodeError, cmd)
 				cmdResult.SetPropertyString("detail", err.Error())
-				tenEnv.ReturnResult(cmdResult, cmd, nil)
+				tenEnv.ReturnResult(cmdResult, nil)
 				return
 			}
 
-			cmdResult, _ := ten.NewCmdResult(ten.StatusCodeOk)
+			cmdResult, _ := ten.NewCmdResult(ten.StatusCodeOk, cmd)
 			cmdResult.SetPropertyString("detail", detail.(*types.UserData).Name)
-			tenEnv.ReturnResult(cmdResult, cmd, nil)
+			tenEnv.ReturnResult(cmdResult, nil)
 		})
 	}()
 }

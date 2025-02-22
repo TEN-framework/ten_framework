@@ -101,14 +101,14 @@ class test_extension_2 : public ten::extension_t {
   void on_cmd(ten::ten_env_t &ten_env,
               std::unique_ptr<ten::cmd_t> cmd) override {
     if (cmd->get_name() == "hello_world") {
-      auto cmd_result_1 = ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
+      auto cmd_result_1 = ten::cmd_result_t::create(TEN_STATUS_CODE_OK, *cmd);
       cmd_result_1->set_property("detail", "hello world, too");
-      bool rc = ten_env.return_result(std::move(cmd_result_1), std::move(cmd));
+      bool rc = ten_env.return_result(std::move(cmd_result_1));
       EXPECT_EQ(rc, false);
 
-      auto cmd_result_2 = ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
+      auto cmd_result_2 = ten::cmd_result_t::create(TEN_STATUS_CODE_OK, *cmd);
       cmd_result_2->set_property("detail", 32);
-      rc = ten_env.return_result(std::move(cmd_result_2), std::move(cmd));
+      rc = ten_env.return_result(std::move(cmd_result_2));
       EXPECT_EQ(rc, true);
     }
   }

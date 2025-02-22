@@ -50,8 +50,8 @@ class test_extension_2 : public ten::extension_t {
               std::unique_ptr<ten::cmd_t> cmd) override {
     ASSERT_EQ(cmd->get_name(), "test");
 
-    auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
-    ten_env.return_result(std::move(cmd_result), std::move(cmd));
+    auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK, *cmd);
+    ten_env.return_result(std::move(cmd_result));
   }
 };
 

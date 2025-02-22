@@ -161,13 +161,13 @@ func (ext *defaultExtension) OnAudioFrame(
 		panic("Cached cmd is nil.")
 	}
 
-	cmdResult, err := ten.NewCmdResult(ten.StatusCodeOk)
+	cmdResult, err := ten.NewCmdResult(ten.StatusCodeOk, ext.cachedCmd)
 	if err != nil {
 		panic("Failed to create cmd result.")
 	}
 
 	cmdResult.SetPropertyString("detail", "success")
-	if err := tenEnv.ReturnResult(cmdResult, ext.cachedCmd, nil); err != nil {
+	if err := tenEnv.ReturnResult(cmdResult, nil); err != nil {
 		panic("Failed to return result.")
 	}
 }

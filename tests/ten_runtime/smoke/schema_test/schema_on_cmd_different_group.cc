@@ -39,7 +39,7 @@ class test_extension_1 : public ten::extension_t {
 
             auto detail = cmd_result->get_property_string("detail");
 
-            ten_env.return_result_directly(std::move(cmd_result));
+            ten_env.return_result(std::move(cmd_result));
           });
       ASSERT_EQ(rc, true);
 
@@ -95,9 +95,9 @@ class test_extension_2 : public ten::extension_t {
     FAIL() << "This control path should never be touched!";
 
     if (cmd->get_name() == "hello_world") {
-      auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
+      auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK, *cmd);
       cmd_result->set_property("detail", "hello world, too");
-      ten_env.return_result(std::move(cmd_result), std::move(cmd));
+      ten_env.return_result(std::move(cmd_result));
     }
   }
 };

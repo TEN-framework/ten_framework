@@ -29,20 +29,18 @@ class test_extension : public ten::extension_t {
       // return the error result.
       auto test_cmd = ten::cmd_t::create("test");
       test_cmd->set_dest("localhost", nullptr, "test_extension_group", "a");
-      ten_env.send_cmd(
-          std::move(test_cmd),
-          [this](ten::ten_env_t &ten_env,
-                 std::unique_ptr<ten::cmd_result_t> cmd_result,
-                 ten::error_t *err) {
-            nlohmann::json json =
-                nlohmann::json::parse(cmd_result->get_property_to_json());
-            auto cmd_result_for_test =
-                ten::cmd_result_t::create(cmd_result->get_status_code());
-            cmd_result_for_test->set_property("detail",
-                                              json.value("detail", ""));
-            ten_env.return_result(std::move(cmd_result_for_test),
-                                  std::move(requested_cmd));
-          });
+      ten_env.send_cmd(std::move(test_cmd),
+                       [this](ten::ten_env_t &ten_env,
+                              std::unique_ptr<ten::cmd_result_t> cmd_result,
+                              ten::error_t *err) {
+                         nlohmann::json json = nlohmann::json::parse(
+                             cmd_result->get_property_to_json());
+                         auto cmd_result_for_test = ten::cmd_result_t::create(
+                             cmd_result->get_status_code(), *requested_cmd);
+                         cmd_result_for_test->set_property(
+                             "detail", json.value("detail", ""));
+                         ten_env.return_result(std::move(cmd_result_for_test));
+                       });
     }
   }
 

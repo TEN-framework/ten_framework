@@ -34,7 +34,7 @@ ten_go_error_t ten_go_cmd_create_cmd(const void *cmd_name, int cmd_name_len,
 ten_go_error_t ten_go_cmd_clone(uintptr_t bridge_addr,
                                 uintptr_t *cloned_bridge);
 
-uintptr_t ten_go_cmd_create_cmd_result(int status_code);
+uintptr_t ten_go_cmd_create_cmd_result(int status_code, uintptr_t target_cmd);
 
 ten_go_error_t ten_go_cmd_result_clone(uintptr_t bridge_addr,
                                        uintptr_t *cloned_bridge);

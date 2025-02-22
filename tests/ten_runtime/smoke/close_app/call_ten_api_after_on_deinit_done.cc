@@ -39,10 +39,10 @@ class test_extension_1 : public ten::extension_t {
       close_app_cmd->set_dest("localhost", nullptr, nullptr, nullptr);
       ten_env.send_cmd(std::move(close_app_cmd));
 
-      auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
+      auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK, *cmd);
       cmd_result->set_property("detail", "app closed");
 
-      ten_env.return_result(std::move(cmd_result), std::move(cmd));
+      ten_env.return_result(std::move(cmd_result));
       return;
     }
   }
@@ -74,8 +74,8 @@ class test_extension_2 : public ten::extension_t {
               ten::error_t err;
 
               auto rc = ten_env.return_result(
-                  ten::cmd_result_t::create(TEN_STATUS_CODE_OK),
-                  std::move(*cmd_shared), nullptr, &err);
+                  ten::cmd_result_t::create(TEN_STATUS_CODE_OK, **cmd_shared),
+                  nullptr, &err);
               ASSERT_FALSE(rc);
               ASSERT_EQ(err.error_code(), TEN_ERROR_CODE_TEN_IS_CLOSED);
 
@@ -100,9 +100,9 @@ class test_extension_2 : public ten::extension_t {
 
       return;
     } else if (cmd->get_name() == "return_immediately") {
-      auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
+      auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK, *cmd);
       cmd_result->set_property("detail", "done");
-      ten_env.return_result(std::move(cmd_result), std::move(cmd));
+      ten_env.return_result(std::move(cmd_result));
       return;
     }
   }

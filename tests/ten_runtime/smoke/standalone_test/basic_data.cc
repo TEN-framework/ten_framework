@@ -69,10 +69,10 @@ class test_extension_1 : public ten::extension_t {
 
   void return_if_possible(ten::ten_env_t &ten_env) {
     if (cached_cmd_ && data_frame_recv_count_ == 3) {
-      auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
+      auto cmd_result =
+          ten::cmd_result_t::create(TEN_STATUS_CODE_OK, *cached_cmd_);
       cmd_result->set_property("detail", "hello world, too");
-      bool rc =
-          ten_env.return_result(std::move(cmd_result), std::move(cached_cmd_));
+      bool rc = ten_env.return_result(std::move(cmd_result));
       EXPECT_EQ(rc, true);
     }
   }

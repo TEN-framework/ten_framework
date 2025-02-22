@@ -27,24 +27,23 @@ class test_extension_1 : public ten::extension_t {
       // Save the command for later using.
       hello_world_cmd = std::move(cmd);
       auto hello_world_1_cmd = ten::cmd_t::create("hello_world_1");
-      ten_env.send_cmd(std::move(hello_world_1_cmd),
-                       [this](ten::ten_env_t &ten_env,
-                              std::unique_ptr<ten::cmd_result_t> cmd_result,
-                              ten::error_t *err) {
-                         // Got result of 'hello world 1',
-                         // Now return result for 'hello world'
-                         auto cmd_result_for_hello_world =
-                             ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
-                         cmd_result_for_hello_world->set_property(
-                             "detail", "hello world, too");
-                         ten_env.return_result(
-                             std::move(cmd_result_for_hello_world),
-                             std::move(hello_world_cmd));
-                       });
+      ten_env.send_cmd(
+          std::move(hello_world_1_cmd),
+          [this](ten::ten_env_t &ten_env,
+                 std::unique_ptr<ten::cmd_result_t> cmd_result,
+                 ten::error_t *err) {
+            // Got result of 'hello world 1',
+            // Now return result for 'hello world'
+            auto cmd_result_for_hello_world =
+                ten::cmd_result_t::create(TEN_STATUS_CODE_OK, *hello_world_cmd);
+            cmd_result_for_hello_world->set_property("detail",
+                                                     "hello world, too");
+            ten_env.return_result(std::move(cmd_result_for_hello_world));
+          });
     } else if (std::string(cmd_name) == "hello_world_2") {
-      auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
+      auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK, *cmd);
       cmd_result->set_property("detail", "hello world, too");
-      ten_env.return_result(std::move(cmd_result), std::move(cmd));
+      ten_env.return_result(std::move(cmd_result));
     }
   }
 
@@ -62,20 +61,19 @@ class test_extension_2 : public ten::extension_t {
       // waiting for result
       pending_request = std::move(cmd);
       auto hello_world_2_cmd = ten::cmd_t::create("hello_world_2");
-      ten_env.send_cmd(std::move(hello_world_2_cmd),
-                       [this](ten::ten_env_t &ten_env,
-                              std::unique_ptr<ten::cmd_result_t> cmd_result,
-                              ten::error_t *err) {
-                         // Got result of 'hello world 2'.
-                         // Now return result for 'hello world 1'
-                         auto cmd_result_for_hello_world =
-                             ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
-                         cmd_result_for_hello_world->set_property(
-                             "detail", "hello world, too");
-                         ten_env.return_result(
-                             std::move(cmd_result_for_hello_world),
-                             std::move(pending_request));
-                       });
+      ten_env.send_cmd(
+          std::move(hello_world_2_cmd),
+          [this](ten::ten_env_t &ten_env,
+                 std::unique_ptr<ten::cmd_result_t> cmd_result,
+                 ten::error_t *err) {
+            // Got result of 'hello world 2'.
+            // Now return result for 'hello world 1'
+            auto cmd_result_for_hello_world =
+                ten::cmd_result_t::create(TEN_STATUS_CODE_OK, *pending_request);
+            cmd_result_for_hello_world->set_property("detail",
+                                                     "hello world, too");
+            ten_env.return_result(std::move(cmd_result_for_hello_world));
+          });
     }
   }
 

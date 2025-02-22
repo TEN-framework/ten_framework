@@ -38,19 +38,19 @@ func (p *bExtension) OnCmd(
 		)
 		if cmdName == "start" {
 			tenEnv.SendCmd(cmd, func(r ten.TenEnv, cs ten.CmdResult, e error) {
-				r.ReturnResultDirectly(cs, nil)
+				r.ReturnResult(cs, nil)
 			})
 		} else if cmdName == "stop" {
 			tenEnv.SendCmd(cmd, func(r ten.TenEnv, cs ten.CmdResult, e error) {
-				r.ReturnResultDirectly(cs, nil)
+				r.ReturnResult(cs, nil)
 
 				close(p.stopChan)
 				tenEnv.LogInfo("Stop command is processed.")
 			})
 		} else {
-			cmdResult, _ := ten.NewCmdResult(ten.StatusCodeError)
+			cmdResult, _ := ten.NewCmdResult(ten.StatusCodeError, cmd)
 			cmdResult.SetPropertyString("detail", "unknown cmd")
-			tenEnv.ReturnResult(cmdResult, cmd, nil)
+			tenEnv.ReturnResult(cmdResult, nil)
 		}
 	}()
 }

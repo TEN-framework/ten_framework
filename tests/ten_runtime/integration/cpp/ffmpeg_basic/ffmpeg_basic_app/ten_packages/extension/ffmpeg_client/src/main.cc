@@ -56,9 +56,9 @@ class ffmpeg_client_extension : public ten::extension_t {
 
     if (std::string(cmd_name) == "muxer_complete") {
       muxer_completed = true;
-      auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
+      auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK, *cmd);
       cmd_result->set_property("detail", "good");
-      ten_env.return_result(std::move(cmd_result), std::move(cmd));
+      ten_env.return_result(std::move(cmd_result));
 
       if (muxer_completed && demuxer_completed) {
         close_app(ten_env);
@@ -67,9 +67,9 @@ class ffmpeg_client_extension : public ten::extension_t {
 
     if (std::string(cmd_name) == "demuxer_complete") {
       demuxer_completed = true;
-      auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
+      auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK, *cmd);
       cmd_result->set_property("detail", "good");
-      ten_env.return_result(std::move(cmd_result), std::move(cmd));
+      ten_env.return_result(std::move(cmd_result));
 
       if (muxer_completed && demuxer_completed) {
         close_app(ten_env);
