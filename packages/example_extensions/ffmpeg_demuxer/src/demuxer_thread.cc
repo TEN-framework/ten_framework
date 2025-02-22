@@ -222,7 +222,7 @@ void demuxer_thread_t::reply_to_start_cmd(bool success) {
 
   auto result_shared = std::make_shared<std::unique_ptr<ten::cmd_result_t>>(
       std::move(cmd_result));
-  ten_env_proxy_->notify([result_shared, this](ten::ten_env_t &ten_env) {
+  ten_env_proxy_->notify([result_shared](ten::ten_env_t &ten_env) {
     ten_env.return_result(std::move(*result_shared));
   });
 }
