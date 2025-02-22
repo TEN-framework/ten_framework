@@ -8,7 +8,6 @@
 #include <condition_variable>
 #include <cstring>
 #include <iostream>
-#include <string>
 #include <thread>
 
 #include "include_internal/ten_runtime/binding/cpp/detail/addon_loader.h"
