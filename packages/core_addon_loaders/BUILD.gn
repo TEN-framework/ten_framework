@@ -1,7 +1,8 @@
 #
+# Copyright © 2025 Agora
 # This file is part of TEN Framework, an open source project.
-# Licensed under the Apache License, Version 2.0.
-# See the LICENSE file for more information.
+# Licensed under the Apache License, Version 2.0, with certain conditions.
+# Refer to the "LICENSE" file in the root directory for more information.
 #
 import("//build/ten_runtime/options.gni")
 
@@ -10,5 +11,9 @@ group("core_addon_loaders") {
 
   if (ten_enable_python_binding) {
     deps += [ "python_addon_loader" ]
+  }
+
+  if (ten_enable_nodejs_binding) {
+    deps += [ "nodejs_addon_loader" ]
   }
 }
