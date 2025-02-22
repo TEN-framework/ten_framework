@@ -818,6 +818,8 @@ static void test_app_ten_env_send_close_app_cmd(ten_env_t *ten_env,
   ten_shared_ptr_t *close_app_cmd = ten_cmd_close_app_create();
   TEN_ASSERT(close_app_cmd, "Should not happen.");
 
+  ten_msg_set_src_to_app(close_app_cmd, app);
+
   bool rc = ten_msg_clear_and_set_dest(close_app_cmd, ten_app_get_uri(app),
                                        NULL, NULL, NULL, NULL);
   TEN_ASSERT(rc, "Should not happen.");

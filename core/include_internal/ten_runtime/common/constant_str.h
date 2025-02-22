@@ -166,5 +166,6 @@
 
 #define TEN_STR_DEFAULT_EXTENSION_GROUP "default_extension_group"
 #define TEN_STR_TEN_TEST_EXTENSION "ten:test_extension"
+#define TEN_STR_TEN_EXTENSION_TESTER "ten:extension_tester"
 
 #define TEN_STR_MANIFEST_JSON "manifest.json"
