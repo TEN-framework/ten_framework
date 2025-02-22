@@ -18,6 +18,7 @@
 #include "include_internal/ten_runtime/msg/cmd_base/cmd_base.h"
 #include "include_internal/ten_runtime/msg/cmd_base/cmd_result/cmd.h"
 #include "include_internal/ten_runtime/msg/msg.h"
+#include "include_internal/ten_runtime/path/path.h"
 #include "include_internal/ten_runtime/path/path_table.h"
 #include "include_internal/ten_runtime/remote/remote.h"
 #include "include_internal/ten_utils/log/log.h"
