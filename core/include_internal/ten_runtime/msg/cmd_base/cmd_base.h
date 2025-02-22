@@ -29,17 +29,6 @@ typedef struct ten_cmd_base_t {
   ten_value_t cmd_id;  // string. This is used in TEN runtime internally.
   ten_value_t seq_id;  // string. This is used in TEN client.
 
-  // The origin where the command is originated.
-  //
-  // This is kind of a cache to enable us not to loop all the remotes to find
-  // the correct one.
-  //
-  // If any remote of an engine is closed, then it will trigger the closing of
-  // the engine, and no cmds could be processed any further. So we don't need
-  // to use sharedptr to wrap the following variable, because when a command
-  // is being processed, the origin must be alive.
-  ten_connection_t *original_connection;  // =-=-= 可以拿掉?
-
   ten_env_transfer_msg_result_handler_func_t result_handler;
   void *result_handler_data;
 } ten_cmd_base_t;
@@ -101,12 +90,6 @@ TEN_RUNTIME_PRIVATE_API void ten_raw_cmd_base_set_seq_id(ten_cmd_base_t *self,
 
 TEN_RUNTIME_PRIVATE_API bool ten_cmd_base_cmd_id_is_empty(
     ten_shared_ptr_t *self);
-
-TEN_RUNTIME_PRIVATE_API ten_connection_t *ten_cmd_base_get_original_connection(
-    ten_shared_ptr_t *self);
-
-TEN_RUNTIME_PRIVATE_API void ten_cmd_base_set_original_connection(
-    ten_shared_ptr_t *self, ten_connection_t *connection);
 
 TEN_RUNTIME_PRIVATE_API const char *ten_cmd_base_get_parent_cmd_id(
     ten_shared_ptr_t *self);

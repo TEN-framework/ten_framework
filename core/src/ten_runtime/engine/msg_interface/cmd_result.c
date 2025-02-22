@@ -35,20 +35,16 @@ static bool ten_engine_close_duplicated_remote_or_upgrade_it_to_normal(
                  ten_cmd_base_check_integrity(cmd_result),
              "Should not happen.");
 
-  ten_connection_t *connection =
-      ten_cmd_base_get_original_connection(cmd_result);
-  TEN_ASSERT(connection && ten_connection_check_integrity(connection, true) &&
-                 ten_connection_attach_to(connection) ==
-                     TEN_CONNECTION_ATTACH_TO_REMOTE,
-             "Should not happen.");
+  ten_remote_t *weak_remote =
+      ten_engine_find_weak_remote(self, ten_msg_get_src_app_uri(cmd_result));
+  if (weak_remote == NULL) {
+    // Only if the 'start_graph' flow involves a connection, we need to handle
+    // situations relevant to that connection.
+    return true;
+  }
 
-  ten_remote_t *remote = connection->attached_target.remote;
-  TEN_ASSERT(remote, "Invalid argument.");
-  TEN_ASSERT(ten_remote_check_integrity(remote, true),
-             "Invalid use of remote %p.", remote);
-
-  TEN_ASSERT(ten_engine_check_remote_is_weak(self, remote),
-             "%p should be a weak remote.", remote);
+  TEN_ASSERT(ten_remote_check_integrity(weak_remote, true),
+             "Invalid use of remote %p.", weak_remote);
 
   ten_string_t detail_str;
   ten_string_init(&detail_str);
@@ -63,10 +59,10 @@ static bool ten_engine_close_duplicated_remote_or_upgrade_it_to_normal(
 
   if (ten_string_is_equal_c_str(&detail_str, TEN_STR_DUPLICATE)) {
     TEN_LOGW("Receives a 'duplicate' result from %s",
-             ten_string_get_raw_str(&remote->uri));
+             ten_string_get_raw_str(&weak_remote->uri));
 
     // This is a duplicated channel, closing it now.
-    ten_connection_t *connection = remote->connection;
+    ten_connection_t *connection = weak_remote->connection;
     TEN_ASSERT(connection && ten_connection_check_integrity(connection, true),
                "Should not happen.");
 
@@ -76,7 +72,7 @@ static bool ten_engine_close_duplicated_remote_or_upgrade_it_to_normal(
   } else {
     // The 'start_graph' is done, change this remote from weak-type to
     // normal-type.
-    ten_engine_upgrade_weak_remote_to_normal_remote(self, remote);
+    ten_engine_upgrade_weak_remote_to_normal_remote(self, weak_remote);
   }
 
   ten_string_deinit(&detail_str);
@@ -99,14 +95,9 @@ static bool ten_engine_handle_cmd_result_for_cmd_start_graph(
              "Should not happen.");
 
   if (ten_cmd_result_get_status_code(cmd_result) == TEN_STATUS_CODE_OK) {
-    if (ten_cmd_base_get_original_connection(cmd_result)) {
-      // Only if the 'start_graph' flow involves a connection, we need to handle
-      // situations relevant to that connection.
-
-      bool rc = ten_engine_close_duplicated_remote_or_upgrade_it_to_normal(
-          self, cmd_result, err);
-      TEN_ASSERT(rc, "Should not happen.");
-    }
+    bool rc = ten_engine_close_duplicated_remote_or_upgrade_it_to_normal(
+        self, cmd_result, err);
+    TEN_ASSERT(rc, "Should not happen.");
   }
 
   // Find the corresponding OUT path of the cmd_result.

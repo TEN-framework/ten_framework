@@ -451,8 +451,7 @@ static void ten_app_handle_in_msgs_sync(ten_app_t *self) {
     // now.
     //
     // - Some cmds are sent from the extensions in the engine, and the receiver
-    //   is the app, ex: the 'close_app' cmd. The value of the cmd's
-    //   'original_connection' field is NULL in this case.
+    //   is the app, ex: the 'close_app' cmd.
     //
     // - Some cmds are sent from one engine, and the receiver is another engine
     //   in the app. The value of the cmd's 'origin_connection' field might or

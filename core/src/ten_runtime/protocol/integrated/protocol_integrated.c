@@ -151,10 +151,7 @@ static void ten_stream_on_data(ten_stream_t *stream, void *data, int size) {
     //    called from the app thread (because the engine doesn't have its own
     //    engine thread in this case). If the protocol (i.e., the
     //    'ten_protocol_t' object) is closed synchronized, the connection maybe
-    //    destroyed before the 'close_app' cmd (in step 2) is executed. As the
-    //    'close_app' cmd is sent from the client, the 'original_connection'
-    //    field of the 'close_app' cmd is not NULL, then there will be memory
-    //    access issue when handling the cmd.
+    //    destroyed before the 'close_app' cmd (in step 2) is executed.
     //
     // So the closing of the protocol should always be an _async_ operation, as
     // the stream is being closed and there is no chance to receive data from
