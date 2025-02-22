@@ -48,7 +48,8 @@ class nodejs_addon_loader_t : public ten::addon_loader_t {
  public:
   explicit nodejs_addon_loader_t(const char *name) { (void)name; };
 
-  // Create and run a Node.js instance.
+  // Set up the Node.js instance for execution, and start the Node.js event
+  // loop, and run code inside of it.
   int RunNodeInstance(MultiIsolatePlatform *platform,
                       const std::vector<std::string> &args,
                       const std::vector<std::string> &exec_args) {
@@ -77,14 +78,24 @@ class nodejs_addon_loader_t : public ten::addon_loader_t {
       // guarantee thread safety.
       Locker locker(isolate);
 
+      // Enter the current v8::Isolate's scope, ensuring that all V8 operations
+      // are performed within a specific v8::Isolate.
       Isolate::Scope isolate_scope(isolate);
+
+      // Create a handle scope to manage the lifecycle of JavaScript objects and
+      // prevent memory leaks.
       HandleScope handle_scope(isolate);
 
+      // Enter the JavaScript execution context (Context) to ensure that
+      // JavaScript code can run properly.
+      //
       // The v8::Context needs to be entered when node::CreateEnvironment() and
       // node::LoadEnvironment() are being called.
       Context::Scope context_scope(this->setup_->context());
 
-      // Set up the Node.js instance for execution, and run code inside of it.
+      // Run JavaScript code within the Isolate and load the
+      // `ten_runtime_nodejs` module.
+      //
       // There is also a variant that takes a callback and provides it with
       // the `require` and `process` objects, so that it can manually compile
       // and run scripts as needed.
@@ -95,6 +106,10 @@ class nodejs_addon_loader_t : public ten::addon_loader_t {
       // `module.createRequire()` is being used to create one that is able to
       // load files from the disk, and uses the standard CommonJS file loader
       // instead of the internal-only `require` function.
+      //
+      // `setInterval(() => {}, 1000);` creates an empty `setInterval` task to
+      // ensure that the event loop does not exit, allowing the Node.js instance
+      // to keep running continuously.
       MaybeLocal<Value> loadenv_ret = node::LoadEnvironment(
           env,
           "js_require = require('module').createRequire(process.cwd() + "
@@ -109,8 +124,12 @@ class nodejs_addon_loader_t : public ten::addon_loader_t {
       }
 
       this->node_thread_started_ = true;
+
+      // Wake up the main thread waiting in the `on_init()` function to notify
+      // it that the Node.js thread has successfully started.
       this->cv_.notify_one();
 
+      // Start the Node.js event loop.
       exit_code = node::SpinEventLoop(env).FromMaybe(1);
     }
 
@@ -119,6 +138,8 @@ class nodejs_addon_loader_t : public ten::addon_loader_t {
     return exit_code;
   }
 
+  // Dynamically load the `libnode.so` shared library to ensure the Node.js
+  // runtime environment is available.
   static void load_nodejs_lib() {
     ten_string_t *module_path =
         ten_path_get_module_path(reinterpret_cast<const void *>(foo));
@@ -127,9 +148,9 @@ class nodejs_addon_loader_t : public ten::addon_loader_t {
     ten_string_t *nodejs_lib_path = ten_string_create_formatted(
         "%s/libnode.so", ten_string_get_raw_str(module_path));
 
-    // The libnode.so must be loaded globally using dlopen, and cannot be a
-    // regular shared library dependency. Note that the 2nd parameter must be
-    // 0 (as_local = false).
+    // The `libnode.so` must be loaded globally using `dlopen` to ensure that
+    // all Node.js components can access it. Note that the second parameter must
+    // be `0` (`as_local = false`).
     ten_module_load(nodejs_lib_path, 0);
 
     ten_string_destroy(nodejs_lib_path);
@@ -142,18 +163,35 @@ class nodejs_addon_loader_t : public ten::addon_loader_t {
 
     try {
       std::vector<std::string> args;
-      args.emplace_back("node");
-      args.emplace_back("--expose-gc");
-      args.emplace_back("--trace-warnings");
-      args.emplace_back("-e");
-      args.emplace_back("console.log('wft');");
 
+      args.emplace_back("node");
+
+      // Allow manual invocation of `global.gc()` to trigger garbage collection.
+      args.emplace_back("--expose-gc");
+      // Enable Node.js warning tracking for easier debugging.
+      args.emplace_back("--trace-warnings");
+
+      args.emplace_back("-e");
+      args.emplace_back("console.log('foo');");
+
+      // Globally initialize the Node.js runtime to ensure that Node.js can run
+      // properly in the current process.
       std::shared_ptr<node::InitializationResult> result =
           node::InitializeOncePerProcess(
               args,
               {
+                  // Do not automatically initialize the V8 engine, as it needs
+                  // to be initialized in a new thread.
                   node::ProcessInitializationFlags::kNoInitializeV8,
+
+                  // Do not automatically initialize the Node.js V8 platform; it
+                  // will be initialized manually later.
                   node::ProcessInitializationFlags::kNoInitializeNodeV8Platform,
+
+                  // Disable the `NODE_OPTIONS` environment variable to prevent
+                  // external environments from affecting the execution of
+                  // Node.js.
+                  //
                   // This is used to test NODE_REPL_EXTERNAL_MODULE is disabled
                   // with kDisableNodeOptionsEnv. If other tests need
                   // NODE_OPTIONS support in the future, split this
@@ -171,19 +209,29 @@ class nodejs_addon_loader_t : public ten::addon_loader_t {
         exit(result->exit_code());
       }
 
-      // RunNodeInstance in another thread
+      // RunNodeInstance in another thread.
       this->node_thread_ = std::thread([this, args]() {
+        // MultiIsolatePlatform : Allow multiple `v8::Isolate` instances to run
+        // on the same platform.
         std::unique_ptr<MultiIsolatePlatform> platform =
             MultiIsolatePlatform::Create(4);
+
+        // Initialize the V8 platform to enable multi-threaded execution.
         V8::InitializePlatform(platform.get());
+
+        // Start the V8 engine to enable the execution of JavaScript code.
         V8::Initialize();
 
+        // Start the Node.js event loop.
         int ret = RunNodeInstance(platform.get(), args, {});
+
+        // Wait for the Node.js event loop to terminate.
+
         std::cout << "Node Instance run completed with code: " << ret << '\n';
 
+        // Release V8 and Node.js resources.
         V8::Dispose();
         V8::DisposePlatform();
-
         node::TearDownOncePerProcess();
 
         this->node_thread_started_ = true;
@@ -199,34 +247,57 @@ class nodejs_addon_loader_t : public ten::addon_loader_t {
     this->cv_.wait(lock, [this]() { return this->node_thread_started_; });
   }
 
+  // Clean up and shut down the Node.js addon loader to ensure resource
+  // release, garbage collection execution, and proper termination of the
+  // Node.js thread.
   void on_deinit() override {
     if (this->setup_ != nullptr && this->event_loop_ != nullptr) {
+      // Create a `uv_async_t` event to perform asynchronous operations within
+      // the libuv event loop.
       auto *deinit_handle = new uv_async_t();
+
       deinit_handle->data = this;
 
       uv_async_init(this->event_loop_, deinit_handle, [](uv_async_t *handle) {
         auto *this_ptr = static_cast<nodejs_addon_loader_t *>(handle->data);
 
+        // Acquire the Isolate lock to ensure thread safety.
         Locker locker(this_ptr->setup_->isolate());
+
+        // Enter the Isolate scope to ensure that V8 operations are executed in
+        // the correct context.
         Isolate::Scope isolate_scope(this_ptr->setup_->isolate());
+
+        // Create a V8 handle scope to prevent V8 memory leaks.
         HandleScope handle_scope(this_ptr->setup_->isolate());
+
+        // Enter the JavaScript execution context to ensure that JavaScript code
+        // runs correctly.
         Context::Scope context_scope(this_ptr->setup_->context());
 
         std::string js_code =
             "global.gc();"
             "console.log('gc done');";
+
+        // Convert the JavaScript code into a `v8::String`.
         v8::Local<v8::String> source =
             v8::String::NewFromUtf8(this_ptr->setup_->isolate(),
                                     js_code.c_str(), v8::NewStringType::kNormal)
                 .ToLocalChecked();
+
+        // Compile the JS codes.
         v8::Local<v8::Script> script =
             v8::Script::Compile(this_ptr->setup_->context(), source)
                 .ToLocalChecked();
+
+        // Run the JS codes.
         script->Run(this_ptr->setup_->context()).ToLocalChecked();
 
         this_ptr->gc_done_ = true;
         this_ptr->cv_.notify_one();
 
+        // Close the `uv_async_t` event to ensure that the libuv event loop no
+        // longer executes it.
         uv_close(reinterpret_cast<uv_handle_t *>(handle),
                  [](uv_handle_t *handle) {
                    auto *async_handle = reinterpret_cast<uv_async_t *>(handle);
@@ -241,16 +312,24 @@ class nodejs_addon_loader_t : public ten::addon_loader_t {
     }
 
     if (this->setup_) {
+      // Stop the Node.js runtime environment to ensure that all resources are
+      // properly released.
       node::Stop(this->setup_->env());
     }
 
+    // Wait for the Node.js thread to terminate to prevent abnormal program
+    // exit.
     this->node_thread_.join();
 
     std::cout << "Nodejs addon loader deinit completed" << '\n';
   }
 
-  // **Note:** This function, used to dynamically load other addons, may be
-  // called from multiple threads. Therefore, it must be thread-safe.
+  // Note: This function, used to dynamically load other addons, may be called
+  // from multiple threads. Therefore, it must be thread-safe.
+  //
+  // It uses the libuv event loop (`uv_async_t`) to execute JavaScript code
+  // within the Node.js thread, allowing for the loading and registration of
+  // TEN addons.
   void on_load_addon(TEN_ADDON_TYPE addon_type,
                      const char *addon_name) override {
     if (this->setup_ != nullptr && this->event_loop_ != nullptr) {
@@ -258,6 +337,7 @@ class nodejs_addon_loader_t : public ten::addon_loader_t {
 
       auto *load_addon_data = new load_addon_data_t(addon_name, this);
       load_addon_handle->data = load_addon_data;
+
       uv_async_init(
           this->event_loop_, load_addon_handle, [](uv_async_t *handle) {
             auto *load_addon_data =
@@ -266,9 +346,17 @@ class nodejs_addon_loader_t : public ten::addon_loader_t {
             auto *this_ptr = load_addon_data->loader;
             std::string addon_name = load_addon_data->addon_name;
 
+            // Ensures thread safety.
             Locker locker(this_ptr->setup_->isolate());
+
+            // Enters the V8 Isolate environment.
             Isolate::Scope isolate_scope(this_ptr->setup_->isolate());
+
+            // Creates a V8 handle scope to prevent memory leaks.
             HandleScope handle_scope(this_ptr->setup_->isolate());
+
+            // Enters the JavaScript execution context, allowing the addon
+            // loading code to run correctly.
             Context::Scope context_scope(this_ptr->setup_->context());
 
             std::string js_code =
@@ -279,16 +367,23 @@ class nodejs_addon_loader_t : public ten::addon_loader_t {
                 "'" +
                 addon_name + "', null);" + "}";
 
+            // Convert the JavaScript code into a `v8::String`.
             v8::Local<v8::String> source =
                 v8::String::NewFromUtf8(this_ptr->setup_->isolate(),
                                         js_code.c_str(),
                                         v8::NewStringType::kNormal)
                     .ToLocalChecked();
+
+            // Compile the JS codes.
             v8::Local<v8::Script> script =
                 v8::Script::Compile(this_ptr->setup_->context(), source)
                     .ToLocalChecked();
+
+            // Run the JS codes.
             script->Run(this_ptr->setup_->context()).ToLocalChecked();
 
+            // Close the `uv_async_t` event to ensure that the libuv event loop
+            // no longer executes it.
             uv_close(reinterpret_cast<uv_handle_t *>(handle),
                      [](uv_handle_t *handle) {
                        auto *async_handle =
@@ -299,6 +394,7 @@ class nodejs_addon_loader_t : public ten::addon_loader_t {
             load_addon_data->addon_loaded_ = true;
             this_ptr->cv_.notify_one();
           });
+
       uv_async_send(load_addon_handle);
 
       // Wait for the addon to be loaded.
