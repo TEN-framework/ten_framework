@@ -142,7 +142,7 @@ static bool ten_env_send_msg_internal(
       ten_engine_t *engine = ten_env_get_attached_engine(self);
       TEN_ASSERT(engine, "Should not happen.");
 
-      result = ten_engine_dispatch_msg(engine, msg, false);
+      result = ten_engine_dispatch_msg(engine, msg);
       break;
     }
 

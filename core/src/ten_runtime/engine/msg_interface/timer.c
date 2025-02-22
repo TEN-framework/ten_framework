@@ -28,7 +28,7 @@ static void ten_engine_timer_on_trigger(ten_timer_t *self,
   ten_msg_set_src_to_engine(cmd, engine);
   ten_msg_clear_and_set_dest_to_loc(cmd, &self->src_loc);
 
-  ten_engine_dispatch_msg(engine, cmd, false);
+  ten_engine_dispatch_msg(engine, cmd);
 
   ten_shared_ptr_destroy(cmd);
 }

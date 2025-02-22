@@ -84,7 +84,7 @@ static bool ten_env_return_result_internal(
       TEN_ASSERT(engine && ten_engine_check_integrity(engine, true),
                  "Invalid use of engine %p.", engine);
 
-      result = ten_engine_dispatch_msg(engine, result_cmd, false);
+      result = ten_engine_dispatch_msg(engine, result_cmd);
       break;
     }
 
