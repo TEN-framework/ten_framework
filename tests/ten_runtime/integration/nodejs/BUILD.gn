@@ -9,6 +9,7 @@ import("//build/ten_runtime/options.gni")
 
 group("nodejs") {
   deps = [
+    "cpp_app_nodejs",
     "get_set_property_nodejs",
     "http_server_nodejs",
     "mix_python_ext_nodejs",
@@ -18,8 +19,4 @@ group("nodejs") {
     "send_video_frame_nodejs",
     "websocket_server_nodejs",
   ]
-
-  if (ten_enable_nodejs_embedder) {
-    deps += [ "cpp_app_nodejs" ]
-  }
 }
