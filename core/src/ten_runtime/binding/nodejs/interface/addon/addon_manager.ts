@@ -11,7 +11,7 @@ import { Addon } from "./addon";
 import ten_addon from "../ten_addon";
 
 type Ctor<T> = {
-  new(): T;
+  new (): T;
   prototype: T;
 };
 
@@ -76,7 +76,7 @@ export class AddonManager {
     }
 
     const dirs = fs.opendirSync(extension_folder);
-    for (; ;) {
+    for (;;) {
       const entry = dirs.readSync();
       if (!entry) {
         break;
@@ -97,7 +97,11 @@ export class AddonManager {
   static _load_single_addon(name: string): boolean {
     const app_base_dir = AddonManager._find_app_base_dir();
 
-    const extension_folder = path.join(app_base_dir, "ten_packages/extension", name);
+    const extension_folder = path.join(
+      app_base_dir,
+      "ten_packages/extension",
+      name
+    );
     if (!fs.existsSync(extension_folder)) {
       console.log(`Addon ${name} directory not found in ${extension_folder}`);
       return false;
@@ -106,7 +110,9 @@ export class AddonManager {
     const dirs = fs.opendirSync(extension_folder);
     const packageJsonFile = `${extension_folder}/package.json`;
     if (!fs.existsSync(packageJsonFile)) {
-      console.log(`Addon ${name} package.json not found in ${extension_folder}`);
+      console.log(
+        `Addon ${name} package.json not found in ${extension_folder}`
+      );
       return false;
     }
 

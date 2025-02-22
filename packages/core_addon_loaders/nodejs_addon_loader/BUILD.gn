@@ -1,4 +1,5 @@
 #
+# Copyright © 2025 Agora
 # This file is part of TEN Framework, an open source project.
 # Licensed under the Apache License, Version 2.0.
 # See the LICENSE file for more information.
@@ -19,6 +20,7 @@ action("copy_node_shared_lib") {
         "${root_out_dir}/ten_packages/addon_loader/nodejs_addon_loader/lib/libnode.so.127"),
   ]
 
+  sources = [ "${root_out_dir}/prebuilt/node_shared/lib/libnode.so.127" ]
   outputs = [ "${root_out_dir}/ten_packages/addon_loader/nodejs_addon_loader/lib/libnode.so.127" ]
 
   deps = [ "//third_party/node" ]
@@ -34,6 +36,7 @@ action("create_symlink") {
         "${root_out_dir}/ten_packages/addon_loader/nodejs_addon_loader/lib/libnode.so"),
   ]
 
+  sources = [ "${root_out_dir}/ten_packages/addon_loader/nodejs_addon_loader/lib/libnode.so.127" ]
   outputs = [ "${root_out_dir}/ten_packages/addon_loader/nodejs_addon_loader/lib/libnode.so" ]
 
   deps = [ ":copy_node_shared_lib" ]
