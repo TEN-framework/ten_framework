@@ -10,11 +10,9 @@
 #include <sys/types.h>
 
 #include "include_internal/ten_runtime/common/constant_str.h"
-#include "include_internal/ten_runtime/connection/connection.h"
 #include "include_internal/ten_runtime/msg/cmd_base/field/field_info.h"
 #include "include_internal/ten_runtime/msg/field/field_info.h"
 #include "include_internal/ten_runtime/msg/msg.h"
-#include "include_internal/ten_runtime/remote/remote.h"
 #include "ten_utils/lib/smart_ptr.h"
 #include "ten_utils/lib/string.h"
 #include "ten_utils/lib/uuid.h"
@@ -58,8 +56,6 @@ static void ten_raw_cmd_base_init_empty(ten_cmd_base_t *self) {
   ten_string_init(&self->parent_cmd_id);
   ten_value_init_string(&self->cmd_id);
   ten_value_init_string(&self->seq_id);
-
-  self->original_connection = NULL;
 
   self->result_handler = NULL;
   self->result_handler_data = NULL;
@@ -120,8 +116,6 @@ void ten_raw_cmd_base_deinit(ten_cmd_base_t *self) {
   ten_value_deinit(&self->seq_id);
 
   ten_string_deinit(&self->parent_cmd_id);
-
-  self->original_connection = NULL;
 }
 
 void ten_raw_cmd_base_copy_field(ten_msg_t *self, ten_msg_t *src,
@@ -251,35 +245,6 @@ static bool ten_raw_cmd_base_cmd_id_is_empty(ten_cmd_base_t *self) {
 bool ten_cmd_base_cmd_id_is_empty(ten_shared_ptr_t *self) {
   TEN_ASSERT(self && ten_cmd_base_check_integrity(self), "Should not happen.");
   return ten_raw_cmd_base_cmd_id_is_empty(ten_shared_ptr_get_data(self));
-}
-
-static ten_connection_t *ten_raw_cmd_base_get_origin_connection(
-    ten_cmd_base_t *self) {
-  TEN_ASSERT(self && ten_raw_cmd_base_check_integrity(self),
-             "Should not happen.");
-  return self->original_connection;
-}
-
-ten_connection_t *ten_cmd_base_get_original_connection(ten_shared_ptr_t *self) {
-  TEN_ASSERT(self && ten_cmd_base_check_integrity(self), "Should not happen.");
-  return ten_raw_cmd_base_get_origin_connection(ten_shared_ptr_get_data(self));
-}
-
-static void ten_raw_cmd_base_set_origin_connection(
-    ten_cmd_base_t *self, ten_connection_t *connection) {
-  TEN_ASSERT(self && ten_raw_cmd_base_check_integrity(self) && connection &&
-                 ten_connection_check_integrity(connection, true),
-             "Should not happen.");
-
-  self->original_connection = connection;
-}
-
-void ten_cmd_base_set_original_connection(ten_shared_ptr_t *self,
-                                          ten_connection_t *connection) {
-  TEN_ASSERT(self && ten_cmd_base_check_integrity(self) && connection,
-             "Should not happen.");
-  ten_raw_cmd_base_set_origin_connection(ten_shared_ptr_get_data(self),
-                                         connection);
 }
 
 const char *ten_cmd_base_get_cmd_id(ten_shared_ptr_t *self) {

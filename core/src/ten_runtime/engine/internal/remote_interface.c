@@ -55,6 +55,25 @@ static bool ten_engine_del_weak_remote(ten_engine_t *self,
   return success;
 }
 
+ten_remote_t *ten_engine_find_weak_remote(ten_engine_t *self, const char *uri) {
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_engine_check_integrity(self, true),
+             "Invalid use of engine %p.", self);
+
+  ten_list_foreach (&self->weak_remotes, iter) {
+    ten_remote_t *remote = ten_ptr_listnode_get(iter.node);
+    TEN_ASSERT(remote, "Invalid argument.");
+    TEN_ASSERT(ten_remote_check_integrity(remote, true),
+               "Invalid use of remote %p.", remote);
+
+    if (ten_string_is_equal_c_str(&remote->uri, uri)) {
+      return remote;
+    }
+  }
+
+  return NULL;
+}
+
 static size_t ten_engine_weak_remotes_cnt_in_specified_uri(ten_engine_t *self,
                                                            const char *uri) {
   TEN_ASSERT(self, "Invalid argument.");
@@ -389,6 +408,7 @@ static void ten_engine_connect_to_remote_after_remote_is_created(
                  ten_msg_check_integrity(start_graph_cmd_for_the_remote),
              "Invalid argument.");
 
+  // A simple sanity check:
   // Before starting to connect to more apps in the whole start_graph process,
   // `original_start_graph_cmd_of_enabling_engine` must be set. Otherwise,
   // after the entire process is completed, there will be no way to determine

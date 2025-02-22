@@ -13,7 +13,6 @@
 #include "include_internal/ten_runtime/common/constant_str.h"
 #include "include_internal/ten_runtime/msg/cmd_base/field/cmd_id.h"
 #include "include_internal/ten_runtime/msg/cmd_base/field/field.h"
-#include "include_internal/ten_runtime/msg/cmd_base/field/original_connection.h"
 #include "include_internal/ten_runtime/msg/cmd_base/field/result_handler.h"
 #include "include_internal/ten_runtime/msg/cmd_base/field/result_handler_data.h"
 #include "include_internal/ten_runtime/msg/cmd_base/field/seq_id.h"
@@ -47,14 +46,6 @@ static const ten_msg_field_info_t ten_cmd_base_fields_info[] = {
             .field_id = TEN_MSG_FIELD_LAST + TEN_CMD_BASE_FIELD_SEQ_ID,
             .copy_field = ten_cmd_base_copy_seq_id,
             .process_field = ten_cmd_base_process_seq_id,
-        },
-    [TEN_CMD_BASE_FIELD_ORIGINAL_CONNECTION] =
-        {
-            .field_name = NULL,
-            .field_id =
-                TEN_MSG_FIELD_LAST + TEN_CMD_BASE_FIELD_ORIGINAL_CONNECTION,
-            .copy_field = ten_cmd_base_copy_original_connection,
-            .process_field = NULL,
         },
     [TEN_CMD_BASE_FIELD_RESPONSE_HANDLER] =
         {

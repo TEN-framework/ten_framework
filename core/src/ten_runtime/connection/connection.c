@@ -350,10 +350,6 @@ void ten_connection_on_msgs(ten_connection_t *self, ten_list_t *msgs) {
     ten_shared_ptr_t *msg = ten_smart_ptr_listnode_get(iter.node);
 
     if (ten_msg_is_cmd_and_result(msg)) {
-      // For a command message, remember which connection this command is coming
-      // from.
-      ten_cmd_base_set_original_connection(msg, self);
-
       // If this command is coming from outside of the TEN world (i.e.,
       // clients), the command ID would be empty, so we generate a new one for
       // it in this case now.
@@ -470,7 +466,7 @@ ten_runloop_t *ten_connection_get_attached_runloop(ten_connection_t *self) {
   // function has been called which means the migration is completed). Refer to
   // 'ten_protocol_asynced_on_input_async()'.
 
-  switch (ten_atomic_load(&self->attach_to)) {
+  switch (ten_connection_attach_to(self)) {
     case TEN_CONNECTION_ATTACH_TO_REMOTE:
       return ten_remote_get_attached_runloop(self->attached_target.remote);
     case TEN_CONNECTION_ATTACH_TO_ENGINE:

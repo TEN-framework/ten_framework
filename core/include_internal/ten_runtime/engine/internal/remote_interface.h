@@ -43,6 +43,9 @@ TEN_RUNTIME_PRIVATE_API bool ten_engine_check_remote_is_duplicated(
 TEN_RUNTIME_PRIVATE_API bool ten_engine_check_remote_is_weak(
     ten_engine_t *self, ten_remote_t *remote);
 
+TEN_RUNTIME_PRIVATE_API ten_remote_t *ten_engine_find_weak_remote(
+    ten_engine_t *self, const char *uri);
+
 TEN_RUNTIME_PRIVATE_API void ten_engine_on_remote_closed(ten_remote_t *remote,
                                                          void *on_closed_data);
 
