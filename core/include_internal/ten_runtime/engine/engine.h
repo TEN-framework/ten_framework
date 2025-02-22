@@ -49,7 +49,12 @@ struct ten_engine_t {
   // This means that the engine can start to handle messages, i.e. all the
   // extension threads are started successfully.
   //
-  // TODO(Wei): Perhaps this variable can be removed.
+  // The reason this is needed is that if messages are imported into the engine
+  // too early, before the extension group and extensions have even been
+  // created, there is a possibility that those extension groups and extensions,
+  // which will be created later, cannot be found. This could lead to message
+  // dispatch failures. Therefore, this is needed to hold off importing messages
+  // into the engine until it is fully prepared.
   bool is_ready_to_handle_msg;
 
   // When app creates an engine, it will create a randomized graph ID for the
@@ -71,11 +76,6 @@ struct ten_engine_t {
   // @{
   ten_hashtable_t remotes;  // ten_remote_t
   ten_list_t weak_remotes;
-  // @}
-
-  // @{
-  ten_mutex_t *extension_msgs_lock;
-  ten_list_t extension_msgs;
   // @}
 
   // @{

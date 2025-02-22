@@ -10,7 +10,6 @@
 
 #include "include_internal/ten_runtime/addon/protocol/protocol.h"
 #include "include_internal/ten_runtime/app/app.h"
-#include "include_internal/ten_runtime/common/loc.h"
 #include "include_internal/ten_runtime/connection/connection.h"
 #include "include_internal/ten_runtime/connection/migration.h"
 #include "include_internal/ten_runtime/engine/engine.h"
@@ -253,7 +252,6 @@ void ten_engine_link_orphan_connection_to_remote(
              "Invalid use of engine %p.", orphan_connection);
 
   TEN_ASSERT(uri, "Invalid argument.");
-
   TEN_ASSERT(
       !ten_engine_find_remote(self, uri),
       "The relationship of remote and connection should be 1-1 mapping.");
@@ -655,48 +653,34 @@ bool ten_engine_receive_msg_from_remote(ten_remote_t *remote,
   // way home.
   ten_msg_set_src_engine_if_unspecified(msg, engine);
 
-  if (!ten_loc_is_empty(&remote->explicit_dest_loc)) {
-    // If TEN runtime has explicitly setup the destination location where all
-    // the messages coming from this remote should go, adjust the destination of
-    // the message according to this.
+  // The default destination engine would be the engine where this remote
+  // attached to, if the message doesn't specify one.
+  ten_msg_set_dest_engine_if_unspecified_or_predefined_graph_name(
+      msg, engine, &engine->app->predefined_graph_infos);
 
-    ten_msg_clear_and_set_dest_to_loc(msg, &remote->explicit_dest_loc);
-  } else {
-    // The default destination engine would be the engine where this remote
-    // attached to, if the message doesn't specify one.
-    ten_msg_set_dest_engine_if_unspecified_or_predefined_graph_name(
-        msg, engine, &engine->app->predefined_graph_infos);
-  }
+  switch (ten_msg_get_type(msg)) {
+    case TEN_MSG_TYPE_CMD_START_GRAPH: {
+      // The 'start_graph' command could only be handled once in a graph.
+      // Therefore, if we receive a new 'start_graph' command after the graph
+      // has been established, just ignore this 'start_graph' command.
 
-  if (ten_engine_is_ready_to_handle_msg(engine)) {
-    ten_engine_dispatch_msg(engine, msg);
-  } else {
-    switch (ten_msg_get_type(msg)) {
-      case TEN_MSG_TYPE_CMD_START_GRAPH: {
-        // The 'start_graph' command could only be handled once in a graph.
-        // Therefore, if we receive a new 'start_graph' command after the graph
-        // has been established, just ignore this 'start_graph' command.
+      ten_shared_ptr_t *cmd_result =
+          ten_cmd_result_create_from_cmd(TEN_STATUS_CODE_ERROR, msg);
+      ten_msg_set_property(
+          cmd_result, "detail",
+          ten_value_create_string(
+              "Receive a start_graph cmd after graph is built."),
+          NULL);
 
-        ten_shared_ptr_t *cmd_result =
-            ten_cmd_result_create_from_cmd(TEN_STATUS_CODE_ERROR, msg);
-        ten_msg_set_property(
-            cmd_result, "detail",
-            ten_value_create_string(
-                "Receive a start_graph cmd after graph is built."),
-            NULL);
-        ten_connection_send_msg(remote->connection, cmd_result);
-        ten_shared_ptr_destroy(cmd_result);
-        break;
-      }
+      ten_connection_send_msg(remote->connection, cmd_result);
 
-      case TEN_MSG_TYPE_CMD_RESULT:
-        ten_engine_dispatch_msg(engine, msg);
-        break;
-
-      default:
-        ten_engine_append_to_in_msgs_queue(engine, msg);
-        break;
+      ten_shared_ptr_destroy(cmd_result);
+      break;
     }
+
+    default:
+      ten_engine_dispatch_msg(engine, msg);
+      break;
   }
 
   return true;

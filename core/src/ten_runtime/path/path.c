@@ -45,7 +45,7 @@ bool ten_path_check_integrity(ten_path_t *self, bool check_thread) {
 void ten_path_init(ten_path_t *self, ten_path_table_t *table,
                    TEN_PATH_TYPE type, const char *cmd_name,
                    const char *parent_cmd_id, const char *cmd_id,
-                   ten_loc_t *src_loc, ten_loc_t *dest_loc) {
+                   ten_loc_t *src_loc) {
   TEN_ASSERT(self, "Invalid argument.");
   TEN_ASSERT(cmd_name && strlen(cmd_name), "Invalid argument.");
 

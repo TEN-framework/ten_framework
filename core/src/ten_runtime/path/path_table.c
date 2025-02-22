@@ -231,12 +231,9 @@ ten_path_in_t *ten_path_table_add_in_path(
   ten_loc_t src_loc;
   ten_loc_init_from_loc(&src_loc, ten_msg_get_src_loc(cmd));
 
-  ten_loc_t dest_loc;
-  ten_loc_init_from_loc(&dest_loc, ten_msg_get_first_dest_loc(cmd));
-
   ten_path_in_t *in_path = ten_path_in_create(
       self, ten_msg_get_name(cmd), ten_cmd_base_get_parent_cmd_id(cmd),
-      ten_cmd_base_get_cmd_id(cmd), &src_loc, &dest_loc, result_conversion);
+      ten_cmd_base_get_cmd_id(cmd), &src_loc, result_conversion);
   TEN_ASSERT(in_path && ten_path_check_integrity((ten_path_t *)in_path, true),
              "Invalid argument.");
 
@@ -253,7 +250,6 @@ ten_path_in_t *ten_path_table_add_in_path(
                          (ten_ptr_listnode_destroy_func_t)ten_path_in_destroy);
 
   ten_loc_deinit(&src_loc);
-  ten_loc_deinit(&dest_loc);
 
   return in_path;
 }
@@ -276,13 +272,10 @@ ten_path_out_t *ten_path_table_add_out_path(ten_path_table_t *self,
   ten_loc_t src_loc;
   ten_loc_init_from_loc(&src_loc, ten_msg_get_src_loc(cmd));
 
-  ten_loc_t dest_loc;
-  ten_loc_init_from_loc(&dest_loc, ten_msg_get_first_dest_loc(cmd));
-
   // Create a path.
   ten_path_out_t *out_path = ten_path_out_create(
       self, ten_msg_get_name(cmd), ten_cmd_base_get_parent_cmd_id(cmd),
-      ten_cmd_base_get_cmd_id(cmd), &src_loc, &dest_loc,
+      ten_cmd_base_get_cmd_id(cmd), &src_loc,
       ten_cmd_base_get_raw_cmd_base(cmd)->result_handler,
       ten_cmd_base_get_raw_cmd_base(cmd)->result_handler_data);
   TEN_ASSERT(out_path && ten_path_check_integrity((ten_path_t *)out_path, true),
@@ -305,7 +298,6 @@ ten_path_out_t *ten_path_table_add_out_path(ten_path_table_t *self,
                          (ten_ptr_listnode_destroy_func_t)ten_path_out_destroy);
 
   ten_loc_deinit(&src_loc);
-  ten_loc_deinit(&dest_loc);
 
   return out_path;
 }

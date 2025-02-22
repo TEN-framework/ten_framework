@@ -11,14 +11,14 @@
 
 ten_path_out_t *ten_path_out_create(
     ten_path_table_t *table, const char *cmd_name, const char *parent_cmd_id,
-    const char *cmd_id, ten_loc_t *src_loc, ten_loc_t *dest_loc,
+    const char *cmd_id, ten_loc_t *src_loc,
     ten_env_transfer_msg_result_handler_func_t result_handler,
     void *result_handler_data) {
   ten_path_out_t *self = (ten_path_out_t *)TEN_MALLOC(sizeof(ten_path_out_t));
   TEN_ASSERT(self, "Failed to allocate memory.");
 
   ten_path_init((ten_path_t *)self, table, TEN_PATH_OUT, cmd_name,
-                parent_cmd_id, cmd_id, src_loc, dest_loc);
+                parent_cmd_id, cmd_id, src_loc);
 
   self->result_handler = result_handler;
   self->result_handler_data = result_handler_data;
