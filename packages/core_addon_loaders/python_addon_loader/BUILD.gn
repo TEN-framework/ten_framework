@@ -1,7 +1,8 @@
 #
+# Copyright © 2025 Agora
 # This file is part of TEN Framework, an open source project.
-# Licensed under the Apache License, Version 2.0.
-# See the LICENSE file for more information.
+# Licensed under the Apache License, Version 2.0, with certain conditions.
+# Refer to the "LICENSE" file in the root directory for more information.
 #
 import("//build/feature/ten_package.gni")
 import("//build/ten_runtime/feature/publish.gni")
@@ -13,6 +14,7 @@ ten_package("python_addon_loader") {
   enable_build = true
 
   resources = [
+    "LICENSE",
     "manifest.json",
     "property.json",
   ]

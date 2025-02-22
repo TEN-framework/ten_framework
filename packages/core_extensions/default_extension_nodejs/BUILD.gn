@@ -12,7 +12,6 @@ ten_package("default_extension_nodejs") {
   package_kind = "extension"
 
   resources = [
-    "BUILD.gn",
     "manifest.json",
     "package.json",
     "property.json",

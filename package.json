@@ -1,0 +1,6 @@
+{
+  "devDependencies": {
+    "eslint": "^9.21.0",
+    "@types/node": "^22.13.5"
+  }
+}

@@ -484,9 +484,9 @@
       "name": "app (C/C++) (lldb, launch)",
       "type": "lldb",
       "request": "launch",
-      "program": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/cpp/standalone_vosk_asr_cpp/vosk_asr_cpp/bin/vosk_asr_cpp_test",
+      "program": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/nodejs/cpp_app_nodejs/cpp_app_nodejs_app/bin/cpp_app_nodejs_app",
       "args": [],
-      "cwd": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/cpp/standalone_vosk_asr_cpp/vosk_asr_cpp/bin/",
+      "cwd": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/nodejs/cpp_app_nodejs/cpp_app_nodejs_app",
       "env": {
         "ASAN_OPTIONS": "use_sigaltstack=0",
       },
@@ -495,15 +495,21 @@
       "name": "app (C/C++) (cppdbg, launch)",
       "type": "cppdbg",
       "request": "launch",
-      "program": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/cpp/graph_env_var_1/graph_env_var_1_app/bin/graph_env_var_1_app_source",
+      "program": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/nodejs/cpp_app_nodejs/cpp_app_nodejs_app/bin/cpp_app_nodejs_app",
       "args": [],
-      "cwd": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/cpp/graph_env_var_1/graph_env_var_1_app",
+      "cwd": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/nodejs/cpp_app_nodejs/cpp_app_nodejs_app",
       "sourceFileMap": {
         "${workspaceFolder}": {
           "editorPath": "${workspaceFolder}",
           "useForBreakpoints": "true"
         }
-      }
+      },
+      "environment": [
+        {
+          "name": "NODE_PATH",
+          "value": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/nodejs/cpp_app_nodejs/cpp_app_nodejs_app/ten_packages/system/ten_runtime_nodejs/lib:$NODE_PATH"
+        }
+      ]
     },
     {
       "name": "app (C/C++) (cppdbg, attach)",

@@ -94,6 +94,49 @@ export class AddonManager {
     }
   }
 
+  static _load_single_addon(name: string): boolean {
+    const app_base_dir = AddonManager._find_app_base_dir();
+
+    const extension_folder = path.join(
+      app_base_dir,
+      "ten_packages/extension",
+      name
+    );
+    if (!fs.existsSync(extension_folder)) {
+      console.log(`Addon ${name} directory not found in ${extension_folder}`);
+      return false;
+    }
+
+    const dirs = fs.opendirSync(extension_folder);
+    const packageJsonFile = `${extension_folder}/package.json`;
+    if (!fs.existsSync(packageJsonFile)) {
+      console.log(
+        `Addon ${name} package.json not found in ${extension_folder}`
+      );
+      return false;
+    }
+
+    require(`${extension_folder}`);
+    console.log(`Addon ${name} loaded`);
+
+    return true;
+  }
+
+  static _register_single_addon(name: string, registerContext: any): void {
+    const handler = AddonManager._registry.get(name);
+    if (handler) {
+      try {
+        handler(registerContext);
+
+        console.log(`Addon ${name} registered`);
+      } catch (error) {
+        console.error(`Failed to register addon ${name}: ${error}`);
+      }
+    } else {
+      console.log(`Failed to find the register handler for addon ${name}`);
+    }
+  }
+
   static _register_all_addons(registerContext: any): void {
     for (let [name, handler] of AddonManager._registry) {
       try {
