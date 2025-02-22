@@ -26,16 +26,16 @@ class DefaultExtension extends Extension {
     super(name);
   }
 
-  async onConfigure(_tenEnv: TenEnv): Promise<void> {
-    console.log("DefaultExtension onConfigure");
+  async onConfigure(tenEnv: TenEnv): Promise<void> {
+    tenEnv.logInfo("onConfigure");
   }
 
-  async onInit(_tenEnv: TenEnv): Promise<void> {
-    console.log("DefaultExtension onInit");
+  async onInit(tenEnv: TenEnv): Promise<void> {
+    tenEnv.logInfo("onInit");
   }
 
-  async onStart(_tenEnv: TenEnv): Promise<void> {
-    console.log("DefaultExtension onStart");
+  async onStart(tenEnv: TenEnv): Promise<void> {
+    tenEnv.logInfo("onStart");
 
     const testData = Data.Create("testData");
     testData.allocBuf(10);
@@ -45,6 +45,7 @@ class DefaultExtension extends Extension {
     view[0] = 1;
     view[1] = 2;
     view[2] = 3;
+
     testData.unlockBuf(buf);
 
     let copiedBuf = testData.getBuf();
@@ -54,19 +55,19 @@ class DefaultExtension extends Extension {
     assert(copiedView[2] === 3, "copiedView[2] incorrect");
   }
 
-  async onStop(_tenEnv: TenEnv): Promise<void> {
-    console.log("DefaultExtension onStop");
+  async onStop(tenEnv: TenEnv): Promise<void> {
+    tenEnv.logInfo("onStop");
   }
 
-  async onDeinit(_tenEnv: TenEnv): Promise<void> {
-    console.log("DefaultExtension onDeinit");
+  async onDeinit(tenEnv: TenEnv): Promise<void> {
+    tenEnv.logInfo("onDeinit");
   }
 
   async onCmd(tenEnv: TenEnv, cmd: Cmd): Promise<void> {
-    tenEnv.logDebug("DefaultExtension onCmd");
+    tenEnv.logInfo("onCmd");
 
     const cmdName = cmd.getName();
-    tenEnv.logVerbose("cmdName:" + cmdName);
+    tenEnv.logInfo("cmdName:" + cmdName);
 
     const testCmd = Cmd.Create("test");
     const [result, _] = await tenEnv.sendCmd(testCmd);

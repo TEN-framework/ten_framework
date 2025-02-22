@@ -28,16 +28,7 @@ ten_prebuilt_library("prebuilt_node_shared") {
   is_shared_library = true
 
   libs = [ "node" ]
-
-  outputs = []
-
-  if (is_linux) {
-    outputs += [ "${root_out_dir}/prebuilt/node_shared/lib/libnode.so.127" ]
-  } else if (is_mac) {
-    outputs += [ "${root_out_dir}/prebuilt/node_shared/lib/libnode.dylib" ]
-  } else if (is_win) {
-    outputs += [ "${root_out_dir}/prebuilt/node_shared/lib/node.dll" ]
-  }
+  lib_version = 127
 }
 
 group("node") {

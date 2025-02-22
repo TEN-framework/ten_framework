@@ -133,7 +133,7 @@ export class AddonManager {
         console.error(`Failed to register addon ${name}: ${error}`);
       }
     } else {
-      console.log(`Addon ${name} register handler not found`);
+      console.log(`Failed to find the register handler for addon ${name}`);
     }
   }
 

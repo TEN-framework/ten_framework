@@ -11,9 +11,9 @@ ten_package("cpp_app_nodejs_app") {
   enable_build = true
 
   resources = [
+    "bin/start",
     "manifest.json",
     "property.json",
-    "bin/start",
   ]
 
   sources = [ "src/main.cc" ]

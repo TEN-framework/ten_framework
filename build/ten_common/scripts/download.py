@@ -8,7 +8,7 @@ import sys
 import requests
 
 
-def download_file(url, output_path):
+def download_file(url: str, output_path: str) -> None:
     response = requests.get(url, stream=True, timeout=60)  # 60 seconds timeout.
     response.raise_for_status()
     with open(output_path, "wb") as file:

@@ -35,7 +35,12 @@ template("ten_prebuilt_library") {
   _lib_postfix = ""
   if (_is_shared_library) {
     if (is_linux) {
-      _lib_postfix = ".so"
+      if (defined(invoker.lib_version)) {
+        lib_version = invoker.lib_version
+        _lib_postfix = ".so.${lib_version}"
+      } else {
+        _lib_postfix = ".so"
+      }
     } else if (is_win) {
       _lib_postfix = ".dll"
     } else if (is_mac) {
@@ -70,9 +75,7 @@ template("ten_prebuilt_library") {
       "//build/ten_common/scripts/unzip.py",
     ]
 
-    outputs = [ "${root_out_dir}/${_dir_path}" ]
-    outputs += _lib_file_paths
-    outputs += invoker.outputs
+    outputs = _lib_file_paths
 
     # Need to complete the downloading first.
     deps = [ ":${_download_target}" ]
@@ -104,13 +107,9 @@ template("ten_prebuilt_library") {
     }
 
     # Need to complete the unzip.
-    deps += [
-      # ":${_delete_zip_target}",
-      ":${_unzip_target}",
-    ]
+    deps += [ ":${_unzip_target}" ]
 
     # To enable the caller to 'depends' on the prebuilt libraries.
-    # public_deps = [ ":${_delete_zip_target}" ]
     public_deps = [ ":${_unzip_target}" ]
 
     # Inject the header file inclusion path into the caller.

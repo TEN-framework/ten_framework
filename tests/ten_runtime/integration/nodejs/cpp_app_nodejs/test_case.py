@@ -31,12 +31,14 @@ def test_cpp_app_nodejs():
     app_root_path = os.path.join(base_path, app_dir_name)
     app_language = "cpp"
 
+    fs_utils.remove_tree(app_root_path)
+
     build_config_args = build_config.parse_build_config(
         os.path.join(root_dir, "tgn_args.txt"),
     )
 
     if build_config_args.ten_enable_integration_tests_prebuilt is False:
-        print('Assembling and building package "{}".'.format(app_dir_name))
+        print(f'Assembling and building package "{app_dir_name}".')
 
         rc = build_pkg.prepare_and_build_app(
             build_config_args,
@@ -80,7 +82,10 @@ def test_cpp_app_nodejs():
         ):
             libasan_path = os.path.join(
                 base_path,
-                "cpp_app_nodejs_app/ten_packages/system/ten_runtime/lib/libasan.so",
+                (
+                    "cpp_app_nodejs_app/ten_packages/system/"
+                    "ten_runtime/lib/libasan.so"
+                ),
             )
 
             if os.path.exists(libasan_path):

@@ -9,7 +9,7 @@ import sys
 import os
 
 
-def unzip_file(src_path, dest_path) -> int | None:
+def unzip_file(src_path: str, dest_path: str) -> int:
     if not os.path.exists(src_path):
         return -1
 
@@ -22,8 +22,10 @@ def unzip_file(src_path, dest_path) -> int | None:
     zip_ref.extractall(dst_dir)
     zip_ref.close()
 
+    return 0
 
-def main(argv):
+
+def main(argv) -> int:
     if len(argv) < 2:
         return -1
     dest_path = "" if len(argv) < 3 else argv[2]

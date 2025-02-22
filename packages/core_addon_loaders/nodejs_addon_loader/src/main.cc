@@ -48,13 +48,15 @@ class nodejs_addon_loader_t : public ten::addon_loader_t {
  public:
   explicit nodejs_addon_loader_t(const char *name) { (void)name; };
 
+  // Create and run a Node.js instance.
   int RunNodeInstance(MultiIsolatePlatform *platform,
                       const std::vector<std::string> &args,
                       const std::vector<std::string> &exec_args) {
     int exit_code = 0;
 
-    // Setup up a libuv event loop, v8::Isolate, and Node.js Environment.
     std::vector<std::string> errors;
+
+    // Setup libuv event loop, v8::Isolate, and Node.js Environment.
     std::unique_ptr<CommonEnvironmentSetup> setup =
         CommonEnvironmentSetup::Create(platform, &errors, args, exec_args);
     if (!setup) {
@@ -64,16 +66,20 @@ class nodejs_addon_loader_t : public ten::addon_loader_t {
       return 1;
     }
 
+    // Get references to these resources.
     this->setup_ = std::move(setup);
     this->event_loop_ = this->setup_->event_loop();
-
     auto *isolate = this->setup_->isolate();
     auto *env = this->setup_->env();
 
     {
+      // Ensure that the current thread holds the lock of the v8::Isolate to
+      // guarantee thread safety.
       Locker locker(isolate);
+
       Isolate::Scope isolate_scope(isolate);
       HandleScope handle_scope(isolate);
+
       // The v8::Context needs to be entered when node::CreateEnvironment() and
       // node::LoadEnvironment() are being called.
       Context::Scope context_scope(this->setup_->context());
@@ -82,8 +88,10 @@ class nodejs_addon_loader_t : public ten::addon_loader_t {
       // There is also a variant that takes a callback and provides it with
       // the `require` and `process` objects, so that it can manually compile
       // and run scripts as needed.
+      //
       // The `require` function inside this script does *not* access the file
       // system, and can only load built-in Node.js modules.
+      //
       // `module.createRequire()` is being used to create one that is able to
       // load files from the disk, and uses the standard CommonJS file loader
       // instead of the internal-only `require` function.
@@ -95,7 +103,8 @@ class nodejs_addon_loader_t : public ten::addon_loader_t {
           "js_require('./ten_packages/system/ten_runtime_nodejs');"
           "setInterval(() => {}, 1000);");
 
-      if (loadenv_ret.IsEmpty()) {  // There has been a JS exception.
+      if (loadenv_ret.IsEmpty()) {
+        // There has been a JS exception.
         return 1;
       }
 

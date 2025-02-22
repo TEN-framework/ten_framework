@@ -19,6 +19,13 @@ from ten import (
 
 
 class DefaultAsyncExtension(AsyncExtension):
+    def __init__(self, name: str) -> None:
+        super().__init__(name)
+
+        self.send_goodbye_cmd = None
+        self.sleep_ms_before_goodbye = None
+        self.assert_goodbye_result_success = None
+
     async def on_init(self, ten_env: AsyncTenEnv) -> None:
         ten_env.log_debug("on_init")
         self.send_goodbye_cmd, err = await ten_env.get_property_bool(
@@ -88,17 +95,11 @@ class DefaultAsyncExtension(AsyncExtension):
         data_name = data.get_name()
         ten_env.log_debug("on_data name {}".format(data_name))
 
-        # TODO: process data
-        pass
-
     async def on_audio_frame(
         self, ten_env: AsyncTenEnv, audio_frame: AudioFrame
     ) -> None:
         audio_frame_name = audio_frame.get_name()
         ten_env.log_debug("on_audio_frame name {}".format(audio_frame_name))
-
-        # TODO: process audio frame
-        pass
 
     async def on_video_frame(
         self, ten_env: AsyncTenEnv, video_frame: VideoFrame
@@ -106,11 +107,9 @@ class DefaultAsyncExtension(AsyncExtension):
         video_frame_name = video_frame.get_name()
         ten_env.log_debug("on_video_frame name {}".format(video_frame_name))
 
-        # TODO: process video frame
-        pass
-
     async def on_stop(self, ten_env: AsyncTenEnv) -> None:
         if self.send_goodbye_cmd:
+            assert self.sleep_ms_before_goodbye is not None
             if self.sleep_ms_before_goodbye > 0:
                 await asyncio.sleep(self.sleep_ms_before_goodbye / 1000)
 

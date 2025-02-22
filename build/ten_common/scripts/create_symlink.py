@@ -9,17 +9,17 @@ import sys
 from build.scripts import fs_utils
 
 
-def main(src_file: str, dst_file: str):
-    # Get absolute paths
+def main(src_file: str, dst_file: str) -> None:
+    # Get absolute paths.
     src_abs = os.path.abspath(src_file)
     dst_abs = os.path.abspath(dst_file)
 
-    # Create destination directory if needed
+    # Create destination directory if needed.
     dst_dir = os.path.dirname(dst_abs)
     if not os.path.exists(dst_dir):
         os.makedirs(dst_dir)
 
-    # Remove existing destination if it exists
+    # Remove existing destination if it exists.
     if os.path.exists(dst_abs):
         if os.path.islink(dst_abs):
             os.unlink(dst_abs)
@@ -28,10 +28,10 @@ def main(src_file: str, dst_file: str):
         else:
             os.remove(dst_abs)
 
-    # Get relative path from destination to source
+    # Get relative path from destination to source.
     rel_path = os.path.relpath(src_abs, dst_dir)
 
-    # Create symlink
+    # Create symlink.
     os.symlink(rel_path, dst_abs)
 
 
