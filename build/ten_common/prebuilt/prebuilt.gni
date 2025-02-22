@@ -72,6 +72,7 @@ template("ten_prebuilt_library") {
 
     outputs = [ "${root_out_dir}/${_dir_path}" ]
     outputs += _lib_file_paths
+    outputs += invoker.outputs
 
     # Need to complete the downloading first.
     deps = [ ":${_download_target}" ]
@@ -96,8 +97,6 @@ template("ten_prebuilt_library") {
                              "deps",
                              "public_deps",
                              "data_deps",
-                             "testonly",
-                             "visibility",
                            ])
 
     if (!defined(deps)) {
