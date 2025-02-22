@@ -380,13 +380,13 @@ bool ten_engine_dispatch_msg(ten_engine_t *self, ten_shared_ptr_t *msg) {
           //              "Failed to find the destination extension thread for "
           //              "the message ^m");
 
-          ten_shared_ptr_t *status =
-              ten_extension_group_create_invalid_dest_status(
+          ten_shared_ptr_t *cmd_result =
+              ten_extension_group_create_cmd_result_for_invalid_dest(
                   msg, &dest_loc->extension_group_name);
 
-          ten_engine_dispatch_msg(self, status);
+          ten_engine_dispatch_msg(self, cmd_result);
 
-          ten_shared_ptr_destroy(status);
+          ten_shared_ptr_destroy(cmd_result);
         }
       }
     }

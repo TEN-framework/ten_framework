@@ -125,8 +125,8 @@ TEN_RUNTIME_PRIVATE_API void ten_extension_group_set_addon(
     ten_extension_group_t *self, ten_addon_host_t *addon_host);
 
 TEN_RUNTIME_PRIVATE_API ten_shared_ptr_t *
-ten_extension_group_create_invalid_dest_status(ten_shared_ptr_t *origin_cmd,
-                                               ten_string_t *target_group_name);
+ten_extension_group_create_cmd_result_for_invalid_dest(
+    ten_shared_ptr_t *origin_cmd, ten_string_t *target_group_name);
 
 TEN_RUNTIME_PRIVATE_API ten_runloop_t *ten_extension_group_get_attached_runloop(
     ten_extension_group_t *self);
