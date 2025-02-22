@@ -74,11 +74,6 @@ struct ten_engine_t {
   // @}
 
   // @{
-  ten_mutex_t *extension_msgs_lock;
-  ten_list_t extension_msgs;
-  // @}
-
-  // @{
   // Used to send messages to the engine.
   ten_mutex_t *in_msgs_lock;
   ten_list_t in_msgs;

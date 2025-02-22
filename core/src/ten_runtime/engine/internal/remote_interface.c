@@ -253,7 +253,6 @@ void ten_engine_link_orphan_connection_to_remote(
              "Invalid use of engine %p.", orphan_connection);
 
   TEN_ASSERT(uri, "Invalid argument.");
-
   TEN_ASSERT(
       !ten_engine_find_remote(self, uri),
       "The relationship of remote and connection should be 1-1 mapping.");

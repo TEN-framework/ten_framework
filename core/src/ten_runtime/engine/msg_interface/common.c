@@ -188,7 +188,7 @@ void ten_engine_handle_in_msgs_async(ten_engine_t *self) {
 }
 
 void ten_engine_append_to_in_msgs_queue(ten_engine_t *self,
-                                        ten_shared_ptr_t *cmd) {
+                                        ten_shared_ptr_t *msg) {
   TEN_ASSERT(self, "Invalid argument.");
   // TEN_NOLINTNEXTLINE(thread-check)
   // thread-check: This function is used to be called from threads other than
@@ -196,10 +196,10 @@ void ten_engine_append_to_in_msgs_queue(ten_engine_t *self,
   TEN_ASSERT(ten_engine_check_integrity(self, false),
              "Invalid use of engine %p.", self);
 
-  TEN_ASSERT(cmd && ten_msg_is_cmd_and_result(cmd), "Should not happen.");
+  TEN_ASSERT(msg && ten_msg_check_integrity(msg), "Should not happen.");
 
   ten_mutex_lock(self->in_msgs_lock);
-  ten_list_push_smart_ptr_back(&self->in_msgs, cmd);
+  ten_list_push_smart_ptr_back(&self->in_msgs, msg);
   ten_mutex_unlock(self->in_msgs_lock);
 
   ten_engine_handle_in_msgs_async(self);

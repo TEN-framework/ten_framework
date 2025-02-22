@@ -74,9 +74,6 @@ void ten_engine_destroy(ten_engine_t *self) {
   ten_hashtable_deinit(&self->remotes);
   ten_list_clear(&self->weak_remotes);
 
-  ten_mutex_destroy(self->extension_msgs_lock);
-  ten_list_clear(&self->extension_msgs);
-
   ten_mutex_destroy(self->in_msgs_lock);
   ten_list_clear(&self->in_msgs);
 
@@ -197,9 +194,6 @@ ten_engine_t *ten_engine_create(ten_app_t *app, ten_shared_ptr_t *cmd) {
   ten_list_init(&self->timers);
   self->path_table =
       ten_path_table_create(TEN_PATH_TABLE_ATTACH_TO_ENGINE, self);
-
-  self->extension_msgs_lock = ten_mutex_create();
-  ten_list_init(&self->extension_msgs);
 
   self->in_msgs_lock = ten_mutex_create();
   ten_list_init(&self->in_msgs);

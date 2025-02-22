@@ -11,6 +11,7 @@
 #include "include_internal/ten_runtime/common/loc.h"
 #include "include_internal/ten_runtime/engine/engine.h"
 #include "include_internal/ten_runtime/engine/internal/extension_interface.h"
+#include "include_internal/ten_runtime/engine/msg_interface/common.h"
 #include "include_internal/ten_runtime/extension/extension.h"
 #include "include_internal/ten_runtime/extension/msg_handling.h"
 #include "include_internal/ten_runtime/extension_context/extension_context.h"
@@ -231,7 +232,7 @@ void ten_extension_thread_dispatch_msg(ten_extension_thread_t *self,
     // Because the remote might be added or deleted at runtime, so ask the
     // engine to route the message to the specified remote to keep thread
     // safety.
-    ten_engine_push_to_extension_msgs_queue(engine, msg);
+    ten_engine_append_to_in_msgs_queue(engine, msg);
   } else {
     if (
         // It means asking the current app to do something.
@@ -247,13 +248,13 @@ void ten_extension_thread_dispatch_msg(ten_extension_thread_t *self,
         // Because the destination is the current engine, so ask the engine to
         // handle this message.
 
-        ten_engine_push_to_extension_msgs_queue(engine, msg);
+        ten_engine_append_to_in_msgs_queue(engine, msg);
       } else {
         if (!ten_string_is_equal(&dest_loc->extension_group_name,
                                  &extension_group->name)) {
           // Find the correct extension thread to handle this message.
 
-          ten_engine_push_to_extension_msgs_queue(engine, msg);
+          ten_engine_append_to_in_msgs_queue(engine, msg);
         } else {
           // The message should be handled in the current extension thread, so
           // dispatch the message to the current extension thread.
@@ -293,7 +294,7 @@ void ten_extension_thread_create_cmd_result_and_dispatch(
   TEN_ASSERT(engine && ten_engine_check_integrity(engine, false),
              "Should not happen.");
 
-  ten_engine_push_to_extension_msgs_queue(engine, cmd_result);
+  ten_engine_append_to_in_msgs_queue(engine, cmd_result);
 
   ten_shared_ptr_destroy(cmd_result);
 }

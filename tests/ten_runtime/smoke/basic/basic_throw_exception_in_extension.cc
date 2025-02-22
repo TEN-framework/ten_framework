@@ -261,7 +261,7 @@ TEST(BasicTest, ThrowExceptionInExtension) {  // NOLINT
   hello_world_cmd->set_dest("msgpack://127.0.0.1:8001/", nullptr,
                             "basic_throw_exception_in_extension_1",
                             "test_extension_1");
-  client->send_cmd(std::move(hello_world_cmd));
+  client->send_cmd_and_recv_result(std::move(hello_world_cmd));
 
   delete client;
 
