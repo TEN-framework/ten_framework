@@ -11,7 +11,6 @@
 
 #include "include_internal/ten_runtime/addon/addon_host.h"
 #include "include_internal/ten_runtime/extension/extension.h"
-#include "include_internal/ten_runtime/extension_group/on_xxx.h"
 #include "include_internal/ten_runtime/extension_thread/extension_thread.h"
 #include "include_internal/ten_runtime/msg/msg.h"
 #include "include_internal/ten_runtime/ten_env/ten_env.h"
