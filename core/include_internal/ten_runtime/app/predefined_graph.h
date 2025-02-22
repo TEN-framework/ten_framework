@@ -31,14 +31,6 @@ typedef struct ten_predefined_graph_info_t {
   // name is the same as the graph ID of that instance. Therefore, the 'engine'
   // field is only meaningful when the 'singleton' field is set to true.
   ten_engine_t *engine;
-
-  // Used to record the cmd ID of the `start_graph` command when the app
-  // launches the `auto_start` predefined graph. After the app receives the
-  // command result, this information is used to verify whether the received
-  // command result corresponds to a previously sent `start_graph` command. If
-  // it does, and the start graph operation fails, the app will proactively
-  // close itself.
-  ten_string_t start_graph_cmd_id;
 } ten_predefined_graph_info_t;
 
 TEN_RUNTIME_PRIVATE_API ten_predefined_graph_info_t *

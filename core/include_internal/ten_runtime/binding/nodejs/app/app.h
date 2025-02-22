@@ -35,5 +35,5 @@ typedef struct ten_nodejs_app_t {
   // @}
 } ten_nodejs_app_t;
 
-TEN_RUNTIME_API napi_value ten_nodejs_app_module_init(napi_env env,
-                                                      napi_value exports);
+TEN_RUNTIME_PRIVATE_API napi_value
+ten_nodejs_app_module_init(napi_env env, napi_value exports);

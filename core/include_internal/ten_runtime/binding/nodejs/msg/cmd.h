@@ -19,5 +19,5 @@ typedef struct ten_nodejs_cmd_t {
 TEN_RUNTIME_PRIVATE_API napi_value ten_nodejs_cmd_wrap(napi_env env,
                                                        ten_shared_ptr_t *cmd);
 
-TEN_RUNTIME_API napi_value ten_nodejs_cmd_module_init(napi_env env,
-                                                      napi_value exports);
+TEN_RUNTIME_PRIVATE_API napi_value
+ten_nodejs_cmd_module_init(napi_env env, napi_value exports);

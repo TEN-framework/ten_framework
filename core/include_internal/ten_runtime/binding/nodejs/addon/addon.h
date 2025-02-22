@@ -55,5 +55,5 @@ TEN_RUNTIME_PRIVATE_API void ten_nodejs_invoke_addon_js_on_deinit(napi_env env,
 TEN_RUNTIME_PRIVATE_API void ten_nodejs_invoke_addon_js_on_create_instance(
     napi_env env, napi_value fn, void *context, void *data);
 
-TEN_RUNTIME_API napi_value ten_nodejs_addon_module_init(napi_env env,
-                                                        napi_value exports);
+TEN_RUNTIME_PRIVATE_API napi_value
+ten_nodejs_addon_module_init(napi_env env, napi_value exports);
