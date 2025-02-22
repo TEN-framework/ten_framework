@@ -49,5 +49,5 @@ TEN_RUNTIME_PRIVATE_API void ten_engine_on_remote_closed(ten_remote_t *remote,
 TEN_RUNTIME_PRIVATE_API bool ten_engine_receive_msg_from_remote(
     ten_remote_t *remote, ten_shared_ptr_t *msg, void *user_data);
 
-TEN_RUNTIME_PRIVATE_API void ten_engine_link_connection_to_remote(
+TEN_RUNTIME_PRIVATE_API void ten_engine_link_orphan_connection_to_remote(
     ten_engine_t *self, ten_connection_t *connection, const char *uri);

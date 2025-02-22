@@ -182,6 +182,12 @@ static bool ten_app_handle_msg_default_handler(ten_app_t *self,
       // client disconnects, the implementation protocol needs to be closed).
       ten_connection_migration_state_reset_when_engine_not_found(connection);
 
+      // Since this is an incorrect command (sent to a non-existent engine), the
+      // migration was unsuccessful. Therefore, the connection's URI is reset so
+      // that the source URI of the next command can potentially become the URI
+      // of this connection.
+      ten_string_clear(&connection->uri);
+
       ten_connection_send_msg(connection, resp);
     } else {
       // The 'msg' might be sent from extension A in engine 1 to extension B in
@@ -521,28 +527,6 @@ void ten_app_push_to_in_msgs_queue(ten_app_t *self, ten_shared_ptr_t *msg) {
   TEN_ASSERT(!rc, "Failed to unlock.");
 
   ten_app_handle_in_msgs_async(self);
-}
-
-ten_connection_t *ten_app_find_src_connection_for_msg(ten_app_t *self,
-                                                      ten_shared_ptr_t *msg) {
-  TEN_ASSERT(self && ten_app_check_integrity(self, false),
-             "Should not happen.");
-  TEN_ASSERT(msg && ten_msg_check_integrity(msg), "Invalid argument.");
-
-  const char *src_uri = ten_msg_get_src_app_uri(msg);
-  if (strlen(src_uri)) {
-    ten_list_foreach (&self->orphan_connections, iter) {
-      ten_connection_t *connection = ten_ptr_listnode_get(iter.node);
-      TEN_ASSERT(connection && ten_connection_check_integrity(connection, true),
-                 "Should not happen.");
-
-      if (ten_string_is_equal_c_str(&connection->protocol->uri, src_uri)) {
-        return connection;
-      }
-    }
-  }
-
-  return NULL;
 }
 
 void ten_app_create_cmd_result_and_dispatch(ten_app_t *self,

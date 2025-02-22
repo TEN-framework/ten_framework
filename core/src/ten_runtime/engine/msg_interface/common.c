@@ -80,8 +80,12 @@ static void ten_engine_handle_in_msgs_sync(ten_engine_t *self) {
                "The message source should have been set.");
 
     if (ten_msg_is_cmd_and_result(msg)) {
-      ten_connection_t *connection = ten_cmd_base_get_original_connection(msg);
-      if (connection) {
+      const char *src_uri = ten_msg_get_src_app_uri(msg);
+      TEN_ASSERT(src_uri, "Should not happen.");
+
+      ten_connection_t *orphan_connection =
+          ten_engine_find_orphan_connection(self, src_uri);
+      if (orphan_connection) {
         // If 'connection' is non-NULL, it means the command is from externally
         // (another external TEN app or client), so we need to check if the
         // 'connection' is duplicated.
@@ -91,10 +95,10 @@ static void ten_engine_handle_in_msgs_sync(ten_engine_t *self) {
 
         // The connection should have already migrated to the engine thread, so
         // the thread safety of 'connection' can be maintained.
-        TEN_ASSERT(ten_connection_check_integrity(connection, true),
+        TEN_ASSERT(ten_connection_check_integrity(orphan_connection, true),
                    "Should not happen.");
         TEN_ASSERT(
-            ten_connection_get_migration_state(connection) ==
+            ten_connection_get_migration_state(orphan_connection) ==
                 TEN_CONNECTION_MIGRATION_STATE_DONE,
             "The connection migration must be completed before the engine "
             "handling the cmd.");
@@ -112,20 +116,18 @@ static void ten_engine_handle_in_msgs_sync(ten_engine_t *self) {
           // not an error condition, so does _not_ trigger the closing of the
           // whole engine.
 
-          ten_connection_reply_result_for_duplicate_connection(connection, msg);
+          ten_connection_reply_result_for_duplicate_connection(
+              orphan_connection, msg);
 
           // The cmd result goes to the other side directly, so do not route
           // 'duplicate' cmd result to engine.
           continue;
         } else {
-          if (ten_connection_attach_to(connection) !=
-              TEN_CONNECTION_ATTACH_TO_REMOTE) {
-            // If this connection doesn't attach to a remote, we need to create
-            // a remote for this connection before the engine starting to
-            // dispatch the message.
-            ten_engine_link_connection_to_remote(self, connection,
-                                                 ten_msg_get_src_app_uri(msg));
-          }
+          // If this connection doesn't attach to a remote, we need to create
+          // a remote for this connection before the engine starting to
+          // dispatch the message.
+          ten_engine_link_orphan_connection_to_remote(
+              self, orphan_connection, ten_msg_get_src_app_uri(msg));
         }
       }
     }

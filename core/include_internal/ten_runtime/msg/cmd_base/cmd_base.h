@@ -38,7 +38,7 @@ typedef struct ten_cmd_base_t {
   // the engine, and no cmds could be processed any further. So we don't need
   // to use sharedptr to wrap the following variable, because when a command
   // is being processed, the origin must be alive.
-  ten_connection_t *original_connection;
+  ten_connection_t *original_connection;  // =-=-= 可以拿掉?
 
   ten_env_transfer_msg_result_handler_func_t result_handler;
   void *result_handler_data;
