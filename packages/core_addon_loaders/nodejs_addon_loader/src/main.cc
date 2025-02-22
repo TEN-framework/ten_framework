@@ -8,13 +8,15 @@
 #include <condition_variable>
 #include <cstring>
 #include <iostream>
+#include <string>
 #include <thread>
 
+#include "node.h"
+#include "v8-script.h"
+// Header file region splitter.
 #include "include_internal/ten_runtime/binding/cpp/detail/addon_loader.h"
 #include "include_internal/ten_runtime/binding/cpp/detail/addon_manager.h"
-#include "node.h"
 #include "ten_utils/lib/module.h"
-#include "v8-script.h"
 
 using node::CommonEnvironmentSetup;
 using node::MultiIsolatePlatform;
