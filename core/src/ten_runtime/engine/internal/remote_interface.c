@@ -679,7 +679,7 @@ bool ten_engine_receive_msg_from_remote(ten_remote_t *remote,
     }
 
     default:
-      ten_engine_dispatch_msg(engine, msg);
+      ten_engine_dispatch_msg(engine, msg, false);
       break;
   }
 

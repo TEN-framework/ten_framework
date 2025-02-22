@@ -23,6 +23,7 @@
 #include "include_internal/ten_runtime/msg/cmd_base/cmd_base.h"
 #include "include_internal/ten_runtime/msg/msg.h"
 #include "include_internal/ten_runtime/msg/msg_info.h"
+#include "include_internal/ten_runtime/path/path.h"
 #include "include_internal/ten_runtime/remote/remote.h"
 #include "ten_runtime/app/app.h"
 #include "ten_runtime/msg/cmd_result/cmd_result.h"
@@ -55,6 +56,99 @@ static void ten_engine_prepend_to_in_msgs_queue(ten_engine_t *self,
   }
 }
 
+static void ten_engine_process_in_path(ten_engine_t *self,
+                                       ten_shared_ptr_t *cmd_result) {
+  TEN_ASSERT(self && ten_engine_check_integrity(self, true),
+             "Should not happen.");
+  TEN_ASSERT(cmd_result &&
+                 ten_msg_get_type(cmd_result) == TEN_MSG_TYPE_CMD_RESULT &&
+                 ten_msg_get_dest_cnt(cmd_result) == 1,
+             "Should not happen.");
+
+  ten_path_t *in_path =
+      ten_path_table_set_result(self->path_table, TEN_PATH_IN, cmd_result);
+  if (!in_path) {
+    TEN_LOGD("[%s] IN path does not exist, discard cmd_result.",
+             ten_engine_get_id(self, true));
+    return;
+  }
+
+  TEN_ASSERT(ten_path_check_integrity(in_path, true), "Should not happen.");
+  TEN_ASSERT(!ten_string_is_empty(&in_path->cmd_name), "Should not happen.");
+
+  // We need to use the original cmd name to find the schema definition of the
+  // cmd result.
+  ten_cmd_result_set_original_cmd_name(
+      cmd_result, ten_string_get_raw_str(&in_path->cmd_name));
+}
+
+static ten_shared_ptr_t *ten_engine_process_out_path(
+    ten_engine_t *self, ten_shared_ptr_t *cmd_result, ten_error_t *err) {
+  TEN_ASSERT(self && ten_engine_check_integrity(self, true),
+             "Should not happen.");
+  TEN_ASSERT(cmd_result &&
+                 ten_msg_get_type(cmd_result) == TEN_MSG_TYPE_CMD_RESULT &&
+                 ten_msg_get_dest_cnt(cmd_result) == 1,
+             "Should not happen.");
+
+  ten_path_t *out_path =
+      ten_path_table_set_result(self->path_table, TEN_PATH_OUT, cmd_result);
+  if (!out_path) {
+    TEN_LOGD("[%s] IN path is missing, discard cmd result.",
+             ten_engine_get_id(self, true));
+    return NULL;
+  }
+
+  TEN_ASSERT(ten_path_check_integrity(out_path, true), "Should not happen.");
+
+  bool is_final_result = ten_cmd_result_is_final(cmd_result, err);
+  // Currently, all `cmd_results` processed by the app will _not_ be streaming
+  // `cmd_results`.
+  TEN_ASSERT(is_final_result, "Should not happen.");
+
+  // Check whether _all_ cmd_results related to this start_graph command have
+  // been received to determine whether to proceed with the next steps of the
+  // start_graph flow.
+  cmd_result = ten_path_table_determine_actual_cmd_result(
+      self->path_table, TEN_PATH_OUT, out_path, is_final_result);
+  if (!cmd_result) {
+    return NULL;
+  }
+
+  return cmd_result;
+}
+
+static void ten_engine_handle_msg(ten_engine_t *self, ten_shared_ptr_t *msg) {
+  TEN_ASSERT(self && ten_engine_check_integrity(self, true),
+             "Invalid argument.");
+  TEN_ASSERT(msg && ten_msg_check_integrity(msg), "Should not happen.");
+
+  if (ten_engine_is_closing(self) &&
+      !ten_msg_type_to_handle_when_closing(msg)) {
+    // Except some special commands, do not handle messages anymore if the
+    // engine is closing.
+    return;
+  }
+
+  if (ten_msg_is_cmd_and_result(msg)) {
+    // Because the command ID is a critical information which is necessary for
+    // the correct handling of all command-type messages, we need to assign a
+    // command ID to messages which don't have one.
+    ten_cmd_base_gen_cmd_id_if_empty(msg);
+  }
+
+  ten_error_t err;
+  TEN_ERROR_INIT(err);
+
+  ten_msg_engine_handler_func_t engine_handler =
+      ten_msg_info[ten_msg_get_type(msg)].engine_handler;
+  if (engine_handler) {
+    engine_handler(self, msg, &err);
+  }
+
+  ten_error_deinit(&err);
+}
+
 static void ten_engine_handle_in_msgs_sync(ten_engine_t *self) {
   TEN_ASSERT(self, "Invalid argument.");
   TEN_ASSERT(ten_engine_check_integrity(self, true),
@@ -78,6 +172,11 @@ static void ten_engine_handle_in_msgs_sync(ten_engine_t *self) {
     TEN_ASSERT(msg && ten_msg_check_integrity(msg), "Should not happen.");
     TEN_ASSERT(!ten_msg_src_is_empty(msg),
                "The message source should have been set.");
+
+    if (ten_engine_dispatch_msg(self, msg, true)) {
+      // The message has already been dispatched from this engine.
+      continue;
+    }
 
     if (ten_msg_is_cmd_and_result(msg)) {
       const char *src_uri = ten_msg_get_src_app_uri(msg);
@@ -134,14 +233,14 @@ static void ten_engine_handle_in_msgs_sync(ten_engine_t *self) {
 
     if (ten_engine_is_ready_to_handle_msg(self)) {
       // Only trigger the engine to handle messages if it is ready.
-      ten_engine_dispatch_msg(self, msg);
+      ten_engine_handle_msg(self, msg);
     } else {
       switch (ten_msg_get_type(msg)) {
         case TEN_MSG_TYPE_CMD_START_GRAPH:
         case TEN_MSG_TYPE_CMD_RESULT:
           // The only message types which can be handled before the engine is
           // ready is relevant to 'start_graph' command.
-          ten_engine_dispatch_msg(self, msg);
+          ten_engine_handle_msg(self, msg);
           break;
 
         default:
@@ -205,37 +304,6 @@ void ten_engine_append_to_in_msgs_queue(ten_engine_t *self,
   ten_engine_handle_in_msgs_async(self);
 }
 
-static void ten_engine_handle_msg(ten_engine_t *self, ten_shared_ptr_t *msg) {
-  TEN_ASSERT(self && ten_engine_check_integrity(self, true),
-             "Invalid argument.");
-  TEN_ASSERT(msg && ten_msg_check_integrity(msg), "Should not happen.");
-
-  if (ten_engine_is_closing(self) &&
-      !ten_msg_type_to_handle_when_closing(msg)) {
-    // Except some special commands, do not handle messages anymore if the
-    // engine is closing.
-    return;
-  }
-
-  if (ten_msg_is_cmd_and_result(msg)) {
-    // Because the command ID is a critical information which is necessary for
-    // the correct handling of all command-type messages, we need to assign a
-    // command ID to messages which don't have one.
-    ten_cmd_base_gen_cmd_id_if_empty(msg);
-  }
-
-  ten_error_t err;
-  TEN_ERROR_INIT(err);
-
-  ten_msg_engine_handler_func_t engine_handler =
-      ten_msg_info[ten_msg_get_type(msg)].engine_handler;
-  if (engine_handler) {
-    engine_handler(self, msg, &err);
-  }
-
-  ten_error_deinit(&err);
-}
-
 static void ten_engine_post_msg_to_extension_thread(
     ten_engine_t *self, ten_extension_thread_t *extension_thread,
     ten_shared_ptr_t *msg) {
@@ -294,7 +362,8 @@ static void ten_engine_post_msg_to_extension_thread(
   }
 }
 
-bool ten_engine_dispatch_msg(ten_engine_t *self, ten_shared_ptr_t *msg) {
+bool ten_engine_dispatch_msg(ten_engine_t *self, ten_shared_ptr_t *msg,
+                             bool skip_engine_msg) {
   TEN_ASSERT(self && ten_engine_check_integrity(self, true),
              "Should not happen.");
   TEN_ASSERT(msg && ten_msg_check_integrity(msg), "Should not happen.");
@@ -342,8 +411,11 @@ bool ten_engine_dispatch_msg(ten_engine_t *self, ten_shared_ptr_t *msg) {
       if (ten_string_is_empty(&dest_loc->extension_group_name)) {
         // It means the destination is the current engine, so ask the current
         // engine to handle this message.
-
-        ten_engine_handle_msg(self, msg);
+        if (skip_engine_msg) {
+          return false;
+        } else {
+          ten_engine_append_to_in_msgs_queue(self, msg);
+        }
       } else {
         // Find the correct extension thread to handle this message.
 
@@ -384,7 +456,7 @@ bool ten_engine_dispatch_msg(ten_engine_t *self, ten_shared_ptr_t *msg) {
               ten_extension_group_create_cmd_result_for_invalid_dest(
                   msg, &dest_loc->extension_group_name);
 
-          ten_engine_dispatch_msg(self, cmd_result);
+          ten_engine_dispatch_msg(self, cmd_result, false);
 
           ten_shared_ptr_destroy(cmd_result);
         }
@@ -417,7 +489,7 @@ void ten_engine_create_cmd_result_and_dispatch(ten_engine_t *self,
                          NULL);
   }
 
-  ten_engine_dispatch_msg(self, cmd_result);
+  ten_engine_dispatch_msg(self, cmd_result, false);
 
   ten_shared_ptr_destroy(cmd_result);
 }
