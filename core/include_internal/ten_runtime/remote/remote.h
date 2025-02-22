@@ -10,7 +10,6 @@
 
 #include <stdbool.h>
 
-#include "include_internal/ten_runtime/common/loc.h"
 #include "ten_utils/container/hash_handle.h"
 #include "ten_utils/container/hash_table.h"
 #include "ten_utils/io/runloop.h"
@@ -53,11 +52,6 @@ struct ten_remote_t {
   //                           ^^^^
   ten_connection_t *connection;
   ten_engine_t *engine;
-
-  // This field is used in the scenario of 'connect_to', all the messages coming
-  // from this remote will go to the extension where 'connect_to' command is
-  // executed.
-  ten_loc_t explicit_dest_loc;
 
   // @{
   // Member functions.

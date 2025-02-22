@@ -6,8 +6,6 @@
 //
 #include "include_internal/ten_runtime/remote/remote.h"
 
-#include <stdlib.h>
-
 #include "include_internal/ten_runtime/app/app.h"
 #include "include_internal/ten_runtime/connection/connection.h"
 #include "include_internal/ten_runtime/engine/engine.h"
@@ -68,7 +66,6 @@ void ten_remote_destroy(ten_remote_t *self) {
   }
 
   ten_string_deinit(&self->uri);
-  ten_loc_deinit(&self->explicit_dest_loc);
   ten_sanitizer_thread_check_deinit(&self->thread_check);
 
   if (self->on_server_connected_cmd) {
@@ -159,8 +156,6 @@ static ten_remote_t *ten_remote_create_empty(const char *uri,
   self->connection = connection;
 
   self->engine = NULL;
-
-  ten_loc_init_empty(&self->explicit_dest_loc);
 
   return self;
 }
