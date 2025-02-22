@@ -51,10 +51,10 @@ class test_extension_2 : public ten::extension_t {
     if (cmd->get_name() == "process") {
       auto data = cmd->get_property_int64("data");
 
-      auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
+      auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK, *cmd);
       cmd_result->set_property("data", data * data);
 
-      ten_env.return_result(std::move(cmd_result), std::move(cmd));
+      ten_env.return_result(std::move(cmd_result));
 
       // Send another command after 1 second.
       auto *ten_env_proxy = ten::ten_env_proxy_t::create(ten_env);

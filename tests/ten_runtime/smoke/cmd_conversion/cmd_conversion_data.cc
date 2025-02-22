@@ -26,9 +26,9 @@ class test_extension_1 : public ten::extension_t {
       data->set_property("prop_bool", true);
       ten_env.send_data(std::move(data));
 
-      auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
+      auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK, *cmd);
       cmd_result->set_property("detail", "data sent");
-      ten_env.return_result(std::move(cmd_result), std::move(cmd));
+      ten_env.return_result(std::move(cmd_result));
       return;
     }
   }
@@ -42,13 +42,14 @@ class test_extension_2 : public ten::extension_t {
               std::unique_ptr<ten::cmd_t> cmd) override {
     if (cmd->get_name() == "data_received_check") {
       if (data_received) {
-        auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
+        auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK, *cmd);
         cmd_result->set_property("detail", "data received");
-        ten_env.return_result(std::move(cmd_result), std::move(cmd));
+        ten_env.return_result(std::move(cmd_result));
       } else {
-        auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_ERROR);
+        auto cmd_result =
+            ten::cmd_result_t::create(TEN_STATUS_CODE_ERROR, *cmd);
         cmd_result->set_property("detail", "data not received");
-        ten_env.return_result(std::move(cmd_result), std::move(cmd));
+        ten_env.return_result(std::move(cmd_result));
       }
     }
   }

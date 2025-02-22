@@ -675,9 +675,9 @@ class test_extension_1 : public ten::extension_t {
     const std::string command = cmd->get_name();
 
     if (command == "from_extension_2") {
-      auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
+      auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK, *cmd);
       cmd_result->set_property("detail", "success");
-      ten_env.return_result(std::move(cmd_result), std::move(cmd));
+      ten_env.return_result(std::move(cmd_result));
     }
   }
 
@@ -859,9 +859,9 @@ class test_extension_2 : public ten::extension_t {
   void on_cmd(ten::ten_env_t &ten_env,
               std::unique_ptr<ten::cmd_t> cmd) override {
     if (cmd->get_name() == std::string("start_to_send")) {
-      auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
+      auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK, *cmd);
       cmd_result->set_property("detail", "ok");
-      ten_env.return_result(std::move(cmd_result), std::move(cmd));
+      ten_env.return_result(std::move(cmd_result));
 
       auto timer_cmd = ten::cmd_timer_t::create();
       timer_cmd->set_dest("localhost", nullptr, nullptr, nullptr);
@@ -909,11 +909,10 @@ class test_extension_2 : public ten::extension_t {
                       if ((hello_cmd != nullptr) && is_received_all_data() &&
                           (received_from_extension_2_cmd_result ==
                            expected_received_from_extension_2_cmd_result)) {
-                        auto cmd_result =
-                            ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
+                        auto cmd_result = ten::cmd_result_t::create(
+                            TEN_STATUS_CODE_OK, *hello_cmd);
                         cmd_result->set_property("detail", "ok");
-                        ten_env.return_result(std::move(cmd_result),
-                                              std::move(hello_cmd));
+                        ten_env.return_result(std::move(cmd_result));
                       }
                     });
               });
@@ -928,9 +927,9 @@ class test_extension_2 : public ten::extension_t {
       if (is_received_all_data() &&
           (received_from_extension_2_cmd_result ==
            expected_received_from_extension_2_cmd_result)) {
-        auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
+        auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK, *cmd);
         cmd_result->set_property("detail", "ok");
-        ten_env.return_result(std::move(cmd_result), std::move(cmd));
+        ten_env.return_result(std::move(cmd_result));
       } else {
         hello_cmd = std::move(cmd);
       }
@@ -957,9 +956,10 @@ class test_extension_2 : public ten::extension_t {
     if ((hello_cmd != nullptr) && is_received_all_data() &&
         (received_from_extension_2_cmd_result ==
          expected_received_from_extension_2_cmd_result)) {
-      auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
+      auto cmd_result =
+          ten::cmd_result_t::create(TEN_STATUS_CODE_OK, *hello_cmd);
       cmd_result->set_property("detail", "ok");
-      ten_env.return_result(std::move(cmd_result), std::move(hello_cmd));
+      ten_env.return_result(std::move(cmd_result));
     }
   }
 

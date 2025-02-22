@@ -28,6 +28,7 @@
 #include "ten_utils/lib/atomic.h"
 #include "ten_utils/lib/ref.h"
 #include "ten_utils/lib/smart_ptr.h"
+#include "ten_utils/lib/string.h"
 #include "ten_utils/macro/check.h"
 #include "ten_utils/macro/mark.h"
 #include "ten_utils/sanitizer/thread_check.h"
@@ -79,6 +80,8 @@ void ten_connection_destroy(ten_connection_t *self) {
              "Connection should be closed first before been destroyed.");
 
   ten_signature_set(&self->signature, 0);
+
+  ten_string_deinit(&self->uri);
 
   if (self->protocol) {
     ten_ref_dec_ref(&self->protocol->ref);
@@ -178,6 +181,8 @@ ten_connection_t *ten_connection_create(ten_protocol_t *protocol) {
   self->attached_target.remote = NULL;
 
   self->migration_state = TEN_CONNECTION_MIGRATION_STATE_INIT;
+
+  ten_string_init(&self->uri);
 
   ten_atomic_store(&self->is_closing, 0);
   self->is_closed = false;
@@ -345,16 +350,13 @@ void ten_connection_on_msgs(ten_connection_t *self, ten_list_t *msgs) {
     ten_shared_ptr_t *msg = ten_smart_ptr_listnode_get(iter.node);
 
     if (ten_msg_is_cmd_and_result(msg)) {
-      // For a command message, remember which connection this command is coming
-      // from.
-      ten_cmd_base_set_original_connection(msg, self);
-
       // If this command is coming from outside of the TEN world (i.e.,
       // clients), the command ID would be empty, so we generate a new one for
       // it in this case now.
       const char *cmd_id = ten_cmd_base_get_cmd_id(msg);
       TEN_ASSERT(cmd_id, "Should not happen.");
-      if (!strlen(cmd_id)) {
+
+      if (strlen(cmd_id) == 0) {
         ten_connection_handle_command_from_external_client(self, msg);
       }
     } else {
@@ -365,6 +367,12 @@ void ten_connection_on_msgs(ten_connection_t *self, ten_list_t *msgs) {
         // drop them directly.
         continue;
       }
+    }
+
+    // If this connection has not been assigned a URI yet, the source URI of the
+    // first received command will become the URI of this connection.
+    if (ten_string_is_empty(&self->uri)) {
+      ten_string_set_from_c_str(&self->uri, ten_msg_get_src_app_uri(msg));
     }
 
     // Send into the TEN runtime to be processed.
@@ -409,8 +417,6 @@ void ten_connection_attach_to_remote(ten_connection_t *self,
 
   ten_atomic_store(&self->attach_to, TEN_CONNECTION_ATTACH_TO_REMOTE);
   self->attached_target.remote = remote;
-
-  ten_connection_set_on_closed(self, ten_remote_on_connection_closed, remote);
 
   if (self->protocol) {
     ten_protocol_set_uri(self->protocol, &remote->uri);
@@ -460,7 +466,7 @@ ten_runloop_t *ten_connection_get_attached_runloop(ten_connection_t *self) {
   // function has been called which means the migration is completed). Refer to
   // 'ten_protocol_asynced_on_input_async()'.
 
-  switch (ten_atomic_load(&self->attach_to)) {
+  switch (ten_connection_attach_to(self)) {
     case TEN_CONNECTION_ATTACH_TO_REMOTE:
       return ten_remote_get_attached_runloop(self->attached_target.remote);
     case TEN_CONNECTION_ATTACH_TO_ENGINE:

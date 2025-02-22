@@ -59,11 +59,10 @@ class test_predefined_graph : public ten::extension_t {
                   nlohmann::json detail = {{"id", 1}, {"name", "a"}};
 
                   auto cmd_result_for_test =
-                      ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
+                      ten::cmd_result_t::create(TEN_STATUS_CODE_OK, *test_cmd);
                   cmd_result_for_test->set_property_from_json(
                       "detail", detail.dump().c_str());
-                  ten_env.return_result(std::move(cmd_result_for_test),
-                                        std::move(test_cmd));
+                  ten_env.return_result(std::move(cmd_result_for_test));
                 }
               });
         });
@@ -77,9 +76,9 @@ class test_predefined_graph : public ten::extension_t {
       if (start_graph_cmd_is_done) {
         nlohmann::json detail = {{"id", 1}, {"name", "a"}};
 
-        auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
+        auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK, *cmd);
         cmd_result->set_property_from_json("detail", detail.dump().c_str());
-        ten_env.return_result(std::move(cmd_result), std::move(cmd));
+        ten_env.return_result(std::move(cmd_result));
       } else {
         test_cmd = std::move(cmd);
         return;

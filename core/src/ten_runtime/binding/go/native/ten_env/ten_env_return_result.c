@@ -146,52 +146,7 @@ static void ten_env_proxy_notify_return_result(ten_env_t *ten_env,
 
 ten_go_error_t ten_go_ten_env_return_result(uintptr_t bridge_addr,
                                             uintptr_t cmd_result_bridge_addr,
-                                            uintptr_t cmd_bridge_addr,
                                             ten_go_handle_t handler_id) {
-  ten_go_ten_env_t *self = ten_go_ten_env_reinterpret(bridge_addr);
-  TEN_ASSERT(self && ten_go_ten_env_check_integrity(self),
-             "Should not happen.");
-
-  ten_go_msg_t *cmd = ten_go_msg_reinterpret(cmd_bridge_addr);
-  TEN_ASSERT(cmd && ten_go_msg_check_integrity(cmd), "Should not happen.");
-  TEN_ASSERT(ten_go_msg_c_msg(cmd), "Should not happen.");
-
-  ten_go_msg_t *cmd_result = ten_go_msg_reinterpret(cmd_result_bridge_addr);
-  TEN_ASSERT(cmd_result && ten_go_msg_check_integrity(cmd_result),
-             "Should not happen.");
-
-  ten_go_error_t cgo_error;
-  ten_go_error_init_with_error_code(&cgo_error, TEN_ERROR_CODE_OK);
-  TEN_GO_TEN_ENV_IS_ALIVE_REGION_BEGIN(self, {
-    ten_go_error_set_error_code(&cgo_error, TEN_ERROR_CODE_TEN_IS_CLOSED);
-  });
-
-  ten_error_t err;
-  TEN_ERROR_INIT(err);
-
-  ten_env_notify_return_result_ctx_t *return_result_info =
-      ten_env_notify_return_result_ctx_create(
-          ten_go_msg_move_c_msg(cmd_result), ten_go_msg_move_c_msg(cmd),
-          handler_id <= 0 ? TEN_GO_NO_RESPONSE_HANDLER : handler_id);
-
-  if (!ten_env_proxy_notify(self->c_ten_env_proxy,
-                            ten_env_proxy_notify_return_result,
-                            return_result_info, false, &err)) {
-    ten_env_notify_return_result_ctx_destroy(return_result_info);
-    ten_go_error_from_error(&cgo_error, &err);
-  }
-
-  ten_error_deinit(&err);
-
-  TEN_GO_TEN_ENV_IS_ALIVE_REGION_END(self);
-
-ten_is_close:
-  return cgo_error;
-}
-
-ten_go_error_t ten_go_ten_env_return_result_directly(
-    uintptr_t bridge_addr, uintptr_t cmd_result_bridge_addr,
-    ten_go_handle_t handler_id) {
   ten_go_ten_env_t *self = ten_go_ten_env_reinterpret(bridge_addr);
   TEN_ASSERT(self && ten_go_ten_env_check_integrity(self),
              "Should not happen.");

@@ -25,6 +25,7 @@
 #include "ten_utils/lib/mutex.h"
 #include "ten_utils/lib/ref.h"
 #include "ten_utils/lib/smart_ptr.h"
+#include "ten_utils/lib/string.h"
 #include "ten_utils/lib/uri.h"
 #include "ten_utils/macro/check.h"
 #include "ten_utils/macro/mark.h"
@@ -494,6 +495,14 @@ void ten_protocol_set_uri(ten_protocol_t *self, ten_string_t *uri) {
              "Access across threads.");
 
   ten_string_copy(&self->uri, uri);
+}
+
+const char *ten_protocol_get_uri(ten_protocol_t *self) {
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_protocol_check_integrity(self, true),
+             "Access across threads.");
+
+  return ten_string_get_raw_str(&self->uri);
 }
 
 bool ten_protocol_role_is_communication(ten_protocol_t *self) {

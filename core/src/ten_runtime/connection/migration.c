@@ -142,12 +142,7 @@ void ten_connection_upgrade_migration_state_to_done(ten_connection_t *self,
     self->attached_target.engine = engine;
     ten_atomic_store(&self->attach_to, TEN_CONNECTION_ATTACH_TO_ENGINE);
 
-    // We have to set the 'on_closed' callback to destroy the connection, if the
-    // connection is being closed before the corresponding 'ten_remote_t' object
-    // is created. Ex: the connection is 'duplicated' in the 'start_graph'
-    // stage, refer to
-    // 'ten_engine_close_duplicated_remote_or_upgrade_it_to_normal()'.
-    ten_connection_set_on_closed(self, ten_engine_on_connection_closed, NULL);
+    ten_engine_add_orphan_connection(engine, self);
     // @}
   }
 

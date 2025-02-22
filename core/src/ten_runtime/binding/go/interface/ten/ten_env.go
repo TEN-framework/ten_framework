@@ -33,8 +33,7 @@ type TenEnv interface {
 	SendVideoFrame(videoFrame VideoFrame, handler ErrorHandler) error
 	SendAudioFrame(audioFrame AudioFrame, handler ErrorHandler) error
 
-	ReturnResult(result CmdResult, cmd Cmd, handler ErrorHandler) error
-	ReturnResultDirectly(result CmdResult, handler ErrorHandler) error
+	ReturnResult(result CmdResult, handler ErrorHandler) error
 
 	OnConfigureDone() error
 	OnInitDone() error

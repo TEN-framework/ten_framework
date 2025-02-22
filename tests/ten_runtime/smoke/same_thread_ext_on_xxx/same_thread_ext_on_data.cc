@@ -38,9 +38,9 @@ class test_extension_1 : public ten::extension_t {
       ten_data->set_property("test_data", test_data);
       ten_env.send_data(std::move(ten_data));
 
-      auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
+      auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK, *cmd);
       cmd_result->set_property("detail", "hello world, too");
-      ten_env.return_result(std::move(cmd_result), std::move(cmd));
+      ten_env.return_result(std::move(cmd_result));
     }
   }
 };

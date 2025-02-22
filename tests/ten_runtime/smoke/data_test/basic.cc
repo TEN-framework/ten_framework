@@ -25,13 +25,14 @@ class test_extension : public ten::extension_t {
               std::unique_ptr<ten::cmd_t> cmd) override {
     if (cmd->get_name() == "check_received") {
       if (received) {
-        auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
+        auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK, *cmd);
         cmd_result->set_property("detail", "received confirmed");
-        ten_env.return_result(std::move(cmd_result), std::move(cmd));
+        ten_env.return_result(std::move(cmd_result));
       } else {
-        auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_ERROR);
+        auto cmd_result =
+            ten::cmd_result_t::create(TEN_STATUS_CODE_ERROR, *cmd);
         cmd_result->set_property("detail", "received failed");
-        ten_env.return_result(std::move(cmd_result), std::move(cmd));
+        ten_env.return_result(std::move(cmd_result));
       }
     }
   }

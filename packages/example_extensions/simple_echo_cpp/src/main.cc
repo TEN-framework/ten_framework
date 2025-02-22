@@ -23,10 +23,10 @@ class simple_echo_extension_t : public ten::extension_t {
 
     std::string cmd_name = cmd->get_name();
 
-    auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
+    auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK, *cmd);
     cmd_result->set_property("detail", cmd_name + ", too");
 
-    ten_env.return_result(std::move(cmd_result), std::move(cmd));
+    ten_env.return_result(std::move(cmd_result));
   }
 
   void on_data(ten::ten_env_t &ten_env,

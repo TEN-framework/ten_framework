@@ -30,6 +30,7 @@
 #include "ten_utils/lib/string.h"
 #include "ten_utils/lib/uuid.h"
 #include "ten_utils/macro/check.h"
+#include "ten_utils/macro/mark.h"
 #include "ten_utils/sanitizer/thread_check.h"
 
 bool ten_engine_check_integrity(ten_engine_t *self, bool check_thread) {
@@ -66,6 +67,9 @@ void ten_engine_destroy(ten_engine_t *self) {
   ten_env_destroy(self->ten_env);
 
   ten_signature_set(&self->signature, 0);
+
+  TEN_ASSERT(ten_list_is_empty(&self->orphan_connections),
+             "Should not happen.");
 
   ten_hashtable_deinit(&self->remotes);
   ten_list_clear(&self->weak_remotes);
@@ -184,6 +188,8 @@ ten_engine_t *ten_engine_create(ten_app_t *app, ten_shared_ptr_t *cmd) {
   self->belonging_thread_is_set = NULL;
   self->is_ready_to_handle_msg = false;
 
+  ten_list_init(&self->orphan_connections);
+
   ten_hashtable_init(&self->remotes,
                      offsetof(ten_remote_t, hh_in_remote_table));
   ten_list_init(&self->weak_remotes);
@@ -254,4 +260,92 @@ const char *ten_engine_get_id(ten_engine_t *self, bool check_thread) {
              "Should not happen.");
 
   return ten_string_get_raw_str(&self->graph_id);
+}
+
+void ten_engine_del_orphan_connection(ten_engine_t *self,
+                                      ten_connection_t *connection) {
+  TEN_ASSERT(self && ten_engine_check_integrity(self, true),
+             "Should not happen.");
+  TEN_ASSERT(connection && ten_connection_check_integrity(connection, true),
+             "Should not happen.");
+
+  TEN_LOGD("[%s] Remove a orphan connection %p", ten_engine_get_id(self, true),
+           connection);
+
+  TEN_UNUSED bool rc =
+      ten_list_remove_ptr(&self->orphan_connections, connection);
+  TEN_ASSERT(rc, "Should not happen.");
+
+  connection->on_closed = NULL;
+  connection->on_closed_data = NULL;
+}
+
+static void ten_engine_on_orphan_connection_closed(
+    ten_connection_t *connection, TEN_UNUSED void *on_closed_data) {
+  TEN_ASSERT(connection && ten_connection_check_integrity(connection, true),
+             "Should not happen.");
+
+  ten_engine_t *self = connection->attached_target.engine;
+  TEN_ASSERT(self && ten_engine_check_integrity(self, true),
+             "Should not happen.");
+
+  TEN_LOGD("[%s] Orphan connection %p closed", ten_engine_get_id(self, true),
+           connection);
+
+  ten_engine_del_orphan_connection(self, connection);
+  ten_connection_destroy(connection);
+
+  // Check if the app is in the closing phase.
+  if (ten_engine_is_closing(self)) {
+    TEN_LOGD("[%s] Engine is closing, check to see if it could proceed.",
+             ten_engine_get_id(self, true));
+    ten_engine_on_close(self);
+  } else {
+    // If 'connection' is an orphan connection, it means the connection is not
+    // attached to an engine, and the TEN app should _not_ be closed due to an
+    // strange connection like this, otherwise, the TEN app will be very
+    // fragile, anyone could simply connect to the TEN app, and close the app
+    // through disconnection.
+  }
+}
+
+void ten_engine_add_orphan_connection(ten_engine_t *self,
+                                      ten_connection_t *connection) {
+  TEN_ASSERT(self && ten_engine_check_integrity(self, true),
+             "Should not happen.");
+  TEN_ASSERT(connection && ten_connection_check_integrity(connection, true),
+             "Should not happen.");
+
+  TEN_LOGD("[%s] Add a orphan connection %p[%s] (total cnt %zu)",
+           ten_engine_get_id(self, true), connection,
+           ten_string_get_raw_str(&connection->uri),
+           ten_list_size(&self->orphan_connections));
+
+  ten_connection_set_on_closed(connection,
+                               ten_engine_on_orphan_connection_closed, NULL);
+
+  // Do not set 'ten_connection_destroy' as the destroy function, because we
+  // might _move_ a connection out of 'orphan_connections' list when it is
+  // associated with an engine.
+  ten_list_push_ptr_back(&self->orphan_connections, connection, NULL);
+}
+
+ten_connection_t *ten_engine_find_orphan_connection(ten_engine_t *self,
+                                                    const char *uri) {
+  TEN_ASSERT(self && ten_engine_check_integrity(self, true),
+             "Should not happen.");
+
+  if (strlen(uri)) {
+    ten_list_foreach (&self->orphan_connections, iter) {
+      ten_connection_t *connection = ten_ptr_listnode_get(iter.node);
+      TEN_ASSERT(connection && ten_connection_check_integrity(connection, true),
+                 "Should not happen.");
+
+      if (ten_string_is_equal_c_str(&connection->uri, uri)) {
+        return connection;
+      }
+    }
+  }
+
+  return NULL;
 }

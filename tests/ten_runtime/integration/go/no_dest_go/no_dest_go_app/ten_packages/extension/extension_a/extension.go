@@ -100,9 +100,9 @@ func (p *aExtension) OnCmd(
 	tenEnv ten.TenEnv,
 	cmd ten.Cmd,
 ) {
-	cmdResult, _ := ten.NewCmdResult(ten.StatusCodeOk)
+	cmdResult, _ := ten.NewCmdResult(ten.StatusCodeOk, cmd)
 	cmdResult.SetPropertyString("detail", "okok")
-	err := tenEnv.ReturnResult(cmdResult, cmd, nil)
+	err := tenEnv.ReturnResult(cmdResult, nil)
 	if err != nil {
 		panic("ReturnResult failed")
 	}

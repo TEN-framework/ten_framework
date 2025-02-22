@@ -38,8 +38,8 @@ func (e *defaultExtension) OnCmd(
 ) {
 	tenEnv.LogDebug("OnCmd")
 
-	cmdResult, _ := ten.NewCmdResult(ten.StatusCodeOk)
-	tenEnv.ReturnResult(cmdResult, cmd, nil)
+	cmdResult, _ := ten.NewCmdResult(ten.StatusCodeOk, cmd)
+	tenEnv.ReturnResult(cmdResult, nil)
 }
 
 func init() {

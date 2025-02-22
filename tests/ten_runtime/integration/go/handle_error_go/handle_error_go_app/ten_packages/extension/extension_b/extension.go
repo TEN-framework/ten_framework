@@ -34,13 +34,13 @@ func (p *extensionB) OnCmd(
 			// Try to get nonexistent property.
 			res, err := cmd.GetPropertyString("agora")
 			if err != nil {
-				cmdResult, _ := ten.NewCmdResult(ten.StatusCodeError)
+				cmdResult, _ := ten.NewCmdResult(ten.StatusCodeError, cmd)
 				cmdResult.SetPropertyString("detail", err.Error())
-				tenEnv.ReturnResult(cmdResult, cmd, nil)
+				tenEnv.ReturnResult(cmdResult, nil)
 			} else {
-				cmdResult, _ := ten.NewCmdResult(ten.StatusCodeOk)
+				cmdResult, _ := ten.NewCmdResult(ten.StatusCodeOk, cmd)
 				cmdResult.SetPropertyString("detail", res)
-				tenEnv.ReturnResult(cmdResult, cmd, nil)
+				tenEnv.ReturnResult(cmdResult, nil)
 			}
 
 		} else {

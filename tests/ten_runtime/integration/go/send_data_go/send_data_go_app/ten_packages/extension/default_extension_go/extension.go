@@ -64,7 +64,7 @@ func (ext *defaultExtension) OnCmd(
 		panic("Failed to send data.")
 	}
 
-	cmdResult, error := ten.NewCmdResult(ten.StatusCodeOk)
+	cmdResult, error := ten.NewCmdResult(ten.StatusCodeOk, cmd)
 	if error != nil {
 		panic("Failed to create cmd result.")
 	}
@@ -73,7 +73,7 @@ func (ext *defaultExtension) OnCmd(
 		panic("Failed to set property string.")
 	}
 
-	if error := tenEnv.ReturnResult(cmdResult, cmd, nil); error != nil {
+	if error := tenEnv.ReturnResult(cmdResult, nil); error != nil {
 		panic("Failed to return result.")
 	}
 }

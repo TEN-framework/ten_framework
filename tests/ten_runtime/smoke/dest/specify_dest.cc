@@ -106,24 +106,23 @@ class business_extension : public ten::extension_t {
     auto cmd_shared =
         std::make_shared<std::unique_ptr<ten::cmd_t>>(std::move(cmd));
 
-    ten_env.send_cmd(
-        std::move(cmd_to_plugin_2),
-        [cmd_shared](ten::ten_env_t &ten_env,
-                     std::unique_ptr<ten::cmd_result_t> cmd_result,
-                     ten::error_t *err) {
-          // Receive result from plugin_2.
-          nlohmann::json json =
-              nlohmann::json::parse(cmd_result->get_property_to_json());
-          if (json["detail"] == "plugin_2_result") {
-            // Successfully completed the interaction with plugin_2,
-            // the next step is to return a result to the request
-            // submitter (i.e., the client).
-            auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
-            cmd_result->set_property("detail", "success");
-            ten_env.return_result(std::move(cmd_result),
-                                  std::move(*cmd_shared));
-          }
-        });
+    ten_env.send_cmd(std::move(cmd_to_plugin_2),
+                     [cmd_shared](ten::ten_env_t &ten_env,
+                                  std::unique_ptr<ten::cmd_result_t> cmd_result,
+                                  ten::error_t *err) {
+                       // Receive result from plugin_2.
+                       nlohmann::json json = nlohmann::json::parse(
+                           cmd_result->get_property_to_json());
+                       if (json["detail"] == "plugin_2_result") {
+                         // Successfully completed the interaction with
+                         // plugin_2, the next step is to return a result to the
+                         // request submitter (i.e., the client).
+                         auto cmd_result = ten::cmd_result_t::create(
+                             TEN_STATUS_CODE_OK, **cmd_shared);
+                         cmd_result->set_property("detail", "success");
+                         ten_env.return_result(std::move(cmd_result));
+                       }
+                     });
   }
 };
 
@@ -135,9 +134,9 @@ class plugin_extension_1 : public ten::extension_t {
               std::unique_ptr<ten::cmd_t> cmd) override {
     // Simulate the action of receiving a command, and return a result.
     if (cmd->get_name() == "plugin_1_cmd") {
-      auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
+      auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK, *cmd);
       cmd_result->set_property("detail", "plugin_1_result");
-      ten_env.return_result(std::move(cmd_result), std::move(cmd));
+      ten_env.return_result(std::move(cmd_result));
     }
   }
 };
@@ -150,9 +149,9 @@ class plugin_extension_2 : public ten::extension_t {
               std::unique_ptr<ten::cmd_t> cmd) override {
     // Simulate the action of receiving a command, and return a result.
     if (cmd->get_name() == "plugin_2_cmd") {
-      auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
+      auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK, *cmd);
       cmd_result->set_property("detail", "plugin_2_result");
-      ten_env.return_result(std::move(cmd_result), std::move(cmd));
+      ten_env.return_result(std::move(cmd_result));
     }
   }
 };

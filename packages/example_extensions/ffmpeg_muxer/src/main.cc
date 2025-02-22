@@ -78,8 +78,8 @@ class muxer_extension_t : public extension_t {
       muxer_thread_->start();
       muxer_thread_->wait_for_start();
 
-      auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
-      ten_env.return_result(std::move(cmd_result), std::move(cmd));
+      auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK, *cmd);
+      ten_env.return_result(std::move(cmd_result));
     }
   }
 

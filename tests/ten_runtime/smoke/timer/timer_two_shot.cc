@@ -41,10 +41,10 @@ class test_extension : public ten::extension_t {
                        ->get_timer_id() == 55) {
       timer_shots_cnt++;
       if (timer_shots_cnt == TIMER_TIMES) {
-        auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
+        auto cmd_result =
+            ten::cmd_result_t::create(TEN_STATUS_CODE_OK, *hello_world_cmd);
         cmd_result->set_property("detail", "hello world, too");
-        ten_env.return_result(std::move(cmd_result),
-                              std::move(hello_world_cmd));
+        ten_env.return_result(std::move(cmd_result));
       }
     }
   }

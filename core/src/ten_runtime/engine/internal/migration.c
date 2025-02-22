@@ -114,9 +114,6 @@ void ten_engine_on_connection_cleaned_async(ten_engine_t *self,
              "Access across threads.");
   TEN_ASSERT(cmd && ten_msg_check_integrity(cmd), "Invalid argument.");
 
-  // TODO(Liu): The 'connection' should be the 'original_connection' of the
-  // 'cmd', so we can use the 'cmd' as the parameter directly. But we have to
-  // refine the 'ten_app_on_msg()' first.
   ten_engine_migration_user_data_t *user_data =
       ten_engine_migration_user_data_create(connection, cmd);
 

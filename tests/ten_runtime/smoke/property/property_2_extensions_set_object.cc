@@ -71,18 +71,17 @@ class test_extension_1 : public ten::extension_t {
       })");
       TEN_ASSERT(rc, "Should not happen.");
 
-      ten_env.send_cmd(std::move(internal_cmd),
-                       [this](ten::ten_env_t &ten_env,
-                              std::unique_ptr<ten::cmd_result_t> cmd_result,
-                              ten::error_t *err) {
-                         auto cmd_result_for_hello_world =
-                             ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
-                         cmd_result_for_hello_world->set_property(
-                             "detail", "hello world, too");
-                         ten_env.return_result(
-                             std::move(cmd_result_for_hello_world),
-                             std::move(hello_world_cmd));
-                       });
+      ten_env.send_cmd(
+          std::move(internal_cmd),
+          [this](ten::ten_env_t &ten_env,
+                 std::unique_ptr<ten::cmd_result_t> cmd_result,
+                 ten::error_t *err) {
+            auto cmd_result_for_hello_world =
+                ten::cmd_result_t::create(TEN_STATUS_CODE_OK, *hello_world_cmd);
+            cmd_result_for_hello_world->set_property("detail",
+                                                     "hello world, too");
+            ten_env.return_result(std::move(cmd_result_for_hello_world));
+          });
     }
   }
 
@@ -97,9 +96,9 @@ class test_extension_2 : public ten::extension_t {
   void on_cmd(ten::ten_env_t &ten_env,
               std::unique_ptr<ten::cmd_t> cmd) override {
     if (cmd->get_name() == "internal_cmd") {
-      auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
+      auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK, *cmd);
       cmd_result->set_property("detail", "ack for internal_cmd");
-      ten_env.return_result(std::move(cmd_result), std::move(cmd));
+      ten_env.return_result(std::move(cmd_result));
     }
   }
 };

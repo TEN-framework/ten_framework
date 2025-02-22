@@ -21,9 +21,9 @@ class test_extension_1 : public ten::extension_t {
 
   void on_cmd(ten::ten_env_t &ten_env,
               std::unique_ptr<ten::cmd_t> cmd) override {
-    auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
+    auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK, *cmd);
     cmd_result->set_property("detail", "hello from test extension 1");
-    ten_env.return_result(std::move(cmd_result), std::move(cmd));
+    ten_env.return_result(std::move(cmd_result));
   }
 };
 
@@ -33,9 +33,9 @@ class test_extension_2 : public ten::extension_t {
 
   void on_cmd(ten::ten_env_t &ten_env,
               std::unique_ptr<ten::cmd_t> cmd) override {
-    auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
+    auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK, *cmd);
     cmd_result->set_property("detail", "hello from test extension 2");
-    ten_env.return_result(std::move(cmd_result), std::move(cmd));
+    ten_env.return_result(std::move(cmd_result));
   }
 };
 

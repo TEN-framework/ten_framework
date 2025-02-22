@@ -141,6 +141,8 @@ typedef struct ten_connection_t {
   ten_signature_t signature;
   ten_sanitizer_thread_check_t thread_check;
 
+  ten_string_t uri;
+
   // The main thread would update this variable. When the extension thread wants
   // to send msgs, it would read this variable to determine if it can send the
   // msgs or not. So we need to apply some synchronization method (atomic) on
@@ -160,6 +162,7 @@ typedef struct ten_connection_t {
 
   bool duplicate;
 
+  // =-=-= 不用是 atomic?
   ten_atomic_t attach_to;  // TEN_CONNECTION_ATTACH_TO
   union {
     ten_app_t *app;

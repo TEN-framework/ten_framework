@@ -28,9 +28,10 @@ class test_extension_1 : public ten::extension_t {
       auto data = ten::data_t::create("data");
       ten_env.send_data(std::move(data));
     } else if (cmd->get_name() == "data_ack") {
-      auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
+      auto cmd_result =
+          ten::cmd_result_t::create(TEN_STATUS_CODE_OK, *hello_world_cmd);
       cmd_result->set_property("detail", "hello world, too");
-      ten_env.return_result(std::move(cmd_result), std::move(hello_world_cmd));
+      ten_env.return_result(std::move(cmd_result));
     }
   }
 

@@ -28,9 +28,6 @@ TEN_RUNTIME_PRIVATE_API bool ten_app_handle_in_msg(ten_app_t *self,
                                                    ten_shared_ptr_t *msg,
                                                    ten_error_t *err);
 
-TEN_RUNTIME_PRIVATE_API ten_connection_t *ten_app_find_src_connection_for_msg(
-    ten_app_t *self, ten_shared_ptr_t *msg);
-
 TEN_RUNTIME_PRIVATE_API void
 ten_app_do_connection_migration_or_push_to_engine_queue(
     ten_connection_t *connection, ten_engine_t *engine, ten_shared_ptr_t *msg);

@@ -32,7 +32,7 @@ class test_extension_1 : public ten::extension_t {
               TEN_ENV_LOG_INFO(ten_env, "receives 1 cmd result");
             } else if (received_result_cnt == 2) {
               TEN_ENV_LOG_INFO(ten_env, "receives 2 cmd result");
-              ten_env.return_result_directly(std::move(cmd_result));
+              ten_env.return_result(std::move(cmd_result));
             }
           });
       return;
@@ -50,14 +50,14 @@ class test_extension_2 : public ten::extension_t {
   void on_cmd(ten::ten_env_t &ten_env,
               std::unique_ptr<ten::cmd_t> cmd) override {
     if (cmd->get_name() == "hello_world") {
-      auto cmd_result_1 = ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
+      auto cmd_result_1 = ten::cmd_result_t::create(TEN_STATUS_CODE_OK, *cmd);
       cmd_result_1->set_property("detail", "hello world, too");
       cmd_result_1->set_final(false);
-      ten_env.return_result(std::move(cmd_result_1), std::move(cmd));
+      ten_env.return_result(std::move(cmd_result_1));
 
-      auto cmd_result_2 = ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
+      auto cmd_result_2 = ten::cmd_result_t::create(TEN_STATUS_CODE_OK, *cmd);
       cmd_result_2->set_property("detail", "hello world, too");
-      ten_env.return_result(std::move(cmd_result_2), std::move(cmd));
+      ten_env.return_result(std::move(cmd_result_2));
     }
   }
 };

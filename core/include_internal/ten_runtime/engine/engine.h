@@ -30,6 +30,7 @@
 typedef struct ten_extension_context_t ten_extension_context_t;
 typedef struct ten_app_t ten_app_t;
 typedef struct ten_env_t ten_env_t;
+typedef struct ten_connection_t ten_connection_t;
 
 struct ten_engine_t {
   ten_signature_t signature;
@@ -63,6 +64,9 @@ struct ten_engine_t {
   ten_shared_ptr_t *original_start_graph_cmd_of_enabling_engine;
 
   ten_list_t timers;
+
+  // Connections that are not connected to the remote.
+  ten_list_t orphan_connections;
 
   // @{
   ten_hashtable_t remotes;  // ten_remote_t
@@ -112,3 +116,12 @@ TEN_RUNTIME_PRIVATE_API bool ten_engine_is_ready_to_handle_msg(
 
 TEN_RUNTIME_PRIVATE_API const char *ten_engine_get_id(ten_engine_t *self,
                                                       bool check_thread);
+
+TEN_RUNTIME_PRIVATE_API void ten_engine_add_orphan_connection(
+    ten_engine_t *self, ten_connection_t *connection);
+
+TEN_RUNTIME_PRIVATE_API void ten_engine_del_orphan_connection(
+    ten_engine_t *self, ten_connection_t *connection);
+
+TEN_RUNTIME_PRIVATE_API ten_connection_t *ten_engine_find_orphan_connection(
+    ten_engine_t *self, const char *uri);

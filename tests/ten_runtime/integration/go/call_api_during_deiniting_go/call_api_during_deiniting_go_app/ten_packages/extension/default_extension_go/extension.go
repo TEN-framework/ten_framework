@@ -32,21 +32,21 @@ func (ext *serverExtension) OnCmd(tenEnv ten.TenEnv, cmd ten.Cmd) {
 	if name == "register" {
 		ext.registerCount++
 
-		cmdResult, _ := ten.NewCmdResult(ten.StatusCodeOk)
-		tenEnv.ReturnResult(cmdResult, cmd, nil)
+		cmdResult, _ := ten.NewCmdResult(ten.StatusCodeOk, cmd)
+		tenEnv.ReturnResult(cmdResult, nil)
 	} else if name == "unregister" {
 		ext.registerCount--
 
-		cmdResult, _ := ten.NewCmdResult(ten.StatusCodeOk)
-		tenEnv.ReturnResult(cmdResult, cmd, nil)
+		cmdResult, _ := ten.NewCmdResult(ten.StatusCodeOk, cmd)
+		tenEnv.ReturnResult(cmdResult, nil)
 
 		if ext.registerCount == 0 && ext.isStopping {
 			tenEnv.OnStopDone()
 		}
 	} else if name == "test" {
-		cmdResult, _ := ten.NewCmdResult(ten.StatusCodeOk)
+		cmdResult, _ := ten.NewCmdResult(ten.StatusCodeOk, cmd)
 		cmdResult.SetPropertyString("detail", "ok")
-		tenEnv.ReturnResult(cmdResult, cmd, nil)
+		tenEnv.ReturnResult(cmdResult, nil)
 	} else {
 		panic("unknown cmd name: " + name)
 	}
@@ -97,7 +97,7 @@ func (ext *clientExtension) OnCmd(tenEnv ten.TenEnv, cmd ten.Cmd) {
 				panic("Failed to send cmd: " + err.Error())
 			}
 
-			tenEnv.ReturnResultDirectly(cmdResult, nil)
+			tenEnv.ReturnResult(cmdResult, nil)
 		},
 	)
 }
