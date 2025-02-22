@@ -24,8 +24,14 @@
 #include "include_internal/ten_runtime/msg/cmd_base/cmd/start_graph/cmd.h"
 #include "include_internal/ten_runtime/msg/cmd_base/cmd_base.h"
 #include "include_internal/ten_runtime/msg/msg.h"
+#include "include_internal/ten_runtime/path/path.h"
+#include "include_internal/ten_runtime/ten_env/ten_env.h"
+#include "ten_runtime/app/app.h"
+#include "ten_runtime/msg/cmd/close_app/cmd.h"
 #include "ten_runtime/msg/cmd/start_graph/cmd.h"
+#include "ten_runtime/msg/cmd_result/cmd_result.h"
 #include "ten_runtime/msg/msg.h"
+#include "ten_runtime/ten_env/ten_env.h"
 #include "ten_utils/container/list.h"
 #include "ten_utils/container/list_node.h"
 #include "ten_utils/lib/alloc.h"
@@ -49,7 +55,6 @@ ten_predefined_graph_info_t *ten_predefined_graph_info_create(void) {
   self->auto_start = false;
   self->singleton = false;
   self->engine = NULL;
-  ten_string_init(&self->start_graph_cmd_id);
 
   return self;
 }
@@ -60,7 +65,6 @@ void ten_predefined_graph_info_destroy(ten_predefined_graph_info_t *self) {
   ten_string_deinit(&self->name);
   ten_list_clear(&self->extensions_info);
   ten_list_clear(&self->extension_groups_info);
-  ten_string_deinit(&self->start_graph_cmd_id);
 
   TEN_FREE(self);
 }
@@ -159,7 +163,21 @@ done:
 static void ten_app_start_auto_start_predefined_graph_result_handler(
     ten_env_t *ten_env, ten_shared_ptr_t *cmd_result, void *user_data,
     ten_error_t *err) {
-  // =-=-=
+  TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
+             "Invalid argument.");
+  TEN_ASSERT(cmd_result && ten_cmd_base_check_integrity(cmd_result),
+             "Invalid argument.");
+
+  if (ten_cmd_result_get_status_code(cmd_result) == TEN_STATUS_CODE_ERROR) {
+    // If auto-starting the predefined graph fails, gracefully close the app.
+    ten_app_t *app = ten_env_get_attached_app(ten_env);
+    TEN_ASSERT(app && ten_app_check_integrity(app, true), "Should not happen.");
+
+    ten_shared_ptr_t *close_app_cmd = ten_cmd_close_app_create();
+    ten_msg_clear_and_set_dest(close_app_cmd, ten_string_get_raw_str(&app->uri),
+                               NULL, NULL, NULL, err);
+    ten_env_send_cmd(ten_env, close_app_cmd, NULL, NULL, NULL, err);
+  }
 }
 
 bool ten_app_start_predefined_graph(
@@ -190,21 +208,17 @@ bool ten_app_start_predefined_graph(
   // `auto_start` predefined graph, so that it can later identify if the
   // received command result corresponds to this type of `start_graph` command,
   // it is necessary to assign the command ID here and record it.
-  // =-=-=
   if (predefined_graph_info->auto_start) {
-    ten_cmd_base_gen_cmd_id_if_empty(start_graph_cmd);
-    ten_string_set_from_c_str(&predefined_graph_info->start_graph_cmd_id,
-                              ten_cmd_base_get_cmd_id(start_graph_cmd));
+    // Set up a result handler so that the returned `cmd_result` can be
+    // processed using the `path_table`.
+    ten_cmd_base_set_result_handler(
+        start_graph_cmd,
+        ten_app_start_auto_start_predefined_graph_result_handler, NULL);
 
-    // =-=-=
-    // ten_cmd_base_set_result_handler(
-    //     start_graph_cmd,
-    //     ten_app_start_auto_start_predefined_graph_result_handler, NULL);
-
-    // ten_path_t *out_path = (ten_path_t *)ten_path_table_add_out_path(
-    //     self->path_table, start_graph_cmd);
-    // TEN_ASSERT(out_path && ten_path_check_integrity(out_path, true),
-    //            "Should not happen.");
+    ten_path_t *out_path = (ten_path_t *)ten_path_table_add_out_path(
+        self->path_table, start_graph_cmd);
+    TEN_ASSERT(out_path && ten_path_check_integrity(out_path, true),
+               "Should not happen.");
   }
   // @}
 

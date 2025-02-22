@@ -19,5 +19,5 @@ typedef struct ten_nodejs_data_t {
 TEN_RUNTIME_PRIVATE_API napi_value ten_nodejs_data_wrap(napi_env env,
                                                         ten_shared_ptr_t *data);
 
-TEN_RUNTIME_API napi_value ten_nodejs_data_module_init(napi_env env,
-                                                       napi_value exports);
+TEN_RUNTIME_PRIVATE_API napi_value
+ten_nodejs_data_module_init(napi_env env, napi_value exports);

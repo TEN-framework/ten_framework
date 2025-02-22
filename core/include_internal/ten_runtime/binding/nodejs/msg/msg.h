@@ -28,5 +28,5 @@ TEN_RUNTIME_PRIVATE_API void ten_nodejs_msg_init_from_c_msg(
 
 TEN_RUNTIME_PRIVATE_API void ten_nodejs_msg_deinit(ten_nodejs_msg_t *self);
 
-TEN_RUNTIME_API napi_value ten_nodejs_msg_module_init(napi_env env,
-                                                      napi_value exports);
+TEN_RUNTIME_PRIVATE_API napi_value
+ten_nodejs_msg_module_init(napi_env env, napi_value exports);

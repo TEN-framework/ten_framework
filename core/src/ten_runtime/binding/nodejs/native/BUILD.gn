@@ -25,6 +25,13 @@ ten_shared_library("ten_runtime_nodejs") {
     remove_configs = [ "//.gnfiles/build/toolchain/common:disallow_undefined" ]
   }
 
+  # Add rpath to find ten_runtime library.
+  if (is_mac) {
+    ldflags = [ "-Wl,-rpath,@loader_path/../../ten_runtime/lib" ]
+  } else if (is_linux) {
+    ldflags = [ "-Wl,-rpath=\$ORIGIN/../../ten_runtime/lib" ]
+  }
+
   sources = [
     "//core/src/ten_runtime/binding/nodejs/native/build_template/preserved_metadata.c",
     "init.c",

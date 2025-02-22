@@ -101,13 +101,12 @@ static ten_shared_ptr_t *ten_engine_process_out_path(
   TEN_ASSERT(ten_path_check_integrity(out_path, true), "Should not happen.");
 
   bool is_final_result = ten_cmd_result_is_final(cmd_result, err);
-  // Currently, all `cmd_results` processed by the app will _not_ be streaming
-  // `cmd_results`.
+  // Currently, all `cmd_results` processed by the engine will _not_ be
+  // streaming `cmd_results`.
   TEN_ASSERT(is_final_result, "Should not happen.");
 
-  // Check whether _all_ cmd_results related to this start_graph command have
-  // been received to determine whether to proceed with the next steps of the
-  // start_graph flow.
+  // Check whether _all_ cmd_results related to this command have been received
+  // to determine whether to proceed with the next steps of the cmd flow.
   cmd_result = ten_path_table_determine_actual_cmd_result(
       self->path_table, TEN_PATH_OUT, out_path, is_final_result);
   if (!cmd_result) {

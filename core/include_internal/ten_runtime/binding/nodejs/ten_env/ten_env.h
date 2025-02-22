@@ -62,10 +62,11 @@ ten_nodejs_set_property_call_ctx_create(ten_nodejs_tsfn_t *cb_tsfn,
 TEN_RUNTIME_PRIVATE_API void ten_nodejs_set_property_call_ctx_destroy(
     ten_nodejs_set_property_call_ctx_t *ctx);
 
-TEN_RUNTIME_API napi_value ten_nodejs_ten_env_module_init(napi_env env,
-                                                          napi_value exports);
+TEN_RUNTIME_PRIVATE_API napi_value
+ten_nodejs_ten_env_module_init(napi_env env, napi_value exports);
 
-TEN_RUNTIME_API napi_value ten_nodejs_ten_env_create_new_js_object_and_wrap(
+TEN_RUNTIME_PRIVATE_API napi_value
+ten_nodejs_ten_env_create_new_js_object_and_wrap(
     napi_env env, ten_env_t *ten_env,
     ten_nodejs_ten_env_t **out_ten_env_bridge);
 

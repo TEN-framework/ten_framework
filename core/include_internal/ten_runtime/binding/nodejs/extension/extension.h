@@ -45,5 +45,5 @@ typedef struct ten_nodejs_extension_t {
 TEN_RUNTIME_PRIVATE_API bool ten_nodejs_extension_check_integrity(
     ten_nodejs_extension_t *self, bool check_thread);
 
-TEN_RUNTIME_API napi_value ten_nodejs_extension_module_init(napi_env env,
-                                                            napi_value exports);
+TEN_RUNTIME_PRIVATE_API napi_value
+ten_nodejs_extension_module_init(napi_env env, napi_value exports);

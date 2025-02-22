@@ -162,7 +162,11 @@ typedef struct ten_connection_t {
 
   bool duplicate;
 
-  // =-=-= 不用是 atomic?
+  // TODO(Wei): This variable does not need to be an atomic type; instead, the
+  // entire flow needs to be reviewed because the actual critical section
+  // includes the `attached_target` below. If protection is truly needed, a
+  // proper lock should be used, or there should be a mechanism ensuring that
+  // these two variables are always handled in the same thread.
   ten_atomic_t attach_to;  // TEN_CONNECTION_ATTACH_TO
   union {
     ten_app_t *app;

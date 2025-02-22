@@ -19,5 +19,5 @@ typedef struct ten_nodejs_audio_frame_t {
 TEN_RUNTIME_PRIVATE_API napi_value
 ten_nodejs_audio_frame_wrap(napi_env env, ten_shared_ptr_t *audio_frame);
 
-TEN_RUNTIME_API napi_value
+TEN_RUNTIME_PRIVATE_API napi_value
 ten_nodejs_audio_frame_module_init(napi_env env, napi_value exports);

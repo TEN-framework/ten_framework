@@ -20,10 +20,10 @@
 #include "include_internal/ten_runtime/engine/msg_interface/common.h"
 #include "include_internal/ten_runtime/msg/cmd_base/cmd_base.h"
 #include "include_internal/ten_runtime/msg/msg.h"
+#include "include_internal/ten_runtime/path/path.h"
 #include "include_internal/ten_runtime/protocol/protocol.h"
 #include "ten_runtime/app/app.h"
 #include "ten_runtime/common/status_code.h"
-#include "ten_runtime/msg/cmd/close_app/cmd.h"
 #include "ten_runtime/msg/cmd/stop_graph/cmd.h"
 #include "ten_runtime/msg/cmd_result/cmd_result.h"
 #include "ten_runtime/msg/msg.h"
@@ -276,6 +276,41 @@ static bool ten_app_handle_stop_graph_cmd(ten_app_t *self,
   return true;
 }
 
+static ten_shared_ptr_t *ten_app_process_out_path(ten_app_t *self,
+                                                  ten_shared_ptr_t *cmd_result,
+                                                  ten_error_t *err) {
+  TEN_ASSERT(self && ten_app_check_integrity(self, true), "Should not happen.");
+  TEN_ASSERT(cmd_result &&
+                 ten_msg_get_type(cmd_result) == TEN_MSG_TYPE_CMD_RESULT &&
+                 ten_msg_get_dest_cnt(cmd_result) == 1,
+             "Should not happen.");
+
+  ten_path_t *out_path =
+      ten_path_table_set_result(self->path_table, TEN_PATH_OUT, cmd_result);
+  if (!out_path) {
+    TEN_LOGD("[%s] IN path is missing, discard cmd result.",
+             ten_app_get_uri(self));
+    return NULL;
+  }
+
+  TEN_ASSERT(ten_path_check_integrity(out_path, true), "Should not happen.");
+
+  bool is_final_result = ten_cmd_result_is_final(cmd_result, err);
+  // Currently, all `cmd_results` processed by the app will _not_ be streaming
+  // `cmd_results`.
+  TEN_ASSERT(is_final_result, "Should not happen.");
+
+  // Check whether _all_ cmd_results related to this command have been received
+  // to determine whether to proceed with the next steps of the cmd flow.
+  cmd_result = ten_path_table_determine_actual_cmd_result(
+      self->path_table, TEN_PATH_OUT, out_path, is_final_result);
+  if (!cmd_result) {
+    return NULL;
+  }
+
+  return cmd_result;
+}
+
 /**
  * @return true if this function handles @param cmd, false otherwise.
  */
@@ -286,71 +321,26 @@ static bool ten_app_handle_cmd_result(ten_app_t *self,
   TEN_ASSERT(cmd_result && ten_cmd_base_check_integrity(cmd_result),
              "Should not happen.");
 
-  TEN_STATUS_CODE status_code = ten_cmd_result_get_status_code(cmd_result);
-  bool is_auto_start_predefined_graph_cmd_result = false;
-
-  // =-=-=
-  // ten_path_t *out_path =
-  //     ten_path_table_set_result(self->path_table, TEN_PATH_OUT, cmd_result);
-  // if (!out_path) {
-  //   TEN_LOGD(
-  //       "The 'start_graph' flow was failed before, discard the cmd_result "
-  //       "now.");
-  //   return true;
-  // }
-
-  // bool is_final_result = ten_cmd_result_is_final(cmd_result, err);
-  // TEN_ASSERT(is_final_result, "Should not happen.");
-
-  // // Check whether _all_ cmd_results related to this start_graph command have
-  // // been received to determine whether to proceed with the next steps of the
-  // // start_graph flow.
-  // cmd_result = ten_path_table_determine_actual_cmd_result(
-  //     self->path_table, TEN_PATH_OUT, out_path, is_final_result);
-  // if (!cmd_result) {
-  //   TEN_LOGD(
-  //       "The 'start_graph' flow is not completed, skip the cmd_result now.");
-  //   return true;
-  // }
-
-  // Verify whether the received command result corresponds to a previously sent
-  // `start_graph` command for the `auto_start` predefined graph.
-  ten_list_foreach (&self->predefined_graph_infos, iter) {
-    ten_predefined_graph_info_t *predefined_graph_info =
-        (ten_predefined_graph_info_t *)ten_ptr_listnode_get(iter.node);
-
-    if (ten_string_is_equal_c_str(&predefined_graph_info->start_graph_cmd_id,
-                                  ten_cmd_base_get_cmd_id(cmd_result))) {
-      TEN_ASSERT(predefined_graph_info->auto_start, "Should not happen.");
-      is_auto_start_predefined_graph_cmd_result = true;
-
-      // =-=-=
-      // ten_cmd_base_t *raw_cmd_result =
-      //     ten_cmd_base_get_raw_cmd_base(cmd_result);
-
-      // ten_env_transfer_msg_result_handler_func_t result_handler =
-      //     ten_raw_cmd_base_get_result_handler(raw_cmd_result);
-      // if (result_handler) {
-      //   result_handler(self->ten_env, cmd_result,
-      //                  ten_raw_cmd_base_get_result_handler_data(raw_cmd_result),
-      //                  NULL);
-      // }
-    }
+  cmd_result = ten_app_process_out_path(self, cmd_result, err);
+  if (!cmd_result) {
+    TEN_LOGD(
+        "The 'start_graph' flow is not completed, skip the cmd_result now.");
+    return true;
   }
 
-  if (is_auto_start_predefined_graph_cmd_result &&
-      status_code == TEN_STATUS_CODE_ERROR) {
-    // If auto-starting the predefined graph fails, gracefully close the app.
-    ten_shared_ptr_t *close_app_cmd = ten_cmd_close_app_create();
-    ten_msg_clear_and_set_dest(close_app_cmd,
-                               ten_string_get_raw_str(&self->uri), NULL, NULL,
-                               NULL, err);
-    ten_env_send_cmd(self->ten_env, close_app_cmd, NULL, NULL, NULL, err);
+  ten_cmd_base_t *raw_cmd_result = ten_cmd_base_get_raw_cmd_base(cmd_result);
+
+  ten_env_transfer_msg_result_handler_func_t result_handler =
+      ten_raw_cmd_base_get_result_handler(raw_cmd_result);
+  if (result_handler) {
+    result_handler(self->ten_env, cmd_result,
+                   ten_raw_cmd_base_get_result_handler_data(raw_cmd_result),
+                   NULL);
+
+    return true;
   }
 
-  // =-=-= ten_shared_ptr_destroy(cmd_result);
-
-  return is_auto_start_predefined_graph_cmd_result;
+  return true;
 }
 
 bool ten_app_dispatch_msg(ten_app_t *self, ten_shared_ptr_t *msg,
