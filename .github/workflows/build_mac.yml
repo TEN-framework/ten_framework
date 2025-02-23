@@ -1,4 +1,4 @@
-name: Build - mac
+name: Mac
 
 on:
   release:

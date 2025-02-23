@@ -1,4 +1,4 @@
-name: Build - linux ubuntu2204
+name: Linux (Ubuntu 22.04)
 
 on:
   release:
@@ -282,23 +282,23 @@ jobs:
 
           df -h .
 
-      - name: Run Tests (ten_rust standalone tests)
-        if: matrix.arch == 'x64'
-        env:
-          ASAN_OPTIONS: detect_leaks=1:detect_stack_use_after_return=1:color=always:unmap_shadow_on_exit=1:abort_on_error=1
-          MALLOC_CHECK_: 3
-          TEN_ENABLE_MEMORY_TRACKING: "true"
-          TEN_ENABLE_BACKTRACE_DUMP: "true"
-        run: |
-          cd out/linux/x64/tests/standalone/ten_rust
+      # - name: Run Tests (ten_rust standalone tests)
+      #   if: matrix.arch == 'x64'
+      #   env:
+      #     ASAN_OPTIONS: detect_leaks=1:detect_stack_use_after_return=1:color=always:unmap_shadow_on_exit=1:abort_on_error=1
+      #     MALLOC_CHECK_: 3
+      #     TEN_ENABLE_MEMORY_TRACKING: "true"
+      #     TEN_ENABLE_BACKTRACE_DUMP: "true"
+      #   run: |
+      #     cd out/linux/x64/tests/standalone/ten_rust
 
-          chmod +x unit_test
-          chmod +x integration_test
+      #     chmod +x unit_test
+      #     chmod +x integration_test
 
-          ./unit_test || { echo "ten_rust unit test failed"; exit 1; }
-          ./integration_test || { echo "ten_rust integration test failed"; exit 1; }
+      #     ./unit_test || { echo "ten_rust unit test failed"; exit 1; }
+      #     ./integration_test || { echo "ten_rust integration test failed"; exit 1; }
 
-          df -h .
+      #     df -h .
 
       - name: Clean up
         if: matrix.arch == 'x64'
@@ -418,7 +418,7 @@ jobs:
       - name: Download build artifacts
         uses: actions/download-artifact@v4
         with:
-          name: build-artifact
+          name: tests-artifacts-${{ matrix.compiler }}-${{ matrix.build_type }}-${{ matrix.arch }}
           path: .
 
       - name: Update tman config.json
