@@ -12,7 +12,6 @@
 
 #include "include_internal/ten_runtime/app/app.h"
 #include "include_internal/ten_runtime/app/msg_interface/common.h"
-#include "include_internal/ten_runtime/common/constant_str.h"
 #include "include_internal/ten_runtime/extension_group/builtin/builtin_extension_group.h"
 #include "include_internal/ten_runtime/extension_group/extension_group.h"
 #include "include_internal/ten_runtime/msg/cmd_base/cmd_base.h"
@@ -250,7 +249,9 @@ static void test_app_start_graph_result_handler(ten_env_t *ten_env,
   TEN_STATUS_CODE status_code = ten_cmd_result_get_status_code(cmd_result);
   ten_shared_ptr_destroy(cmd_result);
 
-  if (status_code != TEN_STATUS_CODE_OK) {
+  if (status_code == TEN_STATUS_CODE_OK) {
+    TEN_LOGI("Successfully started standalone testing graph.");
+  } else {
     TEN_LOGE("Failed to start standalone testing graph, status_code: %d",
              status_code);
     exit(EXIT_FAILURE);
@@ -281,6 +282,12 @@ static void test_app_ten_env_send_start_graph_cmd(ten_env_t *ten_env,
   // allows the returned `cmd_result` to find the correct out_path from the path
   // table using the `cmd_id`.
   ten_cmd_base_gen_new_cmd_id_forcibly(cmd);
+
+  // Set the source location of `msg` to the URI of the `app`, so that the
+  // `cmd_result` of the `start_graph` command can ultimately be returned to
+  // this `app` and processed by the `out path`, enabling the invocation of the
+  // result handler specified below.
+  ten_msg_set_src(cmd, ten_app_get_uri(app), NULL, NULL, NULL);
 
   bool rc = ten_msg_clear_and_set_dest(cmd, ten_app_get_uri(app), NULL, NULL,
                                        NULL, NULL);
@@ -440,11 +447,6 @@ static void ten_extension_tester_create_and_start_graph(
         ten_string_get_raw_str(&self->test_target.graph.graph_json), &err);
     TEN_ASSERT(rc, "Should not happen.");
   }
-
-  // `TEN_STR_TEN_EXTENSION_TESTER` is a special marker used to represent the
-  // extension tester.
-  ten_msg_set_src(start_graph_cmd, TEN_STR_TEN_EXTENSION_TESTER, NULL, NULL,
-                  NULL);
 
   rc = ten_env_proxy_notify(self->test_app_ten_env_proxy,
                             test_app_ten_env_send_start_graph_cmd,
