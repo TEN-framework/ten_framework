@@ -1,8 +1,8 @@
-name: pr-name-linter
+name: Lint PR Name
 
 on:
   pull_request:
-    types: ['opened', 'edited', 'reopened', 'synchronize']
+    types: ["opened", "edited", "reopened", "synchronize"]
 
 jobs:
   lint:
@@ -19,4 +19,4 @@ jobs:
         run: |
           echo "${PR_TITLE}" | npx --yes commitlint
         env:
-          PR_TITLE: '${{ github.event.pull_request.title }}'
+          PR_TITLE: "${{ github.event.pull_request.title }}"
