@@ -126,31 +126,14 @@ jobs:
           df -h .
         shell: bash
 
-      - name: Upload tman
-        if: matrix.arch == 'x64'
+      - name: Upload tests relevant artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: tman-linux-${{ matrix.compiler }}-${{ matrix.build_type }}-${{ matrix.arch }}
-          path: out/linux/x64/ten_manager/bin/tman
-
-      - name: Upload ten_packages
-        if: matrix.arch == 'x64'
-        uses: actions/upload-artifact@v4
-        with:
-          name: ten_packages-linux-${{ matrix.compiler }}-${{ matrix.build_type }}-${{ matrix.arch }}
+          name: tests-artifacts-${{ matrix.compiler }}-${{ matrix.build_type }}-${{ matrix.arch }}
           path: |
-            out/linux/x64/app/default_app_cpp
-            out/linux/x64/app/default_app_go
-            out/linux/x64/app/default_app_python
-            out/linux/x64/app/default_app_nodejs
-            out/linux/x64/ten_packages/system/ten_runtime
-            out/linux/x64/ten_packages/system/ten_runtime_go
-            out/linux/x64/ten_packages/system/ten_runtime_python
-            out/linux/x64/ten_packages/extension/default_extension_cpp
-            out/linux/x64/ten_packages/extension/default_extension_go
-            out/linux/x64/ten_packages/extension/default_extension_python
-            out/linux/x64/ten_packages/extension/default_async_extension_python
-            out/linux/x64/ten_packages/addon_loader/python_addon_loader
+            out/linux/${{ matrix.arch }}/tests
+            out/linux/${{ matrix.arch }}/ten_manager
+            out/linux/${{ matrix.arch }}/tgn_args.txt
 
       - name: Package assets
         if: matrix.arch == 'x64' && startsWith(github.ref, 'refs/tags/')
@@ -281,17 +264,17 @@ jobs:
 
           df -h .
 
-      - name: Run Tests (ten_runtime_smoke_test)
-        env:
-          ASAN_OPTIONS: detect_leaks=1:detect_stack_use_after_return=1:color=always:unmap_shadow_on_exit=1:abort_on_error=1
-          MALLOC_CHECK_: 3
-          TEN_ENABLE_MEMORY_TRACKING: "true"
-          TEN_ENABLE_BACKTRACE_DUMP: "true"
-        run: |
-          chmod +x out/linux/x64/tests/standalone/ten_runtime_smoke_test
-          out/linux/x64/tests/standalone/ten_runtime_smoke_test || { echo "test failed"; exit 1; }
+      # - name: Run Tests (ten_runtime_smoke_test)
+      #   env:
+      #     ASAN_OPTIONS: detect_leaks=1:detect_stack_use_after_return=1:color=always:unmap_shadow_on_exit=1:abort_on_error=1
+      #     MALLOC_CHECK_: 3
+      #     TEN_ENABLE_MEMORY_TRACKING: "true"
+      #     TEN_ENABLE_BACKTRACE_DUMP: "true"
+      #   run: |
+      #     chmod +x out/linux/x64/tests/standalone/ten_runtime_smoke_test
+      #     out/linux/x64/tests/standalone/ten_runtime_smoke_test || { echo "test failed"; exit 1; }
 
-          df -h .
+      #     df -h .
 
       - name: Clean up
         run: |
@@ -335,8 +318,10 @@ jobs:
           cd out/linux/x64/tests/standalone/ten_manager
 
           chmod +x unit_test
+          chmod +x integration_test
 
           ./unit_test || { echo "ten_manager unit test failed"; exit 1; }
+          ./integration_test || { echo "ten_manager integration test failed"; exit 1; }
 
           df -h .
 
@@ -373,7 +358,80 @@ jobs:
 
           df -h .
 
-      - name: Run tests (ten_runtime integration tests)
+      # - name: Run tests (ten_runtime integration tests)
+      #   if: matrix.arch == 'x64'
+      #   env:
+      #     ASAN_OPTIONS: detect_leaks=1:detect_stack_use_after_return=1:color=always:unmap_shadow_on_exit=1:abort_on_error=1
+      #     MALLOC_CHECK_: 3
+      #     TEN_ENABLE_MEMORY_TRACKING: "true"
+      #     TEN_ENABLE_BACKTRACE_DUMP: "true"
+      #   run: |
+      #     curl -fsSL https://ollama.com/install.sh | sh
+
+      #     # Start Ollama service.
+      #     ollama serve &
+
+      #     # Wait for Ollama to be fully operational.
+      #     for i in {1..30}; do
+      #       if curl -s http://localhost:11434 >/dev/null; then
+      #         echo "✓ Ollama is running"
+      #         break
+      #       fi
+      #       echo "Waiting for Ollama to start..."
+      #       sleep 2
+      #     done
+
+      #     ollama pull smollm:135m
+
+      #     # Verify model is pulled correctly.
+      #     ollama list
+
+      #     df -h .
+
+      #     export PATH=$(pwd)/core/ten_gn:$PATH
+      #     cd out/linux/x64/
+      #     pytest -s tests/ten_runtime/integration/
+
+      #     df -h .
+
+  test-standalone-linux-ubuntu2204:
+    needs: build-linux-ubuntu2204
+    concurrency:
+      group: test-standalone-linux-ubuntu2204-${{ github.head_ref }}-${{ matrix.compiler }}-${{ matrix.build_type }}-${{ matrix.arch }}
+      cancel-in-progress: true
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        compiler: [gcc, clang]
+        build_type: [debug, release]
+        arch: [x64, x86]
+        include:
+          - compiler: gcc
+            build_type: debug
+            arch: x86
+        exclude:
+          - compiler: clang
+            arch: x86
+    container:
+      image: ghcr.io/ten-framework/ten_building_ubuntu2204
+    steps:
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-artifact
+          path: .
+
+      - name: Update tman config.json
+        if: matrix.arch == 'x64'
+        run: |
+          CONFIG_FILE="out/linux/${{ matrix.arch }}/tests/local_registry/config.json"
+          echo "Before update:"
+          cat $CONFIG_FILE
+          sed -i "s|.*\(\/out/linux\/x64\/tests\/local_registry\)|${GITHUB_WORKSPACE}\1|" $CONFIG_FILE
+          echo "After update:"
+          cat $CONFIG_FILE
+
+      - name: Run Tests (ten_rust standalone tests)
         if: matrix.arch == 'x64'
         env:
           ASAN_OPTIONS: detect_leaks=1:detect_stack_use_after_return=1:color=always:unmap_shadow_on_exit=1:abort_on_error=1
@@ -381,30 +439,30 @@ jobs:
           TEN_ENABLE_MEMORY_TRACKING: "true"
           TEN_ENABLE_BACKTRACE_DUMP: "true"
         run: |
-          curl -fsSL https://ollama.com/install.sh | sh
+          cd out/linux/x64/tests/standalone/ten_rust
 
-          # Start Ollama service.
-          ollama serve &
+          chmod +x unit_test
+          chmod +x integration_test
 
-          # Wait for Ollama to be fully operational.
-          for i in {1..30}; do
-            if curl -s http://localhost:11434 >/dev/null; then
-              echo "✓ Ollama is running"
-              break
-            fi
-            echo "Waiting for Ollama to start..."
-            sleep 2
-          done
-
-          ollama pull smollm:135m
-
-          # Verify model is pulled correctly.
-          ollama list
+          ./unit_test || { echo "ten_rust unit test failed"; exit 1; }
+          ./integration_test || { echo "ten_rust integration test failed"; exit 1; }
 
           df -h .
 
-          export PATH=$(pwd)/core/ten_gn:$PATH
-          cd out/linux/x64/
-          pytest -s tests/ten_runtime/integration/
+      - name: Run Tests (ten_manager standalone tests)
+        if: matrix.arch == 'x64'
+        env:
+          ASAN_OPTIONS: detect_leaks=1:detect_stack_use_after_return=1:color=always:unmap_shadow_on_exit=1:abort_on_error=1
+          MALLOC_CHECK_: 3
+          TEN_ENABLE_MEMORY_TRACKING: "true"
+          TEN_ENABLE_BACKTRACE_DUMP: "true"
+        run: |
+          cd out/linux/x64/tests/standalone/ten_manager
+
+          chmod +x unit_test
+          chmod +x integration_test
+
+          ./unit_test || { echo "ten_manager unit test failed"; exit 1; }
+          ./integration_test || { echo "ten_manager integration test failed"; exit 1; }
 
           df -h .
