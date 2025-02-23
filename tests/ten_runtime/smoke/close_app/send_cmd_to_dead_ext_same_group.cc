@@ -5,7 +5,6 @@
 // Refer to the "LICENSE" file in the root directory for more information.
 //
 #include <nlohmann/json.hpp>
-#include <string>
 #include <thread>
 
 #include "gtest/gtest.h"
@@ -135,13 +134,13 @@ TEST(CloseAppTest, SendCmdToDeadExtSameGroup) {  // NOLINT
                 "type": "extension",
                 "name": "test_extension_1",
                 "addon": "send_cmd_to_dead_ext_same_group__test_extension_1",
-                "extension_group": "basic_extension_group",
+                "extension_group": "basic_extension_group_1",
                 "app": "msgpack://127.0.0.1:8001/"
              },{
                 "type": "extension",
                 "name": "test_extension_2",
                 "addon": "send_cmd_to_dead_ext_same_group__test_extension_2",
-                "extension_group": "basic_extension_group",
+                "extension_group": "basic_extension_group_2",
                 "app": "msgpack://127.0.0.1:8001/",
                 "property": {
                   "test_property": "test_value"

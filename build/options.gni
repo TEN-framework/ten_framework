@@ -19,7 +19,7 @@ declare_args() {
   # x86.
   ten_enable_ten_rust = !(enable_sanitizer && target_cpu == "x86")
 
-  ten_enable_ten_manager = true
+  ten_enable_ten_manager = ten_enable_ten_rust
 
   # After building a Rust/Cargo project, clean the project using `cargo clean`.
   # This is mainly to reduce disk usage in environments with limited disk space,
