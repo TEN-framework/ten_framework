@@ -53,7 +53,7 @@ class test_extension_2 : public ten::extension_t {
     auto *ten_env_proxy = ten::ten_env_proxy_t::create(ten_env);
 
     stop_thread_ = std::thread([ten_env_proxy]() {
-      ten_sleep_ms(3000);
+      ten_sleep_ms(1000);
       ten_env_proxy->notify([](ten::ten_env_t &ten_env) {
         auto cmd = ten::cmd_t::create("bye");
         ten_env.send_cmd(std::move(cmd),

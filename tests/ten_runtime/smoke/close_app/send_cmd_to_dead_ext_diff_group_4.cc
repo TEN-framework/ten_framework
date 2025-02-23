@@ -43,17 +43,12 @@ class test_extension_2 : public ten::extension_t {
  public:
   explicit test_extension_2(const char *name) : ten::extension_t(name) {}
 
-  void on_start(ten::ten_env_t &ten_env) override {
-    ten_sleep_ms(1000);
-    ten_env.on_start_done();
-  }
-
   void on_stop(ten::ten_env_t &ten_env) override {
     // sleep 3 seconds to ensure the test_extension_1 is dead.
     auto *ten_env_proxy = ten::ten_env_proxy_t::create(ten_env);
 
     stop_thread_ = std::thread([ten_env_proxy]() {
-      ten_sleep_ms(1000);
+      ten_sleep_ms(3000);
       ten_env_proxy->notify([](ten::ten_env_t &ten_env) {
         auto cmd = ten::cmd_t::create("bye");
         ten_env.send_cmd(std::move(cmd),
@@ -113,13 +108,13 @@ void *test_app_thread_main(TEN_UNUSED void *args) {
 }
 
 TEN_CPP_REGISTER_ADDON_AS_EXTENSION(
-    send_cmd_to_dead_ext_diff_group_3__test_extension_1, test_extension_1);
+    send_cmd_to_dead_ext_diff_group_4__test_extension_1, test_extension_1);
 TEN_CPP_REGISTER_ADDON_AS_EXTENSION(
-    send_cmd_to_dead_ext_diff_group_3__test_extension_2, test_extension_2);
+    send_cmd_to_dead_ext_diff_group_4__test_extension_2, test_extension_2);
 
 }  // namespace
 
-TEST(CloseAppTest, SendCmdToDeadExtDiffGroup3) {  // NOLINT
+TEST(CloseAppTest, SendCmdToDeadExtDiffGroup4) {  // NOLINT
   // Start app.
   auto *app_thread =
       ten_thread_create("app thread", test_app_thread_main, nullptr);
@@ -133,13 +128,13 @@ TEST(CloseAppTest, SendCmdToDeadExtDiffGroup3) {  // NOLINT
            "nodes": [{
                 "type": "extension",
                 "name": "test_extension_1",
-                "addon": "send_cmd_to_dead_ext_diff_group_3__test_extension_1",
+                "addon": "send_cmd_to_dead_ext_diff_group_4__test_extension_1",
                 "extension_group": "basic_extension_group_1",
                 "app": "msgpack://127.0.0.1:8001/"
              },{
                 "type": "extension",
                 "name": "test_extension_2",
-                "addon": "send_cmd_to_dead_ext_diff_group_3__test_extension_2",
+                "addon": "send_cmd_to_dead_ext_diff_group_4__test_extension_2",
                 "extension_group": "basic_extension_group_2",
                 "app": "msgpack://127.0.0.1:8001/",
                 "property": {
