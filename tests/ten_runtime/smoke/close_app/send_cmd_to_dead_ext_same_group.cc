@@ -53,7 +53,7 @@ class test_extension_2 : public ten::extension_t {
     auto *ten_env_proxy = ten::ten_env_proxy_t::create(ten_env);
 
     stop_thread_ = std::thread([ten_env_proxy]() {
-      // ten_sleep_ms(3000);
+      ten_sleep_ms(3000);
       ten_env_proxy->notify([](ten::ten_env_t &ten_env) {
         auto cmd = ten::cmd_t::create("bye");
         ten_env.send_cmd(std::move(cmd),
@@ -165,7 +165,7 @@ TEST(CloseAppTest, SendCmdToDeadExtSameGroup) {  // NOLINT
   // Send a close_app command.
   auto close_app_cmd = ten::cmd_t::create("close_app");
   close_app_cmd->set_dest("msgpack://127.0.0.1:8001/", nullptr,
-                          "basic_extension_group", "test_extension_1");
+                          "basic_extension_group_1", "test_extension_1");
   client->send_cmd(std::move(close_app_cmd));
 
   ten_thread_join(app_thread, -1);
