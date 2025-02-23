@@ -112,8 +112,9 @@ bool ten_extension_on_configure_done(ten_env_t *self) {
                  ten_extension_thread_check_integrity(extension_thread, true),
              "Should not happen.");
 
-  // It should be excluded by the above extension state.
-  TEN_ASSERT(!extension_thread->is_close_triggered, "Should not happen.");
+  if (extension_thread->is_close_triggered) {
+    return false;
+  }
 
   ten_error_t err;
   TEN_ERROR_INIT(err);
@@ -255,8 +256,9 @@ bool ten_extension_on_init_done(ten_env_t *self) {
                  ten_extension_thread_check_integrity(extension_thread, true),
              "Should not happen.");
 
-  // It should be excluded by the above extension state.
-  TEN_ASSERT(!extension_thread->is_close_triggered, "Should not happen.");
+  if (extension_thread->is_close_triggered) {
+    return false;
+  }
 
   ten_extension_flush_all_pending_msgs_received_in_init_stage(extension);
 
@@ -293,8 +295,9 @@ bool ten_extension_on_start_done(ten_env_t *self) {
                  ten_extension_thread_check_integrity(extension_thread, true),
              "Should not happen.");
 
-  // It should be excluded by the above extension state.
-  TEN_ASSERT(!extension_thread->is_close_triggered, "Should not happen.");
+  if (extension_thread->is_close_triggered) {
+    return false;
+  }
 
   return true;
 }

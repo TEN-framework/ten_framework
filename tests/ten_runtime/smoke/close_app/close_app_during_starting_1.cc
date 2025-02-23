@@ -91,14 +91,14 @@ void *test_app_thread_main(TEN_UNUSED void *args) {
   return nullptr;
 }
 
-TEN_CPP_REGISTER_ADDON_AS_EXTENSION(close_app_during_starting__test_extension_1,
-                                    test_extension_1);
-TEN_CPP_REGISTER_ADDON_AS_EXTENSION(close_app_during_starting__test_extension_2,
-                                    test_extension_2);
+TEN_CPP_REGISTER_ADDON_AS_EXTENSION(
+    close_app_during_starting_1__test_extension_1, test_extension_1);
+TEN_CPP_REGISTER_ADDON_AS_EXTENSION(
+    close_app_during_starting_1__test_extension_2, test_extension_2);
 
 }  // namespace
 
-TEST(CloseAppTest, CloseAppDuringStarting) {  // NOLINT
+TEST(CloseAppTest, CloseAppDuringStarting1) {  // NOLINT
   // Start app.
   auto *app_thread =
       ten_thread_create("app thread", test_app_thread_main, nullptr);
@@ -112,13 +112,13 @@ TEST(CloseAppTest, CloseAppDuringStarting) {  // NOLINT
            "nodes": [{
                 "type": "extension",
                 "name": "test_extension_1",
-                "addon": "close_app_during_starting__test_extension_1",
+                "addon": "close_app_during_starting_1__test_extension_1",
                 "extension_group": "basic_extension_group_1",
                 "app": "msgpack://127.0.0.1:8001/"
              },{
                 "type": "extension",
                 "name": "test_extension_2",
-                "addon": "close_app_during_starting__test_extension_2",
+                "addon": "close_app_during_starting_1__test_extension_2",
                 "extension_group": "basic_extension_group_2",
                 "app": "msgpack://127.0.0.1:8001/"
              }]
