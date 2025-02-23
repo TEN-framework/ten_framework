@@ -7,19 +7,26 @@
 #include "include_internal/ten_runtime/test/extension_tester.h"
 
 #include <inttypes.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "include_internal/ten_runtime/app/app.h"
+#include "include_internal/ten_runtime/app/msg_interface/common.h"
+#include "include_internal/ten_runtime/common/constant_str.h"
 #include "include_internal/ten_runtime/extension_group/builtin/builtin_extension_group.h"
 #include "include_internal/ten_runtime/extension_group/extension_group.h"
+#include "include_internal/ten_runtime/msg/cmd_base/cmd_base.h"
 #include "include_internal/ten_runtime/msg/msg.h"
+#include "include_internal/ten_runtime/path/path.h"
 #include "include_internal/ten_runtime/ten_env/ten_env.h"
 #include "include_internal/ten_runtime/test/env_tester.h"
 #include "include_internal/ten_runtime/test/test_app.h"
 #include "include_internal/ten_runtime/test/test_extension.h"
 #include "ten_runtime/app/app.h"
+#include "ten_runtime/common/status_code.h"
 #include "ten_runtime/extension/extension.h"
 #include "ten_runtime/msg/cmd/start_graph/cmd.h"
+#include "ten_runtime/msg/cmd_result/cmd_result.h"
 #include "ten_runtime/msg/msg.h"
 #include "ten_runtime/ten_env/internal/metadata.h"
 #include "ten_runtime/ten_env/internal/on_xxx_done.h"
@@ -177,17 +184,6 @@ void ten_extension_tester_add_addon_base_dir(ten_extension_tester_t *self,
   ten_list_push_str_back(&self->addon_base_dirs, addon_base_dir);
 }
 
-void test_app_ten_env_send_cmd(ten_env_t *ten_env, void *user_data) {
-  TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
-             "Should not happen.");
-
-  ten_shared_ptr_t *cmd = user_data;
-  TEN_ASSERT(cmd && ten_msg_check_integrity(cmd), "Should not happen.");
-
-  bool rc = ten_env_send_cmd(ten_env, cmd, NULL, NULL, NULL, NULL);
-  TEN_ASSERT(rc, "Should not happen.");
-}
-
 static void ten_extension_tester_destroy_test_target(
     ten_extension_tester_t *self) {
   TEN_ASSERT(self &&
@@ -248,7 +244,17 @@ static void test_app_start_graph_result_handler(ten_env_t *ten_env,
                                                 ten_shared_ptr_t *cmd_result,
                                                 void *user_data,
                                                 ten_error_t *err) {
-  // =-=-=
+  TEN_ASSERT(cmd_result, "Invalid argument.");
+  TEN_ASSERT(ten_msg_check_integrity(cmd_result), "Invalid argument.");
+
+  TEN_STATUS_CODE status_code = ten_cmd_result_get_status_code(cmd_result);
+  ten_shared_ptr_destroy(cmd_result);
+
+  if (status_code != TEN_STATUS_CODE_OK) {
+    TEN_LOGE("Failed to start standalone testing graph, status_code: %d",
+             status_code);
+    exit(EXIT_FAILURE);
+  }
 }
 
 static void test_app_ten_env_send_start_graph_cmd(ten_env_t *ten_env,
@@ -262,13 +268,41 @@ static void test_app_ten_env_send_start_graph_cmd(ten_env_t *ten_env,
   ten_shared_ptr_t *cmd = user_data;
   TEN_ASSERT(cmd && ten_msg_check_integrity(cmd), "Should not happen.");
 
+  // TODO(Wei): Currently, the app does not have a centralized place to handle
+  // all `path_table` operations. Therefore, the lowest-level approach is used
+  // here to add the result handler and `dispatch_msg`, rather than using the
+  // high-level API `ten_env_send_cmd`. In the future, it will be necessary to
+  // consider whether a general mechanism can be implemented to better handle
+  // the app's command routing.
+
+  // Because `extension_tester` needs to receive the `cmd_result` of the sent
+  // `start_graph` command, the `start_graph` command must have a `cmd_id` so
+  // that the out_path mechanism of the app's path table can take effect. This
+  // allows the returned `cmd_result` to find the correct out_path from the path
+  // table using the `cmd_id`.
+  ten_cmd_base_gen_new_cmd_id_forcibly(cmd);
+
   bool rc = ten_msg_clear_and_set_dest(cmd, ten_app_get_uri(app), NULL, NULL,
                                        NULL, NULL);
   TEN_ASSERT(rc, "Should not happen.");
 
-  // =-=-=
-  rc = ten_env_send_cmd(ten_env, cmd, NULL, NULL, NULL, NULL);
+  // Set up a result handler so that the returned `cmd_result` can be
+  // processed using the `path_table` mechanism.
+  ten_cmd_base_set_result_handler(cmd, test_app_start_graph_result_handler,
+                                  NULL);
+
+  ten_path_t *out_path =
+      (ten_path_t *)ten_path_table_add_out_path(app->path_table, cmd);
+  TEN_ASSERT(out_path && ten_path_check_integrity(out_path, true),
+             "Should not happen.");
+
+  ten_error_t err;
+  TEN_ERROR_INIT(err);
+
+  rc = ten_app_dispatch_msg(app, cmd, &err);
   TEN_ASSERT(rc, "Should not happen.");
+
+  ten_error_deinit(&err);
 }
 
 static void ten_extension_tester_create_and_start_graph(
@@ -407,8 +441,10 @@ static void ten_extension_tester_create_and_start_graph(
     TEN_ASSERT(rc, "Should not happen.");
   }
 
-  // =-=-=
-  ten_msg_set_src(start_graph_cmd, "ten:extension_tester", NULL, NULL, NULL);
+  // `TEN_STR_TEN_EXTENSION_TESTER` is a special marker used to represent the
+  // extension tester.
+  ten_msg_set_src(start_graph_cmd, TEN_STR_TEN_EXTENSION_TESTER, NULL, NULL,
+                  NULL);
 
   rc = ten_env_proxy_notify(self->test_app_ten_env_proxy,
                             test_app_ten_env_send_start_graph_cmd,

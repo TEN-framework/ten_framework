@@ -345,9 +345,6 @@ static bool ten_app_handle_cmd_result(ten_app_t *self,
 
 bool ten_app_dispatch_msg(ten_app_t *self, ten_shared_ptr_t *msg,
                           ten_error_t *err) {
-  // The source of the out message is the current app.
-  ten_msg_set_src_to_app(msg, self);
-
   ten_loc_t *dest_loc = ten_msg_get_first_dest_loc(msg);
   TEN_ASSERT(dest_loc && ten_loc_check_integrity(dest_loc) &&
                  ten_msg_get_dest_cnt(msg) == 1,
@@ -363,7 +360,7 @@ bool ten_app_dispatch_msg(ten_app_t *self, ten_shared_ptr_t *msg,
     if (ten_string_is_empty(&dest_loc->graph_id)) {
       // It means asking the app to do something.
 
-      ten_app_push_to_in_msgs_queue(self, msg);
+      ten_app_handle_in_msg(self, NULL, msg, err);
       ten_shared_ptr_destroy(msg);
     } else {
       TEN_ASSERT(0, "Handle this condition.");

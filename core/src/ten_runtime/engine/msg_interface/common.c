@@ -23,7 +23,6 @@
 #include "include_internal/ten_runtime/msg/cmd_base/cmd_base.h"
 #include "include_internal/ten_runtime/msg/msg.h"
 #include "include_internal/ten_runtime/msg/msg_info.h"
-#include "include_internal/ten_runtime/path/path.h"
 #include "include_internal/ten_runtime/remote/remote.h"
 #include "ten_runtime/app/app.h"
 #include "ten_runtime/msg/cmd_result/cmd_result.h"
@@ -54,32 +53,6 @@ static void ten_engine_prepend_to_in_msgs_queue(ten_engine_t *self,
     rc = ten_mutex_unlock(self->in_msgs_lock);
     TEN_ASSERT(!rc, "Should not happen.");
   }
-}
-
-static void ten_engine_process_in_path(ten_engine_t *self,
-                                       ten_shared_ptr_t *cmd_result) {
-  TEN_ASSERT(self && ten_engine_check_integrity(self, true),
-             "Should not happen.");
-  TEN_ASSERT(cmd_result &&
-                 ten_msg_get_type(cmd_result) == TEN_MSG_TYPE_CMD_RESULT &&
-                 ten_msg_get_dest_cnt(cmd_result) == 1,
-             "Should not happen.");
-
-  ten_path_t *in_path =
-      ten_path_table_set_result(self->path_table, TEN_PATH_IN, cmd_result);
-  if (!in_path) {
-    TEN_LOGD("[%s] IN path does not exist, discard cmd_result.",
-             ten_engine_get_id(self, true));
-    return;
-  }
-
-  TEN_ASSERT(ten_path_check_integrity(in_path, true), "Should not happen.");
-  TEN_ASSERT(!ten_string_is_empty(&in_path->cmd_name), "Should not happen.");
-
-  // We need to use the original cmd name to find the schema definition of the
-  // cmd result.
-  ten_cmd_result_set_original_cmd_name(
-      cmd_result, ten_string_get_raw_str(&in_path->cmd_name));
 }
 
 static void ten_engine_handle_msg(ten_engine_t *self, ten_shared_ptr_t *msg) {
