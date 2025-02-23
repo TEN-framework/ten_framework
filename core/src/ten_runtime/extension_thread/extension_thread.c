@@ -239,7 +239,7 @@ static void ten_extension_thread_inherit_thread_ownership(
       &extension_group->ten_env->thread_check, &self->thread_check);
 }
 
-void *ten_extension_thread_main_actual(ten_extension_thread_t *self) {
+static void *ten_extension_thread_main_actual(ten_extension_thread_t *self) {
   TEN_LOGD("Extension thread is started");
 
   TEN_ASSERT(self &&
@@ -250,6 +250,17 @@ void *ten_extension_thread_main_actual(ten_extension_thread_t *self) {
              "Should not happen.");
 
   ten_extension_thread_inherit_thread_ownership(self);
+
+  ten_extension_group_t *extension_group = self->extension_group;
+  TEN_ASSERT(extension_group &&
+                 ten_extension_group_check_integrity(extension_group, true),
+             "Should not happen.");
+
+  ten_string_t extension_group_name;
+  TEN_STRING_INIT(extension_group_name);
+
+  ten_string_set_from_c_str(&extension_group_name, ten_extension_group_get_name(
+                                                       extension_group, true));
 
   // The runloop should be created in its own thread.
   self->runloop = ten_runloop_create(NULL);
@@ -269,7 +280,10 @@ void *ten_extension_thread_main_actual(ten_extension_thread_t *self) {
 
   ten_extension_thread_notify_engine_we_are_closed(self);
 
-  TEN_LOGD("Extension thread is stopped.");
+  TEN_LOGD("Extension thread '%s' is stopped.",
+           ten_string_get_raw_str(&extension_group_name));
+
+  ten_string_deinit(&extension_group_name);
 
   return NULL;
 }
