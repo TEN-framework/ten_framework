@@ -755,9 +755,9 @@
       "name": "standalone test (C/C++) (lldb, launch)",
       "type": "lldb",
       "request": "launch",
-      "program": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/cpp/standalone_test_cpp/default_extension_cpp/out/linux/x64/tests/default_extension_cpp_test",
+      "program": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/cpp/standalone_vosk_asr_cpp/vosk_asr_cpp/bin/vosk_asr_cpp_test",
       "args": [],
-      "cwd": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/cpp/standalone_test_cpp/default_extension_cpp/out/linux/x64/tests/",
+      "cwd": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/cpp/standalone_vosk_asr_cpp/vosk_asr_cpp/bin",
       "env": {
         "ASAN_OPTIONS": "use_sigaltstack=0",
       },
