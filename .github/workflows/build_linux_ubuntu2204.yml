@@ -86,8 +86,8 @@ jobs:
             EXTRA_ARGS="is_clang=${{ matrix.compiler == 'gcc' && 'false' || 'true' }} log_level=1 enable_serialized_actions=true ten_enable_serialized_rust_action=true ten_rust_enable_gen_cargo_config=false ten_enable_cargo_clean=true ten_enable_go_lint=true ten_enable_rust_incremental_build=false ten_manager_enable_frontend=false ten_enable_integration_tests_prebuilt=false ten_enable_ffmpeg_extensions=true"
           fi
 
-          tgn gen linux x64 ${{ matrix.build_type }} -- $EXTRA_ARGS
-          tgn build linux x64 ${{ matrix.build_type }}
+          tgn gen linux ${{ matrix.arch }} ${{ matrix.build_type }} -- $EXTRA_ARGS
+          tgn build linux ${{ matrix.arch }} ${{ matrix.build_type }}
 
           df -h .
           tree -I 'gen|obj' out
@@ -97,7 +97,7 @@ jobs:
         run: |
           UPDATE_SUPPORTS_SCRIPT=$(pwd)/tools/supports/update_supports_in_manifest_json.py
 
-          cd out/linux/x64/ten_packages
+          cd out/linux/${{ matrix.arch }}/ten_packages
           ARRAY=(
             "system/ten_runtime"
             "system/ten_runtime_go"
@@ -126,7 +126,7 @@ jobs:
       - name: Package assets
         if: matrix.arch == 'x64' && startsWith(github.ref, 'refs/tags/')
         run: |
-          cd out/linux/x64
+          cd out/linux/${{ matrix.arch }}
           zip -vr tman-linux-${{ matrix.compiler }}-${{ matrix.build_type }}-${{ matrix.arch }}.zip ten_manager/bin/tman
           zip -vr ten_packages-linux-${{ matrix.compiler }}-${{ matrix.build_type }}-${{ matrix.arch }}.zip \
             app/default_app_cpp \
@@ -149,23 +149,23 @@ jobs:
         if: matrix.arch == 'x64' && startsWith(github.ref, 'refs/tags/')
         with:
           files: |
-            out/linux/x64/tman-linux-${{ matrix.compiler }}-${{ matrix.build_type }}-${{ matrix.arch }}.zip
-            out/linux/x64/ten_packages-linux-${{ matrix.compiler }}-${{ matrix.build_type }}-${{ matrix.arch }}.zip
+            out/linux/${{ matrix.arch }}/tman-linux-${{ matrix.compiler }}-${{ matrix.build_type }}-${{ matrix.arch }}.zip
+            out/linux/${{ matrix.arch }}/ten_packages-linux-${{ matrix.compiler }}-${{ matrix.build_type }}-${{ matrix.arch }}.zip
 
       - name: Clean up
         if: matrix.arch == 'x64' && startsWith(github.ref, 'refs/tags/')
         run: |
-          rm -rf out/linux/x64/tman-linux-${{ matrix.compiler }}-${{ matrix.build_type }}-${{ matrix.arch }}.zip
-          rm -rf out/linux/x64/ten_packages-linux-${{ matrix.compiler }}-${{ matrix.build_type }}-${{ matrix.arch }}.zip
+          rm -rf out/linux/${{ matrix.arch }}/tman-linux-${{ matrix.compiler }}-${{ matrix.build_type }}-${{ matrix.arch }}.zip
+          rm -rf out/linux/${{ matrix.arch }}/ten_packages-linux-${{ matrix.compiler }}-${{ matrix.build_type }}-${{ matrix.arch }}.zip
 
           df -h .
 
       - name: Publish release to TEN cloud store
         if: ${{ matrix.arch == 'x64' && startsWith(github.ref, 'refs/tags/') && matrix.compiler == 'gcc' && matrix.build_type == 'release' && matrix.arch == 'x64' }}
         run: |
-          TMAN_BIN=$(pwd)/out/linux/x64/ten_manager/bin/tman
+          TMAN_BIN=$(pwd)/out/linux/${{ matrix.arch }}/ten_manager/bin/tman
 
-          cd out/linux/x64
+          cd out/linux/${{ matrix.arch }}
           ARRAY=(
             "app/default_app_cpp"
             "app/default_app_go"
@@ -194,7 +194,7 @@ jobs:
       - name: Clean up
         if: ${{ matrix.arch == 'x64' && startsWith(github.ref, 'refs/tags/') && matrix.compiler == 'gcc' && matrix.build_type == 'release' && matrix.arch == 'x64' }}
         run: |
-          cd out/linux/x64
+          cd out/linux/${{ matrix.arch }}
           ARRAY=(
             "app/default_app_cpp"
             "app/default_app_go"
@@ -282,14 +282,14 @@ jobs:
           TEN_ENABLE_MEMORY_TRACKING: "true"
           TEN_ENABLE_BACKTRACE_DUMP: "true"
         run: |
-          chmod +x out/linux/x64/tests/standalone/ten_utils_unit_test
-          out/linux/x64/tests/standalone/ten_utils_unit_test || { echo "test failed"; exit 1; }
+          chmod +x out/linux/${{ matrix.arch }}/tests/standalone/ten_utils_unit_test
+          out/linux/${{ matrix.arch }}/tests/standalone/ten_utils_unit_test || { echo "test failed"; exit 1; }
 
           df -h .
 
       - name: Clean up
         run: |
-          rm -rf out/linux/x64/tests/standalone/ten_utils_unit_test
+          rm -rf out/linux/${{ matrix.arch }}/tests/standalone/ten_utils_unit_test
 
           df -h .
 
@@ -300,14 +300,14 @@ jobs:
           TEN_ENABLE_MEMORY_TRACKING: "true"
           TEN_ENABLE_BACKTRACE_DUMP: "true"
         run: |
-          chmod +x out/linux/x64/tests/standalone/ten_runtime_unit_test
-          out/linux/x64/tests/standalone/ten_runtime_unit_test || { echo "test failed"; exit 1; }
+          chmod +x out/linux/${{ matrix.arch }}/tests/standalone/ten_runtime_unit_test
+          out/linux/${{ matrix.arch }}/tests/standalone/ten_runtime_unit_test || { echo "test failed"; exit 1; }
 
           df -h
 
       - name: Clean up
         run: |
-          rm -rf out/linux/x64/tests/standalone/ten_runtime_unit_test
+          rm -rf out/linux/${{ matrix.arch }}/tests/standalone/ten_runtime_unit_test
 
           df -h .
 
@@ -319,7 +319,7 @@ jobs:
           TEN_ENABLE_MEMORY_TRACKING: "true"
           TEN_ENABLE_BACKTRACE_DUMP: "true"
         run: |
-          cd out/linux/x64/tests/standalone/ten_rust
+          cd out/linux/${{ matrix.arch }}/tests/standalone/ten_rust
 
           chmod +x unit_test
           chmod +x integration_test
@@ -332,7 +332,7 @@ jobs:
       - name: Clean up
         if: matrix.arch == 'x64'
         run: |
-          rm -rf out/linux/x64/tests/standalone/ten_rust
+          rm -rf out/linux/${{ matrix.arch }}/tests/standalone/ten_rust
 
           df -h .
 
@@ -344,7 +344,7 @@ jobs:
           TEN_ENABLE_MEMORY_TRACKING: "true"
           TEN_ENABLE_BACKTRACE_DUMP: "true"
         run: |
-          cd out/linux/x64/tests/standalone/ten_manager
+          cd out/linux/${{ matrix.arch }}/tests/standalone/ten_manager
 
           chmod +x unit_test
           chmod +x integration_test
@@ -357,7 +357,7 @@ jobs:
       - name: Clean up
         if: matrix.arch == 'x64'
         run: |
-          rm -rf out/linux/x64/tests/standalone/ten_manager
+          rm -rf out/linux/${{ matrix.arch }}/tests/standalone/ten_manager
 
           df -h .
 
@@ -368,14 +368,14 @@ jobs:
           TEN_ENABLE_MEMORY_TRACKING: "true"
           TEN_ENABLE_BACKTRACE_DUMP: "true"
         run: |
-          chmod +x out/linux/x64/tests/standalone/ten_runtime_smoke_test
-          out/linux/x64/tests/standalone/ten_runtime_smoke_test || { echo "test failed"; exit 1; }
+          chmod +x out/linux/${{ matrix.arch }}/tests/standalone/ten_runtime_smoke_test
+          out/linux/${{ matrix.arch }}/tests/standalone/ten_runtime_smoke_test || { echo "test failed"; exit 1; }
 
           df -h .
 
       - name: Clean up
         run: |
-          rm -rf out/linux/x64/tests/standalone/ten_runtime_smoke_test
+          rm -rf out/linux/${{ matrix.arch }}/tests/standalone/ten_runtime_smoke_test
 
           df -h .
 
@@ -452,7 +452,7 @@ jobs:
           TEN_ENABLE_MEMORY_TRACKING: "true"
           TEN_ENABLE_BACKTRACE_DUMP: "true"
         run: |
-          cd out/linux/x64/
+          cd out/linux/${{ matrix.arch }}/
           pytest -s tests/ten_manager/
 
           df -h .
@@ -460,7 +460,7 @@ jobs:
       - name: Clean up
         if: matrix.arch == 'x64'
         run: |
-          rm -rf out/linux/x64/tests/ten_manager
+          rm -rf out/linux/${{ matrix.arch }}/tests/ten_manager
 
           df -h .
 
@@ -495,7 +495,7 @@ jobs:
           df -h .
 
           export PATH=$(pwd)/core/ten_gn:$PATH
-          cd out/linux/x64/
+          cd out/linux/${{ matrix.arch }}/
           pytest -s tests/ten_runtime/integration/
 
           df -h .
