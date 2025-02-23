@@ -118,7 +118,7 @@ bool ten_app_init_log_file(ten_app_t *self, ten_value_t *value) {
   TEN_ASSERT(value && ten_value_check_integrity(value), "Should not happen.");
 
   ten_string_t log_file;
-  ten_string_init(&log_file);
+  TEN_STRING_INIT(log_file);
 
   ten_string_init_from_c_str_with_size(
       &log_file, ten_value_peek_raw_str(value, NULL),

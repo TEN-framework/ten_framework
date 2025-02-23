@@ -125,7 +125,7 @@ static ten_addon_create_protocol_ctx_t *ten_addon_create_protocol_ctx_create(
   TEN_ASSERT(ctx, "Failed to allocate memory.");
 
   if (!uri || strlen(uri) == 0) {
-    ten_string_init(&ctx->uri);
+    TEN_STRING_INIT(ctx->uri);
   } else {
     ten_string_init_formatted(&ctx->uri, "%s", uri);
   }

@@ -52,8 +52,8 @@ void ten_addon_host_init(ten_addon_host_t *self) {
 
   ten_signature_set(&self->signature, TEN_ADDON_HOST_SIGNATURE);
 
-  ten_string_init(&self->name);
-  ten_string_init(&self->base_dir);
+  TEN_STRING_INIT(self->name);
+  TEN_STRING_INIT(self->base_dir);
 
   ten_value_init_object_with_move(&self->manifest, NULL);
   ten_value_init_object_with_move(&self->property, NULL);

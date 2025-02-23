@@ -981,7 +981,7 @@ static napi_value ten_nodejs_extension_create(napi_env env,
   TEN_ASSERT(env, "Should not happen.");
 
   ten_string_t name;
-  ten_string_init(&name);
+  TEN_STRING_INIT(name);
 
   const size_t argc = 2;
   napi_value args[argc];  // this, name

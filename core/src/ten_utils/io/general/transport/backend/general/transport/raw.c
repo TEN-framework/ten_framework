@@ -128,7 +128,7 @@ static ten_named_queue_t *ten_named_queue_get(ten_runloop_t *loop,
   queue = ten_find_named_queue_unsafe(name);
   if (!queue) {
     queue = malloc(sizeof(ten_named_queue_t));
-    ten_string_init(&queue->name);
+    TEN_STRING_INIT(queue->name);
     ten_string_set_formatted(&queue->name, name->buf);
     ten_queue_init(loop, &queue->endpoint[0]);
     ten_queue_init(loop, &queue->endpoint[1]);

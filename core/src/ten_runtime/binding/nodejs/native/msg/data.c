@@ -70,7 +70,7 @@ static napi_value ten_nodejs_data_create(napi_env env,
   }
 
   ten_string_t data_name;
-  ten_string_init(&data_name);
+  TEN_STRING_INIT(data_name);
 
   bool rc = ten_nodejs_get_str_from_js(env, args[1], &data_name);
   if (!rc) {

@@ -35,21 +35,21 @@ static ten_env_tester_notify_log_ctx_t *ten_env_tester_notify_log_ctx_create(
     ten_string_init_from_c_str_with_size(&ctx->func_name, func_name,
                                          strlen(func_name));
   } else {
-    ten_string_init(&ctx->func_name);
+    TEN_STRING_INIT(ctx->func_name);
   }
 
   if (file_name) {
     ten_string_init_from_c_str_with_size(&ctx->file_name, file_name,
                                          strlen(file_name));
   } else {
-    ten_string_init(&ctx->file_name);
+    TEN_STRING_INIT(ctx->file_name);
   }
 
   ctx->line_no = line_no;
   if (msg) {
     ten_string_init_from_c_str_with_size(&ctx->msg, msg, strlen(msg));
   } else {
-    ten_string_init(&ctx->msg);
+    TEN_STRING_INIT(ctx->msg);
   }
 
   return ctx;

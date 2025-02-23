@@ -46,7 +46,7 @@ napi_value ten_nodejs_addon_manager_register_addon_as_extension(
       "TEN JS Addon: ten_nodejs_addon_manager_register_addon_as_extension");
 
   ten_string_t addon_name;
-  ten_string_init(&addon_name);
+  TEN_STRING_INIT(addon_name);
 
   const size_t argc = 2;
   napi_value argv[2];  // name, addon_instance

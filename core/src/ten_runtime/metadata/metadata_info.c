@@ -204,7 +204,7 @@ bool ten_metadata_info_set(ten_metadata_info_t *self, TEN_METADATA_TYPE type,
   TEN_ASSERT(self && value, "Should not happen.");
 
   ten_string_t display;
-  ten_string_init(&display);
+  TEN_STRING_INIT(display);
   ten_metadata_info_get_debug_display(self, &display);
 
   bool validated = false;

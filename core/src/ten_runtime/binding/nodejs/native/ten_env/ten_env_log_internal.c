@@ -24,10 +24,10 @@ static ten_env_notify_log_ctx_t *ten_env_notify_log_ctx_create(void) {
   TEN_ASSERT(ctx, "Failed to allocate memory.");
 
   ctx->level = 0;
-  ten_string_init(&ctx->func_name);
-  ten_string_init(&ctx->file_name);
+  TEN_STRING_INIT(ctx->func_name);
+  TEN_STRING_INIT(ctx->file_name);
   ctx->line_no = 0;
-  ten_string_init(&ctx->msg);
+  TEN_STRING_INIT(ctx->msg);
   ctx->completed = ten_event_create(0, 1);
 
   return ctx;

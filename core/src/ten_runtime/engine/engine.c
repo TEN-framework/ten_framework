@@ -127,7 +127,7 @@ static void ten_engine_set_graph_id(ten_engine_t *self, ten_shared_ptr_t *cmd) {
                               ten_string_get_raw_str(src_graph_id));
   } else {
     ten_string_t graph_id_str;
-    ten_string_init(&graph_id_str);
+    TEN_STRING_INIT(graph_id_str);
     ten_uuid4_gen_string(&graph_id_str);
 
     // Set the newly created graph_id to the engine.

@@ -126,7 +126,7 @@ bool ten_py_check_and_clear_py_error(void) {
 
 PyObject *ten_py_raise_py_value_error_exception(const char *msg, ...) {
   ten_string_t err_msg;
-  ten_string_init(&err_msg);
+  TEN_STRING_INIT(err_msg);
 
   va_list args;
   va_start(args, msg);

@@ -58,7 +58,7 @@ napi_value ten_nodejs_ten_env_is_property_exist(napi_env env,
              "Should not happen.");
 
   ten_string_t name;
-  ten_string_init(&name);
+  TEN_STRING_INIT(name);
 
   bool rc = ten_nodejs_get_str_from_js(env, args[1], &name);
   RETURN_UNDEFINED_IF_NAPI_FAIL(rc, "Failed to get property path.");

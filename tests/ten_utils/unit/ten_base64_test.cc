@@ -13,7 +13,7 @@
 
 TEST(Base64Test, positive) {
   ten_string_t result;
-  ten_string_init(&result);
+  TEN_STRING_INIT(result);
 
   const char *src_str = "how_are_you_this_morning";
   ten_buf_t src_str_buf = TEN_BUF_STATIC_INIT_WITH_DATA_UNOWNED(

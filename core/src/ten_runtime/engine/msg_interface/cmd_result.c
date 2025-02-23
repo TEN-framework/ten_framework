@@ -48,7 +48,7 @@ static bool ten_engine_close_duplicated_remote_or_upgrade_it_to_normal(
              "Invalid use of remote %p.", weak_remote);
 
   ten_string_t detail_str;
-  ten_string_init(&detail_str);
+  TEN_STRING_INIT(detail_str);
 
   ten_value_t *detail_value = ten_msg_peek_property(cmd_result, "detail", NULL);
   if (!detail_value || !ten_value_is_string(detail_value)) {

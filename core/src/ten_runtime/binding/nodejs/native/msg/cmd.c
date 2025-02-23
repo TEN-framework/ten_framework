@@ -69,7 +69,7 @@ static napi_value ten_nodejs_cmd_create(napi_env env, napi_callback_info info) {
   }
 
   ten_string_t cmd_name;
-  ten_string_init(&cmd_name);
+  TEN_STRING_INIT(cmd_name);
 
   bool rc = ten_nodejs_get_str_from_js(env, args[1], &cmd_name);
   if (!rc) {

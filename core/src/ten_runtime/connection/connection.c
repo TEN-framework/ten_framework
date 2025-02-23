@@ -182,7 +182,7 @@ ten_connection_t *ten_connection_create(ten_protocol_t *protocol) {
 
   self->migration_state = TEN_CONNECTION_MIGRATION_STATE_INIT;
 
-  ten_string_init(&self->uri);
+  TEN_STRING_INIT(self->uri);
 
   ten_atomic_store(&self->is_closing, 0);
   self->is_closed = false;

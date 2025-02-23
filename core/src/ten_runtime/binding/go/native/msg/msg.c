@@ -101,7 +101,7 @@ static ten_value_t *ten_go_msg_property_get_and_check_if_exists(
   ten_string_t prop_path;
 
   if (path_len == 0) {
-    ten_string_init(&prop_path);
+    TEN_STRING_INIT(prop_path);
   } else {
     ten_string_init_from_c_str_with_size(&prop_path, path, path_len);
   }
@@ -491,7 +491,7 @@ static void ten_go_msg_set_property(ten_go_msg_t *self, const void *path,
   ten_string_t path_str;
 
   if (path_len == 0) {
-    ten_string_init(&path_str);
+    TEN_STRING_INIT(path_str);
   } else {
     ten_string_init_from_c_str_with_size(&path_str, path, path_len);
   }

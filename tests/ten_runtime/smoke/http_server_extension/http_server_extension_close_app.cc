@@ -111,7 +111,7 @@ TEST(ExtensionTest, HttpServerExtensionCloseApp) {  // NOLINT
   ten_test_http_client_init();
 
   ten_string_t resp;
-  ten_string_init(&resp);
+  TEN_STRING_INIT(resp);
   ten_test_http_client_post("http://127.0.0.1:8001/",
                             R"({"_ten": {"name": "hello_world"}})", &resp);
   EXPECT_EQ(std::string(ten_string_get_raw_str(&resp)), "\"hello world, too\"");

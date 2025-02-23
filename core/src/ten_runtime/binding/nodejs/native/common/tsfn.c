@@ -19,7 +19,7 @@ static ten_nodejs_tsfn_t *ten_nodejs_tsfn_create_empty(void) {
   ten_signature_set(&self->signature, TEN_NODEJS_THREADSAFE_FUNCTION_SIGNATURE);
   ten_sanitizer_thread_check_init_with_current_thread(&self->thread_check);
 
-  ten_string_init(&self->name);
+  TEN_STRING_INIT(self->name);
   self->js_func_ref = NULL;
   self->tsfn = NULL;
   self->lock = ten_mutex_create();

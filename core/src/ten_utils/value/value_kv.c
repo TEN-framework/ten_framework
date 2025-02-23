@@ -37,7 +37,7 @@ ten_value_kv_t *ten_value_kv_create_vempty(const char *fmt, ...) {
 
   ten_signature_set(&self->signature, (ten_signature_t)TEN_VALUE_KV_SIGNATURE);
 
-  ten_string_init(&self->key);
+  TEN_STRING_INIT(self->key);
 
   va_list ap;
   va_start(ap, fmt);
@@ -129,7 +129,7 @@ ten_string_t *ten_value_kv_to_string(ten_value_kv_t *self, ten_error_t *err) {
   TEN_ASSERT(result, "Invalid argument.");
 
   ten_string_t value_str;
-  ten_string_init(&value_str);
+  TEN_STRING_INIT(value_str);
 
   if (!ten_value_to_string(self->value, &value_str, err)) {
     ten_string_destroy(result);
