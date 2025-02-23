@@ -124,9 +124,6 @@ static bool ten_app_handle_msg_default_handler(ten_app_t *self,
                          ten_value_create_string("Graph not found."), NULL);
     ten_msg_clear_and_set_dest_from_msg_src(resp, msg);
 
-    ten_msg_dump(msg, NULL, "=-=-= 111 ^m");
-    ten_msg_dump(resp, NULL, "=-=-= 222 ^m");
-
     if (connection) {
       // The following two functions are desired to be called in order --
       // call 'ten_connection_migration_state_reset_when_engine_not_found()'

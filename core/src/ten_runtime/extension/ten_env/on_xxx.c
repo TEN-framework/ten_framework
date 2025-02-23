@@ -176,9 +176,10 @@ bool ten_extension_on_configure_done(ten_env_t *self) {
   TEN_ASSERT(rc, "Should not happen.");
 
   // Trigger the extension on_init flow.
-  ten_runloop_post_task_tail(ten_extension_get_attached_runloop(extension),
-                             ten_extension_trigger_on_init_task, extension,
-                             NULL);
+  // ten_runloop_post_task_tail(ten_extension_get_attached_runloop(extension),
+  //                            ten_extension_trigger_on_init_task, extension,
+  //                            NULL);
+  ten_extension_on_init(extension);
 
   ten_error_deinit(&err);
 
@@ -263,9 +264,10 @@ bool ten_extension_on_init_done(ten_env_t *self) {
   ten_extension_flush_all_pending_msgs_received_in_init_stage(extension);
 
   // Trigger on_start of extension.
-  ten_runloop_post_task_tail(ten_extension_get_attached_runloop(extension),
-                             ten_extension_trigger_on_start_task, extension,
-                             NULL);
+  // ten_runloop_post_task_tail(ten_extension_get_attached_runloop(extension),
+  //                            ten_extension_trigger_on_start_task, extension,
+  //                            NULL);
+  ten_extension_on_start(extension);
 
   return true;
 }
