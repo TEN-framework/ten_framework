@@ -417,22 +417,23 @@ jobs:
       image: ghcr.io/ten-framework/ten_building_ubuntu2204
     steps:
       - name: Download build artifacts
-        if: matrix.arch == 'x64'
         uses: actions/download-artifact@v4
         with:
           name: tests-artifacts-${{ matrix.compiler }}-${{ matrix.build_type }}-${{ matrix.arch }}
           path: .
 
+      - name: View folder structure content
+        run: |
+          df -h .
+          tree -I .
+
       - name: Update tman config.json
         if: matrix.arch == 'x64'
         run: |
-          df -h .
-          ls -l
-          tree -I 'gen|obj' out
-          CONFIG_FILE="out/linux/${{ matrix.arch }}/tests/local_registry/config.json"
+          CONFIG_FILE="tests/local_registry/config.json"
           echo "Before update:"
           cat $CONFIG_FILE
-          sed -i "s|.*\(\/out/linux\/x64\/tests\/local_registry\)|${GITHUB_WORKSPACE}\1|" $CONFIG_FILE
+          sed -i "s|.*\(\/tests\/local_registry\)|${GITHUB_WORKSPACE}\1|" $CONFIG_FILE
           echo "After update:"
           cat $CONFIG_FILE
 
