@@ -112,18 +112,8 @@ bool ten_extension_on_configure_done(ten_env_t *self) {
                  ten_extension_thread_check_integrity(extension_thread, true),
              "Should not happen.");
 
-  if (extension_thread->is_close_triggered) {
-    // Do not proceed with the subsequent init/start flow, as the extension
-    // thread is about to shut down.
-    TEN_LOGI(
-        "[%s] Since the close process has already been triggered, no further "
-        "steps will be carried out after `on_configure_done`. Enter `on_stop`"
-        "immediately.",
-        ten_extension_get_name(extension, true));
-
-    ten_extension_on_stop(extension);
-    return true;
-  }
+  // It should be excluded by the above extension state.
+  TEN_ASSERT(!extension_thread->is_close_triggered, "Should not happen.");
 
   ten_error_t err;
   TEN_ERROR_INIT(err);
@@ -265,18 +255,8 @@ bool ten_extension_on_init_done(ten_env_t *self) {
                  ten_extension_thread_check_integrity(extension_thread, true),
              "Should not happen.");
 
-  if (extension_thread->is_close_triggered) {
-    // Do not proceed with the subsequent start flow, as the extension thread is
-    // about to shut down.
-    TEN_LOGI(
-        "[%s] Since the close process has already been triggered, no further "
-        "steps will be carried out after `on_init_done`. Enter `on_stop`"
-        "immediately.",
-        ten_extension_get_name(extension, true));
-
-    ten_extension_on_stop(extension);
-    return true;
-  }
+  // It should be excluded by the above extension state.
+  TEN_ASSERT(!extension_thread->is_close_triggered, "Should not happen.");
 
   ten_extension_flush_all_pending_msgs_received_in_init_stage(extension);
 
@@ -313,16 +293,8 @@ bool ten_extension_on_start_done(ten_env_t *self) {
                  ten_extension_thread_check_integrity(extension_thread, true),
              "Should not happen.");
 
-  if (extension_thread->is_close_triggered) {
-    TEN_LOGI(
-        "[%s] Since the close process has already been triggered, no further "
-        "steps will be carried out after `on_start_done`. Enter `on_stop`"
-        "immediately.",
-        ten_extension_get_name(extension, true));
-
-    ten_extension_on_stop(extension);
-    return true;
-  }
+  // It should be excluded by the above extension state.
+  TEN_ASSERT(!extension_thread->is_close_triggered, "Should not happen.");
 
   return true;
 }

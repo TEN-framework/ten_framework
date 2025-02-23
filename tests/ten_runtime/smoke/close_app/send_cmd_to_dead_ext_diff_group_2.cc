@@ -5,7 +5,6 @@
 // Refer to the "LICENSE" file in the root directory for more information.
 //
 #include <nlohmann/json.hpp>
-#include <string>
 #include <thread>
 
 #include "gtest/gtest.h"
@@ -43,6 +42,11 @@ class test_extension_1 : public ten::extension_t {
 class test_extension_2 : public ten::extension_t {
  public:
   explicit test_extension_2(const char *name) : ten::extension_t(name) {}
+
+  void on_configure(ten::ten_env_t &ten_env) override {
+    ten_sleep_ms(1000);
+    ten_env.on_configure_done();
+  }
 
   void on_stop(ten::ten_env_t &ten_env) override {
     // sleep 3 seconds to ensure the test_extension_1 is dead.
@@ -109,13 +113,13 @@ void *test_app_thread_main(TEN_UNUSED void *args) {
 }
 
 TEN_CPP_REGISTER_ADDON_AS_EXTENSION(
-    send_cmd_to_dead_ext_same_group__test_extension_1, test_extension_1);
+    send_cmd_to_dead_ext_diff_group_2__test_extension_1, test_extension_1);
 TEN_CPP_REGISTER_ADDON_AS_EXTENSION(
-    send_cmd_to_dead_ext_same_group__test_extension_2, test_extension_2);
+    send_cmd_to_dead_ext_diff_group_2__test_extension_2, test_extension_2);
 
 }  // namespace
 
-TEST(CloseAppTest, SendCmdToDeadExtSameGroup) {  // NOLINT
+TEST(CloseAppTest, SendCmdToDeadExtDiffGroup2) {  // NOLINT
   // Start app.
   auto *app_thread =
       ten_thread_create("app thread", test_app_thread_main, nullptr);
@@ -129,14 +133,14 @@ TEST(CloseAppTest, SendCmdToDeadExtSameGroup) {  // NOLINT
            "nodes": [{
                 "type": "extension",
                 "name": "test_extension_1",
-                "addon": "send_cmd_to_dead_ext_same_group__test_extension_1",
-                "extension_group": "basic_extension_group",
+                "addon": "send_cmd_to_dead_ext_diff_group_2__test_extension_1",
+                "extension_group": "basic_extension_group_1",
                 "app": "msgpack://127.0.0.1:8001/"
              },{
                 "type": "extension",
                 "name": "test_extension_2",
-                "addon": "send_cmd_to_dead_ext_same_group__test_extension_2",
-                "extension_group": "basic_extension_group",
+                "addon": "send_cmd_to_dead_ext_diff_group_2__test_extension_2",
+                "extension_group": "basic_extension_group_2",
                 "app": "msgpack://127.0.0.1:8001/",
                 "property": {
                   "test_property": "test_value"
@@ -161,7 +165,7 @@ TEST(CloseAppTest, SendCmdToDeadExtSameGroup) {  // NOLINT
   // Send a close_app command.
   auto close_app_cmd = ten::cmd_t::create("close_app");
   close_app_cmd->set_dest("msgpack://127.0.0.1:8001/", nullptr,
-                          "basic_extension_group", "test_extension_1");
+                          "basic_extension_group_1", "test_extension_1");
   client->send_cmd(std::move(close_app_cmd));
 
   ten_thread_join(app_thread, -1);
