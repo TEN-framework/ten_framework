@@ -426,6 +426,9 @@ jobs:
       - name: Update tman config.json
         if: matrix.arch == 'x64'
         run: |
+          df -h .
+          ls -l
+          tree -I 'gen|obj' out
           CONFIG_FILE="out/linux/${{ matrix.arch }}/tests/local_registry/config.json"
           echo "Before update:"
           cat $CONFIG_FILE
