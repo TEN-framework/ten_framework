@@ -26,15 +26,18 @@ group("ten_framework_all") {
   deps = [
     "//core/src/ten_runtime",
     "//core/src/ten_runtime/binding",
-    "//core/src/ten_rust",
+    "//packages/core_addon_loaders",
     "//packages/core_apps",
     "//packages/core_extensions",
-    "//packages/core_addon_loaders",
     "//packages/core_protocols",
     "//packages/example_apps",
     "//packages/example_extensions",
     "//third_party",
   ]
+
+  if (ten_enable_ten_rust) {
+    deps += [ "//core/src/ten_rust" ]
+  }
 
   if (ten_enable_ten_manager) {
     deps += [ "//core/src/ten_manager" ]

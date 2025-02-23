@@ -24,6 +24,11 @@ class test_extension_1 : public ten::extension_t {
  public:
   explicit test_extension_1(const char *name) : ten::extension_t(name) {}
 
+  void on_start(ten::ten_env_t &ten_env) override {
+    ten_sleep_ms(1000);
+    ten_env.on_start_done();
+  }
+
   void on_cmd(ten::ten_env_t &ten_env,
               std::unique_ptr<ten::cmd_t> cmd) override {
     if (cmd->get_name() == "close_app") {
