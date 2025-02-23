@@ -56,42 +56,42 @@ if (ten_enable_ten_rust) {
       }
     }
   }
-}
 
-rust_target("ten_rust_static_lib") {
-  project_path = "//core/src/ten_rust"
-  target_path = "${target_gen_dir}/ten_rust_static_lib"
-  manifest_path = "//core/src/ten_rust/Cargo.toml"
+  rust_target("ten_rust_static_lib") {
+    project_path = "//core/src/ten_rust"
+    target_path = "${target_gen_dir}/ten_rust_static_lib"
+    manifest_path = "//core/src/ten_rust/Cargo.toml"
 
-  extra_inputs = [
-    "//core/src/ten_rust/src/json_schema/data/manifest.schema.json",
-    "//core/src/ten_rust/src/json_schema/data/manifest-lock.schema.json",
-    "//core/src/ten_rust/src/json_schema/data/property.schema.json",
-  ]
+    extra_inputs = [
+      "//core/src/ten_rust/src/json_schema/data/manifest.schema.json",
+      "//core/src/ten_rust/src/json_schema/data/manifest-lock.schema.json",
+      "//core/src/ten_rust/src/json_schema/data/property.schema.json",
+    ]
 
-  utils_static_lib_path = rebase_path("${root_gen_dir}/core/src/ten_utils")
-  env = [ "TEN_UTILS_LIBRARY_PATH=${utils_static_lib_path}" ]
+    utils_static_lib_path = rebase_path("${root_gen_dir}/core/src/ten_utils")
+    env = [ "TEN_UTILS_LIBRARY_PATH=${utils_static_lib_path}" ]
 
-  if (is_win) {
-    output_name = "ten_rust.lib"
-  } else {
-    output_name = "libten_rust.a"
+    if (is_win) {
+      output_name = "ten_rust.lib"
+    } else {
+      output_name = "libten_rust.a"
+    }
+
+    deps = [ ":ten_rust_build_deps" ]
   }
 
-  deps = [ ":ten_rust_build_deps" ]
-}
+  rust_cbindgen("ten_rust_binding") {
+    project_path = "//core/src/ten_rust"
+    config_file = "cbindgen.toml"
+    output_file = "include_internal/ten_rust/ten_rust.h"
+    binding_files = [
+      "src/bindings.rs",
+      "src/telemetry/mod.rs",
+    ]
 
-rust_cbindgen("ten_rust_binding") {
-  project_path = "//core/src/ten_rust"
-  config_file = "cbindgen.toml"
-  output_file = "include_internal/ten_rust/ten_rust.h"
-  binding_files = [
-    "src/bindings.rs",
-    "src/telemetry/mod.rs",
-  ]
-
-  deps = [ ":ten_rust_static_lib" ]
-  public_configs = [ ":ten_rust_config" ]
+    deps = [ ":ten_rust_static_lib" ]
+    public_configs = [ ":ten_rust_config" ]
+  }
 }
 
 config("ten_rust_config") {
