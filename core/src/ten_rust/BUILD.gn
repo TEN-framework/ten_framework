@@ -7,12 +7,12 @@
 import("//build/ten_common/rust/rust.gni")
 import("//build/ten_rust/options.gni")
 
-copy("ten_rust_test_data") {
-  sources = [ "//core/src/ten_rust/tests/test_data" ]
-  outputs = [ "${root_out_dir}/tests/standalone/ten_rust/tests/test_data" ]
-}
-
 if (ten_enable_ten_rust) {
+  copy("ten_rust_test_data") {
+    sources = [ "//core/src/ten_rust/tests/test_data" ]
+    outputs = [ "${root_out_dir}/tests/standalone/ten_rust/tests/test_data" ]
+  }
+
   if (ten_rust_enable_tests) {
     rust_test("ten_rust_test_cargo_build") {
       project_path = "//core/src/ten_rust"
