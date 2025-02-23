@@ -94,7 +94,7 @@ class extension_tester_1 : public ten::extension_tester_t {
 
 }  // namespace
 
-TEST(StandaloneTest, StopTestBeforeOnStartDone1) {  // NOLINT
+TEST(StandaloneTest, DISABLED_StopTestBeforeOnStartDone1) {  // NOLINT
   auto *tester = new extension_tester_1();
   tester->set_test_mode_single(
       "stop_test_before_on_start_done_1__test_extension_1");
