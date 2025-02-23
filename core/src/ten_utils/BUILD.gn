@@ -127,8 +127,9 @@ combine_static_library("ten_utils_combined_static") {
     libuv_static[0],
   ]
 
-  deps = [
-    ":ten_utils_static",
-    "//core/src/ten_rust:asan_config",
-  ]
+  deps = [ ":ten_utils_static" ]
+
+  if (ten_enable_ten_rust) {
+    deps += [ "//core/src/ten_rust:asan_config" ]
+  }
 }
