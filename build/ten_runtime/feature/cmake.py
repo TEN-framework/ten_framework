@@ -266,6 +266,13 @@ cmake.py will consider it as its own command line option."
                 self.defines.append("-DCMAKE_C_EXTENSIONS=ON")
             else:
                 self.defines.append("-DCMAKE_C_EXTENSIONS=OFF")
+        elif self.args.target_os == "mac":
+            self.sharedlinkerflags.extend(
+                [
+                    "-Wl,-rpath,@loader_path",
+                    "-Wl,-rpath,@loader_path/../lib/",
+                ]
+            )
 
         if self.args.hide_symbol == "true":
             self.cflags.append("-fvisibility=hidden")

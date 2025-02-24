@@ -232,8 +232,8 @@ jobs:
           tar -xzvf out/mac/arm64/tests-artifacts.tar.gz
 
       #   continue-on-error: true
-      - name: Setup tmate session
-        uses: mxschmitt/action-tmate@v3
+      # - name: Setup tmate session
+      #   uses: mxschmitt/action-tmate@v3
 
       - name: Run Tests (ten_utils_unit_test)
         env:
