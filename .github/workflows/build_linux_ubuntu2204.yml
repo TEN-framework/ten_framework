@@ -265,7 +265,7 @@ jobs:
       - name: View folder structure content
         run: |
           df -h .
-          tree -I ".*|*.h|*.hpp|*.py"
+          tree -I ".*|*.h|*.hpp|*.py" out/linux/${{ matrix.arch }}
 
       - name: Set ulimit and sysctl
         run: |
@@ -449,7 +449,7 @@ jobs:
       - name: View folder structure content
         run: |
           df -h .
-          tree -I ".*|*.h|*.hpp|*.py"
+          tree -I ".*|*.h|*.hpp|*.py" out/linux/${{ matrix.arch }}
 
       - name: Set ulimit and sysctl
         run: |

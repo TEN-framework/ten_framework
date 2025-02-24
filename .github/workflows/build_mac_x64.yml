@@ -199,21 +199,7 @@ jobs:
 
       - name: Install tools and dependencies
         run: |
-          if [ ${{ matrix.build_type }} == "debug" ]; then
-            # Since the TEN runtime and TEN manager are a combination of C and
-            # Rust, to enable ASan, the ASan versions used by both the C and
-            # Rust compilation environments must be consistent. Therefore, it is
-            # necessary to lock the LLVM and Rust versions to enable ASan.
-            brew install llvm@18
-            rustup default nightly-2024-07-19
-          else
-            rustup default nightly
-          fi
           brew install tree
-          pip3 install --use-pep517 python-dotenv jinja2
-          go install golang.org/dl/go1.20.12@latest && go1.20.12 download
-          go env -w GOFLAGS="-buildvcs=false"
-          cargo install --force cbindgen
 
       - name: Download build artifacts (tar archive)
         uses: actions/download-artifact@v4
@@ -228,7 +214,7 @@ jobs:
       - name: View folder structure content
         run: |
           df -h .
-          tree -I ".*|*.h|*.hpp|*.py"
+          tree -I ".*|*.h|*.hpp|*.py" out/mac/x64
 
       - name: Run Tests (ten_utils_unit_test)
         env:
@@ -344,23 +330,18 @@ jobs:
 
       - name: Install tools and dependencies
         run: |
-
           if [ ${{ matrix.build_type }} == "debug" ]; then
             # Since the TEN runtime and TEN manager are a combination of C and
             # Rust, to enable ASan, the ASan versions used by both the C and
             # Rust compilation environments must be consistent. Therefore, it is
             # necessary to lock the LLVM and Rust versions to enable ASan.
             brew install llvm@18
-            rustup default nightly-2024-07-19
-          else
-            rustup default nightly
           fi
 
           brew install tree
           pip3 install --use-pep517 python-dotenv jinja2
           go install golang.org/dl/go1.20.12@latest && go1.20.12 download
           go env -w GOFLAGS="-buildvcs=false"
-          cargo install --force cbindgen
 
       - name: Download build artifacts (tar archive)
         uses: actions/download-artifact@v4
@@ -375,7 +356,7 @@ jobs:
       - name: View folder structure content
         run: |
           df -h .
-          tree -I ".*|*.h|*.hpp|*.py"
+          tree -I ".*|*.h|*.hpp|*.py" out/mac/x64
 
       - name: Install Python dependencies via script
         run: |
