@@ -19,7 +19,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  mac-build-x64:
+  build:
     runs-on: macos-13
     strategy:
       matrix:
@@ -156,7 +156,8 @@ jobs:
             out/mac/x64/tman-mac-${{ matrix.build_type }}-x64.zip
             out/mac/x64/ten_packages-mac-${{ matrix.build_type }}-x64.zip
 
-  mac-test-standalone-x64:
+  test-standalone:
+    needs: build
     runs-on: macos-13
     strategy:
       matrix:
@@ -292,7 +293,8 @@ jobs:
           ./unit_test || { echo "ten_manager unit test failed"; exit 1; }
           df -h .
 
-  mac-test-integration-x64:
+  test-integration:
+    needs: build
     runs-on: macos-13
     strategy:
       matrix:

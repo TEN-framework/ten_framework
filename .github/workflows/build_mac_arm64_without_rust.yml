@@ -20,7 +20,7 @@ concurrency:
 
 jobs:
   # Building ten_runtime without the ten_rust library (i.e., ten_enable_ten_rust_apis=false).
-  mac-arm64-without-ten-rust:
+  build:
     runs-on: macos-latest
     strategy:
       matrix:

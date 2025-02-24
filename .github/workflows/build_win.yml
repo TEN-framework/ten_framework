@@ -147,6 +147,7 @@ jobs:
           if-no-files-found: ignore
 
   test-standalone:
+    needs: build
     runs-on: windows-latest
     env:
       PYTHONIOENCODING: utf-8
@@ -257,6 +258,7 @@ jobs:
           ./unit_test || { echo "ten_manager unit test failed"; exit 1; }
 
   test-integration:
+    needs: build
     runs-on: windows-latest
     env:
       PYTHONIOENCODING: utf-8

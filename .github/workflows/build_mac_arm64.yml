@@ -19,7 +19,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  mac-build-arm64:
+  build:
     runs-on: macos-latest
     strategy:
       matrix:
@@ -158,7 +158,8 @@ jobs:
             out/mac/arm64/tman-mac-${{ matrix.build_type }}-arm64.zip
             out/mac/arm64/ten_packages-mac-${{ matrix.build_type }}-arm64.zip
 
-  mac-test-standalone-arm64:
+  test-standalone:
+    needs: build
     runs-on: macos-latest
     strategy:
       matrix:
@@ -310,7 +311,8 @@ jobs:
 
           df -h .
 
-  mac-test-integration-arm64:
+  test-integration:
+    needs: build
     runs-on: macos-latest
     strategy:
       matrix:
