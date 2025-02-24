@@ -118,14 +118,20 @@ jobs:
           df -h .
         shell: bash
 
+        # Package the tests artifacts into a tar file while preserving file
+        # permissions.
+      - name: Package tests relevant artifacts preserving permissions
+        run: |
+          tar -czvf tests-artifacts.tar.gz \
+            -C out/linux/${{ matrix.arch }} tests \
+            -C out/linux/${{ matrix.arch }} ten_manager \
+            -C out/linux/${{ matrix.arch }} tgn_args.txt
+
       - name: Upload tests relevant artifacts
         uses: actions/upload-artifact@v4
         with:
           name: tests-artifacts-${{ matrix.compiler }}-${{ matrix.build_type }}-${{ matrix.arch }}
-          path: |
-            out/linux/${{ matrix.arch }}/tests
-            out/linux/${{ matrix.arch }}/ten_manager
-            out/linux/${{ matrix.arch }}/tgn_args.txt
+          path: tests-artifacts.tar.gz
           if-no-files-found: ignore
 
       - name: Package assets
@@ -242,6 +248,16 @@ jobs:
     container:
       image: ghcr.io/ten-framework/ten_building_ubuntu2204
     steps:
+      - name: Download build artifacts (tar archive)
+        uses: actions/download-artifact@v4
+        with:
+          name: tests-artifacts-${{ matrix.compiler }}-${{ matrix.build_type }}-${{ matrix.arch }}
+          path: out/linux/${{ matrix.arch }}
+
+      - name: Extract tests artifacts preserving permissions
+        run: |
+          tar -xzvf out/linux/${{ matrix.arch }}/tests-artifacts.tar.gz -C out/linux/${{ matrix.arch }}
+
       - name: Download build artifacts
         uses: actions/download-artifact@v4
         with:
@@ -251,7 +267,7 @@ jobs:
       - name: View folder structure content
         run: |
           df -h .
-          tree -I .
+          tree -L 6 -I ".*" .
 
       - name: Set ulimit and sysctl
         run: |
@@ -425,16 +441,20 @@ jobs:
             git submodule update --init --recursive "$submodule"
           done
 
-      - name: Download build artifacts
+      - name: Download build artifacts (tar archive)
         uses: actions/download-artifact@v4
         with:
           name: tests-artifacts-${{ matrix.compiler }}-${{ matrix.build_type }}-${{ matrix.arch }}
           path: out/linux/${{ matrix.arch }}
 
+      - name: Extract tests artifacts preserving permissions
+        run: |
+          tar -xzvf out/linux/${{ matrix.arch }}/tests-artifacts.tar.gz -C out/linux/${{ matrix.arch }}
+
       - name: View folder structure content
         run: |
           df -h .
-          tree -I .
+          tree -L 6 -I ".*" .
 
       - name: Set ulimit and sysctl
         run: |
