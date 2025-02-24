@@ -15,9 +15,9 @@ on:
       - "**.md"
 
 jobs:
-  build-linux-ubuntu2204:
+  build-linux-intel-ubuntu2204:
     concurrency:
-      group: build-linux-ubuntu2204-${{ github.head_ref }}-${{ matrix.compiler }}-${{ matrix.build_type }}-${{ matrix.arch }}
+      group: linux-intel-ubuntu2204-${{ github.head_ref }}-${{ matrix.compiler }}-${{ matrix.build_type }}-${{ matrix.arch }}
       cancel-in-progress: true
     runs-on: ubuntu-latest
     strategy:
@@ -228,9 +228,9 @@ jobs:
           df -h .
 
   test-standalone-linux-ubuntu2204:
-    needs: build-linux-ubuntu2204
+    needs: build-linux-intel-ubuntu2204
     concurrency:
-      group: test-standalone-linux-ubuntu2204-${{ github.head_ref }}-${{ matrix.compiler }}-${{ matrix.build_type }}-${{ matrix.arch }}
+      group: linux-intel-ubuntu2204-${{ github.head_ref }}-${{ matrix.compiler }}-${{ matrix.build_type }}-${{ matrix.arch }}
       cancel-in-progress: true
     runs-on: ubuntu-latest
     strategy:
@@ -401,9 +401,9 @@ jobs:
           df -h .
 
   test-integration-linux-ubuntu2204:
-    needs: build-linux-ubuntu2204
+    needs: build-linux-intel-ubuntu2204
     concurrency:
-      group: test-integration-linux-ubuntu2204-${{ github.head_ref }}-${{ matrix.compiler }}-${{ matrix.build_type }}-${{ matrix.arch }}
+      group: linux-intel-ubuntu2204-${{ github.head_ref }}-${{ matrix.compiler }}-${{ matrix.build_type }}-${{ matrix.arch }}
       cancel-in-progress: true
     runs-on: ubuntu-latest
     strategy:

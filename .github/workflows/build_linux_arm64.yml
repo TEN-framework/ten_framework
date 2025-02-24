@@ -15,10 +15,10 @@ on:
       - "**.md"
 
 jobs:
-  build:
+  linux-arm64:
     runs-on: ubuntu-latest
     concurrency:
-      group: build-linux-arm64-${{ github.head_ref }}-${{ matrix.compiler }}-${{ matrix.build_type }}
+      group: linux-arm64-${{ github.head_ref }}-${{ matrix.compiler }}-${{ matrix.build_type }}
       cancel-in-progress: true
     strategy:
       matrix:
