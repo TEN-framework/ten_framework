@@ -24,6 +24,7 @@
 #include "include_internal/ten_runtime/timer/timer.h"
 #include "ten_utils/log/log.h"
 #include "ten_utils/macro/check.h"
+#include "ten_utils/macro/mark.h"
 
 static bool ten_extension_parse_interface_schema(ten_extension_t *self,
                                                  ten_value_t *api_definition,
@@ -75,7 +76,8 @@ done:
   }
 }
 
-static void ten_extension_trigger_on_init_task(void *self_, void *user_data) {
+static void ten_extension_trigger_on_init_task(void *self_,
+                                               TEN_UNUSED void *user_data) {
   ten_extension_t *self = self_;
 
   TEN_ASSERT(self, "Invalid argument.");
@@ -236,7 +238,8 @@ static void ten_extension_flush_all_pending_msgs_received_in_init_stage(
   ten_list_clear(&self->pending_msgs_received_before_on_init_done);
 }
 
-static void ten_extension_trigger_on_start_task(void *self_, void *user_data) {
+static void ten_extension_trigger_on_start_task(void *self_,
+                                                TEN_UNUSED void *user_data) {
   ten_extension_t *self = self_;
 
   TEN_ASSERT(self, "Invalid argument.");
