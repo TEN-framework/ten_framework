@@ -126,7 +126,7 @@ jobs:
           files=""
           for item in tests ten_manager tgn_args.txt; do
             if [ -e "out/linux/${{ matrix.arch }}/$item" ]; then
-              files="$files -C out/linux/${{ matrix.arch }} $item"
+              files="$files out/linux/${{ matrix.arch }}/$item"
             fi
           done
 
