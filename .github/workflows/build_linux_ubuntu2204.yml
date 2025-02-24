@@ -263,13 +263,7 @@ jobs:
 
       - name: Extract tests artifacts preserving permissions
         run: |
-          tar -xzvf out/linux/${{ matrix.arch }}/tests-artifacts.tar.gz -C out/linux/${{ matrix.arch }}
-
-      - name: Download build artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: tests-artifacts-${{ matrix.compiler }}-${{ matrix.build_type }}-${{ matrix.arch }}
-          path: out/linux/${{ matrix.arch }}
+          tar -xzvf out/linux/${{ matrix.arch }}/tests-artifacts.tar.gz
 
       - name: View folder structure content
         run: |
@@ -456,7 +450,7 @@ jobs:
 
       - name: Extract tests artifacts preserving permissions
         run: |
-          tar -xzvf out/linux/${{ matrix.arch }}/tests-artifacts.tar.gz -C out/linux/${{ matrix.arch }}
+          tar -xzvf out/linux/${{ matrix.arch }}/tests-artifacts.tar.gz
 
       - name: View folder structure content
         run: |
