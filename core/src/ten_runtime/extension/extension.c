@@ -871,6 +871,10 @@ void ten_extension_on_stop(ten_extension_t *self) {
   TEN_ASSERT(ten_extension_check_integrity(self, true),
              "Invalid use of extension %p.", self);
 
+  if (self->state >= TEN_EXTENSION_STATE_ON_STOP) {
+    return;
+  }
+
   TEN_LOGI("[%s] on_stop().", ten_extension_get_name(self, true));
 
   self->state = TEN_EXTENSION_STATE_ON_STOP;

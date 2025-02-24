@@ -157,7 +157,9 @@ void ten_extension_thread_stop_life_cycle_of_all_extensions(
       // TEN_EXTENSION_STATE_ON_XXX_DONE state, their on_stop() method can be
       // called directly.
 
-      if (state <= TEN_EXTENSION_STATE_ON_START_DONE) {
+      if (state == TEN_EXTENSION_STATE_ON_CONFIGURE_DONE ||
+          state == TEN_EXTENSION_STATE_ON_INIT_DONE ||
+          state == TEN_EXTENSION_STATE_ON_START_DONE) {
         ten_extension_on_stop(extension);
       }
 
