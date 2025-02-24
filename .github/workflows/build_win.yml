@@ -222,6 +222,11 @@ jobs:
         run: |
           Expand-Archive -Path "out/win/x64/tests-artifacts.zip" -DestinationPath "out/win/x64" -Force
 
+      - name: View folder structure content
+        run: |
+          df -h .
+          tree -I ".*|*.h|*.hpp|*.py"
+
       - name: Run Tests (ten_utils_unit_test)
         env:
           TEN_ENABLE_BACKTRACE_DUMP: "true"
@@ -332,6 +337,11 @@ jobs:
         shell: pwsh
         run: |
           Expand-Archive -Path "out/win/x64/tests-artifacts.zip" -DestinationPath "out/win/x64" -Force
+
+      - name: View folder structure content
+        run: |
+          df -h .
+          tree -I ".*|*.h|*.hpp|*.py"
 
       - name: Install Python dependencies via script
         run: |

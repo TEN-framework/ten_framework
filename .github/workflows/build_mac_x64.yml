@@ -225,6 +225,11 @@ jobs:
         run: |
           tar -xzvf out/mac/x64/tests-artifacts.tar.gz
 
+      - name: View folder structure content
+        run: |
+          df -h .
+          tree -I ".*|*.h|*.hpp|*.py"
+
       - name: Run Tests (ten_utils_unit_test)
         env:
           ASAN_OPTIONS: detect_stack_use_after_return=1:color=always:unmap_shadow_on_exit=1:abort_on_error=1
@@ -366,6 +371,11 @@ jobs:
       - name: Extract tests artifacts preserving permissions
         run: |
           tar -xzvf out/mac/x64/tests-artifacts.tar.gz
+
+      - name: View folder structure content
+        run: |
+          df -h .
+          tree -I ".*|*.h|*.hpp|*.py"
 
       - name: Install Python dependencies via script
         run: |

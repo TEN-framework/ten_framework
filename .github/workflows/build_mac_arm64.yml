@@ -231,6 +231,11 @@ jobs:
         run: |
           tar -xzvf out/mac/arm64/tests-artifacts.tar.gz
 
+      - name: View folder structure content
+        run: |
+          df -h .
+          tree -I ".*|*.h|*.hpp|*.py"
+
       #   continue-on-error: true
       # - name: Setup tmate session
       #   uses: mxschmitt/action-tmate@v3
@@ -383,6 +388,11 @@ jobs:
       - name: Extract tests artifacts preserving permissions
         run: |
           tar -xzvf out/mac/arm64/tests-artifacts.tar.gz
+
+      - name: View folder structure content
+        run: |
+          df -h .
+          tree -I ".*|*.h|*.hpp|*.py"
 
       - name: Install Python dependencies via script
         run: |
