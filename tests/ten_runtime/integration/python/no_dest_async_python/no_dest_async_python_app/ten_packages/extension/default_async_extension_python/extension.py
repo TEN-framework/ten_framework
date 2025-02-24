@@ -77,7 +77,7 @@ class DefaultAsyncExtension(AsyncExtension):
         new_result = CmdResult.create(cmd_result.get_status_code(), cmd)
         new_result.set_property_from_json(None, cmd_result_json)
 
-        await ten_env.return_result(cmd_result)
+        await ten_env.return_result(new_result)
 
     async def on_stop(self, ten_env: AsyncTenEnv) -> None:
         ten_env.log_debug("on_stop")
