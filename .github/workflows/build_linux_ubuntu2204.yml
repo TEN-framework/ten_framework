@@ -121,6 +121,7 @@ jobs:
         # Package the tests artifacts into a tar file while preserving file
         # permissions.
       - name: Package tests relevant artifacts preserving permissions
+        shell: bash
         run: |
           files=()
           for item in tests ten_manager tgn_args.txt; do
