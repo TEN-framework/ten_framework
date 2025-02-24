@@ -122,10 +122,16 @@ jobs:
         # permissions.
       - name: Package tests relevant artifacts preserving permissions
         run: |
-          tar -czvf tests-artifacts.tar.gz \
-            -C out/linux/${{ matrix.arch }} tests \
-            -C out/linux/${{ matrix.arch }} ten_manager \
-            -C out/linux/${{ matrix.arch }} tgn_args.txt
+          files=()
+          for item in tests ten_manager tgn_args.txt; do
+            if [ -e "out/linux/${{ matrix.arch }}/$item" ]; then
+              files+=( "-C" "out/linux/${{ matrix.arch }}" "$item" )
+            fi
+          done
+
+          if [ ${#files[@]} -gt 0 ]; then
+            tar -czvf tests-artifacts.tar.gz "${files[@]}"
+          fi
 
       - name: Upload tests relevant artifacts
         uses: actions/upload-artifact@v4
