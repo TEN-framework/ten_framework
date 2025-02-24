@@ -19,7 +19,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build-linux-intel-ubuntu2204:
+  build:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -122,7 +122,6 @@ jobs:
         # Package the tests artifacts into a tar file while preserving file
         # permissions.
       - name: Package tests relevant artifacts preserving permissions
-        shell: bash
         run: |
           files=""
           for item in tests ten_manager tgn_args.txt; do
@@ -235,8 +234,8 @@ jobs:
 
           df -h .
 
-  test-standalone-linux-ubuntu2204:
-    needs: build-linux-intel-ubuntu2204
+  test-standalone:
+    needs: build
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -399,8 +398,8 @@ jobs:
 
           df -h .
 
-  test-integration-linux-ubuntu2204:
-    needs: build-linux-intel-ubuntu2204
+  test-integration:
+    needs: build
     runs-on: ubuntu-latest
     strategy:
       matrix:

@@ -28,7 +28,6 @@ class TenEnv(TenEnvBase):
 
     def __init__(self, internal_obj: _TenEnv) -> None:
         super().__init__(internal_obj)
-        self._release_handler = None
 
     def __del__(self) -> None:
         pass

@@ -19,7 +19,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  linux-arm64:
+  build:
     runs-on: ubuntu-latest
     strategy:
       matrix:
