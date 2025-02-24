@@ -14,7 +14,9 @@ class vosk_asr_cpp_t : public ten::extension_t {
   explicit vosk_asr_cpp_t(const char *name) : extension_t(name) {}
 
   void on_init(ten::ten_env_t &ten_env) override {
-    vosk_model = vosk_model_new("model");
+    auto model_name = ten_env.get_property_string("model_name");
+
+    vosk_model = vosk_model_new((std::string("models/") + model_name).c_str());
     if (vosk_model == nullptr) {
       TEN_LOGE("Failed to load model, check if exists in the folder.");
       exit(EXIT_FAILURE);
@@ -65,7 +67,14 @@ class vosk_asr_cpp_t : public ten::extension_t {
   }
 
   void on_stop(ten::ten_env_t &ten_env) override {
-    // Extension stop.
+    if (vosk_recognizer) {
+      vosk_recognizer_free(vosk_recognizer);
+      vosk_recognizer = nullptr;
+    }
+    if (vosk_model) {
+      vosk_model_free(vosk_model);
+      vosk_model = nullptr;
+    }
     ten_env.on_stop_done();
   }
 

@@ -15,7 +15,6 @@
 #include "include_internal/ten_runtime/extension/extension.h"
 #include "include_internal/ten_runtime/extension_group/base_dir.h"
 #include "include_internal/ten_runtime/extension_group/extension_group.h"
-#include "include_internal/ten_runtime/extension_group/on_xxx.h"
 #include "include_internal/ten_runtime/metadata/default/default.h"
 #include "include_internal/ten_runtime/ten_env/ten_env.h"
 #include "include_internal/ten_utils/log/log.h"
@@ -204,7 +203,7 @@ bool ten_metadata_info_set(ten_metadata_info_t *self, TEN_METADATA_TYPE type,
   TEN_ASSERT(self && value, "Should not happen.");
 
   ten_string_t display;
-  ten_string_init(&display);
+  TEN_STRING_INIT(display);
   ten_metadata_info_get_debug_display(self, &display);
 
   bool validated = false;

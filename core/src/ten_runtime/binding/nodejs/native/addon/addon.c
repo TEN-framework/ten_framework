@@ -410,7 +410,7 @@ static napi_value ten_nodejs_addon_create(napi_env env,
   ten_sanitizer_thread_check_init_with_current_thread(
       &addon_bridge->thread_check);
 
-  ten_string_init(&addon_bridge->addon_name);
+  TEN_STRING_INIT(addon_bridge->addon_name);
   addon_bridge->c_addon_host = NULL;
 
   napi_status status =

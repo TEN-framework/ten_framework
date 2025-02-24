@@ -69,7 +69,7 @@ static bool ten_schema_keyword_required_validate_value(
   }
 
   ten_string_t absent_keys;
-  ten_string_init(&absent_keys);
+  TEN_STRING_INIT(absent_keys);
 
   ten_list_foreach (&self->required_properties, iter) {
     ten_string_t *required_property = ten_str_listnode_get(iter.node);
@@ -146,7 +146,7 @@ static bool ten_schema_keyword_required_is_compatible(
   }
 
   ten_string_t missing_keys;
-  ten_string_init(&missing_keys);
+  TEN_STRING_INIT(missing_keys);
 
   ten_list_foreach (&target->required_properties, iter) {
     ten_string_t *target_required = ten_str_listnode_get(iter.node);

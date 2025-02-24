@@ -91,16 +91,16 @@ static napi_value ten_nodejs_msg_set_dest(napi_env env,
   TEN_ERROR_INIT(err);
 
   ten_string_t app_uri;
-  ten_string_init(&app_uri);
+  TEN_STRING_INIT(app_uri);
 
   ten_string_t graph_id;
-  ten_string_init(&graph_id);
+  TEN_STRING_INIT(graph_id);
 
   ten_string_t extension_group;
-  ten_string_init(&extension_group);
+  TEN_STRING_INIT(extension_group);
 
   ten_string_t extension;
-  ten_string_init(&extension);
+  TEN_STRING_INIT(extension);
 
   if (!is_js_undefined(env, args[1])) {
     bool rc = ten_nodejs_get_str_from_js(env, args[1], &app_uri);
@@ -168,7 +168,7 @@ static napi_value ten_nodejs_msg_set_property_from_json(
   TEN_ERROR_INIT(err);
 
   ten_string_t path;
-  ten_string_init(&path);
+  TEN_STRING_INIT(path);
 
   ten_json_t *c_json = NULL;
 
@@ -176,7 +176,7 @@ static napi_value ten_nodejs_msg_set_property_from_json(
   RETURN_UNDEFINED_IF_NAPI_FAIL(rc, "Failed to get property path", NULL);
 
   ten_string_t json_str;
-  ten_string_init(&json_str);
+  TEN_STRING_INIT(json_str);
 
   rc = ten_nodejs_get_str_from_js(env, args[2], &json_str);
   RETURN_UNDEFINED_IF_NAPI_FAIL(rc, "Failed to get property value JSON", NULL);
@@ -241,7 +241,7 @@ static napi_value ten_nodejs_msg_get_property_to_json(napi_env env,
   TEN_ERROR_INIT(err);
 
   ten_string_t path;
-  ten_string_init(&path);
+  TEN_STRING_INIT(path);
 
   napi_value js_res = NULL;
 
@@ -311,7 +311,7 @@ static napi_value ten_nodejs_msg_set_property_number(napi_env env,
   TEN_ERROR_INIT(err);
 
   ten_string_t path;
-  ten_string_init(&path);
+  TEN_STRING_INIT(path);
 
   napi_value js_value = args[2];
   double value = 0;
@@ -364,7 +364,7 @@ static napi_value ten_nodejs_msg_get_property_number(napi_env env,
   TEN_ERROR_INIT(err);
 
   ten_string_t path;
-  ten_string_init(&path);
+  TEN_STRING_INIT(path);
 
   napi_value js_res = NULL;
 
@@ -432,13 +432,13 @@ static napi_value ten_nodejs_msg_set_property_string(napi_env env,
   TEN_ERROR_INIT(err);
 
   ten_string_t path;
-  ten_string_init(&path);
+  TEN_STRING_INIT(path);
 
   bool rc = ten_nodejs_get_str_from_js(env, args[1], &path);
   RETURN_UNDEFINED_IF_NAPI_FAIL(rc, "Failed to get property path", NULL);
 
   ten_string_t value_str;
-  ten_string_init(&value_str);
+  TEN_STRING_INIT(value_str);
 
   rc = ten_nodejs_get_str_from_js(env, args[2], &value_str);
   RETURN_UNDEFINED_IF_NAPI_FAIL(rc, "Failed to get property value", NULL);
@@ -490,7 +490,7 @@ static napi_value ten_nodejs_msg_get_property_string(napi_env env,
   TEN_ERROR_INIT(err);
 
   ten_string_t path;
-  ten_string_init(&path);
+  TEN_STRING_INIT(path);
 
   bool rc = ten_nodejs_get_str_from_js(env, args[1], &path);
   RETURN_UNDEFINED_IF_NAPI_FAIL(rc, "Failed to get property path", NULL);
@@ -556,7 +556,7 @@ static napi_value ten_nodejs_msg_set_property_bool(napi_env env,
   TEN_ERROR_INIT(err);
 
   ten_string_t path;
-  ten_string_init(&path);
+  TEN_STRING_INIT(path);
 
   bool rc = ten_nodejs_get_str_from_js(env, args[1], &path);
   RETURN_UNDEFINED_IF_NAPI_FAIL(rc, "Failed to get property path", NULL);
@@ -609,7 +609,7 @@ static napi_value ten_nodejs_msg_get_property_bool(napi_env env,
   TEN_ERROR_INIT(err);
 
   ten_string_t path;
-  ten_string_init(&path);
+  TEN_STRING_INIT(path);
 
   napi_value js_res = NULL;
 
@@ -677,7 +677,7 @@ static napi_value ten_nodejs_msg_set_property_buf(napi_env env,
   TEN_ERROR_INIT(err);
 
   ten_string_t path;
-  ten_string_init(&path);
+  TEN_STRING_INIT(path);
 
   bool rc = ten_nodejs_get_str_from_js(env, args[1], &path);
   RETURN_UNDEFINED_IF_NAPI_FAIL(rc, "Failed to get property path", NULL);
@@ -735,7 +735,7 @@ static napi_value ten_nodejs_msg_get_property_buf(napi_env env,
   TEN_ERROR_INIT(err);
 
   ten_string_t path;
-  ten_string_init(&path);
+  TEN_STRING_INIT(path);
 
   napi_value js_res = NULL;
 

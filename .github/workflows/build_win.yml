@@ -1,4 +1,4 @@
-name: Build - win
+name: Windows
 
 on:
   release:
@@ -14,11 +14,12 @@ on:
       - "!.github/workflows/build_win.yml"
       - "**.md"
 
+concurrency:
+  group: win-x64-${{ github.head_ref }}
+  cancel-in-progress: true
+
 jobs:
-  build-win-x64:
-    concurrency:
-      group: build-win-x64-${{ github.head_ref }}-${{ matrix.build_type }}
-      cancel-in-progress: true
+  win-x64:
     runs-on: windows-latest
     env:
       PYTHONIOENCODING: utf-8

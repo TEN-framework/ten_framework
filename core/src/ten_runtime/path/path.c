@@ -60,7 +60,7 @@ void ten_path_init(ten_path_t *self, ten_path_table_t *table,
   if (parent_cmd_id) {
     ten_string_init_formatted(&self->original_cmd_id, "%s", parent_cmd_id);
   } else {
-    ten_string_init(&self->original_cmd_id);
+    TEN_STRING_INIT(self->original_cmd_id);
   }
   ten_string_init_formatted(&self->cmd_id, "%s", cmd_id);
 

@@ -289,20 +289,20 @@ static ten_env_tester_notify_log_ctx_t *ten_env_tester_notify_log_ctx_create(
     ten_string_init_from_c_str_with_size(&self->func_name, func_name,
                                          strlen(func_name));
   } else {
-    ten_string_init(&self->func_name);
+    TEN_STRING_INIT(self->func_name);
   }
 
   if (file_name) {
     ten_string_init_from_c_str_with_size(&self->file_name, file_name,
                                          strlen(file_name));
   } else {
-    ten_string_init(&self->file_name);
+    TEN_STRING_INIT(self->file_name);
   }
 
   if (msg) {
     ten_string_init_from_c_str_with_size(&self->msg, msg, strlen(msg));
   } else {
-    ten_string_init(&self->msg);
+    TEN_STRING_INIT(self->msg);
   }
 
   return self;

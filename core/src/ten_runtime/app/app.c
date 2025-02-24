@@ -122,7 +122,7 @@ ten_app_t *ten_app_create(ten_app_on_configure_func_t on_configure,
   ten_value_init_object_with_move(&self->property, NULL);
   ten_schema_store_init(&self->schema_store);
 
-  ten_string_init(&self->uri);
+  TEN_STRING_INIT(self->uri);
 
   self->in_msgs_lock = ten_mutex_create();
   ten_list_init(&self->in_msgs);
@@ -130,7 +130,7 @@ ten_app_t *ten_app_create(ten_app_on_configure_func_t on_configure,
   self->ten_env = ten_env_create_for_app(self);
   TEN_ASSERT(self->ten_env, "Should not happen.");
 
-  ten_string_init(&self->base_dir);
+  TEN_STRING_INIT(self->base_dir);
   ten_list_init(&self->ten_package_base_dirs);
 
   self->path_table = ten_path_table_create(TEN_PATH_TABLE_ATTACH_TO_APP, self);

@@ -41,7 +41,7 @@ static bool ten_value_array_to_string(ten_value_t *self, ten_string_t *str,
     }
 
     ten_string_t item_str;
-    ten_string_init(&item_str);
+    TEN_STRING_INIT(item_str);
     if (!ten_value_to_string(item, &item_str, err)) {
       ten_string_deinit(&item_str);
       return false;

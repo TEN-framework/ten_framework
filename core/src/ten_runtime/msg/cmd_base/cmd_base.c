@@ -53,7 +53,7 @@ static void ten_raw_cmd_base_init_empty(ten_cmd_base_t *self) {
 
   ten_signature_set(&self->signature, (ten_signature_t)TEN_CMD_BASE_SIGNATURE);
 
-  ten_string_init(&self->parent_cmd_id);
+  TEN_STRING_INIT(self->parent_cmd_id);
   ten_value_init_string(&self->cmd_id);
   ten_value_init_string(&self->seq_id);
 

@@ -110,7 +110,7 @@ class msgpack_tcp_client_t {
 
   void get_info(std::string &ip, uint16_t &port) {
     ten_string_t c_ip;
-    ten_string_init(&c_ip);
+    TEN_STRING_INIT(c_ip);
     ten_test_msgpack_tcp_client_get_info(c_client, &c_ip, &port);
 
     ip = ten_string_get_raw_str(&c_ip);

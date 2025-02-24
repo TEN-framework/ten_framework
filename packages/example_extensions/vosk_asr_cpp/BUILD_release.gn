@@ -16,6 +16,16 @@ ten_package("vosk_asr_cpp") {
     "include",
     "include/nlohmann_json",
   ]
+
+  # Add rpath to find vosk library.
+  if (is_mac) {
+    ldflags = [ "-Wl,-rpath,@loader_path/../lib_private" ]
+  } else if (is_linux) {
+    ldflags = [ "-Wl,-rpath=\$ORIGIN/../lib_private" ]
+  }
+
+  lib_dirs = [ "lib_private" ]
+  libs = [ "vosk" ]
 }
 
 if (ten_enable_standalone_test) {

@@ -1,4 +1,4 @@
-name: Build - linux arm64
+name: Linux (Arm64)
 
 on:
   release:
@@ -14,12 +14,13 @@ on:
       - "!.github/workflows/build_linux_arm64.yml"
       - "**.md"
 
+concurrency:
+  group: linux-arm64-${{ github.head_ref }}
+  cancel-in-progress: true
+
 jobs:
-  build:
+  linux-arm64:
     runs-on: ubuntu-latest
-    concurrency:
-      group: build-linux-arm64-${{ github.head_ref }}-${{ matrix.compiler }}-${{ matrix.build_type }}
-      cancel-in-progress: true
     strategy:
       matrix:
         compiler: [gcc]

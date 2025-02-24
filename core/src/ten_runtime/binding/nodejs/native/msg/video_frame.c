@@ -69,7 +69,7 @@ static napi_value ten_nodejs_video_frame_create(napi_env env,
   }
 
   ten_string_t video_frame_name;
-  ten_string_init(&video_frame_name);
+  TEN_STRING_INIT(video_frame_name);
 
   bool rc = ten_nodejs_get_str_from_js(env, args[1], &video_frame_name);
   if (!rc) {

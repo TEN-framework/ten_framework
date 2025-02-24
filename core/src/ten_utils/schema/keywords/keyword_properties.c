@@ -186,7 +186,7 @@ static bool ten_schema_keyword_properties_is_compatible(
              "Invalid argument.");
 
   ten_string_t incompatible_fields;
-  ten_string_init(&incompatible_fields);
+  TEN_STRING_INIT(incompatible_fields);
 
   ten_hashtable_foreach(&self->properties, iter) {
     ten_schema_object_property_t *property =

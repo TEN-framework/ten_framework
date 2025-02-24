@@ -69,7 +69,7 @@ static napi_value ten_nodejs_audio_frame_create(napi_env env,
   }
 
   ten_string_t audio_frame_name;
-  ten_string_init(&audio_frame_name);
+  TEN_STRING_INIT(audio_frame_name);
 
   bool rc = ten_nodejs_get_str_from_js(env, args[1], &audio_frame_name);
   if (!rc) {

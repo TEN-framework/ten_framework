@@ -180,7 +180,7 @@ void ten_log_log_with_size(ten_log_t *self, TEN_LOG_LEVEL level,
   }
 
   ten_string_t buf;
-  ten_string_init(&buf);
+  TEN_STRING_INIT(buf);
 
   if (self->formatter.format_cb) {
     self->formatter.format_cb(&buf, level, func_name, func_name_len, file_name,

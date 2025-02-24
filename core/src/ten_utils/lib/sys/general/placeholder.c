@@ -50,7 +50,7 @@ void ten_placeholder_init(ten_placeholder_t *self) {
   self->scope = TEN_PLACEHOLDER_SCOPE_INVALID;
 
   ten_value_init_invalid(&self->default_value);
-  ten_string_init(&self->variable);
+  TEN_STRING_INIT(self->variable);
 }
 
 ten_placeholder_t *ten_placeholder_create(void) {

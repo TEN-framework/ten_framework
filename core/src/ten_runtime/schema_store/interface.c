@@ -35,7 +35,7 @@ static void ten_interface_schema_init(ten_interface_schema_t *self) {
   TEN_ASSERT(self, "Invalid argument.");
 
   ten_signature_set(&self->signature, TEN_INTERFACE_SCHEMA_SIGNATURE);
-  ten_string_init(&self->name);
+  TEN_STRING_INIT(self->name);
   ten_list_init(&self->cmd);
   ten_list_init(&self->data);
   ten_list_init(&self->video_frame);

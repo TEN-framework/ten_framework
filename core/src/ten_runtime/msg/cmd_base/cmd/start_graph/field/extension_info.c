@@ -7,7 +7,6 @@
 #include "include_internal/ten_runtime/extension/extension_info/extension_info.h"
 
 #include <complex.h>
-#include <string.h>
 
 #include "include_internal/ten_runtime/common/constant_str.h"
 #include "include_internal/ten_runtime/common/loc.h"
@@ -66,7 +65,7 @@ static ten_value_t *ten_cmd_start_graph_extensions_info_to_value(
     TEN_ASSERT(extension_info, "Should not happen.");
 
     ten_string_t loc_str;
-    ten_string_init(&loc_str);
+    TEN_STRING_INIT(loc_str);
     ten_loc_to_string(&extension_info->loc, &loc_str);
 
     if (ten_list_find_string(&unique_extension_list,

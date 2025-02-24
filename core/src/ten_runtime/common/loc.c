@@ -99,10 +99,10 @@ void ten_loc_init_empty(ten_loc_t *self) {
 
   ten_signature_set(&self->signature, TEN_LOC_SIGNATURE);
 
-  ten_string_init(&self->app_uri);
-  ten_string_init(&self->graph_id);
-  ten_string_init(&self->extension_group_name);
-  ten_string_init(&self->extension_name);
+  TEN_STRING_INIT(self->app_uri);
+  TEN_STRING_INIT(self->graph_id);
+  TEN_STRING_INIT(self->extension_group_name);
+  TEN_STRING_INIT(self->extension_name);
 }
 
 void ten_loc_init_from_loc(ten_loc_t *self, ten_loc_t *src) {

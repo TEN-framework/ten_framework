@@ -26,7 +26,7 @@ ten_env_notify_init_property_from_json_ctx_create(ten_nodejs_tsfn_t *js_cb) {
       TEN_MALLOC(sizeof(ten_env_notify_init_property_from_json_ctx_t));
   TEN_ASSERT(ctx, "Failed to allocate memory.");
 
-  ten_string_init(&ctx->json_str);
+  TEN_STRING_INIT(ctx->json_str);
   ctx->js_cb = js_cb;
 
   return ctx;

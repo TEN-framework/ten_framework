@@ -35,7 +35,7 @@ ten_extension_group_info_t *ten_extension_group_info_create(void) {
 
   ten_signature_set(&self->signature, TEN_EXTENSION_GROUP_INFO_SIGNATURE);
 
-  ten_string_init(&self->extension_group_addon_name);
+  TEN_STRING_INIT(self->extension_group_addon_name);
 
   ten_loc_init_empty(&self->loc);
   self->property = ten_value_create_object_with_move(NULL);

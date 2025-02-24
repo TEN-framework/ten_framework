@@ -361,7 +361,7 @@ bool ten_value_init_string(ten_value_t *self) {
 
   self->type = TEN_TYPE_STRING;
 
-  ten_string_init(&self->content.string);
+  TEN_STRING_INIT(self->content.string);
   self->construct = NULL;
   self->copy = ten_value_copy_construct_string;
   self->destruct = ten_value_destruct_string;

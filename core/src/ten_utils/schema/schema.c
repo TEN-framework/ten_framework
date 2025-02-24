@@ -47,7 +47,7 @@ void ten_schema_error_init(ten_schema_error_t *self, ten_error_t *err) {
 
   ten_signature_set(&self->signature, TEN_SCHEMA_ERROR_SIGNATURE);
   self->err = err;
-  ten_string_init(&self->path);
+  TEN_STRING_INIT(self->path);
 }
 
 void ten_schema_error_deinit(ten_schema_error_t *self) {

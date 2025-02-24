@@ -38,7 +38,7 @@ ten_env_notify_peek_property_async_ctx_create(const char *path,
   if (path) {
     ten_string_init_formatted(&ctx->path, "%s", path);
   } else {
-    ten_string_init(&ctx->path);
+    TEN_STRING_INIT(ctx->path);
   }
 
   ctx->py_cb_func = py_cb_func;

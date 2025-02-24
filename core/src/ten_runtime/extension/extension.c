@@ -30,7 +30,6 @@
 #include "include_internal/ten_runtime/msg/msg.h"
 #include "include_internal/ten_runtime/path/path.h"
 #include "include_internal/ten_runtime/path/path_group.h"
-#include "include_internal/ten_runtime/path/path_in.h"
 #include "include_internal/ten_runtime/path/path_table.h"
 #include "include_internal/ten_runtime/path/result_return_policy.h"
 #include "include_internal/ten_runtime/schema_store/store.h"
@@ -770,6 +769,15 @@ static void ten_extension_on_configure(ten_env_t *ten_env) {
   TEN_ASSERT(ten_extension_check_integrity(self, true),
              "Invalid use of extension %p.", self);
 
+  if (self->state >= TEN_EXTENSION_STATE_ON_STOP) {
+    // The extension has already entered the close flow, so do not continue with
+    // the start flow.
+    TEN_LOGI(
+        "[%s] on_configure() skipped: Extension is already in the close flow",
+        ten_extension_get_name(self, true));
+    return;
+  }
+
   TEN_LOGD("[%s] on_configure().", ten_extension_get_name(self, true));
 
   self->manifest_info =
@@ -794,16 +802,18 @@ static void ten_extension_on_configure(ten_env_t *ten_env) {
   }
 }
 
-void ten_extension_on_init(ten_env_t *ten_env) {
-  TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
-             "Should not happen.");
-  TEN_ASSERT(ten_env_get_attach_to(ten_env) == TEN_ENV_ATTACH_TO_EXTENSION,
-             "Invalid argument.");
-
-  ten_extension_t *self = ten_env_get_attached_extension(ten_env);
+void ten_extension_on_init(ten_extension_t *self) {
   TEN_ASSERT(self, "Invalid argument.");
   TEN_ASSERT(ten_extension_check_integrity(self, true),
              "Invalid use of extension %p.", self);
+
+  if (self->state >= TEN_EXTENSION_STATE_ON_STOP) {
+    // The extension has already entered the close flow, so do not continue with
+    // the start flow.
+    TEN_LOGI("[%s] on_init() skipped: Extension is already in the close flow",
+             ten_extension_get_name(self, true));
+    return;
+  }
 
   TEN_LOGD("[%s] on_init().", ten_extension_get_name(self, true));
 
@@ -831,6 +841,14 @@ void ten_extension_on_start(ten_extension_t *self) {
 
   TEN_LOGI("[%s] on_start().", ten_extension_get_name(self, true));
 
+  if (self->state >= TEN_EXTENSION_STATE_ON_STOP) {
+    // The extension has already entered the close flow, so do not continue with
+    // the start flow.
+    TEN_LOGI("[%s] on_start() skipped: Extension is already in the close flow",
+             ten_extension_get_name(self, true));
+    return;
+  }
+
   self->state = TEN_EXTENSION_STATE_ON_START;
 
   if (self->on_start) {
@@ -852,6 +870,17 @@ void ten_extension_on_stop(ten_extension_t *self) {
   TEN_ASSERT(self, "Invalid argument.");
   TEN_ASSERT(ten_extension_check_integrity(self, true),
              "Invalid use of extension %p.", self);
+
+  // There are two main starting points for triggering the `on_stop` process:
+  //
+  // 1. In `ten_extension_thread_stop_life_cycle_of_all_extensions`
+  // 2. In `on_configure_done/on_init_done/on_start_done`
+  //
+  // Therefore, it is necessary to check here that if the `on_stop` process has
+  // already started, it should not be entered again.
+  if (self->state >= TEN_EXTENSION_STATE_ON_STOP) {
+    return;
+  }
 
   TEN_LOGI("[%s] on_stop().", ten_extension_get_name(self, true));
 

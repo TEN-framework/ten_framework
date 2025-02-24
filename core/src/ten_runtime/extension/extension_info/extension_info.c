@@ -33,7 +33,7 @@ ten_extension_info_t *ten_extension_info_create(void) {
                     (ten_signature_t)TEN_EXTENSION_INFO_SIGNATURE);
   ten_sanitizer_thread_check_init_with_current_thread(&self->thread_check);
 
-  ten_string_init(&self->extension_addon_name);
+  TEN_STRING_INIT(self->extension_addon_name);
 
   ten_loc_init_empty(&self->loc);
 

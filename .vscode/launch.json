@@ -137,7 +137,7 @@
       "request": "launch",
       "program": "${workspaceFolder}/out/linux/x64/tests/standalone/ten_runtime_smoke_test",
       "args": [
-        "--gtest_filter=StandaloneTest.BasicC"
+        "--gtest_filter=ExtensionTest.FailedToConnectToRemote"
       ],
       "cwd": "${workspaceFolder}/out/linux/x64/tests/standalone/",
       "env": {
@@ -757,7 +757,7 @@
       "request": "launch",
       "program": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/cpp/standalone_vosk_asr_cpp/vosk_asr_cpp/bin/vosk_asr_cpp_test",
       "args": [],
-      "cwd": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/cpp/standalone_vosk_asr_cpp/vosk_asr_cpp/bin",
+      "cwd": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/cpp/standalone_vosk_asr_cpp/vosk_asr_cpp",
       "env": {
         "ASAN_OPTIONS": "use_sigaltstack=0",
       },

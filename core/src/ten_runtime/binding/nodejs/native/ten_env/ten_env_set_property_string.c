@@ -66,13 +66,13 @@ napi_value ten_nodejs_ten_env_set_property_string(napi_env env,
              "Should not happen.");
 
   ten_string_t path;
-  ten_string_init(&path);
+  TEN_STRING_INIT(path);
 
   bool rc = ten_nodejs_get_str_from_js(env, args[1], &path);
   RETURN_UNDEFINED_IF_NAPI_FAIL(rc, "Failed to get property path", NULL);
 
   ten_string_t property_value_str;
-  ten_string_init(&property_value_str);
+  TEN_STRING_INIT(property_value_str);
 
   rc = ten_nodejs_get_str_from_js(env, args[2], &property_value_str);
   RETURN_UNDEFINED_IF_NAPI_FAIL(rc, "Failed to get property value", NULL);

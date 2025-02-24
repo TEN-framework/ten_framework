@@ -108,7 +108,7 @@ ten_extension_tester_t *ten_extension_tester_create(
 
   self->test_app_ten_env_proxy = NULL;
   self->test_app_ten_env_proxy_create_completed = ten_event_create(0, 1);
-  ten_string_init(&self->test_app_property_json);
+  TEN_STRING_INIT(self->test_app_property_json);
 
   self->test_app_thread = NULL;
   self->user_data = NULL;

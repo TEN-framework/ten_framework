@@ -313,7 +313,7 @@ bool ten_addon_load_all_from_ten_package_base_dirs(
 
     TEN_ADDON_TYPE addon_type = TEN_ADDON_TYPE_INVALID;
     ten_string_t addon_name;
-    ten_string_init(&addon_name);
+    TEN_STRING_INIT(addon_name);
 
     // Construct `manifest.json` path.
     ten_string_t manifest_json_file_path;

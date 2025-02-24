@@ -47,7 +47,7 @@ void ten_streambackend_tcp_dump_info(ten_streambackend_tcp_t *tcp_stream,
   TEN_ASSERT(!rc, "uv_ip4_name failed: %d", rc);
 
   ten_string_t new_fmt;
-  ten_string_init(&new_fmt);
+  TEN_STRING_INIT(new_fmt);
 
   const char *p = fmt;
 
@@ -81,7 +81,7 @@ void ten_streambackend_tcp_dump_info(ten_streambackend_tcp_t *tcp_stream,
   va_start(ap, fmt);
 
   ten_string_t description;
-  ten_string_init(&description);
+  TEN_STRING_INIT(description);
   ten_string_append_from_va_list(&description, ten_string_get_raw_str(&new_fmt),
                                  ap);
   ten_string_deinit(&new_fmt);

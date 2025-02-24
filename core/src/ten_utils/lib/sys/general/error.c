@@ -28,7 +28,7 @@ void ten_error_init(ten_error_t *self) {
   ten_signature_set(&self->signature, TEN_ERROR_SIGNATURE);
 
   self->error_code = TEN_ERROR_CODE_OK;
-  ten_string_init(&self->error_message);
+  TEN_STRING_INIT(self->error_message);
 }
 
 void ten_error_deinit(ten_error_t *self) {

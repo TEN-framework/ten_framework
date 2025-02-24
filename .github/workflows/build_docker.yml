@@ -1,4 +1,4 @@
-name: Build - docker
+name: Build Docker Image
 
 on:
   push:
@@ -10,6 +10,10 @@ on:
 
 env:
   IMAGE_NAME_PREFIX: ten_building_
+
+concurrency:
+  group: build-docker-${{ github.head_ref }}
+  cancel-in-progress: true
 
 jobs:
   build:

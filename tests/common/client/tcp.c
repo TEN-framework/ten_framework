@@ -27,12 +27,12 @@ static void ten_test_tcp_client_dump_socket_info(ten_test_tcp_client_t *self,
   TEN_ASSERT(self, "Invalid argument.");
 
   ten_string_t ip;
-  ten_string_init(&ip);
+  TEN_STRING_INIT(ip);
   uint16_t port = 0;
   ten_socket_get_info(self->socket, &ip, &port);
 
   ten_string_t new_fmt;
-  ten_string_init(&new_fmt);
+  TEN_STRING_INIT(new_fmt);
 
   const char *p = fmt;
 
@@ -66,7 +66,7 @@ static void ten_test_tcp_client_dump_socket_info(ten_test_tcp_client_t *self,
   va_start(ap, fmt);
 
   ten_string_t description;
-  ten_string_init(&description);
+  TEN_STRING_INIT(description);
   ten_string_append_from_va_list(&description, ten_string_get_raw_str(&new_fmt),
                                  ap);
   ten_string_deinit(&new_fmt);

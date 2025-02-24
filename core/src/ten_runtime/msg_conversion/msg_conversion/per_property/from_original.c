@@ -20,7 +20,7 @@ static void ten_msg_conversion_per_property_rule_from_original_init(
     ten_msg_conversion_per_property_rule_from_original_t *self) {
   TEN_ASSERT(self, "Invalid argument.");
 
-  ten_string_init(&self->original_path);
+  TEN_STRING_INIT(self->original_path);
 }
 
 void ten_msg_conversion_per_property_rule_from_original_deinit(

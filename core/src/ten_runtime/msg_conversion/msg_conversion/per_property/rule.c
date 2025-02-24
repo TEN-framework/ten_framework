@@ -23,7 +23,7 @@ static void ten_msg_conversion_per_property_rule_init(
     ten_msg_conversion_per_property_rule_t *self) {
   TEN_ASSERT(self, "Invalid argument.");
 
-  ten_string_init(&self->property_path);
+  TEN_STRING_INIT(self->property_path);
   self->conversion_mode =
       TEN_MSG_CONVERSION_PER_PROPERTY_RULE_CONVERSION_MODE_INVALID;
 }

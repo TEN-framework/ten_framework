@@ -48,7 +48,7 @@ ten_predefined_graph_info_t *ten_predefined_graph_info_create(void) {
       TEN_MALLOC(sizeof(ten_predefined_graph_info_t));
   TEN_ASSERT(self, "Failed to allocate memory.");
 
-  ten_string_init(&self->name);
+  TEN_STRING_INIT(self->name);
   ten_list_init(&self->extensions_info);
   ten_list_init(&self->extension_groups_info);
 

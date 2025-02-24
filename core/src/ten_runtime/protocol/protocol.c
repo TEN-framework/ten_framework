@@ -130,7 +130,7 @@ void ten_protocol_init(ten_protocol_t *self, const char *name,
 
   self->cascade_close_upward = true;
 
-  ten_string_init(&self->uri);
+  TEN_STRING_INIT(self->uri);
 
   self->attach_to = TEN_PROTOCOL_ATTACH_TO_INVALID;
   self->attached_target.app = NULL;

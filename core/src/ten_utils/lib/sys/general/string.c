@@ -26,7 +26,8 @@ ten_string_t *ten_string_create(void) {
   ten_string_t *self = (ten_string_t *)TEN_MALLOC(sizeof(ten_string_t));
   TEN_ASSERT(self, "Failed to allocate memory.");
 
-  ten_string_init(self);
+  TEN_STRING_INIT(*self);
+
   return self;
 }
 
@@ -135,7 +136,8 @@ void ten_string_init_from_va_list(ten_string_t *self, const char *fmt,
                                   va_list ap) {
   TEN_ASSERT(self, "Invalid argument.");
 
-  ten_string_init(self);
+  TEN_STRING_INIT(*self);
+
   ten_string_append_from_va_list(self, fmt, ap);
 }
 
@@ -170,7 +172,8 @@ void ten_string_init_from_c_str_with_size(ten_string_t *self, const char *str,
                                           size_t size) {
   TEN_ASSERT(self, "Invalid argument.");
 
-  ten_string_init(self);
+  TEN_STRING_INIT(*self);
+
   if (str) {
     ten_string_set_formatted(self, "%.*s", size, str);
   }
@@ -209,7 +212,7 @@ void ten_string_prepend_from_va_list(ten_string_t *self, const char *fmt,
              "Invalid argument.");
 
   ten_string_t new_str;
-  ten_string_init(&new_str);
+  TEN_STRING_INIT(new_str);
 
   ten_string_append_from_va_list(&new_str, fmt, ap);
   ten_string_append_formatted(&new_str, "%s", ten_string_get_raw_str(self));
@@ -582,7 +585,7 @@ void ten_string_hex_from_buf(ten_string_t *self, ten_buf_t buf) {
   TEN_ASSERT(self && ten_string_check_integrity(self), "Invalid argument.");
 
   for (size_t i = 0; i < buf.content_size; i++) {
-    ten_string_append_formatted(self, "%02x", ((uint8_t *)(buf.data))[i]);
+    ten_string_append_formatted(self, "%02x", (buf.data)[i]);
   }
 }
 

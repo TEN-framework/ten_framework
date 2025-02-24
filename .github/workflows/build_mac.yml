@@ -1,4 +1,4 @@
-name: Build - mac
+name: Mac
 
 on:
   release:
@@ -14,11 +14,12 @@ on:
       - "!.github/workflows/build_mac.yml"
       - "**.md"
 
+concurrency:
+  group: mac-arm64-${{ github.head_ref }}
+  cancel-in-progress: true
+
 jobs:
-  build-mac-arm64:
-    concurrency:
-      group: build-mac-arm64-${{ github.head_ref }}-${{ matrix.build_type }}
-      cancel-in-progress: true
+  mac-arm64:
     runs-on: macos-latest
     strategy:
       matrix:
@@ -267,10 +268,7 @@ jobs:
       # - name: Setup tmate session
       #   uses: mxschmitt/action-tmate@v3
 
-  build-mac-x64:
-    concurrency:
-      group: build-mac-x64-${{ github.head_ref }}-${{ matrix.build_type }}
-      cancel-in-progress: true
+  mac-x64:
     runs-on: macos-13
     strategy:
       matrix:
@@ -503,10 +501,7 @@ jobs:
       #   uses: mxschmitt/action-tmate@v3
 
   # Building ten_runtime without the ten_rust library (i.e., ten_enable_ten_rust_apis=false).
-  build-mac-arm64-without-ten-rust:
-    concurrency:
-      group: build-mac-arm64-without-ten-rust-${{ github.head_ref }}-${{ matrix.build_type }}
-      cancel-in-progress: true
+  mac-arm64-without-ten-rust:
     runs-on: macos-latest
     strategy:
       matrix:

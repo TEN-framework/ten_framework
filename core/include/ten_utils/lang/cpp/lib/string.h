@@ -37,7 +37,7 @@ std::string cpp_string_format(const std::string &format, Args... args) {
 
 static inline std::string cpp_string_uri_encode(const std::string &str) {
   ten_string_t uri_encoded;
-  ten_string_init(&uri_encoded);
+  TEN_STRING_INIT(uri_encoded);
 
   ten_c_string_uri_encode(str.c_str(), str.length(), &uri_encoded);
   std::string result = ten_string_get_raw_str(&uri_encoded);
@@ -48,7 +48,7 @@ static inline std::string cpp_string_uri_encode(const std::string &str) {
 
 static inline std::string cpp_string_uri_decode(const std::string &str) {
   ten_string_t uri_decoded;
-  ten_string_init(&uri_decoded);
+  TEN_STRING_INIT(uri_decoded);
 
   ten_c_string_uri_decode(str.c_str(), str.length(), &uri_decoded);
   std::string result = ten_string_get_raw_str(&uri_decoded);
@@ -59,7 +59,7 @@ static inline std::string cpp_string_uri_decode(const std::string &str) {
 
 static inline std::string cpp_string_escaped(const std::string &str) {
   ten_string_t escaped_str;
-  ten_string_init(&escaped_str);
+  TEN_STRING_INIT(escaped_str);
 
   ten_c_string_escaped(str.c_str(), &escaped_str);
   std::string result = ten_string_get_raw_str(&escaped_str);
