@@ -10,6 +10,7 @@
 #include "include_internal/ten_runtime/binding/nodejs/msg/cmd.h"
 #include "include_internal/ten_runtime/msg/msg.h"
 #include "js_native_api.h"
+#include "js_native_api_types.h"
 #include "ten_runtime/common/status_code.h"
 #include "ten_runtime/msg/cmd_result/cmd_result.h"
 #include "ten_utils/macro/memory.h"
@@ -92,7 +93,8 @@ static napi_value ten_nodejs_cmd_result_create(napi_env env,
   ten_error_t error;
   ten_error_init(&error);
 
-  ten_shared_ptr_t *c_cmd_result = ten_cmd_result_create_from_cmd(status_code, target_cmd->msg.msg);
+  ten_shared_ptr_t *c_cmd_result =
+      ten_cmd_result_create_from_cmd(status_code, target_cmd->msg.msg);
   TEN_ASSERT(c_cmd_result, "Failed to create cmd_result.");
 
   ten_nodejs_cmd_result_t *cmd_result_bridge =
@@ -271,6 +273,7 @@ napi_value ten_nodejs_cmd_result_wrap(napi_env env,
   ten_nodejs_msg_init_from_c_msg(&cmd_result_bridge->msg, cmd_result);
 
   napi_value js_status_code = NULL;
+  napi_value js_target_cmd = NULL;
   napi_value js_create_shell_only_flag = NULL;
 
   TEN_STATUS_CODE status_code = ten_cmd_result_get_status_code(cmd_result);
@@ -278,15 +281,19 @@ napi_value ten_nodejs_cmd_result_wrap(napi_env env,
       napi_create_uint32(env, (uint32_t)status_code, &js_status_code);
   ASSERT_IF_NAPI_FAIL(status == napi_ok, "Failed to create status_code.");
 
+  status = napi_get_null(env, &js_target_cmd);
+  ASSERT_IF_NAPI_FAIL(status == napi_ok, "Failed to create target_cmd.");
+
   status = napi_get_boolean(env, true, &js_create_shell_only_flag);
   ASSERT_IF_NAPI_FAIL(status == napi_ok, "Failed to create shell_only_flag.");
 
-  napi_value argv[] = {js_status_code, js_create_shell_only_flag};
+  napi_value argv[] = {js_status_code, js_target_cmd,
+                       js_create_shell_only_flag};
 
   napi_value js_cmd_result = ten_nodejs_create_new_js_object_and_wrap(
       env, js_cmd_result_constructor_ref, cmd_result_bridge,
       ten_nodejs_cmd_result_finalize,
-      &cmd_result_bridge->msg.bridge.js_instance_ref, 2, argv);
+      &cmd_result_bridge->msg.bridge.js_instance_ref, 3, argv);
   ASSERT_IF_NAPI_FAIL(js_cmd_result != NULL, "Failed to create JS Cmd object.");
 
   return js_cmd_result;
