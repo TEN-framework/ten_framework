@@ -115,17 +115,17 @@ class ten_env_t {
 
     bool rc = false;
     if (error_handler == nullptr) {
-      rc = ten_env_return_result_directly(
-          c_ten_env, cmd->get_underlying_msg(), nullptr, nullptr,
-          err != nullptr ? err->get_c_error() : nullptr);
+      rc = ten_env_return_result(c_ten_env, cmd->get_underlying_msg(), nullptr,
+                                 nullptr,
+                                 err != nullptr ? err->get_c_error() : nullptr);
     } else {
       auto *error_handler_ptr =
           new error_handler_func_t(std::move(error_handler));
 
-      rc = ten_env_return_result_directly(
-          c_ten_env, cmd->get_underlying_msg(),
-          proxy_handle_return_result_error, error_handler_ptr,
-          err != nullptr ? err->get_c_error() : nullptr);
+      rc = ten_env_return_result(c_ten_env, cmd->get_underlying_msg(),
+                                 proxy_handle_return_result_error,
+                                 error_handler_ptr,
+                                 err != nullptr ? err->get_c_error() : nullptr);
       if (!rc) {
         delete error_handler_ptr;
       }

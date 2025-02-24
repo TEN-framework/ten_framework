@@ -98,15 +98,9 @@ class TenEnv(TenEnvBase):
     def return_result(
         self,
         result: CmdResult,
-        target_cmd: Cmd,
         error_handler: Optional[ErrorHandler] = None,
     ) -> Optional[TenError]:
-        return self._internal.return_result(result, target_cmd, error_handler)
-
-    def return_result_directly(
-        self, result: CmdResult, error_handler: Optional[ErrorHandler] = None
-    ) -> Optional[TenError]:
-        return self._internal.return_result_directly(result, error_handler)
+        return self._internal.return_result(result, error_handler)
 
     def is_property_exist(self, path: str) -> tuple[bool, Optional[TenError]]:
         return self._internal.is_property_exist(path)

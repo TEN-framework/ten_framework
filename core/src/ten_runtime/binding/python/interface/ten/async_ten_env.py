@@ -135,26 +135,9 @@ class AsyncTenEnv(TenEnvBase):
         err = await q.get()
         return err
 
-    async def return_result(
-        self, result: CmdResult, target_cmd: Cmd
-    ) -> Optional[TenError]:
+    async def return_result(self, result: CmdResult) -> Optional[TenError]:
         q = asyncio.Queue(maxsize=1)
         err = self._internal.return_result(
-            result,
-            target_cmd,
-            lambda _, error: self._error_handler(error, q),
-        )
-        if err is not None:
-            return err
-
-        err = await q.get()
-        return err
-
-    async def return_result_directly(
-        self, result: CmdResult
-    ) -> Optional[TenError]:
-        q = asyncio.Queue(maxsize=1)
-        err = self._internal.return_result_directly(
             result,
             lambda _, error: self._error_handler(error, q),
         )

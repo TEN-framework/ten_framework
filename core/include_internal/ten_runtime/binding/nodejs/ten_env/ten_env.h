@@ -106,9 +106,6 @@ ten_nodejs_ten_env_send_audio_frame(napi_env env, napi_callback_info info);
 TEN_RUNTIME_PRIVATE_API napi_value
 ten_nodejs_ten_env_return_result(napi_env env, napi_callback_info info);
 
-TEN_RUNTIME_PRIVATE_API napi_value ten_nodejs_ten_env_return_result_directly(
-    napi_env env, napi_callback_info info);
-
 TEN_RUNTIME_PRIVATE_API bool ten_nodejs_ten_env_peek_property_value(
     ten_nodejs_ten_env_t *self, const char *path, ten_nodejs_tsfn_t *cb_tsfn,
     ten_error_t *error);

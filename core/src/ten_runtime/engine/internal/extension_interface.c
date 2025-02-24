@@ -164,8 +164,7 @@ static void ten_engine_on_all_extension_threads_are_ready(
                ten_app_get_uri(self->app));
     }
 
-    ten_env_return_result(self->ten_env, cmd_result, original_start_graph_cmd,
-                          NULL, NULL, NULL);
+    ten_env_return_result(self->ten_env, cmd_result, NULL, NULL, NULL);
     ten_shared_ptr_destroy(cmd_result);
 
     ten_shared_ptr_destroy(original_start_graph_cmd);

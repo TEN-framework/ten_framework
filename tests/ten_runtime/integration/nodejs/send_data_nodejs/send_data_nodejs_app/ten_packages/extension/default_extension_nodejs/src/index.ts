@@ -166,9 +166,9 @@ class DefaultExtension extends Extension {
     }
 
     if (this.dataRespRecvCount === 2) {
-      const cmdResult = CmdResult.Create(StatusCode.OK);
+      const cmdResult = CmdResult.Create(StatusCode.OK, this.cachedCmd!);
       cmdResult.setPropertyString("detail", "success");
-      await tenEnv.returnResult(cmdResult, this.cachedCmd!);
+      await tenEnv.returnResult(cmdResult);
     }
   }
 }

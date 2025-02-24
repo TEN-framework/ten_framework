@@ -44,7 +44,7 @@ class DefaultExtension(AsyncExtension):
         cmd_result, _ = await ten_env.send_cmd(new_cmd)
         assert cmd_result is not None
 
-        await ten_env.return_result(cmd_result, cmd)
+        await ten_env.return_result(cmd_result)
 
     async def on_stop(self, ten_env: AsyncTenEnv) -> None:
         ten_env.log_debug("on_stop")

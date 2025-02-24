@@ -112,10 +112,9 @@ static bool ten_env_return_result_internal(
 
 // If the 'cmd' has already been a command in the backward path, a extension
 // could use this API to return the 'cmd' further.
-bool ten_env_return_result_directly(
-    ten_env_t *self, ten_shared_ptr_t *cmd_result,
-    ten_env_transfer_msg_result_handler_func_t handler, void *user_data,
-    ten_error_t *err) {
+bool ten_env_return_result(ten_env_t *self, ten_shared_ptr_t *cmd_result,
+                           ten_env_transfer_msg_result_handler_func_t handler,
+                           void *user_data, ten_error_t *err) {
   TEN_ASSERT(self, "Invalid argument.");
   TEN_ASSERT(ten_env_check_integrity(self, true), "Invalid use of ten_env %p.",
              self);
@@ -126,23 +125,4 @@ bool ten_env_return_result_directly(
 
   return ten_env_return_result_internal(self, cmd_result, NULL, NULL, handler,
                                         user_data, err);
-}
-
-bool ten_env_return_result(ten_env_t *self, ten_shared_ptr_t *cmd_result,
-                           ten_shared_ptr_t *target_cmd,
-                           ten_env_transfer_msg_result_handler_func_t handler,
-                           void *user_data, ten_error_t *err) {
-  TEN_ASSERT(self, "Invalid argument.");
-  TEN_ASSERT(ten_env_check_integrity(self, true), "Invalid use of ten_env %p.",
-             self);
-  TEN_ASSERT(cmd_result && ten_cmd_base_check_integrity(cmd_result),
-             "Should not happen.");
-  TEN_ASSERT((target_cmd ? ten_cmd_base_check_integrity(target_cmd) : true),
-             "Should not happen.");
-  TEN_ASSERT(ten_msg_get_type(target_cmd) != TEN_MSG_TYPE_CMD_RESULT,
-             "The target cmd should not be a cmd result.");
-
-  return ten_env_return_result_internal(
-      self, cmd_result, ten_cmd_base_get_cmd_id(target_cmd),
-      ten_cmd_base_get_seq_id(target_cmd), handler, user_data, err);
 }

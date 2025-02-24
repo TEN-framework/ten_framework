@@ -30,7 +30,7 @@ class AsyncExtensionTesterBasic(AsyncExtensionTester):
 
         if cmd_name == "flush":
             self.recv_flush_cmd = True
-            await ten_env.return_result(CmdResult.create(StatusCode.OK), cmd)
+            await ten_env.return_result(CmdResult.create(StatusCode.OK, cmd))
 
 
 def test_basic():

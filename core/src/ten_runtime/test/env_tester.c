@@ -107,7 +107,6 @@ typedef struct ten_env_tester_send_msg_ctx_t {
 typedef struct ten_env_tester_return_result_ctx_t {
   ten_extension_tester_t *tester;
   ten_shared_ptr_t *result;
-  ten_shared_ptr_t *target_cmd;
   ten_env_tester_transfer_msg_result_handler_func_t handler;
   void *handler_user_data;
   ten_error_t *err;
@@ -231,12 +230,11 @@ static void ten_extension_tester_send_msg_ctx_destroy(
 static ten_env_tester_return_result_ctx_t *
 ten_extension_tester_return_result_ctx_create(
     ten_extension_tester_t *tester, ten_shared_ptr_t *result,
-    ten_shared_ptr_t *target_cmd,
     ten_env_tester_transfer_msg_result_handler_func_t handler,
     void *user_data) {
-  TEN_ASSERT(tester && ten_extension_tester_check_integrity(tester, true) &&
-                 result && target_cmd,
-             "Invalid argument.");
+  TEN_ASSERT(
+      tester && ten_extension_tester_check_integrity(tester, true) && result,
+      "Invalid argument.");
 
   ten_env_tester_return_result_ctx_t *self =
       TEN_MALLOC(sizeof(ten_env_tester_return_result_ctx_t));
@@ -244,7 +242,6 @@ ten_extension_tester_return_result_ctx_create(
 
   self->tester = tester;
   self->result = result;
-  self->target_cmd = target_cmd;
   self->handler = handler;
   self->handler_user_data = user_data;
   self->err = NULL;
@@ -258,10 +255,6 @@ static void ten_extension_tester_return_result_ctx_destroy(
 
   if (self->result) {
     ten_shared_ptr_destroy(self->result);
-  }
-
-  if (self->target_cmd) {
-    ten_shared_ptr_destroy(self->target_cmd);
   }
 
   if (self->err) {
@@ -521,9 +514,9 @@ static void test_extension_ten_env_return_result(ten_env_t *ten_env,
 
   ten_error_t *err = ten_error_create();
 
-  bool rc = ten_env_return_result(
-      ten_env, return_result_info->result, return_result_info->target_cmd,
-      return_result_callback, return_result_info, err);
+  bool rc =
+      ten_env_return_result(ten_env, return_result_info->result,
+                            return_result_callback, return_result_info, err);
   if (!rc) {
     if (return_result_info->handler) {
       // Move the error to the return_result_info.
@@ -690,7 +683,6 @@ bool ten_env_tester_send_cmd(
 
 bool ten_env_tester_return_result(
     ten_env_tester_t *self, ten_shared_ptr_t *result,
-    ten_shared_ptr_t *target_cmd,
     ten_env_tester_transfer_msg_result_handler_func_t handler, void *user_data,
     ten_error_t *error) {
   TEN_ASSERT(self && ten_env_tester_check_integrity(self, true),
@@ -706,8 +698,7 @@ bool ten_env_tester_return_result(
 
   ten_env_tester_return_result_ctx_t *return_result_info =
       ten_extension_tester_return_result_ctx_create(
-          self->tester, ten_shared_ptr_clone(result),
-          ten_shared_ptr_clone(target_cmd), handler, user_data);
+          self->tester, ten_shared_ptr_clone(result), handler, user_data);
   TEN_ASSERT(return_result_info, "Allocation failed.");
 
   bool rc = ten_env_proxy_notify(self->tester->test_extension_ten_env_proxy,

@@ -55,7 +55,7 @@ class WebsocketServerExtension(AsyncExtension):
         ten_env.log_debug("on_cmd")
 
         # Not supported command.
-        await ten_env.return_result(CmdResult.create(StatusCode.ERROR), cmd)
+        await ten_env.return_result(CmdResult.create(StatusCode.ERROR, cmd))
 
     async def on_stop(self, ten_env: AsyncTenEnv) -> None:
         ten_env.log_debug("on_stop")

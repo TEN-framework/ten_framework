@@ -141,31 +141,21 @@ class ten_env_tester_t {
   }
 
   bool return_result(std::unique_ptr<cmd_result_t> &&cmd_result,
-                     std::unique_ptr<cmd_t> &&target_cmd,
                      error_t *err = nullptr) {
     TEN_ASSERT(c_ten_env_tester, "Should not happen.");
 
     bool rc = false;
 
-    if (!cmd_result || !target_cmd) {
+    if (!cmd_result) {
       TEN_ASSERT(0, "Invalid argument.");
       return rc;
     }
 
     rc = ten_env_tester_return_result(
-        c_ten_env_tester, cmd_result->get_underlying_msg(),
-        target_cmd->get_underlying_msg(), nullptr, nullptr,
+        c_ten_env_tester, cmd_result->get_underlying_msg(), nullptr, nullptr,
         err != nullptr ? err->get_c_error() : nullptr);
 
     if (rc) {
-      // Only when is_final is true does the ownership of target_cmd transfer.
-      // Otherwise, target_cmd remains with the extension, allowing the
-      // extension to return more results.
-      if (cmd_result->is_final()) {
-        auto *cpp_target_cmd_ptr = std::move(target_cmd).release();
-        delete cpp_target_cmd_ptr;
-      }
-
       auto *cpp_cmd_result_ptr = std::move(cmd_result).release();
       delete cpp_cmd_result_ptr;
     }

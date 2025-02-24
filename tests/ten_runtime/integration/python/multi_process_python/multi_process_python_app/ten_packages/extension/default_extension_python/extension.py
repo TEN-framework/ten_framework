@@ -53,11 +53,11 @@ class DefaultExtension(Extension):
             "check_hello: status:" + str(statusCode) + " detail:" + detail
         )
 
-        respCmd = CmdResult.create(StatusCode.OK)
+        respCmd = CmdResult.create(StatusCode.OK, receivedCmd)
         respCmd.set_property_string("detail", detail + " nbnb")
         ten_env.log_info("create respCmd")
 
-        ten_env.return_result(respCmd, receivedCmd)
+        ten_env.return_result(respCmd)
 
     def on_cmd(self, ten_env: TenEnv, cmd: Cmd) -> None:
         ten_env.log_info("on_cmd")

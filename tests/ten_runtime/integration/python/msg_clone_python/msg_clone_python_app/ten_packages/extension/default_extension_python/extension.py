@@ -22,9 +22,9 @@ class ServerExtension(AsyncExtension):
 
     async def on_cmd(self, ten_env: AsyncTenEnv, cmd: Cmd) -> None:
         if cmd.get_name() == "test":
-            result = CmdResult.create(StatusCode.OK)
+            result = CmdResult.create(StatusCode.OK, cmd)
             result.set_property_string("detail", "ok")
-            await ten_env.return_result(result, cmd)
+            await ten_env.return_result(result)
         else:
             assert False
 
@@ -97,6 +97,6 @@ class ClientExtension(AsyncExtension):
             return
 
         if self.msg_count == 4:
-            result = CmdResult.create(StatusCode.OK)
+            result = CmdResult.create(StatusCode.OK, self.test_cmd)
             result.set_property_string("detail", "ok")
-            await ten_env.return_result(result, self.test_cmd)
+            await ten_env.return_result(result)

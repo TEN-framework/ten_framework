@@ -207,7 +207,6 @@ napi_value ten_nodejs_ten_env_module_init(napi_env env, napi_value exports) {
   EXPORT_FUNC(env, exports, ten_nodejs_ten_env_send_video_frame);
   EXPORT_FUNC(env, exports, ten_nodejs_ten_env_send_audio_frame);
   EXPORT_FUNC(env, exports, ten_nodejs_ten_env_return_result);
-  EXPORT_FUNC(env, exports, ten_nodejs_ten_env_return_result_directly);
   EXPORT_FUNC(env, exports, ten_nodejs_ten_env_is_property_exist);
   EXPORT_FUNC(env, exports, ten_nodejs_ten_env_get_property_to_json);
   EXPORT_FUNC(env, exports, ten_nodejs_ten_env_set_property_from_json);

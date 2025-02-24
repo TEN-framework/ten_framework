@@ -52,9 +52,9 @@ class ExtensionTesterMock(ExtensionTester):
         ten_env.log_info("ExtensionTesterMock on_cmd: " + cmd.get_name())
 
         if cmd.get_name() == "query_weather":
-            cmd_result = CmdResult.create(StatusCode.OK)
+            cmd_result = CmdResult.create(StatusCode.OK, cmd)
             cmd_result.set_property_string("detail", "sunny")
-            ten_env.return_result(cmd_result, cmd)
+            ten_env.return_result(cmd_result)
 
 
 def test_mock_cmd_result():

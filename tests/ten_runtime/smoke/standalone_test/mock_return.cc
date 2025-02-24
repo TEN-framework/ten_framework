@@ -82,7 +82,7 @@ class extension_tester_1 : public ten::extension_tester_t {
       // Mock the result of the fetch_greeting command.
       auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK, *cmd);
       cmd_result->set_property("detail", "hola");
-      bool rc = ten_env.return_result(std::move(cmd_result), std::move(cmd));
+      bool rc = ten_env.return_result(std::move(cmd_result));
       EXPECT_EQ(rc, true);
     }
   }

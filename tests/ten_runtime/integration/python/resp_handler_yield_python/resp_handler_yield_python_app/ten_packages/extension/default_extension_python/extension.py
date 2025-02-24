@@ -10,6 +10,7 @@ from ten import (
     Extension,
     TenEnv,
     Cmd,
+    CmdResult,
 )
 
 
@@ -73,7 +74,12 @@ class DefaultExtension(Extension):
         if isinstance(result, Exception):
             raise result
 
-        ten_env.return_result(result, cmd)
+        cmd_result_json, _ = result.get_property_to_json()
+
+        new_result = CmdResult.create(result.get_status_code(), cmd)
+        new_result.set_property_from_json(None, cmd_result_json)
+
+        ten_env.return_result(new_result)
 
     def on_cmd(self, ten_env: TenEnv, cmd: Cmd) -> None:
         ten_env.log_info("on_cmd")

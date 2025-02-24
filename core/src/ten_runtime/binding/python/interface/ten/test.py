@@ -73,12 +73,9 @@ class TenEnvTester(TenEnvTesterBase):
     def return_result(
         self,
         cmd_result: CmdResult,
-        target_cmd: Cmd,
         error_handler: Optional[ErrorHandler] = None,
     ) -> Optional[TenError]:
-        return self._internal.return_result(
-            cmd_result, target_cmd, error_handler
-        )
+        return self._internal.return_result(cmd_result, error_handler)
 
     def stop_test(self) -> None:
         return self._internal.stop_test()

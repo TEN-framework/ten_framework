@@ -36,10 +36,10 @@ class SimpleEchoExtension(AsyncExtension):
         cmd_name = cmd.get_name()
         ten_env.log_debug("on_cmd name {}".format(cmd_name))
 
-        cmd_result = CmdResult.create(StatusCode.OK)
+        cmd_result = CmdResult.create(StatusCode.OK, cmd)
         cmd_result.set_property_string("detail", cmd_name + ", too")
 
-        await ten_env.return_result(cmd_result, cmd)
+        await ten_env.return_result(cmd_result)
 
     async def on_data(self, ten_env: AsyncTenEnv, data: Data) -> None:
         data_name = data.get_name()

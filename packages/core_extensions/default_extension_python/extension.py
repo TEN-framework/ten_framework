@@ -44,8 +44,8 @@ class DefaultExtension(Extension):
 
         # TODO: process cmd
 
-        cmd_result = CmdResult.create(StatusCode.OK)
-        ten_env.return_result(cmd_result, cmd)
+        cmd_result = CmdResult.create(StatusCode.OK, cmd)
+        ten_env.return_result(cmd_result)
 
     def on_data(self, ten_env: TenEnv, data: Data) -> None:
         data_name = data.get_name()
