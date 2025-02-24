@@ -3,7 +3,10 @@
 // Licensed under the Apache License, Version 2.0.
 // See the LICENSE file for more information.
 //
+#include <cstdlib>
+
 #include "ten_runtime/binding/cpp/detail/msg/cmd/cmd.h"
+#include "ten_runtime/binding/cpp/detail/ten_env.h"
 #include "ten_runtime/binding/cpp/ten.h"
 #include "vosk_api.h"
 
@@ -16,6 +19,7 @@ class vosk_asr_cpp_t : public ten::extension_t {
   void on_init(ten::ten_env_t &ten_env) override {
     auto model_name = ten_env.get_property_string("model_name");
 
+    // Open the specified model.
     vosk_model = vosk_model_new((std::string("models/") + model_name).c_str());
     if (vosk_model == nullptr) {
       TEN_LOGE("Failed to load model, check if exists in the folder.");
@@ -23,6 +27,9 @@ class vosk_asr_cpp_t : public ten::extension_t {
     }
 
     auto sample_rate = ten_env.get_property_float32("sample_rate");
+    TEN_ENV_LOG_INFO(ten_env, std::string("Specify sample rate: " +
+                                          std::to_string(sample_rate))
+                                  .c_str());
 
     vosk_recognizer = vosk_recognizer_new(vosk_model, sample_rate);
     if (vosk_recognizer == nullptr) {
@@ -33,15 +40,13 @@ class vosk_asr_cpp_t : public ten::extension_t {
     ten_env.on_init_done();
   }
 
-  void on_cmd(ten::ten_env_t &ten_env,
-              std::unique_ptr<ten::cmd_t> cmd) override {
-    auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK, *cmd);
-    cmd_result->set_property("detail", "This is a demo");
-    ten_env.return_result(std::move(cmd_result));
-  }
-
   void on_audio_frame(ten::ten_env_t &ten_env,
                       std::unique_ptr<ten::audio_frame_t> frame) override {
+    std::string frame_name = frame->get_name();
+    TEN_ENV_LOG_INFO(
+        ten_env,
+        (std::string("Received audio frame '") + frame_name + "'").c_str());
+
     ten::buf_t locked_in_buf = frame->lock_buf();
 
     int is_final = vosk_recognizer_accept_waveform(
@@ -50,16 +55,16 @@ class vosk_asr_cpp_t : public ten::extension_t {
 
     frame->unlock_buf(locked_in_buf);
 
-    auto recognition_result = ten::data_t::create("recognition_result");
-
     const char *result = nullptr;
     if (is_final != 0) {
       result = vosk_recognizer_result(vosk_recognizer);
     } else {
       result = vosk_recognizer_partial_result(vosk_recognizer);
     }
-    recognition_result->set_property("result", result);
 
+    auto recognition_result = ten::data_t::create("recognition_result");
+
+    recognition_result->set_property("result", result);
     recognition_result->set_property("is_final", is_final);
 
     bool rc = ten_env.send_data(std::move(recognition_result));
