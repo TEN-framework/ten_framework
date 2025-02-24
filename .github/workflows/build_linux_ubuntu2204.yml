@@ -123,15 +123,15 @@ jobs:
       - name: Package tests relevant artifacts preserving permissions
         shell: bash
         run: |
-          files=()
+          files=""
           for item in tests ten_manager tgn_args.txt; do
             if [ -e "out/linux/${{ matrix.arch }}/$item" ]; then
-              files+=( "-C" "out/linux/${{ matrix.arch }}" "$item" )
+              files="$files -C out/linux/${{ matrix.arch }} $item"
             fi
           done
 
-          if [ ${#files[@]} -gt 0 ]; then
-            tar -czvf tests-artifacts.tar.gz "${files[@]}"
+          if [ -n "$files" ]; then
+            tar -czvf tests-artifacts.tar.gz $files
           fi
 
       - name: Upload tests relevant artifacts
