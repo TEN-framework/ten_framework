@@ -64,6 +64,9 @@ class nodejs_addon_loader_t : public ten::addon_loader_t {
       for (const std::string &err : errors) {
         std::cerr << "Error: " << err << '\n';
       }
+
+      this->node_init_completed_ = true;
+      this->cv_.notify_one();
       return 1;
     }
 
@@ -120,10 +123,12 @@ class nodejs_addon_loader_t : public ten::addon_loader_t {
 
       if (loadenv_ret.IsEmpty()) {
         // There has been a JS exception.
+        this->node_init_completed_ = true;
+        this->cv_.notify_one();
         return 1;
       }
 
-      this->node_thread_started_ = true;
+      this->node_init_completed_ = true;
 
       // Wake up the main thread waiting in the `on_init()` function to notify
       // it that the Node.js thread has successfully started.
@@ -233,9 +238,6 @@ class nodejs_addon_loader_t : public ten::addon_loader_t {
         V8::Dispose();
         V8::DisposePlatform();
         node::TearDownOncePerProcess();
-
-        this->node_thread_started_ = true;
-        this->cv_.notify_one();
       });
     } catch (const std::exception &e) {
       std::cerr << "Nodejs addon loader init exception: " << e.what() << '\n';
@@ -244,7 +246,7 @@ class nodejs_addon_loader_t : public ten::addon_loader_t {
 
     // Wait for the node thread to start.
     std::unique_lock<std::mutex> lock(this->mutex_);
-    this->cv_.wait(lock, [this]() { return this->node_thread_started_; });
+    this->cv_.wait(lock, [this]() { return this->node_init_completed_; });
   }
 
   // Clean up and shut down the Node.js addon loader to ensure resource
@@ -410,7 +412,7 @@ class nodejs_addon_loader_t : public ten::addon_loader_t {
   std::unique_ptr<CommonEnvironmentSetup> setup_{nullptr};
   uv_loop_s *event_loop_{nullptr};
   std::thread node_thread_;
-  bool node_thread_started_{false};
+  bool node_init_completed_{false};
 
   std::mutex mutex_;
   std::condition_variable cv_;
