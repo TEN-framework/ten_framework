@@ -101,13 +101,12 @@ bool ten_extension_on_configure_done(ten_env_t *self) {
           "[%s] on_configure_done() skipped: Extension is already in the close "
           "flow",
           ten_extension_get_name(extension, true));
-      return true;
     } else {
       TEN_LOGI(
           "[%s] Failed to on_configure_done() because of incorrect timing: %d",
           ten_extension_get_name(extension, true), extension->state);
-      return false;
     }
+    return false;
   }
 
   TEN_LOGD("[%s] on_configure() done.",
@@ -262,13 +261,12 @@ bool ten_extension_on_init_done(ten_env_t *self) {
       TEN_LOGI(
           "[%s] on_init_done() skipped: Extension is already in the close flow",
           ten_extension_get_name(extension, true));
-      return true;
     } else {
       // `on_init_done` can only be called at specific times.
       TEN_LOGI("[%s] Failed to on_init_done() because of incorrect timing: %d",
                ten_extension_get_name(extension, true), extension->state);
-      return false;
     }
+    return false;
   }
 
   TEN_LOGD("[%s] on_init() done.", ten_extension_get_name(extension, true));
@@ -319,12 +317,11 @@ bool ten_extension_on_start_done(ten_env_t *self) {
           "[%s] on_start_done() skipped: Extension is already in the close "
           "flow",
           ten_extension_get_name(extension, true));
-      return true;
     } else {
       TEN_LOGI("[%s] Failed to on_start_done() because of incorrect timing: %d",
                ten_extension_get_name(extension, true), extension->state);
-      return false;
     }
+    return false;
   }
 
   TEN_LOGI("[%s] on_start() done.", ten_extension_get_name(extension, true));

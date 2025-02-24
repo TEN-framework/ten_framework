@@ -15,7 +15,6 @@
 #include "include_internal/ten_runtime/extension/extension.h"
 #include "include_internal/ten_runtime/extension_group/base_dir.h"
 #include "include_internal/ten_runtime/extension_group/extension_group.h"
-#include "include_internal/ten_runtime/extension_group/on_xxx.h"
 #include "include_internal/ten_runtime/metadata/default/default.h"
 #include "include_internal/ten_runtime/ten_env/ten_env.h"
 #include "include_internal/ten_utils/log/log.h"

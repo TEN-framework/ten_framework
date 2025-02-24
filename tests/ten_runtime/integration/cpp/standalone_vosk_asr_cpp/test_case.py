@@ -169,7 +169,7 @@ def test_standalone_vosk_asr_cpp():
 
     # Step 6:
     #
-    # Test the extension.
+    # Standalone testing the extension.
     print("Testing the extension.")
 
     standalone_test_cmd = [

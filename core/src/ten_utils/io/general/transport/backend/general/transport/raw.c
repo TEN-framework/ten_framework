@@ -4,6 +4,7 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
+#include <limits.h>
 #include <stdlib.h>
 
 #include "include_internal/ten_utils/io/runloop.h"
@@ -183,7 +184,12 @@ static void ten_queue_process_remaining(ten_stream_t *stream,
         CONTAINER_OF_FROM_FIELD(node, ten_raw_write_req_t, node);
 
     if (stream && stream->on_message_read) {
-      stream->on_message_read(stream, req->buf, req->len);
+      if (req->len > INT_MAX) {
+        // TODO(Wei): The value of `req->len` is too large to be safely
+        // converted to an `int`.
+        exit(EXIT_FAILURE);
+      }
+      stream->on_message_read(stream, req->buf, (int)(req->len));
     }
 
     // notify writer one write request done
@@ -262,11 +268,13 @@ static void ten_streambackend_raw_destroy(ten_streambackend_raw_t *raw_stream) {
   ten_runloop_async_close(raw_stream->in->signal, on_stream_in_signal_closed);
 }
 
-static int ten_streambackend_raw_start_read(ten_streambackend_t *self) {
+static int ten_streambackend_raw_start_read(
+    TEN_UNUSED ten_streambackend_t *self) {
   return 0;
 }
 
-static int ten_streambackend_raw_stop_read(ten_streambackend_t *self) {
+static int ten_streambackend_raw_stop_read(
+    TEN_UNUSED ten_streambackend_t *self) {
   return 0;
 }
 

@@ -585,7 +585,7 @@ void ten_string_hex_from_buf(ten_string_t *self, ten_buf_t buf) {
   TEN_ASSERT(self && ten_string_check_integrity(self), "Invalid argument.");
 
   for (size_t i = 0; i < buf.content_size; i++) {
-    ten_string_append_formatted(self, "%02x", ((uint8_t *)(buf.data))[i]);
+    ten_string_append_formatted(self, "%02x", (buf.data)[i]);
   }
 }
 

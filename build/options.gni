@@ -39,6 +39,8 @@ declare_args() {
 }
 
 declare_args() {
+  # TEN manager is written in Rust, so enabling the TEN manager requires
+  # enabling Rust first.
   ten_enable_ten_manager = ten_enable_ten_rust
 
   # Since `cargo build` can consume a significant amount of disk space, it is

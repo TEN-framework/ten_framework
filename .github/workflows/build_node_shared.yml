@@ -4,7 +4,7 @@ on:
   pull_request:
     types: [opened, synchronize, reopened]
     paths:
-      - '.github/workflows/build_node_shared.yml'
+      - ".github/workflows/build_node_shared.yml"
 
 jobs:
   build:
@@ -30,6 +30,6 @@ jobs:
             export CC=clang
             export CXX=clang++
           fi
-          
+
           ./configure --shared
           make -j$(nproc)

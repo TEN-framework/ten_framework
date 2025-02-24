@@ -871,6 +871,13 @@ void ten_extension_on_stop(ten_extension_t *self) {
   TEN_ASSERT(ten_extension_check_integrity(self, true),
              "Invalid use of extension %p.", self);
 
+  // There are two main starting points for triggering the `on_stop` process:
+  //
+  // 1. In `ten_extension_thread_stop_life_cycle_of_all_extensions`
+  // 2. In `on_configure_done/on_init_done/on_start_done`
+  //
+  // Therefore, it is necessary to check here that if the `on_stop` process has
+  // already started, it should not be entered again.
   if (self->state >= TEN_EXTENSION_STATE_ON_STOP) {
     return;
   }

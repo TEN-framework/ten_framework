@@ -7,7 +7,6 @@
 #include "include_internal/ten_runtime/extension/extension_info/extension_info.h"
 
 #include <complex.h>
-#include <string.h>
 
 #include "include_internal/ten_runtime/common/constant_str.h"
 #include "include_internal/ten_runtime/common/loc.h"
