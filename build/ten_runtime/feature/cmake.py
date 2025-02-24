@@ -273,6 +273,10 @@ cmake.py will consider it as its own command line option."
                     "-Wl,-rpath,@loader_path/../lib/",
                 ]
             )
+            if self.args.enable_c_extensions == "true":
+                self.defines.append("-DCMAKE_C_EXTENSIONS=ON")
+            else:
+                self.defines.append("-DCMAKE_C_EXTENSIONS=OFF")
 
         if self.args.hide_symbol == "true":
             self.cflags.append("-fvisibility=hidden")
