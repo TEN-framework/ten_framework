@@ -185,18 +185,9 @@ jobs:
             git submodule update --init --recursive "$submodule"
           done
 
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-
       - uses: actions/setup-python@v5
         with:
           python-version: "3.10"
-
-      - uses: actions/setup-go@v5
-        with:
-          go-version: "stable"
-          cache: false
 
       - name: Set ulimit and sysctl
         run: |
@@ -239,6 +230,10 @@ jobs:
       - name: Extract tests artifacts preserving permissions
         run: |
           tar -xzvf out/mac/arm64/tests-artifacts.tar.gz
+
+      #   continue-on-error: true
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
 
       - name: Run Tests (ten_utils_unit_test)
         env:
