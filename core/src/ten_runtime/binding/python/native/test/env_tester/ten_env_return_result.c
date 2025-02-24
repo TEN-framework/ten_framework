@@ -118,7 +118,7 @@ PyObject *ten_py_ten_env_tester_return_result(PyObject *self, PyObject *args) {
                  ten_py_ten_env_tester_check_integrity(py_ten_env_tester),
              "Invalid argument.");
 
-  if (PyTuple_GET_SIZE(args) != 3) {
+  if (PyTuple_GET_SIZE(args) != 2) {
     return ten_py_raise_py_value_error_exception(
         "Invalid argument count when ten_env_tester.return_result.");
   }
