@@ -35,9 +35,6 @@ TEN_RUNTIME_PRIVATE_API void ten_py_cmd_result_destroy(PyObject *self);
 TEN_RUNTIME_PRIVATE_API PyObject *ten_py_cmd_result_get_status_code(
     PyObject *self, PyObject *args);
 
-TEN_RUNTIME_PRIVATE_API PyObject *ten_py_cmd_result_set_status_code(
-    PyObject *self, PyObject *args);
-
 TEN_RUNTIME_PRIVATE_API PyObject *ten_py_cmd_result_set_final(PyObject *self,
                                                               PyObject *args);
 

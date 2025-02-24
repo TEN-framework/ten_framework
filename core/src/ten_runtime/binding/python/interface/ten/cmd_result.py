@@ -5,8 +5,10 @@
 # Refer to the "LICENSE" file in the root directory for more information.
 #
 from typing import Type, TypeVar
-from libten_runtime_python import _CmdResult
 from enum import IntEnum
+
+from libten_runtime_python import _CmdResult
+
 from .cmd import Cmd
 
 T = TypeVar("T", bound="CmdResult")

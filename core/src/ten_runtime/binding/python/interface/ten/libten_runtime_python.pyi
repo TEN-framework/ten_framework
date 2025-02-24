@@ -4,6 +4,7 @@
 # Licensed under the Apache License, Version 2.0, with certain conditions.
 # Refer to the "LICENSE" file in the root directory for more information.
 #
+# pylint: disable=unused-argument
 from typing import Callable, Optional
 
 from .ten_env_attach_to_enum import _TenEnvAttachTo

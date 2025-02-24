@@ -61,9 +61,7 @@ export class TenEnv {
     });
   }
 
-  async returnResult(
-    cmdResult: CmdResult,
-  ): Promise<Error | null> {
+  async returnResult(cmdResult: CmdResult): Promise<Error | null> {
     return new Promise<Error | null>((resolve) => {
       ten_addon.ten_nodejs_ten_env_return_result(
         this,

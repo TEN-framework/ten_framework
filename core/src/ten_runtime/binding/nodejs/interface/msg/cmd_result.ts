@@ -14,7 +14,11 @@ export enum StatusCode {
 }
 
 export class CmdResult extends Msg {
-  private constructor(statusCode: StatusCode, targetCmd: Cmd, createShellOnly: boolean) {
+  private constructor(
+    statusCode: StatusCode,
+    targetCmd: Cmd,
+    createShellOnly: boolean
+  ) {
     super();
 
     if (createShellOnly) {

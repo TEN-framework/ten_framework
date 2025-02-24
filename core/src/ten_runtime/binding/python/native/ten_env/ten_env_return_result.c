@@ -6,11 +6,9 @@
 //
 #include "include_internal/ten_runtime/binding/python/common/common.h"
 #include "include_internal/ten_runtime/binding/python/common/error.h"
-#include "include_internal/ten_runtime/binding/python/msg/cmd.h"
 #include "include_internal/ten_runtime/binding/python/msg/cmd_result.h"
 #include "include_internal/ten_runtime/binding/python/msg/msg.h"
 #include "include_internal/ten_runtime/binding/python/ten_env/ten_env.h"
-#include "ten_runtime/msg/cmd_result/cmd_result.h"
 #include "ten_utils/lib/error.h"
 #include "ten_utils/lib/smart_ptr.h"
 #include "ten_utils/macro/memory.h"

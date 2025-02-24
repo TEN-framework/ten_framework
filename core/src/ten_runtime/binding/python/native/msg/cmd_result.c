@@ -9,7 +9,6 @@
 #include "include_internal/ten_runtime/binding/python/common/error.h"
 #include "include_internal/ten_runtime/binding/python/msg/cmd.h"
 #include "include_internal/ten_runtime/binding/python/msg/msg.h"
-#include "include_internal/ten_runtime/msg/cmd_base/cmd_result/cmd.h"
 #include "include_internal/ten_runtime/msg/msg.h"
 #include "ten_runtime/common/status_code.h"
 #include "ten_runtime/msg/cmd_result/cmd_result.h"
@@ -99,33 +98,6 @@ PyObject *ten_py_cmd_result_get_status_code(PyObject *self, PyObject *args) {
       ten_cmd_result_get_status_code(py_cmd_result->msg.c_msg);
 
   return PyLong_FromLong(status_code);
-}
-
-PyObject *ten_py_cmd_result_set_status_code(PyObject *self, PyObject *args) {
-  ten_py_cmd_result_t *py_cmd_result = (ten_py_cmd_result_t *)self;
-
-  TEN_ASSERT(py_cmd_result &&
-                 ten_py_msg_check_integrity((ten_py_msg_t *)py_cmd_result),
-             "Invalid argument.");
-
-  TEN_ASSERT(py_cmd_result->msg.c_msg &&
-                 ten_msg_check_integrity(py_cmd_result->msg.c_msg),
-             "Invalid argument.");
-
-  TEN_ASSERT(
-      ten_msg_get_type(py_cmd_result->msg.c_msg) == TEN_MSG_TYPE_CMD_RESULT,
-      "Invalid argument.");
-
-  int status_code = 0;
-  if (!PyArg_ParseTuple(args, "i", &status_code)) {
-    return ten_py_raise_py_value_error_exception(
-        "Failed to parse arguments when setting status code.");
-  }
-
-  ten_cmd_result_set_status_code(py_cmd_result->msg.c_msg,
-                                 (TEN_STATUS_CODE)status_code);
-
-  Py_RETURN_NONE;
 }
 
 PyObject *ten_py_cmd_result_set_final(PyObject *self, PyObject *args) {

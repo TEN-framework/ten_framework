@@ -7,6 +7,7 @@
 from typing import Callable, Optional
 
 from libten_runtime_python import _Extension, _TenEnv
+
 from .error import TenError
 from .cmd_result import CmdResult
 from .cmd import Cmd
@@ -27,6 +28,7 @@ class TenEnv(TenEnvBase):
 
     def __init__(self, internal_obj: _TenEnv) -> None:
         super().__init__(internal_obj)
+        self._release_handler = None
 
     def __del__(self) -> None:
         pass
@@ -36,6 +38,7 @@ class TenEnv(TenEnvBase):
 
     def _on_release(self) -> None:
         if hasattr(self, "_release_handler"):
+            assert self._release_handler
             self._release_handler()
 
     def on_configure_done(self) -> None:

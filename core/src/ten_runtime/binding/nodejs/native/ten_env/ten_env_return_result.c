@@ -5,7 +5,6 @@
 // Refer to the "LICENSE" file in the root directory for more information.
 //
 #include "include_internal/ten_runtime/binding/nodejs/common/common.h"
-#include "include_internal/ten_runtime/binding/nodejs/msg/cmd.h"
 #include "include_internal/ten_runtime/binding/nodejs/msg/cmd_result.h"
 #include "include_internal/ten_runtime/binding/nodejs/ten_env/ten_env.h"
 #include "ten_runtime/ten_env/internal/return.h"
