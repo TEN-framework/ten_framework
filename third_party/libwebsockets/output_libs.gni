@@ -21,8 +21,10 @@ if (is_win) {
   libwebsockets_output_libs +=
       [ "${root_gen_dir}/cmake/websockets/install/lib/libwebsockets.so.19" ]
 } else if (is_mac) {
-  libwebsockets_output_libs +=
-      [ "${root_gen_dir}/cmake/websockets/install/lib/libwebsockets.dylib" ]
+  libwebsockets_output_libs += [
+    "${root_gen_dir}/cmake/websockets/install/lib/libwebsockets.dylib",
+    "${root_gen_dir}/cmake/websockets/install/lib/libwebsockets.19.dylib",
+  ]
 }
 
 template("ten_websockets_copy_deps") {

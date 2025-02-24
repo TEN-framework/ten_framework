@@ -28,6 +28,7 @@ class TenEnv(TenEnvBase):
 
     def __init__(self, internal_obj: _TenEnv) -> None:
         super().__init__(internal_obj)
+        self._release_handler = None
 
     def __del__(self) -> None:
         pass
@@ -36,7 +37,7 @@ class TenEnv(TenEnvBase):
         self._release_handler = handler
 
     def _on_release(self) -> None:
-        if hasattr(self, "_release_handler"):
+        if self._release_handler is not None:
             self._release_handler()
 
     def on_configure_done(self) -> None:
