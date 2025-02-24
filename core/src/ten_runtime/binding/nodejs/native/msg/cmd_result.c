@@ -7,6 +7,7 @@
 #include "include_internal/ten_runtime/binding/nodejs/msg/cmd_result.h"
 
 #include "include_internal/ten_runtime/binding/nodejs/common/common.h"
+#include "include_internal/ten_runtime/binding/nodejs/msg/cmd.h"
 #include "include_internal/ten_runtime/msg/msg.h"
 #include "js_native_api.h"
 #include "ten_runtime/common/status_code.h"
@@ -62,8 +63,8 @@ static void ten_nodejs_cmd_result_finalize(napi_env env, void *data,
 
 static napi_value ten_nodejs_cmd_result_create(napi_env env,
                                                napi_callback_info info) {
-  const size_t argc = 2;
-  napi_value args[argc];  // this, status_code
+  const size_t argc = 3;
+  napi_value args[argc];  // this, status_code, target_cmd
   if (!ten_nodejs_get_js_func_args(env, info, args, argc)) {
     napi_fatal_error(NULL, NAPI_AUTO_LENGTH,
                      "Incorrect number of parameters passed.",
@@ -80,10 +81,18 @@ static napi_value ten_nodejs_cmd_result_create(napi_env env,
     TEN_ASSERT(0, "Should not happen.");
   }
 
+  ten_nodejs_cmd_t *target_cmd = NULL;
+  status = napi_unwrap(env, args[2], (void **)&target_cmd);
+  if (status != napi_ok) {
+    napi_fatal_error(NULL, NAPI_AUTO_LENGTH, "Failed to unwrap target_cmd.",
+                     NAPI_AUTO_LENGTH);
+    TEN_ASSERT(0, "Should not happen.");
+  }
+
   ten_error_t error;
   ten_error_init(&error);
 
-  ten_shared_ptr_t *c_cmd_result = ten_cmd_result_create(status_code);
+  ten_shared_ptr_t *c_cmd_result = ten_cmd_result_create_from_cmd(status_code, target_cmd->msg.msg);
   TEN_ASSERT(c_cmd_result, "Failed to create cmd_result.");
 
   ten_nodejs_cmd_result_t *cmd_result_bridge =

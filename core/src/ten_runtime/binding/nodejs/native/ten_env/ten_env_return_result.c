@@ -15,7 +15,6 @@
 
 typedef struct ten_env_notify_return_result_ctx_t {
   ten_shared_ptr_t *c_cmd_result;
-  ten_shared_ptr_t *c_target_cmd;
   ten_nodejs_tsfn_t *js_cb;
 } ten_env_notify_return_result_ctx_t;
 
@@ -26,14 +25,12 @@ typedef struct ten_nodejs_return_result_callback_call_ctx_t {
 
 static ten_env_notify_return_result_ctx_t *
 ten_env_notify_return_result_ctx_create(ten_shared_ptr_t *c_cmd_result,
-                                        ten_shared_ptr_t *c_target_cmd,
                                         ten_nodejs_tsfn_t *js_cb) {
   ten_env_notify_return_result_ctx_t *ctx =
       TEN_MALLOC(sizeof(ten_env_notify_return_result_ctx_t));
   TEN_ASSERT(ctx, "Failed to allocate memory.");
 
   ctx->c_cmd_result = c_cmd_result;
-  ctx->c_target_cmd = c_target_cmd;
   ctx->js_cb = js_cb;
 
   return ctx;
@@ -46,11 +43,6 @@ static void ten_env_notify_return_result_ctx_destroy(
   if (ctx->c_cmd_result) {
     ten_shared_ptr_destroy(ctx->c_cmd_result);
     ctx->c_cmd_result = NULL;
-  }
-
-  if (ctx->c_target_cmd) {
-    ten_shared_ptr_destroy(ctx->c_target_cmd);
-    ctx->c_target_cmd = NULL;
   }
 
   ctx->js_cb = NULL;
@@ -153,7 +145,7 @@ static void ten_env_proxy_notify_return_result(ten_env_t *ten_env,
   TEN_ERROR_INIT(err);
 
   bool rc =
-      ten_env_return_result(ten_env, ctx->c_cmd_result, ctx->c_target_cmd,
+      ten_env_return_result(ten_env, ctx->c_cmd_result,
                             proxy_return_result_error_callback, ctx, &err);
   if (!rc) {
     proxy_return_result_error_callback(ten_env, NULL, ctx, &err);
@@ -164,8 +156,8 @@ static void ten_env_proxy_notify_return_result(ten_env_t *ten_env,
 
 napi_value ten_nodejs_ten_env_return_result(napi_env env,
                                             napi_callback_info info) {
-  const size_t argc = 4;
-  napi_value args[argc];  // this, cmd_result, target_cmd, callback
+  const size_t argc = 3;
+  napi_value args[argc];  // this, cmd_result, callback
   if (!ten_nodejs_get_js_func_args(env, info, args, argc)) {
     napi_fatal_error(NULL, NAPI_AUTO_LENGTH,
                      "Incorrect number of parameters passed.",
@@ -188,14 +180,9 @@ napi_value ten_nodejs_ten_env_return_result(napi_env env,
   RETURN_UNDEFINED_IF_NAPI_FAIL(status == napi_ok && cmd_result_bridge != NULL,
                                 "Failed to unwrap CmdResult object");
 
-  ten_nodejs_cmd_t *target_cmd_bridge = NULL;
-  status = napi_unwrap(env, args[2], (void **)&target_cmd_bridge);
-  RETURN_UNDEFINED_IF_NAPI_FAIL(status == napi_ok && target_cmd_bridge != NULL,
-                                "Failed to unwrap Cmd object");
-
   ten_nodejs_tsfn_t *cb_tsfn =
       ten_nodejs_tsfn_create(env, "[TSFN] TenEnv::return_result callback",
-                             args[3], tsfn_proxy_return_result_callback);
+                             args[2], tsfn_proxy_return_result_callback);
   RETURN_UNDEFINED_IF_NAPI_FAIL(cb_tsfn, "Failed to create TSFN");
 
   ten_error_t err;
@@ -203,8 +190,7 @@ napi_value ten_nodejs_ten_env_return_result(napi_env env,
 
   ten_env_notify_return_result_ctx_t *notify_info =
       ten_env_notify_return_result_ctx_create(
-          ten_shared_ptr_clone(cmd_result_bridge->msg.msg),
-          ten_shared_ptr_clone(target_cmd_bridge->msg.msg), cb_tsfn);
+          ten_shared_ptr_clone(cmd_result_bridge->msg.msg), cb_tsfn);
 
   bool rc = ten_env_proxy_notify(ten_env_bridge->c_ten_env_proxy,
                                  ten_env_proxy_notify_return_result,

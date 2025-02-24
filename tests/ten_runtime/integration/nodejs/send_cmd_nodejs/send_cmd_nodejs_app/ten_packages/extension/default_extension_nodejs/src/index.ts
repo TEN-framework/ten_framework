@@ -76,7 +76,7 @@ class DefaultExtension extends Extension {
       "received result detail:" + result?.getPropertyToJson("detail")
     );
 
-    const cmdResult = CmdResult.Create(StatusCode.OK);
+    const cmdResult = CmdResult.Create(StatusCode.OK, cmd);
     cmdResult.setPropertyFromJson(
       "detail",
       JSON.stringify({ key1: "value1", key2: 2 })
@@ -85,7 +85,7 @@ class DefaultExtension extends Extension {
     const detailJson = cmdResult.getPropertyToJson("detail");
     tenEnv.logInfo("detailJson:" + detailJson);
 
-    tenEnv.returnResult(cmdResult, cmd);
+    tenEnv.returnResult(cmdResult);
   }
 }
 

@@ -949,7 +949,7 @@ void ten_extension_on_cmd(ten_extension_t *self, ten_shared_ptr_t *msg) {
     // and return an 'OK' result to the previous stage.
     ten_shared_ptr_t *cmd_result =
         ten_cmd_result_create_from_cmd(TEN_STATUS_CODE_OK, msg);
-    ten_env_return_result(self->ten_env, cmd_result, msg, NULL, NULL, NULL);
+    ten_env_return_result(self->ten_env, cmd_result, NULL, NULL, NULL);
     ten_shared_ptr_destroy(cmd_result);
   }
 }
@@ -1139,8 +1139,7 @@ bool ten_extension_validate_msg_schema(ten_extension_t *self,
           ten_msg_set_property(cmd_result, "detail",
                                ten_value_create_string(ten_error_message(err)),
                                NULL);
-          ten_env_return_result(self->ten_env, cmd_result, msg, NULL, NULL,
-                                NULL);
+          ten_env_return_result(self->ten_env, cmd_result, NULL, NULL, NULL);
           ten_shared_ptr_destroy(cmd_result);
           break;
         }

@@ -76,9 +76,9 @@ class DefaultExtension extends Extension {
 
     tenEnv.logInfo("received result detail:" + detailJson);
 
-    const cmdResult = CmdResult.Create(StatusCode.OK);
+    const cmdResult = CmdResult.Create(StatusCode.OK, cmd);
     cmdResult.setPropertyString("detail", detailJson);
-    tenEnv.returnResult(cmdResult, cmd);
+    tenEnv.returnResult(cmdResult);
   }
 }
 

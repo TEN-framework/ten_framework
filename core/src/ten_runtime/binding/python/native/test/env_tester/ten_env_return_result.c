@@ -19,18 +19,15 @@
 
 typedef struct ten_py_ten_env_tester_notify_return_result_ctx_t {
   ten_shared_ptr_t *cmd_result;
-  ten_shared_ptr_t *target_cmd;
   PyObject *cb_func;
 } ten_py_ten_env_tester_notify_return_result_ctx_t;
 
 static ten_py_ten_env_tester_notify_return_result_ctx_t *
 ten_py_ten_env_tester_notify_return_result_ctx_create(
-    ten_shared_ptr_t *cmd_result, ten_shared_ptr_t *target_cmd,
-    PyObject *cb_func) {
+    ten_shared_ptr_t *cmd_result, PyObject *cb_func) {
   ten_py_ten_env_tester_notify_return_result_ctx_t *ctx =
       TEN_MALLOC(sizeof(ten_py_ten_env_tester_notify_return_result_ctx_t));
   ctx->cmd_result = ten_shared_ptr_clone(cmd_result);
-  ctx->target_cmd = ten_shared_ptr_clone(target_cmd);
 
   // Increase the reference count of the callback function to ensure that it
   // will not be destroyed before the callback is called.
@@ -45,7 +42,6 @@ ten_py_ten_env_tester_notify_return_result_ctx_create(
 static void ten_py_ten_env_tester_notify_return_result_ctx_destroy(
     ten_py_ten_env_tester_notify_return_result_ctx_t *ctx) {
   ten_shared_ptr_destroy(ctx->cmd_result);
-  ten_shared_ptr_destroy(ctx->target_cmd);
 
   if (ctx->cb_func) {
     Py_XDECREF(ctx->cb_func);
@@ -106,11 +102,11 @@ static void ten_py_ten_env_tester_notify_return_result_proxy_notify(
     Py_INCREF(ctx->cb_func);
 
     ten_env_tester_return_result(ten_env_tester, ctx->cmd_result,
-                                 ctx->target_cmd, proxy_return_result_callback,
-                                 ctx->cb_func, NULL);
+                                 proxy_return_result_callback, ctx->cb_func,
+                                 NULL);
   } else {
-    ten_env_tester_return_result(ten_env_tester, ctx->cmd_result,
-                                 ctx->target_cmd, NULL, NULL, NULL);
+    ten_env_tester_return_result(ten_env_tester, ctx->cmd_result, NULL, NULL,
+                                 NULL);
   }
 
   ten_py_ten_env_tester_notify_return_result_ctx_destroy(ctx);
@@ -128,11 +124,9 @@ PyObject *ten_py_ten_env_tester_return_result(PyObject *self, PyObject *args) {
   }
 
   ten_py_cmd_result_t *py_cmd_result = NULL;
-  ten_py_cmd_t *py_target_cmd = NULL;
   PyObject *cb_func = NULL;
-  if (!PyArg_ParseTuple(args, "O!O!O", ten_py_cmd_result_py_type(),
-                        &py_cmd_result, ten_py_cmd_py_type(), &py_target_cmd,
-                        &cb_func)) {
+  if (!PyArg_ParseTuple(args, "O!O", ten_py_cmd_result_py_type(),
+                        &py_cmd_result, &cb_func)) {
     return ten_py_raise_py_type_error_exception(
         "Invalid argument type when return result.");
   }
@@ -156,7 +150,7 @@ PyObject *ten_py_ten_env_tester_return_result(PyObject *self, PyObject *args) {
 
   ten_py_ten_env_tester_notify_return_result_ctx_t *ctx =
       ten_py_ten_env_tester_notify_return_result_ctx_create(
-          py_cmd_result->msg.c_msg, py_target_cmd->msg.c_msg, cb_func);
+          py_cmd_result->msg.c_msg, cb_func);
 
   bool success = ten_env_tester_proxy_notify(
       py_ten_env_tester->c_ten_env_tester_proxy,
@@ -169,12 +163,6 @@ PyObject *ten_py_ten_env_tester_return_result(PyObject *self, PyObject *args) {
     ten_error_deinit(&err);
     return result;
   } else {
-    if (ten_cmd_result_is_final(py_cmd_result->msg.c_msg, &err)) {
-      // Remove the C message from the python target message if it is the final
-      // cmd result.
-      ten_py_msg_destroy_c_msg(&py_target_cmd->msg);
-    }
-
     ten_py_msg_destroy_c_msg(&py_cmd_result->msg);
   }
 

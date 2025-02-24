@@ -39,9 +39,9 @@ class DefaultExtension(Extension):
             assert result.is_final() is True
             ten_env.log_info("receive 2 cmd result")
 
-            respCmd = CmdResult.create(StatusCode.OK)
+            respCmd = CmdResult.create(StatusCode.OK, receivedCmd)
             respCmd.set_property_string("detail", "nbnb")
-            ten_env.return_result(respCmd, receivedCmd)
+            ten_env.return_result(respCmd)
 
     def on_cmd(self, ten_env: TenEnv, cmd: Cmd) -> None:
         cmd_json, _ = cmd.get_property_to_json()
@@ -57,11 +57,11 @@ class DefaultExtension(Extension):
             )
         elif self.name == "default_extension_python_2":
             ten_env.log_info("create respCmd 1")
-            respCmd = CmdResult.create(StatusCode.OK)
+            respCmd = CmdResult.create(StatusCode.OK, cmd)
             # The following line is the key.
             respCmd.set_final(False)
-            ten_env.return_result(respCmd, cmd)
+            ten_env.return_result(respCmd)
 
             ten_env.log_info("create respCmd 2")
-            respCmd = CmdResult.create(StatusCode.OK)
-            ten_env.return_result(respCmd, cmd)
+            respCmd = CmdResult.create(StatusCode.OK, cmd)
+            ten_env.return_result(respCmd)

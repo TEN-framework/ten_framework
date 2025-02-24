@@ -151,8 +151,6 @@ PyTypeObject *ten_py_ten_env_type(void) {
       {"set_property_from_json", ten_py_ten_env_set_property_from_json,
        METH_VARARGS, NULL},
       {"return_result", ten_py_ten_env_return_result, METH_VARARGS, NULL},
-      {"return_result_directly", ten_py_ten_env_return_result_directly,
-       METH_VARARGS, NULL},
       {"get_property_int", ten_py_ten_env_get_property_int, METH_VARARGS, NULL},
       {"set_property_int", ten_py_ten_env_set_property_int, METH_VARARGS, NULL},
       {"get_property_string", ten_py_ten_env_get_property_string, METH_VARARGS,

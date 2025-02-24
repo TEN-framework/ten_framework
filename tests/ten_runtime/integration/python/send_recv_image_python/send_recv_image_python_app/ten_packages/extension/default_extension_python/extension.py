@@ -78,6 +78,6 @@ class DefaultExtension(Extension):
         buf = video_frame.get_buf()
         assert buf[0 : len(self.image_bytes)] == self.image_bytes
 
-        cmd_result = CmdResult.create(StatusCode.OK)
+        cmd_result = CmdResult.create(StatusCode.OK, self.request_cmd)
         cmd_result.set_property_string("detail", "success")
-        ten_env.return_result(cmd_result, self.request_cmd)
+        ten_env.return_result(cmd_result)

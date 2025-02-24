@@ -40,9 +40,9 @@ class DefaultExtension(Extension):
             assert result.is_completed() is True
             ten_env.log_info("receive 2 cmd result")
 
-            respCmd = CmdResult.create(StatusCode.OK)
+            respCmd = CmdResult.create(StatusCode.OK, receivedCmd)
             respCmd.set_property_string("detail", "nbnb")
-            ten_env.return_result(respCmd, receivedCmd)
+            ten_env.return_result(respCmd)
         else:
             assert False
 
@@ -60,9 +60,9 @@ class DefaultExtension(Extension):
             )
         elif self.name == "default_extension_python_2":
             ten_env.log_info("create respCmd")
-            respCmd = CmdResult.create(StatusCode.OK)
-            ten_env.return_result(respCmd, cmd)
+            respCmd = CmdResult.create(StatusCode.OK, cmd)
+            ten_env.return_result(respCmd)
         elif self.name == "default_extension_python_3":
             ten_env.log_info("create respCmd")
-            respCmd = CmdResult.create(StatusCode.OK)
-            ten_env.return_result(respCmd, cmd)
+            respCmd = CmdResult.create(StatusCode.OK, cmd)
+            ten_env.return_result(respCmd)

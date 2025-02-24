@@ -92,8 +92,8 @@ class DefaultExtension(AsyncExtension):
                 ten_env.log_fatal(f"check_hello: status: {str(statusCode)}")
                 assert False
 
-        respCmd = CmdResult.create(StatusCode.OK)
+        respCmd = CmdResult.create(StatusCode.OK, cmd)
         respCmd.set_property_string("detail", "received response")
         ten_env.log_info("create respCmd")
 
-        await ten_env.return_result(respCmd, cmd)
+        await ten_env.return_result(respCmd)
