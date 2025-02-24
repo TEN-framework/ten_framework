@@ -37,7 +37,6 @@ class TenEnv(TenEnvBase):
 
     def _on_release(self) -> None:
         if hasattr(self, "_release_handler"):
-            assert self._release_handler
             self._release_handler()
 
     def on_configure_done(self) -> None:

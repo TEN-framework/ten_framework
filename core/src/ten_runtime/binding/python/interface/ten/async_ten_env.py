@@ -31,7 +31,7 @@ class AsyncTenEnv(TenEnvBase):
         self._ten_loop = loop
         self._ten_thread = thread
         self._ten_all_tasks_done_event = asyncio.Event()
-        ten_env._set_release_handler(lambda: self._on_release())
+        ten_env._set_release_handler(self._on_release)
 
     def __del__(self) -> None:
         pass
