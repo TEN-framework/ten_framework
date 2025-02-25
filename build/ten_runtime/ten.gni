@@ -185,7 +185,7 @@ template("ten_executable") {
     forward_variables_from(invoker, "*")
     exe_ld_flags = []
     if (is_mac) {
-      exe_ld_flags = [ "-Wl,-rpath,@loader_path/." ]
+      exe_ld_flags = [ "-Wl,-rpath,@loader_path" ]
     } else if (is_linux) {
       exe_ld_flags = [ "-Wl,-rpath=\$ORIGIN" ]
     }

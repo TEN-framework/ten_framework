@@ -14,7 +14,7 @@
 
 typedef struct ten_cmd_result_t ten_cmd_result_t;
 
-TEN_RUNTIME_API ten_shared_ptr_t *ten_cmd_result_create(
+TEN_RUNTIME_PRIVATE_API ten_shared_ptr_t *ten_cmd_result_create(
     TEN_STATUS_CODE status_code);
 
 TEN_RUNTIME_API ten_shared_ptr_t *ten_cmd_result_create_from_cmd(

@@ -40,9 +40,9 @@ class DefaultExtension(Extension):
 
         ten_env.send_data(data)
 
-        cmd_result = CmdResult.create(StatusCode.OK)
+        cmd_result = CmdResult.create(StatusCode.OK, cmd)
         cmd_result.set_property_string("detail", "send data done")
-        ten_env.return_result(cmd_result, cmd)
+        ten_env.return_result(cmd_result)
 
     def on_data(self, ten_env: TenEnv, data: Data) -> None:
         if data.get_name() == "data2":

@@ -75,9 +75,9 @@ class DefaultExtension(Extension):
 
         assert buf[: len(buf)] == self.audio[0:10].raw_data
 
-        cmd_result = CmdResult.create(StatusCode.OK)
+        cmd_result = CmdResult.create(StatusCode.OK, self.request_cmd)
         cmd_result.set_property_string("detail", "success")
-        ten_env.return_result(cmd_result, self.request_cmd)
+        ten_env.return_result(cmd_result)
 
     def on_stop(self, ten_env: TenEnv) -> None:
         ten_env.log_info("DefaultExtension on_stop")

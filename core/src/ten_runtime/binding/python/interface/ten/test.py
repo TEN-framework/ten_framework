@@ -4,9 +4,10 @@
 # Licensed under the Apache License, Version 2.0, with certain conditions.
 # Refer to the "LICENSE" file in the root directory for more information.
 #
-from typing import Callable, Optional, final, Optional
+from typing import Callable, Optional, final
 
-from libten_runtime_python import _ExtensionTester, _TenEnvTester
+from libten_runtime_python import _ExtensionTester
+
 from .test_base import TenEnvTesterBase
 from .cmd_result import CmdResult
 from .error import TenError
@@ -25,9 +26,6 @@ ErrorHandler = Callable[["TenEnvTester", Optional[TenError]], None]
 
 
 class TenEnvTester(TenEnvTesterBase):
-
-    def __init__(self, internal_obj: _TenEnvTester) -> None:
-        super().__init__(internal_obj)
 
     def __del__(self) -> None:
         pass
@@ -73,12 +71,9 @@ class TenEnvTester(TenEnvTesterBase):
     def return_result(
         self,
         cmd_result: CmdResult,
-        target_cmd: Cmd,
         error_handler: Optional[ErrorHandler] = None,
     ) -> Optional[TenError]:
-        return self._internal.return_result(
-            cmd_result, target_cmd, error_handler
-        )
+        return self._internal.return_result(cmd_result, error_handler)
 
     def stop_test(self) -> None:
         return self._internal.stop_test()

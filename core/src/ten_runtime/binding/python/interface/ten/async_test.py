@@ -143,12 +143,10 @@ class AsyncTenEnvTester(TenEnvTesterBase):
     async def return_result(
         self,
         cmd_result: CmdResult,
-        target_cmd: Cmd,
     ) -> Optional[TenError]:
         q = asyncio.Queue(maxsize=1)
         err = self._internal.return_result(
             cmd_result,
-            target_cmd,
             lambda _, error: self._error_handler(error, q),
         )
         if err is not None:

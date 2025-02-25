@@ -4,6 +4,7 @@
 # Licensed under the Apache License, Version 2.0, with certain conditions.
 # Refer to the "LICENSE" file in the root directory for more information.
 #
+# pylint: disable=unused-argument
 from typing import Callable, Optional
 
 from .ten_env_attach_to_enum import _TenEnvAttachTo
@@ -68,8 +69,8 @@ class _Cmd(_Msg):
     def clone(self) -> "_Cmd": ...
 
 class _CmdResult(_Msg):
+    def __new__(cls, status_code: int, target_cmd: _Cmd): ...
     def clone(self) -> "_CmdResult": ...
-    def set_status_code(self, status_code: int) -> None: ...
     def get_status_code(self) -> int: ...
     def set_final(self, is_final_flag: int) -> None: ...
     def is_final(self) -> bool: ...
@@ -234,11 +235,7 @@ class _TenEnv:
     def return_result(
         self,
         result: _CmdResult,
-        target_cmd: _Cmd,
         error_handler: Optional[ErrorHandler],
-    ) -> Optional[TenError]: ...
-    def return_result_directly(
-        self, result: _CmdResult, error_handler: Optional[ErrorHandler]
     ) -> Optional[TenError]: ...
     def log(
         self,
@@ -317,7 +314,6 @@ class _TenEnvTester:
     def return_result(
         self,
         result: _CmdResult,
-        target_cmd: _Cmd,
         error_handler: Optional[TestErrorHandler],
     ) -> Optional[TenError]: ...
     def stop_test(self) -> None: ...

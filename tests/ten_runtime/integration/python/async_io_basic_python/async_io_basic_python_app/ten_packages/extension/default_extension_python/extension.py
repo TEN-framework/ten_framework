@@ -81,7 +81,13 @@ class DefaultExtension(Extension):
         # result will be returned to the original sender.
         new_cmd = Cmd.create("hello")
         cmd_result = await self.send_cmd_async(ten_env, new_cmd)
-        ten_env.return_result(cmd_result, cmd)
+
+        cmd_result_json, _ = cmd_result.get_property_to_json()
+
+        new_result = CmdResult.create(cmd_result.get_status_code(), cmd)
+        new_result.set_property_from_json(None, cmd_result_json)
+
+        ten_env.return_result(new_result)
 
     def on_cmd(self, ten_env: TenEnv, cmd: Cmd) -> None:
         ten_env.log_info("on_cmd")

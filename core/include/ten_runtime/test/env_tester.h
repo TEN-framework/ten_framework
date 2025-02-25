@@ -53,7 +53,6 @@ TEN_RUNTIME_API bool ten_env_tester_send_video_frame(
 
 TEN_RUNTIME_API bool ten_env_tester_return_result(
     ten_env_tester_t *self, ten_shared_ptr_t *result,
-    ten_shared_ptr_t *target_cmd,
     ten_env_tester_transfer_msg_result_handler_func_t handler, void *user_data,
     ten_error_t *error);
 

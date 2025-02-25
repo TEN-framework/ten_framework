@@ -7,6 +7,7 @@
 from typing import Callable, Optional
 
 from libten_runtime_python import _Extension, _TenEnv
+
 from .error import TenError
 from .cmd_result import CmdResult
 from .cmd import Cmd
@@ -27,6 +28,7 @@ class TenEnv(TenEnvBase):
 
     def __init__(self, internal_obj: _TenEnv) -> None:
         super().__init__(internal_obj)
+        self._release_handler = None
 
     def __del__(self) -> None:
         pass
@@ -35,7 +37,7 @@ class TenEnv(TenEnvBase):
         self._release_handler = handler
 
     def _on_release(self) -> None:
-        if hasattr(self, "_release_handler"):
+        if self._release_handler is not None:
             self._release_handler()
 
     def on_configure_done(self) -> None:
@@ -98,15 +100,9 @@ class TenEnv(TenEnvBase):
     def return_result(
         self,
         result: CmdResult,
-        target_cmd: Cmd,
         error_handler: Optional[ErrorHandler] = None,
     ) -> Optional[TenError]:
-        return self._internal.return_result(result, target_cmd, error_handler)
-
-    def return_result_directly(
-        self, result: CmdResult, error_handler: Optional[ErrorHandler] = None
-    ) -> Optional[TenError]:
-        return self._internal.return_result_directly(result, error_handler)
+        return self._internal.return_result(result, error_handler)
 
     def is_property_exist(self, path: str) -> tuple[bool, Optional[TenError]]:
         return self._internal.is_property_exist(path)

@@ -38,9 +38,9 @@ class PilDemoExtension(Extension):
         cmd_json, _ = cmd.get_property_to_json()
         ten_env.log_info(f"on_cmd json: {cmd_json}")
 
-        cmd_result = CmdResult.create(StatusCode.OK)
+        cmd_result = CmdResult.create(StatusCode.OK, cmd)
         cmd_result.set_property_string("detail", "success")
-        ten_env.return_result(cmd_result, cmd)
+        ten_env.return_result(cmd_result)
 
     def on_video_frame(self, ten_env: TenEnv, video_frame: VideoFrame) -> None:
         ten_env.log_debug("on_video_frame")

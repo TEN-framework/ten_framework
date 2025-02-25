@@ -7,8 +7,8 @@
 #include "include_internal/ten_runtime/binding/python/msg/cmd_result.h"
 
 #include "include_internal/ten_runtime/binding/python/common/error.h"
+#include "include_internal/ten_runtime/binding/python/msg/cmd.h"
 #include "include_internal/ten_runtime/binding/python/msg/msg.h"
-#include "include_internal/ten_runtime/msg/cmd_base/cmd_result/cmd.h"
 #include "include_internal/ten_runtime/msg/msg.h"
 #include "ten_runtime/common/status_code.h"
 #include "ten_runtime/msg/cmd_result/cmd_result.h"
@@ -41,22 +41,29 @@ void ten_py_cmd_result_destroy(PyObject *self) {
 }
 
 static ten_py_cmd_result_t *ten_py_cmd_result_init(
-    ten_py_cmd_result_t *py_cmd_result, TEN_UNUSED PyObject *args,
-    TEN_UNUSED PyObject *kw) {
+    ten_py_cmd_result_t *py_cmd_result, int status_code,
+    ten_py_cmd_t *target_cmd) {
   TEN_ASSERT(py_cmd_result &&
                  ten_py_msg_check_integrity((ten_py_msg_t *)py_cmd_result),
              "Invalid argument.");
 
   py_cmd_result->msg.c_msg =
-      ten_msg_create_from_msg_type(TEN_MSG_TYPE_CMD_RESULT);
+      ten_cmd_result_create_from_cmd(status_code, target_cmd->msg.c_msg);
 
   return py_cmd_result;
 }
 
 PyObject *ten_py_cmd_result_create(PyTypeObject *type, PyObject *args,
                                    PyObject *kw) {
+  int status_code = 0;
+  ten_py_cmd_t *target_cmd = NULL;
+  if (!PyArg_ParseTuple(args, "iO", &status_code, &target_cmd)) {
+    return ten_py_raise_py_value_error_exception("Failed to parse arguments.");
+  }
+
   ten_py_cmd_result_t *py_cmd_result = ten_py_cmd_result_create_internal(type);
-  return (PyObject *)ten_py_cmd_result_init(py_cmd_result, args, kw);
+  return (PyObject *)ten_py_cmd_result_init(py_cmd_result, status_code,
+                                            target_cmd);
 }
 
 ten_py_cmd_result_t *ten_py_cmd_result_wrap(ten_shared_ptr_t *cmd) {
@@ -91,33 +98,6 @@ PyObject *ten_py_cmd_result_get_status_code(PyObject *self, PyObject *args) {
       ten_cmd_result_get_status_code(py_cmd_result->msg.c_msg);
 
   return PyLong_FromLong(status_code);
-}
-
-PyObject *ten_py_cmd_result_set_status_code(PyObject *self, PyObject *args) {
-  ten_py_cmd_result_t *py_cmd_result = (ten_py_cmd_result_t *)self;
-
-  TEN_ASSERT(py_cmd_result &&
-                 ten_py_msg_check_integrity((ten_py_msg_t *)py_cmd_result),
-             "Invalid argument.");
-
-  TEN_ASSERT(py_cmd_result->msg.c_msg &&
-                 ten_msg_check_integrity(py_cmd_result->msg.c_msg),
-             "Invalid argument.");
-
-  TEN_ASSERT(
-      ten_msg_get_type(py_cmd_result->msg.c_msg) == TEN_MSG_TYPE_CMD_RESULT,
-      "Invalid argument.");
-
-  int status_code = 0;
-  if (!PyArg_ParseTuple(args, "i", &status_code)) {
-    return ten_py_raise_py_value_error_exception(
-        "Failed to parse arguments when setting status code.");
-  }
-
-  ten_cmd_result_set_status_code(py_cmd_result->msg.c_msg,
-                                 (TEN_STATUS_CODE)status_code);
-
-  Py_RETURN_NONE;
 }
 
 PyObject *ten_py_cmd_result_set_final(PyObject *self, PyObject *args) {

@@ -16,11 +16,6 @@
 #include "ten_utils/lib/smart_ptr.h"
 
 TEN_RUNTIME_API bool ten_env_return_result(
-    ten_env_t *self, ten_shared_ptr_t *result, ten_shared_ptr_t *target_cmd,
-    ten_env_transfer_msg_result_handler_func_t handler, void *user_data,
-    ten_error_t *err);
-
-TEN_RUNTIME_API bool ten_env_return_result_directly(
     ten_env_t *self, ten_shared_ptr_t *cmd,
     ten_env_transfer_msg_result_handler_func_t handler, void *user_data,
     ten_error_t *err);

@@ -83,9 +83,6 @@ TEN_RUNTIME_PRIVATE_API PyObject *ten_py_ten_env_send_audio_frame(
 TEN_RUNTIME_PRIVATE_API PyObject *ten_py_ten_env_return_result(PyObject *self,
                                                                PyObject *args);
 
-TEN_RUNTIME_PRIVATE_API PyObject *ten_py_ten_env_return_result_directly(
-    PyObject *self, PyObject *args);
-
 TEN_RUNTIME_PRIVATE_API PyObject *ten_py_ten_env_get_property_to_json(
     PyObject *self, PyObject *args);
 

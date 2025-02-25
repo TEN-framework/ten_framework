@@ -107,11 +107,11 @@ class DefaultExtension(Extension):
             + detail
         )
 
-        respCmd = CmdResult.create(StatusCode.OK)
+        respCmd = CmdResult.create(StatusCode.OK, receivedCmd)
         respCmd.set_property_string("detail", detail + " nbnb")
         print("DefaultExtension create respCmd")
 
-        ten_env.return_result(respCmd, receivedCmd)
+        ten_env.return_result(respCmd)
 
     def on_cmd(self, ten_env: TenEnv, cmd: Cmd) -> None:
         print("DefaultExtension on_cmd")

@@ -23,14 +23,14 @@ class ServerExtension(AsyncExtension):
     async def on_cmd(self, ten_env: AsyncTenEnv, cmd: Cmd) -> None:
         if cmd.get_name() == "register":
             self.register_count += 1
-            await ten_env.return_result(CmdResult.create(StatusCode.OK), cmd)
+            await ten_env.return_result(CmdResult.create(StatusCode.OK, cmd))
         elif cmd.get_name() == "unregister":
             self.register_count -= 1
-            await ten_env.return_result(CmdResult.create(StatusCode.OK), cmd)
+            await ten_env.return_result(CmdResult.create(StatusCode.OK, cmd))
         elif cmd.get_name() == "test":
-            cmd_result = CmdResult.create(StatusCode.OK)
+            cmd_result = CmdResult.create(StatusCode.OK, cmd)
             cmd_result.set_property_string("detail", "ok")
-            await ten_env.return_result(cmd_result, cmd)
+            await ten_env.return_result(cmd_result)
         else:
             assert False
 
@@ -72,4 +72,4 @@ class ClientExtension(AsyncExtension):
         result, _ = await ten_env.send_cmd(cmd)
         assert result is not None
 
-        await ten_env.return_result_directly(result)
+        await ten_env.return_result(result)

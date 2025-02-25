@@ -4,8 +4,14 @@
 # Licensed under the Apache License, Version 2.0, with certain conditions.
 # Refer to the "LICENSE" file in the root directory for more information.
 #
-from libten_runtime_python import _CmdResult
+from typing import Type, TypeVar
 from enum import IntEnum
+
+from libten_runtime_python import _CmdResult
+
+from .cmd import Cmd
+
+T = TypeVar("T", bound="CmdResult")
 
 
 # StatusCode values. These definitions need to be the same as the
@@ -23,10 +29,8 @@ class CmdResult(_CmdResult):
         raise NotImplementedError("Use CmdResult.create instead.")
 
     @classmethod
-    def create(cls, status_code: StatusCode):
-        instance = cls.__new__(cls)
-        instance.set_status_code(status_code)
-        return instance
+    def create(cls: Type[T], status_code: StatusCode, target_cmd: Cmd) -> T:
+        return cls.__new__(cls, status_code, target_cmd)
 
     def clone(self) -> "CmdResult":
         return _CmdResult.clone(self)  # type: ignore

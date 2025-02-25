@@ -53,11 +53,11 @@ class DefaultExtension(Extension):
         statusCode = result.get_status_code()
         ten_env.log_info(f"check_greeting: status: {str(statusCode)}")
 
-        respCmd = CmdResult.create(StatusCode.OK)
+        respCmd = CmdResult.create(StatusCode.OK, receivedCmd)
         respCmd.set_property_string("detail", "received response")
         ten_env.log_info("create respCmd")
 
-        ten_env.return_result(respCmd, receivedCmd)
+        ten_env.return_result(respCmd)
 
     def check_hello(
         self,

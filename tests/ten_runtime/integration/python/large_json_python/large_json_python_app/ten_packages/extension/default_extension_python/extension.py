@@ -82,7 +82,7 @@ class DefaultExtension(Extension):
         cmd_json, _ = cmd.get_property_to_json()
         print("DefaultExtension on_cmd json: " + cmd_json)
 
-        cmd_result = CmdResult.create(StatusCode.OK)
+        cmd_result = CmdResult.create(StatusCode.OK, cmd)
 
         current_path = os.path.dirname(os.path.abspath(__file__))
         json_file = os.path.join(current_path, "test.json")
@@ -97,4 +97,4 @@ class DefaultExtension(Extension):
 
         cmd_result.set_property_string("detail", "ok")
 
-        ten_env.return_result(cmd_result, cmd)
+        ten_env.return_result(cmd_result)

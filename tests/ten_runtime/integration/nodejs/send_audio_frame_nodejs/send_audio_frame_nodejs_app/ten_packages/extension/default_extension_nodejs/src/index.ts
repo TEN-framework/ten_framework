@@ -112,9 +112,9 @@ class DefaultExtension extends Extension {
     const cmd = this.cachedCmd;
     assert(cmd !== null, "Cached cmd is null");
 
-    const result = CmdResult.Create(StatusCode.OK);
+    const result = CmdResult.Create(StatusCode.OK, cmd!);
     result.setPropertyString("detail", "success");
-    await tenEnv.returnResult(result, cmd!);
+    await tenEnv.returnResult(result);
   }
 }
 
