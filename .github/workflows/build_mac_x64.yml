@@ -281,10 +281,13 @@ jobs:
           TEN_ENABLE_BACKTRACE_DUMP: "true"
         run: |
           cd out/mac/x64/tests/standalone/ten_rust
+
           chmod +x unit_test
           chmod +x integration_test
+
           ./unit_test || { echo "ten_rust unit test failed"; exit 1; }
           ./integration_test || { echo "ten_rust integration test failed"; exit 1; }
+
           df -h .
 
       - name: Run Tests (ten_manager standalone tests)
@@ -295,8 +298,13 @@ jobs:
           TEN_ENABLE_BACKTRACE_DUMP: "true"
         run: |
           cd out/mac/x64/tests/standalone/ten_manager
+
           chmod +x unit_test
+          chmod +x integration_test
+
           ./unit_test || { echo "ten_manager unit test failed"; exit 1; }
+          ./integration_test || { echo "ten_manager integration test failed"; exit 1; }
+
           df -h .
 
   test-integration:
