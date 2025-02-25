@@ -53,6 +53,7 @@ jobs:
       - name: Install tools and dependencies
         run: |
           brew install tree
+          pip3 install --use-pep517 python-dotenv jinja2
 
       - name: Build
         run: |
@@ -124,6 +125,7 @@ jobs:
       - name: Install tools and dependencies
         run: |
           brew install tree
+          pip3 install --use-pep517 python-dotenv jinja2
 
       - name: Download build artifacts (tar archive)
         uses: actions/download-artifact@v4
