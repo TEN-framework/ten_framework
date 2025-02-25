@@ -548,10 +548,10 @@ SET(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/lib")
 SET(LWS_INSTALL_PATH "${CMAKE_INSTALL_PREFIX}")
 
 # Commented out to avoid using absolute paths in the install_name on macOS.
-# When CMAKE_INSTALL_NAME_DIR is set to an absolute path, binaries that link against
-# libwebsockets will hardcode this absolute path, making the library difficult to relocate
-# and potentially causing "library not found" errors at runtime if the library is installed
-# in a different location.
+# When CMAKE_INSTALL_NAME_DIR is set to an absolute path, binaries that link
+# against libwebsockets will hardcode this absolute path, making the library
+# difficult to relocate and potentially causing "library not found" errors at
+# runtime if the library is installed in a different location.
 # SET(CMAKE_INSTALL_NAME_DIR "${CMAKE_INSTALL_PREFIX}/${LWS_INSTALL_LIB_DIR}${LIB_SUFFIX}")
 
 if (LWS_WITHOUT_BUILTIN_SHA1)
