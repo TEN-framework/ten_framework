@@ -5,6 +5,7 @@
 # Refer to the "LICENSE" file in the root directory for more information.
 #
 import("//.gnfiles/build/options.gni")
+import("//build/ten_rust/options.gni")
 
 declare_args() {
   # The TEN runtime has its own memory check/track mechanism, which can be used

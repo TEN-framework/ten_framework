@@ -46,18 +46,99 @@ jobs:
             git submodule update --init --recursive "$submodule"
           done
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-python@v5
         with:
-          node-version: 20
+          python-version: "3.10"
+
+      - name: Install tools and dependencies
+        run: |
+          brew install tree
+
+      - name: Build
+        run: |
+          export PATH=$(pwd)/core/ten_gn:$PATH
+          echo $PATH
+
+          df -h .
+
+          tgn gen mac arm64 ${{ matrix.build_type }} -- log_level=1 enable_serialized_actions=true ten_enable_serialized_rust_action=true ten_rust_enable_gen_cargo_config=false ten_enable_ten_rust=false ten_enable_ten_rust_apis=false ten_enable_rust_incremental_build=false ten_manager_enable_frontend=false ten_enable_integration_tests_prebuilt=false ten_enable_nodejs_binding=false ten_enable_python_binding=false
+
+          tgn build mac arm64 ${{ matrix.build_type }}
+
+          df -h .
+          tree -I 'gen|obj' out
+
+        # Package the tests artifacts into a tar file while preserving file
+        # permissions.
+      - name: Package tests relevant artifacts preserving permissions
+        run: |
+          files=""
+          for item in tests ten_manager tgn_args.txt; do
+            if [ -e "out/mac/arm64/$item" ]; then
+              files="$files out/mac/arm64/$item"
+            fi
+          done
+
+          if [ -n "$files" ]; then
+            tar -czvf tests-artifacts.tar.gz $files
+          fi
+
+      - name: Upload tests relevant artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: tests-artifacts-${{ matrix.build_type }}
+          path: tests-artifacts.tar.gz
+          if-no-files-found: ignore
+
+  test-standalone:
+    needs: build
+    runs-on: macos-latest
+    strategy:
+      matrix:
+        build_type: [debug]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: false
+
+      - name: Trust working directory
+        run: git config --global --add safe.directory "${GITHUB_WORKSPACE}"
+
+      - name: Initialize and update submodules except docs/
+        run: |
+          # Retrieve all submodule paths, excluding `docs/`.
+          submodules=$(git config --file .gitmodules --get-regexp path | awk '$2 != "docs" { print $2 }')
+
+          git submodule init
+
+          for submodule in $submodules; do
+            echo "Initializing submodule: $submodule"
+            git submodule update --init --recursive "$submodule"
+          done
 
       - uses: actions/setup-python@v5
         with:
           python-version: "3.10"
 
-      - uses: actions/setup-go@v5
+      - name: Install tools and dependencies
+        run: |
+          brew install tree
+
+      - name: Download build artifacts (tar archive)
+        uses: actions/download-artifact@v4
         with:
-          go-version: "stable"
-          cache: false
+          name: tests-artifacts-${{ matrix.build_type }}
+          path: out/mac/arm64
+
+      - name: Extract tests artifacts preserving permissions
+        run: |
+          tar -xzvf out/mac/arm64/tests-artifacts.tar.gz
+
+      - name: View folder structure content
+        run: |
+          df -h .
+          tree -I ".*|*.h|*.hpp|*.py" out/mac/arm64
 
       - name: Set ulimit and sysctl
         run: |
@@ -71,43 +152,6 @@ jobs:
           # backlog value to 8192.
           sudo sysctl -w kern.ipc.somaxconn=8192
         shell: bash
-
-      - name: Install tools and dependencies
-        run: |
-
-          if [ ${{ matrix.build_type }} == "debug" ]; then
-            # Since the TEN runtime and TEN manager are a combination of C and
-            # Rust, to enable ASan, the ASan versions used by both the C and
-            # Rust compilation environments must be consistent. Therefore, it is
-            # necessary to lock the LLVM and Rust versions to enable ASan.
-            brew install llvm@18
-            rustup default nightly-2024-07-19
-          else
-            rustup default nightly
-          fi
-
-          brew install tree
-          pip3 install --use-pep517 python-dotenv jinja2
-          go install golang.org/dl/go1.20.12@latest && go1.20.12 download
-          go env -w GOFLAGS="-buildvcs=false"
-          cargo install --force cbindgen
-
-      - name: Build
-        run: |
-          if [ ${{ matrix.build_type }} == "debug" ]; then
-            export PATH="/opt/homebrew/opt/llvm@18/bin:$PATH"
-          fi
-          export PATH=$(pwd)/core/ten_gn:$PATH
-          echo $PATH
-
-          df -h .
-
-          tgn gen mac arm64 ${{ matrix.build_type }} -- log_level=1 enable_serialized_actions=true ten_enable_serialized_rust_action=true ten_rust_enable_gen_cargo_config=false ten_enable_ten_rust_apis=false ten_enable_rust_incremental_build=false ten_manager_enable_frontend=false ten_enable_integration_tests_prebuilt=false ten_enable_nodejs_binding=false ten_enable_python_binding=false
-
-          tgn build mac arm64 ${{ matrix.build_type }}
-
-          df -h .
-          tree -I 'gen|obj' out
 
       - name: Run Tests (ten_runtime_smoke_test)
         env:
