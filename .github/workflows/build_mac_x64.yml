@@ -181,9 +181,18 @@ jobs:
             git submodule update --init --recursive "$submodule"
           done
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
       - uses: actions/setup-python@v5
         with:
           python-version: "3.10"
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "stable"
+          cache: false
 
       - name: Set ulimit and sysctl
         run: |
