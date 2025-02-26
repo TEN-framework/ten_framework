@@ -98,23 +98,6 @@ void ten_extension_handle_in_msg(ten_extension_t *self, ten_shared_ptr_t *msg) {
 
       bool is_final_result = ten_cmd_result_is_final(msg, &err);
 
-      // If a non-final result is received, it indicates the use of streaming
-      // result mode. Currently, the TEN runtime does not support using
-      // streaming result mode together with multiple destination mode. This
-      // is because the TEN runtime tries to summarize all the received results
-      // and return one to the extension, whereas streaming result mode sends
-      // all results directly to the extension. Therefore, the two modes are
-      // inherently inconsistent in their approach. To accommodate streaming
-      // result mode, the TEN runtime would need to send all received results
-      // to the extension even in multiple destination mode. In this mode, the
-      // TEN runtime does not process any of the results itself but leaves all
-      // result handling to the extension, which may not be very practical.
-      // Therefore, unless there is a clear need, the simultaneous use of
-      // these modes is currently blocked.
-      TEN_ASSERT(
-          is_final_result || !ten_path_is_in_a_group(out_path),
-          "Streaming return is not supported for multiple destinations.");
-
       // The path will be removed from the path table if the cmd result is
       // determined. It's fine here, as we are in the target extension (the
       // consumer of the cmd result), and the producer extension (the
@@ -123,7 +106,7 @@ void ten_extension_handle_in_msg(ten_extension_t *self, ten_shared_ptr_t *msg) {
       // producer extension has no opportunity to retry even if something
       // fails, so the path can be removed.
       msg = ten_path_table_determine_actual_cmd_result(
-          self->path_table, TEN_PATH_OUT, out_path, is_final_result);
+          self->path_table, TEN_PATH_OUT, out_path, is_final_result); // =-=-=
       if (msg) {
         // The cmd_result should be sent to the extension.
         delete_msg = true;
@@ -172,7 +155,7 @@ void ten_extension_handle_in_msg(ten_extension_t *self, ten_shared_ptr_t *msg) {
   if (!msg_is_cmd_result) {
     // Create the corresponding IN paths for the input commands.
 
-    ten_list_foreach (&converted_msgs, iter) {
+    ten_list_foreach(&converted_msgs, iter) {
       ten_msg_and_its_result_conversion_t *msg_and_result_conversion =
           ten_ptr_listnode_get(iter.node);
       TEN_ASSERT(msg_and_result_conversion, "Invalid argument.");
@@ -198,7 +181,7 @@ void ten_extension_handle_in_msg(ten_extension_t *self, ten_shared_ptr_t *msg) {
   // be matched with the schema. The correctness of the msg structure is
   // guaranteed by the conversions.
   bool pass_schema_check = true;
-  ten_list_foreach (&converted_msgs, iter) {
+  ten_list_foreach(&converted_msgs, iter) {
     ten_msg_and_its_result_conversion_t *msg_and_result_conversion =
         ten_ptr_listnode_get(iter.node);
     TEN_ASSERT(msg_and_result_conversion, "Invalid argument.");
@@ -217,7 +200,7 @@ void ten_extension_handle_in_msg(ten_extension_t *self, ten_shared_ptr_t *msg) {
     // The schema checking is pass, it's time to start sending the commands to
     // the extension.
 
-    ten_list_foreach (&converted_msgs, iter) {
+    ten_list_foreach(&converted_msgs, iter) {
       ten_msg_and_its_result_conversion_t *msg_and_result_conversion =
           ten_ptr_listnode_get(iter.node);
       TEN_ASSERT(msg_and_result_conversion, "Invalid argument.");
@@ -262,22 +245,22 @@ void ten_extension_handle_in_msg(ten_extension_t *self, ten_shared_ptr_t *msg) {
         }
       } else {
         switch (ten_msg_get_type(msg)) {
-          case TEN_MSG_TYPE_CMD:
-          case TEN_MSG_TYPE_CMD_TIMEOUT:
-            ten_extension_on_cmd(self, actual_msg);
-            break;
-          case TEN_MSG_TYPE_DATA:
-            ten_extension_on_data(self, actual_msg);
-            break;
-          case TEN_MSG_TYPE_AUDIO_FRAME:
-            ten_extension_on_audio_frame(self, actual_msg);
-            break;
-          case TEN_MSG_TYPE_VIDEO_FRAME:
-            ten_extension_on_video_frame(self, actual_msg);
-            break;
-          default:
-            TEN_ASSERT(0 && "Should handle more types.", "Should not happen.");
-            break;
+        case TEN_MSG_TYPE_CMD:
+        case TEN_MSG_TYPE_CMD_TIMEOUT:
+          ten_extension_on_cmd(self, actual_msg);
+          break;
+        case TEN_MSG_TYPE_DATA:
+          ten_extension_on_data(self, actual_msg);
+          break;
+        case TEN_MSG_TYPE_AUDIO_FRAME:
+          ten_extension_on_audio_frame(self, actual_msg);
+          break;
+        case TEN_MSG_TYPE_VIDEO_FRAME:
+          ten_extension_on_video_frame(self, actual_msg);
+          break;
+        default:
+          TEN_ASSERT(0 && "Should handle more types.", "Should not happen.");
+          break;
         }
       }
     }
