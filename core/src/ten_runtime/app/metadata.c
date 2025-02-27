@@ -15,7 +15,6 @@
 #include "include_internal/ten_runtime/common/log.h"
 #include "include_internal/ten_runtime/extension/extension_info/extension_info.h"
 #include "include_internal/ten_runtime/metadata/manifest.h"
-#include "include_internal/ten_rust/ten_rust.h"
 #include "include_internal/ten_utils/log/log.h"
 #include "include_internal/ten_utils/log/output.h"
 #include "ten_runtime/app/app.h"
@@ -29,6 +28,10 @@
 #include "ten_utils/value/value_get.h"
 #include "ten_utils/value/value_is.h"
 #include "ten_utils/value/value_kv.h"
+
+#if defined(TEN_ENABLE_TEN_RUST_APIS)
+#include "include_internal/ten_rust/ten_rust.h"
+#endif
 
 // Retrieve those property fields that are reserved for the TEN runtime
 // under the 'ten' namespace.
