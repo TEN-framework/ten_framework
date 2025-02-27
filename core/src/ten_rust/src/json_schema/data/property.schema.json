@@ -421,6 +421,33 @@
         "log_file": {
           "$ref": "#/$defs/notEmptyString"
         },
+        "log": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "level": {
+              "$ref": "#/$defs/logLevels"
+            },
+            "file": {
+              "$ref": "#/$defs/notEmptyString"
+            },
+            "encryption": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "enabled": {
+                  "type": "boolean"
+                },
+                "algorithm": {
+                  "type": "string"
+                },
+                "params": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
         "long_running_mode": {
           "type": "boolean"
         },
