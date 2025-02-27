@@ -37,6 +37,9 @@ static const ten_app_ten_namespace_prop_info_t
         {
             .name = TEN_STR_TELEMETRY,
             .init_from_value = ten_app_init_telemetry_system,
+        },{
+            .name = TEN_STR_LOG,
+            .init_from_value = ten_app_init_log,
         }};
 
 static const size_t ten_app_ten_namespace_prop_info_list_size =

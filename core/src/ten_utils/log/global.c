@@ -35,3 +35,8 @@ void ten_log_global_set_output_to_stderr(void) {
 void ten_log_global_set_output_to_file(const char *log_path) {
   ten_log_set_output_to_file(&ten_global_log, log_path);
 }
+
+void ten_log_global_set_encrypt_cb(ten_log_encrypt_func_t cb, void *cb_data) {
+  ten_global_log.encryption.encrypt_cb = cb;
+  ten_global_log.encryption.encrypt_cb_data = cb_data;
+}

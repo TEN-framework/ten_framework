@@ -18,9 +18,6 @@
 
 typedef struct ten_string_t ten_string_t;
 
-typedef void (*ten_log_output_func_t)(ten_string_t *msg, void *user_data);
-typedef void (*ten_log_close_func_t)(void *user_data);
-
 TEN_UTILS_PRIVATE_API bool ten_log_check_integrity(ten_log_t *self);
 
 TEN_UTILS_API void ten_log_init(ten_log_t *self);
@@ -63,3 +60,6 @@ TEN_UTILS_API void ten_log_global_set_output_level(TEN_LOG_LEVEL level);
 TEN_UTILS_API void ten_log_global_set_output_to_stderr(void);
 
 TEN_UTILS_API void ten_log_global_set_output_to_file(const char *log_path);
+
+TEN_UTILS_API void ten_log_global_set_encrypt_cb(ten_log_encrypt_func_t cb,
+                                                 void *cb_data);
