@@ -126,9 +126,11 @@ static bool ten_engine_handle_cmd_result_for_cmd_start_graph(
     return true;
   }
 
+  bool delete_msg = false;
+
   if (processed_cmd_result != cmd_result) {
-    ten_shared_ptr_destroy(cmd_result);
     cmd_result = processed_cmd_result;
+    delete_msg = true;
   }
 
   // The processing of the 'start_graph' flows are completed.
@@ -171,6 +173,10 @@ static bool ten_engine_handle_cmd_result_for_cmd_start_graph(
     self->original_start_graph_cmd_of_enabling_engine = NULL;
   } else {
     TEN_ASSERT(0, "Should not happen.");
+  }
+
+  if (delete_msg) {
+    ten_shared_ptr_destroy(cmd_result);
   }
 
   return true;
