@@ -103,9 +103,9 @@ ten_shared_ptr_t *get_extension_group_info_in_extension_groups_info(
     const char *extension_group_instance_name, bool *new_one_created,
     ten_error_t *err) {
   TEN_ASSERT(extension_groups_info, "Should not happen.");
-  TEN_ASSERT(
-      extension_group_instance_name && strlen(extension_group_instance_name),
-      "Invalid argument.");
+  TEN_ASSERT(extension_group_instance_name &&
+                 strlen(extension_group_instance_name),
+             "Invalid argument.");
 
   ten_extension_group_info_t *extension_group_info = NULL;
 
@@ -189,8 +189,9 @@ ten_shared_ptr_t *get_extension_group_info_in_extension_groups_info(
   return shared_self_;
 }
 
-ten_shared_ptr_t *ten_extension_group_info_clone(
-    ten_extension_group_info_t *self, ten_list_t *extension_groups_info) {
+ten_shared_ptr_t *
+ten_extension_group_info_clone(ten_extension_group_info_t *self,
+                               ten_list_t *extension_groups_info) {
   TEN_ASSERT(extension_groups_info, "Should not happen.");
 
   TEN_ASSERT(self, "Invalid argument.");
@@ -213,8 +214,9 @@ ten_shared_ptr_t *ten_extension_group_info_clone(
   return new_dest;
 }
 
-static void ten_extension_group_info_fill_app_uri(
-    ten_extension_group_info_t *self, const char *app_uri) {
+static void
+ten_extension_group_info_fill_app_uri(ten_extension_group_info_t *self,
+                                      const char *app_uri) {
   TEN_ASSERT(self && ten_extension_group_info_check_integrity(self),
              "Invalid argument.");
   TEN_ASSERT(app_uri, "Should not happen.");
@@ -228,7 +230,7 @@ static void ten_extension_group_info_fill_app_uri(
 
 void ten_extension_groups_info_fill_app_uri(ten_list_t *extension_groups_info,
                                             const char *app_uri) {
-  ten_list_foreach (extension_groups_info, iter) {
+  ten_list_foreach(extension_groups_info, iter) {
     ten_extension_group_info_t *extension_group_info =
         ten_shared_ptr_get_data(ten_smart_ptr_listnode_get(iter.node));
     TEN_ASSERT(extension_group_info && ten_extension_group_info_check_integrity(
@@ -239,8 +241,9 @@ void ten_extension_groups_info_fill_app_uri(ten_list_t *extension_groups_info,
   }
 }
 
-static void ten_extension_group_info_fill_graph_id(
-    ten_extension_group_info_t *self, const char *graph_id) {
+static void
+ten_extension_group_info_fill_graph_id(ten_extension_group_info_t *self,
+                                       const char *graph_id) {
   TEN_ASSERT(self, "Invalid argument.");
   TEN_ASSERT(ten_extension_group_info_check_integrity(self),
              "Invalid use of extension_group_info %p.", self);
@@ -250,7 +253,7 @@ static void ten_extension_group_info_fill_graph_id(
 
 void ten_extension_groups_info_fill_graph_id(ten_list_t *extension_groups_info,
                                              const char *graph_id) {
-  ten_list_foreach (extension_groups_info, iter) {
+  ten_list_foreach(extension_groups_info, iter) {
     ten_extension_group_info_t *extension_group_info =
         ten_shared_ptr_get_data(ten_smart_ptr_listnode_get(iter.node));
     TEN_ASSERT(extension_group_info && ten_extension_group_info_check_integrity(

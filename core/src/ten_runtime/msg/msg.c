@@ -355,7 +355,7 @@ void ten_msg_clear_and_set_dest_to_loc(ten_shared_ptr_t *self, ten_loc_t *loc) {
 static void ten_msg_clear_dest_graph_id(ten_shared_ptr_t *self) {
   TEN_ASSERT(self && ten_msg_check_integrity(self), "Should not happen.");
 
-  ten_list_foreach (ten_msg_get_dest(self), iter) {
+  ten_list_foreach(ten_msg_get_dest(self), iter) {
     ten_loc_t *loc = ten_ptr_listnode_get(iter.node);
     TEN_ASSERT(loc && ten_loc_check_integrity(loc), "Should not happen.");
 
@@ -369,7 +369,7 @@ void ten_msg_set_dest_engine_if_unspecified_or_predefined_graph_name(
   TEN_ASSERT(self && ten_msg_check_integrity(self), "Should not happen.");
   TEN_ASSERT(engine, "Should not happen.");
 
-  ten_list_foreach (ten_msg_get_dest(self), iter) {
+  ten_list_foreach(ten_msg_get_dest(self), iter) {
     ten_loc_t *dest_loc = ten_ptr_listnode_get(iter.node);
     TEN_ASSERT(dest_loc && ten_loc_check_integrity(dest_loc),
                "Should not happen.");
@@ -480,22 +480,22 @@ TEN_MSG_TYPE ten_msg_type_from_type_and_name_string(const char *type_str,
   }
 
   switch (msg_type) {
-    case TEN_MSG_TYPE_CMD:
-      TEN_ASSERT(name_str, "Invalid argument.");
+  case TEN_MSG_TYPE_CMD:
+    TEN_ASSERT(name_str, "Invalid argument.");
 
-      // If it is a command, determine if it is a special command name to
-      // identify whether it is actually a specialized message type.
-      for (size_t i = 0; i < ten_msg_info_size; i++) {
-        if (ten_msg_info[i].msg_unique_name &&
-            ten_c_string_is_equal(name_str, ten_msg_info[i].msg_unique_name)) {
-          msg_type = (TEN_MSG_TYPE)i;
-          break;
-        }
+    // If it is a command, determine if it is a special command name to
+    // identify whether it is actually a specialized message type.
+    for (size_t i = 0; i < ten_msg_info_size; i++) {
+      if (ten_msg_info[i].msg_unique_name &&
+          ten_c_string_is_equal(name_str, ten_msg_info[i].msg_unique_name)) {
+        msg_type = (TEN_MSG_TYPE)i;
+        break;
       }
-      break;
+    }
+    break;
 
-    default:
-      break;
+  default:
+    break;
   }
 
   if (!(msg_type > TEN_MSG_TYPE_INVALID && msg_type < TEN_MSG_TYPE_LAST)) {
@@ -533,9 +533,9 @@ static bool ten_raw_msg_get_one_field_from_json_internal(
     bool include_internal_field, ten_error_t *err) {
   TEN_ASSERT(self && ten_raw_msg_check_integrity(self), "Should not happen.");
   TEN_ASSERT(field, "Should not happen.");
-  TEN_ASSERT(
-      field->field_value && ten_value_check_integrity(field->field_value),
-      "Should not happen.");
+  TEN_ASSERT(field->field_value &&
+                 ten_value_check_integrity(field->field_value),
+             "Should not happen.");
 
   ten_json_t *json = (ten_json_t *)user_data;
   TEN_ASSERT(json, "Should not happen.");
@@ -603,9 +603,10 @@ static bool ten_raw_msg_get_one_field_from_json_internal(
   return true;
 }
 
-static bool ten_raw_msg_get_one_field_from_json(
-    ten_msg_t *self, ten_msg_field_process_data_t *field, void *user_data,
-    ten_error_t *err) {
+static bool
+ten_raw_msg_get_one_field_from_json(ten_msg_t *self,
+                                    ten_msg_field_process_data_t *field,
+                                    void *user_data, ten_error_t *err) {
   return ten_raw_msg_get_one_field_from_json_internal(self, field, user_data,
                                                       false, err);
 }
@@ -622,9 +623,9 @@ static bool ten_raw_msg_put_one_field_to_json_internal(
     bool include_internal_field, ten_error_t *err) {
   TEN_ASSERT(self && ten_raw_msg_check_integrity(self), "Should not happen.");
   TEN_ASSERT(field, "Should not happen.");
-  TEN_ASSERT(
-      field->field_value && ten_value_check_integrity(field->field_value),
-      "Should not happen.");
+  TEN_ASSERT(field->field_value &&
+                 ten_value_check_integrity(field->field_value),
+             "Should not happen.");
 
   ten_json_t *json = (ten_json_t *)user_data;
   TEN_ASSERT(json, "Should not happen.");
@@ -663,9 +664,9 @@ static bool ten_raw_msg_put_one_field_to_json_include_internal_field(
     ten_error_t *err) {
   TEN_ASSERT(self && ten_raw_msg_check_integrity(self), "Should not happen.");
   TEN_ASSERT(field, "Should not happen.");
-  TEN_ASSERT(
-      field->field_value && ten_value_check_integrity(field->field_value),
-      "Should not happen.");
+  TEN_ASSERT(field->field_value &&
+                 ten_value_check_integrity(field->field_value),
+             "Should not happen.");
 
   return ten_raw_msg_put_one_field_to_json_internal(self, field, user_data,
                                                     true, err);
@@ -676,9 +677,9 @@ bool ten_raw_msg_put_one_field_to_json(ten_msg_t *self,
                                        void *user_data, ten_error_t *err) {
   TEN_ASSERT(self && ten_raw_msg_check_integrity(self), "Should not happen.");
   TEN_ASSERT(field, "Should not happen.");
-  TEN_ASSERT(
-      field->field_value && ten_value_check_integrity(field->field_value),
-      "Should not happen.");
+  TEN_ASSERT(field->field_value &&
+                 ten_value_check_integrity(field->field_value),
+             "Should not happen.");
 
   return ten_raw_msg_put_one_field_to_json_internal(self, field, user_data,
                                                     false, err);
@@ -725,8 +726,8 @@ ten_json_t *ten_msg_to_json(ten_shared_ptr_t *self, ten_error_t *err) {
   return ten_raw_msg_to_json(ten_msg_get_raw_msg(self), err);
 }
 
-static ten_json_t *ten_raw_msg_to_json_include_internal_field(
-    ten_msg_t *self, ten_error_t *err) {
+static ten_json_t *
+ten_raw_msg_to_json_include_internal_field(ten_msg_t *self, ten_error_t *err) {
   TEN_ASSERT(self && ten_raw_msg_check_integrity(self), "Should not happen.");
   ten_json_t *json = ten_json_create_object();
   TEN_ASSERT(json, "Should not happen.");
@@ -759,7 +760,7 @@ void ten_raw_msg_copy_field(ten_msg_t *self, ten_msg_t *src,
     if (excluded_field_ids) {
       bool skip = false;
 
-      ten_list_foreach (excluded_field_ids, iter) {
+      ten_list_foreach(excluded_field_ids, iter) {
         if (ten_msg_fields_info[i].field_id ==
             ten_int32_listnode_get(iter.node)) {
           skip = true;
@@ -822,10 +823,9 @@ ten_shared_ptr_t *ten_msg_clone(ten_shared_ptr_t *self,
       result = ten_shared_ptr_create(raw_result, ten_raw_msg_destroy);
 
       if (ten_msg_is_cmd_and_result(self)) {
-        // Create a relationship between the newly generated message and the
-        // original message.
-        ten_raw_cmd_base_save_cmd_id_to_parent_cmd_id(
-            (ten_cmd_base_t *)raw_result);
+        // Create a relationship between the newly generated command and the
+        // original command.
+        ten_cmd_base_save_cmd_id_to_parent_cmd_id(result);
 
         // The rule is simple:
         //
@@ -842,26 +842,26 @@ ten_shared_ptr_t *ten_msg_clone(ten_shared_ptr_t *self,
 
 ten_shared_ptr_t *ten_msg_create_from_msg_type(TEN_MSG_TYPE msg_type) {
   switch (msg_type) {
-    case TEN_MSG_TYPE_CMD_CLOSE_APP:
-      return ten_cmd_close_app_create();
-    case TEN_MSG_TYPE_CMD:
-      return ten_cmd_custom_create_empty();
-    case TEN_MSG_TYPE_CMD_START_GRAPH:
-      return ten_cmd_start_graph_create();
-    case TEN_MSG_TYPE_CMD_STOP_GRAPH:
-      return ten_cmd_stop_graph_create();
-    case TEN_MSG_TYPE_CMD_TIMEOUT:
-      return ten_cmd_timeout_create(0);
-    case TEN_MSG_TYPE_CMD_RESULT:
-      return ten_cmd_result_create_from_cmd(TEN_STATUS_CODE_OK, NULL);
-    case TEN_MSG_TYPE_DATA:
-      return ten_data_create_empty();
-    case TEN_MSG_TYPE_AUDIO_FRAME:
-      return ten_audio_frame_create_empty();
-    case TEN_MSG_TYPE_VIDEO_FRAME:
-      return ten_video_frame_create_empty();
-    default:
-      return NULL;
+  case TEN_MSG_TYPE_CMD_CLOSE_APP:
+    return ten_cmd_close_app_create();
+  case TEN_MSG_TYPE_CMD:
+    return ten_cmd_custom_create_empty();
+  case TEN_MSG_TYPE_CMD_START_GRAPH:
+    return ten_cmd_start_graph_create();
+  case TEN_MSG_TYPE_CMD_STOP_GRAPH:
+    return ten_cmd_stop_graph_create();
+  case TEN_MSG_TYPE_CMD_TIMEOUT:
+    return ten_cmd_timeout_create(0);
+  case TEN_MSG_TYPE_CMD_RESULT:
+    return ten_cmd_result_create_from_cmd(TEN_STATUS_CODE_OK, NULL);
+  case TEN_MSG_TYPE_DATA:
+    return ten_data_create_empty();
+  case TEN_MSG_TYPE_AUDIO_FRAME:
+    return ten_audio_frame_create_empty();
+  case TEN_MSG_TYPE_VIDEO_FRAME:
+    return ten_video_frame_create_empty();
+  default:
+    return NULL;
   }
 }
 
@@ -869,10 +869,10 @@ bool ten_msg_type_to_handle_when_closing(ten_shared_ptr_t *msg) {
   TEN_ASSERT(msg && ten_msg_check_integrity(msg), "Should not happen.");
 
   switch (ten_msg_get_type(msg)) {
-    case TEN_MSG_TYPE_CMD_RESULT:
-      return true;
-    default:
-      return false;
+  case TEN_MSG_TYPE_CMD_RESULT:
+    return true;
+  default:
+    return false;
   }
 }
 
@@ -913,7 +913,7 @@ void ten_msg_correct_dest(ten_shared_ptr_t *msg, ten_engine_t *engine) {
   const char *app_uri = ten_app_get_uri(engine->app);
 
   ten_msg_t *raw_msg = ten_msg_get_raw_msg(msg);
-  ten_list_foreach (&raw_msg->dest_loc, iter) {
+  ten_list_foreach(&raw_msg->dest_loc, iter) {
     ten_loc_t *dest_loc = ten_ptr_listnode_get(iter.node);
 
     bool is_local_app = false;
@@ -956,7 +956,7 @@ void ten_msg_correct_dest(ten_shared_ptr_t *msg, ten_engine_t *engine) {
   // 'localhost' to the real uri of the app.
   if (ten_msg_get_type(msg) == TEN_MSG_TYPE_CMD_START_GRAPH) {
     ten_list_t *extensions_info = ten_cmd_start_graph_get_extensions_info(msg);
-    ten_list_foreach (extensions_info, iter) {
+    ten_list_foreach(extensions_info, iter) {
       ten_extension_info_t *extension_info =
           ten_shared_ptr_get_data(ten_smart_ptr_listnode_get(iter.node));
       ten_extension_info_translate_localhost_to_app_uri(extension_info,
@@ -996,16 +996,16 @@ static bool ten_raw_msg_dump_internal(ten_msg_t *msg, ten_error_t *err,
     }
 
     switch (*++p) {
-      // The message content.
-      case 'm':
-        ten_string_append_formatted(&dump_str, "%s", msg_json_str);
-        p++;
-        break;
+    // The message content.
+    case 'm':
+      ten_string_append_formatted(&dump_str, "%s", msg_json_str);
+      p++;
+      break;
 
-        // If next char can't match any mode, keep it.
-      default:
-        ten_string_append_formatted(&dump_str, "%c", *p++);
-        break;
+      // If next char can't match any mode, keep it.
+    default:
+      ten_string_append_formatted(&dump_str, "%c", *p++);
+      break;
     }
   }
 
@@ -1076,34 +1076,34 @@ static bool ten_raw_msg_set_property(ten_msg_t *self, const char *path,
 
   bool in_ten_namespace = false;
 
-  ten_list_foreach (&paths, item_iter) {
+  ten_list_foreach(&paths, item_iter) {
     ten_value_path_item_t *item = ten_ptr_listnode_get(item_iter.node);
     TEN_ASSERT(item, "Invalid argument.");
 
     switch (item->type) {
-      case TEN_VALUE_PATH_ITEM_TYPE_OBJECT_ITEM: {
-        if ((item_iter.index == 0) &&
-            !strcmp(TEN_STR_UNDERLINE_TEN,
-                    ten_string_get_raw_str(&item->obj_item_str))) {
-          // It is the '_ten::' namespace.
-          in_ten_namespace = true;
+    case TEN_VALUE_PATH_ITEM_TYPE_OBJECT_ITEM: {
+      if ((item_iter.index == 0) &&
+          !strcmp(TEN_STR_UNDERLINE_TEN,
+                  ten_string_get_raw_str(&item->obj_item_str))) {
+        // It is the '_ten::' namespace.
+        in_ten_namespace = true;
 
-          // Remove the '_ten' namespace path part.
-          ten_list_remove_front(&paths);
+        // Remove the '_ten' namespace path part.
+        ten_list_remove_front(&paths);
 
-          ten_raw_msg_set_ten_property_func_t set_ten_property =
-              ten_msg_info[ten_raw_msg_get_type(self)].set_ten_property;
-          if (set_ten_property) {
-            success = set_ten_property(self, &paths, value, err);
-          }
-
-          ten_value_destroy(value);
+        ten_raw_msg_set_ten_property_func_t set_ten_property =
+            ten_msg_info[ten_raw_msg_get_type(self)].set_ten_property;
+        if (set_ten_property) {
+          success = set_ten_property(self, &paths, value, err);
         }
-        break;
-      }
 
-      default:
-        break;
+        ten_value_destroy(value);
+      }
+      break;
+    }
+
+    default:
+      break;
     }
   }
 
@@ -1145,32 +1145,32 @@ ten_value_t *ten_raw_msg_peek_property(ten_msg_t *self, const char *path,
 
   bool in_ten_namespace = false;
 
-  ten_list_foreach (&paths, item_iter) {
+  ten_list_foreach(&paths, item_iter) {
     ten_value_path_item_t *item = ten_ptr_listnode_get(item_iter.node);
     TEN_ASSERT(item, "Invalid argument.");
 
     switch (item->type) {
-      case TEN_VALUE_PATH_ITEM_TYPE_OBJECT_ITEM: {
-        if ((item_iter.index == 0) &&
-            !strcmp(TEN_STR_UNDERLINE_TEN,
-                    ten_string_get_raw_str(&item->obj_item_str))) {
-          // It is the '_ten::' namespace.
-          in_ten_namespace = true;
+    case TEN_VALUE_PATH_ITEM_TYPE_OBJECT_ITEM: {
+      if ((item_iter.index == 0) &&
+          !strcmp(TEN_STR_UNDERLINE_TEN,
+                  ten_string_get_raw_str(&item->obj_item_str))) {
+        // It is the '_ten::' namespace.
+        in_ten_namespace = true;
 
-          // Remove the '_ten' namespace path part.
-          ten_list_remove_front(&paths);
+        // Remove the '_ten' namespace path part.
+        ten_list_remove_front(&paths);
 
-          ten_raw_msg_peek_ten_property_func_t peek_ten_property =
-              ten_msg_info[ten_raw_msg_get_type(self)].peek_ten_property;
-          if (peek_ten_property) {
-            result = peek_ten_property(self, &paths, err);
-          }
+        ten_raw_msg_peek_ten_property_func_t peek_ten_property =
+            ten_msg_info[ten_raw_msg_get_type(self)].peek_ten_property;
+        if (peek_ten_property) {
+          result = peek_ten_property(self, &paths, err);
         }
-        break;
       }
+      break;
+    }
 
-      default:
-        break;
+    default:
+      break;
     }
   }
 

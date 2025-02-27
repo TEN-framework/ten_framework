@@ -24,16 +24,25 @@ typedef struct ten_path_t {
   ten_signature_t signature;
   ten_sanitizer_thread_check_t thread_check;
 
+  // The belonging path table.
   ten_path_table_t *table;
+
+  // The belonging group.
+  ten_shared_ptr_t *group;
+  bool last_in_group;
+
+  // The type of the path.
   TEN_PATH_TYPE type;
 
-  // This field is only useful for the path of the cmd result and is used to
-  // store the command name of the command corresponding to the cmd result.
-  // This is because some information from the cmd result can only be
-  // obtained when the original command is known.
+  // `cmd_name` and `cmd_id` represent the cmd associated with the creation of
+  // this path.
+
+  // This field is used to store the command name of the original command
+  // corresponding to the cmd_result. This is because some information from the
+  // cmd_result can only be obtained when the original command is known.
   //
-  // Ex: The schema of the `status` cmd is defined within the corresponding
-  // `cmd`, ex:
+  // Ex: The schema of the cmd_result is defined within the corresponding
+  // original command, ex:
   //
   // "api": {
   //   "cmd_in": [
@@ -46,16 +55,31 @@ typedef struct ten_path_t {
   //   ]
   // }
   //
-  // We need to use the cmd name to find the schema of the `status` cmd.
+  // We need to use the cmd name of the original command to find the schema of
+  // the cmd_result.
   ten_string_t cmd_name;
 
-  ten_string_t original_cmd_id;
+  // The cmd_id of the command.
   ten_string_t cmd_id;
 
+  // The cmd_id of the parent command.
+  //
+  // If the command that originally created this path (i.e., the command
+  // represented by `cmd_name` and `cmd_id`) has a `parent_cmd` relationship,
+  // then this field is used to record the `parent_cmd_id` of that relationship.
+  // This allows the `cmd_result` to be transmitted back to the source through
+  // the `parent_cmd_id` relationship.
+  ten_string_t parent_cmd_id;
+
+  // The source location of the original command (i.e., the command
+  // represented by `cmd_name` and `cmd_id`).
   ten_loc_t src_loc;
 
-  ten_shared_ptr_t *group;  // a shared_ptr of ten_path_group_t
-
+  // The TEN runtime needs to return the correct `cmd_result`, so it first keeps
+  // the `cmd_result` that was received earlier in time. It waits until the
+  // conditions are met (e.g., all `cmd_result` from the output paths have been
+  // received) before performing the return action. This field is used to store
+  // the temporarily kept `cmd_result`.
   ten_shared_ptr_t *cached_cmd_result;
 
   ten_msg_conversion_t *result_conversion;

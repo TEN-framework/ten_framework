@@ -69,11 +69,11 @@ static bool ten_addon_protocol_match_protocol(ten_addon_host_t *self,
       ten_value_object_peek_array(manifest, TEN_STR_PROTOCOL);
   TEN_ASSERT(addon_protocols, "Should not happen.");
 
-  ten_list_foreach (addon_protocols, iter) {
+  ten_list_foreach(addon_protocols, iter) {
     ten_value_t *addon_protocol_value = ten_ptr_listnode_get(iter.node);
-    TEN_ASSERT(
-        addon_protocol_value && ten_value_check_integrity(addon_protocol_value),
-        "Should not happen.");
+    TEN_ASSERT(addon_protocol_value &&
+                   ten_value_check_integrity(addon_protocol_value),
+               "Should not happen.");
 
     const char *addon_protocol =
         ten_value_peek_raw_str(addon_protocol_value, NULL);
@@ -96,7 +96,7 @@ ten_addon_host_t *ten_addon_protocol_find(const char *protocol) {
 
   ten_mutex_lock(store->lock);
 
-  ten_list_foreach (&store->store, iter) {
+  ten_list_foreach(&store->store, iter) {
     ten_addon_host_t *addon = ten_ptr_listnode_get(iter.node);
     TEN_ASSERT(addon && addon->type == TEN_ADDON_TYPE_PROTOCOL,
                "Should not happen.");
@@ -137,8 +137,8 @@ static ten_addon_create_protocol_ctx_t *ten_addon_create_protocol_ctx_create(
   return ctx;
 }
 
-static void ten_addon_create_protocol_ctx_destroy(
-    ten_addon_create_protocol_ctx_t *ctx) {
+static void
+ten_addon_create_protocol_ctx_destroy(ten_addon_create_protocol_ctx_t *ctx) {
   TEN_ASSERT(ctx, "Should not happen.");
 
   ten_string_deinit(&ctx->uri);

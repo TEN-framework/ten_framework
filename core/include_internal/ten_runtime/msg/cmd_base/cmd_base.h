@@ -82,9 +82,6 @@ TEN_RUNTIME_PRIVATE_API ten_string_t *ten_raw_cmd_base_get_cmd_id(
 TEN_RUNTIME_PRIVATE_API void ten_cmd_base_save_cmd_id_to_parent_cmd_id(
     ten_shared_ptr_t *self);
 
-TEN_RUNTIME_PRIVATE_API void ten_raw_cmd_base_save_cmd_id_to_parent_cmd_id(
-    ten_cmd_base_t *self);
-
 TEN_RUNTIME_PRIVATE_API void ten_raw_cmd_base_set_seq_id(ten_cmd_base_t *self,
                                                          const char *seq_id);
 

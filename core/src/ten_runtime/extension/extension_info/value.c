@@ -352,7 +352,7 @@ static ten_value_t *pack_msg_dest(ten_extension_info_t *self,
 
   ten_list_t dest_list = TEN_LIST_INIT_VAL;
 
-  ten_list_foreach (msg_dests, iter) {
+  ten_list_foreach(msg_dests, iter) {
     ten_msg_dest_info_t *msg_dest =
         ten_shared_ptr_get_data(ten_smart_ptr_listnode_get(iter.node));
 

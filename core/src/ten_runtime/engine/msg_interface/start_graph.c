@@ -56,9 +56,8 @@ void ten_engine_handle_cmd_start_graph(ten_engine_t *self,
   if (ten_list_is_empty(&immediate_connectable_apps)) {
     // This case will be triggered when the graph involves only a single app.
 
-    TEN_LOGD(
-        "No more extensions need to be connected in the graph, enable the "
-        "extension system now.");
+    TEN_LOGD("No more extensions need to be connected in the graph, enable the "
+             "extension system now.");
 
     // Starting the extension system is an asynchronous action, so the
     // `start_graph` command that triggers this action needs to be saved first.
@@ -75,7 +74,7 @@ void ten_engine_handle_cmd_start_graph(ten_engine_t *self,
     ten_list_t new_works = TEN_LIST_INIT_VAL;
     bool error_occurred = false;
 
-    ten_list_foreach (&immediate_connectable_apps, iter) {
+    ten_list_foreach(&immediate_connectable_apps, iter) {
       ten_string_t *dest_uri = ten_str_listnode_get(iter.node);
       TEN_ASSERT(dest_uri, "Invalid argument.");
 
