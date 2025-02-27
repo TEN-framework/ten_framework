@@ -18,11 +18,11 @@
 #include "include_internal/ten_runtime/extension_thread/extension_thread.h"
 #include "include_internal/ten_runtime/msg/cmd_base/cmd_base.h"
 #include "include_internal/ten_runtime/msg/msg.h"
+#include "include_internal/ten_runtime/path/result_return_policy.h"
 #include "include_internal/ten_runtime/ten_env/send.h"
 #include "include_internal/ten_runtime/ten_env/ten_env.h"
 #include "ten_runtime/app/app.h"
 #include "ten_runtime/common/error_code.h"
-#include "ten_runtime/msg/cmd_result/cmd_result.h"
 #include "ten_runtime/msg/msg.h"
 #include "ten_runtime/ten_env/ten_env.h"
 #include "ten_utils/lib/error.h"
@@ -53,7 +53,7 @@ void ten_env_send_cmd_options_destroy(ten_env_send_cmd_options_t *options) {
 static bool ten_env_send_msg_internal(
     ten_env_t *self, ten_shared_ptr_t *msg,
     ten_env_transfer_msg_result_handler_func_t handler, void *user_data,
-    ten_error_t *err) {
+    TEN_RESULT_RETURN_POLICY result_return_policy, ten_error_t *err) {
   TEN_ASSERT(self, "Invalid argument.");
   TEN_ASSERT(ten_env_check_integrity(self, true), "Invalid use of ten_env %p.",
              self);
@@ -121,42 +121,43 @@ static bool ten_env_send_msg_internal(
   }
 
   switch (ten_env_get_attach_to(self)) {
-    case TEN_ENV_ATTACH_TO_EXTENSION: {
-      ten_extension_t *extension = ten_env_get_attached_extension(self);
-      TEN_ASSERT(extension, "Should not happen.");
+  case TEN_ENV_ATTACH_TO_EXTENSION: {
+    ten_extension_t *extension = ten_env_get_attached_extension(self);
+    TEN_ASSERT(extension, "Should not happen.");
 
-      result = ten_extension_dispatch_msg(extension, msg, err);
-      break;
-    }
+    result =
+        ten_extension_dispatch_msg(extension, msg, result_return_policy, err);
+    break;
+  }
 
-    case TEN_ENV_ATTACH_TO_EXTENSION_GROUP: {
-      ten_extension_group_t *extension_group =
-          ten_env_get_attached_extension_group(self);
-      TEN_ASSERT(extension_group, "Should not happen.");
+  case TEN_ENV_ATTACH_TO_EXTENSION_GROUP: {
+    ten_extension_group_t *extension_group =
+        ten_env_get_attached_extension_group(self);
+    TEN_ASSERT(extension_group, "Should not happen.");
 
-      result = ten_extension_group_dispatch_msg(extension_group, msg, err);
-      break;
-    }
+    result = ten_extension_group_dispatch_msg(extension_group, msg, err);
+    break;
+  }
 
-    case TEN_ENV_ATTACH_TO_ENGINE: {
-      ten_engine_t *engine = ten_env_get_attached_engine(self);
-      TEN_ASSERT(engine, "Should not happen.");
+  case TEN_ENV_ATTACH_TO_ENGINE: {
+    ten_engine_t *engine = ten_env_get_attached_engine(self);
+    TEN_ASSERT(engine, "Should not happen.");
 
-      result = ten_engine_dispatch_msg(engine, msg);
-      break;
-    }
+    result = ten_engine_dispatch_msg(engine, msg);
+    break;
+  }
 
-    case TEN_ENV_ATTACH_TO_APP: {
-      ten_app_t *app = ten_env_get_attached_app(self);
-      TEN_ASSERT(app, "Should not happen.");
+  case TEN_ENV_ATTACH_TO_APP: {
+    ten_app_t *app = ten_env_get_attached_app(self);
+    TEN_ASSERT(app, "Should not happen.");
 
-      result = ten_app_dispatch_msg(app, msg, err);
-      break;
-    }
+    result = ten_app_dispatch_msg(app, msg, err);
+    break;
+  }
 
-    default:
-      TEN_ASSERT(0, "Handle more conditions: %d", ten_env_get_attach_to(self));
-      break;
+  default:
+    TEN_ASSERT(0, "Handle more conditions: %d", ten_env_get_attach_to(self));
+    break;
   }
 
 done:
@@ -202,42 +203,6 @@ done:
   return result;
 }
 
-static ten_cmd_result_handler_for_send_cmd_ctx_t *
-ten_cmd_result_handler_for_send_cmd_ctx_create(
-    ten_env_transfer_msg_result_handler_func_t handler, void *user_data) {
-  ten_cmd_result_handler_for_send_cmd_ctx_t *self =
-      TEN_MALLOC(sizeof(ten_cmd_result_handler_for_send_cmd_ctx_t));
-  TEN_ASSERT(self, "Failed to allocate memory.");
-
-  self->result_handler = handler;
-  self->result_handler_user_data = user_data;
-
-  return self;
-}
-
-static void ten_cmd_result_handler_for_send_cmd_ctx_destroy(
-    ten_cmd_result_handler_for_send_cmd_ctx_t *self) {
-  TEN_ASSERT(self, "Invalid argument.");
-
-  TEN_FREE(self);
-}
-
-static void cmd_result_handler_for_send_cmd(ten_env_t *ten_env,
-                                            ten_shared_ptr_t *cmd_result,
-                                            void *cmd_result_handler_user_data,
-                                            ten_error_t *err) {
-  ten_cmd_result_handler_for_send_cmd_ctx_t *ctx = cmd_result_handler_user_data;
-  TEN_ASSERT(ctx, "Invalid argument.");
-  TEN_ASSERT(ctx->result_handler, "Should not happen.");
-
-  if (ten_cmd_result_is_completed(cmd_result, NULL)) {
-    ctx->result_handler(ten_env, cmd_result, ctx->result_handler_user_data,
-                        err);
-
-    ten_cmd_result_handler_for_send_cmd_ctx_destroy(ctx);
-  }
-}
-
 bool ten_env_send_cmd(ten_env_t *self, ten_shared_ptr_t *cmd,
                       ten_env_transfer_msg_result_handler_func_t handler,
                       void *user_data, ten_env_send_cmd_options_t *options,
@@ -253,23 +218,22 @@ bool ten_env_send_cmd(ten_env_t *self, ten_shared_ptr_t *cmd,
     if (!options || options->enable_multiple_results == false) {
       // The TEN runtime will only pass the final result up to the upper layer,
       // and the upper layer can expect to receive only one result.
-      ten_cmd_result_handler_for_send_cmd_ctx_t *ctx =
-          ten_cmd_result_handler_for_send_cmd_ctx_create(handler, user_data);
-
-      rc = ten_env_send_msg_internal(self, cmd, cmd_result_handler_for_send_cmd,
-                                     ctx, err);
-      if (!rc) {
-        ten_cmd_result_handler_for_send_cmd_ctx_destroy(ctx);
-      }
+      rc = ten_env_send_msg_internal(
+          self, cmd, handler, user_data,
+          TEN_RESULT_RETURN_POLICY_FIRST_ERROR_OR_LAST_OK, err);
     } else {
       // The TEN runtime will pass all received results up to the upper layer,
       // where they will be handled.
-      rc = ten_env_send_msg_internal(self, cmd, handler, user_data, err);
+      rc = ten_env_send_msg_internal(self, cmd, handler, user_data,
+                                     TEN_RESULT_RETURN_POLICY_EACH_OK_AND_ERROR,
+                                     err);
     }
   } else {
     TEN_ASSERT(!user_data, "Should not happen.");
 
-    rc = ten_env_send_msg_internal(self, cmd, NULL, NULL, err);
+    rc = ten_env_send_msg_internal(
+        self, cmd, NULL, NULL, TEN_RESULT_RETURN_POLICY_FIRST_ERROR_OR_LAST_OK,
+        err);
   }
 
   return rc;
@@ -283,7 +247,8 @@ bool ten_env_send_data(ten_env_t *self, ten_shared_ptr_t *data,
              self);
   TEN_ASSERT(data, "Should not happen.");
 
-  return ten_env_send_msg_internal(self, data, handler, user_data, err);
+  return ten_env_send_msg_internal(self, data, handler, user_data,
+                                   TEN_RESULT_RETURN_POLICY_INVALID, err);
 }
 
 bool ten_env_send_video_frame(
@@ -295,7 +260,8 @@ bool ten_env_send_video_frame(
              self);
   TEN_ASSERT(frame, "Should not happen.");
 
-  return ten_env_send_msg_internal(self, frame, handler, user_data, err);
+  return ten_env_send_msg_internal(self, frame, handler, user_data,
+                                   TEN_RESULT_RETURN_POLICY_INVALID, err);
 }
 
 bool ten_env_send_audio_frame(
@@ -307,5 +273,6 @@ bool ten_env_send_audio_frame(
              self);
   TEN_ASSERT(frame, "Should not happen.");
 
-  return ten_env_send_msg_internal(self, frame, handler, user_data, err);
+  return ten_env_send_msg_internal(self, frame, handler, user_data,
+                                   TEN_RESULT_RETURN_POLICY_INVALID, err);
 }

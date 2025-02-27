@@ -9,16 +9,11 @@
 #include "include_internal/ten_runtime/common/loc.h"
 #include "include_internal/ten_runtime/extension/extension.h"
 #include "include_internal/ten_runtime/extension_thread/extension_thread.h"
-#include "include_internal/ten_runtime/msg/cmd_base/cmd_base.h"
-#include "include_internal/ten_runtime/msg/cmd_base/cmd_result/cmd.h"
 #include "include_internal/ten_runtime/msg/msg.h"
-#include "include_internal/ten_runtime/msg_conversion/msg_conversion/base.h"
 #include "include_internal/ten_runtime/path/path_group.h"
-#include "ten_runtime/common/status_code.h"
 #include "ten_utils/lib/signature.h"
 #include "ten_utils/lib/smart_ptr.h"
 #include "ten_utils/lib/string.h"
-#include "ten_utils/log/log.h"
 #include "ten_utils/macro/check.h"
 #include "ten_utils/sanitizer/thread_check.h"
 
@@ -71,6 +66,7 @@ void ten_path_init(ten_path_t *self, ten_path_table_t *table,
   self->group = NULL;
   self->last_in_group = false;
   self->cached_cmd_result = NULL;
+  self->has_received_final_cmd_result = false;
   self->result_conversion = NULL;
   self->expired_time_us = UINT64_MAX;
 }
@@ -101,63 +97,6 @@ void ten_path_deinit(ten_path_t *self) {
 
   ten_sanitizer_thread_check_deinit(&self->thread_check);
   ten_signature_set(&self->signature, 0);
-}
-
-void ten_path_set_result(ten_path_t *path, ten_shared_ptr_t *cmd_result) {
-  TEN_ASSERT(path && ten_path_check_integrity(path, true), "Invalid argument.");
-  TEN_ASSERT(cmd_result &&
-                 ten_msg_get_type(cmd_result) == TEN_MSG_TYPE_CMD_RESULT &&
-                 ten_cmd_base_check_integrity(cmd_result),
-             "Invalid argument.");
-
-  if (path->cached_cmd_result) {
-    // This situation occurs in the context of streaming `cmd_result`, where
-    // multiple `cmd_results` are carried on the same way back.
-
-    // NOTE: We cannot access the contents of `cached_cmd_result` here because
-    // it might already be in the `in path_table` of another extension in
-    // another extension thread. Accessing `cached_cmd_result` here could lead
-    // to a thread safety issue.
-    //
-    // ten_msg_dump(cmd_result, NULL, "The new cached cmd result: ^m");
-
-    // Delete the previously recorded old `cmd_result` because we are about to
-    // update it with a new `cmd_result`.
-    ten_shared_ptr_destroy(path->cached_cmd_result);
-    path->cached_cmd_result = NULL;
-  }
-
-  if (path->result_conversion) {
-    // If there is a cmd_result conversion setting, use it.
-    TEN_ASSERT(path->type == TEN_PATH_IN, "Invalid argument.");
-
-    ten_error_t err;
-    TEN_ERROR_INIT(err);
-
-    ten_shared_ptr_t *converted_cmd_result =
-        ten_msg_conversion_convert(path->result_conversion, cmd_result, &err);
-    if (converted_cmd_result) {
-      path->cached_cmd_result = ten_shared_ptr_clone(converted_cmd_result);
-      ten_shared_ptr_destroy(converted_cmd_result);
-    } else {
-      TEN_LOGE("Failed to convert cmd result: %s", ten_error_message(&err));
-
-      // Since the flow of the cmd_result must not be interrupted, otherwise
-      // the extension, which expects to receive the cmd_result, will not
-      // receive it and will hang. Therefore, if converting the cmd_result
-      // fails here, there will be a fallback path, which is to clone the
-      // original cmd_result, allowing the extension to receive 'what may be
-      // an incorrect cmd_result'. This at least ensures that the cmd_result is
-      // recognized as incorrect, enabling users to check which part of the
-      // conversion rule is problematic.
-      ten_cmd_result_set_status_code(cmd_result, TEN_STATUS_CODE_ERROR);
-      path->cached_cmd_result = ten_shared_ptr_clone(cmd_result);
-    }
-
-    ten_error_deinit(&err);
-  } else {
-    path->cached_cmd_result = ten_shared_ptr_clone(cmd_result);
-  }
 }
 
 void ten_path_set_expired_time(ten_path_t *path, uint64_t expired_time_us) {
