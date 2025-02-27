@@ -59,7 +59,7 @@ ten_remote_t *ten_engine_find_weak_remote(ten_engine_t *self, const char *uri) {
   TEN_ASSERT(ten_engine_check_integrity(self, true),
              "Invalid use of engine %p.", self);
 
-  ten_list_foreach (&self->weak_remotes, iter) {
+  ten_list_foreach(&self->weak_remotes, iter) {
     ten_remote_t *remote = ten_ptr_listnode_get(iter.node);
     TEN_ASSERT(remote, "Invalid argument.");
     TEN_ASSERT(ten_remote_check_integrity(remote, true),
@@ -413,9 +413,9 @@ static void ten_engine_connect_to_remote_after_remote_is_created(
   // where to send the `cmd_result` of the `start_graph` command.
   ten_shared_ptr_t *origin_start_graph_cmd =
       engine->original_start_graph_cmd_of_enabling_engine;
-  TEN_ASSERT(
-      origin_start_graph_cmd && ten_msg_check_integrity(origin_start_graph_cmd),
-      "Should not happen.");
+  TEN_ASSERT(origin_start_graph_cmd &&
+                 ten_msg_check_integrity(origin_start_graph_cmd),
+             "Should not happen.");
 
   if (!remote) {
     // Failed to create the remote instance. Just respond to the start_graph
@@ -505,9 +505,9 @@ void ten_engine_route_msg_to_remote(ten_engine_t *self, ten_shared_ptr_t *msg) {
   TEN_ASSERT(ten_engine_check_integrity(self, true),
              "Invalid use of engine %p.", self);
 
-  TEN_ASSERT(
-      msg && ten_msg_check_integrity(msg) && ten_msg_get_dest_cnt(msg) == 1,
-      "Should not happen.");
+  TEN_ASSERT(msg && ten_msg_check_integrity(msg) &&
+                 ten_msg_get_dest_cnt(msg) == 1,
+             "Should not happen.");
 
   const char *dest_uri = ten_msg_get_first_dest_uri(msg);
   ten_remote_t *remote = ten_engine_find_remote(self, dest_uri);
@@ -659,28 +659,27 @@ bool ten_engine_receive_msg_from_remote(ten_remote_t *remote,
       msg, engine, &engine->app->predefined_graph_infos);
 
   switch (ten_msg_get_type(msg)) {
-    case TEN_MSG_TYPE_CMD_START_GRAPH: {
-      // The 'start_graph' command could only be handled once in a graph.
-      // Therefore, if we receive a new 'start_graph' command after the graph
-      // has been established, just ignore this 'start_graph' command.
+  case TEN_MSG_TYPE_CMD_START_GRAPH: {
+    // The 'start_graph' command could only be handled once in a graph.
+    // Therefore, if we receive a new 'start_graph' command after the graph
+    // has been established, just ignore this 'start_graph' command.
 
-      ten_shared_ptr_t *cmd_result =
-          ten_cmd_result_create_from_cmd(TEN_STATUS_CODE_ERROR, msg);
-      ten_msg_set_property(
-          cmd_result, "detail",
-          ten_value_create_string(
-              "Receive a start_graph cmd after graph is built."),
-          NULL);
+    ten_shared_ptr_t *cmd_result =
+        ten_cmd_result_create_from_cmd(TEN_STATUS_CODE_ERROR, msg);
+    ten_msg_set_property(cmd_result, "detail",
+                         ten_value_create_string(
+                             "Receive a start_graph cmd after graph is built."),
+                         NULL);
 
-      ten_connection_send_msg(remote->connection, cmd_result);
+    ten_connection_send_msg(remote->connection, cmd_result);
 
-      ten_shared_ptr_destroy(cmd_result);
-      break;
-    }
+    ten_shared_ptr_destroy(cmd_result);
+    break;
+  }
 
-    default:
-      ten_engine_dispatch_msg(engine, msg);
-      break;
+  default:
+    ten_engine_dispatch_msg(engine, msg);
+    break;
   }
 
   return true;

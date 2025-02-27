@@ -44,7 +44,7 @@ ten_addon_host_t *ten_addon_store_find(ten_addon_store_t *store,
 
   ten_addon_host_t *result = NULL;
 
-  ten_list_foreach (&store->store, iter) {
+  ten_list_foreach(&store->store, iter) {
     ten_addon_host_t *addon = ten_ptr_listnode_get(iter.node);
     TEN_ASSERT(addon, "Should not happen.");
 
@@ -74,7 +74,7 @@ ten_addon_t *ten_addon_store_del(ten_addon_store_t *store, const char *name) {
 
   ten_mutex_lock(store->lock);
 
-  ten_list_foreach (&store->store, iter) {
+  ten_list_foreach(&store->store, iter) {
     ten_addon_host_t *addon_host = ten_ptr_listnode_get(iter.node);
     TEN_ASSERT(addon_host, "Should not happen.");
 

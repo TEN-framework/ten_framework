@@ -68,7 +68,7 @@ ten_path_table_determine_actual_cmd_result(ten_path_table_t *self,
                                            TEN_PATH_TYPE path_type,
                                            ten_path_t *path, bool remove_path);
 
-TEN_RUNTIME_PRIVATE_API ten_path_t *ten_path_table_set_result(
+TEN_RUNTIME_PRIVATE_API ten_path_t *ten_path_table_find_path_and_set_result(
     ten_path_table_t *self, TEN_PATH_TYPE path_type,
     ten_shared_ptr_t *cmd_result);
 

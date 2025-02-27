@@ -22,7 +22,7 @@ static ten_json_t *pack_msg_dest(ten_extension_info_t *self,
   ten_json_t *msg_json = ten_json_create_array();
   TEN_ASSERT(msg_json, "Should not happen.");
 
-  ten_list_foreach (msg_dests, iter) {
+  ten_list_foreach(msg_dests, iter) {
     ten_msg_dest_info_t *msg_dest =
         ten_shared_ptr_get_data(ten_smart_ptr_listnode_get(iter.node));
 

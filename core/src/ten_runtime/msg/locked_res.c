@@ -32,8 +32,8 @@ static void ten_msg_locked_res_init(ten_msg_locked_res_t *self,
   self->type = type;
 }
 
-static ten_msg_locked_res_buf_t *ten_msg_locked_res_buf_create(
-    const uint8_t *data) {
+static ten_msg_locked_res_buf_t *
+ten_msg_locked_res_buf_create(const uint8_t *data) {
   ten_msg_locked_res_buf_t *res =
       (ten_msg_locked_res_buf_t *)TEN_MALLOC(sizeof(ten_msg_locked_res_buf_t));
   TEN_ASSERT(res, "Failed to allocate ten_msg_locked_res_buf_t.");
@@ -75,7 +75,7 @@ bool ten_raw_msg_remove_locked_res_buf(ten_msg_t *self, const uint8_t *data) {
     return false;
   }
 
-  ten_list_foreach (&self->locked_res, iter) {
+  ten_list_foreach(&self->locked_res, iter) {
     ten_msg_locked_res_buf_t *res = ten_ptr_listnode_get(iter.node);
     TEN_ASSERT(res && ten_msg_locked_res_check_integrity(&res->base),
                "Should not happen.");

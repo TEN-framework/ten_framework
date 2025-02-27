@@ -29,8 +29,9 @@ static void ten_app_check_termination_when_engine_closed_(void *app_,
   ten_app_check_termination_when_engine_closed(app, engine);
 }
 
-static void ten_app_check_termination_when_engine_closed_async(
-    ten_app_t *self, ten_engine_t *engine) {
+static void
+ten_app_check_termination_when_engine_closed_async(ten_app_t *self,
+                                                   ten_engine_t *engine) {
   TEN_ASSERT(self &&
                  // TEN_NOLINTNEXTLINE(thread-check)
                  // thread-check: This function is intended to be called in
@@ -109,7 +110,7 @@ static ten_engine_t *ten_app_get_engine_by_graph_id(ten_app_t *self,
   TEN_ASSERT(self && ten_app_check_integrity(self, true) && graph_id,
              "Should not happen.");
 
-  ten_list_foreach (&self->engines, iter) {
+  ten_list_foreach(&self->engines, iter) {
     ten_engine_t *engine = ten_ptr_listnode_get(iter.node);
 
     if (ten_c_string_is_equal(ten_string_get_raw_str(&engine->graph_id),
@@ -140,8 +141,9 @@ ten_app_get_singleton_predefined_graph_info_based_on_dest_graph_id_from_msg(
       self, ten_string_get_raw_str(dest_graph_id));
 }
 
-ten_engine_t *ten_app_get_engine_based_on_dest_graph_id_from_msg(
-    ten_app_t *self, ten_shared_ptr_t *msg) {
+ten_engine_t *
+ten_app_get_engine_based_on_dest_graph_id_from_msg(ten_app_t *self,
+                                                   ten_shared_ptr_t *msg) {
   TEN_ASSERT(self && ten_app_check_integrity(self, true), "Invalid argument.");
   TEN_ASSERT(msg && ten_cmd_base_check_integrity(msg) &&
                  (ten_msg_get_dest_cnt(msg) == 1),

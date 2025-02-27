@@ -212,8 +212,8 @@ static void ten_extension_flush_all_pending_msgs_received_in_init_stage(
   // Flush the previously got messages, which are received before
   // on_init_done(), into the extension.
   ten_extension_thread_t *extension_thread = self->extension_thread;
-  ten_list_foreach (&extension_thread->pending_msgs_received_in_init_stage,
-                    iter) {
+  ten_list_foreach(&extension_thread->pending_msgs_received_in_init_stage,
+                   iter) {
     ten_shared_ptr_t *msg = ten_smart_ptr_listnode_get(iter.node);
     TEN_ASSERT(msg, "Should not happen.");
 
@@ -229,7 +229,7 @@ static void ten_extension_flush_all_pending_msgs_received_in_init_stage(
 
   // Flush the previously got messages, which are received before
   // on_init_done(), into the extension.
-  ten_list_foreach (&self->pending_msgs_received_before_on_init_done, iter) {
+  ten_list_foreach(&self->pending_msgs_received_before_on_init_done, iter) {
     ten_shared_ptr_t *msg = ten_smart_ptr_listnode_get(iter.node);
     TEN_ASSERT(msg, "Should not happen.");
 
@@ -408,9 +408,9 @@ static void ten_extension_thread_on_extension_on_deinit_done(
   TEN_ASSERT(self, "Invalid argument.");
   TEN_ASSERT(ten_extension_thread_check_integrity(self, true),
              "Invalid use of extension_thread %p.", self);
-  TEN_ASSERT(
-      deinit_extension && ten_extension_check_integrity(deinit_extension, true),
-      "Should not happen.");
+  TEN_ASSERT(deinit_extension &&
+                 ten_extension_check_integrity(deinit_extension, true),
+             "Should not happen.");
   TEN_ASSERT(deinit_extension->extension_thread == self, "Should not happen.");
 
   // Notify the 'ten' object of this extension that we are closing.
@@ -481,11 +481,10 @@ bool ten_extension_on_deinit_done(ten_env_t *self) {
   if (!ten_list_is_empty(&self->ten_proxy_list)) {
     // There is still the presence of ten_env_proxy, so the closing process
     // cannot continue.
-    TEN_LOGI(
-        "[%s] Waiting for ten_env_proxy to be released, remaining %d "
-        "ten_env_proxy(s).",
-        ten_extension_get_name(extension, true),
-        ten_list_size(&self->ten_proxy_list));
+    TEN_LOGI("[%s] Waiting for ten_env_proxy to be released, remaining %d "
+             "ten_env_proxy(s).",
+             ten_extension_get_name(extension, true),
+             ten_list_size(&self->ten_proxy_list));
     return true;
   }
 
@@ -508,11 +507,10 @@ bool ten_extension_on_ten_env_proxy_released(ten_env_t *self) {
   if (!ten_list_is_empty(&self->ten_proxy_list)) {
     // There is still the presence of ten_env_proxy, so the closing process
     // cannot continue.
-    TEN_LOGI(
-        "[%s] Waiting for ten_env_proxy to be released, remaining %d "
-        "ten_env_proxy(s).",
-        ten_extension_get_name(extension, true),
-        ten_list_size(&self->ten_proxy_list));
+    TEN_LOGI("[%s] Waiting for ten_env_proxy to be released, remaining %d "
+             "ten_env_proxy(s).",
+             ten_extension_get_name(extension, true),
+             ten_list_size(&self->ten_proxy_list));
     return true;
   }
 

@@ -65,10 +65,10 @@ static bool ten_addon_loader_check_integrity(ten_addon_loader_t *self) {
   return true;
 }
 
-ten_addon_loader_t *ten_addon_loader_create(
-    ten_addon_loader_on_init_func_t on_init,
-    ten_addon_loader_on_deinit_func_t on_deinit,
-    ten_addon_loader_on_load_addon_func_t on_load_addon) {
+ten_addon_loader_t *
+ten_addon_loader_create(ten_addon_loader_on_init_func_t on_init,
+                        ten_addon_loader_on_deinit_func_t on_deinit,
+                        ten_addon_loader_on_load_addon_func_t on_load_addon) {
   ten_addon_loader_t *self =
       (ten_addon_loader_t *)TEN_MALLOC(sizeof(ten_addon_loader_t));
   TEN_ASSERT(self, "Failed to allocate memory.");
@@ -163,7 +163,7 @@ bool ten_addon_loader_addons_create_singleton_instance(ten_env_t *ten_env,
     goto done;
   }
 
-  ten_list_foreach (&addon_loader_store->store, iter) {
+  ten_list_foreach(&addon_loader_store->store, iter) {
     ten_addon_host_t *loader_addon_host = ten_ptr_listnode_get(iter.node);
     TEN_ASSERT(loader_addon_host, "Should not happen.");
 
@@ -191,7 +191,7 @@ void ten_addon_loader_addons_destroy_singleton_instance(void) {
   int lock_operation_rc = ten_addon_loader_singleton_store_lock();
   TEN_ASSERT(!lock_operation_rc, "Should not happen.");
 
-  ten_list_foreach (ten_addon_loader_singleton_get_all(), iter) {
+  ten_list_foreach(ten_addon_loader_singleton_get_all(), iter) {
     ten_addon_loader_t *addon_loader = ten_ptr_listnode_get(iter.node);
     TEN_ASSERT(addon_loader && ten_addon_loader_check_integrity(addon_loader),
                "Should not happen.");

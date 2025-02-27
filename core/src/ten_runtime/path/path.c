@@ -10,9 +10,11 @@
 #include "include_internal/ten_runtime/extension/extension.h"
 #include "include_internal/ten_runtime/extension_thread/extension_thread.h"
 #include "include_internal/ten_runtime/msg/cmd_base/cmd_base.h"
+#include "include_internal/ten_runtime/msg/cmd_base/cmd_result/cmd.h"
 #include "include_internal/ten_runtime/msg/msg.h"
 #include "include_internal/ten_runtime/msg_conversion/msg_conversion/base.h"
 #include "include_internal/ten_runtime/path/path_group.h"
+#include "ten_runtime/common/status_code.h"
 #include "ten_utils/lib/signature.h"
 #include "ten_utils/lib/smart_ptr.h"
 #include "ten_utils/lib/string.h"
@@ -58,15 +60,16 @@ void ten_path_init(ten_path_t *self, ten_path_table_t *table,
   ten_string_init_formatted(&self->cmd_name, "%s", cmd_name);
 
   if (parent_cmd_id) {
-    ten_string_init_formatted(&self->original_cmd_id, "%s", parent_cmd_id);
+    ten_string_init_formatted(&self->parent_cmd_id, "%s", parent_cmd_id);
   } else {
-    TEN_STRING_INIT(self->original_cmd_id);
+    TEN_STRING_INIT(self->parent_cmd_id);
   }
   ten_string_init_formatted(&self->cmd_id, "%s", cmd_id);
 
   ten_loc_init_from_loc(&self->src_loc, src_loc);
 
   self->group = NULL;
+  self->last_in_group = false;
   self->cached_cmd_result = NULL;
   self->result_conversion = NULL;
   self->expired_time_us = UINT64_MAX;
@@ -82,7 +85,7 @@ void ten_path_deinit(ten_path_t *self) {
   ten_string_deinit(&self->cmd_name);
 
   ten_string_deinit(&self->cmd_id);
-  ten_string_deinit(&self->original_cmd_id);
+  ten_string_deinit(&self->parent_cmd_id);
 
   ten_loc_deinit(&self->src_loc);
 
@@ -126,6 +129,7 @@ void ten_path_set_result(ten_path_t *path, ten_shared_ptr_t *cmd_result) {
 
   if (path->result_conversion) {
     // If there is a cmd_result conversion setting, use it.
+    TEN_ASSERT(path->type == TEN_PATH_IN, "Invalid argument.");
 
     ten_error_t err;
     TEN_ERROR_INIT(err);
@@ -146,27 +150,13 @@ void ten_path_set_result(ten_path_t *path, ten_shared_ptr_t *cmd_result) {
       // an incorrect cmd_result'. This at least ensures that the cmd_result is
       // recognized as incorrect, enabling users to check which part of the
       // conversion rule is problematic.
+      ten_cmd_result_set_status_code(cmd_result, TEN_STATUS_CODE_ERROR);
       path->cached_cmd_result = ten_shared_ptr_clone(cmd_result);
     }
 
     ten_error_deinit(&err);
   } else {
     path->cached_cmd_result = ten_shared_ptr_clone(cmd_result);
-  }
-
-  if (ten_path_is_in_a_group(path)) {
-    // Move the current path to the last of the members of the group, so that we
-    // can know which one should be returned in different policies.
-    ten_path_group_t *path_group = ten_path_get_group(path);
-
-    ten_list_t *members = &path_group->members;
-    TEN_ASSERT(members, "Should not happen.");
-
-    ten_listnode_t *path_node = ten_list_find_ptr(members, path);
-    TEN_ASSERT(path_node, "A path should be found, otherwise, it is a bug.");
-
-    ten_list_detach_node(members, path_node);
-    ten_list_push_back(members, path_node);
   }
 }
 

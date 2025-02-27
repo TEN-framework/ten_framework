@@ -67,9 +67,9 @@ static bool ten_app_handle_msg_default_handler(ten_app_t *self,
                                                ten_shared_ptr_t *msg,
                                                ten_error_t *err) {
   TEN_ASSERT(self && ten_app_check_integrity(self, true), "Should not happen.");
-  TEN_ASSERT(
-      msg && ten_msg_check_integrity(msg) && ten_msg_get_dest_cnt(msg) == 1,
-      "Should not happen.");
+  TEN_ASSERT(msg && ten_msg_check_integrity(msg) &&
+                 ten_msg_get_dest_cnt(msg) == 1,
+             "Should not happen.");
 
   bool result = true;
   ten_string_t *dest_graph_id = &ten_msg_get_first_dest_loc(msg)->graph_id;
@@ -242,7 +242,7 @@ static bool ten_app_handle_stop_graph_cmd(ten_app_t *self,
   ten_engine_t *dest_engine = NULL;
 
   // Find the engine based on the 'dest_graph_id' in the 'cmd'.
-  ten_list_foreach (&self->engines, iter) {
+  ten_list_foreach(&self->engines, iter) {
     ten_engine_t *engine = ten_ptr_listnode_get(iter.node);
 
     if (ten_string_is_equal_c_str(&engine->graph_id, dest_graph_id)) {
@@ -262,7 +262,7 @@ static bool ten_app_handle_stop_graph_cmd(ten_app_t *self,
 
   // The engine is found, set the graph_id to the dest loc and send the 'cmd'
   // to the engine.
-  ten_list_foreach (ten_msg_get_dest(cmd), iter) {
+  ten_list_foreach(ten_msg_get_dest(cmd), iter) {
     ten_loc_t *dest_loc = ten_ptr_listnode_get(iter.node);
     TEN_ASSERT(dest_loc && ten_loc_check_integrity(dest_loc),
                "Should not happen.");
@@ -285,8 +285,8 @@ static ten_shared_ptr_t *ten_app_process_out_path(ten_app_t *self,
                  ten_msg_get_dest_cnt(cmd_result) == 1,
              "Should not happen.");
 
-  ten_path_t *out_path =
-      ten_path_table_set_result(self->path_table, TEN_PATH_OUT, cmd_result);
+  ten_path_t *out_path = ten_path_table_find_path_and_set_result(
+      self->path_table, TEN_PATH_OUT, cmd_result);
   if (!out_path) {
     TEN_LOGD("[%s] IN path is missing, discard cmd result.",
              ten_app_get_uri(self));
@@ -392,22 +392,22 @@ bool ten_app_handle_in_msg(ten_app_t *self, ten_connection_t *connection,
   }
 
   switch (ten_msg_get_type(msg)) {
-    case TEN_MSG_TYPE_CMD_START_GRAPH:
-      return ten_app_handle_start_graph_cmd(self, connection, msg, err);
+  case TEN_MSG_TYPE_CMD_START_GRAPH:
+    return ten_app_handle_start_graph_cmd(self, connection, msg, err);
 
-    case TEN_MSG_TYPE_CMD_CLOSE_APP:
-      return ten_app_handle_close_app_cmd(self, connection, err);
+  case TEN_MSG_TYPE_CMD_CLOSE_APP:
+    return ten_app_handle_close_app_cmd(self, connection, err);
 
-    case TEN_MSG_TYPE_CMD_STOP_GRAPH:
-      return ten_app_handle_stop_graph_cmd(self, msg, err);
+  case TEN_MSG_TYPE_CMD_STOP_GRAPH:
+    return ten_app_handle_stop_graph_cmd(self, msg, err);
 
-    case TEN_MSG_TYPE_CMD_RESULT:
-      if (!ten_app_handle_cmd_result(self, msg, err)) {
-        return ten_app_handle_msg_default_handler(self, connection, msg, err);
-      }
-
-    default:
+  case TEN_MSG_TYPE_CMD_RESULT:
+    if (!ten_app_handle_cmd_result(self, msg, err)) {
       return ten_app_handle_msg_default_handler(self, connection, msg, err);
+    }
+
+  default:
+    return ten_app_handle_msg_default_handler(self, connection, msg, err);
   }
 }
 
@@ -427,7 +427,7 @@ static void ten_app_handle_in_msgs_sync(ten_app_t *self) {
   rc = ten_mutex_unlock(self->in_msgs_lock);
   TEN_ASSERT(!rc, "Should not happen.");
 
-  ten_list_foreach (&in_msgs_, iter) {
+  ten_list_foreach(&in_msgs_, iter) {
     ten_shared_ptr_t *msg = ten_smart_ptr_listnode_get(iter.node);
     TEN_ASSERT(msg && ten_msg_check_integrity(msg) &&
                    !ten_msg_src_is_empty(msg) &&
@@ -499,9 +499,9 @@ void ten_app_push_to_in_msgs_queue(ten_app_t *self, ten_shared_ptr_t *msg) {
              "Should not happen.");
   TEN_ASSERT(msg && ten_msg_is_cmd_and_result(msg), "Invalid argument.");
   TEN_ASSERT(!ten_cmd_base_cmd_id_is_empty(msg), "Invalid argument.");
-  TEN_ASSERT(
-      ten_msg_get_src_app_uri(msg) && strlen(ten_msg_get_src_app_uri(msg)),
-      "Invalid argument.");
+  TEN_ASSERT(ten_msg_get_src_app_uri(msg) &&
+                 strlen(ten_msg_get_src_app_uri(msg)),
+             "Invalid argument.");
   TEN_ASSERT((ten_msg_get_dest_cnt(msg) == 1), "Invalid argument.");
 
   TEN_UNUSED bool rc = ten_mutex_lock(self->in_msgs_lock);

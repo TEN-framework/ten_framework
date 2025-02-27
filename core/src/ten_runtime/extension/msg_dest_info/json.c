@@ -37,7 +37,7 @@ ten_json_t *ten_msg_dest_info_to_json(ten_msg_dest_info_t *self,
   TEN_ASSERT(dests_json, "Should not happen.");
   ten_json_object_set_new(json, TEN_STR_DEST, dests_json);
 
-  ten_list_foreach (&self->dest, iter) {
+  ten_list_foreach(&self->dest, iter) {
     ten_weak_ptr_t *dest = ten_smart_ptr_listnode_get(iter.node);
     TEN_ASSERT(dest, "Invalid argument.");
 
@@ -65,8 +65,8 @@ ten_json_t *ten_msg_dest_info_to_json(ten_msg_dest_info_t *self,
     TEN_ASSERT(extension_json, "Should not happen.");
     ten_json_object_set_new(dest_json, TEN_STR_EXTENSION, extension_json);
 
-    ten_list_foreach (&extension_info->msg_conversion_contexts,
-                      msg_conversion_iter) {
+    ten_list_foreach(&extension_info->msg_conversion_contexts,
+                     msg_conversion_iter) {
       ten_msg_conversion_context_t *msg_conversion =
           ten_ptr_listnode_get(msg_conversion_iter.node);
       TEN_ASSERT(msg_conversion &&

@@ -15,9 +15,10 @@
 #include "ten_utils/lib/string.h"
 #include "ten_utils/log/log.h"
 
-ten_value_t *ten_msg_dest_info_to_value(
-    ten_msg_dest_info_t *self, ten_extension_info_t *src_extension_info,
-    ten_error_t *err) {
+ten_value_t *
+ten_msg_dest_info_to_value(ten_msg_dest_info_t *self,
+                           ten_extension_info_t *src_extension_info,
+                           ten_error_t *err) {
   TEN_ASSERT(self && ten_msg_dest_info_check_integrity(self),
              "Should not happen.");
 
@@ -32,7 +33,7 @@ ten_value_t *ten_msg_dest_info_to_value(
 
   ten_list_t dests_list = TEN_LIST_INIT_VAL;
 
-  ten_list_foreach (&self->dest, iter) {
+  ten_list_foreach(&self->dest, iter) {
     ten_weak_ptr_t *dest = ten_smart_ptr_listnode_get(iter.node);
     TEN_ASSERT(dest, "Invalid argument.");
 
@@ -71,14 +72,14 @@ ten_value_t *ten_msg_dest_info_to_value(
 
     bool found = false;
 
-    ten_list_foreach (&extension_info->msg_conversion_contexts,
-                      msg_conversion_iter) {
+    ten_list_foreach(&extension_info->msg_conversion_contexts,
+                     msg_conversion_iter) {
       ten_msg_conversion_context_t *msg_conversion_context =
           ten_ptr_listnode_get(msg_conversion_iter.node);
-      TEN_ASSERT(
-          msg_conversion_context && ten_msg_conversion_context_check_integrity(
-                                        msg_conversion_context),
-          "Should not happen.");
+      TEN_ASSERT(msg_conversion_context &&
+                     ten_msg_conversion_context_check_integrity(
+                         msg_conversion_context),
+                 "Should not happen.");
 
       if (ten_loc_is_equal(&src_extension_info->loc,
                            &msg_conversion_context->src_loc) &&
@@ -131,9 +132,10 @@ ten_value_t *ten_msg_dest_info_to_value(
 //   }
 // }]
 // ------------------------
-ten_shared_ptr_t *ten_msg_dest_info_from_value(
-    ten_value_t *value, ten_list_t *extensions_info,
-    ten_extension_info_t *src_extension_info, ten_error_t *err) {
+ten_shared_ptr_t *
+ten_msg_dest_info_from_value(ten_value_t *value, ten_list_t *extensions_info,
+                             ten_extension_info_t *src_extension_info,
+                             ten_error_t *err) {
   TEN_ASSERT(value && extensions_info, "Should not happen.");
   TEN_ASSERT(src_extension_info,
              "src_extension must be specified in this case.");

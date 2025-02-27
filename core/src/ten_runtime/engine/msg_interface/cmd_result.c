@@ -81,8 +81,9 @@ static bool ten_engine_close_duplicated_remote_or_upgrade_it_to_normal(
   return true;
 }
 
-static ten_shared_ptr_t *ten_engine_process_out_path(
-    ten_engine_t *self, ten_shared_ptr_t *cmd_result, ten_error_t *err) {
+static ten_shared_ptr_t *
+ten_engine_process_out_path(ten_engine_t *self, ten_shared_ptr_t *cmd_result,
+                            ten_error_t *err) {
   TEN_ASSERT(self && ten_engine_check_integrity(self, true),
              "Should not happen.");
   TEN_ASSERT(cmd_result &&
@@ -90,8 +91,8 @@ static ten_shared_ptr_t *ten_engine_process_out_path(
                  ten_msg_get_dest_cnt(cmd_result) == 1,
              "Should not happen.");
 
-  ten_path_t *out_path =
-      ten_path_table_set_result(self->path_table, TEN_PATH_OUT, cmd_result);
+  ten_path_t *out_path = ten_path_table_find_path_and_set_result(
+      self->path_table, TEN_PATH_OUT, cmd_result);
   if (!out_path) {
     TEN_LOGD("[%s] IN path is missing, discard cmd result.",
              ten_engine_get_id(self, true));
@@ -201,19 +202,19 @@ void ten_engine_handle_cmd_result(ten_engine_t *self,
              "Should not happen.");
 
   switch (ten_cmd_result_get_original_cmd_type(cmd_result)) {
-    case TEN_MSG_TYPE_CMD_START_GRAPH: {
-      bool rc = ten_engine_handle_cmd_result_for_cmd_start_graph(
-          self, cmd_result, err);
-      TEN_ASSERT(rc, "Should not happen.");
-      break;
-    }
+  case TEN_MSG_TYPE_CMD_START_GRAPH: {
+    bool rc =
+        ten_engine_handle_cmd_result_for_cmd_start_graph(self, cmd_result, err);
+    TEN_ASSERT(rc, "Should not happen.");
+    break;
+  }
 
-    case TEN_MSG_TYPE_INVALID:
-      TEN_ASSERT(0, "Should not happen.");
-      break;
+  case TEN_MSG_TYPE_INVALID:
+    TEN_ASSERT(0, "Should not happen.");
+    break;
 
-    default:
-      TEN_ASSERT(0, "Handle more original command type.");
-      break;
+  default:
+    TEN_ASSERT(0, "Handle more original command type.");
+    break;
   }
 }

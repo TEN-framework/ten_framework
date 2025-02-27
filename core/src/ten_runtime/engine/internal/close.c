@@ -33,7 +33,7 @@ static void ten_engine_close_sync(ten_engine_t *self) {
 
   bool nothing_to_do = true;
 
-  ten_list_foreach (&self->timers, iter) {
+  ten_list_foreach(&self->timers, iter) {
     ten_timer_t *timer = ten_ptr_listnode_get(iter.node);
     TEN_ASSERT(timer && ten_timer_check_integrity(timer, true),
                "Should not happen.");
@@ -62,7 +62,7 @@ static void ten_engine_close_sync(ten_engine_t *self) {
     nothing_to_do = false;
   }
 
-  ten_list_foreach (&self->weak_remotes, iter) {
+  ten_list_foreach(&self->weak_remotes, iter) {
     ten_remote_t *remote = ten_ptr_listnode_get(iter.node);
     TEN_ASSERT(remote, "Invalid argument.");
     TEN_ASSERT(ten_remote_check_integrity(remote, true),
@@ -171,7 +171,7 @@ static size_t ten_engine_unclosed_remotes_cnt(ten_engine_t *self) {
     }
   }
 
-  ten_list_foreach (&self->weak_remotes, iter) {
+  ten_list_foreach(&self->weak_remotes, iter) {
     ten_remote_t *remote = ten_ptr_listnode_get(iter.node);
     TEN_ASSERT(remote, "Invalid argument.");
     TEN_ASSERT(ten_remote_check_integrity(remote, true),
@@ -191,11 +191,10 @@ static bool ten_engine_could_be_close(ten_engine_t *self) {
 
   size_t unclosed_remotes = ten_engine_unclosed_remotes_cnt(self);
 
-  TEN_LOGD(
-      "[%s] engine liveness: %zu remotes, %zu timers, "
-      "extension_context %p",
-      ten_app_get_uri(self->app), unclosed_remotes,
-      ten_list_size(&self->timers), self->extension_context);
+  TEN_LOGD("[%s] engine liveness: %zu remotes, %zu timers, "
+           "extension_context %p",
+           ten_app_get_uri(self->app), unclosed_remotes,
+           ten_list_size(&self->timers), self->extension_context);
 
   if (unclosed_remotes == 0 && ten_list_is_empty(&self->timers) &&
       (self->extension_context == NULL)) {
