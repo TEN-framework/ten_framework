@@ -9,9 +9,9 @@ use ten_rust::crypto;
 
 #[test]
 fn test_aes_ctr_crypto() {
-    let origin_str = "hello world";
-    let key_str = "0123456789012345";
-    let nonce_str = "0123456789012345";
+    let origin_str = "hello world! this is my plaintext.";
+    let key_str = "BBBBBBBBBBBBBBBB";
+    let nonce_str = "$$$$$$$$$$$$$$$$";
     let mut data_vec = origin_str.as_bytes().to_vec();
     let mut algorithm = crypto::create_encryption_algorithm(
         "AES-CTR",
@@ -19,9 +19,20 @@ fn test_aes_ctr_crypto() {
     )
     .unwrap();
     algorithm.encrypt(&mut data_vec);
-    println!("data: {:?}", data_vec);
+    println!(
+        "data hex: {}",
+        data_vec
+            .iter()
+            .map(|b| format!("{:02x}", b))
+            .collect::<String>()
+    );
 
-    // decrypt
+    // Recreate the algorithm to decrypt
+    algorithm = crypto::create_encryption_algorithm(
+        "AES-CTR",
+        &format!("{{\"key\": \"{}\", \"nonce\": \"{}\"}}", key_str, nonce_str),
+    )
+    .unwrap();
     algorithm.encrypt(&mut data_vec);
 
     let data_str = String::from_utf8(data_vec).unwrap();
@@ -39,7 +50,8 @@ fn test_aes_ctr_decrypt() {
     let mut decrypt_bytes = Vec::new();
     for i in 0..(hex_str.len() / 2) {
         let byte_str = &hex_str[i * 2..i * 2 + 2];
-        let byte = u8::from_str_radix(byte_str, 16).expect("无效的十六进制字符串");
+        let byte =
+            u8::from_str_radix(byte_str, 16).expect("无效的十六进制字符串");
         decrypt_bytes.push(byte);
     }
 

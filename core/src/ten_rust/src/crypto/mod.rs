@@ -12,7 +12,7 @@ use ctr::cipher::{KeyIvInit, StreamCipher};
 use serde::de::{self};
 use serde::{Deserialize, Deserializer};
 
-type Aes128Ctr = ctr::Ctr128LE<Aes128>;
+type Aes128Ctr64LE = ctr::Ctr128BE<Aes128>;
 
 pub struct Aes128CtrParams {
     pub key: [u8; 16],
@@ -20,7 +20,7 @@ pub struct Aes128CtrParams {
 }
 
 pub struct Aes128CtrCipher {
-    impl_cipher: Aes128Ctr,
+    impl_cipher: Aes128Ctr64LE,
 }
 
 impl<'de> Deserialize<'de> for Aes128CtrParams {
@@ -40,13 +40,13 @@ impl<'de> Deserialize<'de> for Aes128CtrParams {
             .key
             .as_bytes()
             .try_into()
-            .map_err(|_| de::Error::custom(""))?;
+            .map_err(|_| de::Error::custom("key must be 16 bytes"))?;
 
         let nonce: [u8; 16] = raw
             .nonce
             .as_bytes()
             .try_into()
-            .map_err(|_| de::Error::custom("nonce必须是精确的16字节"))?;
+            .map_err(|_| de::Error::custom("nonce must be 16 bytes"))?;
 
         Ok(Aes128CtrParams { key, nonce })
     }
@@ -74,7 +74,7 @@ pub fn create_encryption_algorithm(
         "AES-CTR" => {
             let params: Aes128CtrParams = serde_json::from_str(params_str)?;
             let cipher =
-                Aes128Ctr::new(&params.key.into(), &params.nonce.into());
+                Aes128Ctr64LE::new(&params.key.into(), &params.nonce.into());
             Ok(EncryptionAlgorithm::Aes128Ctr(Aes128CtrCipher {
                 impl_cipher: cipher,
             }))
