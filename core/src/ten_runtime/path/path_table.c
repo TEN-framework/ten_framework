@@ -524,7 +524,7 @@ ten_path_table_determine_actual_cmd_result(ten_path_table_t *self,
 
     switch (path_group->policy) {
     case TEN_RESULT_RETURN_POLICY_EACH_OK_AND_ERROR: {
-      bool last_one = // =-=-=
+      bool last_one =
           ten_path_table_remove_path_from_group(self, path_type, path);
 
       ten_cmd_result_set_completed(cmd_result, last_one, NULL);
@@ -579,10 +579,7 @@ ten_path_table_find_path_and_set_result(ten_path_table_t *self,
   }
 
   // Associate the cmd_result with the corresponding path entry.
-  // =-=-=
-  // if (path->last_in_group) {
   ten_path_set_result(path, cmd_result);
-  // }
 
   return path;
 }

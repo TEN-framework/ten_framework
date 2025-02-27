@@ -106,7 +106,7 @@ void ten_extension_handle_in_msg(ten_extension_t *self, ten_shared_ptr_t *msg) {
       // producer extension has no opportunity to retry even if something
       // fails, so the path can be removed.
       msg = ten_path_table_determine_actual_cmd_result(
-          self->path_table, TEN_PATH_OUT, out_path, is_final_result); // =-=-=
+          self->path_table, TEN_PATH_OUT, out_path, is_final_result);
       if (msg) {
         // The cmd_result should be sent to the extension.
         delete_msg = true;
