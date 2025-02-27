@@ -12,6 +12,7 @@
 #include <stdlib.h>
 
 #include "include_internal/ten_utils/lib/string.h"
+#include "include_internal/ten_utils/log/encryption.h"
 #include "include_internal/ten_utils/log/formatter.h"
 #include "include_internal/ten_utils/log/log.h"
 #include "include_internal/ten_utils/log/output.h"
@@ -40,6 +41,7 @@ void ten_log_init(ten_log_t *self) {
   self->output_level = TEN_LOG_LEVEL_INVALID;
 
   ten_log_set_output_to_stderr(self);
+  ten_log_encryption_init(&self->encryption);
 }
 
 ten_log_t *ten_log_create(void) {
@@ -191,7 +193,7 @@ void ten_log_log_with_size(ten_log_t *self, TEN_LOG_LEVEL level,
                               file_name_len, line_no, msg, msg_len);
   }
 
-  self->output.output_cb(&buf, self->output.user_data);
+  self->output.output_cb(self, &buf, self->output.user_data);
 
   ten_string_deinit(&buf);
 }
