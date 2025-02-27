@@ -154,6 +154,3 @@ TEN_RUNTIME_PRIVATE_API ten_list_t *ten_path_group_get_members(
 
 TEN_RUNTIME_PRIVATE_API void ten_paths_create_group(
     ten_list_t *paths, TEN_RESULT_RETURN_POLICY policy);
-
-TEN_RUNTIME_PRIVATE_API ten_path_t *ten_path_group_resolve(ten_path_t *path,
-                                                           TEN_PATH_TYPE type);

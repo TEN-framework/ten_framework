@@ -82,6 +82,8 @@ typedef struct ten_path_t {
   // the temporarily kept `cmd_result`.
   ten_shared_ptr_t *cached_cmd_result;
 
+  bool has_received_final_cmd_result;
+
   ten_msg_conversion_t *result_conversion;
 
   uint64_t expired_time_us;
@@ -96,9 +98,6 @@ TEN_RUNTIME_PRIVATE_API void ten_path_init(
     ten_loc_t *src_loc);
 
 TEN_RUNTIME_PRIVATE_API void ten_path_deinit(ten_path_t *self);
-
-TEN_RUNTIME_PRIVATE_API void ten_path_set_result(ten_path_t *path,
-                                                 ten_shared_ptr_t *cmd_result);
 
 TEN_RUNTIME_PRIVATE_API void ten_path_set_expired_time(
     ten_path_t *path, uint64_t expired_time_us);

@@ -18,11 +18,8 @@
 #include "include_internal/ten_runtime/msg_conversion/msg_and_its_result_conversion.h"
 #include "include_internal/ten_runtime/msg_conversion/msg_conversion_context.h"
 #include "include_internal/ten_runtime/path/common.h"
-#include "include_internal/ten_runtime/path/path.h"
-#include "include_internal/ten_runtime/path/path_group.h"
 #include "include_internal/ten_runtime/path/path_table.h"
 #include "ten_runtime/extension/extension.h"
-#include "ten_runtime/msg/cmd_result/cmd_result.h"
 #include "ten_runtime/ten_env/internal/return.h"
 #include "ten_utils/container/list.h"
 #include "ten_utils/container/list_ptr.h"
@@ -85,32 +82,21 @@ void ten_extension_handle_in_msg(ten_extension_t *self, ten_shared_ptr_t *msg) {
   // 'commands' before sending it to the extension.
 
   if (msg_is_cmd_result) {
-    // Set the cmd result to the corresponding OUT path to indicate that
-    // there has been a cmd result flow through that OUT path.
-    ten_path_t *out_path = ten_path_table_find_path_and_set_result(
-        self->path_table, TEN_PATH_OUT, msg);
-    if (!out_path) {
+    ten_shared_ptr_t *processed_cmd_result = NULL;
+    bool proceed = ten_path_table_process_cmd_result(
+        self->path_table, TEN_PATH_OUT, msg, &processed_cmd_result);
+    if (!proceed) {
       // The OUT path is gone, it means the current cmd result should be
       // discarded (not sending it to the extension).
       msg = NULL;
+      TEN_LOGD("[%s] Do not proceed, discard cmd_result.",
+               ten_extension_get_name(self, true));
     } else {
-      TEN_ASSERT(ten_path_check_integrity(out_path, true), "Invalid argument.");
-
-      bool is_final_result = ten_cmd_result_is_final(msg, &err);
-
-      // The path will be removed from the path table if the cmd result is
-      // determined. It's fine here, as we are in the target extension (the
-      // consumer of the cmd result), and the producer extension (the
-      // extension calls return_xxx()) can not get any information (ex: the
-      // result of conversion or schema validation) from this extension. The
-      // producer extension has no opportunity to retry even if something
-      // fails, so the path can be removed.
-      msg = ten_path_table_determine_actual_cmd_result(
-          self->path_table, TEN_PATH_OUT, out_path, is_final_result);
-      if (msg) {
-        // The cmd_result should be sent to the extension.
+      if (msg != processed_cmd_result) {
+        msg = processed_cmd_result;
         delete_msg = true;
       }
+      TEN_LOGD("[%s] Proceed cmd_result.", ten_extension_get_name(self, true));
     }
   }
 

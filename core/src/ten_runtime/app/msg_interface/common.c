@@ -20,7 +20,6 @@
 #include "include_internal/ten_runtime/engine/msg_interface/common.h"
 #include "include_internal/ten_runtime/msg/cmd_base/cmd_base.h"
 #include "include_internal/ten_runtime/msg/msg.h"
-#include "include_internal/ten_runtime/path/path.h"
 #include "include_internal/ten_runtime/protocol/protocol.h"
 #include "ten_runtime/app/app.h"
 #include "ten_runtime/common/status_code.h"
@@ -278,37 +277,25 @@ static bool ten_app_handle_stop_graph_cmd(ten_app_t *self,
 
 static ten_shared_ptr_t *ten_app_process_out_path(ten_app_t *self,
                                                   ten_shared_ptr_t *cmd_result,
-                                                  ten_error_t *err) {
+                                                  TEN_UNUSED ten_error_t *err) {
   TEN_ASSERT(self && ten_app_check_integrity(self, true), "Should not happen.");
   TEN_ASSERT(cmd_result &&
                  ten_msg_get_type(cmd_result) == TEN_MSG_TYPE_CMD_RESULT &&
                  ten_msg_get_dest_cnt(cmd_result) == 1,
              "Should not happen.");
 
-  ten_path_t *out_path = ten_path_table_find_path_and_set_result(
-      self->path_table, TEN_PATH_OUT, cmd_result);
-  if (!out_path) {
-    TEN_LOGD("[%s] IN path is missing, discard cmd result.",
+  ten_shared_ptr_t *processed_cmd_result = NULL;
+  bool proceed = ten_path_table_process_cmd_result(
+      self->path_table, TEN_PATH_OUT, cmd_result, &processed_cmd_result);
+  if (!proceed) {
+    TEN_ASSERT(processed_cmd_result == NULL, "Should not happen.");
+
+    TEN_LOGD("[%s] OUT path is missing, discard cmd result.",
              ten_app_get_uri(self));
     return NULL;
   }
 
-  TEN_ASSERT(ten_path_check_integrity(out_path, true), "Should not happen.");
-
-  bool is_final_result = ten_cmd_result_is_final(cmd_result, err);
-  // Currently, all `cmd_results` processed by the app will _not_ be streaming
-  // `cmd_results`.
-  TEN_ASSERT(is_final_result, "Should not happen.");
-
-  // Check whether _all_ cmd_results related to this command have been received
-  // to determine whether to proceed with the next steps of the cmd flow.
-  cmd_result = ten_path_table_determine_actual_cmd_result(
-      self->path_table, TEN_PATH_OUT, out_path, is_final_result);
-  if (!cmd_result) {
-    return NULL;
-  }
-
-  return cmd_result;
+  return processed_cmd_result;
 }
 
 /**
