@@ -519,7 +519,6 @@ static bool ten_extension_determine_out_msg_dest_from_graph(
 typedef enum TEN_EXTENSION_DETERMINE_OUT_MSGS_RESULT {
   TEN_EXTENSION_DETERMINE_OUT_MSGS_SUCCESS,
   TEN_EXTENSION_DETERMINE_OUT_MSGS_NOT_FOUND_IN_GRAPH,
-  TEN_EXTENSION_DETERMINE_OUT_MSGS_DROPPING,
   TEN_EXTENSION_DETERMINE_OUT_MSGS_CACHING_IN_PATH_IN_GROUP,
 } TEN_EXTENSION_DETERMINE_OUT_MSGS_RESULT;
 
@@ -567,13 +566,7 @@ ten_extension_determine_out_msgs(ten_extension_t *self, ten_shared_ptr_t *msg,
     if (ten_msg_is_cmd_and_result(msg)) {
       if (ten_msg_get_type(msg) == TEN_MSG_TYPE_CMD_RESULT) {
         // Find the destinations of a cmd result from the path table.
-        if (!in_path) {
-          TEN_LOGD("[%s] IN path is missing, discard cmd result.",
-                   ten_extension_get_name(self, true));
-
-          return TEN_EXTENSION_DETERMINE_OUT_MSGS_DROPPING;
-        }
-
+        TEN_ASSERT(in_path, "Should not happen.");
         TEN_ASSERT(ten_path_check_integrity(in_path, true),
                    "Should not happen.");
 
@@ -696,7 +689,6 @@ bool ten_extension_dispatch_msg(ten_extension_t *self, ten_shared_ptr_t *msg,
   case TEN_EXTENSION_DETERMINE_OUT_MSGS_NOT_FOUND_IN_GRAPH:
     result = false;
   case TEN_EXTENSION_DETERMINE_OUT_MSGS_CACHING_IN_PATH_IN_GROUP:
-  case TEN_EXTENSION_DETERMINE_OUT_MSGS_DROPPING:
     goto done;
 
   case TEN_EXTENSION_DETERMINE_OUT_MSGS_SUCCESS:
