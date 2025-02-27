@@ -579,9 +579,10 @@ ten_path_table_find_path_and_set_result(ten_path_table_t *self,
   }
 
   // Associate the cmd_result with the corresponding path entry.
-  if (path->last_in_group) {
-    // =-=-= ten_path_set_result(path, cmd_result);
-  }
+  // =-=-=
+  // if (path->last_in_group) {
+  ten_path_set_result(path, cmd_result);
+  // }
 
   return path;
 }
