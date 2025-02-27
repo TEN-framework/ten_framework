@@ -303,9 +303,9 @@ static bool ten_app_handle_cmd_result(ten_app_t *self,
   bool delete_msg = false;
   ten_shared_ptr_t *processed_cmd_result = NULL;
 
-  bool proceced =
+  bool proceed =
       ten_app_process_out_path(self, cmd_result, &processed_cmd_result, err);
-  if (!proceced) {
+  if (!proceed) {
     TEN_LOGD(
         "The 'start_graph' flow is not completed, skip the cmd_result now.");
     return true;
