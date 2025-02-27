@@ -86,17 +86,22 @@ void ten_extension_handle_in_msg(ten_extension_t *self, ten_shared_ptr_t *msg) {
     bool proceed = ten_path_table_process_cmd_result(
         self->path_table, TEN_PATH_OUT, msg, &processed_cmd_result);
     if (!proceed) {
-      // The OUT path is gone, it means the current cmd result should be
+      // The OUT path is gone, it means the current cmd_result should be
       // discarded (not sending it to the extension).
-      msg = NULL;
       TEN_LOGD("[%s] Do not proceed, discard cmd_result.",
                ten_extension_get_name(self, true));
+
+      msg = NULL;
     } else {
+      TEN_LOGD("[%s] Proceed cmd_result.", ten_extension_get_name(self, true));
+
       if (msg != processed_cmd_result) {
+        // It means `processed_cmd_result` is different from `msg`, so we need
+        // to destroy the shared_ptr of the new `processed_cmd_result` after
+        // processing it.
         msg = processed_cmd_result;
         delete_msg = true;
       }
-      TEN_LOGD("[%s] Proceed cmd_result.", ten_extension_get_name(self, true));
     }
   }
 

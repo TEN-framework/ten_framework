@@ -10,7 +10,6 @@
 
 #include <stdbool.h>
 
-#include "include_internal/ten_runtime/path/common.h"
 #include "include_internal/ten_runtime/path/path_table.h"
 #include "include_internal/ten_runtime/path/result_return_policy.h"
 #include "ten_utils/container/list.h"

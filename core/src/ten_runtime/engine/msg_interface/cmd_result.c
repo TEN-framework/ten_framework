@@ -81,27 +81,20 @@ static bool ten_engine_close_duplicated_remote_or_upgrade_it_to_normal(
   return true;
 }
 
-static ten_shared_ptr_t *
-ten_engine_process_out_path(ten_engine_t *self, ten_shared_ptr_t *cmd_result,
-                            TEN_UNUSED ten_error_t *err) {
+static bool ten_engine_process_out_path(ten_engine_t *self,
+                                        ten_shared_ptr_t *cmd_result,
+                                        ten_shared_ptr_t **processed_cmd_result,
+                                        TEN_UNUSED ten_error_t *err) {
   TEN_ASSERT(self && ten_engine_check_integrity(self, true),
              "Should not happen.");
   TEN_ASSERT(cmd_result &&
                  ten_msg_get_type(cmd_result) == TEN_MSG_TYPE_CMD_RESULT &&
                  ten_msg_get_dest_cnt(cmd_result) == 1,
              "Should not happen.");
+  TEN_ASSERT(processed_cmd_result, "Should not happen.");
 
-  ten_shared_ptr_t *processed_cmd_result = NULL;
-  bool proceed = ten_path_table_process_cmd_result(
-      self->path_table, TEN_PATH_OUT, cmd_result, &processed_cmd_result);
-  if (!proceed) {
-    TEN_ASSERT(processed_cmd_result == NULL, "Should not happen.");
-    TEN_LOGD("[%s] OUT path is missing, discard cmd result.",
-             ten_engine_get_id(self, true));
-    return NULL;
-  }
-
-  return processed_cmd_result;
+  return ten_path_table_process_cmd_result(self->path_table, TEN_PATH_OUT,
+                                           cmd_result, processed_cmd_result);
 }
 
 static bool ten_engine_handle_cmd_result_for_cmd_start_graph(
@@ -124,11 +117,18 @@ static bool ten_engine_handle_cmd_result_for_cmd_start_graph(
     TEN_ASSERT(rc, "Should not happen.");
   }
 
-  cmd_result = ten_engine_process_out_path(self, cmd_result, err);
-  if (!cmd_result) {
+  ten_shared_ptr_t *processed_cmd_result = NULL;
+  bool proceed =
+      ten_engine_process_out_path(self, cmd_result, &processed_cmd_result, err);
+  if (!proceed) {
     TEN_LOGD(
         "The 'start_graph' flow is not completed, skip the cmd_result now.");
     return true;
+  }
+
+  if (processed_cmd_result != cmd_result) {
+    ten_shared_ptr_destroy(cmd_result);
+    cmd_result = processed_cmd_result;
   }
 
   // The processing of the 'start_graph' flows are completed.

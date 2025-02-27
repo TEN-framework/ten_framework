@@ -546,10 +546,12 @@ ten_extension_determine_out_msgs(ten_extension_t *self, ten_shared_ptr_t *msg,
   TEN_ASSERT(result_msgs, "Invalid argument.");
 
   if (ten_msg_is_cmd_result(msg)) {
+    // The `cmd_result` should have already been processed by the path table, so
+    // its `dest_loc` should already have values.
     TEN_ASSERT(ten_msg_get_dest_cnt(msg) > 0, "Should not happen.");
   }
 
-  if (ten_msg_is_cmd_result(msg) || ten_msg_get_dest_cnt(msg) > 0) {
+  if (ten_msg_get_dest_cnt(msg) > 0) {
     // Because the messages has already had destinations, no matter it is a
     // backward path or a forward path, dispatch the message according to the
     // destinations specified in the message.
@@ -608,6 +610,8 @@ bool ten_extension_dispatch_msg(ten_extension_t *self, ten_shared_ptr_t *msg,
 
   ten_msg_correct_dest(msg, self->extension_context->engine);
 
+  bool delete_msg = false;
+
   if (ten_msg_is_cmd_result(msg)) {
     ten_shared_ptr_t *processed_cmd_result = NULL;
     bool proceed = ten_path_table_process_cmd_result(
@@ -619,8 +623,18 @@ bool ten_extension_dispatch_msg(ten_extension_t *self, ten_shared_ptr_t *msg,
     } else {
       TEN_LOGD("[%s] IN path is found, proceed cmd_result.",
                ten_extension_get_name(self, true));
+
+      if (msg != processed_cmd_result) {
+        // It means `processed_cmd_result` is different from `msg`, so we need
+        // to destroy the shared_ptr of the new `processed_cmd_result` after
+        // processing it.
+        msg = processed_cmd_result;
+        delete_msg = true;
+      }
     }
   }
+
+  ten_list_t result_msgs = TEN_LIST_INIT_VAL; // ten_shared_ptr_t*
 
   // The schema validation of the `msg` must be happened before
   // `ten_extension_determine_out_msgs()`, the reasons are as follows:
@@ -636,10 +650,9 @@ bool ten_extension_dispatch_msg(ten_extension_t *self, ten_shared_ptr_t *msg,
   // twice if the schema validation fails in the first time. In other words, the
   // path can not be removed if the schema validation fails.
   if (!ten_extension_validate_msg_schema(self, msg, true, err)) {
-    return false;
+    result = false;
+    goto done;
   }
-
-  ten_list_t result_msgs = TEN_LIST_INIT_VAL; // ten_shared_ptr_t*
 
   switch (ten_extension_determine_out_msgs(self, msg, &result_msgs, err)) {
   case TEN_EXTENSION_DETERMINE_OUT_MSGS_NOT_FOUND_IN_GRAPH:
@@ -694,6 +707,9 @@ bool ten_extension_dispatch_msg(ten_extension_t *self, ten_shared_ptr_t *msg,
 
 done:
   ten_list_clear(&result_msgs);
+  if (delete_msg) {
+    ten_shared_ptr_destroy(msg);
+  }
   return result;
 }
 

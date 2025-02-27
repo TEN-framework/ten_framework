@@ -503,9 +503,9 @@ bool ten_path_table_process_cmd_result(ten_path_table_t *self,
   ten_listnode_t *path_node =
       ten_path_table_find_path(self, path_type, cmd_result);
   if (!path_node) {
+    // The path for the cmd_result to return is no longer available.
     TEN_LOGI("The path for the cmd_result to return is no longer available.");
 
-    // The path for the cmd_result to return is no longer available.
     proceed = false;
     goto done;
   }
@@ -513,6 +513,10 @@ bool ten_path_table_process_cmd_result(ten_path_table_t *self,
   ten_path_t *path = ten_ptr_listnode_get(path_node);
   TEN_ASSERT(path && ten_path_check_integrity(path, true), "Invalid argument.");
 
+  // Since a `cmd_result` being considered completed for one path group does not
+  // necessarily mean it is also completed for previous path groups, the
+  // completed attribute is reset each time to ensure that the completion status
+  // is re-evaluated.
   ten_cmd_result_set_completed(cmd_result, false, NULL);
 
   if (ten_cmd_result_is_final(cmd_result, NULL)) {
@@ -547,7 +551,6 @@ bool ten_path_table_process_cmd_result(ten_path_table_t *self,
       // conversion rule is problematic.
       ten_cmd_result_set_status_code(cmd_result, TEN_STATUS_CODE_ERROR);
     } else {
-      ten_shared_ptr_destroy(cmd_result);
       cmd_result = converted_cmd_result;
     }
 
