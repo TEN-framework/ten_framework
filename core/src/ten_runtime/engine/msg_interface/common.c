@@ -104,7 +104,7 @@ static void ten_engine_handle_in_msgs_sync(ten_engine_t *self) {
   // This list stores any msgs which needs to be put back to the in_msgs queue.
   ten_list_t put_back_msgs = TEN_LIST_INIT_VAL;
 
-  ten_list_foreach (&in_msgs_, iter) {
+  ten_list_foreach(&in_msgs_, iter) {
     ten_shared_ptr_t *msg = ten_smart_ptr_listnode_get(iter.node);
     TEN_ASSERT(msg && ten_msg_check_integrity(msg), "Should not happen.");
     TEN_ASSERT(!ten_msg_src_is_empty(msg),
@@ -168,22 +168,22 @@ static void ten_engine_handle_in_msgs_sync(ten_engine_t *self) {
       ten_engine_dispatch_msg(self, msg);
     } else {
       switch (ten_msg_get_type(msg)) {
-        case TEN_MSG_TYPE_CMD_START_GRAPH:
-        case TEN_MSG_TYPE_CMD_RESULT:
-          // The only message types which can be handled before the engine is
-          // ready is relevant to 'start_graph' command.
-          ten_engine_handle_msg(self, msg);
-          break;
+      case TEN_MSG_TYPE_CMD_START_GRAPH:
+      case TEN_MSG_TYPE_CMD_RESULT:
+        // The only message types which can be handled before the engine is
+        // ready is relevant to 'start_graph' command.
+        ten_engine_handle_msg(self, msg);
+        break;
 
-        default:
-          // Otherwise put back those messages to the original external commands
-          // queue.
-          //
-          // ten_msg_dump(msg, NULL,
-          //              "Engine is unable to handle msg now, put back it:
-          //              ^m");
-          ten_list_push_smart_ptr_back(&put_back_msgs, msg);
-          break;
+      default:
+        // Otherwise put back those messages to the original external commands
+        // queue.
+        //
+        // ten_msg_dump(msg, NULL,
+        //              "Engine is unable to handle msg now, put back it:
+        //              ^m");
+        ten_list_push_smart_ptr_back(&put_back_msgs, msg);
+        break;
       }
     }
   }
@@ -348,7 +348,7 @@ bool ten_engine_dispatch_msg(ten_engine_t *self, ten_shared_ptr_t *msg) {
 
         bool found = false;
 
-        ten_list_foreach (&self->extension_context->extension_groups, iter) {
+        ten_list_foreach(&self->extension_context->extension_groups, iter) {
           ten_extension_group_t *extension_group =
               ten_ptr_listnode_get(iter.node);
           TEN_ASSERT(

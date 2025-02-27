@@ -61,8 +61,9 @@ bool ten_path_is_in_a_group(ten_path_t *self) {
  * allocate memory for the structure, initialize various components of the path
  * group, and return the group.
  */
-static ten_path_group_t *ten_path_group_create(
-    ten_path_table_t *table, TEN_RESULT_RETURN_POLICY policy) {
+static ten_path_group_t *
+ten_path_group_create(ten_path_table_t *table,
+                      TEN_RESULT_RETURN_POLICY policy) {
   ten_path_group_t *self =
       (ten_path_group_t *)TEN_MALLOC(sizeof(ten_path_group_t));
   TEN_ASSERT(self, "Failed to allocate memory.");
@@ -93,9 +94,7 @@ void ten_path_group_destroy(ten_path_group_t *self) {
 
 /**
  * @brief Creates a group of paths. It takes a list of paths as an argument and
- * initializes each path with a group. The first path in the list is designated
- * as the master, and the rest are designated as slaves. It also initializes the
- * members of the master group.
+ * initializes each path with a group.
  */
 void ten_paths_create_group(ten_list_t *paths,
                             TEN_RESULT_RETURN_POLICY policy) {
@@ -105,15 +104,22 @@ void ten_paths_create_group(ten_list_t *paths,
   ten_path_group_t *path_group = NULL;
   ten_shared_ptr_t *path_group_sp = NULL;
 
-  ten_list_foreach (paths, iter) {
+  ten_path_t *last_path = NULL;
+  ten_list_foreach(paths, iter) {
     ten_path_t *path = ten_ptr_listnode_get(iter.node);
     TEN_ASSERT(path && ten_path_check_integrity(path, true),
                "Invalid argument.");
     TEN_ASSERT(path->table, "Invalid argument.");
 
+    last_path = path;
+
     if (!path_group_sp) {
       path_group = ten_path_group_create(path->table, policy);
+      TEN_ASSERT(path_group, "Failed to create path group.");
+
       path_group_sp = ten_shared_ptr_create(path_group, ten_path_group_destroy);
+      TEN_ASSERT(path_group_sp, "Failed to create path group shared pointer.");
+
       path->group = path_group_sp;
     } else {
       path->group = ten_shared_ptr_clone(path_group_sp);
@@ -121,6 +127,9 @@ void ten_paths_create_group(ten_list_t *paths,
 
     ten_list_push_ptr_back(&path_group->members, path, NULL);
   }
+
+  TEN_ASSERT(last_path, "Should not happen.");
+  last_path->last_in_group = true;
 }
 
 /**
@@ -136,7 +145,7 @@ static ten_path_t *ten_path_group_resolve_in_one_fail_and_all_ok_return(
 
   bool has_received_all_cmd_results_in_group = true;
 
-  ten_list_foreach (members, iter) {
+  ten_list_foreach(members, iter) {
     ten_path_t *path = ten_ptr_listnode_get(iter.node);
     TEN_ASSERT(path && ten_path_check_integrity(path, true),
                "Invalid argument.");
@@ -211,18 +220,18 @@ ten_path_t *ten_path_group_resolve(ten_path_t *path, TEN_PATH_TYPE type) {
              "Should not happen.");
 
   switch (path_group->policy) {
-    case TEN_RESULT_RETURN_POLICY_FIRST_ERROR_OR_FIRST_OK:
-      return ten_path_group_resolve_in_one_fail_and_all_ok_return(members, type,
-                                                                  false);
-    case TEN_RESULT_RETURN_POLICY_FIRST_ERROR_OR_LAST_OK:
-      return ten_path_group_resolve_in_one_fail_and_all_ok_return(members, type,
-                                                                  true);
-    case TEN_RESULT_RETURN_POLICY_EACH_OK_AND_ERROR:
-      // In this policy, we return the current path immediately.
-      return path;
-    default:
-      TEN_ASSERT(0, "Should not happen.");
-      return NULL;
+  case TEN_RESULT_RETURN_POLICY_FIRST_ERROR_OR_FIRST_OK:
+    return ten_path_group_resolve_in_one_fail_and_all_ok_return(members, type,
+                                                                false);
+  case TEN_RESULT_RETURN_POLICY_FIRST_ERROR_OR_LAST_OK:
+    return ten_path_group_resolve_in_one_fail_and_all_ok_return(members, type,
+                                                                true);
+  case TEN_RESULT_RETURN_POLICY_EACH_OK_AND_ERROR:
+    // In this policy, we return the current path immediately.
+    return path;
+  default:
+    TEN_ASSERT(0, "Should not happen.");
+    return NULL;
   }
 
   TEN_ASSERT(0, "Should not happen.");

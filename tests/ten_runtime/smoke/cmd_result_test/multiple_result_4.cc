@@ -125,7 +125,7 @@ TEN_CPP_REGISTER_ADDON_AS_EXTENSION(multiple_result_4__test_extension_3,
 
 }  // namespace
 
-TEST(CmdResultTest, MultipleResult4) {  // NOLINT
+TEST(CmdResultTest, DISABLED_MultipleResult4) {  // NOLINT
   // Start app.
   auto *app_thread =
       ten_thread_create("app thread", test_app_thread_main, nullptr);

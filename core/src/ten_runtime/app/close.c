@@ -60,11 +60,11 @@ static void ten_app_close_sync(ten_app_t *self) {
 
   TEN_LOGD("[%s] Try to close app.", ten_app_get_uri(self));
 
-  ten_list_foreach (&self->engines, iter) {
+  ten_list_foreach(&self->engines, iter) {
     ten_engine_close_async(ten_ptr_listnode_get(iter.node));
   }
 
-  ten_list_foreach (&self->orphan_connections, iter) {
+  ten_list_foreach(&self->orphan_connections, iter) {
     ten_connection_close(ten_ptr_listnode_get(iter.node));
   }
 

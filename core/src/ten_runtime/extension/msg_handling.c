@@ -87,8 +87,8 @@ void ten_extension_handle_in_msg(ten_extension_t *self, ten_shared_ptr_t *msg) {
   if (msg_is_cmd_result) {
     // Set the cmd result to the corresponding OUT path to indicate that
     // there has been a cmd result flow through that OUT path.
-    ten_path_t *out_path =
-        ten_path_table_set_result(self->path_table, TEN_PATH_OUT, msg);
+    ten_path_t *out_path = ten_path_table_find_path_and_set_result(
+        self->path_table, TEN_PATH_OUT, msg);
     if (!out_path) {
       // The OUT path is gone, it means the current cmd result should be
       // discarded (not sending it to the extension).

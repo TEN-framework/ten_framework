@@ -70,9 +70,9 @@ bool ten_extension_info_is_desired_extension_group(
 static bool ten_extension_info_is_specified_extension(
     ten_extension_info_t *self, const char *app_uri, const char *graph_id,
     const char *extension_group_name, const char *extension_name) {
-  TEN_ASSERT(
-      self && ten_extension_info_check_integrity(self, true) && extension_name,
-      "Should not happen.");
+  TEN_ASSERT(self && ten_extension_info_check_integrity(self, true) &&
+                 extension_name,
+             "Should not happen.");
 
   if (app_uri && !ten_string_is_equal_c_str(&self->loc.app_uri, app_uri)) {
     return false;
@@ -243,7 +243,7 @@ static bool copy_msg_dest(ten_list_t *to_static_info,
                           ten_list_t *extensions_info, ten_error_t *err) {
   TEN_ASSERT(to_static_info && extensions_info, "Should not happen.");
 
-  ten_list_foreach (from_static_info, iter) {
+  ten_list_foreach(from_static_info, iter) {
     ten_shared_ptr_t *msg_dest_static_info =
         ten_smart_ptr_listnode_get(iter.node);
 
@@ -290,7 +290,7 @@ static ten_shared_ptr_t *ten_extension_info_clone_except_dest(
   ten_value_object_merge_with_clone(new_extension_info->property,
                                     self->property);
 
-  ten_list_foreach (&self->msg_conversion_contexts, iter) {
+  ten_list_foreach(&self->msg_conversion_contexts, iter) {
     ten_msg_conversion_context_t *msg_conversion =
         ten_ptr_listnode_get(iter.node);
     TEN_ASSERT(msg_conversion &&
@@ -305,8 +305,9 @@ static ten_shared_ptr_t *ten_extension_info_clone_except_dest(
   return new_dest;
 }
 
-static ten_shared_ptr_t *ten_extension_info_clone_dest(
-    ten_extension_info_t *self, ten_list_t *extensions_info, ten_error_t *err) {
+static ten_shared_ptr_t *
+ten_extension_info_clone_dest(ten_extension_info_t *self,
+                              ten_list_t *extensions_info, ten_error_t *err) {
   TEN_ASSERT(extensions_info, "Should not happen.");
 
   TEN_ASSERT(self, "Invalid argument.");
@@ -369,7 +370,7 @@ bool ten_extensions_info_clone(ten_list_t *from, ten_list_t *to,
   // `get_extension_info_in_extensions_info()`, we need to determine if
   // `extension_info` exists in `extensions_info`. Therefore, we should first
   // clone the `nodes` and then proceed to clone the `connections`.
-  ten_list_foreach (from, iter) {
+  ten_list_foreach(from, iter) {
     ten_extension_info_t *extension_info =
         ten_shared_ptr_get_data(ten_smart_ptr_listnode_get(iter.node));
     if (!ten_extension_info_clone_except_dest(extension_info, to, err)) {
@@ -377,7 +378,7 @@ bool ten_extensions_info_clone(ten_list_t *from, ten_list_t *to,
     }
   }
 
-  ten_list_foreach (from, iter) {
+  ten_list_foreach(from, iter) {
     ten_extension_info_t *extension_info =
         ten_shared_ptr_get_data(ten_smart_ptr_listnode_get(iter.node));
     if (!ten_extension_info_clone_dest(extension_info, to, err)) {
@@ -416,8 +417,8 @@ void ten_extension_info_translate_localhost_to_app_uri(
   }
 }
 
-ten_extension_info_t *ten_extension_info_from_smart_ptr(
-    ten_smart_ptr_t *extension_info_smart_ptr) {
+ten_extension_info_t *
+ten_extension_info_from_smart_ptr(ten_smart_ptr_t *extension_info_smart_ptr) {
   TEN_ASSERT(extension_info_smart_ptr, "Invalid argument.");
   return ten_smart_ptr_get_data(extension_info_smart_ptr);
 }
@@ -435,7 +436,7 @@ static void ten_extension_info_fill_app_uri(ten_extension_info_t *self,
   }
 
   // Fill the app uri of each item in the msg_conversions_list if it is empty.
-  ten_list_foreach (&self->msg_conversion_contexts, iter) {
+  ten_list_foreach(&self->msg_conversion_contexts, iter) {
     ten_msg_conversion_context_t *conversion_iter =
         ten_ptr_listnode_get(iter.node);
     TEN_ASSERT(conversion_iter &&
@@ -452,7 +453,7 @@ static void ten_extension_info_fill_app_uri(ten_extension_info_t *self,
 // Fill the app uri of each extension_info in the extensions_info.
 void ten_extensions_info_fill_app_uri(ten_list_t *extensions_info,
                                       const char *app_uri) {
-  ten_list_foreach (extensions_info, iter) {
+  ten_list_foreach(extensions_info, iter) {
     ten_extension_info_t *extension_info =
         ten_shared_ptr_get_data(ten_smart_ptr_listnode_get(iter.node));
     TEN_ASSERT(extension_info &&
@@ -484,7 +485,7 @@ static void ten_extension_info_fill_loc_info(ten_extension_info_t *self,
   }
 
   // Fill the app uri of each item in the msg_conversions_list if it is empty.
-  ten_list_foreach (&self->msg_conversion_contexts, iter) {
+  ten_list_foreach(&self->msg_conversion_contexts, iter) {
     ten_msg_conversion_context_t *conversion_iter =
         ten_ptr_listnode_get(iter.node);
     TEN_ASSERT(conversion_iter &&
@@ -506,7 +507,7 @@ static void ten_extension_info_fill_loc_info(ten_extension_info_t *self,
 void ten_extensions_info_fill_loc_info(ten_list_t *extensions_info,
                                        const char *app_uri,
                                        const char *graph_id) {
-  ten_list_foreach (extensions_info, iter) {
+  ten_list_foreach(extensions_info, iter) {
     ten_extension_info_t *extension_info =
         ten_shared_ptr_get_data(ten_smart_ptr_listnode_get(iter.node));
     // TEN_NOLINTNEXTLINE(thread-check)
@@ -521,14 +522,14 @@ void ten_extensions_info_fill_loc_info(ten_list_t *extensions_info,
   }
 
   // Check if the extension_info in the `dest` section is correct.
-  ten_list_foreach (extensions_info, iter) {
+  ten_list_foreach(extensions_info, iter) {
     ten_extension_info_t *extension_info =
         ten_shared_ptr_get_data(ten_smart_ptr_listnode_get(iter.node));
 
-    ten_list_foreach (&extension_info->msg_dest_info.cmd, iter_cmd) {
+    ten_list_foreach(&extension_info->msg_dest_info.cmd, iter_cmd) {
       ten_msg_dest_info_t *dest_info =
           ten_shared_ptr_get_data(ten_smart_ptr_listnode_get(iter_cmd.node));
-      ten_list_foreach (&dest_info->dest, dest_iter) {
+      ten_list_foreach(&dest_info->dest, dest_iter) {
         ten_extension_info_t *dest_extension_info =
             ten_smart_ptr_get_data(ten_smart_ptr_listnode_get(dest_iter.node));
         if (ten_string_is_empty(&dest_extension_info->loc.app_uri)) {

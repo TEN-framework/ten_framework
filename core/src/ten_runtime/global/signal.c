@@ -51,7 +51,7 @@ static void ten_global_signal_handler(int signo, TEN_UNUSED siginfo_t *info,
 
     ten_mutex_lock(g_apps_mutex);
 
-    ten_list_foreach (&g_apps, iter) {
+    ten_list_foreach(&g_apps, iter) {
       ten_app_t *app = ten_ptr_listnode_get(iter.node);
       TEN_ASSERT(app, "Invalid argument.");
 
@@ -158,31 +158,31 @@ static volatile LONG ctrl_c_count = 0;
 
 BOOL WINAPI ConsoleHandler(DWORD dwCtrlType) {
   switch (dwCtrlType) {
-    case CTRL_C_EVENT:
-    case CTRL_BREAK_EVENT:
-      TEN_LOGW("Received CTRL+C/CTRL+BREAK.");
+  case CTRL_C_EVENT:
+  case CTRL_BREAK_EVENT:
+    TEN_LOGW("Received CTRL+C/CTRL+BREAK.");
 
-      ten_mutex_lock(g_apps_mutex);
+    ten_mutex_lock(g_apps_mutex);
 
-      ten_list_foreach (&g_apps, iter) {
-        ten_app_t *app = ten_ptr_listnode_get(iter.node);
-        TEN_ASSERT(app, "Invalid argument.");
+    ten_list_foreach(&g_apps, iter) {
+      ten_app_t *app = ten_ptr_listnode_get(iter.node);
+      TEN_ASSERT(app, "Invalid argument.");
 
-        ten_app_close(app, NULL);
-      }
+      ten_app_close(app, NULL);
+    }
 
-      ten_mutex_unlock(g_apps_mutex);
+    ten_mutex_unlock(g_apps_mutex);
 
-      ctrl_c_count++;
-      if (ctrl_c_count >= 2) {
-        TEN_LOGW("Received CTRL+C/CTRL+BREAK twice, exit directly.");
-        // NOLINTNEXTLINE(concurrency-mt-unsafe)
-        exit(EXIT_FAILURE);
-      }
-      return TRUE;  // Signal has been handled.
+    ctrl_c_count++;
+    if (ctrl_c_count >= 2) {
+      TEN_LOGW("Received CTRL+C/CTRL+BREAK twice, exit directly.");
+      // NOLINTNEXTLINE(concurrency-mt-unsafe)
+      exit(EXIT_FAILURE);
+    }
+    return TRUE; // Signal has been handled.
 
-    default:
-      return FALSE;  // Signal has _not_ been handled.
+  default:
+    return FALSE; // Signal has _not_ been handled.
   }
 }
 

@@ -242,15 +242,15 @@ static bool ten_connection_on_input(ten_connection_t *self,
   // to an engine is through a remote.
 
   switch (ten_atomic_load(&self->attach_to)) {
-    case TEN_CONNECTION_ATTACH_TO_REMOTE:
-      // Enable the 'remote' to handle this message.
-      return ten_remote_on_input(self->attached_target.remote, msg, err);
-    case TEN_CONNECTION_ATTACH_TO_APP:
-      // Enable the 'app' to handle this message.
-      return ten_app_handle_in_msg(self->attached_target.app, self, msg, err);
-    default:
-      TEN_ASSERT(0, "Should not happen.");
-      return false;
+  case TEN_CONNECTION_ATTACH_TO_REMOTE:
+    // Enable the 'remote' to handle this message.
+    return ten_remote_on_input(self->attached_target.remote, msg, err);
+  case TEN_CONNECTION_ATTACH_TO_APP:
+    // Enable the 'app' to handle this message.
+    return ten_app_handle_in_msg(self->attached_target.app, self, msg, err);
+  default:
+    TEN_ASSERT(0, "Should not happen.");
+    return false;
   }
 }
 
@@ -289,8 +289,9 @@ void ten_connection_clean(ten_connection_t *self) {
   ten_protocol_clean(self->protocol, ten_connection_on_protocol_cleaned);
 }
 
-static void ten_connection_handle_command_from_external_client(
-    ten_connection_t *self, ten_shared_ptr_t *cmd) {
+static void
+ten_connection_handle_command_from_external_client(ten_connection_t *self,
+                                                   ten_shared_ptr_t *cmd) {
   TEN_ASSERT(self, "Invalid argument.");
   TEN_ASSERT(ten_connection_check_integrity(self, true),
              "Invalid use of connection %p.", self);
@@ -329,24 +330,24 @@ void ten_connection_on_msgs(ten_connection_t *self, ten_list_t *msgs) {
 
   // Do some thread-safety checking.
   switch (ten_connection_attach_to(self)) {
-    case TEN_CONNECTION_ATTACH_TO_APP:
-      TEN_ASSERT(ten_app_check_integrity(self->attached_target.app, true),
-                 "Should not happen.");
-      break;
-    case TEN_CONNECTION_ATTACH_TO_REMOTE:
-      TEN_ASSERT(ten_engine_check_integrity(
-                     self->attached_target.remote->engine, true),
-                 "Should not happen.");
-      break;
-    default:
-      TEN_ASSERT(0, "Should not happen.");
-      break;
+  case TEN_CONNECTION_ATTACH_TO_APP:
+    TEN_ASSERT(ten_app_check_integrity(self->attached_target.app, true),
+               "Should not happen.");
+    break;
+  case TEN_CONNECTION_ATTACH_TO_REMOTE:
+    TEN_ASSERT(
+        ten_engine_check_integrity(self->attached_target.remote->engine, true),
+        "Should not happen.");
+    break;
+  default:
+    TEN_ASSERT(0, "Should not happen.");
+    break;
   }
 
   ten_error_t err;
   TEN_ERROR_INIT(err);
 
-  ten_list_foreach (msgs, iter) {
+  ten_list_foreach(msgs, iter) {
     ten_shared_ptr_t *msg = ten_smart_ptr_listnode_get(iter.node);
 
     if (ten_msg_is_cmd_and_result(msg)) {
@@ -397,9 +398,9 @@ void ten_connection_connect_to(ten_connection_t *self, const char *uri,
         "Should not happen.");
   }
 
-  TEN_ASSERT(
-      self->protocol && ten_protocol_check_integrity(self->protocol, true),
-      "Should not happen.");
+  TEN_ASSERT(self->protocol &&
+                 ten_protocol_check_integrity(self->protocol, true),
+             "Should not happen.");
   TEN_ASSERT(ten_protocol_role_is_communication(self->protocol),
              "Should not happen.");
 
@@ -467,15 +468,15 @@ ten_runloop_t *ten_connection_get_attached_runloop(ten_connection_t *self) {
   // 'ten_protocol_asynced_on_input_async()'.
 
   switch (ten_connection_attach_to(self)) {
-    case TEN_CONNECTION_ATTACH_TO_REMOTE:
-      return ten_remote_get_attached_runloop(self->attached_target.remote);
-    case TEN_CONNECTION_ATTACH_TO_ENGINE:
-      return ten_engine_get_attached_runloop(self->attached_target.engine);
-    case TEN_CONNECTION_ATTACH_TO_APP:
-      return ten_app_get_attached_runloop(self->attached_target.app);
-    default:
-      TEN_ASSERT(0, "Should not happen.");
-      return NULL;
+  case TEN_CONNECTION_ATTACH_TO_REMOTE:
+    return ten_remote_get_attached_runloop(self->attached_target.remote);
+  case TEN_CONNECTION_ATTACH_TO_ENGINE:
+    return ten_engine_get_attached_runloop(self->attached_target.engine);
+  case TEN_CONNECTION_ATTACH_TO_APP:
+    return ten_app_get_attached_runloop(self->attached_target.app);
+  default:
+    TEN_ASSERT(0, "Should not happen.");
+    return NULL;
   }
 }
 
