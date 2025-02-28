@@ -25,7 +25,7 @@ class test_extension_1 : public ten::extension_t {
   void on_cmd(ten::ten_env_t &ten_env,
               std::unique_ptr<ten::cmd_t> cmd) override {
     if (cmd->get_name() == "hello_world") {
-      ten_random_sleep_ms(100);
+      ten_random_sleep_ms(10);
 
       ten_env.send_cmd(std::move(cmd));
       return;
