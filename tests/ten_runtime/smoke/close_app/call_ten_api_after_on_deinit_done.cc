@@ -61,6 +61,7 @@ class test_extension_2 : public ten::extension_t {
           std::make_shared<std::unique_ptr<ten::cmd_t>>(std::move(cmd));
 
       thread_ = std::thread([ten_env_proxy, cmd_shared]() {
+        // Ensure ten_env.on_deinit_done() is completed.
         ten_sleep_ms(2000);
 
         bool rc = ten_env_proxy->notify(
