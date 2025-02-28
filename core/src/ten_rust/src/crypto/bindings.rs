@@ -10,7 +10,7 @@ use std::{ffi::CStr, os::raw::c_char};
 
 use crate::crypto;
 
-use super::{CipherAlgorithm, CipherType};
+use super::{CipherAlgorithm, Cipher};
 
 /// Create a cipher.
 ///
@@ -25,7 +25,7 @@ use super::{CipherAlgorithm, CipherType};
 pub extern "C" fn ten_cipher_create(
     algorithm: *const c_char,
     params: *const c_char,
-) -> *mut CipherType {
+) -> *mut Cipher {
     let algorithm_cstr = unsafe { CStr::from_ptr(algorithm) };
     let params_cstr = unsafe { CStr::from_ptr(params) };
 
@@ -56,7 +56,7 @@ pub extern "C" fn ten_cipher_create(
 /// Destroy a cipher.
 #[no_mangle]
 #[allow(clippy::not_unsafe_ptr_arg_deref)]
-pub extern "C" fn ten_cipher_destroy(cipher_ptr: *mut CipherType) {
+pub extern "C" fn ten_cipher_destroy(cipher_ptr: *mut Cipher) {
     if !cipher_ptr.is_null() {
         drop(unsafe { Box::from_raw(cipher_ptr) });
     }
@@ -73,7 +73,7 @@ pub extern "C" fn ten_cipher_destroy(cipher_ptr: *mut CipherType) {
 /// Returns `true` on success, otherwise returns `false`.
 #[no_mangle]
 pub unsafe extern "C" fn ten_cipher_encrypt_inplace(
-    cipher_ptr: *mut CipherType,
+    cipher_ptr: *mut Cipher,
     data: *mut u8,
     data_len: usize,
 ) -> bool {

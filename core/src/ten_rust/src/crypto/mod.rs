@@ -11,7 +11,7 @@ use crate::crypto::algorithm::aes::AesCtrCipher;
 use algorithm::aes::new_aes_ctr_cipher;
 use anyhow::Result;
 
-pub enum CipherType {
+pub enum Cipher {
     Aes128Ctr(AesCtrCipher),
 }
 
@@ -19,21 +19,21 @@ pub trait CipherAlgorithm {
     fn encrypt(&mut self, data: &mut [u8]);
 }
 
-impl CipherAlgorithm for CipherType {
+impl CipherAlgorithm for Cipher {
     fn encrypt(&mut self, data: &mut [u8]) {
         match self {
-            CipherType::Aes128Ctr(cipher) => {
+            Cipher::Aes128Ctr(cipher) => {
                 cipher.encrypt(data);
             }
         }
     }
 }
 
-pub fn new_cipher(algorithm: &str, params_str: &str) -> Result<CipherType> {
+pub fn new_cipher(algorithm: &str, params_str: &str) -> Result<Cipher> {
     match algorithm {
         "AES-CTR" => {
             let cipher = new_aes_ctr_cipher(params_str)?;
-            Ok(CipherType::Aes128Ctr(cipher))
+            Ok(Cipher::Aes128Ctr(cipher))
         }
         _ => Err(anyhow::anyhow!("Invalid encryption algorithm")),
     }
