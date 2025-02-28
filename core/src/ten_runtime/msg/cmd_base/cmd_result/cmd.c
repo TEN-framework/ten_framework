@@ -83,7 +83,13 @@ static ten_cmd_result_t *ten_raw_cmd_result_create_empty(void) {
   // We will get the original cmd type later.
   ten_value_init_int32(&raw_cmd->original_cmd_type, TEN_MSG_TYPE_INVALID);
   ten_value_init_string(&raw_cmd->original_cmd_name);
+
+  // By default, every `cmd_result` is a final cmd_result. However, users can
+  // manually set a `cmd_result` to _not_ be a final cmd_result.
   ten_value_init_bool(&raw_cmd->is_final, true);
+
+  // Whether a `cmd_result` is completed will be determined by the path_table,
+  // so by default, it is not completed at the beginning.
   ten_value_init_bool(&raw_cmd->is_completed, false);
 
   return raw_cmd;
@@ -101,6 +107,18 @@ ten_raw_cmd_result_create(const TEN_STATUS_CODE status_code) {
 ten_shared_ptr_t *ten_cmd_result_create(const TEN_STATUS_CODE status_code) {
   return ten_shared_ptr_create(ten_raw_cmd_result_create(status_code),
                                ten_raw_cmd_result_destroy);
+}
+
+static void
+ten_raw_cmd_result_set_original_cmd_name(ten_cmd_result_t *self,
+                                         const char *original_cmd_name) {
+  TEN_ASSERT(self && ten_raw_cmd_result_check_integrity(self),
+             "Invalid argument.");
+  TEN_ASSERT(original_cmd_name && strlen(original_cmd_name),
+             "Invalid argument.");
+
+  ten_string_set_from_c_str(ten_value_peek_string(&self->original_cmd_name),
+                            original_cmd_name);
 }
 
 static ten_cmd_result_t *
@@ -122,6 +140,9 @@ ten_raw_cmd_result_create_from_raw_cmd(const TEN_STATUS_CODE status_code,
 
     ten_raw_cmd_result_set_original_cmd_type(
         cmd, ten_raw_msg_get_type((ten_msg_t *)original_cmd));
+
+    ten_raw_cmd_result_set_original_cmd_name(
+        cmd, ten_raw_msg_get_name((ten_msg_t *)original_cmd));
 
     // There are only 2 possible values of destination count of
     // 'original_cmd':
@@ -398,18 +419,6 @@ bool ten_raw_cmd_result_validate_schema(ten_msg_t *status_msg,
   } while (0);
 
   return result;
-}
-
-static void
-ten_raw_cmd_result_set_original_cmd_name(ten_cmd_result_t *self,
-                                         const char *original_cmd_name) {
-  TEN_ASSERT(self && ten_raw_cmd_result_check_integrity(self),
-             "Invalid argument.");
-  TEN_ASSERT(original_cmd_name && strlen(original_cmd_name),
-             "Invalid argument.");
-
-  ten_string_set_from_c_str(ten_value_peek_string(&self->original_cmd_name),
-                            original_cmd_name);
 }
 
 void ten_cmd_result_set_original_cmd_name(ten_shared_ptr_t *self,

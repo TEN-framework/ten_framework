@@ -275,36 +275,24 @@ static bool ten_app_handle_stop_graph_cmd(ten_app_t *self,
   return true;
 }
 
-static bool ten_app_process_out_path(ten_app_t *self,
-                                     ten_shared_ptr_t *cmd_result,
-                                     ten_shared_ptr_t **processed_cmd_result,
-                                     TEN_UNUSED ten_error_t *err) {
-  TEN_ASSERT(self && ten_app_check_integrity(self, true), "Should not happen.");
-  TEN_ASSERT(cmd_result &&
-                 ten_msg_get_type(cmd_result) == TEN_MSG_TYPE_CMD_RESULT &&
-                 ten_msg_get_dest_cnt(cmd_result) == 1,
-             "Should not happen.");
-  TEN_ASSERT(processed_cmd_result, "Should not happen.");
-
-  return ten_path_table_process_cmd_result(self->path_table, TEN_PATH_OUT,
-                                           cmd_result, processed_cmd_result);
-}
-
 /**
  * @return true if this function handles @param cmd, false otherwise.
  */
 static bool ten_app_handle_cmd_result(ten_app_t *self,
                                       ten_shared_ptr_t *cmd_result,
-                                      ten_error_t *err) {
+                                      TEN_UNUSED ten_error_t *err) {
   TEN_ASSERT(self && ten_app_check_integrity(self, true), "Should not happen.");
   TEN_ASSERT(cmd_result && ten_cmd_base_check_integrity(cmd_result),
+             "Should not happen.");
+  TEN_ASSERT(ten_msg_get_type(cmd_result) == TEN_MSG_TYPE_CMD_RESULT &&
+                 ten_msg_get_dest_cnt(cmd_result) == 1,
              "Should not happen.");
 
   bool delete_msg = false;
   ten_shared_ptr_t *processed_cmd_result = NULL;
 
-  bool proceed =
-      ten_app_process_out_path(self, cmd_result, &processed_cmd_result, err);
+  bool proceed = ten_path_table_process_cmd_result(
+      self->path_table, TEN_PATH_OUT, cmd_result, &processed_cmd_result);
   if (!proceed) {
     TEN_LOGD(
         "The 'start_graph' flow is not completed, skip the cmd_result now.");

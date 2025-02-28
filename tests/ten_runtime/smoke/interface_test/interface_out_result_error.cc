@@ -53,7 +53,6 @@ class test_extension_1 : public ten::extension_t {
               std::unique_ptr<ten::cmd_t> cmd) override {
     if (cmd->get_name() == "hello_world") {
       ten_env.send_cmd(std::move(cmd));
-      return;
     }
   }
 };

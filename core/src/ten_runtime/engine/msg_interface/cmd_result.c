@@ -26,7 +26,6 @@
 #include "ten_utils/lib/smart_ptr.h"
 #include "ten_utils/lib/string.h"
 #include "ten_utils/macro/check.h"
-#include "ten_utils/macro/mark.h"
 #include "ten_utils/value/value_get.h"
 #include "ten_utils/value/value_is.h"
 
@@ -81,22 +80,6 @@ static bool ten_engine_close_duplicated_remote_or_upgrade_it_to_normal(
   return true;
 }
 
-static bool ten_engine_process_out_path(ten_engine_t *self,
-                                        ten_shared_ptr_t *cmd_result,
-                                        ten_shared_ptr_t **processed_cmd_result,
-                                        TEN_UNUSED ten_error_t *err) {
-  TEN_ASSERT(self && ten_engine_check_integrity(self, true),
-             "Should not happen.");
-  TEN_ASSERT(cmd_result &&
-                 ten_msg_get_type(cmd_result) == TEN_MSG_TYPE_CMD_RESULT &&
-                 ten_msg_get_dest_cnt(cmd_result) == 1,
-             "Should not happen.");
-  TEN_ASSERT(processed_cmd_result, "Should not happen.");
-
-  return ten_path_table_process_cmd_result(self->path_table, TEN_PATH_OUT,
-                                           cmd_result, processed_cmd_result);
-}
-
 static bool ten_engine_handle_cmd_result_for_cmd_start_graph(
     ten_engine_t *self, ten_shared_ptr_t *cmd_result, ten_error_t *err) {
   TEN_ASSERT(self && ten_engine_check_integrity(self, true),
@@ -118,8 +101,8 @@ static bool ten_engine_handle_cmd_result_for_cmd_start_graph(
   }
 
   ten_shared_ptr_t *processed_cmd_result = NULL;
-  bool proceed =
-      ten_engine_process_out_path(self, cmd_result, &processed_cmd_result, err);
+  bool proceed = ten_path_table_process_cmd_result(
+      self->path_table, TEN_PATH_OUT, cmd_result, &processed_cmd_result);
   if (!proceed) {
     TEN_LOGD(
         "The 'start_graph' flow is not completed, skip the cmd_result now.");

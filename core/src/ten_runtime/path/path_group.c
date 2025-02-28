@@ -137,13 +137,11 @@ void ten_paths_create_group(ten_list_t *paths,
  * @brief Takes a path as an argument and returns a list of all the paths that
  * belong to the same group as the given path.
  */
-ten_list_t *ten_path_group_get_members(ten_path_t *path) {
-  TEN_ASSERT(path && ten_path_check_integrity(path, true), "Invalid argument.");
-  TEN_ASSERT(ten_path_is_in_a_group(path), "Invalid argument.");
+ten_list_t *ten_path_group_get_members(ten_path_group_t *self) {
+  TEN_ASSERT(self && ten_path_group_check_integrity(self, true),
+             "Invalid argument.");
 
-  ten_path_group_t *path_group = ten_path_get_group(path);
-
-  ten_list_t *members = &path_group->members;
+  ten_list_t *members = &self->members;
   TEN_ASSERT(members && ten_list_check_integrity(members),
              "Should not happen.");
 

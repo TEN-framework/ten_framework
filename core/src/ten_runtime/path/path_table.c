@@ -364,18 +364,16 @@ static ten_listnode_t *ten_path_table_find_in_path(ten_path_table_t *self,
 }
 
 static void ten_path_table_remove_group_and_all_its_paths(
-    ten_path_table_t *self, TEN_PATH_TYPE type, ten_path_t *path) {
+    ten_path_table_t *self, TEN_PATH_TYPE type, ten_path_group_t *path_group) {
   TEN_ASSERT(self, "Invalid argument.");
   TEN_ASSERT(ten_path_table_check_integrity(self, true), "Invalid argument.");
-  TEN_ASSERT(path && ten_path_check_integrity(path, true), "Invalid argument.");
-  TEN_ASSERT(ten_path_is_in_a_group(path), "Invalid argument.");
+  TEN_ASSERT(path_group && ten_path_group_check_integrity(path_group, true),
+             "Invalid argument.");
 
   ten_list_t *paths = type == TEN_PATH_IN ? &self->in_paths : &self->out_paths;
 
-  ten_list_t *group_members = ten_path_group_get_members(path);
+  ten_list_t *group_members = ten_path_group_get_members(path_group);
 
-  // If all paths in the group have received the cmd result, we should remove
-  // the group, and all its contained paths.
   ten_list_foreach(group_members, iter) {
     ten_path_t *group_path = ten_ptr_listnode_get(iter.node);
     TEN_ASSERT(group_path && ten_path_check_integrity(group_path, true),
@@ -453,50 +451,27 @@ static void ten_cmd_result_set_info_from_path(ten_shared_ptr_t *cmd_result,
 // There are 2 cases where a cmd result interacted with an extension.
 //
 //              (1)                                     (2)
-//    ↙-- cmd_result (a path)                 ↙-- cmd_result (a path)
+//                                            ↙-- cmd_result (a path)
 // <-o<-- cmd_result (a path) <- Extension <-o<-- cmd_result (a path)
-//    ↖-- cmd_result (a path)                 ↖-- cmd_result (a path)
+//                                            ↖-- cmd_result (a path)
 //
 // (1) When a cmd result leaves an extension
-//     Multiple cmd results might be related to a single original command due to
-//     the command conversion mechanism. Each cmd result would flow through a
-//     _IN_ path to the previous node in the graph.
+//     The cmd result would flow through a _IN_ path of the current extension.
 //
 // (2) When a cmd result enters an extension
 //     Multiple cmd results might be related to a single original command due to
 //     the graph 'dests' dispatching mechanism. Each cmd result would flow
-//     through a _OUT_ path to the current extension.
-//
-// The handling of these 2 cases are equal:
-//
-// a. Save the cmd result to the corresponding path.
-//    If there is a result_conversion attached to that path, convert the cmd
-//    result according to that rule, and save the generated cmd result to that
-//    path instead.
-//
-// b. If the path does _not_ belong to a path group:
-//    (1) transmit the cmd result to the TEN runtime.
-//    (2) transmit the cmd result to the extension.
-//
-// c. Otherwise, if the path _does_ belong to a path group, check if the
-//    condition of the path group is met or not:
-//    > If yes, decide the resulting cmd result from the cmd results in
-//      the path group, and transmit the determined cmd result backward.
-//    > If no, do nothing.
-//
-// Note: This function will be called after the cmd result is linked to the
-// corresponding path.
-bool ten_path_table_process_cmd_result(ten_path_table_t *self,
-                                       TEN_PATH_TYPE path_type,
-                                       ten_shared_ptr_t *cmd_result,
-                                       ten_shared_ptr_t **result_out) {
+//     through a _OUT_ path of the current extension.
+bool ten_path_table_process_cmd_result(
+    ten_path_table_t *self, TEN_PATH_TYPE path_type,
+    ten_shared_ptr_t *cmd_result, ten_shared_ptr_t **processed_cmd_result) {
   TEN_ASSERT(self && ten_path_table_check_integrity(self, true),
              "Invalid argument.");
   TEN_ASSERT(cmd_result &&
                  ten_msg_get_type(cmd_result) == TEN_MSG_TYPE_CMD_RESULT &&
                  ten_cmd_base_check_integrity(cmd_result),
              "Invalid argument.");
-  TEN_ASSERT(result_out, "Invalid argument.");
+  TEN_ASSERT(processed_cmd_result, "Invalid argument.");
 
   bool proceed = true;
 
@@ -578,7 +553,8 @@ bool ten_path_table_process_cmd_result(ten_path_table_t *self,
 
         // This path group has completed its task. Cancel the entire path group
         // and all associated paths, and let this failed `cmd_result` flow back.
-        ten_path_table_remove_group_and_all_its_paths(self, path_type, path);
+        ten_path_table_remove_group_and_all_its_paths(self, path_type,
+                                                      path_group);
 
         ten_cmd_result_set_completed(cmd_result, true, NULL);
       } else {
@@ -623,7 +599,8 @@ bool ten_path_table_process_cmd_result(ten_path_table_t *self,
 
           ten_cmd_result_set_completed(cmd_result, true, NULL);
 
-          ten_path_table_remove_group_and_all_its_paths(self, path_type, path);
+          ten_path_table_remove_group_and_all_its_paths(self, path_type,
+                                                        path_group);
         }
       }
       break;
@@ -653,7 +630,8 @@ bool ten_path_table_process_cmd_result(ten_path_table_t *self,
       if (received_all_final_results) {
         ten_cmd_result_set_completed(cmd_result, true, NULL);
 
-        ten_path_table_remove_group_and_all_its_paths(self, path_type, path);
+        ten_path_table_remove_group_and_all_its_paths(self, path_type,
+                                                      path_group);
       }
       break;
     }
@@ -675,9 +653,9 @@ bool ten_path_table_process_cmd_result(ten_path_table_t *self,
 
 done:
   if (proceed) {
-    *result_out = cmd_result;
+    *processed_cmd_result = cmd_result;
   } else {
-    *result_out = NULL;
+    *processed_cmd_result = NULL;
   }
   return proceed;
 }

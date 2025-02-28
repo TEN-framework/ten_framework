@@ -149,7 +149,7 @@ TEN_RUNTIME_PRIVATE_API bool ten_path_is_in_a_group(ten_path_t *self);
 TEN_RUNTIME_PRIVATE_API void ten_path_group_destroy(ten_path_group_t *self);
 
 TEN_RUNTIME_PRIVATE_API ten_list_t *ten_path_group_get_members(
-    ten_path_t *path);
+    ten_path_group_t *self);
 
 TEN_RUNTIME_PRIVATE_API void ten_paths_create_group(
     ten_list_t *paths, TEN_RESULT_RETURN_POLICY policy);

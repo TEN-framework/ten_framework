@@ -82,6 +82,9 @@ typedef struct ten_path_t {
   // the temporarily kept `cmd_result`.
   ten_shared_ptr_t *cached_cmd_result;
 
+  // Indicates whether the `cmd_result` with the is_final attribute on this path
+  // has been received. If it has been received, it means this path has
+  // completed its task.
   bool has_received_final_cmd_result;
 
   ten_msg_conversion_t *result_conversion;

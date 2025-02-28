@@ -546,8 +546,9 @@ ten_extension_determine_out_msgs(ten_extension_t *self, ten_shared_ptr_t *msg,
   TEN_ASSERT(result_msgs, "Invalid argument.");
 
   if (ten_msg_is_cmd_result(msg)) {
-    // The `cmd_result` should have already been processed by the path table, so
-    // its `dest_loc` should already have values.
+    // The destination loc of `cmd_result` will be refilled by the TEN runtime
+    // using the information from the path_table. Therefore, when this function
+    // receives the `cmd_result`, its destination loc must have values.
     TEN_ASSERT(ten_msg_get_dest_cnt(msg) > 0, "Should not happen.");
   }
 
@@ -592,12 +593,13 @@ bool ten_extension_dispatch_msg(ten_extension_t *self, ten_shared_ptr_t *msg,
     return false;
   }
 
-  // The source of the out message is the current extension.
-  ten_msg_set_src_to_extension(msg, self);
-
   bool result = true;
-  const bool msg_is_cmd = ten_msg_is_cmd_and_result(msg);
+
   bool msg_is_cmd_result = false;
+  ten_list_t result_msgs = TEN_LIST_INIT_VAL; // ten_shared_ptr_t*
+  bool delete_msg = false;
+
+  const bool msg_is_cmd = ten_msg_is_cmd_and_result(msg);
 
   if (ten_msg_get_type(msg) == TEN_MSG_TYPE_CMD_RESULT) {
     msg_is_cmd_result = true;
@@ -608,9 +610,28 @@ bool ten_extension_dispatch_msg(ten_extension_t *self, ten_shared_ptr_t *msg,
     ten_msg_clear_dest(msg);
   }
 
+  // The source of the out message is the current extension.
+  ten_msg_set_src_to_extension(msg, self);
+
   ten_msg_correct_dest(msg, self->extension_context->engine);
 
-  bool delete_msg = false;
+  // The schema validation of the `msg` must be happened before
+  // `ten_extension_determine_out_msgs()`, the reasons are as follows:
+  //
+  // 1. The schema of the msg sending out or returning from the extension is
+  // defined by the extension itself, however there might have some conversions
+  // defined by users of the extension (ex: the conversion will be defined in a
+  // graph). So the schema validation should be happened _before_ the
+  // conversions as the structure of the msg might be changed after conversions.
+  //
+  // 2. For cmd result, its path will be removed in
+  // `ten_path_table_process_cmd_result()`. But users can call `return_result()`
+  // twice if the schema validation fails in the first time. In other words, the
+  // path can not be removed if the schema validation fails.
+  if (!ten_extension_validate_msg_schema(self, msg, true, err)) {
+    result = false;
+    goto done;
+  }
 
   if (ten_msg_is_cmd_result(msg)) {
     ten_shared_ptr_t *processed_cmd_result = NULL;
@@ -632,26 +653,6 @@ bool ten_extension_dispatch_msg(ten_extension_t *self, ten_shared_ptr_t *msg,
         delete_msg = true;
       }
     }
-  }
-
-  ten_list_t result_msgs = TEN_LIST_INIT_VAL; // ten_shared_ptr_t*
-
-  // The schema validation of the `msg` must be happened before
-  // `ten_extension_determine_out_msgs()`, the reasons are as follows:
-  //
-  // 1. The schema of the msg sending out or returning from the extension is
-  // defined by the extension itself, however there might have some conversions
-  // defined by users of the extension (ex: the conversion will be defined in a
-  // graph). So the schema validation should be happened before the conversions
-  // as the structure of the msg might be changed after conversions.
-  //
-  // 2. For cmd result, its path will be removed in
-  // `ten_extension_determine_out_msgs()`. But users can call `return_result()`
-  // twice if the schema validation fails in the first time. In other words, the
-  // path can not be removed if the schema validation fails.
-  if (!ten_extension_validate_msg_schema(self, msg, true, err)) {
-    result = false;
-    goto done;
   }
 
   switch (ten_extension_determine_out_msgs(self, msg, &result_msgs, err)) {
