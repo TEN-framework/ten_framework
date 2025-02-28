@@ -147,13 +147,13 @@ void *client_thread_main(TEN_UNUSED void *args) {
                  "name": "test_extension_1",
                  "addon": "multi_app_concurrent__extension_1",
                  "app": "msgpack://127.0.0.1:8001/",
-                 "extension_group": "test_extension_group 1"
+                 "extension_group": "test_extension_group_1"
                },{
                  "type": "extension",
                  "name": "test_extension_2",
                  "addon": "multi_app_concurrent__extension_2",
                  "app": "msgpack://127.0.0.1:8002/",
-                 "extension_group": "test_extension_group 2"
+                 "extension_group": "test_extension_group_2"
                }],
                "connections": [{
                  "app": "msgpack://127.0.0.1:8001/",
@@ -187,7 +187,7 @@ void *client_thread_main(TEN_UNUSED void *args) {
   // Send a user-defined 'hello world' command.
   auto hello_world_cmd = ten::cmd_t::create("hello_world");
   hello_world_cmd->set_dest("msgpack://127.0.0.1:8001/", nullptr,
-                            "test_extension_group 1", "test_extension_1");
+                            "test_extension_group_1", "test_extension_1");
 
   auto cmd_result =
       client->send_cmd_and_recv_result(std::move(hello_world_cmd));

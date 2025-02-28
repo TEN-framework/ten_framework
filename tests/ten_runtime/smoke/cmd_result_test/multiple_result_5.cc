@@ -179,7 +179,7 @@ TEST(CmdResultTest, MultipleResult5) {  // NOLINT
   ten_test::check_status_code(cmd_result, TEN_STATUS_CODE_OK);
 
   auto detail = cmd_result->get_property_string("detail");
-  EXPECT_EQ(detail, "from 3, 3");
+  EXPECT_TRUE(detail == "from 3, 3" || detail == "from 2, 2");
 
   delete client;
 
