@@ -206,9 +206,9 @@ TEST(CloseAppTest, CallTenApiAfterOnDeinitDone) {  // NOLINT
                                       "test_extension_2");
   client->send_cmd(std::move(return_after_3_second_cmd));
 
-  // Wait 1 second to make sure the return_after_3_second command is
+  // Wait some seconds to make sure the return_after_3_second command is
   // processed.
-  ten_random_sleep_ms(1000);
+  ten_sleep_ms(1000);
 
   // Send a close_app command.
   auto close_app_cmd = ten::cmd_t::create("close_app");
