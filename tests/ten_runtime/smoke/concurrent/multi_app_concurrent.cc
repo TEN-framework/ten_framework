@@ -202,7 +202,7 @@ void *client_thread_main(TEN_UNUSED void *args) {
 
 }  // namespace
 
-TEST(ExtensionTest, DISABLED_MultiAppConcurrent) {  // NOLINT
+TEST(ExtensionTest, MultiAppConcurrent) {  // NOLINT
   // Start app.
   auto *app_thread_2 =
       ten_thread_create("app thread 2", app_thread_2_main, nullptr);
