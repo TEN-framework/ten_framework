@@ -142,7 +142,7 @@ bool ten_app_init_log_file(ten_app_t *self, ten_value_t *value) {
 static void ten_app_encrypt_log_data(uint8_t *data, size_t data_len,
                                      void *user_data) {
 #if defined(TEN_ENABLE_TEN_RUST_APIS)
-  CipherType *cipher = (CipherType *)user_data;
+  Cipher *cipher = (Cipher *)user_data;
   TEN_UNUSED bool rc = ten_cipher_encrypt_inplace(cipher, data, data_len);
   // For now, we just ignore the return value.
 #endif
@@ -150,7 +150,7 @@ static void ten_app_encrypt_log_data(uint8_t *data, size_t data_len,
 
 static void ten_app_encrypt_log_deinit(void *user_data) {
 #if defined(TEN_ENABLE_TEN_RUST_APIS)
-  CipherType *cipher = (CipherType *)user_data;
+  Cipher *cipher = (Cipher *)user_data;
   ten_cipher_destroy(cipher);
 #endif
 }
@@ -218,7 +218,7 @@ bool ten_app_init_log(ten_app_t *self, ten_value_t *value) {
 
         ten_json_destroy(json_params);
 
-        CipherType *cipher = ten_cipher_create(
+        Cipher *cipher = ten_cipher_create(
             ten_string_get_raw_str(&algorithm_name), params_str);
         ten_log_global_set_encrypt_cb(ten_app_encrypt_log_data, cipher);
         ten_log_global_set_encrypt_deinit_cb(ten_app_encrypt_log_deinit);
