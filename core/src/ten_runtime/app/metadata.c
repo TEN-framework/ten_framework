@@ -23,6 +23,7 @@
 #include "ten_utils/lib/error.h"
 #include "ten_utils/lib/string.h"
 #include "ten_utils/macro/check.h"
+#include "ten_utils/macro/mark.h"
 #include "ten_utils/macro/memory.h"
 #include "ten_utils/value/value.h"
 #include "ten_utils/value/value_get.h"
@@ -138,14 +139,19 @@ bool ten_app_init_log_file(ten_app_t *self, ten_value_t *value) {
   return true;
 }
 
-static void ten_app_encrypt_log_data(ten_log_t *self, uint8_t *data,
-                                     size_t data_len, void *user_data) {
+static void ten_app_encrypt_log_data(uint8_t *data, size_t data_len,
+                                     void *user_data) {
 #if defined(TEN_ENABLE_TEN_RUST_APIS)
-  EncryptionAlgorithm *algorithm = (EncryptionAlgorithm *)user_data;
-  bool rc = ten_encrypt_inplace(algorithm, data, data_len);
-  if (!rc) {
-    TEN_LOGE("Failed to encrypt log data.");
-  }
+  CipherType *cipher = (CipherType *)user_data;
+  TEN_UNUSED bool rc = ten_cipher_encrypt_inplace(cipher, data, data_len);
+  // For now, we just ignore the return value.
+#endif
+}
+
+static void ten_app_encrypt_log_deinit(void *user_data) {
+#if defined(TEN_ENABLE_TEN_RUST_APIS)
+  CipherType *cipher = (CipherType *)user_data;
+  ten_cipher_destroy(cipher);
 #endif
 }
 
@@ -212,9 +218,10 @@ bool ten_app_init_log(ten_app_t *self, ten_value_t *value) {
 
         ten_json_destroy(json_params);
 
-        EncryptionAlgorithm *algorithm = ten_encrypt_algorithm_create(
+        CipherType *cipher = ten_cipher_create(
             ten_string_get_raw_str(&algorithm_name), params_str);
-        ten_log_global_set_encrypt_cb(ten_app_encrypt_log_data, algorithm);
+        ten_log_global_set_encrypt_cb(ten_app_encrypt_log_data, cipher);
+        ten_log_global_set_encrypt_deinit_cb(ten_app_encrypt_log_deinit);
 
         if (must_free) {
           TEN_FREE(params_str);

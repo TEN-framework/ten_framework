@@ -18,58 +18,58 @@ def decrypt_file(
     nonce_length: Optional[int] = None,
 ) -> None:
     """
-    使用AES-128-CTR模式解密文件
+    Decrypt a file using AES-128-CTR mode
 
-    参数:
-        input_file: 要解密的源文件路径
-        output_file: 解密后的目标文件路径
-        key: AES密钥 (16字节)，字符串或字节格式
-        nonce: CTR模式使用的nonce (通常8-12字节)，字符串或字节格式
-        nonce_length: nonce占用的字节数，剩余部分用于计数器，默认为8
+    Args:
+        input_file: Path to the source file to decrypt
+        output_file: Path to the destination file after decryption
+        key: AES key (16 bytes), string or bytes format
+        nonce: Nonce used for CTR mode (typically 8-12 bytes), string or bytes format
+        nonce_length: Number of bytes used for nonce, remaining bytes for counter, default is 8
     """
-    # 确保key和nonce是字节格式
+    # Ensure key and nonce are in bytes format
     if isinstance(key, str):
         key = key.encode("utf-8")
     if isinstance(nonce, str):
         nonce = nonce.encode("utf-8")
 
-    # 验证key长度
+    # Validate key length
     if len(key) != 16:
-        raise ValueError(f"密钥必须为16字节 (当前长度: {len(key)}字节)")
+        raise ValueError(f"Key must be 16 bytes (current length: {len(key)} bytes)")
 
-    # 确定nonce_length
+    # Determine nonce_length
     if nonce_length is None:
         if len(nonce) <= 8:
             nonce_length = len(nonce)
         else:
-            nonce_length = 8  # 默认使用8字节作为nonce
+            nonce_length = 8  # Default to 8 bytes for nonce
 
-    # 创建正确的初始计数器值
+    # Create the correct initial counter value
     if len(nonce) == 16:
-        # 已经是完整的初始计数器值
+        # Already a complete initial counter value
         initial_value = nonce
     else:
-        # 需要构建初始计数器值
+        # Need to build initial counter value
         if len(nonce) < nonce_length:
             raise ValueError(
-                f"Nonce长度({len(nonce)})小于指定的nonce_length({nonce_length})"
+                f"Nonce length ({len(nonce)}) is less than specified nonce_length ({nonce_length})"
             )
 
-        # 取nonce的前nonce_length字节
+        # Take the first nonce_length bytes of nonce
         real_nonce = nonce[:nonce_length]
-        # 构建初始计数器值: nonce + 初始计数器(0)填充到16字节
+        # Build initial counter value: nonce + initial counter(0) padded to 16 bytes
         counter_part = b"\x00" * (16 - nonce_length)
-        # 将memoryview转换为bytes，然后再连接
+        # Convert memoryview to bytes, then concatenate
         initial_value = bytes(real_nonce) + counter_part
 
-    # 创建AES-CTR解密器
+    # Create AES-CTR decryptor
     cipher = Cipher(
         algorithms.AES(key), modes.CTR(initial_value), backend=default_backend()
     )
     decryptor = cipher.decryptor()
 
-    # 分批读取和解密数据
-    buffer_size = 64 * 1024  # 64KB缓冲区
+    # Read and decrypt data in chunks
+    buffer_size = 64 * 1024  # 64KB buffer
 
     with open(input_file, "rb") as in_file, open(output_file, "wb") as out_file:
         while True:
@@ -79,53 +79,46 @@ def decrypt_file(
             decrypted_data = decryptor.update(data)
             out_file.write(decrypted_data)
 
-        # 完成解密过程
+        # Finalize the decryption process
         out_file.write(decryptor.finalize())
 
-    print(f"文件已成功解密: {output_file}")
+    print(f"File successfully decrypted: {output_file}")
 
 
 def main() -> None:
-    """解析命令行参数并执行解密操作"""
-    parser = argparse.ArgumentParser(description="AES-128-CTR文件解密工具")
+    """Parse command line arguments and execute decryption operation"""
+    parser = argparse.ArgumentParser(description="AES-128-CTR file decryption tool")
     parser.add_argument(
-        "--input", "-i", required=True, help="要解密的源文件路径"
+        "--input", "-i", required=True, help="Path to the source file to decrypt"
     )
     parser.add_argument(
-        "--key", "-k", required=True, help="AES密钥 (16字节字符串)"
+        "--key", "-k", required=True, help="AES key (16 byte string)"
     )
     parser.add_argument(
-        "--nonce", "-n", required=True, help="CTR模式的nonce字符串"
+        "--nonce", "-n", required=True, help="Nonce string for CTR mode"
     )
     parser.add_argument(
-        "--output", "-o", required=True, help="解密后的目标文件路径"
-    )
-    parser.add_argument(
-        "--nonce-length",
-        "-l",
-        type=int,
-        help="nonce占用的字节数，默认为8",
-        default=8,
+        "--output", "-o", required=True, help="Path to the destination file after decryption"
     )
 
     args = parser.parse_args()
 
-    # 检查源文件是否存在
+    # Check if source file exists
     if not os.path.exists(args.input):
-        print(f"错误: 源文件 '{args.input}' 不存在")
+        print(f"Error: Source file '{args.input}' does not exist")
         return
 
-    # 确保目标文件目录存在
+    # Ensure destination file directory exists
     output_dir = os.path.dirname(args.output)
     if output_dir and not os.path.exists(output_dir):
         os.makedirs(output_dir)
 
     try:
         decrypt_file(
-            args.input, args.output, args.key, args.nonce, args.nonce_length
+            args.input, args.output, args.key, args.nonce, nonce_length=8
         )
     except Exception as e:
-        print(f"解密过程中出错: {e}")
+        print(f"Error during decryption: {e}")
 
 
 if __name__ == "__main__":

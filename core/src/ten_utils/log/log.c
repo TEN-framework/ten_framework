@@ -59,6 +59,10 @@ void ten_log_deinit(ten_log_t *self) {
   if (self->output.close_cb) {
     self->output.close_cb(self->output.user_data);
   }
+
+  if (self->encryption.deinit_cb) {
+    self->encryption.deinit_cb(self->encryption.impl);
+  }
 }
 
 void ten_log_destroy(ten_log_t *self) {

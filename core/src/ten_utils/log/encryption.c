@@ -12,12 +12,11 @@
 void ten_log_encryption_init(ten_log_encryption_t *self) {
   self->encrypt_cb = NULL;
   self->deinit_cb = NULL;
-  self->encrypt_cb_data = NULL;
+  self->impl = NULL;
 }
 
 void ten_log_encrypt_data(ten_log_t *self, uint8_t *data, size_t data_len) {
   if (self->encryption.encrypt_cb) {
-    self->encryption.encrypt_cb(self, data, data_len,
-                                self->encryption.encrypt_cb_data);
+    self->encryption.encrypt_cb(data, data_len, self->encryption.impl);
   }
 }

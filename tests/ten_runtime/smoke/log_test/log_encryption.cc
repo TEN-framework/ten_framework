@@ -6,6 +6,7 @@
 //
 #include <nlohmann/json.hpp>
 #include <string>
+#include <fstream>
 
 #include "gtest/gtest.h"
 #include "include_internal/ten_runtime/binding/cpp/ten.h"
@@ -37,13 +38,25 @@ class test_app : public ten::app_t {
   void on_configure(ten::ten_env_t &ten_env) override {
     bool rc = ten_env.init_property_from_json(
         // clang-format off
-        R"({
-             "_ten": {
-               "uri": "msgpack://127.0.0.1:8001/",
-               "log_level": 2,
-             }
-           })",
+                 R"({
+                      "_ten": {
+                        "uri": "msgpack://127.0.0.1:8001/",
+                        "log": {
+                            "level": 2,
+                            "file": "log_file.log",
+                            "encryption": {
+                              "enabled": true,
+                              "algorithm": "AES-CTR",
+                              "params": {
+                                "key": "0123456789012345",
+                                "nonce": "0123456789012345"
+                              }
+                            }
+                        }
+                      }
+                    })"
         // clang-format on
+        ,
         nullptr);
     ASSERT_EQ(rc, true);
 
@@ -59,12 +72,12 @@ void *test_app_thread_main(TEN_UNUSED void *args) {
   return nullptr;
 }
 
-TEN_CPP_REGISTER_ADDON_AS_EXTENSION(basic_hello_world_1__test_extension,
+TEN_CPP_REGISTER_ADDON_AS_EXTENSION(log_encryption__test_extension,
                                     test_extension);
 
 }  // namespace
 
-TEST(BasicTest, HelloWorld1) {  // NOLINT
+TEST(LogTest, LogEncryption) {  // NOLINT
   auto *app_thread =
       ten_thread_create("app thread", test_app_thread_main, nullptr);
 
@@ -77,7 +90,7 @@ TEST(BasicTest, HelloWorld1) {  // NOLINT
            "nodes": [{
                 "type": "extension",
                 "name": "test_extension",
-                "addon": "basic_hello_world_1__test_extension",
+                "addon": "log_encryption__test_extension",
                 "extension_group": "test_extension_group",
                 "app": "msgpack://127.0.0.1:8001/"
              }]
@@ -97,4 +110,8 @@ TEST(BasicTest, HelloWorld1) {  // NOLINT
   delete client;
 
   ten_thread_join(app_thread, -1);
+
+  // Check the log file exists.
+  std::ifstream log_file("log_file.log");
+  EXPECT_TRUE(log_file.good());
 }
