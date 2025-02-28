@@ -5,6 +5,11 @@
 // Refer to the "LICENSE" file in the root directory for more information.
 //
 
+use std::{
+    fs::File,
+    io::{Read, Write},
+};
+
 use ten_rust::crypto::{self, CipherAlgorithm};
 
 #[test]
@@ -43,8 +48,8 @@ fn test_aes_ctr_decrypt() {
     let mut decrypt_bytes = Vec::new();
     for i in 0..(hex_str.len() / 2) {
         let byte_str = &hex_str[i * 2..i * 2 + 2];
-        let byte =
-            u8::from_str_radix(byte_str, 16).expect("Invalid hexadecimal string");
+        let byte = u8::from_str_radix(byte_str, 16)
+            .expect("Invalid hexadecimal string");
         decrypt_bytes.push(byte);
     }
 
@@ -88,4 +93,48 @@ fn test_aes_ctr_invalid_nonce() {
     );
 
     assert!(cipher.is_err());
+}
+
+// These tests are used to test the encryption and decryption of files.
+
+// #[test]
+fn test_aes_ctr_encrypt_file() {
+    let file_path = "";
+    let output_path = "";
+    let key_str = "0123456789012345";
+    let nonce_str = "0123456789012345";
+    let mut cipher = crypto::new_cipher(
+        "AES-CTR",
+        &format!("{{\"key\": \"{}\", \"nonce\": \"{}\"}}", key_str, nonce_str),
+    )
+    .unwrap();
+
+    let mut file = File::open(file_path).unwrap();
+    let mut file_content = Vec::new();
+    file.read_to_end(&mut file_content).unwrap();
+    cipher.encrypt(&mut file_content);
+
+    let mut file = File::create(output_path).unwrap();
+    file.write_all(&file_content).unwrap();
+}
+
+// #[test]
+fn test_aes_ctr_decrypt_file() {
+    let file_path = "";
+    let output_path = "";
+    let key_str = "0123456789012345";
+    let nonce_str = "0123456789012345";
+    let mut cipher = crypto::new_cipher(
+        "AES-CTR",
+        &format!("{{\"key\": \"{}\", \"nonce\": \"{}\"}}", key_str, nonce_str),
+    )
+    .unwrap();
+
+    let mut file = File::open(file_path).unwrap();
+    let mut file_content = Vec::new();
+    file.read_to_end(&mut file_content).unwrap();
+    cipher.encrypt(&mut file_content);
+
+    let mut file = File::create(output_path).unwrap();
+    file.write_all(&file_content).unwrap();
 }
