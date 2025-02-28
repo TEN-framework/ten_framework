@@ -6,6 +6,7 @@
 //
 #include <nlohmann/json.hpp>
 #include <string>
+#include <vector>
 
 #include "gtest/gtest.h"
 #include "include_internal/ten_runtime/binding/cpp/ten.h"
@@ -24,6 +25,8 @@ class test_extension_1 : public ten::extension_t {
   void on_cmd(ten::ten_env_t &ten_env,
               std::unique_ptr<ten::cmd_t> cmd) override {
     if (cmd->get_name() == "hello_world") {
+      ten_random_sleep_ms(10);
+
       ten_env.send_cmd(std::move(cmd));
       return;
     }
@@ -71,8 +74,7 @@ class test_app_1 : public ten::app_t {
                       }
                     })"
         // clang-format on
-        ,
-        nullptr);
+    );
     ASSERT_EQ(rc, true);
 
     ten_env.on_configure_done();
@@ -92,8 +94,7 @@ class test_app_2 : public ten::app_t {
                       }
                     })"
         // clang-format on
-        ,
-        nullptr);
+    );
     ASSERT_EQ(rc, true);
 
     ten_env.on_configure_done();
@@ -116,22 +117,25 @@ void *app_thread_2_main(TEN_UNUSED void *args) {
   return nullptr;
 }
 
-TEN_CPP_REGISTER_ADDON_AS_EXTENSION(
-    basic_multi_app_close_through_engine__extension_1, test_extension_1);
-TEN_CPP_REGISTER_ADDON_AS_EXTENSION(
-    basic_multi_app_close_through_engine__extension_2, test_extension_2);
+TEN_CPP_REGISTER_ADDON_AS_EXTENSION(multi_app_concurrent_3__extension_1,
+                                    test_extension_1);
+TEN_CPP_REGISTER_ADDON_AS_EXTENSION(multi_app_concurrent_3__extension_2,
+                                    test_extension_2);
 
-}  // namespace
-
-TEST(BasicTest, MultiAppCloseThroughEngine) {  // NOLINT
-  // Start app.
-  auto *app_thread_2 =
-      ten_thread_create("app thread 2", app_thread_2_main, nullptr);
-  auto *app_thread_1 =
-      ten_thread_create("app thread 1", app_thread_1_main, nullptr);
-
+void *client_thread_main(TEN_UNUSED void *args) {
   ten::msgpack_tcp_client_t *client = nullptr;
 
+  // In a scenario which contains multiple TEN app, the construction of a
+  // graph might failed because not all TEN app has already been launched
+  // successfully.
+  //
+  //     client -> (connect cmd) -> TEN app 1 ... TEN app 2
+  //                                    o             x
+  //
+  // In this case, the newly constructed engine in the app 1 would be closed,
+  // and the client would see that the connection has be dropped. After that,
+  // the client could retry to send the 'start_graph' command again to inform
+  // the TEN app to build the graph again.
   for (size_t i = 0; i < MULTIPLE_APP_SCENARIO_GRAPH_CONSTRUCTION_RETRY_TIMES;
        ++i) {
     // Create a client and connect to the app.
@@ -143,15 +147,15 @@ TEST(BasicTest, MultiAppCloseThroughEngine) {  // NOLINT
            "nodes": [{
                  "type": "extension",
                  "name": "test_extension_1",
-                 "addon": "basic_multi_app_close_through_engine__extension_1",
+                 "addon": "multi_app_concurrent_3__extension_1",
                  "app": "msgpack://127.0.0.1:8001/",
-                 "extension_group": "test_extension_group 1"
+                 "extension_group": "test_extension_group_1"
                },{
                  "type": "extension",
                  "name": "test_extension_2",
-                 "addon": "basic_multi_app_close_through_engine__extension_2",
+                 "addon": "multi_app_concurrent_3__extension_2",
                  "app": "msgpack://127.0.0.1:8002/",
-                 "extension_group": "test_extension_group 2"
+                 "extension_group": "test_extension_group_2"
                }],
                "connections": [{
                  "app": "msgpack://127.0.0.1:8001/",
@@ -176,7 +180,7 @@ TEST(BasicTest, MultiAppCloseThroughEngine) {  // NOLINT
       client = nullptr;
 
       // To prevent from busy re-trying.
-      ten_random_sleep_ms(10);
+      ten_random_sleep_ms(100);
     }
   }
 
@@ -185,17 +189,47 @@ TEST(BasicTest, MultiAppCloseThroughEngine) {  // NOLINT
   // Send a user-defined 'hello world' command.
   auto hello_world_cmd = ten::cmd_t::create("hello_world");
   hello_world_cmd->set_dest("msgpack://127.0.0.1:8001/", nullptr,
-                            "test_extension_group 1", "test_extension_1");
+                            "test_extension_group_1", "test_extension_1");
+
   auto cmd_result =
       client->send_cmd_and_recv_result(std::move(hello_world_cmd));
+
   ten_test::check_status_code(cmd_result, TEN_STATUS_CODE_OK);
   ten_test::check_detail_with_string(cmd_result, "hello world, too");
 
-  // The 'client' is actually connected the 'engine', so the following
-  // 'close_app()' is actually to close the app through the engine.
-  client->close_app();
   delete client;
 
+  return nullptr;
+}
+
+}  // namespace
+
+TEST(ExtensionTest, MultiAppConcurrent3) {  // NOLINT
+  // Start app.
+  auto *app_thread_2 =
+      ten_thread_create("app thread 2", app_thread_2_main, nullptr);
+  auto *app_thread_1 =
+      ten_thread_create("app thread 1", app_thread_1_main, nullptr);
+
+  std::vector<ten_thread_t *> client_threads;
+
+  for (size_t i = 0; i < ONE_ENGINE_ONE_CLIENT_CONCURRENT_CNT; ++i) {
+    auto *client_thread =
+        ten_thread_create("client_thread_main", client_thread_main, nullptr);
+
+    client_threads.push_back(client_thread);
+  }
+
+  for (ten_thread_t *client_thread : client_threads) {
+    ten_thread_join(client_thread, -1);
+  }
+
+  // Because the closing of an engine would _not_ cause the closing of the app,
+  // so we have to explicitly close the app.
+  ten::msgpack_tcp_client_t::close_app("msgpack://127.0.0.1:8001/");
+
+  // Because the closing of an engine would _not_ cause the closing of the app,
+  // so we have to explicitly close the app.
   ten::msgpack_tcp_client_t::close_app("msgpack://127.0.0.1:8002/");
 
   ten_thread_join(app_thread_1, -1);

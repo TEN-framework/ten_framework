@@ -44,7 +44,7 @@ class test_extension_2 : public ten::extension_t {
   explicit test_extension_2(const char *name) : ten::extension_t(name) {}
 
   void on_configure(ten::ten_env_t &ten_env) override {
-    ten_sleep_ms(1000);
+    ten_random_sleep_ms(1000);
     ten_env.on_configure_done();
   }
 
@@ -53,7 +53,7 @@ class test_extension_2 : public ten::extension_t {
     auto *ten_env_proxy = ten::ten_env_proxy_t::create(ten_env);
 
     stop_thread_ = std::thread([ten_env_proxy]() {
-      ten_sleep_ms(1000);
+      ten_random_sleep_ms(1000);
       ten_env_proxy->notify([](ten::ten_env_t &ten_env) {
         auto cmd = ten::cmd_t::create("bye");
         ten_env.send_cmd(std::move(cmd),

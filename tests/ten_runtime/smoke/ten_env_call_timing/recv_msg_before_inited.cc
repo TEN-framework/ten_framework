@@ -46,7 +46,7 @@ class test_extension_2 : public ten::extension_t {
     auto *ten_env_proxy = ten::ten_env_proxy_t::create(ten_env);
 
     start_thread_ = std::thread([ten_env_proxy, this]() {
-      ten_sleep_ms(1000);
+      ten_random_sleep_ms(1000);
 
       ten_env_proxy->notify([this](ten::ten_env_t &ten_env) {
         // Only after calling on_init_done(), commands can be processed through

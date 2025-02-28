@@ -24,7 +24,7 @@ class test_extension_1 : public ten::extension_t {
     auto cmd = ten::cmd_t::create("test");
 
     // Sleep 1 second to make sure test_extension_2 has been initialized.
-    ten_sleep_ms(1000);
+    ten_random_sleep_ms(1000);
 
     ten_env.send_cmd(
         std::move(cmd),

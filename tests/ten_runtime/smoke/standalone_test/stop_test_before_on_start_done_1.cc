@@ -77,7 +77,7 @@ class extension_tester_1 : public ten::extension_tester_t {
           // Create an other thread to test if the runtime can handle the
           // situation where stop_test() is called before on_start_done.
           thread_ = std::thread([ten_env_proxy]() {
-            ten_sleep_ms(1000);
+            ten_random_sleep_ms(1000);
 
             ten_env_proxy->notify([](ten::ten_env_tester_t &ten_env) {
               ten_env.on_start_done();

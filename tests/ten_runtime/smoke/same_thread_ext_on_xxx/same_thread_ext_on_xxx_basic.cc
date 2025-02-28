@@ -63,7 +63,7 @@ class test_extension_2 : public ten::extension_t {
       // by test_extension_1::on_cmd(). If yes, the following checking would be
       // success, otherwise, 'test_data' would be freed by test_extension_1, so
       // that the following checking would be failed.
-      ten_sleep_ms(1000);
+      ten_random_sleep_ms(1000);
 
       auto *test_data =
           static_cast<uint64_t *>(cmd->get_property_ptr("test_data"));

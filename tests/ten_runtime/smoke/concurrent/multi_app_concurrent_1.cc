@@ -115,9 +115,9 @@ void *app_thread_2_main(TEN_UNUSED void *args) {
   return nullptr;
 }
 
-TEN_CPP_REGISTER_ADDON_AS_EXTENSION(multi_app_concurrent__extension_1,
+TEN_CPP_REGISTER_ADDON_AS_EXTENSION(multi_app_concurrent_1__extension_1,
                                     test_extension_1);
-TEN_CPP_REGISTER_ADDON_AS_EXTENSION(multi_app_concurrent__extension_2,
+TEN_CPP_REGISTER_ADDON_AS_EXTENSION(multi_app_concurrent_1__extension_2,
                                     test_extension_2);
 
 void *client_thread_main(TEN_UNUSED void *args) {
@@ -145,13 +145,13 @@ void *client_thread_main(TEN_UNUSED void *args) {
            "nodes": [{
                  "type": "extension",
                  "name": "test_extension_1",
-                 "addon": "multi_app_concurrent__extension_1",
+                 "addon": "multi_app_concurrent_1__extension_1",
                  "app": "msgpack://127.0.0.1:8001/",
                  "extension_group": "test_extension_group_1"
                },{
                  "type": "extension",
                  "name": "test_extension_2",
-                 "addon": "multi_app_concurrent__extension_2",
+                 "addon": "multi_app_concurrent_1__extension_2",
                  "app": "msgpack://127.0.0.1:8002/",
                  "extension_group": "test_extension_group_2"
                }],
@@ -178,7 +178,7 @@ void *client_thread_main(TEN_UNUSED void *args) {
       client = nullptr;
 
       // To prevent from busy re-trying.
-      ten_sleep_ms(10);
+      ten_random_sleep_ms(100);
     }
   }
 
@@ -202,7 +202,7 @@ void *client_thread_main(TEN_UNUSED void *args) {
 
 }  // namespace
 
-TEST(ExtensionTest, MultiAppConcurrent) {  // NOLINT
+TEST(ExtensionTest, MultiAppConcurrent1) {  // NOLINT
   // Start app.
   auto *app_thread_2 =
       ten_thread_create("app thread 2", app_thread_2_main, nullptr);

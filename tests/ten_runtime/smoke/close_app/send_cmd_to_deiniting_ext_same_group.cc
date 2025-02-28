@@ -56,7 +56,7 @@ class test_extension_1 final : public ten::extension_t {
     auto *ten_env_proxy = ten::ten_env_proxy_t::create(ten_env);
 
     deinit_thread_ = std::thread([ten_env_proxy]() {
-      ten_sleep_ms(3000);
+      ten_random_sleep_ms(3000);
 
       ten_env_proxy->notify(
           [](ten::ten_env_t &ten_env) { ten_env.on_deinit_done(); });
@@ -79,7 +79,7 @@ class test_extension_2 : public ten::extension_t {
     auto *ten_env_proxy = ten::ten_env_proxy_t::create(ten_env);
 
     stop_thread_ = std::thread([ten_env_proxy]() {
-      ten_sleep_ms(1000);
+      ten_random_sleep_ms(1000);
 
       ten_env_proxy->notify([](ten::ten_env_t &ten_env) {
         auto cmd = ten::cmd_t::create("bye");

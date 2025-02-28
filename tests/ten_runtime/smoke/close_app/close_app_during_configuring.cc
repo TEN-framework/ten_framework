@@ -51,7 +51,7 @@ class test_extension_2 : public ten::extension_t {
     // triggered. The actual close app process will only take place after the
     // `on_xxx_done` event has occurred.
     thread_ = std::thread([ten_env_proxy]() {
-      ten_sleep_ms(1000);
+      ten_random_sleep_ms(1000);
 
       ten_env_proxy->notify(
           [](ten::ten_env_t &ten_env) { ten_env.on_configure_done(); });

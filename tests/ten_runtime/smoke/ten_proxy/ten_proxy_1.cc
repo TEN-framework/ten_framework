@@ -43,7 +43,7 @@ class test_extension_1 : public ten::extension_t {
 
     // Wait 2 seconds.
     TEN_LOGD("Waiting 2 seconds...");
-    ten_sleep_ms(2000);
+    ten_random_sleep_ms(2000);
 
     // Before deleting ten_env_proxy, this extension will not be removed, so
     // test_data can be accessed normally.

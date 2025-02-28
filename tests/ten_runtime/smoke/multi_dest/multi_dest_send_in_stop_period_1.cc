@@ -50,7 +50,7 @@ class test_extension_2 : public ten::extension_t {
   void on_cmd(ten::ten_env_t &ten_env,
               std::unique_ptr<ten::cmd_t> cmd) override {
     if (cmd->get_name() == "hello_world") {
-      ten_sleep_ms(500);
+      ten_random_sleep_ms(500);
 
       auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK, *cmd);
       cmd_result->set_property("detail", "hello world, too");
@@ -62,7 +62,7 @@ class test_extension_2 : public ten::extension_t {
       // result of the `extension_1_stop` command, it may or may not receive
       // this result.
 
-      ten_sleep_ms(500);
+      ten_random_sleep_ms(500);
 
       TEN_ENV_LOG_INFO(ten_env, "got extension_1_stop.");
 
@@ -107,7 +107,7 @@ class test_extension_3 : public ten::extension_t {
       // it's also possible that it wasn't received, and the extension thread 3
       // has already ended.
 
-      ten_sleep_ms(500);
+      ten_random_sleep_ms(500);
 
       auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK, *cmd);
       cmd_result->set_property("detail", "extension_1_stop, too");
