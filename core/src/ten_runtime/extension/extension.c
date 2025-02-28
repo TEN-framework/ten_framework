@@ -615,19 +615,20 @@ bool ten_extension_dispatch_msg(ten_extension_t *self, ten_shared_ptr_t *msg,
 
   ten_msg_correct_dest(msg, self->extension_context->engine);
 
-  // The schema validation of the `msg` must be happened before
-  // `ten_extension_determine_out_msgs()`, the reasons are as follows:
+  // The schema check for `msg` must be performed before message conversion and
+  // path deletion for the following reasons:
   //
-  // 1. The schema of the msg sending out or returning from the extension is
-  // defined by the extension itself, however there might have some conversions
-  // defined by users of the extension (ex: the conversion will be defined in a
-  // graph). So the schema validation should be happened _before_ the
-  // conversions as the structure of the msg might be changed after conversions.
+  // 1. The schema of `msg` sent or returned by the extension is defined by the
+  // extension itself. However, message conversion may be defined within the
+  // graph. Therefore, the schema check should be conducted before the
+  // conversion, as the structure of `msg` may change after conversion.
   //
-  // 2. For cmd result, its path will be removed in
-  // `ten_path_table_process_cmd_result()`. But users can call `return_result()`
-  // twice if the schema validation fails in the first time. In other words, the
-  // path can not be removed if the schema validation fails.
+  // 2. For `cmd_result`, its path may be removed in
+  // `ten_path_table_process_cmd_result()`. However, if the schema check fails,
+  // it means that the `cmd_result` has failed to be sent. In this case, the
+  // user can handle the failure and call `return_result()` again. Therefore, if
+  // the schema check fails, the path should not be removed, which is a
+  // reasonable approach.
   if (!ten_extension_validate_msg_schema(self, msg, true, err)) {
     result = false;
     goto done;
