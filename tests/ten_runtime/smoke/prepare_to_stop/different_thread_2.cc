@@ -57,7 +57,7 @@ class test_extension_2 : public ten::extension_t {
     } else if (cmd->get_name() == "extension_1_deinit") {
       // To ensure that extension 1 will be on_deinit_done() after the extension
       // 2 completes its job.
-      ten_random_sleep_ms(500);
+      ten_sleep_ms(500);
 
       check = 2;
 
