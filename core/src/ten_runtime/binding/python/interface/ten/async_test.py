@@ -161,6 +161,9 @@ class AsyncTenEnvTester(TenEnvTesterBase):
 
 class AsyncExtensionTester(_ExtensionTester):
     def __init__(self) -> None:
+        self._ten_loop = None
+        self._async_ten_env_tester = None
+        self._ten_thread = None
         self._ten_stop_event = asyncio.Event()
 
     def __del__(self) -> None:
@@ -188,6 +191,8 @@ class AsyncExtensionTester(_ExtensionTester):
         os._exit(1)
 
     async def _thread_routine(self, ten_env_tester: TenEnvTester) -> None:
+        assert self._ten_thread is not None
+
         self._ten_loop = asyncio.get_running_loop()
         self._async_ten_env_tester = AsyncTenEnvTester(
             ten_env_tester, self._ten_loop, self._ten_thread
@@ -226,11 +231,17 @@ class AsyncExtensionTester(_ExtensionTester):
 
     @final
     async def _proxy_async_on_stop(self, ten_env_tester: TenEnvTester):
+        assert self._async_ten_env_tester is not None
+
         await self._wrapper_on_stop(self._async_ten_env_tester)
+        # pylint: disable=protected-access
         ten_env_tester._internal.on_stop_done()
+        # pylint: enable=protected-access
 
     @final
     def _proxy_on_stop(self, ten_env_tester: TenEnvTester) -> None:
+        assert self._ten_loop is not None
+
         asyncio.run_coroutine_threadsafe(
             self._proxy_async_on_stop(ten_env_tester), self._ten_loop
         )
@@ -247,18 +258,27 @@ class AsyncExtensionTester(_ExtensionTester):
     async def _proxy_async_on_deinit(
         self, ten_env_tester: TenEnvTester
     ) -> None:
+        assert self._async_ten_env_tester is not None
+
         await self._wrapper_on_deinit(self._async_ten_env_tester)
+        # pylint: disable=protected-access
         ten_env_tester._internal.on_deinit_done()
+        # pylint: enable=protected-access
 
     @final
-    def _proxy_on_deinit(self, ten_env_tester: TenEnvTester) -> None:
+    def _proxy_on_deinit(self, _ten_env_tester: TenEnvTester) -> None:
+        assert self._ten_loop is not None
+
         asyncio.run_coroutine_threadsafe(
-            self._proxy_async_on_deinit(ten_env_tester),
+            self._proxy_async_on_deinit(_ten_env_tester),
             self._ten_loop,
         )
 
     @final
-    def _proxy_on_cmd(self, ten_env_tester: TenEnvTester, cmd: Cmd) -> None:
+    def _proxy_on_cmd(self, _ten_env_tester: TenEnvTester, cmd: Cmd) -> None:
+        assert self._async_ten_env_tester is not None
+        assert self._ten_loop is not None
+
         asyncio.run_coroutine_threadsafe(
             self._wrapper_on_cmd(self._async_ten_env_tester, cmd),
             self._ten_loop,
@@ -273,7 +293,10 @@ class AsyncExtensionTester(_ExtensionTester):
             self._exit_on_exception(ten_env_tester, e)
 
     @final
-    def _proxy_on_data(self, ten_env_tester: TenEnvTester, data: Data) -> None:
+    def _proxy_on_data(self, _ten_env_tester: TenEnvTester, data: Data) -> None:
+        assert self._async_ten_env_tester is not None
+        assert self._ten_loop is not None
+
         asyncio.run_coroutine_threadsafe(
             self._wrapper_on_data(self._async_ten_env_tester, data),
             self._ten_loop,
@@ -289,8 +312,11 @@ class AsyncExtensionTester(_ExtensionTester):
 
     @final
     def _proxy_on_audio_frame(
-        self, ten_env_tester: TenEnvTester, audio_frame: AudioFrame
+        self, _ten_env_tester: TenEnvTester, audio_frame: AudioFrame
     ) -> None:
+        assert self._async_ten_env_tester is not None
+        assert self._ten_loop is not None
+
         asyncio.run_coroutine_threadsafe(
             self._wrapper_on_audio_frame(
                 self._async_ten_env_tester, audio_frame
@@ -308,8 +334,11 @@ class AsyncExtensionTester(_ExtensionTester):
 
     @final
     def _proxy_on_video_frame(
-        self, ten_env_tester: TenEnvTester, video_frame: VideoFrame
+        self, _ten_env_tester: TenEnvTester, video_frame: VideoFrame
     ) -> None:
+        assert self._async_ten_env_tester is not None
+        assert self._ten_loop is not None
+
         asyncio.run_coroutine_threadsafe(
             self._wrapper_on_video_frame(
                 self._async_ten_env_tester, video_frame
@@ -362,7 +391,9 @@ class AsyncExtensionTester(_ExtensionTester):
         # for testing has already ended. Therefore, the process to terminate the
         # asyncio thread/runloop is initiated.
 
-        if hasattr(self, "_ten_thread") and self._ten_thread.is_alive():
+        if self._ten_thread and self._ten_thread.is_alive():
+            assert self._ten_loop is not None
+
             asyncio.run_coroutine_threadsafe(
                 self._stop_thread(), self._ten_loop
             )
@@ -370,29 +401,27 @@ class AsyncExtensionTester(_ExtensionTester):
             # Wait for the asyncio thread to finish.
             self._ten_thread.join()
 
-    async def on_start(self, ten_env_tester: AsyncTenEnvTester) -> None:
+    async def on_start(self, ten_env: AsyncTenEnvTester) -> None:
         pass
 
-    async def on_stop(self, ten_env_tester: AsyncTenEnvTester) -> None:
+    async def on_stop(self, ten_env: AsyncTenEnvTester) -> None:
         pass
 
-    async def on_deinit(self, ten_env_tester: AsyncTenEnvTester) -> None:
+    async def on_deinit(self, ten_env: AsyncTenEnvTester) -> None:
         pass
 
-    async def on_cmd(self, ten_env_tester: AsyncTenEnvTester, cmd: Cmd) -> None:
+    async def on_cmd(self, ten_env: AsyncTenEnvTester, cmd: Cmd) -> None:
         pass
 
-    async def on_data(
-        self, ten_env_tester: AsyncTenEnvTester, data: Data
-    ) -> None:
+    async def on_data(self, ten_env: AsyncTenEnvTester, data: Data) -> None:
         pass
 
     async def on_audio_frame(
-        self, ten_env_tester: AsyncTenEnvTester, audio_frame: AudioFrame
+        self, ten_env: AsyncTenEnvTester, audio_frame: AudioFrame
     ) -> None:
         pass
 
     async def on_video_frame(
-        self, ten_env_tester: AsyncTenEnvTester, video_frame: VideoFrame
+        self, ten_env: AsyncTenEnvTester, video_frame: VideoFrame
     ) -> None:
         pass
