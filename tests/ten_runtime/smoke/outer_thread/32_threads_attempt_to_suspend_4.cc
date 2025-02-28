@@ -58,11 +58,11 @@ class test_extension_1 : public ten::extension_t {
         bool rc = ten_env_proxy->acquire_lock_mode();                        \
         TEN_ASSERT(rc, "Failed to acquire lock mode.");                      \
                                                                              \
-        ten_random_sleep_ms(5);                                              \
+        ten_random_sleep_ms(2);                                              \
                                                                              \
         ten_env_proxy->notify(send_data_from_outer_thread, test_data, true); \
                                                                              \
-        ten_random_sleep_ms(3);                                              \
+        ten_random_sleep_ms(2);                                              \
                                                                              \
         rc = ten_env_proxy->release_lock_mode();                             \
         TEN_ASSERT(rc, "Failed to release lock mode.");                      \

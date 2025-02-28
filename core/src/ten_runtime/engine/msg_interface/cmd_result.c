@@ -18,7 +18,6 @@
 #include "include_internal/ten_runtime/msg/cmd_base/cmd_base.h"
 #include "include_internal/ten_runtime/msg/cmd_base/cmd_result/cmd.h"
 #include "include_internal/ten_runtime/msg/msg.h"
-#include "include_internal/ten_runtime/path/path.h"
 #include "include_internal/ten_runtime/path/path_table.h"
 #include "include_internal/ten_runtime/remote/remote.h"
 #include "include_internal/ten_utils/log/log.h"
@@ -81,42 +80,6 @@ static bool ten_engine_close_duplicated_remote_or_upgrade_it_to_normal(
   return true;
 }
 
-static ten_shared_ptr_t *
-ten_engine_process_out_path(ten_engine_t *self, ten_shared_ptr_t *cmd_result,
-                            ten_error_t *err) {
-  TEN_ASSERT(self && ten_engine_check_integrity(self, true),
-             "Should not happen.");
-  TEN_ASSERT(cmd_result &&
-                 ten_msg_get_type(cmd_result) == TEN_MSG_TYPE_CMD_RESULT &&
-                 ten_msg_get_dest_cnt(cmd_result) == 1,
-             "Should not happen.");
-
-  ten_path_t *out_path = ten_path_table_find_path_and_set_result(
-      self->path_table, TEN_PATH_OUT, cmd_result);
-  if (!out_path) {
-    TEN_LOGD("[%s] IN path is missing, discard cmd result.",
-             ten_engine_get_id(self, true));
-    return NULL;
-  }
-
-  TEN_ASSERT(ten_path_check_integrity(out_path, true), "Should not happen.");
-
-  bool is_final_result = ten_cmd_result_is_final(cmd_result, err);
-  // Currently, all `cmd_results` processed by the engine will _not_ be
-  // streaming `cmd_results`.
-  TEN_ASSERT(is_final_result, "Should not happen.");
-
-  // Check whether _all_ cmd_results related to this command have been received
-  // to determine whether to proceed with the next steps of the cmd flow.
-  cmd_result = ten_path_table_determine_actual_cmd_result(
-      self->path_table, TEN_PATH_OUT, out_path, is_final_result);
-  if (!cmd_result) {
-    return NULL;
-  }
-
-  return cmd_result;
-}
-
 static bool ten_engine_handle_cmd_result_for_cmd_start_graph(
     ten_engine_t *self, ten_shared_ptr_t *cmd_result, ten_error_t *err) {
   TEN_ASSERT(self && ten_engine_check_integrity(self, true),
@@ -137,11 +100,20 @@ static bool ten_engine_handle_cmd_result_for_cmd_start_graph(
     TEN_ASSERT(rc, "Should not happen.");
   }
 
-  cmd_result = ten_engine_process_out_path(self, cmd_result, err);
-  if (!cmd_result) {
+  ten_shared_ptr_t *processed_cmd_result = NULL;
+  bool proceed = ten_path_table_process_cmd_result(
+      self->path_table, TEN_PATH_OUT, cmd_result, &processed_cmd_result);
+  if (!proceed) {
     TEN_LOGD(
         "The 'start_graph' flow is not completed, skip the cmd_result now.");
     return true;
+  }
+
+  bool delete_msg = false;
+
+  if (processed_cmd_result != cmd_result) {
+    cmd_result = processed_cmd_result;
+    delete_msg = true;
   }
 
   // The processing of the 'start_graph' flows are completed.
@@ -186,7 +158,9 @@ static bool ten_engine_handle_cmd_result_for_cmd_start_graph(
     TEN_ASSERT(0, "Should not happen.");
   }
 
-  ten_shared_ptr_destroy(cmd_result);
+  if (delete_msg) {
+    ten_shared_ptr_destroy(cmd_result);
+  }
 
   return true;
 }
