@@ -909,6 +909,9 @@ class test_extension_2 : public ten::extension_t {
                       if ((hello_cmd != nullptr) && is_received_all_data() &&
                           (received_from_extension_2_cmd_result ==
                            expected_received_from_extension_2_cmd_result)) {
+                        TEN_LOGI(
+                            "extension_2 received all data, return result.");
+
                         auto cmd_result = ten::cmd_result_t::create(
                             TEN_STATUS_CODE_OK, *hello_cmd);
                         cmd_result->set_property("detail", "ok");
@@ -927,6 +930,8 @@ class test_extension_2 : public ten::extension_t {
       if (is_received_all_data() &&
           (received_from_extension_2_cmd_result ==
            expected_received_from_extension_2_cmd_result)) {
+        TEN_LOGI("extension_2 received all data, return result.");
+
         auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK, *cmd);
         cmd_result->set_property("detail", "ok");
         ten_env.return_result(std::move(cmd_result));
@@ -946,6 +951,7 @@ class test_extension_2 : public ten::extension_t {
     TEN_ASSERT(data_received_count[outer_thread_num] == received_value,
                "should be %d, but get %d",
                data_received_count[outer_thread_num], received_value);
+
     data_received_count[outer_thread_num]++;
 
     if (data_received_count[outer_thread_num] % 50 == 0) {
@@ -956,6 +962,8 @@ class test_extension_2 : public ten::extension_t {
     if ((hello_cmd != nullptr) && is_received_all_data() &&
         (received_from_extension_2_cmd_result ==
          expected_received_from_extension_2_cmd_result)) {
+      TEN_LOGI("extension_2 received all data, return result.");
+
       auto cmd_result =
           ten::cmd_result_t::create(TEN_STATUS_CODE_OK, *hello_cmd);
       cmd_result->set_property("detail", "ok");
@@ -965,6 +973,8 @@ class test_extension_2 : public ten::extension_t {
 
   void on_stop(ten::ten_env_t &ten_env) override {
     TEN_ASSERT(timeout_thread, "Should not happen.");
+
+    TEN_ENV_LOG_INFO(ten_env, "extension_2 join timeout thread.");
 
     timeout_thread->join();
     delete timeout_thread;
