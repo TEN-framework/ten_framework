@@ -10,14 +10,22 @@ use std::{ffi::CStr, os::raw::c_char};
 
 use crate::crypto;
 
-use super::EncryptionAlgorithm;
+use super::{CipherAlgorithm, CipherType};
 
+/// Create a cipher.
+///
+/// # Parameter
+/// - `algorithm`: The name of the encryption algorithm. e.g., "AES-CTR"
+/// - `params`: The parameters of the encryption algorithm in JSON format.
+///
+/// # Return value
+/// Returns a pointer to the cipher on success, otherwise returns `null`.
 #[no_mangle]
 #[allow(clippy::not_unsafe_ptr_arg_deref)]
-pub extern "C" fn ten_encrypt_algorithm_create(
+pub extern "C" fn ten_cipher_create(
     algorithm: *const c_char,
     params: *const c_char,
-) -> *mut EncryptionAlgorithm {
+) -> *mut CipherType {
     let algorithm_cstr = unsafe { CStr::from_ptr(algorithm) };
     let params_cstr = unsafe { CStr::from_ptr(params) };
 
@@ -37,27 +45,44 @@ pub extern "C" fn ten_encrypt_algorithm_create(
         return ptr::null_mut();
     }
 
-    let algorithm =
-        crypto::create_encryption_algorithm(algorithm_str, params_str);
+    let cipher = crypto::new_cipher(algorithm_str, params_str);
 
-    match algorithm {
-        Ok(algorithm) => Box::into_raw(Box::new(algorithm)),
+    match cipher {
+        Ok(cipher) => Box::into_raw(Box::new(cipher)),
         Err(_) => ptr::null_mut(),
     }
 }
 
+/// Destroy a cipher.
 #[no_mangle]
-pub unsafe extern "C" fn ten_encrypt_inplace(
-    algorithm_ptr: *mut EncryptionAlgorithm,
+#[allow(clippy::not_unsafe_ptr_arg_deref)]
+pub extern "C" fn ten_cipher_destroy(cipher_ptr: *mut CipherType) {
+    if !cipher_ptr.is_null() {
+        drop(unsafe { Box::from_raw(cipher_ptr) });
+    }
+}
+
+/// Encrypt data in place.
+///
+/// # Parameter
+/// - `cipher_ptr`: The pointer to the cipher.
+/// - `data`: The pointer to the data to be encrypted.
+/// - `data_len`: The length of the data to be encrypted.
+///
+/// # Return value
+/// Returns `true` on success, otherwise returns `false`.
+#[no_mangle]
+pub unsafe extern "C" fn ten_cipher_encrypt_inplace(
+    cipher_ptr: *mut CipherType,
     data: *mut u8,
-    data_len: i32,
+    data_len: usize,
 ) -> bool {
-    if algorithm_ptr.is_null() || data.is_null() || data_len <= 0 {
+    if cipher_ptr.is_null() || data.is_null() || data_len == 0 {
         return false;
     }
 
-    let algorithm = &mut *algorithm_ptr;
-    let data_slice = std::slice::from_raw_parts_mut(data, data_len as usize);
-    algorithm.encrypt(data_slice);
+    let cipher = &mut *cipher_ptr;
+    let data_slice = std::slice::from_raw_parts_mut(data, data_len);
+    cipher.encrypt(data_slice);
     true
 }

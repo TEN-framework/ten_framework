@@ -38,5 +38,9 @@ void ten_log_global_set_output_to_file(const char *log_path) {
 
 void ten_log_global_set_encrypt_cb(ten_log_encrypt_func_t cb, void *cb_data) {
   ten_global_log.encryption.encrypt_cb = cb;
-  ten_global_log.encryption.encrypt_cb_data = cb_data;
+  ten_global_log.encryption.impl = cb_data;
+}
+
+void ten_log_global_set_encrypt_deinit_cb(ten_log_encrypt_deinit_func_t cb) {
+  ten_global_log.encryption.deinit_cb = cb;
 }
