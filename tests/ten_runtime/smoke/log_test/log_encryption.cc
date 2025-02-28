@@ -4,9 +4,9 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
+#include <fstream>
 #include <nlohmann/json.hpp>
 #include <string>
-#include <fstream>
 
 #include "gtest/gtest.h"
 #include "include_internal/ten_runtime/binding/cpp/ten.h"
@@ -20,6 +20,11 @@ class test_extension : public ten::extension_t {
  public:
   explicit test_extension(const char *name) : ten::extension_t(name) {}
 
+  void on_init(ten::ten_env_t &ten_env) override {
+    TEN_ENV_LOG_INFO(ten_env, "check log encryption on_init");
+    ten_env.on_init_done();
+  }
+
   void on_cmd(ten::ten_env_t &ten_env,
               std::unique_ptr<ten::cmd_t> cmd) override {
     TEN_ENV_LOG_DEBUG(ten_env,
@@ -30,6 +35,11 @@ class test_extension : public ten::extension_t {
       cmd_result->set_property("detail", "hello world, too");
       ten_env.return_result(std::move(cmd_result));
     }
+  }
+
+  void on_deinit(ten::ten_env_t &ten_env) override {
+    TEN_ENV_LOG_INFO(ten_env, "check log encryption on_deinit");
+    ten_env.on_deinit_done();
   }
 };
 

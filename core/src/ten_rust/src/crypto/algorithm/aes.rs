@@ -9,6 +9,7 @@ use anyhow::Result;
 use ctr::cipher::{KeyIvInit, StreamCipher};
 use serde::de::{self};
 use serde::{Deserialize, Deserializer};
+use std::sync::Mutex;
 
 use crate::crypto::CipherAlgorithm;
 
@@ -20,13 +21,15 @@ pub struct AesCtrConfig {
 }
 
 pub struct AesCtrCipher {
-    cipher: Aes128Ctr128BE,
+    cipher: Mutex<Aes128Ctr128BE>,
 }
 
 pub fn new_aes_ctr_cipher(params: &str) -> Result<AesCtrCipher> {
     let config: AesCtrConfig = serde_json::from_str(params)?;
     let cipher = Aes128Ctr128BE::new(&config.key.into(), &config.nonce.into());
-    Ok(AesCtrCipher { cipher })
+    Ok(AesCtrCipher {
+        cipher: Mutex::new(cipher),
+    })
 }
 
 impl<'de> Deserialize<'de> for AesCtrConfig {
@@ -60,6 +63,7 @@ impl<'de> Deserialize<'de> for AesCtrConfig {
 
 impl CipherAlgorithm for AesCtrCipher {
     fn encrypt(&mut self, data: &mut [u8]) {
-        self.cipher.apply_keystream(data);
+        let mut cipher = self.cipher.lock().unwrap();
+        cipher.apply_keystream(data);
     }
 }
