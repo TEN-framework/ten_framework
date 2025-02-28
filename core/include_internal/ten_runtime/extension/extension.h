@@ -14,6 +14,7 @@
 #include "include_internal/ten_runtime/extension/msg_dest_info/all_msg_type_dest_info.h"
 #include "include_internal/ten_runtime/extension/path_timer.h"
 #include "include_internal/ten_runtime/metadata/metadata_info.h"
+#include "include_internal/ten_runtime/path/result_return_policy.h"
 #include "include_internal/ten_runtime/schema_store/store.h"
 #include "ten_runtime/binding/common.h"
 #include "ten_runtime/extension/extension.h"
@@ -257,7 +258,8 @@ TEN_RUNTIME_PRIVATE_API void ten_extension_set_addon(
     ten_extension_t *self, ten_addon_host_t *addon_host);
 
 TEN_RUNTIME_PRIVATE_API bool ten_extension_dispatch_msg(
-    ten_extension_t *extension, ten_shared_ptr_t *msg, ten_error_t *err);
+    ten_extension_t *extension, ten_shared_ptr_t *msg,
+    TEN_RESULT_RETURN_POLICY result_return_policy, ten_error_t *err);
 
 TEN_RUNTIME_PRIVATE_API ten_runloop_t *ten_extension_get_attached_runloop(
     ten_extension_t *self);

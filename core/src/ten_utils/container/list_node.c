@@ -39,8 +39,3 @@ void ten_listnode_destroy(ten_listnode_t *self) {
   }
   ten_free(self);
 }
-
-void ten_listnode_destroy_only(ten_listnode_t *self) {
-  TEN_ASSERT(self && ten_listnode_check_integrity(self), "Invalid argument.");
-  ten_free(self);
-}

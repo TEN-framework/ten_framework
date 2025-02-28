@@ -117,7 +117,7 @@ class ClientExtension(AsyncExtension):
             # the completion of the ten_env `on_deinit`, but will continue due
             # to the paths flushing mechanism before the C event loop closes.
             # However, all subsequent ten_env APIs will throw exceptions.
-            result, error = await ten_env.send_cmd(hang_cmd)
+            result, _ = await ten_env.send_cmd(hang_cmd)
             assert result is not None
             assert result.get_status_code() == StatusCode.ERROR
 

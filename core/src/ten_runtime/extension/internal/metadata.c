@@ -28,9 +28,9 @@ static bool ten_extension_determine_ten_namespace_properties(
     ten_extension_t *self, ten_value_t *ten_namespace_properties) {
   TEN_ASSERT(self && ten_extension_check_integrity(self, true),
              "Invalid argument.");
-  TEN_ASSERT(
-      ten_namespace_properties && ten_value_is_object(ten_namespace_properties),
-      "Invalid argument.");
+  TEN_ASSERT(ten_namespace_properties &&
+                 ten_value_is_object(ten_namespace_properties),
+             "Invalid argument.");
 
   ten_error_t err;
   TEN_ERROR_INIT(err);
@@ -61,6 +61,7 @@ static bool ten_extension_determine_ten_namespace_properties(
       } else {
         int64_t path_timeout = ten_value_get_int64(kv->value, &err);
         if (path_timeout > 0) {
+          self->path_timeout_info.in_path_timeout = path_timeout;
           self->path_timeout_info.out_path_timeout = path_timeout;
         }
       }
@@ -160,8 +161,8 @@ static void ten_extension_adjust_in_path_timeout(ten_extension_t *self) {
 
 // Retrieve those property fields that are reserved for the TEN runtime under
 // the 'ten' namespace.
-static ten_value_t *ten_extension_get_ten_namespace_properties(
-    ten_extension_t *self) {
+static ten_value_t *
+ten_extension_get_ten_namespace_properties(ten_extension_t *self) {
   TEN_ASSERT(self && ten_extension_check_integrity(self, true),
              "Should not happen.");
 
@@ -178,68 +179,67 @@ static bool ten_extension_graph_property_resolve_placeholders(
   }
 
   switch (curr_value->type) {
-    case TEN_TYPE_INT8:
-    case TEN_TYPE_INT16:
-    case TEN_TYPE_INT32:
-    case TEN_TYPE_INT64:
-    case TEN_TYPE_UINT8:
-    case TEN_TYPE_UINT16:
-    case TEN_TYPE_UINT32:
-    case TEN_TYPE_UINT64:
-    case TEN_TYPE_FLOAT32:
-    case TEN_TYPE_FLOAT64:
-      return true;
+  case TEN_TYPE_INT8:
+  case TEN_TYPE_INT16:
+  case TEN_TYPE_INT32:
+  case TEN_TYPE_INT64:
+  case TEN_TYPE_UINT8:
+  case TEN_TYPE_UINT16:
+  case TEN_TYPE_UINT32:
+  case TEN_TYPE_UINT64:
+  case TEN_TYPE_FLOAT32:
+  case TEN_TYPE_FLOAT64:
+    return true;
 
-    case TEN_TYPE_STRING: {
-      const char *str_value = ten_value_peek_raw_str(curr_value, err);
-      if (ten_c_str_is_placeholder(str_value)) {
-        ten_placeholder_t placeholder;
-        ten_placeholder_init(&placeholder);
+  case TEN_TYPE_STRING: {
+    const char *str_value = ten_value_peek_raw_str(curr_value, err);
+    if (ten_c_str_is_placeholder(str_value)) {
+      ten_placeholder_t placeholder;
+      ten_placeholder_init(&placeholder);
 
-        if (!ten_placeholder_parse(&placeholder, str_value, err)) {
-          return false;
-        }
-
-        if (!ten_placeholder_resolve(&placeholder, curr_value, err)) {
-          return false;
-        }
-
-        ten_placeholder_deinit(&placeholder);
+      if (!ten_placeholder_parse(&placeholder, str_value, err)) {
+        return false;
       }
-      return true;
-    }
 
-    case TEN_TYPE_OBJECT: {
-      ten_value_object_foreach(curr_value, iter) {
-        ten_value_kv_t *kv = ten_ptr_listnode_get(iter.node);
-        TEN_ASSERT(kv && ten_value_kv_check_integrity(kv),
-                   "Should not happen.");
-
-        ten_value_t *kv_value = ten_value_kv_get_value(kv);
-        if (!ten_extension_graph_property_resolve_placeholders(self, kv_value,
-                                                               err)) {
-          return false;
-        }
+      if (!ten_placeholder_resolve(&placeholder, curr_value, err)) {
+        return false;
       }
-      return true;
+
+      ten_placeholder_deinit(&placeholder);
     }
+    return true;
+  }
 
-    case TEN_TYPE_ARRAY: {
-      ten_value_array_foreach(curr_value, iter) {
-        ten_value_t *array_value = ten_ptr_listnode_get(iter.node);
-        TEN_ASSERT(array_value && ten_value_check_integrity(array_value),
-                   "Should not happen.");
+  case TEN_TYPE_OBJECT: {
+    ten_value_object_foreach(curr_value, iter) {
+      ten_value_kv_t *kv = ten_ptr_listnode_get(iter.node);
+      TEN_ASSERT(kv && ten_value_kv_check_integrity(kv), "Should not happen.");
 
-        if (!ten_extension_graph_property_resolve_placeholders(
-                self, array_value, err)) {
-          return false;
-        }
+      ten_value_t *kv_value = ten_value_kv_get_value(kv);
+      if (!ten_extension_graph_property_resolve_placeholders(self, kv_value,
+                                                             err)) {
+        return false;
       }
-      return true;
     }
+    return true;
+  }
 
-    default:
-      return true;
+  case TEN_TYPE_ARRAY: {
+    ten_value_array_foreach(curr_value, iter) {
+      ten_value_t *array_value = ten_ptr_listnode_get(iter.node);
+      TEN_ASSERT(array_value && ten_value_check_integrity(array_value),
+                 "Should not happen.");
+
+      if (!ten_extension_graph_property_resolve_placeholders(self, array_value,
+                                                             err)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  default:
+    return true;
   }
 
   TEN_ASSERT(0, "Should not happen.");
@@ -293,9 +293,9 @@ void ten_extension_merge_properties_from_graph(ten_extension_t *self) {
 // }
 bool ten_extension_handle_ten_namespace_properties(
     ten_extension_t *self, ten_extension_context_t *extension_context) {
-  TEN_ASSERT(
-      self && ten_extension_check_integrity(self, true) && extension_context,
-      "Should not happen.");
+  TEN_ASSERT(self && ten_extension_check_integrity(self, true) &&
+                 extension_context,
+             "Should not happen.");
 
   // This function is safe to be called from the extension main threads,
   // because all the resources it accesses are the

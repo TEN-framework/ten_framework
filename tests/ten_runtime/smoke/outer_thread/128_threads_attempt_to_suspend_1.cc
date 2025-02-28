@@ -81,16 +81,16 @@ class test_extension_1 : public ten::extension_t {
       if (!outer_thread_##X##_towards_to_close) {                            \
         (*test_data)++;                                                      \
                                                                              \
-        ten_random_sleep_ms(6);                                              \
+        ten_random_sleep_ms(2);                                              \
                                                                              \
         bool rc = ten_env_proxy->acquire_lock_mode();                        \
         TEN_ASSERT(rc, "Failed to acquire lock mode.");                      \
                                                                              \
-        ten_random_sleep_ms(8);                                              \
+        ten_random_sleep_ms(2);                                              \
                                                                              \
         ten_env_proxy->notify(send_data_from_outer_thread, test_data, true); \
                                                                              \
-        ten_random_sleep_ms(3);                                              \
+        ten_random_sleep_ms(2);                                              \
                                                                              \
         rc = ten_env_proxy->release_lock_mode();                             \
         TEN_ASSERT(rc, "Failed to release lock mode.");                      \
@@ -388,13 +388,17 @@ class test_extension_1 : public ten::extension_t {
   }
 
   void on_stop(ten::ten_env_t &ten_env) override {
-#define NOTIFY_OUTER_THREAD_TO_STOP(X)                               \
-  do {                                                               \
-    {                                                                \
-      std::unique_lock<std::mutex> lock(outer_thread_##X##_cv_lock); \
-      outer_thread_##X##_towards_to_close = true;                    \
-    }                                                                \
-    outer_thread_##X##_cv.notify_one();                              \
+#define NOTIFY_OUTER_THREAD_TO_STOP(X)                                         \
+  do {                                                                         \
+    {                                                                          \
+      (ten_env).log(TEN_LOG_LEVEL_INFO, __func__, __FILE__, __LINE__,          \
+                    (std::string("notify outer thread ") + std::to_string(X) + \
+                     " to stop")                                               \
+                        .c_str());                                             \
+      std::unique_lock<std::mutex> lock(outer_thread_##X##_cv_lock);           \
+      outer_thread_##X##_towards_to_close = true;                              \
+    }                                                                          \
+    outer_thread_##X##_cv.notify_one();                                        \
   } while (0)
 
     NOTIFY_OUTER_THREAD_TO_STOP(1);
@@ -529,10 +533,13 @@ class test_extension_1 : public ten::extension_t {
     NOTIFY_OUTER_THREAD_TO_STOP(128);
 #endif
 
-#define RECLAIM_OUTER_THREAD(X) \
-  do {                          \
-    outer_thread##X->join();    \
-    delete outer_thread##X;     \
+#define RECLAIM_OUTER_THREAD(X)                                              \
+  do {                                                                       \
+    (ten_env).log(                                                           \
+        TEN_LOG_LEVEL_INFO, __func__, __FILE__, __LINE__,                    \
+        (std::string("Reclaim outer thread ") + std::to_string(X)).c_str()); \
+    outer_thread##X->join();                                                 \
+    delete outer_thread##X;                                                  \
   } while (0)
 
     RECLAIM_OUTER_THREAD(1);
@@ -845,7 +852,7 @@ class test_extension_2 : public ten::extension_t {
     // extended the path timeout to avoid this situation.
 
     // clang-format off
-    bool rc = ten_env.init_property_from_json( R"({
+    bool rc = ten_env.init_property_from_json(R"({
       "_ten": {
         "path_timeout": 1200000000
       }
@@ -887,7 +894,7 @@ class test_extension_2 : public ten::extension_t {
                 auto from_extension_2_cmd =
                     ten::cmd_t::create("from_extension_2");
 
-                ten_random_sleep_ms(9);
+                ten_random_sleep_ms(2);
 
                 ten_env.send_cmd(
                     std::move(from_extension_2_cmd),
@@ -909,6 +916,9 @@ class test_extension_2 : public ten::extension_t {
                       if ((hello_cmd != nullptr) && is_received_all_data() &&
                           (received_from_extension_2_cmd_result ==
                            expected_received_from_extension_2_cmd_result)) {
+                        TEN_LOGI(
+                            "extension_2 received all data, return result.");
+
                         auto cmd_result = ten::cmd_result_t::create(
                             TEN_STATUS_CODE_OK, *hello_cmd);
                         cmd_result->set_property("detail", "ok");
@@ -918,7 +928,7 @@ class test_extension_2 : public ten::extension_t {
               });
             }
 
-            ten_random_sleep_ms(5);
+            ten_random_sleep_ms(2);
 
             delete ten_env_proxy;
           },
@@ -927,6 +937,8 @@ class test_extension_2 : public ten::extension_t {
       if (is_received_all_data() &&
           (received_from_extension_2_cmd_result ==
            expected_received_from_extension_2_cmd_result)) {
+        TEN_LOGI("extension_2 received all data, return result.");
+
         auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK, *cmd);
         cmd_result->set_property("detail", "ok");
         ten_env.return_result(std::move(cmd_result));
@@ -946,6 +958,7 @@ class test_extension_2 : public ten::extension_t {
     TEN_ASSERT(data_received_count[outer_thread_num] == received_value,
                "should be %d, but get %d",
                data_received_count[outer_thread_num], received_value);
+
     data_received_count[outer_thread_num]++;
 
     if (data_received_count[outer_thread_num] % 50 == 0) {
@@ -956,6 +969,8 @@ class test_extension_2 : public ten::extension_t {
     if ((hello_cmd != nullptr) && is_received_all_data() &&
         (received_from_extension_2_cmd_result ==
          expected_received_from_extension_2_cmd_result)) {
+      TEN_LOGI("extension_2 received all data, return result.");
+
       auto cmd_result =
           ten::cmd_result_t::create(TEN_STATUS_CODE_OK, *hello_cmd);
       cmd_result->set_property("detail", "ok");
@@ -965,6 +980,8 @@ class test_extension_2 : public ten::extension_t {
 
   void on_stop(ten::ten_env_t &ten_env) override {
     TEN_ASSERT(timeout_thread, "Should not happen.");
+
+    TEN_ENV_LOG_INFO(ten_env, "extension_2 join timeout thread.");
 
     timeout_thread->join();
     delete timeout_thread;
@@ -1091,10 +1108,17 @@ TEST(OuterThreadTest,
   hello_world_cmd->set_dest("msgpack://127.0.0.1:8001/", nullptr,
                             "basic_extension_group", "test_extension_2");
   cmd_result = client->send_cmd_and_recv_result(std::move(hello_world_cmd));
+
+  TEN_LOGI("clinet receives cmd_result");
+
   ten_test::check_status_code(cmd_result, TEN_STATUS_CODE_OK);
   ten_test::check_detail_with_string(cmd_result, "ok");
 
+  TEN_LOGI("delete client");
   delete client;
 
+  TEN_LOGI("join app_thread");
   ten_thread_join(app_thread, -1);
+
+  TEN_LOGI("end");
 }

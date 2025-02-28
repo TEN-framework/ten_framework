@@ -14,12 +14,10 @@
 typedef enum TEN_RESULT_RETURN_POLICY {
   TEN_RESULT_RETURN_POLICY_INVALID,
 
-  // If receive a fail result, return it, otherwise, when all OK results are
-  // received, return the first received one. Clear the group after returning
-  // the result.
-  TEN_RESULT_RETURN_POLICY_FIRST_ERROR_OR_FIRST_OK,
-
-  // Similar to the above, except return the last received one.
+  // If a failure result is received, return that result. Otherwise, when _all_
+  // results are OK, return the result from the last extension specified in the
+  // graph. As long as a result is actually returned, clear the group after
+  // returning the result.
   TEN_RESULT_RETURN_POLICY_FIRST_ERROR_OR_LAST_OK,
 
   // Return each result as it is received, regardless of its status.

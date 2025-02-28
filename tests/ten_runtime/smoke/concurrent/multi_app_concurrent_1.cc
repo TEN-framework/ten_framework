@@ -115,9 +115,9 @@ void *app_thread_2_main(TEN_UNUSED void *args) {
   return nullptr;
 }
 
-TEN_CPP_REGISTER_ADDON_AS_EXTENSION(multi_app_concurrent__extension_1,
+TEN_CPP_REGISTER_ADDON_AS_EXTENSION(multi_app_concurrent_1__extension_1,
                                     test_extension_1);
-TEN_CPP_REGISTER_ADDON_AS_EXTENSION(multi_app_concurrent__extension_2,
+TEN_CPP_REGISTER_ADDON_AS_EXTENSION(multi_app_concurrent_1__extension_2,
                                     test_extension_2);
 
 void *client_thread_main(TEN_UNUSED void *args) {
@@ -145,15 +145,15 @@ void *client_thread_main(TEN_UNUSED void *args) {
            "nodes": [{
                  "type": "extension",
                  "name": "test_extension_1",
-                 "addon": "multi_app_concurrent__extension_1",
+                 "addon": "multi_app_concurrent_1__extension_1",
                  "app": "msgpack://127.0.0.1:8001/",
-                 "extension_group": "test_extension_group 1"
+                 "extension_group": "test_extension_group_1"
                },{
                  "type": "extension",
                  "name": "test_extension_2",
-                 "addon": "multi_app_concurrent__extension_2",
+                 "addon": "multi_app_concurrent_1__extension_2",
                  "app": "msgpack://127.0.0.1:8002/",
-                 "extension_group": "test_extension_group 2"
+                 "extension_group": "test_extension_group_2"
                }],
                "connections": [{
                  "app": "msgpack://127.0.0.1:8001/",
@@ -178,7 +178,7 @@ void *client_thread_main(TEN_UNUSED void *args) {
       client = nullptr;
 
       // To prevent from busy re-trying.
-      ten_sleep_ms(10);
+      ten_random_sleep_ms(100);
     }
   }
 
@@ -187,7 +187,7 @@ void *client_thread_main(TEN_UNUSED void *args) {
   // Send a user-defined 'hello world' command.
   auto hello_world_cmd = ten::cmd_t::create("hello_world");
   hello_world_cmd->set_dest("msgpack://127.0.0.1:8001/", nullptr,
-                            "test_extension_group 1", "test_extension_1");
+                            "test_extension_group_1", "test_extension_1");
 
   auto cmd_result =
       client->send_cmd_and_recv_result(std::move(hello_world_cmd));
@@ -202,7 +202,7 @@ void *client_thread_main(TEN_UNUSED void *args) {
 
 }  // namespace
 
-TEST(ExtensionTest, DISABLED_MultiAppConcurrent) {  // NOLINT
+TEST(ExtensionTest, MultiAppConcurrent1) {  // NOLINT
   // Start app.
   auto *app_thread_2 =
       ten_thread_create("app thread 2", app_thread_2_main, nullptr);

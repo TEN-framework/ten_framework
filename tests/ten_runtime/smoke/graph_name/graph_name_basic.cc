@@ -197,7 +197,7 @@ TEST(ExtensionTest, GraphNameBasic) {  // NOLINT
       client = nullptr;
 
       // To prevent from busy re-trying.
-      ten_sleep_ms(10);
+      ten_random_sleep_ms(100);
     }
   }
 

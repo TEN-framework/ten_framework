@@ -145,7 +145,8 @@ TEST(PredefinedGraphTest, PredefinedGraphMultiApp) {  // NOLINT
       ten_thread_create("app thread 1", app_thread_1_main, nullptr);
 
   // Used to verify the retry mechanism of the protocol.
-  ten_sleep_ms(1000);
+  ten_random_sleep_ms(1000);
+
   auto *app_2_thread =
       ten_thread_create("app thread 2", app_thread_2_main, nullptr);
 

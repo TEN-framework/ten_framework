@@ -44,11 +44,12 @@ class test_extension_2 : public ten::extension_t {
   explicit test_extension_2(const char *name) : ten::extension_t(name) {}
 
   void on_stop(ten::ten_env_t &ten_env) override {
-    // sleep 3 seconds to ensure the test_extension_1 is dead.
     auto *ten_env_proxy = ten::ten_env_proxy_t::create(ten_env);
 
     stop_thread_ = std::thread([ten_env_proxy]() {
-      ten_sleep_ms(3000);
+      // Sleep some seconds to ensure the test_extension_1 is dead.
+      ten_sleep_ms(2000);
+
       ten_env_proxy->notify([](ten::ten_env_t &ten_env) {
         auto cmd = ten::cmd_t::create("bye");
         ten_env.send_cmd(std::move(cmd),

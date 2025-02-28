@@ -15,8 +15,15 @@
 #include "ten_utils/lib/time.h"
 
 void ten_random_sleep_ms(const int64_t max_msec) {
+  // Check whether `max_msec` is greater than 0.
+  assert(max_msec > 0 && "max_msec must be greater than 0");
+
   int64_t wait_time = 0;
-  ten_random(&wait_time, sizeof(wait_time));
+  // Check the return value of `ten_random`.
+  if (ten_random(&wait_time, sizeof(wait_time)) != 0) {
+    ten_sleep_ms(0);
+    return;
+  }
 
   // ten_random might give us a negative number, so we need to take an action to
   // ensure it is positive.

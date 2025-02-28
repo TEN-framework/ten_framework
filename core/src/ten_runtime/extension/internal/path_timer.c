@@ -39,6 +39,7 @@ static void ten_extension_in_path_timer_on_triggered(ten_timer_t *self,
   int64_t current_time_us = ten_current_time_us();
 
   // Remove all the expired paths in the IN path table.
+  size_t removed_count = 0;
   ten_list_foreach(in_paths, iter) {
     ten_path_t *path = (ten_path_t *)ten_ptr_listnode_get(iter.node);
     TEN_ASSERT(path && ten_path_check_integrity(path, true),
@@ -46,7 +47,13 @@ static void ten_extension_in_path_timer_on_triggered(ten_timer_t *self,
 
     if (current_time_us >= path->expired_time_us) {
       ten_list_remove_node(in_paths, iter.node);
+      removed_count++;
     }
+  }
+
+  if (removed_count > 0) {
+    TEN_LOGE("[%s] %zu in paths timeout.",
+             ten_extension_get_name(extension, true), removed_count);
   }
 }
 

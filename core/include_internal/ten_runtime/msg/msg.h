@@ -292,7 +292,9 @@ TEN_RUNTIME_PRIVATE_API void ten_msg_clear_dest(ten_shared_ptr_t *self);
 TEN_RUNTIME_API ten_shared_ptr_t *ten_msg_create_from_msg_type(
     TEN_MSG_TYPE msg_type);
 
-TEN_RUNTIME_API void ten_raw_msg_destroy(ten_msg_t *self);
+TEN_RUNTIME_PRIVATE_API void ten_raw_msg_destroy(ten_msg_t *self);
+
+TEN_RUNTIME_PRIVATE_API const char *ten_raw_msg_get_name(ten_msg_t *self);
 
 TEN_RUNTIME_PRIVATE_API bool ten_raw_msg_set_name(ten_msg_t *self,
                                                   const char *msg_name,

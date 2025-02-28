@@ -29,10 +29,9 @@ struct ten_listnode_t {
 #include "ten_utils/container/list_node_smart_ptr.h"  // IWYU pragma: keep
 #include "ten_utils/container/list_node_str.h"        // IWYU pragma: keep
 
-TEN_UTILS_PRIVATE_API bool ten_listnode_check_integrity(ten_listnode_t *self);
+TEN_UTILS_API bool ten_listnode_check_integrity(ten_listnode_t *self);
 
 TEN_UTILS_PRIVATE_API void ten_listnode_init(ten_listnode_t *self,
                                              void *destroy);
 
 TEN_UTILS_API void ten_listnode_destroy(ten_listnode_t *self);
-TEN_UTILS_API void ten_listnode_destroy_only(ten_listnode_t *self);

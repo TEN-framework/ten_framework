@@ -24,11 +24,14 @@ class test_extension_1 : public ten::extension_t {
   void on_cmd(ten::ten_env_t &ten_env,
               std::unique_ptr<ten::cmd_t> cmd) override {
     if (cmd->get_name() == "hello_world") {
+      TEN_ENV_LOG_INFO(ten_env, "on_cmd: hello_world");
       ten_env.send_cmd(std::move(cmd));
     }
   }
 
   void on_stop(ten::ten_env_t &ten_env) override {
+    TEN_ENV_LOG_INFO(ten_env, "on_stop");
+
     auto cmd = ten::cmd_t::create("extension_1_stop");
     ten_env.send_cmd(std::move(cmd));
 
@@ -47,8 +50,11 @@ class test_extension_2 : public ten::extension_t {
   void on_cmd(ten::ten_env_t &ten_env,
               std::unique_ptr<ten::cmd_t> cmd) override {
     if (cmd->get_name() == "hello_world") {
+      ten_sleep_ms(500);
+
       auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK, *cmd);
       cmd_result->set_property("detail", "hello world, too");
+      TEN_ENV_LOG_INFO(ten_env, "on_cmd: hello_world, return result.");
       ten_env.return_result(std::move(cmd_result));
     } else if (cmd->get_name() == "extension_1_stop") {
       // Ensure that extension 2 receives the `extension_1_stop` command and
@@ -94,6 +100,7 @@ class test_extension_3 : public ten::extension_t {
     if (cmd->get_name() == "hello_world") {
       auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK, *cmd);
       cmd_result->set_property("detail", "hello world, too");
+      TEN_ENV_LOG_INFO(ten_env, "on_cmd: hello_world, return result.");
       ten_env.return_result(std::move(cmd_result));
     } else if (cmd->get_name() == "extension_1_stop") {
       // It's possible that the `extension_1_stop` command was received, but
@@ -201,6 +208,7 @@ TEST(MultiDestTest, MultiDestSendInStopPeriod1) {  // NOLINT
            })");
   auto cmd_result =
       client->send_cmd_and_recv_result(std::move(start_graph_cmd));
+  TEN_LOGI("start_graph_cmd completed.");
   ten_test::check_status_code(cmd_result, TEN_STATUS_CODE_OK);
 
   // Send a user-defined 'hello world' command.
@@ -211,6 +219,7 @@ TEST(MultiDestTest, MultiDestSendInStopPeriod1) {  // NOLINT
   ten_test::check_status_code(cmd_result, TEN_STATUS_CODE_OK);
   ten_test::check_detail_with_string(cmd_result, "hello world, too");
 
+  TEN_LOGI("delete client.");
   delete client;
 
   ten_thread_join(app_thread, -1);

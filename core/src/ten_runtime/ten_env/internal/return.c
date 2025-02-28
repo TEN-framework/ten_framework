@@ -21,15 +21,15 @@
 #include "ten_utils/macro/check.h"
 
 static bool ten_env_return_result_internal(
-    ten_env_t *self, ten_shared_ptr_t *result_cmd, const char *cmd_id,
+    ten_env_t *self, ten_shared_ptr_t *cmd_result, const char *cmd_id,
     const char *seq_id, ten_env_transfer_msg_result_handler_func_t handler,
     void *user_data, ten_error_t *err) {
   TEN_ASSERT(self, "Invalid argument.");
   TEN_ASSERT(ten_env_check_integrity(self, true), "Invalid use of ten_env %p.",
              self);
-  TEN_ASSERT(result_cmd && ten_cmd_base_check_integrity(result_cmd),
+  TEN_ASSERT(cmd_result && ten_cmd_base_check_integrity(cmd_result),
              "Should not happen.");
-  TEN_ASSERT(ten_msg_get_type(result_cmd) == TEN_MSG_TYPE_CMD_RESULT,
+  TEN_ASSERT(ten_msg_get_type(cmd_result) == TEN_MSG_TYPE_CMD_RESULT,
              "Should not happen.");
 
   if (ten_env_is_closed(self)) {
@@ -47,50 +47,50 @@ static bool ten_env_return_result_internal(
 
   // cmd_id is very critical in the way finding.
   if (cmd_id) {
-    ten_cmd_base_set_cmd_id(result_cmd, cmd_id);
+    ten_cmd_base_set_cmd_id(cmd_result, cmd_id);
   }
 
   // seq_id is important if the target of the 'cmd' is a client outside TEN.
   if (seq_id) {
-    ten_cmd_base_set_seq_id(result_cmd, seq_id);
+    ten_cmd_base_set_seq_id(cmd_result, seq_id);
   }
 
   bool result = true;
 
   switch (ten_env_get_attach_to(self)) {
-    case TEN_ENV_ATTACH_TO_EXTENSION: {
-      ten_extension_t *extension = ten_env_get_attached_extension(self);
-      TEN_ASSERT(extension && ten_extension_check_integrity(extension, true),
-                 "Invalid use of extension %p.", extension);
+  case TEN_ENV_ATTACH_TO_EXTENSION: {
+    ten_extension_t *extension = ten_env_get_attached_extension(self);
+    TEN_ASSERT(extension && ten_extension_check_integrity(extension, true),
+               "Invalid use of extension %p.", extension);
 
-      result = ten_extension_dispatch_msg(extension, result_cmd, err);
-      break;
-    }
+    result = ten_extension_dispatch_msg(
+        extension, cmd_result, TEN_RESULT_RETURN_POLICY_EACH_OK_AND_ERROR, err);
+    break;
+  }
 
-    case TEN_ENV_ATTACH_TO_EXTENSION_GROUP: {
-      ten_extension_group_t *extension_group =
-          ten_env_get_attached_extension_group(self);
-      TEN_ASSERT(extension_group &&
-                     ten_extension_group_check_integrity(extension_group, true),
-                 "Invalid use of extension_group %p.", extension_group);
+  case TEN_ENV_ATTACH_TO_EXTENSION_GROUP: {
+    ten_extension_group_t *extension_group =
+        ten_env_get_attached_extension_group(self);
+    TEN_ASSERT(extension_group &&
+                   ten_extension_group_check_integrity(extension_group, true),
+               "Invalid use of extension_group %p.", extension_group);
 
-      result =
-          ten_extension_group_dispatch_msg(extension_group, result_cmd, err);
-      break;
-    }
+    result = ten_extension_group_dispatch_msg(extension_group, cmd_result, err);
+    break;
+  }
 
-    case TEN_ENV_ATTACH_TO_ENGINE: {
-      ten_engine_t *engine = ten_env_get_attached_engine(self);
-      TEN_ASSERT(engine && ten_engine_check_integrity(engine, true),
-                 "Invalid use of engine %p.", engine);
+  case TEN_ENV_ATTACH_TO_ENGINE: {
+    ten_engine_t *engine = ten_env_get_attached_engine(self);
+    TEN_ASSERT(engine && ten_engine_check_integrity(engine, true),
+               "Invalid use of engine %p.", engine);
 
-      result = ten_engine_dispatch_msg(engine, result_cmd);
-      break;
-    }
+    result = ten_engine_dispatch_msg(engine, cmd_result);
+    break;
+  }
 
-    default:
-      TEN_ASSERT(0, "Handle this condition.");
-      break;
+  default:
+    TEN_ASSERT(0, "Handle this condition.");
+    break;
   }
 
   if (result && handler) {

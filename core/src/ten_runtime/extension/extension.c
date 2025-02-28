@@ -441,7 +441,7 @@ static void ten_extension_determine_out_msg_dest_from_msg(
  */
 static bool ten_extension_determine_out_msg_dest_from_graph(
     ten_extension_t *self, ten_shared_ptr_t *msg, ten_list_t *result_msgs,
-    TEN_RESULT_RETURN_POLICY *result_return_policy, ten_error_t *err) {
+    ten_error_t *err) {
   TEN_ASSERT(self && ten_extension_check_integrity(self, true),
              "Invalid argument.");
   TEN_ASSERT(msg && ten_msg_check_integrity(msg) &&
@@ -449,7 +449,6 @@ static bool ten_extension_determine_out_msg_dest_from_graph(
              "Invalid argument.");
   TEN_ASSERT(result_msgs && ten_list_size(result_msgs) == 0,
              "Invalid argument.");
-  TEN_ASSERT(result_return_policy, "Invalid argument.");
 
   TEN_UNUSED ten_extension_thread_t *extension_thread = self->extension_thread;
   TEN_ASSERT(extension_thread, "Invalid argument.");
@@ -460,7 +459,6 @@ static bool ten_extension_determine_out_msg_dest_from_graph(
   ten_msg_dest_info_t *msg_dest_info =
       ten_extension_get_msg_dests_from_graph(self, msg);
   if (msg_dest_info) {
-    *result_return_policy = msg_dest_info->policy;
     ten_list_t *dests = &msg_dest_info->dest;
 
     if (dests && ten_list_size(dests) > 0) {
@@ -519,7 +517,6 @@ static bool ten_extension_determine_out_msg_dest_from_graph(
 typedef enum TEN_EXTENSION_DETERMINE_OUT_MSGS_RESULT {
   TEN_EXTENSION_DETERMINE_OUT_MSGS_SUCCESS,
   TEN_EXTENSION_DETERMINE_OUT_MSGS_NOT_FOUND_IN_GRAPH,
-  TEN_EXTENSION_DETERMINE_OUT_MSGS_CACHING_IN_PATH_IN_GROUP,
 } TEN_EXTENSION_DETERMINE_OUT_MSGS_RESULT;
 
 /**
@@ -542,14 +539,18 @@ typedef enum TEN_EXTENSION_DETERMINE_OUT_MSGS_RESULT {
  */
 static TEN_EXTENSION_DETERMINE_OUT_MSGS_RESULT
 ten_extension_determine_out_msgs(ten_extension_t *self, ten_shared_ptr_t *msg,
-                                 ten_list_t *result_msgs,
-                                 TEN_RESULT_RETURN_POLICY *result_return_policy,
-                                 ten_path_t *in_path, ten_error_t *err) {
+                                 ten_list_t *result_msgs, ten_error_t *err) {
   TEN_ASSERT(self && ten_extension_check_integrity(self, true),
              "Invalid argument.");
   TEN_ASSERT(msg && ten_msg_check_integrity(msg), "Invalid argument.");
   TEN_ASSERT(result_msgs, "Invalid argument.");
-  TEN_ASSERT(result_return_policy, "Invalid argument.");
+
+  if (ten_msg_is_cmd_result(msg)) {
+    // The destination loc of `cmd_result` will be refilled by the TEN runtime
+    // using the information from the path_table. Therefore, when this function
+    // receives the `cmd_result`, its destination loc must have values.
+    TEN_ASSERT(ten_msg_get_dest_cnt(msg) > 0, "Should not happen.");
+  }
 
   if (ten_msg_get_dest_cnt(msg) > 0) {
     // Because the messages has already had destinations, no matter it is a
@@ -563,50 +564,20 @@ ten_extension_determine_out_msgs(ten_extension_t *self, ten_shared_ptr_t *msg,
     // Need to find the destinations from 2 databases:
     // - graph: all messages without the cmd results.
     // - IN path table: cmd results only.
-    if (ten_msg_is_cmd_and_result(msg)) {
-      if (ten_msg_get_type(msg) == TEN_MSG_TYPE_CMD_RESULT) {
-        // Find the destinations of a cmd result from the path table.
-        TEN_ASSERT(in_path, "Should not happen.");
-        TEN_ASSERT(ten_path_check_integrity(in_path, true),
-                   "Should not happen.");
-
-        msg = ten_path_table_determine_actual_cmd_result(
-            self->path_table, TEN_PATH_IN, in_path,
-            ten_cmd_result_is_final(msg, NULL));
-        if (msg) {
-          // The cmd result is resolved to be transmitted to the previous node.
-
-          ten_extension_determine_out_msg_dest_from_msg(self, msg, result_msgs);
-          ten_shared_ptr_destroy(msg);
-
-          return TEN_EXTENSION_DETERMINE_OUT_MSGS_SUCCESS;
-        } else {
-          return TEN_EXTENSION_DETERMINE_OUT_MSGS_CACHING_IN_PATH_IN_GROUP;
-        }
-      } else {
-        // All command types except the cmd results, should find its
-        // destination in the graph.
-        if (ten_extension_determine_out_msg_dest_from_graph(
-                self, msg, result_msgs, result_return_policy, err)) {
-          return TEN_EXTENSION_DETERMINE_OUT_MSGS_SUCCESS;
-        } else {
-          return TEN_EXTENSION_DETERMINE_OUT_MSGS_NOT_FOUND_IN_GRAPH;
-        }
-      }
+    if (ten_extension_determine_out_msg_dest_from_graph(self, msg, result_msgs,
+                                                        err)) {
+      return TEN_EXTENSION_DETERMINE_OUT_MSGS_SUCCESS;
     } else {
-      // The message is not a command, so the only source to find its
-      // destination is in the graph.
-      if (ten_extension_determine_out_msg_dest_from_graph(
-              self, msg, result_msgs, result_return_policy, err)) {
-        return TEN_EXTENSION_DETERMINE_OUT_MSGS_SUCCESS;
-      } else {
-        return TEN_EXTENSION_DETERMINE_OUT_MSGS_NOT_FOUND_IN_GRAPH;
-      }
+      return TEN_EXTENSION_DETERMINE_OUT_MSGS_NOT_FOUND_IN_GRAPH;
     }
   }
+
+  TEN_ASSERT(0, "Should not happen.");
+  return TEN_EXTENSION_DETERMINE_OUT_MSGS_SUCCESS;
 }
 
 bool ten_extension_dispatch_msg(ten_extension_t *self, ten_shared_ptr_t *msg,
+                                TEN_RESULT_RETURN_POLICY result_return_policy,
                                 ten_error_t *err) {
   TEN_ASSERT(self && ten_extension_check_integrity(self, true),
              "Should not happen.");
@@ -622,12 +593,13 @@ bool ten_extension_dispatch_msg(ten_extension_t *self, ten_shared_ptr_t *msg,
     return false;
   }
 
-  // The source of the out message is the current extension.
-  ten_msg_set_src_to_extension(msg, self);
-
   bool result = true;
-  const bool msg_is_cmd = ten_msg_is_cmd_and_result(msg);
+
   bool msg_is_cmd_result = false;
+  ten_list_t result_msgs = TEN_LIST_INIT_VAL; // ten_shared_ptr_t*
+  bool delete_msg = false;
+
+  const bool msg_is_cmd = ten_msg_is_cmd_and_result(msg);
 
   if (ten_msg_get_type(msg) == TEN_MSG_TYPE_CMD_RESULT) {
     msg_is_cmd_result = true;
@@ -638,57 +610,55 @@ bool ten_extension_dispatch_msg(ten_extension_t *self, ten_shared_ptr_t *msg,
     ten_msg_clear_dest(msg);
   }
 
+  // The source of the out message is the current extension.
+  ten_msg_set_src_to_extension(msg, self);
+
   ten_msg_correct_dest(msg, self->extension_context->engine);
 
-  // Before the schema validation, the origin cmd name is needed to retrieve the
-  // schema definition if the msg is a cmd result.
-  ten_path_t *in_path = NULL;
-  if (ten_msg_get_type(msg) == TEN_MSG_TYPE_CMD_RESULT) {
-    // We do not need to resolve in the path group even if the `in_path` is in a
-    // group, as we only want the cmd name here.
-    in_path = ten_path_table_find_path_and_set_result(self->path_table,
-                                                      TEN_PATH_IN, msg);
-    if (!in_path) {
-      TEN_LOGD("[%s] IN path is missing, discard cmd result.",
-               ten_extension_get_name(self, true));
-      return true;
-    }
-
-    TEN_ASSERT(ten_path_check_integrity(in_path, true), "Should not happen.");
-    TEN_ASSERT(!ten_string_is_empty(&in_path->cmd_name), "Should not happen.");
-
-    // We need to use the original cmd name to find the schema definition of the
-    // cmd result.
-    ten_cmd_result_set_original_cmd_name(
-        msg, ten_string_get_raw_str(&in_path->cmd_name));
-  }
-
-  // The schema validation of the `msg` must be happened before
-  // `ten_extension_determine_out_msgs()`, the reasons are as follows:
+  // The schema check for `msg` must be performed before message conversion and
+  // path deletion for the following reasons:
   //
-  // 1. The schema of the msg sending out or returning from the extension is
-  // defined by the extension itself, however there might have some conversions
-  // defined by users of the extension (ex: the conversion will be defined in a
-  // graph). So the schema validation should be happened before the conversions
-  // as the structure of the msg might be changed after conversions.
+  // 1. The schema of `msg` sent or returned by the extension is defined by the
+  // extension itself. However, message conversion may be defined within the
+  // graph. Therefore, the schema check should be conducted before the
+  // conversion, as the structure of `msg` may change after conversion.
   //
-  // 2. For cmd result, its path will be removed in
-  // `ten_extension_determine_out_msgs()`. But users can call `return_result()`
-  // twice if the schema validation fails in the first time. In other words, the
-  // path can not be removed if the schema validation fails.
+  // 2. For `cmd_result`, its path may be removed in
+  // `ten_path_table_process_cmd_result()`. However, if the schema check fails,
+  // it means that the `cmd_result` has failed to be sent. In this case, the
+  // user can handle the failure and call `return_result()` again. Therefore, if
+  // the schema check fails, the path should not be removed, which is a
+  // reasonable approach.
   if (!ten_extension_validate_msg_schema(self, msg, true, err)) {
-    return false;
+    result = false;
+    goto done;
   }
 
-  ten_list_t result_msgs = TEN_LIST_INIT_VAL; // ten_shared_ptr_t*
-  TEN_RESULT_RETURN_POLICY result_return_policy =
-      TEN_RESULT_RETURN_POLICY_INVALID;
+  if (ten_msg_is_cmd_result(msg)) {
+    ten_shared_ptr_t *processed_cmd_result = NULL;
+    bool proceed = ten_path_table_process_cmd_result(
+        self->path_table, TEN_PATH_IN, msg, &processed_cmd_result);
+    if (!proceed) {
+      // TEN_LOGD("[%s] IN path is missing, discard cmd_result.",
+      //          ten_extension_get_name(self, true));
+      return true;
+    } else {
+      // TEN_LOGD("[%s] IN path is found, proceed cmd_result.",
+      //          ten_extension_get_name(self, true));
 
-  switch (ten_extension_determine_out_msgs(
-      self, msg, &result_msgs, &result_return_policy, in_path, err)) {
+      if (msg != processed_cmd_result) {
+        // It means `processed_cmd_result` is different from `msg`, so we need
+        // to destroy the shared_ptr of the new `processed_cmd_result` after
+        // processing it.
+        msg = processed_cmd_result;
+        delete_msg = true;
+      }
+    }
+  }
+
+  switch (ten_extension_determine_out_msgs(self, msg, &result_msgs, err)) {
   case TEN_EXTENSION_DETERMINE_OUT_MSGS_NOT_FOUND_IN_GRAPH:
     result = false;
-  case TEN_EXTENSION_DETERMINE_OUT_MSGS_CACHING_IN_PATH_IN_GROUP:
     goto done;
 
   case TEN_EXTENSION_DETERMINE_OUT_MSGS_SUCCESS:
@@ -739,6 +709,9 @@ bool ten_extension_dispatch_msg(ten_extension_t *self, ten_shared_ptr_t *msg,
 
 done:
   ten_list_clear(&result_msgs);
+  if (delete_msg) {
+    ten_shared_ptr_destroy(msg);
+  }
   return result;
 }
 

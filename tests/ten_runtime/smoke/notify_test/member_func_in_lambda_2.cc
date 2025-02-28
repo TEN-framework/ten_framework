@@ -84,7 +84,7 @@ void outer_thread_main(test_extension *ext,
       break;
     }
 
-    ten_sleep_ms(100);
+    ten_random_sleep_ms(100);
   }
 }
 

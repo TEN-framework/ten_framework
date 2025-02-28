@@ -1201,7 +1201,7 @@ bool ten_msg_has_locked_res(ten_shared_ptr_t *self) {
   return ten_raw_msg_has_locked_res(ten_shared_ptr_get_data(self));
 }
 
-static const char *ten_raw_msg_get_name(ten_msg_t *self) {
+const char *ten_raw_msg_get_name(ten_msg_t *self) {
   TEN_ASSERT(self && ten_raw_msg_check_integrity(self), "Should not happen.");
   return ten_value_peek_raw_str(&self->name, NULL);
 }

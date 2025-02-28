@@ -61,7 +61,8 @@ class test_extension_2 : public ten::extension_t {
           std::make_shared<std::unique_ptr<ten::cmd_t>>(std::move(cmd));
 
       thread_ = std::thread([ten_env_proxy, cmd_shared]() {
-        ten_sleep_ms(3000);
+        // Ensure ten_env.on_deinit_done() is completed.
+        ten_sleep_ms(2000);
 
         bool rc = ten_env_proxy->notify(
             [ten_env_proxy, cmd_shared](ten::ten_env_t &ten_env) {
@@ -205,7 +206,7 @@ TEST(CloseAppTest, CallTenApiAfterOnDeinitDone) {  // NOLINT
                                       "test_extension_2");
   client->send_cmd(std::move(return_after_3_second_cmd));
 
-  // Wait 1 second to make sure the return_after_3_second command is
+  // Wait some seconds to make sure the return_after_3_second command is
   // processed.
   ten_sleep_ms(1000);
 
