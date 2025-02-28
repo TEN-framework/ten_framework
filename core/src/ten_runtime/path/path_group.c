@@ -110,9 +110,10 @@ void ten_paths_create_group(ten_list_t *paths,
     TEN_ASSERT(path->table, "Invalid argument.");
 
     last_path = path;
-    TEN_LOGD("create path group: cmd_id: %s, parent_cmd_id: %s",
-             ten_string_get_raw_str(&path->cmd_id),
-             ten_string_get_raw_str(&path->parent_cmd_id));
+
+    // TEN_LOGD("create path group: cmd_id: %s, parent_cmd_id: %s",
+    //          ten_string_get_raw_str(&path->cmd_id),
+    //          ten_string_get_raw_str(&path->parent_cmd_id));
 
     if (!path_group_sp) {
       path_group = ten_path_group_create(path->table, policy);

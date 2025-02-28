@@ -140,9 +140,9 @@ ten_path_table_find_path_from_cmd_id(ten_path_table_t *self, TEN_PATH_TYPE type,
     TEN_ASSERT(path && ten_path_check_integrity(path, true),
                "Should not happen.");
 
-    TEN_LOGD("path(%s) cmd_id: %s, cmd_id: %s",
-             type == TEN_PATH_IN ? "in" : "out",
-             ten_string_get_raw_str(&path->cmd_id), cmd_id);
+    // TEN_LOGD("path(%s) cmd_id: %s, cmd_id: %s",
+    //          type == TEN_PATH_IN ? "in" : "out",
+    //          ten_string_get_raw_str(&path->cmd_id), cmd_id);
 
     if (ten_string_is_equal_c_str(&path->cmd_id, cmd_id)) {
       return paths_iter.node;
@@ -479,7 +479,8 @@ bool ten_path_table_process_cmd_result(
       ten_path_table_find_path(self, path_type, cmd_result);
   if (!path_node) {
     // The path for the cmd_result to return is no longer available.
-    TEN_LOGI("The path for the cmd_result to return is no longer available.");
+    // TEN_LOGI("The path for the cmd_result to return is no longer
+    // available.");
 
     proceed = false;
     goto done;

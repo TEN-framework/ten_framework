@@ -639,12 +639,12 @@ bool ten_extension_dispatch_msg(ten_extension_t *self, ten_shared_ptr_t *msg,
     bool proceed = ten_path_table_process_cmd_result(
         self->path_table, TEN_PATH_IN, msg, &processed_cmd_result);
     if (!proceed) {
-      TEN_LOGD("[%s] IN path is missing, discard cmd_result.",
-               ten_extension_get_name(self, true));
+      // TEN_LOGD("[%s] IN path is missing, discard cmd_result.",
+      //          ten_extension_get_name(self, true));
       return true;
     } else {
-      TEN_LOGD("[%s] IN path is found, proceed cmd_result.",
-               ten_extension_get_name(self, true));
+      // TEN_LOGD("[%s] IN path is found, proceed cmd_result.",
+      //          ten_extension_get_name(self, true));
 
       if (msg != processed_cmd_result) {
         // It means `processed_cmd_result` is different from `msg`, so we need
