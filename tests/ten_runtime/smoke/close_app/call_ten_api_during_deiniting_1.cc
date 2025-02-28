@@ -51,12 +51,12 @@ class test_extension_1 : public ten::extension_t {
   }
 
   void on_stop(ten::ten_env_t &ten_env) override {
-    // Delay 3 seconds to ensure commands from test_extension_2 can be
+    // Delay some seconds to ensure commands from test_extension_2 can be
     // received.
     auto *ten_env_proxy = ten::ten_env_proxy_t::create(ten_env);
 
     thread_ = std::thread([ten_env_proxy]() {
-      ten_random_sleep_ms(3000);
+      ten_sleep_ms(2000);
 
       ten_env_proxy->notify(
           [](ten::ten_env_t &ten_env) { ten_env.on_stop_done(); });
