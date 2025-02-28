@@ -10,6 +10,7 @@
 #include "gtest/gtest.h"
 #include "include_internal/ten_runtime/binding/cpp/ten.h"
 #include "ten_utils/lib/thread.h"
+#include "ten_utils/lib/time.h"
 #include "tests/common/client/cpp/msgpack_tcp.h"
 #include "tests/ten_runtime/smoke/util/binding/cpp/check.h"
 
@@ -82,6 +83,8 @@ class test_extension_3 : public ten::extension_t {
       cmd_result_2->set_final(false);
       ten_env.return_result(std::move(cmd_result_2));
 
+      ten_sleep_ms(100);
+
       auto cmd_result_3 = ten::cmd_result_t::create(TEN_STATUS_CODE_OK, *cmd);
       cmd_result_3->set_property("detail", "from 3, 3");
       ten_env.return_result(std::move(cmd_result_3));
@@ -116,16 +119,16 @@ void *test_app_thread_main(TEN_UNUSED void *args) {
   return nullptr;
 }
 
-TEN_CPP_REGISTER_ADDON_AS_EXTENSION(multiple_result_4__test_extension_1,
+TEN_CPP_REGISTER_ADDON_AS_EXTENSION(multiple_result_7__test_extension_1,
                                     test_extension_1);
-TEN_CPP_REGISTER_ADDON_AS_EXTENSION(multiple_result_4__test_extension_2,
+TEN_CPP_REGISTER_ADDON_AS_EXTENSION(multiple_result_7__test_extension_2,
                                     test_extension_2);
-TEN_CPP_REGISTER_ADDON_AS_EXTENSION(multiple_result_4__test_extension_3,
+TEN_CPP_REGISTER_ADDON_AS_EXTENSION(multiple_result_7__test_extension_3,
                                     test_extension_3);
 
 }  // namespace
 
-TEST(CmdResultTest, MultipleResult4) {  // NOLINT
+TEST(CmdResultTest, MultipleResult7) {  // NOLINT
   // Start app.
   auto *app_thread =
       ten_thread_create("app thread", test_app_thread_main, nullptr);
@@ -139,20 +142,20 @@ TEST(CmdResultTest, MultipleResult4) {  // NOLINT
            "nodes": [{
                 "type": "extension",
                 "name": "test_extension_1",
-                "addon": "multiple_result_4__test_extension_1",
-                "extension_group": "basic_extension_group",
+                "addon": "multiple_result_7__test_extension_1",
+                "extension_group": "basic_extension_group_1",
                 "app": "msgpack://127.0.0.1:8001/"
              },{
                 "type": "extension",
                 "name": "test_extension_2",
-                "addon": "multiple_result_4__test_extension_2",
-                "extension_group": "basic_extension_group",
+                "addon": "multiple_result_7__test_extension_2",
+                "extension_group": "basic_extension_group_2",
                 "app": "msgpack://127.0.0.1:8001/"
              },{
                 "type": "extension",
                 "name": "test_extension_3",
-                "addon": "multiple_result_4__test_extension_3",
-                "extension_group": "basic_extension_group",
+                "addon": "multiple_result_7__test_extension_3",
+                "extension_group": "basic_extension_group_3",
                 "app": "msgpack://127.0.0.1:8001/"
              }],
              "connections": [{
@@ -174,7 +177,7 @@ TEST(CmdResultTest, MultipleResult4) {  // NOLINT
   // Send a user-defined 'hello world' command.
   auto hello_world_cmd = ten::cmd_t::create("hello_world");
   hello_world_cmd->set_dest("msgpack://127.0.0.1:8001/", nullptr,
-                            "basic_extension_group", "test_extension_1");
+                            "basic_extension_group_1", "test_extension_1");
   cmd_result = client->send_cmd_and_recv_result(std::move(hello_world_cmd));
   ten_test::check_status_code(cmd_result, TEN_STATUS_CODE_OK);
 
