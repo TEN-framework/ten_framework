@@ -35,16 +35,16 @@ static void ten_msg_conversion_per_property_rule_deinit(
   ten_string_deinit(&self->property_path);
 
   switch (self->conversion_mode) {
-    case TEN_MSG_CONVERSION_PER_PROPERTY_RULE_CONVERSION_MODE_FROM_ORIGINAL:
-      ten_msg_conversion_per_property_rule_from_original_deinit(
-          &self->u.from_original);
-      break;
-    case TEN_MSG_CONVERSION_PER_PROPERTY_RULE_CONVERSION_MODE_FIXED_VALUE:
-      ten_msg_conversion_per_property_rule_fixed_value_deinit(
-          &self->u.fixed_value);
-      break;
-    default:
-      break;
+  case TEN_MSG_CONVERSION_PER_PROPERTY_RULE_CONVERSION_MODE_FROM_ORIGINAL:
+    ten_msg_conversion_per_property_rule_from_original_deinit(
+        &self->u.from_original);
+    break;
+  case TEN_MSG_CONVERSION_PER_PROPERTY_RULE_CONVERSION_MODE_FIXED_VALUE:
+    ten_msg_conversion_per_property_rule_fixed_value_deinit(
+        &self->u.fixed_value);
+    break;
+  default:
+    break;
   }
 
   self->conversion_mode =
@@ -79,19 +79,19 @@ bool ten_msg_conversion_per_property_rule_convert(
   TEN_ASSERT(new_msg && ten_msg_check_integrity(new_msg), "Invalid argument.");
 
   switch (self->conversion_mode) {
-    case TEN_MSG_CONVERSION_PER_PROPERTY_RULE_CONVERSION_MODE_FROM_ORIGINAL:
-      return ten_msg_conversion_per_property_rule_from_original_convert(
-          &self->u.from_original, msg, new_msg,
-          ten_string_get_raw_str(&self->property_path), err);
+  case TEN_MSG_CONVERSION_PER_PROPERTY_RULE_CONVERSION_MODE_FROM_ORIGINAL:
+    return ten_msg_conversion_per_property_rule_from_original_convert(
+        &self->u.from_original, msg, new_msg,
+        ten_string_get_raw_str(&self->property_path), err);
 
-    case TEN_MSG_CONVERSION_PER_PROPERTY_RULE_CONVERSION_MODE_FIXED_VALUE:
-      return ten_msg_conversion_per_property_rule_fixed_value_convert(
-          &self->u.fixed_value, new_msg,
-          ten_string_get_raw_str(&self->property_path), err);
+  case TEN_MSG_CONVERSION_PER_PROPERTY_RULE_CONVERSION_MODE_FIXED_VALUE:
+    return ten_msg_conversion_per_property_rule_fixed_value_convert(
+        &self->u.fixed_value, new_msg,
+        ten_string_get_raw_str(&self->property_path), err);
 
-    default:
-      TEN_ASSERT(0, "Should not happen.");
-      return false;
+  default:
+    TEN_ASSERT(0, "Should not happen.");
+    return false;
   }
 }
 
@@ -132,22 +132,22 @@ ten_msg_conversion_per_property_rule_from_json(ten_json_t *json,
           conversion_mode_str, err);
 
   switch (self->conversion_mode) {
-    case TEN_MSG_CONVERSION_PER_PROPERTY_RULE_CONVERSION_MODE_FIXED_VALUE:
-      if (!ten_msg_conversion_per_property_rule_fixed_value_from_json(
-              &self->u.fixed_value, json, err)) {
-        ten_msg_conversion_per_property_rule_destroy(self);
-        return NULL;
-      }
-      break;
+  case TEN_MSG_CONVERSION_PER_PROPERTY_RULE_CONVERSION_MODE_FIXED_VALUE:
+    if (!ten_msg_conversion_per_property_rule_fixed_value_from_json(
+            &self->u.fixed_value, json, err)) {
+      ten_msg_conversion_per_property_rule_destroy(self);
+      return NULL;
+    }
+    break;
 
-    case TEN_MSG_CONVERSION_PER_PROPERTY_RULE_CONVERSION_MODE_FROM_ORIGINAL:
-      ten_msg_conversion_per_property_rule_from_original_from_json(
-          &self->u.from_original, json);
-      break;
+  case TEN_MSG_CONVERSION_PER_PROPERTY_RULE_CONVERSION_MODE_FROM_ORIGINAL:
+    ten_msg_conversion_per_property_rule_from_original_from_json(
+        &self->u.from_original, json);
+    break;
 
-    default:
-      TEN_ASSERT(0, "Should not happen.");
-      break;
+  default:
+    TEN_ASSERT(0, "Should not happen.");
+    break;
   }
 
   return self;
@@ -158,59 +158,57 @@ ten_msg_conversion_per_property_rule_conversion_mode_to_string(
     TEN_MSG_CONVERSION_PER_PROPERTY_RULE_CONVERSION_MODE conversion_mode,
     ten_error_t *err) {
   switch (conversion_mode) {
-    case TEN_MSG_CONVERSION_PER_PROPERTY_RULE_CONVERSION_MODE_FIXED_VALUE:
-      return TEN_STR_FIXED_VALUE;
-    case TEN_MSG_CONVERSION_PER_PROPERTY_RULE_CONVERSION_MODE_FROM_ORIGINAL:
-      return TEN_STR_FROM_ORIGINAL;
-    default:
-      if (err) {
-        ten_error_set(err, TEN_ERROR_CODE_GENERIC,
-                      "Unsupported conversion mode '%d'", conversion_mode);
-      }
-      TEN_ASSERT(0, "Should not happen.");
-      return NULL;
+  case TEN_MSG_CONVERSION_PER_PROPERTY_RULE_CONVERSION_MODE_FIXED_VALUE:
+    return TEN_STR_FIXED_VALUE;
+  case TEN_MSG_CONVERSION_PER_PROPERTY_RULE_CONVERSION_MODE_FROM_ORIGINAL:
+    return TEN_STR_FROM_ORIGINAL;
+  default:
+    if (err) {
+      ten_error_set(err, TEN_ERROR_CODE_GENERIC,
+                    "Unsupported conversion mode '%d'", conversion_mode);
+    }
+    TEN_ASSERT(0, "Should not happen.");
+    return NULL;
   }
 }
 
-ten_json_t *ten_msg_conversion_per_property_rule_to_json(
-    ten_msg_conversion_per_property_rule_t *self, ten_error_t *err) {
+bool ten_msg_conversion_per_property_rule_to_json(
+    ten_msg_conversion_per_property_rule_t *self, ten_json_t *json,
+    ten_error_t *err) {
   TEN_ASSERT(self, "Invalid argument.");
 
-  ten_json_t *result = ten_json_create_object();
+  ten_json_t rule_json = TEN_JSON_INIT_VAL;
+  ten_json_array_append_object_and_peak(json, &rule_json);
 
-  ten_json_object_set_new(
-      result, TEN_STR_CONVERSION_MODE,
-      ten_json_create_string(
-          ten_msg_conversion_per_property_rule_conversion_mode_to_string(
-              self->conversion_mode, err)));
+  ten_json_object_set_string(
+      &rule_json, TEN_STR_CONVERSION_MODE,
+      ten_msg_conversion_per_property_rule_conversion_mode_to_string(
+          self->conversion_mode, err));
 
-  ten_json_object_set_new(
-      result, TEN_STR_PATH,
-      ten_json_create_string(ten_string_get_raw_str(&self->property_path)));
+  ten_json_object_set_string(&rule_json, TEN_STR_PATH,
+                             ten_string_get_raw_str(&self->property_path));
 
   switch (self->conversion_mode) {
-    case TEN_MSG_CONVERSION_PER_PROPERTY_RULE_CONVERSION_MODE_FIXED_VALUE:
-      if (!ten_msg_conversion_per_property_rule_fixed_value_to_json(
-              &self->u.fixed_value, result, err)) {
-        ten_json_destroy(result);
-        result = NULL;
-      }
-      break;
+  case TEN_MSG_CONVERSION_PER_PROPERTY_RULE_CONVERSION_MODE_FIXED_VALUE:
+    if (!ten_msg_conversion_per_property_rule_fixed_value_to_json(
+            &self->u.fixed_value, &rule_json, err)) {
+      return false;
+    }
+    break;
 
-    case TEN_MSG_CONVERSION_PER_PROPERTY_RULE_CONVERSION_MODE_FROM_ORIGINAL:
-      if (!ten_msg_conversion_per_property_rule_from_original_to_json(
-              &self->u.from_original, result, err)) {
-        ten_json_destroy(result);
-        result = NULL;
-      }
-      break;
+  case TEN_MSG_CONVERSION_PER_PROPERTY_RULE_CONVERSION_MODE_FROM_ORIGINAL:
+    if (!ten_msg_conversion_per_property_rule_from_original_to_json(
+            &self->u.from_original, &rule_json, err)) {
+      return false;
+    }
+    break;
 
-    default:
-      TEN_ASSERT(0, "Should not happen.");
-      break;
+  default:
+    TEN_ASSERT(0, "Should not happen.");
+    break;
   }
 
-  return result;
+  return true;
 }
 
 ten_msg_conversion_per_property_rule_t *
@@ -233,25 +231,25 @@ ten_msg_conversion_per_property_rule_from_value(ten_value_t *value,
           conversion_mode_str, err);
 
   switch (self->conversion_mode) {
-    case TEN_MSG_CONVERSION_PER_PROPERTY_RULE_CONVERSION_MODE_FIXED_VALUE:
-      if (!ten_msg_conversion_per_property_rule_fixed_value_from_value(
-              &self->u.fixed_value, value, err)) {
-        ten_msg_conversion_per_property_rule_destroy(self);
-        self = NULL;
-      }
-      break;
+  case TEN_MSG_CONVERSION_PER_PROPERTY_RULE_CONVERSION_MODE_FIXED_VALUE:
+    if (!ten_msg_conversion_per_property_rule_fixed_value_from_value(
+            &self->u.fixed_value, value, err)) {
+      ten_msg_conversion_per_property_rule_destroy(self);
+      self = NULL;
+    }
+    break;
 
-    case TEN_MSG_CONVERSION_PER_PROPERTY_RULE_CONVERSION_MODE_FROM_ORIGINAL:
-      if (!ten_msg_conversion_per_property_rule_from_original_from_value(
-              &self->u.from_original, value, err)) {
-        ten_msg_conversion_per_property_rule_destroy(self);
-        self = NULL;
-      }
-      break;
+  case TEN_MSG_CONVERSION_PER_PROPERTY_RULE_CONVERSION_MODE_FROM_ORIGINAL:
+    if (!ten_msg_conversion_per_property_rule_from_original_from_value(
+            &self->u.from_original, value, err)) {
+      ten_msg_conversion_per_property_rule_destroy(self);
+      self = NULL;
+    }
+    break;
 
-    default:
-      TEN_ASSERT(0, "Should not happen.");
-      break;
+  default:
+    TEN_ASSERT(0, "Should not happen.");
+    break;
   }
 
   return self;
@@ -281,19 +279,19 @@ ten_msg_conversion_per_property_rule_to_value(
       (ten_ptr_listnode_destroy_func_t)ten_value_kv_destroy);
 
   switch (self->conversion_mode) {
-    case TEN_MSG_CONVERSION_PER_PROPERTY_RULE_CONVERSION_MODE_FIXED_VALUE:
-      ten_msg_conversion_per_property_rule_fixed_value_to_value(
-          &self->u.fixed_value, result);
-      break;
+  case TEN_MSG_CONVERSION_PER_PROPERTY_RULE_CONVERSION_MODE_FIXED_VALUE:
+    ten_msg_conversion_per_property_rule_fixed_value_to_value(
+        &self->u.fixed_value, result);
+    break;
 
-    case TEN_MSG_CONVERSION_PER_PROPERTY_RULE_CONVERSION_MODE_FROM_ORIGINAL:
-      ten_msg_conversion_per_property_rule_from_original_to_value(
-          &self->u.from_original, result);
-      break;
+  case TEN_MSG_CONVERSION_PER_PROPERTY_RULE_CONVERSION_MODE_FROM_ORIGINAL:
+    ten_msg_conversion_per_property_rule_from_original_to_value(
+        &self->u.from_original, result);
+    break;
 
-    default:
-      TEN_ASSERT(0, "Should not happen.");
-      break;
+  default:
+    TEN_ASSERT(0, "Should not happen.");
+    break;
   }
 
   return result;

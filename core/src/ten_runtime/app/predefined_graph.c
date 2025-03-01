@@ -86,26 +86,26 @@ ten_app_build_start_graph_cmd_to_start_predefined_graph(
   ten_json_t *start_graph_cmd_json = ten_json_create_object();
   TEN_ASSERT(start_graph_cmd_json, "Should not happen.");
 
-  ten_json_t *ten_json = ten_json_object_peek_object_forcibly(
-      start_graph_cmd_json, TEN_STR_UNDERLINE_TEN);
+  ten_json_t ten_json = TEN_JSON_INIT_VAL;
+  bool success = ten_json_object_peek_object_forcibly(
+      start_graph_cmd_json, TEN_STR_UNDERLINE_TEN, &ten_json);
+  TEN_ASSERT(success, "Should not happen.");
 
-  ten_json_t *nodes_json = ten_json_create_array();
-  ten_json_object_set_new(ten_json, TEN_STR_NODES, nodes_json);
+  ten_json_t nodes_json = TEN_JSON_INIT_VAL;
+  ten_json_object_peek_array_forcibly(&ten_json, TEN_STR_NODES, &nodes_json);
 
   ten_list_foreach(&predefined_graph_info->extensions_info, iter) {
     ten_extension_info_t *extension_info =
         ten_shared_ptr_get_data(ten_smart_ptr_listnode_get(iter.node));
 
-    ten_json_t *extension_info_json =
-        ten_extension_info_node_to_json(extension_info);
-    TEN_ASSERT(extension_info_json &&
-                   ten_json_check_integrity(extension_info_json),
-               "Invalid argument.");
-    if (!extension_info_json) {
+    ten_json_t extension_info_json = TEN_JSON_INIT_VAL;
+    ten_json_array_append_object_and_peak(&nodes_json, &extension_info_json);
+
+    bool success =
+        ten_extension_info_node_to_json(extension_info, &extension_info_json);
+    if (!success) {
       goto error;
     }
-
-    ten_json_array_append_new(nodes_json, extension_info_json);
   }
 
   ten_list_foreach(&predefined_graph_info->extension_groups_info, iter) {
@@ -121,27 +121,30 @@ ten_app_build_start_graph_cmd_to_start_predefined_graph(
       goto error;
     }
 
-    ten_json_array_append_new(nodes_json, extension_group_info_json);
+    ten_json_array_append_new(&nodes_json, extension_group_info_json);
   }
 
-  ten_json_t *connections_json = ten_json_create_array();
-  ten_json_object_set_new(ten_json, TEN_STR_CONNECTIONS, connections_json);
+  ten_json_t connections_json = TEN_JSON_INIT_VAL;
+  ten_json_object_peek_array_forcibly(&ten_json, TEN_STR_CONNECTIONS,
+                                      &connections_json);
 
   ten_list_foreach(&predefined_graph_info->extensions_info, iter) {
     ten_extension_info_t *extension_info =
         ten_shared_ptr_get_data(ten_smart_ptr_listnode_get(iter.node));
 
-    ten_json_t *extension_info_json = NULL;
-    bool rc = ten_extension_info_connections_to_json(extension_info,
-                                                     &extension_info_json, err);
-    if (!rc) {
+    ten_json_t extension_info_json = TEN_JSON_INIT_VAL;
+    ten_json_set_object(&extension_info_json);
+    int rc = ten_extension_info_connections_to_json(extension_info,
+                                                    &extension_info_json, err);
+    if (rc == -1) {
+      ten_json_deinit(&extension_info_json);
       goto error;
     }
 
-    if (extension_info_json) {
-      TEN_ASSERT(ten_json_check_integrity(extension_info_json),
+    if (rc == 1) {
+      TEN_ASSERT(ten_json_check_integrity(&extension_info_json),
                  "Invalid argument.");
-      ten_json_array_append_new(connections_json, extension_info_json);
+      ten_json_array_append_new(&connections_json, &extension_info_json);
     }
   }
 
@@ -152,6 +155,8 @@ ten_app_build_start_graph_cmd_to_start_predefined_graph(
   goto done;
 
 error:
+  ten_json_deinit(&ten_json);
+
   ten_shared_ptr_destroy(start_graph_cmd);
   start_graph_cmd = NULL;
 

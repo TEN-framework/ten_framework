@@ -162,6 +162,9 @@ void ten_value_kv_to_json(ten_json_t *json, ten_value_kv_t *kv) {
   TEN_ASSERT(json, "Invalid argument.");
   TEN_ASSERT(kv, "Invalid argument.");
 
-  ten_json_object_set_new(json, ten_string_get_raw_str(&kv->key),
-                          ten_value_to_json(kv->value));
+  ten_json_t kv_json = TEN_JSON_INIT_VAL;
+  bool success = ten_value_to_json(kv->value, &kv_json);
+  TEN_ASSERT(success, "Should not happen.");
+
+  ten_json_object_set_new(json, ten_string_get_raw_str(&kv->key), &kv_json);
 }

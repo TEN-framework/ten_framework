@@ -133,15 +133,16 @@ PyObject *ten_py_ten_env_get_property_to_json(PyObject *self, PyObject *args) {
     goto error;
   }
 
-  ten_json_t *json = ten_value_to_json(value);
-  TEN_ASSERT(json, "Should not happen.");
+  ten_json_t json = TEN_JSON_INIT_VAL;
+  bool success = ten_value_to_json(value, &json);
+  TEN_ASSERT(success, "Should not happen.");
 
   bool must_free = false;
-  const char *json_str = ten_json_to_string(json, NULL, &must_free);
+  const char *json_str = ten_json_to_string(&json, NULL, &must_free);
   TEN_ASSERT(json_str, "Should not happen.");
 
   ten_value_destroy(value);
-  ten_json_destroy(json);
+  ten_json_deinit(&json);
 
   ten_error_deinit(&err);
   PyObject *result = Py_BuildValue("(sO)", json_str, Py_None);

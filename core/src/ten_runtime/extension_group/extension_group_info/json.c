@@ -42,8 +42,11 @@ ten_json_t *ten_extension_group_info_to_json(ten_extension_group_info_t *self) {
   ten_json_object_set_new(info, TEN_STR_APP, app_uri);
 
   if (self->property) {
-    ten_json_object_set_new(info, TEN_STR_PROPERTY,
-                            ten_value_to_json(self->property));
+    ten_json_t property_json = TEN_JSON_INIT_VAL;
+    bool success = ten_value_to_json(self->property, &property_json);
+    TEN_ASSERT(success, "Should not happen.");
+
+    ten_json_object_set_new(info, TEN_STR_PROPERTY, &property_json);
   }
 
   return info;
@@ -52,9 +55,9 @@ ten_json_t *ten_extension_group_info_to_json(ten_extension_group_info_t *self) {
 ten_shared_ptr_t *ten_extension_group_info_from_json(
     ten_json_t *json, ten_list_t *extension_groups_info, ten_error_t *err) {
   TEN_ASSERT(json && ten_json_check_integrity(json), "Should not happen.");
-  TEN_ASSERT(
-      extension_groups_info && ten_list_check_integrity(extension_groups_info),
-      "Should not happen.");
+  TEN_ASSERT(extension_groups_info &&
+                 ten_list_check_integrity(extension_groups_info),
+             "Should not happen.");
 
   const char *type = ten_json_object_peek_string(json, TEN_STR_TYPE);
   if (!type || !strlen(type) || strcmp(type, TEN_STR_EXTENSION_GROUP) != 0) {
@@ -80,9 +83,10 @@ ten_shared_ptr_t *ten_extension_group_info_from_json(
              "Should not happen.");
 
   // Parse 'prop'
-  ten_json_t *props_json = ten_json_object_peek(json, TEN_STR_PROPERTY);
-  if (props_json) {
-    if (!ten_json_is_object(props_json)) {
+  ten_json_t props_json = TEN_JSON_INIT_VAL;
+  bool success = ten_json_object_peek(json, TEN_STR_PROPERTY, &props_json);
+  if (success) {
+    if (!ten_json_is_object(&props_json)) {
       // Indicates an error.
       TEN_ASSERT(0,
                  "Failed to parse 'prop' in 'start_graph' command, it's not an "
@@ -91,7 +95,7 @@ ten_shared_ptr_t *ten_extension_group_info_from_json(
     }
 
     ten_value_object_merge_with_json(extension_group_info->property,
-                                     props_json);
+                                     &props_json);
   }
 
   return self;

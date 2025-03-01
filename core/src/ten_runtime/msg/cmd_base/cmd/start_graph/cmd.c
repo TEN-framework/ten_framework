@@ -96,14 +96,15 @@ static bool ten_raw_cmd_start_graph_as_msg_get_graph_from_json(
     ten_json_t *json = (ten_json_t *)user_data;
     TEN_ASSERT(json, "Should not happen.");
 
-    json = ten_json_object_peek(json, field->field_name);
-    if (!json) {
+    ten_json_t result_json = TEN_JSON_INIT_VAL;
+    bool success = ten_json_object_peek(json, field->field_name, &result_json);
+    if (!success) {
       // Some fields are optional, and it is allowed for the corresponding
       // JSON block to be absent during deserialization.
       return true;
     }
 
-    if (!ten_value_set_from_json(field->field_value, json)) {
+    if (!ten_value_set_from_json(field->field_value, &result_json)) {
       // If the field value cannot be set from the JSON, it means that the
       // JSON format is incorrect.
       if (err) {

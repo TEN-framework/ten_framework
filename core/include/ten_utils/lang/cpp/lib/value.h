@@ -430,18 +430,19 @@ class value_t {
   }
 
   int to_json(std::string &result) const {
-    ten_json_t *c_json = ten_value_to_json(c_value_);
-    if (c_json == nullptr) {
+    ten_json_t c_json = TEN_JSON_INIT_VAL;
+    bool success = ten_value_to_json(c_value_, &c_json);
+    if (!success) {
       return -1;
     }
 
     bool must_free = false;
-    const char *json_str = ten_json_to_string(c_json, nullptr, &must_free);
+    const char *json_str = ten_json_to_string(&c_json, nullptr, &must_free);
     TEN_ASSERT(json_str, "Failed to convert a JSON to a string");
 
     result = json_str;
 
-    ten_json_destroy(c_json);
+    ten_json_deinit(&c_json);
     if (must_free) {
       TEN_FREE(json_str);
     }

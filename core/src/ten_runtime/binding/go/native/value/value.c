@@ -118,23 +118,23 @@ void ten_go_ten_value_get_type_and_size(ten_value_t *self, uint8_t *type,
   *type = prop_type;
 
   switch (prop_type) {
-    case TEN_TYPE_BUF: {
-      ten_buf_t *buf = ten_value_peek_buf(self);
-      *size = buf ? ten_buf_get_size(buf) : 0;
-      break;
-    }
+  case TEN_TYPE_BUF: {
+    ten_buf_t *buf = ten_value_peek_buf(self);
+    *size = buf ? ten_buf_get_size(buf) : 0;
+    break;
+  }
 
-    case TEN_TYPE_STRING: {
-      const char *str = ten_value_peek_raw_str(self, NULL);
-      TEN_ASSERT(str, "Should not happen.");
+  case TEN_TYPE_STRING: {
+    const char *str = ten_value_peek_raw_str(self, NULL);
+    TEN_ASSERT(str, "Should not happen.");
 
-      *size = strlen(str);
-      break;
-    }
+    *size = strlen(str);
+    break;
+  }
 
-    default:
-      // For other types, the size is always 0.
-      break;
+  default:
+    // For other types, the size is always 0.
+    break;
   }
 }
 
@@ -227,7 +227,7 @@ ten_value_t *ten_go_ten_value_create_ptr(ten_go_handle_t value) {
   // is not an ordinary pointer actually, it is an index pointing to a GO
   // pointer in the handle map in the GO world. So the reinterpreted pointer can
   // not be dereferenced.
-  void *handle = (void *)value;  // NOLINT(performance-no-int-to-ptr)
+  void *handle = (void *)value; // NOLINT(performance-no-int-to-ptr)
 
   // The reason why we need to create a shared_ptr here is as follows.
   //
@@ -285,8 +285,9 @@ bool ten_go_ten_value_to_json(ten_value_t *self, uintptr_t *json_str_len,
   TEN_ASSERT(self && ten_value_check_integrity(self), "Should not happen.");
   TEN_ASSERT(json_str_len && json_str && status, "Should not happen.");
 
-  ten_json_t *json = ten_value_to_json(self);
-  if (json == NULL) {
+  ten_json_t c_json = TEN_JSON_INIT_VAL;
+  bool success = ten_value_to_json(self, &c_json);
+  if (!success) {
     ten_string_t err_msg;
     ten_string_init_formatted(&err_msg, "the property type is %s",
                               ten_type_to_string(ten_value_get_type(self)));
@@ -306,8 +307,8 @@ bool ten_go_ten_value_to_json(ten_value_t *self, uintptr_t *json_str_len,
   // a slice in GO world, and copy the json bytes to the slice and destroy the
   // json bytes. It will be done in ten_go_copy_c_str_to_slice_and_free.
   bool must_free = false;
-  *json_str = ten_json_to_string(json, NULL, &must_free);
-  ten_json_destroy(json);
+  *json_str = ten_json_to_string(&c_json, NULL, &must_free);
+  ten_json_deinit(&c_json);
 
   *json_str_len = strlen(*json_str);
 

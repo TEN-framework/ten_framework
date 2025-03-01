@@ -36,18 +36,19 @@ static void tsfn_proxy_get_property_to_json_callback(napi_env env,
       ASSERT_IF_NAPI_FAIL(js_error, "Failed to create JS error", NULL);
     }
   } else {
-    ten_json_t *value_json = ten_value_to_json(value);
-    if (!value_json) {
+    ten_json_t value_json = TEN_JSON_INIT_VAL;
+    bool success = ten_value_to_json(value, &value_json);
+    if (!success) {
       ten_error_set(&err, TEN_ERROR_CODE_GENERIC,
                     "Failed to convert property value to JSON");
       js_error = ten_nodejs_create_error(env, &err);
       ASSERT_IF_NAPI_FAIL(js_error, "Failed to create JS error", NULL);
     } else {
       bool must_free = false;
-      const char *json_str = ten_json_to_string(value_json, NULL, &must_free);
+      const char *json_str = ten_json_to_string(&value_json, NULL, &must_free);
       TEN_ASSERT(json_str, "Should not happen.");
 
-      ten_json_destroy(value_json);
+      ten_json_deinit(&value_json);
 
       napi_status status =
           napi_create_string_utf8(env, json_str, NAPI_AUTO_LENGTH, &js_res);
@@ -85,7 +86,7 @@ napi_value ten_nodejs_ten_env_get_property_to_json(napi_env env,
   TEN_ASSERT(env, "Should not happen.");
 
   const size_t argc = 3;
-  napi_value args[argc];  // ten_env, path, callback
+  napi_value args[argc]; // ten_env, path, callback
   if (!ten_nodejs_get_js_func_args(env, info, args, argc)) {
     napi_fatal_error(NULL, NAPI_AUTO_LENGTH,
                      "Incorrect number of parameters passed.",

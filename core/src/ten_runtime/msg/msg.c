@@ -543,17 +543,21 @@ static bool ten_raw_msg_get_one_field_from_json_internal(
   if (!field->is_user_defined_properties) {
     // Internal fields are uniformly stored in the "_ten" section.
     if (include_internal_field) {
-      json = ten_json_object_peek_object_forcibly(json, TEN_STR_UNDERLINE_TEN);
-      TEN_ASSERT(json, "Should not happen.");
+      ten_json_t ten_json = TEN_JSON_INIT_VAL;
+      bool success = ten_json_object_peek_object_forcibly(
+          json, TEN_STR_UNDERLINE_TEN, &ten_json);
+      TEN_ASSERT(success, "Should not happen.");
 
-      json = ten_json_object_peek(json, field->field_name);
-      if (!json) {
+      ten_json_t result_json = TEN_JSON_INIT_VAL;
+      success =
+          ten_json_object_peek(&ten_json, field->field_name, &result_json);
+      if (!success) {
         // Some fields are optional, and it is allowed for the corresponding
         // JSON block to be absent during deserialization.
         return true;
       }
 
-      if (!ten_value_set_from_json(field->field_value, json)) {
+      if (!ten_value_set_from_json(field->field_value, &result_json)) {
         // If the field value cannot be set from the JSON, it means that the
         // JSON format is incorrect.
         if (err) {
@@ -634,11 +638,16 @@ static bool ten_raw_msg_put_one_field_to_json_internal(
     // Internal fields are uniformly stored in the "_ten" section.
 
     if (include_internal_field) {
-      json = ten_json_object_peek_object_forcibly(json, TEN_STR_UNDERLINE_TEN);
-      TEN_ASSERT(json, "Should not happen.");
+      ten_json_t ten_json = TEN_JSON_INIT_VAL;
+      bool success = ten_json_object_peek_object_forcibly(
+          json, TEN_STR_UNDERLINE_TEN, &ten_json);
+      TEN_ASSERT(success, "Should not happen.");
 
-      ten_json_object_set_new(json, field->field_name,
-                              ten_value_to_json(field->field_value));
+      ten_json_t field_json = TEN_JSON_INIT_VAL;
+      success = ten_value_to_json(field->field_value, &field_json);
+      TEN_ASSERT(success, "Should not happen.");
+
+      ten_json_object_set_new(&ten_json, field->field_name, &field_json);
     }
   } else {
     TEN_ASSERT(ten_value_is_object(field->field_value), "Should not happen.");
@@ -648,8 +657,11 @@ static bool ten_raw_msg_put_one_field_to_json_internal(
       TEN_ASSERT(kv && ten_value_kv_check_integrity(kv), "Should not happen.");
 
       // The User-defined fields are stored in the root of the JSON.
-      ten_json_object_set_new(json, ten_string_get_raw_str(&kv->key),
-                              ten_value_to_json(kv->value));
+      ten_json_t kv_json = TEN_JSON_INIT_VAL;
+      bool success = ten_value_to_json(kv->value, &kv_json);
+      TEN_ASSERT(success, "Should not happen.");
+
+      ten_json_object_set_new(json, ten_string_get_raw_str(&kv->key), &kv_json);
     }
   }
 
