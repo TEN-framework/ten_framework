@@ -106,11 +106,11 @@ TEN_UTILS_API ten_json_object_iter_t *ten_json_object_iter_next(
 TEN_UTILS_API bool ten_json_array_append_new(ten_json_t *self,
                                              ten_json_t *item);
 
-TEN_UTILS_API void ten_json_array_append_object_and_peak(ten_json_t *self,
-                                                         ten_json_t *item);
+TEN_UTILS_API bool ten_json_array_append_object_and_peak(ten_json_t *self,
+                                                         ten_json_t *object);
 
-TEN_UTILS_API void ten_json_array_append_array_and_peak(ten_json_t *self,
-                                                        ten_json_t *item);
+TEN_UTILS_API bool ten_json_array_append_array_and_peak(ten_json_t *self,
+                                                        ten_json_t *array);
 
 TEN_UTILS_API size_t ten_json_array_get_size(ten_json_t *self);
 
@@ -162,18 +162,6 @@ TEN_UTILS_API bool ten_json_set_null(ten_json_t *self);
 TEN_UTILS_API bool ten_json_set_object(ten_json_t *self);
 
 TEN_UTILS_API bool ten_json_set_array(ten_json_t *self);
-
-TEN_UTILS_API ten_json_t *ten_json_create_integer(int64_t value);
-
-TEN_UTILS_API ten_json_t *ten_json_create_real(double value);
-
-TEN_UTILS_API ten_json_t *ten_json_create_boolean(bool value);
-
-TEN_UTILS_API ten_json_t *ten_json_create_true(void);
-
-TEN_UTILS_API ten_json_t *ten_json_create_false(void);
-
-TEN_UTILS_API ten_json_t *ten_json_create_null(void);
 
 TEN_UTILS_API ten_json_t *ten_json_create_object(void);
 

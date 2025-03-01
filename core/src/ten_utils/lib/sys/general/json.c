@@ -255,6 +255,91 @@ bool ten_json_object_set_bool(ten_json_t *self, const char *key, bool value) {
   return true;
 }
 
+bool ten_json_object_peek(ten_json_t *self, const char *key,
+                          ten_json_t *value) {
+  TEN_ASSERT(self && ten_json_check_integrity(self), "Invalid argument.");
+  TEN_ASSERT(key, "Invalid argument.");
+
+  if (!json_is_object(self->json)) {
+    return false;
+  }
+
+  json_t *json_obj = json_object_get(self->json, key);
+  if (!json_obj) {
+    return NULL;
+  }
+
+  if (value) {
+    value->json = json_obj;
+    value->owned = false;
+  }
+
+  return true;
+}
+
+bool ten_json_object_peek_array_forcibly(ten_json_t *self, const char *key,
+                                         ten_json_t *array) {
+  TEN_ASSERT(self && ten_json_check_integrity(self), "Invalid argument.");
+  TEN_ASSERT(key, "Invalid argument.");
+  TEN_ASSERT(array, "Invalid argument.");
+
+  bool success = ten_json_object_peek_array(self, key, array);
+  if (success) {
+    return true;
+  }
+
+  if (ten_json_object_peek(self, key, NULL)) {
+    ten_json_object_del(self, key);
+  }
+
+  json_t *arr_json = json_array();
+  TEN_ASSERT(arr_json, "Failed to allocate memory.");
+
+  json_object_set_new(self->json, key, arr_json);
+
+  array->json = arr_json;
+  array->owned = false;
+
+  return true;
+}
+
+const char *ten_json_object_iter_key(ten_json_object_iter_t *iter) {
+  return json_object_iter_key((void *)iter);
+}
+
+bool ten_json_object_iter_peek_value(ten_json_object_iter_t *iter,
+                                     ten_json_t *value) {
+  TEN_ASSERT(iter, "Invalid argument.");
+
+  json_t *value_json = json_object_iter_value((void *)iter);
+  if (!value_json) {
+    return false;
+  }
+
+  value->json = value_json;
+  value->owned = false;
+
+  return true;
+}
+
+ten_json_object_iter_t *ten_json_object_iter(ten_json_t *self) {
+  TEN_ASSERT(self && ten_json_check_integrity(self), "Invalid argument.");
+  return (ten_json_object_iter_t *)json_object_iter(self->json);
+}
+
+ten_json_object_iter_t *ten_json_object_key_to_iter(const char *key) {
+  TEN_ASSERT(key, "Invalid argument.");
+  return (ten_json_object_iter_t *)json_object_key_to_iter(key);
+}
+
+ten_json_object_iter_t *
+ten_json_object_iter_next(ten_json_t *self, ten_json_object_iter_t *iter) {
+  TEN_ASSERT(self && ten_json_check_integrity(self), "Invalid argument.");
+  TEN_ASSERT(iter, "Invalid argument.");
+  return (ten_json_object_iter_t *)json_object_iter_next(self->json,
+                                                         (void *)iter);
+}
+
 bool ten_json_array_append_new(ten_json_t *self, ten_json_t *item) {
   TEN_ASSERT(self && ten_json_check_integrity(self), "Invalid argument.");
   TEN_ASSERT(item && ten_json_check_integrity(item), "Invalid argument.");
@@ -268,93 +353,75 @@ bool ten_json_array_append_new(ten_json_t *self, ten_json_t *item) {
   return true;
 }
 
-void ten_json_array_append_object_and_peak(ten_json_t *json,
-                                           ten_json_t *result) {
-  TEN_ASSERT(json && ten_json_check_integrity(json), "Invalid argument.");
-  TEN_ASSERT(result && ten_json_check_integrity(result), "Invalid argument.");
+bool ten_json_array_append_object_and_peak(ten_json_t *self,
+                                           ten_json_t *object) {
+  TEN_ASSERT(self && ten_json_check_integrity(self), "Invalid argument.");
+  TEN_ASSERT(object && ten_json_check_integrity(object), "Invalid argument.");
 
   json_t *obj_json = json_object();
   TEN_ASSERT(obj_json, "Failed to allocate memory.");
 
-  json_array_append_new(json->json, obj_json);
-
-  result->json = obj_json;
-  result->owned = false;
-}
-
-void ten_json_array_append_array_and_peak(ten_json_t *json,
-                                          ten_json_t *result) {
-  TEN_ASSERT(json && ten_json_check_integrity(json), "Invalid argument.");
-  TEN_ASSERT(result && ten_json_check_integrity(result), "Invalid argument.");
-
-  json_t *arr_json = json_array();
-  TEN_ASSERT(arr_json, "Failed to allocate memory.");
-
-  json_array_append_new(json->json, arr_json);
-
-  result->json = arr_json;
-  result->owned = false;
-}
-
-bool ten_json_object_peek(ten_json_t *json, const char *field,
-                          ten_json_t *result) {
-  TEN_ASSERT(json && ten_json_check_integrity(json), "Invalid argument.");
-  TEN_ASSERT(field, "Invalid argument.");
-
-  if (!json_is_object(json->json)) {
+  bool success = (json_array_append_new(self->json, obj_json) != -1);
+  if (!success) {
     return false;
   }
 
-  json_t *json_obj = json_object_get(json->json, field);
-  if (!json_obj) {
-    return NULL;
-  }
-
-  if (result) {
-    result->json = json_obj;
-    result->owned = false;
-  }
+  object->json = obj_json;
+  object->owned = false;
 
   return true;
 }
 
-bool ten_json_object_peek_array_forcibly(ten_json_t *json, const char *field,
-                                         ten_json_t *result) {
-  TEN_ASSERT(json && ten_json_check_integrity(json), "Invalid argument.");
-  TEN_ASSERT(field, "Invalid argument.");
-  TEN_ASSERT(result, "Invalid argument.");
-
-  bool success = ten_json_object_peek_array(json, field, result);
-  if (success) {
-    return true;
-  }
-
-  if (ten_json_object_peek(json, field, NULL)) {
-    ten_json_object_del(json, field);
-  }
+bool ten_json_array_append_array_and_peak(ten_json_t *self, ten_json_t *array) {
+  TEN_ASSERT(self && ten_json_check_integrity(self), "Invalid argument.");
+  TEN_ASSERT(array && ten_json_check_integrity(array), "Invalid argument.");
 
   json_t *arr_json = json_array();
   TEN_ASSERT(arr_json, "Failed to allocate memory.");
 
-  json_object_set_new(json->json, field, arr_json);
+  bool success = json_array_append_new(self->json, arr_json);
+  if (!success) {
+    return false;
+  }
 
-  result->json = arr_json;
-  result->owned = false;
+  array->json = arr_json;
+  array->owned = false;
 
   return true;
 }
 
-const char *ten_json_to_string(ten_json_t *json, const char *field,
+size_t ten_json_array_get_size(ten_json_t *self) {
+  TEN_ASSERT(self && ten_json_check_integrity(self), "Invalid argument.");
+  return json_array_size(self->json);
+}
+
+bool ten_json_array_peek_item(ten_json_t *self, size_t index,
+                              ten_json_t *item) {
+  TEN_ASSERT(self && ten_json_check_integrity(self), "Invalid argument.");
+  TEN_ASSERT(item, "Invalid argument.");
+
+  json_t *item_json = json_array_get(self->json, index);
+  if (!item_json) {
+    return false;
+  }
+
+  item->json = item_json;
+  item->owned = false;
+
+  return true;
+}
+
+const char *ten_json_to_string(ten_json_t *self, const char *key,
                                bool *must_free) {
-  TEN_ASSERT(json && ten_json_check_integrity(json), "Invalid argument.");
+  TEN_ASSERT(self && ten_json_check_integrity(self), "Invalid argument.");
   TEN_ASSERT(must_free, "Invalid argument.");
 
   *must_free = false;
 
-  if (field) {
-    if (json_is_object(json->json) &&
-        json_object_get(json->json, field) != NULL) {
-      json_t *value = json_object_get(json->json, field);
+  if (key) {
+    if (json_is_object(self->json) &&
+        json_object_get(self->json, key) != NULL) {
+      json_t *value = json_object_get(self->json, key);
       switch (value->type) {
       case JSON_STRING:
         return json_string_value(value);
@@ -370,26 +437,26 @@ const char *ten_json_to_string(ten_json_t *json, const char *field,
     }
   } else {
     *must_free = true; // json_dumps will invoke malloc
-    return json_dumps(json->json, JSON_ENCODE_ANY);
+    return json_dumps(self->json, JSON_ENCODE_ANY);
   }
 
   return NULL;
 }
 
-ten_json_t *ten_json_from_string(const char *msg, ten_error_t *err) {
-  TEN_ASSERT(msg, "Invalid argument.");
-  if (!msg || !*msg) {
+ten_json_t *ten_json_from_string(const char *value, ten_error_t *err) {
+  TEN_ASSERT(value, "Invalid argument.");
+  if (!value || !*value) {
     return NULL;
   }
 
   json_error_t error;
-  json_t *ret = json_loads(msg, JSON_DECODE_ANY, &error);
+  json_t *ret = json_loads(value, JSON_DECODE_ANY, &error);
   if (!ret) {
     if (err) {
-      ten_error_set(err, TEN_ERROR_CODE_INVALID_JSON, "%s: %s", msg,
+      ten_error_set(err, TEN_ERROR_CODE_INVALID_JSON, "%s: %s", value,
                     error.text);
     }
-    TEN_LOGE("Failed to parse %s: %s", msg, error.text);
+    TEN_LOGE("Failed to parse %s: %s", value, error.text);
     return NULL;
   }
 
@@ -402,69 +469,69 @@ ten_json_t *ten_json_from_string(const char *msg, ten_error_t *err) {
   return result;
 }
 
-bool ten_json_is_object(ten_json_t *json) {
-  TEN_ASSERT(json && ten_json_check_integrity(json), "Invalid argument.");
-  return json_is_object(json->json);
+bool ten_json_is_object(ten_json_t *self) {
+  TEN_ASSERT(self && ten_json_check_integrity(self), "Invalid argument.");
+  return json_is_object(self->json);
 }
 
-bool ten_json_is_array(ten_json_t *json) {
-  TEN_ASSERT(json && ten_json_check_integrity(json), "Invalid argument.");
-  return json_is_array(json->json);
+bool ten_json_is_array(ten_json_t *self) {
+  TEN_ASSERT(self && ten_json_check_integrity(self), "Invalid argument.");
+  return json_is_array(self->json);
 }
 
-bool ten_json_is_string(ten_json_t *json) {
-  TEN_ASSERT(json && ten_json_check_integrity(json), "Invalid argument.");
-  return json_is_string(json->json);
+bool ten_json_is_string(ten_json_t *self) {
+  TEN_ASSERT(self && ten_json_check_integrity(self), "Invalid argument.");
+  return json_is_string(self->json);
 }
 
-bool ten_json_is_integer(ten_json_t *json) {
-  TEN_ASSERT(json && ten_json_check_integrity(json), "Invalid argument.");
-  return json_is_integer(json->json);
+bool ten_json_is_integer(ten_json_t *self) {
+  TEN_ASSERT(self && ten_json_check_integrity(self), "Invalid argument.");
+  return json_is_integer(self->json);
 }
 
-bool ten_json_is_boolean(ten_json_t *json) {
-  TEN_ASSERT(json && ten_json_check_integrity(json), "Invalid argument.");
-  return json_is_boolean(json->json);
+bool ten_json_is_boolean(ten_json_t *self) {
+  TEN_ASSERT(self && ten_json_check_integrity(self), "Invalid argument.");
+  return json_is_boolean(self->json);
 }
 
-bool ten_json_is_real(ten_json_t *json) {
-  TEN_ASSERT(json && ten_json_check_integrity(json), "Invalid argument.");
-  return json_is_real(json->json);
+bool ten_json_is_real(ten_json_t *self) {
+  TEN_ASSERT(self && ten_json_check_integrity(self), "Invalid argument.");
+  return json_is_real(self->json);
 }
 
-bool ten_json_is_null(ten_json_t *json) {
-  TEN_ASSERT(json && ten_json_check_integrity(json), "Invalid argument.");
-  return json_is_null(json->json);
+bool ten_json_is_null(ten_json_t *self) {
+  TEN_ASSERT(self && ten_json_check_integrity(self), "Invalid argument.");
+  return json_is_null(self->json);
 }
 
-bool ten_json_is_true(ten_json_t *json) {
-  TEN_ASSERT(json && ten_json_check_integrity(json), "Invalid argument.");
-  return json_is_true(json->json);
+bool ten_json_is_true(ten_json_t *self) {
+  TEN_ASSERT(self && ten_json_check_integrity(self), "Invalid argument.");
+  return json_is_true(self->json);
 }
 
-const char *ten_json_peek_string_value(ten_json_t *json) {
-  TEN_ASSERT(json && ten_json_check_integrity(json), "Invalid argument.");
-  return json_string_value(json->json);
+const char *ten_json_peek_string_value(ten_json_t *self) {
+  TEN_ASSERT(self && ten_json_check_integrity(self), "Invalid argument.");
+  return json_string_value(self->json);
 }
 
-int64_t ten_json_get_integer_value(ten_json_t *json) {
-  TEN_ASSERT(json && ten_json_check_integrity(json), "Invalid argument.");
-  return json_integer_value(json->json);
+int64_t ten_json_get_integer_value(ten_json_t *self) {
+  TEN_ASSERT(self && ten_json_check_integrity(self), "Invalid argument.");
+  return json_integer_value(self->json);
 }
 
-bool ten_json_get_boolean_value(ten_json_t *json) {
-  TEN_ASSERT(json && ten_json_check_integrity(json), "Invalid argument.");
-  return json_boolean_value(json->json);
+bool ten_json_get_boolean_value(ten_json_t *self) {
+  TEN_ASSERT(self && ten_json_check_integrity(self), "Invalid argument.");
+  return json_boolean_value(self->json);
 }
 
-double ten_json_get_real_value(ten_json_t *json) {
-  TEN_ASSERT(json && ten_json_check_integrity(json), "Invalid argument.");
-  return json_real_value(json->json);
+double ten_json_get_real_value(ten_json_t *self) {
+  TEN_ASSERT(self && ten_json_check_integrity(self), "Invalid argument.");
+  return json_real_value(self->json);
 }
 
-double ten_json_get_number_value(ten_json_t *json) {
-  TEN_ASSERT(json && ten_json_check_integrity(json), "Invalid argument.");
-  return json_number_value(json->json);
+double ten_json_get_number_value(ten_json_t *self) {
+  TEN_ASSERT(self && ten_json_check_integrity(self), "Invalid argument.");
+  return json_number_value(self->json);
 }
 
 bool ten_json_set_object(ten_json_t *self) {
@@ -524,13 +591,13 @@ bool ten_json_set_string(ten_json_t *self, const char *value) {
   return true;
 }
 
-ten_json_t *ten_json_create_string(const char *str) {
-  TEN_ASSERT(str, "Invalid argument.");
+ten_json_t *ten_json_create_string(const char *value) {
+  TEN_ASSERT(value, "Invalid argument.");
 
   ten_json_t *self = ten_json_create();
   TEN_ASSERT(self, "Failed to allocate memory.");
 
-  ten_json_set_string(self, str);
+  ten_json_set_string(self, value);
 
   return self;
 }
@@ -548,15 +615,6 @@ bool ten_json_set_integer(ten_json_t *self, int64_t value) {
   return true;
 }
 
-ten_json_t *ten_json_create_integer(int64_t value) {
-  ten_json_t *self = ten_json_create();
-  TEN_ASSERT(self, "Failed to allocate memory.");
-
-  ten_json_set_integer(self, value);
-
-  return self;
-}
-
 bool ten_json_set_real(ten_json_t *self, double value) {
   TEN_ASSERT(self && ten_json_check_integrity(self), "Invalid argument.");
 
@@ -568,15 +626,6 @@ bool ten_json_set_real(ten_json_t *self, double value) {
   self->owned = true;
 
   return true;
-}
-
-ten_json_t *ten_json_create_real(double value) {
-  ten_json_t *self = ten_json_create();
-  TEN_ASSERT(self, "Failed to allocate memory.");
-
-  ten_json_set_real(self, value);
-
-  return self;
 }
 
 bool ten_json_set_boolean(ten_json_t *self, bool value) {
@@ -592,39 +641,6 @@ bool ten_json_set_boolean(ten_json_t *self, bool value) {
   return true;
 }
 
-ten_json_t *ten_json_create_boolean(bool value) {
-  ten_json_t *self = ten_json_create();
-  TEN_ASSERT(self, "Failed to allocate memory.");
-
-  ten_json_set_boolean(self, value);
-
-  return self;
-}
-
-ten_json_t *ten_json_create_true(void) {
-  ten_json_t *self = ten_json_create();
-  TEN_ASSERT(self, "Failed to allocate memory.");
-
-  self->json = json_true();
-  TEN_ASSERT(self->json, "Failed to allocate memory.");
-
-  self->owned = true;
-
-  return self;
-}
-
-ten_json_t *ten_json_create_false(void) {
-  ten_json_t *self = ten_json_create();
-  TEN_ASSERT(self, "Failed to allocate memory.");
-
-  self->json = json_false();
-  TEN_ASSERT(self->json, "Failed to allocate memory.");
-
-  self->owned = true;
-
-  return self;
-}
-
 bool ten_json_set_null(ten_json_t *self) {
   TEN_ASSERT(self && ten_json_check_integrity(self), "Invalid argument.");
 
@@ -636,71 +652,4 @@ bool ten_json_set_null(ten_json_t *self) {
   self->owned = true;
 
   return true;
-}
-
-ten_json_t *ten_json_create_null(void) {
-  ten_json_t *self = ten_json_create();
-  TEN_ASSERT(self, "Failed to allocate memory.");
-
-  ten_json_set_null(self);
-
-  return self;
-}
-
-size_t ten_json_array_get_size(ten_json_t *json) {
-  TEN_ASSERT(json && ten_json_check_integrity(json), "Invalid argument.");
-  return json_array_size(json->json);
-}
-
-bool ten_json_array_peek_item(ten_json_t *json, size_t index,
-                              ten_json_t *result) {
-  TEN_ASSERT(json && ten_json_check_integrity(json), "Invalid argument.");
-  TEN_ASSERT(result, "Invalid argument.");
-
-  json_t *item = json_array_get(json->json, index);
-  if (!item) {
-    return false;
-  }
-
-  result->json = item;
-  result->owned = false;
-
-  return true;
-}
-
-const char *ten_json_object_iter_key(ten_json_object_iter_t *iter) {
-  return json_object_iter_key((void *)iter);
-}
-
-bool ten_json_object_iter_peek_value(ten_json_object_iter_t *iter,
-                                     ten_json_t *result) {
-  TEN_ASSERT(iter, "Invalid argument.");
-
-  json_t *value = json_object_iter_value((void *)iter);
-  if (!value) {
-    return false;
-  }
-
-  result->json = value;
-  result->owned = false;
-
-  return true;
-}
-
-ten_json_object_iter_t *ten_json_object_iter(ten_json_t *json) {
-  TEN_ASSERT(json && ten_json_check_integrity(json), "Invalid argument.");
-  return (ten_json_object_iter_t *)json_object_iter(json->json);
-}
-
-ten_json_object_iter_t *ten_json_object_key_to_iter(const char *key) {
-  TEN_ASSERT(key, "Invalid argument.");
-  return (ten_json_object_iter_t *)json_object_key_to_iter(key);
-}
-
-ten_json_object_iter_t *
-ten_json_object_iter_next(ten_json_t *json, ten_json_object_iter_t *iter) {
-  TEN_ASSERT(json && ten_json_check_integrity(json), "Invalid argument.");
-  TEN_ASSERT(iter, "Invalid argument.");
-  return (ten_json_object_iter_t *)json_object_iter_next(json->json,
-                                                         (void *)iter);
 }
