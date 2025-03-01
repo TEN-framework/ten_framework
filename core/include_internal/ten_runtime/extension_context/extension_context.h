@@ -15,7 +15,6 @@
 #include "ten_utils/container/list.h"
 #include "ten_utils/lib/atomic.h"
 #include "ten_utils/lib/signature.h"
-#include "ten_utils/lib/smart_ptr.h"
 #include "ten_utils/lib/string.h"
 #include "ten_utils/sanitizer/thread_check.h"
 

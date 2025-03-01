@@ -104,6 +104,8 @@ ten_app_build_start_graph_cmd_to_start_predefined_graph(
 
     bool success =
         ten_extension_info_to_json(extension_info, &extension_info_json);
+    TEN_ASSERT(ten_json_check_integrity(&extension_info_json),
+               "Invalid argument.");
     if (!success) {
       goto error;
     }
@@ -114,6 +116,9 @@ ten_app_build_start_graph_cmd_to_start_predefined_graph(
         ten_shared_ptr_get_data(ten_smart_ptr_listnode_get(iter.node));
 
     ten_json_t extension_group_info_json = TEN_JSON_INIT_VAL(json_ctx);
+    ten_json_array_append_object_and_peak(&nodes_json,
+                                          &extension_group_info_json);
+
     bool success = ten_extension_group_info_to_json(extension_group_info,
                                                     &extension_group_info_json);
     TEN_ASSERT(ten_json_check_integrity(&extension_group_info_json),
@@ -121,8 +126,6 @@ ten_app_build_start_graph_cmd_to_start_predefined_graph(
     if (!success) {
       goto error;
     }
-
-    ten_json_array_append_new(&nodes_json, &extension_group_info_json);
   }
 
   ten_json_t connections_json = TEN_JSON_INIT_VAL(json_ctx);
