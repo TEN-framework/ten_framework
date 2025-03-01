@@ -547,11 +547,16 @@ bool ten_json_set_object(ten_json_t *self) {
   return true;
 }
 
-ten_json_t *ten_json_create_object(void) {
+ten_json_t *ten_json_create_root_object(void) {
   ten_json_t *self = ten_json_create();
   TEN_ASSERT(self, "Failed to allocate memory.");
 
-  ten_json_set_object(self);
+  bool success = ten_json_set_object(self);
+  TEN_ASSERT(success, "Failed to create the root object.");
+  if (!success) {
+    ten_json_destroy(self);
+    return NULL;
+  }
 
   return self;
 }
@@ -569,15 +574,6 @@ bool ten_json_set_array(ten_json_t *self) {
   return true;
 }
 
-ten_json_t *ten_json_create_array(void) {
-  ten_json_t *self = ten_json_create();
-  TEN_ASSERT(self, "Failed to allocate memory.");
-
-  ten_json_set_array(self);
-
-  return self;
-}
-
 bool ten_json_set_string(ten_json_t *self, const char *value) {
   TEN_ASSERT(self && ten_json_check_integrity(self), "Invalid argument.");
 
@@ -589,17 +585,6 @@ bool ten_json_set_string(ten_json_t *self, const char *value) {
   self->owned = true;
 
   return true;
-}
-
-ten_json_t *ten_json_create_string(const char *value) {
-  TEN_ASSERT(value, "Invalid argument.");
-
-  ten_json_t *self = ten_json_create();
-  TEN_ASSERT(self, "Failed to allocate memory.");
-
-  ten_json_set_string(self, value);
-
-  return self;
 }
 
 bool ten_json_set_integer(ten_json_t *self, int64_t value) {

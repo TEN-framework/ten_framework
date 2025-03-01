@@ -719,7 +719,8 @@ bool ten_raw_msg_process_field(ten_msg_t *self,
 static ten_json_t *
 ten_raw_msg_to_json_include_internal_field(ten_msg_t *self, ten_error_t *err) {
   TEN_ASSERT(self && ten_raw_msg_check_integrity(self), "Should not happen.");
-  ten_json_t *json = ten_json_create_object();
+
+  ten_json_t *json = ten_json_create_root_object();
   TEN_ASSERT(json, "Should not happen.");
 
   bool rc = ten_raw_msg_loop_all_fields(

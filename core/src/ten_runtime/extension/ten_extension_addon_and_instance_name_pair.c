@@ -43,20 +43,16 @@ void ten_extension_addon_and_instance_name_pair_to_json(
   TEN_ASSERT(json && key && addon_name && instance_name, "Should not happen.");
 
   if (ten_string_is_empty(addon_name)) {
-    ten_json_t *extension_group_json =
-        ten_json_create_string(ten_string_get_raw_str(instance_name));
-    TEN_ASSERT(extension_group_json, "Should not happen.");
-    ten_json_object_set_new(json, key, extension_group_json);
+    ten_json_object_set_string(json, key,
+                               ten_string_get_raw_str(instance_name));
   } else {
     ten_json_t extension_group_json = TEN_JSON_INIT_VAL;
     ten_json_set_object(&extension_group_json);
 
-    ten_json_object_set_new(
-        &extension_group_json, TEN_STR_ADDON,
-        ten_json_create_string(ten_string_get_raw_str(addon_name)));
-    ten_json_object_set_new(
-        &extension_group_json, TEN_STR_NAME,
-        ten_json_create_string(ten_string_get_raw_str(instance_name)));
+    ten_json_object_set_string(&extension_group_json, TEN_STR_ADDON,
+                               ten_string_get_raw_str(addon_name));
+    ten_json_object_set_string(&extension_group_json, TEN_STR_NAME,
+                               ten_string_get_raw_str(instance_name));
 
     ten_json_object_set_new(json, key, &extension_group_json);
   }

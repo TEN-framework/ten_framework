@@ -59,11 +59,9 @@ bool ten_raw_msg_type_to_json(ten_msg_t *self, ten_json_t *json,
       json, TEN_STR_UNDERLINE_TEN, &ten_json);
   TEN_ASSERT(success, "Should not happen.");
 
-  ten_json_t *type_json = ten_json_create_string(
+  ten_json_object_set_string(
+      &ten_json, TEN_STR_TYPE,
       ten_msg_type_to_string(ten_raw_msg_get_type(self)));
-  TEN_ASSERT(type_json, "Should not happen.");
-
-  ten_json_object_set_new(&ten_json, TEN_STR_TYPE, type_json);
 
   return true;
 }

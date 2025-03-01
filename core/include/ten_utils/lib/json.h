@@ -163,8 +163,4 @@ TEN_UTILS_API bool ten_json_set_object(ten_json_t *self);
 
 TEN_UTILS_API bool ten_json_set_array(ten_json_t *self);
 
-TEN_UTILS_API ten_json_t *ten_json_create_object(void);
-
-TEN_UTILS_API ten_json_t *ten_json_create_array(void);
-
-TEN_UTILS_API ten_json_t *ten_json_create_string(const char *value);
+TEN_UTILS_API ten_json_t *ten_json_create_root_object(void);

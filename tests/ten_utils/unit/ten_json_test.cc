@@ -108,34 +108,8 @@ TEST(JsonTest, ArrayForeach) {  // NOLINT
   ten_json_destroy(json);
 }
 
-TEST(JsonTest, ObjectSetNew) {  // NOLINT
-  ten_json_t *json = ten_json_create_object();
-  EXPECT_NE(json, nullptr);
-
-  ten_json_t *value = ten_json_create_string("hello");
-  EXPECT_NE(value, nullptr);
-  bool success = ten_json_object_set_new(json, "a", value);
-  EXPECT_TRUE(success);
-
-  ten_json_destroy(value);
-  ten_json_destroy(json);
-}
-
-TEST(JsonTest, ArrayAppendNew) {  // NOLINT
-  ten_json_t *json = ten_json_create_array();
-  EXPECT_NE(json, nullptr);
-
-  ten_json_t *value = ten_json_create_string("hello");
-  EXPECT_NE(value, nullptr);
-  bool success = ten_json_array_append_new(json, value);
-  EXPECT_TRUE(success);
-
-  ten_json_destroy(value);
-  ten_json_destroy(json);
-}
-
 TEST(JsonTest, ObjectSetInt) {  // NOLINT
-  ten_json_t *json = ten_json_create_object();
+  ten_json_t *json = ten_json_create_root_object();
   EXPECT_NE(json, nullptr);
 
   bool success = ten_json_object_set_int(json, "a", 1);
@@ -145,7 +119,7 @@ TEST(JsonTest, ObjectSetInt) {  // NOLINT
 }
 
 TEST(JsonTest, ObjectSetReal) {  // NOLINT
-  ten_json_t *json = ten_json_create_object();
+  ten_json_t *json = ten_json_create_root_object();
   EXPECT_NE(json, nullptr);
 
   bool success = ten_json_object_set_real(json, "a", 1.0);
@@ -155,7 +129,7 @@ TEST(JsonTest, ObjectSetReal) {  // NOLINT
 }
 
 TEST(JsonTest, ObjectSetBool) {  // NOLINT
-  ten_json_t *json = ten_json_create_object();
+  ten_json_t *json = ten_json_create_root_object();
   EXPECT_NE(json, nullptr);
 
   bool success = ten_json_object_set_bool(json, "a", true);
@@ -165,7 +139,7 @@ TEST(JsonTest, ObjectSetBool) {  // NOLINT
 }
 
 TEST(JsonTest, ObjectSetString) {  // NOLINT
-  ten_json_t *json = ten_json_create_object();
+  ten_json_t *json = ten_json_create_root_object();
   EXPECT_NE(json, nullptr);
 
   bool success = ten_json_object_set_string(json, "a", "hello");
