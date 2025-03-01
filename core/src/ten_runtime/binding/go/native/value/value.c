@@ -285,7 +285,7 @@ bool ten_go_ten_value_to_json(ten_value_t *self, uintptr_t *json_str_len,
   TEN_ASSERT(self && ten_value_check_integrity(self), "Should not happen.");
   TEN_ASSERT(json_str_len && json_str && status, "Should not happen.");
 
-  ten_json_t c_json = TEN_JSON_INIT_VAL;
+  ten_json_t c_json = TEN_JSON_INIT_VAL(ten_json_create_new_ctx());
   bool success = ten_value_to_json(self, &c_json);
   if (!success) {
     ten_string_t err_msg;

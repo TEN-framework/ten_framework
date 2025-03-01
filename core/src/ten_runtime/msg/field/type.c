@@ -20,19 +20,19 @@ bool ten_raw_msg_type_from_json(ten_msg_t *self, ten_json_t *json,
   TEN_ASSERT(self && ten_raw_msg_check_integrity(self), "Should not happen.");
   TEN_ASSERT(json && ten_json_check_integrity(json), "Should not happen.");
 
-  ten_json_t ten_json = TEN_JSON_INIT_VAL;
+  ten_json_t ten_json = TEN_JSON_INIT_VAL(json->ctx);
   bool success = ten_json_object_peek(json, TEN_STR_UNDERLINE_TEN, &ten_json);
   if (!success) {
     return true;
   }
 
-  ten_json_t type_json = TEN_JSON_INIT_VAL;
+  ten_json_t type_json = TEN_JSON_INIT_VAL(ten_json.ctx);
   success = ten_json_object_peek(&ten_json, TEN_STR_TYPE, &type_json);
   if (!success) {
     return true;
   }
 
-  ten_json_t name_json = TEN_JSON_INIT_VAL;
+  ten_json_t name_json = TEN_JSON_INIT_VAL(ten_json.ctx);
   success = ten_json_object_peek(&ten_json, TEN_STR_NAME, &name_json);
   if (!success) {
     return true;
@@ -54,7 +54,7 @@ bool ten_raw_msg_type_to_json(ten_msg_t *self, ten_json_t *json,
   TEN_ASSERT(self && ten_raw_msg_check_integrity(self) && json,
              "Should not happen.");
 
-  ten_json_t ten_json = TEN_JSON_INIT_VAL;
+  ten_json_t ten_json = TEN_JSON_INIT_VAL(json->ctx);
   bool success = ten_json_object_peek_object_forcibly(
       json, TEN_STR_UNDERLINE_TEN, &ten_json);
   TEN_ASSERT(success, "Should not happen.");

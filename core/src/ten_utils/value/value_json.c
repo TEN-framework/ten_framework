@@ -279,7 +279,7 @@ static bool ten_value_array_to_json(ten_value_t *self, ten_json_t *json) {
 
   // Loop each item in the array and convert them to JSON.
   ten_list_foreach(&self->content.array, iter) {
-    ten_json_t item_json = TEN_JSON_INIT_VAL;
+    ten_json_t item_json = TEN_JSON_INIT_VAL(json->ctx);
 
     ten_value_t *item = ten_ptr_listnode_get(iter.node);
     if (!item) {

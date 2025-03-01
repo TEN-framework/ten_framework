@@ -46,7 +46,7 @@ void ten_extension_addon_and_instance_name_pair_to_json(
     ten_json_object_set_string(json, key,
                                ten_string_get_raw_str(instance_name));
   } else {
-    ten_json_t extension_group_json = TEN_JSON_INIT_VAL;
+    ten_json_t extension_group_json = TEN_JSON_INIT_VAL(json->ctx);
     ten_json_set_object(&extension_group_json);
 
     ten_json_object_set_string(&extension_group_json, TEN_STR_ADDON,

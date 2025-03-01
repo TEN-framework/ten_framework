@@ -133,7 +133,7 @@ PyObject *ten_py_ten_env_get_property_to_json(PyObject *self, PyObject *args) {
     goto error;
   }
 
-  ten_json_t json = TEN_JSON_INIT_VAL;
+  ten_json_t json = TEN_JSON_INIT_VAL(ten_json_create_new_ctx());
   bool success = ten_value_to_json(value, &json);
   TEN_ASSERT(success, "Should not happen.");
 

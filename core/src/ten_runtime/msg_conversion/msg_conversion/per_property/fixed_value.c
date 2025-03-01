@@ -56,7 +56,7 @@ bool ten_msg_conversion_per_property_rule_fixed_value_from_json(
 
   ten_msg_conversion_per_property_rule_fixed_value_init(self);
 
-  ten_json_t value_json = TEN_JSON_INIT_VAL;
+  ten_json_t value_json = TEN_JSON_INIT_VAL(json->ctx);
   bool success = ten_json_object_peek(json, TEN_STR_VALUE, &value_json);
   TEN_ASSERT(success, "Should not happen.");
 

@@ -35,7 +35,7 @@ bool ten_extension_group_info_to_json(ten_extension_group_info_t *self,
                              ten_string_get_raw_str(&self->loc.app_uri));
 
   if (self->property) {
-    ten_json_t property_json = TEN_JSON_INIT_VAL;
+    ten_json_t property_json = TEN_JSON_INIT_VAL(json->ctx);
     bool success = ten_value_to_json(self->property, &property_json);
     TEN_ASSERT(success, "Should not happen.");
 
@@ -76,7 +76,7 @@ ten_shared_ptr_t *ten_extension_group_info_from_json(
              "Should not happen.");
 
   // Parse 'prop'
-  ten_json_t props_json = TEN_JSON_INIT_VAL;
+  ten_json_t props_json = TEN_JSON_INIT_VAL(json->ctx);
   bool success = ten_json_object_peek(json, TEN_STR_PROPERTY, &props_json);
   if (success) {
     if (!ten_json_is_object(&props_json)) {

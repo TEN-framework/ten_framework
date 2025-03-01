@@ -25,7 +25,7 @@ static bool pack_msg_dest(ten_extension_info_t *self, ten_list_t *msg_dests,
     ten_msg_dest_info_t *msg_dest =
         ten_shared_ptr_get_data(ten_smart_ptr_listnode_get(iter.node));
 
-    ten_json_t msg_dest_json = TEN_JSON_INIT_VAL;
+    ten_json_t msg_dest_json = TEN_JSON_INIT_VAL(msg_json->ctx);
     ten_json_array_append_object_and_peak(msg_json, &msg_dest_json);
 
     bool success =
@@ -67,7 +67,7 @@ bool ten_extension_info_to_json(ten_extension_info_t *self, ten_json_t *info) {
                              ten_string_get_raw_str(&self->loc.app_uri));
 
   if (self->property) {
-    ten_json_t property_json = TEN_JSON_INIT_VAL;
+    ten_json_t property_json = TEN_JSON_INIT_VAL(info->ctx);
 
     bool success = ten_value_to_json(self->property, &property_json);
     TEN_ASSERT(success, "Should not happen.");
@@ -114,7 +114,7 @@ int ten_extension_info_connections_to_json(ten_extension_info_t *self,
                              ten_string_get_raw_str(&self->loc.extension_name));
 
   if (!ten_list_is_empty(&self->msg_dest_info.cmd)) {
-    ten_json_t cmd_dest_json = TEN_JSON_INIT_VAL;
+    ten_json_t cmd_dest_json = TEN_JSON_INIT_VAL(json->ctx);
     ten_json_object_peek_array_forcibly(json, TEN_STR_CMD, &cmd_dest_json);
 
     bool success =
@@ -125,7 +125,7 @@ int ten_extension_info_connections_to_json(ten_extension_info_t *self,
   }
 
   if (!ten_list_is_empty(&self->msg_dest_info.data)) {
-    ten_json_t data_dest_json = TEN_JSON_INIT_VAL;
+    ten_json_t data_dest_json = TEN_JSON_INIT_VAL(json->ctx);
     ten_json_object_peek_array_forcibly(json, TEN_STR_DATA, &data_dest_json);
 
     bool success =
@@ -136,7 +136,7 @@ int ten_extension_info_connections_to_json(ten_extension_info_t *self,
   }
 
   if (!ten_list_is_empty(&self->msg_dest_info.video_frame)) {
-    ten_json_t video_frame_dest_json = TEN_JSON_INIT_VAL;
+    ten_json_t video_frame_dest_json = TEN_JSON_INIT_VAL(json->ctx);
     ten_json_object_peek_array_forcibly(json, TEN_STR_VIDEO_FRAME,
                                         &video_frame_dest_json);
 
@@ -148,7 +148,7 @@ int ten_extension_info_connections_to_json(ten_extension_info_t *self,
   }
 
   if (!ten_list_is_empty(&self->msg_dest_info.audio_frame)) {
-    ten_json_t audio_frame_dest_json = TEN_JSON_INIT_VAL;
+    ten_json_t audio_frame_dest_json = TEN_JSON_INIT_VAL(json->ctx);
     ten_json_object_peek_array_forcibly(json, TEN_STR_AUDIO_FRAME,
                                         &audio_frame_dest_json);
 
@@ -160,7 +160,7 @@ int ten_extension_info_connections_to_json(ten_extension_info_t *self,
   }
 
   if (!ten_list_is_empty(&self->msg_dest_info.interface)) {
-    ten_json_t interface_dest_json = TEN_JSON_INIT_VAL;
+    ten_json_t interface_dest_json = TEN_JSON_INIT_VAL(json->ctx);
     ten_json_object_peek_array_forcibly(json, TEN_STR_INTERFACE,
                                         &interface_dest_json);
 

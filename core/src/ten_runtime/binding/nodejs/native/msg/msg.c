@@ -261,7 +261,7 @@ static napi_value ten_nodejs_msg_get_property_to_json(napi_env env,
     goto done;
   }
 
-  ten_json_t c_json = TEN_JSON_INIT_VAL;
+  ten_json_t c_json = TEN_JSON_INIT_VAL(ten_json_create_new_ctx());
   bool success = ten_value_to_json(c_value, &c_json);
   TEN_ASSERT(success, "Should not happen.");
 
