@@ -44,22 +44,6 @@ ten_shared_ptr_t *ten_cmd_close_app_create(void) {
                                ten_raw_cmd_close_app_destroy);
 }
 
-ten_json_t *ten_raw_cmd_close_app_to_json(ten_msg_t *self, ten_error_t *err) {
-  TEN_ASSERT(self && ten_raw_msg_get_type(self) == TEN_MSG_TYPE_CMD_CLOSE_APP,
-             "Should not happen.");
-
-  ten_json_t *json = ten_json_create_object();
-  TEN_ASSERT(json, "Should not happen.");
-
-  if (!ten_raw_cmd_close_app_loop_all_fields(
-          self, ten_raw_msg_put_one_field_to_json, json, err)) {
-    ten_json_destroy(json);
-    return NULL;
-  }
-
-  return json;
-}
-
 bool ten_raw_cmd_close_app_loop_all_fields(
     ten_msg_t *self, ten_raw_msg_process_one_field_func_t cb, void *user_data,
     ten_error_t *err) {

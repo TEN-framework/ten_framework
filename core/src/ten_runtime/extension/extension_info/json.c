@@ -38,8 +38,7 @@ static bool pack_msg_dest(ten_extension_info_t *self, ten_list_t *msg_dests,
   return true;
 }
 
-bool ten_extension_info_node_to_json(ten_extension_info_t *self,
-                                     ten_json_t *info) {
+bool ten_extension_info_to_json(ten_extension_info_t *self, ten_json_t *info) {
   TEN_ASSERT(self, "Invalid argument.");
   // TEN_NOLINTNEXTLINE(thread-check)
   // thread-check: The graph-related information of the extension remains

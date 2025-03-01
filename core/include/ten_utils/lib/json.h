@@ -20,11 +20,11 @@
 #define TEN_JSON_INIT_VAL \
   (ten_json_t) { .signature = TEN_JSON_SIGNATURE, .owned = false, .json = NULL }
 
-#define ten_json_array_foreach(array, index, value)                            \
-  ten_json_t __value = TEN_JSON_INIT_VAL;                                      \
-  for ((index) = 0;                                                            \
-       (index) < ten_json_array_get_size(array) &&                             \
-       ten_json_array_peek_item(array, index, &__value) && (value = &__value); \
+#define ten_json_array_foreach(array, index, item)                          \
+  ten_json_t __item = TEN_JSON_INIT_VAL;                                    \
+  for ((index) = 0;                                                         \
+       (index) < ten_json_array_get_size(array) &&                          \
+       ten_json_array_peek_item(array, index, &__item) && (item = &__item); \
        (index)++)
 
 #define ten_json_object_foreach(object, key, value)                       \
@@ -48,130 +48,106 @@ typedef struct ten_json_t {
 
 typedef void *ten_json_object_iter_t;
 
-TEN_UTILS_API bool ten_json_check_integrity(ten_json_t *json);
+TEN_UTILS_API bool ten_json_check_integrity(ten_json_t *self);
 
 TEN_UTILS_API void ten_json_init(ten_json_t *self);
 
-TEN_UTILS_API ten_json_t *ten_json_create(void);
-
 TEN_UTILS_API void ten_json_deinit(ten_json_t *self);
 
-/**
- * @brief Destroy a json object
- *
- * @param json The json object
- */
+TEN_UTILS_API ten_json_t *ten_json_create(void);
+
 TEN_UTILS_API void ten_json_destroy(ten_json_t *self);
 
-TEN_UTILS_API TEN_TYPE ten_json_get_type(ten_json_t *json);
+TEN_UTILS_API TEN_TYPE ten_json_get_type(ten_json_t *self);
 
-/**
- * @brief get string value from json object
- * @param json json object
- * @param field key
- * @return value if exists, NULL otherwise
- */
-TEN_UTILS_API const char *ten_json_object_peek_string(ten_json_t *json,
-                                                      const char *field);
+TEN_UTILS_API bool ten_json_object_peek(ten_json_t *self, const char *key,
+                                        ten_json_t *value);
 
-TEN_UTILS_API bool ten_json_object_peek_object(ten_json_t *json,
-                                               const char *field,
-                                               ten_json_t *result);
+TEN_UTILS_API const char *ten_json_object_peek_string(ten_json_t *self,
+                                                      const char *key);
 
-TEN_UTILS_API bool ten_json_object_peek_object_forcibly(ten_json_t *json,
-                                                        const char *field,
-                                                        ten_json_t *result);
+TEN_UTILS_API bool ten_json_object_peek_object_forcibly(ten_json_t *self,
+                                                        const char *key,
+                                                        ten_json_t *object);
 
-TEN_UTILS_API bool ten_json_object_set_new(ten_json_t *json, const char *field,
+TEN_UTILS_API bool ten_json_object_peek_array_forcibly(ten_json_t *self,
+                                                       const char *key,
+                                                       ten_json_t *array);
+
+TEN_UTILS_API bool ten_json_object_set_new(ten_json_t *self, const char *key,
                                            ten_json_t *value);
 
-TEN_UTILS_API void ten_json_object_set_string(ten_json_t *json,
-                                              const char *field,
+TEN_UTILS_API bool ten_json_object_set_string(ten_json_t *self, const char *key,
                                               const char *value);
 
-TEN_UTILS_API void ten_json_object_set_int(ten_json_t *json, const char *field,
+TEN_UTILS_API bool ten_json_object_set_int(ten_json_t *self, const char *key,
                                            int64_t value);
 
-TEN_UTILS_API void ten_json_object_set_real(ten_json_t *json, const char *field,
+TEN_UTILS_API bool ten_json_object_set_real(ten_json_t *self, const char *key,
                                             double value);
 
-TEN_UTILS_API void ten_json_object_set_bool(ten_json_t *json, const char *field,
+TEN_UTILS_API bool ten_json_object_set_bool(ten_json_t *self, const char *key,
                                             bool value);
 
-TEN_UTILS_API bool ten_json_object_peek_array(ten_json_t *json,
-                                              const char *field,
-                                              ten_json_t *result);
+TEN_UTILS_API const char *ten_json_object_iter_key(
+    ten_json_object_iter_t *iter);
 
-TEN_UTILS_API bool ten_json_object_peek_array_forcibly(ten_json_t *json,
-                                                       const char *field,
-                                                       ten_json_t *result);
+TEN_UTILS_API bool ten_json_object_iter_peek_value(ten_json_object_iter_t *iter,
+                                                   ten_json_t *value);
 
-TEN_UTILS_API void ten_json_array_append_new(ten_json_t *json,
-                                             ten_json_t *value);
+TEN_UTILS_API ten_json_object_iter_t *ten_json_object_iter(ten_json_t *self);
 
-TEN_UTILS_API void ten_json_array_append_object_and_peak(ten_json_t *json,
-                                                         ten_json_t *result);
+TEN_UTILS_API ten_json_object_iter_t *ten_json_object_key_to_iter(
+    const char *key);
 
-TEN_UTILS_API void ten_json_array_append_array_and_peak(ten_json_t *json,
-                                                        ten_json_t *result);
+TEN_UTILS_API ten_json_object_iter_t *ten_json_object_iter_next(
+    ten_json_t *self, ten_json_object_iter_t *iter);
 
-TEN_UTILS_API bool ten_json_object_peek(ten_json_t *json, const char *field,
-                                        ten_json_t *result);
+TEN_UTILS_API bool ten_json_array_append_new(ten_json_t *self,
+                                             ten_json_t *item);
 
-/**
- * @brief Get value of field from json object in string format, if the type
- *        of field is not string, dumps the value in string format.
- * @param json The json object.
- * @param field The field name.
- * @param must_free have to free after use.
- * @return The json string of field value if exists, or NULL.
- */
-TEN_UTILS_API const char *ten_json_to_string(ten_json_t *json,
-                                             const char *field,
+TEN_UTILS_API void ten_json_array_append_object_and_peak(ten_json_t *self,
+                                                         ten_json_t *item);
+
+TEN_UTILS_API void ten_json_array_append_array_and_peak(ten_json_t *self,
+                                                        ten_json_t *item);
+
+TEN_UTILS_API size_t ten_json_array_get_size(ten_json_t *self);
+
+TEN_UTILS_API bool ten_json_array_peek_item(ten_json_t *self, size_t index,
+                                            ten_json_t *item);
+
+TEN_UTILS_API const char *ten_json_to_string(ten_json_t *self, const char *key,
                                              bool *must_free);
 
-/**
- * @brief Get value of field from json object in string format, if the type
- *        of field is not string, dumps the value in string format.
- * @param json The json object.
- * @param field The field name.
- * @param must_free have to free after use.
- * @return The json string of field value if exists, or NULL.
- */
-TEN_UTILS_API ten_json_t *ten_json_from_string(const char *msg,
+TEN_UTILS_API ten_json_t *ten_json_from_string(const char *value,
                                                ten_error_t *err);
 
-TEN_UTILS_API bool ten_json_is_object(ten_json_t *json);
+TEN_UTILS_API bool ten_json_is_object(ten_json_t *self);
 
-TEN_UTILS_API bool ten_json_is_array(ten_json_t *json);
+TEN_UTILS_API bool ten_json_is_array(ten_json_t *self);
 
-TEN_UTILS_API bool ten_json_is_string(ten_json_t *json);
+TEN_UTILS_API bool ten_json_is_string(ten_json_t *self);
 
-TEN_UTILS_API bool ten_json_is_integer(ten_json_t *json);
+TEN_UTILS_API bool ten_json_is_integer(ten_json_t *self);
 
-TEN_UTILS_API bool ten_json_is_boolean(ten_json_t *json);
+TEN_UTILS_API bool ten_json_is_boolean(ten_json_t *self);
 
-TEN_UTILS_API bool ten_json_is_real(ten_json_t *json);
+TEN_UTILS_API bool ten_json_is_real(ten_json_t *self);
 
-TEN_UTILS_API bool ten_json_is_true(ten_json_t *json);
+TEN_UTILS_API bool ten_json_is_true(ten_json_t *self);
 
-TEN_UTILS_API bool ten_json_is_null(ten_json_t *json);
+TEN_UTILS_API bool ten_json_is_null(ten_json_t *self);
 
-TEN_UTILS_API const char *ten_json_peek_string_value(ten_json_t *json);
+TEN_UTILS_API const char *ten_json_peek_string_value(ten_json_t *self);
 
-TEN_UTILS_API int64_t ten_json_get_integer_value(ten_json_t *json);
+TEN_UTILS_API int64_t ten_json_get_integer_value(ten_json_t *self);
 
-TEN_UTILS_API bool ten_json_get_boolean_value(ten_json_t *json);
+TEN_UTILS_API bool ten_json_get_boolean_value(ten_json_t *self);
 
-TEN_UTILS_API double ten_json_get_real_value(ten_json_t *json);
+TEN_UTILS_API double ten_json_get_real_value(ten_json_t *self);
 
-TEN_UTILS_API double ten_json_get_number_value(ten_json_t *json);
-
-TEN_UTILS_API ten_json_t *ten_json_create_object(void);
-
-TEN_UTILS_API ten_json_t *ten_json_create_array(void);
-
-TEN_UTILS_API ten_json_t *ten_json_create_string(const char *str);
+TEN_UTILS_API double ten_json_get_number_value(ten_json_t *self);
 
 TEN_UTILS_API bool ten_json_set_string(ten_json_t *self, const char *value);
 
@@ -199,21 +175,8 @@ TEN_UTILS_API ten_json_t *ten_json_create_false(void);
 
 TEN_UTILS_API ten_json_t *ten_json_create_null(void);
 
-TEN_UTILS_API size_t ten_json_array_get_size(ten_json_t *json);
+TEN_UTILS_API ten_json_t *ten_json_create_object(void);
 
-TEN_UTILS_API bool ten_json_array_peek_item(ten_json_t *json, size_t index,
-                                            ten_json_t *result);
+TEN_UTILS_API ten_json_t *ten_json_create_array(void);
 
-TEN_UTILS_API const char *ten_json_object_iter_key(
-    ten_json_object_iter_t *iter);
-
-TEN_UTILS_API bool ten_json_object_iter_peek_value(ten_json_object_iter_t *iter,
-                                                   ten_json_t *result);
-
-TEN_UTILS_API ten_json_object_iter_t *ten_json_object_iter(ten_json_t *json);
-
-TEN_UTILS_API ten_json_object_iter_t *ten_json_object_key_to_iter(
-    const char *key);
-
-TEN_UTILS_API ten_json_object_iter_t *ten_json_object_iter_next(
-    ten_json_t *json, ten_json_object_iter_t *iter);
+TEN_UTILS_API ten_json_t *ten_json_create_string(const char *value);

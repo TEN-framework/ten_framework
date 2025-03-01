@@ -15,7 +15,6 @@
 #include "include_internal/ten_utils/value/value_set.h"
 #include "ten_runtime/msg/cmd/stop_graph/cmd.h"
 #include "ten_utils/lib/alloc.h"
-#include "ten_utils/lib/json.h"
 #include "ten_utils/lib/smart_ptr.h"
 #include "ten_utils/lib/string.h"
 #include "ten_utils/macro/check.h"
@@ -56,25 +55,8 @@ ten_shared_ptr_t *ten_cmd_stop_graph_create(void) {
                                ten_raw_cmd_stop_graph_destroy);
 }
 
-ten_json_t *ten_raw_cmd_stop_graph_to_json(ten_msg_t *self, ten_error_t *err) {
-  TEN_ASSERT(self && ten_raw_msg_get_type((ten_msg_t *)self) ==
-                         TEN_MSG_TYPE_CMD_STOP_GRAPH,
-             "Should not happen.");
-
-  ten_json_t *json = ten_json_create_object();
-  TEN_ASSERT(json, "Should not happen.");
-
-  if (!ten_raw_cmd_stop_graph_loop_all_fields(
-          self, ten_raw_msg_put_one_field_to_json, json, err)) {
-    ten_json_destroy(json);
-    return NULL;
-  }
-
-  return json;
-}
-
-static const char *ten_raw_cmd_stop_graph_get_graph_id(
-    ten_cmd_stop_graph_t *self) {
+static const char *
+ten_raw_cmd_stop_graph_get_graph_id(ten_cmd_stop_graph_t *self) {
   TEN_ASSERT(self && ten_raw_cmd_check_integrity((ten_cmd_t *)self) &&
                  ten_raw_msg_get_type((ten_msg_t *)self) ==
                      TEN_MSG_TYPE_CMD_STOP_GRAPH,

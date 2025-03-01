@@ -13,7 +13,7 @@
 
 typedef struct ten_extension_info_t ten_extension_info_t;
 
-TEN_RUNTIME_PRIVATE_API bool ten_extension_info_node_to_json(
+TEN_RUNTIME_PRIVATE_API bool ten_extension_info_to_json(
     ten_extension_info_t *self, ten_json_t *info);
 
 TEN_RUNTIME_PRIVATE_API int ten_extension_info_connections_to_json(

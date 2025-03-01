@@ -21,7 +21,6 @@
 #include "ten_runtime/common/status_code.h"
 #include "ten_runtime/msg/cmd_result/cmd_result.h"
 #include "ten_utils/lib/error.h"
-#include "ten_utils/lib/json.h"
 #include "ten_utils/lib/smart_ptr.h"
 #include "ten_utils/lib/string.h"
 #include "ten_utils/macro/check.h"
@@ -289,31 +288,6 @@ void ten_cmd_result_set_status_code(ten_shared_ptr_t *self,
 
   ten_cmd_result_t *cmd_result = ten_cmd_result_get_raw_cmd(self);
   ten_raw_cmd_result_set_status_code(cmd_result, status_code);
-}
-
-static ten_json_t *ten_raw_cmd_result_put_field_to_json(ten_cmd_result_t *self,
-                                                        ten_error_t *err) {
-  TEN_ASSERT(self && ten_raw_msg_get_type((ten_msg_t *)self) ==
-                         TEN_MSG_TYPE_CMD_RESULT,
-             "Should not happen.");
-
-  ten_json_t *json = ten_json_create_object();
-  TEN_ASSERT(json, "Should not happen.");
-
-  if (!ten_raw_cmd_result_loop_all_fields(
-          (ten_msg_t *)self, ten_raw_msg_put_one_field_to_json, json, err)) {
-    ten_json_destroy(json);
-    return NULL;
-  }
-
-  return json;
-}
-
-ten_json_t *ten_cmd_result_to_json(ten_shared_ptr_t *self, ten_error_t *err) {
-  TEN_ASSERT(self && ten_msg_get_type(self) == TEN_MSG_TYPE_CMD_RESULT,
-             "Should not happen.");
-  return ten_raw_cmd_result_put_field_to_json(ten_shared_ptr_get_data(self),
-                                              err);
 }
 
 void ten_raw_cmd_result_set_original_cmd_type(ten_cmd_result_t *self,

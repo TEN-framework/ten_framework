@@ -89,9 +89,6 @@ TEN_RUNTIME_PRIVATE_API void ten_raw_cmd_result_destroy(ten_cmd_result_t *self);
 TEN_RUNTIME_PRIVATE_API TEN_STATUS_CODE
 ten_raw_cmd_result_get_status_code(ten_cmd_result_t *self);
 
-TEN_RUNTIME_API ten_json_t *ten_cmd_result_to_json(ten_shared_ptr_t *self,
-                                                   ten_error_t *err);
-
 TEN_RUNTIME_PRIVATE_API bool ten_raw_cmd_result_is_final(ten_cmd_result_t *self,
                                                          ten_error_t *err);
 

@@ -27,9 +27,9 @@
 #include "ten_utils/value/value.h"
 
 static void ten_raw_cmd_custom_destroy(ten_cmd_t *self) {
-  TEN_ASSERT(
-      self && ten_raw_msg_get_type((ten_msg_t *)self) == TEN_MSG_TYPE_CMD,
-      "Should not happen.");
+  TEN_ASSERT(self &&
+                 ten_raw_msg_get_type((ten_msg_t *)self) == TEN_MSG_TYPE_CMD,
+             "Should not happen.");
 
   ten_raw_cmd_deinit(self);
   TEN_FREE(self);
@@ -95,23 +95,6 @@ ten_shared_ptr_t *ten_cmd_custom_create_with_name_len(const char *name,
       ten_raw_cmd_custom_destroy);
 }
 
-ten_json_t *ten_raw_cmd_custom_to_json(ten_msg_t *self, ten_error_t *err) {
-  TEN_ASSERT(self && ten_raw_cmd_check_integrity((ten_cmd_t *)self) &&
-                 ten_raw_msg_get_type(self) == TEN_MSG_TYPE_CMD,
-             "Should not happen.");
-
-  ten_json_t *json = ten_json_create_object();
-  TEN_ASSERT(json, "Should not happen.");
-
-  if (!ten_raw_cmd_custom_loop_all_fields(
-          self, ten_raw_msg_put_one_field_to_json, json, err)) {
-    ten_json_destroy(json);
-    return NULL;
-  }
-
-  return json;
-}
-
 ten_msg_t *ten_raw_cmd_custom_as_msg_clone(ten_msg_t *self,
                                            ten_list_t *excluded_field_ids) {
   TEN_ASSERT(self && ten_raw_cmd_base_check_integrity((ten_cmd_base_t *)self) &&
@@ -127,7 +110,7 @@ ten_msg_t *ten_raw_cmd_custom_as_msg_clone(ten_msg_t *self,
     if (excluded_field_ids) {
       bool skip = false;
 
-      ten_list_foreach (excluded_field_ids, iter) {
+      ten_list_foreach(excluded_field_ids, iter) {
         if (ten_cmd_custom_fields_info[i].field_id ==
             ten_int32_listnode_get(iter.node)) {
           skip = true;
@@ -167,28 +150,27 @@ bool ten_raw_cmd_custom_set_ten_property(ten_msg_t *self, ten_list_t *paths,
     err = &tmp_err;
   }
 
-  ten_list_foreach (paths, item_iter) {
+  ten_list_foreach(paths, item_iter) {
     ten_value_path_item_t *item = ten_ptr_listnode_get(item_iter.node);
     TEN_ASSERT(item, "Invalid argument.");
 
     switch (item->type) {
-      case TEN_VALUE_PATH_ITEM_TYPE_OBJECT_ITEM: {
-        if (!strcmp(TEN_STR_NAME,
-                    ten_string_get_raw_str(&item->obj_item_str))) {
-          if (ten_value_is_string(value)) {
-            ten_value_set_string_with_size(
-                &self->name, ten_value_peek_raw_str(value, &tmp_err),
-                strlen(ten_value_peek_raw_str(value, &tmp_err)));
-            success = true;
-          } else {
-            success = false;
-          }
+    case TEN_VALUE_PATH_ITEM_TYPE_OBJECT_ITEM: {
+      if (!strcmp(TEN_STR_NAME, ten_string_get_raw_str(&item->obj_item_str))) {
+        if (ten_value_is_string(value)) {
+          ten_value_set_string_with_size(
+              &self->name, ten_value_peek_raw_str(value, &tmp_err),
+              strlen(ten_value_peek_raw_str(value, &tmp_err)));
+          success = true;
+        } else {
+          success = false;
         }
-        break;
       }
+      break;
+    }
 
-      default:
-        break;
+    default:
+      break;
     }
   }
 

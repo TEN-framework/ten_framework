@@ -716,28 +716,6 @@ bool ten_raw_msg_process_field(ten_msg_t *self,
   return true;
 }
 
-static ten_json_t *ten_raw_msg_to_json(ten_msg_t *self, ten_error_t *err) {
-  TEN_ASSERT(self && ten_raw_msg_check_integrity(self), "Should not happen.");
-  ten_json_t *json = ten_json_create_object();
-  TEN_ASSERT(json, "Should not happen.");
-
-  bool rc = ten_raw_msg_loop_all_fields(self, ten_raw_msg_put_one_field_to_json,
-                                        json, err);
-
-  if (!rc) {
-    ten_json_destroy(json);
-    return NULL;
-  }
-
-  return json;
-}
-
-ten_json_t *ten_msg_to_json(ten_shared_ptr_t *self, ten_error_t *err) {
-  TEN_ASSERT(self && ten_msg_check_integrity(self), "Should not happen.");
-
-  return ten_raw_msg_to_json(ten_msg_get_raw_msg(self), err);
-}
-
 static ten_json_t *
 ten_raw_msg_to_json_include_internal_field(ten_msg_t *self, ten_error_t *err) {
   TEN_ASSERT(self && ten_raw_msg_check_integrity(self), "Should not happen.");

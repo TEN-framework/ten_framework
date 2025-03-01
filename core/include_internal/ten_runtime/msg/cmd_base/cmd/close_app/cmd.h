@@ -17,9 +17,6 @@ typedef struct ten_cmd_close_app_t {
 TEN_RUNTIME_PRIVATE_API void ten_raw_cmd_close_app_as_msg_destroy(
     ten_msg_t *self);
 
-TEN_RUNTIME_PRIVATE_API ten_json_t *ten_raw_cmd_close_app_to_json(
-    ten_msg_t *self, ten_error_t *err);
-
 TEN_RUNTIME_PRIVATE_API ten_cmd_close_app_t *ten_raw_cmd_close_app_create(void);
 
 TEN_RUNTIME_PRIVATE_API bool ten_raw_cmd_close_app_loop_all_fields(

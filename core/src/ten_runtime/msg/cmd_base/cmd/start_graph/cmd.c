@@ -176,23 +176,6 @@ bool ten_cmd_start_graph_set_graph_from_json_str(ten_shared_ptr_t *self,
       ten_msg_get_raw_msg(self), json_str, err);
 }
 
-ten_json_t *ten_raw_cmd_start_graph_to_json(ten_msg_t *self, ten_error_t *err) {
-  TEN_ASSERT(self && ten_raw_cmd_check_integrity((ten_cmd_t *)self) &&
-                 ten_raw_msg_get_type(self) == TEN_MSG_TYPE_CMD_START_GRAPH,
-             "Should not happen.");
-
-  ten_json_t *json = ten_json_create_object();
-  TEN_ASSERT(json, "Should not happen.");
-
-  if (!ten_raw_cmd_start_graph_loop_all_fields(
-          self, ten_raw_msg_put_one_field_to_json, json, err)) {
-    ten_json_destroy(json);
-    return NULL;
-  }
-
-  return json;
-}
-
 ten_msg_t *ten_raw_cmd_start_graph_as_msg_clone(
     ten_msg_t *self, TEN_UNUSED ten_list_t *excluded_field_ids) {
   TEN_ASSERT(self && ten_raw_cmd_base_check_integrity((ten_cmd_base_t *)self),

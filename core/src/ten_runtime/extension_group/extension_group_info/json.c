@@ -14,42 +14,35 @@
 #include "ten_utils/macro/check.h"
 
 // NOLINTNEXTLINE(misc-no-recursion)
-ten_json_t *ten_extension_group_info_to_json(ten_extension_group_info_t *self) {
+bool ten_extension_group_info_to_json(ten_extension_group_info_t *self,
+                                      ten_json_t *json) {
   TEN_ASSERT(self, "Invalid argument.");
   TEN_ASSERT(ten_extension_group_info_check_integrity(self),
              "Should not happen.");
+  TEN_ASSERT(json, "Should not happen.");
 
-  ten_json_t *info = ten_json_create_object();
-  TEN_ASSERT(info, "Should not happen.");
+  ten_json_object_set_string(json, TEN_STR_TYPE, TEN_STR_EXTENSION_GROUP);
 
-  ten_json_t *type = ten_json_create_string(TEN_STR_EXTENSION_GROUP);
-  TEN_ASSERT(type, "Should not happen.");
-  ten_json_object_set_new(info, TEN_STR_TYPE, type);
-
-  ten_json_t *name = ten_json_create_string(
+  ten_json_object_set_string(
+      json, TEN_STR_NAME,
       ten_string_get_raw_str(&self->loc.extension_group_name));
-  TEN_ASSERT(name, "Should not happen.");
-  ten_json_object_set_new(info, TEN_STR_NAME, name);
 
-  ten_json_t *addon = ten_json_create_string(
+  ten_json_object_set_string(
+      json, TEN_STR_ADDON,
       ten_string_get_raw_str(&self->extension_group_addon_name));
-  TEN_ASSERT(addon, "Should not happen.");
-  ten_json_object_set_new(info, TEN_STR_ADDON, addon);
 
-  ten_json_t *app_uri =
-      ten_json_create_string(ten_string_get_raw_str(&self->loc.app_uri));
-  TEN_ASSERT(app_uri, "Should not happen.");
-  ten_json_object_set_new(info, TEN_STR_APP, app_uri);
+  ten_json_object_set_string(json, TEN_STR_APP,
+                             ten_string_get_raw_str(&self->loc.app_uri));
 
   if (self->property) {
     ten_json_t property_json = TEN_JSON_INIT_VAL;
     bool success = ten_value_to_json(self->property, &property_json);
     TEN_ASSERT(success, "Should not happen.");
 
-    ten_json_object_set_new(info, TEN_STR_PROPERTY, &property_json);
+    ten_json_object_set_new(json, TEN_STR_PROPERTY, &property_json);
   }
 
-  return info;
+  return true;
 }
 
 ten_shared_ptr_t *ten_extension_group_info_from_json(

@@ -83,12 +83,12 @@ ten_app_build_start_graph_cmd_to_start_predefined_graph(
 
   ten_msg_clear_and_set_dest(start_graph_cmd, app_uri, NULL, NULL, NULL, err);
 
-  ten_json_t *start_graph_cmd_json = ten_json_create_object();
-  TEN_ASSERT(start_graph_cmd_json, "Should not happen.");
+  ten_json_t start_graph_cmd_json = TEN_JSON_INIT_VAL;
+  ten_json_set_object(&start_graph_cmd_json);
 
   ten_json_t ten_json = TEN_JSON_INIT_VAL;
   bool success = ten_json_object_peek_object_forcibly(
-      start_graph_cmd_json, TEN_STR_UNDERLINE_TEN, &ten_json);
+      &start_graph_cmd_json, TEN_STR_UNDERLINE_TEN, &ten_json);
   TEN_ASSERT(success, "Should not happen.");
 
   ten_json_t nodes_json = TEN_JSON_INIT_VAL;
@@ -102,7 +102,7 @@ ten_app_build_start_graph_cmd_to_start_predefined_graph(
     ten_json_array_append_object_and_peak(&nodes_json, &extension_info_json);
 
     bool success =
-        ten_extension_info_node_to_json(extension_info, &extension_info_json);
+        ten_extension_info_to_json(extension_info, &extension_info_json);
     if (!success) {
       goto error;
     }
@@ -112,16 +112,16 @@ ten_app_build_start_graph_cmd_to_start_predefined_graph(
     ten_extension_group_info_t *extension_group_info =
         ten_shared_ptr_get_data(ten_smart_ptr_listnode_get(iter.node));
 
-    ten_json_t *extension_group_info_json =
-        ten_extension_group_info_to_json(extension_group_info);
-    TEN_ASSERT(extension_group_info_json &&
-                   ten_json_check_integrity(extension_group_info_json),
+    ten_json_t extension_group_info_json = TEN_JSON_INIT_VAL;
+    bool success = ten_extension_group_info_to_json(extension_group_info,
+                                                    &extension_group_info_json);
+    TEN_ASSERT(ten_json_check_integrity(&extension_group_info_json),
                "Invalid argument.");
-    if (!extension_group_info_json) {
+    if (!success) {
       goto error;
     }
 
-    ten_json_array_append_new(&nodes_json, extension_group_info_json);
+    ten_json_array_append_new(&nodes_json, &extension_group_info_json);
   }
 
   ten_json_t connections_json = TEN_JSON_INIT_VAL;
@@ -156,7 +156,7 @@ ten_app_build_start_graph_cmd_to_start_predefined_graph(
 
   ten_raw_cmd_start_graph_init_from_json(
       (ten_cmd_start_graph_t *)ten_msg_get_raw_msg(start_graph_cmd),
-      start_graph_cmd_json, err);
+      &start_graph_cmd_json, err);
 
   goto done;
 
@@ -167,7 +167,7 @@ error:
   start_graph_cmd = NULL;
 
 done:
-  ten_json_destroy(start_graph_cmd_json);
+  ten_json_deinit(&start_graph_cmd_json);
   return start_graph_cmd;
 }
 
