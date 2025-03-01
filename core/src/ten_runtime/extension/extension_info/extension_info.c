@@ -24,7 +24,7 @@
 #include "ten_utils/macro/check.h"
 #include "ten_utils/value/value.h"
 
-ten_extension_info_t *ten_extension_info_create(void) {
+static ten_extension_info_t *ten_extension_info_create(void) {
   ten_extension_info_t *self =
       (ten_extension_info_t *)TEN_MALLOC(sizeof(ten_extension_info_t));
   TEN_ASSERT(self, "Failed to allocate memory.");
