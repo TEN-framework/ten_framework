@@ -21,21 +21,18 @@
 #include "ten_utils/lib/string.h"
 #include "ten_utils/macro/check.h"
 
-ten_json_t *ten_msg_dest_info_to_json(ten_msg_dest_info_t *self,
-                                      ten_extension_info_t *src_extension_info,
-                                      ten_error_t *err) {
+bool ten_msg_dest_info_to_json(ten_msg_dest_info_t *self,
+                               ten_extension_info_t *src_extension_info,
+                               ten_json_t *json, ten_error_t *err) {
   TEN_ASSERT(self && ten_msg_dest_info_check_integrity(self),
              "Should not happen.");
-
-  ten_json_t *json = ten_json_create_object();
   TEN_ASSERT(json, "Should not happen.");
-  ten_json_object_set_new(
-      json, TEN_STR_NAME,
-      ten_json_create_string(ten_string_get_raw_str(&self->name)));
 
-  ten_json_t *dests_json = ten_json_create_array();
-  TEN_ASSERT(dests_json, "Should not happen.");
-  ten_json_object_set_new(json, TEN_STR_DEST, dests_json);
+  ten_json_object_set_string(json, TEN_STR_NAME,
+                             ten_string_get_raw_str(&self->name));
+
+  ten_json_t dests_json = TEN_JSON_INIT_VAL(json->ctx);
+  ten_json_object_peek_array_forcibly(json, TEN_STR_DEST, &dests_json);
 
   ten_list_foreach(&self->dest, iter) {
     ten_weak_ptr_t *dest = ten_smart_ptr_listnode_get(iter.node);
@@ -43,27 +40,24 @@ ten_json_t *ten_msg_dest_info_to_json(ten_msg_dest_info_t *self,
 
     ten_extension_info_t *extension_info = ten_smart_ptr_get_data(dest);
 
-    ten_json_t *dest_json = ten_json_create_object();
-    TEN_ASSERT(dest_json, "Should not happen.");
+    ten_json_t dest_json = TEN_JSON_INIT_VAL(dests_json.ctx);
+    ten_json_array_append_object_and_peak(&dests_json, &dest_json);
 
-    ten_json_object_set_new(dest_json, TEN_STR_APP,
-                            ten_json_create_string(ten_string_get_raw_str(
-                                &extension_info->loc.app_uri)));
+    ten_json_object_set_string(
+        &dest_json, TEN_STR_APP,
+        ten_string_get_raw_str(&extension_info->loc.app_uri));
 
-    ten_json_object_set_new(dest_json, TEN_STR_GRAPH,
-                            ten_json_create_string(ten_string_get_raw_str(
-                                &extension_info->loc.graph_id)));
+    ten_json_object_set_string(
+        &dest_json, TEN_STR_GRAPH,
+        ten_string_get_raw_str(&extension_info->loc.graph_id));
 
-    ten_json_t *extension_group_json = ten_json_create_string(
+    ten_json_object_set_string(
+        &dest_json, TEN_STR_EXTENSION_GROUP,
         ten_string_get_raw_str(&extension_info->loc.extension_group_name));
-    TEN_ASSERT(extension_group_json, "Should not happen.");
-    ten_json_object_set_new(dest_json, TEN_STR_EXTENSION_GROUP,
-                            extension_group_json);
 
-    ten_json_t *extension_json = ten_json_create_string(
+    ten_json_object_set_string(
+        &dest_json, TEN_STR_EXTENSION,
         ten_string_get_raw_str(&extension_info->loc.extension_name));
-    TEN_ASSERT(extension_json, "Should not happen.");
-    ten_json_object_set_new(dest_json, TEN_STR_EXTENSION, extension_json);
 
     ten_list_foreach(&extension_info->msg_conversion_contexts,
                      msg_conversion_iter) {
@@ -76,20 +70,19 @@ ten_json_t *ten_msg_dest_info_to_json(ten_msg_dest_info_t *self,
       if (ten_loc_is_equal(&src_extension_info->loc,
                            &msg_conversion->src_loc) &&
           ten_string_is_equal(&msg_conversion->msg_name, &self->name)) {
-        ten_json_t *msg_and_result_json = ten_msg_and_result_conversion_to_json(
-            msg_conversion->msg_and_result_conversion, err);
-        if (!msg_and_result_json) {
-          ten_json_destroy(json);
-          return NULL;
-        }
+        ten_json_t msg_and_result_json = TEN_JSON_INIT_VAL(dest_json.ctx);
+        ten_json_object_peek_object_forcibly(&dest_json, TEN_STR_MSG_CONVERSION,
+                                             &msg_and_result_json);
 
-        ten_json_object_set_new(dest_json, TEN_STR_MSG_CONVERSION,
-                                msg_and_result_json);
+        bool success = ten_msg_and_result_conversion_to_json(
+            msg_conversion->msg_and_result_conversion, &msg_and_result_json,
+            err);
+        if (!success) {
+          return false;
+        }
       }
     }
-
-    ten_json_array_append_new(dests_json, dest_json);
   }
 
-  return json;
+  return true;
 }

@@ -153,11 +153,13 @@ ten_msg_conversion_per_property_rules_from_json(ten_json_t *json,
   return rules;
 }
 
-ten_json_t *ten_msg_conversion_per_property_rules_to_json(
-    ten_msg_conversion_per_property_rules_t *self, ten_error_t *err) {
+bool ten_msg_conversion_per_property_rules_to_json(
+    ten_msg_conversion_per_property_rules_t *self, ten_json_t *json,
+    ten_error_t *err) {
   TEN_ASSERT(self, "Invalid argument.");
 
-  ten_json_t *rules_json = ten_json_create_array();
+  ten_json_t rules_json = TEN_JSON_INIT_VAL(json->ctx);
+  ten_json_object_peek_array_forcibly(json, TEN_STR_RULES, &rules_json);
 
   if (ten_list_size(&self->rules) > 0) {
     ten_list_foreach(&self->rules, iter) {
@@ -165,17 +167,15 @@ ten_json_t *ten_msg_conversion_per_property_rules_to_json(
           ten_ptr_listnode_get(iter.node);
       TEN_ASSERT(rule, "Invalid argument.");
 
-      ten_json_t *rule_json =
-          ten_msg_conversion_per_property_rule_to_json(rule, err);
-      if (!rule_json) {
-        ten_json_destroy(rules_json);
-        return NULL;
+      bool success =
+          ten_msg_conversion_per_property_rule_to_json(rule, &rules_json, err);
+      if (!success) {
+        return false;
       }
-      ten_json_array_append_new(rules_json, rule_json);
     }
   }
 
-  return rules_json;
+  return true;
 }
 
 ten_msg_conversion_per_property_rules_t *

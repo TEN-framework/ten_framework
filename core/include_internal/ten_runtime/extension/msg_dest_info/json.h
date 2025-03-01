@@ -13,6 +13,6 @@
 typedef struct ten_msg_dest_info_t ten_msg_dest_info_t;
 typedef struct ten_extension_info_t ten_extension_info_t;
 
-TEN_RUNTIME_PRIVATE_API ten_json_t *ten_msg_dest_info_to_json(
+TEN_RUNTIME_PRIVATE_API bool ten_msg_dest_info_to_json(
     ten_msg_dest_info_t *self, ten_extension_info_t *src_extension_info,
-    ten_error_t *err);
+    ten_json_t *json, ten_error_t *err);

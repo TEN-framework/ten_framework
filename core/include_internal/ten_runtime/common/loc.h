@@ -10,7 +10,6 @@
 
 #include <stdbool.h>
 
-#include "ten_utils/lib/json.h"
 #include "ten_utils/lib/string.h"
 #include "ten_utils/value/value.h"
 
@@ -101,10 +100,5 @@ TEN_RUNTIME_PRIVATE_API bool ten_loc_is_equal_with_value(
 
 TEN_RUNTIME_PRIVATE_API void ten_loc_to_string(ten_loc_t *self,
                                                ten_string_t *result);
-
-TEN_RUNTIME_PRIVATE_API ten_json_t *ten_loc_to_json(ten_loc_t *self);
-
-TEN_RUNTIME_PRIVATE_API void ten_loc_to_json_string(ten_loc_t *self,
-                                                    ten_string_t *result);
 
 TEN_RUNTIME_PRIVATE_API ten_value_t *ten_loc_to_value(ten_loc_t *self);

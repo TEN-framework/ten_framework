@@ -239,8 +239,10 @@ class msg_t {
     if (value == nullptr) {
       return result;
     }
-    ten_json_t *c_json = ten_value_to_json(value);
-    if (c_json == nullptr) {
+
+    ten_json_t c_json = TEN_JSON_INIT_VAL(ten_json_create_new_ctx());
+    bool success = ten_value_to_json(value, &c_json);
+    if (!success) {
       if (err != nullptr && err->get_c_error() != nullptr) {
         ten_error_set(err->get_c_error(), TEN_ERROR_CODE_GENERIC,
                       "Invalid TEN message.");
@@ -249,12 +251,12 @@ class msg_t {
     }
 
     bool must_free = false;
-    const char *json_str = ten_json_to_string(c_json, nullptr, &must_free);
+    const char *json_str = ten_json_to_string(&c_json, nullptr, &must_free);
     TEN_ASSERT(json_str, "Failed to convert a JSON to a string");
 
     result = json_str;
 
-    ten_json_destroy(c_json);
+    ten_json_deinit(&c_json);
     if (must_free) {
       TEN_FREE(json_str);
     }

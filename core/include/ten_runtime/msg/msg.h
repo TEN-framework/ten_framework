@@ -82,9 +82,6 @@ TEN_RUNTIME_API bool ten_msg_clear_and_set_dest(
 TEN_RUNTIME_API bool ten_msg_from_json(ten_shared_ptr_t *self, ten_json_t *json,
                                        ten_error_t *err);
 
-TEN_RUNTIME_API ten_json_t *ten_msg_to_json(ten_shared_ptr_t *self,
-                                            ten_error_t *err);
-
 TEN_RUNTIME_API bool ten_msg_add_locked_res_buf(ten_shared_ptr_t *self,
                                                 const uint8_t *data,
                                                 ten_error_t *err);

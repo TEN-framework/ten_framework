@@ -135,16 +135,17 @@ static void ten_py_get_property_to_json_cb(ten_env_t *ten_env,
 
     arglist = Py_BuildValue("(sO)", json_str, py_error);
   } else {
-    ten_json_t *json = ten_value_to_json(value);
-    TEN_ASSERT(json, "Should not happen.");
+    ten_json_t json = TEN_JSON_INIT_VAL(ten_json_create_new_ctx());
+    bool success = ten_value_to_json(value, &json);
+    TEN_ASSERT(success, "Should not happen.");
 
     bool must_free = false;
-    json_str = ten_json_to_string(json, NULL, &must_free);
+    json_str = ten_json_to_string(&json, NULL, &must_free);
     TEN_ASSERT(json_str, "Should not happen.");
 
     arglist = Py_BuildValue("(sO)", json_str, Py_None);
 
-    ten_json_destroy(json);
+    ten_json_deinit(&json);
 
     if (must_free) {
       TEN_FREE(json_str);
@@ -152,7 +153,7 @@ static void ten_py_get_property_to_json_cb(ten_env_t *ten_env,
   }
 
   PyObject *result = PyObject_CallObject(py_cb_func, arglist);
-  Py_XDECREF(result);  // Ensure cleanup if an error occurred.
+  Py_XDECREF(result); // Ensure cleanup if an error occurred.
 
   bool err_occurred = ten_py_check_and_clear_py_error();
   TEN_ASSERT(!err_occurred, "Should not happen.");
@@ -204,7 +205,7 @@ static void ten_py_get_property_int_cb(ten_env_t *ten_env, ten_value_t *value,
   }
 
   PyObject *result = PyObject_CallObject(py_cb_func, arglist);
-  Py_XDECREF(result);  // Ensure cleanup if an error occurred.
+  Py_XDECREF(result); // Ensure cleanup if an error occurred.
 
   bool err_occurred = ten_py_check_and_clear_py_error();
   TEN_ASSERT(!err_occurred, "Should not happen.");
@@ -257,7 +258,7 @@ static void ten_py_get_property_string_cb(ten_env_t *ten_env,
   }
 
   PyObject *result = PyObject_CallObject(py_cb_func, arglist);
-  Py_XDECREF(result);  // Ensure cleanup if an error occurred.
+  Py_XDECREF(result); // Ensure cleanup if an error occurred.
 
   bool err_occurred = ten_py_check_and_clear_py_error();
   TEN_ASSERT(!err_occurred, "Should not happen.");
@@ -310,7 +311,7 @@ static void ten_py_get_property_bool_cb(ten_env_t *ten_env, ten_value_t *value,
   }
 
   PyObject *result = PyObject_CallObject(py_cb_func, arglist);
-  Py_XDECREF(result);  // Ensure cleanup if an error occurred.
+  Py_XDECREF(result); // Ensure cleanup if an error occurred.
 
   bool err_occurred = ten_py_check_and_clear_py_error();
   TEN_ASSERT(!err_occurred, "Should not happen.");
@@ -362,7 +363,7 @@ static void ten_py_get_property_float_cb(ten_env_t *ten_env, ten_value_t *value,
   }
 
   PyObject *result = PyObject_CallObject(py_cb_func, arglist);
-  Py_XDECREF(result);  // Ensure cleanup if an error occurred.
+  Py_XDECREF(result); // Ensure cleanup if an error occurred.
 
   bool err_occurred = ten_py_check_and_clear_py_error();
   TEN_ASSERT(!err_occurred, "Should not happen.");
@@ -404,7 +405,7 @@ static void ten_py_is_property_exist_cb(ten_env_t *ten_env, ten_value_t *value,
   }
 
   PyObject *result = PyObject_CallObject(py_cb_func, arglist);
-  Py_XDECREF(result);  // Ensure cleanup if an error occurred.
+  Py_XDECREF(result); // Ensure cleanup if an error occurred.
 
   bool err_occurred = ten_py_check_and_clear_py_error();
   TEN_ASSERT(!err_occurred, "Should not happen.");

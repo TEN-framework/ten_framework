@@ -96,14 +96,15 @@ static bool ten_raw_cmd_start_graph_as_msg_get_graph_from_json(
     ten_json_t *json = (ten_json_t *)user_data;
     TEN_ASSERT(json, "Should not happen.");
 
-    json = ten_json_object_peek(json, field->field_name);
-    if (!json) {
+    ten_json_t result_json = TEN_JSON_INIT_VAL(json->ctx);
+    bool success = ten_json_object_peek(json, field->field_name, &result_json);
+    if (!success) {
       // Some fields are optional, and it is allowed for the corresponding
       // JSON block to be absent during deserialization.
       return true;
     }
 
-    if (!ten_value_set_from_json(field->field_value, json)) {
+    if (!ten_value_set_from_json(field->field_value, &result_json)) {
       // If the field value cannot be set from the JSON, it means that the
       // JSON format is incorrect.
       if (err) {
@@ -173,23 +174,6 @@ bool ten_cmd_start_graph_set_graph_from_json_str(ten_shared_ptr_t *self,
 
   return ten_raw_cmd_start_graph_set_graph_from_json_str(
       ten_msg_get_raw_msg(self), json_str, err);
-}
-
-ten_json_t *ten_raw_cmd_start_graph_to_json(ten_msg_t *self, ten_error_t *err) {
-  TEN_ASSERT(self && ten_raw_cmd_check_integrity((ten_cmd_t *)self) &&
-                 ten_raw_msg_get_type(self) == TEN_MSG_TYPE_CMD_START_GRAPH,
-             "Should not happen.");
-
-  ten_json_t *json = ten_json_create_object();
-  TEN_ASSERT(json, "Should not happen.");
-
-  if (!ten_raw_cmd_start_graph_loop_all_fields(
-          self, ten_raw_msg_put_one_field_to_json, json, err)) {
-    ten_json_destroy(json);
-    return NULL;
-  }
-
-  return json;
 }
 
 ten_msg_t *ten_raw_cmd_start_graph_as_msg_clone(

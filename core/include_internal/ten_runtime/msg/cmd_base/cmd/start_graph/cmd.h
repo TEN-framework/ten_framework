@@ -80,9 +80,6 @@ ten_cmd_start_graph_get_extension_addon_and_instance_name_pairs_of_specified_ext
     ten_shared_ptr_t *self, const char *app_uri, const char *graph_id,
     const char *extension_group_name);
 
-TEN_RUNTIME_PRIVATE_API ten_json_t *ten_raw_cmd_start_graph_to_json(
-    ten_msg_t *self, ten_error_t *err);
-
 TEN_RUNTIME_PRIVATE_API ten_cmd_start_graph_t *ten_raw_cmd_start_graph_create(
     void);
 

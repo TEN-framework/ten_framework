@@ -53,10 +53,10 @@ bool ten_msg_conversion_per_property_rule_from_original_convert(
   ten_value_t *msg_property =
       ten_msg_conversion_per_property_rule_from_original_get_value(self, msg);
 
-  return ten_msg_set_property(
-      new_msg, new_msg_property_path,
-      msg_property ? ten_value_clone(msg_property) : ten_value_create_invalid(),
-      err);
+  return ten_msg_set_property(new_msg, new_msg_property_path,
+                              msg_property ? ten_value_clone(msg_property)
+                                           : ten_value_create_invalid(),
+                              err);
 }
 
 void ten_msg_conversion_per_property_rule_from_original_from_json(
@@ -66,9 +66,13 @@ void ten_msg_conversion_per_property_rule_from_original_from_json(
   TEN_ASSERT(json, "Invalid argument.");
 
   ten_msg_conversion_per_property_rule_from_original_init(self);
+
+  ten_json_t path_json = TEN_JSON_INIT_VAL(json->ctx);
+  bool success = ten_json_object_peek(json, TEN_STR_ORIGINAL_PATH, &path_json);
+  TEN_ASSERT(success, "Should not happen.");
+
   ten_string_set_formatted(&self->original_path,
-                           ten_json_peek_string_value(ten_json_object_peek(
-                               json, TEN_STR_ORIGINAL_PATH)));
+                           ten_json_peek_string_value(&path_json));
 }
 
 bool ten_msg_conversion_per_property_rule_from_original_to_json(
@@ -77,9 +81,8 @@ bool ten_msg_conversion_per_property_rule_from_original_to_json(
   TEN_ASSERT(self, "Invalid argument.");
   TEN_ASSERT(json && ten_json_check_integrity(json), "Invalid argument.");
 
-  ten_json_object_set_new(
-      json, TEN_STR_ORIGINAL_PATH,
-      ten_json_create_string(ten_string_get_raw_str(&self->original_path)));
+  ten_json_object_set_string(json, TEN_STR_ORIGINAL_PATH,
+                             ten_string_get_raw_str(&self->original_path));
 
   return true;
 }

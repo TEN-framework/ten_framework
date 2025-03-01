@@ -20,9 +20,10 @@
 #include "ten_utils/macro/memory.h"
 #endif
 
-ten_value_t *ten_interface_schema_info_resolve(
-    ten_value_t *unresolved_interface_schema_def,
-    TEN_UNUSED const char *base_dir, ten_error_t *err) {
+ten_value_t *
+ten_interface_schema_info_resolve(ten_value_t *unresolved_interface_schema_def,
+                                  TEN_UNUSED const char *base_dir,
+                                  ten_error_t *err) {
   TEN_ASSERT(unresolved_interface_schema_def &&
                  ten_value_check_integrity(unresolved_interface_schema_def),
              "Invalid argument.");
@@ -35,12 +36,15 @@ ten_value_t *ten_interface_schema_info_resolve(
   }
 
 #if defined(TEN_ENABLE_TEN_RUST_APIS)
-  ten_json_t *unresolved_interface_schema_json =
-      ten_value_to_json(unresolved_interface_schema_def);
+  ten_json_t unresolved_interface_schema_json =
+      TEN_JSON_INIT_VAL(ten_json_create_new_ctx());
+  bool success = ten_value_to_json(unresolved_interface_schema_def,
+                                   &unresolved_interface_schema_json);
+  TEN_ASSERT(success, "Should not happen.");
 
   bool must_free = false;
   const char *unresolved_interface_schema_json_str =
-      ten_json_to_string(unresolved_interface_schema_json, NULL, &must_free);
+      ten_json_to_string(&unresolved_interface_schema_json, NULL, &must_free);
 
   ten_value_t *resolved_interface_schema_def = NULL;
   const char *resolved_interface_schema_str = NULL;
@@ -74,10 +78,9 @@ ten_value_t *ten_interface_schema_info_resolve(
     TEN_FREE(unresolved_interface_schema_json_str);
   }
 
-  ten_json_destroy(unresolved_interface_schema_json);
+  ten_json_deinit(&unresolved_interface_schema_json);
 
-  bool success = ten_error_is_success(err);
-  if (success) {
+  if (ten_error_is_success(err)) {
     TEN_ASSERT(resolved_interface_schema_def, "Should not happen.");
   }
 

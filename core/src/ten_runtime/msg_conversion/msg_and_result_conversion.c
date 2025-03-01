@@ -10,11 +10,12 @@
 #include "include_internal/ten_runtime/msg_conversion/msg_conversion/base.h"
 #include "ten_utils/lib/alloc.h"
 #include "ten_utils/lib/error.h"
+#include "ten_utils/lib/json.h"
 #include "ten_utils/macro/check.h"
 #include "ten_utils/value/value.h"
 
-static ten_msg_and_result_conversion_t *ten_msg_and_result_conversion_create(
-    void) {
+static ten_msg_and_result_conversion_t *
+ten_msg_and_result_conversion_create(void) {
   ten_msg_and_result_conversion_t *self =
       (ten_msg_and_result_conversion_t *)TEN_MALLOC(
           sizeof(ten_msg_and_result_conversion_t));
@@ -40,8 +41,8 @@ void ten_msg_and_result_conversion_destroy(
   TEN_FREE(self);
 }
 
-ten_msg_and_result_conversion_t *ten_msg_and_result_conversion_from_json(
-    ten_json_t *json, ten_error_t *err) {
+ten_msg_and_result_conversion_t *
+ten_msg_and_result_conversion_from_json(ten_json_t *json, ten_error_t *err) {
   ten_msg_and_result_conversion_t *pair =
       ten_msg_and_result_conversion_create();
 
@@ -51,9 +52,10 @@ ten_msg_and_result_conversion_t *ten_msg_and_result_conversion_from_json(
     return NULL;
   }
 
-  ten_json_t *resp_json = ten_json_object_peek(json, TEN_STR_RESULT);
-  if (resp_json) {
-    pair->result = ten_msg_conversion_from_json(resp_json, err);
+  ten_json_t result_json = TEN_JSON_INIT_VAL(json->ctx);
+  bool success = ten_json_object_peek(json, TEN_STR_RESULT, &result_json);
+  if (success) {
+    pair->result = ten_msg_conversion_from_json(&result_json, err);
     if (!pair->result) {
       ten_msg_and_result_conversion_destroy(pair);
       return NULL;
@@ -63,33 +65,32 @@ ten_msg_and_result_conversion_t *ten_msg_and_result_conversion_from_json(
   return pair;
 }
 
-ten_json_t *ten_msg_and_result_conversion_to_json(
-    ten_msg_and_result_conversion_t *self, ten_error_t *err) {
+bool ten_msg_and_result_conversion_to_json(
+    ten_msg_and_result_conversion_t *self, ten_json_t *json, ten_error_t *err) {
   TEN_ASSERT(self, "Invalid argument.");
 
-  ten_json_t *msg_and_result_conversion_json =
-      ten_msg_conversion_to_json(self->msg, err);
-  if (!msg_and_result_conversion_json) {
-    return NULL;
+  bool success = ten_msg_conversion_to_json(self->msg, json, err);
+  if (!success) {
+    return false;
   }
 
   if (self->result) {
-    ten_json_t *result_operation_json =
-        ten_msg_conversion_to_json(self->result, err);
-    if (!result_operation_json) {
-      ten_json_destroy(msg_and_result_conversion_json);
-      return NULL;
-    }
+    ten_json_t result_operation_json = TEN_JSON_INIT_VAL(json->ctx);
+    ten_json_object_peek_object_forcibly(json, TEN_STR_RESULT,
+                                         &result_operation_json);
 
-    ten_json_object_set_new(msg_and_result_conversion_json, TEN_STR_RESULT,
-                            result_operation_json);
+    success =
+        ten_msg_conversion_to_json(self->result, &result_operation_json, err);
+    if (!success) {
+      return false;
+    }
   }
 
-  return msg_and_result_conversion_json;
+  return true;
 }
 
-ten_msg_and_result_conversion_t *ten_msg_and_result_conversion_from_value(
-    ten_value_t *value, ten_error_t *err) {
+ten_msg_and_result_conversion_t *
+ten_msg_and_result_conversion_from_value(ten_value_t *value, ten_error_t *err) {
   ten_msg_and_result_conversion_t *pair =
       ten_msg_and_result_conversion_create();
 
@@ -111,8 +112,9 @@ ten_msg_and_result_conversion_t *ten_msg_and_result_conversion_from_value(
   return pair;
 }
 
-ten_value_t *ten_msg_and_result_conversion_to_value(
-    ten_msg_and_result_conversion_t *self, ten_error_t *err) {
+ten_value_t *
+ten_msg_and_result_conversion_to_value(ten_msg_and_result_conversion_t *self,
+                                       ten_error_t *err) {
   TEN_ASSERT(self, "Invalid argument.");
 
   ten_value_t *msg_and_result_conversion_value =

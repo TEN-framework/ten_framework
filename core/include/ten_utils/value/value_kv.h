@@ -51,4 +51,4 @@ TEN_UTILS_API ten_string_t *ten_value_kv_to_string(ten_value_kv_t *self,
 TEN_UTILS_API ten_value_kv_t *ten_value_kv_from_json(const char *key,
                                                      ten_json_t *json);
 
-TEN_UTILS_API void ten_value_kv_to_json(ten_json_t *json, ten_value_kv_t *kv);
+TEN_UTILS_API bool ten_value_kv_to_json(ten_value_kv_t *self, ten_json_t *json);

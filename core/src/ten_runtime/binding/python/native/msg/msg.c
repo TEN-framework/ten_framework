@@ -307,17 +307,18 @@ PyObject *ten_py_msg_get_property_to_json(PyObject *self, PyObject *args) {
     goto error;
   }
 
-  ten_json_t *c_json = ten_value_to_json(c_value);
-  TEN_ASSERT(c_json, "Should not happen.");
+  ten_json_t c_json = TEN_JSON_INIT_VAL(ten_json_create_new_ctx());
+  bool success = ten_value_to_json(c_value, &c_json);
+  TEN_ASSERT(success, "Should not happen.");
 
   bool must_free = true;
-  const char *json_string = ten_json_to_string(c_json, NULL, &must_free);
+  const char *json_string = ten_json_to_string(&c_json, NULL, &must_free);
   PyObject *res = Py_BuildValue("(sO)", json_string, Py_None);
   if (must_free) {
     TEN_FREE(json_string);
   }
 
-  ten_json_destroy(c_json);
+  ten_json_deinit(&c_json);
   ten_error_deinit(&err);
 
   return res;

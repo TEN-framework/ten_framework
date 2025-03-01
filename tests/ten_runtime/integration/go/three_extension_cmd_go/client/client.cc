@@ -78,13 +78,21 @@ int main(TEN_UNUSED int argc, TEN_UNUSED char **argv) {
   TEN_ASSERT(TEN_STATUS_CODE_OK == cmd_result->get_status_code(),
              "Should not happen.");
 
-  std::string resp_str = cmd_result->get_property_string("detail");
-  TEN_LOGD("got result: %s", resp_str.c_str());
-  ten_json_t *result = ten_json_from_string(resp_str.c_str(), NULL);
-  TEN_ASSERT(
-      30 == ten_json_get_number_value(ten_json_object_peek(result, "result")),
-      "Should not happen.");
-  ten_json_destroy(result);
+  std::string detail_str = cmd_result->get_property_string("detail");
+  TEN_LOGD("got result: %s", detail_str.c_str());
+
+  ten_json_t *detail_json = ten_json_from_string(detail_str.c_str(), nullptr);
+
+  ten_json_t result_json = TEN_JSON_INIT_VAL(detail_json->ctx);
+
+  bool success = ten_json_object_peek(detail_json, "result", &result_json);
+  TEN_ASSERT(success, "Should not happen.");
+
+  TEN_ASSERT(30 == ten_json_get_number_value(&result_json),
+             "Should not happen.");
+
+  ten_json_deinit(&result_json);
+  ten_json_destroy(detail_json);
 
   // NOTE the order: client destroy, then connection lost, then nodejs exits
   delete client;
