@@ -10,7 +10,6 @@
 
 #include <stdbool.h>
 
-#include "ten_utils/lib/json.h"
 #include "ten_utils/lib/string.h"
 #include "ten_utils/value/value.h"
 

@@ -262,7 +262,6 @@ static bool ten_value_array_to_json(ten_value_t *self, ten_json_t *json) {
     TEN_ASSERT(0, "Invalid argument.");
     return false;
   }
-
   TEN_ASSERT(ten_value_check_integrity(self), "Invalid argument.");
 
   if (!ten_value_is_array(self)) {
@@ -270,7 +269,13 @@ static bool ten_value_array_to_json(ten_value_t *self, ten_json_t *json) {
     return false;
   }
 
-  ten_json_set_array(json);
+  if (json == NULL) {
+    TEN_ASSERT(0, "Invalid argument.");
+    return false;
+  }
+
+  bool success = ten_json_set_array(json);
+  TEN_ASSERT(success, "Failed to set the array.");
 
   // Loop each item in the array and convert them to JSON.
   ten_list_foreach(&self->content.array, iter) {
@@ -283,7 +288,13 @@ static bool ten_value_array_to_json(ten_value_t *self, ten_json_t *json) {
     }
     TEN_ASSERT(ten_value_check_integrity(item), "Invalid argument.");
 
-    ten_value_to_json(item, &item_json);
+    success = ten_value_to_json(item, &item_json);
+    if (!success) {
+      TEN_ASSERT(0, "Failed to convert the item to JSON.");
+      ten_json_deinit(json);
+      return false;
+    }
+
     ten_json_array_append_new(json, &item_json);
   }
 
@@ -295,10 +306,6 @@ static bool ten_value_object_to_json(ten_value_t *self, ten_json_t *json) {
     TEN_ASSERT(0, "Invalid argument.");
     return false;
   }
-  if (json == NULL) {
-    TEN_ASSERT(0, "Invalid argument.");
-    return false;
-  }
 
   TEN_ASSERT(ten_value_check_integrity(self), "Invalid argument.");
 
@@ -307,29 +314,32 @@ static bool ten_value_object_to_json(ten_value_t *self, ten_json_t *json) {
     return false;
   }
 
-  ten_json_set_object(json);
+  if (json == NULL) {
+    TEN_ASSERT(0, "Invalid argument.");
+    return false;
+  }
+
+  bool success = ten_json_set_object(json);
+  TEN_ASSERT(success, "Failed to set the object.");
 
   ten_list_foreach(&self->content.object, iter) {
     ten_value_kv_t *item = ten_ptr_listnode_get(iter.node);
     if (!item) {
       TEN_ASSERT(0, "Failed to get item from the object.");
+      ten_json_deinit(json);
       return false;
     }
     TEN_ASSERT(ten_value_kv_check_integrity(item), "Invalid argument.");
 
-    ten_value_kv_to_json(json, item);
+    success = ten_value_kv_to_json(item, json);
+    if (!success) {
+      TEN_ASSERT(0, "Failed to convert the item to JSON.");
+      ten_json_deinit(json);
+      return false;
+    }
   }
 
   return true;
-}
-
-static ten_json_t *ten_value_invalid_to_json(ten_value_t *self) {
-  TEN_ASSERT(self && ten_value_check_integrity(self), "Invalid argument.");
-  TEN_ASSERT(ten_value_is_invalid(self), "Invalid argument: %d",
-             ten_value_get_type(self));
-
-  TEN_ASSERT(0, "Invalid argument.");
-  return NULL;
 }
 
 static bool ten_value_int8_to_json(ten_value_t *self, ten_json_t *json) {
@@ -337,16 +347,27 @@ static bool ten_value_int8_to_json(ten_value_t *self, ten_json_t *json) {
     TEN_ASSERT(0, "Invalid argument.");
     return false;
   }
-  TEN_ASSERT(json, "Invalid argument.");
 
   TEN_ASSERT(ten_value_check_integrity(self), "Invalid argument.");
 
-  if (!ten_value_is_int8(self)) {
-    TEN_ASSERT(0, "Invalid argument: %d", ten_value_get_type(self));
+  if (json == NULL) {
+    TEN_ASSERT(0, "Invalid argument.");
     return false;
   }
 
-  ten_json_set_integer(json, self->content.int8);
+  if (!ten_value_is_int8(self)) {
+    TEN_ASSERT(0, "Invalid argument: %d", ten_value_get_type(self));
+    ten_json_deinit(json);
+    return false;
+  }
+
+  bool success = ten_json_set_integer(json, self->content.int8);
+  TEN_ASSERT(success, "Failed to set the integer.");
+  if (!success) {
+    TEN_ASSERT(0, "Failed to set the integer.");
+    ten_json_deinit(json);
+    return false;
+  }
 
   return true;
 }
@@ -356,16 +377,27 @@ static bool ten_value_int16_to_json(ten_value_t *self, ten_json_t *json) {
     TEN_ASSERT(0, "Invalid argument.");
     return false;
   }
-  TEN_ASSERT(json, "Invalid argument.");
 
   TEN_ASSERT(ten_value_check_integrity(self), "Invalid argument.");
 
-  if (!ten_value_is_int16(self)) {
-    TEN_ASSERT(0, "Invalid argument: %d", ten_value_get_type(self));
+  if (json == NULL) {
+    TEN_ASSERT(0, "Invalid argument.");
     return false;
   }
 
-  ten_json_set_integer(json, self->content.int16);
+  if (!ten_value_is_int16(self)) {
+    TEN_ASSERT(0, "Invalid argument: %d", ten_value_get_type(self));
+    ten_json_deinit(json);
+    return false;
+  }
+
+  bool success = ten_json_set_integer(json, self->content.int16);
+  TEN_ASSERT(success, "Failed to set the integer.");
+  if (!success) {
+    TEN_ASSERT(0, "Failed to set the integer.");
+    ten_json_deinit(json);
+    return false;
+  }
 
   return true;
 }
@@ -375,16 +407,27 @@ static bool ten_value_int32_to_json(ten_value_t *self, ten_json_t *json) {
     TEN_ASSERT(0, "Invalid argument.");
     return false;
   }
-  TEN_ASSERT(json, "Invalid argument.");
 
   TEN_ASSERT(ten_value_check_integrity(self), "Invalid argument.");
 
-  if (!ten_value_is_int32(self)) {
-    TEN_ASSERT(0, "Invalid argument: %d", ten_value_get_type(self));
+  if (json == NULL) {
+    TEN_ASSERT(0, "Invalid argument.");
     return false;
   }
 
-  ten_json_set_integer(json, self->content.int32);
+  if (!ten_value_is_int32(self)) {
+    TEN_ASSERT(0, "Invalid argument: %d", ten_value_get_type(self));
+    ten_json_deinit(json);
+    return false;
+  }
+
+  bool success = ten_json_set_integer(json, self->content.int32);
+  TEN_ASSERT(success, "Failed to set the integer.");
+  if (!success) {
+    TEN_ASSERT(0, "Failed to set the integer.");
+    ten_json_deinit(json);
+    return false;
+  }
 
   return true;
 }
@@ -394,16 +437,27 @@ static bool ten_value_int64_to_json(ten_value_t *self, ten_json_t *json) {
     TEN_ASSERT(0, "Invalid argument.");
     return false;
   }
-  TEN_ASSERT(json, "Invalid argument.");
 
   TEN_ASSERT(ten_value_check_integrity(self), "Invalid argument.");
 
-  if (!ten_value_is_int64(self)) {
-    TEN_ASSERT(0, "Invalid argument: %d", ten_value_get_type(self));
+  if (json == NULL) {
+    TEN_ASSERT(0, "Invalid argument.");
     return false;
   }
 
-  ten_json_set_integer(json, self->content.int64);
+  if (!ten_value_is_int64(self)) {
+    TEN_ASSERT(0, "Invalid argument: %d", ten_value_get_type(self));
+    ten_json_deinit(json);
+    return false;
+  }
+
+  bool success = ten_json_set_integer(json, self->content.int64);
+  TEN_ASSERT(success, "Failed to set the integer.");
+  if (!success) {
+    TEN_ASSERT(0, "Failed to set the integer.");
+    ten_json_deinit(json);
+    return false;
+  }
 
   return true;
 }
@@ -413,16 +467,27 @@ static bool ten_value_uint8_to_json(ten_value_t *self, ten_json_t *json) {
     TEN_ASSERT(0, "Invalid argument.");
     return false;
   }
-  TEN_ASSERT(json, "Invalid argument.");
 
   TEN_ASSERT(ten_value_check_integrity(self), "Invalid argument.");
 
-  if (!ten_value_is_uint8(self)) {
-    TEN_ASSERT(0, "Invalid argument: %d", ten_value_get_type(self));
+  if (json == NULL) {
+    TEN_ASSERT(0, "Invalid argument.");
     return false;
   }
 
-  ten_json_set_integer(json, self->content.uint8);
+  if (!ten_value_is_uint8(self)) {
+    TEN_ASSERT(0, "Invalid argument: %d", ten_value_get_type(self));
+    ten_json_deinit(json);
+    return false;
+  }
+
+  bool success = ten_json_set_integer(json, self->content.uint8);
+  TEN_ASSERT(success, "Failed to set the integer.");
+  if (!success) {
+    TEN_ASSERT(0, "Failed to set the integer.");
+    ten_json_deinit(json);
+    return false;
+  }
 
   return true;
 }
@@ -432,16 +497,27 @@ static bool ten_value_uint16_to_json(ten_value_t *self, ten_json_t *json) {
     TEN_ASSERT(0, "Invalid argument.");
     return false;
   }
-  TEN_ASSERT(json, "Invalid argument.");
 
   TEN_ASSERT(ten_value_check_integrity(self), "Invalid argument.");
 
-  if (!ten_value_is_uint16(self)) {
-    TEN_ASSERT(0, "Invalid argument: %d", ten_value_get_type(self));
+  if (json == NULL) {
+    TEN_ASSERT(0, "Invalid argument.");
     return false;
   }
 
-  ten_json_set_integer(json, self->content.uint16);
+  if (!ten_value_is_uint16(self)) {
+    TEN_ASSERT(0, "Invalid argument: %d", ten_value_get_type(self));
+    ten_json_deinit(json);
+    return false;
+  }
+
+  bool success = ten_json_set_integer(json, self->content.uint16);
+  TEN_ASSERT(success, "Failed to set the integer.");
+  if (!success) {
+    TEN_ASSERT(0, "Failed to set the integer.");
+    ten_json_deinit(json);
+    return false;
+  }
 
   return true;
 }
@@ -451,16 +527,27 @@ static bool ten_value_uint32_to_json(ten_value_t *self, ten_json_t *json) {
     TEN_ASSERT(0, "Invalid argument.");
     return false;
   }
-  TEN_ASSERT(json, "Invalid argument.");
 
   TEN_ASSERT(ten_value_check_integrity(self), "Invalid argument.");
 
-  if (!ten_value_is_uint32(self)) {
-    TEN_ASSERT(0, "Invalid argument: %d", ten_value_get_type(self));
+  if (json == NULL) {
+    TEN_ASSERT(0, "Invalid argument.");
     return false;
   }
 
-  ten_json_set_integer(json, self->content.uint32);
+  if (!ten_value_is_uint32(self)) {
+    TEN_ASSERT(0, "Invalid argument: %d", ten_value_get_type(self));
+    ten_json_deinit(json);
+    return false;
+  }
+
+  bool success = ten_json_set_integer(json, self->content.uint32);
+  TEN_ASSERT(success, "Failed to set the integer.");
+  if (!success) {
+    TEN_ASSERT(0, "Failed to set the integer.");
+    ten_json_deinit(json);
+    return false;
+  }
 
   return true;
 }
@@ -468,16 +555,27 @@ static bool ten_value_uint32_to_json(ten_value_t *self, ten_json_t *json) {
 static bool ten_value_uint64_to_json(ten_value_t *self, ten_json_t *json) {
   TEN_ASSERT(self && ten_value_check_integrity(self), "Invalid argument.");
   TEN_ASSERT(ten_value_is_uint64(self), "Invalid argument.");
-  TEN_ASSERT(json, "Invalid argument.");
+
+  if (json == NULL) {
+    TEN_ASSERT(0, "Invalid argument.");
+    return false;
+  }
 
   // FIXME(Liu): the jansson library does not support uint64_t, it's just a work
   // around here.
   if (self->content.uint64 > INT64_MAX) {
     TEN_ASSERT(0, "The value is too large to convert to int64.");
+    ten_json_deinit(json);
     return false;
   }
 
-  ten_json_set_integer(json, (int64_t)self->content.uint64);
+  bool success = ten_json_set_integer(json, (int64_t)self->content.uint64);
+  TEN_ASSERT(success, "Failed to set the integer.");
+  if (!success) {
+    TEN_ASSERT(0, "Failed to set the integer.");
+    ten_json_deinit(json);
+    return false;
+  }
 
   return true;
 }
@@ -487,16 +585,27 @@ static bool ten_value_float32_to_json(ten_value_t *self, ten_json_t *json) {
     TEN_ASSERT(0, "Invalid argument.");
     return false;
   }
-  TEN_ASSERT(json, "Invalid argument.");
 
   TEN_ASSERT(ten_value_check_integrity(self), "Invalid argument.");
 
-  if (!ten_value_is_float32(self)) {
-    TEN_ASSERT(0, "Invalid argument: %d", ten_value_get_type(self));
+  if (json == NULL) {
+    TEN_ASSERT(0, "Invalid argument.");
     return false;
   }
 
-  ten_json_set_real(json, self->content.float32);
+  if (!ten_value_is_float32(self)) {
+    TEN_ASSERT(0, "Invalid argument: %d", ten_value_get_type(self));
+    ten_json_deinit(json);
+    return false;
+  }
+
+  bool success = ten_json_set_real(json, self->content.float32);
+  TEN_ASSERT(success, "Failed to set the real.");
+  if (!success) {
+    TEN_ASSERT(0, "Failed to set the real.");
+    ten_json_deinit(json);
+    return false;
+  }
 
   return true;
 }
@@ -506,16 +615,27 @@ static bool ten_value_float64_to_json(ten_value_t *self, ten_json_t *json) {
     TEN_ASSERT(0, "Invalid argument.");
     return false;
   }
-  TEN_ASSERT(json, "Invalid argument.");
 
   TEN_ASSERT(ten_value_check_integrity(self), "Invalid argument.");
 
-  if (!ten_value_is_float64(self)) {
-    TEN_ASSERT(0, "Invalid argument: %d", ten_value_get_type(self));
+  if (json == NULL) {
+    TEN_ASSERT(0, "Invalid argument.");
     return false;
   }
 
-  ten_json_set_real(json, self->content.float64);
+  if (!ten_value_is_float64(self)) {
+    TEN_ASSERT(0, "Invalid argument: %d", ten_value_get_type(self));
+    ten_json_deinit(json);
+    return false;
+  }
+
+  bool success = ten_json_set_real(json, self->content.float64);
+  TEN_ASSERT(success, "Failed to set the real.");
+  if (!success) {
+    TEN_ASSERT(0, "Failed to set the real.");
+    ten_json_deinit(json);
+    return false;
+  }
 
   return true;
 }
@@ -525,16 +645,28 @@ static bool ten_value_string_to_json(ten_value_t *self, ten_json_t *json) {
     TEN_ASSERT(0, "Invalid argument.");
     return false;
   }
-  TEN_ASSERT(json, "Invalid argument.");
 
   TEN_ASSERT(ten_value_check_integrity(self), "Invalid argument.");
 
-  if (!ten_value_is_string(self)) {
-    TEN_ASSERT(0, "Invalid argument: %d", ten_value_get_type(self));
+  if (json == NULL) {
+    TEN_ASSERT(0, "Invalid argument.");
     return false;
   }
 
-  ten_json_set_string(json, ten_string_get_raw_str(&self->content.string));
+  if (!ten_value_is_string(self)) {
+    TEN_ASSERT(0, "Invalid argument: %d", ten_value_get_type(self));
+    ten_json_deinit(json);
+    return false;
+  }
+
+  bool success =
+      ten_json_set_string(json, ten_string_get_raw_str(&self->content.string));
+  TEN_ASSERT(success, "Failed to set the string.");
+  if (!success) {
+    TEN_ASSERT(0, "Failed to set the string.");
+    ten_json_deinit(json);
+    return false;
+  }
 
   return true;
 }
@@ -544,16 +676,27 @@ static bool ten_value_bool_to_json(ten_value_t *self, ten_json_t *json) {
     TEN_ASSERT(0, "Invalid argument.");
     return false;
   }
-  TEN_ASSERT(json, "Invalid argument.");
 
   TEN_ASSERT(ten_value_check_integrity(self), "Invalid argument.");
 
-  if (!ten_value_is_bool(self)) {
-    TEN_ASSERT(0, "Invalid argument: %d", ten_value_get_type(self));
+  if (json == NULL) {
+    TEN_ASSERT(0, "Invalid argument.");
     return false;
   }
 
-  ten_json_set_boolean(json, self->content.boolean);
+  if (!ten_value_is_bool(self)) {
+    TEN_ASSERT(0, "Invalid argument: %d", ten_value_get_type(self));
+    ten_json_deinit(json);
+    return false;
+  }
+
+  bool success = ten_json_set_boolean(json, self->content.boolean);
+  TEN_ASSERT(success, "Failed to set the boolean.");
+  if (!success) {
+    TEN_ASSERT(0, "Failed to set the boolean.");
+    ten_json_deinit(json);
+    return false;
+  }
 
   return true;
 }
@@ -563,16 +706,27 @@ static bool ten_value_null_to_json(ten_value_t *self, ten_json_t *json) {
     TEN_ASSERT(0, "Invalid argument.");
     return false;
   }
-  TEN_ASSERT(json, "Invalid argument.");
 
   TEN_ASSERT(ten_value_check_integrity(self), "Invalid argument.");
 
-  if (!ten_value_is_null(self)) {
-    TEN_ASSERT(0, "Invalid argument: %d", ten_value_get_type(self));
+  if (json == NULL) {
+    TEN_ASSERT(0, "Invalid argument.");
     return false;
   }
 
-  ten_json_set_null(json);
+  if (!ten_value_is_null(self)) {
+    TEN_ASSERT(0, "Invalid argument: %d", ten_value_get_type(self));
+    ten_json_deinit(json);
+    return false;
+  }
+
+  bool success = ten_json_set_null(json);
+  TEN_ASSERT(success, "Failed to set the null.");
+  if (!success) {
+    TEN_ASSERT(0, "Failed to set the null.");
+    ten_json_deinit(json);
+    return false;
+  }
 
   return true;
 }
@@ -582,12 +736,17 @@ static bool ten_value_ptr_to_json(ten_value_t *self, ten_json_t *json) {
     TEN_ASSERT(0, "Invalid argument.");
     return false;
   }
-  TEN_ASSERT(json, "Invalid argument.");
 
   TEN_ASSERT(ten_value_check_integrity(self), "Invalid argument.");
 
+  if (json == NULL) {
+    TEN_ASSERT(0, "Invalid argument.");
+    return false;
+  }
+
   if (!ten_value_is_ptr(self)) {
     TEN_ASSERT(0, "Invalid argument: %d", ten_value_get_type(self));
+    ten_json_deinit(json);
     return false;
   }
 
@@ -595,7 +754,13 @@ static bool ten_value_ptr_to_json(ten_value_t *self, ten_json_t *json) {
   // convert the pointer 'value' itself to a string or uint64_t, and then
   // serialize it into JSON. If using uint64_t, the JSON library needs to be
   // able to handle uint64_t values.
-  ten_json_set_null(json);
+  bool success = ten_json_set_null(json);
+  TEN_ASSERT(success, "Failed to set the pointer.");
+  if (!success) {
+    TEN_ASSERT(0, "Failed to set the pointer.");
+    ten_json_deinit(json);
+    return false;
+  }
 
   return true;
 }
@@ -605,19 +770,30 @@ static bool ten_value_buf_to_json(ten_value_t *self, ten_json_t *json) {
     TEN_ASSERT(0, "Invalid argument.");
     return false;
   }
-  TEN_ASSERT(json, "Invalid argument.");
 
   TEN_ASSERT(ten_value_check_integrity(self), "Invalid argument.");
 
+  if (json == NULL) {
+    TEN_ASSERT(0, "Invalid argument.");
+    return false;
+  }
+
   if (!ten_value_is_buf(self)) {
     TEN_ASSERT(0, "Invalid argument: %d", ten_value_get_type(self));
+    ten_json_deinit(json);
     return false;
   }
 
   // TODO(Wei): Currently, return 'null', but the correct approach is to convert
   // the buf 'content' itself to a base64 encoded string, and then serialize it
   // into JSON.
-  ten_json_set_null(json);
+  bool success = ten_json_set_null(json);
+  TEN_ASSERT(success, "Failed to set the buffer.");
+  if (!success) {
+    TEN_ASSERT(0, "Failed to set the buffer.");
+    ten_json_deinit(json);
+    return false;
+  }
 
   return true;
 }
@@ -629,6 +805,11 @@ bool ten_value_to_json(ten_value_t *self, ten_json_t *json) {
   }
 
   TEN_ASSERT(ten_value_check_integrity(self), "Invalid argument.");
+
+  if (json == NULL) {
+    TEN_ASSERT(0, "Invalid argument.");
+    return false;
+  }
 
   switch (ten_value_get_type(self)) {
   case TEN_TYPE_INVALID:

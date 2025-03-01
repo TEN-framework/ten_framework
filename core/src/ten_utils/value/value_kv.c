@@ -158,13 +158,14 @@ ten_value_kv_t *ten_value_kv_from_json(const char *key, ten_json_t *json) {
   return kv;
 }
 
-void ten_value_kv_to_json(ten_json_t *json, ten_value_kv_t *kv) {
+bool ten_value_kv_to_json(ten_value_kv_t *self, ten_json_t *json) {
   TEN_ASSERT(json, "Invalid argument.");
-  TEN_ASSERT(kv, "Invalid argument.");
+  TEN_ASSERT(self, "Invalid argument.");
 
-  ten_json_t kv_json = TEN_JSON_INIT_VAL;
-  bool success = ten_value_to_json(kv->value, &kv_json);
+  ten_json_t value_json = TEN_JSON_INIT_VAL;
+  bool success = ten_value_to_json(self->value, &value_json);
   TEN_ASSERT(success, "Should not happen.");
 
-  ten_json_object_set_new(json, ten_string_get_raw_str(&kv->key), &kv_json);
+  return ten_json_object_set_new(json, ten_string_get_raw_str(&self->key),
+                                 &value_json);
 }
