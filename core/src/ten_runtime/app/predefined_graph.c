@@ -136,15 +136,21 @@ ten_app_build_start_graph_cmd_to_start_predefined_graph(
     ten_json_set_object(&extension_info_json);
     int rc = ten_extension_info_connections_to_json(extension_info,
                                                     &extension_info_json, err);
-    if (rc == -1) {
+    switch (rc) {
+    case -1:
       ten_json_deinit(&extension_info_json);
       goto error;
-    }
-
-    if (rc == 1) {
+    case 0:
+      ten_json_deinit(&extension_info_json);
+      break;
+    case 1:
       TEN_ASSERT(ten_json_check_integrity(&extension_info_json),
                  "Invalid argument.");
       ten_json_array_append_new(&connections_json, &extension_info_json);
+      break;
+    default:
+      TEN_ASSERT(false, "Should not happen.");
+      break;
     }
   }
 
