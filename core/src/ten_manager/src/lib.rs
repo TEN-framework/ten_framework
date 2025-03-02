@@ -38,8 +38,8 @@ mod package_file;
 mod package_info;
 mod registry;
 mod solver;
-mod version;
-mod version_utils;
+pub mod version;
+pub mod version_utils;
 
 #[cfg(not(target_os = "windows"))]
 use mimalloc::MiMalloc;

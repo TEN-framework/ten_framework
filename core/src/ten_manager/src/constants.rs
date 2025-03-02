@@ -12,6 +12,9 @@ pub const DEFAULT_REGISTRY: &str =
 pub const CN_REGISTRY: &str =
     "https://registry-ten.rtcdeveloper.cn/api/ten-cloud-store/v2/packages";
 
+pub const GITHUB_RELEASE_URL: &str =
+    "https://api.github.com/repos/TEN-framework/ten_framework/releases/latest";
+
 // This comment is just for reference.
 //
 // pub const ADMIN_TOKEN: &str =

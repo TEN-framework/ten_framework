@@ -11,6 +11,7 @@
 use std::process;
 
 use console::Emoji;
+use ten_manager::version_utils::check_update;
 use tokio::runtime::Runtime;
 
 use ten_manager::cmd;
@@ -26,6 +27,30 @@ fn merge(cmd_line: TmanConfig, config_file: TmanConfig) -> TmanConfig {
         verbose: cmd_line.verbose,
         assume_yes: cmd_line.assume_yes,
         enable_package_cache: config_file.enable_package_cache,
+    }
+}
+
+fn check_update_from_cmdline(tman_config: &TmanConfig) {
+    println!("Checking for new version...");
+
+    let rt = Runtime::new().unwrap();
+    match rt.block_on(check_update()) {
+        Ok((true, latest)) => {
+            println!(
+                "New version found: {}. Please download the update.",
+                latest
+            );
+        }
+        Ok((false, _)) => {
+            if tman_config.verbose {
+                println!("Already up to date.");
+            }
+        }
+        Err(err_msg) => {
+            if tman_config.verbose {
+                println!("{}", err_msg);
+            }
+        }
     }
 }
 
@@ -47,6 +72,8 @@ fn main() {
 
     let tman_config =
         merge(tman_config_from_cmd_line, tman_config_from_config_file);
+
+    check_update_from_cmdline(&tman_config);
 
     let rt = Runtime::new().unwrap();
     let result = rt.block_on(cmd::execute_cmd(&tman_config, command_data));

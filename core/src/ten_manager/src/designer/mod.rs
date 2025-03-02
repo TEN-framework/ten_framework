@@ -45,6 +45,10 @@ pub fn configure_routes(
             .app_data(state.clone())
             .route("/version", web::get().to(version::get_version))
             .route(
+                "/check_update",
+                web::get().to(version::check_update_endpoint),
+            )
+            .route(
                 "/addons/extensions",
                 web::get().to(addons::extensions::get_extension_addons),
             )
