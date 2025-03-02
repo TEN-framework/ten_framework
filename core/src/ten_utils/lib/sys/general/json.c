@@ -68,7 +68,7 @@ bool ten_json_init_string(ten_json_t *self, const char *value) {
   TEN_ASSERT(self->ctx, "Invalid argument.");
   TEN_ASSERT(!self->json, "Invalid argument.");
 
-  self->json = yyjson_mut_str((yyjson_mut_doc *)self->ctx, value);
+  self->json = yyjson_mut_strcpy((yyjson_mut_doc *)self->ctx, value);
   TEN_ASSERT(self->json, "Failed to allocate memory.");
 
   return true;
@@ -259,7 +259,8 @@ bool ten_json_object_peek_or_create_object(ten_json_t *self, const char *key,
   yyjson_mut_val *json_obj = yyjson_mut_obj((yyjson_mut_doc *)self->ctx);
   TEN_ASSERT(json_obj, "Failed to allocate memory.");
 
-  yyjson_mut_val *yyjson_key = yyjson_mut_str((yyjson_mut_doc *)self->ctx, key);
+  yyjson_mut_val *yyjson_key =
+      yyjson_mut_strcpy((yyjson_mut_doc *)self->ctx, key);
   yyjson_mut_obj_add(self->json, yyjson_key, json_obj);
 
   object->json = json_obj;
@@ -277,7 +278,8 @@ bool ten_json_object_set(ten_json_t *self, const char *key, ten_json_t *value) {
     return false;
   }
 
-  yyjson_mut_val *yyjson_key = yyjson_mut_str((yyjson_mut_doc *)self->ctx, key);
+  yyjson_mut_val *yyjson_key =
+      yyjson_mut_strcpy((yyjson_mut_doc *)self->ctx, key);
   bool success = yyjson_mut_obj_add(self->json, yyjson_key, value->json);
   if (!success) {
     return false;
@@ -295,7 +297,8 @@ bool ten_json_object_set_int(ten_json_t *self, const char *key, int64_t value) {
     return false;
   }
 
-  yyjson_mut_val *yyjson_key = yyjson_mut_str((yyjson_mut_doc *)self->ctx, key);
+  yyjson_mut_val *yyjson_key =
+      yyjson_mut_strcpy((yyjson_mut_doc *)self->ctx, key);
   yyjson_mut_val *yyjson_value =
       yyjson_mut_int((yyjson_mut_doc *)self->ctx, value);
 
@@ -316,7 +319,8 @@ bool ten_json_object_set_real(ten_json_t *self, const char *key, double value) {
     return false;
   }
 
-  yyjson_mut_val *yyjson_key = yyjson_mut_str((yyjson_mut_doc *)self->ctx, key);
+  yyjson_mut_val *yyjson_key =
+      yyjson_mut_strcpy((yyjson_mut_doc *)self->ctx, key);
   yyjson_mut_val *yyjson_value =
       yyjson_mut_real((yyjson_mut_doc *)self->ctx, value);
   bool success = yyjson_mut_obj_add(self->json, yyjson_key, yyjson_value);
@@ -338,9 +342,10 @@ bool ten_json_object_set_string(ten_json_t *self, const char *key,
     return false;
   }
 
-  yyjson_mut_val *yyjson_key = yyjson_mut_str((yyjson_mut_doc *)self->ctx, key);
+  yyjson_mut_val *yyjson_key =
+      yyjson_mut_strcpy((yyjson_mut_doc *)self->ctx, key);
   yyjson_mut_val *yyjson_value =
-      yyjson_mut_str((yyjson_mut_doc *)self->ctx, value);
+      yyjson_mut_strcpy((yyjson_mut_doc *)self->ctx, value);
   bool success = yyjson_mut_obj_add(self->json, yyjson_key, yyjson_value);
   if (!success) {
     return false;
@@ -359,7 +364,8 @@ bool ten_json_object_set_bool(ten_json_t *self, const char *key, bool value) {
     return false;
   }
 
-  yyjson_mut_val *yyjson_key = yyjson_mut_str((yyjson_mut_doc *)self->ctx, key);
+  yyjson_mut_val *yyjson_key =
+      yyjson_mut_strcpy((yyjson_mut_doc *)self->ctx, key);
   yyjson_mut_val *yyjson_value =
       yyjson_mut_bool((yyjson_mut_doc *)self->ctx, value);
   bool success = yyjson_mut_obj_add(self->json, yyjson_key, yyjson_value);
@@ -410,7 +416,8 @@ bool ten_json_object_peek_or_create_array(ten_json_t *self, const char *key,
     return false;
   }
 
-  yyjson_mut_val *yyjson_key = yyjson_mut_str((yyjson_mut_doc *)self->ctx, key);
+  yyjson_mut_val *yyjson_key =
+      yyjson_mut_strcpy((yyjson_mut_doc *)self->ctx, key);
   yyjson_mut_val *yyjson_value = yyjson_mut_arr((yyjson_mut_doc *)self->ctx);
   TEN_ASSERT(yyjson_value, "Failed to allocate memory.");
 
