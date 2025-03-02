@@ -20,13 +20,13 @@ void ten_msg_conversion_destroy(ten_msg_conversion_t *self) {
   TEN_ASSERT(self, "Invalid argument.");
 
   switch (self->type) {
-    case TEN_MSG_CONVERSION_TYPE_PER_PROPERTY:
-      ten_msg_conversion_per_property_destroy(
-          (ten_msg_conversion_per_property_t *)self);
-      break;
-    default:
-      TEN_ASSERT(0, "Should not happen.");
-      break;
+  case TEN_MSG_CONVERSION_TYPE_PER_PROPERTY:
+    ten_msg_conversion_per_property_destroy(
+        (ten_msg_conversion_per_property_t *)self);
+    break;
+  default:
+    TEN_ASSERT(0, "Should not happen.");
+    break;
   }
 }
 
@@ -49,17 +49,18 @@ ten_msg_conversion_t *ten_msg_conversion_from_json(ten_json_t *json,
   }
 }
 
-ten_json_t *ten_msg_conversion_to_json(ten_msg_conversion_t *self,
-                                       ten_error_t *err) {
+bool ten_msg_conversion_to_json(ten_msg_conversion_t *self, ten_json_t *json,
+                                ten_error_t *err) {
   TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(json, "Invalid argument.");
 
   switch (self->type) {
-    case TEN_MSG_CONVERSION_TYPE_PER_PROPERTY:
-      return ten_msg_conversion_per_property_to_json(
-          (ten_msg_conversion_per_property_t *)self, err);
-    default:
-      TEN_ASSERT(0, "Should not happen.");
-      return NULL;
+  case TEN_MSG_CONVERSION_TYPE_PER_PROPERTY:
+    return ten_msg_conversion_per_property_to_json(
+        (ten_msg_conversion_per_property_t *)self, json, err);
+  default:
+    TEN_ASSERT(0, "Should not happen.");
+    return false;
   }
 }
 
@@ -105,12 +106,12 @@ ten_value_t *ten_msg_conversion_to_value(ten_msg_conversion_t *self,
   TEN_ASSERT(self, "Invalid argument.");
 
   switch (self->type) {
-    case TEN_MSG_CONVERSION_TYPE_PER_PROPERTY:
-      return ten_msg_conversion_per_property_to_value(
-          (ten_msg_conversion_per_property_t *)self, err);
-    default:
-      TEN_ASSERT(0, "Should not happen.");
-      return NULL;
+  case TEN_MSG_CONVERSION_TYPE_PER_PROPERTY:
+    return ten_msg_conversion_per_property_to_value(
+        (ten_msg_conversion_per_property_t *)self, err);
+  default:
+    TEN_ASSERT(0, "Should not happen.");
+    return NULL;
   }
 }
 

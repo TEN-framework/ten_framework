@@ -9,7 +9,7 @@ import("//build/ten_utils/utils.gni")
 ten_utils_glob("general") {
   deps = [
     "//core/src/ten_utils/value",
-    "//third_party/jansson",
+    "//third_party/yyjson",
   ]
 
   if (is_win) {

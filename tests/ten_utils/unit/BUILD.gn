@@ -29,6 +29,7 @@ ten_utils_glob("unit") {
     "ten_string_test.cc",
     "ten_thread_test.cc",
     "sm_test.cc",
+    "ten_json_test.cc",
   ]
 
   public_deps = [

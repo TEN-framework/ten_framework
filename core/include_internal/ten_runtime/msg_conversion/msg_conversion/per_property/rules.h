@@ -46,9 +46,9 @@ TEN_RUNTIME_PRIVATE_API ten_msg_conversion_per_property_rules_t *
 ten_msg_conversion_per_property_rules_from_json(ten_json_t *json,
                                                 ten_error_t *err);
 
-TEN_RUNTIME_PRIVATE_API ten_json_t *
-ten_msg_conversion_per_property_rules_to_json(
-    ten_msg_conversion_per_property_rules_t *self, ten_error_t *err);
+TEN_RUNTIME_PRIVATE_API bool ten_msg_conversion_per_property_rules_to_json(
+    ten_msg_conversion_per_property_rules_t *self, ten_json_t *json,
+    ten_error_t *err);
 
 TEN_RUNTIME_PRIVATE_API ten_msg_conversion_per_property_rules_t *
 ten_msg_conversion_per_property_rules_from_value(ten_value_t *value,

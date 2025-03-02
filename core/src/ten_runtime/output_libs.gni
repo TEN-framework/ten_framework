@@ -5,7 +5,7 @@
 # Refer to the "LICENSE" file in the root directory for more information.
 #
 import("//core/src/ten_utils/output_libs.gni")
-import("//third_party/jansson/output_libs.gni")
+import("//third_party/yyjson/output_libs.gni")
 
 ten_runtime_output_libs = []
 

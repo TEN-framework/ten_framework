@@ -180,7 +180,7 @@ void *client_thread_main(TEN_UNUSED void *args) {
       client = nullptr;
 
       // To prevent from busy re-trying.
-      ten_random_sleep_ms(100);
+      ten_random_sleep_ms(10);
     }
   }
 

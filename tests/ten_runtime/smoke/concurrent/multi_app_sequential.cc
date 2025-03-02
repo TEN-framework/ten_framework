@@ -185,7 +185,7 @@ TEST(ExtensionTest, MultiAppSequential) {  // NOLINT
         delete client;
 
         // To prevent from busy re-trying.
-        ten_random_sleep_ms(100);
+        ten_random_sleep_ms(10);
       }
     }
 

@@ -12,7 +12,6 @@
 #include "ten_utils/container/list.h"
 #include "ten_utils/container/list_ptr.h"
 #include "ten_utils/lib/alloc.h"
-#include "ten_utils/lib/json.h"
 #include "ten_utils/lib/string.h"
 #include "ten_utils/macro/check.h"
 #include "ten_utils/value/value.h"
@@ -223,58 +222,6 @@ void ten_loc_to_string(ten_loc_t *self, ten_string_t *result) {
                            ten_string_get_raw_str(&self->graph_id),
                            ten_string_get_raw_str(&self->extension_group_name),
                            ten_string_get_raw_str(&self->extension_name));
-}
-
-void ten_loc_to_json_string(ten_loc_t *self, ten_string_t *result) {
-  TEN_ASSERT(self && result && ten_loc_check_integrity(self),
-             "Should not happen.");
-
-  ten_json_t *loc_json = ten_loc_to_json(self);
-  TEN_ASSERT(loc_json, "Should not happen.");
-
-  bool must_free = false;
-  const char *loc_str = ten_json_to_string(loc_json, NULL, &must_free);
-  TEN_ASSERT(loc_str, "Should not happen.");
-
-  ten_string_init_formatted(result, loc_str);
-
-  if (must_free) {
-    TEN_FREE(loc_str);
-  }
-  ten_json_destroy(loc_json);
-}
-
-ten_json_t *ten_loc_to_json(ten_loc_t *self) {
-  TEN_ASSERT(self && ten_loc_check_integrity(self), "Should not happen.");
-
-  ten_json_t *loc_json = ten_json_create_object();
-  TEN_ASSERT(loc_json, "Should not happen.");
-
-  if (!ten_string_is_empty(&self->app_uri)) {
-    ten_json_object_set_new(
-        loc_json, TEN_STR_APP,
-        ten_json_create_string(ten_string_get_raw_str(&self->app_uri)));
-  }
-
-  if (!ten_string_is_empty(&self->graph_id)) {
-    ten_json_object_set_new(
-        loc_json, TEN_STR_GRAPH,
-        ten_json_create_string(ten_string_get_raw_str(&self->graph_id)));
-  }
-
-  if (!ten_string_is_empty(&self->extension_group_name)) {
-    ten_json_object_set_new(loc_json, TEN_STR_EXTENSION_GROUP,
-                            ten_json_create_string(ten_string_get_raw_str(
-                                &self->extension_group_name)));
-  }
-
-  if (!ten_string_is_empty(&self->extension_name)) {
-    ten_json_object_set_new(
-        loc_json, TEN_STR_EXTENSION,
-        ten_json_create_string(ten_string_get_raw_str(&self->extension_name)));
-  }
-
-  return loc_json;
 }
 
 static bool ten_loc_set_value(ten_loc_t *self, ten_value_t *value) {

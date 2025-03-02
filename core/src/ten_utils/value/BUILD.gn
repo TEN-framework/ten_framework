@@ -7,5 +7,5 @@
 import("//build/ten_utils/utils.gni")
 
 ten_utils_glob("value") {
-  deps = [ "//third_party/jansson" ]
+  deps = [ "//third_party/yyjson" ]
 }

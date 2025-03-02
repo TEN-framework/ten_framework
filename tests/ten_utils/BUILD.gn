@@ -28,7 +28,7 @@ ten_utils_test("ten_utils_unit_test") {
     "//core/src/ten_utils/sanitizer",
     "//core/src/ten_utils/schema",
     "//core/src/ten_utils/value",
-    "//tests:copy_jansson_library_for_test",
+    "//tests:copy_yyjson_library_for_test",
   ]
 
   # !Important notice!

@@ -8,8 +8,8 @@ import("//build/options.gni")
 import("//build/ten_runtime/feature/combine_static_library.gni")
 import("//build/ten_utils/options.gni")
 import("//build/ten_utils/utils.gni")
-import("//third_party/jansson/output_libs.gni")
 import("//third_party/libuv/output_libs.gni")
+import("//third_party/yyjson/output_libs.gni")
 
 ten_utils_glob("ten_utils_files") {
   deps = [
@@ -52,7 +52,7 @@ shared_library("ten_utils_shared") {
   deps = [ ":ten_utils_files" ]
   configs += [ "//build/ten_utils:utils_private_config" ]
 
-  public_deps = [ "//third_party/jansson" ]
+  public_deps = [ "//third_party/yyjson" ]
   public_configs = [ "//build/ten_utils:utils_public_config" ]
 
   if (is_mac) {
@@ -92,19 +92,19 @@ ten_utils_group("ten_utils") {
 
 # Although ten_utils_static uses 'complete_static_lib = true', this
 # functionality requires that all other dependencies bound to ten_utils_static
-# be managed by GN as source_set or static_library targets. However, jansson and
+# be managed by GN as source_set or static_library targets. However, yyjson and
 # libuv are managed by CMake, and GN only calls CMake through an action to
 # complete the compilation process. Therefore, it doesn't know which source
 # files are involved or which object files are generated. As a result,
 # 'complete_static_lib = true' has no effect, and the results of the CMake
 # projects need to be manually bound to the ten_utils_static library.
 combine_static_library("ten_utils_combined_static") {
-  jansson_static = filter_include(jansson_output_libs,
-                                  [
-                                    "*.a",
-                                    "*.lib",
-                                  ])
-  assert(jansson_static != [], "No jansson static library found.")
+  yyjson_static = filter_include(yyjson_output_libs,
+                                 [
+                                   "*.a",
+                                   "*.lib",
+                                 ])
+  assert(yyjson_static != [], "No yyjson static library found.")
 
   libuv_static = filter_include(libuv_output_libs,
                                 [
@@ -124,7 +124,7 @@ combine_static_library("ten_utils_combined_static") {
   # The utils_static should be the first item in the list.
   libraries = [
     utils_static,
-    jansson_static[0],
+    yyjson_static[0],
     libuv_static[0],
   ]
 
