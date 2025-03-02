@@ -561,8 +561,6 @@ static bool ten_value_uint64_to_json(ten_value_t *self, ten_json_t *json) {
     return false;
   }
 
-  // FIXME(Liu): the jansson library does not support uint64_t, it's just a work
-  // around here.
   if (self->content.uint64 > INT64_MAX) {
     TEN_ASSERT(0, "The value is too large to convert to int64.");
     ten_json_deinit(json);

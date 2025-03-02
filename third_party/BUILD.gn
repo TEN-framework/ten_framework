@@ -23,7 +23,6 @@ group("third_party") {
   deps = [ "googletest:googletest_system_package" ]
 
   public_deps = [
-    "jansson",
     "msgpack:msgpackc",
     "nlohmann_json",
     "yyjson",

@@ -99,12 +99,12 @@ ten_utils_group("ten_utils") {
 # 'complete_static_lib = true' has no effect, and the results of the CMake
 # projects need to be manually bound to the ten_utils_static library.
 combine_static_library("ten_utils_combined_static") {
-  jansson_static = filter_include(yyjson_output_libs,
-                                  [
-                                    "*.a",
-                                    "*.lib",
-                                  ])
-  assert(jansson_static != [], "No yyjson static library found.")
+  yyjson_static = filter_include(yyjson_output_libs,
+                                 [
+                                   "*.a",
+                                   "*.lib",
+                                 ])
+  assert(yyjson_static != [], "No yyjson static library found.")
 
   libuv_static = filter_include(libuv_output_libs,
                                 [
@@ -124,7 +124,7 @@ combine_static_library("ten_utils_combined_static") {
   # The utils_static should be the first item in the list.
   libraries = [
     utils_static,
-    jansson_static[0],
+    yyjson_static[0],
     libuv_static[0],
   ]
 
