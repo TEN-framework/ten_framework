@@ -31,8 +31,8 @@ bool ten_msg_dest_info_to_json(ten_msg_dest_info_t *self,
   ten_json_object_set_string(json, TEN_STR_NAME,
                              ten_string_get_raw_str(&self->name));
 
-  ten_json_t dests_json = TEN_JSON_INIT_VAL(json->ctx);
-  ten_json_object_peek_array_forcibly(json, TEN_STR_DEST, &dests_json);
+  ten_json_t dests_json = TEN_JSON_INIT_VAL(json->ctx, false);
+  ten_json_object_peek_or_create_array(json, TEN_STR_DEST, &dests_json);
 
   ten_list_foreach(&self->dest, iter) {
     ten_weak_ptr_t *dest = ten_smart_ptr_listnode_get(iter.node);
@@ -40,8 +40,9 @@ bool ten_msg_dest_info_to_json(ten_msg_dest_info_t *self,
 
     ten_extension_info_t *extension_info = ten_smart_ptr_get_data(dest);
 
-    ten_json_t dest_json = TEN_JSON_INIT_VAL(dests_json.ctx);
-    ten_json_array_append_object_and_peak(&dests_json, &dest_json);
+    ten_json_t dest_json = TEN_JSON_INIT_VAL(dests_json.ctx, false);
+    ten_json_init_object(&dest_json);
+    ten_json_array_append(&dests_json, &dest_json);
 
     ten_json_object_set_string(
         &dest_json, TEN_STR_APP,
@@ -70,9 +71,10 @@ bool ten_msg_dest_info_to_json(ten_msg_dest_info_t *self,
       if (ten_loc_is_equal(&src_extension_info->loc,
                            &msg_conversion->src_loc) &&
           ten_string_is_equal(&msg_conversion->msg_name, &self->name)) {
-        ten_json_t msg_and_result_json = TEN_JSON_INIT_VAL(dest_json.ctx);
-        ten_json_object_peek_object_forcibly(&dest_json, TEN_STR_MSG_CONVERSION,
-                                             &msg_and_result_json);
+        ten_json_t msg_and_result_json =
+            TEN_JSON_INIT_VAL(dest_json.ctx, false);
+        ten_json_object_peek_or_create_object(
+            &dest_json, TEN_STR_MSG_CONVERSION, &msg_and_result_json);
 
         bool success = ten_msg_and_result_conversion_to_json(
             msg_conversion->msg_and_result_conversion, &msg_and_result_json,

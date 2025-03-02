@@ -252,7 +252,7 @@ TEST(BasicTest, ThrowExceptionInExtension) {  // NOLINT
       client = nullptr;
 
       // To prevent from busy re-trying.
-      ten_random_sleep_ms(100);
+      ten_random_sleep_ms(10);
     }
   }
 

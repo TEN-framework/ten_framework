@@ -19,7 +19,7 @@ ten_shared_library("ten_runtime_go") {
   include_dirs += [
     "//src",
     "${root_out_dir}/obj",
-    "${root_gen_dir}/cmake/jansson/include",
+    "${root_gen_dir}/cmake/yyjson/include",
   ]
 
   cflags = []

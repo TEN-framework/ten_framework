@@ -67,7 +67,7 @@ void ten_msg_conversion_per_property_rule_from_original_from_json(
 
   ten_msg_conversion_per_property_rule_from_original_init(self);
 
-  ten_json_t path_json = TEN_JSON_INIT_VAL(json->ctx);
+  ten_json_t path_json = TEN_JSON_INIT_VAL(json->ctx, false);
   bool success = ten_json_object_peek(json, TEN_STR_ORIGINAL_PATH, &path_json);
   TEN_ASSERT(success, "Should not happen.");
 

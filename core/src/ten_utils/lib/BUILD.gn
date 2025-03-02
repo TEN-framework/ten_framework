@@ -11,6 +11,6 @@ ten_utils_group("lib") {
     "arch",
     "lang",
     "sys",
-    "//third_party/jansson",
+    "//third_party/yyjson",
   ]
 }

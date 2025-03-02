@@ -65,7 +65,7 @@ void ten_msg_conversion_per_property_destroy(
 
 ten_msg_conversion_per_property_t *
 ten_msg_conversion_per_property_from_json(ten_json_t *json, ten_error_t *err) {
-  ten_json_t rules_json = TEN_JSON_INIT_VAL(json->ctx);
+  ten_json_t rules_json = TEN_JSON_INIT_VAL(json->ctx, false);
   bool success = ten_json_object_peek(json, TEN_STR_RULES, &rules_json);
   if (!success) {
     return NULL;
@@ -80,7 +80,7 @@ ten_msg_conversion_per_property_from_json(ten_json_t *json, ten_error_t *err) {
   ten_msg_conversion_per_property_t *self =
       ten_msg_conversion_per_property_create(rules);
 
-  ten_json_t keep_original_json = TEN_JSON_INIT_VAL(json->ctx);
+  ten_json_t keep_original_json = TEN_JSON_INIT_VAL(json->ctx, false);
   success =
       ten_json_object_peek(json, TEN_STR_KEEP_ORIGINAL, &keep_original_json);
   if (success && ten_json_is_true(&keep_original_json)) {

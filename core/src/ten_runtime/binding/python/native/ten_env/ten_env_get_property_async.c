@@ -135,7 +135,7 @@ static void ten_py_get_property_to_json_cb(ten_env_t *ten_env,
 
     arglist = Py_BuildValue("(sO)", json_str, py_error);
   } else {
-    ten_json_t json = TEN_JSON_INIT_VAL(ten_json_create_new_ctx());
+    ten_json_t json = TEN_JSON_INIT_VAL(ten_json_create_new_ctx(), true);
     bool success = ten_value_to_json(value, &json);
     TEN_ASSERT(success, "Should not happen.");
 

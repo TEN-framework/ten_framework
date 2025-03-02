@@ -6,7 +6,7 @@ import subprocess
 import os
 import sys
 from sys import stdout
-from .utils import build_config
+from .utils import build_config, fs_utils
 
 
 def test_standalone_test_cpp():
@@ -16,6 +16,8 @@ def test_standalone_test_cpp():
     my_env = os.environ.copy()
 
     extension_root_path = os.path.join(base_path, "ext")
+    dot_ten_path = os.path.join(extension_root_path, ".ten")
+    fs_utils.remove_tree(dot_ten_path)
 
     # Step 1:
     #

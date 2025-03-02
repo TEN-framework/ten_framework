@@ -274,12 +274,12 @@ static bool ten_value_array_to_json(ten_value_t *self, ten_json_t *json) {
     return false;
   }
 
-  bool success = ten_json_set_array(json);
+  bool success = ten_json_init_array(json);
   TEN_ASSERT(success, "Failed to set the array.");
 
   // Loop each item in the array and convert them to JSON.
   ten_list_foreach(&self->content.array, iter) {
-    ten_json_t item_json = TEN_JSON_INIT_VAL(json->ctx);
+    ten_json_t item_json = TEN_JSON_INIT_VAL(json->ctx, false);
 
     ten_value_t *item = ten_ptr_listnode_get(iter.node);
     if (!item) {
@@ -295,7 +295,7 @@ static bool ten_value_array_to_json(ten_value_t *self, ten_json_t *json) {
       return false;
     }
 
-    ten_json_array_append_new(json, &item_json);
+    ten_json_array_append(json, &item_json);
   }
 
   return true;
@@ -319,7 +319,7 @@ static bool ten_value_object_to_json(ten_value_t *self, ten_json_t *json) {
     return false;
   }
 
-  bool success = ten_json_set_object(json);
+  bool success = ten_json_init_object(json);
   TEN_ASSERT(success, "Failed to set the object.");
 
   ten_list_foreach(&self->content.object, iter) {
@@ -361,7 +361,7 @@ static bool ten_value_int8_to_json(ten_value_t *self, ten_json_t *json) {
     return false;
   }
 
-  bool success = ten_json_set_integer(json, self->content.int8);
+  bool success = ten_json_init_integer(json, self->content.int8);
   TEN_ASSERT(success, "Failed to set the integer.");
   if (!success) {
     TEN_ASSERT(0, "Failed to set the integer.");
@@ -391,7 +391,7 @@ static bool ten_value_int16_to_json(ten_value_t *self, ten_json_t *json) {
     return false;
   }
 
-  bool success = ten_json_set_integer(json, self->content.int16);
+  bool success = ten_json_init_integer(json, self->content.int16);
   TEN_ASSERT(success, "Failed to set the integer.");
   if (!success) {
     TEN_ASSERT(0, "Failed to set the integer.");
@@ -421,7 +421,7 @@ static bool ten_value_int32_to_json(ten_value_t *self, ten_json_t *json) {
     return false;
   }
 
-  bool success = ten_json_set_integer(json, self->content.int32);
+  bool success = ten_json_init_integer(json, self->content.int32);
   TEN_ASSERT(success, "Failed to set the integer.");
   if (!success) {
     TEN_ASSERT(0, "Failed to set the integer.");
@@ -451,7 +451,7 @@ static bool ten_value_int64_to_json(ten_value_t *self, ten_json_t *json) {
     return false;
   }
 
-  bool success = ten_json_set_integer(json, self->content.int64);
+  bool success = ten_json_init_integer(json, self->content.int64);
   TEN_ASSERT(success, "Failed to set the integer.");
   if (!success) {
     TEN_ASSERT(0, "Failed to set the integer.");
@@ -481,7 +481,7 @@ static bool ten_value_uint8_to_json(ten_value_t *self, ten_json_t *json) {
     return false;
   }
 
-  bool success = ten_json_set_integer(json, self->content.uint8);
+  bool success = ten_json_init_integer(json, self->content.uint8);
   TEN_ASSERT(success, "Failed to set the integer.");
   if (!success) {
     TEN_ASSERT(0, "Failed to set the integer.");
@@ -511,7 +511,7 @@ static bool ten_value_uint16_to_json(ten_value_t *self, ten_json_t *json) {
     return false;
   }
 
-  bool success = ten_json_set_integer(json, self->content.uint16);
+  bool success = ten_json_init_integer(json, self->content.uint16);
   TEN_ASSERT(success, "Failed to set the integer.");
   if (!success) {
     TEN_ASSERT(0, "Failed to set the integer.");
@@ -541,7 +541,7 @@ static bool ten_value_uint32_to_json(ten_value_t *self, ten_json_t *json) {
     return false;
   }
 
-  bool success = ten_json_set_integer(json, self->content.uint32);
+  bool success = ten_json_init_integer(json, self->content.uint32);
   TEN_ASSERT(success, "Failed to set the integer.");
   if (!success) {
     TEN_ASSERT(0, "Failed to set the integer.");
@@ -561,15 +561,13 @@ static bool ten_value_uint64_to_json(ten_value_t *self, ten_json_t *json) {
     return false;
   }
 
-  // FIXME(Liu): the jansson library does not support uint64_t, it's just a work
-  // around here.
   if (self->content.uint64 > INT64_MAX) {
     TEN_ASSERT(0, "The value is too large to convert to int64.");
     ten_json_deinit(json);
     return false;
   }
 
-  bool success = ten_json_set_integer(json, (int64_t)self->content.uint64);
+  bool success = ten_json_init_integer(json, (int64_t)self->content.uint64);
   TEN_ASSERT(success, "Failed to set the integer.");
   if (!success) {
     TEN_ASSERT(0, "Failed to set the integer.");
@@ -599,7 +597,7 @@ static bool ten_value_float32_to_json(ten_value_t *self, ten_json_t *json) {
     return false;
   }
 
-  bool success = ten_json_set_real(json, self->content.float32);
+  bool success = ten_json_init_real(json, self->content.float32);
   TEN_ASSERT(success, "Failed to set the real.");
   if (!success) {
     TEN_ASSERT(0, "Failed to set the real.");
@@ -629,7 +627,7 @@ static bool ten_value_float64_to_json(ten_value_t *self, ten_json_t *json) {
     return false;
   }
 
-  bool success = ten_json_set_real(json, self->content.float64);
+  bool success = ten_json_init_real(json, self->content.float64);
   TEN_ASSERT(success, "Failed to set the real.");
   if (!success) {
     TEN_ASSERT(0, "Failed to set the real.");
@@ -660,7 +658,7 @@ static bool ten_value_string_to_json(ten_value_t *self, ten_json_t *json) {
   }
 
   bool success =
-      ten_json_set_string(json, ten_string_get_raw_str(&self->content.string));
+      ten_json_init_string(json, ten_string_get_raw_str(&self->content.string));
   TEN_ASSERT(success, "Failed to set the string.");
   if (!success) {
     TEN_ASSERT(0, "Failed to set the string.");
@@ -690,7 +688,7 @@ static bool ten_value_bool_to_json(ten_value_t *self, ten_json_t *json) {
     return false;
   }
 
-  bool success = ten_json_set_boolean(json, self->content.boolean);
+  bool success = ten_json_init_boolean(json, self->content.boolean);
   TEN_ASSERT(success, "Failed to set the boolean.");
   if (!success) {
     TEN_ASSERT(0, "Failed to set the boolean.");
@@ -720,7 +718,7 @@ static bool ten_value_null_to_json(ten_value_t *self, ten_json_t *json) {
     return false;
   }
 
-  bool success = ten_json_set_null(json);
+  bool success = ten_json_init_null(json);
   TEN_ASSERT(success, "Failed to set the null.");
   if (!success) {
     TEN_ASSERT(0, "Failed to set the null.");
@@ -754,7 +752,7 @@ static bool ten_value_ptr_to_json(ten_value_t *self, ten_json_t *json) {
   // convert the pointer 'value' itself to a string or uint64_t, and then
   // serialize it into JSON. If using uint64_t, the JSON library needs to be
   // able to handle uint64_t values.
-  bool success = ten_json_set_null(json);
+  bool success = ten_json_init_null(json);
   TEN_ASSERT(success, "Failed to set the pointer.");
   if (!success) {
     TEN_ASSERT(0, "Failed to set the pointer.");
@@ -787,7 +785,7 @@ static bool ten_value_buf_to_json(ten_value_t *self, ten_json_t *json) {
   // TODO(Wei): Currently, return 'null', but the correct approach is to convert
   // the buf 'content' itself to a base64 encoded string, and then serialize it
   // into JSON.
-  bool success = ten_json_set_null(json);
+  bool success = ten_json_init_null(json);
   TEN_ASSERT(success, "Failed to set the buffer.");
   if (!success) {
     TEN_ASSERT(0, "Failed to set the buffer.");

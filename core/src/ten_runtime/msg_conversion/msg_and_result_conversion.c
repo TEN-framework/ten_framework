@@ -52,7 +52,7 @@ ten_msg_and_result_conversion_from_json(ten_json_t *json, ten_error_t *err) {
     return NULL;
   }
 
-  ten_json_t result_json = TEN_JSON_INIT_VAL(json->ctx);
+  ten_json_t result_json = TEN_JSON_INIT_VAL(json->ctx, false);
   bool success = ten_json_object_peek(json, TEN_STR_RESULT, &result_json);
   if (success) {
     pair->result = ten_msg_conversion_from_json(&result_json, err);
@@ -75,9 +75,9 @@ bool ten_msg_and_result_conversion_to_json(
   }
 
   if (self->result) {
-    ten_json_t result_operation_json = TEN_JSON_INIT_VAL(json->ctx);
-    ten_json_object_peek_object_forcibly(json, TEN_STR_RESULT,
-                                         &result_operation_json);
+    ten_json_t result_operation_json = TEN_JSON_INIT_VAL(json->ctx, false);
+    ten_json_object_peek_or_create_object(json, TEN_STR_RESULT,
+                                          &result_operation_json);
 
     success =
         ten_msg_conversion_to_json(self->result, &result_operation_json, err);

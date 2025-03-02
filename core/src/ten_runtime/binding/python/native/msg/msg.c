@@ -307,7 +307,7 @@ PyObject *ten_py_msg_get_property_to_json(PyObject *self, PyObject *args) {
     goto error;
   }
 
-  ten_json_t c_json = TEN_JSON_INIT_VAL(ten_json_create_new_ctx());
+  ten_json_t c_json = TEN_JSON_INIT_VAL(ten_json_create_new_ctx(), true);
   bool success = ten_value_to_json(c_value, &c_json);
   TEN_ASSERT(success, "Should not happen.");
 
