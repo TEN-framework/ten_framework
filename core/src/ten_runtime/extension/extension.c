@@ -70,14 +70,6 @@ ten_extension_t *ten_extension_create(
     TEN_UNUSED void *user_data) {
   TEN_ASSERT(name, "Should not happen.");
 
-  volatile int *a = TEN_MALLOC(sizeof(int));
-  TEN_ASSERT(a, "Failed to allocate memory.");
-  *a = 1;
-
-  volatile int *b = malloc(sizeof(int));
-  TEN_ASSERT(b, "Failed to allocate memory.");
-  *b = 2;
-
   ten_extension_t *self =
       (ten_extension_t *)TEN_MALLOC(sizeof(ten_extension_t));
   TEN_ASSERT(self, "Failed to allocate memory.");
