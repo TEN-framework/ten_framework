@@ -4,8 +4,13 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
+use std::time::Duration;
+
 use anyhow::{anyhow, Result};
-use semver::VersionReq;
+use semver::{Version, VersionReq};
+use serde_json::Value;
+
+use crate::{constants::GITHUB_RELEASE_URL, version::VERSION};
 
 /// Used to parse a pattern like `aaa@3.0.0` and return `aaa` and `3.0.0`.
 pub fn parse_pkg_name_version_req(
@@ -45,6 +50,57 @@ pub fn parse_pkg_name_version_req(
     } else {
         Ok((pkg_name_version.to_string(), VersionReq::STAR))
     }
+}
+
+/// Check the latest version information, and return (update_available,
+/// latest_version).
+pub async fn check_update() -> Result<(bool, String), String> {
+    let client = reqwest::Client::builder()
+        .timeout(Duration::from_secs(5)) // Set a 5-second timeout.
+        .build()
+        .map_err(|e| format!("Failed to build HTTP client: {}", e))?;
+
+    let response = client
+        .get(GITHUB_RELEASE_URL)
+        .header("User-Agent", "TEN Framework Updater")
+        .send()
+        .await
+        .map_err(|e| {
+            if e.is_timeout() {
+                "Check for updates timed out. Please try again later."
+                    .to_string()
+            } else {
+                format!("Failed to check for updates: {}", e)
+            }
+        })?;
+
+    if !response.status().is_success() {
+        return Err(format!(
+            "Failed to check for updates: {}",
+            response.status()
+        ));
+    }
+
+    let json: Value = response
+        .json()
+        .await
+        .map_err(|e| format!("Failed to parse update information: {}", e))?;
+    let latest_version = json
+        .get("tag_name")
+        .and_then(|v| v.as_str())
+        .unwrap_or("")
+        .to_string();
+
+    if latest_version.is_empty() {
+        return Err("Failed to get the latest version information.".to_string());
+    }
+
+    let current_version =
+        Version::parse(VERSION).unwrap_or(Version::new(0, 0, 0));
+    let latest_semver =
+        Version::parse(&latest_version).unwrap_or(Version::new(0, 0, 0));
+
+    Ok((latest_semver > current_version, latest_version))
 }
 
 #[cfg(test)]

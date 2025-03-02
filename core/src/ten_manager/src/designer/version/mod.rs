@@ -13,7 +13,7 @@ use super::{
     response::{ApiResponse, Status},
     DesignerState,
 };
-use crate::version::VERSION;
+use crate::{version::VERSION, version_utils::check_update};
 
 #[derive(Serialize, Deserialize, PartialEq, Debug)]
 struct DesignerVersion {
@@ -34,6 +34,33 @@ pub async fn get_version(
     };
 
     HttpResponse::Ok().json(response)
+}
+
+pub async fn check_update_endpoint() -> impl Responder {
+    match check_update().await {
+        Ok((true, latest)) => {
+            let success_response = serde_json::json!({
+                "status": "ok",
+                "update_available": true,
+                "latest_version": latest,
+            });
+            HttpResponse::Ok().json(success_response)
+        }
+        Ok((false, _)) => {
+            let success_response = serde_json::json!({
+                "status": "ok",
+                "update_available": false,
+            });
+            HttpResponse::Ok().json(success_response)
+        }
+        Err(err_msg) => {
+            let error_response = serde_json::json!({
+                "status": "fail",
+                "message": err_msg,
+            });
+            HttpResponse::Ok().json(error_response)
+        }
+    }
 }
 
 #[cfg(test)]
