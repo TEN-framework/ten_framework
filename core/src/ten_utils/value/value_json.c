@@ -295,7 +295,7 @@ static bool ten_value_array_to_json(ten_value_t *self, ten_json_t *json) {
       return false;
     }
 
-    ten_json_array_append_new(json, &item_json);
+    ten_json_array_append(json, &item_json);
   }
 
   return true;

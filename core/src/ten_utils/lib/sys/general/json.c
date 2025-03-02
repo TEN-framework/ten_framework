@@ -197,7 +197,7 @@ static bool ten_json_object_peek_object(ten_json_t *self, const char *key,
                                         ten_json_t *object) {
   TEN_ASSERT(self && ten_json_check_integrity(self), "Invalid argument.");
   TEN_ASSERT(key, "Invalid argument.");
-  TEN_ASSERT(object, "Invalid argument.");
+  TEN_ASSERT(object && ten_json_check_integrity(object), "Invalid argument.");
 
   bool success = ten_json_object_peek(self, key, object);
   if (!success) {
@@ -215,7 +215,7 @@ static bool ten_json_object_peek_array(ten_json_t *self, const char *key,
                                        ten_json_t *item) {
   TEN_ASSERT(self && ten_json_check_integrity(self), "Invalid argument.");
   TEN_ASSERT(key, "Invalid argument.");
-  TEN_ASSERT(item, "Invalid argument.");
+  TEN_ASSERT(item && ten_json_check_integrity(item), "Invalid argument.");
 
   bool success = ten_json_object_peek(self, key, item);
   if (!success) {
@@ -240,11 +240,11 @@ static bool ten_json_object_del(ten_json_t *self, const char *key) {
   return false;
 }
 
-bool ten_json_object_peek_object_forcibly(ten_json_t *self, const char *key,
-                                          ten_json_t *object) {
+bool ten_json_object_peek_or_create_object(ten_json_t *self, const char *key,
+                                           ten_json_t *object) {
   TEN_ASSERT(self && ten_json_check_integrity(self), "Invalid argument.");
   TEN_ASSERT(key, "Invalid argument.");
-  TEN_ASSERT(object, "Invalid argument.");
+  TEN_ASSERT(object && ten_json_check_integrity(object), "Invalid argument.");
 
   bool success = ten_json_object_peek_object(self, key, object);
   if (success) {
@@ -253,6 +253,7 @@ bool ten_json_object_peek_object_forcibly(ten_json_t *self, const char *key,
 
   if (ten_json_object_peek(self, key, NULL)) {
     TEN_ASSERT(0, "Should not happen.");
+    return false;
   }
 
   yyjson_mut_val *json_obj = yyjson_mut_obj((yyjson_mut_doc *)self->ctx);
@@ -266,11 +267,15 @@ bool ten_json_object_peek_object_forcibly(ten_json_t *self, const char *key,
   return true;
 }
 
-bool ten_json_object_set_new(ten_json_t *self, const char *key,
-                             ten_json_t *value) {
+bool ten_json_object_set(ten_json_t *self, const char *key, ten_json_t *value) {
   TEN_ASSERT(self && ten_json_check_integrity(self), "Invalid argument.");
   TEN_ASSERT(key, "Invalid argument.");
   TEN_ASSERT(value && ten_json_check_integrity(value), "Invalid argument.");
+
+  if (ten_json_object_peek(self, key, NULL)) {
+    TEN_ASSERT(0, "Should not happen.");
+    return false;
+  }
 
   yyjson_mut_val *yyjson_key = yyjson_mut_str((yyjson_mut_doc *)self->ctx, key);
   bool success = yyjson_mut_obj_add(self->json, yyjson_key, value->json);
@@ -284,6 +289,11 @@ bool ten_json_object_set_new(ten_json_t *self, const char *key,
 bool ten_json_object_set_int(ten_json_t *self, const char *key, int64_t value) {
   TEN_ASSERT(self && ten_json_check_integrity(self), "Invalid argument.");
   TEN_ASSERT(key, "Invalid argument.");
+
+  if (ten_json_object_peek(self, key, NULL)) {
+    TEN_ASSERT(0, "Should not happen.");
+    return false;
+  }
 
   yyjson_mut_val *yyjson_key = yyjson_mut_str((yyjson_mut_doc *)self->ctx, key);
   yyjson_mut_val *yyjson_value =
@@ -300,6 +310,11 @@ bool ten_json_object_set_int(ten_json_t *self, const char *key, int64_t value) {
 bool ten_json_object_set_real(ten_json_t *self, const char *key, double value) {
   TEN_ASSERT(self && ten_json_check_integrity(self), "Invalid argument.");
   TEN_ASSERT(key, "Invalid argument.");
+
+  if (ten_json_object_peek(self, key, NULL)) {
+    TEN_ASSERT(0, "Should not happen.");
+    return false;
+  }
 
   yyjson_mut_val *yyjson_key = yyjson_mut_str((yyjson_mut_doc *)self->ctx, key);
   yyjson_mut_val *yyjson_value =
@@ -318,6 +333,11 @@ bool ten_json_object_set_string(ten_json_t *self, const char *key,
   TEN_ASSERT(key, "Invalid argument.");
   TEN_ASSERT(value, "Invalid argument.");
 
+  if (ten_json_object_peek(self, key, NULL)) {
+    TEN_ASSERT(0, "Should not happen.");
+    return false;
+  }
+
   yyjson_mut_val *yyjson_key = yyjson_mut_str((yyjson_mut_doc *)self->ctx, key);
   yyjson_mut_val *yyjson_value =
       yyjson_mut_str((yyjson_mut_doc *)self->ctx, value);
@@ -334,6 +354,11 @@ bool ten_json_object_set_bool(ten_json_t *self, const char *key, bool value) {
   TEN_ASSERT(key, "Invalid argument.");
   TEN_ASSERT(value, "Invalid argument.");
 
+  if (ten_json_object_peek(self, key, NULL)) {
+    TEN_ASSERT(0, "Should not happen.");
+    return false;
+  }
+
   yyjson_mut_val *yyjson_key = yyjson_mut_str((yyjson_mut_doc *)self->ctx, key);
   yyjson_mut_val *yyjson_value =
       yyjson_mut_bool((yyjson_mut_doc *)self->ctx, value);
@@ -349,6 +374,9 @@ bool ten_json_object_peek(ten_json_t *self, const char *key,
                           ten_json_t *value) {
   TEN_ASSERT(self && ten_json_check_integrity(self), "Invalid argument.");
   TEN_ASSERT(key, "Invalid argument.");
+  if (value) {
+    TEN_ASSERT(ten_json_check_integrity(value), "Invalid argument.");
+  }
 
   if (!yyjson_mut_is_obj((yyjson_mut_val *)self->json)) {
     return false;
@@ -366,11 +394,11 @@ bool ten_json_object_peek(ten_json_t *self, const char *key,
   return true;
 }
 
-bool ten_json_object_peek_array_forcibly(ten_json_t *self, const char *key,
-                                         ten_json_t *array) {
+bool ten_json_object_peek_or_create_array(ten_json_t *self, const char *key,
+                                          ten_json_t *array) {
   TEN_ASSERT(self && ten_json_check_integrity(self), "Invalid argument.");
   TEN_ASSERT(key, "Invalid argument.");
-  TEN_ASSERT(array, "Invalid argument.");
+  TEN_ASSERT(array && ten_json_check_integrity(array), "Invalid argument.");
 
   bool success = ten_json_object_peek_array(self, key, array);
   if (success) {
@@ -379,6 +407,7 @@ bool ten_json_object_peek_array_forcibly(ten_json_t *self, const char *key,
 
   if (ten_json_object_peek(self, key, NULL)) {
     TEN_ASSERT(0, "Should not happen.");
+    return false;
   }
 
   yyjson_mut_val *yyjson_key = yyjson_mut_str((yyjson_mut_doc *)self->ctx, key);
@@ -395,8 +424,15 @@ bool ten_json_object_peek_array_forcibly(ten_json_t *self, const char *key,
   return true;
 }
 
+// Since the `yyjson` iterator is not a pointer but a complete struct, to avoid
+// requiring files outside of `json.c` to include the `yyjson` header file, a
+// trick is used here. A memory space larger than the `yyjson` iterator struct
+// is allocated, allowing external users to interact with this struct without
+// directly involving `yyjson`. Additionally, in `json.c`, a `static_assert` is
+// used to ensure that the allocated size is indeed larger than the `yyjson`
+// iterator.
 static_assert(sizeof(yyjson_mut_obj_iter) < sizeof(ten_json_iter_t),
-              "ten_json_iter_t is too large.");
+              "ten_json_iter_t is too small.");
 
 bool ten_json_object_iter_init(ten_json_t *self, ten_json_iter_t *iter) {
   TEN_ASSERT(self && ten_json_check_integrity(self), "Invalid argument.");
@@ -440,7 +476,7 @@ bool ten_json_object_iter_peek_value(ten_json_t *key, ten_json_t *value) {
   return true;
 }
 
-bool ten_json_array_append_new(ten_json_t *self, ten_json_t *item) {
+bool ten_json_array_append(ten_json_t *self, ten_json_t *item) {
   TEN_ASSERT(self && ten_json_check_integrity(self), "Invalid argument.");
   TEN_ASSERT(item && ten_json_check_integrity(item), "Invalid argument.");
 
@@ -448,41 +484,6 @@ bool ten_json_array_append_new(ten_json_t *self, ten_json_t *item) {
   if (!success) {
     return false;
   }
-
-  return true;
-}
-
-bool ten_json_array_append_object_and_peak(ten_json_t *self,
-                                           ten_json_t *object) {
-  TEN_ASSERT(self && ten_json_check_integrity(self), "Invalid argument.");
-  TEN_ASSERT(object && ten_json_check_integrity(object), "Invalid argument.");
-
-  yyjson_mut_val *obj_json = yyjson_mut_obj((yyjson_mut_doc *)self->ctx);
-  TEN_ASSERT(obj_json, "Failed to allocate memory.");
-
-  bool success = yyjson_mut_arr_append(self->json, obj_json);
-  if (!success) {
-    return false;
-  }
-
-  object->json = obj_json;
-
-  return true;
-}
-
-bool ten_json_array_append_array_and_peak(ten_json_t *self, ten_json_t *array) {
-  TEN_ASSERT(self && ten_json_check_integrity(self), "Invalid argument.");
-  TEN_ASSERT(array && ten_json_check_integrity(array), "Invalid argument.");
-
-  yyjson_mut_val *arr_json = yyjson_mut_arr((yyjson_mut_doc *)self->ctx);
-  TEN_ASSERT(arr_json, "Failed to allocate memory.");
-
-  bool success = yyjson_mut_arr_append(self->json, arr_json);
-  if (!success) {
-    return false;
-  }
-
-  array->json = arr_json;
 
   return true;
 }
@@ -495,7 +496,7 @@ size_t ten_json_array_get_size(ten_json_t *self) {
 bool ten_json_array_peek_item(ten_json_t *self, size_t index,
                               ten_json_t *item) {
   TEN_ASSERT(self && ten_json_check_integrity(self), "Invalid argument.");
-  TEN_ASSERT(item, "Invalid argument.");
+  TEN_ASSERT(item && ten_json_check_integrity(item), "Invalid argument.");
 
   yyjson_mut_val *item_json = yyjson_mut_arr_get(self->json, index);
   if (!item_json) {

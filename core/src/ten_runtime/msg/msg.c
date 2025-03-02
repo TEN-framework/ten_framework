@@ -544,7 +544,7 @@ static bool ten_raw_msg_get_one_field_from_json_internal(
     // Internal fields are uniformly stored in the "_ten" section.
     if (include_internal_field) {
       ten_json_t ten_json = TEN_JSON_INIT_VAL(json->ctx, false);
-      bool success = ten_json_object_peek_object_forcibly(
+      bool success = ten_json_object_peek_or_create_object(
           json, TEN_STR_UNDERLINE_TEN, &ten_json);
       TEN_ASSERT(success, "Should not happen.");
 
@@ -639,7 +639,7 @@ static bool ten_raw_msg_put_one_field_to_json_internal(
 
     if (include_internal_field) {
       ten_json_t ten_json = TEN_JSON_INIT_VAL(json->ctx, false);
-      bool success = ten_json_object_peek_object_forcibly(
+      bool success = ten_json_object_peek_or_create_object(
           json, TEN_STR_UNDERLINE_TEN, &ten_json);
       TEN_ASSERT(success, "Should not happen.");
 
@@ -647,7 +647,7 @@ static bool ten_raw_msg_put_one_field_to_json_internal(
       success = ten_value_to_json(field->field_value, &field_json);
       TEN_ASSERT(success, "Should not happen.");
 
-      ten_json_object_set_new(&ten_json, field->field_name, &field_json);
+      ten_json_object_set(&ten_json, field->field_name, &field_json);
     }
   } else {
     TEN_ASSERT(ten_value_is_object(field->field_value), "Should not happen.");
@@ -661,7 +661,7 @@ static bool ten_raw_msg_put_one_field_to_json_internal(
       bool success = ten_value_to_json(kv->value, &kv_json);
       TEN_ASSERT(success, "Should not happen.");
 
-      ten_json_object_set_new(json, ten_string_get_raw_str(&kv->key), &kv_json);
+      ten_json_object_set(json, ten_string_get_raw_str(&kv->key), &kv_json);
     }
   }
 

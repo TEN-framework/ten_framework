@@ -64,7 +64,7 @@ TEST(JsonTest, ObjectPeekObjectForcibly) {  // NOLINT
   EXPECT_NE(json, nullptr);
 
   ten_json_t a = TEN_JSON_INIT_VAL(json->ctx, false);
-  bool success = ten_json_object_peek_object_forcibly(json, "a", &a);
+  bool success = ten_json_object_peek_or_create_object(json, "a", &a);
   EXPECT_TRUE(success);
 
   ten_json_deinit(&a);

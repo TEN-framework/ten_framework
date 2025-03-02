@@ -39,7 +39,7 @@ bool ten_extension_group_info_to_json(ten_extension_group_info_t *self,
     bool success = ten_value_to_json(self->property, &property_json);
     TEN_ASSERT(success, "Should not happen.");
 
-    ten_json_object_set_new(json, TEN_STR_PROPERTY, &property_json);
+    ten_json_object_set(json, TEN_STR_PROPERTY, &property_json);
   }
 
   return true;

@@ -24,14 +24,14 @@
   }
 
 #define ten_json_object_foreach(object, key, value)                    \
-  ten_json_iter_t iter;                                                \
-  ten_json_object_iter_init(object, &iter);                            \
+  ten_json_iter_t __iter;                                              \
+  ten_json_object_iter_init(object, &__iter);                          \
   ten_json_t __key = TEN_JSON_INIT_VAL((object)->ctx, false);          \
   ten_json_t __value = TEN_JSON_INIT_VAL((object)->ctx, false);        \
-  key = ten_json_object_iter_next_key(&iter, &__key);                  \
+  key = ten_json_object_iter_next_key(&__iter, &__key);                \
   for (; (key) && ten_json_object_iter_peek_value(&__key, &__value) && \
          ((value) = &__value);                                         \
-       (key) = ten_json_object_iter_next_key(&iter, &__key))
+       (key) = ten_json_object_iter_next_key(&__iter, &__key))
 
 #define ten_json_array_foreach(array, index, item)                          \
   ten_json_t __item = TEN_JSON_INIT_VAL(array->ctx, false);                 \
@@ -40,6 +40,13 @@
        ten_json_array_peek_item(array, index, &__item) && (item = &__item); \
        (index)++)
 
+// Since the `yyjson` iterator is not a pointer but a complete struct, to avoid
+// requiring files outside of `json.c` to include the `yyjson` header file, a
+// trick is used here. A memory space larger than the `yyjson` iterator struct
+// is allocated, allowing external users to interact with this struct without
+// directly involving `yyjson`. Additionally, in `json.c`, a `static_assert` is
+// used to ensure that the allocated size is indeed larger than the `yyjson`
+// iterator.
 typedef struct ten_json_iter_t {
   char payload[64];
 } ten_json_iter_t;
@@ -47,9 +54,8 @@ typedef struct ten_json_iter_t {
 typedef struct ten_json_t {
   ten_signature_t signature;
 
-  void *json;
-
-  void *ctx;
+  void *json;  // yyjson_mut_val *
+  void *ctx;   // yyjson_mut_doc *
   bool owned_ctx;
 } ten_json_t;
 
@@ -85,16 +91,16 @@ TEN_UTILS_API bool ten_json_object_peek(ten_json_t *self, const char *key,
 TEN_UTILS_API const char *ten_json_object_peek_string(ten_json_t *self,
                                                       const char *key);
 
-TEN_UTILS_API bool ten_json_object_peek_object_forcibly(ten_json_t *self,
+TEN_UTILS_API bool ten_json_object_peek_or_create_object(ten_json_t *self,
+                                                         const char *key,
+                                                         ten_json_t *object);
+
+TEN_UTILS_API bool ten_json_object_peek_or_create_array(ten_json_t *self,
                                                         const char *key,
-                                                        ten_json_t *object);
+                                                        ten_json_t *array);
 
-TEN_UTILS_API bool ten_json_object_peek_array_forcibly(ten_json_t *self,
-                                                       const char *key,
-                                                       ten_json_t *array);
-
-TEN_UTILS_API bool ten_json_object_set_new(ten_json_t *self, const char *key,
-                                           ten_json_t *value);
+TEN_UTILS_API bool ten_json_object_set(ten_json_t *self, const char *key,
+                                       ten_json_t *value);
 
 TEN_UTILS_API bool ten_json_object_set_string(ten_json_t *self, const char *key,
                                               const char *value);
@@ -117,14 +123,7 @@ TEN_UTILS_API const char *ten_json_object_iter_next_key(void *iter,
 TEN_UTILS_API bool ten_json_object_iter_peek_value(ten_json_t *key,
                                                    ten_json_t *value);
 
-TEN_UTILS_API bool ten_json_array_append_new(ten_json_t *self,
-                                             ten_json_t *item);
-
-TEN_UTILS_API bool ten_json_array_append_object_and_peak(ten_json_t *self,
-                                                         ten_json_t *object);
-
-TEN_UTILS_API bool ten_json_array_append_array_and_peak(ten_json_t *self,
-                                                        ten_json_t *array);
+TEN_UTILS_API bool ten_json_array_append(ten_json_t *self, ten_json_t *item);
 
 TEN_UTILS_API size_t ten_json_array_get_size(ten_json_t *self);
 

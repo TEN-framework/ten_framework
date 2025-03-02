@@ -166,6 +166,6 @@ bool ten_value_kv_to_json(ten_value_kv_t *self, ten_json_t *json) {
   bool success = ten_value_to_json(self->value, &value_json);
   TEN_ASSERT(success, "Should not happen.");
 
-  return ten_json_object_set_new(json, ten_string_get_raw_str(&self->key),
-                                 &value_json);
+  return ten_json_object_set(json, ten_string_get_raw_str(&self->key),
+                             &value_json);
 }

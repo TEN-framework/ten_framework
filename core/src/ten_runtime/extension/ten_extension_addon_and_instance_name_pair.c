@@ -54,6 +54,6 @@ void ten_extension_addon_and_instance_name_pair_to_json(
     ten_json_object_set_string(&extension_group_json, TEN_STR_NAME,
                                ten_string_get_raw_str(instance_name));
 
-    ten_json_object_set_new(json, key, &extension_group_json);
+    ten_json_object_set(json, key, &extension_group_json);
   }
 }

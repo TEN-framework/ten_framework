@@ -159,7 +159,7 @@ bool ten_msg_conversion_per_property_rules_to_json(
   TEN_ASSERT(self, "Invalid argument.");
 
   ten_json_t rules_json = TEN_JSON_INIT_VAL(json->ctx, false);
-  ten_json_object_peek_array_forcibly(json, TEN_STR_RULES, &rules_json);
+  ten_json_object_peek_or_create_array(json, TEN_STR_RULES, &rules_json);
 
   if (ten_list_size(&self->rules) > 0) {
     ten_list_foreach(&self->rules, iter) {
