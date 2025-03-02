@@ -9,7 +9,7 @@ import("//build/ten_runtime/ten.gni")
 import("//core/src/ten_runtime/output_libs.gni")
 import("//core/src/ten_utils/output_libs.gni")
 import("//third_party/curl/output_libs.gni")
-import("//third_party/jansson/output_libs.gni")
+import("//third_party/yyjson/output_libs.gni")
 import("//third_party/libwebsockets/output_libs.gni")
 import("//third_party/mbedtls/output_libs.gni")
 import("//third_party/zlib/output_libs.gni")
@@ -24,7 +24,7 @@ copy("copy_libraries_for_test") {
   deps = [
     "//core/src/ten_runtime",
     "//core/src/ten_utils:ten_utils_shared",
-    "//tests:copy_jansson_library_for_test",
+    "//tests:copy_yyjson_library_for_test",
   ]
 
   if (ten_enable_curl) {

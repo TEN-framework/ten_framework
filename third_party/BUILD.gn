@@ -26,6 +26,7 @@ group("third_party") {
     "jansson",
     "msgpack:msgpackc",
     "nlohmann_json",
+    "yyjson",
   ]
 
   if (ten_enable_libwebsockets) {
