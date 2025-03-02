@@ -661,11 +661,6 @@ double ten_json_get_real_value(ten_json_t *self) {
   return yyjson_mut_get_real((yyjson_mut_val *)self->json);
 }
 
-double ten_json_get_number_value(ten_json_t *self) {
-  TEN_ASSERT(self && ten_json_check_integrity(self), "Invalid argument.");
-  return yyjson_mut_get_real((yyjson_mut_val *)self->json);
-}
-
 void *ten_json_create_new_ctx(void) { return yyjson_mut_doc_new(NULL); }
 
 ten_json_t *ten_json_create_root_object(void) {

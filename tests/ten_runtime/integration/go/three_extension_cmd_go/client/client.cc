@@ -88,7 +88,7 @@ int main(TEN_UNUSED int argc, TEN_UNUSED char **argv) {
   bool success = ten_json_object_peek(detail_json, "result", &result_json);
   TEN_ASSERT(success, "Should not happen.");
 
-  TEN_ASSERT(30 == ten_json_get_number_value(&result_json),
+  TEN_ASSERT(30 == ten_json_get_integer_value(&result_json),
              "Should not happen.");
 
   ten_json_deinit(&result_json);

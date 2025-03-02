@@ -160,8 +160,6 @@ TEN_UTILS_API bool ten_json_get_boolean_value(ten_json_t *self);
 
 TEN_UTILS_API double ten_json_get_real_value(ten_json_t *self);
 
-TEN_UTILS_API double ten_json_get_number_value(ten_json_t *self);
-
 TEN_UTILS_API ten_json_t *ten_json_create_root_object(void);
 
 TEN_UTILS_API void *ten_json_create_new_ctx(void);
