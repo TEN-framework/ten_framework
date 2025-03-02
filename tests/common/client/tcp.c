@@ -135,7 +135,7 @@ bool ten_test_tcp_client_init(
     self->socket = NULL;
 
     // To prevent from busy re-trying.
-    ten_random_sleep_ms(10);
+    ten_random_sleep_ms(1000);
   }
 
   if (!self->socket) {

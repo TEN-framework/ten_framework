@@ -7,6 +7,7 @@
 #include "ten_utils/sanitizer/memory_check.h"
 
 #include "include_internal/ten_utils/lib/alloc.h"
+#include "ten_utils/container/list_node_ptr.h"
 
 #if defined(TEN_USE_ASAN)
 #include <sanitizer/asan_interface.h>
@@ -40,8 +41,8 @@
 // `__lsan_enable()` are used to exclude these auxiliary allocations from being
 // tracked by LeakSanitizer.
 
-static ten_sanitizer_memory_records_t g_memory_records = {NULL,
-                                                          TEN_LIST_INIT_VAL, 0};
+static ten_sanitizer_memory_records_t g_memory_records = {
+    NULL, TEN_LIST_INIT_VAL, {0}, 0};
 static bool g_memory_records_enabled = false;
 
 static void ten_sanitizer_memory_record_check_enabled(void) {
@@ -66,11 +67,15 @@ void ten_sanitizer_memory_record_init(void) {
   // Mark the beginning and end of the globally allocated memory queue as
   // poisoned, so that LSan will not consider the memory buffer obtained from
   // there as normal memory, but will instead consider it as leaked.
-  __asan_poison_memory_region(&g_memory_records.records.front,
+  __asan_poison_memory_region(&g_memory_records.records_list.front,
                               sizeof(ten_listnode_t *));
-  __asan_poison_memory_region(&g_memory_records.records.back,
+  __asan_poison_memory_region(&g_memory_records.records_list.back,
                               sizeof(ten_listnode_t *));
 #endif
+
+  ten_hashtable_init(
+      &g_memory_records.records_hash,
+      offsetof(ten_sanitizer_memory_record_t, hh_in_records_hash));
 
   g_memory_records.lock = ten_mutex_create();
 
@@ -101,9 +106,10 @@ void ten_sanitizer_memory_record_deinit(void) {
 #endif
 }
 
-static ten_sanitizer_memory_record_t *ten_sanitizer_memory_record_create(
-    void *addr, size_t size, const char *file_name, uint32_t lineno,
-    const char *func_name) {
+static ten_sanitizer_memory_record_t *
+ten_sanitizer_memory_record_create(void *addr, size_t size,
+                                   const char *file_name, uint32_t lineno,
+                                   const char *func_name) {
 #if defined(TEN_USE_ASAN)
   __lsan_disable();
 #endif
@@ -141,6 +147,8 @@ static ten_sanitizer_memory_record_t *ten_sanitizer_memory_record_create(
 
   self->lineno = lineno;
 
+  self->node_in_records_list = NULL;
+
 #if defined(TEN_USE_ASAN)
   __lsan_enable();
 #endif
@@ -148,8 +156,8 @@ static ten_sanitizer_memory_record_t *ten_sanitizer_memory_record_create(
   return self;
 }
 
-static void ten_sanitizer_memory_record_destroy(
-    ten_sanitizer_memory_record_t *self) {
+static void
+ten_sanitizer_memory_record_destroy(ten_sanitizer_memory_record_t *self) {
 #if defined(TEN_USE_ASAN)
   __lsan_disable();
 #endif
@@ -165,9 +173,9 @@ static void ten_sanitizer_memory_record_destroy(
 #endif
 }
 
-static void ten_sanitizer_memory_record_add(
-    ten_sanitizer_memory_records_t *self,
-    ten_sanitizer_memory_record_t *record) {
+static void
+ten_sanitizer_memory_record_add(ten_sanitizer_memory_records_t *self,
+                                ten_sanitizer_memory_record_t *record) {
 #if defined(TEN_USE_ASAN)
   __lsan_disable();
 #endif
@@ -178,21 +186,29 @@ static void ten_sanitizer_memory_record_add(
   TEN_ASSERT(!rc, "Failed to lock.");
 
 #if defined(TEN_USE_ASAN)
-  __asan_unpoison_memory_region(&self->records.front, sizeof(ten_listnode_t *));
-  __asan_unpoison_memory_region(&self->records.back, sizeof(ten_listnode_t *));
+  __asan_unpoison_memory_region(&self->records_list.front,
+                                sizeof(ten_listnode_t *));
+  __asan_unpoison_memory_region(&self->records_list.back,
+                                sizeof(ten_listnode_t *));
 #endif
 
   ten_list_push_ptr_back(
-      &self->records, record,
+      &self->records_list, record,
       (ten_ptr_listnode_destroy_func_t)ten_sanitizer_memory_record_destroy);
 
-#if defined(TEN_USE_ASAN)
-  __asan_poison_memory_region(
-      (((ten_ptr_listnode_t *)(self->records.back))->ptr),
-      sizeof(ten_sanitizer_memory_record_t *));
+  ten_listnode_t *ptr_node = ten_list_back(&self->records_list);
+  TEN_ASSERT(ptr_node, "Should not happen.");
 
-  __asan_poison_memory_region(&self->records.front, sizeof(ten_listnode_t *));
-  __asan_poison_memory_region(&self->records.back, sizeof(ten_listnode_t *));
+  record->node_in_records_list = ptr_node;
+
+  ten_hashtable_add_ptr(&self->records_hash, &record->hh_in_records_hash,
+                        &record->addr, NULL);
+
+#if defined(TEN_USE_ASAN)
+  __asan_poison_memory_region(&self->records_list.front,
+                              sizeof(ten_listnode_t *));
+  __asan_poison_memory_region(&self->records_list.back,
+                              sizeof(ten_listnode_t *));
 #endif
 
   self->total_size += record->size;
@@ -205,8 +221,9 @@ static void ten_sanitizer_memory_record_add(
 #endif
 }
 
-static void ten_sanitizer_memory_record_del(
-    ten_sanitizer_memory_records_t *self, void *addr) {
+static void
+ten_sanitizer_memory_record_del(ten_sanitizer_memory_records_t *self,
+                                void *addr) {
 #if defined(TEN_USE_ASAN)
   __lsan_disable();
 #endif
@@ -217,34 +234,33 @@ static void ten_sanitizer_memory_record_del(
   TEN_ASSERT(!rc, "Failed to lock.");
 
 #if defined(TEN_USE_ASAN)
-  __asan_unpoison_memory_region(&self->records.front, sizeof(ten_listnode_t *));
-  __asan_unpoison_memory_region(&self->records.back, sizeof(ten_listnode_t *));
+  __asan_unpoison_memory_region(&self->records_list.front,
+                                sizeof(ten_listnode_t *));
+  __asan_unpoison_memory_region(&self->records_list.back,
+                                sizeof(ten_listnode_t *));
 #endif
 
-  ten_list_foreach (&self->records, iter) {
-#if defined(TEN_USE_ASAN)
-    __asan_unpoison_memory_region((((ten_ptr_listnode_t *)(iter.node))->ptr),
-                                  sizeof(ten_sanitizer_memory_record_t *));
-#endif
+  ten_hashhandle_t *hh = ten_hashtable_find_ptr(&self->records_hash, &addr);
+  if (hh) {
+    ten_sanitizer_memory_record_t *record = CONTAINER_OF_FROM_FIELD(
+        hh, ten_sanitizer_memory_record_t, hh_in_records_hash);
+    TEN_ASSERT(record, "Should not happen.");
 
-    ten_sanitizer_memory_record_t *record = ten_ptr_listnode_get(iter.node);
+    ten_ptr_listnode_t *ptr_node =
+        (ten_ptr_listnode_t *)record->node_in_records_list;
+    TEN_ASSERT(ptr_node, "Should not happen.");
 
-    if (record->addr == addr) {
-      TEN_ASSERT(self->total_size >= record->size, "Should not happen.");
-      self->total_size -= record->size;
-      ten_list_remove_node(&self->records, iter.node);
-      break;
-    }
+    self->total_size -= record->size;
+    ten_hashtable_del(&self->records_hash, hh);
 
-#if defined(TEN_USE_ASAN)
-    __asan_poison_memory_region((((ten_ptr_listnode_t *)(iter.node))->ptr),
-                                sizeof(ten_sanitizer_memory_record_t *));
-#endif
+    ten_list_remove_node(&self->records_list, record->node_in_records_list);
   }
 
 #if defined(TEN_USE_ASAN)
-  __asan_poison_memory_region(&self->records.front, sizeof(ten_listnode_t *));
-  __asan_poison_memory_region(&self->records.back, sizeof(ten_listnode_t *));
+  __asan_poison_memory_region(&self->records_list.front,
+                              sizeof(ten_listnode_t *));
+  __asan_poison_memory_region(&self->records_list.back,
+                              sizeof(ten_listnode_t *));
 #endif
 
   rc = ten_mutex_unlock(self->lock);
@@ -271,36 +287,26 @@ void ten_sanitizer_memory_record_dump(void) {
   }
 
 #if defined(TEN_USE_ASAN)
-  __asan_unpoison_memory_region(&g_memory_records.records.front,
+  __asan_unpoison_memory_region(&g_memory_records.records_list.front,
                                 sizeof(ten_listnode_t *));
-  __asan_unpoison_memory_region(&g_memory_records.records.back,
+  __asan_unpoison_memory_region(&g_memory_records.records_list.back,
                                 sizeof(ten_listnode_t *));
 #endif
 
   size_t idx = 0;
-  ten_list_foreach (&g_memory_records.records, iter) {
-#if defined(TEN_USE_ASAN)
-    __asan_unpoison_memory_region((((ten_ptr_listnode_t *)(iter.node))->ptr),
-                                  sizeof(ten_sanitizer_memory_record_t *));
-#endif
-
+  ten_list_foreach(&g_memory_records.records_list, iter) {
     ten_sanitizer_memory_record_t *info = ten_ptr_listnode_get(iter.node);
 
     (void)fprintf(stderr, "\t#%zu %p(%zu bytes) in %s %s:%d\n", idx, info->addr,
                   info->size, info->func_name, info->file_name, info->lineno);
 
     idx++;
-
-#if defined(TEN_USE_ASAN)
-    __asan_poison_memory_region((((ten_ptr_listnode_t *)(iter.node))->ptr),
-                                sizeof(ten_sanitizer_memory_record_t *));
-#endif
   }
 
 #if defined(TEN_USE_ASAN)
-  __asan_poison_memory_region(&g_memory_records.records.front,
+  __asan_poison_memory_region(&g_memory_records.records_list.front,
                               sizeof(ten_listnode_t *));
-  __asan_poison_memory_region(&g_memory_records.records.back,
+  __asan_poison_memory_region(&g_memory_records.records_list.back,
                               sizeof(ten_listnode_t *));
 #endif
 

@@ -191,18 +191,18 @@ static inline void ten_hashtable_add_ptr(ten_hashtable_t *self,
                                          ten_hashhandle_t *hh, void *ptr,
                                          void *destroy) {
   assert(self && hh);
-  ten_hashtable_add_by_key(self, hh, &ptr, sizeof(void *), destroy);
+  ten_hashtable_add_by_key(self, hh, ptr, sizeof(void *), destroy);
 }
 
 static inline void ten_hashtable_replace_ptr(ten_hashtable_t *self,
                                              ten_hashhandle_t *hh, void *ptr,
                                              void *destroy) {
   assert(self && hh);
-  ten_hashtable_replace_by_key(self, hh, &ptr, sizeof(void *), destroy);
+  ten_hashtable_replace_by_key(self, hh, ptr, sizeof(void *), destroy);
 }
 
 static inline ten_hashhandle_t *ten_hashtable_find_ptr(ten_hashtable_t *self,
                                                        void *ptr) {
   assert(self);
-  return ten_hashtable_find_by_key(self, &ptr, sizeof(void *));
+  return ten_hashtable_find_by_key(self, ptr, sizeof(void *));
 }
