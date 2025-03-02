@@ -162,7 +162,7 @@ bool ten_value_kv_to_json(ten_value_kv_t *self, ten_json_t *json) {
   TEN_ASSERT(json, "Invalid argument.");
   TEN_ASSERT(self, "Invalid argument.");
 
-  ten_json_t value_json = TEN_JSON_INIT_VAL(json->ctx);
+  ten_json_t value_json = TEN_JSON_INIT_VAL(json->ctx, false);
   bool success = ten_value_to_json(self->value, &value_json);
   TEN_ASSERT(success, "Should not happen.");
 

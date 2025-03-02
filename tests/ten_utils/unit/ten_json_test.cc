@@ -10,19 +10,19 @@
 #include "ten_utils/lib/json.h"
 
 TEST(JsonTest, Create) {  // NOLINT
-  ten_json_t *json = ten_json_create(ten_json_create_new_ctx());
+  ten_json_t *json = ten_json_create(ten_json_create_new_ctx(), true);
   EXPECT_NE(json, nullptr);
   ten_json_destroy(json);
 }
 
 TEST(JsonTest, Init1) {  // NOLINT
   ten_json_t json;
-  ten_json_init(&json, ten_json_create_new_ctx());
+  ten_json_init(&json, ten_json_create_new_ctx(), true);
   ten_json_deinit(&json);
 }
 
 TEST(JsonTest, Init2) {  // NOLINT
-  ten_json_t json = TEN_JSON_INIT_VAL(ten_json_create_new_ctx());
+  ten_json_t json = TEN_JSON_INIT_VAL(ten_json_create_new_ctx(), true);
   ten_json_deinit(&json);
 }
 
@@ -47,7 +47,7 @@ TEST(JsonTest, ObjectPeekObject) {  // NOLINT
   ten_json_t *json = ten_json_from_string(R"({"a": {"b": "hello"}})", nullptr);
   EXPECT_NE(json, nullptr);
 
-  ten_json_t a = TEN_JSON_INIT_VAL(json->ctx);
+  ten_json_t a = TEN_JSON_INIT_VAL(json->ctx, false);
   bool success = ten_json_object_peek(json, "a", &a);
   EXPECT_TRUE(success);
 
@@ -63,7 +63,7 @@ TEST(JsonTest, ObjectPeekObjectForcibly) {  // NOLINT
   ten_json_t *json = ten_json_from_string(R"({})", nullptr);
   EXPECT_NE(json, nullptr);
 
-  ten_json_t a = TEN_JSON_INIT_VAL(json->ctx);
+  ten_json_t a = TEN_JSON_INIT_VAL(json->ctx, false);
   bool success = ten_json_object_peek_object_forcibly(json, "a", &a);
   EXPECT_TRUE(success);
 

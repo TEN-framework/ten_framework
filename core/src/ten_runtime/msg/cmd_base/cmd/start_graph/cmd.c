@@ -96,7 +96,7 @@ static bool ten_raw_cmd_start_graph_as_msg_get_graph_from_json(
     ten_json_t *json = (ten_json_t *)user_data;
     TEN_ASSERT(json, "Should not happen.");
 
-    ten_json_t result_json = TEN_JSON_INIT_VAL(json->ctx);
+    ten_json_t result_json = TEN_JSON_INIT_VAL(json->ctx, false);
     bool success = ten_json_object_peek(json, field->field_name, &result_json);
     if (!success) {
       // Some fields are optional, and it is allowed for the corresponding

@@ -37,7 +37,7 @@ ten_interface_schema_info_resolve(ten_value_t *unresolved_interface_schema_def,
 
 #if defined(TEN_ENABLE_TEN_RUST_APIS)
   ten_json_t unresolved_interface_schema_json =
-      TEN_JSON_INIT_VAL(ten_json_create_new_ctx());
+      TEN_JSON_INIT_VAL(ten_json_create_new_ctx(), true);
   bool success = ten_value_to_json(unresolved_interface_schema_def,
                                    &unresolved_interface_schema_json);
   TEN_ASSERT(success, "Should not happen.");

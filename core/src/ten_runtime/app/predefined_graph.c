@@ -84,22 +84,22 @@ ten_app_build_start_graph_cmd_to_start_predefined_graph(
   ten_msg_clear_and_set_dest(start_graph_cmd, app_uri, NULL, NULL, NULL, err);
 
   void *json_ctx = ten_json_create_new_ctx();
-  ten_json_t start_graph_cmd_json = TEN_JSON_INIT_VAL(json_ctx);
-  ten_json_set_object(&start_graph_cmd_json);
+  ten_json_t start_graph_cmd_json = TEN_JSON_INIT_VAL(json_ctx, true);
+  ten_json_init_object(&start_graph_cmd_json);
 
-  ten_json_t ten_json = TEN_JSON_INIT_VAL(json_ctx);
+  ten_json_t ten_json = TEN_JSON_INIT_VAL(json_ctx, false);
   bool success = ten_json_object_peek_object_forcibly(
       &start_graph_cmd_json, TEN_STR_UNDERLINE_TEN, &ten_json);
   TEN_ASSERT(success, "Should not happen.");
 
-  ten_json_t nodes_json = TEN_JSON_INIT_VAL(json_ctx);
+  ten_json_t nodes_json = TEN_JSON_INIT_VAL(json_ctx, false);
   ten_json_object_peek_array_forcibly(&ten_json, TEN_STR_NODES, &nodes_json);
 
   ten_list_foreach(&predefined_graph_info->extensions_info, iter) {
     ten_extension_info_t *extension_info =
         ten_shared_ptr_get_data(ten_smart_ptr_listnode_get(iter.node));
 
-    ten_json_t extension_info_json = TEN_JSON_INIT_VAL(json_ctx);
+    ten_json_t extension_info_json = TEN_JSON_INIT_VAL(json_ctx, false);
     ten_json_array_append_object_and_peak(&nodes_json, &extension_info_json);
 
     bool success =
@@ -115,7 +115,7 @@ ten_app_build_start_graph_cmd_to_start_predefined_graph(
     ten_extension_group_info_t *extension_group_info =
         ten_shared_ptr_get_data(ten_smart_ptr_listnode_get(iter.node));
 
-    ten_json_t extension_group_info_json = TEN_JSON_INIT_VAL(json_ctx);
+    ten_json_t extension_group_info_json = TEN_JSON_INIT_VAL(json_ctx, false);
     ten_json_array_append_object_and_peak(&nodes_json,
                                           &extension_group_info_json);
 
@@ -128,7 +128,7 @@ ten_app_build_start_graph_cmd_to_start_predefined_graph(
     }
   }
 
-  ten_json_t connections_json = TEN_JSON_INIT_VAL(json_ctx);
+  ten_json_t connections_json = TEN_JSON_INIT_VAL(json_ctx, false);
   ten_json_object_peek_array_forcibly(&ten_json, TEN_STR_CONNECTIONS,
                                       &connections_json);
 
@@ -136,8 +136,8 @@ ten_app_build_start_graph_cmd_to_start_predefined_graph(
     ten_extension_info_t *extension_info =
         ten_shared_ptr_get_data(ten_smart_ptr_listnode_get(iter.node));
 
-    ten_json_t extension_info_json = TEN_JSON_INIT_VAL(json_ctx);
-    ten_json_set_object(&extension_info_json);
+    ten_json_t extension_info_json = TEN_JSON_INIT_VAL(json_ctx, false);
+    ten_json_init_object(&extension_info_json);
     int rc = ten_extension_info_connections_to_json(extension_info,
                                                     &extension_info_json, err);
     switch (rc) {

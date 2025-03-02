@@ -17,24 +17,24 @@
 
 #define TEN_JSON_SIGNATURE 0xACA499C637670350U
 
-#define TEN_JSON_INIT_VAL(ctx_instance)                                 \
-  (ten_json_t) {                                                        \
-    .signature = TEN_JSON_SIGNATURE, .json = NULL, .owned_json = false, \
-    .ctx = ctx_instance, .owned_ctx = false,                            \
+#define TEN_JSON_INIT_VAL(ctx_, owned_ctx_)                     \
+  (ten_json_t) {                                                \
+    .signature = TEN_JSON_SIGNATURE, .json = NULL, .ctx = ctx_, \
+    .owned_ctx = owned_ctx_,                                    \
   }
 
 #define ten_json_object_foreach(object, key, value)                    \
   ten_json_iter_t iter;                                                \
   ten_json_object_iter_init(object, &iter);                            \
-  ten_json_t __key = TEN_JSON_INIT_VAL((object)->ctx);                 \
-  ten_json_t __value = TEN_JSON_INIT_VAL((object)->ctx);               \
+  ten_json_t __key = TEN_JSON_INIT_VAL((object)->ctx, false);          \
+  ten_json_t __value = TEN_JSON_INIT_VAL((object)->ctx, false);        \
   key = ten_json_object_iter_next_key(&iter, &__key);                  \
   for (; (key) && ten_json_object_iter_peek_value(&__key, &__value) && \
          ((value) = &__value);                                         \
        (key) = ten_json_object_iter_next_key(&iter, &__key))
 
 #define ten_json_array_foreach(array, index, item)                          \
-  ten_json_t __item = TEN_JSON_INIT_VAL(array->ctx);                        \
+  ten_json_t __item = TEN_JSON_INIT_VAL(array->ctx, false);                 \
   for ((index) = 0;                                                         \
        (index) < ten_json_array_get_size(array) &&                          \
        ten_json_array_peek_item(array, index, &__item) && (item = &__item); \
@@ -48,7 +48,6 @@ typedef struct ten_json_t {
   ten_signature_t signature;
 
   void *json;
-  bool owned_json;
 
   void *ctx;
   bool owned_ctx;
@@ -56,11 +55,25 @@ typedef struct ten_json_t {
 
 TEN_UTILS_API bool ten_json_check_integrity(ten_json_t *self);
 
-TEN_UTILS_API void ten_json_init(ten_json_t *self, void *ctx);
+TEN_UTILS_API void ten_json_init(ten_json_t *self, void *ctx, bool owned_ctx);
+
+TEN_UTILS_API bool ten_json_init_object(ten_json_t *self);
+
+TEN_UTILS_API bool ten_json_init_array(ten_json_t *self);
+
+TEN_UTILS_API bool ten_json_init_string(ten_json_t *self, const char *value);
+
+TEN_UTILS_API bool ten_json_init_integer(ten_json_t *self, int64_t value);
+
+TEN_UTILS_API bool ten_json_init_real(ten_json_t *self, double value);
+
+TEN_UTILS_API bool ten_json_init_boolean(ten_json_t *self, bool value);
+
+TEN_UTILS_API bool ten_json_init_null(ten_json_t *self);
 
 TEN_UTILS_API void ten_json_deinit(ten_json_t *self);
 
-TEN_UTILS_API ten_json_t *ten_json_create(void *ctx);
+TEN_UTILS_API ten_json_t *ten_json_create(void *ctx, bool owned_ctx);
 
 TEN_UTILS_API void ten_json_destroy(ten_json_t *self);
 
@@ -149,20 +162,6 @@ TEN_UTILS_API bool ten_json_get_boolean_value(ten_json_t *self);
 TEN_UTILS_API double ten_json_get_real_value(ten_json_t *self);
 
 TEN_UTILS_API double ten_json_get_number_value(ten_json_t *self);
-
-TEN_UTILS_API bool ten_json_set_string(ten_json_t *self, const char *value);
-
-TEN_UTILS_API bool ten_json_set_integer(ten_json_t *self, int64_t value);
-
-TEN_UTILS_API bool ten_json_set_real(ten_json_t *self, double value);
-
-TEN_UTILS_API bool ten_json_set_boolean(ten_json_t *self, bool value);
-
-TEN_UTILS_API bool ten_json_set_null(ten_json_t *self);
-
-TEN_UTILS_API bool ten_json_set_object(ten_json_t *self);
-
-TEN_UTILS_API bool ten_json_set_array(ten_json_t *self);
 
 TEN_UTILS_API ten_json_t *ten_json_create_root_object(void);
 

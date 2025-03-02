@@ -83,7 +83,7 @@ int main(TEN_UNUSED int argc, TEN_UNUSED char **argv) {
 
   ten_json_t *detail_json = ten_json_from_string(detail_str.c_str(), nullptr);
 
-  ten_json_t result_json = TEN_JSON_INIT_VAL(detail_json->ctx);
+  ten_json_t result_json = TEN_JSON_INIT_VAL(detail_json->ctx, false);
 
   bool success = ten_json_object_peek(detail_json, "result", &result_json);
   TEN_ASSERT(success, "Should not happen.");

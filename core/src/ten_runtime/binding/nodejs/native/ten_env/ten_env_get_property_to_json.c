@@ -36,7 +36,7 @@ static void tsfn_proxy_get_property_to_json_callback(napi_env env,
       ASSERT_IF_NAPI_FAIL(js_error, "Failed to create JS error", NULL);
     }
   } else {
-    ten_json_t value_json = TEN_JSON_INIT_VAL(ten_json_create_new_ctx());
+    ten_json_t value_json = TEN_JSON_INIT_VAL(ten_json_create_new_ctx(), true);
     bool success = ten_value_to_json(value, &value_json);
     if (!success) {
       ten_error_set(&err, TEN_ERROR_CODE_GENERIC,
