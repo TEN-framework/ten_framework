@@ -247,9 +247,9 @@ const Popup: React.FC<PopupProps> = ({
     <div
       className={cn(
         "fixed text-sm overflow-hidden",
-        "bg-background/80 backdrop-blur-sm border border-border/50",
+        "bg-background/80 backdrop-blur-xs border border-border/50",
         "shadow-xl ring-1 ring-border/50 dark:bg-gray-900/90",
-        "text-foreground rounded-lg focus:outline-none flex flex-col popup",
+        "text-foreground rounded-lg focus:outline-hidden flex flex-col popup",
         "transition-opacity duration-200 ease-in-out",
         isVisible ? "opacity-100" : "opacity-0",
         isResizing && "select-none",
@@ -351,7 +351,7 @@ const Popup: React.FC<PopupProps> = ({
         <div
           className={cn(
             "w-[5px] h-[5px] bg-transparent cursor-se-resize",
-            "absolute right-0 bottom-0 z-[1002]"
+            "absolute right-0 bottom-0 z-1002"
           )}
           onMouseDown={handleResizeMouseDown}
         />

@@ -41,7 +41,7 @@ export function HelpMenu() {
         >
           <NavigationMenuLink asChild>
             <Button
-              className="w-full justify-start max-w-screen-sm"
+              className="w-full justify-start max-w-(--breakpoint-sm)"
               variant="ghost"
               onClick={openAbout}
             >
