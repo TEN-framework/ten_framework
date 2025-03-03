@@ -439,10 +439,41 @@
                   "type": "boolean"
                 },
                 "algorithm": {
-                  "type": "string"
+                  "type": "string",
+                  "enum": [
+                    "AES-CTR"
+                  ]
                 },
                 "params": {
-                  "type": "object"
+                  "if": {
+                    "properties": {
+                      "algorithm": {
+                        "const": "AES-CTR"
+                      }
+                    },
+                    "required": [
+                      "algorithm"
+                    ]
+                  },
+                  "then": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "key",
+                      "nonce"
+                    ],
+                    "properties": {
+                      "key": {
+                        "type": "string"
+                      },
+                      "nonce": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "else": {
+                    "type": "object"
+                  }
                 }
               }
             }

@@ -7,9 +7,10 @@
 pub mod algorithm;
 mod bindings;
 
-use crate::crypto::algorithm::aes::AesCtrCipher;
-use algorithm::aes::new_aes_ctr_cipher;
 use anyhow::Result;
+
+use crate::crypto::algorithm::aes::new_aes_ctr_cipher;
+use crate::crypto::algorithm::aes::AesCtrCipher;
 
 pub enum Cipher {
     Aes128Ctr(AesCtrCipher),

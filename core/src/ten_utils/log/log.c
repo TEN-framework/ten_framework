@@ -188,9 +188,9 @@ void ten_log_log_with_size(ten_log_t *self, TEN_LOG_LEVEL level,
   ten_string_t buf;
 
   if (self->encryption.encrypt_cb) {
-    TEN_STRING_INIT(buf);
-  } else {
     TEN_STRING_INIT_ENCRYPTION_HEADER(buf);
+  } else {
+    TEN_STRING_INIT(buf);
   }
 
   if (self->formatter.format_cb) {
@@ -205,7 +205,7 @@ void ten_log_log_with_size(ten_log_t *self, TEN_LOG_LEVEL level,
   ten_string_append_formatted(&buf, "%s", TEN_LOG_EOL);
 
   if (self->encryption.encrypt_cb) {
-    // skip the 5-byte header
+    // Skip the 5-byte header.
     ten_log_encrypt_data(self, ten_log_get_data_excluding_header(self, &buf),
                          ten_log_get_data_excluding_header_len(self, &buf));
     ten_log_complete_encryption_header(self, &buf);

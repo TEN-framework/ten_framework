@@ -23,18 +23,18 @@ def parse_log_header(data: bytes) -> Tuple[bool, int]:
     if len(data) < 5:
         return False, 0
 
-    # Check magic number
+    # Check magic number.
     if data[0] != 0xFF or data[1] != 0xFF:
         return False, 0
 
-    # Extract version and parity bit
-    version = data[2] & 0x3F  # First 6 bits
-    parity_bit = (data[2] >> 7) & 0x01  # 8th bit
+    # Extract version and parity bit.
+    _ = data[2] & 0x3F  # First 6 bits (extracted for future use).
+    parity_bit = (data[2] >> 7) & 0x01  # 8th bit.
 
-    # Calculate actual parity
+    # Calculate actual parity.
     calculated_parity = 0
     for i in range(5):
-        # Temporarily clear the 8th bit for calculation
+        # Temporarily clear the 8th bit for calculation.
         byte_val = data[i]
         if i == 2:
             byte_val &= 0x7F
@@ -42,29 +42,29 @@ def parse_log_header(data: bytes) -> Tuple[bool, int]:
 
     calculated_parity &= 0x01
 
-    # Check parity bit
+    # Check parity bit.
     if parity_bit != calculated_parity:
         return False, 0
 
-    # Get data length
+    # Get data length.
     data_len = (data[3] << 8) | data[4]
 
     return True, data_len
 
 
-def create_decryptor(key: bytes, iv: bytes):
+def create_decryptor(key: bytes, nonce: bytes):
     """
-    Create a new AES-CTR decryptor
+    Create a new AES-CTR decryptor.
 
     Args:
         key: AES key (16 bytes)
-        iv: Initialization vector for CTR mode (16 bytes)
+        nonce: Nonce for CTR mode (16 bytes)
 
     Returns:
-        New decryptor object
+        New decryptor object.
     """
     cipher = Cipher(
-        algorithms.AES(key), modes.CTR(iv), backend=default_backend()
+        algorithms.AES(key), modes.CTR(nonce), backend=default_backend()
     )
     return cipher.decryptor()
 
@@ -73,75 +73,78 @@ def decrypt_log_file(
     input_file: Union[str, Path],
     output_file: Union[str, Path],
     key: Union[str, bytes],
-    iv: Union[str, bytes],
+    nonce: Union[str, bytes],
 ) -> None:
     """
-    Decrypt a file containing multiple encrypted log entries, each with its own 5-byte header.
-    Each log entry is independently encrypted, requiring a new decryptor for each entry.
+    Decrypt a file containing multiple encrypted log entries, each with its own
+    5-byte header. Each log entry is independently encrypted, requiring a new
+    decryptor for each entry.
 
     Args:
         input_file: Path to the source file to decrypt
         output_file: Path to the destination file after decryption
         key: AES key (16 bytes), either string or bytes format
-        iv: Initialization vector for CTR mode (16 bytes), either string or bytes format
+        nonce: Nonce for CTR mode (16 bytes), either string or bytes format
     """
-    # Ensure key and IV are in bytes format
+    # Ensure key and nonce are in bytes format.
     if isinstance(key, str):
         key = key.encode("utf-8")
-    if isinstance(iv, str):
-        iv = iv.encode("utf-8")
+    if isinstance(nonce, str):
+        nonce = nonce.encode("utf-8")
 
-    # Validate key length
+    # Validate key length.
     if len(key) != 16:
         raise ValueError(
             f"Key must be 16 bytes (current length: {len(key)} bytes)"
         )
 
-    # Validate IV length
-    if len(iv) != 16:
+    # Validate nonce length.
+    if len(nonce) != 16:
         raise ValueError(
-            f"IV must be 16 bytes (current length: {len(iv)} bytes)"
+            f"Nonce must be 16 bytes (current length: {len(nonce)} bytes)"
         )
 
-    # Open input and output files
+    # Open input and output files.
     with open(input_file, "rb") as in_file, open(output_file, "wb") as out_file:
         log_count = 0
         total_bytes_decrypted = 0
 
         while True:
-            # Read header (5 bytes)
+            # Read header (5 bytes).
             header = in_file.read(5)
             if not header or len(header) < 5:
-                # End of file or incomplete data
+                # End of file or incomplete data.
                 break
 
             valid, data_len = parse_log_header(header)
             if not valid:
                 print(
-                    f"Warning: Invalid log header found at offset {in_file.tell() - 5}, trying to continue..."
+                    "Warning: Invalid log header found at offset "
+                    f"{in_file.tell() - 5}, trying to continue..."
                 )
-                # Try to find the next possible log header
-                in_file.seek(
-                    -4, os.SEEK_CUR
-                )  # Go back 4 bytes, keeping the last byte for the next check
+
+                # Try to find the next possible log header. Go back 4 bytes,
+                # keeping the last byte for the next check.
+                in_file.seek(-4, os.SEEK_CUR)
                 continue
 
-            # Read the data portion of the single log entry
+            # Read the data portion of the single log entry.
             log_data = in_file.read(data_len)
             if len(log_data) < data_len:
                 print(
-                    f"Warning: Incomplete log data, expected {data_len} bytes, got {len(log_data)} bytes"
+                    f"Warning: Incomplete log data, expected {data_len} bytes, "
+                    f"got {len(log_data)} bytes"
                 )
 
             if log_data:
-                # Create a new decryptor for each log entry
-                decryptor = create_decryptor(key, iv)
+                # Create a new decryptor for each log entry.
+                decryptor = create_decryptor(key, nonce)
 
-                # Decrypt this log entry
+                # Decrypt this log entry.
                 decrypted_data = decryptor.update(log_data)
-                final_data = (
-                    decryptor.finalize()
-                )  # Ensure all data is processed
+
+                # Ensure all data is processed.
+                final_data = decryptor.finalize()
 
                 if final_data:
                     decrypted_data += final_data
@@ -151,7 +154,8 @@ def decrypt_log_file(
                 log_count += 1
 
     print(
-        f"Decryption completed: Processed {log_count} log entries, decrypted {total_bytes_decrypted} bytes of data"
+        f"Decryption completed: Processed {log_count} log entries, "
+        f"decrypted {total_bytes_decrypted} bytes of data."
     )
 
 
@@ -168,10 +172,10 @@ def main() -> None:
         "--key", "-k", required=True, help="AES key (16-byte string)"
     )
     parser.add_argument(
-        "--iv",
-        "-v",
+        "--nonce",
+        "-n",
         required=True,
-        help="Initialization vector for CTR mode (16 bytes)",
+        help="Nonce for CTR mode (16 bytes)",
     )
     parser.add_argument(
         "--output",
@@ -182,18 +186,18 @@ def main() -> None:
 
     args = parser.parse_args()
 
-    # Check if source file exists
+    # Check if source file exists.
     if not os.path.exists(args.input):
         print(f"Error: Source file '{args.input}' does not exist")
         return
 
-    # Ensure destination file directory exists
+    # Ensure destination file directory exists.
     output_dir = os.path.dirname(args.output)
     if output_dir and not os.path.exists(output_dir):
         os.makedirs(output_dir)
 
     try:
-        decrypt_log_file(args.input, args.output, args.key, args.iv)
+        decrypt_log_file(args.input, args.output, args.key, args.nonce)
     except Exception as e:
         print(f"Error during decryption: {e}")
 

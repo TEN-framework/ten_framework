@@ -14,6 +14,7 @@
 #include "include_internal/ten_runtime/common/constant_str.h"
 #include "include_internal/ten_runtime/common/log.h"
 #include "include_internal/ten_runtime/extension/extension_info/extension_info.h"
+#include "include_internal/ten_runtime/global/log.h"
 #include "include_internal/ten_runtime/metadata/manifest.h"
 #include "include_internal/ten_utils/log/log.h"
 #include "include_internal/ten_utils/log/output.h"
@@ -23,7 +24,6 @@
 #include "ten_utils/lib/error.h"
 #include "ten_utils/lib/string.h"
 #include "ten_utils/macro/check.h"
-#include "ten_utils/macro/mark.h"
 #include "ten_utils/macro/memory.h"
 #include "ten_utils/value/value.h"
 #include "ten_utils/value/value_get.h"
@@ -139,22 +139,6 @@ bool ten_app_init_log_file(ten_app_t *self, ten_value_t *value) {
   return true;
 }
 
-static void ten_app_encrypt_log_data(uint8_t *data, size_t data_len,
-                                     void *user_data) {
-#if defined(TEN_ENABLE_TEN_RUST_APIS)
-  Cipher *cipher = (Cipher *)user_data;
-  TEN_UNUSED bool rc = ten_cipher_encrypt_inplace(cipher, data, data_len);
-  // For now, we just ignore the return value.
-#endif
-}
-
-static void ten_app_encrypt_log_deinit(void *user_data) {
-#if defined(TEN_ENABLE_TEN_RUST_APIS)
-  Cipher *cipher = (Cipher *)user_data;
-  ten_cipher_destroy(cipher);
-#endif
-}
-
 bool ten_app_init_log(ten_app_t *self, ten_value_t *value) {
   TEN_ASSERT(self && ten_app_check_integrity(self, true), "Should not happen.");
   TEN_ASSERT(value && ten_value_check_integrity(value), "Should not happen.");
@@ -213,8 +197,8 @@ bool ten_app_init_log(ten_app_t *self, ten_value_t *value) {
 #if defined(TEN_ENABLE_TEN_RUST_APIS)
         ten_json_t json_params =
             TEN_JSON_INIT_VAL(ten_json_create_new_ctx(), true);
-        bool success = ten_value_to_json(params, &json_params);
 
+        bool success = ten_value_to_json(params, &json_params);
         if (!success) {
           TEN_LOGE("Failed to convert log encryption params to JSON.");
           return false;
@@ -228,8 +212,8 @@ bool ten_app_init_log(ten_app_t *self, ten_value_t *value) {
 
         Cipher *cipher = ten_cipher_create(
             ten_string_get_raw_str(&algorithm_name), params_str);
-        ten_log_global_set_encrypt_cb(ten_app_encrypt_log_data, cipher);
-        ten_log_global_set_encrypt_deinit_cb(ten_app_encrypt_log_deinit);
+        ten_log_global_set_encrypt_cb(ten_encrypt_log_data, cipher);
+        ten_log_global_set_encrypt_deinit_cb(ten_encrypt_log_deinit);
 
         if (must_free) {
           TEN_FREE(params_str);

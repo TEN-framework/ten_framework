@@ -4,13 +4,12 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-
 use std::ptr;
 use std::{ffi::CStr, os::raw::c_char};
 
 use crate::crypto;
 
-use super::{CipherAlgorithm, Cipher};
+use super::{Cipher, CipherAlgorithm};
 
 /// Create a cipher.
 ///

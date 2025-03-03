@@ -7,7 +7,6 @@
 #include "ten_utils/ten_config.h"
 
 #include <assert.h>
-#include <stdlib.h>
 
 #include "include_internal/ten_utils/log/level.h"
 #include "include_internal/ten_utils/log/log.h"

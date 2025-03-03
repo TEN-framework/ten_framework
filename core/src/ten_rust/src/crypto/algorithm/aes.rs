@@ -1,16 +1,17 @@
-use aes::cipher::StreamCipherSeek;
 //
 // Copyright © 2025 Agora
 // This file is part of TEN Framework, an open source project.
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
+use std::sync::Mutex;
+
+use aes::cipher::StreamCipherSeek;
 use aes::Aes128;
 use anyhow::Result;
 use ctr::cipher::{KeyIvInit, StreamCipher};
 use serde::de::{self};
 use serde::{Deserialize, Deserializer};
-use std::sync::Mutex;
 
 use crate::crypto::CipherAlgorithm;
 

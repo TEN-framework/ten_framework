@@ -16,7 +16,6 @@
 #include <unistd.h>
 #endif
 
-#include "include_internal/ten_utils/log/encryption.h"
 #include "include_internal/ten_utils/log/formatter.h"
 #include "include_internal/ten_utils/log/log.h"
 #include "include_internal/ten_utils/log/output.h"
@@ -172,6 +171,7 @@ static int *get_log_fd(const char *log_path) {
 
 void ten_log_output_to_file_cb(ten_log_t *self, ten_string_t *msg,
                                void *user_data) {
+  assert(self && "Invalid argument.");
   assert(msg && "Invalid argument.");
 
   if (!user_data) {
@@ -221,6 +221,7 @@ void ten_log_set_output_to_file(ten_log_t *self, const char *log_path) {
 
 void ten_log_output_to_stderr_cb(ten_log_t *self, ten_string_t *msg,
                                  void *user_data) {
+  assert(self && "Invalid argument.");
   assert(msg && "Invalid argument.");
 
   (void)user_data;
