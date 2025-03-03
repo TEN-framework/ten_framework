@@ -14,6 +14,7 @@
 #include "include_internal/ten_runtime/common/constant_str.h"
 #include "include_internal/ten_runtime/common/log.h"
 #include "include_internal/ten_runtime/extension/extension_info/extension_info.h"
+#include "include_internal/ten_runtime/global/log.h"
 #include "include_internal/ten_runtime/metadata/manifest.h"
 #include "include_internal/ten_utils/log/log.h"
 #include "include_internal/ten_utils/log/output.h"
@@ -23,10 +24,15 @@
 #include "ten_utils/lib/error.h"
 #include "ten_utils/lib/string.h"
 #include "ten_utils/macro/check.h"
+#include "ten_utils/macro/memory.h"
 #include "ten_utils/value/value.h"
 #include "ten_utils/value/value_get.h"
 #include "ten_utils/value/value_is.h"
 #include "ten_utils/value/value_kv.h"
+
+#if defined(TEN_ENABLE_TEN_RUST_APIS)
+#include "include_internal/ten_rust/ten_rust.h"
+#endif
 
 // Retrieve those property fields that are reserved for the TEN runtime
 // under the 'ten' namespace.
@@ -133,12 +139,103 @@ bool ten_app_init_log_file(ten_app_t *self, ten_value_t *value) {
   return true;
 }
 
+bool ten_app_init_log(ten_app_t *self, ten_value_t *value) {
+  TEN_ASSERT(self && ten_app_check_integrity(self, true), "Should not happen.");
+  TEN_ASSERT(value && ten_value_check_integrity(value), "Should not happen.");
+
+  if (!ten_value_is_object(value)) {
+    TEN_LOGE("Invalid value type for property: %s", TEN_STR_LOG);
+    return false;
+  }
+
+  ten_error_t err;
+  TEN_ERROR_INIT(err);
+
+  ten_value_object_foreach(value, iter) {
+    ten_value_kv_t *prop_kv = ten_ptr_listnode_get(iter.node);
+    ten_string_t *item_key = &prop_kv->key;
+    ten_value_t *item_value = prop_kv->value;
+
+    if (ten_string_is_equal_c_str(item_key, TEN_STR_LEVEL)) {
+      ten_log_global_set_output_level(ten_value_get_int64(item_value, &err));
+    } else if (ten_string_is_equal_c_str(item_key, TEN_STR_FILE)) {
+      ten_string_t log_file;
+      TEN_STRING_INIT(log_file);
+
+      ten_string_init_from_c_str_with_size(
+          &log_file, ten_value_peek_raw_str(item_value, NULL),
+          strlen(ten_value_peek_raw_str(item_value, NULL)));
+
+      if (!ten_string_is_empty(&log_file)) {
+        ten_log_global_set_output_to_file(ten_string_get_raw_str(&log_file));
+      }
+
+      ten_string_deinit(&log_file);
+    } else if (ten_string_is_equal_c_str(item_key, TEN_STR_ENCRYPTION)) {
+      bool enabled = false;
+      ten_string_t algorithm_name;
+      TEN_STRING_INIT(algorithm_name);
+      ten_value_t *params = NULL;
+
+      ten_value_object_foreach(item_value, iter) {
+        ten_value_kv_t *prop_kv = ten_ptr_listnode_get(iter.node);
+        ten_string_t *item_key = &prop_kv->key;
+        ten_value_t *item_value = prop_kv->value;
+
+        if (ten_string_is_equal_c_str(item_key, TEN_STR_ENABLED)) {
+          enabled = ten_value_get_bool(item_value, &err);
+        } else if (ten_string_is_equal_c_str(item_key, TEN_STR_ALGORITHM)) {
+          ten_string_init_from_c_str_with_size(
+              &algorithm_name, ten_value_peek_raw_str(item_value, NULL),
+              strlen(ten_value_peek_raw_str(item_value, NULL)));
+        } else if (ten_string_is_equal_c_str(item_key, TEN_STR_PARAMS)) {
+          params = item_value;
+        }
+      }
+
+      if (enabled) {
+#if defined(TEN_ENABLE_TEN_RUST_APIS)
+        ten_json_t json_params =
+            TEN_JSON_INIT_VAL(ten_json_create_new_ctx(), true);
+
+        bool success = ten_value_to_json(params, &json_params);
+        if (!success) {
+          TEN_LOGE("Failed to convert log encryption params to JSON.");
+          return false;
+        }
+
+        bool must_free = false;
+        const char *params_str =
+            ten_json_to_string(&json_params, NULL, &must_free);
+
+        ten_json_deinit(&json_params);
+
+        Cipher *cipher = ten_cipher_create(
+            ten_string_get_raw_str(&algorithm_name), params_str);
+        ten_log_global_set_encrypt_cb(ten_encrypt_log_data, cipher);
+        ten_log_global_set_encrypt_deinit_cb(ten_encrypt_log_deinit);
+
+        if (must_free) {
+          TEN_FREE(params_str);
+        }
+#endif
+      }
+
+      ten_string_deinit(&algorithm_name);
+    }
+  }
+
+  ten_error_deinit(&err);
+
+  return true;
+}
+
 static bool ten_app_determine_ten_namespace_properties(
     ten_app_t *self, ten_value_t *ten_namespace_properties) {
   TEN_ASSERT(self && ten_app_check_integrity(self, true), "Should not happen.");
-  TEN_ASSERT(
-      ten_namespace_properties && ten_value_is_object(ten_namespace_properties),
-      "Should not happen.");
+  TEN_ASSERT(ten_namespace_properties &&
+                 ten_value_is_object(ten_namespace_properties),
+             "Should not happen.");
 
   ten_value_object_foreach(ten_namespace_properties, iter) {
     ten_value_kv_t *prop_kv = ten_ptr_listnode_get(iter.node);
@@ -175,9 +272,9 @@ bool ten_app_handle_ten_namespace_properties(ten_app_t *self) {
     return true;
   }
 
-  TEN_ASSERT(
-      ten_namespace_properties && ten_value_is_object(ten_namespace_properties),
-      "Should not happen.");
+  TEN_ASSERT(ten_namespace_properties &&
+                 ten_value_is_object(ten_namespace_properties),
+             "Should not happen.");
 
   // Set default value for app properties and global log level.
   self->one_event_loop_per_engine = false;
