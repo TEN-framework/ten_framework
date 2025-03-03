@@ -140,7 +140,7 @@ static int *get_log_fd(const char *log_path) {
   // Find the directory part of the path.
   char *last_sep = strrchr(path_copy, PATH_SEPARATOR);
   if (last_sep) {
-    *last_sep = '\0';  // Terminate the string to get the directory path.
+    *last_sep = '\0'; // Terminate the string to get the directory path.
 
     // Create directories recursively.
     if (create_directories(path_copy) != true) {
@@ -178,8 +178,6 @@ void ten_log_output_to_file_cb(ten_log_t *self, ten_string_t *msg,
     return;
   }
 
-  ten_string_append_formatted(msg, "%s", TEN_LOG_EOL);
-
 #if defined(_WIN32) || defined(_WIN64)
   HANDLE handle = *(HANDLE *)user_data;
 
@@ -190,9 +188,6 @@ void ten_log_output_to_file_cb(ten_log_t *self, ten_string_t *msg,
             &written, 0);
 #else
   int fd = *(int *)user_data;
-
-  ten_log_encrypt_data(self, (uint8_t *)ten_string_get_raw_str(msg),
-                       ten_string_len(msg));
 
   // TODO(Wei): write() is atomic for buffers less than or equal to PIPE_BUF,
   // therefore we need to have some locking mechanism here to prevent log
@@ -229,8 +224,6 @@ void ten_log_output_to_stderr_cb(ten_log_t *self, ten_string_t *msg,
   assert(msg && "Invalid argument.");
 
   (void)user_data;
-
-  ten_string_append_formatted(msg, "%s", TEN_LOG_EOL);
 
 #if defined(_WIN32) || defined(_WIN64)
   // WriteFile() is atomic for local files opened with FILE_APPEND_DATA and

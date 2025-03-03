@@ -186,7 +186,12 @@ void ten_log_log_with_size(ten_log_t *self, TEN_LOG_LEVEL level,
   }
 
   ten_string_t buf;
-  TEN_STRING_INIT(buf);
+
+  if (self->encryption.encrypt_cb) {
+    TEN_STRING_INIT(buf);
+  } else {
+    TEN_STRING_INIT_ENCRYPTION_HEADER(buf);
+  }
 
   if (self->formatter.format_cb) {
     self->formatter.format_cb(&buf, level, func_name, func_name_len, file_name,
@@ -195,6 +200,15 @@ void ten_log_log_with_size(ten_log_t *self, TEN_LOG_LEVEL level,
     // Use default formatter if none is set.
     ten_log_default_formatter(&buf, level, func_name, func_name_len, file_name,
                               file_name_len, line_no, msg, msg_len);
+  }
+
+  ten_string_append_formatted(&buf, "%s", TEN_LOG_EOL);
+
+  if (self->encryption.encrypt_cb) {
+    // skip the 5-byte header
+    ten_log_encrypt_data(self, ten_log_get_data_excluding_header(self, &buf),
+                         ten_log_get_data_excluding_header_len(self, &buf));
+    ten_log_complete_encryption_header(self, &buf);
   }
 
   self->output.output_cb(self, &buf, self->output.user_data);

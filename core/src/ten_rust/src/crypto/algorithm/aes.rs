@@ -1,3 +1,4 @@
+use aes::cipher::StreamCipherSeek;
 //
 // Copyright © 2025 Agora
 // This file is part of TEN Framework, an open source project.
@@ -64,6 +65,7 @@ impl<'de> Deserialize<'de> for AesCtrConfig {
 impl CipherAlgorithm for AesCtrCipher {
     fn encrypt(&mut self, data: &mut [u8]) {
         let mut cipher = self.cipher.lock().unwrap();
+        cipher.seek(0u32);
         cipher.apply_keystream(data);
     }
 }
