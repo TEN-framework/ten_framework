@@ -42,14 +42,14 @@ export function CustomNode({ data, isConnectable }: NodeProps<CustomNodeType>) {
     <>
       <div
         className={cn(
-          "absolute top-0 -right-3 -translate-y-1/2 z-[1] flex gap-1"
+          "absolute top-0 -right-3 -translate-y-1/2 z-1 flex gap-1"
         )}
       >
         <div
           className={cn(
             "gradient",
             "w-6 h-6 p-0.5",
-            "rounded-full flex transform overflow-hidden z-[1]",
+            "rounded-full flex transform overflow-hidden z-1",
             "shadow-lg dark:shadow-[0_0_15px_rgba(255,255,255,0.2)]",
             "text-popover-foreground"
           )}
@@ -57,7 +57,7 @@ export function CustomNode({ data, isConnectable }: NodeProps<CustomNodeType>) {
           <div
             className={cn(
               "relative bg-popover text-popover-foreground",
-              "flex-grow flex justify-center items-center rounded-full",
+              "grow flex justify-center items-center rounded-full",
               "cursor-pointer"
             )}
             onClick={() => {
@@ -72,7 +72,7 @@ export function CustomNode({ data, isConnectable }: NodeProps<CustomNodeType>) {
           className={cn(
             "gradient",
             "w-6 h-6 p-0.5",
-            "rounded-full flex transform overflow-hidden z-[1]",
+            "rounded-full flex transform overflow-hidden z-1",
             "shadow-lg dark:shadow-[0_0_15px_rgba(255,255,255,0.2)]",
             "text-popover-foreground"
           )}
@@ -80,7 +80,7 @@ export function CustomNode({ data, isConnectable }: NodeProps<CustomNodeType>) {
           <div
             className={cn(
               "relative bg-popover text-popover-foreground",
-              "flex-grow flex justify-center items-center rounded-full"
+              "grow flex justify-center items-center rounded-full"
             )}
             onClick={() => {
               console.log("clicked LogsIcon === ", data);
@@ -94,7 +94,7 @@ export function CustomNode({ data, isConnectable }: NodeProps<CustomNodeType>) {
           className={cn(
             "gradient",
             "w-6 h-6 p-0.5",
-            "rounded-full flex transform overflow-hidden z-[1]",
+            "rounded-full flex transform overflow-hidden z-1",
             "shadow-lg dark:shadow-[0_0_15px_rgba(255,255,255,0.2)]",
             "text-popover-foreground"
           )}
@@ -102,7 +102,7 @@ export function CustomNode({ data, isConnectable }: NodeProps<CustomNodeType>) {
           <div
             className={cn(
               "relative bg-popover text-popover-foreground",
-              "flex-grow flex justify-center items-center rounded-full"
+              "grow flex justify-center items-center rounded-full"
             )}
             onClick={() => {
               console.log("clicked InfoIcon === ", data);
