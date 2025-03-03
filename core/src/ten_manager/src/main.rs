@@ -11,6 +11,8 @@
 use std::process;
 
 use console::Emoji;
+use ten_manager::constants::GITHUB_RELEASE_URL;
+use ten_manager::version::VERSION;
 use ten_manager::version_utils::check_update;
 use tokio::runtime::Runtime;
 
@@ -30,42 +32,37 @@ fn merge(cmd_line: TmanConfig, config_file: TmanConfig) -> TmanConfig {
     }
 }
 
-fn check_update_from_cmdline(tman_config: &TmanConfig) {
+fn check_update_from_cmdline() {
     println!("Checking for new version...");
 
     let rt = Runtime::new().unwrap();
     match rt.block_on(check_update()) {
         Ok((true, latest)) => {
             println!(
-                "New version found: {}. Please download the update.",
-                latest
+                "New version found: {}.
+                Please go to {} to download the update.",
+                latest, GITHUB_RELEASE_URL
             );
         }
         Ok((false, _)) => {
-            if tman_config.verbose {
-                println!("Already up to date.");
-            }
+            println!("Already up to date.");
         }
         Err(err_msg) => {
-            if tman_config.verbose {
-                println!("{}", err_msg);
-            }
+            println!("{}", err_msg);
         }
     }
 }
 
 fn main() {
-    let mut tman_config_from_cmd_line = TmanConfig::default();
-
-    let command_data = match cmd_line::parse_cmd(&mut tman_config_from_cmd_line)
-    {
-        Ok(cmd_data) => cmd_data,
+    let parsed_cmd = match cmd_line::parse_cmd() {
+        Ok(parsed_cmd) => parsed_cmd,
         Err(e) => {
             eprintln!("{}  Error: {}", Emoji("🔴", ":-("), e);
             process::exit(1);
         }
     };
 
+    let tman_config_from_cmd_line = parsed_cmd.tman_config;
     let tman_config_from_config_file = ten_manager::config::read_config(
         &tman_config_from_cmd_line.config_file,
     );
@@ -73,10 +70,21 @@ fn main() {
     let tman_config =
         merge(tman_config_from_cmd_line, tman_config_from_config_file);
 
-    check_update_from_cmdline(&tman_config);
+    if parsed_cmd.show_version {
+        println!("TEN Framework version: {}", VERSION);
+
+        // Call the update check function
+        check_update_from_cmdline();
+
+        // If --version is passed, ignore other parameters and exit directly.
+        std::process::exit(0);
+    }
 
     let rt = Runtime::new().unwrap();
-    let result = rt.block_on(cmd::execute_cmd(&tman_config, command_data));
+    let result = rt.block_on(cmd::execute_cmd(
+        &tman_config,
+        parsed_cmd.command_data.unwrap(),
+    ));
     if let Err(e) = result {
         println!("{}  Error: {:?}", Emoji("🔴", ":-("), e);
         process::exit(1);

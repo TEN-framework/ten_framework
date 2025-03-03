@@ -31,6 +31,7 @@ pub mod designer;
 mod error;
 mod file_type;
 mod fs;
+pub mod http;
 mod install;
 mod log;
 mod manifest_lock;
