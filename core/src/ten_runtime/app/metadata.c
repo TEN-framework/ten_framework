@@ -211,12 +211,20 @@ bool ten_app_init_log(ten_app_t *self, ten_value_t *value) {
 
       if (enabled) {
 #if defined(TEN_ENABLE_TEN_RUST_APIS)
-        ten_json_t *json_params = ten_value_to_json(params);
+        ten_json_t json_params =
+            TEN_JSON_INIT_VAL(ten_json_create_new_ctx(), true);
+        bool success = ten_value_to_json(params, &json_params);
+
+        if (!success) {
+          TEN_LOGE("Failed to convert log encryption params to JSON.");
+          return false;
+        }
+
         bool must_free = false;
         const char *params_str =
-            ten_json_to_string(json_params, NULL, &must_free);
+            ten_json_to_string(&json_params, NULL, &must_free);
 
-        ten_json_destroy(json_params);
+        ten_json_deinit(&json_params);
 
         Cipher *cipher = ten_cipher_create(
             ten_string_get_raw_str(&algorithm_name), params_str);
