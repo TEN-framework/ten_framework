@@ -10,7 +10,11 @@ use anyhow::{anyhow, Result};
 use semver::{Version, VersionReq};
 use serde_json::Value;
 
-use crate::{constants::GITHUB_RELEASE_URL, version::VERSION};
+use crate::{
+    constants::{GITHUB_RELEASE_REQUEST_TIMEOUT_SECS, GITHUB_RELEASE_URL},
+    http::create_http_client_with_proxies,
+    version::VERSION,
+};
 
 /// Used to parse a pattern like `aaa@3.0.0` and return `aaa` and `3.0.0`.
 pub fn parse_pkg_name_version_req(
@@ -55,14 +59,13 @@ pub fn parse_pkg_name_version_req(
 /// Check the latest version information, and return (update_available,
 /// latest_version).
 pub async fn check_update() -> Result<(bool, String), String> {
-    let client = reqwest::Client::builder()
-        .timeout(Duration::from_secs(5)) // Set a 5-second timeout.
-        .build()
+    let client = create_http_client_with_proxies()
         .map_err(|e| format!("Failed to build HTTP client: {}", e))?;
 
     let response = client
         .get(GITHUB_RELEASE_URL)
         .header("User-Agent", "TEN Framework Updater")
+        .timeout(Duration::from_secs(GITHUB_RELEASE_REQUEST_TIMEOUT_SECS))
         .send()
         .await
         .map_err(|e| {
