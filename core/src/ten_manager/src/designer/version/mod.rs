@@ -117,4 +117,128 @@ mod tests {
         let pretty_json = serde_json::to_string_pretty(&json).unwrap();
         println!("Response body: {}", pretty_json);
     }
+
+    // Helper function that allows injecting a custom `check_update` function
+    // for testing.
+    pub async fn check_update_endpoint_with<F, Fut>(
+        check_update_fn: F,
+    ) -> impl Responder
+    where
+        F: Fn() -> Fut,
+        Fut: std::future::Future<Output = Result<(bool, String), String>>,
+    {
+        match check_update_fn().await {
+            Ok((true, latest)) => {
+                let success_response = serde_json::json!({
+                    "status": "ok",
+                    "update_available": true,
+                    "latest_version": latest,
+                });
+                HttpResponse::Ok().json(success_response)
+            }
+            Ok((false, _)) => {
+                let success_response = serde_json::json!({
+                    "status": "ok",
+                    "update_available": false,
+                });
+                HttpResponse::Ok().json(success_response)
+            }
+            Err(err_msg) => {
+                let error_response = serde_json::json!({
+                    "status": "fail",
+                    "message": err_msg,
+                });
+                HttpResponse::Ok().json(error_response)
+            }
+        }
+    }
+
+    #[cfg(test)]
+    mod check_update_tests {
+        use super::*;
+        use actix_web::{test, web, App};
+
+        #[actix_web::test]
+        async fn test_check_update_endpoint_update_available() {
+            let dummy_check_update =
+                || async { Ok((true, "v1.2.3".to_string())) };
+
+            let app =
+                test::init_service(App::new().route(
+                    "/api/check_update",
+                    web::get().to(move || {
+                        check_update_endpoint_with(dummy_check_update)
+                    }),
+                ))
+                .await;
+
+            let req = test::TestRequest::get()
+                .uri("/api/check_update")
+                .to_request();
+            let resp = test::call_service(&app, req).await;
+            assert!(resp.status().is_success());
+
+            let body = test::read_body(resp).await;
+            let json_body: serde_json::Value =
+                serde_json::from_slice(&body).unwrap();
+            assert_eq!(json_body["status"], "ok");
+            assert_eq!(json_body["update_available"], true);
+            assert_eq!(json_body["latest_version"], "v1.2.3");
+        }
+
+        #[actix_web::test]
+        async fn test_check_update_endpoint_no_update() {
+            let dummy_check_update =
+                || async { Ok((false, "v1.0.0".to_string())) };
+
+            let app =
+                test::init_service(App::new().route(
+                    "/api/check_update",
+                    web::get().to(move || {
+                        check_update_endpoint_with(dummy_check_update)
+                    }),
+                ))
+                .await;
+
+            let req = test::TestRequest::get()
+                .uri("/api/check_update")
+                .to_request();
+            let resp = test::call_service(&app, req).await;
+            assert!(resp.status().is_success());
+
+            let body = test::read_body(resp).await;
+            let json_body: serde_json::Value =
+                serde_json::from_slice(&body).unwrap();
+            assert_eq!(json_body["status"], "ok");
+            assert_eq!(json_body["update_available"], false);
+            assert!(json_body.get("latest_version").is_none());
+        }
+
+        #[actix_web::test]
+        async fn test_check_update_endpoint_error() {
+            let dummy_check_update =
+                || async { Err("Simulated update check failure".to_string()) };
+
+            let app =
+                test::init_service(App::new().route(
+                    "/api/check_update",
+                    web::get().to(move || {
+                        check_update_endpoint_with(dummy_check_update)
+                    }),
+                ))
+                .await;
+
+            let req = test::TestRequest::get()
+                .uri("/api/check_update")
+                .to_request();
+            let resp = test::call_service(&app, req).await;
+            assert!(resp.status().is_success());
+
+            let body = test::read_body(resp).await;
+            let json_body: serde_json::Value =
+                serde_json::from_slice(&body).unwrap();
+            assert_eq!(json_body["status"], "fail");
+            assert_eq!(json_body["message"], "Simulated update check failure");
+        }
+    }
 }
