@@ -29,7 +29,7 @@ const ContextMenu: React.FC<ContextMenuProps> = ({ visible, x, y, items }) => {
   return (
     <div
       className={cn(
-        "fixed p-1.5 z-[9999]",
+        "fixed p-1.5 z-9999",
         "bg-popover border border-border rounded-md shadow-md box-border"
       )}
       style={{
@@ -54,7 +54,7 @@ const ContextMenu: React.FC<ContextMenuProps> = ({ visible, x, y, items }) => {
               <div>
                 <span
                   className={cn(
-                    "flex items-center flex-shrink-0 justify-center",
+                    "flex items-center shrink-0 justify-center",
                     "mr-2 h-[1em] w-5"
                   )}
                 >

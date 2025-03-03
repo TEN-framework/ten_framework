@@ -142,7 +142,7 @@ export const connectionColumns: ColumnDef<TConnection>[] = [
               <MoreHorizontal className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="z-[2000]">
+          <DropdownMenuContent align="end" className="z-2000">
             <DropdownMenuLabel>
               <Translation>
                 {(t) => <div className="">{t("dataTable.actions")}</div>}
