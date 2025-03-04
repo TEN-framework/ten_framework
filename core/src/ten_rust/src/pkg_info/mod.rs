@@ -248,7 +248,7 @@ fn collect_pkg_info_from_path<'a>(
 
 /// Retrieves information about all installed packages related to a specific
 /// application and stores this information in a HashMap.
-pub fn get_all_installed_pkgs_info_of_app_to_hashmap(
+pub fn get_app_installed_pkgs_to_hashmap(
     app_path: &Path,
 ) -> Result<HashMap<PkgTypeAndName, PkgInfo>> {
     let mut pkgs_info: HashMap<PkgTypeAndName, PkgInfo> = HashMap::new();
@@ -311,10 +311,8 @@ pub fn get_all_installed_pkgs_info_of_app_to_hashmap(
 ///
 /// # Returns
 /// A list of `PkgInfo` objects.
-pub fn get_all_installed_pkgs_info_of_app(
-    app_path: &Path,
-) -> Result<Vec<PkgInfo>> {
-    let result = get_all_installed_pkgs_info_of_app_to_hashmap(app_path)?;
+pub fn get_app_installed_pkgs(app_path: &Path) -> Result<Vec<PkgInfo>> {
+    let result = get_app_installed_pkgs_to_hashmap(app_path)?;
     Ok(result.into_values().collect())
 }
 
@@ -416,9 +414,9 @@ pub fn ten_rust_check_graph_for_app(
         ));
     }
 
-    let mut pkgs_of_app: HashMap<String, Vec<PkgInfo>> = HashMap::new();
-    let pkgs_info = get_all_installed_pkgs_info_of_app(app_path)?;
-    pkgs_of_app.insert(app_uri.to_string(), pkgs_info);
+    let mut installed_pkgs_of_all_apps: HashMap<String, Vec<PkgInfo>> = HashMap::new();
+    let pkgs_info = get_app_installed_pkgs(app_path)?;
+    installed_pkgs_of_all_apps.insert(app_uri.to_string(), pkgs_info);
 
     // `Graph::from_str` calls `validate`, and `validate` checks that there are
     // no `localhost` entries in the graph JSON (as per our rule). However, the
@@ -430,5 +428,5 @@ pub fn ten_rust_check_graph_for_app(
     //
     // let graph = Graph::from_str(graph_json)?;
     let graph: Graph = serde_json::from_str(graph_json)?;
-    graph.check_for_single_app(&pkgs_of_app)
+    graph.check_for_single_app(&installed_pkgs_of_all_apps)
 }

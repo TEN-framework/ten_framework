@@ -7,15 +7,14 @@
 use std::{collections::HashMap, path::Path, str::FromStr};
 
 use ten_rust::pkg_info::{
-    get_all_installed_pkgs_info_of_app, graph::Graph, localhost,
-    pkg_type::PkgType, property::predefined_graph::PredefinedGraph, PkgInfo,
+    get_app_installed_pkgs, graph::Graph, localhost, pkg_type::PkgType,
+    property::predefined_graph::PredefinedGraph, PkgInfo,
 };
 
 #[test]
 fn test_graph_check_extension_not_installed_1() {
     let app_dir = "tests/test_data/graph_check_extension_not_installed_1";
-    let pkg_infos =
-        get_all_installed_pkgs_info_of_app(Path::new(app_dir)).unwrap();
+    let pkg_infos = get_app_installed_pkgs(Path::new(app_dir)).unwrap();
     assert!(!pkg_infos.is_empty());
 
     let app_pkg_info = pkg_infos
@@ -31,7 +30,7 @@ fn test_graph_check_extension_not_installed_1() {
     let mut pkg_info_map: HashMap<String, Vec<PkgInfo>> = HashMap::new();
     pkg_info_map.insert(localhost(), pkg_infos);
 
-    let result = graph.check_if_nodes_have_installed(&pkg_info_map, false);
+    let result = graph.check_nodes_installation(&pkg_info_map, false);
     assert!(result.is_err());
     println!("Error: {:?}", result.err().unwrap());
 }
@@ -39,8 +38,7 @@ fn test_graph_check_extension_not_installed_1() {
 #[test]
 fn test_graph_check_extension_not_installed_2() {
     let app_dir = "tests/test_data/graph_check_extension_not_installed_2";
-    let pkg_infos =
-        get_all_installed_pkgs_info_of_app(Path::new(app_dir)).unwrap();
+    let pkg_infos = get_app_installed_pkgs(Path::new(app_dir)).unwrap();
     assert!(!pkg_infos.is_empty());
 
     let app_pkg_info = pkg_infos
@@ -56,7 +54,7 @@ fn test_graph_check_extension_not_installed_2() {
     let mut pkg_info_map: HashMap<String, Vec<PkgInfo>> = HashMap::new();
     pkg_info_map.insert("http://localhost:8001".to_string(), pkg_infos);
 
-    let result = graph.check_if_nodes_have_installed(&pkg_info_map, false);
+    let result = graph.check_nodes_installation(&pkg_info_map, false);
     assert!(result.is_err());
     println!("Error: {:?}", result.err().unwrap());
 }
@@ -64,8 +62,7 @@ fn test_graph_check_extension_not_installed_2() {
 #[test]
 fn test_graph_check_predefined_graph_success() {
     let app_dir = "tests/test_data/graph_check_predefined_graph_success";
-    let pkg_infos =
-        get_all_installed_pkgs_info_of_app(Path::new(app_dir)).unwrap();
+    let pkg_infos = get_app_installed_pkgs(Path::new(app_dir)).unwrap();
     assert!(!pkg_infos.is_empty());
 
     let app_pkg_info = pkg_infos
@@ -88,8 +85,7 @@ fn test_graph_check_predefined_graph_success() {
 #[test]
 fn test_graph_check_all_msgs_schema_incompatible() {
     let app_dir = "tests/test_data/graph_check_all_msgs_schema_incompatible";
-    let pkg_infos =
-        get_all_installed_pkgs_info_of_app(Path::new(app_dir)).unwrap();
+    let pkg_infos = get_app_installed_pkgs(Path::new(app_dir)).unwrap();
     assert!(!pkg_infos.is_empty());
 
     let app_pkg_info = pkg_infos
@@ -113,8 +109,7 @@ fn test_graph_check_all_msgs_schema_incompatible() {
 #[test]
 fn test_graph_check_single_app() {
     let app_dir = "tests/test_data/graph_check_single_app";
-    let pkg_infos =
-        get_all_installed_pkgs_info_of_app(Path::new(app_dir)).unwrap();
+    let pkg_infos = get_app_installed_pkgs(Path::new(app_dir)).unwrap();
     assert!(!pkg_infos.is_empty());
 
     let graph_str = include_str!("test_data/graph_check_single_app/graph.json");
@@ -132,8 +127,7 @@ fn test_graph_check_single_app() {
 #[test]
 fn test_graph_check_single_app_schema_incompatible() {
     let app_dir = "tests/test_data/graph_check_single_app_schema_incompatible";
-    let pkg_infos =
-        get_all_installed_pkgs_info_of_app(Path::new(app_dir)).unwrap();
+    let pkg_infos = get_app_installed_pkgs(Path::new(app_dir)).unwrap();
     assert!(!pkg_infos.is_empty());
 
     let graph_str = include_str!(
@@ -154,8 +148,7 @@ fn test_graph_check_single_app_schema_incompatible() {
 #[test]
 fn test_graph_check_builtin_extension() {
     let app_dir = "tests/test_data/graph_check_builtin_extension";
-    let pkg_infos =
-        get_all_installed_pkgs_info_of_app(Path::new(app_dir)).unwrap();
+    let pkg_infos = get_app_installed_pkgs(Path::new(app_dir)).unwrap();
     assert!(!pkg_infos.is_empty());
 
     let graph_str =

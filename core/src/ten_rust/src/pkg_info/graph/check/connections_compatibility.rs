@@ -47,7 +47,7 @@ impl Graph {
 
     fn check_msg_flow_compatible(
         &self,
-        existed_pkgs_of_all_apps: &HashMap<String, Vec<PkgInfo>>,
+        installed_pkgs_of_all_apps: &HashMap<String, Vec<PkgInfo>>,
         msg_name: &str,
         msg_type: &MsgType,
         src_msg_schema: Option<&TenSchema>,
@@ -60,7 +60,7 @@ impl Graph {
                 dest.extension.as_str(),
             );
             let dest_msg_schema = find_msg_schema_from_all_pkgs_info(
-                existed_pkgs_of_all_apps,
+                installed_pkgs_of_all_apps,
                 dest.get_app_uri(),
                 dest_addon,
                 msg_name,
@@ -87,7 +87,7 @@ impl Graph {
 
     fn check_cmd_flow_compatible(
         &self,
-        existed_pkgs_of_all_apps: &HashMap<String, Vec<PkgInfo>>,
+        installed_pkgs_of_all_apps: &HashMap<String, Vec<PkgInfo>>,
         cmd_name: &str,
         src_cmd_schema: Option<&CmdSchema>,
         dests: &[GraphDestination],
@@ -101,7 +101,7 @@ impl Graph {
             );
 
             let existed_pkgs_of_dest_app =
-                existed_pkgs_of_all_apps.get(dest.get_app_uri());
+                installed_pkgs_of_all_apps.get(dest.get_app_uri());
             if existed_pkgs_of_dest_app.is_none() {
                 if skip_if_app_not_exist {
                     continue;
@@ -137,13 +137,26 @@ impl Graph {
         }
     }
 
-    fn check_connection_compatible(
+    /// Check the compatibility of a single connection with all its flow types.
+    ///
+    /// # Parameters
+    /// * `installed_pkgs_of_all_apps` - Map of all packages across all apps
+    /// * `connection` - The connection to validate
+    /// * `ignore_missing_apps` - Whether to skip validation when an app is
+    ///   missing
+    ///
+    /// # Returns
+    /// * `Ok(())` if the connection is compatible
+    /// * `Err` with compatibility error details otherwise
+    fn check_connection_compatibility(
         &self,
-        existed_pkgs_of_all_apps: &HashMap<String, Vec<PkgInfo>>,
+        installed_pkgs_of_all_apps: &HashMap<String, Vec<PkgInfo>>,
         connection: &GraphConnection,
-        skip_if_app_not_exist: bool,
+        ignore_missing_apps: bool,
     ) -> Result<()> {
         let mut errors: Vec<String> = Vec::new();
+
+        // Check command flows.
         if let Some(cmd_flows) = &connection.cmd {
             for (flow_idx, flow) in cmd_flows.iter().enumerate() {
                 let src_addon = self.get_addon_name_of_extension(
@@ -151,43 +164,49 @@ impl Graph {
                     connection.extension.as_str(),
                 );
 
-                let existed_pkgs_of_src_app =
-                    existed_pkgs_of_all_apps.get(connection.get_app_uri());
-                if existed_pkgs_of_src_app.is_none() {
-                    if skip_if_app_not_exist {
+                let src_app_installed_pkgs =
+                    installed_pkgs_of_all_apps.get(connection.get_app_uri());
+                if src_app_installed_pkgs.is_none() {
+                    if ignore_missing_apps {
+                        // Skip this flow if instructed to ignore missing apps.
                         continue;
                     } else {
                         return Err(anyhow::anyhow!("App [{}] is not found in the pkgs map, should not happen.", connection.get_app_uri()));
                     }
                 }
 
+                // Get source command schema.
                 let src_cmd_schema = find_cmd_schema_from_all_pkgs_info(
-                    existed_pkgs_of_src_app.unwrap(),
+                    src_app_installed_pkgs.unwrap(),
                     src_addon,
                     flow.name.as_str(),
                     MsgDirection::Out,
                 );
 
+                // Check command flow compatibility.
                 if let Err(e) = self.check_cmd_flow_compatible(
-                    existed_pkgs_of_all_apps,
+                    installed_pkgs_of_all_apps,
                     flow.name.as_str(),
                     src_cmd_schema,
                     &flow.dest,
-                    skip_if_app_not_exist,
+                    ignore_missing_apps,
                 ) {
                     errors.push(format!("- cmd[{}]:  {}", flow_idx, e));
                 }
             }
         }
 
+        // Check data flows.
         if let Some(data_flows) = &connection.data {
             for (flow_idx, flow) in data_flows.iter().enumerate() {
                 let src_addon = self.get_addon_name_of_extension(
                     connection.get_app_uri(),
                     connection.extension.as_str(),
                 );
+
+                // Get source message schema.
                 let src_msg_schema = find_msg_schema_from_all_pkgs_info(
-                    existed_pkgs_of_all_apps,
+                    installed_pkgs_of_all_apps,
                     connection.get_app_uri(),
                     src_addon,
                     flow.name.as_str(),
@@ -195,8 +214,9 @@ impl Graph {
                     MsgDirection::Out,
                 );
 
+                // Check message flow compatibility.
                 if let Err(e) = self.check_msg_flow_compatible(
-                    existed_pkgs_of_all_apps,
+                    installed_pkgs_of_all_apps,
                     flow.name.as_str(),
                     &MsgType::Data,
                     src_msg_schema,
@@ -207,14 +227,17 @@ impl Graph {
             }
         }
 
+        // Check video frame flows.
         if let Some(video_frame_flows) = &connection.video_frame {
             for (flow_idx, flow) in video_frame_flows.iter().enumerate() {
                 let src_addon = self.get_addon_name_of_extension(
                     connection.get_app_uri(),
                     connection.extension.as_str(),
                 );
+
+                // Get source message schema.
                 let src_msg_schema = find_msg_schema_from_all_pkgs_info(
-                    existed_pkgs_of_all_apps,
+                    installed_pkgs_of_all_apps,
                     connection.get_app_uri(),
                     src_addon,
                     flow.name.as_str(),
@@ -222,8 +245,9 @@ impl Graph {
                     MsgDirection::Out,
                 );
 
+                // Check message flow compatibility.
                 if let Err(e) = self.check_msg_flow_compatible(
-                    existed_pkgs_of_all_apps,
+                    installed_pkgs_of_all_apps,
                     flow.name.as_str(),
                     &MsgType::VideoFrame,
                     src_msg_schema,
@@ -234,14 +258,17 @@ impl Graph {
             }
         }
 
+        // Check audio frame flows.
         if let Some(audio_frame_flows) = &connection.audio_frame {
             for (flow_idx, flow) in audio_frame_flows.iter().enumerate() {
                 let src_addon = self.get_addon_name_of_extension(
                     connection.get_app_uri(),
                     connection.extension.as_str(),
                 );
+
+                // Get source message schema.
                 let src_msg_schema = find_msg_schema_from_all_pkgs_info(
-                    existed_pkgs_of_all_apps,
+                    installed_pkgs_of_all_apps,
                     connection.get_app_uri(),
                     src_addon,
                     flow.name.as_str(),
@@ -249,8 +276,9 @@ impl Graph {
                     MsgDirection::Out,
                 );
 
+                // Check message flow compatibility.
                 if let Err(e) = self.check_msg_flow_compatible(
-                    existed_pkgs_of_all_apps,
+                    installed_pkgs_of_all_apps,
                     flow.name.as_str(),
                     &MsgType::AudioFrame,
                     src_msg_schema,
@@ -268,10 +296,20 @@ impl Graph {
         }
     }
 
-    pub fn check_connections_compatible(
+    /// Check the compatibility of all connections in the graph.
+    ///
+    /// # Parameters
+    /// * `installed_pkgs_of_all_apps` - Map of all packages across all apps
+    /// * `ignore_missing_apps` - Whether to skip validation when an app is
+    ///   missing
+    ///
+    /// # Returns
+    /// * `Ok(())` if all connections are compatible
+    /// * `Err` with detailed compatibility error messages otherwise
+    pub fn check_connections_compatibility(
         &self,
-        existed_pkgs_of_all_apps: &HashMap<String, Vec<PkgInfo>>,
-        skip_if_app_not_exist: bool,
+        installed_pkgs_of_all_apps: &HashMap<String, Vec<PkgInfo>>,
+        ignore_missing_apps: bool,
     ) -> Result<()> {
         if self.connections.is_none() {
             return Ok(());
@@ -279,12 +317,13 @@ impl Graph {
 
         let mut errors: Vec<String> = Vec::new();
 
+        // Check compatibility of all connections.
         let connections = self.connections.as_ref().unwrap();
         for (conn_idx, connection) in connections.iter().enumerate() {
-            if let Err(e) = self.check_connection_compatible(
-                existed_pkgs_of_all_apps,
+            if let Err(e) = self.check_connection_compatibility(
+                installed_pkgs_of_all_apps,
                 connection,
-                skip_if_app_not_exist,
+                ignore_missing_apps,
             ) {
                 errors.push(format!("- connections[{}]: \n  {}", conn_idx, e));
             }
@@ -299,13 +338,13 @@ impl Graph {
 }
 
 fn find_cmd_schema_from_all_pkgs_info<'a>(
-    existed_pkgs_of_app: &'a [PkgInfo],
+    installed_pkgs_of_all_apps: &'a [PkgInfo],
     addon: &str,
     cmd_name: &str,
     direction: MsgDirection,
 ) -> Option<&'a CmdSchema> {
     // Attempt to find the addon package. If not found, return None.
-    let addon_pkg = existed_pkgs_of_app.iter().find(|pkg| {
+    let addon_pkg = installed_pkgs_of_all_apps.iter().find(|pkg| {
         pkg.basic_info.type_and_name.pkg_type == PkgType::Extension
             && pkg.basic_info.type_and_name.name == addon
     })?;
@@ -321,7 +360,7 @@ fn find_cmd_schema_from_all_pkgs_info<'a>(
 }
 
 fn find_msg_schema_from_all_pkgs_info<'a>(
-    existed_pkgs_of_all_apps: &'a HashMap<String, Vec<PkgInfo>>,
+    installed_pkgs_of_all_apps: &'a HashMap<String, Vec<PkgInfo>>,
     app: &str,
     addon: &str,
     msg_name: &str,
@@ -329,7 +368,7 @@ fn find_msg_schema_from_all_pkgs_info<'a>(
     direction: MsgDirection,
 ) -> Option<&'a TenSchema> {
     let existed_pkgs_of_app =
-        existed_pkgs_of_all_apps.get(app).unwrap_or_else(|| {
+        installed_pkgs_of_all_apps.get(app).unwrap_or_else(|| {
             panic!("should not happen.");
         });
 

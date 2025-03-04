@@ -12,7 +12,7 @@ use crate::pkg_info::{
 };
 
 impl Graph {
-    fn check_if_dest_of_connection_are_defined_in_nodes(
+    fn check_destination_extensions_exist(
         all_extensions: &[String],
         flows: &[GraphMessageFlow],
         conn_idx: usize,
@@ -38,13 +38,26 @@ impl Graph {
         Ok(())
     }
 
-    pub fn check_if_extensions_used_in_connections_have_defined_in_nodes(
-        &self,
-    ) -> Result<()> {
+    /// Checks that all extensions referenced in connections are defined in
+    /// nodes.
+    ///
+    /// This function traverses the graph and ensures that any extension
+    /// referenced in a connection has a corresponding node definition. This
+    /// check is essential for maintaining graph integrity and preventing
+    /// references to non-existent extensions.
+    ///
+    /// # Returns
+    /// - `Ok(())` if all referenced extensions exist
+    /// - `Err` with a descriptive error message if any referenced extension is
+    ///   not defined
+    pub fn check_connection_extensions_exist(&self) -> Result<()> {
         if self.connections.is_none() {
             return Ok(());
         }
+        let connections = self.connections.as_ref().unwrap();
 
+        // Build a comprehensive list of all extension identifiers in the graph
+        // Each extension is uniquely identified as "app_uri:extension_name"
         let mut all_extensions: Vec<String> = Vec::new();
         for node in &self.nodes {
             if node.type_and_name.pkg_type == PkgType::Extension {
@@ -57,8 +70,9 @@ impl Graph {
             }
         }
 
-        let connections = self.connections.as_ref().unwrap();
+        // Validate each connection in the graph.
         for (conn_idx, connection) in connections.iter().enumerate() {
+            // First, verify the source extension exists.
             let src_extension = format!(
                 "{}:{}",
                 connection.get_app_uri(),
@@ -72,8 +86,9 @@ impl Graph {
                 ));
             }
 
+            // Check all command message flows if present.
             if let Some(cmd_flows) = &connection.cmd {
-                Graph::check_if_dest_of_connection_are_defined_in_nodes(
+                Graph::check_destination_extensions_exist(
                     &all_extensions,
                     cmd_flows,
                     conn_idx,
@@ -81,8 +96,9 @@ impl Graph {
                 )?;
             }
 
+            // Check all data message flows if present.
             if let Some(data_flows) = &connection.data {
-                Graph::check_if_dest_of_connection_are_defined_in_nodes(
+                Graph::check_destination_extensions_exist(
                     &all_extensions,
                     data_flows,
                     conn_idx,
@@ -90,8 +106,9 @@ impl Graph {
                 )?;
             }
 
+            // Check all audio frame message flows if present.
             if let Some(audio_flows) = &connection.audio_frame {
-                Graph::check_if_dest_of_connection_are_defined_in_nodes(
+                Graph::check_destination_extensions_exist(
                     &all_extensions,
                     audio_flows,
                     conn_idx,
@@ -99,8 +116,9 @@ impl Graph {
                 )?;
             }
 
+            // Check all video frame message flows if present.
             if let Some(video_flows) = &connection.video_frame {
-                Graph::check_if_dest_of_connection_are_defined_in_nodes(
+                Graph::check_destination_extensions_exist(
                     &all_extensions,
                     video_flows,
                     conn_idx,
