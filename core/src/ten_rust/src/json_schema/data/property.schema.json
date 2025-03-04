@@ -421,6 +421,64 @@
         "log_file": {
           "$ref": "#/$defs/notEmptyString"
         },
+        "log": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "level": {
+              "$ref": "#/$defs/logLevels"
+            },
+            "file": {
+              "$ref": "#/$defs/notEmptyString"
+            },
+            "encryption": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "enabled": {
+                  "type": "boolean"
+                },
+                "algorithm": {
+                  "type": "string",
+                  "enum": [
+                    "AES-CTR"
+                  ]
+                },
+                "params": {
+                  "if": {
+                    "properties": {
+                      "algorithm": {
+                        "const": "AES-CTR"
+                      }
+                    },
+                    "required": [
+                      "algorithm"
+                    ]
+                  },
+                  "then": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "key",
+                      "nonce"
+                    ],
+                    "properties": {
+                      "key": {
+                        "type": "string"
+                      },
+                      "nonce": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "else": {
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          }
+        },
         "long_running_mode": {
           "type": "boolean"
         },
