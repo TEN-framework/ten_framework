@@ -373,13 +373,13 @@ class extension_t : public binding_handle_t {
                                  e.what() + "' in on_stop()")
                                     .c_str());
 
-      issue_stop_graph_cmd(ten_env);
+      ten_env.on_stop_done();
     } catch (...) {
       TEN_ENV_LOG_WARN(ten_env, (std::string("Caught an exception of type '") +
                                  curr_exception_type_name() + "in on_stop().")
                                     .c_str());
 
-      issue_stop_graph_cmd(ten_env);
+      ten_env.on_stop_done();
     }
   }
 
@@ -400,13 +400,13 @@ class extension_t : public binding_handle_t {
                                  e.what() + "' in on_deinit()")
                                     .c_str());
 
-      issue_stop_graph_cmd(ten_env);
+      ten_env.on_deinit_done();
     } catch (...) {
       TEN_ENV_LOG_WARN(ten_env, (std::string("Caught an exception of type '") +
                                  curr_exception_type_name() + "in on_deinit().")
                                     .c_str());
 
-      issue_stop_graph_cmd(ten_env);
+      ten_env.on_deinit_done();
     }
   }
 

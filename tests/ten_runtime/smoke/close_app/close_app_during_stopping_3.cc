@@ -12,7 +12,6 @@
 #include "include_internal/ten_runtime/binding/cpp/ten.h"
 #include "ten_runtime/binding/cpp/detail/ten_env_proxy.h"
 #include "ten_utils/lib/thread.h"
-#include "ten_utils/lib/time.h"
 #include "tests/common/client/cpp/msgpack_tcp.h"
 #include "tests/ten_runtime/smoke/util/binding/cpp/check.h"
 
@@ -42,21 +41,12 @@ class test_extension_2 : public ten::extension_t {
  public:
   explicit test_extension_2(const char *name) : ten::extension_t(name) {}
 
-  void on_configure(ten::ten_env_t &ten_env) override {
-    auto *ten_env_proxy = ten::ten_env_proxy_t::create(ten_env);
-
-    thread_ = std::thread([ten_env_proxy]() {
-      ten_sleep_ms(1000);
-
-      ten_env_proxy->notify(
-          [](ten::ten_env_t &ten_env) { ten_env.on_configure_done(); });
-
-      delete ten_env_proxy;
-    });
-  }
-
   void on_stop(ten::ten_env_t &ten_env) override {
+    // This invocation will throw a `"thread::join failed: Invalid argument"`
+    // exception, which is used to test whether the TEN app can still properly
+    // terminate under this condition.
     thread_.join();
+
     ten_env.on_stop_done();
   }
 
@@ -92,13 +82,13 @@ void *test_app_thread_main(TEN_UNUSED void *args) {
 }
 
 TEN_CPP_REGISTER_ADDON_AS_EXTENSION(
-    close_app_during_starting_3__test_extension_1, test_extension_1);
+    close_app_during_stopping_3__test_extension_1, test_extension_1);
 TEN_CPP_REGISTER_ADDON_AS_EXTENSION(
-    close_app_during_starting_3__test_extension_2, test_extension_2);
+    close_app_during_stopping_3__test_extension_2, test_extension_2);
 
 }  // namespace
 
-TEST(CloseAppTest, CloseAppDuringStarting3) {  // NOLINT
+TEST(CloseAppTest, CloseAppDuringStopping3) {  // NOLINT
   // Start app.
   auto *app_thread =
       ten_thread_create("app thread", test_app_thread_main, nullptr);
@@ -112,13 +102,13 @@ TEST(CloseAppTest, CloseAppDuringStarting3) {  // NOLINT
            "nodes": [{
                 "type": "extension",
                 "name": "test_extension_1",
-                "addon": "close_app_during_starting_3__test_extension_1",
+                "addon": "close_app_during_stopping_3__test_extension_1",
                 "extension_group": "basic_extension_group_1",
                 "app": "msgpack://127.0.0.1:8001/"
              },{
                 "type": "extension",
                 "name": "test_extension_2",
-                "addon": "close_app_during_starting_3__test_extension_2",
+                "addon": "close_app_during_stopping_3__test_extension_2",
                 "extension_group": "basic_extension_group_2",
                 "app": "msgpack://127.0.0.1:8001/"
              }]
