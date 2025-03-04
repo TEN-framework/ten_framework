@@ -284,21 +284,20 @@ class extension_t : public binding_handle_t {
     // are enabled during compilation, then the try/catch here can intercept all
     // exceptions thrown by user code that are not already caught, serving as a
     // kind of fallback.
+    auto handle_exception = [&](const std::string &msg) {
+      TEN_ENV_LOG_WARN(ten_env, msg.c_str());
+      issue_stop_graph_cmd(ten_env);
+      ten_env.on_configure_done();
+    };
+
     try {
       on_configure(ten_env);
     } catch (std::exception &e) {
-      TEN_ENV_LOG_WARN(ten_env, (std::string("Caught an exception '") +
-                                 e.what() + "' in on_configure()")
-                                    .c_str());
-
-      issue_stop_graph_cmd(ten_env);
+      handle_exception(std::string("Caught an exception '") + e.what() +
+                       "' in on_configure()");
     } catch (...) {
-      TEN_ENV_LOG_WARN(ten_env,
-                       (std::string("Caught an exception of type '") +
-                        curr_exception_type_name() + "in on_configure().")
-                           .c_str());
-
-      issue_stop_graph_cmd(ten_env);
+      handle_exception(std::string("Caught an exception of type '") +
+                       curr_exception_type_name() + " in on_configure().");
     }
   }
 
@@ -312,20 +311,20 @@ class extension_t : public binding_handle_t {
     // are enabled during compilation, then the try/catch here can intercept all
     // exceptions thrown by user code that are not already caught, serving as a
     // kind of fallback.
+    auto handle_exception = [&](const std::string &msg) {
+      TEN_ENV_LOG_WARN(ten_env, msg.c_str());
+      issue_stop_graph_cmd(ten_env);
+      ten_env.on_init_done();
+    };
+
     try {
       on_init(ten_env);
     } catch (std::exception &e) {
-      TEN_ENV_LOG_WARN(ten_env, (std::string("Caught an exception '") +
-                                 e.what() + "' in on_init()")
-                                    .c_str());
-
-      issue_stop_graph_cmd(ten_env);
+      handle_exception(std::string("Caught an exception '") + e.what() +
+                       "' in on_init()");
     } catch (...) {
-      TEN_ENV_LOG_WARN(ten_env, (std::string("Caught an exception of type '") +
-                                 curr_exception_type_name() + "in on_init().")
-                                    .c_str());
-
-      issue_stop_graph_cmd(ten_env);
+      handle_exception(std::string("Caught an exception of type '") +
+                       curr_exception_type_name() + " in on_init().");
     }
   }
 
@@ -339,20 +338,20 @@ class extension_t : public binding_handle_t {
     // are enabled during compilation, then the try/catch here can intercept all
     // exceptions thrown by user code that are not already caught, serving as a
     // kind of fallback.
+    auto handle_exception = [&](const std::string &msg) {
+      TEN_ENV_LOG_WARN(ten_env, msg.c_str());
+      issue_stop_graph_cmd(ten_env);
+      ten_env.on_start_done();
+    };
+
     try {
       on_start(ten_env);
     } catch (std::exception &e) {
-      TEN_ENV_LOG_WARN(ten_env, (std::string("Caught an exception '") +
-                                 e.what() + "' in on_start()")
-                                    .c_str());
-
-      issue_stop_graph_cmd(ten_env);
+      handle_exception(std::string("Caught an exception '") + e.what() +
+                       "' in on_start()");
     } catch (...) {
-      TEN_ENV_LOG_WARN(ten_env, (std::string("Caught an exception of type '") +
-                                 curr_exception_type_name() + "in on_start().")
-                                    .c_str());
-
-      issue_stop_graph_cmd(ten_env);
+      handle_exception(std::string("Caught an exception of type '") +
+                       curr_exception_type_name() + " in on_start().");
     }
   }
 
@@ -366,20 +365,19 @@ class extension_t : public binding_handle_t {
     // are enabled during compilation, then the try/catch here can intercept all
     // exceptions thrown by user code that are not already caught, serving as a
     // kind of fallback.
+    auto handle_exception = [&](const std::string &msg) {
+      TEN_ENV_LOG_WARN(ten_env, msg.c_str());
+      ten_env.on_stop_done();
+    };
+
     try {
       on_stop(ten_env);
     } catch (std::exception &e) {
-      TEN_ENV_LOG_WARN(ten_env, (std::string("Caught an exception '") +
-                                 e.what() + "' in on_stop()")
-                                    .c_str());
-
-      issue_stop_graph_cmd(ten_env);
+      handle_exception(std::string("Caught an exception '") + e.what() +
+                       "' in on_stop()");
     } catch (...) {
-      TEN_ENV_LOG_WARN(ten_env, (std::string("Caught an exception of type '") +
-                                 curr_exception_type_name() + "in on_stop().")
-                                    .c_str());
-
-      issue_stop_graph_cmd(ten_env);
+      handle_exception(std::string("Caught an exception of type '") +
+                       curr_exception_type_name() + " in on_stop().");
     }
   }
 
@@ -393,20 +391,19 @@ class extension_t : public binding_handle_t {
     // are enabled during compilation, then the try/catch here can intercept all
     // exceptions thrown by user code that are not already caught, serving as a
     // kind of fallback.
+    auto handle_exception = [&](const std::string &msg) {
+      TEN_ENV_LOG_WARN(ten_env, msg.c_str());
+      ten_env.on_deinit_done();
+    };
+
     try {
       on_deinit(ten_env);
     } catch (std::exception &e) {
-      TEN_ENV_LOG_WARN(ten_env, (std::string("Caught an exception '") +
-                                 e.what() + "' in on_deinit()")
-                                    .c_str());
-
-      issue_stop_graph_cmd(ten_env);
+      handle_exception(std::string("Caught an exception '") + e.what() +
+                       "' in on_deinit()");
     } catch (...) {
-      TEN_ENV_LOG_WARN(ten_env, (std::string("Caught an exception of type '") +
-                                 curr_exception_type_name() + "in on_deinit().")
-                                    .c_str());
-
-      issue_stop_graph_cmd(ten_env);
+      handle_exception(std::string("Caught an exception of type '") +
+                       curr_exception_type_name() + " in on_deinit().");
     }
   }
 

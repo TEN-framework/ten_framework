@@ -14,9 +14,12 @@
 #include "ten_utils/lib/string.h"
 #include "ten_utils/lib/time.h"
 
-void ten_random_sleep_ms(const int64_t max_msec) {
-  // Check whether `max_msec` is greater than 0.
-  assert(max_msec > 0 && "max_msec must be greater than 0");
+void ten_random_sleep_range_ms(const int64_t min_msec, const int64_t max_msec) {
+  // Check whether `min_msec` and `max_msec` are valid.
+  assert(min_msec >= 0 && max_msec > 0 &&
+         "min_msec and max_msec must be greater than 0");
+  assert(min_msec <= max_msec &&
+         "min_msec must be less than or equal to max_msec");
 
   int64_t wait_time = 0;
   // Check the return value of `ten_random`.
@@ -30,6 +33,8 @@ void ten_random_sleep_ms(const int64_t max_msec) {
   wait_time = llabs(wait_time);
 
   wait_time %= max_msec;
+  wait_time += min_msec;
+
   ten_sleep_ms(wait_time);
 }
 

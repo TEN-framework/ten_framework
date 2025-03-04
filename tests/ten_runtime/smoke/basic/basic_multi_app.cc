@@ -190,7 +190,7 @@ TEST(BasicTest, MultiApp) {  // NOLINT
         client.reset();
 
         // To prevent from busy re-trying.
-        ten_random_sleep_ms(10);
+        ten_random_sleep_range_ms(10, 20);
       }
     }
 

@@ -56,13 +56,17 @@ ten_log_t *ten_log_create(void) {
 void ten_log_deinit(ten_log_t *self) {
   assert(self && ten_log_check_integrity(self) && "Invalid argument.");
 
+  ten_log_deinit_encryption(self);
+
   if (self->output.close_cb) {
     self->output.close_cb(self->output.user_data);
   }
+}
 
-  if (self->encryption.deinit_cb) {
-    self->encryption.deinit_cb(self->encryption.impl);
-  }
+void ten_log_deinit_encryption(ten_log_t *self) {
+  assert(self && ten_log_check_integrity(self) && "Invalid argument.");
+
+  ten_log_encryption_deinit(&self->encryption);
 }
 
 void ten_log_destroy(ten_log_t *self) {
@@ -70,6 +74,21 @@ void ten_log_destroy(ten_log_t *self) {
 
   ten_log_deinit(self);
   free(self);
+}
+
+void ten_log_set_encrypt_cb(ten_log_t *self, ten_log_encrypt_func_t cb,
+                            void *cb_data) {
+  assert(self && ten_log_check_integrity(self) && "Invalid argument.");
+
+  self->encryption.encrypt_cb = cb;
+  self->encryption.impl = cb_data;
+}
+
+void ten_log_set_encrypt_deinit_cb(ten_log_t *self,
+                                   ten_log_encrypt_deinit_func_t cb) {
+  assert(self && ten_log_check_integrity(self) && "Invalid argument.");
+
+  self->encryption.deinit_cb = cb;
 }
 
 static const char *funcname(const char *func) { return func ? func : ""; }
@@ -105,9 +124,10 @@ const char *filename(const char *path, size_t path_len, size_t *filename_len) {
   return filename;
 }
 
-void ten_log_log_from_va_list(ten_log_t *self, TEN_LOG_LEVEL level,
-                              const char *func_name, const char *file_name,
-                              size_t line_no, const char *fmt, va_list ap) {
+static void ten_log_log_from_va_list(ten_log_t *self, TEN_LOG_LEVEL level,
+                                     const char *func_name,
+                                     const char *file_name, size_t line_no,
+                                     const char *fmt, va_list ap) {
   assert(self && ten_log_check_integrity(self) && "Invalid argument.");
 
   if (level < self->output_level) {
@@ -119,28 +139,6 @@ void ten_log_log_from_va_list(ten_log_t *self, TEN_LOG_LEVEL level,
 
   ten_log_log(self, level, func_name, file_name, line_no,
               ten_string_get_raw_str(&msg));
-
-  ten_string_deinit(&msg);
-}
-
-void ten_log_log_with_size_from_va_list(ten_log_t *self, TEN_LOG_LEVEL level,
-                                        const char *func_name,
-                                        size_t func_name_len,
-                                        const char *file_name,
-                                        size_t file_name_len, size_t line_no,
-                                        const char *fmt, va_list ap) {
-  assert(self && ten_log_check_integrity(self) && "Invalid argument.");
-
-  if (level < self->output_level) {
-    return;
-  }
-
-  ten_string_t msg;
-  ten_string_init_from_va_list(&msg, fmt, ap);
-
-  ten_log_log_with_size(self, level, func_name, func_name_len, file_name,
-                        file_name_len, line_no, ten_string_get_raw_str(&msg),
-                        ten_string_len(&msg));
 
   ten_string_deinit(&msg);
 }

@@ -38,6 +38,8 @@ TEN_UTILS_API void ten_sleep_us(int64_t usec);
 
 /**
  * @brief Sleep for a random time in milliseconds.
- * @param msec The maximum time to sleep in milliseconds.
+ * @param min_msec The minimum time to sleep in milliseconds.
+ * @param max_msec The maximum time to sleep in milliseconds.
  */
-TEN_UTILS_API void ten_random_sleep_ms(int64_t max_msec);
+TEN_UTILS_API void ten_random_sleep_range_ms(int64_t min_msec,
+                                             int64_t max_msec);

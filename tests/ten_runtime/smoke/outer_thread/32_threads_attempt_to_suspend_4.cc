@@ -53,16 +53,16 @@ class test_extension_1 : public ten::extension_t {
                                                                              \
     for (int i = 0; i < OUTER_THREAD_FOR_LOOP_CNT; ++i) {                    \
       if (!outer_thread_##X##_towards_to_close) {                            \
-        ten_random_sleep_ms(2);                                              \
+        ten_random_sleep_range_ms(0, 3);                                     \
                                                                              \
         bool rc = ten_env_proxy->acquire_lock_mode();                        \
         TEN_ASSERT(rc, "Failed to acquire lock mode.");                      \
                                                                              \
-        ten_random_sleep_ms(2);                                              \
+        ten_random_sleep_range_ms(0, 3);                                     \
                                                                              \
         ten_env_proxy->notify(send_data_from_outer_thread, test_data, true); \
                                                                              \
-        ten_random_sleep_ms(2);                                              \
+        ten_random_sleep_range_ms(0, 3);                                     \
                                                                              \
         rc = ten_env_proxy->release_lock_mode();                             \
         TEN_ASSERT(rc, "Failed to release lock mode.");                      \
