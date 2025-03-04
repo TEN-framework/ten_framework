@@ -15,6 +15,9 @@ pub const CN_REGISTRY: &str =
 pub const GITHUB_RELEASE_URL: &str =
     "https://api.github.com/repos/TEN-framework/ten_framework/releases/latest";
 
+pub const GITHUB_RELEASE_PAGE: &str =
+    "https://github.com/TEN-framework/ten_framework/releases/latest";
+
 // This comment is just for reference.
 //
 // pub const ADMIN_TOKEN: &str =
