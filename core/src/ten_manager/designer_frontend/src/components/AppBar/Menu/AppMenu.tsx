@@ -6,7 +6,12 @@
 //
 import * as React from "react";
 import { toast } from "sonner";
-import { FolderOpenIcon, CogIcon, PlayIcon } from "lucide-react";
+import {
+  FolderOpenIcon,
+  CogIcon,
+  PlayIcon,
+  HardDriveDownloadIcon,
+} from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import Popup from "@/components/Popup/Popup";
@@ -31,12 +36,12 @@ import { EWidgetCategory, EWidgetDisplayType } from "@/types/widgets";
 import { Input } from "@/components/ui/Input";
 import { TEN_DEFAULT_APP_RUN_SCRIPT } from "@/constants";
 
-interface FileMenuProps {
+interface AppMenuProps {
   defaultBaseDir?: string;
   onSetBaseDir: (folderPath: string) => void;
 }
 
-export function FileMenu(props: FileMenuProps) {
+export function AppMenu(props: AppMenuProps) {
   const { defaultBaseDir = "/", onSetBaseDir } = props;
   const { t } = useTranslation();
 
@@ -143,7 +148,7 @@ export function FileMenu(props: FileMenuProps) {
     <>
       <NavigationMenuItem>
         <NavigationMenuTrigger className="submenu-trigger">
-          {t("header.menu.file")}
+          {t("header.menu.app")}
         </NavigationMenuTrigger>
         <NavigationMenuContent
           className={cn("flex flex-col items-center px-1 py-1.5 gap-1.5")}
@@ -176,7 +181,7 @@ export function FileMenu(props: FileMenuProps) {
               variant="ghost"
               onClick={handleAppInstall}
             >
-              <PlayIcon className="w-4 h-4 me-2" />
+              <HardDriveDownloadIcon className="w-4 h-4 me-2" />
               {t("header.menu.installAll")}
             </Button>
           </NavigationMenuLink>

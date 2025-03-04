@@ -8,6 +8,7 @@
       "autoLayout": "Auto Layout",
       "openAppFolder": "Open App Folder",
       "file": "File",
+      "app": "App",
       "help": "Help",
       "about": "About",
       "language": "Language",
@@ -18,7 +19,8 @@
       "theme.dark": "Dark",
       "theme.system": "System",
       "start": "Start",
-      "preferences": "Preferences"
+      "preferences": "Preferences",
+      "installAll": "Install All"
     },
     "officialSite": "Official site",
     "poweredBy": "Powered by",
