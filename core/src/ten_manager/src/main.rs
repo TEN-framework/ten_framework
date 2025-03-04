@@ -11,7 +11,7 @@
 use std::process;
 
 use console::Emoji;
-use ten_manager::constants::GITHUB_RELEASE_URL;
+use ten_manager::constants::GITHUB_RELEASE_PAGE;
 use ten_manager::version::VERSION;
 use ten_manager::version_utils::check_update;
 use tokio::runtime::Runtime;
@@ -39,9 +39,8 @@ fn check_update_from_cmdline() {
     match rt.block_on(check_update()) {
         Ok((true, latest)) => {
             println!(
-                "New version found: {}.
-                Please go to {} to download the update.",
-                latest, GITHUB_RELEASE_URL
+                "New version found: {}. Please go to {} to download the update.",
+                latest, GITHUB_RELEASE_PAGE
             );
         }
         Ok((false, _)) => {
