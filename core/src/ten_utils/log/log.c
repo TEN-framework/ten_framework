@@ -12,6 +12,7 @@
 #include <stdlib.h>
 
 #include "include_internal/ten_utils/lib/string.h"
+#include "include_internal/ten_utils/log/encryption.h"
 #include "include_internal/ten_utils/log/formatter.h"
 #include "include_internal/ten_utils/log/log.h"
 #include "include_internal/ten_utils/log/output.h"
@@ -40,6 +41,7 @@ void ten_log_init(ten_log_t *self) {
   self->output_level = TEN_LOG_LEVEL_INVALID;
 
   ten_log_set_output_to_stderr(self);
+  ten_log_encryption_init(&self->encryption);
 }
 
 ten_log_t *ten_log_create(void) {
@@ -56,6 +58,10 @@ void ten_log_deinit(ten_log_t *self) {
 
   if (self->output.close_cb) {
     self->output.close_cb(self->output.user_data);
+  }
+
+  if (self->encryption.deinit_cb) {
+    self->encryption.deinit_cb(self->encryption.impl);
   }
 }
 
@@ -180,7 +186,12 @@ void ten_log_log_with_size(ten_log_t *self, TEN_LOG_LEVEL level,
   }
 
   ten_string_t buf;
-  TEN_STRING_INIT(buf);
+
+  if (self->encryption.encrypt_cb) {
+    TEN_STRING_INIT_ENCRYPTION_HEADER(buf);
+  } else {
+    TEN_STRING_INIT(buf);
+  }
 
   if (self->formatter.format_cb) {
     self->formatter.format_cb(&buf, level, func_name, func_name_len, file_name,
@@ -191,7 +202,16 @@ void ten_log_log_with_size(ten_log_t *self, TEN_LOG_LEVEL level,
                               file_name_len, line_no, msg, msg_len);
   }
 
-  self->output.output_cb(&buf, self->output.user_data);
+  ten_string_append_formatted(&buf, "%s", TEN_LOG_EOL);
+
+  if (self->encryption.encrypt_cb) {
+    // Skip the 5-byte header.
+    ten_log_encrypt_data(self, ten_log_get_data_excluding_header(self, &buf),
+                         ten_log_get_data_excluding_header_len(self, &buf));
+    ten_log_complete_encryption_header(self, &buf);
+  }
+
+  self->output.output_cb(self, &buf, self->output.user_data);
 
   ten_string_deinit(&buf);
 }
