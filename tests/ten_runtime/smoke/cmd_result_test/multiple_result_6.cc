@@ -59,7 +59,7 @@ class test_extension_2 : public ten::extension_t {
       cmd_result_1->set_final(false);
       ten_env.return_result(std::move(cmd_result_1));
 
-      ten_random_sleep_ms(100);
+      ten_random_sleep_range_ms(100, 200);
 
       auto cmd_result_2 = ten::cmd_result_t::create(TEN_STATUS_CODE_OK, *cmd);
       cmd_result_2->set_property("detail", "from 2, 2");

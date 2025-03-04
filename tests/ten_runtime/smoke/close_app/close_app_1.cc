@@ -45,7 +45,7 @@ class test_extension_2 : public ten::extension_t {
   void on_stop(ten::ten_env_t &ten_env) override {
     // Wait for some seconds to ensure that `app/graph` is closed before
     // `on_stop_done`.
-    ten_sleep_ms(2000);
+    ten_random_sleep_range_ms(1000, 2000);
 
     ten_env.on_stop_done();
   }

@@ -42,10 +42,9 @@ class test_extension_2 : public ten::extension_t {
   explicit test_extension_2(const char *name) : ten::extension_t(name) {}
 
   void on_stop(ten::ten_env_t &ten_env) override {
-    // This invocation will throw a `"thread::join failed: Invalid argument"`
-    // exception, which is used to test whether the TEN app can still properly
-    // terminate under this condition.
-    thread_.join();
+    if (thread_.joinable()) {
+      thread_.join();
+    }
 
     ten_env.on_stop_done();
   }
@@ -81,14 +80,14 @@ void *test_app_thread_main(TEN_UNUSED void *args) {
   return nullptr;
 }
 
-TEN_CPP_REGISTER_ADDON_AS_EXTENSION(
-    close_app_during_stopping_3__test_extension_1, test_extension_1);
-TEN_CPP_REGISTER_ADDON_AS_EXTENSION(
-    close_app_during_stopping_3__test_extension_2, test_extension_2);
+TEN_CPP_REGISTER_ADDON_AS_EXTENSION(close_app_2__test_extension_1,
+                                    test_extension_1);
+TEN_CPP_REGISTER_ADDON_AS_EXTENSION(close_app_2__test_extension_2,
+                                    test_extension_2);
 
 }  // namespace
 
-TEST(CloseAppTest, CloseAppDuringStopping3) {  // NOLINT
+TEST(CloseAppTest, CloseApp2) {  // NOLINT
   // Start app.
   auto *app_thread =
       ten_thread_create("app thread", test_app_thread_main, nullptr);
@@ -102,13 +101,13 @@ TEST(CloseAppTest, CloseAppDuringStopping3) {  // NOLINT
            "nodes": [{
                 "type": "extension",
                 "name": "test_extension_1",
-                "addon": "close_app_during_stopping_3__test_extension_1",
+                "addon": "close_app_2__test_extension_1",
                 "extension_group": "basic_extension_group_1",
                 "app": "msgpack://127.0.0.1:8001/"
              },{
                 "type": "extension",
                 "name": "test_extension_2",
-                "addon": "close_app_during_stopping_3__test_extension_2",
+                "addon": "close_app_2__test_extension_2",
                 "extension_group": "basic_extension_group_2",
                 "app": "msgpack://127.0.0.1:8001/"
              }]

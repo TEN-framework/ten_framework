@@ -45,7 +45,7 @@ class test_extension_2 : public ten::extension_t {
 
   void on_stop(ten::ten_env_t &ten_env) override {
     // Sleep some seconds to ensure the test_extension_1 is dead.
-    ten_sleep_ms(2000);
+    ten_random_sleep_range_ms(1000, 2000);
 
     auto cmd = ten::cmd_t::create("bye");
     ten_env.send_cmd(

@@ -53,7 +53,7 @@ class test_extension_2 : public ten::extension_t {
     thread_ = std::thread([ten_env_proxy]() {
       // Wait for some seconds to ensure that `app/graph` is closed before
       // `on_configure_done`.
-      ten_sleep_ms(2000);
+      ten_random_sleep_range_ms(1000, 2000);
 
       ten_env_proxy->notify(
           [](ten::ten_env_t &ten_env) { ten_env.on_configure_done(); });

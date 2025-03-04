@@ -48,7 +48,7 @@ class test_extension_2 : public ten::extension_t {
 
     stop_thread_ = std::thread([ten_env_proxy]() {
       // Sleep some seconds to ensure the test_extension_1 is dead.
-      ten_sleep_ms(2000);
+      ten_random_sleep_range_ms(1000, 2000);
 
       ten_env_proxy->notify([](ten::ten_env_t &ten_env) {
         auto cmd = ten::cmd_t::create("bye");
