@@ -56,12 +56,10 @@ ten_log_t *ten_log_create(void) {
 void ten_log_deinit(ten_log_t *self) {
   assert(self && ten_log_check_integrity(self) && "Invalid argument.");
 
+  ten_log_encryption_deinit(&self->encryption);
+
   if (self->output.close_cb) {
     self->output.close_cb(self->output.user_data);
-  }
-
-  if (self->encryption.deinit_cb) {
-    self->encryption.deinit_cb(self->encryption.impl);
   }
 }
 

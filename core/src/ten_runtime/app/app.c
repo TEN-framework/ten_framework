@@ -14,7 +14,6 @@
 #include "include_internal/ten_runtime/connection/connection.h"
 #include "include_internal/ten_runtime/extension_group/extension_group.h"
 #include "include_internal/ten_runtime/global/global.h"
-#include "include_internal/ten_runtime/global/signal.h"
 #include "include_internal/ten_runtime/path/path_table.h"
 #include "include_internal/ten_runtime/protocol/protocol.h"
 #include "include_internal/ten_runtime/schema_store/store.h"
