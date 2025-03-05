@@ -185,11 +185,13 @@ impl Graph {
         self.check_extension_uniqueness()?;
         self.check_extension_existence()?;
         self.check_connection_extensions_exist()?;
+
         self.check_nodes_installation(installed_pkgs_of_all_apps, false)?;
         self.check_connections_compatibility(
             installed_pkgs_of_all_apps,
             false,
         )?;
+
         self.check_extension_uniqueness_in_connections()?;
         self.check_message_names()?;
 
@@ -205,11 +207,12 @@ impl Graph {
         self.check_extension_uniqueness()?;
         self.check_extension_existence()?;
         self.check_connection_extensions_exist()?;
-        self.check_nodes_installation(installed_pkgs_of_all_apps, true)?;
 
         // In a single app, there is no information about pkg_info of other
         // apps, neither the message schemas.
+        self.check_nodes_installation(installed_pkgs_of_all_apps, true)?;
         self.check_connections_compatibility(installed_pkgs_of_all_apps, true)?;
+
         self.check_extension_uniqueness_in_connections()?;
         self.check_message_names()?;
 

@@ -488,11 +488,11 @@ fn get_supports_str(pkg: &PkgInfo) -> String {
     }
 }
 
-pub fn compare_solver_results_with_existed_pkgs(
+pub fn compare_solver_results_with_installed_pkgs(
     solver_results: &[&PkgInfo],
-    all_existing_local_pkgs: &[PkgInfo],
+    all_installed_pkgs: &[PkgInfo],
 ) -> bool {
-    let local_pkgs = all_existing_local_pkgs.iter().collect::<Vec<&PkgInfo>>();
+    let local_pkgs = all_installed_pkgs.iter().collect::<Vec<&PkgInfo>>();
 
     let untracked_local_pkgs: Vec<&PkgInfo> =
         find_untracked_local_packages(solver_results, &local_pkgs);
