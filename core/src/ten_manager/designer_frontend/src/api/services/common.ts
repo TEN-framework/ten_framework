@@ -34,7 +34,23 @@ export const useVersion = () => {
     refreshInterval: 0,
   });
   return {
-    version: data?.data.version,
+    version: data?.data?.version,
+    error,
+    isLoading,
+  };
+};
+
+export const useCheckUpdate = () => {
+  const template = ENDPOINT_COMMON.checkUpdate[ENDPOINT_METHOD.GET];
+  const url = prepareReqUrl(template);
+  const [{ data, error, isLoading }] = useCancelableSWR<
+    z.infer<typeof template.responseSchema>
+  >(url, {
+    revalidateOnFocus: false,
+    refreshInterval: 0,
+  });
+  return {
+    data,
     error,
     isLoading,
   };

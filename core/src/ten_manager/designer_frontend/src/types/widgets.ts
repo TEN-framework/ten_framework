@@ -4,6 +4,8 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
+import { z } from "zod";
+
 export interface TerminalData {
   title: string;
   url?: string;
@@ -35,7 +37,6 @@ export enum EWidgetCategory {
   Editor = "editor",
   CustomConnection = "custom_connection",
   LogViewer = "log_viewer",
-  TerminalViewer = "terminal_viewer",
 }
 
 export interface IWidgetBase {
@@ -59,32 +60,45 @@ export interface ICustomConnectionWidget extends IWidgetBase {
   metadata: CustomConnectionData;
 }
 
-interface ILogViewerWidgetData {
+export enum ELogViewerScriptType {
+  DEFAULT = "default",
+  START = "start",
+  INSTALL = "install",
+}
+
+export const LogViewerScriptSchemaMap = {
+  [ELogViewerScriptType.START]: z.object({
+    type: z.literal(ELogViewerScriptType.START),
+    base_dir: z.string().default(""),
+    name: z.string().default(""),
+  }),
+  [ELogViewerScriptType.INSTALL]: z.object({
+    type: z.literal(ELogViewerScriptType.INSTALL),
+    base_dir: z.string().default(""),
+  }),
+  [ELogViewerScriptType.DEFAULT]: z.object({}),
+};
+
+export interface ILogViewerWidgetOptions {
+  disableSearch?: boolean;
+  title?: string | React.ReactNode;
+}
+
+export interface ILogViewerWidgetData<T extends ELogViewerScriptType> {
   wsUrl: string;
-  baseDir: string;
-  scriptName: string;
-  supportStop?: boolean;
+  onStop?: () => void;
+  scriptType: T;
+  script: z.infer<(typeof LogViewerScriptSchemaMap)[T]>;
+  options?: ILogViewerWidgetOptions;
 }
 
 export interface ILogViewerWidget extends IWidgetBase {
   category: EWidgetCategory.LogViewer;
-  metadata: ILogViewerWidgetData;
-}
-
-interface ITerminalViewerWidgetData {
-  wsUrl: string;
-  baseDir: string;
-  supportStop?: boolean;
-}
-
-export interface ITerminalViewerWidget extends IWidgetBase {
-  category: EWidgetCategory.TerminalViewer;
-  metadata: ITerminalViewerWidgetData;
+  metadata: ILogViewerWidgetData<ELogViewerScriptType>;
 }
 
 export type IWidget =
   | ITerminalWidget
   | IEditorWidget
   | ICustomConnectionWidget
-  | ILogViewerWidget
-  | ITerminalViewerWidget;
+  | ILogViewerWidget;

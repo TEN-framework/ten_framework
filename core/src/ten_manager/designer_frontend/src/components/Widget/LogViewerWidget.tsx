@@ -12,45 +12,25 @@ import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
 import { useWidgetStore } from "@/store/widget";
-import { ILogViewerWidget } from "@/types/widgets";
-
-export interface ILogViewerWidgetProps {
-  id: string;
-  data?: {
-    wsUrl?: string;
-    baseDir?: string;
-    scriptName?: string;
-  };
-}
+import { ILogViewerWidget, ILogViewerWidgetOptions } from "@/types/widgets";
 
 export function LogViewerBackstageWidget(props: ILogViewerWidget) {
-  const { id, metadata } = props;
+  const { id, metadata: { wsUrl, scriptType, script } = {} } = props;
 
   const { appendLogViewerHistory } = useWidgetStore();
 
   const wsRef = React.useRef<WebSocket | null>(null);
 
   React.useEffect(() => {
-    if (!metadata?.wsUrl) {
+    if (!wsUrl || !scriptType || !script) {
       return;
     }
 
-    wsRef.current = new WebSocket(metadata.wsUrl);
+    wsRef.current = new WebSocket(wsUrl);
 
     wsRef.current.onopen = () => {
       console.log("[LogViewerWidget] WebSocket connected!");
-
-      // Immediately send the "start" command after establishing a successful
-      // connection.
-      const baseDir = metadata.baseDir || "";
-      const name = metadata.scriptName || "";
-
-      const runMsg = {
-        type: "start",
-        base_dir: baseDir,
-        name: name,
-      };
-      wsRef.current?.send(JSON.stringify(runMsg));
+      wsRef.current?.send(JSON.stringify(script));
     };
 
     wsRef.current.onmessage = (event) => {
@@ -96,13 +76,16 @@ export function LogViewerBackstageWidget(props: ILogViewerWidget) {
       wsRef.current?.close();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id, metadata?.wsUrl, metadata?.baseDir, metadata?.scriptName]);
+  }, [id, wsUrl, scriptType, script]);
 
   return <></>;
 }
 
-export function LogViewerFrontStageWidget(props: ILogViewerWidgetProps) {
-  const { id } = props;
+export function LogViewerFrontStageWidget(props: {
+  id: string;
+  options?: ILogViewerWidgetOptions;
+}) {
+  const { id, options } = props;
 
   const [searchInput, setSearchInput] = React.useState("");
   const defferedSearchInput = React.useDeferredValue(searchInput);
@@ -129,18 +112,24 @@ export function LogViewerFrontStageWidget(props: ILogViewerWidgetProps) {
 
   return (
     <div className="flex h-full w-full flex-col" id={id}>
-      <div className="h-12 w-full flex items-center space-x-2 px-2">
-        <Input
-          placeholder="Search"
-          className="w-full"
-          value={searchInput}
-          onChange={(e) => setSearchInput(e.target.value)}
-        />
-        <Button variant="outline" className="hidden">
-          {t("action.search")}
-        </Button>
-      </div>
-      <ScrollArea className="h-[calc(100%-3rem)] w-full">
+      {!options?.disableSearch && (
+        <div className="h-12 w-full flex items-center space-x-2 px-2">
+          <Input
+            placeholder="Search"
+            className="w-full"
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+          />
+          <Button variant="outline" className="hidden">
+            {t("action.search")}
+          </Button>
+        </div>
+      )}
+      <ScrollArea
+        className={cn("h-full w-full", {
+          "h-[calc(100%-3rem)]": options?.disableSearch,
+        })}
+      >
         <div className="p-2">
           <LogViewerLogItemList logs={logsMemo} search={defferedSearchInput} />
           <span ref={scrollSpan} />
