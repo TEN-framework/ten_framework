@@ -15,7 +15,7 @@ export const ENDPOINT_GH = {
       url: `${API_GH_ROOT}/repos/:owner/:repo`,
       method: ENDPOINT_METHOD.GET,
       pathParams: ["owner", "repo"],
-      // partial schema, add more fields as needed
+      // Partial schema, add more fields as needed.
       responseSchema: z.object({
         id: z.number(),
         name: z.string(),
