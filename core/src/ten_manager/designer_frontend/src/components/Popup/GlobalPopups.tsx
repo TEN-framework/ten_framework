@@ -22,6 +22,7 @@ export function GlobalPopups() {
     terminalWidgetsMemo,
     customConnectionWidgetsMemo,
     logViewerWidgetsMemo,
+    terminalViewerWidgetsMemo,
   ] = React.useMemo(() => {
     const popupWidgets = widgets.filter(
       (widget) => widget.display_type === EWidgetDisplayType.Popup
@@ -79,7 +80,7 @@ export function GlobalPopups() {
           onClose={() => removeWidget(widget.id)}
         />
       ))}
-      {logViewerWidgetsMemo.map((widget) => (
+      {[...logViewerWidgetsMemo, ...terminalViewerWidgetsMemo].map((widget) => (
         <LogViewerPopup
           id={widget.id}
           key={`LogViewerPopup-${widget.id}`}

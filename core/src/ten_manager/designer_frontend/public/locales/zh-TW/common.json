@@ -1,0 +1,97 @@
+{
+  "tenFramework": "TEN 框架",
+  "header": {
+    "title": "Ten 管理器",
+    "menu": {
+      "edit": "編輯",
+      "openExistingGraph": "開啟現有圖表",
+      "autoLayout": "自動佈局",
+      "openAppFolder": "開啟應用程式資料夾",
+      "file": "檔案",
+      "app": "應用程式",
+      "help": "幫助",
+      "about": "關於",
+      "language": "語言",
+      "language.enUS": "English",
+      "language.zhCN": "簡體中文",
+      "language.zhTW": "繁體中文",
+      "theme": "主題",
+      "theme.light": "明亮",
+      "theme.dark": "暗黑",
+      "theme.system": "系統",
+      "start": "啟動",
+      "preferences": "偏好設定",
+      "installAll": "安裝所有"
+    },
+    "officialSite": "官方網站",
+    "poweredBy": "技術支援",
+    "poweredByTenFramework": "由 <0></0> 提供支援",
+    "github": "GitHub"
+  },
+  "action": {
+    "edit": "編輯",
+    "delete": "刪除",
+    "pinToDock": "固定在 Dock",
+    "save": "儲存",
+    "discard": "丟棄",
+    "launchTerminal": "啟動終端機",
+    "ok": "確定",
+    "cancel": "取消",
+    "selected": "已選擇",
+    "autoStart": "自動啟動",
+    "confirm": "確認",
+    "upstream": "上游",
+    "downstream": "下游",
+    "popout": "彈出",
+    "close": "關閉",
+    "closeAllTabs": "關閉所有標籤頁",
+    "unsaved": "未保存",
+    "launchLogViewer": "查看日誌",
+    "stop": "停止",
+    "search": "搜尋"
+  },
+  "toast": {
+    "saveFileSuccess": "檔案儲存成功",
+    "saveFileFailed": "檔案儲存失敗",
+    "fetchFileContentFailed": "文件內容取得失敗"
+  },
+  "popup": {
+    "editor": {
+      "confirmSaveFile": "確定要儲存檔案嗎？",
+      "confirmSaveChanges": "確定要儲存變更嗎？",
+      "confirmCloseAllTabs": "確定要關閉所有標籤頁嗎？所有未儲存的變更將會遺失。",
+      "confirmChangePosition": "確定要更改 Dock 位置嗎？所有未儲存的變更將會遺失。"
+    },
+    "selectGraph": {
+      "title": "選擇圖表"
+    },
+    "customNodeConn": {
+      "srcTitle": "節點[{{source}}]連接",
+      "connectTitle": "連線詳情",
+      "title": "連線"
+    },
+    "logViewer": {
+      "title": "日誌檢視器"
+    }
+  },
+  "dock": {
+    "notSelected": "未選擇標籤頁",
+    "dockSide": "停靠位置",
+    "left": "左側",
+    "right": "右側",
+    "bottom": "底部"
+  },
+  "dataTable": {
+    "no": "序號",
+    "upstream": "上游",
+    "downstream": "下游",
+    "type": "型別",
+    "source": "來源",
+    "target": "目標",
+    "actions": "操作",
+    "viewDetails": "查看詳情",
+    "delete": "刪除",
+    "openMenu": "開啟選單",
+    "noResults": "無結果"
+  }
+}

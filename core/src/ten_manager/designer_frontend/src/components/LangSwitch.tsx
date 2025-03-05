@@ -38,6 +38,12 @@ export function LanguageToggle() {
           {i18n.language === "zh-CN" && (
             <CheckIcon className="ml-auto h-4 w-4" />
           )}
+        </DropdownMenuItem>{" "}
+        <DropdownMenuItem onClick={() => i18n.changeLanguage("zh-TW")}>
+          <span>{t("header.menu.language.zhTW")}</span>
+          {i18n.language === "zh-TW" && (
+            <CheckIcon className="ml-auto h-4 w-4" />
+          )}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

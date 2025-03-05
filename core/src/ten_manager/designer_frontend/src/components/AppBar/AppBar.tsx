@@ -14,9 +14,9 @@ import {
 import { ModeToggle } from "@/components/ModeToggle";
 import { LanguageToggle } from "@/components/LangSwitch";
 import { Badge } from "@/components/ui/Badge";
-import { FileMenu } from "@/components/AppBar/FileMenu";
-import { EditMenu } from "@/components/AppBar/EditMenu";
-import { HelpMenu } from "@/components/AppBar/HelpMenu";
+import { AppMenu } from "@/components/AppBar/Menu/AppMenu";
+import { EditMenu } from "@/components/AppBar/Menu/EditMenu";
+import { HelpMenu } from "@/components/AppBar/Menu/HelpMenu";
 import { AppStatus } from "@/components/AppBar/AppStatus";
 import { GHStargazersCount } from "@/components/Widget/GH";
 import { cn } from "@/lib/utils";
@@ -65,7 +65,7 @@ const AppBar: React.FC<AppBarProps> = ({
     >
       <NavigationMenu onValueChange={onNavChange}>
         <NavigationMenuList>
-          <FileMenu onSetBaseDir={onSetBaseDir} />
+          <AppMenu onSetBaseDir={onSetBaseDir} />
           <EditMenu
             onAutoLayout={onAutoLayout}
             onOpenExistingGraph={onOpenExistingGraph}
