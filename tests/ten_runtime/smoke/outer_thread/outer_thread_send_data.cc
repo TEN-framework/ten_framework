@@ -42,7 +42,7 @@ class test_extension_1 : public ten::extension_t {
         break;
       }
 
-      ten_random_sleep_ms(10);
+      ten_random_sleep_range_ms(0, 10);
     }
   }
 

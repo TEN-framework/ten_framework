@@ -39,3 +39,4 @@ export { ENDPOINT_GRAPHS } from "@/api/endpoints/graphs";
 export { ENDPOINT_ADDONS } from "@/api/endpoints/addons";
 export { ENDPOINT_FILE_SYSTEM } from "@/api/endpoints/fileSystem";
 export { ENDPOINT_APP } from "@/api/endpoints/app";
+export { ENDPOINT_GH } from "@/api/endpoints/github";

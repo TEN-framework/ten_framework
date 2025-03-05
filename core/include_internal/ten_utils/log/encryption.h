@@ -26,6 +26,9 @@
 
 TEN_UTILS_PRIVATE_API void ten_log_encryption_init(ten_log_encryption_t *self);
 
+TEN_UTILS_PRIVATE_API void ten_log_encryption_deinit(
+    ten_log_encryption_t *self);
+
 TEN_UTILS_PRIVATE_API void ten_log_encrypt_data(ten_log_t *self, uint8_t *data,
                                                 size_t data_len);
 

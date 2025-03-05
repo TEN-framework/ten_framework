@@ -124,4 +124,11 @@ TEST(LogTest, LogEncryption) {  // NOLINT
   // Check the log file exists.
   std::ifstream log_file("log_file.log");
   EXPECT_TRUE(log_file.good());
+
+  // We need to call this encryption deinit function separately here to disable
+  // the encryption settings. Otherwise, the logs for subsequent test cases will
+  // be encrypted, making them unreadable and difficult to debug. In the normal
+  // operation of the TEN app, this function is already called, so there is no
+  // need for special handling like in this case.
+  ten_log_global_deinit_encryption();
 }

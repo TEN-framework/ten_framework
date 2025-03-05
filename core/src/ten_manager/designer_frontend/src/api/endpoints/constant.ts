@@ -27,3 +27,6 @@ export enum ENDPOINT_METHOD {
   PUT = "put",
   DELETE = "delete",
 }
+
+// Github
+export const API_GH_ROOT = "https://api.github.com";

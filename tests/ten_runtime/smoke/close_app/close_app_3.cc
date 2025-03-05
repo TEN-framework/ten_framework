@@ -6,14 +6,12 @@
 //
 #include <nlohmann/json.hpp>
 #include <string>
+#include <thread>
 
 #include "gtest/gtest.h"
 #include "include_internal/ten_runtime/binding/cpp/ten.h"
 #include "ten_runtime/binding/cpp/detail/ten_env_proxy.h"
-#include "ten_runtime/common/status_code.h"
-#include "ten_utils/lang/cpp/lib/error.h"
 #include "ten_utils/lib/thread.h"
-#include "ten_utils/lib/time.h"
 #include "tests/common/client/cpp/msgpack_tcp.h"
 #include "tests/ten_runtime/smoke/util/binding/cpp/check.h"
 
@@ -44,24 +42,16 @@ class test_extension_2 : public ten::extension_t {
   explicit test_extension_2(const char *name) : ten::extension_t(name) {}
 
   void on_stop(ten::ten_env_t &ten_env) override {
-    // Sleep some seconds to ensure the test_extension_1 is dead.
-    ten_random_sleep_range_ms(1000, 2000);
+    // This invocation will throw a `"thread::join failed: Invalid argument"`
+    // exception, which is used to test whether the TEN app can still properly
+    // terminate under this condition.
+    thread_.join();
 
-    auto cmd = ten::cmd_t::create("bye");
-    ten_env.send_cmd(
-        std::move(cmd),
-        [](ten::ten_env_t &ten_env,
-           std::unique_ptr<ten::cmd_result_t> cmd_result, ten::error_t *err) {
-          if (cmd_result) {
-            auto status = cmd_result->get_status_code();
-            ASSERT_EQ(status, TEN_STATUS_CODE_ERROR);
-          }
-
-          ten_env.on_stop_done();
-        });
+    ten_env.on_stop_done();
   }
 
-  void on_deinit(ten::ten_env_t &ten_env) override { ten_env.on_deinit_done(); }
+ private:
+  std::thread thread_;
 };
 
 class test_app : public ten::app_t {
@@ -91,14 +81,14 @@ void *test_app_thread_main(TEN_UNUSED void *args) {
   return nullptr;
 }
 
-TEN_CPP_REGISTER_ADDON_AS_EXTENSION(send_cmd_to_dead_ext__test_extension_1,
+TEN_CPP_REGISTER_ADDON_AS_EXTENSION(close_app_3__test_extension_1,
                                     test_extension_1);
-TEN_CPP_REGISTER_ADDON_AS_EXTENSION(send_cmd_to_dead_ext__test_extension_2,
+TEN_CPP_REGISTER_ADDON_AS_EXTENSION(close_app_3__test_extension_2,
                                     test_extension_2);
 
 }  // namespace
 
-TEST(CloseAppTest, SendCmdToDeadExt) {  // NOLINT
+TEST(CloseAppTest, CloseApp3) {  // NOLINT
   // Start app.
   auto *app_thread =
       ten_thread_create("app thread", test_app_thread_main, nullptr);
@@ -112,29 +102,15 @@ TEST(CloseAppTest, SendCmdToDeadExt) {  // NOLINT
            "nodes": [{
                 "type": "extension",
                 "name": "test_extension_1",
-                "addon": "send_cmd_to_dead_ext__test_extension_1",
+                "addon": "close_app_3__test_extension_1",
                 "extension_group": "basic_extension_group_1",
                 "app": "msgpack://127.0.0.1:8001/"
              },{
                 "type": "extension",
                 "name": "test_extension_2",
-                "addon": "send_cmd_to_dead_ext__test_extension_2",
+                "addon": "close_app_3__test_extension_2",
                 "extension_group": "basic_extension_group_2",
-                "app": "msgpack://127.0.0.1:8001/",
-                "property": {
-                  "test_property": "test_value"
-                }
-             }],
-             "connections": [{
-               "app": "msgpack://127.0.0.1:8001/",
-               "extension": "test_extension_2",
-               "cmd": [{
-                 "name": "bye",
-                 "dest": [{
-                   "app": "msgpack://127.0.0.1:8001/",
-                   "extension": "test_extension_1"
-                 }]
-               }]
+                "app": "msgpack://127.0.0.1:8001/"
              }]
            })");
   auto cmd_result =

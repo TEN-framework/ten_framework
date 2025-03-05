@@ -180,12 +180,18 @@ impl Graph {
 
     pub fn check(
         &self,
-        existed_pkgs_of_all_apps: &HashMap<String, Vec<PkgInfo>>,
+        installed_pkgs_of_all_apps: &HashMap<String, Vec<PkgInfo>>,
     ) -> Result<()> {
-        self.check_if_nodes_duplicated()?;
-        self.check_if_extensions_used_in_connections_have_defined_in_nodes()?;
-        self.check_if_nodes_have_installed(existed_pkgs_of_all_apps, false)?;
-        self.check_connections_compatible(existed_pkgs_of_all_apps, false)?;
+        self.check_extension_uniqueness()?;
+        self.check_extension_existence()?;
+        self.check_connection_extensions_exist()?;
+
+        self.check_nodes_installation(installed_pkgs_of_all_apps, false)?;
+        self.check_connections_compatibility(
+            installed_pkgs_of_all_apps,
+            false,
+        )?;
+
         self.check_extension_uniqueness_in_connections()?;
         self.check_message_names()?;
 
@@ -194,17 +200,19 @@ impl Graph {
 
     pub fn check_for_single_app(
         &self,
-        existed_pkgs_of_app: &HashMap<String, Vec<PkgInfo>>,
+        installed_pkgs_of_all_apps: &HashMap<String, Vec<PkgInfo>>,
     ) -> Result<()> {
-        assert!(existed_pkgs_of_app.len() == 1);
+        assert!(installed_pkgs_of_all_apps.len() == 1);
 
-        self.check_if_nodes_duplicated()?;
-        self.check_if_extensions_used_in_connections_have_defined_in_nodes()?;
-        self.check_if_nodes_have_installed(existed_pkgs_of_app, true)?;
+        self.check_extension_uniqueness()?;
+        self.check_extension_existence()?;
+        self.check_connection_extensions_exist()?;
 
         // In a single app, there is no information about pkg_info of other
         // apps, neither the message schemas.
-        self.check_connections_compatible(existed_pkgs_of_app, true)?;
+        self.check_nodes_installation(installed_pkgs_of_all_apps, true)?;
+        self.check_connections_compatibility(installed_pkgs_of_all_apps, true)?;
+
         self.check_extension_uniqueness_in_connections()?;
         self.check_message_names()?;
 
@@ -462,6 +470,12 @@ mod tests {
 
     use super::*;
 
+    fn check_extension_existence_and_uniqueness(graph: &Graph) -> Result<()> {
+        graph.check_extension_existence()?;
+        graph.check_extension_uniqueness()?;
+        Ok(())
+    }
+
     #[test]
     fn test_predefined_graph_has_no_extensions() {
         let property_str =
@@ -471,7 +485,7 @@ mod tests {
         let predefined_graph =
             ten.predefined_graphs.as_ref().unwrap().first().unwrap();
         let graph = &predefined_graph.graph;
-        let result = graph.check_if_nodes_duplicated();
+        let result = check_extension_existence_and_uniqueness(graph);
         assert!(result.is_err());
         println!("Error: {:?}", result.err().unwrap());
     }
@@ -486,7 +500,7 @@ mod tests {
         let predefined_graph =
             ten.predefined_graphs.as_ref().unwrap().first().unwrap();
         let graph = &predefined_graph.graph;
-        let result = graph.check_if_nodes_duplicated();
+        let result = check_extension_existence_and_uniqueness(graph);
         assert!(result.is_err());
         println!("Error: {:?}", result.err().unwrap());
     }
@@ -498,7 +512,7 @@ mod tests {
         );
 
         let graph: Graph = Graph::from_str(cmd_str).unwrap();
-        let result = graph.check_if_nodes_duplicated();
+        let result = check_extension_existence_and_uniqueness(&graph);
         assert!(result.is_err());
         println!("Error: {:?}", result.err().unwrap());
     }
@@ -514,8 +528,7 @@ mod tests {
             ten.predefined_graphs.as_ref().unwrap().first().unwrap();
 
         let graph = &predefined_graph.graph;
-        let result = graph
-            .check_if_extensions_used_in_connections_have_defined_in_nodes();
+        let result = graph.check_connection_extensions_exist();
         assert!(result.is_err());
         println!("Error: {:?}", result.err().unwrap());
     }
@@ -531,8 +544,7 @@ mod tests {
             ten.predefined_graphs.as_ref().unwrap().first().unwrap();
 
         let graph = &predefined_graph.graph;
-        let result = graph
-            .check_if_extensions_used_in_connections_have_defined_in_nodes();
+        let result = graph.check_connection_extensions_exist();
         assert!(result.is_err());
         println!("Error: {:?}", result.err().unwrap());
     }

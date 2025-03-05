@@ -11,7 +11,7 @@ use clap::{Arg, ArgMatches, Command};
 use console::Emoji;
 
 use ten_rust::pkg_info::{
-    get_all_installed_pkgs_info_of_app, graph::Graph, localhost,
+    get_app_installed_pkgs, graph::Graph, localhost,
     property::parse_property_in_folder, PkgInfo,
 };
 
@@ -98,7 +98,7 @@ fn validate_cmd_args(command: &CheckGraphCommand) -> Result<()> {
     Ok(())
 }
 
-fn get_existed_pkgs_of_all_apps(
+fn get_app_installed_pkgs_with_cmd_data(
     command: &CheckGraphCommand,
 ) -> Result<HashMap<String, Vec<PkgInfo>>> {
     let mut pkgs_info: HashMap<String, Vec<PkgInfo>> = HashMap::new();
@@ -107,7 +107,7 @@ fn get_existed_pkgs_of_all_apps(
 
     for app in &command.app_dir {
         let app_path = path::Path::new(app);
-        let app_existed_pkgs = get_all_installed_pkgs_info_of_app(app_path)?;
+        let app_installed_pkgs = get_app_installed_pkgs(app_path)?;
 
         let app_property = parse_property_in_folder(app_path)?;
         let app_uri = if let Some(property) = app_property {
@@ -123,7 +123,7 @@ fn get_existed_pkgs_of_all_apps(
             ));
         }
 
-        let present_pkg = pkgs_info.insert(app_uri.clone(), app_existed_pkgs);
+        let present_pkg = pkgs_info.insert(app_uri.clone(), app_installed_pkgs);
         if present_pkg.is_some() {
             return Err(anyhow::anyhow!(
                 "All apps should have a unique uri, but uri [{}] is duplicated.",
@@ -196,7 +196,8 @@ pub async fn execute_cmd(
 ) -> Result<()> {
     validate_cmd_args(&command_data)?;
 
-    let existed_pkgs_of_all_apps = get_existed_pkgs_of_all_apps(&command_data)?;
+    let installed_pkgs_of_all_apps =
+        get_app_installed_pkgs_with_cmd_data(&command_data)?;
     let graphs = get_graphs_to_be_checked(&command_data)?;
 
     let mut err_count = 0;
@@ -204,7 +205,7 @@ pub async fn execute_cmd(
     for (graph_idx, graph) in graphs.iter().enumerate() {
         print!("Checking graph[{}]... ", graph_idx);
 
-        match graph.check(&existed_pkgs_of_all_apps) {
+        match graph.check(&installed_pkgs_of_all_apps) {
             Ok(_) => println!("{}", Emoji("👍", "Passed")),
             Err(e) => {
                 err_count += 1;
