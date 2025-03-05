@@ -71,7 +71,8 @@
       "title": "連線"
     },
     "logViewer": {
-      "title": "日誌檢視器"
+      "title": "日誌檢視器",
+      "appInstall": "應用安裝"
     }
   },
   "dock": {
