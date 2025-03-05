@@ -6,6 +6,7 @@
 //
 mod addons;
 mod app;
+mod builtin_function;
 mod common;
 mod dir_list;
 mod exec;
@@ -101,6 +102,10 @@ pub fn configure_routes(
             .route("/app/base-dir", web::get().to(app::base_dir::get_base_dir))
             .route("/dir-list/{path}", web::get().to(dir_list::list_dir))
             .route("/ws/exec", web::get().to(exec::exec))
+            .route(
+                "/ws/builtin-function",
+                web::get().to(builtin_function::builtin_function),
+            )
             .route("/ws/run-script", web::get().to(run_script::run_script))
             .route("/ws/app/install", web::get().to(app::install::install))
             .route("/ws/terminal", web::get().to(terminal::ws_terminal)),

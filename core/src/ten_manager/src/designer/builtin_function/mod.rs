@@ -4,10 +4,9 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-mod cmd_run;
+mod install_all;
 mod msg_out;
 
-use std::process::Child;
 use std::sync::{Arc, RwLock};
 
 use actix::{Actor, Handler, Message, StreamHandler};
@@ -19,83 +18,76 @@ use msg_out::OutboundMsg;
 use serde::{Deserialize, Serialize};
 
 use crate::designer::DesignerState;
+use crate::output::TmanOutputWs;
 
-// The output (stdout, stderr) and exit status from the child process.
 #[derive(Message)]
 #[rtype(result = "()")]
-pub enum RunCmdOutput {
-    StdOut(String),
-    StdErr(String),
+pub enum BuiltinFunctionOutput {
+    NormalOutput(String),
+    ErrorOutput(String),
     Exit(i32),
 }
 
-/// `CmdParser` returns a tuple: the 1st element is the command string, and
-/// the 2nd is an optional working directory.
-pub type CmdParser =
-    Box<dyn Fn(&str) -> Result<(String, Option<String>)> + Send + Sync>;
-
-pub struct WsRunCmd {
-    child: Option<Child>,
-    cmd_parser: CmdParser,
-    working_directory: Option<String>,
+enum BuiltinFunction {
+    InstallAll { base_dir: String },
 }
 
-impl WsRunCmd {
-    pub fn new(cmd_parser: CmdParser) -> Self {
+/// `BuiltinFunctionParser` returns a tuple: the 1st element is the command
+/// string, and the 2nd is an optional working directory.
+type BuiltinFunctionParser =
+    Box<dyn Fn(&str) -> Result<BuiltinFunction> + Send + Sync>;
+
+pub struct WsBuiltinFunction {
+    builtin_function_parser: BuiltinFunctionParser,
+    output_ws: TmanOutputWs,
+}
+
+impl WsBuiltinFunction {
+    fn new(builtin_function_parser: BuiltinFunctionParser) -> Self {
         Self {
-            child: None,
-            cmd_parser,
-            working_directory: None,
+            builtin_function_parser,
+            output_ws: TmanOutputWs::new(),
         }
     }
 }
 
-impl Actor for WsRunCmd {
+impl Actor for WsBuiltinFunction {
     // Each actor runs within its own context and can receive and process
     // messages. This context provides various methods for interacting with the
     // actor, such as sending messages, closing connections, and more.
     type Context = ws::WebsocketContext<Self>;
 
-    fn started(&mut self, _ctx: &mut Self::Context) {
-        // We don't yet spawn the child command. We'll wait for the first
-        // message from client that includes `base_dir` and `name`.
-    }
+    fn started(&mut self, _ctx: &mut Self::Context) {}
 
-    fn stopped(&mut self, _ctx: &mut Self::Context) {
-        // If the process is still running, try to kill it.
-        if let Some(mut child) = self.child.take() {
-            let _ = child.kill();
-        }
-    }
+    fn stopped(&mut self, _ctx: &mut Self::Context) {}
 }
 
-impl Handler<RunCmdOutput> for WsRunCmd {
+impl Handler<BuiltinFunctionOutput> for WsBuiltinFunction {
     type Result = ();
 
-    // Handles the output (stderr, stdout) and exit status from the child
-    // process.
+    // Handles the output and exit status from the builtin function.
     fn handle(
         &mut self,
-        msg: RunCmdOutput,
+        msg: BuiltinFunctionOutput,
         ctx: &mut Self::Context,
     ) -> Self::Result {
         match msg {
-            RunCmdOutput::StdOut(line) => {
+            BuiltinFunctionOutput::NormalOutput(line) => {
                 // Send the line to the client.
-                let msg_out = OutboundMsg::StdOut { data: line };
+                let msg_out = OutboundMsg::NormalOutput { data: line };
                 let out_str = serde_json::to_string(&msg_out).unwrap();
 
                 // Sends a text message to the WebSocket client.
                 ctx.text(out_str);
             }
-            RunCmdOutput::StdErr(line) => {
-                let msg_out = OutboundMsg::StdErr { data: line };
+            BuiltinFunctionOutput::ErrorOutput(line) => {
+                let msg_out = OutboundMsg::ErrorOutput { data: line };
                 let out_str = serde_json::to_string(&msg_out).unwrap();
 
                 // Sends a text message to the WebSocket client.
                 ctx.text(out_str);
             }
-            RunCmdOutput::Exit(code) => {
+            BuiltinFunctionOutput::Exit(code) => {
                 // Send it to the client.
                 let msg_out = OutboundMsg::Exit { code };
                 let out_str = serde_json::to_string(&msg_out).unwrap();
@@ -112,7 +104,9 @@ impl Handler<RunCmdOutput> for WsRunCmd {
     }
 }
 
-impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WsRunCmd {
+impl StreamHandler<Result<ws::Message, ws::ProtocolError>>
+    for WsBuiltinFunction
+{
     // Handles messages from WebSocket clients, including text messages, Ping,
     // Close, and more.
     fn handle(
@@ -121,21 +115,21 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WsRunCmd {
         ctx: &mut Self::Context,
     ) {
         match item {
-            Ok(ws::Message::Text(text)) => match (self.cmd_parser)(&text) {
-                Ok((cmd, working_directory)) => {
-                    if let Some(dir) = working_directory {
-                        self.working_directory = Some(dir);
+            Ok(ws::Message::Text(text)) => {
+                match (self.builtin_function_parser)(&text) {
+                    Ok(builtin_function) => match builtin_function {
+                        BuiltinFunction::InstallAll { base_dir } => {
+                            self.install_all(base_dir, ctx)
+                        }
+                    },
+                    Err(e) => {
+                        let err_out = OutboundMsg::Error { msg: e.to_string() };
+                        let out_str = serde_json::to_string(&err_out).unwrap();
+                        ctx.text(out_str);
+                        ctx.close(None);
                     }
-
-                    self.cmd_run(&cmd, ctx);
                 }
-                Err(e) => {
-                    let err_out = OutboundMsg::Error { msg: e.to_string() };
-                    let out_str = serde_json::to_string(&err_out).unwrap();
-                    ctx.text(out_str);
-                    ctx.close(None);
-                }
-            },
+            }
             Ok(ws::Message::Ping(msg)) => ctx.pong(&msg),
             Ok(ws::Message::Close(_)) => {
                 ctx.close(None);
@@ -149,24 +143,26 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WsRunCmd {
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(tag = "type")]
 enum InboundMsg {
-    #[serde(rename = "exec")]
-    Exec { base_dir: String, cmd: String },
+    #[serde(rename = "install_all")]
+    InstallAll { base_dir: String },
 }
 
-pub async fn exec(
+pub async fn builtin_function(
     req: HttpRequest,
     stream: web::Payload,
     _state: web::Data<Arc<RwLock<DesignerState>>>,
 ) -> Result<HttpResponse, Error> {
-    let default_parser: CmdParser = Box::new(move |text: &str| {
+    let default_parser: BuiltinFunctionParser = Box::new(move |text: &str| {
         // Attempt to parse the JSON text from client.
         let inbound = serde_json::from_str::<InboundMsg>(text)
             .with_context(|| format!("Failed to parse {} into JSON", text))?;
 
         match inbound {
-            InboundMsg::Exec { base_dir, cmd } => Ok((cmd, Some(base_dir))),
+            InboundMsg::InstallAll { base_dir } => {
+                Ok(BuiltinFunction::InstallAll { base_dir })
+            }
         }
     });
 
-    ws::start(WsRunCmd::new(default_parser), &req, stream)
+    ws::start(WsBuiltinFunction::new(default_parser), &req, stream)
 }
