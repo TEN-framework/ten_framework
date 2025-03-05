@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
 import { useWidgetStore } from "@/store/widget";
-import { ILogViewerWidget } from "@/types/widgets";
+import { ILogViewerWidget, ILogViewerWidgetOptions } from "@/types/widgets";
 
 export function LogViewerBackstageWidget(props: ILogViewerWidget) {
   const { id, metadata: { wsUrl, scriptType, script } = {} } = props;
@@ -81,8 +81,11 @@ export function LogViewerBackstageWidget(props: ILogViewerWidget) {
   return <></>;
 }
 
-export function LogViewerFrontStageWidget(props: { id: string }) {
-  const { id } = props;
+export function LogViewerFrontStageWidget(props: {
+  id: string;
+  options?: ILogViewerWidgetOptions;
+}) {
+  const { id, options } = props;
 
   const [searchInput, setSearchInput] = React.useState("");
   const defferedSearchInput = React.useDeferredValue(searchInput);
@@ -109,18 +112,24 @@ export function LogViewerFrontStageWidget(props: { id: string }) {
 
   return (
     <div className="flex h-full w-full flex-col" id={id}>
-      <div className="h-12 w-full flex items-center space-x-2 px-2">
-        <Input
-          placeholder="Search"
-          className="w-full"
-          value={searchInput}
-          onChange={(e) => setSearchInput(e.target.value)}
-        />
-        <Button variant="outline" className="hidden">
-          {t("action.search")}
-        </Button>
-      </div>
-      <ScrollArea className="h-[calc(100%-3rem)] w-full">
+      {!options?.disableSearch && (
+        <div className="h-12 w-full flex items-center space-x-2 px-2">
+          <Input
+            placeholder="Search"
+            className="w-full"
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+          />
+          <Button variant="outline" className="hidden">
+            {t("action.search")}
+          </Button>
+        </div>
+      )}
+      <ScrollArea
+        className={cn("h-full w-full", {
+          "h-[calc(100%-3rem)]": options?.disableSearch,
+        })}
+      >
         <div className="p-2">
           <LogViewerLogItemList logs={logsMemo} search={defferedSearchInput} />
           <span ref={scrollSpan} />

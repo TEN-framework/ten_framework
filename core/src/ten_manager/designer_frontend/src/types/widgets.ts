@@ -79,11 +79,17 @@ export const LogViewerScriptSchemaMap = {
   [ELogViewerScriptType.DEFAULT]: z.object({}),
 };
 
-interface ILogViewerWidgetData<T extends ELogViewerScriptType> {
+export interface ILogViewerWidgetOptions {
+  disableSearch?: boolean;
+  title?: string | React.ReactNode;
+}
+
+export interface ILogViewerWidgetData<T extends ELogViewerScriptType> {
   wsUrl: string;
   onStop?: () => void;
   scriptType: T;
   script: z.infer<(typeof LogViewerScriptSchemaMap)[T]>;
+  options?: ILogViewerWidgetOptions;
 }
 
 export interface ILogViewerWidget extends IWidgetBase {

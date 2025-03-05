@@ -69,7 +69,7 @@ export function LogViewerPopup(props: {
       title={
         <div className="flex items-center gap-1.5">
           <span className="font-medium text-foreground/90 font-sans">
-            {t("popup.logViewer.title")}
+            {data?.options?.title || t("popup.logViewer.title")}
           </span>
           {/* <span className="text-foreground/50 text-sm font-sans">
             {hasUnsavedChanges ? `(${t("action.unsaved")})` : ""}
@@ -101,7 +101,7 @@ export function LogViewerPopup(props: {
           : []),
       ]}
     >
-      <LogViewerFrontStageWidget id={id} />
+      <LogViewerFrontStageWidget id={id} options={data?.options} />
     </Popup>
   );
 }

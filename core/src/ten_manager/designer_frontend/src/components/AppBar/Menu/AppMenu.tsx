@@ -124,6 +124,10 @@ export function AppMenu(props: AppMenuProps) {
             type: ELogViewerScriptType.INSTALL,
             base_dir: baseDir,
           },
+          options: {
+            disableSearch: true,
+            title: t("popup.logViewer.appInstall"),
+          },
           // onStop: () => {
           //   console.log("app-install-widget-closed", baseDir);
           // },

@@ -71,7 +71,8 @@
       "title": "连接"
     },
     "logViewer": {
-      "title": "日志查看器"
+      "title": "日志查看器",
+      "appInstall": "应用安装"
     }
   },
   "dock": {

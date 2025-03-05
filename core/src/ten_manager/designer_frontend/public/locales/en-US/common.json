@@ -71,7 +71,8 @@
       "title": "Connection"
     },
     "logViewer": {
-      "title": "Log Viewer"
+      "title": "Log Viewer",
+      "appInstall": "App Install"
     }
   },
   "dock": {
