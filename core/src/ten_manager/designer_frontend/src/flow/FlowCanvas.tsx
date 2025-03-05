@@ -33,6 +33,7 @@ import {
   EWidgetDisplayType,
   EWidgetCategory,
   type EditorData,
+  ELogViewerScriptType,
 } from "@/types/widgets";
 
 // Import react-flow style.
@@ -98,7 +99,11 @@ const FlowCanvas = forwardRef<FlowCanvasRef, FlowCanvasProps>(
       appendWidgetIfNotExists({
         id: `logViewer-${Date.now()}`,
         category: EWidgetCategory.LogViewer,
-        metadata: { wsUrl: "", baseDir: "", scriptName: "" },
+        metadata: {
+          wsUrl: "",
+          scriptType: ELogViewerScriptType.DEFAULT,
+          script: {},
+        },
         display_type: EWidgetDisplayType.Popup,
       });
     };

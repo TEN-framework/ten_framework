@@ -14,43 +14,23 @@ import { cn } from "@/lib/utils";
 import { useWidgetStore } from "@/store/widget";
 import { ILogViewerWidget } from "@/types/widgets";
 
-export interface ILogViewerWidgetProps {
-  id: string;
-  data?: {
-    wsUrl?: string;
-    baseDir?: string;
-    scriptName?: string;
-  };
-}
-
 export function LogViewerBackstageWidget(props: ILogViewerWidget) {
-  const { id, metadata } = props;
+  const { id, metadata: { wsUrl, scriptType, script } = {} } = props;
 
   const { appendLogViewerHistory } = useWidgetStore();
 
   const wsRef = React.useRef<WebSocket | null>(null);
 
   React.useEffect(() => {
-    if (!metadata?.wsUrl) {
+    if (!wsUrl || !scriptType || !script) {
       return;
     }
 
-    wsRef.current = new WebSocket(metadata.wsUrl);
+    wsRef.current = new WebSocket(wsUrl);
 
     wsRef.current.onopen = () => {
       console.log("[LogViewerWidget] WebSocket connected!");
-
-      // Immediately send the "start" command after establishing a successful
-      // connection.
-      const baseDir = metadata.baseDir || "";
-      const name = metadata.scriptName || "";
-
-      const runMsg = {
-        type: "start",
-        base_dir: baseDir,
-        name: name,
-      };
-      wsRef.current?.send(JSON.stringify(runMsg));
+      wsRef.current?.send(JSON.stringify(script));
     };
 
     wsRef.current.onmessage = (event) => {
@@ -96,12 +76,12 @@ export function LogViewerBackstageWidget(props: ILogViewerWidget) {
       wsRef.current?.close();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id, metadata?.wsUrl, metadata?.baseDir, metadata?.scriptName]);
+  }, [id, wsUrl, scriptType, script]);
 
   return <></>;
 }
 
-export function LogViewerFrontStageWidget(props: ILogViewerWidgetProps) {
+export function LogViewerFrontStageWidget(props: { id: string }) {
   const { id } = props;
 
   const [searchInput, setSearchInput] = React.useState("");

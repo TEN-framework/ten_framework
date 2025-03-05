@@ -33,6 +33,23 @@ export const ENDPOINT_COMMON = {
       ),
     },
   },
+  checkUpdate: {
+    [ENDPOINT_METHOD.GET]: {
+      url: `${API_DESIGNER_V1}/check-update`,
+      method: ENDPOINT_METHOD.GET,
+      responseSchema: genResSchema<{
+        status: string;
+        update_available: boolean;
+        latest_version: string;
+      }>(
+        z.object({
+          status: z.string(),
+          update_available: z.boolean(),
+          latest_version: z.string(),
+        })
+      ),
+    },
+  },
 };
 
 export { ENDPOINT_GRAPHS } from "@/api/endpoints/graphs";

@@ -9,7 +9,23 @@ export const TEN_FRAMEWORK_GITHUB_URL = "https://github.com/TEN-framework/";
 
 export const TEN_DEFAULT_APP_RUN_SCRIPT = "start";
 
-// Github
+// --- Backend
+
+export const TEM_DEFAULT_BACKEND_ENDPOINT = "localhost:49483";
+export const TEM_DEFAULT_BACKEND_WS_ENDPOINT =
+  import.meta.env.VITE_TMAN_GD_BACKEND_WS_ENDPOINT ||
+  `ws://${TEM_DEFAULT_BACKEND_ENDPOINT}`;
+export const TEM_DEFAULT_BACKEND_HTTP_ENDPOINT =
+  import.meta.env.VITE_TMAN_GD_BACKEND_HTTP_ENDPOINT ||
+  `http://${TEM_DEFAULT_BACKEND_ENDPOINT}`;
+
+// --- Backend Paths
+
+export const TEM_PATH_WS_TERMINAL = "/api/designer/v1/ws/terminal";
+export const TEM_PATH_WS_APP_INSTALL = "/api/designer/v1/ws/app/install";
+export const TEM_PATH_WS_APP_START = "/api/designer/v1/ws/app/start";
+
+// --- Github
 export const TEN_FRAMEWORK_GH_FULL_NAME = "Ten-framework/ten-framework";
 export const TEN_FRAMEWORK_GH_OWNER = "Ten-framework";
 export const TEN_FRAMEWORK_GH_REPO = "ten-framework";

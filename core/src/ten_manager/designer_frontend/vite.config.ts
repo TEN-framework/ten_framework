@@ -19,7 +19,9 @@ export default defineConfig({
     host: true,
     proxy: {
       "/api": {
-        target: "http://localhost:49483",
+        target:
+          process.env.VITE_TMAN_GD_BACKEND_HTTP_ENDPOINT ||
+          "http://localhost:49483",
         changeOrigin: true,
         secure: false,
       },

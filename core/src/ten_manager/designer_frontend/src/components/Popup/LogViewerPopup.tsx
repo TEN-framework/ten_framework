@@ -9,10 +9,7 @@ import { useTranslation } from "react-i18next";
 import { PinIcon, OctagonXIcon } from "lucide-react";
 
 import Popup from "@/components/Popup/Popup";
-import {
-  LogViewerFrontStageWidget,
-  type ILogViewerWidgetProps,
-} from "@/components/Widget/LogViewerWidget";
+import { LogViewerFrontStageWidget } from "@/components/Widget/LogViewerWidget";
 import {
   EWidgetCategory,
   EWidgetDisplayType,
@@ -23,12 +20,12 @@ import { useWidgetStore } from "@/store/widget";
 const DEFAULT_WIDTH = 800;
 const DEFAULT_HEIGHT = 400;
 
-export interface ILogViewerPopupProps extends ILogViewerWidgetProps {
-  supportStop?: boolean;
-}
-
-export function LogViewerPopup(props: ILogViewerPopupProps) {
-  const { id, data, supportStop = false } = props;
+export function LogViewerPopup(props: {
+  id: string;
+  data: ILogViewerWidget["metadata"];
+  onStop?: () => void;
+}) {
+  const { id, data, onStop } = props;
 
   const { t } = useTranslation();
   const {
@@ -55,25 +52,16 @@ export function LogViewerPopup(props: ILogViewerPopupProps) {
       | ILogViewerWidget
       | undefined;
 
-    if (
-      !targetBackstageWidget &&
-      data?.wsUrl &&
-      data?.baseDir &&
-      data?.scriptName
-    ) {
+    if (!targetBackstageWidget && data?.scriptType && data?.script) {
       appendBackstageWidgetIfNotExists({
         id,
         category: EWidgetCategory.LogViewer,
         display_type: EWidgetDisplayType.Popup,
-        metadata: {
-          wsUrl: data.wsUrl,
-          baseDir: data.baseDir,
-          scriptName: data.scriptName,
-        },
+        metadata: data,
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [backstageWidgets, data?.baseDir, data?.scriptName, data?.wsUrl, id]);
+  }, [backstageWidgets, data?.scriptType, data?.script, id]);
 
   return (
     <Popup
@@ -101,21 +89,19 @@ export function LogViewerPopup(props: ILogViewerPopupProps) {
           Icon: PinIcon,
           onClick: handlePinToDock,
         },
-        ...(supportStop
+        ...(onStop
           ? [
               {
                 id: "stop",
                 label: t("action.stop"),
                 Icon: OctagonXIcon,
-                onClick: () => {
-                  console.log("stop");
-                },
+                onClick: onStop,
               },
             ]
           : []),
       ]}
     >
-      <LogViewerFrontStageWidget id={id} data={data} />
+      <LogViewerFrontStageWidget id={id} />
     </Popup>
   );
 }

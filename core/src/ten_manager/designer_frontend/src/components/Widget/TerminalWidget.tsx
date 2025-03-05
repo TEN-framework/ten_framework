@@ -15,6 +15,10 @@ import { Terminal as XTermTerminal } from "@xterm/xterm";
 import { Unicode11Addon } from "@xterm/addon-unicode11";
 import { WebLinksAddon } from "@xterm/addon-web-links";
 import { FitAddon } from "@xterm/addon-fit";
+import {
+  TEM_DEFAULT_BACKEND_WS_ENDPOINT,
+  TEM_PATH_WS_TERMINAL,
+} from "@/constants";
 
 import type { TerminalData } from "@/types/widgets";
 
@@ -100,9 +104,10 @@ const TerminalWidget = forwardRef<unknown, ITerminalWidgetProps>(
       }, 0);
 
       // Initialize the websocket connection to the backend.
-      const wsUrl = `ws://localhost:49483/api/designer/v1/ws/terminal?path=${encodeURIComponent(
-        data.url
-      )}`;
+      const wsUrl =
+        TEM_DEFAULT_BACKEND_WS_ENDPOINT +
+        TEM_PATH_WS_TERMINAL +
+        `?path=${encodeURIComponent(data.url)}`;
       ws.current = new WebSocket(wsUrl);
 
       ws.current.onopen = () => {

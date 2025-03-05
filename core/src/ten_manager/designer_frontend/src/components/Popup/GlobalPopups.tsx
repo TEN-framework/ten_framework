@@ -22,7 +22,6 @@ export function GlobalPopups() {
     terminalWidgetsMemo,
     customConnectionWidgetsMemo,
     logViewerWidgetsMemo,
-    terminalViewerWidgetsMemo,
   ] = React.useMemo(() => {
     const popupWidgets = widgets.filter(
       (widget) => widget.display_type === EWidgetDisplayType.Popup
@@ -39,16 +38,12 @@ export function GlobalPopups() {
     const logViewerWidgets = popupWidgets.filter(
       (widget) => widget.category === EWidgetCategory.LogViewer
     );
-    const terminalViewerWidgets = popupWidgets.filter(
-      (widget) => widget.category === EWidgetCategory.TerminalViewer
-    );
     return [
       popupWidgets,
       editorWidgets,
       terminalWidgets,
       customConnectionWidgets,
       logViewerWidgets,
-      terminalViewerWidgets,
     ];
   }, [widgets]);
 
@@ -80,12 +75,12 @@ export function GlobalPopups() {
           onClose={() => removeWidget(widget.id)}
         />
       ))}
-      {[...logViewerWidgetsMemo, ...terminalViewerWidgetsMemo].map((widget) => (
+      {logViewerWidgetsMemo.map((widget) => (
         <LogViewerPopup
           id={widget.id}
           key={`LogViewerPopup-${widget.id}`}
           data={widget.metadata}
-          supportStop={widget.metadata.supportStop}
+          onStop={widget.metadata?.onStop}
         />
       ))}
     </>

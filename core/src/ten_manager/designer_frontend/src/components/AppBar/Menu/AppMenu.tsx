@@ -32,9 +32,18 @@ import {
 } from "@/components/FileManager/utils";
 import { useDirList, getBaseDir } from "@/api/services/fileSystem";
 import { useWidgetStore } from "@/store/widget";
-import { EWidgetCategory, EWidgetDisplayType } from "@/types/widgets";
+import {
+  ELogViewerScriptType,
+  EWidgetCategory,
+  EWidgetDisplayType,
+} from "@/types/widgets";
 import { Input } from "@/components/ui/Input";
-import { TEN_DEFAULT_APP_RUN_SCRIPT } from "@/constants";
+import {
+  TEN_DEFAULT_APP_RUN_SCRIPT,
+  TEM_DEFAULT_BACKEND_WS_ENDPOINT,
+  TEM_PATH_WS_APP_START,
+  TEM_PATH_WS_APP_INSTALL,
+} from "@/constants";
 
 interface AppMenuProps {
   defaultBaseDir?: string;
@@ -75,11 +84,18 @@ export function AppMenu(props: AppMenuProps) {
         id: "app-start-" + Date.now(),
         category: EWidgetCategory.LogViewer,
         display_type: EWidgetDisplayType.Popup,
+
         metadata: {
-          wsUrl: "ws://localhost:49483/api/designer/v1/ws/app/start",
-          baseDir,
-          scriptName,
-          supportStop: true,
+          wsUrl: TEM_DEFAULT_BACKEND_WS_ENDPOINT + TEM_PATH_WS_APP_START,
+          scriptType: ELogViewerScriptType.START,
+          script: {
+            type: ELogViewerScriptType.START,
+            base_dir: baseDir,
+            name: scriptName,
+          },
+          onStop: () => {
+            console.log("app-start-widget-closed", baseDir, scriptName);
+          },
         },
       });
     } catch (err) {
@@ -99,12 +115,18 @@ export function AppMenu(props: AppMenuProps) {
 
       appendWidgetIfNotExists({
         id: "app-install-" + Date.now(),
-        category: EWidgetCategory.TerminalViewer,
+        category: EWidgetCategory.LogViewer,
         display_type: EWidgetDisplayType.Popup,
         metadata: {
-          wsUrl: "ws://localhost:49483/api/designer/v1/ws/app/install",
-          baseDir,
-          supportStop: true,
+          wsUrl: TEM_DEFAULT_BACKEND_WS_ENDPOINT + TEM_PATH_WS_APP_INSTALL,
+          scriptType: ELogViewerScriptType.INSTALL,
+          script: {
+            type: ELogViewerScriptType.INSTALL,
+            base_dir: baseDir,
+          },
+          // onStop: () => {
+          //   console.log("app-install-widget-closed", baseDir);
+          // },
         },
       });
     } catch (err) {
