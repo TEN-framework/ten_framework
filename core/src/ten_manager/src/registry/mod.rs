@@ -17,12 +17,15 @@ use tempfile::NamedTempFile;
 
 use ten_rust::pkg_info::{pkg_type::PkgType, PkgInfo};
 
+use crate::output::TmanOutput;
+
 use super::config::TmanConfig;
 
 pub async fn upload_package(
     tman_config: &TmanConfig,
     package_file_path: &str,
     pkg_info: &PkgInfo,
+    out: &TmanOutput,
 ) -> Result<String> {
     let default_registry_url = tman_config
         .registry
@@ -42,6 +45,7 @@ pub async fn upload_package(
                 &default_registry_url,
                 package_file_path,
                 pkg_info,
+                out,
             )
             .await
         }
@@ -51,6 +55,7 @@ pub async fn upload_package(
                 &default_registry_url,
                 package_file_path,
                 pkg_info,
+                out,
             )
             .await
         }
@@ -68,6 +73,7 @@ pub async fn get_package(
     pkg_version: &Version,
     url: &str,
     temp_path: &mut NamedTempFile,
+    out: &TmanOutput,
 ) -> Result<()> {
     let parsed_url =
         url::Url::parse(url).map_err(|_| anyhow!("Invalid URL: {}", url))?;
@@ -81,6 +87,7 @@ pub async fn get_package(
                 pkg_version,
                 url,
                 temp_path,
+                out,
             )
             .await
         }
@@ -92,6 +99,7 @@ pub async fn get_package(
                 pkg_version,
                 url,
                 temp_path,
+                out,
             )
             .await
         }
@@ -104,6 +112,7 @@ pub async fn get_package_list(
     pkg_type: PkgType,
     name: &String,
     version_req: &VersionReq,
+    out: &TmanOutput,
 ) -> Result<Vec<PkgRegistryInfo>> {
     // Retrieve the default registry URL
     let default_registry_url = tman_config
@@ -124,6 +133,7 @@ pub async fn get_package_list(
                 pkg_type,
                 name,
                 version_req,
+                out,
             )
             .await?
         }
@@ -134,6 +144,7 @@ pub async fn get_package_list(
                 pkg_type,
                 name,
                 version_req,
+                out,
             )
             .await?
         }
@@ -154,6 +165,7 @@ pub async fn delete_package(
     name: &String,
     version: &Version,
     hash: &String,
+    out: &TmanOutput,
 ) -> Result<()> {
     // Retrieve the default registry URL.
     let default_registry_url = tman_config
@@ -174,6 +186,7 @@ pub async fn delete_package(
                 name,
                 version,
                 hash,
+                out,
             )
             .await
         }
@@ -185,6 +198,7 @@ pub async fn delete_package(
                 name,
                 version,
                 hash,
+                out,
             )
             .await
         }

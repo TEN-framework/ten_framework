@@ -25,7 +25,7 @@ use ten_rust::pkg_info::{
 
 use crate::{
     cmd::cmd_install::InstallCommand, config::TmanConfig,
-    install::install_pkg_info,
+    install::install_pkg_info, output::TmanOutput,
 };
 
 pub fn extract_solver_results_from_raw_solver_results(
@@ -113,8 +113,9 @@ pub async fn install_solver_results_in_app_folder(
     command_data: &InstallCommand,
     solver_results: &Vec<&PkgInfo>,
     app_dir: &Path,
+    out: &TmanOutput,
 ) -> Result<()> {
-    println!("{}  Installing packages...", Emoji("📥", "+"));
+    out.output_line(&format!("{}  Installing packages...", Emoji("📥", "+")));
 
     let bar = ProgressBar::new(solver_results.len().try_into()?);
     bar.set_style(
@@ -145,8 +146,14 @@ pub async fn install_solver_results_in_app_folder(
             PkgType::App => app_dir.to_path_buf(),
         };
 
-        install_pkg_info(tman_config, command_data, solver_result, &base_dir)
-            .await?;
+        install_pkg_info(
+            tman_config,
+            command_data,
+            solver_result,
+            &base_dir,
+            out,
+        )
+        .await?;
     }
 
     bar.finish_with_message("Done");

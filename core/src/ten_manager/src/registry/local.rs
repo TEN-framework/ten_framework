@@ -29,11 +29,13 @@ use super::pkg_cache::{find_in_package_cache, store_file_to_package_cache};
 use crate::config::TmanConfig;
 use crate::constants::TEN_PACKAGE_FILE_EXTENSION;
 use crate::file_type::{detect_file_type, FileType};
+use crate::output::TmanOutput;
 
 pub async fn upload_package(
     base_url: &str,
     package_file_path: &str,
     pkg_info: &PkgInfo,
+    _out: &TmanOutput,
 ) -> Result<String> {
     let mut path_url = url::Url::parse(base_url)
         .map_err(|e| anyhow!("Invalid file URL: {}", e))?
@@ -144,6 +146,7 @@ pub async fn get_package(
     pkg_version: &Version,
     url: &str,
     temp_path: &mut NamedTempFile,
+    out: &TmanOutput,
 ) -> Result<()> {
     // First, try to retrieve the same package file from the cache.
     let registry_file_path = url::Url::parse(url)
@@ -166,11 +169,11 @@ pub async fn get_package(
         if let Ok(true) = is_same_file_by_hash(&cached_file_path, url) {
             // If the content is the same, directly copy the cached file to
             // `temp_path`.
-            eprintln!(
+            out.output_err_line(&format!(
                 "{}  Found the package file ({}) in the package cache, using it directly.",
                 Emoji("🚀", ":-("),
                 cached_file_path.to_string_lossy()
-            );
+            ));
 
             fs::copy(&cached_file_path, temp_path.path()).with_context(
                 || {
@@ -359,6 +362,7 @@ pub async fn get_package_list(
     pkg_type: PkgType,
     name: &String,
     version_req: &VersionReq,
+    _out: &TmanOutput,
 ) -> Result<Vec<PkgRegistryInfo>> {
     let mut path_url = url::Url::parse(base_url)
         .map_err(|e| anyhow!("Invalid file URL: {}", e))?
@@ -390,6 +394,7 @@ pub async fn delete_package(
     name: &String,
     version: &Version,
     hash: &String,
+    _out: &TmanOutput,
 ) -> Result<()> {
     let mut path_url = url::Url::parse(base_url)
         .map_err(|e| anyhow!("Invalid file URL: {}", e))?

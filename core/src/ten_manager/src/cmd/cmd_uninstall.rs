@@ -25,7 +25,7 @@ use crate::{
     },
     fs::check_is_app_folder,
     install::installed_paths::InstalledPaths,
-    log::tman_verbose_println,
+    output::TmanOutput,
 };
 
 #[derive(Debug)]
@@ -68,6 +68,7 @@ pub fn parse_sub_cmd(sub_cmd_args: &ArgMatches) -> Result<UninstallCommand> {
 async fn remove_installed_paths(
     cwd: &Path,
     uninstall_cmd: &UninstallCommand,
+    out: &TmanOutput,
 ) -> Result<()> {
     let addon_path = cwd
         .join(TEN_PACKAGES_DIR)
@@ -131,7 +132,10 @@ async fn remove_installed_paths(
                 }
             }
             Err(e) => {
-                println!("Error canonicalizing path: {}", e);
+                out.output_err_line(&format!(
+                    "Error canonicalizing path: {}",
+                    e
+                ));
             }
         }
     }
@@ -142,25 +146,28 @@ async fn remove_installed_paths(
 pub async fn execute_cmd(
     tman_config: &TmanConfig,
     command_data: UninstallCommand,
+    out: &TmanOutput,
 ) -> Result<()> {
-    tman_verbose_println!(tman_config, "Executing uninstall command");
-    tman_verbose_println!(tman_config, "{:?}", command_data);
-    tman_verbose_println!(tman_config, "{:?}", tman_config);
+    if tman_config.verbose {
+        out.output_line("Executing uninstall command");
+        out.output_line(&format!("{:?}", command_data));
+        out.output_line(&format!("{:?}", tman_config));
+    }
 
     let started = Instant::now();
 
     let cwd = crate::fs::get_cwd()?;
     check_is_app_folder(&cwd)?;
 
-    remove_installed_paths(&cwd, &command_data).await?;
+    remove_installed_paths(&cwd, &command_data, out).await?;
 
-    println!(
+    out.output_line(&format!(
         "{}  Uninstall {}:{} successfully in {}",
         Emoji("🏆", ":-)"),
         command_data.package_type,
         command_data.package_name,
         HumanDuration(started.elapsed())
-    );
+    ));
 
     Ok(())
 }

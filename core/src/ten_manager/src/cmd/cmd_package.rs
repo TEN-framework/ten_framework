@@ -16,7 +16,7 @@ use ten_rust::pkg_info::get_pkg_info_from_path;
 use crate::{
     config::TmanConfig,
     constants::{DOT_TEN_DIR, PACKAGE_DIR_IN_DOT_TEN_DIR},
-    log::tman_verbose_println,
+    output::TmanOutput,
     package_file::{create_package_tar_gz_file, get_tpkg_file_name},
 };
 
@@ -50,9 +50,12 @@ pub fn parse_sub_cmd(
 pub async fn execute_cmd(
     tman_config: &TmanConfig,
     command_data: PackageCommand,
+    out: &TmanOutput,
 ) -> Result<()> {
-    tman_verbose_println!(tman_config, "Executing package command");
-    tman_verbose_println!(tman_config, "{:?}", command_data);
+    if tman_config.verbose {
+        out.output_line("Executing package command");
+        out.output_line(&format!("{:?}", command_data));
+    }
 
     let started = Instant::now();
 
@@ -82,14 +85,14 @@ pub async fn execute_cmd(
     }
 
     let output_path_str =
-        create_package_tar_gz_file(tman_config, &output_path, &cwd)?;
+        create_package_tar_gz_file(tman_config, &output_path, &cwd, out)?;
 
-    println!(
+    out.output_line(&format!(
         "{}  Pack package to {:?} in {}",
         Emoji("🏆", ":-)"),
         output_path_str,
         HumanDuration(started.elapsed())
-    );
+    ));
 
     Ok(())
 }

@@ -23,7 +23,7 @@ struct FileContentResponse {
 
 pub async fn get_file_content(
     path: web::Path<String>,
-    _state: web::Data<Arc<RwLock<DesignerState>>>,
+    state: web::Data<Arc<RwLock<DesignerState>>>,
 ) -> impl Responder {
     let file_path = path.into_inner();
 
@@ -37,12 +37,17 @@ pub async fn get_file_content(
             HttpResponse::Ok().json(response)
         }
         Err(err) => {
-            eprintln!("Error reading file at path {}: {}", file_path, err);
+            state.read().unwrap().out.output_err_line(&format!(
+                "Error reading file at path {}: {}",
+                file_path, err
+            ));
+
             let response = ApiResponse {
                 status: Status::Fail,
                 data: (),
                 meta: None,
             };
+
             HttpResponse::BadRequest().json(response)
         }
     }
@@ -56,7 +61,7 @@ pub struct SaveFileRequest {
 pub async fn save_file_content(
     path: web::Path<String>,
     req: web::Json<SaveFileRequest>,
-    _state: web::Data<Arc<RwLock<DesignerState>>>,
+    state: web::Data<Arc<RwLock<DesignerState>>>,
 ) -> HttpResponse {
     let file_path_str = path.into_inner();
     let content = &req.content; // Access the content field.
@@ -66,16 +71,18 @@ pub async fn save_file_content(
     // Attempt to create parent directories if they don't exist.
     if let Some(parent) = file_path.parent() {
         if let Err(e) = fs::create_dir_all(parent) {
-            eprintln!(
+            state.read().unwrap().out.output_err_line(&format!(
                 "Error creating directories for {}: {}",
                 parent.display(),
                 e
-            );
+            ));
+
             let response = ApiResponse {
                 status: Status::Fail,
                 data: (),
                 meta: None,
             };
+
             return HttpResponse::BadRequest().json(response);
         }
     }
@@ -90,16 +97,18 @@ pub async fn save_file_content(
             HttpResponse::Ok().json(response)
         }
         Err(err) => {
-            eprintln!(
+            state.read().unwrap().out.output_err_line(&format!(
                 "Error writing file at path {}: {}",
                 file_path.display(),
                 err
-            );
+            ));
+
             let response = ApiResponse {
                 status: Status::Fail,
                 data: (),
                 meta: None,
             };
+
             HttpResponse::BadRequest().json(response)
         }
     }

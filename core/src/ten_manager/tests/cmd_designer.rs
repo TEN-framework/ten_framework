@@ -18,6 +18,7 @@ use ten_manager::{
         response::{ApiResponse, ErrorResponse},
         DesignerState,
     },
+    output::{TmanOutput, TmanOutputCli},
 };
 
 #[actix_rt::test]
@@ -29,6 +30,7 @@ async fn test_cmd_designer_graphs_some_property_invalid() {
         ),
         all_pkgs: None,
         tman_config: TmanConfig::default(),
+        out: TmanOutput::Cli(TmanOutputCli),
     };
 
     let designer_state = Arc::new(RwLock::new(designer_state));
@@ -66,6 +68,7 @@ async fn test_cmd_designer_graphs_app_property_not_exist() {
         ),
         all_pkgs: None,
         tman_config: TmanConfig::default(),
+        out: TmanOutput::Cli(TmanOutputCli),
     };
 
     let designer_state = Arc::new(RwLock::new(designer_state));
@@ -102,6 +105,7 @@ async fn test_cmd_designer_connections_has_msg_conversion() {
         ),
         all_pkgs: None,
         tman_config: TmanConfig::default(),
+        out: TmanOutput::Cli(TmanOutputCli),
     };
 
     let designer_state = Arc::new(RwLock::new(designer_state));

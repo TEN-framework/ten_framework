@@ -86,7 +86,10 @@ mod tests {
     use actix_web::{test, App};
 
     use super::*;
-    use crate::config::TmanConfig;
+    use crate::{
+        config::TmanConfig,
+        output::{TmanOutput, TmanOutputCli},
+    };
 
     #[actix_web::test]
     async fn test_set_base_dir_success() {
@@ -94,6 +97,7 @@ mod tests {
             base_dir: Some("/initial/path".to_string()),
             all_pkgs: Some(vec![]),
             tman_config: TmanConfig::default(),
+            out: TmanOutput::Cli(TmanOutputCli),
         };
         let designer_state = Arc::new(RwLock::new(designer_state));
 
@@ -129,6 +133,7 @@ mod tests {
             base_dir: Some("/initial/path".to_string()),
             all_pkgs: Some(vec![]),
             tman_config: TmanConfig::default(),
+            out: TmanOutput::Cli(TmanOutputCli),
         };
         let designer_state = Arc::new(RwLock::new(designer_state));
 
@@ -163,6 +168,7 @@ mod tests {
             base_dir: None,
             all_pkgs: Some(vec![]),
             tman_config: TmanConfig::default(),
+            out: TmanOutput::Cli(TmanOutputCli),
         };
         let designer_state = Arc::new(RwLock::new(designer_state));
 

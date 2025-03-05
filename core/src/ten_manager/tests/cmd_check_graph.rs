@@ -5,7 +5,9 @@
 // Refer to the "LICENSE" file in the root directory for more information.
 //
 use ten_manager::{
-    cmd::cmd_check::cmd_check_graph::CheckGraphCommand, config::TmanConfig,
+    cmd::cmd_check::cmd_check_graph::CheckGraphCommand,
+    config::TmanConfig,
+    output::{TmanOutput, TmanOutputCli},
 };
 
 #[actix_rt::test]
@@ -19,9 +21,12 @@ async fn test_cmd_check_predefined_graph_success() {
         predefined_graph_name: None,
     };
 
+    let out = TmanOutput::Cli(TmanOutputCli);
+
     let result = ten_manager::cmd::cmd_check::cmd_check_graph::execute_cmd(
         &tman_config,
         command,
+        &out,
     )
     .await;
     assert!(result.is_ok());
@@ -41,9 +46,12 @@ async fn test_cmd_check_start_graph_cmd() {
         predefined_graph_name: None,
     };
 
+    let out = TmanOutput::Cli(TmanOutputCli);
+
     let result = ten_manager::cmd::cmd_check::cmd_check_graph::execute_cmd(
         &tman_config,
         command,
+        &out,
     )
     .await;
 
@@ -69,9 +77,12 @@ async fn test_cmd_check_start_graph_multi_apps() {
         predefined_graph_name: None,
     };
 
+    let out = TmanOutput::Cli(TmanOutputCli);
+
     let result = ten_manager::cmd::cmd_check::cmd_check_graph::execute_cmd(
         &tman_config,
         command,
+        &out,
     )
     .await;
 
@@ -95,9 +106,12 @@ async fn test_cmd_check_app_in_graph_cannot_be_localhost() {
         predefined_graph_name: None,
     };
 
+    let out = TmanOutput::Cli(TmanOutputCli);
+
     let result = ten_manager::cmd::cmd_check::cmd_check_graph::execute_cmd(
         &tman_config,
         command,
+        &out,
     )
     .await;
 
@@ -121,9 +135,12 @@ async fn test_cmd_check_predefined_graph_only_check_specified() {
         predefined_graph_name: Some("default".to_string()),
     };
 
+    let out = TmanOutput::Cli(TmanOutputCli);
+
     let result = ten_manager::cmd::cmd_check::cmd_check_graph::execute_cmd(
         &tman_config,
         command,
+        &out,
     )
     .await;
 
@@ -142,9 +159,12 @@ async fn test_cmd_check_predefined_graph_check_all() {
         predefined_graph_name: None,
     };
 
+    let out = TmanOutput::Cli(TmanOutputCli);
+
     let result = ten_manager::cmd::cmd_check::cmd_check_graph::execute_cmd(
         &tman_config,
         command,
+        &out,
     )
     .await;
 
@@ -171,9 +191,12 @@ async fn test_cmd_check_unique_extension_in_connections() {
         predefined_graph_name: None,
     };
 
+    let out = TmanOutput::Cli(TmanOutputCli);
+
     let result = ten_manager::cmd::cmd_check::cmd_check_graph::execute_cmd(
         &tman_config,
         command,
+        &out,
     )
     .await;
 
@@ -196,9 +219,12 @@ async fn test_cmd_check_single_app_node_cannot_be_localhost() {
         predefined_graph_name: None,
     };
 
+    let out = TmanOutput::Cli(TmanOutputCli);
+
     let result = ten_manager::cmd::cmd_check::cmd_check_graph::execute_cmd(
         &tman_config,
         command,
+        &out,
     )
     .await;
 
@@ -223,9 +249,12 @@ async fn test_cmd_check_multi_apps_node_cannot_be_localhost() {
         predefined_graph_name: None,
     };
 
+    let out = TmanOutput::Cli(TmanOutputCli);
+
     let result = ten_manager::cmd::cmd_check::cmd_check_graph::execute_cmd(
         &tman_config,
         command,
+        &out,
     )
     .await;
 

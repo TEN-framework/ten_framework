@@ -29,11 +29,12 @@ use actix_web::web;
 use ten_rust::pkg_info::PkgInfo;
 
 use super::config::TmanConfig;
-
+use crate::output::TmanOutput;
 pub struct DesignerState {
     pub base_dir: Option<String>,
     pub all_pkgs: Option<Vec<PkgInfo>>,
     pub tman_config: TmanConfig,
+    pub out: TmanOutput,
 }
 
 pub fn configure_routes(
@@ -98,7 +99,7 @@ pub fn configure_routes(
             .route("/app/base-dir", web::put().to(app::base_dir::set_base_dir))
             .route("/app/base-dir", web::get().to(app::base_dir::get_base_dir))
             .route("/dir-list/{path}", web::get().to(dir_list::list_dir))
-            .route("/ws/app/start", web::get().to(app::start::run))
+            .route("/ws/app/start", web::get().to(app::run::run))
             .route("/ws/app/install", web::get().to(app::install::run))
             .route("/ws/terminal", web::get().to(terminal::ws_terminal)),
     );

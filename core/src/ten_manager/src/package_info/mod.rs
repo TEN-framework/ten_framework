@@ -10,7 +10,7 @@ use std::path::Path;
 
 use anyhow::Result;
 
-use crate::config::TmanConfig;
+use crate::{config::TmanConfig, output::TmanOutput};
 use ten_rust::pkg_info::{get_app_installed_pkgs_to_hashmap, PkgInfo};
 
 /// Retrieves information about all installed packages for the specified
@@ -29,8 +29,11 @@ use ten_rust::pkg_info::{get_app_installed_pkgs_to_hashmap, PkgInfo};
 pub fn tman_get_all_installed_pkgs_info_of_app(
     tman_config: &TmanConfig,
     app_path: &Path,
+    out: &TmanOutput,
 ) -> Result<Vec<PkgInfo>> {
     let pkgs_info = get_app_installed_pkgs_to_hashmap(app_path)?;
-    crate::log::tman_verbose_println!(tman_config, "{:?}", pkgs_info);
+    if tman_config.verbose {
+        out.output_line(&format!("{:?}", pkgs_info));
+    }
     Ok(pkgs_info.into_values().collect())
 }

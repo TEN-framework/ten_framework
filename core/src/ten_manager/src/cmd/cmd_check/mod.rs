@@ -11,7 +11,7 @@ pub mod cmd_check_property_json;
 use anyhow::Result;
 use clap::{ArgMatches, Command};
 
-use crate::config::TmanConfig;
+use crate::{config::TmanConfig, output::TmanOutput};
 
 #[derive(Debug)]
 pub enum CheckCommandData {
@@ -71,12 +71,14 @@ pub fn parse_sub_cmd(sub_cmd_args: &ArgMatches) -> Result<CheckCommandData> {
 pub async fn execute_cmd(
     tman_config: &TmanConfig,
     command_data: CheckCommandData,
+    out: &TmanOutput,
 ) -> Result<()> {
     match command_data {
         CheckCommandData::CheckGraph(cmd) => {
             crate::cmd::cmd_check::cmd_check_graph::execute_cmd(
                 tman_config,
                 cmd,
+                out,
             )
             .await
         }
@@ -84,6 +86,7 @@ pub async fn execute_cmd(
             crate::cmd::cmd_check::cmd_check_manifest_json::execute_cmd(
                 tman_config,
                 cmd,
+                out,
             )
             .await
         }
@@ -91,6 +94,7 @@ pub async fn execute_cmd(
             crate::cmd::cmd_check::cmd_check_property_json::execute_cmd(
                 tman_config,
                 cmd,
+                out,
             )
             .await
         }

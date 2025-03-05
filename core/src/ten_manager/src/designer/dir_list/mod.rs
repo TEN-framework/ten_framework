@@ -89,6 +89,7 @@ pub async fn list_dir(
 #[cfg(test)]
 mod tests {
     use crate::config::TmanConfig;
+    use crate::output::{TmanOutput, TmanOutputCli};
 
     use super::*;
     use actix_web::{test, App};
@@ -110,6 +111,7 @@ mod tests {
             base_dir: None,
             all_pkgs: None,
             tman_config: TmanConfig::default(),
+            out: TmanOutput::Cli(TmanOutputCli),
         })));
 
         // Configure the `list_dir` route.
@@ -159,6 +161,7 @@ mod tests {
             base_dir: None,
             all_pkgs: None,
             tman_config: TmanConfig::default(),
+            out: TmanOutput::Cli(TmanOutputCli),
         })));
 
         // Configure the `list_dir` route.
@@ -201,6 +204,7 @@ mod tests {
             base_dir: None,
             all_pkgs: None,
             tman_config: TmanConfig::default(),
+            out: TmanOutput::Cli(TmanOutputCli),
         })));
 
         let app = test::init_service(App::new().app_data(state.clone()).route(

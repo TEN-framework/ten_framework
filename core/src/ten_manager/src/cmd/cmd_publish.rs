@@ -16,7 +16,7 @@ use ten_rust::pkg_info::get_pkg_info_from_path;
 use crate::config::TmanConfig;
 use crate::constants::DOT_TEN_DIR;
 use crate::constants::PACKAGE_DIR_IN_DOT_TEN_DIR;
-use crate::log::tman_verbose_println;
+use crate::output::TmanOutput;
 use crate::package_file::create_package_tar_gz_file;
 use crate::package_file::get_tpkg_file_name;
 use crate::registry::upload_package;
@@ -42,9 +42,12 @@ pub fn parse_sub_cmd(
 pub async fn execute_cmd(
     tman_config: &TmanConfig,
     command_data: PublishCommand,
+    out: &TmanOutput,
 ) -> Result<()> {
-    tman_verbose_println!(tman_config, "Executing publish command");
-    tman_verbose_println!(tman_config, "{:?}", command_data);
+    if tman_config.verbose {
+        out.output_line("Executing publish command");
+        out.output_line(&format!("{:?}", command_data));
+    }
 
     let started = Instant::now();
 
@@ -70,15 +73,15 @@ pub async fn execute_cmd(
 
     // Generate the package file.
     let output_path_str =
-        create_package_tar_gz_file(tman_config, &output_path, &cwd)?;
+        create_package_tar_gz_file(tman_config, &output_path, &cwd, out)?;
 
-    upload_package(tman_config, &output_path_str, &pkg_info).await?;
+    upload_package(tman_config, &output_path_str, &pkg_info, out).await?;
 
-    println!(
+    out.output_line(&format!(
         "{}  Publish successfully in {}",
         Emoji("🏆", ":-)"),
         HumanDuration(started.elapsed())
-    );
+    ));
 
     // Remove the package file.
     std::fs::remove_file(&output_path_str)?;

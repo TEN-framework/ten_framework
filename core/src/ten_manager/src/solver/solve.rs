@@ -18,11 +18,8 @@ use ten_rust::pkg_info::{
     pkg_type::PkgType, pkg_type_and_name::PkgTypeAndName, PkgInfo,
 };
 
-use crate::{
-    config::TmanConfig,
-    log::{tman_verbose_print, tman_verbose_println},
-};
-
+use crate::config::TmanConfig;
+use crate::output::TmanOutput;
 #[derive(Debug)]
 pub struct DependencyRelationship {
     pub type_and_name: PkgTypeAndName,
@@ -34,35 +31,47 @@ fn get_model(
     tman_config: &TmanConfig,
     model: &Model,
     is_usable: &mut bool,
+    out: &TmanOutput,
 ) -> Option<Vec<String>> {
     // Retrieve the symbols in the model.
     let atoms = model
         .symbols(ShowType::SHOWN)
         .expect("Failed to retrieve symbols in the model.");
 
-    tman_verbose_println!(tman_config, "Model:");
+    if tman_config.verbose {
+        out.output_line("Model:");
+    }
 
     let mut result = Vec::new();
     *is_usable = true;
 
     for symbol in atoms {
-        tman_verbose_println!(tman_config, " {}", symbol);
+        if tman_config.verbose {
+            out.output_line(&format!(" {}", symbol));
+        }
 
         result.push(symbol.to_string());
         if symbol.to_string().starts_with("error(") {
             *is_usable = false;
         }
     }
-    tman_verbose_println!(tman_config, "");
+    if tman_config.verbose {
+        out.output_line("");
+    }
 
     Some(result)
 }
 
 #[allow(dead_code)]
-fn print_prefix(tman_config: &TmanConfig, depth: u8) {
-    tman_verbose_println!(tman_config, "");
+fn print_prefix(tman_config: &TmanConfig, depth: u8, out: &TmanOutput) {
+    if tman_config.verbose {
+        out.output_line("");
+    }
+
     for _ in 0..depth {
-        tman_verbose_print!(tman_config, "  ");
+        if tman_config.verbose {
+            out.output_line("  ");
+        }
     }
 }
 
@@ -73,14 +82,13 @@ fn print_configuration(
     conf: &Configuration,
     key: Id,
     depth: u8,
+    out: &TmanOutput,
 ) {
     let configuration_type = conf.configuration_type(key).unwrap();
     if configuration_type.contains(ConfigurationType::VALUE) {
         let _value = conf
             .value_get(key)
             .expect("Failed to retrieve statistics value.");
-
-        // tman_verbose_print!(tman_config, "{}", _value);
     } else if configuration_type.contains(ConfigurationType::ARRAY) {
         let size = conf
             .array_size(key)
@@ -89,23 +97,20 @@ fn print_configuration(
             let subkey = conf
                 .array_at(key, i)
                 .expect("Failed to retrieve statistics array.");
-            print_prefix(tman_config, depth);
-            // tman_verbose_print!(tman_config, "{}: ", i);
+            print_prefix(tman_config, depth, out);
 
-            print_configuration(tman_config, conf, subkey, depth + 1);
+            print_configuration(tman_config, conf, subkey, depth + 1, out);
         }
     } else if configuration_type.contains(ConfigurationType::MAP) {
         let size = conf.map_size(key).unwrap();
         for i in 0..size {
             let name = conf.map_subkey_name(key, i).unwrap();
             let subkey = conf.map_at(key, name).unwrap();
-            print_prefix(tman_config, depth);
-            // tman_verbose_print!(tman_config, "{}: ", name);
+            print_prefix(tman_config, depth, out);
 
-            print_configuration(tman_config, conf, subkey, depth + 1);
+            print_configuration(tman_config, conf, subkey, depth + 1, out);
         }
     } else {
-        // tman_verbose_println!(tman_config, "Unknown ConfigurationType");
         unreachable!()
     }
 }
@@ -117,6 +122,7 @@ fn print_statistics(
     stats: &Statistics,
     key: u64,
     depth: u8,
+    out: &TmanOutput,
 ) {
     // Get the type of an entry and switch over its various values.
     let statistics_type = stats.statistics_type(key).unwrap();
@@ -125,8 +131,6 @@ fn print_statistics(
             let _value = stats
                 .value_get(key)
                 .expect("Failed to retrieve statistics value.");
-
-            // tman_verbose_print!(tman_config, " {}", _value);
         }
 
         StatisticsType::Array => {
@@ -137,10 +141,9 @@ fn print_statistics(
                 let subkey = stats
                     .array_at(key, i)
                     .expect("Failed to retrieve statistics array.");
-                print_prefix(tman_config, depth);
-                // tman_verbose_print!(tman_config, "{} zu:", i);
+                print_prefix(tman_config, depth, out);
 
-                print_statistics(tman_config, stats, subkey, depth + 1);
+                print_statistics(tman_config, stats, subkey, depth + 1, out);
             }
         }
 
@@ -149,16 +152,13 @@ fn print_statistics(
             for i in 0..size {
                 let name = stats.map_subkey_name(key, i).unwrap();
                 let subkey = stats.map_at(key, name).unwrap();
-                print_prefix(tman_config, depth);
-                // tman_verbose_print!(tman_config, "{}:", name);
+                print_prefix(tman_config, depth, out);
 
-                print_statistics(tman_config, stats, subkey, depth + 1);
+                print_statistics(tman_config, stats, subkey, depth + 1, out);
             }
         }
 
-        StatisticsType::Empty => {
-            // tman_verbose_println!(tman_config, "StatisticsType::Empty");
-        }
+        StatisticsType::Empty => {}
     }
 }
 
@@ -168,7 +168,11 @@ type SolveOutcome = (UsableModel, NonUsableModels);
 type SolveResult = Result<SolveOutcome>;
 
 #[allow(unused_assignments)]
-fn solve(tman_config: &TmanConfig, input: &str) -> SolveResult {
+fn solve(
+    tman_config: &TmanConfig,
+    input: &str,
+    out: &TmanOutput,
+) -> SolveResult {
     // Create a control object.
     // i.e., clingo_control_new
     let mut ctl = control({
@@ -211,7 +215,6 @@ fn solve(tman_config: &TmanConfig, input: &str) -> SolveResult {
             .expect("Failed to set heuristic to berkmin.");
 
         // print_configuration(tman_config, conf, root_key, 0);
-        // tman_verbose_println!(tman_config, "");
     }
 
     let main_program = include_str!("main.lp");
@@ -254,7 +257,9 @@ fn solve(tman_config: &TmanConfig, input: &str) -> SolveResult {
             // Get the model.
             Ok(Some(model)) => {
                 let mut is_usable = false;
-                if let Some(m) = get_model(tman_config, model, &mut is_usable) {
+                if let Some(m) =
+                    get_model(tman_config, model, &mut is_usable, out)
+                {
                     if is_usable {
                         usable_model = Some(m);
 
@@ -270,7 +275,9 @@ fn solve(tman_config: &TmanConfig, input: &str) -> SolveResult {
             }
             // Stop if there are no more models.
             Ok(None) => {
-                tman_verbose_println!(tman_config, "No more models");
+                if tman_config.verbose {
+                    out.output_line("No more models");
+                }
                 break;
             }
             Err(e) => panic!("Error: {}", e),
@@ -282,8 +289,6 @@ fn solve(tman_config: &TmanConfig, input: &str) -> SolveResult {
     let _result = handle
         .get()
         .expect("Failed to get result from solve handle.");
-
-    // tman_verbose_println!(tman_config, "{:?}", _result);
 
     // Free the solve handle.
     // i.e., clingo_solve_handle_close
@@ -477,6 +482,7 @@ fn create_input_str(
     extra_dep_relationship: Option<&DependencyRelationship>,
     all_candidates: &HashMap<PkgTypeAndName, HashMap<PkgBasicInfo, PkgInfo>>,
     locked_pkgs: Option<&HashMap<PkgTypeAndName, PkgInfo>>,
+    out: &TmanOutput,
 ) -> Result<String> {
     let mut input_str = String::new();
 
@@ -511,13 +517,7 @@ fn create_input_str(
     }
 
     if tman_config.verbose {
-        tman_verbose_println!(tman_config, "Input: \n{}", input_str);
-
-        // dump_string_to_file_if_debug(
-        //     tman_config,
-        //     &input_str,
-        //     Path::new("input.lp"),
-        // )?;
+        out.output_line(&format!("Input: \n{}", input_str));
     }
 
     Ok(input_str)
@@ -530,6 +530,7 @@ pub fn solve_all(
     extra_dep_relationship: Option<&DependencyRelationship>,
     all_candidates: &HashMap<PkgTypeAndName, HashMap<PkgBasicInfo, PkgInfo>>,
     locked_pkgs: Option<&HashMap<PkgTypeAndName, PkgInfo>>,
+    out: &TmanOutput,
 ) -> SolveResult {
     let input_str = create_input_str(
         tman_config,
@@ -538,6 +539,7 @@ pub fn solve_all(
         extra_dep_relationship,
         all_candidates,
         locked_pkgs,
+        out,
     )?;
-    solve(tman_config, &input_str)
+    solve(tman_config, &input_str, out)
 }

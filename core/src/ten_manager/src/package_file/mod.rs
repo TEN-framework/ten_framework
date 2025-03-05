@@ -21,10 +21,8 @@ use ten_rust::pkg_info::{
 };
 
 use super::{config::TmanConfig, constants::TEN_PACKAGE_FILE_EXTENSION};
-use crate::{
-    constants::DOT_TEN_DIR, fs::pathbuf_to_string_lossy,
-    log::tman_verbose_println,
-};
+use crate::output::TmanOutput;
+use crate::{constants::DOT_TEN_DIR, fs::pathbuf_to_string_lossy};
 use package::tar_gz_files_to_file;
 
 pub fn get_tpkg_file_name(pkg_info: &PkgInfo) -> Result<String> {
@@ -42,8 +40,9 @@ pub fn create_package_tar_gz_file(
     tman_config: &TmanConfig,
     output_pkg_file_path: &Path,
     folder_to_tar_gz: &Path,
+    out: &TmanOutput,
 ) -> Result<String> {
-    println!("{}  Creating package", Emoji("🚚", ":-)"));
+    out.output_line(&format!("{}  Creating package", Emoji("🚚", ":-)")));
 
     let manifest = parse_manifest_in_folder(folder_to_tar_gz)?;
 
@@ -143,9 +142,11 @@ pub fn create_package_tar_gz_file(
         }
     }
 
-    tman_verbose_println!(tman_config, "Files to be packed:");
-    for file in &files_to_include {
-        tman_verbose_println!(tman_config, "> {:?}", file);
+    if tman_config.verbose {
+        out.output_line("Files to be packed:");
+        for file in &files_to_include {
+            out.output_line(&format!("> {:?}", file));
+        }
     }
 
     tar_gz_files_to_file(

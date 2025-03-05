@@ -28,15 +28,14 @@ use crate::constants::{
     REMOTE_REGISTRY_RETRY_DELAY_MS,
 };
 use crate::http::create_http_client_with_proxies;
-use crate::{
-    config::TmanConfig, log::tman_verbose_println,
-    registry::found_result::PkgRegistryInfo,
-};
+use crate::output::TmanOutput;
+use crate::{config::TmanConfig, registry::found_result::PkgRegistryInfo};
 
 async fn retry_async<'a, F, T>(
     tman_config: &TmanConfig,
     max_retries: u32,
     retry_delay: Duration,
+    out: &TmanOutput,
     mut operation: F,
 ) -> Result<T>
 where
@@ -48,12 +47,13 @@ where
         match operation().await {
             Ok(result) => return Ok(result),
             Err(e) => {
-                tman_verbose_println!(
-                    tman_config,
-                    "Attempt {} failed: {:?}",
-                    attempt + 1,
-                    e
-                );
+                if tman_config.verbose {
+                    out.output_line(&format!(
+                        "Attempt {} failed: {:?}",
+                        attempt + 1,
+                        e
+                    ));
+                }
 
                 if attempt == max_retries {
                     return Err(e);
@@ -78,6 +78,7 @@ async fn get_package_upload_info(
     base_url: &str,
     client: &reqwest::Client,
     pkg_info: &PkgInfo,
+    out: &TmanOutput,
 ) -> Result<UploadInfo> {
     // Basically, the principle here is that when tman install is run, all the
     // necessary metadata for a package (such as the package's dependencies,
@@ -99,7 +100,7 @@ async fn get_package_upload_info(
     let max_retries = REMOTE_REGISTRY_MAX_RETRIES;
     let retry_delay = Duration::from_millis(REMOTE_REGISTRY_RETRY_DELAY_MS);
 
-    retry_async(tman_config, max_retries, retry_delay, || {
+    retry_async(tman_config, max_retries, retry_delay, out, || {
         let base_url = base_url.to_string();
         let client = client.clone();
         let pkg_info = pkg_info.clone();
@@ -117,11 +118,9 @@ async fn get_package_upload_info(
                 content_format: Some("gzip".to_string()),
             });
 
-            tman_verbose_println!(
-                tman_config,
-                "Payload of publishing: {}",
-                payload.to_string()
-            );
+            if tman_config.verbose {
+                out.output_line(&format!("Payload of publishing: {}", payload));
+            }
 
             let mut headers = HeaderMap::new();
 
@@ -130,15 +129,17 @@ async fn get_package_upload_info(
                 headers.insert(
                     AUTHORIZATION,
                     basic_token.parse().map_err(|e| {
-                        eprintln!("Failed to parse authorization token: {}", e);
+                        out.output_err_line(&format!(
+                            "Failed to parse authorization token: {}",
+                            e
+                        ));
                         e
                     })?,
                 );
             } else {
-                tman_verbose_println!(
-                    tman_config,
-                    "Authorization token is missing"
-                );
+                if tman_config.verbose {
+                    out.output_line("Authorization token is missing");
+                }
                 return Err(anyhow!("Authorization token is missing"));
             }
 
@@ -185,11 +186,12 @@ async fn upload_package_to_remote(
     client: &reqwest::Client,
     package_file_path: &str,
     url: &str,
+    out: &TmanOutput,
 ) -> Result<()> {
     let max_retries = REMOTE_REGISTRY_MAX_RETRIES;
     let retry_delay = Duration::from_millis(REMOTE_REGISTRY_RETRY_DELAY_MS);
 
-    retry_async(tman_config, max_retries, retry_delay, || {
+    retry_async(tman_config, max_retries, retry_delay, out, || {
         let client = client.clone();
         let package_file_path = package_file_path.to_string();
         let url = url.to_string();
@@ -198,10 +200,10 @@ async fn upload_package_to_remote(
             let body = match std::fs::read(&package_file_path) {
                 Ok(file) => file,
                 Err(e) => {
-                    eprintln!(
+                    out.output_err_line(&format!(
                         "Failed to read file at '{}': {}",
                         &package_file_path, e
-                    );
+                    ));
                     return Err(e.into());
                 }
             };
@@ -211,7 +213,10 @@ async fn upload_package_to_remote(
             headers.insert(
                 CONTENT_TYPE,
                 "application/gzip".parse().map_err(|e| {
-                    eprintln!("Failed to parse content type: {}", e);
+                    out.output_err_line(&format!(
+                        "Failed to parse content type: {}",
+                        e
+                    ));
                     e
                 })?,
             );
@@ -241,11 +246,12 @@ async fn ack_of_uploading(
     base_url: &str,
     client: &reqwest::Client,
     resource_id: &str,
+    out: &TmanOutput,
 ) -> Result<()> {
     let max_retries = REMOTE_REGISTRY_MAX_RETRIES;
     let retry_delay = Duration::from_millis(REMOTE_REGISTRY_RETRY_DELAY_MS);
 
-    retry_async(tman_config, max_retries, retry_delay, || {
+    retry_async(tman_config, max_retries, retry_delay, out, || {
         let base_url = base_url.to_string();
         let client = client.clone();
         let resource_id = resource_id.to_string();
@@ -254,7 +260,7 @@ async fn ack_of_uploading(
             let url = match reqwest::Url::parse(&base_url) {
                 Ok(url) => url,
                 Err(e) => {
-                    eprintln!("Invalid base URL: {}", e);
+                    out.output_err_line(&format!("Invalid base URL: {}", e));
                     return Err(e.into());
                 }
             };
@@ -293,11 +299,12 @@ pub async fn upload_package(
     base_url: &str,
     package_file_path: &str,
     pkg_info: &PkgInfo,
+    out: &TmanOutput,
 ) -> Result<String> {
     let client = create_http_client_with_proxies()?;
 
     let upload_info =
-        get_package_upload_info(tman_config, base_url, &client, pkg_info)
+        get_package_upload_info(tman_config, base_url, &client, pkg_info, out)
             .await?;
 
     upload_package_to_remote(
@@ -305,11 +312,18 @@ pub async fn upload_package(
         &client,
         package_file_path,
         &upload_info.url,
+        out,
     )
     .await?;
 
-    ack_of_uploading(tman_config, base_url, &client, &upload_info.resource_id)
-        .await?;
+    ack_of_uploading(
+        tman_config,
+        base_url,
+        &client,
+        &upload_info.resource_id,
+        out,
+    )
+    .await?;
 
     Ok(upload_info.url)
 }
@@ -336,6 +350,7 @@ pub async fn get_package(
     pkg_version: &Version,
     url: &str,
     temp_file: &mut NamedTempFile,
+    out: &TmanOutput,
 ) -> Result<()> {
     // First, check the cache. If there is a matching filename, use the cached
     // file directly.
@@ -353,11 +368,11 @@ pub async fn get_package(
     {
         // If the filename matches, directly copy the cached file to
         // `temp_file`.
-        eprintln!(
+        out.output_err_line(&format!(
             "{}  Found the package file ({}) in the package cache, using it directly.",
             Emoji("🚀", ":-("),
             cached_file_path.to_string_lossy()
-        );
+        ));
 
         fs::copy(&cached_file_path, temp_file.path()).with_context(|| {
             format!("Failed to copy from cache {}", cached_file_path.display())
@@ -377,7 +392,7 @@ pub async fn get_package(
 
     let download_complete = Arc::new(RwLock::new(false));
 
-    retry_async(tman_config, max_retries, retry_delay, || {
+    retry_async(tman_config, max_retries, retry_delay, out, || {
         let client = client.clone();
         let url = url.to_string();
         let temp_file = Arc::clone(&temp_file); // Clone the Rc pointer.
@@ -477,12 +492,13 @@ pub async fn get_package(
     // Only print when `download_complete` is `true`.
     if *download_complete.read().await {
         let temp_file_borrow = temp_file.read().await;
-        tman_verbose_println!(
-            tman_config,
-            "Package downloaded successfully from {} and written to {}",
-            url,
-            temp_file_borrow.path().display()
-        );
+        if tman_config.verbose {
+            out.output_line(&format!(
+                "Package downloaded successfully from {} and written to {}",
+                url,
+                temp_file_borrow.path().display()
+            ));
+        }
 
         if tman_config.enable_package_cache {
             // Place the downloaded file into the cache.
@@ -521,11 +537,12 @@ pub async fn get_package_list(
     pkg_type: PkgType,
     name: &String,
     version_req: &VersionReq,
+    out: &TmanOutput,
 ) -> Result<Vec<PkgRegistryInfo>> {
     let max_retries = REMOTE_REGISTRY_MAX_RETRIES;
     let retry_delay = Duration::from_millis(REMOTE_REGISTRY_RETRY_DELAY_MS);
 
-    retry_async(tman_config, max_retries, retry_delay, || {
+    retry_async(tman_config, max_retries, retry_delay, out, || {
         let base_url = base_url.to_string();
         let client = match create_http_client_with_proxies() {
             Ok(c) => c,
@@ -593,15 +610,16 @@ pub async fn get_package_list(
                     results.push(pkg_registry_info);
                 }
 
-                tman_verbose_println!(
-                    &tman_config,
-                    "Fetched {} packages at page {} for {}:{}@{}",
-                    results.len(),
-                    current_page,
-                    pkg_type,
-                    name,
-                    version_req
-                );
+                if tman_config.verbose {
+                    out.output_line(&format!(
+                        "Fetched {} packages at page {} for {}:{}@{}",
+                        results.len(),
+                        current_page,
+                        pkg_type,
+                        name,
+                        version_req
+                    ));
+                }
 
                 // Check if we've fetched all packages based on totalSize.
                 if results.len() >= total_size {
@@ -624,11 +642,12 @@ pub async fn delete_package(
     name: &String,
     version: &Version,
     hash: &str,
+    out: &TmanOutput,
 ) -> Result<()> {
     let max_retries = REMOTE_REGISTRY_MAX_RETRIES;
     let retry_delay = Duration::from_millis(REMOTE_REGISTRY_RETRY_DELAY_MS);
 
-    retry_async(tman_config, max_retries, retry_delay, || {
+    retry_async(tman_config, max_retries, retry_delay, out, || {
         let base_url = base_url.to_string();
         let version = version.clone();
         let client = match create_http_client_with_proxies() {
@@ -645,7 +664,10 @@ pub async fn delete_package(
             };
 
             let url = reqwest::Url::parse(&base_url).inspect_err(|&e| {
-                eprintln!("Failed to parse base URL: {}", e);
+                out.output_err_line(&format!(
+                    "Failed to parse base URL: {}",
+                    e
+                ));
             })?;
 
             let url = url
@@ -657,7 +679,10 @@ pub async fn delete_package(
                     hash,
                 ))
                 .inspect_err(|&e| {
-                    eprintln!("Failed to join URL path: {}", e);
+                    out.output_err_line(&format!(
+                        "Failed to join URL path: {}",
+                        e
+                    ));
                 })?;
 
             let mut headers = HeaderMap::new();
@@ -667,15 +692,17 @@ pub async fn delete_package(
                 headers.insert(
                     AUTHORIZATION,
                     basic_token.parse().map_err(|e| {
-                        eprintln!("Failed to parse authorization token: {}", e);
+                        out.output_err_line(&format!(
+                            "Failed to parse authorization token: {}",
+                            e
+                        ));
                         e
                     })?,
                 );
             } else {
-                tman_verbose_println!(
-                    &tman_config,
-                    "Authorization token is missing"
-                );
+                if tman_config.verbose {
+                    out.output_line("Authorization token is missing");
+                }
                 return Err(anyhow!("Authorization token is missing"));
             }
 
