@@ -38,7 +38,7 @@ use crate::{
     dep_and_candidate::get_all_candidates_from_deps,
     fs::{check_is_addon_folder, find_nearest_app_dir},
     install::{
-        compare_solver_results_with_existed_pkgs,
+        compare_solver_results_with_installed_pkgs,
         filter_compatible_pkgs_to_candidates,
         write_installing_pkg_into_manifest_file,
         write_pkgs_into_manifest_lock_file,
@@ -635,7 +635,7 @@ pub async fn execute_cmd(
         // Compare the solver results with the already installed packages to
         // check if there are any installed packages that need to be deleted
         // or replaced.
-        let has_conflict = compare_solver_results_with_existed_pkgs(
+        let has_conflict = compare_solver_results_with_installed_pkgs(
             &remaining_solver_results,
             &all_installed_pkgs,
         );

@@ -107,7 +107,7 @@ fn get_app_installed_pkgs_with_cmd_data(
 
     for app in &command.app_dir {
         let app_path = path::Path::new(app);
-        let app_existed_pkgs = get_app_installed_pkgs(app_path)?;
+        let app_installed_pkgs = get_app_installed_pkgs(app_path)?;
 
         let app_property = parse_property_in_folder(app_path)?;
         let app_uri = if let Some(property) = app_property {
@@ -123,7 +123,7 @@ fn get_app_installed_pkgs_with_cmd_data(
             ));
         }
 
-        let present_pkg = pkgs_info.insert(app_uri.clone(), app_existed_pkgs);
+        let present_pkg = pkgs_info.insert(app_uri.clone(), app_installed_pkgs);
         if present_pkg.is_some() {
             return Err(anyhow::anyhow!(
                 "All apps should have a unique uri, but uri [{}] is duplicated.",
