@@ -18,7 +18,9 @@ import { FileMenu } from "@/components/AppBar/FileMenu";
 import { EditMenu } from "@/components/AppBar/EditMenu";
 import { HelpMenu } from "@/components/AppBar/HelpMenu";
 import { AppStatus } from "@/components/AppBar/AppStatus";
+import { GHStargazersCount } from "@/components/Widget/GH";
 import { cn } from "@/lib/utils";
+import { TEN_FRAMEWORK_GH_OWNER, TEN_FRAMEWORK_GH_REPO } from "@/constants";
 
 interface AppBarProps {
   // The current version of tman.
@@ -70,6 +72,10 @@ const AppBar: React.FC<AppBarProps> = ({
           />
           <HelpMenu />
         </NavigationMenuList>
+        <GHStargazersCount
+          owner={TEN_FRAMEWORK_GH_OWNER}
+          repo={TEN_FRAMEWORK_GH_REPO}
+        />
       </NavigationMenu>
 
       {/* Middle part is the status bar. */}
