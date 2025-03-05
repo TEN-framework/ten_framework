@@ -15,6 +15,7 @@ use ten_rust::pkg_info::pkg_type::PkgType;
 
 use crate::{
     config::TmanConfig,
+    output::TmanOutput,
     package_file::unpackage::extract_and_process_tpkg_file,
     registry::{get_package, get_package_list},
 };
@@ -36,6 +37,7 @@ fn can_package_be_created_in_path(
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 pub async fn create_pkg_in_path(
     tman_config: &TmanConfig,
     path: &Path,
@@ -44,6 +46,7 @@ pub async fn create_pkg_in_path(
     template_pkg_name: &String,
     template_pkg_version: &VersionReq,
     template_data: Option<&HashMap<String, String>>,
+    out: &TmanOutput,
 ) -> Result<()> {
     // Check that 'path' is a directory.
     if !path.is_dir() {
@@ -62,6 +65,7 @@ pub async fn create_pkg_in_path(
         template_pkg_name,
         // Ensure exact version matching.
         template_pkg_version,
+        out,
     )
     .await?;
 
@@ -93,6 +97,7 @@ pub async fn create_pkg_in_path(
         &package.basic_info.version,
         package_url,
         &mut temp_file,
+        out,
     )
     .await
     .context("Failed to download the package from the registry")?;

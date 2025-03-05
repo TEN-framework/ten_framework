@@ -21,7 +21,7 @@ use crate::{
     constants::DESIGNER_BACKEND_DEFAULT_PORT,
     designer::{configure_routes, frontend::get_frontend_asset, DesignerState},
     fs::{check_is_app_folder, get_cwd},
-    log::tman_verbose_println,
+    output::{TmanOutput, TmanOutputCli},
 };
 
 #[derive(Clone, Debug)]
@@ -86,25 +86,28 @@ pub fn parse_sub_cmd(
 pub async fn execute_cmd(
     tman_config: &TmanConfig,
     command_data: DesignerCommand,
+    out: &TmanOutput,
 ) -> Result<()> {
-    tman_verbose_println!(tman_config, "Executing designer command");
-    tman_verbose_println!(tman_config, "{:?}", command_data);
-    tman_verbose_println!(tman_config, "{:?}", tman_config);
+    if tman_config.verbose {
+        out.output_line("Executing designer command");
+        out.output_line(&format!("{:?}", command_data));
+        out.output_line(&format!("{:?}", tman_config));
+    }
 
     let base_dir = match &command_data.base_dir {
         Some(base_dir) => {
-            println!("Base directory: {}", base_dir);
+            out.output_line(&format!("Base directory: {}", base_dir));
             base_dir.clone()
         }
         None => {
             let cwd = get_cwd()?.to_str().unwrap_or_default().to_string();
 
-            println!(
+            out.output_line(&format!(
                 "{}  Doesn't specify the base directory, use current working \
                 directory instead: {}",
                 Emoji("💡", "!"),
                 &cwd
-            );
+            ));
 
             cwd.clone()
         }
@@ -115,11 +118,11 @@ pub async fn execute_cmd(
     // Check if the base_dir is an app folder.
     if let Some(actual_base_dir) = actual_base_dir_opt.as_ref() {
         if let Err(e) = check_is_app_folder(Path::new(actual_base_dir)) {
-            println!(
+            out.output_line(&format!(
                 "{}  base_dir is not an app folder: {}",
                 Emoji("🚨", ":-("),
                 e
-            );
+            ));
             actual_base_dir_opt = None;
         }
     }
@@ -128,6 +131,7 @@ pub async fn execute_cmd(
         base_dir: actual_base_dir_opt,
         all_pkgs: None,
         tman_config: TmanConfig::default(),
+        out: TmanOutput::Cli(TmanOutputCli),
     }));
 
     let server = HttpServer::new(move || {
@@ -150,23 +154,11 @@ pub async fn execute_cmd(
     let bind_address =
         format!("{}:{}", command_data.ip_address, command_data.port);
 
-    println!(
+    out.output_line(&format!(
         "{}  Starting server at http://{}",
         Emoji("🏆", ":-)"),
         bind_address,
-    );
-
-    // Auto launch browser to navigate the designer frontend.
-    // let url = format!("http://{}", bind_address);
-    // Launch the browser in a new process to avoid blocking the http server.
-    // TODO(Wei): enable this.
-    // actix_web::rt::spawn(async move {
-    //     // Wait until the browser to launch completely.
-    //     actix_web::rt::time::sleep(std::time::Duration::from_secs(1)).await;
-    //     if let Err(e) = webbrowser::open(&url) {
-    //         eprintln!("Failed to open browser: {}", e);
-    //     }
-    // });
+    ));
 
     server.bind(&bind_address)?.run().await?;
 

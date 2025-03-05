@@ -156,9 +156,9 @@ pub async fn get_extension_addons(
 
 pub async fn get_extension_addon_by_name(
     state: web::Data<Arc<RwLock<DesignerState>>>,
-    path: web::Path<String>, // NEW
+    path: web::Path<String>,
 ) -> impl Responder {
-    let addon_name = path.into_inner(); // NEW
+    let addon_name = path.into_inner();
     let mut state = state.write().unwrap();
 
     match retrieve_extension_addons(&mut state) {
@@ -200,6 +200,7 @@ mod tests {
             },
             mock::tests::inject_all_pkgs_for_mock,
         },
+        output::{TmanOutput, TmanOutputCli},
     };
 
     use super::*;
@@ -211,6 +212,7 @@ mod tests {
             base_dir: None,
             all_pkgs: None,
             tman_config: TmanConfig::default(),
+            out: TmanOutput::Cli(TmanOutputCli),
         };
 
         let all_pkgs_json = vec![
@@ -422,6 +424,7 @@ mod tests {
         let json: ApiResponse<Vec<DesignerExtensionAddon>> =
             serde_json::from_str(body_str).unwrap();
         let pretty_json = serde_json::to_string_pretty(&json).unwrap();
+
         println!("Response body: {}", pretty_json);
     }
 
@@ -431,6 +434,7 @@ mod tests {
             base_dir: None,
             all_pkgs: None,
             tman_config: TmanConfig::default(),
+            out: TmanOutput::Cli(TmanOutputCli),
         };
 
         let all_pkgs_json = vec![

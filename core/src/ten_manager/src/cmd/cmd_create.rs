@@ -18,7 +18,7 @@ use ten_rust::pkg_info::{
 };
 
 use crate::{
-    config::TmanConfig, create::create_pkg_in_path,
+    config::TmanConfig, create::create_pkg_in_path, output::TmanOutput,
     version_utils::parse_pkg_name_version_req,
 };
 
@@ -152,6 +152,7 @@ pub fn parse_sub_cmd(sub_cmd_args: &ArgMatches) -> Result<CreateCommand> {
 pub async fn execute_cmd(
     tman_config: &TmanConfig,
     command_data: CreateCommand,
+    out: &TmanOutput,
 ) -> Result<()> {
     let started = Instant::now();
 
@@ -167,18 +168,19 @@ pub async fn execute_cmd(
         &command_data.template_name,
         &command_data.template_version_req,
         Some(&command_data.template_data),
+        out,
     )
     .await
     .context("Failed to create the package")?;
 
-    println!(
+    out.output_line(&format!(
         "{}  Package '{}:{}' created successfully in '{}' in {}.",
         Emoji("🏆", ":-)"),
         command_data.pkg_type,
         command_data.pkg_name,
         cwd.display(),
         HumanDuration(started.elapsed())
-    );
+    ));
 
     Ok(())
 }

@@ -13,9 +13,7 @@ use anyhow::{anyhow, Result};
 use clap::{Arg, ArgMatches, Command};
 use ten_rust::pkg_info::constants::MANIFEST_JSON_FILENAME;
 
-use crate::{
-    config::TmanConfig, constants::SCRIPTS, log::tman_verbose_println,
-};
+use crate::{config::TmanConfig, constants::SCRIPTS, output::TmanOutput};
 
 #[derive(Debug)]
 pub struct RunCommand {
@@ -62,8 +60,11 @@ pub fn parse_sub_cmd(sub_cmd_args: &ArgMatches) -> Result<RunCommand> {
 pub async fn execute_cmd(
     tman_config: &TmanConfig,
     cmd: RunCommand,
+    out: &TmanOutput,
 ) -> Result<()> {
-    tman_verbose_println!(tman_config, "Executing run command: {:?}", cmd);
+    if tman_config.verbose {
+        out.output_line(&format!("Executing run command: {:?}", cmd));
+    }
 
     // Read `manifest.json` in the current working directory.
     let cwd = crate::fs::get_cwd()?;
@@ -125,12 +126,12 @@ pub async fn execute_cmd(
     };
 
     // Execute the subprocess.
-    tman_verbose_println!(
-        tman_config,
-        "About to run script: {} -> {}",
-        &cmd.script_name,
-        script_cmd
-    );
+    if tman_config.verbose {
+        out.output_line(&format!(
+            "About to run script: {} -> {}",
+            &cmd.script_name, script_cmd
+        ));
+    }
 
     // Determine whether it is a shell command.
     #[cfg(windows)]
@@ -216,9 +217,10 @@ pub async fn execute_cmd(
     // Get stdout.
     if let Some(stdout) = child.stdout.take() {
         let reader = BufReader::new(stdout);
+        let out = out.clone();
         tokio::spawn(async move {
             for line in reader.lines().map_while(Result::ok) {
-                println!("{}", line);
+                out.output_line(&line);
             }
         });
     }
@@ -226,9 +228,10 @@ pub async fn execute_cmd(
     // Get stderr.
     if let Some(stderr) = child.stderr.take() {
         let reader = BufReader::new(stderr);
+        let out = out.clone();
         tokio::spawn(async move {
             for line in reader.lines().map_while(Result::ok) {
-                eprintln!("{}", line);
+                out.output_err_line(&line);
             }
         });
     }

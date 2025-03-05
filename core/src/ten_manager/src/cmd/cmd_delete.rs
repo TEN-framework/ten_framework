@@ -15,7 +15,7 @@ use semver::Version;
 
 use ten_rust::pkg_info::pkg_type::PkgType;
 
-use crate::log::tman_verbose_println;
+use crate::output::TmanOutput;
 use crate::{config::TmanConfig, registry::delete_package};
 
 #[derive(Debug)]
@@ -76,9 +76,12 @@ pub fn parse_sub_cmd(
 pub async fn execute_cmd(
     tman_config: &TmanConfig,
     command_data: DeleteCommand,
+    out: &TmanOutput,
 ) -> Result<()> {
-    tman_verbose_println!(tman_config, "Executing delete command");
-    tman_verbose_println!(tman_config, "{:?}", command_data);
+    if tman_config.verbose {
+        out.output_line("Executing delete command");
+        out.output_line(&format!("{:?}", command_data));
+    }
 
     let started = Instant::now();
 
@@ -88,14 +91,15 @@ pub async fn execute_cmd(
         &command_data.package_name,
         &Version::parse(&command_data.version)?,
         &command_data.hash,
+        out,
     )
     .await?;
 
-    println!(
+    out.output_line(&format!(
         "{}  Delete successfully in {}",
         Emoji("🏆", ":-)"),
         HumanDuration(started.elapsed())
-    );
+    ));
 
     Ok(())
 }

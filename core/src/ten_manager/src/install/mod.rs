@@ -34,10 +34,10 @@ use super::{config::TmanConfig, registry::get_package};
 use crate::{
     cmd::cmd_install::{InstallCommand, LocalInstallMode},
     fs::copy_folder_recursively,
-    log::tman_verbose_println,
     manifest_lock::{
         parse_manifest_lock_in_folder, write_pkg_lockfile, ManifestLock,
     },
+    output::TmanOutput,
     package_file::unpackage::extract_and_process_tpkg_file,
     solver::solver_result::filter_solver_results_by_type_and_name,
 };
@@ -47,6 +47,7 @@ fn install_local_dependency_pkg_info(
     command_data: &InstallCommand,
     pkg_info: &PkgInfo,
     dest_dir_path: &String,
+    out: &TmanOutput,
 ) -> Result<()> {
     assert!(
         pkg_info.local_dependency_path.is_some(),
@@ -75,10 +76,10 @@ fn install_local_dependency_pkg_info(
     );
 
     if Path::new(dest_dir_path).exists() {
-        println!(
+        out.output_line(&format!(
             "Destination directory '{}' already exists. Skipping copy/link.",
             dest_dir_path
-        );
+        ));
     } else {
         // Create all parent folders for `dest_dir`.
         let dest_path = Path::new(dest_dir_path);
@@ -132,6 +133,7 @@ async fn install_non_local_dependency_pkg_info(
     tman_config: &TmanConfig,
     pkg_info: &PkgInfo,
     dest_dir_path: &String,
+    out: &TmanOutput,
 ) -> Result<()> {
     let mut temp_file = NamedTempFile::new()?;
     get_package(
@@ -141,6 +143,7 @@ async fn install_non_local_dependency_pkg_info(
         &pkg_info.basic_info.version,
         &pkg_info.url,
         &mut temp_file,
+        out,
     )
     .await?;
 
@@ -163,17 +166,6 @@ async fn install_non_local_dependency_pkg_info(
     // base_dir is also an installed_path.
     installed_paths.paths.push(".".to_string());
 
-    // tman_verbose_println!(
-    //     tman_config,
-    //     "Install files for {}:{}",
-    //     pkg_info.basic_info.type_and_name.pkg_type,
-    //     pkg_info.basic_info.type_and_name.name
-    // );
-    // for install_path in &installed_paths.paths {
-    //     tman_verbose_println!(tman_config, "{}", install_path);
-    // }
-    // tman_verbose_println!(tman_config, "");
-
     save_installed_paths(&installed_paths, Path::new(&dest_dir_path))?;
 
     Ok(())
@@ -184,14 +176,16 @@ pub async fn install_pkg_info(
     command_data: &InstallCommand,
     pkg_info: &PkgInfo,
     base_dir: &Path,
+    out: &TmanOutput,
 ) -> Result<()> {
     if pkg_info.is_installed {
-        tman_verbose_println!(
-            tman_config,
-            "{}:{} has already been installed.\n",
-            pkg_info.basic_info.type_and_name.pkg_type,
-            pkg_info.basic_info.type_and_name.name
-        );
+        if tman_config.verbose {
+            out.output_line(&format!(
+                "{}:{} has already been installed.",
+                pkg_info.basic_info.type_and_name.pkg_type,
+                pkg_info.basic_info.type_and_name.name
+            ));
+        }
         return Ok(());
     }
 
@@ -205,12 +199,14 @@ pub async fn install_pkg_info(
             command_data,
             pkg_info,
             &dest_dir_path,
+            out,
         )?;
     } else {
         install_non_local_dependency_pkg_info(
             tman_config,
             pkg_info,
             &dest_dir_path,
+            out,
         )
         .await?;
     }
@@ -358,11 +354,15 @@ fn update_package_manifest(
 pub fn write_pkgs_into_manifest_lock_file(
     pkgs: &Vec<&PkgInfo>,
     app_dir: &Path,
+    out: &TmanOutput,
 ) -> Result<()> {
     // Check if manifest-lock.json exists.
     let old_manifest_lock = parse_manifest_lock_in_folder(app_dir);
     if old_manifest_lock.is_err() {
-        println!("{}  Creating manifest-lock.json...", Emoji("🔒", ""));
+        out.output_line(&format!(
+            "{}  Creating manifest-lock.json...",
+            Emoji("🔒", "")
+        ));
     }
 
     let new_manifest_lock = ManifestLock::from(pkgs);
@@ -371,7 +371,10 @@ pub fn write_pkgs_into_manifest_lock_file(
 
     // If the lock file is changed, print all changes.
     if changed && old_manifest_lock.is_ok() {
-        println!("{}  Breaking manifest-lock.json...", Emoji("🔒", ""));
+        out.output_line(&format!(
+            "{}  Breaking manifest-lock.json...",
+            Emoji("🔒", "")
+        ));
 
         new_manifest_lock.print_changes(&old_manifest_lock.ok().unwrap());
     }
@@ -425,13 +428,15 @@ pub fn filter_compatible_pkgs_to_candidates(
         HashMap<PkgBasicInfo, PkgInfo>,
     >,
     support: &PkgSupport,
+    out: &TmanOutput,
 ) {
     for existed_pkg in all_pkgs.to_owned().iter_mut() {
-        tman_verbose_println!(
-            tman_config,
-            "Check support score for {:?}",
-            existed_pkg
-        );
+        if tman_config.verbose {
+            out.output_line(&format!(
+                "Check support score for {:?}",
+                existed_pkg
+            ));
+        }
 
         let compatible_score = is_pkg_supports_compatible_with(
             &existed_pkg.basic_info.supports,
@@ -441,12 +446,13 @@ pub fn filter_compatible_pkgs_to_candidates(
         if compatible_score >= 0 {
             existed_pkg.compatible_score = compatible_score;
 
-            tman_verbose_println!(
-                tman_config,
-                "The existed {} package {} is compatible with the current system.",
-                existed_pkg.basic_info.type_and_name.pkg_type,
-                existed_pkg.basic_info.type_and_name.name
-            );
+            if tman_config.verbose {
+                out.output_line(&format!(
+                    "The existed {} package {} is compatible with the current system.",
+                    existed_pkg.basic_info.type_and_name.pkg_type,
+                    existed_pkg.basic_info.type_and_name.name
+                ));
+            }
 
             all_candidates
                 .entry((&*existed_pkg).into())
@@ -455,13 +461,14 @@ pub fn filter_compatible_pkgs_to_candidates(
         } else {
             // The existed package is not compatible with the current system, so
             // it should not be considered as a candidate.
-            tman_verbose_println!(
-                tman_config,
-                "The existed {} package {} is not compatible with the current \
+            if tman_config.verbose {
+                out.output_line(&format!(
+                    "The existed {} package {} is not compatible with the current \
                 system.",
-                existed_pkg.basic_info.type_and_name.pkg_type,
-                existed_pkg.basic_info.type_and_name.name
-            );
+                    existed_pkg.basic_info.type_and_name.pkg_type,
+                    existed_pkg.basic_info.type_and_name.name
+                ));
+            }
         }
     }
 }
@@ -491,6 +498,7 @@ fn get_supports_str(pkg: &PkgInfo) -> String {
 pub fn compare_solver_results_with_installed_pkgs(
     solver_results: &[&PkgInfo],
     all_installed_pkgs: &[PkgInfo],
+    out: &TmanOutput,
 ) -> bool {
     let local_pkgs = all_installed_pkgs.iter().collect::<Vec<&PkgInfo>>();
 
@@ -498,18 +506,18 @@ pub fn compare_solver_results_with_installed_pkgs(
         find_untracked_local_packages(solver_results, &local_pkgs);
 
     if !untracked_local_pkgs.is_empty() {
-        println!(
+        out.output_line(&format!(
             "{}  The following local packages do not appear in the dependency \
             tree:",
             Emoji("💡", "")
-        );
+        ));
         for pkg in untracked_local_pkgs {
-            println!(
+            out.output_line(&format!(
                 " {}:{}@{}",
                 pkg.basic_info.type_and_name.pkg_type,
                 pkg.basic_info.type_and_name.name,
                 pkg.basic_info.version
-            );
+            ));
         }
     }
 
@@ -521,16 +529,16 @@ pub fn compare_solver_results_with_installed_pkgs(
     if !to_be_replaced_local_pkgs.is_empty() {
         conflict = true;
 
-        println!(
+        out.output_line(&format!(
             "{}  The following packages will be replaced:",
             Emoji("🔄", "")
-        );
+        ));
         for (new_pkg, old_pkg) in to_be_replaced_local_pkgs {
             let old_supports_str = get_supports_str(old_pkg);
             let new_supports_str = get_supports_str(new_pkg);
 
             if old_supports_str != new_supports_str {
-                println!(
+                out.output_line(&format!(
                     " {}:{}@{}{} -> {}:{}@{}{}",
                     old_pkg.basic_info.type_and_name.pkg_type,
                     old_pkg.basic_info.type_and_name.name,
@@ -540,9 +548,9 @@ pub fn compare_solver_results_with_installed_pkgs(
                     new_pkg.basic_info.type_and_name.name,
                     new_pkg.basic_info.version,
                     new_supports_str
-                );
+                ));
             } else {
-                println!(
+                out.output_line(&format!(
                     " {}:{}@{} -> {}:{}@{}",
                     old_pkg.basic_info.type_and_name.pkg_type,
                     old_pkg.basic_info.type_and_name.name,
@@ -550,7 +558,7 @@ pub fn compare_solver_results_with_installed_pkgs(
                     new_pkg.basic_info.type_and_name.pkg_type,
                     new_pkg.basic_info.type_and_name.name,
                     new_pkg.basic_info.version
-                );
+                ));
             }
         }
     }

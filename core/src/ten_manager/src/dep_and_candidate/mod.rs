@@ -21,7 +21,7 @@ use ten_rust::pkg_info::{get_pkg_info_from_path, PkgInfo};
 
 use super::config::TmanConfig;
 use super::registry::get_package_list;
-use crate::log::tman_verbose_println;
+use crate::output::TmanOutput;
 use crate::registry::pkg_list_cache::{is_superset_of, PackageListCache};
 
 // TODO(Wei): Should use the union of the semantic versioning rather than the
@@ -127,6 +127,7 @@ fn process_local_dependency_to_get_candidate(
     Ok(())
 }
 
+#[allow(clippy::too_many_arguments)]
 async fn process_non_local_dependency_to_get_candidate(
     tman_config: &TmanConfig,
     support: &PkgSupport,
@@ -141,6 +142,7 @@ async fn process_non_local_dependency_to_get_candidate(
     >,
     new_pkgs_to_be_searched: &mut Vec<PkgInfo>,
     pkg_list_cache: &mut PackageListCache,
+    out: &TmanOutput,
 ) -> Result<()> {
     // First, check whether the package list cache has already processed the
     // same or a more permissive version requirement combination.
@@ -163,6 +165,7 @@ async fn process_non_local_dependency_to_get_candidate(
         // design, this is the best we can do for now. The answer won't be
         // wrong, but the efficiency might be somewhat lower.
         &dependency.version_req,
+        out,
     )
     .await?;
 
@@ -177,12 +180,6 @@ async fn process_non_local_dependency_to_get_candidate(
         candidate_pkg_info.url = result.download_url;
         candidate_pkg_info.is_installed = false;
 
-        // tman_verbose_println!(
-        //     tman_config,
-        //     "Collect candidate: {:?}",
-        //     candidate_pkg_info
-        // );
-
         candidate_pkg_infos.push(candidate_pkg_info);
     }
 
@@ -194,12 +191,6 @@ async fn process_non_local_dependency_to_get_candidate(
     {
         for candidate in candidates {
             if dependency.version_req.matches(&candidate.0.version) {
-                // tman_verbose_println!(
-                //     tman_config,
-                //     "Collect candidate from an already installed package:
-                // {:?}",     candidate
-                // );
-
                 candidate_pkg_infos.push(candidate.1.clone());
             }
         }
@@ -218,14 +209,15 @@ async fn process_non_local_dependency_to_get_candidate(
             // the most appropriate one.
             candidate_pkg_info.compatible_score = compatible_score;
 
-            tman_verbose_println!(
-                tman_config,
-                "=> Found a candidate: {}:{}@{}[{}]",
-                candidate_pkg_info.basic_info.type_and_name.pkg_type,
-                candidate_pkg_info.basic_info.type_and_name.name,
-                candidate_pkg_info.basic_info.version,
-                SupportsDisplay(&candidate_pkg_info.basic_info.supports),
-            );
+            if tman_config.verbose {
+                out.output_line(&format!(
+                    "=> Found a candidate: {}:{}@{}[{}]",
+                    candidate_pkg_info.basic_info.type_and_name.pkg_type,
+                    candidate_pkg_info.basic_info.type_and_name.name,
+                    candidate_pkg_info.basic_info.version,
+                    SupportsDisplay(&candidate_pkg_info.basic_info.supports),
+                ));
+            }
 
             all_candidates.entry(dependency.into()).or_default().insert(
                 (&candidate_pkg_info).into(),
@@ -270,6 +262,7 @@ struct DependenciesContext<'a> {
 async fn process_dependencies_to_get_candidates(
     ctx: &mut DependenciesContext<'_>,
     input_dependencies: &Vec<PkgDependency>,
+    out: &TmanOutput,
 ) -> Result<()> {
     for dependency in input_dependencies {
         if dependency.is_local() {
@@ -297,6 +290,7 @@ async fn process_dependencies_to_get_candidates(
                 ctx.all_candidates,
                 ctx.new_pkgs_to_be_searched,
                 ctx.pkg_list_cache,
+                out,
             )
             .await?;
         }
@@ -359,6 +353,7 @@ fn clean_up_all_candidates(
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 pub async fn get_all_candidates_from_deps(
     tman_config: &TmanConfig,
     support: &PkgSupport,
@@ -370,6 +365,7 @@ pub async fn get_all_candidates_from_deps(
     >,
     mut all_candidates: HashMap<PkgTypeAndName, HashMap<PkgBasicInfo, PkgInfo>>,
     locked_pkgs: Option<&HashMap<PkgTypeAndName, PkgInfo>>,
+    out: &TmanOutput,
 ) -> Result<HashMap<PkgTypeAndName, HashMap<PkgBasicInfo, PkgInfo>>> {
     let mut merged_dependencies = HashMap::new();
     let mut processed_pkgs = HashSet::<PkgBasicInfo>::new();
@@ -434,6 +430,7 @@ pub async fn get_all_candidates_from_deps(
         process_dependencies_to_get_candidates(
             &mut context,
             &combined_dependencies,
+            out,
         )
         .await?;
 

@@ -43,8 +43,8 @@ use crate::{
         write_installing_pkg_into_manifest_file,
         write_pkgs_into_manifest_lock_file,
     },
-    log::tman_verbose_println,
     manifest_lock::parse_manifest_lock_in_folder,
+    output::TmanOutput,
     package_info::tman_get_all_installed_pkgs_info_of_app,
     solver::{
         introducer::extract_introducer_relations_from_raw_solver_results,
@@ -344,10 +344,13 @@ async fn determine_app_dir_to_work_with(
 pub async fn execute_cmd(
     tman_config: &TmanConfig,
     command_data: InstallCommand,
+    out: &TmanOutput,
 ) -> Result<()> {
-    tman_verbose_println!(tman_config, "Executing install command");
-    tman_verbose_println!(tman_config, "{:?}", command_data);
-    tman_verbose_println!(tman_config, "{:?}", tman_config);
+    if tman_config.verbose {
+        out.output_line("Executing install command");
+        out.output_line(&format!("command_data: {:?}", command_data));
+        out.output_line(&format!("tman_config: {:?}", tman_config));
+    }
 
     let started = Instant::now();
 
@@ -406,20 +409,28 @@ pub async fn execute_cmd(
         &mut all_candidates,
     )?;
 
-    println!("{}  Get all installed packages...", Emoji("📦", ""),);
+    out.output_line(&format!(
+        "{}  Get all installed packages...",
+        Emoji("📦", "")
+    ));
 
     all_installed_pkgs = tman_get_all_installed_pkgs_info_of_app(
         tman_config,
         &app_dir_to_work_with,
+        out,
     )?;
 
-    println!("{}  Filter compatible packages...", Emoji("🔍", ""),);
+    out.output_line(&format!(
+        "{}  Filter compatible packages...",
+        Emoji("🔍", "")
+    ));
 
     filter_compatible_pkgs_to_candidates(
         tman_config,
         &all_installed_pkgs,
         &mut all_compatible_installed_pkgs,
         &command_data.support,
+        out,
     );
 
     if command_data.local_path.is_some() {
@@ -567,15 +578,19 @@ pub async fn execute_cmd(
         });
     }
 
-    println!(
-        "{}  Attempting to retrieve information about locked packages from manifest-lock.json...",
-        Emoji("📜", ""),
-    );
+    out.output_line(&format!(
+        "{}  Attempting to retrieve information about locked packages \
+from manifest-lock.json...",
+        Emoji("📜", "")
+    ));
 
     // Get the locked pkgs from the lock file in the app folder.
     let locked_pkgs = get_locked_pkgs(&app_dir_to_work_with);
 
-    println!("{}  Collect all candidate packages...", Emoji("📦", ""),);
+    out.output_line(&format!(
+        "{}  Collect all candidate packages...",
+        Emoji("📦", "")
+    ));
 
     // Get all possible candidates according to the input packages and extra
     // dependencies.
@@ -589,10 +604,11 @@ pub async fn execute_cmd(
         &all_compatible_installed_pkgs,
         all_candidates,
         locked_pkgs.as_ref(),
+        out,
     )
     .await?;
 
-    println!("{}  Resolving packages...", Emoji("🔍", ""),);
+    out.output_line(&format!("{}  Resolving packages...", Emoji("🔍", "")));
 
     // Find an answer (a dependency tree) that satisfies all dependencies.
     let (usable_model, non_usable_models) = solve_all(
@@ -602,17 +618,25 @@ pub async fn execute_cmd(
         dep_relationship_from_cmd_line.as_ref(),
         &all_candidates,
         locked_pkgs.as_ref(),
+        out,
     )?;
 
     // If there are answers are found, print out all the answers.
-    tman_verbose_println!(tman_config, "\n");
-    tman_verbose_println!(tman_config, "Result:");
+    if tman_config.verbose {
+        out.output_line("\n");
+        out.output_line("Result:");
+    }
+
     if let Some(ref usable_model) = usable_model {
         for result in usable_model {
-            tman_verbose_println!(tman_config, " {:?}", result);
+            if tman_config.verbose {
+                out.output_line(&format!(" {:?}", result));
+            }
         }
     }
-    tman_verbose_println!(tman_config, "");
+    if tman_config.verbose {
+        out.output_line("");
+    }
 
     if let Some(ref usable_model) = usable_model {
         // Get the information of the resultant packages.
@@ -638,35 +662,41 @@ pub async fn execute_cmd(
         let has_conflict = compare_solver_results_with_installed_pkgs(
             &remaining_solver_results,
             &all_installed_pkgs,
+            out,
         );
 
         if has_conflict && !tman_config.assume_yes {
-            // "y" for continuing to install, "n" for stopping.
-            let ans = Confirm::new(
-                "Warning!!! Some local packages will be overwritten, \
-                do you want to continue?",
-            )
-            .with_default(false)
-            .prompt();
+            if out.is_interactive() {
+                // "y" for continuing to install, "n" for stopping.
+                let ans = Confirm::new(
+                    "Warning!!! Some local packages will be overwritten, \
+do you want to continue?",
+                )
+                .with_default(false)
+                .prompt();
 
-            match ans {
-                std::result::Result::Ok(true) => {
-                    // continue to install
+                match ans {
+                    Ok(true) => {
+                        // continue to install
+                    }
+                    Ok(false) => {
+                        // stop
+                        return Ok(());
+                    }
+                    Err(_) => {
+                        // stop
+                        return Ok(());
+                    }
                 }
-                std::result::Result::Ok(false) => {
-                    // stop
-                    return Ok(());
-                }
-                Err(_) => {
-                    // stop
-                    return Ok(());
-                }
+            } else {
+                out.output_line("Non-interactive mode, auto-continue...");
             }
         }
 
         write_pkgs_into_manifest_lock_file(
             &remaining_solver_results,
             &app_dir_to_work_with,
+            out,
         )?;
 
         install_solver_results_in_app_folder(
@@ -674,6 +704,7 @@ pub async fn execute_cmd(
             &command_data,
             &remaining_solver_results,
             &app_dir_to_work_with,
+            out,
         )
         .await?;
 
@@ -717,11 +748,11 @@ pub async fn execute_cmd(
         // Change back to the original folder.
         env::set_current_dir(original_cwd)?;
 
-        println!(
+        out.output_line(&format!(
             "{}  Install successfully in {}",
             Emoji("🏆", ":-)"),
             HumanDuration(started.elapsed())
-        );
+        ));
 
         Ok(())
     } else {
@@ -788,6 +819,7 @@ pub async fn execute_cmd(
                         &all_candidates,
                     )?,
                     &all_candidates,
+                    out,
                 )?;
 
                 // Since there is an error, we need to exit.

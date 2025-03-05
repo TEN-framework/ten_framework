@@ -17,6 +17,7 @@ use ten_rust::pkg_info::{pkg_type::PkgType, supports::PkgSupport};
 
 use crate::{
     config::TmanConfig,
+    output::TmanOutput,
     package_file::unpackage::extract_and_process_tpkg_file,
     registry::{get_package, get_package_list},
     version_utils::parse_pkg_name_version_req,
@@ -120,6 +121,7 @@ pub fn parse_sub_cmd(sub_cmd_args: &ArgMatches) -> Result<FetchCommand> {
 pub async fn execute_cmd(
     tman_config: &TmanConfig,
     command_data: FetchCommand,
+    out: &TmanOutput,
 ) -> Result<()> {
     let started = Instant::now();
 
@@ -134,6 +136,7 @@ pub async fn execute_cmd(
         command_data.pkg_type,
         &command_data.pkg_name,
         &command_data.version_req,
+        out,
     )
     .await?;
 
@@ -155,6 +158,7 @@ pub async fn execute_cmd(
         &package.basic_info.version,
         package_url,
         &mut temp_file,
+        out,
     )
     .await?;
 
@@ -168,11 +172,11 @@ pub async fn execute_cmd(
 
         fs::copy(temp_file.path(), &target_file)?;
 
-        println!(
+        out.output_line(&format!(
             "{}  Package file saved to '{}'",
             Emoji("📦", ""),
             target_file.display()
-        );
+        ));
     } else {
         // If `--no-extract` is not specified, extract the files to the target
         // directory.
@@ -187,18 +191,18 @@ pub async fn execute_cmd(
             None,
         )?;
 
-        println!(
+        out.output_line(&format!(
             "{}  Package extracted to '{}'",
             Emoji("🏆", ""),
             target_path.display()
-        );
+        ));
     }
 
-    println!(
+    out.output_line(&format!(
         "{}  Fetch completed in {}.",
         Emoji("✅", ""),
         HumanDuration(started.elapsed())
-    );
+    ));
 
     Ok(())
 }

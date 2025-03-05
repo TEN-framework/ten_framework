@@ -15,7 +15,7 @@ use ten_rust::pkg_info::{
 };
 
 use crate::{
-    dep_and_candidate::get_pkg_info_from_candidates,
+    dep_and_candidate::get_pkg_info_from_candidates, output::TmanOutput,
     solver::introducer::get_dependency_chain,
 };
 
@@ -126,35 +126,37 @@ fn print_dependency_chain(
     pkg_type: &str,
     pkg_name: &str,
     version: &str,
+    out: &TmanOutput,
 ) {
-    println!(
+    out.output_line(&format!(
         "Dependency chain leading to [{}]{}@{}:",
         pkg_type, pkg_name, version
-    );
+    ));
     for (i, pkg) in chain.iter().enumerate() {
-        println!(
+        out.output_line(&format!(
             "{:indent$}└─ [{}]{}@{}",
             "",
             pkg.1.pkg_type,
             pkg.1.name,
             pkg.0,
             indent = i * 3
-        );
+        ));
     }
-    println!();
+    out.output_line("");
 }
 
 pub fn print_conflict_info(
     conflict_info: &ConflictInfo,
     introducer_relations: &HashMap<PkgBasicInfo, (String, Option<PkgInfo>)>,
     all_candidates: &HashMap<PkgTypeAndName, HashMap<PkgBasicInfo, PkgInfo>>,
+    out: &TmanOutput,
 ) -> Result<()> {
-    println!(
+    out.output_line(&format!(
         "{}  Error: {}",
         Emoji("🔴", ":-("),
         conflict_info.error_message
-    );
-    println!();
+    ));
+    out.output_line("");
 
     // Get PkgInfo for both introducer packages.
     let introducer_pkg_info_1 = get_pkg_info_from_candidates(
@@ -194,6 +196,7 @@ pub fn print_conflict_info(
         &conflict_info.conflict_pkg_type,
         &conflict_info.conflict_pkg_name,
         &conflict_info.conflict_pkg_version_1.pkg_version,
+        out,
     );
 
     print_dependency_chain(
@@ -201,6 +204,7 @@ pub fn print_conflict_info(
         &conflict_info.conflict_pkg_type,
         &conflict_info.conflict_pkg_name,
         &conflict_info.conflict_pkg_version_2.pkg_version,
+        out,
     );
 
     Ok(())

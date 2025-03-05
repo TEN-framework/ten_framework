@@ -14,7 +14,7 @@ use ten_rust::pkg_info::constants::PROPERTY_JSON_FILENAME;
 
 use crate::{
     cmd::cmd_modify::jq_util::jq_run, config::TmanConfig,
-    fs::read_file_to_string,
+    fs::read_file_to_string, output::TmanOutput,
 };
 
 #[derive(Debug)]
@@ -84,6 +84,7 @@ pub fn parse_sub_cmd(sub_cmd_args: &ArgMatches) -> Result<ModifyGraphCommand> {
 }
 
 pub async fn execute_cmd(
+    out: &TmanOutput,
     _tman_config: &TmanConfig,
     command_data: ModifyGraphCommand,
 ) -> Result<()> {
@@ -139,7 +140,7 @@ pub async fn execute_cmd(
         jq_run(target_graph.clone(), &command_data.modification).unwrap();
 
     if !command_data.inplace {
-        println!("{}", output);
+        out.output_line(&serde_json::to_string_pretty(&output)?);
         return Ok(());
     }
 
@@ -151,11 +152,11 @@ pub async fn execute_cmd(
     let new_property_str = serde_json::to_string_pretty(&property_json)?;
     fs::write(&property_file_path, new_property_str)?;
 
-    println!(
+    out.output_line(&format!(
         "{}  Successfully modified the graph '{}'",
         Emoji("🏆", ":-)"),
         command_data.predefined_graph_name
-    );
+    ));
 
     Ok(())
 }

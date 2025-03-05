@@ -9,7 +9,7 @@ use clap::{Arg, ArgMatches, Command};
 use console::Emoji;
 use ten_rust::json_schema::ten_validate_property_json_string;
 
-use crate::fs::read_file_to_string;
+use crate::{fs::read_file_to_string, output::TmanOutput};
 
 #[derive(Debug)]
 pub struct CheckPropertyJsonCommand {
@@ -43,11 +43,15 @@ pub fn parse_sub_cmd(
 pub async fn execute_cmd(
     _tman_config: &crate::config::TmanConfig,
     command_data: CheckPropertyJsonCommand,
+    out: &TmanOutput,
 ) -> Result<()> {
     let content = read_file_to_string(&command_data.path)?;
     match ten_validate_property_json_string(&content) {
         Ok(_) => {
-            println!("{}  Conforms to JSON schema.", Emoji("👍", "Passed"));
+            out.output_line(&format!(
+                "{}  Conforms to JSON schema.",
+                Emoji("👍", "Passed")
+            ));
             Ok(())
         }
         Err(e) => Err(e),

@@ -15,7 +15,7 @@ use ten_rust::pkg_info::{
     property::parse_property_in_folder, PkgInfo,
 };
 
-use crate::config::TmanConfig;
+use crate::{config::TmanConfig, output::TmanOutput};
 
 #[derive(Debug)]
 pub struct CheckGraphCommand {
@@ -184,15 +184,16 @@ fn get_graphs_to_be_checked(command: &CheckGraphCommand) -> Result<Vec<Graph>> {
     Ok(graphs_to_be_checked)
 }
 
-fn display_error(e: &anyhow::Error) {
+fn display_error(e: &anyhow::Error, out: &TmanOutput) {
     e.to_string().lines().for_each(|l| {
-        println!("  {}", l);
+        out.output_err_line(&format!("  {}", l));
     });
 }
 
 pub async fn execute_cmd(
     _tman_config: &TmanConfig,
     command_data: CheckGraphCommand,
+    out: &TmanOutput,
 ) -> Result<()> {
     validate_cmd_args(&command_data)?;
 
@@ -203,20 +204,23 @@ pub async fn execute_cmd(
     let mut err_count = 0;
 
     for (graph_idx, graph) in graphs.iter().enumerate() {
-        print!("Checking graph[{}]... ", graph_idx);
+        out.output(&format!("Checking graph[{}]... ", graph_idx));
 
         match graph.check(&installed_pkgs_of_all_apps) {
-            Ok(_) => println!("{}", Emoji("👍", "Passed")),
+            Ok(_) => out.output_line(&format!("{}", Emoji("👍", "Passed"))),
             Err(e) => {
                 err_count += 1;
-                println!("{}  Details:", Emoji("🔴", "Failed"));
-                display_error(&e);
-                println!();
+                out.output_line(&format!(
+                    "{}  Details:",
+                    Emoji("🔴", "Failed")
+                ));
+                display_error(&e, out);
+                out.output_line("");
             }
         }
     }
 
-    println!("All is done.");
+    out.output_line("All is done.");
 
     if err_count > 0 {
         Err(anyhow::anyhow!(

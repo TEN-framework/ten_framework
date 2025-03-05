@@ -10,7 +10,7 @@ mod jq_util;
 use anyhow::Result;
 use clap::{ArgMatches, Command};
 
-use crate::config::TmanConfig;
+use crate::{config::TmanConfig, output::TmanOutput};
 
 #[derive(Debug)]
 pub enum ModifyCommandData {
@@ -44,10 +44,12 @@ pub fn parse_sub_cmd(sub_cmd_args: &ArgMatches) -> Result<ModifyCommandData> {
 pub async fn execute_cmd(
     tman_config: &TmanConfig,
     command_data: ModifyCommandData,
+    out: &TmanOutput,
 ) -> Result<()> {
     match command_data {
         ModifyCommandData::ModifyGraph(cmd) => {
             crate::cmd::cmd_modify::cmd_modify_graph::execute_cmd(
+                out,
                 tman_config,
                 cmd,
             )
