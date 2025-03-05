@@ -6,4 +6,3 @@
 //
 pub mod base_dir;
 pub mod install;
-pub mod run;

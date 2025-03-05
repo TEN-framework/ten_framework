@@ -7,21 +7,13 @@
 mod cmd_run;
 mod msg_out;
 
-use std::{
-    collections::VecDeque,
-    process::Child,
-    sync::{Arc, Mutex},
-};
+use std::process::Child;
 
 use actix::{Actor, Handler, Message, StreamHandler};
 use actix_web_actors::ws;
 use anyhow::Result;
 use msg_out::OutboundMsg;
 use serde::{Deserialize, Serialize};
-
-use crate::constants::{
-    PROCESS_STDERR_MAX_LINE_CNT, PROCESS_STDOUT_MAX_LINE_CNT,
-};
 
 // The output (stdout, stderr) and exit status from the child process.
 #[derive(Message)]
@@ -45,8 +37,6 @@ struct MsgFromFrontend {
 
 pub struct WsRunCmd {
     child: Option<Child>,
-    buffer_stdout: Arc<Mutex<VecDeque<String>>>,
-    buffer_stderr: Arc<Mutex<VecDeque<String>>>,
     cmd_parser: CmdParser,
     working_directory: Option<String>,
 }
@@ -55,8 +45,6 @@ impl WsRunCmd {
     pub fn new(cmd_parser: CmdParser) -> Self {
         Self {
             child: None,
-            buffer_stdout: Arc::new(Mutex::new(VecDeque::new())),
-            buffer_stderr: Arc::new(Mutex::new(VecDeque::new())),
             cmd_parser,
             working_directory: None,
         }
@@ -94,16 +82,6 @@ impl Handler<RunCmdOutput> for WsRunCmd {
     ) -> Self::Result {
         match msg {
             RunCmdOutput::StdOut(line) => {
-                // Push the line into buffer.
-                {
-                    let mut buf = self.buffer_stdout.lock().unwrap();
-                    buf.push_back(line.clone());
-
-                    while buf.len() > PROCESS_STDOUT_MAX_LINE_CNT {
-                        buf.pop_front();
-                    }
-                }
-
                 // Send the line to the client.
                 let msg_out = OutboundMsg::StdOut { data: line };
                 let out_str = serde_json::to_string(&msg_out).unwrap();
@@ -112,14 +90,6 @@ impl Handler<RunCmdOutput> for WsRunCmd {
                 ctx.text(out_str);
             }
             RunCmdOutput::StdErr(line) => {
-                {
-                    let mut buf = self.buffer_stderr.lock().unwrap();
-                    buf.push_back(line.clone());
-                    while buf.len() > PROCESS_STDERR_MAX_LINE_CNT {
-                        buf.pop_front();
-                    }
-                }
-
                 let msg_out = OutboundMsg::StdErr { data: line };
                 let out_str = serde_json::to_string(&msg_out).unwrap();
 

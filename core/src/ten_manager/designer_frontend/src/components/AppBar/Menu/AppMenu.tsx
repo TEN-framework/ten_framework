@@ -41,7 +41,7 @@ import { Input } from "@/components/ui/Input";
 import {
   TEN_DEFAULT_APP_RUN_SCRIPT,
   TEN_DEFAULT_BACKEND_WS_ENDPOINT,
-  TEN_PATH_WS_APP_START,
+  TEN_PATH_WS_RUN_SCRIPT,
   TEN_PATH_WS_APP_INSTALL,
 } from "@/constants";
 
@@ -86,7 +86,7 @@ export function AppMenu(props: AppMenuProps) {
         display_type: EWidgetDisplayType.Popup,
 
         metadata: {
-          wsUrl: TEN_DEFAULT_BACKEND_WS_ENDPOINT + TEN_PATH_WS_APP_START,
+          wsUrl: TEN_DEFAULT_BACKEND_WS_ENDPOINT + TEN_PATH_WS_RUN_SCRIPT,
           scriptType: ELogViewerScriptType.START,
           script: {
             type: ELogViewerScriptType.START,

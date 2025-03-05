@@ -8,6 +8,7 @@ mod addons;
 mod app;
 mod common;
 mod dir_list;
+mod exec;
 mod file_content;
 pub mod frontend;
 mod get_all_pkgs;
@@ -19,6 +20,7 @@ mod packages;
 mod property;
 pub mod response;
 mod run_cmd;
+mod run_script;
 mod terminal;
 mod version;
 
@@ -99,7 +101,8 @@ pub fn configure_routes(
             .route("/app/base-dir", web::put().to(app::base_dir::set_base_dir))
             .route("/app/base-dir", web::get().to(app::base_dir::get_base_dir))
             .route("/dir-list/{path}", web::get().to(dir_list::list_dir))
-            .route("/ws/app/start", web::get().to(app::run::run))
+            .route("/ws/exec", web::get().to(exec::exec))
+            .route("/ws/run-script", web::get().to(run_script::run_script))
             .route("/ws/app/install", web::get().to(app::install::run))
             .route("/ws/terminal", web::get().to(terminal::ws_terminal)),
     );
