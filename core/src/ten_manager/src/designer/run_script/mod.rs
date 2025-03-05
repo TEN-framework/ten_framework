@@ -13,8 +13,8 @@ use serde::{Deserialize, Serialize};
 use ten_rust::pkg_info::{pkg_type::PkgType, PkgInfo};
 
 use crate::designer::{
+    exec::{CmdParser, WsRunCmd},
     get_all_pkgs::get_all_pkgs,
-    run_cmd::{CmdParser, WsRunCmd},
     DesignerState,
 };
 

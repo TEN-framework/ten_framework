@@ -9,7 +9,7 @@ use std::{process::Command, thread};
 use actix::AsyncContext;
 use actix_web_actors::ws::WebsocketContext;
 
-use crate::designer::run_cmd::RunCmdOutput;
+use crate::designer::exec::RunCmdOutput;
 
 use super::{msg_out::OutboundMsg, WsRunCmd};
 
