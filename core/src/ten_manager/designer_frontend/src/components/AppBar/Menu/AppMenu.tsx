@@ -40,9 +40,9 @@ import {
 import { Input } from "@/components/ui/Input";
 import {
   TEN_DEFAULT_APP_RUN_SCRIPT,
-  TEM_DEFAULT_BACKEND_WS_ENDPOINT,
-  TEM_PATH_WS_APP_START,
-  TEM_PATH_WS_APP_INSTALL,
+  TEN_DEFAULT_BACKEND_WS_ENDPOINT,
+  TEN_PATH_WS_APP_START,
+  TEN_PATH_WS_APP_INSTALL,
 } from "@/constants";
 
 interface AppMenuProps {
@@ -86,7 +86,7 @@ export function AppMenu(props: AppMenuProps) {
         display_type: EWidgetDisplayType.Popup,
 
         metadata: {
-          wsUrl: TEM_DEFAULT_BACKEND_WS_ENDPOINT + TEM_PATH_WS_APP_START,
+          wsUrl: TEN_DEFAULT_BACKEND_WS_ENDPOINT + TEN_PATH_WS_APP_START,
           scriptType: ELogViewerScriptType.START,
           script: {
             type: ELogViewerScriptType.START,
@@ -118,7 +118,7 @@ export function AppMenu(props: AppMenuProps) {
         category: EWidgetCategory.LogViewer,
         display_type: EWidgetDisplayType.Popup,
         metadata: {
-          wsUrl: TEM_DEFAULT_BACKEND_WS_ENDPOINT + TEM_PATH_WS_APP_INSTALL,
+          wsUrl: TEN_DEFAULT_BACKEND_WS_ENDPOINT + TEN_PATH_WS_APP_INSTALL,
           scriptType: ELogViewerScriptType.INSTALL,
           script: {
             type: ELogViewerScriptType.INSTALL,

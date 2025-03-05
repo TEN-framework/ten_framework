@@ -11,19 +11,19 @@ export const TEN_DEFAULT_APP_RUN_SCRIPT = "start";
 
 // --- Backend
 
-export const TEM_DEFAULT_BACKEND_ENDPOINT = "localhost:49483";
-export const TEM_DEFAULT_BACKEND_WS_ENDPOINT =
+export const TEN_DEFAULT_BACKEND_ENDPOINT = "localhost:49483";
+export const TEN_DEFAULT_BACKEND_WS_ENDPOINT =
   import.meta.env.VITE_TMAN_GD_BACKEND_WS_ENDPOINT ||
-  `ws://${TEM_DEFAULT_BACKEND_ENDPOINT}`;
-export const TEM_DEFAULT_BACKEND_HTTP_ENDPOINT =
+  `ws://${TEN_DEFAULT_BACKEND_ENDPOINT}`;
+export const TEN_DEFAULT_BACKEND_HTTP_ENDPOINT =
   import.meta.env.VITE_TMAN_GD_BACKEND_HTTP_ENDPOINT ||
-  `http://${TEM_DEFAULT_BACKEND_ENDPOINT}`;
+  `http://${TEN_DEFAULT_BACKEND_ENDPOINT}`;
 
 // --- Backend Paths
 
-export const TEM_PATH_WS_TERMINAL = "/api/designer/v1/ws/terminal";
-export const TEM_PATH_WS_APP_INSTALL = "/api/designer/v1/ws/app/install";
-export const TEM_PATH_WS_APP_START = "/api/designer/v1/ws/app/start";
+export const TEN_PATH_WS_TERMINAL = "/api/designer/v1/ws/terminal";
+export const TEN_PATH_WS_APP_INSTALL = "/api/designer/v1/ws/app/install";
+export const TEN_PATH_WS_APP_START = "/api/designer/v1/ws/app/start";
 
 // --- Github
 export const TEN_FRAMEWORK_GH_FULL_NAME = "Ten-framework/ten-framework";
