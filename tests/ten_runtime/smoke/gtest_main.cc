@@ -28,7 +28,9 @@ class GlobalTestEnvironment : public ::testing::Environment {
   }
 
   // This method is run after all test cases.
-  void TearDown() override { ten_unregister_all_addons_and_cleanup(); }
+  void TearDown() override {
+    ten_unregister_all_addons_and_cleanup(nullptr, nullptr);
+  }
 };
 
 GTEST_API_ int main(int argc, char **argv) {

@@ -97,3 +97,9 @@ bool ten_addon_destroy_extension_group(
 void ten_addon_unregister_all_extension_group(void) {
   ten_addon_store_del_all(ten_extension_group_get_global_store());
 }
+
+void ten_addon_unregister_all_extension_group_ex(
+    ten_addon_store_on_all_addons_deinit_done_cb_t cb, void *cb_data) {
+  ten_addon_store_del_all_ex(ten_extension_group_get_global_store(), cb,
+                             cb_data);
+}

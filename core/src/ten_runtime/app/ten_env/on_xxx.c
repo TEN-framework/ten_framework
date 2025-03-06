@@ -303,15 +303,49 @@ void ten_app_on_init_done(ten_env_t *ten_env) {
   ten_app_on_init_done_internal(self);
 }
 
-static void ten_app_unregister_addons_after_app_close(ten_app_t *self) {
+static void ten_app_unregister_addons_after_app_close(
+    ten_app_t *self, ten_on_all_addons_unregistered_cb_t cb, void *cb_data) {
   TEN_ASSERT(self && ten_app_check_integrity(self, true), "Should not happen.");
 
   const char *disabled = getenv("TEN_DISABLE_ADDON_UNREGISTER_AFTER_APP_CLOSE");
   if (disabled && !strcmp(disabled, "true")) {
+    if (cb) {
+      cb(cb_data);
+    }
     return;
   }
 
-  ten_unregister_all_addons_and_cleanup();
+  ten_unregister_all_addons_and_cleanup(cb, cb_data);
+}
+
+static void ten_app_deinit_after_all_addons_unregistered(void *app_,
+                                                         void *user_data) {
+  ten_app_t *self = (ten_app_t *)app_;
+  TEN_ASSERT(self && ten_app_check_integrity(self, true), "Should not happen.");
+
+  if (self->on_deinit) {
+    // Call the registered on_deinit callback if exists.
+    self->on_deinit(self, self->ten_env);
+  } else {
+    ten_env_on_deinit_done(self->ten_env, NULL);
+  }
+}
+
+static void ten_on_all_addons_unregistered(void *cb_data) {
+  ten_app_t *self = (ten_app_t *)cb_data;
+  TEN_ASSERT(self &&
+                 // TEN_NOLINTNEXTLINE(thread-check)
+                 // thread-check: This function is intended to be called in
+                 // any thread. But we make sure the `self` is valid.
+                 ten_app_check_integrity(self, false),
+             "Should not happen.");
+
+  // Switch to the app thread to call `on_deinit`.
+
+  int rc = ten_runloop_post_task_tail(
+      ten_app_get_attached_runloop(self),
+      ten_app_deinit_after_all_addons_unregistered, self, NULL);
+  TEN_ASSERT(!rc, "Should not happen.");
 }
 
 void ten_app_on_deinit(ten_app_t *self) {
@@ -342,15 +376,9 @@ void ten_app_on_deinit(ten_app_t *self) {
   // is required, which in turn depends on the runloop. Therefore, the addon
   // deinitialization process must be performed _before_ the app's runloop
   // ends.
-  ten_app_unregister_addons_after_app_close(self);
+  ten_app_unregister_addons_after_app_close(
+      self, ten_on_all_addons_unregistered, self);
   // @}
-
-  if (self->on_deinit) {
-    // Call the registered on_deinit callback if exists.
-    self->on_deinit(self, self->ten_env);
-  } else {
-    ten_env_on_deinit_done(self->ten_env, NULL);
-  }
 }
 
 bool ten_app_on_deinit_done(ten_env_t *ten_env) {

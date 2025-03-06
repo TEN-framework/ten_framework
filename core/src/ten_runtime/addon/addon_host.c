@@ -64,6 +64,9 @@ void ten_addon_host_init(ten_addon_host_t *self) {
   self->manifest_info = NULL;
   self->property_info = NULL;
 
+  self->on_deinit_done_cb = NULL;
+  self->on_deinit_done_cb_data = NULL;
+
   self->user_data = NULL;
 }
 

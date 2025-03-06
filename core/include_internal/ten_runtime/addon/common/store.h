@@ -20,6 +20,16 @@ typedef struct ten_addon_store_t {
   ten_list_t store;  // ten_addon_host_t
 } ten_addon_store_t;
 
+typedef void (*ten_addon_store_on_all_addons_deinit_done_cb_t)(
+    ten_addon_store_t *store, void *cb_data);
+
+typedef struct ten_addon_store_on_all_addons_deinit_done_ctx_t {
+  ten_addon_store_t *store;
+  ten_addon_store_on_all_addons_deinit_done_cb_t cb;
+  void *cb_data;
+  ten_atomic_t deiniting_count;
+} ten_addon_store_on_all_addons_deinit_done_ctx_t;
+
 TEN_RUNTIME_PRIVATE_API void ten_addon_store_init(ten_addon_store_t *store);
 
 TEN_RUNTIME_PRIVATE_API void ten_addon_store_add(ten_addon_store_t *store,
@@ -29,6 +39,10 @@ TEN_RUNTIME_PRIVATE_API ten_addon_t *ten_addon_store_del(
     ten_addon_store_t *store, const char *name);
 
 TEN_RUNTIME_PRIVATE_API void ten_addon_store_del_all(ten_addon_store_t *store);
+
+TEN_RUNTIME_PRIVATE_API void ten_addon_store_del_all_ex(
+    ten_addon_store_t *store, ten_addon_store_on_all_addons_deinit_done_cb_t cb,
+    void *cb_data);
 
 TEN_RUNTIME_PRIVATE_API int ten_addon_store_lock(ten_addon_store_t *store);
 

@@ -26,6 +26,8 @@ typedef void (*ten_env_addon_create_instance_done_cb_t)(ten_env_t *ten_env,
 typedef void (*ten_env_addon_destroy_instance_done_cb_t)(ten_env_t *ten_env,
                                                          void *cb_data);
 
+typedef void (*ten_on_all_addons_unregistered_cb_t)(void *cb_data);
+
 typedef struct ten_addon_context_t {
   ten_env_t *caller_ten_env;
 
@@ -35,6 +37,12 @@ typedef struct ten_addon_context_t {
   ten_env_addon_destroy_instance_done_cb_t destroy_instance_done_cb;
   void *destroy_instance_done_cb_data;
 } ten_addon_context_t;
+
+typedef struct ten_addon_store_on_all_addons_unregistered_ctx_t {
+  ten_on_all_addons_unregistered_cb_t cb;
+  void *cb_data;
+  ten_atomic_t unregistering_stores_count;
+} ten_addon_store_on_all_addons_unregistered_ctx_t;
 
 typedef struct ten_addon_t {
   ten_binding_handle_t binding_handle;
@@ -68,7 +76,8 @@ ten_addon_type_from_string(const char *addon_type_str);
 TEN_RUNTIME_PRIVATE_API ten_addon_t *ten_addon_unregister(
     ten_addon_store_t *store, const char *addon_name);
 
-TEN_RUNTIME_API void ten_unregister_all_addons_and_cleanup(void);
+TEN_RUNTIME_API void ten_unregister_all_addons_and_cleanup(
+    ten_on_all_addons_unregistered_cb_t cb, void *cb_data);
 
 TEN_RUNTIME_PRIVATE_API ten_addon_store_t *ten_addon_get_store(void);
 
