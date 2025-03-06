@@ -31,10 +31,9 @@ import {
 
 interface AppBarProps {
   onAutoLayout: () => void;
-  onSetBaseDir: (folderPath: string) => void;
 }
 
-const AppBar: React.FC<AppBarProps> = ({ onAutoLayout, onSetBaseDir }) => {
+const AppBar: React.FC<AppBarProps> = ({ onAutoLayout }) => {
   const { appendWidgetIfNotExists } = useWidgetStore();
 
   const onNavChange = () => {
@@ -74,7 +73,7 @@ const AppBar: React.FC<AppBarProps> = ({ onAutoLayout, onSetBaseDir }) => {
     >
       <NavigationMenu onValueChange={onNavChange}>
         <NavigationMenuList>
-          <AppMenu onSetBaseDir={onSetBaseDir} />
+          <AppMenu />
           <GraphMenu
             onAutoLayout={onAutoLayout}
             onOpenExistingGraph={onOpenExistingGraph}

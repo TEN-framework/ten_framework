@@ -12,12 +12,10 @@ import {
   EdgeChange,
   NodeChange,
 } from "@xyflow/react";
-import { toast } from "sonner";
 
 import { ThemeProvider } from "@/components/ThemeProvider";
 import AppBar from "@/components/AppBar/AppBar";
 import FlowCanvas, { type FlowCanvasRef } from "@/flow/FlowCanvas";
-import { putBaseDir } from "@/api/services/fileSystem";
 import { CustomNodeType } from "@/flow/CustomNode";
 import { CustomEdgeType } from "@/flow/CustomEdge";
 import { getLayoutedElements } from "@/flow/graph";
@@ -78,23 +76,6 @@ const App: React.FC = () => {
     [edges]
   );
 
-  const handleSetBaseDir = useCallback(async (folderPath: string) => {
-    try {
-      await putBaseDir(folderPath.trim());
-      setNodesAndEdges([], []); // Clear the contents of the FlowCanvas.
-    } catch (error: unknown) {
-      if (error instanceof Error) {
-        toast.error(`Failed to open a new app folder`, {
-          description: error.message,
-        });
-      } else {
-        toast.error("An unknown error occurred.");
-      }
-      console.error(error);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
   return (
     <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
       <ResizablePanelGroup
@@ -117,10 +98,7 @@ const App: React.FC = () => {
           </>
         )}
         <ResizablePanel defaultSize={dockWidgetsMemo.length > 0 ? 60 : 100}>
-          <AppBar
-            onAutoLayout={performAutoLayout}
-            onSetBaseDir={handleSetBaseDir}
-          />
+          <AppBar onAutoLayout={performAutoLayout} />
           <FlowCanvas
             ref={flowCanvasRef}
             nodes={nodes}

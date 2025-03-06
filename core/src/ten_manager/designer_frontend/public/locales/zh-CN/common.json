@@ -75,6 +75,13 @@
     "logViewer": {
       "title": "日志查看器",
       "appInstall": "应用安装"
+    },
+    "default": {
+      "defaultLabelForAppRun": "默认应用运行标签",
+      "errorFolderPathEmpty": "文件夹路径不能为空。",
+      "errorGetBaseDir": "获取基础目录失败",
+      "errorOpenAppFolder": "打开应用文件夹失败",
+      "errorUnknown": "发生未知错误。"
     }
   },
   "dock": {

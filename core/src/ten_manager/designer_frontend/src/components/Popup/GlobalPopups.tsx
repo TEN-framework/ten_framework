@@ -18,6 +18,7 @@ import CustomNodeConnPopup from "@/components/Popup/CustomNodeConnPopup";
 import { LogViewerPopup } from "@/components/Popup/LogViewerPopup";
 import { GraphSelectPopup } from "@/components/Popup/GraphSelectPopup";
 import { AboutPopup } from "@/components/Popup/AboutPopup";
+import { AppFolderPopup, PreferencesPopup } from "@/components/Popup/AppPopup";
 
 export function GlobalPopups() {
   const { widgets, removeWidget } = useWidgetStore();
@@ -100,6 +101,10 @@ export function GlobalPopups() {
             return <GraphSelectPopup key={`GraphSelectPopup-${widget.id}`} />;
           case EDefaultWidgetType.About:
             return <AboutPopup key={`AboutPopup-${widget.id}`} />;
+          case EDefaultWidgetType.AppFolder:
+            return <AppFolderPopup key={`AppPopup-${widget.id}`} />;
+          case EDefaultWidgetType.Preferences:
+            return <PreferencesPopup key={`PreferencesPopup-${widget.id}`} />;
         }
       })}
     </>

@@ -7,3 +7,4 @@
 export { useWidgetStore } from "@/store/widget";
 export { useFlowStore } from "@/store/flow";
 export { useDialogStore } from "@/store/dialog";
+export { useAppStore } from "@/store/app";

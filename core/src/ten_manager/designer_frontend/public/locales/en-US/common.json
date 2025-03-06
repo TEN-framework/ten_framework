@@ -75,6 +75,13 @@
     "logViewer": {
       "title": "Log Viewer",
       "appInstall": "App Install"
+    },
+    "default": {
+      "defaultLabelForAppRun": "Default label for app run",
+      "errorFolderPathEmpty": "The folder path cannot be empty.",
+      "errorGetBaseDir": "Failed to get base dir",
+      "errorOpenAppFolder": "Failed to open app folder",
+      "errorUnknown": "An unknown error occurred."
     }
   },
   "dock": {

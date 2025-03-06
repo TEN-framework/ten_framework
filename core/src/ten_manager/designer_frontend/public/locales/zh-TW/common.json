@@ -74,6 +74,13 @@
     "logViewer": {
       "title": "日誌檢視器",
       "appInstall": "應用安裝"
+    },
+    "default": {
+      "defaultLabelForAppRun": "預設應用程式運行標籤",
+      "errorFolderPathEmpty": "文件夾路徑不能為空。",
+      "errorGetBaseDir": "獲取基礎目錄失敗",
+      "errorOpenAppFolder": "打開應用程式資料夾失敗",
+      "errorUnknown": "發生未知錯誤。"
     }
   },
   "dock": {
