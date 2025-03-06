@@ -4,7 +4,6 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-import * as React from "react";
 import { toast } from "sonner";
 import {
   FolderOpenIcon,
@@ -14,7 +13,6 @@ import {
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
-import Popup from "@/components/Popup/Popup";
 import {
   NavigationMenuContent,
   NavigationMenuItem,
@@ -23,51 +21,29 @@ import {
 } from "@/components/ui/NavigationMenu";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
-import { ThreeColumnFileManager } from "@/components/FileManager/AppFolder";
-import {
-  baseDirEntriesToIFMItems,
-  fmItemsToFMArray,
-  type IFMItem,
-  EFMItemType,
-} from "@/components/FileManager/utils";
-import { useDirList, getBaseDir } from "@/api/services/fileSystem";
-import { useWidgetStore } from "@/store/widget";
+import { getBaseDir } from "@/api/services/fileSystem";
+import { useWidgetStore, useAppStore } from "@/store";
 import {
   ELogViewerScriptType,
   EWidgetCategory,
   EWidgetDisplayType,
+  EDefaultWidgetType,
 } from "@/types/widgets";
-import { Input } from "@/components/ui/Input";
 import {
-  TEN_DEFAULT_APP_RUN_SCRIPT,
   TEN_DEFAULT_BACKEND_WS_ENDPOINT,
   TEN_PATH_WS_RUN_SCRIPT,
   TEN_PATH_WS_BUILTIN_FUNCTION,
 } from "@/constants";
+import {
+  APP_FOLDER_POPUP_ID,
+  APP_PREFERENCES_POPUP_ID,
+} from "@/components/Popup/AppPopup";
 
-interface AppMenuProps {
-  defaultBaseDir?: string;
-  onSetBaseDir: (folderPath: string) => void;
-}
-
-export function AppMenu(props: AppMenuProps) {
-  const { defaultBaseDir = "/", onSetBaseDir } = props;
+export function AppMenu() {
   const { t } = useTranslation();
 
-  const [isFolderPathModalOpen, setIsFolderPathModalOpen] =
-    React.useState<boolean>(false);
-  const [folderPath, setFolderPath] = React.useState<string>(defaultBaseDir);
-  const [fmItems, setFmItems] = React.useState<IFMItem[][]>([]);
-
-  const [isPreferencesModalOpen, setIsPreferencesModalOpen] =
-    React.useState<boolean>(false);
-  const [defaultRunScript, setDefaultRunScript] = React.useState<string>(
-    TEN_DEFAULT_APP_RUN_SCRIPT
-  );
-
-  const { data, error, isLoading } = useDirList(folderPath);
-
   const { appendWidgetIfNotExists } = useWidgetStore();
+  const { runScript } = useAppStore();
 
   const handleAppStart = async () => {
     try {
@@ -78,7 +54,7 @@ export function AppMenu(props: AppMenuProps) {
         return;
       }
 
-      const scriptName = defaultRunScript;
+      const scriptName = runScript;
 
       appendWidgetIfNotExists({
         id: "app-start-" + Date.now(),
@@ -139,36 +115,27 @@ export function AppMenu(props: AppMenuProps) {
     }
   };
 
-  const handleManualOk = async () => {
-    if (!folderPath.trim()) {
-      toast.error("The folder path cannot be empty.");
-      return;
-    }
-
-    console.log("[file-menu] folderPath set to", folderPath);
-    onSetBaseDir(folderPath.trim());
-    setIsFolderPathModalOpen(false);
+  const openPreferencesPopup = () => {
+    appendWidgetIfNotExists({
+      id: APP_PREFERENCES_POPUP_ID,
+      category: EWidgetCategory.Default,
+      display_type: EWidgetDisplayType.Popup,
+      metadata: {
+        type: EDefaultWidgetType.Preferences,
+      },
+    });
   };
 
-  React.useEffect(() => {
-    if (!data?.entries) {
-      return;
-    }
-    const currentFmItems = baseDirEntriesToIFMItems(data.entries);
-    const fmArray = fmItemsToFMArray(currentFmItems, fmItems);
-    setFmItems(fmArray);
-    // Suppress the warning about the dependency array.
-    // <fmItems> should not be a dependency.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data, folderPath]);
-
-  React.useEffect(() => {
-    if (error) {
-      toast.error("Failed to load the folder.", {
-        description: error?.message,
-      });
-    }
-  }, [error]);
+  const openAppFolderPopup = () => {
+    appendWidgetIfNotExists({
+      id: APP_FOLDER_POPUP_ID,
+      category: EWidgetCategory.Default,
+      display_type: EWidgetDisplayType.Popup,
+      metadata: {
+        type: EDefaultWidgetType.AppFolder,
+      },
+    });
+  };
 
   return (
     <>
@@ -183,7 +150,7 @@ export function AppMenu(props: AppMenuProps) {
             <Button
               className="w-full justify-start"
               variant="ghost"
-              onClick={() => setIsFolderPathModalOpen(true)}
+              onClick={openAppFolderPopup}
             >
               <FolderOpenIcon className="w-4 h-4 me-2" />
               {t("header.menu.openAppFolder")}
@@ -216,7 +183,7 @@ export function AppMenu(props: AppMenuProps) {
             <Button
               className="w-full justify-start"
               variant="ghost"
-              onClick={() => setIsPreferencesModalOpen(true)}
+              onClick={openPreferencesPopup}
             >
               <CogIcon className="w-4 h-4 me-2" />
               {t("header.menu.preferences")}
@@ -224,77 +191,6 @@ export function AppMenu(props: AppMenuProps) {
           </NavigationMenuLink>
         </NavigationMenuContent>
       </NavigationMenuItem>
-      {isFolderPathModalOpen && (
-        <Popup
-          title={t("header.menu.openAppFolder")}
-          onClose={() => setIsFolderPathModalOpen(false)}
-          resizable
-          initialWidth={600}
-          initialHeight={400}
-          onCollapseToggle={() => {}}
-        >
-          <div className="flex flex-col gap-2 w-full h-full">
-            <ThreeColumnFileManager
-              data={fmItems}
-              allowSelectTypes={[EFMItemType.FOLDER]}
-              className="w-full h-[calc(100%-3rem)]"
-              onSelect={(path) => setFolderPath(path)}
-              selectedPath={folderPath}
-              isLoading={isLoading}
-            />
-            <div className="flex justify-end h-fit gap-2">
-              <Button
-                variant="outline"
-                onClick={() => setIsFolderPathModalOpen(false)}
-              >
-                {t("action.cancel")}
-              </Button>
-              <Button onClick={handleManualOk}>{t("action.ok")}</Button>
-            </div>
-          </div>
-        </Popup>
-      )}
-      {isPreferencesModalOpen && (
-        <Popup
-          title={t("header.menu.preferences")}
-          onClose={() => setIsPreferencesModalOpen(false)}
-          resizable={false}
-          initialWidth={400}
-          initialHeight={200}
-          onCollapseToggle={() => {}}
-          preventFocusSteal={true}
-        >
-          <div className="flex flex-col gap-2 w-full h-full">
-            <label htmlFor="defaultRunScript">
-              {t("Default label for app run")}{" "}
-            </label>
-            <Input
-              id="defaultRunScript"
-              type="text"
-              defaultValue={defaultRunScript}
-            />
-            <div className="flex justify-end gap-2 mt-auto">
-              <Button
-                variant="outline"
-                onClick={() => setIsPreferencesModalOpen(false)}
-              >
-                {t("action.cancel")}
-              </Button>
-              <Button
-                onClick={() => {
-                  const inputElement = document.getElementById(
-                    "defaultRunScript"
-                  ) as HTMLInputElement;
-                  setDefaultRunScript(inputElement?.value || defaultRunScript);
-                  setIsPreferencesModalOpen(false);
-                }}
-              >
-                {t("action.ok")}
-              </Button>
-            </div>
-          </div>
-        </Popup>
-      )}
     </>
   );
 }

@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
 import { useWidgetStore } from "@/store/widget";
 import { ILogViewerWidget, ILogViewerWidgetOptions } from "@/types/widgets";
+import { useAutoScroll } from "@/hooks/use-auto-scroll";
 
 export function LogViewerBackstageWidget(props: ILogViewerWidget) {
   const { id, metadata: { wsUrl, scriptType, script } = {} } = props;
@@ -92,23 +93,15 @@ export function LogViewerFrontStageWidget(props: {
 
   const { logViewerHistory } = useWidgetStore();
 
-  const scrollSpan = React.useRef<HTMLSpanElement>(null);
+  const scrollAreaRef = React.useRef<HTMLDivElement>(null);
+
+  useAutoScroll(scrollAreaRef);
 
   const { t } = useTranslation();
 
   const logsMemo = React.useMemo(() => {
     return logViewerHistory[id]?.history || [];
   }, [logViewerHistory, id]);
-
-  React.useEffect(() => {
-    const debounceTimeout = setTimeout(() => {
-      if (scrollSpan.current) {
-        scrollSpan.current.scrollIntoView({ behavior: "smooth" });
-      }
-    }, 100); // 100ms debounce delay
-
-    return () => clearTimeout(debounceTimeout);
-  }, [logsMemo]);
 
   return (
     <div className="flex h-full w-full flex-col" id={id}>
@@ -126,14 +119,12 @@ export function LogViewerFrontStageWidget(props: {
         </div>
       )}
       <ScrollArea
-        className={cn("h-full w-full", {
+        className={cn("h-full w-full p-2", {
           "h-[calc(100%-3rem)]": options?.disableSearch,
         })}
+        viewportRef={scrollAreaRef}
       >
-        <div className="p-2">
-          <LogViewerLogItemList logs={logsMemo} search={defferedSearchInput} />
-          <span ref={scrollSpan} />
-        </div>
+        <LogViewerLogItemList logs={logsMemo} search={defferedSearchInput} />
       </ScrollArea>
     </div>
   );
