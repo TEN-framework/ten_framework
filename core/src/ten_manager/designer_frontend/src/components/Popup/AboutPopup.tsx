@@ -9,7 +9,7 @@ import { useTranslation, Trans } from "react-i18next";
 import Popup from "@/components/Popup/Popup";
 import { cn } from "@/lib/utils";
 import { TEN_FRAMEWORK_URL, TEN_FRAMEWORK_GITHUB_URL } from "@/constants";
-import { PoweredByTenFramework } from "@/components/AppBar/AppBar";
+import { PoweredByTenFramework } from "@/components/AppBar";
 import { useWidgetStore } from "@/store/widget";
 
 export const ABOUT_POPUP_ID = "about-popup";

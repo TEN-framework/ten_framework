@@ -14,7 +14,7 @@ import {
 } from "@xyflow/react";
 
 import { ThemeProvider } from "@/components/ThemeProvider";
-import AppBar from "@/components/AppBar/AppBar";
+import AppBar from "@/components/AppBar";
 import FlowCanvas, { type FlowCanvasRef } from "@/flow/FlowCanvas";
 import { CustomNodeType } from "@/flow/CustomNode";
 import { CustomEdgeType } from "@/flow/CustomEdge";
@@ -98,7 +98,8 @@ const App: React.FC = () => {
           </>
         )}
         <ResizablePanel defaultSize={dockWidgetsMemo.length > 0 ? 60 : 100}>
-          <AppBar onAutoLayout={performAutoLayout} />
+          <AppBar onAutoLayout={performAutoLayout} className="z-9999" />
+
           <FlowCanvas
             ref={flowCanvasRef}
             nodes={nodes}
