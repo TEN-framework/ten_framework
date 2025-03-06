@@ -21,18 +21,18 @@ import { GHStargazersCount, GHTryTENAgent } from "@/components/Widget/GH";
 import { Version } from "@/components/AppBar/Version";
 import { cn } from "@/lib/utils";
 import { TEN_FRAMEWORK_GH_OWNER, TEN_FRAMEWORK_GH_REPO } from "@/constants";
+import { useWidgetStore } from "@/store/widget";
+import { GRAPH_SELECT_POPUP_ID } from "@/components/Popup/GraphSelectPopup";
+import { EWidgetCategory, EWidgetDisplayType } from "@/types/widgets";
 
 interface AppBarProps {
-  onOpenExistingGraph: () => void;
   onAutoLayout: () => void;
   onSetBaseDir: (folderPath: string) => void;
 }
 
-const AppBar: React.FC<AppBarProps> = ({
-  onOpenExistingGraph,
-  onAutoLayout,
-  onSetBaseDir,
-}) => {
+const AppBar: React.FC<AppBarProps> = ({ onAutoLayout, onSetBaseDir }) => {
+  const { appendWidgetIfNotExists } = useWidgetStore();
+
   const onNavChange = () => {
     setTimeout(() => {
       const triggers = document.querySelectorAll(
@@ -46,6 +46,15 @@ const AppBar: React.FC<AppBarProps> = ({
         "--menu-left-position",
         `${firstTrigger.offsetLeft}px`
       );
+    });
+  };
+
+  const onOpenExistingGraph = () => {
+    appendWidgetIfNotExists({
+      id: GRAPH_SELECT_POPUP_ID,
+      category: EWidgetCategory.GraphSelect,
+      display_type: EWidgetDisplayType.Popup,
+      metadata: null,
     });
   };
 
