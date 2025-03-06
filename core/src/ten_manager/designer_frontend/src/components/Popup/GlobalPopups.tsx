@@ -7,12 +7,17 @@
 import * as React from "react";
 
 import { useWidgetStore } from "@/store/widget";
-import { EWidgetCategory, EWidgetDisplayType } from "@/types/widgets";
+import {
+  EDefaultWidgetType,
+  EWidgetCategory,
+  EWidgetDisplayType,
+} from "@/types/widgets";
 import TerminalPopup from "@/components/Popup/TerminalPopup";
 import EditorPopup from "@/components/Popup/EditorPopup";
 import CustomNodeConnPopup from "@/components/Popup/CustomNodeConnPopup";
 import { LogViewerPopup } from "@/components/Popup/LogViewerPopup";
 import { GraphSelectPopup } from "@/components/Popup/GraphSelectPopup";
+import { AboutPopup } from "@/components/Popup/AboutPopup";
 
 export function GlobalPopups() {
   const { widgets, removeWidget } = useWidgetStore();
@@ -23,7 +28,7 @@ export function GlobalPopups() {
     terminalWidgetsMemo,
     customConnectionWidgetsMemo,
     logViewerWidgetsMemo,
-    graphSelectWidgetsMemo,
+    defaultWidgetsMemo,
   ] = React.useMemo(() => {
     const popupWidgets = widgets.filter(
       (widget) => widget.display_type === EWidgetDisplayType.Popup
@@ -40,8 +45,8 @@ export function GlobalPopups() {
     const logViewerWidgets = popupWidgets.filter(
       (widget) => widget.category === EWidgetCategory.LogViewer
     );
-    const graphSelectWidgets = popupWidgets.filter(
-      (widget) => widget.category === EWidgetCategory.GraphSelect
+    const defaultWidgets = popupWidgets.filter(
+      (widget) => widget.category === EWidgetCategory.Default
     );
     return [
       popupWidgets,
@@ -49,7 +54,7 @@ export function GlobalPopups() {
       terminalWidgets,
       customConnectionWidgets,
       logViewerWidgets,
-      graphSelectWidgets,
+      defaultWidgets,
     ];
   }, [widgets]);
 
@@ -89,9 +94,14 @@ export function GlobalPopups() {
           onStop={widget.metadata?.onStop}
         />
       ))}
-      {graphSelectWidgetsMemo.map((widget) => (
-        <GraphSelectPopup key={`GraphSelectPopup-${widget.id}`} />
-      ))}
+      {defaultWidgetsMemo.map((widget) => {
+        switch (widget.metadata.type) {
+          case EDefaultWidgetType.GraphSelect:
+            return <GraphSelectPopup key={`GraphSelectPopup-${widget.id}`} />;
+          case EDefaultWidgetType.About:
+            return <AboutPopup key={`AboutPopup-${widget.id}`} />;
+        }
+      })}
     </>
   );
 }

@@ -23,7 +23,11 @@ import { cn } from "@/lib/utils";
 import { TEN_FRAMEWORK_GH_OWNER, TEN_FRAMEWORK_GH_REPO } from "@/constants";
 import { useWidgetStore } from "@/store/widget";
 import { GRAPH_SELECT_POPUP_ID } from "@/components/Popup/GraphSelectPopup";
-import { EWidgetCategory, EWidgetDisplayType } from "@/types/widgets";
+import {
+  EDefaultWidgetType,
+  EWidgetCategory,
+  EWidgetDisplayType,
+} from "@/types/widgets";
 
 interface AppBarProps {
   onAutoLayout: () => void;
@@ -52,9 +56,11 @@ const AppBar: React.FC<AppBarProps> = ({ onAutoLayout, onSetBaseDir }) => {
   const onOpenExistingGraph = () => {
     appendWidgetIfNotExists({
       id: GRAPH_SELECT_POPUP_ID,
-      category: EWidgetCategory.GraphSelect,
+      category: EWidgetCategory.Default,
       display_type: EWidgetDisplayType.Popup,
-      metadata: null,
+      metadata: {
+        type: EDefaultWidgetType.GraphSelect,
+      },
     });
   };
 
