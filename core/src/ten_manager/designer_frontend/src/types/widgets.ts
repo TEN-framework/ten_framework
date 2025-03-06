@@ -37,6 +37,7 @@ export enum EWidgetCategory {
   Editor = "editor",
   CustomConnection = "custom_connection",
   LogViewer = "log_viewer",
+  Default = "default",
 }
 
 export interface IWidgetBase {
@@ -97,8 +98,23 @@ export interface ILogViewerWidget extends IWidgetBase {
   metadata: ILogViewerWidgetData<ELogViewerScriptType>;
 }
 
+export enum EDefaultWidgetType {
+  GraphSelect = "graph_select",
+  About = "about",
+  Preferences = "preferences",
+  AppFolder = "app_folder",
+}
+
+export interface IDefaultWidget extends IWidgetBase {
+  category: EWidgetCategory.Default;
+  metadata: {
+    type: EDefaultWidgetType;
+  };
+}
+
 export type IWidget =
   | ITerminalWidget
   | IEditorWidget
   | ICustomConnectionWidget
-  | ILogViewerWidget;
+  | ILogViewerWidget
+  | IDefaultWidget;

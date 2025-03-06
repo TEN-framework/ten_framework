@@ -11,8 +11,7 @@ import {
   getEdgeCenter,
 } from "@xyflow/react";
 import { cn } from "@/lib/utils";
-
-import { useCDAVInfoByEdgeId } from "@/context/ReactFlowDataContext";
+import { useFlowStore } from "@/store/flow";
 import { dispatchCustomNodeActionPopup } from "@/utils/popup";
 
 import { type EConnectionType } from "@/types/graphs";
@@ -71,7 +70,8 @@ export function CustomEdge({
     targetY,
   });
 
-  const { connectionCounts } = useCDAVInfoByEdgeId(id) ?? {};
+  const { cdavInfo } = useFlowStore();
+  const { connectionCounts } = cdavInfo.get(id) ?? {};
 
   const onEdgeClick = (e: React.MouseEvent<HTMLDivElement>) => {
     e.stopPropagation();

@@ -8,12 +8,19 @@ import { LoaderCircleIcon } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
-export function SpinnerLoading(props: { className?: string }) {
-  const { className } = props;
+export function SpinnerLoading(props: {
+  className?: string;
+  svgProps?: React.SVGProps<SVGSVGElement>;
+}) {
+  const { className, svgProps } = props;
+  const { className: svgClassName, ...rest } = svgProps ?? {};
 
   return (
     <div className={cn("flex items-center justify-center", className)}>
-      <LoaderCircleIcon className="animate-spin" />
+      <LoaderCircleIcon
+        className={cn("animate-spin", svgClassName)}
+        {...rest}
+      />
     </div>
   );
 }

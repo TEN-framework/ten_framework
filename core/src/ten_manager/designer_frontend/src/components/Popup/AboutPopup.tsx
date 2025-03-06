@@ -4,23 +4,27 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-import React from "react";
 import { useTranslation, Trans } from "react-i18next";
 
 import Popup from "@/components/Popup/Popup";
 import { cn } from "@/lib/utils";
 import { TEN_FRAMEWORK_URL, TEN_FRAMEWORK_GITHUB_URL } from "@/constants";
-import { PoweredByTenFramework } from "@/components/AppBar/AppBar";
+import { PoweredByTenFramework } from "@/components/AppBar";
+import { useWidgetStore } from "@/store/widget";
 
-interface AboutPopupProps {
-  onClose: () => void;
-}
+export const ABOUT_POPUP_ID = "about-popup";
 
-const AboutPopup: React.FC<AboutPopupProps> = ({ onClose }) => {
+export const AboutPopup = () => {
   const { t } = useTranslation();
 
+  const { removeWidget } = useWidgetStore();
+
   return (
-    <Popup id="about" title={t("header.menu.about")} onClose={onClose}>
+    <Popup
+      id={ABOUT_POPUP_ID}
+      title={t("header.menu.about")}
+      onClose={() => removeWidget(ABOUT_POPUP_ID)}
+    >
       <div className="text-center">
         <p
           className={cn(
@@ -62,5 +66,3 @@ const AboutPopup: React.FC<AboutPopupProps> = ({ onClose }) => {
     </Popup>
   );
 };
-
-export default AboutPopup;
