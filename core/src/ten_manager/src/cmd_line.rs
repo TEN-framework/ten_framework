@@ -7,6 +7,8 @@
 use anyhow::Result;
 use clap::{Arg, Command};
 
+use crate::config::{read_config, TmanConfig};
+
 pub struct ArgCfg {
     pub possible_values: Vec<&'static str>,
 }
@@ -115,13 +117,39 @@ fn create_cmd() -> clap::ArgMatches {
 pub fn parse_cmd() -> Result<ParsedCmd> {
     let matches = create_cmd();
 
-    let tman_config = crate::config::TmanConfig {
-        config_file: matches.get_one::<String>("CONFIG_FILE").cloned(),
-        admin_token: matches.get_one::<String>("ADMIN_TOKEN").cloned(),
-        user_token: matches.get_one::<String>("USER_TOKEN").cloned(),
+    let default_config = TmanConfig::default();
+
+    let config_file_path = matches.get_one::<String>("CONFIG_FILE").cloned();
+    let tman_config_file = read_config(&config_file_path)?;
+
+    let tman_config = TmanConfig {
+        config_file: config_file_path.or(default_config.config_file),
+        admin_token: matches.get_one::<String>("ADMIN_TOKEN").cloned().or_else(
+            || {
+                if let Some(tman_config_file) = &tman_config_file {
+                    tman_config_file.admin_token.clone()
+                } else {
+                    default_config.admin_token
+                }
+            },
+        ),
+        user_token: matches.get_one::<String>("USER_TOKEN").cloned().or_else(
+            || {
+                if let Some(tman_config_file) = &tman_config_file {
+                    tman_config_file.user_token.clone()
+                } else {
+                    default_config.user_token
+                }
+            },
+        ),
         verbose: matches.get_flag("VERBOSE"),
         assume_yes: matches.get_flag("ASSUME_YES"),
-        ..crate::config::TmanConfig::default()
+        registry: if let Some(tman_config_file) = &tman_config_file {
+            tman_config_file.registry.clone()
+        } else {
+            default_config.registry
+        },
+        enable_package_cache: default_config.enable_package_cache,
     };
 
     if matches.get_flag("VERSION") {

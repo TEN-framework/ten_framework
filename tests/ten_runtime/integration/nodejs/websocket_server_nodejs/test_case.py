@@ -5,20 +5,42 @@ Test websocket_server_nodejs.
 import subprocess
 import os
 import sys
+import time
 from sys import stdout
 from .utils import http, build_config, build_pkg, fs_utils
 
 
+# In this test case, there is no predefined startup order for the two
+# extensions:
+#
+# `http_server_extension_nodejs` (HTTP server)
+# `websocket_server_nodejs` (WebSocket server)
+#
+# As a result, the HTTP server extension might start successfully first,
+# followed by the WebSocket server extension. In this scenario, the client may
+# detect that the HTTP server is available and attempt to connect to the
+# WebSocket immediately, leading to a connection failure. Therefore, a retry
+# mechanism is needed to make the process more robust.
 def ws_request():
-    """Send websocket request."""
+    """Send websocket request with retry mechanism."""
     import websocket
 
-    ws = websocket.create_connection("ws://localhost:8007")
-    ws.send("Hello, World!")
-    result = ws.recv()
+    max_retries = 3
+    attempt = 0
 
-    ws.close()
-    return result
+    while attempt < max_retries:
+        try:
+            ws = websocket.create_connection("ws://localhost:8007")
+            ws.send("Hello, World!")
+            result = ws.recv()
+            ws.close()
+            return result
+        except (websocket.WebSocketException, ConnectionError) as e:
+            print(f"Attempt {attempt + 1} failed: {e}")
+            attempt += 1
+            time.sleep(1)
+
+    raise ConnectionError("Failed to connect after 3 attempts")
 
 
 def test_websocket_server_nodejs():

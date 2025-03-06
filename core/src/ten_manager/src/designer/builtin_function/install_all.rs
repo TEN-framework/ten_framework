@@ -9,7 +9,7 @@ use actix_web_actors::ws::WebsocketContext;
 
 use ten_rust::pkg_info::supports::PkgSupport;
 
-use super::WsBuiltinFunction;
+use super::{BuiltinFunctionOutput, WsBuiltinFunction};
 use crate::output::TmanOutput;
 
 impl WsBuiltinFunction {
@@ -37,17 +37,19 @@ impl WsBuiltinFunction {
 
         // Call `execute_cmd()` in an async task.
         tokio::spawn(async move {
-            // let result = crate::cmd::cmd_install::execute_cmd(
-            //     &tman_config,
-            //     install_command,
-            //     &TmanOutput::Ws(output_ws),
-            // )
-            // .await;
+            let output_ws = TmanOutput::Ws(output_ws);
+
+            let result = crate::cmd::cmd_install::execute_cmd(
+                &tman_config,
+                install_command,
+                &output_ws,
+            )
+            .await;
 
             // Notify the WebSocket client that the task is complete, and
             // determine the exit code based on the result.
-            // let exit_code = if result.is_ok() { 0 } else { -1 };
-            // addr.do_send(BuiltinFunctionOutput::Exit(exit_code));
+            let exit_code = if result.is_ok() { 0 } else { -1 };
+            addr.do_send(BuiltinFunctionOutput::Exit(exit_code));
         });
 
         // Send the messages collected by `TmanOutputWs` to the WebSocket client

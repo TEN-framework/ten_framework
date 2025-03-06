@@ -8,7 +8,7 @@ use std::{collections::HashMap, path::Path};
 
 use anyhow::Result;
 use console::Emoji;
-use indicatif::{ProgressBar, ProgressStyle};
+use indicatif::{ProgressBar, ProgressDrawTarget, ProgressStyle};
 use regex::Regex;
 use semver::Version;
 
@@ -118,6 +118,10 @@ pub async fn install_solver_results_in_app_folder(
     out.output_line(&format!("{}  Installing packages...", Emoji("📥", "+")));
 
     let bar = ProgressBar::new(solver_results.len().try_into()?);
+    if !matches!(out, TmanOutput::Cli(_)) {
+        bar.set_draw_target(ProgressDrawTarget::hidden());
+    }
+
     bar.set_style(
         ProgressStyle::default_bar()
             .template("{spinner:.green} [{elapsed_precise}] [{bar:40.cyan/blue}] {pos:>7}/{len:7} {msg}")?

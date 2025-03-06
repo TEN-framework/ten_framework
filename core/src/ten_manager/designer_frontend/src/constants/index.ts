@@ -27,7 +27,8 @@ export const TEN_DEFAULT_BACKEND_HTTP_ENDPOINT =
 // --- Backend Paths
 
 export const TEN_PATH_WS_TERMINAL = "/api/designer/v1/ws/terminal";
-export const TEN_PATH_WS_APP_INSTALL = "/api/designer/v1/ws/app/install";
+export const TEN_PATH_WS_BUILTIN_FUNCTION =
+  "/api/designer/v1/ws/builtin-function";
 export const TEN_PATH_WS_RUN_SCRIPT = "/api/designer/v1/ws/run-script";
 
 // --- Github

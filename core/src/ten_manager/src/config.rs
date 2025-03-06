@@ -8,11 +8,12 @@ use std::collections::HashMap;
 use std::fs;
 use std::path::PathBuf;
 
+use anyhow::Result;
 use serde::{Deserialize, Serialize};
 
 use super::constants::DEFAULT_REGISTRY;
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Registry {
     pub index: String,
 }
@@ -32,7 +33,7 @@ pub struct TmanConfigFile {
     pub enable_package_cache: bool,
 }
 
-#[derive(Serialize, Deserialize, Debug, Default)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct TmanConfig {
     pub registry: HashMap<String, Registry>,
 
@@ -44,6 +45,28 @@ pub struct TmanConfig {
     pub assume_yes: bool,
 
     pub enable_package_cache: bool,
+}
+
+impl Default for TmanConfig {
+    fn default() -> Self {
+        let mut registry = HashMap::new();
+
+        registry.entry("default".to_string()).or_insert(Registry {
+            index: DEFAULT_REGISTRY.to_string(),
+        });
+
+        Self {
+            registry,
+            config_file: Some(
+                get_default_config_path().to_string_lossy().to_string(),
+            ),
+            admin_token: None,
+            user_token: None,
+            verbose: false,
+            assume_yes: false,
+            enable_package_cache: true,
+        }
+    }
 }
 
 // Determine the tman home directory based on the platform.
@@ -77,7 +100,9 @@ pub fn get_default_package_cache_folder() -> PathBuf {
 }
 
 // Read the configuration from the specified path.
-pub fn read_config(config_file_path: &Option<String>) -> TmanConfig {
+pub fn read_config(
+    config_file_path: &Option<String>,
+) -> Result<Option<TmanConfigFile>> {
     let config_path = match config_file_path {
         Some(path) => PathBuf::from(path),
         None => get_default_config_path(),
@@ -85,36 +110,17 @@ pub fn read_config(config_file_path: &Option<String>) -> TmanConfig {
 
     let config_data = fs::read_to_string(config_path.clone());
 
-    let mut config_file_content: TmanConfigFile = if config_path.exists() {
+    if config_path.exists() {
         match config_data {
-            Ok(data) => serde_json::from_str(&data).unwrap_or_else(
-                |e: serde_json::Error| {
-                    panic!("Failed to parse config file: {}", e);
-                },
-            ),
-            Err(e) => {
-                panic!("Failed to parse config file: {}", e);
-            }
+            Ok(data) => match serde_json::from_str(&data) {
+                Ok(config) => Ok(Some(config)),
+                Err(e) => {
+                    Err(anyhow::anyhow!("Failed to parse config file: {}", e))
+                }
+            },
+            Err(e) => Err(anyhow::anyhow!("Failed to read config file: {}", e)),
         }
     } else {
-        TmanConfigFile::default()
-    };
-
-    // Ensure there is a default registry entry if it does not exist.
-    config_file_content
-        .registry
-        .entry("default".to_string())
-        .or_insert(Registry {
-            index: DEFAULT_REGISTRY.to_string(),
-        });
-
-    TmanConfig {
-        registry: config_file_content.registry,
-        config_file: Some(config_path.to_string_lossy().to_string()),
-        admin_token: config_file_content.admin_token,
-        user_token: config_file_content.user_token,
-        verbose: false,
-        assume_yes: false,
-        enable_package_cache: config_file_content.enable_package_cache,
+        Ok(None)
     }
 }
