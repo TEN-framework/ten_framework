@@ -3,8 +3,8 @@
   "header": {
     "title": "Ten 管理器",
     "menu": {
-      "edit": "編輯",
-      "openExistingGraph": "開啟現有圖表",
+      "graph": "圖譜",
+      "openExistingGraph": "開啟現有圖譜",
       "autoLayout": "自動佈局",
       "openAppFolder": "開啟應用程式資料夾",
       "file": "檔案",
@@ -64,7 +64,7 @@
       "confirmChangePosition": "確定要更改 Dock 位置嗎？所有未儲存的變更將會遺失。"
     },
     "selectGraph": {
-      "title": "選擇圖表"
+      "title": "選擇圖譜"
     },
     "customNodeConn": {
       "srcTitle": "節點[{{source}}]連接",

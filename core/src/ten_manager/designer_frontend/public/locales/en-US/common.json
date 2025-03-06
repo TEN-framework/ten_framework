@@ -4,7 +4,7 @@
   "header": {
     "title": "Ten Manager",
     "menu": {
-      "edit": "Edit",
+      "graph": "Graph",
       "openExistingGraph": "Open Existing Graph",
       "autoLayout": "Auto Layout",
       "openAppFolder": "Open App Folder",
