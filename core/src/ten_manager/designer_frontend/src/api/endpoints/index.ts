@@ -35,7 +35,7 @@ export const ENDPOINT_COMMON = {
   },
   checkUpdate: {
     [ENDPOINT_METHOD.GET]: {
-      url: `${API_DESIGNER_V1}/check_update`,
+      url: `${API_DESIGNER_V1}/check-update`,
       method: ENDPOINT_METHOD.GET,
       responseSchema: genResSchema<{
         update_available: boolean;

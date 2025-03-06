@@ -48,7 +48,7 @@ pub fn configure_routes(
             .app_data(state.clone())
             .route("/version", web::get().to(version::get_version))
             .route(
-                "/check_update",
+                "/check-update",
                 web::get().to(version::check_update_endpoint),
             )
             .route(
