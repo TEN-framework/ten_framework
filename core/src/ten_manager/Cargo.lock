@@ -3210,6 +3210,7 @@ dependencies = [
  "dirs",
  "flate2",
  "fs_extra",
+ "futures",
  "futures-util",
  "globset",
  "handlebars",

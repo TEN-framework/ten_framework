@@ -23,7 +23,7 @@ export const TEN_DEFAULT_BACKEND_HTTP_ENDPOINT =
 
 export const TEN_PATH_WS_TERMINAL = "/api/designer/v1/ws/terminal";
 export const TEN_PATH_WS_APP_INSTALL = "/api/designer/v1/ws/app/install";
-export const TEN_PATH_WS_APP_START = "/api/designer/v1/ws/app/start";
+export const TEN_PATH_WS_RUN_SCRIPT = "/api/designer/v1/ws/run-script";
 
 // --- Github
 export const TEN_FRAMEWORK_GH_FULL_NAME = "Ten-framework/ten-framework";

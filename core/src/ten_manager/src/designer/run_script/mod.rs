@@ -13,8 +13,8 @@ use serde::{Deserialize, Serialize};
 use ten_rust::pkg_info::{pkg_type::PkgType, PkgInfo};
 
 use crate::designer::{
+    exec::{CmdParser, WsRunCmd},
     get_all_pkgs::get_all_pkgs,
-    run_cmd::{CmdParser, WsRunCmd},
     DesignerState,
 };
 
@@ -25,7 +25,7 @@ enum InboundMsg {
     Start { base_dir: String, name: String },
 }
 
-pub fn extract_command_from_manifest(
+fn extract_command_from_manifest(
     base_dir: &String,
     name: &String,
     state: Arc<RwLock<DesignerState>>,
@@ -92,7 +92,7 @@ pub fn extract_command_from_manifest(
     Ok(script_cmd)
 }
 
-pub async fn run(
+pub async fn run_script(
     req: HttpRequest,
     stream: web::Payload,
     state: web::Data<Arc<RwLock<DesignerState>>>,

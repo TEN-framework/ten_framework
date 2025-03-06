@@ -11,7 +11,7 @@ use actix_web_actors::ws;
 use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
 
-use crate::designer::run_cmd::{CmdParser, WsRunCmd};
+use crate::designer::exec::{CmdParser, WsRunCmd};
 
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(tag = "type")]
@@ -20,7 +20,7 @@ enum InboundMsg {
     Install { base_dir: String },
 }
 
-pub async fn run(
+pub async fn install(
     req: HttpRequest,
     stream: web::Payload,
     _state: web::Data<Arc<RwLock<crate::designer::DesignerState>>>,

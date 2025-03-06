@@ -38,6 +38,7 @@ impl TmanOutputTrait for TmanOutputCli {
     }
 }
 
+#[derive(Clone)]
 pub struct TmanOutputWs {
     inner: Arc<Mutex<Vec<String>>>,
 }
