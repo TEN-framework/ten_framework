@@ -42,7 +42,7 @@ import {
   TEN_DEFAULT_APP_RUN_SCRIPT,
   TEN_DEFAULT_BACKEND_WS_ENDPOINT,
   TEN_PATH_WS_RUN_SCRIPT,
-  TEN_PATH_WS_APP_INSTALL,
+  TEN_PATH_WS_BUILTIN_FUNCTION,
 } from "@/constants";
 
 interface AppMenuProps {
@@ -118,10 +118,10 @@ export function AppMenu(props: AppMenuProps) {
         category: EWidgetCategory.LogViewer,
         display_type: EWidgetDisplayType.Popup,
         metadata: {
-          wsUrl: TEN_DEFAULT_BACKEND_WS_ENDPOINT + TEN_PATH_WS_APP_INSTALL,
-          scriptType: ELogViewerScriptType.INSTALL,
+          wsUrl: TEN_DEFAULT_BACKEND_WS_ENDPOINT + TEN_PATH_WS_BUILTIN_FUNCTION,
+          scriptType: ELogViewerScriptType.INSTALL_ALL,
           script: {
-            type: ELogViewerScriptType.INSTALL,
+            type: ELogViewerScriptType.INSTALL_ALL,
             base_dir: baseDir,
           },
           options: {
