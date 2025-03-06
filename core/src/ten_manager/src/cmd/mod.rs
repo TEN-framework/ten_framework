@@ -16,6 +16,8 @@ pub mod cmd_publish;
 pub mod cmd_run;
 pub mod cmd_uninstall;
 
+use std::sync::Arc;
+
 use anyhow::Result;
 
 use super::config::TmanConfig;
@@ -38,7 +40,7 @@ pub enum CommandData {
 pub async fn execute_cmd(
     tman_config: &TmanConfig,
     command_data: CommandData,
-    out: &TmanOutput,
+    out: Arc<Box<dyn TmanOutput>>,
 ) -> Result<()> {
     match command_data {
         CommandData::Create(cmd) => {

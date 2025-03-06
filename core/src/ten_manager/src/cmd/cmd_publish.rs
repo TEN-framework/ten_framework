@@ -4,6 +4,7 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
+use std::sync::Arc;
 use std::time::Instant;
 
 use anyhow::Result;
@@ -42,7 +43,7 @@ pub fn parse_sub_cmd(
 pub async fn execute_cmd(
     tman_config: &TmanConfig,
     command_data: PublishCommand,
-    out: &TmanOutput,
+    out: Arc<Box<dyn TmanOutput>>,
 ) -> Result<()> {
     if tman_config.verbose {
         out.output_line("Executing publish command");
@@ -72,10 +73,15 @@ pub async fn execute_cmd(
     }
 
     // Generate the package file.
-    let output_path_str =
-        create_package_tar_gz_file(tman_config, &output_path, &cwd, out)?;
+    let output_path_str = create_package_tar_gz_file(
+        tman_config,
+        &output_path,
+        &cwd,
+        out.clone(),
+    )?;
 
-    upload_package(tman_config, &output_path_str, &pkg_info, out).await?;
+    upload_package(tman_config, &output_path_str, &pkg_info, out.clone())
+        .await?;
 
     out.output_line(&format!(
         "{}  Publish successfully in {}",

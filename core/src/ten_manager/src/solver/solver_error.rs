@@ -4,7 +4,7 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-use std::collections::HashMap;
+use std::{collections::HashMap, sync::Arc};
 
 use anyhow::{anyhow, Result};
 use console::Emoji;
@@ -126,7 +126,7 @@ fn print_dependency_chain(
     pkg_type: &str,
     pkg_name: &str,
     version: &str,
-    out: &TmanOutput,
+    out: Arc<Box<dyn TmanOutput>>,
 ) {
     out.output_line(&format!(
         "Dependency chain leading to [{}]{}@{}:",
@@ -149,7 +149,7 @@ pub fn print_conflict_info(
     conflict_info: &ConflictInfo,
     introducer_relations: &HashMap<PkgBasicInfo, (String, Option<PkgInfo>)>,
     all_candidates: &HashMap<PkgTypeAndName, HashMap<PkgBasicInfo, PkgInfo>>,
-    out: &TmanOutput,
+    out: Arc<Box<dyn TmanOutput>>,
 ) -> Result<()> {
     out.output_line(&format!(
         "{}  Error: {}",
@@ -196,7 +196,7 @@ pub fn print_conflict_info(
         &conflict_info.conflict_pkg_type,
         &conflict_info.conflict_pkg_name,
         &conflict_info.conflict_pkg_version_1.pkg_version,
-        out,
+        out.clone(),
     );
 
     print_dependency_chain(
@@ -204,7 +204,7 @@ pub fn print_conflict_info(
         &conflict_info.conflict_pkg_type,
         &conflict_info.conflict_pkg_name,
         &conflict_info.conflict_pkg_version_2.pkg_version,
-        out,
+        out.clone(),
     );
 
     Ok(())

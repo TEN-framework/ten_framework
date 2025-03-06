@@ -4,7 +4,7 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-use std::{fs, path::PathBuf, time::Instant};
+use std::{fs, path::PathBuf, sync::Arc, time::Instant};
 
 use anyhow::{anyhow, Context, Result};
 use clap::{Arg, ArgAction, ArgMatches, Command};
@@ -121,7 +121,7 @@ pub fn parse_sub_cmd(sub_cmd_args: &ArgMatches) -> Result<FetchCommand> {
 pub async fn execute_cmd(
     tman_config: &TmanConfig,
     command_data: FetchCommand,
-    out: &TmanOutput,
+    out: Arc<Box<dyn TmanOutput>>,
 ) -> Result<()> {
     let started = Instant::now();
 
@@ -136,7 +136,7 @@ pub async fn execute_cmd(
         command_data.pkg_type,
         &command_data.pkg_name,
         &command_data.version_req,
-        out,
+        out.clone(),
     )
     .await?;
 
@@ -158,7 +158,7 @@ pub async fn execute_cmd(
         &package.basic_info.version,
         package_url,
         &mut temp_file,
-        out,
+        out.clone(),
     )
     .await?;
 

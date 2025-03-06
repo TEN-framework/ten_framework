@@ -106,9 +106,8 @@ pub async fn update_graph(
 mod tests {
     use super::*;
     use crate::{
-        config::TmanConfig,
-        designer::mock::tests::inject_all_pkgs_for_mock,
-        output::{TmanOutput, TmanOutputCli},
+        config::TmanConfig, designer::mock::tests::inject_all_pkgs_for_mock,
+        output::TmanOutputCli,
     };
     use actix_web::{test, App};
     use std::{env, fs};
@@ -133,7 +132,7 @@ mod tests {
             base_dir: Some(test_data_dir.to_string_lossy().to_string()),
             all_pkgs: None,
             tman_config: TmanConfig::default(),
-            out: TmanOutput::Cli(TmanOutputCli),
+            out: Arc::new(Box::new(TmanOutputCli)),
         };
 
         let all_pkgs_json = vec![

@@ -4,12 +4,14 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
+use std::sync::Arc;
+
 use actix::AsyncContext;
 use actix_web_actors::ws::WebsocketContext;
 
 use ten_rust::pkg_info::supports::PkgSupport;
 
-use super::{BuiltinFunctionOutput, WsBuiltinFunction};
+use super::{msg_out::TmanOutputWs, BuiltinFunctionOutput, WsBuiltinFunction};
 use crate::output::TmanOutput;
 
 impl WsBuiltinFunction {
@@ -32,17 +34,18 @@ impl WsBuiltinFunction {
 
         let tman_config = crate::config::TmanConfig::default();
 
-        let output_ws = self.output_ws.clone();
         let addr = ctx.address();
+        let output_ws: Arc<Box<dyn TmanOutput>> =
+            Arc::new(Box::new(TmanOutputWs { addr: addr.clone() }));
+
+        let addr = addr.clone();
 
         // Call `execute_cmd()` in an async task.
         tokio::spawn(async move {
-            let output_ws = TmanOutput::Ws(output_ws);
-
             let result = crate::cmd::cmd_install::execute_cmd(
                 &tman_config,
                 install_command,
-                &output_ws,
+                output_ws,
             )
             .await;
 
@@ -50,15 +53,6 @@ impl WsBuiltinFunction {
             // determine the exit code based on the result.
             let exit_code = if result.is_ok() { 0 } else { -1 };
             addr.do_send(BuiltinFunctionOutput::Exit(exit_code));
-        });
-
-        // Send the messages collected by `TmanOutputWs` to the WebSocket client
-        // periodically.
-        ctx.run_interval(std::time::Duration::from_millis(100), |act, ctx| {
-            let msgs = act.output_ws.take_messages();
-            for msg in msgs {
-                ctx.text(msg);
-            }
         });
     }
 }

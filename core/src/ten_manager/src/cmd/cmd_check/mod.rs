@@ -8,6 +8,8 @@ pub mod cmd_check_graph;
 pub mod cmd_check_manifest_json;
 pub mod cmd_check_property_json;
 
+use std::sync::Arc;
+
 use anyhow::Result;
 use clap::{ArgMatches, Command};
 
@@ -71,7 +73,7 @@ pub fn parse_sub_cmd(sub_cmd_args: &ArgMatches) -> Result<CheckCommandData> {
 pub async fn execute_cmd(
     tman_config: &TmanConfig,
     command_data: CheckCommandData,
-    out: &TmanOutput,
+    out: Arc<Box<dyn TmanOutput>>,
 ) -> Result<()> {
     match command_data {
         CheckCommandData::CheckGraph(cmd) => {

@@ -4,7 +4,7 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-use std::{fs, path::PathBuf};
+use std::{fs, path::PathBuf, sync::Arc};
 
 use anyhow::{Context, Result};
 use clap::{Arg, ArgMatches, Command};
@@ -84,7 +84,7 @@ pub fn parse_sub_cmd(sub_cmd_args: &ArgMatches) -> Result<ModifyGraphCommand> {
 }
 
 pub async fn execute_cmd(
-    out: &TmanOutput,
+    out: Arc<Box<dyn TmanOutput>>,
     _tman_config: &TmanConfig,
     command_data: ModifyGraphCommand,
 ) -> Result<()> {

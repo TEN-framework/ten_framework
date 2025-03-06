@@ -86,7 +86,7 @@ pub fn parse_sub_cmd(
 pub async fn execute_cmd(
     tman_config: &TmanConfig,
     command_data: DesignerCommand,
-    out: &TmanOutput,
+    out: Arc<Box<dyn TmanOutput>>,
 ) -> Result<()> {
     if tman_config.verbose {
         out.output_line("Executing designer command");
@@ -131,7 +131,7 @@ pub async fn execute_cmd(
         base_dir: actual_base_dir_opt,
         all_pkgs: None,
         tman_config: tman_config.clone(),
-        out: TmanOutput::Cli(TmanOutputCli),
+        out: Arc::new(Box::new(TmanOutputCli)),
     }));
 
     let server = HttpServer::new(move || {

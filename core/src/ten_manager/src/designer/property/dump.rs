@@ -109,7 +109,7 @@ mod tests {
             mock::tests::inject_all_pkgs_for_mock,
         },
         fs::read_file_to_string,
-        output::{TmanOutput, TmanOutputCli},
+        output::TmanOutputCli,
     };
 
     #[actix_web::test]
@@ -132,7 +132,7 @@ mod tests {
             base_dir: Some(test_data_dir.to_string_lossy().to_string()),
             all_pkgs: None,
             tman_config: TmanConfig::default(),
-            out: TmanOutput::Cli(TmanOutputCli),
+            out: Arc::new(Box::new(TmanOutputCli)),
         };
 
         let all_pkgs_json = vec![(
