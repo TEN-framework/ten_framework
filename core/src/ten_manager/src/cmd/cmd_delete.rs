@@ -5,6 +5,7 @@
 // Refer to the "LICENSE" file in the root directory for more information.
 //
 use std::str::FromStr;
+use std::sync::Arc;
 use std::time::Instant;
 
 use anyhow::Result;
@@ -76,7 +77,7 @@ pub fn parse_sub_cmd(
 pub async fn execute_cmd(
     tman_config: &TmanConfig,
     command_data: DeleteCommand,
-    out: &TmanOutput,
+    out: Arc<Box<dyn TmanOutput>>,
 ) -> Result<()> {
     if tman_config.verbose {
         out.output_line("Executing delete command");
@@ -91,7 +92,7 @@ pub async fn execute_cmd(
         &command_data.package_name,
         &Version::parse(&command_data.version)?,
         &command_data.hash,
-        out,
+        out.clone(),
     )
     .await?;
 

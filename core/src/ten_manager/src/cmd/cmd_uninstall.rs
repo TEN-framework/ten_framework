@@ -7,6 +7,7 @@
 use std::{
     fs::{self, remove_file},
     path::Path,
+    sync::Arc,
     time::Instant,
 };
 
@@ -68,7 +69,7 @@ pub fn parse_sub_cmd(sub_cmd_args: &ArgMatches) -> Result<UninstallCommand> {
 async fn remove_installed_paths(
     cwd: &Path,
     uninstall_cmd: &UninstallCommand,
-    out: &TmanOutput,
+    out: Arc<Box<dyn TmanOutput>>,
 ) -> Result<()> {
     let addon_path = cwd
         .join(TEN_PACKAGES_DIR)
@@ -146,7 +147,7 @@ async fn remove_installed_paths(
 pub async fn execute_cmd(
     tman_config: &TmanConfig,
     command_data: UninstallCommand,
-    out: &TmanOutput,
+    out: Arc<Box<dyn TmanOutput>>,
 ) -> Result<()> {
     if tman_config.verbose {
         out.output_line("Executing uninstall command");
@@ -159,7 +160,7 @@ pub async fn execute_cmd(
     let cwd = crate::fs::get_cwd()?;
     check_is_app_folder(&cwd)?;
 
-    remove_installed_paths(&cwd, &command_data, out).await?;
+    remove_installed_paths(&cwd, &command_data, out.clone()).await?;
 
     out.output_line(&format!(
         "{}  Uninstall {}:{} successfully in {}",

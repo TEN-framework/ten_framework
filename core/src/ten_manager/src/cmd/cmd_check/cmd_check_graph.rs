@@ -4,7 +4,7 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-use std::{collections::HashMap, fs, path, str::FromStr};
+use std::{collections::HashMap, fs, path, str::FromStr, sync::Arc};
 
 use anyhow::{Context, Result};
 use clap::{Arg, ArgMatches, Command};
@@ -184,7 +184,7 @@ fn get_graphs_to_be_checked(command: &CheckGraphCommand) -> Result<Vec<Graph>> {
     Ok(graphs_to_be_checked)
 }
 
-fn display_error(e: &anyhow::Error, out: &TmanOutput) {
+fn display_error(e: &anyhow::Error, out: Arc<Box<dyn TmanOutput>>) {
     e.to_string().lines().for_each(|l| {
         out.output_err_line(&format!("  {}", l));
     });
@@ -193,7 +193,7 @@ fn display_error(e: &anyhow::Error, out: &TmanOutput) {
 pub async fn execute_cmd(
     _tman_config: &TmanConfig,
     command_data: CheckGraphCommand,
-    out: &TmanOutput,
+    out: Arc<Box<dyn TmanOutput>>,
 ) -> Result<()> {
     validate_cmd_args(&command_data)?;
 
@@ -214,7 +214,7 @@ pub async fn execute_cmd(
                     "{}  Details:",
                     Emoji("🔴", "Failed")
                 ));
-                display_error(&e, out);
+                display_error(&e, out.clone());
                 out.output_line("");
             }
         }

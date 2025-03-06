@@ -4,7 +4,7 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-use std::{path::PathBuf, time::Instant};
+use std::{path::PathBuf, sync::Arc, time::Instant};
 
 use anyhow::Result;
 use clap::{Arg, ArgMatches, Command};
@@ -50,7 +50,7 @@ pub fn parse_sub_cmd(
 pub async fn execute_cmd(
     tman_config: &TmanConfig,
     command_data: PackageCommand,
-    out: &TmanOutput,
+    out: Arc<Box<dyn TmanOutput>>,
 ) -> Result<()> {
     if tman_config.verbose {
         out.output_line("Executing package command");
@@ -84,8 +84,12 @@ pub async fn execute_cmd(
         std::fs::remove_file(&output_path)?;
     }
 
-    let output_path_str =
-        create_package_tar_gz_file(tman_config, &output_path, &cwd, out)?;
+    let output_path_str = create_package_tar_gz_file(
+        tman_config,
+        &output_path,
+        &cwd,
+        out.clone(),
+    )?;
 
     out.output_line(&format!(
         "{}  Pack package to {:?} in {}",
