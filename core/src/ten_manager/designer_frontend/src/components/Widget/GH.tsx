@@ -66,7 +66,7 @@ export function GHTryTENAgent(props: { className?: string }) {
     <TooltipProvider delayDuration={100}>
       <Tooltip>
         <TooltipTrigger asChild>
-          <Button asChild variant="ghost" size="sm">
+          <Button asChild variant="ghost" size="icon">
             <a
               href={TEN_AGENT_URL}
               target="_blank"
