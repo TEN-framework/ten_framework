@@ -11,7 +11,7 @@ import { BlocksIcon, ArrowBigRightDashIcon } from "lucide-react";
 import Popup from "@/components/Popup/Popup";
 import { Button } from "@/components/ui/Button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/Tabs";
-import { ReactFlowDataContext } from "@/context/ReactFlowDataContext";
+import { useFlowStore } from "@/store/flow";
 import {
   DataTable as ConnectionDataTable,
   connectionColumns,
@@ -72,7 +72,7 @@ export default CustomNodeConnPopup;
 function EdgeInfoContent(props: { source: string; target: string }) {
   const { source, target } = props;
 
-  const { edges } = React.useContext(ReactFlowDataContext);
+  const { edges } = useFlowStore();
 
   const [, rowsMemo] = React.useMemo(() => {
     const relatedEdges = edges.filter(
@@ -125,7 +125,7 @@ function CustomNodeConnPopupContent(props: { source: string }) {
 
   const { t } = useTranslation();
 
-  const { edges } = React.useContext(ReactFlowDataContext);
+  const { edges } = useFlowStore();
 
   const [rowsMemo] = React.useMemo(() => {
     const relatedEdges = edges.filter((e) =>

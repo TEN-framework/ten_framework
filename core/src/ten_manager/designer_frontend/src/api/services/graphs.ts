@@ -4,7 +4,9 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-import { makeAPIRequest } from "@/api/services/utils";
+import * as z from "zod";
+
+import { makeAPIRequest, useCancelableSWR } from "@/api/services/utils";
 import { ENDPOINT_GRAPHS } from "@/api/endpoints";
 import { ENDPOINT_METHOD } from "@/api/endpoints/constant";
 
@@ -31,4 +33,19 @@ export const getGraphs = async () => {
   const req = makeAPIRequest(template);
   const res = await req;
   return template.responseSchema.parse(res).data;
+};
+
+export const useGraphs = () => {
+  const template = ENDPOINT_GRAPHS.graphs[ENDPOINT_METHOD.GET];
+  const [{ data, error, isLoading }] = useCancelableSWR<
+    z.infer<typeof template.responseSchema>
+  >(template.url, {
+    revalidateOnFocus: false,
+    refreshInterval: 0,
+  });
+  return {
+    graphs: data?.data,
+    error,
+    isLoading,
+  };
 };

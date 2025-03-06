@@ -4,11 +4,9 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-import * as React from "react";
 import { InfoIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
-import AboutPopup from "@/components/Popup/AboutPopup";
 import {
   NavigationMenuContent,
   NavigationMenuItem,
@@ -17,17 +15,28 @@ import {
 } from "@/components/ui/NavigationMenu";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
+import { useWidgetStore } from "@/store/widget";
+import {
+  EDefaultWidgetType,
+  EWidgetCategory,
+  EWidgetDisplayType,
+} from "@/types/widgets";
+import { ABOUT_POPUP_ID } from "@/components/Popup/AboutPopup";
 
 export function HelpMenu() {
   const { t } = useTranslation();
-  const [isAboutOpen, setIsAboutOpen] = React.useState(false);
+
+  const { appendWidgetIfNotExists } = useWidgetStore();
 
   const openAbout = () => {
-    setIsAboutOpen(true);
-  };
-
-  const closeAbout = () => {
-    setIsAboutOpen(false);
+    appendWidgetIfNotExists({
+      id: ABOUT_POPUP_ID,
+      category: EWidgetCategory.Default,
+      display_type: EWidgetDisplayType.Popup,
+      metadata: {
+        type: EDefaultWidgetType.About,
+      },
+    });
   };
 
   return (
@@ -51,8 +60,6 @@ export function HelpMenu() {
           </NavigationMenuLink>
         </NavigationMenuContent>
       </NavigationMenuItem>
-
-      {isAboutOpen && <AboutPopup onClose={closeAbout} />}
     </>
   );
 }

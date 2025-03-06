@@ -16,19 +16,19 @@ import {
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
 
-interface EditMenuProps {
+interface GraphMenuProps {
   onAutoLayout: () => void;
   onOpenExistingGraph: () => void;
 }
 
-export function EditMenu(props: EditMenuProps) {
+export function GraphMenu(props: GraphMenuProps) {
   const { onAutoLayout, onOpenExistingGraph } = props;
   const { t } = useTranslation();
 
   return (
     <NavigationMenuItem>
       <NavigationMenuTrigger className="submenu-trigger">
-        {t("header.menu.edit")}
+        {t("header.menu.graph")}
       </NavigationMenuTrigger>
       <NavigationMenuContent
         className={cn("flex flex-col items-center px-1 py-1.5 gap-1.5")}

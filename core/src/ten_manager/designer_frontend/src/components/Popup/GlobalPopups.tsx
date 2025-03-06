@@ -7,11 +7,18 @@
 import * as React from "react";
 
 import { useWidgetStore } from "@/store/widget";
-import { EWidgetCategory, EWidgetDisplayType } from "@/types/widgets";
+import {
+  EDefaultWidgetType,
+  EWidgetCategory,
+  EWidgetDisplayType,
+} from "@/types/widgets";
 import TerminalPopup from "@/components/Popup/TerminalPopup";
 import EditorPopup from "@/components/Popup/EditorPopup";
 import CustomNodeConnPopup from "@/components/Popup/CustomNodeConnPopup";
 import { LogViewerPopup } from "@/components/Popup/LogViewerPopup";
+import { GraphSelectPopup } from "@/components/Popup/GraphSelectPopup";
+import { AboutPopup } from "@/components/Popup/AboutPopup";
+import { AppFolderPopup, PreferencesPopup } from "@/components/Popup/AppPopup";
 
 export function GlobalPopups() {
   const { widgets, removeWidget } = useWidgetStore();
@@ -22,6 +29,7 @@ export function GlobalPopups() {
     terminalWidgetsMemo,
     customConnectionWidgetsMemo,
     logViewerWidgetsMemo,
+    defaultWidgetsMemo,
   ] = React.useMemo(() => {
     const popupWidgets = widgets.filter(
       (widget) => widget.display_type === EWidgetDisplayType.Popup
@@ -38,12 +46,16 @@ export function GlobalPopups() {
     const logViewerWidgets = popupWidgets.filter(
       (widget) => widget.category === EWidgetCategory.LogViewer
     );
+    const defaultWidgets = popupWidgets.filter(
+      (widget) => widget.category === EWidgetCategory.Default
+    );
     return [
       popupWidgets,
       editorWidgets,
       terminalWidgets,
       customConnectionWidgets,
       logViewerWidgets,
+      defaultWidgets,
     ];
   }, [widgets]);
 
@@ -83,6 +95,18 @@ export function GlobalPopups() {
           onStop={widget.metadata?.onStop}
         />
       ))}
+      {defaultWidgetsMemo.map((widget) => {
+        switch (widget.metadata.type) {
+          case EDefaultWidgetType.GraphSelect:
+            return <GraphSelectPopup key={`GraphSelectPopup-${widget.id}`} />;
+          case EDefaultWidgetType.About:
+            return <AboutPopup key={`AboutPopup-${widget.id}`} />;
+          case EDefaultWidgetType.AppFolder:
+            return <AppFolderPopup key={`AppPopup-${widget.id}`} />;
+          case EDefaultWidgetType.Preferences:
+            return <PreferencesPopup key={`PreferencesPopup-${widget.id}`} />;
+        }
+      })}
     </>
   );
 }

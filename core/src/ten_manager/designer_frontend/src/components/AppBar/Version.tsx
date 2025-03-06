@@ -16,7 +16,7 @@ export function Version() {
   const { version } = useVersion();
   const { data: updateData } = useCheckUpdate();
 
-  const { t } = useTranslation("header");
+  const { t } = useTranslation();
 
   return (
     <Badge variant="secondary" className="relative gap-2">

@@ -14,25 +14,29 @@ import {
 import { ModeToggle } from "@/components/ModeToggle";
 import { LanguageToggle } from "@/components/LangSwitch";
 import { AppMenu } from "@/components/AppBar/Menu/AppMenu";
-import { EditMenu } from "@/components/AppBar/Menu/EditMenu";
+import { GraphMenu } from "@/components/AppBar/Menu/GraphMenu";
 import { HelpMenu } from "@/components/AppBar/Menu/HelpMenu";
 import { AppStatus } from "@/components/AppBar/AppStatus";
 import { GHStargazersCount, GHTryTENAgent } from "@/components/Widget/GH";
 import { Version } from "@/components/AppBar/Version";
 import { cn } from "@/lib/utils";
 import { TEN_FRAMEWORK_GH_OWNER, TEN_FRAMEWORK_GH_REPO } from "@/constants";
+import { useWidgetStore } from "@/store/widget";
+import { GRAPH_SELECT_POPUP_ID } from "@/components/Popup/GraphSelectPopup";
+import {
+  EDefaultWidgetType,
+  EWidgetCategory,
+  EWidgetDisplayType,
+} from "@/types/widgets";
 
 interface AppBarProps {
-  onOpenExistingGraph: () => void;
   onAutoLayout: () => void;
-  onSetBaseDir: (folderPath: string) => void;
+  className?: string;
 }
 
-const AppBar: React.FC<AppBarProps> = ({
-  onOpenExistingGraph,
-  onAutoLayout,
-  onSetBaseDir,
-}) => {
+const AppBar = ({ onAutoLayout, className }: AppBarProps) => {
+  const { appendWidgetIfNotExists } = useWidgetStore();
+
   const onNavChange = () => {
     setTimeout(() => {
       const triggers = document.querySelectorAll(
@@ -49,18 +53,32 @@ const AppBar: React.FC<AppBarProps> = ({
     });
   };
 
+  const onOpenExistingGraph = () => {
+    appendWidgetIfNotExists({
+      id: GRAPH_SELECT_POPUP_ID,
+      category: EWidgetCategory.Default,
+      display_type: EWidgetDisplayType.Popup,
+      metadata: {
+        type: EDefaultWidgetType.GraphSelect,
+      },
+    });
+  };
+
   return (
     <div
       className={cn(
-        "flex justify-between items-center h-10 px-5 text-sm select-none",
-        "bg-[var(--app-bar-bg)] text-[var(--app-bar-fg)]",
-        "border-b border-[#e5e7eb] dark:border-[#374151]"
+        "flex justify-between items-center  text-sm select-none",
+        "h-10 w-full px-5",
+        "fixed top-0 left-0 right-0",
+        "bg-background/80 backdrop-blur-xs",
+        "border-b border-[#e5e7eb] dark:border-[#374151]",
+        className
       )}
     >
       <NavigationMenu onValueChange={onNavChange}>
         <NavigationMenuList>
-          <AppMenu onSetBaseDir={onSetBaseDir} />
-          <EditMenu
+          <AppMenu />
+          <GraphMenu
             onAutoLayout={onAutoLayout}
             onOpenExistingGraph={onOpenExistingGraph}
           />
