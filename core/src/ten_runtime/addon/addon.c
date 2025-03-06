@@ -27,6 +27,7 @@
 #include "ten_runtime/binding/common.h"
 #include "ten_runtime/ten_env/ten_env.h"
 #include "ten_utils/lib/alloc.h"
+#include "ten_utils/lib/atomic.h"
 #include "ten_utils/lib/signature.h"
 #include "ten_utils/lib/string.h"
 #include "ten_utils/macro/check.h"
@@ -316,6 +317,8 @@ ten_addon_host_t *ten_addon_register(TEN_ADDON_TYPE addon_type,
   }
   TEN_ASSERT(addon_store, "Should not happen.");
 
+  // TODO(xilin): The addon host should be added to the store after the
+  // addon on_init done.
   ten_addon_store_add(addon_store, addon_host);
 
   ten_addon_register_internal(addon_store, addon_host, addon_name, base_dir,
@@ -347,24 +350,75 @@ ten_addon_t *ten_addon_unregister(ten_addon_store_t *store,
   return ten_addon_store_del(store, addon_name);
 }
 
-static void ten_addon_unregister_all_except_addon_loader_addon(void) {
-  ten_addon_unregister_all_extension();
-  ten_addon_unregister_all_extension_group();
-  ten_addon_unregister_all_protocol();
+static void
+ten_addon_store_on_specific_addons_unregistered(ten_addon_store_t *store,
+                                                void *cb_data) {
+  ten_addon_store_on_all_addons_unregistered_ctx_t *ctx =
+      (ten_addon_store_on_all_addons_unregistered_ctx_t *)cb_data;
+  TEN_ASSERT(ctx, "Should not happen.");
+
+  if (ten_atomic_sub_fetch(&ctx->unregistering_stores_count, 1) == 0) {
+    if (ctx->cb) {
+      ctx->cb(ctx->cb_data);
+    }
+
+    TEN_FREE(ctx);
+  }
 }
 
-void ten_unregister_all_addons_and_cleanup(void) {
+static void ten_addon_unregister_all_except_addon_loader_addon(
+    ten_on_all_addons_unregistered_cb_t cb, void *cb_data) {
+  ten_addon_store_on_all_addons_unregistered_ctx_t *ctx =
+      TEN_MALLOC(sizeof(ten_addon_store_on_all_addons_unregistered_ctx_t));
+  TEN_ASSERT(ctx, "Failed to allocate memory.");
+
+  ctx->cb = cb;
+  ctx->cb_data = cb_data;
+  ctx->unregistering_stores_count = 3; // extension, extension_group, protocol
+
+  ten_addon_unregister_all_extension_ex(
+      ten_addon_store_on_specific_addons_unregistered, ctx);
+  ten_addon_unregister_all_extension_group_ex(
+      ten_addon_store_on_specific_addons_unregistered, ctx);
+  ten_addon_unregister_all_protocol_ex(
+      ten_addon_store_on_specific_addons_unregistered, ctx);
+}
+
+static void ten_on_all_except_addon_loader_addon_unregistered(void *cb_data) {
+  ten_addon_store_on_all_addons_unregistered_ctx_t *ctx =
+      (ten_addon_store_on_all_addons_unregistered_ctx_t *)cb_data;
+  TEN_ASSERT(ctx, "Should not happen.");
+
+  if (ten_atomic_sub_fetch(&ctx->unregistering_stores_count, 1) == 0) {
+    // Destroy all addon loaders' singleton to avoid memory leak.
+    ten_addon_loader_addons_destroy_singleton_instance();
+
+    ten_addon_unregister_all_addon_loader();
+
+    if (ctx->cb) {
+      ctx->cb(ctx->cb_data);
+    }
+
+    TEN_FREE(ctx);
+  }
+}
+
+void ten_unregister_all_addons_and_cleanup(
+    ten_on_all_addons_unregistered_cb_t cb, void *cb_data) {
   // Since Python addons (e.g., Python extension addons) require access to the
   // Python VM when performing `addon_t` deinitialization, and the Python addon
   // loader will destroy the Python VM during its own destruction, the Python
   // addon loader must only be unloaded after all other non-addon-loader types
   // of addons have been fully unloaded. Only then can the addon loader itself
   // be unloaded.
+  ten_addon_store_on_all_addons_unregistered_ctx_t *ctx =
+      TEN_MALLOC(sizeof(ten_addon_store_on_all_addons_unregistered_ctx_t));
+  TEN_ASSERT(ctx, "Failed to allocate memory.");
 
-  ten_addon_unregister_all_except_addon_loader_addon();
+  ctx->cb = cb;
+  ctx->cb_data = cb_data;
+  ctx->unregistering_stores_count = 1; // addon_loader
 
-  // Destroy all addon loaders' singleton to avoid memory leak.
-  ten_addon_loader_addons_destroy_singleton_instance();
-
-  ten_addon_unregister_all_addon_loader();
+  ten_addon_unregister_all_except_addon_loader_addon(
+      ten_on_all_except_addon_loader_addon_unregistered, ctx);
 }

@@ -19,6 +19,7 @@
 #include "ten_utils/lib/ref.h"
 #include "ten_utils/lib/string.h"
 #include "ten_utils/macro/check.h"
+#include "ten_utils/macro/memory.h"
 
 // The addon store should be initted only once.
 void ten_addon_store_init(ten_addon_store_t *store) {
@@ -97,6 +98,54 @@ void ten_addon_store_del_all(ten_addon_store_t *store) {
 
   // Clear the store's list, which will call the destroy function for each node,
   // properly decreasing the refcount of each addon.
+  ten_list_clear(&store->store);
+
+  ten_mutex_unlock(store->lock);
+}
+
+static void ten_addon_on_addon_deinit_done(ten_env_t *ten_env, void *cb_data) {
+  ten_addon_store_on_all_addons_deinit_done_ctx_t *ctx = cb_data;
+  ten_addon_store_t *store = ctx->store;
+
+  if (ten_atomic_sub_fetch(&ctx->deiniting_count, 1) == 0) {
+    ctx->cb(store, ctx->cb_data);
+    TEN_FREE(ctx);
+  }
+}
+
+void ten_addon_store_del_all_ex(
+    ten_addon_store_t *store, ten_addon_store_on_all_addons_deinit_done_cb_t cb,
+    void *cb_data) {
+  TEN_ASSERT(store, "Invalid argument.");
+
+  ten_addon_store_on_all_addons_deinit_done_ctx_t *ctx =
+      TEN_MALLOC(sizeof(ten_addon_store_on_all_addons_deinit_done_ctx_t));
+  TEN_ASSERT(ctx, "Failed to allocate memory.");
+
+  ctx->store = store;
+  ctx->cb = cb;
+  ctx->cb_data = cb_data;
+
+  ten_mutex_lock(store->lock);
+
+  ten_atomic_store(&ctx->deiniting_count,
+                   (int64_t)ten_list_size(&store->store));
+
+  if (ten_list_size(&store->store) == 0) {
+    ten_mutex_unlock(store->lock);
+    TEN_FREE(ctx);
+    cb(store, cb_data);
+    return;
+  }
+
+  ten_list_foreach(&store->store, iter) {
+    ten_addon_host_t *addon_host = ten_ptr_listnode_get(iter.node);
+    TEN_ASSERT(addon_host, "Should not happen.");
+
+    addon_host->on_deinit_done_cb = ten_addon_on_addon_deinit_done;
+    addon_host->on_deinit_done_cb_data = ctx;
+  }
+
   ten_list_clear(&store->store);
 
   ten_mutex_unlock(store->lock);
