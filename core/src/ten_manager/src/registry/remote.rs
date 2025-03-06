@@ -40,7 +40,7 @@ async fn retry_async<'a, F, T>(
 ) -> Result<T>
 where
     F: FnMut() -> std::pin::Pin<
-        Box<dyn std::future::Future<Output = Result<T>> + 'a>,
+        Box<dyn std::future::Future<Output = Result<T>> + Send + 'a>,
     >,
 {
     for attempt in 0..=max_retries {
