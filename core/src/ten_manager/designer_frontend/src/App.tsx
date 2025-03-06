@@ -18,7 +18,6 @@ import { useTranslation } from "react-i18next";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import AppBar from "@/components/AppBar/AppBar";
 import FlowCanvas, { type FlowCanvasRef } from "@/flow/FlowCanvas";
-import { useVersion } from "@/api/services/common";
 import {
   getGraphNodes,
   getGraphConnections,
@@ -58,8 +57,6 @@ const App: React.FC = () => {
     "left" | "bottom" | "right"
   >("bottom");
 
-  // Get the version of tman.
-  const { version } = useVersion();
   const { t } = useTranslation();
   const { widgets } = useWidgetStore();
 
@@ -200,7 +197,6 @@ const App: React.FC = () => {
           )}
           <ResizablePanel defaultSize={dockWidgetsMemo.length > 0 ? 60 : 100}>
             <AppBar
-              version={version}
               onAutoLayout={performAutoLayout}
               onOpenExistingGraph={handleOpenExistingGraph}
               onSetBaseDir={handleSetBaseDir}

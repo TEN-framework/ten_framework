@@ -5,7 +5,7 @@
 // Refer to the "LICENSE" file in the root directory for more information.
 //
 import * as React from "react";
-import { useTranslation, Trans } from "react-i18next";
+import { useTranslation } from "react-i18next";
 
 import {
   NavigationMenu,
@@ -13,32 +13,26 @@ import {
 } from "@/components/ui/NavigationMenu";
 import { ModeToggle } from "@/components/ModeToggle";
 import { LanguageToggle } from "@/components/LangSwitch";
-import { Badge } from "@/components/ui/Badge";
 import { AppMenu } from "@/components/AppBar/Menu/AppMenu";
 import { EditMenu } from "@/components/AppBar/Menu/EditMenu";
 import { HelpMenu } from "@/components/AppBar/Menu/HelpMenu";
 import { AppStatus } from "@/components/AppBar/AppStatus";
-import { GHStargazersCount } from "@/components/Widget/GH";
+import { GHStargazersCount, GHTryTENAgent } from "@/components/Widget/GH";
+import { Version } from "@/components/AppBar/Version";
 import { cn } from "@/lib/utils";
 import { TEN_FRAMEWORK_GH_OWNER, TEN_FRAMEWORK_GH_REPO } from "@/constants";
 
 interface AppBarProps {
-  // The current version of tman.
-  version?: string;
-
   onOpenExistingGraph: () => void;
   onAutoLayout: () => void;
   onSetBaseDir: (folderPath: string) => void;
 }
 
 const AppBar: React.FC<AppBarProps> = ({
-  version,
   onOpenExistingGraph,
   onAutoLayout,
   onSetBaseDir,
 }) => {
-  const { t } = useTranslation();
-
   const onNavChange = () => {
     setTimeout(() => {
       const triggers = document.querySelectorAll(
@@ -72,10 +66,6 @@ const AppBar: React.FC<AppBarProps> = ({
           />
           <HelpMenu />
         </NavigationMenuList>
-        <GHStargazersCount
-          owner={TEN_FRAMEWORK_GH_OWNER}
-          repo={TEN_FRAMEWORK_GH_REPO}
-        />
       </NavigationMenu>
 
       {/* Middle part is the status bar. */}
@@ -90,22 +80,12 @@ const AppBar: React.FC<AppBarProps> = ({
       <div className="flex items-center gap-1.5">
         <LanguageToggle />
         <ModeToggle />
-        <div
-          className={cn(
-            "text-xs text-muted-foreground flex items-center gap-2 relative"
-          )}
-        >
-          <div>
-            <Trans
-              components={[
-                <PoweredByTenFramework className="font-bold text-foreground" />,
-              ]}
-              t={t}
-              i18nKey="header.poweredByTenFramework"
-            />
-          </div>
-          <Badge variant="secondary">{version}</Badge>
-        </div>
+        <GHStargazersCount
+          owner={TEN_FRAMEWORK_GH_OWNER}
+          repo={TEN_FRAMEWORK_GH_REPO}
+        />
+        <GHTryTENAgent />
+        <Version />
       </div>
     </div>
   );

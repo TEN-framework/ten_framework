@@ -50,7 +50,7 @@ export const useCheckUpdate = () => {
     refreshInterval: 0,
   });
   return {
-    data,
+    data: data?.data,
     error,
     isLoading,
   };

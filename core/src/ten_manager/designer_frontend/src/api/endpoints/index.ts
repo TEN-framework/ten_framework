@@ -38,14 +38,16 @@ export const ENDPOINT_COMMON = {
       url: `${API_DESIGNER_V1}/check-update`,
       method: ENDPOINT_METHOD.GET,
       responseSchema: genResSchema<{
-        status: string;
         update_available: boolean;
-        latest_version: string;
+        latest_version: string | null;
+        release_page: string | null;
+        message: string | null;
       }>(
         z.object({
-          status: z.string(),
           update_available: z.boolean(),
-          latest_version: z.string(),
+          latest_version: z.string().nullable(),
+          release_page: z.string().nullable(),
+          message: z.string().nullable(),
         })
       ),
     },

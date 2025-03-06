@@ -1,5 +1,6 @@
 {
   "tenFramework": "TEN Framework",
+  "ten": "TEN",
   "header": {
     "title": "Ten Manager",
     "menu": {
@@ -13,8 +14,8 @@
       "about": "About",
       "language": "Language",
       "language.enUS": "English",
-      "language.zhCN": "Simplified Chinese",
-      "language.zhTW": "Traditional Chinese",
+      "language.zhCN": "中文(简体)",
+      "language.zhTW": "中文(繁體)",
       "theme": "Theme",
       "theme.light": "Light",
       "theme.dark": "Dark",
@@ -26,7 +27,8 @@
     "officialSite": "Official site",
     "poweredBy": "Powered by",
     "poweredByTenFramework": "Powered by <0></0>",
-    "github": "GitHub"
+    "github": "GitHub",
+    "tryTENAgent": "Try TEN Agent"
   },
   "action": {
     "edit": "Edit",
