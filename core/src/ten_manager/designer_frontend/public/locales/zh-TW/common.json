@@ -13,8 +13,8 @@
       "about": "關於",
       "language": "語言",
       "language.enUS": "English",
-      "language.zhCN": "簡體中文",
-      "language.zhTW": "繁體中文",
+      "language.zhCN": "中文(简体)",
+      "language.zhTW": "中文(繁體)",
       "theme": "主題",
       "theme.light": "明亮",
       "theme.dark": "暗黑",
@@ -26,7 +26,8 @@
     "officialSite": "官方網站",
     "poweredBy": "技術支援",
     "poweredByTenFramework": "由 <0></0> 提供支援",
-    "github": "GitHub"
+    "github": "GitHub",
+    "tryTENAgent": "嘗試 TEN Agent"
   },
   "action": {
     "edit": "編輯",

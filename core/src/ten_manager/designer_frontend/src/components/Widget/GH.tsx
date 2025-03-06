@@ -4,12 +4,22 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-import { GithubIcon } from "lucide-react";
+import * as React from "react";
+import { StarIcon, BotIcon } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
-import { badgeVariants } from "@/components/ui/Badge";
+import { Button } from "@/components/ui/Button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/Tooltip";
+import { GHIcon } from "@/components/Icons";
 import { cn } from "@/lib/utils";
 import { useGHRepository } from "@/api/services/github";
 import { formatNumberWithCommas } from "@/lib/utils";
+import { TEN_AGENT_URL } from "@/constants";
 
 export function GHStargazersCount(props: {
   owner: string;
@@ -20,38 +30,58 @@ export function GHStargazersCount(props: {
 
   const { repository, error, isLoading } = useGHRepository(owner, repo);
 
-  if (isLoading || error) {
-    return null;
-  }
+  const shouldFallbackMemo = React.useMemo(() => {
+    return isLoading || error || !repository?.stargazers_count;
+  }, [isLoading, error, repository]);
 
   return (
-    <a
-      href={`https://github.com/${owner}/${repo}`}
-      target="_blank"
-      rel="noopener noreferrer"
-      className={cn(
-        badgeVariants({ variant: "outline" }),
-        "p-0 mx-1",
-        className
-      )}
-    >
-      <div
-        className={cn(
-          badgeVariants({ variant: "secondary" }),
-          "h-[22px] rounded-r-none px-2"
-        )}
+    <Button asChild variant="ghost" size="sm">
+      <a
+        href={`https://github.com/${owner}/${repo}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        className={cn("flex items-center gap-1.5", "text-sm", className)}
       >
-        <GithubIcon className="size-4" />
-        {/* <span>Star</span> */}
-      </div>
-      <span
-        className={cn(
-          badgeVariants({ variant: "secondary" }),
-          "bg-transparent rounded-l-none hover:bg-transparent"
+        {shouldFallbackMemo ? (
+          <GHIcon className="size-4" />
+        ) : (
+          <>
+            <StarIcon className="size-4 text-yellow-500" />
+            <span>
+              {formatNumberWithCommas(repository?.stargazers_count as number)}
+            </span>
+          </>
         )}
-      >
-        {formatNumberWithCommas(repository?.stargazers_count || 0)}
-      </span>
-    </a>
+      </a>
+    </Button>
+  );
+}
+
+export function GHTryTENAgent(props: { className?: string }) {
+  const { className } = props;
+
+  const { t } = useTranslation();
+
+  return (
+    <TooltipProvider delayDuration={100}>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button asChild variant="ghost" size="sm">
+            <a
+              href={TEN_AGENT_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={cn("flex items-center gap-1.5", "text-sm", className)}
+            >
+              <BotIcon className="size-4" />
+              <span className="sr-only">{t("header.tryTENAgent")}</span>
+            </a>
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>
+          <p>{t("header.tryTENAgent")}</p>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   );
 }
