@@ -248,9 +248,9 @@ const Popup: React.FC<PopupProps> = ({
       className={cn(
         "fixed text-sm overflow-hidden",
         "backdrop-blur-xs shadow-xl ",
-        "bg-sky-50/80 dark:bg-gray-900/90",
-        "border border-sky-100/50 dark:border-gray-900/50",
-        "ring-1 ring-sky-100/50 dark:ring-gray-900/50",
+        "bg-cyan-50/80 dark:bg-gray-900/90",
+        "border border-cyan-100/50 dark:border-gray-900/50",
+        "ring-1 ring-cyan-100/50 dark:ring-gray-900/50",
         "text-foreground rounded-lg focus:outline-hidden flex flex-col popup",
         "transition-opacity duration-200 ease-in-out",
         isVisible ? "opacity-100" : "opacity-0",
