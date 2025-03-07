@@ -348,9 +348,9 @@ pub async fn execute_cmd(
     out: Arc<Box<dyn TmanOutput>>,
 ) -> Result<()> {
     if tman_config.verbose {
-        out.output_line("Executing install command");
-        out.output_line(&format!("command_data: {:?}", command_data));
-        out.output_line(&format!("tman_config: {:?}", tman_config));
+        out.normal_line("Executing install command");
+        out.normal_line(&format!("command_data: {:?}", command_data));
+        out.normal_line(&format!("tman_config: {:?}", tman_config));
     }
 
     let started = Instant::now();
@@ -410,7 +410,7 @@ pub async fn execute_cmd(
         &mut all_candidates,
     )?;
 
-    out.output_line(&format!(
+    out.normal_line(&format!(
         "{}  Get all installed packages...",
         Emoji("📦", "")
     ));
@@ -421,7 +421,7 @@ pub async fn execute_cmd(
         out.clone(),
     )?;
 
-    out.output_line(&format!(
+    out.normal_line(&format!(
         "{}  Filter compatible packages...",
         Emoji("🔍", "")
     ));
@@ -579,7 +579,7 @@ pub async fn execute_cmd(
         });
     }
 
-    out.output_line(&format!(
+    out.normal_line(&format!(
         "{}  Attempting to retrieve information about locked packages \
 from manifest-lock.json...",
         Emoji("📜", "")
@@ -588,7 +588,7 @@ from manifest-lock.json...",
     // Get the locked pkgs from the lock file in the app folder.
     let locked_pkgs = get_locked_pkgs(&app_dir_to_work_with);
 
-    out.output_line(&format!(
+    out.normal_line(&format!(
         "{}  Collect all candidate packages...",
         Emoji("📦", "")
     ));
@@ -609,7 +609,7 @@ from manifest-lock.json...",
     )
     .await?;
 
-    out.output_line(&format!("{}  Resolving packages...", Emoji("🔍", "")));
+    out.normal_line(&format!("{}  Resolving packages...", Emoji("🔍", "")));
 
     // Find an answer (a dependency tree) that satisfies all dependencies.
     let (usable_model, non_usable_models) = solve_all(
@@ -624,19 +624,19 @@ from manifest-lock.json...",
 
     // If there are answers are found, print out all the answers.
     if tman_config.verbose {
-        out.output_line("\n");
-        out.output_line("Result:");
+        out.normal_line("\n");
+        out.normal_line("Result:");
     }
 
     if let Some(ref usable_model) = usable_model {
         for result in usable_model {
             if tman_config.verbose {
-                out.output_line(&format!(" {:?}", result));
+                out.normal_line(&format!(" {:?}", result));
             }
         }
     }
     if tman_config.verbose {
-        out.output_line("");
+        out.normal_line("");
     }
 
     if let Some(ref usable_model) = usable_model {
@@ -690,7 +690,7 @@ do you want to continue?",
                     }
                 }
             } else {
-                out.output_line("Non-interactive mode, auto-continue...");
+                out.normal_line("Non-interactive mode, auto-continue...");
             }
         }
 
@@ -749,7 +749,7 @@ do you want to continue?",
         // Change back to the original folder.
         env::set_current_dir(original_cwd)?;
 
-        out.output_line(&format!(
+        out.normal_line(&format!(
             "{}  Install successfully in {}",
             Emoji("🏆", ":-)"),
             HumanDuration(started.elapsed())

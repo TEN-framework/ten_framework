@@ -211,7 +211,7 @@ async fn process_non_local_dependency_to_get_candidate(
             candidate_pkg_info.compatible_score = compatible_score;
 
             if tman_config.verbose {
-                out.output_line(&format!(
+                out.normal_line(&format!(
                     "=> Found a candidate: {}:{}@{}[{}]",
                     candidate_pkg_info.basic_info.type_and_name.pkg_type,
                     candidate_pkg_info.basic_info.type_and_name.name,

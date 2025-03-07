@@ -46,8 +46,8 @@ pub async fn execute_cmd(
     out: Arc<Box<dyn TmanOutput>>,
 ) -> Result<()> {
     if tman_config.verbose {
-        out.output_line("Executing publish command");
-        out.output_line(&format!("{:?}", command_data));
+        out.normal_line("Executing publish command");
+        out.normal_line(&format!("{:?}", command_data));
     }
 
     let started = Instant::now();
@@ -83,7 +83,7 @@ pub async fn execute_cmd(
     upload_package(tman_config, &output_path_str, &pkg_info, out.clone())
         .await?;
 
-    out.output_line(&format!(
+    out.normal_line(&format!(
         "{}  Publish successfully in {}",
         Emoji("🏆", ":-)"),
         HumanDuration(started.elapsed())

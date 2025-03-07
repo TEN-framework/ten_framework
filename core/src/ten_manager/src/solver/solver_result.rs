@@ -115,7 +115,7 @@ pub async fn install_solver_results_in_app_folder(
     app_dir: &Path,
     out: Arc<Box<dyn TmanOutput>>,
 ) -> Result<()> {
-    out.output_line(&format!("{}  Installing packages...", Emoji("📥", "+")));
+    out.normal_line(&format!("{}  Installing packages...", Emoji("📥", "+")));
 
     let bar = ProgressBar::new(solver_results.len().try_into()?);
     if !out.is_interactive() {

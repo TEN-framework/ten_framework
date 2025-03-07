@@ -40,7 +40,7 @@ fn get_model(
         .expect("Failed to retrieve symbols in the model.");
 
     if tman_config.verbose {
-        out.output_line("Model:");
+        out.normal_line("Model:");
     }
 
     let mut result = Vec::new();
@@ -48,7 +48,7 @@ fn get_model(
 
     for symbol in atoms {
         if tman_config.verbose {
-            out.output_line(&format!(" {}", symbol));
+            out.normal_line(&format!(" {}", symbol));
         }
 
         result.push(symbol.to_string());
@@ -57,7 +57,7 @@ fn get_model(
         }
     }
     if tman_config.verbose {
-        out.output_line("");
+        out.normal_line("");
     }
 
     Some(result)
@@ -70,12 +70,12 @@ fn print_prefix(
     out: Arc<Box<dyn TmanOutput>>,
 ) {
     if tman_config.verbose {
-        out.output_line("");
+        out.normal_line("");
     }
 
     for _ in 0..depth {
         if tman_config.verbose {
-            out.output_line("  ");
+            out.normal_line("  ");
         }
     }
 }
@@ -305,7 +305,7 @@ fn solve(
             // Stop if there are no more models.
             Ok(None) => {
                 if tman_config.verbose {
-                    out.output_line("No more models");
+                    out.normal_line("No more models");
                 }
                 break;
             }
@@ -546,7 +546,7 @@ fn create_input_str(
     }
 
     if tman_config.verbose {
-        out.output_line(&format!("Input: \n{}", input_str));
+        out.normal_line(&format!("Input: \n{}", input_str));
     }
 
     Ok(input_str)

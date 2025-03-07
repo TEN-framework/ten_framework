@@ -128,12 +128,12 @@ fn print_dependency_chain(
     version: &str,
     out: Arc<Box<dyn TmanOutput>>,
 ) {
-    out.output_line(&format!(
+    out.normal_line(&format!(
         "Dependency chain leading to [{}]{}@{}:",
         pkg_type, pkg_name, version
     ));
     for (i, pkg) in chain.iter().enumerate() {
-        out.output_line(&format!(
+        out.normal_line(&format!(
             "{:indent$}└─ [{}]{}@{}",
             "",
             pkg.1.pkg_type,
@@ -142,7 +142,7 @@ fn print_dependency_chain(
             indent = i * 3
         ));
     }
-    out.output_line("");
+    out.normal_line("");
 }
 
 pub fn print_conflict_info(
@@ -151,12 +151,12 @@ pub fn print_conflict_info(
     all_candidates: &HashMap<PkgTypeAndName, HashMap<PkgBasicInfo, PkgInfo>>,
     out: Arc<Box<dyn TmanOutput>>,
 ) -> Result<()> {
-    out.output_line(&format!(
+    out.normal_line(&format!(
         "{}  Error: {}",
         Emoji("🔴", ":-("),
         conflict_info.error_message
     ));
-    out.output_line("");
+    out.normal_line("");
 
     // Get PkgInfo for both introducer packages.
     let introducer_pkg_info_1 = get_pkg_info_from_candidates(

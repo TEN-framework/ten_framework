@@ -5,7 +5,8 @@
 // Refer to the "LICENSE" file in the root directory for more information.
 //
 mod cmd_run;
-mod msg_out;
+mod msg;
+mod run_script;
 
 use std::process::Child;
 use std::sync::{Arc, RwLock};
@@ -15,10 +16,12 @@ use actix_web::{web, Error, HttpRequest, HttpResponse};
 use actix_web_actors::ws;
 use anyhow::Context;
 use anyhow::Result;
-use msg_out::OutboundMsg;
-use serde::{Deserialize, Serialize};
+use msg::InboundMsg;
+use run_script::extract_command_from_manifest;
 
 use crate::designer::DesignerState;
+
+use msg::OutboundMsg;
 
 // The output (stdout, stderr) and exit status from the child process.
 #[derive(Message)]
@@ -146,25 +149,31 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WsRunCmd {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
-#[serde(tag = "type")]
-enum InboundMsg {
-    #[serde(rename = "exec")]
-    Exec { base_dir: String, cmd: String },
-}
-
 pub async fn exec(
     req: HttpRequest,
     stream: web::Payload,
-    _state: web::Data<Arc<RwLock<DesignerState>>>,
+    state: web::Data<Arc<RwLock<DesignerState>>>,
 ) -> Result<HttpResponse, Error> {
+    let state_clone = state.get_ref().clone();
+
+    // The client connects to the `run_app` route via WebSocket, creating an
+    // instance of the `WsRunApp` actor.
+
     let default_parser: CmdParser = Box::new(move |text: &str| {
         // Attempt to parse the JSON text from client.
         let inbound = serde_json::from_str::<InboundMsg>(text)
             .with_context(|| format!("Failed to parse {} into JSON", text))?;
 
         match inbound {
-            InboundMsg::Exec { base_dir, cmd } => Ok((cmd, Some(base_dir))),
+            InboundMsg::ExecCmd { base_dir, cmd } => Ok((cmd, Some(base_dir))),
+            InboundMsg::RunScript { base_dir, name } => {
+                let cmd = extract_command_from_manifest(
+                    &base_dir,
+                    &name,
+                    state_clone.clone(),
+                )?;
+                Ok((cmd, Some(base_dir)))
+            }
         }
     });
 

@@ -37,7 +37,7 @@ pub async fn get_file_content(
             HttpResponse::Ok().json(response)
         }
         Err(err) => {
-            state.read().unwrap().out.output_err_line(&format!(
+            state.read().unwrap().out.error_line(&format!(
                 "Error reading file at path {}: {}",
                 file_path, err
             ));
@@ -71,7 +71,7 @@ pub async fn save_file_content(
     // Attempt to create parent directories if they don't exist.
     if let Some(parent) = file_path.parent() {
         if let Err(e) = fs::create_dir_all(parent) {
-            state.read().unwrap().out.output_err_line(&format!(
+            state.read().unwrap().out.error_line(&format!(
                 "Error creating directories for {}: {}",
                 parent.display(),
                 e
@@ -97,7 +97,7 @@ pub async fn save_file_content(
             HttpResponse::Ok().json(response)
         }
         Err(err) => {
-            state.read().unwrap().out.output_err_line(&format!(
+            state.read().unwrap().out.error_line(&format!(
                 "Error writing file at path {}: {}",
                 file_path.display(),
                 err
