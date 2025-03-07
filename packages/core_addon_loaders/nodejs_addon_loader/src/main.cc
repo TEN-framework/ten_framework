@@ -48,6 +48,12 @@ class nodejs_addon_loader_t : public ten::addon_loader_t {
  public:
   explicit nodejs_addon_loader_t(const char *name) { (void)name; };
 
+  ~nodejs_addon_loader_t() override {
+    if (this->node_thread_.joinable()) {
+      this->node_thread_.join();
+    }
+  }
+
   // Set up the Node.js instance for execution, and start the Node.js event
   // loop, and run code inside of it.
   int RunNodeInstance(MultiIsolatePlatform *platform,
@@ -65,8 +71,7 @@ class nodejs_addon_loader_t : public ten::addon_loader_t {
         std::cerr << "Error: " << err << '\n';
       }
 
-      this->node_init_completed_ = true;
-      this->cv_.notify_one();
+      on_init_done();
       return 1;
     }
 
@@ -123,16 +128,11 @@ class nodejs_addon_loader_t : public ten::addon_loader_t {
 
       if (loadenv_ret.IsEmpty()) {
         // There has been a JS exception.
-        this->node_init_completed_ = true;
-        this->cv_.notify_one();
+        on_init_done();
         return 1;
       }
 
-      this->node_init_completed_ = true;
-
-      // Wake up the main thread waiting in the `on_init()` function to notify
-      // it that the Node.js thread has successfully started.
-      this->cv_.notify_one();
+      on_init_done();
 
       // Start the Node.js event loop.
       exit_code = node::SpinEventLoop(env).FromMaybe(1);
@@ -238,15 +238,15 @@ class nodejs_addon_loader_t : public ten::addon_loader_t {
         V8::Dispose();
         V8::DisposePlatform();
         node::TearDownOncePerProcess();
+
+        if (this->deiniting_) {
+          this->on_deinit_done();
+        }
       });
     } catch (const std::exception &e) {
       std::cerr << "Nodejs addon loader init exception: " << e.what() << '\n';
       exit(1);
     }
-
-    // Wait for the node thread to start.
-    std::unique_lock<std::mutex> lock(this->mutex_);
-    this->cv_.wait(lock, [this]() { return this->node_init_completed_; });
   }
 
   // Clean up and shut down the Node.js addon loader to ensure resource
@@ -254,6 +254,8 @@ class nodejs_addon_loader_t : public ten::addon_loader_t {
   // Node.js thread.
   void on_deinit() override {
     if (this->setup_ != nullptr && this->event_loop_ != nullptr) {
+      deiniting_ = true;
+
       // Create a `uv_async_t` event to perform asynchronous operations within
       // the libuv event loop.
       auto *deinit_handle = new uv_async_t();
@@ -295,35 +297,25 @@ class nodejs_addon_loader_t : public ten::addon_loader_t {
         // Run the JS codes.
         script->Run(this_ptr->setup_->context()).ToLocalChecked();
 
-        this_ptr->gc_done_ = true;
-        this_ptr->cv_.notify_one();
-
         // Close the `uv_async_t` event to ensure that the libuv event loop no
         // longer executes it.
         uv_close(reinterpret_cast<uv_handle_t *>(handle),
                  [](uv_handle_t *handle) {
                    auto *async_handle = reinterpret_cast<uv_async_t *>(handle);
+                   auto *this_ptr = static_cast<nodejs_addon_loader_t *>(
+                       async_handle->data);
+
                    delete async_handle;
+
+                   if (this_ptr->setup_) {
+                     // Stop the Node.js runtime environment to ensure that all
+                     // resources are properly released.
+                     node::Stop(this_ptr->setup_->env());
+                   }
                  });
       });
       uv_async_send(deinit_handle);
-
-      // Wait for the gc to be done.
-      std::unique_lock<std::mutex> lock(this->mutex_);
-      this->cv_.wait(lock, [this]() { return this->gc_done_; });
     }
-
-    if (this->setup_) {
-      // Stop the Node.js runtime environment to ensure that all resources are
-      // properly released.
-      node::Stop(this->setup_->env());
-    }
-
-    // Wait for the Node.js thread to terminate to prevent abnormal program
-    // exit.
-    this->node_thread_.join();
-
-    std::cout << "Nodejs addon loader deinit completed" << '\n';
   }
 
   // Note: This function, used to dynamically load other addons, may be called
@@ -412,11 +404,11 @@ class nodejs_addon_loader_t : public ten::addon_loader_t {
   std::unique_ptr<CommonEnvironmentSetup> setup_{nullptr};
   uv_loop_s *event_loop_{nullptr};
   std::thread node_thread_;
-  bool node_init_completed_{false};
 
   std::mutex mutex_;
   std::condition_variable cv_;
-  bool gc_done_{false};
+
+  bool deiniting_{false};
 };
 
 TEN_CPP_REGISTER_ADDON_AS_ADDON_LOADER(nodejs_addon_loader,
