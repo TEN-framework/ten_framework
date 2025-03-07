@@ -58,6 +58,22 @@ class addon_loader_t : public binding_handle_t {
   virtual void on_load_addon(TEN_ADDON_TYPE addon_type,
                              const char *addon_name) = 0;
 
+  void on_init_done() {
+    auto *addon_loader = static_cast<ten_addon_loader_t *>(get_c_instance());
+    if (addon_loader != nullptr && addon_loader->on_init_done_cb != nullptr) {
+      addon_loader->on_init_done_cb(addon_loader,
+                                    addon_loader->on_init_done_cb_data);
+    }
+  }
+
+  void on_deinit_done() {
+    auto *addon_loader = static_cast<ten_addon_loader_t *>(get_c_instance());
+    if (addon_loader != nullptr && addon_loader->on_deinit_done_cb != nullptr) {
+      addon_loader->on_deinit_done_cb(addon_loader,
+                                      addon_loader->on_deinit_done_cb_data);
+    }
+  }
+
  private:
   static void proxy_on_init(ten_addon_loader_t *addon_loader) {
     TEN_ASSERT(addon_loader, "Should not happen.");

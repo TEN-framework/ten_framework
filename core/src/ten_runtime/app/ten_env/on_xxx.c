@@ -303,21 +303,6 @@ void ten_app_on_init_done(ten_env_t *ten_env) {
   ten_app_on_init_done_internal(self);
 }
 
-static void ten_app_unregister_addons_after_app_close(
-    ten_app_t *self, ten_on_all_addons_unregistered_cb_t cb, void *cb_data) {
-  TEN_ASSERT(self && ten_app_check_integrity(self, true), "Should not happen.");
-
-  const char *disabled = getenv("TEN_DISABLE_ADDON_UNREGISTER_AFTER_APP_CLOSE");
-  if (disabled && !strcmp(disabled, "true")) {
-    if (cb) {
-      cb(cb_data);
-    }
-    return;
-  }
-
-  ten_unregister_all_addons_and_cleanup(cb, cb_data);
-}
-
 static void ten_app_deinit_after_all_addons_unregistered(void *app_,
                                                          void *user_data) {
   ten_app_t *self = (ten_app_t *)app_;
@@ -348,6 +333,18 @@ static void ten_on_all_addons_unregistered(void *cb_data) {
   TEN_ASSERT(!rc, "Should not happen.");
 }
 
+static void ten_app_unregister_addons_after_app_close(ten_app_t *self) {
+  TEN_ASSERT(self && ten_app_check_integrity(self, true), "Should not happen.");
+
+  const char *disabled = getenv("TEN_DISABLE_ADDON_UNREGISTER_AFTER_APP_CLOSE");
+  if (disabled && !strcmp(disabled, "true")) {
+    ten_app_deinit_after_all_addons_unregistered(self, NULL);
+    return;
+  }
+
+  ten_unregister_all_addons_and_cleanup(ten_on_all_addons_unregistered, self);
+}
+
 void ten_app_on_deinit(ten_app_t *self) {
   TEN_ASSERT(self && ten_app_check_integrity(self, true), "Should not happen.");
 
@@ -376,8 +373,7 @@ void ten_app_on_deinit(ten_app_t *self) {
   // is required, which in turn depends on the runloop. Therefore, the addon
   // deinitialization process must be performed _before_ the app's runloop
   // ends.
-  ten_app_unregister_addons_after_app_close(
-      self, ten_on_all_addons_unregistered, self);
+  ten_app_unregister_addons_after_app_close(self);
   // @}
 }
 

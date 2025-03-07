@@ -29,11 +29,11 @@ export abstract class Addon {
     } catch (error) {
       // TODO: What should we do in this situation?
     } finally {
-      ten_addon.ten_nodejs_ten_env_on_deinit_done(tenEnv);
-
       // JS addon prepare to be destroyed, so notify the underlying C runtime this
       // fact.
       ten_addon.ten_nodejs_addon_on_end_of_life(this);
+
+      ten_addon.ten_nodejs_ten_env_on_deinit_done(tenEnv);
     }
   }
 
