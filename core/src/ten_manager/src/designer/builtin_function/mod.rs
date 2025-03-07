@@ -18,7 +18,6 @@ use msg_out::OutboundMsg;
 use serde::{Deserialize, Serialize};
 
 use crate::designer::DesignerState;
-use crate::output::TmanOutputWs;
 
 #[derive(Message)]
 #[rtype(result = "()")]
@@ -39,14 +38,12 @@ type BuiltinFunctionParser =
 
 pub struct WsBuiltinFunction {
     builtin_function_parser: BuiltinFunctionParser,
-    output_ws: TmanOutputWs,
 }
 
 impl WsBuiltinFunction {
     fn new(builtin_function_parser: BuiltinFunctionParser) -> Self {
         Self {
             builtin_function_parser,
-            output_ws: TmanOutputWs::new(),
         }
     }
 }

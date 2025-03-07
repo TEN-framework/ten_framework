@@ -7,6 +7,8 @@
 mod cmd_modify_graph;
 mod jq_util;
 
+use std::sync::Arc;
+
 use anyhow::Result;
 use clap::{ArgMatches, Command};
 
@@ -44,7 +46,7 @@ pub fn parse_sub_cmd(sub_cmd_args: &ArgMatches) -> Result<ModifyCommandData> {
 pub async fn execute_cmd(
     tman_config: &TmanConfig,
     command_data: ModifyCommandData,
-    out: &TmanOutput,
+    out: Arc<Box<dyn TmanOutput>>,
 ) -> Result<()> {
     match command_data {
         ModifyCommandData::ModifyGraph(cmd) => {

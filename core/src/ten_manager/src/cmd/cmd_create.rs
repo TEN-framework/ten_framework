@@ -4,7 +4,7 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-use std::{collections::HashMap, time::Instant};
+use std::{collections::HashMap, sync::Arc, time::Instant};
 
 use anyhow::{anyhow, Context, Result};
 use clap::{Arg, ArgAction, ArgMatches, Command};
@@ -152,7 +152,7 @@ pub fn parse_sub_cmd(sub_cmd_args: &ArgMatches) -> Result<CreateCommand> {
 pub async fn execute_cmd(
     tman_config: &TmanConfig,
     command_data: CreateCommand,
-    out: &TmanOutput,
+    out: Arc<Box<dyn TmanOutput>>,
 ) -> Result<()> {
     let started = Instant::now();
 
@@ -168,7 +168,7 @@ pub async fn execute_cmd(
         &command_data.template_name,
         &command_data.template_version_req,
         Some(&command_data.template_data),
-        out,
+        out.clone(),
     )
     .await
     .context("Failed to create the package")?;

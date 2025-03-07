@@ -36,7 +36,7 @@ pub struct DesignerState {
     pub base_dir: Option<String>,
     pub all_pkgs: Option<Vec<PkgInfo>>,
     pub tman_config: TmanConfig,
-    pub out: TmanOutput,
+    pub out: Arc<Box<dyn TmanOutput>>,
 }
 
 pub fn configure_routes(
@@ -45,7 +45,7 @@ pub fn configure_routes(
 ) {
     cfg.service(
         web::scope("/api/designer/v1")
-            .app_data(state.clone())
+            .app_data(state)
             .route("/version", web::get().to(version::get_version))
             .route(
                 "/check-update",

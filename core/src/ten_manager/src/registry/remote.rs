@@ -35,7 +35,7 @@ async fn retry_async<'a, F, T>(
     tman_config: &TmanConfig,
     max_retries: u32,
     retry_delay: Duration,
-    out: &TmanOutput,
+    out: Arc<Box<dyn TmanOutput>>,
     mut operation: F,
 ) -> Result<T>
 where
@@ -78,7 +78,7 @@ async fn get_package_upload_info(
     base_url: &str,
     client: &reqwest::Client,
     pkg_info: &PkgInfo,
-    out: &TmanOutput,
+    out: Arc<Box<dyn TmanOutput>>,
 ) -> Result<UploadInfo> {
     // Basically, the principle here is that when tman install is run, all the
     // necessary metadata for a package (such as the package's dependencies,
@@ -100,10 +100,11 @@ async fn get_package_upload_info(
     let max_retries = REMOTE_REGISTRY_MAX_RETRIES;
     let retry_delay = Duration::from_millis(REMOTE_REGISTRY_RETRY_DELAY_MS);
 
-    retry_async(tman_config, max_retries, retry_delay, out, || {
+    retry_async(tman_config, max_retries, retry_delay, out.clone(), || {
         let base_url = base_url.to_string();
         let client = client.clone();
         let pkg_info = pkg_info.clone();
+        let out = out.clone();
 
         Box::pin(async move {
             let payload = json!(PkgRegistryInfo {
@@ -186,15 +187,16 @@ async fn upload_package_to_remote(
     client: &reqwest::Client,
     package_file_path: &str,
     url: &str,
-    out: &TmanOutput,
+    out: Arc<Box<dyn TmanOutput>>,
 ) -> Result<()> {
     let max_retries = REMOTE_REGISTRY_MAX_RETRIES;
     let retry_delay = Duration::from_millis(REMOTE_REGISTRY_RETRY_DELAY_MS);
 
-    retry_async(tman_config, max_retries, retry_delay, out, || {
+    retry_async(tman_config, max_retries, retry_delay, out.clone(), || {
         let client = client.clone();
         let package_file_path = package_file_path.to_string();
         let url = url.to_string();
+        let out = out.clone();
 
         Box::pin(async move {
             let body = match std::fs::read(&package_file_path) {
@@ -246,21 +248,22 @@ async fn ack_of_uploading(
     base_url: &str,
     client: &reqwest::Client,
     resource_id: &str,
-    out: &TmanOutput,
+    out: Arc<Box<dyn TmanOutput>>,
 ) -> Result<()> {
     let max_retries = REMOTE_REGISTRY_MAX_RETRIES;
     let retry_delay = Duration::from_millis(REMOTE_REGISTRY_RETRY_DELAY_MS);
 
-    retry_async(tman_config, max_retries, retry_delay, out, || {
-        let base_url = base_url.to_string();
+    retry_async(tman_config, max_retries, retry_delay, out.clone(), || {
         let client = client.clone();
+        let base_url = base_url.to_string();
         let resource_id = resource_id.to_string();
+        let out = out.clone();
 
         Box::pin(async move {
             let url = match reqwest::Url::parse(&base_url) {
                 Ok(url) => url,
                 Err(e) => {
-                    out.output_err_line(&format!("Invalid base URL: {}", e));
+                    out.output_err_line(&format!("Failed to parse URL: {}", e));
                     return Err(e.into());
                 }
             };
@@ -299,20 +302,25 @@ pub async fn upload_package(
     base_url: &str,
     package_file_path: &str,
     pkg_info: &PkgInfo,
-    out: &TmanOutput,
+    out: Arc<Box<dyn TmanOutput>>,
 ) -> Result<String> {
     let client = create_http_client_with_proxies()?;
 
-    let upload_info =
-        get_package_upload_info(tman_config, base_url, &client, pkg_info, out)
-            .await?;
+    let upload_info = get_package_upload_info(
+        tman_config,
+        base_url,
+        &client,
+        pkg_info,
+        out.clone(),
+    )
+    .await?;
 
     upload_package_to_remote(
         tman_config,
         &client,
         package_file_path,
         &upload_info.url,
-        out,
+        out.clone(),
     )
     .await?;
 
@@ -321,7 +329,7 @@ pub async fn upload_package(
         base_url,
         &client,
         &upload_info.resource_id,
-        out,
+        out.clone(),
     )
     .await?;
 
@@ -350,7 +358,7 @@ pub async fn get_package(
     pkg_version: &Version,
     url: &str,
     temp_file: &mut NamedTempFile,
-    out: &TmanOutput,
+    out: Arc<Box<dyn TmanOutput>>,
 ) -> Result<()> {
     // First, check the cache. If there is a matching filename, use the cached
     // file directly.
@@ -392,10 +400,10 @@ pub async fn get_package(
 
     let download_complete = Arc::new(RwLock::new(false));
 
-    retry_async(tman_config, max_retries, retry_delay, out, || {
+    retry_async(tman_config, max_retries, retry_delay, out.clone(), || {
         let client = client.clone();
         let url = url.to_string();
-        let temp_file = Arc::clone(&temp_file); // Clone the Rc pointer.
+        let temp_file = Arc::clone(&temp_file);
         let download_complete = Arc::clone(&download_complete);
 
         Box::pin(async move {
@@ -537,17 +545,18 @@ pub async fn get_package_list(
     pkg_type: PkgType,
     name: &String,
     version_req: &VersionReq,
-    out: &TmanOutput,
+    out: Arc<Box<dyn TmanOutput>>,
 ) -> Result<Vec<PkgRegistryInfo>> {
     let max_retries = REMOTE_REGISTRY_MAX_RETRIES;
     let retry_delay = Duration::from_millis(REMOTE_REGISTRY_RETRY_DELAY_MS);
 
-    retry_async(tman_config, max_retries, retry_delay, out, || {
-        let base_url = base_url.to_string();
+    retry_async(tman_config, max_retries, retry_delay, out.clone(), || {
         let client = match create_http_client_with_proxies() {
             Ok(c) => c,
             Err(e) => return Box::pin(async { Err(e) }),
         };
+
+        let out = out.clone();
 
         Box::pin(async move {
             let mut results = Vec::new();
@@ -555,7 +564,7 @@ pub async fn get_package_list(
             let mut total_size;
 
             loop {
-                let mut url = reqwest::Url::parse(&base_url)?;
+                let mut url = reqwest::Url::parse(base_url)?;
                 url.query_pairs_mut()
                     .append_pair("type", &pkg_type.to_string())
                     .append_pair("name", name)
@@ -642,18 +651,19 @@ pub async fn delete_package(
     name: &String,
     version: &Version,
     hash: &str,
-    out: &TmanOutput,
+    out: Arc<Box<dyn TmanOutput>>,
 ) -> Result<()> {
     let max_retries = REMOTE_REGISTRY_MAX_RETRIES;
     let retry_delay = Duration::from_millis(REMOTE_REGISTRY_RETRY_DELAY_MS);
 
-    retry_async(tman_config, max_retries, retry_delay, out, || {
-        let base_url = base_url.to_string();
-        let version = version.clone();
+    retry_async(tman_config, max_retries, retry_delay, out.clone(), || {
         let client = match create_http_client_with_proxies() {
             Ok(c) => c,
             Err(e) => return Box::pin(async { Err(e) }),
         };
+
+        let base_url = base_url.to_string();
+        let out = out.clone();
 
         Box::pin(async move {
             // Ensure the base URL ends with a '/'.

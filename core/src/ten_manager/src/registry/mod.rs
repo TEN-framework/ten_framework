@@ -10,6 +10,8 @@ mod pkg_cache;
 pub mod pkg_list_cache;
 mod remote;
 
+use std::sync::Arc;
+
 use anyhow::{anyhow, Result};
 use found_result::PkgRegistryInfo;
 use semver::{Version, VersionReq};
@@ -25,7 +27,7 @@ pub async fn upload_package(
     tman_config: &TmanConfig,
     package_file_path: &str,
     pkg_info: &PkgInfo,
-    out: &TmanOutput,
+    out: Arc<Box<dyn TmanOutput>>,
 ) -> Result<String> {
     let default_registry_url = tman_config
         .registry
@@ -73,7 +75,7 @@ pub async fn get_package(
     pkg_version: &Version,
     url: &str,
     temp_path: &mut NamedTempFile,
-    out: &TmanOutput,
+    out: Arc<Box<dyn TmanOutput>>,
 ) -> Result<()> {
     let parsed_url =
         url::Url::parse(url).map_err(|_| anyhow!("Invalid URL: {}", url))?;
@@ -112,7 +114,7 @@ pub async fn get_package_list(
     pkg_type: PkgType,
     name: &String,
     version_req: &VersionReq,
-    out: &TmanOutput,
+    out: Arc<Box<dyn TmanOutput>>,
 ) -> Result<Vec<PkgRegistryInfo>> {
     // Retrieve the default registry URL
     let default_registry_url = tman_config
@@ -165,7 +167,7 @@ pub async fn delete_package(
     name: &String,
     version: &Version,
     hash: &String,
-    out: &TmanOutput,
+    out: Arc<Box<dyn TmanOutput>>,
 ) -> Result<()> {
     // Retrieve the default registry URL.
     let default_registry_url = tman_config

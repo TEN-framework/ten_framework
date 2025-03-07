@@ -4,12 +4,14 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-use anyhow::{anyhow, Context, Result};
-use semver::VersionReq;
 use std::{
     collections::HashMap,
     path::{Path, PathBuf},
+    sync::Arc,
 };
+
+use anyhow::{anyhow, Context, Result};
+use semver::VersionReq;
 
 use ten_rust::pkg_info::pkg_type::PkgType;
 
@@ -46,7 +48,7 @@ pub async fn create_pkg_in_path(
     template_pkg_name: &String,
     template_pkg_version: &VersionReq,
     template_data: Option<&HashMap<String, String>>,
-    out: &TmanOutput,
+    out: Arc<Box<dyn TmanOutput>>,
 ) -> Result<()> {
     // Check that 'path' is a directory.
     if !path.is_dir() {
@@ -65,7 +67,7 @@ pub async fn create_pkg_in_path(
         template_pkg_name,
         // Ensure exact version matching.
         template_pkg_version,
-        out,
+        out.clone(),
     )
     .await?;
 
@@ -97,7 +99,7 @@ pub async fn create_pkg_in_path(
         &package.basic_info.version,
         package_url,
         &mut temp_file,
-        out,
+        out.clone(),
     )
     .await
     .context("Failed to download the package from the registry")?;

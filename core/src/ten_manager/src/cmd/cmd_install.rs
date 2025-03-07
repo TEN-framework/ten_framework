@@ -9,6 +9,7 @@ use std::{
     env,
     fs::{self},
     path::{Path, PathBuf},
+    sync::Arc,
     time::Instant,
 };
 
@@ -344,7 +345,7 @@ async fn determine_app_dir_to_work_with(
 pub async fn execute_cmd(
     tman_config: &TmanConfig,
     command_data: InstallCommand,
-    out: &TmanOutput,
+    out: Arc<Box<dyn TmanOutput>>,
 ) -> Result<()> {
     if tman_config.verbose {
         out.output_line("Executing install command");
@@ -417,7 +418,7 @@ pub async fn execute_cmd(
     all_installed_pkgs = tman_get_all_installed_pkgs_info_of_app(
         tman_config,
         &app_dir_to_work_with,
-        out,
+        out.clone(),
     )?;
 
     out.output_line(&format!(
@@ -430,7 +431,7 @@ pub async fn execute_cmd(
         &all_installed_pkgs,
         &mut all_compatible_installed_pkgs,
         &command_data.support,
-        out,
+        out.clone(),
     );
 
     if command_data.local_path.is_some() {
@@ -604,7 +605,7 @@ from manifest-lock.json...",
         &all_compatible_installed_pkgs,
         all_candidates,
         locked_pkgs.as_ref(),
-        out,
+        out.clone(),
     )
     .await?;
 
@@ -618,7 +619,7 @@ from manifest-lock.json...",
         dep_relationship_from_cmd_line.as_ref(),
         &all_candidates,
         locked_pkgs.as_ref(),
-        out,
+        out.clone(),
     )?;
 
     // If there are answers are found, print out all the answers.
@@ -662,7 +663,7 @@ from manifest-lock.json...",
         let has_conflict = compare_solver_results_with_installed_pkgs(
             &remaining_solver_results,
             &all_installed_pkgs,
-            out,
+            out.clone(),
         );
 
         if has_conflict && !tman_config.assume_yes {
@@ -696,7 +697,7 @@ do you want to continue?",
         write_pkgs_into_manifest_lock_file(
             &remaining_solver_results,
             &app_dir_to_work_with,
-            out,
+            out.clone(),
         )?;
 
         install_solver_results_in_app_folder(
@@ -704,7 +705,7 @@ do you want to continue?",
             &command_data,
             &remaining_solver_results,
             &app_dir_to_work_with,
-            out,
+            out.clone(),
         )
         .await?;
 

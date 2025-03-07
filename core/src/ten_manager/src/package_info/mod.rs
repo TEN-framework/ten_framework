@@ -6,7 +6,7 @@
 //
 pub mod predefined_graphs;
 
-use std::path::Path;
+use std::{path::Path, sync::Arc};
 
 use anyhow::Result;
 
@@ -29,7 +29,7 @@ use ten_rust::pkg_info::{get_app_installed_pkgs_to_hashmap, PkgInfo};
 pub fn tman_get_all_installed_pkgs_info_of_app(
     tman_config: &TmanConfig,
     app_path: &Path,
-    out: &TmanOutput,
+    out: Arc<Box<dyn TmanOutput>>,
 ) -> Result<Vec<PkgInfo>> {
     let pkgs_info = get_app_installed_pkgs_to_hashmap(app_path)?;
     if tman_config.verbose {

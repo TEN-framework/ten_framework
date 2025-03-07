@@ -186,9 +186,8 @@ mod tests {
 
     use super::*;
     use crate::{
-        config::TmanConfig,
-        designer::mock::tests::inject_all_pkgs_for_mock,
-        output::{TmanOutput, TmanOutputCli},
+        config::TmanConfig, designer::mock::tests::inject_all_pkgs_for_mock,
+        output::TmanOutputCli,
     };
     use ten_rust::pkg_info::localhost;
 
@@ -198,7 +197,7 @@ mod tests {
             base_dir: None,
             all_pkgs: None,
             tman_config: TmanConfig::default(),
-            out: TmanOutput::Cli(TmanOutputCli),
+            out: Arc::new(Box::new(TmanOutputCli)),
         };
 
         let all_pkgs_json = vec![
@@ -281,7 +280,7 @@ mod tests {
             base_dir: None,
             all_pkgs: None,
             tman_config: TmanConfig::default(),
-            out: TmanOutput::Cli(TmanOutputCli),
+            out: Arc::new(Box::new(TmanOutputCli)),
         };
 
         // The first item is 'manifest.json', and the second item is

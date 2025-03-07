@@ -8,6 +8,7 @@ use std::fs::{self, File};
 use std::io::Read;
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
+use std::sync::Arc;
 
 use anyhow::{anyhow, Context, Result};
 use console::Emoji;
@@ -35,7 +36,7 @@ pub async fn upload_package(
     base_url: &str,
     package_file_path: &str,
     pkg_info: &PkgInfo,
-    _out: &TmanOutput,
+    _out: Arc<Box<dyn TmanOutput>>,
 ) -> Result<String> {
     let mut path_url = url::Url::parse(base_url)
         .map_err(|e| anyhow!("Invalid file URL: {}", e))?
@@ -146,7 +147,7 @@ pub async fn get_package(
     pkg_version: &Version,
     url: &str,
     temp_path: &mut NamedTempFile,
-    out: &TmanOutput,
+    out: Arc<Box<dyn TmanOutput>>,
 ) -> Result<()> {
     // First, try to retrieve the same package file from the cache.
     let registry_file_path = url::Url::parse(url)
@@ -362,7 +363,7 @@ pub async fn get_package_list(
     pkg_type: PkgType,
     name: &String,
     version_req: &VersionReq,
-    _out: &TmanOutput,
+    _out: Arc<Box<dyn TmanOutput>>,
 ) -> Result<Vec<PkgRegistryInfo>> {
     let mut path_url = url::Url::parse(base_url)
         .map_err(|e| anyhow!("Invalid file URL: {}", e))?
@@ -394,7 +395,7 @@ pub async fn delete_package(
     name: &String,
     version: &Version,
     hash: &String,
-    _out: &TmanOutput,
+    _out: Arc<Box<dyn TmanOutput>>,
 ) -> Result<()> {
     let mut path_url = url::Url::parse(base_url)
         .map_err(|e| anyhow!("Invalid file URL: {}", e))?

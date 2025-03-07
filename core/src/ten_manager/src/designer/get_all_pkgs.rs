@@ -29,7 +29,7 @@ pub fn get_all_pkgs(state: &mut DesignerState) -> Result<()> {
             match tman_get_all_installed_pkgs_info_of_app(
                 &state.tman_config,
                 &app_path,
-                &state.out,
+                state.out.clone(),
             ) {
                 Ok(pkgs) => state.all_pkgs = Some(pkgs),
                 Err(err) => {

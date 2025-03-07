@@ -8,6 +8,7 @@ pub mod package;
 pub mod unpackage;
 
 use std::path::Path;
+use std::sync::Arc;
 
 use anyhow::Result;
 use console::Emoji;
@@ -40,7 +41,7 @@ pub fn create_package_tar_gz_file(
     tman_config: &TmanConfig,
     output_pkg_file_path: &Path,
     folder_to_tar_gz: &Path,
-    out: &TmanOutput,
+    out: Arc<Box<dyn TmanOutput>>,
 ) -> Result<String> {
     out.output_line(&format!("{}  Creating package", Emoji("🚚", ":-)")));
 

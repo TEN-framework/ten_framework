@@ -7,6 +7,7 @@
 use std::{
     io::{BufRead, BufReader},
     process::{Command as StdCommand, Stdio},
+    sync::Arc,
 };
 
 use anyhow::{anyhow, Result};
@@ -60,7 +61,7 @@ pub fn parse_sub_cmd(sub_cmd_args: &ArgMatches) -> Result<RunCommand> {
 pub async fn execute_cmd(
     tman_config: &TmanConfig,
     cmd: RunCommand,
-    out: &TmanOutput,
+    out: Arc<Box<dyn TmanOutput>>,
 ) -> Result<()> {
     if tman_config.verbose {
         out.output_line(&format!("Executing run command: {:?}", cmd));

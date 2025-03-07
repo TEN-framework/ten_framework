@@ -12,6 +12,7 @@ use std::{
     fs::{self, OpenOptions},
     path::{Path, PathBuf},
     str::FromStr,
+    sync::Arc,
 };
 
 use anyhow::{anyhow, Context, Result};
@@ -47,7 +48,7 @@ fn install_local_dependency_pkg_info(
     command_data: &InstallCommand,
     pkg_info: &PkgInfo,
     dest_dir_path: &String,
-    out: &TmanOutput,
+    out: Arc<Box<dyn TmanOutput>>,
 ) -> Result<()> {
     assert!(
         pkg_info.local_dependency_path.is_some(),
@@ -133,7 +134,7 @@ async fn install_non_local_dependency_pkg_info(
     tman_config: &TmanConfig,
     pkg_info: &PkgInfo,
     dest_dir_path: &String,
-    out: &TmanOutput,
+    out: Arc<Box<dyn TmanOutput>>,
 ) -> Result<()> {
     let mut temp_file = NamedTempFile::new()?;
     get_package(
@@ -176,7 +177,7 @@ pub async fn install_pkg_info(
     command_data: &InstallCommand,
     pkg_info: &PkgInfo,
     base_dir: &Path,
-    out: &TmanOutput,
+    out: Arc<Box<dyn TmanOutput>>,
 ) -> Result<()> {
     if pkg_info.is_installed {
         if tman_config.verbose {
@@ -354,7 +355,7 @@ fn update_package_manifest(
 pub fn write_pkgs_into_manifest_lock_file(
     pkgs: &Vec<&PkgInfo>,
     app_dir: &Path,
-    out: &TmanOutput,
+    out: Arc<Box<dyn TmanOutput>>,
 ) -> Result<()> {
     // Check if manifest-lock.json exists.
     let old_manifest_lock = parse_manifest_lock_in_folder(app_dir);
@@ -428,7 +429,7 @@ pub fn filter_compatible_pkgs_to_candidates(
         HashMap<PkgBasicInfo, PkgInfo>,
     >,
     support: &PkgSupport,
-    out: &TmanOutput,
+    out: Arc<Box<dyn TmanOutput>>,
 ) {
     for existed_pkg in all_pkgs.to_owned().iter_mut() {
         if tman_config.verbose {
@@ -498,7 +499,7 @@ fn get_supports_str(pkg: &PkgInfo) -> String {
 pub fn compare_solver_results_with_installed_pkgs(
     solver_results: &[&PkgInfo],
     all_installed_pkgs: &[PkgInfo],
-    out: &TmanOutput,
+    out: Arc<Box<dyn TmanOutput>>,
 ) -> bool {
     let local_pkgs = all_installed_pkgs.iter().collect::<Vec<&PkgInfo>>();
 

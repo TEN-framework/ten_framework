@@ -6,6 +6,7 @@
 //
 use std::collections::{HashMap, HashSet};
 use std::path::Path;
+use std::sync::Arc;
 
 use anyhow::{anyhow, Context, Result};
 use semver::{Version, VersionReq};
@@ -142,7 +143,7 @@ async fn process_non_local_dependency_to_get_candidate(
     >,
     new_pkgs_to_be_searched: &mut Vec<PkgInfo>,
     pkg_list_cache: &mut PackageListCache,
-    out: &TmanOutput,
+    out: Arc<Box<dyn TmanOutput>>,
 ) -> Result<()> {
     // First, check whether the package list cache has already processed the
     // same or a more permissive version requirement combination.
@@ -165,7 +166,7 @@ async fn process_non_local_dependency_to_get_candidate(
         // design, this is the best we can do for now. The answer won't be
         // wrong, but the efficiency might be somewhat lower.
         &dependency.version_req,
-        out,
+        out.clone(),
     )
     .await?;
 
@@ -262,7 +263,7 @@ struct DependenciesContext<'a> {
 async fn process_dependencies_to_get_candidates(
     ctx: &mut DependenciesContext<'_>,
     input_dependencies: &Vec<PkgDependency>,
-    out: &TmanOutput,
+    out: Arc<Box<dyn TmanOutput>>,
 ) -> Result<()> {
     for dependency in input_dependencies {
         if dependency.is_local() {
@@ -290,7 +291,7 @@ async fn process_dependencies_to_get_candidates(
                 ctx.all_candidates,
                 ctx.new_pkgs_to_be_searched,
                 ctx.pkg_list_cache,
-                out,
+                out.clone(),
             )
             .await?;
         }
@@ -365,7 +366,7 @@ pub async fn get_all_candidates_from_deps(
     >,
     mut all_candidates: HashMap<PkgTypeAndName, HashMap<PkgBasicInfo, PkgInfo>>,
     locked_pkgs: Option<&HashMap<PkgTypeAndName, PkgInfo>>,
-    out: &TmanOutput,
+    out: Arc<Box<dyn TmanOutput>>,
 ) -> Result<HashMap<PkgTypeAndName, HashMap<PkgBasicInfo, PkgInfo>>> {
     let mut merged_dependencies = HashMap::new();
     let mut processed_pkgs = HashSet::<PkgBasicInfo>::new();
@@ -430,7 +431,7 @@ pub async fn get_all_candidates_from_deps(
         process_dependencies_to_get_candidates(
             &mut context,
             &combined_dependencies,
-            out,
+            out.clone(),
         )
         .await?;
 

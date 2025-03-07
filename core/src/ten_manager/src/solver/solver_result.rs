@@ -4,7 +4,7 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-use std::{collections::HashMap, path::Path};
+use std::{collections::HashMap, path::Path, sync::Arc};
 
 use anyhow::Result;
 use console::Emoji;
@@ -113,12 +113,12 @@ pub async fn install_solver_results_in_app_folder(
     command_data: &InstallCommand,
     solver_results: &Vec<&PkgInfo>,
     app_dir: &Path,
-    out: &TmanOutput,
+    out: Arc<Box<dyn TmanOutput>>,
 ) -> Result<()> {
     out.output_line(&format!("{}  Installing packages...", Emoji("📥", "+")));
 
     let bar = ProgressBar::new(solver_results.len().try_into()?);
-    if !matches!(out, TmanOutput::Cli(_)) {
+    if !out.is_interactive() {
         bar.set_draw_target(ProgressDrawTarget::hidden());
     }
 
@@ -155,7 +155,7 @@ pub async fn install_solver_results_in_app_folder(
             command_data,
             solver_result,
             &base_dir,
-            out,
+            out.clone(),
         )
         .await?;
     }

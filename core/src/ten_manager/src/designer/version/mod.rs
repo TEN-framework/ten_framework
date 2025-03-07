@@ -96,10 +96,7 @@ pub async fn check_update_endpoint() -> impl Responder {
 
 #[cfg(test)]
 mod tests {
-    use crate::{
-        config::TmanConfig,
-        output::{TmanOutput, TmanOutputCli},
-    };
+    use crate::{config::TmanConfig, output::TmanOutputCli};
 
     use super::*;
     use actix_web::{http::StatusCode, test, App};
@@ -111,7 +108,7 @@ mod tests {
             base_dir: None,
             all_pkgs: None,
             tman_config: TmanConfig::default(),
-            out: TmanOutput::Cli(TmanOutputCli),
+            out: Arc::new(Box::new(TmanOutputCli)),
         })));
 
         // Create the App with the routes configured.

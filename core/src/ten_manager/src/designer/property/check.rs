@@ -87,9 +87,8 @@ pub async fn check_property(
 mod tests {
     use super::*;
     use crate::{
-        config::TmanConfig,
-        designer::mock::tests::inject_all_pkgs_for_mock,
-        output::{TmanOutput, TmanOutputCli},
+        config::TmanConfig, designer::mock::tests::inject_all_pkgs_for_mock,
+        output::TmanOutputCli,
     };
     use actix_web::{test, App};
     use std::vec;
@@ -100,7 +99,7 @@ mod tests {
             base_dir: None,
             all_pkgs: None,
             tman_config: TmanConfig::default(),
-            out: TmanOutput::Cli(TmanOutputCli),
+            out: Arc::new(Box::new(TmanOutputCli)),
         };
 
         // The first item is 'manifest.json', and the second item is

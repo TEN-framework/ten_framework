@@ -5,6 +5,7 @@
 // Refer to the "LICENSE" file in the root directory for more information.
 //
 use std::process;
+use std::sync::Arc;
 
 use console::Emoji;
 use tokio::runtime::Runtime;
@@ -16,7 +17,7 @@ use ten_manager::runner::run_tman_command;
 use ten_manager::version::VERSION;
 use ten_manager::version_utils::check_update;
 
-fn check_update_from_cmdline(out: &TmanOutput) {
+fn check_update_from_cmdline(out: Arc<Box<dyn TmanOutput>>) {
     out.output_line("Checking for new version...");
 
     let rt = Runtime::new().unwrap();
@@ -37,7 +38,7 @@ fn check_update_from_cmdline(out: &TmanOutput) {
 }
 
 fn main() {
-    let out = TmanOutput::Cli(TmanOutputCli);
+    let out: Arc<Box<dyn TmanOutput>> = Arc::new(Box::new(TmanOutputCli));
 
     let parsed_cmd = match cmd_line::parse_cmd() {
         Ok(parsed_cmd) => parsed_cmd,
@@ -55,7 +56,7 @@ fn main() {
         out.output_line(&format!("TEN Framework version: {}", VERSION));
 
         // Call the update check function
-        check_update_from_cmdline(&out);
+        check_update_from_cmdline(out.clone());
 
         // If `--version` is passed, ignore other parameters and exit directly.
         std::process::exit(0);
@@ -64,7 +65,7 @@ fn main() {
     let result = run_tman_command(
         parsed_cmd.tman_config,
         parsed_cmd.command_data.unwrap(),
-        &out,
+        out.clone(),
     );
 
     if let Err(e) = result {

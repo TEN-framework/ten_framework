@@ -5,6 +5,7 @@
 // Refer to the "LICENSE" file in the root directory for more information.
 //
 use std::collections::{HashMap, HashSet};
+use std::sync::Arc;
 
 use anyhow::{anyhow, Result};
 use clingo::{
@@ -31,7 +32,7 @@ fn get_model(
     tman_config: &TmanConfig,
     model: &Model,
     is_usable: &mut bool,
-    out: &TmanOutput,
+    out: Arc<Box<dyn TmanOutput>>,
 ) -> Option<Vec<String>> {
     // Retrieve the symbols in the model.
     let atoms = model
@@ -63,7 +64,11 @@ fn get_model(
 }
 
 #[allow(dead_code)]
-fn print_prefix(tman_config: &TmanConfig, depth: u8, out: &TmanOutput) {
+fn print_prefix(
+    tman_config: &TmanConfig,
+    depth: u8,
+    out: Arc<Box<dyn TmanOutput>>,
+) {
     if tman_config.verbose {
         out.output_line("");
     }
@@ -82,7 +87,7 @@ fn print_configuration(
     conf: &Configuration,
     key: Id,
     depth: u8,
-    out: &TmanOutput,
+    out: Arc<Box<dyn TmanOutput>>,
 ) {
     let configuration_type = conf.configuration_type(key).unwrap();
     if configuration_type.contains(ConfigurationType::VALUE) {
@@ -97,18 +102,30 @@ fn print_configuration(
             let subkey = conf
                 .array_at(key, i)
                 .expect("Failed to retrieve statistics array.");
-            print_prefix(tman_config, depth, out);
+            print_prefix(tman_config, depth, out.clone());
 
-            print_configuration(tman_config, conf, subkey, depth + 1, out);
+            print_configuration(
+                tman_config,
+                conf,
+                subkey,
+                depth + 1,
+                out.clone(),
+            );
         }
     } else if configuration_type.contains(ConfigurationType::MAP) {
         let size = conf.map_size(key).unwrap();
         for i in 0..size {
             let name = conf.map_subkey_name(key, i).unwrap();
             let subkey = conf.map_at(key, name).unwrap();
-            print_prefix(tman_config, depth, out);
+            print_prefix(tman_config, depth, out.clone());
 
-            print_configuration(tman_config, conf, subkey, depth + 1, out);
+            print_configuration(
+                tman_config,
+                conf,
+                subkey,
+                depth + 1,
+                out.clone(),
+            );
         }
     } else {
         unreachable!()
@@ -122,7 +139,7 @@ fn print_statistics(
     stats: &Statistics,
     key: u64,
     depth: u8,
-    out: &TmanOutput,
+    out: Arc<Box<dyn TmanOutput>>,
 ) {
     // Get the type of an entry and switch over its various values.
     let statistics_type = stats.statistics_type(key).unwrap();
@@ -141,9 +158,15 @@ fn print_statistics(
                 let subkey = stats
                     .array_at(key, i)
                     .expect("Failed to retrieve statistics array.");
-                print_prefix(tman_config, depth, out);
+                print_prefix(tman_config, depth, out.clone());
 
-                print_statistics(tman_config, stats, subkey, depth + 1, out);
+                print_statistics(
+                    tman_config,
+                    stats,
+                    subkey,
+                    depth + 1,
+                    out.clone(),
+                );
             }
         }
 
@@ -152,9 +175,15 @@ fn print_statistics(
             for i in 0..size {
                 let name = stats.map_subkey_name(key, i).unwrap();
                 let subkey = stats.map_at(key, name).unwrap();
-                print_prefix(tman_config, depth, out);
+                print_prefix(tman_config, depth, out.clone());
 
-                print_statistics(tman_config, stats, subkey, depth + 1, out);
+                print_statistics(
+                    tman_config,
+                    stats,
+                    subkey,
+                    depth + 1,
+                    out.clone(),
+                );
             }
         }
 
@@ -171,7 +200,7 @@ type SolveResult = Result<SolveOutcome>;
 fn solve(
     tman_config: &TmanConfig,
     input: &str,
-    out: &TmanOutput,
+    out: Arc<Box<dyn TmanOutput>>,
 ) -> SolveResult {
     // Create a control object.
     // i.e., clingo_control_new
@@ -258,7 +287,7 @@ fn solve(
             Ok(Some(model)) => {
                 let mut is_usable = false;
                 if let Some(m) =
-                    get_model(tman_config, model, &mut is_usable, out)
+                    get_model(tman_config, model, &mut is_usable, out.clone())
                 {
                     if is_usable {
                         usable_model = Some(m);
@@ -482,7 +511,7 @@ fn create_input_str(
     extra_dep_relationship: Option<&DependencyRelationship>,
     all_candidates: &HashMap<PkgTypeAndName, HashMap<PkgBasicInfo, PkgInfo>>,
     locked_pkgs: Option<&HashMap<PkgTypeAndName, PkgInfo>>,
-    out: &TmanOutput,
+    out: Arc<Box<dyn TmanOutput>>,
 ) -> Result<String> {
     let mut input_str = String::new();
 
@@ -530,7 +559,7 @@ pub fn solve_all(
     extra_dep_relationship: Option<&DependencyRelationship>,
     all_candidates: &HashMap<PkgTypeAndName, HashMap<PkgBasicInfo, PkgInfo>>,
     locked_pkgs: Option<&HashMap<PkgTypeAndName, PkgInfo>>,
-    out: &TmanOutput,
+    out: Arc<Box<dyn TmanOutput>>,
 ) -> SolveResult {
     let input_str = create_input_str(
         tman_config,
@@ -539,7 +568,7 @@ pub fn solve_all(
         extra_dep_relationship,
         all_candidates,
         locked_pkgs,
-        out,
+        out.clone(),
     )?;
     solve(tman_config, &input_str, out)
 }
