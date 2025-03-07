@@ -4,9 +4,6 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-import * as React from "react";
-import { useTranslation } from "react-i18next";
-
 import {
   NavigationMenu,
   NavigationMenuList,
@@ -34,7 +31,7 @@ interface AppBarProps {
   className?: string;
 }
 
-const AppBar = ({ onAutoLayout, className }: AppBarProps) => {
+export default function AppBar({ onAutoLayout, className }: AppBarProps) {
   const { appendWidgetIfNotExists } = useWidgetStore();
 
   const onNavChange = () => {
@@ -107,18 +104,4 @@ const AppBar = ({ onAutoLayout, className }: AppBarProps) => {
       </div>
     </div>
   );
-};
-
-export function PoweredByTenFramework(props: {
-  className?: string;
-  children?: React.ReactNode;
-}) {
-  const { t } = useTranslation();
-  return (
-    <span className={cn("font-bold text-foreground", props.className)}>
-      {t("tenFramework")}
-    </span>
-  );
 }
-
-export default AppBar;

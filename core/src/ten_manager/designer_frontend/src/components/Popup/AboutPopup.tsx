@@ -7,9 +7,9 @@
 import { useTranslation, Trans } from "react-i18next";
 
 import Popup from "@/components/Popup/Popup";
+import { Separator } from "@/components/ui/Separator";
 import { cn } from "@/lib/utils";
 import { TEN_FRAMEWORK_URL, TEN_FRAMEWORK_GITHUB_URL } from "@/constants";
-import { PoweredByTenFramework } from "@/components/AppBar";
 import { useWidgetStore } from "@/store/widget";
 
 export const ABOUT_POPUP_ID = "about-popup";
@@ -24,45 +24,61 @@ export const AboutPopup = () => {
       id={ABOUT_POPUP_ID}
       title={t("header.menu.about")}
       onClose={() => removeWidget(ABOUT_POPUP_ID)}
+      initialWidth={400}
+      initialHeight={160}
     >
-      <div className="text-center">
+      <div className="flex flex-col gap-2 h-full w-full">
         <p
           className={cn(
-            "italic text-base mb-5",
+            "text-center",
+            "italic text-base",
             "font-['Segoe_UI',Tahoma,Geneva,Verdana,sans-serif]"
           )}
         >
           <Trans
-            components={[
-              <PoweredByTenFramework className="font-bold text-foreground" />,
-            ]}
+            components={[<PoweredByTenFramework />]}
             t={t}
             i18nKey="header.poweredByTenFramework"
           />
         </p>
-        <p className="my-1">
-          {t("header.officialSite")}:&nbsp;
-          <a
-            href={TEN_FRAMEWORK_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-blue-600 underline"
-          >
-            {TEN_FRAMEWORK_URL}
-          </a>
-        </p>
-        <p className="my-1">
-          {t("header.github")}:&nbsp;
-          <a
-            href={TEN_FRAMEWORK_GITHUB_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-blue-600 underline"
-          >
-            {TEN_FRAMEWORK_GITHUB_URL}
-          </a>
-        </p>
+        <Separator className="" />
+        <ul className="flex flex-col gap-2">
+          <li className="flex justify-between items-center gap-2">
+            <span>{t("header.officialSite")}</span>
+            <a
+              href={TEN_FRAMEWORK_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-600 underline"
+            >
+              {TEN_FRAMEWORK_URL}
+            </a>
+          </li>
+          <li className="flex justify-between items-center gap-2">
+            <span>{t("header.github")}</span>
+            <a
+              href={TEN_FRAMEWORK_GITHUB_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-600 underline"
+            >
+              {TEN_FRAMEWORK_GITHUB_URL}
+            </a>
+          </li>
+        </ul>
       </div>
     </Popup>
   );
 };
+
+export function PoweredByTenFramework(props: {
+  className?: string;
+  children?: React.ReactNode;
+}) {
+  const { t } = useTranslation();
+  return (
+    <span className={cn("font-bold text-foreground", props.className)}>
+      {t("tenFramework")}
+    </span>
+  );
+}
