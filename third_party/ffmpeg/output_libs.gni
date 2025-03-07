@@ -10,7 +10,7 @@ if (is_linux) {
   ffmpeg_output_libs += [
     "${root_gen_dir}/autotool/ffmpeg/install/lib/libavcodec.so",
     "${root_gen_dir}/autotool/ffmpeg/install/lib/libavcodec.so.61",
-    "${root_gen_dir}/autotool/ffmpeg/install/lib/libavcodec.so.61.19.100",
+    "${root_gen_dir}/autotool/ffmpeg/install/lib/libavcodec.so.61.19.101",
 
     "${root_gen_dir}/autotool/ffmpeg/install/lib/libavdevice.so",
     "${root_gen_dir}/autotool/ffmpeg/install/lib/libavdevice.so.61",
@@ -44,7 +44,7 @@ if (is_linux) {
   ffmpeg_output_libs += [
     "${root_gen_dir}/autotool/ffmpeg/install/lib/libavcodec.dylib",
     "${root_gen_dir}/autotool/ffmpeg/install/lib/libavcodec.61.dylib",
-    "${root_gen_dir}/autotool/ffmpeg/install/lib/libavcodec.61.19.100.dylib",
+    "${root_gen_dir}/autotool/ffmpeg/install/lib/libavcodec.61.19.101.dylib",
 
     "${root_gen_dir}/autotool/ffmpeg/install/lib/libavdevice.dylib",
     "${root_gen_dir}/autotool/ffmpeg/install/lib/libavdevice.61.dylib",
