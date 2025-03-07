@@ -91,17 +91,25 @@ export function LogViewerFrontStageWidget(props: {
   const [searchInput, setSearchInput] = React.useState("");
   const defferedSearchInput = React.useDeferredValue(searchInput);
 
-  const { logViewerHistory } = useWidgetStore();
+  const { logViewerHistory, widgets } = useWidgetStore();
 
   const scrollAreaRef = React.useRef<HTMLDivElement>(null);
 
-  useAutoScroll(scrollAreaRef);
+  const { mutate: mutateAutoScroll } = useAutoScroll(scrollAreaRef);
 
   const { t } = useTranslation();
 
   const logsMemo = React.useMemo(() => {
     return logViewerHistory[id]?.history || [];
   }, [logViewerHistory, id]);
+
+  const currentWidget = React.useMemo(() => {
+    return widgets.find((w) => w.id === id);
+  }, [widgets, id]);
+
+  React.useEffect(() => {
+    mutateAutoScroll();
+  }, [currentWidget?.display_type, mutateAutoScroll]);
 
   return (
     <div className="flex h-full w-full flex-col" id={id}>
@@ -124,7 +132,11 @@ export function LogViewerFrontStageWidget(props: {
         })}
         viewportRef={scrollAreaRef}
       >
-        <LogViewerLogItemList logs={logsMemo} search={defferedSearchInput} />
+        <LogViewerLogItemList
+          logs={logsMemo}
+          search={defferedSearchInput}
+          prefix={`${id}-${currentWidget?.display_type}`}
+        />
       </ScrollArea>
     </div>
   );
@@ -159,15 +171,16 @@ export interface ILogViewerLogItemProps {
 const string2LogItem = (str: string): ILogViewerLogItemProps => {
   const regex = /^(\w+)@([^:]+):(\d+)\s+\[([^\]]+)\]\s+(.+)$/;
   const match = str.match(regex);
+  const randomId = string2uuid(str + new Date().getTime());
   if (!match) {
     return {
-      id: string2uuid(str),
+      id: randomId,
       message: str,
     };
   }
   const [, extension, file, line, host, message] = match;
   return {
-    id: string2uuid(str),
+    id: randomId,
     extension,
     file,
     line: parseInt(line, 10),
@@ -229,8 +242,12 @@ function LogViewerLogItem(props: ILogViewerLogItemProps & { search?: string }) {
   );
 }
 
-function LogViewerLogItemList(props: { logs: string[]; search?: string }) {
-  const { logs: rawLogs, search } = props;
+function LogViewerLogItemList(props: {
+  logs: string[];
+  search?: string;
+  prefix?: string;
+}) {
+  const { logs: rawLogs, search, prefix } = props;
 
   const logsMemo = React.useMemo(() => {
     return rawLogs.map(string2LogItem);
@@ -246,7 +263,11 @@ function LogViewerLogItemList(props: { logs: string[]; search?: string }) {
   return (
     <>
       {filteredLogs.map((log) => (
-        <LogViewerLogItem key={log.id} {...log} search={search} />
+        <LogViewerLogItem
+          key={`${prefix}-${log.id}`}
+          {...log}
+          search={search}
+        />
       ))}
     </>
   );
