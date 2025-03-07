@@ -110,7 +110,7 @@ const App: React.FC = () => {
               const newEdges = addEdge(connection, edges);
               setEdges(newEdges);
             }}
-            className="w-full h-[calc(100%-40px)]"
+            className="w-full h-[calc(100%-40px)] mt-10"
           />
         </ResizablePanel>
         {resizablePanelMode !== "left" && dockWidgetsMemo.length > 0 && (
