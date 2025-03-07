@@ -33,7 +33,7 @@ pub fn tman_get_all_installed_pkgs_info_of_app(
 ) -> Result<Vec<PkgInfo>> {
     let pkgs_info = get_app_installed_pkgs_to_hashmap(app_path)?;
     if tman_config.verbose {
-        out.output_line(&format!("{:?}", pkgs_info));
+        out.normal_line(&format!("{:?}", pkgs_info));
     }
     Ok(pkgs_info.into_values().collect())
 }

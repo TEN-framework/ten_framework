@@ -11,7 +11,7 @@ use actix_web_actors::ws::WebsocketContext;
 
 use ten_rust::pkg_info::supports::PkgSupport;
 
-use super::{msg_out::TmanOutputWs, BuiltinFunctionOutput, WsBuiltinFunction};
+use super::{msg::TmanOutputWs, BuiltinFunctionOutput, WsBuiltinFunction};
 use crate::output::TmanOutput;
 
 impl WsBuiltinFunction {

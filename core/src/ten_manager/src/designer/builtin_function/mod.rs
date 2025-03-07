@@ -5,7 +5,7 @@
 // Refer to the "LICENSE" file in the root directory for more information.
 //
 mod install_all;
-mod msg_out;
+mod msg;
 
 use std::sync::{Arc, RwLock};
 
@@ -14,16 +14,18 @@ use actix_web::{web, Error, HttpRequest, HttpResponse};
 use actix_web_actors::ws;
 use anyhow::Context;
 use anyhow::Result;
-use msg_out::OutboundMsg;
-use serde::{Deserialize, Serialize};
+use msg::InboundMsg;
+use msg::OutboundMsg;
 
 use crate::designer::DesignerState;
 
 #[derive(Message)]
 #[rtype(result = "()")]
 pub enum BuiltinFunctionOutput {
-    NormalOutput(String),
-    ErrorOutput(String),
+    NormalLine(String),
+    NormalPartial(String),
+    ErrorLine(String),
+    ErrorPartial(String),
     Exit(i32),
 }
 
@@ -69,16 +71,31 @@ impl Handler<BuiltinFunctionOutput> for WsBuiltinFunction {
         ctx: &mut Self::Context,
     ) -> Self::Result {
         match msg {
-            BuiltinFunctionOutput::NormalOutput(line) => {
+            BuiltinFunctionOutput::NormalLine(line) => {
                 // Send the line to the client.
-                let msg_out = OutboundMsg::NormalOutput { data: line };
+                let msg_out = OutboundMsg::NormalLine { data: line };
                 let out_str = serde_json::to_string(&msg_out).unwrap();
 
                 // Sends a text message to the WebSocket client.
                 ctx.text(out_str);
             }
-            BuiltinFunctionOutput::ErrorOutput(line) => {
-                let msg_out = OutboundMsg::ErrorOutput { data: line };
+            BuiltinFunctionOutput::NormalPartial(line) => {
+                // Send the line to the client.
+                let msg_out = OutboundMsg::NormalPartial { data: line };
+                let out_str = serde_json::to_string(&msg_out).unwrap();
+
+                // Sends a text message to the WebSocket client.
+                ctx.text(out_str);
+            }
+            BuiltinFunctionOutput::ErrorLine(line) => {
+                let msg_out = OutboundMsg::ErrorLine { data: line };
+                let out_str = serde_json::to_string(&msg_out).unwrap();
+
+                // Sends a text message to the WebSocket client.
+                ctx.text(out_str);
+            }
+            BuiltinFunctionOutput::ErrorPartial(line) => {
+                let msg_out = OutboundMsg::ErrorPartial { data: line };
                 let out_str = serde_json::to_string(&msg_out).unwrap();
 
                 // Sends a text message to the WebSocket client.
@@ -120,7 +137,9 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>>
                         }
                     },
                     Err(e) => {
-                        let err_out = OutboundMsg::Error { msg: e.to_string() };
+                        let err_out = OutboundMsg::ErrorLine {
+                            data: e.to_string(),
+                        };
                         let out_str = serde_json::to_string(&err_out).unwrap();
                         ctx.text(out_str);
                         ctx.close(None);
@@ -135,13 +154,6 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>>
             _ => {}
         }
     }
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-#[serde(tag = "type")]
-enum InboundMsg {
-    #[serde(rename = "install_all")]
-    InstallAll { base_dir: String },
 }
 
 pub async fn builtin_function(

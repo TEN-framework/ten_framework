@@ -20,7 +20,6 @@ mod mock;
 mod packages;
 mod property;
 pub mod response;
-mod run_script;
 mod terminal;
 mod version;
 
@@ -106,8 +105,6 @@ pub fn configure_routes(
                 "/ws/builtin-function",
                 web::get().to(builtin_function::builtin_function),
             )
-            .route("/ws/run-script", web::get().to(run_script::run_script))
-            .route("/ws/app/install", web::get().to(app::install::install))
             .route("/ws/terminal", web::get().to(terminal::ws_terminal)),
     );
 }

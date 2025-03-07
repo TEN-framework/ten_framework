@@ -53,8 +53,8 @@ pub async fn execute_cmd(
     out: Arc<Box<dyn TmanOutput>>,
 ) -> Result<()> {
     if tman_config.verbose {
-        out.output_line("Executing package command");
-        out.output_line(&format!("{:?}", command_data));
+        out.normal_line("Executing package command");
+        out.normal_line(&format!("{:?}", command_data));
     }
 
     let started = Instant::now();
@@ -91,7 +91,7 @@ pub async fn execute_cmd(
         out.clone(),
     )?;
 
-    out.output_line(&format!(
+    out.normal_line(&format!(
         "{}  Pack package to {:?} in {}",
         Emoji("🏆", ":-)"),
         output_path_str,

@@ -6,26 +6,12 @@
 //
 use std::sync::{Arc, RwLock};
 
-use actix_web::{web, Error, HttpRequest, HttpResponse};
-use actix_web_actors::ws;
-use anyhow::{Context, Result};
-use serde::{Deserialize, Serialize};
+use anyhow::Result;
 use ten_rust::pkg_info::{pkg_type::PkgType, PkgInfo};
 
-use crate::designer::{
-    exec::{CmdParser, WsRunCmd},
-    get_all_pkgs::get_all_pkgs,
-    DesignerState,
-};
+use crate::designer::{get_all_pkgs::get_all_pkgs, DesignerState};
 
-#[derive(Serialize, Deserialize, Debug)]
-#[serde(tag = "type")]
-enum InboundMsg {
-    #[serde(rename = "start")]
-    Start { base_dir: String, name: String },
-}
-
-fn extract_command_from_manifest(
+pub fn extract_command_from_manifest(
     base_dir: &String,
     name: &String,
     state: Arc<RwLock<DesignerState>>,
@@ -90,33 +76,4 @@ fn extract_command_from_manifest(
     };
 
     Ok(script_cmd)
-}
-
-pub async fn run_script(
-    req: HttpRequest,
-    stream: web::Payload,
-    state: web::Data<Arc<RwLock<DesignerState>>>,
-) -> Result<HttpResponse, Error> {
-    let state_clone = state.get_ref().clone();
-
-    // The client connects to the `run_app` route via WebSocket, creating an
-    // instance of the `WsRunApp` actor.
-    let default_parser: CmdParser = Box::new(move |text: &str| {
-        // Attempt to parse the JSON text from client.
-        let inbound = serde_json::from_str::<InboundMsg>(text)
-            .with_context(|| format!("Failed to parse {} into JSON", text))?;
-
-        match inbound {
-            InboundMsg::Start { base_dir, name } => {
-                let cmd = extract_command_from_manifest(
-                    &base_dir,
-                    &name,
-                    state_clone.clone(),
-                )?;
-                Ok((cmd, Some(base_dir)))
-            }
-        }
-    });
-
-    ws::start(WsRunCmd::new(default_parser), &req, stream)
 }

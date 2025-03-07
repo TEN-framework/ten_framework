@@ -64,7 +64,7 @@ pub async fn execute_cmd(
     out: Arc<Box<dyn TmanOutput>>,
 ) -> Result<()> {
     if tman_config.verbose {
-        out.output_line(&format!("Executing run command: {:?}", cmd));
+        out.normal_line(&format!("Executing run command: {:?}", cmd));
     }
 
     // Read `manifest.json` in the current working directory.
@@ -128,7 +128,7 @@ pub async fn execute_cmd(
 
     // Execute the subprocess.
     if tman_config.verbose {
-        out.output_line(&format!(
+        out.normal_line(&format!(
             "About to run script: {} -> {}",
             &cmd.script_name, script_cmd
         ));
@@ -221,7 +221,7 @@ pub async fn execute_cmd(
         let out = out.clone();
         tokio::spawn(async move {
             for line in reader.lines().map_while(Result::ok) {
-                out.output_line(&line);
+                out.normal_line(&line);
             }
         });
     }
@@ -232,7 +232,7 @@ pub async fn execute_cmd(
         let out = out.clone();
         tokio::spawn(async move {
             for line in reader.lines().map_while(Result::ok) {
-                out.output_err_line(&line);
+                out.error_line(&line);
             }
         });
     }
