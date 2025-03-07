@@ -49,7 +49,8 @@ class nodejs_addon_loader_t : public ten::addon_loader_t {
   explicit nodejs_addon_loader_t(const char *name) { (void)name; };
 
   ~nodejs_addon_loader_t() override {
-    if (this->node_thread_.joinable()) {
+    if (this->node_thread_.joinable() &&
+        this->node_thread_.get_id() != std::this_thread::get_id()) {
       this->node_thread_.join();
     }
   }
@@ -302,8 +303,8 @@ class nodejs_addon_loader_t : public ten::addon_loader_t {
         uv_close(reinterpret_cast<uv_handle_t *>(handle),
                  [](uv_handle_t *handle) {
                    auto *async_handle = reinterpret_cast<uv_async_t *>(handle);
-                   auto *this_ptr = static_cast<nodejs_addon_loader_t *>(
-                       async_handle->data);
+                   auto *this_ptr =
+                       static_cast<nodejs_addon_loader_t *>(async_handle->data);
 
                    delete async_handle;
 
