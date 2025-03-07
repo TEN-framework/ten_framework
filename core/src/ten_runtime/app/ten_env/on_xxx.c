@@ -40,8 +40,8 @@
 #include "ten_utils/lib/string.h"
 #include "ten_utils/macro/check.h"
 
-static void ten_app_adjust_and_validate_property_on_configure_done(
-    ten_app_t *self) {
+static void
+ten_app_adjust_and_validate_property_on_configure_done(ten_app_t *self) {
   TEN_ASSERT(self && ten_app_check_integrity(self, true), "Should not happen.");
 
   ten_error_t err;
@@ -68,8 +68,8 @@ done:
   }
 }
 
-static void ten_app_start_auto_start_predefined_graph_and_trigger_on_init(
-    ten_app_t *self) {
+static void
+ten_app_start_auto_start_predefined_graph_and_trigger_on_init(ten_app_t *self) {
   TEN_ASSERT(self && ten_app_check_integrity(self, true), "Should not happen.");
   TEN_ASSERT(self->ten_env && ten_env_check_integrity(self->ten_env, true),
              "Should not happen.");
@@ -302,15 +302,46 @@ void ten_app_on_init_done(ten_env_t *ten_env) {
   ten_app_on_init_done_internal(self);
 }
 
+static void ten_app_deinit_after_all_addons_unregistered(void *app_,
+                                                         void *user_data) {
+  ten_app_t *self = (ten_app_t *)app_;
+  TEN_ASSERT(self && ten_app_check_integrity(self, true), "Should not happen.");
+
+  if (self->on_deinit) {
+    // Call the registered on_deinit callback if exists.
+    self->on_deinit(self, self->ten_env);
+  } else {
+    ten_env_on_deinit_done(self->ten_env, NULL);
+  }
+}
+
+static void ten_on_all_addons_unregistered(void *cb_data) {
+  ten_app_t *self = (ten_app_t *)cb_data;
+  TEN_ASSERT(self &&
+                 // TEN_NOLINTNEXTLINE(thread-check)
+                 // thread-check: This function is intended to be called in
+                 // any thread. But we make sure the `self` is valid.
+                 ten_app_check_integrity(self, false),
+             "Should not happen.");
+
+  // Switch to the app thread to call `on_deinit`.
+
+  int rc = ten_runloop_post_task_tail(
+      ten_app_get_attached_runloop(self),
+      ten_app_deinit_after_all_addons_unregistered, self, NULL);
+  TEN_ASSERT(!rc, "Should not happen.");
+}
+
 static void ten_app_unregister_addons_after_app_close(ten_app_t *self) {
   TEN_ASSERT(self && ten_app_check_integrity(self, true), "Should not happen.");
 
   const char *disabled = getenv("TEN_DISABLE_ADDON_UNREGISTER_AFTER_APP_CLOSE");
   if (disabled && !strcmp(disabled, "true")) {
+    ten_app_deinit_after_all_addons_unregistered(self, NULL);
     return;
   }
 
-  ten_unregister_all_addons_and_cleanup();
+  ten_unregister_all_addons_and_cleanup(ten_on_all_addons_unregistered, self);
 }
 
 void ten_app_on_deinit(ten_app_t *self) {
@@ -343,13 +374,6 @@ void ten_app_on_deinit(ten_app_t *self) {
   // ends.
   ten_app_unregister_addons_after_app_close(self);
   // @}
-
-  if (self->on_deinit) {
-    // Call the registered on_deinit callback if exists.
-    self->on_deinit(self, self->ten_env);
-  } else {
-    ten_env_on_deinit_done(self->ten_env, NULL);
-  }
 }
 
 bool ten_app_on_deinit_done(ten_env_t *ten_env) {
