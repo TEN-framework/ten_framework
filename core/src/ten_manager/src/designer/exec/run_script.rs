@@ -16,21 +16,11 @@ pub fn extract_command_from_manifest(
     name: &String,
     state: Arc<RwLock<DesignerState>>,
 ) -> Result<String> {
-    {
-        let mut state = state.write().unwrap();
+    let mut state = state.write().unwrap();
 
-        // 1) Check if base_dir matches the state.
-        if state.base_dir.as_deref() != Some(base_dir) {
-            return Err(anyhow::anyhow!(
-                "Base directory [{}] is not opened.",
-                base_dir
-            ));
-        }
-
-        // 2) Get all packages in the base_dir.
-        if let Err(err) = get_all_pkgs(&mut state) {
-            return Err(anyhow::anyhow!("Error fetching packages: {}", err));
-        }
+    // 2) Get all packages in the base_dir.
+    if let Err(err) = get_all_pkgs(&mut state, base_dir) {
+        return Err(anyhow::anyhow!("Error fetching packages: {}", err));
     }
 
     let state = state.read().unwrap();

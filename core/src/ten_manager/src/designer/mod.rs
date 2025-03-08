@@ -23,7 +23,10 @@ pub mod response;
 mod terminal;
 mod version;
 
-use std::sync::{Arc, RwLock};
+use std::{
+    collections::HashMap,
+    sync::{Arc, RwLock},
+};
 
 use actix_web::web;
 
@@ -32,10 +35,9 @@ use ten_rust::pkg_info::PkgInfo;
 use super::config::TmanConfig;
 use crate::output::TmanOutput;
 pub struct DesignerState {
-    pub base_dir: Option<String>,
-    pub all_pkgs: Option<Vec<PkgInfo>>,
     pub tman_config: TmanConfig,
     pub out: Arc<Box<dyn TmanOutput>>,
+    pub pkgs_cache: HashMap<String, Vec<PkgInfo>>,
 }
 
 pub fn configure_routes(
@@ -52,11 +54,11 @@ pub fn configure_routes(
             )
             .route(
                 "/addons/extensions",
-                web::get().to(addons::extensions::get_extension_addons),
+                web::post().to(addons::extensions::get_extension_addons),
             )
             .route(
                 "/addons/extensions/{name}",
-                web::get().to(addons::extensions::get_extension_addon_by_name),
+                web::post().to(addons::extensions::get_extension_addon_by_name),
             )
             .route(
                 "/packages/reload",

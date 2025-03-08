@@ -36,34 +36,26 @@ struct DesignerExtensionAddon {
 
 fn retrieve_extension_addons(
     state: &mut DesignerState,
+    base_dir: &String,
 ) -> Result<Vec<DesignerExtensionAddon>, ErrorResponse> {
-    if let Err(err) = get_all_pkgs(state) {
+    let all_pkgs = get_all_pkgs(state, base_dir);
+    if let Err(err) = all_pkgs {
         return Err(ErrorResponse::from_error(
             &err,
             "Error fetching packages:",
         ));
     }
 
-    if let Some(all_pkgs) = &state.all_pkgs {
-        let extensions = all_pkgs
-            .iter()
-            .filter(|pkg| {
-                pkg.basic_info.type_and_name.pkg_type == PkgType::Extension
-            })
-            .map(|pkg_info_with_src| {
-                map_pkg_to_extension_addon(pkg_info_with_src)
-            })
-            .collect();
-
-        Ok(extensions)
-    } else {
-        Err(ErrorResponse {
-            status: Status::Fail,
-            message: "Base directory or package information is not set"
-                .to_string(),
-            error: None,
+    let extensions = all_pkgs
+        .unwrap()
+        .iter()
+        .filter(|pkg| {
+            pkg.basic_info.type_and_name.pkg_type == PkgType::Extension
         })
-    }
+        .map(|pkg_info_with_src| map_pkg_to_extension_addon(pkg_info_with_src))
+        .collect();
+
+    Ok(extensions)
 }
 
 fn map_pkg_to_extension_addon(
@@ -136,12 +128,19 @@ fn map_pkg_to_extension_addon(
     }
 }
 
+#[derive(Deserialize)]
+pub struct BaseDirParam {
+    base_dir: String,
+}
+
 pub async fn get_extension_addons(
+    params: web::Json<BaseDirParam>,
     state: web::Data<Arc<RwLock<DesignerState>>>,
 ) -> impl Responder {
     let mut state = state.write().unwrap();
+    let base_dir = params.base_dir.clone();
 
-    match retrieve_extension_addons(&mut state) {
+    match retrieve_extension_addons(&mut state, &base_dir) {
         Ok(extensions) => {
             let response = ApiResponse {
                 status: Status::Ok,
@@ -155,13 +154,15 @@ pub async fn get_extension_addons(
 }
 
 pub async fn get_extension_addon_by_name(
+    params: web::Json<BaseDirParam>,
     state: web::Data<Arc<RwLock<DesignerState>>>,
     path: web::Path<String>,
 ) -> impl Responder {
     let addon_name = path.into_inner();
     let mut state = state.write().unwrap();
+    let base_dir = params.base_dir.clone();
 
-    match retrieve_extension_addons(&mut state) {
+    match retrieve_extension_addons(&mut state, &base_dir) {
         Ok(extensions) => {
             if let Some(extension) = extensions
                 .into_iter()
@@ -191,6 +192,8 @@ pub async fn get_extension_addon_by_name(
 
 #[cfg(test)]
 mod tests {
+    use std::collections::HashMap;
+
     use crate::{
         config::TmanConfig,
         designer::{
@@ -209,10 +212,9 @@ mod tests {
     #[actix_web::test]
     async fn test_get_extension_addons() {
         let mut designer_state = DesignerState {
-            base_dir: None,
-            all_pkgs: None,
             tman_config: TmanConfig::default(),
             out: Arc::new(Box::new(TmanOutputCli)),
+            pkgs_cache: HashMap::new(),
         };
 
         let all_pkgs_json = vec![
@@ -431,10 +433,9 @@ mod tests {
     #[actix_web::test]
     async fn test_get_extension_addon_by_name() {
         let mut designer_state = DesignerState {
-            base_dir: None,
-            all_pkgs: None,
             tman_config: TmanConfig::default(),
             out: Arc::new(Box::new(TmanOutputCli)),
+            pkgs_cache: HashMap::new(),
         };
 
         let all_pkgs_json = vec![
