@@ -4,6 +4,7 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
+mod install;
 mod install_all;
 mod msg;
 
@@ -17,6 +18,7 @@ use anyhow::Result;
 use msg::InboundMsg;
 use msg::OutboundMsg;
 
+use crate::config::TmanConfig;
 use crate::designer::DesignerState;
 
 #[derive(Message)]
@@ -30,7 +32,15 @@ pub enum BuiltinFunctionOutput {
 }
 
 enum BuiltinFunction {
-    InstallAll { base_dir: String },
+    InstallAll {
+        base_dir: String,
+    },
+    Install {
+        base_dir: String,
+        pkg_type: String,
+        pkg_name: String,
+        pkg_version: Option<String>,
+    },
 }
 
 /// `BuiltinFunctionParser` returns a tuple: the 1st element is the command
@@ -40,12 +50,17 @@ type BuiltinFunctionParser =
 
 pub struct WsBuiltinFunction {
     builtin_function_parser: BuiltinFunctionParser,
+    tman_config: TmanConfig,
 }
 
 impl WsBuiltinFunction {
-    fn new(builtin_function_parser: BuiltinFunctionParser) -> Self {
+    fn new(
+        builtin_function_parser: BuiltinFunctionParser,
+        tman_config: TmanConfig,
+    ) -> Self {
         Self {
             builtin_function_parser,
+            tman_config,
         }
     }
 }
@@ -135,6 +150,18 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>>
                         BuiltinFunction::InstallAll { base_dir } => {
                             self.install_all(base_dir, ctx)
                         }
+                        BuiltinFunction::Install {
+                            base_dir,
+                            pkg_type,
+                            pkg_name,
+                            pkg_version,
+                        } => self.install(
+                            base_dir,
+                            pkg_type,
+                            pkg_name,
+                            pkg_version,
+                            ctx,
+                        ),
                     },
                     Err(e) => {
                         let err_out = OutboundMsg::ErrorLine {
@@ -159,8 +186,10 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>>
 pub async fn builtin_function(
     req: HttpRequest,
     stream: web::Payload,
-    _state: web::Data<Arc<RwLock<DesignerState>>>,
+    state: web::Data<Arc<RwLock<DesignerState>>>,
 ) -> Result<HttpResponse, Error> {
+    let tman_config = state.read().unwrap().tman_config.clone();
+
     let default_parser: BuiltinFunctionParser = Box::new(move |text: &str| {
         // Attempt to parse the JSON text from client.
         let inbound = serde_json::from_str::<InboundMsg>(text)
@@ -170,8 +199,23 @@ pub async fn builtin_function(
             InboundMsg::InstallAll { base_dir } => {
                 Ok(BuiltinFunction::InstallAll { base_dir })
             }
+            InboundMsg::Install {
+                base_dir,
+                pkg_type,
+                pkg_name,
+                pkg_version,
+            } => Ok(BuiltinFunction::Install {
+                base_dir,
+                pkg_type,
+                pkg_name,
+                pkg_version,
+            }),
         }
     });
 
-    ws::start(WsBuiltinFunction::new(default_parser), &req, stream)
+    ws::start(
+        WsBuiltinFunction::new(default_parser, tman_config),
+        &req,
+        stream,
+    )
 }

@@ -16,6 +16,14 @@ use super::{BuiltinFunctionOutput, WsBuiltinFunction};
 pub enum InboundMsg {
     #[serde(rename = "install_all")]
     InstallAll { base_dir: String },
+
+    #[serde(rename = "install")]
+    Install {
+        base_dir: String,
+        pkg_type: String,
+        pkg_name: String,
+        pkg_version: Option<String>,
+    },
 }
 
 #[derive(Serialize, Deserialize, Debug)]
