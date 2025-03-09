@@ -14,8 +14,8 @@ use ten_rust::pkg_info::pkg_type::PkgType;
 use ten_rust::pkg_info::predefined_graphs::get_pkg_predefined_graph_from_nodes_and_connections;
 
 use super::{
-    connections::GetGraphConnectionResponseData,
-    nodes::GetGraphNodesResponseData,
+    connections::GetGraphConnectionsSingleResponseData,
+    nodes::GetGraphNodesSingleResponseData,
 };
 use crate::designer::response::{ApiResponse, ErrorResponse, Status};
 use crate::designer::DesignerState;
@@ -26,8 +26,8 @@ pub struct GraphUpdateRequestPayload {
     pub graph_name: String,
 
     pub auto_start: bool,
-    pub nodes: Vec<GetGraphNodesResponseData>,
-    pub connections: Vec<GetGraphConnectionResponseData>,
+    pub nodes: Vec<GetGraphNodesSingleResponseData>,
+    pub connections: Vec<GetGraphConnectionsSingleResponseData>,
 }
 
 #[derive(Serialize, Debug, PartialEq)]
@@ -165,8 +165,11 @@ mod tests {
             ),
         ];
 
-        let inject_ret =
-            inject_all_pkgs_for_mock(TEST_DIR, &mut state, all_pkgs_json);
+        let inject_ret = inject_all_pkgs_for_mock(
+            TEST_DIR,
+            &mut state.pkgs_cache,
+            all_pkgs_json,
+        );
         assert!(inject_ret.is_ok());
 
         let state = Arc::new(RwLock::new(state));

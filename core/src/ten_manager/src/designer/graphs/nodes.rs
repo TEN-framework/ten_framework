@@ -41,7 +41,7 @@ pub struct GetGraphNodesRequestPayload {
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
-pub struct GetGraphNodesResponseData {
+pub struct GetGraphNodesSingleResponseData {
     pub addon: String,
     pub name: String,
 
@@ -61,7 +61,7 @@ pub struct GetGraphNodesResponseData {
     pub is_installed: bool,
 }
 
-impl TryFrom<GraphNode> for GetGraphNodesResponseData {
+impl TryFrom<GraphNode> for GetGraphNodesSingleResponseData {
     type Error = anyhow::Error;
 
     fn try_from(node: GraphNode) -> Result<Self, Self::Error> {
@@ -72,7 +72,7 @@ impl TryFrom<GraphNode> for GetGraphNodesResponseData {
             ));
         }
 
-        Ok(GetGraphNodesResponseData {
+        Ok(GetGraphNodesSingleResponseData {
             addon: node.addon,
             name: node.type_and_name.name,
             extension_group: node
@@ -276,13 +276,14 @@ pub async fn get_graph_nodes(
                 }
             };
 
-        let mut resp_extensions: Vec<GetGraphNodesResponseData> = Vec::new();
+        let mut resp_extensions: Vec<GetGraphNodesSingleResponseData> =
+            Vec::new();
 
         for extension_graph_node in &extension_graph_nodes {
             let pkg_info =
                 get_pkg_info_for_extension(extension_graph_node, all_pkgs);
             if let Some(pkg_info) = pkg_info {
-                resp_extensions.push(GetGraphNodesResponseData {
+                resp_extensions.push(GetGraphNodesSingleResponseData {
                     addon: extension_graph_node.addon.clone(),
                     name: extension_graph_node.type_and_name.name.clone(),
                     extension_group: extension_graph_node
@@ -363,7 +364,7 @@ pub async fn get_graph_nodes(
                     is_installed: true,
                 });
             } else {
-                match GetGraphNodesResponseData::try_from(
+                match GetGraphNodesSingleResponseData::try_from(
                     extension_graph_node.clone(),
                 ) {
                     Ok(designer_ext) => {
@@ -441,7 +442,7 @@ mod tests {
 
         let inject_ret = inject_all_pkgs_for_mock(
             TEST_DIR,
-            &mut designer_state,
+            &mut designer_state.pkgs_cache,
             all_pkgs_json,
         );
         assert!(inject_ret.is_ok());
@@ -472,12 +473,12 @@ mod tests {
         let body = test::read_body(resp).await;
         let body_str = std::str::from_utf8(&body).unwrap();
 
-        let extensions: ApiResponse<Vec<GetGraphNodesResponseData>> =
+        let extensions: ApiResponse<Vec<GetGraphNodesSingleResponseData>> =
             serde_json::from_str(body_str).unwrap();
 
         // Create the expected Version struct
         let expected_extensions = vec![
-            GetGraphNodesResponseData {
+            GetGraphNodesSingleResponseData {
                 addon: "extension_addon_1".to_string(),
                 name: "extension_1".to_string(),
                 extension_group: "extension_group_1".to_string(),
@@ -530,7 +531,7 @@ mod tests {
                 property: None,
                 is_installed: true,
             },
-            GetGraphNodesResponseData {
+            GetGraphNodesSingleResponseData {
                 addon: "extension_addon_2".to_string(),
                 name: "extension_2".to_string(),
                 extension_group: "extension_group_1".to_string(),
@@ -605,7 +606,7 @@ mod tests {
                 })),
                 is_installed: true,
             },
-            GetGraphNodesResponseData {
+            GetGraphNodesSingleResponseData {
                 addon: "extension_addon_3".to_string(),
                 name: "extension_3".to_string(),
                 extension_group: "extension_group_1".to_string(),
@@ -648,7 +649,7 @@ mod tests {
         assert_eq!(extensions.data, expected_extensions);
         assert!(!extensions.data.is_empty());
 
-        let json: ApiResponse<Vec<GetGraphNodesResponseData>> =
+        let json: ApiResponse<Vec<GetGraphNodesSingleResponseData>> =
             serde_json::from_str(body_str).unwrap();
         let pretty_json = serde_json::to_string_pretty(&json).unwrap();
         println!("Response body: {}", pretty_json);
@@ -723,7 +724,7 @@ mod tests {
 
         let inject_ret = inject_all_pkgs_for_mock(
             TEST_DIR,
-            &mut designer_state,
+            &mut designer_state.pkgs_cache,
             all_pkgs_json,
         );
         assert!(inject_ret.is_ok());
@@ -755,7 +756,7 @@ mod tests {
         let body = test::read_body(resp).await;
         let body_str = std::str::from_utf8(&body).unwrap();
 
-        let json: ApiResponse<Vec<GetGraphNodesResponseData>> =
+        let json: ApiResponse<Vec<GetGraphNodesSingleResponseData>> =
             serde_json::from_str(body_str).unwrap();
         let pretty_json = serde_json::to_string_pretty(&json).unwrap();
         println!("Response body: {}", pretty_json);

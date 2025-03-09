@@ -8,10 +8,10 @@ use ten_rust::pkg_info::{
     graph::GraphNode, pkg_type::PkgType, pkg_type_and_name::PkgTypeAndName,
 };
 
-use crate::designer::graphs::nodes::GetGraphNodesResponseData;
+use crate::designer::graphs::nodes::GetGraphNodesSingleResponseData;
 
-impl From<GetGraphNodesResponseData> for GraphNode {
-    fn from(designer_extension: GetGraphNodesResponseData) -> Self {
+impl From<GetGraphNodesSingleResponseData> for GraphNode {
+    fn from(designer_extension: GetGraphNodesSingleResponseData) -> Self {
         GraphNode {
             type_and_name: PkgTypeAndName {
                 pkg_type: PkgType::Extension,

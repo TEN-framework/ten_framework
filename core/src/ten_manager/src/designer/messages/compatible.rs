@@ -40,7 +40,7 @@ pub struct GetCompatibleMsgsRequestPayload {
 }
 
 #[derive(Debug, Deserialize, Serialize, PartialEq)]
-pub struct GetCompatibleMsgsResponseData {
+pub struct GetCompatibleMsgsSingleResponseData {
     pub app: String,
     pub extension_group: String,
     pub extension: String,
@@ -49,9 +49,11 @@ pub struct GetCompatibleMsgsResponseData {
     pub msg_name: String,
 }
 
-impl From<CompatibleExtensionAndMsg<'_>> for GetCompatibleMsgsResponseData {
+impl From<CompatibleExtensionAndMsg<'_>>
+    for GetCompatibleMsgsSingleResponseData
+{
     fn from(compatible: CompatibleExtensionAndMsg) -> Self {
-        GetCompatibleMsgsResponseData {
+        GetCompatibleMsgsSingleResponseData {
             app: compatible.extension.app.as_ref().unwrap().clone(),
             extension_group: compatible
                 .extension
@@ -254,7 +256,7 @@ pub async fn get_compatible_messages(
             }
         };
 
-        let results: Vec<GetCompatibleMsgsResponseData> =
+        let results: Vec<GetCompatibleMsgsSingleResponseData> =
             compatible_list.into_iter().map(|v| v.into()).collect();
 
         let response = ApiResponse {
@@ -316,7 +318,7 @@ mod tests {
 
         let inject_ret = inject_all_pkgs_for_mock(
             TEST_DIR,
-            &mut designer_state,
+            &mut designer_state.pkgs_cache,
             all_pkgs_json,
         );
         assert!(inject_ret.is_ok());
@@ -357,10 +359,10 @@ mod tests {
         let body = test::read_body(resp).await;
         let body_str = std::str::from_utf8(&body).unwrap();
 
-        let compatibles: ApiResponse<Vec<GetCompatibleMsgsResponseData>> =
+        let compatibles: ApiResponse<Vec<GetCompatibleMsgsSingleResponseData>> =
             serde_json::from_str(body_str).unwrap();
 
-        let expected_compatibles = vec![GetCompatibleMsgsResponseData {
+        let expected_compatibles = vec![GetCompatibleMsgsSingleResponseData {
             app: localhost(),
             extension_group: "extension_group_1".to_string(),
             extension: "extension_2".to_string(),
@@ -401,7 +403,7 @@ mod tests {
 
         let inject_ret = inject_all_pkgs_for_mock(
             TEST_DIR,
-            &mut designer_state,
+            &mut designer_state.pkgs_cache,
             all_pkgs_json,
         );
         assert!(inject_ret.is_ok());
@@ -468,7 +470,7 @@ mod tests {
 
         let inject_ret = inject_all_pkgs_for_mock(
             TEST_DIR,
-            &mut designer_state,
+            &mut designer_state.pkgs_cache,
             all_pkgs_json,
         );
         assert!(inject_ret.is_ok());
@@ -509,10 +511,10 @@ mod tests {
         let body = test::read_body(resp).await;
         let body_str = std::str::from_utf8(&body).unwrap();
 
-        let compatibles: ApiResponse<Vec<GetCompatibleMsgsResponseData>> =
+        let compatibles: ApiResponse<Vec<GetCompatibleMsgsSingleResponseData>> =
             serde_json::from_str(body_str).unwrap();
 
-        let expected_compatibles = vec![GetCompatibleMsgsResponseData {
+        let expected_compatibles = vec![GetCompatibleMsgsSingleResponseData {
             app: localhost(),
             extension_group: "extension_group_1".to_string(),
             extension: "extension_2".to_string(),
@@ -553,7 +555,7 @@ mod tests {
 
         let inject_ret = inject_all_pkgs_for_mock(
             TEST_DIR,
-            &mut designer_state,
+            &mut designer_state.pkgs_cache,
             all_pkgs_json,
         );
         assert!(inject_ret.is_ok());
@@ -595,10 +597,10 @@ mod tests {
         let body = test::read_body(resp).await;
         let body_str = std::str::from_utf8(&body).unwrap();
 
-        let compatibles: ApiResponse<Vec<GetCompatibleMsgsResponseData>> =
+        let compatibles: ApiResponse<Vec<GetCompatibleMsgsSingleResponseData>> =
             serde_json::from_str(body_str).unwrap();
 
-        let expected_compatibles = vec![GetCompatibleMsgsResponseData {
+        let expected_compatibles = vec![GetCompatibleMsgsSingleResponseData {
             app: localhost(),
             extension_group: "extension_group_1".to_string(),
             extension: "extension_2".to_string(),
@@ -639,7 +641,7 @@ mod tests {
 
         let inject_ret = inject_all_pkgs_for_mock(
             TEST_DIR,
-            &mut designer_state,
+            &mut designer_state.pkgs_cache,
             all_pkgs_json,
         );
         assert!(inject_ret.is_ok());
@@ -680,11 +682,11 @@ mod tests {
         let body = test::read_body(resp).await;
         let body_str = std::str::from_utf8(&body).unwrap();
 
-        let compatibles: ApiResponse<Vec<GetCompatibleMsgsResponseData>> =
+        let compatibles: ApiResponse<Vec<GetCompatibleMsgsSingleResponseData>> =
             serde_json::from_str(body_str).unwrap();
 
         let expected_compatibles = vec![
-            GetCompatibleMsgsResponseData {
+            GetCompatibleMsgsSingleResponseData {
                 app: localhost(),
                 extension_group: "extension_group_1".to_string(),
                 extension: "extension_1".to_string(),
@@ -692,7 +694,7 @@ mod tests {
                 msg_direction: MsgDirection::In,
                 msg_name: "cmd1".to_string(),
             },
-            GetCompatibleMsgsResponseData {
+            GetCompatibleMsgsSingleResponseData {
                 app: localhost(),
                 extension_group: "extension_group_1".to_string(),
                 extension: "extension_2".to_string(),
@@ -736,7 +738,7 @@ mod tests {
 
         let inject_ret = inject_all_pkgs_for_mock(
             TEST_DIR,
-            &mut designer_state,
+            &mut designer_state.pkgs_cache,
             all_pkgs_json,
         );
         assert!(inject_ret.is_ok());
@@ -777,10 +779,10 @@ mod tests {
         let body = test::read_body(resp).await;
         let body_str = std::str::from_utf8(&body).unwrap();
 
-        let compatibles: ApiResponse<Vec<GetCompatibleMsgsResponseData>> =
+        let compatibles: ApiResponse<Vec<GetCompatibleMsgsSingleResponseData>> =
             serde_json::from_str(body_str).unwrap();
 
-        let expected_compatibles = vec![GetCompatibleMsgsResponseData {
+        let expected_compatibles = vec![GetCompatibleMsgsSingleResponseData {
             app: localhost(),
             extension_group: "extension_group_1".to_string(),
             extension: "extension_2".to_string(),
@@ -823,7 +825,7 @@ mod tests {
 
         let inject_ret = inject_all_pkgs_for_mock(
             TEST_DIR,
-            &mut designer_state,
+            &mut designer_state.pkgs_cache,
             all_pkgs_json,
         );
         assert!(inject_ret.is_ok());
@@ -864,7 +866,7 @@ mod tests {
         let body = test::read_body(resp).await;
         let body_str = std::str::from_utf8(&body).unwrap();
 
-        let compatibles: ApiResponse<Vec<GetCompatibleMsgsResponseData>> =
+        let compatibles: ApiResponse<Vec<GetCompatibleMsgsSingleResponseData>> =
             serde_json::from_str(body_str).unwrap();
 
         assert!(compatibles.data.is_empty());
@@ -899,7 +901,7 @@ mod tests {
 
         let inject_ret = inject_all_pkgs_for_mock(
             TEST_DIR,
-            &mut designer_state,
+            &mut designer_state.pkgs_cache,
             all_pkgs_json,
         );
         assert!(inject_ret.is_ok());
@@ -940,7 +942,7 @@ mod tests {
         let body = test::read_body(resp).await;
         let body_str = std::str::from_utf8(&body).unwrap();
 
-        let compatibles: ApiResponse<Vec<GetCompatibleMsgsResponseData>> =
+        let compatibles: ApiResponse<Vec<GetCompatibleMsgsSingleResponseData>> =
             serde_json::from_str(body_str).unwrap();
         assert!(compatibles.data.is_empty());
     }
@@ -974,7 +976,7 @@ mod tests {
 
         let inject_ret = inject_all_pkgs_for_mock(
             TEST_DIR,
-            &mut designer_state,
+            &mut designer_state.pkgs_cache,
             all_pkgs_json,
         );
         assert!(inject_ret.is_ok());
@@ -1015,7 +1017,7 @@ mod tests {
         let body = test::read_body(resp).await;
         let body_str = std::str::from_utf8(&body).unwrap();
 
-        let compatibles: ApiResponse<Vec<GetCompatibleMsgsResponseData>> =
+        let compatibles: ApiResponse<Vec<GetCompatibleMsgsSingleResponseData>> =
             serde_json::from_str(body_str).unwrap();
         assert!(compatibles.data.is_empty());
     }
@@ -1049,7 +1051,7 @@ mod tests {
 
         let inject_ret = inject_all_pkgs_for_mock(
             TEST_DIR,
-            &mut designer_state,
+            &mut designer_state.pkgs_cache,
             all_pkgs_json,
         );
         assert!(inject_ret.is_ok());
@@ -1090,10 +1092,10 @@ mod tests {
         let body = test::read_body(resp).await;
         let body_str = std::str::from_utf8(&body).unwrap();
 
-        let compatibles: ApiResponse<Vec<GetCompatibleMsgsResponseData>> =
+        let compatibles: ApiResponse<Vec<GetCompatibleMsgsSingleResponseData>> =
             serde_json::from_str(body_str).unwrap();
 
-        let expected_compatibles = vec![GetCompatibleMsgsResponseData {
+        let expected_compatibles = vec![GetCompatibleMsgsSingleResponseData {
             app: localhost(),
             extension_group: "extension_group_1".to_string(),
             extension: "extension_1".to_string(),

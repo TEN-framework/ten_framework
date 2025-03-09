@@ -211,7 +211,7 @@ mod tests {
 
         let inject_ret = inject_all_pkgs_for_mock(
             TEST_DIR,
-            &mut designer_state,
+            &mut designer_state.pkgs_cache,
             all_pkgs_json,
         );
         assert!(inject_ret.is_ok());
@@ -441,7 +441,7 @@ mod tests {
 
         let inject_ret = inject_all_pkgs_for_mock(
             TEST_DIR,
-            &mut designer_state,
+            &mut designer_state.pkgs_cache,
             all_pkgs_json,
         );
         assert!(inject_ret.is_ok());

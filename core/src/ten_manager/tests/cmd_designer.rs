@@ -16,8 +16,8 @@ use ten_manager::{
     designer::{
         graphs::{
             connections::{
-                get_graph_connections, GetGraphConnectionResponseData,
-                GetGraphConnectionsRequestPayload,
+                get_graph_connections, GetGraphConnectionsRequestPayload,
+                GetGraphConnectionsSingleResponseData,
             },
             get_graphs, GetGraphsRequestPayload, GetGraphsResponseData,
         },
@@ -55,7 +55,7 @@ async fn test_cmd_designer_graphs_app_property_not_exist() {
 
     let inject_ret = inject_all_pkgs_for_mock(
         "tests/test_data/cmd_designer_graphs_app_property_not_exist",
-        &mut designer_state,
+        &mut designer_state.pkgs_cache,
         all_pkgs_json,
     );
     assert!(inject_ret.is_ok());
@@ -118,7 +118,7 @@ async fn test_cmd_designer_connections_has_msg_conversion() {
 
     let inject_ret = inject_all_pkgs_for_mock(
         "tests/test_data/cmd_designer_connections_has_msg_conversion",
-        &mut designer_state,
+        &mut designer_state.pkgs_cache,
         all_pkgs_json,
     );
     assert!(inject_ret.is_ok());
@@ -147,7 +147,7 @@ async fn test_cmd_designer_connections_has_msg_conversion() {
 
     let body = test::read_body(resp).await;
     let body_str = std::str::from_utf8(&body).unwrap();
-    let json: ApiResponse<Vec<GetGraphConnectionResponseData>> =
+    let json: ApiResponse<Vec<GetGraphConnectionsSingleResponseData>> =
         serde_json::from_str(body_str).unwrap();
 
     let pretty_json = serde_json::to_string_pretty(&json).unwrap();
