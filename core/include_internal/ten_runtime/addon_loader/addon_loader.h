@@ -8,6 +8,7 @@
 
 #include "ten_runtime/ten_config.h"
 
+#include "include_internal/ten_runtime/addon/addon_loader/addon_loader.h"
 #include "include_internal/ten_runtime/binding/common.h"
 #include "ten_runtime/addon/addon.h"
 #include "ten_utils/lib/mutex.h"
@@ -34,11 +35,9 @@ typedef void (*ten_addon_loader_on_load_addon_func_t)(
     ten_addon_loader_t *addon_loader, TEN_ADDON_TYPE addon_type,
     const char *addon_name);
 
-typedef void (*ten_addon_loader_on_init_done_cb_t)(
-    ten_addon_loader_t *addon_loader, void *cb_data);
+typedef void (*ten_addon_loader_on_init_done_cb_t)(void *from, void *cb_data);
 
-typedef void (*ten_addon_loader_on_deinit_done_cb_t)(
-    ten_addon_loader_t *addon_loader, void *cb_data);
+typedef void (*ten_addon_loader_on_deinit_done_cb_t)(void *from, void *cb_data);
 
 typedef struct ten_addon_loader_t {
   ten_binding_handle_t binding_handle;
@@ -51,10 +50,10 @@ typedef struct ten_addon_loader_t {
   ten_addon_loader_on_load_addon_func_t on_load_addon;
 
   ten_addon_loader_on_init_done_cb_t on_init_done_cb;
-  void *on_init_done_cb_data;
+  ten_addon_loader_on_init_done_ctx_t *on_init_done_cb_data;
 
   ten_addon_loader_on_deinit_done_cb_t on_deinit_done_cb;
-  void *on_deinit_done_cb_data;
+  ten_addon_loader_on_deinit_done_ctx_t *on_deinit_done_cb_data;
 } ten_addon_loader_t;
 
 TEN_RUNTIME_PRIVATE_API int ten_addon_loader_singleton_store_lock(void);

@@ -53,14 +53,14 @@ PyObject *ten_py_addon_manager_register_addon_as_extension(PyObject *self,
 
   py_addon->c_addon_host = c_addon_host;
 
-  Py_INCREF(py_addon_object);  // Ensure the object is kept alive.
+  Py_INCREF(py_addon_object); // Ensure the object is kept alive.
 
   Py_RETURN_NONE;
 }
 
 PyObject *ten_py_unregister_all_addons_and_cleanup(PyObject *self,
                                                    PyObject *args) {
-  ten_unregister_all_addons_and_cleanup(NULL, NULL);
+  ten_unregister_all_addons_and_cleanup(NULL, NULL, NULL, NULL);
 
   Py_RETURN_NONE;
 }

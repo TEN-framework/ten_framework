@@ -303,9 +303,7 @@ void ten_app_on_init_done(ten_env_t *ten_env) {
   ten_app_on_init_done_internal(self);
 }
 
-static void ten_app_deinit_after_all_addons_unregistered(void *app_,
-                                                         void *user_data) {
-  ten_app_t *self = (ten_app_t *)app_;
+static void ten_app_deinit_after_all_addons_unregistered(ten_app_t *self) {
   TEN_ASSERT(self && ten_app_check_integrity(self, true), "Should not happen.");
 
   if (self->on_deinit) {
@@ -316,21 +314,11 @@ static void ten_app_deinit_after_all_addons_unregistered(void *app_,
   }
 }
 
-static void ten_on_all_addons_unregistered(void *cb_data) {
-  ten_app_t *self = (ten_app_t *)cb_data;
-  TEN_ASSERT(self &&
-                 // TEN_NOLINTNEXTLINE(thread-check)
-                 // thread-check: This function is intended to be called in
-                 // any thread. But we make sure the `self` is valid.
-                 ten_app_check_integrity(self, false),
-             "Should not happen.");
+static void ten_on_all_addons_unregistered(void *from, void *cb_data) {
+  ten_app_t *self = (ten_app_t *)from;
+  TEN_ASSERT(self && ten_app_check_integrity(self, true), "Should not happen.");
 
-  // Switch to the app thread to call `on_deinit`.
-
-  int rc = ten_runloop_post_task_tail(
-      ten_app_get_attached_runloop(self),
-      ten_app_deinit_after_all_addons_unregistered, self, NULL);
-  TEN_ASSERT(!rc, "Should not happen.");
+  ten_app_deinit_after_all_addons_unregistered(self);
 }
 
 static void ten_app_unregister_addons_after_app_close(ten_app_t *self) {
@@ -338,11 +326,13 @@ static void ten_app_unregister_addons_after_app_close(ten_app_t *self) {
 
   const char *disabled = getenv("TEN_DISABLE_ADDON_UNREGISTER_AFTER_APP_CLOSE");
   if (disabled && !strcmp(disabled, "true")) {
-    ten_app_deinit_after_all_addons_unregistered(self, NULL);
+    ten_app_deinit_after_all_addons_unregistered(self);
     return;
   }
 
-  ten_unregister_all_addons_and_cleanup(ten_on_all_addons_unregistered, self);
+  ten_unregister_all_addons_and_cleanup(ten_app_get_attached_runloop(self),
+                                        self, ten_on_all_addons_unregistered,
+                                        NULL);
 }
 
 void ten_app_on_deinit(ten_app_t *self) {

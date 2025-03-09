@@ -19,12 +19,20 @@ typedef struct ten_addon_loader_t ten_addon_loader_t;
   TEN_ADDON_REGISTER(addon_loader, ADDON_LOADER_NAME, ADDON)
 
 typedef void (*ten_addon_loader_all_singleton_instances_destroyed_cb_t)(
-    void *cb_data);
+    void *from, void *cb_data);
+
+typedef struct ten_addon_loader_on_init_done_ctx_t {
+  ten_runloop_t *runloop;
+  void *from;
+  ten_addon_loader_t *addon_loader;
+} ten_addon_loader_on_init_done_ctx_t;
 
 typedef struct ten_addon_loader_on_deinit_done_ctx_t {
+  ten_runloop_t *runloop;
+  void *from;
+  ten_addon_loader_t *addon_loader;
   ten_addon_loader_all_singleton_instances_destroyed_cb_t cb;
   void *cb_data;
-  ten_atomic_t addon_loaders_count;
 } ten_addon_loader_on_deinit_done_ctx_t;
 
 TEN_RUNTIME_PRIVATE_API ten_addon_store_t *ten_addon_loader_get_global_store(
@@ -48,4 +56,5 @@ TEN_RUNTIME_PRIVATE_API bool ten_addon_loader_addons_create_singleton_instance(
     ten_env_t *ten_env, ten_error_t *err);
 
 TEN_RUNTIME_PRIVATE_API void ten_addon_loader_addons_destroy_singleton_instance(
-    ten_addon_loader_all_singleton_instances_destroyed_cb_t cb, void *cb_data);
+    void *from, ten_addon_loader_all_singleton_instances_destroyed_cb_t cb,
+    void *cb_data);

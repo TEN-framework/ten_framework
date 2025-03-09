@@ -353,13 +353,18 @@ ten_addon_t *ten_addon_unregister(ten_addon_store_t *store,
 static void
 ten_addon_store_on_specific_addons_unregistered(ten_addon_store_t *store,
                                                 void *cb_data) {
-  ten_addon_store_on_all_addons_unregistered_ctx_t *ctx =
-      (ten_addon_store_on_all_addons_unregistered_ctx_t *)cb_data;
+  ten_addon_store_on_specific_addons_unregistered_ctx_t *ctx =
+      (ten_addon_store_on_specific_addons_unregistered_ctx_t *)cb_data;
   TEN_ASSERT(ctx, "Should not happen.");
 
   if (ten_atomic_sub_fetch(&ctx->unregistering_stores_count, 1) == 0) {
-    if (ctx->cb) {
-      ctx->cb(ctx->cb_data);
+    if (ctx->base.cb) {
+      if (ctx->base.runloop) {
+        ten_runloop_post_task_tail(ctx->base.runloop, ctx->base.cb,
+                                   ctx->base.from, ctx->base.cb_data);
+      } else {
+        ctx->base.cb(ctx->base.from, ctx->base.cb_data);
+      }
     }
 
     TEN_FREE(ctx);
@@ -368,12 +373,18 @@ ten_addon_store_on_specific_addons_unregistered(ten_addon_store_t *store,
 
 static void ten_addon_unregister_all_except_addon_loader_addon(
     ten_on_all_addons_unregistered_cb_t cb, void *cb_data) {
-  ten_addon_store_on_all_addons_unregistered_ctx_t *ctx =
-      TEN_MALLOC(sizeof(ten_addon_store_on_all_addons_unregistered_ctx_t));
+  ten_addon_store_on_all_addons_unregistered_ctx_t
+      *on_all_addons_unregistered_ctx = cb_data;
+
+  ten_addon_store_on_specific_addons_unregistered_ctx_t *ctx =
+      TEN_MALLOC(sizeof(ten_addon_store_on_specific_addons_unregistered_ctx_t));
   TEN_ASSERT(ctx, "Failed to allocate memory.");
 
-  ctx->cb = cb;
-  ctx->cb_data = cb_data;
+  ctx->base.runloop = on_all_addons_unregistered_ctx->runloop;
+  ctx->base.from = on_all_addons_unregistered_ctx->from;
+  ctx->base.cb = cb;
+  ctx->base.cb_data = cb_data;
+
   ctx->unregistering_stores_count = 3; // extension, extension_group, protocol
 
   ten_addon_unregister_all_extension_ex(
@@ -384,7 +395,8 @@ static void ten_addon_unregister_all_except_addon_loader_addon(
       ten_addon_store_on_specific_addons_unregistered, ctx);
 }
 
-static void ten_on_all_addon_loader_singleton_destroyed(void *cb_data) {
+static void ten_on_all_addon_loader_singleton_destroyed(void *from,
+                                                        void *cb_data) {
   ten_addon_store_on_all_addons_unregistered_ctx_t *ctx =
       (ten_addon_store_on_all_addons_unregistered_ctx_t *)cb_data;
   TEN_ASSERT(ctx, "Should not happen.");
@@ -392,24 +404,26 @@ static void ten_on_all_addon_loader_singleton_destroyed(void *cb_data) {
   ten_addon_unregister_all_addon_loader();
 
   if (ctx->cb) {
-    ctx->cb(ctx->cb_data);
+    ctx->cb(ctx->from, ctx->cb_data);
   }
 
   TEN_FREE(ctx);
 }
 
-static void ten_on_all_except_addon_loader_addon_unregistered(void *cb_data) {
+static void ten_on_all_except_addon_loader_addon_unregistered(void *from,
+                                                              void *cb_data) {
   ten_addon_store_on_all_addons_unregistered_ctx_t *ctx =
       (ten_addon_store_on_all_addons_unregistered_ctx_t *)cb_data;
   TEN_ASSERT(ctx, "Should not happen.");
 
   // Destroy all addon loaders' singleton to avoid memory leak.
   ten_addon_loader_addons_destroy_singleton_instance(
-      ten_on_all_addon_loader_singleton_destroyed, ctx);
+      from, ten_on_all_addon_loader_singleton_destroyed, ctx);
 }
 
 void ten_unregister_all_addons_and_cleanup(
-    ten_on_all_addons_unregistered_cb_t cb, void *cb_data) {
+    ten_runloop_t *runloop, void *from, ten_on_all_addons_unregistered_cb_t cb,
+    void *cb_data) {
   // Since Python addons (e.g., Python extension addons) require access to the
   // Python VM when performing `addon_t` deinitialization, and the Python addon
   // loader will destroy the Python VM during its own destruction, the Python
@@ -420,6 +434,8 @@ void ten_unregister_all_addons_and_cleanup(
       TEN_MALLOC(sizeof(ten_addon_store_on_all_addons_unregistered_ctx_t));
   TEN_ASSERT(ctx, "Failed to allocate memory.");
 
+  ctx->runloop = runloop;
+  ctx->from = from;
   ctx->cb = cb;
   ctx->cb_data = cb_data;
 
