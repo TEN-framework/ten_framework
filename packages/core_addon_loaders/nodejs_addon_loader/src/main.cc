@@ -48,12 +48,7 @@ class nodejs_addon_loader_t : public ten::addon_loader_t {
  public:
   explicit nodejs_addon_loader_t(const char *name) { (void)name; };
 
-  ~nodejs_addon_loader_t() override {
-    if (this->node_thread_.joinable() &&
-        this->node_thread_.get_id() != std::this_thread::get_id()) {
-      this->node_thread_.join();
-    }
-  }
+  ~nodejs_addon_loader_t() override { this->node_thread_.join(); }
 
   // Set up the Node.js instance for execution, and start the Node.js event
   // loop, and run code inside of it.

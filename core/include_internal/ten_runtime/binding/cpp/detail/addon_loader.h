@@ -13,6 +13,7 @@
 #include "include_internal/ten_runtime/addon_loader/addon_loader.h"
 #include "ten_runtime/binding/common.h"
 #include "ten_runtime/binding/cpp/detail/binding_handle.h"
+#include "ten_utils/io/runloop.h"
 #include "ten_utils/macro/check.h"
 
 using ten_addon_loader_t = struct ten_addon_loader_t;
@@ -61,16 +62,34 @@ class addon_loader_t : public binding_handle_t {
   void on_init_done() {
     auto *addon_loader = static_cast<ten_addon_loader_t *>(get_c_instance());
     if (addon_loader != nullptr && addon_loader->on_init_done_cb != nullptr) {
-      addon_loader->on_init_done_cb(addon_loader,
-                                    addon_loader->on_init_done_cb_data);
+      ten_addon_loader_on_init_done_ctx_t *ctx =
+          addon_loader->on_init_done_cb_data;
+      TEN_ASSERT(ctx, "Should not happen.");
+
+      if (ctx->runloop != nullptr) {
+        int rc = ten_runloop_post_task_tail(
+            ctx->runloop, addon_loader->on_init_done_cb, ctx->from, ctx);
+        TEN_ASSERT(!rc, "Failed to post task.");
+      } else {
+        addon_loader->on_init_done_cb(ctx->from, ctx);
+      }
     }
   }
 
   void on_deinit_done() {
     auto *addon_loader = static_cast<ten_addon_loader_t *>(get_c_instance());
     if (addon_loader != nullptr && addon_loader->on_deinit_done_cb != nullptr) {
-      addon_loader->on_deinit_done_cb(addon_loader,
-                                      addon_loader->on_deinit_done_cb_data);
+      ten_addon_loader_on_deinit_done_ctx_t *ctx =
+          addon_loader->on_deinit_done_cb_data;
+      TEN_ASSERT(ctx, "Should not happen.");
+
+      if (ctx->runloop != nullptr) {
+        int rc = ten_runloop_post_task_tail(
+            ctx->runloop, addon_loader->on_deinit_done_cb, ctx->from, ctx);
+        TEN_ASSERT(!rc, "Failed to post task.");
+      } else {
+        addon_loader->on_deinit_done_cb(ctx->from, ctx);
+      }
     }
   }
 
