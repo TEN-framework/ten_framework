@@ -36,7 +36,7 @@ mod install;
 mod manifest_lock;
 pub mod output;
 mod package_file;
-mod package_info;
+pub mod package_info;
 mod registry;
 pub mod runner;
 mod solver;

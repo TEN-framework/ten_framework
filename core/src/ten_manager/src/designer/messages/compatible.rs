@@ -9,7 +9,7 @@ use std::{
     sync::{Arc, RwLock},
 };
 
-use actix_web::{web, HttpMessage, HttpRequest, HttpResponse, Responder};
+use actix_web::{web, HttpResponse, Responder};
 use serde::{Deserialize, Serialize};
 
 use ten_rust::pkg_info::{
@@ -22,13 +22,14 @@ use ten_rust::pkg_info::{
 };
 
 use crate::designer::{
-    get_all_pkgs::get_all_pkgs,
     response::{ApiResponse, ErrorResponse, Status},
     DesignerState,
 };
 
 #[derive(Debug, Deserialize, Serialize)]
-pub struct InputData {
+pub struct GetCompatibleMsgsRequestPayload {
+    pub base_dir: String,
+
     pub app: String,
     pub graph: String,
     pub extension_group: String,
@@ -39,7 +40,7 @@ pub struct InputData {
 }
 
 #[derive(Debug, Deserialize, Serialize, PartialEq)]
-pub struct DesignerCompatibleMsg {
+pub struct GetCompatibleMsgsResponseData {
     pub app: String,
     pub extension_group: String,
     pub extension: String,
@@ -48,9 +49,9 @@ pub struct DesignerCompatibleMsg {
     pub msg_name: String,
 }
 
-impl From<CompatibleExtensionAndMsg<'_>> for DesignerCompatibleMsg {
+impl From<CompatibleExtensionAndMsg<'_>> for GetCompatibleMsgsResponseData {
     fn from(compatible: CompatibleExtensionAndMsg) -> Self {
-        DesignerCompatibleMsg {
+        GetCompatibleMsgsResponseData {
             app: compatible.extension.app.as_ref().unwrap().clone(),
             extension_group: compatible
                 .extension
@@ -67,43 +68,13 @@ impl From<CompatibleExtensionAndMsg<'_>> for DesignerCompatibleMsg {
 }
 
 pub async fn get_compatible_messages(
-    req: HttpRequest,
+    request_payload: web::Json<GetCompatibleMsgsRequestPayload>,
     state: web::Data<Arc<RwLock<DesignerState>>>,
-    input: Result<web::Json<InputData>, actix_web::Error>,
 ) -> impl Responder {
-    if req.content_type() != "application/json" {
-        return HttpResponse::BadRequest().json(ErrorResponse {
-            status: Status::Fail,
-            message: "Content-Type must be application/json".to_string(),
-            error: None,
-        });
-    }
-
-    let input = match input {
-        Ok(data) => data,
-        Err(err) => {
-            let error_response = ErrorResponse {
-                status: Status::Fail,
-                message: format!("Invalid input data format: {}", err),
-                error: None,
-            };
-            return HttpResponse::BadRequest().json(error_response);
-        }
-    };
-
-    {
-        // Fetch all packages if not already done.
-        let mut state = state.write().unwrap();
-
-        if let Err(err) = get_all_pkgs(&mut state) {
-            let error_response =
-                ErrorResponse::from_error(&err, "Error fetching packages:");
-            return HttpResponse::NotFound().json(error_response);
-        }
-    }
-
+    let input = request_payload.into_inner();
     let state = state.read().unwrap();
-    if let Some(all_pkgs) = &state.all_pkgs {
+
+    if let Some(all_pkgs) = state.pkgs_cache.get(&input.base_dir) {
         let extensions =
             match get_extension_nodes_in_graph(&input.graph, all_pkgs) {
                 Ok(exts) => exts,
@@ -283,7 +254,7 @@ pub async fn get_compatible_messages(
             }
         };
 
-        let results: Vec<DesignerCompatibleMsg> =
+        let results: Vec<GetCompatibleMsgsResponseData> =
             compatible_list.into_iter().map(|v| v.into()).collect();
 
         let response = ApiResponse {
@@ -305,6 +276,8 @@ pub async fn get_compatible_messages(
 
 #[cfg(test)]
 mod tests {
+    use std::collections::HashMap;
+
     use actix_web::{test, App};
     use serde_json::json;
 
@@ -312,17 +285,16 @@ mod tests {
 
     use super::*;
     use crate::{
-        config::TmanConfig, designer::mock::tests::inject_all_pkgs_for_mock,
-        output::TmanOutputCli,
+        config::TmanConfig, constants::TEST_DIR,
+        designer::mock::inject_all_pkgs_for_mock, output::TmanOutputCli,
     };
 
     #[actix_web::test]
     async fn test_get_compatible_messages_success() {
         let mut designer_state = DesignerState {
-            base_dir: None,
-            all_pkgs: None,
             tman_config: TmanConfig::default(),
             out: Arc::new(Box::new(TmanOutputCli)),
+            pkgs_cache: HashMap::new(),
         };
 
         let all_pkgs_json = vec![
@@ -342,8 +314,11 @@ mod tests {
             ),
         ];
 
-        let inject_ret =
-            inject_all_pkgs_for_mock(&mut designer_state, all_pkgs_json);
+        let inject_ret = inject_all_pkgs_for_mock(
+            TEST_DIR,
+            &mut designer_state,
+            all_pkgs_json,
+        );
         assert!(inject_ret.is_ok());
 
         let designer_state = Arc::new(RwLock::new(designer_state));
@@ -358,6 +333,8 @@ mod tests {
 
         // Define input data.
         let input_data = json!({
+          "base_dir": TEST_DIR,
+
           "app": "localhost",
           "graph": "default",
           "extension_group": "extension_group_1",
@@ -380,10 +357,10 @@ mod tests {
         let body = test::read_body(resp).await;
         let body_str = std::str::from_utf8(&body).unwrap();
 
-        let compatibles: ApiResponse<Vec<DesignerCompatibleMsg>> =
+        let compatibles: ApiResponse<Vec<GetCompatibleMsgsResponseData>> =
             serde_json::from_str(body_str).unwrap();
 
-        let expected_compatibles = vec![DesignerCompatibleMsg {
+        let expected_compatibles = vec![GetCompatibleMsgsResponseData {
             app: localhost(),
             extension_group: "extension_group_1".to_string(),
             extension: "extension_2".to_string(),
@@ -400,10 +377,9 @@ mod tests {
     #[actix_web::test]
     async fn test_get_compatible_messages_fail() {
         let mut designer_state = DesignerState {
-            base_dir: None,
-            all_pkgs: None,
             tman_config: TmanConfig::default(),
             out: Arc::new(Box::new(TmanOutputCli)),
+            pkgs_cache: HashMap::new(),
         };
 
         let all_pkgs_json = vec![
@@ -423,8 +399,11 @@ mod tests {
             ),
         ];
 
-        let inject_ret =
-            inject_all_pkgs_for_mock(&mut designer_state, all_pkgs_json);
+        let inject_ret = inject_all_pkgs_for_mock(
+            TEST_DIR,
+            &mut designer_state,
+            all_pkgs_json,
+        );
         assert!(inject_ret.is_ok());
 
         let designer_state = Arc::new(RwLock::new(designer_state));
@@ -439,6 +418,8 @@ mod tests {
 
         // Define input data.
         let input_data = json!({
+          "base_dir": TEST_DIR,
+
           "app": "localhost",
           "graph": "default",
           "extension_group": "default_extension_group",
@@ -463,10 +444,9 @@ mod tests {
     #[actix_web::test]
     async fn test_get_compatible_messages_cmd_has_required_success() {
         let mut designer_state = DesignerState {
-            base_dir: None,
-            all_pkgs: None,
             tman_config: TmanConfig::default(),
             out: Arc::new(Box::new(TmanOutputCli)),
+            pkgs_cache: HashMap::new(),
         };
 
         let all_pkgs_json = vec![
@@ -486,8 +466,11 @@ mod tests {
             ),
         ];
 
-        let inject_ret =
-            inject_all_pkgs_for_mock(&mut designer_state, all_pkgs_json);
+        let inject_ret = inject_all_pkgs_for_mock(
+            TEST_DIR,
+            &mut designer_state,
+            all_pkgs_json,
+        );
         assert!(inject_ret.is_ok());
 
         let designer_state = Arc::new(RwLock::new(designer_state));
@@ -502,6 +485,8 @@ mod tests {
 
         // Define input data.
         let input_data = json!({
+          "base_dir": TEST_DIR,
+
           "app": "localhost",
           "graph": "default",
           "extension_group": "extension_group_1",
@@ -524,10 +509,10 @@ mod tests {
         let body = test::read_body(resp).await;
         let body_str = std::str::from_utf8(&body).unwrap();
 
-        let compatibles: ApiResponse<Vec<DesignerCompatibleMsg>> =
+        let compatibles: ApiResponse<Vec<GetCompatibleMsgsResponseData>> =
             serde_json::from_str(body_str).unwrap();
 
-        let expected_compatibles = vec![DesignerCompatibleMsg {
+        let expected_compatibles = vec![GetCompatibleMsgsResponseData {
             app: localhost(),
             extension_group: "extension_group_1".to_string(),
             extension: "extension_2".to_string(),
@@ -544,10 +529,9 @@ mod tests {
     #[actix_web::test]
     async fn test_get_compatible_messages_has_required_subset() {
         let mut designer_state = DesignerState {
-            base_dir: None,
-            all_pkgs: None,
             tman_config: TmanConfig::default(),
             out: Arc::new(Box::new(TmanOutputCli)),
+            pkgs_cache: HashMap::new(),
         };
 
         let all_pkgs_json = vec![
@@ -567,8 +551,11 @@ mod tests {
             ),
         ];
 
-        let inject_ret =
-            inject_all_pkgs_for_mock(&mut designer_state, all_pkgs_json);
+        let inject_ret = inject_all_pkgs_for_mock(
+            TEST_DIR,
+            &mut designer_state,
+            all_pkgs_json,
+        );
         assert!(inject_ret.is_ok());
 
         let designer_state = Arc::new(RwLock::new(designer_state));
@@ -583,6 +570,8 @@ mod tests {
 
         // Define input data.
         let input_data = json!({
+          "base_dir": TEST_DIR,
+
           "app": "localhost",
           "graph": "default",
           "extension_group": "extension_group_1",
@@ -606,10 +595,10 @@ mod tests {
         let body = test::read_body(resp).await;
         let body_str = std::str::from_utf8(&body).unwrap();
 
-        let compatibles: ApiResponse<Vec<DesignerCompatibleMsg>> =
+        let compatibles: ApiResponse<Vec<GetCompatibleMsgsResponseData>> =
             serde_json::from_str(body_str).unwrap();
 
-        let expected_compatibles = vec![DesignerCompatibleMsg {
+        let expected_compatibles = vec![GetCompatibleMsgsResponseData {
             app: localhost(),
             extension_group: "extension_group_1".to_string(),
             extension: "extension_2".to_string(),
@@ -624,10 +613,9 @@ mod tests {
     #[actix_web::test]
     async fn test_get_compatible_messages_cmd_no_property() {
         let mut designer_state = DesignerState {
-            base_dir: None,
-            all_pkgs: None,
             tman_config: TmanConfig::default(),
             out: Arc::new(Box::new(TmanOutputCli)),
+            pkgs_cache: HashMap::new(),
         };
 
         // The first item is 'manifest.json', and the second item is
@@ -649,8 +637,11 @@ mod tests {
             ),
         ];
 
-        let inject_ret =
-            inject_all_pkgs_for_mock(&mut designer_state, all_pkgs_json);
+        let inject_ret = inject_all_pkgs_for_mock(
+            TEST_DIR,
+            &mut designer_state,
+            all_pkgs_json,
+        );
         assert!(inject_ret.is_ok());
 
         let designer_state = Arc::new(RwLock::new(designer_state));
@@ -665,6 +656,8 @@ mod tests {
 
         // Define input data.
         let input_data = json!({
+          "base_dir": TEST_DIR,
+
           "app": "localhost",
           "graph": "default",
           "extension_group": "extension_group_1",
@@ -687,11 +680,11 @@ mod tests {
         let body = test::read_body(resp).await;
         let body_str = std::str::from_utf8(&body).unwrap();
 
-        let compatibles: ApiResponse<Vec<DesignerCompatibleMsg>> =
+        let compatibles: ApiResponse<Vec<GetCompatibleMsgsResponseData>> =
             serde_json::from_str(body_str).unwrap();
 
         let expected_compatibles = vec![
-            DesignerCompatibleMsg {
+            GetCompatibleMsgsResponseData {
                 app: localhost(),
                 extension_group: "extension_group_1".to_string(),
                 extension: "extension_1".to_string(),
@@ -699,7 +692,7 @@ mod tests {
                 msg_direction: MsgDirection::In,
                 msg_name: "cmd1".to_string(),
             },
-            DesignerCompatibleMsg {
+            GetCompatibleMsgsResponseData {
                 app: localhost(),
                 extension_group: "extension_group_1".to_string(),
                 extension: "extension_2".to_string(),
@@ -717,10 +710,9 @@ mod tests {
     #[actix_web::test]
     async fn test_get_compatible_messages_cmd_property_overlap() {
         let mut designer_state = DesignerState {
-            base_dir: None,
-            all_pkgs: None,
             tman_config: TmanConfig::default(),
             out: Arc::new(Box::new(TmanOutputCli)),
+            pkgs_cache: HashMap::new(),
         };
 
         // The first item is 'manifest.json', and the second item is
@@ -742,8 +734,11 @@ mod tests {
             ),
         ];
 
-        let inject_ret =
-            inject_all_pkgs_for_mock(&mut designer_state, all_pkgs_json);
+        let inject_ret = inject_all_pkgs_for_mock(
+            TEST_DIR,
+            &mut designer_state,
+            all_pkgs_json,
+        );
         assert!(inject_ret.is_ok());
 
         let designer_state = Arc::new(RwLock::new(designer_state));
@@ -758,6 +753,8 @@ mod tests {
 
         // Define input data.
         let input_data = json!({
+          "base_dir": TEST_DIR,
+
           "app": "localhost",
           "graph": "default",
           "extension_group": "extension_group_1",
@@ -780,10 +777,10 @@ mod tests {
         let body = test::read_body(resp).await;
         let body_str = std::str::from_utf8(&body).unwrap();
 
-        let compatibles: ApiResponse<Vec<DesignerCompatibleMsg>> =
+        let compatibles: ApiResponse<Vec<GetCompatibleMsgsResponseData>> =
             serde_json::from_str(body_str).unwrap();
 
-        let expected_compatibles = vec![DesignerCompatibleMsg {
+        let expected_compatibles = vec![GetCompatibleMsgsResponseData {
             app: localhost(),
             extension_group: "extension_group_1".to_string(),
             extension: "extension_2".to_string(),
@@ -800,10 +797,9 @@ mod tests {
     #[actix_web::test]
     async fn test_get_compatible_messages_cmd_property_required_missing() {
         let mut designer_state = DesignerState {
-            base_dir: None,
-            all_pkgs: None,
             tman_config: TmanConfig::default(),
             out: Arc::new(Box::new(TmanOutputCli)),
+            pkgs_cache: HashMap::new(),
         };
 
         // The first item is 'manifest.json', and the second item is
@@ -825,8 +821,11 @@ mod tests {
             ),
         ];
 
-        let inject_ret =
-            inject_all_pkgs_for_mock(&mut designer_state, all_pkgs_json);
+        let inject_ret = inject_all_pkgs_for_mock(
+            TEST_DIR,
+            &mut designer_state,
+            all_pkgs_json,
+        );
         assert!(inject_ret.is_ok());
 
         let designer_state = Arc::new(RwLock::new(designer_state));
@@ -841,6 +840,8 @@ mod tests {
 
         // Define input data.
         let input_data = json!({
+          "base_dir": TEST_DIR,
+
           "app": "localhost",
           "graph": "default",
           "extension_group": "extension_group_1",
@@ -863,7 +864,7 @@ mod tests {
         let body = test::read_body(resp).await;
         let body_str = std::str::from_utf8(&body).unwrap();
 
-        let compatibles: ApiResponse<Vec<DesignerCompatibleMsg>> =
+        let compatibles: ApiResponse<Vec<GetCompatibleMsgsResponseData>> =
             serde_json::from_str(body_str).unwrap();
 
         assert!(compatibles.data.is_empty());
@@ -872,10 +873,9 @@ mod tests {
     #[actix_web::test]
     async fn test_get_compatible_messages_cmd_result() {
         let mut designer_state = DesignerState {
-            base_dir: None,
-            all_pkgs: None,
             tman_config: TmanConfig::default(),
             out: Arc::new(Box::new(TmanOutputCli)),
+            pkgs_cache: HashMap::new(),
         };
 
         // The first item is 'manifest.json', and the second item is
@@ -897,8 +897,11 @@ mod tests {
             ),
         ];
 
-        let inject_ret =
-            inject_all_pkgs_for_mock(&mut designer_state, all_pkgs_json);
+        let inject_ret = inject_all_pkgs_for_mock(
+            TEST_DIR,
+            &mut designer_state,
+            all_pkgs_json,
+        );
         assert!(inject_ret.is_ok());
 
         let designer_state = Arc::new(RwLock::new(designer_state));
@@ -913,6 +916,8 @@ mod tests {
 
         // Define input data.
         let input_data = json!({
+          "base_dir": TEST_DIR,
+
           "app": "localhost",
           "graph": "default",
           "extension_group": "extension_group_1",
@@ -935,29 +940,17 @@ mod tests {
         let body = test::read_body(resp).await;
         let body_str = std::str::from_utf8(&body).unwrap();
 
-        let compatibles: ApiResponse<Vec<DesignerCompatibleMsg>> =
+        let compatibles: ApiResponse<Vec<GetCompatibleMsgsResponseData>> =
             serde_json::from_str(body_str).unwrap();
         assert!(compatibles.data.is_empty());
-
-        // let expected_compatibles = vec![DesignerCompatibleMsg {
-        //     app: default_app_loc(),
-        //     extension_group: "extension_group_1".to_string(),
-        //     extension: "extension_2".to_string(),
-        //     msg_type: MsgType::Cmd,
-        //     msg_direction: MsgDirection::In,
-        //     msg_name: "cmd4".to_string(),
-        // }];
-        //
-        // assert_eq!(compatibles.data, expected_compatibles);
     }
 
     #[actix_web::test]
     async fn test_get_compatible_messages_data_no_property() {
         let mut designer_state = DesignerState {
-            base_dir: None,
-            all_pkgs: None,
             tman_config: TmanConfig::default(),
             out: Arc::new(Box::new(TmanOutputCli)),
+            pkgs_cache: HashMap::new(),
         };
 
         // The first item is 'manifest.json', and the second item is
@@ -979,8 +972,11 @@ mod tests {
             ),
         ];
 
-        let inject_ret =
-            inject_all_pkgs_for_mock(&mut designer_state, all_pkgs_json);
+        let inject_ret = inject_all_pkgs_for_mock(
+            TEST_DIR,
+            &mut designer_state,
+            all_pkgs_json,
+        );
         assert!(inject_ret.is_ok());
 
         let designer_state = Arc::new(RwLock::new(designer_state));
@@ -995,6 +991,8 @@ mod tests {
 
         // Define input data.
         let input_data = json!({
+          "base_dir": TEST_DIR,
+
           "app": "localhost",
           "graph": "default",
           "extension_group": "extension_group_1",
@@ -1017,29 +1015,17 @@ mod tests {
         let body = test::read_body(resp).await;
         let body_str = std::str::from_utf8(&body).unwrap();
 
-        let compatibles: ApiResponse<Vec<DesignerCompatibleMsg>> =
+        let compatibles: ApiResponse<Vec<GetCompatibleMsgsResponseData>> =
             serde_json::from_str(body_str).unwrap();
         assert!(compatibles.data.is_empty());
-
-        // let expected_compatibles = vec![DesignerCompatibleMsg {
-        //     app: default_app_loc(),
-        //     extension_group: "extension_group_1".to_string(),
-        //     extension: "extension_2".to_string(),
-        //     msg_type: MsgType::Data,
-        //     msg_direction: MsgDirection::In,
-        //     msg_name: "data1".to_string(),
-        // }];
-
-        // assert_eq!(compatibles.data, expected_compatibles);
     }
 
     #[actix_web::test]
     async fn test_get_compatible_messages_video_target_has_property() {
         let mut designer_state = DesignerState {
-            base_dir: None,
-            all_pkgs: None,
             tman_config: TmanConfig::default(),
             out: Arc::new(Box::new(TmanOutputCli)),
+            pkgs_cache: HashMap::new(),
         };
 
         // The first item is 'manifest.json', and the second item is
@@ -1061,8 +1047,11 @@ mod tests {
             ),
         ];
 
-        let inject_ret =
-            inject_all_pkgs_for_mock(&mut designer_state, all_pkgs_json);
+        let inject_ret = inject_all_pkgs_for_mock(
+            TEST_DIR,
+            &mut designer_state,
+            all_pkgs_json,
+        );
         assert!(inject_ret.is_ok());
 
         let designer_state = Arc::new(RwLock::new(designer_state));
@@ -1077,6 +1066,8 @@ mod tests {
 
         // Define input data.
         let input_data = json!({
+          "base_dir": TEST_DIR,
+
           "app": "localhost",
           "graph": "default",
           "extension_group": "extension_group_1",
@@ -1099,10 +1090,10 @@ mod tests {
         let body = test::read_body(resp).await;
         let body_str = std::str::from_utf8(&body).unwrap();
 
-        let compatibles: ApiResponse<Vec<DesignerCompatibleMsg>> =
+        let compatibles: ApiResponse<Vec<GetCompatibleMsgsResponseData>> =
             serde_json::from_str(body_str).unwrap();
 
-        let expected_compatibles = vec![DesignerCompatibleMsg {
+        let expected_compatibles = vec![GetCompatibleMsgsResponseData {
             app: localhost(),
             extension_group: "extension_group_1".to_string(),
             extension: "extension_1".to_string(),

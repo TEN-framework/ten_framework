@@ -31,12 +31,17 @@ use crate::designer::common::{
     get_designer_api_cmd_likes_from_pkg, get_designer_api_data_likes_from_pkg,
     get_designer_property_hashmap_from_pkg,
 };
-use crate::designer::get_all_pkgs::get_all_pkgs;
 use crate::designer::response::{ApiResponse, ErrorResponse, Status};
 use crate::designer::DesignerState;
 
+#[derive(Serialize, Deserialize)]
+pub struct GetGraphNodesRequestPayload {
+    base_dir: String,
+    graph_name: String,
+}
+
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
-pub struct DesignerExtension {
+pub struct GetGraphNodesResponseData {
     pub addon: String,
     pub name: String,
 
@@ -56,7 +61,7 @@ pub struct DesignerExtension {
     pub is_installed: bool,
 }
 
-impl TryFrom<GraphNode> for DesignerExtension {
+impl TryFrom<GraphNode> for GetGraphNodesResponseData {
     type Error = anyhow::Error;
 
     fn try_from(node: GraphNode) -> Result<Self, Self::Error> {
@@ -67,7 +72,7 @@ impl TryFrom<GraphNode> for DesignerExtension {
             ));
         }
 
-        Ok(DesignerExtension {
+        Ok(GetGraphNodesResponseData {
             addon: node.addon,
             name: node.type_and_name.name,
             extension_group: node
@@ -247,27 +252,16 @@ fn get_designer_property_items_from_pkg(
 /// - `state`: The state of the designer.
 /// - `path`: The name of the graph.
 pub async fn get_graph_nodes(
+    request_payload: web::Json<GetGraphNodesRequestPayload>,
     state: web::Data<Arc<RwLock<DesignerState>>>,
-    path: web::Path<String>,
 ) -> impl Responder {
-    let graph_name = path.into_inner();
-
-    {
-        // Fetch all packages if not already done.
-        let mut state = state.write().unwrap();
-
-        if let Err(err) = get_all_pkgs(&mut state) {
-            let error_response =
-                ErrorResponse::from_error(&err, "Error fetching packages:");
-            return HttpResponse::NotFound().json(error_response);
-        }
-    }
-
     let state = state.read().unwrap();
 
-    if let Some(all_pkgs) = &state.all_pkgs {
+    if let Some(all_pkgs) = &state.pkgs_cache.get(&request_payload.base_dir) {
+        let graph_name = &request_payload.graph_name;
+
         let extension_graph_nodes =
-            match get_extension_nodes_in_graph(&graph_name, all_pkgs) {
+            match get_extension_nodes_in_graph(graph_name, all_pkgs) {
                 Ok(exts) => exts,
                 Err(err) => {
                     let error_response = ErrorResponse::from_error(
@@ -282,13 +276,13 @@ pub async fn get_graph_nodes(
                 }
             };
 
-        let mut resp_extensions: Vec<DesignerExtension> = Vec::new();
+        let mut resp_extensions: Vec<GetGraphNodesResponseData> = Vec::new();
 
         for extension_graph_node in &extension_graph_nodes {
             let pkg_info =
                 get_pkg_info_for_extension(extension_graph_node, all_pkgs);
             if let Some(pkg_info) = pkg_info {
-                resp_extensions.push(DesignerExtension {
+                resp_extensions.push(GetGraphNodesResponseData {
                     addon: extension_graph_node.addon.clone(),
                     name: extension_graph_node.type_and_name.name.clone(),
                     extension_group: extension_graph_node
@@ -369,8 +363,9 @@ pub async fn get_graph_nodes(
                     is_installed: true,
                 });
             } else {
-                match DesignerExtension::try_from(extension_graph_node.clone())
-                {
+                match GetGraphNodesResponseData::try_from(
+                    extension_graph_node.clone(),
+                ) {
                     Ok(designer_ext) => {
                         resp_extensions.push(designer_ext);
                     }
@@ -409,18 +404,17 @@ mod tests {
 
     use super::*;
     use crate::{
-        config::TmanConfig, designer::mock::tests::inject_all_pkgs_for_mock,
-        output::TmanOutputCli,
+        config::TmanConfig, constants::TEST_DIR,
+        designer::mock::inject_all_pkgs_for_mock, output::TmanOutputCli,
     };
     use ten_rust::pkg_info::localhost;
 
     #[actix_web::test]
     async fn test_get_extensions_success() {
         let mut designer_state = DesignerState {
-            base_dir: None,
-            all_pkgs: None,
             tman_config: TmanConfig::default(),
             out: Arc::new(Box::new(TmanOutputCli)),
+            pkgs_cache: HashMap::new(),
         };
 
         let all_pkgs_json = vec![
@@ -445,22 +439,31 @@ mod tests {
             ),
         ];
 
-        let inject_ret =
-            inject_all_pkgs_for_mock(&mut designer_state, all_pkgs_json);
+        let inject_ret = inject_all_pkgs_for_mock(
+            TEST_DIR,
+            &mut designer_state,
+            all_pkgs_json,
+        );
         assert!(inject_ret.is_ok());
 
         let designer_state = Arc::new(RwLock::new(designer_state));
 
         let app = test::init_service(
             App::new().app_data(web::Data::new(designer_state)).route(
-                "/api/designer/v1/graphs/{graph_name}/nodes",
-                web::get().to(get_graph_nodes),
+                "/api/designer/v1/graphs/nodes",
+                web::post().to(get_graph_nodes),
             ),
         )
         .await;
 
-        let req = test::TestRequest::get()
-            .uri("/api/designer/v1/graphs/default/nodes")
+        let request_payload = GetGraphNodesRequestPayload {
+            base_dir: TEST_DIR.to_string(),
+            graph_name: "default".to_string(),
+        };
+
+        let req = test::TestRequest::post()
+            .uri("/api/designer/v1/graphs/nodes")
+            .set_json(request_payload)
             .to_request();
         let resp = test::call_service(&app, req).await;
 
@@ -469,12 +472,12 @@ mod tests {
         let body = test::read_body(resp).await;
         let body_str = std::str::from_utf8(&body).unwrap();
 
-        let extensions: ApiResponse<Vec<DesignerExtension>> =
+        let extensions: ApiResponse<Vec<GetGraphNodesResponseData>> =
             serde_json::from_str(body_str).unwrap();
 
         // Create the expected Version struct
         let expected_extensions = vec![
-            DesignerExtension {
+            GetGraphNodesResponseData {
                 addon: "extension_addon_1".to_string(),
                 name: "extension_1".to_string(),
                 extension_group: "extension_group_1".to_string(),
@@ -527,7 +530,7 @@ mod tests {
                 property: None,
                 is_installed: true,
             },
-            DesignerExtension {
+            GetGraphNodesResponseData {
                 addon: "extension_addon_2".to_string(),
                 name: "extension_2".to_string(),
                 extension_group: "extension_group_1".to_string(),
@@ -602,7 +605,7 @@ mod tests {
                 })),
                 is_installed: true,
             },
-            DesignerExtension {
+            GetGraphNodesResponseData {
                 addon: "extension_addon_3".to_string(),
                 name: "extension_3".to_string(),
                 extension_group: "extension_group_1".to_string(),
@@ -645,7 +648,7 @@ mod tests {
         assert_eq!(extensions.data, expected_extensions);
         assert!(!extensions.data.is_empty());
 
-        let json: ApiResponse<Vec<DesignerExtension>> =
+        let json: ApiResponse<Vec<GetGraphNodesResponseData>> =
             serde_json::from_str(body_str).unwrap();
         let pretty_json = serde_json::to_string_pretty(&json).unwrap();
         println!("Response body: {}", pretty_json);
@@ -654,22 +657,27 @@ mod tests {
     #[actix_web::test]
     async fn test_get_extensions_no_graph() {
         let designer_state = Arc::new(RwLock::new(DesignerState {
-            base_dir: None,
-            all_pkgs: Some(vec![]),
             tman_config: TmanConfig::default(),
             out: Arc::new(Box::new(TmanOutputCli)),
+            pkgs_cache: HashMap::new(),
         }));
 
         let app = test::init_service(
             App::new().app_data(web::Data::new(designer_state)).route(
-                "/api/designer/v1/graphs/{graph_name}/extensions",
-                web::get().to(get_graph_nodes),
+                "/api/designer/v1/graphs/nodes",
+                web::post().to(get_graph_nodes),
             ),
         )
         .await;
 
-        let req = test::TestRequest::get()
-            .uri("/api/designer/v1/graphs/no_existing_graph/extensions")
+        let request_payload = GetGraphNodesRequestPayload {
+            base_dir: TEST_DIR.to_string(),
+            graph_name: "no_existing_graph".to_string(),
+        };
+
+        let req = test::TestRequest::post()
+            .uri("/api/designer/v1/graphs/nodes")
+            .set_json(request_payload)
             .to_request();
         let resp = test::call_service(&app, req).await;
 
@@ -680,18 +688,15 @@ mod tests {
 
         let error: ErrorResponse = serde_json::from_str(body_str).unwrap();
 
-        assert!(error
-            .message
-            .contains("Error fetching runtime extensions for graph"));
+        assert!(error.message.contains("Package information is missing"));
     }
 
     #[actix_web::test]
     async fn test_get_extensions_has_wrong_addon() {
         let mut designer_state = DesignerState {
-            base_dir: None,
-            all_pkgs: None,
             tman_config: TmanConfig::default(),
             out: Arc::new(Box::new(TmanOutputCli)),
+            pkgs_cache: HashMap::new(),
         };
 
         let all_pkgs_json = vec![
@@ -716,22 +721,31 @@ mod tests {
             ),
         ];
 
-        let inject_ret =
-            inject_all_pkgs_for_mock(&mut designer_state, all_pkgs_json);
+        let inject_ret = inject_all_pkgs_for_mock(
+            TEST_DIR,
+            &mut designer_state,
+            all_pkgs_json,
+        );
         assert!(inject_ret.is_ok());
 
         let designer_state = Arc::new(RwLock::new(designer_state));
 
         let app = test::init_service(
             App::new().app_data(web::Data::new(designer_state)).route(
-                "/api/designer/v1/graphs/{graph_name}/extensions",
-                web::get().to(get_graph_nodes),
+                "/api/designer/v1/graphs/nodes",
+                web::post().to(get_graph_nodes),
             ),
         )
         .await;
 
-        let req = test::TestRequest::get()
-            .uri("/api/designer/v1/graphs/addon_not_found/extensions")
+        let request_payload = GetGraphNodesRequestPayload {
+            base_dir: TEST_DIR.to_string(),
+            graph_name: "addon_not_found".to_string(),
+        };
+
+        let req = test::TestRequest::post()
+            .uri("/api/designer/v1/graphs/nodes")
+            .set_json(request_payload)
             .to_request();
 
         let resp = test::call_service(&app, req).await;
@@ -741,7 +755,7 @@ mod tests {
         let body = test::read_body(resp).await;
         let body_str = std::str::from_utf8(&body).unwrap();
 
-        let json: ApiResponse<Vec<DesignerExtension>> =
+        let json: ApiResponse<Vec<GetGraphNodesResponseData>> =
             serde_json::from_str(body_str).unwrap();
         let pretty_json = serde_json::to_string_pretty(&json).unwrap();
         println!("Response body: {}", pretty_json);

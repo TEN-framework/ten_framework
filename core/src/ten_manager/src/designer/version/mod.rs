@@ -19,12 +19,12 @@ use crate::{
 };
 
 #[derive(Serialize, Deserialize, PartialEq, Debug)]
-struct DesignerVersion {
+struct GetVersionResponseData {
     version: String,
 }
 
 #[derive(Serialize, Deserialize, PartialEq, Debug)]
-struct CheckUpdateInfo {
+struct CheckUpdateResponseData {
     update_available: bool,
     latest_version: Option<String>,
     release_page: Option<String>,
@@ -34,7 +34,7 @@ struct CheckUpdateInfo {
 pub async fn get_version(
     _state: web::Data<Arc<RwLock<DesignerState>>>,
 ) -> impl Responder {
-    let version_info = DesignerVersion {
+    let version_info = GetVersionResponseData {
         version: VERSION.to_string(),
     };
 
@@ -50,7 +50,7 @@ pub async fn get_version(
 pub async fn check_update_endpoint() -> impl Responder {
     match check_update().await {
         Ok((true, latest)) => {
-            let update_info = CheckUpdateInfo {
+            let update_info = CheckUpdateResponseData {
                 update_available: true,
                 latest_version: Some(latest),
                 release_page: Some(GITHUB_RELEASE_PAGE.to_string()),
@@ -64,7 +64,7 @@ pub async fn check_update_endpoint() -> impl Responder {
             HttpResponse::Ok().json(response)
         }
         Ok((false, _)) => {
-            let update_info = CheckUpdateInfo {
+            let update_info = CheckUpdateResponseData {
                 update_available: false,
                 latest_version: None,
                 release_page: None,
@@ -78,7 +78,7 @@ pub async fn check_update_endpoint() -> impl Responder {
             HttpResponse::Ok().json(response)
         }
         Err(err_msg) => {
-            let update_info = CheckUpdateInfo {
+            let update_info = CheckUpdateResponseData {
                 update_available: false,
                 latest_version: None,
                 release_page: None,
@@ -96,19 +96,20 @@ pub async fn check_update_endpoint() -> impl Responder {
 
 #[cfg(test)]
 mod tests {
-    use crate::{config::TmanConfig, output::TmanOutputCli};
+    use std::collections::HashMap;
+
+    use actix_web::{http::StatusCode, test, App};
 
     use super::*;
-    use actix_web::{http::StatusCode, test, App};
+    use crate::{config::TmanConfig, output::TmanOutputCli};
 
     #[actix_web::test]
     async fn test_get_version() {
         // Initialize the DesignerState.
         let state = web::Data::new(Arc::new(RwLock::new(DesignerState {
-            base_dir: None,
-            all_pkgs: None,
             tman_config: TmanConfig::default(),
             out: Arc::new(Box::new(TmanOutputCli)),
+            pkgs_cache: HashMap::new(),
         })));
 
         // Create the App with the routes configured.
@@ -133,18 +134,18 @@ mod tests {
         let body = test::read_body(resp).await;
         let body_str = std::str::from_utf8(&body).unwrap();
 
-        let version: ApiResponse<DesignerVersion> =
+        let version: ApiResponse<GetVersionResponseData> =
             serde_json::from_str(body_str).unwrap();
 
         // Create the expected Version struct
-        let expected_version = DesignerVersion {
+        let expected_version = GetVersionResponseData {
             version: VERSION.to_string(),
         };
 
         // Compare the actual Version struct with the expected one
         assert_eq!(version.data, expected_version);
 
-        let json: ApiResponse<DesignerVersion> =
+        let json: ApiResponse<GetVersionResponseData> =
             serde_json::from_str(body_str).unwrap();
         let pretty_json = serde_json::to_string_pretty(&json).unwrap();
         println!("Response body: {}", pretty_json);

@@ -6,8 +6,6 @@
 //
 use std::collections::HashMap;
 
-use serde::Deserialize;
-
 use ten_rust::pkg_info::api::{
     PkgApiCmdLike, PkgApiDataLike, PkgPropertyAttributes,
 };
@@ -32,10 +30,4 @@ pub fn get_designer_api_data_likes_from_pkg(
     items: Vec<PkgApiDataLike>,
 ) -> Vec<DesignerApiDataLike> {
     items.into_iter().map(|v| v.into()).collect()
-}
-
-#[derive(Deserialize)]
-pub struct CheckTypeQuery {
-    #[serde(rename = "type")]
-    pub check_type: String,
 }

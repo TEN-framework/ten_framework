@@ -9,32 +9,22 @@ use std::sync::{Arc, RwLock};
 use anyhow::Result;
 use ten_rust::pkg_info::{pkg_type::PkgType, PkgInfo};
 
-use crate::designer::{get_all_pkgs::get_all_pkgs, DesignerState};
+use crate::designer::DesignerState;
 
 pub fn extract_command_from_manifest(
     base_dir: &String,
     name: &String,
     state: Arc<RwLock<DesignerState>>,
 ) -> Result<String> {
-    let mut state = state.write().unwrap();
-
-    // 2) Get all packages in the base_dir.
-    if let Err(err) = get_all_pkgs(&mut state, base_dir) {
-        return Err(anyhow::anyhow!("Error fetching packages: {}", err));
-    }
-
     let state = state.read().unwrap();
 
-    // 3) find the package of type == app.
-    let app_pkgs: Vec<&PkgInfo> = state
-        .all_pkgs
-        .as_ref()
-        .map(|v| {
-            v.iter()
-                .filter(|p| p.basic_info.type_and_name.pkg_type == PkgType::App)
-                .collect()
-        })
-        .unwrap_or_default();
+    let all_pkgs = state.pkgs_cache.get(base_dir).unwrap();
+
+    // Find the package of type == app.
+    let app_pkgs: Vec<&PkgInfo> = all_pkgs
+        .iter()
+        .filter(|p| p.basic_info.type_and_name.pkg_type == PkgType::App)
+        .collect();
 
     if app_pkgs.len() != 1 {
         return Err(anyhow::anyhow!(

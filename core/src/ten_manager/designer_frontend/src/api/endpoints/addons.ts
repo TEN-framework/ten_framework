@@ -14,7 +14,7 @@ export const ENDPOINT_ADDONS = {
   extensionByName: {
     [ENDPOINT_METHOD.GET]: {
       url: `${API_DESIGNER_V1}/addons/extensions/:name`,
-      method: ENDPOINT_METHOD.GET,
+      method: ENDPOINT_METHOD.POST,
       pathParams: ["name"],
       responseSchema: genResSchema<IExtensionAddon>(
         z.object({
