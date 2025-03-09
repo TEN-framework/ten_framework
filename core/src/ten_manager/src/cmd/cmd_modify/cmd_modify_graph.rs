@@ -140,7 +140,7 @@ pub async fn execute_cmd(
         jq_run(target_graph.clone(), &command_data.modification).unwrap();
 
     if !command_data.inplace {
-        out.output_line(&serde_json::to_string_pretty(&output)?);
+        out.normal_line(&serde_json::to_string_pretty(&output)?);
         return Ok(());
     }
 
@@ -152,7 +152,7 @@ pub async fn execute_cmd(
     let new_property_str = serde_json::to_string_pretty(&property_json)?;
     fs::write(&property_file_path, new_property_str)?;
 
-    out.output_line(&format!(
+    out.normal_line(&format!(
         "{}  Successfully modified the graph '{}'",
         Emoji("🏆", ":-)"),
         command_data.predefined_graph_name

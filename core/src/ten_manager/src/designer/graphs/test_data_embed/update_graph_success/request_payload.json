@@ -1,4 +1,6 @@
 {
+  "base_dir": "test_dir",
+  "graph_name": "default",
   "auto_start": false,
   "nodes": [
     {

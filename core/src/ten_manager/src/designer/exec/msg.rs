@@ -8,6 +8,16 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(tag = "type")]
+pub enum InboundMsg {
+    #[serde(rename = "exec_cmd")]
+    ExecCmd { base_dir: String, cmd: String },
+
+    #[serde(rename = "run_script")]
+    RunScript { base_dir: String, name: String },
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(tag = "type")]
 pub enum OutboundMsg {
     #[serde(rename = "stdout")]
     StdOut { data: String },

@@ -172,7 +172,7 @@ pub async fn execute_cmd(
 
         fs::copy(temp_file.path(), &target_file)?;
 
-        out.output_line(&format!(
+        out.normal_line(&format!(
             "{}  Package file saved to '{}'",
             Emoji("📦", ""),
             target_file.display()
@@ -191,14 +191,14 @@ pub async fn execute_cmd(
             None,
         )?;
 
-        out.output_line(&format!(
+        out.normal_line(&format!(
             "{}  Package extracted to '{}'",
             Emoji("🏆", ""),
             target_path.display()
         ));
     }
 
-    out.output_line(&format!(
+    out.normal_line(&format!(
         "{}  Fetch completed in {}.",
         Emoji("✅", ""),
         HumanDuration(started.elapsed())

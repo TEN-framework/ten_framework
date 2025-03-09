@@ -63,13 +63,13 @@ export interface ICustomConnectionWidget extends IWidgetBase {
 
 export enum ELogViewerScriptType {
   DEFAULT = "default",
-  START = "start",
+  RUN_SCRIPT = "run_script",
   INSTALL_ALL = "install_all",
 }
 
 export const LogViewerScriptSchemaMap = {
-  [ELogViewerScriptType.START]: z.object({
-    type: z.literal(ELogViewerScriptType.START),
+  [ELogViewerScriptType.RUN_SCRIPT]: z.object({
+    type: z.literal(ELogViewerScriptType.RUN_SCRIPT),
     base_dir: z.string().default(""),
     name: z.string().default(""),
   }),

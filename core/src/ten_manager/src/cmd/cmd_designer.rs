@@ -5,6 +5,7 @@
 // Refer to the "LICENSE" file in the root directory for more information.
 //
 use std::{
+    collections::HashMap,
     path::Path,
     sync::{Arc, RwLock},
 };
@@ -22,6 +23,7 @@ use crate::{
     designer::{configure_routes, frontend::get_frontend_asset, DesignerState},
     fs::{check_is_app_folder, get_cwd},
     output::{TmanOutput, TmanOutputCli},
+    package_info::get_all_pkgs::get_all_pkgs,
 };
 
 #[derive(Clone, Debug)]
@@ -89,20 +91,20 @@ pub async fn execute_cmd(
     out: Arc<Box<dyn TmanOutput>>,
 ) -> Result<()> {
     if tman_config.verbose {
-        out.output_line("Executing designer command");
-        out.output_line(&format!("{:?}", command_data));
-        out.output_line(&format!("{:?}", tman_config));
+        out.normal_line("Executing designer command");
+        out.normal_line(&format!("{:?}", command_data));
+        out.normal_line(&format!("{:?}", tman_config));
     }
 
     let base_dir = match &command_data.base_dir {
         Some(base_dir) => {
-            out.output_line(&format!("Base directory: {}", base_dir));
+            out.normal_line(&format!("Base directory: {}", base_dir));
             base_dir.clone()
         }
         None => {
             let cwd = get_cwd()?.to_str().unwrap_or_default().to_string();
 
-            out.output_line(&format!(
+            out.normal_line(&format!(
                 "{}  Doesn't specify the base directory, use current working \
                 directory instead: {}",
                 Emoji("💡", "!"),
@@ -113,12 +115,18 @@ pub async fn execute_cmd(
         }
     };
 
+    let state = Arc::new(RwLock::new(DesignerState {
+        tman_config: tman_config.clone(),
+        out: Arc::new(Box::new(TmanOutputCli)),
+        pkgs_cache: HashMap::new(),
+    }));
+
     let mut actual_base_dir_opt: Option<String> = Some(base_dir);
 
     // Check if the base_dir is an app folder.
     if let Some(actual_base_dir) = actual_base_dir_opt.as_ref() {
         if let Err(e) = check_is_app_folder(Path::new(actual_base_dir)) {
-            out.output_line(&format!(
+            out.normal_line(&format!(
                 "{}  base_dir is not an app folder: {}",
                 Emoji("🚨", ":-("),
                 e
@@ -127,12 +135,14 @@ pub async fn execute_cmd(
         }
     }
 
-    let state = Arc::new(RwLock::new(DesignerState {
-        base_dir: actual_base_dir_opt,
-        all_pkgs: None,
-        tman_config: tman_config.clone(),
-        out: Arc::new(Box::new(TmanOutputCli)),
-    }));
+    if let Some(actual_base_dir) = actual_base_dir_opt.as_ref() {
+        get_all_pkgs(
+            tman_config,
+            &mut state.write().unwrap().pkgs_cache,
+            actual_base_dir,
+            &out,
+        )?;
+    }
 
     let server = HttpServer::new(move || {
         let state = web::Data::new(state.clone());
@@ -154,7 +164,7 @@ pub async fn execute_cmd(
     let bind_address =
         format!("{}:{}", command_data.ip_address, command_data.port);
 
-    out.output_line(&format!(
+    out.normal_line(&format!(
         "{}  Starting server at http://{}",
         Emoji("🏆", ":-)"),
         bind_address,

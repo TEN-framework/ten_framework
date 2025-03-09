@@ -77,7 +77,7 @@ fn install_local_dependency_pkg_info(
     );
 
     if Path::new(dest_dir_path).exists() {
-        out.output_line(&format!(
+        out.normal_line(&format!(
             "Destination directory '{}' already exists. Skipping copy/link.",
             dest_dir_path
         ));
@@ -181,7 +181,7 @@ pub async fn install_pkg_info(
 ) -> Result<()> {
     if pkg_info.is_installed {
         if tman_config.verbose {
-            out.output_line(&format!(
+            out.normal_line(&format!(
                 "{}:{} has already been installed.",
                 pkg_info.basic_info.type_and_name.pkg_type,
                 pkg_info.basic_info.type_and_name.name
@@ -360,7 +360,7 @@ pub fn write_pkgs_into_manifest_lock_file(
     // Check if manifest-lock.json exists.
     let old_manifest_lock = parse_manifest_lock_in_folder(app_dir);
     if old_manifest_lock.is_err() {
-        out.output_line(&format!(
+        out.normal_line(&format!(
             "{}  Creating manifest-lock.json...",
             Emoji("🔒", "")
         ));
@@ -372,7 +372,7 @@ pub fn write_pkgs_into_manifest_lock_file(
 
     // If the lock file is changed, print all changes.
     if changed && old_manifest_lock.is_ok() {
-        out.output_line(&format!(
+        out.normal_line(&format!(
             "{}  Breaking manifest-lock.json...",
             Emoji("🔒", "")
         ));
@@ -433,7 +433,7 @@ pub fn filter_compatible_pkgs_to_candidates(
 ) {
     for existed_pkg in all_pkgs.to_owned().iter_mut() {
         if tman_config.verbose {
-            out.output_line(&format!(
+            out.normal_line(&format!(
                 "Check support score for {:?}",
                 existed_pkg
             ));
@@ -448,7 +448,7 @@ pub fn filter_compatible_pkgs_to_candidates(
             existed_pkg.compatible_score = compatible_score;
 
             if tman_config.verbose {
-                out.output_line(&format!(
+                out.normal_line(&format!(
                     "The existed {} package {} is compatible with the current system.",
                     existed_pkg.basic_info.type_and_name.pkg_type,
                     existed_pkg.basic_info.type_and_name.name
@@ -463,7 +463,7 @@ pub fn filter_compatible_pkgs_to_candidates(
             // The existed package is not compatible with the current system, so
             // it should not be considered as a candidate.
             if tman_config.verbose {
-                out.output_line(&format!(
+                out.normal_line(&format!(
                     "The existed {} package {} is not compatible with the current \
                 system.",
                     existed_pkg.basic_info.type_and_name.pkg_type,
@@ -507,13 +507,13 @@ pub fn compare_solver_results_with_installed_pkgs(
         find_untracked_local_packages(solver_results, &local_pkgs);
 
     if !untracked_local_pkgs.is_empty() {
-        out.output_line(&format!(
+        out.normal_line(&format!(
             "{}  The following local packages do not appear in the dependency \
             tree:",
             Emoji("💡", "")
         ));
         for pkg in untracked_local_pkgs {
-            out.output_line(&format!(
+            out.normal_line(&format!(
                 " {}:{}@{}",
                 pkg.basic_info.type_and_name.pkg_type,
                 pkg.basic_info.type_and_name.name,
@@ -530,7 +530,7 @@ pub fn compare_solver_results_with_installed_pkgs(
     if !to_be_replaced_local_pkgs.is_empty() {
         conflict = true;
 
-        out.output_line(&format!(
+        out.normal_line(&format!(
             "{}  The following packages will be replaced:",
             Emoji("🔄", "")
         ));
@@ -539,7 +539,7 @@ pub fn compare_solver_results_with_installed_pkgs(
             let new_supports_str = get_supports_str(new_pkg);
 
             if old_supports_str != new_supports_str {
-                out.output_line(&format!(
+                out.normal_line(&format!(
                     " {}:{}@{}{} -> {}:{}@{}{}",
                     old_pkg.basic_info.type_and_name.pkg_type,
                     old_pkg.basic_info.type_and_name.name,
@@ -551,7 +551,7 @@ pub fn compare_solver_results_with_installed_pkgs(
                     new_supports_str
                 ));
             } else {
-                out.output_line(&format!(
+                out.normal_line(&format!(
                     " {}:{}@{} -> {}:{}@{}",
                     old_pkg.basic_info.type_and_name.pkg_type,
                     old_pkg.basic_info.type_and_name.name,

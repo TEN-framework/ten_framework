@@ -16,41 +16,37 @@ use serde::{Deserialize, Serialize};
 use ten_rust::pkg_info::pkg_type::PkgType;
 
 use super::{
-    get_all_pkgs::get_all_pkgs,
     response::{ApiResponse, ErrorResponse, Status},
     DesignerState,
 };
 
+#[derive(Serialize, Deserialize)]
+pub struct GetGraphsRequestPayload {
+    pub base_dir: String,
+}
+
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
-pub struct RespGraph {
+pub struct GetGraphsResponseData {
     name: String,
     auto_start: bool,
 }
 
 pub async fn get_graphs(
+    request_payload: web::Json<GetGraphsRequestPayload>,
     state: web::Data<Arc<RwLock<DesignerState>>>,
 ) -> Result<impl Responder, actix_web::Error> {
-    {
-        // Fetch all packages if not already done.
-        let mut state = state.write().unwrap();
-
-        if let Err(err) = get_all_pkgs(&mut state) {
-            let error_response = ErrorResponse::from_error(&err, "");
-            return Ok(HttpResponse::NotFound().json(error_response));
-        }
-    }
-
     let state = state.read().unwrap();
-    if let Some(all_pkgs) = &state.all_pkgs {
-        if let Some(app_pkg) = all_pkgs
+
+    if let Some(pkgs) = &state.pkgs_cache.get(&request_payload.base_dir) {
+        if let Some(app_pkg) = pkgs
             .iter()
             .find(|pkg| pkg.basic_info.type_and_name.pkg_type == PkgType::App)
         {
-            let graphs: Vec<RespGraph> = app_pkg
+            let graphs: Vec<GetGraphsResponseData> = app_pkg
                 .get_predefined_graphs()
                 .unwrap_or(&vec![])
                 .iter()
-                .map(|graph| RespGraph {
+                .map(|graph| GetGraphsResponseData {
                     name: graph.name.clone(),
                     auto_start: graph.auto_start.unwrap_or(false),
                 })
@@ -83,9 +79,11 @@ pub async fn get_graphs(
 
 #[cfg(test)]
 mod tests {
+    use std::collections::HashMap;
+
     use crate::{
-        config::TmanConfig, designer::mock::tests::inject_all_pkgs_for_mock,
-        output::TmanOutputCli,
+        config::TmanConfig, constants::TEST_DIR,
+        designer::mock::inject_all_pkgs_for_mock, output::TmanOutputCli,
     };
 
     use super::*;
@@ -94,10 +92,9 @@ mod tests {
     #[actix_web::test]
     async fn test_get_graphs_success() {
         let mut designer_state = DesignerState {
-            base_dir: None,
-            all_pkgs: None,
             tman_config: TmanConfig::default(),
             out: Arc::new(Box::new(TmanOutputCli)),
+            pkgs_cache: HashMap::new(),
         };
 
         let all_pkgs_json = vec![
@@ -122,8 +119,11 @@ mod tests {
             ),
         ];
 
-        let inject_ret =
-            inject_all_pkgs_for_mock(&mut designer_state, all_pkgs_json);
+        let inject_ret = inject_all_pkgs_for_mock(
+            TEST_DIR,
+            &mut designer_state.pkgs_cache,
+            all_pkgs_json,
+        );
         assert!(inject_ret.is_ok());
 
         let designer_state = Arc::new(RwLock::new(designer_state));
@@ -131,12 +131,17 @@ mod tests {
         let app = test::init_service(
             App::new()
                 .app_data(web::Data::new(designer_state))
-                .route("/api/designer/v1/graphs", web::get().to(get_graphs)),
+                .route("/api/designer/v1/graphs", web::post().to(get_graphs)),
         )
         .await;
 
-        let req = test::TestRequest::get()
+        let request_payload = GetGraphsRequestPayload {
+            base_dir: TEST_DIR.to_string(),
+        };
+
+        let req = test::TestRequest::post()
             .uri("/api/designer/v1/graphs")
+            .set_json(request_payload)
             .to_request();
         let resp = test::call_service(&app, req).await;
 
@@ -145,15 +150,15 @@ mod tests {
         let body = test::read_body(resp).await;
         let body_str = std::str::from_utf8(&body).unwrap();
 
-        let graphs: ApiResponse<Vec<RespGraph>> =
+        let graphs: ApiResponse<Vec<GetGraphsResponseData>> =
             serde_json::from_str(body_str).unwrap();
 
         let expected_graphs = vec![
-            RespGraph {
+            GetGraphsResponseData {
                 name: "default".to_string(),
                 auto_start: true,
             },
-            RespGraph {
+            GetGraphsResponseData {
                 name: "addon_not_found".to_string(),
                 auto_start: false,
             },
@@ -161,7 +166,7 @@ mod tests {
 
         assert_eq!(graphs.data, expected_graphs);
 
-        let json: ApiResponse<Vec<RespGraph>> =
+        let json: ApiResponse<Vec<GetGraphsResponseData>> =
             serde_json::from_str(body_str).unwrap();
         let pretty_json = serde_json::to_string_pretty(&json).unwrap();
         println!("Response body: {}", pretty_json);
@@ -170,21 +175,25 @@ mod tests {
     #[actix_web::test]
     async fn test_get_graphs_no_app_package() {
         let designer_state = Arc::new(RwLock::new(DesignerState {
-            base_dir: None,
-            all_pkgs: Some(vec![]),
             tman_config: TmanConfig::default(),
             out: Arc::new(Box::new(TmanOutputCli)),
+            pkgs_cache: HashMap::new(),
         }));
 
         let app = test::init_service(
             App::new()
                 .app_data(web::Data::new(designer_state))
-                .route("/api/designer/v1/graphs", web::get().to(get_graphs)),
+                .route("/api/designer/v1/graphs", web::post().to(get_graphs)),
         )
         .await;
 
-        let req = test::TestRequest::get()
+        let request_payload = GetGraphsRequestPayload {
+            base_dir: TEST_DIR.to_string(),
+        };
+
+        let req = test::TestRequest::post()
             .uri("/api/designer/v1/graphs")
+            .set_json(request_payload)
             .to_request();
         let resp = test::call_service(&app, req).await;
 
@@ -196,6 +205,6 @@ mod tests {
 
         let error: ErrorResponse = serde_json::from_str(body_str).unwrap();
 
-        assert_eq!(error.message, "Failed to find any app packages");
+        assert_eq!(error.message, "All packages not available");
     }
 }

@@ -31,7 +31,7 @@ import {
 } from "@/types/widgets";
 import {
   TEN_DEFAULT_BACKEND_WS_ENDPOINT,
-  TEN_PATH_WS_RUN_SCRIPT,
+  TEN_PATH_WS_EXEC,
   TEN_PATH_WS_BUILTIN_FUNCTION,
 } from "@/constants";
 import {
@@ -62,10 +62,10 @@ export function AppMenu() {
         display_type: EWidgetDisplayType.Popup,
 
         metadata: {
-          wsUrl: TEN_DEFAULT_BACKEND_WS_ENDPOINT + TEN_PATH_WS_RUN_SCRIPT,
-          scriptType: ELogViewerScriptType.START,
+          wsUrl: TEN_DEFAULT_BACKEND_WS_ENDPOINT + TEN_PATH_WS_EXEC,
+          scriptType: ELogViewerScriptType.RUN_SCRIPT,
           script: {
-            type: ELogViewerScriptType.START,
+            type: ELogViewerScriptType.RUN_SCRIPT,
             base_dir: baseDir,
             name: scriptName,
           },

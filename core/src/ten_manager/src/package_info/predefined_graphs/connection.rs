@@ -9,11 +9,14 @@ use ten_rust::pkg_info::graph::{
 };
 
 use crate::designer::graphs::connections::{
-    DesignerConnection, DesignerDestination, DesignerMessageFlow,
+    DesignerDestination, DesignerMessageFlow,
+    GetGraphConnectionsSingleResponseData,
 };
 
-impl From<DesignerConnection> for GraphConnection {
-    fn from(designer_connection: DesignerConnection) -> Self {
+impl From<GetGraphConnectionsSingleResponseData> for GraphConnection {
+    fn from(
+        designer_connection: GetGraphConnectionsSingleResponseData,
+    ) -> Self {
         GraphConnection {
             app: Some(designer_connection.app),
             extension: designer_connection.extension,

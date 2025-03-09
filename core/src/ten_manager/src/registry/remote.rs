@@ -48,7 +48,7 @@ where
             Ok(result) => return Ok(result),
             Err(e) => {
                 if tman_config.verbose {
-                    out.output_line(&format!(
+                    out.normal_line(&format!(
                         "Attempt {} failed: {:?}",
                         attempt + 1,
                         e
@@ -120,7 +120,7 @@ async fn get_package_upload_info(
             });
 
             if tman_config.verbose {
-                out.output_line(&format!("Payload of publishing: {}", payload));
+                out.normal_line(&format!("Payload of publishing: {}", payload));
             }
 
             let mut headers = HeaderMap::new();
@@ -130,7 +130,7 @@ async fn get_package_upload_info(
                 headers.insert(
                     AUTHORIZATION,
                     basic_token.parse().map_err(|e| {
-                        out.output_err_line(&format!(
+                        out.error_line(&format!(
                             "Failed to parse authorization token: {}",
                             e
                         ));
@@ -139,7 +139,7 @@ async fn get_package_upload_info(
                 );
             } else {
                 if tman_config.verbose {
-                    out.output_line("Authorization token is missing");
+                    out.normal_line("Authorization token is missing");
                 }
                 return Err(anyhow!("Authorization token is missing"));
             }
@@ -202,7 +202,7 @@ async fn upload_package_to_remote(
             let body = match std::fs::read(&package_file_path) {
                 Ok(file) => file,
                 Err(e) => {
-                    out.output_err_line(&format!(
+                    out.error_line(&format!(
                         "Failed to read file at '{}': {}",
                         &package_file_path, e
                     ));
@@ -215,7 +215,7 @@ async fn upload_package_to_remote(
             headers.insert(
                 CONTENT_TYPE,
                 "application/gzip".parse().map_err(|e| {
-                    out.output_err_line(&format!(
+                    out.error_line(&format!(
                         "Failed to parse content type: {}",
                         e
                     ));
@@ -263,7 +263,7 @@ async fn ack_of_uploading(
             let url = match reqwest::Url::parse(&base_url) {
                 Ok(url) => url,
                 Err(e) => {
-                    out.output_err_line(&format!("Failed to parse URL: {}", e));
+                    out.error_line(&format!("Failed to parse URL: {}", e));
                     return Err(e.into());
                 }
             };
@@ -376,7 +376,7 @@ pub async fn get_package(
     {
         // If the filename matches, directly copy the cached file to
         // `temp_file`.
-        out.output_err_line(&format!(
+        out.error_line(&format!(
             "{}  Found the package file ({}) in the package cache, using it directly.",
             Emoji("🚀", ":-("),
             cached_file_path.to_string_lossy()
@@ -501,7 +501,7 @@ pub async fn get_package(
     if *download_complete.read().await {
         let temp_file_borrow = temp_file.read().await;
         if tman_config.verbose {
-            out.output_line(&format!(
+            out.normal_line(&format!(
                 "Package downloaded successfully from {} and written to {}",
                 url,
                 temp_file_borrow.path().display()
@@ -620,7 +620,7 @@ pub async fn get_package_list(
                 }
 
                 if tman_config.verbose {
-                    out.output_line(&format!(
+                    out.normal_line(&format!(
                         "Fetched {} packages at page {} for {}:{}@{}",
                         results.len(),
                         current_page,
@@ -674,10 +674,7 @@ pub async fn delete_package(
             };
 
             let url = reqwest::Url::parse(&base_url).inspect_err(|&e| {
-                out.output_err_line(&format!(
-                    "Failed to parse base URL: {}",
-                    e
-                ));
+                out.error_line(&format!("Failed to parse base URL: {}", e));
             })?;
 
             let url = url
@@ -689,10 +686,7 @@ pub async fn delete_package(
                     hash,
                 ))
                 .inspect_err(|&e| {
-                    out.output_err_line(&format!(
-                        "Failed to join URL path: {}",
-                        e
-                    ));
+                    out.error_line(&format!("Failed to join URL path: {}", e));
                 })?;
 
             let mut headers = HeaderMap::new();
@@ -702,7 +696,7 @@ pub async fn delete_package(
                 headers.insert(
                     AUTHORIZATION,
                     basic_token.parse().map_err(|e| {
-                        out.output_err_line(&format!(
+                        out.error_line(&format!(
                             "Failed to parse authorization token: {}",
                             e
                         ));
@@ -711,7 +705,7 @@ pub async fn delete_package(
                 );
             } else {
                 if tman_config.verbose {
-                    out.output_line("Authorization token is missing");
+                    out.normal_line("Authorization token is missing");
                 }
                 return Err(anyhow!("Authorization token is missing"));
             }

@@ -4,8 +4,9 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
+mod install;
 mod install_all;
-mod msg_out;
+mod msg;
 
 use std::sync::{Arc, RwLock};
 
@@ -14,21 +15,32 @@ use actix_web::{web, Error, HttpRequest, HttpResponse};
 use actix_web_actors::ws;
 use anyhow::Context;
 use anyhow::Result;
-use msg_out::OutboundMsg;
-use serde::{Deserialize, Serialize};
+use msg::InboundMsg;
+use msg::OutboundMsg;
 
+use crate::config::TmanConfig;
 use crate::designer::DesignerState;
 
 #[derive(Message)]
 #[rtype(result = "()")]
 pub enum BuiltinFunctionOutput {
-    NormalOutput(String),
-    ErrorOutput(String),
+    NormalLine(String),
+    NormalPartial(String),
+    ErrorLine(String),
+    ErrorPartial(String),
     Exit(i32),
 }
 
 enum BuiltinFunction {
-    InstallAll { base_dir: String },
+    InstallAll {
+        base_dir: String,
+    },
+    Install {
+        base_dir: String,
+        pkg_type: String,
+        pkg_name: String,
+        pkg_version: Option<String>,
+    },
 }
 
 /// `BuiltinFunctionParser` returns a tuple: the 1st element is the command
@@ -38,12 +50,17 @@ type BuiltinFunctionParser =
 
 pub struct WsBuiltinFunction {
     builtin_function_parser: BuiltinFunctionParser,
+    tman_config: TmanConfig,
 }
 
 impl WsBuiltinFunction {
-    fn new(builtin_function_parser: BuiltinFunctionParser) -> Self {
+    fn new(
+        builtin_function_parser: BuiltinFunctionParser,
+        tman_config: TmanConfig,
+    ) -> Self {
         Self {
             builtin_function_parser,
+            tman_config,
         }
     }
 }
@@ -69,16 +86,31 @@ impl Handler<BuiltinFunctionOutput> for WsBuiltinFunction {
         ctx: &mut Self::Context,
     ) -> Self::Result {
         match msg {
-            BuiltinFunctionOutput::NormalOutput(line) => {
+            BuiltinFunctionOutput::NormalLine(line) => {
                 // Send the line to the client.
-                let msg_out = OutboundMsg::NormalOutput { data: line };
+                let msg_out = OutboundMsg::NormalLine { data: line };
                 let out_str = serde_json::to_string(&msg_out).unwrap();
 
                 // Sends a text message to the WebSocket client.
                 ctx.text(out_str);
             }
-            BuiltinFunctionOutput::ErrorOutput(line) => {
-                let msg_out = OutboundMsg::ErrorOutput { data: line };
+            BuiltinFunctionOutput::NormalPartial(line) => {
+                // Send the line to the client.
+                let msg_out = OutboundMsg::NormalPartial { data: line };
+                let out_str = serde_json::to_string(&msg_out).unwrap();
+
+                // Sends a text message to the WebSocket client.
+                ctx.text(out_str);
+            }
+            BuiltinFunctionOutput::ErrorLine(line) => {
+                let msg_out = OutboundMsg::ErrorLine { data: line };
+                let out_str = serde_json::to_string(&msg_out).unwrap();
+
+                // Sends a text message to the WebSocket client.
+                ctx.text(out_str);
+            }
+            BuiltinFunctionOutput::ErrorPartial(line) => {
+                let msg_out = OutboundMsg::ErrorPartial { data: line };
                 let out_str = serde_json::to_string(&msg_out).unwrap();
 
                 // Sends a text message to the WebSocket client.
@@ -118,9 +150,23 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>>
                         BuiltinFunction::InstallAll { base_dir } => {
                             self.install_all(base_dir, ctx)
                         }
+                        BuiltinFunction::Install {
+                            base_dir,
+                            pkg_type,
+                            pkg_name,
+                            pkg_version,
+                        } => self.install(
+                            base_dir,
+                            pkg_type,
+                            pkg_name,
+                            pkg_version,
+                            ctx,
+                        ),
                     },
                     Err(e) => {
-                        let err_out = OutboundMsg::Error { msg: e.to_string() };
+                        let err_out = OutboundMsg::ErrorLine {
+                            data: e.to_string(),
+                        };
                         let out_str = serde_json::to_string(&err_out).unwrap();
                         ctx.text(out_str);
                         ctx.close(None);
@@ -137,18 +183,13 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>>
     }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
-#[serde(tag = "type")]
-enum InboundMsg {
-    #[serde(rename = "install_all")]
-    InstallAll { base_dir: String },
-}
-
 pub async fn builtin_function(
     req: HttpRequest,
     stream: web::Payload,
-    _state: web::Data<Arc<RwLock<DesignerState>>>,
+    state: web::Data<Arc<RwLock<DesignerState>>>,
 ) -> Result<HttpResponse, Error> {
+    let tman_config = state.read().unwrap().tman_config.clone();
+
     let default_parser: BuiltinFunctionParser = Box::new(move |text: &str| {
         // Attempt to parse the JSON text from client.
         let inbound = serde_json::from_str::<InboundMsg>(text)
@@ -158,8 +199,23 @@ pub async fn builtin_function(
             InboundMsg::InstallAll { base_dir } => {
                 Ok(BuiltinFunction::InstallAll { base_dir })
             }
+            InboundMsg::Install {
+                base_dir,
+                pkg_type,
+                pkg_name,
+                pkg_version,
+            } => Ok(BuiltinFunction::Install {
+                base_dir,
+                pkg_type,
+                pkg_name,
+                pkg_version,
+            }),
         }
     });
 
-    ws::start(WsBuiltinFunction::new(default_parser), &req, stream)
+    ws::start(
+        WsBuiltinFunction::new(default_parser, tman_config),
+        &req,
+        stream,
+    )
 }

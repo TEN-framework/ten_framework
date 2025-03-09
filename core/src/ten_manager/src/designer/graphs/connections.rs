@@ -16,12 +16,17 @@ use ten_rust::pkg_info::graph::{
 use ten_rust::pkg_info::pkg_type::PkgType;
 use ten_rust::pkg_info::predefined_graphs::pkg_predefined_graphs_find;
 
-use crate::designer::get_all_pkgs::get_all_pkgs;
 use crate::designer::response::{ApiResponse, ErrorResponse, Status};
 use crate::designer::DesignerState;
 
+#[derive(Serialize, Deserialize)]
+pub struct GetGraphConnectionsRequestPayload {
+    pub base_dir: String,
+    pub graph_name: String,
+}
+
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
-pub struct DesignerConnection {
+pub struct GetGraphConnectionsSingleResponseData {
     pub app: String,
     pub extension: String,
 
@@ -38,9 +43,9 @@ pub struct DesignerConnection {
     pub video_frame: Option<Vec<DesignerMessageFlow>>,
 }
 
-impl From<GraphConnection> for DesignerConnection {
+impl From<GraphConnection> for GetGraphConnectionsSingleResponseData {
     fn from(conn: GraphConnection) -> Self {
-        DesignerConnection {
+        GetGraphConnectionsSingleResponseData {
             app: conn.get_app_uri().to_string(),
             extension: conn.extension,
 
@@ -109,38 +114,19 @@ fn get_designer_destination_from_property(
     destinations.into_iter().map(|v| v.into()).collect()
 }
 
-/// Retrieve the connections of a specified graph.
-///
-/// # Arguments
-/// - `state`: The state of the designer.
-/// - `path`: The path parameter containing the graph name.
-///
-/// # Returns
-/// A JSON response containing the connections of the specified graph.
 pub async fn get_graph_connections(
+    request_payload: web::Json<GetGraphConnectionsRequestPayload>,
     state: web::Data<Arc<RwLock<DesignerState>>>,
-    path: web::Path<String>,
 ) -> impl Responder {
-    let graph_name = path.into_inner();
-
-    {
-        // Fetch all packages if not already done.
-        let mut state = state.write().unwrap();
-
-        if let Err(err) = get_all_pkgs(&mut state) {
-            let error_response =
-                ErrorResponse::from_error(&err, "Error fetching packages:");
-            return HttpResponse::NotFound().json(error_response);
-        }
-    }
-
     let state = state.read().unwrap();
 
-    if let Some(pkgs) = &state.all_pkgs {
+    if let Some(pkgs) = &state.pkgs_cache.get(&request_payload.base_dir) {
         if let Some(app_pkg) = pkgs
             .iter()
             .find(|pkg| pkg.basic_info.type_and_name.pkg_type == PkgType::App)
         {
+            let graph_name = request_payload.graph_name.clone();
+
             // If the app package has predefined graphs, find the one with the
             // specified graph_name.
             if let Some(predefined_graph) = pkg_predefined_graphs_find(
@@ -150,14 +136,15 @@ pub async fn get_graph_connections(
                 // Convert the connections field to RespConnection.
                 let connections: Option<_> =
                     predefined_graph.graph.connections.as_ref();
-                let resp_connections: Vec<DesignerConnection> =
-                    match connections {
-                        Some(connections) => connections
-                            .iter()
-                            .map(|conn| conn.clone().into())
-                            .collect(),
-                        None => vec![],
-                    };
+                let resp_connections: Vec<
+                    GetGraphConnectionsSingleResponseData,
+                > = match connections {
+                    Some(connections) => connections
+                        .iter()
+                        .map(|conn| conn.clone().into())
+                        .collect(),
+                    None => vec![],
+                };
 
                 let response = ApiResponse {
                     status: Status::Ok,
@@ -180,24 +167,24 @@ pub async fn get_graph_connections(
 
 #[cfg(test)]
 mod tests {
+    use std::collections::HashMap;
     use std::vec;
 
     use actix_web::{test, App};
 
     use super::*;
     use crate::{
-        config::TmanConfig, designer::mock::tests::inject_all_pkgs_for_mock,
-        output::TmanOutputCli,
+        config::TmanConfig, constants::TEST_DIR,
+        designer::mock::inject_all_pkgs_for_mock, output::TmanOutputCli,
     };
     use ten_rust::pkg_info::localhost;
 
     #[actix_web::test]
     async fn test_get_connections_success() {
         let mut designer_state = DesignerState {
-            base_dir: None,
-            all_pkgs: None,
             tman_config: TmanConfig::default(),
             out: Arc::new(Box::new(TmanOutputCli)),
+            pkgs_cache: HashMap::new(),
         };
 
         let all_pkgs_json = vec![
@@ -222,22 +209,31 @@ mod tests {
             ),
         ];
 
-        let inject_ret =
-            inject_all_pkgs_for_mock(&mut designer_state, all_pkgs_json);
+        let inject_ret = inject_all_pkgs_for_mock(
+            TEST_DIR,
+            &mut designer_state.pkgs_cache,
+            all_pkgs_json,
+        );
         assert!(inject_ret.is_ok());
 
         let designer_state = Arc::new(RwLock::new(designer_state));
 
         let app = test::init_service(
             App::new().app_data(web::Data::new(designer_state)).route(
-                "/api/designer/v1/graphs/{graph_name}/connections",
-                web::get().to(get_graph_connections),
+                "/api/designer/v1/graphs/connections",
+                web::post().to(get_graph_connections),
             ),
         )
         .await;
 
-        let req = test::TestRequest::get()
-            .uri("/api/designer/v1/graphs/default/connections")
+        let request_payload = GetGraphConnectionsRequestPayload {
+            base_dir: TEST_DIR.to_string(),
+            graph_name: "default".to_string(),
+        };
+
+        let req = test::TestRequest::post()
+            .uri("/api/designer/v1/graphs/connections")
+            .set_json(request_payload)
             .to_request();
         let resp = test::call_service(&app, req).await;
 
@@ -246,29 +242,31 @@ mod tests {
         let body = test::read_body(resp).await;
         let body_str = std::str::from_utf8(&body).unwrap();
 
-        let connections: ApiResponse<Vec<DesignerConnection>> =
-            serde_json::from_str(body_str).unwrap();
+        let connections: ApiResponse<
+            Vec<GetGraphConnectionsSingleResponseData>,
+        > = serde_json::from_str(body_str).unwrap();
 
-        let expected_connections = vec![DesignerConnection {
-            app: localhost(),
-            extension: "extension_1".to_string(),
-            cmd: Some(vec![DesignerMessageFlow {
-                name: "hello_world".to_string(),
-                dest: vec![DesignerDestination {
-                    app: localhost(),
-                    extension: "extension_2".to_string(),
-                    msg_conversion: None,
-                }],
-            }]),
-            data: None,
-            audio_frame: None,
-            video_frame: None,
-        }];
+        let expected_connections =
+            vec![GetGraphConnectionsSingleResponseData {
+                app: localhost(),
+                extension: "extension_1".to_string(),
+                cmd: Some(vec![DesignerMessageFlow {
+                    name: "hello_world".to_string(),
+                    dest: vec![DesignerDestination {
+                        app: localhost(),
+                        extension: "extension_2".to_string(),
+                        msg_conversion: None,
+                    }],
+                }]),
+                data: None,
+                audio_frame: None,
+                video_frame: None,
+            }];
 
         assert_eq!(connections.data, expected_connections);
         assert!(!connections.data.is_empty());
 
-        let json: ApiResponse<Vec<DesignerConnection>> =
+        let json: ApiResponse<Vec<GetGraphConnectionsSingleResponseData>> =
             serde_json::from_str(body_str).unwrap();
         let pretty_json = serde_json::to_string_pretty(&json).unwrap();
         println!("Response body: {}", pretty_json);
@@ -277,10 +275,9 @@ mod tests {
     #[actix_web::test]
     async fn test_get_connections_have_all_data_type() {
         let mut designer_state = DesignerState {
-            base_dir: None,
-            all_pkgs: None,
             tman_config: TmanConfig::default(),
             out: Arc::new(Box::new(TmanOutputCli)),
+            pkgs_cache: HashMap::new(),
         };
 
         // The first item is 'manifest.json', and the second item is
@@ -304,21 +301,30 @@ mod tests {
             ),
         ];
 
-        let inject_ret =
-            inject_all_pkgs_for_mock(&mut designer_state, all_pkgs_json);
+        let inject_ret = inject_all_pkgs_for_mock(
+            TEST_DIR,
+            &mut designer_state.pkgs_cache,
+            all_pkgs_json,
+        );
         assert!(inject_ret.is_ok());
 
         let designer_state = Arc::new(RwLock::new(designer_state));
         let app = test::init_service(
             App::new().app_data(web::Data::new(designer_state)).route(
-                "/api/designer/v1/graphs/{graph_name}/connections",
-                web::get().to(get_graph_connections),
+                "/api/designer/v1/graphs/connections",
+                web::post().to(get_graph_connections),
             ),
         )
         .await;
 
-        let req = test::TestRequest::get()
-            .uri("/api/designer/v1/graphs/default/connections")
+        let request_payload = GetGraphConnectionsRequestPayload {
+            base_dir: TEST_DIR.to_string(),
+            graph_name: "default".to_string(),
+        };
+
+        let req = test::TestRequest::post()
+            .uri("/api/designer/v1/graphs/connections")
+            .set_json(request_payload)
             .to_request();
         let resp = test::call_service(&app, req).await;
 
@@ -327,50 +333,52 @@ mod tests {
         let body = test::read_body(resp).await;
         let body_str = std::str::from_utf8(&body).unwrap();
 
-        let connections: ApiResponse<Vec<DesignerConnection>> =
-            serde_json::from_str(body_str).unwrap();
+        let connections: ApiResponse<
+            Vec<GetGraphConnectionsSingleResponseData>,
+        > = serde_json::from_str(body_str).unwrap();
 
-        let expected_connections = vec![DesignerConnection {
-            app: localhost(),
-            extension: "extension_1".to_string(),
-            cmd: Some(vec![DesignerMessageFlow {
-                name: "hello_world".to_string(),
-                dest: vec![DesignerDestination {
-                    app: localhost(),
-                    extension: "extension_2".to_string(),
-                    msg_conversion: None,
-                }],
-            }]),
-            data: Some(vec![DesignerMessageFlow {
-                name: "data".to_string(),
-                dest: vec![DesignerDestination {
-                    app: localhost(),
-                    extension: "extension_2".to_string(),
-                    msg_conversion: None,
-                }],
-            }]),
-            audio_frame: Some(vec![DesignerMessageFlow {
-                name: "pcm".to_string(),
-                dest: vec![DesignerDestination {
-                    app: localhost(),
-                    extension: "extension_2".to_string(),
-                    msg_conversion: None,
-                }],
-            }]),
-            video_frame: Some(vec![DesignerMessageFlow {
-                name: "image".to_string(),
-                dest: vec![DesignerDestination {
-                    app: localhost(),
-                    extension: "extension_2".to_string(),
-                    msg_conversion: None,
-                }],
-            }]),
-        }];
+        let expected_connections =
+            vec![GetGraphConnectionsSingleResponseData {
+                app: localhost(),
+                extension: "extension_1".to_string(),
+                cmd: Some(vec![DesignerMessageFlow {
+                    name: "hello_world".to_string(),
+                    dest: vec![DesignerDestination {
+                        app: localhost(),
+                        extension: "extension_2".to_string(),
+                        msg_conversion: None,
+                    }],
+                }]),
+                data: Some(vec![DesignerMessageFlow {
+                    name: "data".to_string(),
+                    dest: vec![DesignerDestination {
+                        app: localhost(),
+                        extension: "extension_2".to_string(),
+                        msg_conversion: None,
+                    }],
+                }]),
+                audio_frame: Some(vec![DesignerMessageFlow {
+                    name: "pcm".to_string(),
+                    dest: vec![DesignerDestination {
+                        app: localhost(),
+                        extension: "extension_2".to_string(),
+                        msg_conversion: None,
+                    }],
+                }]),
+                video_frame: Some(vec![DesignerMessageFlow {
+                    name: "image".to_string(),
+                    dest: vec![DesignerDestination {
+                        app: localhost(),
+                        extension: "extension_2".to_string(),
+                        msg_conversion: None,
+                    }],
+                }]),
+            }];
 
         assert_eq!(connections.data, expected_connections);
         assert!(!connections.data.is_empty());
 
-        let json: ApiResponse<Vec<DesignerConnection>> =
+        let json: ApiResponse<Vec<GetGraphConnectionsSingleResponseData>> =
             serde_json::from_str(body_str).unwrap();
         let pretty_json = serde_json::to_string_pretty(&json).unwrap();
         println!("Response body: {}", pretty_json);

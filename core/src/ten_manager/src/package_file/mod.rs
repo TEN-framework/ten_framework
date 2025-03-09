@@ -43,7 +43,7 @@ pub fn create_package_tar_gz_file(
     folder_to_tar_gz: &Path,
     out: Arc<Box<dyn TmanOutput>>,
 ) -> Result<String> {
-    out.output_line(&format!("{}  Creating package", Emoji("🚚", ":-)")));
+    out.normal_line(&format!("{}  Creating package", Emoji("🚚", ":-)")));
 
     let manifest = parse_manifest_in_folder(folder_to_tar_gz)?;
 
@@ -144,9 +144,9 @@ pub fn create_package_tar_gz_file(
     }
 
     if tman_config.verbose {
-        out.output_line("Files to be packed:");
+        out.normal_line("Files to be packed:");
         for file in &files_to_include {
-            out.output_line(&format!("> {:?}", file));
+            out.normal_line(&format!("> {:?}", file));
         }
     }
 

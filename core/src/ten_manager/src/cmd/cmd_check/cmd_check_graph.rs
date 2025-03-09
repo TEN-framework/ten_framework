@@ -186,7 +186,7 @@ fn get_graphs_to_be_checked(command: &CheckGraphCommand) -> Result<Vec<Graph>> {
 
 fn display_error(e: &anyhow::Error, out: Arc<Box<dyn TmanOutput>>) {
     e.to_string().lines().for_each(|l| {
-        out.output_err_line(&format!("  {}", l));
+        out.error_line(&format!("  {}", l));
     });
 }
 
@@ -204,23 +204,23 @@ pub async fn execute_cmd(
     let mut err_count = 0;
 
     for (graph_idx, graph) in graphs.iter().enumerate() {
-        out.output(&format!("Checking graph[{}]... ", graph_idx));
+        out.normal_partial(&format!("Checking graph[{}]... ", graph_idx));
 
         match graph.check(&installed_pkgs_of_all_apps) {
-            Ok(_) => out.output_line(&format!("{}", Emoji("👍", "Passed"))),
+            Ok(_) => out.normal_line(&format!("{}", Emoji("👍", "Passed"))),
             Err(e) => {
                 err_count += 1;
-                out.output_line(&format!(
+                out.normal_line(&format!(
                     "{}  Details:",
                     Emoji("🔴", "Failed")
                 ));
                 display_error(&e, out.clone());
-                out.output_line("");
+                out.normal_line("");
             }
         }
     }
 
-    out.output_line("All is done.");
+    out.normal_line("All is done.");
 
     if err_count > 0 {
         Err(anyhow::anyhow!(

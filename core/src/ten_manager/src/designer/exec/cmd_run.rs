@@ -11,7 +11,7 @@ use actix_web_actors::ws::WebsocketContext;
 
 use crate::designer::exec::RunCmdOutput;
 
-use super::{msg_out::OutboundMsg, WsRunCmd};
+use super::{msg::OutboundMsg, WsRunCmd};
 
 impl WsRunCmd {
     pub fn cmd_run(

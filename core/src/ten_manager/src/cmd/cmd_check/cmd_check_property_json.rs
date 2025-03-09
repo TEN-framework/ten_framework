@@ -50,7 +50,7 @@ pub async fn execute_cmd(
     let content = read_file_to_string(&command_data.path)?;
     match ten_validate_property_json_string(&content) {
         Ok(_) => {
-            out.output_line(&format!(
+            out.normal_line(&format!(
                 "{}  Conforms to JSON schema.",
                 Emoji("👍", "Passed")
             ));

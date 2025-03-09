@@ -133,10 +133,7 @@ async fn remove_installed_paths(
                 }
             }
             Err(e) => {
-                out.output_err_line(&format!(
-                    "Error canonicalizing path: {}",
-                    e
-                ));
+                out.error_line(&format!("Error canonicalizing path: {}", e));
             }
         }
     }
@@ -150,9 +147,9 @@ pub async fn execute_cmd(
     out: Arc<Box<dyn TmanOutput>>,
 ) -> Result<()> {
     if tman_config.verbose {
-        out.output_line("Executing uninstall command");
-        out.output_line(&format!("{:?}", command_data));
-        out.output_line(&format!("{:?}", tman_config));
+        out.normal_line("Executing uninstall command");
+        out.normal_line(&format!("{:?}", command_data));
+        out.normal_line(&format!("{:?}", tman_config));
     }
 
     let started = Instant::now();
@@ -162,7 +159,7 @@ pub async fn execute_cmd(
 
     remove_installed_paths(&cwd, &command_data, out.clone()).await?;
 
-    out.output_line(&format!(
+    out.normal_line(&format!(
         "{}  Uninstall {}:{} successfully in {}",
         Emoji("🏆", ":-)"),
         command_data.package_type,

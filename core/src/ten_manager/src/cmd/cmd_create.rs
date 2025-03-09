@@ -173,7 +173,7 @@ pub async fn execute_cmd(
     .await
     .context("Failed to create the package")?;
 
-    out.output_line(&format!(
+    out.normal_line(&format!(
         "{}  Package '{}:{}' created successfully in '{}' in {}.",
         Emoji("🏆", ":-)"),
         command_data.pkg_type,

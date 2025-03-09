@@ -8,11 +8,12 @@
 /// Abstract all log output methods: CLI, WebSocket, etc.
 pub trait TmanOutput: Send + Sync {
     /// General information.
-    fn output_line(&self, text: &str);
-    fn output(&self, text: &str);
+    fn normal_line(&self, text: &str);
+    fn normal_partial(&self, text: &str);
 
     /// Error information.
-    fn output_err_line(&self, text: &str);
+    fn error_line(&self, text: &str);
+    fn error_partial(&self, text: &str);
 
     /// Whether it is interactive (e.g., can block waiting for user input in CLI
     /// environment).
@@ -23,14 +24,17 @@ pub trait TmanOutput: Send + Sync {
 pub struct TmanOutputCli;
 
 impl TmanOutput for TmanOutputCli {
-    fn output_line(&self, text: &str) {
+    fn normal_line(&self, text: &str) {
         println!("{}", text);
     }
-    fn output(&self, text: &str) {
+    fn normal_partial(&self, text: &str) {
         print!("{}", text);
     }
-    fn output_err_line(&self, text: &str) {
+    fn error_line(&self, text: &str) {
         eprintln!("{}", text);
+    }
+    fn error_partial(&self, text: &str) {
+        eprint!("{}", text);
     }
     fn is_interactive(&self) -> bool {
         true

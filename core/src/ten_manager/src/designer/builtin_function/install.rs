@@ -15,14 +15,23 @@ use super::{msg::TmanOutputWs, BuiltinFunctionOutput, WsBuiltinFunction};
 use crate::output::TmanOutput;
 
 impl WsBuiltinFunction {
-    pub fn install_all(
+    pub fn install(
         &mut self,
         base_dir: String,
+        pkg_type: String,
+        pkg_name: String,
+        pkg_version: Option<String>,
         ctx: &mut WebsocketContext<WsBuiltinFunction>,
     ) {
+        let pkg_name_and_version = if let Some(pkg_version) = pkg_version {
+            format!("{}@{}", pkg_name, pkg_version)
+        } else {
+            pkg_name
+        };
+
         let install_command = crate::cmd::cmd_install::InstallCommand {
-            package_type: None,
-            package_name: None,
+            package_type: Some(pkg_type),
+            package_name: Some(pkg_name_and_version),
             support: PkgSupport {
                 os: None,
                 arch: None,

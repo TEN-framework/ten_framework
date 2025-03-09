@@ -25,16 +25,21 @@ pub struct FsEntry {
     pub is_dir: bool,
 }
 
+#[derive(Serialize, Deserialize)]
+pub struct ListDirRequestPayload {
+    path: String,
+}
+
 #[derive(Serialize, Deserialize, Debug)]
-pub struct DirListResponse {
+pub struct DirListResponseData {
     pub entries: Vec<FsEntry>,
 }
 
 pub async fn list_dir(
-    path: web::Path<String>,
+    request_payload: web::Json<ListDirRequestPayload>,
     _state: web::Data<Arc<RwLock<DesignerState>>>,
 ) -> impl Responder {
-    let path_str = path.into_inner();
+    let path_str = request_payload.path.clone();
     let path_obj = Path::new(&path_str);
 
     // If the path does not exist, return 404.
@@ -80,7 +85,7 @@ pub async fn list_dir(
 
     let response = ApiResponse {
         status: Status::Ok,
-        data: DirListResponse { entries },
+        data: DirListResponseData { entries },
         meta: None,
     };
     HttpResponse::Ok().json(response)
@@ -93,10 +98,10 @@ mod tests {
 
     use super::*;
     use actix_web::{test, App};
+    use std::collections::HashMap;
     use std::fs::{self, File};
     use std::io::Write;
     use tempfile::tempdir;
-    use urlencoding::encode;
 
     #[actix_web::test]
     async fn test_list_dir_with_file_path() {
@@ -108,38 +113,39 @@ mod tests {
 
         // Initialize DesignerState.
         let state = web::Data::new(Arc::new(RwLock::new(DesignerState {
-            base_dir: None,
-            all_pkgs: None,
             tman_config: TmanConfig::default(),
             out: Arc::new(Box::new(TmanOutputCli)),
+            pkgs_cache: HashMap::new(),
         })));
 
         // Configure the `list_dir` route.
-        let app = test::init_service(App::new().app_data(state.clone()).route(
-            "/api/designer/v1/dir-list/{path}",
-            web::get().to(list_dir),
-        ))
+        let app = test::init_service(
+            App::new()
+                .app_data(state.clone())
+                .route("/api/designer/v1/dir-list", web::post().to(list_dir)),
+        )
         .await;
 
         // Construct the request.
         let req_path = file_path.to_string_lossy().to_string();
-        let encoded_path = encode(&req_path);
-        let req = test::TestRequest::get()
-            .uri(&format!("/api/designer/v1/dir-list/{}", encoded_path))
+
+        let req = test::TestRequest::post()
+            .uri("/api/designer/v1/dir-list")
+            .set_json(ListDirRequestPayload { path: req_path })
             .to_request();
+
         let resp = test::call_service(&app, req).await;
 
         assert!(resp.status().is_success());
 
         let body = test::read_body(resp).await;
-        let response: ApiResponse<DirListResponse> =
+        let response: ApiResponse<DirListResponseData> =
             serde_json::from_slice(&body).unwrap();
 
         assert_eq!(response.status, Status::Ok);
         assert_eq!(response.data.entries.len(), 1);
         let entry = &response.data.entries[0];
         assert_eq!(entry.name, "test_file.txt");
-        assert_eq!(entry.path, req_path);
         assert!(!entry.is_dir);
     }
 
@@ -158,31 +164,31 @@ mod tests {
 
         // Initialize DesignerState.
         let state = web::Data::new(Arc::new(RwLock::new(DesignerState {
-            base_dir: None,
-            all_pkgs: None,
             tman_config: TmanConfig::default(),
             out: Arc::new(Box::new(TmanOutputCli)),
+            pkgs_cache: HashMap::new(),
         })));
 
         // Configure the `list_dir` route.
-        let app = test::init_service(App::new().app_data(state.clone()).route(
-            "/api/designer/v1/dir-list/{path}",
-            web::get().to(list_dir),
-        ))
+        let app = test::init_service(
+            App::new()
+                .app_data(state.clone())
+                .route("/api/designer/v1/dir-list", web::post().to(list_dir)),
+        )
         .await;
 
         // Construct the request.
         let req_path = dir.path().to_string_lossy().to_string();
-        let encoded_path = encode(&req_path);
-        let req = test::TestRequest::get()
-            .uri(&format!("/api/designer/v1/dir-list/{}", encoded_path))
+        let req = test::TestRequest::post()
+            .uri("/api/designer/v1/dir-list")
+            .set_json(ListDirRequestPayload { path: req_path })
             .to_request();
         let resp = test::call_service(&app, req).await;
 
         assert!(resp.status().is_success());
 
         let body = test::read_body(resp).await;
-        let response: ApiResponse<DirListResponse> =
+        let response: ApiResponse<DirListResponseData> =
             serde_json::from_slice(&body).unwrap();
 
         assert_eq!(response.status, Status::Ok);
@@ -201,24 +207,28 @@ mod tests {
     #[actix_web::test]
     async fn test_list_dir_with_non_existing_path() {
         let state = web::Data::new(Arc::new(RwLock::new(DesignerState {
-            base_dir: None,
-            all_pkgs: None,
             tman_config: TmanConfig::default(),
             out: Arc::new(Box::new(TmanOutputCli)),
+            pkgs_cache: HashMap::new(),
         })));
 
-        let app = test::init_service(App::new().app_data(state.clone()).route(
-            "/api/designer/v1/dir-list/{path}",
-            web::get().to(list_dir),
-        ))
+        let app = test::init_service(
+            App::new()
+                .app_data(state.clone())
+                .route("/api/designer/v1/dir-list", web::post().to(list_dir)),
+        )
         .await;
 
         // Construct an invalid path.
         let non_existing_path = "/path/to/nonexistent".to_string();
-        let encoded_path = encode(&non_existing_path);
-        let req = test::TestRequest::get()
-            .uri(&format!("/api/designer/v1/dir-list/{}", encoded_path))
+
+        let req = test::TestRequest::post()
+            .uri("/api/designer/v1/dir-list")
+            .set_json(ListDirRequestPayload {
+                path: non_existing_path,
+            })
             .to_request();
+
         let resp = test::call_service(&app, req).await;
 
         assert_eq!(resp.status(), actix_web::http::StatusCode::NOT_FOUND);

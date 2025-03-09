@@ -16,28 +16,33 @@ use super::{
     DesignerState,
 };
 
+#[derive(Deserialize)]
+pub struct GetFileContentRequestPayload {
+    pub file_path: String,
+}
+
 #[derive(Serialize, Deserialize, Debug)]
-struct FileContentResponse {
+struct GetFileContentResponseData {
     content: String,
 }
 
 pub async fn get_file_content(
-    path: web::Path<String>,
+    request_payload: web::Json<GetFileContentRequestPayload>,
     state: web::Data<Arc<RwLock<DesignerState>>>,
 ) -> impl Responder {
-    let file_path = path.into_inner();
+    let file_path = request_payload.file_path.clone();
 
     match fs::read_to_string(&file_path) {
         Ok(content) => {
             let response = ApiResponse {
                 status: Status::Ok,
-                data: FileContentResponse { content },
+                data: GetFileContentResponseData { content },
                 meta: None,
             };
             HttpResponse::Ok().json(response)
         }
         Err(err) => {
-            state.read().unwrap().out.output_err_line(&format!(
+            state.read().unwrap().out.error_line(&format!(
                 "Error reading file at path {}: {}",
                 file_path, err
             ));
@@ -54,24 +59,24 @@ pub async fn get_file_content(
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct SaveFileRequest {
+pub struct SaveFileRequestPayload {
+    file_path: String,
     content: String,
 }
 
 pub async fn save_file_content(
-    path: web::Path<String>,
-    req: web::Json<SaveFileRequest>,
+    request_payload: web::Json<SaveFileRequestPayload>,
     state: web::Data<Arc<RwLock<DesignerState>>>,
-) -> HttpResponse {
-    let file_path_str = path.into_inner();
-    let content = &req.content; // Access the content field.
+) -> impl Responder {
+    let file_path_str = request_payload.file_path.clone();
+    let content = &request_payload.content; // Access the content field.
 
     let file_path = Path::new(&file_path_str);
 
     // Attempt to create parent directories if they don't exist.
     if let Some(parent) = file_path.parent() {
         if let Err(e) = fs::create_dir_all(parent) {
-            state.read().unwrap().out.output_err_line(&format!(
+            state.read().unwrap().out.error_line(&format!(
                 "Error creating directories for {}: {}",
                 parent.display(),
                 e
@@ -97,7 +102,7 @@ pub async fn save_file_content(
             HttpResponse::Ok().json(response)
         }
         Err(err) => {
-            state.read().unwrap().out.output_err_line(&format!(
+            state.read().unwrap().out.error_line(&format!(
                 "Error writing file at path {}: {}",
                 file_path.display(),
                 err

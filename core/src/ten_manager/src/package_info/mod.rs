@@ -4,6 +4,7 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
+pub mod get_all_pkgs;
 pub mod predefined_graphs;
 
 use std::{path::Path, sync::Arc};
@@ -33,7 +34,7 @@ pub fn tman_get_all_installed_pkgs_info_of_app(
 ) -> Result<Vec<PkgInfo>> {
     let pkgs_info = get_app_installed_pkgs_to_hashmap(app_path)?;
     if tman_config.verbose {
-        out.output_line(&format!("{:?}", pkgs_info));
+        out.normal_line(&format!("{:?}", pkgs_info));
     }
     Ok(pkgs_info.into_values().collect())
 }
