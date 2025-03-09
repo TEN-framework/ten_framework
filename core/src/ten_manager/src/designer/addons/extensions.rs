@@ -17,14 +17,19 @@ use crate::designer::{
         get_designer_api_data_likes_from_pkg,
         get_designer_property_hashmap_from_pkg,
     },
-    get_all_pkgs::get_all_pkgs,
     graphs::nodes::DesignerApi,
     response::{ApiResponse, ErrorResponse, Status},
     DesignerState,
 };
 
+#[derive(Serialize, Deserialize)]
+pub struct GetExtensionAddonsRequestPayload {
+    base_dir: String,
+    addon_name: Option<String>,
+}
+
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
-struct DesignerExtensionAddon {
+struct GetExtensionAddonsResponseData {
     #[serde(rename = "name")]
     addon_name: String,
 
@@ -34,42 +39,10 @@ struct DesignerExtensionAddon {
     pub api: Option<DesignerApi>,
 }
 
-fn retrieve_extension_addons(
-    state: &mut DesignerState,
-) -> Result<Vec<DesignerExtensionAddon>, ErrorResponse> {
-    if let Err(err) = get_all_pkgs(state) {
-        return Err(ErrorResponse::from_error(
-            &err,
-            "Error fetching packages:",
-        ));
-    }
-
-    if let Some(all_pkgs) = &state.all_pkgs {
-        let extensions = all_pkgs
-            .iter()
-            .filter(|pkg| {
-                pkg.basic_info.type_and_name.pkg_type == PkgType::Extension
-            })
-            .map(|pkg_info_with_src| {
-                map_pkg_to_extension_addon(pkg_info_with_src)
-            })
-            .collect();
-
-        Ok(extensions)
-    } else {
-        Err(ErrorResponse {
-            status: Status::Fail,
-            message: "Base directory or package information is not set"
-                .to_string(),
-            error: None,
-        })
-    }
-}
-
 fn map_pkg_to_extension_addon(
     pkg_info_with_src: &PkgInfo,
-) -> DesignerExtensionAddon {
-    DesignerExtensionAddon {
+) -> GetExtensionAddonsResponseData {
+    GetExtensionAddonsResponseData {
         addon_name: pkg_info_with_src.basic_info.type_and_name.name.clone(),
         url: pkg_info_with_src.url.clone(),
         api: pkg_info_with_src.api.as_ref().map(|api| DesignerApi {
@@ -136,69 +109,69 @@ fn map_pkg_to_extension_addon(
     }
 }
 
-pub async fn get_extension_addons(
+pub async fn get_extension_addon(
+    request_payload: web::Json<GetExtensionAddonsRequestPayload>,
     state: web::Data<Arc<RwLock<DesignerState>>>,
 ) -> impl Responder {
-    let mut state = state.write().unwrap();
+    let state = state.read().unwrap();
+    let base_dir = request_payload.base_dir.clone();
 
-    match retrieve_extension_addons(&mut state) {
-        Ok(extensions) => {
+    let all_extensions: Vec<GetExtensionAddonsResponseData> = state
+        .pkgs_cache
+        .get(&base_dir)
+        .unwrap()
+        .iter()
+        .filter(|pkg| {
+            pkg.basic_info.type_and_name.pkg_type == PkgType::Extension
+        })
+        .map(map_pkg_to_extension_addon)
+        .collect();
+
+    if let Some(addon_name) = &request_payload.addon_name {
+        if let Some(extension) = all_extensions
+            .into_iter()
+            .find(|ext| &ext.addon_name == addon_name)
+        {
             let response = ApiResponse {
                 status: Status::Ok,
-                data: extensions,
+                data: extension,
                 meta: None,
             };
             HttpResponse::Ok().json(response)
+        } else {
+            let error_response = ErrorResponse {
+                status: Status::Fail,
+                message: format!(
+                    "Extension addon with name '{}' not found",
+                    addon_name
+                ),
+                error: None,
+            };
+            HttpResponse::NotFound().json(error_response)
         }
-        Err(error_response) => HttpResponse::BadRequest().json(error_response),
-    }
-}
-
-pub async fn get_extension_addon_by_name(
-    state: web::Data<Arc<RwLock<DesignerState>>>,
-    path: web::Path<String>,
-) -> impl Responder {
-    let addon_name = path.into_inner();
-    let mut state = state.write().unwrap();
-
-    match retrieve_extension_addons(&mut state) {
-        Ok(extensions) => {
-            if let Some(extension) = extensions
-                .into_iter()
-                .find(|ext| ext.addon_name == addon_name)
-            {
-                let response = ApiResponse {
-                    status: Status::Ok,
-                    data: extension,
-                    meta: None,
-                };
-                HttpResponse::Ok().json(response)
-            } else {
-                let error_response = ErrorResponse {
-                    status: Status::Fail,
-                    message: format!(
-                        "Extension addon with name '{}' not found",
-                        addon_name
-                    ),
-                    error: None,
-                };
-                HttpResponse::NotFound().json(error_response)
-            }
-        }
-        Err(error_response) => HttpResponse::BadRequest().json(error_response),
+    } else {
+        let response = ApiResponse {
+            status: Status::Ok,
+            data: all_extensions,
+            meta: None,
+        };
+        HttpResponse::Ok().json(response)
     }
 }
 
 #[cfg(test)]
 mod tests {
+    use std::collections::HashMap;
+
     use crate::{
         config::TmanConfig,
+        constants::TEST_DIR,
         designer::{
             graphs::nodes::{
                 DesignerApiCmdLike, DesignerApiDataLike,
                 DesignerPropertyAttributes, DesignerPropertyItem,
             },
-            mock::tests::inject_all_pkgs_for_mock,
+            mock::inject_all_pkgs_for_mock,
         },
         output::TmanOutputCli,
     };
@@ -209,10 +182,9 @@ mod tests {
     #[actix_web::test]
     async fn test_get_extension_addons() {
         let mut designer_state = DesignerState {
-            base_dir: None,
-            all_pkgs: None,
             tman_config: TmanConfig::default(),
             out: Arc::new(Box::new(TmanOutputCli)),
+            pkgs_cache: HashMap::new(),
         };
 
         let all_pkgs_json = vec![
@@ -237,8 +209,11 @@ mod tests {
             ),
         ];
 
-        let inject_ret =
-            inject_all_pkgs_for_mock(&mut designer_state, all_pkgs_json);
+        let inject_ret = inject_all_pkgs_for_mock(
+            TEST_DIR,
+            &mut designer_state.pkgs_cache,
+            all_pkgs_json,
+        );
         assert!(inject_ret.is_ok());
 
         let designer_state = Arc::new(RwLock::new(designer_state));
@@ -246,13 +221,19 @@ mod tests {
         let app = test::init_service(
             App::new().app_data(web::Data::new(designer_state)).route(
                 "/api/designer/v1/addons/extensions",
-                web::get().to(get_extension_addons),
+                web::post().to(get_extension_addon),
             ),
         )
         .await;
 
-        let req = test::TestRequest::get()
+        let request_payload = GetExtensionAddonsRequestPayload {
+            base_dir: TEST_DIR.to_string(),
+            addon_name: None,
+        };
+
+        let req = test::TestRequest::post()
             .uri("/api/designer/v1/addons/extensions")
+            .set_json(request_payload)
             .to_request();
         let resp = test::call_service(&app, req).await;
 
@@ -261,11 +242,11 @@ mod tests {
         let body = test::read_body(resp).await;
         let body_str = std::str::from_utf8(&body).unwrap();
 
-        let addons: ApiResponse<Vec<DesignerExtensionAddon>> =
+        let addons: ApiResponse<Vec<GetExtensionAddonsResponseData>> =
             serde_json::from_str(body_str).unwrap();
 
         let expected_addons = vec![
-            DesignerExtensionAddon {
+            GetExtensionAddonsResponseData {
                 addon_name: "extension_addon_1".to_string(),
                 url: "".to_string(),
                 api: Some(DesignerApi {
@@ -314,7 +295,7 @@ mod tests {
                     video_frame_out: None,
                 }),
             },
-            DesignerExtensionAddon {
+            GetExtensionAddonsResponseData {
                 addon_name: "extension_addon_2".to_string(),
                 url: "".to_string(),
                 api: Some(DesignerApi {
@@ -383,7 +364,7 @@ mod tests {
                     video_frame_out: None,
                 }),
             },
-            DesignerExtensionAddon {
+            GetExtensionAddonsResponseData {
                 addon_name: "extension_addon_3".to_string(),
                 url: "".to_string(),
                 api: Some(DesignerApi {
@@ -421,7 +402,7 @@ mod tests {
 
         assert_eq!(addons.data, expected_addons);
 
-        let json: ApiResponse<Vec<DesignerExtensionAddon>> =
+        let json: ApiResponse<Vec<GetExtensionAddonsResponseData>> =
             serde_json::from_str(body_str).unwrap();
         let pretty_json = serde_json::to_string_pretty(&json).unwrap();
 
@@ -431,10 +412,9 @@ mod tests {
     #[actix_web::test]
     async fn test_get_extension_addon_by_name() {
         let mut designer_state = DesignerState {
-            base_dir: None,
-            all_pkgs: None,
             tman_config: TmanConfig::default(),
             out: Arc::new(Box::new(TmanOutputCli)),
+            pkgs_cache: HashMap::new(),
         };
 
         let all_pkgs_json = vec![
@@ -459,8 +439,11 @@ mod tests {
             ),
         ];
 
-        let inject_ret =
-            inject_all_pkgs_for_mock(&mut designer_state, all_pkgs_json);
+        let inject_ret = inject_all_pkgs_for_mock(
+            TEST_DIR,
+            &mut designer_state.pkgs_cache,
+            all_pkgs_json,
+        );
         assert!(inject_ret.is_ok());
 
         let designer_state = Arc::new(RwLock::new(designer_state));
@@ -469,14 +452,20 @@ mod tests {
             App::new()
                 .app_data(web::Data::new(designer_state.clone()))
                 .route(
-                    "/api/designer/v1/addons/extensions/{name}",
-                    web::get().to(get_extension_addon_by_name),
+                    "/api/designer/v1/addons/extensions",
+                    web::post().to(get_extension_addon),
                 ),
         )
         .await;
 
-        let req = test::TestRequest::get()
-            .uri("/api/designer/v1/addons/extensions/extension_addon_1")
+        let request_payload = GetExtensionAddonsRequestPayload {
+            base_dir: TEST_DIR.to_string(),
+            addon_name: Some("extension_addon_1".to_string()),
+        };
+
+        let req = test::TestRequest::post()
+            .uri("/api/designer/v1/addons/extensions")
+            .set_json(request_payload)
             .to_request();
         let resp = test::call_service(&app, req).await;
 
@@ -485,10 +474,10 @@ mod tests {
         let body = test::read_body(resp).await;
         let body_str = std::str::from_utf8(&body).unwrap();
 
-        let addon: ApiResponse<DesignerExtensionAddon> =
+        let addon: ApiResponse<GetExtensionAddonsResponseData> =
             serde_json::from_str(body_str).unwrap();
 
-        let expected_addon = DesignerExtensionAddon {
+        let expected_addon = GetExtensionAddonsResponseData {
             addon_name: "extension_addon_1".to_string(),
             url: "".to_string(),
             api: Some(DesignerApi {
@@ -540,8 +529,14 @@ mod tests {
 
         assert_eq!(addon.data, expected_addon);
 
-        let req = test::TestRequest::get()
-            .uri("/api/designer/v1/addons/extensions/non_existent_addon")
+        let request_payload = GetExtensionAddonsRequestPayload {
+            base_dir: TEST_DIR.to_string(),
+            addon_name: Some("non_existent_addon".to_string()),
+        };
+
+        let req = test::TestRequest::post()
+            .uri("/api/designer/v1/addons/extensions")
+            .set_json(request_payload)
             .to_request();
         let resp = test::call_service(&app, req).await;
 

@@ -4,7 +4,10 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-use std::sync::{Arc, RwLock};
+use std::{
+    collections::HashMap,
+    sync::{Arc, RwLock},
+};
 
 use actix_web::{http::StatusCode, test, web, App};
 
@@ -12,82 +15,74 @@ use ten_manager::{
     config::TmanConfig,
     designer::{
         graphs::{
-            connections::{get_graph_connections, DesignerConnection},
-            get_graphs, RespGraph,
+            connections::{
+                get_graph_connections, GetGraphConnectionsRequestPayload,
+                GetGraphConnectionsSingleResponseData,
+            },
+            get_graphs, GetGraphsRequestPayload, GetGraphsResponseData,
         },
-        response::{ApiResponse, ErrorResponse},
+        mock::inject_all_pkgs_for_mock,
+        response::ApiResponse,
         DesignerState,
     },
     output::TmanOutputCli,
 };
 
 #[actix_rt::test]
-async fn test_cmd_designer_graphs_some_property_invalid() {
-    let designer_state = DesignerState {
-        base_dir: Some(
-            "tests/test_data/cmd_designer_graphs_some_property_invalid"
-                .to_string(),
-        ),
-        all_pkgs: None,
-        tman_config: TmanConfig::default(),
-        out: Arc::new(Box::new(TmanOutputCli)),
-    };
-
-    let designer_state = Arc::new(RwLock::new(designer_state));
-    let app = test::init_service(
-        App::new()
-            .app_data(web::Data::new(designer_state))
-            .route("/api/designer/v1/graphs", web::get().to(get_graphs)),
-    )
-    .await;
-
-    let req = test::TestRequest::get()
-        .uri("/api/designer/v1/graphs")
-        .to_request();
-    let resp = test::call_service(&app, req).await;
-    assert_eq!(resp.status(), StatusCode::NOT_FOUND);
-
-    let body = test::read_body(resp).await;
-    let body_str = std::str::from_utf8(&body).unwrap();
-    let json: ErrorResponse = serde_json::from_str(body_str).unwrap();
-
-    let pretty_json = serde_json::to_string_pretty(&json).unwrap();
-    println!("Response body: {}", pretty_json);
-
-    let root_cause = json.error.unwrap().message;
-    assert!(root_cause
-        .contains("Either all nodes should have 'app' declared, or none should, but not a mix of both"));
-}
-
-#[actix_rt::test]
 async fn test_cmd_designer_graphs_app_property_not_exist() {
-    let designer_state = DesignerState {
-        base_dir: Some(
-            "tests/test_data/cmd_designer_graphs_app_property_not_exist"
-                .to_string(),
-        ),
-        all_pkgs: None,
+    let mut designer_state = DesignerState {
         tman_config: TmanConfig::default(),
         out: Arc::new(Box::new(TmanOutputCli)),
+        pkgs_cache: HashMap::new(),
     };
+
+    let all_pkgs_json = vec![
+      (
+          include_str!("test_data/cmd_designer_graphs_app_property_not_exist/manifest.json").to_string(),
+          "{}".to_string(),
+      ),
+      (
+          include_str!("test_data/cmd_designer_graphs_app_property_not_exist/ten_packages/extension/addon_a/manifest.json")
+              .to_string(),
+          "{}".to_string(),
+      ),
+      (
+          include_str!("test_data/cmd_designer_graphs_app_property_not_exist/ten_packages/extension/addon_b/manifest.json")
+              .to_string(),
+          "{}".to_string(),
+      ),
+    ];
+
+    let inject_ret = inject_all_pkgs_for_mock(
+        "tests/test_data/cmd_designer_graphs_app_property_not_exist",
+        &mut designer_state.pkgs_cache,
+        all_pkgs_json,
+    );
+    assert!(inject_ret.is_ok());
 
     let designer_state = Arc::new(RwLock::new(designer_state));
     let app = test::init_service(
         App::new()
             .app_data(web::Data::new(designer_state))
-            .route("/api/designer/v1/graphs", web::get().to(get_graphs)),
+            .route("/api/designer/v1/graphs", web::post().to(get_graphs)),
     )
     .await;
 
-    let req = test::TestRequest::get()
+    let request_payload = GetGraphsRequestPayload {
+        base_dir: "tests/test_data/cmd_designer_graphs_app_property_not_exist"
+            .to_string(),
+    };
+
+    let req = test::TestRequest::post()
         .uri("/api/designer/v1/graphs")
+        .set_json(&request_payload)
         .to_request();
     let resp = test::call_service(&app, req).await;
     assert_eq!(resp.status(), StatusCode::OK);
 
     let body = test::read_body(resp).await;
     let body_str = std::str::from_utf8(&body).unwrap();
-    let json: ApiResponse<Vec<RespGraph>> =
+    let json: ApiResponse<Vec<GetGraphsResponseData>> =
         serde_json::from_str(body_str).unwrap();
 
     let pretty_json = serde_json::to_string_pretty(&json).unwrap();
@@ -98,34 +93,61 @@ async fn test_cmd_designer_graphs_app_property_not_exist() {
 
 #[actix_rt::test]
 async fn test_cmd_designer_connections_has_msg_conversion() {
-    let designer_state = DesignerState {
-        base_dir: Some(
-            "tests/test_data/cmd_designer_connections_has_msg_conversion"
-                .to_string(),
-        ),
-        all_pkgs: None,
+    let mut designer_state = DesignerState {
         tman_config: TmanConfig::default(),
         out: Arc::new(Box::new(TmanOutputCli)),
+        pkgs_cache: HashMap::new(),
     };
+
+    let all_pkgs_json = vec![
+        (
+            include_str!("test_data/cmd_designer_connections_has_msg_conversion/manifest.json").to_string(),
+            include_str!("test_data/cmd_designer_connections_has_msg_conversion/property.json").to_string(),
+        ),
+        (
+            include_str!("test_data/cmd_designer_connections_has_msg_conversion/ten_packages/extension/addon_a/manifest.json")
+                .to_string(),
+            "{}".to_string(),
+        ),
+        (
+            include_str!("test_data/cmd_designer_connections_has_msg_conversion/ten_packages/extension/addon_b/manifest.json")
+                .to_string(),
+            "{}".to_string(),
+        ),
+    ];
+
+    let inject_ret = inject_all_pkgs_for_mock(
+        "tests/test_data/cmd_designer_connections_has_msg_conversion",
+        &mut designer_state.pkgs_cache,
+        all_pkgs_json,
+    );
+    assert!(inject_ret.is_ok());
 
     let designer_state = Arc::new(RwLock::new(designer_state));
     let app = test::init_service(
         App::new().app_data(web::Data::new(designer_state)).route(
-            "/api/designer/v1/graphs/{graph_name}/connections",
-            web::get().to(get_graph_connections),
+            "/api/designer/v1/graphs/connections",
+            web::post().to(get_graph_connections),
         ),
     )
     .await;
 
-    let req = test::TestRequest::get()
-        .uri("/api/designer/v1/graphs/default/connections")
+    let request_payload = GetGraphConnectionsRequestPayload {
+        base_dir: "tests/test_data/cmd_designer_connections_has_msg_conversion"
+            .to_string(),
+        graph_name: "default".to_string(),
+    };
+
+    let req = test::TestRequest::post()
+        .uri("/api/designer/v1/graphs/connections")
+        .set_json(&request_payload)
         .to_request();
     let resp = test::call_service(&app, req).await;
     assert_eq!(resp.status(), StatusCode::OK);
 
     let body = test::read_body(resp).await;
     let body_str = std::str::from_utf8(&body).unwrap();
-    let json: ApiResponse<Vec<DesignerConnection>> =
+    let json: ApiResponse<Vec<GetGraphConnectionsSingleResponseData>> =
         serde_json::from_str(body_str).unwrap();
 
     let pretty_json = serde_json::to_string_pretty(&json).unwrap();

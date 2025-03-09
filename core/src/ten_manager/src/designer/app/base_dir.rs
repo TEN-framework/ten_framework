@@ -18,36 +18,66 @@ use crate::{
         DesignerState,
     },
     fs::check_is_app_folder,
+    package_info::get_all_pkgs::get_all_pkgs,
 };
 
 #[derive(Deserialize, Serialize, Debug)]
-pub struct SetBaseDirRequest {
+pub struct AddBaseDirRequestPayload {
     pub base_dir: String,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct SetBaseDirResponse {
+pub struct AddBaseDirResponseData {
+    pub success: bool,
+}
+
+#[derive(Deserialize, Serialize, Debug)]
+pub struct DeleteBaseDirRequestPayload {
+    pub base_dir: String,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct DeleteBaseDirResponseData {
     pub success: bool,
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
-pub struct GetBaseDirResponse {
-    pub base_dir: Option<String>,
+pub struct GetBaseDirResponseData {
+    pub base_dirs: Option<Vec<String>>,
 }
 
-pub async fn set_base_dir(
-    req: web::Json<SetBaseDirRequest>,
+pub async fn add_base_dir(
+    request_payload: web::Json<AddBaseDirRequestPayload>,
     state: web::Data<Arc<RwLock<DesignerState>>>,
 ) -> impl Responder {
     let mut state = state.write().unwrap();
 
-    match check_is_app_folder(Path::new(&req.base_dir)) {
-        Ok(_) => {
-            // Update base_dir.
-            state.base_dir = Some(req.base_dir.clone());
+    if state.pkgs_cache.contains_key(&request_payload.base_dir) {
+        let error_response = ErrorResponse::from_error(
+            &anyhow::anyhow!("Base dir already exists"),
+            "Base dir already exists",
+        );
+        return HttpResponse::NotFound().json(error_response);
+    }
 
-            // Reset the all_pkgs, so that it will be reloaded when needed.
-            state.all_pkgs = None;
+    match check_is_app_folder(Path::new(&request_payload.base_dir)) {
+        Ok(_) => {
+            let DesignerState {
+                tman_config,
+                pkgs_cache,
+                out,
+            } = &mut *state;
+
+            if let Err(err) = get_all_pkgs(
+                tman_config,
+                pkgs_cache,
+                &request_payload.base_dir,
+                out,
+            ) {
+                let error_response =
+                    ErrorResponse::from_error(&err, "Error fetching packages:");
+                return HttpResponse::NotFound().json(error_response);
+            }
 
             let response = ApiResponse {
                 status: Status::Ok,
@@ -60,7 +90,8 @@ pub async fn set_base_dir(
         Err(err) => {
             let error_response = ErrorResponse::from_error(
                 &err,
-                format!("{} is not an app folder: ", &req.base_dir).as_str(),
+                format!("{} is not an app folder: ", &request_payload.base_dir)
+                    .as_str(),
             );
             HttpResponse::NotFound().json(error_response)
         }
@@ -73,28 +104,48 @@ pub async fn get_base_dir(
     let state = state.read().unwrap();
     let response = ApiResponse {
         status: Status::Ok,
-        data: GetBaseDirResponse {
-            base_dir: state.base_dir.clone(),
+        data: GetBaseDirResponseData {
+            base_dirs: (!state.pkgs_cache.is_empty())
+                .then(|| state.pkgs_cache.keys().cloned().collect()),
         },
         meta: None,
     };
     HttpResponse::Ok().json(response)
 }
 
+pub async fn delete_base_dir(
+    request_payload: web::Json<DeleteBaseDirRequestPayload>,
+    state: web::Data<Arc<RwLock<DesignerState>>>,
+) -> impl Responder {
+    let mut state = state.write().unwrap();
+    state.pkgs_cache.remove(&request_payload.base_dir);
+
+    let response = ApiResponse {
+        status: Status::Ok,
+        data: serde_json::json!({ "success": true }),
+        meta: None,
+    };
+
+    HttpResponse::Ok().json(response)
+}
+
 #[cfg(test)]
 mod tests {
+    use std::collections::HashMap;
+
     use actix_web::{test, App};
 
     use super::*;
-    use crate::{config::TmanConfig, output::TmanOutputCli};
+    use crate::{
+        config::TmanConfig, constants::TEST_DIR, output::TmanOutputCli,
+    };
 
     #[actix_web::test]
-    async fn test_set_base_dir_success() {
+    async fn test_add_base_dir_fail() {
         let designer_state = DesignerState {
-            base_dir: Some("/initial/path".to_string()),
-            all_pkgs: Some(vec![]),
             tman_config: TmanConfig::default(),
             out: Arc::new(Box::new(TmanOutputCli)),
+            pkgs_cache: HashMap::new(),
         };
         let designer_state = Arc::new(RwLock::new(designer_state));
 
@@ -103,21 +154,21 @@ mod tests {
                 .app_data(web::Data::new(designer_state.clone()))
                 .route(
                     "/api/designer/v1/app/base-dir",
-                    web::put().to(set_base_dir),
+                    web::post().to(add_base_dir),
                 ),
         )
         .await;
 
-        let new_base_dir = SetBaseDirRequest {
+        let new_base_dir = AddBaseDirRequestPayload {
             base_dir: "/not/a/correct/app/folder/path".to_string(),
         };
 
-        let req = test::TestRequest::put()
+        let req = test::TestRequest::post()
             .uri("/api/designer/v1/app/base-dir")
             .set_json(&new_base_dir)
             .to_request();
         let resp: Result<
-            ApiResponse<SetBaseDirResponse>,
+            ApiResponse<AddBaseDirResponseData>,
             std::boxed::Box<dyn std::error::Error>,
         > = test::try_call_and_read_body_json(&app, req).await;
 
@@ -127,11 +178,11 @@ mod tests {
     #[actix_web::test]
     async fn test_get_base_dir_some() {
         let designer_state = DesignerState {
-            base_dir: Some("/initial/path".to_string()),
-            all_pkgs: Some(vec![]),
             tman_config: TmanConfig::default(),
             out: Arc::new(Box::new(TmanOutputCli)),
+            pkgs_cache: HashMap::new(),
         };
+
         let designer_state = Arc::new(RwLock::new(designer_state));
 
         let app = test::init_service(
@@ -144,17 +195,24 @@ mod tests {
         )
         .await;
 
+        designer_state
+            .write()
+            .unwrap()
+            .pkgs_cache
+            .insert(TEST_DIR.to_string(), vec![]);
+
         let req = test::TestRequest::get()
             .uri("/api/designer/v1/app/base-dir")
             .to_request();
-        let resp: ApiResponse<GetBaseDirResponse> =
+
+        let resp: ApiResponse<GetBaseDirResponseData> =
             test::call_and_read_body_json(&app, req).await;
 
         assert_eq!(resp.status, Status::Ok);
         assert_eq!(
             resp.data,
-            GetBaseDirResponse {
-                base_dir: Some("/initial/path".to_string())
+            GetBaseDirResponseData {
+                base_dirs: Some(vec![TEST_DIR.to_string()])
             }
         );
     }
@@ -162,10 +220,9 @@ mod tests {
     #[actix_web::test]
     async fn test_get_base_dir_none() {
         let designer_state = DesignerState {
-            base_dir: None,
-            all_pkgs: Some(vec![]),
             tman_config: TmanConfig::default(),
             out: Arc::new(Box::new(TmanOutputCli)),
+            pkgs_cache: HashMap::new(),
         };
         let designer_state = Arc::new(RwLock::new(designer_state));
 
@@ -182,10 +239,11 @@ mod tests {
         let req = test::TestRequest::get()
             .uri("/api/designer/v1/app/base-dir")
             .to_request();
-        let resp: ApiResponse<GetBaseDirResponse> =
+
+        let resp: ApiResponse<GetBaseDirResponseData> =
             test::call_and_read_body_json(&app, req).await;
 
         assert_eq!(resp.status, Status::Ok);
-        assert_eq!(resp.data, GetBaseDirResponse { base_dir: None });
+        assert_eq!(resp.data, GetBaseDirResponseData { base_dirs: None });
     }
 }

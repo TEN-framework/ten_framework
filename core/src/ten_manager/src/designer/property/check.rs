@@ -12,71 +12,59 @@ use serde::{Deserialize, Serialize};
 use ten_rust::pkg_info::pkg_type::PkgType;
 
 use crate::designer::{
-    common::CheckTypeQuery,
-    get_all_pkgs::get_all_pkgs,
     response::{ApiResponse, ErrorResponse, Status},
     DesignerState,
 };
 
 #[derive(Serialize, Deserialize)]
-struct CheckResponse {
+pub struct CheckPropertyRequestPayload {
+    base_dir: String,
+
+    #[serde(rename = "type")]
+    check_type: String,
+}
+
+#[derive(Serialize, Deserialize)]
+struct CheckPropertyResponseData {
     is_dirty: bool,
 }
 
 pub async fn check_property(
+    request_payload: web::Json<CheckPropertyRequestPayload>,
     state: web::Data<Arc<RwLock<DesignerState>>>,
-    query: web::Query<CheckTypeQuery>,
 ) -> impl Responder {
-    {
-        // Fetch all packages if not already done.
-        let mut state = state.write().unwrap();
-
-        if let Err(err) = get_all_pkgs(&mut state) {
-            let error_response =
-                ErrorResponse::from_error(&err, "Error fetching packages:");
-            return HttpResponse::NotFound().json(error_response);
-        }
-    }
-
     let state = state.read().unwrap();
-    if let Some(pkgs) = &state.all_pkgs {
-        if let Some(app_pkg) = pkgs
-            .iter()
-            .find(|pkg| pkg.basic_info.type_and_name.pkg_type == PkgType::App)
-        {
-            match query.0.check_type.as_str() {
-                "dirty" => match app_pkg.is_property_equal_to_fs() {
-                    Ok(is_dirty) => {
-                        let response = ApiResponse {
-                            status: Status::Ok,
-                            data: CheckResponse { is_dirty },
-                            meta: None,
-                        };
+    let all_pkgs = state.pkgs_cache.get(&request_payload.base_dir).unwrap();
 
-                        HttpResponse::Ok().json(response)
-                    }
-                    Err(err) => {
-                        let error_response = ErrorResponse::from_error(
-                            &err,
-                            "Failed to check property:",
-                        );
-                        HttpResponse::NotFound().json(error_response)
-                    }
-                },
-                _ => HttpResponse::BadRequest().body("Invalid check type"),
-            }
-        } else {
-            let error_response = ErrorResponse {
-                status: Status::Fail,
-                message: "Failed to find app package.".to_string(),
-                error: None,
-            };
-            HttpResponse::NotFound().json(error_response)
+    if let Some(app_pkg) = all_pkgs
+        .iter()
+        .find(|pkg| pkg.basic_info.type_and_name.pkg_type == PkgType::App)
+    {
+        match request_payload.check_type.as_str() {
+            "dirty" => match app_pkg.is_property_equal_to_fs() {
+                Ok(is_dirty) => {
+                    let response = ApiResponse {
+                        status: Status::Ok,
+                        data: CheckPropertyResponseData { is_dirty },
+                        meta: None,
+                    };
+
+                    HttpResponse::Ok().json(response)
+                }
+                Err(err) => {
+                    let error_response = ErrorResponse::from_error(
+                        &err,
+                        "Failed to check property:",
+                    );
+                    HttpResponse::NotFound().json(error_response)
+                }
+            },
+            _ => HttpResponse::BadRequest().body("Invalid check type"),
         }
     } else {
         let error_response = ErrorResponse {
             status: Status::Fail,
-            message: "Package information is missing".to_string(),
+            message: "Failed to find app package.".to_string(),
             error: None,
         };
         HttpResponse::NotFound().json(error_response)
@@ -85,21 +73,23 @@ pub async fn check_property(
 
 #[cfg(test)]
 mod tests {
+    use std::collections::HashMap;
+    use std::vec;
+
+    use actix_web::{test, App};
+
     use super::*;
     use crate::{
-        config::TmanConfig, designer::mock::tests::inject_all_pkgs_for_mock,
-        output::TmanOutputCli,
+        config::TmanConfig, constants::TEST_DIR,
+        designer::mock::inject_all_pkgs_for_mock, output::TmanOutputCli,
     };
-    use actix_web::{test, App};
-    use std::vec;
 
     #[actix_web::test]
     async fn test_check_property_is_not_dirty() {
         let mut designer_state = DesignerState {
-            base_dir: None,
-            all_pkgs: None,
             tman_config: TmanConfig::default(),
             out: Arc::new(Box::new(TmanOutputCli)),
+            pkgs_cache: HashMap::new(),
         };
 
         // The first item is 'manifest.json', and the second item is
@@ -109,21 +99,30 @@ mod tests {
             include_str!("test_data_embed/app_property.json").to_string(),
         )];
 
-        let inject_ret =
-            inject_all_pkgs_for_mock(&mut designer_state, all_pkgs_json);
+        let inject_ret = inject_all_pkgs_for_mock(
+            TEST_DIR,
+            &mut designer_state.pkgs_cache,
+            all_pkgs_json,
+        );
         assert!(inject_ret.is_ok());
 
         let designer_state = Arc::new(RwLock::new(designer_state));
         let app = test::init_service(
             App::new().app_data(web::Data::new(designer_state)).route(
                 "/api/designer/v1/property/check",
-                web::get().to(check_property),
+                web::post().to(check_property),
             ),
         )
         .await;
 
-        let req = test::TestRequest::get()
-            .uri("/api/designer/v1/property/check?type=dirty")
+        let request_payload = CheckPropertyRequestPayload {
+            base_dir: TEST_DIR.to_string(),
+            check_type: "dirty".to_string(),
+        };
+
+        let req = test::TestRequest::post()
+            .uri("/api/designer/v1/property/check")
+            .set_json(request_payload)
             .to_request();
         let resp = test::call_service(&app, req).await;
 
@@ -132,7 +131,7 @@ mod tests {
         let body = test::read_body(resp).await;
         let body_str = std::str::from_utf8(&body).unwrap();
 
-        let check_response: ApiResponse<CheckResponse> =
+        let check_response: ApiResponse<CheckPropertyResponseData> =
             serde_json::from_str(body_str).unwrap();
 
         assert!(!check_response.data.is_dirty);

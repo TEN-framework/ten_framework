@@ -12,18 +12,20 @@ mod dir_list;
 mod exec;
 mod file_content;
 pub mod frontend;
-mod get_all_pkgs;
 pub mod graphs;
 mod manifest;
 mod messages;
-mod mock;
+pub mod mock;
 mod packages;
 mod property;
 pub mod response;
 mod terminal;
 mod version;
 
-use std::sync::{Arc, RwLock};
+use std::{
+    collections::HashMap,
+    sync::{Arc, RwLock},
+};
 
 use actix_web::web;
 
@@ -32,10 +34,9 @@ use ten_rust::pkg_info::PkgInfo;
 use super::config::TmanConfig;
 use crate::output::TmanOutput;
 pub struct DesignerState {
-    pub base_dir: Option<String>,
-    pub all_pkgs: Option<Vec<PkgInfo>>,
     pub tman_config: TmanConfig,
     pub out: Arc<Box<dyn TmanOutput>>,
+    pub pkgs_cache: HashMap<String, Vec<PkgInfo>>,
 }
 
 pub fn configure_routes(
@@ -52,35 +53,26 @@ pub fn configure_routes(
             )
             .route(
                 "/addons/extensions",
-                web::get().to(addons::extensions::get_extension_addons),
-            )
-            .route(
-                "/addons/extensions/{name}",
-                web::get().to(addons::extensions::get_extension_addon_by_name),
+                web::post().to(addons::extensions::get_extension_addon),
             )
             .route(
                 "/packages/reload",
                 web::post().to(packages::reload::clear_and_reload_pkgs),
             )
-            .route("/graphs", web::get().to(graphs::get_graphs))
+            .route("/graphs", web::post().to(graphs::get_graphs))
+            .route("/graphs", web::put().to(graphs::update::update_graph))
             .route(
-                "/graphs/{graph_name}/nodes",
-                web::get().to(graphs::nodes::get_graph_nodes),
+                "/graphs/nodes",
+                web::post().to(graphs::nodes::get_graph_nodes),
             )
             .route(
-                "/graphs/{graph_name}/connections",
-                web::get().to(graphs::connections::get_graph_connections),
+                "/graphs/connections",
+                web::post().to(graphs::connections::get_graph_connections),
             )
-            .route(
-                "/graphs/{graph_name}",
-                web::put().to(graphs::update::update_graph),
-            )
-            .route("/manifest", web::put().to(manifest::dump::dump_manifest))
             .route(
                 "/manifest/check",
-                web::get().to(manifest::check::check_manifest),
+                web::post().to(manifest::check::check_manifest),
             )
-            .route("/property", web::put().to(property::dump::dump_property))
             .route(
                 "/property/check",
                 web::get().to(property::check::check_property),
@@ -90,16 +82,20 @@ pub fn configure_routes(
                 web::post().to(messages::compatible::get_compatible_messages),
             )
             .route(
-                "/file-content/{path}",
-                web::get().to(file_content::get_file_content),
+                "/file-content",
+                web::post().to(file_content::get_file_content),
             )
             .route(
-                "/file-content/{path}",
+                "/file-content",
                 web::put().to(file_content::save_file_content),
             )
-            .route("/app/base-dir", web::put().to(app::base_dir::set_base_dir))
+            .route("/app/base-dir", web::post().to(app::base_dir::add_base_dir))
+            .route(
+                "/app/base-dir",
+                web::delete().to(app::base_dir::delete_base_dir),
+            )
             .route("/app/base-dir", web::get().to(app::base_dir::get_base_dir))
-            .route("/dir-list/{path}", web::get().to(dir_list::list_dir))
+            .route("/dir-list", web::post().to(dir_list::list_dir))
             .route("/ws/exec", web::get().to(exec::exec))
             .route(
                 "/ws/builtin-function",
