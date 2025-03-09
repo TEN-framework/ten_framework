@@ -202,3 +202,8 @@ ten_addon_t *ten_addon_unregister_extension(const char *name) {
 void ten_addon_unregister_all_extension(void) {
   ten_addon_store_del_all(ten_extension_get_global_store());
 }
+
+void ten_addon_unregister_all_extension_ex(
+    ten_addon_store_on_all_addons_deinit_done_cb_t cb, void *cb_data) {
+  ten_addon_store_del_all_ex(ten_extension_get_global_store(), cb, cb_data);
+}

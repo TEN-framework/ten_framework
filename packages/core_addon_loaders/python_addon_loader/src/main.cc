@@ -115,6 +115,7 @@ class python_addon_loader_t : public ten::addon_loader_t {
     int py_initialized = ten_py_is_initialized();
     if (py_initialized != 0) {
       TEN_LOGI("[Python addon loader] Python runtime has been initialized.");
+      on_init_done();
       return;
     }
 
@@ -162,6 +163,8 @@ class python_addon_loader_t : public ten::addon_loader_t {
     app_base_dir = nullptr;
 
     py_thread_state_ = ten_py_eval_save_thread();
+
+    on_init_done();
   }
 
   void on_deinit() override {
@@ -180,6 +183,8 @@ class python_addon_loader_t : public ten::addon_loader_t {
         TEN_ASSERT(0, "Should not happen.");
       }
     }
+
+    on_deinit_done();
   }
 
   // **Note:** This function, used to dynamically load other addons, may be
