@@ -17,12 +17,16 @@ use super::{
     connections::GetGraphConnectionsSingleResponseData,
     nodes::GetGraphNodesSingleResponseData,
 };
+use crate::designer::app::base_dir::get_base_dir_from_pkgs_cache;
 use crate::designer::response::{ApiResponse, ErrorResponse, Status};
 use crate::designer::DesignerState;
 
 #[derive(Deserialize, Serialize, Debug, PartialEq, Clone)]
 pub struct GraphUpdateRequestPayload {
-    pub base_dir: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(default)]
+    pub base_dir: Option<String>,
+
     pub graph_name: String,
 
     pub auto_start: bool,
@@ -38,10 +42,25 @@ pub struct GraphUpdateResponseData {
 pub async fn update_graph(
     request_payload: web::Json<GraphUpdateRequestPayload>,
     state: web::Data<Arc<RwLock<DesignerState>>>,
-) -> impl Responder {
-    let mut state = state.write().unwrap();
+) -> Result<impl Responder, actix_web::Error> {
+    let mut state_write = state.write().unwrap();
 
-    if let Some(pkgs) = state.pkgs_cache.get_mut(&request_payload.base_dir) {
+    let base_dir = match get_base_dir_from_pkgs_cache(
+        request_payload.base_dir.clone(),
+        &state_write.pkgs_cache,
+    ) {
+        Ok(base_dir) => base_dir,
+        Err(e) => {
+            let error_response = ErrorResponse {
+                status: Status::Fail,
+                message: e.to_string(),
+                error: None,
+            };
+            return Ok(HttpResponse::BadRequest().json(error_response));
+        }
+    };
+
+    if let Some(pkgs) = state_write.pkgs_cache.get_mut(&base_dir) {
         if let Some(app_pkg) = pkgs
             .iter_mut()
             .find(|pkg| pkg.basic_info.type_and_name.pkg_type == PkgType::App)
@@ -77,7 +96,9 @@ pub async fn update_graph(
                             &err,
                             "Invalid input data:",
                         );
-                        return HttpResponse::NotFound().json(error_response);
+                        return Ok(
+                            HttpResponse::NotFound().json(error_response)
+                        );
                     }
                 };
 
@@ -90,14 +111,14 @@ pub async fn update_graph(
                 meta: None,
             };
 
-            HttpResponse::Ok().json(response)
+            Ok(HttpResponse::Ok().json(response))
         } else {
             let error_response = ErrorResponse {
                 status: Status::Fail,
                 message: "Failed to find app package.".to_string(),
                 error: None,
             };
-            HttpResponse::NotFound().json(error_response)
+            Ok(HttpResponse::NotFound().json(error_response))
         }
     } else {
         let error_response = ErrorResponse {
@@ -105,7 +126,7 @@ pub async fn update_graph(
             message: "Package information is missing".to_string(),
             error: None,
         };
-        HttpResponse::NotFound().json(error_response)
+        Ok(HttpResponse::NotFound().json(error_response))
     }
 }
 

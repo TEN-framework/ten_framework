@@ -16,13 +16,16 @@ use serde::{Deserialize, Serialize};
 use ten_rust::pkg_info::pkg_type::PkgType;
 
 use super::{
+    app::base_dir::get_base_dir_from_pkgs_cache,
     response::{ApiResponse, ErrorResponse, Status},
     DesignerState,
 };
 
 #[derive(Serialize, Deserialize)]
 pub struct GetGraphsRequestPayload {
-    pub base_dir: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(default)]
+    pub base_dir: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
@@ -35,9 +38,24 @@ pub async fn get_graphs(
     request_payload: web::Json<GetGraphsRequestPayload>,
     state: web::Data<Arc<RwLock<DesignerState>>>,
 ) -> Result<impl Responder, actix_web::Error> {
-    let state = state.read().unwrap();
+    let state_read = state.read().unwrap();
 
-    if let Some(pkgs) = &state.pkgs_cache.get(&request_payload.base_dir) {
+    let base_dir = match get_base_dir_from_pkgs_cache(
+        request_payload.base_dir.clone(),
+        &state_read.pkgs_cache,
+    ) {
+        Ok(base_dir) => base_dir,
+        Err(e) => {
+            let error_response = ErrorResponse {
+                status: Status::Fail,
+                message: e.to_string(),
+                error: None,
+            };
+            return Ok(HttpResponse::BadRequest().json(error_response));
+        }
+    };
+
+    if let Some(pkgs) = &state_read.pkgs_cache.get(&base_dir) {
         if let Some(app_pkg) = pkgs
             .iter()
             .find(|pkg| pkg.basic_info.type_and_name.pkg_type == PkgType::App)
@@ -136,7 +154,7 @@ mod tests {
         .await;
 
         let request_payload = GetGraphsRequestPayload {
-            base_dir: TEST_DIR.to_string(),
+            base_dir: Some(TEST_DIR.to_string()),
         };
 
         let req = test::TestRequest::post()
@@ -188,7 +206,7 @@ mod tests {
         .await;
 
         let request_payload = GetGraphsRequestPayload {
-            base_dir: TEST_DIR.to_string(),
+            base_dir: Some(TEST_DIR.to_string()),
         };
 
         let req = test::TestRequest::post()

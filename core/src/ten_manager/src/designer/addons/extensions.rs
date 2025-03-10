@@ -12,6 +12,7 @@ use serde::{Deserialize, Serialize};
 use ten_rust::pkg_info::{pkg_type::PkgType, PkgInfo};
 
 use crate::designer::{
+    app::base_dir::get_base_dir_from_pkgs_cache,
     common::{
         get_designer_api_cmd_likes_from_pkg,
         get_designer_api_data_likes_from_pkg,
@@ -24,8 +25,13 @@ use crate::designer::{
 
 #[derive(Serialize, Deserialize)]
 pub struct GetExtensionAddonsRequestPayload {
-    base_dir: String,
-    addon_name: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(default)]
+    pub base_dir: Option<String>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(default)]
+    pub addon_name: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
@@ -112,11 +118,25 @@ fn map_pkg_to_extension_addon(
 pub async fn get_extension_addon(
     request_payload: web::Json<GetExtensionAddonsRequestPayload>,
     state: web::Data<Arc<RwLock<DesignerState>>>,
-) -> impl Responder {
-    let state = state.read().unwrap();
-    let base_dir = request_payload.base_dir.clone();
+) -> Result<impl Responder, actix_web::Error> {
+    let state_read = state.read().unwrap();
 
-    let all_extensions: Vec<GetExtensionAddonsResponseData> = state
+    let base_dir = match get_base_dir_from_pkgs_cache(
+        request_payload.base_dir.clone(),
+        &state_read.pkgs_cache,
+    ) {
+        Ok(base_dir) => base_dir,
+        Err(e) => {
+            let error_response = ErrorResponse {
+                status: Status::Fail,
+                message: e.to_string(),
+                error: None,
+            };
+            return Ok(HttpResponse::BadRequest().json(error_response));
+        }
+    };
+
+    let all_extensions: Vec<GetExtensionAddonsResponseData> = state_read
         .pkgs_cache
         .get(&base_dir)
         .unwrap()
@@ -137,7 +157,7 @@ pub async fn get_extension_addon(
                 data: extension,
                 meta: None,
             };
-            HttpResponse::Ok().json(response)
+            Ok(HttpResponse::Ok().json(response))
         } else {
             let error_response = ErrorResponse {
                 status: Status::Fail,
@@ -147,7 +167,7 @@ pub async fn get_extension_addon(
                 ),
                 error: None,
             };
-            HttpResponse::NotFound().json(error_response)
+            Ok(HttpResponse::NotFound().json(error_response))
         }
     } else {
         let response = ApiResponse {
@@ -155,7 +175,7 @@ pub async fn get_extension_addon(
             data: all_extensions,
             meta: None,
         };
-        HttpResponse::Ok().json(response)
+        Ok(HttpResponse::Ok().json(response))
     }
 }
 
@@ -227,7 +247,7 @@ mod tests {
         .await;
 
         let request_payload = GetExtensionAddonsRequestPayload {
-            base_dir: TEST_DIR.to_string(),
+            base_dir: Some(TEST_DIR.to_string()),
             addon_name: None,
         };
 
@@ -459,7 +479,7 @@ mod tests {
         .await;
 
         let request_payload = GetExtensionAddonsRequestPayload {
-            base_dir: TEST_DIR.to_string(),
+            base_dir: Some(TEST_DIR.to_string()),
             addon_name: Some("extension_addon_1".to_string()),
         };
 
@@ -530,7 +550,7 @@ mod tests {
         assert_eq!(addon.data, expected_addon);
 
         let request_payload = GetExtensionAddonsRequestPayload {
-            base_dir: TEST_DIR.to_string(),
+            base_dir: Some(TEST_DIR.to_string()),
             addon_name: Some("non_existent_addon".to_string()),
         };
 

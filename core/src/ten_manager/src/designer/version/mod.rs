@@ -33,7 +33,7 @@ struct CheckUpdateResponseData {
 
 pub async fn get_version(
     _state: web::Data<Arc<RwLock<DesignerState>>>,
-) -> impl Responder {
+) -> Result<impl Responder, actix_web::Error> {
     let version_info = GetVersionResponseData {
         version: VERSION.to_string(),
     };
@@ -44,10 +44,11 @@ pub async fn get_version(
         meta: None,
     };
 
-    HttpResponse::Ok().json(response)
+    Ok(HttpResponse::Ok().json(response))
 }
 
-pub async fn check_update_endpoint() -> impl Responder {
+pub async fn check_update_endpoint() -> Result<impl Responder, actix_web::Error>
+{
     match check_update().await {
         Ok((true, latest)) => {
             let update_info = CheckUpdateResponseData {
@@ -61,7 +62,7 @@ pub async fn check_update_endpoint() -> impl Responder {
                 data: update_info,
                 meta: None,
             };
-            HttpResponse::Ok().json(response)
+            Ok(HttpResponse::Ok().json(response))
         }
         Ok((false, _)) => {
             let update_info = CheckUpdateResponseData {
@@ -75,7 +76,7 @@ pub async fn check_update_endpoint() -> impl Responder {
                 data: update_info,
                 meta: None,
             };
-            HttpResponse::Ok().json(response)
+            Ok(HttpResponse::Ok().json(response))
         }
         Err(err_msg) => {
             let update_info = CheckUpdateResponseData {
@@ -89,7 +90,7 @@ pub async fn check_update_endpoint() -> impl Responder {
                 data: update_info,
                 meta: None,
             };
-            HttpResponse::Ok().json(response)
+            Ok(HttpResponse::Ok().json(response))
         }
     }
 }
