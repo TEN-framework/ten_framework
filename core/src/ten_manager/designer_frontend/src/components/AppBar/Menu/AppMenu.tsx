@@ -37,7 +37,7 @@ import {
 import {
   APP_FOLDER_POPUP_ID,
   APP_PREFERENCES_POPUP_ID,
-} from "@/components/Popup/AppPopup";
+} from "@/constants/widgets";
 
 export function AppMenu() {
   const { t } = useTranslation();

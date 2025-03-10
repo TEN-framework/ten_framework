@@ -18,13 +18,6 @@ import { GHStargazersCount, GHTryTENAgent } from "@/components/Widget/GH";
 import { Version } from "@/components/AppBar/Version";
 import { cn } from "@/lib/utils";
 import { TEN_FRAMEWORK_GH_OWNER, TEN_FRAMEWORK_GH_REPO } from "@/constants";
-import { useWidgetStore } from "@/store/widget";
-import { GRAPH_SELECT_POPUP_ID } from "@/components/Popup/GraphSelectPopup";
-import {
-  EDefaultWidgetType,
-  EWidgetCategory,
-  EWidgetDisplayType,
-} from "@/types/widgets";
 
 interface AppBarProps {
   onAutoLayout: () => void;
@@ -32,8 +25,6 @@ interface AppBarProps {
 }
 
 export default function AppBar({ onAutoLayout, className }: AppBarProps) {
-  const { appendWidgetIfNotExists } = useWidgetStore();
-
   const onNavChange = () => {
     setTimeout(() => {
       const triggers = document.querySelectorAll(
@@ -47,17 +38,6 @@ export default function AppBar({ onAutoLayout, className }: AppBarProps) {
         "--menu-left-position",
         `${firstTrigger.offsetLeft}px`
       );
-    });
-  };
-
-  const onOpenExistingGraph = () => {
-    appendWidgetIfNotExists({
-      id: GRAPH_SELECT_POPUP_ID,
-      category: EWidgetCategory.Default,
-      display_type: EWidgetDisplayType.Popup,
-      metadata: {
-        type: EDefaultWidgetType.GraphSelect,
-      },
     });
   };
 
@@ -75,10 +55,7 @@ export default function AppBar({ onAutoLayout, className }: AppBarProps) {
       <NavigationMenu onValueChange={onNavChange}>
         <NavigationMenuList>
           <AppMenu />
-          <GraphMenu
-            onAutoLayout={onAutoLayout}
-            onOpenExistingGraph={onOpenExistingGraph}
-          />
+          <GraphMenu onAutoLayout={onAutoLayout} />
           <HelpMenu />
         </NavigationMenuList>
       </NavigationMenu>
