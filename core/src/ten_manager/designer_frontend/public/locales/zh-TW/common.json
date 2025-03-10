@@ -5,6 +5,7 @@
     "menu": {
       "graph": "圖譜",
       "openExistingGraph": "開啟現有圖譜",
+      "openExtensionStore": "開啟擴充功能商店",
       "autoLayout": "自動佈局",
       "openAppFolder": "開啟應用程式資料夾",
       "file": "檔案",

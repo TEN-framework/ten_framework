@@ -103,6 +103,7 @@ export enum EDefaultWidgetType {
   About = "about",
   Preferences = "preferences",
   AppFolder = "app_folder",
+  ExtensionStore = "extension_store",
 }
 
 export interface IDefaultWidget extends IWidgetBase {

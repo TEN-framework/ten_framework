@@ -6,6 +6,7 @@
     "menu": {
       "graph": "Graph",
       "openExistingGraph": "Open Existing Graph",
+      "openExtensionStore": "Open Extension Store",
       "autoLayout": "Auto Layout",
       "openAppFolder": "Open App Folder",
       "file": "File",

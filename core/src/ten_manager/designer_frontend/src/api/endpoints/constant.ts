@@ -30,3 +30,8 @@ export enum ENDPOINT_METHOD {
 
 // Github
 export const API_GH_ROOT = "https://api.github.com";
+
+// Extension Store
+export const API_REMOTE_EXTENSION_STORE_ROOT =
+  import.meta.env.VITE_TSTORE_ENDPOINT || "https://ten-store.theten.ai";
+export const API_EXTENSION_STORE_ROOT_PATH = "/ten-store";

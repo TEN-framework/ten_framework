@@ -19,6 +19,7 @@ import { LogViewerPopup } from "@/components/Popup/LogViewerPopup";
 import { GraphSelectPopup } from "@/components/Popup/GraphSelectPopup";
 import { AboutPopup } from "@/components/Popup/AboutPopup";
 import { AppFolderPopup, PreferencesPopup } from "@/components/Popup/AppPopup";
+import { ExtensionStorePopup } from "@/components/Popup/ExtensionStorePopup";
 
 export function GlobalPopups() {
   const { widgets, removeWidget } = useWidgetStore();
@@ -105,6 +106,10 @@ export function GlobalPopups() {
             return <AppFolderPopup key={`AppPopup-${widget.id}`} />;
           case EDefaultWidgetType.Preferences:
             return <PreferencesPopup key={`PreferencesPopup-${widget.id}`} />;
+          case EDefaultWidgetType.ExtensionStore:
+            return (
+              <ExtensionStorePopup key={`ExtensionStorePopup-${widget.id}`} />
+            );
         }
       })}
     </>

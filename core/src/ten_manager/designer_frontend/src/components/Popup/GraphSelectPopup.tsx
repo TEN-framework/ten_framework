@@ -24,10 +24,9 @@ import {
   useGraphs,
 } from "@/api/services/graphs";
 import { useWidgetStore, useFlowStore } from "@/store";
+import { GRAPH_SELECT_POPUP_ID } from "@/constants/widgets";
 
 import type { CustomNodeType } from "@/flow/CustomNode";
-
-export const GRAPH_SELECT_POPUP_ID = "graph-select-popup";
 
 export function GraphSelectPopup() {
   const { t } = useTranslation();

@@ -13,7 +13,7 @@ import type { ENDPOINT_METHOD } from "@/api/endpoints/constant";
 export const prepareReqUrl = (
   reqTemplate: IReqTemplate<ENDPOINT_METHOD, unknown>,
   opts?: {
-    query?: Record<string, string>;
+    query?: Record<string, string | undefined>;
     pathParams?: Record<string, string>;
   }
 ): string => {
@@ -24,9 +24,12 @@ export const prepareReqUrl = (
   if (opts?.query) {
     const searchParams = new URLSearchParams();
     Object.entries(opts.query).forEach(([key, value]) => {
-      searchParams.append(key, value);
+      if (value !== undefined) {
+        searchParams.append(key, value);
+      }
     });
-    url = `${url}?${searchParams.toString()}`;
+    const searchParamsStr = searchParams.toString();
+    url = searchParamsStr ? `${url}?${searchParamsStr}` : url;
     logger.debug(
       { scope: "api", module: "utils", data: { url } },
       "append query params"
@@ -75,7 +78,7 @@ export const prepareReqUrl = (
 export const parseReq = <T extends ENDPOINT_METHOD>(
   reqTemplate: IReqTemplate<T, unknown>,
   opts?: {
-    query?: Record<string, string>;
+    query?: Record<string, string | undefined>;
     pathParams?: Record<string, string>;
     body?: Record<string, unknown>;
   },
@@ -113,7 +116,7 @@ export const parseReq = <T extends ENDPOINT_METHOD>(
 export const makeAPIRequest = async <T extends ENDPOINT_METHOD, R = unknown>(
   reqTemplate: IReqTemplate<T, R>,
   opts?: {
-    query?: Record<string, string>;
+    query?: Record<string, string | undefined>;
     pathParams?: Record<string, string>;
     body?: Record<string, unknown>;
   }
