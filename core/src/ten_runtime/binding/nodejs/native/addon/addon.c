@@ -386,6 +386,12 @@ static void proxy_on_destroy_instance(ten_addon_t *addon, ten_env_t *ten_env,
                  ten_nodejs_extension_check_integrity(extension_bridge, false),
              "Should not happen.");
 
+  ten_extension_t *extension = extension_bridge->c_extension;
+  TEN_ASSERT(extension, "Should not happen.");
+
+  ten_ref_dec_ref(&extension->addon_host->ref);
+  extension->addon_host = NULL;
+
   ten_env_on_destroy_instance_done(ten_env, context, NULL);
 }
 
