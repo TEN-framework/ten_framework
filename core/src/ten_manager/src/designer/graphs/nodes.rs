@@ -10,7 +10,7 @@ use std::{
 };
 
 use actix_web::{web, HttpResponse, Responder};
-use anyhow::anyhow;
+use anyhow::{anyhow, Result};
 use serde::{Deserialize, Serialize};
 
 use ten_rust::pkg_info::{
@@ -27,17 +27,23 @@ use ten_rust::pkg_info::{
     predefined_graphs::extension::get_extension_nodes_in_graph,
 };
 
-use crate::designer::common::{
-    get_designer_api_cmd_likes_from_pkg, get_designer_api_data_likes_from_pkg,
-    get_designer_property_hashmap_from_pkg,
-};
 use crate::designer::response::{ApiResponse, ErrorResponse, Status};
 use crate::designer::DesignerState;
+use crate::designer::{
+    app::base_dir::get_base_dir_from_pkgs_cache,
+    common::{
+        get_designer_api_cmd_likes_from_pkg,
+        get_designer_api_data_likes_from_pkg,
+        get_designer_property_hashmap_from_pkg,
+    },
+};
 
 #[derive(Serialize, Deserialize)]
 pub struct GetGraphNodesRequestPayload {
-    base_dir: String,
-    graph_name: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(default)]
+    pub base_dir: Option<String>,
+    pub graph_name: String,
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
@@ -254,10 +260,25 @@ fn get_designer_property_items_from_pkg(
 pub async fn get_graph_nodes(
     request_payload: web::Json<GetGraphNodesRequestPayload>,
     state: web::Data<Arc<RwLock<DesignerState>>>,
-) -> impl Responder {
-    let state = state.read().unwrap();
+) -> Result<impl Responder, actix_web::Error> {
+    let state_read = state.read().unwrap();
 
-    if let Some(all_pkgs) = &state.pkgs_cache.get(&request_payload.base_dir) {
+    let base_dir = match get_base_dir_from_pkgs_cache(
+        request_payload.base_dir.clone(),
+        &state_read.pkgs_cache,
+    ) {
+        Ok(base_dir) => base_dir,
+        Err(e) => {
+            let error_response = ErrorResponse {
+                status: Status::Fail,
+                message: e.to_string(),
+                error: None,
+            };
+            return Ok(HttpResponse::BadRequest().json(error_response));
+        }
+    };
+
+    if let Some(all_pkgs) = &state_read.pkgs_cache.get(&base_dir) {
         let graph_name = &request_payload.graph_name;
 
         let extension_graph_nodes =
@@ -272,7 +293,7 @@ pub async fn get_graph_nodes(
                         )
                         .as_str(),
                     );
-                    return HttpResponse::NotFound().json(error_response);
+                    return Ok(HttpResponse::NotFound().json(error_response));
                 }
             };
 
@@ -375,7 +396,9 @@ pub async fn get_graph_nodes(
                             &e,
                             "This graph node's content is not a valid graph node.",
                         );
-                        return HttpResponse::NotFound().json(error_response);
+                        return Ok(
+                            HttpResponse::NotFound().json(error_response)
+                        );
                     }
                 }
             }
@@ -387,14 +410,14 @@ pub async fn get_graph_nodes(
             meta: None,
         };
 
-        HttpResponse::Ok().json(response)
+        Ok(HttpResponse::Ok().json(response))
     } else {
         let error_response = ErrorResponse {
             status: Status::Fail,
             message: "Package information is missing".to_string(),
             error: None,
         };
-        HttpResponse::NotFound().json(error_response)
+        Ok(HttpResponse::NotFound().json(error_response))
     }
 }
 
@@ -458,7 +481,7 @@ mod tests {
         .await;
 
         let request_payload = GetGraphNodesRequestPayload {
-            base_dir: TEST_DIR.to_string(),
+            base_dir: Some(TEST_DIR.to_string()),
             graph_name: "default".to_string(),
         };
 
@@ -672,7 +695,7 @@ mod tests {
         .await;
 
         let request_payload = GetGraphNodesRequestPayload {
-            base_dir: TEST_DIR.to_string(),
+            base_dir: Some(TEST_DIR.to_string()),
             graph_name: "no_existing_graph".to_string(),
         };
 
@@ -740,7 +763,7 @@ mod tests {
         .await;
 
         let request_payload = GetGraphNodesRequestPayload {
-            base_dir: TEST_DIR.to_string(),
+            base_dir: Some(TEST_DIR.to_string()),
             graph_name: "addon_not_found".to_string(),
         };
 

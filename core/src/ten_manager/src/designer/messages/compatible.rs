@@ -22,13 +22,16 @@ use ten_rust::pkg_info::{
 };
 
 use crate::designer::{
+    app::base_dir::get_base_dir_from_pkgs_cache,
     response::{ApiResponse, ErrorResponse, Status},
     DesignerState,
 };
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct GetCompatibleMsgsRequestPayload {
-    pub base_dir: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(default)]
+    pub base_dir: Option<String>,
 
     pub app: String,
     pub graph: String,
@@ -72,32 +75,48 @@ impl From<CompatibleExtensionAndMsg<'_>>
 pub async fn get_compatible_messages(
     request_payload: web::Json<GetCompatibleMsgsRequestPayload>,
     state: web::Data<Arc<RwLock<DesignerState>>>,
-) -> impl Responder {
-    let input = request_payload.into_inner();
-    let state = state.read().unwrap();
+) -> Result<impl Responder, actix_web::Error> {
+    let state_read = state.read().unwrap();
 
-    if let Some(all_pkgs) = state.pkgs_cache.get(&input.base_dir) {
-        let extensions =
-            match get_extension_nodes_in_graph(&input.graph, all_pkgs) {
-                Ok(exts) => exts,
-                Err(err) => {
-                    let error_response = ErrorResponse::from_error(
-                        &err,
-                        format!(
-                            "Error fetching runtime extensions for graph '{}'",
-                            input.graph
-                        )
-                        .as_str(),
-                    );
-                    return HttpResponse::NotFound().json(error_response);
-                }
+    let base_dir = match get_base_dir_from_pkgs_cache(
+        request_payload.base_dir.clone(),
+        &state_read.pkgs_cache,
+    ) {
+        Ok(base_dir) => base_dir,
+        Err(e) => {
+            let error_response = ErrorResponse {
+                status: Status::Fail,
+                message: e.to_string(),
+                error: None,
             };
+            return Ok(HttpResponse::BadRequest().json(error_response));
+        }
+    };
+
+    if let Some(all_pkgs) = state_read.pkgs_cache.get(&base_dir) {
+        let extensions = match get_extension_nodes_in_graph(
+            &request_payload.graph,
+            all_pkgs,
+        ) {
+            Ok(exts) => exts,
+            Err(err) => {
+                let error_response = ErrorResponse::from_error(
+                    &err,
+                    format!(
+                        "Error fetching runtime extensions for graph '{}'",
+                        request_payload.graph
+                    )
+                    .as_str(),
+                );
+                return Ok(HttpResponse::NotFound().json(error_response));
+            }
+        };
 
         let extension = match get_extension(
             &extensions,
-            &input.app,
-            &input.extension_group,
-            &input.extension,
+            &request_payload.app,
+            &request_payload.extension_group,
+            &request_payload.extension,
         ) {
             Ok(ext) => ext,
             Err(err) => {
@@ -105,43 +124,48 @@ pub async fn get_compatible_messages(
                     &err,
                     format!(
                         "Failed to find the extension: {}",
-                        input.extension
+                        request_payload.extension
                     )
                     .as_str(),
                 );
 
-                return HttpResponse::NotFound().json(error_response);
+                return Ok(HttpResponse::NotFound().json(error_response));
             }
         };
 
-        let msg_ty = match MsgType::from_str(&input.msg_type) {
+        let msg_ty = match MsgType::from_str(&request_payload.msg_type) {
             Ok(msg_ty) => msg_ty,
             Err(err) => {
                 let error_response = ErrorResponse::from_error(
                     &err,
-                    format!("Unsupported message type: {}", input.msg_type)
-                        .as_str(),
-                );
-                return HttpResponse::InternalServerError()
-                    .json(error_response);
-            }
-        };
-
-        let msg_dir = match MsgDirection::from_str(&input.msg_direction) {
-            Ok(msg_dir) => msg_dir,
-            Err(err) => {
-                let error_response = ErrorResponse::from_error(
-                    &err,
                     format!(
-                        "Unsupported message direction: {}",
-                        input.msg_direction
+                        "Unsupported message type: {}",
+                        request_payload.msg_type
                     )
                     .as_str(),
                 );
-                return HttpResponse::InternalServerError()
-                    .json(error_response);
+                return Ok(
+                    HttpResponse::InternalServerError().json(error_response)
+                );
             }
         };
+
+        let msg_dir =
+            match MsgDirection::from_str(&request_payload.msg_direction) {
+                Ok(msg_dir) => msg_dir,
+                Err(err) => {
+                    let error_response = ErrorResponse::from_error(
+                        &err,
+                        format!(
+                            "Unsupported message direction: {}",
+                            request_payload.msg_direction
+                        )
+                        .as_str(),
+                    );
+                    return Ok(HttpResponse::InternalServerError()
+                        .json(error_response));
+                }
+            };
 
         let mut desired_msg_dir = msg_dir.clone();
         desired_msg_dir.toggle();
@@ -152,11 +176,11 @@ pub async fn get_compatible_messages(
                 &anyhow::anyhow!("Extension not found"),
                 format!(
                     "Error fetching runtime extensions for graph '{}'",
-                    input.graph
+                    request_payload.graph
                 )
                 .as_str(),
             );
-            return HttpResponse::NotFound().json(error_response);
+            return Ok(HttpResponse::NotFound().json(error_response));
         }
 
         let pkg_info = pkg_info.unwrap();
@@ -166,12 +190,12 @@ pub async fn get_compatible_messages(
                 let src_cmd_schema =
                     pkg_info.schema_store.as_ref().and_then(|schema_store| {
                         match msg_dir {
-                            MsgDirection::In => {
-                                schema_store.cmd_in.get(input.msg_name.as_str())
-                            }
+                            MsgDirection::In => schema_store
+                                .cmd_in
+                                .get(request_payload.msg_name.as_str()),
                             MsgDirection::Out => schema_store
                                 .cmd_out
-                                .get(input.msg_name.as_str()),
+                                .get(request_payload.msg_name.as_str()),
                         }
                     });
 
@@ -180,7 +204,7 @@ pub async fn get_compatible_messages(
                     all_pkgs,
                     &desired_msg_dir,
                     src_cmd_schema,
-                    input.msg_name.as_str(),
+                    request_payload.msg_name.as_str(),
                 ) {
                     Ok(results) => results,
                     Err(err) => {
@@ -188,11 +212,13 @@ pub async fn get_compatible_messages(
                             &err,
                             format!(
                                 "Failed to find compatible cmd/{}:",
-                                input.msg_name
+                                request_payload.msg_name
                             )
                             .as_str(),
                         );
-                        return HttpResponse::NotFound().json(error_response);
+                        return Ok(
+                            HttpResponse::NotFound().json(error_response)
+                        );
                     }
                 };
 
@@ -205,26 +231,26 @@ pub async fn get_compatible_messages(
                             MsgType::Data => match msg_dir {
                                 MsgDirection::In => schema_store
                                     .data_in
-                                    .get(input.msg_name.as_str()),
+                                    .get(request_payload.msg_name.as_str()),
                                 MsgDirection::Out => schema_store
                                     .data_out
-                                    .get(input.msg_name.as_str()),
+                                    .get(request_payload.msg_name.as_str()),
                             },
                             MsgType::AudioFrame => match msg_dir {
                                 MsgDirection::In => schema_store
                                     .audio_frame_in
-                                    .get(input.msg_name.as_str()),
+                                    .get(request_payload.msg_name.as_str()),
                                 MsgDirection::Out => schema_store
                                     .audio_frame_out
-                                    .get(input.msg_name.as_str()),
+                                    .get(request_payload.msg_name.as_str()),
                             },
                             MsgType::VideoFrame => match msg_dir {
                                 MsgDirection::In => schema_store
                                     .video_frame_in
-                                    .get(input.msg_name.as_str()),
+                                    .get(request_payload.msg_name.as_str()),
                                 MsgDirection::Out => schema_store
                                     .video_frame_out
-                                    .get(input.msg_name.as_str()),
+                                    .get(request_payload.msg_name.as_str()),
                             },
                             _ => panic!("should not happen."),
                         }
@@ -236,7 +262,7 @@ pub async fn get_compatible_messages(
                     &desired_msg_dir,
                     src_msg_schema,
                     &msg_ty,
-                    input.msg_name.clone(),
+                    request_payload.msg_name.clone(),
                 ) {
                     Ok(results) => results,
                     Err(err) => {
@@ -244,11 +270,13 @@ pub async fn get_compatible_messages(
                             &err,
                             format!(
                                 "Failed to find compatible cmd/{}:",
-                                input.msg_name
+                                request_payload.msg_name
                             )
                             .as_str(),
                         );
-                        return HttpResponse::NotFound().json(error_response);
+                        return Ok(
+                            HttpResponse::NotFound().json(error_response)
+                        );
                     }
                 };
 
@@ -265,14 +293,14 @@ pub async fn get_compatible_messages(
             meta: None,
         };
 
-        HttpResponse::Ok().json(response)
+        Ok(HttpResponse::Ok().json(response))
     } else {
         let error_response = ErrorResponse {
             status: Status::Fail,
             message: "Package information is missing".to_string(),
             error: None,
         };
-        HttpResponse::NotFound().json(error_response)
+        Ok(HttpResponse::NotFound().json(error_response))
     }
 }
 

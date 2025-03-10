@@ -13,32 +13,34 @@ use rust_embed::RustEmbed;
 #[folder = "designer_frontend/dist/"]
 struct Asset;
 
-pub async fn get_frontend_asset(req: HttpRequest) -> impl Responder {
+pub async fn get_frontend_asset(
+    req: HttpRequest,
+) -> Result<impl Responder, actix_web::Error> {
     let path = req.path().trim_start_matches('/').to_owned();
 
     if path.is_empty() {
         // If the root path is requested, return `index.html`.
         match Asset::get("index.html") {
-            Some(content) => HttpResponse::Ok()
+            Some(content) => Ok(HttpResponse::Ok()
                 .content_type("text/html")
-                .body(content.data.into_owned()),
-            None => HttpResponse::NotFound().body("404 Not Found"),
+                .body(content.data.into_owned())),
+            None => Ok(HttpResponse::NotFound().body("404 Not Found")),
         }
     } else {
         match Asset::get(&path) {
             Some(content) => {
                 let mime = from_path(&path).first_or_octet_stream();
-                HttpResponse::Ok()
+                Ok(HttpResponse::Ok()
                     .content_type(mime.as_ref())
-                    .body(content.data.into_owned())
+                    .body(content.data.into_owned()))
             }
             // If the file is not found, return `index.html` to support React
             // Router.
             None => match Asset::get("index.html") {
-                Some(content) => HttpResponse::Ok()
+                Some(content) => Ok(HttpResponse::Ok()
                     .content_type("text/html")
-                    .body(content.data.into_owned()),
-                None => HttpResponse::NotFound().body("404 Not Found"),
+                    .body(content.data.into_owned())),
+                None => Ok(HttpResponse::NotFound().body("404 Not Found")),
             },
         }
     }

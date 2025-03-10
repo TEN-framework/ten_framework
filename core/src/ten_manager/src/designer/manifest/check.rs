@@ -12,13 +12,16 @@ use serde::{Deserialize, Serialize};
 use ten_rust::pkg_info::pkg_type::PkgType;
 
 use crate::designer::{
+    app::base_dir::get_base_dir_from_pkgs_cache,
     response::{ApiResponse, ErrorResponse, Status},
     DesignerState,
 };
 
 #[derive(Deserialize)]
 pub struct CheckManifestRequestPayload {
-    base_dir: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(default)]
+    pub base_dir: Option<String>,
 
     #[serde(rename = "type")]
     check_type: String,
@@ -32,9 +35,25 @@ struct CheckManifestResponseData {
 pub async fn check_manifest(
     request_payload: web::Json<CheckManifestRequestPayload>,
     state: web::Data<Arc<RwLock<DesignerState>>>,
-) -> impl Responder {
-    let state = state.read().unwrap();
-    let all_pkgs = state.pkgs_cache.get(&request_payload.base_dir).unwrap();
+) -> Result<impl Responder, actix_web::Error> {
+    let state_read = state.read().unwrap();
+
+    let base_dir = match get_base_dir_from_pkgs_cache(
+        request_payload.base_dir.clone(),
+        &state_read.pkgs_cache,
+    ) {
+        Ok(base_dir) => base_dir,
+        Err(e) => {
+            let error_response = ErrorResponse {
+                status: Status::Fail,
+                message: e.to_string(),
+                error: None,
+            };
+            return Ok(HttpResponse::BadRequest().json(error_response));
+        }
+    };
+
+    let all_pkgs = state_read.pkgs_cache.get(&base_dir).unwrap();
 
     if let Some(app_pkg) = all_pkgs
         .iter()
@@ -49,17 +68,17 @@ pub async fn check_manifest(
                         meta: None,
                     };
 
-                    HttpResponse::Ok().json(response)
+                    Ok(HttpResponse::Ok().json(response))
                 }
                 Err(err) => {
                     let error_response = ErrorResponse::from_error(
                         &err,
                         "Failed to check manifest:",
                     );
-                    HttpResponse::NotFound().json(error_response)
+                    Ok(HttpResponse::NotFound().json(error_response))
                 }
             },
-            _ => HttpResponse::BadRequest().body("Invalid check type"),
+            _ => Ok(HttpResponse::BadRequest().body("Invalid check type")),
         }
     } else {
         let error_response = ErrorResponse {
@@ -67,6 +86,6 @@ pub async fn check_manifest(
             message: "Failed to find app package.".to_string(),
             error: None,
         };
-        HttpResponse::NotFound().json(error_response)
+        Ok(HttpResponse::NotFound().json(error_response))
     }
 }

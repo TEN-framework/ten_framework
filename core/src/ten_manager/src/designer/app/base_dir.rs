@@ -5,12 +5,15 @@
 // Refer to the "LICENSE" file in the root directory for more information.
 //
 use std::{
+    collections::HashMap,
     path::Path,
     sync::{Arc, RwLock},
 };
 
 use actix_web::{web, HttpResponse, Responder};
+use anyhow::Result;
 use serde::{Deserialize, Serialize};
+use ten_rust::pkg_info::PkgInfo;
 
 use crate::{
     designer::{
@@ -49,7 +52,7 @@ pub struct GetBaseDirResponseData {
 pub async fn add_base_dir(
     request_payload: web::Json<AddBaseDirRequestPayload>,
     state: web::Data<Arc<RwLock<DesignerState>>>,
-) -> impl Responder {
+) -> Result<impl Responder, actix_web::Error> {
     let mut state = state.write().unwrap();
 
     if state.pkgs_cache.contains_key(&request_payload.base_dir) {
@@ -57,7 +60,7 @@ pub async fn add_base_dir(
             &anyhow::anyhow!("Base dir already exists"),
             "Base dir already exists",
         );
-        return HttpResponse::NotFound().json(error_response);
+        return Ok(HttpResponse::NotFound().json(error_response));
     }
 
     match check_is_app_folder(Path::new(&request_payload.base_dir)) {
@@ -76,7 +79,7 @@ pub async fn add_base_dir(
             ) {
                 let error_response =
                     ErrorResponse::from_error(&err, "Error fetching packages:");
-                return HttpResponse::NotFound().json(error_response);
+                return Ok(HttpResponse::NotFound().json(error_response));
             }
 
             let response = ApiResponse {
@@ -85,7 +88,7 @@ pub async fn add_base_dir(
                 meta: None,
             };
 
-            HttpResponse::Ok().json(response)
+            Ok(HttpResponse::Ok().json(response))
         }
         Err(err) => {
             let error_response = ErrorResponse::from_error(
@@ -93,14 +96,14 @@ pub async fn add_base_dir(
                 format!("{} is not an app folder: ", &request_payload.base_dir)
                     .as_str(),
             );
-            HttpResponse::NotFound().json(error_response)
+            Ok(HttpResponse::NotFound().json(error_response))
         }
     }
 }
 
 pub async fn get_base_dir(
     state: web::Data<Arc<RwLock<DesignerState>>>,
-) -> impl Responder {
+) -> Result<impl Responder, actix_web::Error> {
     let state = state.read().unwrap();
     let response = ApiResponse {
         status: Status::Ok,
@@ -110,13 +113,13 @@ pub async fn get_base_dir(
         },
         meta: None,
     };
-    HttpResponse::Ok().json(response)
+    Ok(HttpResponse::Ok().json(response))
 }
 
 pub async fn delete_base_dir(
     request_payload: web::Json<DeleteBaseDirRequestPayload>,
     state: web::Data<Arc<RwLock<DesignerState>>>,
-) -> impl Responder {
+) -> Result<impl Responder, actix_web::Error> {
     let mut state = state.write().unwrap();
     state.pkgs_cache.remove(&request_payload.base_dir);
 
@@ -126,7 +129,32 @@ pub async fn delete_base_dir(
         meta: None,
     };
 
-    HttpResponse::Ok().json(response)
+    Ok(HttpResponse::Ok().json(response))
+}
+
+pub fn get_base_dir_from_pkgs_cache(
+    base_dir: Option<String>,
+    pkgs_cache: &HashMap<String, Vec<PkgInfo>>,
+) -> Result<String> {
+    // Determine base_dir based on the requirements.
+    let base_dir = match base_dir {
+        // Use provided base_dir if available.
+        Some(dir) => dir.clone(),
+        // If not provided, check pkgs_cache.
+        None => {
+            if pkgs_cache.len() == 1 {
+                // If only one item in pkgs_cache, use it as base_dir.
+                pkgs_cache.keys().next().unwrap().clone()
+            } else {
+                // If multiple items in pkgs_cache, return error.
+                return Err(anyhow::anyhow!(
+                    "Multiple apps available. Please specify base_dir."
+                ));
+            }
+        }
+    };
+
+    Ok(base_dir)
 }
 
 #[cfg(test)]

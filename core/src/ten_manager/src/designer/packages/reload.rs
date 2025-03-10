@@ -8,6 +8,7 @@ use std::sync::{Arc, RwLock};
 
 use crate::{
     designer::{
+        app::base_dir::get_base_dir_from_pkgs_cache,
         response::{ApiResponse, ErrorResponse, Status},
         DesignerState,
     },
@@ -18,35 +19,50 @@ use serde::Deserialize;
 
 #[derive(Deserialize)]
 pub struct ReloadPkgsRequestPayload {
-    base_dir: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(default)]
+    pub base_dir: Option<String>,
 }
 
 pub async fn clear_and_reload_pkgs(
     request_payload: web::Json<ReloadPkgsRequestPayload>,
     state: web::Data<Arc<RwLock<DesignerState>>>,
-) -> impl Responder {
-    let mut state = state.write().unwrap();
+) -> Result<impl Responder, actix_web::Error> {
+    let mut state_write = state.write().unwrap();
+
+    let base_dir = match get_base_dir_from_pkgs_cache(
+        request_payload.base_dir.clone(),
+        &state_write.pkgs_cache,
+    ) {
+        Ok(base_dir) => base_dir,
+        Err(e) => {
+            let error_response = ErrorResponse {
+                status: Status::Fail,
+                message: e.to_string(),
+                error: None,
+            };
+            return Ok(HttpResponse::BadRequest().json(error_response));
+        }
+    };
 
     // Clear the existing packages.
-    state.pkgs_cache.remove(&request_payload.base_dir);
+    state_write.pkgs_cache.remove(&base_dir);
 
     let DesignerState {
         tman_config,
         pkgs_cache,
         out,
-    } = &mut *state;
+    } = &mut *state_write;
 
-    if let Err(err) =
-        get_all_pkgs(tman_config, pkgs_cache, &request_payload.base_dir, out)
-    {
-        return HttpResponse::InternalServerError().json(
+    if let Err(err) = get_all_pkgs(tman_config, pkgs_cache, &base_dir, out) {
+        return Ok(HttpResponse::InternalServerError().json(
             ErrorResponse::from_error(&err, "Failed to reload packages:"),
-        );
+        ));
     }
 
-    HttpResponse::Ok().json(ApiResponse {
+    Ok(HttpResponse::Ok().json(ApiResponse {
         status: Status::Ok,
         data: "Packages reloaded successfully",
         meta: None,
-    })
+    }))
 }
