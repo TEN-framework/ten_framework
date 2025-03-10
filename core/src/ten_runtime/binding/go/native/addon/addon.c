@@ -18,6 +18,7 @@
 #include "include_internal/ten_runtime/extension/extension.h"
 #include "include_internal/ten_runtime/extension_group/extension_group.h"
 #include "include_internal/ten_runtime/ten_env/ten_env.h"
+#include "include_internal/ten_runtime/addon/addon_host.h"
 #include "ten_runtime/addon/addon.h"
 #include "ten_runtime/addon/extension/extension.h"
 #include "ten_runtime/binding/common.h"
@@ -26,6 +27,7 @@
 #include "ten_runtime/ten_env/internal/on_xxx_done.h"
 #include "ten_utils/lib/alloc.h"
 #include "ten_utils/lib/error.h"
+#include "ten_utils/lib/ref.h"
 #include "ten_utils/lib/smart_ptr.h"
 #include "ten_utils/lib/string.h"
 #include "ten_utils/macro/check.h"
@@ -193,6 +195,10 @@ static void ten_go_addon_destroy_instance_helper(ten_addon_t *addon,
       ten_extension_t *extension = (ten_extension_t *)instance;
       TEN_ASSERT(extension && ten_extension_check_integrity(extension, true),
                  "Invalid argument.");
+
+      // Release the reference of the addon host.
+      ten_ref_dec_ref(&extension->addon_host->ref);
+      extension->addon_host = NULL;
 
       ten_go_extension_t *extension_bridge =
           ten_binding_handle_get_me_in_target_lang(
