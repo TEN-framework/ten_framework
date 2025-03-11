@@ -8,6 +8,7 @@ import z from "zod";
 
 import { API_EXTENSION_STORE_ROOT_PATH } from "@/api/endpoints/constant";
 import { ENDPOINT_METHOD } from "@/api/endpoints/constant";
+import { TenCloudStorePackageSchema } from "@/types/extension";
 
 export const ENDPOINT_EXTENSION = {
   listTenCloudStorePackages: {
@@ -20,30 +21,7 @@ export const ENDPOINT_EXTENSION = {
         meta: z.any(),
         data: z.object({
           totalSize: z.number(),
-          packages: z.array(
-            z.object({
-              type: z.string(),
-              name: z.string(),
-              version: z.string(),
-              hash: z.string(),
-              dependencies: z.array(
-                z.object({
-                  name: z.string(),
-                  type: z.string(),
-                  version: z.string(),
-                })
-              ),
-              downloadUrl: z.string(),
-              supports: z
-                .array(
-                  z.object({
-                    os: z.string(),
-                    arch: z.string(),
-                  })
-                )
-                .optional(),
-            })
-          ),
+          packages: z.array(TenCloudStorePackageSchema),
         }),
       }),
     },

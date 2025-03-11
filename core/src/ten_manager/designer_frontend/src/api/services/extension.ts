@@ -39,7 +39,7 @@ export const useListTenCloudStorePackages = (options?: {
   const url = prepareReqUrl(template, {
     query: {
       page: options?.page?.toString() || undefined,
-      pageSize: options?.pageSize?.toString() || undefined,
+      pageSize: options?.pageSize?.toString() || "1000", // todo: use undefined
     },
   });
   const [{ data, error, isLoading }] = useCancelableSWR<
@@ -50,7 +50,7 @@ export const useListTenCloudStorePackages = (options?: {
   });
 
   return {
-    data: data,
+    data: data?.data,
     error,
     isLoading,
   };

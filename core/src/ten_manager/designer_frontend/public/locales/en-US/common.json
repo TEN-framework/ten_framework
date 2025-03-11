@@ -104,5 +104,10 @@
     "delete": "Delete",
     "openMenu": "Open Menu",
     "noResults": "No results."
+  },
+  "extensionStore": {
+    "title": "Extension Store",
+    "compatible": "Compatible",
+    "dependencies": "Dependencies"
   }
 }
