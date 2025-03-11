@@ -22,19 +22,27 @@ import { Separator } from "@/components/ui/Separator";
 import { cn } from "@/lib/utils";
 
 import type { IListTenCloudStorePackage } from "@/types/extension";
+import type { TooltipContentProps } from "@radix-ui/react-tooltip";
 
 export const ExtensionList = (props: {
   items: IListTenCloudStorePackage[];
   className?: string;
+  toolTipSide?: TooltipContentProps["side"];
 }) => {
-  const { items, className } = props;
+  const { items, className, toolTipSide } = props;
 
   const VirtualListItem = (props: {
     index: number;
     style: React.CSSProperties;
   }) => {
     const item = items[props.index];
-    return <ExtensionStoreItem item={item} style={props.style} />;
+    return (
+      <ExtensionStoreItem
+        item={item}
+        style={props.style}
+        toolTipSide={toolTipSide}
+      />
+    );
   };
 
   return (
@@ -59,8 +67,10 @@ export const ExtensionStoreItem = (props: {
   item: IListTenCloudStorePackage;
   className?: string;
   style?: React.CSSProperties;
+  toolTipSide?: TooltipContentProps["side"];
+  isInstalled?: boolean;
 }) => {
-  const { item, className, style } = props;
+  const { item, className, style, toolTipSide = "right", isInstalled } = props;
 
   const { t } = useTranslation();
 
@@ -97,27 +107,37 @@ export const ExtensionStoreItem = (props: {
               </p>
             </div>
             <div className="mt-auto flex flex-col items-end">
-              {/* <Badge
+              {isInstalled ? (
+                <>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className={cn(
+                      "size-4 [&_svg]:size-3  cursor-pointer",
+                      "hover:bg-gray-200 dark:hover:bg-gray-700"
+                    )}
+                  >
+                    <CogIcon className="" />
+                  </Button>
+                </>
+              ) : (
+                <Button
                   variant="secondary"
-                  className="text-xs px-2 py-0.5 whitespace-nowrap font-medium"
+                  size="sm"
+                  className={cn(
+                    "text-xs px-2 py-0.5 font-normal h-fit cursor-pointer",
+                    "shadow-none rounded-none",
+                    "hover:bg-gray-200 dark:hover:bg-gray-700"
+                  )}
                 >
-                  installed
-                </Badge> */}
-              <Button
-                variant="ghost"
-                size="icon"
-                className={cn(
-                  "size-4 [&_svg]:size-3  cursor-pointer",
-                  "hover:bg-gray-200 dark:hover:bg-gray-700"
-                )}
-              >
-                <CogIcon className="" />
-              </Button>
+                  {t("extensionStore.install")}
+                </Button>
+              )}
             </div>
           </li>
         </TooltipTrigger>
         <TooltipContent
-          side="right"
+          side={toolTipSide}
           className={cn(
             "backdrop-blur-xs shadow-xl text-popover-foreground",
             "bg-cyan-50/80 dark:bg-gray-900/90",

@@ -113,6 +113,8 @@
     "installedWithSum": "{{count}} of {{total}} Installed",
     "noMatchResult": "No match results",
     "matchResult": "{{count}} match results",
+    "install": "Install",
+    "installed": "Installed",
     "filter": {
       "showUninstalled": "Uninstalled",
       "showInstalled": "Installed",

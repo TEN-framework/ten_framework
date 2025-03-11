@@ -12,11 +12,16 @@ import { useListTenCloudStorePackages } from "@/api/services/extension";
 import { SpinnerLoading } from "@/components/Status/Loading";
 import { cn } from "@/lib/utils";
 import { useWidgetStore } from "@/store/widget";
-import { ExtensionSearch } from "@/components/Widget/ExtensionStoreWidget/ExtensionSearch";
 import { ExtensionList } from "@/components/Widget/ExtensionStoreWidget/ExtensionList";
+import { ExtensionSearch } from "@/components/Widget/ExtensionStoreWidget/ExtensionSearch";
 
-export const ExtensionStoreWidget = (props: { className?: string }) => {
-  const { className } = props;
+import type { TooltipContentProps } from "@radix-ui/react-tooltip";
+
+export const ExtensionStoreWidget = (props: {
+  className?: string;
+  toolTipSide?: TooltipContentProps["side"];
+}) => {
+  const { className, toolTipSide } = props;
 
   const { t } = useTranslation();
   const { data, error, isLoading } = useListTenCloudStorePackages();
@@ -88,7 +93,7 @@ export const ExtensionStoreWidget = (props: { className?: string }) => {
         </div>
       </div>
 
-      <ExtensionList items={filteredPackages} />
+      <ExtensionList items={filteredPackages} toolTipSide={toolTipSide} />
     </div>
   );
 };
