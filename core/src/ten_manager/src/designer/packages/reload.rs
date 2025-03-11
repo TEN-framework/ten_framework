@@ -54,7 +54,9 @@ pub async fn clear_and_reload_pkgs(
         out,
     } = &mut *state_write;
 
-    if let Err(err) = get_all_pkgs(tman_config, pkgs_cache, &base_dir, out) {
+    if let Err(err) =
+        get_all_pkgs(tman_config.clone(), pkgs_cache, &base_dir, out)
+    {
         return Ok(HttpResponse::InternalServerError().json(
             ErrorResponse::from_error(&err, "Failed to reload packages:"),
         ));

@@ -31,10 +31,10 @@ use actix_web::web;
 
 use ten_rust::pkg_info::PkgInfo;
 
-use super::config::TmanConfig;
+use crate::config::TmanConfig;
 use crate::output::TmanOutput;
 pub struct DesignerState {
-    pub tman_config: TmanConfig,
+    pub tman_config: Arc<TmanConfig>,
     pub out: Arc<Box<dyn TmanOutput>>,
     pub pkgs_cache: HashMap<String, Vec<PkgInfo>>,
 }

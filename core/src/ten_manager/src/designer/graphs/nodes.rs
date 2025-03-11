@@ -436,7 +436,7 @@ mod tests {
     #[actix_web::test]
     async fn test_get_extensions_success() {
         let mut designer_state = DesignerState {
-            tman_config: TmanConfig::default(),
+            tman_config: Arc::new(TmanConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
             pkgs_cache: HashMap::new(),
         };
@@ -681,7 +681,7 @@ mod tests {
     #[actix_web::test]
     async fn test_get_extensions_no_graph() {
         let designer_state = Arc::new(RwLock::new(DesignerState {
-            tman_config: TmanConfig::default(),
+            tman_config: Arc::new(TmanConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
             pkgs_cache: HashMap::new(),
         }));
@@ -718,7 +718,7 @@ mod tests {
     #[actix_web::test]
     async fn test_get_extensions_has_wrong_addon() {
         let mut designer_state = DesignerState {
-            tman_config: TmanConfig::default(),
+            tman_config: Arc::new(TmanConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
             pkgs_cache: HashMap::new(),
         };

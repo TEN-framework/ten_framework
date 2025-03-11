@@ -110,7 +110,7 @@ mod tests {
     #[actix_web::test]
     async fn test_get_graphs_success() {
         let mut designer_state = DesignerState {
-            tman_config: TmanConfig::default(),
+            tman_config: Arc::new(TmanConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
             pkgs_cache: HashMap::new(),
         };
@@ -193,7 +193,7 @@ mod tests {
     #[actix_web::test]
     async fn test_get_graphs_no_app_package() {
         let designer_state = Arc::new(RwLock::new(DesignerState {
-            tman_config: TmanConfig::default(),
+            tman_config: Arc::new(TmanConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
             pkgs_cache: HashMap::new(),
         }));

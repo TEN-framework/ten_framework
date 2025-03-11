@@ -41,7 +41,7 @@ fn can_package_be_created_in_path(
 
 #[allow(clippy::too_many_arguments)]
 pub async fn create_pkg_in_path(
-    tman_config: &TmanConfig,
+    tman_config: Arc<TmanConfig>,
     path: &Path,
     pkg_type: &PkgType,
     pkg_name: &String,
@@ -62,7 +62,7 @@ pub async fn create_pkg_in_path(
 
     // Search for the package in the registry.
     let mut found_packages = get_package_list(
-        tman_config,
+        tman_config.clone(),
         *pkg_type,
         template_pkg_name,
         // Ensure exact version matching.
@@ -93,7 +93,7 @@ pub async fn create_pkg_in_path(
         "Failed to create a temporary file for downloading the package",
     )?;
     get_package(
-        tman_config,
+        tman_config.clone(),
         &package.basic_info.type_and_name.pkg_type,
         &package.basic_info.type_and_name.name,
         &package.basic_info.version,
