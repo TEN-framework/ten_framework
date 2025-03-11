@@ -51,10 +51,7 @@ pub fn configure_routes(
                 "/check-update",
                 web::get().to(version::check_update_endpoint),
             )
-            .route(
-                "/addons/extensions",
-                web::post().to(addons::extensions::get_extension_addon),
-            )
+            .route("/addons", web::post().to(addons::get_addons))
             .route(
                 "/packages/reload",
                 web::post().to(packages::reload::clear_and_reload_pkgs),
