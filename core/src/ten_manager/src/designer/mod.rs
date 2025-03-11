@@ -6,7 +6,7 @@
 //
 mod addons;
 mod app;
-mod builtin_function;
+pub mod builtin_function;
 mod common;
 mod dir_list;
 mod exec;
