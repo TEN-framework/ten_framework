@@ -108,6 +108,19 @@
   "extensionStore": {
     "title": "Extension Store",
     "compatible": "Compatible",
-    "dependencies": "Dependencies"
+    "dependencies": "Dependencies",
+    "searchPlaceholder": "Search Extensions...",
+    "installedWithSum": "{{count}} of {{total}} Installed",
+    "noMatchResult": "No match results",
+    "matchResult": "{{count}} match results",
+    "filter": {
+      "showUninstalled": "Uninstalled",
+      "showInstalled": "Installed",
+      "sort": "Sort",
+      "sort-default": "Default",
+      "sort-name": "Name",
+      "sort-name-desc": "Name (Desc)",
+      "type": "Type"
+    }
   }
 }

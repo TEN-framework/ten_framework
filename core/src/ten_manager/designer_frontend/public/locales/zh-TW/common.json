@@ -103,5 +103,23 @@
     "delete": "刪除",
     "openMenu": "開啟選單",
     "noResults": "無結果"
+  },
+  "extensionStore": {
+    "title": "擴充套件商店",
+    "compatible": "相容性",
+    "dependencies": "相依性",
+    "searchPlaceholder": "搜尋擴充套件...",
+    "installedWithSum": "已安裝 {{count}}/{{total}} 個",
+    "noMatchResult": "無符合結果",
+    "matchResult": "找到 {{count}} 個符合結果",
+    "filter": {
+      "showUninstalled": "未安裝",
+      "showInstalled": "已安裝",
+      "sort": "排序",
+      "sort-default": "預設",
+      "sort-name": "名稱",
+      "sort-name-desc": "名稱（降序）",
+      "type": "類型"
+    }
   }
 }

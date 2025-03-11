@@ -23,6 +23,7 @@ export const ExtensionStorePopup = () => {
       initialWidth={340}
       contentClassName="p-0"
       resizable
+      preventFocusSteal
     >
       <ExtensionStoreWidget colWidth={340} />
     </Popup>

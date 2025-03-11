@@ -5,13 +5,11 @@
 // Refer to the "LICENSE" file in the root directory for more information.
 //
 import * as React from "react";
-import { toast } from "sonner";
 import { BlocksIcon, CogIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { FixedSizeList as VirtualList } from "react-window";
+import AutoSizer from "react-virtualized-auto-sizer";
 
-import { useListTenCloudStorePackages } from "@/api/services/extension";
-import { SpinnerLoading } from "@/components/Status/Loading";
-import { ScrollArea } from "@/components/ui/ScrollArea";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import {
@@ -25,48 +23,43 @@ import { cn } from "@/lib/utils";
 
 import type { IListTenCloudStorePackage } from "@/types/extension";
 
-export const ExtensionStoreWidget = (props: {
+export const ExtensionList = (props: {
+  items: IListTenCloudStorePackage[];
   className?: string;
-  colWidth?: number;
 }) => {
-  const { className, colWidth = 340 } = props;
-  const { data, error, isLoading } = useListTenCloudStorePackages();
+  const { items, className } = props;
 
-  React.useEffect(() => {
-    if (error) {
-      toast.error(error.message, {
-        description: error?.message,
-      });
-    }
-  }, [error]);
-
-  if (isLoading) {
-    return <SpinnerLoading className="mx-auto" />;
-  }
+  const VirtualListItem = (props: {
+    index: number;
+    style: React.CSSProperties;
+  }) => {
+    const item = items[props.index];
+    return <ExtensionStoreItem item={item} style={props.style} />;
+  };
 
   return (
-    <div className={cn("flex flex-col gap-2 w-full h-full", className)}>
-      <ScrollArea className="h-full w-full">
-        <div className="flex flex-col w-full h-full">
-          {data?.packages?.map((item) => (
-            <ExtensionStoreItem
-              key={item.hash}
-              item={item}
-              style={{ width: `${colWidth}px` }}
-              className="pr-2"
-            />
-          ))}
-        </div>
-      </ScrollArea>
+    <div className={cn("w-full h-full", className)}>
+      <AutoSizer>
+        {({ width, height }) => (
+          <VirtualList
+            width={width}
+            height={height}
+            itemCount={items.length}
+            itemSize={52}
+          >
+            {VirtualListItem}
+          </VirtualList>
+        )}
+      </AutoSizer>
     </div>
   );
 };
 
-function ExtensionStoreItem(props: {
+export const ExtensionStoreItem = (props: {
   item: IListTenCloudStorePackage;
   className?: string;
   style?: React.CSSProperties;
-}) {
+}) => {
   const { item, className, style } = props;
 
   const { t } = useTranslation();
@@ -105,11 +98,11 @@ function ExtensionStoreItem(props: {
             </div>
             <div className="mt-auto flex flex-col items-end">
               {/* <Badge
-                variant="secondary"
-                className="text-xs px-2 py-0.5 whitespace-nowrap font-medium"
-              >
-                installed
-              </Badge> */}
+                  variant="secondary"
+                  className="text-xs px-2 py-0.5 whitespace-nowrap font-medium"
+                >
+                  installed
+                </Badge> */}
               <Button
                 variant="ghost"
                 size="icon"
@@ -195,4 +188,4 @@ function ExtensionStoreItem(props: {
       </Tooltip>
     </TooltipProvider>
   );
-}
+};
