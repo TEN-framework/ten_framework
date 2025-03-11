@@ -38,7 +38,7 @@ pub enum CommandData {
 }
 
 pub async fn execute_cmd(
-    tman_config: &TmanConfig,
+    tman_config: Arc<TmanConfig>,
     command_data: CommandData,
     out: Arc<Box<dyn TmanOutput>>,
 ) -> Result<()> {

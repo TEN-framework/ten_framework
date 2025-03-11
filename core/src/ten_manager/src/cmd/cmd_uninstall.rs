@@ -142,7 +142,7 @@ async fn remove_installed_paths(
 }
 
 pub async fn execute_cmd(
-    tman_config: &TmanConfig,
+    tman_config: Arc<TmanConfig>,
     command_data: UninstallCommand,
     out: Arc<Box<dyn TmanOutput>>,
 ) -> Result<()> {

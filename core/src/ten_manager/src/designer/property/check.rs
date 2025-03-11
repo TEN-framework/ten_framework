@@ -106,7 +106,7 @@ mod tests {
     #[actix_web::test]
     async fn test_check_property_is_not_dirty() {
         let mut designer_state = DesignerState {
-            tman_config: TmanConfig::default(),
+            tman_config: Arc::new(TmanConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
             pkgs_cache: HashMap::new(),
         };

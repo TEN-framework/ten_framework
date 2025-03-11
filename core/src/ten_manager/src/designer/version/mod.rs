@@ -108,7 +108,7 @@ mod tests {
     async fn test_get_version() {
         // Initialize the DesignerState.
         let state = web::Data::new(Arc::new(RwLock::new(DesignerState {
-            tman_config: TmanConfig::default(),
+            tman_config: Arc::new(TmanConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
             pkgs_cache: HashMap::new(),
         })));

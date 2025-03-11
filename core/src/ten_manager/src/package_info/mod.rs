@@ -28,7 +28,7 @@ use ten_rust::pkg_info::{get_app_installed_pkgs_to_hashmap, PkgInfo};
 /// A `Result` containing a vector of package information (`PkgInfo`) if
 /// successful, or an error if the information cannot be retrieved.
 pub fn tman_get_all_installed_pkgs_info_of_app(
-    tman_config: &TmanConfig,
+    tman_config: Arc<TmanConfig>,
     app_path: &Path,
     out: Arc<Box<dyn TmanOutput>>,
 ) -> Result<Vec<PkgInfo>> {

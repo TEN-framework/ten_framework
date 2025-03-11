@@ -43,7 +43,7 @@ pub fn parse_sub_cmd(
 }
 
 pub async fn execute_cmd(
-    _tman_config: &TmanConfig,
+    _tman_config: Arc<TmanConfig>,
     command_data: CheckManifestJsonCommand,
     out: Arc<Box<dyn TmanOutput>>,
 ) -> Result<()> {

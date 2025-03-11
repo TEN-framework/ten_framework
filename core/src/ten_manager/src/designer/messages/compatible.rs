@@ -322,7 +322,7 @@ mod tests {
     #[actix_web::test]
     async fn test_get_compatible_messages_success() {
         let mut designer_state = DesignerState {
-            tman_config: TmanConfig::default(),
+            tman_config: Arc::new(TmanConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
             pkgs_cache: HashMap::new(),
         };
@@ -407,7 +407,7 @@ mod tests {
     #[actix_web::test]
     async fn test_get_compatible_messages_fail() {
         let mut designer_state = DesignerState {
-            tman_config: TmanConfig::default(),
+            tman_config: Arc::new(TmanConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
             pkgs_cache: HashMap::new(),
         };
@@ -474,7 +474,7 @@ mod tests {
     #[actix_web::test]
     async fn test_get_compatible_messages_cmd_has_required_success() {
         let mut designer_state = DesignerState {
-            tman_config: TmanConfig::default(),
+            tman_config: Arc::new(TmanConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
             pkgs_cache: HashMap::new(),
         };
@@ -559,7 +559,7 @@ mod tests {
     #[actix_web::test]
     async fn test_get_compatible_messages_has_required_subset() {
         let mut designer_state = DesignerState {
-            tman_config: TmanConfig::default(),
+            tman_config: Arc::new(TmanConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
             pkgs_cache: HashMap::new(),
         };
@@ -643,7 +643,7 @@ mod tests {
     #[actix_web::test]
     async fn test_get_compatible_messages_cmd_no_property() {
         let mut designer_state = DesignerState {
-            tman_config: TmanConfig::default(),
+            tman_config: Arc::new(TmanConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
             pkgs_cache: HashMap::new(),
         };
@@ -740,7 +740,7 @@ mod tests {
     #[actix_web::test]
     async fn test_get_compatible_messages_cmd_property_overlap() {
         let mut designer_state = DesignerState {
-            tman_config: TmanConfig::default(),
+            tman_config: Arc::new(TmanConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
             pkgs_cache: HashMap::new(),
         };
@@ -827,7 +827,7 @@ mod tests {
     #[actix_web::test]
     async fn test_get_compatible_messages_cmd_property_required_missing() {
         let mut designer_state = DesignerState {
-            tman_config: TmanConfig::default(),
+            tman_config: Arc::new(TmanConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
             pkgs_cache: HashMap::new(),
         };
@@ -903,7 +903,7 @@ mod tests {
     #[actix_web::test]
     async fn test_get_compatible_messages_cmd_result() {
         let mut designer_state = DesignerState {
-            tman_config: TmanConfig::default(),
+            tman_config: Arc::new(TmanConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
             pkgs_cache: HashMap::new(),
         };
@@ -978,7 +978,7 @@ mod tests {
     #[actix_web::test]
     async fn test_get_compatible_messages_data_no_property() {
         let mut designer_state = DesignerState {
-            tman_config: TmanConfig::default(),
+            tman_config: Arc::new(TmanConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
             pkgs_cache: HashMap::new(),
         };
@@ -1053,7 +1053,7 @@ mod tests {
     #[actix_web::test]
     async fn test_get_compatible_messages_video_target_has_property() {
         let mut designer_state = DesignerState {
-            tman_config: TmanConfig::default(),
+            tman_config: Arc::new(TmanConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
             pkgs_cache: HashMap::new(),
         };

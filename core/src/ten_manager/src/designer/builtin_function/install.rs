@@ -53,7 +53,7 @@ impl WsBuiltinFunction {
         // Call `execute_cmd()` in an async task.
         tokio::spawn(async move {
             let result = crate::cmd::cmd_install::execute_cmd(
-                &tman_config,
+                tman_config,
                 install_command,
                 output_ws,
             )

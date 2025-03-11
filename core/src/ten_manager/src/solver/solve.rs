@@ -29,7 +29,7 @@ pub struct DependencyRelationship {
 }
 
 fn get_model(
-    tman_config: &TmanConfig,
+    tman_config: Arc<TmanConfig>,
     model: &Model,
     is_usable: &mut bool,
     out: Arc<Box<dyn TmanOutput>>,
@@ -65,7 +65,7 @@ fn get_model(
 
 #[allow(dead_code)]
 fn print_prefix(
-    tman_config: &TmanConfig,
+    tman_config: Arc<TmanConfig>,
     depth: u8,
     out: Arc<Box<dyn TmanOutput>>,
 ) {
@@ -83,7 +83,7 @@ fn print_prefix(
 // Recursively print the configuration object.
 #[allow(dead_code)]
 fn print_configuration(
-    tman_config: &TmanConfig,
+    tman_config: Arc<TmanConfig>,
     conf: &Configuration,
     key: Id,
     depth: u8,
@@ -102,10 +102,10 @@ fn print_configuration(
             let subkey = conf
                 .array_at(key, i)
                 .expect("Failed to retrieve statistics array.");
-            print_prefix(tman_config, depth, out.clone());
+            print_prefix(tman_config.clone(), depth, out.clone());
 
             print_configuration(
-                tman_config,
+                tman_config.clone(),
                 conf,
                 subkey,
                 depth + 1,
@@ -117,10 +117,10 @@ fn print_configuration(
         for i in 0..size {
             let name = conf.map_subkey_name(key, i).unwrap();
             let subkey = conf.map_at(key, name).unwrap();
-            print_prefix(tman_config, depth, out.clone());
+            print_prefix(tman_config.clone(), depth, out.clone());
 
             print_configuration(
-                tman_config,
+                tman_config.clone(),
                 conf,
                 subkey,
                 depth + 1,
@@ -135,7 +135,7 @@ fn print_configuration(
 // recursively print the statistics object
 #[allow(dead_code)]
 fn print_statistics(
-    tman_config: &TmanConfig,
+    tman_config: Arc<TmanConfig>,
     stats: &Statistics,
     key: u64,
     depth: u8,
@@ -158,10 +158,10 @@ fn print_statistics(
                 let subkey = stats
                     .array_at(key, i)
                     .expect("Failed to retrieve statistics array.");
-                print_prefix(tman_config, depth, out.clone());
+                print_prefix(tman_config.clone(), depth, out.clone());
 
                 print_statistics(
-                    tman_config,
+                    tman_config.clone(),
                     stats,
                     subkey,
                     depth + 1,
@@ -175,10 +175,10 @@ fn print_statistics(
             for i in 0..size {
                 let name = stats.map_subkey_name(key, i).unwrap();
                 let subkey = stats.map_at(key, name).unwrap();
-                print_prefix(tman_config, depth, out.clone());
+                print_prefix(tman_config.clone(), depth, out.clone());
 
                 print_statistics(
-                    tman_config,
+                    tman_config.clone(),
                     stats,
                     subkey,
                     depth + 1,
@@ -198,7 +198,7 @@ type SolveResult = Result<SolveOutcome>;
 
 #[allow(unused_assignments)]
 fn solve(
-    tman_config: &TmanConfig,
+    tman_config: Arc<TmanConfig>,
     input: &str,
     out: Arc<Box<dyn TmanOutput>>,
 ) -> SolveResult {
@@ -286,9 +286,12 @@ fn solve(
             // Get the model.
             Ok(Some(model)) => {
                 let mut is_usable = false;
-                if let Some(m) =
-                    get_model(tman_config, model, &mut is_usable, out.clone())
-                {
+                if let Some(m) = get_model(
+                    tman_config.clone(),
+                    model,
+                    &mut is_usable,
+                    out.clone(),
+                ) {
                     if is_usable {
                         usable_model = Some(m);
 
@@ -505,7 +508,7 @@ fn create_input_str_for_all_possible_pkgs_info(
 }
 
 fn create_input_str(
-    tman_config: &TmanConfig,
+    tman_config: Arc<TmanConfig>,
     pkg_type: &PkgType,
     pkg_name: &String,
     extra_dep_relationship: Option<&DependencyRelationship>,
@@ -553,7 +556,7 @@ fn create_input_str(
 }
 
 pub fn solve_all(
-    tman_config: &TmanConfig,
+    tman_config: Arc<TmanConfig>,
     pkg_type: &PkgType,
     pkg_name: &String,
     extra_dep_relationship: Option<&DependencyRelationship>,
@@ -562,7 +565,7 @@ pub fn solve_all(
     out: Arc<Box<dyn TmanOutput>>,
 ) -> SolveResult {
     let input_str = create_input_str(
-        tman_config,
+        tman_config.clone(),
         pkg_type,
         pkg_name,
         extra_dep_relationship,

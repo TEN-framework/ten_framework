@@ -31,7 +31,7 @@ use ten_manager::{
 #[actix_rt::test]
 async fn test_cmd_designer_graphs_app_property_not_exist() {
     let mut designer_state = DesignerState {
-        tman_config: TmanConfig::default(),
+        tman_config: Arc::new(TmanConfig::default()),
         out: Arc::new(Box::new(TmanOutputCli)),
         pkgs_cache: HashMap::new(),
     };
@@ -96,7 +96,7 @@ async fn test_cmd_designer_graphs_app_property_not_exist() {
 #[actix_rt::test]
 async fn test_cmd_designer_connections_has_msg_conversion() {
     let mut designer_state = DesignerState {
-        tman_config: TmanConfig::default(),
+        tman_config: Arc::new(TmanConfig::default()),
         out: Arc::new(Box::new(TmanOutputCli)),
         pkgs_cache: HashMap::new(),
     };

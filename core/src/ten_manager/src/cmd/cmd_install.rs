@@ -265,7 +265,7 @@ ten_package("app_for_standalone") {
 }
 
 fn prepare_basic_standalone_app_dir(
-    _tman_config: &TmanConfig,
+    _tman_config: Arc<TmanConfig>,
     extension_dir: &Path,
 ) -> Result<PathBuf> {
     let dot_ten_app_dir =
@@ -297,11 +297,11 @@ fn prepare_basic_standalone_app_dir(
 
 /// Prepare the `.ten/app/` folder in the extension standalone mode.
 async fn prepare_standalone_app_dir(
-    tman_config: &TmanConfig,
+    tman_config: Arc<TmanConfig>,
     extension_dir: &Path,
 ) -> Result<PathBuf> {
     let dot_ten_app_dir =
-        prepare_basic_standalone_app_dir(tman_config, extension_dir)?;
+        prepare_basic_standalone_app_dir(tman_config.clone(), extension_dir)?;
 
     let build_gn_path = extension_dir.join("BUILD.gn");
     if build_gn_path.exists() {
@@ -313,7 +313,7 @@ async fn prepare_standalone_app_dir(
 
 /// Path logic for standalone mode and non-standalone mode.
 async fn determine_app_dir_to_work_with(
-    tman_config: &TmanConfig,
+    tman_config: Arc<TmanConfig>,
     standalone: bool,
     original_cwd: &Path,
 ) -> Result<PathBuf> {
@@ -343,7 +343,7 @@ async fn determine_app_dir_to_work_with(
 }
 
 pub async fn execute_cmd(
-    tman_config: &TmanConfig,
+    tman_config: Arc<TmanConfig>,
     command_data: InstallCommand,
     out: Arc<Box<dyn TmanOutput>>,
 ) -> Result<()> {
@@ -358,7 +358,7 @@ pub async fn execute_cmd(
     let original_cwd = crate::fs::get_cwd()?;
 
     let app_dir_to_work_with = determine_app_dir_to_work_with(
-        tman_config,
+        tman_config.clone(),
         command_data.standalone,
         &original_cwd.clone(),
     )
@@ -416,7 +416,7 @@ pub async fn execute_cmd(
     ));
 
     all_installed_pkgs = tman_get_all_installed_pkgs_info_of_app(
-        tman_config,
+        tman_config.clone(),
         &app_dir_to_work_with,
         out.clone(),
     )?;
@@ -427,7 +427,7 @@ pub async fn execute_cmd(
     ));
 
     filter_compatible_pkgs_to_candidates(
-        tman_config,
+        tman_config.clone(),
         &all_installed_pkgs,
         &mut all_compatible_installed_pkgs,
         &command_data.support,
@@ -596,7 +596,7 @@ from manifest-lock.json...",
     // Get all possible candidates according to the input packages and extra
     // dependencies.
     let all_candidates = get_all_candidates_from_deps(
-        tman_config,
+        tman_config.clone(),
         &command_data.support,
         initial_pkgs_to_find_candidates,
         dep_relationship_from_cmd_line
@@ -613,7 +613,7 @@ from manifest-lock.json...",
 
     // Find an answer (a dependency tree) that satisfies all dependencies.
     let (usable_model, non_usable_models) = solve_all(
-        tman_config,
+        tman_config.clone(),
         &app_pkg_to_work_with.basic_info.type_and_name.pkg_type,
         &app_pkg_to_work_with.basic_info.type_and_name.name,
         dep_relationship_from_cmd_line.as_ref(),
@@ -701,7 +701,7 @@ do you want to continue?",
         )?;
 
         install_solver_results_in_app_folder(
-            tman_config,
+            tman_config.clone(),
             &command_data,
             &remaining_solver_results,
             &app_dir_to_work_with,

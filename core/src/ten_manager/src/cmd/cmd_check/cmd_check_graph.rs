@@ -191,7 +191,7 @@ fn display_error(e: &anyhow::Error, out: Arc<Box<dyn TmanOutput>>) {
 }
 
 pub async fn execute_cmd(
-    _tman_config: &TmanConfig,
+    _tman_config: Arc<TmanConfig>,
     command_data: CheckGraphCommand,
     out: Arc<Box<dyn TmanOutput>>,
 ) -> Result<()> {

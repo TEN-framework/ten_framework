@@ -24,7 +24,7 @@ use crate::output::TmanOutput;
 use super::config::TmanConfig;
 
 pub async fn upload_package(
-    tman_config: &TmanConfig,
+    tman_config: Arc<TmanConfig>,
     package_file_path: &str,
     pkg_info: &PkgInfo,
     out: Arc<Box<dyn TmanOutput>>,
@@ -69,7 +69,7 @@ pub async fn upload_package(
 }
 
 pub async fn get_package(
-    tman_config: &TmanConfig,
+    tman_config: Arc<TmanConfig>,
     pkg_type: &PkgType,
     pkg_name: &str,
     pkg_version: &Version,
@@ -110,7 +110,7 @@ pub async fn get_package(
 }
 
 pub async fn get_package_list(
-    tman_config: &TmanConfig,
+    tman_config: Arc<TmanConfig>,
     pkg_type: PkgType,
     name: &String,
     version_req: &VersionReq,
@@ -130,7 +130,7 @@ pub async fn get_package_list(
     let new_results = match parsed_registry_url.scheme() {
         "file" => {
             local::get_package_list(
-                tman_config,
+                tman_config.clone(),
                 &default_registry_url,
                 pkg_type,
                 name,
@@ -141,7 +141,7 @@ pub async fn get_package_list(
         }
         "https" => {
             remote::get_package_list(
-                tman_config,
+                tman_config.clone(),
                 &default_registry_url,
                 pkg_type,
                 name,
@@ -162,7 +162,7 @@ pub async fn get_package_list(
 }
 
 pub async fn delete_package(
-    tman_config: &TmanConfig,
+    tman_config: Arc<TmanConfig>,
     pkg_type: PkgType,
     name: &String,
     version: &Version,

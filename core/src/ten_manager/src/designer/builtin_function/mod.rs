@@ -50,13 +50,13 @@ type BuiltinFunctionParser =
 
 pub struct WsBuiltinFunction {
     builtin_function_parser: BuiltinFunctionParser,
-    tman_config: TmanConfig,
+    tman_config: Arc<TmanConfig>,
 }
 
 impl WsBuiltinFunction {
     fn new(
         builtin_function_parser: BuiltinFunctionParser,
-        tman_config: TmanConfig,
+        tman_config: Arc<TmanConfig>,
     ) -> Self {
         Self {
             builtin_function_parser,
@@ -214,7 +214,7 @@ pub async fn builtin_function(
     });
 
     ws::start(
-        WsBuiltinFunction::new(default_parser, tman_config),
+        WsBuiltinFunction::new(default_parser, tman_config.clone()),
         &req,
         stream,
     )
