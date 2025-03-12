@@ -39,6 +39,7 @@ impl WsBuiltinFunction {
             local_install_mode: crate::cmd::cmd_install::LocalInstallMode::Link,
             standalone: false,
             local_path: Some(base_dir.clone()),
+            cwd: base_dir.clone(),
         };
 
         let addr = ctx.address();
