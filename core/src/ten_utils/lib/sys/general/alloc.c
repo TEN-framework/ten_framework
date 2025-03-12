@@ -14,7 +14,7 @@
 
 void *ten_malloc(size_t size) {
   if (!size) {
-    assert(0 && "malloc of size 0 is implementation defined behavior.");
+    TEN_ASSERT(0, "malloc of size 0 is implementation defined behavior.");
     return NULL;
   }
 
@@ -28,7 +28,7 @@ void *ten_malloc(size_t size) {
 
 void *ten_calloc(size_t cnt, size_t size) {
   if (!cnt || !size) {
-    assert(0 && "calloc of size 0 is implementation defined behavior.");
+    TEN_ASSERT(0, "calloc of size 0 is implementation defined behavior.");
     return NULL;
   }
 
@@ -42,7 +42,7 @@ void *ten_calloc(size_t cnt, size_t size) {
 
 void *ten_realloc(void *p, size_t size) {
   if (!size) {
-    assert(0 && "realloc of size 0 is implementation defined behavior.");
+    TEN_ASSERT(0, "realloc of size 0 is implementation defined behavior.");
     return NULL;
   }
 
@@ -55,13 +55,13 @@ void *ten_realloc(void *p, size_t size) {
 }
 
 void ten_free(void *p) {
-  assert(p);
+  TEN_ASSERT(p, "Invalid pointer.");
   free(p);
 }
 
 char *ten_strdup(const char *str) {
   if (!str) {
-    assert(0 && "Invalid argument.");
+    TEN_ASSERT(0, "Invalid argument.");
     return NULL;
   }
 
@@ -75,7 +75,7 @@ char *ten_strdup(const char *str) {
 
 char *ten_strndup(const char *str, size_t size) {
   if (!str) {
-    assert(0 && "Invalid argument.");
+    TEN_ASSERT(0, "Invalid argument.");
     return NULL;
   }
 
