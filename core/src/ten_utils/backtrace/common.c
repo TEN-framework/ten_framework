@@ -13,6 +13,7 @@
 #include <string.h>
 
 #include "include_internal/ten_utils/backtrace/backtrace.h"
+#include "ten_utils/backtrace/backtrace.h"
 #include "ten_utils/macro/mark.h"
 
 ten_backtrace_t *g_ten_backtrace;
