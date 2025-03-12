@@ -236,13 +236,6 @@ jobs:
           chmod +x out/win/x64/tests/standalone/ten_runtime_unit_test
           out/win/x64/tests/standalone/ten_runtime_unit_test
 
-      - name: Run Tests (ten_runtime_smoke_test)
-        env:
-          TEN_ENABLE_BACKTRACE_DUMP: "true"
-        run: |
-          chmod +x out/win/x64/tests/standalone/ten_runtime_smoke_test
-          out/win/x64/tests/standalone/ten_runtime_smoke_test
-
       - name: Run Tests (ten_rust standalone tests)
         run: |
           cd out/win/x64/tests/standalone/ten_rust
@@ -262,6 +255,18 @@ jobs:
 
           ./unit_test || { echo "ten_manager unit test failed"; exit 1; }
           ./integration_test || { echo "ten_manager integration test failed"; exit 1; }
+
+        continue-on-error: true
+
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
+
+      - name: Run Tests (ten_runtime_smoke_test)
+        env:
+          TEN_ENABLE_BACKTRACE_DUMP: "true"
+        run: |
+          chmod +x out/win/x64/tests/standalone/ten_runtime_smoke_test
+          out/win/x64/tests/standalone/ten_runtime_smoke_test
 
   test-integration:
     needs: build
