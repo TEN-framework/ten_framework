@@ -208,17 +208,18 @@ void ten_extension_tester_destroy(ten_extension_tester_t *self) {
                  ten_extension_tester_check_integrity(self, false),
              "Invalid argument.");
 
-  TEN_ASSERT(self->test_app_ten_env_proxy == NULL,
-             "The `ten_env_proxy` of `test_app` should be released in the "
-             "tester task triggered by the `deinit` of `test_app`.");
+  // The `ten_env_proxy` of `test_app` should be released in the tester task
+  // triggered by the `deinit` of `test_app`.
+  TEN_ASSERT(self->test_app_ten_env_proxy == NULL, "Should not happen.");
+
   if (self->test_app_ten_env_proxy_create_completed) {
     ten_event_destroy(self->test_app_ten_env_proxy_create_completed);
   }
 
-  TEN_ASSERT(
-      self->test_extension_ten_env_proxy == NULL,
-      "The `ten_env_proxy` of `test_extension` should be released in the "
-      "tester task triggered by the `deinit` of `test_extension`.");
+  // `ten_env_proxy` of `test_extension` should be released in the tester task
+  // triggered by the `deinit` of `test_extension`.
+  TEN_ASSERT(self->test_extension_ten_env_proxy == NULL, "Should not happen.");
+
   if (self->test_extension_ten_env_proxy_create_completed) {
     ten_event_destroy(self->test_extension_ten_env_proxy_create_completed);
   }

@@ -14,7 +14,6 @@
 
 #include "include_internal/ten_utils/backtrace/common.h"
 #include "ten_utils/lib/alloc.h"
-#include "ten_utils/log/log.h"
 
 /**
  * @note On Mac, we are currently using a simple method instead of a complicated
@@ -59,7 +58,7 @@ void ten_backtrace_dump(ten_backtrace_t *self, size_t skip) {
   int frames = backtrace(call_stack, 128);
   char **strs = backtrace_symbols(call_stack, frames);
   for (size_t i = skip; i < frames; ++i) {
-    TEN_LOGE("%s", strs[i]);
+    (void)fprintf(stderr, "%s", strs[i]);
   }
-  free(strs);
+  free((void *)strs);
 }

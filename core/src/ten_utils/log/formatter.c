@@ -14,8 +14,8 @@
 #include "include_internal/ten_utils/lib/time.h"
 #include "include_internal/ten_utils/log/level.h"
 #include "include_internal/ten_utils/log/log.h"
-#include "include_internal/ten_utils/log/pid.h"
 #include "include_internal/ten_utils/log/termcolor.h"
+#include "ten_utils/lib/pid.h"
 #include "ten_utils/lib/string.h"
 #include "ten_utils/log/log.h"
 
@@ -68,7 +68,7 @@ void ten_log_default_formatter(ten_string_t *buf, TEN_LOG_LEVEL level,
 
   int64_t pid = 0;
   int64_t tid = 0;
-  ten_log_get_pid_tid(&pid, &tid);
+  ten_get_pid_tid(&pid, &tid);
 
   ten_string_append_formatted(buf, " %d(%d) %c", pid, tid,
                               ten_log_level_char(level));
@@ -101,7 +101,7 @@ void ten_log_colored_formatter(ten_string_t *buf, TEN_LOG_LEVEL level,
 
   int64_t pid = 0;
   int64_t tid = 0;
-  ten_log_get_pid_tid(&pid, &tid);
+  ten_get_pid_tid(&pid, &tid);
 
   // Determine color based on log level.
   const char *level_color = NULL;

@@ -17,7 +17,6 @@
 #include "include_internal/ten_utils/backtrace/platform/posix/linux/crc32.h"
 #include "ten_utils/lib/alloc.h"
 #include "ten_utils/lib/file.h"
-#include "ten_utils/macro/check.h"
 
 #define SYSTEM_BUILD_ID_DIR "/usr/lib/debug/.build-id/"
 
@@ -32,7 +31,7 @@
 int elf_open_debug_file_by_build_id(ten_backtrace_t *self,
                                     const char *build_id_data,
                                     size_t build_id_size) {
-  TEN_ASSERT(self, "Invalid argument.");
+  assert(self && "Invalid argument.");
 
   const char *const prefix = SYSTEM_BUILD_ID_DIR;
   const size_t prefix_len = strlen(prefix);
@@ -40,10 +39,10 @@ int elf_open_debug_file_by_build_id(ten_backtrace_t *self,
   const size_t suffix_len = strlen(suffix);
   bool does_not_exist = false;
 
-  size_t len = prefix_len + build_id_size * 2 + suffix_len + 2;
+  size_t len = prefix_len + (build_id_size * 2) + suffix_len + 2;
 
   char *build_id_filename = ten_malloc_without_backtrace(len);
-  TEN_ASSERT(build_id_filename, "Failed to allocate memory.");
+  assert(build_id_filename && "Failed to allocate memory.");
   if (build_id_filename == NULL) {
     return -1;
   }
@@ -96,13 +95,13 @@ static int elf_is_symlink(const char *filename) {
  */
 static char *elf_readlink(ten_backtrace_t *self, const char *filename,
                           size_t *plen) {
-  TEN_ASSERT(self, "Invalid argument.");
+  assert(self && "Invalid argument.");
 
   size_t len = 128;
 
   while (1) {
     char *buf = ten_malloc_without_backtrace(len);
-    TEN_ASSERT(buf, "Failed to allocate memory.");
+    assert(buf && "Failed to allocate memory.");
     if (buf == NULL) {
       return NULL;
     }
@@ -136,14 +135,14 @@ static char *elf_readlink(ten_backtrace_t *self, const char *filename,
 static int elf_try_debug_file(ten_backtrace_t *self, const char *prefix,
                               size_t prefix_len, const char *prefix2,
                               size_t prefix2_len, const char *debug_link_name) {
-  TEN_ASSERT(self, "Invalid argument.");
+  assert(self && "Invalid argument.");
 
   bool does_not_exist = false;
 
   size_t debug_link_len = strlen(debug_link_name);
   size_t try_len = prefix_len + prefix2_len + debug_link_len + 1;
   char *try = ten_malloc_without_backtrace(try_len);
-  TEN_ASSERT(try, "Failed to allocate memory.");
+  assert(try && "Failed to allocate memory.");
   if (try == NULL) {
     return -1;
   }
@@ -169,7 +168,7 @@ static int elf_try_debug_file(ten_backtrace_t *self, const char *prefix,
 static int elf_find_debug_file_by_debug_link(ten_backtrace_t *self,
                                              const char *filename,
                                              const char *debug_link_name) {
-  TEN_ASSERT(self, "Invalid argument.");
+  assert(self && "Invalid argument.");
 
   const char *slash = NULL;
 
@@ -212,7 +211,7 @@ static int elf_find_debug_file_by_debug_link(ten_backtrace_t *self,
 
         size_t clen = slash - filename + strlen(new_buf) + 1;
         char *c = ten_malloc_without_backtrace(clen);
-        TEN_ASSERT(c, "Failed to allocate memory.");
+        assert(c && "Failed to allocate memory.");
         if (c == NULL) {
           goto done;
         }
@@ -296,7 +295,7 @@ done:
 int elf_open_debug_file_by_debug_link(
     ten_backtrace_t *self, const char *filename, const char *debug_link_name,
     uint32_t debug_link_crc, ten_backtrace_error_func_t error_cb, void *data) {
-  TEN_ASSERT(self, "Invalid argument.");
+  assert(self && "Invalid argument.");
 
   int debug_file_fd =
       elf_find_debug_file_by_debug_link(self, filename, debug_link_name);

@@ -34,7 +34,7 @@
 // Function to create directories recursively.
 static bool create_directories(const char *path) {
   char *path_copy = strdup(path);
-  assert(path_copy && "Failed to allocate memory.");
+  TEN_ASSERT(path_copy, "Failed to allocate memory.");
   if (!path_copy) {
     return false;
   }
@@ -104,7 +104,7 @@ static void ten_log_output_set(ten_log_t *self,
                                const ten_log_output_func_t output_cb,
                                const ten_log_close_func_t close_cb,
                                void *user_data) {
-  assert(self && "Invalid argument.");
+  TEN_ASSERT(self, "Invalid argument.");
 
   self->output.user_data = user_data;
   self->output.output_cb = output_cb;
@@ -113,7 +113,7 @@ static void ten_log_output_set(ten_log_t *self,
 
 static void ten_log_close_file_cb(void *user_data) {
   int *fd = user_data;
-  assert(fd && *fd && "Invalid argument.");
+  TEN_ASSERT(fd && *fd, "Invalid argument.");
 
 #if defined(_WIN32) || defined(_WIN64)
   user_data = NULL;
@@ -127,11 +127,11 @@ static void ten_log_close_file_cb(void *user_data) {
 }
 
 static int *get_log_fd(const char *log_path) {
-  assert(log_path && "log_path cannot be NULL.");
+  TEN_ASSERT(log_path, "log_path cannot be NULL.");
 
   // Duplicate the log_path to manipulate it.
   char *path_copy = strdup(log_path);
-  assert(path_copy && "Failed to allocate memory.");
+  TEN_ASSERT(path_copy, "Failed to allocate memory.");
   if (!path_copy) {
     return NULL;
   }
@@ -159,7 +159,7 @@ static int *get_log_fd(const char *log_path) {
   }
 
   int *fd_ptr = malloc(sizeof(int));
-  assert(fd_ptr && "Failed to allocate memory.");
+  TEN_ASSERT(fd_ptr, "Failed to allocate memory.");
   if (!fd_ptr) {
     (void)fclose(fp);
     return NULL;
@@ -171,8 +171,8 @@ static int *get_log_fd(const char *log_path) {
 
 void ten_log_output_to_file_cb(ten_log_t *self, ten_string_t *msg,
                                void *user_data) {
-  assert(self && "Invalid argument.");
-  assert(msg && "Invalid argument.");
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(msg, "Invalid argument.");
 
   if (!user_data) {
     return;
@@ -204,7 +204,7 @@ void ten_log_output_to_file_cb(ten_log_t *self, ten_string_t *msg,
 }
 
 void ten_log_set_output_to_file(ten_log_t *self, const char *log_path) {
-  assert(log_path && "Invalid argument.");
+  TEN_ASSERT(log_path, "Invalid argument.");
 
   int *fd = get_log_fd(log_path);
   if (!fd) {
@@ -221,8 +221,8 @@ void ten_log_set_output_to_file(ten_log_t *self, const char *log_path) {
 
 void ten_log_output_to_stderr_cb(ten_log_t *self, ten_string_t *msg,
                                  void *user_data) {
-  assert(self && "Invalid argument.");
-  assert(msg && "Invalid argument.");
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(msg, "Invalid argument.");
 
   (void)user_data;
 
@@ -276,14 +276,14 @@ void ten_log_set_output_to_stderr(ten_log_t *self) {
 }
 
 void ten_log_output_to_file_deinit(ten_log_t *self) {
-  assert(self && "Invalid argument.");
-  assert(self->output.output_cb == ten_log_output_to_file_cb &&
-         "Invalid argument.");
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(self->output.output_cb == ten_log_output_to_file_cb,
+             "Invalid argument.");
 
   free(self->output.user_data);
 }
 
 bool ten_log_is_output_to_file(ten_log_t *self) {
-  assert(self && "Invalid argument.");
+  TEN_ASSERT(self, "Invalid argument.");
   return self->output.output_cb == ten_log_output_to_file_cb;
 }

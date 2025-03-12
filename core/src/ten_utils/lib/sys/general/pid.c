@@ -6,7 +6,7 @@
 //
 #include "ten_utils/ten_config.h"
 
-#include "include_internal/ten_utils/log/pid.h"
+#include "ten_utils/lib/pid.h"
 
 #include <assert.h>
 #include <stdint.h>
@@ -40,7 +40,9 @@
 
 #endif
 
-void ten_log_get_pid_tid(int64_t *pid, int64_t *tid) {
+void ten_get_pid_tid(int64_t *pid, int64_t *tid) {
+  // Note: This function will be used in TEN_ASSERT macro, so do not use
+  // TEN_ASSERT here.
   assert(pid && tid && "Invalid argument.");
 
 #if defined(OS_WINDOWS)

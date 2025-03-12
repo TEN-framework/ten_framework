@@ -9,9 +9,9 @@
 //
 #include "include_internal/ten_utils/backtrace/platform/posix/linux/view.h"
 
+#include <assert.h>
 #include <stdint.h>
 
-#include "ten_utils/macro/check.h"
 #include "ten_utils/macro/mark.h"
 
 /**
@@ -21,7 +21,7 @@ int elf_get_view(ten_backtrace_t *self, int descriptor,
                  const unsigned char *memory, size_t memory_size, off_t offset,
                  uint64_t size, ten_backtrace_error_func_t error_cb, void *data,
                  struct elf_view *view) {
-  TEN_ASSERT(self, "Invalid argument.");
+  assert(self && "Invalid argument.");
 
   if (memory == NULL) {
     view->release = 1;
@@ -45,7 +45,7 @@ int elf_get_view(ten_backtrace_t *self, int descriptor,
 void elf_release_view(ten_backtrace_t *self, struct elf_view *view,
                       TEN_UNUSED ten_backtrace_error_func_t error_cb,
                       TEN_UNUSED void *data) {
-  TEN_ASSERT(self, "Invalid argument.");
+  assert(self && "Invalid argument.");
 
   if (view->release) {
     ten_mmap_deinit(&view->view);

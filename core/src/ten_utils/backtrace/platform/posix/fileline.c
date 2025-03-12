@@ -17,7 +17,6 @@
 #include <unistd.h>
 
 #include "include_internal/ten_utils/backtrace/platform/posix/config.h" // IWYU pragma: keep
-#include "ten_utils/log/log.h"
 
 #if defined(HAVE_MACH_O_DYLD_H)
 #include <mach-o/dyld.h>
@@ -71,7 +70,7 @@ static int initialize_file_line_mechanism(ten_backtrace_t *self,
 
   ten_atomic_t failed = ten_atomic_load(&posix_self->file_line_init_failed);
   if (failed) {
-    TEN_LOGE("Failed to read executable information.");
+    (void)fprintf(stderr, "Failed to read executable information.");
     return 0;
   }
 

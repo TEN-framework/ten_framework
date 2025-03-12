@@ -10,4 +10,4 @@
 
 #include <stdint.h>
 
-TEN_UTILS_PRIVATE_API void ten_log_get_pid_tid(int64_t *pid, int64_t *tid);
+TEN_UTILS_API void ten_get_pid_tid(int64_t *pid, int64_t *tid);
