@@ -106,6 +106,7 @@ static void ten_extension_tester_on_test_app_deinit_task(void *self_,
   // `ten_env_proxy` exists, the app will not be destroyed.), ensuring that all
   // operations using the app's `ten_env_proxy` before the releasing of
   // ten_env_proxy are valid.
+  TEN_ASSERT(tester->test_app_ten_env_proxy, "Should not happen.");
   bool rc = ten_env_proxy_release(tester->test_app_ten_env_proxy, NULL);
   TEN_ASSERT(rc, "Should not happen.");
 
