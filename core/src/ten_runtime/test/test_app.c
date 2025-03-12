@@ -30,8 +30,7 @@ static void test_app_on_configure(TEN_UNUSED ten_app_t *app,
     TEN_ASSERT(rc, "Should not happen.");
   } else {
     // The default property.json content of the test app.
-    rc = ten_env_init_property_from_json(ten_env,
-                                         "{\
+    rc = ten_env_init_property_from_json(ten_env, "{\
                                                \"_ten\": {\
                                                  \"log_level\": 2\
                                                }\
@@ -94,7 +93,8 @@ static void test_app_on_init(ten_app_t *app, ten_env_t *ten_env) {
 static void ten_extension_tester_on_test_app_deinit_task(void *self_,
                                                          TEN_UNUSED void *arg) {
   ten_extension_tester_t *tester = self_;
-  TEN_ASSERT(tester && ten_extension_tester_check_integrity(tester, true),
+  TEN_ASSERT(tester, "Invalid argument.");
+  TEN_ASSERT(ten_extension_tester_check_integrity(tester, true),
              "Invalid argument.");
 
   // Since the tester uses the app's `ten_env_proxy` to interact with
@@ -141,7 +141,7 @@ void *ten_builtin_test_app_thread_main(void *args) {
 
   test_app->user_data = tester;
 
-  ten_list_foreach (&tester->addon_base_dirs, iter) {
+  ten_list_foreach(&tester->addon_base_dirs, iter) {
     ten_string_t *addon_base_dir = ten_str_listnode_get(iter.node);
     TEN_ASSERT(addon_base_dir, "Should not happen.");
 
