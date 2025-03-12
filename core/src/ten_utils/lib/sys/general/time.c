@@ -6,7 +6,6 @@
 //
 #include "include_internal/ten_utils/lib/time.h"
 
-#include <assert.h>
 #include <stdlib.h>
 #include <time.h>
 
@@ -16,10 +15,10 @@
 
 void ten_random_sleep_range_ms(const int64_t min_msec, const int64_t max_msec) {
   // Check whether `min_msec` and `max_msec` are valid.
-  assert(min_msec >= 0 && max_msec > 0 &&
-         "min_msec and max_msec must be greater than 0");
-  assert(min_msec <= max_msec &&
-         "min_msec must be less than or equal to max_msec");
+  TEN_ASSERT(min_msec >= 0 && max_msec > 0,
+             "min_msec and max_msec must be greater than 0");
+  TEN_ASSERT(min_msec <= max_msec,
+             "min_msec must be less than or equal to max_msec");
 
   int64_t wait_time = 0;
   // Check the return value of `ten_random`.
@@ -40,7 +39,7 @@ void ten_random_sleep_range_ms(const int64_t min_msec, const int64_t max_msec) {
 
 void ten_string_append_time_info(ten_string_t *str, struct tm *time_info,
                                  size_t msec) {
-  assert(str && "Invalid argument.");
+  TEN_ASSERT(str, "Invalid argument.");
 
   ten_string_reserve(str, TIME_INFO_STRING_LEN);
 
@@ -48,7 +47,7 @@ void ten_string_append_time_info(ten_string_t *str, struct tm *time_info,
   size_t written = strftime(&str->buf[str->first_unused_idx],
                             str->buf_size - str->first_unused_idx,
                             "%m-%d %H:%M:%S", time_info);
-  assert(written && "Should not happen.");
+  TEN_ASSERT(written, "Should not happen.");
 
   str->first_unused_idx = strlen(str->buf);
 

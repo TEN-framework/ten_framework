@@ -6,7 +6,6 @@
 //
 #include "ten_utils/lib/json.h"
 
-#include <assert.h>
 #include <stdbool.h>
 
 #include "ten_runtime/common/error_code.h"

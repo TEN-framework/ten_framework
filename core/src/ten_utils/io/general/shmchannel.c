@@ -61,41 +61,41 @@ int ten_shm_channel_create(const char *name, ten_shm_channel_t *channel[2]) {
 
   for (int i = 0; i < 2; i++) {
     channel[i] = (ten_shm_channel_t *)malloc(sizeof(ten_shm_channel_t));
-    assert(channel[i]);
+    TEN_ASSERT(channel[i], "Failed to allocate memory.");
     memset(channel[i], 0, sizeof(ten_shm_channel_t));
 
     ten_string_init_formatted(&channel[i]->name, TEN_SHM_NAME_FORMAT, name, i);
 
     channel[i]->region =
         (ten_shm_layout_t *)ten_shm_map(channel[i]->name.buf, TEN_SHM_MEM_SIZE);
-    assert(channel[i]->region);
+    TEN_ASSERT(channel[i]->region, "Failed to map shared memory.");
     ten_atomic_store(&channel[i]->region->id, i);
 
     ten_atomic_add_fetch(&channel[i]->region->ref_count, 1);
 
     channel[i]->channel_lock =
         ten_spinlock_from_addr(&channel[i]->region->channel_lock);
-    assert(channel[i]->channel_lock);
+    TEN_ASSERT(channel[i]->channel_lock, "Failed to create spinlock.");
 
     channel[i]->reader_active =
         ten_shared_event_create(&channel[i]->region->reader_active.sig,
                                 &channel[i]->region->reader_active.lock, 0, 0);
-    assert(channel[i]->reader_active);
+    TEN_ASSERT(channel[i]->reader_active, "Failed to create shared event.");
 
     channel[i]->writer_active =
         ten_shared_event_create(&channel[i]->region->writer_active.sig,
                                 &channel[i]->region->writer_active.lock, 0, 0);
-    assert(channel[i]->writer_active);
+    TEN_ASSERT(channel[i]->writer_active, "Failed to create shared event.");
 
     channel[i]->not_full =
         ten_shared_event_create(&channel[i]->region->not_full.sig,
                                 &channel[i]->region->not_full.lock, 0, 1);
-    assert(channel[i]->not_full);
+    TEN_ASSERT(channel[i]->not_full, "Failed to create shared event.");
 
     channel[i]->not_empty =
         ten_shared_event_create(&channel[i]->region->not_empty.sig,
                                 &channel[i]->region->not_empty.lock, 0, 1);
-    assert(channel[i]->not_empty);
+    TEN_ASSERT(channel[i]->not_empty, "Failed to create shared event.");
   }
 
   return 0;
@@ -181,8 +181,8 @@ int ten_shm_channel_inactive(ten_shm_channel_t *channel, int read) {
   return 0;
 }
 
-static inline int __ten_shm_channel_get_capacity_unsafe(
-    ten_shm_channel_t *channel) {
+static inline int
+__ten_shm_channel_get_capacity_unsafe(ten_shm_channel_t *channel) {
   return (int)((channel->region->write_index + TEN_SHM_CHANNEL_SIZE -
                 channel->region->read_index) %
                TEN_SHM_CHANNEL_SIZE);
@@ -193,8 +193,8 @@ static inline int __ten_shm_channel_is_full_unsafe(ten_shm_channel_t *channel) {
          (TEN_SHM_CHANNEL_SIZE - 1);
 }
 
-static inline int __ten_shm_channel_is_empty_unsafe(
-    ten_shm_channel_t *channel) {
+static inline int
+__ten_shm_channel_is_empty_unsafe(ten_shm_channel_t *channel) {
   return __ten_shm_channel_get_capacity_unsafe(channel) == 0;
 }
 

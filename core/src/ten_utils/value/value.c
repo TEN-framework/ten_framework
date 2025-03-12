@@ -6,7 +6,6 @@
 //
 #include "ten_utils/value/value.h"
 
-#include <assert.h>
 #include <float.h>
 #include <inttypes.h>
 #include <limits.h>
@@ -397,7 +396,7 @@ static bool ten_value_copy_array(ten_value_t *dest, ten_value_t *src,
   TEN_ASSERT(src->type == TEN_TYPE_ARRAY, "Invalid argument.");
 
   ten_list_init(&dest->content.array);
-  ten_list_foreach (&src->content.array, iter) {
+  ten_list_foreach(&src->content.array, iter) {
     ten_value_t *item = ten_ptr_listnode_get(iter.node);
     TEN_ASSERT(item && ten_value_check_integrity(item), "Invalid argument.");
 
@@ -537,7 +536,7 @@ static bool ten_value_copy_object(ten_value_t *dest, ten_value_t *src,
 
   ten_list_init(&dest->content.object);
 
-  ten_list_foreach (&src->content.object, iter) {
+  ten_list_foreach(&src->content.object, iter) {
     ten_value_kv_t *item = ten_ptr_listnode_get(iter.node);
     TEN_ASSERT(item && ten_value_kv_check_integrity(item), "Invalid argument.");
 
@@ -837,10 +836,10 @@ bool ten_value_is_valid(ten_value_t *self) {
   TEN_ASSERT(self && ten_value_check_integrity(self), "Invalid argument.");
 
   switch (self->type) {
-    case TEN_TYPE_INVALID:
-      return false;
-    default:
-      return true;
+  case TEN_TYPE_INVALID:
+    return false;
+  default:
+    return true;
   }
 }
 
@@ -852,88 +851,86 @@ bool ten_value_is_equal(ten_value_t *self, ten_value_t *target) {
     return false;
   }
   switch (self->type) {
-    case TEN_TYPE_NULL:
-      break;
-    case TEN_TYPE_BOOL:
-      return self->content.boolean == target->content.boolean;
-    case TEN_TYPE_STRING:
-      return ten_string_is_equal(&self->content.string,
-                                 &target->content.string);
-    case TEN_TYPE_OBJECT:
-      if (ten_list_size(&self->content.object) !=
-          ten_list_size(&target->content.object)) {
-        return false;
-      }
-
-      ten_list_foreach (&self->content.object, iter_self) {
-        ten_value_kv_t *kv_self = ten_ptr_listnode_get(iter_self.node);
-        TEN_ASSERT(kv_self && ten_value_kv_check_integrity(kv_self),
-                   "Invalid argument.");
-
-        // Peek the corresponding value in the target object.
-        ten_value_t *kv_target = ten_value_object_peek(
-            target, ten_string_get_raw_str(&kv_self->key));
-        if (!kv_target) {
-          // Key does not exist in target
-          return false;
-        }
-
-        // Recursively check equality of the values.
-        if (!ten_value_is_equal(kv_self->value, kv_target)) {
-          return false;
-        }
-      }
-      break;
-    case TEN_TYPE_ARRAY:
-      if (ten_list_size(&self->content.array) !=
-          ten_list_size(&target->content.array)) {
-        return false;
-      }
-
-      {
-        ten_list_iterator_t iter_self = ten_list_begin(&self->content.array);
-        ten_list_iterator_t iter_target =
-            ten_list_begin(&target->content.array);
-
-        while (!ten_list_iterator_is_end(iter_self) &&
-               !ten_list_iterator_is_end(iter_target)) {
-          ten_value_t *value_self =
-              (ten_value_t *)ten_list_iterator_to_listnode(iter_self);
-          ten_value_t *value_target =
-              (ten_value_t *)ten_list_iterator_to_listnode(iter_target);
-
-          if (!ten_value_is_equal(value_self, value_target)) {
-            return false;
-          }
-
-          iter_self = ten_list_iterator_next(iter_self);
-          iter_target = ten_list_iterator_next(iter_target);
-        }
-      }
-      break;
-    case TEN_TYPE_INT8:
-      return self->content.int8 == target->content.int8;
-    case TEN_TYPE_INT16:
-      return self->content.int16 == target->content.int16;
-    case TEN_TYPE_INT32:
-      return self->content.int32 == target->content.int32;
-    case TEN_TYPE_INT64:
-      return self->content.int64 == target->content.int64;
-    case TEN_TYPE_UINT8:
-      return self->content.uint8 == target->content.uint8;
-    case TEN_TYPE_UINT16:
-      return self->content.uint16 == target->content.uint16;
-    case TEN_TYPE_UINT32:
-      return self->content.uint32 == target->content.uint32;
-    case TEN_TYPE_UINT64:
-      return self->content.uint64 == target->content.uint64;
-    case TEN_TYPE_FLOAT32:
-      return self->content.float32 == target->content.float32;
-    case TEN_TYPE_FLOAT64:
-      return self->content.float64 == target->content.float64;
-    default:
-      TEN_ASSERT(0, "Invalid argument.");
+  case TEN_TYPE_NULL:
+    break;
+  case TEN_TYPE_BOOL:
+    return self->content.boolean == target->content.boolean;
+  case TEN_TYPE_STRING:
+    return ten_string_is_equal(&self->content.string, &target->content.string);
+  case TEN_TYPE_OBJECT:
+    if (ten_list_size(&self->content.object) !=
+        ten_list_size(&target->content.object)) {
       return false;
+    }
+
+    ten_list_foreach(&self->content.object, iter_self) {
+      ten_value_kv_t *kv_self = ten_ptr_listnode_get(iter_self.node);
+      TEN_ASSERT(kv_self && ten_value_kv_check_integrity(kv_self),
+                 "Invalid argument.");
+
+      // Peek the corresponding value in the target object.
+      ten_value_t *kv_target =
+          ten_value_object_peek(target, ten_string_get_raw_str(&kv_self->key));
+      if (!kv_target) {
+        // Key does not exist in target
+        return false;
+      }
+
+      // Recursively check equality of the values.
+      if (!ten_value_is_equal(kv_self->value, kv_target)) {
+        return false;
+      }
+    }
+    break;
+  case TEN_TYPE_ARRAY:
+    if (ten_list_size(&self->content.array) !=
+        ten_list_size(&target->content.array)) {
+      return false;
+    }
+
+    {
+      ten_list_iterator_t iter_self = ten_list_begin(&self->content.array);
+      ten_list_iterator_t iter_target = ten_list_begin(&target->content.array);
+
+      while (!ten_list_iterator_is_end(iter_self) &&
+             !ten_list_iterator_is_end(iter_target)) {
+        ten_value_t *value_self =
+            (ten_value_t *)ten_list_iterator_to_listnode(iter_self);
+        ten_value_t *value_target =
+            (ten_value_t *)ten_list_iterator_to_listnode(iter_target);
+
+        if (!ten_value_is_equal(value_self, value_target)) {
+          return false;
+        }
+
+        iter_self = ten_list_iterator_next(iter_self);
+        iter_target = ten_list_iterator_next(iter_target);
+      }
+    }
+    break;
+  case TEN_TYPE_INT8:
+    return self->content.int8 == target->content.int8;
+  case TEN_TYPE_INT16:
+    return self->content.int16 == target->content.int16;
+  case TEN_TYPE_INT32:
+    return self->content.int32 == target->content.int32;
+  case TEN_TYPE_INT64:
+    return self->content.int64 == target->content.int64;
+  case TEN_TYPE_UINT8:
+    return self->content.uint8 == target->content.uint8;
+  case TEN_TYPE_UINT16:
+    return self->content.uint16 == target->content.uint16;
+  case TEN_TYPE_UINT32:
+    return self->content.uint32 == target->content.uint32;
+  case TEN_TYPE_UINT64:
+    return self->content.uint64 == target->content.uint64;
+  case TEN_TYPE_FLOAT32:
+    return self->content.float32 == target->content.float32;
+  case TEN_TYPE_FLOAT64:
+    return self->content.float64 == target->content.float64;
+  default:
+    TEN_ASSERT(0, "Invalid argument.");
+    return false;
   }
 
   return true;

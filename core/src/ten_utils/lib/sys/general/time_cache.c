@@ -4,11 +4,11 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
+#include "ten_utils/macro/check.h"
 #include "ten_utils/ten_config.h"
 
 #include "include_internal/ten_utils/lib/time_cache.h"
 
-#include <assert.h>
 #include <stdbool.h>
 #include <time.h>
 
@@ -36,7 +36,7 @@ static struct timeval g_time_cache_tv = {0, 0};
 static struct tm g_time_cache_tm;
 
 bool ten_time_cache_get(const struct timeval *tv, struct tm *tm) {
-  assert(tv && tm && "Invalid argument.");
+  TEN_ASSERT(tv && tm, "Invalid argument.");
 
   int64_t mode = ten_atomic_load(&g_time_cache_mode);
   if (0 == (mode & TIME_CACHE_UPDATING)) {
@@ -72,7 +72,7 @@ bool ten_time_cache_get(const struct timeval *tv, struct tm *tm) {
 }
 
 void ten_time_cache_set(const struct timeval *tv, struct tm *tm) {
-  assert(tv && tm && "Invalid argument.");
+  TEN_ASSERT(tv && tm, "Invalid argument.");
 
   // Only update the time when the time cache is outdated.
   int64_t stale = TIME_CACHE_STALE;

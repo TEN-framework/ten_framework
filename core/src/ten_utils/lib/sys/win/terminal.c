@@ -7,7 +7,6 @@
 #include "ten_utils/lib/terminal.h"
 
 #include <Windows.h>
-#include <assert.h>
 #include <io.h>
 
 size_t ten_terminal_get_width_in_char(void) {

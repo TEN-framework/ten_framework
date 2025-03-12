@@ -33,7 +33,7 @@ static const size_t registered_formatters_size =
     sizeof(registered_formatters) / sizeof(ten_log_formatter_entry_t);
 
 ten_log_formatter_func_t ten_log_get_formatter_by_name(const char *name) {
-  assert(name && "Invalid argument.");
+  TEN_ASSERT(name, "Invalid argument.");
 
   ten_log_formatter_func_t result = NULL;
 
@@ -48,7 +48,7 @@ ten_log_formatter_func_t ten_log_get_formatter_by_name(const char *name) {
 
 void ten_log_set_formatter(ten_log_t *self, ten_log_formatter_func_t format_cb,
                            void *user_data) {
-  assert(self && "Invalid argument.");
+  TEN_ASSERT(self, "Invalid argument.");
 
   self->formatter.format_cb = format_cb;
   self->formatter.user_data = user_data;

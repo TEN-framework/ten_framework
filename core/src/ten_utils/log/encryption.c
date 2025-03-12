@@ -10,7 +10,7 @@
 #include "include_internal/ten_utils/log/encryption.h"
 
 void ten_log_encryption_init(ten_log_encryption_t *self) {
-  assert(self && "Invalid argument");
+  TEN_ASSERT(self, "Invalid argument");
 
   self->encrypt_cb = NULL;
   self->deinit_cb = NULL;
@@ -18,7 +18,7 @@ void ten_log_encryption_init(ten_log_encryption_t *self) {
 }
 
 void ten_log_encryption_deinit(ten_log_encryption_t *self) {
-  assert(self && "Invalid argument");
+  TEN_ASSERT(self, "Invalid argument");
 
   if (self->deinit_cb) {
     self->deinit_cb(self->impl);
@@ -30,9 +30,9 @@ void ten_log_encryption_deinit(ten_log_encryption_t *self) {
 }
 
 void ten_log_encrypt_data(ten_log_t *self, uint8_t *data, size_t data_len) {
-  assert(self && "Invalid argument");
-  assert(data && "Invalid argument");
-  assert(data_len > 0 && "Invalid argument");
+  TEN_ASSERT(self, "Invalid argument");
+  TEN_ASSERT(data, "Invalid argument");
+  TEN_ASSERT(data_len > 0, "Invalid argument");
 
   if (self->encryption.encrypt_cb) {
     self->encryption.encrypt_cb(data, data_len, self->encryption.impl);
@@ -40,8 +40,8 @@ void ten_log_encrypt_data(ten_log_t *self, uint8_t *data, size_t data_len) {
 }
 
 void ten_log_complete_encryption_header(ten_log_t *self, ten_string_t *buf) {
-  assert(self && "Invalid argument");
-  assert(buf && "Invalid argument");
+  TEN_ASSERT(self, "Invalid argument");
+  TEN_ASSERT(buf, "Invalid argument");
 
   uint8_t *buf_ptr = (uint8_t *)ten_string_get_raw_str(buf);
 
@@ -72,16 +72,16 @@ void ten_log_complete_encryption_header(ten_log_t *self, ten_string_t *buf) {
 }
 
 uint8_t *ten_log_get_data_excluding_header(ten_log_t *self, ten_string_t *buf) {
-  assert(self && "Invalid argument");
-  assert(buf && "Invalid argument");
+  TEN_ASSERT(self, "Invalid argument");
+  TEN_ASSERT(buf, "Invalid argument");
 
   return (uint8_t *)ten_string_get_raw_str(buf) + 5;
 }
 
 size_t ten_log_get_data_excluding_header_len(ten_log_t *self,
                                              ten_string_t *buf) {
-  assert(self && "Invalid argument");
-  assert(buf && "Invalid argument");
+  TEN_ASSERT(self, "Invalid argument");
+  TEN_ASSERT(buf, "Invalid argument");
 
   return ten_string_len(buf) - 5;
 }

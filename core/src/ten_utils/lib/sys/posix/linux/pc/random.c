@@ -6,7 +6,6 @@
 //
 #include "ten_utils/lib/random.h"
 
-#include <assert.h>
 #include <stdlib.h>
 #include <sys/fcntl.h>
 #include <unistd.h>
