@@ -16,10 +16,10 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#include "include_internal/ten_utils/backtrace/platform/posix/config.h"  // IWYU pragma: keep
+#include "include_internal/ten_utils/backtrace/platform/posix/config.h" // IWYU pragma: keep
 #include "ten_utils/log/log.h"
 
-#ifdef HAVE_MACH_O_DYLD_H
+#if defined(HAVE_MACH_O_DYLD_H)
 #include <mach-o/dyld.h>
 #endif
 
@@ -29,7 +29,7 @@
 #include "ten_utils/lib/file.h"
 #include "ten_utils/macro/mark.h"
 
-#ifdef HAVE_MACH_O_DYLD_H
+#if defined(HAVE_MACH_O_DYLD_H)
 
 #include "ten_utils/lib/alloc.h"
 
@@ -89,26 +89,26 @@ static int initialize_file_line_mechanism(ten_backtrace_t *self,
   bool called_error_callback = false;
   for (size_t pass = 0; pass < 4; ++pass) {
     switch (pass) {
-      case 0:
-        filename = "/proc/self/exe";
-        break;
-      case 1:
-        filename = "/proc/curproc/file";
-        break;
-      case 2: {
-        char buf[64] = {0};
-        int written = snprintf(buf, sizeof(buf), "/proc/%ld/object/a.out",
-                               (long)getpid());
-        assert(written > 0);
-        filename = buf;
-        break;
-      }
-      case 3:
-        filename = macho_get_executable_path(self, error_cb, data);
-        break;
-      default:
-        abort();
-        break;
+    case 0:
+      filename = "/proc/self/exe";
+      break;
+    case 1:
+      filename = "/proc/curproc/file";
+      break;
+    case 2: {
+      char buf[64] = {0};
+      int written =
+          snprintf(buf, sizeof(buf), "/proc/%ld/object/a.out", (long)getpid());
+      assert(written > 0);
+      filename = buf;
+      break;
+    }
+    case 3:
+      filename = macho_get_executable_path(self, error_cb, data);
+      break;
+    default:
+      abort();
+      break;
     }
 
     if (filename == NULL) {

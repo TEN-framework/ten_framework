@@ -1,6 +1,7 @@
 name: Linux (Arm64)
 
 on:
+  # workflow_dispatch:
   release:
     types: [created]
   pull_request:

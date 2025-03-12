@@ -19,8 +19,8 @@
 
 #include "include_internal/ten_utils/backtrace/platform/posix/config.h"
 
-#ifdef HAVE_DL_ITERATE_PHDR
-#ifdef HAVE_LINK_H
+#if defined(HAVE_DL_ITERATE_PHDR)
+#if defined(HAVE_LINK_H)
 #define __USE_GNU
 #include <link.h>
 #undef __USE_GNU
@@ -558,7 +558,8 @@ int elf_fetch_bits(const unsigned char **ppin, const unsigned char *pinend,
   uint32_t next;
 
   bits = *pbits;
-  if (bits >= 15) return 1;
+  if (bits >= 15)
+    return 1;
   pin = *ppin;
   val = *pval;
 
@@ -567,9 +568,9 @@ int elf_fetch_bits(const unsigned char **ppin, const unsigned char *pinend,
     return 0;
   }
 
-#if defined(__BYTE_ORDER__) && defined(__ORDER_LITTLE_ENDIAN__) && \
-    defined(__ORDER_BIG_ENDIAN__) &&                               \
-    (__BYTE_ORDER__ == __ORDER_BIG_ENDIAN__ ||                     \
+#if defined(__BYTE_ORDER__) && defined(__ORDER_LITTLE_ENDIAN__) &&             \
+    defined(__ORDER_BIG_ENDIAN__) &&                                           \
+    (__BYTE_ORDER__ == __ORDER_BIG_ENDIAN__ ||                                 \
      __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__)
   /* We've ensured that PIN is aligned.  */
   next = *(const uint32_t *)pin;
@@ -606,7 +607,8 @@ static int elf_fetch_bits_backward(const unsigned char **ppin,
   uint32_t next;
 
   bits = *pbits;
-  if (bits >= 16) return 1;
+  if (bits >= 16)
+    return 1;
   pin = *ppin;
   val = *pval;
 
@@ -620,9 +622,9 @@ static int elf_fetch_bits_backward(const unsigned char **ppin,
 
   pin -= 4;
 
-#if defined(__BYTE_ORDER__) && defined(__ORDER_LITTLE_ENDIAN__) && \
-    defined(__ORDER_BIG_ENDIAN__) &&                               \
-    (__BYTE_ORDER__ == __ORDER_BIG_ENDIAN__ ||                     \
+#if defined(__BYTE_ORDER__) && defined(__ORDER_LITTLE_ENDIAN__) &&             \
+    defined(__ORDER_BIG_ENDIAN__) &&                                           \
+    (__BYTE_ORDER__ == __ORDER_BIG_ENDIAN__ ||                                 \
      __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__)
   /* We've ensured that PIN is aligned.  */
   next = *(const uint32_t *)pin;
@@ -685,11 +687,13 @@ static int elf_fetch_backward_init(const unsigned char **ppin,
   *ppin = pin;
   *pval = val;
   *pbits = bits;
-  if (!elf_fetch_bits_backward(ppin, pinend, pval, pbits)) return 0;
+  if (!elf_fetch_bits_backward(ppin, pinend, pval, pbits))
+    return 0;
 
   *pbits -= __builtin_clz(stream_start) - (sizeof(unsigned int) - 1) * 8 + 1;
 
-  if (!elf_fetch_bits_backward(ppin, pinend, pval, pbits)) return 0;
+  if (!elf_fetch_bits_backward(ppin, pinend, pval, pbits))
+    return 0;
 
   return 1;
 }
@@ -704,25 +708,25 @@ static int elf_fetch_backward_init(const unsigned char **ppin,
      - to build a Huffman tree: 512 uint16_t + 256 uint32_t == 2048 bytes
 */
 
-#define ZSTD_TABLE_SIZE                                   \
-  (2 * 512 * sizeof(struct elf_zstd_fse_baseline_entry) + \
-   256 * sizeof(struct elf_zstd_fse_baseline_entry) +     \
+#define ZSTD_TABLE_SIZE                                                        \
+  (2 * 512 * sizeof(struct elf_zstd_fse_baseline_entry) +                      \
+   256 * sizeof(struct elf_zstd_fse_baseline_entry) +                          \
    2048 * sizeof(uint16_t) + 512 * sizeof(uint16_t) + 256 * sizeof(uint32_t))
 
 #define ZSTD_TABLE_LITERAL_FSE_OFFSET (0)
 
-#define ZSTD_TABLE_MATCH_FSE_OFFSET \
+#define ZSTD_TABLE_MATCH_FSE_OFFSET                                            \
   (512 * sizeof(struct elf_zstd_fse_baseline_entry))
 
-#define ZSTD_TABLE_OFFSET_FSE_OFFSET \
-  (ZSTD_TABLE_MATCH_FSE_OFFSET +     \
+#define ZSTD_TABLE_OFFSET_FSE_OFFSET                                           \
+  (ZSTD_TABLE_MATCH_FSE_OFFSET +                                               \
    512 * sizeof(struct elf_zstd_fse_baseline_entry))
 
-#define ZSTD_TABLE_HUFFMAN_OFFSET \
-  (ZSTD_TABLE_OFFSET_FSE_OFFSET + \
+#define ZSTD_TABLE_HUFFMAN_OFFSET                                              \
+  (ZSTD_TABLE_OFFSET_FSE_OFFSET +                                              \
    256 * sizeof(struct elf_zstd_fse_baseline_entry))
 
-#define ZSTD_TABLE_WORK_OFFSET \
+#define ZSTD_TABLE_WORK_OFFSET                                                 \
   (ZSTD_TABLE_HUFFMAN_OFFSET + 2048 * sizeof(uint16_t))
 
 /* An entry in a zstd FSE table.  */
@@ -784,7 +788,8 @@ static int elf_zstd_read_fse(const unsigned char **ppin,
     ++pin;
   }
 
-  if (!elf_fetch_bits(&pin, pinend, &val, &bits)) return 0;
+  if (!elf_fetch_bits(&pin, pinend, &val, &bits))
+    return 0;
 
   accuracy_log = (val & 0xf) + 5;
   if (accuracy_log > *table_bits) {
@@ -818,7 +823,8 @@ static int elf_zstd_read_fse(const unsigned char **ppin,
     uint32_t max;
     int32_t count;
 
-    if (!elf_fetch_bits(&pin, pinend, &val, &bits)) return 0;
+    if (!elf_fetch_bits(&pin, pinend, &val, &bits))
+      return 0;
 
     if (prev0) {
       int zidx;
@@ -831,13 +837,15 @@ static int elf_zstd_read_fse(const unsigned char **ppin,
         zidx += 3 * 6;
         val >>= 12;
         bits -= 12;
-        if (!elf_fetch_bits(&pin, pinend, &val, &bits)) return 0;
+        if (!elf_fetch_bits(&pin, pinend, &val, &bits))
+          return 0;
       }
       while ((val & 3) == 3) {
         zidx += 3;
         val >>= 2;
         bits -= 2;
-        if (!elf_fetch_bits(&pin, pinend, &val, &bits)) return 0;
+        if (!elf_fetch_bits(&pin, pinend, &val, &bits))
+          return 0;
       }
       /* We have at least 13 bits here, don't need to fetch.  */
       zidx += val & 3;
@@ -849,7 +857,8 @@ static int elf_zstd_read_fse(const unsigned char **ppin,
         return 0;
       }
 
-      for (; idx < zidx; idx++) norm[idx] = 0;
+      for (; idx < zidx; idx++)
+        norm[idx] = 0;
 
       prev0 = 0;
       continue;
@@ -864,7 +873,8 @@ static int elf_zstd_read_fse(const unsigned char **ppin,
     } else {
       /* A large value.  */
       count = (int32_t)((uint32_t)val & (2 * threshold - 1));
-      if (count >= (int32_t)threshold) count -= (int32_t)max;
+      if (count >= (int32_t)threshold)
+        count -= (int32_t)max;
       val >>= bits_needed;
       bits -= bits_needed;
     }
@@ -902,7 +912,8 @@ static int elf_zstd_read_fse(const unsigned char **ppin,
 
   *ppin = pin;
 
-  for (; idx <= maxidx; idx++) norm[idx] = 0;
+  for (; idx <= maxidx; idx++)
+    norm[idx] = 0;
 
   return elf_zstd_build_fse(norm, idx, next, *table_bits, table);
 }
@@ -947,7 +958,8 @@ static int elf_zstd_build_fse(const int16_t *norm, int idx, uint16_t *next,
     for (j = 0; j < n; j++) {
       table[pos].symbol = (unsigned char)i;
       pos = (pos + step) & mask;
-      while (unlikely(pos > high_threshold)) pos = (pos + step) & mask;
+      while (unlikely(pos > high_threshold))
+        pos = (pos + step) & mask;
     }
   }
   if (unlikely(pos != 0)) {
@@ -981,13 +993,13 @@ static int elf_zstd_build_fse(const int16_t *norm, int idx, uint16_t *next,
 
 /* Encode the baseline and bits into a single 32-bit value.  */
 
-#define ZSTD_ENCODE_BASELINE_BITS(baseline, basebits) \
+#define ZSTD_ENCODE_BASELINE_BITS(baseline, basebits)                          \
   ((uint32_t)(baseline) | ((uint32_t)(basebits) << 24))
 
-#define ZSTD_DECODE_BASELINE(baseline_basebits) \
+#define ZSTD_DECODE_BASELINE(baseline_basebits)                                \
   ((uint32_t)(baseline_basebits) & 0xffffff)
 
-#define ZSTD_DECODE_BASEBITS(baseline_basebits) \
+#define ZSTD_DECODE_BASEBITS(baseline_basebits)                                \
   ((uint32_t)(baseline_basebits) >> 24)
 
 /* Given a literal length code, we need to read a number of bits and add that
@@ -1139,7 +1151,8 @@ static int elf_zstd_make_offset_baseline_fse(
        it in the hot loop.  */
 
     pbaseline->baseline = (uint32_t)1 << symbol;
-    if (symbol >= 2) pbaseline->baseline -= 3;
+    if (symbol >= 2)
+      pbaseline->baseline -= 3;
     pbaseline->basebits = symbol;
     pbaseline->bits = bits;
     pbaseline->base = base;
@@ -1196,7 +1209,7 @@ static int elf_zstd_make_match_baseline_fse(
   return 1;
 }
 
-#ifdef BACKTRACE_GENERATE_ZSTD_FSE_TABLES
+#if defined(BACKTRACE_GENERATE_ZSTD_FSE_TABLES)
 
 /* Used to generate the predefined FSE decoding tables for zstd.  */
 
@@ -1256,9 +1269,8 @@ int main() {
     exit(EXIT_FAILURE);
   }
 
-  printf(
-      "static const struct elf_zstd_fse_baseline_entry "
-      "elf_zstd_lit_table[64] =\n");
+  printf("static const struct elf_zstd_fse_baseline_entry "
+         "elf_zstd_lit_table[64] =\n");
   print_table(lit_baseline, sizeof lit_baseline / sizeof lit_baseline[0]);
   printf("\n");
 
@@ -1275,9 +1287,8 @@ int main() {
     exit(EXIT_FAILURE);
   }
 
-  printf(
-      "static const struct elf_zstd_fse_baseline_entry "
-      "elf_zstd_match_table[64] =\n");
+  printf("static const struct elf_zstd_fse_baseline_entry "
+         "elf_zstd_match_table[64] =\n");
   print_table(match_baseline, sizeof match_baseline / sizeof match_baseline[0]);
   printf("\n");
 
@@ -1294,9 +1305,8 @@ int main() {
     exit(EXIT_FAILURE);
   }
 
-  printf(
-      "static const struct elf_zstd_fse_baseline_entry "
-      "elf_zstd_offset_table[32] =\n");
+  printf("static const struct elf_zstd_fse_baseline_entry "
+         "elf_zstd_offset_table[32] =\n");
   print_table(offset_baseline,
               sizeof offset_baseline / sizeof offset_baseline[0]);
   printf("\n");
@@ -1424,7 +1434,8 @@ static int elf_zstd_read_huff(const unsigned char **ppin,
 
     pback = pin + hdr - 1;
 
-    if (!elf_fetch_backward_init(&pback, pfse, &val, &bits)) return 0;
+    if (!elf_fetch_backward_init(&pback, pfse, &val, &bits))
+      return 0;
 
     bits -= fse_table_bits;
     state1 = (val >> bits) & ((1U << fse_table_bits) - 1);
@@ -1455,7 +1466,8 @@ static int elf_zstd_read_huff(const unsigned char **ppin,
       if (unlikely(pt->bits == 0))
         v = 0;
       else {
-        if (!elf_fetch_bits_backward(&pback, pfse, &val, &bits)) return 0;
+        if (!elf_fetch_bits_backward(&pback, pfse, &val, &bits))
+          return 0;
 
         bits -= pt->bits;
         v = (val >> bits) & (((uint64_t)1 << pt->bits) - 1);
@@ -1487,7 +1499,8 @@ static int elf_zstd_read_huff(const unsigned char **ppin,
       if (unlikely(pt->bits == 0))
         v = 0;
       else {
-        if (!elf_fetch_bits_backward(&pback, pfse, &val, &bits)) return 0;
+        if (!elf_fetch_bits_backward(&pback, pfse, &val, &bits))
+          return 0;
 
         bits -= pt->bits;
         v = (val >> bits) & (((uint64_t)1 << pt->bits) - 1);
@@ -1535,7 +1548,8 @@ static int elf_zstd_read_huff(const unsigned char **ppin,
       return 0;
     }
     ++weight_mark[w];
-    if (w > 0) weight_mask += 1U << (w - 1);
+    if (w > 0)
+      weight_mask += 1U << (w - 1);
   }
   if (unlikely(weight_mask == 0)) {
     elf_uncompress_failed();
@@ -1604,12 +1618,14 @@ static int elf_zstd_read_huff(const unsigned char **ppin,
     uint32_t j;
 
     weight = weights[i];
-    if (weight == 0) continue;
+    if (weight == 0)
+      continue;
 
     length = 1U << (weight - 1);
     tval = (i << 8) | (table_bits + 1 - weight);
     start = weight_mark[weight];
-    for (j = 0; j < length; ++j) table[start + j] = tval;
+    for (j = 0; j < length; ++j)
+      table[start + j] = tval;
     weight_mark[weight] += length;
   }
 
@@ -1658,30 +1674,30 @@ static int elf_zstd_read_literals(const unsigned char **ppin,
     raw = (hdr & 3) == 0;
 
     switch ((hdr >> 2) & 3) {
-      case 0:
-      case 2:
-        regenerated_size = hdr >> 3;
-        break;
-      case 1:
-        if (unlikely(pin >= pinend)) {
-          elf_uncompress_failed();
-          return 0;
-        }
-        regenerated_size = (hdr >> 4) + ((uint32_t)(*pin) << 4);
-        ++pin;
-        break;
-      case 3:
-        if (unlikely(pin + 1 >= pinend)) {
-          elf_uncompress_failed();
-          return 0;
-        }
-        regenerated_size =
-            ((hdr >> 4) + ((uint32_t)*pin << 4) + ((uint32_t)pin[1] << 12));
-        pin += 2;
-        break;
-      default:
+    case 0:
+    case 2:
+      regenerated_size = hdr >> 3;
+      break;
+    case 1:
+      if (unlikely(pin >= pinend)) {
         elf_uncompress_failed();
         return 0;
+      }
+      regenerated_size = (hdr >> 4) + ((uint32_t)(*pin) << 4);
+      ++pin;
+      break;
+    case 3:
+      if (unlikely(pin + 1 >= pinend)) {
+        elf_uncompress_failed();
+        return 0;
+      }
+      regenerated_size =
+          ((hdr >> 4) + ((uint32_t)*pin << 4) + ((uint32_t)pin[1] << 12));
+      pin += 2;
+      break;
+    default:
+      elf_uncompress_failed();
+      return 0;
     }
 
     if (unlikely((size_t)(poutend - pout) < regenerated_size)) {
@@ -1716,43 +1732,43 @@ static int elf_zstd_read_literals(const unsigned char **ppin,
   /* Compressed_Literals_Block or Treeless_Literals_Block */
 
   switch ((hdr >> 2) & 3) {
-    case 0:
-    case 1:
-      if (unlikely(pin + 1 >= pinend)) {
-        elf_uncompress_failed();
-        return 0;
-      }
-      regenerated_size = (hdr >> 4) | ((uint32_t)(*pin & 0x3f) << 4);
-      compressed_size = (uint32_t)*pin >> 6 | ((uint32_t)pin[1] << 2);
-      pin += 2;
-      streams = ((hdr >> 2) & 3) == 0 ? 1 : 4;
-      break;
-    case 2:
-      if (unlikely(pin + 2 >= pinend)) {
-        elf_uncompress_failed();
-        return 0;
-      }
-      regenerated_size = (((uint32_t)hdr >> 4) | ((uint32_t)*pin << 4) |
-                          (((uint32_t)pin[1] & 3) << 12));
-      compressed_size = (((uint32_t)pin[1] >> 2) | ((uint32_t)pin[2] << 6));
-      pin += 3;
-      streams = 4;
-      break;
-    case 3:
-      if (unlikely(pin + 3 >= pinend)) {
-        elf_uncompress_failed();
-        return 0;
-      }
-      regenerated_size = (((uint32_t)hdr >> 4) | ((uint32_t)*pin << 4) |
-                          (((uint32_t)pin[1] & 0x3f) << 12));
-      compressed_size = (((uint32_t)pin[1] >> 6) | ((uint32_t)pin[2] << 2) |
-                         ((uint32_t)pin[3] << 10));
-      pin += 4;
-      streams = 4;
-      break;
-    default:
+  case 0:
+  case 1:
+    if (unlikely(pin + 1 >= pinend)) {
       elf_uncompress_failed();
       return 0;
+    }
+    regenerated_size = (hdr >> 4) | ((uint32_t)(*pin & 0x3f) << 4);
+    compressed_size = (uint32_t)*pin >> 6 | ((uint32_t)pin[1] << 2);
+    pin += 2;
+    streams = ((hdr >> 2) & 3) == 0 ? 1 : 4;
+    break;
+  case 2:
+    if (unlikely(pin + 2 >= pinend)) {
+      elf_uncompress_failed();
+      return 0;
+    }
+    regenerated_size = (((uint32_t)hdr >> 4) | ((uint32_t)*pin << 4) |
+                        (((uint32_t)pin[1] & 3) << 12));
+    compressed_size = (((uint32_t)pin[1] >> 2) | ((uint32_t)pin[2] << 6));
+    pin += 3;
+    streams = 4;
+    break;
+  case 3:
+    if (unlikely(pin + 3 >= pinend)) {
+      elf_uncompress_failed();
+      return 0;
+    }
+    regenerated_size = (((uint32_t)hdr >> 4) | ((uint32_t)*pin << 4) |
+                        (((uint32_t)pin[1] & 0x3f) << 12));
+    compressed_size = (((uint32_t)pin[1] >> 6) | ((uint32_t)pin[2] << 2) |
+                       ((uint32_t)pin[3] << 10));
+    pin += 4;
+    streams = 4;
+    break;
+  default:
+    elf_uncompress_failed();
+    return 0;
   }
 
   if (unlikely(pin + compressed_size > pinend)) {
@@ -1813,7 +1829,8 @@ static int elf_zstd_read_literals(const unsigned char **ppin,
 
     pback = pin + total_streams_size - 1;
     pbackend = pin;
-    if (!elf_fetch_backward_init(&pback, pbackend, &val, &bits)) return 0;
+    if (!elf_fetch_backward_init(&pback, pbackend, &val, &bits))
+      return 0;
 
     /* This is one of the inner loops of the decompression algorithm, so we
        put some effort into optimization.  We can't get more than 64 bytes
@@ -1829,9 +1846,11 @@ static int elf_zstd_read_literals(const unsigned char **ppin,
       while (plit < plitstop) {
         uint16_t t;
 
-        if (!elf_fetch_bits_backward(&pback, pbackend, &val, &bits)) return 0;
+        if (!elf_fetch_bits_backward(&pback, pbackend, &val, &bits))
+          return 0;
 
-        if (bits < 16) break;
+        if (bits < 16)
+          break;
 
         while (bits >= 33) {
           t = huffman_table[(val >> (bits - huffman_table_bits)) &
@@ -1868,7 +1887,8 @@ static int elf_zstd_read_literals(const unsigned char **ppin,
     for (i = 0; i < regenerated_size; ++i) {
       uint16_t t;
 
-      if (!elf_fetch_bits_backward(&pback, pbackend, &val, &bits)) return 0;
+      if (!elf_fetch_bits_backward(&pback, pbackend, &val, &bits))
+        return 0;
 
       if (unlikely(bits < huffman_table_bits)) {
         t = huffman_table[(val << (huffman_table_bits - bits)) & huffman_mask];
@@ -1931,10 +1951,14 @@ static int elf_zstd_read_literals(const unsigned char **ppin,
     pback4 = pback3 + stream_size4;
     pbackend4 = pback3 + 1;
 
-    if (!elf_fetch_backward_init(&pback1, pbackend1, &val1, &bits1)) return 0;
-    if (!elf_fetch_backward_init(&pback2, pbackend2, &val2, &bits2)) return 0;
-    if (!elf_fetch_backward_init(&pback3, pbackend3, &val3, &bits3)) return 0;
-    if (!elf_fetch_backward_init(&pback4, pbackend4, &val4, &bits4)) return 0;
+    if (!elf_fetch_backward_init(&pback1, pbackend1, &val1, &bits1))
+      return 0;
+    if (!elf_fetch_backward_init(&pback2, pbackend2, &val2, &bits2))
+      return 0;
+    if (!elf_fetch_backward_init(&pback3, pbackend3, &val3, &bits3))
+      return 0;
+    if (!elf_fetch_backward_init(&pback4, pbackend4, &val4, &bits4))
+      return 0;
 
     regenerated_stream_size = (regenerated_size + 3) / 4;
 
@@ -1952,10 +1976,14 @@ static int elf_zstd_read_literals(const unsigned char **ppin,
     limit = regenerated_stream_size4 <= 64 ? 0 : regenerated_stream_size4 - 64;
     i = 0;
     while (i < limit) {
-      if (!elf_fetch_bits_backward(&pback1, pbackend1, &val1, &bits1)) return 0;
-      if (!elf_fetch_bits_backward(&pback2, pbackend2, &val2, &bits2)) return 0;
-      if (!elf_fetch_bits_backward(&pback3, pbackend3, &val3, &bits3)) return 0;
-      if (!elf_fetch_bits_backward(&pback4, pbackend4, &val4, &bits4)) return 0;
+      if (!elf_fetch_bits_backward(&pback1, pbackend1, &val1, &bits1))
+        return 0;
+      if (!elf_fetch_bits_backward(&pback2, pbackend2, &val2, &bits2))
+        return 0;
+      if (!elf_fetch_bits_backward(&pback3, pbackend3, &val3, &bits3))
+        return 0;
+      if (!elf_fetch_bits_backward(&pback4, pbackend4, &val4, &bits4))
+        return 0;
 
       /* We can't subtract more than 11 bits at a time.  */
 
@@ -2100,50 +2128,52 @@ static int elf_zstd_unpack_seq_decode(
                 struct elf_zstd_fse_baseline_entry *),
     struct elf_zstd_seq_decode *decode) {
   switch (mode) {
-    case 0:
-      decode->table = predef;
-      decode->table_bits = predef_bits;
-      break;
+  case 0:
+    decode->table = predef;
+    decode->table_bits = predef_bits;
+    break;
 
-    case 1: {
-      struct elf_zstd_fse_entry entry;
+  case 1: {
+    struct elf_zstd_fse_entry entry;
 
-      if (unlikely(*ppin >= pinend)) {
-        elf_uncompress_failed();
-        return 0;
-      }
-      entry.symbol = **ppin;
-      ++*ppin;
-      entry.bits = 0;
-      entry.base = 0;
-      decode->table_bits = 0;
-      if (!conv(&entry, 0, table)) return 0;
-    } break;
-
-    case 2: {
-      struct elf_zstd_fse_entry *fse_table;
-
-      /* We use the same space for the simple FSE table and the baseline
-         table.  */
-      fse_table = (struct elf_zstd_fse_entry *)table;
-      decode->table_bits = table_bits;
-      if (!elf_zstd_read_fse(ppin, pinend, scratch, maxidx, fse_table,
-                             &decode->table_bits))
-        return 0;
-      if (!conv(fse_table, decode->table_bits, table)) return 0;
-      decode->table = table;
-    } break;
-
-    case 3:
-      if (unlikely(decode->table_bits == -1)) {
-        elf_uncompress_failed();
-        return 0;
-      }
-      break;
-
-    default:
+    if (unlikely(*ppin >= pinend)) {
       elf_uncompress_failed();
       return 0;
+    }
+    entry.symbol = **ppin;
+    ++*ppin;
+    entry.bits = 0;
+    entry.base = 0;
+    decode->table_bits = 0;
+    if (!conv(&entry, 0, table))
+      return 0;
+  } break;
+
+  case 2: {
+    struct elf_zstd_fse_entry *fse_table;
+
+    /* We use the same space for the simple FSE table and the baseline
+       table.  */
+    fse_table = (struct elf_zstd_fse_entry *)table;
+    decode->table_bits = table_bits;
+    if (!elf_zstd_read_fse(ppin, pinend, scratch, maxidx, fse_table,
+                           &decode->table_bits))
+      return 0;
+    if (!conv(fse_table, decode->table_bits, table))
+      return 0;
+    decode->table = table;
+  } break;
+
+  case 3:
+    if (unlikely(decode->table_bits == -1)) {
+      elf_uncompress_failed();
+      return 0;
+    }
+    break;
+
+  default:
+    elf_uncompress_failed();
+    return 0;
   }
 
   return 1;
@@ -2242,44 +2272,44 @@ static int elf_zstd_decompress(const unsigned char *pin, size_t sin,
   }
   has_checksum = (hdr & (1 << 2)) != 0;
   switch (hdr >> 6) {
-    case 0:
-      if (unlikely(pin >= pinend)) {
-        elf_uncompress_failed();
-        return 0;
-      }
-      content_size = (uint64_t)*pin++;
-      break;
-    case 1:
-      if (unlikely(pin + 1 >= pinend)) {
-        elf_uncompress_failed();
-        return 0;
-      }
-      content_size = (((uint64_t)pin[0]) | (((uint64_t)pin[1]) << 8)) + 256;
-      pin += 2;
-      break;
-    case 2:
-      if (unlikely(pin + 3 >= pinend)) {
-        elf_uncompress_failed();
-        return 0;
-      }
-      content_size = ((uint64_t)pin[0] | (((uint64_t)pin[1]) << 8) |
-                      (((uint64_t)pin[2]) << 16) | (((uint64_t)pin[3]) << 24));
-      pin += 4;
-      break;
-    case 3:
-      if (unlikely(pin + 7 >= pinend)) {
-        elf_uncompress_failed();
-        return 0;
-      }
-      content_size = ((uint64_t)pin[0] | (((uint64_t)pin[1]) << 8) |
-                      (((uint64_t)pin[2]) << 16) | (((uint64_t)pin[3]) << 24) |
-                      (((uint64_t)pin[4]) << 32) | (((uint64_t)pin[5]) << 40) |
-                      (((uint64_t)pin[6]) << 48) | (((uint64_t)pin[7]) << 56));
-      pin += 8;
-      break;
-    default:
+  case 0:
+    if (unlikely(pin >= pinend)) {
       elf_uncompress_failed();
       return 0;
+    }
+    content_size = (uint64_t)*pin++;
+    break;
+  case 1:
+    if (unlikely(pin + 1 >= pinend)) {
+      elf_uncompress_failed();
+      return 0;
+    }
+    content_size = (((uint64_t)pin[0]) | (((uint64_t)pin[1]) << 8)) + 256;
+    pin += 2;
+    break;
+  case 2:
+    if (unlikely(pin + 3 >= pinend)) {
+      elf_uncompress_failed();
+      return 0;
+    }
+    content_size = ((uint64_t)pin[0] | (((uint64_t)pin[1]) << 8) |
+                    (((uint64_t)pin[2]) << 16) | (((uint64_t)pin[3]) << 24));
+    pin += 4;
+    break;
+  case 3:
+    if (unlikely(pin + 7 >= pinend)) {
+      elf_uncompress_failed();
+      return 0;
+    }
+    content_size = ((uint64_t)pin[0] | (((uint64_t)pin[1]) << 8) |
+                    (((uint64_t)pin[2]) << 16) | (((uint64_t)pin[3]) << 24) |
+                    (((uint64_t)pin[4]) << 32) | (((uint64_t)pin[5]) << 40) |
+                    (((uint64_t)pin[6]) << 48) | (((uint64_t)pin[7]) << 56));
+    pin += 8;
+    break;
+  default:
+    elf_uncompress_failed();
+    return 0;
   }
 
   if (unlikely(content_size != (size_t)content_size ||
@@ -2307,398 +2337,408 @@ static int elf_zstd_decompress(const unsigned char *pin, size_t sin,
     block_size = block_hdr >> 3;
 
     switch (block_type) {
-      case 0:
-        /* Raw_Block */
-        if (unlikely((size_t)block_size > (size_t)(pinend - pin))) {
-          elf_uncompress_failed();
-          return 0;
-        }
-        if (unlikely((size_t)block_size > (size_t)(poutend - pout))) {
-          elf_uncompress_failed();
-          return 0;
-        }
-        memcpy(pout, pin, block_size);
-        pout += block_size;
-        pin += block_size;
-        break;
+    case 0:
+      /* Raw_Block */
+      if (unlikely((size_t)block_size > (size_t)(pinend - pin))) {
+        elf_uncompress_failed();
+        return 0;
+      }
+      if (unlikely((size_t)block_size > (size_t)(poutend - pout))) {
+        elf_uncompress_failed();
+        return 0;
+      }
+      memcpy(pout, pin, block_size);
+      pout += block_size;
+      pin += block_size;
+      break;
 
-      case 1:
-        /* RLE_Block */
+    case 1:
+      /* RLE_Block */
+      if (unlikely(pin >= pinend)) {
+        elf_uncompress_failed();
+        return 0;
+      }
+      if (unlikely((size_t)block_size > (size_t)(poutend - pout))) {
+        elf_uncompress_failed();
+        return 0;
+      }
+      memset(pout, *pin, block_size);
+      pout += block_size;
+      pin++;
+      break;
+
+    case 2: {
+      const unsigned char *pblockend;
+      unsigned char *plitstack;
+      unsigned char *plit;
+      uint32_t literal_count;
+      unsigned char seq_hdr;
+      size_t seq_count;
+      size_t seq;
+      const unsigned char *pback;
+      uint64_t val;
+      unsigned int bits;
+      unsigned int literal_state;
+      unsigned int offset_state;
+      unsigned int match_state;
+
+      /* Compressed_Block */
+      if (unlikely((size_t)block_size > (size_t)(pinend - pin))) {
+        elf_uncompress_failed();
+        return 0;
+      }
+
+      pblockend = pin + block_size;
+
+      /* Read the literals into the end of the output space, and leave
+         PLIT pointing at them.  */
+
+      if (!elf_zstd_read_literals(&pin, pblockend, pout, poutend, scratch,
+                                  huffman_table, &huffman_table_bits,
+                                  &plitstack))
+        return 0;
+      plit = plitstack;
+      literal_count = poutend - plit;
+
+      seq_hdr = *pin;
+      pin++;
+      if (seq_hdr < 128)
+        seq_count = seq_hdr;
+      else if (seq_hdr < 255) {
         if (unlikely(pin >= pinend)) {
           elf_uncompress_failed();
           return 0;
         }
-        if (unlikely((size_t)block_size > (size_t)(poutend - pout))) {
-          elf_uncompress_failed();
-          return 0;
-        }
-        memset(pout, *pin, block_size);
-        pout += block_size;
+        seq_count = ((seq_hdr - 128) << 8) + *pin;
         pin++;
-        break;
-
-      case 2: {
-        const unsigned char *pblockend;
-        unsigned char *plitstack;
-        unsigned char *plit;
-        uint32_t literal_count;
-        unsigned char seq_hdr;
-        size_t seq_count;
-        size_t seq;
-        const unsigned char *pback;
-        uint64_t val;
-        unsigned int bits;
-        unsigned int literal_state;
-        unsigned int offset_state;
-        unsigned int match_state;
-
-        /* Compressed_Block */
-        if (unlikely((size_t)block_size > (size_t)(pinend - pin))) {
+      } else {
+        if (unlikely(pin + 1 >= pinend)) {
           elf_uncompress_failed();
           return 0;
         }
+        seq_count = *pin + (pin[1] << 8) + 0x7f00;
+        pin += 2;
+      }
 
-        pblockend = pin + block_size;
+      if (seq_count > 0) {
+        int (*pfn)(const struct elf_zstd_fse_entry *, int,
+                   struct elf_zstd_fse_baseline_entry *);
 
-        /* Read the literals into the end of the output space, and leave
-           PLIT pointing at them.  */
-
-        if (!elf_zstd_read_literals(&pin, pblockend, pout, poutend, scratch,
-                                    huffman_table, &huffman_table_bits,
-                                    &plitstack))
+        if (unlikely(pin >= pinend)) {
+          elf_uncompress_failed();
           return 0;
-        plit = plitstack;
-        literal_count = poutend - plit;
-
+        }
         seq_hdr = *pin;
-        pin++;
-        if (seq_hdr < 128)
-          seq_count = seq_hdr;
-        else if (seq_hdr < 255) {
-          if (unlikely(pin >= pinend)) {
-            elf_uncompress_failed();
+        ++pin;
+
+        pfn = elf_zstd_make_literal_baseline_fse;
+        if (!elf_zstd_unpack_seq_decode(
+                (seq_hdr >> 6) & 3, &pin, pinend, &elf_zstd_lit_table[0], 6,
+                scratch, 35, literal_fse_table, 9, pfn, &literal_decode))
+          return 0;
+
+        pfn = elf_zstd_make_offset_baseline_fse;
+        if (!elf_zstd_unpack_seq_decode(
+                (seq_hdr >> 4) & 3, &pin, pinend, &elf_zstd_offset_table[0], 5,
+                scratch, 31, offset_fse_table, 8, pfn, &offset_decode))
+          return 0;
+
+        pfn = elf_zstd_make_match_baseline_fse;
+        if (!elf_zstd_unpack_seq_decode(
+                (seq_hdr >> 2) & 3, &pin, pinend, &elf_zstd_match_table[0], 6,
+                scratch, 52, match_fse_table, 9, pfn, &match_decode))
+          return 0;
+      }
+
+      pback = pblockend - 1;
+      if (!elf_fetch_backward_init(&pback, pin, &val, &bits))
+        return 0;
+
+      bits -= literal_decode.table_bits;
+      literal_state = ((val >> bits) & ((1U << literal_decode.table_bits) - 1));
+
+      if (!elf_fetch_bits_backward(&pback, pin, &val, &bits))
+        return 0;
+      bits -= offset_decode.table_bits;
+      offset_state = ((val >> bits) & ((1U << offset_decode.table_bits) - 1));
+
+      if (!elf_fetch_bits_backward(&pback, pin, &val, &bits))
+        return 0;
+      bits -= match_decode.table_bits;
+      match_state = ((val >> bits) & ((1U << match_decode.table_bits) - 1));
+
+      seq = 0;
+      while (1) {
+        const struct elf_zstd_fse_baseline_entry *pt;
+        uint32_t offset_basebits;
+        uint32_t offset_baseline;
+        uint32_t offset_bits;
+        uint32_t offset_base;
+        uint32_t offset;
+        uint32_t match_baseline;
+        uint32_t match_bits;
+        uint32_t match_base;
+        uint32_t match;
+        uint32_t literal_baseline;
+        uint32_t literal_bits;
+        uint32_t literal_base;
+        uint32_t literal;
+        uint32_t need;
+        uint32_t add;
+
+        pt = &offset_decode.table[offset_state];
+        offset_basebits = pt->basebits;
+        offset_baseline = pt->baseline;
+        offset_bits = pt->bits;
+        offset_base = pt->base;
+
+        /* This case can be more than 16 bits, which is all that
+           elf_fetch_bits_backward promises.  */
+        need = offset_basebits;
+        add = 0;
+        if (unlikely(need > 16)) {
+          if (!elf_fetch_bits_backward(&pback, pin, &val, &bits))
             return 0;
-          }
-          seq_count = ((seq_hdr - 128) << 8) + *pin;
-          pin++;
+          bits -= 16;
+          add = (val >> bits) & ((1U << 16) - 1);
+          need -= 16;
+          add <<= need;
+        }
+        if (need > 0) {
+          if (!elf_fetch_bits_backward(&pback, pin, &val, &bits))
+            return 0;
+          bits -= need;
+          add += (val >> bits) & ((1U << need) - 1);
+        }
+
+        offset = offset_baseline + add;
+
+        pt = &match_decode.table[match_state];
+        need = pt->basebits;
+        match_baseline = pt->baseline;
+        match_bits = pt->bits;
+        match_base = pt->base;
+
+        add = 0;
+        if (need > 0) {
+          if (!elf_fetch_bits_backward(&pback, pin, &val, &bits))
+            return 0;
+          bits -= need;
+          add = (val >> bits) & ((1U << need) - 1);
+        }
+
+        match = match_baseline + add;
+
+        pt = &literal_decode.table[literal_state];
+        need = pt->basebits;
+        literal_baseline = pt->baseline;
+        literal_bits = pt->bits;
+        literal_base = pt->base;
+
+        add = 0;
+        if (need > 0) {
+          if (!elf_fetch_bits_backward(&pback, pin, &val, &bits))
+            return 0;
+          bits -= need;
+          add = (val >> bits) & ((1U << need) - 1);
+        }
+
+        literal = literal_baseline + add;
+
+        /* See the comment in elf_zstd_make_offset_baseline_fse.  */
+        if (offset_basebits > 1) {
+          repeated_offset3 = repeated_offset2;
+          repeated_offset2 = repeated_offset1;
+          repeated_offset1 = offset;
         } else {
-          if (unlikely(pin + 1 >= pinend)) {
-            elf_uncompress_failed();
-            return 0;
-          }
-          seq_count = *pin + (pin[1] << 8) + 0x7f00;
-          pin += 2;
-        }
-
-        if (seq_count > 0) {
-          int (*pfn)(const struct elf_zstd_fse_entry *, int,
-                     struct elf_zstd_fse_baseline_entry *);
-
-          if (unlikely(pin >= pinend)) {
-            elf_uncompress_failed();
-            return 0;
-          }
-          seq_hdr = *pin;
-          ++pin;
-
-          pfn = elf_zstd_make_literal_baseline_fse;
-          if (!elf_zstd_unpack_seq_decode(
-                  (seq_hdr >> 6) & 3, &pin, pinend, &elf_zstd_lit_table[0], 6,
-                  scratch, 35, literal_fse_table, 9, pfn, &literal_decode))
-            return 0;
-
-          pfn = elf_zstd_make_offset_baseline_fse;
-          if (!elf_zstd_unpack_seq_decode(
-                  (seq_hdr >> 4) & 3, &pin, pinend, &elf_zstd_offset_table[0],
-                  5, scratch, 31, offset_fse_table, 8, pfn, &offset_decode))
-            return 0;
-
-          pfn = elf_zstd_make_match_baseline_fse;
-          if (!elf_zstd_unpack_seq_decode(
-                  (seq_hdr >> 2) & 3, &pin, pinend, &elf_zstd_match_table[0], 6,
-                  scratch, 52, match_fse_table, 9, pfn, &match_decode))
-            return 0;
-        }
-
-        pback = pblockend - 1;
-        if (!elf_fetch_backward_init(&pback, pin, &val, &bits)) return 0;
-
-        bits -= literal_decode.table_bits;
-        literal_state =
-            ((val >> bits) & ((1U << literal_decode.table_bits) - 1));
-
-        if (!elf_fetch_bits_backward(&pback, pin, &val, &bits)) return 0;
-        bits -= offset_decode.table_bits;
-        offset_state = ((val >> bits) & ((1U << offset_decode.table_bits) - 1));
-
-        if (!elf_fetch_bits_backward(&pback, pin, &val, &bits)) return 0;
-        bits -= match_decode.table_bits;
-        match_state = ((val >> bits) & ((1U << match_decode.table_bits) - 1));
-
-        seq = 0;
-        while (1) {
-          const struct elf_zstd_fse_baseline_entry *pt;
-          uint32_t offset_basebits;
-          uint32_t offset_baseline;
-          uint32_t offset_bits;
-          uint32_t offset_base;
-          uint32_t offset;
-          uint32_t match_baseline;
-          uint32_t match_bits;
-          uint32_t match_base;
-          uint32_t match;
-          uint32_t literal_baseline;
-          uint32_t literal_bits;
-          uint32_t literal_base;
-          uint32_t literal;
-          uint32_t need;
-          uint32_t add;
-
-          pt = &offset_decode.table[offset_state];
-          offset_basebits = pt->basebits;
-          offset_baseline = pt->baseline;
-          offset_bits = pt->bits;
-          offset_base = pt->base;
-
-          /* This case can be more than 16 bits, which is all that
-             elf_fetch_bits_backward promises.  */
-          need = offset_basebits;
-          add = 0;
-          if (unlikely(need > 16)) {
-            if (!elf_fetch_bits_backward(&pback, pin, &val, &bits)) return 0;
-            bits -= 16;
-            add = (val >> bits) & ((1U << 16) - 1);
-            need -= 16;
-            add <<= need;
-          }
-          if (need > 0) {
-            if (!elf_fetch_bits_backward(&pback, pin, &val, &bits)) return 0;
-            bits -= need;
-            add += (val >> bits) & ((1U << need) - 1);
-          }
-
-          offset = offset_baseline + add;
-
-          pt = &match_decode.table[match_state];
-          need = pt->basebits;
-          match_baseline = pt->baseline;
-          match_bits = pt->bits;
-          match_base = pt->base;
-
-          add = 0;
-          if (need > 0) {
-            if (!elf_fetch_bits_backward(&pback, pin, &val, &bits)) return 0;
-            bits -= need;
-            add = (val >> bits) & ((1U << need) - 1);
-          }
-
-          match = match_baseline + add;
-
-          pt = &literal_decode.table[literal_state];
-          need = pt->basebits;
-          literal_baseline = pt->baseline;
-          literal_bits = pt->bits;
-          literal_base = pt->base;
-
-          add = 0;
-          if (need > 0) {
-            if (!elf_fetch_bits_backward(&pback, pin, &val, &bits)) return 0;
-            bits -= need;
-            add = (val >> bits) & ((1U << need) - 1);
-          }
-
-          literal = literal_baseline + add;
-
-          /* See the comment in elf_zstd_make_offset_baseline_fse.  */
-          if (offset_basebits > 1) {
+          if (unlikely(literal == 0))
+            ++offset;
+          switch (offset) {
+          case 1:
+            offset = repeated_offset1;
+            break;
+          case 2:
+            offset = repeated_offset2;
+            repeated_offset2 = repeated_offset1;
+            repeated_offset1 = offset;
+            break;
+          case 3:
+            offset = repeated_offset3;
             repeated_offset3 = repeated_offset2;
             repeated_offset2 = repeated_offset1;
             repeated_offset1 = offset;
-          } else {
-            if (unlikely(literal == 0)) ++offset;
-            switch (offset) {
-              case 1:
-                offset = repeated_offset1;
-                break;
-              case 2:
-                offset = repeated_offset2;
-                repeated_offset2 = repeated_offset1;
-                repeated_offset1 = offset;
-                break;
-              case 3:
-                offset = repeated_offset3;
-                repeated_offset3 = repeated_offset2;
-                repeated_offset2 = repeated_offset1;
-                repeated_offset1 = offset;
-                break;
-              case 4:
-                offset = repeated_offset1 - 1;
-                repeated_offset3 = repeated_offset2;
-                repeated_offset2 = repeated_offset1;
-                repeated_offset1 = offset;
-                break;
-            }
-          }
-
-          ++seq;
-          if (seq < seq_count) {
-            uint32_t v;
-
-            /* Update the three states.  */
-
-            if (!elf_fetch_bits_backward(&pback, pin, &val, &bits)) return 0;
-
-            need = literal_bits;
-            bits -= need;
-            v = (val >> bits) & (((uint32_t)1 << need) - 1);
-
-            literal_state = literal_base + v;
-
-            if (!elf_fetch_bits_backward(&pback, pin, &val, &bits)) return 0;
-
-            need = match_bits;
-            bits -= need;
-            v = (val >> bits) & (((uint32_t)1 << need) - 1);
-
-            match_state = match_base + v;
-
-            if (!elf_fetch_bits_backward(&pback, pin, &val, &bits)) return 0;
-
-            need = offset_bits;
-            bits -= need;
-            v = (val >> bits) & (((uint32_t)1 << need) - 1);
-
-            offset_state = offset_base + v;
-          }
-
-          /* The next sequence is now in LITERAL, OFFSET, MATCH.  */
-
-          /* Copy LITERAL bytes from the literals.  */
-
-          if (unlikely((size_t)(poutend - pout) < literal)) {
-            elf_uncompress_failed();
-            return 0;
-          }
-
-          if (unlikely(literal_count < literal)) {
-            elf_uncompress_failed();
-            return 0;
-          }
-
-          literal_count -= literal;
-
-          /* Often LITERAL is small, so handle small cases quickly.  */
-          switch (literal) {
-            case 8:
-              *pout++ = *plit++;
-              // FALLTHROUGH
-            case 7:
-              *pout++ = *plit++;
-              // FALLTHROUGH
-            case 6:
-              *pout++ = *plit++;
-              // FALLTHROUGH
-            case 5:
-              *pout++ = *plit++;
-              // FALLTHROUGH
-            case 4:
-              *pout++ = *plit++;
-              // FALLTHROUGH
-            case 3:
-              *pout++ = *plit++;
-              // FALLTHROUGH
-            case 2:
-              *pout++ = *plit++;
-              // FALLTHROUGH
-            case 1:
-              *pout++ = *plit++;
-              break;
-
-            case 0:
-              break;
-
-            default:
-              if (unlikely((size_t)(plit - pout) < literal)) {
-                uint32_t move;
-
-                move = plit - pout;
-                while (literal > move) {
-                  memcpy(pout, plit, move);
-                  pout += move;
-                  plit += move;
-                  literal -= move;
-                }
-              }
-
-              memcpy(pout, plit, literal);
-              pout += literal;
-              plit += literal;
-          }
-
-          if (match > 0) {
-            /* Copy MATCH bytes from the decoded output at OFFSET.  */
-
-            if (unlikely((size_t)(poutend - pout) < match)) {
-              elf_uncompress_failed();
-              return 0;
-            }
-
-            if (unlikely((size_t)(pout - poutstart) < offset)) {
-              elf_uncompress_failed();
-              return 0;
-            }
-
-            if (offset >= match) {
-              memcpy(pout, pout - offset, match);
-              pout += match;
-            } else {
-              while (match > 0) {
-                uint32_t copy;
-
-                copy = match < offset ? match : offset;
-                memcpy(pout, pout - offset, copy);
-                match -= copy;
-                pout += copy;
-              }
-            }
-          }
-
-          if (unlikely(seq >= seq_count)) {
-            /* Copy remaining literals.  */
-            if (literal_count > 0 && plit != pout) {
-              if (unlikely((size_t)(poutend - pout) < literal_count)) {
-                elf_uncompress_failed();
-                return 0;
-              }
-
-              if ((size_t)(plit - pout) < literal_count) {
-                uint32_t move;
-
-                move = plit - pout;
-                while (literal_count > move) {
-                  memcpy(pout, plit, move);
-                  pout += move;
-                  plit += move;
-                  literal_count -= move;
-                }
-              }
-
-              memcpy(pout, plit, literal_count);
-            }
-
-            pout += literal_count;
-
+            break;
+          case 4:
+            offset = repeated_offset1 - 1;
+            repeated_offset3 = repeated_offset2;
+            repeated_offset2 = repeated_offset1;
+            repeated_offset1 = offset;
             break;
           }
         }
 
-        pin = pblockend;
-      } break;
+        ++seq;
+        if (seq < seq_count) {
+          uint32_t v;
 
-      case 3:
-      default:
-        elf_uncompress_failed();
-        return 0;
+          /* Update the three states.  */
+
+          if (!elf_fetch_bits_backward(&pback, pin, &val, &bits))
+            return 0;
+
+          need = literal_bits;
+          bits -= need;
+          v = (val >> bits) & (((uint32_t)1 << need) - 1);
+
+          literal_state = literal_base + v;
+
+          if (!elf_fetch_bits_backward(&pback, pin, &val, &bits))
+            return 0;
+
+          need = match_bits;
+          bits -= need;
+          v = (val >> bits) & (((uint32_t)1 << need) - 1);
+
+          match_state = match_base + v;
+
+          if (!elf_fetch_bits_backward(&pback, pin, &val, &bits))
+            return 0;
+
+          need = offset_bits;
+          bits -= need;
+          v = (val >> bits) & (((uint32_t)1 << need) - 1);
+
+          offset_state = offset_base + v;
+        }
+
+        /* The next sequence is now in LITERAL, OFFSET, MATCH.  */
+
+        /* Copy LITERAL bytes from the literals.  */
+
+        if (unlikely((size_t)(poutend - pout) < literal)) {
+          elf_uncompress_failed();
+          return 0;
+        }
+
+        if (unlikely(literal_count < literal)) {
+          elf_uncompress_failed();
+          return 0;
+        }
+
+        literal_count -= literal;
+
+        /* Often LITERAL is small, so handle small cases quickly.  */
+        switch (literal) {
+        case 8:
+          *pout++ = *plit++;
+          // FALLTHROUGH
+        case 7:
+          *pout++ = *plit++;
+          // FALLTHROUGH
+        case 6:
+          *pout++ = *plit++;
+          // FALLTHROUGH
+        case 5:
+          *pout++ = *plit++;
+          // FALLTHROUGH
+        case 4:
+          *pout++ = *plit++;
+          // FALLTHROUGH
+        case 3:
+          *pout++ = *plit++;
+          // FALLTHROUGH
+        case 2:
+          *pout++ = *plit++;
+          // FALLTHROUGH
+        case 1:
+          *pout++ = *plit++;
+          break;
+
+        case 0:
+          break;
+
+        default:
+          if (unlikely((size_t)(plit - pout) < literal)) {
+            uint32_t move;
+
+            move = plit - pout;
+            while (literal > move) {
+              memcpy(pout, plit, move);
+              pout += move;
+              plit += move;
+              literal -= move;
+            }
+          }
+
+          memcpy(pout, plit, literal);
+          pout += literal;
+          plit += literal;
+        }
+
+        if (match > 0) {
+          /* Copy MATCH bytes from the decoded output at OFFSET.  */
+
+          if (unlikely((size_t)(poutend - pout) < match)) {
+            elf_uncompress_failed();
+            return 0;
+          }
+
+          if (unlikely((size_t)(pout - poutstart) < offset)) {
+            elf_uncompress_failed();
+            return 0;
+          }
+
+          if (offset >= match) {
+            memcpy(pout, pout - offset, match);
+            pout += match;
+          } else {
+            while (match > 0) {
+              uint32_t copy;
+
+              copy = match < offset ? match : offset;
+              memcpy(pout, pout - offset, copy);
+              match -= copy;
+              pout += copy;
+            }
+          }
+        }
+
+        if (unlikely(seq >= seq_count)) {
+          /* Copy remaining literals.  */
+          if (literal_count > 0 && plit != pout) {
+            if (unlikely((size_t)(poutend - pout) < literal_count)) {
+              elf_uncompress_failed();
+              return 0;
+            }
+
+            if ((size_t)(plit - pout) < literal_count) {
+              uint32_t move;
+
+              move = plit - pout;
+              while (literal_count > move) {
+                memcpy(pout, plit, move);
+                pout += move;
+                plit += move;
+                literal_count -= move;
+              }
+            }
+
+            memcpy(pout, plit, literal_count);
+          }
+
+          pout += literal_count;
+
+          break;
+        }
+      }
+
+      pin = pblockend;
+    } break;
+
+    case 3:
+    default:
+      elf_uncompress_failed();
+      return 0;
     }
   }
 
@@ -2723,7 +2763,7 @@ static int elf_zstd_decompress(const unsigned char *pin, size_t sin,
   return 1;
 }
 
-#define ZDEBUG_TABLE_SIZE \
+#define ZDEBUG_TABLE_SIZE                                                      \
   (ZLIB_TABLE_SIZE > ZSTD_TABLE_SIZE ? ZLIB_TABLE_SIZE : ZSTD_TABLE_SIZE)
 
 /* Uncompress the old compressed debug format, the one emitted by
@@ -2751,10 +2791,12 @@ static int elf_uncompress_zdebug(ten_backtrace_t *self,
      byte length of the uncompressed data in big-endian order,
      followed by a zlib stream.  */
 
-  if (compressed_size < 12 || memcmp(compressed, "ZLIB", 4) != 0) return 1;
+  if (compressed_size < 12 || memcmp(compressed, "ZLIB", 4) != 0)
+    return 1;
 
   sz = 0;
-  for (i = 0; i < 8; i++) sz = (sz << 8) | compressed[i + 4];
+  for (i = 0; i < 8; i++)
+    sz = (sz << 8) | compressed[i + 4];
 
   if (*uncompressed != NULL && *uncompressed_size >= sz)
     po = *uncompressed;
@@ -2800,7 +2842,8 @@ static int elf_uncompress_chdr(ten_backtrace_t *self,
   *uncompressed_size = 0;
 
   /* The format starts with an ELF compression header.  */
-  if (compressed_size < sizeof(b_elf_chdr)) return 1;
+  if (compressed_size < sizeof(b_elf_chdr))
+    return 1;
 
   chdr = (const b_elf_chdr *)compressed;
 
@@ -2818,24 +2861,23 @@ static int elf_uncompress_chdr(ten_backtrace_t *self,
   }
 
   switch (chdr->ch_type) {
-    case ELFCOMPRESS_ZLIB:
-      if (!elf_zlib_inflate_and_verify(compressed + sizeof(b_elf_chdr),
-                                       compressed_size - sizeof(b_elf_chdr),
-                                       zdebug_table, po, chdr->ch_size))
-        goto skip;
-      break;
-
-    case ELFCOMPRESS_ZSTD:
-      if (!elf_zstd_decompress(compressed + sizeof(b_elf_chdr),
-                               compressed_size - sizeof(b_elf_chdr),
-                               (unsigned char *)zdebug_table, po,
-                               chdr->ch_size))
-        goto skip;
-      break;
-
-    default:
-      /* Unsupported compression algorithm.  */
+  case ELFCOMPRESS_ZLIB:
+    if (!elf_zlib_inflate_and_verify(compressed + sizeof(b_elf_chdr),
+                                     compressed_size - sizeof(b_elf_chdr),
+                                     zdebug_table, po, chdr->ch_size))
       goto skip;
+    break;
+
+  case ELFCOMPRESS_ZSTD:
+    if (!elf_zstd_decompress(compressed + sizeof(b_elf_chdr),
+                             compressed_size - sizeof(b_elf_chdr),
+                             (unsigned char *)zdebug_table, po, chdr->ch_size))
+      goto skip;
+    break;
+
+  default:
+    /* Unsupported compression algorithm.  */
+    goto skip;
   }
 
   *uncompressed = po;
@@ -2844,7 +2886,8 @@ static int elf_uncompress_chdr(ten_backtrace_t *self,
   return 1;
 
 skip:
-  if (alc != NULL && alc_len > 0) ten_free_without_backtrace(alc);
+  if (alc != NULL && alc_len > 0)
+    ten_free_without_backtrace(alc);
   return 1;
 }
 
@@ -2913,50 +2956,50 @@ skip:
 #define LZMA_PROB_REP_LEN_LOW_LEN (LZMA_POS_STATES * LZMA_LEN_LOW_SYMBOLS)
 #define LZMA_PROB_REP_LEN_MID_LEN (LZMA_POS_STATES * LZMA_LEN_MID_SYMBOLS)
 #define LZMA_PROB_REP_LEN_HIGH_LEN LZMA_LEN_HIGH_SYMBOLS
-#define LZMA_PROB_LITERAL_LEN \
+#define LZMA_PROB_LITERAL_LEN                                                  \
   (LZMA_LITERAL_CODERS_MAX * LZMA_LITERAL_CODER_SIZE)
 
 /* Offsets into the LZMA probabilities array.  This is mechanically
    generated from the above lengths.  */
 
 #define LZMA_PROB_IS_MATCH_OFFSET 0
-#define LZMA_PROB_IS_REP_OFFSET \
+#define LZMA_PROB_IS_REP_OFFSET                                                \
   (LZMA_PROB_IS_MATCH_OFFSET + LZMA_PROB_IS_MATCH_LEN)
-#define LZMA_PROB_IS_REP0_OFFSET \
+#define LZMA_PROB_IS_REP0_OFFSET                                               \
   (LZMA_PROB_IS_REP_OFFSET + LZMA_PROB_IS_REP_LEN)
-#define LZMA_PROB_IS_REP1_OFFSET \
+#define LZMA_PROB_IS_REP1_OFFSET                                               \
   (LZMA_PROB_IS_REP0_OFFSET + LZMA_PROB_IS_REP0_LEN)
-#define LZMA_PROB_IS_REP2_OFFSET \
+#define LZMA_PROB_IS_REP2_OFFSET                                               \
   (LZMA_PROB_IS_REP1_OFFSET + LZMA_PROB_IS_REP1_LEN)
-#define LZMA_PROB_IS_REP0_LONG_OFFSET \
+#define LZMA_PROB_IS_REP0_LONG_OFFSET                                          \
   (LZMA_PROB_IS_REP2_OFFSET + LZMA_PROB_IS_REP2_LEN)
-#define LZMA_PROB_DIST_SLOT_OFFSET \
+#define LZMA_PROB_DIST_SLOT_OFFSET                                             \
   (LZMA_PROB_IS_REP0_LONG_OFFSET + LZMA_PROB_IS_REP0_LONG_LEN)
-#define LZMA_PROB_DIST_SPECIAL_OFFSET \
+#define LZMA_PROB_DIST_SPECIAL_OFFSET                                          \
   (LZMA_PROB_DIST_SLOT_OFFSET + LZMA_PROB_DIST_SLOT_LEN)
-#define LZMA_PROB_DIST_ALIGN_OFFSET \
+#define LZMA_PROB_DIST_ALIGN_OFFSET                                            \
   (LZMA_PROB_DIST_SPECIAL_OFFSET + LZMA_PROB_DIST_SPECIAL_LEN)
-#define LZMA_PROB_MATCH_LEN_CHOICE_OFFSET \
+#define LZMA_PROB_MATCH_LEN_CHOICE_OFFSET                                      \
   (LZMA_PROB_DIST_ALIGN_OFFSET + LZMA_PROB_DIST_ALIGN_LEN)
-#define LZMA_PROB_MATCH_LEN_CHOICE2_OFFSET \
+#define LZMA_PROB_MATCH_LEN_CHOICE2_OFFSET                                     \
   (LZMA_PROB_MATCH_LEN_CHOICE_OFFSET + LZMA_PROB_MATCH_LEN_CHOICE_LEN)
-#define LZMA_PROB_MATCH_LEN_LOW_OFFSET \
+#define LZMA_PROB_MATCH_LEN_LOW_OFFSET                                         \
   (LZMA_PROB_MATCH_LEN_CHOICE2_OFFSET + LZMA_PROB_MATCH_LEN_CHOICE2_LEN)
-#define LZMA_PROB_MATCH_LEN_MID_OFFSET \
+#define LZMA_PROB_MATCH_LEN_MID_OFFSET                                         \
   (LZMA_PROB_MATCH_LEN_LOW_OFFSET + LZMA_PROB_MATCH_LEN_LOW_LEN)
-#define LZMA_PROB_MATCH_LEN_HIGH_OFFSET \
+#define LZMA_PROB_MATCH_LEN_HIGH_OFFSET                                        \
   (LZMA_PROB_MATCH_LEN_MID_OFFSET + LZMA_PROB_MATCH_LEN_MID_LEN)
-#define LZMA_PROB_REP_LEN_CHOICE_OFFSET \
+#define LZMA_PROB_REP_LEN_CHOICE_OFFSET                                        \
   (LZMA_PROB_MATCH_LEN_HIGH_OFFSET + LZMA_PROB_MATCH_LEN_HIGH_LEN)
-#define LZMA_PROB_REP_LEN_CHOICE2_OFFSET \
+#define LZMA_PROB_REP_LEN_CHOICE2_OFFSET                                       \
   (LZMA_PROB_REP_LEN_CHOICE_OFFSET + LZMA_PROB_REP_LEN_CHOICE_LEN)
-#define LZMA_PROB_REP_LEN_LOW_OFFSET \
+#define LZMA_PROB_REP_LEN_LOW_OFFSET                                           \
   (LZMA_PROB_REP_LEN_CHOICE2_OFFSET + LZMA_PROB_REP_LEN_CHOICE2_LEN)
-#define LZMA_PROB_REP_LEN_MID_OFFSET \
+#define LZMA_PROB_REP_LEN_MID_OFFSET                                           \
   (LZMA_PROB_REP_LEN_LOW_OFFSET + LZMA_PROB_REP_LEN_LOW_LEN)
-#define LZMA_PROB_REP_LEN_HIGH_OFFSET \
+#define LZMA_PROB_REP_LEN_HIGH_OFFSET                                          \
   (LZMA_PROB_REP_LEN_MID_OFFSET + LZMA_PROB_REP_LEN_MID_LEN)
-#define LZMA_PROB_LITERAL_OFFSET \
+#define LZMA_PROB_LITERAL_OFFSET                                               \
   (LZMA_PROB_REP_LEN_HIGH_OFFSET + LZMA_PROB_REP_LEN_HIGH_LEN)
 
 #define LZMA_PROB_TOTAL_COUNT (LZMA_PROB_LITERAL_OFFSET + LZMA_PROB_LITERAL_LEN)
@@ -2971,33 +3014,33 @@ skip:
 /* Expressions for the offset in the LZMA probabilities array of a
    specific probability.  */
 
-#define LZMA_IS_MATCH(state, pos) \
+#define LZMA_IS_MATCH(state, pos)                                              \
   (LZMA_PROB_IS_MATCH_OFFSET + (state) * LZMA_POS_STATES + (pos))
 #define LZMA_IS_REP(state) (LZMA_PROB_IS_REP_OFFSET + (state))
 #define LZMA_IS_REP0(state) (LZMA_PROB_IS_REP0_OFFSET + (state))
 #define LZMA_IS_REP1(state) (LZMA_PROB_IS_REP1_OFFSET + (state))
 #define LZMA_IS_REP2(state) (LZMA_PROB_IS_REP2_OFFSET + (state))
-#define LZMA_IS_REP0_LONG(state, pos) \
+#define LZMA_IS_REP0_LONG(state, pos)                                          \
   (LZMA_PROB_IS_REP0_LONG_OFFSET + (state) * LZMA_POS_STATES + (pos))
-#define LZMA_DIST_SLOT(dist, slot) \
+#define LZMA_DIST_SLOT(dist, slot)                                             \
   (LZMA_PROB_DIST_SLOT_OFFSET + (dist) * LZMA_DIST_SLOTS + (slot))
 #define LZMA_DIST_SPECIAL(dist) (LZMA_PROB_DIST_SPECIAL_OFFSET + (dist))
 #define LZMA_DIST_ALIGN(dist) (LZMA_PROB_DIST_ALIGN_OFFSET + (dist))
 #define LZMA_MATCH_LEN_CHOICE LZMA_PROB_MATCH_LEN_CHOICE_OFFSET
 #define LZMA_MATCH_LEN_CHOICE2 LZMA_PROB_MATCH_LEN_CHOICE2_OFFSET
-#define LZMA_MATCH_LEN_LOW(pos, sym) \
+#define LZMA_MATCH_LEN_LOW(pos, sym)                                           \
   (LZMA_PROB_MATCH_LEN_LOW_OFFSET + (pos) * LZMA_LEN_LOW_SYMBOLS + (sym))
-#define LZMA_MATCH_LEN_MID(pos, sym) \
+#define LZMA_MATCH_LEN_MID(pos, sym)                                           \
   (LZMA_PROB_MATCH_LEN_MID_OFFSET + (pos) * LZMA_LEN_MID_SYMBOLS + (sym))
 #define LZMA_MATCH_LEN_HIGH(sym) (LZMA_PROB_MATCH_LEN_HIGH_OFFSET + (sym))
 #define LZMA_REP_LEN_CHOICE LZMA_PROB_REP_LEN_CHOICE_OFFSET
 #define LZMA_REP_LEN_CHOICE2 LZMA_PROB_REP_LEN_CHOICE2_OFFSET
-#define LZMA_REP_LEN_LOW(pos, sym) \
+#define LZMA_REP_LEN_LOW(pos, sym)                                             \
   (LZMA_PROB_REP_LEN_LOW_OFFSET + (pos) * LZMA_LEN_LOW_SYMBOLS + (sym))
-#define LZMA_REP_LEN_MID(pos, sym) \
+#define LZMA_REP_LEN_MID(pos, sym)                                             \
   (LZMA_PROB_REP_LEN_MID_OFFSET + (pos) * LZMA_LEN_MID_SYMBOLS + (sym))
 #define LZMA_REP_LEN_HIGH(sym) (LZMA_PROB_REP_LEN_HIGH_OFFSET + (sym))
-#define LZMA_LITERAL(code, size) \
+#define LZMA_LITERAL(code, size)                                               \
   (LZMA_PROB_LITERAL_OFFSET + (code) * LZMA_LITERAL_CODER_SIZE + (size))
 
 /* Read an LZMA varint from BUF, reading and updating *POFFSET,
@@ -3439,7 +3482,8 @@ static int elf_uncompress_lzma_block(const unsigned char *compressed,
 
         lstate = 0;
         memset(&dist, 0, sizeof dist);
-        for (i = 0; i < LZMA_PROB_TOTAL_COUNT; i++) probs[i] = 1 << 10;
+        for (i = 0; i < LZMA_PROB_TOTAL_COUNT; i++)
+          probs[i] = 1 << 10;
         range = 0xffffffff;
         code = 0;
       }
@@ -3701,47 +3745,47 @@ static int elf_uncompress_lzma_block(const unsigned char *compressed,
   }
 
   switch (check) {
-    case 0:
-      /* No check.  */
-      break;
+  case 0:
+    /* No check.  */
+    break;
 
-    case 1:
-      /* CRC32 */
-      if (unlikely(off + 4 > compressed_size)) {
-        elf_uncompress_failed();
-        return 0;
-      }
-      computed_crc = elf_crc32(0, uncompressed, uncompressed_offset);
-      stream_crc = (compressed[off] | (compressed[off + 1] << 8) |
-                    (compressed[off + 2] << 16) | (compressed[off + 3] << 24));
-      if (computed_crc != stream_crc) {
-        elf_uncompress_failed();
-        return 0;
-      }
-      off += 4;
-      break;
-
-    case 4:
-      /* CRC64.  We don't bother computing a CRC64 checksum.  */
-      if (unlikely(off + 8 > compressed_size)) {
-        elf_uncompress_failed();
-        return 0;
-      }
-      off += 8;
-      break;
-
-    case 10:
-      /* SHA.  We don't bother computing a SHA checksum.  */
-      if (unlikely(off + 32 > compressed_size)) {
-        elf_uncompress_failed();
-        return 0;
-      }
-      off += 32;
-      break;
-
-    default:
+  case 1:
+    /* CRC32 */
+    if (unlikely(off + 4 > compressed_size)) {
       elf_uncompress_failed();
       return 0;
+    }
+    computed_crc = elf_crc32(0, uncompressed, uncompressed_offset);
+    stream_crc = (compressed[off] | (compressed[off + 1] << 8) |
+                  (compressed[off + 2] << 16) | (compressed[off + 3] << 24));
+    if (computed_crc != stream_crc) {
+      elf_uncompress_failed();
+      return 0;
+    }
+    off += 4;
+    break;
+
+  case 4:
+    /* CRC64.  We don't bother computing a CRC64 checksum.  */
+    if (unlikely(off + 8 > compressed_size)) {
+      elf_uncompress_failed();
+      return 0;
+    }
+    off += 8;
+    break;
+
+  case 10:
+    /* SHA.  We don't bother computing a SHA checksum.  */
+    if (unlikely(off + 32 > compressed_size)) {
+      elf_uncompress_failed();
+      return 0;
+    }
+    off += 32;
+    break;
+
+  default:
+    elf_uncompress_failed();
+    return 0;
   }
 
   *poffset = off;
@@ -4090,7 +4134,8 @@ static int elf_add(ten_backtrace_t *self, const char *filename, int descriptor,
   /* If the executable is ET_DYN, it is either a PIE, or we are running
      directly a shared library with .interp.  We need to wait for
      dl_iterate_phdr in that case to determine the actual base_address.  */
-  if (exe && ehdr.e_type == ET_DYN) return -1;
+  if (exe && ehdr.e_type == ET_DYN)
+    return -1;
 
   shoff = ehdr.e_shoff;
   shnum = ehdr.e_shnum;
@@ -4106,7 +4151,8 @@ static int elf_add(ten_backtrace_t *self, const char *filename, int descriptor,
 
     shdr = (const b_elf_shdr *)shdr_view.view.data;
 
-    if (shnum == 0) shnum = shdr->sh_size;
+    if (shnum == 0)
+      shnum = shdr->sh_size;
 
     if (shstrndx == SHN_XINDEX) {
       shstrndx = shdr->sh_link;
@@ -4129,7 +4175,8 @@ static int elf_add(ten_backtrace_t *self, const char *filename, int descriptor,
     elf_release_view(self, &shdr_view, error_cb, data);
   }
 
-  if (shnum == 0 || shstrndx == 0) goto fail;
+  if (shnum == 0 || shstrndx == 0)
+    goto fail;
 
   /* To translate PC to file/line when using DWARF, we need to find
      the .debug_info and .debug_line sections.  */
@@ -4223,7 +4270,8 @@ static int elf_add(ten_backtrace_t *self, const char *filename, int descriptor,
       }
 
       if (with_buildid_size != 0) {
-        if (buildid_size != with_buildid_size) goto fail;
+        if (buildid_size != with_buildid_size)
+          goto fail;
 
         if (memcmp(buildid_data, with_buildid_data, buildid_size) != 0)
           goto fail;
@@ -4294,7 +4342,8 @@ static int elf_add(ten_backtrace_t *self, const char *filename, int descriptor,
     }
   }
 
-  if (symtab_shndx == 0) symtab_shndx = dynsym_shndx;
+  if (symtab_shndx == 0)
+    symtab_shndx = dynsym_shndx;
   if (symtab_shndx != 0 && !debuginfo) {
     const b_elf_shdr *symtab_shdr;
     unsigned int strtab_shndx;
@@ -4484,14 +4533,16 @@ static int elf_add(ten_backtrace_t *self, const char *filename, int descriptor,
       if (min_offset == 0 || sections[i].offset < min_offset)
         min_offset = sections[i].offset;
       end = sections[i].offset + sections[i].size;
-      if (end > max_offset) max_offset = end;
+      if (end > max_offset)
+        max_offset = end;
       debug_size += sections[i].size;
     }
     if (zsections[i].size != 0) {
       if (min_offset == 0 || zsections[i].offset < min_offset)
         min_offset = zsections[i].offset;
       end = zsections[i].offset + zsections[i].size;
-      if (end > max_offset) max_offset = end;
+      if (end > max_offset)
+        max_offset = end;
       debug_size += zsections[i].size;
     }
   }
@@ -4642,7 +4693,8 @@ static int elf_add(ten_backtrace_t *self, const char *filename, int descriptor,
     }
   }
 
-  if (zdebug_table != NULL) ten_free_without_backtrace(zdebug_table);
+  if (zdebug_table != NULL)
+    ten_free_without_backtrace(zdebug_table);
 
   if (debug_view_valid && using_debug_view == 0) {
     elf_release_view(self, &debug_view, error_cb, data);
@@ -4723,7 +4775,7 @@ struct phdr_data {
    libraries.  */
 
 static int
-#ifdef __i386__
+#if defined(__i386__)
     __attribute__((__force_align_arg_pointer__))
 #endif
     phdr_callback(struct dl_phdr_info *info, size_t size, void *pdata) {

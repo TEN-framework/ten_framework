@@ -16,6 +16,7 @@
 #include "ten_utils/lib/mutex.h"
 #include "ten_utils/lib/thread_local.h"
 #include "ten_utils/lib/thread_once.h"
+#include "ten_utils/lib/time.h"
 #include "ten_utils/log/log.h"
 #include "ten_utils/macro/check.h"
 #include "ten_utils/macro/field.h"
@@ -599,6 +600,11 @@ static int ten_runloop_post_task_at(ten_runloop_t *loop,
     // into it.
     goto leave_and_error;
   }
+
+#if defined(_DEBUG)
+  // Add some random delays in debug mode to test different timings.
+  ten_random_sleep_range_ms(0, 10);
+#endif
 
   needs_notify = ten_list_is_empty(&impl->tasks) ? 1 : 0;
   if (front) {
