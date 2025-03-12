@@ -10,6 +10,7 @@
 #include "include_internal/ten_utils/backtrace/platform/posix/linux/debugfile.h"
 
 #include <assert.h>
+#include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
 #include <sys/types.h>

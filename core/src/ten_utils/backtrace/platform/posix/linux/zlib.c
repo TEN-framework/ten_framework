@@ -9,6 +9,7 @@
 //
 #include "include_internal/ten_utils/backtrace/platform/posix/linux/zlib.h"
 
+#include <stdio.h>
 #include <string.h>
 
 #include "include_internal/ten_utils/backtrace/platform/posix/internal.h"
