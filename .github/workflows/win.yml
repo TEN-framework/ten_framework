@@ -256,10 +256,9 @@ jobs:
           ./unit_test || { echo "ten_manager unit test failed"; exit 1; }
           ./integration_test || { echo "ten_manager integration test failed"; exit 1; }
 
-        continue-on-error: true
-
-      - name: Setup tmate session
-        uses: mxschmitt/action-tmate@v3
+      #   continue-on-error: true
+      # - name: Setup tmate session
+      #   uses: mxschmitt/action-tmate@v3
 
       - name: Run Tests (ten_runtime_smoke_test)
         env:
