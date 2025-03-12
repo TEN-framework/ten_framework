@@ -9,13 +9,13 @@
 //
 #include "include_internal/ten_utils/backtrace/platform/posix/linux/debugfile.h"
 
+#include <assert.h>
 #include <string.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
 
 #include "include_internal/ten_utils/backtrace/platform/posix/linux/crc32.h"
-#include "ten_utils/lib/alloc.h"
 #include "ten_utils/lib/file.h"
 
 #define SYSTEM_BUILD_ID_DIR "/usr/lib/debug/.build-id/"
@@ -41,7 +41,7 @@ int elf_open_debug_file_by_build_id(ten_backtrace_t *self,
 
   size_t len = prefix_len + (build_id_size * 2) + suffix_len + 2;
 
-  char *build_id_filename = ten_malloc_without_backtrace(len);
+  char *build_id_filename = malloc(len);
   assert(build_id_filename && "Failed to allocate memory.");
   if (build_id_filename == NULL) {
     return -1;
@@ -69,7 +69,7 @@ int elf_open_debug_file_by_build_id(ten_backtrace_t *self,
 
   int ret = ten_file_open(build_id_filename, &does_not_exist);
 
-  ten_free_without_backtrace(build_id_filename);
+  free(build_id_filename);
 
   // gdb checks that the debuginfo file has the same build ID note. That seems
   // kind of pointless to me--why would it have the right name but not the right
@@ -100,7 +100,7 @@ static char *elf_readlink(ten_backtrace_t *self, const char *filename,
   size_t len = 128;
 
   while (1) {
-    char *buf = ten_malloc_without_backtrace(len);
+    char *buf = malloc(len);
     assert(buf && "Failed to allocate memory.");
     if (buf == NULL) {
       return NULL;
@@ -108,7 +108,7 @@ static char *elf_readlink(ten_backtrace_t *self, const char *filename,
 
     ssize_t rl = readlink(filename, buf, len);
     if (rl < 0) {
-      ten_free_without_backtrace(buf);
+      free(buf);
       return NULL;
     }
 
@@ -118,7 +118,7 @@ static char *elf_readlink(ten_backtrace_t *self, const char *filename,
       return buf;
     }
 
-    ten_free_without_backtrace(buf);
+    free(buf);
 
     // Enlarge the buffer, and read again.
     len *= 2;
@@ -141,7 +141,7 @@ static int elf_try_debug_file(ten_backtrace_t *self, const char *prefix,
 
   size_t debug_link_len = strlen(debug_link_name);
   size_t try_len = prefix_len + prefix2_len + debug_link_len + 1;
-  char *try = ten_malloc_without_backtrace(try_len);
+  char *try = malloc(try_len);
   assert(try && "Failed to allocate memory.");
   if (try == NULL) {
     return -1;
@@ -154,7 +154,7 @@ static int elf_try_debug_file(ten_backtrace_t *self, const char *prefix,
 
   int ret = ten_file_open(try, &does_not_exist);
 
-  ten_free_without_backtrace(try);
+  free(try);
 
   return ret;
 }
@@ -210,7 +210,7 @@ static int elf_find_debug_file_by_debug_link(ten_backtrace_t *self,
         // => a/b/c/x/y/z
 
         size_t clen = slash - filename + strlen(new_buf) + 1;
-        char *c = ten_malloc_without_backtrace(clen);
+        char *c = malloc(clen);
         assert(c && "Failed to allocate memory.");
         if (c == NULL) {
           goto done;
@@ -220,7 +220,7 @@ static int elf_find_debug_file_by_debug_link(ten_backtrace_t *self,
         memcpy(c + (slash - filename), new_buf, strlen(new_buf));
         c[slash - filename + strlen(new_buf)] = '\0';
 
-        ten_free_without_backtrace(new_buf);
+        free(new_buf);
 
         filename = c;
         new_buf = c;
@@ -229,7 +229,7 @@ static int elf_find_debug_file_by_debug_link(ten_backtrace_t *self,
     }
 
     if (alc != NULL) {
-      ten_free_without_backtrace(alc);
+      free(alc);
     }
 
     alc = new_buf;
@@ -280,7 +280,7 @@ static int elf_find_debug_file_by_debug_link(ten_backtrace_t *self,
 
 done:
   if (alc != NULL && alc_len > 0) {
-    ten_free_without_backtrace(alc);
+    free(alc);
   }
 
   return ret;

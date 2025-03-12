@@ -9,6 +9,7 @@
 //
 #include "ten_utils/ten_config.h"
 
+#include <assert.h>
 #include <dirent.h>
 #include <mach-o/dyld.h>
 #include <stdint.h>
@@ -19,7 +20,6 @@
 #include "include_internal/ten_utils/backtrace/backtrace.h"
 #include "include_internal/ten_utils/backtrace/platform/posix/internal.h"
 #include "ten_utils/io/mmap.h"
-#include "ten_utils/lib/alloc.h"
 #include "ten_utils/lib/atomic_ptr.h"
 #include "ten_utils/lib/file.h"
 
@@ -483,8 +483,7 @@ static int macho_add_symtab(ten_backtrace_t *self_, int descriptor,
 
   /* Add 1 to ndefs to make room for a sentinel.  */
   macho_symbol_size = (ndefs + 1) * sizeof(struct macho_symbol);
-  macho_symbols =
-      (struct macho_symbol *)ten_malloc_without_backtrace(macho_symbol_size);
+  macho_symbols = (struct macho_symbol *)malloc(macho_symbol_size);
   if (macho_symbols == NULL) {
     goto fail;
   }
@@ -534,8 +533,7 @@ static int macho_add_symtab(ten_backtrace_t *self_, int descriptor,
     ++j;
   }
 
-  sdata =
-      (struct macho_syminfo_data *)ten_malloc_without_backtrace(sizeof *sdata);
+  sdata = (struct macho_syminfo_data *)malloc(sizeof *sdata);
   assert(sdata && "Failed to allocate memory.");
   if (sdata == NULL) {
     goto fail;
@@ -581,7 +579,7 @@ static int macho_add_symtab(ten_backtrace_t *self_, int descriptor,
 
 fail:
   if (macho_symbols != NULL) {
-    ten_free_without_backtrace(macho_symbols);
+    free(macho_symbols);
   }
 
   if (sym_view_valid) {
@@ -763,7 +761,7 @@ static int macho_add_dsym(ten_backtrace_t *self, const char *filename,
     diralc = NULL;
   } else {
     dirnamelen = p - filename;
-    diralc = ten_malloc_without_backtrace(dirnamelen + 1);
+    diralc = malloc(dirnamelen + 1);
     if (diralc == NULL) {
       goto fail;
     }
@@ -779,7 +777,7 @@ static int macho_add_dsym(ten_backtrace_t *self, const char *filename,
   dsymsuffixdirlen = strlen(dsymsuffixdir);
 
   dsymlen = (dirnamelen + 1 + basenamelen + dsymsuffixdirlen + basenamelen + 1);
-  dsym = ten_malloc_without_backtrace(dsymlen);
+  dsym = malloc(dsymlen);
   assert(dsym && "Failed to allocate memory.");
   if (dsym == NULL) {
     goto fail;
@@ -798,7 +796,7 @@ static int macho_add_dsym(ten_backtrace_t *self, const char *filename,
   *ps = '\0';
 
   if (diralc != NULL) {
-    ten_free_without_backtrace(diralc);
+    free(diralc);
     diralc = NULL;
   }
 
@@ -806,7 +804,7 @@ static int macho_add_dsym(ten_backtrace_t *self, const char *filename,
   if (fd < 0) {
     /* The file does not exist, so we can't read the debug info.
        Just return success.  */
-    ten_free_without_backtrace(dsym);
+    free(dsym);
     return 1;
   }
 
@@ -815,16 +813,16 @@ static int macho_add_dsym(ten_backtrace_t *self, const char *filename,
     goto fail;
   }
 
-  ten_free_without_backtrace(dsym);
+  free(dsym);
 
   return 1;
 
 fail:
   if (dsym != NULL) {
-    ten_free_without_backtrace(dsym);
+    free(dsym);
   }
   if (diralc != NULL) {
-    ten_free_without_backtrace(diralc);
+    free(diralc);
   }
   return 0;
 }

@@ -11,5 +11,3 @@
 #include <stddef.h>
 
 TEN_UTILS_API char *ten_strndup(const char *str, size_t size);
-
-TEN_UTILS_API char *ten_strndup_without_backtrace(const char *str, size_t size);

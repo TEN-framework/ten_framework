@@ -9,6 +9,7 @@
 //
 #include "ten_utils/ten_config.h"
 
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -17,7 +18,6 @@
 #include "include_internal/ten_utils/backtrace/backtrace.h"
 #include "include_internal/ten_utils/backtrace/platform/posix/internal.h"
 #include "ten_utils/container/vector.h"
-#include "ten_utils/lib/alloc.h"
 #include "ten_utils/lib/atomic.h"
 #include "ten_utils/lib/atomic_ptr.h"
 
@@ -627,7 +627,7 @@ typedef struct unit {
      been read.  This is (struct line *) -1 if there was an error
      reading the values.  */
   struct line *lines;
-  ten_atomic_t lines_count;  // Number of entries in lines.
+  ten_atomic_t lines_count; // Number of entries in lines.
 
   // PC ranges to function.
   struct function_addrs *function_addrs;
@@ -849,17 +849,17 @@ static uint64_t read_offset(ten_backtrace_t *self, struct dwarf_buf *buf,
 static uint64_t read_address(ten_backtrace_t *self, struct dwarf_buf *buf,
                              int addrsize) {
   switch (addrsize) {
-    case 1:
-      return read_byte(self, buf);
-    case 2:
-      return read_uint16(self, buf);
-    case 4:
-      return read_uint32(self, buf);
-    case 8:
-      return read_uint64(self, buf);
-    default:
-      dwarf_buf_error(self, buf, "unrecognized address size", 0);
-      return 0;
+  case 1:
+    return read_byte(self, buf);
+  case 2:
+    return read_uint16(self, buf);
+  case 4:
+    return read_uint32(self, buf);
+  case 8:
+    return read_uint64(self, buf);
+  default:
+    dwarf_buf_error(self, buf, "unrecognized address size", 0);
+    return 0;
   }
 }
 
@@ -867,16 +867,16 @@ static uint64_t read_address(ten_backtrace_t *self, struct dwarf_buf *buf,
    address size.  */
 static int is_highest_address(uint64_t address, int addrsize) {
   switch (addrsize) {
-    case 1:
-      return address == (unsigned char)-1;
-    case 2:
-      return address == (uint16_t)-1;
-    case 4:
-      return address == (uint32_t)-1;
-    case 8:
-      return address == (uint64_t)-1;
-    default:
-      return 0;
+  case 1:
+    return address == (unsigned char)-1;
+  case 2:
+    return address == (uint16_t)-1;
+  case 4:
+    return address == (uint32_t)-1;
+  case 8:
+    return address == (uint64_t)-1;
+  default:
+    return 0;
   }
 }
 
@@ -977,9 +977,9 @@ static void free_abbrevs(ten_backtrace_t *self, struct abbrevs *abbrevs,
   size_t i;
 
   for (i = 0; i < abbrevs->num_abbrevs; ++i) {
-    ten_free_without_backtrace(abbrevs->abbrevs[i].attrs);
+    free(abbrevs->abbrevs[i].attrs);
   }
-  ten_free_without_backtrace(abbrevs->abbrevs);
+  free(abbrevs->abbrevs);
   abbrevs->num_abbrevs = 0;
   abbrevs->abbrevs = NULL;
 }
@@ -1001,257 +1001,256 @@ static int read_attribute(ten_backtrace_t *self, enum dwarf_form form,
   memset(val, 0, sizeof *val);
 
   switch (form) {
-    case DW_FORM_addr:
-      val->encoding = ATTR_VAL_ADDRESS;
-      val->u.uint = read_address(self, buf, addrsize);
-      return 1;
-    case DW_FORM_block2:
-      val->encoding = ATTR_VAL_BLOCK;
-      return advance(self, buf, read_uint16(self, buf));
-    case DW_FORM_block4:
-      val->encoding = ATTR_VAL_BLOCK;
-      return advance(self, buf, read_uint32(self, buf));
-    case DW_FORM_data2:
-      val->encoding = ATTR_VAL_UINT;
-      val->u.uint = read_uint16(self, buf);
-      return 1;
-    case DW_FORM_data4:
-      val->encoding = ATTR_VAL_UINT;
-      val->u.uint = read_uint32(self, buf);
-      return 1;
-    case DW_FORM_data8:
-      val->encoding = ATTR_VAL_UINT;
-      val->u.uint = read_uint64(self, buf);
-      return 1;
-    case DW_FORM_data16:
-      val->encoding = ATTR_VAL_BLOCK;
-      return advance(self, buf, 16);
-    case DW_FORM_string:
-      val->encoding = ATTR_VAL_STRING;
-      val->u.string = read_string(self, buf);
-      return val->u.string == NULL ? 0 : 1;
-    case DW_FORM_block:
-      val->encoding = ATTR_VAL_BLOCK;
-      return advance(self, buf, read_uleb128(self, buf));
-    case DW_FORM_block1:
-      val->encoding = ATTR_VAL_BLOCK;
-      return advance(self, buf, read_byte(self, buf));
-    case DW_FORM_data1:
-      val->encoding = ATTR_VAL_UINT;
-      val->u.uint = read_byte(self, buf);
-      return 1;
-    case DW_FORM_flag:
-      val->encoding = ATTR_VAL_UINT;
-      val->u.uint = read_byte(self, buf);
-      return 1;
-    case DW_FORM_sdata:
-      val->encoding = ATTR_VAL_SINT;
-      val->u.sint = read_sleb128(self, buf);
-      return 1;
-    case DW_FORM_strp: {
-      uint64_t offset;
+  case DW_FORM_addr:
+    val->encoding = ATTR_VAL_ADDRESS;
+    val->u.uint = read_address(self, buf, addrsize);
+    return 1;
+  case DW_FORM_block2:
+    val->encoding = ATTR_VAL_BLOCK;
+    return advance(self, buf, read_uint16(self, buf));
+  case DW_FORM_block4:
+    val->encoding = ATTR_VAL_BLOCK;
+    return advance(self, buf, read_uint32(self, buf));
+  case DW_FORM_data2:
+    val->encoding = ATTR_VAL_UINT;
+    val->u.uint = read_uint16(self, buf);
+    return 1;
+  case DW_FORM_data4:
+    val->encoding = ATTR_VAL_UINT;
+    val->u.uint = read_uint32(self, buf);
+    return 1;
+  case DW_FORM_data8:
+    val->encoding = ATTR_VAL_UINT;
+    val->u.uint = read_uint64(self, buf);
+    return 1;
+  case DW_FORM_data16:
+    val->encoding = ATTR_VAL_BLOCK;
+    return advance(self, buf, 16);
+  case DW_FORM_string:
+    val->encoding = ATTR_VAL_STRING;
+    val->u.string = read_string(self, buf);
+    return val->u.string == NULL ? 0 : 1;
+  case DW_FORM_block:
+    val->encoding = ATTR_VAL_BLOCK;
+    return advance(self, buf, read_uleb128(self, buf));
+  case DW_FORM_block1:
+    val->encoding = ATTR_VAL_BLOCK;
+    return advance(self, buf, read_byte(self, buf));
+  case DW_FORM_data1:
+    val->encoding = ATTR_VAL_UINT;
+    val->u.uint = read_byte(self, buf);
+    return 1;
+  case DW_FORM_flag:
+    val->encoding = ATTR_VAL_UINT;
+    val->u.uint = read_byte(self, buf);
+    return 1;
+  case DW_FORM_sdata:
+    val->encoding = ATTR_VAL_SINT;
+    val->u.sint = read_sleb128(self, buf);
+    return 1;
+  case DW_FORM_strp: {
+    uint64_t offset;
 
-      offset = read_offset(self, buf, is_dwarf64);
-      if (offset >= dwarf_sections->size[DEBUG_STR]) {
-        dwarf_buf_error(self, buf, "DW_FORM_strp out of range", 0);
-        return 0;
-      }
-      val->encoding = ATTR_VAL_STRING;
-      val->u.string = (const char *)dwarf_sections->data[DEBUG_STR] + offset;
-      return 1;
-    }
-    case DW_FORM_line_strp: {
-      uint64_t offset;
-
-      offset = read_offset(self, buf, is_dwarf64);
-      if (offset >= dwarf_sections->size[DEBUG_LINE_STR]) {
-        dwarf_buf_error(self, buf, "DW_FORM_line_strp out of range", 0);
-        return 0;
-      }
-      val->encoding = ATTR_VAL_STRING;
-      val->u.string =
-          (const char *)dwarf_sections->data[DEBUG_LINE_STR] + offset;
-      return 1;
-    }
-    case DW_FORM_udata:
-      val->encoding = ATTR_VAL_UINT;
-      val->u.uint = read_uleb128(self, buf);
-      return 1;
-    case DW_FORM_ref_addr:
-      val->encoding = ATTR_VAL_REF_INFO;
-      if (version == 2)
-        val->u.uint = read_address(self, buf, addrsize);
-      else
-        val->u.uint = read_offset(self, buf, is_dwarf64);
-      return 1;
-    case DW_FORM_ref1:
-      val->encoding = ATTR_VAL_REF_UNIT;
-      val->u.uint = read_byte(self, buf);
-      return 1;
-    case DW_FORM_ref2:
-      val->encoding = ATTR_VAL_REF_UNIT;
-      val->u.uint = read_uint16(self, buf);
-      return 1;
-    case DW_FORM_ref4:
-      val->encoding = ATTR_VAL_REF_UNIT;
-      val->u.uint = read_uint32(self, buf);
-      return 1;
-    case DW_FORM_ref8:
-      val->encoding = ATTR_VAL_REF_UNIT;
-      val->u.uint = read_uint64(self, buf);
-      return 1;
-    case DW_FORM_ref_udata:
-      val->encoding = ATTR_VAL_REF_UNIT;
-      val->u.uint = read_uleb128(self, buf);
-      return 1;
-    case DW_FORM_indirect: {
-      uint64_t form;
-
-      form = read_uleb128(self, buf);
-      if (form == DW_FORM_implicit_const) {
-        dwarf_buf_error(self, buf, "DW_FORM_indirect to DW_FORM_implicit_const",
-                        0);
-        return 0;
-      }
-      return read_attribute(self, (enum dwarf_form)form, 0, buf, is_dwarf64,
-                            version, addrsize, dwarf_sections, altlink, val);
-    }
-    case DW_FORM_sec_offset:
-      val->encoding = ATTR_VAL_REF_SECTION;
-      val->u.uint = read_offset(self, buf, is_dwarf64);
-      return 1;
-    case DW_FORM_exprloc:
-      val->encoding = ATTR_VAL_EXPR;
-      return advance(self, buf, read_uleb128(self, buf));
-    case DW_FORM_flag_present:
-      val->encoding = ATTR_VAL_UINT;
-      val->u.uint = 1;
-      return 1;
-    case DW_FORM_ref_sig8:
-      val->encoding = ATTR_VAL_REF_TYPE;
-      val->u.uint = read_uint64(self, buf);
-      return 1;
-    case DW_FORM_strx:
-    case DW_FORM_strx1:
-    case DW_FORM_strx2:
-    case DW_FORM_strx3:
-    case DW_FORM_strx4: {
-      uint64_t offset;
-
-      switch (form) {
-        case DW_FORM_strx:
-          offset = read_uleb128(self, buf);
-          break;
-        case DW_FORM_strx1:
-          offset = read_byte(self, buf);
-          break;
-        case DW_FORM_strx2:
-          offset = read_uint16(self, buf);
-          break;
-        case DW_FORM_strx3:
-          offset = read_uint24(self, buf);
-          break;
-        case DW_FORM_strx4:
-          offset = read_uint32(self, buf);
-          break;
-        default:
-          /* This case can't happen.  */
-          return 0;
-      }
-      val->encoding = ATTR_VAL_STRING_INDEX;
-      val->u.uint = offset;
-      return 1;
-    }
-    case DW_FORM_addrx:
-    case DW_FORM_addrx1:
-    case DW_FORM_addrx2:
-    case DW_FORM_addrx3:
-    case DW_FORM_addrx4: {
-      uint64_t offset;
-
-      switch (form) {
-        case DW_FORM_addrx:
-          offset = read_uleb128(self, buf);
-          break;
-        case DW_FORM_addrx1:
-          offset = read_byte(self, buf);
-          break;
-        case DW_FORM_addrx2:
-          offset = read_uint16(self, buf);
-          break;
-        case DW_FORM_addrx3:
-          offset = read_uint24(self, buf);
-          break;
-        case DW_FORM_addrx4:
-          offset = read_uint32(self, buf);
-          break;
-        default:
-          /* This case can't happen.  */
-          return 0;
-      }
-      val->encoding = ATTR_VAL_ADDRESS_INDEX;
-      val->u.uint = offset;
-      return 1;
-    }
-    case DW_FORM_ref_sup4:
-      val->encoding = ATTR_VAL_REF_SECTION;
-      val->u.uint = read_uint32(self, buf);
-      return 1;
-    case DW_FORM_ref_sup8:
-      val->encoding = ATTR_VAL_REF_SECTION;
-      val->u.uint = read_uint64(self, buf);
-      return 1;
-    case DW_FORM_implicit_const:
-      val->encoding = ATTR_VAL_UINT;
-      val->u.uint = implicit_val;
-      return 1;
-    case DW_FORM_loclistx:
-      /* We don't distinguish this from DW_FORM_sec_offset.  It
-       * shouldn't matter since we don't care about loclists.  */
-      val->encoding = ATTR_VAL_REF_SECTION;
-      val->u.uint = read_uleb128(self, buf);
-      return 1;
-    case DW_FORM_rnglistx:
-      val->encoding = ATTR_VAL_RNGLISTS_INDEX;
-      val->u.uint = read_uleb128(self, buf);
-      return 1;
-    case DW_FORM_GNU_addr_index:
-      val->encoding = ATTR_VAL_REF_SECTION;
-      val->u.uint = read_uleb128(self, buf);
-      return 1;
-    case DW_FORM_GNU_str_index:
-      val->encoding = ATTR_VAL_REF_SECTION;
-      val->u.uint = read_uleb128(self, buf);
-      return 1;
-    case DW_FORM_GNU_ref_alt:
-      val->u.uint = read_offset(self, buf, is_dwarf64);
-      if (altlink == NULL) {
-        val->encoding = ATTR_VAL_NONE;
-        return 1;
-      }
-      val->encoding = ATTR_VAL_REF_ALT_INFO;
-      return 1;
-    case DW_FORM_strp_sup:
-    case DW_FORM_GNU_strp_alt: {
-      uint64_t offset;
-
-      offset = read_offset(self, buf, is_dwarf64);
-      if (altlink == NULL) {
-        val->encoding = ATTR_VAL_NONE;
-        return 1;
-      }
-      if (offset >= altlink->dwarf_sections.size[DEBUG_STR]) {
-        dwarf_buf_error(self, buf, "DW_FORM_strp_sup out of range", 0);
-        return 0;
-      }
-      val->encoding = ATTR_VAL_STRING;
-      val->u.string =
-          (const char *)altlink->dwarf_sections.data[DEBUG_STR] + offset;
-      return 1;
-    }
-    default:
-      dwarf_buf_error(self, buf, "unrecognized DWARF form", -1);
+    offset = read_offset(self, buf, is_dwarf64);
+    if (offset >= dwarf_sections->size[DEBUG_STR]) {
+      dwarf_buf_error(self, buf, "DW_FORM_strp out of range", 0);
       return 0;
+    }
+    val->encoding = ATTR_VAL_STRING;
+    val->u.string = (const char *)dwarf_sections->data[DEBUG_STR] + offset;
+    return 1;
+  }
+  case DW_FORM_line_strp: {
+    uint64_t offset;
+
+    offset = read_offset(self, buf, is_dwarf64);
+    if (offset >= dwarf_sections->size[DEBUG_LINE_STR]) {
+      dwarf_buf_error(self, buf, "DW_FORM_line_strp out of range", 0);
+      return 0;
+    }
+    val->encoding = ATTR_VAL_STRING;
+    val->u.string = (const char *)dwarf_sections->data[DEBUG_LINE_STR] + offset;
+    return 1;
+  }
+  case DW_FORM_udata:
+    val->encoding = ATTR_VAL_UINT;
+    val->u.uint = read_uleb128(self, buf);
+    return 1;
+  case DW_FORM_ref_addr:
+    val->encoding = ATTR_VAL_REF_INFO;
+    if (version == 2)
+      val->u.uint = read_address(self, buf, addrsize);
+    else
+      val->u.uint = read_offset(self, buf, is_dwarf64);
+    return 1;
+  case DW_FORM_ref1:
+    val->encoding = ATTR_VAL_REF_UNIT;
+    val->u.uint = read_byte(self, buf);
+    return 1;
+  case DW_FORM_ref2:
+    val->encoding = ATTR_VAL_REF_UNIT;
+    val->u.uint = read_uint16(self, buf);
+    return 1;
+  case DW_FORM_ref4:
+    val->encoding = ATTR_VAL_REF_UNIT;
+    val->u.uint = read_uint32(self, buf);
+    return 1;
+  case DW_FORM_ref8:
+    val->encoding = ATTR_VAL_REF_UNIT;
+    val->u.uint = read_uint64(self, buf);
+    return 1;
+  case DW_FORM_ref_udata:
+    val->encoding = ATTR_VAL_REF_UNIT;
+    val->u.uint = read_uleb128(self, buf);
+    return 1;
+  case DW_FORM_indirect: {
+    uint64_t form;
+
+    form = read_uleb128(self, buf);
+    if (form == DW_FORM_implicit_const) {
+      dwarf_buf_error(self, buf, "DW_FORM_indirect to DW_FORM_implicit_const",
+                      0);
+      return 0;
+    }
+    return read_attribute(self, (enum dwarf_form)form, 0, buf, is_dwarf64,
+                          version, addrsize, dwarf_sections, altlink, val);
+  }
+  case DW_FORM_sec_offset:
+    val->encoding = ATTR_VAL_REF_SECTION;
+    val->u.uint = read_offset(self, buf, is_dwarf64);
+    return 1;
+  case DW_FORM_exprloc:
+    val->encoding = ATTR_VAL_EXPR;
+    return advance(self, buf, read_uleb128(self, buf));
+  case DW_FORM_flag_present:
+    val->encoding = ATTR_VAL_UINT;
+    val->u.uint = 1;
+    return 1;
+  case DW_FORM_ref_sig8:
+    val->encoding = ATTR_VAL_REF_TYPE;
+    val->u.uint = read_uint64(self, buf);
+    return 1;
+  case DW_FORM_strx:
+  case DW_FORM_strx1:
+  case DW_FORM_strx2:
+  case DW_FORM_strx3:
+  case DW_FORM_strx4: {
+    uint64_t offset;
+
+    switch (form) {
+    case DW_FORM_strx:
+      offset = read_uleb128(self, buf);
+      break;
+    case DW_FORM_strx1:
+      offset = read_byte(self, buf);
+      break;
+    case DW_FORM_strx2:
+      offset = read_uint16(self, buf);
+      break;
+    case DW_FORM_strx3:
+      offset = read_uint24(self, buf);
+      break;
+    case DW_FORM_strx4:
+      offset = read_uint32(self, buf);
+      break;
+    default:
+      /* This case can't happen.  */
+      return 0;
+    }
+    val->encoding = ATTR_VAL_STRING_INDEX;
+    val->u.uint = offset;
+    return 1;
+  }
+  case DW_FORM_addrx:
+  case DW_FORM_addrx1:
+  case DW_FORM_addrx2:
+  case DW_FORM_addrx3:
+  case DW_FORM_addrx4: {
+    uint64_t offset;
+
+    switch (form) {
+    case DW_FORM_addrx:
+      offset = read_uleb128(self, buf);
+      break;
+    case DW_FORM_addrx1:
+      offset = read_byte(self, buf);
+      break;
+    case DW_FORM_addrx2:
+      offset = read_uint16(self, buf);
+      break;
+    case DW_FORM_addrx3:
+      offset = read_uint24(self, buf);
+      break;
+    case DW_FORM_addrx4:
+      offset = read_uint32(self, buf);
+      break;
+    default:
+      /* This case can't happen.  */
+      return 0;
+    }
+    val->encoding = ATTR_VAL_ADDRESS_INDEX;
+    val->u.uint = offset;
+    return 1;
+  }
+  case DW_FORM_ref_sup4:
+    val->encoding = ATTR_VAL_REF_SECTION;
+    val->u.uint = read_uint32(self, buf);
+    return 1;
+  case DW_FORM_ref_sup8:
+    val->encoding = ATTR_VAL_REF_SECTION;
+    val->u.uint = read_uint64(self, buf);
+    return 1;
+  case DW_FORM_implicit_const:
+    val->encoding = ATTR_VAL_UINT;
+    val->u.uint = implicit_val;
+    return 1;
+  case DW_FORM_loclistx:
+    /* We don't distinguish this from DW_FORM_sec_offset.  It
+     * shouldn't matter since we don't care about loclists.  */
+    val->encoding = ATTR_VAL_REF_SECTION;
+    val->u.uint = read_uleb128(self, buf);
+    return 1;
+  case DW_FORM_rnglistx:
+    val->encoding = ATTR_VAL_RNGLISTS_INDEX;
+    val->u.uint = read_uleb128(self, buf);
+    return 1;
+  case DW_FORM_GNU_addr_index:
+    val->encoding = ATTR_VAL_REF_SECTION;
+    val->u.uint = read_uleb128(self, buf);
+    return 1;
+  case DW_FORM_GNU_str_index:
+    val->encoding = ATTR_VAL_REF_SECTION;
+    val->u.uint = read_uleb128(self, buf);
+    return 1;
+  case DW_FORM_GNU_ref_alt:
+    val->u.uint = read_offset(self, buf, is_dwarf64);
+    if (altlink == NULL) {
+      val->encoding = ATTR_VAL_NONE;
+      return 1;
+    }
+    val->encoding = ATTR_VAL_REF_ALT_INFO;
+    return 1;
+  case DW_FORM_strp_sup:
+  case DW_FORM_GNU_strp_alt: {
+    uint64_t offset;
+
+    offset = read_offset(self, buf, is_dwarf64);
+    if (altlink == NULL) {
+      val->encoding = ATTR_VAL_NONE;
+      return 1;
+    }
+    if (offset >= altlink->dwarf_sections.size[DEBUG_STR]) {
+      dwarf_buf_error(self, buf, "DW_FORM_strp_sup out of range", 0);
+      return 0;
+    }
+    val->encoding = ATTR_VAL_STRING;
+    val->u.string =
+        (const char *)altlink->dwarf_sections.data[DEBUG_STR] + offset;
+    return 1;
+  }
+  default:
+    dwarf_buf_error(self, buf, "unrecognized DWARF form", -1);
+    return 0;
   }
 }
 
@@ -1268,42 +1267,41 @@ static int resolve_string(ten_backtrace_t *self,
                           ten_backtrace_error_func_t error_cb, void *data,
                           const char **string) {
   switch (val->encoding) {
-    case ATTR_VAL_STRING:
-      *string = val->u.string;
-      return 1;
+  case ATTR_VAL_STRING:
+    *string = val->u.string;
+    return 1;
 
-    case ATTR_VAL_STRING_INDEX: {
-      uint64_t offset;
-      struct dwarf_buf offset_buf;
+  case ATTR_VAL_STRING_INDEX: {
+    uint64_t offset;
+    struct dwarf_buf offset_buf;
 
-      offset = val->u.uint * (is_dwarf64 ? 8 : 4) + str_offsets_base;
-      if (offset + (is_dwarf64 ? 8 : 4) >
-          dwarf_sections->size[DEBUG_STR_OFFSETS]) {
-        error_cb(self, "DW_FORM_strx value out of range", 0, data);
-        return 0;
-      }
-
-      offset_buf.name = ".debug_str_offsets";
-      offset_buf.start = dwarf_sections->data[DEBUG_STR_OFFSETS];
-      offset_buf.buf = dwarf_sections->data[DEBUG_STR_OFFSETS] + offset;
-      offset_buf.left = dwarf_sections->size[DEBUG_STR_OFFSETS] - offset;
-      offset_buf.is_bigendian = is_bigendian;
-      offset_buf.error_cb = error_cb;
-      offset_buf.data = data;
-      offset_buf.reported_underflow = 0;
-
-      offset = read_offset(self, &offset_buf, is_dwarf64);
-      if (offset >= dwarf_sections->size[DEBUG_STR]) {
-        dwarf_buf_error(self, &offset_buf, "DW_FORM_strx offset out of range",
-                        0);
-        return 0;
-      }
-      *string = (const char *)dwarf_sections->data[DEBUG_STR] + offset;
-      return 1;
+    offset = val->u.uint * (is_dwarf64 ? 8 : 4) + str_offsets_base;
+    if (offset + (is_dwarf64 ? 8 : 4) >
+        dwarf_sections->size[DEBUG_STR_OFFSETS]) {
+      error_cb(self, "DW_FORM_strx value out of range", 0, data);
+      return 0;
     }
 
-    default:
-      return 1;
+    offset_buf.name = ".debug_str_offsets";
+    offset_buf.start = dwarf_sections->data[DEBUG_STR_OFFSETS];
+    offset_buf.buf = dwarf_sections->data[DEBUG_STR_OFFSETS] + offset;
+    offset_buf.left = dwarf_sections->size[DEBUG_STR_OFFSETS] - offset;
+    offset_buf.is_bigendian = is_bigendian;
+    offset_buf.error_cb = error_cb;
+    offset_buf.data = data;
+    offset_buf.reported_underflow = 0;
+
+    offset = read_offset(self, &offset_buf, is_dwarf64);
+    if (offset >= dwarf_sections->size[DEBUG_STR]) {
+      dwarf_buf_error(self, &offset_buf, "DW_FORM_strx offset out of range", 0);
+      return 0;
+    }
+    *string = (const char *)dwarf_sections->data[DEBUG_STR] + offset;
+    return 1;
+  }
+
+  default:
+    return 1;
   }
 }
 
@@ -1584,7 +1582,8 @@ static int read_abbrevs(ten_backtrace_t *self, uint64_t abbrev_offset,
   count_buf = abbrev_buf;
   num_abbrevs = 0;
   while (read_uleb128(self, &count_buf) != 0) {
-    if (count_buf.reported_underflow) return 0;
+    if (count_buf.reported_underflow)
+      return 0;
     ++num_abbrevs;
     // Skip tag.
     read_uleb128(self, &count_buf);
@@ -1602,12 +1601,14 @@ static int read_abbrevs(ten_backtrace_t *self, uint64_t abbrev_offset,
     read_uleb128(self, &count_buf);
   }
 
-  if (count_buf.reported_underflow) return 0;
+  if (count_buf.reported_underflow)
+    return 0;
 
-  if (num_abbrevs == 0) return 1;
+  if (num_abbrevs == 0)
+    return 1;
 
-  abbrevs->abbrevs = (struct abbrev *)ten_malloc_without_backtrace(
-      num_abbrevs * sizeof(struct abbrev));
+  abbrevs->abbrevs =
+      (struct abbrev *)malloc(num_abbrevs * sizeof(struct abbrev));
   if (abbrevs->abbrevs == NULL) {
     return 0;
   }
@@ -1622,10 +1623,12 @@ static int read_abbrevs(ten_backtrace_t *self, uint64_t abbrev_offset,
     size_t num_attrs;
     struct attr *attrs;
 
-    if (abbrev_buf.reported_underflow) goto fail;
+    if (abbrev_buf.reported_underflow)
+      goto fail;
 
     code = read_uleb128(self, &abbrev_buf);
-    if (code == 0) break;
+    if (code == 0)
+      break;
 
     a.code = code;
     a.tag = (enum dwarf_tag)read_uleb128(self, &abbrev_buf);
@@ -1647,8 +1650,7 @@ static int read_abbrevs(ten_backtrace_t *self, uint64_t abbrev_offset,
       read_uleb128(self, &abbrev_buf);
       read_uleb128(self, &abbrev_buf);
     } else {
-      attrs = (struct attr *)ten_malloc_without_backtrace(num_attrs *
-                                                          sizeof *attrs);
+      attrs = (struct attr *)malloc(num_attrs * sizeof *attrs);
       if (attrs == NULL) {
         goto fail;
       }
@@ -1694,11 +1696,9 @@ fail:
 }
 
 // Return the abbrev information for an abbrev code.
-static const struct abbrev *lookup_abbrev(ten_backtrace_t *self,
-                                          struct abbrevs *abbrevs,
-                                          uint64_t code,
-                                          ten_backtrace_error_func_t error_cb,
-                                          void *data) {
+static const struct abbrev *
+lookup_abbrev(ten_backtrace_t *self, struct abbrevs *abbrevs, uint64_t code,
+              ten_backtrace_error_func_t error_cb, void *data) {
   struct abbrev key;
   void *p;
 
@@ -1745,46 +1745,46 @@ struct pcrange {
 static void update_pcrange(const struct attr *attr, const struct attr_val *val,
                            struct pcrange *pcrange) {
   switch (attr->name) {
-    case DW_AT_low_pc:
-      if (val->encoding == ATTR_VAL_ADDRESS) {
-        pcrange->lowpc = (uintptr_t)val->u.uint;
-        pcrange->have_lowpc = 1;
-      } else if (val->encoding == ATTR_VAL_ADDRESS_INDEX) {
-        pcrange->lowpc = (uintptr_t)val->u.uint;
-        pcrange->have_lowpc = 1;
-        pcrange->lowpc_is_addr_index = 1;
-      }
-      break;
+  case DW_AT_low_pc:
+    if (val->encoding == ATTR_VAL_ADDRESS) {
+      pcrange->lowpc = (uintptr_t)val->u.uint;
+      pcrange->have_lowpc = 1;
+    } else if (val->encoding == ATTR_VAL_ADDRESS_INDEX) {
+      pcrange->lowpc = (uintptr_t)val->u.uint;
+      pcrange->have_lowpc = 1;
+      pcrange->lowpc_is_addr_index = 1;
+    }
+    break;
 
-    case DW_AT_high_pc:
-      if (val->encoding == ATTR_VAL_ADDRESS) {
-        pcrange->highpc = (uintptr_t)val->u.uint;
-        pcrange->have_highpc = 1;
-      } else if (val->encoding == ATTR_VAL_UINT) {
-        pcrange->highpc = (uintptr_t)val->u.uint;
-        pcrange->have_highpc = 1;
-        pcrange->highpc_is_relative = 1;
-      } else if (val->encoding == ATTR_VAL_ADDRESS_INDEX) {
-        pcrange->highpc = (uintptr_t)val->u.uint;
-        pcrange->have_highpc = 1;
-        pcrange->highpc_is_addr_index = 1;
-      }
-      break;
+  case DW_AT_high_pc:
+    if (val->encoding == ATTR_VAL_ADDRESS) {
+      pcrange->highpc = (uintptr_t)val->u.uint;
+      pcrange->have_highpc = 1;
+    } else if (val->encoding == ATTR_VAL_UINT) {
+      pcrange->highpc = (uintptr_t)val->u.uint;
+      pcrange->have_highpc = 1;
+      pcrange->highpc_is_relative = 1;
+    } else if (val->encoding == ATTR_VAL_ADDRESS_INDEX) {
+      pcrange->highpc = (uintptr_t)val->u.uint;
+      pcrange->have_highpc = 1;
+      pcrange->highpc_is_addr_index = 1;
+    }
+    break;
 
-    case DW_AT_ranges:
-      if (val->encoding == ATTR_VAL_UINT ||
-          val->encoding == ATTR_VAL_REF_SECTION) {
-        pcrange->ranges = val->u.uint;
-        pcrange->have_ranges = 1;
-      } else if (val->encoding == ATTR_VAL_RNGLISTS_INDEX) {
-        pcrange->ranges = val->u.uint;
-        pcrange->have_ranges = 1;
-        pcrange->ranges_is_index = 1;
-      }
-      break;
+  case DW_AT_ranges:
+    if (val->encoding == ATTR_VAL_UINT ||
+        val->encoding == ATTR_VAL_REF_SECTION) {
+      pcrange->ranges = val->u.uint;
+      pcrange->have_ranges = 1;
+    } else if (val->encoding == ATTR_VAL_RNGLISTS_INDEX) {
+      pcrange->ranges = val->u.uint;
+      pcrange->have_ranges = 1;
+      pcrange->ranges_is_index = 1;
+    }
+    break;
 
-    default:
-      break;
+  default:
+    break;
   }
 }
 
@@ -1937,97 +1937,98 @@ static int add_ranges_from_rnglists(
     unsigned char rle;
 
     rle = read_byte(self, &rnglists_buf);
-    if (rle == DW_RLE_end_of_list) break;
+    if (rle == DW_RLE_end_of_list)
+      break;
     switch (rle) {
-      case DW_RLE_base_addressx: {
-        uint64_t index;
+    case DW_RLE_base_addressx: {
+      uint64_t index;
 
-        index = read_uleb128(self, &rnglists_buf);
-        if (!resolve_addr_index(self, dwarf_sections, u->addr_base, u->addrsize,
-                                is_bigendian, index, error_cb, data, &base))
-          return 0;
-      } break;
-
-      case DW_RLE_startx_endx: {
-        uint64_t index;
-        uintptr_t low;
-        uintptr_t high;
-
-        index = read_uleb128(self, &rnglists_buf);
-        if (!resolve_addr_index(self, dwarf_sections, u->addr_base, u->addrsize,
-                                is_bigendian, index, error_cb, data, &low)) {
-          return 0;
-        }
-
-        index = read_uleb128(self, &rnglists_buf);
-        if (!resolve_addr_index(self, dwarf_sections, u->addr_base, u->addrsize,
-                                is_bigendian, index, error_cb, data, &high)) {
-          return 0;
-        }
-
-        if (!add_range(self, rdata, low + base_address, high + base_address,
-                       error_cb, data, vec)) {
-          return 0;
-        }
-      } break;
-
-      case DW_RLE_startx_length: {
-        uint64_t index;
-        uintptr_t low;
-        uintptr_t length;
-
-        index = read_uleb128(self, &rnglists_buf);
-        if (!resolve_addr_index(self, dwarf_sections, u->addr_base, u->addrsize,
-                                is_bigendian, index, error_cb, data, &low))
-          return 0;
-        length = read_uleb128(self, &rnglists_buf);
-        low += base_address;
-        if (!add_range(self, rdata, low, low + length, error_cb, data, vec))
-          return 0;
-      } break;
-
-      case DW_RLE_offset_pair: {
-        uint64_t low;
-        uint64_t high;
-
-        low = read_uleb128(self, &rnglists_buf);
-        high = read_uleb128(self, &rnglists_buf);
-        if (!add_range(self, rdata, low + base + base_address,
-                       high + base + base_address, error_cb, data, vec))
-          return 0;
-      } break;
-
-      case DW_RLE_base_address:
-        base = (uintptr_t)read_address(self, &rnglists_buf, u->addrsize);
-        break;
-
-      case DW_RLE_start_end: {
-        uintptr_t low;
-        uintptr_t high;
-
-        low = (uintptr_t)read_address(self, &rnglists_buf, u->addrsize);
-        high = (uintptr_t)read_address(self, &rnglists_buf, u->addrsize);
-        if (!add_range(self, rdata, low + base_address, high + base_address,
-                       error_cb, data, vec)) {
-          return 0;
-        }
-      } break;
-
-      case DW_RLE_start_length: {
-        uintptr_t low;
-        uintptr_t length;
-
-        low = (uintptr_t)read_address(self, &rnglists_buf, u->addrsize);
-        length = (uintptr_t)read_uleb128(self, &rnglists_buf);
-        low += base_address;
-        if (!add_range(self, rdata, low, low + length, error_cb, data, vec)) {
-          return 0;
-        }
-      } break;
-
-      default:
-        dwarf_buf_error(self, &rnglists_buf, "unrecognized DW_RLE value", -1);
+      index = read_uleb128(self, &rnglists_buf);
+      if (!resolve_addr_index(self, dwarf_sections, u->addr_base, u->addrsize,
+                              is_bigendian, index, error_cb, data, &base))
         return 0;
+    } break;
+
+    case DW_RLE_startx_endx: {
+      uint64_t index;
+      uintptr_t low;
+      uintptr_t high;
+
+      index = read_uleb128(self, &rnglists_buf);
+      if (!resolve_addr_index(self, dwarf_sections, u->addr_base, u->addrsize,
+                              is_bigendian, index, error_cb, data, &low)) {
+        return 0;
+      }
+
+      index = read_uleb128(self, &rnglists_buf);
+      if (!resolve_addr_index(self, dwarf_sections, u->addr_base, u->addrsize,
+                              is_bigendian, index, error_cb, data, &high)) {
+        return 0;
+      }
+
+      if (!add_range(self, rdata, low + base_address, high + base_address,
+                     error_cb, data, vec)) {
+        return 0;
+      }
+    } break;
+
+    case DW_RLE_startx_length: {
+      uint64_t index;
+      uintptr_t low;
+      uintptr_t length;
+
+      index = read_uleb128(self, &rnglists_buf);
+      if (!resolve_addr_index(self, dwarf_sections, u->addr_base, u->addrsize,
+                              is_bigendian, index, error_cb, data, &low))
+        return 0;
+      length = read_uleb128(self, &rnglists_buf);
+      low += base_address;
+      if (!add_range(self, rdata, low, low + length, error_cb, data, vec))
+        return 0;
+    } break;
+
+    case DW_RLE_offset_pair: {
+      uint64_t low;
+      uint64_t high;
+
+      low = read_uleb128(self, &rnglists_buf);
+      high = read_uleb128(self, &rnglists_buf);
+      if (!add_range(self, rdata, low + base + base_address,
+                     high + base + base_address, error_cb, data, vec))
+        return 0;
+    } break;
+
+    case DW_RLE_base_address:
+      base = (uintptr_t)read_address(self, &rnglists_buf, u->addrsize);
+      break;
+
+    case DW_RLE_start_end: {
+      uintptr_t low;
+      uintptr_t high;
+
+      low = (uintptr_t)read_address(self, &rnglists_buf, u->addrsize);
+      high = (uintptr_t)read_address(self, &rnglists_buf, u->addrsize);
+      if (!add_range(self, rdata, low + base_address, high + base_address,
+                     error_cb, data, vec)) {
+        return 0;
+      }
+    } break;
+
+    case DW_RLE_start_length: {
+      uintptr_t low;
+      uintptr_t length;
+
+      low = (uintptr_t)read_address(self, &rnglists_buf, u->addrsize);
+      length = (uintptr_t)read_uleb128(self, &rnglists_buf);
+      low += base_address;
+      if (!add_range(self, rdata, low, low + length, error_cb, data, vec)) {
+        return 0;
+      }
+    } break;
+
+    default:
+      dwarf_buf_error(self, &rnglists_buf, "unrecognized DW_RLE value", -1);
+      return 0;
     }
   }
 
@@ -2126,63 +2127,63 @@ static int find_address_ranges(ten_backtrace_t *self, uintptr_t base_address,
       }
 
       switch (abbrev->attrs[i].name) {
-        case DW_AT_low_pc:
-        case DW_AT_high_pc:
-        case DW_AT_ranges:
-          update_pcrange(&abbrev->attrs[i], &val, &pcrange);
-          break;
+      case DW_AT_low_pc:
+      case DW_AT_high_pc:
+      case DW_AT_ranges:
+        update_pcrange(&abbrev->attrs[i], &val, &pcrange);
+        break;
 
-        case DW_AT_stmt_list:
-          if ((abbrev->tag == DW_TAG_compile_unit ||
-               abbrev->tag == DW_TAG_skeleton_unit) &&
-              (val.encoding == ATTR_VAL_UINT ||
-               val.encoding == ATTR_VAL_REF_SECTION)) {
-            u->lineoff = val.u.uint;
-          }
-          break;
+      case DW_AT_stmt_list:
+        if ((abbrev->tag == DW_TAG_compile_unit ||
+             abbrev->tag == DW_TAG_skeleton_unit) &&
+            (val.encoding == ATTR_VAL_UINT ||
+             val.encoding == ATTR_VAL_REF_SECTION)) {
+          u->lineoff = val.u.uint;
+        }
+        break;
 
-        case DW_AT_name:
-          if (abbrev->tag == DW_TAG_compile_unit ||
-              abbrev->tag == DW_TAG_skeleton_unit) {
-            name_val = val;
-            have_name_val = 1;
-          }
-          break;
+      case DW_AT_name:
+        if (abbrev->tag == DW_TAG_compile_unit ||
+            abbrev->tag == DW_TAG_skeleton_unit) {
+          name_val = val;
+          have_name_val = 1;
+        }
+        break;
 
-        case DW_AT_comp_dir:
-          if (abbrev->tag == DW_TAG_compile_unit ||
-              abbrev->tag == DW_TAG_skeleton_unit) {
-            comp_dir_val = val;
-            have_comp_dir_val = 1;
-          }
-          break;
+      case DW_AT_comp_dir:
+        if (abbrev->tag == DW_TAG_compile_unit ||
+            abbrev->tag == DW_TAG_skeleton_unit) {
+          comp_dir_val = val;
+          have_comp_dir_val = 1;
+        }
+        break;
 
-        case DW_AT_str_offsets_base:
-          if ((abbrev->tag == DW_TAG_compile_unit ||
-               abbrev->tag == DW_TAG_skeleton_unit) &&
-              val.encoding == ATTR_VAL_REF_SECTION) {
-            u->str_offsets_base = val.u.uint;
-          }
-          break;
+      case DW_AT_str_offsets_base:
+        if ((abbrev->tag == DW_TAG_compile_unit ||
+             abbrev->tag == DW_TAG_skeleton_unit) &&
+            val.encoding == ATTR_VAL_REF_SECTION) {
+          u->str_offsets_base = val.u.uint;
+        }
+        break;
 
-        case DW_AT_addr_base:
-          if ((abbrev->tag == DW_TAG_compile_unit ||
-               abbrev->tag == DW_TAG_skeleton_unit) &&
-              val.encoding == ATTR_VAL_REF_SECTION) {
-            u->addr_base = val.u.uint;
-          }
-          break;
+      case DW_AT_addr_base:
+        if ((abbrev->tag == DW_TAG_compile_unit ||
+             abbrev->tag == DW_TAG_skeleton_unit) &&
+            val.encoding == ATTR_VAL_REF_SECTION) {
+          u->addr_base = val.u.uint;
+        }
+        break;
 
-        case DW_AT_rnglists_base:
-          if ((abbrev->tag == DW_TAG_compile_unit ||
-               abbrev->tag == DW_TAG_skeleton_unit) &&
-              val.encoding == ATTR_VAL_REF_SECTION) {
-            u->rnglists_base = val.u.uint;
-          }
-          break;
+      case DW_AT_rnglists_base:
+        if ((abbrev->tag == DW_TAG_compile_unit ||
+             abbrev->tag == DW_TAG_skeleton_unit) &&
+            val.encoding == ATTR_VAL_REF_SECTION) {
+          u->rnglists_base = val.u.uint;
+        }
+        break;
 
-        default:
-          break;
+      default:
+        break;
       }
     }
 
@@ -2314,7 +2315,7 @@ static int build_address_map(ten_backtrace_t *self, uintptr_t base_address,
       goto fail;
     }
 
-    u = (struct unit *)ten_malloc_without_backtrace(sizeof *u);
+    u = (struct unit *)malloc(sizeof *u);
     if (u == NULL) {
       goto fail;
     }
@@ -2341,17 +2342,17 @@ static int build_address_map(ten_backtrace_t *self, uintptr_t base_address,
     }
 
     switch (unit_type) {
-      case 0:
-        break;
-      case DW_UT_compile:
-      case DW_UT_partial:
-        break;
-      case DW_UT_skeleton:
-      case DW_UT_split_compile:
-        read_uint64(self, &unit_buf); /* dwo_id */
-        break;
-      default:
-        break;
+    case 0:
+      break;
+    case DW_UT_compile:
+    case DW_UT_partial:
+      break;
+    case DW_UT_skeleton:
+    case DW_UT_split_compile:
+      read_uint64(self, &unit_buf); /* dwo_id */
+      break;
+    default:
+      break;
     }
 
     u->low_offset = unit_offset;
@@ -2413,7 +2414,7 @@ fail:
     pu = (struct unit **)units.data;
     for (i = 0; i < units_count; i++) {
       free_abbrevs(self, &pu[i]->abbrevs, error_cb, data);
-      ten_free_without_backtrace(pu[i]);
+      free(pu[i]);
     }
     ten_vector_deinit(&units);
   }
@@ -2465,9 +2466,9 @@ static int add_line(ten_backtrace_t *self, struct dwarf_data *ddata,
 static void free_line_header(ten_backtrace_t *self, struct line_header *hdr,
                              ten_backtrace_error_func_t error_cb, void *data) {
   if (hdr->dirs_count != 0) {
-    ten_free_without_backtrace(hdr->dirs);
+    free(hdr->dirs);
   }
-  ten_free_without_backtrace(hdr->filenames);
+  free(hdr->filenames);
 }
 
 /* Read the directories and file names for a line header for version
@@ -2492,8 +2493,7 @@ static int read_v2_paths(ten_backtrace_t *self, struct unit *u,
      used for the current directory of the compilation.  To simplify index
      handling, we set entry 0 to the compilation unit directory.  */
   ++hdr->dirs_count;
-  hdr->dirs = (const char **)ten_malloc_without_backtrace(hdr->dirs_count *
-                                                          sizeof(const char *));
+  hdr->dirs = (const char **)malloc(hdr->dirs_count * sizeof(const char *));
   if (hdr->dirs == NULL) {
     return 0;
   }
@@ -2501,13 +2501,16 @@ static int read_v2_paths(ten_backtrace_t *self, struct unit *u,
   hdr->dirs[0] = u->comp_dir;
   i = 1;
   while (*hdr_buf->buf != '\0') {
-    if (hdr_buf->reported_underflow) return 0;
+    if (hdr_buf->reported_underflow)
+      return 0;
 
     hdr->dirs[i] = read_string(self, hdr_buf);
-    if (hdr->dirs[i] == NULL) return 0;
+    if (hdr->dirs[i] == NULL)
+      return 0;
     ++i;
   }
-  if (!advance(self, hdr_buf, 1)) return 0;
+  if (!advance(self, hdr_buf, 1))
+    return 0;
 
   /* Count the number of file entries.  */
   hdr->filenames_count = 0;
@@ -2525,8 +2528,7 @@ static int read_v2_paths(ten_backtrace_t *self, struct unit *u,
      used for the DW_AT_name of the compilation unit.  To simplify index
      handling, we set entry 0 to the compilation unit file name.  */
   ++hdr->filenames_count;
-  hdr->filenames = (const char **)ten_malloc_without_backtrace(
-      hdr->filenames_count * sizeof(char *));
+  hdr->filenames = (const char **)malloc(hdr->filenames_count * sizeof(char *));
   if (hdr->filenames == NULL) {
     return 0;
   }
@@ -2537,10 +2539,12 @@ static int read_v2_paths(ten_backtrace_t *self, struct unit *u,
     const char *filename;
     uint64_t dir_index;
 
-    if (hdr_buf->reported_underflow) return 0;
+    if (hdr_buf->reported_underflow)
+      return 0;
 
     filename = read_string(self, hdr_buf);
-    if (filename == NULL) return 0;
+    if (filename == NULL)
+      return 0;
     dir_index = read_uleb128(self, hdr_buf);
     if (IS_ABSOLUTE_PATH(filename) ||
         (dir_index < hdr->dirs_count && hdr->dirs[dir_index] == NULL))
@@ -2562,7 +2566,7 @@ static int read_v2_paths(ten_backtrace_t *self, struct unit *u,
       }
       dir_len = strlen(dir);
       filename_len = strlen(filename);
-      s = (char *)ten_malloc_without_backtrace(dir_len + filename_len + 2);
+      s = (char *)malloc(dir_len + filename_len + 2);
       if (s == NULL) {
         return 0;
       }
@@ -2609,27 +2613,27 @@ static int read_lnct(ten_backtrace_t *self, struct dwarf_data *ddata,
                         ddata->altlink, &val))
       return 0;
     switch (formats[i].lnct) {
-      case DW_LNCT_path:
-        if (!resolve_string(self, &ddata->dwarf_sections, u->is_dwarf64,
-                            ddata->is_bigendian, u->str_offsets_base, &val,
-                            hdr_buf->error_cb, hdr_buf->data, &path))
+    case DW_LNCT_path:
+      if (!resolve_string(self, &ddata->dwarf_sections, u->is_dwarf64,
+                          ddata->is_bigendian, u->str_offsets_base, &val,
+                          hdr_buf->error_cb, hdr_buf->data, &path))
+        return 0;
+      break;
+    case DW_LNCT_directory_index:
+      if (val.encoding == ATTR_VAL_UINT) {
+        if (val.u.uint >= hdr->dirs_count) {
+          dwarf_buf_error(self, hdr_buf,
+                          ("Invalid directory index in "
+                           "line number program header"),
+                          0);
           return 0;
-        break;
-      case DW_LNCT_directory_index:
-        if (val.encoding == ATTR_VAL_UINT) {
-          if (val.u.uint >= hdr->dirs_count) {
-            dwarf_buf_error(self, hdr_buf,
-                            ("Invalid directory index in "
-                             "line number program header"),
-                            0);
-            return 0;
-          }
-          dir = hdr->dirs[val.u.uint];
         }
-        break;
-      default:
-        /* We don't care about timestamps or sizes or hashes.  */
-        break;
+        dir = hdr->dirs[val.u.uint];
+      }
+      break;
+    default:
+      /* We don't care about timestamps or sizes or hashes.  */
+      break;
     }
   }
 
@@ -2648,7 +2652,7 @@ static int read_lnct(ten_backtrace_t *self, struct dwarf_data *ddata,
 
     dir_len = strlen(dir);
     path_len = strlen(path);
-    s = (char *)ten_malloc_without_backtrace(dir_len + path_len + 2);
+    s = (char *)malloc(dir_len + path_len + 2);
     if (s == NULL) {
       return 0;
     }
@@ -2668,10 +2672,11 @@ static int read_lnct(ten_backtrace_t *self, struct dwarf_data *ddata,
 /* Read a set of DWARF 5 line header format entries, setting *PCOUNT
    and *PPATHS.  Return 1 on success, 0 on failure.  */
 
-static int read_line_header_format_entries(
-    ten_backtrace_t *self, struct dwarf_data *ddata, struct unit *u,
-    struct dwarf_buf *hdr_buf, struct line_header *hdr, size_t *pcount,
-    const char ***ppaths) {
+static int
+read_line_header_format_entries(ten_backtrace_t *self, struct dwarf_data *ddata,
+                                struct unit *u, struct dwarf_buf *hdr_buf,
+                                struct line_header *hdr, size_t *pcount,
+                                const char ***ppaths) {
   size_t formats_count;
   struct line_header_format *formats;
   size_t paths_count;
@@ -2683,7 +2688,7 @@ static int read_line_header_format_entries(
   if (formats_count == 0) {
     formats = NULL;
   } else {
-    formats = (struct line_header_format *)ten_malloc_without_backtrace(
+    formats = (struct line_header_format *)malloc(
         (formats_count * sizeof(struct line_header_format)));
     if (formats == NULL) {
       return 0;
@@ -2703,8 +2708,7 @@ static int read_line_header_format_entries(
     goto exit;
   }
 
-  paths = (const char **)ten_malloc_without_backtrace(paths_count *
-                                                      sizeof(const char *));
+  paths = (const char **)malloc(paths_count * sizeof(const char *));
   if (paths == NULL) {
     ret = 0;
     goto exit;
@@ -2713,7 +2717,7 @@ static int read_line_header_format_entries(
   for (i = 0; i < paths_count; i++) {
     if (!read_lnct(self, ddata, u, hdr_buf, hdr, formats_count, formats,
                    &paths[i])) {
-      ten_free_without_backtrace(paths);
+      free(paths);
       ret = 0;
       goto exit;
     }
@@ -2726,7 +2730,7 @@ static int read_line_header_format_entries(
 
 exit:
   if (formats != NULL) {
-    ten_free_without_backtrace(formats);
+    free(formats);
   }
 
   return ret;
@@ -2857,136 +2861,137 @@ static int read_line_program(ten_backtrace_t *self, struct dwarf_data *ddata,
       len = read_uleb128(self, line_buf);
       op = read_byte(self, line_buf);
       switch (op) {
-        case DW_LNE_end_sequence:
-          /* FIXME: Should we mark the high PC here?  It seems
-             that we already have that information from the
-             compilation unit.  */
-          address = 0;
-          op_index = 0;
-          filename = reset_filename;
-          lineno = 1;
-          break;
-        case DW_LNE_set_address:
-          address = read_address(self, line_buf, hdr->addrsize);
-          break;
-        case DW_LNE_define_file: {
-          const char *f;
-          unsigned int dir_index;
+      case DW_LNE_end_sequence:
+        /* FIXME: Should we mark the high PC here?  It seems
+           that we already have that information from the
+           compilation unit.  */
+        address = 0;
+        op_index = 0;
+        filename = reset_filename;
+        lineno = 1;
+        break;
+      case DW_LNE_set_address:
+        address = read_address(self, line_buf, hdr->addrsize);
+        break;
+      case DW_LNE_define_file: {
+        const char *f;
+        unsigned int dir_index;
 
-          f = read_string(self, line_buf);
-          if (f == NULL) return 0;
-          dir_index = read_uleb128(self, line_buf);
-          /* Ignore that time and length.  */
-          read_uleb128(self, line_buf);
-          read_uleb128(self, line_buf);
-          if (IS_ABSOLUTE_PATH(f))
-            filename = f;
+        f = read_string(self, line_buf);
+        if (f == NULL)
+          return 0;
+        dir_index = read_uleb128(self, line_buf);
+        /* Ignore that time and length.  */
+        read_uleb128(self, line_buf);
+        read_uleb128(self, line_buf);
+        if (IS_ABSOLUTE_PATH(f))
+          filename = f;
+        else {
+          const char *dir;
+          size_t dir_len;
+          size_t f_len;
+          char *p;
+
+          if (dir_index < hdr->dirs_count)
+            dir = hdr->dirs[dir_index];
           else {
-            const char *dir;
-            size_t dir_len;
-            size_t f_len;
-            char *p;
-
-            if (dir_index < hdr->dirs_count)
-              dir = hdr->dirs[dir_index];
-            else {
-              dwarf_buf_error(self, line_buf,
-                              ("Invalid directory index "
-                               "in line number program"),
-                              0);
-              return 0;
-            }
-            dir_len = strlen(dir);
-            f_len = strlen(f);
-            p = (char *)ten_malloc_without_backtrace(dir_len + f_len + 2);
-            if (p == NULL) {
-              return 0;
-            }
-
-            memcpy(p, dir, dir_len);
-            /* FIXME: If we are on a DOS-based file system,
-               and the directory or the file name use
-               backslashes, then we should use a backslash
-               here.  */
-            p[dir_len] = '/';
-            memcpy(p + dir_len + 1, f, f_len + 1);
-            filename = p;
-          }
-        } break;
-        case DW_LNE_set_discriminator:
-          /* We don't care about discriminators.  */
-          read_uleb128(self, line_buf);
-          break;
-        default:
-          if (!advance(self, line_buf, len - 1)) {
-            return 0;
-          }
-
-          break;
-      }
-    } else {
-      switch (op) {
-        case DW_LNS_copy:
-          add_line(self, ddata, address, filename, lineno, line_buf->error_cb,
-                   line_buf->data, vec);
-          break;
-        case DW_LNS_advance_pc: {
-          uint64_t advance;
-
-          advance = read_uleb128(self, line_buf);
-          address += (hdr->min_insn_len * (op_index + advance) /
-                      hdr->max_ops_per_insn);
-          op_index = (op_index + advance) % hdr->max_ops_per_insn;
-        } break;
-        case DW_LNS_advance_line:
-          lineno += (int)read_sleb128(self, line_buf);
-          break;
-        case DW_LNS_set_file: {
-          uint64_t fileno;
-
-          fileno = read_uleb128(self, line_buf);
-          if (fileno >= hdr->filenames_count) {
             dwarf_buf_error(self, line_buf,
-                            ("Invalid file number in "
-                             "line number program"),
+                            ("Invalid directory index "
+                             "in line number program"),
                             0);
             return 0;
           }
-          filename = hdr->filenames[fileno];
-        } break;
-        case DW_LNS_set_column:
-          read_uleb128(self, line_buf);
-          break;
-        case DW_LNS_negate_stmt:
-          break;
-        case DW_LNS_set_basic_block:
-          break;
-        case DW_LNS_const_add_pc: {
-          unsigned int advance;
+          dir_len = strlen(dir);
+          f_len = strlen(f);
+          p = (char *)malloc(dir_len + f_len + 2);
+          if (p == NULL) {
+            return 0;
+          }
 
-          op = 255 - hdr->opcode_base;
-          advance = op / hdr->line_range;
-          address += (hdr->min_insn_len * (op_index + advance) /
-                      hdr->max_ops_per_insn);
-          op_index = (op_index + advance) % hdr->max_ops_per_insn;
-        } break;
-        case DW_LNS_fixed_advance_pc:
-          address += read_uint16(self, line_buf);
-          op_index = 0;
-          break;
-        case DW_LNS_set_prologue_end:
-          break;
-        case DW_LNS_set_epilogue_begin:
-          break;
-        case DW_LNS_set_isa:
-          read_uleb128(self, line_buf);
-          break;
-        default: {
-          unsigned int i;
+          memcpy(p, dir, dir_len);
+          /* FIXME: If we are on a DOS-based file system,
+             and the directory or the file name use
+             backslashes, then we should use a backslash
+             here.  */
+          p[dir_len] = '/';
+          memcpy(p + dir_len + 1, f, f_len + 1);
+          filename = p;
+        }
+      } break;
+      case DW_LNE_set_discriminator:
+        /* We don't care about discriminators.  */
+        read_uleb128(self, line_buf);
+        break;
+      default:
+        if (!advance(self, line_buf, len - 1)) {
+          return 0;
+        }
 
-          for (i = hdr->opcode_lengths[op - 1]; i > 0; --i)
-            read_uleb128(self, line_buf);
-        } break;
+        break;
+      }
+    } else {
+      switch (op) {
+      case DW_LNS_copy:
+        add_line(self, ddata, address, filename, lineno, line_buf->error_cb,
+                 line_buf->data, vec);
+        break;
+      case DW_LNS_advance_pc: {
+        uint64_t advance;
+
+        advance = read_uleb128(self, line_buf);
+        address +=
+            (hdr->min_insn_len * (op_index + advance) / hdr->max_ops_per_insn);
+        op_index = (op_index + advance) % hdr->max_ops_per_insn;
+      } break;
+      case DW_LNS_advance_line:
+        lineno += (int)read_sleb128(self, line_buf);
+        break;
+      case DW_LNS_set_file: {
+        uint64_t fileno;
+
+        fileno = read_uleb128(self, line_buf);
+        if (fileno >= hdr->filenames_count) {
+          dwarf_buf_error(self, line_buf,
+                          ("Invalid file number in "
+                           "line number program"),
+                          0);
+          return 0;
+        }
+        filename = hdr->filenames[fileno];
+      } break;
+      case DW_LNS_set_column:
+        read_uleb128(self, line_buf);
+        break;
+      case DW_LNS_negate_stmt:
+        break;
+      case DW_LNS_set_basic_block:
+        break;
+      case DW_LNS_const_add_pc: {
+        unsigned int advance;
+
+        op = 255 - hdr->opcode_base;
+        advance = op / hdr->line_range;
+        address +=
+            (hdr->min_insn_len * (op_index + advance) / hdr->max_ops_per_insn);
+        op_index = (op_index + advance) % hdr->max_ops_per_insn;
+      } break;
+      case DW_LNS_fixed_advance_pc:
+        address += read_uint16(self, line_buf);
+        op_index = 0;
+        break;
+      case DW_LNS_set_prologue_end:
+        break;
+      case DW_LNS_set_epilogue_begin:
+        break;
+      case DW_LNS_set_isa:
+        read_uleb128(self, line_buf);
+        break;
+      default: {
+        unsigned int i;
+
+        for (i = hdr->opcode_lengths[op - 1]; i > 0; --i)
+          read_uleb128(self, line_buf);
+      } break;
       }
     }
   }
@@ -3093,19 +3098,21 @@ static const char *read_referenced_name_from_attr(
     struct attr *attr, struct attr_val *val,
     ten_backtrace_error_func_t error_cb, void *data) {
   switch (attr->name) {
-    case DW_AT_abstract_origin:
-    case DW_AT_specification:
-      break;
-    default:
-      return NULL;
+  case DW_AT_abstract_origin:
+  case DW_AT_specification:
+    break;
+  default:
+    return NULL;
   }
 
-  if (attr->form == DW_FORM_ref_sig8) return NULL;
+  if (attr->form == DW_FORM_ref_sig8)
+    return NULL;
 
   if (val->encoding == ATTR_VAL_REF_INFO) {
     struct unit *unit =
         find_unit(ddata->units, ddata->units_count, val->u.uint);
-    if (unit == NULL) return NULL;
+    if (unit == NULL)
+      return NULL;
 
     uint64_t offset = val->u.uint - unit->low_offset;
     return read_referenced_name(self, ddata, unit, offset, error_cb, data);
@@ -3117,7 +3124,8 @@ static const char *read_referenced_name_from_attr(
   if (val->encoding == ATTR_VAL_REF_ALT_INFO) {
     struct unit *alt_unit = find_unit(ddata->altlink->units,
                                       ddata->altlink->units_count, val->u.uint);
-    if (alt_unit == NULL) return NULL;
+    if (alt_unit == NULL)
+      return NULL;
 
     uint64_t offset = val->u.uint - alt_unit->low_offset;
     return read_referenced_name(self, ddata->altlink, alt_unit, offset,
@@ -3185,50 +3193,52 @@ static const char *read_referenced_name(ten_backtrace_t *self,
       return NULL;
 
     switch (abbrev->attrs[i].name) {
-      case DW_AT_name:
-        /* Third name preference: don't override.  A name we found in some
-           other way, will normally be more useful -- e.g., this name is
-           normally not mangled.  */
-        if (ret != NULL) {
-          break;
-        }
+    case DW_AT_name:
+      /* Third name preference: don't override.  A name we found in some
+         other way, will normally be more useful -- e.g., this name is
+         normally not mangled.  */
+      if (ret != NULL) {
+        break;
+      }
 
+      if (!resolve_string(self, &ddata->dwarf_sections, u->is_dwarf64,
+                          ddata->is_bigendian, u->str_offsets_base, &val,
+                          error_cb, data, &ret)) {
+        return NULL;
+      }
+      break;
+
+    case DW_AT_linkage_name:
+    case DW_AT_MIPS_linkage_name:
+      /* First name preference: override all.  */
+      {
+        const char *s;
+
+        s = NULL;
         if (!resolve_string(self, &ddata->dwarf_sections, u->is_dwarf64,
                             ddata->is_bigendian, u->str_offsets_base, &val,
-                            error_cb, data, &ret)) {
+                            error_cb, data, &s))
           return NULL;
-        }
-        break;
+        if (s != NULL)
+          return s;
+      }
+      break;
 
-      case DW_AT_linkage_name:
-      case DW_AT_MIPS_linkage_name:
-        /* First name preference: override all.  */
-        {
-          const char *s;
+    case DW_AT_specification:
+      /* Second name preference: override DW_AT_name, don't override
+         DW_AT_linkage_name.  */
+      {
+        const char *name;
 
-          s = NULL;
-          if (!resolve_string(self, &ddata->dwarf_sections, u->is_dwarf64,
-                              ddata->is_bigendian, u->str_offsets_base, &val,
-                              error_cb, data, &s))
-            return NULL;
-          if (s != NULL) return s;
-        }
-        break;
+        name = read_referenced_name_from_attr(self, ddata, u, &abbrev->attrs[i],
+                                              &val, error_cb, data);
+        if (name != NULL)
+          ret = name;
+      }
+      break;
 
-      case DW_AT_specification:
-        /* Second name preference: override DW_AT_name, don't override
-           DW_AT_linkage_name.  */
-        {
-          const char *name;
-
-          name = read_referenced_name_from_attr(
-              self, ddata, u, &abbrev->attrs[i], &val, error_cb, data);
-          if (name != NULL) ret = name;
-        }
-        break;
-
-      default:
-        break;
+    default:
+      break;
     }
   }
 
@@ -3249,7 +3259,8 @@ static int add_function_range(ten_backtrace_t *self, void *rdata,
   if (vec->count > 0) {
     p = (struct function_addrs *)vec->vec.data + (vec->count - 1);
     if ((lowpc == p->high || lowpc == p->high + 1) && function == p->function) {
-      if (highpc > p->high) p->high = highpc;
+      if (highpc > p->high)
+        p->high = highpc;
       return 1;
     }
   }
@@ -3289,10 +3300,12 @@ static int read_function_entry(ten_backtrace_t *self, struct dwarf_data *ddata,
     int have_linkage_name;
 
     code = read_uleb128(self, unit_buf);
-    if (code == 0) return 1;
+    if (code == 0)
+      return 1;
 
     abbrev = lookup_abbrev(self, &u->abbrevs, code, error_cb, data);
-    if (abbrev == NULL) return 0;
+    if (abbrev == NULL)
+      return 0;
 
     is_function = (abbrev->tag == DW_TAG_subprogram ||
                    abbrev->tag == DW_TAG_entry_point ||
@@ -3305,8 +3318,7 @@ static int read_function_entry(ten_backtrace_t *self, struct dwarf_data *ddata,
 
     function = NULL;
     if (is_function) {
-      function =
-          (struct function *)ten_malloc_without_backtrace(sizeof *function);
+      function = (struct function *)malloc(sizeof *function);
       if (function == NULL) {
         return 0;
       }
@@ -3342,73 +3354,76 @@ static int read_function_entry(ten_backtrace_t *self, struct dwarf_data *ddata,
 
       if (is_function) {
         switch (abbrev->attrs[i].name) {
-          case DW_AT_call_file:
-            if (val.encoding == ATTR_VAL_UINT) {
-              if (val.u.uint >= lhdr->filenames_count) {
-                dwarf_buf_error(self, unit_buf,
-                                ("Invalid file number in "
-                                 "DW_AT_call_file attribute"),
-                                0);
-                return 0;
-              }
-              function->caller_filename = lhdr->filenames[val.u.uint];
+        case DW_AT_call_file:
+          if (val.encoding == ATTR_VAL_UINT) {
+            if (val.u.uint >= lhdr->filenames_count) {
+              dwarf_buf_error(self, unit_buf,
+                              ("Invalid file number in "
+                               "DW_AT_call_file attribute"),
+                              0);
+              return 0;
             }
+            function->caller_filename = lhdr->filenames[val.u.uint];
+          }
+          break;
+
+        case DW_AT_call_line:
+          if (val.encoding == ATTR_VAL_UINT)
+            function->caller_lineno = val.u.uint;
+          break;
+
+        case DW_AT_abstract_origin:
+        case DW_AT_specification:
+          /* Second name preference: override DW_AT_name, don't override
+             DW_AT_linkage_name.  */
+          if (have_linkage_name)
             break;
+          {
+            const char *name;
 
-          case DW_AT_call_line:
-            if (val.encoding == ATTR_VAL_UINT)
-              function->caller_lineno = val.u.uint;
+            name = read_referenced_name_from_attr(
+                self, ddata, u, &abbrev->attrs[i], &val, error_cb, data);
+            if (name != NULL)
+              function->name = name;
+          }
+          break;
+
+        case DW_AT_name:
+          /* Third name preference: don't override.  */
+          if (function->name != NULL)
             break;
+          if (!resolve_string(self, &ddata->dwarf_sections, u->is_dwarf64,
+                              ddata->is_bigendian, u->str_offsets_base, &val,
+                              error_cb, data, &function->name))
+            return 0;
+          break;
 
-          case DW_AT_abstract_origin:
-          case DW_AT_specification:
-            /* Second name preference: override DW_AT_name, don't override
-               DW_AT_linkage_name.  */
-            if (have_linkage_name) break;
-            {
-              const char *name;
+        case DW_AT_linkage_name:
+        case DW_AT_MIPS_linkage_name:
+          /* First name preference: override all.  */
+          {
+            const char *s;
 
-              name = read_referenced_name_from_attr(
-                  self, ddata, u, &abbrev->attrs[i], &val, error_cb, data);
-              if (name != NULL) function->name = name;
-            }
-            break;
-
-          case DW_AT_name:
-            /* Third name preference: don't override.  */
-            if (function->name != NULL) break;
+            s = NULL;
             if (!resolve_string(self, &ddata->dwarf_sections, u->is_dwarf64,
                                 ddata->is_bigendian, u->str_offsets_base, &val,
-                                error_cb, data, &function->name))
+                                error_cb, data, &s))
               return 0;
-            break;
-
-          case DW_AT_linkage_name:
-          case DW_AT_MIPS_linkage_name:
-            /* First name preference: override all.  */
-            {
-              const char *s;
-
-              s = NULL;
-              if (!resolve_string(self, &ddata->dwarf_sections, u->is_dwarf64,
-                                  ddata->is_bigendian, u->str_offsets_base,
-                                  &val, error_cb, data, &s))
-                return 0;
-              if (s != NULL) {
-                function->name = s;
-                have_linkage_name = 1;
-              }
+            if (s != NULL) {
+              function->name = s;
+              have_linkage_name = 1;
             }
-            break;
+          }
+          break;
 
-          case DW_AT_low_pc:
-          case DW_AT_high_pc:
-          case DW_AT_ranges:
-            update_pcrange(&abbrev->attrs[i], &val, &pcrange);
-            break;
+        case DW_AT_low_pc:
+        case DW_AT_high_pc:
+        case DW_AT_ranges:
+          update_pcrange(&abbrev->attrs[i], &val, &pcrange);
+          break;
 
-          default:
-            break;
+        default:
+          break;
         }
       }
     }
@@ -3416,7 +3431,7 @@ static int read_function_entry(ten_backtrace_t *self, struct dwarf_data *ddata,
     /* If we couldn't find a name for the function, we have no use
        for it.  */
     if (is_function && function->name == NULL) {
-      ten_free_without_backtrace(function);
+      free(function);
       is_function = 0;
     }
 
@@ -3429,7 +3444,7 @@ static int read_function_entry(ten_backtrace_t *self, struct dwarf_data *ddata,
           return 0;
         }
       } else {
-        ten_free_without_backtrace(function);
+        free(function);
         is_function = 0;
       }
     }
@@ -3573,10 +3588,11 @@ static void read_function_info(ten_backtrace_t *self, struct dwarf_data *ddata,
    information, and update FILENAME and LINENO for the caller.
    Returns whatever CALLBACK returns, or 0 to keep going.  */
 
-static int report_inlined_functions(
-    ten_backtrace_t *self, uintptr_t pc, struct function *function,
-    ten_backtrace_dump_file_line_func_t dump_file_line_cb, void *data,
-    const char **filename, int *lineno) {
+static int
+report_inlined_functions(ten_backtrace_t *self, uintptr_t pc,
+                         struct function *function,
+                         ten_backtrace_dump_file_line_func_t dump_file_line_cb,
+                         void *data, const char **filename, int *lineno) {
   struct function_addrs *p;
   struct function_addrs *match;
   struct function *inlined;
@@ -3656,10 +3672,10 @@ static int report_inlined_functions(
  * @a callback and return whatever it returns. On error, call @a error_cb
  * and return 0. Sets @a *found to 1 if the @a pc is found, 0 if not.
  */
-static int dwarf_lookup_pc(
-    ten_backtrace_t *self, struct dwarf_data *ddata, uintptr_t pc,
-    ten_backtrace_dump_file_line_func_t dump_file_line_cb,
-    ten_backtrace_error_func_t error_cb, void *data, int *found) {
+static int
+dwarf_lookup_pc(ten_backtrace_t *self, struct dwarf_data *ddata, uintptr_t pc,
+                ten_backtrace_dump_file_line_func_t dump_file_line_cb,
+                ten_backtrace_error_func_t error_cb, void *data, int *found) {
   struct unit_addrs *entry = NULL;
   int found_entry = 0;
   struct unit *u = NULL;
@@ -3817,7 +3833,7 @@ static int dwarf_lookup_pc(
         filename_len = strlen(filename);
         dir = entry->u->comp_dir;
         dir_len = strlen(dir);
-        s = (char *)ten_malloc_without_backtrace(dir_len + filename_len + 2);
+        s = (char *)malloc(dir_len + filename_len + 2);
         if (s == NULL) {
           *found = 0;
           return 0;
@@ -3926,11 +3942,11 @@ static int dwarf_fileline(ten_backtrace_t *self_, uintptr_t pc,
 /* Initialize our data structures from the DWARF debug info for a
    file.  Return NULL on failure.  */
 
-static struct dwarf_data *build_dwarf_data(
-    ten_backtrace_t *self, uintptr_t base_address,
-    const struct dwarf_sections *dwarf_sections, int is_bigendian,
-    struct dwarf_data *altlink, ten_backtrace_error_func_t error_cb,
-    void *data) {
+static struct dwarf_data *
+build_dwarf_data(ten_backtrace_t *self, uintptr_t base_address,
+                 const struct dwarf_sections *dwarf_sections, int is_bigendian,
+                 struct dwarf_data *altlink,
+                 ten_backtrace_error_func_t error_cb, void *data) {
   struct unit_addrs_vector addrs_vec;
   struct unit_addrs *addrs;
   size_t addrs_count;
@@ -3960,8 +3976,7 @@ static struct dwarf_data *build_dwarf_data(
                   unit_addrs_compare);
   /* No qsort for units required, already sorted.  */
 
-  fdata = (struct dwarf_data *)ten_malloc_without_backtrace(
-      sizeof(struct dwarf_data));
+  fdata = (struct dwarf_data *)malloc(sizeof(struct dwarf_data));
   if (fdata == NULL) {
     return NULL;
   }

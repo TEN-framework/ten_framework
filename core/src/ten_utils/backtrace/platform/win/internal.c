@@ -17,7 +17,6 @@
 
 #include "include_internal/ten_utils/backtrace/backtrace.h"
 #include "include_internal/ten_utils/backtrace/common.h"
-#include "ten_utils/lib/alloc.h"
 
 typedef BOOL(WINAPI *win_SymInitialize_func_t)(HANDLE hProcess,
                                                PCSTR UserSearchPath,
@@ -111,8 +110,7 @@ static void retrieve_windows_backtrace_funcs(ten_backtrace_win_t *self) {
 }
 
 ten_backtrace_t *ten_backtrace_create(void) {
-  ten_backtrace_win_t *self =
-      ten_malloc_without_backtrace(sizeof(ten_backtrace_win_t));
+  ten_backtrace_win_t *self = malloc(sizeof(ten_backtrace_win_t));
   assert(self && "Failed to allocate memory.");
 
   ten_backtrace_common_init(&self->common, ten_backtrace_default_dump_cb,
@@ -127,7 +125,7 @@ void ten_backtrace_destroy(ten_backtrace_t *self) {
 
   ten_backtrace_common_deinit(self);
 
-  ten_free_without_backtrace(self);
+  free(self);
 }
 
 void ten_backtrace_dump(ten_backtrace_t *self, size_t skip) {
@@ -152,7 +150,7 @@ void ten_backtrace_dump(ten_backtrace_t *self, size_t skip) {
   void *stack[100] = {0};
   USHORT frames = win_self->RtlCaptureStackBackTrace(0, 100, stack, NULL);
 
-  SYMBOL_INFO *symbol = (SYMBOL_INFO *)ten_calloc_without_backtrace(
+  SYMBOL_INFO *symbol = (SYMBOL_INFO *)calloc(
       offsetof(SYMBOL_INFO, Name) + 256 * sizeof(symbol->Name[0]), 1);
   assert(symbol && "Failed to allocate memory.");
 
@@ -182,7 +180,7 @@ void ten_backtrace_dump(ten_backtrace_t *self, size_t skip) {
     }
   }
 
-  ten_free_without_backtrace(symbol);
+  free(symbol);
 
   win_self->SymCleanup(process);
 }

@@ -35,7 +35,6 @@
 #include "include_internal/ten_utils/backtrace/platform/posix/linux/view.h"
 #include "include_internal/ten_utils/backtrace/platform/posix/linux/zlib.h"
 #include "ten_utils/io/mmap.h"
-#include "ten_utils/lib/alloc.h"
 #include "ten_utils/lib/atomic_ptr.h"
 #include "ten_utils/lib/file.h"
 
@@ -435,8 +434,7 @@ static int elf_initialize_syminfo(ten_backtrace_t *self, uintptr_t base_address,
   }
 
   elf_symbol_size = elf_symbol_count * sizeof(struct elf_symbol);
-  elf_symbols =
-      (struct elf_symbol *)ten_malloc_without_backtrace(elf_symbol_size);
+  elf_symbols = (struct elf_symbol *)malloc(elf_symbol_size);
   assert(elf_symbols && "Failed to allocate memory.");
   if (elf_symbols == NULL) {
     return 0;
@@ -456,7 +454,7 @@ static int elf_initialize_syminfo(ten_backtrace_t *self, uintptr_t base_address,
 
     if (sym->st_name >= strtab_size) {
       error_cb(self, "symbol string index out of range", 0, data);
-      ten_free_without_backtrace(elf_symbols);
+      free(elf_symbols);
       return 0;
     }
     elf_symbols[j].name = (const char *)strtab + sym->st_name;
@@ -2801,7 +2799,7 @@ static int elf_uncompress_zdebug(ten_backtrace_t *self,
   if (*uncompressed != NULL && *uncompressed_size >= sz)
     po = *uncompressed;
   else {
-    po = (unsigned char *)ten_malloc_without_backtrace(sz);
+    po = (unsigned char *)malloc(sz);
     if (po == NULL) {
       return 0;
     }
@@ -2853,7 +2851,7 @@ static int elf_uncompress_chdr(ten_backtrace_t *self,
     po = *uncompressed;
   else {
     alc_len = chdr->ch_size;
-    alc = ten_malloc_without_backtrace(alc_len);
+    alc = malloc(alc_len);
     if (alc == NULL) {
       return 0;
     }
@@ -2887,7 +2885,7 @@ static int elf_uncompress_chdr(ten_backtrace_t *self,
 
 skip:
   if (alc != NULL && alc_len > 0)
-    ten_free_without_backtrace(alc);
+    free(alc);
   return 1;
 }
 
@@ -3960,7 +3958,7 @@ static int elf_uncompress_lzma(ten_backtrace_t *self,
 
   /* Allocate space to hold the uncompressed data.  If we succeed in
      uncompressing the LZMA data, we never free this memory.  */
-  mem = (unsigned char *)ten_malloc_without_backtrace(index_uncompressed_size);
+  mem = (unsigned char *)malloc(index_uncompressed_size);
   if (unlikely(mem == NULL)) {
     return 0;
   }
@@ -3969,10 +3967,9 @@ static int elf_uncompress_lzma(ten_backtrace_t *self,
   *uncompressed_size = index_uncompressed_size;
 
   /* Allocate space for probabilities.  */
-  probs = (uint16_t *)ten_malloc_without_backtrace(LZMA_PROB_TOTAL_COUNT *
-                                                   sizeof(uint16_t));
+  probs = (uint16_t *)malloc(LZMA_PROB_TOTAL_COUNT * sizeof(uint16_t));
   if (unlikely(probs == NULL)) {
-    ten_free_without_backtrace(mem);
+    free(mem);
     return 0;
   }
 
@@ -3980,7 +3977,7 @@ static int elf_uncompress_lzma(ten_backtrace_t *self,
   offset = 12;
   if (!elf_uncompress_lzma_block(compressed, compressed_size, check, probs, mem,
                                  index_uncompressed_size, &offset)) {
-    ten_free_without_backtrace(mem);
+    free(mem);
     return 0;
   }
 
@@ -3988,14 +3985,14 @@ static int elf_uncompress_lzma(ten_backtrace_t *self,
   if (unlikely(compressed_block_size !=
                ((index_compressed_size + 3) & ~(size_t)3))) {
     elf_uncompress_failed();
-    ten_free_without_backtrace(mem);
+    free(mem);
     return 0;
   }
 
   offset = (offset + 3) & ~(size_t)3;
   if (unlikely(offset != index_offset)) {
     elf_uncompress_failed();
-    ten_free_without_backtrace(mem);
+    free(mem);
     return 0;
   }
 
@@ -4370,8 +4367,7 @@ static int elf_add(ten_backtrace_t *self, const char *filename, int descriptor,
       goto fail;
     strtab_view_valid = 1;
 
-    sdata =
-        (struct elf_syminfo_data *)ten_malloc_without_backtrace(sizeof *sdata);
+    sdata = (struct elf_syminfo_data *)malloc(sizeof *sdata);
     if (sdata == NULL) {
       goto fail;
     }
@@ -4380,7 +4376,7 @@ static int elf_add(ten_backtrace_t *self, const char *filename, int descriptor,
                                 symtab_shdr->sh_size, strtab_view.view.data,
                                 strtab_shdr->sh_size, error_cb, data, sdata,
                                 opd)) {
-      ten_free_without_backtrace(sdata);
+      free(sdata);
       goto fail;
     }
 
@@ -4626,8 +4622,7 @@ static int elf_add(ten_backtrace_t *self, const char *filename, int descriptor,
       size_t uncompressed_size;
 
       if (zdebug_table == NULL) {
-        zdebug_table =
-            (uint16_t *)ten_malloc_without_backtrace(ZLIB_TABLE_SIZE);
+        zdebug_table = (uint16_t *)malloc(ZLIB_TABLE_SIZE);
         if (zdebug_table == NULL) {
           goto fail;
         }
@@ -4651,7 +4646,7 @@ static int elf_add(ten_backtrace_t *self, const char *filename, int descriptor,
   }
 
   if (zdebug_table != NULL) {
-    ten_free_without_backtrace(zdebug_table);
+    free(zdebug_table);
     zdebug_table = NULL;
   }
 
@@ -4666,8 +4661,7 @@ static int elf_add(ten_backtrace_t *self, const char *filename, int descriptor,
     }
 
     if (zdebug_table == NULL) {
-      zdebug_table =
-          (uint16_t *)ten_malloc_without_backtrace(ZDEBUG_TABLE_SIZE);
+      zdebug_table = (uint16_t *)malloc(ZDEBUG_TABLE_SIZE);
       if (zdebug_table == NULL) {
         goto fail;
       }
@@ -4694,7 +4688,7 @@ static int elf_add(ten_backtrace_t *self, const char *filename, int descriptor,
   }
 
   if (zdebug_table != NULL)
-    ten_free_without_backtrace(zdebug_table);
+    free(zdebug_table);
 
   if (debug_view_valid && using_debug_view == 0) {
     elf_release_view(self, &debug_view, error_cb, data);

@@ -9,6 +9,8 @@
 #include <Windows.h>
 #include <time.h>
 
+#include "ten_utils/macro/check.h"
+
 int64_t ten_current_time_ms(void) {
   FILETIME ft;
   LARGE_INTEGER li;

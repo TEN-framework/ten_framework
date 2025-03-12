@@ -13,7 +13,6 @@
 #include <string.h>
 
 #include "include_internal/ten_utils/backtrace/common.h"
-#include "ten_utils/lib/alloc.h"
 
 /**
  * @note On Mac, we are currently using a simple method instead of a complicated
@@ -25,8 +24,7 @@ typedef struct ten_backtrace_mac_t {
 } ten_backtrace_mac_t;
 
 ten_backtrace_t *ten_backtrace_create(void) {
-  ten_backtrace_mac_t *self =
-      ten_malloc_without_backtrace(sizeof(ten_backtrace_mac_t));
+  ten_backtrace_mac_t *self = malloc(sizeof(ten_backtrace_mac_t));
   assert(self && "Failed to allocate memory.");
 
   ten_backtrace_common_init(&self->common, ten_backtrace_default_dump_cb,
@@ -40,7 +38,7 @@ void ten_backtrace_destroy(ten_backtrace_t *self) {
 
   ten_backtrace_common_deinit(self);
 
-  ten_free_without_backtrace(self);
+  free(self);
 }
 
 void ten_backtrace_dump(ten_backtrace_t *self, size_t skip) {

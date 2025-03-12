@@ -30,8 +30,6 @@
 
 #if defined(HAVE_MACH_O_DYLD_H)
 
-#include "ten_utils/lib/alloc.h"
-
 static char *macho_get_executable_path(ten_backtrace_t *self,
                                        ten_backtrace_error_func_t error_cb,
                                        void *data) {
@@ -40,11 +38,11 @@ static char *macho_get_executable_path(ten_backtrace_t *self,
     return NULL;
   }
 
-  char *name = (char *)ten_malloc_without_backtrace(len);
+  char *name = (char *)malloc(len);
   assert(name && "Failed to allocate memory.");
 
   if (_NSGetExecutablePath(name, &len) != 0) {
-    ten_free_without_backtrace(name);
+    free(name);
     return NULL;
   }
 

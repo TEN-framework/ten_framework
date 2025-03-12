@@ -8,10 +8,10 @@
 
 #include <assert.h>
 #include <inttypes.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "include_internal/ten_utils/backtrace/backtrace.h"
-#include "ten_utils/lib/alloc.h"
 #include "ten_utils/macro/mark.h"
 
 ten_backtrace_t *g_ten_backtrace;
@@ -29,12 +29,12 @@ ten_backtrace_t *g_ten_backtrace;
  */
 static char *ten_strerror(int errnum) {
   size_t size = 1024;
-  char *buf = ten_malloc_without_backtrace(size);
+  char *buf = malloc(size);
   assert(buf && "Failed to allocate memory.");
 
   while (strerror_r(errnum, buf, size) == -1) {
     size *= 2;
-    buf = ten_realloc_without_backtrace(buf, size);
+    buf = realloc(buf, size);
     assert(buf && "Failed to allocate memory.");
   }
 
@@ -64,7 +64,7 @@ void ten_backtrace_default_error_cb(ten_backtrace_t *self_, const char *msg,
     char *buf = ten_strerror(errnum);
     (void)fprintf(stderr, ": %s", buf);
 
-    ten_free_without_backtrace(buf);
+    free(buf);
   }
 }
 
