@@ -10,12 +10,14 @@ import { useTranslation } from "react-i18next";
 
 import { useListTenCloudStorePackages } from "@/api/services/extension";
 import { SpinnerLoading } from "@/components/Status/Loading";
-import { cn } from "@/lib/utils";
 import { useWidgetStore } from "@/store/widget";
-import { ExtensionList } from "@/components/Widget/ExtensionStoreWidget/ExtensionList";
-import { ExtensionSearch } from "@/components/Widget/ExtensionStoreWidget/ExtensionSearch";
+import { ExtensionList } from "@/components/Widget/ExtensionWidget/ExtensionList";
+import { ExtensionSearch } from "@/components/Widget/ExtensionWidget/ExtensionSearch";
+import { ExtensionDetails } from "@/components/Widget/ExtensionWidget/ExtensionDetails";
+import { cn, compareVersions } from "@/lib/utils";
 
 import type { TooltipContentProps } from "@radix-ui/react-tooltip";
+import type { IListTenCloudStorePackage } from "@/types/extension";
 
 export const ExtensionStoreWidget = (props: {
   className?: string;
@@ -28,21 +30,41 @@ export const ExtensionStoreWidget = (props: {
   const { extSearch, extFilter } = useWidgetStore();
 
   const deferredSearch = React.useDeferredValue(extSearch);
-  const filteredPackages = React.useMemo(() => {
-    if (!data?.packages) return [];
-    const filtered = data.packages.filter((item) => {
-      return item.name.toLowerCase().includes(deferredSearch.toLowerCase());
+  const [filteredPackages, versions] = React.useMemo(() => {
+    if (!data?.packages)
+      return [[], new Map<string, IListTenCloudStorePackage[]>()];
+    const versions = new Map<string, IListTenCloudStorePackage[]>();
+    data.packages.forEach((item) => {
+      if (versions.has(item.name)) {
+        const version = versions.get(item.name);
+        if (version) {
+          version.push(item);
+          version.sort((a, b) => compareVersions(b.version, a.version));
+        } else {
+          versions.set(item.name, [item]);
+        }
+      } else {
+        versions.set(item.name, [item]);
+      }
     });
-    const sorted = filtered.sort((a, b) => {
+    const filteredPackageNames = Array.from(versions.keys()).filter((name) => {
+      return name.toLowerCase().includes(deferredSearch.toLowerCase());
+    });
+    const sortedFilteredPackageNames = filteredPackageNames.sort((a, b) => {
       if (extFilter.sort === "name") {
-        return a.name.localeCompare(b.name);
+        return a.localeCompare(b);
       }
       if (extFilter.sort === "name-desc") {
-        return b.name.localeCompare(a.name);
+        return b.localeCompare(a);
       }
       return 0;
     });
-    return sorted;
+    const filteredPackages = sortedFilteredPackageNames
+      .map((name) => {
+        return versions.get(name)?.[0];
+      })
+      .filter((item) => item !== undefined);
+    return [filteredPackages, versions];
   }, [data?.packages, deferredSearch, extFilter.sort]);
 
   React.useEffect(() => {
@@ -86,14 +108,34 @@ export const ExtensionStoreWidget = (props: {
             <p className="ml-auto w-fit">
               {t("extensionStore.installedWithSum", {
                 count: undefined,
-                total: data?.totalSize || undefined,
+                total: versions.size || undefined,
               })}
             </p>
           )}
         </div>
       </div>
 
-      <ExtensionList items={filteredPackages} toolTipSide={toolTipSide} />
+      <ExtensionList
+        items={filteredPackages}
+        versions={versions}
+        toolTipSide={toolTipSide}
+      />
     </div>
+  );
+};
+
+export const ExtensionWidget = (props: {
+  className?: string;
+  versions: IListTenCloudStorePackage[];
+  name: string;
+}) => {
+  const { className, versions, name } = props;
+
+  if (versions?.length === 0) {
+    return null;
+  }
+
+  return (
+    <ExtensionDetails versions={versions} name={name} className={className} />
   );
 };

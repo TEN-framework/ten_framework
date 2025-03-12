@@ -113,6 +113,8 @@
     "installedWithSum": "已安装 {{count}}/{{total}} 个",
     "noMatchResult": "无匹配结果",
     "matchResult": "找到 {{count}} 个匹配结果",
+    "install": "安装",
+    "installed": "已安装",
     "filter": {
       "showUninstalled": "未安装",
       "showInstalled": "已安装",
@@ -121,6 +123,11 @@
       "sort-name": "名称",
       "sort-name-desc": "名称（降序）",
       "type": "类型"
-    }
+    },
+    "extensionTitle": "扩展: {{name}}",
+    "version": "版本",
+    "hash": "哈希",
+    "versionHistory": "版本历史",
+    "versionLatest": "最新"
   }
 }

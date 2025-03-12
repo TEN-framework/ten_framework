@@ -10,8 +10,12 @@ import { PinIcon } from "lucide-react";
 import Popup from "@/components/Popup/Popup";
 import { EXTENSION_STORE_POPUP_ID } from "@/constants/widgets";
 import { useWidgetStore } from "@/store/widget";
-import { ExtensionStoreWidget } from "@/components/Widget/ExtensionStoreWidget";
+import {
+  ExtensionStoreWidget,
+  ExtensionWidget,
+} from "@/components/Widget/ExtensionWidget";
 import { EWidgetDisplayType } from "@/types/widgets";
+import { IListTenCloudStorePackage } from "@/types/extension";
 
 export const ExtensionStorePopup = () => {
   const { removeWidget, updateWidgetDisplayType } = useWidgetStore();
@@ -41,6 +45,43 @@ export const ExtensionStorePopup = () => {
       ]}
     >
       <ExtensionStoreWidget />
+    </Popup>
+  );
+};
+
+export const ExtensionPopup = (props: {
+  id: string;
+  name: string;
+  versions: IListTenCloudStorePackage[];
+}) => {
+  const { id, name, versions } = props;
+  const { removeWidget, updateWidgetDisplayType } = useWidgetStore();
+  const { t } = useTranslation();
+
+  const handlePinToDock = () => {
+    updateWidgetDisplayType(id, EWidgetDisplayType.Dock);
+  };
+
+  return (
+    <Popup
+      id={id}
+      title={t("extensionStore.extensionTitle", { name })}
+      onClose={() => removeWidget(id)}
+      initialHeight={400}
+      initialWidth={600}
+      contentClassName="p-0"
+      resizable
+      preventFocusSteal
+      // customActions={[
+      //   {
+      //     id: "pin-to-dock",
+      //     label: t("action.pinToDock"),
+      //     Icon: PinIcon,
+      //     onClick: handlePinToDock,
+      //   },
+      // ]}
+    >
+      <ExtensionWidget versions={versions} name={name} />
     </Popup>
   );
 };

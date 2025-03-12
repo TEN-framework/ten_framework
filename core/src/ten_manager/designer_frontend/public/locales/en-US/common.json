@@ -123,6 +123,11 @@
       "sort-name": "Name",
       "sort-name-desc": "Name (Desc)",
       "type": "Type"
-    }
+    },
+    "extensionTitle": "Extension: {{name}}",
+    "version": "Version",
+    "hash": "HASH",
+    "versionHistory": "Version History",
+    "versionLatest": "Latest"
   }
 }

@@ -5,6 +5,7 @@
 // Refer to the "LICENSE" file in the root directory for more information.
 //
 import { z } from "zod";
+import { IListTenCloudStorePackage } from "@/types/extension";
 
 export interface TerminalData {
   title: string;
@@ -37,6 +38,7 @@ export enum EWidgetCategory {
   Editor = "editor",
   CustomConnection = "custom_connection",
   LogViewer = "log_viewer",
+  Extension = "extension",
   Default = "default",
 }
 
@@ -113,9 +115,18 @@ export interface IDefaultWidget extends IWidgetBase {
   };
 }
 
+export interface IExtensionWidget extends IWidgetBase {
+  category: EWidgetCategory.Extension;
+  metadata: {
+    name: string;
+    versions: IListTenCloudStorePackage[];
+  };
+}
+
 export type IWidget =
   | ITerminalWidget
   | IEditorWidget
   | ICustomConnectionWidget
   | ILogViewerWidget
-  | IDefaultWidget;
+  | IDefaultWidget
+  | IExtensionWidget;

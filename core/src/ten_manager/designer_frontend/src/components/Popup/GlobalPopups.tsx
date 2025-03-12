@@ -19,7 +19,10 @@ import { LogViewerPopup } from "@/components/Popup/LogViewerPopup";
 import { GraphSelectPopup } from "@/components/Popup/GraphSelectPopup";
 import { AboutPopup } from "@/components/Popup/AboutPopup";
 import { AppFolderPopup, PreferencesPopup } from "@/components/Popup/AppPopup";
-import { ExtensionStorePopup } from "@/components/Popup/ExtensionStorePopup";
+import {
+  ExtensionStorePopup,
+  ExtensionPopup,
+} from "@/components/Popup/ExtensionPopup";
 
 export function GlobalPopups() {
   const { widgets, removeWidget } = useWidgetStore();
@@ -31,6 +34,7 @@ export function GlobalPopups() {
     customConnectionWidgetsMemo,
     logViewerWidgetsMemo,
     defaultWidgetsMemo,
+    extensionWidgetsMemo,
   ] = React.useMemo(() => {
     const popupWidgets = widgets.filter(
       (widget) => widget.display_type === EWidgetDisplayType.Popup
@@ -50,6 +54,9 @@ export function GlobalPopups() {
     const defaultWidgets = popupWidgets.filter(
       (widget) => widget.category === EWidgetCategory.Default
     );
+    const extensionWidgets = popupWidgets.filter(
+      (widget) => widget.category === EWidgetCategory.Extension
+    );
     return [
       popupWidgets,
       editorWidgets,
@@ -57,6 +64,7 @@ export function GlobalPopups() {
       customConnectionWidgets,
       logViewerWidgets,
       defaultWidgets,
+      extensionWidgets,
     ];
   }, [widgets]);
 
@@ -112,6 +120,14 @@ export function GlobalPopups() {
             );
         }
       })}
+      {extensionWidgetsMemo.map((widget) => (
+        <ExtensionPopup
+          key={`ExtensionPopup-${widget.id}`}
+          id={widget.id}
+          name={widget.metadata.name}
+          versions={widget.metadata.versions}
+        />
+      ))}
     </>
   );
 }

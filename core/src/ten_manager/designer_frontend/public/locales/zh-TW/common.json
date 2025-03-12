@@ -112,6 +112,8 @@
     "installedWithSum": "已安裝 {{count}}/{{total}} 個",
     "noMatchResult": "無符合結果",
     "matchResult": "找到 {{count}} 個符合結果",
+    "install": "安裝",
+    "installed": "已安裝",
     "filter": {
       "showUninstalled": "未安裝",
       "showInstalled": "已安裝",
@@ -120,6 +122,11 @@
       "sort-name": "名稱",
       "sort-name-desc": "名稱（降序）",
       "type": "類型"
-    }
+    },
+    "extensionTitle": "擴充套件: {{name}}",
+    "version": "版本",
+    "hash": "HASH",
+    "versionHistory": "版本歷史",
+    "versionLatest": "最新"
   }
 }

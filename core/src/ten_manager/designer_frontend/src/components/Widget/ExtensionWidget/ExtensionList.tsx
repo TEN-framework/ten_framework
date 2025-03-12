@@ -11,36 +11,40 @@ import { FixedSizeList as VirtualList } from "react-window";
 import AutoSizer from "react-virtualized-auto-sizer";
 
 import { Button } from "@/components/ui/Button";
-import { Badge } from "@/components/ui/Badge";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/Tooltip";
-import { Separator } from "@/components/ui/Separator";
 import { cn } from "@/lib/utils";
+import { useWidgetStore } from "@/store/widget";
+import { EWidgetCategory, EWidgetDisplayType } from "@/types/widgets";
+import { ExtensionTooltipContent } from "@/components/Widget/ExtensionWidget/ExtensionDetails";
 
 import type { IListTenCloudStorePackage } from "@/types/extension";
 import type { TooltipContentProps } from "@radix-ui/react-tooltip";
 
 export const ExtensionList = (props: {
   items: IListTenCloudStorePackage[];
+  versions: Map<string, IListTenCloudStorePackage[]>;
   className?: string;
   toolTipSide?: TooltipContentProps["side"];
 }) => {
-  const { items, className, toolTipSide } = props;
+  const { items, versions, className, toolTipSide } = props;
 
   const VirtualListItem = (props: {
     index: number;
     style: React.CSSProperties;
   }) => {
     const item = items[props.index];
+    const targetVersions = versions.get(item.name);
     return (
       <ExtensionStoreItem
         item={item}
         style={props.style}
         toolTipSide={toolTipSide}
+        versions={targetVersions}
       />
     );
   };
@@ -65,17 +69,35 @@ export const ExtensionList = (props: {
 
 export const ExtensionStoreItem = (props: {
   item: IListTenCloudStorePackage;
+  versions?: IListTenCloudStorePackage[];
   className?: string;
   style?: React.CSSProperties;
   toolTipSide?: TooltipContentProps["side"];
   isInstalled?: boolean;
 }) => {
-  const { item, className, style, toolTipSide = "right", isInstalled } = props;
+  const {
+    item,
+    versions,
+    className,
+    style,
+    toolTipSide = "right",
+    isInstalled,
+  } = props;
 
   const { t } = useTranslation();
+  const { appendWidgetIfNotExists } = useWidgetStore();
+
+  const handleClick = () => {
+    appendWidgetIfNotExists({
+      id: `extension-${item.name}`,
+      category: EWidgetCategory.Extension,
+      display_type: EWidgetDisplayType.Popup,
+      metadata: { name: item.name, versions: versions || [] },
+    });
+  };
 
   return (
-    <TooltipProvider>
+    <TooltipProvider delayDuration={100}>
       <Tooltip>
         <TooltipTrigger asChild>
           <li
@@ -86,6 +108,7 @@ export const ExtensionStoreItem = (props: {
               className
             )}
             style={style}
+            onClick={handleClick}
           >
             <BlocksIcon className="size-8" />
             <div
@@ -146,64 +169,7 @@ export const ExtensionStoreItem = (props: {
             "font-roboto"
           )}
         >
-          <div className="flex flex-col gap-1">
-            <p className="font-semibold text-lg">
-              {item.name}
-              <Badge
-                variant="secondary"
-                className={cn(
-                  "text-xs px-2 py-0.5 whitespace-nowrap font-medium ",
-                  "ml-2"
-                )}
-              >
-                {item.version}
-              </Badge>
-            </p>
-            <p
-              className={cn(
-                "font-roboto-condensed",
-                "text-xs text-gray-500 dark:text-gray-400"
-              )}
-            >
-              {item.type}
-            </p>
-            <Separator />
-            {item.supports && (
-              <>
-                <div className="text-gray-500 dark:text-gray-400">
-                  <p className="mb-1">{t("extensionStore.compatible")}</p>
-                  <ul className="flex flex-wrap gap-1">
-                    {item.supports?.map((support) => (
-                      <Badge
-                        key={`${item.name}-${support.os}-${support.arch}`}
-                        variant="secondary"
-                        className={cn(
-                          "text-xs px-2 py-0.5 whitespace-nowrap font-medium"
-                        )}
-                      >
-                        {support.os} {support.arch}
-                      </Badge>
-                    ))}
-                  </ul>
-                </div>
-                <Separator />
-              </>
-            )}
-            <div className="text-gray-500 dark:text-gray-400">
-              <p className="mb-1">{t("extensionStore.dependencies")}</p>
-              <ul className="flex flex-col gap-1 ml-2">
-                {item.dependencies?.map((dependency) => (
-                  <li
-                    key={dependency.name}
-                    className="flex items-center w-full justify-between"
-                  >
-                    <span className="font-semibold">{dependency.name}</span>
-                    <span className="ml-1">{dependency.version}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
+          <ExtensionTooltipContent item={item} versions={versions || []} />
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>

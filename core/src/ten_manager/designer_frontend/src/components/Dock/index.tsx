@@ -45,7 +45,7 @@ import {
 import TerminalWidget from "@/components/Widget/TerminalWidget";
 import EditorWidget from "@/components/Widget/EditorWidget";
 import { LogViewerFrontStageWidget } from "@/components/Widget/LogViewerWidget";
-import { ExtensionStoreWidget } from "@/components/Widget/ExtensionStoreWidget";
+import { ExtensionStoreWidget } from "@/components/Widget/ExtensionWidget";
 
 import { type TEditorOnClose } from "@/components/Widget/EditorWidget";
 
