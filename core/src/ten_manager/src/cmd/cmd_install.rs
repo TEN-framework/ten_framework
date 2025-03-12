@@ -86,6 +86,7 @@ pub struct InstallCommand {
     pub support: PkgSupport,
     pub local_install_mode: LocalInstallMode,
     pub standalone: bool,
+    pub cwd: String,
 
     /// When the user only inputs a single path parameter, if a `manifest.json`
     /// exists under that path, it indicates installation from a local path.
@@ -134,6 +135,14 @@ pub fn create_sub_cmd(args_cfg: &crate::cmd_line::ArgsCfg) -> Command {
                 .action(clap::ArgAction::SetTrue)
                 .required(false),
         )
+        .arg(
+            Arg::new("CWD")
+                .long("cwd")
+                .short('C')
+                .help("Change the working directory")
+                .value_name("DIR")
+                .required(false),
+        )
 }
 
 pub fn parse_sub_cmd(sub_cmd_args: &ArgMatches) -> Result<InstallCommand> {
@@ -150,10 +159,18 @@ pub fn parse_sub_cmd(sub_cmd_args: &ArgMatches) -> Result<InstallCommand> {
         },
         local_install_mode: LocalInstallMode::Invalid,
         standalone: false,
+        cwd: String::new(),
         local_path: None,
     };
 
     let _ = cmd.support.set_defaults();
+
+    // Set the working directory based on --cwd/-C or use the current directory.
+    if let Some(cwd) = sub_cmd_args.get_one::<String>("CWD") {
+        cmd.cwd = cwd.clone();
+    } else {
+        cmd.cwd = crate::fs::get_cwd()?.to_string_lossy().to_string();
+    }
 
     // Retrieve the first positional parameter (in the `PACKAGE_TYPE`
     // parameter).
@@ -315,17 +332,17 @@ async fn prepare_standalone_app_dir(
 async fn determine_app_dir_to_work_with(
     tman_config: Arc<TmanConfig>,
     standalone: bool,
-    original_cwd: &Path,
+    specified_cwd: &Path,
 ) -> Result<PathBuf> {
     if standalone {
         // If it is standalone mode, it can only be executed in the extension
         // directory.
-        check_is_addon_folder(original_cwd).with_context(|| {
+        check_is_addon_folder(specified_cwd).with_context(|| {
             "Standalone mode can only be executed in an addon folder."
         })?;
 
         let dot_ten_app_dir_path =
-            prepare_standalone_app_dir(tman_config, original_cwd).await?;
+            prepare_standalone_app_dir(tman_config, specified_cwd).await?;
 
         env::set_current_dir(&dot_ten_app_dir_path)?;
 
@@ -334,7 +351,7 @@ async fn determine_app_dir_to_work_with(
         // Non-standalone mode can only be executed in the extension directory.
         // If it is an extension, it should search upwards for the nearest app;
         // if it is an app, it can be used directly.
-        let app_dir = find_nearest_app_dir(original_cwd.to_path_buf())?;
+        let app_dir = find_nearest_app_dir(specified_cwd.to_path_buf())?;
 
         env::set_current_dir(&app_dir)?;
 
@@ -355,12 +372,20 @@ pub async fn execute_cmd(
 
     let started = Instant::now();
 
+    // Save the actual current working directory before any changes.
     let original_cwd = crate::fs::get_cwd()?;
+
+    // Properly handle relative paths in command_data.cwd.
+    let specified_cwd = if Path::new(&command_data.cwd).is_absolute() {
+        PathBuf::from(&command_data.cwd)
+    } else {
+        original_cwd.join(&command_data.cwd)
+    };
 
     let app_dir_to_work_with = determine_app_dir_to_work_with(
         tman_config.clone(),
         command_data.standalone,
-        &original_cwd.clone(),
+        &specified_cwd,
     )
     .await?;
 
@@ -678,14 +703,18 @@ do you want to continue?",
 
                 match ans {
                     Ok(true) => {
-                        // continue to install
+                        // Continue to install.
                     }
                     Ok(false) => {
-                        // stop
+                        // Stop to install. Change back to the original current
+                        // directory before returning.
+                        env::set_current_dir(&original_cwd)?;
                         return Ok(());
                     }
                     Err(_) => {
-                        // stop
+                        // Stop to install. Change back to the original current
+                        // directory before returning.
+                        env::set_current_dir(&original_cwd)?;
                         return Ok(());
                     }
                 }
@@ -719,7 +748,7 @@ do you want to continue?",
 
             if installing_pkg_type.is_some() && installing_pkg_name.is_some() {
                 let mut origin_cwd_pkg =
-                    get_pkg_info_from_path(&original_cwd, true)?;
+                    get_pkg_info_from_path(&specified_cwd, true)?;
 
                 write_installing_pkg_into_manifest_file(
                     &mut origin_cwd_pkg,
@@ -734,7 +763,7 @@ do you want to continue?",
 
             if installing_pkg_type.is_some() && installing_pkg_name.is_some() {
                 let mut origin_cwd_pkg =
-                    get_pkg_info_from_path(&original_cwd, true)?;
+                    get_pkg_info_from_path(&specified_cwd, true)?;
 
                 write_installing_pkg_into_manifest_file(
                     &mut origin_cwd_pkg,
@@ -746,8 +775,8 @@ do you want to continue?",
             }
         }
 
-        // Change back to the original folder.
-        env::set_current_dir(original_cwd)?;
+        // Change back to the original current directory.
+        env::set_current_dir(&original_cwd)?;
 
         out.normal_line(&format!(
             "{}  Install successfully in {}",
@@ -823,10 +852,17 @@ do you want to continue?",
                     out,
                 )?;
 
+                // Change back to the original current directory before
+                // returning.
+                env::set_current_dir(&original_cwd)?;
+
                 // Since there is an error, we need to exit.
                 return Err(anyhow!("Dependency resolution failed."));
             }
         }
+
+        // Change back to the original current directory before returning.
+        env::set_current_dir(&original_cwd)?;
 
         // If there are no error models or unable to parse, return a generic
         // error.
