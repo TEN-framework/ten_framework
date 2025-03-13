@@ -62,7 +62,7 @@ export default function AppBar({ onAutoLayout, className }: AppBarProps) {
   };
 
   return (
-    <div
+    <header
       className={cn(
         "flex justify-between items-center  text-sm select-none",
         "h-10 w-full px-5",
@@ -102,6 +102,6 @@ export default function AppBar({ onAutoLayout, className }: AppBarProps) {
         <GHTryTENAgent />
         <Version />
       </div>
-    </div>
+    </header>
   );
 }
