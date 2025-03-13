@@ -15,6 +15,7 @@
 #include <ws2tcpip.h>
 
 #include "ten_utils/macro/macros.h"
+#include "ten_utils/macro/memory.h"
 
 #define OUT_LEN_BLOCK (4 * 1024)
 
@@ -42,10 +43,10 @@ void ten_host_get(char *hostname_buffer,
   // TEN_LOGD("Hostname: %s", hostname_buffer);
 
   do {
-    addresses = (PIP_ADAPTER_ADDRESSES)malloc(out_len);
+    addresses = (PIP_ADAPTER_ADDRESSES)TEN_MALLOC(out_len);
     result = GetAdaptersAddresses(AF_UNSPEC, 0, NULL, addresses, &out_len);
     if (result == ERROR_BUFFER_OVERFLOW) {
-      free(addresses);
+      TEN_FREE(addresses);
       addresses = NULL;
     } else {
       break;
@@ -100,7 +101,7 @@ void ten_host_get(char *hostname_buffer,
   }
 
   if (addresses) {
-    free((void *)addresses);
+    TEN_FREE((void *)addresses);
   }
 }
 

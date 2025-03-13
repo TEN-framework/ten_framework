@@ -16,6 +16,7 @@
 #include "ten_utils/lib/path.h"
 #include "ten_utils/log/log.h"
 #include "ten_utils/macro/check.h"
+#include "ten_utils/macro/memory.h"
 
 // Mac OS X 10.6 does not support O_CLOEXEC.
 #ifndef O_CLOEXEC
@@ -91,7 +92,7 @@ char *ten_symlink_file_read(const char *path) {
   struct stat st;
   if (lstat(path, &st) == 0) {
     long len = st.st_size + 1;
-    buf = malloc(len);
+    buf = TEN_MALLOC(len);
     ssize_t rc = readlink(path, buf, len);
     TEN_ASSERT(rc == len - 1, "Failed to read symlink.");
 
@@ -107,7 +108,7 @@ int ten_symlink_file_copy(const char *src_file, const char *dest_file) {
   char *link_target = ten_symlink_file_read(src_file);
   if (link_target) {
     int rc = ten_path_make_symlink(link_target, dest_file);
-    free(link_target);
+    TEN_FREE(link_target);
     return rc;
   }
 

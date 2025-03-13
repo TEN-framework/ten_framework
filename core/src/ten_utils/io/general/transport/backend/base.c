@@ -13,6 +13,7 @@
 #include "ten_utils/io/stream.h"
 #include "ten_utils/io/transport.h"
 #include "ten_utils/macro/check.h"
+#include "ten_utils/macro/memory.h"
 
 void ten_transportbackend_init(ten_transportbackend_t *self,
                                ten_transport_t *transport,
@@ -22,7 +23,7 @@ void ten_transportbackend_init(ten_transportbackend_t *self,
   ten_atomic_store(&self->is_close, false);
   self->transport = transport;
   self->name = ten_string_create_formatted("%.*s", name->buf_size, name->buf);
-  self->impl = strdup(transport->loop->impl);
+  self->impl = TEN_STRDUP(transport->loop->impl);
 }
 
 void ten_transportbackend_deinit(ten_transportbackend_t *self) {
@@ -32,7 +33,7 @@ void ten_transportbackend_deinit(ten_transportbackend_t *self) {
   }
 
   if (self->impl) {
-    free((void *)self->impl);
+    TEN_FREE(self->impl);
   }
 }
 
@@ -44,12 +45,12 @@ void ten_streambackend_init(const char *impl, ten_streambackend_t *backend,
   backend->stream = stream;
 
   stream->backend = backend;
-  backend->impl = strdup(impl);
+  backend->impl = TEN_STRDUP(impl);
 }
 
 void ten_streambackend_deinit(ten_streambackend_t *backend) {
   TEN_ASSERT(backend, "Invalid argument.");
   if (backend->impl) {
-    free((void *)backend->impl);
+    TEN_FREE(backend->impl);
   }
 }

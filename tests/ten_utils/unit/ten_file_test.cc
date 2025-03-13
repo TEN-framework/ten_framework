@@ -6,9 +6,8 @@
 //
 #include <fcntl.h>
 #include <gtest/gtest.h>
-#include <string.h>
-#include <sys/stat.h>
-#include <unistd.h>
+
+#include <cstring>
 
 #include "include_internal/ten_utils/backtrace/platform/posix/file.h"
 

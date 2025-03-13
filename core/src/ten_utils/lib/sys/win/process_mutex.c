@@ -11,6 +11,7 @@
 
 #include "ten_utils/lib/string.h"
 #include "ten_utils/macro/check.h"
+#include "ten_utils/macro/memory.h"
 
 #define TEN_PROCESS_MUTEX_CREATE_MODE 0644
 
@@ -22,7 +23,7 @@ typedef struct ten_process_mutex_t {
 ten_process_mutex_t *ten_process_mutex_create(const char *name) {
   TEN_ASSERT(name, "Invalid argument.");
 
-  ten_process_mutex_t *mutex = malloc(sizeof(ten_process_mutex_t));
+  ten_process_mutex_t *mutex = TEN_MALLOC(sizeof(ten_process_mutex_t));
   TEN_ASSERT(mutex, "Failed to allocate memory.");
 
   mutex->handle = NULL;
@@ -59,5 +60,5 @@ void ten_process_mutex_destroy(ten_process_mutex_t *mutex) {
 
   CloseHandle(mutex->handle);
   ten_string_destroy(mutex->name);
-  free(mutex);
+  TEN_FREE(mutex);
 }

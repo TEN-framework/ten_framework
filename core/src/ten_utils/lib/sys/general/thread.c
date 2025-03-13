@@ -171,7 +171,7 @@ ten_thread_t *ten_thread_create(const char *name,
   thread->ready = ten_event_create(0, 0);
   thread->exit = ten_event_create(0, 0);
   if (name) {
-    thread->name = strdup(name);
+    thread->name = TEN_STRDUP(name);
   } else {
     thread->name = NULL;
   }
@@ -255,7 +255,7 @@ ten_thread_t *ten_thread_create_fake(const char *name) {
   memset(t, 0, sizeof(ten_thread_t));
 
   if (name) {
-    t->name = strdup(name);
+    t->name = TEN_STRDUP(name);
   } else {
     t->name = NULL;
   }
