@@ -14,6 +14,7 @@
 #include "ten_utils/io/stream.h"
 #include "ten_utils/lib/string.h"
 #include "ten_utils/lib/uri.h"
+#include "ten_utils/macro/check.h"
 
 typedef struct ten_transportbackend_pipe_t {
   ten_transportbackend_t base;
@@ -58,8 +59,8 @@ static ten_string_t *__get_pipe_name(const ten_string_t *uri) {
 
 // Destroy all the resources hold by tpbackend object. Call this only when all
 // the closing flow is completed.
-static void ten_transportbackend_pipe_destroy(
-    ten_transportbackend_pipe_t *self) {
+static void
+ten_transportbackend_pipe_destroy(ten_transportbackend_pipe_t *self) {
   if (!self) {
     return;
   }
@@ -68,19 +69,20 @@ static void ten_transportbackend_pipe_destroy(
   free(self);
 }
 
-static void ten_transportbackend_pipe_on_close(
-    ten_transportbackend_pipe_t *self) {
-  assert(self);
+static void
+ten_transportbackend_pipe_on_close(ten_transportbackend_pipe_t *self) {
+  TEN_ASSERT(self, "Invalid argument.");
 
   ten_transport_t *transport = self->base.transport;
-  assert(transport);
+  TEN_ASSERT(transport, "Invalid argument.");
   ten_transport_on_close(transport);
 
   ten_transportbackend_pipe_destroy(self);
 }
 
 static void on_pipe_server_closed(uv_handle_t *handle) {
-  assert(handle && handle->data);
+  TEN_ASSERT(handle && handle->data, "Invalid argument.");
+
   ten_transportbackend_pipe_t *self =
       (ten_transportbackend_pipe_t *)handle->data;
   free(handle);
@@ -113,15 +115,15 @@ static void ten_transportbackend_pipe_close(ten_transportbackend_t *backend) {
 }
 
 static void on_server_connected(uv_connect_t *req, int status) {
-  assert(req);
+  TEN_ASSERT(req, "Invalid argument.");
 
   ten_stream_t *stream = (ten_stream_t *)req->data;
-  assert(stream && ten_stream_check_integrity(stream));
+  TEN_ASSERT(stream && ten_stream_check_integrity(stream), "Invalid argument.");
 
   free(req);
 
   ten_transport_t *transport = stream->transport;
-  assert(transport);
+  TEN_ASSERT(transport, "Invalid argument.");
 
   if (status < 0) {
     // TEN_LOGE("Status = %d connect callback, treat as fail", status);
@@ -130,7 +132,7 @@ static void on_server_connected(uv_connect_t *req, int status) {
 
   ten_streambackend_pipe_t *pipe_stream =
       (ten_streambackend_pipe_t *)stream->backend;
-  assert(pipe_stream);
+  TEN_ASSERT(pipe_stream, "Invalid argument.");
 
   if (transport && transport->on_server_connected) {
     transport->on_server_connected(transport, stream, status);
@@ -163,7 +165,7 @@ static int ten_transportbackend_pipe_connect(ten_transportbackend_t *backend,
 
   stream =
       ten_stream_pipe_create_uv(ten_runloop_get_raw(backend->transport->loop));
-  assert(stream);
+  TEN_ASSERT(stream, "Invalid argument.");
   stream->transport = backend->transport;
 
   uv_connect_t *req = (uv_connect_t *)malloc(sizeof(*req));
@@ -176,7 +178,7 @@ static int ten_transportbackend_pipe_connect(ten_transportbackend_t *backend,
 
   ten_streambackend_pipe_t *pipe_stream =
       (ten_streambackend_pipe_t *)stream->backend;
-  assert(pipe_stream);
+  TEN_ASSERT(pipe_stream, "Invalid argument.");
 
   req->data = stream;
   uv_pipe_connect(req, pipe_stream->uv_stream, host->buf, on_server_connected);
@@ -246,7 +248,7 @@ static int ten_transportbackend_pipe_listen(ten_transportbackend_t *backend,
   }
 
   uv_pipe_t *server = (uv_pipe_t *)malloc(sizeof(uv_pipe_t));
-  assert(server);
+  TEN_ASSERT(server, "Failed to allocate memory.");
   memset(server, 0, sizeof(uv_pipe_t));
 
   uv_pipe_init(ten_runloop_get_raw(backend->transport->loop), server, 0);
@@ -254,7 +256,7 @@ static int ten_transportbackend_pipe_listen(ten_transportbackend_t *backend,
   self->server = server;
 
   ten_string_t *host = __get_pipe_name(dest);
-  assert(host);
+  TEN_ASSERT(host, "Failed to get pipe name.");
 
   int rc = uv_pipe_bind(server, host->buf);
   if (rc != 0) {
@@ -271,8 +273,9 @@ static int ten_transportbackend_pipe_listen(ten_transportbackend_t *backend,
   return rc;
 }
 
-static ten_transportbackend_t *ten_transportbackend_pipe_create(
-    ten_transport_t *transport, const ten_string_t *name) {
+static ten_transportbackend_t *
+ten_transportbackend_pipe_create(ten_transport_t *transport,
+                                 const ten_string_t *name) {
   ten_transportbackend_pipe_t *self = NULL;
 
   if (!name || !name->buf || !*name->buf) {

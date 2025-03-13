@@ -131,7 +131,7 @@ fn install_local_dependency_pkg_info(
 }
 
 async fn install_non_local_dependency_pkg_info(
-    tman_config: &TmanConfig,
+    tman_config: Arc<TmanConfig>,
     pkg_info: &PkgInfo,
     dest_dir_path: &String,
     out: Arc<Box<dyn TmanOutput>>,
@@ -173,7 +173,7 @@ async fn install_non_local_dependency_pkg_info(
 }
 
 pub async fn install_pkg_info(
-    tman_config: &TmanConfig,
+    tman_config: Arc<TmanConfig>,
     command_data: &InstallCommand,
     pkg_info: &PkgInfo,
     base_dir: &Path,
@@ -422,7 +422,7 @@ pub fn write_installing_pkg_into_manifest_file(
 /// Filter out the packages in `all_pkgs` that meet the current environment's
 /// requirements and treat them as candidates.
 pub fn filter_compatible_pkgs_to_candidates(
-    tman_config: &TmanConfig,
+    tman_config: Arc<TmanConfig>,
     all_pkgs: &Vec<PkgInfo>,
     all_candidates: &mut HashMap<
         PkgTypeAndName,

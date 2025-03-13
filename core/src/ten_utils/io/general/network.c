@@ -8,9 +8,11 @@
 
 #include <stdlib.h>
 
+#include "ten_utils/macro/check.h"
+
 bool ten_host_split(const char *uri, char *name_buffer,
                     const size_t name_buffer_capacity, int32_t *port) {
-  assert(uri && name_buffer && port);
+  TEN_ASSERT(uri && name_buffer && port, "Invalid argument.");
 
   bool has_port = true;
 

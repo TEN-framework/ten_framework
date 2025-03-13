@@ -6,7 +6,7 @@
 //
 #pragma once
 
-#ifdef __cplusplus
+#if defined(__cplusplus)
 #define TEN_EXTERN_C extern "C"
 #else
 #define TEN_EXTERN_C extern

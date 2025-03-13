@@ -41,7 +41,7 @@ pub fn parse_sub_cmd(
 }
 
 pub async fn execute_cmd(
-    tman_config: &TmanConfig,
+    tman_config: Arc<TmanConfig>,
     command_data: PublishCommand,
     out: Arc<Box<dyn TmanOutput>>,
 ) -> Result<()> {
@@ -74,14 +74,19 @@ pub async fn execute_cmd(
 
     // Generate the package file.
     let output_path_str = create_package_tar_gz_file(
-        tman_config,
+        tman_config.clone(),
         &output_path,
         &cwd,
         out.clone(),
     )?;
 
-    upload_package(tman_config, &output_path_str, &pkg_info, out.clone())
-        .await?;
+    upload_package(
+        tman_config.clone(),
+        &output_path_str,
+        &pkg_info,
+        out.clone(),
+    )
+    .await?;
 
     out.normal_line(&format!(
         "{}  Publish successfully in {}",

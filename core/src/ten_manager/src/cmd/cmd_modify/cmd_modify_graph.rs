@@ -84,9 +84,9 @@ pub fn parse_sub_cmd(sub_cmd_args: &ArgMatches) -> Result<ModifyGraphCommand> {
 }
 
 pub async fn execute_cmd(
-    out: Arc<Box<dyn TmanOutput>>,
-    _tman_config: &TmanConfig,
+    _tman_config: Arc<TmanConfig>,
     command_data: ModifyGraphCommand,
+    out: Arc<Box<dyn TmanOutput>>,
 ) -> Result<()> {
     // Find `property.json`.
     let property_file_path =

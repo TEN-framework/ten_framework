@@ -150,7 +150,7 @@ pub fn parse_sub_cmd(sub_cmd_args: &ArgMatches) -> Result<CreateCommand> {
 }
 
 pub async fn execute_cmd(
-    tman_config: &TmanConfig,
+    tman_config: Arc<TmanConfig>,
     command_data: CreateCommand,
     out: Arc<Box<dyn TmanOutput>>,
 ) -> Result<()> {

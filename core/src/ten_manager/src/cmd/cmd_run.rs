@@ -59,7 +59,7 @@ pub fn parse_sub_cmd(sub_cmd_args: &ArgMatches) -> Result<RunCommand> {
 }
 
 pub async fn execute_cmd(
-    tman_config: &TmanConfig,
+    tman_config: Arc<TmanConfig>,
     cmd: RunCommand,
     out: Arc<Box<dyn TmanOutput>>,
 ) -> Result<()> {

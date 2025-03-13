@@ -6,13 +6,13 @@
 //
 #include "ten_utils/lib/time.h"
 
-#include <assert.h>
 #include <errno.h>
 #include <sys/time.h>
 #include <time.h>
 #include <unistd.h>
 
 #include "include_internal/ten_utils/lib/time_cache.h"
+#include "ten_utils/macro/check.h"
 
 #if defined(OS_LINUX)
 #include <linux/limits.h>
@@ -37,7 +37,7 @@ int64_t ten_current_time_us(void) {
 }
 
 void ten_current_time_info(struct tm *time_info, size_t *msec) {
-  assert(time_info && msec && "Invalid argument.");
+  TEN_ASSERT(time_info && msec, "Invalid argument.");
 
   struct timeval tv;
   gettimeofday(&tv, 0);

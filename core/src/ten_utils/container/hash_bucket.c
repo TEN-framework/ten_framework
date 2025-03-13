@@ -6,13 +6,12 @@
 //
 #include "ten_utils/container/hash_bucket.h"
 
-#include <assert.h>
-
 #include "ten_utils/container/hash_handle.h"
 #include "ten_utils/container/hash_table.h"
+#include "ten_utils/macro/check.h"
 
 void ten_hashbucket_add(ten_hashbucket_t *self, ten_hashhandle_t *hh) {
-  assert(self && hh);
+  TEN_ASSERT(self && hh, "Invalid argument.");
 
   self->items_cnt++;
 
@@ -33,7 +32,7 @@ void ten_hashbucket_add(ten_hashbucket_t *self, ten_hashhandle_t *hh) {
 
 // Remove a item from a given bucket.
 void ten_hashbucket_del(ten_hashbucket_t *self, ten_hashhandle_t *hh) {
-  assert(self && hh);
+  TEN_ASSERT(self && hh, "Invalid argument.");
 
   self->items_cnt--;
 
@@ -51,7 +50,7 @@ void ten_hashbucket_del(ten_hashbucket_t *self, ten_hashhandle_t *hh) {
 
 ten_hashhandle_t *ten_hashbucket_find(ten_hashbucket_t *self, uint32_t hashval,
                                       const void *key, size_t keylen) {
-  assert(self && key);
+  TEN_ASSERT(self && key, "Invalid argument.");
 
   ten_hashhandle_t *out = NULL;
   if (self->head != NULL) {

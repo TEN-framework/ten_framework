@@ -8,7 +8,7 @@
 #include <cstdint>
 #include <string>
 
-#ifdef __cplusplus
+#if defined(__cplusplus)
 extern "C" {
 #endif
 
@@ -26,7 +26,7 @@ extern "C" {
 #include <libswresample/swresample.h>
 #include <libswscale/swscale.h>
 
-#ifdef __cplusplus
+#if defined(__cplusplus)
 }
 #endif
 

@@ -8,7 +8,6 @@
 
 #include <inttypes.h>
 #include <stddef.h>
-#include <stdlib.h>
 
 #include "ten_utils/lib/alloc.h"
 #include "ten_utils/lib/atomic.h"
@@ -77,8 +76,8 @@ static void ten_smart_ptr_ctrl_blk_init(ten_smart_ptr_ctrl_blk_t *self,
   self->destroy = destroy;
 }
 
-static ten_shared_ptr_t *ten_smart_ptr_create_without_ctrl_blk(
-    TEN_SMART_PTR_TYPE type) {
+static ten_shared_ptr_t *
+ten_smart_ptr_create_without_ctrl_blk(TEN_SMART_PTR_TYPE type) {
   TEN_ASSERT((type == TEN_SMART_PTR_SHARED || type == TEN_SMART_PTR_WEAK),
              "Invalid argument.");
 
@@ -99,23 +98,23 @@ void *ten_smart_ptr_get_data(ten_smart_ptr_t *self) {
   void *result = NULL;
 
   switch (self->type) {
-    case TEN_SMART_PTR_SHARED:
-      result = ten_shared_ptr_get_data(self);
-      break;
+  case TEN_SMART_PTR_SHARED:
+    result = ten_shared_ptr_get_data(self);
+    break;
 
-    case TEN_SMART_PTR_WEAK: {
-      ten_shared_ptr_t *shared_one = ten_weak_ptr_lock(self);
-      TEN_ASSERT(shared_one, "Should not happen.");
-      if (shared_one) {
-        result = ten_shared_ptr_get_data(shared_one);
-        ten_shared_ptr_destroy(shared_one);
-      }
-      break;
+  case TEN_SMART_PTR_WEAK: {
+    ten_shared_ptr_t *shared_one = ten_weak_ptr_lock(self);
+    TEN_ASSERT(shared_one, "Should not happen.");
+    if (shared_one) {
+      result = ten_shared_ptr_get_data(shared_one);
+      ten_shared_ptr_destroy(shared_one);
     }
+    break;
+  }
 
-    default:
-      TEN_ASSERT(0, "Invalid argument.");
-      break;
+  default:
+    TEN_ASSERT(0, "Invalid argument.");
+    break;
   }
 
   return result;
@@ -126,15 +125,15 @@ ten_smart_ptr_t *ten_smart_ptr_clone(ten_smart_ptr_t *other) {
   TEN_ASSERT(ten_smart_ptr_check_integrity(other), "Invalid argument.");
 
   switch (other->type) {
-    case TEN_SMART_PTR_SHARED:
-      return ten_shared_ptr_clone(other);
+  case TEN_SMART_PTR_SHARED:
+    return ten_shared_ptr_clone(other);
 
-    case TEN_SMART_PTR_WEAK:
-      return ten_weak_ptr_clone(other);
+  case TEN_SMART_PTR_WEAK:
+    return ten_weak_ptr_clone(other);
 
-    default:
-      TEN_ASSERT(0, "Invalid argument.");
-      return NULL;
+  default:
+    TEN_ASSERT(0, "Invalid argument.");
+    return NULL;
   }
 }
 
@@ -143,27 +142,16 @@ void ten_smart_ptr_destroy(ten_smart_ptr_t *self) {
   TEN_ASSERT(ten_smart_ptr_check_integrity(self), "Invalid argument.");
 
   switch (self->type) {
-    case TEN_SMART_PTR_SHARED: {
-      int64_t shared_cnt = ten_atomic_sub_fetch(&self->ctrl_blk->shared_cnt, 1);
-      TEN_ASSERT(shared_cnt >= 0, "Should not happen.");
+  case TEN_SMART_PTR_SHARED: {
+    int64_t shared_cnt = ten_atomic_sub_fetch(&self->ctrl_blk->shared_cnt, 1);
+    TEN_ASSERT(shared_cnt >= 0, "Should not happen.");
 
-      if (shared_cnt == 0) {
-        if (self->ctrl_blk->destroy) {
-          self->ctrl_blk->destroy(self->ctrl_blk->data);
-          self->ctrl_blk->data = NULL;
-        }
-
-        int64_t weak_cnt = ten_atomic_sub_fetch(&self->ctrl_blk->weak_cnt, 1);
-        TEN_ASSERT(weak_cnt >= 0, "Should not happen.");
-
-        if (weak_cnt == 0) {
-          TEN_FREE(self->ctrl_blk);
-          self->ctrl_blk = NULL;
-        }
+    if (shared_cnt == 0) {
+      if (self->ctrl_blk->destroy) {
+        self->ctrl_blk->destroy(self->ctrl_blk->data);
+        self->ctrl_blk->data = NULL;
       }
-      break;
-    }
-    case TEN_SMART_PTR_WEAK: {
+
       int64_t weak_cnt = ten_atomic_sub_fetch(&self->ctrl_blk->weak_cnt, 1);
       TEN_ASSERT(weak_cnt >= 0, "Should not happen.");
 
@@ -171,11 +159,22 @@ void ten_smart_ptr_destroy(ten_smart_ptr_t *self) {
         TEN_FREE(self->ctrl_blk);
         self->ctrl_blk = NULL;
       }
-      break;
     }
-    default:
-      TEN_ASSERT(0 && "Should not happen.", "Invalid argument.");
-      break;
+    break;
+  }
+  case TEN_SMART_PTR_WEAK: {
+    int64_t weak_cnt = ten_atomic_sub_fetch(&self->ctrl_blk->weak_cnt, 1);
+    TEN_ASSERT(weak_cnt >= 0, "Should not happen.");
+
+    if (weak_cnt == 0) {
+      TEN_FREE(self->ctrl_blk);
+      self->ctrl_blk = NULL;
+    }
+    break;
+  }
+  default:
+    TEN_ASSERT(0 && "Should not happen.", "Invalid argument.");
+    break;
   }
 
   TEN_FREE(self);
@@ -187,23 +186,23 @@ bool ten_smart_ptr_check_type(ten_smart_ptr_t *self,
   TEN_ASSERT(ten_smart_ptr_check_integrity(self), "Invalid argument.");
 
   switch (self->type) {
-    case TEN_SMART_PTR_SHARED:
-      return type_checker(ten_shared_ptr_get_data(self));
+  case TEN_SMART_PTR_SHARED:
+    return type_checker(ten_shared_ptr_get_data(self));
 
-    case TEN_SMART_PTR_WEAK: {
-      ten_shared_ptr_t *shared_one = ten_weak_ptr_lock(self);
-      if (shared_one) {
-        bool rc = type_checker(ten_shared_ptr_get_data(shared_one));
-        ten_shared_ptr_destroy(shared_one);
-        return rc;
-      } else {
-        return false;
-      }
-    }
-
-    default:
-      TEN_ASSERT(0, "Invalid argument.");
+  case TEN_SMART_PTR_WEAK: {
+    ten_shared_ptr_t *shared_one = ten_weak_ptr_lock(self);
+    if (shared_one) {
+      bool rc = type_checker(ten_shared_ptr_get_data(shared_one));
+      ten_shared_ptr_destroy(shared_one);
+      return rc;
+    } else {
       return false;
+    }
+  }
+
+  default:
+    TEN_ASSERT(0, "Invalid argument.");
+    return false;
   }
 }
 
@@ -294,7 +293,7 @@ ten_weak_ptr_t *ten_weak_ptr_clone(ten_weak_ptr_t *other) {
 void ten_weak_ptr_destroy(ten_weak_ptr_t *self) { ten_smart_ptr_destroy(self); }
 
 ten_shared_ptr_t *ten_weak_ptr_lock(ten_weak_ptr_t *self) {
-  assert(self && ten_weak_ptr_check_integrity(self));
+  TEN_ASSERT(self && ten_weak_ptr_check_integrity(self), "Invalid argument.");
 
   int64_t old_shared_ref_cnt =
       ten_atomic_inc_if_non_zero(&self->ctrl_blk->shared_cnt);

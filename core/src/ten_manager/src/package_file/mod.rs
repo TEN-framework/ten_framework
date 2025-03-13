@@ -38,7 +38,7 @@ pub fn get_tpkg_file_name(pkg_info: &PkgInfo) -> Result<String> {
 }
 
 pub fn create_package_tar_gz_file(
-    tman_config: &TmanConfig,
+    tman_config: Arc<TmanConfig>,
     output_pkg_file_path: &Path,
     folder_to_tar_gz: &Path,
     out: Arc<Box<dyn TmanOutput>>,

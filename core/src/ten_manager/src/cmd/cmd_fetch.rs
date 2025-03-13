@@ -119,7 +119,7 @@ pub fn parse_sub_cmd(sub_cmd_args: &ArgMatches) -> Result<FetchCommand> {
 }
 
 pub async fn execute_cmd(
-    tman_config: &TmanConfig,
+    tman_config: Arc<TmanConfig>,
     command_data: FetchCommand,
     out: Arc<Box<dyn TmanOutput>>,
 ) -> Result<()> {
@@ -132,7 +132,7 @@ pub async fn execute_cmd(
 
     // Query the package from the registry.
     let mut found_packages = get_package_list(
-        tman_config,
+        tman_config.clone(),
         command_data.pkg_type,
         &command_data.pkg_name,
         &command_data.version_req,
@@ -152,7 +152,7 @@ pub async fn execute_cmd(
 
     let mut temp_file = tempfile::NamedTempFile::new()?;
     get_package(
-        tman_config,
+        tman_config.clone(),
         &package.basic_info.type_and_name.pkg_type,
         &package.basic_info.type_and_name.name,
         &package.basic_info.version,

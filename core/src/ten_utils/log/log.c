@@ -6,7 +6,6 @@
 //
 #include "include_internal/ten_runtime/common/log.h"
 
-#include <assert.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -20,7 +19,7 @@
 #include "ten_utils/lib/string.h"
 
 bool ten_log_check_integrity(ten_log_t *self) {
-  assert(self && "Invalid argument.");
+  TEN_ASSERT(self, "Invalid argument.");
 
   if (ten_signature_get(&self->signature) !=
       (ten_signature_t)TEN_LOG_SIGNATURE) {
@@ -35,7 +34,7 @@ bool ten_log_check_integrity(ten_log_t *self) {
 }
 
 void ten_log_init(ten_log_t *self) {
-  assert(self && "Invalid argument.");
+  TEN_ASSERT(self, "Invalid argument.");
 
   ten_signature_set(&self->signature, TEN_LOG_SIGNATURE);
   self->output_level = TEN_LOG_LEVEL_INVALID;
@@ -46,7 +45,7 @@ void ten_log_init(ten_log_t *self) {
 
 ten_log_t *ten_log_create(void) {
   ten_log_t *log = malloc(sizeof(ten_log_t));
-  assert(log && "Failed to allocate memory.");
+  TEN_ASSERT(log, "Failed to allocate memory.");
 
   ten_log_init(log);
 
@@ -54,7 +53,7 @@ ten_log_t *ten_log_create(void) {
 }
 
 void ten_log_deinit(ten_log_t *self) {
-  assert(self && ten_log_check_integrity(self) && "Invalid argument.");
+  TEN_ASSERT(self && ten_log_check_integrity(self), "Invalid argument.");
 
   ten_log_deinit_encryption(self);
 
@@ -64,13 +63,13 @@ void ten_log_deinit(ten_log_t *self) {
 }
 
 void ten_log_deinit_encryption(ten_log_t *self) {
-  assert(self && ten_log_check_integrity(self) && "Invalid argument.");
+  TEN_ASSERT(self && ten_log_check_integrity(self), "Invalid argument.");
 
   ten_log_encryption_deinit(&self->encryption);
 }
 
 void ten_log_destroy(ten_log_t *self) {
-  assert(self && ten_log_check_integrity(self) && "Invalid argument.");
+  TEN_ASSERT(self && ten_log_check_integrity(self), "Invalid argument.");
 
   ten_log_deinit(self);
   free(self);
@@ -78,7 +77,7 @@ void ten_log_destroy(ten_log_t *self) {
 
 void ten_log_set_encrypt_cb(ten_log_t *self, ten_log_encrypt_func_t cb,
                             void *cb_data) {
-  assert(self && ten_log_check_integrity(self) && "Invalid argument.");
+  TEN_ASSERT(self && ten_log_check_integrity(self), "Invalid argument.");
 
   self->encryption.encrypt_cb = cb;
   self->encryption.impl = cb_data;
@@ -86,7 +85,7 @@ void ten_log_set_encrypt_cb(ten_log_t *self, ten_log_encrypt_func_t cb,
 
 void ten_log_set_encrypt_deinit_cb(ten_log_t *self,
                                    ten_log_encrypt_deinit_func_t cb) {
-  assert(self && ten_log_check_integrity(self) && "Invalid argument.");
+  TEN_ASSERT(self && ten_log_check_integrity(self), "Invalid argument.");
 
   self->encryption.deinit_cb = cb;
 }
@@ -94,7 +93,7 @@ void ten_log_set_encrypt_deinit_cb(ten_log_t *self,
 static const char *funcname(const char *func) { return func ? func : ""; }
 
 const char *filename(const char *path, size_t path_len, size_t *filename_len) {
-  assert(filename_len && "Invalid argument.");
+  TEN_ASSERT(filename_len, "Invalid argument.");
 
   if (!path || path_len == 0) {
     *filename_len = 0;
@@ -128,7 +127,7 @@ static void ten_log_log_from_va_list(ten_log_t *self, TEN_LOG_LEVEL level,
                                      const char *func_name,
                                      const char *file_name, size_t line_no,
                                      const char *fmt, va_list ap) {
-  assert(self && ten_log_check_integrity(self) && "Invalid argument.");
+  TEN_ASSERT(self && ten_log_check_integrity(self), "Invalid argument.");
 
   if (level < self->output_level) {
     return;
@@ -146,7 +145,7 @@ static void ten_log_log_from_va_list(ten_log_t *self, TEN_LOG_LEVEL level,
 void ten_log_log_formatted(ten_log_t *self, TEN_LOG_LEVEL level,
                            const char *func_name, const char *file_name,
                            size_t line_no, const char *fmt, ...) {
-  assert(self && ten_log_check_integrity(self) && "Invalid argument.");
+  TEN_ASSERT(self && ten_log_check_integrity(self), "Invalid argument.");
 
   if (level < self->output_level) {
     return;
@@ -162,7 +161,7 @@ void ten_log_log_formatted(ten_log_t *self, TEN_LOG_LEVEL level,
 
 void ten_log_log(ten_log_t *self, TEN_LOG_LEVEL level, const char *func_name,
                  const char *file_name, size_t line_no, const char *msg) {
-  assert(self && ten_log_check_integrity(self) && "Invalid argument.");
+  TEN_ASSERT(self && ten_log_check_integrity(self), "Invalid argument.");
 
   if (level < self->output_level) {
     return;
@@ -177,7 +176,7 @@ void ten_log_log_with_size(ten_log_t *self, TEN_LOG_LEVEL level,
                            const char *func_name, size_t func_name_len,
                            const char *file_name, size_t file_name_len,
                            size_t line_no, const char *msg, size_t msg_len) {
-  assert(self && ten_log_check_integrity(self) && "Invalid argument.");
+  TEN_ASSERT(self && ten_log_check_integrity(self), "Invalid argument.");
 
   if (level < self->output_level) {
     return;

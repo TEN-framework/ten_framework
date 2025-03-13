@@ -8,11 +8,12 @@
 
 #include <assert.h>
 #include <inttypes.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "include_internal/ten_utils/backtrace/backtrace.h"
-#include "ten_utils/lib/alloc.h"
-#include "ten_utils/log/log.h"
+#include "ten_utils/backtrace/backtrace.h"
 #include "ten_utils/macro/mark.h"
 
 ten_backtrace_t *g_ten_backtrace;
@@ -30,12 +31,12 @@ ten_backtrace_t *g_ten_backtrace;
  */
 static char *ten_strerror(int errnum) {
   size_t size = 1024;
-  char *buf = ten_malloc_without_backtrace(size);
+  char *buf = malloc(size);
   assert(buf && "Failed to allocate memory.");
 
   while (strerror_r(errnum, buf, size) == -1) {
     size *= 2;
-    buf = ten_realloc_without_backtrace(buf, size);
+    buf = realloc(buf, size);
     assert(buf && "Failed to allocate memory.");
   }
 
@@ -48,7 +49,8 @@ int ten_backtrace_default_dump_cb(ten_backtrace_t *self_, uintptr_t pc,
   ten_backtrace_common_t *self = (ten_backtrace_common_t *)self_;
   assert(self && "Invalid argument.");
 
-  TEN_LOGE("%s:%d %s (0x%0" PRIxPTR ")", filename, lineno, function, pc);
+  (void)fprintf(stderr, "%s:%d %s (0x%0" PRIxPTR ")", filename, lineno,
+                function, pc);
 
   return 0;
 }
@@ -58,13 +60,13 @@ void ten_backtrace_default_error_cb(ten_backtrace_t *self_, const char *msg,
   ten_backtrace_common_t *self = (ten_backtrace_common_t *)self_;
   assert(self && "Invalid argument.");
 
-  TEN_LOGE("%s", msg);
+  (void)fprintf(stderr, "%s", msg);
 
   if (errnum > 0) {
     char *buf = ten_strerror(errnum);
-    TEN_LOGE(": %s", buf);
+    (void)fprintf(stderr, ": %s", buf);
 
-    ten_free_without_backtrace(buf);
+    free(buf);
   }
 }
 
@@ -95,6 +97,7 @@ void ten_backtrace_dump_global(size_t skip) {
   if (enable_backtrace_dump && !strcmp(enable_backtrace_dump, "true")) {
     ten_backtrace_dump(g_ten_backtrace, skip);
   } else {
-    TEN_LOGI("Backtrace dump is disabled by TEN_ENABLE_BACKTRACE_DUMP.");
+    (void)fprintf(stderr,
+                  "Backtrace dump is disabled by TEN_ENABLE_BACKTRACE_DUMP.");
   }
 }

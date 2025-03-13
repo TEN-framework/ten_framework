@@ -38,7 +38,7 @@ pub struct DirListResponseData {
 pub async fn list_dir(
     request_payload: web::Json<ListDirRequestPayload>,
     _state: web::Data<Arc<RwLock<DesignerState>>>,
-) -> impl Responder {
+) -> Result<impl Responder, actix_web::Error> {
     let path_str = request_payload.path.clone();
     let path_obj = Path::new(&path_str);
 
@@ -49,7 +49,7 @@ pub async fn list_dir(
             data: (),
             meta: None,
         };
-        return HttpResponse::NotFound().json(response);
+        return Ok(HttpResponse::NotFound().json(response));
     }
 
     // Collect the returned results.
@@ -88,7 +88,7 @@ pub async fn list_dir(
         data: DirListResponseData { entries },
         meta: None,
     };
-    HttpResponse::Ok().json(response)
+    Ok(HttpResponse::Ok().json(response))
 }
 
 #[cfg(test)]
@@ -113,7 +113,7 @@ mod tests {
 
         // Initialize DesignerState.
         let state = web::Data::new(Arc::new(RwLock::new(DesignerState {
-            tman_config: TmanConfig::default(),
+            tman_config: Arc::new(TmanConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
             pkgs_cache: HashMap::new(),
         })));
@@ -164,7 +164,7 @@ mod tests {
 
         // Initialize DesignerState.
         let state = web::Data::new(Arc::new(RwLock::new(DesignerState {
-            tman_config: TmanConfig::default(),
+            tman_config: Arc::new(TmanConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
             pkgs_cache: HashMap::new(),
         })));
@@ -207,7 +207,7 @@ mod tests {
     #[actix_web::test]
     async fn test_list_dir_with_non_existing_path() {
         let state = web::Data::new(Arc::new(RwLock::new(DesignerState {
-            tman_config: TmanConfig::default(),
+            tman_config: Arc::new(TmanConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
             pkgs_cache: HashMap::new(),
         })));

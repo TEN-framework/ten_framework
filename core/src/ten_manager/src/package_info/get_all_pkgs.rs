@@ -26,7 +26,7 @@ use crate::{
 /// Returns an error if the base directory is not set or if fetching package
 /// information fails.
 pub fn get_all_pkgs(
-    tman_config: &TmanConfig,
+    tman_config: Arc<TmanConfig>,
     pkgs_cache: &mut HashMap<String, Vec<PkgInfo>>,
     base_dir: &String,
     out: &Arc<Box<dyn TmanOutput>>,

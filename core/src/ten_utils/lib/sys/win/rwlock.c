@@ -6,7 +6,6 @@
 //
 #include "ten_utils/lib/rwlock.h"
 
-#include <assert.h>
 #include <stdint.h>
 
 // clang-format off

@@ -55,86 +55,85 @@ ten_env_proxy_t *ten_env_proxy_create(ten_env_t *ten_env,
   // Checking 1: The platform currently only supports creating a `ten_env_proxy`
   // from the `ten_env` of an extension, an extension_group, and an app.
   switch (ten_env->attach_to) {
-    case TEN_ENV_ATTACH_TO_EXTENSION:
-    case TEN_ENV_ATTACH_TO_EXTENSION_GROUP:
-    case TEN_ENV_ATTACH_TO_APP:
-      break;
+  case TEN_ENV_ATTACH_TO_EXTENSION:
+  case TEN_ENV_ATTACH_TO_EXTENSION_GROUP:
+  case TEN_ENV_ATTACH_TO_APP:
+    break;
 
-    default: {
-      const char *err_msg = "Create ten_env_proxy from unsupported ten.";
-      TEN_ASSERT(0, "%s", err_msg);
-      if (err) {
-        ten_error_set(err, TEN_ERROR_CODE_INVALID_ARGUMENT, err_msg);
-      }
-      return NULL;
+  default: {
+    const char *err_msg = "Create ten_env_proxy from unsupported ten.";
+    TEN_ASSERT(0, "%s", err_msg);
+    if (err) {
+      ten_error_set(err, TEN_ERROR_CODE_INVALID_ARGUMENT, err_msg);
     }
+    return NULL;
+  }
   }
 
   // Checking 2: The creation of `ten_env_proxy` must occur within the belonging
   // thread of the corresponding `ten_env`.
   switch (ten_env->attach_to) {
-    case TEN_ENV_ATTACH_TO_EXTENSION: {
-      ten_extension_t *extension = ten_env->attached_target.extension;
-      TEN_ASSERT(extension && ten_extension_check_integrity(extension, true),
-                 "Should not happen.");
+  case TEN_ENV_ATTACH_TO_EXTENSION: {
+    ten_extension_t *extension = ten_env->attached_target.extension;
+    TEN_ASSERT(extension && ten_extension_check_integrity(extension, true),
+               "Should not happen.");
 
-      ten_extension_thread_t *extension_thread = extension->extension_thread;
-      TEN_ASSERT(extension_thread, "Should not happen.");
+    ten_extension_thread_t *extension_thread = extension->extension_thread;
+    TEN_ASSERT(extension_thread, "Should not happen.");
 
-      if (!ten_extension_thread_call_by_me(extension_thread)) {
-        const char *err_msg =
-            "ten_env_proxy needs to be created in extension thread.";
-        TEN_ASSERT(0, "%s", err_msg);
-        if (err) {
-          ten_error_set(err, TEN_ERROR_CODE_GENERIC, err_msg);
-        }
-        return NULL;
+    if (!ten_extension_thread_call_by_me(extension_thread)) {
+      const char *err_msg =
+          "ten_env_proxy needs to be created in extension thread.";
+      TEN_ASSERT(0, "%s", err_msg);
+      if (err) {
+        ten_error_set(err, TEN_ERROR_CODE_GENERIC, err_msg);
       }
-      break;
+      return NULL;
     }
+    break;
+  }
 
-    case TEN_ENV_ATTACH_TO_EXTENSION_GROUP: {
-      ten_extension_group_t *extension_group =
-          ten_env->attached_target.extension_group;
-      TEN_ASSERT(extension_group &&
-                     ten_extension_group_check_integrity(extension_group, true),
-                 "Should not happen.");
+  case TEN_ENV_ATTACH_TO_EXTENSION_GROUP: {
+    ten_extension_group_t *extension_group =
+        ten_env->attached_target.extension_group;
+    TEN_ASSERT(extension_group &&
+                   ten_extension_group_check_integrity(extension_group, true),
+               "Should not happen.");
 
-      ten_extension_thread_t *extension_thread =
-          extension_group->extension_thread;
-      TEN_ASSERT(extension_thread, "Should not happen.");
+    ten_extension_thread_t *extension_thread =
+        extension_group->extension_thread;
+    TEN_ASSERT(extension_thread, "Should not happen.");
 
-      if (!ten_extension_thread_call_by_me(extension_thread)) {
-        const char *err_msg =
-            "ten_env_proxy needs to be created in extension thread.";
-        TEN_ASSERT(0, "%s", err_msg);
-        if (err) {
-          ten_error_set(err, TEN_ERROR_CODE_GENERIC, err_msg);
-        }
-        return NULL;
+    if (!ten_extension_thread_call_by_me(extension_thread)) {
+      const char *err_msg =
+          "ten_env_proxy needs to be created in extension thread.";
+      TEN_ASSERT(0, "%s", err_msg);
+      if (err) {
+        ten_error_set(err, TEN_ERROR_CODE_GENERIC, err_msg);
       }
-      break;
+      return NULL;
     }
+    break;
+  }
 
-    case TEN_ENV_ATTACH_TO_APP: {
-      ten_app_t *app = ten_env->attached_target.app;
-      TEN_ASSERT(app, "Should not happen.");
+  case TEN_ENV_ATTACH_TO_APP: {
+    ten_app_t *app = ten_env->attached_target.app;
+    TEN_ASSERT(app, "Should not happen.");
 
-      if (!ten_app_thread_call_by_me(app)) {
-        const char *err_msg =
-            "ten_env_proxy needs to be created in app thread.";
-        TEN_ASSERT(0, "%s", err_msg);
-        if (err) {
-          ten_error_set(err, TEN_ERROR_CODE_GENERIC, err_msg);
-        }
-        return NULL;
+    if (!ten_app_thread_call_by_me(app)) {
+      const char *err_msg = "ten_env_proxy needs to be created in app thread.";
+      TEN_ASSERT(0, "%s", err_msg);
+      if (err) {
+        ten_error_set(err, TEN_ERROR_CODE_GENERIC, err_msg);
       }
-      break;
+      return NULL;
     }
+    break;
+  }
 
-    default:
-      TEN_ASSERT(0, "Should not happen.");
-      break;
+  default:
+    TEN_ASSERT(0, "Should not happen.");
+    break;
   }
 
   ten_env_proxy_t *self = TEN_MALLOC(sizeof(ten_env_proxy_t));

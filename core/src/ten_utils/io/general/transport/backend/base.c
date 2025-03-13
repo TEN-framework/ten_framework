@@ -12,11 +12,12 @@
 #include "include_internal/ten_utils/io/runloop.h"
 #include "ten_utils/io/stream.h"
 #include "ten_utils/io/transport.h"
+#include "ten_utils/macro/check.h"
 
 void ten_transportbackend_init(ten_transportbackend_t *self,
                                ten_transport_t *transport,
                                const ten_string_t *name) {
-  assert(self);
+  TEN_ASSERT(self, "Invalid argument.");
 
   ten_atomic_store(&self->is_close, false);
   self->transport = transport;
@@ -25,7 +26,7 @@ void ten_transportbackend_init(ten_transportbackend_t *self,
 }
 
 void ten_transportbackend_deinit(ten_transportbackend_t *self) {
-  assert(self);
+  TEN_ASSERT(self, "Invalid argument.");
   if (self->name) {
     ten_string_destroy(self->name);
   }
@@ -37,7 +38,7 @@ void ten_transportbackend_deinit(ten_transportbackend_t *self) {
 
 void ten_streambackend_init(const char *impl, ten_streambackend_t *backend,
                             ten_stream_t *stream) {
-  assert(backend && stream);
+  TEN_ASSERT(backend && stream, "Invalid argument.");
 
   ten_atomic_store(&backend->is_close, false);
   backend->stream = stream;
@@ -47,7 +48,7 @@ void ten_streambackend_init(const char *impl, ten_streambackend_t *backend,
 }
 
 void ten_streambackend_deinit(ten_streambackend_t *backend) {
-  assert(backend);
+  TEN_ASSERT(backend, "Invalid argument.");
   if (backend->impl) {
     free((void *)backend->impl);
   }

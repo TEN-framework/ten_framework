@@ -8,6 +8,9 @@
 
 #include <stdint.h>
 
+// NOTE: This file will be used in the TEN backtrace module, so do _not_ use
+// TEN_ASSERT or any other mechanisms which might involve backtrace dump.
+
 int64_t ten_atomic_load(volatile ten_atomic_t *a) {
   int64_t ret = 0;
   ten_memory_barrier();

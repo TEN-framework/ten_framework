@@ -48,7 +48,7 @@ pub fn parse_sub_cmd(
 }
 
 pub async fn execute_cmd(
-    tman_config: &TmanConfig,
+    tman_config: Arc<TmanConfig>,
     command_data: PackageCommand,
     out: Arc<Box<dyn TmanOutput>>,
 ) -> Result<()> {

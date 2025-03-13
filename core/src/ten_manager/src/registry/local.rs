@@ -141,7 +141,7 @@ fn is_same_file_by_hash(
 }
 
 pub async fn get_package(
-    tman_config: &TmanConfig,
+    tman_config: Arc<TmanConfig>,
     pkg_type: &PkgType,
     pkg_name: &str,
     pkg_version: &Version,
@@ -358,7 +358,7 @@ fn find_file_with_criteria(
 }
 
 pub async fn get_package_list(
-    _tman_config: &TmanConfig,
+    _tman_config: Arc<TmanConfig>,
     base_url: &str,
     pkg_type: PkgType,
     name: &String,

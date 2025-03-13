@@ -10,7 +10,7 @@
 
 #include <mutex>
 
-#ifdef __ANDROID__
+#if defined(__ANDROID__)
 #include <android/log.h>
 
 const char *LOG_TAG = "utils";
@@ -32,7 +32,7 @@ void GTestLog::print(const char *fmt, ...) {
   printf("[    LOG   ] ");
   va_start(ap, fmt);
   vprintf(fmt, ap);
-#ifdef __ANDROID__
+#if defined(__ANDROID__)
   __android_log_vprint(ANDROID_LOG_INFO, LOG_TAG, fmt, ap);
 #endif
   va_end(ap);

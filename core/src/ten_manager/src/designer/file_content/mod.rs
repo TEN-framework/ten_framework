@@ -29,7 +29,7 @@ struct GetFileContentResponseData {
 pub async fn get_file_content(
     request_payload: web::Json<GetFileContentRequestPayload>,
     state: web::Data<Arc<RwLock<DesignerState>>>,
-) -> impl Responder {
+) -> Result<impl Responder, actix_web::Error> {
     let file_path = request_payload.file_path.clone();
 
     match fs::read_to_string(&file_path) {
@@ -39,7 +39,7 @@ pub async fn get_file_content(
                 data: GetFileContentResponseData { content },
                 meta: None,
             };
-            HttpResponse::Ok().json(response)
+            Ok(HttpResponse::Ok().json(response))
         }
         Err(err) => {
             state.read().unwrap().out.error_line(&format!(
@@ -53,7 +53,7 @@ pub async fn get_file_content(
                 meta: None,
             };
 
-            HttpResponse::BadRequest().json(response)
+            Ok(HttpResponse::BadRequest().json(response))
         }
     }
 }
@@ -67,7 +67,7 @@ pub struct SaveFileRequestPayload {
 pub async fn save_file_content(
     request_payload: web::Json<SaveFileRequestPayload>,
     state: web::Data<Arc<RwLock<DesignerState>>>,
-) -> impl Responder {
+) -> Result<impl Responder, actix_web::Error> {
     let file_path_str = request_payload.file_path.clone();
     let content = &request_payload.content; // Access the content field.
 
@@ -88,7 +88,7 @@ pub async fn save_file_content(
                 meta: None,
             };
 
-            return HttpResponse::BadRequest().json(response);
+            return Ok(HttpResponse::BadRequest().json(response));
         }
     }
 
@@ -99,7 +99,7 @@ pub async fn save_file_content(
                 data: (),
                 meta: None,
             };
-            HttpResponse::Ok().json(response)
+            Ok(HttpResponse::Ok().json(response))
         }
         Err(err) => {
             state.read().unwrap().out.error_line(&format!(
@@ -114,7 +114,7 @@ pub async fn save_file_content(
                 meta: None,
             };
 
-            HttpResponse::BadRequest().json(response)
+            Ok(HttpResponse::BadRequest().json(response))
         }
     }
 }

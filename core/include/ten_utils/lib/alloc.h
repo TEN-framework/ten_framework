@@ -48,13 +48,3 @@ TEN_UTILS_API void ten_free(void *p);
  * @note: Please free memory using |ten_free|
  */
 TEN_UTILS_API char *ten_strdup(const char *str);
-
-TEN_UTILS_API void *ten_malloc_without_backtrace(size_t size);
-
-TEN_UTILS_API void ten_free_without_backtrace(void *p);
-
-TEN_UTILS_API void *ten_calloc_without_backtrace(size_t cnt, size_t size);
-
-TEN_UTILS_API void *ten_realloc_without_backtrace(void *p, size_t size);
-
-TEN_UTILS_API char *ten_strdup_without_backtrace(const char *str);

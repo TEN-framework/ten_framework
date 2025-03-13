@@ -4,6 +4,8 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
+use std::sync::Arc;
+
 use anyhow::Result;
 use clap::{Arg, Command};
 
@@ -22,7 +24,7 @@ pub struct ArgsCfg {
 }
 
 pub struct ParsedCmd {
-    pub tman_config: crate::config::TmanConfig,
+    pub tman_config: Arc<TmanConfig>,
     pub command_data: Option<crate::cmd::CommandData>,
     pub show_version: bool,
 }
@@ -155,7 +157,7 @@ pub fn parse_cmd() -> Result<ParsedCmd> {
     if matches.get_flag("VERSION") {
         // If `--version` exists, do not parse subcommands.
         return Ok(ParsedCmd {
-            tman_config,
+            tman_config: Arc::new(tman_config),
             command_data: None,
             show_version: true,
         });
@@ -204,7 +206,7 @@ pub fn parse_cmd() -> Result<ParsedCmd> {
         };
 
     Ok(ParsedCmd {
-        tman_config,
+        tman_config: Arc::new(tman_config),
         command_data: Some(command_data),
         show_version: false,
     })
