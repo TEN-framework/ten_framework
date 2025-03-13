@@ -55,12 +55,8 @@ export const ExtensionPopup = (props: {
   versions: IListTenCloudStorePackage[];
 }) => {
   const { id, name, versions } = props;
-  const { removeWidget, updateWidgetDisplayType } = useWidgetStore();
+  const { removeWidget } = useWidgetStore();
   const { t } = useTranslation();
-
-  const handlePinToDock = () => {
-    updateWidgetDisplayType(id, EWidgetDisplayType.Dock);
-  };
 
   return (
     <Popup
@@ -72,14 +68,6 @@ export const ExtensionPopup = (props: {
       contentClassName="p-0"
       resizable
       preventFocusSteal
-      // customActions={[
-      //   {
-      //     id: "pin-to-dock",
-      //     label: t("action.pinToDock"),
-      //     Icon: PinIcon,
-      //     onClick: handlePinToDock,
-      //   },
-      // ]}
     >
       <ExtensionWidget versions={versions} name={name} />
     </Popup>
