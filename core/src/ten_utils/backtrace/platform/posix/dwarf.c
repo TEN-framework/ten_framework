@@ -1685,8 +1685,8 @@ static int read_abbrevs(ten_backtrace_t *self, uint64_t abbrev_offset,
     ++num_abbrevs;
   }
 
-  backtrace_qsort(abbrevs->abbrevs, abbrevs->num_abbrevs, sizeof(struct abbrev),
-                  abbrev_compare);
+  backtrace_sort(abbrevs->abbrevs, abbrevs->num_abbrevs, sizeof(struct abbrev),
+                 abbrev_compare);
 
   return 1;
 
@@ -3070,7 +3070,7 @@ static int read_line_info(ten_backtrace_t *self, struct dwarf_data *ddata,
   }
 
   ln = (struct line *)vec.vec.data;
-  backtrace_qsort(ln, vec.count, sizeof(struct line), line_compare);
+  backtrace_sort(ln, vec.count, sizeof(struct line), line_compare);
 
   *lines = ln;
   *lines_count = vec.count;
@@ -3489,8 +3489,8 @@ static int read_function_entry(ten_backtrace_t *self, struct dwarf_data *ddata,
           }
 
           faddrs = (struct function_addrs *)fvec.vec.data;
-          backtrace_qsort(faddrs, fvec.count, sizeof(struct function_addrs),
-                          function_addrs_compare);
+          backtrace_sort(faddrs, fvec.count, sizeof(struct function_addrs),
+                         function_addrs_compare);
 
           function->function_addrs = faddrs;
           function->function_addrs_count = fvec.count;
@@ -3577,8 +3577,8 @@ static void read_function_info(ten_backtrace_t *self, struct dwarf_data *ddata,
     fvec->count = 0;
   }
 
-  backtrace_qsort(addrs, addrs_count, sizeof(struct function_addrs),
-                  function_addrs_compare);
+  backtrace_sort(addrs, addrs_count, sizeof(struct function_addrs),
+                 function_addrs_compare);
 
   *ret_addrs = addrs;
   *ret_addrs_count = addrs_count;
@@ -3972,8 +3972,8 @@ build_dwarf_data(ten_backtrace_t *self, uintptr_t base_address,
   units = (struct unit **)units_vec.vec.data;
   addrs_count = addrs_vec.count;
   units_count = units_vec.count;
-  backtrace_qsort(addrs, addrs_count, sizeof(struct unit_addrs),
-                  unit_addrs_compare);
+  backtrace_sort(addrs, addrs_count, sizeof(struct unit_addrs),
+                 unit_addrs_compare);
   /* No qsort for units required, already sorted.  */
 
   fdata = (struct dwarf_data *)malloc(sizeof(struct dwarf_data));

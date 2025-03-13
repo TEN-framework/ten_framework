@@ -475,8 +475,8 @@ static int elf_initialize_syminfo(ten_backtrace_t *self, uintptr_t base_address,
     ++j;
   }
 
-  backtrace_qsort(elf_symbols, elf_symbol_count, sizeof(struct elf_symbol),
-                  elf_symbol_compare);
+  backtrace_sort(elf_symbols, elf_symbol_count, sizeof(struct elf_symbol),
+                 elf_symbol_compare);
 
   sdata->next = NULL;
   sdata->symbols = elf_symbols;

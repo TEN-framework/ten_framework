@@ -550,8 +550,8 @@ static int macho_add_symtab(ten_backtrace_t *self_, int descriptor,
   macho_symbols[j].name = "";
   macho_symbols[j].address = ~(uintptr_t)0;
 
-  backtrace_qsort(macho_symbols, ndefs + 1, sizeof(struct macho_symbol),
-                  macho_symbol_compare);
+  backtrace_sort(macho_symbols, ndefs + 1, sizeof(struct macho_symbol),
+                 macho_symbol_compare);
 
   sdata->next = NULL;
   sdata->symbols = macho_symbols;
