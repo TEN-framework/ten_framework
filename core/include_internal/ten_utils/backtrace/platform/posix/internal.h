@@ -13,6 +13,7 @@
 
 #include "include_internal/ten_utils/backtrace/backtrace.h"
 #include "include_internal/ten_utils/backtrace/common.h"
+#include "include_internal/ten_utils/backtrace/platform/posix/dwarf.h"
 #include "ten_utils/lib/atomic.h"
 #include "ten_utils/macro/mark.h"
 

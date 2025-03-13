@@ -6,9 +6,6 @@
 //
 #include "ten_utils/io/general/transport/backend/base.h"
 
-#include <stdlib.h>
-#include <string.h>
-
 #include "include_internal/ten_utils/io/runloop.h"
 #include "ten_utils/io/stream.h"
 #include "ten_utils/io/transport.h"

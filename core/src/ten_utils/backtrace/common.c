@@ -15,6 +15,7 @@
 #include <string.h>
 
 #include "include_internal/ten_utils/backtrace/backtrace.h"
+#include "include_internal/ten_utils/backtrace/platform/posix/file.h"
 #include "ten_utils/backtrace/backtrace.h"
 #include "ten_utils/macro/mark.h"
 
@@ -88,6 +89,31 @@ int ten_backtrace_default_dump_cb(ten_backtrace_t *self_, uintptr_t pc,
   // Ensure we have valid strings to print.
   const char *safe_filename = filename ? filename : "<unknown file>";
   const char *safe_function = function ? function : "<unknown function>";
+
+  // Normalize the filename to remove ".." path components
+  char normalized_path[4096] = {0};
+  if (filename && ten_backtrace_normalize_path(safe_filename, normalized_path,
+                                               sizeof(normalized_path))) {
+    // Use the normalized path if successful
+    safe_filename = normalized_path;
+  }
+
+#if defined(OS_WINDOWS)
+  // On Windows, ensure we're using consistent path separators in output
+  // This is only needed if normalization didn't happen or failed
+  if (safe_filename != normalized_path && filename) {
+    char windows_path[4096] = {0};
+    strncpy(windows_path, safe_filename, sizeof(windows_path) - 1);
+
+    // Replace forward slashes with backslashes for display
+    for (char *p = windows_path; *p != '\0'; p++) {
+      if (*p == '/') {
+        *p = '\\';
+      }
+    }
+    safe_filename = windows_path;
+  }
+#endif
 
   int result = fprintf(stderr, "%s@%s:%d (0x%0" PRIxPTR ")\n", safe_function,
                        safe_filename, lineno, pc);

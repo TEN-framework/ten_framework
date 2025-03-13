@@ -7,6 +7,8 @@
 // This file is modified from
 // https://github.com/ianlancetaylor/libbacktrace [BSD license]
 //
+#pragma once
+
 #include "ten_utils/ten_config.h"
 
 #include <stdint.h>
