@@ -7,7 +7,6 @@
 #include "ten_utils/ten_config.h"
 
 #include <assert.h>
-#include <errno.h>
 #include <fcntl.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -15,7 +14,6 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <sys/types.h>
-#include <unistd.h>
 
 #include "include_internal/ten_utils/backtrace/file.h"
 
@@ -300,7 +298,7 @@ bool ten_backtrace_normalize_path(const char *path, char *normalized_path,
         free(stack[i]);
       }
     }
-    free(stack);
+    free((void *)stack);
     return false;
   }
 
@@ -313,7 +311,7 @@ bool ten_backtrace_normalize_path(const char *path, char *normalized_path,
         free(stack[i]);
       }
     }
-    free(stack);
+    free((void *)stack);
     return false;
   }
   result_path[0] = '\0';
@@ -370,7 +368,7 @@ bool ten_backtrace_normalize_path(const char *path, char *normalized_path,
       free(stack[i]);
     }
   }
-  free(stack);
+  free((void *)stack);
 
   // If the result is empty, use "." for relative paths or proper root for
   // absolute paths.
@@ -399,134 +397,4 @@ bool ten_backtrace_normalize_path(const char *path, char *normalized_path,
   free(result_path);
 
   return true;
-}
-
-// Mac OS X 10.6 does not support O_CLOEXEC.
-#ifndef O_CLOEXEC
-#define O_CLOEXEC 0
-#endif
-
-// Mac OS does not support FD_CLOEXEC.
-#ifndef FD_CLOEXEC
-#define FD_CLOEXEC 1
-#endif
-
-/**
- * @brief Opens a file for reading with proper error handling.
- *
- * This function opens the specified file in read-only mode with the
- * close-on-exec flag set to prevent file descriptor leakage across exec calls.
- * It handles platform-specific compatibility issues and provides detailed error
- * reporting.
- *
- * @param filename The path to the file to open.
- * @param does_not_exist Optional pointer to receive existence status (set to
- * true if file doesn't exist).
- * @return File descriptor on success, or -1 on failure.
- */
-int ten_backtrace_open_file(const char *filename, bool *does_not_exist) {
-  // Input validation.
-  if (!filename) {
-    errno = EINVAL;
-    assert(0 && "Invalid argument.");
-    return -1;
-  }
-
-  if (does_not_exist != NULL) {
-    *does_not_exist = false;
-  }
-
-#ifdef _WIN32
-  // Windows implementation
-  HANDLE file_handle =
-      CreateFileA(filename,              // filename
-                  GENERIC_READ,          // desired access
-                  FILE_SHARE_READ,       // share mode
-                  NULL,                  // security attributes
-                  OPEN_EXISTING,         // creation disposition
-                  FILE_ATTRIBUTE_NORMAL, // flags and attributes
-                  NULL);                 // template file
-
-  if (file_handle == INVALID_HANDLE_VALUE) {
-    DWORD error = GetLastError();
-    if (does_not_exist != NULL) {
-      *does_not_exist =
-          (error == ERROR_FILE_NOT_FOUND || error == ERROR_PATH_NOT_FOUND);
-    } else {
-      fprintf(stderr, "Failed to open %s: error code %lu\n", filename, error);
-    }
-    return -1;
-  }
-
-  // Convert HANDLE to int for compatibility with the rest of the code
-  // Note: This is a simplification and not ideal for production use
-  // A better approach would be to refactor the API to use opaque handles
-  return (int)(intptr_t)file_handle;
-#else
-  // POSIX implementation
-  // Open the file with close-on-exec flag when supported.
-  int fd = open(filename, (O_RDONLY | O_CLOEXEC));
-  if (fd < 0) {
-    int saved_errno = errno;
-    if (does_not_exist != NULL) {
-      *does_not_exist = (saved_errno == ENOENT);
-    } else {
-      (void)fprintf(stderr, "Failed to open %s: %s\n", filename,
-                    strerror(saved_errno));
-    }
-
-    return -1;
-  }
-
-  // Set FD_CLOEXEC just in case the kernel does not support O_CLOEXEC.
-  // This provides a fallback for older systems.
-  if (fcntl(fd, F_SETFD, FD_CLOEXEC) < 0) {
-    // Non-fatal error - log but continue.
-    int saved_errno = errno;
-    (void)fprintf(stderr, "Warning: Failed to set FD_CLOEXEC on %s: %s\n",
-                  filename, strerror(saved_errno));
-  }
-
-  return fd;
-#endif
-}
-
-/**
- * @brief Closes a file descriptor with error checking.
- *
- * This function safely closes the given file descriptor and reports any errors.
- * It provides better error handling than a raw close() call.
- *
- * @param fd File descriptor to close.
- * @return true if closed successfully, false on error.
- */
-bool ten_backtrace_close_file(int fd) {
-  // Input validation - avoid trying to close invalid descriptors.
-  if (fd < 0) {
-    assert(0 && "Invalid argument.");
-    return true;
-  }
-
-#ifdef _WIN32
-  // Windows implementation
-  // Convert int back to HANDLE
-  HANDLE file_handle = (HANDLE)(intptr_t)fd;
-  if (!CloseHandle(file_handle)) {
-    DWORD error = GetLastError();
-    fprintf(stderr, "Failed to close file handle %p: error code %lu\n",
-            file_handle, error);
-    return false;
-  }
-  return true;
-#else
-  // POSIX implementation
-  if (close(fd) < 0) {
-    int saved_errno = errno;
-    (void)fprintf(stderr, "Failed to close file descriptor %d: %s\n", fd,
-                  strerror(saved_errno));
-    return false;
-  }
-
-  return true;
-#endif
 }

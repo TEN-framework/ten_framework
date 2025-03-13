@@ -12,17 +12,6 @@
 #include <stddef.h>
 
 /**
- * @brief Opens a file for reading with proper error handling.
- */
-TEN_UTILS_API int ten_backtrace_open_file(const char *filename,
-                                          bool *does_not_exist);
-
-/**
- * @brief Closes a file descriptor with error checking.
- */
-TEN_UTILS_API bool ten_backtrace_close_file(int fd);
-
-/**
  * @brief Normalizes a file path by resolving '..' and '.' path components.
  *
  * @param path The input path to normalize
