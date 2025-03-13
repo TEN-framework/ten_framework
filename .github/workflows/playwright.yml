@@ -1,9 +1,14 @@
-name: Playwright Tests
+name: Tman Designer UI (Playwright Tests)
+
 on:
-  push:
-    branches: [main, master]
+  release:
+    types: [created]
   pull_request:
-    branches: [main, master]
+    types: [opened, synchronize, reopened]
+    paths:
+      - "core/src/ten_manager"
+      - "core/src/ten_rust"
+
 jobs:
   test:
     timeout-minutes: 60
