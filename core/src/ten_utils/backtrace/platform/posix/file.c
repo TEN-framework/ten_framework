@@ -16,6 +16,8 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+#include "include_internal/ten_utils/backtrace/platform/posix/file.h"
+
 /**
  * @file file.c
  * @brief Platform-specific file operations for backtrace functionality.
