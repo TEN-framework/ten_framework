@@ -5,6 +5,7 @@
 // Refer to the "LICENSE" file in the root directory for more information.
 //
 #include "ten_utils/lib/random.h"
+#include "ten_utils/macro/memory.h"
 
 #include <stdint.h>
 #include <stdlib.h>
@@ -50,7 +51,7 @@ int ten_random_hex_string(char *buf, size_t size) {
 
   memset(buf, 0, size);
   len = (len % 2) == 0 ? len : (len - 1);
-  ran_buf = (char *)malloc(len / 2);
+  ran_buf = (char *)TEN_MALLOC(len / 2);
   int r = ten_random(ran_buf, len / 2);
   if (r < 0) {
     goto error;
@@ -62,13 +63,13 @@ int ten_random_hex_string(char *buf, size_t size) {
     buf[i + 1] = kHex[v & 0x0f];
   }
 
-  free(ran_buf);
+  TEN_FREE(ran_buf);
 
   return 0;
 
 error:
   if (ran_buf) {
-    free(ran_buf);
+    TEN_FREE(ran_buf);
   }
 
   return -1;

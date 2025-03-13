@@ -11,25 +11,22 @@
 
 #include <assert.h>
 #include <fcntl.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
 
-#include "include_internal/ten_utils/backtrace/platform/posix/config.h" // IWYU pragma: keep
-
-#if defined(HAVE_MACH_O_DYLD_H)
-#include <mach-o/dyld.h>
-#endif
-
 #include "include_internal/ten_utils/backtrace/backtrace.h"
+#include "include_internal/ten_utils/backtrace/platform/posix/config.h" // IWYU pragma: keep
+#include "include_internal/ten_utils/backtrace/platform/posix/file.h"
 #include "include_internal/ten_utils/backtrace/platform/posix/internal.h"
 #include "ten_utils/lib/atomic_ptr.h"
-#include "ten_utils/lib/file.h"
 #include "ten_utils/macro/mark.h"
 
 #if defined(HAVE_MACH_O_DYLD_H)
+#include <mach-o/dyld.h>
 
 static char *macho_get_executable_path(ten_backtrace_t *self,
                                        ten_backtrace_error_func_t error_cb,
@@ -115,7 +112,7 @@ static int initialize_file_line_mechanism(ten_backtrace_t *self,
     }
 
     bool does_not_exist = false;
-    descriptor = ten_file_open(filename, &does_not_exist);
+    descriptor = ten_backtrace_open_file(filename, &does_not_exist);
     if (descriptor < 0 && !does_not_exist) {
       called_error_callback = true;
       break;

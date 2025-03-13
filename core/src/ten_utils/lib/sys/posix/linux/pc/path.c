@@ -4,10 +4,11 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-#include "ten_utils/lib/path.h"
-
 #include <stdlib.h>
 #include <unistd.h>
+
+#include "ten_utils/lib/path.h"
+#include "ten_utils/macro/memory.h"
 
 ten_string_t *ten_path_get_executable_path(void) {
   char *buf = NULL;
@@ -16,11 +17,11 @@ ten_string_t *ten_path_get_executable_path(void) {
   ten_string_t *path = NULL;
 
   for (;;) {
-    buf = (char *)malloc(len);
+    buf = (char *)TEN_MALLOC(len);
     ret = readlink("/proc/self/exe", buf, len);
 
     if (ret < 0) {
-      free(buf);
+      TEN_FREE(buf);
       buf = NULL;
       break;
     }
@@ -30,7 +31,7 @@ ten_string_t *ten_path_get_executable_path(void) {
       break;
     }
 
-    free(buf);
+    TEN_FREE(buf);
     len += 256;
   }
 
@@ -39,7 +40,7 @@ ten_string_t *ten_path_get_executable_path(void) {
   }
 
   path = ten_string_create_formatted(buf);
-  free(buf);
+  TEN_FREE(buf);
 
   ten_string_t *dir = ten_path_get_dirname(path);
   ten_string_destroy(path);

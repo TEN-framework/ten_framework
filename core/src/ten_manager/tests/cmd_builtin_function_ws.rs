@@ -6,6 +6,8 @@
 //
 use std::{
     collections::HashMap,
+    fs,
+    path::PathBuf,
     sync::{Arc, RwLock},
     thread,
     time::Duration,
@@ -25,6 +27,88 @@ use ten_manager::{
     output::TmanOutputCli,
 };
 
+/// Finds the `config.json` by:
+/// 1. Starting from current directory
+/// 2. Looking up parent directories until it finds one with `.tgnconfig.json`.
+/// 3. Looking for `out/` folder in that directory.
+/// 4. Finding the only subfolder in `out/`.
+/// 5. Finding the only subfolder within that subfolder.
+/// 6. Locating the `config.json` at `tests/local_registry/config.json` in that
+///    directory.
+fn find_config_json() -> Option<PathBuf> {
+    let mut current_dir = std::env::current_dir().ok()?;
+
+    // Keep going up parent directories until we find `.tgnconfig.json`.
+    loop {
+        let tgn_config_path = current_dir.join(".tgnconfig.json");
+        if tgn_config_path.exists() {
+            // Found the directory containing `.tgnconfig.json`.
+            let out_dir = current_dir.join("out");
+            if !out_dir.exists() || !out_dir.is_dir() {
+                return None;
+            }
+
+            // Find the only subfolder in `out/`.
+            let out_subfolders = fs::read_dir(&out_dir)
+                .ok()?
+                .filter_map(|entry| {
+                    let entry = entry.ok()?;
+                    let path = entry.path();
+                    if path.is_dir() {
+                        Some(path)
+                    } else {
+                        None
+                    }
+                })
+                .collect::<Vec<_>>();
+
+            if out_subfolders.len() != 1 {
+                return None;
+            }
+
+            let first_subfolder = &out_subfolders[0];
+
+            // Find the only subfolder in the first subfolder.
+            let nested_subfolders = fs::read_dir(first_subfolder)
+                .ok()?
+                .filter_map(|entry| {
+                    let entry = entry.ok()?;
+                    let path = entry.path();
+                    if path.is_dir() {
+                        Some(path)
+                    } else {
+                        None
+                    }
+                })
+                .collect::<Vec<_>>();
+
+            if nested_subfolders.len() != 1 {
+                return None;
+            }
+
+            // Look for `config.json` at `tests/local_registry/config.json`.
+            let config_path = nested_subfolders[0]
+                .join("tests")
+                .join("local_registry")
+                .join("config.json");
+
+            if config_path.exists() {
+                return Some(config_path);
+            }
+
+            return None;
+        }
+
+        // Go up to parent directory.
+        if let Some(parent) = current_dir.parent() {
+            current_dir = parent.to_path_buf();
+        } else {
+            // Reached root directory, `config.json` not found.
+            return None;
+        }
+    }
+}
+
 #[actix_rt::test]
 async fn test_ws_builtin_function_install_all() {
     // Create channel for server address.
@@ -35,17 +119,8 @@ async fn test_ws_builtin_function_install_all() {
         let rt = tokio::runtime::Runtime::new().unwrap();
         rt.block_on(async {
             let tman_config = TmanConfig {
-                config_file: Some(
-                    std::env::current_dir()
-                        .unwrap()
-                        .parent()
-                        .and_then(|p| p.parent())
-                        .map(|p| p.to_path_buf())
-                        .unwrap()
-                        .join("config.json")
-                        .to_string_lossy()
-                        .into_owned(),
-                ),
+                config_file: find_config_json()
+                    .map(|p| p.to_string_lossy().into_owned()),
                 ..Default::default()
             };
 

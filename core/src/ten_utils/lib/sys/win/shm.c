@@ -11,6 +11,7 @@
 
 #include "ten_utils/lib/atomic.h"
 #include "ten_utils/lib/thread_once.h"
+#include "ten_utils/macro/memory.h"
 
 /**
  * Copy from ddk (so sad..)
@@ -107,7 +108,7 @@ void *ten_shm_map(const char *name, size_t size) {
 
   address = (char *)address + sizeof(ten_atomic_t);
 
-  entry = (ten_shm_map_t *)malloc(sizeof(*entry));
+  entry = (ten_shm_map_t *)TEN_MALLOC(sizeof(*entry));
   memset(entry, 0, sizeof(*entry));
   entry->address = address;
   entry->file = map_file;
@@ -152,7 +153,7 @@ void ten_shm_unmap(void *addr) {
   if (entry) {
     RemoveEntryList(itor);
     CloseHandle(entry->file);
-    free(entry);
+    TEN_FREE(entry);
   }
 
   LeaveCriticalSection(&lock);

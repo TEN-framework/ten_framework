@@ -13,6 +13,7 @@
 #include "ten_utils/lib/spinlock.h"
 #include "ten_utils/lib/time.h"
 #include "ten_utils/lib/waitable_addr.h"
+#include "ten_utils/macro/memory.h"
 
 struct ten_shared_event_t {
   ten_waitable_t *signal;
@@ -29,7 +30,7 @@ ten_shared_event_t *ten_shared_event_create(uint32_t *addr_for_sig,
     return NULL;
   }
 
-  ret = (ten_shared_event_t *)malloc(sizeof(*ret));
+  ret = (ten_shared_event_t *)TEN_MALLOC(sizeof(*ret));
   if (!ret) {
     return NULL;
   }
@@ -118,4 +119,4 @@ void ten_shared_event_reset(ten_shared_event_t *event) {
   ten_spinlock_unlock(event->lock);
 }
 
-void ten_shared_event_destroy(ten_shared_event_t *event) { free(event); }
+void ten_shared_event_destroy(ten_shared_event_t *event) { TEN_FREE(event); }

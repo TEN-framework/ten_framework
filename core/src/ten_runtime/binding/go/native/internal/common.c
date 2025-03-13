@@ -43,7 +43,7 @@ void ten_go_handle_array_destroy(ten_go_handle_array_t *self) {
   TEN_FREE(self);
 }
 
-char *ten_go_str_dup(const char *str) { return strdup(str); }
+char *ten_go_str_dup(const char *str) { return TEN_STRDUP(str); }
 
 void ten_go_bridge_destroy_c_part(ten_go_bridge_t *self) {
   TEN_ASSERT(self, "Should not happen.");

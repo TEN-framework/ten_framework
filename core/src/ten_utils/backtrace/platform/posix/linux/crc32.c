@@ -14,7 +14,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#include "ten_utils/io/mmap.h"
+#include "include_internal/ten_utils/backtrace/platform/posix/mmap.h"
 
 /**
  * @brief Compute the CRC-32 of @a buf & @a len. This uses the CRC used for
