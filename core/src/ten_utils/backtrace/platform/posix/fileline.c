@@ -19,8 +19,8 @@
 #include <unistd.h>
 
 #include "include_internal/ten_utils/backtrace/backtrace.h"
-#include "include_internal/ten_utils/backtrace/file.h"
 #include "include_internal/ten_utils/backtrace/platform/posix/config.h" // IWYU pragma: keep
+#include "include_internal/ten_utils/backtrace/platform/posix/file.h"
 #include "include_internal/ten_utils/backtrace/platform/posix/internal.h"
 #include "ten_utils/lib/atomic_ptr.h"
 #include "ten_utils/macro/mark.h"
