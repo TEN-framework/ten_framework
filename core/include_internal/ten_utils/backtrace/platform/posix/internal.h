@@ -64,9 +64,8 @@ TEN_UTILS_PRIVATE_API int ten_backtrace_dump_posix(ten_backtrace_t *self,
 /**
  * @brief Sort without using memory.
  */
-TEN_UTILS_PRIVATE_API void backtrace_sort(void *base, size_t count, size_t size,
-                                          int (*compar)(const void *,
-                                                        const void *));
+TEN_UTILS_API void backtrace_sort(void *base, size_t count, size_t size,
+                                  int (*compar)(const void *, const void *));
 
 /**
  * @brief Read initial debug data from a descriptor, and set the the following
