@@ -19,7 +19,7 @@ use tokio::{self, sync::oneshot};
 use tokio_tungstenite::{connect_async, tungstenite::protocol::Message};
 
 use ten_manager::{
-    config::TmanConfig,
+    config::{read_config, TmanConfig},
     designer::{
         builtin_function::{builtin_function, msg::InboundMsg},
         DesignerState,
@@ -110,7 +110,7 @@ fn find_config_json() -> Option<PathBuf> {
 }
 
 #[actix_rt::test]
-async fn test_ws_builtin_function_install_all() {
+async fn test_ws_builtin_function_install() {
     // Create channel for server address.
     let (addr_tx, addr_rx) = oneshot::channel();
 
@@ -118,9 +118,18 @@ async fn test_ws_builtin_function_install_all() {
     let _ = thread::spawn(move || {
         let rt = tokio::runtime::Runtime::new().unwrap();
         rt.block_on(async {
+            let tman_config_file_path =
+                find_config_json().map(|p| p.to_string_lossy().into_owned());
+
+            let tman_config_file = read_config(&tman_config_file_path).unwrap();
+
             let tman_config = TmanConfig {
-                config_file: find_config_json()
-                    .map(|p| p.to_string_lossy().into_owned()),
+                config_file: tman_config_file_path,
+                registry: if let Some(tman_config_file) = &tman_config_file {
+                    tman_config_file.registry.clone()
+                } else {
+                    HashMap::new()
+                },
                 ..Default::default()
             };
 
@@ -171,37 +180,63 @@ async fn test_ws_builtin_function_install_all() {
     // Split the WebSocket stream.
     let (mut write, mut read) = ws_stream.split();
 
-    // Prepare InstallAll message.
-    let install_all_msg = InboundMsg::InstallAll {
-        base_dir: "tests/test_data/cmd_check_start_graph_cmd".to_string(),
+    // Prepare Install message.
+    let install_msg = InboundMsg::Install {
+        base_dir: "tests/test_data/cmd_builtin_function_install".to_string(),
+        pkg_type: "extension".to_string(),
+        pkg_name: "ext_b".to_string(),
+        pkg_version: None,
     };
-    let json_msg = serde_json::to_string(&install_all_msg).unwrap();
+    let json_msg = serde_json::to_string(&install_msg).unwrap();
 
     // Send the message.
-    write.send(Message::Text(json_msg)).await.unwrap();
-    println!(
-        "Sent InstallAll message: {}",
-        serde_json::to_string(&install_all_msg).unwrap()
-    );
+    write.send(Message::Text(json_msg.clone())).await.unwrap();
+    println!("Sent Install message: {}", json_msg);
 
-    // Wait for first response message.
-    if let Some(Ok(message)) = read.next().await {
-        if let Message::Text(text) = message {
-            println!("Received response: {}", text);
-            // We just verify that we got any response, no need to validate
-            // content yet.
-            assert!(!text.is_empty(), "Response should not be empty");
-        } else {
-            panic!("Expected text message");
+    // Wait for all response messages until server disconnects.
+    let mut message_count = 0;
+    let mut last_text_message = String::new();
+
+    while let Some(Ok(message)) = read.next().await {
+        match message {
+            Message::Text(text) => {
+                println!("Received response #{}: {}", message_count + 1, text);
+                // Verify that the response is not empty.
+                assert!(!text.is_empty(), "Response should not be empty");
+                // Save the text message for later verification.
+                last_text_message = text;
+                message_count += 1;
+            }
+            Message::Close(_) => {
+                println!("Server closed the connection");
+                break;
+            }
+            _ => {
+                println!("Received non-text message: {:?}", message);
+            }
         }
-    } else {
-        panic!("Did not receive message from server");
     }
 
-    // Close the connection.
+    // Make sure we received at least one message.
+    assert!(
+        message_count > 0,
+        "Should have received at least one message"
+    );
+
+    // Check if the last message matches the expected exit message.
+    let expected_exit_message = r#"{"type":"exit","code":0}"#;
+    assert_eq!(
+        last_text_message, expected_exit_message,
+        "Last message should be an exit message with code 0"
+    );
+
+    // Close the connection if server hasn't done so already.
     let _ = write.send(Message::Close(None)).await;
 
     // We don't gracefully stop the server, just let the thread continue running
     // and it will be cleaned up when the process exits.
-    println!("Test completed successfully");
+    println!(
+        "Test completed successfully with {} messages received",
+        message_count
+    );
 }

@@ -33,6 +33,7 @@ use ten_rust::pkg_info::PkgInfo;
 
 use crate::config::TmanConfig;
 use crate::output::TmanOutput;
+
 pub struct DesignerState {
     pub tman_config: Arc<TmanConfig>,
     pub out: Arc<Box<dyn TmanOutput>>,
