@@ -29,7 +29,7 @@ impl WsBuiltinFunction {
             },
             local_install_mode: crate::cmd::cmd_install::LocalInstallMode::Link,
             standalone: false,
-            local_path: Some(base_dir.clone()),
+            local_path: None,
             cwd: base_dir.clone(),
         };
 

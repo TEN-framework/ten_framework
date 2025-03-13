@@ -15,6 +15,7 @@
 #include "ten_utils/io/transport.h"
 #include "ten_utils/macro/check.h"
 #include "ten_utils/macro/mark.h"
+#include "ten_utils/macro/memory.h"
 
 // Message write structure
 typedef struct ten_uv_write_req_t {
@@ -36,14 +37,13 @@ static void on_pipe_alloc(uv_handle_t *uv_handle, size_t suggested_size,
                           uv_buf_t *buf) {
   TEN_ASSERT(uv_handle && suggested_size && buf, "Invalid argument.");
 
-  buf->base = malloc(suggested_size);
+  buf->base = TEN_MALLOC(suggested_size);
   TEN_ASSERT(buf->base, "Failed to allocate memory.");
 
   buf->len = suggested_size;
 }
 
-static void on_pipe_read(uv_stream_t *uv_stream, ssize_t nread,
-                         const uv_buf_t *buf) {
+static void on_pipe_read(uv_stream_t *uv_stream, ssize_t nread, uv_buf_t *buf) {
   TEN_ASSERT(uv_stream && uv_stream->data, "Invalid argument.");
 
   ten_streambackend_pipe_t *pipe_stream = uv_stream->data;
@@ -57,7 +57,7 @@ static void on_pipe_read(uv_stream_t *uv_stream, ssize_t nread,
     // Nothing to read.
   } else if (nread < 0) {
     // Something bad happened, free the message.
-    free(buf->base);
+    TEN_FREE(buf->base);
 
     // Notify that there is something bad happened.
     if (stream->on_message_read) {
@@ -67,7 +67,7 @@ static void on_pipe_read(uv_stream_t *uv_stream, ssize_t nread,
     if (stream->on_message_read) {
       stream->on_message_read(stream, buf->base, (int)nread);
     }
-    free(buf->base);
+    TEN_FREE(buf->base);
   }
 }
 
@@ -139,7 +139,7 @@ static void on_pipe_write_done(uv_write_t *wreq, TEN_UNUSED int status) {
   }
 
   // Release the write request.
-  free(req);
+  TEN_FREE(req);
 }
 
 static int ten_streambackend_pipe_write(ten_streambackend_t *backend,
@@ -148,7 +148,7 @@ static int ten_streambackend_pipe_write(ten_streambackend_t *backend,
   ten_streambackend_pipe_t *pipe_stream = (ten_streambackend_pipe_t *)backend;
   TEN_ASSERT(pipe_stream, "Invalid argument.");
 
-  ten_uv_write_req_t *req = malloc(sizeof(ten_uv_write_req_t));
+  ten_uv_write_req_t *req = TEN_MALLOC(sizeof(ten_uv_write_req_t));
   TEN_ASSERT(req, "Failed to allocate memory.");
   req->req.data = pipe_stream;
   req->user_data = user_data;
@@ -173,8 +173,8 @@ ten_streambackend_pipe_destroy(ten_streambackend_pipe_t *pipe_stream) {
 
   ten_streambackend_deinit(&pipe_stream->base);
 
-  free(pipe_stream->uv_stream);
-  free(pipe_stream);
+  TEN_FREE(pipe_stream->uv_stream);
+  TEN_FREE(pipe_stream);
 }
 
 static void ten_streambackend_pipe_on_close(uv_handle_t *uv_handle) {
@@ -213,7 +213,7 @@ ten_streambackend_pipe_create(ten_stream_t *stream) {
   TEN_ASSERT(stream, "Invalid argument.");
 
   ten_streambackend_pipe_t *pipe_stream =
-      (ten_streambackend_pipe_t *)malloc(sizeof(ten_streambackend_pipe_t));
+      (ten_streambackend_pipe_t *)TEN_MALLOC(sizeof(ten_streambackend_pipe_t));
   TEN_ASSERT(pipe_stream, "Failed to allocate memory.");
   memset(pipe_stream, 0, sizeof(ten_streambackend_pipe_t));
 
@@ -225,7 +225,7 @@ ten_streambackend_pipe_create(ten_stream_t *stream) {
   pipe_stream->base.write = ten_streambackend_pipe_write;
   pipe_stream->base.close = ten_streambackend_pipe_close;
 
-  pipe_stream->uv_stream = (uv_pipe_t *)malloc(sizeof(uv_pipe_t));
+  pipe_stream->uv_stream = (uv_pipe_t *)TEN_MALLOC(sizeof(uv_pipe_t));
   TEN_ASSERT(pipe_stream->uv_stream, "Failed to allocate memory.");
   memset(pipe_stream->uv_stream, 0, sizeof(uv_pipe_t));
 
@@ -235,7 +235,7 @@ ten_streambackend_pipe_create(ten_stream_t *stream) {
 }
 
 ten_stream_t *ten_stream_pipe_create_uv(uv_loop_t *loop) {
-  ten_stream_t *stream = (ten_stream_t *)malloc(sizeof(*stream));
+  ten_stream_t *stream = (ten_stream_t *)TEN_MALLOC(sizeof(*stream));
   TEN_ASSERT(stream, "Failed to allocate memory.");
   memset(stream, 0, sizeof(*stream));
   ten_stream_init(stream);

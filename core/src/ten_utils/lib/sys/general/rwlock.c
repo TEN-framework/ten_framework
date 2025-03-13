@@ -15,6 +15,7 @@
 #include "ten_utils/lib/signature.h"
 #include "ten_utils/macro/check.h"
 #include "ten_utils/macro/mark.h"
+#include "ten_utils/macro/memory.h"
 
 int ten_rwlock_check_integrity(ten_rwlock_t *self) {
   TEN_ASSERT(self, "Invalid argument.");
@@ -122,7 +123,7 @@ static int ten_pflock_unlock(ten_rwlock_t *rwlock, int reader) {
 }
 
 static inline ten_rwlock_t *ten_pflock_create(void) {
-  ten_pflock_t *pflock = (ten_pflock_t *)malloc(sizeof(ten_pflock_t));
+  ten_pflock_t *pflock = (ten_pflock_t *)TEN_MALLOC(sizeof(ten_pflock_t));
   TEN_ASSERT(pflock, "Failed to allocate memory.");
   if (pflock == NULL) {
     return NULL;
@@ -140,7 +141,7 @@ static inline ten_rwlock_t *ten_pflock_create(void) {
 }
 
 static inline ten_rwlock_t *ten_native_create(void) {
-  ten_native_t *native = (ten_native_t *)malloc(sizeof(ten_native_t));
+  ten_native_t *native = (ten_native_t *)TEN_MALLOC(sizeof(ten_native_t));
   TEN_ASSERT(native, "Failed to allocate memory.");
   if (native == NULL) {
     return NULL;
@@ -178,7 +179,7 @@ ten_rwlock_t *ten_rwlock_create(TEN_RW_FAIRNESS fair) {
 
   if (ten_rwlock_base_init(rwlock) != 0) {
     // Prevent memory leak.
-    free(rwlock);
+    TEN_FREE(rwlock);
     return NULL;
   }
 
@@ -206,7 +207,7 @@ void ten_rwlock_destroy(ten_rwlock_t *lock) {
 
   ten_rwlock_base_deinit(lock);
 
-  free(lock);
+  TEN_FREE(lock);
 }
 
 int ten_rwlock_lock(ten_rwlock_t *lock, int reader) {

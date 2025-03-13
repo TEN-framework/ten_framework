@@ -10,6 +10,10 @@
 #include "ten_utils/container/hash_table.h"
 #include "ten_utils/macro/check.h"
 
+// Note: The hash table will be used in the TEN memory tracking mechanism, so do
+// _not_ use the TEN_MALLOC series of APIs in the hash table-related code;
+// otherwise, there will be a circular dependency issue.
+
 void ten_hashbucket_add(ten_hashbucket_t *self, ten_hashhandle_t *hh) {
   TEN_ASSERT(self && hh, "Invalid argument.");
 

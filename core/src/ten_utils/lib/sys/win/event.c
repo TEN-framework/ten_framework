@@ -5,6 +5,7 @@
 // Refer to the "LICENSE" file in the root directory for more information.
 //
 #include "ten_utils/lib/event.h"
+#include "ten_utils/macro/memory.h"
 
 #include <Windows.h>
 #include <stdlib.h>
@@ -14,7 +15,7 @@ typedef struct ten_event_t {
 } ten_event_t;
 
 ten_event_t *ten_event_create(int init_state, int auto_reset) {
-  ten_event_t *event = (ten_event_t *)malloc(sizeof(*event));
+  ten_event_t *event = (ten_event_t *)TEN_MALLOC(sizeof(*event));
 
   if (!event) {
     return NULL;
@@ -57,5 +58,5 @@ void ten_event_destroy(ten_event_t *event) {
     CloseHandle(event->event);
   }
 
-  free(event);
+  TEN_FREE(event);
 }

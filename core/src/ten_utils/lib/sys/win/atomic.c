@@ -7,8 +7,10 @@
 #include "ten_utils/lib/atomic.h"
 
 #include <Windows.h>
+#include <assert.h>
 
-#include "ten_utils/macro/check.h"
+// NOTE: This file will be used in the TEN backtrace module, so do _not_ use
+// TEN_ASSERT or any other mechanisms which might involve backtrace dump.
 
 int64_t ten_atomic_fetch_add(volatile ten_atomic_t *a, int64_t v) {
   return InterlockedExchangeAdd64(a, v);
@@ -19,12 +21,12 @@ int64_t ten_atomic_add_fetch(volatile ten_atomic_t *a, int64_t v) {
 }
 
 int64_t ten_atomic_and_fetch(volatile ten_atomic_t *a, int64_t v) {
-  TEN_ASSERT(0, "TODO(Wei): Implement this.");
+  assert(0 && "TODO(Wei): Implement this.");
   return 0;
 }
 
 int64_t ten_atomic_or_fetch(volatile ten_atomic_t *a, int64_t v) {
-  TEN_ASSERT(0, "TODO(Wei): Implement this.");
+  assert(0 && "TODO(Wei): Implement this.");
   return 0;
 }
 

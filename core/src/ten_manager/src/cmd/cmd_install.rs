@@ -6,7 +6,6 @@
 //
 use std::{
     collections::HashMap,
-    env,
     fs::{self},
     path::{Path, PathBuf},
     sync::Arc,
@@ -344,16 +343,12 @@ async fn determine_app_dir_to_work_with(
         let dot_ten_app_dir_path =
             prepare_standalone_app_dir(tman_config, specified_cwd).await?;
 
-        env::set_current_dir(&dot_ten_app_dir_path)?;
-
         Ok(dot_ten_app_dir_path)
     } else {
         // Non-standalone mode can only be executed in the extension directory.
         // If it is an extension, it should search upwards for the nearest app;
         // if it is an app, it can be used directly.
         let app_dir = find_nearest_app_dir(specified_cwd.to_path_buf())?;
-
-        env::set_current_dir(&app_dir)?;
 
         Ok(app_dir)
     }
@@ -708,13 +703,11 @@ do you want to continue?",
                     Ok(false) => {
                         // Stop to install. Change back to the original current
                         // directory before returning.
-                        env::set_current_dir(&original_cwd)?;
                         return Ok(());
                     }
                     Err(_) => {
                         // Stop to install. Change back to the original current
                         // directory before returning.
-                        env::set_current_dir(&original_cwd)?;
                         return Ok(());
                     }
                 }
@@ -774,9 +767,6 @@ do you want to continue?",
                 )?;
             }
         }
-
-        // Change back to the original current directory.
-        env::set_current_dir(&original_cwd)?;
 
         out.normal_line(&format!(
             "{}  Install successfully in {}",
@@ -852,17 +842,10 @@ do you want to continue?",
                     out,
                 )?;
 
-                // Change back to the original current directory before
-                // returning.
-                env::set_current_dir(&original_cwd)?;
-
                 // Since there is an error, we need to exit.
                 return Err(anyhow!("Dependency resolution failed."));
             }
         }
-
-        // Change back to the original current directory before returning.
-        env::set_current_dir(&original_cwd)?;
 
         // If there are no error models or unable to parse, return a generic
         // error.

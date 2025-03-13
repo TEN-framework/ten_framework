@@ -16,8 +16,8 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+#include "include_internal/ten_utils/backtrace/platform/posix/file.h"
 #include "include_internal/ten_utils/backtrace/platform/posix/linux/crc32.h"
-#include "ten_utils/lib/file.h"
 
 #define SYSTEM_BUILD_ID_DIR "/usr/lib/debug/.build-id/"
 
@@ -68,7 +68,7 @@ int elf_open_debug_file_by_build_id(ten_backtrace_t *self,
   memcpy(t, suffix, suffix_len);
   t[suffix_len] = '\0';
 
-  int ret = ten_file_open(build_id_filename, &does_not_exist);
+  int ret = ten_backtrace_open_file(build_id_filename, &does_not_exist);
 
   free(build_id_filename);
 
@@ -153,7 +153,7 @@ static int elf_try_debug_file(ten_backtrace_t *self, const char *prefix,
   memcpy(try + prefix_len + prefix2_len, debug_link_name, debug_link_len);
   try[prefix_len + prefix2_len + debug_link_len] = '\0';
 
-  int ret = ten_file_open(try, &does_not_exist);
+  int ret = ten_backtrace_open_file(try, &does_not_exist);
 
   free(try);
 
@@ -309,7 +309,7 @@ int elf_open_debug_file_by_debug_link(
     if (got_crc != debug_link_crc) {
       /// CRC checksum error, the found debug file is not the correct one for @a
       /// filename.
-      ten_file_close(debug_file_fd);
+      ten_backtrace_close_file(debug_file_fd);
       return -1;
     }
   }

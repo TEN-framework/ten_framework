@@ -7,6 +7,8 @@
 // This file is modified from
 // https://github.com/ianlancetaylor/libbacktrace [BSD license]
 //
+#pragma once
+
 #include "ten_utils/ten_config.h"
 
 TEN_UTILS_PRIVATE_API void elf_uncompress_failed(void);

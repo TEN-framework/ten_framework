@@ -13,6 +13,7 @@
 
 #include "include_internal/ten_utils/backtrace/backtrace.h"
 #include "include_internal/ten_utils/backtrace/common.h"
+#include "include_internal/ten_utils/backtrace/platform/posix/dwarf.h"
 #include "ten_utils/lib/atomic.h"
 #include "ten_utils/macro/mark.h"
 
@@ -61,14 +62,6 @@ TEN_UTILS_PRIVATE_API int ten_backtrace_dump_posix(ten_backtrace_t *self,
                                                    size_t skip);
 
 /**
- * @brief Sort without using memory.
- */
-TEN_UTILS_PRIVATE_API void backtrace_qsort(void *base, size_t count,
-                                           size_t size,
-                                           int (*compar)(const void *,
-                                                         const void *));
-
-/**
  * @brief Read initial debug data from a descriptor, and set the the following
  * fields of @a self.
  * - get_file_line_data
@@ -85,29 +78,6 @@ TEN_UTILS_PRIVATE_API int ten_backtrace_init_posix(
     ten_backtrace_t *self, const char *filename, int descriptor,
     ten_backtrace_error_func_t error_cb, void *data,
     ten_backtrace_get_file_line_func_t *get_file_line);
-
-/**
- * @brief An enum for the DWARF sections we care about.
- */
-typedef enum dwarf_section {
-  DEBUG_INFO,
-  DEBUG_LINE,
-  DEBUG_ABBREV,
-  DEBUG_RANGES,
-  DEBUG_STR,
-  DEBUG_ADDR,
-  DEBUG_STR_OFFSETS,
-  DEBUG_LINE_STR,
-  DEBUG_RNGLISTS,
-
-  DEBUG_MAX
-} dwarf_section;
-
-// Data for the DWARF sections we care about.
-typedef struct dwarf_sections {
-  const unsigned char *data[DEBUG_MAX];
-  size_t size[DEBUG_MAX];
-} dwarf_sections;
 
 // DWARF data read from a file, used for .gnu_debugaltlink.
 struct dwarf_data;

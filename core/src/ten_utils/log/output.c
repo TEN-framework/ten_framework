@@ -4,6 +4,7 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
+#include "ten_utils/macro/memory.h"
 #include "ten_utils/ten_config.h"
 
 #include "ten_utils/lib/string.h"
@@ -33,7 +34,7 @@
 
 // Function to create directories recursively.
 static bool create_directories(const char *path) {
-  char *path_copy = strdup(path);
+  char *path_copy = TEN_STRDUP(path);
   TEN_ASSERT(path_copy, "Failed to allocate memory.");
   if (!path_copy) {
     return false;
@@ -63,14 +64,14 @@ static bool create_directories(const char *path) {
       if (!CreateDirectoryA(path_copy, NULL)) {
         DWORD err = GetLastError();
         if (err != ERROR_ALREADY_EXISTS) {
-          free(path_copy);
+          TEN_FREE(path_copy);
           return false;
         }
       }
 #else
       if (mkdir(path_copy, 0755) != 0) {
         if (errno != EEXIST) {
-          free(path_copy);
+          TEN_FREE(path_copy);
           return false;
         }
       }
@@ -83,20 +84,20 @@ static bool create_directories(const char *path) {
   if (!CreateDirectoryA(path_copy, NULL)) {
     DWORD err = GetLastError();
     if (err != ERROR_ALREADY_EXISTS) {
-      free(path_copy);
+      TEN_FREE(path_copy);
       return false;
     }
   }
 #else
   if (mkdir(path_copy, 0755) != 0) {
     if (errno != EEXIST) {
-      free(path_copy);
+      TEN_FREE(path_copy);
       return false;
     }
   }
 #endif
 
-  free(path_copy);
+  TEN_FREE(path_copy);
   return true;
 }
 
@@ -123,14 +124,14 @@ static void ten_log_close_file_cb(void *user_data) {
   close(*fd);
 #endif
 
-  free(fd);
+  TEN_FREE(fd);
 }
 
 static int *get_log_fd(const char *log_path) {
   TEN_ASSERT(log_path, "log_path cannot be NULL.");
 
   // Duplicate the log_path to manipulate it.
-  char *path_copy = strdup(log_path);
+  char *path_copy = TEN_STRDUP(log_path);
   TEN_ASSERT(path_copy, "Failed to allocate memory.");
   if (!path_copy) {
     return NULL;
@@ -144,12 +145,12 @@ static int *get_log_fd(const char *log_path) {
     // Create directories recursively.
     if (create_directories(path_copy) != true) {
       // Failed to create directories
-      free(path_copy);
+      TEN_FREE(path_copy);
       return NULL;
     }
   }
 
-  free(path_copy);
+  TEN_FREE(path_copy);
 
   // Now, attempt to open the file.
   FILE *fp = fopen(log_path, "ab");
@@ -158,7 +159,7 @@ static int *get_log_fd(const char *log_path) {
     return NULL;
   }
 
-  int *fd_ptr = malloc(sizeof(int));
+  int *fd_ptr = TEN_MALLOC(sizeof(int));
   TEN_ASSERT(fd_ptr, "Failed to allocate memory.");
   if (!fd_ptr) {
     (void)fclose(fp);
@@ -280,7 +281,7 @@ void ten_log_output_to_file_deinit(ten_log_t *self) {
   TEN_ASSERT(self->output.output_cb == ten_log_output_to_file_cb,
              "Invalid argument.");
 
-  free(self->output.user_data);
+  TEN_FREE(self->output.user_data);
 }
 
 bool ten_log_is_output_to_file(ten_log_t *self) {

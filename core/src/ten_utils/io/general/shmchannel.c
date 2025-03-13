@@ -14,6 +14,7 @@
 #include "ten_utils/lib/spinlock.h"
 #include "ten_utils/lib/string.h"
 #include "ten_utils/macro/mark.h"
+#include "ten_utils/macro/memory.h"
 
 #if defined(_WIN32)
 #define TEN_ANYSIZE_ARRAY 1
@@ -60,7 +61,7 @@ int ten_shm_channel_create(const char *name, ten_shm_channel_t *channel[2]) {
   }
 
   for (int i = 0; i < 2; i++) {
-    channel[i] = (ten_shm_channel_t *)malloc(sizeof(ten_shm_channel_t));
+    channel[i] = (ten_shm_channel_t *)TEN_MALLOC(sizeof(ten_shm_channel_t));
     TEN_ASSERT(channel[i], "Failed to allocate memory.");
     memset(channel[i], 0, sizeof(ten_shm_channel_t));
 
@@ -140,7 +141,7 @@ void ten_shm_channel_close(ten_shm_channel_t *channel) {
     ten_shm_unlink(channel->name.buf);
   }
 
-  free(channel);
+  TEN_FREE(channel);
 }
 
 int ten_shm_channel_active(ten_shm_channel_t *channel, int read) {

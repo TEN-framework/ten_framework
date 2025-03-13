@@ -73,11 +73,11 @@ void ten_sanitizer_memory_record_init(void) {
                               sizeof(ten_listnode_t *));
 #endif
 
+  g_memory_records.lock = ten_mutex_create();
+
   ten_hashtable_init(
       &g_memory_records.records_hash,
       offsetof(ten_sanitizer_memory_record_t, hh_in_records_hash));
-
-  g_memory_records.lock = ten_mutex_create();
 
 #if defined(TEN_USE_ASAN)
   __lsan_enable();

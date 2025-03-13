@@ -36,7 +36,7 @@ void ten_cond_destroy(ten_cond_t *cond) {
     return;
   }
 
-  free(cond);
+  TEN_FREE(cond);
 }
 
 int ten_cond_wait(ten_cond_t *cond, ten_mutex_t *mutex, int64_t wait_ms) {

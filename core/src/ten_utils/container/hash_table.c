@@ -11,6 +11,10 @@
 #include "ten_utils/macro/check.h"
 #include "ten_utils/macro/mark.h"
 
+// Note: The hash table will be used in the TEN memory tracking mechanism, so do
+// _not_ use the TEN_MALLOC series of APIs in the hash table-related code;
+// otherwise, there will be a circular dependency issue.
+
 #define HASH_TBL_INIT_BKT_CNT 32U     // Initial number of buckets
 #define HASH_TBL_INIT_BKT_CNT_LOG2 5U // lg2 of initial number of buckets
 

@@ -16,6 +16,7 @@
 #include "ten_utils/lib/alloc.h"
 #include "ten_utils/lib/string.h"
 #include "ten_utils/lib/uri.h"
+#include "ten_utils/log/log.h"
 #include "ten_utils/macro/mark.h"
 
 typedef struct ten_transportbackend_tcp_t {
@@ -35,8 +36,8 @@ static void ten_transportbackend_tcp_destroy(ten_transportbackend_tcp_t *self) {
   TEN_FREE(self);
 }
 
-static void ten_transportbackend_tcp_on_close(
-    ten_transportbackend_tcp_t *self) {
+static void
+ten_transportbackend_tcp_on_close(ten_transportbackend_tcp_t *self) {
   TEN_ASSERT(self, "Invalid argument.");
 
   ten_transport_t *transport = self->base.transport;
@@ -273,8 +274,8 @@ static int ten_transportbackend_tcp_listen(ten_transportbackend_t *backend,
 
   rc = uv_listen((uv_stream_t *)server, 8192, on_client_connected);
   if (rc != 0) {
-    // TEN_LOGE("uv_listen return %d", rc);
-    TEN_ASSERT(!rc, "uv_listen() failed: %d", rc);
+    TEN_LOGE("Failed to uv_listen: %d", rc);
+    TEN_ASSERT(0, "Failed to uv_listen()");
   }
 
   ten_string_destroy(host);
@@ -282,8 +283,9 @@ static int ten_transportbackend_tcp_listen(ten_transportbackend_t *backend,
   return rc;
 }
 
-static ten_transportbackend_t *ten_transportbackend_tcp_create(
-    ten_transport_t *transport, const ten_string_t *name) {
+static ten_transportbackend_t *
+ten_transportbackend_tcp_create(ten_transport_t *transport,
+                                const ten_string_t *name) {
   ten_transportbackend_tcp_t *self = NULL;
 
   if (!name || !name->buf || !*name->buf) {

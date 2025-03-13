@@ -17,6 +17,7 @@
 #include "include_internal/ten_utils/log/output.h"
 #include "ten_utils/lib/signature.h"
 #include "ten_utils/lib/string.h"
+#include "ten_utils/macro/memory.h"
 
 bool ten_log_check_integrity(ten_log_t *self) {
   TEN_ASSERT(self, "Invalid argument.");
@@ -44,7 +45,7 @@ void ten_log_init(ten_log_t *self) {
 }
 
 ten_log_t *ten_log_create(void) {
-  ten_log_t *log = malloc(sizeof(ten_log_t));
+  ten_log_t *log = TEN_MALLOC(sizeof(ten_log_t));
   TEN_ASSERT(log, "Failed to allocate memory.");
 
   ten_log_init(log);
@@ -72,7 +73,7 @@ void ten_log_destroy(ten_log_t *self) {
   TEN_ASSERT(self && ten_log_check_integrity(self), "Invalid argument.");
 
   ten_log_deinit(self);
-  free(self);
+  TEN_FREE(self);
 }
 
 void ten_log_set_encrypt_cb(ten_log_t *self, ten_log_encrypt_func_t cb,

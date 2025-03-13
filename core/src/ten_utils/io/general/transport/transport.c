@@ -15,6 +15,7 @@
 #include "ten_utils/lib/string.h"
 #include "ten_utils/macro/check.h"
 #include "ten_utils/macro/mark.h"
+#include "ten_utils/macro/memory.h"
 
 // Destroy all the resources hold by this transport object.
 static void ten_transport_destroy(ten_transport_t *self) {
@@ -23,7 +24,7 @@ static void ten_transport_destroy(ten_transport_t *self) {
   if (self->lock) {
     ten_mutex_destroy(self->lock);
   }
-  free(self);
+  TEN_FREE(self);
 }
 
 ten_transport_t *ten_transport_create(ten_runloop_t *loop) {
@@ -33,7 +34,7 @@ ten_transport_t *ten_transport_create(ten_runloop_t *loop) {
     goto error;
   }
 
-  self = (ten_transport_t *)malloc(sizeof(*self));
+  self = (ten_transport_t *)TEN_MALLOC(sizeof(*self));
   if (!self) {
     goto error;
   }
@@ -107,8 +108,8 @@ int ten_transport_close(ten_transport_t *self) {
   return -1;
 }
 
-enum TEN_TRANSPORT_DROP_TYPE ten_transport_get_drop_type(
-    ten_transport_t *self) {
+enum TEN_TRANSPORT_DROP_TYPE
+ten_transport_get_drop_type(ten_transport_t *self) {
   TEN_TRANSPORT_DROP_TYPE ret = TEN_TRANSPORT_DROP_NEW;
 
   if (!self) {

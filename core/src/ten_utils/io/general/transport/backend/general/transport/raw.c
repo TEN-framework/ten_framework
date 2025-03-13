@@ -22,6 +22,7 @@
 #include "ten_utils/macro/check.h"
 #include "ten_utils/macro/field.h"
 #include "ten_utils/macro/mark.h"
+#include "ten_utils/macro/memory.h"
 
 #define TEN_STREAMBACKEND_RAW_SIGNATURE 0x861D0758EA843916U
 
@@ -131,7 +132,7 @@ static ten_named_queue_t *ten_named_queue_get(ten_runloop_t *loop,
 
   queue = ten_find_named_queue_unsafe(name);
   if (!queue) {
-    queue = malloc(sizeof(ten_named_queue_t));
+    queue = TEN_MALLOC(sizeof(ten_named_queue_t));
     TEN_STRING_INIT(queue->name);
     ten_string_set_formatted(&queue->name, name->buf);
     ten_queue_init(loop, &queue->endpoint[0]);
@@ -158,7 +159,7 @@ static void ten_named_queue_put(ten_named_queue_t *queue) {
     ten_queue_deinit(&queue->endpoint[0]);
     ten_queue_deinit(&queue->endpoint[1]);
     ten_string_deinit(&queue->name);
-    free(queue);
+    TEN_FREE(queue);
   }
 
   rc = ten_mutex_unlock(g_all_streams_lock);
@@ -214,7 +215,7 @@ static void process_delayed_tasks(ten_transportbackend_raw_t *self) {
     if (task->close_after_done) {
       ten_list_push_back(&tasks_needs_close, node);
     } else {
-      free(task);
+      TEN_FREE(task);
     }
   }
 
@@ -225,7 +226,7 @@ static void process_delayed_tasks(ten_transportbackend_raw_t *self) {
 
     ten_transport_close(task->transport);
 
-    free(task);
+    TEN_FREE(task);
   }
 }
 
@@ -236,7 +237,7 @@ static void on_queue_has_more_data(ten_runloop_async_t *handle) {
 
 static void on_write_request_closed(ten_runloop_async_t *handle) {
   ten_raw_write_req_t *req = handle->data;
-  free(req);
+  TEN_FREE(req);
   ten_runloop_async_destroy(handle);
 }
 
@@ -262,7 +263,7 @@ static void on_stream_in_signal_closed(ten_runloop_async_t *handle) {
   ten_named_queue_put(raw_stream->queue);
   ten_streambackend_deinit(&raw_stream->base);
 
-  free(raw_stream);
+  TEN_FREE(raw_stream);
   ten_runloop_async_destroy(handle);
 }
 
@@ -287,7 +288,7 @@ static int ten_streambackend_raw_write(ten_streambackend_t *backend,
   ten_streambackend_raw_t *raw_stream = (ten_streambackend_raw_t *)backend;
   TEN_ASSERT(raw_stream, "Invalid argument.");
 
-  ten_raw_write_req_t *req = malloc(sizeof(ten_raw_write_req_t));
+  ten_raw_write_req_t *req = TEN_MALLOC(sizeof(ten_raw_write_req_t));
   TEN_ASSERT(req, "Failed to allocate memory.");
   req->done_signal = ten_runloop_async_create(raw_stream->base.impl);
   req->buf = (void *)buf;
@@ -329,7 +330,8 @@ static int ten_streambackend_raw_close(ten_streambackend_t *backend) {
 static ten_streambackend_raw_t *
 ten_streambackend_raw_create(const char *impl, ten_stream_t *stream,
                              ten_queue_t *in, ten_queue_t *out) {
-  ten_streambackend_raw_t *backend = malloc(sizeof(ten_streambackend_raw_t));
+  ten_streambackend_raw_t *backend =
+      TEN_MALLOC(sizeof(ten_streambackend_raw_t));
   TEN_ASSERT(backend, "Failed to allocate memory.");
   memset(backend, 0, sizeof(ten_streambackend_raw_t));
 
@@ -361,7 +363,7 @@ static int ten_transportbackend_new_stream(
     goto error;
   }
 
-  stream = (ten_stream_t *)malloc(sizeof(*stream));
+  stream = (ten_stream_t *)TEN_MALLOC(sizeof(*stream));
   if (!stream) {
     // TEN_LOGE("Not enough memory, failed to allocate stream");
     goto error;
@@ -384,7 +386,7 @@ static int ten_transportbackend_new_stream(
   ten_runloop_async_init(streambackend->in->signal, streambackend->worker,
                          on_queue_has_more_data);
 
-  ten_delayed_task_t *req = malloc(sizeof(ten_delayed_task_t));
+  ten_delayed_task_t *req = TEN_MALLOC(sizeof(ten_delayed_task_t));
   TEN_ASSERT(req, "Failed to allocate memory.");
   req->transport = backend->transport;
   req->stream = stream;
@@ -402,7 +404,7 @@ error:
   }
 
   if (stream) {
-    free(stream);
+    TEN_FREE(stream);
   }
 
   if (streambackend) {
@@ -442,7 +444,7 @@ static void on_delayed_task_signal_closed(ten_runloop_async_t *handle) {
   self->delayed_task_signal->data = NULL;
   ten_transport_on_close(transport);
   ten_transportbackend_deinit(&self->base);
-  free(self);
+  TEN_FREE(self);
   ten_runloop_async_destroy(handle);
 }
 
@@ -487,8 +489,8 @@ ten_transportbackend_raw_create(ten_transport_t *transport,
     goto error;
   }
 
-  self =
-      (ten_transportbackend_raw_t *)malloc(sizeof(ten_transportbackend_raw_t));
+  self = (ten_transportbackend_raw_t *)TEN_MALLOC(
+      sizeof(ten_transportbackend_raw_t));
   if (!self) {
     // TEN_LOGE("Not enough memory");
     goto error;

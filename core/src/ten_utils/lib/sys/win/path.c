@@ -15,8 +15,9 @@
 
 #include "ten_utils/lib/string.h"
 #include "ten_utils/macro/check.h"
+#include "ten_utils/macro/memory.h"
 
-ten_string_t *ten_path_get_cwd() {
+ten_string_t *ten_path_get_cwd(void) {
   char *buf = NULL;
   DWORD size = 0;
 
@@ -25,7 +26,7 @@ ten_string_t *ten_path_get_cwd() {
     goto error;
   }
 
-  buf = (char *)malloc(size);
+  buf = (char *)TEN_MALLOC(size);
   if (buf == NULL) {
     goto error;
   }
@@ -36,12 +37,12 @@ ten_string_t *ten_path_get_cwd() {
   }
 
   ten_string_t *ret = ten_string_create_formatted(buf);
-  free(buf);
+  TEN_FREE(buf);
   return ret;
 
 error:
   if (buf) {
-    free(buf);
+    TEN_FREE(buf);
   }
 
   return NULL;
@@ -64,16 +65,16 @@ static ten_string_t *ten_path_get_binary_path(HMODULE self) {
   ten_string_t *full_path = NULL;
   ten_string_t *dir = NULL;
 
-  buf = (char *)malloc(expect_size);
+  buf = (char *)TEN_MALLOC(expect_size);
   if (buf == NULL) {
     goto error;
   }
 
   expect_size = GetModuleFileNameA(self, buf, expect_size);
   if (expect_size > MAX_PATH) {
-    free(buf);
+    TEN_FREE(buf);
 
-    buf = (char *)malloc(expect_size);
+    buf = (char *)TEN_MALLOC(expect_size);
     if (buf == NULL) {
       goto error;
     }
@@ -88,7 +89,7 @@ static ten_string_t *ten_path_get_binary_path(HMODULE self) {
     goto error;
   }
 
-  free(buf);
+  TEN_FREE(buf);
   dir = ten_path_get_dirname(full_path);
   ten_string_destroy(full_path);
   if (!dir) {
@@ -101,7 +102,7 @@ static ten_string_t *ten_path_get_binary_path(HMODULE self) {
 
 error:
   if (buf) {
-    free(buf);
+    TEN_FREE(buf);
   }
 
   if (full_path) {
@@ -162,7 +163,7 @@ ten_string_t *ten_path_realpath(const ten_string_t *path) {
   }
 
   ten_string_t *ret = ten_string_create_formatted(buf);
-  free(buf);
+  TEN_FREE(buf);
   return ret;
 }
 
@@ -262,7 +263,7 @@ ten_dir_fd_t *ten_path_open_dir(const char *path) {
     goto error;
   }
 
-  dir = (ten_dir_fd_t *)malloc(sizeof(ten_dir_fd_t));
+  dir = (ten_dir_fd_t *)TEN_MALLOC(sizeof(ten_dir_fd_t));
   if (dir == NULL) {
     goto error;
   }
@@ -311,7 +312,7 @@ int ten_path_close_dir(ten_dir_fd_t *dir) {
     ten_string_destroy(dir->path);
   }
 
-  free(dir);
+  TEN_FREE(dir);
   return 0;
 }
 

@@ -603,7 +603,7 @@ static int ten_runloop_post_task_at(ten_runloop_t *loop,
 
 #if defined(_DEBUG)
   // Add some random delays in debug mode to test different timings.
-  ten_random_sleep_range_ms(0, 10);
+  ten_random_sleep_range_ms(0, 20);
 #endif
 
   needs_notify = ten_list_is_empty(&impl->tasks) ? 1 : 0;

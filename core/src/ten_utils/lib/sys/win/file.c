@@ -6,23 +6,23 @@
 //
 #include "ten_utils/lib/file.h"
 
-#include <assert.h>
 #include <io.h>
 #include <stdio.h>
 
 #include "ten_utils/lib/path.h"
+#include "ten_utils/macro/check.h"
 
 int ten_file_get_fd(FILE *fp) { return _fileno(fp); }
 
 int ten_file_size(const char *filename) {
-  assert(filename);
+  TEN_ASSERT(filename, "Invalid argument.");
 
-  assert(0 && "Need to implement this.");
+  TEN_ASSERT(0 && "Need to implement this.", "Invalid argument.");
   return -1;
 }
 
 int ten_file_chmod(const char *filename, uint32_t mode) {
-  assert(filename);
+  TEN_ASSERT(filename, "Invalid argument.");
 
   // TODO(ZhangXianyao): Need to implement.
   (void)mode;
@@ -32,7 +32,7 @@ int ten_file_chmod(const char *filename, uint32_t mode) {
 
 int ten_file_clone_permission(const char *src_filename,
                               const char *dest_filename) {
-  assert(src_filename && dest_filename);
+  TEN_ASSERT(src_filename && dest_filename, "Invalid argument.");
 
   // TODO(ZhangXianyao): Need to implement.
   return 0;
@@ -47,21 +47,21 @@ int ten_file_clone_permission_by_fd(int src_fd, int dest_fd) {
 }
 
 int ten_file_clear_open_file_content(FILE *fp) {
-  assert(fp);
+  TEN_ASSERT(fp, "Invalid argument.");
 
   rewind(fp);
   return _chsize(ten_file_get_fd(fp), 0);
 }
 
 char *ten_symlink_file_read(const char *path) {
-  assert(path && ten_path_is_symlink(path));
+  TEN_ASSERT(path && ten_path_is_symlink(path), "Invalid argument.");
 
   // TODO(ZhangXianyao): Need to implement.
   return NULL;
 }
 
 int ten_symlink_file_copy(const char *src_file, const char *dest_file) {
-  assert(src_file && ten_path_is_symlink(src_file));
+  TEN_ASSERT(src_file && ten_path_is_symlink(src_file), "Invalid argument.");
 
   // TODO(ZhangXianyao): Need to implement.
   return 0;
