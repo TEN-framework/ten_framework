@@ -1008,7 +1008,7 @@ macho_add(ten_backtrace_t *self, const char *filename, int descriptor,
     cmdoffset += load_command.cmdsize;
   }
 
-  if (!ten_file_close(descriptor)) {
+  if (!ten_backtrace_close_file(descriptor)) {
     goto fail;
   }
   descriptor = -1;
@@ -1052,7 +1052,7 @@ fail:
     ten_mmap_deinit(&cmds_view);
   }
   if (descriptor != -1) {
-    ten_file_close(descriptor);
+    ten_backtrace_close_file(descriptor);
   }
   return 0;
 }
@@ -1088,7 +1088,7 @@ int ten_backtrace_init_posix(
     } else {
       bool does_not_exist = false;
 
-      d = ten_file_open(name, &does_not_exist);
+      d = ten_backtrace_open_file(name, &does_not_exist);
       if (d < 0) {
         continue;
       }
@@ -1111,7 +1111,7 @@ int ten_backtrace_init_posix(
   }
 
   if (!closed_descriptor) {
-    ten_file_close(descriptor);
+    ten_backtrace_close_file(descriptor);
   }
 
   if (found_sym) {
