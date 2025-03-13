@@ -30,6 +30,6 @@ TEN_UTILS_API bool ten_backtrace_close_file(int fd);
  * @param buffer_size Size of the normalized_path buffer
  * @return true on success, false if buffer is too small or path is invalid
  */
-TEN_UTILS_PRIVATE_API bool ten_backtrace_normalize_path(const char *path,
-                                                        char *normalized_path,
-                                                        size_t buffer_size);
+TEN_UTILS_API bool ten_backtrace_normalize_path(const char *path,
+                                                char *normalized_path,
+                                                size_t buffer_size);
