@@ -18,6 +18,7 @@
 #include "include_internal/ten_utils/backtrace/backtrace.h"
 #include "include_internal/ten_utils/backtrace/platform/posix/dwarf.h"
 #include "include_internal/ten_utils/backtrace/platform/posix/internal.h"
+#include "include_internal/ten_utils/backtrace/sort.h"
 #include "include_internal/ten_utils/backtrace/vector.h"
 #include "ten_utils/lib/atomic.h"
 #include "ten_utils/lib/atomic_ptr.h"

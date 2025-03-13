@@ -31,6 +31,7 @@
 #include "include_internal/ten_utils/backtrace/platform/posix/linux/view.h"
 #include "include_internal/ten_utils/backtrace/platform/posix/linux/zlib.h"
 #include "include_internal/ten_utils/backtrace/platform/posix/mmap.h"
+#include "include_internal/ten_utils/backtrace/sort.h"
 #include "ten_utils/lib/atomic_ptr.h"
 
 #if defined(HAVE_DL_ITERATE_PHDR)

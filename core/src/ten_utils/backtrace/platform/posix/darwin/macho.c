@@ -22,6 +22,7 @@
 #include "include_internal/ten_utils/backtrace/platform/posix/file.h"
 #include "include_internal/ten_utils/backtrace/platform/posix/internal.h"
 #include "include_internal/ten_utils/backtrace/platform/posix/mmap.h"
+#include "include_internal/ten_utils/backtrace/sort.h"
 #include "ten_utils/lib/atomic_ptr.h"
 
 // Mach-O file header for a 32-bit executable.

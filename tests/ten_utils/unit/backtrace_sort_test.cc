@@ -11,7 +11,7 @@
 #include <ctime>
 
 #include "gtest/gtest.h"
-#include "include_internal/ten_utils/backtrace/platform/posix/internal.h"
+#include "include_internal/ten_utils/backtrace/sort.h"
 #include "ten_utils/macro/memory.h"
 
 // Compare function - integer ascending.
@@ -105,7 +105,6 @@ TEST(BacktraceSortTest, SmallArray) {
   size_t count = sizeof(arr) / sizeof(arr[0]);
 
   backtrace_sort(arr, count, sizeof(int), compare_int_asc);
-
   EXPECT_EQ(arrays_equal(arr, expected, count, sizeof(int)), true);
 }
 
