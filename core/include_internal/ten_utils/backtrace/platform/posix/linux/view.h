@@ -12,7 +12,7 @@
 #include <stdint.h>
 
 #include "include_internal/ten_utils/backtrace/backtrace.h"
-#include "include_internal/ten_utils/backtrace/mmap.h"
+#include "include_internal/ten_utils/backtrace/platform/posix/mmap.h"
 
 /**
  * @brief A view that works for either a file or memory.

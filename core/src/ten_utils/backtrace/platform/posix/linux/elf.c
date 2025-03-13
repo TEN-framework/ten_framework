@@ -31,7 +31,6 @@
 #endif
 
 #include "include_internal/ten_utils/backtrace/backtrace.h"
-#include "include_internal/ten_utils/backtrace/mmap.h"
 #include "include_internal/ten_utils/backtrace/platform/posix/file.h"
 #include "include_internal/ten_utils/backtrace/platform/posix/internal.h"
 #include "include_internal/ten_utils/backtrace/platform/posix/linux/crc32.h"
@@ -39,6 +38,7 @@
 #include "include_internal/ten_utils/backtrace/platform/posix/linux/uncompress.h"
 #include "include_internal/ten_utils/backtrace/platform/posix/linux/view.h"
 #include "include_internal/ten_utils/backtrace/platform/posix/linux/zlib.h"
+#include "include_internal/ten_utils/backtrace/platform/posix/mmap.h"
 #include "ten_utils/lib/atomic_ptr.h"
 
 #ifndef S_ISLNK

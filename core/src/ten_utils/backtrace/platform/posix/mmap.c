@@ -6,7 +6,7 @@
 //
 #include "ten_utils/ten_config.h"
 
-#include "include_internal/ten_utils/backtrace/mmap.h"
+#include "include_internal/ten_utils/backtrace/platform/posix/mmap.h"
 
 #include <assert.h>
 #include <errno.h>
