@@ -18,19 +18,15 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#include "include_internal/ten_utils/backtrace/platform/posix/config.h" // IWYU pragma: keep
-
-#if defined(HAVE_MACH_O_DYLD_H)
-#include <mach-o/dyld.h>
-#endif
-
 #include "include_internal/ten_utils/backtrace/backtrace.h"
+#include "include_internal/ten_utils/backtrace/platform/posix/config.h" // IWYU pragma: keep
 #include "include_internal/ten_utils/backtrace/platform/posix/file.h"
 #include "include_internal/ten_utils/backtrace/platform/posix/internal.h"
 #include "ten_utils/lib/atomic_ptr.h"
 #include "ten_utils/macro/mark.h"
 
 #if defined(HAVE_MACH_O_DYLD_H)
+#include <mach-o/dyld.h>
 
 static char *macho_get_executable_path(ten_backtrace_t *self,
                                        ten_backtrace_error_func_t error_cb,

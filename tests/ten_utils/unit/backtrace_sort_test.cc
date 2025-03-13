@@ -171,14 +171,6 @@ TEST(BacktraceSortTest, ExtremeValues) {
   size_t count = sizeof(arr) / sizeof(arr[0]);
 
   backtrace_sort(arr, count, sizeof(int), compare_int_asc);
-
-  for (size_t i = 0; i < count; i++) {
-    printf("%d ", arr[i]);
-  }
-  printf("\n");
-  for (size_t i = 0; i < count; i++) {
-    printf("%d ", expected[i]);
-  }
   EXPECT_EQ(arrays_equal(arr, expected, count, sizeof(int)), true);
 }
 

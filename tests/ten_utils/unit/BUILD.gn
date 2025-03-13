@@ -33,6 +33,10 @@ ten_utils_glob("unit") {
     "ten_json_test.cc",
   ]
 
+  if (is_linux || is_mac) {
+    file_list += [ "ten_mmap_test.cc" ]
+  }
+
   public_deps = [
     "//core/src/ten_utils/io/general/loops",
     "//third_party/googletest",
