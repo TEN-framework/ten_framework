@@ -6,7 +6,6 @@
 //
 #include "ten_utils/container/vector.h"
 
-#include <assert.h>
 #include <stdlib.h>
 
 #include "ten_utils/lib/alloc.h"

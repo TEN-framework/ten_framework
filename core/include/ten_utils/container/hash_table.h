@@ -16,6 +16,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "ten_utils/macro/check.h"
 #include "ten_utils/macro/field.h"
 
 #define ten_hashtable_foreach(table, iter)                                     \
@@ -144,20 +145,20 @@ TEN_UTILS_API ten_hashhandle_t *ten_hashtable_find(ten_hashtable_t *self,
 static inline void ten_hashtable_add_string(ten_hashtable_t *self,
                                             ten_hashhandle_t *hh,
                                             const char *str, void *destroy) {
-  assert(self && hh && str);
+  TEN_ASSERT(self && hh && str, "Invalid arguments.");
   ten_hashtable_add_by_key(self, hh, str, strlen(str), destroy);
 }
 
 static inline void ten_hashtable_replace_string(ten_hashtable_t *self,
                                                 ten_hashhandle_t *hh, char *str,
                                                 void *destroy) {
-  assert(self);
+  TEN_ASSERT(self && hh && str, "Invalid arguments.");
   ten_hashtable_replace_by_key(self, hh, str, strlen(str), destroy);
 }
 
 static inline ten_hashhandle_t *ten_hashtable_find_string(ten_hashtable_t *self,
                                                           const char *str) {
-  assert(self && str);
+  TEN_ASSERT(self && str, "Invalid arguments.");
   return ten_hashtable_find_by_key(self, str, strlen(str));
 }
 
@@ -167,20 +168,20 @@ static inline ten_hashhandle_t *ten_hashtable_find_string(ten_hashtable_t *self,
 static inline void ten_hashtable_add_int(ten_hashtable_t *self,
                                          ten_hashhandle_t *hh, int32_t *value,
                                          void *destroy) {
-  assert(self && hh);
+  TEN_ASSERT(self && hh, "Invalid arguments.");
   ten_hashtable_add_by_key(self, hh, value, sizeof(int32_t), destroy);
 }
 
 static inline void ten_hashtable_replace_int(ten_hashtable_t *self,
                                              ten_hashhandle_t *hh,
                                              int32_t *value, void *destroy) {
-  assert(self && hh);
+  TEN_ASSERT(self && hh, "Invalid arguments.");
   ten_hashtable_replace_by_key(self, hh, value, sizeof(int32_t), destroy);
 }
 
 static inline ten_hashhandle_t *ten_hashtable_find_int(ten_hashtable_t *self,
                                                        int32_t *value) {
-  assert(self);
+  TEN_ASSERT(self, "Invalid arguments.");
   return ten_hashtable_find_by_key(self, value, sizeof(int32_t));
 }
 
@@ -190,19 +191,19 @@ static inline ten_hashhandle_t *ten_hashtable_find_int(ten_hashtable_t *self,
 static inline void ten_hashtable_add_ptr(ten_hashtable_t *self,
                                          ten_hashhandle_t *hh, void *ptr,
                                          void *destroy) {
-  assert(self && hh);
+  TEN_ASSERT(self && hh, "Invalid arguments.");
   ten_hashtable_add_by_key(self, hh, ptr, sizeof(void *), destroy);
 }
 
 static inline void ten_hashtable_replace_ptr(ten_hashtable_t *self,
                                              ten_hashhandle_t *hh, void *ptr,
                                              void *destroy) {
-  assert(self && hh);
+  TEN_ASSERT(self && hh, "Invalid arguments.");
   ten_hashtable_replace_by_key(self, hh, ptr, sizeof(void *), destroy);
 }
 
 static inline ten_hashhandle_t *ten_hashtable_find_ptr(ten_hashtable_t *self,
                                                        void *ptr) {
-  assert(self);
+  TEN_ASSERT(self, "Invalid arguments.");
   return ten_hashtable_find_by_key(self, ptr, sizeof(void *));
 }

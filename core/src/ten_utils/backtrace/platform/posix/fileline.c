@@ -11,15 +11,15 @@
 
 #include <assert.h>
 #include <fcntl.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
 
-#include "include_internal/ten_utils/backtrace/platform/posix/config.h"  // IWYU pragma: keep
-#include "ten_utils/log/log.h"
+#include "include_internal/ten_utils/backtrace/platform/posix/config.h" // IWYU pragma: keep
 
-#ifdef HAVE_MACH_O_DYLD_H
+#if defined(HAVE_MACH_O_DYLD_H)
 #include <mach-o/dyld.h>
 #endif
 
@@ -29,9 +29,7 @@
 #include "ten_utils/lib/file.h"
 #include "ten_utils/macro/mark.h"
 
-#ifdef HAVE_MACH_O_DYLD_H
-
-#include "ten_utils/lib/alloc.h"
+#if defined(HAVE_MACH_O_DYLD_H)
 
 static char *macho_get_executable_path(ten_backtrace_t *self,
                                        ten_backtrace_error_func_t error_cb,
@@ -41,11 +39,11 @@ static char *macho_get_executable_path(ten_backtrace_t *self,
     return NULL;
   }
 
-  char *name = (char *)ten_malloc_without_backtrace(len);
+  char *name = (char *)malloc(len);
   assert(name && "Failed to allocate memory.");
 
   if (_NSGetExecutablePath(name, &len) != 0) {
-    ten_free_without_backtrace(name);
+    free(name);
     return NULL;
   }
 
@@ -71,7 +69,7 @@ static int initialize_file_line_mechanism(ten_backtrace_t *self,
 
   ten_atomic_t failed = ten_atomic_load(&posix_self->file_line_init_failed);
   if (failed) {
-    TEN_LOGE("Failed to read executable information.");
+    (void)fprintf(stderr, "Failed to read executable information.");
     return 0;
   }
 
@@ -89,26 +87,26 @@ static int initialize_file_line_mechanism(ten_backtrace_t *self,
   bool called_error_callback = false;
   for (size_t pass = 0; pass < 4; ++pass) {
     switch (pass) {
-      case 0:
-        filename = "/proc/self/exe";
-        break;
-      case 1:
-        filename = "/proc/curproc/file";
-        break;
-      case 2: {
-        char buf[64] = {0};
-        int written = snprintf(buf, sizeof(buf), "/proc/%ld/object/a.out",
-                               (long)getpid());
-        assert(written > 0);
-        filename = buf;
-        break;
-      }
-      case 3:
-        filename = macho_get_executable_path(self, error_cb, data);
-        break;
-      default:
-        abort();
-        break;
+    case 0:
+      filename = "/proc/self/exe";
+      break;
+    case 1:
+      filename = "/proc/curproc/file";
+      break;
+    case 2: {
+      char buf[64] = {0};
+      int written =
+          snprintf(buf, sizeof(buf), "/proc/%ld/object/a.out", (long)getpid());
+      assert(written > 0);
+      filename = buf;
+      break;
+    }
+    case 3:
+      filename = macho_get_executable_path(self, error_cb, data);
+      break;
+    default:
+      abort();
+      break;
     }
 
     if (filename == NULL) {

@@ -7,8 +7,9 @@
 #include "ten_utils/lib/time.h"
 
 #include <Windows.h>
-#include <assert.h>
 #include <time.h>
+
+#include "ten_utils/macro/check.h"
 
 int64_t ten_current_time_ms(void) {
   FILETIME ft;
@@ -61,7 +62,7 @@ void ten_sleep_us(int64_t usec) {
 }
 
 void ten_current_time_info(struct tm *time_info, size_t *msec) {
-  assert(time_info && msec && "Invalid argument.");
+  TEN_ASSERT(time_info && msec, "Invalid argument.");
 
   SYSTEMTIME st;
   GetLocalTime(&st);

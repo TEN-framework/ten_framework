@@ -8,6 +8,9 @@
 
 #include "ten_utils/lib/atomic.h"
 
+// NOTE: This file will be used in the TEN backtrace module, so do _not_ use
+// TEN_ASSERT or any other mechanisms which might involve backtrace dump.
+
 void *ten_atomic_ptr_load(volatile ten_atomic_ptr_t *a) {
   void *ret = 0;
   ten_memory_barrier();

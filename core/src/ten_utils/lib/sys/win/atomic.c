@@ -7,7 +7,6 @@
 #include "ten_utils/lib/atomic.h"
 
 #include <Windows.h>
-#include <assert.h>
 
 #include "ten_utils/macro/check.h"
 

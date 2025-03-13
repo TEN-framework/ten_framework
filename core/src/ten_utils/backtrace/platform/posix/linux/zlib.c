@@ -9,13 +9,14 @@
 //
 #include "include_internal/ten_utils/backtrace/platform/posix/linux/zlib.h"
 
+#include <stdio.h>
 #include <string.h>
 
 #include "include_internal/ten_utils/backtrace/platform/posix/internal.h"
 #include "include_internal/ten_utils/backtrace/platform/posix/linux/elf.h"
 #include "include_internal/ten_utils/backtrace/platform/posix/linux/uncompress.h"
 
-#ifdef BACKTRACE_GENERATE_FIXED_HUFFMAN_TABLE
+#if defined(BACKTRACE_GENERATE_FIXED_HUFFMAN_TABLE)
 
 // Used by the main function that generates the fixed table to learn the table
 // size.
@@ -80,7 +81,8 @@ static int elf_zlib_inflate_table(unsigned char *codes, size_t codes_len,
     unsigned int val;
 
     jcnt = count[j];
-    if (jcnt == 0) continue;
+    if (jcnt == 0)
+      continue;
 
     if (unlikely(jcnt > (1U << j))) {
       elf_uncompress_failed();
@@ -122,7 +124,8 @@ static int elf_zlib_inflate_table(unsigned char *codes, size_t codes_len,
       }
 
       /* Advance to the next value with this length.  */
-      if (i + 1 < jcnt) val = next[val];
+      if (i + 1 < jcnt)
+        val = next[val];
 
       /* The Huffman codes are stored in the bitstream with the
          most significant bit first, as is required to make them
@@ -147,7 +150,8 @@ static int elf_zlib_inflate_table(unsigned char *codes, size_t codes_len,
          2^J, only reversed.  */
 
       incr = 1U << (j - 1);
-      while ((code & incr) != 0) incr >>= 1;
+      while ((code & incr) != 0)
+        incr >>= 1;
       if (incr == 0)
         code = 0;
       else {
@@ -167,7 +171,8 @@ static int elf_zlib_inflate_table(unsigned char *codes, size_t codes_len,
     unsigned int k;
 
     jcnt = count[j];
-    if (jcnt == 0) continue;
+    if (jcnt == 0)
+      continue;
 
     /* There are JCNT values that have this length, the values
        starting from START[j].  Those values are assigned
@@ -215,7 +220,8 @@ static int elf_zlib_inflate_table(unsigned char *codes, size_t codes_len,
     size_t secondary_bits; /* Bit size of current secondary table.  */
 
     jcnt = count[j];
-    if (jcnt == 0) continue;
+    if (jcnt == 0)
+      continue;
 
     val = start[j];
     code = firstcode[j - 9];
@@ -280,10 +286,12 @@ static int elf_zlib_inflate_table(unsigned char *codes, size_t codes_len,
         table[secondary + 0x100 + ind] = tval;
       }
 
-      if (i + 1 < jcnt) val = next[val];
+      if (i + 1 < jcnt)
+        val = next[val];
 
       incr = 1U << (j - 1);
-      while ((code & incr) != 0) incr >>= 1;
+      while ((code & incr) != 0)
+        incr >>= 1;
       if (incr == 0)
         code = 0;
       else {
@@ -293,14 +301,14 @@ static int elf_zlib_inflate_table(unsigned char *codes, size_t codes_len,
     }
   }
 
-#ifdef BACKTRACE_GENERATE_FIXED_HUFFMAN_TABLE
+#if defined(BACKTRACE_GENERATE_FIXED_HUFFMAN_TABLE)
   final_next_secondary = next_secondary;
 #endif
 
   return 1;
 }
 
-#ifdef BACKTRACE_GENERATE_FIXED_HUFFMAN_TABLE
+#if defined(BACKTRACE_GENERATE_FIXED_HUFFMAN_TABLE)
 
 /**
  * @brief Used to generate the fixed Huffman table for block type 1.
@@ -479,7 +487,7 @@ static int elf_zlib_inflate(const unsigned char *in, size_t in_size,
 
     // Read the two byte zlib header.
 
-    if (unlikely((in[0] & 0xf) != 8)) {  // 8 is zlib encoding.
+    if (unlikely((in[0] & 0xf) != 8)) { // 8 is zlib encoding.
       // Unknown compression method.
       elf_uncompress_failed();
       return 0;
@@ -849,14 +857,14 @@ static int elf_zlib_inflate(const unsigned char *in, size_t in_size,
 
             prev = plen[-1];
             switch (c) {
-              case 6:
-                *plen++ = prev;
-                // FALLTHROUGH
-              case 5:
-                *plen++ = prev;
-                // FALLTHROUGH
-              case 4:
-                *plen++ = prev;
+            case 6:
+              *plen++ = prev;
+              // FALLTHROUGH
+            case 5:
+              *plen++ = prev;
+              // FALLTHROUGH
+            case 4:
+              *plen++ = prev;
             }
             *plen++ = prev;
             *plen++ = prev;
@@ -879,26 +887,26 @@ static int elf_zlib_inflate(const unsigned char *in, size_t in_size,
             }
 
             switch (c) {
-              case 10:
-                *plen++ = 0;
-                // FALLTHROUGH
-              case 9:
-                *plen++ = 0;
-                // FALLTHROUGH
-              case 8:
-                *plen++ = 0;
-                // FALLTHROUGH
-              case 7:
-                *plen++ = 0;
-                // FALLTHROUGH
-              case 6:
-                *plen++ = 0;
-                // FALLTHROUGH
-              case 5:
-                *plen++ = 0;
-                // FALLTHROUGH
-              case 4:
-                *plen++ = 0;
+            case 10:
+              *plen++ = 0;
+              // FALLTHROUGH
+            case 9:
+              *plen++ = 0;
+              // FALLTHROUGH
+            case 8:
+              *plen++ = 0;
+              // FALLTHROUGH
+            case 7:
+              *plen++ = 0;
+              // FALLTHROUGH
+            case 6:
+              *plen++ = 0;
+              // FALLTHROUGH
+            case 5:
+              *plen++ = 0;
+              // FALLTHROUGH
+            case 4:
+              *plen++ = 0;
             }
             *plen++ = 0;
             *plen++ = 0;
@@ -1145,7 +1153,8 @@ static int elf_zlib_verify_checksum(const unsigned char *checkbytes,
   size_t hsz;
 
   cksum = 0;
-  for (i = 0; i < 4; i++) cksum = (cksum << 8) | checkbytes[i];
+  for (i = 0; i < 4; i++)
+    cksum = (cksum << 8) | checkbytes[i];
 
   s1 = 1;
   s2 = 0;

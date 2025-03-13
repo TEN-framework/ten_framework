@@ -96,7 +96,7 @@ static void migrate_start_async_callback(uv_async_t *migrate_start_async) {
   }
 
   // Handle each migration task one by one.
-  ten_list_foreach (&tasks, iter) {
+  ten_list_foreach(&tasks, iter) {
     ten_migrate_task_t *task = ten_ptr_listnode_get(iter.node);
     TEN_ASSERT(task, "Invalid argument.");
 
@@ -366,9 +366,9 @@ static void uv_async_callback(uv_async_t *async) {
   }
 }
 
-static int ten_runloop_async_uv_init(
-    ten_runloop_async_t *base, ten_runloop_t *loop,
-    void (*notify_callback)(ten_runloop_async_t *)) {
+static int
+ten_runloop_async_uv_init(ten_runloop_async_t *base, ten_runloop_t *loop,
+                          void (*notify_callback)(ten_runloop_async_t *)) {
   ten_runloop_async_uv_t *async_impl = (ten_runloop_async_uv_t *)base;
   ten_runloop_uv_t *loop_impl = (ten_runloop_uv_t *)loop;
 
@@ -409,8 +409,9 @@ static void uv_async_closed(uv_handle_t *handle) {
   async_impl->close_callback(&async_impl->common.base);
 }
 
-static void ten_runloop_async_uv_close(
-    ten_runloop_async_t *base, void (*close_cb)(ten_runloop_async_t *)) {
+static void
+ten_runloop_async_uv_close(ten_runloop_async_t *base,
+                           void (*close_cb)(ten_runloop_async_t *)) {
   ten_runloop_async_uv_t *async_impl = (ten_runloop_async_uv_t *)base;
 
   if (!base || strcmp(base->impl, TEN_RUNLOOP_UV) != 0) {
@@ -436,7 +437,19 @@ static void ten_runloop_async_uv_destroy(ten_runloop_async_t *base) {
 
   ten_sanitizer_thread_check_deinit(&base->thread_check);
 
+  async_impl->common.init = NULL;
+  async_impl->common.destroy = NULL;
+  async_impl->common.close = NULL;
+  async_impl->common.notify = NULL;
+
+  async_impl->common.base.loop = NULL;
+  async_impl->common.base.data = NULL;
+
   TEN_FREE(async_impl->common.base.impl);
+
+  async_impl->notify_callback = NULL;
+  async_impl->close_callback = NULL;
+
   TEN_FREE(async_impl);
 }
 
