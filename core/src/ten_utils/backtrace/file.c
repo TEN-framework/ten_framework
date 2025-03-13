@@ -17,8 +17,10 @@
 
 #include "include_internal/ten_utils/backtrace/file.h"
 
-#ifdef _WIN32
+#if defined(_WIN32) || defined(_WIN64)
 #include <windows.h>
+
+#define strtok_r strtok_s
 #endif
 
 /**
