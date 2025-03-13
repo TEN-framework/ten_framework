@@ -17,7 +17,11 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#include "include_internal/ten_utils/backtrace/platform/posix/file.h"
+#include "include_internal/ten_utils/backtrace/file.h"
+
+#ifdef _WIN32
+#include <windows.h>
+#endif
 
 /**
  * @file file.c
@@ -432,6 +436,34 @@ int ten_backtrace_open_file(const char *filename, bool *does_not_exist) {
     *does_not_exist = false;
   }
 
+#ifdef _WIN32
+  // Windows implementation
+  HANDLE file_handle =
+      CreateFileA(filename,              // filename
+                  GENERIC_READ,          // desired access
+                  FILE_SHARE_READ,       // share mode
+                  NULL,                  // security attributes
+                  OPEN_EXISTING,         // creation disposition
+                  FILE_ATTRIBUTE_NORMAL, // flags and attributes
+                  NULL);                 // template file
+
+  if (file_handle == INVALID_HANDLE_VALUE) {
+    DWORD error = GetLastError();
+    if (does_not_exist != NULL) {
+      *does_not_exist =
+          (error == ERROR_FILE_NOT_FOUND || error == ERROR_PATH_NOT_FOUND);
+    } else {
+      fprintf(stderr, "Failed to open %s: error code %lu\n", filename, error);
+    }
+    return -1;
+  }
+
+  // Convert HANDLE to int for compatibility with the rest of the code
+  // Note: This is a simplification and not ideal for production use
+  // A better approach would be to refactor the API to use opaque handles
+  return (int)(intptr_t)file_handle;
+#else
+  // POSIX implementation
   // Open the file with close-on-exec flag when supported.
   int fd = open(filename, (O_RDONLY | O_CLOEXEC));
   if (fd < 0) {
@@ -456,6 +488,7 @@ int ten_backtrace_open_file(const char *filename, bool *does_not_exist) {
   }
 
   return fd;
+#endif
 }
 
 /**
@@ -474,6 +507,19 @@ bool ten_backtrace_close_file(int fd) {
     return true;
   }
 
+#ifdef _WIN32
+  // Windows implementation
+  // Convert int back to HANDLE
+  HANDLE file_handle = (HANDLE)(intptr_t)fd;
+  if (!CloseHandle(file_handle)) {
+    DWORD error = GetLastError();
+    fprintf(stderr, "Failed to close file handle %p: error code %lu\n",
+            file_handle, error);
+    return false;
+  }
+  return true;
+#else
+  // POSIX implementation
   if (close(fd) < 0) {
     int saved_errno = errno;
     (void)fprintf(stderr, "Failed to close file descriptor %d: %s\n", fd,
@@ -482,4 +528,5 @@ bool ten_backtrace_close_file(int fd) {
   }
 
   return true;
+#endif
 }

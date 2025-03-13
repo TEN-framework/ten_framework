@@ -21,9 +21,9 @@
 #include <unistd.h>
 
 #include "include_internal/ten_utils/backtrace/backtrace.h"
+#include "include_internal/ten_utils/backtrace/file.h"
 #include "include_internal/ten_utils/backtrace/platform/posix/config.h"
 #include "include_internal/ten_utils/backtrace/platform/posix/dwarf.h"
-#include "include_internal/ten_utils/backtrace/platform/posix/file.h"
 #include "include_internal/ten_utils/backtrace/platform/posix/internal.h"
 #include "include_internal/ten_utils/backtrace/platform/posix/linux/crc32.h"
 #include "include_internal/ten_utils/backtrace/platform/posix/linux/debugfile.h"

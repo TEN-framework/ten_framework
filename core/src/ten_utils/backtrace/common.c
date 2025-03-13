@@ -15,7 +15,7 @@
 #include <string.h>
 
 #include "include_internal/ten_utils/backtrace/backtrace.h"
-#include "include_internal/ten_utils/backtrace/platform/posix/file.h"
+#include "include_internal/ten_utils/backtrace/file.h"
 #include "ten_utils/backtrace/backtrace.h"
 #include "ten_utils/macro/mark.h"
 

@@ -9,7 +9,7 @@
 
 #include <cstring>
 
-#include "include_internal/ten_utils/backtrace/platform/posix/file.h"
+#include "include_internal/ten_utils/backtrace/file.h"
 
 namespace {
 
