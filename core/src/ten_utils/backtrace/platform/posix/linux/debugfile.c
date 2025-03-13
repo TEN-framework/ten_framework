@@ -16,7 +16,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#include "include_internal/ten_utils/backtrace/file.h"
+#include "include_internal/ten_utils/backtrace/platform/posix/file.h"
 #include "include_internal/ten_utils/backtrace/platform/posix/linux/crc32.h"
 
 #define SYSTEM_BUILD_ID_DIR "/usr/lib/debug/.build-id/"
