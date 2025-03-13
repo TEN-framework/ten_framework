@@ -1,0 +1,49 @@
+name: Tman Designer UI (Playwright Tests)
+
+on:
+  release:
+    types: [created]
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - "core/src/ten_manager"
+      - "core/src/ten_rust"
+
+jobs:
+  test:
+    timeout-minutes: 60
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: "core/src/ten_manager/designer_frontend"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - name: Install dependencies
+        run: |
+          cd core/src/ten_manager/designer_frontend
+          bun install
+      - name: Build
+        run: |
+          cd core/src/ten_manager/designer_frontend
+          bun run build
+      - name: Install Playwright Browsers
+        run: |
+          cd core/src/ten_manager/designer_frontend
+          npx playwright install --with-deps
+      - name: Run Playwright tests
+        run: |
+          cd core/src/ten_manager/designer_frontend
+          bun run preview > /dev/null 2>&1 &
+          sleep 5
+          npx playwright test
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: playwright-report
+          path: core/src/ten_manager/designer_frontend/playwright-report/
+          retention-days: 7
