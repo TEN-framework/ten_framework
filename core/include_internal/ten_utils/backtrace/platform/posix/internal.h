@@ -85,29 +85,6 @@ TEN_UTILS_PRIVATE_API int ten_backtrace_init_posix(
     ten_backtrace_error_func_t error_cb, void *data,
     ten_backtrace_get_file_line_func_t *get_file_line);
 
-/**
- * @brief An enum for the DWARF sections we care about.
- */
-typedef enum dwarf_section {
-  DEBUG_INFO,
-  DEBUG_LINE,
-  DEBUG_ABBREV,
-  DEBUG_RANGES,
-  DEBUG_STR,
-  DEBUG_ADDR,
-  DEBUG_STR_OFFSETS,
-  DEBUG_LINE_STR,
-  DEBUG_RNGLISTS,
-
-  DEBUG_MAX
-} dwarf_section;
-
-// Data for the DWARF sections we care about.
-typedef struct dwarf_sections {
-  const unsigned char *data[DEBUG_MAX];
-  size_t size[DEBUG_MAX];
-} dwarf_sections;
-
 // DWARF data read from a file, used for .gnu_debugaltlink.
 struct dwarf_data;
 

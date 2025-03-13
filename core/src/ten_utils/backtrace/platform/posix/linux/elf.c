@@ -20,17 +20,9 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#include "include_internal/ten_utils/backtrace/platform/posix/config.h"
-
-#if defined(HAVE_DL_ITERATE_PHDR)
-#if defined(HAVE_LINK_H)
-#define __USE_GNU
-#include <link.h>
-#undef __USE_GNU
-#endif
-#endif
-
 #include "include_internal/ten_utils/backtrace/backtrace.h"
+#include "include_internal/ten_utils/backtrace/platform/posix/config.h"
+#include "include_internal/ten_utils/backtrace/platform/posix/dwarf.h"
 #include "include_internal/ten_utils/backtrace/platform/posix/file.h"
 #include "include_internal/ten_utils/backtrace/platform/posix/internal.h"
 #include "include_internal/ten_utils/backtrace/platform/posix/linux/crc32.h"
@@ -40,6 +32,14 @@
 #include "include_internal/ten_utils/backtrace/platform/posix/linux/zlib.h"
 #include "include_internal/ten_utils/backtrace/platform/posix/mmap.h"
 #include "ten_utils/lib/atomic_ptr.h"
+
+#if defined(HAVE_DL_ITERATE_PHDR)
+#if defined(HAVE_LINK_H)
+#define __USE_GNU
+#include <link.h>
+#undef __USE_GNU
+#endif
+#endif
 
 #ifndef S_ISLNK
 #ifndef S_IFLNK
