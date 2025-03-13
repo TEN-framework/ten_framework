@@ -101,7 +101,7 @@ void ten_host_get(char *hostname_buffer,
   }
 
   if (addresses) {
-    TEN_FREE((void *)addresses);
+    TEN_FREE(addresses);
   }
 }
 
