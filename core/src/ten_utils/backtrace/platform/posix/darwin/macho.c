@@ -18,10 +18,10 @@
 #include <sys/types.h>
 
 #include "include_internal/ten_utils/backtrace/backtrace.h"
+#include "include_internal/ten_utils/backtrace/mmap.h"
+#include "include_internal/ten_utils/backtrace/platform/posix/file.h"
 #include "include_internal/ten_utils/backtrace/platform/posix/internal.h"
-#include "ten_utils/io/mmap.h"
 #include "ten_utils/lib/atomic_ptr.h"
-#include "ten_utils/lib/file.h"
 
 // Mach-O file header for a 32-bit executable.
 typedef struct macho_header_32 {
@@ -720,7 +720,7 @@ fail:
     ten_mmap_deinit(&arch_view);
   }
   if (descriptor != -1) {
-    ten_file_close(descriptor);
+    ten_backtrace_close_file(descriptor);
   }
   return 0;
 }
@@ -800,7 +800,7 @@ static int macho_add_dsym(ten_backtrace_t *self, const char *filename,
     diralc = NULL;
   }
 
-  int fd = ten_file_open(dsym, &does_not_exist);
+  int fd = ten_backtrace_open_file(dsym, &does_not_exist);
   if (fd < 0) {
     /* The file does not exist, so we can't read the debug info.
        Just return success.  */

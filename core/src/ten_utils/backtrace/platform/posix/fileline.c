@@ -11,6 +11,7 @@
 
 #include <assert.h>
 #include <fcntl.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/stat.h>
@@ -24,9 +25,9 @@
 #endif
 
 #include "include_internal/ten_utils/backtrace/backtrace.h"
+#include "include_internal/ten_utils/backtrace/platform/posix/file.h"
 #include "include_internal/ten_utils/backtrace/platform/posix/internal.h"
 #include "ten_utils/lib/atomic_ptr.h"
-#include "ten_utils/lib/file.h"
 #include "ten_utils/macro/mark.h"
 
 #if defined(HAVE_MACH_O_DYLD_H)
@@ -115,7 +116,7 @@ static int initialize_file_line_mechanism(ten_backtrace_t *self,
     }
 
     bool does_not_exist = false;
-    descriptor = ten_file_open(filename, &does_not_exist);
+    descriptor = ten_backtrace_open_file(filename, &does_not_exist);
     if (descriptor < 0 && !does_not_exist) {
       called_error_callback = true;
       break;

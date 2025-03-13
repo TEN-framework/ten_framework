@@ -4,25 +4,23 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-#include "ten_utils/container/vector.h"
+#include "include_internal/ten_utils/backtrace/vector.h"
 
+#include <assert.h>
 #include <stdlib.h>
 
-#include "ten_utils/lib/alloc.h"
-#include "ten_utils/macro/check.h"
-
 void ten_vector_init(ten_vector_t *self, size_t capacity) {
-  TEN_ASSERT(self, "Invalid argument.");
+  assert(self && "Invalid argument.");
 
   self->size = 0;
   self->capacity = capacity;
-  self->data = TEN_MALLOC(self->capacity);
-  TEN_ASSERT(self->data, "Failed to allocate memory.");
+  self->data = malloc(self->capacity);
+  assert(self->data && "Failed to allocate memory.");
 }
 
 ten_vector_t *ten_vector_create(size_t capacity) {
-  ten_vector_t *self = TEN_MALLOC(sizeof(ten_vector_t));
-  TEN_ASSERT(self, "Failed to allocate memory.");
+  ten_vector_t *self = malloc(sizeof(ten_vector_t));
+  assert(self && "Failed to allocate memory.");
 
   ten_vector_init(self, capacity);
 
@@ -33,17 +31,17 @@ ten_vector_t *ten_vector_create(size_t capacity) {
  * @brief Free the space managed by @a vec. This will reset @a vec.
  */
 void ten_vector_deinit(ten_vector_t *self) {
-  TEN_ASSERT(self && self->data, "Invalid argument.");
+  assert(self && self->data && "Invalid argument.");
 
   self->size = 0;
   ten_vector_release_remaining_space(self);
 }
 
 void ten_vector_destroy(ten_vector_t *self) {
-  TEN_ASSERT(self && self->data, "Invalid argument.");
+  assert(self && self->data && "Invalid argument.");
 
-  TEN_FREE(self->data);
-  TEN_FREE(self);
+  free(self->data);
+  free(self);
 }
 
 /**
@@ -58,7 +56,7 @@ void ten_vector_destroy(ten_vector_t *self) {
  *                      returned address
  */
 void *ten_vector_grow(ten_vector_t *self, size_t size) {
-  TEN_ASSERT(self, "Invalid argument.");
+  assert(self && "Invalid argument.");
 
   size_t remaining = self->capacity - self->size;
 
@@ -82,8 +80,8 @@ void *ten_vector_grow(ten_vector_t *self, size_t size) {
       alc = self->size + size;
     }
 
-    void *new_base = TEN_REALLOC(self->data, alc);
-    TEN_ASSERT(new_base, "Failed to realloc memory.");
+    void *new_base = realloc(self->data, alc);
+    assert(new_base && "Failed to realloc memory.");
     if (new_base == NULL) {
       return NULL;
     }
@@ -102,20 +100,20 @@ void *ten_vector_grow(ten_vector_t *self, size_t size) {
  * @brief Release any remaining space allocated for @a self.
  */
 bool ten_vector_release_remaining_space(ten_vector_t *self) {
-  TEN_ASSERT(self, "Invalid argument.");
+  assert(self && "Invalid argument.");
 
   if (self->size == 0) {
     // realloc with size 0 is marked as an obsolescent feature, use free()
     // instead.
-    TEN_FREE(self->data);
+    free(self->data);
     self->data = NULL;
 
     goto done;
   }
 
-  self->data = TEN_REALLOC(self->data, self->size);
+  self->data = realloc(self->data, self->size);
   if (self->data == NULL) {
-    TEN_ASSERT(self->data, "Failed to realloc memory.");
+    assert(self->data && "Failed to realloc memory.");
     return false;
   }
 
@@ -128,7 +126,7 @@ done:
  * @brief Shrink the data in @a self, and take it out of @a self.
  */
 void *ten_vector_take_out(ten_vector_t *self) {
-  TEN_ASSERT(self, "Invalid argument.");
+  assert(self && "Invalid argument.");
 
   if (!ten_vector_release_remaining_space(self)) {
     return NULL;

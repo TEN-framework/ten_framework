@@ -8,6 +8,9 @@
 
 #include <stdbool.h>
 
+// NOTE: This file will be used in the TEN backtrace module, so do _not_ use
+// TEN_ASSERT or any other mechanisms which might involve backtrace dump.
+
 // TODO(Wei): Consider to lower the memory ordering constraints parameter from
 // __ATOMIC_SEQ_CST to a lighter mode.
 

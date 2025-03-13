@@ -12,6 +12,7 @@
 #include <assert.h>
 #include <stdint.h>
 
+#include "include_internal/ten_utils/backtrace/mmap.h"
 #include "ten_utils/macro/mark.h"
 
 /**

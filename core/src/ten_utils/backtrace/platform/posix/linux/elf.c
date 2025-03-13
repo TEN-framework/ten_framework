@@ -11,6 +11,8 @@
 
 #include <assert.h>
 #include <errno.h>
+#include <fcntl.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -29,15 +31,15 @@
 #endif
 
 #include "include_internal/ten_utils/backtrace/backtrace.h"
+#include "include_internal/ten_utils/backtrace/mmap.h"
+#include "include_internal/ten_utils/backtrace/platform/posix/file.h"
 #include "include_internal/ten_utils/backtrace/platform/posix/internal.h"
 #include "include_internal/ten_utils/backtrace/platform/posix/linux/crc32.h"
 #include "include_internal/ten_utils/backtrace/platform/posix/linux/debugfile.h"
 #include "include_internal/ten_utils/backtrace/platform/posix/linux/uncompress.h"
 #include "include_internal/ten_utils/backtrace/platform/posix/linux/view.h"
 #include "include_internal/ten_utils/backtrace/platform/posix/linux/zlib.h"
-#include "ten_utils/io/mmap.h"
 #include "ten_utils/lib/atomic_ptr.h"
-#include "ten_utils/lib/file.h"
 
 #ifndef S_ISLNK
 #ifndef S_IFLNK
@@ -595,7 +597,7 @@ int elf_fetch_bits(const unsigned char **ppin, const unsigned char *pinend,
 }
 
 /* This is like elf_fetch_bits, but it fetchs the bits backward, and ensures at
-   least 16 bits.  This is for zstd.  */
+   least 16 bits. This is for zstd decompression.  */
 
 static int elf_fetch_bits_backward(const unsigned char **ppin,
                                    const unsigned char *pinend, uint64_t *pval,
@@ -4417,9 +4419,9 @@ static int elf_add(ten_backtrace_t *self, const char *filename, int descriptor,
       ret = elf_add(self, "", d, NULL, 0, base_address, error_cb, data,
                     fileline_fn, found_sym, found_dwarf, NULL, 0, 1, NULL, 0);
       if (ret < 0) {
-        ten_file_close(d);
+        ten_backtrace_close_file(d);
       } else if (descriptor >= 0) {
-        ten_file_close(descriptor);
+        ten_backtrace_close_file(descriptor);
       }
 
       return ret;
@@ -4453,9 +4455,9 @@ static int elf_add(ten_backtrace_t *self, const char *filename, int descriptor,
       ret = elf_add(self, "", d, NULL, 0, base_address, error_cb, data,
                     fileline_fn, found_sym, found_dwarf, NULL, 0, 1, NULL, 0);
       if (ret < 0) {
-        ten_file_close(d);
+        ten_backtrace_close_file(d);
       } else if (descriptor >= 0) {
-        ten_file_close(descriptor);
+        ten_backtrace_close_file(descriptor);
       }
 
       return ret;
@@ -4482,7 +4484,7 @@ static int elf_add(ten_backtrace_t *self, const char *filename, int descriptor,
       elf_release_view(self, &debugaltlink_view, error_cb, data);
       debugaltlink_view_valid = 0;
       if (ret < 0) {
-        ten_file_close(d);
+        ten_backtrace_close_file(d);
         return ret;
       }
     }
@@ -4510,7 +4512,7 @@ static int elf_add(ten_backtrace_t *self, const char *filename, int descriptor,
                   gnu_debugdata_uncompressed_size, base_address, error_cb, data,
                   fileline_fn, found_sym, found_dwarf, NULL, 0, 0, NULL, 0);
       if (ret >= 0 && descriptor >= 0) {
-        ten_file_close(descriptor);
+        ten_backtrace_close_file(descriptor);
       }
       return ret;
     }
@@ -4545,7 +4547,7 @@ static int elf_add(ten_backtrace_t *self, const char *filename, int descriptor,
   }
   if (min_offset == 0 || max_offset == 0) {
     if (descriptor >= 0) {
-      if (!ten_file_close(descriptor)) {
+      if (!ten_backtrace_close_file(descriptor)) {
         goto fail;
       }
     }
@@ -4589,7 +4591,7 @@ static int elf_add(ten_backtrace_t *self, const char *filename, int descriptor,
 
   /* We've read all we need from the executable.  */
   if (descriptor >= 0) {
-    if (!ten_file_close(descriptor)) {
+    if (!ten_backtrace_close_file(descriptor)) {
       goto fail;
     }
     descriptor = -1;
@@ -4748,7 +4750,7 @@ fail:
     elf_release_view(self, &opd->view, error_cb, data);
   }
   if (descriptor >= 0) {
-    ten_file_close(descriptor);
+    ten_backtrace_close_file(descriptor);
   }
   return 0;
 }
@@ -4794,12 +4796,12 @@ static int
     pd->exe_descriptor = -1;
   } else {
     if (pd->exe_descriptor != -1) {
-      ten_file_close(pd->exe_descriptor);
+      ten_backtrace_close_file(pd->exe_descriptor);
       pd->exe_descriptor = -1;
     }
 
     filename = info->dlpi_name;
-    descriptor = ten_file_open(info->dlpi_name, &does_not_exist);
+    descriptor = ten_backtrace_open_file(info->dlpi_name, &does_not_exist);
     if (descriptor < 0) {
       return 0;
     }

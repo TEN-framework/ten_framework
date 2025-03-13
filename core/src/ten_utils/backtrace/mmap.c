@@ -6,16 +6,15 @@
 //
 #include "ten_utils/ten_config.h"
 
-#include "ten_utils/io/mmap.h"
+#include "include_internal/ten_utils/backtrace/mmap.h"
 
+#include <assert.h>
 #include <errno.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <sys/mman.h>
 #include <sys/types.h>
 #include <unistd.h>
-
-#include "ten_utils/log/log.h"
-#include "ten_utils/macro/check.h"
 
 /**
  * @file This file implements file views and memory allocation when mmap is
@@ -24,8 +23,8 @@
 
 bool ten_mmap_init(ten_mmap_t *self, int descriptor, off_t offset,
                    uint64_t size) {
-  TEN_ASSERT(self, "Invalid argument.");
-  TEN_ASSERT((uint64_t)(size_t)size == size, "file size too large.");
+  assert(self && "Invalid argument.");
+  assert((uint64_t)(size_t)size == size && "file size too large.");
 
   int pagesize = getpagesize();
   long in_page_offset = offset % pagesize;
@@ -37,7 +36,11 @@ bool ten_mmap_init(ten_mmap_t *self, int descriptor, off_t offset,
 
   void *map =
       mmap(NULL, size, PROT_READ, MAP_PRIVATE, descriptor, offset_in_page_cnt);
-  TEN_ASSERT(map != MAP_FAILED, "Failed to mmap: %d", errno);
+  if (map == MAP_FAILED) {
+    (void)fprintf(stderr, "Failed to mmap: %d\n", errno);
+    assert(0 && "Failed to mmap.");
+    return false;
+  }
 
   self->data = (char *)map + in_page_offset;
   self->base = map;
@@ -47,7 +50,7 @@ bool ten_mmap_init(ten_mmap_t *self, int descriptor, off_t offset,
 }
 
 void ten_mmap_deinit(ten_mmap_t *self) {
-  TEN_ASSERT(self, "Invalid argument.");
+  assert(self && "Invalid argument.");
 
   union {
     const void *cv;
@@ -56,6 +59,7 @@ void ten_mmap_deinit(ten_mmap_t *self) {
 
   const_cast.cv = self->base;
   if (munmap(const_cast.v, self->len) < 0) {
-    TEN_LOGE("Failed to munmap: %d", errno);
+    (void)fprintf(stderr, "Failed to munmap: %d\n", errno);
+    assert(0 && "Failed to munmap.");
   }
 }
