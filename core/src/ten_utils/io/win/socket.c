@@ -11,6 +11,7 @@
 #include <ws2ipdef.h>
 
 #include "ten_utils/macro/check.h"
+#include "ten_utils/macro/memory.h"
 
 ten_socket_t *ten_socket_create(TEN_SOCKET_FAMILY family, TEN_SOCKET_TYPE type,
                                 TEN_SOCKET_PROTOCOL protocol) {
@@ -42,7 +43,7 @@ ten_socket_t *ten_socket_create(TEN_SOCKET_FAMILY family, TEN_SOCKET_TYPE type,
     return NULL;
   }
 
-  ten_socket_t *ret = malloc(sizeof(ten_socket_t));
+  ten_socket_t *ret = TEN_MALLOC(sizeof(ten_socket_t));
   TEN_ASSERT(ret, "Failed to allocate memory.");
   ret->fd = fd;
   ret->family = family;
@@ -56,5 +57,5 @@ void ten_socket_destroy(ten_socket_t *self) {
   TEN_ASSERT(self, "Invalid argument.");
 
   CloseHandle((HANDLE)self->fd);
-  free(self);
+  TEN_FREE(self);
 }

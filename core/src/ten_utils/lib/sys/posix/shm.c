@@ -16,6 +16,7 @@
 
 #include "ten_utils/lib/atomic.h"
 #include "ten_utils/macro/check.h"
+#include "ten_utils/macro/memory.h"
 
 static char *__make_abs_path(const char *name) {
   char *abs_path = NULL;
@@ -27,7 +28,7 @@ static char *__make_abs_path(const char *name) {
 
   if (name[0] == '/') {
     abs_path_size = strlen(name) + 1;
-    abs_path = (char *)malloc(abs_path_size);
+    abs_path = (char *)TEN_MALLOC(abs_path_size);
     if (abs_path == NULL) {
       return NULL;
     }
@@ -36,7 +37,7 @@ static char *__make_abs_path(const char *name) {
   }
 
   abs_path_size = strlen(name) + 2;
-  abs_path = (char *)malloc(abs_path_size);
+  abs_path = (char *)TEN_MALLOC(abs_path_size);
   if (abs_path == NULL) {
     return NULL;
   }
@@ -98,7 +99,7 @@ done:
   }
 
   if (abs_path) {
-    free(abs_path);
+    TEN_FREE(abs_path);
   }
 
   return addr;
@@ -132,5 +133,5 @@ void ten_shm_unlink(const char *name) {
   }
 
   shm_unlink(abs_path);
-  free(abs_path);
+  TEN_FREE(abs_path);
 }

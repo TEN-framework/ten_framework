@@ -6,7 +6,6 @@
 //
 #include "ten_utils/lib/file.h"
 
-#include <assert.h>
 #include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -16,6 +15,8 @@
 
 #include "ten_utils/lib/path.h"
 #include "ten_utils/log/log.h"
+#include "ten_utils/macro/check.h"
+#include "ten_utils/macro/memory.h"
 
 // Mac OS X 10.6 does not support O_CLOEXEC.
 #ifndef O_CLOEXEC
@@ -30,7 +31,7 @@
 int ten_file_get_fd(FILE *fp) { return fileno(fp); }
 
 int ten_file_size(const char *filename) {
-  assert(filename);
+  TEN_ASSERT(filename, "Invalid argument.");
 
   struct stat file_info;
   if (stat(filename, &file_info) == 0) {
@@ -40,14 +41,14 @@ int ten_file_size(const char *filename) {
 }
 
 int ten_file_chmod(const char *filename, uint32_t mode) {
-  assert(filename);
+  TEN_ASSERT(filename, "Invalid argument.");
 
   return chmod(filename, mode);
 }
 
 int ten_file_clone_permission(const char *src_filename,
                               const char *dest_filename) {
-  assert(src_filename && dest_filename);
+  TEN_ASSERT(src_filename && dest_filename, "Invalid argument.");
 
   int result = 0;
   struct stat file_stat;
@@ -77,22 +78,23 @@ int ten_file_clone_permission_by_fd(int src_fd, int dest_fd) {
 }
 
 int ten_file_clear_open_file_content(FILE *fp) {
-  assert(fp);
+  TEN_ASSERT(fp, "Invalid argument.");
 
   rewind(fp);
   return ftruncate(ten_file_get_fd(fp), 0);
 }
 
 char *ten_symlink_file_read(const char *path) {
-  assert(path && ten_path_exists(path) && ten_path_is_symlink(path));
+  TEN_ASSERT(path && ten_path_exists(path) && ten_path_is_symlink(path),
+             "Invalid argument.");
 
   char *buf = NULL;
   struct stat st;
   if (lstat(path, &st) == 0) {
     long len = st.st_size + 1;
-    buf = malloc(len);
+    buf = TEN_MALLOC(len);
     ssize_t rc = readlink(path, buf, len);
-    assert(rc == len - 1);
+    TEN_ASSERT(rc == len - 1, "Failed to read symlink.");
 
     buf[len - 1] = '\0';
   }
@@ -101,12 +103,12 @@ char *ten_symlink_file_read(const char *path) {
 }
 
 int ten_symlink_file_copy(const char *src_file, const char *dest_file) {
-  assert(src_file && ten_path_is_symlink(src_file));
+  TEN_ASSERT(src_file && ten_path_is_symlink(src_file), "Invalid argument.");
 
   char *link_target = ten_symlink_file_read(src_file);
   if (link_target) {
     int rc = ten_path_make_symlink(link_target, dest_file);
-    free(link_target);
+    TEN_FREE(link_target);
     return rc;
   }
 
@@ -117,6 +119,8 @@ int ten_symlink_file_copy(const char *src_file, const char *dest_file) {
  * @brief Open a file for reading.
  */
 int ten_file_open(const char *filename, bool *does_not_exist) {
+  TEN_ASSERT(filename, "Invalid argument.");
+
   if (does_not_exist != NULL) {
     *does_not_exist = false;
   }

@@ -15,6 +15,7 @@
 #include "ten_utils/lib/string.h"
 #include "ten_utils/lib/uri.h"
 #include "ten_utils/macro/check.h"
+#include "ten_utils/macro/memory.h"
 
 typedef struct ten_transportbackend_pipe_t {
   ten_transportbackend_t base;
@@ -66,7 +67,7 @@ ten_transportbackend_pipe_destroy(ten_transportbackend_pipe_t *self) {
   }
 
   ten_transportbackend_deinit(&self->base);
-  free(self);
+  TEN_FREE(self);
 }
 
 static void
@@ -85,7 +86,7 @@ static void on_pipe_server_closed(uv_handle_t *handle) {
 
   ten_transportbackend_pipe_t *self =
       (ten_transportbackend_pipe_t *)handle->data;
-  free(handle);
+  TEN_FREE(handle);
 
   // Proceed the closing flow.
   ten_transportbackend_pipe_on_close(self);
@@ -120,7 +121,7 @@ static void on_server_connected(uv_connect_t *req, int status) {
   ten_stream_t *stream = (ten_stream_t *)req->data;
   TEN_ASSERT(stream && ten_stream_check_integrity(stream), "Invalid argument.");
 
-  free(req);
+  TEN_FREE(req);
 
   ten_transport_t *transport = stream->transport;
   TEN_ASSERT(transport, "Invalid argument.");
@@ -168,7 +169,7 @@ static int ten_transportbackend_pipe_connect(ten_transportbackend_t *backend,
   TEN_ASSERT(stream, "Invalid argument.");
   stream->transport = backend->transport;
 
-  uv_connect_t *req = (uv_connect_t *)malloc(sizeof(*req));
+  uv_connect_t *req = (uv_connect_t *)TEN_MALLOC(sizeof(*req));
   if (!req) {
     // TEN_LOGE("Not enough memory");
     goto error;
@@ -247,7 +248,7 @@ static int ten_transportbackend_pipe_listen(ten_transportbackend_t *backend,
     return -1;
   }
 
-  uv_pipe_t *server = (uv_pipe_t *)malloc(sizeof(uv_pipe_t));
+  uv_pipe_t *server = (uv_pipe_t *)TEN_MALLOC(sizeof(uv_pipe_t));
   TEN_ASSERT(server, "Failed to allocate memory.");
   memset(server, 0, sizeof(uv_pipe_t));
 
@@ -283,7 +284,7 @@ ten_transportbackend_pipe_create(ten_transport_t *transport,
     goto error;
   }
 
-  self = (ten_transportbackend_pipe_t *)malloc(
+  self = (ten_transportbackend_pipe_t *)TEN_MALLOC(
       sizeof(ten_transportbackend_pipe_t));
   if (!self) {
     // TEN_LOGE("Not enough memory");
