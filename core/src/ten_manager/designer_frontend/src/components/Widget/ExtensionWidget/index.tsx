@@ -22,7 +22,13 @@ import { ExtensionDetails } from "@/components/Widget/ExtensionWidget/ExtensionD
 import { cn, compareVersions } from "@/lib/utils";
 
 import type { TooltipContentProps } from "@radix-ui/react-tooltip";
-import type { IListTenCloudStorePackage } from "@/types/extension";
+import {
+  IListTenCloudStorePackage,
+  ITenPackageLocal,
+  ITenPackage,
+  IListTenLocalStorePackage,
+  ETenPackageType,
+} from "@/types/extension";
 
 export const ExtensionStoreWidget = (props: {
   className?: string;
@@ -38,11 +44,63 @@ export const ExtensionStoreWidget = (props: {
   const { addons, setAddons } = useAppStore();
 
   const deferredSearch = React.useDeferredValue(extSearch);
-  const [filteredPackages, versions] = React.useMemo(() => {
-    if (!data?.packages)
-      return [[], new Map<string, IListTenCloudStorePackage[]>()];
+
+  const [matched, versions, packagesMetadata] = React.useMemo(() => {
+    const cloudExtNames = data?.packages?.map((item) => item.name) || [];
+    const [localOnlyAddons, otherAddons] = addons.reduce(
+      ([localOnly, other], addon) => {
+        if (cloudExtNames.includes(addon.name)) {
+          other.push(addon);
+        } else {
+          localOnly.push(addon);
+        }
+        return [localOnly, other];
+      },
+      [[], []] as [IListTenLocalStorePackage[], IListTenLocalStorePackage[]]
+    );
+    // todo: support os/arch
+    const [installedPackages, uninstalledPackages] = (
+      data?.packages || []
+    ).reduce(
+      ([installed, uninstalled], item) => {
+        const packageName = item.name;
+        const isInstalled = otherAddons.some(
+          (addon) => addon.name === packageName
+        );
+        if (isInstalled) {
+          installed.push(item);
+        } else {
+          uninstalled.push(item);
+        }
+        return [installed, uninstalled];
+      },
+      [[], []] as [IListTenCloudStorePackage[], IListTenCloudStorePackage[]]
+    );
+    const packagesMetadata = {
+      localOnlyAddons: localOnlyAddons.map((item) => ({
+        ...item,
+        isInstalled: true,
+        _type: ETenPackageType.Local,
+      })) as ITenPackageLocal[],
+      installedPackages: installedPackages.map((item) => ({
+        ...item,
+        isInstalled: true,
+        _type: ETenPackageType.Default,
+      })) as ITenPackage[],
+      uninstalledPackages: uninstalledPackages.map((item) => ({
+        ...item,
+        isInstalled: false,
+        _type: ETenPackageType.Default,
+      })) as ITenPackage[],
+      installedPackageNames: [
+        ...new Set(installedPackages.map((item) => item.name)),
+      ],
+      uninstalledPackageNames: [
+        ...new Set(uninstalledPackages.map((item) => item.name)),
+      ],
+    };
     const versions = new Map<string, IListTenCloudStorePackage[]>();
-    data.packages.forEach((item) => {
+    data?.packages?.forEach((item) => {
       if (versions.has(item.name)) {
         const version = versions.get(item.name);
         if (version) {
@@ -55,41 +113,113 @@ export const ExtensionStoreWidget = (props: {
         versions.set(item.name, [item]);
       }
     });
-    const filteredPackageNames = Array.from(versions.keys()).filter((name) => {
-      return name.toLowerCase().includes(deferredSearch.toLowerCase());
-    });
-    const sortedFilteredPackageNames = filteredPackageNames.sort((a, b) => {
-      if (extFilter.sort === "name") {
-        return a.localeCompare(b);
+    // --- filter ---
+    // name matched
+    const nameMatchedLocalOnlyAddons = packagesMetadata.localOnlyAddons.filter(
+      (item) => {
+        return item.name.toLowerCase().includes(deferredSearch.toLowerCase());
       }
-      if (extFilter.sort === "name-desc") {
-        return b.localeCompare(a);
+    );
+    const nameMatchedInstalledPackages =
+      packagesMetadata.installedPackageNames.filter((item) => {
+        return item.toLowerCase().includes(deferredSearch.toLowerCase());
+      });
+    const nameMatchedUninstalledPackages =
+      packagesMetadata.uninstalledPackageNames.filter((item) => {
+        return item.toLowerCase().includes(deferredSearch.toLowerCase());
+      });
+    // sort
+    const sortedNameMatchedLocalOnlyAddons = nameMatchedLocalOnlyAddons.sort(
+      (a, b) => {
+        if (extFilter.sort === "name") {
+          return a.name.localeCompare(b.name);
+        }
+        if (extFilter.sort === "name-desc") {
+          return b.name.localeCompare(a.name);
+        }
+        return 0;
       }
-      return 0;
-    });
-    const filteredPackages = sortedFilteredPackageNames
-      .map((name) => {
-        return versions.get(name)?.[0];
-      })
-      .filter((item) => item !== undefined);
-    return [filteredPackages, versions];
-  }, [data?.packages, deferredSearch, extFilter.sort]);
+    );
+    const sortedNameMatchedInstalledPackageNames =
+      nameMatchedInstalledPackages.sort((a, b) => {
+        if (extFilter.sort === "name") {
+          return a.localeCompare(b);
+        }
+        if (extFilter.sort === "name-desc") {
+          return b.localeCompare(a);
+        }
+        return 0;
+      });
+    const sortedNameMatchedInstalledPackages: ITenPackage[] =
+      sortedNameMatchedInstalledPackageNames.reduce<ITenPackage[]>(
+        (acc, item) => {
+          const version = versions.get(item);
+          const target = version?.[0];
+          if (!target) {
+            return acc;
+          }
+          return [
+            ...acc,
+            {
+              ...target,
+              isInstalled: true,
+              _type: ETenPackageType.Default,
+            },
+          ];
+        },
+        []
+      );
+    const sortedNameMatchedUninstalledPackageNames =
+      nameMatchedUninstalledPackages.sort((a, b) => {
+        if (extFilter.sort === "name") {
+          return a.localeCompare(b);
+        }
+        if (extFilter.sort === "name-desc") {
+          return b.localeCompare(a);
+        }
+        return 0;
+      });
+    const sortedNameMatchedUninstalledPackages =
+      sortedNameMatchedUninstalledPackageNames.reduce<ITenPackage[]>(
+        (acc, item) => {
+          const version = versions.get(item);
+          const target = version?.[0];
+          if (!target) {
+            return acc;
+          }
+          return [
+            ...acc,
+            {
+              ...target,
+              isInstalled: false,
+              _type: ETenPackageType.Default,
+            },
+          ];
+        },
+        []
+      );
+    const matchedMetadata = {
+      localOnlyAddons: sortedNameMatchedLocalOnlyAddons,
+      installedPackageNames: sortedNameMatchedInstalledPackageNames,
+      uninstalledPackageNames: sortedNameMatchedUninstalledPackageNames,
+    };
+    const matched = [
+      ...(extFilter.showInstalled ? matchedMetadata.localOnlyAddons : []),
+      ...(extFilter.showInstalled ? sortedNameMatchedInstalledPackages : []),
+      ...(extFilter.showUninstalled
+        ? sortedNameMatchedUninstalledPackages
+        : []),
+    ];
 
-  const filteredAddons = React.useMemo(() => {
-    const filteredAddons = addons.filter((item) => {
-      return item.name.toLowerCase().includes(deferredSearch.toLowerCase());
-    });
-    const sortedFilteredAddons = filteredAddons.sort((a, b) => {
-      if (extFilter.sort === "name") {
-        return a.name.localeCompare(b.name);
-      }
-      if (extFilter.sort === "name-desc") {
-        return b.name.localeCompare(a.name);
-      }
-      return 0;
-    });
-    return sortedFilteredAddons;
-  }, [addons, deferredSearch, extFilter.sort]);
+    return [matched, versions, packagesMetadata];
+  }, [
+    data?.packages,
+    addons,
+    deferredSearch,
+    extFilter.sort,
+    extFilter.showUninstalled,
+    extFilter.showInstalled,
+  ]);
 
   React.useEffect(() => {
     const fetchAddons = async () => {
@@ -141,34 +271,38 @@ export const ExtensionStoreWidget = (props: {
             "flex items-center gap-2"
           )}
         >
-          {[...filteredPackages, ...filteredAddons].length === 0 &&
-            deferredSearch.trim() !== "" && (
-              <p className="w-fit">{t("extensionStore.noMatchResult")}</p>
-            )}
+          {matched.length === 0 && deferredSearch.trim() !== "" && (
+            <p className="w-fit">{t("extensionStore.noMatchResult")}</p>
+          )}
 
-          {[...filteredPackages, ...filteredAddons].length > 0 &&
-            deferredSearch.trim() !== "" && (
-              <p className="w-fit">
-                {t("extensionStore.matchResult", {
-                  count: filteredPackages.length + filteredAddons.length,
-                })}
-              </p>
-            )}
-
-          {deferredSearch.trim() === "" && (
-            <p className="ml-auto w-fit">
-              {t("extensionStore.installedWithSum", {
-                count: filteredAddons.length,
-                total: versions.size + (addons?.length || 0) || undefined,
+          {matched.length > 0 && deferredSearch.trim() !== "" && (
+            <p className="w-fit">
+              {t("extensionStore.matchResult", {
+                count: matched.length,
               })}
             </p>
           )}
+
+          {deferredSearch.trim() === "" &&
+            extFilter.showInstalled &&
+            extFilter.showUninstalled && (
+              <p className="ml-auto w-fit">
+                {t("extensionStore.installedWithSum", {
+                  count:
+                    packagesMetadata.localOnlyAddons.length +
+                    packagesMetadata.installedPackageNames.length,
+                  total:
+                    packagesMetadata.localOnlyAddons.length +
+                    packagesMetadata.installedPackageNames.length +
+                    packagesMetadata.uninstalledPackageNames.length,
+                })}
+              </p>
+            )}
         </div>
       </div>
 
       <ExtensionList
-        addons={filteredAddons}
-        items={filteredPackages}
+        items={matched}
         versions={versions}
         toolTipSide={toolTipSide}
         defaultOsArch={envData}

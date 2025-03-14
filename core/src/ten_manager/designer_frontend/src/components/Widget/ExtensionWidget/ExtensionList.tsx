@@ -25,85 +25,27 @@ import { ExtensionTooltipContent } from "@/components/Widget/ExtensionWidget/Ext
 import {
   type IListTenCloudStorePackage,
   type IListTenLocalStorePackage,
-  type IListTenPackage,
   ETenPackageType,
+  ITenPackage,
+  ITenPackageLocal,
 } from "@/types/extension";
 
 import type { TooltipContentProps } from "@radix-ui/react-tooltip";
 
 export const ExtensionList = (props: {
-  addons: IListTenLocalStorePackage[];
-  items: IListTenCloudStorePackage[];
+  items: (ITenPackage | ITenPackageLocal)[];
   versions: Map<string, IListTenCloudStorePackage[]>;
   className?: string;
   toolTipSide?: TooltipContentProps["side"];
   defaultOsArch?: { os?: string; arch?: string };
 }) => {
-  const { addons, items, versions, className, toolTipSide, defaultOsArch } =
-    props;
-
-  const combinedItemsMemo = React.useMemo(() => {
-    const packagesNames = items.map((item) => item.name);
-    const [localOnlyAddons, otherAddons] = addons.reduce(
-      ([localOnly, other], addon) => {
-        if (packagesNames.includes(addon.name)) {
-          other.push(addon);
-        } else {
-          localOnly.push(addon);
-        }
-        return [localOnly, other];
-      },
-      [[], []] as [IListTenLocalStorePackage[], IListTenLocalStorePackage[]]
-    );
-    const [installedPackages, uninstalledPackages] = items.reduce(
-      ([installed, uninstalled], item) => {
-        const packageName = item.name;
-        const isInstalled = otherAddons.some(
-          (addon) => addon.name === packageName
-        );
-        if (isInstalled) {
-          installed.push(item);
-        } else {
-          uninstalled.push(item);
-        }
-        return [installed, uninstalled];
-      },
-      [[], []] as [IListTenCloudStorePackage[], IListTenCloudStorePackage[]]
-    );
-    const combinedItems = [
-      ...(localOnlyAddons.map((addon) => ({
-        ...addon,
-        isInstalled: true,
-        _type: ETenPackageType.Local,
-      })) as (IListTenLocalStorePackage & {
-        isInstalled?: boolean;
-        _type: ETenPackageType.Local;
-      })[]),
-      ...(installedPackages.map((item) => ({
-        ...item,
-        isInstalled: true,
-        _type: ETenPackageType.Default,
-      })) as (IListTenCloudStorePackage & {
-        isInstalled?: boolean;
-        _type: ETenPackageType.Default;
-      })[]),
-      ...(uninstalledPackages.map((item) => ({
-        ...item,
-        isInstalled: false,
-        _type: ETenPackageType.Default,
-      })) as (IListTenCloudStorePackage & {
-        isInstalled?: boolean;
-        _type: ETenPackageType.Default;
-      })[]),
-    ];
-    return combinedItems;
-  }, [addons, items]);
+  const { items, versions, className, toolTipSide, defaultOsArch } = props;
 
   const VirtualListItem = (props: {
     index: number;
     style: React.CSSProperties;
   }) => {
-    const item = combinedItemsMemo[props.index];
+    const item = items[props.index];
 
     if (item._type === ETenPackageType.Local) {
       return (
@@ -137,7 +79,7 @@ export const ExtensionList = (props: {
           <VirtualList
             width={width}
             height={height}
-            itemCount={combinedItemsMemo.length}
+            itemCount={items.length}
             itemSize={52}
           >
             {VirtualListItem}
@@ -151,7 +93,7 @@ export const ExtensionList = (props: {
 export const ExtensionBaseItem = React.forwardRef<
   HTMLLIElement,
   {
-    item: IListTenPackage;
+    item: IListTenCloudStorePackage | IListTenLocalStorePackage;
     _type?: ETenPackageType;
     isInstalled?: boolean;
     className?: string;

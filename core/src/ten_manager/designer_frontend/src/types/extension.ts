@@ -50,6 +50,12 @@ export interface IListTenCloudStorePackage
 export interface IListTenLocalStorePackage
   extends z.infer<typeof TenLocalStorePackageSchema> {}
 
-export type IListTenPackage =
-  | IListTenCloudStorePackage
-  | IListTenLocalStorePackage;
+export interface ITenPackageLocal extends IListTenLocalStorePackage {
+  isInstalled: true;
+  _type: ETenPackageType.Local;
+}
+
+export interface ITenPackage extends IListTenCloudStorePackage {
+  isInstalled?: boolean;
+  _type: ETenPackageType.Default;
+}
