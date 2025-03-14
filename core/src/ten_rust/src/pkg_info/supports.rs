@@ -187,7 +187,9 @@ impl FromStr for Os {
     fn from_str(s: &str) -> Result<Self> {
         match s {
             "win" => Ok(Os::Win),
+            "windows" => Ok(Os::Win),
             "mac" => Ok(Os::Mac),
+            "macos" => Ok(Os::Mac),
             "linux" => Ok(Os::Linux),
             _ => Err(Error::msg("Failed to parse string to OS")),
         }
@@ -231,6 +233,7 @@ impl FromStr for Arch {
             "x86_64" => Ok(Arch::X64),
             "arm" => Ok(Arch::Arm),
             "arm64" => Ok(Arch::Arm64),
+            "aarch64" => Ok(Arch::Arm64),
             _ => Err(Error::msg("Failed to parse string to CPU")),
         }
     }

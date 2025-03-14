@@ -642,7 +642,7 @@ static void ten_transport_on_server_connected(ten_transport_t *transport,
   bool success = status >= 0;
 
   if (success) {
-    ten_protocol_integrated_on_server_finally_connected(cb_data, success);
+    ten_protocol_integrated_on_server_finally_connected(cb_data, true);
 
     ten_protocol_integrated_set_stream(protocol, stream);
     ten_stream_start_read(stream);
@@ -653,7 +653,7 @@ static void ten_transport_on_server_connected(ten_transport_t *transport,
         protocol->retry_config.enable && protocol->retry_config.max_retries > 0;
 
     if (!need_retry) {
-      ten_protocol_integrated_on_server_finally_connected(cb_data, success);
+      ten_protocol_integrated_on_server_finally_connected(cb_data, false);
       return;
     }
 
