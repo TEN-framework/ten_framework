@@ -29,25 +29,18 @@ use ten_manager::{
 
 /// Finds the `config.json` by:
 /// 1. Starting from current directory
-/// 2. Looking up parent directories until it finds one with `.tgnconfig.json`.
-/// 3. Looking for `out/` folder in that directory.
-/// 4. Finding the only subfolder in `out/`.
-/// 5. Finding the only subfolder within that subfolder.
-/// 6. Locating the `config.json` at `tests/local_registry/config.json` in that
+/// 2. Looking up parent directories until it finds one with `out/` folder.
+/// 3. Finding the only subfolder in `out/`.
+/// 4. Finding the only subfolder within that subfolder.
+/// 5. Locating the `config.json` at `tests/local_registry/config.json` in that
 ///    directory.
 fn find_config_json() -> Option<PathBuf> {
     let mut current_dir = std::env::current_dir().ok()?;
 
-    // Keep going up parent directories until we find `.tgnconfig.json`.
+    // Keep going up parent directories until we find `out/` folder.
     loop {
-        let tgn_config_path = current_dir.join(".tgnconfig.json");
-        if tgn_config_path.exists() {
-            // Found the directory containing `.tgnconfig.json`.
-            let out_dir = current_dir.join("out");
-            if !out_dir.exists() || !out_dir.is_dir() {
-                return None;
-            }
-
+        let out_dir = current_dir.join("out");
+        if out_dir.exists() && out_dir.is_dir() {
             // Find the only subfolder in `out/`.
             let out_subfolders = fs::read_dir(&out_dir)
                 .ok()?
