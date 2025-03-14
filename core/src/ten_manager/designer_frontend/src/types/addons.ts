@@ -4,8 +4,10 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-export interface IExtensionAddon {
-  name: string;
-  url: string;
-  api?: unknown;
-}
+import z from "zod";
+
+import { TenLocalStorePackageSchema } from "@/types/extension";
+
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+export interface IExtensionAddon
+  extends z.infer<typeof TenLocalStorePackageSchema> {}

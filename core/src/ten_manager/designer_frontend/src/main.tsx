@@ -12,6 +12,7 @@ import "@/i18n";
 import { Toaster } from "@/components/ui/Sonner";
 
 import "@/index.css";
+import "@/fonts.css";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>

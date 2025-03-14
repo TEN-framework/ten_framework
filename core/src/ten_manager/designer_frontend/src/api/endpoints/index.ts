@@ -52,6 +52,18 @@ export const ENDPOINT_COMMON = {
       ),
     },
   },
+  env: {
+    [ENDPOINT_METHOD.GET]: {
+      url: `${API_DESIGNER_V1}/env`,
+      method: ENDPOINT_METHOD.GET,
+      responseSchema: genResSchema<{ os?: string; arch?: string }>(
+        z.object({
+          os: z.string().optional(),
+          arch: z.string().optional(),
+        })
+      ),
+    },
+  },
 };
 
 export { ENDPOINT_GRAPHS } from "@/api/endpoints/graphs";

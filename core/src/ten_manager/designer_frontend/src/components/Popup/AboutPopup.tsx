@@ -11,8 +11,7 @@ import { Separator } from "@/components/ui/Separator";
 import { cn } from "@/lib/utils";
 import { TEN_FRAMEWORK_URL, TEN_FRAMEWORK_GITHUB_URL } from "@/constants";
 import { useWidgetStore } from "@/store/widget";
-
-export const ABOUT_POPUP_ID = "about-popup";
+import { ABOUT_POPUP_ID } from "@/constants/widgets";
 
 export const AboutPopup = () => {
   const { t } = useTranslation();

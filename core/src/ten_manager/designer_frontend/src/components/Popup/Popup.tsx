@@ -248,9 +248,9 @@ const Popup: React.FC<PopupProps> = ({
       className={cn(
         "fixed text-sm overflow-hidden",
         "backdrop-blur-xs shadow-xl ",
-        "bg-cyan-50/80 dark:bg-gray-900/90",
-        "border border-cyan-100/50 dark:border-gray-900/50",
-        "ring-1 ring-cyan-100/50 dark:ring-gray-900/50",
+        "bg-slate-50/80 dark:bg-gray-900/90",
+        "border border-slate-100/50 dark:border-gray-900/50",
+        "ring-1 ring-slate-100/50 dark:ring-gray-900/50",
         "text-foreground rounded-lg focus:outline-hidden flex flex-col popup",
         "transition-opacity duration-200 ease-in-out",
         isVisible ? "opacity-100" : "opacity-0",
@@ -279,6 +279,7 @@ const Popup: React.FC<PopupProps> = ({
       <div
         className={cn(
           "p-2.5 flex justify-between items-center cursor-move select-none",
+          "bg-slate-100/80 dark:bg-gray-900/80",
           "rounded-t-lg",
           {
             ["border-b border-border/50"]: !isCollapsed,

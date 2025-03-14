@@ -39,11 +39,13 @@ import {
   EWidgetCategory,
   EWidgetDisplayType,
   IEditorWidget,
+  EDefaultWidgetType,
   IWidget,
 } from "@/types/widgets";
 import TerminalWidget from "@/components/Widget/TerminalWidget";
 import EditorWidget from "@/components/Widget/EditorWidget";
 import { LogViewerFrontStageWidget } from "@/components/Widget/LogViewerWidget";
+import { ExtensionStoreWidget } from "@/components/Widget/ExtensionWidget";
 
 import { type TEditorOnClose } from "@/components/Widget/EditorWidget";
 
@@ -197,7 +199,11 @@ export default function DockContainer(props: {
 
   return (
     <div
-      className={cn("w-full h-full bg-muted text-muted-foreground", className)}
+      className={cn(
+        "w-full h-full bg-muted text-muted-foreground",
+        { ["mt-10 h-[calc(100%-40px)]"]: position !== "bottom" },
+        className
+      )}
     >
       <DockHeader
         className="text-primary"
@@ -257,6 +263,19 @@ export default function DockContainer(props: {
           {selectedWidgetMemo.category === EWidgetCategory.LogViewer && (
             <LogViewerFrontStageWidget id={selectedWidgetMemo.id} />
           )}
+          {selectedWidgetMemo.category === EWidgetCategory.Default &&
+            selectedWidgetMemo?.metadata?.type ===
+              EDefaultWidgetType.ExtensionStore && (
+              <ExtensionStoreWidget
+                toolTipSide={
+                  position === "right"
+                    ? "left"
+                    : position === "bottom"
+                      ? "top"
+                      : undefined
+                }
+              />
+            )}
         </div>
       )}
     </div>

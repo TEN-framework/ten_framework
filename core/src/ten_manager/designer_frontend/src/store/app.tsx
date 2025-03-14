@@ -10,6 +10,7 @@ import { devtools } from "zustand/middleware";
 import { TEN_DEFAULT_APP_RUN_SCRIPT } from "@/constants";
 
 import { type IFMItem } from "@/components/FileManager/utils";
+import { type IExtensionAddon } from "@/types/addons";
 
 export interface IAppStore {
   runScript: string;
@@ -18,6 +19,13 @@ export interface IAppStore {
   setFolderPath: (folderPath: string) => void;
   fmItems: IFMItem[][];
   setFmItems: (fmItems: IFMItem[][]) => void;
+  addons: IExtensionAddon[];
+  setAddons: (addons: IExtensionAddon[]) => void;
+  defaultOsArch: {
+    os?: string;
+    arch?: string;
+  };
+  setDefaultOsArch: (osArch: { os?: string; arch?: string }) => void;
 }
 
 export const useAppStore = create<IAppStore>()(
@@ -28,5 +36,13 @@ export const useAppStore = create<IAppStore>()(
     setFolderPath: (folderPath: string) => set({ folderPath }),
     fmItems: [[]],
     setFmItems: (fmItems: IFMItem[][]) => set({ fmItems }),
+    addons: [],
+    setAddons: (addons: IExtensionAddon[]) => set({ addons }),
+    defaultOsArch: {
+      os: undefined,
+      arch: undefined,
+    },
+    setDefaultOsArch: (osArch: { os?: string; arch?: string }) =>
+      set({ defaultOsArch: osArch }),
   }))
 );

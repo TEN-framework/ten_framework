@@ -5,7 +5,7 @@
 // Refer to the "LICENSE" file in the root directory for more information.
 //
 import { useTranslation } from "react-i18next";
-import { FolderOpenIcon, MoveIcon } from "lucide-react";
+import { FolderOpenIcon, MoveIcon, BlocksIcon } from "lucide-react";
 
 import {
   NavigationMenuContent,
@@ -15,15 +15,44 @@ import {
 } from "@/components/ui/NavigationMenu";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
+import { useWidgetStore } from "@/store/widget";
+import {
+  GRAPH_SELECT_POPUP_ID,
+  EXTENSION_STORE_POPUP_ID,
+} from "@/constants/widgets";
+import {
+  EDefaultWidgetType,
+  EWidgetCategory,
+  EWidgetDisplayType,
+} from "@/types/widgets";
 
-interface GraphMenuProps {
-  onAutoLayout: () => void;
-  onOpenExistingGraph: () => void;
-}
+export function GraphMenu(props: { onAutoLayout: () => void }) {
+  const { onAutoLayout } = props;
 
-export function GraphMenu(props: GraphMenuProps) {
-  const { onAutoLayout, onOpenExistingGraph } = props;
   const { t } = useTranslation();
+  const { appendWidgetIfNotExists } = useWidgetStore();
+
+  const onOpenExistingGraph = () => {
+    appendWidgetIfNotExists({
+      id: GRAPH_SELECT_POPUP_ID,
+      category: EWidgetCategory.Default,
+      display_type: EWidgetDisplayType.Popup,
+      metadata: {
+        type: EDefaultWidgetType.GraphSelect,
+      },
+    });
+  };
+
+  const onOpenExtensionStore = () => {
+    appendWidgetIfNotExists({
+      id: EXTENSION_STORE_POPUP_ID,
+      category: EWidgetCategory.Default,
+      display_type: EWidgetDisplayType.Popup,
+      metadata: {
+        type: EDefaultWidgetType.ExtensionStore,
+      },
+    });
+  };
 
   return (
     <NavigationMenuItem>
@@ -41,6 +70,16 @@ export function GraphMenu(props: GraphMenuProps) {
           >
             <FolderOpenIcon />
             {t("header.menu.openExistingGraph")}
+          </Button>
+        </NavigationMenuLink>
+        <NavigationMenuLink asChild>
+          <Button
+            className="w-full justify-start"
+            variant="ghost"
+            onClick={onOpenExtensionStore}
+          >
+            <BlocksIcon />
+            {t("header.menu.openExtensionStore")}
           </Button>
         </NavigationMenuLink>
         <NavigationMenuLink asChild>

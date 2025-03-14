@@ -21,7 +21,29 @@ export const ENDPOINT_ADDONS = {
           name: z.string(),
           url: z.string(),
           api: z.unknown().optional(),
+          type: z.string(),
         })
+      ),
+    },
+  },
+  addons: {
+    [ENDPOINT_METHOD.POST]: {
+      url: `${API_DESIGNER_V1}/addons`,
+      method: ENDPOINT_METHOD.POST,
+      body: z.object({
+        base_dir: z.string().optional(),
+        addon_name: z.string().optional(),
+        addon_type: z.string().optional(),
+      }),
+      responseSchema: genResSchema<IExtensionAddon[]>(
+        z.array(
+          z.object({
+            name: z.string(),
+            url: z.string(),
+            api: z.unknown().optional(),
+            type: z.string(),
+          })
+        )
       ),
     },
   },

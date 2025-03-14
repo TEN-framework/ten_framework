@@ -5,6 +5,7 @@
     "menu": {
       "graph": "圖譜",
       "openExistingGraph": "開啟現有圖譜",
+      "openExtensionStore": "開啟擴充功能商店",
       "autoLayout": "自動佈局",
       "openAppFolder": "開啟應用程式資料夾",
       "file": "檔案",
@@ -102,5 +103,35 @@
     "delete": "刪除",
     "openMenu": "開啟選單",
     "noResults": "無結果"
+  },
+  "extensionStore": {
+    "title": "擴充套件商店",
+    "compatible": "相容性",
+    "dependencies": "相依性",
+    "searchPlaceholder": "搜尋擴充套件...",
+    "installedWithSum": "已安裝 {{count}}/{{total}} 個",
+    "noMatchResult": "無符合結果",
+    "matchResult": "找到 {{count}} 個符合結果",
+    "install": "安裝",
+    "installed": "已安裝",
+    "filter": {
+      "showUninstalled": "未安裝",
+      "showInstalled": "已安裝",
+      "sort": "排序",
+      "sort-default": "預設",
+      "sort-name": "名稱",
+      "sort-name-desc": "名稱（降序）",
+      "type": "類型"
+    },
+    "extensionTitle": "擴充套件: {{name}}",
+    "os-arch": "作業系統/架構",
+    "selectOsArch": "選擇作業系統/架構",
+    "os-arch-default": "預設",
+    "version": "版本",
+    "hash": "HASH",
+    "versionHistory": "版本歷史",
+    "selectVersion": "選擇版本",
+    "versionLatest": "最新",
+    "localAddonTip": "(本機)"
   }
 }

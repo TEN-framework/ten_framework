@@ -18,6 +18,13 @@ export default defineConfig({
   server: {
     host: true,
     proxy: {
+      "/ten-store": {
+        target:
+          process.env.VITE_TSTORE_ENDPOINT || "https://ten-store.theten.ai",
+        rewrite: (path) => path.replace(/^\/ten-store/, ""),
+        changeOrigin: true,
+        secure: false,
+      },
       "/api": {
         target:
           process.env.VITE_TMAN_GD_BACKEND_HTTP_ENDPOINT ||

@@ -6,6 +6,7 @@
     "menu": {
       "graph": "图谱",
       "openExistingGraph": "打开现有图谱",
+      "openExtensionStore": "打开扩展商店",
       "autoLayout": "自动布局",
       "openAppFolder": "打开应用文件夹",
       "file": "文件",
@@ -103,5 +104,35 @@
     "delete": "删除",
     "openMenu": "打开菜单",
     "noResults": "无结果"
+  },
+  "extensionStore": {
+    "title": "扩展商店",
+    "compatible": "兼容性",
+    "dependencies": "依赖项",
+    "searchPlaceholder": "搜索扩展...",
+    "installedWithSum": "已安装 {{count}}/{{total}} 个",
+    "noMatchResult": "无匹配结果",
+    "matchResult": "找到 {{count}} 个匹配结果",
+    "install": "安装",
+    "installed": "已安装",
+    "filter": {
+      "showUninstalled": "未安装",
+      "showInstalled": "已安装",
+      "sort": "排序",
+      "sort-default": "默认",
+      "sort-name": "名称",
+      "sort-name-desc": "名称（降序）",
+      "type": "类型"
+    },
+    "extensionTitle": "扩展: {{name}}",
+    "os-arch": "操作系统/架构",
+    "selectOsArch": "选择操作系统/架构",
+    "os-arch-default": "默认",
+    "version": "版本",
+    "hash": "哈希",
+    "versionHistory": "版本历史",
+    "selectVersion": "选择版本",
+    "versionLatest": "最新",
+    "localAddonTip": "(本地)"
   }
 }

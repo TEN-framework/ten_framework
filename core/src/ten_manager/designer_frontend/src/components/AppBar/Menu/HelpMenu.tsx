@@ -21,7 +21,7 @@ import {
   EWidgetCategory,
   EWidgetDisplayType,
 } from "@/types/widgets";
-import { ABOUT_POPUP_ID } from "@/components/Popup/AboutPopup";
+import { ABOUT_POPUP_ID } from "@/constants/widgets";
 
 export function HelpMenu() {
   const { t } = useTranslation();

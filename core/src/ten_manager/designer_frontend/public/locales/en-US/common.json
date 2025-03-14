@@ -6,6 +6,7 @@
     "menu": {
       "graph": "Graph",
       "openExistingGraph": "Open Existing Graph",
+      "openExtensionStore": "Open Extension Store",
       "autoLayout": "Auto Layout",
       "openAppFolder": "Open App Folder",
       "file": "File",
@@ -103,5 +104,35 @@
     "delete": "Delete",
     "openMenu": "Open Menu",
     "noResults": "No results."
+  },
+  "extensionStore": {
+    "title": "Extension Store",
+    "compatible": "Compatible",
+    "dependencies": "Dependencies",
+    "searchPlaceholder": "Search Extensions...",
+    "installedWithSum": "{{count}} of {{total}} Installed",
+    "noMatchResult": "No match results",
+    "matchResult": "{{count}} match results",
+    "install": "Install",
+    "installed": "Installed",
+    "filter": {
+      "showUninstalled": "Uninstalled",
+      "showInstalled": "Installed",
+      "sort": "Sort",
+      "sort-default": "Default",
+      "sort-name": "Name",
+      "sort-name-desc": "Name (Desc)",
+      "type": "Type"
+    },
+    "extensionTitle": "Extension: {{name}}",
+    "os-arch": "OS/Arch",
+    "selectOsArch": "Select OS/Arch",
+    "os-arch-default": "Default",
+    "version": "Version",
+    "hash": "HASH",
+    "versionHistory": "Version History",
+    "selectVersion": "Select a version",
+    "versionLatest": "Latest",
+    "localAddonTip": "(local)"
   }
 }

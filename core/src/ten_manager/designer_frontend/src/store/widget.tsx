@@ -23,12 +23,18 @@ export const useWidgetStore = create<{
     widgetId: string,
     displayType: EWidgetDisplayType
   ) => void;
+
+  // editor ---
   updateEditorStatus: (widgetId: string, isEditing: boolean) => void;
+
+  // backstage(ws) ---
   backstageWidgets: IWidget[];
   appendBackstageWidget: (widget: IWidget) => void;
   appendBackstageWidgetIfNotExists: (widget: IWidget) => void;
   removeBackstageWidget: (widgetId: string) => void;
   removeBackstageWidgets: (widgetIds: string[]) => void;
+
+  // log viewer ---
   logViewerHistory: {
     [id: string]: {
       history: string[];
@@ -37,6 +43,22 @@ export const useWidgetStore = create<{
   appendLogViewerHistory: (id: string, history: string[]) => void;
   removeLogViewerHistory: (id: string) => void;
   removeLogViewerHistories: (ids: string[]) => void;
+
+  // extension store ---
+  extSearch: string;
+  setExtSearch: (search: string) => void;
+  extFilter: {
+    showUninstalled: boolean;
+    showInstalled: boolean;
+    sort: "default" | "name" | "name-desc";
+    type: string[];
+  };
+  updateExtFilter: (filter: {
+    showUninstalled?: boolean;
+    showInstalled?: boolean;
+    sort?: "default" | "name" | "name-desc";
+    type?: string[];
+  }) => void;
 }>()(
   devtools((set) => ({
     widgets: [],
@@ -65,6 +87,8 @@ export const useWidgetStore = create<{
           w.id === widgetId ? { ...w, display_type: displayType } : w
         ),
       })),
+
+    // editor ---
     updateEditorStatus: (widgetId: string, isEditing: boolean) =>
       set((state) => ({
         widgets: state.widgets.map((w) =>
@@ -73,6 +97,8 @@ export const useWidgetStore = create<{
             : w
         ),
       })),
+
+    // backstage(ws) ---
     backstageWidgets: [],
     appendBackstageWidget: (widget: IWidget) =>
       set((state) => ({
@@ -96,6 +122,8 @@ export const useWidgetStore = create<{
           (w) => !widgetIds.includes(w.id)
         ),
       })),
+
+    // log viewer ---
     logViewerHistory: {},
     appendLogViewerHistory: (id: string, history: string[], override = false) =>
       set((state) => ({
@@ -122,5 +150,21 @@ export const useWidgetStore = create<{
           )
         ),
       })),
+
+    // extension store ---
+    extSearch: "",
+    setExtSearch: (search: string) => set({ extSearch: search }),
+    extFilter: {
+      showUninstalled: true,
+      showInstalled: true,
+      sort: "default",
+      type: [],
+    },
+    updateExtFilter: (filter: {
+      showUninstalled?: boolean;
+      showInstalled?: boolean;
+      sort?: "default" | "name" | "name-desc";
+      type?: string[];
+    }) => set((state) => ({ extFilter: { ...state.extFilter, ...filter } })),
   }))
 );
