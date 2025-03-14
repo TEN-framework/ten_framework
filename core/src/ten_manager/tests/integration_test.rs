@@ -15,6 +15,11 @@ fn main() {
 }
 
 // Those following mods will be compiled in one executable.
-mod cmd_builtin_function_ws;
-mod cmd_check_graph;
-mod cmd_designer;
+mod test_case {
+    mod common;
+
+    mod cmd_builtin_function_install;
+    mod cmd_builtin_function_install_all;
+    mod cmd_check_graph;
+    mod cmd_designer;
+}
