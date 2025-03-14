@@ -125,9 +125,13 @@
       "type": "类型"
     },
     "extensionTitle": "扩展: {{name}}",
+    "os-arch": "操作系统/架构",
+    "selectOsArch": "选择操作系统/架构",
+    "os-arch-default": "默认",
     "version": "版本",
     "hash": "哈希",
     "versionHistory": "版本历史",
+    "selectVersion": "选择版本",
     "versionLatest": "最新"
   }
 }

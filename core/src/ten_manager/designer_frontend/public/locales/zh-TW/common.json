@@ -124,9 +124,13 @@
       "type": "類型"
     },
     "extensionTitle": "擴充套件: {{name}}",
+    "os-arch": "作業系統/架構",
+    "selectOsArch": "選擇作業系統/架構",
+    "os-arch-default": "預設",
     "version": "版本",
     "hash": "HASH",
     "versionHistory": "版本歷史",
+    "selectVersion": "選擇版本",
     "versionLatest": "最新"
   }
 }

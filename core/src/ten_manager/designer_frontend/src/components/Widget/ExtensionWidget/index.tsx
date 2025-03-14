@@ -86,7 +86,7 @@ export const ExtensionStoreWidget = (props: {
         <div
           className={cn(
             "select-none cursor-default",
-            "bg-gray-100 dark:bg-gray-800 px-2 py-1",
+            "bg-slate-100/80 dark:bg-gray-900/80 px-2 py-1",
             "text-gray-500 dark:text-gray-400",
             "text-xs font-semibold",
             "flex items-center gap-2"

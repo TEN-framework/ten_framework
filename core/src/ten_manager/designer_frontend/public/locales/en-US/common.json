@@ -125,9 +125,13 @@
       "type": "Type"
     },
     "extensionTitle": "Extension: {{name}}",
+    "os-arch": "OS/Arch",
+    "selectOsArch": "Select OS/Arch",
+    "os-arch-default": "Default",
     "version": "Version",
     "hash": "HASH",
     "versionHistory": "Version History",
+    "selectVersion": "Select a version",
     "versionLatest": "Latest"
   }
 }

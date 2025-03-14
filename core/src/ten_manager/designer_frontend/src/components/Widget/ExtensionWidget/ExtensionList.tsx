@@ -52,7 +52,7 @@ export const ExtensionList = (props: {
   return (
     <div className={cn("w-full h-full", className)}>
       <AutoSizer>
-        {({ width, height }) => (
+        {({ width, height }: { width: number; height: number }) => (
           <VirtualList
             width={width}
             height={height}
@@ -163,9 +163,9 @@ export const ExtensionStoreItem = (props: {
           side={toolTipSide}
           className={cn(
             "backdrop-blur-xs shadow-xl text-popover-foreground",
-            "bg-cyan-50/80 dark:bg-gray-900/90",
-            "border border-cyan-100/50 dark:border-gray-900/50",
-            "ring-1 ring-cyan-100/50 dark:ring-gray-900/50",
+            "bg-slate-50/80 dark:bg-gray-900/90",
+            "border border-slate-100/50 dark:border-gray-900/50",
+            "ring-1 ring-slate-100/50 dark:ring-gray-900/50",
             "font-roboto"
           )}
         >

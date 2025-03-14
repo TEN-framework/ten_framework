@@ -28,9 +28,22 @@ export const ExtensionTooltipContent = (props: {
   item: IListTenCloudStorePackage;
   versions: IListTenCloudStorePackage[];
 }) => {
-  const { item } = props;
+  const { item, versions } = props;
 
   const { t } = useTranslation();
+
+  const supportsMemo = React.useMemo(() => {
+    const result = new Map<string, { os: string; arch: string }>();
+    for (const version of versions) {
+      for (const support of version?.supports || []) {
+        result.set(`${support.os} ${support.arch}`, {
+          os: support.os,
+          arch: support.arch,
+        });
+      }
+    }
+    return Array.from(result.values());
+  }, [versions]);
 
   return (
     <div className="flex flex-col gap-1">
@@ -55,11 +68,11 @@ export const ExtensionTooltipContent = (props: {
         {item.type}
       </div>
       <Separator />
-      {item.supports && (
+      {supportsMemo.length > 0 && (
         <>
           <div className="text-gray-500 dark:text-gray-400">
             <div className="mb-1">{t("extensionStore.compatible")}</div>
-            <ExtensionEleSupports name={item.name} supports={item.supports} />
+            <ExtensionEleSupports name={item.name} supports={supportsMemo} />
           </div>
           <Separator />
         </>
@@ -89,17 +102,47 @@ export const ExtensionDetails = (props: {
 }) => {
   const { versions, name, className } = props;
   const [selectedVersion, setSelectedVersion] = React.useState<string>(
-    versions[0]?.version || ""
+    versions[0].hash
   );
 
-  const defaultVersionMemo = React.useMemo(() => {
-    return versions[0];
-  }, [versions]);
   const selectedVersionItemMemo = React.useMemo(() => {
-    return versions.find((version) => version.version === selectedVersion);
+    return versions.find((version) => version.hash === selectedVersion);
   }, [versions, selectedVersion]);
 
   const { t } = useTranslation();
+
+  const osArchMemo = React.useMemo(() => {
+    const result = new Map<string, IListTenCloudStorePackage[]>();
+    for (const version of versions) {
+      for (const support of version?.supports || []) {
+        if (!result.has(`${support.os}/${support.arch}`)) {
+          result.set(`${support.os}/${support.arch}`, []);
+        }
+        result.get(`${support.os}/${support.arch}`)?.push(version);
+      }
+    }
+    if (result.size === 0) {
+      result.set("default", versions);
+    }
+    return result;
+  }, [versions]);
+
+  const [osArch, setOsArch] = React.useState<string>(
+    Array.from(osArchMemo.keys())[0]
+  );
+
+  const defaultVersionMemo = React.useMemo(() => {
+    return osArchMemo.get(osArch)?.[0];
+  }, [osArchMemo, osArch]);
+
+  const handleOsArchChange = (value: string) => {
+    setOsArch(value);
+    setSelectedVersion(osArchMemo.get(value)?.[0]?.hash || versions[0].hash);
+  };
+
+  const handleSelectedVersionChange = (value: string) => {
+    setSelectedVersion(value);
+  };
 
   return (
     <div
@@ -119,7 +162,7 @@ export const ExtensionDetails = (props: {
               "text-gray-500 dark:text-gray-400"
             )}
           >
-            {defaultVersionMemo.type}
+            {defaultVersionMemo?.type}
           </div>
           <div className="flex gap-2">
             <Button
@@ -151,12 +194,41 @@ export const ExtensionDetails = (props: {
         </div>
       </div>
       <Separator />
-      <div className="flex items-center justify-between gap-2 w-full">
+      {!osArchMemo.get("default")?.length && (
+        <div className="flex items-center justify-between gap-2 w-full">
+          <span className="font-semibold">{t("extensionStore.os-arch")}</span>
+          <Select
+            defaultValue={osArch}
+            value={osArch}
+            onValueChange={handleOsArchChange}
+          >
+            <SelectTrigger className="w-fit min-w-48">
+              <SelectValue placeholder={t("extensionStore.selectOsArch")} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                <SelectLabel>{t("extensionStore.os-arch")}</SelectLabel>
+                {Array.from(osArchMemo.keys()).map((osArch) => (
+                  <SelectItem key={osArch} value={osArch}>
+                    {osArch === "default"
+                      ? t("extensionStore.os-arch-default")
+                      : osArch}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+        </div>
+      )}
+      <div
+        className="flex items-center justify-between gap-2 w-full"
+        key={`${osArch}-selectedVersion`}
+      >
         <span className="font-semibold">{t("extensionStore.version")}</span>
         <Select
-          defaultValue={versions[0]?.version}
+          defaultValue={osArchMemo.get(osArch)?.[0]?.version}
           value={selectedVersion}
-          onValueChange={setSelectedVersion}
+          onValueChange={handleSelectedVersionChange}
         >
           <SelectTrigger className="w-fit min-w-48">
             <SelectValue placeholder="Select a version" />
@@ -164,9 +236,9 @@ export const ExtensionDetails = (props: {
           <SelectContent>
             <SelectGroup>
               <SelectLabel>{t("extensionStore.versionHistory")}</SelectLabel>
-              {versions.map((version) => (
-                <SelectItem key={version.version} value={version.version}>
-                  {version.version === defaultVersionMemo.version
+              {osArchMemo.get(osArch)?.map((version) => (
+                <SelectItem key={version.hash} value={version.hash}>
+                  {version.hash === defaultVersionMemo?.hash
                     ? `${version.version}(${t("extensionStore.versionLatest")})`
                     : version.version}
                 </SelectItem>
@@ -227,7 +299,7 @@ const ExtensionEleSupports = (props: {
     <ul className={cn("flex flex-wrap gap-1", className)}>
       {supports?.map((support) => (
         <ExtensionEleBadge key={`${name}-${support.os}-${support.arch}`}>
-          {support.os} {support.arch}
+          {support.os}/{support.arch}
         </ExtensionEleBadge>
       ))}
     </ul>
