@@ -8,6 +8,7 @@
 
 #include "ten_runtime/ten_config.h"
 
+#include "include_internal/ten_runtime/addon/common/store.h"
 #include "include_internal/ten_runtime/protocol/protocol.h"
 #include "ten_runtime/addon/addon.h"
 
@@ -48,3 +49,6 @@ TEN_RUNTIME_API ten_addon_host_t *ten_addon_register_protocol(
 TEN_RUNTIME_API ten_addon_t *ten_addon_unregister_protocol(const char *name);
 
 TEN_RUNTIME_PRIVATE_API void ten_addon_unregister_all_protocol(void);
+
+TEN_RUNTIME_PRIVATE_API void ten_addon_unregister_all_protocol_ex(
+    ten_addon_store_on_all_addons_deinit_done_cb_t cb, void *cb_data);
