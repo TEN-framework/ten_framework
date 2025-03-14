@@ -6,7 +6,6 @@
 //
 #include "ten_utils/lib/buf.h"
 
-#include <assert.h>
 #include <stddef.h>
 #include <string.h>
 

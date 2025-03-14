@@ -8,6 +8,10 @@
 
 #include "ten_utils/ten_config.h"
 
-#include <stdint.h>
+#include <stddef.h>
 
-TEN_UTILS_PRIVATE_API void ten_log_get_pid_tid(int64_t *pid, int64_t *tid);
+/**
+ * @brief Sort without using memory.
+ */
+TEN_UTILS_API void backtrace_sort(void *base, size_t count, size_t size,
+                                  int (*compar)(const void *, const void *));

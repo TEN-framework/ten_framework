@@ -6,7 +6,6 @@
 //
 #include "ten_utils/lib/thread.h"
 
-#include <assert.h>
 #include <pthread.h>
 
 #include "ten_utils/macro/check.h"

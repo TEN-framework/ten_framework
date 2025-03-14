@@ -9,11 +9,10 @@
 //
 #include "ten_utils/ten_config.h"
 
-#include "include_internal/ten_utils/backtrace/backtrace.h"
-
 #include <assert.h>
 #include <sys/types.h>
 
+#include "include_internal/ten_utils/backtrace/backtrace.h"
 #include "include_internal/ten_utils/backtrace/platform/posix/internal.h"
 #include "unwind.h"
 
@@ -21,9 +20,9 @@
  * @brief Data passed through _Unwind_Backtrace.
  */
 typedef struct backtrace_data {
-  size_t skip;  // Number of frames to skip.
+  size_t skip; // Number of frames to skip.
   ten_backtrace_t *ten_backtrace;
-  int ret;  // Value to return from ten_backtrace_dump_posix.
+  int ret; // Value to return from ten_backtrace_dump_posix.
 } backtrace_data;
 
 /**

@@ -16,6 +16,7 @@
 #include "ten_utils/lib/mutex.h"
 #include "ten_utils/lib/thread_local.h"
 #include "ten_utils/lib/thread_once.h"
+#include "ten_utils/lib/time.h"
 #include "ten_utils/log/log.h"
 #include "ten_utils/macro/check.h"
 #include "ten_utils/macro/field.h"
@@ -116,7 +117,7 @@ static const runloop_factory_t runloop_factory[] = {
         NULL,
     }};
 
-#define RUNLOOP_FACTORY_SIZE \
+#define RUNLOOP_FACTORY_SIZE                                                   \
   (sizeof(runloop_factory) / sizeof(runloop_factory[0]))
 
 static const char *get_default_impl(void) { return runloop_factory[0].impl; }
@@ -489,7 +490,8 @@ ten_runloop_async_t *ten_runloop_async_create(const char *type) {
 
 void ten_runloop_async_close(ten_runloop_async_t *async,
                              void (*close_cb)(ten_runloop_async_t *)) {
-  TEN_ASSERT(async && ten_runloop_async_check_integrity(async, true),
+  TEN_ASSERT(async, "Invalid argument.");
+  TEN_ASSERT(ten_runloop_async_check_integrity(async, true),
              "Invalid argument.");
 
   ten_runloop_async_common_t *impl = (ten_runloop_async_common_t *)async;
@@ -515,12 +517,12 @@ void ten_runloop_async_destroy(ten_runloop_async_t *async) {
 }
 
 int ten_runloop_async_notify(ten_runloop_async_t *async) {
-  TEN_ASSERT(async &&
-                 // TEN_NOLINTNEXTLINE(thread-check)
-                 // thread-check: This function is intended to be called in any
-                 // threads.
-                 ten_runloop_async_check_integrity(async, false),
-             "Invalid argument.");
+  TEN_ASSERT(async, "Invalid argument.");
+  TEN_ASSERT(
+      // TEN_NOLINTNEXTLINE(thread-check)
+      // thread-check: This function is intended to be called in any
+      // threads.
+      ten_runloop_async_check_integrity(async, false), "Invalid argument.");
 
   ten_runloop_async_common_t *impl = (ten_runloop_async_common_t *)async;
 
@@ -564,12 +566,12 @@ int ten_runloop_async_init(ten_runloop_async_t *async, ten_runloop_t *loop,
 static int ten_runloop_post_task_at(ten_runloop_t *loop,
                                     void (*task_cb)(void *, void *), void *from,
                                     void *arg, int front) {
-  TEN_ASSERT(loop &&
-                 // TEN_NOLINTNEXTLINE(thread-check)
-                 // thread-check: This function is intended to be called in any
-                 // threads.
-                 ten_runloop_check_integrity(loop, false),
-             "Invalid argument.");
+  TEN_ASSERT(loop, "Invalid argument.");
+  TEN_ASSERT(
+      // TEN_NOLINTNEXTLINE(thread-check)
+      // thread-check: This function is intended to be called in any
+      // threads.
+      ten_runloop_check_integrity(loop, false), "Invalid argument.");
 
   ten_runloop_common_t *impl = (ten_runloop_common_t *)loop;
   ten_runloop_task_t *task = NULL;
@@ -598,6 +600,11 @@ static int ten_runloop_post_task_at(ten_runloop_t *loop,
     // into it.
     goto leave_and_error;
   }
+
+#if defined(_DEBUG)
+  // Add some random delays in debug mode to test different timings.
+  ten_random_sleep_range_ms(0, 20);
+#endif
 
   needs_notify = ten_list_is_empty(&impl->tasks) ? 1 : 0;
   if (front) {

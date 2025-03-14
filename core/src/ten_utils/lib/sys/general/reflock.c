@@ -6,11 +6,11 @@
 //
 #include "ten_utils/lib/reflock.h"
 
-#include <assert.h>
 #include <memory.h>
 
 #include "ten_utils/lib/atomic.h"
 #include "ten_utils/lib/event.h"
+#include "ten_utils/macro/check.h"
 #include "ten_utils/macro/mark.h"
 
 static void __reflock_signal_event(ten_reflock_t *lock) {
@@ -30,7 +30,7 @@ void ten_reflock_ref(ten_reflock_t *reflock) {
   int64_t state = ten_atomic_add_fetch(&reflock->state, TEN_REFLOCK_REF);
 
   /* Verify that the counter didn't overflow and the lock isn't destroyed. */
-  assert((state & TEN_REFLOCK_DESTROY_MASK) == 0);
+  TEN_ASSERT((state & TEN_REFLOCK_DESTROY_MASK) == 0, "Invalid state.");
   (void)(state);
 }
 
@@ -38,7 +38,8 @@ void ten_reflock_unref(ten_reflock_t *reflock) {
   int64_t state = ten_atomic_sub_fetch(&reflock->state, TEN_REFLOCK_REF);
 
   /* Verify that the lock was referenced and not already destroyed. */
-  assert((state & TEN_REFLOCK_DESTROY_MASK & ~TEN_REFLOCK_DESTROY) == 0);
+  TEN_ASSERT((state & TEN_REFLOCK_DESTROY_MASK & ~TEN_REFLOCK_DESTROY) == 0,
+             "Invalid state.");
   if (UNLIKELY((state & TEN_REFLOCK_DESTROY_MASK & ~TEN_REFLOCK_DESTROY) !=
                0)) {
     return;
@@ -55,7 +56,8 @@ void ten_reflock_unref_destroy(ten_reflock_t *reflock) {
   int64_t ref_count = state & TEN_REFLOCK_REF_MASK;
 
   /* Verify that the lock was referenced and not already destroyed. */
-  assert((state & TEN_REFLOCK_DESTROY_MASK) == TEN_REFLOCK_DESTROY);
+  TEN_ASSERT((state & TEN_REFLOCK_DESTROY_MASK) == TEN_REFLOCK_DESTROY,
+             "Invalid state.");
   if (UNLIKELY((state & TEN_REFLOCK_DESTROY_MASK) != TEN_REFLOCK_DESTROY)) {
     return;
   }
@@ -65,7 +67,7 @@ void ten_reflock_unref_destroy(ten_reflock_t *reflock) {
   }
 
   state = ten_atomic_test_set(&reflock->state, TEN_REFLOCK_POISON);
-  assert(state == TEN_REFLOCK_DESTROY);
+  TEN_ASSERT(state == TEN_REFLOCK_DESTROY, "Invalid state.");
 
   ten_event_destroy(reflock->event);
   reflock->event = NULL;

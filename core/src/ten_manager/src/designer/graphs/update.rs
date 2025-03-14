@@ -159,7 +159,7 @@ mod tests {
             .expect("Failed to create test_data directory");
 
         let mut state = DesignerState {
-            tman_config: TmanConfig::default(),
+            tman_config: Arc::new(TmanConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
             pkgs_cache: HashMap::new(),
         };

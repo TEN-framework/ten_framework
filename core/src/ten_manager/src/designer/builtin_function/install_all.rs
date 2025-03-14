@@ -29,7 +29,8 @@ impl WsBuiltinFunction {
             },
             local_install_mode: crate::cmd::cmd_install::LocalInstallMode::Link,
             standalone: false,
-            local_path: Some(base_dir.clone()),
+            local_path: None,
+            cwd: base_dir.clone(),
         };
 
         let addr = ctx.address();
@@ -44,7 +45,7 @@ impl WsBuiltinFunction {
         // Call `execute_cmd()` in an async task.
         tokio::spawn(async move {
             let result = crate::cmd::cmd_install::execute_cmd(
-                &tman_config,
+                tman_config,
                 install_command,
                 output_ws,
             )

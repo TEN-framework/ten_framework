@@ -13,9 +13,17 @@ declare_args() {
   use_shared_lib = false
 }
 
-copy("ten_manager_test_data") {
+copy("ten_manager_standalone_test_data") {
   sources = [ "//core/src/ten_manager/tests/test_data" ]
   outputs = [ "${root_out_dir}/tests/standalone/ten_manager/tests/test_data" ]
+}
+
+if (is_win) {
+  copy("ten_manager_standalone_test_clingo_dll") {
+    sources = [ "${root_out_dir}/ten_manager/bin/clingo.dll" ]
+    outputs = [ "${root_out_dir}/tests/standalone/ten_manager/clingo.dll" ]
+    deps = [ ":ten_manager_package" ]
+  }
 }
 
 if (ten_enable_ten_manager) {
@@ -44,10 +52,14 @@ if (ten_enable_ten_manager) {
       test_output_dir = "${root_out_dir}/tests/standalone/ten_manager"
 
       deps = [
-        ":ten_manager_test_data",
+        ":ten_manager_standalone_test_data",
         "//core/src/ten_rust:ten_rust_static_lib",
         "//third_party/clingo",
       ]
+
+      if (is_win) {
+        deps += [ ":ten_manager_standalone_test_clingo_dll" ]
+      }
     }
 
     if (ten_enable_cargo_clean) {

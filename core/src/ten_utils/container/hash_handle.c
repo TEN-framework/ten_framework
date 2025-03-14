@@ -6,14 +6,17 @@
 //
 #include "ten_utils/container/hash_handle.h"
 
-#include <assert.h>
-
 #include "ten_utils/container/hash_bucket.h"
 #include "ten_utils/container/hash_table.h"
+#include "ten_utils/macro/check.h"
+
+// Note: The hash table will be used in the TEN memory tracking mechanism, so do
+// _not_ use the TEN_MALLOC series of APIs in the hash table-related code;
+// otherwise, there will be a circular dependency issue.
 
 void ten_hashhandle_init(ten_hashhandle_t *self, ten_hashtable_t *table,
                          const void *key, uint32_t keylen, void *destroy) {
-  assert(self && table && key);
+  TEN_ASSERT(self && table && key, "Invalid argument.");
 
   self->tbl = table;
   self->key = key;
@@ -23,7 +26,7 @@ void ten_hashhandle_init(ten_hashhandle_t *self, ten_hashtable_t *table,
 }
 
 void ten_hashhandle_del_from_app_list(ten_hashhandle_t *hh) {
-  assert(hh);
+  TEN_ASSERT(hh, "Invalid argument.");
 
   if (hh == hh->tbl->head) {
     if (hh->next) {

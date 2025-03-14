@@ -10,32 +10,33 @@
 #include <stdlib.h>
 
 #include "ten_utils/lib/string.h"
+#include "ten_utils/macro/memory.h"
 
 ten_string_t *ten_path_get_executable_path(void) {
   char *buf = NULL;
   uint32_t size = 256;
   ten_string_t *path = NULL;
 
-  buf = (char *)malloc(size);
+  buf = (char *)TEN_MALLOC(size);
   if (buf == NULL) {
     return NULL;
   }
 
   if (_NSGetExecutablePath(buf, &size) < 0 && size > 256) {
-    free(buf);
-    buf = (char *)malloc(size);
+    TEN_FREE(buf);
+    buf = (char *)TEN_MALLOC(size);
     if (buf == NULL) {
       return NULL;
     }
 
     if (_NSGetExecutablePath(buf, &size) < 0) {
-      free(buf);
+      TEN_FREE(buf);
       return NULL;
     }
   }
 
   path = ten_string_create_formatted(buf);
-  free(buf);
+  TEN_FREE(buf);
 
   ten_string_t *dir = ten_path_get_dirname(path);
   ten_string_destroy(path);

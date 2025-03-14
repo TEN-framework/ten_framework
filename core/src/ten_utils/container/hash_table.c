@@ -6,49 +6,52 @@
 //
 #include "ten_utils/container/hash_table.h"
 
-#include <assert.h>
-
 #include "ten_utils/container/hash_bucket.h"
 #include "ten_utils/container/hash_handle.h"
+#include "ten_utils/macro/check.h"
 #include "ten_utils/macro/mark.h"
 
-#define HASH_TBL_INIT_BKT_CNT 32U      // Initial number of buckets
-#define HASH_TBL_INIT_BKT_CNT_LOG2 5U  // lg2 of initial number of buckets
+// Note: The hash table will be used in the TEN memory tracking mechanism, so do
+// _not_ use the TEN_MALLOC series of APIs in the hash table-related code;
+// otherwise, there will be a circular dependency issue.
+
+#define HASH_TBL_INIT_BKT_CNT 32U     // Initial number of buckets
+#define HASH_TBL_INIT_BKT_CNT_LOG2 5U // lg2 of initial number of buckets
 
 // The hash function is from Jenkins.
-#define HASH_MIX(a, b, c) \
-  do {                    \
-    (a) -= (b);           \
-    (a) -= (c);           \
-    (a) ^= ((c) >> 13U);  \
-    (b) -= (c);           \
-    (b) -= (a);           \
-    (b) ^= ((a) << 8U);   \
-    (c) -= (a);           \
-    (c) -= (b);           \
-    (c) ^= ((b) >> 13U);  \
-    (a) -= (b);           \
-    (a) -= (c);           \
-    (a) ^= ((c) >> 12U);  \
-    (b) -= (c);           \
-    (b) -= (a);           \
-    (b) ^= ((a) << 16U);  \
-    (c) -= (a);           \
-    (c) -= (b);           \
-    (c) ^= ((b) >> 5U);   \
-    (a) -= (b);           \
-    (a) -= (c);           \
-    (a) ^= ((c) >> 3U);   \
-    (b) -= (c);           \
-    (b) -= (a);           \
-    (b) ^= ((a) << 10U);  \
-    (c) -= (a);           \
-    (c) -= (b);           \
-    (c) ^= ((b) >> 15U);  \
+#define HASH_MIX(a, b, c)                                                      \
+  do {                                                                         \
+    (a) -= (b);                                                                \
+    (a) -= (c);                                                                \
+    (a) ^= ((c) >> 13U);                                                       \
+    (b) -= (c);                                                                \
+    (b) -= (a);                                                                \
+    (b) ^= ((a) << 8U);                                                        \
+    (c) -= (a);                                                                \
+    (c) -= (b);                                                                \
+    (c) ^= ((b) >> 13U);                                                       \
+    (a) -= (b);                                                                \
+    (a) -= (c);                                                                \
+    (a) ^= ((c) >> 12U);                                                       \
+    (b) -= (c);                                                                \
+    (b) -= (a);                                                                \
+    (b) ^= ((a) << 16U);                                                       \
+    (c) -= (a);                                                                \
+    (c) -= (b);                                                                \
+    (c) ^= ((b) >> 5U);                                                        \
+    (a) -= (b);                                                                \
+    (a) -= (c);                                                                \
+    (a) ^= ((c) >> 3U);                                                        \
+    (b) -= (c);                                                                \
+    (b) -= (a);                                                                \
+    (b) ^= ((a) << 10U);                                                       \
+    (c) -= (a);                                                                \
+    (c) -= (b);                                                                \
+    (c) ^= ((b) >> 15U);                                                       \
   } while (0)
 
 PURE uint32_t ten_hash_function(const void *key, const uint32_t keylen) {
-  assert(key);
+  TEN_ASSERT(key, "Invalid argument.");
 
   const uint8_t *key_ = (const uint8_t *)key;
 
@@ -76,29 +79,29 @@ PURE uint32_t ten_hash_function(const void *key, const uint32_t keylen) {
   hashval += keylen;
 
   switch (k) {
-    case 11:
-      hashval += ((uint32_t)key_[10] << 24U);
-    case 10:
-      hashval += ((uint32_t)key_[9] << 16U);
-    case 9:
-      hashval += ((uint32_t)key_[8] << 8U);
-    case 8:
-      j += ((uint32_t)key_[7] << 24U);
-    case 7:
-      j += ((uint32_t)key_[6] << 16U);
-    case 6:
-      j += ((uint32_t)key_[5] << 8U);
-    case 5:
-      j += key_[4];
-    case 4:
-      i += ((uint32_t)key_[3] << 24U);
-    case 3:
-      i += ((uint32_t)key_[2] << 16U);
-    case 2:
-      i += ((uint32_t)key_[1] << 8U);
-    case 1:
-      i += key_[0];
-    default:;
+  case 11:
+    hashval += ((uint32_t)key_[10] << 24U);
+  case 10:
+    hashval += ((uint32_t)key_[9] << 16U);
+  case 9:
+    hashval += ((uint32_t)key_[8] << 8U);
+  case 8:
+    j += ((uint32_t)key_[7] << 24U);
+  case 7:
+    j += ((uint32_t)key_[6] << 16U);
+  case 6:
+    j += ((uint32_t)key_[5] << 8U);
+  case 5:
+    j += key_[4];
+  case 4:
+    i += ((uint32_t)key_[3] << 24U);
+  case 3:
+    i += ((uint32_t)key_[2] << 16U);
+  case 2:
+    i += ((uint32_t)key_[1] << 8U);
+  case 1:
+    i += key_[0];
+  default:;
   }
 
   HASH_MIX(i, j, hashval);
@@ -114,7 +117,7 @@ static uint32_t ten_hash_get_bucket_idx(const uint32_t hashval,
 // Hash table.
 
 static bool ten_hashtable_check_integrity(ten_hashtable_t *self) {
-  assert(self);
+  TEN_ASSERT(self, "Invalid argument.");
 
   uint32_t tbl_items_cnt = 0;
   for (uint32_t i = 0; i < self->bkts_cnt; ++i) {
@@ -160,7 +163,7 @@ static bool ten_hashtable_check_integrity(ten_hashtable_t *self) {
 
 ten_hashtable_t *ten_hashtable_create(ptrdiff_t hh_offset) {
   ten_hashtable_t *self = (ten_hashtable_t *)calloc(1, sizeof(ten_hashtable_t));
-  assert(self);
+  TEN_ASSERT(self, "Failed to allocate memory.");
 
   ten_hashtable_init(self, hh_offset);
 
@@ -168,19 +171,19 @@ ten_hashtable_t *ten_hashtable_create(ptrdiff_t hh_offset) {
 }
 
 void ten_hashtable_destroy(ten_hashtable_t *self) {
-  assert(self && self->items_cnt == 0);
+  TEN_ASSERT(self && self->items_cnt == 0, "Invalid argument.");
   free(self->bkts);
   free(self);
 }
 
 void ten_hashtable_init(ten_hashtable_t *self, ptrdiff_t hh_offset) {
-  assert(self);
+  TEN_ASSERT(self, "Invalid argument.");
 
   self->bkts_cnt = HASH_TBL_INIT_BKT_CNT;
   self->bkts_cnt_in_log2 = HASH_TBL_INIT_BKT_CNT_LOG2;
-  self->bkts = (ten_hashbucket_t *)calloc(
-      1, HASH_TBL_INIT_BKT_CNT * sizeof(ten_hashbucket_t));
-  assert(self->bkts);
+  self->bkts = (ten_hashbucket_t *)calloc(1, HASH_TBL_INIT_BKT_CNT *
+                                                 sizeof(ten_hashbucket_t));
+  TEN_ASSERT(self->bkts, "Failed to allocate memory.");
   self->items_cnt = 0;
 
   self->head = NULL;
@@ -189,7 +192,7 @@ void ten_hashtable_init(ten_hashtable_t *self, ptrdiff_t hh_offset) {
 }
 
 void ten_hashtable_deinit(ten_hashtable_t *self) {
-  assert(self);
+  TEN_ASSERT(self, "Invalid argument.");
 
   ten_hashtable_clear(self);
 
@@ -204,13 +207,13 @@ void ten_hashtable_deinit(ten_hashtable_t *self) {
 }
 
 void ten_hashtable_clear(ten_hashtable_t *self) {
-  assert(self);
+  TEN_ASSERT(self, "Invalid argument.");
 
   ten_hashtable_foreach(self, iter) { ten_hashtable_del(self, iter.node); }
 }
 
 void ten_hashtable_concat(ten_hashtable_t *self, ten_hashtable_t *target) {
-  assert(self && target);
+  TEN_ASSERT(self && target, "Invalid argument.");
 
   ten_hashtable_foreach(target, iter) {
     ten_hashhandle_t *hh = iter.node;
@@ -235,13 +238,13 @@ void ten_hashtable_concat(ten_hashtable_t *self, ten_hashtable_t *target) {
 }
 
 void ten_hashtable_expand_bkts(ten_hashtable_t *self) {
-  assert(self);
+  TEN_ASSERT(self, "Invalid argument.");
 
   // Bucket expansion has the effect of doubling the number of buckets and
   // redistributing the items into the new buckets.
   const size_t new_bkt_cnt = sizeof(ten_hashbucket_t) * self->bkts_cnt * 2U;
   ten_hashbucket_t *new_bkts = (ten_hashbucket_t *)calloc(1, new_bkt_cnt);
-  assert(new_bkts);
+  TEN_ASSERT(new_bkts, "Failed to allocate memory.");
 
   // The calculation of tbl->ideal_chain_maxlen below deserves some
   // explanation. First, keep in mind that we're calculating the ideal maximum
@@ -312,14 +315,14 @@ void ten_hashtable_expand_bkts(ten_hashtable_t *self) {
 
 static void ten_hashtable_add_to_app_list(ten_hashtable_t *self,
                                           ten_hashhandle_t *hh) {
-  assert(self && hh);
+  TEN_ASSERT(self && hh, "Invalid argument.");
 
   hh->next = NULL;
   if (self->tail) {
     hh->prev = CONTAINER_OF_FROM_OFFSET(self->tail, self->hh_offset);
     self->tail->next = CONTAINER_OF_FROM_OFFSET(hh, self->hh_offset);
   } else {
-    assert(self->head == NULL);
+    TEN_ASSERT(self->head == NULL, "Invalid argument.");
     self->head = hh;
     hh->prev = NULL;
   }
@@ -329,7 +332,7 @@ static void ten_hashtable_add_to_app_list(ten_hashtable_t *self,
 static void ten_hashtable_add_by_hash_val(ten_hashtable_t *self,
                                           ten_hashhandle_t *hh,
                                           uint32_t hashval) {
-  assert(self && hh);
+  TEN_ASSERT(self && hh, "Invalid argument.");
 
   self->items_cnt++;
   const uint32_t bkt_idx = ten_hash_get_bucket_idx(hashval, self->bkts_cnt);
@@ -341,18 +344,18 @@ static void ten_hashtable_add_by_hash_val(ten_hashtable_t *self,
 
 void ten_hashtable_add_by_key(ten_hashtable_t *self, ten_hashhandle_t *hh,
                               const void *key, uint32_t keylen, void *destroy) {
-  assert(self && hh && key);
+  TEN_ASSERT(self && hh && key, "Invalid argument.");
 
   ten_hashhandle_init(hh, self, key, keylen, destroy);
   ten_hashtable_add_by_hash_val(self, hh, hh->hashval);
-  assert(ten_hashtable_check_integrity(self));
+  TEN_ASSERT(ten_hashtable_check_integrity(self), "Invalid integrity.");
 }
 
 static void ten_hashtable_replace_by_hash_val(ten_hashtable_t *self,
                                               ten_hashhandle_t *hh,
                                               uint32_t hashval, void *key,
                                               uint32_t keylen) {
-  assert(self && hh && key);
+  TEN_ASSERT(self && hh && key, "Invalid argument.");
 
   ten_hashhandle_t *replaced = ten_hashtable_find(self, hashval, key, keylen);
   if (replaced) {
@@ -363,54 +366,54 @@ static void ten_hashtable_replace_by_hash_val(ten_hashtable_t *self,
 
 void ten_hashtable_replace_by_key(ten_hashtable_t *self, ten_hashhandle_t *hh,
                                   void *key, uint32_t keylen, void *destroy) {
-  assert(self && hh && key);
+  TEN_ASSERT(self && hh && key, "Invalid argument.");
 
   ten_hashhandle_init(hh, self, key, keylen, destroy);
   ten_hashtable_replace_by_hash_val(self, hh, hh->hashval, key, keylen);
-  assert(ten_hashtable_check_integrity(self));
+  TEN_ASSERT(ten_hashtable_check_integrity(self), "Invalid integrity.");
 }
 
 void ten_hashtable_del(ten_hashtable_t *self, ten_hashhandle_t *hh) {
-  assert(self && hh && self == hh->tbl);
+  TEN_ASSERT(self && hh && self == hh->tbl, "Invalid argument.");
 
   const uint32_t bkt_idx = ten_hash_get_bucket_idx(hh->hashval, self->bkts_cnt);
   ten_hashbucket_del(&(self->bkts[bkt_idx]), hh);
 
-  ten_hashhandle_del_from_app_list(hh);  // Remove from the app-ordered list.
+  ten_hashhandle_del_from_app_list(hh); // Remove from the app-ordered list.
 
   if (hh->destroy) {
     hh->destroy(CONTAINER_OF_FROM_OFFSET(hh, self->hh_offset));
   }
 
   self->items_cnt--;
-  assert(ten_hashtable_check_integrity(self));
+  TEN_ASSERT(ten_hashtable_check_integrity(self), "Invalid integrity.");
 }
 
 ten_hashhandle_t *ten_hashtable_front(ten_hashtable_t *self) {
-  assert(self);
+  TEN_ASSERT(self, "Invalid argument.");
   return self->head;
 }
 
 ten_hashhandle_t *ten_hashtable_back(ten_hashtable_t *self) {
-  assert(self);
+  TEN_ASSERT(self, "Invalid argument.");
   return self->tail;
 }
 
 uint32_t ten_hashtable_items_cnt(ten_hashtable_t *self) {
-  assert(self);
+  TEN_ASSERT(self, "Invalid argument.");
   return self->items_cnt;
 }
 
 ten_hashhandle_t *ten_hashtable_find_by_key(ten_hashtable_t *self,
                                             const void *key, uint32_t keylen) {
-  assert(self && key);
+  TEN_ASSERT(self && key, "Invalid argument.");
   uint32_t hashval = ten_hash_function(key, keylen);
   return ten_hashtable_find(self, hashval, key, keylen);
 }
 
 ten_hashhandle_t *ten_hashtable_find(ten_hashtable_t *self, uint32_t hashval,
                                      const void *key, uint32_t keylen) {
-  assert(self && key);
+  TEN_ASSERT(self && key, "Invalid argument.");
   const uint32_t bkt_idx = ten_hash_get_bucket_idx(hashval, self->bkts_cnt);
   return ten_hashbucket_find(&(self->bkts[bkt_idx]), hashval, key, keylen);
 }

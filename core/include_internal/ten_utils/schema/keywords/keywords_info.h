@@ -15,7 +15,7 @@
 #include "ten_utils/lib/string.h"
 #include "ten_utils/macro/check.h"
 
-#ifdef __cplusplus
+#if defined(__cplusplus)
 #error \
     "This file contains C99 array designated initializer, and Visual Studio C++ compiler can only support up to C89 by default, so we enable this checking to prevent any wrong inclusion of this file."
 #endif

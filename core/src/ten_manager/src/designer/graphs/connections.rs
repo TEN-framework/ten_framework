@@ -200,7 +200,7 @@ mod tests {
     #[actix_web::test]
     async fn test_get_connections_success() {
         let mut designer_state = DesignerState {
-            tman_config: TmanConfig::default(),
+            tman_config: Arc::new(TmanConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
             pkgs_cache: HashMap::new(),
         };
@@ -293,7 +293,7 @@ mod tests {
     #[actix_web::test]
     async fn test_get_connections_have_all_data_type() {
         let mut designer_state = DesignerState {
-            tman_config: TmanConfig::default(),
+            tman_config: Arc::new(TmanConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
             pkgs_cache: HashMap::new(),
         };
@@ -405,7 +405,7 @@ mod tests {
     #[actix_web::test]
     async fn test_get_connections_without_base_dir_single_pkg() {
         let mut designer_state = DesignerState {
-            tman_config: TmanConfig::default(),
+            tman_config: Arc::new(TmanConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
             pkgs_cache: HashMap::new(),
         };
@@ -494,7 +494,7 @@ mod tests {
     #[actix_web::test]
     async fn test_get_connections_without_base_dir_multiple_pkgs() {
         let mut designer_state = DesignerState {
-            tman_config: TmanConfig::default(),
+            tman_config: Arc::new(TmanConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
             pkgs_cache: HashMap::new(),
         };

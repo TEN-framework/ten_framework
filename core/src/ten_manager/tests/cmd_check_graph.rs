@@ -14,7 +14,7 @@ use ten_manager::{
 
 #[actix_rt::test]
 async fn test_cmd_check_predefined_graph_success() {
-    let tman_config = TmanConfig::default();
+    let tman_config = Arc::new(TmanConfig::default());
     let command = CheckGraphCommand {
         app_dir: vec![
             "tests/test_data/cmd_check_predefined_graph_success".to_string()
@@ -26,7 +26,7 @@ async fn test_cmd_check_predefined_graph_success() {
     let out: Arc<Box<dyn TmanOutput>> = Arc::new(Box::new(TmanOutputCli));
 
     let result = ten_manager::cmd::cmd_check::cmd_check_graph::execute_cmd(
-        &tman_config,
+        tman_config.clone(),
         command,
         out.clone(),
     )
@@ -36,7 +36,7 @@ async fn test_cmd_check_predefined_graph_success() {
 
 #[actix_rt::test]
 async fn test_cmd_check_start_graph_cmd() {
-    let tman_config = TmanConfig::default();
+    let tman_config = Arc::new(TmanConfig::default());
     let command = CheckGraphCommand {
         app_dir: vec!["tests/test_data/cmd_check_start_graph_cmd".to_string()],
         graph_json_str: Some(
@@ -51,7 +51,7 @@ async fn test_cmd_check_start_graph_cmd() {
     let out: Arc<Box<dyn TmanOutput>> = Arc::new(Box::new(TmanOutputCli));
 
     let result = ten_manager::cmd::cmd_check::cmd_check_graph::execute_cmd(
-        &tman_config,
+        tman_config.clone(),
         command,
         out.clone(),
     )
@@ -62,7 +62,7 @@ async fn test_cmd_check_start_graph_cmd() {
 
 #[actix_rt::test]
 async fn test_cmd_check_start_graph_multi_apps() {
-    let tman_config = TmanConfig::default();
+    let tman_config = Arc::new(TmanConfig::default());
     let command = CheckGraphCommand {
         app_dir: vec![
             "tests/test_data/cmd_check_start_graph_multi_apps/app_1"
@@ -82,7 +82,7 @@ async fn test_cmd_check_start_graph_multi_apps() {
     let out: Arc<Box<dyn TmanOutput>> = Arc::new(Box::new(TmanOutputCli));
 
     let result = ten_manager::cmd::cmd_check::cmd_check_graph::execute_cmd(
-        &tman_config,
+        tman_config.clone(),
         command,
         out.clone(),
     )
@@ -98,7 +98,7 @@ async fn test_cmd_check_start_graph_multi_apps() {
 
 #[actix_rt::test]
 async fn test_cmd_check_app_in_graph_cannot_be_localhost() {
-    let tman_config = TmanConfig::default();
+    let tman_config = Arc::new(TmanConfig::default());
     let command = CheckGraphCommand {
         app_dir: vec![
             "tests/test_data/cmd_check_app_in_graph_cannot_be_localhost"
@@ -111,7 +111,7 @@ async fn test_cmd_check_app_in_graph_cannot_be_localhost() {
     let out: Arc<Box<dyn TmanOutput>> = Arc::new(Box::new(TmanOutputCli));
 
     let result = ten_manager::cmd::cmd_check::cmd_check_graph::execute_cmd(
-        &tman_config,
+        tman_config.clone(),
         command,
         out.clone(),
     )
@@ -127,7 +127,7 @@ async fn test_cmd_check_app_in_graph_cannot_be_localhost() {
 
 #[actix_rt::test]
 async fn test_cmd_check_predefined_graph_only_check_specified() {
-    let tman_config = TmanConfig::default();
+    let tman_config = Arc::new(TmanConfig::default());
     let command = CheckGraphCommand {
         app_dir: vec![
             "tests/test_data/cmd_check_predefined_graph_only_check_specified"
@@ -140,7 +140,7 @@ async fn test_cmd_check_predefined_graph_only_check_specified() {
     let out: Arc<Box<dyn TmanOutput>> = Arc::new(Box::new(TmanOutputCli));
 
     let result = ten_manager::cmd::cmd_check::cmd_check_graph::execute_cmd(
-        &tman_config,
+        tman_config.clone(),
         command,
         out.clone(),
     )
@@ -151,7 +151,7 @@ async fn test_cmd_check_predefined_graph_only_check_specified() {
 
 #[actix_rt::test]
 async fn test_cmd_check_predefined_graph_check_all() {
-    let tman_config = TmanConfig::default();
+    let tman_config = Arc::new(TmanConfig::default());
     let command = CheckGraphCommand {
         app_dir: vec![
             "tests/test_data/cmd_check_predefined_graph_only_check_specified"
@@ -164,7 +164,7 @@ async fn test_cmd_check_predefined_graph_check_all() {
     let out: Arc<Box<dyn TmanOutput>> = Arc::new(Box::new(TmanOutputCli));
 
     let result = ten_manager::cmd::cmd_check::cmd_check_graph::execute_cmd(
-        &tman_config,
+        tman_config.clone(),
         command,
         out.clone(),
     )
@@ -181,7 +181,7 @@ async fn test_cmd_check_predefined_graph_check_all() {
 
 #[actix_rt::test]
 async fn test_cmd_check_unique_extension_in_connections() {
-    let tman_config = TmanConfig::default();
+    let tman_config = Arc::new(TmanConfig::default());
     let command = CheckGraphCommand {
         app_dir: vec!["tests/test_data/cmd_check_start_graph_cmd".to_string()],
         graph_json_str: Some(
@@ -196,7 +196,7 @@ async fn test_cmd_check_unique_extension_in_connections() {
     let out: Arc<Box<dyn TmanOutput>> = Arc::new(Box::new(TmanOutputCli));
 
     let result = ten_manager::cmd::cmd_check::cmd_check_graph::execute_cmd(
-        &tman_config,
+        tman_config.clone(),
         command,
         out.clone(),
     )
@@ -209,7 +209,7 @@ async fn test_cmd_check_unique_extension_in_connections() {
 
 #[actix_rt::test]
 async fn test_cmd_check_single_app_node_cannot_be_localhost() {
-    let tman_config = TmanConfig::default();
+    let tman_config = Arc::new(TmanConfig::default());
     let command = CheckGraphCommand {
         app_dir: vec!["tests/test_data/cmd_check_single_app_node_cannot_be_localhost".to_string()],
         graph_json_str: Some(
@@ -224,7 +224,7 @@ async fn test_cmd_check_single_app_node_cannot_be_localhost() {
     let out: Arc<Box<dyn TmanOutput>> = Arc::new(Box::new(TmanOutputCli));
 
     let result = ten_manager::cmd::cmd_check::cmd_check_graph::execute_cmd(
-        &tman_config,
+        tman_config.clone(),
         command,
         out.clone(),
     )
@@ -239,7 +239,7 @@ async fn test_cmd_check_single_app_node_cannot_be_localhost() {
 
 #[actix_rt::test]
 async fn test_cmd_check_multi_apps_node_cannot_be_localhost() {
-    let tman_config = TmanConfig::default();
+    let tman_config = Arc::new(TmanConfig::default());
     let command = CheckGraphCommand {
         app_dir: vec!["tests/test_data/cmd_check_multi_apps_node_cannot_be_localhost".to_string()],
         graph_json_str: Some(
@@ -254,7 +254,7 @@ async fn test_cmd_check_multi_apps_node_cannot_be_localhost() {
     let out: Arc<Box<dyn TmanOutput>> = Arc::new(Box::new(TmanOutputCli));
 
     let result = ten_manager::cmd::cmd_check::cmd_check_graph::execute_cmd(
-        &tman_config,
+        tman_config.clone(),
         command,
         out.clone(),
     )

@@ -82,7 +82,7 @@ TEN_UTILS_API bool ten_smart_ptr_check_type(
 // @{
 // Shared pointer
 
-#ifdef __cplusplus
+#if defined(__cplusplus)
 #define ten_shared_ptr_create(ptr, destroy) \
   ten_shared_ptr_create_(ptr, reinterpret_cast<void (*)(void *)>(destroy))
 #else

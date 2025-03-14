@@ -6,7 +6,6 @@
 //
 use std::{
     collections::HashMap,
-    env,
     fs::{self},
     path::{Path, PathBuf},
     sync::Arc,
@@ -86,6 +85,7 @@ pub struct InstallCommand {
     pub support: PkgSupport,
     pub local_install_mode: LocalInstallMode,
     pub standalone: bool,
+    pub cwd: String,
 
     /// When the user only inputs a single path parameter, if a `manifest.json`
     /// exists under that path, it indicates installation from a local path.
@@ -134,6 +134,14 @@ pub fn create_sub_cmd(args_cfg: &crate::cmd_line::ArgsCfg) -> Command {
                 .action(clap::ArgAction::SetTrue)
                 .required(false),
         )
+        .arg(
+            Arg::new("CWD")
+                .long("cwd")
+                .short('C')
+                .help("Change the working directory")
+                .value_name("DIR")
+                .required(false),
+        )
 }
 
 pub fn parse_sub_cmd(sub_cmd_args: &ArgMatches) -> Result<InstallCommand> {
@@ -150,10 +158,18 @@ pub fn parse_sub_cmd(sub_cmd_args: &ArgMatches) -> Result<InstallCommand> {
         },
         local_install_mode: LocalInstallMode::Invalid,
         standalone: false,
+        cwd: String::new(),
         local_path: None,
     };
 
     let _ = cmd.support.set_defaults();
+
+    // Set the working directory based on --cwd/-C or use the current directory.
+    if let Some(cwd) = sub_cmd_args.get_one::<String>("CWD") {
+        cmd.cwd = cwd.clone();
+    } else {
+        cmd.cwd = crate::fs::get_cwd()?.to_string_lossy().to_string();
+    }
 
     // Retrieve the first positional parameter (in the `PACKAGE_TYPE`
     // parameter).
@@ -265,7 +281,7 @@ ten_package("app_for_standalone") {
 }
 
 fn prepare_basic_standalone_app_dir(
-    _tman_config: &TmanConfig,
+    _tman_config: Arc<TmanConfig>,
     extension_dir: &Path,
 ) -> Result<PathBuf> {
     let dot_ten_app_dir =
@@ -297,11 +313,11 @@ fn prepare_basic_standalone_app_dir(
 
 /// Prepare the `.ten/app/` folder in the extension standalone mode.
 async fn prepare_standalone_app_dir(
-    tman_config: &TmanConfig,
+    tman_config: Arc<TmanConfig>,
     extension_dir: &Path,
 ) -> Result<PathBuf> {
     let dot_ten_app_dir =
-        prepare_basic_standalone_app_dir(tman_config, extension_dir)?;
+        prepare_basic_standalone_app_dir(tman_config.clone(), extension_dir)?;
 
     let build_gn_path = extension_dir.join("BUILD.gn");
     if build_gn_path.exists() {
@@ -313,37 +329,33 @@ async fn prepare_standalone_app_dir(
 
 /// Path logic for standalone mode and non-standalone mode.
 async fn determine_app_dir_to_work_with(
-    tman_config: &TmanConfig,
+    tman_config: Arc<TmanConfig>,
     standalone: bool,
-    original_cwd: &Path,
+    specified_cwd: &Path,
 ) -> Result<PathBuf> {
     if standalone {
         // If it is standalone mode, it can only be executed in the extension
         // directory.
-        check_is_addon_folder(original_cwd).with_context(|| {
+        check_is_addon_folder(specified_cwd).with_context(|| {
             "Standalone mode can only be executed in an addon folder."
         })?;
 
         let dot_ten_app_dir_path =
-            prepare_standalone_app_dir(tman_config, original_cwd).await?;
-
-        env::set_current_dir(&dot_ten_app_dir_path)?;
+            prepare_standalone_app_dir(tman_config, specified_cwd).await?;
 
         Ok(dot_ten_app_dir_path)
     } else {
         // Non-standalone mode can only be executed in the extension directory.
         // If it is an extension, it should search upwards for the nearest app;
         // if it is an app, it can be used directly.
-        let app_dir = find_nearest_app_dir(original_cwd.to_path_buf())?;
-
-        env::set_current_dir(&app_dir)?;
+        let app_dir = find_nearest_app_dir(specified_cwd.to_path_buf())?;
 
         Ok(app_dir)
     }
 }
 
 pub async fn execute_cmd(
-    tman_config: &TmanConfig,
+    tman_config: Arc<TmanConfig>,
     command_data: InstallCommand,
     out: Arc<Box<dyn TmanOutput>>,
 ) -> Result<()> {
@@ -355,12 +367,20 @@ pub async fn execute_cmd(
 
     let started = Instant::now();
 
+    // Save the actual current working directory before any changes.
     let original_cwd = crate::fs::get_cwd()?;
 
+    // Properly handle relative paths in command_data.cwd.
+    let specified_cwd = if Path::new(&command_data.cwd).is_absolute() {
+        PathBuf::from(&command_data.cwd)
+    } else {
+        original_cwd.join(&command_data.cwd)
+    };
+
     let app_dir_to_work_with = determine_app_dir_to_work_with(
-        tman_config,
+        tman_config.clone(),
         command_data.standalone,
-        &original_cwd.clone(),
+        &specified_cwd,
     )
     .await?;
 
@@ -416,7 +436,7 @@ pub async fn execute_cmd(
     ));
 
     all_installed_pkgs = tman_get_all_installed_pkgs_info_of_app(
-        tman_config,
+        tman_config.clone(),
         &app_dir_to_work_with,
         out.clone(),
     )?;
@@ -427,7 +447,7 @@ pub async fn execute_cmd(
     ));
 
     filter_compatible_pkgs_to_candidates(
-        tman_config,
+        tman_config.clone(),
         &all_installed_pkgs,
         &mut all_compatible_installed_pkgs,
         &command_data.support,
@@ -596,7 +616,7 @@ from manifest-lock.json...",
     // Get all possible candidates according to the input packages and extra
     // dependencies.
     let all_candidates = get_all_candidates_from_deps(
-        tman_config,
+        tman_config.clone(),
         &command_data.support,
         initial_pkgs_to_find_candidates,
         dep_relationship_from_cmd_line
@@ -613,7 +633,7 @@ from manifest-lock.json...",
 
     // Find an answer (a dependency tree) that satisfies all dependencies.
     let (usable_model, non_usable_models) = solve_all(
-        tman_config,
+        tman_config.clone(),
         &app_pkg_to_work_with.basic_info.type_and_name.pkg_type,
         &app_pkg_to_work_with.basic_info.type_and_name.name,
         dep_relationship_from_cmd_line.as_ref(),
@@ -678,14 +698,16 @@ do you want to continue?",
 
                 match ans {
                     Ok(true) => {
-                        // continue to install
+                        // Continue to install.
                     }
                     Ok(false) => {
-                        // stop
+                        // Stop to install. Change back to the original current
+                        // directory before returning.
                         return Ok(());
                     }
                     Err(_) => {
-                        // stop
+                        // Stop to install. Change back to the original current
+                        // directory before returning.
                         return Ok(());
                     }
                 }
@@ -701,7 +723,7 @@ do you want to continue?",
         )?;
 
         install_solver_results_in_app_folder(
-            tman_config,
+            tman_config.clone(),
             &command_data,
             &remaining_solver_results,
             &app_dir_to_work_with,
@@ -719,7 +741,7 @@ do you want to continue?",
 
             if installing_pkg_type.is_some() && installing_pkg_name.is_some() {
                 let mut origin_cwd_pkg =
-                    get_pkg_info_from_path(&original_cwd, true)?;
+                    get_pkg_info_from_path(&specified_cwd, true)?;
 
                 write_installing_pkg_into_manifest_file(
                     &mut origin_cwd_pkg,
@@ -734,7 +756,7 @@ do you want to continue?",
 
             if installing_pkg_type.is_some() && installing_pkg_name.is_some() {
                 let mut origin_cwd_pkg =
-                    get_pkg_info_from_path(&original_cwd, true)?;
+                    get_pkg_info_from_path(&specified_cwd, true)?;
 
                 write_installing_pkg_into_manifest_file(
                     &mut origin_cwd_pkg,
@@ -745,9 +767,6 @@ do you want to continue?",
                 )?;
             }
         }
-
-        // Change back to the original folder.
-        env::set_current_dir(original_cwd)?;
 
         out.normal_line(&format!(
             "{}  Install successfully in {}",

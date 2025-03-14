@@ -6,7 +6,6 @@
 //
 #include "ten_utils/lib/rwlock.h"
 
-#include <assert.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
@@ -14,10 +13,12 @@
 #include "include_internal/ten_utils/lib/rwlock.h"
 #include "ten_utils/lib/atomic.h"
 #include "ten_utils/lib/signature.h"
+#include "ten_utils/macro/check.h"
 #include "ten_utils/macro/mark.h"
+#include "ten_utils/macro/memory.h"
 
 int ten_rwlock_check_integrity(ten_rwlock_t *self) {
-  assert(self);
+  TEN_ASSERT(self, "Invalid argument.");
   if (ten_signature_get(&self->signature) !=
       (ten_signature_t)TEN_RWLOCK_SIGNATURE) {
     return 0;
@@ -26,16 +27,16 @@ int ten_rwlock_check_integrity(ten_rwlock_t *self) {
 }
 
 static int ten_rwlock_base_init(ten_rwlock_t *rwlock) {
-  assert(rwlock && ten_rwlock_check_integrity(rwlock));
+  TEN_ASSERT(rwlock && ten_rwlock_check_integrity(rwlock), "Invalid argument.");
   return 0;
 }
 
 static void ten_rwlock_base_deinit(ten_rwlock_t *rwlock) {
-  assert(rwlock && ten_rwlock_check_integrity(rwlock));
+  TEN_ASSERT(rwlock && ten_rwlock_check_integrity(rwlock), "Invalid argument.");
 }
 
 static int ten_pflock_init(ten_rwlock_t *rwlock) {
-  assert(rwlock && ten_rwlock_check_integrity(rwlock));
+  TEN_ASSERT(rwlock && ten_rwlock_check_integrity(rwlock), "Invalid argument.");
 
   ten_pflock_t *pflock = (ten_pflock_t *)rwlock;
 
@@ -48,13 +49,13 @@ static int ten_pflock_init(ten_rwlock_t *rwlock) {
 }
 
 static void ten_pflock_deinit(ten_rwlock_t *rwlock) {
-  assert(rwlock && ten_rwlock_check_integrity(rwlock));
+  TEN_ASSERT(rwlock && ten_rwlock_check_integrity(rwlock), "Invalid argument.");
 
   // do nothing!
 }
 
 static int ten_pflock_lock(ten_rwlock_t *rwlock, int reader) {
-  assert(rwlock && ten_rwlock_check_integrity(rwlock));
+  TEN_ASSERT(rwlock && ten_rwlock_check_integrity(rwlock), "Invalid argument.");
 
   ten_pflock_t *pflock = (ten_pflock_t *)rwlock;
   int loops = 0;
@@ -104,7 +105,7 @@ static int ten_pflock_lock(ten_rwlock_t *rwlock, int reader) {
 }
 
 static int ten_pflock_unlock(ten_rwlock_t *rwlock, int reader) {
-  assert(rwlock && ten_rwlock_check_integrity(rwlock));
+  TEN_ASSERT(rwlock && ten_rwlock_check_integrity(rwlock), "Invalid argument.");
 
   ten_pflock_t *pflock = (ten_pflock_t *)rwlock;
 
@@ -122,8 +123,8 @@ static int ten_pflock_unlock(ten_rwlock_t *rwlock, int reader) {
 }
 
 static inline ten_rwlock_t *ten_pflock_create(void) {
-  ten_pflock_t *pflock = (ten_pflock_t *)malloc(sizeof(ten_pflock_t));
-  assert(pflock);
+  ten_pflock_t *pflock = (ten_pflock_t *)TEN_MALLOC(sizeof(ten_pflock_t));
+  TEN_ASSERT(pflock, "Failed to allocate memory.");
   if (pflock == NULL) {
     return NULL;
   }
@@ -140,8 +141,8 @@ static inline ten_rwlock_t *ten_pflock_create(void) {
 }
 
 static inline ten_rwlock_t *ten_native_create(void) {
-  ten_native_t *native = (ten_native_t *)malloc(sizeof(ten_native_t));
-  assert(native);
+  ten_native_t *native = (ten_native_t *)TEN_MALLOC(sizeof(ten_native_t));
+  TEN_ASSERT(native, "Failed to allocate memory.");
   if (native == NULL) {
     return NULL;
   }
@@ -160,25 +161,25 @@ static inline ten_rwlock_t *ten_native_create(void) {
 ten_rwlock_t *ten_rwlock_create(TEN_RW_FAIRNESS fair) {
   ten_rwlock_t *rwlock = NULL;
   switch (fair) {
-    case TEN_RW_PHASE_FAIR:
-      rwlock = ten_pflock_create();
-      break;
-    case TEN_RW_NATIVE:
-      rwlock = ten_native_create();
-      break;
-    default:
-      break;
+  case TEN_RW_PHASE_FAIR:
+    rwlock = ten_pflock_create();
+    break;
+  case TEN_RW_NATIVE:
+    rwlock = ten_native_create();
+    break;
+  default:
+    break;
   }
 
   if (UNLIKELY(!rwlock)) {
     return NULL;
   }
 
-  assert(rwlock && ten_rwlock_check_integrity(rwlock));
+  TEN_ASSERT(rwlock && ten_rwlock_check_integrity(rwlock), "Invalid argument.");
 
   if (ten_rwlock_base_init(rwlock) != 0) {
     // Prevent memory leak.
-    free(rwlock);
+    TEN_FREE(rwlock);
     return NULL;
   }
 
@@ -198,7 +199,7 @@ void ten_rwlock_destroy(ten_rwlock_t *lock) {
     return;
   }
 
-  assert(lock && ten_rwlock_check_integrity(lock));
+  TEN_ASSERT(lock && ten_rwlock_check_integrity(lock), "Invalid argument.");
 
   if (LIKELY(lock->op.deinit != NULL)) {
     lock->op.deinit(lock);
@@ -206,7 +207,7 @@ void ten_rwlock_destroy(ten_rwlock_t *lock) {
 
   ten_rwlock_base_deinit(lock);
 
-  free(lock);
+  TEN_FREE(lock);
 }
 
 int ten_rwlock_lock(ten_rwlock_t *lock, int reader) {
@@ -214,7 +215,7 @@ int ten_rwlock_lock(ten_rwlock_t *lock, int reader) {
     return -1;
   }
 
-  assert(lock && ten_rwlock_check_integrity(lock));
+  TEN_ASSERT(lock && ten_rwlock_check_integrity(lock), "Invalid argument.");
 
   if (LIKELY(lock->op.lock != NULL)) {
     return lock->op.lock(lock, reader);
@@ -228,7 +229,7 @@ int ten_rwlock_unlock(ten_rwlock_t *lock, int reader) {
     return -1;
   }
 
-  assert(lock && ten_rwlock_check_integrity(lock));
+  TEN_ASSERT(lock && ten_rwlock_check_integrity(lock), "Invalid argument.");
 
   if (LIKELY(lock->op.unlock != NULL)) {
     return lock->op.unlock(lock, reader);

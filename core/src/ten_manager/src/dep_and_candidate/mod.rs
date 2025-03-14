@@ -130,7 +130,7 @@ fn process_local_dependency_to_get_candidate(
 
 #[allow(clippy::too_many_arguments)]
 async fn process_non_local_dependency_to_get_candidate(
-    tman_config: &TmanConfig,
+    tman_config: Arc<TmanConfig>,
     support: &PkgSupport,
     dependency: &PkgDependency,
     all_compatible_installed_pkgs: &HashMap<
@@ -157,7 +157,7 @@ async fn process_non_local_dependency_to_get_candidate(
     // Retrieve all packages from the registry that meet the specified
     // criteria.
     let results = get_package_list(
-        tman_config,
+        tman_config.clone(),
         dependency.type_and_name.pkg_type,
         &dependency.type_and_name.name,
         // With the current design, if there is new information, it will
@@ -233,7 +233,7 @@ async fn process_non_local_dependency_to_get_candidate(
 }
 
 struct DependenciesContext<'a> {
-    tman_config: &'a TmanConfig,
+    tman_config: Arc<TmanConfig>,
     support: &'a PkgSupport,
     merged_dependencies: &'a mut HashMap<PkgTypeAndName, MergedVersionReq>,
     all_compatible_installed_pkgs:
@@ -284,7 +284,7 @@ async fn process_dependencies_to_get_candidates(
             }
 
             process_non_local_dependency_to_get_candidate(
-                ctx.tman_config,
+                ctx.tman_config.clone(),
                 ctx.support,
                 dependency,
                 ctx.all_compatible_installed_pkgs,
@@ -356,7 +356,7 @@ fn clean_up_all_candidates(
 
 #[allow(clippy::too_many_arguments)]
 pub async fn get_all_candidates_from_deps(
-    tman_config: &TmanConfig,
+    tman_config: Arc<TmanConfig>,
     support: &PkgSupport,
     mut pkgs_to_be_searched: Vec<PkgInfo>,
     extra_dep: Option<&PkgDependency>,

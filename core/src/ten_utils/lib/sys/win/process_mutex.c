@@ -7,10 +7,11 @@
 #include "ten_utils/lib/process_mutex.h"
 
 #include <Windows.h>
-#include <assert.h>
 #include <stdlib.h>
 
 #include "ten_utils/lib/string.h"
+#include "ten_utils/macro/check.h"
+#include "ten_utils/macro/memory.h"
 
 #define TEN_PROCESS_MUTEX_CREATE_MODE 0644
 
@@ -20,21 +21,21 @@ typedef struct ten_process_mutex_t {
 } ten_process_mutex_t;
 
 ten_process_mutex_t *ten_process_mutex_create(const char *name) {
-  assert(name);
+  TEN_ASSERT(name, "Invalid argument.");
 
-  ten_process_mutex_t *mutex = malloc(sizeof(ten_process_mutex_t));
-  assert(mutex);
+  ten_process_mutex_t *mutex = TEN_MALLOC(sizeof(ten_process_mutex_t));
+  TEN_ASSERT(mutex, "Failed to allocate memory.");
 
   mutex->handle = NULL;
   mutex->handle = CreateMutex(NULL, false, name);
-  assert(mutex->handle);
+  TEN_ASSERT(mutex->handle, "Failed to create mutex.");
   mutex->name = ten_string_create_formatted("%s", name);
 
   return mutex;
 }
 
 int ten_process_mutex_lock(ten_process_mutex_t *mutex) {
-  assert(mutex);
+  TEN_ASSERT(mutex, "Invalid argument.");
 
   DWORD ret = WaitForSingleObject(mutex->handle, INFINITE);
   if (ret != WAIT_OBJECT_0) {
@@ -45,7 +46,7 @@ int ten_process_mutex_lock(ten_process_mutex_t *mutex) {
 }
 
 int ten_process_mutex_unlock(ten_process_mutex_t *mutex) {
-  assert(mutex);
+  TEN_ASSERT(mutex, "Invalid argument.");
 
   if (ReleaseMutex(mutex->handle)) {
     return 0;
@@ -55,9 +56,9 @@ int ten_process_mutex_unlock(ten_process_mutex_t *mutex) {
 }
 
 void ten_process_mutex_destroy(ten_process_mutex_t *mutex) {
-  assert(mutex);
+  TEN_ASSERT(mutex, "Invalid argument.");
 
   CloseHandle(mutex->handle);
   ten_string_destroy(mutex->name);
-  free(mutex);
+  TEN_FREE(mutex);
 }

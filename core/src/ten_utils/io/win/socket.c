@@ -7,26 +7,27 @@
 #include "ten_utils/io/socket.h"
 
 #include <WS2tcpip.h>
-#include <assert.h>
 #include <stdlib.h>
-#include <string.h>
 #include <ws2ipdef.h>
+
+#include "ten_utils/macro/check.h"
+#include "ten_utils/macro/memory.h"
 
 ten_socket_t *ten_socket_create(TEN_SOCKET_FAMILY family, TEN_SOCKET_TYPE type,
                                 TEN_SOCKET_PROTOCOL protocol) {
   int32_t native_type;
   switch (type) {
-    case TEN_SOCKET_TYPE_STREAM:
-      native_type = SOCK_STREAM;
-      break;
+  case TEN_SOCKET_TYPE_STREAM:
+    native_type = SOCK_STREAM;
+    break;
 
-    case TEN_SOCKET_TYPE_DATAGRAM:
-      native_type = SOCK_DGRAM;
-      break;
+  case TEN_SOCKET_TYPE_DATAGRAM:
+    native_type = SOCK_DGRAM;
+    break;
 
-    default:
-      // TEN_LOGE("Unknown socket type.");
-      return NULL;
+  default:
+    // TEN_LOGE("Unknown socket type.");
+    return NULL;
   }
 
   // Initialize Winsock. This is a must before using any Winsock API.
@@ -42,8 +43,8 @@ ten_socket_t *ten_socket_create(TEN_SOCKET_FAMILY family, TEN_SOCKET_TYPE type,
     return NULL;
   }
 
-  ten_socket_t *ret = malloc(sizeof(ten_socket_t));
-  assert(ret);
+  ten_socket_t *ret = TEN_MALLOC(sizeof(ten_socket_t));
+  TEN_ASSERT(ret, "Failed to allocate memory.");
   ret->fd = fd;
   ret->family = family;
   ret->protocol = protocol;
@@ -53,8 +54,8 @@ ten_socket_t *ten_socket_create(TEN_SOCKET_FAMILY family, TEN_SOCKET_TYPE type,
 }
 
 void ten_socket_destroy(ten_socket_t *self) {
-  assert(self);
+  TEN_ASSERT(self, "Invalid argument.");
 
   CloseHandle((HANDLE)self->fd);
-  free(self);
+  TEN_FREE(self);
 }

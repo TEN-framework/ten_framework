@@ -32,7 +32,7 @@ use crate::output::TmanOutput;
 use crate::{config::TmanConfig, registry::found_result::PkgRegistryInfo};
 
 async fn retry_async<'a, F, T>(
-    tman_config: &TmanConfig,
+    tman_config: Arc<TmanConfig>,
     max_retries: u32,
     retry_delay: Duration,
     out: Arc<Box<dyn TmanOutput>>,
@@ -74,7 +74,7 @@ struct UploadInfo {
 }
 
 async fn get_package_upload_info(
-    tman_config: &TmanConfig,
+    tman_config: Arc<TmanConfig>,
     base_url: &str,
     client: &reqwest::Client,
     pkg_info: &PkgInfo,
@@ -100,90 +100,99 @@ async fn get_package_upload_info(
     let max_retries = REMOTE_REGISTRY_MAX_RETRIES;
     let retry_delay = Duration::from_millis(REMOTE_REGISTRY_RETRY_DELAY_MS);
 
-    retry_async(tman_config, max_retries, retry_delay, out.clone(), || {
-        let base_url = base_url.to_string();
-        let client = client.clone();
-        let pkg_info = pkg_info.clone();
-        let out = out.clone();
+    retry_async(
+        tman_config.clone(),
+        max_retries,
+        retry_delay,
+        out.clone(),
+        || {
+            let base_url = base_url.to_string();
+            let client = client.clone();
+            let pkg_info = pkg_info.clone();
+            let out = out.clone();
+            let tman_config = tman_config.clone();
 
-        Box::pin(async move {
-            let payload = json!(PkgRegistryInfo {
-                basic_info: PkgBasicInfo::from(&pkg_info),
-                dependencies: pkg_info
-                    .dependencies
-                    .clone()
-                    .into_iter()
-                    .collect(),
-                hash: pkg_info.hash.clone(),
-                download_url: String::new(),
-                content_format: Some("gzip".to_string()),
-            });
+            Box::pin(async move {
+                let payload = json!(PkgRegistryInfo {
+                    basic_info: PkgBasicInfo::from(&pkg_info),
+                    dependencies: pkg_info
+                        .dependencies
+                        .clone()
+                        .into_iter()
+                        .collect(),
+                    hash: pkg_info.hash.clone(),
+                    download_url: String::new(),
+                    content_format: Some("gzip".to_string()),
+                });
 
-            if tman_config.verbose {
-                out.normal_line(&format!("Payload of publishing: {}", payload));
-            }
-
-            let mut headers = HeaderMap::new();
-
-            if let Some(user_token) = &tman_config.user_token {
-                let basic_token = format!("Basic {}", user_token);
-                headers.insert(
-                    AUTHORIZATION,
-                    basic_token.parse().map_err(|e| {
-                        out.error_line(&format!(
-                            "Failed to parse authorization token: {}",
-                            e
-                        ));
-                        e
-                    })?,
-                );
-            } else {
                 if tman_config.verbose {
-                    out.normal_line("Authorization token is missing");
+                    out.normal_line(&format!(
+                        "Payload of publishing: {}",
+                        payload
+                    ));
                 }
-                return Err(anyhow!("Authorization token is missing"));
-            }
 
-            let response = client
-                .post(base_url)
-                .headers(headers)
-                .timeout(Duration::from_secs(
-                    REMOTE_REGISTRY_REQUEST_TIMEOUT_SECS,
-                ))
-                .json(&payload)
-                .send()
-                .await
-                .map_err(|e| anyhow!("Failed to send request: {}", e))?;
+                let mut headers = HeaderMap::new();
 
-            if !response.status().is_success() {
-                return Err(anyhow!(
-                    "Received non-success status code: {}",
-                    response.status(),
-                ));
-            }
+                if let Some(user_token) = &tman_config.user_token {
+                    let basic_token = format!("Basic {}", user_token);
+                    headers.insert(
+                        AUTHORIZATION,
+                        basic_token.parse().map_err(|e| {
+                            out.error_line(&format!(
+                                "Failed to parse authorization token: {}",
+                                e
+                            ));
+                            e
+                        })?,
+                    );
+                } else {
+                    if tman_config.verbose {
+                        out.normal_line("Authorization token is missing");
+                    }
+                    return Err(anyhow!("Authorization token is missing"));
+                }
 
-            let data: Value = response
-                .json()
-                .await
-                .map_err(|e| anyhow!("Failed to parse JSON response: {}", e))?;
+                let response = client
+                    .post(base_url)
+                    .headers(headers)
+                    .timeout(Duration::from_secs(
+                        REMOTE_REGISTRY_REQUEST_TIMEOUT_SECS,
+                    ))
+                    .json(&payload)
+                    .send()
+                    .await
+                    .map_err(|e| anyhow!("Failed to send request: {}", e))?;
 
-            let resource_id = data["data"]["resourceId"]
-                .as_str()
-                .ok_or_else(|| anyhow!("Missing 'resourceId' in response"))?
-                .to_string();
-            let url = data["data"]["url"]
-                .as_str()
-                .ok_or_else(|| anyhow!("Missing 'url' in response"))?
-                .to_string();
+                if !response.status().is_success() {
+                    return Err(anyhow!(
+                        "Received non-success status code: {}",
+                        response.status(),
+                    ));
+                }
 
-            Ok(UploadInfo { resource_id, url })
-        })
-    })
+                let data: Value = response.json().await.map_err(|e| {
+                    anyhow!("Failed to parse JSON response: {}", e)
+                })?;
+
+                let resource_id = data["data"]["resourceId"]
+                    .as_str()
+                    .ok_or_else(|| anyhow!("Missing 'resourceId' in response"))?
+                    .to_string();
+                let url = data["data"]["url"]
+                    .as_str()
+                    .ok_or_else(|| anyhow!("Missing 'url' in response"))?
+                    .to_string();
+
+                Ok(UploadInfo { resource_id, url })
+            })
+        },
+    )
     .await
 }
 
 async fn upload_package_to_remote(
-    tman_config: &TmanConfig,
+    tman_config: Arc<TmanConfig>,
     client: &reqwest::Client,
     package_file_path: &str,
     url: &str,
@@ -244,7 +253,7 @@ async fn upload_package_to_remote(
 }
 
 async fn ack_of_uploading(
-    tman_config: &TmanConfig,
+    tman_config: Arc<TmanConfig>,
     base_url: &str,
     client: &reqwest::Client,
     resource_id: &str,
@@ -298,7 +307,7 @@ async fn ack_of_uploading(
 }
 
 pub async fn upload_package(
-    tman_config: &TmanConfig,
+    tman_config: Arc<TmanConfig>,
     base_url: &str,
     package_file_path: &str,
     pkg_info: &PkgInfo,
@@ -307,7 +316,7 @@ pub async fn upload_package(
     let client = create_http_client_with_proxies()?;
 
     let upload_info = get_package_upload_info(
-        tman_config,
+        tman_config.clone(),
         base_url,
         &client,
         pkg_info,
@@ -316,7 +325,7 @@ pub async fn upload_package(
     .await?;
 
     upload_package_to_remote(
-        tman_config,
+        tman_config.clone(),
         &client,
         package_file_path,
         &upload_info.url,
@@ -325,7 +334,7 @@ pub async fn upload_package(
     .await?;
 
     ack_of_uploading(
-        tman_config,
+        tman_config.clone(),
         base_url,
         &client,
         &upload_info.resource_id,
@@ -352,7 +361,7 @@ fn parse_content_range(content_range: &str) -> Option<(u64, u64, u64)> {
 }
 
 pub async fn get_package(
-    tman_config: &TmanConfig,
+    tman_config: Arc<TmanConfig>,
     pkg_type: &PkgType,
     pkg_name: &str,
     pkg_version: &Version,
@@ -400,101 +409,110 @@ pub async fn get_package(
 
     let download_complete = Arc::new(RwLock::new(false));
 
-    retry_async(tman_config, max_retries, retry_delay, out.clone(), || {
-        let client = client.clone();
-        let url = url.to_string();
-        let temp_file = Arc::clone(&temp_file);
-        let download_complete = Arc::clone(&download_complete);
+    retry_async(
+        tman_config.clone(),
+        max_retries,
+        retry_delay,
+        out.clone(),
+        || {
+            let client = client.clone();
+            let url = url.to_string();
+            let temp_file = Arc::clone(&temp_file);
+            let download_complete = Arc::clone(&download_complete);
 
-        Box::pin(async move {
-            // Check the size of the file that has already been downloaded.
-            let temp_file_len = {
-                let temp_file_read = temp_file.read().await;
-                temp_file_read
-                    .as_file()
-                    .metadata()
-                    .map(|metadata| metadata.len())
-                    .unwrap_or(0)
-            };
+            Box::pin(async move {
+                // Check the size of the file that has already been downloaded.
+                let temp_file_len = {
+                    let temp_file_read = temp_file.read().await;
+                    temp_file_read
+                        .as_file()
+                        .metadata()
+                        .map(|metadata| metadata.len())
+                        .unwrap_or(0)
+                };
 
-            // Set the Range header to support resumable downloads.
-            let mut headers = HeaderMap::new();
-            if temp_file_len > 0 {
-                headers.insert(
-                    reqwest::header::RANGE,
-                    format!("bytes={}-", temp_file_len).parse().unwrap(),
-                );
-            }
-
-            let response = client
-                .get(&url)
-                .headers(headers)
-                .timeout(Duration::from_secs(
-                    REMOTE_REGISTRY_REQUEST_TIMEOUT_SECS,
-                ))
-                .send()
-                .await
-                .with_context(|| {
-                    format!("Failed to send GET request to {}", url)
-                })?;
-
-            if !response.status().is_success()
-                && response.status() != reqwest::StatusCode::PARTIAL_CONTENT
-            {
-                return Err(anyhow!(
-                    "Failed to download the package from {}: HTTP {}.",
-                    url,
-                    response.status()
-                ));
-            }
-
-            // Get the headers of Content-Range or Content-Length.
-            let content_range = response
-                .headers()
-                .get(reqwest::header::CONTENT_RANGE)
-                .cloned();
-            let content_length = response
-                .headers()
-                .get(reqwest::header::CONTENT_LENGTH)
-                .cloned();
-
-            // Read the content of the response and append the newly downloaded
-            // part to the file.
-            let content = response
-                .bytes()
-                .await
-                .with_context(|| "Failed to read bytes from response")?;
-
-            if content.is_empty() {
-                return Err(anyhow!("No new content downloaded"));
-            }
-
-            let mut temp_file_write = temp_file.write().await;
-            temp_file_write
-                .as_file_mut()
-                .write_all(&content)
-                .with_context(|| "Failed to write content to temporary file")?;
-
-            // Check if we have downloaded the entire file.
-            if let Some(content_range) = content_range {
-                // Parse the content-range to check if download is complete.
-                let content_range_str = content_range.to_str().unwrap();
-                if let Some((_, _, total_size)) =
-                    parse_content_range(content_range_str)
-                {
-                    if temp_file_len + content.len() as u64 >= total_size {
-                        *download_complete.write().await = true;
-                    }
+                // Set the Range header to support resumable downloads.
+                let mut headers = HeaderMap::new();
+                if temp_file_len > 0 {
+                    headers.insert(
+                        reqwest::header::RANGE,
+                        format!("bytes={}-", temp_file_len).parse().unwrap(),
+                    );
                 }
-            } else if content_length.is_some() {
-                // If there is no content-range but content-length exists, the
-                // download should be complete in one go.
-                *download_complete.write().await = true;
-            }
 
-            Ok(())
-        })
-    })
+                let response = client
+                    .get(&url)
+                    .headers(headers)
+                    .timeout(Duration::from_secs(
+                        REMOTE_REGISTRY_REQUEST_TIMEOUT_SECS,
+                    ))
+                    .send()
+                    .await
+                    .with_context(|| {
+                        format!("Failed to send GET request to {}", url)
+                    })?;
+
+                if !response.status().is_success()
+                    && response.status() != reqwest::StatusCode::PARTIAL_CONTENT
+                {
+                    return Err(anyhow!(
+                        "Failed to download the package from {}: HTTP {}.",
+                        url,
+                        response.status()
+                    ));
+                }
+
+                // Get the headers of Content-Range or Content-Length.
+                let content_range = response
+                    .headers()
+                    .get(reqwest::header::CONTENT_RANGE)
+                    .cloned();
+                let content_length = response
+                    .headers()
+                    .get(reqwest::header::CONTENT_LENGTH)
+                    .cloned();
+
+                // Read the content of the response and append the newly
+                // downloaded part to the file.
+                let content = response
+                    .bytes()
+                    .await
+                    .with_context(|| "Failed to read bytes from response")?;
+
+                if content.is_empty() {
+                    return Err(anyhow!("No new content downloaded"));
+                }
+
+                let mut temp_file_write = temp_file.write().await;
+                temp_file_write
+                    .as_file_mut()
+                    .write_all(&content)
+                    .with_context(|| {
+                        "Failed to write content to temporary file"
+                    })?;
+
+                // Check if we have downloaded the entire file.
+                if let Some(content_range) = content_range {
+                    // Parse the content-range to check if download is complete.
+                    let content_range_str = content_range.to_str().unwrap();
+                    if let Some((_, _, total_size)) =
+                        parse_content_range(content_range_str)
+                    {
+                        if temp_file_len + content.len() as u64 >= total_size {
+                            *download_complete.write().await = true;
+                        }
+                    }
+                } else if content_length.is_some() {
+                    // If there is no content-range but content-length exists,
+                    // the download should be complete in
+                    // one go.
+                    *download_complete.write().await = true;
+                }
+
+                Ok(())
+            })
+        },
+    )
     .await?;
 
     // Only print when `download_complete` is `true`.
@@ -540,115 +558,127 @@ struct RegistryPackagesData {
 }
 
 pub async fn get_package_list(
-    tman_config: &TmanConfig,
+    tman_config: Arc<TmanConfig>,
     base_url: &str,
     pkg_type: PkgType,
-    name: &String,
+    name: &str,
     version_req: &VersionReq,
     out: Arc<Box<dyn TmanOutput>>,
 ) -> Result<Vec<PkgRegistryInfo>> {
     let max_retries = REMOTE_REGISTRY_MAX_RETRIES;
     let retry_delay = Duration::from_millis(REMOTE_REGISTRY_RETRY_DELAY_MS);
 
-    retry_async(tman_config, max_retries, retry_delay, out.clone(), || {
-        let client = match create_http_client_with_proxies() {
-            Ok(c) => c,
-            Err(e) => return Box::pin(async { Err(e) }),
-        };
+    retry_async(
+        tman_config.clone(),
+        max_retries,
+        retry_delay,
+        out.clone(),
+        || {
+            let client = match create_http_client_with_proxies() {
+                Ok(c) => c,
+                Err(e) => return Box::pin(async { Err(e) }),
+            };
 
-        let out = out.clone();
+            let out = out.clone();
+            let version_req = version_req.clone();
+            let tman_config = tman_config.clone();
 
-        Box::pin(async move {
-            let mut results = Vec::new();
-            let mut current_page = 1;
-            let mut total_size;
+            Box::pin(async move {
+                let mut results = Vec::new();
+                let mut current_page = 1;
+                let mut total_size;
 
-            loop {
-                let mut url = reqwest::Url::parse(base_url)?;
-                url.query_pairs_mut()
-                    .append_pair("type", &pkg_type.to_string())
-                    .append_pair("name", name)
-                    .append_pair("version", &version_req.to_string())
-                    .append_pair("pageSize", "100")
-                    .append_pair("page", &current_page.to_string());
+                loop {
+                    let mut url = reqwest::Url::parse(base_url)?;
+                    url.query_pairs_mut()
+                        .append_pair("type", &pkg_type.to_string())
+                        .append_pair("name", name)
+                        .append_pair("version", &version_req.to_string())
+                        .append_pair("pageSize", "100")
+                        .append_pair("page", &current_page.to_string());
 
-                let response = client
-                    .get(url)
-                    .timeout(Duration::from_secs(
-                        REMOTE_REGISTRY_REQUEST_TIMEOUT_SECS,
-                    ))
-                    .send()
-                    .await;
-
-                let response = match response {
-                    Ok(response) => response,
-                    Err(e) => {
-                        return Err(anyhow::anyhow!("Request failed: {}", e))
-                    }
-                };
-
-                if response.status() != reqwest::StatusCode::OK {
-                    return Err(anyhow::anyhow!(
-                        "API responded with non-ok status: {}",
-                        response.status()
-                    ));
-                }
-
-                let body = response.text().await?;
-                let api_response = serde_json::from_str::<ApiResponse>(&body);
-                let api_response = match api_response {
-                    Ok(api_response) => api_response,
-                    Err(e) => {
-                        return Err(anyhow::anyhow!(
-                            "Failed to parse JSON response: {}",
-                            e
+                    let response = client
+                        .get(url)
+                        .timeout(Duration::from_secs(
+                            REMOTE_REGISTRY_REQUEST_TIMEOUT_SECS,
                         ))
+                        .send()
+                        .await;
+
+                    let response = match response {
+                        Ok(response) => response,
+                        Err(e) => {
+                            return Err(anyhow::anyhow!(
+                                "Request failed: {}",
+                                e
+                            ))
+                        }
+                    };
+
+                    if response.status() != reqwest::StatusCode::OK {
+                        return Err(anyhow::anyhow!(
+                            "API responded with non-ok status: {}",
+                            response.status()
+                        ));
                     }
-                };
 
-                if api_response.status != "ok" {
-                    return Err(anyhow::anyhow!(
-                        "API responded with non-ok status: {}",
-                        api_response.status
-                    ));
+                    let body = response.text().await?;
+                    let api_response =
+                        serde_json::from_str::<ApiResponse>(&body);
+                    let api_response = match api_response {
+                        Ok(api_response) => api_response,
+                        Err(e) => {
+                            return Err(anyhow::anyhow!(
+                                "Failed to parse JSON response: {}",
+                                e
+                            ))
+                        }
+                    };
+
+                    if api_response.status != "ok" {
+                        return Err(anyhow::anyhow!(
+                            "API responded with non-ok status: {}",
+                            api_response.status
+                        ));
+                    }
+
+                    total_size = api_response.data.total_size as usize;
+
+                    for pkg_registry_info in api_response.data.packages {
+                        results.push(pkg_registry_info);
+                    }
+
+                    if tman_config.verbose {
+                        out.normal_line(&format!(
+                            "Fetched {} packages at page {} for {}:{}@{}",
+                            results.len(),
+                            current_page,
+                            pkg_type,
+                            name,
+                            version_req
+                        ));
+                    }
+
+                    // Check if we've fetched all packages based on totalSize.
+                    if results.len() >= total_size {
+                        break;
+                    }
+
+                    current_page += 1;
                 }
 
-                total_size = api_response.data.total_size as usize;
-
-                for pkg_registry_info in api_response.data.packages {
-                    results.push(pkg_registry_info);
-                }
-
-                if tman_config.verbose {
-                    out.normal_line(&format!(
-                        "Fetched {} packages at page {} for {}:{}@{}",
-                        results.len(),
-                        current_page,
-                        pkg_type,
-                        name,
-                        version_req
-                    ));
-                }
-
-                // Check if we've fetched all packages based on totalSize.
-                if results.len() >= total_size {
-                    break;
-                }
-
-                current_page += 1;
-            }
-
-            Ok(results)
-        })
-    })
+                Ok(results)
+            })
+        },
+    )
     .await
 }
 
 pub async fn delete_package(
-    tman_config: &TmanConfig,
+    tman_config: Arc<TmanConfig>,
     base_url: &str,
     pkg_type: PkgType,
-    name: &String,
+    name: &str,
     version: &Version,
     hash: &str,
     out: Arc<Box<dyn TmanOutput>>,
@@ -656,81 +686,93 @@ pub async fn delete_package(
     let max_retries = REMOTE_REGISTRY_MAX_RETRIES;
     let retry_delay = Duration::from_millis(REMOTE_REGISTRY_RETRY_DELAY_MS);
 
-    retry_async(tman_config, max_retries, retry_delay, out.clone(), || {
-        let client = match create_http_client_with_proxies() {
-            Ok(c) => c,
-            Err(e) => return Box::pin(async { Err(e) }),
-        };
-
-        let base_url = base_url.to_string();
-        let out = out.clone();
-
-        Box::pin(async move {
-            // Ensure the base URL ends with a '/'.
-            let base_url = if base_url.ends_with('/') {
-                base_url
-            } else {
-                format!("{}/", base_url)
+    retry_async(
+        tman_config.clone(),
+        max_retries,
+        retry_delay,
+        out.clone(),
+        || {
+            let client = match create_http_client_with_proxies() {
+                Ok(c) => c,
+                Err(e) => return Box::pin(async { Err(e) }),
             };
 
-            let url = reqwest::Url::parse(&base_url).inspect_err(|&e| {
-                out.error_line(&format!("Failed to parse base URL: {}", e));
-            })?;
+            let base_url = base_url.to_string();
+            let version = version.clone();
+            let hash = hash.to_string();
+            let out = out.clone();
+            let tman_config = tman_config.clone();
 
-            let url = url
-                .join(&format!(
-                    "{}/{}/{}/{}",
-                    &pkg_type.to_string(),
-                    &name,
-                    version,
-                    hash,
-                ))
-                .inspect_err(|&e| {
-                    out.error_line(&format!("Failed to join URL path: {}", e));
+            Box::pin(async move {
+                // Ensure the base URL ends with a '/'.
+                let base_url = if base_url.ends_with('/') {
+                    base_url
+                } else {
+                    format!("{}/", base_url)
+                };
+
+                let url = reqwest::Url::parse(&base_url).inspect_err(|&e| {
+                    out.error_line(&format!("Failed to parse base URL: {}", e));
                 })?;
 
-            let mut headers = HeaderMap::new();
-
-            if let Some(admin_token) = &tman_config.admin_token {
-                let basic_token = format!("Basic {}", admin_token);
-                headers.insert(
-                    AUTHORIZATION,
-                    basic_token.parse().map_err(|e| {
+                let url = url
+                    .join(&format!(
+                        "{}/{}/{}/{}",
+                        &pkg_type.to_string(),
+                        &name,
+                        version,
+                        hash,
+                    ))
+                    .inspect_err(|&e| {
                         out.error_line(&format!(
-                            "Failed to parse authorization token: {}",
+                            "Failed to join URL path: {}",
                             e
                         ));
-                        e
-                    })?,
-                );
-            } else {
-                if tman_config.verbose {
-                    out.normal_line("Authorization token is missing");
-                }
-                return Err(anyhow!("Authorization token is missing"));
-            }
+                    })?;
 
-            // Sending the DELETE request.
-            let response = client
-                .delete(url)
-                .headers(headers)
-                .timeout(Duration::from_secs(
-                    REMOTE_REGISTRY_REQUEST_TIMEOUT_SECS,
-                ))
-                .send()
-                .await;
+                let mut headers = HeaderMap::new();
 
-            match response {
-                Ok(resp) => {
-                    if resp.status().is_success() {
-                        Ok(())
-                    } else {
-                        Err(anyhow!("HTTP error: {}", resp.status()))
+                if let Some(admin_token) = &tman_config.admin_token {
+                    let basic_token = format!("Basic {}", admin_token);
+                    headers.insert(
+                        AUTHORIZATION,
+                        basic_token.parse().map_err(|e| {
+                            out.error_line(&format!(
+                                "Failed to parse authorization token: {}",
+                                e
+                            ));
+                            e
+                        })?,
+                    );
+                } else {
+                    if tman_config.verbose {
+                        out.normal_line("Authorization token is missing");
                     }
+                    return Err(anyhow!("Authorization token is missing"));
                 }
-                Err(e) => Err(e.into()),
-            }
-        })
-    })
+
+                // Sending the DELETE request.
+                let response = client
+                    .delete(url)
+                    .headers(headers)
+                    .timeout(Duration::from_secs(
+                        REMOTE_REGISTRY_REQUEST_TIMEOUT_SECS,
+                    ))
+                    .send()
+                    .await;
+
+                match response {
+                    Ok(resp) => {
+                        if resp.status().is_success() {
+                            Ok(())
+                        } else {
+                            Err(anyhow!("HTTP error: {}", resp.status()))
+                        }
+                    }
+                    Err(e) => Err(e.into()),
+                }
+            })
+        },
+    )
     .await
 }

@@ -44,16 +44,16 @@ pub fn parse_sub_cmd(sub_cmd_args: &ArgMatches) -> Result<ModifyCommandData> {
 }
 
 pub async fn execute_cmd(
-    tman_config: &TmanConfig,
+    tman_config: Arc<TmanConfig>,
     command_data: ModifyCommandData,
     out: Arc<Box<dyn TmanOutput>>,
 ) -> Result<()> {
     match command_data {
         ModifyCommandData::ModifyGraph(cmd) => {
             crate::cmd::cmd_modify::cmd_modify_graph::execute_cmd(
-                out,
-                tman_config,
+                tman_config.clone(),
                 cmd,
+                out,
             )
             .await
         }

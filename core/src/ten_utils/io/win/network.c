@@ -10,12 +10,12 @@
 #include "ten_utils/io/network.h"
 
 #include <Windows.h>
-#include <assert.h>
 #include <iphlpapi.h>
 #include <stdlib.h>
 #include <ws2tcpip.h>
 
 #include "ten_utils/macro/macros.h"
+#include "ten_utils/macro/memory.h"
 
 #define OUT_LEN_BLOCK (4 * 1024)
 
@@ -32,20 +32,21 @@ void ten_host_get(char *hostname_buffer,
   DWORD result = 0;
   DWORD retries = 0;
 
-  assert(hostname_buffer && hostname_buffer_capacity == URI_MAX_LEN &&
-         ip_buffer && ip_buffer_capacity == IP_STR_MAX_LEN);
+  TEN_ASSERT(hostname_buffer && hostname_buffer_capacity == URI_MAX_LEN &&
+                 ip_buffer && ip_buffer_capacity == IP_STR_MAX_LEN,
+             "Invalid argument.");
 
   // To retrieve hostname
   rc = gethostname(hostname_buffer, hostname_buffer_capacity);
-  assert(rc != -1);
+  TEN_ASSERT(rc != -1, "Failed to get hostname.");
 
   // TEN_LOGD("Hostname: %s", hostname_buffer);
 
   do {
-    addresses = (PIP_ADAPTER_ADDRESSES)malloc(out_len);
+    addresses = (PIP_ADAPTER_ADDRESSES)TEN_MALLOC(out_len);
     result = GetAdaptersAddresses(AF_UNSPEC, 0, NULL, addresses, &out_len);
     if (result == ERROR_BUFFER_OVERFLOW) {
-      free(addresses);
+      TEN_FREE(addresses);
       addresses = NULL;
     } else {
       break;
@@ -72,18 +73,18 @@ void ten_host_get(char *hostname_buffer,
       in_addr = NULL;
       sock_addr = cur_ip->Address.lpSockaddr;
       switch (sock_addr->sa_family) {
-        case AF_INET: {
-          struct sockaddr_in *s4 = (struct sockaddr_in *)sock_addr;
-          in_addr = &s4->sin_addr;
-          break;
-        }
-        case AF_INET6: {
-          struct sockaddr_in6 *s6 = (struct sockaddr_in6 *)sock_addr;
-          in_addr = &s6->sin6_addr;
-          break;
-        }
-        default:
-          continue;
+      case AF_INET: {
+        struct sockaddr_in *s4 = (struct sockaddr_in *)sock_addr;
+        in_addr = &s4->sin_addr;
+        break;
+      }
+      case AF_INET6: {
+        struct sockaddr_in6 *s6 = (struct sockaddr_in6 *)sock_addr;
+        in_addr = &s6->sin6_addr;
+        break;
+      }
+      default:
+        continue;
       }
 
       if (!in_addr) {
@@ -100,7 +101,7 @@ void ten_host_get(char *hostname_buffer,
   }
 
   if (addresses) {
-    free((void *)addresses);
+    TEN_FREE(addresses);
   }
 }
 

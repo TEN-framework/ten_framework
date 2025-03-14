@@ -19,8 +19,10 @@
 #include "ten_utils/lib/mutex.h"
 #include "ten_utils/lib/string.h"
 #include "ten_utils/lib/thread_once.h"
+#include "ten_utils/macro/check.h"
 #include "ten_utils/macro/field.h"
 #include "ten_utils/macro/mark.h"
+#include "ten_utils/macro/memory.h"
 
 #define TEN_STREAMBACKEND_RAW_SIGNATURE 0x861D0758EA843916U
 
@@ -48,15 +50,17 @@ static void ten_queue_process_remaining(ten_stream_t *stream,
 
 static void ten_queue_init(ten_runloop_t *loop, ten_queue_t *queue) {
   (void)loop;
-  assert(queue);
+  TEN_ASSERT(queue, "Invalid argument.");
   ten_list_init(&queue->list);
   queue->lock = ten_mutex_create();
+  TEN_ASSERT(queue->lock, "Failed to create mutex.");
   queue->signal = ten_runloop_async_create(loop->impl);
+  TEN_ASSERT(queue->signal, "Failed to create async.");
   queue->valid = 1;
 }
 
 static void ten_queue_deinit(ten_queue_t *queue) {
-  assert(queue && queue->valid && queue->lock);
+  TEN_ASSERT(queue && queue->valid && queue->lock, "Invalid argument.");
 
   ten_queue_process_remaining(NULL, queue);
 
@@ -104,8 +108,8 @@ static void ten_init_stream_raw(void) {
   ten_list_init(&g_all_streams);
 }
 
-static ten_named_queue_t *ten_find_named_queue_unsafe(
-    const ten_string_t *name) {
+static ten_named_queue_t *
+ten_find_named_queue_unsafe(const ten_string_t *name) {
   ten_named_queue_t *queue = NULL;
 
   for (ten_listnode_t *itor = ten_list_front(&g_all_streams); itor;
@@ -124,11 +128,11 @@ static ten_named_queue_t *ten_named_queue_get(ten_runloop_t *loop,
   ten_named_queue_t *queue = NULL;
 
   TEN_UNUSED int rc = ten_mutex_lock(g_all_streams_lock);
-  assert(!rc);
+  TEN_ASSERT(!rc, "Failed to lock mutex.");
 
   queue = ten_find_named_queue_unsafe(name);
   if (!queue) {
-    queue = malloc(sizeof(ten_named_queue_t));
+    queue = TEN_MALLOC(sizeof(ten_named_queue_t));
     TEN_STRING_INIT(queue->name);
     ten_string_set_formatted(&queue->name, name->buf);
     ten_queue_init(loop, &queue->endpoint[0]);
@@ -140,14 +144,14 @@ static ten_named_queue_t *ten_named_queue_get(ten_runloop_t *loop,
   ten_atomic_fetch_add(&queue->ref_cnt, 1);
 
   rc = ten_mutex_unlock(g_all_streams_lock);
-  assert(!rc);
+  TEN_ASSERT(!rc, "Failed to unlock mutex.");
 
   return queue;
 }
 
 static void ten_named_queue_put(ten_named_queue_t *queue) {
   TEN_UNUSED int rc = ten_mutex_lock(g_all_streams_lock);
-  assert(!rc);
+  TEN_ASSERT(!rc, "Failed to lock mutex.");
 
   int64_t cnt = ten_atomic_fetch_sub(&queue->ref_cnt, 1);
   if (cnt == 1) {
@@ -155,11 +159,11 @@ static void ten_named_queue_put(ten_named_queue_t *queue) {
     ten_queue_deinit(&queue->endpoint[0]);
     ten_queue_deinit(&queue->endpoint[1]);
     ten_string_deinit(&queue->name);
-    free(queue);
+    TEN_FREE(queue);
   }
 
   rc = ten_mutex_unlock(g_all_streams_lock);
-  assert(!rc);
+  TEN_ASSERT(!rc, "Failed to unlock mutex.");
 }
 
 static void ten_queue_process_remaining(ten_stream_t *stream,
@@ -167,7 +171,7 @@ static void ten_queue_process_remaining(ten_stream_t *stream,
   ten_list_t tmp = TEN_LIST_INIT_VAL;
 
   TEN_UNUSED int rc = ten_mutex_lock(queue->lock);
-  assert(!rc);
+  TEN_ASSERT(!rc, "Failed to lock mutex.");
 
   while (!ten_list_is_empty(&queue->list)) {
     ten_listnode_t *node = ten_list_pop_front(&queue->list);
@@ -176,7 +180,7 @@ static void ten_queue_process_remaining(ten_stream_t *stream,
   queue->size = 0;
 
   rc = ten_mutex_unlock(queue->lock);
-  assert(!rc);
+  TEN_ASSERT(!rc, "Failed to unlock mutex.");
 
   while (!ten_list_is_empty(&tmp)) {
     ten_listnode_t *node = ten_list_pop_front(&tmp);
@@ -211,7 +215,7 @@ static void process_delayed_tasks(ten_transportbackend_raw_t *self) {
     if (task->close_after_done) {
       ten_list_push_back(&tasks_needs_close, node);
     } else {
-      free(task);
+      TEN_FREE(task);
     }
   }
 
@@ -222,7 +226,7 @@ static void process_delayed_tasks(ten_transportbackend_raw_t *self) {
 
     ten_transport_close(task->transport);
 
-    free(task);
+    TEN_FREE(task);
   }
 }
 
@@ -233,7 +237,7 @@ static void on_queue_has_more_data(ten_runloop_async_t *handle) {
 
 static void on_write_request_closed(ten_runloop_async_t *handle) {
   ten_raw_write_req_t *req = handle->data;
-  free(req);
+  TEN_FREE(req);
   ten_runloop_async_destroy(handle);
 }
 
@@ -259,22 +263,22 @@ static void on_stream_in_signal_closed(ten_runloop_async_t *handle) {
   ten_named_queue_put(raw_stream->queue);
   ten_streambackend_deinit(&raw_stream->base);
 
-  free(raw_stream);
+  TEN_FREE(raw_stream);
   ten_runloop_async_destroy(handle);
 }
 
 static void ten_streambackend_raw_destroy(ten_streambackend_raw_t *raw_stream) {
-  assert(raw_stream);
+  TEN_ASSERT(raw_stream, "Invalid argument.");
   ten_runloop_async_close(raw_stream->in->signal, on_stream_in_signal_closed);
 }
 
-static int ten_streambackend_raw_start_read(
-    TEN_UNUSED ten_streambackend_t *self) {
+static int
+ten_streambackend_raw_start_read(TEN_UNUSED ten_streambackend_t *self) {
   return 0;
 }
 
-static int ten_streambackend_raw_stop_read(
-    TEN_UNUSED ten_streambackend_t *self) {
+static int
+ten_streambackend_raw_stop_read(TEN_UNUSED ten_streambackend_t *self) {
   return 0;
 }
 
@@ -282,10 +286,10 @@ static int ten_streambackend_raw_write(ten_streambackend_t *backend,
                                        const void *buf, size_t size,
                                        void *user_data) {
   ten_streambackend_raw_t *raw_stream = (ten_streambackend_raw_t *)backend;
-  assert(raw_stream);
+  TEN_ASSERT(raw_stream, "Invalid argument.");
 
-  ten_raw_write_req_t *req = malloc(sizeof(ten_raw_write_req_t));
-  assert(req);
+  ten_raw_write_req_t *req = TEN_MALLOC(sizeof(ten_raw_write_req_t));
+  TEN_ASSERT(req, "Failed to allocate memory.");
   req->done_signal = ten_runloop_async_create(raw_stream->base.impl);
   req->buf = (void *)buf;
   req->len = size;
@@ -296,13 +300,13 @@ static int ten_streambackend_raw_write(ten_streambackend_t *backend,
   req->user_data = user_data;
 
   TEN_UNUSED int rc = ten_mutex_lock(raw_stream->out->lock);
-  assert(!rc);
+  TEN_ASSERT(!rc, "Failed to lock mutex.");
 
   ten_list_push_back(&raw_stream->out->list, &req->node);
   raw_stream->out->size++;
 
   rc = ten_mutex_unlock(raw_stream->out->lock);
-  assert(!rc);
+  TEN_ASSERT(!rc, "Failed to unlock mutex.");
 
   // notify reader we have more data
   ten_runloop_async_notify(raw_stream->out->signal);
@@ -312,7 +316,7 @@ static int ten_streambackend_raw_write(ten_streambackend_t *backend,
 
 static int ten_streambackend_raw_close(ten_streambackend_t *backend) {
   ten_streambackend_raw_t *raw_stream = (ten_streambackend_raw_t *)backend;
-  assert(raw_stream);
+  TEN_ASSERT(raw_stream, "Invalid argument.");
 
   if (ten_atomic_bool_compare_swap(&backend->is_close, 0, 1)) {
     // TEN_LOGD("Try to close stream RAW backend.");
@@ -323,10 +327,12 @@ static int ten_streambackend_raw_close(ten_streambackend_t *backend) {
   return 0;
 }
 
-static ten_streambackend_raw_t *ten_streambackend_raw_create(
-    const char *impl, ten_stream_t *stream, ten_queue_t *in, ten_queue_t *out) {
-  ten_streambackend_raw_t *backend = malloc(sizeof(ten_streambackend_raw_t));
-  assert(backend);
+static ten_streambackend_raw_t *
+ten_streambackend_raw_create(const char *impl, ten_stream_t *stream,
+                             ten_queue_t *in, ten_queue_t *out) {
+  ten_streambackend_raw_t *backend =
+      TEN_MALLOC(sizeof(ten_streambackend_raw_t));
+  TEN_ASSERT(backend, "Failed to allocate memory.");
   memset(backend, 0, sizeof(ten_streambackend_raw_t));
 
   ten_streambackend_init(impl, &backend->base, stream);
@@ -357,7 +363,7 @@ static int ten_transportbackend_new_stream(
     goto error;
   }
 
-  stream = (ten_stream_t *)malloc(sizeof(*stream));
+  stream = (ten_stream_t *)TEN_MALLOC(sizeof(*stream));
   if (!stream) {
     // TEN_LOGE("Not enough memory, failed to allocate stream");
     goto error;
@@ -380,8 +386,8 @@ static int ten_transportbackend_new_stream(
   ten_runloop_async_init(streambackend->in->signal, streambackend->worker,
                          on_queue_has_more_data);
 
-  ten_delayed_task_t *req = malloc(sizeof(ten_delayed_task_t));
-  assert(req);
+  ten_delayed_task_t *req = TEN_MALLOC(sizeof(ten_delayed_task_t));
+  TEN_ASSERT(req, "Failed to allocate memory.");
   req->transport = backend->transport;
   req->stream = stream;
   req->status = 0;
@@ -398,7 +404,7 @@ error:
   }
 
   if (stream) {
-    free(stream);
+    TEN_FREE(stream);
   }
 
   if (streambackend) {
@@ -438,7 +444,7 @@ static void on_delayed_task_signal_closed(ten_runloop_async_t *handle) {
   self->delayed_task_signal->data = NULL;
   ten_transport_on_close(transport);
   ten_transportbackend_deinit(&self->base);
-  free(self);
+  TEN_FREE(self);
   ten_runloop_async_destroy(handle);
 }
 
@@ -455,7 +461,7 @@ static void ten_transportbackend_raw_close(ten_transportbackend_t *backend) {
     // ten_string_get_raw_str(self->base.name));
 
     ten_transport_t *transport = self->base.transport;
-    assert(transport);
+    TEN_ASSERT(transport, "Invalid argument.");
     process_delayed_tasks(self);
     ten_runloop_async_close(self->delayed_task_signal,
                             on_delayed_task_signal_closed);
@@ -471,8 +477,9 @@ static void on_delayed_task(ten_runloop_async_t *handle) {
   process_delayed_tasks(self);
 }
 
-static ten_transportbackend_t *ten_transportbackend_raw_create(
-    ten_transport_t *transport, const ten_string_t *name) {
+static ten_transportbackend_t *
+ten_transportbackend_raw_create(ten_transport_t *transport,
+                                const ten_string_t *name) {
   ten_transportbackend_raw_t *self = NULL;
 
   ten_thread_once(&g_init_once, ten_init_stream_raw);
@@ -482,8 +489,8 @@ static ten_transportbackend_t *ten_transportbackend_raw_create(
     goto error;
   }
 
-  self =
-      (ten_transportbackend_raw_t *)malloc(sizeof(ten_transportbackend_raw_t));
+  self = (ten_transportbackend_raw_t *)TEN_MALLOC(
+      sizeof(ten_transportbackend_raw_t));
   if (!self) {
     // TEN_LOGE("Not enough memory");
     goto error;

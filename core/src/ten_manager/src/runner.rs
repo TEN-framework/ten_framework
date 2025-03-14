@@ -14,12 +14,12 @@ use crate::config::TmanConfig;
 use crate::output::TmanOutput;
 
 pub fn run_tman_command(
-    tman_config: TmanConfig,
+    tman_config: Arc<TmanConfig>,
     cmd_data: CommandData,
     out: Arc<Box<dyn TmanOutput>>,
 ) -> Result<()> {
     let rt = Runtime::new().unwrap();
-    rt.block_on(execute_cmd(&tman_config, cmd_data, out))?;
+    rt.block_on(execute_cmd(tman_config, cmd_data, out))?;
 
     Ok(())
 }

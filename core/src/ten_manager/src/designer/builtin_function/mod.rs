@@ -6,7 +6,7 @@
 //
 mod install;
 mod install_all;
-mod msg;
+pub mod msg;
 
 use std::sync::{Arc, RwLock};
 
@@ -50,13 +50,13 @@ type BuiltinFunctionParser =
 
 pub struct WsBuiltinFunction {
     builtin_function_parser: BuiltinFunctionParser,
-    tman_config: TmanConfig,
+    tman_config: Arc<TmanConfig>,
 }
 
 impl WsBuiltinFunction {
     fn new(
         builtin_function_parser: BuiltinFunctionParser,
-        tman_config: TmanConfig,
+        tman_config: Arc<TmanConfig>,
     ) -> Self {
         Self {
             builtin_function_parser,
@@ -214,8 +214,133 @@ pub async fn builtin_function(
     });
 
     ws::start(
-        WsBuiltinFunction::new(default_parser, tman_config),
+        WsBuiltinFunction::new(default_parser, tman_config.clone()),
         &req,
         stream,
     )
+}
+
+#[cfg(test)]
+mod tests {
+    use std::{
+        collections::HashMap,
+        sync::{Arc, RwLock},
+    };
+
+    use actix_web::{
+        http::{header, StatusCode},
+        test, web, App,
+    };
+
+    use crate::{
+        config::TmanConfig,
+        designer::{builtin_function::builtin_function, DesignerState},
+        output::TmanOutputCli,
+    };
+
+    #[actix_rt::test]
+    async fn test_cmd_builtin_function_install_all() {
+        let designer_state = DesignerState {
+            tman_config: Arc::new(TmanConfig::default()),
+            out: Arc::new(Box::new(TmanOutputCli)),
+            pkgs_cache: HashMap::new(),
+        };
+
+        let designer_state = Arc::new(RwLock::new(designer_state));
+
+        // Initialize the test service with the WebSocket endpoint.
+        let app = test::init_service(
+            App::new()
+                .app_data(web::Data::new(designer_state))
+                .route("/ws/builtin-function", web::get().to(builtin_function)),
+        )
+        .await;
+
+        // Create a basic request just to test if the route is defined.
+        let req = test::TestRequest::get()
+            .uri("/ws/builtin-function")
+            .to_request();
+
+        // Execute the request but don't check for success. This just verifies
+        // that the route exists and the handler is called.
+        let resp = test::call_service(&app, req).await;
+
+        println!("Response status: {:?}", resp.status());
+
+        // Instead of asserting success which requires WebSocket setup, we'll
+        // just verify that the endpoint exists by checking the response
+        // is not a 404.
+        assert_ne!(resp.status().as_u16(), 404, "Endpoint not found");
+
+        // Note: A proper WebSocket test would require a more complex setup.
+        // This test just verifies the route is registered correctly.
+        println!(
+        "WebSocket endpoint /ws/builtin-function is registered and available"
+    );
+    }
+
+    #[actix_rt::test]
+    async fn test_cmd_builtin_function_websocket_connection() {
+        let designer_state = DesignerState {
+            tman_config: Arc::new(TmanConfig::default()),
+            out: Arc::new(Box::new(TmanOutputCli)),
+            pkgs_cache: HashMap::new(),
+        };
+
+        let designer_state = Arc::new(RwLock::new(designer_state));
+
+        // Initialize the test service with the WebSocket endpoint.
+        let app = test::init_service(
+            App::new()
+                .app_data(web::Data::new(designer_state))
+                .route("/ws/builtin-function", web::get().to(builtin_function)),
+        )
+        .await;
+
+        // Create a test request with proper WebSocket headers.
+        let req = test::TestRequest::get()
+            .uri("/ws/builtin-function")
+            .insert_header((header::CONNECTION, "upgrade"))
+            .insert_header((header::UPGRADE, "websocket"))
+            .insert_header(("Sec-WebSocket-Version", "13"))
+            // Base64 encoded value.
+            .insert_header(("Sec-WebSocket-Key", "dGhlIHNhbXBsZSBub25jZQ=="))
+            .to_request();
+
+        // Call the WebSocket endpoint.
+        let resp = test::call_service(&app, req).await;
+
+        // When a WebSocket connection is established successfully, the server
+        // should respond with:
+        // 1. A 101 Switching Protocols status code
+        // 2. Various WebSocket headers
+
+        println!("WebSocket connection response: {:?}", resp.status());
+        println!("WebSocket connection headers: {:#?}", resp.headers());
+
+        // Verify that we got the correct WebSocket upgrade response.
+        assert_eq!(
+            resp.status(),
+            StatusCode::SWITCHING_PROTOCOLS,
+            "Expected WebSocket upgrade response (101 Switching Protocols)"
+        );
+
+        // Check for key WebSocket response headers.
+        assert!(
+            resp.headers().contains_key("Sec-WebSocket-Accept"),
+            "Missing WebSocket Accept header"
+        );
+        assert_eq!(
+            resp.headers()
+                .get(header::UPGRADE)
+                .unwrap()
+                .to_str()
+                .unwrap()
+                .to_lowercase(),
+            "websocket",
+            "Incorrect upgrade header value"
+        );
+
+        println!("WebSocket connection was successfully established (validated by checking response status and headers)");
+    }
 }

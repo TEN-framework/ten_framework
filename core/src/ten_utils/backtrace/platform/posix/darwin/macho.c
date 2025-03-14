@@ -9,6 +9,7 @@
 //
 #include "ten_utils/ten_config.h"
 
+#include <assert.h>
 #include <dirent.h>
 #include <mach-o/dyld.h>
 #include <stdint.h>
@@ -17,12 +18,12 @@
 #include <sys/types.h>
 
 #include "include_internal/ten_utils/backtrace/backtrace.h"
+#include "include_internal/ten_utils/backtrace/platform/posix/dwarf.h"
+#include "include_internal/ten_utils/backtrace/platform/posix/file.h"
 #include "include_internal/ten_utils/backtrace/platform/posix/internal.h"
-#include "ten_utils/io/mmap.h"
-#include "ten_utils/lib/alloc.h"
+#include "include_internal/ten_utils/backtrace/platform/posix/mmap.h"
+#include "include_internal/ten_utils/backtrace/sort.h"
 #include "ten_utils/lib/atomic_ptr.h"
-#include "ten_utils/lib/file.h"
-#include "ten_utils/macro/check.h"
 
 // Mach-O file header for a 32-bit executable.
 typedef struct macho_header_32 {
@@ -246,13 +247,11 @@ static const char *const dwarf_section_names[DEBUG_MAX] = {
     "__debug_str_offs", "", /* DEBUG_LINE_STR */
     "__debug_rnglists"};
 
-static int macho_add(ten_backtrace_t *self, const char *filename,
-                     int descriptor, off_t offset,
-                     const unsigned char *match_uuid, uintptr_t base_address,
-                     int skip_symtab, ten_backtrace_error_func_t error_cb,
-                     void *data,
-                     ten_backtrace_get_file_line_func_t *fileline_fn,
-                     int *found_sym);
+static int
+macho_add(ten_backtrace_t *self, const char *filename, int descriptor,
+          off_t offset, const unsigned char *match_uuid, uintptr_t base_address,
+          int skip_symtab, ten_backtrace_error_func_t error_cb, void *data,
+          ten_backtrace_get_file_line_func_t *fileline_fn, int *found_sym);
 
 // A dummy callback function used when we can't find any debug info.
 static int macho_nodebug(ten_backtrace_t *self, uintptr_t pc,
@@ -315,14 +314,14 @@ static int macho_add_dwarf_segment(ten_backtrace_t *self, int descriptor,
   unsigned int i;
 
   switch (cmd) {
-    case MACH_O_LC_SEGMENT:
-      sec_header_size = sizeof(struct macho_section);
-      break;
-    case MACH_O_LC_SEGMENT_64:
-      sec_header_size = sizeof(struct macho_section_64);
-      break;
-    default:
-      abort();
+  case MACH_O_LC_SEGMENT:
+    sec_header_size = sizeof(struct macho_section);
+    break;
+  case MACH_O_LC_SEGMENT_64:
+    sec_header_size = sizeof(struct macho_section_64);
+    break;
+  default:
+    abort();
   }
 
   secoffset = 0;
@@ -333,26 +332,26 @@ static int macho_add_dwarf_segment(ten_backtrace_t *self, int descriptor,
     }
 
     switch (cmd) {
-      case MACH_O_LC_SEGMENT: {
-        struct macho_section section;
+    case MACH_O_LC_SEGMENT: {
+      struct macho_section section;
 
-        memcpy(&section, psecs + secoffset, sizeof section);
-        macho_add_dwarf_section(self, descriptor, section.sectname,
-                                offset + section.offset, section.size, error_cb,
-                                data, dwarf_sections);
-      } break;
+      memcpy(&section, psecs + secoffset, sizeof section);
+      macho_add_dwarf_section(self, descriptor, section.sectname,
+                              offset + section.offset, section.size, error_cb,
+                              data, dwarf_sections);
+    } break;
 
-      case MACH_O_LC_SEGMENT_64: {
-        struct macho_section_64 section;
+    case MACH_O_LC_SEGMENT_64: {
+      struct macho_section_64 section;
 
-        memcpy(&section, psecs + secoffset, sizeof section);
-        macho_add_dwarf_section(self, descriptor, section.sectname,
-                                offset + section.offset, section.size, error_cb,
-                                data, dwarf_sections);
-      } break;
+      memcpy(&section, psecs + secoffset, sizeof section);
+      macho_add_dwarf_section(self, descriptor, section.sectname,
+                              offset + section.offset, section.size, error_cb,
+                              data, dwarf_sections);
+    } break;
 
-      default:
-        abort();
+    default:
+      abort();
     }
 
     secoffset += sec_header_size;
@@ -412,11 +411,11 @@ static int macho_defined_symbol(uint8_t type) {
     return 0;
   }
   switch (type & MACH_O_N_TYPE) {
-    case MACH_O_N_ABS:
-    case MACH_O_N_SECT:
-      return 1;
-    default:
-      return 0;
+  case MACH_O_N_ABS:
+  case MACH_O_N_SECT:
+    return 1;
+  default:
+    return 0;
   }
 }
 
@@ -473,19 +472,20 @@ static int macho_add_symtab(ten_backtrace_t *self_, int descriptor,
       struct macho_nlist_64 nlist;
 
       memcpy(&nlist, (const char *)sym_view.data + symtaboff, sizeof nlist);
-      if (macho_defined_symbol(nlist.n_type)) ++ndefs;
+      if (macho_defined_symbol(nlist.n_type))
+        ++ndefs;
     } else {
       struct macho_nlist nlist;
 
       memcpy(&nlist, (const char *)sym_view.data + symtaboff, sizeof nlist);
-      if (macho_defined_symbol(nlist.n_type)) ++ndefs;
+      if (macho_defined_symbol(nlist.n_type))
+        ++ndefs;
     }
   }
 
   /* Add 1 to ndefs to make room for a sentinel.  */
   macho_symbol_size = (ndefs + 1) * sizeof(struct macho_symbol);
-  macho_symbols =
-      (struct macho_symbol *)ten_malloc_without_backtrace(macho_symbol_size);
+  macho_symbols = (struct macho_symbol *)malloc(macho_symbol_size);
   if (macho_symbols == NULL) {
     goto fail;
   }
@@ -535,9 +535,8 @@ static int macho_add_symtab(ten_backtrace_t *self_, int descriptor,
     ++j;
   }
 
-  sdata =
-      (struct macho_syminfo_data *)ten_malloc_without_backtrace(sizeof *sdata);
-  TEN_ASSERT(sdata, "Failed to allocate memory.");
+  sdata = (struct macho_syminfo_data *)malloc(sizeof *sdata);
+  assert(sdata && "Failed to allocate memory.");
   if (sdata == NULL) {
     goto fail;
   }
@@ -553,8 +552,8 @@ static int macho_add_symtab(ten_backtrace_t *self_, int descriptor,
   macho_symbols[j].name = "";
   macho_symbols[j].address = ~(uintptr_t)0;
 
-  backtrace_qsort(macho_symbols, ndefs + 1, sizeof(struct macho_symbol),
-                  macho_symbol_compare);
+  backtrace_sort(macho_symbols, ndefs + 1, sizeof(struct macho_symbol),
+                 macho_symbol_compare);
 
   sdata->next = NULL;
   sdata->symbols = macho_symbols;
@@ -582,7 +581,7 @@ static int macho_add_symtab(ten_backtrace_t *self_, int descriptor,
 
 fail:
   if (macho_symbols != NULL) {
-    ten_free_without_backtrace(macho_symbols);
+    free(macho_symbols);
   }
 
   if (sym_view_valid) {
@@ -638,14 +637,12 @@ static void macho_syminfo(ten_backtrace_t *self_, uintptr_t addr,
 /* Look through a fat file to find the relevant executable.  Returns 1
    on success, 0 on failure (in both cases descriptor is closed).  */
 
-static int macho_add_fat(ten_backtrace_t *self, const char *filename,
-                         int descriptor, int swapped, off_t offset,
-                         const unsigned char *match_uuid,
-                         uintptr_t base_address, int skip_symtab,
-                         uint32_t nfat_arch, int is_64,
-                         ten_backtrace_error_func_t error_cb, void *data,
-                         ten_backtrace_get_file_line_func_t *fileline_fn,
-                         int *found_sym) {
+static int
+macho_add_fat(ten_backtrace_t *self, const char *filename, int descriptor,
+              int swapped, off_t offset, const unsigned char *match_uuid,
+              uintptr_t base_address, int skip_symtab, uint32_t nfat_arch,
+              int is_64, ten_backtrace_error_func_t error_cb, void *data,
+              ten_backtrace_get_file_line_func_t *fileline_fn, int *found_sym) {
   int arch_view_valid;
   unsigned int cputype;
   size_t arch_size;
@@ -725,7 +722,7 @@ fail:
     ten_mmap_deinit(&arch_view);
   }
   if (descriptor != -1) {
-    ten_file_close(descriptor);
+    ten_backtrace_close_file(descriptor);
   }
   return 0;
 }
@@ -766,7 +763,7 @@ static int macho_add_dsym(ten_backtrace_t *self, const char *filename,
     diralc = NULL;
   } else {
     dirnamelen = p - filename;
-    diralc = ten_malloc_without_backtrace(dirnamelen + 1);
+    diralc = malloc(dirnamelen + 1);
     if (diralc == NULL) {
       goto fail;
     }
@@ -782,8 +779,8 @@ static int macho_add_dsym(ten_backtrace_t *self, const char *filename,
   dsymsuffixdirlen = strlen(dsymsuffixdir);
 
   dsymlen = (dirnamelen + 1 + basenamelen + dsymsuffixdirlen + basenamelen + 1);
-  dsym = ten_malloc_without_backtrace(dsymlen);
-  TEN_ASSERT(dsym, "Failed to allocate memory.");
+  dsym = malloc(dsymlen);
+  assert(dsym && "Failed to allocate memory.");
   if (dsym == NULL) {
     goto fail;
   }
@@ -801,15 +798,15 @@ static int macho_add_dsym(ten_backtrace_t *self, const char *filename,
   *ps = '\0';
 
   if (diralc != NULL) {
-    ten_free_without_backtrace(diralc);
+    free(diralc);
     diralc = NULL;
   }
 
-  int fd = ten_file_open(dsym, &does_not_exist);
+  int fd = ten_backtrace_open_file(dsym, &does_not_exist);
   if (fd < 0) {
     /* The file does not exist, so we can't read the debug info.
        Just return success.  */
-    ten_free_without_backtrace(dsym);
+    free(dsym);
     return 1;
   }
 
@@ -818,16 +815,16 @@ static int macho_add_dsym(ten_backtrace_t *self, const char *filename,
     goto fail;
   }
 
-  ten_free_without_backtrace(dsym);
+  free(dsym);
 
   return 1;
 
 fail:
   if (dsym != NULL) {
-    ten_free_without_backtrace(dsym);
+    free(dsym);
   }
   if (diralc != NULL) {
-    ten_free_without_backtrace(diralc);
+    free(diralc);
   }
   return 0;
 }
@@ -845,13 +842,11 @@ fail:
    FOUND_SYM: set to non-zero if we found the symbol table.
 */
 
-static int macho_add(ten_backtrace_t *self, const char *filename,
-                     int descriptor, off_t offset,
-                     const unsigned char *match_uuid, uintptr_t base_address,
-                     int skip_symtab, ten_backtrace_error_func_t error_cb,
-                     void *data,
-                     ten_backtrace_get_file_line_func_t *fileline_fn,
-                     int *found_sym) {
+static int
+macho_add(ten_backtrace_t *self, const char *filename, int descriptor,
+          off_t offset, const unsigned char *match_uuid, uintptr_t base_address,
+          int skip_symtab, ten_backtrace_error_func_t error_cb, void *data,
+          ten_backtrace_get_file_line_func_t *fileline_fn, int *found_sym) {
   ten_mmap_t header_view;
   struct macho_header_32 header;
   off_t hdroffset;
@@ -883,51 +878,51 @@ static int macho_add(ten_backtrace_t *self, const char *filename,
   ten_mmap_deinit(&header_view);
 
   switch (header.magic) {
-    case MACH_O_MH_MAGIC_32:
-      is_64 = 0;
-      hdroffset = offset + sizeof(struct macho_header_32);
-      break;
-    case MACH_O_MH_MAGIC_64:
-      is_64 = 1;
-      hdroffset = offset + sizeof(struct macho_header_64);
-      break;
-    case MACH_O_MH_MAGIC_FAT:
-    case MACH_O_MH_MAGIC_FAT_64: {
-      struct macho_header_fat fat_header;
+  case MACH_O_MH_MAGIC_32:
+    is_64 = 0;
+    hdroffset = offset + sizeof(struct macho_header_32);
+    break;
+  case MACH_O_MH_MAGIC_64:
+    is_64 = 1;
+    hdroffset = offset + sizeof(struct macho_header_64);
+    break;
+  case MACH_O_MH_MAGIC_FAT:
+  case MACH_O_MH_MAGIC_FAT_64: {
+    struct macho_header_fat fat_header;
 
-      hdroffset = offset + sizeof(struct macho_header_fat);
-      memcpy(&fat_header, &header, sizeof fat_header);
-      return macho_add_fat(self, filename, descriptor, 0, hdroffset, match_uuid,
-                           base_address, skip_symtab, fat_header.nfat_arch,
-                           header.magic == MACH_O_MH_MAGIC_FAT_64, error_cb,
-                           data, fileline_fn, found_sym);
-    }
-    case MACH_O_MH_CIGAM_FAT:
-    case MACH_O_MH_CIGAM_FAT_64: {
-      struct macho_header_fat fat_header;
-      uint32_t nfat_arch;
+    hdroffset = offset + sizeof(struct macho_header_fat);
+    memcpy(&fat_header, &header, sizeof fat_header);
+    return macho_add_fat(self, filename, descriptor, 0, hdroffset, match_uuid,
+                         base_address, skip_symtab, fat_header.nfat_arch,
+                         header.magic == MACH_O_MH_MAGIC_FAT_64, error_cb, data,
+                         fileline_fn, found_sym);
+  }
+  case MACH_O_MH_CIGAM_FAT:
+  case MACH_O_MH_CIGAM_FAT_64: {
+    struct macho_header_fat fat_header;
+    uint32_t nfat_arch;
 
-      hdroffset = offset + sizeof(struct macho_header_fat);
-      memcpy(&fat_header, &header, sizeof fat_header);
-      nfat_arch = __builtin_bswap32(fat_header.nfat_arch);
-      return macho_add_fat(self, filename, descriptor, 1, hdroffset, match_uuid,
-                           base_address, skip_symtab, nfat_arch,
-                           header.magic == MACH_O_MH_CIGAM_FAT_64, error_cb,
-                           data, fileline_fn, found_sym);
-    }
-    default:
-      error_cb(self, "executable file is not in Mach-O format", 0, data);
-      goto fail;
+    hdroffset = offset + sizeof(struct macho_header_fat);
+    memcpy(&fat_header, &header, sizeof fat_header);
+    nfat_arch = __builtin_bswap32(fat_header.nfat_arch);
+    return macho_add_fat(self, filename, descriptor, 1, hdroffset, match_uuid,
+                         base_address, skip_symtab, nfat_arch,
+                         header.magic == MACH_O_MH_CIGAM_FAT_64, error_cb, data,
+                         fileline_fn, found_sym);
+  }
+  default:
+    error_cb(self, "executable file is not in Mach-O format", 0, data);
+    goto fail;
   }
 
   switch (header.filetype) {
-    case MACH_O_MH_EXECUTE:
-    case MACH_O_MH_DYLIB:
-    case MACH_O_MH_DSYM:
-      break;
-    default:
-      error_cb(self, "executable file is not an executable", 0, data);
-      goto fail;
+  case MACH_O_MH_EXECUTE:
+  case MACH_O_MH_DYLIB:
+  case MACH_O_MH_DSYM:
+    break;
+  default:
+    error_cb(self, "executable file is not an executable", 0, data);
+    goto fail;
   }
 
   if (!ten_mmap_init(&cmds_view, descriptor, hdroffset, header.sizeofcmds)) {
@@ -954,68 +949,68 @@ static int macho_add(ten_backtrace_t *self, const char *filename,
     memcpy(&load_command, pcmd, sizeof load_command);
 
     switch (load_command.cmd) {
-      case MACH_O_LC_SEGMENT: {
-        struct macho_segment_command segcmd;
+    case MACH_O_LC_SEGMENT: {
+      struct macho_segment_command segcmd;
 
-        memcpy(&segcmd, pcmd, sizeof segcmd);
-        if (memcmp(segcmd.segname, "__DWARF\0\0\0\0\0\0\0\0\0",
-                   MACH_O_NAMELEN) == 0) {
-          if (!macho_add_dwarf_segment(
-                  self, descriptor, offset, load_command.cmd,
-                  pcmd + sizeof segcmd, (load_command.cmdsize - sizeof segcmd),
-                  segcmd.nsects, error_cb, data, &dwarf_sections)) {
-            goto fail;
-          }
-          have_dwarf = 1;
+      memcpy(&segcmd, pcmd, sizeof segcmd);
+      if (memcmp(segcmd.segname, "__DWARF\0\0\0\0\0\0\0\0\0", MACH_O_NAMELEN) ==
+          0) {
+        if (!macho_add_dwarf_segment(
+                self, descriptor, offset, load_command.cmd,
+                pcmd + sizeof segcmd, (load_command.cmdsize - sizeof segcmd),
+                segcmd.nsects, error_cb, data, &dwarf_sections)) {
+          goto fail;
         }
-      } break;
+        have_dwarf = 1;
+      }
+    } break;
 
-      case MACH_O_LC_SEGMENT_64: {
-        struct macho_segment_64_command segcmd;
+    case MACH_O_LC_SEGMENT_64: {
+      struct macho_segment_64_command segcmd;
 
-        memcpy(&segcmd, pcmd, sizeof segcmd);
-        if (memcmp(segcmd.segname, "__DWARF\0\0\0\0\0\0\0\0\0",
-                   MACH_O_NAMELEN) == 0) {
-          if (!macho_add_dwarf_segment(
-                  self, descriptor, offset, load_command.cmd,
-                  pcmd + sizeof segcmd, (load_command.cmdsize - sizeof segcmd),
-                  segcmd.nsects, error_cb, data, &dwarf_sections))
-            goto fail;
-          have_dwarf = 1;
-        }
-      } break;
+      memcpy(&segcmd, pcmd, sizeof segcmd);
+      if (memcmp(segcmd.segname, "__DWARF\0\0\0\0\0\0\0\0\0", MACH_O_NAMELEN) ==
+          0) {
+        if (!macho_add_dwarf_segment(
+                self, descriptor, offset, load_command.cmd,
+                pcmd + sizeof segcmd, (load_command.cmdsize - sizeof segcmd),
+                segcmd.nsects, error_cb, data, &dwarf_sections))
+          goto fail;
+        have_dwarf = 1;
+      }
+    } break;
 
-      case MACH_O_LC_SYMTAB:
-        if (!skip_symtab) {
-          struct macho_symtab_command symcmd;
+    case MACH_O_LC_SYMTAB:
+      if (!skip_symtab) {
+        struct macho_symtab_command symcmd;
 
-          memcpy(&symcmd, pcmd, sizeof symcmd);
-          if (!macho_add_symtab(self, descriptor, base_address, is_64,
-                                offset + symcmd.symoff, symcmd.nsyms,
-                                offset + symcmd.stroff, symcmd.strsize,
-                                error_cb, data))
-            goto fail;
+        memcpy(&symcmd, pcmd, sizeof symcmd);
+        if (!macho_add_symtab(self, descriptor, base_address, is_64,
+                              offset + symcmd.symoff, symcmd.nsyms,
+                              offset + symcmd.stroff, symcmd.strsize, error_cb,
+                              data))
+          goto fail;
 
-          *found_sym = 1;
-        }
-        break;
+        *found_sym = 1;
+      }
+      break;
 
-      case MACH_O_LC_UUID: {
-        struct macho_uuid_command uuidcmd;
+    case MACH_O_LC_UUID: {
+      struct macho_uuid_command uuidcmd;
 
-        memcpy(&uuidcmd, pcmd, sizeof uuidcmd);
-        memcpy(&uuid[0], &uuidcmd.uuid[0], MACH_O_UUID_LEN);
-        have_uuid = 1;
-      } break;
+      memcpy(&uuidcmd, pcmd, sizeof uuidcmd);
+      memcpy(&uuid[0], &uuidcmd.uuid[0], MACH_O_UUID_LEN);
+      have_uuid = 1;
+    } break;
 
-      default:
-        break;
+    default:
+      break;
     }
 
     cmdoffset += load_command.cmdsize;
   }
 
-  if (!ten_file_close(descriptor)) {
+  if (!ten_backtrace_close_file(descriptor)) {
     goto fail;
   }
   descriptor = -1;
@@ -1059,7 +1054,7 @@ fail:
     ten_mmap_deinit(&cmds_view);
   }
   if (descriptor != -1) {
-    ten_file_close(descriptor);
+    ten_backtrace_close_file(descriptor);
   }
   return 0;
 }
@@ -1095,7 +1090,7 @@ int ten_backtrace_init_posix(
     } else {
       bool does_not_exist = false;
 
-      d = ten_file_open(name, &does_not_exist);
+      d = ten_backtrace_open_file(name, &does_not_exist);
       if (d < 0) {
         continue;
       }
@@ -1118,7 +1113,7 @@ int ten_backtrace_init_posix(
   }
 
   if (!closed_descriptor) {
-    ten_file_close(descriptor);
+    ten_backtrace_close_file(descriptor);
   }
 
   if (found_sym) {

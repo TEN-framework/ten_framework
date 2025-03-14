@@ -7,7 +7,6 @@
 #include "ten_utils/io/network.h"
 
 #include <arpa/inet.h>
-#include <assert.h>
 #include <ifaddrs.h>
 #include <net/if.h>
 #include <netdb.h>
@@ -23,19 +22,20 @@ TEN_UTILS_API void freeifaddrs(struct ifaddrs *ifa);
 void ten_host_get(char *hostname_buffer,
                   TEN_UNUSED const size_t hostname_buffer_capacity,
                   char *ip_buffer, const size_t ip_buffer_capacity) {
-  assert(hostname_buffer && hostname_buffer_capacity == URI_MAX_LEN &&
-         ip_buffer && ip_buffer_capacity == IP_STR_MAX_LEN);
+  TEN_ASSERT(hostname_buffer && hostname_buffer_capacity == URI_MAX_LEN &&
+                 ip_buffer && ip_buffer_capacity == IP_STR_MAX_LEN,
+             "Invalid argument.");
 
   // To retrieve hostname
   TEN_UNUSED int rc = gethostname(hostname_buffer, hostname_buffer_capacity);
-  assert(rc != -1);
+  TEN_ASSERT(rc != -1, "Failed to get hostname.");
 
   // TEN_LOGD("Hostname: %s", hostname_buffer);
 
   // To retrieve host information, and get IP from it.
   struct ifaddrs *myaddrs = NULL;
   rc = getifaddrs(&myaddrs);
-  assert(rc == 0);
+  TEN_ASSERT(rc == 0, "Failed to get host information.");
 
   for (struct ifaddrs *ifa = myaddrs; ifa != NULL; ifa = ifa->ifa_next) {
     if ((ifa->ifa_addr == NULL) ||
@@ -45,23 +45,23 @@ void ten_host_get(char *hostname_buffer,
 
     void *in_addr = NULL;
     switch (ifa->ifa_addr->sa_family) {
-      case AF_INET: {
-        struct sockaddr_in *s4 = (struct sockaddr_in *)(ifa->ifa_addr);
-        in_addr = &s4->sin_addr;
-        break;
-      }
-      case AF_INET6: {
-        struct sockaddr_in6 *s6 = (struct sockaddr_in6 *)(ifa->ifa_addr);
-        in_addr = &s6->sin6_addr;
-        break;
-      }
-      default:
-        continue;
+    case AF_INET: {
+      struct sockaddr_in *s4 = (struct sockaddr_in *)(ifa->ifa_addr);
+      in_addr = &s4->sin_addr;
+      break;
+    }
+    case AF_INET6: {
+      struct sockaddr_in6 *s6 = (struct sockaddr_in6 *)(ifa->ifa_addr);
+      in_addr = &s6->sin6_addr;
+      break;
+    }
+    default:
+      continue;
     }
 
     TEN_UNUSED const char *result = inet_ntop(ifa->ifa_addr->sa_family, in_addr,
                                               ip_buffer, ip_buffer_capacity);
-    assert(result != NULL);
+    TEN_ASSERT(result != NULL, "Failed to convert IP to string.");
 
     // TEN_LOGD("IP: %s", ip_buffer);
     break;
