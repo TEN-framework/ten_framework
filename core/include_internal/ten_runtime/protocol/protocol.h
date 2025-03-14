@@ -251,9 +251,11 @@ typedef struct ten_protocol_t {
   // atomic operation.
   TEN_PROTOCOL_ATTACH_TO attach_to;
   union {
-    ten_app_t *app;  // The app where this protocol resides.
-    ten_connection_t
-        *connection;  // The connection where this protocol attached.
+    // The app where this protocol resides.
+    ten_app_t *app;
+
+    // The connection where this protocol attached.
+    ten_connection_t *connection;
   } attached_target;
 
   // Used to react the closing request.
@@ -285,27 +287,6 @@ typedef struct ten_protocol_t {
   ten_protocol_on_cleaned_for_internal_func_t on_cleaned_for_internal;
   ten_protocol_on_cleaned_for_external_func_t on_cleaned_for_external;
 
-  /**
-   * @brief This is the control flag which is used to determine whether to close
-   * the protocol when the underlying low layers are closed.
-   *
-   * Please keep in mind that this flag is used to close 'ourselves' when the
-   * resources owned by us are closed, it is not used to close our 'owner' when
-   * we are closed. We do _not_ have the permission to control the behavior of
-   * our owners.
-   *
-   * @note This flag can only be set in the implementation protocol.
-   *
-   * @note As the protocol is paired with a connection (i.e.,
-   * 'ten_connection_t'), and the connection is paired with a remote (i.e.,
-   * 'ten_remote_t') if a remote has been created by the engine. The life cycle
-   * of the protocol, connection and remote must be same. In other words, the
-   * connection should be closed when the protocol is closed, and the remote
-   * should be closed when the connection is closed. So the
-   * 'cascade_close_upward' flag in the connection and remote are always true.
-   */
-  bool cascade_close_upward;
-
   // @{
   // These fields is for storing the input data.
   //
@@ -326,9 +307,6 @@ typedef struct ten_protocol_t {
   ten_list_t out_msgs;
   // @}
 } ten_protocol_t;
-
-TEN_RUNTIME_PRIVATE_API bool ten_protocol_cascade_close_upward(
-    ten_protocol_t *self);
 
 TEN_RUNTIME_PRIVATE_API void ten_protocol_listen(
     ten_protocol_t *self, const char *uri,
@@ -379,9 +357,6 @@ TEN_RUNTIME_PRIVATE_API const char *ten_protocol_get_uri(ten_protocol_t *self);
 
 TEN_RUNTIME_PRIVATE_API void ten_protocol_set_addon(
     ten_protocol_t *self, ten_addon_host_t *addon_host);
-
-TEN_RUNTIME_PRIVATE_API void ten_protocol_determine_default_property_value(
-    ten_protocol_t *self);
 
 TEN_RUNTIME_API TEN_PROTOCOL_ATTACH_TO
 ten_protocol_attach_to(ten_protocol_t *self);

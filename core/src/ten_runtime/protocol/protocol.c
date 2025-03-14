@@ -46,25 +46,6 @@ bool ten_protocol_check_integrity(ten_protocol_t *self, bool check_thread) {
   return true;
 }
 
-void ten_protocol_determine_default_property_value(ten_protocol_t *self) {
-  TEN_ASSERT(self && ten_protocol_check_integrity(self, true),
-             "Should not happen.");
-  TEN_ASSERT(
-      self->addon_host && ten_addon_host_check_integrity(self->addon_host),
-      "Should not happen.");
-
-  ten_error_t err;
-  TEN_ERROR_INIT(err);
-
-  self->cascade_close_upward = ten_value_object_get_bool(
-      &self->addon_host->property, TEN_STR_CASCADE_CLOSE_UPWARD, &err);
-  if (!ten_error_is_success(&err)) {
-    self->cascade_close_upward = true;
-  }
-
-  ten_error_deinit(&err);
-}
-
 // The life cycle of 'protocol' is managed by a ten_ref_t, so the 'destroy'
 // function of protocol is declared as 'static' to avoid wrong usage of the
 // 'destroy' function.
@@ -127,8 +108,6 @@ void ten_protocol_init(ten_protocol_t *self, const char *name,
   self->on_cleaned_for_internal = NULL;
 
   self->on_cleaned_for_external = NULL;
-
-  self->cascade_close_upward = true;
 
   TEN_STRING_INIT(self->uri);
 
@@ -200,12 +179,6 @@ void ten_protocol_listen(
              "Access across threads.");
 
   self->listen(self, uri, on_client_accepted);
-}
-
-bool ten_protocol_cascade_close_upward(ten_protocol_t *self) {
-  TEN_ASSERT(self && ten_protocol_check_integrity(self, true),
-             "Should not happen.");
-  return self->cascade_close_upward;
 }
 
 void ten_protocol_attach_to_app(ten_protocol_t *self, ten_app_t *app) {
@@ -475,15 +448,15 @@ ten_runloop_t *ten_protocol_get_attached_runloop(ten_protocol_t *self) {
              "This function is intended to be called in different threads.");
 
   switch (self->attach_to) {
-    case TEN_PROTOCOL_ATTACH_TO_APP:
-      return ten_app_get_attached_runloop(self->attached_target.app);
-    case TEN_PROTOCOL_ATTACH_TO_CONNECTION:
-      return ten_connection_get_attached_runloop(
-          self->attached_target.connection);
+  case TEN_PROTOCOL_ATTACH_TO_APP:
+    return ten_app_get_attached_runloop(self->attached_target.app);
+  case TEN_PROTOCOL_ATTACH_TO_CONNECTION:
+    return ten_connection_get_attached_runloop(
+        self->attached_target.connection);
 
-    default:
-      TEN_ASSERT(0, "Should not happen.");
-      break;
+  default:
+    TEN_ASSERT(0, "Should not happen.");
+    break;
   }
 
   return NULL;
