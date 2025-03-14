@@ -48,14 +48,6 @@ bool ten_connection_check_integrity(ten_connection_t *self, bool check_thread) {
   return true;
 }
 
-static bool ten_connection_is_closing(ten_connection_t *self) {
-  // TEN_NOLINTNEXTLINE(thread-check)
-  // thread-check: This function is intends to be called in different threads.
-  TEN_ASSERT(self && ten_connection_check_integrity(self, false),
-             "Should not happen.");
-  return ten_atomic_load(&self->is_closing) == 1;
-}
-
 static bool ten_connection_could_be_close(ten_connection_t *self) {
   TEN_ASSERT(self, "Invalid argument.");
   TEN_ASSERT(ten_connection_check_integrity(self, true),
@@ -76,8 +68,8 @@ void ten_connection_destroy(ten_connection_t *self) {
   // function is called, so we can not check thread integrity here.
   TEN_ASSERT(self && ten_connection_check_integrity(self, false),
              "Should not happen.");
-  TEN_ASSERT(self->is_closed == true,
-             "Connection should be closed first before been destroyed.");
+  TEN_ASSERT(self->state == TEN_CONNECTION_STATE_CLOSED,
+             "Connection should be closed completely before been destroyed.");
 
   ten_signature_set(&self->signature, 0);
 
@@ -104,7 +96,7 @@ static void ten_connection_do_close(ten_connection_t *self) {
 
   // Mark the 'connection' has already been closed, so that other modules (ex:
   // remote) can know this fact.
-  self->is_closed = true;
+  self->state = TEN_CONNECTION_STATE_CLOSED;
 
   // Call the registered on_close callback.
   self->on_closed(self, self->on_closed_data);
@@ -132,17 +124,22 @@ void ten_connection_close(ten_connection_t *self) {
   TEN_ASSERT(ten_connection_check_integrity(self, true),
              "Invalid use of connection %p.", self);
 
-  if (ten_atomic_bool_compare_swap(&self->is_closing, 0, 1)) {
-    TEN_LOGD("Try to close connection.");
+  if (self->state >= TEN_CONNECTION_STATE_CLOSING) {
+    TEN_LOGD("Connection is closing, do not close again.");
+    return;
+  }
 
-    ten_protocol_t *protocol = self->protocol;
-    if (protocol && !protocol->is_closed) {
-      // The protocol still exists, close it first.
-      ten_protocol_close(protocol);
-    } else {
-      // The protocol has been closed, proceed to close the connection directly.
-      ten_connection_on_close(self);
-    }
+  TEN_LOGD("Try to close connection.");
+
+  self->state = TEN_CONNECTION_STATE_CLOSING;
+
+  ten_protocol_t *protocol = self->protocol;
+  if (protocol && !protocol->is_closed) {
+    // The protocol still exists, close it first.
+    ten_protocol_close(protocol);
+  } else {
+    // The protocol has been closed, proceed to close the connection directly.
+    ten_connection_on_close(self);
   }
 }
 
@@ -152,8 +149,9 @@ void ten_connection_on_protocol_closed(TEN_UNUSED ten_protocol_t *protocol,
   TEN_ASSERT(self, "Invalid argument.");
   TEN_ASSERT(ten_connection_check_integrity(self, true),
              "Invalid use of connection %p.", self);
+  TEN_ASSERT(self->state < TEN_CONNECTION_STATE_CLOSED, "Should not happen.");
 
-  if (ten_connection_is_closing(self)) {
+  if (self->state == TEN_CONNECTION_STATE_CLOSING) {
     // The connection is closing, which means that the closure of the connection
     // is triggered by TEN runtime, e.g.: the closure of app => engine => remote
     // => connection => protocol. So when the protocol has closed, we continue
@@ -184,8 +182,7 @@ ten_connection_t *ten_connection_create(ten_protocol_t *protocol) {
 
   TEN_STRING_INIT(self->uri);
 
-  ten_atomic_store(&self->is_closing, 0);
-  self->is_closed = false;
+  self->state = TEN_CONNECTION_STATE_INIT;
 
   self->on_closed = NULL;
   self->on_closed_data = NULL;
@@ -222,7 +219,7 @@ void ten_connection_send_msg(ten_connection_t *self, ten_shared_ptr_t *msg) {
   // The message sends to connection channel MUST have dest loc.
   TEN_ASSERT(msg && ten_msg_get_dest_cnt(msg) == 1, "Should not happen.");
 
-  if (ten_connection_is_closing(self)) {
+  if (self->state >= TEN_CONNECTION_STATE_CLOSING) {
     TEN_LOGD("Connection is closing, do not send msgs.");
     return;
   }
