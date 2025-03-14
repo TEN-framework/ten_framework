@@ -57,3 +57,59 @@ template("glob") {
     }
   }
 }
+
+template("copy_glob") {
+  # The collection of all the deps related to the specified resources.
+  res_deps = []
+
+  if (defined(invoker.resources) && invoker.resources != []) {
+    resource_index = 0
+
+    foreach(resource, invoker.resources) {
+      resource_info = {
+      }
+
+      resource_info =
+          exec_script("//.gnfiles/build/scripts/get_src_and_dest_file.py",
+                      [
+                        "--input-string",
+                        resource,
+                        "--src-dest-delimiter",
+                        "=>",
+                      ],
+                      "json")
+
+      resource_src_path = resource_info.source
+      dest_root_dir = invoker.dest_root_dir
+      resource_dest_path = "${dest_root_dir}/${resource_info.destination}"
+
+      action("${target_name}_resource_${resource_index}") {
+        script = "//.gnfiles/build/scripts/copy_fs_entry.py"
+        args = [
+          "--source",
+          rebase_path(resource_src_path),
+          "--destination",
+          rebase_path(resource_dest_path),
+          "--files-only",
+        ]
+
+        inputs = [ resource_src_path ]
+        outputs = [ resource_dest_path ]
+
+        forward_variables_from(invoker,
+                               [
+                                 "deps",
+                                 "public_deps",
+                               ])
+      }
+
+      res_deps += [ ":${target_name}_resource_${resource_index}" ]
+
+      resource_index += 1
+    }
+  }
+
+  group("${target_name}") {
+    deps = res_deps
+  }
+}

@@ -9,6 +9,7 @@ mod app;
 pub mod builtin_function;
 mod common;
 mod dir_list;
+mod env;
 mod exec;
 mod file_content;
 pub mod frontend;
@@ -33,6 +34,7 @@ use ten_rust::pkg_info::PkgInfo;
 
 use crate::config::TmanConfig;
 use crate::output::TmanOutput;
+
 pub struct DesignerState {
     pub tman_config: Arc<TmanConfig>,
     pub out: Arc<Box<dyn TmanOutput>>,
@@ -51,6 +53,7 @@ pub fn configure_routes(
                 "/check-update",
                 web::get().to(version::check_update_endpoint),
             )
+            .route("/env", web::get().to(env::get_env))
             .route("/addons", web::post().to(addons::get_addons))
             .route(
                 "/packages/reload",

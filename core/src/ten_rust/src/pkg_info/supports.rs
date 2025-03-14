@@ -7,9 +7,10 @@
 use std::hash::Hash;
 use std::{fmt, str::FromStr};
 
-use anyhow::{anyhow, Context, Error, Result};
+use anyhow::{Context, Error, Result};
 use serde::{Deserialize, Serialize};
 
+use crate::env::get_env;
 use crate::pkg_info::manifest::support::ManifestSupport;
 
 #[derive(
@@ -110,25 +111,13 @@ impl PkgSupport {
     }
 
     pub fn set_defaults(&mut self) -> Result<()> {
-        let current_os = match std::env::consts::OS {
-            "linux" => Os::Linux,
-            "macos" => Os::Mac,
-            "windows" => Os::Win,
-            &_ => return Err(anyhow!("Unsupported OS")),
-        };
-        let current_arch = match std::env::consts::ARCH {
-            "x86" => Arch::X86,
-            "x86_64" => Arch::X64,
-            "arm" => Arch::Arm,
-            "aarch64" => Arch::Arm64,
-            &_ => return Err(anyhow!("Unsupported Arch")),
-        };
+        let current_env = get_env()?;
 
         if self.os.is_none() {
-            self.os = Some(current_os);
+            self.os = Some(current_env.os);
         }
         if self.arch.is_none() {
-            self.arch = Some(current_arch);
+            self.arch = Some(current_env.arch);
         }
 
         Ok(())
@@ -239,6 +228,7 @@ impl FromStr for Arch {
         match s {
             "x86" => Ok(Arch::X86),
             "x64" => Ok(Arch::X64),
+            "x86_64" => Ok(Arch::X64),
             "arm" => Ok(Arch::Arm),
             "arm64" => Ok(Arch::Arm64),
             _ => Err(Error::msg("Failed to parse string to CPU")),
