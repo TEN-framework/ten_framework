@@ -296,8 +296,6 @@ static void ten_app_thread_on_client_protocol_created(ten_env_t *ten_env,
                  ten_protocol_check_integrity(listening_base_protocol, true),
              "Should not happen.");
 
-  ten_protocol_determine_default_property_value(&protocol->base);
-
   ten_protocol_t *new_communication_base_protocol = &protocol->base;
   TEN_ASSERT(
       new_communication_base_protocol &&

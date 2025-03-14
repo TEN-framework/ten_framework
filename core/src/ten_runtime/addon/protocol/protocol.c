@@ -157,8 +157,6 @@ static void proxy_on_addon_protocol_created(ten_env_t *ten_env, void *instance,
 
   ten_protocol_t *protocol = instance;
   if (protocol) {
-    ten_protocol_determine_default_property_value(protocol);
-
     if (!ten_string_is_empty(&ctx->uri)) {
       ten_string_set_formatted(&protocol->uri, "%s",
                                ten_string_get_raw_str(&ctx->uri));

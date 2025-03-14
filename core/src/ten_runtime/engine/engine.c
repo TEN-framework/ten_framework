@@ -205,20 +205,6 @@ ten_engine_t *ten_engine_create(ten_app_t *app, ten_shared_ptr_t *cmd) {
 
   self->long_running_mode = ten_cmd_start_graph_get_long_running_mode(cmd);
 
-  // This is a workaround as the 'close_trigger_gc' in the ten_remote_t is
-  // removed.
-  //
-  // TODO(Liu):
-  // 1. Replace 'long_running_mode' in engine with 'cascade_close_upward'.
-  // 2. Provide a policy to customize the behavior of 'cascade_close_upward', as
-  //    there might be many remotes in the same engine.
-  if (!self->long_running_mode) {
-    ten_protocol_t *endpoint = app->endpoint_protocol;
-    if (endpoint) {
-      self->long_running_mode = !ten_protocol_cascade_close_upward(endpoint);
-    }
-  }
-
   ten_engine_set_graph_id(self, cmd);
 
   ten_engine_init_individual_eventloop_relevant_vars(self, app);
