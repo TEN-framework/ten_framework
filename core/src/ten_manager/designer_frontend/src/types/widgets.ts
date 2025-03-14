@@ -120,6 +120,7 @@ export interface IExtensionWidget extends IWidgetBase {
   metadata: {
     name: string;
     versions: IListTenCloudStorePackage[];
+    defaultOsArch?: { os?: string; arch?: string };
   };
 }
 

@@ -5,7 +5,7 @@
 // Refer to the "LICENSE" file in the root directory for more information.
 //
 import * as React from "react";
-import { BlocksIcon, CogIcon } from "lucide-react";
+import { BlocksIcon, CheckIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { FixedSizeList as VirtualList } from "react-window";
 import AutoSizer from "react-virtualized-auto-sizer";
@@ -20,31 +20,112 @@ import {
 import { cn } from "@/lib/utils";
 import { useWidgetStore } from "@/store/widget";
 import { EWidgetCategory, EWidgetDisplayType } from "@/types/widgets";
+// eslint-disable-next-line max-len
 import { ExtensionTooltipContent } from "@/components/Widget/ExtensionWidget/ExtensionDetails";
+import {
+  type IListTenCloudStorePackage,
+  type IListTenLocalStorePackage,
+  type IListTenPackage,
+  ETenPackageType,
+} from "@/types/extension";
 
-import type { IListTenCloudStorePackage } from "@/types/extension";
 import type { TooltipContentProps } from "@radix-ui/react-tooltip";
 
 export const ExtensionList = (props: {
+  addons: IListTenLocalStorePackage[];
   items: IListTenCloudStorePackage[];
   versions: Map<string, IListTenCloudStorePackage[]>;
   className?: string;
   toolTipSide?: TooltipContentProps["side"];
+  defaultOsArch?: { os?: string; arch?: string };
 }) => {
-  const { items, versions, className, toolTipSide } = props;
+  const { addons, items, versions, className, toolTipSide, defaultOsArch } =
+    props;
+
+  const combinedItemsMemo = React.useMemo(() => {
+    const packagesNames = items.map((item) => item.name);
+    const [localOnlyAddons, otherAddons] = addons.reduce(
+      ([localOnly, other], addon) => {
+        if (packagesNames.includes(addon.name)) {
+          other.push(addon);
+        } else {
+          localOnly.push(addon);
+        }
+        return [localOnly, other];
+      },
+      [[], []] as [IListTenLocalStorePackage[], IListTenLocalStorePackage[]]
+    );
+    const [installedPackages, uninstalledPackages] = items.reduce(
+      ([installed, uninstalled], item) => {
+        const packageName = item.name;
+        const isInstalled = otherAddons.some(
+          (addon) => addon.name === packageName
+        );
+        if (isInstalled) {
+          installed.push(item);
+        } else {
+          uninstalled.push(item);
+        }
+        return [installed, uninstalled];
+      },
+      [[], []] as [IListTenCloudStorePackage[], IListTenCloudStorePackage[]]
+    );
+    const combinedItems = [
+      ...(localOnlyAddons.map((addon) => ({
+        ...addon,
+        isInstalled: true,
+        _type: ETenPackageType.Local,
+      })) as (IListTenLocalStorePackage & {
+        isInstalled?: boolean;
+        _type: ETenPackageType.Local;
+      })[]),
+      ...(installedPackages.map((item) => ({
+        ...item,
+        isInstalled: true,
+        _type: ETenPackageType.Default,
+      })) as (IListTenCloudStorePackage & {
+        isInstalled?: boolean;
+        _type: ETenPackageType.Default;
+      })[]),
+      ...(uninstalledPackages.map((item) => ({
+        ...item,
+        isInstalled: false,
+        _type: ETenPackageType.Default,
+      })) as (IListTenCloudStorePackage & {
+        isInstalled?: boolean;
+        _type: ETenPackageType.Default;
+      })[]),
+    ];
+    return combinedItems;
+  }, [addons, items]);
 
   const VirtualListItem = (props: {
     index: number;
     style: React.CSSProperties;
   }) => {
-    const item = items[props.index];
+    const item = combinedItemsMemo[props.index];
+
+    if (item._type === ETenPackageType.Local) {
+      return (
+        <AddonItem
+          item={item}
+          style={props.style}
+          toolTipSide={toolTipSide}
+          _type={item._type}
+        />
+      );
+    }
+
     const targetVersions = versions.get(item.name);
+
     return (
       <ExtensionStoreItem
         item={item}
         style={props.style}
         toolTipSide={toolTipSide}
         versions={targetVersions}
+        defaultOsArch={defaultOsArch}
+        isInstalled={item.isInstalled}
       />
     );
   };
@@ -56,7 +137,7 @@ export const ExtensionList = (props: {
           <VirtualList
             width={width}
             height={height}
-            itemCount={items.length}
+            itemCount={combinedItemsMemo.length}
             itemSize={52}
           >
             {VirtualListItem}
@@ -67,6 +148,96 @@ export const ExtensionList = (props: {
   );
 };
 
+export const ExtensionBaseItem = React.forwardRef<
+  HTMLLIElement,
+  {
+    item: IListTenPackage;
+    _type?: ETenPackageType;
+    isInstalled?: boolean;
+    className?: string;
+  } & React.HTMLAttributes<HTMLLIElement>
+>((props, ref) => {
+  const { item, className, isInstalled, _type, ...rest } = props;
+
+  const { t } = useTranslation();
+
+  return (
+    <li
+      ref={ref}
+      className={cn(
+        "px-1 py-2",
+        "flex gap-2 w-full items-center max-w-full font-roboto h-fit",
+        "hover:bg-gray-100 dark:hover:bg-gray-800",
+        {
+          "cursor-pointer": !!rest?.onClick,
+        },
+        className
+      )}
+      {...rest}
+    >
+      <BlocksIcon className="size-8" />
+      <div
+        className={cn(
+          "flex flex-col  justify-between",
+          "w-full overflow-hidden text-sm"
+        )}
+      >
+        <h3
+          className={cn(
+            "font-semibold w-full overflow-hidden text-ellipsis",
+            "text-gray-900 dark:text-gray-100"
+          )}
+        >
+          {item.name}
+          {_type === ETenPackageType.Local && (
+            <span
+              className={cn(
+                "text-gray-500 dark:text-gray-400",
+                "text-xs font-normal"
+              )}
+            >
+              {t("extensionStore.localAddonTip")}
+            </span>
+          )}
+        </h3>
+        <p className={cn("text-xs text-gray-500 dark:text-gray-400")}>
+          {item.type}
+        </p>
+      </div>
+      <div className="mt-auto flex flex-col items-end">
+        {isInstalled ? (
+          <>
+            <Button
+              variant="ghost"
+              size="icon"
+              disabled
+              className={cn(
+                "size-4 [&_svg]:size-3  cursor-pointer",
+                "hover:bg-gray-200 dark:hover:bg-gray-700"
+              )}
+            >
+              <CheckIcon className="" />
+            </Button>
+          </>
+        ) : (
+          <Button
+            variant="secondary"
+            size="sm"
+            className={cn(
+              "text-xs px-2 py-0.5 font-normal h-fit cursor-pointer",
+              "shadow-none rounded-none",
+              "hover:bg-gray-200 dark:hover:bg-gray-700"
+            )}
+          >
+            {t("extensionStore.install")}
+          </Button>
+        )}
+      </div>
+    </li>
+  );
+});
+ExtensionBaseItem.displayName = "ExtensionBaseItem";
+
 export const ExtensionStoreItem = (props: {
   item: IListTenCloudStorePackage;
   versions?: IListTenCloudStorePackage[];
@@ -74,6 +245,7 @@ export const ExtensionStoreItem = (props: {
   style?: React.CSSProperties;
   toolTipSide?: TooltipContentProps["side"];
   isInstalled?: boolean;
+  defaultOsArch?: { os?: string; arch?: string };
 }) => {
   const {
     item,
@@ -82,9 +254,9 @@ export const ExtensionStoreItem = (props: {
     style,
     toolTipSide = "right",
     isInstalled,
+    defaultOsArch,
   } = props;
 
-  const { t } = useTranslation();
   const { appendWidgetIfNotExists } = useWidgetStore();
 
   const handleClick = () => {
@@ -92,7 +264,11 @@ export const ExtensionStoreItem = (props: {
       id: `extension-${item.name}`,
       category: EWidgetCategory.Extension,
       display_type: EWidgetDisplayType.Popup,
-      metadata: { name: item.name, versions: versions || [] },
+      metadata: {
+        name: item.name,
+        versions: versions || [],
+        defaultOsArch,
+      },
     });
   };
 
@@ -100,64 +276,13 @@ export const ExtensionStoreItem = (props: {
     <TooltipProvider delayDuration={100}>
       <Tooltip>
         <TooltipTrigger asChild>
-          <li
-            className={cn(
-              "px-1 py-2",
-              "flex gap-2 w-full items-center max-w-full font-roboto h-fit",
-              "hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer",
-              className
-            )}
-            style={style}
+          <ExtensionBaseItem
+            item={item}
+            isInstalled={isInstalled}
             onClick={handleClick}
-          >
-            <BlocksIcon className="size-8" />
-            <div
-              className={cn(
-                "flex flex-col  justify-between",
-                "w-full overflow-hidden text-sm"
-              )}
-            >
-              <h3
-                className={cn(
-                  "font-semibold w-full overflow-hidden text-ellipsis",
-                  "text-gray-900 dark:text-gray-100"
-                )}
-              >
-                {item.name}
-              </h3>
-              <p className={cn("text-xs text-gray-500 dark:text-gray-400")}>
-                {item.type}
-              </p>
-            </div>
-            <div className="mt-auto flex flex-col items-end">
-              {isInstalled ? (
-                <>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className={cn(
-                      "size-4 [&_svg]:size-3  cursor-pointer",
-                      "hover:bg-gray-200 dark:hover:bg-gray-700"
-                    )}
-                  >
-                    <CogIcon className="" />
-                  </Button>
-                </>
-              ) : (
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  className={cn(
-                    "text-xs px-2 py-0.5 font-normal h-fit cursor-pointer",
-                    "shadow-none rounded-none",
-                    "hover:bg-gray-200 dark:hover:bg-gray-700"
-                  )}
-                >
-                  {t("extensionStore.install")}
-                </Button>
-              )}
-            </div>
-          </li>
+            className={className}
+            style={style}
+          />
         </TooltipTrigger>
         <TooltipContent
           side={toolTipSide}
@@ -173,5 +298,21 @@ export const ExtensionStoreItem = (props: {
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>
+  );
+};
+
+export const AddonItem = (props: {
+  item: IListTenLocalStorePackage;
+  style?: React.CSSProperties;
+  toolTipSide?: TooltipContentProps["side"];
+  _type?: ETenPackageType;
+}) => {
+  return (
+    <ExtensionBaseItem
+      item={props.item}
+      isInstalled={true}
+      style={props.style}
+      _type={props._type}
+    />
   );
 };

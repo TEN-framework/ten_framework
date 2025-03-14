@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/Select";
 import { Separator } from "@/components/ui/Separator";
 import { cn } from "@/lib/utils";
+import { useAppStore } from "@/store";
 
 import type { IListTenCloudStorePackage } from "@/types/extension";
 
@@ -105,9 +106,14 @@ export const ExtensionDetails = (props: {
     versions[0].hash
   );
 
+  const { addons } = useAppStore();
+
   const selectedVersionItemMemo = React.useMemo(() => {
     return versions.find((version) => version.hash === selectedVersion);
   }, [versions, selectedVersion]);
+  const isInstalled = React.useMemo(() => {
+    return addons.some((addon) => addon.name === name);
+  }, [addons, name]);
 
   const { t } = useTranslation();
 
@@ -165,31 +171,34 @@ export const ExtensionDetails = (props: {
             {defaultVersionMemo?.type}
           </div>
           <div className="flex gap-2">
-            <Button
-              variant="secondary"
-              size="sm"
-              className={cn(
-                "cursor-pointer rounded-none",
-                "[&>svg]:size-3 px-2 py-0.5 h-fit",
-                "text-xs font-normal"
-              )}
-            >
-              <HardDriveDownloadIcon className="size-3" />
-              <span>{t("extensionStore.install")}</span>
-            </Button>
-            <Button
-              variant="secondary"
-              size="sm"
-              disabled
-              className={cn(
-                "cursor-pointer rounded-none",
-                "[&>svg]:size-3 px-2 py-0.5 h-fit",
-                "text-xs font-normal"
-              )}
-            >
-              <CheckIcon className="size-3" />
-              <span>{t("extensionStore.installed")}</span>
-            </Button>
+            {isInstalled ? (
+              <Button
+                variant="secondary"
+                size="sm"
+                disabled
+                className={cn(
+                  "cursor-pointer rounded-none",
+                  "[&>svg]:size-3 px-2 py-0.5 h-fit",
+                  "text-xs font-normal"
+                )}
+              >
+                <CheckIcon className="size-3" />
+                <span>{t("extensionStore.installed")}</span>
+              </Button>
+            ) : (
+              <Button
+                variant="secondary"
+                size="sm"
+                className={cn(
+                  "cursor-pointer rounded-none",
+                  "[&>svg]:size-3 px-2 py-0.5 h-fit",
+                  "text-xs font-normal"
+                )}
+              >
+                <HardDriveDownloadIcon className="size-3" />
+                <span>{t("extensionStore.install")}</span>
+              </Button>
+            )}
           </div>
         </div>
       </div>

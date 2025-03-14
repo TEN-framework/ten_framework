@@ -9,10 +9,15 @@ import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 
 import { useListTenCloudStorePackages } from "@/api/services/extension";
+import { retrieveAddons } from "@/api/services/addons";
+import { useEnv } from "@/api/services/common";
 import { SpinnerLoading } from "@/components/Status/Loading";
-import { useWidgetStore } from "@/store/widget";
+import { useWidgetStore, useAppStore } from "@/store";
+// eslint-disable-next-line max-len
 import { ExtensionList } from "@/components/Widget/ExtensionWidget/ExtensionList";
+// eslint-disable-next-line max-len
 import { ExtensionSearch } from "@/components/Widget/ExtensionWidget/ExtensionSearch";
+// eslint-disable-next-line max-len
 import { ExtensionDetails } from "@/components/Widget/ExtensionWidget/ExtensionDetails";
 import { cn, compareVersions } from "@/lib/utils";
 
@@ -24,10 +29,13 @@ export const ExtensionStoreWidget = (props: {
   toolTipSide?: TooltipContentProps["side"];
 }) => {
   const { className, toolTipSide } = props;
+  const [isFetchingAddons, setIsFetchingAddons] = React.useState(false);
 
   const { t } = useTranslation();
   const { data, error, isLoading } = useListTenCloudStorePackages();
+  const { data: envData, error: envError, isLoading: isLoadingEnv } = useEnv();
   const { extSearch, extFilter } = useWidgetStore();
+  const { addons, setAddons } = useAppStore();
 
   const deferredSearch = React.useDeferredValue(extSearch);
   const [filteredPackages, versions] = React.useMemo(() => {
@@ -67,15 +75,56 @@ export const ExtensionStoreWidget = (props: {
     return [filteredPackages, versions];
   }, [data?.packages, deferredSearch, extFilter.sort]);
 
+  const filteredAddons = React.useMemo(() => {
+    const filteredAddons = addons.filter((item) => {
+      return item.name.toLowerCase().includes(deferredSearch.toLowerCase());
+    });
+    const sortedFilteredAddons = filteredAddons.sort((a, b) => {
+      if (extFilter.sort === "name") {
+        return a.name.localeCompare(b.name);
+      }
+      if (extFilter.sort === "name-desc") {
+        return b.name.localeCompare(a.name);
+      }
+      return 0;
+    });
+    return sortedFilteredAddons;
+  }, [addons, deferredSearch, extFilter.sort]);
+
+  React.useEffect(() => {
+    const fetchAddons = async () => {
+      try {
+        setIsFetchingAddons(true);
+        const res = await retrieveAddons({});
+        setAddons(res);
+      } catch (error) {
+        console.error("Failed to fetch addons", error);
+        toast.error("Failed to fetch addons", {
+          description: error instanceof Error ? error.message : String(error),
+        });
+      } finally {
+        setIsFetchingAddons(false);
+      }
+    };
+
+    fetchAddons();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   React.useEffect(() => {
     if (error) {
       toast.error(error.message, {
         description: error?.message,
       });
     }
-  }, [error]);
+    if (envError) {
+      toast.error(envError.message, {
+        description: envError?.message,
+      });
+    }
+  }, [error, envError]);
 
-  if (isLoading) {
+  if (isLoading || isFetchingAddons || isLoadingEnv) {
     return <SpinnerLoading className="mx-auto" />;
   }
 
@@ -92,23 +141,25 @@ export const ExtensionStoreWidget = (props: {
             "flex items-center gap-2"
           )}
         >
-          {filteredPackages.length === 0 && deferredSearch.trim() !== "" && (
-            <p className="w-fit">{t("extensionStore.noMatchResult")}</p>
-          )}
+          {[...filteredPackages, ...filteredAddons].length === 0 &&
+            deferredSearch.trim() !== "" && (
+              <p className="w-fit">{t("extensionStore.noMatchResult")}</p>
+            )}
 
-          {filteredPackages.length > 0 && deferredSearch.trim() !== "" && (
-            <p className="w-fit">
-              {t("extensionStore.matchResult", {
-                count: filteredPackages.length,
-              })}
-            </p>
-          )}
+          {[...filteredPackages, ...filteredAddons].length > 0 &&
+            deferredSearch.trim() !== "" && (
+              <p className="w-fit">
+                {t("extensionStore.matchResult", {
+                  count: filteredPackages.length + filteredAddons.length,
+                })}
+              </p>
+            )}
 
           {deferredSearch.trim() === "" && (
             <p className="ml-auto w-fit">
               {t("extensionStore.installedWithSum", {
-                count: undefined,
-                total: versions.size || undefined,
+                count: filteredAddons.length,
+                total: versions.size + (addons?.length || 0) || undefined,
               })}
             </p>
           )}
@@ -116,9 +167,11 @@ export const ExtensionStoreWidget = (props: {
       </div>
 
       <ExtensionList
+        addons={filteredAddons}
         items={filteredPackages}
         versions={versions}
         toolTipSide={toolTipSide}
+        defaultOsArch={envData}
       />
     </div>
   );

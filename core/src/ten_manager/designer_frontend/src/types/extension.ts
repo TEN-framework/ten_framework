@@ -6,9 +6,17 @@
 //
 import z from "zod";
 
-export const TenCloudStorePackageSchema = z.object({
+export const TenPackageBaseSchema = z.object({
   type: z.string(),
   name: z.string(),
+});
+
+export const TenLocalStorePackageSchema = TenPackageBaseSchema.extend({
+  url: z.string(),
+  api: z.unknown().optional(),
+});
+
+export const TenCloudStorePackageSchema = TenPackageBaseSchema.extend({
   version: z.string(),
   hash: z.string(),
   dependencies: z.array(
@@ -29,6 +37,19 @@ export const TenCloudStorePackageSchema = z.object({
     .optional(),
 });
 
+export enum ETenPackageType {
+  Local = "local",
+  Default = "default",
+}
+
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface IListTenCloudStorePackage
   extends z.infer<typeof TenCloudStorePackageSchema> {}
+
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+export interface IListTenLocalStorePackage
+  extends z.infer<typeof TenLocalStorePackageSchema> {}
+
+export type IListTenPackage =
+  | IListTenCloudStorePackage
+  | IListTenLocalStorePackage;

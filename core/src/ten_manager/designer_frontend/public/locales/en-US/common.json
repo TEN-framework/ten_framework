@@ -132,6 +132,7 @@
     "hash": "HASH",
     "versionHistory": "Version History",
     "selectVersion": "Select a version",
-    "versionLatest": "Latest"
+    "versionLatest": "Latest",
+    "localAddonTip": "(local)"
   }
 }

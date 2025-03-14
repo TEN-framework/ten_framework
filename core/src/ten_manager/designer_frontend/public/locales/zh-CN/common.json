@@ -132,6 +132,7 @@
     "hash": "哈希",
     "versionHistory": "版本历史",
     "selectVersion": "选择版本",
-    "versionLatest": "最新"
+    "versionLatest": "最新",
+    "localAddonTip": "(本地)"
   }
 }

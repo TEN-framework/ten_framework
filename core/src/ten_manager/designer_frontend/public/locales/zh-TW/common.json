@@ -131,6 +131,7 @@
     "hash": "HASH",
     "versionHistory": "版本歷史",
     "selectVersion": "選擇版本",
-    "versionLatest": "最新"
+    "versionLatest": "最新",
+    "localAddonTip": "(本機)"
   }
 }
