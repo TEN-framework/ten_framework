@@ -101,9 +101,9 @@ jobs:
 
       - name: Run Playwright tests
         run: |
-          cd out/linux/${{ matrix.arch }}/ten_manager/bin
+          cd ${GITHUB_WORKSPACE}/out/linux/${{ matrix.arch }}/ten_manager/bin
           tman designer > /dev/null 2>&1 &
-          # cd core/src/ten_manager/designer_frontend
+          cd ${GITHUB_WORKSPACE}/core/src/ten_manager/designer_frontend
           # bun run preview > /dev/null 2>&1 &
           sleep 5
           npx playwright test
