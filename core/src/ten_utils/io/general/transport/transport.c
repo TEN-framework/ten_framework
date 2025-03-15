@@ -52,11 +52,11 @@ ten_transport_t *ten_transport_create(ten_runloop_t *loop) {
   self->user_data = NULL;
   self->backend = NULL;
   self->on_server_connected = NULL;
-  self->on_server_connected_data = NULL;
+  self->on_server_connected_user_data = NULL;
   self->on_client_accepted = NULL;
-  self->on_client_accepted_data = NULL;
+  self->on_client_accepted_user_data = NULL;
   self->on_closed = NULL;
-  self->on_closed_data = NULL;
+  self->on_closed_user_data = NULL;
   self->drop_type = TEN_TRANSPORT_DROP_NEW;
   self->drop_when_full = 1;
 
@@ -74,7 +74,7 @@ void ten_transport_set_close_cb(ten_transport_t *self, void *close_cb,
   TEN_ASSERT(self, "Invalid argument.");
 
   self->on_closed = close_cb;
-  self->on_closed_data = close_cb_data;
+  self->on_closed_user_data = close_cb_data;
 }
 
 // The actual closing flow.
@@ -84,7 +84,7 @@ void ten_transport_on_close(ten_transport_t *self) {
   // The final step in the closing flow is to notify the outer environment that
   // we are closed.
   if (self->on_closed) {
-    self->on_closed(self->on_closed_data);
+    self->on_closed(self->on_closed_user_data);
   }
 
   ten_transport_destroy(self);

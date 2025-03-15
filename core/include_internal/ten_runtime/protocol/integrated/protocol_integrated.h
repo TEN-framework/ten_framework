@@ -22,20 +22,49 @@ typedef void (*ten_protocol_integrated_on_input_func_t)(
 typedef ten_buf_t (*ten_protocol_integrated_on_output_func_t)(
     ten_protocol_integrated_t *protocol, ten_list_t *output);
 
+/**
+ * @brief Context structure for managing connection attempts to a server.
+ *
+ * This structure holds all necessary information for establishing a connection
+ * to a remote server, including the protocol instance, target URI, and callback
+ * mechanisms for handling connection results.
+ */
 typedef struct ten_protocol_integrated_connect_to_context_t {
-  // The protocol which is trying to connect to the server.
+  /**
+   * @brief The protocol instance initiating the connection.
+   *
+   * This is the protocol implementation that is attempting to establish a
+   * connection to the remote server.
+   */
   ten_protocol_integrated_t *protocol;
 
-  // The server URI to connect to.
+  /**
+   * @brief The URI of the server to connect to.
+   *
+   * Contains the fully qualified URI that identifies the target server.
+   */
   ten_string_t server_uri;
 
-  // The callback function to be called when the connection is established or
-  // failed.
-  //
-  // @note Set to NULL if the callback has been called.
+  /**
+   * @brief Callback function invoked when connection attempt completes.
+   *
+   * This function is called when the connection is either successfully
+   * established or fails. The callback receives information about the
+   * connection status.
+   *
+   * @note This field is set to NULL after the callback has been invoked
+   * to prevent duplicate notifications.
+   */
   ten_protocol_on_server_connected_func_t on_server_connected;
 
-  void *user_data;
+  /**
+   * @brief User-defined data passed to the connection callback.
+   *
+   * This pointer is passed unchanged to the `on_server_connected` callback when
+   * it is invoked, allowing the caller to maintain context across the
+   * asynchronous connection operation.
+   */
+  void *on_server_connected_user_data;
 } ten_protocol_integrated_connect_to_context_t;
 
 /**
@@ -92,7 +121,7 @@ TEN_RUNTIME_PRIVATE_API ten_protocol_integrated_connect_to_context_t *
 ten_protocol_integrated_connect_to_context_create(
     ten_protocol_integrated_t *self, const char *server_uri,
     ten_protocol_on_server_connected_func_t on_server_connected,
-    void *user_data);
+    void *on_server_connected_user_data);
 
 TEN_RUNTIME_PRIVATE_API void ten_protocol_integrated_connect_to_context_destroy(
     ten_protocol_integrated_connect_to_context_t *context);

@@ -172,7 +172,10 @@ void ten_engine_close_async(ten_engine_t *self) {
 
   int rc = ten_runloop_post_task_tail(ten_engine_get_attached_runloop(self),
                                       ten_engine_close_task, self, NULL);
-  TEN_ASSERT(!rc, "Should not happen.");
+  if (rc) {
+    TEN_LOGW("Failed to post task to engine's runloop.");
+    ten_ref_dec_ref(&self->ref);
+  }
 }
 
 static size_t ten_engine_unclosed_remotes_cnt(ten_engine_t *self) {
@@ -226,20 +229,33 @@ static bool ten_engine_could_be_close(ten_engine_t *self) {
   }
 }
 
+/**
+ * @brief Performs the actual closing of the engine.
+ *
+ * This function handles the engine closure in two different ways depending on
+ * whether the engine owns its runloop:
+ * 1. If the engine has its own runloop: It stops the runloop, which will
+ *    trigger the `on_closed` callback when the runloop fully stops (via the
+ *    runloop's `on_stopped` mechanism).
+ * 2. If the engine doesn't own the runloop: It directly calls the `on_closed`
+ *    callback if one is registered.
+ *
+ * @param self The engine to close.
+ */
 static void ten_engine_do_close(ten_engine_t *self) {
-  TEN_ASSERT(self && ten_engine_check_integrity(self, true),
-             "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_engine_check_integrity(self, true), "Should not happen.");
 
   if (self->has_own_loop) {
-    // Stop the event loop belong to this engine. The on_close would be called
-    // after the event loop has been stopped, and the engine would be
-    // destroyed at that time, too.
+    // Stop the event loop belonging to this engine. The `on_closed` callback
+    // will be called after the event loop has been stopped via the runloop's
+    // `on_stopped` mechanism. The engine will be destroyed at that time as
+    // well.
     ten_runloop_stop(self->loop);
-
-    // The 'on_close' callback will be called when the runloop is ended.
   } else {
+    // For engines that don't own their runloop, we need to directly call the
+    // `on_closed` callback if one is registered.
     if (self->on_closed) {
-      // Call the registered on_close callback if exists.
       self->on_closed(self, self->on_closed_data);
     }
   }

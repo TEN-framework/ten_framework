@@ -578,12 +578,13 @@ static int ten_runloop_post_task_at(ten_runloop_t *loop,
   int needs_notify = 0;
 
   if (!loop || !task_cb) {
+    TEN_ASSERT(0, "Invalid argument.");
     goto error;
   }
 
   task = (ten_runloop_task_t *)TEN_MALLOC(sizeof(ten_runloop_task_t));
-  TEN_ASSERT(task, "Failed to allocate memory.");
   if (!task) {
+    TEN_ASSERT(0, "Failed to allocate memory.");
     goto error;
   }
 

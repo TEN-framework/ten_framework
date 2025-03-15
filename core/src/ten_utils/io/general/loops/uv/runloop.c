@@ -184,8 +184,8 @@ static void ten_runloop_create_uv_migration_resource(ten_runloop_uv_t *impl) {
 static ten_runloop_common_t *ten_runloop_create_uv_common(void *raw) {
   ten_runloop_uv_t *impl =
       (ten_runloop_uv_t *)TEN_MALLOC(sizeof(ten_runloop_uv_t));
-  TEN_ASSERT(impl, "Failed to allocate memory.");
   if (!impl) {
+    TEN_ASSERT(0, "Failed to allocate memory.");
     return NULL;
   }
 

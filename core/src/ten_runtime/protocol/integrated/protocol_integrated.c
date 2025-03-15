@@ -330,7 +330,7 @@ static void ten_transport_on_client_accepted(ten_transport_t *transport,
   // The `on_client_accepted_data` in transport stores the `on_client_accepted`
   // callback function set by the TEN runtime.
   ten_protocol_on_client_accepted_func_t on_client_accepted =
-      transport->on_client_accepted_data;
+      transport->on_client_accepted_user_data;
   TEN_ASSERT(on_client_accepted, "Should not happen.");
 
   stream->user_data = on_client_accepted;
@@ -390,7 +390,7 @@ static void ten_protocol_integrated_listen(
   // performed within the protocol at the transport/stream layer first, before
   // switching to the TEN runtime's `on_client_accepted` callback.
   transport->on_client_accepted = ten_transport_on_client_accepted;
-  transport->on_client_accepted_data = on_client_accepted;
+  transport->on_client_accepted_user_data = on_client_accepted;
 
   ten_transport_set_close_cb(transport,
                              ten_protocol_integrated_on_transport_closed, self);
@@ -495,7 +495,7 @@ static void ten_transport_on_server_connected_after_retry(
              "Should not happen.");
 
   ten_protocol_integrated_connect_to_context_t *connect_to_context =
-      transport->on_server_connected_data;
+      transport->on_server_connected_user_data;
   TEN_ASSERT(connect_to_context, "Should not happen.");
   TEN_ASSERT(connect_to_context->on_server_connected, "Should not happen.");
 
@@ -514,7 +514,7 @@ static void ten_transport_on_server_connected_after_retry(
     ten_protocol_integrated_set_stream(protocol, stream);
 
     connect_to_context->on_server_connected(&protocol->base, success);
-    transport->on_server_connected_data = NULL;
+    transport->on_server_connected_user_data = NULL;
     // Set 'on_server_connected' to NULL to indicate that this callback has
     // already been called and to prevent it from being called again.
     connect_to_context->on_server_connected = NULL;
@@ -556,7 +556,7 @@ ten_protocol_integrated_on_retry_timer_triggered(TEN_UNUSED ten_timer_t *self,
   transport->user_data = protocol;
   transport->on_server_connected =
       ten_transport_on_server_connected_after_retry;
-  transport->on_server_connected_data = connect_to_context;
+  transport->on_server_connected_user_data = connect_to_context;
 
   int rc = ten_transport_connect(transport, &connect_to_context->server_uri);
   if (rc) {
@@ -567,7 +567,7 @@ ten_protocol_integrated_on_retry_timer_triggered(TEN_UNUSED ten_timer_t *self,
              "errors.",
              ten_string_get_raw_str(&connect_to_context->server_uri));
 
-    transport->on_server_connected_data = NULL;
+    transport->on_server_connected_user_data = NULL;
     ten_transport_close(transport);
 
     connect_to_context->on_server_connected(&protocol->base, false);
@@ -612,6 +612,20 @@ static void ten_protocol_integrated_on_retry_timer_closed(ten_timer_t *timer,
   }
 }
 
+/**
+ * @brief Callback function invoked when a transport successfully connects to a
+ * server.
+ *
+ * This function is called by the transport layer when a connection attempt to a
+ * server either succeeds or fails. It handles the connection result by either:
+ * 1. On success: Setting up the stream for communication.
+ * 2. On failure: Either notifying the caller immediately or setting up retry
+ *    logic.
+ *
+ * @param transport The transport instance that attempted the connection.
+ * @param stream The stream created for the connection (valid only on success).
+ * @param status Status code (0 or positive for success, negative for failure).
+ */
 static void ten_transport_on_server_connected(ten_transport_t *transport,
                                               ten_stream_t *stream,
                                               int status) {
@@ -628,13 +642,13 @@ static void ten_transport_on_server_connected(ten_transport_t *transport,
   TEN_ASSERT(!protocol->retry_timer, "Should not happen.");
 
   ten_protocol_integrated_connect_to_context_t *cb_data =
-      transport->on_server_connected_data;
+      transport->on_server_connected_user_data;
   TEN_ASSERT(cb_data, "Should not happen.");
   TEN_ASSERT(cb_data->on_server_connected, "Should not happen.");
 
+  // If protocol is already closing, clean up and report failure.
   if (protocol->base.state == TEN_PROTOCOL_STATE_CLOSING) {
     ten_stream_close(stream);
-
     ten_protocol_integrated_on_server_finally_connected(cb_data, false);
     return;
   }
@@ -642,21 +656,25 @@ static void ten_transport_on_server_connected(ten_transport_t *transport,
   bool success = status >= 0;
 
   if (success) {
+    // Connection successful - notify caller and set up the stream.
     ten_protocol_integrated_on_server_finally_connected(cb_data, true);
-
     ten_protocol_integrated_set_stream(protocol, stream);
     ten_stream_start_read(stream);
   } else {
+    // Connection failed - close the stream.
     ten_stream_close(stream);
 
+    // Determine if we should retry the connection.
     bool need_retry =
         protocol->retry_config.enable && protocol->retry_config.max_retries > 0;
 
     if (!need_retry) {
+      // No retry needed - report failure immediately.
       ten_protocol_integrated_on_server_finally_connected(cb_data, false);
       return;
     }
 
+    // Set up retry timer.
     ten_runloop_t *loop = ten_protocol_get_attached_runloop(&protocol->base);
     TEN_ASSERT(loop, "Should not happen.");
 
@@ -716,7 +734,7 @@ static void ten_protocol_integrated_connect_to(
       ten_protocol_integrated_connect_to_context_create(
           self, ten_string_get_raw_str(transport_uri), on_server_connected,
           NULL);
-  transport->on_server_connected_data = connect_to_server_context;
+  transport->on_server_connected_user_data = connect_to_server_context;
 
   int rc = ten_transport_connect(transport, transport_uri);
   ten_string_destroy(transport_uri);
@@ -914,7 +932,7 @@ ten_protocol_integrated_connect_to_context_create(
   ten_string_init_from_c_str_with_size(&context->server_uri, server_uri,
                                        strlen(server_uri));
   context->on_server_connected = on_server_connected;
-  context->user_data = user_data;
+  context->on_server_connected_user_data = user_data;
   context->protocol = self;
 
   return context;

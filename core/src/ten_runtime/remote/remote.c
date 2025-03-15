@@ -372,6 +372,22 @@ bool ten_remote_send_msg(ten_remote_t *self, ten_shared_ptr_t *msg,
   return true;
 }
 
+/**
+ * @brief Callback function invoked when a connection attempt to a remote server
+ * completes.
+ *
+ * This function is called by the protocol layer when a connection attempt
+ * to a remote server either succeeds or fails. If the connection is successful,
+ * it invokes the remote's `on_server_connected` callback. If the connection
+ * fails, it invokes the remote's `on_error` callback.
+ *
+ * The function follows the chain: protocol -> connection -> remote -> engine,
+ * verifying the integrity of each component along the way.
+ *
+ * @param protocol The protocol instance that attempted the connection.
+ * @param success Boolean indicating whether the connection attempt was
+ * successful.
+ */
 static void on_server_connected(ten_protocol_t *protocol, bool success) {
   TEN_ASSERT(protocol && ten_protocol_check_integrity(protocol, true) &&
                  ten_protocol_attach_to(protocol) ==
@@ -395,22 +411,22 @@ static void on_server_connected(ten_protocol_t *protocol, bool success) {
     TEN_LOGD("Connected to remote (%s)", ten_string_get_raw_str(&remote->uri));
 
     if (remote->on_server_connected) {
+      // Invoke the success callback with the stored command.
       remote->on_server_connected(remote, remote->on_server_connected_cmd);
-
-      // The callback has completed its mission, its time to clear it.
-      remote->on_server_connected = NULL;
     }
   } else {
     TEN_LOGW("Failed to connect to a remote (%s)",
              ten_string_get_raw_str(&remote->uri));
 
     if (remote->on_error) {
+      // Invoke the error callback with the stored command.
       remote->on_error(remote, remote->on_server_connected_cmd);
-
-      // The callback has completed its mission, its time to clear it.
-      remote->on_error = NULL;
     }
   }
+
+  // Clear the callback after use to prevent double invocation.
+  remote->on_server_connected = NULL;
+  remote->on_error = NULL;
 }
 
 void ten_remote_connect_to(ten_remote_t *self,
