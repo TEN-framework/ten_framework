@@ -39,7 +39,7 @@ jobs:
 
           for submodule in $submodules; do
             echo "Initializing submodule: $submodule"
-            git submodule update --init --recursive "$submodule"
+            git submodule update --init --recursive --depth 1 "$submodule"
           done
 
       - name: Install Clang and libc++
@@ -89,10 +89,10 @@ jobs:
           df -h .
           tree -I 'gen|obj' out
 
-      - name: Build (designer_frontend)
-        run: |
-          cd core/src/ten_manager/designer_frontend
-          bun run build
+      # - name: Build (designer_frontend)
+      #   run: |
+      #     cd core/src/ten_manager/designer_frontend
+      #     bun run build
 
       - name: Install Playwright Browsers
         run: |
@@ -101,14 +101,17 @@ jobs:
 
       - name: Run Playwright tests
         run: |
-          cd core/src/ten_manager/designer_frontend
-          bun run preview > /dev/null 2>&1 &
+          cd out/linux/${{ matrix.arch }}/ten_manager/bin
+          tman designer > /dev/null 2>&1 &
+          # cd core/src/ten_manager/designer_frontend
+          # bun run preview > /dev/null 2>&1 &
           sleep 5
           npx playwright test
 
-      - uses: actions/upload-artifact@v4
+      - name: Upload tests relevant artifacts
+        uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
         with:
-          name: playwright-report
+          name: playwright-report-${{ matrix.build_type }}-${{ matrix.arch }}
           path: core/src/ten_manager/designer_frontend/playwright-report/
           retention-days: 7

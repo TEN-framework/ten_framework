@@ -6,10 +6,16 @@
 //
 import { test, expect } from "@playwright/test";
 
+const BASE_URL = process.env.CI
+  ? "http://0.0.0.0:49483"
+  : "http://127.0.0.1:4173";
+
+console.log(`Using base URL: ${BASE_URL}`);
+
 test.describe("first load", () => {
   test.beforeEach(async ({ page }) => {
     // Go to the starting url before each test.
-    await page.goto("http://localhost:4173/", {
+    await page.goto(BASE_URL, {
       timeout: 10000,
       waitUntil: "domcontentloaded",
     });

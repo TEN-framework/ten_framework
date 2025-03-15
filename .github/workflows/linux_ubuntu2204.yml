@@ -53,7 +53,7 @@ jobs:
 
           for submodule in $submodules; do
             echo "Initializing submodule: $submodule"
-            git submodule update --init --recursive "$submodule"
+            git submodule update --init --recursive --depth 1 "$submodule"
           done
 
       - uses: actions/setup-node@v4
@@ -433,7 +433,7 @@ jobs:
 
           for submodule in $submodules; do
             echo "Initializing submodule: $submodule"
-            git submodule update --init --recursive "$submodule"
+            git submodule update --init --recursive --depth 1 "$submodule"
           done
 
       - name: Download build artifacts (tar archive)
