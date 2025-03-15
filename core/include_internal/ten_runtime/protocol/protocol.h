@@ -241,8 +241,16 @@ typedef struct ten_protocol_t {
 
   TEN_PROTOCOL_STATE state;
 
+  // Whether the protocol is in the process of connecting to a remote server.
+  // If the connect flow starts successfully, the callback will always be
+  // invoked regardless of whether the connection succeeds or fails. Since the
+  // callback will access the contents of the protocol instance, the connecting
+  // flow is considered a resource. As a result, it may block the protocol's
+  // closing flow.
+  bool is_connecting;
+
   ten_protocol_on_closed_func_t on_closed;
-  void *on_closed_data;
+  void *on_closed_user_data;
 
   // This is the URI this protocol represents:
   //   - For listening protocol, this is the local URI.

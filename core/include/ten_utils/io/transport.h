@@ -110,7 +110,7 @@ struct ten_transport_t {
    *
    * @param on_closed_data User data provided when setting this callback.
    */
-  void (*on_closed)(void *on_closed_data);
+  void (*on_closed)(void *on_closed_user_data);
 
   /**
    * User data passed to the on_closed callback.

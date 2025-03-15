@@ -38,7 +38,8 @@ static void ten_engine_close_sync(ten_engine_t *self) {
   TEN_ASSERT(self && ten_engine_check_integrity(self, true),
              "Should not happen.");
 
-  TEN_LOGD("[%s] Try to close engine.", ten_app_get_uri(self->app));
+  TEN_LOGD("[%s:%s] Try to close engine.", ten_app_get_uri(self->app),
+           ten_engine_get_id(self, true));
 
   self->is_closing = true;
 

@@ -88,7 +88,7 @@ void ten_protocol_on_close(ten_protocol_t *self) {
   if (self->on_closed) {
     // Call the registered `on_closed` callback when the base protocol is
     // closed.
-    self->on_closed(self, self->on_closed_data);
+    self->on_closed(self, self->on_closed_user_data);
   }
 }
 
@@ -99,7 +99,7 @@ void ten_protocol_set_on_closed(ten_protocol_t *self,
              "Should not happen.");
 
   self->on_closed = on_closed;
-  self->on_closed_data = on_closed_data;
+  self->on_closed_user_data = on_closed_data;
 }
 
 void ten_protocol_close(ten_protocol_t *self) {

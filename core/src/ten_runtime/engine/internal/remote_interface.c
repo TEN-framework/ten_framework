@@ -402,33 +402,42 @@ static void ten_engine_on_graph_remote_connected(ten_remote_t *self,
   self->on_server_connected_cmd = NULL;
 }
 
+/**
+ * @brief Handles error when connecting to a remote for graph operations.
+ *
+ * This function is called when a connection attempt to a remote server fails
+ * during graph operations.
+ *
+ * @param self The remote instance that failed to connect.
+ * @param start_graph_cmd_for_the_remote The start_graph command that was meant
+ *        to be sent to this remote. This command will be responded to with an
+ *        error and then destroyed.
+ */
 static void ten_engine_on_graph_remote_connect_error(
     ten_remote_t *self, ten_shared_ptr_t *start_graph_cmd_for_the_remote) {
   TEN_ASSERT(self, "Invalid argument.");
   TEN_ASSERT(ten_remote_check_integrity(self, true),
              "Invalid use of remote %p.", self);
 
-  TEN_ASSERT(start_graph_cmd_for_the_remote &&
-                 ten_msg_check_integrity(start_graph_cmd_for_the_remote),
+  TEN_ASSERT(start_graph_cmd_for_the_remote, "Invalid argument.");
+  TEN_ASSERT(ten_msg_check_integrity(start_graph_cmd_for_the_remote),
              "Invalid argument.");
 
   ten_engine_t *engine = self->engine;
-  TEN_ASSERT(engine && ten_engine_check_integrity(engine, true),
+  TEN_ASSERT(engine, "Invalid use of engine %p.", engine);
+  TEN_ASSERT(ten_engine_check_integrity(engine, true),
              "Invalid use of engine %p.", engine);
 
-  // Just respond to the start_graph command specifically issued for this
-  // `remote` with a response to simulate an ERROR response from the `remote`,
-  // allowing the `engine` to continue its process. After the `engine`
-  // completes its entire start_graph flow, it will then respond to the
-  // `origin_start_graph_cmd`.
   ten_engine_return_error_for_cmd_start_graph(
       engine, start_graph_cmd_for_the_remote, "Failed to connect to %s",
       ten_string_get_raw_str(&self->uri));
 
-  // Failed to connect to remote, we must to delete (dereference) the message
-  // which was going to be sent originally to prevent from memory leakage.
+  // Clean up resources to prevent memory leaks.
   ten_shared_ptr_destroy(start_graph_cmd_for_the_remote);
   self->on_server_connected_cmd = NULL;
+
+  // Close the remote connection since it failed to establish.
+  ten_remote_close(self);
 }
 
 static void ten_engine_connect_to_remote_after_remote_is_created(

@@ -47,6 +47,7 @@ ten_protocol_integrated_could_be_close(ten_protocol_integrated_t *self) {
       return false;
     }
     break;
+
   case TEN_PROTOCOL_ROLE_IN_INTERNAL:
   case TEN_PROTOCOL_ROLE_IN_EXTERNAL:
   case TEN_PROTOCOL_ROLE_OUT_INTERNAL:
@@ -58,7 +59,12 @@ ten_protocol_integrated_could_be_close(ten_protocol_integrated_t *self) {
     if (self->retry_timer) {
       return false;
     }
+
+    if (self->base.is_connecting) {
+      return false;
+    }
     break;
+
   default:
     TEN_ASSERT(0, "Should not happen.");
     break;
