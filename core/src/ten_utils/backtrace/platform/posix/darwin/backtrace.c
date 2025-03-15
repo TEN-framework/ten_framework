@@ -56,7 +56,7 @@ void ten_backtrace_dump(ten_backtrace_t *self, size_t skip) {
   int frames = backtrace(call_stack, 128);
   char **strs = backtrace_symbols(call_stack, frames);
   for (size_t i = skip; i < frames; ++i) {
-    (void)fprintf(stderr, "%s", strs[i]);
+    (void)fprintf(stderr, "%s\n", strs[i]);
   }
   free((void *)strs);
 }

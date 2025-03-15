@@ -69,7 +69,8 @@ async fn test_ws_builtin_function_install() {
     );
 
     // Check if the last message matches the expected exit message.
-    let expected_exit_message = r#"{"type":"exit","code":0}"#;
+    let expected_exit_message =
+        r#"{"type":"exit","code":0,"error_message":null}"#;
     assert_eq!(
         last_text_message, expected_exit_message,
         "Last message should be an exit message with code 0"

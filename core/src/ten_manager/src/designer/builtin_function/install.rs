@@ -63,7 +63,15 @@ impl WsBuiltinFunction {
             // Notify the WebSocket client that the task is complete, and
             // determine the exit code based on the result.
             let exit_code = if result.is_ok() { 0 } else { -1 };
-            addr.do_send(BuiltinFunctionOutput::Exit(exit_code));
+            let error_message = if let Err(err) = result {
+                Some(err.to_string())
+            } else {
+                None
+            };
+            addr.do_send(BuiltinFunctionOutput::Exit {
+                exit_code,
+                error_message,
+            });
         });
     }
 }

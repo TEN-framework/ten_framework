@@ -117,24 +117,31 @@ pub async fn install_solver_results_in_app_folder(
 ) -> Result<()> {
     out.normal_line(&format!("{}  Installing packages...", Emoji("📥", "+")));
 
-    let bar = ProgressBar::new(solver_results.len().try_into()?);
-    if !out.is_interactive() {
-        bar.set_draw_target(ProgressDrawTarget::hidden());
-    }
+    let bar = if !out.is_interactive() {
+        Some(ProgressBar::new(solver_results.len().try_into()?))
+    } else {
+        None
+    };
 
-    bar.set_style(
+    if let Some(bar) = &bar {
+        bar.set_draw_target(ProgressDrawTarget::hidden());
+
+        bar.set_style(
         ProgressStyle::default_bar()
             .template("{spinner:.green} [{elapsed_precise}] [{bar:40.cyan/blue}] {pos:>7}/{len:7} {msg}")?
             .progress_chars("#>-"),
-    );
+        );
+    }
 
     for solver_result in solver_results {
-        bar.inc(1);
-        bar.set_message(format!(
-            "{}/{}",
-            solver_result.basic_info.type_and_name.pkg_type,
-            solver_result.basic_info.type_and_name.name
-        ));
+        if let Some(bar) = &bar {
+            bar.inc(1);
+            bar.set_message(format!(
+                "{}/{}",
+                solver_result.basic_info.type_and_name.pkg_type,
+                solver_result.basic_info.type_and_name.name
+            ));
+        }
 
         let base_dir = match solver_result.basic_info.type_and_name.pkg_type {
             PkgType::Extension => {
@@ -160,7 +167,9 @@ pub async fn install_solver_results_in_app_folder(
         .await?;
     }
 
-    bar.finish_with_message("Done");
+    if let Some(bar) = &bar {
+        bar.finish_with_message("Done");
+    }
 
     Ok(())
 }

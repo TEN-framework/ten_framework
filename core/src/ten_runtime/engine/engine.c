@@ -24,7 +24,6 @@
 #include "ten_utils/container/hash_table.h"
 #include "ten_utils/container/list.h"
 #include "ten_utils/lib/alloc.h"
-#include "ten_utils/lib/atomic.h"
 #include "ten_utils/lib/event.h"
 #include "ten_utils/lib/mutex.h"
 #include "ten_utils/lib/string.h"
@@ -48,7 +47,7 @@ bool ten_engine_check_integrity(ten_engine_t *self, bool check_thread) {
   return true;
 }
 
-void ten_engine_destroy(ten_engine_t *self) {
+static void ten_engine_destroy(ten_engine_t *self) {
   TEN_ASSERT(
       self &&
           // TEN_NOLINTNEXTLINE(thread-check)
@@ -78,8 +77,7 @@ void ten_engine_destroy(ten_engine_t *self) {
   ten_list_clear(&self->in_msgs);
 
   if (self->has_own_loop) {
-    ten_event_destroy(self->engine_thread_ready_for_migration);
-    ten_event_destroy(self->belonging_thread_is_set);
+    ten_event_destroy(self->runloop_is_created);
 
     ten_runloop_destroy(self->loop);
     self->loop = NULL;
@@ -100,6 +98,8 @@ void ten_engine_destroy(ten_engine_t *self) {
   ten_path_table_destroy(self->path_table);
 
   ten_sanitizer_thread_check_deinit(&self->thread_check);
+
+  ten_ref_deinit(&self->ref);
 
   TEN_FREE(self);
 }
@@ -160,6 +160,14 @@ bool ten_engine_is_ready_to_handle_msg(ten_engine_t *self) {
   return self->is_ready_to_handle_msg;
 }
 
+static void ten_engine_on_end_of_life(ten_ref_t *ref, void *supervisee) {
+  ten_engine_t *self = (ten_engine_t *)supervisee;
+  TEN_ASSERT(self && ten_engine_check_integrity(self, false),
+             "Should not happen.");
+
+  ten_engine_destroy(self);
+}
+
 ten_engine_t *ten_engine_create(ten_app_t *app, ten_shared_ptr_t *cmd) {
   TEN_ASSERT(app && ten_app_check_integrity(app, true) && cmd &&
                  ten_cmd_base_check_integrity(cmd),
@@ -173,7 +181,8 @@ ten_engine_t *ten_engine_create(ten_app_t *app, ten_shared_ptr_t *cmd) {
   ten_signature_set(&self->signature, (ten_signature_t)TEN_ENGINE_SIGNATURE);
   ten_sanitizer_thread_check_init_with_current_thread(&self->thread_check);
 
-  ten_atomic_store(&self->is_closing, 0);
+  ten_ref_init(&self->ref, self, ten_engine_on_end_of_life);
+  self->is_closing = false;
   self->on_closed = NULL;
   self->on_closed_data = NULL;
 
@@ -181,8 +190,7 @@ ten_engine_t *ten_engine_create(ten_app_t *app, ten_shared_ptr_t *cmd) {
   self->extension_context = NULL;
 
   self->loop = NULL;
-  self->engine_thread_ready_for_migration = NULL;
-  self->belonging_thread_is_set = NULL;
+  self->runloop_is_created = NULL;
   self->is_ready_to_handle_msg = false;
 
   ten_list_init(&self->orphan_connections);
@@ -277,7 +285,7 @@ ten_engine_on_orphan_connection_closed(ten_connection_t *connection,
   ten_connection_destroy(connection);
 
   // Check if the app is in the closing phase.
-  if (ten_engine_is_closing(self)) {
+  if (self->is_closing) {
     TEN_LOGD("[%s] Engine is closing, check to see if it could proceed.",
              ten_engine_get_id(self, true));
     ten_engine_on_close(self);

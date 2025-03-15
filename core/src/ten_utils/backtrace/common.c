@@ -99,8 +99,8 @@ int ten_backtrace_default_dump_cb(ten_backtrace_t *self_, uintptr_t pc,
   }
 
 #if defined(OS_WINDOWS)
-  // On Windows, ensure we're using consistent path separators in output
-  // This is only needed if normalization didn't happen or failed
+  // On Windows, ensure we're using consistent path separators in output.
+  // This is only needed if normalization didn't happen or failed.
   if (safe_filename != normalized_path && filename) {
     char windows_path[4096] = {0};
     strncpy(windows_path, safe_filename, sizeof(windows_path) - 1);

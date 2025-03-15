@@ -6,8 +6,8 @@ on:
   pull_request:
     types: [opened, synchronize, reopened]
     paths:
-      - "core/src/ten_manager"
-      - "core/src/ten_rust"
+      - "core/src/ten_manager/**"
+      - "core/src/ten_rust/**"
 
 concurrency:
   group: playwright-${{ github.head_ref }}
@@ -39,8 +39,13 @@ jobs:
 
           for submodule in $submodules; do
             echo "Initializing submodule: $submodule"
-            git submodule update --init --recursive "$submodule"
+            git submodule update --init --recursive --depth 1 "$submodule"
           done
+
+      - name: Install Clang and libc++
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang libc++-dev libc++abi-dev
 
       - uses: actions/setup-node@v4
         with:
@@ -49,6 +54,14 @@ jobs:
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install tools and dependencies
+        run: |
+          pip3 install --use-pep517 python-dotenv jinja2
 
       - name: Install dependencies
         run: |
@@ -76,10 +89,10 @@ jobs:
           df -h .
           tree -I 'gen|obj' out
 
-      - name: Build (designer_frontend)
-        run: |
-          cd core/src/ten_manager/designer_frontend
-          bun run build
+      # - name: Build (designer_frontend)
+      #   run: |
+      #     cd core/src/ten_manager/designer_frontend
+      #     bun run build
 
       - name: Install Playwright Browsers
         run: |
@@ -88,14 +101,55 @@ jobs:
 
       - name: Run Playwright tests
         run: |
-          cd core/src/ten_manager/designer_frontend
-          bun run preview > /dev/null 2>&1 &
-          sleep 5
-          npx playwright test
+          # Start the tman designer backend
+          cd ${GITHUB_WORKSPACE}/out/linux/${{ matrix.arch }}/ten_manager/bin
+          ./tman designer &
+          TMAN_PID=$!
+          echo "Started tman designer with PID $TMAN_PID"
 
-      - uses: actions/upload-artifact@v4
+          # Start the frontend preview server
+          cd ${GITHUB_WORKSPACE}/core/src/ten_manager/designer_frontend
+          # bun run preview &
+          # PREVIEW_PID=$!
+          # echo "Started frontend preview server with PID $PREVIEW_PID"
+
+          # Wait for the server to be available (max 30 seconds)
+          echo "Waiting for server to be available..."
+          timeout=30
+          while [ $timeout -gt 0 ]; do
+            if curl -s http://127.0.0.1:49483/ > /dev/null; then
+              echo "Server is up and running!"
+              break
+            fi
+            echo "Server not ready yet, waiting... ($timeout seconds left)"
+            sleep 1
+            timeout=$((timeout-1))
+          done
+
+          if [ $timeout -eq 0 ]; then
+            echo "Timed out waiting for server to start"
+            echo "Checking if tman designer is running:"
+            ps -p $TMAN_PID || true
+            # echo "Checking if preview server is running:"
+            # ps -p $PREVIEW_PID || true
+            exit 1
+          fi
+
+          # Run the tests
+          npx playwright test
+          TEST_EXIT_CODE=$?
+
+          # Cleanup background processes
+          kill $TMAN_PID || true
+          # kill $PREVIEW_PID || true
+
+          # Return the test exit code
+          exit $TEST_EXIT_CODE
+
+      - name: Upload tests relevant artifacts
+        uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
         with:
-          name: playwright-report
+          name: playwright-report-${{ matrix.build_type }}-${{ matrix.arch }}
           path: core/src/ten_manager/designer_frontend/playwright-report/
           retention-days: 7

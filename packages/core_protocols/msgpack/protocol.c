@@ -46,9 +46,10 @@ static ten_buf_t ten_protocol_msgpack_on_output(ten_protocol_msgpack_t *self,
   return ten_msgpack_serialize_msgs(output_msgs, NULL);
 }
 
-static void ten_protocol_msgpack_on_destroy_instance(
-    TEN_UNUSED ten_addon_t *addon, ten_env_t *ten_env, void *_self,
-    void *context) {
+static void
+ten_protocol_msgpack_on_destroy_instance(TEN_UNUSED ten_addon_t *addon,
+                                         ten_env_t *ten_env, void *_self,
+                                         void *context) {
   ten_protocol_msgpack_t *self = (ten_protocol_msgpack_t *)_self;
   TEN_ASSERT(self &&
                  // TEN_NOLINTNEXTLINE(thread-check)

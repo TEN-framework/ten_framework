@@ -28,7 +28,10 @@ pub enum BuiltinFunctionOutput {
     NormalPartial(String),
     ErrorLine(String),
     ErrorPartial(String),
-    Exit(i32),
+    Exit {
+        exit_code: i32,
+        error_message: Option<String>,
+    },
 }
 
 enum BuiltinFunction {
@@ -116,9 +119,15 @@ impl Handler<BuiltinFunctionOutput> for WsBuiltinFunction {
                 // Sends a text message to the WebSocket client.
                 ctx.text(out_str);
             }
-            BuiltinFunctionOutput::Exit(code) => {
+            BuiltinFunctionOutput::Exit {
+                exit_code,
+                error_message,
+            } => {
                 // Send it to the client.
-                let msg_out = OutboundMsg::Exit { code };
+                let msg_out = OutboundMsg::Exit {
+                    code: exit_code,
+                    error_message,
+                };
                 let out_str = serde_json::to_string(&msg_out).unwrap();
 
                 // Sends a text message to the WebSocket client.

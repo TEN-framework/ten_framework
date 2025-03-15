@@ -79,6 +79,28 @@ static void ten_app_add_engine(ten_app_t *self, ten_engine_t *engine) {
   ten_engine_set_on_closed(engine, ten_app_on_engine_closed, NULL);
 }
 
+/**
+ * @brief Creates a new engine instance and adds it to the app's engine list.
+ *
+ * This function creates a new engine instance based on the provided command
+ * (typically a start_graph command) and registers it with the app. The engine
+ * will be associated with the app and will have its lifecycle managed by the
+ * app.
+ *
+ * The engine may either share the app's runloop or create its own thread and
+ * runloop, depending on the configuration. When the engine is closed, it will
+ * trigger the app's engine closure handling via the registered callback.
+ *
+ * @param self The app instance that will own the engine.
+ * @param cmd The command (typically a start_graph command) that contains
+ *            configuration information for the new engine, including graph ID
+ *            and long-running mode settings.
+ *
+ * @return A pointer to the newly created engine instance.
+ *
+ * @note This function must be called from the app's main thread to ensure
+ *       thread safety when adding the engine to the app's engine list.
+ */
 ten_engine_t *ten_app_create_engine(ten_app_t *self, ten_shared_ptr_t *cmd) {
   TEN_ASSERT(self && ten_app_check_integrity(self, true), "Should not happen.");
   TEN_ASSERT(cmd && ten_cmd_base_check_integrity(cmd), "Should not happen.");
@@ -94,14 +116,30 @@ ten_engine_t *ten_app_create_engine(ten_app_t *self, ten_shared_ptr_t *cmd) {
   return engine;
 }
 
+/**
+ * @brief Removes an engine from the app's engine list.
+ *
+ * This function removes the specified engine from the app's list of engines.
+ * It does not destroy the engine object itself - that responsibility is handled
+ * elsewhere, typically by decrementing the engine's reference count after
+ * ensuring it's safe to do so.
+ *
+ * @param self The app instance that owns the engine.
+ * @param engine The engine to be removed from the app.
+ *
+ * @note This function must only be called from the app's main thread.
+ *       It is not thread-safe and assumes the caller has ensured proper
+ *       synchronization if the engine had its own thread.
+ */
 void ten_app_del_engine(ten_app_t *self, ten_engine_t *engine) {
   TEN_ASSERT(self && ten_app_check_integrity(self, true) && engine,
              "Should not happen.");
 
   TEN_LOGD("[%s] Remove engine from app.", ten_app_get_uri(self));
 
-  // Always perform this operation in the main thread, so we don't need to use
-  // lock to protect this operation.
+  // This operation must be performed in the app's main thread.
+  // No locks are needed because we enforce thread safety through
+  // proper thread management rather than mutex protection.
   ten_list_remove_ptr(&self->engines, engine);
 }
 

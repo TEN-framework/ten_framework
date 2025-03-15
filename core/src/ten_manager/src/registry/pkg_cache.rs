@@ -6,6 +6,8 @@
 //
 use std::fs;
 use std::path::{Path, PathBuf};
+use std::thread;
+use std::time::Duration;
 
 use anyhow::{Context, Result};
 use semver::Version;
@@ -58,9 +60,31 @@ pub fn store_file_to_package_cache(
 
     let dest_path = pkg_dir.join(file_name);
 
-    fs::copy(downloaded_path, &dest_path).with_context(|| {
-        format!("Failed to copy into cache {}", dest_path.display())
-    })?;
+    // Add retry logic for the copy operation.
+    const MAX_RETRIES: u32 = 3;
+    const RETRY_DELAY_MS: u64 = 500;
 
-    Ok(())
+    let mut last_error = None;
+
+    for attempt in 1..=MAX_RETRIES {
+        match fs::copy(downloaded_path, &dest_path) {
+            Ok(_) => return Ok(()),
+            Err(e) => {
+                last_error = Some(e);
+                if attempt < MAX_RETRIES {
+                    // Sleep before the next retry.
+                    thread::sleep(Duration::from_millis(RETRY_DELAY_MS));
+                }
+            }
+        }
+    }
+
+    // If we get here, all retry attempts failed.
+    Err(anyhow::anyhow!(last_error.unwrap())).with_context(|| {
+        format!(
+            "Failed to copy into cache {} after {} attempts",
+            dest_path.display(),
+            MAX_RETRIES
+        )
+    })
 }

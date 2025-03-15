@@ -35,14 +35,19 @@ typedef void (*ten_remote_on_server_connected_func_t)(ten_remote_t *self,
 typedef void (*ten_remote_on_error_func_t)(ten_remote_t *self,
                                            ten_shared_ptr_t *cmd);
 
+typedef enum TEN_REMOTE_STATE {
+  TEN_REMOTE_STATE_INIT,
+  TEN_REMOTE_STATE_CLOSING,
+  TEN_REMOTE_STATE_CLOSED,
+} TEN_REMOTE_STATE;
+
 struct ten_remote_t {
   ten_signature_t signature;
   ten_sanitizer_thread_check_t thread_check;
 
   ten_hashhandle_t hh_in_remote_table;
 
-  bool is_closing;
-  bool is_closed;
+  TEN_REMOTE_STATE state;
 
   ten_string_t uri;
 
