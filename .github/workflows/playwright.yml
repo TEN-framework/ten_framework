@@ -6,8 +6,8 @@ on:
   pull_request:
     types: [opened, synchronize, reopened]
     paths:
-      - "core/src/ten_manager"
-      - "core/src/ten_rust"
+      - "core/src/ten_manager/**"
+      - "core/src/ten_rust/**"
 
 concurrency:
   group: playwright-${{ github.head_ref }}
