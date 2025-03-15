@@ -89,8 +89,7 @@ struct ten_engine_t {
   // The following members are used for engines which have its own event loop.
   bool has_own_loop;
   ten_runloop_t *loop;
-  ten_event_t *belonging_thread_is_set;
-  ten_event_t *engine_thread_ready_for_migration;
+  ten_event_t *runloop_is_created;
   // @}
 
   bool long_running_mode;

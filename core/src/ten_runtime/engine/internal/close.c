@@ -161,12 +161,12 @@ done:
  *                                 --------------------------
  */
 void ten_engine_close_async(ten_engine_t *self) {
-  TEN_ASSERT(self &&
-                 // TEN_NOLINTNEXTLINE(thread-check)
-                 // thread-check: This function is intended to be called in
-                 // different threads.
-                 ten_engine_check_integrity(self, false),
-             "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(
+      // TEN_NOLINTNEXTLINE(thread-check)
+      // thread-check: This function is intended to be called in different
+      // threads.
+      ten_engine_check_integrity(self, false), "Should not happen.");
 
   ten_ref_inc_ref(&self->ref);
 
@@ -250,10 +250,12 @@ void ten_engine_on_close(ten_engine_t *self) {
              "Should not happen.");
 
   if (!ten_engine_could_be_close(self)) {
-    TEN_LOGD("Could not close alive engine.");
+    TEN_LOGD("[%s] Could not close alive engine.",
+             ten_engine_get_id(self, true));
     return;
   }
-  TEN_LOGD("Close engine.");
+
+  TEN_LOGD("[%s] Engine can be closed now.", ten_engine_get_id(self, true));
 
   ten_engine_do_close(self);
 }

@@ -49,14 +49,25 @@ static bool ten_remote_could_be_close(ten_remote_t *self) {
   return false;
 }
 
+/**
+ * @brief Destroys a remote instance and frees all associated resources.
+ *
+ * This function should only be called after the remote has been properly closed
+ * (state == TEN_REMOTE_STATE_CLOSED). It releases all resources associated with
+ * the remote, including its connection, URI string, and any pending commands.
+ *
+ * Note: This function does not perform thread safety checks as it's typically
+ * called during cleanup when the owning thread may have already terminated.
+ *
+ * @param self Pointer to the remote instance to be destroyed.
+ */
 void ten_remote_destroy(ten_remote_t *self) {
+  TEN_ASSERT(self, "Should not happen.");
   TEN_ASSERT(
-      self &&
-          // TEN_NOLINTNEXTLINE(thread-check)
-          // thread-check: The belonging thread of the 'remote' is ended when
-          // this function is called, so we can not check thread integrity here.
-          ten_remote_check_integrity(self, false),
-      "Should not happen.");
+      // TEN_NOLINTNEXTLINE(thread-check)
+      // thread-check: The belonging thread of the 'remote' is ended when
+      // this function is called, so we can not check thread integrity here.
+      ten_remote_check_integrity(self, false), "Should not happen.");
   TEN_ASSERT(self->state == TEN_REMOTE_STATE_CLOSED,
              "Remote should be closed first before been destroyed.");
 
@@ -76,52 +87,101 @@ void ten_remote_destroy(ten_remote_t *self) {
   TEN_FREE(self);
 }
 
+/**
+ * @brief Finalizes the closing process of a remote.
+ *
+ * This function is called when all resources associated with the remote have
+ * been properly released and it's safe to complete the closing process. It
+ * marks the remote as closed and notifies any registered callbacks.
+ *
+ * This function is part of the bottom-up notification process in the remote
+ * closing sequence. It's called by `ten_remote_on_close()` after verifying
+ * that all resources are properly released.
+ *
+ * @param self Pointer to the remote to be closed.
+ */
 static void ten_remote_do_close(ten_remote_t *self) {
   TEN_ASSERT(self && ten_remote_check_integrity(self, true),
              "Should not happen.");
 
-  // Mark this 'remote' as having been closed, so that other modules could know
-  // this fact.
+  // Mark this 'remote' as CLOSED, which indicates that all resources have been
+  // properly released and the remote is fully closed. This state change allows
+  // other modules to safely interact with or clean up the remote object.
   self->state = TEN_REMOTE_STATE_CLOSED;
 
   if (self->on_closed) {
-    // Call the previously registered on_close callback.
+    // Call the previously registered `on_closed` callback to notify the owner
+    // that this remote has been fully closed and all resources have been
+    // released.
     self->on_closed(self, self->on_closed_data);
   }
 }
 
+/**
+ * @brief Handles the closing process of a remote.
+ *
+ * This function is called when resources associated with the remote (such
+ * as the connection) have been closed. It checks if all resources are properly
+ * released using `ten_remote_could_be_close()`. If the remote can be
+ * closed, it proceeds with `ten_remote_do_close()`.
+ *
+ * Note: This function is part of the bottom-up notification process in
+ * the remote closing sequence, similar to the connection closing process.
+ *
+ * @param self Pointer to the remote to be closed.
+ */
 static void ten_remote_on_close(ten_remote_t *self) {
-  TEN_ASSERT(self && ten_remote_check_integrity(self, true),
-             "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_remote_check_integrity(self, true), "Should not happen.");
 
   if (!ten_remote_could_be_close(self)) {
-    TEN_LOGI(
-        "Failed to close remote (%s) because there are alive resources in it.",
-        ten_string_get_raw_str(&self->uri));
+    TEN_LOGI("[%s] Could not close alive remote.",
+             ten_string_get_raw_str(&self->uri));
     return;
   }
-  TEN_LOGD("Remote (%s) can be closed now.",
+
+  TEN_LOGD("[%s] Remote can be closed now.",
            ten_string_get_raw_str(&self->uri));
 
   ten_remote_do_close(self);
 }
 
-// This function will be called when the corresponding connection is closed.
+/**
+ * @brief Callback function invoked when a connection associated with a remote
+ * is closed.
+ *
+ * This function is registered as the callback for connection closure events.
+ * When a connection closes, this function is called to handle the remote's
+ * response to that event. Depending on the remote's current state:
+ * - If the remote is already in CLOSING state, it continues the remote
+ *   closure process (bottom-up notification chain).
+ * - If the remote is in any other state, it initiates the remote
+ *   closure process since the underlying connection has closed unexpectedly.
+ *
+ * @param connection The connection that has been closed (marked as unused but
+ * kept for callback signature).
+ */
 void ten_remote_on_connection_closed(TEN_UNUSED ten_connection_t *connection,
                                      void *on_closed_data) {
   ten_remote_t *remote = (ten_remote_t *)on_closed_data;
-  TEN_ASSERT(remote && ten_remote_check_integrity(remote, true),
-             "Should not happen.");
+  TEN_ASSERT(remote, "Should not happen.");
+  TEN_ASSERT(ten_remote_check_integrity(remote, true), "Should not happen.");
   TEN_ASSERT(connection && remote->connection &&
                  remote->connection == connection,
              "Invalid argument.");
 
   if (remote->state == TEN_REMOTE_STATE_CLOSING) {
-    // Proceed the closing flow of 'remote'.
+    // The remote is already in CLOSING state, which means the closure was
+    // initiated by the TEN runtime (top-down closure chain), e.g.:
+    // app => engine => remote => connection => protocol.
+    // Now that the connection has closed (bottom-up notification), we can
+    // continue with closing this remote and notify our parent in the chain.
     ten_remote_on_close(remote);
   } else {
-    // This means the connection is closed due to it is broken, so trigger the
-    // closing of the remote.
+    // The connection has closed unexpectedly (not as part of a top-down closure
+    // chain). This could be due to network issues, protocol errors, or other
+    // failures. We need to initiate the remote closure process to clean up
+    // resources and notify the engine about this disconnection.
     ten_remote_close(remote);
   }
 }
@@ -180,19 +240,33 @@ static void ten_remote_set_on_msg(ten_remote_t *self,
   self->on_msg_data = on_msg_data;
 }
 
+/**
+ * @brief Attaches a remote instance to an engine.
+ *
+ * This function establishes a bidirectional relationship between a remote and
+ * an engine.
+ *
+ * @param self Pointer to the remote instance to be attached.
+ */
 static void ten_remote_attach_to_engine(ten_remote_t *self,
                                         ten_engine_t *engine) {
-  TEN_ASSERT(self && ten_remote_check_integrity(self, true),
-             "Should not happen.");
-  TEN_ASSERT(engine && ten_engine_check_integrity(engine, true),
-             "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_remote_check_integrity(self, true), "Should not happen.");
+  TEN_ASSERT(engine, "Should not happen.");
+  TEN_ASSERT(ten_engine_check_integrity(engine, true), "Should not happen.");
 
   self->engine = engine;
 
-  // Setup a callback when 'remote' wants to send messages to engine.
-  ten_remote_set_on_msg(self, ten_engine_receive_msg_from_remote, NULL);
+  // Register a callback for the remote to send messages to the engine. When the
+  // remote receives a message, it will forward it to the engine through this
+  // callback. The engine is passed implicitly as it's stored in the remote's
+  // context.
+  ten_remote_set_on_msg(self, ten_engine_receive_msg_from_remote, engine);
 
-  // Setup a callback to notify the engine when 'remote' is closed.
+  // Register a callback to notify the engine when this remote is closed. This
+  // allows the engine to clean up any resources associated with this remote and
+  // update its internal state. The engine instance is passed as the callback
+  // data.
   ten_remote_set_on_closed(self, ten_engine_on_remote_closed, engine);
 }
 

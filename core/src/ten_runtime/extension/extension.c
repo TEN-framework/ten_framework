@@ -807,8 +807,6 @@ void ten_extension_on_start(ten_extension_t *self) {
   TEN_ASSERT(ten_extension_check_integrity(self, true),
              "Invalid use of extension %p.", self);
 
-  TEN_LOGI("[%s] on_start().", ten_extension_get_name(self, true));
-
   if (self->state >= TEN_EXTENSION_STATE_ON_STOP) {
     // The extension has already entered the close flow, so do not continue with
     // the start flow.
@@ -816,6 +814,8 @@ void ten_extension_on_start(ten_extension_t *self) {
              ten_extension_get_name(self, true));
     return;
   }
+
+  TEN_LOGI("[%s] on_start().", ten_extension_get_name(self, true));
 
   self->state = TEN_EXTENSION_STATE_ON_START;
 
@@ -847,6 +847,8 @@ void ten_extension_on_stop(ten_extension_t *self) {
   // Therefore, it is necessary to check here that if the `on_stop` process has
   // already started, it should not be entered again.
   if (self->state >= TEN_EXTENSION_STATE_ON_STOP) {
+    TEN_LOGD("[%s] Extension is stopping, do not stop again.",
+             ten_extension_get_name(self, true));
     return;
   }
 

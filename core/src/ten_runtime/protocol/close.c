@@ -10,82 +10,84 @@
 #include "ten_utils/log/log.h"
 #include "ten_utils/macro/check.h"
 
-// The relationship of the protocol chain is as follows.
-//
-//  base protocol (ten_protocol_t) -->
-//                implementation protocol (inherited from ten_protocol_t)
-//
-// The condition which a base protocol can be closed is when the implementation
-// protocol is closed.
-//
-// Closing flow is as follows.
-//
-// - Stage 1 : 'Need to close' notification stage
-//
-//   TEN world -> (notify) ->
-//                         base protocol -> (notify) ->
-//                                                   implementation protocol
-//
-// - Stage 2 : 'I cam closed' notification stage
-//
-//                               <- (I am closed) <- implementation protocol
-//        <- (I am closed) <- base protocol
-//   TEN world
-//
-//   The time that a protocol (no matter it is a base protocol or an
-//   implementation protocol) can be closed is that when all resources held in
-//   that protocol are closed, then that protocol can be closed.
+/**
+ * @brief Describes the protocol chain relationship and closing process.
+ *
+ * The protocol chain has the following structure:
+ *
+ *   base protocol (ten_protocol_t) -->
+ *                 implementation protocol (inherited from ten_protocol_t)
+ *
+ * A base protocol can only be closed when its implementation protocol has been
+ * closed. The closing process occurs in two stages:
+ *
+ * - Stage 1: Top-down 'Need to close' notification
+ *
+ *   TEN world -> (notify close) ->
+ *                base protocol -> (notify close) ->
+ *                                 implementation protocol
+ *
+ * - Stage 2: Bottom-up 'I am closed' notification
+ *
+ *   implementation protocol -> (notify closed) ->
+ *   base protocol -> (notify closed) ->
+ *   TEN world
+ *
+ * A protocol (whether base or implementation) can only be fully closed when all
+ * resources it holds have been properly released. This ensures orderly shutdown
+ * and prevents resource leaks.
+ */
 static bool ten_protocol_could_be_close(ten_protocol_t *self) {
   TEN_ASSERT(self && ten_protocol_check_integrity(self, true),
              "Should not happen.");
 
-  // As the only underlying resource of the base protocol is the implementation
-  // protocol now. When closing a base protocol, the only thing it cares about
-  // is the implementation protocol is closed or not, and this function will be
-  // called only if the implementation protocol has been closed, so it always
-  // returns true.
+  // Currently, the only underlying resource of a base protocol is its
+  // implementation protocol. This function is called only after the
+  // implementation protocol has been closed, so it always returns true.
   //
-  // If the base protocol has more underlying resources in the future, this
-  // function will be called when each resource is closed. And there should be
-  // one field in the base protocol to be paired with each underlying resource,
-  // and check every field in this function to determine that whether all the
-  // resources are closed. The brief calling flow is as follows.
-  //
-  // x_do_close() {
-  //   ten_protocol_on_close();
-  // }
-  //
-  // y_do_close() {
-  //   ten_protocol_on_close();
-  // }
-  //
-  // ten_protocol_on_close() {
-  //   if (ten_protocol_could_be_close()) {
-  //     ten_protocol_do_close();
-  //   }
-  // }
-  //
-  // ten_protocol_could_be_close() {
-  //   return x_is_closed && y_is_closed;
-  // }
-  //
+  // Future design considerations:
+  // - If additional underlying resources are added to the base protocol, this
+  //   function will be called whenever any resource is closed.
+  // - Each resource should have a corresponding field in the base protocol to
+  //   track its state.
+  // - This function would then check all resource state fields to determine if
+  //   everything has been properly closed before returning true.
   return true;
 }
 
+/**
+ * @brief Completes the protocol closing process if all resources are released.
+ *
+ * This function is called when a resource of the protocol has been closed.
+ * It checks if all resources have been properly released using
+ * `ten_protocol_could_be_close()`. If resources are still active,
+ * the close operation is deferred. Otherwise, it proceeds with closing the
+ * protocol by changing its state to CLOSED and invoking the registered
+ * `on_closed` callback.
+ *
+ * This function implements Stage 2 of the protocol closing process (bottom-up
+ * notification that the protocol is fully closed).
+ *
+ * @param self The protocol to close.
+ */
 void ten_protocol_on_close(ten_protocol_t *self) {
   TEN_ASSERT(self && ten_protocol_check_integrity(self, true),
              "Should not happen.");
 
   if (!ten_protocol_could_be_close(self)) {
-    TEN_LOGD("Could not close alive base protocol.");
+    TEN_LOGD("[%s] Could not close alive base protocol.",
+             ten_string_get_raw_str(&self->uri));
     return;
   }
-  TEN_LOGD("Close base protocol.");
+
+  TEN_LOGD("[%s] Base protocol can be closed now.",
+           ten_string_get_raw_str(&self->uri));
 
   self->state = TEN_PROTOCOL_STATE_CLOSED;
 
   if (self->on_closed) {
-    // Call the registered on_closed callback when the base protocol is closed.
+    // Call the registered `on_closed` callback when the base protocol is
+    // closed.
     self->on_closed(self, self->on_closed_data);
   }
 }
@@ -105,7 +107,8 @@ void ten_protocol_close(ten_protocol_t *self) {
   TEN_ASSERT(ten_protocol_check_integrity(self, true), "Should not happen.");
 
   if (self->state >= TEN_PROTOCOL_STATE_CLOSING) {
-    TEN_LOGD("Protocol is closing, do not close again.");
+    TEN_LOGD("[%s] Protocol is closing, do not close again.",
+             ten_string_get_raw_str(&self->uri));
     return;
   }
 
@@ -113,14 +116,14 @@ void ten_protocol_close(ten_protocol_t *self) {
 
   switch (self->role) {
   case TEN_PROTOCOL_ROLE_LISTEN:
-    TEN_LOGD("Try to close listening protocol: %s",
+    TEN_LOGD("[%s] Try to close listening protocol.",
              ten_string_get_raw_str(&self->uri));
     break;
   case TEN_PROTOCOL_ROLE_IN_INTERNAL:
   case TEN_PROTOCOL_ROLE_IN_EXTERNAL:
   case TEN_PROTOCOL_ROLE_OUT_INTERNAL:
   case TEN_PROTOCOL_ROLE_OUT_EXTERNAL:
-    TEN_LOGD("Try to close communication protocol: %s",
+    TEN_LOGD("[%s] Try to close communication protocol.",
              ten_string_get_raw_str(&self->uri));
     break;
   default:

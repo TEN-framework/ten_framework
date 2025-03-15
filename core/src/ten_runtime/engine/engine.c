@@ -77,8 +77,7 @@ static void ten_engine_destroy(ten_engine_t *self) {
   ten_list_clear(&self->in_msgs);
 
   if (self->has_own_loop) {
-    ten_event_destroy(self->engine_thread_ready_for_migration);
-    ten_event_destroy(self->belonging_thread_is_set);
+    ten_event_destroy(self->runloop_is_created);
 
     ten_runloop_destroy(self->loop);
     self->loop = NULL;
@@ -191,8 +190,7 @@ ten_engine_t *ten_engine_create(ten_app_t *app, ten_shared_ptr_t *cmd) {
   self->extension_context = NULL;
 
   self->loop = NULL;
-  self->engine_thread_ready_for_migration = NULL;
-  self->belonging_thread_is_set = NULL;
+  self->runloop_is_created = NULL;
   self->is_ready_to_handle_msg = false;
 
   ten_list_init(&self->orphan_connections);

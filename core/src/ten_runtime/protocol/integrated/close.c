@@ -34,13 +34,14 @@ static bool
 ten_protocol_integrated_could_be_close(ten_protocol_integrated_t *self) {
   TEN_ASSERT(self, "Should not happen.");
 
-  ten_protocol_t *protocol = &self->base;
-  TEN_ASSERT(protocol && ten_protocol_check_integrity(protocol, true),
+  ten_protocol_t *base_protocol = &self->base;
+  TEN_ASSERT(base_protocol && ten_protocol_check_integrity(base_protocol, true),
              "Should not happen.");
-  TEN_ASSERT(protocol->role != TEN_PROTOCOL_ROLE_INVALID, "Should not happen.");
+  TEN_ASSERT(base_protocol->role != TEN_PROTOCOL_ROLE_INVALID,
+             "Should not happen.");
 
   // Check resources according to different roles.
-  switch (protocol->role) {
+  switch (base_protocol->role) {
   case TEN_PROTOCOL_ROLE_LISTEN:
     if (self->role_facility.listening_transport) {
       return false;
@@ -66,6 +67,18 @@ ten_protocol_integrated_could_be_close(ten_protocol_integrated_t *self) {
   return true;
 }
 
+/**
+ * @brief Attempts to close an integrated protocol if all its resources have
+ * been released.
+ *
+ * This function is called when the protocol is in the closing state. It checks
+ * if all resources have been properly released using
+ * `ten_protocol_integrated_could_be_close()`. If resources are still active,
+ * the close operation is deferred. Otherwise, it proceeds with closing the
+ * protocol by calling `ten_protocol_on_close()`.
+ *
+ * @param self The integrated protocol to close.
+ */
 void ten_protocol_integrated_on_close(ten_protocol_integrated_t *self) {
   TEN_ASSERT(self, "Should not happen.");
 
@@ -78,11 +91,13 @@ void ten_protocol_integrated_on_close(ten_protocol_integrated_t *self) {
              "Should not happen.");
 
   if (!ten_protocol_integrated_could_be_close(self)) {
-    TEN_LOGD("Could not close alive integrated protocol.");
+    TEN_LOGD("[%s] Could not close alive integrated protocol.",
+             ten_string_get_raw_str(&protocol->uri));
     return;
   }
 
-  TEN_LOGD("Close integrated protocol.");
+  TEN_LOGD("[%s] Integrated protocol can be closed now.",
+           ten_string_get_raw_str(&protocol->uri));
 
   ten_protocol_on_close(&self->base);
 }

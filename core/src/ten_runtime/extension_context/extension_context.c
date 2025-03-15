@@ -235,7 +235,8 @@ void ten_extension_context_on_close(ten_extension_context_t *self) {
              ten_engine_get_id(self->engine, true));
     return;
   }
-  TEN_LOGD("[%s] Close extension context.",
+
+  TEN_LOGD("[%s] Extension context can be closed now.",
            ten_engine_get_id(self->engine, true));
 
   ten_extension_context_do_close(self);
