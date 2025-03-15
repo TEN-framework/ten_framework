@@ -15,7 +15,6 @@
 #include "ten_utils/container/hash_table.h"
 #include "ten_utils/container/list.h"
 #include "ten_utils/io/runloop.h"
-#include "ten_utils/lib/atomic.h"
 #include "ten_utils/lib/event.h"
 #include "ten_utils/lib/mutex.h"
 #include "ten_utils/lib/signature.h"
@@ -36,7 +35,7 @@ struct ten_engine_t {
   ten_signature_t signature;
   ten_sanitizer_thread_check_t thread_check;
 
-  ten_atomic_t is_closing;
+  bool is_closing;
 
   ten_engine_on_closed_func_t on_closed;
   void *on_closed_data;

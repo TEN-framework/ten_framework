@@ -22,8 +22,6 @@ TEN_RUNTIME_PRIVATE_API void ten_engine_set_on_closed(
     ten_engine_t *self, ten_engine_on_closed_func_t on_closed,
     void *on_closed_data);
 
-TEN_RUNTIME_PRIVATE_API bool ten_engine_is_closing(ten_engine_t *self);
-
 TEN_RUNTIME_PRIVATE_API void ten_engine_on_close(ten_engine_t *self);
 
 TEN_RUNTIME_PRIVATE_API void ten_engine_on_timer_closed(ten_timer_t *timer,

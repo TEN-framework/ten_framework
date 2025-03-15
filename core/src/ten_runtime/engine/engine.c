@@ -24,7 +24,6 @@
 #include "ten_utils/container/hash_table.h"
 #include "ten_utils/container/list.h"
 #include "ten_utils/lib/alloc.h"
-#include "ten_utils/lib/atomic.h"
 #include "ten_utils/lib/event.h"
 #include "ten_utils/lib/mutex.h"
 #include "ten_utils/lib/string.h"
@@ -173,7 +172,7 @@ ten_engine_t *ten_engine_create(ten_app_t *app, ten_shared_ptr_t *cmd) {
   ten_signature_set(&self->signature, (ten_signature_t)TEN_ENGINE_SIGNATURE);
   ten_sanitizer_thread_check_init_with_current_thread(&self->thread_check);
 
-  ten_atomic_store(&self->is_closing, 0);
+  self->is_closing = false;
   self->on_closed = NULL;
   self->on_closed_data = NULL;
 
@@ -277,7 +276,7 @@ ten_engine_on_orphan_connection_closed(ten_connection_t *connection,
   ten_connection_destroy(connection);
 
   // Check if the app is in the closing phase.
-  if (ten_engine_is_closing(self)) {
+  if (self->is_closing) {
     TEN_LOGD("[%s] Engine is closing, check to see if it could proceed.",
              ten_engine_get_id(self, true));
     ten_engine_on_close(self);

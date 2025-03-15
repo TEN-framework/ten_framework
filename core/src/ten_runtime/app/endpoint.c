@@ -14,8 +14,9 @@
 #include "ten_utils/lib/string.h"
 #include "ten_utils/macro/check.h"
 
-static ten_connection_t *create_connection_when_client_accepted(
-    ten_protocol_t *listening_protocol, ten_protocol_t *protocol) {
+static ten_connection_t *
+create_connection_when_client_accepted(ten_protocol_t *listening_protocol,
+                                       ten_protocol_t *protocol) {
   TEN_ASSERT(listening_protocol &&
                  ten_protocol_check_integrity(listening_protocol, true),
              "Should not happen.");
@@ -60,5 +61,5 @@ bool ten_app_is_endpoint_closed(ten_app_t *self) {
     return true;
   }
 
-  return ten_protocol_is_closed(self->endpoint_protocol);
+  return self->endpoint_protocol->state == TEN_PROTOCOL_STATE_CLOSED;
 }

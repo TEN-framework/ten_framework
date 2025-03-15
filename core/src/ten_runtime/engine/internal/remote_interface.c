@@ -157,7 +157,7 @@ void ten_engine_on_remote_closed(ten_remote_t *remote, void *on_closed_data) {
     }
   }
 
-  if (ten_engine_is_closing(self)) {
+  if (self->is_closing) {
     // Proceed to close the engine.
     ten_engine_on_close(self);
   } else {

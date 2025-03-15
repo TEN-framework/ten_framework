@@ -40,7 +40,7 @@ bool ten_engine_enable_extension_system(ten_engine_t *self, ten_error_t *err) {
                  ten_msg_check_integrity(original_start_graph_cmd),
              "Should not happen.");
 
-  if (ten_engine_is_closing(self)) {
+  if (self->is_closing) {
     TEN_LOGE("Engine is closing, do not enable extension system.");
 
     ten_engine_return_error_for_cmd_start_graph(

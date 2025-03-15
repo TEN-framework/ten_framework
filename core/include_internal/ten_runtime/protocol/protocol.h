@@ -174,6 +174,12 @@ typedef void (*ten_protocol_on_cleaned_for_external_func_t)(
     ten_protocol_t *self, bool is_migration_state_reset);
 // @}
 
+typedef enum TEN_PROTOCOL_STATE {
+  TEN_PROTOCOL_STATE_INIT,
+  TEN_PROTOCOL_STATE_CLOSING,
+  TEN_PROTOCOL_STATE_CLOSED,
+} TEN_PROTOCOL_STATE;
+
 /**
  * @brief This is the base class of all the protocols. All the protocols must
  * inherit 'ten_protocol_t' and implement the necessary apis such as
@@ -218,18 +224,8 @@ typedef struct ten_protocol_t {
 
   ten_addon_host_t *addon_host;
 
-  // Start to trigger the closing of the base protocol.
-  ten_atomic_t is_closing;
+  TEN_PROTOCOL_STATE state;
 
-  // This field is used to mark that the base protocol is totally closed, it
-  // means that all the resources bound to the base protocol has been closed.
-  //
-  // Now the only underlying resource of the base protocol is the implementation
-  // protocol, so we do not use a field such as 'impl_is_closed' to store the
-  // closed state of the implementation.
-  bool is_closed;
-
-  // Trigger binding resource to close, like connection/stream.
   ten_protocol_on_closed_func_t on_closed;
   void *on_closed_data;
 

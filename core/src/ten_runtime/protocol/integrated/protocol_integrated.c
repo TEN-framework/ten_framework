@@ -192,7 +192,7 @@ static void ten_protocol_integrated_on_output(ten_protocol_integrated_t *self) {
   TEN_ASSERT(ten_protocol_role_is_communication(&self->base),
              "Should not happen.");
 
-  if (ten_protocol_is_closing(&self->base)) {
+  if (self->base.state == TEN_PROTOCOL_STATE_CLOSING) {
     TEN_LOGD("Protocol is closing, do not actually send msgs.");
     return;
   }
@@ -416,7 +416,7 @@ static void ten_protocol_integrated_on_output_task(void *self_,
   TEN_ASSERT(self && ten_protocol_check_integrity(&self->base, true),
              "Should not happen.");
 
-  if (!ten_protocol_is_closing(&self->base)) {
+  if (self->base.state != TEN_PROTOCOL_STATE_CLOSING) {
     // Execute the actual task if the 'protocol' is still alive.
     ten_protocol_integrated_on_output(self);
   }
@@ -499,7 +499,7 @@ static void ten_transport_on_server_connected_after_retry(
   TEN_ASSERT(connect_to_context, "Should not happen.");
   TEN_ASSERT(connect_to_context->on_server_connected, "Should not happen.");
 
-  if (ten_protocol_is_closing(&protocol->base)) {
+  if (protocol->base.state == TEN_PROTOCOL_STATE_CLOSING) {
     ten_stream_close(stream);
     // The ownership of the 'connect_to_context' is transferred to the timer, so
     // the 'connect_to_context' will be freed when the timer is closed.
@@ -607,7 +607,7 @@ static void ten_protocol_integrated_on_retry_timer_closed(ten_timer_t *timer,
 
   protocol->retry_timer = NULL;
 
-  if (ten_protocol_is_closing(&protocol->base)) {
+  if (protocol->base.state == TEN_PROTOCOL_STATE_CLOSING) {
     ten_protocol_integrated_on_close(protocol);
   }
 }
@@ -632,7 +632,7 @@ static void ten_transport_on_server_connected(ten_transport_t *transport,
   TEN_ASSERT(cb_data, "Should not happen.");
   TEN_ASSERT(cb_data->on_server_connected, "Should not happen.");
 
-  if (ten_protocol_is_closing(&protocol->base)) {
+  if (protocol->base.state == TEN_PROTOCOL_STATE_CLOSING) {
     ten_stream_close(stream);
 
     ten_protocol_integrated_on_server_finally_connected(cb_data, false);

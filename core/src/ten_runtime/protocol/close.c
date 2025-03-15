@@ -82,29 +82,12 @@ void ten_protocol_on_close(ten_protocol_t *self) {
   }
   TEN_LOGD("Close base protocol.");
 
-  self->is_closed = true;
+  self->state = TEN_PROTOCOL_STATE_CLOSED;
 
   if (self->on_closed) {
     // Call the registered on_closed callback when the base protocol is closed.
     self->on_closed(self, self->on_closed_data);
   }
-}
-
-bool ten_protocol_is_closing(ten_protocol_t *self) {
-  TEN_ASSERT(self &&
-                 // TEN_NOLINTNEXTLINE(thread-check)
-                 // thread-check: This function is designed to be used in any
-                 // threads, that's why 'is_closing' is of atomic type.
-                 ten_protocol_check_integrity(self, false),
-             "Should not happen.");
-  return ten_atomic_load(&self->is_closing) == 1;
-}
-
-bool ten_protocol_is_closed(ten_protocol_t *self) {
-  TEN_ASSERT(self && ten_protocol_check_integrity(self, true),
-             "Access across threads.");
-
-  return self->is_closed;
 }
 
 void ten_protocol_set_on_closed(ten_protocol_t *self,
@@ -121,24 +104,29 @@ void ten_protocol_close(ten_protocol_t *self) {
   TEN_ASSERT(self, "Should not happen.");
   TEN_ASSERT(ten_protocol_check_integrity(self, true), "Should not happen.");
 
-  if (ten_atomic_bool_compare_swap(&self->is_closing, 0, 1)) {
-    switch (self->role) {
-      case TEN_PROTOCOL_ROLE_LISTEN:
-        TEN_LOGD("Try to close listening protocol: %s",
-                 ten_string_get_raw_str(&self->uri));
-        break;
-      case TEN_PROTOCOL_ROLE_IN_INTERNAL:
-      case TEN_PROTOCOL_ROLE_IN_EXTERNAL:
-      case TEN_PROTOCOL_ROLE_OUT_INTERNAL:
-      case TEN_PROTOCOL_ROLE_OUT_EXTERNAL:
-        TEN_LOGD("Try to close communication protocol: %s",
-                 ten_string_get_raw_str(&self->uri));
-        break;
-      default:
-        TEN_ASSERT(0, "Should not happen.");
-        break;
-    }
-
-    self->close(self);
+  if (self->state >= TEN_PROTOCOL_STATE_CLOSING) {
+    TEN_LOGD("Protocol is closing, do not close again.");
+    return;
   }
+
+  self->state = TEN_PROTOCOL_STATE_CLOSING;
+
+  switch (self->role) {
+  case TEN_PROTOCOL_ROLE_LISTEN:
+    TEN_LOGD("Try to close listening protocol: %s",
+             ten_string_get_raw_str(&self->uri));
+    break;
+  case TEN_PROTOCOL_ROLE_IN_INTERNAL:
+  case TEN_PROTOCOL_ROLE_IN_EXTERNAL:
+  case TEN_PROTOCOL_ROLE_OUT_INTERNAL:
+  case TEN_PROTOCOL_ROLE_OUT_EXTERNAL:
+    TEN_LOGD("Try to close communication protocol: %s",
+             ten_string_get_raw_str(&self->uri));
+    break;
+  default:
+    TEN_ASSERT(0, "Should not happen.");
+    break;
+  }
+
+  self->close(self);
 }

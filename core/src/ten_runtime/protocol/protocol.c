@@ -20,8 +20,6 @@
 #include "include_internal/ten_runtime/remote/remote.h"
 #include "include_internal/ten_utils/log/log.h"
 #include "ten_runtime/addon/addon.h"
-#include "ten_runtime/app/app.h"
-#include "ten_utils/lib/error.h"
 #include "ten_utils/lib/mutex.h"
 #include "ten_utils/lib/ref.h"
 #include "ten_utils/lib/smart_ptr.h"
@@ -57,7 +55,7 @@ static void ten_protocol_destroy(ten_protocol_t *self) {
                  // thread integrity here.
                  ten_protocol_check_integrity(self, false),
              "Invalid argument.");
-  TEN_ASSERT(self->is_closed,
+  TEN_ASSERT(self->state == TEN_PROTOCOL_STATE_CLOSED,
              "Protocol should be closed first before been destroyed.");
 
   self->addon_host->addon->on_destroy_instance(
@@ -69,7 +67,7 @@ static void ten_protocol_on_end_of_life(TEN_UNUSED ten_ref_t *ref,
   ten_protocol_t *self = (ten_protocol_t *)supervisor;
   TEN_ASSERT(self && ten_protocol_check_integrity(self, false),
              "Should not happen.");
-  TEN_ASSERT(self->is_closed,
+  TEN_ASSERT(self->state == TEN_PROTOCOL_STATE_CLOSED,
              "The protocol should be closed first before being destroyed.");
 
   ten_ref_deinit(&self->ref);
@@ -91,8 +89,7 @@ void ten_protocol_init(ten_protocol_t *self, const char *name,
   ten_sanitizer_thread_check_init_with_current_thread(&self->thread_check);
 
   self->addon_host = NULL;
-  ten_atomic_store(&self->is_closing, 0);
-  self->is_closed = false;
+  self->state = TEN_PROTOCOL_STATE_INIT;
 
   self->close = close;
 
@@ -235,7 +232,7 @@ void ten_protocol_on_input(ten_protocol_t *self, ten_shared_ptr_t *msg) {
              "Should not happen.");
   TEN_ASSERT(msg, "Should not happen.");
 
-  if (ten_protocol_is_closing(self)) {
+  if (self->state == TEN_PROTOCOL_STATE_CLOSING) {
     TEN_LOGD("Protocol is closing, do not handle msgs.");
     return;
   }
@@ -275,7 +272,7 @@ void ten_protocol_on_inputs(ten_protocol_t *self, ten_list_t *msgs) {
              "Should not happen.");
   TEN_ASSERT(msgs, "Should not happen.");
 
-  if (ten_protocol_is_closing(self)) {
+  if (self->state == TEN_PROTOCOL_STATE_CLOSING) {
     TEN_LOGD("Protocol is closing, do not handle msgs.");
     return;
   }
@@ -302,7 +299,7 @@ void ten_protocol_send_msg(ten_protocol_t *self, ten_shared_ptr_t *msg) {
              "Should not happen.");
   TEN_ASSERT(msg, "Should not happen.");
 
-  if (ten_protocol_is_closing(self)) {
+  if (self->state == TEN_PROTOCOL_STATE_CLOSING) {
     TEN_LOGD("Protocol is closing, do not send msgs.");
     return;
   }

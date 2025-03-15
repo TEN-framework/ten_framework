@@ -48,12 +48,22 @@ bool ten_connection_check_integrity(ten_connection_t *self, bool check_thread) {
   return true;
 }
 
+/**
+ * @brief Checks if a connection can be closed.
+ *
+ * This function determines whether a connection is in a state where it can be
+ * safely closed. A connection can be closed if it has no associated protocol or
+ * if its protocol is already in a closed state.
+ *
+ * @param self The connection to check.
+ * @return true if the connection can be closed, false otherwise.
+ */
 static bool ten_connection_could_be_close(ten_connection_t *self) {
   TEN_ASSERT(self, "Invalid argument.");
   TEN_ASSERT(ten_connection_check_integrity(self, true),
              "Invalid use of connection %p.", self);
 
-  if (!self->protocol || self->protocol->is_closed) {
+  if (!self->protocol || self->protocol->state == TEN_PROTOCOL_STATE_CLOSED) {
     // If there is no protocol, or the protocol has already been closed, then
     // this 'connection' could be closed, too.
     return true;
@@ -118,7 +128,18 @@ static void ten_connection_on_close(ten_connection_t *self) {
   ten_connection_do_close(self);
 }
 
-// This function doesn't do anything, just initiate the closing flow.
+/**
+ * @brief Closes a connection.
+ *
+ * This function initiates the closing process for a connection. If the
+ * connection is already in the process of closing, the function will return
+ * without taking any action. Otherwise, it marks the connection as closing and
+ * proceeds to close the underlying protocol if it exists and is not already
+ * closed. If the protocol is already closed, it proceeds directly to close the
+ * connection.
+ *
+ * @param self Pointer to the connection to be closed.
+ */
 void ten_connection_close(ten_connection_t *self) {
   TEN_ASSERT(self, "Invalid argument.");
   TEN_ASSERT(ten_connection_check_integrity(self, true),
@@ -134,7 +155,7 @@ void ten_connection_close(ten_connection_t *self) {
   self->state = TEN_CONNECTION_STATE_CLOSING;
 
   ten_protocol_t *protocol = self->protocol;
-  if (protocol && !protocol->is_closed) {
+  if (protocol && protocol->state != TEN_PROTOCOL_STATE_CLOSED) {
     // The protocol still exists, close it first.
     ten_protocol_close(protocol);
   } else {

@@ -7,8 +7,8 @@
 #include "gtest/gtest.h"
 #include "include_internal/ten_runtime/binding/cpp/ten.h"
 #include "ten_runtime/binding/cpp/detail/msg/cmd/start_graph.h"
+#include "ten_runtime/binding/cpp/detail/ten_env.h"
 #include "ten_runtime/common/status_code.h"
-#include "tests/common/client/cpp/msgpack_tcp.h"
 #include "tests/ten_runtime/smoke/util/binding/cpp/check.h"
 
 namespace {
@@ -36,6 +36,10 @@ class test_predefined_graph : public ten::extension_t {
 
           ten_env.on_start_done();
         });
+
+    auto close_app_cmd = ten::cmd_close_app_t::create();
+    close_app_cmd->set_dest("localhost", nullptr, nullptr, nullptr);
+    ten_env.send_cmd(std::move(close_app_cmd));
   }
 };
 
@@ -127,10 +131,6 @@ TEN_CPP_REGISTER_ADDON_AS_EXTENSION(
 TEST(ExtensionTest, DISABLED_FailedToConnectToRemote2) {  // NOLINT
   auto *app_1_thread =
       ten_thread_create("app thread 1", app_thread_1_main, nullptr);
-
-  // Send a close_app command to close the app as the app is running in
-  // long_running_mode.
-  ten::msgpack_tcp_client_t::close_app("msgpack://127.0.0.1:8001/");
 
   ten_thread_join(app_1_thread, -1);
 }

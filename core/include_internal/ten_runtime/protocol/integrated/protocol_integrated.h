@@ -39,31 +39,47 @@ typedef struct ten_protocol_integrated_connect_to_context_t {
 } ten_protocol_integrated_connect_to_context_t;
 
 /**
- * @brief This is the base class of all the protocols which uses the event loop
- * inside the TEN world.
+ * @brief Base protocol implementation that integrates with TEN's event loop
+ * system.
+ *
+ * This protocol serves as the foundation for all protocol implementations that
+ * operate within TEN's event loop architecture. It handles communication
+ * streams, manages the protocol lifecycle (connection, data transfer, and
+ * closure), and provides integration with TEN's threading model.
+ *
+ * Integrated protocols support both listening (server) and communication
+ * (client) roles, with appropriate resource management for each role.
  */
 struct ten_protocol_integrated_t {
-  // All protocols should be inherited from the ten_protocol_t base structure.
+  // Base protocol that all protocol implementations must inherit from.
   ten_protocol_t base;
 
-  // The following fields are specific to this (integrated) protocol structure.
-
+  // Role-specific resources that vary depending on protocol function.
   union {
-    // LISTENING-role protocol uses this field.
+    // For server-side protocols (LISTENING role):
+    // Manages incoming connection requests.
     ten_transport_t *listening_transport;
 
-    // COMMUNICATION-role protocol uses this field.
+    // For client-side protocols (COMMUNICATION role):
+    // Handles data transfer for an established connection.
     ten_stream_t *communication_stream;
   } role_facility;
 
-  // Used to convert a buffer to TEN runtime messages.
+  // Protocol message conversion functions:
+
+  // Deserializes raw network buffers into TEN runtime messages.
+  // Called when data is received from the network.
   ten_protocol_integrated_on_input_func_t on_input;
 
-  // Used to convert TEN runtime messages to a buffer.
+  // Serializes TEN runtime messages into raw network buffers.
+  // Called when messages need to be sent over the network.
   ten_protocol_integrated_on_output_func_t on_output;
 
-  // Used to configure the retry mechanism.
+  // Connection retry mechanism:
+  // Configuration parameters for connection retry attempts.
   ten_protocol_integrated_retry_config_t retry_config;
+
+  // Timer that schedules retry attempts when connections fail.
   ten_timer_t *retry_timer;
 };
 

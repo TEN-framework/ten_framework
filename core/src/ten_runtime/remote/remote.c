@@ -57,7 +57,7 @@ void ten_remote_destroy(ten_remote_t *self) {
           // this function is called, so we can not check thread integrity here.
           ten_remote_check_integrity(self, false),
       "Should not happen.");
-  TEN_ASSERT(self->is_closed == true,
+  TEN_ASSERT(self->state == TEN_REMOTE_STATE_CLOSED,
              "Remote should be closed first before been destroyed.");
 
   ten_signature_set(&self->signature, 0);
@@ -82,7 +82,7 @@ static void ten_remote_do_close(ten_remote_t *self) {
 
   // Mark this 'remote' as having been closed, so that other modules could know
   // this fact.
-  self->is_closed = true;
+  self->state = TEN_REMOTE_STATE_CLOSED;
 
   if (self->on_closed) {
     // Call the previously registered on_close callback.
@@ -116,7 +116,7 @@ void ten_remote_on_connection_closed(TEN_UNUSED ten_connection_t *connection,
                  remote->connection == connection,
              "Invalid argument.");
 
-  if (remote->is_closing) {
+  if (remote->state == TEN_REMOTE_STATE_CLOSING) {
     // Proceed the closing flow of 'remote'.
     ten_remote_on_close(remote);
   } else {
@@ -136,8 +136,7 @@ static ten_remote_t *ten_remote_create_empty(const char *uri,
 
   ten_signature_set(&self->signature, (ten_signature_t)TEN_REMOTE_SIGNATURE);
 
-  self->is_closing = false;
-  self->is_closed = false;
+  self->state = TEN_REMOTE_STATE_INIT;
 
   self->on_closed = NULL;
   self->on_closed_data = NULL;
@@ -215,20 +214,35 @@ ten_remote_t *ten_remote_create_for_engine(const char *uri,
   return self;
 }
 
+/**
+ * @brief Closes a remote connection.
+ *
+ * This function initiates the closing process for a remote connection. If the
+ * remote is already in the process of closing state, the function returns
+ * without taking any action. Otherwise, it sets the closing state and proceeds
+ * with the closing process.
+ *
+ * If the remote has an active connection that is not already closed, it will
+ * close the connection, which will eventually trigger `ten_remote_on_close()`
+ * when the connection is fully closed. If there is no connection or the
+ * connection is already closed, `ten_remote_on_close()` is called immediately.
+ *
+ * @param self Pointer to the remote instance to close.
+ */
 void ten_remote_close(ten_remote_t *self) {
-  TEN_ASSERT(self && ten_remote_check_integrity(self, true),
-             "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_remote_check_integrity(self, true), "Should not happen.");
 
-  if (self->is_closing) {
+  if (self->state == TEN_REMOTE_STATE_CLOSING) {
     return;
   }
 
   TEN_LOGD("Try to close remote (%s)", ten_string_get_raw_str(&self->uri));
 
-  self->is_closing = true;
+  self->state = TEN_REMOTE_STATE_CLOSING;
 
   if (self->connection &&
-      self->connection->state != TEN_CONNECTION_STATE_CLOSED) {
+      self->connection->state < TEN_CONNECTION_STATE_CLOSING) {
     ten_connection_close(self->connection);
   } else {
     // This remote could be closed directly.
@@ -260,7 +274,7 @@ bool ten_remote_send_msg(ten_remote_t *self, ten_shared_ptr_t *msg,
   TEN_ASSERT(self && ten_remote_check_integrity(self, true),
              "Should not happen.");
 
-  if (self->is_closing) {
+  if (self->state == TEN_REMOTE_STATE_CLOSING) {
     // The remote is closing, do not proceed to send this message to
     // 'connection'.
     if (err) {

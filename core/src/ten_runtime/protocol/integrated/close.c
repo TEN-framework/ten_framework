@@ -14,10 +14,24 @@
 #include "ten_utils/log/log.h"
 #include "ten_utils/macro/check.h"
 
-// The principle is very simple. As long as the integrated protocol still has
-// resources in hands, it cannot be closed, otherwise it can.
-static bool ten_protocol_integrated_could_be_close(
-    ten_protocol_integrated_t *self) {
+/**
+ * @brief Determines if an integrated protocol can be safely closed.
+ *
+ * This function checks if all resources associated with the protocol have been
+ * properly released. A protocol can only be closed when it no longer holds any
+ * active resources. The specific resources checked depend on the protocol's
+ * role:
+ *
+ * - For listening protocols: the listening transport must be released
+ * - For communication protocols: both the communication stream and any retry
+ *   timers must be released
+ *
+ * @param self The integrated protocol to check
+ * @return true if the protocol can be closed, false if it still has active
+ * resources
+ */
+static bool
+ten_protocol_integrated_could_be_close(ten_protocol_integrated_t *self) {
   TEN_ASSERT(self, "Should not happen.");
 
   ten_protocol_t *protocol = &self->base;
@@ -27,26 +41,26 @@ static bool ten_protocol_integrated_could_be_close(
 
   // Check resources according to different roles.
   switch (protocol->role) {
-    case TEN_PROTOCOL_ROLE_LISTEN:
-      if (self->role_facility.listening_transport) {
-        return false;
-      }
-      break;
-    case TEN_PROTOCOL_ROLE_IN_INTERNAL:
-    case TEN_PROTOCOL_ROLE_IN_EXTERNAL:
-    case TEN_PROTOCOL_ROLE_OUT_INTERNAL:
-    case TEN_PROTOCOL_ROLE_OUT_EXTERNAL:
-      if (self->role_facility.communication_stream) {
-        return false;
-      }
+  case TEN_PROTOCOL_ROLE_LISTEN:
+    if (self->role_facility.listening_transport) {
+      return false;
+    }
+    break;
+  case TEN_PROTOCOL_ROLE_IN_INTERNAL:
+  case TEN_PROTOCOL_ROLE_IN_EXTERNAL:
+  case TEN_PROTOCOL_ROLE_OUT_INTERNAL:
+  case TEN_PROTOCOL_ROLE_OUT_EXTERNAL:
+    if (self->role_facility.communication_stream) {
+      return false;
+    }
 
-      if (self->retry_timer) {
-        return false;
-      }
-      break;
-    default:
-      TEN_ASSERT(0, "Should not happen.");
-      break;
+    if (self->retry_timer) {
+      return false;
+    }
+    break;
+  default:
+    TEN_ASSERT(0, "Should not happen.");
+    break;
   }
 
   return true;
@@ -56,17 +70,18 @@ void ten_protocol_integrated_on_close(ten_protocol_integrated_t *self) {
   TEN_ASSERT(self, "Should not happen.");
 
   ten_protocol_t *protocol = &self->base;
-  TEN_ASSERT(protocol && ten_protocol_check_integrity(protocol, true),
+  TEN_ASSERT(protocol, "Should not happen.");
+  TEN_ASSERT(ten_protocol_check_integrity(protocol, true),
              "Should not happen.");
   TEN_ASSERT(protocol->role != TEN_PROTOCOL_ROLE_INVALID, "Should not happen.");
-  TEN_ASSERT(
-      ten_protocol_is_closing(protocol),
-      "As a principle, the protocol could only be closed from the ten world.");
+  TEN_ASSERT(protocol->state == TEN_PROTOCOL_STATE_CLOSING,
+             "Should not happen.");
 
   if (!ten_protocol_integrated_could_be_close(self)) {
     TEN_LOGD("Could not close alive integrated protocol.");
     return;
   }
+
   TEN_LOGD("Close integrated protocol.");
 
   ten_protocol_on_close(&self->base);
@@ -84,7 +99,7 @@ void ten_protocol_integrated_on_stream_closed(ten_protocol_integrated_t *self) {
   // Remember that this resource is closed.
   self->role_facility.communication_stream = NULL;
 
-  if (ten_protocol_is_closing(protocol)) {
+  if (protocol->state == TEN_PROTOCOL_STATE_CLOSING) {
     ten_protocol_integrated_on_close(self);
   }
 }
@@ -101,68 +116,74 @@ void ten_protocol_integrated_on_transport_closed(
   // Remember that this resource is closed.
   self->role_facility.listening_transport = NULL;
 
-  if (ten_protocol_is_closing(protocol)) {
+  if (protocol->state == TEN_PROTOCOL_STATE_CLOSING) {
     ten_protocol_integrated_on_close(self);
   }
 }
 
-// Closing flow is as follows.
-//
-// - Stage 1 : 'Need to close' notification stage
-//
-//   TEN world -> (notify) -> base protocol -> (notify) -> integrated protocol
-//
-// - Stage 2 : 'I cam closed' notification stage
-//
-//                                 <- (I am closed) <- integrated protocol
-//        <- (I am closed) <- base protocol
-//   TEN world
-//
-// The following function is for the stage 1, and the above
-// 'ten_protocol_integrated_on_xxx_closed' functions are for the stage 2.
+/**
+ * @brief Protocol closing process flow.
+ *
+ * The protocol closing process happens in two stages:
+ *
+ * Stage 1: Initiating the close (top-down)
+ *   - TEN runtime notifies the base protocol to close.
+ *   - Base protocol notifies the integrated protocol to close.
+ *   - Each layer begins shutting down its resources.
+ *
+ * Stage 2: Confirming closure (bottom-up)
+ *   - Integrated protocol notifies base protocol when its resources are closed.
+ *   - Base protocol notifies TEN runtime when it's fully closed.
+ *   - TEN runtime can then proceed with any dependent cleanup.
+ *
+ * The function below (ten_protocol_integrated_close) implements Stage 1,
+ * while the functions above (ten_protocol_integrated_on_close) implement the
+ * callbacks for Stage 2.
+ */
 void ten_protocol_integrated_close(ten_protocol_integrated_t *self) {
   TEN_ASSERT(self, "Should not happen.");
 
-  ten_protocol_t *protocol = &self->base;
-  TEN_ASSERT(protocol && ten_protocol_check_integrity(protocol, true),
+  ten_protocol_t *base_protocol = &self->base;
+  TEN_ASSERT(base_protocol, "Should not happen.");
+  TEN_ASSERT(ten_protocol_check_integrity(base_protocol, true),
+             "Should not happen.");
+  TEN_ASSERT(base_protocol->state == TEN_PROTOCOL_STATE_CLOSING,
              "Should not happen.");
 
-  bool perform_any_closing_operation = false;
+  bool has_pending_close_operations = false;
 
-  switch (protocol->role) {
-    case TEN_PROTOCOL_ROLE_LISTEN:
-      if (self->role_facility.listening_transport) {
-        ten_transport_close(self->role_facility.listening_transport);
-        perform_any_closing_operation = true;
-      }
-      break;
+  switch (base_protocol->role) {
+  case TEN_PROTOCOL_ROLE_LISTEN:
+    if (self->role_facility.listening_transport) {
+      ten_transport_close(self->role_facility.listening_transport);
+      has_pending_close_operations = true;
+    }
+    break;
 
-    case TEN_PROTOCOL_ROLE_IN_INTERNAL:
-    case TEN_PROTOCOL_ROLE_IN_EXTERNAL:
-    case TEN_PROTOCOL_ROLE_OUT_INTERNAL:
-    case TEN_PROTOCOL_ROLE_OUT_EXTERNAL:
-      if (self->role_facility.communication_stream) {
-        ten_stream_close(self->role_facility.communication_stream);
-        perform_any_closing_operation = true;
-      }
+  case TEN_PROTOCOL_ROLE_IN_INTERNAL:
+  case TEN_PROTOCOL_ROLE_IN_EXTERNAL:
+  case TEN_PROTOCOL_ROLE_OUT_INTERNAL:
+  case TEN_PROTOCOL_ROLE_OUT_EXTERNAL:
+    if (self->role_facility.communication_stream) {
+      ten_stream_close(self->role_facility.communication_stream);
+      has_pending_close_operations = true;
+    }
 
-      if (self->retry_timer) {
-        ten_timer_stop_async(self->retry_timer);
-        ten_timer_close_async(self->retry_timer);
-        perform_any_closing_operation = true;
-      }
-      break;
+    if (self->retry_timer) {
+      ten_timer_stop_async(self->retry_timer);
+      ten_timer_close_async(self->retry_timer);
+      has_pending_close_operations = true;
+    }
+    break;
 
-    default:
-      TEN_ASSERT(0, "Should not happen.");
-      break;
+  default:
+    TEN_ASSERT(0, "Should not happen.");
+    break;
   }
 
-  if (!perform_any_closing_operation) {
+  if (!has_pending_close_operations) {
     // If there is no any further closing operations submitted, it means the
     // integrated protocol could proceed its closing flow.
-    if (ten_protocol_is_closing(protocol)) {
-      ten_protocol_integrated_on_close(self);
-    }
+    ten_protocol_integrated_on_close(self);
   }
 }
