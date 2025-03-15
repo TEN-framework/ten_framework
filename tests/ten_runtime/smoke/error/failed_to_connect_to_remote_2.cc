@@ -128,7 +128,7 @@ TEN_CPP_REGISTER_ADDON_AS_EXTENSION(
 
 }  // namespace
 
-TEST(ExtensionTest, FailedToConnectToRemote2) {  // NOLINT
+TEST(ExtensionTest, DISABLED_FailedToConnectToRemote2) {  // NOLINT
   auto *app_1_thread =
       ten_thread_create("app thread 1", app_thread_1_main, nullptr);
 

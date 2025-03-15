@@ -5,6 +5,9 @@ __pycache__/
 # Python venv
 .python_venv/*
 
+# pytest cache
+.pytest_cache
+
 # macOS trush files
 .DS_Store
 
