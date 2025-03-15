@@ -17,6 +17,7 @@
 #include "ten_utils/io/runloop.h"
 #include "ten_utils/lib/event.h"
 #include "ten_utils/lib/mutex.h"
+#include "ten_utils/lib/ref.h"
 #include "ten_utils/lib/signature.h"
 #include "ten_utils/lib/smart_ptr.h"
 #include "ten_utils/lib/string.h"
@@ -35,6 +36,7 @@ struct ten_engine_t {
   ten_signature_t signature;
   ten_sanitizer_thread_check_t thread_check;
 
+  ten_ref_t ref;
   bool is_closing;
 
   ten_engine_on_closed_func_t on_closed;
@@ -104,8 +106,6 @@ TEN_RUNTIME_PRIVATE_API bool ten_engine_check_integrity(ten_engine_t *self,
 
 TEN_RUNTIME_PRIVATE_API ten_engine_t *ten_engine_create(ten_app_t *app,
                                                         ten_shared_ptr_t *cmd);
-
-TEN_RUNTIME_PRIVATE_API void ten_engine_destroy(ten_engine_t *self);
 
 TEN_RUNTIME_PRIVATE_API ten_runloop_t *ten_engine_get_attached_runloop(
     ten_engine_t *self);

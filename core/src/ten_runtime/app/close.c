@@ -162,9 +162,11 @@ void ten_app_check_termination_when_engine_closed(ten_app_t *self,
 
   ten_app_del_engine(self, engine);
 
-  // In the case of the engine has its own thread, the engine thread has already
-  // been reclaimed now, so it's safe to destroy the engine object here.
-  ten_engine_destroy(engine);
+  // At this point, if the engine had its own thread, that thread has already
+  // been reclaimed (joined). For engines without their own thread, they share
+  // the app's thread. In either case, it's now safe to destroy the engine
+  // object by decrementing its reference count.
+  ten_ref_dec_ref(&engine->ref);
 
   if (self->long_running_mode) {
     TEN_LOGD("[%s] Don't close App due to it's in long running mode.",

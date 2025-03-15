@@ -103,8 +103,8 @@ static void ten_engine_close_sync(ten_engine_t *self) {
  * the actual engine closing operation. It ensures the engine is closed
  * in a separate execution context from where the close was requested.
  *
- * @param engine_ Pointer to the engine to be closed (as void*)
- * @param arg Unused argument (required by task function signature)
+ * @param engine_ Pointer to the engine to be closed (as void*).
+ * @param arg Unused argument (required by task function signature).
  */
 static void ten_engine_close_task(void *engine_, TEN_UNUSED void *arg) {
   ten_engine_t *engine = (ten_engine_t *)engine_;
@@ -112,10 +112,14 @@ static void ten_engine_close_task(void *engine_, TEN_UNUSED void *arg) {
              "Invalid argument.");
 
   if (engine->is_closing) {
-    return;
+    TEN_LOGD("Engine is already closing, do not close again.");
+    goto done;
   }
 
   ten_engine_close_sync(engine);
+
+done:
+  ten_ref_dec_ref(&engine->ref);
 }
 
 /**
@@ -163,6 +167,8 @@ void ten_engine_close_async(ten_engine_t *self) {
                  // different threads.
                  ten_engine_check_integrity(self, false),
              "Should not happen.");
+
+  ten_ref_inc_ref(&self->ref);
 
   int rc = ten_runloop_post_task_tail(ten_engine_get_attached_runloop(self),
                                       ten_engine_close_task, self, NULL);

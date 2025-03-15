@@ -47,7 +47,7 @@ bool ten_engine_check_integrity(ten_engine_t *self, bool check_thread) {
   return true;
 }
 
-void ten_engine_destroy(ten_engine_t *self) {
+static void ten_engine_destroy(ten_engine_t *self) {
   TEN_ASSERT(
       self &&
           // TEN_NOLINTNEXTLINE(thread-check)
@@ -99,6 +99,8 @@ void ten_engine_destroy(ten_engine_t *self) {
   ten_path_table_destroy(self->path_table);
 
   ten_sanitizer_thread_check_deinit(&self->thread_check);
+
+  ten_ref_deinit(&self->ref);
 
   TEN_FREE(self);
 }
@@ -159,6 +161,14 @@ bool ten_engine_is_ready_to_handle_msg(ten_engine_t *self) {
   return self->is_ready_to_handle_msg;
 }
 
+static void ten_engine_on_end_of_life(ten_ref_t *ref, void *supervisee) {
+  ten_engine_t *self = (ten_engine_t *)supervisee;
+  TEN_ASSERT(self && ten_engine_check_integrity(self, false),
+             "Should not happen.");
+
+  ten_engine_destroy(self);
+}
+
 ten_engine_t *ten_engine_create(ten_app_t *app, ten_shared_ptr_t *cmd) {
   TEN_ASSERT(app && ten_app_check_integrity(app, true) && cmd &&
                  ten_cmd_base_check_integrity(cmd),
@@ -172,6 +182,7 @@ ten_engine_t *ten_engine_create(ten_app_t *app, ten_shared_ptr_t *cmd) {
   ten_signature_set(&self->signature, (ten_signature_t)TEN_ENGINE_SIGNATURE);
   ten_sanitizer_thread_check_init_with_current_thread(&self->thread_check);
 
+  ten_ref_init(&self->ref, self, ten_engine_on_end_of_life);
   self->is_closing = false;
   self->on_closed = NULL;
   self->on_closed_data = NULL;
