@@ -7,7 +7,7 @@
 import { test, expect } from "@playwright/test";
 
 const BASE_URL = process.env.CI
-  ? "http://0.0.0.0:49483"
+  ? "http://127.0.0.1:49483"
   : "http://127.0.0.1:4173";
 
 console.log(`Using base URL: ${BASE_URL}`);
