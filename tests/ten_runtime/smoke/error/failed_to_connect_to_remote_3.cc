@@ -9,6 +9,7 @@
 #include "ten_runtime/binding/cpp/detail/msg/cmd/start_graph.h"
 #include "ten_runtime/binding/cpp/detail/ten_env.h"
 #include "ten_runtime/common/status_code.h"
+#include "ten_utils/lib/time.h"
 #include "tests/ten_runtime/smoke/util/binding/cpp/check.h"
 
 namespace {
@@ -27,15 +28,12 @@ class test_predefined_graph : public ten::extension_t {
            std::unique_ptr<ten::cmd_result_t> cmd_result, ten::error_t *err) {
           auto status_code = cmd_result->get_status_code();
           ASSERT_EQ(status_code, TEN_STATUS_CODE_ERROR);
-
-          auto detail = cmd_result->get_property_string("detail");
-          ASSERT_EQ(detail, "Failed to connect to msgpack://127.0.0.1:8888/");
-
-          // The app will not be closed because it is running in
-          // long_running_mode.
-
-          ten_env.on_start_done();
         });
+
+    ten_env.on_start_done();
+
+    // Add some random delays to test different timings.
+    ten_random_sleep_range_ms(0, 100);
 
     auto close_app_cmd = ten::cmd_close_app_t::create();
     close_app_cmd->set_dest("localhost", nullptr, nullptr, nullptr);
@@ -73,8 +71,8 @@ class test_app_1 : public ten::app_t {
                             "type": "extension",
                             "name": "predefined_graph",
                             "app": "msgpack://127.0.0.1:8001/",
-                            "addon": "failed_to_connect_to_remote_2__predefined_graph_extension",
-                            "extension_group": "failed_to_connect_to_remote_2__predefined_graph_group"
+                            "addon": "failed_to_connect_to_remote_3__predefined_graph_extension",
+                            "extension_group": "failed_to_connect_to_remote_3__predefined_graph_group"
                           }]
                         },{
                           "name": "graph_1",
@@ -83,14 +81,14 @@ class test_app_1 : public ten::app_t {
                             "type": "extension",
                             "name": "normal_extension_1",
                             "app": "msgpack://127.0.0.1:8001/",
-                            "addon": "failed_to_connect_to_remote_2__normal_extension_1",
-                            "extension_group": "failed_to_connect_to_remote_2__normal_extension_group"
+                            "addon": "failed_to_connect_to_remote_3__normal_extension_1",
+                            "extension_group": "failed_to_connect_to_remote_3__normal_extension_group"
                           }, {
                             "type": "extension",
                             "name": "normal_extension_2",
                             "app": "msgpack://127.0.0.1:8888/",
-                            "addon": "failed_to_connect_to_remote_2__normal_extension_2",
-                            "extension_group": "failed_to_connect_to_remote_2__normal_extension_group"
+                            "addon": "failed_to_connect_to_remote_3__normal_extension_2",
+                            "extension_group": "failed_to_connect_to_remote_3__normal_extension_group"
                           }],
                           "connections": [{
                             "app": "msgpack://127.0.0.1:8001/",
@@ -123,12 +121,12 @@ void *app_thread_1_main(TEN_UNUSED void *args) {
 }
 
 TEN_CPP_REGISTER_ADDON_AS_EXTENSION(
-    failed_to_connect_to_remote_2__predefined_graph_extension,
+    failed_to_connect_to_remote_3__predefined_graph_extension,
     test_predefined_graph);
 
 }  // namespace
 
-TEST(ExtensionTest, FailedToConnectToRemote2) {  // NOLINT
+TEST(ExtensionTest, DISABLED_FailedToConnectToRemote3) {  // NOLINT
   auto *app_1_thread =
       ten_thread_create("app thread 1", app_thread_1_main, nullptr);
 

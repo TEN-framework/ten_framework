@@ -9,6 +9,7 @@
 #include <stdbool.h>
 
 #include "include_internal/ten_runtime/app/app.h"
+#include "include_internal/ten_runtime/common/constant_str.h"
 #include "include_internal/ten_runtime/common/loc.h"
 #include "include_internal/ten_runtime/engine/engine.h"
 #include "include_internal/ten_runtime/engine/internal/remote_interface.h"
@@ -40,7 +41,7 @@ bool ten_engine_enable_extension_system(ten_engine_t *self, ten_error_t *err) {
                  ten_msg_check_integrity(original_start_graph_cmd),
              "Should not happen.");
 
-  if (ten_engine_is_closing(self)) {
+  if (self->is_closing) {
     TEN_LOGE("Engine is closing, do not enable extension system.");
 
     ten_engine_return_error_for_cmd_start_graph(
@@ -154,7 +155,7 @@ static void ten_engine_on_all_extension_threads_are_ready(
 
       cmd_result = ten_cmd_result_create_from_cmd(TEN_STATUS_CODE_OK,
                                                   original_start_graph_cmd);
-      ten_msg_set_property(cmd_result, "detail",
+      ten_msg_set_property(cmd_result, TEN_STR_DETAIL,
                            ten_value_create_string(body_str), NULL);
 
       // Mark the engine that it could start to handle messages.

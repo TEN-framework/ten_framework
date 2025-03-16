@@ -12,6 +12,7 @@
 #include "include_internal/ten_runtime/app/metadata.h"
 #include "include_internal/ten_runtime/app/msg_interface/start_graph.h"
 #include "include_internal/ten_runtime/app/predefined_graph.h"
+#include "include_internal/ten_runtime/common/constant_str.h"
 #include "include_internal/ten_runtime/common/loc.h"
 #include "include_internal/ten_runtime/connection/connection.h"
 #include "include_internal/ten_runtime/connection/migration.h"
@@ -119,7 +120,7 @@ static bool ten_app_handle_msg_default_handler(ten_app_t *self,
 
     ten_shared_ptr_t *resp =
         ten_cmd_result_create_from_cmd(TEN_STATUS_CODE_ERROR, msg);
-    ten_msg_set_property(resp, "detail",
+    ten_msg_set_property(resp, TEN_STR_DETAIL,
                          ten_value_create_string("Graph not found."), NULL);
     ten_msg_clear_and_set_dest_from_msg_src(resp, msg);
 
@@ -276,36 +277,50 @@ static bool ten_app_handle_stop_graph_cmd(ten_app_t *self,
 }
 
 /**
- * @return true if this function handles @param cmd, false otherwise.
+ * @brief Handles a cmd_result received by the app.
+ *
+ * @param self The app instance.
+ * @param cmd_result The cmd_result to handle.
+ * @param err Error information.
+ *
+ * @return true Always returns true to indicate the message was handled.
  */
 static bool ten_app_handle_cmd_result(ten_app_t *self,
                                       ten_shared_ptr_t *cmd_result,
                                       TEN_UNUSED ten_error_t *err) {
-  TEN_ASSERT(self && ten_app_check_integrity(self, true), "Should not happen.");
-  TEN_ASSERT(cmd_result && ten_cmd_base_check_integrity(cmd_result),
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_app_check_integrity(self, true), "Should not happen.");
+  TEN_ASSERT(cmd_result, "Should not happen.");
+  TEN_ASSERT(ten_cmd_base_check_integrity(cmd_result), "Should not happen.");
+  TEN_ASSERT(ten_msg_get_type(cmd_result) == TEN_MSG_TYPE_CMD_RESULT,
              "Should not happen.");
-  TEN_ASSERT(ten_msg_get_type(cmd_result) == TEN_MSG_TYPE_CMD_RESULT &&
-                 ten_msg_get_dest_cnt(cmd_result) == 1,
-             "Should not happen.");
+  TEN_ASSERT(ten_msg_get_dest_cnt(cmd_result) == 1, "Should not happen.");
 
   bool delete_msg = false;
   ten_shared_ptr_t *processed_cmd_result = NULL;
 
+  // Process the command result through the path table to handle multi-step
+  // operations.
   bool proceed = ten_path_table_process_cmd_result(
       self->path_table, TEN_PATH_OUT, cmd_result, &processed_cmd_result);
   if (!proceed) {
+    // The path is not complete yet (e.g., during 'start_graph' flow).
     TEN_LOGD(
         "The 'start_graph' flow is not completed, skip the cmd_result now.");
     return true;
   }
 
+  // If path table returned a different message, use it and mark original for
+  // deletion.
   if (cmd_result != processed_cmd_result) {
     cmd_result = processed_cmd_result;
     delete_msg = true;
   }
 
+  // Extract the raw command result to access its handler.
   ten_cmd_base_t *raw_cmd_result = ten_cmd_base_get_raw_cmd_base(cmd_result);
 
+  // Call the registered result handler if one exists.
   ten_env_transfer_msg_result_handler_func_t result_handler =
       ten_raw_cmd_base_get_result_handler(raw_cmd_result);
   if (result_handler) {
@@ -314,6 +329,7 @@ static bool ten_app_handle_cmd_result(ten_app_t *self,
                    NULL);
   }
 
+  // Clean up the processed message if needed.
   if (delete_msg) {
     ten_shared_ptr_destroy(cmd_result);
   }
@@ -504,8 +520,8 @@ void ten_app_create_cmd_result_and_dispatch(ten_app_t *self,
       ten_cmd_result_create_from_cmd(status_code, origin_cmd);
 
   if (detail) {
-    ten_msg_set_property(cmd_result, "detail", ten_value_create_string(detail),
-                         NULL);
+    ten_msg_set_property(cmd_result, TEN_STR_DETAIL,
+                         ten_value_create_string(detail), NULL);
   }
 
   ten_app_push_to_in_msgs_queue(self, cmd_result);

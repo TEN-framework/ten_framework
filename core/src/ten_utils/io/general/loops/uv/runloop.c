@@ -42,17 +42,28 @@ typedef struct ten_runloop_uv_t {
   uv_async_t migrate_start_async;
 } ten_runloop_uv_t;
 
+typedef enum TEN_RUNLOOP_ASYNC_UV_STATE {
+  TEN_RUNLOOP_ASYNC_UV_STATE_INIT,
+  TEN_RUNLOOP_ASYNC_UV_STATE_CLOSING,
+  TEN_RUNLOOP_ASYNC_UV_STATE_CLOSED,
+} TEN_RUNLOOP_ASYNC_UV_STATE;
+
 typedef struct ten_runloop_async_uv_t {
   ten_runloop_async_common_t common;
+
+  TEN_RUNLOOP_ASYNC_UV_STATE state;
   uv_async_t uv_async;
+
   void (*notify_callback)(ten_runloop_async_t *);
   void (*close_callback)(ten_runloop_async_t *);
 } ten_runloop_async_uv_t;
 
 typedef struct ten_runloop_timer_uv_t {
   ten_runloop_timer_common_t common;
+
   uv_timer_t uv_timer;
   bool initted;
+
   void (*notify_callback)(ten_runloop_timer_t *, void *);
   void (*stop_callback)(ten_runloop_timer_t *, void *);
   void (*close_callback)(ten_runloop_timer_t *, void *);
@@ -184,8 +195,8 @@ static void ten_runloop_create_uv_migration_resource(ten_runloop_uv_t *impl) {
 static ten_runloop_common_t *ten_runloop_create_uv_common(void *raw) {
   ten_runloop_uv_t *impl =
       (ten_runloop_uv_t *)TEN_MALLOC(sizeof(ten_runloop_uv_t));
-  TEN_ASSERT(impl, "Failed to allocate memory.");
   if (!impl) {
+    TEN_ASSERT(0, "Failed to allocate memory.");
     return NULL;
   }
 
@@ -224,12 +235,14 @@ ten_runloop_common_t *ten_runloop_attach_uv(void *raw) {
 ten_runloop_async_common_t *ten_runloop_async_create_uv(void) {
   ten_runloop_async_uv_t *impl =
       (ten_runloop_async_uv_t *)TEN_MALLOC(sizeof(ten_runloop_async_uv_t));
-  TEN_ASSERT(impl, "Failed to allocate memory.");
   if (!impl) {
+    TEN_ASSERT(0, "Failed to allocate memory.");
     return NULL;
   }
 
   memset(impl, 0, sizeof(ten_runloop_async_uv_t));
+
+  impl->state = TEN_RUNLOOP_ASYNC_UV_STATE_INIT;
 
   impl->common.base.impl = ten_strdup(TEN_RUNLOOP_UV);
   impl->common.init = ten_runloop_async_uv_init;
@@ -353,13 +366,15 @@ static int ten_runloop_uv_alive(ten_runloop_t *loop) {
 }
 
 static void uv_async_callback(uv_async_t *async) {
+  if (!async) {
+    TEN_ASSERT(0, "Invalid argument.");
+    return;
+  }
+
   ten_runloop_async_uv_t *async_impl =
       (ten_runloop_async_uv_t *)CONTAINER_OF_FROM_FIELD(
           async, ten_runloop_async_uv_t, uv_async);
-
-  if (!async) {
-    return;
-  }
+  TEN_ASSERT(async_impl, "Invalid argument.");
 
   if (async_impl->notify_callback) {
     async_impl->notify_callback(&async_impl->common.base);
@@ -394,12 +409,17 @@ ten_runloop_async_uv_init(ten_runloop_async_t *base, ten_runloop_t *loop,
 }
 
 static void uv_async_closed(uv_handle_t *handle) {
+  if (!handle) {
+    TEN_ASSERT(0, "Invalid argument.");
+    return;
+  }
+
   ten_runloop_async_uv_t *async_impl =
       (ten_runloop_async_uv_t *)CONTAINER_OF_FROM_FIELD(
           handle, ten_runloop_async_uv_t, uv_async);
-  if (!handle) {
-    return;
-  }
+  TEN_ASSERT(async_impl, "Invalid argument.");
+
+  async_impl->state = TEN_RUNLOOP_ASYNC_UV_STATE_CLOSED;
 
   if (!async_impl->close_callback) {
     return;
@@ -412,28 +432,42 @@ static void uv_async_closed(uv_handle_t *handle) {
 static void
 ten_runloop_async_uv_close(ten_runloop_async_t *base,
                            void (*close_cb)(ten_runloop_async_t *)) {
-  ten_runloop_async_uv_t *async_impl = (ten_runloop_async_uv_t *)base;
-
-  if (!base || strcmp(base->impl, TEN_RUNLOOP_UV) != 0) {
+  if (!base) {
+    TEN_ASSERT(0, "Invalid argument.");
     return;
   }
 
-  TEN_ASSERT(base && ten_runloop_async_check_integrity(base, true),
+  if (strcmp(base->impl, TEN_RUNLOOP_UV) != 0) {
+    TEN_ASSERT(0, "Invalid argument.");
+    return;
+  }
+
+  TEN_ASSERT(ten_runloop_async_check_integrity(base, true),
              "Invalid argument.");
 
+  ten_runloop_async_uv_t *async_impl = (ten_runloop_async_uv_t *)base;
+
   async_impl->close_callback = close_cb;
+  async_impl->state = TEN_RUNLOOP_ASYNC_UV_STATE_CLOSING;
+
   uv_close((uv_handle_t *)&async_impl->uv_async, uv_async_closed);
 }
 
 static void ten_runloop_async_uv_destroy(ten_runloop_async_t *base) {
-  ten_runloop_async_uv_t *async_impl = (ten_runloop_async_uv_t *)base;
-
-  if (!base || strcmp(base->impl, TEN_RUNLOOP_UV) != 0) {
+  if (!base) {
+    TEN_ASSERT(0, "Invalid argument.");
     return;
   }
 
-  TEN_ASSERT(base && ten_runloop_async_check_integrity(base, true),
+  if (strcmp(base->impl, TEN_RUNLOOP_UV) != 0) {
+    TEN_ASSERT(0, "Invalid argument.");
+    return;
+  }
+
+  TEN_ASSERT(ten_runloop_async_check_integrity(base, true),
              "Invalid argument.");
+
+  ten_runloop_async_uv_t *async_impl = (ten_runloop_async_uv_t *)base;
 
   ten_sanitizer_thread_check_deinit(&base->thread_check);
 
@@ -447,6 +481,7 @@ static void ten_runloop_async_uv_destroy(ten_runloop_async_t *base) {
 
   TEN_FREE(async_impl->common.base.impl);
 
+  async_impl->state = TEN_RUNLOOP_ASYNC_UV_STATE_INIT;
   async_impl->notify_callback = NULL;
   async_impl->close_callback = NULL;
 
@@ -454,18 +489,28 @@ static void ten_runloop_async_uv_destroy(ten_runloop_async_t *base) {
 }
 
 static int ten_runloop_async_uv_notify(ten_runloop_async_t *base) {
-  ten_runloop_async_uv_t *async_impl = (ten_runloop_async_uv_t *)base;
-
-  if (!base || strcmp(base->impl, TEN_RUNLOOP_UV) != 0) {
+  if (!base) {
+    TEN_ASSERT(0, "Invalid argument.");
     return -1;
   }
 
-  TEN_ASSERT(base &&
-                 // TEN_NOLINTNEXTLINE(thread-check)
-                 // thread-check: This function is intended to be called in any
-                 // threads.
-                 ten_runloop_async_check_integrity(base, false),
-             "Invalid argument.");
+  if (strcmp(base->impl, TEN_RUNLOOP_UV) != 0) {
+    TEN_ASSERT(0, "Invalid argument.");
+    return -1;
+  }
+
+  TEN_ASSERT(
+      // TEN_NOLINTNEXTLINE(thread-check)
+      // thread-check: This function is intended to be called in any
+      // threads.
+      ten_runloop_async_check_integrity(base, false), "Invalid argument.");
+
+  ten_runloop_async_uv_t *async_impl = (ten_runloop_async_uv_t *)base;
+
+  if (async_impl->state >= TEN_RUNLOOP_ASYNC_UV_STATE_CLOSING) {
+    TEN_ASSERT(0, "The async is closing.");
+    return -1;
+  }
 
   int rc = uv_async_send(&async_impl->uv_async);
   TEN_ASSERT(!rc, "uv_async_send() failed: %d", rc);
@@ -474,13 +519,15 @@ static int ten_runloop_async_uv_notify(ten_runloop_async_t *base) {
 }
 
 static void uv_timer_callback(uv_timer_t *handle) {
+  if (!handle) {
+    TEN_ASSERT(0, "Invalid argument.");
+    return;
+  }
+
   ten_runloop_timer_uv_t *timer_impl =
       (ten_runloop_timer_uv_t *)CONTAINER_OF_FROM_FIELD(
           handle, ten_runloop_timer_uv_t, uv_timer);
-
-  if (!handle) {
-    return;
-  }
+  TEN_ASSERT(timer_impl, "Invalid argument.");
 
   if (timer_impl->notify_callback) {
     timer_impl->notify_callback(&timer_impl->common.base,
@@ -525,12 +572,15 @@ static int ten_runloop_timer_uv_start(
 }
 
 static void uv_timer_closed(uv_handle_t *handle) {
+  if (!handle) {
+    TEN_ASSERT(0, "Invalid argument.");
+    return;
+  }
+
   ten_runloop_timer_uv_t *timer_impl =
       (ten_runloop_timer_uv_t *)CONTAINER_OF_FROM_FIELD(
           handle, ten_runloop_timer_uv_t, uv_timer);
-  if (!handle) {
-    return;
-  }
+  TEN_ASSERT(timer_impl, "Invalid argument.");
 
   if (!timer_impl->close_callback) {
     return;
@@ -579,6 +629,7 @@ static void ten_runloop_timer_uv_close(ten_runloop_timer_t *base,
              "Invalid argument.");
 
   timer_impl->close_callback = close_cb;
+
   uv_close((uv_handle_t *)&timer_impl->uv_timer, uv_timer_closed);
 }
 
@@ -609,6 +660,7 @@ ten_runloop_timer_common_t *ten_runloop_timer_create_uv(void) {
   memset(impl, 0, sizeof(ten_runloop_timer_uv_t));
 
   impl->initted = false;
+
   impl->common.base.impl = ten_strdup(TEN_RUNLOOP_UV);
   impl->common.start = ten_runloop_timer_uv_start;
   impl->common.stop = ten_runloop_timer_uv_stop;

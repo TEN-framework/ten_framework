@@ -10,6 +10,7 @@
 
 #include "include_internal/ten_runtime/addon/protocol/protocol.h"
 #include "include_internal/ten_runtime/app/app.h"
+#include "include_internal/ten_runtime/common/constant_str.h"
 #include "include_internal/ten_runtime/connection/connection.h"
 #include "include_internal/ten_runtime/connection/migration.h"
 #include "include_internal/ten_runtime/engine/engine.h"
@@ -107,6 +108,20 @@ static void ten_engine_on_protocol_created_ctx_destroy(
   TEN_FREE(self);
 }
 
+/**
+ * @brief Callback function invoked when a remote connection is closed.
+ *
+ * This function handles the cleanup process when a remote connection is closed.
+ * It determines whether the remote is a weak reference or a normal remote,
+ * and performs the appropriate cleanup actions:
+ * - For weak remotes: Removes from the `weak_remotes` list and destroys the
+ *   remote.
+ * - For normal remotes: Removes from the `remotes` hashtable if found.
+ *
+ * @param remote The remote instance that has been closed.
+ * @param on_closed_data Callback data, which should be a pointer to the engine
+ * instance.
+ */
 void ten_engine_on_remote_closed(ten_remote_t *remote, void *on_closed_data) {
   TEN_ASSERT(remote && on_closed_data, "Should not happen.");
 
@@ -115,55 +130,69 @@ void ten_engine_on_remote_closed(ten_remote_t *remote, void *on_closed_data) {
   TEN_ASSERT(ten_engine_check_integrity(self, true),
              "Invalid use of engine %p.", self);
 
+  // Verify that there's at most one weak remote with this URI. This is
+  // important for proper cleanup and preventing memory leaks.
   TEN_ASSERT(ten_engine_weak_remotes_cnt_in_specified_uri(
                  self, ten_string_get_raw_str(&remote->uri)) <= 1,
              "There should be at most 1 weak remote of the specified uri.");
 
+  // First, try to remove the remote from the weak_remotes list.
   bool is_weak = ten_engine_del_weak_remote(self, remote);
   if (is_weak) {
-    // The closing of a weak remote is a normal case which should not trigger
-    // the closing of the engine. Therefore, we just destroy the remote.
+    // If it was a weak remote, simply destroy it. Weak remotes are temporary
+    // and their closure doesn't affect engine state.
     ten_remote_destroy(remote);
   } else {
+    // If not a weak remote, check if it's in the normal remotes hashtable.
     bool found_in_remotes = false;
 
-    ten_hashhandle_t *connected_remote_hh = ten_hashtable_find_string(
+    // Look up the remote in the remotes hashtable by its URI.
+    ten_hashhandle_t *strong_remote_hh = ten_hashtable_find_string(
         &self->remotes, ten_string_get_raw_str(&remote->uri));
-    if (connected_remote_hh) {
-      ten_remote_t *connected_remote = CONTAINER_OF_FROM_FIELD(
-          connected_remote_hh, ten_remote_t, hh_in_remote_table);
-      TEN_ASSERT(connected_remote, "Invalid argument.");
-      TEN_ASSERT(ten_remote_check_integrity(connected_remote, true),
-                 "Invalid use of remote %p.", connected_remote);
+    if (strong_remote_hh) {
+      ten_remote_t *strong_remote = CONTAINER_OF_FROM_FIELD(
+          strong_remote_hh, ten_remote_t, hh_in_remote_table);
+      TEN_ASSERT(strong_remote, "Invalid argument.");
+      TEN_ASSERT(ten_remote_check_integrity(strong_remote, true),
+                 "Invalid use of remote %p.", strong_remote);
 
-      if (connected_remote == remote) {
+      if (strong_remote == remote) {
+        // Found the exact remote instance in the remotes hashtable.
         found_in_remotes = true;
 
-        // The remote is in the 'remotes' list, we just remove it.
-        ten_hashtable_del(&self->remotes, connected_remote_hh);
+        // Remove it from the hashtable (this doesn't destroy the remote yet).
+        ten_hashtable_del(&self->remotes, strong_remote_hh);
       } else {
-        // Search the engine's remotes using the URI and find that there is
-        // already another remote instance present. This situation can occur in
-        // the case of a duplicated remote.
+        // A different remote instance with the same URI exists in the
+        // hashtable. This can happen with duplicate remotes, where one is being
+        // closed but another with the same URI remains active.
       }
     }
 
     if (!found_in_remotes) {
       TEN_LOGI("The remote %p is not found in the 'remotes' list.", remote);
 
-      // The remote is not in the 'remotes' list, we just destroy it.
+      // If the remote wasn't in either list, just destroy it directly. This can
+      // happen in edge cases during cleanup or error handling.
       ten_remote_destroy(remote);
       return;
     }
   }
 
-  if (ten_engine_is_closing(self)) {
-    // Proceed to close the engine.
+  // Handle engine lifecycle based on remote closure.
+  if (self->is_closing) {
+    // If the engine is already in closing state, continue its closure process.
+    // This remote's closure might be the last step needed before engine
+    // shutdown.
     ten_engine_on_close(self);
   } else {
     if (!is_weak && !self->long_running_mode) {
-      // The closing of any remote would trigger the closing of the engine. If
-      // we don't want this behavior, comment out the following line.
+      // In normal mode (not long-running), closing any non-weak remote triggers
+      // engine shutdown. This is the default behavior for short-lived engine
+      // instances.
+      //
+      // Note: If this behavior is not desired, this line can be commented out
+      // to allow the engine to continue running after remote closures.
       ten_engine_close_async(self);
     }
   }
@@ -262,8 +291,11 @@ void ten_engine_link_orphan_connection_to_remote(
 
   ten_engine_del_orphan_connection(self, orphan_connection);
 
-  // Since the connection is already connected to the remote, the remote also
-  // needs to be triggered to close when the connection is closed.
+  // Register the remote as the callback handler when the connection closes.
+  // This ensures that when the connection is closed (either normally or due to
+  // errors), the remote will be notified via
+  // `ten_remote_on_connection_closed()` and can properly clean up its resources
+  // and update its state.
   ten_connection_set_on_closed(orphan_connection,
                                ten_remote_on_connection_closed, remote);
 }
@@ -295,8 +327,13 @@ static void ten_engine_on_remote_protocol_created(ten_env_t *ten_env,
       ten_string_get_raw_str(&protocol->uri), self, connection);
   TEN_ASSERT(remote, "Should not happen.");
 
-  // Since the connection is already connected to the remote, the remote also
-  // needs to be triggered to close when the connection is closed.
+  // Register the remote as the callback handler when the connection closes.
+  // This ensures that when the connection is closed (either normally or due to
+  // errors), the remote will be notified via
+  // `ten_remote_on_connection_closed()` and can properly clean up its resources
+  // and update its state. This is particularly important for connections
+  // created during the 'connect_to' stage to maintain the proper lifecycle
+  // management of the remote object.
   ten_connection_set_on_closed(connection, ten_remote_on_connection_closed,
                                remote);
 
@@ -366,33 +403,42 @@ static void ten_engine_on_graph_remote_connected(ten_remote_t *self,
   self->on_server_connected_cmd = NULL;
 }
 
+/**
+ * @brief Handles error when connecting to a remote for graph operations.
+ *
+ * This function is called when a connection attempt to a remote server fails
+ * during graph operations.
+ *
+ * @param self The remote instance that failed to connect.
+ * @param start_graph_cmd_for_the_remote The start_graph command that was meant
+ *        to be sent to this remote. This command will be responded to with an
+ *        error and then destroyed.
+ */
 static void ten_engine_on_graph_remote_connect_error(
     ten_remote_t *self, ten_shared_ptr_t *start_graph_cmd_for_the_remote) {
   TEN_ASSERT(self, "Invalid argument.");
   TEN_ASSERT(ten_remote_check_integrity(self, true),
              "Invalid use of remote %p.", self);
 
-  TEN_ASSERT(start_graph_cmd_for_the_remote &&
-                 ten_msg_check_integrity(start_graph_cmd_for_the_remote),
+  TEN_ASSERT(start_graph_cmd_for_the_remote, "Invalid argument.");
+  TEN_ASSERT(ten_msg_check_integrity(start_graph_cmd_for_the_remote),
              "Invalid argument.");
 
   ten_engine_t *engine = self->engine;
-  TEN_ASSERT(engine && ten_engine_check_integrity(engine, true),
+  TEN_ASSERT(engine, "Invalid use of engine %p.", engine);
+  TEN_ASSERT(ten_engine_check_integrity(engine, true),
              "Invalid use of engine %p.", engine);
 
-  // Just respond to the start_graph command specifically issued for this
-  // `remote` with a response to simulate an ERROR response from the `remote`,
-  // allowing the `engine` to continue its process. After the `engine`
-  // completes its entire start_graph flow, it will then respond to the
-  // `origin_start_graph_cmd`.
   ten_engine_return_error_for_cmd_start_graph(
       engine, start_graph_cmd_for_the_remote, "Failed to connect to %s",
       ten_string_get_raw_str(&self->uri));
 
-  // Failed to connect to remote, we must to delete (dereference) the message
-  // which was going to be sent originally to prevent from memory leakage.
+  // Clean up resources to prevent memory leaks.
   ten_shared_ptr_destroy(start_graph_cmd_for_the_remote);
   self->on_server_connected_cmd = NULL;
+
+  // Close the remote connection since it failed to establish.
+  ten_remote_close(self);
 }
 
 static void ten_engine_connect_to_remote_after_remote_is_created(
@@ -666,7 +712,7 @@ bool ten_engine_receive_msg_from_remote(ten_remote_t *remote,
 
     ten_shared_ptr_t *cmd_result =
         ten_cmd_result_create_from_cmd(TEN_STATUS_CODE_ERROR, msg);
-    ten_msg_set_property(cmd_result, "detail",
+    ten_msg_set_property(cmd_result, TEN_STR_DETAIL,
                          ten_value_create_string(
                              "Receive a start_graph cmd after graph is built."),
                          NULL);

@@ -60,8 +60,7 @@ static void ten_engine_handle_msg(ten_engine_t *self, ten_shared_ptr_t *msg) {
              "Invalid argument.");
   TEN_ASSERT(msg && ten_msg_check_integrity(msg), "Should not happen.");
 
-  if (ten_engine_is_closing(self) &&
-      !ten_msg_type_to_handle_when_closing(msg)) {
+  if (self->is_closing && !ten_msg_type_to_handle_when_closing(msg)) {
     // Except some special commands, do not handle messages anymore if the
     // engine is closing.
     return;
@@ -412,8 +411,8 @@ void ten_engine_create_cmd_result_and_dispatch(ten_engine_t *self,
   TEN_ASSERT(rc, "Should not happen.");
 
   if (detail) {
-    ten_msg_set_property(cmd_result, "detail", ten_value_create_string(detail),
-                         NULL);
+    ten_msg_set_property(cmd_result, TEN_STR_DETAIL,
+                         ten_value_create_string(detail), NULL);
   }
 
   ten_engine_dispatch_msg(self, cmd_result);

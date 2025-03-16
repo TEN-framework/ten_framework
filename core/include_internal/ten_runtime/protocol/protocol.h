@@ -174,20 +174,32 @@ typedef void (*ten_protocol_on_cleaned_for_external_func_t)(
     ten_protocol_t *self, bool is_migration_state_reset);
 // @}
 
+typedef enum TEN_PROTOCOL_STATE {
+  TEN_PROTOCOL_STATE_INIT,
+  TEN_PROTOCOL_STATE_CLOSING,
+  TEN_PROTOCOL_STATE_CLOSED,
+} TEN_PROTOCOL_STATE;
+
 /**
- * @brief This is the base class of all the protocols. All the protocols must
- * inherit 'ten_protocol_t' and implement the necessary apis such as
- * 'on_accepted', 'on_input' and 'on_output'. As the implementation might or
- * might not have its own runloop, we provide the following two standard layers:
+ * @brief Base class for all protocol implementations in the TEN framework.
  *
- * - ten_protocol_integrated_t
- *   It uses the runloop of the ten app or engine.
+ * All protocol implementations must inherit from `ten_protocol_t` and implement
+ * required APIs such as `on_accepted`, `on_input`, and `on_output`. The
+ * framework provides two standard protocol layers to accommodate different
+ * threading models:
  *
- * - ten_protocol_asynced_t
- *   It supposes that the implementation protocol has its own runloop and runs
- *   in another thread.
+ * - `ten_protocol_integrated_t`:
+ *   Uses the runloop of the TEN app or engine. Suitable for protocols that
+ * don't need their own thread and can operate within the main TEN execution
+ * context. Example: msgpack protocol.
  *
- * The relationship between those classes is as follows:
+ * - `ten_protocol_asynced_t`:
+ *   Designed for protocol implementations that have their own runloop and
+ * execute in a separate thread. This allows protocols with complex I/O or
+ * processing requirements to operate independently without blocking the main
+ * TEN thread. Example: libws_http protocol.
+ *
+ * The inheritance hierarchy is as follows:
  *
  *                           ten_protocol_t
  *                                  ^
@@ -202,107 +214,119 @@ typedef void (*ten_protocol_on_cleaned_for_external_func_t)(
  *              |               |             |               |
  *            impl             impl          impl            impl
  *        (ex: msgpack)                                 (ex: libws_http)
+ *
+ * Protocol implementations should choose the appropriate base class based on
+ * their threading requirements and interaction model with the TEN framework.
  */
 typedef struct ten_protocol_t {
   ten_signature_t signature;
 
-  /**
-   * @note The base protocol and the implementation protocol may belongs
-   * different threads. The base protocol's belonging thread should be same with
-   * the related connection's. The implementation protocol may has its own
-   * thread.
-   */
+  // Thread check for protocol integrity verification.
+  //
+  // @note Thread ownership model:
+  // - The base protocol must belong to the same thread as its associated
+  //   connection.
+  // - The implementation protocol (derived class) may run in a different
+  //   thread:
+  //   - For integrated protocols: Uses the same thread as the base protocol.
+  //   - For asynced protocols: May use its own dedicated thread.
+  //
+  // Thread integrity is verified using this field to ensure thread-safety
+  // when accessing protocol methods and properties.
   ten_sanitizer_thread_check_t thread_check;
 
   ten_ref_t ref;
 
   ten_addon_host_t *addon_host;
 
-  // Start to trigger the closing of the base protocol.
-  ten_atomic_t is_closing;
+  TEN_PROTOCOL_STATE state;
 
-  // This field is used to mark that the base protocol is totally closed, it
-  // means that all the resources bound to the base protocol has been closed.
-  //
-  // Now the only underlying resource of the base protocol is the implementation
-  // protocol, so we do not use a field such as 'impl_is_closed' to store the
-  // closed state of the implementation.
-  bool is_closed;
+  // Whether the protocol is in the process of connecting to a remote server.
+  // If the connect flow starts successfully, the callback will always be
+  // invoked regardless of whether the connection succeeds or fails. Since the
+  // callback will access the contents of the protocol instance, the connecting
+  // flow is considered a resource. As a result, it may block the protocol's
+  // closing flow.
+  bool is_connecting;
 
-  // Trigger binding resource to close, like connection/stream.
   ten_protocol_on_closed_func_t on_closed;
-  void *on_closed_data;
+  void *on_closed_user_data;
 
-  // This is the uri of this protocol represents.
-  //   - For listening protocol, this is the local uri.
-  //   - For communication protocol, this is the remote uri.
+  // This is the URI this protocol represents:
+  //   - For listening protocol, this is the local URI.
+  //   - For communication protocol, this is the remote URI.
   ten_string_t uri;
 
+  // Defines the role of this protocol (server or client).
   TEN_PROTOCOL_ROLE role;
 
-  // Even though this field will be access from multi threads (e.g., the
-  // implementation protocol thread), but it is immutable after the assignment
-  // in the app (e.g., the listening protocol, and the communication protocol
-  // when client accepted) or engine thread (e.g., the communication protocol
-  // when connecting to the remote server).
+  // Specifies what this protocol is attached to (app or connection).
+  // This field is thread-safe because it's immutable after assignment:
+  //   - For listening protocols: Set in the app thread.
+  //   - For client communication protocols: Set in the app thread when
+  //     accepting clients.
+  //   - For server communication protocols: Set in the engine thread when
+  //     connecting to remote servers.
   //
-  // Note that if this field might be modified in multi threads, the
-  // modifications to 'attach_to' and 'attached_target' must be done in one
-  // atomic operation.
+  // IMPORTANT: If this field needs to be modified in multiple threads,
+  // modifications to both 'attach_to' and 'attached_target' must happen
+  // atomically as a single operation.
   TEN_PROTOCOL_ATTACH_TO attach_to;
   union {
-    // The app where this protocol resides.
+    // The app where this protocol resides (when attach_to ==
+    // TEN_PROTOCOL_ATTACH_TO_APP)
     ten_app_t *app;
 
-    // The connection where this protocol attached.
+    // The connection where this protocol is attached (when attach_to ==
+    // TEN_PROTOCOL_ATTACH_TO_CONNECTION)
     ten_connection_t *connection;
   } attached_target;
 
-  // Used to react the closing request.
+  // Function to handle protocol closure requests.
   ten_protocol_close_func_t close;
 
-  // Used to react the listening request.
+  // Function to handle listening requests (for server protocols).
   ten_protocol_listen_func_t listen;
 
-  // Used to react the connect_to request.
+  // Function to handle connection requests (for client protocols).
   ten_protocol_connect_to_func_t connect_to;
 
-  // Used to react the migration to new runloop request.
+  // Function to handle migration to a new runloop.
   ten_protocol_migrate_func_t migrate;
 
-  // Used to clean the resources bound to the old runloop.
+  // Function to clean up resources bound to the old runloop after migration.
   ten_protocol_clean_func_t clean;
 
   // TODO(Wei): Have an 'on_input' field here.
 
-  // Used to handle the output TEN messages to the remote.
+  // Function to handle outgoing TEN messages to the remote endpoint.
   ten_protocol_on_output_func_t on_output;
 
-  // This is the callback function when this protocol is migrated to the new
-  // runloop.
+  // Callback function invoked when this protocol is successfully migrated to a
+  // new runloop.
   ten_protocol_on_migrated_func_t on_migrated;
 
-  // This is the callback function when all the resources bound to the old
-  // runloop is cleaned.
+  // Callback functions for cleanup notification:
+  // - on_cleaned_for_internal: Called for internal protocol cleanup operations.
+  // - on_cleaned_for_external: Called for external protocol cleanup operations.
   ten_protocol_on_cleaned_for_internal_func_t on_cleaned_for_internal;
   ten_protocol_on_cleaned_for_external_func_t on_cleaned_for_external;
 
   // @{
-  // These fields is for storing the input data.
+  // Fields for storing incoming messages (input data).
   //
-  // TODO(Liu): The 'in_lock' field is useless for now:
-  // - For implementation implements the integrated protocol, all the reads and
-  //   writes of 'in_msgs' are in the same thread. The accesses of 'in_msgs' are
-  //   in sequence even in the migration stage.
-  //
-  // - For implementation implements the asynced protocol, all the 'in_msgs' are
-  //   transferred through the runloop task.
+  // NOTE: The 'in_lock' field is currently not necessary:
+  // - For integrated protocols: All reads/writes to 'in_msgs' occur in the same
+  //   thread, so accesses are sequential even during migration.
+  // - For asynced protocols: All 'in_msgs' are transferred through runloop
+  //   tasks, which handles thread synchronization.
   ten_mutex_t *in_lock;
   ten_list_t in_msgs;
   // @}
 
   // @{
-  // These fields is for storing the output data.
+  // Fields for storing outgoing messages (output data).
+  // The mutex protects concurrent access to the output message queue.
   ten_mutex_t *out_lock;
   ten_list_t out_msgs;
   // @}

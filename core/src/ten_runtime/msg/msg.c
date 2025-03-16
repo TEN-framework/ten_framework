@@ -896,10 +896,23 @@ TEN_MSG_TYPE ten_msg_type_from_type_string(const char *type_str) {
   return msg_type;
 }
 
+/**
+ * @brief Corrects the destination location in a message.
+ *
+ * This function performs several important corrections to ensure messages are
+ * properly routed:
+ * 1. Resolves 'localhost' references to the actual app URI.
+ * 2. Sets appropriate engine/graph information for different message types.
+ * 3. Handles special cases for certain command types.
+ *
+ * @param msg The message whose destination needs to be corrected.
+ * @param engine The engine context used for resolving destinations.
+ */
 void ten_msg_correct_dest(ten_shared_ptr_t *msg, ten_engine_t *engine) {
-  TEN_ASSERT(msg && ten_msg_check_integrity(msg), "Should not happen.");
-  TEN_ASSERT(engine && ten_engine_check_integrity(engine, false),
-             "Should not happen.");
+  TEN_ASSERT(msg, "Should not happen.");
+  TEN_ASSERT(ten_msg_check_integrity(msg), "Should not happen.");
+  TEN_ASSERT(engine, "Should not happen.");
+  TEN_ASSERT(ten_engine_check_integrity(engine, false), "Should not happen.");
 
   const char *app_uri = ten_app_get_uri(engine->app);
 
@@ -913,38 +926,42 @@ void ten_msg_correct_dest(ten_shared_ptr_t *msg, ten_engine_t *engine) {
       is_local_app = true;
     } else if (ten_string_is_equal_c_str(&dest_loc->app_uri,
                                          TEN_STR_LOCALHOST)) {
-      // Extension could use 'localhost' to indicate that the destination of the
-      // message is to the local app, therefore, the TEN runtime needs to
-      // 'correct' the real destination location from 'localhost' to the real
-      // URI of the app.
-
+      // When an extension uses 'localhost' to indicate the destination is the
+      // local app, we need to replace 'localhost' with the actual URI of the
+      // app.
       ten_string_set_from_c_str(&dest_loc->app_uri, app_uri);
       is_local_app = true;
     }
 
     if (is_local_app) {
-      // If the destination location is the local app, extension could omit the
-      // engine graph ID in the message, therefore, TEN runtime needs to 'add'
-      // this information back to the message, so that the TEN runtime could
-      // know how to transit it after the TEN runtime receives that message.
+      // For local app destinations, extensions might omit the engine graph ID.
+      // We need to add this information except for special commands that are
+      // handled directly by the app rather than by engines.
       //
-      // However, some command, for example, the 'start_graph' command, is a
-      // special case, because this kind of command will be handled by the app,
-      // rather than by any engines, therefore, we should not set the
-      // destination graph_id in the case of such command.
-      if (ten_msg_get_type(msg) == TEN_MSG_TYPE_CMD_START_GRAPH) {
+      // Special cases:
+      // - start_graph: Handled by the app to create a new graph.
+      // - close_app: Handled by the app to shut down.
+      TEN_MSG_TYPE msg_type = ten_msg_get_type(msg);
+      switch (msg_type) {
+      case TEN_MSG_TYPE_CMD_START_GRAPH:
+      case TEN_MSG_TYPE_CMD_CLOSE_APP:
         ten_msg_clear_dest_graph_id(msg);
-      } else {
+        break;
+
+      default:
+        // For all other message types, ensure the engine/graph information is
+        // properly set.
         ten_msg_set_dest_engine_if_unspecified_or_predefined_graph_name(
             msg, engine, &engine->app->predefined_graph_infos);
+        break;
       }
     }
   }
 
-  // In 'start_graph' command, the uri of an extension could be 'localhost',
-  // which indicates that the extension will be located in the local app.
-  // Therefore, the TEN runtime needs to 'correct' the real app uri from
-  // 'localhost' to the real uri of the app.
+  // Special handling for start_graph commands:
+  // In a start_graph command, extension URIs might be specified as 'localhost',
+  // indicating they should be located in the local app.
+  // We need to replace these 'localhost' references with the actual app URI.
   if (ten_msg_get_type(msg) == TEN_MSG_TYPE_CMD_START_GRAPH) {
     ten_list_t *extensions_info = ten_cmd_start_graph_get_extensions_info(msg);
     ten_list_foreach(extensions_info, iter) {
