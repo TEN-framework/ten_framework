@@ -200,9 +200,9 @@ static void ten_engine_handle_in_msgs_task(void *engine_,
   TEN_ASSERT(engine && ten_engine_check_integrity(engine, true),
              "Should not happen.");
 
-  ten_ref_dec_ref(&engine->ref);
-
   ten_engine_handle_in_msgs_sync(engine);
+
+  ten_ref_dec_ref(&engine->ref);
 }
 
 void ten_engine_handle_in_msgs_async(ten_engine_t *self) {
