@@ -58,12 +58,6 @@ typedef struct ten_runloop_async_uv_t {
   void (*close_callback)(ten_runloop_async_t *);
 } ten_runloop_async_uv_t;
 
-typedef enum TEN_RUNLOOP_TIMER_UV_STATE {
-  TEN_RUNLOOP_TIMER_UV_STATE_INIT,
-  TEN_RUNLOOP_TIMER_UV_STATE_CLOSING,
-  TEN_RUNLOOP_TIMER_UV_STATE_CLOSED,
-} TEN_RUNLOOP_TIMER_UV_STATE;
-
 typedef struct ten_runloop_timer_uv_t {
   ten_runloop_timer_common_t common;
 
