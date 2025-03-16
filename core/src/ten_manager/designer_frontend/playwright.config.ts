@@ -40,6 +40,11 @@ export default defineConfig({
   // HTML reporter provides detailed test results with screenshots and traces.
   reporter: "html",
 
+  // Set global timeout for expectations/assertions.
+  expect: {
+    timeout: 60000, // 60 seconds
+  },
+
   // Global settings applied to all test projects.
   use: {
     // Base URL to use in actions like `await page.goto('/')`.

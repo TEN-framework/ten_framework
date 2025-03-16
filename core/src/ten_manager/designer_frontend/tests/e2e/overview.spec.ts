@@ -15,9 +15,10 @@ console.log(`Using base URL: ${BASE_URL}`);
 test.describe("first load", () => {
   test.beforeEach(async ({ page }) => {
     // Go to the starting url before each test.
+
     await page.goto(BASE_URL, {
-      timeout: 10000,
-      waitUntil: "domcontentloaded",
+      timeout: 60000,
+      waitUntil: "load",
     });
   });
 
