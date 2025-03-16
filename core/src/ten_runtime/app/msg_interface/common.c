@@ -137,7 +137,8 @@ static bool ten_app_handle_msg_default_handler(ten_app_t *self,
       }
 
       if (dest_engine) {
-        // The target engine is found, forward the message to it.
+        // The target engine was successfully created, forward the message to
+        // it.
 
         // Correct the 'graph_id' from prebuilt-graph-name to engine-graph-id.
         ten_msg_set_dest_engine_if_unspecified_or_predefined_graph_name(
@@ -148,7 +149,7 @@ static bool ten_app_handle_msg_default_handler(ten_app_t *self,
         ten_app_do_connection_migration_or_push_to_engine_queue(
             connection, dest_engine, msg);
       } else {
-        // Could not find the engine, return an error message.
+        // Could not find or create the engine, return an error message.
 
         ten_shared_ptr_t *cmd_result =
             ten_cmd_result_create_from_cmd(TEN_STATUS_CODE_ERROR, msg);
@@ -159,8 +160,8 @@ static bool ten_app_handle_msg_default_handler(ten_app_t *self,
         if (connection) {
           // The 'connection' is not NULL, which means that a message was sent
           // from the client side through an implementation protocol (ex:
-          // msgpack or http). The implementation protocol only transfer one
-          // message to the app even through it receives more than one message
+          // msgpack or http). The implementation protocol only transfers one
+          // message to the app even though it receives more than one message
           // at once, as the connection might need to be migrated and the
           // migration must happen only once. So all the events (ex: the closing
           // event, and other messages) of the implementation protocol will be
@@ -170,7 +171,7 @@ static bool ten_app_handle_msg_default_handler(ten_app_t *self,
           // this message is the first received by the 'connection', in other
           // words, the connection hasn't started doing migration yet. So we
           // have to reset the migration state, but not mark it as 'DONE', and
-          // unfreeze the implementation protocol as it might has some pending
+          // unfreeze the implementation protocol as it might have some pending
           // tasks (ex: the client disconnects, the implementation protocol
           // needs to be closed).
 
@@ -187,7 +188,7 @@ static bool ten_app_handle_msg_default_handler(ten_app_t *self,
           //   Sends the result to the implementation protocol and then the
           //   result will be sent to the client.
           //
-          // Supposes that the client sends a command to the app and closes the
+          // Suppose that the client sends a command to the app and closes the
           // app once it receives the cmd_result. Ex:
           //
           //   auto result = client.send_request_and_get_result();
@@ -197,7 +198,7 @@ static bool ten_app_handle_msg_default_handler(ten_app_t *self,
           //
           // The closure of the app will send a 'close' event to the
           // implementation protocol. If those two functions are called
-          // reversely, the execution sequence might be as follows:
+          // in reverse order, the execution sequence might be as follows:
           //
           //    [ client ]               [ app ]                [ protocol ]
           //     send cmd
@@ -234,7 +235,7 @@ static bool ten_app_handle_msg_default_handler(ten_app_t *self,
           //
           // The 'msg' might be sent from extension A in engine 1 to extension B
           // in engine 2, there is no 'connection' in this case, the cmd result
-          // should be sent back to engine A1.
+          // should be sent back to engine 1.
           //
           // So, this cmd result needs to be passed back to the app for further
           // processing.
@@ -244,7 +245,9 @@ static bool ten_app_handle_msg_default_handler(ten_app_t *self,
         ten_shared_ptr_destroy(cmd_result);
       }
     } else {
-      // Just discard the cmd_result as its destination is missing.
+      // Just discard the cmd_result as its destination is missing. This is
+      // acceptable because cmd_results are one-way messages and don't require
+      // acknowledgment.
     }
   }
 
