@@ -88,8 +88,6 @@ static void ten_engine_on_connection_cleaned_task(void *self_, void *arg) {
   TEN_ASSERT(self && ten_engine_check_integrity(self, true),
              "Access across threads.");
 
-  ten_ref_dec_ref(&self->ref);
-
   ten_engine_migration_user_data_t *user_data =
       (ten_engine_migration_user_data_t *)arg;
   TEN_ASSERT(user_data, "Invalid argument.");
@@ -103,6 +101,8 @@ static void ten_engine_on_connection_cleaned_task(void *self_, void *arg) {
   ten_engine_on_connection_cleaned(self, connection, cmd);
 
   ten_engine_migration_user_data_destroy(user_data);
+
+  ten_ref_dec_ref(&self->ref);
 }
 
 void ten_engine_on_connection_cleaned_async(ten_engine_t *self,
@@ -127,6 +127,8 @@ void ten_engine_on_connection_cleaned_async(ten_engine_t *self,
                                       self, user_data);
   if (rc) {
     TEN_LOGW("Failed to post task to engine's runloop: %d", rc);
+    ten_ref_dec_ref(&self->ref);
+
     TEN_ASSERT(0, "Should not happen.");
   }
 }
