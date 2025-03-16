@@ -523,12 +523,13 @@ static void ten_transport_on_server_connected_after_retry(
   TEN_ASSERT(connect_to_context, "Should not happen.");
   TEN_ASSERT(connect_to_context->on_server_connected, "Should not happen.");
 
-  // Mark that we're no longer in the connecting state
+  // Mark that we're no longer in the connecting state.
   protocol->base.is_connecting = false;
 
-  // If the protocol is being closed, clean up resources and return early
+  // If the protocol is being closed, clean up resources and return early.
   if (protocol->base.state == TEN_PROTOCOL_STATE_CLOSING) {
     ten_stream_close(stream);
+
     // The ownership of the 'connect_to_context' is transferred to the timer, so
     // the 'connect_to_context' will be freed when the timer is closed.
     return;
@@ -539,31 +540,31 @@ static void ten_transport_on_server_connected_after_retry(
   bool success = status >= 0;
 
   if (success) {
-    // Connection succeeded - set up the stream for communication
+    // Connection succeeded - set up the stream for communication.
     ten_protocol_integrated_set_stream(protocol, stream);
 
-    // Notify the caller of successful connection
+    // Notify the caller of successful connection.
     connect_to_context->on_server_connected(&protocol->base, success);
     transport->on_server_connected_user_data = NULL;
     // Set 'on_server_connected' to NULL to indicate that this callback has
     // already been called and to prevent it from being called again.
     connect_to_context->on_server_connected = NULL;
 
-    // Start reading from the stream
+    // Start reading from the stream.
     ten_stream_start_read(stream);
 
     TEN_LOGD("Connect to %s successfully after retry",
              ten_string_get_raw_str(&connect_to_context->server_uri));
 
-    // Clean up the retry timer as it's no longer needed
+    // Clean up the retry timer as it's no longer needed.
     ten_timer_stop_async(protocol->retry_timer);
     ten_timer_close_async(protocol->retry_timer);
   } else {
-    // Connection failed - clean up the stream
+    // Connection failed - clean up the stream.
     ten_stream_close(stream);
 
     // Reset the timer to retry again or close the timer if retry attempts are
-    // exhausted
+    // exhausted.
     ten_timer_enable(protocol->retry_timer);
 
     TEN_LOGD("Failed to connect to %s after retry",
