@@ -67,21 +67,21 @@ void ten_app_start(ten_app_t *self) {
 
   ten_app_find_and_set_base_dir(self);
 
-  // Post the initial metadata handling task to start the application lifecycle
+  // Post the initial metadata handling task to start the application lifecycle.
   int rc = ten_runloop_post_task_tail(self->loop, ten_app_handle_metadata_task,
                                       self, NULL);
   if (rc) {
     TEN_LOGW("Failed to post initial metadata task: %d", rc);
+    TEN_ASSERT(0, "Should not happen.");
     return;
   }
 
-  // Start the application's event loop - this call blocks until the loop is
-  // stopped
+  // Start the app's event loop - this call blocks until the loop is stopped.
   ten_runloop_run(self->loop);
 
   TEN_LOGD("TEN app runloop ends.");
 
-  // Clean up telemetry system after the runloop exits
+  // Clean up telemetry system after the runloop exits.
   ten_app_deinit_telemetry_system(self);
 }
 

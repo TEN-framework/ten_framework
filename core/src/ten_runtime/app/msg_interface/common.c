@@ -101,30 +101,8 @@ static bool ten_app_handle_msg_default_handler(ten_app_t *self,
 
   // Determine which engine the message should go to based on the destination
   // graph ID.
-  ten_engine_t *dest_engine =
-      ten_app_get_engine_based_on_dest_graph_id_from_msg(self, msg);
-
-  if (!dest_engine) {
-    // Failed to find the engine, check if the requested engine is a
-    // _singleton_ prebuilt-graph engine that can be started on demand.
-    ten_predefined_graph_info_t *predefined_graph_info =
-        ten_app_get_singleton_predefined_graph_info_based_on_dest_graph_id_from_msg(
-            self, msg);
-
-    if (predefined_graph_info) {
-      if (!ten_app_start_predefined_graph(self, predefined_graph_info, err)) {
-        // Log the error but don't assert, as this is a recoverable error.
-        TEN_LOGD("Failed to start predefined graph: %s",
-                 err ? ten_error_message(err) : "unknown error");
-        return false;
-      }
-
-      dest_engine = predefined_graph_info->engine;
-      TEN_ASSERT(dest_engine && ten_engine_check_integrity(dest_engine, false),
-                 "Engine should be valid after starting predefined graph");
-    }
-  }
-
+  ten_engine_t *dest_engine = ten_app_get_engine_by_graph_id(
+      self, ten_string_get_raw_str(dest_graph_id));
   if (dest_engine) {
     // The target engine is found, forward the message to it.
 
@@ -137,94 +115,137 @@ static bool ten_app_handle_msg_default_handler(ten_app_t *self,
     ten_app_do_connection_migration_or_push_to_engine_queue(connection,
                                                             dest_engine, msg);
   } else {
-    // Could not find the engine, return an error message.
-    ten_shared_ptr_t *cmd_result =
-        ten_cmd_result_create_from_cmd(TEN_STATUS_CODE_ERROR, msg);
-    ten_msg_set_property(cmd_result, TEN_STR_DETAIL,
-                         ten_value_create_string("Graph not found."), NULL);
-    ten_msg_clear_and_set_dest_from_msg_src(cmd_result, msg);
+    if (ten_msg_get_type(msg) != TEN_MSG_TYPE_CMD_RESULT) {
+      // Failed to find the engine, check if the requested engine is a
+      // _singleton_ prebuilt-graph engine that can be started on demand.
+      ten_predefined_graph_info_t *predefined_graph_info =
+          ten_app_get_singleton_predefined_graph_info_by_name(
+              self, ten_string_get_raw_str(dest_graph_id));
 
-    if (connection) {
-      // The 'connection' is not NULL, which means that a message was sent from
-      // the client side through an implementation protocol (ex: msgpack or
-      // http). The implementation protocol only transfer one message to the app
-      // even through it receives more than one message at once, as the
-      // connection might need to be migrated and the migration must happen only
-      // once. So all the events (ex: the closing event, and other messages) of
-      // the implementation protocol will be frozen before the migration is
-      // completed or reset.
-      //
-      // We could not find the engine for this message here, which means this
-      // message is the first received by the 'connection', in other words, the
-      // connection hasn't started doing migration yet. So we have to reset the
-      // migration state, but not mark it as 'DONE', and unfreeze the
-      // implementation protocol as it might has some pending tasks (ex: the
-      // client disconnects, the implementation protocol needs to be closed).
+      if (predefined_graph_info) {
+        if (!ten_app_start_predefined_graph(self, predefined_graph_info, err)) {
+          // Log the error but don't assert, as this is a recoverable error.
+          TEN_LOGD("Failed to start predefined graph: %s",
+                   err ? ten_error_message(err) : "unknown error");
+          return false;
+        }
 
-      // Important: These two operations must be performed in this order:
-      // 1. Reset the migration state.
-      // 2. Send the response message.
-      //
-      // Those two functions perform the following two actions:
-      //
-      // - ten_connection_migration_state_reset_when_engine_not_found()
-      //   Sends a 'on_cleaned' event to the implementation protocol.
-      //
-      // - ten_connection_send_msg()
-      //   Sends the result to the implementation protocol and then the result
-      //   will be sent to the client.
-      //
-      // Supposes that the client sends a command to the app and closes the app
-      // once it receives the cmd_result. Ex:
-      //
-      //   auto result = client.send_request_and_get_result();
-      //   if (result) {
-      //      app.close();
-      //   }
-      //
-      // The closure of the app will send a 'close' event to the implementation
-      // protocol. If those two functions are called reversely, the execution
-      // sequence might be as follows:
-      //
-      //    [ client ]               [ app ]                [ protocol ]
-      //     send cmd
-      //                      ten_connection_send_msg()
-      //                                               send cmd_result to client
-      //
-      //   close app
-      //                                                 receive 'close' event
-      //                        reset_migration()
-      //                                              receive 'on_cleaned' event
-      //
-      // We expect the implementation protocol to receive the 'on_cleaned' event
-      // before the 'close' event, otherwise the 'close' event will be frozen as
-      // the implementation protocol determines that the migration is not
-      // completed yet.
-      ten_connection_migration_state_reset_when_engine_not_found(connection);
+        dest_engine = predefined_graph_info->engine;
+        TEN_ASSERT(dest_engine &&
+                       ten_engine_check_integrity(dest_engine, false),
+                   "Engine should be valid after starting predefined graph");
+      }
 
-      // Since this is an incorrect command (sent to a non-existent engine), the
-      // migration was unsuccessful. Therefore, the connection's URI is reset so
-      // that the source URI of the next command can potentially become the URI
-      // of this connection.
-      ten_string_clear(&connection->uri);
+      if (dest_engine) {
+        // The target engine is found, forward the message to it.
 
-      // Send the error response back to the client.
-      ten_connection_send_msg(connection, cmd_result);
+        // Correct the 'graph_id' from prebuilt-graph-name to engine-graph-id.
+        ten_msg_set_dest_engine_if_unspecified_or_predefined_graph_name(
+            msg, dest_engine, &self->predefined_graph_infos);
+
+        // Either migrate the connection to the engine or add the message to the
+        // engine's queue.
+        ten_app_do_connection_migration_or_push_to_engine_queue(
+            connection, dest_engine, msg);
+      } else {
+        // Could not find the engine, return an error message.
+
+        ten_shared_ptr_t *cmd_result =
+            ten_cmd_result_create_from_cmd(TEN_STATUS_CODE_ERROR, msg);
+        ten_msg_set_property(cmd_result, TEN_STR_DETAIL,
+                             ten_value_create_string("Graph not found."), NULL);
+        ten_msg_clear_and_set_dest_from_msg_src(cmd_result, msg);
+
+        if (connection) {
+          // The 'connection' is not NULL, which means that a message was sent
+          // from the client side through an implementation protocol (ex:
+          // msgpack or http). The implementation protocol only transfer one
+          // message to the app even through it receives more than one message
+          // at once, as the connection might need to be migrated and the
+          // migration must happen only once. So all the events (ex: the closing
+          // event, and other messages) of the implementation protocol will be
+          // frozen before the migration is completed or reset.
+          //
+          // We could not find the engine for this message here, which means
+          // this message is the first received by the 'connection', in other
+          // words, the connection hasn't started doing migration yet. So we
+          // have to reset the migration state, but not mark it as 'DONE', and
+          // unfreeze the implementation protocol as it might has some pending
+          // tasks (ex: the client disconnects, the implementation protocol
+          // needs to be closed).
+
+          // Important: These two operations must be performed in this order:
+          // 1. Reset the migration state.
+          // 2. Send the response message.
+          //
+          // Those two functions perform the following two actions:
+          //
+          // - ten_connection_migration_state_reset_when_engine_not_found()
+          //   Sends a 'on_cleaned' event to the implementation protocol.
+          //
+          // - ten_connection_send_msg()
+          //   Sends the result to the implementation protocol and then the
+          //   result will be sent to the client.
+          //
+          // Supposes that the client sends a command to the app and closes the
+          // app once it receives the cmd_result. Ex:
+          //
+          //   auto result = client.send_request_and_get_result();
+          //   if (result) {
+          //      app.close();
+          //   }
+          //
+          // The closure of the app will send a 'close' event to the
+          // implementation protocol. If those two functions are called
+          // reversely, the execution sequence might be as follows:
+          //
+          //    [ client ]               [ app ]                [ protocol ]
+          //     send cmd
+          //                      ten_connection_send_msg()
+          //                                               send cmd_result to
+          //                                               client
+          //
+          //   close app
+          //                                                 receive 'close'
+          //                                                 event
+          //                        reset_migration()
+          //                                              receive 'on_cleaned'
+          //                                              event
+          //
+          // We expect the implementation protocol to receive the 'on_cleaned'
+          // event before the 'close' event, otherwise the 'close' event will be
+          // frozen as the implementation protocol determines that the migration
+          // is not completed yet.
+          ten_connection_migration_state_reset_when_engine_not_found(
+              connection);
+
+          // Since this is an incorrect command (sent to a non-existent engine),
+          // the migration was unsuccessful. Therefore, the connection's URI is
+          // reset so that the source URI of the next command can potentially
+          // become the URI of this connection.
+          ten_string_clear(&connection->uri);
+
+          // Send the error response back to the client.
+          ten_connection_send_msg(connection, cmd_result);
+        } else {
+          // No connection means this message likely came from an extension in
+          // another engine. Pass the error response back to the app for routing
+          // back to the source.
+          //
+          // The 'msg' might be sent from extension A in engine 1 to extension B
+          // in engine 2, there is no 'connection' in this case, the cmd result
+          // should be sent back to engine A1.
+          //
+          // So, this cmd result needs to be passed back to the app for further
+          // processing.
+          result = ten_app_handle_in_msg(self, NULL, cmd_result, err);
+        }
+
+        ten_shared_ptr_destroy(cmd_result);
+      }
     } else {
-      // No connection means this message likely came from an extension in
-      // another engine. Pass the error response back to the app for routing
-      // back to the source.
-      //
-      // The 'msg' might be sent from extension A in engine 1 to extension B in
-      // engine 2, there is no 'connection' in this case, the cmd result should
-      // be sent back to engine A1.
-      //
-      // So, this cmd result needs to be passed back to the app for further
-      // processing.
-      result = ten_app_handle_in_msg(self, NULL, cmd_result, err);
+      // Just discard the cmd_result as its destination is missing.
     }
-
-    ten_shared_ptr_destroy(cmd_result);
   }
 
   return result;

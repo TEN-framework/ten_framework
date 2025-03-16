@@ -47,10 +47,6 @@ TEN_RUNTIME_PRIVATE_API bool ten_app_start_predefined_graph(
     ten_error_t *err);
 
 TEN_RUNTIME_PRIVATE_API ten_predefined_graph_info_t *
-ten_app_get_singleton_predefined_graph_info_by_name(ten_app_t *self,
-                                                    const char *name);
-
-TEN_RUNTIME_PRIVATE_API ten_predefined_graph_info_t *
 ten_predefined_graph_infos_get_singleton_by_name(
     ten_list_t *predefined_graph_infos, const char *name);
 

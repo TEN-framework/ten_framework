@@ -273,14 +273,14 @@ bool ten_app_start_auto_start_predefined_graph(ten_app_t *self,
 
 static ten_predefined_graph_info_t *
 ten_predefined_graph_infos_get_by_name(ten_list_t *predefined_graph_infos,
-                                       const char *name) {
-  TEN_ASSERT(predefined_graph_infos && name, "Invalid argument.");
+                                       const char *graph_name) {
+  TEN_ASSERT(predefined_graph_infos && graph_name, "Invalid argument.");
 
   ten_list_foreach(predefined_graph_infos, iter) {
     ten_predefined_graph_info_t *predefined_graph_info =
         (ten_predefined_graph_info_t *)ten_ptr_listnode_get(iter.node);
 
-    if (ten_string_is_equal_c_str(&predefined_graph_info->name, name)) {
+    if (ten_string_is_equal_c_str(&predefined_graph_info->name, graph_name)) {
       return predefined_graph_info;
     }
   }
@@ -298,27 +298,17 @@ ten_app_get_predefined_graph_info_by_name(ten_app_t *self, const char *name) {
 }
 
 ten_predefined_graph_info_t *ten_predefined_graph_infos_get_singleton_by_name(
-    ten_list_t *predefined_graph_infos, const char *name) {
-  TEN_ASSERT(predefined_graph_infos && name, "Invalid argument.");
+    ten_list_t *predefined_graph_infos, const char *graph_name) {
+  TEN_ASSERT(predefined_graph_infos && graph_name, "Invalid argument.");
 
-  ten_predefined_graph_info_t *result =
-      ten_predefined_graph_infos_get_by_name(predefined_graph_infos, name);
+  ten_predefined_graph_info_t *result = ten_predefined_graph_infos_get_by_name(
+      predefined_graph_infos, graph_name);
 
   if (result && result->singleton) {
     return result;
   }
 
   return NULL;
-}
-
-ten_predefined_graph_info_t *
-ten_app_get_singleton_predefined_graph_info_by_name(ten_app_t *self,
-                                                    const char *name) {
-  TEN_ASSERT(self && ten_app_check_integrity(self, true) && name,
-             "Should not happen.");
-
-  return ten_predefined_graph_infos_get_singleton_by_name(
-      &self->predefined_graph_infos, name);
 }
 
 bool ten_app_get_predefined_graph_extensions_and_groups_info_by_name(
@@ -351,12 +341,12 @@ bool ten_app_get_predefined_graph_extensions_and_groups_info_by_name(
 
 ten_engine_t *
 ten_app_get_singleton_predefined_graph_engine_by_name(ten_app_t *self,
-                                                      const char *name) {
-  TEN_ASSERT(self && ten_app_check_integrity(self, true) && name,
+                                                      const char *graph_name) {
+  TEN_ASSERT(self && ten_app_check_integrity(self, true) && graph_name,
              "Should not happen.");
 
   ten_predefined_graph_info_t *predefined_graph_info =
-      ten_app_get_singleton_predefined_graph_info_by_name(self, name);
+      ten_app_get_singleton_predefined_graph_info_by_name(self, graph_name);
 
   if (predefined_graph_info) {
     return predefined_graph_info->engine;

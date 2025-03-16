@@ -123,6 +123,7 @@ ten_raw_cmd_result_set_original_cmd_name(ten_cmd_result_t *self,
 static ten_cmd_result_t *
 ten_raw_cmd_result_create_from_raw_cmd(const TEN_STATUS_CODE status_code,
                                        ten_cmd_t *original_cmd) {
+
   ten_cmd_result_t *cmd = ten_raw_cmd_result_create(status_code);
 
   if (original_cmd) {

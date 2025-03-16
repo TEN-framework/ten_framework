@@ -90,9 +90,9 @@ bool ten_app_handle_start_graph_cmd(ten_app_t *self,
   TEN_ASSERT(ten_msg_get_type(cmd) == TEN_MSG_TYPE_CMD_START_GRAPH,
              "Invalid argument.");
   TEN_ASSERT(ten_msg_get_dest_cnt(cmd) == 1, "Invalid argument.");
-  TEN_ASSERT(
-      connection ? ten_app_has_orphan_connection(self, connection) : true,
-      "Invalid argument.");
+  TEN_ASSERT(connection ? ten_app_has_orphan_connection(self, connection)
+                        : true,
+             "Invalid argument.");
 
   // If the start_graph command is aimed at initting from a predefined graph, we
   // should append the extension info list of the predefined graph to the cmd.
@@ -101,8 +101,10 @@ bool ten_app_handle_start_graph_cmd(ten_app_t *self,
     return false;
   }
 
-  ten_engine_t *engine =
-      ten_app_get_engine_based_on_dest_graph_id_from_msg(self, cmd);
+  ten_string_t *dest_graph_id = &ten_msg_get_first_dest_loc(cmd)->graph_id;
+
+  ten_engine_t *engine = ten_app_get_engine_by_graph_id(
+      self, ten_string_get_raw_str(dest_graph_id));
   if (engine == NULL) {
     // The graph should be only checked once.
     if (!ten_app_check_start_graph_cmd_from_connection(self, connection, cmd,
