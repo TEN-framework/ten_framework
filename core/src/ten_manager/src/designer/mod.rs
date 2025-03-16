@@ -4,7 +4,6 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-mod addons;
 mod apps;
 pub mod builtin_function;
 mod common;
@@ -51,7 +50,6 @@ pub fn configure_routes(
                 web::get().to(version::check_update_endpoint),
             )
             .route("/env", web::get().to(env::get_env_endpoint))
-            .route("/addons", web::post().to(addons::get_addons_endpoint))
             .route("/graphs", web::post().to(graphs::get_graphs_endpoint))
             .route(
                 "/graphs",
@@ -80,6 +78,10 @@ pub fn configure_routes(
             .route(
                 "/apps/reload",
                 web::post().to(apps::reload::reload_app_endpoint),
+            )
+            .route(
+                "/apps/addons",
+                web::post().to(apps::addons::get_app_addons_endpoint),
             )
             .route("/dir-list", web::post().to(dir_list::list_dir_endpoint))
             .route(
