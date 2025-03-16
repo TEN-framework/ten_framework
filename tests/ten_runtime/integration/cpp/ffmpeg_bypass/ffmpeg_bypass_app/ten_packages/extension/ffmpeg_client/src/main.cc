@@ -18,7 +18,7 @@ class ffmpeg_client_extension : public ten::extension_t {
     ten_env.send_cmd(
         std::move(cmd), [](ten::ten_env_t &ten_env,
                            std::unique_ptr<ten::cmd_result_t> cmd_result,
-                           TEN_UNUSED ten::error_t * /*error*/) {
+                           ten::error_t * /*error*/) {
           nlohmann::json cmd_result_json =
               nlohmann::json::parse(cmd_result->get_property_to_json());
           if (cmd_result->get_status_code() != TEN_STATUS_CODE_OK) {
@@ -32,7 +32,7 @@ class ffmpeg_client_extension : public ten::extension_t {
               std::move(start_muxer_cmd),
               [](ten::ten_env_t &ten_env,
                  std::unique_ptr<ten::cmd_result_t> cmd_result,
-                 TEN_UNUSED ten::error_t * /*error*/) {
+                 ten::error_t * /*error*/) {
                 nlohmann::json json =
                     nlohmann::json::parse(cmd_result->get_property_to_json());
                 if (cmd_result->get_status_code() != TEN_STATUS_CODE_OK) {
@@ -41,6 +41,7 @@ class ffmpeg_client_extension : public ten::extension_t {
 
                 auto start_demuxer_cmd = ten::cmd_t::create("start_demuxer");
                 ten_env.send_cmd(std::move(start_demuxer_cmd));
+
                 return true;
               });
 

@@ -78,14 +78,6 @@ pub fn configure_routes(
                     .to(messages::compatible::get_compatible_messages_endpoint),
             )
             .route(
-                "/file-content",
-                web::post().to(file_content::get_file_content_endpoint),
-            )
-            .route(
-                "/file-content",
-                web::put().to(file_content::save_file_content_endpoint),
-            )
-            .route(
                 "/app/base-dir",
                 web::post().to(app::base_dir::add_base_dir_endpoint),
             )
@@ -98,11 +90,19 @@ pub fn configure_routes(
                 web::get().to(app::base_dir::get_base_dir_endpoint),
             )
             .route("/dir-list", web::post().to(dir_list::list_dir_endpoint))
-            .route("/ws/exec", web::get().to(exec::exec_endpoint))
+            .route(
+                "/file-content",
+                web::post().to(file_content::get_file_content_endpoint),
+            )
+            .route(
+                "/file-content",
+                web::put().to(file_content::save_file_content_endpoint),
+            )
             .route(
                 "/ws/builtin-function",
                 web::get().to(builtin_function::builtin_function_endpoint),
             )
+            .route("/ws/exec", web::get().to(exec::exec_endpoint))
             .route(
                 "/ws/terminal",
                 web::get().to(terminal::ws_terminal_endpoint),

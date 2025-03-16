@@ -221,8 +221,6 @@ void ten_engine_handle_in_msgs_async(ten_engine_t *self) {
   if (rc) {
     TEN_LOGW("Failed to post task to engine's runloop: %d", rc);
     ten_ref_dec_ref(&self->ref);
-
-    TEN_ASSERT(0, "Should not happen.");
   }
 }
 
