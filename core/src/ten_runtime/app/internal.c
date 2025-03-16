@@ -49,20 +49,39 @@ static void ten_app_handle_metadata_task(void *self_, void *arg) {
   ten_app_handle_metadata(self);
 }
 
+/**
+ * @brief Starts the TEN app and runs its event loop.
+ *
+ * The app will continue running until ten_runloop_stop() is called,
+ * typically during the app shutdown process.
+ *
+ * @param self Pointer to the app instance
+ *
+ * @note Thread-safety: This function must be called from the thread that owns
+ * the app instance.
+ */
 void ten_app_start(ten_app_t *self) {
-  TEN_ASSERT(self && ten_app_check_integrity(self, true), "Should not happen.");
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_app_check_integrity(self, true), "Invalid use of app %p.",
+             self);
 
   ten_app_find_and_set_base_dir(self);
 
-  // Add the first task of app.
+  // Post the initial metadata handling task to start the application lifecycle.
   int rc = ten_runloop_post_task_tail(self->loop, ten_app_handle_metadata_task,
                                       self, NULL);
-  TEN_ASSERT(!rc, "Should not happen.");
+  if (rc) {
+    TEN_LOGW("Failed to post initial metadata task: %d", rc);
+    TEN_ASSERT(0, "Should not happen.");
+    return;
+  }
 
+  // Start the app's event loop - this call blocks until the loop is stopped.
   ten_runloop_run(self->loop);
 
   TEN_LOGD("TEN app runloop ends.");
 
+  // Clean up telemetry system after the runloop exits.
   ten_app_deinit_telemetry_system(self);
 }
 

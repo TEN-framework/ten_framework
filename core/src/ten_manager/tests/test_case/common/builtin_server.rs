@@ -16,7 +16,7 @@ use tokio::{self, sync::oneshot};
 
 use ten_manager::{
     config::{read_config, TmanConfig},
-    designer::{builtin_function::builtin_function, DesignerState},
+    designer::{builtin_function::builtin_function_endpoint, DesignerState},
     output::TmanOutputCli,
 };
 
@@ -63,7 +63,7 @@ pub async fn start_builtin_function_server() -> std::net::SocketAddr {
                     .app_data(web::Data::new(designer_state.clone()))
                     .route(
                         "/ws/builtin-function",
-                        web::get().to(builtin_function),
+                        web::get().to(builtin_function_endpoint),
                     )
             })
             // Using port 0 for automatic port selection

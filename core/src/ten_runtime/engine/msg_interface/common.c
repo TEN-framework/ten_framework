@@ -194,25 +194,62 @@ static void ten_engine_handle_in_msgs_sync(ten_engine_t *self) {
   ten_engine_prepend_to_in_msgs_queue(self, &put_back_msgs);
 }
 
+/**
+ * @brief Task handler for processing incoming messages in the engine's thread.
+ *
+ * This function is executed in the engine's thread context when posted to the
+ * engine's runloop by `ten_engine_handle_in_msgs_async()`. It processes all
+ * pending incoming messages by calling `ten_engine_handle_in_msgs_sync()` and
+ * then decreases the engine's reference count that was increased before
+ * posting this task.
+ *
+ * @param engine_ Pointer to the engine instance.
+ * @param arg Unused argument.
+ *
+ * @note Thread-safety: This function must only be executed in the engine's
+ * thread. It is not meant to be called directly but rather posted as a task to
+ * the engine's runloop.
+ */
 static void ten_engine_handle_in_msgs_task(void *engine_,
                                            TEN_UNUSED void *arg) {
   ten_engine_t *engine = (ten_engine_t *)engine_;
-  TEN_ASSERT(engine && ten_engine_check_integrity(engine, true),
-             "Should not happen.");
-
-  ten_ref_dec_ref(&engine->ref);
+  TEN_ASSERT(engine, "Invalid engine pointer");
+  TEN_ASSERT(ten_engine_check_integrity(engine, true),
+             "Engine integrity check failed or wrong thread access");
 
   ten_engine_handle_in_msgs_sync(engine);
+
+  // Decrease reference count that was increased in
+  // `ten_engine_handle_in_msgs_async`.
+  ten_ref_dec_ref(&engine->ref);
 }
 
+/**
+ * @brief Asynchronously handles incoming messages for the engine.
+ *
+ * This function posts a task to the engine's runloop to process incoming
+ * messages. It is designed to be called from any thread, not just the engine's
+ * thread. The function increases the reference count of the engine before
+ * posting the task and the corresponding task handler
+ * (ten_engine_handle_in_msgs_task) will decrease the reference count after
+ * processing the messages.
+ *
+ * @param self Pointer to the engine instance.
+ *
+ * @note Thread-safety: This function is thread-safe and can be called from any
+ * thread. The engine's reference count is properly managed to ensure the engine
+ * isn't destroyed while the task is pending.
+ */
 void ten_engine_handle_in_msgs_async(ten_engine_t *self) {
-  TEN_ASSERT(self &&
-                 // TEN_NOLINTNEXTLINE(thread-check)
-                 // thread-check: This function is intended to be called in
-                 // different threads.
-                 ten_engine_check_integrity(self, false),
-             "Should not happen.");
+  TEN_ASSERT(self, "Invalid engine pointer");
+  // TEN_NOLINTNEXTLINE(thread-check)
+  // thread-check: This function is intended to be called from different
+  // threads.
+  TEN_ASSERT(ten_engine_check_integrity(self, false),
+             "Invalid engine integrity");
 
+  // Increase reference count to prevent the engine from being destroyed
+  // while the task is pending in the runloop.
   ten_ref_inc_ref(&self->ref);
 
   int rc =
@@ -220,22 +257,40 @@ void ten_engine_handle_in_msgs_async(ten_engine_t *self) {
                                  ten_engine_handle_in_msgs_task, self, NULL);
   if (rc) {
     TEN_LOGW("Failed to post task to engine's runloop: %d", rc);
-    ten_ref_dec_ref(&self->ref);
 
-    TEN_ASSERT(0, "Should not happen.");
+    // Decrease reference count if posting the task failed.
+    ten_ref_dec_ref(&self->ref);
   }
 }
 
+/**
+ * @brief Appends a message to the engine's incoming message queue and triggers
+ * asynchronous processing.
+ *
+ * This function safely adds a message to the engine's incoming message queue
+ * and schedules it for processing. It is designed to be called from any thread,
+ * not just the engine's thread, making it suitable for cross-thread
+ * communication with the engine.
+ *
+ * @param self Pointer to the engine instance.
+ * @param msg Pointer to the shared message to be appended to the queue.
+ *            The message's ownership is transferred to the queue.
+ *
+ * @note Thread-safety: This function is thread-safe and can be called from any
+ * thread. The engine's incoming message queue is protected by a mutex to ensure
+ * thread-safe access.
+ */
 void ten_engine_append_to_in_msgs_queue(ten_engine_t *self,
                                         ten_shared_ptr_t *msg) {
   TEN_ASSERT(self, "Invalid argument.");
   // TEN_NOLINTNEXTLINE(thread-check)
-  // thread-check: This function is used to be called from threads other than
-  // the engine thread.
+  // thread-check: This function is intended to be called from threads other
+  // than the engine thread.
   TEN_ASSERT(ten_engine_check_integrity(self, false),
              "Invalid use of engine %p.", self);
 
-  TEN_ASSERT(msg && ten_msg_check_integrity(msg), "Should not happen.");
+  TEN_ASSERT(msg, "Invalid message pointer");
+  TEN_ASSERT(ten_msg_check_integrity(msg), "Invalid message integrity.");
 
   ten_mutex_lock(self->in_msgs_lock);
   ten_list_push_smart_ptr_back(&self->in_msgs, msg);

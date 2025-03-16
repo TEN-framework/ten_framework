@@ -308,7 +308,7 @@ TEN_UTILS_API void ten_string_split(ten_string_t *self, const char *delimiter,
  * @param self The input string.
  * @param result The check result.
  */
-TEN_UTILS_API bool ten_string_is_uuid4(ten_string_t *self);
+TEN_UTILS_API bool ten_raw_string_is_uuid4(const char *self);
 
 /**
  * @brief Convert the buffer content to a hexadecimal string.

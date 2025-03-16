@@ -4,6 +4,10 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
+pub mod addons;
+pub mod reload;
+pub mod unload;
+
 use std::{
     collections::HashMap,
     path::Path,
@@ -34,22 +38,12 @@ pub struct AddBaseDirResponseData {
     pub success: bool,
 }
 
-#[derive(Deserialize, Serialize, Debug)]
-pub struct DeleteBaseDirRequestPayload {
-    pub base_dir: String,
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-pub struct DeleteBaseDirResponseData {
-    pub success: bool,
-}
-
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
-pub struct GetBaseDirResponseData {
+pub struct GetAppsResponseData {
     pub base_dirs: Option<Vec<String>>,
 }
 
-pub async fn add_base_dir(
+pub async fn load_app_endpoint(
     request_payload: web::Json<AddBaseDirRequestPayload>,
     state: web::Data<Arc<RwLock<DesignerState>>>,
 ) -> Result<impl Responder, actix_web::Error> {
@@ -101,34 +95,18 @@ pub async fn add_base_dir(
     }
 }
 
-pub async fn get_base_dir(
+pub async fn get_apps_endpoint(
     state: web::Data<Arc<RwLock<DesignerState>>>,
 ) -> Result<impl Responder, actix_web::Error> {
     let state = state.read().unwrap();
     let response = ApiResponse {
         status: Status::Ok,
-        data: GetBaseDirResponseData {
+        data: GetAppsResponseData {
             base_dirs: (!state.pkgs_cache.is_empty())
                 .then(|| state.pkgs_cache.keys().cloned().collect()),
         },
         meta: None,
     };
-    Ok(HttpResponse::Ok().json(response))
-}
-
-pub async fn delete_base_dir(
-    request_payload: web::Json<DeleteBaseDirRequestPayload>,
-    state: web::Data<Arc<RwLock<DesignerState>>>,
-) -> Result<impl Responder, actix_web::Error> {
-    let mut state = state.write().unwrap();
-    state.pkgs_cache.remove(&request_payload.base_dir);
-
-    let response = ApiResponse {
-        status: Status::Ok,
-        data: serde_json::json!({ "success": true }),
-        meta: None,
-    };
-
     Ok(HttpResponse::Ok().json(response))
 }
 
@@ -182,7 +160,7 @@ mod tests {
                 .app_data(web::Data::new(designer_state.clone()))
                 .route(
                     "/api/designer/v1/app/base-dir",
-                    web::post().to(add_base_dir),
+                    web::post().to(load_app_endpoint),
                 ),
         )
         .await;
@@ -218,7 +196,7 @@ mod tests {
                 .app_data(web::Data::new(designer_state.clone()))
                 .route(
                     "/api/designer/v1/app/base-dir",
-                    web::get().to(get_base_dir),
+                    web::get().to(get_apps_endpoint),
                 ),
         )
         .await;
@@ -233,13 +211,13 @@ mod tests {
             .uri("/api/designer/v1/app/base-dir")
             .to_request();
 
-        let resp: ApiResponse<GetBaseDirResponseData> =
+        let resp: ApiResponse<GetAppsResponseData> =
             test::call_and_read_body_json(&app, req).await;
 
         assert_eq!(resp.status, Status::Ok);
         assert_eq!(
             resp.data,
-            GetBaseDirResponseData {
+            GetAppsResponseData {
                 base_dirs: Some(vec![TEST_DIR.to_string()])
             }
         );
@@ -259,7 +237,7 @@ mod tests {
                 .app_data(web::Data::new(designer_state.clone()))
                 .route(
                     "/api/designer/v1/app/base-dir",
-                    web::get().to(get_base_dir),
+                    web::get().to(get_apps_endpoint),
                 ),
         )
         .await;
@@ -268,10 +246,10 @@ mod tests {
             .uri("/api/designer/v1/app/base-dir")
             .to_request();
 
-        let resp: ApiResponse<GetBaseDirResponseData> =
+        let resp: ApiResponse<GetAppsResponseData> =
             test::call_and_read_body_json(&app, req).await;
 
         assert_eq!(resp.status, Status::Ok);
-        assert_eq!(resp.data, GetBaseDirResponseData { base_dirs: None });
+        assert_eq!(resp.data, GetAppsResponseData { base_dirs: None });
     }
 }

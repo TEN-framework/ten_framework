@@ -35,8 +35,8 @@ use pkg_type_and_name::PkgTypeAndName;
 use crate::schema::store::SchemaStore;
 use api::PkgApi;
 use constants::{
-    ADDON_LOADER_DIR, EXTENSION_DIR, MANIFEST_JSON_FILENAME, PROTOCOL_DIR,
-    SYSTEM_DIR, TEN_PACKAGES_DIR,
+    ADDON_LOADER_DIR, EXTENSION_DIR, MANIFEST_JSON_FILENAME,
+    PROPERTY_JSON_FILENAME, PROTOCOL_DIR, SYSTEM_DIR, TEN_PACKAGES_DIR,
 };
 use dependencies::{get_pkg_dependencies_from_manifest, PkgDependency};
 use manifest::{parse_manifest_from_file, parse_manifest_in_folder, Manifest};
@@ -117,25 +117,36 @@ impl PkgInfo {
         Ok(pkg_info)
     }
 
+    /// Compares the in-memory manifest with the manifest file on the
+    /// filesystem.
+    ///
+    /// # Returns
+    /// - `Ok(true)` if the manifests are equal.
+    /// - `Ok(false)` if the manifests are different or if manifest is missing.
+    /// - `Err` if there was an error reading or parsing the manifest file.
     pub fn is_manifest_equal_to_fs(&self) -> Result<bool> {
+        // If URL is empty, we can't locate the manifest file.
         if self.url.is_empty() {
             return Ok(false);
         }
 
+        // Check if we have a manifest in memory.
         let manifest_from_pkg = match &self.manifest {
             Some(manifest) => manifest,
             None => return Ok(false),
         };
 
+        // Load manifest from filesystem.
         let manifest_json_path =
             PathBuf::from(&self.url).join(MANIFEST_JSON_FILENAME);
         let manifest_from_fs: Manifest =
             parse_manifest_from_file(&manifest_json_path)?;
 
-        // Convert to standard JSON struct.
+        // Convert both manifests to JSON values for deep comparison.
         let manifest_pkg_json = serde_json::to_value(manifest_from_pkg)?;
         let manifest_fs_json = serde_json::to_value(manifest_from_fs)?;
 
+        // Return true if manifests are equal.
         Ok(manifest_pkg_json == manifest_fs_json)
     }
 
@@ -149,7 +160,8 @@ impl PkgInfo {
             None => return Ok(false),
         };
 
-        let property_json_path = PathBuf::from(&self.url).join("property.json");
+        let property_json_path =
+            PathBuf::from(&self.url).join(PROPERTY_JSON_FILENAME);
         let property_from_fs: Property =
             parse_property_from_file(&property_json_path)?;
 
@@ -414,7 +426,8 @@ pub fn ten_rust_check_graph_for_app(
         ));
     }
 
-    let mut installed_pkgs_of_all_apps: HashMap<String, Vec<PkgInfo>> = HashMap::new();
+    let mut installed_pkgs_of_all_apps: HashMap<String, Vec<PkgInfo>> =
+        HashMap::new();
     let pkgs_info = get_app_installed_pkgs(app_path)?;
     installed_pkgs_of_all_apps.insert(app_uri.to_string(), pkgs_info);
 

@@ -8,7 +8,7 @@ use std::sync::{Arc, RwLock};
 
 use crate::{
     designer::{
-        app::base_dir::get_base_dir_from_pkgs_cache,
+        apps::get_base_dir_from_pkgs_cache,
         response::{ApiResponse, ErrorResponse, Status},
         DesignerState,
     },
@@ -24,7 +24,7 @@ pub struct ReloadPkgsRequestPayload {
     pub base_dir: Option<String>,
 }
 
-pub async fn clear_and_reload_pkgs(
+pub async fn reload_app_endpoint(
     request_payload: web::Json<ReloadPkgsRequestPayload>,
     state: web::Data<Arc<RwLock<DesignerState>>>,
 ) -> Result<impl Responder, actix_web::Error> {

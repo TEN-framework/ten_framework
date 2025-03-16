@@ -78,9 +78,9 @@ void ten_string_append_from_va_list(ten_string_t *self, const char *fmt,
 
     // Else try again with more space.
     if (n > -1) {
-      ten_string_reserve(self, n + 1);  // Exact
+      ten_string_reserve(self, n + 1); // Exact
     } else {
-      ten_string_reserve(self, self->buf_size * 2);  // 2x
+      ten_string_reserve(self, self->buf_size * 2); // 2x
     }
 
     if (++retry_count > MAX_RETRIES) {
@@ -377,9 +377,9 @@ bool ten_c_string_contains(const char *a, const char *b) {
 }
 
 bool ten_string_is_equal(const ten_string_t *a, const ten_string_t *b) {
-  TEN_ASSERT(
-      a && ten_string_check_integrity(a) && b && ten_string_check_integrity(b),
-      "Invalid argument.");
+  TEN_ASSERT(a && ten_string_check_integrity(a) && b &&
+                 ten_string_check_integrity(b),
+             "Invalid argument.");
   return ten_c_string_is_equal(ten_string_get_raw_str(a),
                                ten_string_get_raw_str(b));
 }
@@ -645,70 +645,69 @@ void ten_c_string_escaped(const char *src, ten_string_t *result) {
   for (size_t i = 0; i < strlen(src); i++) {
     char byte = src[i];
     switch (byte) {
-      case 0x08: {  // backspace
-        ten_string_append_formatted(result, "%c", '\\');
-        ten_string_append_formatted(result, "%c", 'b');
-        break;
+    case 0x08: { // backspace
+      ten_string_append_formatted(result, "%c", '\\');
+      ten_string_append_formatted(result, "%c", 'b');
+      break;
+    }
+    case 0x09: { // horizontal tab
+      ten_string_append_formatted(result, "%c", '\\');
+      ten_string_append_formatted(result, "%c", 't');
+      break;
+    }
+    case 0x0A: { // newline
+      ten_string_append_formatted(result, "%c", '\\');
+      ten_string_append_formatted(result, "%c", 'n');
+      break;
+    }
+    case 0x0C: { // formfeed
+      ten_string_append_formatted(result, "%c", '\\');
+      ten_string_append_formatted(result, "%c", 'f');
+      break;
+    }
+    case 0x0D: { // carriage return
+      ten_string_append_formatted(result, "%c", '\\');
+      ten_string_append_formatted(result, "%c", 'r');
+      break;
+    }
+    case 0x22: { // quotation mark
+      ten_string_append_formatted(result, "%c", '\\');
+      ten_string_append_formatted(result, "%c", '\"');
+      break;
+    }
+    case 0x5C: { // reverse solidus
+      ten_string_append_formatted(result, "%c", '\\');
+      ten_string_append_formatted(result, "%c", '\\');
+      break;
+    }
+    default: {
+      // escape control characters (0x00..0x1F) or, if
+      // ensure_ascii parameter is used, non-ASCII characters
+      if (byte <= 0x1F) {
+        ten_string_append_formatted(result, "\\u%04x", byte);
+      } else {
+        ten_string_append_formatted(result, "%c", byte);
       }
-      case 0x09: {  // horizontal tab
-        ten_string_append_formatted(result, "%c", '\\');
-        ten_string_append_formatted(result, "%c", 't');
-        break;
-      }
-      case 0x0A: {  // newline
-        ten_string_append_formatted(result, "%c", '\\');
-        ten_string_append_formatted(result, "%c", 'n');
-        break;
-      }
-      case 0x0C: {  // formfeed
-        ten_string_append_formatted(result, "%c", '\\');
-        ten_string_append_formatted(result, "%c", 'f');
-        break;
-      }
-      case 0x0D: {  // carriage return
-        ten_string_append_formatted(result, "%c", '\\');
-        ten_string_append_formatted(result, "%c", 'r');
-        break;
-      }
-      case 0x22: {  // quotation mark
-        ten_string_append_formatted(result, "%c", '\\');
-        ten_string_append_formatted(result, "%c", '\"');
-        break;
-      }
-      case 0x5C: {  // reverse solidus
-        ten_string_append_formatted(result, "%c", '\\');
-        ten_string_append_formatted(result, "%c", '\\');
-        break;
-      }
-      default: {
-        // escape control characters (0x00..0x1F) or, if
-        // ensure_ascii parameter is used, non-ASCII characters
-        if (byte <= 0x1F) {
-          ten_string_append_formatted(result, "\\u%04x", byte);
-        } else {
-          ten_string_append_formatted(result, "%c", byte);
-        }
-        break;
-      }
+      break;
+    }
     }
   }
 }
 
-bool ten_string_is_uuid4(ten_string_t *self) {
-  TEN_ASSERT(self && ten_string_check_integrity(self), "Invalid argument.");
+bool ten_raw_string_is_uuid4(const char *self) {
+  TEN_ASSERT(self, "Invalid argument.");
 
-  if (ten_string_len(self) != 36) {
+  if (strlen(self) != 36) {
     return false;
   }
 
-  for (size_t i = 0; i < ten_string_len(self); ++i) {
+  for (size_t i = 0; i < strlen(self); ++i) {
     if (i == 8 || i == 13 || i == 18 || i == 23) {
-      if (ten_string_get_raw_str(self)[i] != '-') {
+      if (self[i] != '-') {
         return false;
       }
     } else {
-      if (ten_string_get_raw_str(self)[i] < '0' ||
-          ten_string_get_raw_str(self)[i] > 'f') {
+      if (self[i] < '0' || self[i] > 'f') {
         return false;
       }
     }

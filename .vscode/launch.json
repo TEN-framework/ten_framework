@@ -484,9 +484,9 @@
       "name": "app (C/C++) (lldb, launch)",
       "type": "lldb",
       "request": "launch",
-      "program": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/nodejs/cpp_app_nodejs/cpp_app_nodejs_app/bin/cpp_app_nodejs_app",
+      "program": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/cpp/check_start_graph/check_start_graph_app/bin/check_start_graph_app",
       "args": [],
-      "cwd": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/nodejs/cpp_app_nodejs/cpp_app_nodejs_app",
+      "cwd": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/cpp/check_start_graph/check_start_graph_app",
       "env": {
         "ASAN_OPTIONS": "use_sigaltstack=0",
       },
