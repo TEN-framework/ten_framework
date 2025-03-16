@@ -12,6 +12,7 @@
 #include <time.h>
 
 #include "include_internal/ten_runtime/addon/addon_host.h"
+#include "include_internal/ten_runtime/common/constant_str.h"
 #include "include_internal/ten_runtime/common/loc.h"
 #include "include_internal/ten_runtime/engine/engine.h"
 #include "include_internal/ten_runtime/extension/base_dir.h"
@@ -1106,7 +1107,7 @@ bool ten_extension_validate_msg_schema(ten_extension_t *self,
       case TEN_MSG_TYPE_CMD: {
         ten_shared_ptr_t *cmd_result =
             ten_cmd_result_create_from_cmd(TEN_STATUS_CODE_ERROR, msg);
-        ten_msg_set_property(cmd_result, "detail",
+        ten_msg_set_property(cmd_result, TEN_STR_DETAIL,
                              ten_value_create_string(ten_error_message(err)),
                              NULL);
         ten_env_return_result(self->ten_env, cmd_result, NULL, NULL, NULL);

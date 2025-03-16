@@ -411,8 +411,8 @@ void ten_engine_create_cmd_result_and_dispatch(ten_engine_t *self,
   TEN_ASSERT(rc, "Should not happen.");
 
   if (detail) {
-    ten_msg_set_property(cmd_result, "detail", ten_value_create_string(detail),
-                         NULL);
+    ten_msg_set_property(cmd_result, TEN_STR_DETAIL,
+                         ten_value_create_string(detail), NULL);
   }
 
   ten_engine_dispatch_msg(self, cmd_result);

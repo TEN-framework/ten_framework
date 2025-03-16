@@ -10,6 +10,7 @@
 
 #include "include_internal/ten_runtime/addon/protocol/protocol.h"
 #include "include_internal/ten_runtime/app/app.h"
+#include "include_internal/ten_runtime/common/constant_str.h"
 #include "include_internal/ten_runtime/connection/connection.h"
 #include "include_internal/ten_runtime/connection/migration.h"
 #include "include_internal/ten_runtime/engine/engine.h"
@@ -711,7 +712,7 @@ bool ten_engine_receive_msg_from_remote(ten_remote_t *remote,
 
     ten_shared_ptr_t *cmd_result =
         ten_cmd_result_create_from_cmd(TEN_STATUS_CODE_ERROR, msg);
-    ten_msg_set_property(cmd_result, "detail",
+    ten_msg_set_property(cmd_result, TEN_STR_DETAIL,
                          ten_value_create_string(
                              "Receive a start_graph cmd after graph is built."),
                          NULL);

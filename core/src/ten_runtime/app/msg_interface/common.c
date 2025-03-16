@@ -12,6 +12,7 @@
 #include "include_internal/ten_runtime/app/metadata.h"
 #include "include_internal/ten_runtime/app/msg_interface/start_graph.h"
 #include "include_internal/ten_runtime/app/predefined_graph.h"
+#include "include_internal/ten_runtime/common/constant_str.h"
 #include "include_internal/ten_runtime/common/loc.h"
 #include "include_internal/ten_runtime/connection/connection.h"
 #include "include_internal/ten_runtime/connection/migration.h"
@@ -119,7 +120,7 @@ static bool ten_app_handle_msg_default_handler(ten_app_t *self,
 
     ten_shared_ptr_t *resp =
         ten_cmd_result_create_from_cmd(TEN_STATUS_CODE_ERROR, msg);
-    ten_msg_set_property(resp, "detail",
+    ten_msg_set_property(resp, TEN_STR_DETAIL,
                          ten_value_create_string("Graph not found."), NULL);
     ten_msg_clear_and_set_dest_from_msg_src(resp, msg);
 
@@ -504,8 +505,8 @@ void ten_app_create_cmd_result_and_dispatch(ten_app_t *self,
       ten_cmd_result_create_from_cmd(status_code, origin_cmd);
 
   if (detail) {
-    ten_msg_set_property(cmd_result, "detail", ten_value_create_string(detail),
-                         NULL);
+    ten_msg_set_property(cmd_result, TEN_STR_DETAIL,
+                         ten_value_create_string(detail), NULL);
   }
 
   ten_app_push_to_in_msgs_queue(self, cmd_result);

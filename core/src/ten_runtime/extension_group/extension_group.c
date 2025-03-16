@@ -10,6 +10,7 @@
 #include <time.h>
 
 #include "include_internal/ten_runtime/addon/addon_host.h"
+#include "include_internal/ten_runtime/common/constant_str.h"
 #include "include_internal/ten_runtime/extension/extension.h"
 #include "include_internal/ten_runtime/extension_thread/extension_thread.h"
 #include "include_internal/ten_runtime/msg/msg.h"
@@ -231,7 +232,7 @@ ten_shared_ptr_t *ten_extension_group_create_cmd_result_for_invalid_dest(
   ten_shared_ptr_t *cmd_result =
       ten_cmd_result_create_from_cmd(TEN_STATUS_CODE_ERROR, origin_cmd);
   ten_msg_set_property(
-      cmd_result, "detail",
+      cmd_result, TEN_STR_DETAIL,
       ten_value_create_vstring("The extension group[%s] is invalid.",
                                ten_string_get_raw_str(target_group_name)),
       NULL);
@@ -239,8 +240,8 @@ ten_shared_ptr_t *ten_extension_group_create_cmd_result_for_invalid_dest(
   return cmd_result;
 }
 
-ten_runloop_t *ten_extension_group_get_attached_runloop(
-    ten_extension_group_t *self) {
+ten_runloop_t *
+ten_extension_group_get_attached_runloop(ten_extension_group_t *self) {
   TEN_ASSERT(self &&
                  // TEN_NOLINTNEXTLINE(thread-check)
                  // thread-check: This function is intended to be called in

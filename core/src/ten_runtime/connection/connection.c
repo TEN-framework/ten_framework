@@ -580,7 +580,7 @@ void ten_connection_reply_result_for_duplicate_connection(
 
   ten_shared_ptr_t *ret_cmd =
       ten_cmd_result_create_from_cmd(TEN_STATUS_CODE_OK, cmd_start_graph);
-  ten_msg_set_property(ret_cmd, "detail",
+  ten_msg_set_property(ret_cmd, TEN_STR_DETAIL,
                        ten_value_create_string(TEN_STR_DUPLICATE), NULL);
   ten_msg_clear_and_set_dest_from_msg_src(ret_cmd, cmd_start_graph);
   ten_connection_send_msg(self, ret_cmd);

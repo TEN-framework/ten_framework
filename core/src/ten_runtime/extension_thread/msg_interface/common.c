@@ -8,6 +8,7 @@
 
 #include "include_internal/ten_runtime/app/app.h"
 #include "include_internal/ten_runtime/app/msg_interface/common.h"
+#include "include_internal/ten_runtime/common/constant_str.h"
 #include "include_internal/ten_runtime/common/loc.h"
 #include "include_internal/ten_runtime/engine/engine.h"
 #include "include_internal/ten_runtime/engine/internal/extension_interface.h"
@@ -43,8 +44,9 @@ void ten_extension_thread_handle_start_msg_task(void *self_,
   ten_extension_group_load_metadata(self->extension_group);
 }
 
-static void ten_extension_thread_handle_in_msg_sync(
-    ten_extension_thread_t *self, ten_shared_ptr_t *msg) {
+static void
+ten_extension_thread_handle_in_msg_sync(ten_extension_thread_t *self,
+                                        ten_shared_ptr_t *msg) {
   TEN_ASSERT(self, "Invalid argument.");
   TEN_ASSERT(ten_extension_thread_check_integrity(self, true),
              "Invalid use of extension_thread %p.", self);
@@ -115,43 +117,44 @@ void ten_extension_thread_handle_in_msg_task(void *self_, void *arg) {
 #endif
 
   switch (ten_extension_thread_get_state(self)) {
-    case TEN_EXTENSION_THREAD_STATE_INIT:
-    case TEN_EXTENSION_THREAD_STATE_CREATING_EXTENSIONS:
+  case TEN_EXTENSION_THREAD_STATE_INIT:
+  case TEN_EXTENSION_THREAD_STATE_CREATING_EXTENSIONS:
 #if defined(_DEBUG)
-      // ten_msg_dump(msg, NULL,
-      //              "A message (^m) comes when extension thread (%p) is in "
-      //              "state (%d)",
-      //              self, ten_extension_thread_get_state(self));
+    // ten_msg_dump(msg, NULL,
+    //              "A message (^m) comes when extension thread (%p) is in "
+    //              "state (%d)",
+    //              self, ten_extension_thread_get_state(self));
 #endif
 
-      // At this stage, the extensions have not been created yet, so any
-      // received messages are placed into a `pending_msgs` list. Once the
-      // extensions are created, the messages will be delivered to the
-      // corresponding extensions.
-      ten_list_push_smart_ptr_back(&self->pending_msgs_received_in_init_stage,
-                                   msg);
-      break;
+    // At this stage, the extensions have not been created yet, so any
+    // received messages are placed into a `pending_msgs` list. Once the
+    // extensions are created, the messages will be delivered to the
+    // corresponding extensions.
+    ten_list_push_smart_ptr_back(&self->pending_msgs_received_in_init_stage,
+                                 msg);
+    break;
 
-    case TEN_EXTENSION_THREAD_STATE_NORMAL:
-    case TEN_EXTENSION_THREAD_STATE_PREPARE_TO_CLOSE:
-      ten_extension_thread_handle_in_msg_sync(self, msg);
-      break;
+  case TEN_EXTENSION_THREAD_STATE_NORMAL:
+  case TEN_EXTENSION_THREAD_STATE_PREPARE_TO_CLOSE:
+    ten_extension_thread_handle_in_msg_sync(self, msg);
+    break;
 
-    case TEN_EXTENSION_THREAD_STATE_CLOSED:
-      // All extensions are removed from this extension thread, so the only
-      // thing we can do is to discard this cmd result.
-      break;
+  case TEN_EXTENSION_THREAD_STATE_CLOSED:
+    // All extensions are removed from this extension thread, so the only
+    // thing we can do is to discard this cmd result.
+    break;
 
-    default:
-      TEN_ASSERT(0, "Should not happen.");
-      break;
+  default:
+    TEN_ASSERT(0, "Should not happen.");
+    break;
   }
 
   ten_shared_ptr_destroy(msg);
 }
 
-static void ten_extension_thread_process_release_lock_mode_task(
-    void *self_, TEN_UNUSED void *arg) {
+static void
+ten_extension_thread_process_release_lock_mode_task(void *self_,
+                                                    TEN_UNUSED void *arg) {
   ten_extension_thread_t *self = (ten_extension_thread_t *)self_;
   TEN_ASSERT(self, "Invalid argument.");
   TEN_ASSERT(ten_extension_thread_check_integrity(self, true),
@@ -277,8 +280,8 @@ void ten_extension_thread_create_cmd_result_and_dispatch(
       ten_cmd_result_create_from_cmd(status_code, origin_cmd);
 
   if (detail) {
-    ten_msg_set_property(cmd_result, "detail", ten_value_create_string(detail),
-                         NULL);
+    ten_msg_set_property(cmd_result, TEN_STR_DETAIL,
+                         ten_value_create_string(detail), NULL);
   }
 
   // TODO(Wei): Here, an optimization can be made: check whether

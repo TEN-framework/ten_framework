@@ -49,7 +49,8 @@ static bool ten_engine_close_duplicated_remote_or_upgrade_it_to_normal(
   ten_string_t detail_str;
   TEN_STRING_INIT(detail_str);
 
-  ten_value_t *detail_value = ten_msg_peek_property(cmd_result, "detail", NULL);
+  ten_value_t *detail_value =
+      ten_msg_peek_property(cmd_result, TEN_STR_DETAIL, NULL);
   if (!detail_value || !ten_value_is_string(detail_value)) {
     TEN_ASSERT(0, "Should not happen.");
   }
