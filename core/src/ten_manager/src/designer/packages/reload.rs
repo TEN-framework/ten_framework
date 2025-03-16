@@ -24,7 +24,7 @@ pub struct ReloadPkgsRequestPayload {
     pub base_dir: Option<String>,
 }
 
-pub async fn clear_and_reload_pkgs(
+pub async fn clear_and_reload_pkgs_endpoint(
     request_payload: web::Json<ReloadPkgsRequestPayload>,
     state: web::Data<Arc<RwLock<DesignerState>>>,
 ) -> Result<impl Responder, actix_web::Error> {

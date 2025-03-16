@@ -14,11 +14,9 @@ mod exec;
 mod file_content;
 pub mod frontend;
 pub mod graphs;
-mod manifest;
 mod messages;
 pub mod mock;
 mod packages;
-mod property;
 pub mod response;
 mod terminal;
 mod version;
@@ -48,59 +46,66 @@ pub fn configure_routes(
     cfg.service(
         web::scope("/api/designer/v1")
             .app_data(state)
-            .route("/version", web::get().to(version::get_version))
+            .route("/version", web::get().to(version::get_version_endpoint))
             .route(
                 "/check-update",
                 web::get().to(version::check_update_endpoint),
             )
-            .route("/env", web::get().to(env::get_env))
-            .route("/addons", web::post().to(addons::get_addons))
+            .route("/env", web::get().to(env::get_env_endpoint))
+            .route("/addons", web::post().to(addons::get_addons_endpoint))
             .route(
                 "/packages/reload",
-                web::post().to(packages::reload::clear_and_reload_pkgs),
+                web::post()
+                    .to(packages::reload::clear_and_reload_pkgs_endpoint),
             )
-            .route("/graphs", web::post().to(graphs::get_graphs))
-            .route("/graphs", web::put().to(graphs::update::update_graph))
+            .route("/graphs", web::post().to(graphs::get_graphs_endpoint))
+            .route(
+                "/graphs",
+                web::put().to(graphs::update::update_graph_endpoint),
+            )
             .route(
                 "/graphs/nodes",
-                web::post().to(graphs::nodes::get_graph_nodes),
+                web::post().to(graphs::nodes::get_graph_nodes_endpoint),
             )
             .route(
                 "/graphs/connections",
-                web::post().to(graphs::connections::get_graph_connections),
-            )
-            .route(
-                "/manifest/check",
-                web::post().to(manifest::check::check_manifest),
-            )
-            .route(
-                "/property/check",
-                web::get().to(property::check::check_property),
+                web::post()
+                    .to(graphs::connections::get_graph_connections_endpoint),
             )
             .route(
                 "/messages/compatible",
-                web::post().to(messages::compatible::get_compatible_messages),
+                web::post()
+                    .to(messages::compatible::get_compatible_messages_endpoint),
             )
             .route(
                 "/file-content",
-                web::post().to(file_content::get_file_content),
+                web::post().to(file_content::get_file_content_endpoint),
             )
             .route(
                 "/file-content",
-                web::put().to(file_content::save_file_content),
+                web::put().to(file_content::save_file_content_endpoint),
             )
-            .route("/app/base-dir", web::post().to(app::base_dir::add_base_dir))
             .route(
                 "/app/base-dir",
-                web::delete().to(app::base_dir::delete_base_dir),
+                web::post().to(app::base_dir::add_base_dir_endpoint),
             )
-            .route("/app/base-dir", web::get().to(app::base_dir::get_base_dir))
-            .route("/dir-list", web::post().to(dir_list::list_dir))
-            .route("/ws/exec", web::get().to(exec::exec))
+            .route(
+                "/app/base-dir",
+                web::delete().to(app::base_dir::delete_base_dir_endpoint),
+            )
+            .route(
+                "/app/base-dir",
+                web::get().to(app::base_dir::get_base_dir_endpoint),
+            )
+            .route("/dir-list", web::post().to(dir_list::list_dir_endpoint))
+            .route("/ws/exec", web::get().to(exec::exec_endpoint))
             .route(
                 "/ws/builtin-function",
-                web::get().to(builtin_function::builtin_function),
+                web::get().to(builtin_function::builtin_function_endpoint),
             )
-            .route("/ws/terminal", web::get().to(terminal::ws_terminal)),
+            .route(
+                "/ws/terminal",
+                web::get().to(terminal::ws_terminal_endpoint),
+            ),
     );
 }

@@ -149,7 +149,7 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WsRunCmd {
     }
 }
 
-pub async fn exec(
+pub async fn exec_endpoint(
     req: HttpRequest,
     stream: web::Payload,
     state: web::Data<Arc<RwLock<DesignerState>>>,

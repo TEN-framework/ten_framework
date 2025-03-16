@@ -117,7 +117,7 @@ fn get_designer_destination_from_property(
     destinations.into_iter().map(|v| v.into()).collect()
 }
 
-pub async fn get_graph_connections(
+pub async fn get_graph_connections_endpoint(
     request_payload: web::Json<GetGraphConnectionsRequestPayload>,
     state: web::Data<Arc<RwLock<DesignerState>>>,
 ) -> Result<impl Responder, actix_web::Error> {
@@ -239,7 +239,7 @@ mod tests {
         let app = test::init_service(
             App::new().app_data(web::Data::new(designer_state)).route(
                 "/api/designer/v1/graphs/connections",
-                web::post().to(get_graph_connections),
+                web::post().to(get_graph_connections_endpoint),
             ),
         )
         .await;
@@ -330,7 +330,7 @@ mod tests {
         let app = test::init_service(
             App::new().app_data(web::Data::new(designer_state)).route(
                 "/api/designer/v1/graphs/connections",
-                web::post().to(get_graph_connections),
+                web::post().to(get_graph_connections_endpoint),
             ),
         )
         .await;
@@ -444,7 +444,7 @@ mod tests {
         let app = test::init_service(
             App::new().app_data(web::Data::new(designer_state)).route(
                 "/api/designer/v1/graphs/connections",
-                web::post().to(get_graph_connections),
+                web::post().to(get_graph_connections_endpoint),
             ),
         )
         .await;
@@ -534,7 +534,7 @@ mod tests {
         let app = test::init_service(
             App::new().app_data(web::Data::new(designer_state)).route(
                 "/api/designer/v1/graphs/connections",
-                web::post().to(get_graph_connections),
+                web::post().to(get_graph_connections_endpoint),
             ),
         )
         .await;

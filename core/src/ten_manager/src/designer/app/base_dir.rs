@@ -49,7 +49,7 @@ pub struct GetBaseDirResponseData {
     pub base_dirs: Option<Vec<String>>,
 }
 
-pub async fn add_base_dir(
+pub async fn add_base_dir_endpoint(
     request_payload: web::Json<AddBaseDirRequestPayload>,
     state: web::Data<Arc<RwLock<DesignerState>>>,
 ) -> Result<impl Responder, actix_web::Error> {
@@ -101,7 +101,7 @@ pub async fn add_base_dir(
     }
 }
 
-pub async fn get_base_dir(
+pub async fn get_base_dir_endpoint(
     state: web::Data<Arc<RwLock<DesignerState>>>,
 ) -> Result<impl Responder, actix_web::Error> {
     let state = state.read().unwrap();
@@ -116,7 +116,7 @@ pub async fn get_base_dir(
     Ok(HttpResponse::Ok().json(response))
 }
 
-pub async fn delete_base_dir(
+pub async fn delete_base_dir_endpoint(
     request_payload: web::Json<DeleteBaseDirRequestPayload>,
     state: web::Data<Arc<RwLock<DesignerState>>>,
 ) -> Result<impl Responder, actix_web::Error> {
@@ -182,7 +182,7 @@ mod tests {
                 .app_data(web::Data::new(designer_state.clone()))
                 .route(
                     "/api/designer/v1/app/base-dir",
-                    web::post().to(add_base_dir),
+                    web::post().to(add_base_dir_endpoint),
                 ),
         )
         .await;
@@ -218,7 +218,7 @@ mod tests {
                 .app_data(web::Data::new(designer_state.clone()))
                 .route(
                     "/api/designer/v1/app/base-dir",
-                    web::get().to(get_base_dir),
+                    web::get().to(get_base_dir_endpoint),
                 ),
         )
         .await;
@@ -259,7 +259,7 @@ mod tests {
                 .app_data(web::Data::new(designer_state.clone()))
                 .route(
                     "/api/designer/v1/app/base-dir",
-                    web::get().to(get_base_dir),
+                    web::get().to(get_base_dir_endpoint),
                 ),
         )
         .await;

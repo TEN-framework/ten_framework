@@ -173,9 +173,29 @@ const char *ten_raw_msg_get_first_dest_uri(ten_msg_t *self) {
   return ten_string_get_raw_str(&first_loc->app_uri);
 }
 
+/**
+ * @brief Retrieves the first destination location from a raw message.
+ *
+ * This function returns a pointer to the first destination location in the
+ * message's destination list. The function verifies that the message has at
+ * least one destination before retrieving it.
+ *
+ * @param self Pointer to the raw message structure.
+ * @return A pointer to the first destination location (ten_loc_t).
+ *
+ * @note The returned pointer points to memory owned by the message and should
+ *       not be freed by the caller.
+ * @note This is the raw message version of ten_msg_get_first_dest_loc().
+ */
 ten_loc_t *ten_raw_msg_get_first_dest_loc(ten_msg_t *self) {
-  TEN_ASSERT(self && ten_raw_msg_check_integrity(self), "Should not happen.");
-  TEN_ASSERT(ten_list_size(&self->dest_loc) >= 1, "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_raw_msg_check_integrity(self), "Should not happen.");
+
+  // Check if the destination list is empty.
+  if (ten_list_size(&self->dest_loc) == 0) {
+    TEN_ASSERT(0, "The destination list is empty.");
+    return NULL;
+  }
 
   ten_loc_t *first_loc = ten_ptr_listnode_get(ten_list_front(&self->dest_loc));
   return first_loc;
@@ -455,9 +475,34 @@ ten_loc_t *ten_msg_get_src_loc(ten_shared_ptr_t *self) {
   return ten_raw_msg_get_src_loc(ten_shared_ptr_get_data(self));
 }
 
+/**
+ * @brief Retrieves the first destination location from a message.
+ *
+ * This function returns a pointer to the first destination location in the
+ * message's destination list. The caller should verify that the message has at
+ * least one destination before calling this function.
+ *
+ * @param self A shared pointer to the message.
+ * @return A pointer to the first destination location (ten_loc_t).
+ *         Returns NULL if the destination list is empty.
+ *
+ * @note The returned pointer points to memory owned by the message and should
+ * not be freed by the caller.
+ */
 ten_loc_t *ten_msg_get_first_dest_loc(ten_shared_ptr_t *self) {
-  TEN_ASSERT(self && ten_msg_check_integrity(self), "Should not happen.");
-  return ten_raw_msg_get_first_dest_loc(ten_msg_get_raw_msg(self));
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_msg_check_integrity(self), "Should not happen.");
+
+  ten_msg_t *raw_msg = ten_msg_get_raw_msg(self);
+  TEN_ASSERT(raw_msg, "Should not happen.");
+
+  // Check if the destination list is empty.
+  if (ten_raw_msg_get_dest_cnt(raw_msg) == 0) {
+    TEN_ASSERT(0, "The destination list is empty.");
+    return NULL;
+  }
+
+  return ten_raw_msg_get_first_dest_loc(raw_msg);
 }
 
 TEN_MSG_TYPE ten_msg_type_from_type_and_name_string(const char *type_str,

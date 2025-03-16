@@ -212,9 +212,27 @@ bool ten_loc_is_equal_with_value(ten_loc_t *self, const char *app_uri,
          ten_string_is_equal_c_str(&self->extension_name, extension_name);
 }
 
+/**
+ * @brief Converts a location structure to a human-readable string
+ * representation.
+ *
+ * This function formats the contents of a ten_loc_t structure into a string
+ * that shows all components of the location (app URI, graph ID, extension
+ * group, and extension name). Empty fields will appear as empty strings in the
+ * output.
+ *
+ * @param self The location structure to convert to string.
+ * @param result A pre-initialized string where the result will be stored.
+ *               The previous contents of this string will be overwritten.
+ *
+ * @note The caller is responsible for ensuring that both parameters are valid
+ *       and that result has been properly initialized.
+ */
 void ten_loc_to_string(ten_loc_t *self, ten_string_t *result) {
-  TEN_ASSERT(self && result && ten_loc_check_integrity(self),
-             "Should not happen.");
+  TEN_ASSERT(self, "Invalid parameters or corrupted location structure.");
+  TEN_ASSERT(ten_loc_check_integrity(self),
+             "Invalid parameters or corrupted location structure.");
+  TEN_ASSERT(result, "Invalid parameters or corrupted location structure.");
 
   ten_string_set_formatted(result,
                            "app: %s, graph: %s, group: %s, extension: %s",

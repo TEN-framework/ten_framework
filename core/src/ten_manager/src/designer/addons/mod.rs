@@ -127,7 +127,7 @@ fn convert_pkg_info_to_addon(
     }
 }
 
-pub async fn get_addons(
+pub async fn get_addons_endpoint(
     request_payload: web::Json<GetAddonsRequestPayload>,
     state: web::Data<Arc<RwLock<DesignerState>>>,
 ) -> Result<impl Responder, actix_web::Error> {
@@ -247,9 +247,10 @@ mod tests {
         let designer_state = Arc::new(RwLock::new(designer_state));
 
         let app = test::init_service(
-            App::new()
-                .app_data(web::Data::new(designer_state))
-                .route("/api/designer/v1/addons", web::post().to(get_addons)),
+            App::new().app_data(web::Data::new(designer_state)).route(
+                "/api/designer/v1/addons",
+                web::post().to(get_addons_endpoint),
+            ),
         )
         .await;
 
@@ -482,7 +483,10 @@ mod tests {
         let app = test::init_service(
             App::new()
                 .app_data(web::Data::new(designer_state.clone()))
-                .route("/api/designer/v1/addons", web::post().to(get_addons)),
+                .route(
+                    "/api/designer/v1/addons",
+                    web::post().to(get_addons_endpoint),
+                ),
         )
         .await;
 
@@ -623,7 +627,10 @@ mod tests {
         let app = test::init_service(
             App::new()
                 .app_data(web::Data::new(designer_state.clone()))
-                .route("/api/designer/v1/addons", web::post().to(get_addons)),
+                .route(
+                    "/api/designer/v1/addons",
+                    web::post().to(get_addons_endpoint),
+                ),
         )
         .await;
 

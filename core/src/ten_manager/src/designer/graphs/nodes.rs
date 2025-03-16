@@ -257,7 +257,7 @@ fn get_designer_property_items_from_pkg(
 /// # Parameters
 /// - `state`: The state of the designer.
 /// - `path`: The name of the graph.
-pub async fn get_graph_nodes(
+pub async fn get_graph_nodes_endpoint(
     request_payload: web::Json<GetGraphNodesRequestPayload>,
     state: web::Data<Arc<RwLock<DesignerState>>>,
 ) -> Result<impl Responder, actix_web::Error> {
@@ -475,7 +475,7 @@ mod tests {
         let app = test::init_service(
             App::new().app_data(web::Data::new(designer_state)).route(
                 "/api/designer/v1/graphs/nodes",
-                web::post().to(get_graph_nodes),
+                web::post().to(get_graph_nodes_endpoint),
             ),
         )
         .await;
@@ -689,7 +689,7 @@ mod tests {
         let app = test::init_service(
             App::new().app_data(web::Data::new(designer_state)).route(
                 "/api/designer/v1/graphs/nodes",
-                web::post().to(get_graph_nodes),
+                web::post().to(get_graph_nodes_endpoint),
             ),
         )
         .await;
@@ -757,7 +757,7 @@ mod tests {
         let app = test::init_service(
             App::new().app_data(web::Data::new(designer_state)).route(
                 "/api/designer/v1/graphs/nodes",
-                web::post().to(get_graph_nodes),
+                web::post().to(get_graph_nodes_endpoint),
             ),
         )
         .await;

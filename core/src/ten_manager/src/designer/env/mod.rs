@@ -23,7 +23,7 @@ pub struct EnvInfo {
     arch: String,
 }
 
-pub async fn get_env(
+pub async fn get_env_endpoint(
     _state: web::Data<Arc<RwLock<DesignerState>>>,
 ) -> Result<impl Responder, actix_web::Error> {
     let current_env = ten_rust::env::get_env().map_err(|e| {

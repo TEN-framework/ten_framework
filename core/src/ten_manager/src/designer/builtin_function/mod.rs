@@ -192,7 +192,7 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>>
     }
 }
 
-pub async fn builtin_function(
+pub async fn builtin_function_endpoint(
     req: HttpRequest,
     stream: web::Payload,
     state: web::Data<Arc<RwLock<DesignerState>>>,
@@ -243,7 +243,9 @@ mod tests {
 
     use crate::{
         config::TmanConfig,
-        designer::{builtin_function::builtin_function, DesignerState},
+        designer::{
+            builtin_function::builtin_function_endpoint, DesignerState,
+        },
         output::TmanOutputCli,
     };
 
@@ -259,9 +261,10 @@ mod tests {
 
         // Initialize the test service with the WebSocket endpoint.
         let app = test::init_service(
-            App::new()
-                .app_data(web::Data::new(designer_state))
-                .route("/ws/builtin-function", web::get().to(builtin_function)),
+            App::new().app_data(web::Data::new(designer_state)).route(
+                "/ws/builtin-function",
+                web::get().to(builtin_function_endpoint),
+            ),
         )
         .await;
 
@@ -300,9 +303,10 @@ mod tests {
 
         // Initialize the test service with the WebSocket endpoint.
         let app = test::init_service(
-            App::new()
-                .app_data(web::Data::new(designer_state))
-                .route("/ws/builtin-function", web::get().to(builtin_function)),
+            App::new().app_data(web::Data::new(designer_state)).route(
+                "/ws/builtin-function",
+                web::get().to(builtin_function_endpoint),
+            ),
         )
         .await;
 

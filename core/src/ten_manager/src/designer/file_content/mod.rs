@@ -26,7 +26,7 @@ struct GetFileContentResponseData {
     content: String,
 }
 
-pub async fn get_file_content(
+pub async fn get_file_content_endpoint(
     request_payload: web::Json<GetFileContentRequestPayload>,
     state: web::Data<Arc<RwLock<DesignerState>>>,
 ) -> Result<impl Responder, actix_web::Error> {
@@ -64,7 +64,7 @@ pub struct SaveFileRequestPayload {
     content: String,
 }
 
-pub async fn save_file_content(
+pub async fn save_file_content_endpoint(
     request_payload: web::Json<SaveFileRequestPayload>,
     state: web::Data<Arc<RwLock<DesignerState>>>,
 ) -> Result<impl Responder, actix_web::Error> {

@@ -16,10 +16,12 @@ use ten_manager::{
     designer::{
         graphs::{
             connections::{
-                get_graph_connections, GetGraphConnectionsRequestPayload,
+                get_graph_connections_endpoint,
+                GetGraphConnectionsRequestPayload,
                 GetGraphConnectionsSingleResponseData,
             },
-            get_graphs, GetGraphsRequestPayload, GetGraphsResponseData,
+            get_graphs_endpoint, GetGraphsRequestPayload,
+            GetGraphsResponseData,
         },
         mock::inject_all_pkgs_for_mock,
         response::ApiResponse,
@@ -62,9 +64,10 @@ async fn test_cmd_designer_graphs_app_property_not_exist() {
 
     let designer_state = Arc::new(RwLock::new(designer_state));
     let app = test::init_service(
-        App::new()
-            .app_data(web::Data::new(designer_state))
-            .route("/api/designer/v1/graphs", web::post().to(get_graphs)),
+        App::new().app_data(web::Data::new(designer_state)).route(
+            "/api/designer/v1/graphs",
+            web::post().to(get_graphs_endpoint),
+        ),
     )
     .await;
 
@@ -129,7 +132,7 @@ async fn test_cmd_designer_connections_has_msg_conversion() {
     let app = test::init_service(
         App::new().app_data(web::Data::new(designer_state)).route(
             "/api/designer/v1/graphs/connections",
-            web::post().to(get_graph_connections),
+            web::post().to(get_graph_connections_endpoint),
         ),
     )
     .await;

@@ -34,7 +34,7 @@ pub struct GetGraphsResponseData {
     auto_start: bool,
 }
 
-pub async fn get_graphs(
+pub async fn get_graphs_endpoint(
     request_payload: web::Json<GetGraphsRequestPayload>,
     state: web::Data<Arc<RwLock<DesignerState>>>,
 ) -> Result<impl Responder, actix_web::Error> {
@@ -147,9 +147,10 @@ mod tests {
         let designer_state = Arc::new(RwLock::new(designer_state));
 
         let app = test::init_service(
-            App::new()
-                .app_data(web::Data::new(designer_state))
-                .route("/api/designer/v1/graphs", web::post().to(get_graphs)),
+            App::new().app_data(web::Data::new(designer_state)).route(
+                "/api/designer/v1/graphs",
+                web::post().to(get_graphs_endpoint),
+            ),
         )
         .await;
 
@@ -199,9 +200,10 @@ mod tests {
         }));
 
         let app = test::init_service(
-            App::new()
-                .app_data(web::Data::new(designer_state))
-                .route("/api/designer/v1/graphs", web::post().to(get_graphs)),
+            App::new().app_data(web::Data::new(designer_state)).route(
+                "/api/designer/v1/graphs",
+                web::post().to(get_graphs_endpoint),
+            ),
         )
         .await;
 

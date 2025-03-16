@@ -72,7 +72,7 @@ impl From<CompatibleExtensionAndMsg<'_>>
     }
 }
 
-pub async fn get_compatible_messages(
+pub async fn get_compatible_messages_endpoint(
     request_payload: web::Json<GetCompatibleMsgsRequestPayload>,
     state: web::Data<Arc<RwLock<DesignerState>>>,
 ) -> Result<impl Responder, actix_web::Error> {
@@ -356,7 +356,7 @@ mod tests {
         let app = test::init_service(
             App::new().app_data(web::Data::new(designer_state)).route(
                 "/api/designer/v1/messages/compatible",
-                web::post().to(get_compatible_messages),
+                web::post().to(get_compatible_messages_endpoint),
             ),
         )
         .await;
@@ -441,7 +441,7 @@ mod tests {
         let app = test::init_service(
             App::new().app_data(web::Data::new(designer_state)).route(
                 "/api/designer/v1/messages/compatible",
-                web::post().to(get_compatible_messages),
+                web::post().to(get_compatible_messages_endpoint),
             ),
         )
         .await;
@@ -508,7 +508,7 @@ mod tests {
         let app = test::init_service(
             App::new().app_data(web::Data::new(designer_state)).route(
                 "/api/designer/v1/messages/compatible",
-                web::post().to(get_compatible_messages),
+                web::post().to(get_compatible_messages_endpoint),
             ),
         )
         .await;
@@ -593,7 +593,7 @@ mod tests {
         let app = test::init_service(
             App::new().app_data(web::Data::new(designer_state)).route(
                 "/api/designer/v1/messages/compatible",
-                web::post().to(get_compatible_messages),
+                web::post().to(get_compatible_messages_endpoint),
             ),
         )
         .await;
@@ -679,7 +679,7 @@ mod tests {
         let app = test::init_service(
             App::new().app_data(web::Data::new(designer_state)).route(
                 "/api/designer/v1/messages/compatible",
-                web::post().to(get_compatible_messages),
+                web::post().to(get_compatible_messages_endpoint),
             ),
         )
         .await;
@@ -776,7 +776,7 @@ mod tests {
         let app = test::init_service(
             App::new().app_data(web::Data::new(designer_state)).route(
                 "/api/designer/v1/messages/compatible",
-                web::post().to(get_compatible_messages),
+                web::post().to(get_compatible_messages_endpoint),
             ),
         )
         .await;
@@ -863,7 +863,7 @@ mod tests {
         let app = test::init_service(
             App::new().app_data(web::Data::new(designer_state)).route(
                 "/api/designer/v1/messages/compatible",
-                web::post().to(get_compatible_messages),
+                web::post().to(get_compatible_messages_endpoint),
             ),
         )
         .await;
@@ -939,7 +939,7 @@ mod tests {
         let app = test::init_service(
             App::new().app_data(web::Data::new(designer_state)).route(
                 "/api/designer/v1/messages/compatible",
-                web::post().to(get_compatible_messages),
+                web::post().to(get_compatible_messages_endpoint),
             ),
         )
         .await;
@@ -1014,7 +1014,7 @@ mod tests {
         let app = test::init_service(
             App::new().app_data(web::Data::new(designer_state)).route(
                 "/api/designer/v1/messages/compatible",
-                web::post().to(get_compatible_messages),
+                web::post().to(get_compatible_messages_endpoint),
             ),
         )
         .await;
@@ -1089,7 +1089,7 @@ mod tests {
         let app = test::init_service(
             App::new().app_data(web::Data::new(designer_state)).route(
                 "/api/designer/v1/messages/compatible",
-                web::post().to(get_compatible_messages),
+                web::post().to(get_compatible_messages_endpoint),
             ),
         )
         .await;
