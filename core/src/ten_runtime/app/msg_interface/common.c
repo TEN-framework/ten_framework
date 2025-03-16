@@ -399,6 +399,7 @@ bool ten_app_handle_in_msg(ten_app_t *self, ten_connection_t *connection,
     if (!ten_app_handle_cmd_result(self, msg, err)) {
       return ten_app_handle_msg_default_handler(self, connection, msg, err);
     }
+    return true;
 
   default:
     return ten_app_handle_msg_default_handler(self, connection, msg, err);
