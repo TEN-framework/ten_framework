@@ -200,6 +200,8 @@ static void ten_engine_handle_in_msgs_task(void *engine_,
   TEN_ASSERT(engine && ten_engine_check_integrity(engine, true),
              "Should not happen.");
 
+  ten_ref_dec_ref(&engine->ref);
+
   ten_engine_handle_in_msgs_sync(engine);
 }
 
@@ -211,10 +213,17 @@ void ten_engine_handle_in_msgs_async(ten_engine_t *self) {
                  ten_engine_check_integrity(self, false),
              "Should not happen.");
 
+  ten_ref_inc_ref(&self->ref);
+
   int rc =
       ten_runloop_post_task_tail(ten_engine_get_attached_runloop(self),
                                  ten_engine_handle_in_msgs_task, self, NULL);
-  TEN_ASSERT(!rc, "Should not happen.");
+  if (rc) {
+    TEN_LOGW("Failed to post task to engine's runloop: %d", rc);
+    ten_ref_dec_ref(&self->ref);
+
+    TEN_ASSERT(0, "Should not happen.");
+  }
 }
 
 void ten_engine_append_to_in_msgs_queue(ten_engine_t *self,
@@ -281,6 +290,8 @@ static void ten_engine_post_msg_to_extension_thread(
   // into it will not succeed. It is necessary to account for this scenario to
   // prevent memory leaks.
   if (rc) {
+    TEN_LOGW("Failed to post task to extension thread's runloop: %d", rc);
+
     if (ten_msg_is_cmd(msg)) {
       // Create a cmd result to inform the sender that the destination extension
       // has been terminated.

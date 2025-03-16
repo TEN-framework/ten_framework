@@ -137,7 +137,10 @@ static void ten_app_peek_property_async_cb_go_back_to_extension(
   int rc = ten_runloop_post_task_tail(
       ten_extension_get_attached_runloop(context->from.extension),
       ten_env_peek_property_done_task, NULL, context);
-  TEN_ASSERT(!rc, "Should not happen.");
+  if (rc) {
+    TEN_LOGW("Failed to post task to extension's runloop: %d", rc);
+    TEN_ASSERT(0, "Should not happen.");
+  }
 }
 
 static void ten_app_peek_property_async_cb_go_back_to_extension_group(
@@ -153,7 +156,10 @@ static void ten_app_peek_property_async_cb_go_back_to_extension_group(
   int rc = ten_runloop_post_task_tail(
       ten_extension_group_get_attached_runloop(context->from.extension_group),
       ten_env_peek_property_done_task, NULL, context);
-  TEN_ASSERT(!rc, "Should not happen.");
+  if (rc) {
+    TEN_LOGW("Failed to post task to extension group's runloop: %d", rc);
+    TEN_ASSERT(0, "Should not happen.");
+  }
 }
 
 static void ten_app_peek_property_async_cb(ten_app_t *app, ten_value_t *res,
@@ -189,130 +195,54 @@ ten_value_t *ten_env_peek_property(ten_env_t *self, const char *path,
       ten_determine_metadata_level(self->attach_to, p_path);
 
   switch (self->attach_to) {
-    case TEN_ENV_ATTACH_TO_EXTENSION: {
-      ten_extension_t *extension = ten_env_get_attached_extension(self);
-      TEN_ASSERT(extension && ten_extension_check_integrity(extension, true),
-                 "Invalid use of extension %p.", extension);
+  case TEN_ENV_ATTACH_TO_EXTENSION: {
+    ten_extension_t *extension = ten_env_get_attached_extension(self);
+    TEN_ASSERT(extension && ten_extension_check_integrity(extension, true),
+               "Invalid use of extension %p.", extension);
 
-      ten_extension_thread_t *extension_thread = extension->extension_thread;
-      TEN_ASSERT(extension_thread && ten_extension_thread_check_integrity(
-                                         extension_thread, true),
-                 "Invalid use of extension_thread %p.", extension_thread);
+    ten_extension_thread_t *extension_thread = extension->extension_thread;
+    TEN_ASSERT(extension_thread &&
+                   ten_extension_thread_check_integrity(extension_thread, true),
+               "Invalid use of extension_thread %p.", extension_thread);
 
-      switch (level) {
-        case TEN_METADATA_LEVEL_EXTENSION:
-          res = ten_extension_peek_property(extension, *p_path, err);
-          break;
-
-        case TEN_METADATA_LEVEL_EXTENSION_GROUP: {
-          ten_extension_group_t *extension_group =
-              extension->extension_thread->extension_group;
-          TEN_ASSERT(extension_group && ten_extension_group_check_integrity(
-                                            extension_group, true),
-                     "Invalid use of extension group %p", extension_group);
-
-          res = ten_extension_group_peek_property(extension_group, path);
-          break;
-        }
-
-        case TEN_METADATA_LEVEL_APP: {
-          ten_app_t *app = extension->extension_context->engine->app;
-          // TEN_NOLINTNEXTLINE(thread-check):
-          // thread-check: Access the app's property from an extension, that is,
-          // from the extension thread.
-          TEN_ASSERT(app && ten_app_check_integrity(app, false),
-                     "Invalid use of app %p", app);
-
-          if (ten_app_thread_call_by_me(app)) {
-            res = ten_app_peek_property(app, path);
-          } else {
-            ten_env_peek_property_sync_context_t *context =
-                ten_env_peek_property_sync_context_create();
-            TEN_ASSERT(context, "Should not happen.");
-
-            ten_app_peek_property_async(app, path,
-                                        ten_app_peek_property_sync_cb, context);
-
-            ten_event_wait(context->completed, -1);
-            res = context->res;
-
-            ten_env_peek_property_sync_context_destroy(context);
-          }
-          break;
-        }
-
-        default:
-          TEN_ASSERT(0, "Should not happen.");
-          break;
-      }
+    switch (level) {
+    case TEN_METADATA_LEVEL_EXTENSION:
+      res = ten_extension_peek_property(extension, *p_path, err);
       break;
-    }
 
-    case TEN_ENV_ATTACH_TO_EXTENSION_GROUP: {
+    case TEN_METADATA_LEVEL_EXTENSION_GROUP: {
       ten_extension_group_t *extension_group =
-          ten_env_get_attached_extension_group(self);
+          extension->extension_thread->extension_group;
       TEN_ASSERT(extension_group &&
                      ten_extension_group_check_integrity(extension_group, true),
-                 "Invalid use of extension_group %p.", extension_group);
+                 "Invalid use of extension group %p", extension_group);
 
-      ten_extension_thread_t *extension_thread =
-          extension_group->extension_thread;
-      TEN_ASSERT(extension_thread && ten_extension_thread_check_integrity(
-                                         extension_thread, true),
-                 "Invalid use of extension_thread %p.", extension_thread);
-
-      switch (level) {
-        case TEN_METADATA_LEVEL_EXTENSION_GROUP:
-          res = ten_extension_group_peek_property(extension_group, path);
-          break;
-
-        case TEN_METADATA_LEVEL_APP: {
-          ten_app_t *app = extension_group->extension_context->engine->app;
-          // TEN_NOLINTNEXTLINE(thread-check):
-          // thread-check: Access the app's property from an extension group,
-          // that is, from the extension thread.
-          TEN_ASSERT(app && ten_app_check_integrity(app, false),
-                     "Invalid use of app %p", app);
-
-          if (ten_app_thread_call_by_me(app)) {
-            res = ten_app_peek_property(app, path);
-          } else {
-            ten_env_peek_property_sync_context_t *context =
-                ten_env_peek_property_sync_context_create();
-            TEN_ASSERT(context, "Should not happen.");
-
-            ten_app_peek_property_async(app, path,
-                                        ten_app_peek_property_sync_cb, context);
-
-            ten_event_wait(context->completed, -1);
-            res = context->res;
-
-            ten_env_peek_property_sync_context_destroy(context);
-          }
-          break;
-        }
-
-        default:
-          TEN_ASSERT(0, "Should not happen.");
-          break;
-      }
+      res = ten_extension_group_peek_property(extension_group, path);
       break;
     }
 
-    case TEN_ENV_ATTACH_TO_APP: {
-      ten_app_t *app = ten_env_get_attached_app(self);
-      TEN_ASSERT(app && ten_app_check_integrity(app, true),
-                 "Invalid use of app %p.", app);
+    case TEN_METADATA_LEVEL_APP: {
+      ten_app_t *app = extension->extension_context->engine->app;
+      // TEN_NOLINTNEXTLINE(thread-check):
+      // thread-check: Access the app's property from an extension, that is,
+      // from the extension thread.
+      TEN_ASSERT(app && ten_app_check_integrity(app, false),
+                 "Invalid use of app %p", app);
 
-      switch (level) {
-        case TEN_METADATA_LEVEL_APP: {
-          res = ten_app_peek_property(app, path);
-          break;
-        }
+      if (ten_app_thread_call_by_me(app)) {
+        res = ten_app_peek_property(app, path);
+      } else {
+        ten_env_peek_property_sync_context_t *context =
+            ten_env_peek_property_sync_context_create();
+        TEN_ASSERT(context, "Should not happen.");
 
-        default:
-          TEN_ASSERT(0, "Should not happen.");
-          break;
+        ten_app_peek_property_async(app, path, ten_app_peek_property_sync_cb,
+                                    context);
+
+        ten_event_wait(context->completed, -1);
+        res = context->res;
+
+        ten_env_peek_property_sync_context_destroy(context);
       }
       break;
     }
@@ -320,6 +250,82 @@ ten_value_t *ten_env_peek_property(ten_env_t *self, const char *path,
     default:
       TEN_ASSERT(0, "Should not happen.");
       break;
+    }
+    break;
+  }
+
+  case TEN_ENV_ATTACH_TO_EXTENSION_GROUP: {
+    ten_extension_group_t *extension_group =
+        ten_env_get_attached_extension_group(self);
+    TEN_ASSERT(extension_group &&
+                   ten_extension_group_check_integrity(extension_group, true),
+               "Invalid use of extension_group %p.", extension_group);
+
+    ten_extension_thread_t *extension_thread =
+        extension_group->extension_thread;
+    TEN_ASSERT(extension_thread &&
+                   ten_extension_thread_check_integrity(extension_thread, true),
+               "Invalid use of extension_thread %p.", extension_thread);
+
+    switch (level) {
+    case TEN_METADATA_LEVEL_EXTENSION_GROUP:
+      res = ten_extension_group_peek_property(extension_group, path);
+      break;
+
+    case TEN_METADATA_LEVEL_APP: {
+      ten_app_t *app = extension_group->extension_context->engine->app;
+      // TEN_NOLINTNEXTLINE(thread-check):
+      // thread-check: Access the app's property from an extension group,
+      // that is, from the extension thread.
+      TEN_ASSERT(app && ten_app_check_integrity(app, false),
+                 "Invalid use of app %p", app);
+
+      if (ten_app_thread_call_by_me(app)) {
+        res = ten_app_peek_property(app, path);
+      } else {
+        ten_env_peek_property_sync_context_t *context =
+            ten_env_peek_property_sync_context_create();
+        TEN_ASSERT(context, "Should not happen.");
+
+        ten_app_peek_property_async(app, path, ten_app_peek_property_sync_cb,
+                                    context);
+
+        ten_event_wait(context->completed, -1);
+        res = context->res;
+
+        ten_env_peek_property_sync_context_destroy(context);
+      }
+      break;
+    }
+
+    default:
+      TEN_ASSERT(0, "Should not happen.");
+      break;
+    }
+    break;
+  }
+
+  case TEN_ENV_ATTACH_TO_APP: {
+    ten_app_t *app = ten_env_get_attached_app(self);
+    TEN_ASSERT(app && ten_app_check_integrity(app, true),
+               "Invalid use of app %p.", app);
+
+    switch (level) {
+    case TEN_METADATA_LEVEL_APP: {
+      res = ten_app_peek_property(app, path);
+      break;
+    }
+
+    default:
+      TEN_ASSERT(0, "Should not happen.");
+      break;
+    }
+    break;
+  }
+
+  default:
+    TEN_ASSERT(0, "Should not happen.");
+    break;
   }
 
   if (!res) {
@@ -350,124 +356,122 @@ bool ten_env_peek_property_async(ten_env_t *self, const char *path,
       ten_determine_metadata_level(self->attach_to, p_path);
 
   switch (self->attach_to) {
-    case TEN_ENV_ATTACH_TO_EXTENSION: {
-      ten_extension_t *extension = ten_env_get_attached_extension(self);
-      TEN_ASSERT(extension && ten_extension_check_integrity(extension, true),
-                 "Invalid use of extension %p.", extension);
+  case TEN_ENV_ATTACH_TO_EXTENSION: {
+    ten_extension_t *extension = ten_env_get_attached_extension(self);
+    TEN_ASSERT(extension && ten_extension_check_integrity(extension, true),
+               "Invalid use of extension %p.", extension);
 
-      ten_extension_thread_t *extension_thread = extension->extension_thread;
-      TEN_ASSERT(extension_thread && ten_extension_thread_check_integrity(
-                                         extension_thread, true),
-                 "Invalid use of extension_thread %p.", extension_thread);
+    ten_extension_thread_t *extension_thread = extension->extension_thread;
+    TEN_ASSERT(extension_thread &&
+                   ten_extension_thread_check_integrity(extension_thread, true),
+               "Invalid use of extension_thread %p.", extension_thread);
 
-      switch (level) {
-        case TEN_METADATA_LEVEL_EXTENSION:
-          return ten_extension_peek_property_async(
-              extension, path, ten_extension_peek_property_async_cb, context,
-              err);
-          break;
-
-        case TEN_METADATA_LEVEL_EXTENSION_GROUP: {
-          ten_extension_group_t *extension_group =
-              extension->extension_thread->extension_group;
-          TEN_ASSERT(extension_group && ten_extension_group_check_integrity(
-                                            extension_group, true),
-                     "Invalid use of extension group %p", extension_group);
-
-          ten_extension_group_peek_property_async(
-              extension_group, path, ten_extension_group_peek_property_async_cb,
-              context);
-          break;
-        }
-
-        case TEN_METADATA_LEVEL_APP: {
-          ten_app_t *app = extension->extension_context->engine->app;
-          // TEN_NOLINTNEXTLINE(thread-check):
-          // thread-check: Access the app's property from an extension, that
-          // is, from the extension thread.
-          TEN_ASSERT(app && ten_app_check_integrity(app, false),
-                     "Invalid use of app %p", app);
-
-          context->from.extension = extension;
-
-          ten_app_peek_property_async(
-              app, path, ten_app_peek_property_async_cb_go_back_to_extension,
-              context);
-          break;
-        }
-
-        default:
-          TEN_ASSERT(0, "Should not happen.");
-          break;
-      }
+    switch (level) {
+    case TEN_METADATA_LEVEL_EXTENSION:
+      return ten_extension_peek_property_async(
+          extension, path, ten_extension_peek_property_async_cb, context, err);
       break;
-    }
 
-    case TEN_ENV_ATTACH_TO_EXTENSION_GROUP: {
+    case TEN_METADATA_LEVEL_EXTENSION_GROUP: {
       ten_extension_group_t *extension_group =
-          ten_env_get_attached_extension_group(self);
+          extension->extension_thread->extension_group;
       TEN_ASSERT(extension_group &&
                      ten_extension_group_check_integrity(extension_group, true),
-                 "Invalid use of extension_group %p.", extension_group);
+                 "Invalid use of extension group %p", extension_group);
 
-      ten_extension_thread_t *extension_thread =
-          extension_group->extension_thread;
-      TEN_ASSERT(extension_thread && ten_extension_thread_check_integrity(
-                                         extension_thread, true),
-                 "Invalid use of extension_thread %p.", extension_thread);
-
-      switch (level) {
-        case TEN_METADATA_LEVEL_EXTENSION_GROUP:
-          ten_extension_group_peek_property_async(
-              extension_group, path, ten_extension_group_peek_property_async_cb,
-              context);
-          break;
-
-        case TEN_METADATA_LEVEL_APP: {
-          ten_app_t *app = extension_group->extension_context->engine->app;
-          // TEN_NOLINTNEXTLINE(thread-check):
-          // thread-check: Access the app's property from an extension group,
-          // that is, from the extension thread.
-          TEN_ASSERT(app && ten_app_check_integrity(app, false),
-                     "Invalid use of app %p", app);
-
-          context->from.extension_group = extension_group;
-
-          ten_app_peek_property_async(
-              app, path,
-              ten_app_peek_property_async_cb_go_back_to_extension_group,
-              context);
-          break;
-        }
-
-        default:
-          TEN_ASSERT(0, "Should not happen.");
-          break;
-      }
+      ten_extension_group_peek_property_async(
+          extension_group, path, ten_extension_group_peek_property_async_cb,
+          context);
       break;
     }
 
-    case TEN_ENV_ATTACH_TO_APP: {
-      ten_app_t *app = ten_env_get_attached_app(self);
-      TEN_ASSERT(app && ten_app_check_integrity(app, true),
-                 "Invalid use of app %p.", app);
+    case TEN_METADATA_LEVEL_APP: {
+      ten_app_t *app = extension->extension_context->engine->app;
+      // TEN_NOLINTNEXTLINE(thread-check):
+      // thread-check: Access the app's property from an extension, that
+      // is, from the extension thread.
+      TEN_ASSERT(app && ten_app_check_integrity(app, false),
+                 "Invalid use of app %p", app);
 
-      switch (level) {
-        case TEN_METADATA_LEVEL_APP:
-          ten_app_peek_property_async(app, path, ten_app_peek_property_async_cb,
-                                      context);
-          break;
+      context->from.extension = extension;
 
-        default:
-          TEN_ASSERT(0, "Should not happen.");
-          break;
-      }
+      ten_app_peek_property_async(
+          app, path, ten_app_peek_property_async_cb_go_back_to_extension,
+          context);
       break;
     }
 
     default:
       TEN_ASSERT(0, "Should not happen.");
       break;
+    }
+    break;
+  }
+
+  case TEN_ENV_ATTACH_TO_EXTENSION_GROUP: {
+    ten_extension_group_t *extension_group =
+        ten_env_get_attached_extension_group(self);
+    TEN_ASSERT(extension_group &&
+                   ten_extension_group_check_integrity(extension_group, true),
+               "Invalid use of extension_group %p.", extension_group);
+
+    ten_extension_thread_t *extension_thread =
+        extension_group->extension_thread;
+    TEN_ASSERT(extension_thread &&
+                   ten_extension_thread_check_integrity(extension_thread, true),
+               "Invalid use of extension_thread %p.", extension_thread);
+
+    switch (level) {
+    case TEN_METADATA_LEVEL_EXTENSION_GROUP:
+      ten_extension_group_peek_property_async(
+          extension_group, path, ten_extension_group_peek_property_async_cb,
+          context);
+      break;
+
+    case TEN_METADATA_LEVEL_APP: {
+      ten_app_t *app = extension_group->extension_context->engine->app;
+      // TEN_NOLINTNEXTLINE(thread-check):
+      // thread-check: Access the app's property from an extension group,
+      // that is, from the extension thread.
+      TEN_ASSERT(app && ten_app_check_integrity(app, false),
+                 "Invalid use of app %p", app);
+
+      context->from.extension_group = extension_group;
+
+      ten_app_peek_property_async(
+          app, path, ten_app_peek_property_async_cb_go_back_to_extension_group,
+          context);
+      break;
+    }
+
+    default:
+      TEN_ASSERT(0, "Should not happen.");
+      break;
+    }
+    break;
+  }
+
+  case TEN_ENV_ATTACH_TO_APP: {
+    ten_app_t *app = ten_env_get_attached_app(self);
+    TEN_ASSERT(app && ten_app_check_integrity(app, true),
+               "Invalid use of app %p.", app);
+
+    switch (level) {
+    case TEN_METADATA_LEVEL_APP:
+      ten_app_peek_property_async(app, path, ten_app_peek_property_async_cb,
+                                  context);
+      break;
+
+    default:
+      TEN_ASSERT(0, "Should not happen.");
+      break;
+    }
+    break;
+  }
+
+  default:
+    TEN_ASSERT(0, "Should not happen.");
+    break;
   }
 
   return true;

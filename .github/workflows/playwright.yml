@@ -103,7 +103,7 @@ jobs:
         run: |
           # Start the tman designer backend
           cd ${GITHUB_WORKSPACE}/out/linux/${{ matrix.arch }}/ten_manager/bin
-          ./tman designer &
+          ./tman --verbose designer &
           TMAN_PID=$!
           echo "Started tman designer with PID $TMAN_PID"
 

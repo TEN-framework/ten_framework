@@ -638,7 +638,10 @@ bool ten_extension_tester_run(ten_extension_tester_t *self) {
   // extension_tester thread to guarantee thread safety.
   int rc = ten_runloop_post_task_tail(
       self->tester_runloop, ten_extension_tester_on_first_task, self, NULL);
-  TEN_ASSERT(!rc, "Should not happen.");
+  if (rc) {
+    TEN_LOGW("Failed to post task to extension_tester's runloop: %d", rc);
+    TEN_ASSERT(0, "Should not happen.");
+  }
 
   // Start the runloop of tester.
   ten_runloop_run(self->tester_runloop);

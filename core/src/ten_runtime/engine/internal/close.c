@@ -174,7 +174,7 @@ void ten_engine_close_async(ten_engine_t *self) {
   int rc = ten_runloop_post_task_tail(ten_engine_get_attached_runloop(self),
                                       ten_engine_close_task, self, NULL);
   if (rc) {
-    TEN_LOGW("Failed to post task to engine's runloop.");
+    TEN_LOGW("Failed to post task to engine's runloop: %d", rc);
     ten_ref_dec_ref(&self->ref);
   }
 }

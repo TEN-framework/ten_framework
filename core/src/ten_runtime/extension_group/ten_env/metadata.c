@@ -10,6 +10,7 @@
 #include "include_internal/ten_runtime/extension_group/extension_group.h"
 #include "include_internal/ten_runtime/extension_thread/extension_thread.h"
 #include "ten_utils/lib/alloc.h"
+#include "ten_utils/log/log.h"
 #include "ten_utils/macro/check.h"
 
 bool ten_extension_group_set_property(ten_extension_group_t *extension_group,
@@ -21,9 +22,10 @@ bool ten_extension_group_set_property(ten_extension_group_t *extension_group,
   return ten_value_object_move(&extension_group->property, name, value);
 }
 
-static ten_extension_group_set_property_context_t *set_property_context_create(
-    const char *name, ten_value_t *value,
-    ten_extension_group_set_property_async_cb_t cb, void *cb_data) {
+static ten_extension_group_set_property_context_t *
+set_property_context_create(const char *name, ten_value_t *value,
+                            ten_extension_group_set_property_async_cb_t cb,
+                            void *cb_data) {
   ten_extension_group_set_property_context_t *set_prop =
       TEN_MALLOC(sizeof(ten_extension_group_set_property_context_t));
   TEN_ASSERT(set_prop, "Failed to allocate memory.");
@@ -37,8 +39,8 @@ static ten_extension_group_set_property_context_t *set_property_context_create(
   return set_prop;
 }
 
-static void set_property_context_destroy(
-    ten_extension_group_set_property_context_t *self) {
+static void
+set_property_context_destroy(ten_extension_group_set_property_context_t *self) {
   TEN_ASSERT(self, "Invalid argument.");
 
   ten_string_deinit(&self->name);
@@ -80,11 +82,15 @@ void ten_extension_group_set_property_async(
   int rc = ten_runloop_post_task_tail(
       ten_extension_group_get_attached_runloop(self),
       ten_extension_group_set_property_task, self, set_property_context);
-  TEN_ASSERT(!rc, "Should not happen.");
+  if (rc) {
+    TEN_LOGW("Failed to post task to extension group's runloop: %d", rc);
+    TEN_ASSERT(0, "Should not happen.");
+  }
 }
 
-ten_value_t *ten_extension_group_peek_property(
-    ten_extension_group_t *extension_group, const char *name) {
+ten_value_t *
+ten_extension_group_peek_property(ten_extension_group_t *extension_group,
+                                  const char *name) {
   TEN_ASSERT(extension_group &&
                  ten_extension_group_check_integrity(extension_group, true),
              "Invalid argument.");
@@ -158,7 +164,10 @@ void ten_extension_group_peek_property_async(
   int rc = ten_runloop_post_task_tail(
       ten_extension_group_get_attached_runloop(self),
       ten_extension_group_peek_property_task, self, context);
-  TEN_ASSERT(!rc, "Should not happen.");
+  if (rc) {
+    TEN_LOGW("Failed to post task to extension group's runloop: %d", rc);
+    TEN_ASSERT(0, "Should not happen.");
+  }
 }
 
 ten_value_t *ten_extension_group_peek_manifest(ten_extension_group_t *self,
@@ -242,5 +251,8 @@ void ten_extension_group_peek_manifest_async(
   int rc = ten_runloop_post_task_tail(
       ten_extension_group_get_attached_runloop(self),
       ten_extension_group_peek_manifest_task, self, context);
-  TEN_ASSERT(!rc, "Should not happen.");
+  if (rc) {
+    TEN_LOGW("Failed to post task to extension group's runloop: %d", rc);
+    TEN_ASSERT(0, "Should not happen.");
+  }
 }

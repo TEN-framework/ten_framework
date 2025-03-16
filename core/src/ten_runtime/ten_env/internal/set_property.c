@@ -145,7 +145,10 @@ static void ten_app_set_property_async_cb_go_back_to_extension(ten_app_t *app,
   int rc = ten_runloop_post_task_tail(
       ten_extension_get_attached_runloop(context->from.extension),
       ten_env_set_property_done_task, NULL, context);
-  TEN_ASSERT(!rc, "Should not happen.");
+  if (rc) {
+    TEN_LOGW("Failed to post task to extension's runloop: %d", rc);
+    TEN_ASSERT(0, "Should not happen.");
+  }
 }
 
 static void ten_app_set_property_async_cb_go_back_to_extension_group(
@@ -162,7 +165,10 @@ static void ten_app_set_property_async_cb_go_back_to_extension_group(
   int rc = ten_runloop_post_task_tail(
       ten_extension_group_get_attached_runloop(context->from.extension_group),
       ten_env_set_property_done_task, NULL, context);
-  TEN_ASSERT(!rc, "Should not happen.");
+  if (rc) {
+    TEN_LOGW("Failed to post task to extension group's runloop: %d", rc);
+    TEN_ASSERT(0, "Should not happen.");
+  }
 }
 
 static void ten_app_set_property_async_cb(ten_app_t *app, ten_error_t *err,
@@ -222,212 +228,87 @@ bool ten_env_set_property_internal(ten_env_t *self, const char *path,
       ten_determine_metadata_level(self->attach_to, p_path);
 
   switch (self->attach_to) {
-    case TEN_ENV_ATTACH_TO_EXTENSION: {
-      ten_extension_t *extension = ten_env_get_attached_extension(self);
-      TEN_ASSERT(extension && ten_extension_check_integrity(extension, true),
-                 "Invalid use of extension %p.", extension);
+  case TEN_ENV_ATTACH_TO_EXTENSION: {
+    ten_extension_t *extension = ten_env_get_attached_extension(self);
+    TEN_ASSERT(extension && ten_extension_check_integrity(extension, true),
+               "Invalid use of extension %p.", extension);
 
-      ten_extension_thread_t *extension_thread = extension->extension_thread;
-      TEN_ASSERT(extension_thread && ten_extension_thread_check_integrity(
-                                         extension_thread, true),
-                 "Invalid use of extension_thread %p.", extension_thread);
+    ten_extension_thread_t *extension_thread = extension->extension_thread;
+    TEN_ASSERT(extension_thread &&
+                   ten_extension_thread_check_integrity(extension_thread, true),
+               "Invalid use of extension_thread %p.", extension_thread);
 
-      switch (level) {
-        case TEN_METADATA_LEVEL_EXTENSION:
-          result = ten_extension_set_property(extension, path, value, err);
-          break;
+    switch (level) {
+    case TEN_METADATA_LEVEL_EXTENSION:
+      result = ten_extension_set_property(extension, path, value, err);
+      break;
 
-        case TEN_METADATA_LEVEL_EXTENSION_GROUP: {
-          if (true) {
-            result = false;
-            if (err) {
-              ten_error_set(
-                  err, TEN_ERROR_CODE_GENERIC,
-                  "Setting properties in higher-level scopes is not allowed. "
-                  "Properties can only be set within the current scope.");
-            }
-            TEN_ASSERT(0, "Should not happen.");
-          } else {
-            ten_extension_group_t *extension_group =
-                extension->extension_thread->extension_group;
-            TEN_ASSERT(extension_group && ten_extension_group_check_integrity(
-                                              extension_group, true),
-                       "Invalid use of extension group %p", extension_group);
-
-            result =
-                ten_extension_group_set_property(extension_group, path, value);
-          }
-          break;
+    case TEN_METADATA_LEVEL_EXTENSION_GROUP: {
+      if (true) {
+        result = false;
+        if (err) {
+          ten_error_set(
+              err, TEN_ERROR_CODE_GENERIC,
+              "Setting properties in higher-level scopes is not allowed. "
+              "Properties can only be set within the current scope.");
         }
+        TEN_ASSERT(0, "Should not happen.");
+      } else {
+        ten_extension_group_t *extension_group =
+            extension->extension_thread->extension_group;
+        TEN_ASSERT(extension_group && ten_extension_group_check_integrity(
+                                          extension_group, true),
+                   "Invalid use of extension group %p", extension_group);
 
-        case TEN_METADATA_LEVEL_APP: {
-          if (true) {
-            result = false;
-            if (err) {
-              ten_error_set(
-                  err, TEN_ERROR_CODE_GENERIC,
-                  "Setting properties in higher-level scopes is not allowed. "
-                  "Properties can only be set within the current scope.");
-            }
-            TEN_ASSERT(0, "Should not happen.");
-          } else {
-            ten_app_t *app = extension->extension_context->engine->app;
-            // TEN_NOLINTNEXTLINE(thread-check):
-            // thread-check: Access the app's property from an extension, that
-            // is, from the extension thread.
-            TEN_ASSERT(app && ten_app_check_integrity(app, false),
-                       "Invalid use of app %p", app);
-
-            if (ten_app_thread_call_by_me(app)) {
-              result = ten_app_set_property(app, path, value, err);
-            } else {
-              bool new_error_created = false;
-              if (!err) {
-                new_error_created = true;
-                err = ten_error_create();
-              }
-
-              ten_env_set_property_sync_context_t *context =
-                  ten_env_set_property_sync_context_create(err);
-              TEN_ASSERT(context, "Should not happen.");
-
-              ten_app_set_property_async(app, path, value,
-                                         ten_app_set_property_sync_cb, context);
-
-              ten_event_wait(context->completed, -1);
-              result = ten_error_is_success(err);
-
-              ten_env_set_property_sync_context_destroy(context);
-
-              if (new_error_created) {
-                ten_error_destroy(err);
-                err = NULL;
-              }
-            }
-          }
-          break;
-        }
-
-        default:
-          TEN_ASSERT(0, "Should not happen.");
-          break;
+        result = ten_extension_group_set_property(extension_group, path, value);
       }
       break;
     }
 
-    case TEN_ENV_ATTACH_TO_EXTENSION_GROUP: {
-      ten_extension_group_t *extension_group =
-          ten_env_get_attached_extension_group(self);
-      TEN_ASSERT(extension_group &&
-                     ten_extension_group_check_integrity(extension_group, true),
-                 "Invalid use of extension_group %p.", extension_group);
-
-      ten_extension_thread_t *extension_thread =
-          extension_group->extension_thread;
-      TEN_ASSERT(extension_thread && ten_extension_thread_check_integrity(
-                                         extension_thread, true),
-                 "Invalid use of extension_thread %p.", extension_thread);
-
-      switch (level) {
-        case TEN_METADATA_LEVEL_EXTENSION_GROUP:
-          if (true) {
-            result = false;
-            if (err) {
-              ten_error_set(
-                  err, TEN_ERROR_CODE_GENERIC,
-                  "The set property of extension group is currently not "
-                  "supported; use init_property_from_json instead.");
-            }
-            TEN_ASSERT(0, "Should not happen.");
-          } else {
-            result =
-                ten_extension_group_set_property(extension_group, path, value);
-          }
-          break;
-
-        case TEN_METADATA_LEVEL_APP: {
-          if (true) {
-            result = false;
-            if (err) {
-              ten_error_set(
-                  err, TEN_ERROR_CODE_GENERIC,
-                  "Setting properties in higher-level scopes is not allowed. "
-                  "Properties can only be set within the current scope.");
-            }
-            TEN_ASSERT(0, "Should not happen.");
-          } else {
-            ten_app_t *app = extension_group->extension_context->engine->app;
-            // TEN_NOLINTNEXTLINE(thread-check):
-            // thread-check: Access the app's property from an extension group,
-            // that is, from the extension thread.
-            TEN_ASSERT(app && ten_app_check_integrity(app, false),
-                       "Invalid use of app %p", app);
-
-            if (ten_app_thread_call_by_me(app)) {
-              result = ten_app_set_property(app, path, value, err);
-            } else {
-              bool new_error_created = false;
-              if (!err) {
-                new_error_created = true;
-                err = ten_error_create();
-              }
-
-              ten_env_set_property_sync_context_t *context =
-                  ten_env_set_property_sync_context_create(err);
-              TEN_ASSERT(context, "Should not happen.");
-
-              ten_app_set_property_async(app, path, value,
-                                         ten_app_set_property_sync_cb, context);
-
-              ten_event_wait(context->completed, -1);
-              result = ten_error_is_success(err);
-
-              ten_env_set_property_sync_context_destroy(context);
-
-              if (new_error_created) {
-                ten_error_destroy(err);
-                err = NULL;
-              }
-            }
-          }
-          break;
+    case TEN_METADATA_LEVEL_APP: {
+      if (true) {
+        result = false;
+        if (err) {
+          ten_error_set(
+              err, TEN_ERROR_CODE_GENERIC,
+              "Setting properties in higher-level scopes is not allowed. "
+              "Properties can only be set within the current scope.");
         }
+        TEN_ASSERT(0, "Should not happen.");
+      } else {
+        ten_app_t *app = extension->extension_context->engine->app;
+        // TEN_NOLINTNEXTLINE(thread-check):
+        // thread-check: Access the app's property from an extension, that
+        // is, from the extension thread.
+        TEN_ASSERT(app && ten_app_check_integrity(app, false),
+                   "Invalid use of app %p", app);
 
-        default:
-          TEN_ASSERT(0, "Should not happen.");
-          break;
-      }
-      break;
-    }
-
-    case TEN_ENV_ATTACH_TO_APP: {
-      ten_app_t *app = ten_env_get_attached_app(self);
-      TEN_ASSERT(app && ten_app_check_integrity(app, true),
-                 "Invalid use of app %p.", app);
-
-      switch (level) {
-        case TEN_METADATA_LEVEL_APP: {
-          if (!internal_use) {
-            result = false;
-            if (err) {
-              ten_error_set(err, TEN_ERROR_CODE_GENERIC,
-                            "The set property of app is currently not "
-                            "supported; use init_property_from_json instead.");
-            }
-            TEN_ASSERT(0, "Should not happen.");
-          } else {
-            if (ten_app_thread_call_by_me(app)) {
-              result = ten_app_set_property(app, path, value, err);
-            } else {
-              TEN_ASSERT(0, "Do we really need this?");
-            }
+        if (ten_app_thread_call_by_me(app)) {
+          result = ten_app_set_property(app, path, value, err);
+        } else {
+          bool new_error_created = false;
+          if (!err) {
+            new_error_created = true;
+            err = ten_error_create();
           }
-          break;
-        }
 
-        default:
-          TEN_ASSERT(0, "Should not happen.");
-          break;
+          ten_env_set_property_sync_context_t *context =
+              ten_env_set_property_sync_context_create(err);
+          TEN_ASSERT(context, "Should not happen.");
+
+          ten_app_set_property_async(app, path, value,
+                                     ten_app_set_property_sync_cb, context);
+
+          ten_event_wait(context->completed, -1);
+          result = ten_error_is_success(err);
+
+          ten_env_set_property_sync_context_destroy(context);
+
+          if (new_error_created) {
+            ten_error_destroy(err);
+            err = NULL;
+          }
+        }
       }
       break;
     }
@@ -435,6 +316,128 @@ bool ten_env_set_property_internal(ten_env_t *self, const char *path,
     default:
       TEN_ASSERT(0, "Should not happen.");
       break;
+    }
+    break;
+  }
+
+  case TEN_ENV_ATTACH_TO_EXTENSION_GROUP: {
+    ten_extension_group_t *extension_group =
+        ten_env_get_attached_extension_group(self);
+    TEN_ASSERT(extension_group &&
+                   ten_extension_group_check_integrity(extension_group, true),
+               "Invalid use of extension_group %p.", extension_group);
+
+    ten_extension_thread_t *extension_thread =
+        extension_group->extension_thread;
+    TEN_ASSERT(extension_thread &&
+                   ten_extension_thread_check_integrity(extension_thread, true),
+               "Invalid use of extension_thread %p.", extension_thread);
+
+    switch (level) {
+    case TEN_METADATA_LEVEL_EXTENSION_GROUP:
+      if (true) {
+        result = false;
+        if (err) {
+          ten_error_set(err, TEN_ERROR_CODE_GENERIC,
+                        "The set property of extension group is currently not "
+                        "supported; use init_property_from_json instead.");
+        }
+        TEN_ASSERT(0, "Should not happen.");
+      } else {
+        result = ten_extension_group_set_property(extension_group, path, value);
+      }
+      break;
+
+    case TEN_METADATA_LEVEL_APP: {
+      if (true) {
+        result = false;
+        if (err) {
+          ten_error_set(
+              err, TEN_ERROR_CODE_GENERIC,
+              "Setting properties in higher-level scopes is not allowed. "
+              "Properties can only be set within the current scope.");
+        }
+        TEN_ASSERT(0, "Should not happen.");
+      } else {
+        ten_app_t *app = extension_group->extension_context->engine->app;
+        // TEN_NOLINTNEXTLINE(thread-check):
+        // thread-check: Access the app's property from an extension group,
+        // that is, from the extension thread.
+        TEN_ASSERT(app && ten_app_check_integrity(app, false),
+                   "Invalid use of app %p", app);
+
+        if (ten_app_thread_call_by_me(app)) {
+          result = ten_app_set_property(app, path, value, err);
+        } else {
+          bool new_error_created = false;
+          if (!err) {
+            new_error_created = true;
+            err = ten_error_create();
+          }
+
+          ten_env_set_property_sync_context_t *context =
+              ten_env_set_property_sync_context_create(err);
+          TEN_ASSERT(context, "Should not happen.");
+
+          ten_app_set_property_async(app, path, value,
+                                     ten_app_set_property_sync_cb, context);
+
+          ten_event_wait(context->completed, -1);
+          result = ten_error_is_success(err);
+
+          ten_env_set_property_sync_context_destroy(context);
+
+          if (new_error_created) {
+            ten_error_destroy(err);
+            err = NULL;
+          }
+        }
+      }
+      break;
+    }
+
+    default:
+      TEN_ASSERT(0, "Should not happen.");
+      break;
+    }
+    break;
+  }
+
+  case TEN_ENV_ATTACH_TO_APP: {
+    ten_app_t *app = ten_env_get_attached_app(self);
+    TEN_ASSERT(app && ten_app_check_integrity(app, true),
+               "Invalid use of app %p.", app);
+
+    switch (level) {
+    case TEN_METADATA_LEVEL_APP: {
+      if (!internal_use) {
+        result = false;
+        if (err) {
+          ten_error_set(err, TEN_ERROR_CODE_GENERIC,
+                        "The set property of app is currently not "
+                        "supported; use init_property_from_json instead.");
+        }
+        TEN_ASSERT(0, "Should not happen.");
+      } else {
+        if (ten_app_thread_call_by_me(app)) {
+          result = ten_app_set_property(app, path, value, err);
+        } else {
+          TEN_ASSERT(0, "Do we really need this?");
+        }
+      }
+      break;
+    }
+
+    default:
+      TEN_ASSERT(0, "Should not happen.");
+      break;
+    }
+    break;
+  }
+
+  default:
+    TEN_ASSERT(0, "Should not happen.");
+    break;
   }
 
 done:
@@ -491,171 +494,70 @@ bool ten_env_set_property_async(ten_env_t *self, const char *path,
       ten_determine_metadata_level(self->attach_to, p_path);
 
   switch (self->attach_to) {
-    case TEN_ENV_ATTACH_TO_EXTENSION: {
-      ten_extension_t *extension = ten_env_get_attached_extension(self);
-      TEN_ASSERT(extension && ten_extension_check_integrity(extension, true),
-                 "Invalid use of extension %p.", extension);
+  case TEN_ENV_ATTACH_TO_EXTENSION: {
+    ten_extension_t *extension = ten_env_get_attached_extension(self);
+    TEN_ASSERT(extension && ten_extension_check_integrity(extension, true),
+               "Invalid use of extension %p.", extension);
 
-      ten_extension_thread_t *extension_thread = extension->extension_thread;
-      TEN_ASSERT(extension_thread && ten_extension_thread_check_integrity(
-                                         extension_thread, true),
-                 "Invalid use of extension_thread %p.", extension_thread);
+    ten_extension_thread_t *extension_thread = extension->extension_thread;
+    TEN_ASSERT(extension_thread &&
+                   ten_extension_thread_check_integrity(extension_thread, true),
+               "Invalid use of extension_thread %p.", extension_thread);
 
-      switch (level) {
-        case TEN_METADATA_LEVEL_EXTENSION:
-          ten_extension_set_property_async(extension, path, value,
-                                           ten_extension_set_property_async_cb,
-                                           context, err);
-          break;
+    switch (level) {
+    case TEN_METADATA_LEVEL_EXTENSION:
+      ten_extension_set_property_async(extension, path, value,
+                                       ten_extension_set_property_async_cb,
+                                       context, err);
+      break;
 
-        case TEN_METADATA_LEVEL_EXTENSION_GROUP: {
-          if (true) {
-            result = false;
-            if (err) {
-              ten_error_set(
-                  err, TEN_ERROR_CODE_GENERIC,
-                  "Setting properties in higher-level scopes is not allowed. "
-                  "Properties can only be set within the current scope.");
-            }
-            TEN_ASSERT(0, "Should not happen.");
-          } else {
-            ten_extension_group_t *extension_group =
-                extension->extension_thread->extension_group;
-            TEN_ASSERT(extension_group && ten_extension_group_check_integrity(
-                                              extension_group, true),
-                       "Invalid use of extension group %p", extension_group);
-
-            ten_extension_group_set_property_async(
-                extension_group, path, value,
-                ten_extension_group_set_property_async_cb, context);
-          }
-          break;
+    case TEN_METADATA_LEVEL_EXTENSION_GROUP: {
+      if (true) {
+        result = false;
+        if (err) {
+          ten_error_set(
+              err, TEN_ERROR_CODE_GENERIC,
+              "Setting properties in higher-level scopes is not allowed. "
+              "Properties can only be set within the current scope.");
         }
+        TEN_ASSERT(0, "Should not happen.");
+      } else {
+        ten_extension_group_t *extension_group =
+            extension->extension_thread->extension_group;
+        TEN_ASSERT(extension_group && ten_extension_group_check_integrity(
+                                          extension_group, true),
+                   "Invalid use of extension group %p", extension_group);
 
-        case TEN_METADATA_LEVEL_APP: {
-          if (true) {
-            result = false;
-            if (err) {
-              ten_error_set(
-                  err, TEN_ERROR_CODE_GENERIC,
-                  "Setting properties in higher-level scopes is not allowed. "
-                  "Properties can only be set within the current scope.");
-            }
-            TEN_ASSERT(0, "Should not happen.");
-          } else {
-            ten_app_t *app = extension->extension_context->engine->app;
-            // TEN_NOLINTNEXTLINE(thread-check):
-            // thread-check: Access the app's property from an extension, that
-            // is, from the extension thread.
-            TEN_ASSERT(app && ten_app_check_integrity(app, false),
-                       "Invalid use of app %p", app);
-
-            context->from.extension = extension;
-
-            ten_app_set_property_async(
-                app, path, value,
-                ten_app_set_property_async_cb_go_back_to_extension, context);
-          }
-          break;
-        }
-
-        default:
-          TEN_ASSERT(0, "Should not happen.");
-          break;
+        ten_extension_group_set_property_async(
+            extension_group, path, value,
+            ten_extension_group_set_property_async_cb, context);
       }
       break;
     }
 
-    case TEN_ENV_ATTACH_TO_EXTENSION_GROUP: {
-      ten_extension_group_t *extension_group =
-          ten_env_get_attached_extension_group(self);
-      TEN_ASSERT(extension_group &&
-                     ten_extension_group_check_integrity(extension_group, true),
-                 "Invalid use of extension_group %p.", extension_group);
-
-      ten_extension_thread_t *extension_thread =
-          extension_group->extension_thread;
-      TEN_ASSERT(extension_thread && ten_extension_thread_check_integrity(
-                                         extension_thread, true),
-                 "Invalid use of extension_thread %p.", extension_thread);
-
-      switch (level) {
-        case TEN_METADATA_LEVEL_EXTENSION_GROUP:
-          if (true) {
-            result = false;
-            if (err) {
-              ten_error_set(
-                  err, TEN_ERROR_CODE_GENERIC,
-                  "The set property of extension group is currently not "
-                  "supported; use init_property_from_json instead.");
-            }
-            TEN_ASSERT(0, "Should not happen.");
-          } else {
-            ten_extension_group_set_property_async(
-                extension_group, path, value,
-                ten_extension_group_set_property_async_cb, context);
-          }
-          break;
-
-        case TEN_METADATA_LEVEL_APP: {
-          if (true) {
-            result = false;
-            if (err) {
-              ten_error_set(
-                  err, TEN_ERROR_CODE_GENERIC,
-                  "Setting properties in higher-level scopes is not allowed. "
-                  "Properties can only be set within the current scope.");
-            }
-            TEN_ASSERT(0, "Should not happen.");
-          } else {
-            ten_app_t *app = extension_group->extension_context->engine->app;
-            // TEN_NOLINTNEXTLINE(thread-check):
-            // thread-check: Access the app's property from an extension group,
-            // that is, from the extension thread.
-            TEN_ASSERT(app && ten_app_check_integrity(app, false),
-                       "Invalid use of app %p", app);
-
-            context->from.extension_group = extension_group;
-
-            ten_app_set_property_async(
-                app, path, value,
-                ten_app_set_property_async_cb_go_back_to_extension_group,
-                context);
-          }
-          break;
+    case TEN_METADATA_LEVEL_APP: {
+      if (true) {
+        result = false;
+        if (err) {
+          ten_error_set(
+              err, TEN_ERROR_CODE_GENERIC,
+              "Setting properties in higher-level scopes is not allowed. "
+              "Properties can only be set within the current scope.");
         }
+        TEN_ASSERT(0, "Should not happen.");
+      } else {
+        ten_app_t *app = extension->extension_context->engine->app;
+        // TEN_NOLINTNEXTLINE(thread-check):
+        // thread-check: Access the app's property from an extension, that
+        // is, from the extension thread.
+        TEN_ASSERT(app && ten_app_check_integrity(app, false),
+                   "Invalid use of app %p", app);
 
-        default:
-          TEN_ASSERT(0, "Should not happen.");
-          break;
-      }
-      break;
-    }
+        context->from.extension = extension;
 
-    case TEN_ENV_ATTACH_TO_APP: {
-      ten_app_t *app = ten_env_get_attached_app(self);
-      TEN_ASSERT(app && ten_app_check_integrity(app, true),
-                 "Invalid use of app %p.", app);
-
-      switch (level) {
-        case TEN_METADATA_LEVEL_APP:
-          if (true) {
-            result = false;
-            if (err) {
-              ten_error_set(err, TEN_ERROR_CODE_GENERIC,
-                            "The set property of app is currently not "
-                            "supported; use init_property_from_json instead.");
-            }
-            TEN_ASSERT(0, "Should not happen.");
-          } else {
-            ten_app_set_property_async(app, path, value,
-                                       ten_app_set_property_async_cb, context);
-          }
-          break;
-
-        default:
-          TEN_ASSERT(0, "Should not happen.");
-          break;
+        ten_app_set_property_async(
+            app, path, value,
+            ten_app_set_property_async_cb_go_back_to_extension, context);
       }
       break;
     }
@@ -663,6 +565,105 @@ bool ten_env_set_property_async(ten_env_t *self, const char *path,
     default:
       TEN_ASSERT(0, "Should not happen.");
       break;
+    }
+    break;
+  }
+
+  case TEN_ENV_ATTACH_TO_EXTENSION_GROUP: {
+    ten_extension_group_t *extension_group =
+        ten_env_get_attached_extension_group(self);
+    TEN_ASSERT(extension_group &&
+                   ten_extension_group_check_integrity(extension_group, true),
+               "Invalid use of extension_group %p.", extension_group);
+
+    ten_extension_thread_t *extension_thread =
+        extension_group->extension_thread;
+    TEN_ASSERT(extension_thread &&
+                   ten_extension_thread_check_integrity(extension_thread, true),
+               "Invalid use of extension_thread %p.", extension_thread);
+
+    switch (level) {
+    case TEN_METADATA_LEVEL_EXTENSION_GROUP:
+      if (true) {
+        result = false;
+        if (err) {
+          ten_error_set(err, TEN_ERROR_CODE_GENERIC,
+                        "The set property of extension group is currently not "
+                        "supported; use init_property_from_json instead.");
+        }
+        TEN_ASSERT(0, "Should not happen.");
+      } else {
+        ten_extension_group_set_property_async(
+            extension_group, path, value,
+            ten_extension_group_set_property_async_cb, context);
+      }
+      break;
+
+    case TEN_METADATA_LEVEL_APP: {
+      if (true) {
+        result = false;
+        if (err) {
+          ten_error_set(
+              err, TEN_ERROR_CODE_GENERIC,
+              "Setting properties in higher-level scopes is not allowed. "
+              "Properties can only be set within the current scope.");
+        }
+        TEN_ASSERT(0, "Should not happen.");
+      } else {
+        ten_app_t *app = extension_group->extension_context->engine->app;
+        // TEN_NOLINTNEXTLINE(thread-check):
+        // thread-check: Access the app's property from an extension group,
+        // that is, from the extension thread.
+        TEN_ASSERT(app && ten_app_check_integrity(app, false),
+                   "Invalid use of app %p", app);
+
+        context->from.extension_group = extension_group;
+
+        ten_app_set_property_async(
+            app, path, value,
+            ten_app_set_property_async_cb_go_back_to_extension_group, context);
+      }
+      break;
+    }
+
+    default:
+      TEN_ASSERT(0, "Should not happen.");
+      break;
+    }
+    break;
+  }
+
+  case TEN_ENV_ATTACH_TO_APP: {
+    ten_app_t *app = ten_env_get_attached_app(self);
+    TEN_ASSERT(app && ten_app_check_integrity(app, true),
+               "Invalid use of app %p.", app);
+
+    switch (level) {
+    case TEN_METADATA_LEVEL_APP:
+      if (true) {
+        result = false;
+        if (err) {
+          ten_error_set(err, TEN_ERROR_CODE_GENERIC,
+                        "The set property of app is currently not "
+                        "supported; use init_property_from_json instead.");
+        }
+        TEN_ASSERT(0, "Should not happen.");
+      } else {
+        ten_app_set_property_async(app, path, value,
+                                   ten_app_set_property_async_cb, context);
+      }
+      break;
+
+    default:
+      TEN_ASSERT(0, "Should not happen.");
+      break;
+    }
+    break;
+  }
+
+  default:
+    TEN_ASSERT(0, "Should not happen.");
+    break;
   }
 
   return result;

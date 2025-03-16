@@ -160,10 +160,16 @@ static void ten_stream_on_data(ten_stream_t *stream, void *data, int size) {
     // the stream. The 'ten_protocol_close_task_()' will the last task related
     // to the connection.
     ten_ref_inc_ref(&base_protocol->ref);
+
     int rc = ten_runloop_post_task_tail(
         ten_connection_get_attached_runloop(connection),
         ten_protocol_close_task, base_protocol, NULL);
-    TEN_ASSERT(!rc, "Should not happen.");
+    if (rc) {
+      TEN_LOGW("Failed to post task to connection's runloop: %d", rc);
+      ten_ref_dec_ref(&base_protocol->ref);
+
+      TEN_ASSERT(0, "Should not happen.");
+    }
   } else if (size > 0) {
     ten_list_t msgs = TEN_LIST_INIT_VAL;
 
@@ -467,7 +473,10 @@ ten_protocol_integrated_on_output_async(ten_protocol_integrated_t *self,
 
   rc = ten_runloop_post_task_tail(loop, ten_protocol_integrated_on_output_task,
                                   self, NULL);
-  TEN_ASSERT(!rc, "Should not happen.");
+  if (rc) {
+    TEN_LOGW("Failed to post task to protocol's runloop: %d", rc);
+    TEN_ASSERT(0, "Should not happen.");
+  }
 }
 
 static void ten_protocol_integrated_on_server_finally_connected(
