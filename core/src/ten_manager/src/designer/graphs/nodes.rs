@@ -30,7 +30,7 @@ use ten_rust::pkg_info::{
 use crate::designer::response::{ApiResponse, ErrorResponse, Status};
 use crate::designer::DesignerState;
 use crate::designer::{
-    app::base_dir::get_base_dir_from_pkgs_cache,
+    apps::get_base_dir_from_pkgs_cache,
     common::{
         get_designer_api_cmd_likes_from_pkg,
         get_designer_api_data_likes_from_pkg,

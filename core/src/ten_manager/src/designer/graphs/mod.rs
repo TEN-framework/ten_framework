@@ -16,7 +16,7 @@ use serde::{Deserialize, Serialize};
 use ten_rust::pkg_info::pkg_type::PkgType;
 
 use super::{
-    app::base_dir::get_base_dir_from_pkgs_cache,
+    apps::get_base_dir_from_pkgs_cache,
     response::{ApiResponse, ErrorResponse, Status},
     DesignerState,
 };

@@ -17,7 +17,7 @@ use super::{
     connections::GetGraphConnectionsSingleResponseData,
     nodes::GetGraphNodesSingleResponseData,
 };
-use crate::designer::app::base_dir::get_base_dir_from_pkgs_cache;
+use crate::designer::apps::get_base_dir_from_pkgs_cache;
 use crate::designer::response::{ApiResponse, ErrorResponse, Status};
 use crate::designer::DesignerState;
 

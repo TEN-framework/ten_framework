@@ -12,7 +12,7 @@ use serde::{Deserialize, Serialize};
 use ten_rust::pkg_info::{pkg_type::PkgType, PkgInfo};
 
 use crate::designer::{
-    app::base_dir::get_base_dir_from_pkgs_cache,
+    apps::get_base_dir_from_pkgs_cache,
     common::{
         get_designer_api_cmd_likes_from_pkg,
         get_designer_api_data_likes_from_pkg,

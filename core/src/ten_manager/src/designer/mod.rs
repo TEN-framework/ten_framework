@@ -5,7 +5,7 @@
 // Refer to the "LICENSE" file in the root directory for more information.
 //
 mod addons;
-mod app;
+mod apps;
 pub mod builtin_function;
 mod common;
 mod dir_list;
@@ -16,7 +16,6 @@ pub mod frontend;
 pub mod graphs;
 mod messages;
 pub mod mock;
-mod packages;
 pub mod response;
 mod terminal;
 mod version;
@@ -53,11 +52,6 @@ pub fn configure_routes(
             )
             .route("/env", web::get().to(env::get_env_endpoint))
             .route("/addons", web::post().to(addons::get_addons_endpoint))
-            .route(
-                "/packages/reload",
-                web::post()
-                    .to(packages::reload::clear_and_reload_pkgs_endpoint),
-            )
             .route("/graphs", web::post().to(graphs::get_graphs_endpoint))
             .route(
                 "/graphs",
@@ -77,17 +71,15 @@ pub fn configure_routes(
                 web::post()
                     .to(messages::compatible::get_compatible_messages_endpoint),
             )
+            .route("/apps", web::get().to(apps::get_apps_endpoint))
+            .route("/apps", web::post().to(apps::load_app_endpoint))
             .route(
-                "/app/base-dir",
-                web::post().to(app::base_dir::add_base_dir_endpoint),
+                "/apps/unload",
+                web::post().to(apps::unload::unload_app_endpoint),
             )
             .route(
-                "/app/base-dir",
-                web::delete().to(app::base_dir::delete_base_dir_endpoint),
-            )
-            .route(
-                "/app/base-dir",
-                web::get().to(app::base_dir::get_base_dir_endpoint),
+                "/apps/reload",
+                web::post().to(apps::reload::reload_app_endpoint),
             )
             .route("/dir-list", web::post().to(dir_list::list_dir_endpoint))
             .route(
