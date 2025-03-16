@@ -109,8 +109,9 @@ ten_extension_thread_t *ten_extension_thread_create(void) {
   return self;
 }
 
-static void ten_extension_thread_attach_to_group(
-    ten_extension_thread_t *self, ten_extension_group_t *extension_group) {
+static void
+ten_extension_thread_attach_to_group(ten_extension_thread_t *self,
+                                     ten_extension_group_t *extension_group) {
   TEN_ASSERT(self, "Invalid argument.");
   TEN_ASSERT(ten_extension_thread_check_integrity(self, false),
              "Invalid use of extension_thread %p.", self);
@@ -174,8 +175,8 @@ void ten_extension_thread_remove_from_extension_context(
 
 // Notify extension context (engine) that we (extension thread) are closed, so
 // that engine can join this thread to prevent memory leak.
-static void ten_extension_thread_notify_engine_we_are_closed(
-    ten_extension_thread_t *self) {
+static void
+ten_extension_thread_notify_engine_we_are_closed(ten_extension_thread_t *self) {
   TEN_ASSERT(self, "Invalid argument.");
   TEN_ASSERT(ten_extension_thread_check_integrity(self, true),
              "Invalid use of extension_thread %p.", self);
@@ -195,11 +196,14 @@ static void ten_extension_thread_notify_engine_we_are_closed(
 
   int rc = ten_runloop_post_task_tail(
       engine_loop, ten_engine_on_extension_thread_closed, engine, self);
-  TEN_ASSERT(!rc, "Should not happen.");
+  if (rc) {
+    TEN_LOGW("Failed to post task to engine's runloop: %d", rc);
+    TEN_ASSERT(0, "Should not happen.");
+  }
 }
 
-ten_runloop_t *ten_extension_thread_get_attached_runloop(
-    ten_extension_thread_t *self) {
+ten_runloop_t *
+ten_extension_thread_get_attached_runloop(ten_extension_thread_t *self) {
   TEN_ASSERT(self &&
                  // TEN_NOLINTNEXTLINE(thread-check)
                  // thread-check: This function is intended to be called in
@@ -210,8 +214,8 @@ ten_runloop_t *ten_extension_thread_get_attached_runloop(
   return self->runloop;
 }
 
-static void ten_extension_thread_inherit_thread_ownership(
-    ten_extension_thread_t *self) {
+static void
+ten_extension_thread_inherit_thread_ownership(ten_extension_thread_t *self) {
   TEN_ASSERT(self, "Invalid argument.");
   // TEN_NOLINTNEXTLINE(thread-check)
   // thread-check: The correct threading ownership will be setup
@@ -268,7 +272,10 @@ static void *ten_extension_thread_main_actual(ten_extension_thread_t *self) {
 
   int rc = ten_runloop_post_task_tail(
       self->runloop, ten_extension_thread_handle_start_msg_task, self, NULL);
-  TEN_ASSERT(!rc, "Should not happen.");
+  if (rc) {
+    TEN_LOGW("Failed to post task to extension thread's runloop: %d", rc);
+    TEN_ASSERT(0, "Should not happen.");
+  }
 
   // Before actually starting the extension thread's runloop, first notify the
   // engine (extension_context) that the extension thread's runloop is ready for
@@ -336,27 +343,27 @@ static void ten_extension_thread_on_triggering_close(void *self_,
   self->is_close_triggered = true;
 
   switch (self->state) {
-    case TEN_EXTENSION_THREAD_STATE_INIT:
-      // Enter the deinit flow of the extension group directly.
-      ten_extension_group_on_deinit(self->extension_group);
-      break;
+  case TEN_EXTENSION_THREAD_STATE_INIT:
+    // Enter the deinit flow of the extension group directly.
+    ten_extension_group_on_deinit(self->extension_group);
+    break;
 
-    case TEN_EXTENSION_THREAD_STATE_CREATING_EXTENSIONS:
-      // We need to wait until `on_create_extensions_done()` is called, as that
-      // is the point when all the created extensions can be retrieved to begin
-      // the close process. Otherwise, memory leaks caused by those extensions
-      // may occur.
-      break;
+  case TEN_EXTENSION_THREAD_STATE_CREATING_EXTENSIONS:
+    // We need to wait until `on_create_extensions_done()` is called, as that
+    // is the point when all the created extensions can be retrieved to begin
+    // the close process. Otherwise, memory leaks caused by those extensions
+    // may occur.
+    break;
 
-    case TEN_EXTENSION_THREAD_STATE_NORMAL:
-      ten_extension_thread_stop_life_cycle_of_all_extensions(self);
-      break;
+  case TEN_EXTENSION_THREAD_STATE_NORMAL:
+    ten_extension_thread_stop_life_cycle_of_all_extensions(self);
+    break;
 
-    case TEN_EXTENSION_THREAD_STATE_PREPARE_TO_CLOSE:
-    case TEN_EXTENSION_THREAD_STATE_CLOSED:
-    default:
-      TEN_ASSERT(0, "Should not happen.");
-      break;
+  case TEN_EXTENSION_THREAD_STATE_PREPARE_TO_CLOSE:
+  case TEN_EXTENSION_THREAD_STATE_CLOSED:
+  default:
+    TEN_ASSERT(0, "Should not happen.");
+    break;
   }
 }
 
@@ -372,7 +379,10 @@ void ten_extension_thread_close(ten_extension_thread_t *self) {
   // Notify extension thread that it is about to close.
   int rc = ten_runloop_post_task_tail(
       self->runloop, ten_extension_thread_on_triggering_close, self, NULL);
-  TEN_ASSERT(!rc, "Should not happen.");
+  if (rc) {
+    TEN_LOGW("Failed to post task to extension thread's runloop: %d", rc);
+    TEN_ASSERT(0, "Should not happen.");
+  }
 }
 
 bool ten_extension_thread_call_by_me(ten_extension_thread_t *self) {
@@ -464,7 +474,7 @@ void ten_extension_thread_start_life_cycle_of_all_extensions_task(
   // From here, it begins calling a series of lifecycle methods for the
   // extension, starting with `on_configure`.
 
-  ten_list_foreach (&self->extensions, iter) {
+  ten_list_foreach(&self->extensions, iter) {
     ten_extension_t *extension = ten_ptr_listnode_get(iter.node);
     TEN_ASSERT(extension && ten_extension_check_integrity(extension, true),
                "Should not happen.");
@@ -492,7 +502,7 @@ void ten_extension_thread_add_all_created_extensions(
           ten_extension_context_check_integrity(extension_context, false),
       "Should not happen.");
 
-  ten_list_foreach (&self->extensions, iter) {
+  ten_list_foreach(&self->extensions, iter) {
     ten_extension_t *extension = ten_ptr_listnode_get(iter.node);
     TEN_ASSERT(ten_extension_check_integrity(extension, true),
                "Should not happen.");
@@ -518,5 +528,8 @@ void ten_extension_thread_add_all_created_extensions(
       ten_engine_get_attached_runloop(engine),
       ten_engine_find_extension_info_for_all_extensions_of_extension_thread_task,
       engine, self);
-  TEN_ASSERT(!rc, "Should not happen.");
+  if (rc) {
+    TEN_LOGW("Failed to post task to engine's runloop: %d", rc);
+    TEN_ASSERT(0, "Should not happen.");
+  }
 }

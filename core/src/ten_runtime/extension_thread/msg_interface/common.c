@@ -190,7 +190,10 @@ void ten_extension_thread_process_acquire_lock_mode_task(void *self_,
   int rc = ten_runloop_post_task_tail(
       self->runloop, ten_extension_thread_process_release_lock_mode_task, self,
       NULL);
-  TEN_ASSERT(!rc, "Should not happen.");
+  if (rc) {
+    TEN_LOGW("Failed to post task to extension thread's runloop: %d", rc);
+    TEN_ASSERT(0, "Should not happen.");
+  }
 
   // Set `in_lock_mode` to reflect the effect of the below `ten_mutex_lock`
   // blocking the extension thread.

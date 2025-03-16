@@ -125,9 +125,9 @@ static ten_env_tester_send_cmd_ctx_t *ten_env_tester_send_cmd_ctx_create(
     ten_extension_tester_t *tester, ten_shared_ptr_t *cmd,
     ten_env_tester_transfer_msg_result_handler_func_t handler,
     void *handler_user_data, ten_env_send_cmd_options_t *options) {
-  TEN_ASSERT(
-      tester && ten_extension_tester_check_integrity(tester, true) && cmd,
-      "Invalid argument.");
+  TEN_ASSERT(tester && ten_extension_tester_check_integrity(tester, true) &&
+                 cmd,
+             "Invalid argument.");
 
   ten_env_tester_send_cmd_ctx_t *self =
       TEN_MALLOC(sizeof(ten_env_tester_send_cmd_ctx_t));
@@ -145,8 +145,8 @@ static ten_env_tester_send_cmd_ctx_t *ten_env_tester_send_cmd_ctx_create(
   return self;
 }
 
-static void ten_env_tester_send_cmd_ctx_destroy(
-    ten_env_tester_send_cmd_ctx_t *self) {
+static void
+ten_env_tester_send_cmd_ctx_destroy(ten_env_tester_send_cmd_ctx_t *self) {
   TEN_ASSERT(self, "Invalid argument.");
 
   if (self->cmd) {
@@ -195,9 +195,9 @@ static ten_env_tester_send_msg_ctx_t *ten_extension_tester_send_msg_ctx_create(
     ten_extension_tester_t *tester, ten_shared_ptr_t *msg,
     ten_env_tester_transfer_msg_result_handler_func_t handler,
     void *user_data) {
-  TEN_ASSERT(
-      tester && ten_extension_tester_check_integrity(tester, true) && msg,
-      "Invalid argument.");
+  TEN_ASSERT(tester && ten_extension_tester_check_integrity(tester, true) &&
+                 msg,
+             "Invalid argument.");
 
   ten_env_tester_send_msg_ctx_t *self =
       TEN_MALLOC(sizeof(ten_env_tester_send_msg_ctx_t));
@@ -212,8 +212,8 @@ static ten_env_tester_send_msg_ctx_t *ten_extension_tester_send_msg_ctx_create(
   return self;
 }
 
-static void ten_extension_tester_send_msg_ctx_destroy(
-    ten_env_tester_send_msg_ctx_t *self) {
+static void
+ten_extension_tester_send_msg_ctx_destroy(ten_env_tester_send_msg_ctx_t *self) {
   TEN_ASSERT(self, "Invalid argument.");
 
   if (self->msg) {
@@ -232,9 +232,9 @@ ten_extension_tester_return_result_ctx_create(
     ten_extension_tester_t *tester, ten_shared_ptr_t *result,
     ten_env_tester_transfer_msg_result_handler_func_t handler,
     void *user_data) {
-  TEN_ASSERT(
-      tester && ten_extension_tester_check_integrity(tester, true) && result,
-      "Invalid argument.");
+  TEN_ASSERT(tester && ten_extension_tester_check_integrity(tester, true) &&
+                 result,
+             "Invalid argument.");
 
   ten_env_tester_return_result_ctx_t *self =
       TEN_MALLOC(sizeof(ten_env_tester_return_result_ctx_t));
@@ -264,10 +264,11 @@ static void ten_extension_tester_return_result_ctx_destroy(
   TEN_FREE(self);
 }
 
-static ten_env_tester_notify_log_ctx_t *ten_env_tester_notify_log_ctx_create(
-    ten_env_tester_t *ten_env_tester, TEN_LOG_LEVEL level,
-    const char *func_name, const char *file_name, size_t line_no,
-    const char *msg) {
+static ten_env_tester_notify_log_ctx_t *
+ten_env_tester_notify_log_ctx_create(ten_env_tester_t *ten_env_tester,
+                                     TEN_LOG_LEVEL level, const char *func_name,
+                                     const char *file_name, size_t line_no,
+                                     const char *msg) {
   TEN_ASSERT(ten_env_tester, "Invalid argument.");
 
   ten_env_tester_notify_log_ctx_t *self =
@@ -301,8 +302,8 @@ static ten_env_tester_notify_log_ctx_t *ten_env_tester_notify_log_ctx_create(
   return self;
 }
 
-static void ten_env_tester_notify_log_ctx_destroy(
-    ten_env_tester_notify_log_ctx_t *ctx) {
+static void
+ten_env_tester_notify_log_ctx_destroy(ten_env_tester_notify_log_ctx_t *ctx) {
   TEN_ASSERT(ctx, "Invalid argument.");
 
   ten_string_deinit(&ctx->func_name);
@@ -394,7 +395,10 @@ static void send_cmd_callback(ten_env_t *ten_env, ten_shared_ptr_t *cmd_result,
         send_cmd_ctx->tester->tester_runloop,
         ten_extension_tester_execute_cmd_result_handler_task,
         send_cmd_ctx->tester, ctx);
-    TEN_ASSERT(!rc, "Should not happen.");
+    if (rc) {
+      TEN_LOGW("Failed to post task to extension_tester's runloop: %d", rc);
+      TEN_ASSERT(0, "Should not happen.");
+    }
   } else {
     TEN_ASSERT(cmd_result && ten_cmd_base_check_integrity(cmd_result),
                "Should not happen.");
@@ -407,7 +411,10 @@ static void send_cmd_callback(ten_env_t *ten_env, ten_shared_ptr_t *cmd_result,
         send_cmd_ctx->tester->tester_runloop,
         ten_extension_tester_execute_cmd_result_handler_task,
         send_cmd_ctx->tester, ctx);
-    TEN_ASSERT(!rc, "Should not happen.");
+    if (rc) {
+      TEN_LOGW("Failed to post task to extension_tester's runloop: %d", rc);
+      TEN_ASSERT(0, "Should not happen.");
+    }
   }
 }
 
@@ -437,7 +444,10 @@ static void send_data_like_msg_callback(ten_env_t *ten_env,
       send_msg_info->tester->tester_runloop,
       ten_extension_tester_execute_error_handler_task, send_msg_info->tester,
       send_msg_info);
-  TEN_ASSERT(!rc, "Should not happen.");
+  if (rc) {
+    TEN_LOGW("Failed to post task to extension_tester's runloop: %d", rc);
+    TEN_ASSERT(0, "Should not happen.");
+  }
 }
 
 static void return_result_callback(ten_env_t *self,
@@ -464,7 +474,10 @@ static void return_result_callback(ten_env_t *self,
       return_result_info->tester->tester_runloop,
       ten_extension_tester_execute_return_result_handler_task,
       return_result_info->tester, return_result_info);
-  TEN_ASSERT(!rc, "Should not happen.");
+  if (rc) {
+    TEN_LOGW("Failed to post task to extension_tester's runloop: %d", rc);
+    TEN_ASSERT(0, "Should not happen.");
+  }
 }
 
 static void test_extension_ten_env_send_cmd(ten_env_t *ten_env,
@@ -493,7 +506,10 @@ static void test_extension_ten_env_send_cmd(ten_env_t *ten_env,
           ctx->tester->tester_runloop,
           ten_extension_tester_execute_cmd_result_handler_task, ctx->tester,
           ctx);
-      TEN_ASSERT(!rc, "Should not happen.");
+      if (rc) {
+        TEN_LOGW("Failed to post task to extension_tester's runloop: %d", rc);
+        TEN_ASSERT(0, "Should not happen.");
+      }
     } else {
       ten_env_tester_send_cmd_ctx_destroy(ctx);
     }
@@ -529,7 +545,10 @@ static void test_extension_ten_env_return_result(ten_env_t *ten_env,
           return_result_info->tester->tester_runloop,
           ten_extension_tester_execute_return_result_handler_task,
           return_result_info->tester, return_result_info);
-      TEN_ASSERT(!rc, "Should not happen.");
+      if (rc) {
+        TEN_LOGW("Failed to post task to extension_tester's runloop: %d", rc);
+        TEN_ASSERT(0, "Should not happen.");
+      }
     } else {
       ten_extension_tester_return_result_ctx_destroy(return_result_info);
     }
@@ -566,7 +585,10 @@ static void test_extension_ten_env_send_data(ten_env_t *ten_env,
           send_msg_info->tester->tester_runloop,
           ten_extension_tester_execute_error_handler_task,
           send_msg_info->tester, send_msg_info);
-      TEN_ASSERT(!rc, "Should not happen.");
+      if (rc) {
+        TEN_LOGW("Failed to post task to extension_tester's runloop: %d", rc);
+        TEN_ASSERT(0, "Should not happen.");
+      }
     } else {
       ten_extension_tester_send_msg_ctx_destroy(send_msg_info);
     }
@@ -604,7 +626,10 @@ static void test_extension_ten_env_send_audio_frame(ten_env_t *ten_env,
           send_msg_info->tester->tester_runloop,
           ten_extension_tester_execute_error_handler_task,
           send_msg_info->tester, send_msg_info);
-      TEN_ASSERT(!rc, "Should not happen.");
+      if (rc) {
+        TEN_LOGW("Failed to post task to extension_tester's runloop: %d", rc);
+        TEN_ASSERT(0, "Should not happen.");
+      }
     } else {
       ten_extension_tester_send_msg_ctx_destroy(send_msg_info);
     }
@@ -642,7 +667,10 @@ static void test_extension_ten_env_send_video_frame(ten_env_t *ten_env,
           send_msg_info->tester->tester_runloop,
           ten_extension_tester_execute_error_handler_task,
           send_msg_info->tester, send_msg_info);
-      TEN_ASSERT(!rc, "Should not happen.");
+      if (rc) {
+        TEN_LOGW("Failed to post task to extension_tester's runloop: %d", rc);
+        TEN_ASSERT(0, "Should not happen.");
+      }
     } else {
       ten_extension_tester_send_msg_ctx_destroy(send_msg_info);
     }

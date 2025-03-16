@@ -238,7 +238,11 @@ void ten_engine_find_extension_info_for_all_extensions_of_extension_thread_task(
         ten_extension_thread_get_attached_runloop(extension_thread),
         ten_extension_thread_stop_life_cycle_of_all_extensions_task,
         extension_thread, NULL);
-    TEN_ASSERT(!rc, "Should not happen.");
+
+    if (rc) {
+      TEN_LOGW("Failed to post task to extension thread's runloop: %d", rc);
+      TEN_ASSERT(0, "Should not happen.");
+    }
   } else {
     ten_engine_on_all_extension_threads_are_ready(self, extension_thread);
 
@@ -246,6 +250,10 @@ void ten_engine_find_extension_info_for_all_extensions_of_extension_thread_task(
         ten_extension_thread_get_attached_runloop(extension_thread),
         ten_extension_thread_start_life_cycle_of_all_extensions_task,
         extension_thread, NULL);
-    TEN_ASSERT(!rc, "Should not happen.");
+
+    if (rc) {
+      TEN_LOGW("Failed to post task to extension thread's runloop: %d", rc);
+      TEN_ASSERT(0, "Should not happen.");
+    }
   }
 }

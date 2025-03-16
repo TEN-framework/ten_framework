@@ -301,7 +301,10 @@ void ten_timer_stop_async(ten_timer_t *self) {
 
   int rc =
       ten_runloop_post_task_tail(self->runloop, ten_timer_stop_, self, NULL);
-  TEN_ASSERT(!rc, "Should not happen.");
+  if (rc) {
+    TEN_LOGW("Failed to post task to timer's runloop: %d", rc);
+    TEN_ASSERT(0, "Should not happen.");
+  }
 }
 
 void ten_timer_set_on_closed(ten_timer_t *self,
@@ -343,7 +346,10 @@ void ten_timer_close_async(ten_timer_t *self) {
 
     int rc =
         ten_runloop_post_task_tail(self->runloop, ten_timer_close_, self, NULL);
-    TEN_ASSERT(!rc, "Should not happen.");
+    if (rc) {
+      TEN_LOGW("Failed to post task to timer's runloop: %d", rc);
+      TEN_ASSERT(0, "Should not happen.");
+    }
   }
 }
 
