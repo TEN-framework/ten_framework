@@ -733,9 +733,15 @@ static void ten_transport_on_server_connected(ten_transport_t *transport,
 
     if (!need_retry) {
       // No retry needed - report failure immediately.
+      TEN_LOGD("No retry needed for %s",
+               ten_string_get_raw_str(&cb_data->server_uri));
+
       ten_protocol_integrated_on_server_finally_connected(cb_data, false);
       return;
     }
+
+    TEN_LOGD("Retry needed for %s",
+             ten_string_get_raw_str(&cb_data->server_uri));
 
     // Set up retry timer.
     ten_runloop_t *loop = ten_protocol_get_attached_runloop(&protocol->base);
