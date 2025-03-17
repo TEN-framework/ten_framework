@@ -29,12 +29,12 @@ use crate::{
 };
 
 #[derive(Deserialize, Serialize, Debug)]
-pub struct AddBaseDirRequestPayload {
+pub struct LoadAppRequestPayload {
     pub base_dir: String,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct AddBaseDirResponseData {
+pub struct LoadAppResponseData {
     pub success: bool,
 }
 
@@ -44,7 +44,7 @@ pub struct GetAppsResponseData {
 }
 
 pub async fn load_app_endpoint(
-    request_payload: web::Json<AddBaseDirRequestPayload>,
+    request_payload: web::Json<LoadAppRequestPayload>,
     state: web::Data<Arc<RwLock<DesignerState>>>,
 ) -> Result<impl Responder, actix_web::Error> {
     let mut state = state.write().unwrap();
@@ -147,7 +147,7 @@ mod tests {
     };
 
     #[actix_web::test]
-    async fn test_add_base_dir_fail() {
+    async fn test_load_app_fail() {
         let designer_state = DesignerState {
             tman_config: Arc::new(TmanConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
@@ -159,22 +159,22 @@ mod tests {
             App::new()
                 .app_data(web::Data::new(designer_state.clone()))
                 .route(
-                    "/api/designer/v1/app/base-dir",
+                    "/api/designer/v1/apps",
                     web::post().to(load_app_endpoint),
                 ),
         )
         .await;
 
-        let new_base_dir = AddBaseDirRequestPayload {
+        let new_base_dir = LoadAppRequestPayload {
             base_dir: "/not/a/correct/app/folder/path".to_string(),
         };
 
         let req = test::TestRequest::post()
-            .uri("/api/designer/v1/app/base-dir")
+            .uri("/api/designer/v1/apps")
             .set_json(&new_base_dir)
             .to_request();
         let resp: Result<
-            ApiResponse<AddBaseDirResponseData>,
+            ApiResponse<LoadAppResponseData>,
             std::boxed::Box<dyn std::error::Error>,
         > = test::try_call_and_read_body_json(&app, req).await;
 
@@ -182,7 +182,7 @@ mod tests {
     }
 
     #[actix_web::test]
-    async fn test_get_base_dir_some() {
+    async fn test_get_apps_some() {
         let designer_state = DesignerState {
             tman_config: Arc::new(TmanConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
@@ -195,7 +195,7 @@ mod tests {
             App::new()
                 .app_data(web::Data::new(designer_state.clone()))
                 .route(
-                    "/api/designer/v1/app/base-dir",
+                    "/api/designer/v1/apps",
                     web::get().to(get_apps_endpoint),
                 ),
         )
@@ -208,7 +208,7 @@ mod tests {
             .insert(TEST_DIR.to_string(), vec![]);
 
         let req = test::TestRequest::get()
-            .uri("/api/designer/v1/app/base-dir")
+            .uri("/api/designer/v1/apps")
             .to_request();
 
         let resp: ApiResponse<GetAppsResponseData> =
@@ -224,7 +224,7 @@ mod tests {
     }
 
     #[actix_web::test]
-    async fn test_get_base_dir_none() {
+    async fn test_get_apps_none() {
         let designer_state = DesignerState {
             tman_config: Arc::new(TmanConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
@@ -236,14 +236,14 @@ mod tests {
             App::new()
                 .app_data(web::Data::new(designer_state.clone()))
                 .route(
-                    "/api/designer/v1/app/base-dir",
+                    "/api/designer/v1/apps",
                     web::get().to(get_apps_endpoint),
                 ),
         )
         .await;
 
         let req = test::TestRequest::get()
-            .uri("/api/designer/v1/app/base-dir")
+            .uri("/api/designer/v1/apps")
             .to_request();
 
         let resp: ApiResponse<GetAppsResponseData> =
