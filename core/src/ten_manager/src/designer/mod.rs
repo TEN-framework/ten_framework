@@ -13,6 +13,7 @@ mod exec;
 mod file_content;
 pub mod frontend;
 pub mod graphs;
+mod help_text;
 mod messages;
 pub mod mock;
 pub mod response;
@@ -63,6 +64,10 @@ pub fn configure_routes(
                 "/graphs/connections",
                 web::post()
                     .to(graphs::connections::get_graph_connections_endpoint),
+            )
+            .route(
+                "/help-text",
+                web::post().to(help_text::get_help_text_endpoint),
             )
             .route(
                 "/messages/compatible",
