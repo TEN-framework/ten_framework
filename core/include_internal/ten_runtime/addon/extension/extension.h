@@ -27,9 +27,7 @@ typedef struct ten_addon_create_extension_done_ctx_t {
 
 TEN_RUNTIME_PRIVATE_API ten_addon_store_t *ten_extension_get_global_store(void);
 
-TEN_RUNTIME_PRIVATE_API void ten_addon_unregister_all_extension(void);
-
-TEN_RUNTIME_PRIVATE_API void ten_addon_unregister_all_extension_ex(
+TEN_RUNTIME_PRIVATE_API void ten_addon_unregister_all_extension(
     ten_addon_store_on_all_addons_deinit_done_cb_t cb, void *cb_data);
 
 TEN_RUNTIME_PRIVATE_API ten_addon_create_extension_done_ctx_t *

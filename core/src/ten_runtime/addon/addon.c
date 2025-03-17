@@ -387,11 +387,11 @@ static void ten_addon_unregister_all_except_addon_loader_addon(
 
   ctx->unregistering_stores_count = 3; // extension, extension_group, protocol
 
-  ten_addon_unregister_all_extension_ex(
+  ten_addon_unregister_all_extension(
       ten_addon_store_on_specific_addons_unregistered, ctx);
-  ten_addon_unregister_all_extension_group_ex(
+  ten_addon_unregister_all_extension_group(
       ten_addon_store_on_specific_addons_unregistered, ctx);
-  ten_addon_unregister_all_protocol_ex(
+  ten_addon_unregister_all_protocol(
       ten_addon_store_on_specific_addons_unregistered, ctx);
 }
 

@@ -32,7 +32,7 @@ class DefaultAsyncExtension(AsyncExtension):
             "send_goodbye_cmd"
         )
         if err is not None:
-            ten_env.log_error(
+            ten_env.log_warn(
                 "Could not read 'send_goodbye_cmd' from properties." + str(err)
             )
             self.send_goodbye_cmd = False
@@ -41,7 +41,7 @@ class DefaultAsyncExtension(AsyncExtension):
             "sleep_ms_before_goodbye"
         )
         if err is not None:
-            ten_env.log_error(
+            ten_env.log_warn(
                 "Could not read 'sleep_ms_before_goodbye' from properties."
                 + str(err)
             )
@@ -51,7 +51,7 @@ class DefaultAsyncExtension(AsyncExtension):
             await ten_env.get_property_bool("assert_goodbye_result_success")
         )
         if err is not None:
-            ten_env.log_error(
+            ten_env.log_warn(
                 (
                     "Could not read 'assert_goodbye_result_success' from "
                     "properties." + str(err)

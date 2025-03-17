@@ -277,11 +277,7 @@ bool ten_addon_create_protocol(ten_env_t *ten_env, const char *addon_name,
   return true;
 }
 
-void ten_addon_unregister_all_protocol(void) {
-  ten_addon_store_del_all(ten_protocol_get_global_store());
-}
-
-void ten_addon_unregister_all_protocol_ex(
+void ten_addon_unregister_all_protocol(
     ten_addon_store_on_all_addons_deinit_done_cb_t cb, void *cb_data) {
   ten_addon_store_del_all_ex(ten_protocol_get_global_store(), cb, cb_data);
 }
