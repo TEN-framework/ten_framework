@@ -27,6 +27,7 @@ class ArgumentInfo(argparse.Namespace):
         self.target_os: str
         self.config_type: str
         self.log_level: int
+        self.ignored_cflags: list[str] = ["-DNDEBUG"]
 
 
 def get_embed_flags():
@@ -99,6 +100,8 @@ def python_config_for_win(args: ArgumentInfo) -> None:
         for flag in transformed_flags["include_dirs"]:
             print(flag)
         for flag in transformed_flags["cflags"]:
+            if flag in args.ignored_cflags:
+                continue
             print(flag)
     elif args.config_type == "ldflags":
         # Print library directories.
@@ -129,6 +132,8 @@ def python_config_for_mac(args: ArgumentInfo) -> None:
 
         outputs = output_text.split()
         for output in outputs:
+            if output in args.ignored_cflags:
+                continue
             print(output)
 
     elif args.config_type == "ldflags":
@@ -241,6 +246,8 @@ def python_config_for_linux(args: ArgumentInfo) -> None:
 
         outputs = output_text.split()
         for output in outputs:
+            if output in args.ignored_cflags:
+                continue
             print(output)
 
     elif args.config_type == "ldflags":
