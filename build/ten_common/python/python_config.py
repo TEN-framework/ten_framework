@@ -27,7 +27,14 @@ class ArgumentInfo(argparse.Namespace):
         self.target_os: str
         self.config_type: str
         self.log_level: int
-        self.ignored_cflags: list[str] = ["-DNDEBUG"]
+        self.ignored_cflags: list[str] = [
+            "-DNDEBUG",
+            "-Os",
+            "-O1",
+            "-O2",
+            "-O3",
+            "-g",
+        ]
 
 
 def get_embed_flags():
