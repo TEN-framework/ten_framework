@@ -24,4 +24,5 @@ mod test_case {
     mod designer_builtin_function_install_all;
     mod designer_get_registry_packages;
     mod designer_reload_apps;
+    mod designer_terminal;
 }
