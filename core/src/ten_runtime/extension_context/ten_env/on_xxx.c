@@ -24,8 +24,8 @@ void ten_extension_context_on_addon_create_extension_group_done(
   TEN_ASSERT(self->attach_to == TEN_ENV_ATTACH_TO_ENGINE, "Should not happen.");
 
   TEN_UNUSED ten_engine_t *engine = ten_env_get_attached_engine(self);
-  TEN_ASSERT(engine && ten_engine_check_integrity(engine, true),
-             "Should not happen.");
+  TEN_ASSERT(engine, "Should not happen.");
+  TEN_ASSERT(ten_engine_check_integrity(engine, true), "Should not happen.");
 
   TEN_UNUSED ten_extension_group_t *extension_group = instance;
   TEN_ASSERT(extension_group &&
@@ -64,8 +64,8 @@ void ten_extension_context_on_addon_destroy_extension_group_done(
   TEN_ASSERT(self->attach_to == TEN_ENV_ATTACH_TO_ENGINE, "Should not happen.");
 
   TEN_UNUSED ten_engine_t *engine = ten_env_get_attached_engine(self);
-  TEN_ASSERT(engine && ten_engine_check_integrity(engine, true),
-             "Should not happen.");
+  TEN_ASSERT(engine, "Should not happen.");
+  TEN_ASSERT(ten_engine_check_integrity(engine, true), "Should not happen.");
 
   if (addon_context->destroy_instance_done_cb) {
     addon_context->destroy_instance_done_cb(

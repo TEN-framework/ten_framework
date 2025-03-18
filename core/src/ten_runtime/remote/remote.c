@@ -275,8 +275,8 @@ ten_remote_t *ten_remote_create_for_engine(const char *uri,
                                            ten_connection_t *connection) {
   TEN_ASSERT(connection && ten_connection_check_integrity(connection, true),
              "Should not happen.");
-  TEN_ASSERT(engine && ten_engine_check_integrity(engine, true),
-             "Should not happen.");
+  TEN_ASSERT(engine, "Should not happen.");
+  TEN_ASSERT(ten_engine_check_integrity(engine, true), "Should not happen.");
 
   // NOTE: Whether the remote uri is duplicated in the engine should _not_ be
   // checked when the remote is created, but should be checked when the engine

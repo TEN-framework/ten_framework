@@ -32,8 +32,8 @@
 // The 'cmd' parameter is the command triggers the enabling of extension system.
 // If there is no command to trigger the enabling, this parameter would be NULL.
 bool ten_engine_enable_extension_system(ten_engine_t *self, ten_error_t *err) {
-  TEN_ASSERT(self && ten_engine_check_integrity(self, true),
-             "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_engine_check_integrity(self, true), "Should not happen.");
 
   ten_shared_ptr_t *original_start_graph_cmd =
       self->original_start_graph_cmd_of_enabling_engine;
@@ -94,8 +94,8 @@ bool ten_engine_enable_extension_system(ten_engine_t *self, ten_error_t *err) {
  */
 static void ten_engine_on_all_extension_threads_are_ready(
     ten_engine_t *self, ten_extension_thread_t *extension_thread) {
-  TEN_ASSERT(self && ten_engine_check_integrity(self, true),
-             "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_engine_check_integrity(self, true), "Should not happen.");
   TEN_ASSERT(
       extension_thread &&
           // TEN_NOLINTNEXTLINE(thread-check)
@@ -197,8 +197,8 @@ static void ten_engine_on_all_extension_threads_are_ready(
 void ten_engine_find_extension_info_for_all_extensions_of_extension_thread_task(
     void *self_, void *arg) {
   ten_engine_t *self = self_;
-  TEN_ASSERT(self && ten_engine_check_integrity(self, true),
-             "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_engine_check_integrity(self, true), "Should not happen.");
 
   ten_extension_context_t *extension_context = self->extension_context;
   TEN_ASSERT(extension_context &&
