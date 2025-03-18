@@ -117,15 +117,13 @@ pub async fn install_solver_results_in_app_folder(
 ) -> Result<()> {
     out.normal_line(&format!("{}  Installing packages...", Emoji("📥", "+")));
 
-    let bar = if !out.is_interactive() {
+    let bar = if out.is_interactive() {
         Some(ProgressBar::new(solver_results.len().try_into()?))
     } else {
         None
     };
 
     if let Some(bar) = &bar {
-        bar.set_draw_target(ProgressDrawTarget::hidden());
-
         bar.set_style(
         ProgressStyle::default_bar()
             .template("{spinner:.green} [{elapsed_precise}] [{bar:40.cyan/blue}] {pos:>7}/{len:7} {msg}")?
