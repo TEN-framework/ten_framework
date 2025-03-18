@@ -170,11 +170,13 @@ pub async fn get_package(
         if let Ok(true) = is_same_file_by_hash(&cached_file_path, url) {
             // If the content is the same, directly copy the cached file to
             // `temp_path`.
-            out.error_line(&format!(
-                "{}  Found the package file ({}) in the package cache, using it directly.",
-                Emoji("🚀", ":-("),
-                cached_file_path.to_string_lossy()
-            ));
+            if tman_config.verbose {
+                out.normal_line(&format!(
+                    "{}  Found the package file ({}) in the package cache, using it directly.",
+                    Emoji("🚀", ":-)"),
+                    cached_file_path.to_string_lossy()
+                ));
+            }
 
             fs::copy(&cached_file_path, temp_path.path()).with_context(
                 || {

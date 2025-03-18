@@ -385,11 +385,13 @@ pub async fn get_package(
     {
         // If the filename matches, directly copy the cached file to
         // `temp_file`.
-        out.error_line(&format!(
-            "{}  Found the package file ({}) in the package cache, using it directly.",
-            Emoji("🚀", ":-("),
-            cached_file_path.to_string_lossy()
-        ));
+        if tman_config.verbose {
+            out.normal_line(&format!(
+              "{}  Found the package file ({}) in the package cache, using it directly.",
+              Emoji("🚀", ":-)"),
+              cached_file_path.to_string_lossy()
+          ));
+        }
 
         fs::copy(&cached_file_path, temp_file.path()).with_context(|| {
             format!("Failed to copy from cache {}", cached_file_path.display())
