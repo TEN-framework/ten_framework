@@ -40,9 +40,16 @@ pub async fn get_packages_endpoint(
     request_payload: web::Json<GetPackagesRequestPayload>,
     state: web::Data<Arc<RwLock<DesignerState>>>,
 ) -> Result<impl Responder, actix_web::Error> {
-    let state_read = state.read().unwrap();
+    // Extract what we need from state before await.
+    let tman_config;
+    let out;
+    {
+        let state_read = state.read().unwrap();
+        tman_config = state_read.tman_config.clone();
+        out = state_read.out.clone();
+    } // Lock is dropped here.
 
-    // Parse version requirement if provided
+    // Parse version requirement if provided.
     let version_req = if let Some(version_req_str) =
         &request_payload.version_req
     {
@@ -60,13 +67,13 @@ pub async fn get_packages_endpoint(
         None
     };
 
-    // Call the registry function to get package list with optional parameters
+    // Call the registry function to get package list with optional parameters.
     match registry::get_package_list(
-        state_read.tman_config.clone(),
+        tman_config,
         request_payload.pkg_type,
         request_payload.name.clone(),
         version_req,
-        state_read.out.clone(),
+        out,
     )
     .await
     {

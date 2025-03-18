@@ -28,6 +28,7 @@ use ten_rust::pkg_info::PkgInfo;
 use super::found_result::PkgRegistryInfo;
 use super::pkg_cache::{find_in_package_cache, store_file_to_package_cache};
 use crate::config::TmanConfig;
+use crate::constants::TEN_PACKAGE_FILE_EXTENSION;
 use crate::file_type::{detect_file_type, FileType};
 use crate::output::TmanOutput;
 
@@ -424,7 +425,7 @@ fn search_versions(
                 if path
                     .file_name()
                     .and_then(|f| f.to_str())
-                    .is_some_and(|f| f.ends_with(".tpkg"))
+                    .is_some_and(|f| f.ends_with(TEN_PACKAGE_FILE_EXTENSION))
                 {
                     // Extract the manifest file from the package.
                     let maybe_manifest = extract_manifest_from_tpkg_file(path)?;

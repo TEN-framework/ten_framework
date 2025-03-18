@@ -28,7 +28,7 @@ use package::tar_gz_files_to_file;
 
 pub fn get_tpkg_file_name(pkg_info: &PkgInfo) -> Result<String> {
     let output_pkg_file_name = format!(
-        "{}_{}.{}",
+        "{}_{}{}",
         pkg_info.basic_info.type_and_name.name,
         pkg_info.basic_info.version,
         TEN_PACKAGE_FILE_EXTENSION
