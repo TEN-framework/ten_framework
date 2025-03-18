@@ -20,6 +20,9 @@
 typedef struct ten_addon_t ten_addon_t;
 typedef struct ten_addon_store_t ten_addon_store_t;
 
+typedef void (*ten_env_addon_on_deinit_done_cb_t)(ten_env_t *ten_env,
+                                                  void *cb_data);
+
 typedef struct ten_addon_host_t {
   ten_signature_t signature;
 
@@ -39,6 +42,9 @@ typedef struct ten_addon_host_t {
   ten_env_t *ten_env;
 
   TEN_ADDON_TYPE type;
+
+  ten_env_addon_on_deinit_done_cb_t on_deinit_done_cb;
+  void *on_deinit_done_cb_data;
 
   void *user_data;
 } ten_addon_host_t;
