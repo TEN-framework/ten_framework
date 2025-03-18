@@ -220,7 +220,7 @@ static bool ten_engine_could_be_close(ten_engine_t *self) {
 
   TEN_LOGD("[%s] engine liveness: %zu remotes, %zu timers, "
            "extension_context %p",
-           ten_app_get_uri(self->app), unclosed_remotes,
+           ten_engine_get_id(self, true), unclosed_remotes,
            ten_list_size(&self->timers), self->extension_context);
 
   if (unclosed_remotes == 0 && ten_list_is_empty(&self->timers) &&
@@ -306,6 +306,8 @@ void ten_engine_on_extension_context_closed(
 
   TEN_LOGD("[%s] Extension context closed.", ten_engine_get_id(engine, true));
 
+  // The extension context is closed, so set the pointer to NULL to prevent it
+  // from being used again.
   engine->extension_context = NULL;
 
   if (engine->is_closing) {

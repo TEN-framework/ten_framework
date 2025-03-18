@@ -413,46 +413,49 @@ bool ten_engine_dispatch_msg(ten_engine_t *self, ten_shared_ptr_t *msg) {
       } else {
         // Find the correct extension thread to handle this message.
 
-        bool found = false;
+        if (self->extension_context) {
+          bool found = false;
 
-        ten_list_foreach(&self->extension_context->extension_groups, iter) {
-          ten_extension_group_t *extension_group =
-              ten_ptr_listnode_get(iter.node);
-          TEN_ASSERT(
-              extension_group &&
-                  // TEN_NOLINTNEXTLINE(thread-check)
-                  // thread-check: We are in the engine thread, _not_ in the
-                  // extension thread. However, before the engine is closed, the
-                  // pointer of the extension group and the pointer of the
-                  // extension thread will not be changed, and the closing of
-                  // the entire engine must start from the engine, so the
-                  // execution to this position means that the engine has not
-                  // been closed, so there will be no thread safety issue.
-                  ten_extension_group_check_integrity(extension_group, false),
-              "Should not happen.");
+          ten_list_foreach(&self->extension_context->extension_groups, iter) {
+            ten_extension_group_t *extension_group =
+                ten_ptr_listnode_get(iter.node);
+            TEN_ASSERT(
+                extension_group &&
+                    // TEN_NOLINTNEXTLINE(thread-check)
+                    // thread-check: We are in the engine thread, _not_ in the
+                    // extension thread. However, before the engine is closed,
+                    // the pointer of the extension group and the pointer of the
+                    // extension thread will not be changed, and the closing of
+                    // the entire engine must start from the engine, so the
+                    // execution to this position means that the engine has not
+                    // been closed, so there will be no thread safety issue.
+                    ten_extension_group_check_integrity(extension_group, false),
+                "Should not happen.");
 
-          if (ten_string_is_equal(&extension_group->name,
-                                  &dest_loc->extension_group_name)) {
-            // Find the correct extension thread, ask it to handle the message.
-            found = true;
-            ten_engine_post_msg_to_extension_thread(
-                self, extension_group->extension_thread, msg);
-            break;
+            if (ten_string_is_equal(&extension_group->name,
+                                    &dest_loc->extension_group_name)) {
+              // Find the correct extension thread, ask it to handle the
+              // message.
+              found = true;
+              ten_engine_post_msg_to_extension_thread(
+                  self, extension_group->extension_thread, msg);
+              break;
+            }
           }
-        }
 
-        if (!found) {
-          // ten_msg_dump(msg, NULL,
-          //              "Failed to find the destination extension thread for "
-          //              "the message ^m");
+          if (!found) {
+            // ten_msg_dump(msg, NULL,
+            //              "Failed to find the destination extension thread for
+            //              " "the message ^m");
 
-          ten_shared_ptr_t *cmd_result =
-              ten_extension_group_create_cmd_result_for_invalid_dest(
-                  msg, &dest_loc->extension_group_name);
+            ten_shared_ptr_t *cmd_result =
+                ten_extension_group_create_cmd_result_for_invalid_dest(
+                    msg, &dest_loc->extension_group_name);
 
-          ten_engine_dispatch_msg(self, cmd_result);
+            ten_engine_dispatch_msg(self, cmd_result);
 
-          ten_shared_ptr_destroy(cmd_result);
+            ten_shared_ptr_destroy(cmd_result);
+          }
         }
       }
     }
