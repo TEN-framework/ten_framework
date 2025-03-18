@@ -76,8 +76,7 @@ TEN_RUNTIME_PRIVATE_API bool ten_addon_host_destroy_instance(
 TEN_RUNTIME_PRIVATE_API const char *ten_addon_host_get_base_dir(
     ten_addon_host_t *self);
 
-TEN_RUNTIME_PRIVATE_API bool ten_addon_host_check_integrity(
-    ten_addon_host_t *self);
+TEN_RUNTIME_API bool ten_addon_host_check_integrity(ten_addon_host_t *self);
 
 TEN_RUNTIME_PRIVATE_API const char *ten_addon_host_get_name(
     ten_addon_host_t *self);

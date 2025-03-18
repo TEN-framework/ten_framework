@@ -4,6 +4,4 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-pub mod builtin_server;
-pub mod designer_state;
-pub mod tman_config;
+pub mod packages;

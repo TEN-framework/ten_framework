@@ -38,7 +38,7 @@ pub const SCRIPTS: &str = "scripts";
 
 pub const INSTALL_PATHS_APP_PREFIX: &str = "@app";
 
-pub const TEN_PACKAGE_FILE_EXTENSION: &str = "tpkg";
+pub const TEN_PACKAGE_FILE_EXTENSION: &str = ".tpkg";
 
 // Maximum number of retry attempts.
 pub const REMOTE_REGISTRY_MAX_RETRIES: u32 = 30;

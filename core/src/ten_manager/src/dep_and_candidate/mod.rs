@@ -158,14 +158,14 @@ async fn process_non_local_dependency_to_get_candidate(
     // criteria.
     let results = get_package_list(
         tman_config.clone(),
-        dependency.type_and_name.pkg_type,
-        &dependency.type_and_name.name,
+        Some(dependency.type_and_name.pkg_type),
+        Some(dependency.type_and_name.name.clone()),
         // With the current design, if there is new information, it will
         // definitely be only this version requirement. Although there may be
         // some overlap with previous version requirements, given the current
         // design, this is the best we can do for now. The answer won't be
         // wrong, but the efficiency might be somewhat lower.
-        &dependency.version_req,
+        Some(dependency.version_req.clone()),
         out.clone(),
     )
     .await?;
