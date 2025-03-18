@@ -817,7 +817,10 @@
       "request": "launch",
       "program": "/usr/bin/python3",
       "args": [
-        "tests/test_recv_msg_during_starting.py"
+        "-m",
+        "pytest",
+        "-s",
+        "tests/"
       ],
       "cwd": "${workspaceFolder}/out/linux/x64/tests/ten_runtime/integration/python/standalone_test_async_python/default_async_extension_python",
       "env": {
