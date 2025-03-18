@@ -18,8 +18,6 @@ pub struct EnvInfo {
 }
 
 pub fn get_env() -> Result<EnvInfo> {
-    eprintln!("current_arch: {}", std::env::consts::ARCH);
-
     let current_os = Os::from_str(std::env::consts::OS)?;
     let current_arch = Arch::from_str(std::env::consts::ARCH)?;
 
