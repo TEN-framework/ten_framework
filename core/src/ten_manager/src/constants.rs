@@ -56,3 +56,5 @@ pub const PROCESS_STDERR_MAX_LINE_CNT: usize = 1000;
 pub const DESIGNER_BACKEND_DEFAULT_PORT: &str = "49483";
 
 pub const TEST_DIR: &str = "test_dir";
+
+pub const DEFAULT: &str = "default";
