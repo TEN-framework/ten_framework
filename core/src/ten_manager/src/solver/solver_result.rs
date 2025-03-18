@@ -8,7 +8,7 @@ use std::{collections::HashMap, path::Path, sync::Arc};
 
 use anyhow::Result;
 use console::Emoji;
-use indicatif::{ProgressBar, ProgressDrawTarget, ProgressStyle};
+use indicatif::{ProgressBar, ProgressStyle};
 use regex::Regex;
 use semver::Version;
 
