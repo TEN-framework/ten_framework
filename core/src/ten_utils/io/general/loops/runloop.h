@@ -9,7 +9,6 @@
 #include "include_internal/ten_utils/io/runloop.h"
 #include "ten_utils/container/list.h"
 #include "ten_utils/io/runloop.h"
-#include "ten_utils/lib/atomic.h"
 #include "ten_utils/lib/mutex.h"
 
 typedef struct ten_runloop_common_t {
@@ -20,7 +19,8 @@ typedef struct ten_runloop_common_t {
   ten_list_t tasks;
   ten_mutex_t *lock;
   ten_runloop_async_t *task_available_signal;
-  ten_atomic_t attach_other;
+
+  bool attach_other;
 
   void (*destroy)(ten_runloop_t *);
   void (*run)(ten_runloop_t *);
