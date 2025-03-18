@@ -18,7 +18,7 @@ mod messages;
 pub mod mock;
 pub mod registry;
 pub mod response;
-mod terminal;
+pub mod terminal;
 mod version;
 
 use std::{
