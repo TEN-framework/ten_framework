@@ -47,8 +47,9 @@ static PyObject *not_implemented_base_on_deinit(TEN_UNUSED PyObject *self,
       "The method 'on_deinit' must be implemented in the subclass of 'Addon'.");
 }
 
-static PyObject *not_implemented_base_on_create_instance(
-    TEN_UNUSED PyObject *self, TEN_UNUSED PyObject *args) {
+static PyObject *
+not_implemented_base_on_create_instance(TEN_UNUSED PyObject *self,
+                                        TEN_UNUSED PyObject *args) {
   return ten_py_raise_py_not_implemented_error_exception(
       "The method 'on_create_instance' must be implemented in the subclass of "
       "'Addon'.");
@@ -209,31 +210,32 @@ static void proxy_on_destroy_instance_async(ten_addon_t *addon,
   PyGILState_STATE prev_state = ten_py_gil_state_ensure_internal();
 
   switch (py_addon->type) {
-    case TEN_ADDON_TYPE_EXTENSION:
-      py_instance = ten_binding_handle_get_me_in_target_lang(
-          (ten_binding_handle_t *)instance);
+  case TEN_ADDON_TYPE_EXTENSION:
+    py_instance = ten_binding_handle_get_me_in_target_lang(
+        (ten_binding_handle_t *)instance);
 
-      ten_py_extension_t *py_extension = (ten_py_extension_t *)py_instance;
+    ten_py_extension_t *py_extension = (ten_py_extension_t *)py_instance;
 
-      ten_extension_t* extension = py_extension->c_extension;
-      TEN_ASSERT(extension && ten_extension_check_integrity(extension, true),
-                 "Should not happen.");
+    ten_extension_t *extension = py_extension->c_extension;
+    TEN_ASSERT(extension && ten_extension_check_integrity(extension, true),
+               "Should not happen.");
 
-      TEN_ASSERT(extension == instance, "Should not happen.");
+    TEN_ASSERT(extension == instance, "Should not happen.");
 
-      ten_addon_host_t* addon_host = extension->addon_host;
-      TEN_ASSERT(addon_host && ten_addon_host_check_integrity(addon_host),
-                 "Should not happen.");
+    ten_addon_host_t *addon_host = extension->addon_host;
+    TEN_ASSERT(addon_host && ten_addon_host_check_integrity(addon_host),
+               "Should not happen.");
 
-      // Release the reference count of the addon host.
-      ten_ref_dec_ref(&addon_host->ref);
-      extension->addon_host = NULL;
+    // Because the extension increases the reference count of the corresponding
+    // `addon_host` when it is created, the reference count must be decreased
+    // when the extension is destroyed.
+    ten_ref_dec_ref(&addon_host->ref);
+    extension->addon_host = NULL;
+    break;
 
-      break;
-
-    default:
-      TEN_ASSERT(0, "Should not happen.");
-      break;
+  default:
+    TEN_ASSERT(0, "Should not happen.");
+    break;
   }
 
   TEN_ASSERT(py_instance, "Failed to get Python instance.");
@@ -257,7 +259,7 @@ static PyObject *ten_py_addon_create(PyTypeObject *type,
   }
 
   ten_signature_set(&py_addon->signature, TEN_PY_ADDON_SIGNATURE);
-  py_addon->type = TEN_ADDON_TYPE_EXTENSION;  // Now we only support extension.
+  py_addon->type = TEN_ADDON_TYPE_EXTENSION; // Now we only support extension.
   py_addon->c_addon_host = NULL;
 
   ten_addon_init(&py_addon->c_addon, proxy_on_init, proxy_on_deinit,

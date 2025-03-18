@@ -19,6 +19,7 @@
 #include "ten_utils/lib/string.h"
 #include "ten_utils/log/log.h"
 #include "ten_utils/macro/check.h"
+#include "ten_utils/macro/mark.h"
 #include "ten_utils/macro/memory.h"
 #include "ten_utils/sanitizer/thread_check.h"
 
@@ -92,13 +93,14 @@ static void ten_nodejs_addon_destroy(ten_nodejs_addon_t *self) {
   TEN_FREE(self);
 }
 
-static void ten_nodejs_addon_finalize(napi_env env, void *data, void *hint) {
+static void ten_nodejs_addon_finalize(napi_env env, void *data,
+                                      TEN_UNUSED void *hint) {
   TEN_LOGI("TEN JS Addon is finalized.");
 
   ten_nodejs_addon_t *addon_bridge = data;
-  TEN_ASSERT(
-      addon_bridge && ten_nodejs_addon_check_integrity(addon_bridge, true),
-      "Should not happen.");
+  TEN_ASSERT(addon_bridge &&
+                 ten_nodejs_addon_check_integrity(addon_bridge, true),
+             "Should not happen.");
 
   napi_status status = napi_ok;
 
@@ -112,7 +114,7 @@ static void ten_nodejs_addon_finalize(napi_env env, void *data, void *hint) {
 }
 
 void ten_nodejs_invoke_addon_js_on_init(napi_env env, napi_value fn,
-                                        void *context, void *data) {
+                                        TEN_UNUSED void *context, void *data) {
   addon_on_xxx_callback_info_t *call_info = data;
   TEN_ASSERT(call_info, "Should not happen.");
 
@@ -161,7 +163,8 @@ done:
 }
 
 void ten_nodejs_invoke_addon_js_on_deinit(napi_env env, napi_value fn,
-                                          void *context, void *data) {
+                                          TEN_UNUSED void *context,
+                                          void *data) {
   addon_on_xxx_callback_info_t *call_info = data;
   TEN_ASSERT(call_info, "Should not happen.");
 
@@ -215,7 +218,8 @@ done:
 }
 
 void ten_nodejs_invoke_addon_js_on_create_instance(napi_env env, napi_value fn,
-                                                   void *context, void *data) {
+                                                   TEN_UNUSED void *context,
+                                                   void *data) {
   addon_on_create_instance_callback_ctx_t *call_info = data;
   TEN_ASSERT(call_info, "Should not happen.");
 
@@ -386,15 +390,17 @@ static void proxy_on_destroy_instance(ten_addon_t *addon, ten_env_t *ten_env,
                  ten_nodejs_extension_check_integrity(extension_bridge, false),
              "Should not happen.");
 
-  ten_extension_t* extension = extension_bridge->c_extension;
+  ten_extension_t *extension = extension_bridge->c_extension;
   TEN_ASSERT(extension && ten_extension_check_integrity(extension, true),
              "Should not happen.");
 
-  ten_addon_host_t* addon_host = extension->addon_host;
+  ten_addon_host_t *addon_host = extension->addon_host;
   TEN_ASSERT(addon_host && ten_addon_host_check_integrity(addon_host),
              "Should not happen.");
 
-  // Release the reference count of the addon host.
+  // Because the extension increases the reference count of the corresponding
+  // `addon_host` when it is created, the reference count must be decreased
+  // when the extension is destroyed.
   ten_ref_dec_ref(&addon_host->ref);
   extension->addon_host = NULL;
 
@@ -406,7 +412,7 @@ static napi_value ten_nodejs_addon_create(napi_env env,
   TEN_ASSERT(env, "Should not happen.");
 
   const size_t argc = 1;
-  napi_value args[argc];  // this
+  napi_value args[argc]; // this
   if (!ten_nodejs_get_js_func_args(env, info, args, argc)) {
     napi_fatal_error(NULL, NAPI_AUTO_LENGTH,
                      "Incorrect number of parameters passed.",
@@ -457,8 +463,9 @@ done:
   return js_undefined(env);
 }
 
-static void ten_nodejs_addon_release_js_on_xxx_tsfn(
-    napi_env env, ten_nodejs_addon_t *addon_bridge) {
+static void
+ten_nodejs_addon_release_js_on_xxx_tsfn(napi_env env,
+                                        ten_nodejs_addon_t *addon_bridge) {
   TEN_ASSERT(env && addon_bridge, "Should not happen.");
 
   ten_nodejs_tsfn_release(addon_bridge->js_on_init);
@@ -471,7 +478,7 @@ static napi_value ten_nodejs_addon_on_end_of_life(napi_env env,
   TEN_ASSERT(env && info, "Should not happen.");
 
   const size_t argc = 1;
-  napi_value args[argc];  // this
+  napi_value args[argc]; // this
   if (!ten_nodejs_get_js_func_args(env, info, args, argc)) {
     napi_fatal_error(NULL, NAPI_AUTO_LENGTH,
                      "Incorrect number of parameters passed.",
@@ -484,9 +491,9 @@ static napi_value ten_nodejs_addon_on_end_of_life(napi_env env,
   napi_status status = napi_unwrap(env, args[0], (void **)&addon_bridge);
   RETURN_UNDEFINED_IF_NAPI_FAIL(status == napi_ok && addon_bridge != NULL,
                                 "Failed to get addon bridge: %d", status);
-  TEN_ASSERT(
-      addon_bridge && ten_nodejs_addon_check_integrity(addon_bridge, true),
-      "Should not happen.");
+  TEN_ASSERT(addon_bridge &&
+                 ten_nodejs_addon_check_integrity(addon_bridge, true),
+             "Should not happen.");
 
   // From now on, the JS on_xxx callback(s) are useless, so release them all.
   ten_nodejs_addon_release_js_on_xxx_tsfn(env, addon_bridge);

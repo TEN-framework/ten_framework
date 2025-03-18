@@ -74,14 +74,14 @@ void ten_go_addon_unregister(uintptr_t bridge_addr) {
              "Invalid argument.");
 
   switch (addon_bridge->type) {
-    case TEN_ADDON_TYPE_EXTENSION:
-      ten_addon_unregister_extension(
-          ten_string_get_raw_str(&addon_bridge->addon_name));
-      break;
+  case TEN_ADDON_TYPE_EXTENSION:
+    ten_addon_unregister_extension(
+        ten_string_get_raw_str(&addon_bridge->addon_name));
+    break;
 
-    default:
-      TEN_ASSERT(0, "Should not happen.");
-      break;
+  default:
+    TEN_ASSERT(0, "Should not happen.");
+    break;
   }
 
   // The C part is disappear, so decrement the reference count to reflect this
@@ -190,32 +190,34 @@ static void ten_go_addon_destroy_instance_helper(ten_addon_t *addon,
 
   ten_go_handle_t instance_handle = -1;
   switch (addon_bridge->type) {
-    case TEN_ADDON_TYPE_EXTENSION: {
-      ten_extension_t *extension = (ten_extension_t *)instance;
-      TEN_ASSERT(extension && ten_extension_check_integrity(extension, true),
-                 "Invalid argument.");
+  case TEN_ADDON_TYPE_EXTENSION: {
+    ten_extension_t *extension = (ten_extension_t *)instance;
+    TEN_ASSERT(extension && ten_extension_check_integrity(extension, true),
+               "Invalid argument.");
 
-      // Release the reference count of the addon host.
-      ten_addon_host_t *addon_host = extension->addon_host;
-      TEN_ASSERT(addon_host && ten_addon_host_check_integrity(addon_host),
-                 "Invalid argument.");
-      ten_ref_dec_ref(&addon_host->ref);
-      extension->addon_host = NULL;
+    // Because the extension increases the reference count of the corresponding
+    // `addon_host` when it is created, the reference count must be decreased
+    // when the extension is destroyed.
+    ten_addon_host_t *addon_host = extension->addon_host;
+    TEN_ASSERT(addon_host && ten_addon_host_check_integrity(addon_host),
+               "Invalid argument.");
+    ten_ref_dec_ref(&addon_host->ref);
+    extension->addon_host = NULL;
 
-      ten_go_extension_t *extension_bridge =
-          ten_binding_handle_get_me_in_target_lang(
-              (ten_binding_handle_t *)extension);
-      TEN_ASSERT(extension_bridge &&
-                     ten_go_extension_check_integrity(extension_bridge),
-                 "Invalid argument.");
+    ten_go_extension_t *extension_bridge =
+        ten_binding_handle_get_me_in_target_lang(
+            (ten_binding_handle_t *)extension);
+    TEN_ASSERT(extension_bridge &&
+                   ten_go_extension_check_integrity(extension_bridge),
+               "Invalid argument.");
 
-      instance_handle = ten_go_extension_go_handle(extension_bridge);
-      break;
-    }
+    instance_handle = ten_go_extension_go_handle(extension_bridge);
+    break;
+  }
 
-    default:
-      TEN_ASSERT(0, "Not support.");
-      break;
+  default:
+    TEN_ASSERT(0, "Not support.");
+    break;
   }
 
   if (instance_handle > 0) {
@@ -261,51 +263,51 @@ static ten_go_addon_t *ten_go_addon_register(const void *addon_name,
                                        addon_name_len);
 
   switch (addon_type) {
-    case TEN_ADDON_TYPE_EXTENSION:
-      ten_addon_init(&addon_bridge->c_addon, ten_go_addon_on_init_helper,
-                     ten_go_addon_on_deinit_helper,
-                     ten_go_addon_create_extension_async_helper,
-                     ten_go_addon_destroy_instance_helper,
-                     ten_go_addon_on_destroy);
-      break;
+  case TEN_ADDON_TYPE_EXTENSION:
+    ten_addon_init(&addon_bridge->c_addon, ten_go_addon_on_init_helper,
+                   ten_go_addon_on_deinit_helper,
+                   ten_go_addon_create_extension_async_helper,
+                   ten_go_addon_destroy_instance_helper,
+                   ten_go_addon_on_destroy);
+    break;
 
-    case TEN_ADDON_TYPE_EXTENSION_GROUP:
-      ten_addon_init(&addon_bridge->c_addon, ten_go_addon_on_init_helper,
-                     ten_go_addon_on_deinit_helper,
-                     ten_go_addon_create_extension_group_async_helper,
-                     ten_go_addon_destroy_instance_helper, NULL);
-      break;
+  case TEN_ADDON_TYPE_EXTENSION_GROUP:
+    ten_addon_init(&addon_bridge->c_addon, ten_go_addon_on_init_helper,
+                   ten_go_addon_on_deinit_helper,
+                   ten_go_addon_create_extension_group_async_helper,
+                   ten_go_addon_destroy_instance_helper, NULL);
+    break;
 
-    default:
-      TEN_ASSERT(0, "Not support.");
-      break;
+  default:
+    TEN_ASSERT(0, "Not support.");
+    break;
   }
 
   ten_binding_handle_set_me_in_target_lang(
       (ten_binding_handle_t *)&addon_bridge->c_addon, addon_bridge);
 
   switch (addon_type) {
-    case TEN_ADDON_TYPE_EXTENSION:
-      // The Go addon is not dynamically loaded; it is statically compiled
-      // directly into the Go app. As a result, the base_dir captured by the Go
-      // code in the addon during compilation reflects the base_dir at the time
-      // of compilation, which may not correspond to a path under
-      // `ten_packages/`. Therefore, the Go addon does not have the capability
-      // to specify the base_dir via its own code. Instead, it relies on the C
-      // runtime at runtime to first locate the app's base_dir and then
-      // determine the correct runtime base_dir for the Go addon by combining
-      // the path `ten_packages/<addon_type>/<addon_name>`. This behavior is
-      // represented by specifying a special string,
-      // `TEN_STR_ADDON_BASE_DIR_FIND_FROM_APP_BASE_DIR`.
-      ten_addon_register_extension(
-          ten_string_get_raw_str(&addon_bridge->addon_name),
-          TEN_STR_ADDON_BASE_DIR_FIND_FROM_APP_BASE_DIR, &addon_bridge->c_addon,
-          register_ctx);
-      break;
+  case TEN_ADDON_TYPE_EXTENSION:
+    // The Go addon is not dynamically loaded; it is statically compiled
+    // directly into the Go app. As a result, the base_dir captured by the Go
+    // code in the addon during compilation reflects the base_dir at the time
+    // of compilation, which may not correspond to a path under
+    // `ten_packages/`. Therefore, the Go addon does not have the capability
+    // to specify the base_dir via its own code. Instead, it relies on the C
+    // runtime at runtime to first locate the app's base_dir and then
+    // determine the correct runtime base_dir for the Go addon by combining
+    // the path `ten_packages/<addon_type>/<addon_name>`. This behavior is
+    // represented by specifying a special string,
+    // `TEN_STR_ADDON_BASE_DIR_FIND_FROM_APP_BASE_DIR`.
+    ten_addon_register_extension(
+        ten_string_get_raw_str(&addon_bridge->addon_name),
+        TEN_STR_ADDON_BASE_DIR_FIND_FROM_APP_BASE_DIR, &addon_bridge->c_addon,
+        register_ctx);
+    break;
 
-    default:
-      TEN_ASSERT(0, "Not support.");
-      break;
+  default:
+    TEN_ASSERT(0, "Not support.");
+    break;
   }
 
   return addon_bridge;
