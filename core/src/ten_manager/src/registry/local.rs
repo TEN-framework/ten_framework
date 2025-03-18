@@ -306,17 +306,38 @@ fn find_file_with_criteria(
 ) -> Result<Vec<PkgRegistryInfo>> {
     let mut results = Vec::<PkgRegistryInfo>::new();
 
-    // Determine which path to search based on pkg_type and name.
-    let search_path = match (pkg_type, name) {
-        (Some(pkg_type), Some(name)) => {
-            // We'll store the package type directory path and pass the name
-            // separately
-            base_url.join(pkg_type.to_string())
+    // Determine which path to search based on pkg_type and name, and handle
+    // search logic directly.
+    match (pkg_type, name) {
+        (Some(pkg_type), Some(name_str)) => {
+            // Search specific pkg_type and name.
+            let search_path = base_url.join(pkg_type.to_string());
+            if search_path.exists() {
+                let mut path_results =
+                    search_versions(&search_path, name_str, version_req)?;
+                results.append(&mut path_results);
+            }
         }
-        (Some(pkg_type), None) => base_url.join(pkg_type.to_string()),
+        (Some(pkg_type), None) => {
+            // Search all names under specific pkg_type.
+            let search_path = base_url.join(pkg_type.to_string());
+            if search_path.exists() {
+                for entry in (std::fs::read_dir(&search_path)?).flatten() {
+                    if entry.file_type()?.is_dir() {
+                        let name_str =
+                            entry.file_name().to_string_lossy().to_string();
+                        let mut name_results = search_versions(
+                            &search_path,
+                            &name_str,
+                            version_req,
+                        )?;
+                        results.append(&mut name_results);
+                    }
+                }
+            }
+        }
         (None, Some(name)) => {
-            // Without pkg_type, we'll need to check all package types for this
-            // name.
+            // Search all package types for this name.
             for entry in (std::fs::read_dir(base_url)?).flatten() {
                 if entry.file_type()?.is_dir() {
                     let type_dir = entry.path();
@@ -328,7 +349,6 @@ fn find_file_with_criteria(
                     }
                 }
             }
-            return Ok(results);
         }
         (None, None) => {
             // Search all package types and names.
@@ -351,39 +371,8 @@ fn find_file_with_criteria(
                     }
                 }
             }
-            return Ok(results);
         }
-    };
-
-    if !search_path.exists() {
-        return Ok(results);
     }
-
-    // If we have a specific pkg_type and name path, search for versions.
-    let name_str = match name {
-        Some(n) => n,
-        None => {
-            // If we only have pkg_type but no name, search all names under this
-            // type.
-            for entry in (std::fs::read_dir(&search_path)?).flatten() {
-                if entry.file_type()?.is_dir() {
-                    let _name_dir = entry.path();
-                    let name_str =
-                        entry.file_name().to_string_lossy().to_string();
-                    let mut name_results =
-                        search_versions(&search_path, &name_str, version_req)?;
-                    results.append(&mut name_results);
-                }
-            }
-            return Ok(results);
-        }
-    };
-
-    // Since search_path is the package type directory path and doesn't include
-    // the name, we can safely pass name_str to search_versions
-    let mut path_results =
-        search_versions(&search_path, name_str, version_req)?;
-    results.append(&mut path_results);
 
     Ok(results)
 }
@@ -411,7 +400,11 @@ fn search_versions(
         };
 
         // Check if the folder meets the version requirements.
-        if version_req.is_none_or(|req| req.matches(&version)) {
+        if version_req.is_none()
+            || version_req
+                .as_ref()
+                .is_some_and(|req| req.matches(&version))
+        {
             // Traverse the files within the folder of that version.
             for file in WalkDir::new(version_dir.path())
                 .min_depth(1)
