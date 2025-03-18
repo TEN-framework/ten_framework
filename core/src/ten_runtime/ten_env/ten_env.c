@@ -10,6 +10,7 @@
 
 #include "include_internal/ten_runtime/addon/addon.h"
 #include "include_internal/ten_runtime/addon/addon_host.h"
+#include "include_internal/ten_runtime/addon_loader/addon_loader.h"
 #include "include_internal/ten_runtime/app/app.h"
 #include "include_internal/ten_runtime/common/loc.h"
 #include "include_internal/ten_runtime/engine/engine.h"
@@ -136,6 +137,13 @@ ten_env_t *ten_env_create_for_engine(ten_engine_t *engine) {
              "Should not happen.");
 
   return ten_create_with_attach_to(TEN_ENV_ATTACH_TO_ENGINE, engine);
+}
+
+ten_env_t *ten_env_create_for_addon_loader(ten_addon_loader_t *addon_loader) {
+  TEN_ASSERT(addon_loader && ten_addon_loader_check_integrity(addon_loader),
+             "Should not happen.");
+
+  return ten_create_with_attach_to(TEN_ENV_ATTACH_TO_ADDON_LOADER, addon_loader);
 }
 
 void ten_env_destroy(ten_env_t *self) {
@@ -284,6 +292,10 @@ void ten_env_set_attach_to(ten_env_t *self, TEN_ENV_ATTACH_TO attach_to_type,
 
     case TEN_ENV_ATTACH_TO_ENGINE:
       self->attached_target.engine = attach_to;
+      break;
+
+    case TEN_ENV_ATTACH_TO_ADDON_LOADER:
+      self->attached_target.addon_loader = attach_to;
       break;
 
     default:

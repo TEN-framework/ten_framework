@@ -43,7 +43,11 @@ typedef struct ten_addon_loader_t {
   ten_addon_loader_on_init_func_t on_init;
   ten_addon_loader_on_deinit_func_t on_deinit;
   ten_addon_loader_on_load_addon_func_t on_load_addon;
+
+  ten_env_t *ten_env;
 } ten_addon_loader_t;
+
+TEN_RUNTIME_PRIVATE_API bool ten_addon_loader_check_integrity(ten_addon_loader_t *self);
 
 TEN_RUNTIME_PRIVATE_API int ten_addon_loader_singleton_store_lock(void);
 
