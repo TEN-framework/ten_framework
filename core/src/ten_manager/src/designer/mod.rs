@@ -16,6 +16,7 @@ pub mod graphs;
 mod help_text;
 mod messages;
 pub mod mock;
+pub mod registry;
 pub mod response;
 mod terminal;
 mod version;
@@ -73,6 +74,10 @@ pub fn configure_routes(
                 "/messages/compatible",
                 web::post()
                     .to(messages::compatible::get_compatible_messages_endpoint),
+            )
+            .route(
+                "/registry/packages",
+                web::post().to(registry::packages::get_packages_endpoint),
             )
             .route("/apps", web::get().to(apps::get_apps_endpoint))
             .route("/apps", web::post().to(apps::load_app_endpoint))

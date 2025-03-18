@@ -569,9 +569,10 @@ struct RegistryPackagesData {
 /// * `tman_config` - Configuration containing registry settings and verbose
 ///   flag.
 /// * `base_url` - Base URL of the remote registry.
-/// * `pkg_type` - Type of package to search for (e.g., app, extension).
-/// * `name` - Name of the package to search for.
-/// * `version_req` - Version requirement to filter packages.
+/// * `pkg_type` - Optional type of package to search for (e.g., app,
+///   extension).
+/// * `name` - Optional name of the package to search for.
+/// * `version_req` - Optional version requirement to filter packages.
 /// * `out` - Output interface for logging.
 ///
 /// # Returns
@@ -586,9 +587,9 @@ struct RegistryPackagesData {
 pub async fn get_package_list(
     tman_config: Arc<TmanConfig>,
     base_url: &str,
-    pkg_type: PkgType,
-    name: &str,
-    version_req: &VersionReq,
+    pkg_type: Option<PkgType>,
+    name: Option<String>,
+    version_req: Option<VersionReq>,
     out: Arc<Box<dyn TmanOutput>>,
 ) -> Result<Vec<PkgRegistryInfo>> {
     let max_retries = REMOTE_REGISTRY_MAX_RETRIES;
@@ -607,6 +608,7 @@ pub async fn get_package_list(
 
             let out = out.clone();
             let version_req = version_req.clone();
+            let name = name.clone();
             let tman_config = tman_config.clone();
 
             Box::pin(async move {
@@ -618,20 +620,39 @@ pub async fn get_package_list(
                     // Build the URL with query parameters for pagination and
                     // filtering.
                     let mut url = reqwest::Url::parse(base_url)?;
-                    url.query_pairs_mut()
-                        .append_pair("type", &pkg_type.to_string())
-                        .append_pair("name", name)
-                        .append_pair("version", &version_req.to_string())
-                        .append_pair("pageSize", "100")
-                        .append_pair("page", &current_page.to_string());
+                    {
+                        let mut query = url.query_pairs_mut();
+
+                        // Only add parameters if they are provided
+                        if let Some(pt) = &pkg_type {
+                            query.append_pair("type", &pt.to_string());
+                        }
+
+                        if let Some(n) = &name {
+                            query.append_pair("name", n);
+                        }
+
+                        if let Some(vr) = &version_req {
+                            query.append_pair("version", &vr.to_string());
+                        }
+
+                        // Pagination parameters always included
+                        query.append_pair("pageSize", "100")
+                            .append_pair("page", &current_page.to_string());
+                    } // query is dropped here
 
                     if tman_config.verbose {
+                        let query_info = format!(
+                            "{}{}{}",
+                            pkg_type.as_ref().map_or("".to_string(), |pt| format!("type={} ", pt)),
+                            name.as_ref().map_or("".to_string(), |n| format!("name={} ", n)),
+                            version_req.as_ref().map_or("".to_string(), |vr| format!("version={}", vr))
+                        );
+
                         out.normal_line(&format!(
-                            "Fetching page {} for {}:{}@{}",
+                            "Fetching page {} with query params: {}",
                             current_page,
-                            pkg_type,
-                            name,
-                            version_req
+                            query_info.trim()
                         ));
                     }
 
@@ -693,9 +714,9 @@ pub async fn get_package_list(
                             results.len(),
                             total_size,
                             current_page,
-                            pkg_type,
-                            name,
-                            version_req
+                            pkg_type.as_ref().map_or("".to_string(), |pt| pt.to_string()),
+                            name.as_ref().map_or("".to_string(), |n| n.clone()),
+                            version_req.as_ref().map_or("".to_string(), |vr| vr.to_string())
                         ));
                     }
 
