@@ -12,7 +12,7 @@ use serde::{Deserialize, Serialize};
 use ten_rust::pkg_info::{pkg_type::PkgType, PkgInfo};
 
 use crate::designer::{
-    app::base_dir::get_base_dir_from_pkgs_cache,
+    apps::get_base_dir_from_pkgs_cache,
     common::{
         get_designer_api_cmd_likes_from_pkg,
         get_designer_api_data_likes_from_pkg,
@@ -24,7 +24,7 @@ use crate::designer::{
 };
 
 #[derive(Serialize, Deserialize)]
-pub struct GetAddonsRequestPayload {
+pub struct GetAppAddonsRequestPayload {
     #[serde(skip_serializing_if = "Option::is_none")]
     #[serde(default)]
     pub base_dir: Option<String>,
@@ -39,7 +39,7 @@ pub struct GetAddonsRequestPayload {
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
-struct GetAddonsSingleResponseData {
+struct GetAppAddonsSingleResponseData {
     #[serde(rename = "type")]
     addon_type: String,
 
@@ -54,8 +54,8 @@ struct GetAddonsSingleResponseData {
 
 fn convert_pkg_info_to_addon(
     pkg_info_with_src: &PkgInfo,
-) -> GetAddonsSingleResponseData {
-    GetAddonsSingleResponseData {
+) -> GetAppAddonsSingleResponseData {
+    GetAppAddonsSingleResponseData {
         addon_type: pkg_info_with_src
             .basic_info
             .type_and_name
@@ -127,8 +127,8 @@ fn convert_pkg_info_to_addon(
     }
 }
 
-pub async fn get_addons(
-    request_payload: web::Json<GetAddonsRequestPayload>,
+pub async fn get_app_addons_endpoint(
+    request_payload: web::Json<GetAppAddonsRequestPayload>,
     state: web::Data<Arc<RwLock<DesignerState>>>,
 ) -> Result<impl Responder, actix_web::Error> {
     let state_read = state.read().unwrap();
@@ -148,7 +148,7 @@ pub async fn get_addons(
         }
     };
 
-    let mut all_addons: Vec<GetAddonsSingleResponseData> = state_read
+    let mut all_addons: Vec<GetAppAddonsSingleResponseData> = state_read
         .pkgs_cache
         .get(&base_dir)
         .unwrap()
@@ -247,13 +247,14 @@ mod tests {
         let designer_state = Arc::new(RwLock::new(designer_state));
 
         let app = test::init_service(
-            App::new()
-                .app_data(web::Data::new(designer_state))
-                .route("/api/designer/v1/addons", web::post().to(get_addons)),
+            App::new().app_data(web::Data::new(designer_state)).route(
+                "/api/designer/v1/addons",
+                web::post().to(get_app_addons_endpoint),
+            ),
         )
         .await;
 
-        let request_payload = GetAddonsRequestPayload {
+        let request_payload = GetAppAddonsRequestPayload {
             base_dir: Some(TEST_DIR.to_string()),
             addon_name: None,
             addon_type: None,
@@ -270,11 +271,11 @@ mod tests {
         let body = test::read_body(resp).await;
         let body_str = std::str::from_utf8(&body).unwrap();
 
-        let addons: ApiResponse<Vec<GetAddonsSingleResponseData>> =
+        let addons: ApiResponse<Vec<GetAppAddonsSingleResponseData>> =
             serde_json::from_str(body_str).unwrap();
 
         let expected_addons = vec![
-            GetAddonsSingleResponseData {
+            GetAppAddonsSingleResponseData {
                 addon_type: "extension".to_string(),
                 addon_name: "extension_addon_1".to_string(),
                 url: "".to_string(),
@@ -324,7 +325,7 @@ mod tests {
                     video_frame_out: None,
                 }),
             },
-            GetAddonsSingleResponseData {
+            GetAppAddonsSingleResponseData {
                 addon_type: "extension".to_string(),
                 addon_name: "extension_addon_2".to_string(),
                 url: "".to_string(),
@@ -394,7 +395,7 @@ mod tests {
                     video_frame_out: None,
                 }),
             },
-            GetAddonsSingleResponseData {
+            GetAppAddonsSingleResponseData {
                 addon_type: "extension".to_string(),
                 addon_name: "extension_addon_3".to_string(),
                 url: "".to_string(),
@@ -433,7 +434,7 @@ mod tests {
 
         assert_eq!(addons.data, expected_addons);
 
-        let json: ApiResponse<Vec<GetAddonsSingleResponseData>> =
+        let json: ApiResponse<Vec<GetAppAddonsSingleResponseData>> =
             serde_json::from_str(body_str).unwrap();
         let pretty_json = serde_json::to_string_pretty(&json).unwrap();
 
@@ -482,11 +483,14 @@ mod tests {
         let app = test::init_service(
             App::new()
                 .app_data(web::Data::new(designer_state.clone()))
-                .route("/api/designer/v1/addons", web::post().to(get_addons)),
+                .route(
+                    "/api/designer/v1/addons",
+                    web::post().to(get_app_addons_endpoint),
+                ),
         )
         .await;
 
-        let request_payload = GetAddonsRequestPayload {
+        let request_payload = GetAppAddonsRequestPayload {
             base_dir: Some(TEST_DIR.to_string()),
             addon_name: Some("extension_addon_1".to_string()),
             addon_type: None,
@@ -503,10 +507,10 @@ mod tests {
         let body = test::read_body(resp).await;
         let body_str = std::str::from_utf8(&body).unwrap();
 
-        let addons: ApiResponse<Vec<GetAddonsSingleResponseData>> =
+        let addons: ApiResponse<Vec<GetAppAddonsSingleResponseData>> =
             serde_json::from_str(body_str).unwrap();
 
-        let expected_addons = vec![GetAddonsSingleResponseData {
+        let expected_addons = vec![GetAppAddonsSingleResponseData {
             addon_type: "extension".to_string(),
             addon_name: "extension_addon_1".to_string(),
             url: "".to_string(),
@@ -559,7 +563,7 @@ mod tests {
 
         assert_eq!(addons.data, expected_addons);
 
-        let request_payload = GetAddonsRequestPayload {
+        let request_payload = GetAppAddonsRequestPayload {
             base_dir: Some(TEST_DIR.to_string()),
             addon_name: Some("non_existent_addon".to_string()),
             addon_type: None,
@@ -623,12 +627,15 @@ mod tests {
         let app = test::init_service(
             App::new()
                 .app_data(web::Data::new(designer_state.clone()))
-                .route("/api/designer/v1/addons", web::post().to(get_addons)),
+                .route(
+                    "/api/designer/v1/addons",
+                    web::post().to(get_app_addons_endpoint),
+                ),
         )
         .await;
 
         // Test filtering by addon_type
-        let request_payload = GetAddonsRequestPayload {
+        let request_payload = GetAppAddonsRequestPayload {
             base_dir: Some(TEST_DIR.to_string()),
             addon_name: None,
             addon_type: Some("extension".to_string()),
@@ -645,7 +652,7 @@ mod tests {
         let body = test::read_body(resp).await;
         let body_str = std::str::from_utf8(&body).unwrap();
 
-        let addons: ApiResponse<Vec<GetAddonsSingleResponseData>> =
+        let addons: ApiResponse<Vec<GetAppAddonsSingleResponseData>> =
             serde_json::from_str(body_str).unwrap();
 
         // Verify that all returned addons have the correct type
@@ -654,7 +661,7 @@ mod tests {
         }
 
         // Test filtering by both addon_type and addon_name
-        let request_payload = GetAddonsRequestPayload {
+        let request_payload = GetAppAddonsRequestPayload {
             base_dir: Some(TEST_DIR.to_string()),
             addon_name: Some("extension_addon_1".to_string()),
             addon_type: Some("extension".to_string()),
@@ -671,7 +678,7 @@ mod tests {
         let body = test::read_body(resp).await;
         let body_str = std::str::from_utf8(&body).unwrap();
 
-        let addons: ApiResponse<Vec<GetAddonsSingleResponseData>> =
+        let addons: ApiResponse<Vec<GetAppAddonsSingleResponseData>> =
             serde_json::from_str(body_str).unwrap();
 
         assert_eq!(addons.data[0].addon_type, "extension");

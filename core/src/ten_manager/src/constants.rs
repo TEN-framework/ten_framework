@@ -38,7 +38,7 @@ pub const SCRIPTS: &str = "scripts";
 
 pub const INSTALL_PATHS_APP_PREFIX: &str = "@app";
 
-pub const TEN_PACKAGE_FILE_EXTENSION: &str = "tpkg";
+pub const TEN_PACKAGE_FILE_EXTENSION: &str = ".tpkg";
 
 // Maximum number of retry attempts.
 pub const REMOTE_REGISTRY_MAX_RETRIES: u32 = 30;
@@ -56,3 +56,5 @@ pub const PROCESS_STDERR_MAX_LINE_CNT: usize = 1000;
 pub const DESIGNER_BACKEND_DEFAULT_PORT: &str = "49483";
 
 pub const TEST_DIR: &str = "test_dir";
+
+pub const DEFAULT: &str = "default";

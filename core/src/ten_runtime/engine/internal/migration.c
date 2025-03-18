@@ -19,8 +19,9 @@
 #include "ten_utils/macro/mark.h"
 #include "ten_utils/macro/memory.h"
 
-static ten_engine_migration_user_data_t *ten_engine_migration_user_data_create(
-    ten_connection_t *connection, ten_shared_ptr_t *cmd) {
+static ten_engine_migration_user_data_t *
+ten_engine_migration_user_data_create(ten_connection_t *connection,
+                                      ten_shared_ptr_t *cmd) {
   TEN_ASSERT(connection && cmd, "Invalid argument.");
 
   ten_engine_migration_user_data_t *self =
@@ -33,8 +34,8 @@ static ten_engine_migration_user_data_t *ten_engine_migration_user_data_create(
   return self;
 }
 
-static void ten_engine_migration_user_data_destroy(
-    ten_engine_migration_user_data_t *self) {
+static void
+ten_engine_migration_user_data_destroy(ten_engine_migration_user_data_t *self) {
   TEN_ASSERT(self && self->cmd, "Invalid argument.");
 
   self->connection = NULL;
@@ -100,6 +101,8 @@ static void ten_engine_on_connection_cleaned_task(void *self_, void *arg) {
   ten_engine_on_connection_cleaned(self, connection, cmd);
 
   ten_engine_migration_user_data_destroy(user_data);
+
+  ten_ref_dec_ref(&self->ref);
 }
 
 void ten_engine_on_connection_cleaned_async(ten_engine_t *self,
@@ -117,10 +120,17 @@ void ten_engine_on_connection_cleaned_async(ten_engine_t *self,
   ten_engine_migration_user_data_t *user_data =
       ten_engine_migration_user_data_create(connection, cmd);
 
+  ten_ref_inc_ref(&self->ref);
+
   int rc = ten_runloop_post_task_tail(ten_engine_get_attached_runloop(self),
                                       ten_engine_on_connection_cleaned_task,
                                       self, user_data);
-  TEN_ASSERT(!rc, "Should not happen.");
+  if (rc) {
+    TEN_LOGW("Failed to post task to engine's runloop: %d", rc);
+    ten_ref_dec_ref(&self->ref);
+
+    TEN_ASSERT(0, "Should not happen.");
+  }
 }
 
 void ten_engine_on_connection_closed(ten_connection_t *connection,

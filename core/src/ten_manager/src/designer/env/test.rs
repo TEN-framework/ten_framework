@@ -24,7 +24,7 @@ async fn test_get_env_success() {
     let app = test::init_service(
         App::new().app_data(web::Data::new(state)).service(
             web::scope("/api/designer/v1")
-                .route("/env", web::get().to(get_env)),
+                .route("/env", web::get().to(get_env_endpoint)),
         ),
     )
     .await;
@@ -62,7 +62,7 @@ async fn test_get_env_error() {
     let app = test::init_service(
         App::new().app_data(web::Data::new(state)).service(
             web::scope("/api/designer/v1")
-                .route("/env", web::get().to(get_env)),
+                .route("/env", web::get().to(get_env_endpoint)),
         ),
     )
     .await;

@@ -13,7 +13,11 @@
 #include "ten_runtime/binding/cpp/detail/ten_env.h"
 #include "ten_runtime/binding/cpp/ten.h"
 
+namespace {
+
 bool started = false;
+
+}  // namespace
 
 class test_extension : public ten::extension_t {
  public:

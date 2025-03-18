@@ -48,12 +48,22 @@ bool ten_connection_check_integrity(ten_connection_t *self, bool check_thread) {
   return true;
 }
 
+/**
+ * @brief Checks if a connection can be closed.
+ *
+ * This function determines whether a connection is in a state where it can be
+ * safely closed. A connection can be closed if it has no associated protocol or
+ * if its protocol is already in a closed state.
+ *
+ * @param self The connection to check.
+ * @return true if the connection can be closed, false otherwise.
+ */
 static bool ten_connection_could_be_close(ten_connection_t *self) {
   TEN_ASSERT(self, "Invalid argument.");
   TEN_ASSERT(ten_connection_check_integrity(self, true),
              "Invalid use of connection %p.", self);
 
-  if (!self->protocol || self->protocol->is_closed) {
+  if (!self->protocol || self->protocol->state == TEN_PROTOCOL_STATE_CLOSED) {
     // If there is no protocol, or the protocol has already been closed, then
     // this 'connection' could be closed, too.
     return true;
@@ -62,11 +72,28 @@ static bool ten_connection_could_be_close(ten_connection_t *self) {
   return false;
 }
 
+/**
+ * @brief Destroys a connection instance and frees all associated resources.
+ *
+ * This function should only be called after the connection has been properly
+ * closed (state == TEN_CONNECTION_STATE_CLOSED). It releases all resources
+ * associated with the connection, including its URI string, protocol reference,
+ * and event objects.
+ *
+ * Note: This function does not perform thread safety checks as it's typically
+ * called during cleanup when the owning thread may have already terminated.
+ *
+ * @param self Pointer to the connection instance to be destroyed.
+ */
 void ten_connection_destroy(ten_connection_t *self) {
-  // TEN_NOLINTNEXTLINE(thread-check)
-  // thread-check: The belonging thread of the 'connection' is ended when this
-  // function is called, so we can not check thread integrity here.
-  TEN_ASSERT(self && ten_connection_check_integrity(self, false),
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_connection_check_integrity(
+                 self,
+                 // TEN_NOLINTNEXTLINE(thread-check)
+                 // thread-check: The belonging thread of the 'connection' is
+                 // ended when this function is called, so we can not check
+                 // thread integrity here.
+                 false),
              "Should not happen.");
   TEN_ASSERT(self->state == TEN_CONNECTION_STATE_CLOSED,
              "Connection should be closed completely before been destroyed.");
@@ -85,40 +112,80 @@ void ten_connection_destroy(ten_connection_t *self) {
   TEN_FREE(self);
 }
 
+/**
+ * @brief Performs the actual closing operations for a connection.
+ *
+ * This function is called when all resources associated with the connection
+ * have been properly released and the connection is ready to be fully closed.
+ * It changes the connection state to CLOSED and invokes the registered
+ * `on_closed` callback to notify the owner of the connection.
+ *
+ * Note: This function should only be called after verifying that the connection
+ * can be safely closed using `ten_connection_could_be_close()`.
+ *
+ * @param self Pointer to the connection to be closed.
+ */
 static void ten_connection_do_close(ten_connection_t *self) {
   TEN_ASSERT(self, "Invalid argument.");
   TEN_ASSERT(ten_connection_check_integrity(self, true),
              "Invalid use of connection %p.", self);
 
-  TEN_ASSERT(self->on_closed,
-             "For now, the 'on_closed' callback could not be NULL, otherwise "
-             "the connection would not be destroyed.");
+  // For now, the 'on_closed' callback could not be NULL, otherwise the
+  // connection would not be destroyed.
+  TEN_ASSERT(self->on_closed, "Should not happen.");
 
-  // Mark the 'connection' has already been closed, so that other modules (ex:
-  // remote) can know this fact.
+  // Mark the connection as CLOSED, which serves as a signal to other modules
+  // (e.g., remote, app) that this connection is no longer active and should not
+  // be used. This state change is critical for proper resource management and
+  // prevents attempts to use a closed connection.
   self->state = TEN_CONNECTION_STATE_CLOSED;
 
-  // Call the registered on_close callback.
+  // Call the registered `on_closed` callback.
   self->on_closed(self, self->on_closed_data);
 }
 
-// 'self->stream' could be NULL, ex: when the connection encounters some
-// errors before being established.
+/**
+ * @brief Handles the closing process of a connection.
+ *
+ * This function is called when resources associated with the connection (such
+ * as the protocol) have been closed. It checks if all resources are properly
+ * released using `ten_connection_could_be_close()`. If the connection can be
+ * closed, it proceeds with `ten_connection_do_close()`.
+ *
+ * Note: This function is part of the bottom-up notification process in
+ * the connection closing sequence, similar to the protocol closing process.
+ *
+ * @param self Pointer to the connection to be closed.
+ */
 static void ten_connection_on_close(ten_connection_t *self) {
   TEN_ASSERT(self, "Invalid argument.");
   TEN_ASSERT(ten_connection_check_integrity(self, true),
              "Invalid use of connection %p.", self);
 
   if (ten_connection_could_be_close(self) == false) {
-    TEN_LOGD("Failed to close alive connection.");
+    TEN_LOGD("[%s] Could not close alive connection.",
+             ten_string_get_raw_str(&self->uri));
     return;
   }
-  TEN_LOGD("Close connection.");
+
+  TEN_LOGD("[%s] Connection can be closed now.",
+           ten_string_get_raw_str(&self->uri));
 
   ten_connection_do_close(self);
 }
 
-// This function doesn't do anything, just initiate the closing flow.
+/**
+ * @brief Closes a connection.
+ *
+ * This function initiates the closing process for a connection. If the
+ * connection is already in the process of closing, the function will return
+ * without taking any action. Otherwise, it marks the connection as closing and
+ * proceeds to close the underlying protocol if it exists and is not already
+ * closed. If the protocol is already closed, it proceeds directly to close the
+ * connection.
+ *
+ * @param self Pointer to the connection to be closed.
+ */
 void ten_connection_close(ten_connection_t *self) {
   TEN_ASSERT(self, "Invalid argument.");
   TEN_ASSERT(ten_connection_check_integrity(self, true),
@@ -134,7 +201,7 @@ void ten_connection_close(ten_connection_t *self) {
   self->state = TEN_CONNECTION_STATE_CLOSING;
 
   ten_protocol_t *protocol = self->protocol;
-  if (protocol && !protocol->is_closed) {
+  if (protocol && protocol->state != TEN_PROTOCOL_STATE_CLOSED) {
     // The protocol still exists, close it first.
     ten_protocol_close(protocol);
   } else {
@@ -143,6 +210,22 @@ void ten_connection_close(ten_connection_t *self) {
   }
 }
 
+/**
+ * @brief Callback function invoked when a protocol is closed.
+ *
+ * This function is registered as the callback for protocol closure events.
+ * When a protocol closes, this function is called to handle the connection's
+ * response to that event. Depending on the connection's current state:
+ * - If the connection is already in CLOSING state, it continues the connection
+ *   closure process (bottom-up notification chain).
+ * - If the connection is in any other state, it initiates the connection
+ *   closure process since the underlying protocol has closed unexpectedly.
+ *
+ * @param protocol The protocol that has been closed (unused but kept for
+ * callback signature).
+ * @param on_closed_data User data passed during callback registration, which is
+ * the connection object.
+ */
 void ten_connection_on_protocol_closed(TEN_UNUSED ten_protocol_t *protocol,
                                        void *on_closed_data) {
   ten_connection_t *self = (ten_connection_t *)on_closed_data;
@@ -152,12 +235,18 @@ void ten_connection_on_protocol_closed(TEN_UNUSED ten_protocol_t *protocol,
   TEN_ASSERT(self->state < TEN_CONNECTION_STATE_CLOSED, "Should not happen.");
 
   if (self->state == TEN_CONNECTION_STATE_CLOSING) {
-    // The connection is closing, which means that the closure of the connection
-    // is triggered by TEN runtime, e.g.: the closure of app => engine => remote
-    // => connection => protocol. So when the protocol has closed, we continue
-    // to close the related connection.
+    // The connection is already in CLOSING state, which means the closure was
+    // initiated by the TEN runtime (top-down closure chain), e.g.:
+    // app => engine => remote => connection => protocol.
+    // Now that the protocol has closed (bottom-up notification), we can
+    // continue with closing this connection and notify our parent in the chain.
     ten_connection_on_close(self);
   } else {
+    // The connection is in any other state, which means the closure was
+    // initiated by the protocol (bottom-up notification), e.g.:
+    // app => engine => remote => connection => protocol.
+    // Now that the protocol has closed unexpectedly, we need to close the
+    // connection directly.
     ten_connection_close(self);
   }
 }
@@ -491,7 +580,7 @@ void ten_connection_reply_result_for_duplicate_connection(
 
   ten_shared_ptr_t *ret_cmd =
       ten_cmd_result_create_from_cmd(TEN_STATUS_CODE_OK, cmd_start_graph);
-  ten_msg_set_property(ret_cmd, "detail",
+  ten_msg_set_property(ret_cmd, TEN_STR_DETAIL,
                        ten_value_create_string(TEN_STR_DUPLICATE), NULL);
   ten_msg_clear_and_set_dest_from_msg_src(ret_cmd, cmd_start_graph);
   ten_connection_send_msg(self, ret_cmd);

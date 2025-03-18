@@ -55,56 +55,115 @@ static void ten_app_proceed_to_close(ten_app_t *self) {
   ten_app_on_deinit(self);
 }
 
+/**
+ * @brief Initiates the synchronous closing process for all app resources.
+ *
+ * This function implements the top-down closure chain by closing all resources
+ * owned by the app.
+ *
+ * Each of these resources will begin their own closing process, which will
+ * eventually trigger callbacks that notify the app when they're fully closed.
+ * This creates a bottom-up notification chain that eventually allows the app
+ * to complete its own closure when all resources are properly released.
+ *
+ * Note: Despite the "sync" in the name, this function only initiates the
+ * closing process and returns immediately. The actual closing happens
+ * asynchronously through the closure chain.
+ *
+ * @param self Pointer to the app instance to close.
+ */
 static void ten_app_close_sync(ten_app_t *self) {
-  TEN_ASSERT(self && ten_app_check_integrity(self, true), "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_app_check_integrity(self, true), "Should not happen.");
 
   TEN_LOGD("[%s] Try to close app.", ten_app_get_uri(self));
 
+  // Close all engines attached to this app.
   ten_list_foreach(&self->engines, iter) {
     ten_engine_close_async(ten_ptr_listnode_get(iter.node));
   }
 
+  // Close any orphaned connections (not attached to engines).
   ten_list_foreach(&self->orphan_connections, iter) {
     ten_connection_close(ten_ptr_listnode_get(iter.node));
   }
 
+  // Close the endpoint protocol if it exists.
   if (self->endpoint_protocol) {
     ten_protocol_close(self->endpoint_protocol);
   }
 }
 
+/**
+ * @brief Task function that handles the actual app closing process.
+ *
+ * This function is scheduled to run in the app's thread by `ten_app_close()`.
+ * It implements the app closing logic.
+ *
+ * @param app_ Pointer to the app instance (passed as void* for task API)
+ * @param arg Unused argument (required by task API signature)
+ */
 static void ten_app_close_task(void *app_, TEN_UNUSED void *arg) {
   ten_app_t *app = (ten_app_t *)app_;
-  TEN_ASSERT(app_ && ten_app_check_integrity(app_, true), "Should not happen.");
+  TEN_ASSERT(app_, "Should not happen.");
+  TEN_ASSERT(ten_app_check_integrity(app_, true), "Should not happen.");
 
-  // The app might be closed due to the problems during creation, ex: some
-  // property is invalid. And all resources have not been created yet.
+  // Check if the app can be closed immediately (no active resources or
+  // resources already in closed state). This can happen if the app failed
+  // during creation (e.g., due to invalid properties) and not all resources
+  // were created.
   if (ten_app_could_be_close(app)) {
+    TEN_LOGD("[%s] App could be closed now.", ten_app_get_uri(app));
     ten_app_proceed_to_close(app);
     return;
   }
 
+  // App has active resources that need to be closed first. This initiates the
+  // top-down closing sequence for all app resources.
   ten_app_close_sync(app);
 }
 
+/**
+ * @brief Initiates the asynchronous closing process for an application.
+ *
+ * The actual closing process happens asynchronously in the app's thread.
+ * This function can be safely called from any thread as it uses mutex
+ * protection.
+ *
+ * If the app is already in the process of closing (state >=
+ * TEN_APP_STATE_CLOSING), this function will return without taking any
+ * additional action.
+ *
+ * @param self Pointer to the application instance to close.
+ * @param err Error parameter (currently unused, reserved for future use).
+ * @return true if the close request was successfully initiated or if the app
+ *         was already closing, false otherwise (though currently always returns
+ *         true).
+ */
 bool ten_app_close(ten_app_t *self, TEN_UNUSED ten_error_t *err) {
-  // TEN_NOLINTNEXTLINE(thread-check)
-  // thread-check: this function is used to be called in threads other than the
-  // app thread, so the whole function is protected by a lock.
-  TEN_ASSERT(self && ten_app_check_integrity(self, false),
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_app_check_integrity(
+                 self,
+                 // TEN_NOLINTNEXTLINE(thread-check)
+                 // thread-check: this function is designed to be called from
+                 // any thread (not just the app thread), so the whole function
+                 // is protected by a lock.
+                 false),
              "Should not happen.");
 
   ten_mutex_lock(self->state_lock);
 
   if (self->state >= TEN_APP_STATE_CLOSING) {
-    TEN_LOGD("[%s] App has been signaled to close.", ten_app_get_uri(self));
+    TEN_LOGD("[%s] App is closing, do not close again.", ten_app_get_uri(self));
     goto done;
   }
 
   TEN_LOGD("[%s] Try to close app.", ten_app_get_uri(self));
 
+  // Mark the app as closing before scheduling the actual close task.
   self->state = TEN_APP_STATE_CLOSING;
 
+  // Schedule the close task to run in the app's thread.
   int rc = ten_runloop_post_task_tail(ten_app_get_attached_runloop(self),
                                       ten_app_close_task, self, NULL);
   TEN_ASSERT(!rc, "Should not happen.");
@@ -162,9 +221,11 @@ void ten_app_check_termination_when_engine_closed(ten_app_t *self,
 
   ten_app_del_engine(self, engine);
 
-  // In the case of the engine has its own thread, the engine thread has already
-  // been reclaimed now, so it's safe to destroy the engine object here.
-  ten_engine_destroy(engine);
+  // At this point, if the engine had its own thread, that thread has already
+  // been reclaimed (joined). For engines without their own thread, they share
+  // the app's thread. In either case, it's now safe to destroy the engine
+  // object by decrementing its reference count.
+  ten_ref_dec_ref(&engine->ref);
 
   if (self->long_running_mode) {
     TEN_LOGD("[%s] Don't close App due to it's in long running mode.",

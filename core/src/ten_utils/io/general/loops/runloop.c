@@ -577,13 +577,18 @@ static int ten_runloop_post_task_at(ten_runloop_t *loop,
   ten_runloop_task_t *task = NULL;
   int needs_notify = 0;
 
+  int result = 0;
+
   if (!loop || !task_cb) {
+    TEN_ASSERT(0, "Invalid argument.");
+    result = -1;
     goto error;
   }
 
   task = (ten_runloop_task_t *)TEN_MALLOC(sizeof(ten_runloop_task_t));
-  TEN_ASSERT(task, "Failed to allocate memory.");
   if (!task) {
+    TEN_ASSERT(0, "Failed to allocate memory.");
+    result = -1;
     goto error;
   }
 
@@ -598,6 +603,7 @@ static int ten_runloop_post_task_at(ten_runloop_t *loop,
   if (impl->destroying) {
     // The runloop has started to close, so we do _not_ add any more new tasks
     // into it.
+    result = -2;
     goto leave_and_error;
   }
 
@@ -620,7 +626,12 @@ static int ten_runloop_post_task_at(ten_runloop_t *loop,
     ten_runloop_async_notify(impl->task_available_signal);
   }
 
-  return 0;
+#if defined(_DEBUG)
+  // Add some random delays in debug mode to test different timings.
+  ten_random_sleep_range_ms(0, 20);
+#endif
+
+  return result;
 
 leave_and_error:
   rc = ten_mutex_unlock(impl->lock);
@@ -631,7 +642,7 @@ error:
     TEN_FREE(task);
   }
 
-  return -1;
+  return result;
 }
 
 int ten_runloop_post_task_front(ten_runloop_t *loop,

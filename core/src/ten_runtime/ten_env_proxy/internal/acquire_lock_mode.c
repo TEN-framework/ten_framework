@@ -102,11 +102,18 @@ bool ten_env_proxy_acquire_lock_mode(ten_env_proxy_t *self, ten_error_t *err) {
         extension_thread->runloop,
         ten_extension_thread_process_acquire_lock_mode_task, extension_thread,
         suspend_result);
-    TEN_ASSERT(!rc, "Should not happen.");
+    if (rc) {
+      TEN_LOGW("Failed to post task to extension thread's runloop: %d", rc);
+      TEN_ASSERT(0, "Should not happen.");
+    }
 
     // Wait for the extension thread to be suspended successfully.
     rc = ten_event_wait(suspend_result->completed, -1);
-    TEN_ASSERT(!rc, "Should not happen.");
+    if (rc) {
+      TEN_LOGW("Failed to wait for the extension thread to be suspended: %d",
+               rc);
+      TEN_ASSERT(0, "Should not happen.");
+    }
 
     ten_event_destroy(suspend_result->completed);
 
@@ -116,7 +123,10 @@ bool ten_env_proxy_acquire_lock_mode(ten_env_proxy_t *self, ten_error_t *err) {
       result = false;
 
       rc = ten_mutex_unlock(extension_thread->lock_mode_lock);
-      TEN_ASSERT(!rc, "Should not happen.");
+      if (rc) {
+        TEN_LOGW("Failed to unlock the lock mode lock: %d", rc);
+        TEN_ASSERT(0, "Should not happen.");
+      }
     }
 
     TEN_ASSERT(extension_thread->in_lock_mode, "Should not happen.");

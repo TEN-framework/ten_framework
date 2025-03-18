@@ -4,6 +4,10 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
+pub mod addons;
+pub mod reload;
+pub mod unload;
+
 use std::{
     collections::HashMap,
     path::Path,
@@ -25,32 +29,22 @@ use crate::{
 };
 
 #[derive(Deserialize, Serialize, Debug)]
-pub struct AddBaseDirRequestPayload {
+pub struct LoadAppRequestPayload {
     pub base_dir: String,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct AddBaseDirResponseData {
-    pub success: bool,
-}
-
-#[derive(Deserialize, Serialize, Debug)]
-pub struct DeleteBaseDirRequestPayload {
-    pub base_dir: String,
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-pub struct DeleteBaseDirResponseData {
+pub struct LoadAppResponseData {
     pub success: bool,
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
-pub struct GetBaseDirResponseData {
+pub struct GetAppsResponseData {
     pub base_dirs: Option<Vec<String>>,
 }
 
-pub async fn add_base_dir(
-    request_payload: web::Json<AddBaseDirRequestPayload>,
+pub async fn load_app_endpoint(
+    request_payload: web::Json<LoadAppRequestPayload>,
     state: web::Data<Arc<RwLock<DesignerState>>>,
 ) -> Result<impl Responder, actix_web::Error> {
     let mut state = state.write().unwrap();
@@ -101,34 +95,18 @@ pub async fn add_base_dir(
     }
 }
 
-pub async fn get_base_dir(
+pub async fn get_apps_endpoint(
     state: web::Data<Arc<RwLock<DesignerState>>>,
 ) -> Result<impl Responder, actix_web::Error> {
     let state = state.read().unwrap();
     let response = ApiResponse {
         status: Status::Ok,
-        data: GetBaseDirResponseData {
+        data: GetAppsResponseData {
             base_dirs: (!state.pkgs_cache.is_empty())
                 .then(|| state.pkgs_cache.keys().cloned().collect()),
         },
         meta: None,
     };
-    Ok(HttpResponse::Ok().json(response))
-}
-
-pub async fn delete_base_dir(
-    request_payload: web::Json<DeleteBaseDirRequestPayload>,
-    state: web::Data<Arc<RwLock<DesignerState>>>,
-) -> Result<impl Responder, actix_web::Error> {
-    let mut state = state.write().unwrap();
-    state.pkgs_cache.remove(&request_payload.base_dir);
-
-    let response = ApiResponse {
-        status: Status::Ok,
-        data: serde_json::json!({ "success": true }),
-        meta: None,
-    };
-
     Ok(HttpResponse::Ok().json(response))
 }
 
@@ -169,7 +147,7 @@ mod tests {
     };
 
     #[actix_web::test]
-    async fn test_add_base_dir_fail() {
+    async fn test_load_app_fail() {
         let designer_state = DesignerState {
             tman_config: Arc::new(TmanConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
@@ -181,22 +159,22 @@ mod tests {
             App::new()
                 .app_data(web::Data::new(designer_state.clone()))
                 .route(
-                    "/api/designer/v1/app/base-dir",
-                    web::post().to(add_base_dir),
+                    "/api/designer/v1/apps",
+                    web::post().to(load_app_endpoint),
                 ),
         )
         .await;
 
-        let new_base_dir = AddBaseDirRequestPayload {
+        let new_base_dir = LoadAppRequestPayload {
             base_dir: "/not/a/correct/app/folder/path".to_string(),
         };
 
         let req = test::TestRequest::post()
-            .uri("/api/designer/v1/app/base-dir")
+            .uri("/api/designer/v1/apps")
             .set_json(&new_base_dir)
             .to_request();
         let resp: Result<
-            ApiResponse<AddBaseDirResponseData>,
+            ApiResponse<LoadAppResponseData>,
             std::boxed::Box<dyn std::error::Error>,
         > = test::try_call_and_read_body_json(&app, req).await;
 
@@ -204,7 +182,7 @@ mod tests {
     }
 
     #[actix_web::test]
-    async fn test_get_base_dir_some() {
+    async fn test_get_apps_some() {
         let designer_state = DesignerState {
             tman_config: Arc::new(TmanConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
@@ -217,8 +195,8 @@ mod tests {
             App::new()
                 .app_data(web::Data::new(designer_state.clone()))
                 .route(
-                    "/api/designer/v1/app/base-dir",
-                    web::get().to(get_base_dir),
+                    "/api/designer/v1/apps",
+                    web::get().to(get_apps_endpoint),
                 ),
         )
         .await;
@@ -230,23 +208,23 @@ mod tests {
             .insert(TEST_DIR.to_string(), vec![]);
 
         let req = test::TestRequest::get()
-            .uri("/api/designer/v1/app/base-dir")
+            .uri("/api/designer/v1/apps")
             .to_request();
 
-        let resp: ApiResponse<GetBaseDirResponseData> =
+        let resp: ApiResponse<GetAppsResponseData> =
             test::call_and_read_body_json(&app, req).await;
 
         assert_eq!(resp.status, Status::Ok);
         assert_eq!(
             resp.data,
-            GetBaseDirResponseData {
+            GetAppsResponseData {
                 base_dirs: Some(vec![TEST_DIR.to_string()])
             }
         );
     }
 
     #[actix_web::test]
-    async fn test_get_base_dir_none() {
+    async fn test_get_apps_none() {
         let designer_state = DesignerState {
             tman_config: Arc::new(TmanConfig::default()),
             out: Arc::new(Box::new(TmanOutputCli)),
@@ -258,20 +236,20 @@ mod tests {
             App::new()
                 .app_data(web::Data::new(designer_state.clone()))
                 .route(
-                    "/api/designer/v1/app/base-dir",
-                    web::get().to(get_base_dir),
+                    "/api/designer/v1/apps",
+                    web::get().to(get_apps_endpoint),
                 ),
         )
         .await;
 
         let req = test::TestRequest::get()
-            .uri("/api/designer/v1/app/base-dir")
+            .uri("/api/designer/v1/apps")
             .to_request();
 
-        let resp: ApiResponse<GetBaseDirResponseData> =
+        let resp: ApiResponse<GetAppsResponseData> =
             test::call_and_read_body_json(&app, req).await;
 
         assert_eq!(resp.status, Status::Ok);
-        assert_eq!(resp.data, GetBaseDirResponseData { base_dirs: None });
+        assert_eq!(resp.data, GetAppsResponseData { base_dirs: None });
     }
 }

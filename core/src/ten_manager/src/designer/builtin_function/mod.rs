@@ -28,7 +28,10 @@ pub enum BuiltinFunctionOutput {
     NormalPartial(String),
     ErrorLine(String),
     ErrorPartial(String),
-    Exit(i32),
+    Exit {
+        exit_code: i32,
+        error_message: Option<String>,
+    },
 }
 
 enum BuiltinFunction {
@@ -116,9 +119,15 @@ impl Handler<BuiltinFunctionOutput> for WsBuiltinFunction {
                 // Sends a text message to the WebSocket client.
                 ctx.text(out_str);
             }
-            BuiltinFunctionOutput::Exit(code) => {
+            BuiltinFunctionOutput::Exit {
+                exit_code,
+                error_message,
+            } => {
                 // Send it to the client.
-                let msg_out = OutboundMsg::Exit { code };
+                let msg_out = OutboundMsg::Exit {
+                    code: exit_code,
+                    error_message,
+                };
                 let out_str = serde_json::to_string(&msg_out).unwrap();
 
                 // Sends a text message to the WebSocket client.
@@ -183,7 +192,7 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>>
     }
 }
 
-pub async fn builtin_function(
+pub async fn builtin_function_endpoint(
     req: HttpRequest,
     stream: web::Payload,
     state: web::Data<Arc<RwLock<DesignerState>>>,
@@ -234,7 +243,9 @@ mod tests {
 
     use crate::{
         config::TmanConfig,
-        designer::{builtin_function::builtin_function, DesignerState},
+        designer::{
+            builtin_function::builtin_function_endpoint, DesignerState,
+        },
         output::TmanOutputCli,
     };
 
@@ -250,9 +261,10 @@ mod tests {
 
         // Initialize the test service with the WebSocket endpoint.
         let app = test::init_service(
-            App::new()
-                .app_data(web::Data::new(designer_state))
-                .route("/ws/builtin-function", web::get().to(builtin_function)),
+            App::new().app_data(web::Data::new(designer_state)).route(
+                "/ws/builtin-function",
+                web::get().to(builtin_function_endpoint),
+            ),
         )
         .await;
 
@@ -291,9 +303,10 @@ mod tests {
 
         // Initialize the test service with the WebSocket endpoint.
         let app = test::init_service(
-            App::new()
-                .app_data(web::Data::new(designer_state))
-                .route("/ws/builtin-function", web::get().to(builtin_function)),
+            App::new().app_data(web::Data::new(designer_state)).route(
+                "/ws/builtin-function",
+                web::get().to(builtin_function_endpoint),
+            ),
         )
         .await;
 

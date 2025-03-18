@@ -60,8 +60,7 @@ static void ten_engine_handle_msg(ten_engine_t *self, ten_shared_ptr_t *msg) {
              "Invalid argument.");
   TEN_ASSERT(msg && ten_msg_check_integrity(msg), "Should not happen.");
 
-  if (ten_engine_is_closing(self) &&
-      !ten_msg_type_to_handle_when_closing(msg)) {
+  if (self->is_closing && !ten_msg_type_to_handle_when_closing(msg)) {
     // Except some special commands, do not handle messages anymore if the
     // engine is closing.
     return;
@@ -195,39 +194,103 @@ static void ten_engine_handle_in_msgs_sync(ten_engine_t *self) {
   ten_engine_prepend_to_in_msgs_queue(self, &put_back_msgs);
 }
 
+/**
+ * @brief Task handler for processing incoming messages in the engine's thread.
+ *
+ * This function is executed in the engine's thread context when posted to the
+ * engine's runloop by `ten_engine_handle_in_msgs_async()`. It processes all
+ * pending incoming messages by calling `ten_engine_handle_in_msgs_sync()` and
+ * then decreases the engine's reference count that was increased before
+ * posting this task.
+ *
+ * @param engine_ Pointer to the engine instance.
+ * @param arg Unused argument.
+ *
+ * @note Thread-safety: This function must only be executed in the engine's
+ * thread. It is not meant to be called directly but rather posted as a task to
+ * the engine's runloop.
+ */
 static void ten_engine_handle_in_msgs_task(void *engine_,
                                            TEN_UNUSED void *arg) {
   ten_engine_t *engine = (ten_engine_t *)engine_;
-  TEN_ASSERT(engine && ten_engine_check_integrity(engine, true),
-             "Should not happen.");
+  TEN_ASSERT(engine, "Invalid engine pointer");
+  TEN_ASSERT(ten_engine_check_integrity(engine, true),
+             "Engine integrity check failed or wrong thread access");
 
   ten_engine_handle_in_msgs_sync(engine);
+
+  // Decrease reference count that was increased in
+  // `ten_engine_handle_in_msgs_async`.
+  ten_ref_dec_ref(&engine->ref);
 }
 
+/**
+ * @brief Asynchronously handles incoming messages for the engine.
+ *
+ * This function posts a task to the engine's runloop to process incoming
+ * messages. It is designed to be called from any thread, not just the engine's
+ * thread. The function increases the reference count of the engine before
+ * posting the task and the corresponding task handler
+ * (ten_engine_handle_in_msgs_task) will decrease the reference count after
+ * processing the messages.
+ *
+ * @param self Pointer to the engine instance.
+ *
+ * @note Thread-safety: This function is thread-safe and can be called from any
+ * thread. The engine's reference count is properly managed to ensure the engine
+ * isn't destroyed while the task is pending.
+ */
 void ten_engine_handle_in_msgs_async(ten_engine_t *self) {
-  TEN_ASSERT(self &&
-                 // TEN_NOLINTNEXTLINE(thread-check)
-                 // thread-check: This function is intended to be called in
-                 // different threads.
-                 ten_engine_check_integrity(self, false),
-             "Should not happen.");
+  TEN_ASSERT(self, "Invalid engine pointer");
+  // TEN_NOLINTNEXTLINE(thread-check)
+  // thread-check: This function is intended to be called from different
+  // threads.
+  TEN_ASSERT(ten_engine_check_integrity(self, false),
+             "Invalid engine integrity");
+
+  // Increase reference count to prevent the engine from being destroyed
+  // while the task is pending in the runloop.
+  ten_ref_inc_ref(&self->ref);
 
   int rc =
       ten_runloop_post_task_tail(ten_engine_get_attached_runloop(self),
                                  ten_engine_handle_in_msgs_task, self, NULL);
-  TEN_ASSERT(!rc, "Should not happen.");
+  if (rc) {
+    TEN_LOGW("Failed to post task to engine's runloop: %d", rc);
+
+    // Decrease reference count if posting the task failed.
+    ten_ref_dec_ref(&self->ref);
+  }
 }
 
+/**
+ * @brief Appends a message to the engine's incoming message queue and triggers
+ * asynchronous processing.
+ *
+ * This function safely adds a message to the engine's incoming message queue
+ * and schedules it for processing. It is designed to be called from any thread,
+ * not just the engine's thread, making it suitable for cross-thread
+ * communication with the engine.
+ *
+ * @param self Pointer to the engine instance.
+ * @param msg Pointer to the shared message to be appended to the queue.
+ *            The message's ownership is transferred to the queue.
+ *
+ * @note Thread-safety: This function is thread-safe and can be called from any
+ * thread. The engine's incoming message queue is protected by a mutex to ensure
+ * thread-safe access.
+ */
 void ten_engine_append_to_in_msgs_queue(ten_engine_t *self,
                                         ten_shared_ptr_t *msg) {
   TEN_ASSERT(self, "Invalid argument.");
   // TEN_NOLINTNEXTLINE(thread-check)
-  // thread-check: This function is used to be called from threads other than
-  // the engine thread.
+  // thread-check: This function is intended to be called from threads other
+  // than the engine thread.
   TEN_ASSERT(ten_engine_check_integrity(self, false),
              "Invalid use of engine %p.", self);
 
-  TEN_ASSERT(msg && ten_msg_check_integrity(msg), "Should not happen.");
+  TEN_ASSERT(msg, "Invalid message pointer");
+  TEN_ASSERT(ten_msg_check_integrity(msg), "Invalid message integrity.");
 
   ten_mutex_lock(self->in_msgs_lock);
   ten_list_push_smart_ptr_back(&self->in_msgs, msg);
@@ -282,6 +345,8 @@ static void ten_engine_post_msg_to_extension_thread(
   // into it will not succeed. It is necessary to account for this scenario to
   // prevent memory leaks.
   if (rc) {
+    TEN_LOGW("Failed to post task to extension thread's runloop: %d", rc);
+
     if (ten_msg_is_cmd(msg)) {
       // Create a cmd result to inform the sender that the destination extension
       // has been terminated.
@@ -412,8 +477,8 @@ void ten_engine_create_cmd_result_and_dispatch(ten_engine_t *self,
   TEN_ASSERT(rc, "Should not happen.");
 
   if (detail) {
-    ten_msg_set_property(cmd_result, "detail", ten_value_create_string(detail),
-                         NULL);
+    ten_msg_set_property(cmd_result, TEN_STR_DETAIL,
+                         ten_value_create_string(detail), NULL);
   }
 
   ten_engine_dispatch_msg(self, cmd_result);

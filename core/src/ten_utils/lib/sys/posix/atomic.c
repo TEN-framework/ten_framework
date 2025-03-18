@@ -8,11 +8,14 @@
 
 #include <stdbool.h>
 
-// NOTE: This file will be used in the TEN backtrace module, so do _not_ use
-// TEN_ASSERT or any other mechanisms which might involve backtrace dump.
+// IMPORTANT: This file is used in the TEN backtrace module, so it must NOT use
+// TEN_ASSERT or any other mechanisms that might trigger backtrace dumps, as
+// this would create circular dependencies and potential infinite recursion.
 
-// TODO(Wei): Consider to lower the memory ordering constraints parameter from
-// __ATOMIC_SEQ_CST to a lighter mode.
+// TODO(Wei): Consider reducing the memory ordering constraints from
+// __ATOMIC_SEQ_CST (sequential consistency, strongest but most expensive)
+// to a lighter mode like __ATOMIC_ACQUIRE/__ATOMIC_RELEASE where appropriate
+// for better performance.
 
 int64_t ten_atomic_fetch_add(volatile ten_atomic_t *a, int64_t v) {
   return __atomic_fetch_add(a, v, __ATOMIC_SEQ_CST);

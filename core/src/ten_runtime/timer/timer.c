@@ -58,10 +58,11 @@ static void ten_timer_on_close(ten_timer_t *self) {
              "Should not happen.");
 
   if (!ten_timer_could_be_close(self)) {
-    TEN_LOGV("Could not close alive timer.");
+    TEN_LOGD("[%d] Could not close alive timer.", self->id);
     return;
   }
-  TEN_LOGV("Close timer.");
+
+  TEN_LOGD("[%d] Timer can be closed now.", self->id);
 
   ten_timer_do_close(self);
 }
@@ -253,8 +254,9 @@ void ten_timer_destroy(ten_timer_t *self) {
   TEN_FREE(self);
 }
 
-static void ten_runloop_timer_on_triggered(
-    TEN_UNUSED ten_runloop_timer_t *timer, void *arg) {
+static void
+ten_runloop_timer_on_triggered(TEN_UNUSED ten_runloop_timer_t *timer,
+                               void *arg) {
   ten_timer_t *self = arg;
   TEN_ASSERT(self && ten_timer_check_integrity(self, true) &&
                  ten_runloop_check_integrity(self->runloop, true),
@@ -299,7 +301,10 @@ void ten_timer_stop_async(ten_timer_t *self) {
 
   int rc =
       ten_runloop_post_task_tail(self->runloop, ten_timer_stop_, self, NULL);
-  TEN_ASSERT(!rc, "Should not happen.");
+  if (rc) {
+    TEN_LOGW("Failed to post task to timer's runloop: %d", rc);
+    TEN_ASSERT(0, "Should not happen.");
+  }
 }
 
 void ten_timer_set_on_closed(ten_timer_t *self,
@@ -341,7 +346,10 @@ void ten_timer_close_async(ten_timer_t *self) {
 
     int rc =
         ten_runloop_post_task_tail(self->runloop, ten_timer_close_, self, NULL);
-    TEN_ASSERT(!rc, "Should not happen.");
+    if (rc) {
+      TEN_LOGW("Failed to post task to timer's runloop: %d", rc);
+      TEN_ASSERT(0, "Should not happen.");
+    }
   }
 }
 

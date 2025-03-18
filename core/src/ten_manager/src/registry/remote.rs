@@ -385,11 +385,13 @@ pub async fn get_package(
     {
         // If the filename matches, directly copy the cached file to
         // `temp_file`.
-        out.error_line(&format!(
-            "{}  Found the package file ({}) in the package cache, using it directly.",
-            Emoji("🚀", ":-("),
-            cached_file_path.to_string_lossy()
-        ));
+        if tman_config.verbose {
+            out.normal_line(&format!(
+              "{}  Found the package file ({}) in the package cache, using it directly.",
+              Emoji("🚀", ":-)"),
+              cached_file_path.to_string_lossy()
+          ));
+        }
 
         fs::copy(&cached_file_path, temp_file.path()).with_context(|| {
             format!("Failed to copy from cache {}", cached_file_path.display())
@@ -557,12 +559,37 @@ struct RegistryPackagesData {
     packages: Vec<PkgRegistryInfo>,
 }
 
+/// Retrieves a list of packages from a remote registry that match the specified
+/// criteria.
+///
+/// This function queries the remote registry API with pagination to fetch all
+/// packages that match the given package type, name, and version requirement.
+///
+/// # Arguments
+/// * `tman_config` - Configuration containing registry settings and verbose
+///   flag.
+/// * `base_url` - Base URL of the remote registry.
+/// * `pkg_type` - Optional type of package to search for (e.g., app,
+///   extension).
+/// * `name` - Optional name of the package to search for.
+/// * `version_req` - Optional version requirement to filter packages.
+/// * `out` - Output interface for logging.
+///
+/// # Returns
+/// A vector of `PkgRegistryInfo` containing information about matching
+/// packages.
+///
+/// # Errors
+/// * If the HTTP client creation fails.
+/// * If the request to the registry fails.
+/// * If the API response has a non-OK status.
+/// * If parsing the JSON response fails.
 pub async fn get_package_list(
     tman_config: Arc<TmanConfig>,
     base_url: &str,
-    pkg_type: PkgType,
-    name: &str,
-    version_req: &VersionReq,
+    pkg_type: Option<PkgType>,
+    name: Option<String>,
+    version_req: Option<VersionReq>,
     out: Arc<Box<dyn TmanOutput>>,
 ) -> Result<Vec<PkgRegistryInfo>> {
     let max_retries = REMOTE_REGISTRY_MAX_RETRIES;
@@ -581,6 +608,7 @@ pub async fn get_package_list(
 
             let out = out.clone();
             let version_req = version_req.clone();
+            let name = name.clone();
             let tman_config = tman_config.clone();
 
             Box::pin(async move {
@@ -589,14 +617,46 @@ pub async fn get_package_list(
                 let mut total_size;
 
                 loop {
+                    // Build the URL with query parameters for pagination and
+                    // filtering.
                     let mut url = reqwest::Url::parse(base_url)?;
-                    url.query_pairs_mut()
-                        .append_pair("type", &pkg_type.to_string())
-                        .append_pair("name", name)
-                        .append_pair("version", &version_req.to_string())
-                        .append_pair("pageSize", "100")
-                        .append_pair("page", &current_page.to_string());
+                    {
+                        let mut query = url.query_pairs_mut();
 
+                        // Only add parameters if they are provided
+                        if let Some(pt) = &pkg_type {
+                            query.append_pair("type", &pt.to_string());
+                        }
+
+                        if let Some(n) = &name {
+                            query.append_pair("name", n);
+                        }
+
+                        if let Some(vr) = &version_req {
+                            query.append_pair("version", &vr.to_string());
+                        }
+
+                        // Pagination parameters always included
+                        query.append_pair("pageSize", "100")
+                            .append_pair("page", &current_page.to_string());
+                    } // query is dropped here
+
+                    if tman_config.verbose {
+                        let query_info = format!(
+                            "{}{}{}",
+                            pkg_type.as_ref().map_or("".to_string(), |pt| format!("type={} ", pt)),
+                            name.as_ref().map_or("".to_string(), |n| format!("name={} ", n)),
+                            version_req.as_ref().map_or("".to_string(), |vr| format!("version={}", vr))
+                        );
+
+                        out.normal_line(&format!(
+                            "Fetching page {} with query params: {}",
+                            current_page,
+                            query_info.trim()
+                        ));
+                    }
+
+                    // Send the request with timeout.
                     let response = client
                         .get(url)
                         .timeout(Duration::from_secs(
@@ -622,6 +682,7 @@ pub async fn get_package_list(
                         ));
                     }
 
+                    // Parse the response
                     let body = response.text().await?;
                     let api_response =
                         serde_json::from_str::<ApiResponse>(&body);
@@ -642,25 +703,25 @@ pub async fn get_package_list(
                         ));
                     }
 
+                    // Update total size and collect packages.
                     total_size = api_response.data.total_size as usize;
-
-                    for pkg_registry_info in api_response.data.packages {
-                        results.push(pkg_registry_info);
-                    }
+                    let packages_is_empty = api_response.data.packages.is_empty();
+                    results.extend(api_response.data.packages);
 
                     if tman_config.verbose {
                         out.normal_line(&format!(
-                            "Fetched {} packages at page {} for {}:{}@{}",
+                            "Fetched {} packages (total: {}) at page {} for {}:{}@{}",
                             results.len(),
+                            total_size,
                             current_page,
-                            pkg_type,
-                            name,
-                            version_req
+                            pkg_type.as_ref().map_or("".to_string(), |pt| pt.to_string()),
+                            name.as_ref().map_or("".to_string(), |n| n.clone()),
+                            version_req.as_ref().map_or("".to_string(), |vr| vr.to_string())
                         ));
                     }
 
-                    // Check if we've fetched all packages based on totalSize.
-                    if results.len() >= total_size {
+                    // Check if we've fetched all packages based on totalSize
+                    if results.len() >= total_size || packages_is_empty {
                         break;
                     }
 

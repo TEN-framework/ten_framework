@@ -32,21 +32,42 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
 
   // Retry failed tests on CI environments to handle flaky tests.
-  retries: process.env.CI ? 2 : 0,
+  retries: process.env.CI ? 2 : 1,
 
   // Limit parallel test execution on CI to prevent resource contention.
-  workers: process.env.CI ? 1 : undefined,
+  workers: process.env.CI ? 2 : undefined,
+
+  // Set global timeout for tests.
+  // timeout: 60000, // 60 seconds for entire test.
 
   // HTML reporter provides detailed test results with screenshots and traces.
   reporter: "html",
+
+  // Set global timeout for expectations/assertions.
+  expect: {
+    timeout: 10000, // 10 seconds
+  },
 
   // Global settings applied to all test projects.
   use: {
     // Base URL to use in actions like `await page.goto('/')`.
     // baseURL: 'http://127.0.0.1:3000',
 
-    // Trace collection settings - only collect traces on retry to save disk space.
-    trace: "on-first-retry",
+    // Take screenshots on test failures.
+    screenshot: "only-on-failure",
+
+    // Record video for failed tests.
+    // video: "on-first-retry",
+
+    // Trace collection settings - collect traces on failure for better
+    // debugging.
+    trace: {
+      mode: "on-first-retry",
+      snapshots: true,
+      screenshots: true,
+      sources: true,
+      attachments: true,
+    },
   },
 
   // Browser configurations for running tests.

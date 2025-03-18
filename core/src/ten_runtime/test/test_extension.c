@@ -22,8 +22,8 @@
 #include "ten_utils/macro/check.h"
 #include "ten_utils/macro/mark.h"
 
-static ten_extension_tester_t *test_extension_get_extension_tester_ptr(
-    ten_env_t *ten_env) {
+static ten_extension_tester_t *
+test_extension_get_extension_tester_ptr(ten_env_t *ten_env) {
   ten_value_t *test_info_ptr_value =
       ten_env_peek_property(ten_env, "app:tester_ptr", NULL);
   TEN_ASSERT(test_info_ptr_value, "Should not happen.");
@@ -54,8 +54,9 @@ static void test_extension_on_configure(ten_extension_t *self,
   TEN_ASSERT(rc, "Should not happen.");
 }
 
-static void ten_extension_tester_on_test_extension_init_task(
-    void *self_, TEN_UNUSED void *arg) {
+static void
+ten_extension_tester_on_test_extension_init_task(void *self_,
+                                                 TEN_UNUSED void *arg) {
   ten_extension_tester_t *tester = self_;
   TEN_ASSERT(tester && ten_extension_tester_check_integrity(tester, true),
              "Invalid argument.");
@@ -63,8 +64,9 @@ static void ten_extension_tester_on_test_extension_init_task(
   ten_extension_tester_on_test_extension_init(tester);
 }
 
-static void ten_extension_tester_on_test_extension_start_task(
-    void *self_, TEN_UNUSED void *arg) {
+static void
+ten_extension_tester_on_test_extension_start_task(void *self_,
+                                                  TEN_UNUSED void *arg) {
   ten_extension_tester_t *tester = self_;
   TEN_ASSERT(tester && ten_extension_tester_check_integrity(tester, true),
              "Invalid argument.");
@@ -94,7 +96,10 @@ static void test_extension_on_init(ten_extension_t *self, ten_env_t *ten_env) {
   int rc = ten_runloop_post_task_tail(
       tester->tester_runloop, ten_extension_tester_on_test_extension_init_task,
       tester, NULL);
-  TEN_ASSERT(!rc, "Should not happen.");
+  if (rc) {
+    TEN_LOGW("Failed to post task to extension_tester's runloop: %d", rc);
+    TEN_ASSERT(0, "Should not happen.");
+  }
 }
 
 static void test_extension_on_start(ten_extension_t *self, ten_env_t *ten_env) {
@@ -110,7 +115,10 @@ static void test_extension_on_start(ten_extension_t *self, ten_env_t *ten_env) {
   int rc = ten_runloop_post_task_tail(
       tester->tester_runloop, ten_extension_tester_on_test_extension_start_task,
       tester, NULL);
-  TEN_ASSERT(!rc, "Should not happen.");
+  if (rc) {
+    TEN_LOGW("Failed to post task to extension_tester's runloop: %d", rc);
+    TEN_ASSERT(0, "Should not happen.");
+  }
 }
 
 static void test_extension_on_stop(ten_extension_t *self, ten_env_t *ten_env) {
@@ -126,7 +134,10 @@ static void test_extension_on_stop(ten_extension_t *self, ten_env_t *ten_env) {
   int rc = ten_runloop_post_task_tail(
       tester->tester_runloop, ten_extension_tester_on_test_extension_stop_task,
       tester, NULL);
-  TEN_ASSERT(!rc, "Should not happen.");
+  if (rc) {
+    TEN_LOGW("Failed to post task to extension_tester's runloop: %d", rc);
+    TEN_ASSERT(0, "Should not happen.");
+  }
 }
 
 void ten_builtin_test_extension_ten_env_notify_on_init_done(ten_env_t *ten_env,
@@ -193,7 +204,10 @@ static void test_extension_on_cmd(ten_extension_t *self, ten_env_t *ten_env,
   int rc = ten_runloop_post_task_tail(
       tester->tester_runloop, ten_extension_tester_on_test_extension_cmd_task,
       tester, ten_shared_ptr_clone(cmd));
-  TEN_ASSERT(!rc, "Should not happen.");
+  if (rc) {
+    TEN_LOGW("Failed to post task to extension_tester's runloop: %d", rc);
+    TEN_ASSERT(0, "Should not happen.");
+  }
 }
 
 static void ten_extension_tester_on_test_extension_data_task(void *self_,
@@ -224,7 +238,10 @@ static void test_extension_on_data(ten_extension_t *self, ten_env_t *ten_env,
   int rc = ten_runloop_post_task_tail(
       tester->tester_runloop, ten_extension_tester_on_test_extension_data_task,
       tester, ten_shared_ptr_clone(data));
-  TEN_ASSERT(!rc, "Should not happen.");
+  if (rc) {
+    TEN_LOGW("Failed to post task to extension_tester's runloop: %d", rc);
+    TEN_ASSERT(0, "Should not happen.");
+  }
 }
 
 static void ten_extension_tester_on_test_extension_audio_frame_task(void *self_,
@@ -258,7 +275,10 @@ static void test_extension_on_audio_frame(ten_extension_t *self,
       tester->tester_runloop,
       ten_extension_tester_on_test_extension_audio_frame_task, tester,
       ten_shared_ptr_clone(audio_frame));
-  TEN_ASSERT(!rc, "Should not happen.");
+  if (rc) {
+    TEN_LOGW("Failed to post task to extension_tester's runloop: %d", rc);
+    TEN_ASSERT(0, "Should not happen.");
+  }
 }
 
 static void ten_extension_tester_on_test_extension_video_frame_task(void *self_,
@@ -292,11 +312,15 @@ static void test_extension_on_video_frame(ten_extension_t *self,
       tester->tester_runloop,
       ten_extension_tester_on_test_extension_video_frame_task, tester,
       ten_shared_ptr_clone(video_frame));
-  TEN_ASSERT(!rc, "Should not happen.");
+  if (rc) {
+    TEN_LOGW("Failed to post task to extension_tester's runloop: %d", rc);
+    TEN_ASSERT(0, "Should not happen.");
+  }
 }
 
-static void ten_extension_tester_on_test_extension_deinit_task(
-    void *self_, TEN_UNUSED void *arg) {
+static void
+ten_extension_tester_on_test_extension_deinit_task(void *self_,
+                                                   TEN_UNUSED void *arg) {
   ten_extension_tester_t *tester = self_;
   TEN_ASSERT(tester && ten_extension_tester_check_integrity(tester, true),
              "Invalid argument.");
@@ -318,7 +342,11 @@ static void test_extension_on_deinit(ten_extension_t *self,
   int post_status = ten_runloop_post_task_tail(
       tester->tester_runloop,
       ten_extension_tester_on_test_extension_deinit_task, tester, NULL);
-  TEN_ASSERT(!post_status, "Should not happen.");
+  if (post_status) {
+    TEN_LOGW("Failed to post task to extension_tester's runloop: %d",
+             post_status);
+    TEN_ASSERT(0, "Should not happen.");
+  }
 }
 
 static void test_extension_addon_create_instance(ten_addon_t *addon,

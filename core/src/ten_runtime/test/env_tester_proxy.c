@@ -27,8 +27,9 @@ static bool ten_env_tester_proxy_check_integrity(ten_env_tester_proxy_t *self) {
   return true;
 }
 
-ten_env_tester_proxy_t *ten_env_tester_proxy_create(
-    ten_env_tester_t *ten_env_tester, ten_error_t *err) {
+ten_env_tester_proxy_t *
+ten_env_tester_proxy_create(ten_env_tester_t *ten_env_tester,
+                            ten_error_t *err) {
   if (!ten_env_tester) {
     const char *err_msg =
         "Create ten_env_tester_proxy without specifying ten_env_tester.";
@@ -69,9 +70,9 @@ ten_env_tester_proxy_t *ten_env_tester_proxy_create(
 static void ten_env_tester_on_proxy_deleted(void *self_, void *arg) {
   ten_env_tester_t *ten_env_tester = self_;
   ten_env_tester_proxy_t *self = arg;
-  TEN_ASSERT(
-      ten_env_tester && ten_env_tester_check_integrity(ten_env_tester, true),
-      "Should not happen.");
+  TEN_ASSERT(ten_env_tester &&
+                 ten_env_tester_check_integrity(ten_env_tester, true),
+             "Should not happen.");
   TEN_ASSERT(self && ten_env_tester_proxy_check_integrity(self),
              "Should not happen.");
 
@@ -103,7 +104,10 @@ bool ten_env_tester_proxy_release(ten_env_tester_proxy_t *self,
   int rc = ten_runloop_post_task_tail(ten_env_tester->tester->tester_runloop,
                                       ten_env_tester_on_proxy_deleted,
                                       ten_env_tester, self);
-  TEN_ASSERT(!rc, "Should not happen.");
+  if (rc) {
+    TEN_LOGW("Failed to post task to ten_env_tester's runloop: %d", rc);
+    TEN_ASSERT(0, "Should not happen.");
+  }
 
   return true;
 }
@@ -132,6 +136,10 @@ bool ten_env_tester_proxy_notify(ten_env_tester_proxy_t *self,
     int rc = ten_runloop_post_task_tail(tester->tester_runloop,
                                         (ten_runloop_task_func_t)notify_func,
                                         self->ten_env_tester, user_data);
+    if (rc) {
+      TEN_LOGW("Failed to post task to ten_env_tester's runloop: %d", rc);
+    }
+
     result = rc == 0;
   }
 

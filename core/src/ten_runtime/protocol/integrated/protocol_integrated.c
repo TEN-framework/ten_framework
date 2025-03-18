@@ -33,6 +33,7 @@
 #include "ten_utils/lib/mutex.h"
 #include "ten_utils/lib/ref.h"
 #include "ten_utils/lib/smart_ptr.h"
+#include "ten_utils/lib/time.h"
 #include "ten_utils/log/log.h"
 #include "ten_utils/macro/check.h"
 #include "ten_utils/macro/mark.h"
@@ -159,10 +160,16 @@ static void ten_stream_on_data(ten_stream_t *stream, void *data, int size) {
     // the stream. The 'ten_protocol_close_task_()' will the last task related
     // to the connection.
     ten_ref_inc_ref(&base_protocol->ref);
+
     int rc = ten_runloop_post_task_tail(
         ten_connection_get_attached_runloop(connection),
         ten_protocol_close_task, base_protocol, NULL);
-    TEN_ASSERT(!rc, "Should not happen.");
+    if (rc) {
+      TEN_LOGW("Failed to post task to connection's runloop: %d", rc);
+      ten_ref_dec_ref(&base_protocol->ref);
+
+      TEN_ASSERT(0, "Should not happen.");
+    }
   } else if (size > 0) {
     ten_list_t msgs = TEN_LIST_INIT_VAL;
 
@@ -192,7 +199,7 @@ static void ten_protocol_integrated_on_output(ten_protocol_integrated_t *self) {
   TEN_ASSERT(ten_protocol_role_is_communication(&self->base),
              "Should not happen.");
 
-  if (ten_protocol_is_closing(&self->base)) {
+  if (self->base.state == TEN_PROTOCOL_STATE_CLOSING) {
     TEN_LOGD("Protocol is closing, do not actually send msgs.");
     return;
   }
@@ -330,7 +337,7 @@ static void ten_transport_on_client_accepted(ten_transport_t *transport,
   // The `on_client_accepted_data` in transport stores the `on_client_accepted`
   // callback function set by the TEN runtime.
   ten_protocol_on_client_accepted_func_t on_client_accepted =
-      transport->on_client_accepted_data;
+      transport->on_client_accepted_user_data;
   TEN_ASSERT(on_client_accepted, "Should not happen.");
 
   stream->user_data = on_client_accepted;
@@ -390,7 +397,7 @@ static void ten_protocol_integrated_listen(
   // performed within the protocol at the transport/stream layer first, before
   // switching to the TEN runtime's `on_client_accepted` callback.
   transport->on_client_accepted = ten_transport_on_client_accepted;
-  transport->on_client_accepted_data = on_client_accepted;
+  transport->on_client_accepted_user_data = on_client_accepted;
 
   ten_transport_set_close_cb(transport,
                              ten_protocol_integrated_on_transport_closed, self);
@@ -416,7 +423,7 @@ static void ten_protocol_integrated_on_output_task(void *self_,
   TEN_ASSERT(self && ten_protocol_check_integrity(&self->base, true),
              "Should not happen.");
 
-  if (!ten_protocol_is_closing(&self->base)) {
+  if (self->base.state != TEN_PROTOCOL_STATE_CLOSING) {
     // Execute the actual task if the 'protocol' is still alive.
     ten_protocol_integrated_on_output(self);
   }
@@ -466,7 +473,10 @@ ten_protocol_integrated_on_output_async(ten_protocol_integrated_t *self,
 
   rc = ten_runloop_post_task_tail(loop, ten_protocol_integrated_on_output_task,
                                   self, NULL);
-  TEN_ASSERT(!rc, "Should not happen.");
+  if (rc) {
+    TEN_LOGW("Failed to post task to protocol's runloop: %d", rc);
+    TEN_ASSERT(0, "Should not happen.");
+  }
 }
 
 static void ten_protocol_integrated_on_server_finally_connected(
@@ -482,8 +492,31 @@ static void ten_protocol_integrated_on_server_finally_connected(
   cb_data->on_server_connected = NULL;
 
   ten_protocol_integrated_connect_to_context_destroy(cb_data);
+
+  if (protocol->base.state == TEN_PROTOCOL_STATE_CLOSING) {
+    ten_protocol_integrated_on_close(protocol);
+  }
 }
 
+/**
+ * @brief Callback function invoked when a transport connection attempt after a
+ * retry completes.
+ *
+ * This function is called by the transport layer when a retry connection
+ * attempt either succeeds or fails. It handles the connection result by:
+ * 1. On success: Setting up the stream for communication, notifying the caller,
+ *    and cleaning up the retry timer.
+ * 2. On failure: Enabling the retry timer for another attempt if retry attempts
+ *    remain available.
+ *
+ * The function ensures proper resource management regardless of the connection
+ * outcome. It also handles the case where the protocol is in the closing state
+ * during the connection attempt.
+ *
+ * @param transport The transport instance that attempted the connection.
+ * @param stream The stream created for the connection (valid only on success).
+ * @param status Status code (0 or positive for success, negative for failure).
+ */
 static void ten_transport_on_server_connected_after_retry(
     ten_transport_t *transport, ten_stream_t *stream, int status) {
   ten_protocol_integrated_t *protocol = transport->user_data;
@@ -495,12 +528,17 @@ static void ten_transport_on_server_connected_after_retry(
              "Should not happen.");
 
   ten_protocol_integrated_connect_to_context_t *connect_to_context =
-      transport->on_server_connected_data;
+      transport->on_server_connected_user_data;
   TEN_ASSERT(connect_to_context, "Should not happen.");
   TEN_ASSERT(connect_to_context->on_server_connected, "Should not happen.");
 
-  if (ten_protocol_is_closing(&protocol->base)) {
+  // Mark that we're no longer in the connecting state.
+  protocol->base.is_connecting = false;
+
+  // If the protocol is being closed, clean up resources and return early.
+  if (protocol->base.state == TEN_PROTOCOL_STATE_CLOSING) {
     ten_stream_close(stream);
+
     // The ownership of the 'connect_to_context' is transferred to the timer, so
     // the 'connect_to_context' will be freed when the timer is closed.
     return;
@@ -511,25 +549,30 @@ static void ten_transport_on_server_connected_after_retry(
   bool success = status >= 0;
 
   if (success) {
+    // Connection succeeded - set up the stream for communication.
     ten_protocol_integrated_set_stream(protocol, stream);
 
+    // Notify the caller of successful connection.
     connect_to_context->on_server_connected(&protocol->base, success);
-    transport->on_server_connected_data = NULL;
+    transport->on_server_connected_user_data = NULL;
     // Set 'on_server_connected' to NULL to indicate that this callback has
     // already been called and to prevent it from being called again.
     connect_to_context->on_server_connected = NULL;
 
+    // Start reading from the stream.
     ten_stream_start_read(stream);
 
     TEN_LOGD("Connect to %s successfully after retry",
              ten_string_get_raw_str(&connect_to_context->server_uri));
 
+    // Clean up the retry timer as it's no longer needed.
     ten_timer_stop_async(protocol->retry_timer);
     ten_timer_close_async(protocol->retry_timer);
   } else {
+    // Connection failed - clean up the stream.
     ten_stream_close(stream);
 
-    // Reset the timer to retry or close the timer if the retry times are
+    // Reset the timer to retry again or close the timer if retry attempts are
     // exhausted.
     ten_timer_enable(protocol->retry_timer);
 
@@ -538,6 +581,17 @@ static void ten_transport_on_server_connected_after_retry(
   }
 }
 
+/**
+ * @brief Callback function invoked when the retry timer is triggered.
+ *
+ * This function is called when the retry timer fires, indicating it's time to
+ * attempt another connection to the server. It creates a new transport and
+ * attempts to connect to the server URI stored in the connection context.
+ *
+ * @param self The timer that triggered this callback.
+ * @param on_trigger_data User data associated with the timer (the connection
+ * context).
+ */
 static void
 ten_protocol_integrated_on_retry_timer_triggered(TEN_UNUSED ten_timer_t *self,
                                                  void *on_trigger_data) {
@@ -556,7 +610,10 @@ ten_protocol_integrated_on_retry_timer_triggered(TEN_UNUSED ten_timer_t *self,
   transport->user_data = protocol;
   transport->on_server_connected =
       ten_transport_on_server_connected_after_retry;
-  transport->on_server_connected_data = connect_to_context;
+  transport->on_server_connected_user_data = connect_to_context;
+
+  TEN_LOGD("Retry to connect to %s",
+           ten_string_get_raw_str(&connect_to_context->server_uri));
 
   int rc = ten_transport_connect(transport, &connect_to_context->server_uri);
   if (rc) {
@@ -567,7 +624,7 @@ ten_protocol_integrated_on_retry_timer_triggered(TEN_UNUSED ten_timer_t *self,
              "errors.",
              ten_string_get_raw_str(&connect_to_context->server_uri));
 
-    transport->on_server_connected_data = NULL;
+    transport->on_server_connected_user_data = NULL;
     ten_transport_close(transport);
 
     connect_to_context->on_server_connected(&protocol->base, false);
@@ -575,12 +632,18 @@ ten_protocol_integrated_on_retry_timer_triggered(TEN_UNUSED ten_timer_t *self,
     // already been called and to prevent it from being called again.
     connect_to_context->on_server_connected = NULL;
 
-    // If the 'ten_transport_connect' directly returns error, it could be due to
-    // invalid parameters or other errors which cannot be solved by retrying. So
-    // we close the timer here.
+    // Since this is a fatal error that can't be resolved by retrying,
+    // we stop and close the retry timer to clean up resources.
     ten_timer_stop_async(protocol->retry_timer);
     ten_timer_close_async(protocol->retry_timer);
   }
+
+#if defined(_DEBUG)
+  // Add some random delays in debug mode to simulate network latency.
+  ten_random_sleep_range_ms(0, 100);
+#endif
+
+  protocol->base.is_connecting = true;
 }
 
 static void ten_protocol_integrated_on_retry_timer_closed(ten_timer_t *timer,
@@ -599,6 +662,7 @@ static void ten_protocol_integrated_on_retry_timer_closed(ten_timer_t *timer,
         "Retry timer is closed, but the connection to %s is not established "
         "yet",
         ten_string_get_raw_str(&connect_to_context->server_uri));
+
     ten_protocol_integrated_on_server_finally_connected(connect_to_context,
                                                         false);
   } else {
@@ -607,11 +671,25 @@ static void ten_protocol_integrated_on_retry_timer_closed(ten_timer_t *timer,
 
   protocol->retry_timer = NULL;
 
-  if (ten_protocol_is_closing(&protocol->base)) {
+  if (protocol->base.state == TEN_PROTOCOL_STATE_CLOSING) {
     ten_protocol_integrated_on_close(protocol);
   }
 }
 
+/**
+ * @brief Callback function invoked when a transport successfully connects to a
+ * server.
+ *
+ * This function is called by the transport layer when a connection attempt to a
+ * server either succeeds or fails. It handles the connection result by either:
+ * 1. On success: Setting up the stream for communication.
+ * 2. On failure: Either notifying the caller immediately or setting up retry
+ *    logic.
+ *
+ * @param transport The transport instance that attempted the connection.
+ * @param stream The stream created for the connection (valid only on success).
+ * @param status Status code (0 or positive for success, negative for failure).
+ */
 static void ten_transport_on_server_connected(ten_transport_t *transport,
                                               ten_stream_t *stream,
                                               int status) {
@@ -628,13 +706,15 @@ static void ten_transport_on_server_connected(ten_transport_t *transport,
   TEN_ASSERT(!protocol->retry_timer, "Should not happen.");
 
   ten_protocol_integrated_connect_to_context_t *cb_data =
-      transport->on_server_connected_data;
+      transport->on_server_connected_user_data;
   TEN_ASSERT(cb_data, "Should not happen.");
   TEN_ASSERT(cb_data->on_server_connected, "Should not happen.");
 
-  if (ten_protocol_is_closing(&protocol->base)) {
-    ten_stream_close(stream);
+  protocol->base.is_connecting = false;
 
+  // If protocol is already closing, clean up and report failure.
+  if (protocol->base.state == TEN_PROTOCOL_STATE_CLOSING) {
+    ten_stream_close(stream);
     ten_protocol_integrated_on_server_finally_connected(cb_data, false);
     return;
   }
@@ -642,21 +722,37 @@ static void ten_transport_on_server_connected(ten_transport_t *transport,
   bool success = status >= 0;
 
   if (success) {
-    ten_protocol_integrated_on_server_finally_connected(cb_data, true);
+    // Connection successful - notify caller and set up the stream.
+    TEN_LOGD("Connect to %s successfully",
+             ten_string_get_raw_str(&cb_data->server_uri));
 
+    ten_protocol_integrated_on_server_finally_connected(cb_data, true);
     ten_protocol_integrated_set_stream(protocol, stream);
     ten_stream_start_read(stream);
   } else {
+    TEN_LOGD("Failed to connect to %s",
+             ten_string_get_raw_str(&cb_data->server_uri));
+
+    // Connection failed - close the stream.
     ten_stream_close(stream);
 
+    // Determine if we should retry the connection.
     bool need_retry =
         protocol->retry_config.enable && protocol->retry_config.max_retries > 0;
 
     if (!need_retry) {
+      // No retry needed - report failure immediately.
+      TEN_LOGD("No retry needed for %s",
+               ten_string_get_raw_str(&cb_data->server_uri));
+
       ten_protocol_integrated_on_server_finally_connected(cb_data, false);
       return;
     }
 
+    TEN_LOGD("Retry needed for %s",
+             ten_string_get_raw_str(&cb_data->server_uri));
+
+    // Set up retry timer.
     ten_runloop_t *loop = ten_protocol_get_attached_runloop(&protocol->base);
     TEN_ASSERT(loop, "Should not happen.");
 
@@ -678,11 +774,31 @@ static void ten_transport_on_server_connected(ten_transport_t *transport,
   }
 }
 
+/**
+ * @brief Initiates a connection to a remote server for an integrated protocol.
+ *
+ * This function attempts to establish a connection to a remote server using the
+ * provided URI. It creates a transport layer connection and sets up the
+ * necessary callbacks to handle connection success or failure. If the
+ * connection fails immediately due to invalid parameters, it will report the
+ * failure without attempting to retry.
+ *
+ * The function ensures that:
+ * 1. It's called from the correct thread (engine thread).
+ * 2. The protocol is properly attached to a connection.
+ * 3. No retry timer is already active.
+ *
+ * @param self_ The protocol instance.
+ * @param uri The URI of the remote server to connect to.
+ * @param on_server_connected Callback function to be invoked when the
+ * connection attempt completes (whether successful or not).
+ */
 static void ten_protocol_integrated_connect_to(
     ten_protocol_t *self_, const char *uri,
     ten_protocol_on_server_connected_func_t on_server_connected) {
   ten_protocol_integrated_t *self = (ten_protocol_integrated_t *)self_;
-  TEN_ASSERT(self && ten_protocol_check_integrity(&self->base, true),
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_protocol_check_integrity(&self->base, true),
              "Should not happen.");
   TEN_ASSERT(uri, "Should not happen.");
   TEN_ASSERT(ten_protocol_attach_to(&self->base) ==
@@ -705,32 +821,45 @@ static void ten_protocol_integrated_connect_to(
   ten_string_t *transport_uri = ten_protocol_uri_to_transport_uri(uri);
   TEN_ASSERT(transport_uri, "Should not happen.");
 
-  // Note that if connection fails, the transport needs to be closed.
+  // Create a transport for the connection attempt.
+  // Note: If connection fails, the transport needs to be closed.
   ten_transport_t *transport = ten_transport_create(loop);
   transport->user_data = self;
   transport->on_server_connected = ten_transport_on_server_connected;
 
-  // The 'connect_to_server_context' will be freed once the
-  // 'on_server_connected' callback is called.
+  // Create a context to track this connection attempt.
+  // This context will be freed once the 'on_server_connected' callback is
+  // called.
   ten_protocol_integrated_connect_to_context_t *connect_to_server_context =
       ten_protocol_integrated_connect_to_context_create(
           self, ten_string_get_raw_str(transport_uri), on_server_connected,
           NULL);
-  transport->on_server_connected_data = connect_to_server_context;
+  transport->on_server_connected_user_data = connect_to_server_context;
 
+  TEN_LOGD("Connect to %s", ten_string_get_raw_str(transport_uri));
+
+  // Attempt to connect to the remote server.
   int rc = ten_transport_connect(transport, transport_uri);
-  ten_string_destroy(transport_uri);
-
   if (rc) {
-    TEN_LOGW("Failed to connect to %s", ten_string_get_raw_str(transport_uri));
-    // If the 'ten_transport_connect' directly returns error, it could be due to
-    // invalid parameters or other errors which cannot be solved by retrying. So
-    // we don't need to retry here.
+    TEN_LOGW("Failed to connect to %s", uri);
+    // If ten_transport_connect returns an error immediately, it's likely due to
+    // invalid parameters or other fatal errors that can't be solved by
+    // retrying. In this case, we report the failure and clean up resources
+    // without attempting to retry.
     ten_protocol_integrated_on_server_finally_connected(
         connect_to_server_context, false);
 
     ten_transport_close(transport);
   }
+
+#if defined(_DEBUG)
+  // Add some random delays in debug mode to simulate network latency.
+  ten_random_sleep_range_ms(0, 100);
+#endif
+
+  self->base.is_connecting = true;
+
+  ten_string_destroy(transport_uri);
 }
 
 static void
@@ -914,7 +1043,7 @@ ten_protocol_integrated_connect_to_context_create(
   ten_string_init_from_c_str_with_size(&context->server_uri, server_uri,
                                        strlen(server_uri));
   context->on_server_connected = on_server_connected;
-  context->user_data = user_data;
+  context->on_server_connected_user_data = user_data;
   context->protocol = self;
 
   return context;

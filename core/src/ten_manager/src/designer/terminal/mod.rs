@@ -196,7 +196,7 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WsProcessor {
     }
 }
 
-pub async fn ws_terminal(
+pub async fn ws_terminal_endpoint(
     req: HttpRequest,
     stream: web::Payload,
 ) -> Result<HttpResponse, Error> {

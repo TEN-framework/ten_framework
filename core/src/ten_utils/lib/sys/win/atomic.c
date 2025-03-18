@@ -9,8 +9,9 @@
 #include <Windows.h>
 #include <assert.h>
 
-// NOTE: This file will be used in the TEN backtrace module, so do _not_ use
-// TEN_ASSERT or any other mechanisms which might involve backtrace dump.
+// IMPORTANT: This file is used in the TEN backtrace module, so it must NOT use
+// TEN_ASSERT or any other mechanisms that might trigger backtrace dumps, as
+// this would create circular dependencies and potential infinite recursion.
 
 int64_t ten_atomic_fetch_add(volatile ten_atomic_t *a, int64_t v) {
   return InterlockedExchangeAdd64(a, v);
@@ -21,13 +22,13 @@ int64_t ten_atomic_add_fetch(volatile ten_atomic_t *a, int64_t v) {
 }
 
 int64_t ten_atomic_and_fetch(volatile ten_atomic_t *a, int64_t v) {
-  assert(0 && "TODO(Wei): Implement this.");
-  return 0;
+  int64_t prev = InterlockedAnd64(a, v);
+  return prev & v;
 }
 
 int64_t ten_atomic_or_fetch(volatile ten_atomic_t *a, int64_t v) {
-  assert(0 && "TODO(Wei): Implement this.");
-  return 0;
+  int64_t prev = InterlockedOr64(a, v);
+  return prev | v;
 }
 
 int64_t ten_atomic_fetch_sub(volatile ten_atomic_t *a, int64_t v) {

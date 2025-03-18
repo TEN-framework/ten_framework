@@ -6,6 +6,7 @@
 //
 #include "include_internal/ten_runtime/extension/path_timer.h"
 
+#include "include_internal/ten_runtime/common/constant_str.h"
 #include "include_internal/ten_runtime/extension/close.h"
 #include "include_internal/ten_runtime/extension/extension.h"
 #include "include_internal/ten_runtime/extension/msg_handling.h"
@@ -87,7 +88,7 @@ static void ten_extension_out_path_timer_on_triggered(ten_timer_t *self,
       TEN_ASSERT(cmd_result && ten_cmd_base_check_integrity(cmd_result),
                  "Should not happen.");
 
-      ten_msg_set_property(cmd_result, "detail",
+      ten_msg_set_property(cmd_result, TEN_STR_DETAIL,
                            ten_value_create_string("Path timeout."), NULL);
       ten_cmd_base_set_cmd_id(cmd_result,
                               ten_string_get_raw_str(&path->cmd_id));

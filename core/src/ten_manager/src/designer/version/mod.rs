@@ -31,7 +31,7 @@ struct CheckUpdateResponseData {
     message: Option<String>,
 }
 
-pub async fn get_version(
+pub async fn get_version_endpoint(
     _state: web::Data<Arc<RwLock<DesignerState>>>,
 ) -> Result<impl Responder, actix_web::Error> {
     let version_info = GetVersionResponseData {
@@ -114,11 +114,10 @@ mod tests {
         })));
 
         // Create the App with the routes configured.
-        let app = test::init_service(
-            App::new()
-                .app_data(state.clone())
-                .route("/api/designer/v1/version", web::get().to(get_version)),
-        )
+        let app = test::init_service(App::new().app_data(state.clone()).route(
+            "/api/designer/v1/version",
+            web::get().to(get_version_endpoint),
+        ))
         .await;
 
         // Send a request to the version endpoint.

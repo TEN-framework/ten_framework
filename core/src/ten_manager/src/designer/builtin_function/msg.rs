@@ -42,7 +42,10 @@ pub enum OutboundMsg {
     ErrorPartial { data: String },
 
     #[serde(rename = "exit")]
-    Exit { code: i32 },
+    Exit {
+        code: i32,
+        error_message: Option<String>,
+    },
 }
 
 pub struct TmanOutputWs {

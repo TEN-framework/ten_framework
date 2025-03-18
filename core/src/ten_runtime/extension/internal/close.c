@@ -8,6 +8,7 @@
 
 #include <stdbool.h>
 
+#include "include_internal/ten_runtime/common/constant_str.h"
 #include "include_internal/ten_runtime/extension/extension.h"
 #include "include_internal/ten_runtime/extension/msg_handling.h"
 #include "include_internal/ten_runtime/extension_thread/extension_thread.h"
@@ -65,7 +66,7 @@ void ten_extension_flush_remaining_paths(ten_extension_t *extension) {
                  "Should not happen.");
 
       ten_msg_set_property(
-          cmd_result, "detail",
+          cmd_result, TEN_STR_DETAIL,
           ten_value_create_string(ten_string_get_raw_str(&path->cmd_id)), NULL);
       ten_cmd_base_set_cmd_id(cmd_result,
                               ten_string_get_raw_str(&path->cmd_id));

@@ -16,7 +16,7 @@ use ten_rust::pkg_info::graph::{
 use ten_rust::pkg_info::pkg_type::PkgType;
 use ten_rust::pkg_info::predefined_graphs::pkg_predefined_graphs_find;
 
-use crate::designer::app::base_dir::get_base_dir_from_pkgs_cache;
+use crate::designer::apps::get_base_dir_from_pkgs_cache;
 use crate::designer::response::{ApiResponse, ErrorResponse, Status};
 use crate::designer::DesignerState;
 
@@ -117,7 +117,7 @@ fn get_designer_destination_from_property(
     destinations.into_iter().map(|v| v.into()).collect()
 }
 
-pub async fn get_graph_connections(
+pub async fn get_graph_connections_endpoint(
     request_payload: web::Json<GetGraphConnectionsRequestPayload>,
     state: web::Data<Arc<RwLock<DesignerState>>>,
 ) -> Result<impl Responder, actix_web::Error> {
@@ -239,7 +239,7 @@ mod tests {
         let app = test::init_service(
             App::new().app_data(web::Data::new(designer_state)).route(
                 "/api/designer/v1/graphs/connections",
-                web::post().to(get_graph_connections),
+                web::post().to(get_graph_connections_endpoint),
             ),
         )
         .await;
@@ -330,7 +330,7 @@ mod tests {
         let app = test::init_service(
             App::new().app_data(web::Data::new(designer_state)).route(
                 "/api/designer/v1/graphs/connections",
-                web::post().to(get_graph_connections),
+                web::post().to(get_graph_connections_endpoint),
             ),
         )
         .await;
@@ -444,7 +444,7 @@ mod tests {
         let app = test::init_service(
             App::new().app_data(web::Data::new(designer_state)).route(
                 "/api/designer/v1/graphs/connections",
-                web::post().to(get_graph_connections),
+                web::post().to(get_graph_connections_endpoint),
             ),
         )
         .await;
@@ -534,7 +534,7 @@ mod tests {
         let app = test::init_service(
             App::new().app_data(web::Data::new(designer_state)).route(
                 "/api/designer/v1/graphs/connections",
-                web::post().to(get_graph_connections),
+                web::post().to(get_graph_connections_endpoint),
             ),
         )
         .await;

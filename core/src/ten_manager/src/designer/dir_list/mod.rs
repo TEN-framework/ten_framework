@@ -35,7 +35,7 @@ pub struct DirListResponseData {
     pub entries: Vec<FsEntry>,
 }
 
-pub async fn list_dir(
+pub async fn list_dir_endpoint(
     request_payload: web::Json<ListDirRequestPayload>,
     _state: web::Data<Arc<RwLock<DesignerState>>>,
 ) -> Result<impl Responder, actix_web::Error> {
@@ -119,11 +119,10 @@ mod tests {
         })));
 
         // Configure the `list_dir` route.
-        let app = test::init_service(
-            App::new()
-                .app_data(state.clone())
-                .route("/api/designer/v1/dir-list", web::post().to(list_dir)),
-        )
+        let app = test::init_service(App::new().app_data(state.clone()).route(
+            "/api/designer/v1/dir-list",
+            web::post().to(list_dir_endpoint),
+        ))
         .await;
 
         // Construct the request.
@@ -170,11 +169,10 @@ mod tests {
         })));
 
         // Configure the `list_dir` route.
-        let app = test::init_service(
-            App::new()
-                .app_data(state.clone())
-                .route("/api/designer/v1/dir-list", web::post().to(list_dir)),
-        )
+        let app = test::init_service(App::new().app_data(state.clone()).route(
+            "/api/designer/v1/dir-list",
+            web::post().to(list_dir_endpoint),
+        ))
         .await;
 
         // Construct the request.
@@ -212,11 +210,10 @@ mod tests {
             pkgs_cache: HashMap::new(),
         })));
 
-        let app = test::init_service(
-            App::new()
-                .app_data(state.clone())
-                .route("/api/designer/v1/dir-list", web::post().to(list_dir)),
-        )
+        let app = test::init_service(App::new().app_data(state.clone()).route(
+            "/api/designer/v1/dir-list",
+            web::post().to(list_dir_endpoint),
+        ))
         .await;
 
         // Construct an invalid path.

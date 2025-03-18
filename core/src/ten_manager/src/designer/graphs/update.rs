@@ -17,7 +17,7 @@ use super::{
     connections::GetGraphConnectionsSingleResponseData,
     nodes::GetGraphNodesSingleResponseData,
 };
-use crate::designer::app::base_dir::get_base_dir_from_pkgs_cache;
+use crate::designer::apps::get_base_dir_from_pkgs_cache;
 use crate::designer::response::{ApiResponse, ErrorResponse, Status};
 use crate::designer::DesignerState;
 
@@ -39,7 +39,7 @@ pub struct GraphUpdateResponseData {
     pub success: bool,
 }
 
-pub async fn update_graph(
+pub async fn update_graph_endpoint(
     request_payload: web::Json<GraphUpdateRequestPayload>,
     state: web::Data<Arc<RwLock<DesignerState>>>,
 ) -> Result<impl Responder, actix_web::Error> {
@@ -196,9 +196,10 @@ mod tests {
         let state = Arc::new(RwLock::new(state));
 
         let app = test::init_service(
-            App::new()
-                .app_data(web::Data::new(state.clone()))
-                .route("/api/designer/v1/graphs", web::put().to(update_graph)),
+            App::new().app_data(web::Data::new(state.clone())).route(
+                "/api/designer/v1/graphs",
+                web::put().to(update_graph_endpoint),
+            ),
         )
         .await;
 

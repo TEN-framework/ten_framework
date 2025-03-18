@@ -170,11 +170,13 @@ pub async fn get_package(
         if let Ok(true) = is_same_file_by_hash(&cached_file_path, url) {
             // If the content is the same, directly copy the cached file to
             // `temp_path`.
-            out.error_line(&format!(
-                "{}  Found the package file ({}) in the package cache, using it directly.",
-                Emoji("🚀", ":-("),
-                cached_file_path.to_string_lossy()
-            ));
+            if tman_config.verbose {
+                out.normal_line(&format!(
+                    "{}  Found the package file ({}) in the package cache, using it directly.",
+                    Emoji("🚀", ":-)"),
+                    cached_file_path.to_string_lossy()
+                ));
+            }
 
             fs::copy(&cached_file_path, temp_path.path()).with_context(
                 || {
@@ -276,61 +278,152 @@ impl ArchiveFindManifest for TarArchive<GzDecoder<File>> {
     }
 }
 
+// Helper function to extract the manifest from a .tpkg file.
+fn extract_manifest_from_tpkg_file(path: &Path) -> Result<Option<String>> {
+    let file = File::open(path)
+        .with_context(|| format!("Failed to open {:?}", path))?;
+
+    let file_type = detect_file_type(path)?;
+
+    match file_type {
+        FileType::Zip => {
+            let mut archive =
+                ZipArchive::new(file).context("Failed to read zip archive")?;
+            archive.find_manifest()
+        }
+        FileType::TarGz => {
+            let mut tar = TarArchive::new(GzDecoder::new(file));
+            tar.find_manifest()
+        }
+    }
+}
+
 fn find_file_with_criteria(
     base_url: &Path,
-    pkg_type: PkgType,
-    name: &String,
-    version_req: &VersionReq,
+    pkg_type: Option<PkgType>,
+    name: Option<&String>,
+    version_req: Option<&VersionReq>,
 ) -> Result<Vec<PkgRegistryInfo>> {
-    let target_path = base_url.join(pkg_type.to_string()).join(name);
-
     let mut results = Vec::<PkgRegistryInfo>::new();
 
-    // Traverse the folders of all versions within the specified pkg.
+    // Determine which path to search based on pkg_type and name, and handle
+    // search logic directly.
+    match (pkg_type, name) {
+        (Some(pkg_type), Some(name_str)) => {
+            // Search specific pkg_type and name.
+            let search_path = base_url.join(pkg_type.to_string());
+            if search_path.exists() {
+                let mut path_results =
+                    search_versions(&search_path, name_str, version_req)?;
+                results.append(&mut path_results);
+            }
+        }
+        (Some(pkg_type), None) => {
+            // Search all names under specific pkg_type.
+            let search_path = base_url.join(pkg_type.to_string());
+            if search_path.exists() {
+                for entry in (std::fs::read_dir(&search_path)?).flatten() {
+                    if entry.file_type()?.is_dir() {
+                        let name_str =
+                            entry.file_name().to_string_lossy().to_string();
+                        let mut name_results = search_versions(
+                            &search_path,
+                            &name_str,
+                            version_req,
+                        )?;
+                        results.append(&mut name_results);
+                    }
+                }
+            }
+        }
+        (None, Some(name)) => {
+            // Search all package types for this name.
+            for entry in (std::fs::read_dir(base_url)?).flatten() {
+                if entry.file_type()?.is_dir() {
+                    let type_dir = entry.path();
+                    let name_dir = type_dir.join(name);
+                    if name_dir.exists() {
+                        let mut type_results =
+                            search_versions(&type_dir, name, version_req)?;
+                        results.append(&mut type_results);
+                    }
+                }
+            }
+        }
+        (None, None) => {
+            // Search all package types and names.
+
+            for type_entry in (std::fs::read_dir(base_url)?).flatten() {
+                if type_entry.file_type()?.is_dir() {
+                    let type_dir = type_entry.path();
+                    for name_entry in (std::fs::read_dir(&type_dir)?).flatten()
+                    {
+                        if name_entry.file_type()?.is_dir() {
+                            let mut name_results = search_versions(
+                                &type_dir,
+                                name_entry
+                                    .file_name()
+                                    .to_string_lossy()
+                                    .as_ref(),
+                                version_req,
+                            )?;
+                            results.append(&mut name_results);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    Ok(results)
+}
+
+// Helper function to search for versions.
+fn search_versions(
+    base_dir: &Path,
+    name: &str,
+    version_req: Option<&VersionReq>,
+) -> Result<Vec<PkgRegistryInfo>> {
+    let mut results = Vec::<PkgRegistryInfo>::new();
+    let target_path = base_dir.join(name);
+
+    // Traverse the folders of all versions within the specified package.
     for version_dir in WalkDir::new(target_path)
         .min_depth(1)
         .max_depth(1)
         .into_iter()
         .filter_map(|e| e.ok())
     {
+        let version_str = version_dir.file_name().to_str().unwrap_or_default();
+        let version = match Version::parse(version_str) {
+            Ok(v) => v,
+            Err(_) => continue, // Skip invalid version directories.
+        };
+
         // Check if the folder meets the version requirements.
-        if version_req.matches(
-            &Version::parse(
-                version_dir.file_name().to_str().unwrap_or_default(),
-            )
-            .context("Invalid version format")?,
-        ) {
+        if version_req.is_none()
+            || version_req
+                .as_ref()
+                .is_some_and(|req| req.matches(&version))
+        {
             // Traverse the files within the folder of that version.
-            for entry in WalkDir::new(version_dir.path())
+            for file in WalkDir::new(version_dir.path())
+                .min_depth(1)
+                .max_depth(1)
                 .into_iter()
                 .filter_map(|e| e.ok())
             {
-                let path = entry.path();
+                let path = file.path();
 
-                // Only process files with the extension equal to the defined
-                // `TEN_PACKAGE_FILE_EXTENSION`.
-                if path.extension().and_then(|s| s.to_str())
-                    == Some(TEN_PACKAGE_FILE_EXTENSION)
+                // Read the package manifest if it exists in the folder.
+                if path
+                    .file_name()
+                    .and_then(|f| f.to_str())
+                    .is_some_and(|f| f.ends_with(TEN_PACKAGE_FILE_EXTENSION))
                 {
-                    let file = File::open(path).with_context(|| {
-                        format!("Failed to open {:?}", path)
-                    })?;
+                    // Extract the manifest file from the package.
+                    let maybe_manifest = extract_manifest_from_tpkg_file(path)?;
 
-                    let file_type = detect_file_type(path)?;
-
-                    let maybe_manifest = match file_type {
-                        FileType::Zip => {
-                            let mut archive = ZipArchive::new(file)
-                                .context("Failed to read zip archive")?;
-                            archive.find_manifest()?
-                        }
-                        FileType::TarGz => {
-                            let mut tar = TarArchive::new(GzDecoder::new(file));
-                            tar.find_manifest()?
-                        }
-                    };
-
-                    // If `find_manifest` finds the manifest content, parse it.
                     if let Some(manifest_content) = maybe_manifest {
                         let manifest = Manifest::from_str(&manifest_content)?;
 
@@ -360,9 +453,9 @@ fn find_file_with_criteria(
 pub async fn get_package_list(
     _tman_config: Arc<TmanConfig>,
     base_url: &str,
-    pkg_type: PkgType,
-    name: &String,
-    version_req: &VersionReq,
+    pkg_type: Option<PkgType>,
+    name: Option<String>,
+    version_req: Option<VersionReq>,
     _out: Arc<Box<dyn TmanOutput>>,
 ) -> Result<Vec<PkgRegistryInfo>> {
     let mut path_url = url::Url::parse(base_url)
@@ -379,11 +472,14 @@ pub async fn get_package_list(
         format!("{}/", path_url)
     };
 
+    let version_req_ref = version_req.as_ref();
+    let name_ref = name.as_ref();
+
     let result = find_file_with_criteria(
         Path::new(&path_url),
         pkg_type,
-        name,
-        version_req,
+        name_ref,
+        version_req_ref,
     )?;
 
     Ok(result)

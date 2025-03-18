@@ -4,17 +4,23 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
+use actix_web::web;
 use futures_util::{SinkExt, StreamExt};
 use tokio_tungstenite::{connect_async, tungstenite::protocol::Message};
 
-use ten_manager::designer::builtin_function::msg::InboundMsg;
+use ten_manager::designer::builtin_function::{
+    builtin_function_endpoint, msg::InboundMsg,
+};
 
-use crate::test_case::common::builtin_server::start_builtin_function_server;
+use crate::test_case::common::builtin_server::start_test_server;
 
 #[actix_rt::test]
 async fn test_ws_builtin_function_install_all() {
     // Start the WebSocket server and get its address
-    let server_addr = start_builtin_function_server().await;
+    let server_addr = start_test_server("/ws/builtin-function", || {
+        web::get().to(builtin_function_endpoint)
+    })
+    .await;
     println!("Server started at: {}", server_addr);
 
     // Connect WebSocket client
@@ -70,7 +76,8 @@ async fn test_ws_builtin_function_install_all() {
     );
 
     // Check if the last message matches the expected exit message.
-    let expected_exit_message = r#"{"type":"exit","code":0}"#;
+    let expected_exit_message =
+        r#"{"type":"exit","code":0,"error_message":null}"#;
     assert_eq!(
         last_text_message, expected_exit_message,
         "Last message should be an exit message with code 0"

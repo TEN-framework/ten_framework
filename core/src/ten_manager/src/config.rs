@@ -11,7 +11,7 @@ use std::path::PathBuf;
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 
-use super::constants::DEFAULT_REGISTRY;
+use super::constants::{DEFAULT, DEFAULT_REGISTRY};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Registry {
@@ -51,7 +51,7 @@ impl Default for TmanConfig {
     fn default() -> Self {
         let mut registry = HashMap::new();
 
-        registry.entry("default".to_string()).or_insert(Registry {
+        registry.entry(DEFAULT.to_string()).or_insert(Registry {
             index: DEFAULT_REGISTRY.to_string(),
         });
 

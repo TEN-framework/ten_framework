@@ -18,8 +18,10 @@ fn main() {
 mod test_case {
     mod common;
 
-    mod cmd_builtin_function_install;
-    mod cmd_builtin_function_install_all;
     mod cmd_check_graph;
     mod cmd_designer;
+    mod designer_builtin_function_install;
+    mod designer_builtin_function_install_all;
+    mod designer_get_registry_packages;
+    mod designer_reload_apps;
 }

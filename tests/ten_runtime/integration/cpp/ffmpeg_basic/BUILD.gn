@@ -17,11 +17,6 @@ ten_package_test_prepare_app("ffmpeg_basic_app") {
     "ffmpeg_basic_app/property.json",
   ]
 
-  replace_paths_after_install_all = [
-    "ffmpeg_basic_app/ten_packages/extension/ffmpeg_client/src/main.cc",
-    "ffmpeg_basic_app/ten_packages/extension/ffmpeg_client/manifest.json",
-  ]
-
   if (ten_enable_ten_manager) {
     deps = [
       "//core/src/ten_manager",
