@@ -19,8 +19,8 @@
 
 void ten_engine_handle_cmd_stop_graph(ten_engine_t *self, ten_shared_ptr_t *cmd,
                                       TEN_UNUSED ten_error_t *err) {
-  TEN_ASSERT(self && ten_engine_check_integrity(self, true),
-             "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_engine_check_integrity(self, true), "Should not happen.");
   TEN_ASSERT(cmd && ten_msg_get_type(cmd) == TEN_MSG_TYPE_CMD_STOP_GRAPH,
              "Should not happen.");
 

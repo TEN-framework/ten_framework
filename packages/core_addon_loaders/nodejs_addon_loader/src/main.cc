@@ -162,7 +162,7 @@ class nodejs_addon_loader_t : public ten::addon_loader_t {
     ten_string_destroy(module_path);
   }
 
-  void on_init(ten::ten_env_t &ten_env) override {
+  void on_init(TEN_UNUSED ten::ten_env_t &ten_env) override {
     // Do some initializations.
     load_nodejs_lib();
 
@@ -252,7 +252,7 @@ class nodejs_addon_loader_t : public ten::addon_loader_t {
   // Clean up and shut down the Node.js addon loader to ensure resource
   // release, garbage collection execution, and proper termination of the
   // Node.js thread.
-  void on_deinit(ten::ten_env_t &ten_env) override {
+  void on_deinit(TEN_UNUSED ten::ten_env_t &ten_env) override {
     if (this->setup_ != nullptr && this->event_loop_ != nullptr) {
       // Create a `uv_async_t` event to perform asynchronous operations within
       // the libuv event loop.
@@ -332,7 +332,8 @@ class nodejs_addon_loader_t : public ten::addon_loader_t {
   // It uses the libuv event loop (`uv_async_t`) to execute JavaScript code
   // within the Node.js thread, allowing for the loading and registration of
   // TEN addons.
-  void on_load_addon(ten::ten_env_t &ten_env, TEN_ADDON_TYPE addon_type,
+  void on_load_addon(TEN_UNUSED ten::ten_env_t &ten_env,
+                     TEN_UNUSED TEN_ADDON_TYPE addon_type,
                      const char *addon_name) override {
     if (this->setup_ != nullptr && this->event_loop_ != nullptr) {
       auto *load_addon_handle = new uv_async_t();

@@ -331,8 +331,8 @@ void ten_timer_set_on_triggered(ten_timer_t *self,
 
 static void ten_timer_close_(void *timer_, TEN_UNUSED void *arg) {
   ten_timer_t *timer = (ten_timer_t *)timer_;
-  TEN_ASSERT(timer && ten_timer_check_integrity(timer, true),
-             "Should not happen.");
+  TEN_ASSERT(timer, "Should not happen.");
+  TEN_ASSERT(ten_timer_check_integrity(timer, true), "Should not happen.");
 
   ten_timer_close(timer);
 }

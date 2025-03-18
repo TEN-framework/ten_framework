@@ -307,8 +307,8 @@ static void ten_engine_on_remote_protocol_created(ten_env_t *ten_env,
              "Should not happen.");
 
   ten_engine_t *self = ten_env_get_attached_engine(ten_env);
-  TEN_ASSERT(self && ten_engine_check_integrity(self, true),
-             "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_engine_check_integrity(self, true), "Should not happen.");
 
   ten_engine_on_protocol_created_ctx_t *ctx =
       (ten_engine_on_protocol_created_ctx_t *)cb_data;

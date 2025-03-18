@@ -48,8 +48,8 @@ ten_app_check_termination_when_engine_closed_async(ten_app_t *self,
 // This function is called in the engine thread.
 static void ten_app_on_engine_closed(ten_engine_t *engine,
                                      TEN_UNUSED void *on_close_data) {
-  TEN_ASSERT(engine && ten_engine_check_integrity(engine, true),
-             "Should not happen.");
+  TEN_ASSERT(engine, "Should not happen.");
+  TEN_ASSERT(ten_engine_check_integrity(engine, true), "Should not happen.");
 
   ten_app_t *app = engine->app;
   TEN_ASSERT(app, "Invalid argument.");
