@@ -19,9 +19,9 @@ use tempfile::NamedTempFile;
 
 use ten_rust::pkg_info::{pkg_type::PkgType, PkgInfo};
 
-use crate::output::TmanOutput;
-
 use super::config::TmanConfig;
+use super::constants::DEFAULT;
+use crate::output::TmanOutput;
 
 pub async fn upload_package(
     tman_config: Arc<TmanConfig>,
@@ -31,7 +31,7 @@ pub async fn upload_package(
 ) -> Result<String> {
     let default_registry_url = tman_config
         .registry
-        .get("default")
+        .get(DEFAULT)
         .ok_or_else(|| anyhow!("Default registry not found"))?
         .index
         .clone();
@@ -109,6 +109,26 @@ pub async fn get_package(
     }
 }
 
+/// Retrieves a list of packages from the registry that match the specified
+/// criteria.
+///
+/// # Arguments
+/// * `tman_config` - Configuration containing registry information.
+/// * `pkg_type` - Type of package to search for (e.g., app, extension).
+/// * `name` - Name of the package to search for.
+/// * `version_req` - Version requirement to filter packages.
+/// * `out` - Output interface for logging.
+///
+/// # Returns
+/// A vector of `PkgRegistryInfo` containing information about matching
+/// packages.
+///
+/// # Errors
+/// * If the default registry is not configured.
+/// * If the registry URL is invalid.
+/// * If the URL scheme is not supported (only "file" and "https" are
+///   supported).
+/// * If there's an error retrieving the package list from the registry.
 pub async fn get_package_list(
     tman_config: Arc<TmanConfig>,
     pkg_type: PkgType,
@@ -116,18 +136,20 @@ pub async fn get_package_list(
     version_req: &VersionReq,
     out: Arc<Box<dyn TmanOutput>>,
 ) -> Result<Vec<PkgRegistryInfo>> {
-    // Retrieve the default registry URL
+    // Retrieve the default registry URL from configuration.
     let default_registry_url = tman_config
         .registry
-        .get("default")
+        .get(DEFAULT)
         .ok_or_else(|| anyhow!("Default registry not found"))?
         .index
         .clone();
 
+    // Parse the registry URL to determine the scheme (file or https).
     let parsed_registry_url = url::Url::parse(&default_registry_url)
         .map_err(|_| anyhow!("Invalid URL: {}", default_registry_url))?;
 
-    let new_results = match parsed_registry_url.scheme() {
+    // Delegate to the appropriate handler based on the URL scheme.
+    let results = match parsed_registry_url.scheme() {
         "file" => {
             local::get_package_list(
                 tman_config.clone(),
@@ -158,7 +180,7 @@ pub async fn get_package_list(
         }
     };
 
-    Ok(new_results)
+    Ok(results)
 }
 
 pub async fn delete_package(
@@ -172,7 +194,7 @@ pub async fn delete_package(
     // Retrieve the default registry URL.
     let default_registry_url = tman_config
         .registry
-        .get("default")
+        .get(DEFAULT)
         .ok_or_else(|| anyhow!("Default registry not found"))?
         .index
         .clone();
