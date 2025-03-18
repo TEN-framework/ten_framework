@@ -63,10 +63,9 @@ pub async fn create_pkg_in_path(
     // Search for the package in the registry.
     let mut found_packages = get_package_list(
         tman_config.clone(),
-        *pkg_type,
-        template_pkg_name,
-        // Ensure exact version matching.
-        template_pkg_version,
+        Some(*pkg_type),
+        Some(template_pkg_name.clone()),
+        Some(template_pkg_version.clone()),
         out.clone(),
     )
     .await?;

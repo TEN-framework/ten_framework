@@ -114,9 +114,10 @@ pub async fn get_package(
 ///
 /// # Arguments
 /// * `tman_config` - Configuration containing registry information.
-/// * `pkg_type` - Type of package to search for (e.g., app, extension).
-/// * `name` - Name of the package to search for.
-/// * `version_req` - Version requirement to filter packages.
+/// * `pkg_type` - Optional type of package to search for (e.g., app,
+///   extension).
+/// * `name` - Optional name of the package to search for.
+/// * `version_req` - Optional version requirement to filter packages.
 /// * `out` - Output interface for logging.
 ///
 /// # Returns
@@ -131,9 +132,9 @@ pub async fn get_package(
 /// * If there's an error retrieving the package list from the registry.
 pub async fn get_package_list(
     tman_config: Arc<TmanConfig>,
-    pkg_type: PkgType,
-    name: &String,
-    version_req: &VersionReq,
+    pkg_type: Option<PkgType>,
+    name: Option<String>,
+    version_req: Option<VersionReq>,
     out: Arc<Box<dyn TmanOutput>>,
 ) -> Result<Vec<PkgRegistryInfo>> {
     // Retrieve the default registry URL from configuration.
