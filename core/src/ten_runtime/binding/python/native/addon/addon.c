@@ -12,6 +12,7 @@
 #include "include_internal/ten_runtime/binding/python/addon/addon.h"
 #include "include_internal/ten_runtime/binding/python/common/common.h"
 #include "include_internal/ten_runtime/binding/python/common/error.h"
+#include "include_internal/ten_runtime/binding/python/extension/extension.h"
 #include "include_internal/ten_runtime/binding/python/ten_env/ten_env.h"
 #include "include_internal/ten_runtime/extension/extension.h"
 #include "include_internal/ten_runtime/extension_group/extension_group.h"
@@ -209,9 +210,25 @@ static void proxy_on_destroy_instance_async(ten_addon_t *addon,
 
   switch (py_addon->type) {
     case TEN_ADDON_TYPE_EXTENSION:
-    case TEN_ADDON_TYPE_EXTENSION_GROUP:
       py_instance = ten_binding_handle_get_me_in_target_lang(
           (ten_binding_handle_t *)instance);
+
+      ten_py_extension_t *py_extension = (ten_py_extension_t *)py_instance;
+
+      ten_extension_t* extension = py_extension->c_extension;
+      TEN_ASSERT(extension && ten_extension_check_integrity(extension, true),
+                 "Should not happen.");
+
+      TEN_ASSERT(extension == instance, "Should not happen.");
+
+      ten_addon_host_t* addon_host = extension->addon_host;
+      TEN_ASSERT(addon_host && ten_addon_host_check_integrity(addon_host),
+                 "Should not happen.");
+
+      // Release the reference count of the addon host.
+      ten_ref_dec_ref(&addon_host->ref);
+      extension->addon_host = NULL;
+
       break;
 
     default:

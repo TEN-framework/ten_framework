@@ -9,6 +9,7 @@
 #include <stdint.h>
 
 #include "include_internal/ten_runtime/addon/addon.h"
+#include "include_internal/ten_runtime/addon/addon_host.h"
 #include "include_internal/ten_runtime/addon/extension/extension.h"
 #include "include_internal/ten_runtime/binding/go/addon/addon.h"
 #include "include_internal/ten_runtime/binding/go/extension/extension.h"
@@ -193,6 +194,13 @@ static void ten_go_addon_destroy_instance_helper(ten_addon_t *addon,
       ten_extension_t *extension = (ten_extension_t *)instance;
       TEN_ASSERT(extension && ten_extension_check_integrity(extension, true),
                  "Invalid argument.");
+
+      // Release the reference count of the addon host.
+      ten_addon_host_t *addon_host = extension->addon_host;
+      TEN_ASSERT(addon_host && ten_addon_host_check_integrity(addon_host),
+                 "Invalid argument.");
+      ten_ref_dec_ref(&addon_host->ref);
+      extension->addon_host = NULL;
 
       ten_go_extension_t *extension_bridge =
           ten_binding_handle_get_me_in_target_lang(
