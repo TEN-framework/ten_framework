@@ -136,7 +136,7 @@ void ten_app_del_engine(ten_app_t *self, ten_engine_t *engine) {
              "Should not happen.");
 
   TEN_LOGD("[%s:%s] Remove engine from app.", ten_app_get_uri(self),
-           ten_engine_get_id(engine, true));
+           ten_engine_get_id(engine, false));
 
   // This operation must be performed in the app's main thread.
   // No locks are needed because we enforce thread safety through

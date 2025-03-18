@@ -63,7 +63,7 @@ static void ten_engine_destroy(ten_engine_t *self) {
                  ten_list_is_empty(&self->timers),
              "Should not happen.");
 
-  TEN_LOGD("[%s] Destroy engine.", ten_engine_get_id(self, true));
+  TEN_LOGD("[%s] Destroy engine.", ten_engine_get_id(self, false));
 
   ten_env_destroy(self->ten_env);
 
