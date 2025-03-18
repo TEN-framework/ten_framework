@@ -365,8 +365,9 @@ bool ten_app_on_deinit_done(ten_env_t *ten_env) {
 
   if (self->state != TEN_APP_STATE_CLOSING) {
     ten_mutex_unlock(self->state_lock);
-    TEN_LOGI("App %s cannot on_deinit_done() because of incorrect timing: %d.",
-             ten_string_get_raw_str(&self->uri), self->state);
+    TEN_LOGI(
+        "[%s] App cannot on_deinit_done() because of incorrect timing: %d.",
+        ten_string_get_raw_str(&self->uri), self->state);
     return false;
   }
 
@@ -380,12 +381,13 @@ bool ten_app_on_deinit_done(ten_env_t *ten_env) {
   if (!ten_list_is_empty(&ten_env->ten_proxy_list)) {
     // There is still the presence of ten_env_proxy, so the closing process
     // cannot continue.
-    TEN_LOGI("App %s cannot on_deinit_done() because of existed ten_env_proxy.",
-             ten_string_get_raw_str(&self->uri));
+    TEN_LOGI(
+        "[%s] App cannot on_deinit_done() because of existed ten_env_proxy.",
+        ten_string_get_raw_str(&self->uri));
     return true;
   }
 
-  TEN_LOGI("App %s on_deinit_done()", ten_string_get_raw_str(&self->uri));
+  TEN_LOGI("[%s] App on_deinit_done()", ten_string_get_raw_str(&self->uri));
 
   ten_runloop_stop(self->loop);
 

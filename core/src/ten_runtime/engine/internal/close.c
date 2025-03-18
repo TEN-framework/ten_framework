@@ -113,7 +113,8 @@ static void ten_engine_close_task(void *engine_, TEN_UNUSED void *arg) {
              "Invalid argument.");
 
   if (engine->is_closing) {
-    TEN_LOGD("Engine is already closing, do not close again.");
+    TEN_LOGD("[%s] Engine is already closing, do not close again.",
+             ten_engine_get_id(engine, true));
     goto done;
   }
 
@@ -302,6 +303,8 @@ void ten_engine_on_extension_context_closed(
   ten_engine_t *engine = (ten_engine_t *)on_closed_data;
   TEN_ASSERT(engine, "Should not happen.");
   TEN_ASSERT(ten_engine_check_integrity(engine, true), "Should not happen.");
+
+  TEN_LOGD("[%s] Extension context closed.", ten_engine_get_id(engine, true));
 
   engine->extension_context = NULL;
 
