@@ -108,8 +108,8 @@ static void ten_engine_destroy(ten_engine_t *self) {
 // engines MUST be the same. graph_id will be generated in the first app, and
 // will transfer with the message to the next app.
 static void ten_engine_set_graph_id(ten_engine_t *self, ten_shared_ptr_t *cmd) {
-  TEN_ASSERT(self && ten_engine_check_integrity(self, true),
-             "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_engine_check_integrity(self, true), "Should not happen.");
   TEN_ASSERT(cmd && ten_msg_get_type(cmd) == TEN_MSG_TYPE_CMD_START_GRAPH,
              "Should not happen.");
 
@@ -154,16 +154,16 @@ static void ten_engine_set_graph_id(ten_engine_t *self, ten_shared_ptr_t *cmd) {
 }
 
 bool ten_engine_is_ready_to_handle_msg(ten_engine_t *self) {
-  TEN_ASSERT(self && ten_engine_check_integrity(self, true),
-             "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_engine_check_integrity(self, true), "Should not happen.");
 
   return self->is_ready_to_handle_msg;
 }
 
 static void ten_engine_on_end_of_life(ten_ref_t *ref, void *supervisee) {
   ten_engine_t *self = (ten_engine_t *)supervisee;
-  TEN_ASSERT(self && ten_engine_check_integrity(self, false),
-             "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_engine_check_integrity(self, false), "Should not happen.");
 
   ten_engine_destroy(self);
 }
@@ -252,8 +252,8 @@ const char *ten_engine_get_id(ten_engine_t *self, bool check_thread) {
 
 void ten_engine_del_orphan_connection(ten_engine_t *self,
                                       ten_connection_t *connection) {
-  TEN_ASSERT(self && ten_engine_check_integrity(self, true),
-             "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_engine_check_integrity(self, true), "Should not happen.");
   TEN_ASSERT(connection && ten_connection_check_integrity(connection, true),
              "Should not happen.");
 
@@ -275,8 +275,8 @@ ten_engine_on_orphan_connection_closed(ten_connection_t *connection,
              "Should not happen.");
 
   ten_engine_t *self = connection->attached_target.engine;
-  TEN_ASSERT(self && ten_engine_check_integrity(self, true),
-             "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_engine_check_integrity(self, true), "Should not happen.");
 
   TEN_LOGD("[%s] Orphan connection %p closed", ten_engine_get_id(self, true),
            connection);
@@ -300,8 +300,8 @@ ten_engine_on_orphan_connection_closed(ten_connection_t *connection,
 
 void ten_engine_add_orphan_connection(ten_engine_t *self,
                                       ten_connection_t *connection) {
-  TEN_ASSERT(self && ten_engine_check_integrity(self, true),
-             "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_engine_check_integrity(self, true), "Should not happen.");
   TEN_ASSERT(connection && ten_connection_check_integrity(connection, true),
              "Should not happen.");
 
@@ -321,8 +321,8 @@ void ten_engine_add_orphan_connection(ten_engine_t *self,
 
 ten_connection_t *ten_engine_find_orphan_connection(ten_engine_t *self,
                                                     const char *uri) {
-  TEN_ASSERT(self && ten_engine_check_integrity(self, true),
-             "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_engine_check_integrity(self, true), "Should not happen.");
 
   if (strlen(uri)) {
     ten_list_foreach(&self->orphan_connections, iter) {

@@ -54,7 +54,7 @@ int ten_addon_loader_singleton_store_unlock(void) {
   return ten_mutex_unlock(ten_addon_loader_singleton_get_global_store()->lock);
 }
 
-static bool ten_addon_loader_check_integrity(ten_addon_loader_t *self) {
+bool ten_addon_loader_check_integrity(ten_addon_loader_t *self) {
   TEN_ASSERT(self, "Should not happen.");
 
   if (ten_signature_get(&self->signature) !=
@@ -63,6 +63,13 @@ static bool ten_addon_loader_check_integrity(ten_addon_loader_t *self) {
   }
 
   return true;
+}
+
+ten_env_t *ten_addon_loader_get_ten_env(ten_addon_loader_t *self) {
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_addon_loader_check_integrity(self), "Invalid argument.");
+
+  return self->ten_env;
 }
 
 ten_addon_loader_t *
@@ -81,42 +88,49 @@ ten_addon_loader_create(ten_addon_loader_on_init_func_t on_init,
   self->on_deinit = on_deinit;
   self->on_load_addon = on_load_addon;
 
+  self->ten_env = ten_env_create_for_addon_loader(self);
+
   return self;
 }
 
 void ten_addon_loader_destroy(ten_addon_loader_t *self) {
-  TEN_ASSERT(self && ten_addon_loader_check_integrity(self),
-             "Invalid argument.");
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_addon_loader_check_integrity(self), "Invalid argument.");
+  TEN_ASSERT(self->ten_env, "Should not happen.");
+
+  ten_signature_set(&self->signature, 0);
+
+  ten_env_destroy(self->ten_env);
 
   TEN_FREE(self);
 }
 
 static void ten_addon_loader_init(ten_addon_loader_t *self) {
-  TEN_ASSERT(self && ten_addon_loader_check_integrity(self),
-             "Invalid argument.");
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_addon_loader_check_integrity(self), "Invalid argument.");
 
   if (self->on_init) {
-    self->on_init(self);
+    self->on_init(self, self->ten_env);
   }
 }
 
 static void ten_addon_loader_deinit(ten_addon_loader_t *self) {
-  TEN_ASSERT(self && ten_addon_loader_check_integrity(self),
-             "Invalid argument.");
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_addon_loader_check_integrity(self), "Invalid argument.");
 
   if (self->on_deinit) {
-    self->on_deinit(self);
+    self->on_deinit(self, self->ten_env);
   }
 }
 
 void ten_addon_loader_load_addon(ten_addon_loader_t *self,
                                  TEN_ADDON_TYPE addon_type,
                                  const char *addon_name) {
-  TEN_ASSERT(self && ten_addon_loader_check_integrity(self),
-             "Invalid argument.");
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_addon_loader_check_integrity(self), "Invalid argument.");
 
   if (self->on_load_addon) {
-    self->on_load_addon(self, addon_type, addon_name);
+    self->on_load_addon(self, self->ten_env, addon_type, addon_name);
   }
 }
 

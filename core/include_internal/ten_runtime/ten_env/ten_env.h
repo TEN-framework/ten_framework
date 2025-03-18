@@ -17,6 +17,7 @@
 #define TEN_ENV_SIGNATURE 0x1336D348DA779EA6U
 
 typedef struct ten_engine_t ten_engine_t;
+typedef struct ten_addon_loader_t ten_addon_loader_t;
 
 typedef void (*ten_env_destroy_handler_in_target_lang_func_t)(
     void *me_in_target_lang);
@@ -27,8 +28,9 @@ typedef enum TEN_ENV_ATTACH_TO {
   TEN_ENV_ATTACH_TO_EXTENSION,
   TEN_ENV_ATTACH_TO_EXTENSION_GROUP,
   TEN_ENV_ATTACH_TO_APP,
-  TEN_ENV_ATTACH_TO_ADDON,
   TEN_ENV_ATTACH_TO_ENGINE,
+  TEN_ENV_ATTACH_TO_ADDON,
+  TEN_ENV_ATTACH_TO_ADDON_LOADER,
 } TEN_ENV_ATTACH_TO;
 
 typedef struct ten_env_t {
@@ -54,6 +56,9 @@ typedef struct ten_env_t {
 
     // This is the engine which this ten_env_t object applies.
     ten_engine_t *engine;
+
+    // This is the addon loader which this ten_env_t object applies.
+    ten_addon_loader_t *addon_loader;
   } attached_target;
 
   // This flag indicates whether ten_env has been closed. If closed, no ten_env
@@ -89,6 +94,9 @@ TEN_RUNTIME_PRIVATE_API ten_env_t *ten_env_create_for_app(ten_app_t *app);
 
 TEN_RUNTIME_PRIVATE_API ten_env_t *ten_env_create_for_engine(
     ten_engine_t *engine);
+
+TEN_RUNTIME_PRIVATE_API ten_env_t *ten_env_create_for_addon_loader(
+    ten_addon_loader_t *addon_loader);
 
 TEN_RUNTIME_PRIVATE_API void ten_env_close(ten_env_t *self);
 

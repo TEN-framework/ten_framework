@@ -169,8 +169,8 @@ static bool ten_engine_handle_cmd_result_for_cmd_start_graph(
 void ten_engine_handle_cmd_result(ten_engine_t *self,
                                   ten_shared_ptr_t *cmd_result,
                                   ten_error_t *err) {
-  TEN_ASSERT(self && ten_engine_check_integrity(self, true),
-             "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_engine_check_integrity(self, true), "Should not happen.");
   TEN_ASSERT(cmd_result &&
                  ten_msg_get_type(cmd_result) == TEN_MSG_TYPE_CMD_RESULT &&
                  ten_msg_get_dest_cnt(cmd_result) == 1,

@@ -453,7 +453,8 @@ static void send_data_like_msg_callback(ten_env_t *ten_env,
 static void return_result_callback(ten_env_t *self,
                                    TEN_UNUSED ten_shared_ptr_t *cmd_result,
                                    void *user_data, ten_error_t *err) {
-  TEN_ASSERT(self && ten_env_check_integrity(self, true), "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_env_check_integrity(self, true), "Should not happen.");
 
   ten_env_tester_return_result_ctx_t *return_result_info = user_data;
   TEN_ASSERT(return_result_info, "Invalid argument.");

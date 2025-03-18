@@ -98,8 +98,8 @@ void ten_engine_create_its_own_thread(ten_engine_t *self) {
 
 void ten_engine_init_individual_eventloop_relevant_vars(ten_engine_t *self,
                                                         ten_app_t *app) {
-  TEN_ASSERT(self && ten_engine_check_integrity(self, true),
-             "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_engine_check_integrity(self, true), "Should not happen.");
   TEN_ASSERT(app && ten_app_check_integrity(app, true), "Should not happen.");
 
   // Each engine can have its own decision of having its own eventloop. We

@@ -25,8 +25,8 @@
 
 void ten_engine_on_extension_thread_closed(void *self_, void *arg) {
   ten_engine_t *self = self_;
-  TEN_ASSERT(self && ten_engine_check_integrity(self, true),
-             "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_engine_check_integrity(self, true), "Should not happen.");
 
   ten_extension_thread_t *extension_thread = arg;
   TEN_ASSERT(extension_thread &&
@@ -64,8 +64,8 @@ void ten_engine_on_extension_thread_closed(void *self_, void *arg) {
 
 void ten_engine_on_addon_create_extension_group_done(void *self_, void *arg) {
   ten_engine_t *self = self_;
-  TEN_ASSERT(self && ten_engine_check_integrity(self, true),
-             "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_engine_check_integrity(self, true), "Should not happen.");
 
   ten_extension_context_on_addon_create_extension_group_done_ctx_t *ctx = arg;
   TEN_ASSERT(ctx, "Should not happen.");
@@ -86,8 +86,8 @@ void ten_engine_on_addon_create_extension_group_done(void *self_, void *arg) {
 
 void ten_engine_on_addon_destroy_extension_group_done(void *self_, void *arg) {
   ten_engine_t *self = self_;
-  TEN_ASSERT(self && ten_engine_check_integrity(self, true),
-             "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_engine_check_integrity(self, true), "Should not happen.");
 
   ten_addon_context_t *addon_context = arg;
   TEN_ASSERT(addon_context, "Should not happen.");
@@ -117,8 +117,8 @@ static void ten_engine_thread_on_addon_create_protocol_done_ctx_destroy(
 
 void ten_engine_thread_on_addon_create_protocol_done(void *self, void *arg) {
   ten_engine_t *engine = self;
-  TEN_ASSERT(engine && ten_engine_check_integrity(engine, true),
-             "Should not happen.");
+  TEN_ASSERT(engine, "Should not happen.");
+  TEN_ASSERT(ten_engine_check_integrity(engine, true), "Should not happen.");
 
   ten_engine_thread_on_addon_create_protocol_done_ctx_t *ctx = arg;
   TEN_ASSERT(ctx, "Should not happen.");

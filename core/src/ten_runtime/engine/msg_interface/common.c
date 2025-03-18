@@ -360,8 +360,8 @@ static void ten_engine_post_msg_to_extension_thread(
 }
 
 bool ten_engine_dispatch_msg(ten_engine_t *self, ten_shared_ptr_t *msg) {
-  TEN_ASSERT(self && ten_engine_check_integrity(self, true),
-             "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_engine_check_integrity(self, true), "Should not happen.");
   TEN_ASSERT(msg && ten_msg_check_integrity(msg), "Should not happen.");
   TEN_ASSERT(ten_msg_get_dest_cnt(msg) == 1,
              "When this function is executed, there should be only one "
