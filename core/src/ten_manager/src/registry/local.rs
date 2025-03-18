@@ -352,6 +352,7 @@ fn find_file_with_criteria(
         }
         (None, None) => {
             // Search all package types and names.
+
             for type_entry in (std::fs::read_dir(base_url)?).flatten() {
                 if type_entry.file_type()?.is_dir() {
                     let type_dir = type_entry.path();

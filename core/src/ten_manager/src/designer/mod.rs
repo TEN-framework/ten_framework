@@ -16,7 +16,7 @@ pub mod graphs;
 mod help_text;
 mod messages;
 pub mod mock;
-mod registry;
+pub mod registry;
 pub mod response;
 mod terminal;
 mod version;
