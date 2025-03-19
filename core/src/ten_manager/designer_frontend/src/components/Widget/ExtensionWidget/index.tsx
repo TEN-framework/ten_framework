@@ -41,7 +41,7 @@ export const ExtensionStoreWidget = (props: {
   const { data, error, isLoading } = useListTenCloudStorePackages();
   const { data: envData, error: envError, isLoading: isLoadingEnv } = useEnv();
   const { extSearch, extFilter } = useWidgetStore();
-  const { addons, setAddons } = useAppStore();
+  const { addons, setAddons, setDefaultOsArch } = useAppStore();
 
   const deferredSearch = React.useDeferredValue(extSearch);
 
@@ -253,6 +253,13 @@ export const ExtensionStoreWidget = (props: {
       });
     }
   }, [error, envError]);
+
+  React.useEffect(() => {
+    if (envData?.os && envData?.arch) {
+      setDefaultOsArch({ os: envData.os, arch: envData.arch });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [envData?.os, envData?.arch]);
 
   if (isLoading || isFetchingAddons || isLoadingEnv) {
     return <SpinnerLoading className="mx-auto" />;
