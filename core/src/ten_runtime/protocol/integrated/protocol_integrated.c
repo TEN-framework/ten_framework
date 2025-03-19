@@ -238,7 +238,8 @@ static void ten_stream_on_data_sent(ten_stream_t *stream, int status,
 
   ten_protocol_integrated_t *protocol =
       (ten_protocol_integrated_t *)stream->user_data;
-  TEN_ASSERT(protocol && ten_protocol_check_integrity(&protocol->base, true),
+  TEN_ASSERT(protocol, "Should not happen.");
+  TEN_ASSERT(ten_protocol_check_integrity(&protocol->base, true),
              "Should not happen.");
   TEN_ASSERT(ten_protocol_attach_to(&protocol->base) ==
                      TEN_PROTOCOL_ATTACH_TO_CONNECTION &&
@@ -286,7 +287,8 @@ static void ten_app_thread_on_client_protocol_created(ten_env_t *ten_env,
              "Should not happen.");
 
   ten_protocol_integrated_t *protocol = (ten_protocol_integrated_t *)instance;
-  TEN_ASSERT(protocol && ten_protocol_check_integrity(&protocol->base, true),
+  TEN_ASSERT(protocol, "Should not happen.");
+  TEN_ASSERT(ten_protocol_check_integrity(&protocol->base, true),
              "Should not happen.");
 
   ten_stream_t *stream = cb_data;
@@ -485,7 +487,8 @@ static void ten_protocol_integrated_on_server_finally_connected(
   TEN_ASSERT(cb_data->on_server_connected, "Should not happen.");
 
   ten_protocol_integrated_t *protocol = cb_data->protocol;
-  TEN_ASSERT(protocol && ten_protocol_check_integrity(&protocol->base, true),
+  TEN_ASSERT(protocol, "Should not happen.");
+  TEN_ASSERT(ten_protocol_check_integrity(&protocol->base, true),
              "Should not happen.");
 
   cb_data->on_server_connected(&cb_data->protocol->base, success);
@@ -522,7 +525,8 @@ static void ten_transport_on_server_connected_after_retry(
   ten_protocol_integrated_t *protocol = transport->user_data;
   // Since the transport is created with the runloop of the engine, it is
   // currently in the engine thread.
-  TEN_ASSERT(protocol && ten_protocol_check_integrity(&protocol->base, true),
+  TEN_ASSERT(protocol, "Should not happen.");
+  TEN_ASSERT(ten_protocol_check_integrity(&protocol->base, true),
              "Should not happen.");
   TEN_ASSERT(ten_protocol_role_is_communication(&protocol->base),
              "Should not happen.");
@@ -532,12 +536,12 @@ static void ten_transport_on_server_connected_after_retry(
   TEN_ASSERT(connect_to_context, "Should not happen.");
   TEN_ASSERT(connect_to_context->on_server_connected, "Should not happen.");
 
-  // Mark that we're no longer in the connecting state.
-  protocol->base.is_connecting = false;
-
   // If the protocol is being closed, clean up resources and return early.
   if (protocol->base.state == TEN_PROTOCOL_STATE_CLOSING) {
     ten_stream_close(stream);
+
+    // There is no need to explicitly stop and close `retry_timer` here, because
+    // the protocol's closing flow will explicitly close `retry_timer`.
 
     // The ownership of the 'connect_to_context' is transferred to the timer, so
     // the 'connect_to_context' will be freed when the timer is closed.
@@ -600,7 +604,8 @@ ten_protocol_integrated_on_retry_timer_triggered(TEN_UNUSED ten_timer_t *self,
   TEN_ASSERT(connect_to_context, "Should not happen.");
 
   ten_protocol_integrated_t *protocol = connect_to_context->protocol;
-  TEN_ASSERT(protocol && ten_protocol_check_integrity(&protocol->base, true),
+  TEN_ASSERT(protocol, "Should not happen.");
+  TEN_ASSERT(ten_protocol_check_integrity(&protocol->base, true),
              "Should not happen.");
 
   ten_runloop_t *loop = ten_protocol_get_attached_runloop(&protocol->base);
@@ -642,8 +647,6 @@ ten_protocol_integrated_on_retry_timer_triggered(TEN_UNUSED ten_timer_t *self,
   // Add some random delays in debug mode to simulate network latency.
   ten_random_sleep_range_ms(0, 100);
 #endif
-
-  protocol->base.is_connecting = true;
 }
 
 static void ten_protocol_integrated_on_retry_timer_closed(ten_timer_t *timer,
@@ -654,7 +657,8 @@ static void ten_protocol_integrated_on_retry_timer_closed(ten_timer_t *timer,
   TEN_ASSERT(connect_to_context, "Should not happen.");
 
   ten_protocol_integrated_t *protocol = connect_to_context->protocol;
-  TEN_ASSERT(protocol && ten_protocol_check_integrity(&protocol->base, true),
+  TEN_ASSERT(protocol, "Should not happen.");
+  TEN_ASSERT(ten_protocol_check_integrity(&protocol->base, true),
              "Should not happen.");
 
   if (connect_to_context->on_server_connected) {
@@ -670,6 +674,14 @@ static void ten_protocol_integrated_on_retry_timer_closed(ten_timer_t *timer,
   }
 
   protocol->retry_timer = NULL;
+
+  // Since `retry_timer` is attached to the runloop, stopping the runloop before
+  // `retry_timer` is fully closed can lead to unexpected issues (for example,
+  // in libuv, stopping the runloop while there are still active handles can
+  // cause memory leaks). Therefore, before `retry_timer` is completely closed,
+  // `is_connecting` needs to be set to `true` to block the protocol's closing
+  // flow.
+  protocol->base.is_connecting = false;
 
   if (protocol->base.state == TEN_PROTOCOL_STATE_CLOSING) {
     ten_protocol_integrated_on_close(protocol);
@@ -710,6 +722,8 @@ static void ten_transport_on_server_connected(ten_transport_t *transport,
   TEN_ASSERT(cb_data, "Should not happen.");
   TEN_ASSERT(cb_data->on_server_connected, "Should not happen.");
 
+  // This connection has already ended, so `is_connecting` is set to `false` to
+  // unblock the closing flow, allowing it to proceed as intended.
   protocol->base.is_connecting = false;
 
   // If protocol is already closing, clean up and report failure.
@@ -769,6 +783,14 @@ static void ten_transport_on_server_connected(ten_transport_t *transport,
         timer, ten_protocol_integrated_on_retry_timer_triggered, cb_data);
     ten_timer_set_on_closed(
         timer, ten_protocol_integrated_on_retry_timer_closed, cb_data);
+
+    // Since `retry_timer` is attached to the runloop, stopping the runloop
+    // before `retry_timer` is fully closed can lead to unexpected issues (for
+    // example, in libuv, stopping the runloop while there are still active
+    // handles can cause memory leaks). Therefore, before `retry_timer` is
+    // completely closed, `is_connecting` needs to be set to `true` to block the
+    // protocol's closing flow.
+    protocol->base.is_connecting = true;
 
     ten_timer_enable(timer);
   }
@@ -850,14 +872,19 @@ static void ten_protocol_integrated_connect_to(
         connect_to_server_context, false);
 
     ten_transport_close(transport);
+  } else {
+    // The connect flow has been successfully started. Regardless of whether it
+    // succeeds or fails, the connect callback will be invoked. Therefore,
+    // `is_connecting` needs to be used to block the protocol's closing flow to
+    // prevent the protocol from being destroyed before the connect callback is
+    // called.
+    self->base.is_connecting = true;
   }
 
 #if defined(_DEBUG)
   // Add some random delays in debug mode to simulate network latency.
   ten_random_sleep_range_ms(0, 100);
 #endif
-
-  self->base.is_connecting = true;
 
   ten_string_destroy(transport_uri);
 }

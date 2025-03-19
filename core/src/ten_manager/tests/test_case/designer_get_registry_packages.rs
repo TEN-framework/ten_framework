@@ -8,9 +8,7 @@
 mod tests {
     use actix_web::web;
 
-    use ten_manager::designer::registry::packages::{
-        get_packages_endpoint, GetPackagesRequestPayload,
-    };
+    use ten_manager::designer::registry::packages::get_packages_endpoint;
     use ten_rust::pkg_info::pkg_type::PkgType;
 
     use crate::test_case::common::builtin_server::start_test_server;
@@ -20,34 +18,33 @@ mod tests {
         // Start the http server and get its address.
         let server_addr =
             start_test_server("/api/designer/v1/packages", || {
-                web::post().to(get_packages_endpoint)
+                web::get().to(get_packages_endpoint)
             })
             .await;
         println!("Server started at: {}", server_addr);
 
-        // Create a request without filters (to get all packages).
-        let request_payload = GetPackagesRequestPayload {
-            pkg_type: Some(PkgType::Extension),
-            name: Some("ext_a".to_string()),
-            version_req: Some("1.0.0".to_string()),
-        };
-
-        println!("Request payload: {:?}", request_payload);
+        // Create query parameters
+        let pkg_type = PkgType::Extension;
+        let name = "ext_a";
+        let version_req = "1.0.0";
 
         // Create a reqwest client to send the request.
         let client = reqwest::Client::builder()
-            .no_proxy() // Disable using proxy from environment variables
+            .no_proxy() // Disable using proxy from environment variables.
             .build()
             .expect("Failed to build client");
 
-        // Construct the full URL using the server address.
-        let url = format!("http://{}/api/designer/v1/packages", server_addr);
+        // Construct the full URL using the server address with query
+        // parameters.
+        let url = format!(
+            "http://{}/api/designer/v1/packages?pkg_type={}&name={}&version_req={}",
+            server_addr, pkg_type, name, version_req
+        );
         println!("Sending request to URL: {}", url);
 
-        // Send the POST request with the payload.
+        // Send the GET request with query parameters.
         let response = client
-            .post(&url)
-            .json(&request_payload)
+            .get(&url)
             .send()
             .await
             .expect("Failed to send request");

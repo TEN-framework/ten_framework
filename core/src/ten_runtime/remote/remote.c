@@ -37,8 +37,8 @@ bool ten_remote_check_integrity(ten_remote_t *self, bool check_thread) {
 }
 
 static bool ten_remote_could_be_close(ten_remote_t *self) {
-  TEN_ASSERT(self && ten_remote_check_integrity(self, true),
-             "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_remote_check_integrity(self, true), "Should not happen.");
 
   if (!self->connection ||
       self->connection->state == TEN_CONNECTION_STATE_CLOSED) {
@@ -101,8 +101,8 @@ void ten_remote_destroy(ten_remote_t *self) {
  * @param self Pointer to the remote to be closed.
  */
 static void ten_remote_do_close(ten_remote_t *self) {
-  TEN_ASSERT(self && ten_remote_check_integrity(self, true),
-             "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_remote_check_integrity(self, true), "Should not happen.");
 
   // Mark this 'remote' as CLOSED, which indicates that all resources have been
   // properly released and the remote is fully closed. This state change allows
@@ -223,8 +223,8 @@ static ten_remote_t *ten_remote_create_empty(const char *uri,
 static void ten_remote_set_on_closed(ten_remote_t *self,
                                      ten_remote_on_closed_func_t on_close,
                                      void *on_close_data) {
-  TEN_ASSERT(self && ten_remote_check_integrity(self, true),
-             "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_remote_check_integrity(self, true), "Should not happen.");
 
   self->on_closed = on_close;
   self->on_closed_data = on_close_data;
@@ -275,8 +275,8 @@ ten_remote_t *ten_remote_create_for_engine(const char *uri,
                                            ten_connection_t *connection) {
   TEN_ASSERT(connection && ten_connection_check_integrity(connection, true),
              "Should not happen.");
-  TEN_ASSERT(engine && ten_engine_check_integrity(engine, true),
-             "Should not happen.");
+  TEN_ASSERT(engine, "Should not happen.");
+  TEN_ASSERT(ten_engine_check_integrity(engine, true), "Should not happen.");
 
   // NOTE: Whether the remote uri is duplicated in the engine should _not_ be
   // checked when the remote is created, but should be checked when the engine
@@ -326,8 +326,8 @@ void ten_remote_close(ten_remote_t *self) {
 
 bool ten_remote_on_input(ten_remote_t *self, ten_shared_ptr_t *msg,
                          ten_error_t *err) {
-  TEN_ASSERT(self && ten_remote_check_integrity(self, true),
-             "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_remote_check_integrity(self, true), "Should not happen.");
   TEN_ASSERT(msg, "Should not happen.");
   TEN_ASSERT(self->engine && ten_engine_check_integrity(self->engine, true),
              "Should not happen.");
@@ -345,8 +345,8 @@ bool ten_remote_on_input(ten_remote_t *self, ten_shared_ptr_t *msg,
 
 bool ten_remote_send_msg(ten_remote_t *self, ten_shared_ptr_t *msg,
                          ten_error_t *err) {
-  TEN_ASSERT(self && ten_remote_check_integrity(self, true),
-             "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_remote_check_integrity(self, true), "Should not happen.");
 
   if (self->state == TEN_REMOTE_STATE_CLOSING) {
     // The remote is closing, do not proceed to send this message to
@@ -429,14 +429,32 @@ static void on_server_connected(ten_protocol_t *protocol, bool success) {
   remote->on_error = NULL;
 }
 
+/**
+ * @brief Initiates a connection to a remote server.
+ *
+ * This function attempts to establish a connection to a remote server using the
+ * URI stored in the remote object. It sets up callbacks to be invoked when the
+ * connection succeeds or fails.
+ *
+ * The function stores the provided callbacks and command in the remote object,
+ * which will be used by the `on_server_connected` callback when the connection
+ * attempt completes.
+ *
+ * @param self The remote instance initiating the connection. Must not be NULL.
+ * @param connected Callback function to be invoked if the connection succeeds.
+ * @param on_server_connected_cmd Command to be passed to the callbacks when
+ * invoked. If not NULL, it will be cloned and stored in the remote object.
+ * @param on_error Callback function to be invoked if the connection fails.
+ */
 void ten_remote_connect_to(ten_remote_t *self,
                            ten_remote_on_server_connected_func_t connected,
                            ten_shared_ptr_t *on_server_connected_cmd,
                            ten_remote_on_error_func_t on_error) {
-  TEN_ASSERT(self && ten_remote_check_integrity(self, true),
-             "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_remote_check_integrity(self, true), "Should not happen.");
 
-  TEN_ASSERT(self->engine && ten_engine_check_integrity(self->engine, true),
+  TEN_ASSERT(self->engine, "Should not happen.");
+  TEN_ASSERT(ten_engine_check_integrity(self->engine, true),
              "Should not happen.");
 
   self->on_server_connected = connected;

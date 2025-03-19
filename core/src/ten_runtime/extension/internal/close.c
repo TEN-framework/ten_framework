@@ -101,8 +101,8 @@ static void ten_extension_do_close(ten_extension_t *self) {
 }
 
 void ten_extension_on_timer_closed(ten_timer_t *timer, void *on_closed_data) {
-  TEN_ASSERT(timer && ten_timer_check_integrity(timer, true),
-             "Should not happen.");
+  TEN_ASSERT(timer, "Should not happen.");
+  TEN_ASSERT(ten_timer_check_integrity(timer, true), "Should not happen.");
 
   ten_extension_t *extension = (ten_extension_t *)on_closed_data;
   TEN_ASSERT(extension && ten_extension_check_integrity(extension, true),

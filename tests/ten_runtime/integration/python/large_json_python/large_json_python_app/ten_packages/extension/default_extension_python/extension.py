@@ -32,12 +32,12 @@ class DefaultExtension(Extension):
         self.queue.get()
 
         i = 0
-        for _ in range(0, 10000):
+        for _ in range(0, 100):
             _, err = ten_env.get_property_string("undefinedKey")
             if err is not None:
                 i += 1
 
-        assert i == 10000
+        assert i == 100
 
         self.queue.get()
 

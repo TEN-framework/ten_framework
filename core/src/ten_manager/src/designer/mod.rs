@@ -18,7 +18,7 @@ mod messages;
 pub mod mock;
 pub mod registry;
 pub mod response;
-mod terminal;
+pub mod terminal;
 mod version;
 
 use std::{
@@ -77,7 +77,7 @@ pub fn configure_routes(
             )
             .route(
                 "/registry/packages",
-                web::post().to(registry::packages::get_packages_endpoint),
+                web::get().to(registry::packages::get_packages_endpoint),
             )
             .route("/apps", web::get().to(apps::get_apps_endpoint))
             .route("/apps", web::post().to(apps::load_app_endpoint))

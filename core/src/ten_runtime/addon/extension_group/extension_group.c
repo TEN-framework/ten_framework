@@ -61,8 +61,8 @@ bool ten_addon_create_extension_group(
   // parameters below.
 
   ten_engine_t *engine = ten_env_get_attached_engine(ten_env);
-  TEN_ASSERT(engine && ten_engine_check_integrity(engine, true),
-             "Should not happen.");
+  TEN_ASSERT(engine, "Should not happen.");
+  TEN_ASSERT(ten_engine_check_integrity(engine, true), "Should not happen.");
 
   return ten_addon_create_instance_async(
       ten_env, TEN_ADDON_TYPE_EXTENSION_GROUP, addon_name, instance_name, cb,
@@ -83,8 +83,8 @@ bool ten_addon_destroy_extension_group(
              "Should not happen.");
 
   ten_engine_t *engine = ten_env_get_attached_engine(ten_env);
-  TEN_ASSERT(engine && ten_engine_check_integrity(engine, true),
-             "Should not happen.");
+  TEN_ASSERT(engine, "Should not happen.");
+  TEN_ASSERT(ten_engine_check_integrity(engine, true), "Should not happen.");
 
   ten_addon_host_t *addon_host = extension_group->addon_host;
   TEN_ASSERT(addon_host,

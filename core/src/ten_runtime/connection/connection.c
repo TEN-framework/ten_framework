@@ -469,6 +469,22 @@ void ten_connection_on_msgs(ten_connection_t *self, ten_list_t *msgs) {
   ten_error_deinit(&err);
 }
 
+/**
+ * @brief Initiates a connection to a remote server using the connection's
+ * protocol.
+ *
+ * This function attempts to establish a connection to a remote server specified
+ * by the URI. It verifies that the connection is valid and has a communication
+ * protocol attached. If the connection is already attached to a remote, it
+ * ensures the remote's engine is valid. The callback will be invoked when the
+ * connection attempt completes, indicating success or failure.
+ *
+ * @param self The connection instance initiating the connection.
+ * @param uri The URI of the remote server to connect to. Must not be NULL.
+ * @param on_server_connected Callback function to be invoked when the
+ * connection attempt completes. The first parameter is the protocol instance,
+ * and the second parameter indicates success (true) or failure (false).
+ */
 void ten_connection_connect_to(ten_connection_t *self, const char *uri,
                                void (*on_server_connected)(ten_protocol_t *,
                                                            bool)) {
@@ -476,20 +492,23 @@ void ten_connection_connect_to(ten_connection_t *self, const char *uri,
   TEN_ASSERT(ten_connection_check_integrity(self, true),
              "Invalid use of connection %p.", self);
 
-  TEN_ASSERT(uri, "Should not happen.");
+  TEN_ASSERT(uri, "URI cannot be NULL.");
 
+  // If already attached to a remote, verify the remote's engine integrity.
   if (ten_atomic_load(&self->attach_to) == TEN_CONNECTION_ATTACH_TO_REMOTE) {
     TEN_ASSERT(
         ten_engine_check_integrity(self->attached_target.remote->engine, true),
-        "Should not happen.");
+        "Remote engine integrity check failed.");
   }
 
-  TEN_ASSERT(self->protocol &&
-                 ten_protocol_check_integrity(self->protocol, true),
-             "Should not happen.");
+  // Verify protocol exists and is valid for communication.
+  TEN_ASSERT(self->protocol, "Connection must have a valid protocol.");
+  TEN_ASSERT(ten_protocol_check_integrity(self->protocol, true),
+             "Connection must have a valid protocol.");
   TEN_ASSERT(ten_protocol_role_is_communication(self->protocol),
-             "Should not happen.");
+             "Protocol must be a communication protocol.");
 
+  // Delegate the connection request to the protocol layer.
   ten_protocol_connect_to(self->protocol, uri, on_server_connected);
 }
 

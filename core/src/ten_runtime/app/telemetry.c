@@ -104,6 +104,8 @@ bool ten_app_init_telemetry_system(ten_app_t *self, ten_value_t *value) {
 void ten_app_deinit_telemetry_system(ten_app_t *self) {
 #if defined(TEN_ENABLE_TEN_RUST_APIS)
   if (self->telemetry_system) {
+    TEN_LOGD("[%s] Destroy telemetry system.", ten_app_get_uri(self));
+
     ten_app_destroy_metric(self);
     ten_telemetry_system_shutdown(self->telemetry_system);
   }

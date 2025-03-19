@@ -330,8 +330,8 @@ void ten_msg_set_src_uri_if_empty(ten_shared_ptr_t *self, const char *uri) {
 void ten_msg_set_src_engine_if_unspecified(ten_shared_ptr_t *self,
                                            ten_engine_t *engine) {
   TEN_ASSERT(self && ten_msg_check_integrity(self), "Should not happen.");
-  TEN_ASSERT(engine && ten_engine_check_integrity(engine, true),
-             "Invalid argument.");
+  TEN_ASSERT(engine, "Invalid argument.");
+  TEN_ASSERT(ten_engine_check_integrity(engine, true), "Invalid argument.");
 
   if (ten_msg_src_graph_id_is_empty(self)) {
     ten_string_copy(&(ten_msg_get_raw_msg(self)->src_loc.graph_id),

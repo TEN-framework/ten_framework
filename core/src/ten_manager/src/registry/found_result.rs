@@ -12,7 +12,7 @@ use ten_rust::pkg_info::manifest::Manifest;
 use ten_rust::pkg_info::pkg_basic_info::PkgBasicInfo;
 use ten_rust::pkg_info::PkgInfo;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct PkgRegistryInfo {
     #[serde(flatten)]
     pub basic_info: PkgBasicInfo,

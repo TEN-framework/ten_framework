@@ -109,7 +109,7 @@ class python_addon_loader_t : public ten::addon_loader_t {
  public:
   explicit python_addon_loader_t(const char *name) { (void)name; };
 
-  void on_init() override {
+  void on_init(TEN_UNUSED ten::ten_env_t &ten_env) override {
     // Do some initializations.
 
     int py_initialized = ten_py_is_initialized();
@@ -164,7 +164,7 @@ class python_addon_loader_t : public ten::addon_loader_t {
     py_thread_state_ = ten_py_eval_save_thread();
   }
 
-  void on_deinit() override {
+  void on_deinit(TEN_UNUSED ten::ten_env_t &ten_env) override {
     // Do some de-initializations.
     if (py_thread_state_ != nullptr) {
       ten_py_eval_restore_thread(py_thread_state_);
@@ -186,7 +186,8 @@ class python_addon_loader_t : public ten::addon_loader_t {
   // called from multiple threads. Therefore, it must be thread-safe. Since it
   // calls `ten_py_gil_state_ensure` and `ten_py_gil_state_release`, thread
   // safety is ensured.
-  void on_load_addon(TEN_ADDON_TYPE addon_type,
+  void on_load_addon(TEN_UNUSED ten::ten_env_t &ten_env,
+                     TEN_ADDON_TYPE addon_type,
                      const char *addon_name) override {
     // Load the specified addon.
     TEN_LOGD("[Python addon loader] on_load_addon, %s:%s",

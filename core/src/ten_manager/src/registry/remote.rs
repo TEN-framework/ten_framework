@@ -24,8 +24,8 @@ use ten_rust::pkg_info::PkgInfo;
 
 use super::pkg_cache::{find_in_package_cache, store_file_to_package_cache};
 use crate::constants::{
-    REMOTE_REGISTRY_MAX_RETRIES, REMOTE_REGISTRY_REQUEST_TIMEOUT_SECS,
-    REMOTE_REGISTRY_RETRY_DELAY_MS,
+    DEFAULT_REGISTRY_PAGE_SIZE, REMOTE_REGISTRY_MAX_RETRIES,
+    REMOTE_REGISTRY_REQUEST_TIMEOUT_SECS, REMOTE_REGISTRY_RETRY_DELAY_MS,
 };
 use crate::http::create_http_client_with_proxies;
 use crate::output::TmanOutput;
@@ -573,6 +573,8 @@ struct RegistryPackagesData {
 ///   extension).
 /// * `name` - Optional name of the package to search for.
 /// * `version_req` - Optional version requirement to filter packages.
+/// * `page_size` - Optional page size for pagination.
+/// * `page` - Optional page number for pagination.
 /// * `out` - Output interface for logging.
 ///
 /// # Returns
@@ -584,12 +586,15 @@ struct RegistryPackagesData {
 /// * If the request to the registry fails.
 /// * If the API response has a non-OK status.
 /// * If parsing the JSON response fails.
+#[allow(clippy::too_many_arguments)]
 pub async fn get_package_list(
     tman_config: Arc<TmanConfig>,
     base_url: &str,
     pkg_type: Option<PkgType>,
     name: Option<String>,
     version_req: Option<VersionReq>,
+    page_size: Option<u32>,
+    page: Option<u32>,
     out: Arc<Box<dyn TmanOutput>>,
 ) -> Result<Vec<PkgRegistryInfo>> {
     let max_retries = REMOTE_REGISTRY_MAX_RETRIES;
@@ -611,10 +616,17 @@ pub async fn get_package_list(
             let name = name.clone();
             let tman_config = tman_config.clone();
 
+
             Box::pin(async move {
                 let mut results = Vec::new();
-                let mut current_page = 1;
+                // If page is specified, we'll fetch only that page.
+                // Otherwise, we'll start from page 1 and fetch all pages.
+                let mut current_page = page.unwrap_or(1);
                 let mut total_size;
+                // Determine if we should fetch multiple pages or just one.
+                let fetch_single_page = page.is_some();
+                // Use provided page_size or default to DEFAULT_REGISTRY_PAGE_SIZE.
+                let page_size_value = page_size.unwrap_or(DEFAULT_REGISTRY_PAGE_SIZE);
 
                 loop {
                     // Build the URL with query parameters for pagination and
@@ -636,8 +648,8 @@ pub async fn get_package_list(
                             query.append_pair("version", &vr.to_string());
                         }
 
-                        // Pagination parameters always included
-                        query.append_pair("pageSize", "100")
+                        // Pagination parameters.
+                        query.append_pair("pageSize", &page_size_value.to_string())
                             .append_pair("page", &current_page.to_string());
                     } // query is dropped here
 
@@ -650,8 +662,9 @@ pub async fn get_package_list(
                         );
 
                         out.normal_line(&format!(
-                            "Fetching page {} with query params: {}",
+                            "Fetching page {} with page size {} and query params: {}",
                             current_page,
+                            page_size_value,
                             query_info.trim()
                         ));
                     }
@@ -720,8 +733,9 @@ pub async fn get_package_list(
                         ));
                     }
 
-                    // Check if we've fetched all packages based on totalSize
-                    if results.len() >= total_size || packages_is_empty {
+                    // If we're only fetching a single page or we've reached the
+                    // end, break the loop.
+                    if fetch_single_page || results.len() >= total_size || packages_is_empty {
                         break;
                     }
 

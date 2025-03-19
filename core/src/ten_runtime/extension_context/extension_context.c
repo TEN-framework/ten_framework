@@ -55,8 +55,8 @@ bool ten_extension_context_check_integrity(ten_extension_context_t *self,
 }
 
 ten_extension_context_t *ten_extension_context_create(ten_engine_t *engine) {
-  TEN_ASSERT(engine && ten_engine_check_integrity(engine, true),
-             "Should not happen.");
+  TEN_ASSERT(engine, "Should not happen.");
+  TEN_ASSERT(ten_engine_check_integrity(engine, true), "Should not happen.");
 
   TEN_LOGD("[%s] Create Extension context.", ten_engine_get_id(engine, true));
 
@@ -124,8 +124,8 @@ ten_extension_context_do_close_after_all_extension_groups_are_closed(
              "Invalid use of extension_context %p.", self);
 
   ten_engine_t *engine = self->engine;
-  TEN_ASSERT(engine && ten_engine_check_integrity(engine, true),
-             "Should not happen.");
+  TEN_ASSERT(engine, "Should not happen.");
+  TEN_ASSERT(ten_engine_check_integrity(engine, true), "Should not happen.");
   ten_env_close(engine->ten_env);
 
   if (self->on_closed) {
@@ -193,8 +193,8 @@ ten_extension_context_on_extension_group_destroyed(ten_env_t *ten_env,
              "Should not happen.");
 
   ten_engine_t *engine = ten_env_get_attached_engine(ten_env);
-  TEN_ASSERT(engine && ten_engine_check_integrity(engine, true),
-             "Should not happen.");
+  TEN_ASSERT(engine, "Should not happen.");
+  TEN_ASSERT(ten_engine_check_integrity(engine, true), "Should not happen.");
 
   ten_extension_context_t *extension_context = engine->extension_context;
   TEN_ASSERT(extension_context, "Invalid argument.");
@@ -390,8 +390,8 @@ destroy_extension_group_by_addon(ten_extension_group_t *extension_group) {
              "Invalid use of extension_context %p.", extension_context);
 
   ten_engine_t *engine = extension_context->engine;
-  TEN_ASSERT(engine && ten_engine_check_integrity(engine, true),
-             "Should not happen.");
+  TEN_ASSERT(engine, "Should not happen.");
+  TEN_ASSERT(ten_engine_check_integrity(engine, true), "Should not happen.");
 
   ten_env_t *ten_env = engine->ten_env;
   TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
@@ -416,8 +416,8 @@ static void ten_extension_context_create_extension_group_done(
              "Should not happen.");
 
   ten_engine_t *engine = ten_env_get_attached_engine(ten_env);
-  TEN_ASSERT(engine && ten_engine_check_integrity(engine, true),
-             "Should not happen.");
+  TEN_ASSERT(engine, "Should not happen.");
+  TEN_ASSERT(ten_engine_check_integrity(engine, true), "Should not happen.");
 
   ten_extension_context_t *extension_context = engine->extension_context;
   TEN_ASSERT(extension_context, "Invalid argument.");
@@ -517,8 +517,8 @@ bool ten_extension_context_start_extension_group(ten_extension_context_t *self,
              "Invalid use of extension_context %p.", self);
 
   ten_engine_t *engine = self->engine;
-  TEN_ASSERT(engine && ten_engine_check_integrity(engine, true),
-             "Should not happen.");
+  TEN_ASSERT(engine, "Should not happen.");
+  TEN_ASSERT(ten_engine_check_integrity(engine, true), "Should not happen.");
 
   ten_shared_ptr_t *original_start_graph_cmd =
       engine->original_start_graph_cmd_of_enabling_engine;

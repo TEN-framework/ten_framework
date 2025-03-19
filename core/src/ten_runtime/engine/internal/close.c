@@ -35,8 +35,8 @@
  * @param self Pointer to the engine instance to close.
  */
 static void ten_engine_close_sync(ten_engine_t *self) {
-  TEN_ASSERT(self && ten_engine_check_integrity(self, true),
-             "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_engine_check_integrity(self, true), "Should not happen.");
 
   TEN_LOGD("[%s:%s] Try to close engine.", ten_app_get_uri(self->app),
            ten_engine_get_id(self, true));
@@ -109,11 +109,12 @@ static void ten_engine_close_sync(ten_engine_t *self) {
  */
 static void ten_engine_close_task(void *engine_, TEN_UNUSED void *arg) {
   ten_engine_t *engine = (ten_engine_t *)engine_;
-  TEN_ASSERT(engine && ten_engine_check_integrity(engine, true),
-             "Invalid argument.");
+  TEN_ASSERT(engine, "Invalid argument.");
+  TEN_ASSERT(ten_engine_check_integrity(engine, true), "Invalid argument.");
 
   if (engine->is_closing) {
-    TEN_LOGD("Engine is already closing, do not close again.");
+    TEN_LOGD("[%s] Engine is already closing, do not close again.",
+             ten_engine_get_id(engine, true));
     goto done;
   }
 
@@ -180,8 +181,8 @@ void ten_engine_close_async(ten_engine_t *self) {
 }
 
 static size_t ten_engine_unclosed_remotes_cnt(ten_engine_t *self) {
-  TEN_ASSERT(self && ten_engine_check_integrity(self, true),
-             "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_engine_check_integrity(self, true), "Should not happen.");
 
   size_t unclosed_remotes = 0;
 
@@ -212,14 +213,14 @@ static size_t ten_engine_unclosed_remotes_cnt(ten_engine_t *self) {
 }
 
 static bool ten_engine_could_be_close(ten_engine_t *self) {
-  TEN_ASSERT(self && ten_engine_check_integrity(self, true),
-             "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_engine_check_integrity(self, true), "Should not happen.");
 
   size_t unclosed_remotes = ten_engine_unclosed_remotes_cnt(self);
 
   TEN_LOGD("[%s] engine liveness: %zu remotes, %zu timers, "
            "extension_context %p",
-           ten_app_get_uri(self->app), unclosed_remotes,
+           ten_engine_get_id(self, true), unclosed_remotes,
            ten_list_size(&self->timers), self->extension_context);
 
   if (unclosed_remotes == 0 && ten_list_is_empty(&self->timers) &&
@@ -263,8 +264,8 @@ static void ten_engine_do_close(ten_engine_t *self) {
 }
 
 void ten_engine_on_close(ten_engine_t *self) {
-  TEN_ASSERT(self && ten_engine_check_integrity(self, true),
-             "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_engine_check_integrity(self, true), "Should not happen.");
 
   if (!ten_engine_could_be_close(self)) {
     TEN_LOGD("[%s] Could not close alive engine.",
@@ -278,12 +279,12 @@ void ten_engine_on_close(ten_engine_t *self) {
 }
 
 void ten_engine_on_timer_closed(ten_timer_t *timer, void *on_closed_data) {
-  TEN_ASSERT(timer && ten_timer_check_integrity(timer, true),
-             "Should not happen.");
+  TEN_ASSERT(timer, "Should not happen.");
+  TEN_ASSERT(ten_timer_check_integrity(timer, true), "Should not happen.");
 
   ten_engine_t *engine = (ten_engine_t *)on_closed_data;
-  TEN_ASSERT(engine && ten_engine_check_integrity(engine, true),
-             "Should not happen.");
+  TEN_ASSERT(engine, "Should not happen.");
+  TEN_ASSERT(ten_engine_check_integrity(engine, true), "Should not happen.");
 
   // Remove the timer from the timer list.
   ten_list_remove_ptr(&engine->timers, timer);
@@ -300,9 +301,13 @@ void ten_engine_on_extension_context_closed(
              "Invalid use of extension_context %p.", extension_context);
 
   ten_engine_t *engine = (ten_engine_t *)on_closed_data;
-  TEN_ASSERT(engine && ten_engine_check_integrity(engine, true),
-             "Should not happen.");
+  TEN_ASSERT(engine, "Should not happen.");
+  TEN_ASSERT(ten_engine_check_integrity(engine, true), "Should not happen.");
 
+  TEN_LOGD("[%s] Extension context closed.", ten_engine_get_id(engine, true));
+
+  // The extension context is closed, so set the pointer to NULL to prevent it
+  // from being used again.
   engine->extension_context = NULL;
 
   if (engine->is_closing) {
@@ -313,8 +318,8 @@ void ten_engine_on_extension_context_closed(
 void ten_engine_set_on_closed(ten_engine_t *self,
                               ten_engine_on_closed_func_t on_closed,
                               void *on_closed_data) {
-  TEN_ASSERT(self && ten_engine_check_integrity(self, false),
-             "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_engine_check_integrity(self, false), "Should not happen.");
   TEN_ASSERT(ten_app_check_integrity(self->app, true), "Should not happen.");
 
   self->on_closed = on_closed;
