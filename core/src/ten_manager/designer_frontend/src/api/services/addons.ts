@@ -18,3 +18,16 @@ export const getExtensionAddonByName = async (name: string) => {
   const res = await req;
   return template.responseSchema.parse(res).data;
 };
+
+export const retrieveAddons = async (payload: {
+  base_dir?: string;
+  addon_name?: string;
+  addon_type?: string;
+}) => {
+  const template = ENDPOINT_ADDONS.addons[ENDPOINT_METHOD.POST];
+  const req = makeAPIRequest(template, {
+    body: payload,
+  });
+  const res = await req;
+  return template.responseSchema.parse(res).data;
+};

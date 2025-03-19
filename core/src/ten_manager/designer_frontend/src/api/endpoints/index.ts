@@ -52,10 +52,21 @@ export const ENDPOINT_COMMON = {
       ),
     },
   },
+  env: {
+    [ENDPOINT_METHOD.GET]: {
+      url: `${API_DESIGNER_V1}/env`,
+      method: ENDPOINT_METHOD.GET,
+      responseSchema: genResSchema<{ os?: string; arch?: string }>(
+        z.object({
+          os: z.string().optional(),
+          arch: z.string().optional(),
+        })
+      ),
+    },
+  },
 };
 
 export { ENDPOINT_GRAPHS } from "@/api/endpoints/graphs";
-export { ENDPOINT_ADDONS } from "@/api/endpoints/addons";
 export { ENDPOINT_FILE_SYSTEM } from "@/api/endpoints/fileSystem";
-export { ENDPOINT_APP } from "@/api/endpoints/app";
+export { ENDPOINT_APPS, ENDPOINT_ADDONS } from "@/api/endpoints/apps";
 export { ENDPOINT_GH } from "@/api/endpoints/github";

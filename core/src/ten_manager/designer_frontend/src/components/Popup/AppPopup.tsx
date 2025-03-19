@@ -21,8 +21,10 @@ import { ThreeColumnFileManager } from "@/components/FileManager/AppFolder";
 import { useDirList } from "@/api/services/fileSystem";
 import { putBaseDir } from "@/api/services/fileSystem";
 import { SpinnerLoading } from "@/components/Status/Loading";
-
-export const APP_FOLDER_POPUP_ID = "app-folder-popup";
+import {
+  APP_FOLDER_POPUP_ID,
+  APP_PREFERENCES_POPUP_ID,
+} from "@/constants/widgets";
 
 export const AppFolderPopup = () => {
   const [isSaving, setIsSaving] = React.useState<boolean>(false);
@@ -135,8 +137,6 @@ export const AppFolderPopup = () => {
     </Popup>
   );
 };
-
-export const APP_PREFERENCES_POPUP_ID = "app-preferences-popup";
 
 export const PreferencesPopup = () => {
   const { t } = useTranslation();
