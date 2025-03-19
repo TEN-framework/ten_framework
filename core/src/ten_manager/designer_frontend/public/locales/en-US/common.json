@@ -134,5 +134,9 @@
     "selectVersion": "Select a version",
     "versionLatest": "Latest",
     "localAddonTip": "(local)"
+  },
+  "statusBar": {
+    "appsAllListedWithCount": "All {{count}} App(s) Listed",
+    "appsError": "Failed to get apps"
   }
 }

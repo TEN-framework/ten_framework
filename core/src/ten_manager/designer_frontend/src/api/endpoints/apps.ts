@@ -12,9 +12,11 @@ import type {
   ISetBaseDirResponse,
   IGetBaseDirResponse,
   IExtensionAddon,
+  IGetAppsResponse,
 } from "@/types/apps";
 
 export const ENDPOINT_APPS = {
+  /* @deprecated */
   baseDir: {
     [ENDPOINT_METHOD.PUT]: {
       url: `${API_DESIGNER_V1}/app/base-dir`,
@@ -34,6 +36,17 @@ export const ENDPOINT_APPS = {
       responseSchema: genResSchema<IGetBaseDirResponse>(
         z.object({
           base_dir: z.string().nullable(),
+        })
+      ),
+    },
+  },
+  apps: {
+    [ENDPOINT_METHOD.GET]: {
+      url: `${API_DESIGNER_V1}/apps`,
+      method: ENDPOINT_METHOD.GET,
+      responseSchema: genResSchema<IGetAppsResponse>(
+        z.object({
+          base_dirs: z.array(z.string()),
         })
       ),
     },
