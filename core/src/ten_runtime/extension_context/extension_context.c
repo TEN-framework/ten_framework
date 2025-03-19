@@ -68,7 +68,6 @@ ten_extension_context_t *ten_extension_context_create(ten_engine_t *engine) {
                     (ten_signature_t)TEN_EXTENSION_CONTEXT_SIGNATURE);
   ten_sanitizer_thread_check_init_with_current_thread(&self->thread_check);
 
-  ten_atomic_store(&self->is_closing, 0);
   self->on_closed = NULL;
   self->on_closed_data = NULL;
 
@@ -136,15 +135,9 @@ void ten_extension_context_close(ten_extension_context_t *self) {
   TEN_ASSERT(self, "Invalid argument.");
   TEN_ASSERT(ten_extension_context_check_integrity(self, true),
              "Invalid use of extension_context %p.", self);
-
+  TEN_ASSERT(self->engine, "Should not happen.");
   TEN_ASSERT(ten_engine_check_integrity(self->engine, true),
              "Should not happen.");
-
-  if (!ten_atomic_bool_compare_swap(&self->is_closing, 0, 1)) {
-    TEN_LOGW("[%s] Extension context has already been signaled to close.",
-             ten_engine_get_id(self->engine, true));
-    return;
-  }
 
   TEN_LOGD("[%s] Try to close extension context.",
            ten_engine_get_id(self->engine, true));
