@@ -56,8 +56,8 @@ static void ten_env_notify_return_result_ctx_destroy(
 static void proxy_handle_return_error(ten_env_t *ten_env,
                                       ten_shared_ptr_t *c_cmd_result,
                                       void *user_data, ten_error_t *err) {
-  TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
-             "Should not happen.");
+  TEN_ASSERT(ten_env, "Should not happen.");
+  TEN_ASSERT(ten_env_check_integrity(ten_env, true), "Should not happen.");
 
   ten_go_callback_ctx_t *callback_info = user_data;
   TEN_ASSERT(callback_info, "Should not happen.");
@@ -83,8 +83,8 @@ static void proxy_handle_return_error(ten_env_t *ten_env,
 static void ten_env_proxy_notify_return_result(ten_env_t *ten_env,
                                                void *user_data) {
   TEN_ASSERT(user_data, "Invalid argument.");
-  TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
-             "Should not happen.");
+  TEN_ASSERT(ten_env, "Should not happen.");
+  TEN_ASSERT(ten_env_check_integrity(ten_env, true), "Should not happen.");
 
   ten_env_notify_return_result_ctx_t *ctx = user_data;
   TEN_ASSERT(ctx, "Should not happen.");

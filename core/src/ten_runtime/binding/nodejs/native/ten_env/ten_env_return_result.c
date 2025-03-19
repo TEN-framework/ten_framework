@@ -135,8 +135,8 @@ static void proxy_return_result_error_callback(ten_env_t *self,
 static void ten_env_proxy_notify_return_result(ten_env_t *ten_env,
                                                void *user_data) {
   TEN_ASSERT(user_data, "Invalid argument.");
-  TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
-             "Should not happen.");
+  TEN_ASSERT(ten_env, "Should not happen.");
+  TEN_ASSERT(ten_env_check_integrity(ten_env, true), "Should not happen.");
 
   ten_env_notify_return_result_ctx_t *ctx = user_data;
   TEN_ASSERT(ctx, "Should not happen.");

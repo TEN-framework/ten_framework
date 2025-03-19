@@ -367,8 +367,8 @@ static void ten_extension_tester_execute_return_result_handler_task(void *self,
 
 static void send_cmd_callback(ten_env_t *ten_env, ten_shared_ptr_t *cmd_result,
                               void *callback_user_data, ten_error_t *err) {
-  TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
-             "Should not happen.");
+  TEN_ASSERT(ten_env, "Should not happen.");
+  TEN_ASSERT(ten_env_check_integrity(ten_env, true), "Should not happen.");
 
   ten_env_tester_send_cmd_ctx_t *send_cmd_ctx = callback_user_data;
   TEN_ASSERT(send_cmd_ctx, "Invalid argument.");
@@ -422,8 +422,8 @@ static void send_data_like_msg_callback(ten_env_t *ten_env,
                                         TEN_UNUSED ten_shared_ptr_t *cmd_result,
                                         void *callback_user_data,
                                         ten_error_t *err) {
-  TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
-             "Should not happen.");
+  TEN_ASSERT(ten_env, "Should not happen.");
+  TEN_ASSERT(ten_env_check_integrity(ten_env, true), "Should not happen.");
 
   ten_env_tester_send_msg_ctx_t *send_msg_info = callback_user_data;
   TEN_ASSERT(send_msg_info, "Invalid argument.");
@@ -483,8 +483,8 @@ static void return_result_callback(ten_env_t *self,
 
 static void test_extension_ten_env_send_cmd(ten_env_t *ten_env,
                                             void *user_data) {
-  TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
-             "Should not happen.");
+  TEN_ASSERT(ten_env, "Should not happen.");
+  TEN_ASSERT(ten_env_check_integrity(ten_env, true), "Should not happen.");
 
   ten_env_tester_send_cmd_ctx_t *ctx = user_data;
   TEN_ASSERT(ctx, "Invalid argument.");
@@ -523,8 +523,8 @@ static void test_extension_ten_env_send_cmd(ten_env_t *ten_env,
 
 static void test_extension_ten_env_return_result(ten_env_t *ten_env,
                                                  void *user_data) {
-  TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
-             "Should not happen.");
+  TEN_ASSERT(ten_env, "Should not happen.");
+  TEN_ASSERT(ten_env_check_integrity(ten_env, true), "Should not happen.");
 
   ten_env_tester_return_result_ctx_t *return_result_info = user_data;
   TEN_ASSERT(return_result_info, "Invalid argument.");
@@ -562,8 +562,8 @@ static void test_extension_ten_env_return_result(ten_env_t *ten_env,
 
 static void test_extension_ten_env_send_data(ten_env_t *ten_env,
                                              void *user_data) {
-  TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
-             "Should not happen.");
+  TEN_ASSERT(ten_env, "Should not happen.");
+  TEN_ASSERT(ten_env_check_integrity(ten_env, true), "Should not happen.");
 
   ten_env_tester_send_msg_ctx_t *send_msg_info = user_data;
   TEN_ASSERT(send_msg_info, "Invalid argument.");
@@ -602,8 +602,8 @@ static void test_extension_ten_env_send_data(ten_env_t *ten_env,
 
 static void test_extension_ten_env_send_audio_frame(ten_env_t *ten_env,
                                                     void *user_audio_frame) {
-  TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
-             "Should not happen.");
+  TEN_ASSERT(ten_env, "Should not happen.");
+  TEN_ASSERT(ten_env_check_integrity(ten_env, true), "Should not happen.");
 
   ten_env_tester_send_msg_ctx_t *send_msg_info = user_audio_frame;
   TEN_ASSERT(send_msg_info, "Invalid argument.");
@@ -643,8 +643,8 @@ static void test_extension_ten_env_send_audio_frame(ten_env_t *ten_env,
 
 static void test_extension_ten_env_send_video_frame(ten_env_t *ten_env,
                                                     void *user_video_frame) {
-  TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
-             "Should not happen.");
+  TEN_ASSERT(ten_env, "Should not happen.");
+  TEN_ASSERT(ten_env_check_integrity(ten_env, true), "Should not happen.");
 
   ten_env_tester_send_msg_ctx_t *send_msg_info = user_video_frame;
   TEN_ASSERT(send_msg_info, "Invalid argument.");
@@ -829,8 +829,8 @@ bool ten_env_tester_send_video_frame(
 
 static void test_app_ten_env_send_close_app_cmd(ten_env_t *ten_env,
                                                 void *user_data) {
-  TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
-             "Should not happen.");
+  TEN_ASSERT(ten_env, "Should not happen.");
+  TEN_ASSERT(ten_env_check_integrity(ten_env, true), "Should not happen.");
 
   ten_app_t *app = ten_env->attached_target.app;
   TEN_ASSERT(app && ten_app_check_integrity(app, true), "Should not happen.");

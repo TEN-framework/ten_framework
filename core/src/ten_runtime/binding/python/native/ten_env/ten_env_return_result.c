@@ -55,8 +55,8 @@ static void proxy_return_result_callback(ten_env_t *ten_env,
                                          ten_shared_ptr_t *c_cmd_result,
                                          void *callback_info,
                                          ten_error_t *err) {
-  TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
-             "Should not happen.");
+  TEN_ASSERT(ten_env, "Should not happen.");
+  TEN_ASSERT(ten_env_check_integrity(ten_env, true), "Should not happen.");
   TEN_ASSERT(callback_info, "Should not happen.");
 
   // About to call the Python function, so it's necessary to ensure that the GIL
@@ -79,7 +79,7 @@ static void proxy_return_result_callback(ten_env_t *ten_env,
   }
 
   PyObject *result = PyObject_CallObject(cb_func, arglist);
-  Py_XDECREF(result);  // Ensure cleanup if an error occurred.
+  Py_XDECREF(result); // Ensure cleanup if an error occurred.
 
   bool err_occurred = ten_py_check_and_clear_py_error();
   TEN_ASSERT(!err_occurred, "Should not happen.");
@@ -97,8 +97,8 @@ static void proxy_return_result_callback(ten_env_t *ten_env,
 static void ten_env_proxy_notify_return_result(ten_env_t *ten_env,
                                                void *user_data) {
   TEN_ASSERT(user_data, "Invalid argument.");
-  TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
-             "Should not happen.");
+  TEN_ASSERT(ten_env, "Should not happen.");
+  TEN_ASSERT(ten_env_check_integrity(ten_env, true), "Should not happen.");
 
   ten_env_notify_return_result_ctx_t *ctx = user_data;
   TEN_ASSERT(ctx, "Should not happen.");
@@ -129,7 +129,7 @@ static void ten_env_proxy_notify_return_result(ten_env_t *ten_env,
           Py_BuildValue("(OO)", py_ten_env->actual_py_ten_env, py_err);
 
       PyObject *result = PyObject_CallObject(ctx->py_cb_func, arglist);
-      Py_XDECREF(result);  // Ensure cleanup if an error occurred.
+      Py_XDECREF(result); // Ensure cleanup if an error occurred.
 
       bool err_occurred = ten_py_check_and_clear_py_error();
       TEN_ASSERT(!err_occurred, "Should not happen.");

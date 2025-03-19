@@ -241,13 +241,14 @@ typedef struct ten_protocol_t {
 
   TEN_PROTOCOL_STATE state;
 
-  // Whether the protocol is in the process of connecting to a remote server.
-  // If the connect flow starts successfully, the callback will always be
+  // Whether the protocol has an uncompleted async task.
+  //
+  // Ex: If the connect flow starts successfully, the callback will always be
   // invoked regardless of whether the connection succeeds or fails. Since the
-  // callback will access the contents of the protocol instance, the connecting
-  // flow is considered a resource. As a result, it may block the protocol's
-  // closing flow.
-  bool is_connecting;
+  // callback will access the contents of the protocol instance, the whole
+  // connecting flow must be treated as a single unit of execution to maintain
+  // consistency. As a result, it may block the protocol's closing flow.
+  bool has_uncompleted_async_task;
 
   ten_protocol_on_closed_func_t on_closed;
   void *on_closed_user_data;

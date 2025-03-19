@@ -24,8 +24,8 @@
 #include "ten_utils/macro/mark.h"
 
 void ten_extension_group_on_init(ten_env_t *ten_env) {
-  TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
-             "Should not happen.");
+  TEN_ASSERT(ten_env, "Should not happen.");
+  TEN_ASSERT(ten_env_check_integrity(ten_env, true), "Should not happen.");
   TEN_ASSERT(ten_env_get_attach_to(ten_env) ==
                  TEN_ENV_ATTACH_TO_EXTENSION_GROUP,
              "Invalid argument.");

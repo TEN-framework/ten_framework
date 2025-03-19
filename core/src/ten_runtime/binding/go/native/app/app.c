@@ -37,8 +37,8 @@ bool ten_go_app_check_integrity(ten_go_app_t *self) {
 
 static void proxy_on_configure(ten_app_t *app, ten_env_t *ten_env) {
   TEN_ASSERT(app && ten_app_check_integrity(app, true), "Should not happen.");
-  TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
-             "Should not happen.");
+  TEN_ASSERT(ten_env, "Should not happen.");
+  TEN_ASSERT(ten_env_check_integrity(ten_env, true), "Should not happen.");
   TEN_ASSERT(ten_app_get_ten_env(app) == ten_env, "Should not happen.");
 
   ten_go_app_t *app_bridge =
@@ -54,8 +54,8 @@ static void proxy_on_configure(ten_app_t *app, ten_env_t *ten_env) {
 
 static void proxy_on_init(ten_app_t *app, ten_env_t *ten_env) {
   TEN_ASSERT(app && ten_app_check_integrity(app, true), "Should not happen.");
-  TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
-             "Should not happen.");
+  TEN_ASSERT(ten_env, "Should not happen.");
+  TEN_ASSERT(ten_env_check_integrity(ten_env, true), "Should not happen.");
   TEN_ASSERT(ten_app_get_ten_env(app) == ten_env, "Should not happen.");
 
   ten_go_app_t *app_bridge =

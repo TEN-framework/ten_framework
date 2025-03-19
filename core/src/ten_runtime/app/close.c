@@ -196,16 +196,17 @@ void ten_app_check_termination_when_engine_closed(ten_app_t *self,
   if (engine->has_own_loop) {
     // Wait for the engine thread to be reclaimed. Because the engine thread
     // should have been terminated, this operation should be very fast.
-    TEN_LOGD("App waiting engine thread be reclaimed.");
+    TEN_LOGD("[%s:%s] App waiting engine thread be reclaimed.",
+             ten_app_get_uri(self), ten_engine_get_id(engine, false));
 
     TEN_UNUSED int rc = ten_thread_join(
         ten_sanitizer_thread_check_get_belonging_thread(&engine->thread_check),
         -1);
     TEN_ASSERT(!rc, "Should not happen.");
 
-    TEN_LOGD(
-        "Engine thread is reclaimed, and after this point, modify fields of "
-        "'engine' is safe.");
+    TEN_LOGD("[%s:%s] Engine thread is reclaimed, and after this point, modify "
+             "fields of 'engine' is safe.",
+             ten_app_get_uri(self), ten_engine_get_id(engine, false));
   }
 
   if (engine->cmd_stop_graph != NULL) {

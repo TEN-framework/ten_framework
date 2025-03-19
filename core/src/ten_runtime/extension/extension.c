@@ -728,8 +728,8 @@ ten_runloop_t *ten_extension_get_attached_runloop(ten_extension_t *self) {
 }
 
 static void ten_extension_on_configure(ten_env_t *ten_env) {
-  TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
-             "Should not happen.");
+  TEN_ASSERT(ten_env, "Should not happen.");
+  TEN_ASSERT(ten_env_check_integrity(ten_env, true), "Should not happen.");
   TEN_ASSERT(ten_env_get_attach_to(ten_env) == TEN_ENV_ATTACH_TO_EXTENSION,
              "Invalid argument.");
 

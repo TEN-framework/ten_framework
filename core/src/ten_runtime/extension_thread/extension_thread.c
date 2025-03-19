@@ -374,7 +374,8 @@ void ten_extension_thread_close(ten_extension_thread_t *self) {
   TEN_ASSERT(ten_extension_thread_check_integrity(self, false),
              "Should not happen.");
 
-  TEN_LOGD("Try to close extension thread %p", self);
+  TEN_LOGD("[%s] Try to close extension thread.",
+           ten_extension_group_get_name(self->extension_group, false));
 
   // Notify extension thread that it is about to close.
   int rc = ten_runloop_post_task_tail(

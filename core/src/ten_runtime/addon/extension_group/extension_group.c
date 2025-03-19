@@ -49,8 +49,8 @@ bool ten_addon_create_extension_group(
     ten_env_t *ten_env, const char *addon_name, const char *instance_name,
     ten_env_addon_create_instance_done_cb_t cb, void *user_data) {
   TEN_ASSERT(addon_name && instance_name, "Should not happen.");
-  TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
-             "Should not happen.");
+  TEN_ASSERT(ten_env, "Should not happen.");
+  TEN_ASSERT(ten_env_check_integrity(ten_env, true), "Should not happen.");
   TEN_ASSERT(ten_env->attach_to == TEN_ENV_ATTACH_TO_ENGINE,
              "Should not happen.");
 

@@ -33,7 +33,6 @@
 #include "ten_utils/lib/mutex.h"
 #include "ten_utils/lib/ref.h"
 #include "ten_utils/lib/smart_ptr.h"
-#include "ten_utils/lib/time.h"
 #include "ten_utils/log/log.h"
 #include "ten_utils/macro/check.h"
 #include "ten_utils/macro/mark.h"
@@ -283,8 +282,8 @@ static void ten_protocol_integrated_set_stream(ten_protocol_integrated_t *self,
 static void ten_app_thread_on_client_protocol_created(ten_env_t *ten_env,
                                                       ten_protocol_t *instance,
                                                       void *cb_data) {
-  TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
-             "Should not happen.");
+  TEN_ASSERT(ten_env, "Should not happen.");
+  TEN_ASSERT(ten_env_check_integrity(ten_env, true), "Should not happen.");
 
   ten_protocol_integrated_t *protocol = (ten_protocol_integrated_t *)instance;
   TEN_ASSERT(protocol, "Should not happen.");
@@ -679,9 +678,9 @@ static void ten_protocol_integrated_on_retry_timer_closed(ten_timer_t *timer,
   // `retry_timer` is fully closed can lead to unexpected issues (for example,
   // in libuv, stopping the runloop while there are still active handles can
   // cause memory leaks). Therefore, before `retry_timer` is completely closed,
-  // `is_connecting` needs to be set to `true` to block the protocol's closing
-  // flow.
-  protocol->base.is_connecting = false;
+  // `has_uncompleted_async_task` needs to be set to `true` to block the
+  // protocol's closing flow.
+  protocol->base.has_uncompleted_async_task = false;
 
   if (protocol->base.state == TEN_PROTOCOL_STATE_CLOSING) {
     ten_protocol_integrated_on_close(protocol);
@@ -722,9 +721,9 @@ static void ten_transport_on_server_connected(ten_transport_t *transport,
   TEN_ASSERT(cb_data, "Should not happen.");
   TEN_ASSERT(cb_data->on_server_connected, "Should not happen.");
 
-  // This connection has already ended, so `is_connecting` is set to `false` to
-  // unblock the closing flow, allowing it to proceed as intended.
-  protocol->base.is_connecting = false;
+  // This connection has already ended, so `has_uncompleted_async_task` is set
+  // to `false` to unblock the closing flow, allowing it to proceed as intended.
+  protocol->base.has_uncompleted_async_task = false;
 
   // If protocol is already closing, clean up and report failure.
   if (protocol->base.state == TEN_PROTOCOL_STATE_CLOSING) {
@@ -788,9 +787,9 @@ static void ten_transport_on_server_connected(ten_transport_t *transport,
     // before `retry_timer` is fully closed can lead to unexpected issues (for
     // example, in libuv, stopping the runloop while there are still active
     // handles can cause memory leaks). Therefore, before `retry_timer` is
-    // completely closed, `is_connecting` needs to be set to `true` to block the
-    // protocol's closing flow.
-    protocol->base.is_connecting = true;
+    // completely closed, `has_uncompleted_async_task` needs to be set to `true`
+    // to block the protocol's closing flow.
+    protocol->base.has_uncompleted_async_task = true;
 
     ten_timer_enable(timer);
   }
@@ -875,10 +874,10 @@ static void ten_protocol_integrated_connect_to(
   } else {
     // The connect flow has been successfully started. Regardless of whether it
     // succeeds or fails, the connect callback will be invoked. Therefore,
-    // `is_connecting` needs to be used to block the protocol's closing flow to
-    // prevent the protocol from being destroyed before the connect callback is
-    // called.
-    self->base.is_connecting = true;
+    // `has_uncompleted_async_task` needs to be used to block the protocol's
+    // closing flow to prevent the protocol from being destroyed before the
+    // connect callback is called.
+    self->base.has_uncompleted_async_task = true;
   }
 
 #if defined(_DEBUG)
