@@ -70,6 +70,7 @@ async fn test_ws_terminal_endpoint() {
 
     // Send a command to the terminal.
     let command = "echo 'Hello from terminal test'\n";
+
     write
         .send(Message::Text(command.to_string()))
         .await
@@ -81,6 +82,7 @@ async fn test_ws_terminal_endpoint() {
 
     // Send a resize message.
     let resize_msg = r#"{"type":"resize","cols":100,"rows":30}"#;
+
     write
         .send(Message::Text(resize_msg.to_string()))
         .await
@@ -91,7 +93,11 @@ async fn test_ws_terminal_endpoint() {
     sleep(Duration::from_millis(300)).await;
 
     // Send an exit command to close the terminal properly.
+    #[cfg(target_os = "windows")]
+    let exit_command = "exit\r\n";
+    #[cfg(not(target_os = "windows"))]
     let exit_command = "exit\n";
+
     write
         .send(Message::Text(exit_command.to_string()))
         .await
