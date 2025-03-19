@@ -30,6 +30,8 @@ mod tests {
             pkg_type: Some(PkgType::Extension),
             name: Some("ext_a".to_string()),
             version_req: Some("1.0.0".to_string()),
+            page_size: None,
+            page: None,
         };
 
         println!("Request payload: {:?}", request_payload);

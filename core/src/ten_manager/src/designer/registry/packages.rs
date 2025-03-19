@@ -29,6 +29,14 @@ pub struct GetPackagesRequestPayload {
     #[serde(skip_serializing_if = "Option::is_none")]
     #[serde(default)]
     pub version_req: Option<String>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(default)]
+    pub page_size: Option<u32>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(default)]
+    pub page: Option<u32>,
 }
 
 #[derive(Serialize, Debug)]
@@ -73,6 +81,8 @@ pub async fn get_packages_endpoint(
         request_payload.pkg_type,
         request_payload.name.clone(),
         version_req,
+        request_payload.page_size,
+        request_payload.page,
         out,
     )
     .await

@@ -118,6 +118,10 @@ pub async fn get_package(
 ///   extension).
 /// * `name` - Optional name of the package to search for.
 /// * `version_req` - Optional version requirement to filter packages.
+/// * `page_size` - Optional number of items per page. Default is 100 if not
+///   specified.
+/// * `page` - Optional page number to retrieve. If not specified, all items are
+///   retrieved.
 /// * `out` - Output interface for logging.
 ///
 /// # Returns
@@ -135,6 +139,8 @@ pub async fn get_package_list(
     pkg_type: Option<PkgType>,
     name: Option<String>,
     version_req: Option<VersionReq>,
+    page_size: Option<u32>,
+    page: Option<u32>,
     out: Arc<Box<dyn TmanOutput>>,
 ) -> Result<Vec<PkgRegistryInfo>> {
     // Retrieve the default registry URL from configuration.
@@ -158,6 +164,8 @@ pub async fn get_package_list(
                 pkg_type,
                 name,
                 version_req,
+                page_size,
+                page,
                 out,
             )
             .await?
@@ -169,6 +177,8 @@ pub async fn get_package_list(
                 pkg_type,
                 name,
                 version_req,
+                page_size,
+                page,
                 out,
             )
             .await?
