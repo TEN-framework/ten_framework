@@ -305,7 +305,6 @@ export const ExtensionStoreWidget = (props: {
         items={matched}
         versions={versions}
         toolTipSide={toolTipSide}
-        defaultOsArch={envData}
       />
     </div>
   );

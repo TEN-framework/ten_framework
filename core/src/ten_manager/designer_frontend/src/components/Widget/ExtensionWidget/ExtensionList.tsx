@@ -37,9 +37,8 @@ export const ExtensionList = (props: {
   versions: Map<string, IListTenCloudStorePackage[]>;
   className?: string;
   toolTipSide?: TooltipContentProps["side"];
-  defaultOsArch?: { os?: string; arch?: string };
 }) => {
-  const { items, versions, className, toolTipSide, defaultOsArch } = props;
+  const { items, versions, className, toolTipSide } = props;
 
   const VirtualListItem = (props: {
     index: number;
@@ -66,7 +65,6 @@ export const ExtensionList = (props: {
         style={props.style}
         toolTipSide={toolTipSide}
         versions={targetVersions}
-        defaultOsArch={defaultOsArch}
         isInstalled={item.isInstalled}
       />
     );
@@ -187,7 +185,6 @@ export const ExtensionStoreItem = (props: {
   style?: React.CSSProperties;
   toolTipSide?: TooltipContentProps["side"];
   isInstalled?: boolean;
-  defaultOsArch?: { os?: string; arch?: string };
 }) => {
   const {
     item,
@@ -196,7 +193,6 @@ export const ExtensionStoreItem = (props: {
     style,
     toolTipSide = "right",
     isInstalled,
-    defaultOsArch,
   } = props;
 
   const { appendWidgetIfNotExists } = useWidgetStore();
@@ -209,7 +205,6 @@ export const ExtensionStoreItem = (props: {
       metadata: {
         name: item.name,
         versions: versions || [],
-        defaultOsArch,
       },
     });
   };

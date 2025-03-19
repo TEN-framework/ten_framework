@@ -106,7 +106,7 @@ export const ExtensionDetails = (props: {
     versions[0].hash
   );
 
-  const { addons } = useAppStore();
+  const { addons, defaultOsArch } = useAppStore();
 
   const selectedVersionItemMemo = React.useMemo(() => {
     return versions.find((version) => version.hash === selectedVersion);
@@ -133,9 +133,14 @@ export const ExtensionDetails = (props: {
     return result;
   }, [versions]);
 
-  const [osArch, setOsArch] = React.useState<string>(
-    Array.from(osArchMemo.keys())[0]
-  );
+  const [osArch, setOsArch] = React.useState<string>(() => {
+    if (defaultOsArch && defaultOsArch?.os && defaultOsArch?.arch) {
+      if (osArchMemo.has(`${defaultOsArch.os}/${defaultOsArch.arch}`)) {
+        return `${defaultOsArch.os}/${defaultOsArch.arch}`;
+      }
+    }
+    return Array.from(osArchMemo.keys())[0];
+  });
 
   const defaultVersionMemo = React.useMemo(() => {
     return osArchMemo.get(osArch)?.[0];
