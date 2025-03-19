@@ -75,7 +75,8 @@ bool ten_msg_conversion_per_property_rule_convert(
     ten_msg_conversion_per_property_rule_t *self, ten_shared_ptr_t *msg,
     ten_shared_ptr_t *new_msg, ten_error_t *err) {
   TEN_ASSERT(self, "Invalid argument.");
-  TEN_ASSERT(msg && ten_msg_check_integrity(msg), "Invalid argument.");
+  TEN_ASSERT(msg, "Invalid argument.");
+  TEN_ASSERT(ten_msg_check_integrity(msg), "Invalid argument.");
   TEN_ASSERT(new_msg && ten_msg_check_integrity(new_msg), "Invalid argument.");
 
   switch (self->conversion_mode) {

@@ -51,7 +51,8 @@ static void ten_env_set_property_sync_context_destroy(
 
 static void ten_app_set_property_sync_cb(ten_app_t *app, ten_error_t *err,
                                          void *cb_data) {
-  TEN_ASSERT(app && ten_app_check_integrity(app, true), "Should not happen.");
+  TEN_ASSERT(app, "Should not happen.");
+  TEN_ASSERT(ten_app_check_integrity(app, true), "Should not happen.");
   TEN_ASSERT(err && ten_error_check_integrity(err), "Invalid argument.");
 
   ten_env_set_property_sync_context_t *context = cb_data;
@@ -104,8 +105,8 @@ static void ten_extension_set_property_async_cb(ten_extension_t *extension,
 
 static void ten_extension_group_set_property_async_cb(
     ten_extension_group_t *extension_group, bool res, void *cb_data) {
-  TEN_ASSERT(extension_group &&
-                 ten_extension_group_check_integrity(extension_group, true),
+  TEN_ASSERT(extension_group, "Should not happen.");
+  TEN_ASSERT(ten_extension_group_check_integrity(extension_group, true),
              "Should not happen.");
 
   ten_env_set_property_async_context_t *context = cb_data;
@@ -133,7 +134,8 @@ static void ten_env_set_property_done_task(TEN_UNUSED void *from, void *arg) {
 static void ten_app_set_property_async_cb_go_back_to_extension(ten_app_t *app,
                                                                ten_error_t *err,
                                                                void *cb_data) {
-  TEN_ASSERT(app && ten_app_check_integrity(app, true), "Should not happen.");
+  TEN_ASSERT(app, "Should not happen.");
+  TEN_ASSERT(ten_app_check_integrity(app, true), "Should not happen.");
   TEN_ASSERT(err && ten_error_check_integrity(err), "Invalid argument.");
 
   ten_env_set_property_async_context_t *context = cb_data;
@@ -153,7 +155,8 @@ static void ten_app_set_property_async_cb_go_back_to_extension(ten_app_t *app,
 
 static void ten_app_set_property_async_cb_go_back_to_extension_group(
     ten_app_t *app, ten_error_t *err, void *cb_data) {
-  TEN_ASSERT(app && ten_app_check_integrity(app, true), "Should not happen.");
+  TEN_ASSERT(app, "Should not happen.");
+  TEN_ASSERT(ten_app_check_integrity(app, true), "Should not happen.");
   TEN_ASSERT(err && ten_error_check_integrity(err), "Invalid argument.");
 
   ten_env_set_property_async_context_t *context = cb_data;
@@ -173,7 +176,8 @@ static void ten_app_set_property_async_cb_go_back_to_extension_group(
 
 static void ten_app_set_property_async_cb(ten_app_t *app, ten_error_t *err,
                                           void *cb_data) {
-  TEN_ASSERT(app && ten_app_check_integrity(app, true), "Should not happen.");
+  TEN_ASSERT(app, "Should not happen.");
+  TEN_ASSERT(ten_app_check_integrity(app, true), "Should not happen.");
   TEN_ASSERT(err && ten_error_check_integrity(err), "Invalid argument.");
 
   ten_env_set_property_async_context_t *context = cb_data;

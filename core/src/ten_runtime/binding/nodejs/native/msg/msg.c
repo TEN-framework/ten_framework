@@ -19,7 +19,8 @@
 void ten_nodejs_msg_init_from_c_msg(ten_nodejs_msg_t *self,
                                     ten_shared_ptr_t *msg) {
   TEN_ASSERT(self, "Should not happen.");
-  TEN_ASSERT(msg && ten_msg_check_integrity(msg), "Should not happen.");
+  TEN_ASSERT(msg, "Should not happen.");
+  TEN_ASSERT(ten_msg_check_integrity(msg), "Should not happen.");
 
   ten_signature_set(&self->signature, TEN_NODEJS_MSG_SIGNATURE);
 
@@ -56,7 +57,8 @@ static napi_value ten_nodejs_msg_get_name(napi_env env,
   TEN_ASSERT(msg_bridge, "Should not happen.");
 
   ten_shared_ptr_t *msg = msg_bridge->msg;
-  TEN_ASSERT(msg && ten_msg_check_integrity(msg), "Should not happen.");
+  TEN_ASSERT(msg, "Should not happen.");
+  TEN_ASSERT(ten_msg_check_integrity(msg), "Should not happen.");
 
   const char *name = ten_msg_get_name(msg);
   TEN_ASSERT(name, "Should not happen.");

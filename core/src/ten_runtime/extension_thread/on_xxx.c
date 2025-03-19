@@ -76,8 +76,8 @@ void ten_extension_thread_on_extension_group_on_init_done(
   }
 
   ten_extension_group_t *extension_group = self->extension_group;
-  TEN_ASSERT(extension_group &&
-                 ten_extension_group_check_integrity(extension_group, true),
+  TEN_ASSERT(extension_group, "Should not happen.");
+  TEN_ASSERT(ten_extension_group_check_integrity(extension_group, true),
              "Should not happen.");
 
   ten_error_t err;
@@ -110,7 +110,8 @@ void ten_extension_thread_on_extension_group_on_init_done(
 
 void ten_extension_thread_stop_life_cycle_of_all_extensions(
     ten_extension_thread_t *self) {
-  TEN_ASSERT(self && ten_extension_thread_check_integrity(self, true),
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_extension_thread_check_integrity(self, true),
              "Invalid argument.");
 
   ten_extension_thread_set_state(self,
@@ -178,8 +179,8 @@ void ten_extension_thread_on_extension_group_on_deinit_done(
              "Invalid use of extension_thread %p.", self);
 
   ten_extension_group_t *extension_group = self->extension_group;
-  TEN_ASSERT(extension_group &&
-                 ten_extension_group_check_integrity(extension_group, true),
+  TEN_ASSERT(extension_group, "Should not happen.");
+  TEN_ASSERT(ten_extension_group_check_integrity(extension_group, true),
              "Should not happen.");
 
   ten_runloop_stop(self->runloop);
@@ -195,8 +196,8 @@ void ten_extension_thread_on_all_extensions_deleted(void *self_,
   ten_list_clear(&self->extensions);
 
   ten_extension_group_t *extension_group = self->extension_group;
-  TEN_ASSERT(extension_group &&
-                 ten_extension_group_check_integrity(extension_group, true),
+  TEN_ASSERT(extension_group, "Should not happen.");
+  TEN_ASSERT(ten_extension_group_check_integrity(extension_group, true),
              "Should not happen.");
 
   ten_extension_group_on_deinit(extension_group);
@@ -210,8 +211,8 @@ void ten_extension_thread_on_addon_create_extension_done(void *self_,
              "Invalid use of extension_thread %p.", self);
 
   ten_extension_group_t *extension_group = self->extension_group;
-  TEN_ASSERT(extension_group &&
-                 ten_extension_group_check_integrity(extension_group, true),
+  TEN_ASSERT(extension_group, "Should not happen.");
+  TEN_ASSERT(ten_extension_group_check_integrity(extension_group, true),
              "Should not happen.");
 
   ten_extension_thread_on_addon_create_extension_done_ctx_t *ctx = arg;
@@ -238,8 +239,8 @@ void ten_extension_thread_on_addon_destroy_extension_done(void *self_,
              "Invalid use of extension_thread %p.", self);
 
   ten_extension_group_t *extension_group = self->extension_group;
-  TEN_ASSERT(extension_group &&
-                 ten_extension_group_check_integrity(extension_group, true),
+  TEN_ASSERT(extension_group, "Should not happen.");
+  TEN_ASSERT(ten_extension_group_check_integrity(extension_group, true),
              "Should not happen.");
 
   ten_addon_context_t *addon_context = arg;

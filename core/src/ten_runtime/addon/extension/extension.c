@@ -117,8 +117,8 @@ bool ten_addon_create_extension(ten_env_t *ten_env, const char *addon_name,
 
   ten_extension_group_t *extension_group =
       ten_env_get_attached_extension_group(ten_env);
-  TEN_ASSERT(extension_group &&
-                 ten_extension_group_check_integrity(extension_group, true),
+  TEN_ASSERT(extension_group, "Should not happen.");
+  TEN_ASSERT(ten_extension_group_check_integrity(extension_group, true),
              "Should not happen.");
 
   // Check whether current thread is extension thread. If not, we should switch
@@ -163,8 +163,8 @@ bool ten_addon_destroy_extension(ten_env_t *ten_env, ten_extension_t *extension,
 
   ten_extension_group_t *extension_group =
       ten_env_get_attached_extension_group(ten_env);
-  TEN_ASSERT(extension_group &&
-                 ten_extension_group_check_integrity(extension_group, true),
+  TEN_ASSERT(extension_group, "Should not happen.");
+  TEN_ASSERT(ten_extension_group_check_integrity(extension_group, true),
              "Should not happen.");
 
   if (ten_extension_thread_call_by_me(extension_group->extension_thread)) {

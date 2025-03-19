@@ -297,7 +297,8 @@ static void ten_app_thread_on_client_protocol_created(ten_env_t *ten_env,
   TEN_ASSERT(on_client_accepted, "Should not happen.");
 
   ten_app_t *app = ten_env_get_attached_app(ten_env);
-  TEN_ASSERT(app && ten_app_check_integrity(app, true), "Should not happen.");
+  TEN_ASSERT(app, "Should not happen.");
+  TEN_ASSERT(ten_app_check_integrity(app, true), "Should not happen.");
 
   ten_protocol_t *listening_base_protocol = app->endpoint_protocol;
   TEN_ASSERT(listening_base_protocol &&
@@ -349,7 +350,8 @@ static void ten_transport_on_client_accepted(ten_transport_t *transport,
              "Should not happen.");
 
   ten_app_t *app = listening_base_protocol->attached_target.app;
-  TEN_ASSERT(app && ten_app_check_integrity(app, true), "Should not happen.");
+  TEN_ASSERT(app, "Should not happen.");
+  TEN_ASSERT(ten_app_check_integrity(app, true), "Should not happen.");
 
   ten_error_t err;
   TEN_ERROR_INIT(err);

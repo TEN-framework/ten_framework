@@ -67,7 +67,8 @@ bool ten_addon_create_addon_loader(ten_env_t *ten_env, const char *addon_name,
   TEN_ASSERT(ten_env->attach_to == TEN_ENV_ATTACH_TO_APP, "Should not happen.");
 
   ten_app_t *app = ten_env_get_attached_app(ten_env);
-  TEN_ASSERT(app && ten_app_check_integrity(app, true), "Should not happen.");
+  TEN_ASSERT(app, "Should not happen.");
+  TEN_ASSERT(ten_app_check_integrity(app, true), "Should not happen.");
 
   // This function is called in the app thread, so `ten_env` is the app's
   // `ten_env`.

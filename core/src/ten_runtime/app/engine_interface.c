@@ -22,7 +22,8 @@
 static void ten_app_check_termination_when_engine_closed_(void *app_,
                                                           void *engine_) {
   ten_app_t *app = (ten_app_t *)app_;
-  TEN_ASSERT(app && ten_app_check_integrity(app, true), "Should not happen.");
+  TEN_ASSERT(app, "Should not happen.");
+  TEN_ASSERT(ten_app_check_integrity(app, true), "Should not happen.");
 
   ten_engine_t *engine = (ten_engine_t *)engine_;
 
@@ -108,8 +109,8 @@ ten_engine_t *ten_app_create_engine(ten_app_t *self, ten_shared_ptr_t *cmd) {
   TEN_LOGD("[%s] App creates an engine.", ten_app_get_uri(self));
 
   ten_engine_t *engine = ten_engine_create(self, cmd);
-  TEN_ASSERT(engine && ten_engine_check_integrity(engine, false),
-             "Should not happen.");
+  TEN_ASSERT(engine, "Should not happen.");
+  TEN_ASSERT(ten_engine_check_integrity(engine, false), "Should not happen.");
 
   ten_app_add_engine(self, engine);
 

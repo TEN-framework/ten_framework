@@ -382,7 +382,8 @@ ten_extension_get_msg_dests_from_graph(ten_extension_t *self,
 
 static bool need_to_clone_msg_when_sending(ten_shared_ptr_t *msg,
                                            size_t dest_index) {
-  TEN_ASSERT(msg && ten_msg_check_integrity(msg), "Should not happen.");
+  TEN_ASSERT(msg, "Should not happen.");
+  TEN_ASSERT(ten_msg_check_integrity(msg), "Should not happen.");
 
   // Because when a message is sent to other extensions, these extensions
   // might be located in different extension groups. Therefore, after the
@@ -543,7 +544,8 @@ ten_extension_determine_out_msgs(ten_extension_t *self, ten_shared_ptr_t *msg,
                                  ten_list_t *result_msgs, ten_error_t *err) {
   TEN_ASSERT(self && ten_extension_check_integrity(self, true),
              "Invalid argument.");
-  TEN_ASSERT(msg && ten_msg_check_integrity(msg), "Invalid argument.");
+  TEN_ASSERT(msg, "Invalid argument.");
+  TEN_ASSERT(ten_msg_check_integrity(msg), "Invalid argument.");
   TEN_ASSERT(result_msgs, "Invalid argument.");
 
   if (ten_msg_is_cmd_result(msg)) {
@@ -582,7 +584,8 @@ bool ten_extension_dispatch_msg(ten_extension_t *self, ten_shared_ptr_t *msg,
                                 ten_error_t *err) {
   TEN_ASSERT(self && ten_extension_check_integrity(self, true),
              "Should not happen.");
-  TEN_ASSERT(msg && ten_msg_check_integrity(msg), "Should not happen.");
+  TEN_ASSERT(msg, "Should not happen.");
+  TEN_ASSERT(ten_msg_check_integrity(msg), "Should not happen.");
   TEN_ASSERT(err && ten_error_check_integrity(err), "Invalid argument.");
 
   if (self->state == TEN_EXTENSION_STATE_ON_DEINIT_DONE) {
@@ -1078,7 +1081,8 @@ bool ten_extension_validate_msg_schema(ten_extension_t *self,
                                        ten_error_t *err) {
   TEN_ASSERT(self && ten_extension_check_integrity(self, true),
              "Invalid argument.");
-  TEN_ASSERT(msg && ten_msg_check_integrity(msg), "Invalid argument.");
+  TEN_ASSERT(msg, "Invalid argument.");
+  TEN_ASSERT(ten_msg_check_integrity(msg), "Invalid argument.");
 
   bool validated =
       ten_msg_validate_schema(msg, &self->schema_store, is_msg_out, err);

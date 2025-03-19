@@ -23,9 +23,10 @@ static ten_buf_t ten_test_msgpack_tcp_client_msgs_to_buf(ten_list_t *msgs) {
   return ten_msgpack_serialize_msgs(msgs, NULL);
 }
 
-static void ten_test_msgpack_tcp_client_buf_to_msgs(
-    ten_test_tcp_client_t *client, void *data, size_t data_size,
-    ten_list_t *msgs) {
+static void
+ten_test_msgpack_tcp_client_buf_to_msgs(ten_test_tcp_client_t *client,
+                                        void *data, size_t data_size,
+                                        ten_list_t *msgs) {
   TEN_ASSERT(client, "Invalid argument.");
 
   ten_test_msgpack_tcp_client_t *msgpack_client =
@@ -35,8 +36,8 @@ static void ten_test_msgpack_tcp_client_buf_to_msgs(
       TEN_BUF_STATIC_INIT_WITH_DATA_UNOWNED(data, data_size), msgs);
 }
 
-ten_test_msgpack_tcp_client_t *ten_test_msgpack_tcp_client_create(
-    const char *app_id) {
+ten_test_msgpack_tcp_client_t *
+ten_test_msgpack_tcp_client_create(const char *app_id) {
   TEN_ASSERT(app_id, "Invalid argument.");
 
   ten_test_msgpack_tcp_client_t *client =
@@ -68,13 +69,14 @@ void ten_test_msgpack_tcp_client_destroy(ten_test_msgpack_tcp_client_t *self) {
 bool ten_test_msgpack_tcp_client_send_msg(ten_test_msgpack_tcp_client_t *self,
                                           ten_shared_ptr_t *msg) {
   TEN_ASSERT(self, "Invalid argument.");
-  TEN_ASSERT(msg && ten_msg_check_integrity(msg), "Invalid argument.");
+  TEN_ASSERT(msg, "Invalid argument.");
+  TEN_ASSERT(ten_msg_check_integrity(msg), "Invalid argument.");
 
   return ten_test_tcp_client_send_msg(&self->base, msg);
 }
 
-ten_shared_ptr_t *ten_test_msgpack_tcp_client_recv_msg(
-    ten_test_msgpack_tcp_client_t *self) {
+ten_shared_ptr_t *
+ten_test_msgpack_tcp_client_recv_msg(ten_test_msgpack_tcp_client_t *self) {
   TEN_ASSERT(self, "Invalid argument.");
 
   return ten_test_tcp_client_recv_msg(&self->base);
@@ -90,7 +92,8 @@ void ten_test_msgpack_tcp_client_recv_msgs_batch(
 ten_shared_ptr_t *ten_test_msgpack_tcp_client_send_and_recv_msg(
     ten_test_msgpack_tcp_client_t *self, ten_shared_ptr_t *msg) {
   TEN_ASSERT(self, "Invalid argument.");
-  TEN_ASSERT(msg && ten_msg_check_integrity(msg), "Invalid argument.");
+  TEN_ASSERT(msg, "Invalid argument.");
+  TEN_ASSERT(ten_msg_check_integrity(msg), "Invalid argument.");
 
   return ten_test_tcp_client_send_and_recv_msg(&self->base, msg);
 }
