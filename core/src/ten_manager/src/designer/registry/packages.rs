@@ -45,7 +45,7 @@ pub struct GetPackagesResponseData {
 }
 
 pub async fn get_packages_endpoint(
-    request_payload: web::Json<GetPackagesRequestPayload>,
+    request_query: web::Query<GetPackagesRequestPayload>,
     state: web::Data<Arc<RwLock<DesignerState>>>,
 ) -> Result<impl Responder, actix_web::Error> {
     // Extract what we need from state before await.
@@ -58,8 +58,7 @@ pub async fn get_packages_endpoint(
     } // Lock is dropped here.
 
     // Parse version requirement if provided.
-    let version_req = if let Some(version_req_str) =
-        &request_payload.version_req
+    let version_req = if let Some(version_req_str) = &request_query.version_req
     {
         match VersionReq::parse(version_req_str) {
             Ok(req) => Some(req),
@@ -78,11 +77,11 @@ pub async fn get_packages_endpoint(
     // Call the registry function to get package list with optional parameters.
     match registry::get_package_list(
         tman_config,
-        request_payload.pkg_type,
-        request_payload.name.clone(),
+        request_query.pkg_type,
+        request_query.name.clone(),
         version_req,
-        request_payload.page_size,
-        request_payload.page,
+        request_query.page_size,
+        request_query.page,
         out,
     )
     .await
