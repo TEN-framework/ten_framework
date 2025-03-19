@@ -50,6 +50,38 @@ export const ENDPOINT_APPS = {
         })
       ),
     },
+    [ENDPOINT_METHOD.POST]: {
+      url: `${API_DESIGNER_V1}/apps`,
+      method: ENDPOINT_METHOD.POST,
+      requestSchema: z.object({
+        base_dir: z.string(),
+      }),
+      responseSchema: genResSchema<ISetBaseDirResponse>(
+        z.object({
+          success: z.boolean(),
+        })
+      ),
+    },
+  },
+  reloadApps: {
+    [ENDPOINT_METHOD.POST]: {
+      url: `${API_DESIGNER_V1}/apps/reload`,
+      method: ENDPOINT_METHOD.POST,
+      requestSchema: z.object({
+        base_dir: z.string().optional(),
+      }),
+      responseSchema: genResSchema(z.any()),
+    },
+  },
+  unloadApps: {
+    [ENDPOINT_METHOD.POST]: {
+      url: `${API_DESIGNER_V1}/apps/unload`,
+      method: ENDPOINT_METHOD.POST,
+      requestSchema: z.object({
+        base_dir: z.string().optional(),
+      }),
+      responseSchema: genResSchema(z.any()),
+    },
   },
 };
 

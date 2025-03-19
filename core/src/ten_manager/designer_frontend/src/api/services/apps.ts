@@ -36,3 +36,30 @@ export const useApps = () => {
     isLoading,
   };
 };
+
+export const postBaseDir = async (baseDir: string) => {
+  const template = ENDPOINT_APPS.apps[ENDPOINT_METHOD.POST];
+  const req = makeAPIRequest(template, {
+    body: { base_dir: baseDir },
+  });
+  const res = await req;
+  return template.responseSchema.parse(res).data;
+};
+
+export const postReloadApps = async (baseDir: string) => {
+  const template = ENDPOINT_APPS.reloadApps[ENDPOINT_METHOD.POST];
+  const req = makeAPIRequest(template, {
+    body: { base_dir: baseDir },
+  });
+  const res = await req;
+  return template.responseSchema.parse(res).data;
+};
+
+export const postUnloadApps = async (baseDir: string) => {
+  const template = ENDPOINT_APPS.unloadApps[ENDPOINT_METHOD.POST];
+  const req = makeAPIRequest(template, {
+    body: { base_dir: baseDir },
+  });
+  const res = await req;
+  return template.responseSchema.parse(res).data;
+};
