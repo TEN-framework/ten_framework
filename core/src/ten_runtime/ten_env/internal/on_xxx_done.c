@@ -185,11 +185,6 @@ bool ten_env_on_destroy_instance_done(ten_env_t *self, void *context,
     ten_addon_on_destroy_instance_done(self, context);
     break;
 
-  case TEN_ENV_ATTACH_TO_ENGINE:
-    TEN_ASSERT(0, "Should not happen."); // =-=-=
-    ten_extension_context_on_addon_destroy_extension_group_done(self, context);
-    break;
-
   case TEN_ENV_ATTACH_TO_EXTENSION_GROUP:
     ten_extension_group_on_addon_destroy_extension_done(self, context);
     break;
