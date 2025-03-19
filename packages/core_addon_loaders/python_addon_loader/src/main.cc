@@ -109,7 +109,7 @@ class python_addon_loader_t : public ten::addon_loader_t {
  public:
   explicit python_addon_loader_t(const char *name) { (void)name; };
 
-  void on_init(TEN_UNUSED ten::ten_env_t &ten_env) override {
+  void on_init(ten::ten_env_t &ten_env) override {
     // Do some initializations.
 
     int py_initialized = ten_py_is_initialized();
@@ -162,6 +162,8 @@ class python_addon_loader_t : public ten::addon_loader_t {
     app_base_dir = nullptr;
 
     py_thread_state_ = ten_py_eval_save_thread();
+
+    ten_env.on_init_done();
   }
 
   void on_deinit(TEN_UNUSED ten::ten_env_t &ten_env) override {

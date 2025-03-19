@@ -6,7 +6,6 @@
 #
 import("//build/ten_runtime/glob.gni")
 
-ten_runtime_glob("addon_loader") {
+ten_runtime_glob("ten_env") {
   file_list = all_native_files
-  deps = [ "ten_env" ]
 }

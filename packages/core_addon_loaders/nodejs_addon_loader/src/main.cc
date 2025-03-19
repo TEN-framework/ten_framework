@@ -162,7 +162,7 @@ class nodejs_addon_loader_t : public ten::addon_loader_t {
     ten_string_destroy(module_path);
   }
 
-  void on_init(TEN_UNUSED ten::ten_env_t &ten_env) override {
+  void on_init(ten::ten_env_t &ten_env) override {
     // Do some initializations.
     load_nodejs_lib();
 
@@ -247,6 +247,8 @@ class nodejs_addon_loader_t : public ten::addon_loader_t {
     // Wait for the node thread to start.
     std::unique_lock<std::mutex> lock(this->mutex_);
     this->cv_.wait(lock, [this]() { return this->node_init_completed_; });
+
+    ten_env.on_init_done();
   }
 
   // Clean up and shut down the Node.js addon loader to ensure resource

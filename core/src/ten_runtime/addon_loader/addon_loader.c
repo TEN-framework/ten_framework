@@ -9,11 +9,13 @@
 #include "include_internal/ten_runtime/addon/addon_host.h"
 #include "include_internal/ten_runtime/addon/addon_loader/addon_loader.h"
 #include "include_internal/ten_runtime/addon/common/common.h"
+#include "include_internal/ten_runtime/app/app.h"
 #include "include_internal/ten_runtime/app/on_xxx.h"
 #include "include_internal/ten_runtime/ten_env/ten_env.h"
 #include "ten_runtime/app/app.h"
 #include "ten_runtime/ten_env/ten_env.h"
 #include "ten_utils/container/list.h"
+#include "ten_utils/io/runloop.h"
 #include "ten_utils/lib/signature.h"
 #include "ten_utils/macro/memory.h"
 
@@ -88,6 +90,9 @@ ten_addon_loader_create(ten_addon_loader_on_init_func_t on_init,
   self->on_deinit = on_deinit;
   self->on_load_addon = on_load_addon;
 
+  self->on_init_done_cb = NULL;
+  self->on_init_done_cb_data = NULL;
+
   self->ten_env = ten_env_create_for_addon_loader(self);
 
   return self;
@@ -105,12 +110,19 @@ void ten_addon_loader_destroy(ten_addon_loader_t *self) {
   TEN_FREE(self);
 }
 
-static void ten_addon_loader_init(ten_addon_loader_t *self) {
+static void ten_addon_loader_init(ten_addon_loader_t *self,
+                                  ten_addon_loader_on_init_done_cb_t cb,
+                                  void *cb_data) {
   TEN_ASSERT(self, "Invalid argument.");
   TEN_ASSERT(ten_addon_loader_check_integrity(self), "Invalid argument.");
 
+  self->on_init_done_cb = cb;
+  self->on_init_done_cb_data = cb_data;
+
   if (self->on_init) {
     self->on_init(self, self->ten_env);
+  } else {
+    ten_env_on_init_done(self->ten_env, NULL);
   }
 }
 
@@ -134,6 +146,78 @@ void ten_addon_loader_load_addon(ten_addon_loader_t *self,
   }
 }
 
+static void ten_app_thread_on_addon_loader_init_done(void *app, void *cb_data) {
+  TEN_ASSERT(app && ten_app_check_integrity(app, true), "Invalid argument.");
+
+  ten_app_on_addon_loader_init_done_ctx_t *ctx =
+      (ten_app_on_addon_loader_init_done_ctx_t *)cb_data;
+  TEN_ASSERT(ctx, "Invalid argument.");
+
+  ten_addon_loader_on_all_singleton_instances_created_ctx_t
+      *on_all_created_ctx = ctx->cb_data;
+  TEN_ASSERT(on_all_created_ctx, "Invalid argument.");
+
+  size_t desired_count = on_all_created_ctx->desired_count;
+
+  ten_list_push_ptr_back(ten_addon_loader_singleton_get_all(),
+                         ctx->addon_loader, NULL);
+
+  TEN_FREE(ctx);
+
+  if (ten_list_size(ten_addon_loader_singleton_get_all()) == desired_count) {
+    on_all_created_ctx->cb(on_all_created_ctx->ten_env,
+                           on_all_created_ctx->cb_data);
+    TEN_FREE(on_all_created_ctx);
+  }
+}
+
+static void ten_addon_loader_init_done(ten_env_t *ten_env, void *cb_data) {
+  TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
+             "Invalid argument.");
+  TEN_ASSERT(cb_data, "Invalid argument.");
+
+  ten_addon_loader_t *addon_loader = ten_env_get_attached_addon_loader(ten_env);
+  TEN_ASSERT(addon_loader && ten_addon_loader_check_integrity(addon_loader),
+             "Should not happen.");
+
+  ten_addon_loader_on_all_singleton_instances_created_ctx_t *ctx =
+      (ten_addon_loader_on_all_singleton_instances_created_ctx_t *)cb_data;
+  TEN_ASSERT(ctx, "Invalid argument.");
+
+  ten_env_t *caller_ten_env = ctx->ten_env;
+  TEN_ASSERT(caller_ten_env && ten_env_check_integrity(
+                                   caller_ten_env,
+                                   // TEN_NOLINTNEXTLINE(thread-check)
+                                   // thread-check: This function is intended to
+                                   // be called in any threads.
+                                   false),
+             "Invalid argument.");
+
+  TEN_ASSERT(caller_ten_env->attach_to == TEN_ENV_ATTACH_TO_APP,
+             "Should not happen.");
+
+  ten_app_t *app = ten_env_get_attached_app(caller_ten_env);
+  TEN_ASSERT(
+      app && ten_app_check_integrity(app,
+                                     // TEN_NOLINTNEXTLINE(thread-check)
+                                     // thread-check: This function is intended
+                                     // to be called in any threads.
+                                     false),
+      "Invalid argument.");
+
+  ten_app_on_addon_loader_init_done_ctx_t *on_addon_loader_init_done_ctx =
+      TEN_MALLOC(sizeof(ten_app_on_addon_loader_init_done_ctx_t));
+  TEN_ASSERT(on_addon_loader_init_done_ctx, "Should not happen.");
+
+  on_addon_loader_init_done_ctx->addon_loader = addon_loader;
+  on_addon_loader_init_done_ctx->cb_data = ctx;
+
+  int rc = ten_runloop_post_task_tail(ten_app_get_attached_runloop(app),
+                                      ten_app_thread_on_addon_loader_init_done,
+                                      app, on_addon_loader_init_done_ctx);
+  TEN_ASSERT(!rc, "Should not happen.");
+}
+
 static void create_addon_loader_done(ten_env_t *ten_env,
                                      ten_addon_loader_t *addon_loader,
                                      void *cb_data) {
@@ -147,21 +231,31 @@ static void create_addon_loader_done(ten_env_t *ten_env,
   ten_app_t *app = ten_env_get_attached_target(ten_env);
   TEN_ASSERT(app && ten_app_check_integrity(app, true), "Invalid argument.");
 
-  size_t desired_count = (size_t)cb_data;
-
   // Call `on_init` of the addon_loader to initialize the addon_loader.
-  ten_addon_loader_init(addon_loader);
-
-  ten_list_push_ptr_back(ten_addon_loader_singleton_get_all(), addon_loader,
-                         NULL);
-
-  if (ten_list_size(ten_addon_loader_singleton_get_all()) == desired_count) {
-    ten_app_on_all_addon_loaders_created(app);
-  }
+  ten_addon_loader_init(addon_loader, ten_addon_loader_init_done, cb_data);
 }
 
-bool ten_addon_loader_addons_create_singleton_instance(ten_env_t *ten_env,
-                                                       ten_error_t *err) {
+static ten_addon_loader_on_all_singleton_instances_created_ctx_t *
+ten_addon_loader_on_all_singleton_instances_created_ctx_create(
+    ten_env_t *ten_env, size_t desired_count,
+    ten_addon_loader_on_all_singleton_instances_created_cb_t cb,
+    void *cb_data) {
+  ten_addon_loader_on_all_singleton_instances_created_ctx_t *ctx = TEN_MALLOC(
+      sizeof(ten_addon_loader_on_all_singleton_instances_created_ctx_t));
+  TEN_ASSERT(ctx, "Should not happen.");
+
+  ctx->ten_env = ten_env;
+  ctx->desired_count = desired_count;
+  ctx->cb = cb;
+  ctx->cb_data = cb_data;
+
+  return ctx;
+}
+
+void ten_addon_loader_addons_create_singleton_instance(
+    ten_env_t *ten_env,
+    ten_addon_loader_on_all_singleton_instances_created_cb_t cb,
+    void *cb_data) {
   bool need_to_wait_all_addon_loaders_created = true;
 
   int lock_operation_rc = ten_addon_loader_singleton_store_lock();
@@ -177,6 +271,14 @@ bool ten_addon_loader_addons_create_singleton_instance(ten_env_t *ten_env,
     goto done;
   }
 
+  ten_addon_loader_on_all_singleton_instances_created_ctx_t *ctx =
+      ten_addon_loader_on_all_singleton_instances_created_ctx_create(
+          ten_env, desired_count, cb, cb_data);
+  TEN_ASSERT(ctx, "Should not happen.");
+
+  ten_error_t err;
+  TEN_ERROR_INIT(err);
+
   ten_list_foreach(&addon_loader_store->store, iter) {
     ten_addon_host_t *loader_addon_host = ten_ptr_listnode_get(iter.node);
     TEN_ASSERT(loader_addon_host, "Should not happen.");
@@ -184,20 +286,25 @@ bool ten_addon_loader_addons_create_singleton_instance(ten_env_t *ten_env,
     bool res = ten_addon_create_addon_loader(
         ten_env, ten_string_get_raw_str(&loader_addon_host->name),
         ten_string_get_raw_str(&loader_addon_host->name),
-        (ten_env_addon_create_instance_done_cb_t)create_addon_loader_done,
-        (void *)desired_count, err);
+        (ten_env_addon_create_instance_done_cb_t)create_addon_loader_done, ctx,
+        &err);
 
     if (!res) {
-      TEN_LOGE("Failed to create addon_loader instance %s",
-               ten_string_get_raw_str(&loader_addon_host->name));
+      TEN_LOGE("Failed to create addon_loader instance %s, %s.",
+               ten_string_get_raw_str(&loader_addon_host->name),
+               ten_error_message(&err));
 #if defined(_DEBUG)
       TEN_ASSERT(0, "Should not happen.");
 #endif
     }
   }
 
+  ten_error_deinit(&err);
+
 done:
-  return need_to_wait_all_addon_loaders_created;
+  if (!need_to_wait_all_addon_loaders_created && cb) {
+    cb(ten_env, cb_data);
+  }
 }
 
 // Destroy all addon loader instances in the system.
