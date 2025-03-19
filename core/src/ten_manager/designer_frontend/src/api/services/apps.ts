@@ -24,7 +24,7 @@ export const getApps = async () => {
 export const useApps = () => {
   const template = ENDPOINT_APPS.apps[ENDPOINT_METHOD.GET];
   const url = prepareReqUrl(template);
-  const [{ data, error, isLoading }] = useCancelableSWR<
+  const [{ data, error, isLoading, mutate }] = useCancelableSWR<
     z.infer<typeof template.responseSchema>
   >(url, {
     revalidateOnFocus: false,
@@ -34,6 +34,7 @@ export const useApps = () => {
     data: data?.data,
     error,
     isLoading,
+    mutate,
   };
 };
 
@@ -46,10 +47,10 @@ export const postBaseDir = async (baseDir: string) => {
   return template.responseSchema.parse(res).data;
 };
 
-export const postReloadApps = async (baseDir: string) => {
+export const postReloadApps = async (baseDir?: string) => {
   const template = ENDPOINT_APPS.reloadApps[ENDPOINT_METHOD.POST];
   const req = makeAPIRequest(template, {
-    body: { base_dir: baseDir },
+    body: baseDir ? { base_dir: baseDir } : {},
   });
   const res = await req;
   return template.responseSchema.parse(res).data;

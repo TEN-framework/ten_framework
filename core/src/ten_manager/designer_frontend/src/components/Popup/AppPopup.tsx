@@ -18,13 +18,15 @@ import {
   fmItemsToFMArray,
 } from "@/components/FileManager/utils";
 import { ThreeColumnFileManager } from "@/components/FileManager/AppFolder";
-import { useDirList } from "@/api/services/fileSystem";
-import { putBaseDir } from "@/api/services/fileSystem";
+import { useRetrieveDirList } from "@/api/services/fileSystem";
+import { postBaseDir } from "@/api/services/apps";
 import { SpinnerLoading } from "@/components/Status/Loading";
 import {
   APP_FOLDER_POPUP_ID,
   APP_PREFERENCES_POPUP_ID,
+  APPS_MANAGER_POPUP_ID,
 } from "@/constants/widgets";
+import { AppsManagerWidget } from "@/components/Widget/AppsWidget";
 
 export const AppFolderPopup = () => {
   const [isSaving, setIsSaving] = React.useState<boolean>(false);
@@ -35,11 +37,11 @@ export const AppFolderPopup = () => {
   const { setNodesAndEdges } = useFlowStore();
   const { folderPath, setFolderPath, fmItems, setFmItems } = useAppStore();
 
-  const { data, error, isLoading } = useDirList(folderPath);
+  const { data, error, isLoading } = useRetrieveDirList(folderPath);
 
   const handleSetBaseDir = async (folderPath: string) => {
     try {
-      await putBaseDir(folderPath.trim());
+      await postBaseDir(folderPath.trim());
       setNodesAndEdges([], []); // Clear the contents of the FlowCanvas.
     } catch (error: unknown) {
       if (error instanceof Error) {
@@ -138,6 +140,7 @@ export const AppFolderPopup = () => {
   );
 };
 
+/** @deprecated */
 export const PreferencesPopup = () => {
   const { t } = useTranslation();
 
@@ -186,6 +189,26 @@ export const PreferencesPopup = () => {
           </Button>
         </div>
       </div>
+    </Popup>
+  );
+};
+
+export const LoadedAppsPopup = () => {
+  const { t } = useTranslation();
+
+  const { removeWidget } = useWidgetStore();
+
+  return (
+    <Popup
+      id={APPS_MANAGER_POPUP_ID}
+      title={t("popup.apps.manager")}
+      onClose={() => removeWidget(APPS_MANAGER_POPUP_ID)}
+      resizable
+      initialWidth={600}
+      initialHeight={400}
+      onCollapseToggle={() => {}}
+    >
+      <AppsManagerWidget />
     </Popup>
   );
 };

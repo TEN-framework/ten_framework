@@ -18,7 +18,11 @@ import CustomNodeConnPopup from "@/components/Popup/CustomNodeConnPopup";
 import { LogViewerPopup } from "@/components/Popup/LogViewerPopup";
 import { GraphSelectPopup } from "@/components/Popup/GraphSelectPopup";
 import { AboutPopup } from "@/components/Popup/AboutPopup";
-import { AppFolderPopup, PreferencesPopup } from "@/components/Popup/AppPopup";
+import {
+  AppFolderPopup,
+  PreferencesPopup,
+  LoadedAppsPopup,
+} from "@/components/Popup/AppPopup";
 import {
   ExtensionStorePopup,
   ExtensionPopup,
@@ -112,6 +116,8 @@ export function GlobalPopups() {
             return <AboutPopup key={`AboutPopup-${widget.id}`} />;
           case EDefaultWidgetType.AppFolder:
             return <AppFolderPopup key={`AppPopup-${widget.id}`} />;
+          case EDefaultWidgetType.AppsManager:
+            return <LoadedAppsPopup key={`AppsManagerPopup-${widget.id}`} />;
           case EDefaultWidgetType.Preferences:
             return <PreferencesPopup key={`PreferencesPopup-${widget.id}`} />;
           case EDefaultWidgetType.ExtensionStore:

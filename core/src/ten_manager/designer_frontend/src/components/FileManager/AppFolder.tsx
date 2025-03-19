@@ -103,7 +103,7 @@ export function ThreeColumnFileManager(props: {
               data={item}
               onClick={() => handleSelect(item.path)}
               selectStatus={
-                selectedPath.startsWith(item.path)
+                selectedPath === item.path
                   ? metaMemo.currentSelectedCol === 0
                     ? "selected"
                     : "selected-parent"
@@ -125,7 +125,7 @@ export function ThreeColumnFileManager(props: {
               data={item}
               onClick={() => handleSelect(item.path)}
               selectStatus={
-                selectedPath.startsWith(item.path)
+                selectedPath === item.path
                   ? metaMemo.currentSelectedCol === 1
                     ? "selected"
                     : "selected-parent"
@@ -147,7 +147,7 @@ export function ThreeColumnFileManager(props: {
               data={item}
               onClick={() => handleSelect(item.path)}
               selectStatus={
-                selectedPath.startsWith(item.path) ? "selected" : "unselected"
+                selectedPath === item.path ? "selected" : "unselected"
               }
               disabled={
                 allowSelectTypes ? !allowSelectTypes.includes(item.type) : false

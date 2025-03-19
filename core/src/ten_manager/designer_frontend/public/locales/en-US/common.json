@@ -3,6 +3,22 @@
   "ten": "TEN",
   "header": {
     "title": "Ten Manager",
+    "menuApp": {
+      "loadApp": "Load App",
+      "loadAppSuccess": "App loaded successfully",
+      "loadAppFailed": "Failed to load app",
+      "reloadApp": "Reload App",
+      "reloadAppSuccess": "App reloaded successfully",
+      "reloadAppFailed": "Failed to reload app",
+      "reloadAllApps": "Reload All Apps",
+      "reloadAllAppsSuccess": "All apps reloaded successfully",
+      "reloadAllAppsFailed": "Failed to reload all apps",
+      "unloadApp": "Unload App",
+      "unloadAppSuccess": "App unloaded successfully",
+      "unloadAppFailed": "Failed to unload app",
+      "listAllLoadedApps": "List All Loaded Apps",
+      "installAll": "Install All"
+    },
     "menu": {
       "graph": "Graph",
       "openExistingGraph": "Open Existing Graph",
@@ -83,6 +99,10 @@
       "errorGetBaseDir": "Failed to get base dir",
       "errorOpenAppFolder": "Failed to open app folder",
       "errorUnknown": "An unknown error occurred."
+    },
+    "apps": {
+      "manager": "Apps Manager",
+      "tableCaption": "A list of your loaded apps."
     }
   },
   "dock": {
@@ -94,6 +114,7 @@
   },
   "dataTable": {
     "no": "No.",
+    "name": "Name",
     "upstream": "Upstream",
     "downstream": "Downstream",
     "type": "Type",
