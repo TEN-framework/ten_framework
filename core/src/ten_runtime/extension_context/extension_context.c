@@ -157,7 +157,7 @@ void ten_extension_context_close(ten_extension_context_t *self) {
   }
 
   self->extension_threads_cnt_of_closed = 0;
-  self->extension_threads_max_cnt = ten_list_size(&self->extension_threads);
+  self->extension_threads_total_cnt = ten_list_size(&self->extension_threads);
 
   ten_list_foreach(&self->extension_threads, iter) {
     ten_extension_thread_t *extension_thread = ten_ptr_listnode_get(iter.node);
@@ -179,7 +179,7 @@ ten_extension_context_could_be_close(ten_extension_context_t *self) {
   // been removed from the engine (extension context).
 
   return self->extension_threads_cnt_of_closed ==
-         self->extension_threads_max_cnt;
+         self->extension_threads_total_cnt;
 }
 
 static void ten_extension_context_do_close(ten_extension_context_t *self) {
