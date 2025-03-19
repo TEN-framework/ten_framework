@@ -266,11 +266,22 @@ void ten_extension_thread_create_extension_instance(void *self_, void *arg) {
   ten_addon_on_create_extension_instance_ctx_t *addon_instance_info = arg;
   TEN_ASSERT(addon_instance_info, "Should not happen.");
 
-  ten_addon_create_instance_async(
+  ten_addon_context_t *addon_context = ten_addon_context_create();
+  addon_context->flow =
+      TEN_ADDON_CONTEXT_FLOW_EXTENSION_THREAD_CREATE_EXTENSION;
+  addon_context->flow_target.extension_thread = self;
+  addon_context->create_instance_done_cb = addon_instance_info->cb;
+  addon_context->create_instance_done_cb_data = addon_instance_info->cb_data;
+
+  bool rc = ten_addon_create_instance_async(
       self->extension_group->ten_env, addon_instance_info->addon_type,
       ten_string_get_raw_str(&addon_instance_info->addon_name),
       ten_string_get_raw_str(&addon_instance_info->instance_name),
-      addon_instance_info->cb, addon_instance_info->cb_data);
+      addon_context);
+
+  if (!rc) {
+    ten_addon_context_destroy(addon_context);
+  }
 
   ten_addon_on_create_extension_instance_ctx_destroy(addon_instance_info);
 }
@@ -284,10 +295,16 @@ void ten_extension_thread_destroy_addon_instance(void *self_, void *arg) {
   ten_addon_host_on_destroy_instance_ctx_t *destroy_instance_info = arg;
   TEN_ASSERT(destroy_instance_info, "Should not happen.");
 
-  ten_addon_host_destroy_instance_async(
-      destroy_instance_info->addon_host, self->extension_group->ten_env,
-      destroy_instance_info->instance, destroy_instance_info->cb,
-      destroy_instance_info->cb_data);
+  ten_addon_context_t *addon_context = ten_addon_context_create();
+  addon_context->flow =
+      TEN_ADDON_CONTEXT_FLOW_EXTENSION_THREAD_DESTROY_EXTENSION;
+  addon_context->flow_target.extension_thread = self;
+  addon_context->destroy_instance_done_cb = destroy_instance_info->cb;
+  addon_context->destroy_instance_done_cb_data = destroy_instance_info->cb_data;
+
+  ten_addon_host_destroy_instance_async(destroy_instance_info->addon_host,
+                                        destroy_instance_info->instance,
+                                        addon_context);
 
   ten_addon_host_on_destroy_instance_ctx_destroy(destroy_instance_info);
 }
