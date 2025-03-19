@@ -24,7 +24,8 @@ static MetricHandle *
 ten_extension_thread_get_metric_extension_thread_msg_queue_stay_time_us(
     ten_extension_thread_t *self, const char **app_uri, const char **graph_id,
     const char **extension_group_name) {
-  TEN_ASSERT(self && ten_extension_thread_check_integrity(self, true),
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_extension_thread_check_integrity(self, true),
              "Invalid argument.");
   TEN_ASSERT(app_uri && graph_id && extension_group_name, "Invalid argument.");
 

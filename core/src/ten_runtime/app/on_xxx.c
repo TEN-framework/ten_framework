@@ -101,15 +101,15 @@ bool ten_app_on_ten_env_proxy_released(ten_env_t *self) {
   TEN_ASSERT(self->attach_to == TEN_ENV_ATTACH_TO_APP, "Should not happen.");
 
   ten_app_t *app = self->attached_target.app;
-  TEN_ASSERT(app && ten_app_check_integrity(app, true), "Should not happen.");
+  TEN_ASSERT(app, "Should not happen.");
+  TEN_ASSERT(ten_app_check_integrity(app, true), "Should not happen.");
 
   if (!ten_list_is_empty(&self->ten_proxy_list)) {
     // There is still the presence of ten_env_proxy, so the closing process
     // cannot continue.
-    TEN_LOGI(
-        "[%s] Waiting for ten_env_proxy to be released, remaining %d "
-        "ten_env_proxy(s).",
-        ten_app_get_uri(app), ten_list_size(&self->ten_proxy_list));
+    TEN_LOGI("[%s] Waiting for ten_env_proxy to be released, remaining %d "
+             "ten_env_proxy(s).",
+             ten_app_get_uri(app), ten_list_size(&self->ten_proxy_list));
     return true;
   }
 

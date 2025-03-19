@@ -239,15 +239,16 @@ void ten_msg_set_src(ten_shared_ptr_t *self, const char *uri,
 
 void ten_msg_set_src_to_app(ten_shared_ptr_t *self, ten_app_t *app) {
   TEN_ASSERT(self && ten_msg_check_integrity(self), "Should not happen.");
-  TEN_ASSERT(app && ten_app_check_integrity(app, false), "Should not happen.");
+  TEN_ASSERT(app, "Should not happen.");
+  TEN_ASSERT(ten_app_check_integrity(app, false), "Should not happen.");
 
   ten_msg_set_src(self, ten_app_get_uri(app), NULL, NULL, NULL);
 }
 
 void ten_msg_set_src_to_engine(ten_shared_ptr_t *self, ten_engine_t *engine) {
   TEN_ASSERT(self && ten_msg_check_integrity(self), "Should not happen.");
-  TEN_ASSERT(engine && ten_engine_check_integrity(engine, false),
-             "Should not happen.");
+  TEN_ASSERT(engine, "Should not happen.");
+  TEN_ASSERT(ten_engine_check_integrity(engine, false), "Should not happen.");
 
   ten_msg_set_src(self, ten_app_get_uri(engine->app),
                   ten_engine_get_id(engine, true), NULL, NULL);
@@ -276,8 +277,8 @@ void ten_msg_set_src_to_extension(ten_shared_ptr_t *self,
       extension_group->extension_thread->extension_context->engine;
   // TEN_NOLINTNEXTLINE(thread-check)
   // thread-check: see above.
-  TEN_ASSERT(engine && ten_engine_check_integrity(engine, false),
-             "Should not happen.");
+  TEN_ASSERT(engine, "Should not happen.");
+  TEN_ASSERT(ten_engine_check_integrity(engine, false), "Should not happen.");
 
   ten_msg_set_src(self, ten_app_get_uri(engine->app),
                   ten_engine_get_id(engine, false),
@@ -288,14 +289,14 @@ void ten_msg_set_src_to_extension(ten_shared_ptr_t *self,
 void ten_msg_set_src_to_extension_group(
     ten_shared_ptr_t *self, ten_extension_group_t *extension_group) {
   TEN_ASSERT(self && ten_msg_check_integrity(self), "Should not happen.");
-  TEN_ASSERT(extension_group &&
-                 ten_extension_group_check_integrity(extension_group, true),
+  TEN_ASSERT(extension_group, "Should not happen.");
+  TEN_ASSERT(ten_extension_group_check_integrity(extension_group, true),
              "Should not happen.");
 
   ten_engine_t *engine =
       extension_group->extension_thread->extension_context->engine;
-  TEN_ASSERT(engine && ten_engine_check_integrity(engine, false),
-             "Should not happen.");
+  TEN_ASSERT(engine, "Should not happen.");
+  TEN_ASSERT(ten_engine_check_integrity(engine, false), "Should not happen.");
 
   ten_msg_set_src(self, ten_app_get_uri(engine->app),
                   ten_engine_get_id(engine, false),
@@ -902,7 +903,8 @@ ten_shared_ptr_t *ten_msg_create_from_msg_type(TEN_MSG_TYPE msg_type) {
 }
 
 bool ten_msg_type_to_handle_when_closing(ten_shared_ptr_t *msg) {
-  TEN_ASSERT(msg && ten_msg_check_integrity(msg), "Should not happen.");
+  TEN_ASSERT(msg, "Should not happen.");
+  TEN_ASSERT(ten_msg_check_integrity(msg), "Should not happen.");
 
   switch (ten_msg_get_type(msg)) {
   case TEN_MSG_TYPE_CMD_RESULT:
@@ -1088,7 +1090,8 @@ bool ten_raw_msg_dump(ten_msg_t *msg, ten_error_t *err, const char *fmt, ...) {
 
 bool ten_msg_dump(ten_shared_ptr_t *msg, ten_error_t *err, const char *fmt,
                   ...) {
-  TEN_ASSERT(msg && ten_msg_check_integrity(msg), "Should not happen.");
+  TEN_ASSERT(msg, "Should not happen.");
+  TEN_ASSERT(ten_msg_check_integrity(msg), "Should not happen.");
 
   va_list ap;
   va_start(ap, fmt);

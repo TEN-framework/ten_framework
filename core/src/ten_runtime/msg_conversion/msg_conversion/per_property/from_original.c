@@ -35,7 +35,8 @@ ten_msg_conversion_per_property_rule_from_original_get_value(
     ten_msg_conversion_per_property_rule_from_original_t *self,
     ten_shared_ptr_t *msg) {
   TEN_ASSERT(self, "Invalid argument.");
-  TEN_ASSERT(msg && ten_msg_check_integrity(msg), "Invalid argument.");
+  TEN_ASSERT(msg, "Invalid argument.");
+  TEN_ASSERT(ten_msg_check_integrity(msg), "Invalid argument.");
 
   return ten_msg_peek_property(
       msg, ten_string_get_raw_str(&self->original_path), NULL);
@@ -46,7 +47,8 @@ bool ten_msg_conversion_per_property_rule_from_original_convert(
     ten_shared_ptr_t *msg, ten_shared_ptr_t *new_msg,
     const char *new_msg_property_path, ten_error_t *err) {
   TEN_ASSERT(self, "Invalid argument.");
-  TEN_ASSERT(msg && ten_msg_check_integrity(msg), "Invalid argument.");
+  TEN_ASSERT(msg, "Invalid argument.");
+  TEN_ASSERT(ten_msg_check_integrity(msg), "Invalid argument.");
   TEN_ASSERT(new_msg && ten_msg_check_integrity(new_msg), "Invalid argument.");
   TEN_ASSERT(new_msg_property_path, "Invalid argument.");
 

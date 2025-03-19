@@ -58,7 +58,8 @@ static void ten_engine_prepend_to_in_msgs_queue(ten_engine_t *self,
 static void ten_engine_handle_msg(ten_engine_t *self, ten_shared_ptr_t *msg) {
   TEN_ASSERT(self && ten_engine_check_integrity(self, true),
              "Invalid argument.");
-  TEN_ASSERT(msg && ten_msg_check_integrity(msg), "Should not happen.");
+  TEN_ASSERT(msg, "Should not happen.");
+  TEN_ASSERT(ten_msg_check_integrity(msg), "Should not happen.");
 
   if (self->is_closing && !ten_msg_type_to_handle_when_closing(msg)) {
     // Except some special commands, do not handle messages anymore if the
@@ -105,7 +106,8 @@ static void ten_engine_handle_in_msgs_sync(ten_engine_t *self) {
 
   ten_list_foreach(&in_msgs_, iter) {
     ten_shared_ptr_t *msg = ten_smart_ptr_listnode_get(iter.node);
-    TEN_ASSERT(msg && ten_msg_check_integrity(msg), "Should not happen.");
+    TEN_ASSERT(msg, "Should not happen.");
+    TEN_ASSERT(ten_msg_check_integrity(msg), "Should not happen.");
     TEN_ASSERT(!ten_msg_src_is_empty(msg),
                "The message source should have been set.");
 
@@ -364,7 +366,8 @@ static void ten_engine_post_msg_to_extension_thread(
 bool ten_engine_dispatch_msg(ten_engine_t *self, ten_shared_ptr_t *msg) {
   TEN_ASSERT(self, "Should not happen.");
   TEN_ASSERT(ten_engine_check_integrity(self, true), "Should not happen.");
-  TEN_ASSERT(msg && ten_msg_check_integrity(msg), "Should not happen.");
+  TEN_ASSERT(msg, "Should not happen.");
+  TEN_ASSERT(ten_msg_check_integrity(msg), "Should not happen.");
   TEN_ASSERT(ten_msg_get_dest_cnt(msg) == 1,
              "When this function is executed, there should be only one "
              "destination remaining in the message's dest.");

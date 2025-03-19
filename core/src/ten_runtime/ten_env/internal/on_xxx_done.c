@@ -34,21 +34,21 @@ bool ten_env_on_configure_done(ten_env_t *self, ten_error_t *err) {
       "Invalid use of ten_env %p.", self);
 
   switch (self->attach_to) {
-    case TEN_ENV_ATTACH_TO_EXTENSION:
-      return ten_extension_on_configure_done(self);
+  case TEN_ENV_ATTACH_TO_EXTENSION:
+    return ten_extension_on_configure_done(self);
 
-    case TEN_ENV_ATTACH_TO_APP:
-      ten_app_on_configure_done(self);
-      break;
+  case TEN_ENV_ATTACH_TO_APP:
+    ten_app_on_configure_done(self);
+    break;
 
-    case TEN_ENV_ATTACH_TO_EXTENSION_GROUP:
-    case TEN_ENV_ATTACH_TO_ADDON:
-      TEN_ASSERT(0, "Handle these types.");
-      break;
+  case TEN_ENV_ATTACH_TO_EXTENSION_GROUP:
+  case TEN_ENV_ATTACH_TO_ADDON:
+    TEN_ASSERT(0, "Handle these types.");
+    break;
 
-    default:
-      TEN_ASSERT(0, "Should not happen.");
-      break;
+  default:
+    TEN_ASSERT(0, "Should not happen.");
+    break;
   }
 
   return true;
@@ -62,24 +62,24 @@ bool ten_env_on_init_done(ten_env_t *self, ten_error_t *err) {
       "Invalid use of ten_env %p.", self);
 
   switch (self->attach_to) {
-    case TEN_ENV_ATTACH_TO_EXTENSION:
-      return ten_extension_on_init_done(self);
+  case TEN_ENV_ATTACH_TO_EXTENSION:
+    return ten_extension_on_init_done(self);
 
-    case TEN_ENV_ATTACH_TO_EXTENSION_GROUP:
-      ten_extension_group_on_init_done(self);
-      break;
+  case TEN_ENV_ATTACH_TO_EXTENSION_GROUP:
+    ten_extension_group_on_init_done(self);
+    break;
 
-    case TEN_ENV_ATTACH_TO_APP:
-      ten_app_on_init_done(self);
-      break;
+  case TEN_ENV_ATTACH_TO_APP:
+    ten_app_on_init_done(self);
+    break;
 
-    case TEN_ENV_ATTACH_TO_ADDON:
-      ten_addon_on_init_done(self);
-      break;
+  case TEN_ENV_ATTACH_TO_ADDON:
+    ten_addon_on_init_done(self);
+    break;
 
-    default:
-      TEN_ASSERT(0, "Should not happen.");
-      break;
+  default:
+    TEN_ASSERT(0, "Should not happen.");
+    break;
   }
 
   return true;
@@ -93,21 +93,21 @@ bool ten_env_on_deinit_done(ten_env_t *self, TEN_UNUSED ten_error_t *err) {
       "Invalid use of ten_env %p.", self);
 
   switch (self->attach_to) {
-    case TEN_ENV_ATTACH_TO_ADDON:
-      return ten_addon_on_deinit_done(self);
+  case TEN_ENV_ATTACH_TO_ADDON:
+    return ten_addon_on_deinit_done(self);
 
-    case TEN_ENV_ATTACH_TO_EXTENSION_GROUP:
-      return ten_extension_group_on_deinit_done(self);
+  case TEN_ENV_ATTACH_TO_EXTENSION_GROUP:
+    return ten_extension_group_on_deinit_done(self);
 
-    case TEN_ENV_ATTACH_TO_EXTENSION:
-      return ten_extension_on_deinit_done(self);
+  case TEN_ENV_ATTACH_TO_EXTENSION:
+    return ten_extension_on_deinit_done(self);
 
-    case TEN_ENV_ATTACH_TO_APP:
-      return ten_app_on_deinit_done(self);
+  case TEN_ENV_ATTACH_TO_APP:
+    return ten_app_on_deinit_done(self);
 
-    default:
-      TEN_ASSERT(0, "Should not happen.");
-      return false;
+  default:
+    TEN_ASSERT(0, "Should not happen.");
+    return false;
   }
 }
 
@@ -122,8 +122,8 @@ bool ten_env_on_create_extensions_done(
 
   ten_extension_group_t *extension_group =
       ten_env_get_attached_extension_group(self);
-  TEN_ASSERT(extension_group &&
-                 ten_extension_group_check_integrity(extension_group, true),
+  TEN_ASSERT(extension_group, "Should not happen.");
+  TEN_ASSERT(ten_extension_group_check_integrity(extension_group, true),
              "Should not happen.");
 
   ten_extension_group_on_create_extensions_done(extension_group, &ctx->results);
@@ -141,8 +141,8 @@ bool ten_env_on_destroy_extensions_done(ten_env_t *self,
 
   ten_extension_group_t *extension_group =
       ten_env_get_attached_extension_group(self);
-  TEN_ASSERT(extension_group &&
-                 ten_extension_group_check_integrity(extension_group, true),
+  TEN_ASSERT(extension_group, "Should not happen.");
+  TEN_ASSERT(ten_extension_group_check_integrity(extension_group, true),
              "Should not happen.");
 
   ten_extension_group_on_destroy_extensions_done(extension_group);
@@ -160,13 +160,13 @@ bool ten_env_on_create_instance_done(ten_env_t *self, void *instance,
       "Invalid use of ten_env %p.", self);
 
   switch (self->attach_to) {
-    case TEN_ENV_ATTACH_TO_ADDON:
-      ten_addon_on_create_instance_done(self, instance, context);
-      break;
+  case TEN_ENV_ATTACH_TO_ADDON:
+    ten_addon_on_create_instance_done(self, instance, context);
+    break;
 
-    default:
-      TEN_ASSERT(0, "Should not happen.");
-      break;
+  default:
+    TEN_ASSERT(0, "Should not happen.");
+    break;
   }
 
   return true;
@@ -181,22 +181,21 @@ bool ten_env_on_destroy_instance_done(ten_env_t *self, void *context,
       "Invalid use of ten_env %p.", self);
 
   switch (self->attach_to) {
-    case TEN_ENV_ATTACH_TO_ADDON:
-      ten_addon_on_destroy_instance_done(self, context);
-      break;
+  case TEN_ENV_ATTACH_TO_ADDON:
+    ten_addon_on_destroy_instance_done(self, context);
+    break;
 
-    case TEN_ENV_ATTACH_TO_ENGINE:
-      ten_extension_context_on_addon_destroy_extension_group_done(self,
-                                                                  context);
-      break;
+  case TEN_ENV_ATTACH_TO_ENGINE:
+    ten_extension_context_on_addon_destroy_extension_group_done(self, context);
+    break;
 
-    case TEN_ENV_ATTACH_TO_EXTENSION_GROUP:
-      ten_extension_group_on_addon_destroy_extension_done(self, context);
-      break;
+  case TEN_ENV_ATTACH_TO_EXTENSION_GROUP:
+    ten_extension_group_on_addon_destroy_extension_done(self, context);
+    break;
 
-    default:
-      TEN_ASSERT(0, "Should not happen: %d.", self->attach_to);
-      break;
+  default:
+    TEN_ASSERT(0, "Should not happen: %d.", self->attach_to);
+    break;
   }
 
   return true;

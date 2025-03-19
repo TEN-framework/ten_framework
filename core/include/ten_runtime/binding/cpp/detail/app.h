@@ -74,7 +74,8 @@ class app_t {
  private:
   static void cpp_app_on_configure_cb_wrapper(ten_app_t *app,
                                               ::ten_env_t *ten_env) {
-    TEN_ASSERT(app && ten_app_check_integrity(app, true), "Should not happen.");
+    TEN_ASSERT(app, "Should not happen.");
+    TEN_ASSERT(ten_app_check_integrity(app, true), "Should not happen.");
     TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
                "Should not happen.");
     TEN_ASSERT(ten_app_get_ten_env(app) == ten_env, "Should not happen.");
@@ -108,7 +109,8 @@ class app_t {
   }
 
   static void cpp_app_on_init_cb_wrapper(ten_app_t *app, ::ten_env_t *ten_env) {
-    TEN_ASSERT(app && ten_app_check_integrity(app, true), "Should not happen.");
+    TEN_ASSERT(app, "Should not happen.");
+    TEN_ASSERT(ten_app_check_integrity(app, true), "Should not happen.");
     TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
                "Should not happen.");
     TEN_ASSERT(ten_app_get_ten_env(app) == ten_env, "Should not happen.");
@@ -143,7 +145,8 @@ class app_t {
 
   static void cpp_app_on_close_cb_wrapper(ten_app_t *app,
                                           ::ten_env_t *ten_env) {
-    TEN_ASSERT(app && ten_app_check_integrity(app, true), "Should not happen.");
+    TEN_ASSERT(app, "Should not happen.");
+    TEN_ASSERT(ten_app_check_integrity(app, true), "Should not happen.");
     TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
                "Should not happen.");
     TEN_ASSERT(ten_app_get_ten_env(app) == ten_env, "Should not happen.");

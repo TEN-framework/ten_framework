@@ -68,8 +68,8 @@ void ten_extension_group_on_init_done(ten_env_t *self) {
 
   ten_extension_group_t *extension_group =
       ten_env_get_attached_extension_group(self);
-  TEN_ASSERT(extension_group &&
-                 ten_extension_group_check_integrity(extension_group, true),
+  TEN_ASSERT(extension_group, "Should not happen.");
+  TEN_ASSERT(ten_extension_group_check_integrity(extension_group, true),
              "Should not happen.");
 
   TEN_LOGD("[%s] on_init() done.",
@@ -97,8 +97,8 @@ bool ten_extension_group_on_deinit_done(ten_env_t *self) {
 
   ten_extension_group_t *extension_group =
       ten_env_get_attached_extension_group(self);
-  TEN_ASSERT(extension_group &&
-                 ten_extension_group_check_integrity(extension_group, true),
+  TEN_ASSERT(extension_group, "Should not happen.");
+  TEN_ASSERT(ten_extension_group_check_integrity(extension_group, true),
              "Should not happen.");
 
   if (extension_group->state != TEN_EXTENSION_GROUP_STATE_DEINIT) {
@@ -231,8 +231,8 @@ void ten_extension_group_on_addon_create_extension_done(
 
   TEN_UNUSED ten_extension_group_t *extension_group =
       ten_env_get_attached_extension_group(self);
-  TEN_ASSERT(extension_group &&
-                 ten_extension_group_check_integrity(extension_group, true),
+  TEN_ASSERT(extension_group, "Should not happen.");
+  TEN_ASSERT(ten_extension_group_check_integrity(extension_group, true),
              "Should not happen.");
 
   ten_extension_t *extension = instance;
@@ -269,8 +269,8 @@ void ten_extension_group_on_addon_destroy_extension_done(
 
   TEN_UNUSED ten_extension_group_t *extension_group =
       ten_env_get_attached_extension_group(self);
-  TEN_ASSERT(extension_group &&
-                 ten_extension_group_check_integrity(extension_group, true),
+  TEN_ASSERT(extension_group, "Should not happen.");
+  TEN_ASSERT(ten_extension_group_check_integrity(extension_group, true),
              "Should not happen.");
 
   if (addon_context->destroy_instance_done_cb) {
@@ -291,8 +291,8 @@ bool ten_extension_group_on_ten_env_proxy_released(ten_env_t *self) {
 
   ten_extension_group_t *extension_group =
       ten_env_get_attached_extension_group(self);
-  TEN_ASSERT(extension_group &&
-                 ten_extension_group_check_integrity(extension_group, true),
+  TEN_ASSERT(extension_group, "Should not happen.");
+  TEN_ASSERT(ten_extension_group_check_integrity(extension_group, true),
              "Should not happen.");
 
   if (!ten_list_is_empty(&self->ten_proxy_list)) {

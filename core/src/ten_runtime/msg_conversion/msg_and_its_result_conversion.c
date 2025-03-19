@@ -13,7 +13,8 @@
 
 ten_msg_and_its_result_conversion_t *ten_msg_and_its_result_conversion_create(
     ten_shared_ptr_t *msg, ten_msg_conversion_t *result_conversion) {
-  TEN_ASSERT(msg && ten_msg_check_integrity(msg), "Invalid argument.");
+  TEN_ASSERT(msg, "Invalid argument.");
+  TEN_ASSERT(ten_msg_check_integrity(msg), "Invalid argument.");
 
   ten_msg_and_its_result_conversion_t *self =
       (ten_msg_and_its_result_conversion_t *)TEN_MALLOC(

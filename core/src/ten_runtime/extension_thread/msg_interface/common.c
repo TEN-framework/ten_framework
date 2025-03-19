@@ -107,7 +107,8 @@ void ten_extension_thread_handle_in_msg_task(void *self_, void *arg) {
              "Invalid use of extension_thread %p.", self);
 
   ten_shared_ptr_t *msg = (ten_shared_ptr_t *)arg;
-  TEN_ASSERT(msg && ten_msg_check_integrity(msg), "Invalid argument.");
+  TEN_ASSERT(msg, "Invalid argument.");
+  TEN_ASSERT(ten_msg_check_integrity(msg), "Invalid argument.");
   TEN_ASSERT(ten_msg_get_dest_cnt(msg) == 1, "Should not happen.");
 
 #if defined(TEN_ENABLE_TEN_RUST_APIS)
@@ -221,16 +222,17 @@ void ten_extension_thread_dispatch_msg(ten_extension_thread_t *self,
              "Should not happen.");
 
   ten_extension_group_t *extension_group = self->extension_group;
-  TEN_ASSERT(extension_group &&
-                 ten_extension_group_check_integrity(extension_group, true),
+  TEN_ASSERT(extension_group, "Should not happen.");
+  TEN_ASSERT(ten_extension_group_check_integrity(extension_group, true),
              "Should not happen.");
 
   ten_engine_t *engine = self->extension_context->engine;
-  TEN_ASSERT(engine && ten_engine_check_integrity(engine, false),
-             "Should not happen.");
+  TEN_ASSERT(engine, "Should not happen.");
+  TEN_ASSERT(ten_engine_check_integrity(engine, false), "Should not happen.");
 
   ten_app_t *app = engine->app;
-  TEN_ASSERT(app && ten_app_check_integrity(app, false), "Should not happen.");
+  TEN_ASSERT(app, "Should not happen.");
+  TEN_ASSERT(ten_app_check_integrity(app, false), "Should not happen.");
 
   if (!ten_string_is_equal_c_str(&dest_loc->app_uri, ten_app_get_uri(app))) {
     // Other TEN apps.
@@ -275,9 +277,12 @@ void ten_extension_thread_dispatch_msg(ten_extension_thread_t *self,
 void ten_extension_thread_create_cmd_result_and_dispatch(
     ten_extension_thread_t *self, ten_shared_ptr_t *origin_cmd,
     TEN_STATUS_CODE status_code, const char *detail) {
-  TEN_ASSERT(self && ten_extension_thread_check_integrity(self, true),
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_extension_thread_check_integrity(self, true),
              "Invalid argument.");
-  TEN_ASSERT(origin_cmd && ten_msg_is_cmd(origin_cmd), "Invalid argument.");
+
+  TEN_ASSERT(origin_cmd, "Invalid argument.");
+  TEN_ASSERT(ten_msg_is_cmd(origin_cmd), "Invalid argument.");
 
   ten_shared_ptr_t *cmd_result =
       ten_cmd_result_create_from_cmd(status_code, origin_cmd);
@@ -298,8 +303,8 @@ void ten_extension_thread_create_cmd_result_and_dispatch(
   //   directly.
 
   ten_engine_t *engine = self->extension_context->engine;
-  TEN_ASSERT(engine && ten_engine_check_integrity(engine, false),
-             "Should not happen.");
+  TEN_ASSERT(engine, "Should not happen.");
+  TEN_ASSERT(ten_engine_check_integrity(engine, false), "Should not happen.");
 
   ten_engine_append_to_in_msgs_queue(engine, cmd_result);
 

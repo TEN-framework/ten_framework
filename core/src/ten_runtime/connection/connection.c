@@ -302,8 +302,8 @@ void ten_connection_set_on_closed(ten_connection_t *self,
 }
 
 void ten_connection_send_msg(ten_connection_t *self, ten_shared_ptr_t *msg) {
-  TEN_ASSERT(self && ten_connection_check_integrity(self, true),
-             "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_connection_check_integrity(self, true), "Should not happen.");
 
   // The message sends to connection channel MUST have dest loc.
   TEN_ASSERT(msg && ten_msg_get_dest_cnt(msg) == 1, "Should not happen.");
@@ -322,7 +322,8 @@ static bool ten_connection_on_input(ten_connection_t *self,
   TEN_ASSERT(ten_connection_check_integrity(self, true),
              "Invalid use of connection %p.", self);
 
-  TEN_ASSERT(msg && ten_msg_check_integrity(msg), "Should not happen.");
+  TEN_ASSERT(msg, "Should not happen.");
+  TEN_ASSERT(ten_msg_check_integrity(msg), "Should not happen.");
 
   // A 'connection' must be attached to an engine or a app. The way to attaching
   // to an engine is through a remote.
@@ -341,7 +342,8 @@ static bool ten_connection_on_input(ten_connection_t *self,
 }
 
 static void ten_connection_on_protocol_cleaned(ten_protocol_t *protocol) {
-  TEN_ASSERT(protocol && ten_protocol_check_integrity(protocol, true),
+  TEN_ASSERT(protocol, "Invalid argument.");
+  TEN_ASSERT(ten_protocol_check_integrity(protocol, true),
              "We are in the app thread, and 'protocol' still belongs to the "
              "app thread now.");
 
@@ -534,7 +536,8 @@ void ten_connection_attach_to_app(ten_connection_t *self, ten_app_t *app) {
   TEN_ASSERT(ten_connection_check_integrity(self, true),
              "Invalid use of connection %p.", self);
 
-  TEN_ASSERT(app && ten_app_check_integrity(app, true), "Should not happen.");
+  TEN_ASSERT(app, "Should not happen.");
+  TEN_ASSERT(ten_app_check_integrity(app, true), "Should not happen.");
 
   ten_atomic_store(&self->attach_to, TEN_CONNECTION_ATTACH_TO_APP);
   self->attached_target.app = app;

@@ -115,8 +115,8 @@ ten_env_t *ten_env_create_for_extension(ten_extension_t *extension) {
 
 ten_env_t *
 ten_env_create_for_extension_group(ten_extension_group_t *extension_group) {
-  TEN_ASSERT(extension_group &&
-                 ten_extension_group_check_integrity(extension_group, true),
+  TEN_ASSERT(extension_group, "Should not happen.");
+  TEN_ASSERT(ten_extension_group_check_integrity(extension_group, true),
              "Should not happen.");
 
   return ten_create_with_attach_to(TEN_ENV_ATTACH_TO_EXTENSION_GROUP,
@@ -127,7 +127,8 @@ ten_env_t *ten_env_create_for_app(ten_app_t *app) {
   // TEN_NOLINTNEXTLINE(thread-check)
   // thread-check: this function would be called before the app thread started,
   // so it's thread safe.
-  TEN_ASSERT(app && ten_app_check_integrity(app, false), "Should not happen.");
+  TEN_ASSERT(app, "Should not happen.");
+  TEN_ASSERT(ten_app_check_integrity(app, false), "Should not happen.");
 
   return ten_create_with_attach_to(TEN_ENV_ATTACH_TO_APP, app);
 }

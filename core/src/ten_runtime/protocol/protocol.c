@@ -182,7 +182,8 @@ void ten_protocol_listen(
 void ten_protocol_attach_to_app(ten_protocol_t *self, ten_app_t *app) {
   TEN_ASSERT(self && ten_protocol_check_integrity(self, true),
              "Should not happen.");
-  TEN_ASSERT(app && ten_app_check_integrity(app, true), "Should not happen.");
+  TEN_ASSERT(app, "Should not happen.");
+  TEN_ASSERT(ten_app_check_integrity(app, true), "Should not happen.");
 
   self->attach_to = TEN_PROTOCOL_ATTACH_TO_APP;
   self->attached_target.app = app;
@@ -190,7 +191,8 @@ void ten_protocol_attach_to_app(ten_protocol_t *self, ten_app_t *app) {
 
 void ten_protocol_attach_to_app_and_thread(ten_protocol_t *self,
                                            ten_app_t *app) {
-  TEN_ASSERT(app && ten_app_check_integrity(app, true), "Should not happen.");
+  TEN_ASSERT(app, "Should not happen.");
+  TEN_ASSERT(ten_app_check_integrity(app, true), "Should not happen.");
   TEN_ASSERT(self, "Should not happen.");
 
   ten_sanitizer_thread_check_set_belonging_thread_to_current_thread(
