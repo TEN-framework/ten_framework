@@ -18,6 +18,8 @@
 #define TEN_ADDON_SIGNATURE 0xDB9CA797E07377D4U
 
 typedef struct ten_app_t ten_app_t;
+typedef struct ten_engine_t ten_engine_t;
+typedef struct ten_extension_thread_t ten_extension_thread_t;
 
 typedef void (*ten_env_addon_create_instance_done_cb_t)(ten_env_t *ten_env,
                                                         void *instance,
@@ -26,8 +28,28 @@ typedef void (*ten_env_addon_create_instance_done_cb_t)(ten_env_t *ten_env,
 typedef void (*ten_env_addon_destroy_instance_done_cb_t)(ten_env_t *ten_env,
                                                          void *cb_data);
 
+typedef enum TEN_ADDON_CONTEXT_FLOW {
+  TEN_ADDON_CONTEXT_FLOW_INVALID,
+
+  TEN_ADDON_CONTEXT_FLOW_EXTENSION_THREAD_CREATE_EXTENSION,
+  TEN_ADDON_CONTEXT_FLOW_EXTENSION_THREAD_DESTROY_EXTENSION,
+
+  TEN_ADDON_CONTEXT_FLOW_EXTENSION_THREAD_DESTROY_EXTENSION_GROUP,
+  TEN_ADDON_CONTEXT_FLOW_ENGINE_DESTROY_EXTENSION_GROUP,
+
+  TEN_ADDON_CONTEXT_FLOW_ENGINE_CREATE_EXTENSION_GROUP,
+  TEN_ADDON_CONTEXT_FLOW_APP_CREATE_PROTOCOL,
+  TEN_ADDON_CONTEXT_FLOW_ENGINE_CREATE_PROTOCOL,
+  TEN_ADDON_CONTEXT_FLOW_APP_CREATE_ADDON_LOADER,
+} TEN_ADDON_CONTEXT_FLOW;
+
 typedef struct ten_addon_context_t {
-  ten_env_t *caller_ten_env;
+  TEN_ADDON_CONTEXT_FLOW flow;
+  union {
+    ten_app_t *app;
+    ten_engine_t *engine;
+    ten_extension_thread_t *extension_thread;
+  } flow_target;
 
   ten_env_addon_create_instance_done_cb_t create_instance_done_cb;
   void *create_instance_done_cb_data;
@@ -74,10 +96,11 @@ TEN_RUNTIME_PRIVATE_API ten_addon_store_t *ten_addon_get_store(void);
 
 TEN_RUNTIME_PRIVATE_API bool ten_addon_create_instance_async(
     ten_env_t *ten_env, TEN_ADDON_TYPE addon_type, const char *addon_name,
-    const char *instance_name, ten_env_addon_create_instance_done_cb_t cb,
-    void *cb_data);
+    const char *instance_name, ten_addon_context_t *addon_context);
 
 TEN_RUNTIME_API const char *ten_addon_type_to_string(TEN_ADDON_TYPE type);
+
+TEN_RUNTIME_PRIVATE_API ten_addon_context_t *ten_addon_context_create(void);
 
 TEN_RUNTIME_PRIVATE_API void ten_addon_context_destroy(
     ten_addon_context_t *self);

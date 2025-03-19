@@ -73,9 +73,15 @@ bool ten_addon_create_addon_loader(ten_env_t *ten_env, const char *addon_name,
   // This function is called in the app thread, so `ten_env` is the app's
   // `ten_env`.
   if (ten_app_thread_call_by_me(app)) {
+    ten_addon_context_t *addon_context = ten_addon_context_create();
+    addon_context->flow = TEN_ADDON_CONTEXT_FLOW_APP_CREATE_ADDON_LOADER;
+    addon_context->flow_target.app = app;
+    addon_context->create_instance_done_cb = cb;
+    addon_context->create_instance_done_cb_data = cb_data;
+
     return ten_addon_create_instance_async(ten_env, TEN_ADDON_TYPE_ADDON_LOADER,
-                                           addon_name, instance_name, cb,
-                                           cb_data);
+                                           addon_name, instance_name,
+                                           addon_context);
   } else {
     TEN_ASSERT(0, "Should not happen.");
     return true;

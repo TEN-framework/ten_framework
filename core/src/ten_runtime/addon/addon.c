@@ -207,8 +207,9 @@ bool ten_addon_create_instance_async(ten_env_t *ten_env,
                                      TEN_ADDON_TYPE addon_type,
                                      const char *addon_name,
                                      const char *instance_name,
-                                     ten_env_addon_create_instance_done_cb_t cb,
-                                     void *cb_data) {
+                                     ten_addon_context_t *addon_context) {
+  TEN_ASSERT(addon_context, "Should not happen.");
+
   // We increase the refcount of the 'addon' here, and will decrease the
   // refcount in "ten_(extension/extension_group)_set_addon" after the
   // extension/extension_group instance has been created.
@@ -262,8 +263,8 @@ bool ten_addon_create_instance_async(ten_env_t *ten_env,
     return false;
   }
 
-  ten_addon_host_create_instance_async(addon_host, ten_env, instance_name, cb,
-                                       cb_data);
+  ten_addon_host_create_instance_async(addon_host, instance_name,
+                                       addon_context);
 
   return true;
 }

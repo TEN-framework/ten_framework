@@ -64,9 +64,15 @@ bool ten_addon_create_extension_group(
   TEN_ASSERT(engine, "Should not happen.");
   TEN_ASSERT(ten_engine_check_integrity(engine, true), "Should not happen.");
 
+  ten_addon_context_t *addon_context = ten_addon_context_create();
+  addon_context->flow = TEN_ADDON_CONTEXT_FLOW_ENGINE_CREATE_EXTENSION_GROUP;
+  addon_context->flow_target.engine = engine;
+  addon_context->create_instance_done_cb = cb;
+  addon_context->create_instance_done_cb_data = user_data;
+
   return ten_addon_create_instance_async(
-      ten_env, TEN_ADDON_TYPE_EXTENSION_GROUP, addon_name, instance_name, cb,
-      user_data);
+      ten_env, TEN_ADDON_TYPE_EXTENSION_GROUP, addon_name, instance_name,
+      addon_context);
 }
 
 bool ten_addon_destroy_extension_group(
@@ -90,8 +96,14 @@ bool ten_addon_destroy_extension_group(
   TEN_ASSERT(addon_host,
              "Should not happen, otherwise, memory leakage will occur.");
 
-  return ten_addon_host_destroy_instance_async(addon_host, ten_env,
-                                               extension_group, cb, cb_data);
+  ten_addon_context_t *addon_context = ten_addon_context_create();
+  addon_context->flow = TEN_ADDON_CONTEXT_FLOW_ENGINE_DESTROY_EXTENSION_GROUP;
+  addon_context->flow_target.engine = engine;
+  addon_context->destroy_instance_done_cb = cb;
+  addon_context->destroy_instance_done_cb_data = cb_data;
+
+  return ten_addon_host_destroy_instance_async(addon_host, extension_group,
+                                               addon_context);
 }
 
 void ten_addon_unregister_all_extension_group(void) {
