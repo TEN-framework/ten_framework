@@ -193,7 +193,8 @@ static const runloop_factory_t *get_runloop_factory(const char *name) {
 }
 
 static void process_remaining_tasks_safe(ten_runloop_common_t *loop) {
-  TEN_ASSERT(loop && ten_runloop_check_integrity(&loop->base, true),
+  TEN_ASSERT(loop, "Invalid argument.");
+  TEN_ASSERT(ten_runloop_check_integrity(&loop->base, true),
              "Invalid argument.");
 
   while (!ten_list_is_empty(&loop->tasks)) {
@@ -218,7 +219,8 @@ static void process_remaining_tasks_safe(ten_runloop_common_t *loop) {
 }
 
 static void flush_remaining_tasks(ten_runloop_common_t *impl) {
-  TEN_ASSERT(impl && ten_runloop_check_integrity(&impl->base, true),
+  TEN_ASSERT(impl, "Invalid argument.");
+  TEN_ASSERT(ten_runloop_check_integrity(&impl->base, true),
              "Invalid argument.");
 
   TEN_UNUSED bool rc = ten_mutex_lock(impl->lock);
@@ -231,49 +233,65 @@ static void flush_remaining_tasks(ten_runloop_common_t *impl) {
 }
 
 static void task_available_callback(ten_runloop_async_t *async) {
-  TEN_ASSERT(async && ten_runloop_async_check_integrity(async, true),
+  TEN_ASSERT(async, "Invalid argument.");
+  TEN_ASSERT(ten_runloop_async_check_integrity(async, true),
              "Invalid argument.");
 
   ten_runloop_common_t *impl = (ten_runloop_common_t *)async->data;
-  TEN_ASSERT(impl && ten_runloop_check_integrity(&impl->base, true),
+  TEN_ASSERT(impl, "Invalid argument.");
+  TEN_ASSERT(ten_runloop_check_integrity(&impl->base, true),
              "Invalid argument.");
 
   flush_remaining_tasks(impl);
 }
 
+/**
+ * @brief Callback invoked when the `task_available_signal` async handle is
+ * fully closed.
+ *
+ * This function is called as part of the runloop shutdown sequence after the
+ * `task_available_signal` async handle has been closed.
+ *
+ * @param async Pointer to the async handle that has been closed.
+ */
 static void task_available_signal_closed(ten_runloop_async_t *async) {
-  TEN_ASSERT(async && ten_runloop_async_check_integrity(async, true),
+  TEN_ASSERT(async, "Invalid argument.");
+  TEN_ASSERT(ten_runloop_async_check_integrity(async, true),
              "Invalid argument.");
 
   ten_runloop_common_t *impl = (ten_runloop_common_t *)async->data;
-  TEN_ASSERT(impl && ten_runloop_check_integrity(&impl->base, true),
+  TEN_ASSERT(impl, "Invalid argument.");
+  TEN_ASSERT(ten_runloop_check_integrity(&impl->base, true),
              "Invalid argument.");
 
-  // After the 'signal' is closed, we can ensure that there will be no more
-  // new tasks be added to the task queue, so we can safely comsume all the
-  // remaining tasks here.
+  // After the signal is closed, we can ensure that no more new tasks will be
+  // added to the task queue, so we can safely consume all remaining tasks.
   task_available_callback(async);
 
-  // All the remaining tasks should be done.
-  TEN_ASSERT(ten_list_is_empty(&impl->tasks), "Should not happen.");
+  // Verify all tasks have been processed. If this assertion fails, it indicates
+  // a bug where tasks were added after processing or the processing logic
+  // failed.
+  TEN_ASSERT(ten_list_is_empty(&impl->tasks),
+             "Task queue should be empty after processing remaining tasks.");
 
+  // Call the implementation-specific stop function if available.
   if (impl->stop) {
     impl->stop(&impl->base);
   }
 
+  // Clean up resources.
   ten_runloop_async_destroy(async);
-
   impl->task_available_signal = NULL;
 }
 
-static void runloop_init(ten_runloop_common_t *impl, int64_t attached) {
+static void runloop_init(ten_runloop_common_t *impl, bool attached) {
   TEN_ASSERT(impl, "Invalid argument.");
 
   ten_signature_set(&impl->base.signature, TEN_RUNLOOP_SIGNATURE);
   ten_sanitizer_thread_check_init_with_current_thread(&impl->base.thread_check);
 
   ten_atomic_store((ten_atomic_t *)&impl->state, TEN_RUNLOOP_STATE_IDLE);
-  ten_atomic_store(&impl->attach_other, attached);
+  impl->attach_other = attached;
   ten_list_init(&impl->tasks);
   impl->lock = ten_mutex_create();
   impl->task_available_signal = ten_runloop_async_create(impl->base.impl);
@@ -300,7 +318,7 @@ ten_runloop_t *ten_runloop_create(const char *type) {
     return NULL;
   }
 
-  runloop_init(impl, 0);
+  runloop_init(impl, false);
 
   return &impl->base;
 }
@@ -329,7 +347,26 @@ void ten_runloop_destroy(ten_runloop_t *loop) {
 
 ten_runloop_t *ten_runloop_current(void) { return get_self(); }
 
+/**
+ * @brief Attaches to an existing runloop with a "raw loop pointer"
+ *
+ * This function creates a ten_runloop_t wrapper around an existing loop
+ * implementation (like libuv, libevent, etc.) that was created elsewhere.
+ * The runloop will not take ownership of the raw loop, so the caller is
+ * responsible for its lifecycle.
+ *
+ * @param type The implementation type of the runloop (e.g., "uv", "event2").
+ *             If NULL, uses the default implementation.
+ * @param raw The "raw loop pointer" to attach to (e.g., uv_loop_t* for "uv").
+ *            Must not be NULL and must match the specified type.
+ * @return The attached runloop wrapper, or NULL if attachment failed.
+ *
+ * @note Be careful that |raw| must be of the correct type specified by |type|,
+ *       otherwise undefined behavior may occur.
+ */
 ten_runloop_t *ten_runloop_attach(const char *type, void *raw) {
+  TEN_ASSERT(raw, "Raw loop pointer cannot be NULL");
+
   const char *name = type ? type : get_default_impl();
   ten_runloop_common_t *impl = NULL;
   const runloop_factory_t *factory = NULL;
@@ -338,16 +375,17 @@ ten_runloop_t *ten_runloop_attach(const char *type, void *raw) {
 
   factory = get_runloop_factory(name);
   if (!factory || !factory->attach) {
+    TEN_LOGE("No attach function found for runloop type: %s", name);
     return NULL;
   }
 
   impl = factory->attach(raw);
-
   if (!impl) {
+    TEN_LOGE("Failed to attach to raw loop of type: %s", name);
     return NULL;
   }
 
-  runloop_init(impl, 1);
+  runloop_init(impl, true);
 
   return &impl->base;
 }
@@ -391,7 +429,7 @@ void ten_runloop_run(ten_runloop_t *loop) {
 
   // If the underlying is created separately, it will start running by itself,
   // so we do _not_ need to enable it to run here.
-  if (!loop || !impl->run || ten_atomic_load(&impl->attach_other)) {
+  if (!loop || !impl->run || impl->attach_other) {
     return;
   }
 
@@ -421,19 +459,41 @@ void ten_runloop_close(ten_runloop_t *loop) {
   impl->close(loop);
 }
 
+/**
+ * @brief Stops the runloop and initiates the shutdown sequence.
+ *
+ * This function stops the runloop by:
+ * 1. Setting the 'destroying' flag to prevent new tasks from being processed.
+ * 2. Closing the task_available_signal async handle, which will trigger
+ *    `task_available_signal_closed` callback when fully closed.
+ *
+ * The `task_available_signal_closed` callback will:
+ * - Process any remaining tasks in the queue.
+ * - Call the implementation-specific stop function.
+ * - Destroy the async handle.
+ *
+ * @param loop The runloop to stop. Must be called from the runloop's thread.
+ */
 void ten_runloop_stop(ten_runloop_t *loop) {
-  TEN_ASSERT(loop && ten_runloop_check_integrity(loop, true),
-             "Invalid argument.");
+  TEN_ASSERT(loop, "Invalid argument.");
+  TEN_ASSERT(ten_runloop_check_integrity(loop, true), "Invalid argument.");
 
   ten_runloop_common_t *impl = (ten_runloop_common_t *)loop;
   if (!loop || !impl->stop) {
     return;
   }
 
-  ten_mutex_lock(impl->lock);
-  impl->destroying = 1;
-  ten_mutex_unlock(impl->lock);
+  // Lock to safely update the destroying flag.
+  TEN_UNUSED int rc = ten_mutex_lock(impl->lock);
+  TEN_ASSERT(!rc, "Failed to lock.");
 
+  impl->destroying = 1;
+
+  rc = ten_mutex_unlock(impl->lock);
+  TEN_ASSERT(!rc, "Failed to unlock.");
+
+  // Close the async handle, which will trigger `task_available_signal_closed`
+  // when fully closed.
   ten_runloop_async_close(impl->task_available_signal,
                           task_available_signal_closed);
 }
@@ -504,7 +564,8 @@ void ten_runloop_async_close(ten_runloop_async_t *async,
 }
 
 void ten_runloop_async_destroy(ten_runloop_async_t *async) {
-  TEN_ASSERT(async && ten_runloop_async_check_integrity(async, true),
+  TEN_ASSERT(async, "Invalid argument.");
+  TEN_ASSERT(ten_runloop_async_check_integrity(async, true),
              "Invalid argument.");
 
   ten_runloop_async_common_t *impl = (ten_runloop_async_common_t *)async;
@@ -535,7 +596,8 @@ int ten_runloop_async_notify(ten_runloop_async_t *async) {
 
 int ten_runloop_async_init(ten_runloop_async_t *async, ten_runloop_t *loop,
                            void (*callback)(ten_runloop_async_t *)) {
-  TEN_ASSERT(async && ten_runloop_async_check_integrity(async, true),
+  TEN_ASSERT(async, "Invalid argument.");
+  TEN_ASSERT(ten_runloop_async_check_integrity(async, true),
              "Invalid argument.");
   TEN_ASSERT(loop && ten_runloop_check_integrity(loop, true),
              "Invalid argument.");
@@ -733,7 +795,8 @@ ten_runloop_timer_t *ten_runloop_timer_create(const char *type,
 
 int ten_runloop_timer_set_timeout(ten_runloop_timer_t *timer, uint64_t timeout,
                                   uint64_t periodic) {
-  TEN_ASSERT(timer && ten_runloop_timer_check_integrity(timer, true),
+  TEN_ASSERT(timer, "Invalid argument.");
+  TEN_ASSERT(ten_runloop_timer_check_integrity(timer, true),
              "Invalid argument.");
 
   ten_runloop_timer_common_t *impl = (ten_runloop_timer_common_t *)timer;
@@ -750,12 +813,16 @@ int ten_runloop_timer_set_timeout(ten_runloop_timer_t *timer, uint64_t timeout,
 void ten_runloop_timer_stop(ten_runloop_timer_t *timer,
                             void (*stop_cb)(ten_runloop_timer_t *, void *),
                             void *arg) {
-  TEN_ASSERT(timer && ten_runloop_timer_check_integrity(timer, true),
+  TEN_ASSERT(timer, "Invalid argument.");
+  TEN_ASSERT(ten_runloop_timer_check_integrity(timer, true),
              "Invalid argument.");
 
-  ten_runloop_timer_common_t *impl = (ten_runloop_timer_common_t *)timer;
+  if (!timer) {
+    return;
+  }
 
-  if (!timer || !impl->stop) {
+  ten_runloop_timer_common_t *impl = (ten_runloop_timer_common_t *)timer;
+  if (!impl->stop) {
     return;
   }
 
@@ -766,12 +833,16 @@ void ten_runloop_timer_stop(ten_runloop_timer_t *timer,
 void ten_runloop_timer_close(ten_runloop_timer_t *timer,
                              void (*close_cb)(ten_runloop_timer_t *, void *),
                              void *arg) {
-  TEN_ASSERT(timer && ten_runloop_timer_check_integrity(timer, true),
+  TEN_ASSERT(timer, "Invalid argument.");
+  TEN_ASSERT(ten_runloop_timer_check_integrity(timer, true),
              "Invalid argument.");
 
-  ten_runloop_timer_common_t *impl = (ten_runloop_timer_common_t *)timer;
+  if (!timer) {
+    return;
+  }
 
-  if (!timer || !impl->close) {
+  ten_runloop_timer_common_t *impl = (ten_runloop_timer_common_t *)timer;
+  if (!impl->close) {
     return;
   }
 
@@ -780,7 +851,8 @@ void ten_runloop_timer_close(ten_runloop_timer_t *timer,
 }
 
 void ten_runloop_timer_destroy(ten_runloop_timer_t *timer) {
-  TEN_ASSERT(timer && ten_runloop_timer_check_integrity(timer, true),
+  TEN_ASSERT(timer, "Invalid argument.");
+  TEN_ASSERT(ten_runloop_timer_check_integrity(timer, true),
              "Invalid argument.");
 
   ten_runloop_timer_common_t *impl = (ten_runloop_timer_common_t *)timer;
@@ -795,7 +867,8 @@ void ten_runloop_timer_destroy(ten_runloop_timer_t *timer) {
 int ten_runloop_timer_start(ten_runloop_timer_t *timer, ten_runloop_t *loop,
                             void (*callback)(ten_runloop_timer_t *, void *),
                             void *arg) {
-  TEN_ASSERT(timer && ten_runloop_timer_check_integrity(timer, true),
+  TEN_ASSERT(timer, "Invalid argument.");
+  TEN_ASSERT(ten_runloop_timer_check_integrity(timer, true),
              "Invalid argument.");
   TEN_ASSERT(loop && ten_runloop_check_integrity(loop, true),
              "Invalid argument.");

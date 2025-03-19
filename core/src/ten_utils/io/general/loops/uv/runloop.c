@@ -6,7 +6,6 @@
 //
 #include "ten_utils/io/runloop.h"
 
-#include <stdlib.h>
 #include <string.h>
 #include <uv.h>
 
@@ -14,7 +13,6 @@
 #include "ten_utils/container/list.h"
 #include "ten_utils/io/general/loops/runloop.h"
 #include "ten_utils/lib/alloc.h"
-#include "ten_utils/lib/atomic.h"
 #include "ten_utils/lib/mutex.h"
 #include "ten_utils/macro/check.h"
 #include "ten_utils/macro/field.h"
@@ -272,24 +270,49 @@ static void ten_runloop_uv_destroy(ten_runloop_t *loop) {
   TEN_FREE(impl);
 }
 
+/**
+ * @brief Runs the libuv event loop until it's stopped.
+ *
+ * This function starts the libuv event loop and blocks until the loop is
+ * stopped. After the loop is stopped, it cleans up resources by closing the
+ * loop and freeing memory. If an `on_stopped` callback was registered, it will
+ * be called after the loop has completely stopped.
+ *
+ * @param loop The runloop to run.
+ */
 static void ten_runloop_uv_run(ten_runloop_t *loop) {
   ten_runloop_uv_t *impl = (ten_runloop_uv_t *)loop;
-  TEN_ASSERT(impl && ten_runloop_check_integrity(loop, true),
-             "Invalid argument.");
+  TEN_ASSERT(impl, "Invalid argument.");
+  TEN_ASSERT(ten_runloop_check_integrity(loop, true), "Invalid argument.");
 
   if (!loop || strcmp(loop->impl, TEN_RUNLOOP_UV) != 0) {
     return;
   }
 
+  // Run the libuv event loop until there are no more active handles or
+  // requests.
   uv_run(impl->uv_loop, UV_RUN_DEFAULT);
 
-  // Must call 'uv_loop_close()' after 'uv_run()' to release the internal libuv
-  // loop resources, and check the return value of 'uv_loop_close' to ensure
-  // that all resources relevant to the runloop is released.
-  TEN_UNUSED int rc = uv_loop_close(impl->uv_loop);
-  TEN_ASSERT(!rc, "Runloop is destroyed when it holds alive resources.");
+  // Only free the loop if it wasn't attached from an external source.
+  if (!impl->common.attach_other) {
+    // Must call 'uv_loop_close()' after 'uv_run()' to release the internal
+    // libuv loop resources, and check the return value of 'uv_loop_close' to
+    // ensure that all resources relevant to the runloop are released.
+    TEN_UNUSED int rc = uv_loop_close(impl->uv_loop);
+    if (rc) {
+      TEN_ASSERT(rc == UV_EBUSY, "uv_loop_close() failed: %d", rc);
 
-  TEN_FREE(impl->uv_loop);
+      // Attempting to close a loop with active resources is problematic
+      // because:
+      // - It leads to resource leaks.
+      // - It can cause undefined behavior if those resources are accessed
+      //   later.
+      // - It indicates a bug in the application's cleanup logic.
+      TEN_ASSERT(0, "Runloop is destroyed when it holds alive resources.");
+    }
+
+    TEN_FREE(impl->uv_loop);
+  }
 
   // The runloop is stopped completely, call the on_stopped callback if the
   // user registered one before.
@@ -315,40 +338,77 @@ static void *ten_runloop_uv_get_raw(ten_runloop_t *loop) {
   return impl->uv_loop;
 }
 
+/**
+ * @brief Callback invoked when the migration async handle is fully closed.
+ *
+ * This function is called after the migration async handle has been closed
+ * as part of the runloop shutdown sequence. It performs different actions
+ * based on whether the runloop was created internally or attached from an
+ * external source:
+ *
+ * 1. For internally created runloops (!attach_other): Calls `uv_stop()` to
+ *    stop the event loop, which will cause `uv_run()` to return.
+ * 2. For externally attached runloops (attach_other): Does not stop the
+ *    underlying loop (as we don't own it), but calls the `on_stopped` callback
+ *    if one was registered.
+ *
+ * Finally, it cleans up migration-related resources by destroying the mutex
+ * and clearing the migration tasks list.
+ *
+ * @param handle Pointer to the uv_handle_t (the migration async handle)
+ *               that has been closed.
+ */
 static void ten_runloop_uv_migration_start_async_closed(uv_handle_t *handle) {
   TEN_ASSERT(handle, "Invalid argument.");
 
   ten_runloop_uv_t *impl = (ten_runloop_uv_t *)handle->data;
-  TEN_ASSERT(impl && ten_runloop_check_integrity(&impl->common.base, true),
+  TEN_ASSERT(impl, "Invalid argument.");
+  TEN_ASSERT(ten_runloop_check_integrity(&impl->common.base, true),
              "Invalid argument.");
 
-  if (!ten_atomic_load(&impl->common.attach_other)) {
-    // If the underlying runloop is created separately, and be wrapped into the
-    // ten runloop, then we should _not_ stop the underlying runloop.
+  if (!impl->common.attach_other) {
+    // For internally created runloops, we need to stop the event loop which
+    // will cause `uv_run()` to return in `ten_runloop_uv_run()`.
     uv_stop(impl->uv_loop);
   } else {
-    // Otherwise, the runloop is stopped completely, call the on_stopped
-    // callback if the user registered one before.
+    // For externally attached runloops, we don't stop the loop (as we don't own
+    // it), but we do call the `on_stopped` callback if one was registered.
     if (impl->common.on_stopped) {
       impl->common.on_stopped((ten_runloop_t *)impl,
                               impl->common.on_stopped_data);
     }
   }
 
+  // Clean up migration-related resources.
   ten_mutex_destroy(impl->migrate_task_lock);
   ten_list_clear(&impl->migrate_tasks);
 }
 
+/**
+ * @brief Stops the libuv-based runloop implementation.
+ *
+ * This function initiates the shutdown sequence for a libuv-based runloop.
+ * It closes the migration async handle, which will trigger the
+ * `ten_runloop_uv_migration_start_async_closed` callback when the handle
+ * is fully closed. That callback will then either:
+ * 1. Call `uv_stop()` if this is a runloop we created, or
+ * 2. Call the `on_stopped` callback if this is an attached runloop.
+ *
+ * @param loop The runloop to stop.
+ */
 static void ten_runloop_uv_stop(ten_runloop_t *loop) {
-  ten_runloop_uv_t *impl = (ten_runloop_uv_t *)loop;
-  TEN_ASSERT(impl && ten_runloop_check_integrity(loop, true),
-             "Invalid argument.");
-
   if (!loop || strcmp(loop->impl, TEN_RUNLOOP_UV) != 0) {
     return;
   }
 
+  ten_runloop_uv_t *impl = (ten_runloop_uv_t *)loop;
+  TEN_ASSERT(impl, "Invalid argument.");
+  TEN_ASSERT(ten_runloop_check_integrity(loop, true), "Invalid argument.");
+
   // Close migration relevant resources.
+  // This will trigger `ten_runloop_uv_migration_start_async_closed` when
+  // complete, which will either stop the loop or call the `on_stopped`
+  // callback.
   uv_close((uv_handle_t *)&impl->migrate_start_async,
            ten_runloop_uv_migration_start_async_closed);
 }
@@ -593,18 +653,29 @@ static void uv_timer_closed(uv_handle_t *handle) {
   }
 }
 
+/**
+ * @brief Stops a libuv-based timer.
+ *
+ * This function stops a running timer by calling `uv_timer_stop()` on the
+ * underlying libuv timer handle. After stopping the timer, it invokes the
+ * provided stop callback with the timer and the stored stop data.
+ *
+ * @param base The timer to stop.
+ * @param stop_cb Callback function to be called after the timer is stopped.
+ *                Can be NULL if no callback is needed.
+ */
 static void ten_runloop_timer_uv_stop(ten_runloop_timer_t *base,
                                       void (*stop_cb)(ten_runloop_timer_t *,
                                                       void *)) {
-  ten_runloop_timer_uv_t *timer_impl = (ten_runloop_timer_uv_t *)base;
+  TEN_ASSERT(base, "Invalid argument.");
+  TEN_ASSERT(ten_runloop_timer_check_integrity(base, true),
+             "Invalid argument.");
 
   if (!base || strcmp(base->impl, TEN_RUNLOOP_UV) != 0) {
     return;
   }
 
-  TEN_ASSERT(ten_runloop_timer_check_integrity(base, true),
-             "Invalid argument.");
-
+  ten_runloop_timer_uv_t *timer_impl = (ten_runloop_timer_uv_t *)base;
   timer_impl->stop_callback = stop_cb;
 
   TEN_UNUSED int rc = uv_timer_stop(&timer_impl->uv_timer);
@@ -616,18 +687,34 @@ static void ten_runloop_timer_uv_stop(ten_runloop_timer_t *base,
   }
 }
 
+/**
+ * @brief Closes a libuv-based timer.
+ *
+ * This function initiates the asynchronous closing of a timer by calling
+ * `uv_close()` on the underlying libuv timer handle. The actual callback
+ * (`uv_timer_closed`) will be invoked by libuv when the handle is fully closed,
+ * which will then call the provided `close_cb` with the timer and the stored
+ * close data.
+ *
+ * Note: This function does not immediately destroy the timer. The timer will be
+ * properly cleaned up when the close callback is invoked.
+ *
+ * @param base The timer to close.
+ * @param close_cb Callback function to be called after the timer is fully
+ * closed. Can be NULL if no callback is needed.
+ */
 static void ten_runloop_timer_uv_close(ten_runloop_timer_t *base,
                                        void (*close_cb)(ten_runloop_timer_t *,
                                                         void *)) {
-  ten_runloop_timer_uv_t *timer_impl = (ten_runloop_timer_uv_t *)base;
+  TEN_ASSERT(base, "Invalid argument.");
+  TEN_ASSERT(ten_runloop_timer_check_integrity(base, true),
+             "Invalid argument.");
 
   if (!base || strcmp(base->impl, TEN_RUNLOOP_UV) != 0) {
     return;
   }
 
-  TEN_ASSERT(ten_runloop_timer_check_integrity(base, true),
-             "Invalid argument.");
-
+  ten_runloop_timer_uv_t *timer_impl = (ten_runloop_timer_uv_t *)base;
   timer_impl->close_callback = close_cb;
 
   uv_close((uv_handle_t *)&timer_impl->uv_timer, uv_timer_closed);

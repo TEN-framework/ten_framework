@@ -21,14 +21,14 @@
 #include "ten_utils/macro/mark.h"
 
 static bool ten_timer_is_closing(ten_timer_t *self) {
-  TEN_ASSERT(self && ten_timer_check_integrity(self, true),
-             "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_timer_check_integrity(self, true), "Should not happen.");
   return ten_atomic_load(&self->is_closing) == 1;
 }
 
 static bool ten_timer_could_be_close(ten_timer_t *self) {
-  TEN_ASSERT(self && ten_timer_check_integrity(self, true),
-             "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_timer_check_integrity(self, true), "Should not happen.");
   TEN_ASSERT(ten_runloop_check_integrity(self->runloop, true),
              "Should not happen.");
 
@@ -39,8 +39,9 @@ static bool ten_timer_could_be_close(ten_timer_t *self) {
 }
 
 static void ten_timer_do_close(ten_timer_t *self) {
-  TEN_ASSERT(self && ten_timer_check_integrity(self, true) &&
-                 ten_runloop_check_integrity(self->runloop, true),
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_timer_check_integrity(self, true), "Should not happen.");
+  TEN_ASSERT(ten_runloop_check_integrity(self->runloop, true),
              "Should not happen.");
 
   if (self->on_closed) {
@@ -53,8 +54,9 @@ static void ten_timer_do_close(ten_timer_t *self) {
 }
 
 static void ten_timer_on_close(ten_timer_t *self) {
-  TEN_ASSERT(self && ten_timer_check_integrity(self, true) &&
-                 ten_runloop_check_integrity(self->runloop, true),
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_timer_check_integrity(self, true), "Should not happen.");
+  TEN_ASSERT(ten_runloop_check_integrity(self->runloop, true),
              "Should not happen.");
 
   if (!ten_timer_could_be_close(self)) {
@@ -71,8 +73,9 @@ static void ten_runloop_timer_on_closed(TEN_UNUSED ten_runloop_timer_t *timer,
                                         void *arg) {
   ten_timer_t *self = arg;
 
-  TEN_ASSERT(self && ten_timer_check_integrity(self, true) &&
-                 ten_runloop_check_integrity(self->runloop, true),
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_timer_check_integrity(self, true), "Should not happen.");
+  TEN_ASSERT(ten_runloop_check_integrity(self->runloop, true),
              "Should not happen.");
 
   // The runloop timer is closed, so it's safe to destroy the runloop timer now
@@ -86,11 +89,14 @@ static void ten_runloop_timer_on_closed(TEN_UNUSED ten_runloop_timer_t *timer,
 }
 
 static void ten_timer_close(ten_timer_t *self) {
-  TEN_ASSERT(self && ten_timer_check_integrity(self, true) &&
-                 ten_runloop_check_integrity(self->runloop, true),
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_timer_check_integrity(self, true), "Should not happen.");
+  TEN_ASSERT(ten_runloop_check_integrity(self->runloop, true),
              "Should not happen.");
 
   ten_runloop_timer_t *timer = self->backend;
+  TEN_ASSERT(timer, "Should not happen.");
+
   ten_runloop_timer_close(timer, ten_runloop_timer_on_closed, self);
 }
 
@@ -98,11 +104,14 @@ static void ten_runloop_timer_on_stopped(TEN_UNUSED ten_runloop_timer_t *timer,
                                          TEN_UNUSED void *arg) {}
 
 static void ten_timer_stop(ten_timer_t *self) {
-  TEN_ASSERT(self && ten_timer_check_integrity(self, true) &&
-                 ten_runloop_check_integrity(self->runloop, true),
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_timer_check_integrity(self, true), "Should not happen.");
+  TEN_ASSERT(ten_runloop_check_integrity(self->runloop, true),
              "Should not happen.");
 
   ten_runloop_timer_t *timer = self->backend;
+  TEN_ASSERT(timer, "Should not happen.");
+
   ten_runloop_timer_stop(timer, ten_runloop_timer_on_stopped, self);
 }
 
@@ -124,8 +133,9 @@ bool ten_timer_check_integrity(ten_timer_t *self, bool check_thread) {
 
 static void ten_timer_on_trigger(ten_timer_t *self,
                                  TEN_UNUSED void *on_trigger_data) {
-  TEN_ASSERT(self && ten_timer_check_integrity(self, true) &&
-                 ten_runloop_check_integrity(self->runloop, true),
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_timer_check_integrity(self, true), "Should not happen.");
+  TEN_ASSERT(ten_runloop_check_integrity(self->runloop, true),
              "Should not happen.");
 
   self->times++;
@@ -258,16 +268,18 @@ static void
 ten_runloop_timer_on_triggered(TEN_UNUSED ten_runloop_timer_t *timer,
                                void *arg) {
   ten_timer_t *self = arg;
-  TEN_ASSERT(self && ten_timer_check_integrity(self, true) &&
-                 ten_runloop_check_integrity(self->runloop, true),
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_timer_check_integrity(self, true), "Should not happen.");
+  TEN_ASSERT(ten_runloop_check_integrity(self->runloop, true),
              "Should not happen.");
 
   ten_timer_on_trigger(self, self->on_trigger_data);
 }
 
 void ten_timer_enable(ten_timer_t *self) {
-  TEN_ASSERT(self && ten_timer_check_integrity(self, true) &&
-                 ten_runloop_check_integrity(self->runloop, true),
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_timer_check_integrity(self, true), "Should not happen.");
+  TEN_ASSERT(ten_runloop_check_integrity(self->runloop, true),
              "Should not happen.");
 
   if (self->requested_times != TEN_TIMER_INFINITE &&
@@ -284,25 +296,41 @@ void ten_timer_enable(ten_timer_t *self) {
                           ten_runloop_timer_on_triggered, self);
 }
 
-static void ten_timer_stop_(void *timer_, TEN_UNUSED void *arg) {
+static void ten_timer_stop_task(void *timer_, TEN_UNUSED void *arg) {
   ten_timer_t *timer = (ten_timer_t *)timer_;
-  TEN_ASSERT(timer && ten_timer_check_integrity(timer, true) &&
-                 ten_runloop_check_integrity(timer->runloop, true),
+  TEN_ASSERT(timer, "Should not happen.");
+  TEN_ASSERT(ten_timer_check_integrity(timer, true), "Should not happen.");
+  TEN_ASSERT(ten_runloop_check_integrity(timer->runloop, true),
              "Should not happen.");
 
   ten_timer_stop(timer);
 }
 
+/**
+ * @brief Asynchronously stops a timer by posting a stop task to the timer's
+ * runloop.
+ *
+ * This function schedules the timer to be stopped in the context of its own
+ * runloop, making it thread-safe to call from any thread. The actual stopping
+ * operation will be performed by the `ten_timer_stop_task` function when the
+ * posted task is executed.
+ *
+ * Note: This function does not wait for the timer to actually stop. It only
+ * schedules the stop operation.
+ *
+ * @param self The timer to stop.
+ */
 void ten_timer_stop_async(ten_timer_t *self) {
-  TEN_ASSERT(self && ten_timer_check_integrity(self, true),
-             "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_timer_check_integrity(self, true), "Should not happen.");
 
-  TEN_LOGV("Stop a timer.");
+  TEN_LOGV("Scheduling timer stop operation.");
 
-  int rc =
-      ten_runloop_post_task_tail(self->runloop, ten_timer_stop_, self, NULL);
+  // Post the stop task to the timer's runloop to ensure thread safety
+  int rc = ten_runloop_post_task_tail(self->runloop, ten_timer_stop_task, self,
+                                      NULL);
   if (rc) {
-    TEN_LOGW("Failed to post task to timer's runloop: %d", rc);
+    TEN_LOGW("Failed to post timer stop task to runloop: %d", rc);
     TEN_ASSERT(0, "Should not happen.");
   }
 }
@@ -310,8 +338,9 @@ void ten_timer_stop_async(ten_timer_t *self) {
 void ten_timer_set_on_closed(ten_timer_t *self,
                              ten_timer_on_closed_func_t on_closed,
                              void *on_closed_data) {
-  TEN_ASSERT(self && ten_timer_check_integrity(self, true) &&
-                 ten_runloop_check_integrity(self->runloop, true),
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_timer_check_integrity(self, true), "Should not happen.");
+  TEN_ASSERT(ten_runloop_check_integrity(self->runloop, true),
              "Should not happen.");
 
   self->on_closed = on_closed;
@@ -321,15 +350,16 @@ void ten_timer_set_on_closed(ten_timer_t *self,
 void ten_timer_set_on_triggered(ten_timer_t *self,
                                 ten_timer_on_trigger_func_t on_trigger,
                                 void *on_trigger_data) {
-  TEN_ASSERT(self && ten_timer_check_integrity(self, true) &&
-                 ten_runloop_check_integrity(self->runloop, true),
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_timer_check_integrity(self, true), "Should not happen.");
+  TEN_ASSERT(ten_runloop_check_integrity(self->runloop, true),
              "Should not happen.");
 
   self->on_trigger = on_trigger;
   self->on_trigger_data = on_trigger_data;
 }
 
-static void ten_timer_close_(void *timer_, TEN_UNUSED void *arg) {
+static void ten_timer_close_task(void *timer_, TEN_UNUSED void *arg) {
   ten_timer_t *timer = (ten_timer_t *)timer_;
   TEN_ASSERT(timer, "Should not happen.");
   TEN_ASSERT(ten_timer_check_integrity(timer, true), "Should not happen.");
@@ -338,14 +368,14 @@ static void ten_timer_close_(void *timer_, TEN_UNUSED void *arg) {
 }
 
 void ten_timer_close_async(ten_timer_t *self) {
-  TEN_ASSERT(self && ten_timer_check_integrity(self, true),
-             "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_timer_check_integrity(self, true), "Should not happen.");
 
   if (ten_atomic_bool_compare_swap(&self->is_closing, 0, 1)) {
     TEN_LOGV("Try to close a timer.");
 
-    int rc =
-        ten_runloop_post_task_tail(self->runloop, ten_timer_close_, self, NULL);
+    int rc = ten_runloop_post_task_tail(self->runloop, ten_timer_close_task,
+                                        self, NULL);
     if (rc) {
       TEN_LOGW("Failed to post task to timer's runloop: %d", rc);
       TEN_ASSERT(0, "Should not happen.");
