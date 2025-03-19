@@ -6,14 +6,14 @@
 //
 import z from "zod";
 
-import { API_EXTENSION_STORE_ROOT_PATH } from "@/api/endpoints/constant";
+import { API_DESIGNER_V1 } from "@/api/endpoints/constant";
 import { ENDPOINT_METHOD } from "@/api/endpoints/constant";
 import { TenCloudStorePackageSchema } from "@/types/extension";
 
 export const ENDPOINT_EXTENSION = {
-  listTenCloudStorePackages: {
+  registryPackages: {
     [ENDPOINT_METHOD.GET]: {
-      url: `${API_EXTENSION_STORE_ROOT_PATH}/api/ten-cloud-store/v1/packages`,
+      url: `${API_DESIGNER_V1}/registry/packages`,
       method: ENDPOINT_METHOD.GET,
       queryParams: ["page", "pageSize"],
       responseSchema: z.object({

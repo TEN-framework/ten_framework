@@ -12,9 +12,9 @@ import {
   prepareReqUrl,
 } from "@/api/services/utils";
 import { ENDPOINT_FILE_SYSTEM } from "@/api/endpoints";
-import { ENDPOINT_APP } from "@/api/endpoints";
+import { ENDPOINT_APPS } from "@/api/endpoints";
 import { ENDPOINT_METHOD } from "@/api/endpoints/constant";
-import { IGetBaseDirResponse, ISetBaseDirResponse } from "@/types/app";
+import { IGetBaseDirResponse, ISetBaseDirResponse } from "@/types/apps";
 
 // request functions -------------------------------
 
@@ -49,7 +49,7 @@ export const putFileContent = async (
 export const putBaseDir = async (
   baseDir: string
 ): Promise<ISetBaseDirResponse> => {
-  const template = ENDPOINT_APP.baseDir[ENDPOINT_METHOD.PUT];
+  const template = ENDPOINT_APPS.baseDir[ENDPOINT_METHOD.PUT];
   const req = makeAPIRequest(template, {
     body: { base_dir: baseDir },
   });
@@ -58,7 +58,7 @@ export const putBaseDir = async (
 };
 
 export const getBaseDir = async (): Promise<IGetBaseDirResponse> => {
-  const template = ENDPOINT_APP.baseDir[ENDPOINT_METHOD.GET];
+  const template = ENDPOINT_APPS.baseDir[ENDPOINT_METHOD.GET];
   const req = makeAPIRequest(template, {});
   const res = await req;
   return template.responseSchema.parse(res).data;

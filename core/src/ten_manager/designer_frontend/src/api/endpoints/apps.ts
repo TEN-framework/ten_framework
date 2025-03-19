@@ -8,12 +8,42 @@ import z from "zod";
 
 import { API_DESIGNER_V1, ENDPOINT_METHOD } from "@/api/endpoints/constant";
 import { genResSchema } from "@/api/endpoints/utils";
-import type { IExtensionAddon } from "@/types/addons";
+import type {
+  ISetBaseDirResponse,
+  IGetBaseDirResponse,
+  IExtensionAddon,
+} from "@/types/apps";
+
+export const ENDPOINT_APPS = {
+  baseDir: {
+    [ENDPOINT_METHOD.PUT]: {
+      url: `${API_DESIGNER_V1}/app/base-dir`,
+      method: ENDPOINT_METHOD.PUT,
+      requestSchema: z.object({
+        base_dir: z.string(),
+      }),
+      responseSchema: genResSchema<ISetBaseDirResponse>(
+        z.object({
+          success: z.boolean(),
+        })
+      ),
+    },
+    [ENDPOINT_METHOD.GET]: {
+      url: `${API_DESIGNER_V1}/app/base-dir`,
+      method: ENDPOINT_METHOD.GET,
+      responseSchema: genResSchema<IGetBaseDirResponse>(
+        z.object({
+          base_dir: z.string().nullable(),
+        })
+      ),
+    },
+  },
+};
 
 export const ENDPOINT_ADDONS = {
   extensionByName: {
     [ENDPOINT_METHOD.GET]: {
-      url: `${API_DESIGNER_V1}/addons/extensions/:name`,
+      url: `${API_DESIGNER_V1}/apps/addons/extensions/:name`,
       method: ENDPOINT_METHOD.POST,
       pathParams: ["name"],
       responseSchema: genResSchema<IExtensionAddon>(
@@ -28,7 +58,7 @@ export const ENDPOINT_ADDONS = {
   },
   addons: {
     [ENDPOINT_METHOD.POST]: {
-      url: `${API_DESIGNER_V1}/addons`,
+      url: `${API_DESIGNER_V1}/apps/addons`,
       method: ENDPOINT_METHOD.POST,
       body: z.object({
         base_dir: z.string().optional(),

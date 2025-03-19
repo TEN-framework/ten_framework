@@ -18,8 +18,7 @@ export const listTenCloudStorePackages = async (options?: {
   page?: number;
   pageSize?: number;
 }) => {
-  const template =
-    ENDPOINT_EXTENSION.listTenCloudStorePackages[ENDPOINT_METHOD.GET];
+  const template = ENDPOINT_EXTENSION.registryPackages[ENDPOINT_METHOD.GET];
   const req = makeAPIRequest(template, {
     query: {
       page: options?.page?.toString() || undefined,
@@ -34,12 +33,11 @@ export const useListTenCloudStorePackages = (options?: {
   page?: number;
   pageSize?: number;
 }) => {
-  const template =
-    ENDPOINT_EXTENSION.listTenCloudStorePackages[ENDPOINT_METHOD.GET];
+  const template = ENDPOINT_EXTENSION.registryPackages[ENDPOINT_METHOD.GET];
   const url = prepareReqUrl(template, {
     query: {
       page: options?.page?.toString() || undefined,
-      pageSize: options?.pageSize?.toString() || "1000", // todo: use undefined
+      pageSize: options?.pageSize?.toString() || undefined,
     },
   });
   const [{ data, error, isLoading }] = useCancelableSWR<

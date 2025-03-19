@@ -10,7 +10,7 @@ import { devtools } from "zustand/middleware";
 import { TEN_DEFAULT_APP_RUN_SCRIPT } from "@/constants";
 
 import { type IFMItem } from "@/components/FileManager/utils";
-import { type IExtensionAddon } from "@/types/addons";
+import { type IExtensionAddon } from "@/types/apps";
 
 export interface IAppStore {
   runScript: string;

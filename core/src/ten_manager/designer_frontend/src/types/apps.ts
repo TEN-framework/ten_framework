@@ -8,6 +8,14 @@ import z from "zod";
 
 import { TenLocalStorePackageSchema } from "@/types/extension";
 
+export interface ISetBaseDirResponse {
+  success: boolean;
+}
+
+export interface IGetBaseDirResponse {
+  base_dir: string | null;
+}
+
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface IExtensionAddon
   extends z.infer<typeof TenLocalStorePackageSchema> {}
