@@ -96,11 +96,12 @@ static void tsfn_proxy_send_audio_frame_callback(napi_env env, napi_value js_cb,
   ten_nodejs_send_audio_frame_callback_call_ctx_destroy(ctx);
 }
 
-static void proxy_send_audio_frame_callback(
-    ten_env_t *ten_env, TEN_UNUSED ten_shared_ptr_t *c_cmd_result,
-    void *user_audio_frame, ten_error_t *err) {
-  TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
-             "Should not happen.");
+static void
+proxy_send_audio_frame_callback(ten_env_t *ten_env,
+                                TEN_UNUSED ten_shared_ptr_t *c_cmd_result,
+                                void *user_audio_frame, ten_error_t *err) {
+  TEN_ASSERT(ten_env, "Should not happen.");
+  TEN_ASSERT(ten_env_check_integrity(ten_env, true), "Should not happen.");
 
   ten_env_notify_send_audio_frame_ctx_t *ctx = user_audio_frame;
   TEN_ASSERT(ctx, "Should not happen.");
@@ -128,8 +129,8 @@ static void proxy_send_audio_frame_callback(
 static void ten_env_proxy_notify_send_audio_frame(ten_env_t *ten_env,
                                                   void *user_audio_frame) {
   TEN_ASSERT(user_audio_frame, "Invalid argument.");
-  TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
-             "Should not happen.");
+  TEN_ASSERT(ten_env, "Should not happen.");
+  TEN_ASSERT(ten_env_check_integrity(ten_env, true), "Should not happen.");
 
   ten_env_notify_send_audio_frame_ctx_t *ctx = user_audio_frame;
   TEN_ASSERT(ctx, "Should not happen.");
@@ -149,7 +150,7 @@ static void ten_env_proxy_notify_send_audio_frame(ten_env_t *ten_env,
 napi_value ten_nodejs_ten_env_send_audio_frame(napi_env env,
                                                napi_callback_info info) {
   const size_t argc = 3;
-  napi_value args[argc];  // this, audio_frame, callback
+  napi_value args[argc]; // this, audio_frame, callback
   if (!ten_nodejs_get_js_func_args(env, info, args, argc)) {
     napi_fatal_error(NULL, NAPI_AUTO_LENGTH,
                      "Incorrect number of parameters passed.",

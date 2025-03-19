@@ -50,9 +50,10 @@ static void ten_env_notify_send_audio_frame_ctx_destroy(
   TEN_FREE(ctx);
 }
 
-static void proxy_handle_audio_frame_error(
-    ten_env_t *ten_env, TEN_UNUSED ten_shared_ptr_t *c_cmd_result,
-    void *callback_info_, ten_error_t *err) {
+static void
+proxy_handle_audio_frame_error(ten_env_t *ten_env,
+                               TEN_UNUSED ten_shared_ptr_t *c_cmd_result,
+                               void *callback_info_, ten_error_t *err) {
   ten_go_callback_ctx_t *callback_info = callback_info_;
   TEN_ASSERT(callback_info, "Should not happen.");
 
@@ -77,8 +78,8 @@ static void proxy_handle_audio_frame_error(
 static void ten_env_proxy_notify_send_audio_frame(ten_env_t *ten_env,
                                                   void *user_data) {
   TEN_ASSERT(user_data, "Invalid argument.");
-  TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
-             "Should not happen.");
+  TEN_ASSERT(ten_env, "Should not happen.");
+  TEN_ASSERT(ten_env_check_integrity(ten_env, true), "Should not happen.");
 
   ten_env_notify_send_audio_frame_ctx_t *notify_info = user_data;
   TEN_ASSERT(notify_info, "Should not happen.");
@@ -120,9 +121,10 @@ static void ten_env_proxy_notify_send_audio_frame(ten_env_t *ten_env,
   ten_env_notify_send_audio_frame_ctx_destroy(notify_info);
 }
 
-ten_go_error_t ten_go_ten_env_send_audio_frame(
-    uintptr_t bridge_addr, uintptr_t audio_frame_bridge_addr,
-    ten_go_handle_t handler_id) {
+ten_go_error_t
+ten_go_ten_env_send_audio_frame(uintptr_t bridge_addr,
+                                uintptr_t audio_frame_bridge_addr,
+                                ten_go_handle_t handler_id) {
   ten_go_ten_env_t *self = ten_go_ten_env_reinterpret(bridge_addr);
   TEN_ASSERT(self && ten_go_ten_env_check_integrity(self),
              "Should not happen.");

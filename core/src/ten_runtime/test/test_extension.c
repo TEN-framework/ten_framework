@@ -142,8 +142,8 @@ static void test_extension_on_stop(ten_extension_t *self, ten_env_t *ten_env) {
 
 void ten_builtin_test_extension_ten_env_notify_on_init_done(ten_env_t *ten_env,
                                                             void *user_data) {
-  TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
-             "Should not happen.");
+  TEN_ASSERT(ten_env, "Should not happen.");
+  TEN_ASSERT(ten_env_check_integrity(ten_env, true), "Should not happen.");
 
   bool rc = ten_env_on_init_done(ten_env, NULL);
   TEN_ASSERT(rc, "Should not happen.");
@@ -151,8 +151,8 @@ void ten_builtin_test_extension_ten_env_notify_on_init_done(ten_env_t *ten_env,
 
 void ten_builtin_test_extension_ten_env_notify_on_start_done(
     ten_env_t *ten_env, TEN_UNUSED void *user_data) {
-  TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
-             "Should not happen.");
+  TEN_ASSERT(ten_env, "Should not happen.");
+  TEN_ASSERT(ten_env_check_integrity(ten_env, true), "Should not happen.");
 
   bool rc = ten_env_on_start_done(ten_env, NULL);
   TEN_ASSERT(rc, "Should not happen.");
@@ -160,8 +160,8 @@ void ten_builtin_test_extension_ten_env_notify_on_start_done(
 
 void ten_builtin_test_extension_ten_env_notify_on_stop_done(ten_env_t *ten_env,
                                                             void *user_data) {
-  TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
-             "Should not happen.");
+  TEN_ASSERT(ten_env, "Should not happen.");
+  TEN_ASSERT(ten_env_check_integrity(ten_env, true), "Should not happen.");
 
   bool rc = ten_env_on_stop_done(ten_env, NULL);
   TEN_ASSERT(rc, "Should not happen.");
@@ -169,8 +169,8 @@ void ten_builtin_test_extension_ten_env_notify_on_stop_done(ten_env_t *ten_env,
 
 void ten_builtin_test_extension_ten_env_notify_on_deinit_done(
     ten_env_t *ten_env, void *user_data) {
-  TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
-             "Should not happen.");
+  TEN_ASSERT(ten_env, "Should not happen.");
+  TEN_ASSERT(ten_env_check_integrity(ten_env, true), "Should not happen.");
 
   bool rc = ten_env_on_deinit_done(ten_env, NULL);
   TEN_ASSERT(rc, "Should not happen.");

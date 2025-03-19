@@ -38,7 +38,6 @@
 #include "ten_runtime/ten_env/ten_env.h"
 #include "ten_utils/lib/error.h"
 #include "ten_utils/lib/string.h"
-#include "ten_utils/lib/time.h"
 #include "ten_utils/macro/check.h"
 
 static void
@@ -90,8 +89,8 @@ ten_app_start_auto_start_predefined_graph_and_trigger_on_init(ten_app_t *self) {
 static void ten_app_on_endpoint_protocol_created(ten_env_t *ten_env,
                                                  ten_protocol_t *protocol,
                                                  void *cb_data) {
-  TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
-             "Should not happen.");
+  TEN_ASSERT(ten_env, "Should not happen.");
+  TEN_ASSERT(ten_env_check_integrity(ten_env, true), "Should not happen.");
 
   ten_app_t *self = ten_env_get_attached_app(ten_env);
   TEN_ASSERT(self && ten_app_check_integrity(self, true), "Should not happen.");
@@ -239,8 +238,8 @@ void ten_app_on_configure_done(ten_env_t *ten_env) {
 }
 
 void ten_app_on_configure(ten_env_t *ten_env) {
-  TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
-             "Should not happen.");
+  TEN_ASSERT(ten_env, "Should not happen.");
+  TEN_ASSERT(ten_env_check_integrity(ten_env, true), "Should not happen.");
   TEN_ASSERT(ten_env_get_attach_to(ten_env) == TEN_ENV_ATTACH_TO_APP,
              "Should not happen.");
 
@@ -262,8 +261,8 @@ void ten_app_on_configure(ten_env_t *ten_env) {
 }
 
 void ten_app_on_init(ten_env_t *ten_env) {
-  TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
-             "Should not happen.");
+  TEN_ASSERT(ten_env, "Should not happen.");
+  TEN_ASSERT(ten_env_check_integrity(ten_env, true), "Should not happen.");
   TEN_ASSERT(ten_env_get_attach_to(ten_env) == TEN_ENV_ATTACH_TO_APP,
              "Should not happen.");
 

@@ -28,6 +28,7 @@
 #include "ten_utils/macro/check.h"
 #include "ten_utils/value/value_get.h"
 #include "ten_utils/value/value_is.h"
+#include "ten_utils/value/value_string.h"
 
 static bool ten_engine_close_duplicated_remote_or_upgrade_it_to_normal(
     ten_engine_t *self, ten_shared_ptr_t *cmd_result, ten_error_t *err) {
@@ -85,10 +86,10 @@ static bool ten_engine_handle_cmd_result_for_cmd_start_graph(
     ten_engine_t *self, ten_shared_ptr_t *cmd_result, ten_error_t *err) {
   TEN_ASSERT(self && ten_engine_check_integrity(self, true),
              "Invalid argument.");
-  TEN_ASSERT(cmd_result &&
-                 ten_msg_get_type(cmd_result) == TEN_MSG_TYPE_CMD_RESULT &&
-                 ten_msg_get_dest_cnt(cmd_result) == 1,
+  TEN_ASSERT(cmd_result, "Should not happen.");
+  TEN_ASSERT(ten_msg_get_type(cmd_result) == TEN_MSG_TYPE_CMD_RESULT,
              "Should not happen.");
+  TEN_ASSERT(ten_msg_get_dest_cnt(cmd_result) == 1, "Should not happen.");
   TEN_ASSERT(ten_c_string_is_equal(
                  ten_app_get_uri(self->app),
                  ten_string_get_raw_str(
@@ -142,7 +143,16 @@ static bool ten_engine_handle_cmd_result_for_cmd_start_graph(
     ten_value_t *err_msg_value =
         ten_msg_peek_property(cmd_result, TEN_STR_DETAIL, NULL);
     if (err_msg_value) {
-      TEN_ASSERT(ten_value_is_string(err_msg_value), "Should not happen.");
+      if (!ten_value_is_string(err_msg_value)) {
+        ten_string_t str;
+        TEN_STRING_INIT(str);
+        ten_value_to_string(err_msg_value, &str, err);
+        TEN_LOGW("The error message is not a string: %s",
+                 ten_string_get_raw_str(&str));
+        ten_string_deinit(&str);
+
+        TEN_ASSERT(0, "Should not happen.");
+      }
 
       ten_engine_return_error_for_cmd_start_graph(
           self, original_start_graph_cmd,
@@ -171,12 +181,15 @@ void ten_engine_handle_cmd_result(ten_engine_t *self,
                                   ten_error_t *err) {
   TEN_ASSERT(self, "Should not happen.");
   TEN_ASSERT(ten_engine_check_integrity(self, true), "Should not happen.");
-  TEN_ASSERT(cmd_result &&
-                 ten_msg_get_type(cmd_result) == TEN_MSG_TYPE_CMD_RESULT &&
-                 ten_msg_get_dest_cnt(cmd_result) == 1,
-             "Should not happen.");
 
-  switch (ten_cmd_result_get_original_cmd_type(cmd_result)) {
+  TEN_ASSERT(cmd_result, "Should not happen.");
+  TEN_ASSERT(ten_msg_get_type(cmd_result) == TEN_MSG_TYPE_CMD_RESULT,
+             "Should not happen.");
+  TEN_ASSERT(ten_msg_get_dest_cnt(cmd_result) == 1, "Should not happen.");
+
+  TEN_MSG_TYPE msg_type = ten_cmd_result_get_original_cmd_type(cmd_result);
+
+  switch (msg_type) {
   case TEN_MSG_TYPE_CMD_START_GRAPH: {
     bool rc =
         ten_engine_handle_cmd_result_for_cmd_start_graph(self, cmd_result, err);
@@ -189,7 +202,10 @@ void ten_engine_handle_cmd_result(ten_engine_t *self,
     break;
 
   default:
-    TEN_ASSERT(0, "Handle more original command type.");
+    TEN_LOGE("[%s] Handle more original command type: %d",
+             ten_engine_get_id(self, true), msg_type);
+
+    TEN_ASSERT(0, "Handle more original command type: %d", msg_type);
     break;
   }
 }

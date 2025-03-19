@@ -57,11 +57,12 @@ void ten_addon_init(ten_addon_t *self, ten_addon_on_init_func_t on_init,
   self->user_data = NULL;
 }
 
-ten_addon_t *ten_addon_create(
-    ten_addon_on_init_func_t on_init, ten_addon_on_deinit_func_t on_deinit,
-    ten_addon_on_create_instance_func_t on_create_instance,
-    ten_addon_on_destroy_instance_func_t on_destroy_instance,
-    ten_addon_on_destroy_func_t on_destroy) {
+ten_addon_t *
+ten_addon_create(ten_addon_on_init_func_t on_init,
+                 ten_addon_on_deinit_func_t on_deinit,
+                 ten_addon_on_create_instance_func_t on_create_instance,
+                 ten_addon_on_destroy_instance_func_t on_destroy_instance,
+                 ten_addon_on_destroy_func_t on_destroy) {
   ten_addon_t *self = TEN_MALLOC(sizeof(ten_addon_t));
   TEN_ASSERT(self, "Failed to allocate memory.");
 
@@ -94,25 +95,25 @@ TEN_ADDON_TYPE ten_addon_type_from_string(const char *addon_type_str) {
 
 const char *ten_addon_type_to_string(TEN_ADDON_TYPE type) {
   switch (type) {
-    case TEN_ADDON_TYPE_EXTENSION:
-      return TEN_STR_EXTENSION;
-    case TEN_ADDON_TYPE_EXTENSION_GROUP:
-      return TEN_STR_EXTENSION_GROUP;
-    case TEN_ADDON_TYPE_PROTOCOL:
-      return TEN_STR_PROTOCOL;
-    case TEN_ADDON_TYPE_ADDON_LOADER:
-      return TEN_STR_ADDON_LOADER;
-    default:
-      TEN_ASSERT(0, "Should not happen.");
-      return NULL;
+  case TEN_ADDON_TYPE_EXTENSION:
+    return TEN_STR_EXTENSION;
+  case TEN_ADDON_TYPE_EXTENSION_GROUP:
+    return TEN_STR_EXTENSION_GROUP;
+  case TEN_ADDON_TYPE_PROTOCOL:
+    return TEN_STR_PROTOCOL;
+  case TEN_ADDON_TYPE_ADDON_LOADER:
+    return TEN_STR_ADDON_LOADER;
+  default:
+    TEN_ASSERT(0, "Should not happen.");
+    return NULL;
   }
 }
 
 static ten_string_t *ten_addon_find_base_dir_from_app(const char *addon_type,
                                                       const char *addon_name) {
-  TEN_ASSERT(
-      addon_type && strlen(addon_type) && addon_name && strlen(addon_name),
-      "Invalid argument.");
+  TEN_ASSERT(addon_type && strlen(addon_type) && addon_name &&
+                 strlen(addon_name),
+             "Invalid argument.");
 
   ten_string_t *base_dir = ten_find_app_base_dir();
   if (!base_dir || ten_string_is_empty(base_dir)) {
@@ -213,8 +214,8 @@ bool ten_addon_create_instance_async(ten_env_t *ten_env,
   // extension/extension_group instance has been created.
   TEN_LOGD("Try to find addon for %s", addon_name);
 
-  TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
-             "Should not happen.");
+  TEN_ASSERT(ten_env, "Should not happen.");
+  TEN_ASSERT(ten_env_check_integrity(ten_env, true), "Should not happen.");
 
   int lock_operation_rc = ten_addon_store_lock_by_type(addon_type);
   TEN_ASSERT(!lock_operation_rc, "Should not happen.");
@@ -236,10 +237,9 @@ bool ten_addon_create_instance_async(ten_env_t *ten_env,
     // `dlopen`).
     if (!ten_addon_try_load_specific_addon_using_native_addon_loader(
             ten_string_get_raw_str(&app->base_dir), addon_type, addon_name)) {
-      TEN_LOGI(
-          "Unable to load addon %s:%s using native addon loader, will try "
-          "other methods.",
-          ten_addon_type_to_string(addon_type), addon_name);
+      TEN_LOGI("Unable to load addon %s:%s using native addon loader, will try "
+               "other methods.",
+               ten_addon_type_to_string(addon_type), addon_name);
     }
 
     if (!ten_addon_try_load_specific_addon_using_all_addon_loaders(
@@ -299,20 +299,20 @@ ten_addon_host_t *ten_addon_register(TEN_ADDON_TYPE addon_type,
 
   ten_addon_store_t *addon_store = NULL;
   switch (addon_type) {
-    case TEN_ADDON_TYPE_EXTENSION:
-      addon_store = ten_extension_get_global_store();
-      break;
-    case TEN_ADDON_TYPE_EXTENSION_GROUP:
-      addon_store = ten_extension_group_get_global_store();
-      break;
-    case TEN_ADDON_TYPE_PROTOCOL:
-      addon_store = ten_protocol_get_global_store();
-      break;
-    case TEN_ADDON_TYPE_ADDON_LOADER:
-      addon_store = ten_addon_loader_get_global_store();
-      break;
-    default:
-      break;
+  case TEN_ADDON_TYPE_EXTENSION:
+    addon_store = ten_extension_get_global_store();
+    break;
+  case TEN_ADDON_TYPE_EXTENSION_GROUP:
+    addon_store = ten_extension_group_get_global_store();
+    break;
+  case TEN_ADDON_TYPE_PROTOCOL:
+    addon_store = ten_protocol_get_global_store();
+    break;
+  case TEN_ADDON_TYPE_ADDON_LOADER:
+    addon_store = ten_addon_loader_get_global_store();
+    break;
+  default:
+    break;
   }
   TEN_ASSERT(addon_store, "Should not happen.");
 

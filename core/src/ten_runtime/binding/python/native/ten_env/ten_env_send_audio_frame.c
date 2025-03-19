@@ -50,11 +50,12 @@ static void ten_env_notify_send_audio_frame_ctx_destroy(
   TEN_FREE(ctx);
 }
 
-static void proxy_send_audio_frame_callback(
-    ten_env_t *ten_env, TEN_UNUSED ten_shared_ptr_t *c_cmd_result,
-    void *callback_info, ten_error_t *err) {
-  TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
-             "Should not happen.");
+static void
+proxy_send_audio_frame_callback(ten_env_t *ten_env,
+                                TEN_UNUSED ten_shared_ptr_t *c_cmd_result,
+                                void *callback_info, ten_error_t *err) {
+  TEN_ASSERT(ten_env, "Should not happen.");
+  TEN_ASSERT(ten_env_check_integrity(ten_env, true), "Should not happen.");
   TEN_ASSERT(callback_info, "Should not happen.");
 
   // About to call the Python function, so it's necessary to ensure that the GIL
@@ -78,7 +79,7 @@ static void proxy_send_audio_frame_callback(
   }
 
   PyObject *result = PyObject_CallObject(cb_func, arglist);
-  Py_XDECREF(result);  // Ensure cleanup if an error occurred.
+  Py_XDECREF(result); // Ensure cleanup if an error occurred.
 
   bool err_occurred = ten_py_check_and_clear_py_error();
   TEN_ASSERT(!err_occurred, "Should not happen.");
@@ -96,8 +97,8 @@ static void proxy_send_audio_frame_callback(
 static void ten_env_proxy_notify_send_audio_frame(ten_env_t *ten_env,
                                                   void *notify_info_) {
   TEN_ASSERT(notify_info_, "Invalid argument.");
-  TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
-             "Should not happen.");
+  TEN_ASSERT(ten_env, "Should not happen.");
+  TEN_ASSERT(ten_env_check_integrity(ten_env, true), "Should not happen.");
 
   ten_env_notify_send_audio_frame_ctx_t *notify_info = notify_info_;
   TEN_ASSERT(notify_info, "Invalid argument.");
@@ -127,7 +128,7 @@ static void ten_env_proxy_notify_send_audio_frame(ten_env_t *ten_env,
           Py_BuildValue("(OO)", py_ten_env->actual_py_ten_env, py_err);
 
       PyObject *result = PyObject_CallObject(notify_info->py_cb_func, arglist);
-      Py_XDECREF(result);  // Ensure cleanup if an error occurred.
+      Py_XDECREF(result); // Ensure cleanup if an error occurred.
 
       bool err_occurred = ten_py_check_and_clear_py_error();
       TEN_ASSERT(!err_occurred, "Should not happen.");

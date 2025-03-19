@@ -60,7 +60,7 @@ ten_protocol_integrated_could_be_close(ten_protocol_integrated_t *self) {
       return false;
     }
 
-    if (self->base.is_connecting) {
+    if (self->base.has_uncompleted_async_task) {
       return false;
     }
     break;

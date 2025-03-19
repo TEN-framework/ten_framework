@@ -148,8 +148,8 @@ ten_addon_create_protocol_ctx_destroy(ten_addon_create_protocol_ctx_t *ctx) {
 
 static void proxy_on_addon_protocol_created(ten_env_t *ten_env, void *instance,
                                             void *cb_data) {
-  TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
-             "Should not happen.");
+  TEN_ASSERT(ten_env, "Should not happen.");
+  TEN_ASSERT(ten_env_check_integrity(ten_env, true), "Should not happen.");
 
   ten_addon_create_protocol_ctx_t *ctx =
       (ten_addon_create_protocol_ctx_t *)cb_data;
@@ -177,8 +177,8 @@ bool ten_addon_create_protocol_with_uri(
     ten_env_addon_on_create_protocol_async_cb_t cb, void *user_data,
     ten_error_t *err) {
   TEN_ASSERT(uri && role > TEN_PROTOCOL_ROLE_INVALID, "Should not happen.");
-  TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
-             "Should not happen.");
+  TEN_ASSERT(ten_env, "Should not happen.");
+  TEN_ASSERT(ten_env_check_integrity(ten_env, true), "Should not happen.");
   TEN_ASSERT(err, "Invalid argument.");
 
   TEN_ENV_ATTACH_TO attach_to = ten_env_get_attach_to(ten_env);
@@ -240,8 +240,8 @@ bool ten_addon_create_protocol(ten_env_t *ten_env, const char *addon_name,
                                void *user_data, ten_error_t *err) {
   TEN_ASSERT(addon_name && instance_name, "Should not happen.");
   TEN_ASSERT(role > TEN_PROTOCOL_ROLE_INVALID, "Should not happen.");
-  TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
-             "Should not happen.");
+  TEN_ASSERT(ten_env, "Should not happen.");
+  TEN_ASSERT(ten_env_check_integrity(ten_env, true), "Should not happen.");
 
   TEN_ENV_ATTACH_TO attach_to = ten_env_get_attach_to(ten_env);
   if (attach_to != TEN_ENV_ATTACH_TO_APP &&

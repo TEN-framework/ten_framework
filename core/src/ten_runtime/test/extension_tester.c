@@ -260,8 +260,8 @@ static void test_app_start_graph_result_handler(ten_env_t *ten_env,
 
 static void test_app_ten_env_send_start_graph_cmd(ten_env_t *ten_env,
                                                   void *user_data) {
-  TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
-             "Should not happen.");
+  TEN_ASSERT(ten_env, "Should not happen.");
+  TEN_ASSERT(ten_env_check_integrity(ten_env, true), "Should not happen.");
 
   ten_app_t *app = ten_env->attached_target.app;
   TEN_ASSERT(app && ten_app_check_integrity(app, true), "Should not happen.");

@@ -66,8 +66,8 @@ static void ten_env_notify_peek_property_async_ctx_destroy(
 static void ten_env_proxy_notify_peek_property(ten_env_t *ten_env,
                                                void *user_data) {
   TEN_ASSERT(user_data, "Invalid argument.");
-  TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
-             "Should not happen.");
+  TEN_ASSERT(ten_env, "Should not happen.");
+  TEN_ASSERT(ten_env_check_integrity(ten_env, true), "Should not happen.");
 
   ten_env_notify_peek_property_async_ctx_t *ctx = user_data;
   TEN_ASSERT(ctx, "Should not happen.");
@@ -117,8 +117,8 @@ static void ten_py_get_property_to_json_cb(ten_env_t *ten_env,
                                            ten_value_t *value,
                                            ten_error_t *error,
                                            PyObject *py_cb_func) {
-  TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
-             "Should not happen.");
+  TEN_ASSERT(ten_env, "Should not happen.");
+  TEN_ASSERT(ten_env_check_integrity(ten_env, true), "Should not happen.");
 
   // About to call the Python function, so it's necessary to ensure that the GIL
   // has been acquired.
@@ -171,8 +171,8 @@ static void ten_py_get_property_to_json_cb(ten_env_t *ten_env,
 static void ten_py_get_property_int_cb(ten_env_t *ten_env, ten_value_t *value,
                                        ten_error_t *error,
                                        PyObject *py_cb_func) {
-  TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
-             "Should not happen.");
+  TEN_ASSERT(ten_env, "Should not happen.");
+  TEN_ASSERT(ten_env_check_integrity(ten_env, true), "Should not happen.");
 
   // About to call the Python function, so it's necessary to ensure that the GIL
   // has been acquired.
@@ -224,8 +224,8 @@ static void ten_py_get_property_string_cb(ten_env_t *ten_env,
                                           ten_value_t *value,
                                           ten_error_t *error,
                                           PyObject *py_cb_func) {
-  TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
-             "Should not happen.");
+  TEN_ASSERT(ten_env, "Should not happen.");
+  TEN_ASSERT(ten_env_check_integrity(ten_env, true), "Should not happen.");
 
   // About to call the Python function, so it's necessary to ensure that the GIL
   // has been acquired.
@@ -276,8 +276,8 @@ static void ten_py_get_property_string_cb(ten_env_t *ten_env,
 static void ten_py_get_property_bool_cb(ten_env_t *ten_env, ten_value_t *value,
                                         ten_error_t *error,
                                         PyObject *py_cb_func) {
-  TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
-             "Should not happen.");
+  TEN_ASSERT(ten_env, "Should not happen.");
+  TEN_ASSERT(ten_env_check_integrity(ten_env, true), "Should not happen.");
 
   // About to call the Python function, so it's necessary to ensure that the GIL
   // has been acquired.
@@ -329,8 +329,8 @@ static void ten_py_get_property_bool_cb(ten_env_t *ten_env, ten_value_t *value,
 static void ten_py_get_property_float_cb(ten_env_t *ten_env, ten_value_t *value,
                                          ten_error_t *error,
                                          PyObject *py_cb_func) {
-  TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
-             "Should not happen.");
+  TEN_ASSERT(ten_env, "Should not happen.");
+  TEN_ASSERT(ten_env_check_integrity(ten_env, true), "Should not happen.");
 
   // About to call the Python function, so it's necessary to ensure that the GIL
   // has been acquired.
@@ -381,8 +381,8 @@ static void ten_py_get_property_float_cb(ten_env_t *ten_env, ten_value_t *value,
 static void ten_py_is_property_exist_cb(ten_env_t *ten_env, ten_value_t *value,
                                         ten_error_t *error,
                                         PyObject *py_cb_func) {
-  TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
-             "Should not happen.");
+  TEN_ASSERT(ten_env, "Should not happen.");
+  TEN_ASSERT(ten_env_check_integrity(ten_env, true), "Should not happen.");
 
   // About to call the Python function, so it's necessary to ensure that the GIL
   // has been acquired.

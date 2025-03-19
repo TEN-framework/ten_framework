@@ -49,7 +49,8 @@ static bool ten_engine_del_weak_remote(ten_engine_t *self,
 
   bool success = ten_list_remove_ptr(&self->weak_remotes, remote);
 
-  TEN_LOGV("Delete remote %p from weak list: %s", remote,
+  TEN_LOGV("[%s] Delete remote %p from weak list: %s",
+           ten_engine_get_id(self, true), remote,
            success ? "success." : "failed.");
 
   return success;
@@ -83,7 +84,8 @@ static size_t ten_engine_weak_remotes_cnt_in_specified_uri(ten_engine_t *self,
   size_t cnt = ten_list_find_ptr_cnt_custom(&self->weak_remotes, uri,
                                             ten_remote_is_uri_equal_to);
 
-  TEN_LOGV("weak remote cnt for %s: %zu", uri, cnt);
+  TEN_LOGV("[%s] weak remote cnt for %s: %zu", ten_engine_get_id(self, true),
+           uri, cnt);
 
   return cnt;
 }
@@ -170,7 +172,8 @@ void ten_engine_on_remote_closed(ten_remote_t *remote, void *on_closed_data) {
     }
 
     if (!found_in_remotes) {
-      TEN_LOGI("The remote %p is not found in the 'remotes' list.", remote);
+      TEN_LOGI("[%s] The remote %p is not found in the 'remotes' list.",
+               ten_engine_get_id(self, true), remote);
 
       // If the remote wasn't in either list, just destroy it directly. This can
       // happen in edge cases during cleanup or error handling.
@@ -207,7 +210,7 @@ static void ten_engine_add_remote(ten_engine_t *self, ten_remote_t *remote) {
   TEN_ASSERT(ten_remote_check_integrity(remote, true),
              "Invalid use of remote %p.", remote);
 
-  TEN_LOGD("[%s] Add %s (%p) as remote.", ten_app_get_uri(self->app),
+  TEN_LOGD("[%s] Add %s (%p) as remote.", ten_engine_get_id(self, true),
            ten_string_get_raw_str(&remote->uri), remote);
 
   ten_hashtable_add_string(&self->remotes, &remote->hh_in_remote_table,
@@ -225,7 +228,7 @@ static void ten_engine_add_weak_remote(ten_engine_t *self,
   TEN_ASSERT(ten_remote_check_integrity(remote, true),
              "Invalid use of remote %p.", remote);
 
-  TEN_LOGD("[%s] Add %s (%p) as weak remote.", ten_app_get_uri(self->app),
+  TEN_LOGD("[%s] Add %s (%p) as weak remote.", ten_engine_get_id(self, true),
            ten_string_get_raw_str(&remote->uri), remote);
 
   TEN_UNUSED ten_listnode_t *found = ten_list_find_ptr_custom(
@@ -300,11 +303,11 @@ void ten_engine_link_orphan_connection_to_remote(
                                ten_remote_on_connection_closed, remote);
 }
 
-static void ten_engine_on_remote_protocol_created(ten_env_t *ten_env,
-                                                  ten_protocol_t *protocol,
-                                                  void *cb_data) {
-  TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
-             "Should not happen.");
+static void ten_engine_on_protocol_created(ten_env_t *ten_env,
+                                           ten_protocol_t *protocol,
+                                           void *cb_data) {
+  TEN_ASSERT(ten_env, "Should not happen.");
+  TEN_ASSERT(ten_env_check_integrity(ten_env, true), "Should not happen.");
 
   ten_engine_t *self = ten_env_get_attached_engine(ten_env);
   TEN_ASSERT(self, "Should not happen.");
@@ -312,6 +315,8 @@ static void ten_engine_on_remote_protocol_created(ten_env_t *ten_env,
 
   ten_engine_on_protocol_created_ctx_t *ctx =
       (ten_engine_on_protocol_created_ctx_t *)cb_data;
+
+  TEN_ASSERT(!self->is_closing, "Should not happen."); // =-=-=
 
   ten_connection_t *connection = ten_connection_create(protocol);
   TEN_ASSERT(connection, "Should not happen.");
@@ -360,14 +365,16 @@ static bool ten_engine_create_remote_async(
       ten_engine_on_protocol_created_ctx_create(on_remote_created_cb, cb_data);
   TEN_ASSERT(ctx, "Failed to allocate memory.");
 
-  bool rc = ten_addon_create_protocol_with_uri(
+  bool rc = ten_addon_create_protocol_with_uri( // =-=-=
       self->ten_env, uri, TEN_PROTOCOL_ROLE_OUT_DEFAULT,
-      ten_engine_on_remote_protocol_created, ctx, &err);
+      ten_engine_on_protocol_created, ctx, &err);
   if (!rc) {
-    TEN_LOGE("Failed to create protocol for %s. err: %s", uri,
-             ten_error_message(&err));
+    TEN_LOGE("[%s] Failed to create protocol for %s. err: %s",
+             ten_engine_get_id(self, true), uri, ten_error_message(&err));
+
     ten_error_deinit(&err);
     ten_engine_on_protocol_created_ctx_destroy(ctx);
+
     return false;
   }
 
@@ -490,7 +497,8 @@ static void ten_engine_connect_to_remote_after_remote_is_created(
     // has not actually been established. Additionally, there is no need to send
     // the 'start_graph' command to this remote, as the graph must have already
     // been started on the remote side.
-    TEN_LOGD("Destroy remote %p(%s) because it's duplicated.", remote,
+    TEN_LOGD("[%s] Destroy remote %p(%s) because it's duplicated.",
+             ten_engine_get_id(engine, true), remote,
              ten_string_get_raw_str(&remote->uri));
 
     ten_remote_close(remote);
@@ -540,7 +548,8 @@ bool ten_engine_connect_to_graph_remote(ten_engine_t *self, const char *uri,
   TEN_ASSERT(cmd && ten_msg_get_type(cmd) == TEN_MSG_TYPE_CMD_START_GRAPH,
              "Should not happen.");
 
-  TEN_LOGD("Trying to connect to %s inside graph.", uri);
+  TEN_LOGD("[%s] Trying to connect to %s inside graph.",
+           ten_engine_get_id(self, true), uri);
 
   return ten_engine_create_remote_async(
       self, uri, ten_engine_connect_to_remote_after_remote_is_created, cmd);
@@ -566,7 +575,8 @@ void ten_engine_route_msg_to_remote(ten_engine_t *self, ten_shared_ptr_t *msg) {
   if (remote) {
     success = ten_remote_send_msg(remote, msg, &err);
   } else {
-    TEN_LOGW("Could not find suitable remote based on uri: %s", dest_uri);
+    TEN_LOGW("[%s] Could not find suitable remote based on uri: %s",
+             ten_engine_get_id(self, true), dest_uri);
 
     ten_error_set(&err, TEN_ERROR_CODE_GENERIC,
                   "Could not find suitable remote based on uri: %s", dest_uri);
@@ -613,7 +623,8 @@ ten_remote_t *ten_engine_check_remote_is_existed(ten_engine_t *self,
     TEN_ASSERT(ten_remote_check_integrity(remote, true),
                "Invalid use of remote %p.", remote);
 
-    TEN_LOGD("remote %p for uri '%s' is found in 'remotes' list.", remote, uri);
+    TEN_LOGD("[%s] remote %p for uri '%s' is found in 'remotes' list.",
+             ten_engine_get_id(self, true), remote, uri);
 
     return remote;
   }
@@ -629,8 +640,8 @@ ten_remote_t *ten_engine_check_remote_is_existed(ten_engine_t *self,
                "Invalid use of remote %p.", remote);
   }
 
-  TEN_LOGD("remote %p for uri '%s' is%s in 'weak_remotes' list.", remote, uri,
-           remote ? "" : " not");
+  TEN_LOGD("[%s] remote %p for uri '%s' is%s in 'weak_remotes' list.",
+           ten_engine_get_id(self, true), remote, uri, remote ? "" : " not");
 
   return remote;
 }
@@ -653,14 +664,16 @@ bool ten_engine_check_remote_is_duplicated(ten_engine_t *self,
 
   ten_remote_t *remote = ten_engine_check_remote_is_existed(self, uri);
   if (remote) {
-    TEN_LOGW("Found a remote %s (%p), checking duplication...", uri, remote);
+    TEN_LOGW("[%s] Found a remote %s (%p), checking duplication...",
+             ten_engine_get_id(self, true), uri, remote);
 
     if (ten_c_string_is_equal_or_smaller(uri, ten_app_get_uri(self->app))) {
-      TEN_LOGW(" > Remote %s (%p) is smaller, this channel is duplicated.", uri,
-               remote);
+      TEN_LOGW("[%s] > Remote %s (%p) is smaller, this channel is duplicated.",
+               ten_engine_get_id(self, true), uri, remote);
       return true;
     } else {
-      TEN_LOGW(" > Remote %s (%p) is larger, keep this channel.", uri, remote);
+      TEN_LOGW("[%s] > Remote %s (%p) is larger, keep this channel.",
+               ten_engine_get_id(self, true), uri, remote);
     }
   }
 
@@ -678,7 +691,8 @@ bool ten_engine_check_remote_is_weak(ten_engine_t *self, ten_remote_t *remote) {
 
   ten_listnode_t *found = ten_list_find_ptr(&self->weak_remotes, remote);
 
-  TEN_LOGD("remote %p is%s weak.", remote, found ? "" : " not");
+  TEN_LOGD("[%s] remote %p is%s weak.", ten_engine_get_id(self, true), remote,
+           found ? "" : " not");
 
   return found != NULL;
 }
