@@ -66,6 +66,8 @@ pub async fn create_pkg_in_path(
         Some(*pkg_type),
         Some(template_pkg_name.clone()),
         Some(template_pkg_version.clone()),
+        None,
+        None, // Retrieve all packages.
         out.clone(),
     )
     .await?;

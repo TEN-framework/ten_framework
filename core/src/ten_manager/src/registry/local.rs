@@ -28,7 +28,9 @@ use ten_rust::pkg_info::PkgInfo;
 use super::found_result::PkgRegistryInfo;
 use super::pkg_cache::{find_in_package_cache, store_file_to_package_cache};
 use crate::config::TmanConfig;
-use crate::constants::TEN_PACKAGE_FILE_EXTENSION;
+use crate::constants::{
+    DEFAULT_REGISTRY_PAGE_SIZE, TEN_PACKAGE_FILE_EXTENSION,
+};
 use crate::file_type::{detect_file_type, FileType};
 use crate::output::TmanOutput;
 
@@ -450,12 +452,15 @@ fn search_versions(
     Ok(results)
 }
 
+#[allow(clippy::too_many_arguments)]
 pub async fn get_package_list(
     _tman_config: Arc<TmanConfig>,
     base_url: &str,
     pkg_type: Option<PkgType>,
     name: Option<String>,
     version_req: Option<VersionReq>,
+    page_size: Option<u32>,
+    page: Option<u32>,
     _out: Arc<Box<dyn TmanOutput>>,
 ) -> Result<Vec<PkgRegistryInfo>> {
     let mut path_url = url::Url::parse(base_url)
@@ -475,14 +480,32 @@ pub async fn get_package_list(
     let version_req_ref = version_req.as_ref();
     let name_ref = name.as_ref();
 
-    let result = find_file_with_criteria(
+    // Get all matching packages
+    let all_results = find_file_with_criteria(
         Path::new(&path_url),
         pkg_type,
         name_ref,
         version_req_ref,
     )?;
 
-    Ok(result)
+    // If page is specified, paginate the results.
+    if let Some(page_num) = page {
+        let page_size_value =
+            page_size.unwrap_or(DEFAULT_REGISTRY_PAGE_SIZE) as usize;
+        let start_idx = (page_num as usize - 1) * page_size_value;
+
+        // Return empty result if start index is beyond the array length.
+        if start_idx >= all_results.len() {
+            return Ok(Vec::new());
+        }
+
+        let end_idx =
+            std::cmp::min(start_idx + page_size_value, all_results.len());
+        Ok(all_results[start_idx..end_idx].to_vec())
+    } else {
+        // If no page is specified, return all results.
+        Ok(all_results)
+    }
 }
 
 pub async fn delete_package(
