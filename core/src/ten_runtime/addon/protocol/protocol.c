@@ -233,10 +233,13 @@ bool ten_addon_create_protocol_with_uri(
   if (!rc) {
     TEN_ENV_LOG_ERROR_INTERNAL(ten_env, "Failed to create protocol for %s",
                                uri);
+
+    ten_addon_context_destroy(addon_context);
     ten_addon_create_protocol_ctx_destroy(ctx);
 
     ten_error_set(err, TEN_ERROR_CODE_GENERIC,
                   "Failed to create protocol for uri: %s.", uri);
+
     return false;
   }
 
@@ -286,12 +289,15 @@ bool ten_addon_create_protocol(ten_env_t *ten_env, const char *addon_name,
 
   if (!rc) {
     TEN_LOGE("Failed to create protocol for %s", addon_name);
+
+    ten_addon_context_destroy(addon_context);
     ten_addon_create_protocol_ctx_destroy(ctx);
 
     if (err) {
       ten_error_set(err, TEN_ERROR_CODE_GENERIC,
                     "Failed to create protocol for addon: %s.", addon_name);
     }
+
     return false;
   }
 

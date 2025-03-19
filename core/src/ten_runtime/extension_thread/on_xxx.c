@@ -273,11 +273,15 @@ void ten_extension_thread_create_extension_instance(void *self_, void *arg) {
   addon_context->create_instance_done_cb = addon_instance_info->cb;
   addon_context->create_instance_done_cb_data = addon_instance_info->cb_data;
 
-  ten_addon_create_instance_async(
+  bool rc = ten_addon_create_instance_async(
       self->extension_group->ten_env, addon_instance_info->addon_type,
       ten_string_get_raw_str(&addon_instance_info->addon_name),
       ten_string_get_raw_str(&addon_instance_info->instance_name),
       addon_context);
+
+  if (!rc) {
+    ten_addon_context_destroy(addon_context);
+  }
 
   ten_addon_on_create_extension_instance_ctx_destroy(addon_instance_info);
 }

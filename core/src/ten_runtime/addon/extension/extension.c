@@ -132,9 +132,14 @@ bool ten_addon_create_extension(ten_env_t *ten_env, const char *addon_name,
     addon_context->create_instance_done_cb = cb;
     addon_context->create_instance_done_cb_data = cb_data;
 
-    return ten_addon_create_instance_async(ten_env, TEN_ADDON_TYPE_EXTENSION,
-                                           addon_name, instance_name,
-                                           addon_context);
+    bool rc = ten_addon_create_instance_async(ten_env, TEN_ADDON_TYPE_EXTENSION,
+                                              addon_name, instance_name,
+                                              addon_context);
+    if (!rc) {
+      ten_addon_context_destroy(addon_context);
+    }
+
+    return rc;
   } else {
     ten_addon_on_create_extension_instance_ctx_t *ctx =
         ten_addon_on_create_extension_instance_ctx_create(

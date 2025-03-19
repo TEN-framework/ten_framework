@@ -260,6 +260,7 @@ bool ten_addon_create_instance_async(ten_env_t *ten_env,
     TEN_LOGE(
         "Failed to find addon %s:%s, please make sure the addon is installed.",
         ten_addon_type_to_string(addon_type), addon_name);
+
     return false;
   }
 

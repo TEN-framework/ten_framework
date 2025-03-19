@@ -79,9 +79,14 @@ bool ten_addon_create_addon_loader(ten_env_t *ten_env, const char *addon_name,
     addon_context->create_instance_done_cb = cb;
     addon_context->create_instance_done_cb_data = cb_data;
 
-    return ten_addon_create_instance_async(ten_env, TEN_ADDON_TYPE_ADDON_LOADER,
-                                           addon_name, instance_name,
-                                           addon_context);
+    bool rc = ten_addon_create_instance_async(
+        ten_env, TEN_ADDON_TYPE_ADDON_LOADER, addon_name, instance_name,
+        addon_context);
+    if (!rc) {
+      ten_addon_context_destroy(addon_context);
+    }
+
+    return rc;
   } else {
     TEN_ASSERT(0, "Should not happen.");
     return true;
