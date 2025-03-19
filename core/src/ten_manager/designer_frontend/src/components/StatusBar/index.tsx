@@ -12,6 +12,13 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
 import { useApps } from "@/api/services/apps";
+import {
+  EWidgetDisplayType,
+  EDefaultWidgetType,
+  EWidgetCategory,
+} from "@/types/widgets";
+import { APPS_MANAGER_POPUP_ID } from "@/constants/widgets";
+import { useWidgetStore } from "@/store";
 
 export default function StatusBar(props: { className?: string }) {
   const { className } = props;
@@ -38,6 +45,18 @@ export default function StatusBar(props: { className?: string }) {
 const StatusApps = () => {
   const { t } = useTranslation();
   const { data, error, isLoading } = useApps();
+  const { appendWidgetIfNotExists } = useWidgetStore();
+
+  const openAppsManagerPopup = () => {
+    appendWidgetIfNotExists({
+      id: APPS_MANAGER_POPUP_ID,
+      category: EWidgetCategory.Default,
+      display_type: EWidgetDisplayType.Popup,
+      metadata: {
+        type: EDefaultWidgetType.AppsManager,
+      },
+    });
+  };
 
   React.useEffect(() => {
     if (error) {
@@ -50,7 +69,12 @@ const StatusApps = () => {
   }
 
   return (
-    <Button variant="ghost" size="status" className="">
+    <Button
+      variant="ghost"
+      size="status"
+      className=""
+      onClick={openAppsManagerPopup}
+    >
       <LayoutGridIcon className="size-3" />
       <span className="">
         {t("statusBar.appsAllListedWithCount", {
