@@ -166,8 +166,8 @@ void ten_addon_host_create_instance_async(
     ten_env_addon_create_instance_done_cb_t cb, void *cb_data) {
   TEN_ASSERT(self && ten_addon_host_check_integrity(self) && name,
              "Should not happen.");
-  TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
-             "Should not happen.");
+  TEN_ASSERT(ten_env, "Should not happen.");
+  TEN_ASSERT(ten_env_check_integrity(ten_env, true), "Should not happen.");
 
   ten_addon_context_t *addon_context = ten_addon_context_create();
   addon_context->caller_ten_env = ten_env;
@@ -207,8 +207,8 @@ bool ten_addon_host_destroy_instance_async(
     ten_env_addon_destroy_instance_done_cb_t cb, void *cb_data) {
   TEN_ASSERT(self && ten_addon_host_check_integrity(self),
              "Should not happen.");
-  TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
-             "Should not happen.");
+  TEN_ASSERT(ten_env, "Should not happen.");
+  TEN_ASSERT(ten_env_check_integrity(ten_env, true), "Should not happen.");
   TEN_ASSERT(instance, "Should not happen.");
 
   ten_addon_context_t *addon_context = ten_addon_context_create();

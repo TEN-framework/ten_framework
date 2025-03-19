@@ -58,8 +58,8 @@ static void ten_env_notify_set_property_ctx_destroy(
 static void ten_env_proxy_notify_set_property(ten_env_t *ten_env,
                                               void *user_data) {
   TEN_ASSERT(user_data, "Invalid argument.");
-  TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
-             "Should not happen.");
+  TEN_ASSERT(ten_env, "Should not happen.");
+  TEN_ASSERT(ten_env_check_integrity(ten_env, true), "Should not happen.");
 
   ten_env_notify_set_property_ctx_t *ctx = user_data;
   TEN_ASSERT(ctx, "Should not happen.");
@@ -305,9 +305,10 @@ ten_go_error_t ten_go_ten_env_set_property_float64(uintptr_t bridge_addr,
                                      callback_handle);
 }
 
-ten_go_error_t ten_go_ten_env_set_property_string(
-    uintptr_t bridge_addr, const void *path, int path_len, const void *value,
-    int value_len, uintptr_t callback_handle) {
+ten_go_error_t
+ten_go_ten_env_set_property_string(uintptr_t bridge_addr, const void *path,
+                                   int path_len, const void *value,
+                                   int value_len, uintptr_t callback_handle) {
   ten_go_ten_env_t *self = ten_go_ten_env_reinterpret(bridge_addr);
   TEN_ASSERT(self && ten_go_ten_env_check_integrity(self),
              "Should not happen.");

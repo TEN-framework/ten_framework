@@ -25,8 +25,9 @@ typedef struct ten_env_notify_send_data_ctx_t {
   ten_go_handle_t callback_handle;
 } ten_env_notify_send_data_ctx_t;
 
-static ten_env_notify_send_data_ctx_t *ten_env_notify_send_data_ctx_create(
-    ten_shared_ptr_t *c_data, ten_go_handle_t callback_handle) {
+static ten_env_notify_send_data_ctx_t *
+ten_env_notify_send_data_ctx_create(ten_shared_ptr_t *c_data,
+                                    ten_go_handle_t callback_handle) {
   TEN_ASSERT(c_data, "Invalid argument.");
 
   ten_env_notify_send_data_ctx_t *ctx =
@@ -39,8 +40,8 @@ static ten_env_notify_send_data_ctx_t *ten_env_notify_send_data_ctx_create(
   return ctx;
 }
 
-static void ten_env_notify_send_data_ctx_destroy(
-    ten_env_notify_send_data_ctx_t *ctx) {
+static void
+ten_env_notify_send_data_ctx_destroy(ten_env_notify_send_data_ctx_t *ctx) {
   TEN_ASSERT(ctx, "Invalid argument.");
 
   if (ctx->c_data) {
@@ -80,8 +81,8 @@ static void proxy_handle_data_error(ten_env_t *ten_env,
 static void ten_env_proxy_notify_send_data(ten_env_t *ten_env,
                                            void *user_data) {
   TEN_ASSERT(user_data, "Invalid argument.");
-  TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
-             "Should not happen.");
+  TEN_ASSERT(ten_env, "Should not happen.");
+  TEN_ASSERT(ten_env_check_integrity(ten_env, true), "Should not happen.");
 
   ten_env_notify_send_data_ctx_t *notify_info = user_data;
   TEN_ASSERT(notify_info, "Should not happen.");

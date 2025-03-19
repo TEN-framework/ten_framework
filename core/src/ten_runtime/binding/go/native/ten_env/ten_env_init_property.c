@@ -50,8 +50,8 @@ static void ten_env_notify_init_property_ctx_destroy(
 static void ten_env_proxy_notify_init_property_from_json(ten_env_t *ten_env,
                                                          void *user_data) {
   TEN_ASSERT(user_data, "Invalid argument.");
-  TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
-             "Should not happen.");
+  TEN_ASSERT(ten_env, "Should not happen.");
+  TEN_ASSERT(ten_env_check_integrity(ten_env, true), "Should not happen.");
 
   ten_env_notify_init_property_ctx_t *ctx = user_data;
   TEN_ASSERT(ctx, "Should not happen.");

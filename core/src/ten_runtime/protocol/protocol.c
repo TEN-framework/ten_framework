@@ -90,7 +90,7 @@ void ten_protocol_init(ten_protocol_t *self, const char *name,
 
   self->addon_host = NULL;
   self->state = TEN_PROTOCOL_STATE_INIT;
-  self->is_connecting = false;
+  self->has_uncompleted_async_task = false;
 
   self->close = close;
 

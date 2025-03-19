@@ -187,8 +187,8 @@ ten_extension_context_could_be_close(ten_extension_context_t *self) {
 static void
 ten_extension_context_on_extension_group_destroyed(ten_env_t *ten_env,
                                                    void *cb_data) {
-  TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
-             "Should not happen.");
+  TEN_ASSERT(ten_env, "Should not happen.");
+  TEN_ASSERT(ten_env_check_integrity(ten_env, true), "Should not happen.");
   TEN_ASSERT(ten_env->attach_to == TEN_ENV_ATTACH_TO_ENGINE,
              "Should not happen.");
 
@@ -394,8 +394,8 @@ destroy_extension_group_by_addon(ten_extension_group_t *extension_group) {
   TEN_ASSERT(ten_engine_check_integrity(engine, true), "Should not happen.");
 
   ten_env_t *ten_env = engine->ten_env;
-  TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
-             "Should not happen.");
+  TEN_ASSERT(ten_env, "Should not happen.");
+  TEN_ASSERT(ten_env_check_integrity(ten_env, true), "Should not happen.");
 
   ten_addon_destroy_extension_group(
       ten_env, extension_group,
@@ -410,8 +410,8 @@ static void ten_extension_context_create_extension_group_done(
                  // so it is thread safe.
                  ten_extension_group_check_integrity(extension_group, false),
              "Should not happen.");
-  TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
-             "Should not happen.");
+  TEN_ASSERT(ten_env, "Should not happen.");
+  TEN_ASSERT(ten_env_check_integrity(ten_env, true), "Should not happen.");
   TEN_ASSERT(ten_env->attach_to == TEN_ENV_ATTACH_TO_ENGINE,
              "Should not happen.");
 
@@ -545,8 +545,8 @@ bool ten_extension_context_start_extension_group(ten_extension_context_t *self,
   }
 
   ten_env_t *ten_env = engine->ten_env;
-  TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
-             "Should not happen.");
+  TEN_ASSERT(ten_env, "Should not happen.");
+  TEN_ASSERT(ten_env_check_integrity(ten_env, true), "Should not happen.");
   TEN_ASSERT(ten_env->attach_to == TEN_ENV_ATTACH_TO_ENGINE,
              "Should not happen.");
 

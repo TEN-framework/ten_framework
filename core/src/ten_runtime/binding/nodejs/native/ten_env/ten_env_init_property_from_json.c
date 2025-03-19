@@ -77,8 +77,8 @@ static void tsfn_proxy_init_property_from_json_callback(napi_env env,
 static void ten_env_proxy_notify_init_property_from_json(ten_env_t *ten_env,
                                                          void *user_data) {
   TEN_ASSERT(user_data, "Invalid argument.");
-  TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
-             "Should not happen.");
+  TEN_ASSERT(ten_env, "Should not happen.");
+  TEN_ASSERT(ten_env_check_integrity(ten_env, true), "Should not happen.");
 
   ten_env_notify_init_property_from_json_ctx_t *ctx = user_data;
   TEN_ASSERT(ctx, "Should not happen.");
@@ -119,7 +119,7 @@ napi_value ten_nodejs_ten_env_init_property_from_json(napi_env env,
   TEN_ASSERT(env, "Should not happen.");
 
   const size_t argc = 3;
-  napi_value args[argc];  // ten_env, json_str, callback
+  napi_value args[argc]; // ten_env, json_str, callback
 
   if (!ten_nodejs_get_js_func_args(env, info, args, argc)) {
     napi_fatal_error(NULL, NAPI_AUTO_LENGTH,

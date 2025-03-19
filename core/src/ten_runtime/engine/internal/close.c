@@ -38,8 +38,7 @@ static void ten_engine_close_sync(ten_engine_t *self) {
   TEN_ASSERT(self, "Should not happen.");
   TEN_ASSERT(ten_engine_check_integrity(self, true), "Should not happen.");
 
-  TEN_LOGD("[%s:%s] Try to close engine.", ten_app_get_uri(self->app),
-           ten_engine_get_id(self, true));
+  TEN_LOGI("[%s] Start to close engine.", ten_engine_get_id(self, true));
 
   self->is_closing = true;
 
@@ -169,6 +168,8 @@ void ten_engine_close_async(ten_engine_t *self) {
       // thread-check: This function is intended to be called in different
       // threads.
       ten_engine_check_integrity(self, false), "Should not happen.");
+
+  TEN_LOGI("[%s] Try to close engine.", ten_engine_get_id(self, false));
 
   ten_ref_inc_ref(&self->ref);
 
