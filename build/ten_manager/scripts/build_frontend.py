@@ -44,14 +44,12 @@ def main():
         sys.exit(1)
 
     try:
-        # npm install
-        # install_cmd = "npm install"
-        install_cmd = "npm ci"
+        install_cmd = "bun i --frozen-lockfile"
         returncode, output = cmd_exec.run_cmd_realtime(
             install_cmd, cwd=frontend_dir, log_level=log_level
         )
         if returncode != 0:
-            sys.stderr.write("Error: 'npm install' failed.\n")
+            sys.stderr.write("Error: 'bun i --frozen-lockfile' failed.\n")
             sys.stderr.write(output)
             sys.exit(returncode)
 
