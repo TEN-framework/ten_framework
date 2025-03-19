@@ -23,6 +23,7 @@
 #include "ten_runtime/extension/extension.h"
 #include "ten_runtime/msg/cmd/stop_graph/cmd.h"
 #include "ten_runtime/msg/cmd_result/cmd_result.h"
+#include "ten_runtime/ten_env/ten_env.h"
 #include "ten_utils/container/list.h"
 #include "ten_utils/io/runloop.h"
 #include "ten_utils/lib/smart_ptr.h"
@@ -119,10 +120,17 @@ static void ten_engine_on_all_extension_threads_are_ready(
     // engine/graph and return the corresponding result to the original
     // requester.
 
-    ten_list_foreach(&extension_context->extension_groups, iter) {
-      ten_extension_group_t *extension_group = ten_ptr_listnode_get(iter.node);
-      TEN_ASSERT(extension_group && ten_extension_group_check_integrity(
-                                        extension_group, false),
+    ten_list_foreach(&extension_context->extension_threads, iter) {
+      ten_extension_thread_t *extension_thread =
+          ten_ptr_listnode_get(iter.node);
+      TEN_ASSERT(extension_thread, "Should not happen.");
+      TEN_ASSERT(ten_extension_thread_check_integrity(extension_thread, false),
+                 "Should not happen.");
+
+      ten_extension_group_t *extension_group =
+          extension_thread->extension_group;
+      TEN_ASSERT(extension_group, "Should not happen.");
+      TEN_ASSERT(ten_extension_group_check_integrity(extension_group, false),
                  "Should not happen.");
 
       if (!ten_error_is_success(&extension_group->err_before_ready)) {

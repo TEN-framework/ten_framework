@@ -15,6 +15,7 @@
 #include "include_internal/ten_runtime/extension_context/ten_env/on_xxx.h"
 #include "include_internal/ten_runtime/extension_group/extension_group.h"
 #include "include_internal/ten_runtime/extension_thread/extension_thread.h"
+#include "include_internal/ten_runtime/extension_thread/on_xxx.h"
 #include "include_internal/ten_runtime/msg/msg.h"
 #include "include_internal/ten_runtime/ten_env/ten_env.h"
 #include "ten_runtime/ten_env/ten_env.h"
@@ -23,19 +24,48 @@
 #include "ten_utils/macro/memory.h"
 #include "ten_utils/sanitizer/thread_check.h"
 
+void ten_engine_on_remove_extension_thread_from_engine(void *self_, void *arg) {
+  ten_engine_t *self = self_;
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_engine_check_integrity(self, true), "Should not happen.");
+
+  ten_extension_thread_t *extension_thread = arg;
+  TEN_ASSERT(extension_thread, "Should not happen.");
+  TEN_ASSERT(
+      // TEN_NOLINTNEXTLINE(thread-check)
+      // thread-check: this function does not access this extension_thread, we
+      // just check if the arg is an ten_extension_thread_t.
+      ten_extension_thread_check_integrity(extension_thread, false),
+      "Should not happen.");
+
+  TEN_LOGD("[%s] Remove extension thread (%p) from engine.",
+           ten_engine_get_id(self, true), extension_thread);
+
+  ten_list_remove_ptr(&self->extension_context->extension_threads,
+                      extension_thread);
+
+  int rc = ten_runloop_post_task_tail(
+      extension_thread->runloop, ten_extension_thread_on_removed_from_engine,
+      extension_thread, NULL);
+  if (rc) {
+    TEN_LOGW("Failed to post task to extension thread's runloop: %d", rc);
+    TEN_ASSERT(0, "Should not happen.");
+  }
+}
+
 void ten_engine_on_extension_thread_closed(void *self_, void *arg) {
   ten_engine_t *self = self_;
   TEN_ASSERT(self, "Should not happen.");
   TEN_ASSERT(ten_engine_check_integrity(self, true), "Should not happen.");
 
   ten_extension_thread_t *extension_thread = arg;
-  TEN_ASSERT(extension_thread &&
-                 // TEN_NOLINTNEXTLINE(thread-check)
-                 // thread-check: this function does not access this
-                 // extension_thread, we just check if the arg is an
-                 // ten_extension_thread_t.
-                 ten_extension_thread_check_integrity(extension_thread, false),
-             "Should not happen.");
+  TEN_ASSERT(extension_thread, "Should not happen.");
+  TEN_ASSERT(
+      // TEN_NOLINTNEXTLINE(thread-check)
+      // thread-check: this function does not access this extension_thread, we
+      // just check if the arg is an ten_extension_thread_t.
+      ten_extension_thread_check_integrity(extension_thread, false),
+      "Should not happen.");
 
   TEN_LOGD("[%s] Waiting for extension thread (%p) be reclaimed.",
            ten_engine_get_id(self, true), extension_thread);
@@ -51,11 +81,9 @@ void ten_engine_on_extension_thread_closed(void *self_, void *arg) {
   // extension_thread to the engine thread now.
   ten_sanitizer_thread_check_inherit_from(&extension_thread->thread_check,
                                           &self->thread_check);
-  ten_sanitizer_thread_check_inherit_from(
-      &extension_thread->extension_group->thread_check, &self->thread_check);
-  ten_sanitizer_thread_check_inherit_from(
-      &extension_thread->extension_group->ten_env->thread_check,
-      &self->thread_check);
+
+  // Extension thread is joined, so we can destroy it.
+  ten_extension_thread_destroy(extension_thread);
 
   self->extension_context->extension_threads_cnt_of_closed++;
 
@@ -82,20 +110,6 @@ void ten_engine_on_addon_create_extension_group_done(void *self_, void *arg) {
       self->ten_env, extension_group, ctx->addon_context);
 
   ten_extension_context_on_addon_create_extension_group_done_ctx_destroy(ctx);
-}
-
-void ten_engine_on_addon_destroy_extension_group_done(void *self_, void *arg) {
-  ten_engine_t *self = self_;
-  TEN_ASSERT(self, "Should not happen.");
-  TEN_ASSERT(ten_engine_check_integrity(self, true), "Should not happen.");
-
-  ten_addon_context_t *addon_context = arg;
-  TEN_ASSERT(addon_context, "Should not happen.");
-
-  // This happens on the engine thread, so it's thread safe.
-
-  ten_extension_context_on_addon_destroy_extension_group_done(self->ten_env,
-                                                              addon_context);
 }
 
 ten_engine_thread_on_addon_create_protocol_done_ctx_t *

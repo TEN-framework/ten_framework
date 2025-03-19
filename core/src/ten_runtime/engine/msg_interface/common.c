@@ -419,11 +419,11 @@ bool ten_engine_dispatch_msg(ten_engine_t *self, ten_shared_ptr_t *msg) {
         if (self->extension_context) {
           bool found = false;
 
-          ten_list_foreach(&self->extension_context->extension_groups, iter) {
-            ten_extension_group_t *extension_group =
+          ten_list_foreach(&self->extension_context->extension_threads, iter) {
+            ten_extension_thread_t *extension_thread =
                 ten_ptr_listnode_get(iter.node);
             TEN_ASSERT(
-                extension_group &&
+                extension_thread &&
                     // TEN_NOLINTNEXTLINE(thread-check)
                     // thread-check: We are in the engine thread, _not_ in the
                     // extension thread. However, before the engine is closed,
@@ -432,16 +432,20 @@ bool ten_engine_dispatch_msg(ten_engine_t *self, ten_shared_ptr_t *msg) {
                     // the entire engine must start from the engine, so the
                     // execution to this position means that the engine has not
                     // been closed, so there will be no thread safety issue.
-                    ten_extension_group_check_integrity(extension_group, false),
+                    ten_extension_thread_check_integrity(extension_thread,
+                                                         false),
                 "Should not happen.");
+
+            ten_extension_group_t *extension_group =
+                extension_thread->extension_group;
 
             if (ten_string_is_equal(&extension_group->name,
                                     &dest_loc->extension_group_name)) {
               // Find the correct extension thread, ask it to handle the
               // message.
               found = true;
-              ten_engine_post_msg_to_extension_thread(
-                  self, extension_group->extension_thread, msg);
+              ten_engine_post_msg_to_extension_thread(self, extension_thread,
+                                                      msg);
               break;
             }
           }

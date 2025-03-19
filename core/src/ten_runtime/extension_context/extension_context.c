@@ -77,13 +77,10 @@ ten_extension_context_t *ten_extension_context_create(ten_engine_t *engine) {
   ten_list_init(&self->extension_groups_info_from_graph);
   ten_list_init(&self->extensions_info_from_graph);
 
-  ten_list_init(&self->extension_groups);
   ten_list_init(&self->extension_threads);
 
   self->extension_threads_cnt_of_ready = 0;
   self->extension_threads_cnt_of_closed = 0;
-
-  self->extension_groups_cnt_of_being_destroyed = 0;
 
   return self;
 }
@@ -95,7 +92,6 @@ static void ten_extension_context_destroy(ten_extension_context_t *self) {
 
   TEN_ASSERT((ten_list_size(&self->extension_threads) == 0),
              "Should not happen.");
-  TEN_ASSERT(ten_list_size(&self->extension_groups) == 0, "Should not happen.");
 
   ten_list_clear(&self->extension_groups_info_from_graph);
   ten_list_clear(&self->extensions_info_from_graph);
@@ -117,7 +113,7 @@ static void ten_extension_context_start(ten_extension_context_t *self) {
 }
 
 static void
-ten_extension_context_do_close_after_all_extension_groups_are_closed(
+ten_extension_context_do_close_after_all_extension_threads_are_closed(
     ten_extension_context_t *self) {
   TEN_ASSERT(self, "Invalid argument.");
   TEN_ASSERT(ten_extension_context_check_integrity(self, true),
@@ -126,6 +122,7 @@ ten_extension_context_do_close_after_all_extension_groups_are_closed(
   ten_engine_t *engine = self->engine;
   TEN_ASSERT(engine, "Should not happen.");
   TEN_ASSERT(ten_engine_check_integrity(engine, true), "Should not happen.");
+
   ten_env_close(engine->ten_env);
 
   if (self->on_closed) {
@@ -152,20 +149,23 @@ void ten_extension_context_close(ten_extension_context_t *self) {
   TEN_LOGD("[%s] Try to close extension context.",
            ten_engine_get_id(self->engine, true));
 
-  if (ten_list_size(&self->extension_threads)) {
-    ten_list_foreach(&self->extension_threads, iter) {
-      ten_extension_thread_t *extension_thread =
-          ten_ptr_listnode_get(iter.node);
-      TEN_ASSERT(extension_thread && ten_extension_thread_check_integrity(
-                                         extension_thread, false),
-                 "Should not happen.");
-
-      ten_extension_thread_close(extension_thread);
-    }
-  } else {
+  if (ten_list_is_empty(&self->extension_threads)) {
     // No extension threads need to be closed, so we can proceed directly to the
     // closing process of the extension context itself.
-    ten_extension_context_do_close_after_all_extension_groups_are_closed(self);
+    ten_extension_context_do_close_after_all_extension_threads_are_closed(self);
+    return;
+  }
+
+  self->extension_threads_cnt_of_closed = 0;
+  self->extension_threads_max_cnt = ten_list_size(&self->extension_threads);
+
+  ten_list_foreach(&self->extension_threads, iter) {
+    ten_extension_thread_t *extension_thread = ten_ptr_listnode_get(iter.node);
+    TEN_ASSERT(extension_thread && ten_extension_thread_check_integrity(
+                                       extension_thread, false),
+               "Should not happen.");
+
+    ten_extension_thread_close(extension_thread);
   }
 }
 
@@ -176,35 +176,10 @@ ten_extension_context_could_be_close(ten_extension_context_t *self) {
              "Invalid use of extension_context %p.", self);
 
   // Extension context could _only_ be closed when all extension threads have
-  // been stopped.
+  // been removed from the engine (extension context).
 
   return self->extension_threads_cnt_of_closed ==
-                 ten_list_size(&self->extension_threads)
-             ? true
-             : false;
-}
-
-static void
-ten_extension_context_on_extension_group_destroyed(ten_env_t *ten_env,
-                                                   void *cb_data) {
-  TEN_ASSERT(ten_env, "Should not happen.");
-  TEN_ASSERT(ten_env_check_integrity(ten_env, true), "Should not happen.");
-  TEN_ASSERT(ten_env->attach_to == TEN_ENV_ATTACH_TO_ENGINE,
-             "Should not happen.");
-
-  ten_engine_t *engine = ten_env_get_attached_engine(ten_env);
-  TEN_ASSERT(engine, "Should not happen.");
-  TEN_ASSERT(ten_engine_check_integrity(engine, true), "Should not happen.");
-
-  ten_extension_context_t *extension_context = engine->extension_context;
-  TEN_ASSERT(extension_context, "Invalid argument.");
-  TEN_ASSERT(ten_extension_context_check_integrity(extension_context, true),
-             "Invalid use of extension_context %p.", extension_context);
-
-  if (--extension_context->extension_groups_cnt_of_being_destroyed == 0) {
-    ten_extension_context_do_close_after_all_extension_groups_are_closed(
-        extension_context);
-  }
+         self->extension_threads_max_cnt;
 }
 
 static void ten_extension_context_do_close(ten_extension_context_t *self) {
@@ -212,17 +187,9 @@ static void ten_extension_context_do_close(ten_extension_context_t *self) {
   TEN_ASSERT(ten_extension_context_check_integrity(self, true),
              "Invalid use of extension_context %p.", self);
 
-  ten_list_clear(&self->extension_threads);
+  TEN_ASSERT(ten_list_is_empty(&self->extension_threads), "Should not happen.");
 
-  if (ten_list_size(&self->extension_groups) == 0) {
-    ten_extension_context_do_close_after_all_extension_groups_are_closed(self);
-    return;
-  }
-
-  self->extension_groups_cnt_of_being_destroyed =
-      ten_list_size(&self->extension_groups);
-
-  ten_list_clear(&self->extension_groups);
+  ten_extension_context_do_close_after_all_extension_threads_are_closed(self);
 }
 
 void ten_extension_context_on_close(ten_extension_context_t *self) {
@@ -377,31 +344,6 @@ static void ten_extension_context_add_extension_groups_info_from_graph(
   ten_list_swap(&self->extension_groups_info_from_graph, extension_groups_info);
 }
 
-static void
-destroy_extension_group_by_addon(ten_extension_group_t *extension_group) {
-  TEN_ASSERT(extension_group, "Should not happen.");
-  TEN_ASSERT(ten_extension_group_check_integrity(extension_group, true),
-             "Should not happen.");
-
-  ten_extension_context_t *extension_context =
-      extension_group->extension_context;
-  TEN_ASSERT(extension_context, "Invalid argument.");
-  TEN_ASSERT(ten_extension_context_check_integrity(extension_context, true),
-             "Invalid use of extension_context %p.", extension_context);
-
-  ten_engine_t *engine = extension_context->engine;
-  TEN_ASSERT(engine, "Should not happen.");
-  TEN_ASSERT(ten_engine_check_integrity(engine, true), "Should not happen.");
-
-  ten_env_t *ten_env = engine->ten_env;
-  TEN_ASSERT(ten_env, "Should not happen.");
-  TEN_ASSERT(ten_env_check_integrity(ten_env, true), "Should not happen.");
-
-  ten_addon_destroy_extension_group(
-      ten_env, extension_group,
-      ten_extension_context_on_extension_group_destroyed, NULL);
-}
-
 static void ten_extension_context_create_extension_group_done(
     ten_env_t *ten_env, ten_extension_group_t *extension_group) {
   TEN_ASSERT(extension_group &&
@@ -461,22 +403,17 @@ static void ten_extension_context_create_extension_group_done(
                   &result);
   }
 
-  // Add the newly created extension_group into the list.
-  ten_list_push_ptr_back(
-      &extension_context->extension_groups, extension_group,
-      (ten_ptr_listnode_destroy_func_t)destroy_extension_group_by_addon);
-
   ten_extension_thread_t *extension_thread = ten_extension_thread_create();
+
   ten_extension_thread_attach_to_context_and_group(
       extension_thread, extension_context, extension_group);
   extension_group->extension_thread = extension_thread;
 
-  ten_list_push_ptr_back(
-      &extension_context->extension_threads, extension_thread,
-      (ten_ptr_listnode_destroy_func_t)
-          ten_extension_thread_remove_from_extension_context);
+  ten_list_push_ptr_back(&extension_context->extension_threads,
+                         extension_thread, NULL);
 
   size_t extension_groups_cnt_of_the_current_app = 0;
+
   ten_list_foreach(
       ten_cmd_start_graph_get_extension_groups_info(original_start_graph_cmd),
       iter) {
@@ -490,12 +427,13 @@ static void ten_extension_context_create_extension_group_done(
   }
 
   if (extension_groups_cnt_of_the_current_app ==
-      ten_list_size(&extension_context->extension_groups)) {
+      ten_list_size(&extension_context->extension_threads)) {
     // All extension groups are created completed.
 
     ten_extension_context_add_extensions_info_from_graph(
         extension_context,
         ten_cmd_start_graph_get_extensions_info(original_start_graph_cmd));
+
     ten_extension_context_add_extension_groups_info_from_graph(
         extension_context, ten_cmd_start_graph_get_extension_groups_info(
                                original_start_graph_cmd));

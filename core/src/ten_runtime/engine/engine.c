@@ -185,6 +185,7 @@ ten_engine_t *ten_engine_create(ten_app_t *app, ten_shared_ptr_t *cmd) {
 
   ten_ref_init(&self->ref, self, ten_engine_on_end_of_life);
   self->is_closing = false;
+  self->has_uncompleted_async_task = false;
   self->on_closed = NULL;
   self->on_closed_data = NULL;
 

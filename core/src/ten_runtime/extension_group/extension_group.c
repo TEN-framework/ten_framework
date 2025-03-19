@@ -126,7 +126,6 @@ void ten_extension_group_destroy(ten_extension_group_t *self) {
   // further investigation.
   TEN_ASSERT(self && ten_extension_group_check_integrity(self, false),
              "Should not happen.");
-  TEN_ASSERT(self->extension_thread == NULL, "Should not happen.");
   TEN_ASSERT(self->extensions_cnt_of_being_destroyed == 0,
              "Should not happen.");
 

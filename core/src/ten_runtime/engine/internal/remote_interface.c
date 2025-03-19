@@ -303,6 +303,19 @@ void ten_engine_link_orphan_connection_to_remote(
                                ten_remote_on_connection_closed, remote);
 }
 
+static void ten_engine_on_protocol_closed(TEN_UNUSED ten_protocol_t *protocol,
+                                          void *on_closed_data) {
+  ten_engine_t *self = (ten_engine_t *)on_closed_data;
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_engine_check_integrity(self, true),
+             "Invalid use of engine %p.", self);
+  TEN_ASSERT(self->is_closing, "Should not happen.");
+
+  self->has_uncompleted_async_task = false;
+
+  ten_engine_on_close(self);
+}
+
 static void ten_engine_on_protocol_created(ten_env_t *ten_env,
                                            ten_protocol_t *protocol,
                                            void *cb_data) {
@@ -316,7 +329,20 @@ static void ten_engine_on_protocol_created(ten_env_t *ten_env,
   ten_engine_on_protocol_created_ctx_t *ctx =
       (ten_engine_on_protocol_created_ctx_t *)cb_data;
 
-  TEN_ASSERT(!self->is_closing, "Should not happen."); // =-=-=
+  if (self->is_closing) {
+    TEN_LOGW("[%s] Protocol created, but skip to create remote due to engine "
+             "is closing.",
+             ten_engine_get_id(self, true));
+
+    ten_engine_on_protocol_created_ctx_destroy(ctx);
+
+    ten_protocol_set_on_closed(protocol, ten_engine_on_protocol_closed, self);
+    ten_protocol_close(protocol);
+
+    return;
+  }
+
+  self->has_uncompleted_async_task = false;
 
   ten_connection_t *connection = ten_connection_create(protocol);
   TEN_ASSERT(connection, "Should not happen.");
@@ -365,22 +391,23 @@ static bool ten_engine_create_remote_async(
       ten_engine_on_protocol_created_ctx_create(on_remote_created_cb, cb_data);
   TEN_ASSERT(ctx, "Failed to allocate memory.");
 
-  bool rc = ten_addon_create_protocol_with_uri( // =-=-=
+  bool success = ten_addon_create_protocol_with_uri(
       self->ten_env, uri, TEN_PROTOCOL_ROLE_OUT_DEFAULT,
       ten_engine_on_protocol_created, ctx, &err);
-  if (!rc) {
+  if (success) {
+    self->has_uncompleted_async_task = true;
+  } else {
     TEN_LOGE("[%s] Failed to create protocol for %s. err: %s",
              ten_engine_get_id(self, true), uri, ten_error_message(&err));
+  }
 
-    ten_error_deinit(&err);
+  if (!success) {
     ten_engine_on_protocol_created_ctx_destroy(ctx);
-
-    return false;
   }
 
   ten_error_deinit(&err);
 
-  return true;
+  return success;
 }
 
 /**

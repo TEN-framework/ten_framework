@@ -197,6 +197,12 @@ void ten_engine_handle_cmd_result(ten_engine_t *self,
     break;
   }
 
+  case TEN_MSG_TYPE_CMD_RESULT: {
+    ten_msg_dump(cmd_result, NULL, "cmd_result: ^m");
+    TEN_ASSERT(0, "Should not happen.");
+    break;
+  }
+
   case TEN_MSG_TYPE_INVALID:
     TEN_ASSERT(0, "Should not happen.");
     break;

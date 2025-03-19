@@ -55,6 +55,7 @@ void ten_extension_context_on_addon_create_extension_group_done(
   }
 }
 
+// =-=-= 砍掉
 void ten_extension_context_on_addon_destroy_extension_group_done(
     ten_env_t *self, ten_addon_context_t *addon_context) {
   TEN_ASSERT(self, "Invalid argument.");

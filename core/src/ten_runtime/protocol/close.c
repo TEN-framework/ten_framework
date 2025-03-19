@@ -38,8 +38,8 @@
  * and prevents resource leaks.
  */
 static bool ten_protocol_could_be_close(ten_protocol_t *self) {
-  TEN_ASSERT(self && ten_protocol_check_integrity(self, true),
-             "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_protocol_check_integrity(self, true), "Should not happen.");
 
   // Currently, the only underlying resource of a base protocol is its
   // implementation protocol. This function is called only after the
@@ -71,8 +71,8 @@ static bool ten_protocol_could_be_close(ten_protocol_t *self) {
  * @param self The protocol to close.
  */
 void ten_protocol_on_close(ten_protocol_t *self) {
-  TEN_ASSERT(self && ten_protocol_check_integrity(self, true),
-             "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_protocol_check_integrity(self, true), "Should not happen.");
 
   if (!ten_protocol_could_be_close(self)) {
     TEN_LOGD("[%s] Could not close alive base protocol.",
@@ -95,8 +95,8 @@ void ten_protocol_on_close(ten_protocol_t *self) {
 void ten_protocol_set_on_closed(ten_protocol_t *self,
                                 ten_protocol_on_closed_func_t on_closed,
                                 void *on_closed_data) {
-  TEN_ASSERT(self && ten_protocol_check_integrity(self, true),
-             "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_protocol_check_integrity(self, true), "Should not happen.");
 
   self->on_closed = on_closed;
   self->on_closed_user_data = on_closed_data;
