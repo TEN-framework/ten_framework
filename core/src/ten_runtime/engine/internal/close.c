@@ -109,8 +109,8 @@ static void ten_engine_close_sync(ten_engine_t *self) {
  */
 static void ten_engine_close_task(void *engine_, TEN_UNUSED void *arg) {
   ten_engine_t *engine = (ten_engine_t *)engine_;
-  TEN_ASSERT(engine && ten_engine_check_integrity(engine, true),
-             "Invalid argument.");
+  TEN_ASSERT(engine, "Invalid argument.");
+  TEN_ASSERT(ten_engine_check_integrity(engine, true), "Invalid argument.");
 
   if (engine->is_closing) {
     TEN_LOGD("[%s] Engine is already closing, do not close again.",

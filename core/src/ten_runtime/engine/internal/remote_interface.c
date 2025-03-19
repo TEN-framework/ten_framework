@@ -443,13 +443,13 @@ static void ten_engine_on_graph_remote_connect_error(
 
 static void ten_engine_connect_to_remote_after_remote_is_created(
     ten_engine_t *engine, ten_remote_t *remote, void *user_data) {
-  TEN_ASSERT(engine && ten_engine_check_integrity(engine, true),
-             "Invalid argument.");
+  TEN_ASSERT(engine, "Invalid argument.");
+  TEN_ASSERT(ten_engine_check_integrity(engine, true), "Invalid argument.");
 
   ten_shared_ptr_t *start_graph_cmd_for_the_remote =
       (ten_shared_ptr_t *)user_data;
-  TEN_ASSERT(start_graph_cmd_for_the_remote &&
-                 ten_msg_check_integrity(start_graph_cmd_for_the_remote),
+  TEN_ASSERT(start_graph_cmd_for_the_remote, "Invalid argument.");
+  TEN_ASSERT(ten_msg_check_integrity(start_graph_cmd_for_the_remote),
              "Invalid argument.");
 
   // A simple sanity check:
@@ -459,8 +459,8 @@ static void ten_engine_connect_to_remote_after_remote_is_created(
   // where to send the `cmd_result` of the `start_graph` command.
   ten_shared_ptr_t *origin_start_graph_cmd =
       engine->original_start_graph_cmd_of_enabling_engine;
-  TEN_ASSERT(origin_start_graph_cmd &&
-                 ten_msg_check_integrity(origin_start_graph_cmd),
+  TEN_ASSERT(origin_start_graph_cmd, "Should not happen.");
+  TEN_ASSERT(ten_msg_check_integrity(origin_start_graph_cmd),
              "Should not happen.");
 
   if (!remote) {
