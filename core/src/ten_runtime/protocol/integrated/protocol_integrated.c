@@ -37,6 +37,10 @@
 #include "ten_utils/macro/check.h"
 #include "ten_utils/macro/mark.h"
 
+#if defined(_DEBUG)
+#include "ten_utils/lib/time.h"
+#endif
+
 static void ten_protocol_close_task(void *self_, TEN_UNUSED void *arg) {
   ten_protocol_t *self = (ten_protocol_t *)self_;
   TEN_ASSERT(self && ten_protocol_check_integrity(self, true),
