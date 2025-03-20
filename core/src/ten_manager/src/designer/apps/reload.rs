@@ -8,7 +8,6 @@ use std::sync::{Arc, RwLock};
 
 use crate::{
     designer::{
-        apps::get_base_dir_from_pkgs_cache,
         response::{ApiResponse, ErrorResponse, Status},
         DesignerState,
     },
@@ -29,47 +28,71 @@ pub async fn reload_app_endpoint(
     state: web::Data<Arc<RwLock<DesignerState>>>,
 ) -> Result<impl Responder, actix_web::Error> {
     let mut state_write = state.write().unwrap();
-
-    let base_dir = match get_base_dir_from_pkgs_cache(
-        request_payload.base_dir.clone(),
-        &state_write.pkgs_cache,
-    ) {
-        Ok(base_dir) => base_dir,
-        Err(e) => {
-            let error_response = ErrorResponse {
-                status: Status::Fail,
-                message: e.to_string(),
-                error: None,
-            };
-            return Ok(HttpResponse::BadRequest().json(error_response));
-        }
-    };
-
-    // Check if the base_dir exists in pkgs_cache.
-    if !state_write.pkgs_cache.contains_key(&base_dir) {
-        let error_response = ErrorResponse {
-            status: Status::Fail,
-            message: format!("App with base_dir '{}' is not loaded", base_dir),
-            error: None,
-        };
-        return Ok(HttpResponse::BadRequest().json(error_response));
-    }
-
-    // Clear the existing packages.
-    state_write.pkgs_cache.remove(&base_dir);
-
     let DesignerState {
         tman_config,
         pkgs_cache,
         out,
     } = &mut *state_write;
 
-    if let Err(err) =
-        get_all_pkgs(tman_config.clone(), pkgs_cache, &base_dir, out)
-    {
-        return Ok(HttpResponse::InternalServerError().json(
-            ErrorResponse::from_error(&err, "Failed to reload packages:"),
-        ));
+    if let Some(base_dir) = &request_payload.base_dir {
+        // Case 1: base_dir is specified in the request payload.
+
+        // Check if the base_dir exists in pkgs_cache.
+        if !pkgs_cache.contains_key(base_dir) {
+            let error_response = ErrorResponse {
+                status: Status::Fail,
+                message: format!(
+                    "App with base_dir '{}' is not loaded",
+                    base_dir
+                ),
+                error: None,
+            };
+            return Ok(HttpResponse::BadRequest().json(error_response));
+        }
+
+        // Clear the existing packages for this base_dir.
+        pkgs_cache.remove(base_dir);
+
+        // Reload packages for this base_dir.
+        if let Err(err) =
+            get_all_pkgs(tman_config.clone(), pkgs_cache, base_dir, out)
+        {
+            return Ok(HttpResponse::InternalServerError().json(
+                ErrorResponse::from_error(&err, "Failed to reload packages:"),
+            ));
+        }
+    } else {
+        // Case 2: base_dir is not specified, reload all apps.
+
+        if pkgs_cache.is_empty() {
+            let error_response = ErrorResponse {
+                status: Status::Fail,
+                message: "No apps are loaded.".to_string(),
+                error: None,
+            };
+            return Ok(HttpResponse::BadRequest().json(error_response));
+        }
+
+        // Collect all base_dirs first (to avoid borrowing issues).
+        let base_dirs: Vec<String> = pkgs_cache.keys().cloned().collect();
+
+        // For each base_dir, clear its packages and reload them.
+        for base_dir in base_dirs {
+            // Clear the existing packages for this base_dir.
+            pkgs_cache.remove(&base_dir);
+
+            // Reload packages for this base_dir.
+            if let Err(err) =
+                get_all_pkgs(tman_config.clone(), pkgs_cache, &base_dir, out)
+            {
+                return Ok(HttpResponse::InternalServerError().json(
+                    ErrorResponse::from_error(
+                        &err,
+                        "Failed to reload packages:",
+                    ),
+                ));
+            }
+        }
     }
 
     Ok(HttpResponse::Ok().json(ApiResponse {
@@ -90,86 +113,6 @@ mod tests {
         config::TmanConfig, constants::TEST_DIR,
         designer::mock::inject_all_pkgs_for_mock, output::TmanOutputCli,
     };
-
-    /// Test error case when multiple apps are loaded but no base_dir is
-    /// specified.
-    #[actix_web::test]
-    async fn test_reload_app_error_multiple_apps_no_base_dir() {
-        // Set up the designer state with multiple apps.
-        let mut designer_state = DesignerState {
-            tman_config: Arc::new(TmanConfig::default()),
-            out: Arc::new(Box::new(TmanOutputCli)),
-            pkgs_cache: HashMap::new(),
-        };
-
-        // Inject first app.
-        let first_app_json = vec![(
-            include_str!("test_data_embed/app_manifest.json").to_string(),
-            include_str!("test_data_embed/app_property.json").to_string(),
-        )];
-
-        let inject_ret = inject_all_pkgs_for_mock(
-            TEST_DIR,
-            &mut designer_state.pkgs_cache,
-            first_app_json,
-        );
-        assert!(inject_ret.is_ok());
-
-        // Inject second app in a different directory.
-        let second_dir = format!("{}/another_dir", TEST_DIR);
-        let second_app_json = vec![(
-            include_str!("test_data_embed/app_manifest.json").to_string(),
-            include_str!("test_data_embed/app_property.json").to_string(),
-        )];
-
-        let inject_ret = inject_all_pkgs_for_mock(
-            &second_dir,
-            &mut designer_state.pkgs_cache,
-            second_app_json,
-        );
-        assert!(inject_ret.is_ok());
-
-        // Verify that we have multiple entries in pkgs_cache.
-        assert_eq!(designer_state.pkgs_cache.len(), 2);
-
-        let designer_state = Arc::new(RwLock::new(designer_state));
-
-        // Set up the test service.
-        let app = test::init_service(
-            App::new()
-                .app_data(web::Data::new(designer_state.clone()))
-                .route(
-                    "/api/designer/v1/apps/reload",
-                    web::post().to(reload_app_endpoint),
-                ),
-        )
-        .await;
-
-        // Create request without base_dir specified.
-        let request_payload = ReloadPkgsRequestPayload { base_dir: None };
-
-        let req = test::TestRequest::post()
-            .uri("/api/designer/v1/apps/reload")
-            .set_json(request_payload)
-            .to_request();
-
-        // Send the request and get the response.
-        let resp = test::call_service(&app, req).await;
-
-        // Verify the response is an error.
-        assert_eq!(resp.status(), StatusCode::BAD_REQUEST);
-
-        let body = test::read_body(resp).await;
-        let body_str = std::str::from_utf8(&body).unwrap();
-
-        let error_response: ErrorResponse =
-            serde_json::from_str(body_str).unwrap();
-        assert_eq!(error_response.status, Status::Fail);
-        assert_eq!(
-            error_response.message,
-            "Multiple apps available. Please specify base_dir."
-        );
-    }
 
     /// Test error case when the specified base_dir doesn't exist in pkgs_cache.
     #[actix_web::test]

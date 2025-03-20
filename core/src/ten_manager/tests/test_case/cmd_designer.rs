@@ -72,10 +72,8 @@ async fn test_cmd_designer_graphs_app_property_not_exist() {
     .await;
 
     let request_payload = GetGraphsRequestPayload {
-        base_dir: Some(
-            "tests/test_data/cmd_designer_graphs_app_property_not_exist"
-                .to_string(),
-        ),
+        base_dir: "tests/test_data/cmd_designer_graphs_app_property_not_exist"
+            .to_string(),
     };
 
     let req = test::TestRequest::post()
@@ -138,10 +136,8 @@ async fn test_cmd_designer_connections_has_msg_conversion() {
     .await;
 
     let request_payload = GetGraphConnectionsRequestPayload {
-        base_dir: Some(
-            "tests/test_data/cmd_designer_connections_has_msg_conversion"
-                .to_string(),
-        ),
+        base_dir: "tests/test_data/cmd_designer_connections_has_msg_conversion"
+            .to_string(),
         graph_name: "default".to_string(),
     };
 
