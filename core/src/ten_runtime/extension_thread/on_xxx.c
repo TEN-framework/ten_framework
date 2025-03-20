@@ -11,7 +11,9 @@
 #include "include_internal/ten_runtime/addon/addon.h"
 #include "include_internal/ten_runtime/addon/addon_host.h"
 #include "include_internal/ten_runtime/addon/extension/extension.h"
+#include "include_internal/ten_runtime/addon/extension_group/extension_group.h"
 #include "include_internal/ten_runtime/common/loc.h"
+#include "include_internal/ten_runtime/engine/engine.h"
 #include "include_internal/ten_runtime/engine/on_xxx.h"
 #include "include_internal/ten_runtime/extension/close.h"
 #include "include_internal/ten_runtime/extension/extension.h"
@@ -76,8 +78,8 @@ void ten_extension_thread_on_extension_group_on_init_done(
   }
 
   ten_extension_group_t *extension_group = self->extension_group;
-  TEN_ASSERT(extension_group &&
-                 ten_extension_group_check_integrity(extension_group, true),
+  TEN_ASSERT(extension_group, "Should not happen.");
+  TEN_ASSERT(ten_extension_group_check_integrity(extension_group, true),
              "Should not happen.");
 
   ten_error_t err;
@@ -110,7 +112,8 @@ void ten_extension_thread_on_extension_group_on_init_done(
 
 void ten_extension_thread_stop_life_cycle_of_all_extensions(
     ten_extension_thread_t *self) {
-  TEN_ASSERT(self && ten_extension_thread_check_integrity(self, true),
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_extension_thread_check_integrity(self, true),
              "Invalid argument.");
 
   ten_extension_thread_set_state(self,
@@ -170,6 +173,63 @@ void ten_extension_thread_stop_life_cycle_of_all_extensions(
   }
 }
 
+static void ten_extension_context_on_extension_group_destroyed(
+    TEN_UNUSED ten_env_t *ten_env, void *cb_data) {
+  ten_extension_thread_t *extension_thread = (ten_extension_thread_t *)cb_data;
+  TEN_ASSERT(extension_thread, "Should not happen.");
+  TEN_ASSERT(ten_extension_thread_check_integrity(extension_thread, true),
+             "Invalid use of extension_thread %p.", extension_thread);
+
+  extension_thread->extension_group = NULL;
+
+  // All resources of the extension thread are cleaned up, so we can stop the
+  // runloop.
+  ten_runloop_stop(extension_thread->runloop);
+}
+
+void ten_extension_thread_on_removed_from_engine(void *self_, void *arg) {
+  ten_extension_thread_t *self = (ten_extension_thread_t *)self_;
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_extension_thread_check_integrity(self, true),
+             "Invalid use of extension_thread %p.", self);
+
+  ten_extension_group_t *extension_group = self->extension_group;
+  TEN_ASSERT(extension_group, "Should not happen.");
+  TEN_ASSERT(ten_extension_group_check_integrity(extension_group, true),
+             "Should not happen.");
+
+  // Start the destruction of the extension group.
+  ten_addon_destroy_extension_group(
+      extension_group->ten_env, extension_group,
+      ten_extension_context_on_extension_group_destroyed, self);
+}
+
+static void ten_extension_thread_notify_engine_to_remove_from_engine(
+    ten_extension_thread_t *self) {
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_extension_thread_check_integrity(self, true),
+             "Invalid use of extension_thread %p.", self);
+
+  ten_engine_t *engine = self->extension_context->engine;
+  // TEN_NOLINTNEXTLINE(thread-check)
+  // thread-check: In the closing flow, the closing of the engine is always
+  // after the closing of the extension thread, so its thread safe to access the
+  // runloop of the engine here.
+  TEN_ASSERT(engine, "Should not happen.");
+  TEN_ASSERT(ten_engine_check_integrity(engine, false), "Should not happen.");
+
+  ten_runloop_t *engine_loop = ten_engine_get_attached_runloop(engine);
+  TEN_ASSERT(engine_loop, "Should not happen.");
+
+  int rc = ten_runloop_post_task_tail(
+      engine_loop, ten_engine_on_remove_extension_thread_from_engine, engine,
+      self);
+  if (rc) {
+    TEN_LOGW("Failed to post task to engine's runloop: %d", rc);
+    TEN_ASSERT(0, "Should not happen.");
+  }
+}
+
 void ten_extension_thread_on_extension_group_on_deinit_done(
     void *self_, TEN_UNUSED void *arg) {
   ten_extension_thread_t *self = (ten_extension_thread_t *)self_;
@@ -177,12 +237,7 @@ void ten_extension_thread_on_extension_group_on_deinit_done(
   TEN_ASSERT(ten_extension_thread_check_integrity(self, true),
              "Invalid use of extension_thread %p.", self);
 
-  ten_extension_group_t *extension_group = self->extension_group;
-  TEN_ASSERT(extension_group &&
-                 ten_extension_group_check_integrity(extension_group, true),
-             "Should not happen.");
-
-  ten_runloop_stop(self->runloop);
+  ten_extension_thread_notify_engine_to_remove_from_engine(self);
 }
 
 void ten_extension_thread_on_all_extensions_deleted(void *self_,
@@ -195,8 +250,8 @@ void ten_extension_thread_on_all_extensions_deleted(void *self_,
   ten_list_clear(&self->extensions);
 
   ten_extension_group_t *extension_group = self->extension_group;
-  TEN_ASSERT(extension_group &&
-                 ten_extension_group_check_integrity(extension_group, true),
+  TEN_ASSERT(extension_group, "Should not happen.");
+  TEN_ASSERT(ten_extension_group_check_integrity(extension_group, true),
              "Should not happen.");
 
   ten_extension_group_on_deinit(extension_group);
@@ -210,8 +265,8 @@ void ten_extension_thread_on_addon_create_extension_done(void *self_,
              "Invalid use of extension_thread %p.", self);
 
   ten_extension_group_t *extension_group = self->extension_group;
-  TEN_ASSERT(extension_group &&
-                 ten_extension_group_check_integrity(extension_group, true),
+  TEN_ASSERT(extension_group, "Should not happen.");
+  TEN_ASSERT(ten_extension_group_check_integrity(extension_group, true),
              "Should not happen.");
 
   ten_extension_thread_on_addon_create_extension_done_ctx_t *ctx = arg;
@@ -238,8 +293,8 @@ void ten_extension_thread_on_addon_destroy_extension_done(void *self_,
              "Invalid use of extension_thread %p.", self);
 
   ten_extension_group_t *extension_group = self->extension_group;
-  TEN_ASSERT(extension_group &&
-                 ten_extension_group_check_integrity(extension_group, true),
+  TEN_ASSERT(extension_group, "Should not happen.");
+  TEN_ASSERT(ten_extension_group_check_integrity(extension_group, true),
              "Should not happen.");
 
   ten_addon_context_t *addon_context = arg;
@@ -265,11 +320,22 @@ void ten_extension_thread_create_extension_instance(void *self_, void *arg) {
   ten_addon_on_create_extension_instance_ctx_t *addon_instance_info = arg;
   TEN_ASSERT(addon_instance_info, "Should not happen.");
 
-  ten_addon_create_instance_async(
+  ten_addon_context_t *addon_context = ten_addon_context_create();
+  addon_context->flow =
+      TEN_ADDON_CONTEXT_FLOW_EXTENSION_THREAD_CREATE_EXTENSION;
+  addon_context->flow_target.extension_thread = self;
+  addon_context->create_instance_done_cb = addon_instance_info->cb;
+  addon_context->create_instance_done_cb_data = addon_instance_info->cb_data;
+
+  bool rc = ten_addon_create_instance_async(
       self->extension_group->ten_env, addon_instance_info->addon_type,
       ten_string_get_raw_str(&addon_instance_info->addon_name),
       ten_string_get_raw_str(&addon_instance_info->instance_name),
-      addon_instance_info->cb, addon_instance_info->cb_data);
+      addon_context);
+
+  if (!rc) {
+    ten_addon_context_destroy(addon_context);
+  }
 
   ten_addon_on_create_extension_instance_ctx_destroy(addon_instance_info);
 }
@@ -283,10 +349,16 @@ void ten_extension_thread_destroy_addon_instance(void *self_, void *arg) {
   ten_addon_host_on_destroy_instance_ctx_t *destroy_instance_info = arg;
   TEN_ASSERT(destroy_instance_info, "Should not happen.");
 
-  ten_addon_host_destroy_instance_async(
-      destroy_instance_info->addon_host, self->extension_group->ten_env,
-      destroy_instance_info->instance, destroy_instance_info->cb,
-      destroy_instance_info->cb_data);
+  ten_addon_context_t *addon_context = ten_addon_context_create();
+  addon_context->flow =
+      TEN_ADDON_CONTEXT_FLOW_EXTENSION_THREAD_DESTROY_EXTENSION;
+  addon_context->flow_target.extension_thread = self;
+  addon_context->destroy_instance_done_cb = destroy_instance_info->cb;
+  addon_context->destroy_instance_done_cb_data = destroy_instance_info->cb_data;
+
+  ten_addon_host_destroy_instance_async(destroy_instance_info->addon_host,
+                                        destroy_instance_info->instance,
+                                        addon_context);
 
   ten_addon_host_on_destroy_instance_ctx_destroy(destroy_instance_info);
 }
@@ -306,4 +378,24 @@ void ten_extension_thread_on_addon_create_extension_done_ctx_destroy(
     ten_extension_thread_on_addon_create_extension_done_ctx_t *self) {
   TEN_ASSERT(self, "Invalid argument.");
   TEN_FREE(self);
+}
+
+void ten_extension_thread_on_addon_destroy_extension_group_done(void *self_,
+                                                                void *arg) {
+  ten_extension_thread_t *self = self_;
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_extension_thread_check_integrity(self, true),
+             "Should not happen.");
+
+  ten_addon_context_t *addon_context = arg;
+  TEN_ASSERT(addon_context, "Should not happen.");
+
+  // This happens on the extension thread, so it's thread safe.
+
+  if (addon_context->destroy_instance_done_cb) {
+    addon_context->destroy_instance_done_cb(
+        NULL, addon_context->destroy_instance_done_cb_data);
+  }
+
+  ten_addon_context_destroy(addon_context);
 }

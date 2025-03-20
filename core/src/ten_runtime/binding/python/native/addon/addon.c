@@ -57,8 +57,8 @@ not_implemented_base_on_create_instance(TEN_UNUSED PyObject *self,
 
 static void proxy_on_init(ten_addon_t *addon, ten_env_t *ten_env) {
   TEN_ASSERT(addon, "Invalid argument.");
-  TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
-             "Invalid argument.");
+  TEN_ASSERT(ten_env, "Invalid argument.");
+  TEN_ASSERT(ten_env_check_integrity(ten_env, true), "Invalid argument.");
 
   // About to call the Python function, so it's necessary to ensure that the GIL
   // has been acquired.
@@ -104,8 +104,8 @@ static void proxy_on_deinit(ten_addon_t *addon, ten_env_t *ten_env) {
   // modified to also perform the Python addon registration within the test
   // app's `on_configure_done`. This change will allow the underlying thread
   // check to be set to `true`.
-  TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, false),
-             "Invalid argument.");
+  TEN_ASSERT(ten_env, "Invalid argument.");
+  TEN_ASSERT(ten_env_check_integrity(ten_env, false), "Invalid argument.");
 
   // About to call the Python function, so it's necessary to ensure that the GIL
   // has been acquired.
@@ -147,8 +147,8 @@ static void proxy_on_create_instance_async(ten_addon_t *addon,
                                            ten_env_t *ten_env, const char *name,
                                            void *context) {
   TEN_ASSERT(addon, "Invalid argument.");
-  TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, false),
-             "Invalid argument.");
+  TEN_ASSERT(ten_env, "Invalid argument.");
+  TEN_ASSERT(ten_env_check_integrity(ten_env, false), "Invalid argument.");
   TEN_ASSERT(name && strlen(name), "Invalid argument.");
 
   ten_py_addon_t *py_addon = addon->binding_handle.me_in_target_lang;
@@ -195,8 +195,8 @@ static void proxy_on_destroy_instance_async(ten_addon_t *addon,
                                             ten_env_t *ten_env, void *instance,
                                             void *context) {
   TEN_ASSERT(addon, "Invalid argument.");
-  TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, false),
-             "Invalid argument.");
+  TEN_ASSERT(ten_env, "Invalid argument.");
+  TEN_ASSERT(ten_env_check_integrity(ten_env, false), "Invalid argument.");
   TEN_ASSERT(instance, "Invalid argument.");
 
   PyObject *py_instance = NULL;

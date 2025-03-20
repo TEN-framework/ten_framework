@@ -160,19 +160,6 @@ void ten_extension_thread_destroy(ten_extension_thread_t *self) {
   TEN_FREE(self);
 }
 
-void ten_extension_thread_remove_from_extension_context(
-    ten_extension_thread_t *self) {
-  TEN_ASSERT(self, "Invalid argument.");
-  TEN_ASSERT(ten_extension_thread_check_integrity(self, true),
-             "Invalid use of extension_thread %p.", self);
-  TEN_ASSERT(ten_engine_check_integrity(self->extension_context->engine, true),
-             "Should not happen.");
-
-  self->extension_group->extension_thread = NULL;
-
-  ten_extension_thread_destroy(self);
-}
-
 // Notify extension context (engine) that we (extension thread) are closed, so
 // that engine can join this thread to prevent memory leak.
 static void
@@ -186,8 +173,8 @@ ten_extension_thread_notify_engine_we_are_closed(ten_extension_thread_t *self) {
   // thread-check: In the closing flow, the closing of the engine is always
   // after the closing of the extension thread, so its thread safe to access the
   // runloop of the engine here.
-  TEN_ASSERT(engine && ten_engine_check_integrity(engine, false),
-             "Should not happen.");
+  TEN_ASSERT(engine, "Should not happen.");
+  TEN_ASSERT(ten_engine_check_integrity(engine, false), "Should not happen.");
 
   ten_runloop_t *engine_loop = ten_engine_get_attached_runloop(engine);
   TEN_ASSERT(engine_loop, "Should not happen.");
@@ -204,12 +191,12 @@ ten_extension_thread_notify_engine_we_are_closed(ten_extension_thread_t *self) {
 
 ten_runloop_t *
 ten_extension_thread_get_attached_runloop(ten_extension_thread_t *self) {
-  TEN_ASSERT(self &&
-                 // TEN_NOLINTNEXTLINE(thread-check)
-                 // thread-check: This function is intended to be called in
-                 // threads other than the extension thread itself.
-                 ten_extension_thread_check_integrity(self, false),
-             "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(
+      // TEN_NOLINTNEXTLINE(thread-check)
+      // thread-check: This function is intended to be called in
+      // threads other than the extension thread itself.
+      ten_extension_thread_check_integrity(self, false), "Should not happen.");
 
   return self->runloop;
 }
@@ -246,18 +233,18 @@ ten_extension_thread_inherit_thread_ownership(ten_extension_thread_t *self) {
 static void *ten_extension_thread_main_actual(ten_extension_thread_t *self) {
   TEN_LOGD("Extension thread is started");
 
-  TEN_ASSERT(self &&
-                 // TEN_NOLINTNEXTLINE(thread-check)
-                 // thread-check: The correct threading ownership will be setup
-                 // soon, so we can _not_ check thread safety here.
-                 ten_extension_thread_check_integrity(self, false),
-             "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(
+      // TEN_NOLINTNEXTLINE(thread-check)
+      // thread-check: The correct threading ownership will be setup
+      // soon, so we can _not_ check thread safety here.
+      ten_extension_thread_check_integrity(self, false), "Should not happen.");
 
   ten_extension_thread_inherit_thread_ownership(self);
 
   ten_extension_group_t *extension_group = self->extension_group;
-  TEN_ASSERT(extension_group &&
-                 ten_extension_group_check_integrity(extension_group, true),
+  TEN_ASSERT(extension_group, "Should not happen.");
+  TEN_ASSERT(ten_extension_group_check_integrity(extension_group, true),
              "Should not happen.");
 
   ten_string_t extension_group_name;
@@ -387,24 +374,24 @@ void ten_extension_thread_close(ten_extension_thread_t *self) {
 }
 
 bool ten_extension_thread_call_by_me(ten_extension_thread_t *self) {
-  TEN_ASSERT(self &&
-                 // TEN_NOLINTNEXTLINE(thread-check)
-                 // thread-check: this function is intended to be called in any
-                 // threads.
-                 ten_extension_thread_check_integrity(self, false),
-             "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(
+      // TEN_NOLINTNEXTLINE(thread-check)
+      // thread-check: this function is intended to be called in any
+      // threads.
+      ten_extension_thread_check_integrity(self, false), "Should not happen.");
 
   return ten_thread_equal(NULL, ten_sanitizer_thread_check_get_belonging_thread(
                                     &self->thread_check));
 }
 
 bool ten_extension_thread_not_call_by_me(ten_extension_thread_t *self) {
-  TEN_ASSERT(self &&
-                 // TEN_NOLINTNEXTLINE(thread-check)
-                 // thread-check: this function is intended to be called in any
-                 // threads.
-                 ten_extension_thread_check_integrity(self, false),
-             "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(
+      // TEN_NOLINTNEXTLINE(thread-check)
+      // thread-check: this function is intended to be called in any
+      // threads.
+      ten_extension_thread_check_integrity(self, false), "Should not happen.");
 
   return !ten_extension_thread_call_by_me(self);
 }
@@ -522,8 +509,8 @@ void ten_extension_thread_add_all_created_extensions(
   // thread-check: The runloop of the engine will not be changed during the
   // whole lifetime of the extension thread, so it's thread safe to access it
   // here.
-  TEN_ASSERT(engine && ten_engine_check_integrity(engine, false),
-             "Should not happen.");
+  TEN_ASSERT(engine, "Should not happen.");
+  TEN_ASSERT(ten_engine_check_integrity(engine, false), "Should not happen.");
 
   int rc = ten_runloop_post_task_tail(
       ten_engine_get_attached_runloop(engine),

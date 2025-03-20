@@ -590,7 +590,8 @@ static void ten_app_handle_in_msgs_sync(ten_app_t *self) {
 
 static void ten_app_handle_in_msgs_task(void *app_, TEN_UNUSED void *arg) {
   ten_app_t *app = (ten_app_t *)app_;
-  TEN_ASSERT(app && ten_app_check_integrity(app, true), "Should not happen.");
+  TEN_ASSERT(app, "Should not happen.");
+  TEN_ASSERT(ten_app_check_integrity(app, true), "Should not happen.");
 
   ten_app_handle_in_msgs_sync(app);
 }

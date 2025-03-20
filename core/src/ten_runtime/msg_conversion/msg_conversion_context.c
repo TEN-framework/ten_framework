@@ -35,8 +35,8 @@ bool ten_msg_conversion_context_check_integrity(
   return true;
 }
 
-ten_msg_conversion_context_t *ten_msg_conversion_context_create(
-    const char *msg_name) {
+ten_msg_conversion_context_t *
+ten_msg_conversion_context_create(const char *msg_name) {
   TEN_ASSERT(msg_name, "Invalid argument.");
 
   ten_msg_conversion_context_t *self =
@@ -88,7 +88,8 @@ static bool ten_msg_conversion_can_match_msg(ten_msg_conversion_context_t *self,
                                              ten_shared_ptr_t *msg) {
   TEN_ASSERT(self && ten_msg_conversion_context_check_integrity(self),
              "Should not happen.");
-  TEN_ASSERT(msg && ten_msg_check_integrity(msg), "Should not happen.");
+  TEN_ASSERT(msg, "Should not happen.");
+  TEN_ASSERT(ten_msg_check_integrity(msg), "Should not happen.");
 
   const char *name = ten_msg_get_name(msg);
   TEN_ASSERT(name, "Should not happen.");
@@ -121,7 +122,7 @@ bool ten_msg_conversion_context_merge(
                  ten_msg_conversion_context_check_integrity(new_msg_conversion),
              "Should not happen.");
 
-  ten_list_foreach (msg_conversions, iter) {
+  ten_list_foreach(msg_conversions, iter) {
     ten_msg_conversion_context_t *msg_conversion =
         ten_ptr_listnode_get(iter.node);
     TEN_ASSERT(msg_conversion &&
@@ -149,7 +150,8 @@ bool ten_extension_convert_msg(ten_extension_t *self, ten_shared_ptr_t *msg,
                                ten_list_t *result, ten_error_t *err) {
   TEN_ASSERT(self && ten_extension_check_integrity(self, true),
              "Invalid argument");
-  TEN_ASSERT(msg && ten_msg_check_integrity(msg), "Invalid argument.");
+  TEN_ASSERT(msg, "Invalid argument.");
+  TEN_ASSERT(ten_msg_check_integrity(msg), "Invalid argument.");
   TEN_ASSERT(result, "Should not happen.");
   TEN_ASSERT(err && ten_error_check_integrity(err), "Invalid argument.");
 
@@ -167,7 +169,7 @@ bool ten_extension_convert_msg(ten_extension_t *self, ten_shared_ptr_t *msg,
       ten_list_check_integrity(&self->extension_info->msg_conversion_contexts),
       "Should not happen.");
 
-  ten_list_foreach (&self->extension_info->msg_conversion_contexts, iter) {
+  ten_list_foreach(&self->extension_info->msg_conversion_contexts, iter) {
     ten_msg_conversion_context_t *msg_conversions =
         ten_ptr_listnode_get(iter.node);
     TEN_ASSERT(msg_conversions &&
@@ -227,9 +229,10 @@ done:
   return !something_wrong;
 }
 
-static ten_msg_conversion_context_t *ten_msg_conversion_from_json_internal(
-    ten_json_t *json, ten_loc_t *src_loc, const char *original_cmd_name,
-    ten_error_t *err) {
+static ten_msg_conversion_context_t *
+ten_msg_conversion_from_json_internal(ten_json_t *json, ten_loc_t *src_loc,
+                                      const char *original_cmd_name,
+                                      ten_error_t *err) {
   TEN_ASSERT(json, "Invalid argument.");
   TEN_ASSERT(original_cmd_name, "Invalid argument.");
 
@@ -253,18 +256,19 @@ static ten_msg_conversion_context_t *ten_msg_conversion_from_json_internal(
   return self;
 }
 
-ten_msg_conversion_context_t *ten_msg_conversion_context_from_json(
-    ten_json_t *json, ten_extension_info_t *src_extension_info,
-    const char *cmd_name, ten_error_t *err) {
+ten_msg_conversion_context_t *
+ten_msg_conversion_context_from_json(ten_json_t *json,
+                                     ten_extension_info_t *src_extension_info,
+                                     const char *cmd_name, ten_error_t *err) {
   TEN_ASSERT(json && src_extension_info, "Should not happen.");
 
   return ten_msg_conversion_from_json_internal(json, &src_extension_info->loc,
                                                cmd_name, err);
 }
 
-static ten_msg_conversion_context_t *ten_msg_conversion_from_value_internal(
-    ten_value_t *value, ten_loc_t *src_loc, const char *cmd_name,
-    ten_error_t *err) {
+static ten_msg_conversion_context_t *
+ten_msg_conversion_from_value_internal(ten_value_t *value, ten_loc_t *src_loc,
+                                       const char *cmd_name, ten_error_t *err) {
   TEN_ASSERT(value && cmd_name, "Should not happen.");
 
   ten_msg_conversion_context_t *self =
@@ -287,9 +291,10 @@ static ten_msg_conversion_context_t *ten_msg_conversion_from_value_internal(
   return self;
 }
 
-ten_msg_conversion_context_t *ten_msg_conversion_context_from_value(
-    ten_value_t *value, ten_extension_info_t *src_extension_info,
-    const char *cmd_name, ten_error_t *err) {
+ten_msg_conversion_context_t *
+ten_msg_conversion_context_from_value(ten_value_t *value,
+                                      ten_extension_info_t *src_extension_info,
+                                      const char *cmd_name, ten_error_t *err) {
   TEN_ASSERT(value && src_extension_info, "Should not happen.");
 
   return ten_msg_conversion_from_value_internal(value, &src_extension_info->loc,

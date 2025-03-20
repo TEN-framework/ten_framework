@@ -119,7 +119,8 @@ ten_shared_ptr_t *ten_msg_conversion_convert(ten_msg_conversion_t *self,
                                              ten_shared_ptr_t *msg,
                                              ten_error_t *err) {
   TEN_ASSERT(self, "Invalid argument.");
-  TEN_ASSERT(msg && ten_msg_check_integrity(msg), "Invalid argument.");
+  TEN_ASSERT(msg, "Invalid argument.");
+  TEN_ASSERT(ten_msg_check_integrity(msg), "Invalid argument.");
 
   return self->operation(self, msg, err);
 }

@@ -179,15 +179,16 @@ done:
 static void ten_app_start_auto_start_predefined_graph_result_handler(
     ten_env_t *ten_env, ten_shared_ptr_t *cmd_result, void *user_data,
     ten_error_t *err) {
-  TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
-             "Invalid argument.");
+  TEN_ASSERT(ten_env, "Invalid argument.");
+  TEN_ASSERT(ten_env_check_integrity(ten_env, true), "Invalid argument.");
   TEN_ASSERT(cmd_result && ten_cmd_base_check_integrity(cmd_result),
              "Invalid argument.");
 
   if (ten_cmd_result_get_status_code(cmd_result) == TEN_STATUS_CODE_ERROR) {
     // If auto-starting the predefined graph fails, gracefully close the app.
     ten_app_t *app = ten_env_get_attached_app(ten_env);
-    TEN_ASSERT(app && ten_app_check_integrity(app, true), "Should not happen.");
+    TEN_ASSERT(app, "Should not happen.");
+    TEN_ASSERT(ten_app_check_integrity(app, true), "Should not happen.");
 
     ten_shared_ptr_t *close_app_cmd = ten_cmd_close_app_create();
     ten_msg_clear_and_set_dest(close_app_cmd, ten_string_get_raw_str(&app->uri),

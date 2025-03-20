@@ -56,9 +56,10 @@ static void ten_engine_prepend_to_in_msgs_queue(ten_engine_t *self,
 }
 
 static void ten_engine_handle_msg(ten_engine_t *self, ten_shared_ptr_t *msg) {
-  TEN_ASSERT(self && ten_engine_check_integrity(self, true),
-             "Invalid argument.");
-  TEN_ASSERT(msg && ten_msg_check_integrity(msg), "Should not happen.");
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_engine_check_integrity(self, true), "Invalid argument.");
+  TEN_ASSERT(msg, "Should not happen.");
+  TEN_ASSERT(ten_msg_check_integrity(msg), "Should not happen.");
 
   if (self->is_closing && !ten_msg_type_to_handle_when_closing(msg)) {
     // Except some special commands, do not handle messages anymore if the
@@ -105,7 +106,8 @@ static void ten_engine_handle_in_msgs_sync(ten_engine_t *self) {
 
   ten_list_foreach(&in_msgs_, iter) {
     ten_shared_ptr_t *msg = ten_smart_ptr_listnode_get(iter.node);
-    TEN_ASSERT(msg && ten_msg_check_integrity(msg), "Should not happen.");
+    TEN_ASSERT(msg, "Should not happen.");
+    TEN_ASSERT(ten_msg_check_integrity(msg), "Should not happen.");
     TEN_ASSERT(!ten_msg_src_is_empty(msg),
                "The message source should have been set.");
 
@@ -364,7 +366,8 @@ static void ten_engine_post_msg_to_extension_thread(
 bool ten_engine_dispatch_msg(ten_engine_t *self, ten_shared_ptr_t *msg) {
   TEN_ASSERT(self, "Should not happen.");
   TEN_ASSERT(ten_engine_check_integrity(self, true), "Should not happen.");
-  TEN_ASSERT(msg && ten_msg_check_integrity(msg), "Should not happen.");
+  TEN_ASSERT(msg, "Should not happen.");
+  TEN_ASSERT(ten_msg_check_integrity(msg), "Should not happen.");
   TEN_ASSERT(ten_msg_get_dest_cnt(msg) == 1,
              "When this function is executed, there should be only one "
              "destination remaining in the message's dest.");
@@ -416,11 +419,11 @@ bool ten_engine_dispatch_msg(ten_engine_t *self, ten_shared_ptr_t *msg) {
         if (self->extension_context) {
           bool found = false;
 
-          ten_list_foreach(&self->extension_context->extension_groups, iter) {
-            ten_extension_group_t *extension_group =
+          ten_list_foreach(&self->extension_context->extension_threads, iter) {
+            ten_extension_thread_t *extension_thread =
                 ten_ptr_listnode_get(iter.node);
             TEN_ASSERT(
-                extension_group &&
+                extension_thread &&
                     // TEN_NOLINTNEXTLINE(thread-check)
                     // thread-check: We are in the engine thread, _not_ in the
                     // extension thread. However, before the engine is closed,
@@ -429,16 +432,20 @@ bool ten_engine_dispatch_msg(ten_engine_t *self, ten_shared_ptr_t *msg) {
                     // the entire engine must start from the engine, so the
                     // execution to this position means that the engine has not
                     // been closed, so there will be no thread safety issue.
-                    ten_extension_group_check_integrity(extension_group, false),
+                    ten_extension_thread_check_integrity(extension_thread,
+                                                         false),
                 "Should not happen.");
+
+            ten_extension_group_t *extension_group =
+                extension_thread->extension_group;
 
             if (ten_string_is_equal(&extension_group->name,
                                     &dest_loc->extension_group_name)) {
               // Find the correct extension thread, ask it to handle the
               // message.
               found = true;
-              ten_engine_post_msg_to_extension_thread(
-                  self, extension_group->extension_thread, msg);
+              ten_engine_post_msg_to_extension_thread(self, extension_thread,
+                                                      msg);
               break;
             }
           }
@@ -448,13 +455,23 @@ bool ten_engine_dispatch_msg(ten_engine_t *self, ten_shared_ptr_t *msg) {
             //              "Failed to find the destination extension thread for
             //              " "the message ^m");
 
-            ten_shared_ptr_t *cmd_result =
-                ten_extension_group_create_cmd_result_for_invalid_dest(
-                    msg, &dest_loc->extension_group_name);
+            if (ten_msg_is_cmd(msg)) {
+              ten_shared_ptr_t *cmd_result =
+                  ten_extension_group_create_cmd_result_for_invalid_dest(
+                      msg, &dest_loc->extension_group_name);
 
-            ten_engine_dispatch_msg(self, cmd_result);
+              ten_engine_dispatch_msg(self, cmd_result);
 
-            ten_shared_ptr_destroy(cmd_result);
+              ten_shared_ptr_destroy(cmd_result);
+            } else {
+              // For a non-cmd message, it should be directly dropped without
+              // replying with `cmd_result`. This situation occurs when there
+              // are multiple `extension_thread`s within an `engine`. If
+              // `extension thread A` sends a non-cmd message to `extension
+              // thread B`, and the message first needs to be transmitted to the
+              // `engine`, by the time the `engine` processes this non-cmd
+              // message, `extension thread B` may have already terminated.
+            }
           }
         }
       }
@@ -468,8 +485,8 @@ void ten_engine_create_cmd_result_and_dispatch(ten_engine_t *self,
                                                ten_shared_ptr_t *origin_cmd,
                                                TEN_STATUS_CODE status_code,
                                                const char *detail) {
-  TEN_ASSERT(self && ten_engine_check_integrity(self, true),
-             "Invalid argument.");
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_engine_check_integrity(self, true), "Invalid argument.");
   TEN_ASSERT(origin_cmd && ten_msg_is_cmd(origin_cmd), "Invalid argument.");
 
   ten_shared_ptr_t *cmd_result =

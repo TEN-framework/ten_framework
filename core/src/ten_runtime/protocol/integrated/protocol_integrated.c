@@ -37,6 +37,10 @@
 #include "ten_utils/macro/check.h"
 #include "ten_utils/macro/mark.h"
 
+#if defined(_DEBUG)
+#include "ten_utils/lib/time.h"
+#endif
+
 static void ten_protocol_close_task(void *self_, TEN_UNUSED void *arg) {
   ten_protocol_t *self = (ten_protocol_t *)self_;
   TEN_ASSERT(self && ten_protocol_check_integrity(self, true),
@@ -50,8 +54,8 @@ static void ten_protocol_close_task(void *self_, TEN_UNUSED void *arg) {
 static void
 ten_protocol_on_inputs_based_on_migration_state(ten_protocol_t *self,
                                                 ten_list_t *msgs) {
-  TEN_ASSERT(self && ten_protocol_check_integrity(self, true),
-             "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_protocol_check_integrity(self, true), "Should not happen.");
   TEN_ASSERT(msgs, "Should not happen.");
   TEN_ASSERT(ten_protocol_attach_to(self) == TEN_PROTOCOL_ATTACH_TO_CONNECTION,
              "Should not happen.");
@@ -297,7 +301,8 @@ static void ten_app_thread_on_client_protocol_created(ten_env_t *ten_env,
   TEN_ASSERT(on_client_accepted, "Should not happen.");
 
   ten_app_t *app = ten_env_get_attached_app(ten_env);
-  TEN_ASSERT(app && ten_app_check_integrity(app, true), "Should not happen.");
+  TEN_ASSERT(app, "Should not happen.");
+  TEN_ASSERT(ten_app_check_integrity(app, true), "Should not happen.");
 
   ten_protocol_t *listening_base_protocol = app->endpoint_protocol;
   TEN_ASSERT(listening_base_protocol &&
@@ -349,7 +354,8 @@ static void ten_transport_on_client_accepted(ten_transport_t *transport,
              "Should not happen.");
 
   ten_app_t *app = listening_base_protocol->attached_target.app;
-  TEN_ASSERT(app && ten_app_check_integrity(app, true), "Should not happen.");
+  TEN_ASSERT(app, "Should not happen.");
+  TEN_ASSERT(ten_app_check_integrity(app, true), "Should not happen.");
 
   ten_error_t err;
   TEN_ERROR_INIT(err);
@@ -1006,8 +1012,8 @@ static void ten_protocol_integrated_migrate(ten_protocol_integrated_t *self,
 
 static void ten_protocol_integrated_on_base_protocol_cleaned(
     ten_protocol_t *self, TEN_UNUSED bool is_migration_state_reset) {
-  TEN_ASSERT(self && ten_protocol_check_integrity(self, true),
-             "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_protocol_check_integrity(self, true), "Should not happen.");
 
   // The integrated protocol determines the closing event based on the message
   // size read from the stream, and the stream will be frozen during the

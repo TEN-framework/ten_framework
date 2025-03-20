@@ -163,8 +163,8 @@ void ten_protocol_deinit(ten_protocol_t *self) {
 void ten_protocol_listen(
     ten_protocol_t *self, const char *uri,
     ten_protocol_on_client_accepted_func_t on_client_accepted) {
-  TEN_ASSERT(self && ten_protocol_check_integrity(self, true),
-             "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_protocol_check_integrity(self, true), "Should not happen.");
   TEN_ASSERT(ten_protocol_role_is_listening(self),
              "Only the listening protocol could listen.");
   TEN_ASSERT(self->listen && uri && on_client_accepted, "Should not happen.");
@@ -180,9 +180,10 @@ void ten_protocol_listen(
 }
 
 void ten_protocol_attach_to_app(ten_protocol_t *self, ten_app_t *app) {
-  TEN_ASSERT(self && ten_protocol_check_integrity(self, true),
-             "Should not happen.");
-  TEN_ASSERT(app && ten_app_check_integrity(app, true), "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_protocol_check_integrity(self, true), "Should not happen.");
+  TEN_ASSERT(app, "Should not happen.");
+  TEN_ASSERT(ten_app_check_integrity(app, true), "Should not happen.");
 
   self->attach_to = TEN_PROTOCOL_ATTACH_TO_APP;
   self->attached_target.app = app;
@@ -190,22 +191,23 @@ void ten_protocol_attach_to_app(ten_protocol_t *self, ten_app_t *app) {
 
 void ten_protocol_attach_to_app_and_thread(ten_protocol_t *self,
                                            ten_app_t *app) {
-  TEN_ASSERT(app && ten_app_check_integrity(app, true), "Should not happen.");
+  TEN_ASSERT(app, "Should not happen.");
+  TEN_ASSERT(ten_app_check_integrity(app, true), "Should not happen.");
   TEN_ASSERT(self, "Should not happen.");
 
   ten_sanitizer_thread_check_set_belonging_thread_to_current_thread(
       &self->thread_check);
 
-  TEN_ASSERT(self && ten_protocol_check_integrity(self, true),
-             "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_protocol_check_integrity(self, true), "Should not happen.");
 
   ten_protocol_attach_to_app(self, app);
 }
 
 void ten_protocol_attach_to_connection(ten_protocol_t *self,
                                        ten_connection_t *connection) {
-  TEN_ASSERT(self && ten_protocol_check_integrity(self, true),
-             "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_protocol_check_integrity(self, true), "Should not happen.");
   TEN_ASSERT(connection && ten_connection_check_integrity(connection, true),
              "Should not happen.");
 
@@ -229,8 +231,8 @@ ten_protocol_attach_to(ten_protocol_t *self) {
 }
 
 void ten_protocol_on_input(ten_protocol_t *self, ten_shared_ptr_t *msg) {
-  TEN_ASSERT(self && ten_protocol_check_integrity(self, true),
-             "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_protocol_check_integrity(self, true), "Should not happen.");
   TEN_ASSERT(msg, "Should not happen.");
 
   if (self->state == TEN_PROTOCOL_STATE_CLOSING) {
@@ -269,8 +271,8 @@ void ten_protocol_on_input(ten_protocol_t *self, ten_shared_ptr_t *msg) {
 }
 
 void ten_protocol_on_inputs(ten_protocol_t *self, ten_list_t *msgs) {
-  TEN_ASSERT(self && ten_protocol_check_integrity(self, true),
-             "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_protocol_check_integrity(self, true), "Should not happen.");
   TEN_ASSERT(msgs, "Should not happen.");
 
   if (self->state == TEN_PROTOCOL_STATE_CLOSING) {
@@ -296,8 +298,8 @@ void ten_protocol_on_inputs(ten_protocol_t *self, ten_list_t *msgs) {
 }
 
 void ten_protocol_send_msg(ten_protocol_t *self, ten_shared_ptr_t *msg) {
-  TEN_ASSERT(self && ten_protocol_check_integrity(self, true),
-             "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_protocol_check_integrity(self, true), "Should not happen.");
   TEN_ASSERT(msg, "Should not happen.");
 
   if (self->state == TEN_PROTOCOL_STATE_CLOSING) {
@@ -318,8 +320,8 @@ void ten_protocol_send_msg(ten_protocol_t *self, ten_shared_ptr_t *msg) {
 void ten_protocol_connect_to(
     ten_protocol_t *self, const char *uri,
     ten_protocol_on_server_connected_func_t on_server_connected) {
-  TEN_ASSERT(self && ten_protocol_check_integrity(self, true),
-             "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_protocol_check_integrity(self, true), "Should not happen.");
   TEN_ASSERT(ten_protocol_role_is_communication(self),
              "Only the communication protocol could connect to remote.");
   TEN_ASSERT(uri, "Should not happen.");
@@ -347,8 +349,8 @@ void ten_protocol_connect_to(
 void ten_protocol_migrate(ten_protocol_t *self, ten_engine_t *engine,
                           ten_connection_t *connection, ten_shared_ptr_t *cmd,
                           ten_protocol_on_migrated_func_t on_migrated) {
-  TEN_ASSERT(self && ten_protocol_check_integrity(self, true),
-             "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_protocol_check_integrity(self, true), "Should not happen.");
   // Call in the app thread.
   TEN_ASSERT(ten_app_check_integrity(engine->app, true), "Should not happen.");
 
@@ -361,8 +363,8 @@ void ten_protocol_migrate(ten_protocol_t *self, ten_engine_t *engine,
 void ten_protocol_clean(
     ten_protocol_t *self,
     ten_protocol_on_cleaned_for_internal_func_t on_cleaned_for_internal) {
-  TEN_ASSERT(self && ten_protocol_check_integrity(self, true),
-             "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_protocol_check_integrity(self, true), "Should not happen.");
   TEN_ASSERT(on_cleaned_for_internal, "Should not happen.");
   TEN_ASSERT(self->attached_target.connection &&
                  ten_connection_attach_to(self->attached_target.connection) ==

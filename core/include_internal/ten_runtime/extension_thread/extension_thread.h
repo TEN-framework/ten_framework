@@ -91,9 +91,6 @@ TEN_RUNTIME_PRIVATE_API void ten_extension_thread_attach_to_context_and_group(
 TEN_RUNTIME_PRIVATE_API void ten_extension_thread_destroy(
     ten_extension_thread_t *self);
 
-TEN_RUNTIME_PRIVATE_API void ten_extension_thread_remove_from_extension_context(
-    ten_extension_thread_t *self);
-
 TEN_RUNTIME_PRIVATE_API void ten_extension_thread_start(
     ten_extension_thread_t *self);
 

@@ -132,7 +132,7 @@ const char *ten_addon_host_get_base_dir(ten_addon_host_t *self) {
   return ten_string_get_raw_str(&self->base_dir);
 }
 
-static ten_addon_context_t *ten_addon_context_create(void) {
+ten_addon_context_t *ten_addon_context_create(void) {
   ten_addon_context_t *self = TEN_MALLOC(sizeof(ten_addon_context_t));
   TEN_ASSERT(self, "Failed to allocate memory.");
 
@@ -161,18 +161,13 @@ void ten_addon_context_destroy(ten_addon_context_t *self) {
  * later in the call flow when the 'ten' object at that time belongs to a more
  * specific scope, so that we can minimize the parameters count then.
  */
-void ten_addon_host_create_instance_async(
-    ten_addon_host_t *self, ten_env_t *ten_env, const char *name,
-    ten_env_addon_create_instance_done_cb_t cb, void *cb_data) {
-  TEN_ASSERT(self && ten_addon_host_check_integrity(self) && name,
-             "Should not happen.");
-  TEN_ASSERT(ten_env, "Should not happen.");
-  TEN_ASSERT(ten_env_check_integrity(ten_env, true), "Should not happen.");
-
-  ten_addon_context_t *addon_context = ten_addon_context_create();
-  addon_context->caller_ten_env = ten_env;
-  addon_context->create_instance_done_cb = cb;
-  addon_context->create_instance_done_cb_data = cb_data;
+void ten_addon_host_create_instance_async(ten_addon_host_t *self,
+                                          const char *name,
+                                          ten_addon_context_t *addon_context) {
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_addon_host_check_integrity(self), "Should not happen.");
+  TEN_ASSERT(name, "Should not happen.");
+  TEN_ASSERT(addon_context, "Should not happen.");
 
   if (self->addon->on_create_instance) {
     TEN_ASSERT(self->addon->on_create_instance, "Should not happen.");
@@ -202,19 +197,13 @@ void ten_addon_host_create_instance_async(
  * later in the call flow when the 'ten' object at that time belongs to a more
  * specific scope, so that we can minimize the parameters count then.
  */
-bool ten_addon_host_destroy_instance_async(
-    ten_addon_host_t *self, ten_env_t *ten_env, void *instance,
-    ten_env_addon_destroy_instance_done_cb_t cb, void *cb_data) {
-  TEN_ASSERT(self && ten_addon_host_check_integrity(self),
-             "Should not happen.");
-  TEN_ASSERT(ten_env, "Should not happen.");
-  TEN_ASSERT(ten_env_check_integrity(ten_env, true), "Should not happen.");
+bool ten_addon_host_destroy_instance_async(ten_addon_host_t *self,
+                                           void *instance,
+                                           ten_addon_context_t *addon_context) {
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_addon_host_check_integrity(self), "Should not happen.");
   TEN_ASSERT(instance, "Should not happen.");
-
-  ten_addon_context_t *addon_context = ten_addon_context_create();
-  addon_context->caller_ten_env = ten_env;
-  addon_context->destroy_instance_done_cb = cb;
-  addon_context->destroy_instance_done_cb_data = cb_data;
+  TEN_ASSERT(addon_context, "Should not happen.");
 
   if (self->addon->on_destroy_instance) {
     TEN_ASSERT(self->addon->on_destroy_instance, "Should not happen.");

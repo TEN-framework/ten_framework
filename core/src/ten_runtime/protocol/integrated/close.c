@@ -35,7 +35,8 @@ ten_protocol_integrated_could_be_close(ten_protocol_integrated_t *self) {
   TEN_ASSERT(self, "Should not happen.");
 
   ten_protocol_t *base_protocol = &self->base;
-  TEN_ASSERT(base_protocol && ten_protocol_check_integrity(base_protocol, true),
+  TEN_ASSERT(base_protocol, "Should not happen.");
+  TEN_ASSERT(ten_protocol_check_integrity(base_protocol, true),
              "Should not happen.");
   TEN_ASSERT(base_protocol->role != TEN_PROTOCOL_ROLE_INVALID,
              "Should not happen.");
@@ -112,8 +113,8 @@ void ten_protocol_integrated_on_stream_closed(ten_protocol_integrated_t *self) {
   TEN_ASSERT(self, "Should not happen.");
 
   ten_protocol_t *protocol = &self->base;
-  TEN_ASSERT(protocol && ten_protocol_check_integrity(protocol, true),
-             "Invalid argument.");
+  TEN_ASSERT(protocol, "Invalid argument.");
+  TEN_ASSERT(ten_protocol_check_integrity(protocol, true), "Invalid argument.");
   TEN_ASSERT(ten_protocol_role_is_communication(protocol),
              "Should not happen.");
 
@@ -130,8 +131,8 @@ void ten_protocol_integrated_on_transport_closed(
   TEN_ASSERT(self, "Should not happen.");
 
   ten_protocol_t *protocol = &self->base;
-  TEN_ASSERT(protocol && ten_protocol_check_integrity(protocol, true),
-             "Invalid argument.");
+  TEN_ASSERT(protocol, "Invalid argument.");
+  TEN_ASSERT(ten_protocol_check_integrity(protocol, true), "Invalid argument.");
   TEN_ASSERT(protocol->role == TEN_PROTOCOL_ROLE_LISTEN, "Should not happen.");
 
   // Remember that this resource is closed.

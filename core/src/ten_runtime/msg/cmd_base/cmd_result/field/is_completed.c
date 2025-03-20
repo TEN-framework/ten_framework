@@ -29,7 +29,8 @@ void ten_cmd_result_copy_is_completed(
 bool ten_cmd_result_process_is_completed(
     ten_msg_t *self, ten_raw_msg_process_one_field_func_t cb, void *user_data,
     ten_error_t *err) {
-  TEN_ASSERT(self && ten_raw_msg_check_integrity(self), "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_raw_msg_check_integrity(self), "Should not happen.");
 
   ten_msg_field_process_data_t is_completed_field;
   ten_msg_field_process_data_init(&is_completed_field, TEN_STR_IS_FINAL,

@@ -15,8 +15,8 @@
 
 bool ten_extension_group_set_property(ten_extension_group_t *extension_group,
                                       const char *name, ten_value_t *value) {
-  TEN_ASSERT(extension_group &&
-                 ten_extension_group_check_integrity(extension_group, true),
+  TEN_ASSERT(extension_group, "Invalid argument.");
+  TEN_ASSERT(ten_extension_group_check_integrity(extension_group, true),
              "Invalid argument.");
 
   return ten_value_object_move(&extension_group->property, name, value);
@@ -49,7 +49,8 @@ set_property_context_destroy(ten_extension_group_set_property_context_t *self) {
 
 static void ten_extension_group_set_property_task(void *self_, void *arg) {
   ten_extension_group_t *self = self_;
-  TEN_ASSERT(self && ten_extension_group_check_integrity(self, true),
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_extension_group_check_integrity(self, true),
              "Should not happen.");
 
   ten_extension_group_set_property_context_t *set_property_context = arg;
@@ -91,8 +92,8 @@ void ten_extension_group_set_property_async(
 ten_value_t *
 ten_extension_group_peek_property(ten_extension_group_t *extension_group,
                                   const char *name) {
-  TEN_ASSERT(extension_group &&
-                 ten_extension_group_check_integrity(extension_group, true),
+  TEN_ASSERT(extension_group, "Invalid argument.");
+  TEN_ASSERT(ten_extension_group_check_integrity(extension_group, true),
              "Invalid argument.");
 
   ten_value_t *item = ten_value_object_peek(&extension_group->property, name);
@@ -130,7 +131,8 @@ static void ten_extension_group_peek_property_context_destroy(
 
 static void ten_extension_group_peek_property_task(void *self_, void *arg) {
   ten_extension_group_t *self = (ten_extension_group_t *)self_;
-  TEN_ASSERT(self && ten_extension_group_check_integrity(self, true),
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_extension_group_check_integrity(self, true),
              "Should not happen.");
 
   ten_extension_group_peek_property_context_t *context =
@@ -217,7 +219,8 @@ static void ten_extension_group_peek_manifest_context_destroy(
 
 static void ten_extension_group_peek_manifest_task(void *self_, void *arg) {
   ten_extension_group_t *self = (ten_extension_group_t *)self_;
-  TEN_ASSERT(self && ten_extension_group_check_integrity(self, true),
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_extension_group_check_integrity(self, true),
              "Should not happen.");
 
   ten_extension_group_peek_manifest_context_t *context =

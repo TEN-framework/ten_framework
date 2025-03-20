@@ -117,16 +117,29 @@ bool ten_addon_create_extension(ten_env_t *ten_env, const char *addon_name,
 
   ten_extension_group_t *extension_group =
       ten_env_get_attached_extension_group(ten_env);
-  TEN_ASSERT(extension_group &&
-                 ten_extension_group_check_integrity(extension_group, true),
+  TEN_ASSERT(extension_group, "Should not happen.");
+  TEN_ASSERT(ten_extension_group_check_integrity(extension_group, true),
              "Should not happen.");
 
   // Check whether current thread is extension thread. If not, we should switch
   // to extension thread.
   if (ten_extension_thread_call_by_me(extension_group->extension_thread)) {
-    return ten_addon_create_instance_async(ten_env, TEN_ADDON_TYPE_EXTENSION,
-                                           addon_name, instance_name, cb,
-                                           cb_data);
+    ten_addon_context_t *addon_context = ten_addon_context_create();
+    addon_context->flow =
+        TEN_ADDON_CONTEXT_FLOW_EXTENSION_THREAD_CREATE_EXTENSION;
+    addon_context->flow_target.extension_thread =
+        extension_group->extension_thread;
+    addon_context->create_instance_done_cb = cb;
+    addon_context->create_instance_done_cb_data = cb_data;
+
+    bool rc = ten_addon_create_instance_async(ten_env, TEN_ADDON_TYPE_EXTENSION,
+                                              addon_name, instance_name,
+                                              addon_context);
+    if (!rc) {
+      ten_addon_context_destroy(addon_context);
+    }
+
+    return rc;
   } else {
     ten_addon_on_create_extension_instance_ctx_t *ctx =
         ten_addon_on_create_extension_instance_ctx_create(
@@ -163,13 +176,21 @@ bool ten_addon_destroy_extension(ten_env_t *ten_env, ten_extension_t *extension,
 
   ten_extension_group_t *extension_group =
       ten_env_get_attached_extension_group(ten_env);
-  TEN_ASSERT(extension_group &&
-                 ten_extension_group_check_integrity(extension_group, true),
+  TEN_ASSERT(extension_group, "Should not happen.");
+  TEN_ASSERT(ten_extension_group_check_integrity(extension_group, true),
              "Should not happen.");
 
   if (ten_extension_thread_call_by_me(extension_group->extension_thread)) {
-    return ten_addon_host_destroy_instance_async(addon_host, ten_env, extension,
-                                                 cb, cb_data);
+    ten_addon_context_t *addon_context = ten_addon_context_create();
+    addon_context->flow =
+        TEN_ADDON_CONTEXT_FLOW_EXTENSION_THREAD_DESTROY_EXTENSION;
+    addon_context->flow_target.extension_thread =
+        extension_group->extension_thread;
+    addon_context->destroy_instance_done_cb = cb;
+    addon_context->destroy_instance_done_cb_data = cb_data;
+
+    return ten_addon_host_destroy_instance_async(addon_host, extension,
+                                                 addon_context);
   } else {
     ten_addon_host_on_destroy_instance_ctx_t *destroy_instance_info =
         ten_addon_host_on_destroy_instance_ctx_create(addon_host, extension, cb,

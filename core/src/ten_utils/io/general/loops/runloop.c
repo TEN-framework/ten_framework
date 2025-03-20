@@ -324,11 +324,11 @@ ten_runloop_t *ten_runloop_create(const char *type) {
 }
 
 void ten_runloop_destroy(ten_runloop_t *loop) {
-  TEN_ASSERT(loop &&
-                 // TEN_NOLINTNEXTLINE(thread-check)
-                 // thread-check: destroying might be occurred in any threads.
-                 ten_runloop_check_integrity(loop, false),
-             "Invalid argument.");
+  TEN_ASSERT(loop, "Invalid argument.");
+  TEN_ASSERT(
+      // TEN_NOLINTNEXTLINE(thread-check)
+      // thread-check: destroying might be occurred in any threads.
+      ten_runloop_check_integrity(loop, false), "Invalid argument.");
 
   ten_runloop_common_t *impl = (ten_runloop_common_t *)loop;
   if (!loop) {

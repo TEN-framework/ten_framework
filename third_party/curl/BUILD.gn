@@ -64,6 +64,7 @@ cmake_project("curl") {
     "CURL_DISABLE_LDAPS=ON",
     "CURL_USE_LIBSSH2=OFF",
     "CURL_USE_LIBPSL=OFF",
+    "USE_LIBIDN2=OFF",
     "ENABLE_WEBSOCKETS=ON",
     "ENABLE_IPV6=OFF",
   ]

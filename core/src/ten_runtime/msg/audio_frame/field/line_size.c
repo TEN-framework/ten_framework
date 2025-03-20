@@ -28,7 +28,8 @@ void ten_audio_frame_copy_line_size(ten_msg_t *self, ten_msg_t *src,
 bool ten_audio_frame_process_line_size(ten_msg_t *self,
                                        ten_raw_msg_process_one_field_func_t cb,
                                        void *user_data, ten_error_t *err) {
-  TEN_ASSERT(self && ten_raw_msg_check_integrity(self), "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_raw_msg_check_integrity(self), "Should not happen.");
 
   ten_msg_field_process_data_t line_size_field;
   ten_msg_field_process_data_init(&line_size_field, TEN_STR_LINE_SIZE,

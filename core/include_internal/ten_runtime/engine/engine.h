@@ -39,6 +39,9 @@ struct ten_engine_t {
   ten_ref_t ref;
   bool is_closing;
 
+  // Whether the engine has an uncompleted async task.
+  bool has_uncompleted_async_task;
+
   ten_engine_on_closed_func_t on_closed;
   void *on_closed_data;
 

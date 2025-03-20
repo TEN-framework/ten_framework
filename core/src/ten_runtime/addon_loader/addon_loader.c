@@ -137,8 +137,8 @@ void ten_addon_loader_load_addon(ten_addon_loader_t *self,
 static void create_addon_loader_done(ten_env_t *ten_env,
                                      ten_addon_loader_t *addon_loader,
                                      void *cb_data) {
-  TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
-             "Invalid argument.");
+  TEN_ASSERT(ten_env, "Invalid argument.");
+  TEN_ASSERT(ten_env_check_integrity(ten_env, true), "Invalid argument.");
   TEN_ASSERT(addon_loader && ten_addon_loader_check_integrity(addon_loader),
              "Invalid argument.");
   TEN_ASSERT(ten_env_get_attach_to(ten_env) == TEN_ENV_ATTACH_TO_APP,

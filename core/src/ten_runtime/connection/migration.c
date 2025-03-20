@@ -17,8 +17,8 @@
 
 void ten_connection_migrate(ten_connection_t *self, ten_engine_t *engine,
                             ten_shared_ptr_t *cmd) {
-  TEN_ASSERT(self && ten_connection_check_integrity(self, true),
-             "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_connection_check_integrity(self, true), "Should not happen.");
   // Call in the app thread.
   TEN_ASSERT(ten_app_check_integrity(engine->app, true), "Should not happen.");
   TEN_ASSERT(self->protocol, "Should not happen.");
@@ -42,8 +42,8 @@ bool ten_connection_needs_to_migrate(ten_connection_t *self,
   // thread-check: This function is always called in the app thread, and the
   // engine may have its own thread, so we do not check thread safety here. As
   // the 'ten_engine_t::has_own_loop' is immutable, there is no access issues.
-  TEN_ASSERT(engine && ten_engine_check_integrity(engine, false),
-             "Invalid argument.");
+  TEN_ASSERT(engine, "Invalid argument.");
+  TEN_ASSERT(ten_engine_check_integrity(engine, false), "Invalid argument.");
 
   if (engine->has_own_loop) {
     return self->migration_state == TEN_CONNECTION_MIGRATION_STATE_FIRST_MSG;
@@ -79,8 +79,9 @@ static void ten_protocol_on_cleaned_task(void *self_, void *arg) {
   ten_ref_dec_ref(&self->ref);
 }
 
-static void ten_connection_on_migration_is_done_or_reset(
-    ten_connection_t *self, bool is_migration_state_reset) {
+static void
+ten_connection_on_migration_is_done_or_reset(ten_connection_t *self,
+                                             bool is_migration_state_reset) {
   TEN_ASSERT(self && ten_connection_check_integrity(self, true),
              "Access across threads.");
 
@@ -166,8 +167,8 @@ void ten_connection_migration_state_reset_when_engine_not_found(
   ten_connection_on_migration_is_done_or_reset(self, true);
 }
 
-TEN_CONNECTION_MIGRATION_STATE ten_connection_get_migration_state(
-    ten_connection_t *self) {
+TEN_CONNECTION_MIGRATION_STATE
+ten_connection_get_migration_state(ten_connection_t *self) {
   TEN_ASSERT(self && ten_connection_check_integrity(self, true),
              "Access across threads.");
 

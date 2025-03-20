@@ -16,25 +16,25 @@
 
 const char *ten_video_frame_pixel_fmt_to_string(const TEN_PIXEL_FMT pixel_fmt) {
   switch (pixel_fmt) {
-    case TEN_PIXEL_FMT_RGB24:
-      return "rgb24";
-    case TEN_PIXEL_FMT_RGBA:
-      return "rgba";
-    case TEN_PIXEL_FMT_BGR24:
-      return "bgr24";
-    case TEN_PIXEL_FMT_BGRA:
-      return "bgra";
-    case TEN_PIXEL_FMT_I420:
-      return "i420";
-    case TEN_PIXEL_FMT_I422:
-      return "i422";
-    case TEN_PIXEL_FMT_NV21:
-      return "nv21";
-    case TEN_PIXEL_FMT_NV12:
-      return "nv12";
-    default:
-      TEN_ASSERT(0, "Should not happen.");
-      return NULL;
+  case TEN_PIXEL_FMT_RGB24:
+    return "rgb24";
+  case TEN_PIXEL_FMT_RGBA:
+    return "rgba";
+  case TEN_PIXEL_FMT_BGR24:
+    return "bgr24";
+  case TEN_PIXEL_FMT_BGRA:
+    return "bgra";
+  case TEN_PIXEL_FMT_I420:
+    return "i420";
+  case TEN_PIXEL_FMT_I422:
+    return "i422";
+  case TEN_PIXEL_FMT_NV21:
+    return "nv21";
+  case TEN_PIXEL_FMT_NV12:
+    return "nv12";
+  default:
+    TEN_ASSERT(0, "Should not happen.");
+    return NULL;
   }
 }
 
@@ -75,7 +75,8 @@ void ten_video_frame_copy_pixel_fmt(ten_msg_t *self, ten_msg_t *src,
 bool ten_video_frame_process_pixel_fmt(ten_msg_t *self,
                                        ten_raw_msg_process_one_field_func_t cb,
                                        void *user_data, ten_error_t *err) {
-  TEN_ASSERT(self && ten_raw_msg_check_integrity(self), "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_raw_msg_check_integrity(self), "Should not happen.");
 
   ten_msg_field_process_data_t pixel_fmt_field;
   ten_msg_field_process_data_init(&pixel_fmt_field, TEN_STR_PIXEL_FMT,

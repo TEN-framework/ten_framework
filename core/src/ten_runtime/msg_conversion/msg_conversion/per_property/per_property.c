@@ -21,7 +21,8 @@ ten_msg_conversion_per_property_convert(ten_msg_conversion_t *msg_conversion,
                                         ten_shared_ptr_t *msg,
                                         ten_error_t *err) {
   TEN_ASSERT(msg_conversion, "Should not happen.");
-  TEN_ASSERT(msg && ten_msg_check_integrity(msg), "Invalid argument.");
+  TEN_ASSERT(msg, "Invalid argument.");
+  TEN_ASSERT(ten_msg_check_integrity(msg), "Invalid argument.");
 
   ten_msg_conversion_per_property_t *per_property_msg_conversion =
       (ten_msg_conversion_per_property_t *)msg_conversion;
