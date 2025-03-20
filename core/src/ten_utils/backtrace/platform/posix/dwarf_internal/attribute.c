@@ -18,10 +18,10 @@
 // *IS_VALID to 1.  We don't try to store the value of other attribute
 // forms, because we don't care about them.
 int read_attribute(ten_backtrace_t *self, enum dwarf_form form,
-                   uint64_t implicit_val, struct dwarf_buf *buf, int is_dwarf64,
+                   uint64_t implicit_val, dwarf_buf *buf, int is_dwarf64,
                    int version, int addrsize,
-                   const struct dwarf_sections *dwarf_sections,
-                   struct dwarf_data *altlink, struct attr_val *val) {
+                   const dwarf_sections *dwarf_sections, dwarf_data *altlink,
+                   struct attr_val *val) {
   // Avoid warnings about val.u.FIELD may be used uninitialized if
   // this function is inlined.  The warnings aren't valid but can
   // occur because the different fields are set and used

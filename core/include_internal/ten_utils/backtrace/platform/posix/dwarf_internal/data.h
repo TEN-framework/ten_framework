@@ -12,9 +12,14 @@
 
 #include "include_internal/ten_utils/backtrace/platform/posix/dwarf_internal/function.h"
 #include "include_internal/ten_utils/backtrace/platform/posix/dwarf_internal/section.h"
-#include "include_internal/ten_utils/backtrace/platform/posix/dwarf_internal/unit.h"
 
 typedef struct dwarf_data dwarf_data;
+typedef struct unit_addrs unit_addrs;
+typedef struct unit unit;
+typedef struct unit_addrs_vector unit_addrs_vector;
+typedef struct unit_vector unit_vector;
+typedef struct function_vector function_vector;
+typedef struct dwarf_sections dwarf_sections;
 
 /**
  * @brief Main structure for DWARF debug information used to map program
