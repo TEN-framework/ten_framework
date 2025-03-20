@@ -59,7 +59,11 @@ void ten_log_deinit(ten_log_t *self) {
   ten_log_deinit_encryption(self);
 
   if (self->output.close_cb) {
-    self->output.close_cb(self->output.user_data);
+    self->output.close_cb(self);
+  }
+
+  if (self->output.deinit_cb) {
+    self->output.deinit_cb(self);
   }
 }
 
@@ -95,7 +99,7 @@ void ten_log_reload(ten_log_t *self) {
   TEN_ASSERT(self && ten_log_check_integrity(self), "Invalid argument.");
 
   if (self->output.reload_cb) {
-    self->output.reload_cb(self->output.user_data);
+    self->output.reload_cb(self);
   }
 }
 
@@ -217,7 +221,7 @@ void ten_log_log_with_size(ten_log_t *self, TEN_LOG_LEVEL level,
     ten_log_complete_encryption_header(self, &buf);
   }
 
-  self->output.output_cb(self, &buf, self->output.user_data);
+  self->output.output_cb(self, &buf);
 
   ten_string_deinit(&buf);
 }

@@ -36,18 +36,10 @@ TEN_UTILS_PRIVATE_API void ten_log_output_to_file_ctx_destroy(
 TEN_UTILS_API void ten_log_set_output_to_stderr(ten_log_t *self);
 
 TEN_UTILS_PRIVATE_API void ten_log_output_to_file_cb(ten_log_t *self,
-                                                     ten_string_t *msg,
-                                                     void *user_data);
+                                                     ten_string_t *msg);
 
 TEN_UTILS_PRIVATE_API void ten_log_output_to_stderr_cb(ten_log_t *self,
-                                                       ten_string_t *msg,
-                                                       void *user_data);
-
-TEN_UTILS_PRIVATE_API void ten_log_output_to_file_reload_cb(void *user_data);
+                                                       ten_string_t *msg);
 
 TEN_UTILS_PRIVATE_API void ten_log_set_output_to_file(ten_log_t *self,
                                                       const char *log_path);
-
-TEN_UTILS_PRIVATE_API void ten_log_output_to_file_deinit(ten_log_t *self);
-
-TEN_UTILS_PRIVATE_API bool ten_log_is_output_to_file(ten_log_t *self);

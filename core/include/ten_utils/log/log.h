@@ -100,11 +100,10 @@ typedef enum TEN_LOG_LEVEL {
 typedef struct ten_string_t ten_string_t;
 typedef struct ten_log_t ten_log_t;
 
-typedef void (*ten_log_output_func_t)(ten_log_t *self, ten_string_t *msg,
-                                      void *user_data);
-typedef void (*ten_log_close_func_t)(void *user_data);
-typedef void (*ten_log_reload_func_t)(void *user_data);
-
+typedef void (*ten_log_output_func_t)(ten_log_t *self, ten_string_t *msg);
+typedef void (*ten_log_close_func_t)(ten_log_t *self);
+typedef void (*ten_log_reload_func_t)(ten_log_t *self);
+typedef void (*ten_log_output_deinit_func_t)(ten_log_t *self);
 typedef void (*ten_log_formatter_func_t)(ten_string_t *buf, TEN_LOG_LEVEL level,
                                          const char *func_name,
                                          size_t func_name_len,
@@ -119,6 +118,7 @@ typedef struct ten_log_output_t {
   ten_log_output_func_t output_cb;
   ten_log_close_func_t close_cb;
   ten_log_reload_func_t reload_cb;
+  ten_log_output_deinit_func_t deinit_cb;
   void *user_data;
 } ten_log_output_t;
 

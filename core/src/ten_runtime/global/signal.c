@@ -75,6 +75,7 @@ static void ten_global_signal_handler(int signo, TEN_UNUSED siginfo_t *info,
   }
 
   if (signo == SIGHUP) {
+    // 由于global log在unload
     ten_log_global_reload();
   }
 }
