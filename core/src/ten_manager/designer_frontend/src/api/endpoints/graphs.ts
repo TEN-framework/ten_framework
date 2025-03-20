@@ -12,10 +12,13 @@ import type { IBackendNode, IBackendConnection, IGraph } from "@/types/graphs";
 
 export const ENDPOINT_GRAPHS = {
   nodes: {
-    [ENDPOINT_METHOD.GET]: {
-      url: `${API_DESIGNER_V1}/graphs/:graphName/nodes`,
-      method: ENDPOINT_METHOD.GET,
-      pathParams: ["graphName"],
+    [ENDPOINT_METHOD.POST]: {
+      url: `${API_DESIGNER_V1}/graphs/nodes`,
+      method: ENDPOINT_METHOD.POST,
+      requestSchema: z.object({
+        base_dir: z.string().optional(),
+        graph_name: z.string(),
+      }),
       responseSchema: genResSchema<IBackendNode[]>(
         z.array(
           z.object({
@@ -32,10 +35,13 @@ export const ENDPOINT_GRAPHS = {
     },
   },
   connections: {
-    [ENDPOINT_METHOD.GET]: {
-      url: `${API_DESIGNER_V1}/graphs/:graphName/connections`,
-      method: ENDPOINT_METHOD.GET,
-      pathParams: ["graphName"],
+    [ENDPOINT_METHOD.POST]: {
+      url: `${API_DESIGNER_V1}/graphs/connections`,
+      method: ENDPOINT_METHOD.POST,
+      requestSchema: z.object({
+        base_dir: z.string().optional(),
+        graph_name: z.string(),
+      }),
       responseSchema: genResSchema<IBackendConnection[]>(
         z.array(
           z.object({
@@ -99,9 +105,12 @@ export const ENDPOINT_GRAPHS = {
     },
   },
   graphs: {
-    [ENDPOINT_METHOD.GET]: {
+    [ENDPOINT_METHOD.POST]: {
       url: `${API_DESIGNER_V1}/graphs`,
-      method: ENDPOINT_METHOD.GET,
+      method: ENDPOINT_METHOD.POST,
+      requestSchema: z.object({
+        base_dir: z.string().optional(),
+      }),
       responseSchema: genResSchema<IGraph[]>(
         z.array(
           z.object({

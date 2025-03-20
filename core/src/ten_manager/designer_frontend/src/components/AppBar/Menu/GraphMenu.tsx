@@ -57,7 +57,7 @@ export function GraphMenu(props: { onAutoLayout: () => void }) {
   return (
     <NavigationMenuItem>
       <NavigationMenuTrigger className="submenu-trigger">
-        {t("header.menu.graph")}
+        {t("header.menuGraph.title")}
       </NavigationMenuTrigger>
       <NavigationMenuContent
         className={cn("flex flex-col items-center px-1 py-1.5 gap-1.5")}
@@ -69,7 +69,7 @@ export function GraphMenu(props: { onAutoLayout: () => void }) {
             onClick={onOpenExistingGraph}
           >
             <FolderOpenIcon />
-            {t("header.menu.openExistingGraph")}
+            {t("header.menuGraph.openExistingGraph")}
           </Button>
         </NavigationMenuLink>
         <NavigationMenuLink asChild>
@@ -79,7 +79,7 @@ export function GraphMenu(props: { onAutoLayout: () => void }) {
             onClick={onOpenExtensionStore}
           >
             <BlocksIcon />
-            {t("header.menu.openExtensionStore")}
+            {t("header.menuGraph.openExtensionStore")}
           </Button>
         </NavigationMenuLink>
         <NavigationMenuLink asChild>
@@ -89,7 +89,7 @@ export function GraphMenu(props: { onAutoLayout: () => void }) {
             onClick={onAutoLayout}
           >
             <MoveIcon />
-            {t("header.menu.autoLayout")}
+            {t("header.menuGraph.autoLayout")}
           </Button>
         </NavigationMenuLink>
       </NavigationMenuContent>
