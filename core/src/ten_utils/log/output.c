@@ -109,6 +109,10 @@ static void ten_log_output_set(ten_log_t *self,
                                void *user_data) {
   TEN_ASSERT(self, "Invalid argument.");
 
+  if (self->output.close_cb) {
+    self->output.close_cb(self);
+  }
+
   if (self->output.deinit_cb) {
     self->output.deinit_cb(self);
   }
