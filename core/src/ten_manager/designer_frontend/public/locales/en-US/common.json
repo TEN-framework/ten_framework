@@ -74,7 +74,8 @@
     "unsaved": "unsaved",
     "launchLogViewer": "View Logs",
     "stop": "Stop",
-    "search": "Search"
+    "search": "Search",
+    "current": "Current"
   },
   "toast": {
     "saveFileSuccess": "File saved successfully",
@@ -165,6 +166,11 @@
   },
   "statusBar": {
     "appsLoadedWithCount": "{{count}} app(s) loaded",
-    "appsError": "Failed to get apps"
+    "appsError": "Failed to get apps",
+    "workspace": {
+      "title": "Currently Working in",
+      "baseDir": "Base Dir",
+      "graphName": "Graph Name"
+    }
   }
 }

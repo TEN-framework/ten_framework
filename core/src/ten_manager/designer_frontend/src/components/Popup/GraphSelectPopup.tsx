@@ -33,7 +33,7 @@ import {
   useGraphs,
 } from "@/api/services/graphs";
 import { useApps } from "@/api/services/apps";
-import { useWidgetStore, useFlowStore } from "@/store";
+import { useWidgetStore, useFlowStore, useAppStore } from "@/store";
 import { GRAPH_SELECT_POPUP_ID } from "@/constants/widgets";
 
 import type { CustomNodeType } from "@/flow/CustomNode";
@@ -47,15 +47,20 @@ export function GraphSelectPopup() {
   } = useApps();
   const { removeWidget } = useWidgetStore();
   const { setNodesAndEdges } = useFlowStore();
+  const { currentWorkspace, updateCurrentWorkspace } = useAppStore();
 
   const [selectedApp, setSelectedApp] = React.useState<string | null>(
-    loadedApps?.base_dirs?.[0] ?? null
+    currentWorkspace.baseDir ?? loadedApps?.base_dirs?.[0] ?? null
   );
 
   const { graphs = [], error, isLoading } = useGraphs(selectedApp);
 
   const handleSelectGraph =
     (graphName: string, baseDir: string | null) => async () => {
+      updateCurrentWorkspace({
+        baseDir,
+        graphName,
+      });
       try {
         const backendNodes = await retrieveGraphNodes(graphName, baseDir);
         const backendConnections = await retrieveGraphConnections(
@@ -180,6 +185,10 @@ export function GraphSelectPopup() {
                   <span className="text-sm">{graph.name}</span>
                   {graph.auto_start ? (
                     <span className="text-xs">({t("action.autoStart")})</span>
+                  ) : null}
+                  {selectedApp === currentWorkspace.baseDir &&
+                  graph.name === currentWorkspace.graphName ? (
+                    <span className="text-xs">({t("action.current")})</span>
                   ) : null}
                 </li>
               </Button>

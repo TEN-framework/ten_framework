@@ -5,11 +5,17 @@
 // Refer to the "LICENSE" file in the root directory for more information.
 //
 import * as React from "react";
-import { FolderTreeIcon } from "lucide-react";
+import { FolderTreeIcon, FolderOpenIcon, ChevronRightIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/Button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/Tooltip";
 import { cn } from "@/lib/utils";
 import { useApps } from "@/api/services/apps";
 import {
@@ -17,8 +23,11 @@ import {
   EDefaultWidgetType,
   EWidgetCategory,
 } from "@/types/widgets";
-import { APPS_MANAGER_POPUP_ID } from "@/constants/widgets";
-import { useWidgetStore } from "@/store";
+import {
+  APPS_MANAGER_POPUP_ID,
+  GRAPH_SELECT_POPUP_ID,
+} from "@/constants/widgets";
+import { useWidgetStore, useAppStore } from "@/store";
 
 export default function StatusBar(props: { className?: string }) {
   const { className } = props;
@@ -35,8 +44,9 @@ export default function StatusBar(props: { className?: string }) {
         className
       )}
     >
-      <div className="flex w-full h-full">
+      <div className="flex w-full h-full gap-2">
         <StatusApps />
+        <StatusWorkspace />
       </div>
     </footer>
   );
@@ -82,5 +92,72 @@ const StatusApps = () => {
         })}
       </span>
     </Button>
+  );
+};
+
+const StatusWorkspace = () => {
+  const { t } = useTranslation();
+  const { currentWorkspace } = useAppStore();
+  const { appendWidgetIfNotExists } = useWidgetStore();
+
+  const [baseDirAbbrMemo, baseDirMemo] = React.useMemo(() => {
+    if (!currentWorkspace.baseDir) {
+      return [null, null];
+    }
+    const lastFolderName = currentWorkspace.baseDir.split("/").pop();
+    return [`...${lastFolderName}`, currentWorkspace.baseDir];
+  }, [currentWorkspace.baseDir]);
+
+  const graphNameMemo = React.useMemo(() => {
+    if (!currentWorkspace.graphName) {
+      return null;
+    }
+    return currentWorkspace.graphName;
+  }, [currentWorkspace.graphName]);
+
+  const onOpenExistingGraph = () => {
+    appendWidgetIfNotExists({
+      id: GRAPH_SELECT_POPUP_ID,
+      category: EWidgetCategory.Default,
+      display_type: EWidgetDisplayType.Popup,
+      metadata: {
+        type: EDefaultWidgetType.GraphSelect,
+      },
+    });
+  };
+
+  if (!baseDirMemo) {
+    return null;
+  }
+
+  return (
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            variant="ghost"
+            size="status"
+            className=""
+            onClick={onOpenExistingGraph}
+          >
+            <FolderOpenIcon className="size-3" />
+            <span className="">{baseDirAbbrMemo}</span>
+            <ChevronRightIcon className="size-3" />
+            <span className="">{graphNameMemo}</span>
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent className="flex flex-col gap-1">
+          <p className="text-sm">{t("statusBar.workspace.title")}</p>
+          <p className="flex gap-1 justify-between">
+            <span className="min-w-24">{t("statusBar.workspace.baseDir")}</span>
+            <span className="">{baseDirMemo}</span>
+          </p>
+          <p className="flex gap-1 justify-between">
+            <span className="">{t("statusBar.workspace.graphName")}</span>
+            <span className="">{graphNameMemo}</span>
+          </p>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   );
 };
