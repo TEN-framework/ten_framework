@@ -27,7 +27,14 @@ import {
   APP_FOLDER_POPUP_ID,
   APPS_MANAGER_POPUP_ID,
 } from "@/constants/widgets";
+import { TEN_DEFAULT_BACKEND_WS_ENDPOINT } from "@/constants";
 import { AppsManagerWidget } from "@/components/Widget/AppsWidget";
+import { TEN_PATH_WS_EXEC } from "@/constants";
+import {
+  ELogViewerScriptType,
+  EWidgetDisplayType,
+  EWidgetCategory,
+} from "@/types/widgets";
 
 export const AppFolderPopup = () => {
   const [isSaving, setIsSaving] = React.useState<boolean>(false);
@@ -170,7 +177,7 @@ export const AppRunPopup = (props: {
 
   const { t } = useTranslation();
 
-  const { removeWidget } = useWidgetStore();
+  const { removeWidget, appendWidgetIfNotExists } = useWidgetStore();
   const { runScript, setRunScript } = useAppStore();
 
   const [inputRunScript, setInputRunScript] = React.useState<string>(runScript);
@@ -178,6 +185,25 @@ export const AppRunPopup = (props: {
   const handleRun = () => {
     setRunScript(inputRunScript || runScript);
     removeWidget(id);
+
+    appendWidgetIfNotExists({
+      id: "app-start-" + Date.now(),
+      category: EWidgetCategory.LogViewer,
+      display_type: EWidgetDisplayType.Popup,
+
+      metadata: {
+        wsUrl: TEN_DEFAULT_BACKEND_WS_ENDPOINT + TEN_PATH_WS_EXEC,
+        scriptType: ELogViewerScriptType.RUN_SCRIPT,
+        script: {
+          type: ELogViewerScriptType.RUN_SCRIPT,
+          base_dir: baseDir,
+          name: inputRunScript,
+        },
+        onStop: () => {
+          console.log("app-start-widget-closed", baseDir, inputRunScript);
+        },
+      },
+    });
   };
 
   if (!baseDir) {
