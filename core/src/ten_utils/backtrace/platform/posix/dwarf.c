@@ -24,8 +24,8 @@
 #include "ten_utils/lib/atomic_ptr.h"
 
 // Report an error for a DWARF buffer.
-static void dwarf_buf_error(ten_backtrace_t *self, struct dwarf_buf *buf,
-                            const char *msg, int errnum) {
+void dwarf_buf_error(ten_backtrace_t *self, struct dwarf_buf *buf,
+                     const char *msg, int errnum) {
   char b[200];
 
   int written = snprintf(b, sizeof b, "%s in %s at %d", msg, buf->name,
@@ -52,7 +52,7 @@ static int require(ten_backtrace_t *self, struct dwarf_buf *buf, size_t count) {
 
 /* Advance COUNT bytes in BUF.  Return 1 if all is well, 0 on
    error.  */
-static int advance(ten_backtrace_t *self, struct dwarf_buf *buf, size_t count) {
+int advance(ten_backtrace_t *self, struct dwarf_buf *buf, size_t count) {
   if (!require(self, buf, count)) {
     return 0;
   }
@@ -62,7 +62,7 @@ static int advance(ten_backtrace_t *self, struct dwarf_buf *buf, size_t count) {
 }
 
 /* Read one zero-terminated string from BUF and advance past the string.  */
-static const char *read_string(ten_backtrace_t *self, struct dwarf_buf *buf) {
+const char *read_string(ten_backtrace_t *self, struct dwarf_buf *buf) {
   const char *p = (const char *)buf->buf;
   size_t len = strnlen(p, buf->left);
 
@@ -79,7 +79,7 @@ static const char *read_string(ten_backtrace_t *self, struct dwarf_buf *buf) {
 }
 
 /* Read one byte from BUF and advance 1 byte.  */
-static unsigned char read_byte(ten_backtrace_t *self, struct dwarf_buf *buf) {
+unsigned char read_byte(ten_backtrace_t *self, struct dwarf_buf *buf) {
   const unsigned char *p = buf->buf;
 
   if (!advance(self, buf, 1)) {
@@ -89,7 +89,7 @@ static unsigned char read_byte(ten_backtrace_t *self, struct dwarf_buf *buf) {
 }
 
 /* Read a signed char from BUF and advance 1 byte.  */
-static signed char read_sbyte(ten_backtrace_t *self, struct dwarf_buf *buf) {
+signed char read_sbyte(ten_backtrace_t *self, struct dwarf_buf *buf) {
   const unsigned char *p = buf->buf;
 
   if (!advance(self, buf, 1)) {
@@ -99,7 +99,7 @@ static signed char read_sbyte(ten_backtrace_t *self, struct dwarf_buf *buf) {
 }
 
 /* Read a uint16 from BUF and advance 2 bytes.  */
-static uint16_t read_uint16(ten_backtrace_t *self, struct dwarf_buf *buf) {
+uint16_t read_uint16(ten_backtrace_t *self, struct dwarf_buf *buf) {
   const unsigned char *p = buf->buf;
 
   if (!advance(self, buf, 2)) {
@@ -114,7 +114,7 @@ static uint16_t read_uint16(ten_backtrace_t *self, struct dwarf_buf *buf) {
 }
 
 /* Read a 24 bit value from BUF and advance 3 bytes.  */
-static uint32_t read_uint24(ten_backtrace_t *self, struct dwarf_buf *buf) {
+uint32_t read_uint24(ten_backtrace_t *self, struct dwarf_buf *buf) {
   const unsigned char *p = buf->buf;
 
   if (!advance(self, buf, 3)) {
@@ -130,7 +130,7 @@ static uint32_t read_uint24(ten_backtrace_t *self, struct dwarf_buf *buf) {
 
 /* Read a uint32 from BUF and advance 4 bytes.  */
 
-static uint32_t read_uint32(ten_backtrace_t *self, struct dwarf_buf *buf) {
+uint32_t read_uint32(ten_backtrace_t *self, struct dwarf_buf *buf) {
   const unsigned char *p = buf->buf;
 
   if (!advance(self, buf, 4)) {
@@ -147,7 +147,7 @@ static uint32_t read_uint32(ten_backtrace_t *self, struct dwarf_buf *buf) {
 }
 
 /* Read a uint64 from BUF and advance 8 bytes.  */
-static uint64_t read_uint64(ten_backtrace_t *self, struct dwarf_buf *buf) {
+uint64_t read_uint64(ten_backtrace_t *self, struct dwarf_buf *buf) {
   const unsigned char *p = buf->buf;
 
   if (!advance(self, buf, 8)) {
@@ -169,8 +169,8 @@ static uint64_t read_uint64(ten_backtrace_t *self, struct dwarf_buf *buf) {
 
 /* Read an offset from BUF and advance the appropriate number of
    bytes.  */
-static uint64_t read_offset(ten_backtrace_t *self, struct dwarf_buf *buf,
-                            int is_dwarf64) {
+uint64_t read_offset(ten_backtrace_t *self, struct dwarf_buf *buf,
+                     int is_dwarf64) {
   if (is_dwarf64) {
     return read_uint64(self, buf);
   } else {
@@ -180,8 +180,8 @@ static uint64_t read_offset(ten_backtrace_t *self, struct dwarf_buf *buf,
 
 /* Read an address from BUF and advance the appropriate number of
    bytes.  */
-static uint64_t read_address(ten_backtrace_t *self, struct dwarf_buf *buf,
-                             int addrsize) {
+uint64_t read_address(ten_backtrace_t *self, struct dwarf_buf *buf,
+                      int addrsize) {
   switch (addrsize) {
   case 1:
     return read_byte(self, buf);
@@ -215,7 +215,7 @@ static int is_highest_address(uint64_t address, int addrsize) {
 }
 
 /* Read an unsigned LEB128 number.  */
-static uint64_t read_uleb128(ten_backtrace_t *self, struct dwarf_buf *buf) {
+uint64_t read_uleb128(ten_backtrace_t *self, struct dwarf_buf *buf) {
   uint64_t ret;
   unsigned int shift;
   int overflow;
@@ -245,7 +245,7 @@ static uint64_t read_uleb128(ten_backtrace_t *self, struct dwarf_buf *buf) {
 }
 
 /* Read a signed LEB128 number.  */
-static int64_t read_sleb128(ten_backtrace_t *self, struct dwarf_buf *buf) {
+int64_t read_sleb128(ten_backtrace_t *self, struct dwarf_buf *buf) {
   uint64_t val;
   unsigned int shift;
   int overflow;
@@ -279,20 +279,9 @@ static int64_t read_sleb128(ten_backtrace_t *self, struct dwarf_buf *buf) {
   return (int64_t)val;
 }
 
-/* Return the length of an LEB128 number.  */
-static size_t leb128_len(const unsigned char *p) {
-  size_t ret = 1;
-  while ((*p & 0x80) != 0) {
-    ++p;
-    ++ret;
-  }
-  return ret;
-}
-
 /* Read initial_length from BUF and advance the appropriate number of bytes.  */
-
-static uint64_t read_initial_length(ten_backtrace_t *self,
-                                    struct dwarf_buf *buf, int *is_dwarf64) {
+uint64_t read_initial_length(ten_backtrace_t *self, struct dwarf_buf *buf,
+                             int *is_dwarf64) {
   uint64_t len;
 
   len = read_uint32(self, buf);
@@ -318,288 +307,16 @@ static void free_abbrevs(ten_backtrace_t *self, struct abbrevs *abbrevs,
   abbrevs->abbrevs = NULL;
 }
 
-/* Read an attribute value.  Returns 1 on success, 0 on failure.  If
-   the value can be represented as a uint64_t, sets *VAL and sets
-   *IS_VALID to 1.  We don't try to store the value of other attribute
-   forms, because we don't care about them.  */
-
-static int read_attribute(ten_backtrace_t *self, enum dwarf_form form,
-                          uint64_t implicit_val, struct dwarf_buf *buf,
-                          int is_dwarf64, int version, int addrsize,
-                          const struct dwarf_sections *dwarf_sections,
-                          struct dwarf_data *altlink, struct attr_val *val) {
-  /* Avoid warnings about val.u.FIELD may be used uninitialized if
-     this function is inlined.  The warnings aren't valid but can
-     occur because the different fields are set and used
-     conditionally.  */
-  memset(val, 0, sizeof *val);
-
-  switch (form) {
-  case DW_FORM_addr:
-    val->encoding = ATTR_VAL_ADDRESS;
-    val->u.uint = read_address(self, buf, addrsize);
-    return 1;
-  case DW_FORM_block2:
-    val->encoding = ATTR_VAL_BLOCK;
-    return advance(self, buf, read_uint16(self, buf));
-  case DW_FORM_block4:
-    val->encoding = ATTR_VAL_BLOCK;
-    return advance(self, buf, read_uint32(self, buf));
-  case DW_FORM_data2:
-    val->encoding = ATTR_VAL_UINT;
-    val->u.uint = read_uint16(self, buf);
-    return 1;
-  case DW_FORM_data4:
-    val->encoding = ATTR_VAL_UINT;
-    val->u.uint = read_uint32(self, buf);
-    return 1;
-  case DW_FORM_data8:
-    val->encoding = ATTR_VAL_UINT;
-    val->u.uint = read_uint64(self, buf);
-    return 1;
-  case DW_FORM_data16:
-    val->encoding = ATTR_VAL_BLOCK;
-    return advance(self, buf, 16);
-  case DW_FORM_string:
-    val->encoding = ATTR_VAL_STRING;
-    val->u.string = read_string(self, buf);
-    return val->u.string == NULL ? 0 : 1;
-  case DW_FORM_block:
-    val->encoding = ATTR_VAL_BLOCK;
-    return advance(self, buf, read_uleb128(self, buf));
-  case DW_FORM_block1:
-    val->encoding = ATTR_VAL_BLOCK;
-    return advance(self, buf, read_byte(self, buf));
-  case DW_FORM_data1:
-    val->encoding = ATTR_VAL_UINT;
-    val->u.uint = read_byte(self, buf);
-    return 1;
-  case DW_FORM_flag:
-    val->encoding = ATTR_VAL_UINT;
-    val->u.uint = read_byte(self, buf);
-    return 1;
-  case DW_FORM_sdata:
-    val->encoding = ATTR_VAL_SINT;
-    val->u.sint = read_sleb128(self, buf);
-    return 1;
-  case DW_FORM_strp: {
-    uint64_t offset;
-
-    offset = read_offset(self, buf, is_dwarf64);
-    if (offset >= dwarf_sections->size[DEBUG_STR]) {
-      dwarf_buf_error(self, buf, "DW_FORM_strp out of range", 0);
-      return 0;
-    }
-    val->encoding = ATTR_VAL_STRING;
-    val->u.string = (const char *)dwarf_sections->data[DEBUG_STR] + offset;
-    return 1;
-  }
-  case DW_FORM_line_strp: {
-    uint64_t offset;
-
-    offset = read_offset(self, buf, is_dwarf64);
-    if (offset >= dwarf_sections->size[DEBUG_LINE_STR]) {
-      dwarf_buf_error(self, buf, "DW_FORM_line_strp out of range", 0);
-      return 0;
-    }
-    val->encoding = ATTR_VAL_STRING;
-    val->u.string = (const char *)dwarf_sections->data[DEBUG_LINE_STR] + offset;
-    return 1;
-  }
-  case DW_FORM_udata:
-    val->encoding = ATTR_VAL_UINT;
-    val->u.uint = read_uleb128(self, buf);
-    return 1;
-  case DW_FORM_ref_addr:
-    val->encoding = ATTR_VAL_REF_INFO;
-    if (version == 2)
-      val->u.uint = read_address(self, buf, addrsize);
-    else
-      val->u.uint = read_offset(self, buf, is_dwarf64);
-    return 1;
-  case DW_FORM_ref1:
-    val->encoding = ATTR_VAL_REF_UNIT;
-    val->u.uint = read_byte(self, buf);
-    return 1;
-  case DW_FORM_ref2:
-    val->encoding = ATTR_VAL_REF_UNIT;
-    val->u.uint = read_uint16(self, buf);
-    return 1;
-  case DW_FORM_ref4:
-    val->encoding = ATTR_VAL_REF_UNIT;
-    val->u.uint = read_uint32(self, buf);
-    return 1;
-  case DW_FORM_ref8:
-    val->encoding = ATTR_VAL_REF_UNIT;
-    val->u.uint = read_uint64(self, buf);
-    return 1;
-  case DW_FORM_ref_udata:
-    val->encoding = ATTR_VAL_REF_UNIT;
-    val->u.uint = read_uleb128(self, buf);
-    return 1;
-  case DW_FORM_indirect: {
-    uint64_t form;
-
-    form = read_uleb128(self, buf);
-    if (form == DW_FORM_implicit_const) {
-      dwarf_buf_error(self, buf, "DW_FORM_indirect to DW_FORM_implicit_const",
-                      0);
-      return 0;
-    }
-    return read_attribute(self, (enum dwarf_form)form, 0, buf, is_dwarf64,
-                          version, addrsize, dwarf_sections, altlink, val);
-  }
-  case DW_FORM_sec_offset:
-    val->encoding = ATTR_VAL_REF_SECTION;
-    val->u.uint = read_offset(self, buf, is_dwarf64);
-    return 1;
-  case DW_FORM_exprloc:
-    val->encoding = ATTR_VAL_EXPR;
-    return advance(self, buf, read_uleb128(self, buf));
-  case DW_FORM_flag_present:
-    val->encoding = ATTR_VAL_UINT;
-    val->u.uint = 1;
-    return 1;
-  case DW_FORM_ref_sig8:
-    val->encoding = ATTR_VAL_REF_TYPE;
-    val->u.uint = read_uint64(self, buf);
-    return 1;
-  case DW_FORM_strx:
-  case DW_FORM_strx1:
-  case DW_FORM_strx2:
-  case DW_FORM_strx3:
-  case DW_FORM_strx4: {
-    uint64_t offset;
-
-    switch (form) {
-    case DW_FORM_strx:
-      offset = read_uleb128(self, buf);
-      break;
-    case DW_FORM_strx1:
-      offset = read_byte(self, buf);
-      break;
-    case DW_FORM_strx2:
-      offset = read_uint16(self, buf);
-      break;
-    case DW_FORM_strx3:
-      offset = read_uint24(self, buf);
-      break;
-    case DW_FORM_strx4:
-      offset = read_uint32(self, buf);
-      break;
-    default:
-      /* This case can't happen.  */
-      return 0;
-    }
-    val->encoding = ATTR_VAL_STRING_INDEX;
-    val->u.uint = offset;
-    return 1;
-  }
-  case DW_FORM_addrx:
-  case DW_FORM_addrx1:
-  case DW_FORM_addrx2:
-  case DW_FORM_addrx3:
-  case DW_FORM_addrx4: {
-    uint64_t offset;
-
-    switch (form) {
-    case DW_FORM_addrx:
-      offset = read_uleb128(self, buf);
-      break;
-    case DW_FORM_addrx1:
-      offset = read_byte(self, buf);
-      break;
-    case DW_FORM_addrx2:
-      offset = read_uint16(self, buf);
-      break;
-    case DW_FORM_addrx3:
-      offset = read_uint24(self, buf);
-      break;
-    case DW_FORM_addrx4:
-      offset = read_uint32(self, buf);
-      break;
-    default:
-      /* This case can't happen.  */
-      return 0;
-    }
-    val->encoding = ATTR_VAL_ADDRESS_INDEX;
-    val->u.uint = offset;
-    return 1;
-  }
-  case DW_FORM_ref_sup4:
-    val->encoding = ATTR_VAL_REF_SECTION;
-    val->u.uint = read_uint32(self, buf);
-    return 1;
-  case DW_FORM_ref_sup8:
-    val->encoding = ATTR_VAL_REF_SECTION;
-    val->u.uint = read_uint64(self, buf);
-    return 1;
-  case DW_FORM_implicit_const:
-    val->encoding = ATTR_VAL_UINT;
-    val->u.uint = implicit_val;
-    return 1;
-  case DW_FORM_loclistx:
-    /* We don't distinguish this from DW_FORM_sec_offset.  It
-     * shouldn't matter since we don't care about loclists.  */
-    val->encoding = ATTR_VAL_REF_SECTION;
-    val->u.uint = read_uleb128(self, buf);
-    return 1;
-  case DW_FORM_rnglistx:
-    val->encoding = ATTR_VAL_RNGLISTS_INDEX;
-    val->u.uint = read_uleb128(self, buf);
-    return 1;
-  case DW_FORM_GNU_addr_index:
-    val->encoding = ATTR_VAL_REF_SECTION;
-    val->u.uint = read_uleb128(self, buf);
-    return 1;
-  case DW_FORM_GNU_str_index:
-    val->encoding = ATTR_VAL_REF_SECTION;
-    val->u.uint = read_uleb128(self, buf);
-    return 1;
-  case DW_FORM_GNU_ref_alt:
-    val->u.uint = read_offset(self, buf, is_dwarf64);
-    if (altlink == NULL) {
-      val->encoding = ATTR_VAL_NONE;
-      return 1;
-    }
-    val->encoding = ATTR_VAL_REF_ALT_INFO;
-    return 1;
-  case DW_FORM_strp_sup:
-  case DW_FORM_GNU_strp_alt: {
-    uint64_t offset;
-
-    offset = read_offset(self, buf, is_dwarf64);
-    if (altlink == NULL) {
-      val->encoding = ATTR_VAL_NONE;
-      return 1;
-    }
-    if (offset >= altlink->dwarf_sections.size[DEBUG_STR]) {
-      dwarf_buf_error(self, buf, "DW_FORM_strp_sup out of range", 0);
-      return 0;
-    }
-    val->encoding = ATTR_VAL_STRING;
-    val->u.string =
-        (const char *)altlink->dwarf_sections.data[DEBUG_STR] + offset;
-    return 1;
-  }
-  default:
-    dwarf_buf_error(self, buf, "unrecognized DWARF form", -1);
-    return 0;
-  }
-}
-
 /* If we can determine the value of a string attribute, set *STRING to
    point to the string.  Return 1 on success, 0 on error.  If we don't
    know the value, we consider that a success, and we don't change
    *STRING.  An error is only reported for some sort of out of range
    offset.  */
 
-static int resolve_string(ten_backtrace_t *self,
-                          const struct dwarf_sections *dwarf_sections,
-                          int is_dwarf64, int is_bigendian,
-                          uint64_t str_offsets_base, const struct attr_val *val,
-                          ten_backtrace_error_func_t error_cb, void *data,
-                          const char **string) {
+int resolve_string(ten_backtrace_t *self, const dwarf_sections *dwarf_sections,
+                   int is_dwarf64, int is_bigendian, uint64_t str_offsets_base,
+                   const attr_val *val, ten_backtrace_error_func_t error_cb,
+                   void *data, const char **string) {
   switch (val->encoding) {
   case ATTR_VAL_STRING:
     *string = val->u.string;
@@ -823,32 +540,10 @@ static int unit_addrs_search(const void *vkey, const void *ventry) {
     return 0;
 }
 
-/* Sort the line vector by PC.  We want a stable sort here to maintain
-   the order of lines for the same PC values.  Since the sequence is
-   being sorted in place, their addresses cannot be relied on to
-   maintain stability.  That is the purpose of the index member.  */
-
-static int line_compare(const void *v1, const void *v2) {
-  const struct line *ln1 = (const struct line *)v1;
-  const struct line *ln2 = (const struct line *)v2;
-
-  if (ln1->pc < ln2->pc)
-    return -1;
-  else if (ln1->pc > ln2->pc)
-    return 1;
-  else if (ln1->idx < ln2->idx)
-    return -1;
-  else if (ln1->idx > ln2->idx)
-    return 1;
-  else
-    return 0;
-}
-
 /* Find a PC in a line vector.  We always allocate an extra entry at
    the end of the lines vector, so that this routine can safely look
    at the next entry.  Note that when there are multiple mappings for
    the same PC value, this will return the last one.  */
-
 static int line_search(const void *vkey, const void *ventry) {
   const uintptr_t *key = (const uintptr_t *)vkey;
   const struct line *entry = (const struct line *)ventry;
@@ -1756,667 +1451,6 @@ fail:
     ten_vector_deinit(&addrs->vec);
     addrs->count = 0;
   }
-  return 0;
-}
-
-/* Add a new mapping to the vector of line mappings that we are
-   building.  Returns 1 on success, 0 on failure.  */
-
-static int add_line(ten_backtrace_t *self, struct dwarf_data *ddata,
-                    uintptr_t pc, const char *filename, int lineno,
-                    ten_backtrace_error_func_t error_cb, void *data,
-                    struct line_vector *vec) {
-  struct line *ln;
-
-  /* If we are adding the same mapping, ignore it.  This can happen
-     when using discriminators.  */
-  if (vec->count > 0) {
-    ln = (struct line *)vec->vec.data + (vec->count - 1);
-    if (pc == ln->pc && filename == ln->filename && lineno == ln->lineno) {
-      return 1;
-    }
-  }
-
-  ln = (line *)ten_vector_grow(&vec->vec, sizeof(line));
-  if (ln == NULL) {
-    return 0;
-  }
-
-  /* Add in the base address here, so that we can look up the PC
-     directly.  */
-  ln->pc = pc + ddata->base_address;
-
-  ln->filename = filename;
-  ln->lineno = lineno;
-  ln->idx = vec->count;
-
-  ++vec->count;
-
-  return 1;
-}
-
-/* Free the line header information.  */
-
-static void free_line_header(ten_backtrace_t *self, struct line_header *hdr,
-                             ten_backtrace_error_func_t error_cb, void *data) {
-  if (hdr->dirs_count != 0) {
-    free(hdr->dirs);
-  }
-  free(hdr->filenames);
-}
-
-/* Read the directories and file names for a line header for version
-   2, setting fields in HDR.  Return 1 on success, 0 on failure.  */
-
-static int read_v2_paths(ten_backtrace_t *self, struct unit *u,
-                         struct dwarf_buf *hdr_buf, struct line_header *hdr) {
-  const unsigned char *p;
-  const unsigned char *pend;
-  size_t i;
-
-  /* Count the number of directory entries.  */
-  hdr->dirs_count = 0;
-  p = hdr_buf->buf;
-  pend = p + hdr_buf->left;
-  while (p < pend && *p != '\0') {
-    p += strnlen((const char *)p, pend - p) + 1;
-    ++hdr->dirs_count;
-  }
-
-  /* The index of the first entry in the list of directories is 1.  Index 0 is
-     used for the current directory of the compilation.  To simplify index
-     handling, we set entry 0 to the compilation unit directory.  */
-  ++hdr->dirs_count;
-  hdr->dirs = (const char **)malloc(hdr->dirs_count * sizeof(const char *));
-  if (hdr->dirs == NULL) {
-    return 0;
-  }
-
-  hdr->dirs[0] = u->comp_dir;
-  i = 1;
-  while (*hdr_buf->buf != '\0') {
-    if (hdr_buf->reported_underflow)
-      return 0;
-
-    hdr->dirs[i] = read_string(self, hdr_buf);
-    if (hdr->dirs[i] == NULL)
-      return 0;
-    ++i;
-  }
-  if (!advance(self, hdr_buf, 1))
-    return 0;
-
-  /* Count the number of file entries.  */
-  hdr->filenames_count = 0;
-  p = hdr_buf->buf;
-  pend = p + hdr_buf->left;
-  while (p < pend && *p != '\0') {
-    p += strnlen((const char *)p, pend - p) + 1;
-    p += leb128_len(p);
-    p += leb128_len(p);
-    p += leb128_len(p);
-    ++hdr->filenames_count;
-  }
-
-  /* The index of the first entry in the list of file names is 1.  Index 0 is
-     used for the DW_AT_name of the compilation unit.  To simplify index
-     handling, we set entry 0 to the compilation unit file name.  */
-  ++hdr->filenames_count;
-  hdr->filenames = (const char **)malloc(hdr->filenames_count * sizeof(char *));
-  if (hdr->filenames == NULL) {
-    return 0;
-  }
-
-  hdr->filenames[0] = u->filename;
-  i = 1;
-  while (*hdr_buf->buf != '\0') {
-    const char *filename;
-    uint64_t dir_index;
-
-    if (hdr_buf->reported_underflow)
-      return 0;
-
-    filename = read_string(self, hdr_buf);
-    if (filename == NULL)
-      return 0;
-    dir_index = read_uleb128(self, hdr_buf);
-    if (IS_ABSOLUTE_PATH(filename) ||
-        (dir_index < hdr->dirs_count && hdr->dirs[dir_index] == NULL))
-      hdr->filenames[i] = filename;
-    else {
-      const char *dir;
-      size_t dir_len;
-      size_t filename_len;
-      char *s;
-
-      if (dir_index < hdr->dirs_count)
-        dir = hdr->dirs[dir_index];
-      else {
-        dwarf_buf_error(self, hdr_buf,
-                        ("Invalid directory index in "
-                         "line number program header"),
-                        0);
-        return 0;
-      }
-      dir_len = strlen(dir);
-      filename_len = strlen(filename);
-      s = (char *)malloc(dir_len + filename_len + 2);
-      if (s == NULL) {
-        return 0;
-      }
-
-      memcpy(s, dir, dir_len);
-      /* FIXME: If we are on a DOS-based file system, and the
-         directory or the file name use backslashes, then we
-         should use a backslash here.  */
-      s[dir_len] = '/';
-      memcpy(s + dir_len + 1, filename, filename_len + 1);
-      hdr->filenames[i] = s;
-    }
-
-    /* Ignore the modification time and size.  */
-    read_uleb128(self, hdr_buf);
-    read_uleb128(self, hdr_buf);
-
-    ++i;
-  }
-
-  return 1;
-}
-
-/* Read a single version 5 LNCT entry for a directory or file name in a
-   line header.  Sets *STRING to the resulting name, ignoring other
-   data.  Return 1 on success, 0 on failure.  */
-
-static int read_lnct(ten_backtrace_t *self, struct dwarf_data *ddata,
-                     struct unit *u, struct dwarf_buf *hdr_buf,
-                     const struct line_header *hdr, size_t formats_count,
-                     const struct line_header_format *formats,
-                     const char **string) {
-  size_t i;
-  const char *dir;
-  const char *path;
-
-  dir = NULL;
-  path = NULL;
-  for (i = 0; i < formats_count; i++) {
-    struct attr_val val;
-
-    if (!read_attribute(self, formats[i].form, 0, hdr_buf, u->is_dwarf64,
-                        u->version, hdr->addrsize, &ddata->dwarf_sections,
-                        ddata->altlink, &val))
-      return 0;
-    switch (formats[i].lnct) {
-    case DW_LNCT_path:
-      if (!resolve_string(self, &ddata->dwarf_sections, u->is_dwarf64,
-                          ddata->is_bigendian, u->str_offsets_base, &val,
-                          hdr_buf->error_cb, hdr_buf->data, &path))
-        return 0;
-      break;
-    case DW_LNCT_directory_index:
-      if (val.encoding == ATTR_VAL_UINT) {
-        if (val.u.uint >= hdr->dirs_count) {
-          dwarf_buf_error(self, hdr_buf,
-                          ("Invalid directory index in "
-                           "line number program header"),
-                          0);
-          return 0;
-        }
-        dir = hdr->dirs[val.u.uint];
-      }
-      break;
-    default:
-      /* We don't care about timestamps or sizes or hashes.  */
-      break;
-    }
-  }
-
-  if (path == NULL) {
-    dwarf_buf_error(self, hdr_buf,
-                    "missing file name in line number program header", 0);
-    return 0;
-  }
-
-  if (dir == NULL)
-    *string = path;
-  else {
-    size_t dir_len;
-    size_t path_len;
-    char *s;
-
-    dir_len = strlen(dir);
-    path_len = strlen(path);
-    s = (char *)malloc(dir_len + path_len + 2);
-    if (s == NULL) {
-      return 0;
-    }
-
-    memcpy(s, dir, dir_len);
-    /* FIXME: If we are on a DOS-based file system, and the
-       directory or the path name use backslashes, then we should
-       use a backslash here.  */
-    s[dir_len] = '/';
-    memcpy(s + dir_len + 1, path, path_len + 1);
-    *string = s;
-  }
-
-  return 1;
-}
-
-/* Read a set of DWARF 5 line header format entries, setting *PCOUNT
-   and *PPATHS.  Return 1 on success, 0 on failure.  */
-
-static int
-read_line_header_format_entries(ten_backtrace_t *self, struct dwarf_data *ddata,
-                                struct unit *u, struct dwarf_buf *hdr_buf,
-                                struct line_header *hdr, size_t *pcount,
-                                const char ***ppaths) {
-  size_t formats_count;
-  struct line_header_format *formats;
-  size_t paths_count;
-  const char **paths;
-  size_t i;
-  int ret;
-
-  formats_count = read_byte(self, hdr_buf);
-  if (formats_count == 0) {
-    formats = NULL;
-  } else {
-    formats = (struct line_header_format *)malloc(
-        (formats_count * sizeof(struct line_header_format)));
-    if (formats == NULL) {
-      return 0;
-    }
-
-    for (i = 0; i < formats_count; i++) {
-      formats[i].lnct = (int)read_uleb128(self, hdr_buf);
-      formats[i].form = (enum dwarf_form)read_uleb128(self, hdr_buf);
-    }
-  }
-
-  paths_count = read_uleb128(self, hdr_buf);
-  if (paths_count == 0) {
-    *pcount = 0;
-    *ppaths = NULL;
-    ret = 1;
-    goto exit;
-  }
-
-  paths = (const char **)malloc(paths_count * sizeof(const char *));
-  if (paths == NULL) {
-    ret = 0;
-    goto exit;
-  }
-
-  for (i = 0; i < paths_count; i++) {
-    if (!read_lnct(self, ddata, u, hdr_buf, hdr, formats_count, formats,
-                   &paths[i])) {
-      free(paths);
-      ret = 0;
-      goto exit;
-    }
-  }
-
-  *pcount = paths_count;
-  *ppaths = paths;
-
-  ret = 1;
-
-exit:
-  if (formats != NULL) {
-    free(formats);
-  }
-
-  return ret;
-}
-
-/* Read the line header.  Return 1 on success, 0 on failure.  */
-
-static int read_line_header(ten_backtrace_t *self, struct dwarf_data *ddata,
-                            struct unit *u, int is_dwarf64,
-                            struct dwarf_buf *line_buf,
-                            struct line_header *hdr) {
-  uint64_t hdrlen;
-  struct dwarf_buf hdr_buf;
-
-  hdr->version = read_uint16(self, line_buf);
-  if (hdr->version < 2 || hdr->version > 5) {
-    dwarf_buf_error(self, line_buf, "unsupported line number version", -1);
-    return 0;
-  }
-
-  if (hdr->version < 5) {
-    hdr->addrsize = u->addrsize;
-  } else {
-    hdr->addrsize = read_byte(self, line_buf);
-    /* We could support a non-zero segment_selector_size but I doubt
-       we'll ever see it.  */
-    if (read_byte(self, line_buf) != 0) {
-      dwarf_buf_error(self, line_buf,
-                      "non-zero segment_selector_size not supported", -1);
-      return 0;
-    }
-  }
-
-  hdrlen = read_offset(self, line_buf, is_dwarf64);
-
-  hdr_buf = *line_buf;
-  hdr_buf.left = hdrlen;
-
-  if (!advance(self, line_buf, hdrlen)) {
-    return 0;
-  }
-
-  hdr->min_insn_len = read_byte(self, &hdr_buf);
-  if (hdr->version < 4) {
-    hdr->max_ops_per_insn = 1;
-  } else {
-    hdr->max_ops_per_insn = read_byte(self, &hdr_buf);
-  }
-
-  /* We don't care about default_is_stmt.  */
-  read_byte(self, &hdr_buf);
-
-  hdr->line_base = read_sbyte(self, &hdr_buf);
-  hdr->line_range = read_byte(self, &hdr_buf);
-
-  hdr->opcode_base = read_byte(self, &hdr_buf);
-  hdr->opcode_lengths = hdr_buf.buf;
-  if (!advance(self, &hdr_buf, hdr->opcode_base - 1)) {
-    return 0;
-  }
-
-  if (hdr->version < 5) {
-    if (!read_v2_paths(self, u, &hdr_buf, hdr)) {
-      return 0;
-    }
-  } else {
-    if (!read_line_header_format_entries(self, ddata, u, &hdr_buf, hdr,
-                                         &hdr->dirs_count, &hdr->dirs)) {
-      return 0;
-    }
-
-    if (!read_line_header_format_entries(self, ddata, u, &hdr_buf, hdr,
-                                         &hdr->filenames_count,
-                                         &hdr->filenames)) {
-      return 0;
-    }
-  }
-
-  if (hdr_buf.reported_underflow) {
-    return 0;
-  }
-
-  return 1;
-}
-
-/* Read the line program, adding line mappings to VEC.  Return 1 on
-   success, 0 on failure.  */
-
-static int read_line_program(ten_backtrace_t *self, struct dwarf_data *ddata,
-                             const struct line_header *hdr,
-                             struct dwarf_buf *line_buf,
-                             struct line_vector *vec) {
-  uint64_t address;
-  unsigned int op_index;
-  const char *reset_filename;
-  const char *filename;
-  int lineno;
-
-  address = 0;
-  op_index = 0;
-  if (hdr->filenames_count > 1) {
-    reset_filename = hdr->filenames[1];
-  } else {
-    reset_filename = "";
-  }
-
-  filename = reset_filename;
-  lineno = 1;
-  while (line_buf->left > 0) {
-    unsigned int op;
-
-    op = read_byte(self, line_buf);
-    if (op >= hdr->opcode_base) {
-      unsigned int advance;
-
-      /* Special opcode.  */
-      op -= hdr->opcode_base;
-      advance = op / hdr->line_range;
-      address +=
-          (hdr->min_insn_len * (op_index + advance) / hdr->max_ops_per_insn);
-      op_index = (op_index + advance) % hdr->max_ops_per_insn;
-      lineno += hdr->line_base + (int)(op % hdr->line_range);
-      add_line(self, ddata, address, filename, lineno, line_buf->error_cb,
-               line_buf->data, vec);
-    } else if (op == DW_LNS_extended_op) {
-      uint64_t len;
-
-      len = read_uleb128(self, line_buf);
-      op = read_byte(self, line_buf);
-      switch (op) {
-      case DW_LNE_end_sequence:
-        /* FIXME: Should we mark the high PC here?  It seems
-           that we already have that information from the
-           compilation unit.  */
-        address = 0;
-        op_index = 0;
-        filename = reset_filename;
-        lineno = 1;
-        break;
-      case DW_LNE_set_address:
-        address = read_address(self, line_buf, hdr->addrsize);
-        break;
-      case DW_LNE_define_file: {
-        const char *f;
-        unsigned int dir_index;
-
-        f = read_string(self, line_buf);
-        if (f == NULL)
-          return 0;
-        dir_index = read_uleb128(self, line_buf);
-        /* Ignore that time and length.  */
-        read_uleb128(self, line_buf);
-        read_uleb128(self, line_buf);
-        if (IS_ABSOLUTE_PATH(f))
-          filename = f;
-        else {
-          const char *dir;
-          size_t dir_len;
-          size_t f_len;
-          char *p;
-
-          if (dir_index < hdr->dirs_count)
-            dir = hdr->dirs[dir_index];
-          else {
-            dwarf_buf_error(self, line_buf,
-                            ("Invalid directory index "
-                             "in line number program"),
-                            0);
-            return 0;
-          }
-          dir_len = strlen(dir);
-          f_len = strlen(f);
-          p = (char *)malloc(dir_len + f_len + 2);
-          if (p == NULL) {
-            return 0;
-          }
-
-          memcpy(p, dir, dir_len);
-          /* FIXME: If we are on a DOS-based file system,
-             and the directory or the file name use
-             backslashes, then we should use a backslash
-             here.  */
-          p[dir_len] = '/';
-          memcpy(p + dir_len + 1, f, f_len + 1);
-          filename = p;
-        }
-      } break;
-      case DW_LNE_set_discriminator:
-        /* We don't care about discriminators.  */
-        read_uleb128(self, line_buf);
-        break;
-      default:
-        if (!advance(self, line_buf, len - 1)) {
-          return 0;
-        }
-
-        break;
-      }
-    } else {
-      switch (op) {
-      case DW_LNS_copy:
-        add_line(self, ddata, address, filename, lineno, line_buf->error_cb,
-                 line_buf->data, vec);
-        break;
-      case DW_LNS_advance_pc: {
-        uint64_t advance;
-
-        advance = read_uleb128(self, line_buf);
-        address +=
-            (hdr->min_insn_len * (op_index + advance) / hdr->max_ops_per_insn);
-        op_index = (op_index + advance) % hdr->max_ops_per_insn;
-      } break;
-      case DW_LNS_advance_line:
-        lineno += (int)read_sleb128(self, line_buf);
-        break;
-      case DW_LNS_set_file: {
-        uint64_t fileno;
-
-        fileno = read_uleb128(self, line_buf);
-        if (fileno >= hdr->filenames_count) {
-          dwarf_buf_error(self, line_buf,
-                          ("Invalid file number in "
-                           "line number program"),
-                          0);
-          return 0;
-        }
-        filename = hdr->filenames[fileno];
-      } break;
-      case DW_LNS_set_column:
-        read_uleb128(self, line_buf);
-        break;
-      case DW_LNS_negate_stmt:
-        break;
-      case DW_LNS_set_basic_block:
-        break;
-      case DW_LNS_const_add_pc: {
-        unsigned int advance;
-
-        op = 255 - hdr->opcode_base;
-        advance = op / hdr->line_range;
-        address +=
-            (hdr->min_insn_len * (op_index + advance) / hdr->max_ops_per_insn);
-        op_index = (op_index + advance) % hdr->max_ops_per_insn;
-      } break;
-      case DW_LNS_fixed_advance_pc:
-        address += read_uint16(self, line_buf);
-        op_index = 0;
-        break;
-      case DW_LNS_set_prologue_end:
-        break;
-      case DW_LNS_set_epilogue_begin:
-        break;
-      case DW_LNS_set_isa:
-        read_uleb128(self, line_buf);
-        break;
-      default: {
-        unsigned int i;
-
-        for (i = hdr->opcode_lengths[op - 1]; i > 0; --i)
-          read_uleb128(self, line_buf);
-      } break;
-      }
-    }
-  }
-
-  return 1;
-}
-
-/* Read the line number information for a compilation unit.  Returns 1
-   on success, 0 on failure.  */
-
-static int read_line_info(ten_backtrace_t *self, struct dwarf_data *ddata,
-                          ten_backtrace_error_func_t error_cb, void *data,
-                          struct unit *u, struct line_header *hdr,
-                          struct line **lines, size_t *lines_count) {
-  struct line_vector vec;
-  struct dwarf_buf line_buf;
-  uint64_t len;
-  int is_dwarf64;
-  struct line *ln;
-
-  memset(&vec.vec, 0, sizeof vec.vec);
-  vec.count = 0;
-
-  memset(hdr, 0, sizeof *hdr);
-
-  if (u->lineoff != (off_t)(size_t)u->lineoff ||
-      (size_t)u->lineoff >= ddata->dwarf_sections.size[DEBUG_LINE]) {
-    error_cb(self, "unit line offset out of range", 0, data);
-    goto fail;
-  }
-
-  line_buf.name = ".debug_line";
-  line_buf.start = ddata->dwarf_sections.data[DEBUG_LINE];
-  line_buf.buf = ddata->dwarf_sections.data[DEBUG_LINE] + u->lineoff;
-  line_buf.left = ddata->dwarf_sections.size[DEBUG_LINE] - u->lineoff;
-  line_buf.is_bigendian = ddata->is_bigendian;
-  line_buf.error_cb = error_cb;
-  line_buf.data = data;
-  line_buf.reported_underflow = 0;
-
-  len = read_initial_length(self, &line_buf, &is_dwarf64);
-  line_buf.left = len;
-
-  if (!read_line_header(self, ddata, u, is_dwarf64, &line_buf, hdr)) {
-    goto fail;
-  }
-
-  if (!read_line_program(self, ddata, hdr, &line_buf, &vec)) {
-    goto fail;
-  }
-
-  if (line_buf.reported_underflow) {
-    goto fail;
-  }
-
-  if (vec.count == 0) {
-    /* This is not a failure in the sense of a generating an error,
-       but it is a failure in that sense that we have no useful
-       information.  */
-    goto fail;
-  }
-
-  /* Allocate one extra entry at the end.  */
-  ln = (line *)ten_vector_grow(&vec.vec, sizeof(line));
-  if (ln == NULL) {
-    goto fail;
-  }
-
-  ln->pc = (uintptr_t)-1;
-  ln->filename = NULL;
-  ln->lineno = 0;
-  ln->idx = 0;
-
-  if (!ten_vector_release_remaining_space(&vec.vec)) {
-    goto fail;
-  }
-
-  ln = (struct line *)vec.vec.data;
-  backtrace_sort(ln, vec.count, sizeof(struct line), line_compare);
-
-  *lines = ln;
-  *lines_count = vec.count;
-
-  return 1;
-
-fail:
-  ten_vector_deinit(&vec.vec);
-
-  free_line_header(self, hdr, error_cb, data);
-  *lines = (struct line *)(uintptr_t)-1;
-  *lines_count = 0;
   return 0;
 }
 
