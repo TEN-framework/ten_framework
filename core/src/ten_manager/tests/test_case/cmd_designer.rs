@@ -18,7 +18,7 @@ use ten_manager::{
             connections::{
                 get_graph_connections_endpoint,
                 GetGraphConnectionsRequestPayload,
-                GetGraphConnectionsSingleResponseData,
+                GraphConnectionsSingleResponseData,
             },
             get_graphs_endpoint, GetGraphsRequestPayload,
             GetGraphsResponseData,
@@ -150,7 +150,7 @@ async fn test_cmd_designer_connections_has_msg_conversion() {
 
     let body = test::read_body(resp).await;
     let body_str = std::str::from_utf8(&body).unwrap();
-    let json: ApiResponse<Vec<GetGraphConnectionsSingleResponseData>> =
+    let json: ApiResponse<Vec<GraphConnectionsSingleResponseData>> =
         serde_json::from_str(body_str).unwrap();
 
     let pretty_json = serde_json::to_string_pretty(&json).unwrap();

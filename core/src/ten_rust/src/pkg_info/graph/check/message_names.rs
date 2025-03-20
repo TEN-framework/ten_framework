@@ -8,7 +8,9 @@ use std::collections::HashMap;
 
 use anyhow::{Ok, Result};
 
-use crate::pkg_info::graph::{Graph, GraphConnection, GraphMessageFlow};
+use crate::pkg_info::graph::{
+    connection::GraphMessageFlow, Graph, GraphConnection,
+};
 
 impl Graph {
     /// Check that all message names are unique across connections.

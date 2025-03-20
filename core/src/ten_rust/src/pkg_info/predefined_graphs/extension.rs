@@ -9,7 +9,7 @@ use anyhow::Result;
 use super::pkg_predefined_graphs_find;
 use crate::{
     pkg_info::{
-        graph::GraphNode,
+        graph::node::GraphNode,
         message::{MsgDirection, MsgType},
         pkg_type::PkgType,
         PkgInfo,

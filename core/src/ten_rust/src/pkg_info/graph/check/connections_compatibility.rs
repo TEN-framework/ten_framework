@@ -10,7 +10,7 @@ use anyhow::Result;
 
 use crate::{
     pkg_info::{
-        graph::{Graph, GraphConnection, GraphDestination},
+        graph::{connection::GraphDestination, Graph, GraphConnection},
         message::{MsgDirection, MsgType},
         pkg_type::PkgType,
         PkgInfo,

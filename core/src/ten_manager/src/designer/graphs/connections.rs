@@ -9,10 +9,10 @@ use std::sync::{Arc, RwLock};
 use actix_web::{web, HttpResponse, Responder};
 use serde::{Deserialize, Serialize};
 
-use ten_rust::pkg_info::graph::msg_conversion::MsgAndResultConversion;
-use ten_rust::pkg_info::graph::{
+use ten_rust::pkg_info::graph::connection::{
     GraphConnection, GraphDestination, GraphMessageFlow,
 };
+use ten_rust::pkg_info::graph::msg_conversion::MsgAndResultConversion;
 use ten_rust::pkg_info::pkg_type::PkgType;
 use ten_rust::pkg_info::predefined_graphs::pkg_predefined_graphs_find;
 
@@ -26,7 +26,7 @@ pub struct GetGraphConnectionsRequestPayload {
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
-pub struct GetGraphConnectionsSingleResponseData {
+pub struct GraphConnectionsSingleResponseData {
     pub app: String,
     pub extension: String,
 
@@ -43,9 +43,9 @@ pub struct GetGraphConnectionsSingleResponseData {
     pub video_frame: Option<Vec<DesignerMessageFlow>>,
 }
 
-impl From<GraphConnection> for GetGraphConnectionsSingleResponseData {
+impl From<GraphConnection> for GraphConnectionsSingleResponseData {
     fn from(conn: GraphConnection) -> Self {
-        GetGraphConnectionsSingleResponseData {
+        GraphConnectionsSingleResponseData {
             app: conn.get_app_uri().to_string(),
             extension: conn.extension,
 
@@ -136,15 +136,14 @@ pub async fn get_graph_connections_endpoint(
                 // Convert the connections field to RespConnection.
                 let connections: Option<_> =
                     predefined_graph.graph.connections.as_ref();
-                let resp_connections: Vec<
-                    GetGraphConnectionsSingleResponseData,
-                > = match connections {
-                    Some(connections) => connections
-                        .iter()
-                        .map(|conn| conn.clone().into())
-                        .collect(),
-                    None => vec![],
-                };
+                let resp_connections: Vec<GraphConnectionsSingleResponseData> =
+                    match connections {
+                        Some(connections) => connections
+                            .iter()
+                            .map(|conn| conn.clone().into())
+                            .collect(),
+                        None => vec![],
+                    };
 
                 let response = ApiResponse {
                     status: Status::Ok,
@@ -242,31 +241,29 @@ mod tests {
         let body = test::read_body(resp).await;
         let body_str = std::str::from_utf8(&body).unwrap();
 
-        let connections: ApiResponse<
-            Vec<GetGraphConnectionsSingleResponseData>,
-        > = serde_json::from_str(body_str).unwrap();
+        let connections: ApiResponse<Vec<GraphConnectionsSingleResponseData>> =
+            serde_json::from_str(body_str).unwrap();
 
-        let expected_connections =
-            vec![GetGraphConnectionsSingleResponseData {
-                app: localhost(),
-                extension: "extension_1".to_string(),
-                cmd: Some(vec![DesignerMessageFlow {
-                    name: "hello_world".to_string(),
-                    dest: vec![DesignerDestination {
-                        app: localhost(),
-                        extension: "extension_2".to_string(),
-                        msg_conversion: None,
-                    }],
-                }]),
-                data: None,
-                audio_frame: None,
-                video_frame: None,
-            }];
+        let expected_connections = vec![GraphConnectionsSingleResponseData {
+            app: localhost(),
+            extension: "extension_1".to_string(),
+            cmd: Some(vec![DesignerMessageFlow {
+                name: "hello_world".to_string(),
+                dest: vec![DesignerDestination {
+                    app: localhost(),
+                    extension: "extension_2".to_string(),
+                    msg_conversion: None,
+                }],
+            }]),
+            data: None,
+            audio_frame: None,
+            video_frame: None,
+        }];
 
         assert_eq!(connections.data, expected_connections);
         assert!(!connections.data.is_empty());
 
-        let json: ApiResponse<Vec<GetGraphConnectionsSingleResponseData>> =
+        let json: ApiResponse<Vec<GraphConnectionsSingleResponseData>> =
             serde_json::from_str(body_str).unwrap();
         let pretty_json = serde_json::to_string_pretty(&json).unwrap();
         println!("Response body: {}", pretty_json);
@@ -333,52 +330,50 @@ mod tests {
         let body = test::read_body(resp).await;
         let body_str = std::str::from_utf8(&body).unwrap();
 
-        let connections: ApiResponse<
-            Vec<GetGraphConnectionsSingleResponseData>,
-        > = serde_json::from_str(body_str).unwrap();
+        let connections: ApiResponse<Vec<GraphConnectionsSingleResponseData>> =
+            serde_json::from_str(body_str).unwrap();
 
-        let expected_connections =
-            vec![GetGraphConnectionsSingleResponseData {
-                app: localhost(),
-                extension: "extension_1".to_string(),
-                cmd: Some(vec![DesignerMessageFlow {
-                    name: "hello_world".to_string(),
-                    dest: vec![DesignerDestination {
-                        app: localhost(),
-                        extension: "extension_2".to_string(),
-                        msg_conversion: None,
-                    }],
-                }]),
-                data: Some(vec![DesignerMessageFlow {
-                    name: "data".to_string(),
-                    dest: vec![DesignerDestination {
-                        app: localhost(),
-                        extension: "extension_2".to_string(),
-                        msg_conversion: None,
-                    }],
-                }]),
-                audio_frame: Some(vec![DesignerMessageFlow {
-                    name: "pcm".to_string(),
-                    dest: vec![DesignerDestination {
-                        app: localhost(),
-                        extension: "extension_2".to_string(),
-                        msg_conversion: None,
-                    }],
-                }]),
-                video_frame: Some(vec![DesignerMessageFlow {
-                    name: "image".to_string(),
-                    dest: vec![DesignerDestination {
-                        app: localhost(),
-                        extension: "extension_2".to_string(),
-                        msg_conversion: None,
-                    }],
-                }]),
-            }];
+        let expected_connections = vec![GraphConnectionsSingleResponseData {
+            app: localhost(),
+            extension: "extension_1".to_string(),
+            cmd: Some(vec![DesignerMessageFlow {
+                name: "hello_world".to_string(),
+                dest: vec![DesignerDestination {
+                    app: localhost(),
+                    extension: "extension_2".to_string(),
+                    msg_conversion: None,
+                }],
+            }]),
+            data: Some(vec![DesignerMessageFlow {
+                name: "data".to_string(),
+                dest: vec![DesignerDestination {
+                    app: localhost(),
+                    extension: "extension_2".to_string(),
+                    msg_conversion: None,
+                }],
+            }]),
+            audio_frame: Some(vec![DesignerMessageFlow {
+                name: "pcm".to_string(),
+                dest: vec![DesignerDestination {
+                    app: localhost(),
+                    extension: "extension_2".to_string(),
+                    msg_conversion: None,
+                }],
+            }]),
+            video_frame: Some(vec![DesignerMessageFlow {
+                name: "image".to_string(),
+                dest: vec![DesignerDestination {
+                    app: localhost(),
+                    extension: "extension_2".to_string(),
+                    msg_conversion: None,
+                }],
+            }]),
+        }];
 
         assert_eq!(connections.data, expected_connections);
         assert!(!connections.data.is_empty());
 
-        let json: ApiResponse<Vec<GetGraphConnectionsSingleResponseData>> =
+        let json: ApiResponse<Vec<GraphConnectionsSingleResponseData>> =
             serde_json::from_str(body_str).unwrap();
         let pretty_json = serde_json::to_string_pretty(&json).unwrap();
         println!("Response body: {}", pretty_json);
