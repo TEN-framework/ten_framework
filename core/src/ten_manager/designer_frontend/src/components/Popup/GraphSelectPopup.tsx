@@ -28,8 +28,8 @@ import {
 import { Button } from "@/components/ui/Button";
 import { SpinnerLoading } from "@/components/Status/Loading";
 import {
-  getGraphNodes,
-  getGraphConnections,
+  retrieveGraphNodes,
+  retrieveGraphConnections,
   useGraphs,
 } from "@/api/services/graphs";
 import { useApps } from "@/api/services/apps";
@@ -54,53 +54,57 @@ export function GraphSelectPopup() {
 
   const { graphs = [], error, isLoading } = useGraphs(selectedApp);
 
-  const handleSelectGraph = (graphName: string) => async () => {
-    try {
-      const backendNodes = await getGraphNodes(graphName);
-      const backendConnections = await getGraphConnections(graphName);
+  const handleSelectGraph =
+    (graphName: string, baseDir: string | null) => async () => {
+      try {
+        const backendNodes = await retrieveGraphNodes(graphName, baseDir);
+        const backendConnections = await retrieveGraphConnections(
+          graphName,
+          baseDir
+        );
 
-      let initialNodes: CustomNodeType[] = processNodes(backendNodes);
+        let initialNodes: CustomNodeType[] = processNodes(backendNodes);
 
-      const {
-        initialEdges,
-        nodeSourceCmdMap,
-        nodeSourceDataMap,
-        nodeSourceAudioFrameMap,
-        nodeSourceVideoFrameMap,
-        nodeTargetCmdMap,
-        nodeTargetDataMap,
-        nodeTargetAudioFrameMap,
-        nodeTargetVideoFrameMap,
-      } = processConnections(backendConnections);
+        const {
+          initialEdges,
+          nodeSourceCmdMap,
+          nodeSourceDataMap,
+          nodeSourceAudioFrameMap,
+          nodeSourceVideoFrameMap,
+          nodeTargetCmdMap,
+          nodeTargetDataMap,
+          nodeTargetAudioFrameMap,
+          nodeTargetVideoFrameMap,
+        } = processConnections(backendConnections);
 
-      // Write back the cmd information to nodes, so that CustomNode could
-      // generate corresponding handles.
-      initialNodes = enhanceNodesWithCommands(initialNodes, {
-        nodeSourceCmdMap,
-        nodeTargetCmdMap,
-        nodeSourceDataMap,
-        nodeTargetDataMap,
-        nodeSourceAudioFrameMap,
-        nodeSourceVideoFrameMap,
-        nodeTargetAudioFrameMap,
-        nodeTargetVideoFrameMap,
-      });
+        // Write back the cmd information to nodes, so that CustomNode could
+        // generate corresponding handles.
+        initialNodes = enhanceNodesWithCommands(initialNodes, {
+          nodeSourceCmdMap,
+          nodeTargetCmdMap,
+          nodeSourceDataMap,
+          nodeTargetDataMap,
+          nodeSourceAudioFrameMap,
+          nodeSourceVideoFrameMap,
+          nodeTargetAudioFrameMap,
+          nodeTargetVideoFrameMap,
+        });
 
-      // Fetch additional addon information for each node.
-      const nodesWithAddonInfo = await fetchAddonInfoForNodes(initialNodes);
+        // Fetch additional addon information for each node.
+        const nodesWithAddonInfo = await fetchAddonInfoForNodes(initialNodes);
 
-      // Auto-layout the nodes and edges.
-      const { nodes: layoutedNodes, edges: layoutedEdges } =
-        getLayoutedElements(nodesWithAddonInfo, initialEdges);
+        // Auto-layout the nodes and edges.
+        const { nodes: layoutedNodes, edges: layoutedEdges } =
+          getLayoutedElements(nodesWithAddonInfo, initialEdges);
 
-      setNodesAndEdges(layoutedNodes, layoutedEdges);
-    } catch (err: unknown) {
-      console.error(err);
-      toast.error("Failed to load graph.");
-    } finally {
-      removeWidget(GRAPH_SELECT_POPUP_ID);
-    }
-  };
+        setNodesAndEdges(layoutedNodes, layoutedEdges);
+      } catch (err: unknown) {
+        console.error(err);
+        toast.error("Failed to load graph.");
+      } finally {
+        removeWidget(GRAPH_SELECT_POPUP_ID);
+      }
+    };
 
   React.useEffect(() => {
     if (error instanceof Error) {
@@ -170,7 +174,7 @@ export function GraphSelectPopup() {
                 key={graph.name}
                 className="justify-start cursor-pointer"
                 variant="ghost"
-                onClick={handleSelectGraph(graph.name)}
+                onClick={handleSelectGraph(graph.name, selectedApp)}
               >
                 <li className="w-full">
                   <span className="text-sm">{graph.name}</span>

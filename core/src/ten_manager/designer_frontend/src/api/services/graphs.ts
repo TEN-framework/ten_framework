@@ -16,19 +16,25 @@ import { ENDPOINT_METHOD } from "@/api/endpoints/constant";
 
 import type { IGraph } from "@/types/graphs";
 
-export const getGraphNodes = async (graphName: string) => {
-  const template = ENDPOINT_GRAPHS.nodes[ENDPOINT_METHOD.GET];
+export const retrieveGraphNodes = async (
+  graphName: string,
+  baseDir?: string | null
+) => {
+  const template = ENDPOINT_GRAPHS.nodes[ENDPOINT_METHOD.POST];
   const req = makeAPIRequest(template, {
-    pathParams: { graphName: encodeURIComponent(graphName) },
+    body: { graph_name: graphName, ...(baseDir && { base_dir: baseDir }) },
   });
   const res = await req;
   return template.responseSchema.parse(res).data;
 };
 
-export const getGraphConnections = async (graphName: string) => {
-  const template = ENDPOINT_GRAPHS.connections[ENDPOINT_METHOD.GET];
+export const retrieveGraphConnections = async (
+  graphName: string,
+  baseDir?: string | null
+) => {
+  const template = ENDPOINT_GRAPHS.connections[ENDPOINT_METHOD.POST];
   const req = makeAPIRequest(template, {
-    pathParams: { graphName: encodeURIComponent(graphName) },
+    body: { graph_name: graphName, ...(baseDir && { base_dir: baseDir }) },
   });
   const res = await req;
   return template.responseSchema.parse(res).data;
