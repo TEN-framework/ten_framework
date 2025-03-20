@@ -58,12 +58,11 @@ TEN_RUNTIME_PRIVATE_API void ten_addon_host_find_and_set_base_dir(
     ten_addon_host_t *self, const char *path);
 
 TEN_RUNTIME_PRIVATE_API bool ten_addon_host_destroy_instance_async(
-    ten_addon_host_t *self, ten_env_t *ten_env, void *instance,
-    ten_env_addon_destroy_instance_done_cb_t cb, void *cb_data);
+    ten_addon_host_t *self, void *instance, ten_addon_context_t *addon_context);
 
 TEN_RUNTIME_PRIVATE_API void ten_addon_host_create_instance_async(
-    ten_addon_host_t *self, ten_env_t *ten_env, const char *name,
-    ten_env_addon_create_instance_done_cb_t cb, void *cb_data);
+    ten_addon_host_t *self, const char *name,
+    ten_addon_context_t *addon_context);
 
 TEN_RUNTIME_PRIVATE_API bool ten_addon_host_destroy_instance(
     ten_addon_host_t *self, ten_env_t *ten_env, void *instance);

@@ -228,7 +228,8 @@ bool ten_env_init_property_from_json(ten_env_t *self, const char *json_string,
 
   case TEN_ENV_ATTACH_TO_APP: {
     ten_app_t *app = self->attached_target.app;
-    TEN_ASSERT(app && ten_app_check_integrity(app, true), "Should not happen.");
+    TEN_ASSERT(app, "Should not happen.");
+    TEN_ASSERT(ten_app_check_integrity(app, true), "Should not happen.");
     if (app->state != TEN_APP_STATE_ON_CONFIGURE) {
       if (err) {
         ten_error_set(err, TEN_ERROR_CODE_GENERIC,

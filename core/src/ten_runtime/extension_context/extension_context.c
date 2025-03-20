@@ -379,8 +379,8 @@ static void ten_extension_context_add_extension_groups_info_from_graph(
 
 static void
 destroy_extension_group_by_addon(ten_extension_group_t *extension_group) {
-  TEN_ASSERT(extension_group &&
-                 ten_extension_group_check_integrity(extension_group, true),
+  TEN_ASSERT(extension_group, "Should not happen.");
+  TEN_ASSERT(ten_extension_group_check_integrity(extension_group, true),
              "Should not happen.");
 
   ten_extension_context_t *extension_context =

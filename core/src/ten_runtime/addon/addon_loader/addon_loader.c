@@ -67,14 +67,26 @@ bool ten_addon_create_addon_loader(ten_env_t *ten_env, const char *addon_name,
   TEN_ASSERT(ten_env->attach_to == TEN_ENV_ATTACH_TO_APP, "Should not happen.");
 
   ten_app_t *app = ten_env_get_attached_app(ten_env);
-  TEN_ASSERT(app && ten_app_check_integrity(app, true), "Should not happen.");
+  TEN_ASSERT(app, "Should not happen.");
+  TEN_ASSERT(ten_app_check_integrity(app, true), "Should not happen.");
 
   // This function is called in the app thread, so `ten_env` is the app's
   // `ten_env`.
   if (ten_app_thread_call_by_me(app)) {
-    return ten_addon_create_instance_async(ten_env, TEN_ADDON_TYPE_ADDON_LOADER,
-                                           addon_name, instance_name, cb,
-                                           cb_data);
+    ten_addon_context_t *addon_context = ten_addon_context_create();
+    addon_context->flow = TEN_ADDON_CONTEXT_FLOW_APP_CREATE_ADDON_LOADER;
+    addon_context->flow_target.app = app;
+    addon_context->create_instance_done_cb = cb;
+    addon_context->create_instance_done_cb_data = cb_data;
+
+    bool rc = ten_addon_create_instance_async(
+        ten_env, TEN_ADDON_TYPE_ADDON_LOADER, addon_name, instance_name,
+        addon_context);
+    if (!rc) {
+      ten_addon_context_destroy(addon_context);
+    }
+
+    return rc;
   } else {
     TEN_ASSERT(0, "Should not happen.");
     return true;

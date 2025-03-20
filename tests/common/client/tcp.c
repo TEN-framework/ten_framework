@@ -187,7 +187,8 @@ void ten_test_tcp_client_destroy(ten_test_tcp_client_t *self) {
 bool ten_test_tcp_client_send_msg(ten_test_tcp_client_t *self,
                                   ten_shared_ptr_t *msg) {
   TEN_ASSERT(self, "Invalid argument.");
-  TEN_ASSERT(msg && ten_msg_check_integrity(msg), "Invalid argument.");
+  TEN_ASSERT(msg, "Invalid argument.");
+  TEN_ASSERT(ten_msg_check_integrity(msg), "Invalid argument.");
 
   if (ten_msg_get_dest_cnt(msg) == 0) {
     ten_msg_clear_and_set_dest(msg, ten_string_get_raw_str(&self->app_id), NULL,
@@ -266,7 +267,8 @@ ten_shared_ptr_t *
 ten_test_tcp_client_send_and_recv_msg(ten_test_tcp_client_t *self,
                                       ten_shared_ptr_t *msg) {
   TEN_ASSERT(self, "Invalid argument.");
-  TEN_ASSERT(msg && ten_msg_check_integrity(msg), "Invalid argument.");
+  TEN_ASSERT(msg, "Invalid argument.");
+  TEN_ASSERT(ten_msg_check_integrity(msg), "Invalid argument.");
 
   if (ten_test_tcp_client_send_msg(self, msg)) {
     return ten_test_tcp_client_recv_msg(self);

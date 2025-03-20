@@ -47,7 +47,8 @@ ten_shared_ptr_t *ten_msg_conversion_per_property_rules_convert(
     ten_msg_conversion_per_property_rules_t *self, ten_shared_ptr_t *msg,
     ten_error_t *err) {
   TEN_ASSERT(self, "Invalid argument.");
-  TEN_ASSERT(msg && ten_msg_check_integrity(msg), "Invalid argument.");
+  TEN_ASSERT(msg, "Invalid argument.");
+  TEN_ASSERT(ten_msg_check_integrity(msg), "Invalid argument.");
 
   ten_shared_ptr_t *new_msg = NULL;
 
@@ -84,7 +85,8 @@ ten_shared_ptr_t *ten_result_conversion_per_property_rules_convert(
     ten_msg_conversion_per_property_rules_t *self, ten_shared_ptr_t *msg,
     ten_error_t *err) {
   TEN_ASSERT(self, "Invalid argument.");
-  TEN_ASSERT(msg && ten_msg_check_integrity(msg), "Invalid argument.");
+  TEN_ASSERT(msg, "Invalid argument.");
+  TEN_ASSERT(ten_msg_check_integrity(msg), "Invalid argument.");
 
   ten_shared_ptr_t *new_msg = NULL;
 

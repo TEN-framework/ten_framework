@@ -26,7 +26,8 @@ create_connection_when_client_accepted(ten_protocol_t *listening_protocol,
              "Should not happen.");
 
   ten_app_t *app = protocol->attached_target.app;
-  TEN_ASSERT(app && ten_app_check_integrity(app, true), "Should not happen.");
+  TEN_ASSERT(app, "Should not happen.");
+  TEN_ASSERT(ten_app_check_integrity(app, true), "Should not happen.");
 
   TEN_LOGD("[%s] A client is connected.", ten_app_get_uri(app));
 

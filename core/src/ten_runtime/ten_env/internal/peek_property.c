@@ -48,7 +48,8 @@ static void ten_env_peek_property_sync_context_destroy(
 
 static void ten_app_peek_property_sync_cb(ten_app_t *app, ten_value_t *res,
                                           void *cb_data) {
-  TEN_ASSERT(app && ten_app_check_integrity(app, true), "Should not happen.");
+  TEN_ASSERT(app, "Should not happen.");
+  TEN_ASSERT(ten_app_check_integrity(app, true), "Should not happen.");
 
   ten_env_peek_property_sync_context_t *context = cb_data;
   TEN_ASSERT(context, "Should not happen.");
@@ -98,8 +99,8 @@ static void ten_extension_peek_property_async_cb(ten_extension_t *extension,
 
 static void ten_extension_group_peek_property_async_cb(
     ten_extension_group_t *extension_group, ten_value_t *res, void *cb_data) {
-  TEN_ASSERT(extension_group &&
-                 ten_extension_group_check_integrity(extension_group, true),
+  TEN_ASSERT(extension_group, "Should not happen.");
+  TEN_ASSERT(ten_extension_group_check_integrity(extension_group, true),
              "Should not happen.");
 
   ten_env_peek_property_async_context_t *context = cb_data;
@@ -126,7 +127,8 @@ static void ten_env_peek_property_done_task(TEN_UNUSED void *from, void *arg) {
 
 static void ten_app_peek_property_async_cb_go_back_to_extension(
     ten_app_t *app, ten_value_t *res, void *cb_data) {
-  TEN_ASSERT(app && ten_app_check_integrity(app, true), "Should not happen.");
+  TEN_ASSERT(app, "Should not happen.");
+  TEN_ASSERT(ten_app_check_integrity(app, true), "Should not happen.");
 
   ten_env_peek_property_async_context_t *context = cb_data;
   TEN_ASSERT(context, "Should not happen.");
@@ -145,7 +147,8 @@ static void ten_app_peek_property_async_cb_go_back_to_extension(
 
 static void ten_app_peek_property_async_cb_go_back_to_extension_group(
     ten_app_t *app, ten_value_t *res, void *cb_data) {
-  TEN_ASSERT(app && ten_app_check_integrity(app, true), "Should not happen.");
+  TEN_ASSERT(app, "Should not happen.");
+  TEN_ASSERT(ten_app_check_integrity(app, true), "Should not happen.");
 
   ten_env_peek_property_async_context_t *context = cb_data;
   TEN_ASSERT(context, "Should not happen.");
@@ -164,7 +167,8 @@ static void ten_app_peek_property_async_cb_go_back_to_extension_group(
 
 static void ten_app_peek_property_async_cb(ten_app_t *app, ten_value_t *res,
                                            void *cb_data) {
-  TEN_ASSERT(app && ten_app_check_integrity(app, true), "Should not happen.");
+  TEN_ASSERT(app, "Should not happen.");
+  TEN_ASSERT(ten_app_check_integrity(app, true), "Should not happen.");
 
   ten_env_peek_property_async_context_t *context = cb_data;
   TEN_ASSERT(context, "Should not happen.");

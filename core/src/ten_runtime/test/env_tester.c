@@ -833,7 +833,8 @@ static void test_app_ten_env_send_close_app_cmd(ten_env_t *ten_env,
   TEN_ASSERT(ten_env_check_integrity(ten_env, true), "Should not happen.");
 
   ten_app_t *app = ten_env->attached_target.app;
-  TEN_ASSERT(app && ten_app_check_integrity(app, true), "Should not happen.");
+  TEN_ASSERT(app, "Should not happen.");
+  TEN_ASSERT(ten_app_check_integrity(app, true), "Should not happen.");
 
   ten_shared_ptr_t *close_app_cmd = ten_cmd_close_app_create();
   TEN_ASSERT(close_app_cmd, "Should not happen.");

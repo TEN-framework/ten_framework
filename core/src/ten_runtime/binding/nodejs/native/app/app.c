@@ -199,7 +199,8 @@ done:
 }
 
 static void proxy_on_configure(ten_app_t *app, ten_env_t *ten_env) {
-  TEN_ASSERT(app && ten_app_check_integrity(app, true), "Should not happen.");
+  TEN_ASSERT(app, "Should not happen.");
+  TEN_ASSERT(ten_app_check_integrity(app, true), "Should not happen.");
   TEN_ASSERT(ten_env, "Should not happen.");
   TEN_ASSERT(ten_env_check_integrity(ten_env, true), "Should not happen.");
 
@@ -233,7 +234,8 @@ static void proxy_on_configure(ten_app_t *app, ten_env_t *ten_env) {
 }
 
 static void proxy_on_init(ten_app_t *app, ten_env_t *ten_env) {
-  TEN_ASSERT(app && ten_app_check_integrity(app, true), "Should not happen.");
+  TEN_ASSERT(app, "Should not happen.");
+  TEN_ASSERT(ten_app_check_integrity(app, true), "Should not happen.");
   TEN_ASSERT(ten_env, "Should not happen.");
   TEN_ASSERT(ten_env_check_integrity(ten_env, true), "Should not happen.");
 
@@ -270,7 +272,8 @@ static void proxy_on_init(ten_app_t *app, ten_env_t *ten_env) {
 }
 
 static void proxy_on_deinit(ten_app_t *app, ten_env_t *ten_env) {
-  TEN_ASSERT(app && ten_app_check_integrity(app, true), "Should not happen.");
+  TEN_ASSERT(app, "Should not happen.");
+  TEN_ASSERT(ten_app_check_integrity(app, true), "Should not happen.");
   TEN_ASSERT(ten_env, "Should not happen.");
   TEN_ASSERT(ten_env_check_integrity(ten_env, true), "Should not happen.");
 
