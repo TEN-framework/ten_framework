@@ -20,7 +20,7 @@ use ten_rust::pkg_info::{
     api::{
         PkgApiCmdLike, PkgApiDataLike, PkgPropertyAttributes, PkgPropertyItem,
     },
-    graph::GraphNode,
+    graph::node::GraphNode,
 };
 use ten_rust::pkg_info::{
     pkg_type::PkgType,
@@ -41,7 +41,7 @@ pub struct GetGraphNodesRequestPayload {
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
-pub struct GetGraphNodesSingleResponseData {
+pub struct GraphNodesSingleResponseData {
     pub addon: String,
     pub name: String,
 
@@ -61,7 +61,7 @@ pub struct GetGraphNodesSingleResponseData {
     pub is_installed: bool,
 }
 
-impl TryFrom<GraphNode> for GetGraphNodesSingleResponseData {
+impl TryFrom<GraphNode> for GraphNodesSingleResponseData {
     type Error = anyhow::Error;
 
     fn try_from(node: GraphNode) -> Result<Self, Self::Error> {
@@ -72,7 +72,7 @@ impl TryFrom<GraphNode> for GetGraphNodesSingleResponseData {
             ));
         }
 
-        Ok(GetGraphNodesSingleResponseData {
+        Ok(GraphNodesSingleResponseData {
             addon: node.addon,
             name: node.type_and_name.name,
             extension_group: node
@@ -278,14 +278,13 @@ pub async fn get_graph_nodes_endpoint(
                 }
             };
 
-        let mut resp_extensions: Vec<GetGraphNodesSingleResponseData> =
-            Vec::new();
+        let mut resp_extensions: Vec<GraphNodesSingleResponseData> = Vec::new();
 
         for extension_graph_node in &extension_graph_nodes {
             let pkg_info =
                 get_pkg_info_for_extension(extension_graph_node, all_pkgs);
             if let Some(pkg_info) = pkg_info {
-                resp_extensions.push(GetGraphNodesSingleResponseData {
+                resp_extensions.push(GraphNodesSingleResponseData {
                     addon: extension_graph_node.addon.clone(),
                     name: extension_graph_node.type_and_name.name.clone(),
                     extension_group: extension_graph_node
@@ -366,7 +365,7 @@ pub async fn get_graph_nodes_endpoint(
                     is_installed: true,
                 });
             } else {
-                match GetGraphNodesSingleResponseData::try_from(
+                match GraphNodesSingleResponseData::try_from(
                     extension_graph_node.clone(),
                 ) {
                     Ok(designer_ext) => {
@@ -477,12 +476,12 @@ mod tests {
         let body = test::read_body(resp).await;
         let body_str = std::str::from_utf8(&body).unwrap();
 
-        let extensions: ApiResponse<Vec<GetGraphNodesSingleResponseData>> =
+        let extensions: ApiResponse<Vec<GraphNodesSingleResponseData>> =
             serde_json::from_str(body_str).unwrap();
 
         // Create the expected Version struct
         let expected_extensions = vec![
-            GetGraphNodesSingleResponseData {
+            GraphNodesSingleResponseData {
                 addon: "extension_addon_1".to_string(),
                 name: "extension_1".to_string(),
                 extension_group: "extension_group_1".to_string(),
@@ -535,7 +534,7 @@ mod tests {
                 property: None,
                 is_installed: true,
             },
-            GetGraphNodesSingleResponseData {
+            GraphNodesSingleResponseData {
                 addon: "extension_addon_2".to_string(),
                 name: "extension_2".to_string(),
                 extension_group: "extension_group_1".to_string(),
@@ -610,7 +609,7 @@ mod tests {
                 })),
                 is_installed: true,
             },
-            GetGraphNodesSingleResponseData {
+            GraphNodesSingleResponseData {
                 addon: "extension_addon_3".to_string(),
                 name: "extension_3".to_string(),
                 extension_group: "extension_group_1".to_string(),
@@ -653,7 +652,7 @@ mod tests {
         assert_eq!(extensions.data, expected_extensions);
         assert!(!extensions.data.is_empty());
 
-        let json: ApiResponse<Vec<GetGraphNodesSingleResponseData>> =
+        let json: ApiResponse<Vec<GraphNodesSingleResponseData>> =
             serde_json::from_str(body_str).unwrap();
         let pretty_json = serde_json::to_string_pretty(&json).unwrap();
         println!("Response body: {}", pretty_json);
@@ -760,7 +759,7 @@ mod tests {
         let body = test::read_body(resp).await;
         let body_str = std::str::from_utf8(&body).unwrap();
 
-        let json: ApiResponse<Vec<GetGraphNodesSingleResponseData>> =
+        let json: ApiResponse<Vec<GraphNodesSingleResponseData>> =
             serde_json::from_str(body_str).unwrap();
         let pretty_json = serde_json::to_string_pretty(&json).unwrap();
         println!("Response body: {}", pretty_json);
