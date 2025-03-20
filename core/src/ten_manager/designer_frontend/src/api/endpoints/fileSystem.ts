@@ -36,10 +36,29 @@ export const ENDPOINT_FILE_SYSTEM = {
     },
   },
   dirList: {
+    /** @deprecated */
     [ENDPOINT_METHOD.GET]: {
       url: `${API_DESIGNER_V1}/dir-list/:path`,
       method: ENDPOINT_METHOD.GET,
       pathParams: ["path"],
+      responseSchema: genResSchema<IBaseDirResponse>(
+        z.object({
+          entries: z.array(
+            z.object({
+              name: z.string(),
+              path: z.string(),
+              is_dir: z.boolean().optional(),
+            })
+          ),
+        })
+      ),
+    },
+    [ENDPOINT_METHOD.POST]: {
+      url: `${API_DESIGNER_V1}/dir-list`,
+      method: ENDPOINT_METHOD.POST,
+      requestSchema: z.object({
+        path: z.string(),
+      }),
       responseSchema: genResSchema<IBaseDirResponse>(
         z.object({
           entries: z.array(

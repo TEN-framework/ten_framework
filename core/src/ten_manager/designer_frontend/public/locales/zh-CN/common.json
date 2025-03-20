@@ -3,27 +3,50 @@
   "ten": "TEN",
   "header": {
     "title": "Ten 管理器",
-    "menu": {
-      "graph": "图谱",
+    "menuApp": {
+      "title": "应用",
+      "loadApp": "加载应用",
+      "loadAppSuccess": "应用加载成功",
+      "loadAppFailed": "应用加载失败",
+      "reloadApp": "重新加载应用",
+      "reloadAppSuccess": "应用重新加载成功",
+      "reloadAppFailed": "应用重新加载失败",
+      "reloadAllApps": "重新加载所有应用",
+      "reloadAllAppsSuccess": "所有应用重新加载成功",
+      "reloadAllAppsFailed": "重新加载所有应用失败",
+      "unloadApp": "卸载应用",
+      "unloadAppSuccess": "应用卸载成功",
+      "unloadAppFailed": "应用卸载失败",
+      "installAll": "安装所有",
+      "manageLoadedApps": "管理已加载应用",
+      "runApp": "运行应用",
+      "openAppFolder": "打开应用文件夹"
+    },
+    "menuGraph": {
+      "title": "图谱",
       "openExistingGraph": "打开现有图谱",
       "openExtensionStore": "打开扩展商店",
       "autoLayout": "自动布局",
-      "openAppFolder": "打开应用文件夹",
-      "file": "文件",
-      "app": "应用",
-      "help": "帮助",
-      "about": "关于",
-      "language": "语言",
-      "language.enUS": "English",
-      "language.zhCN": "中文(简体)",
-      "language.zhTW": "中文(繁體)",
-      "theme": "主题",
-      "theme.light": "明亮",
-      "theme.dark": "暗黑",
-      "theme.system": "系统",
-      "start": "启动",
-      "preferences": "偏好设置",
-      "installAll": "安装所有"
+      "selectLoadedApp": "选择已加载应用"
+    },
+    "menuHelp": {
+      "title": "文件"
+    },
+    "menuAbout": {
+      "title": "关于"
+    },
+    "language": {
+      "title": "语言",
+      "enUS": "English",
+      "zhCN": "中文(简体)",
+      "zhTW": "中文(繁體)",
+      "jaJP": "日本語"
+    },
+    "theme": {
+      "title": "主题",
+      "light": "明亮",
+      "dark": "暗黑",
+      "system": "系统"
     },
     "officialSite": "官方网站",
     "poweredBy": "技术支持",
@@ -51,7 +74,9 @@
     "unsaved": "未保存",
     "launchLogViewer": "查看日志",
     "stop": "停止",
-    "search": "搜索"
+    "search": "搜索",
+    "current": "当前",
+    "run": "运行"
   },
   "toast": {
     "saveFileSuccess": "文件保存成功",
@@ -83,6 +108,14 @@
       "errorGetBaseDir": "获取基础目录失败",
       "errorOpenAppFolder": "打开应用文件夹失败",
       "errorUnknown": "发生未知错误。"
+    },
+    "apps": {
+      "manager": "应用管理器",
+      "tableCaption": "已加载应用列表。",
+      "baseDir": "基础目录",
+      "run": "运行应用",
+      "runScript": "运行脚本",
+      "runScriptPlaceholder": "输入要运行的脚本"
     }
   },
   "dock": {
@@ -94,6 +127,7 @@
   },
   "dataTable": {
     "no": "序号",
+    "name": "名称",
     "upstream": "上游",
     "downstream": "下游",
     "type": "类型",
@@ -107,10 +141,12 @@
   },
   "extensionStore": {
     "title": "扩展商店",
+    "readOnly": "只读",
     "compatible": "兼容性",
     "dependencies": "依赖项",
     "searchPlaceholder": "搜索扩展...",
     "installedWithSum": "已安装 {{count}}/{{total}} 个",
+    "openAGraphToInstall": "打开图谱以安装扩展",
     "noMatchResult": "无匹配结果",
     "matchResult": "找到 {{count}} 个匹配结果",
     "install": "安装",
@@ -134,5 +170,14 @@
     "selectVersion": "选择版本",
     "versionLatest": "最新",
     "localAddonTip": "(本地)"
+  },
+  "statusBar": {
+    "appsLoadedWithCount": "已加载 {{count}} 个应用",
+    "appsError": "获取应用失败",
+    "workspace": {
+      "title": "当前工作区",
+      "baseDir": "基础目录",
+      "graphName": "图谱名称"
+    }
   }
 }

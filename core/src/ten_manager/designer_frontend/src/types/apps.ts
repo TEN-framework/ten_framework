@@ -16,6 +16,10 @@ export interface IGetBaseDirResponse {
   base_dir: string | null;
 }
 
+export interface IGetAppsResponse {
+  base_dirs: string[];
+}
+
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface IExtensionAddon
   extends z.infer<typeof TenLocalStorePackageSchema> {}

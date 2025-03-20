@@ -20,6 +20,12 @@ import { ExtensionSearch } from "@/components/Widget/ExtensionWidget/ExtensionSe
 // eslint-disable-next-line max-len
 import { ExtensionDetails } from "@/components/Widget/ExtensionWidget/ExtensionDetails";
 import { cn, compareVersions } from "@/lib/utils";
+import {
+  EDefaultWidgetType,
+  EWidgetCategory,
+  EWidgetDisplayType,
+} from "@/types/widgets";
+import { GRAPH_SELECT_POPUP_ID } from "@/constants/widgets";
 
 import type { TooltipContentProps } from "@radix-ui/react-tooltip";
 import {
@@ -40,8 +46,9 @@ export const ExtensionStoreWidget = (props: {
   const { t } = useTranslation();
   const { data, error, isLoading } = useListTenCloudStorePackages();
   const { data: envData, error: envError, isLoading: isLoadingEnv } = useEnv();
-  const { extSearch, extFilter } = useWidgetStore();
-  const { addons, setAddons, setDefaultOsArch } = useAppStore();
+  const { extSearch, extFilter, appendWidgetIfNotExists } = useWidgetStore();
+  const { addons, setAddons, setDefaultOsArch, currentWorkspace } =
+    useAppStore();
 
   const deferredSearch = React.useDeferredValue(extSearch);
 
@@ -221,11 +228,24 @@ export const ExtensionStoreWidget = (props: {
     extFilter.showInstalled,
   ]);
 
+  const onOpenExistingGraph = () => {
+    appendWidgetIfNotExists({
+      id: GRAPH_SELECT_POPUP_ID,
+      category: EWidgetCategory.Default,
+      display_type: EWidgetDisplayType.Popup,
+      metadata: {
+        type: EDefaultWidgetType.GraphSelect,
+      },
+    });
+  };
+
   React.useEffect(() => {
-    const fetchAddons = async () => {
+    const fetchAddons = async (baseDir: string) => {
       try {
         setIsFetchingAddons(true);
-        const res = await retrieveAddons({});
+        const res = await retrieveAddons({
+          base_dir: baseDir,
+        });
         setAddons(res);
       } catch (error) {
         console.error("Failed to fetch addons", error);
@@ -237,9 +257,11 @@ export const ExtensionStoreWidget = (props: {
       }
     };
 
-    fetchAddons();
+    if (currentWorkspace.baseDir) {
+      fetchAddons(currentWorkspace.baseDir);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [currentWorkspace.baseDir]);
 
   React.useEffect(() => {
     if (error) {
@@ -292,7 +314,8 @@ export const ExtensionStoreWidget = (props: {
 
           {deferredSearch.trim() === "" &&
             extFilter.showInstalled &&
-            extFilter.showUninstalled && (
+            extFilter.showUninstalled &&
+            currentWorkspace?.baseDir && (
               <p className="ml-auto w-fit">
                 {t("extensionStore.installedWithSum", {
                   count:
@@ -305,6 +328,15 @@ export const ExtensionStoreWidget = (props: {
                 })}
               </p>
             )}
+
+          {!currentWorkspace?.baseDir && (
+            <p
+              className="ml-auto w-fit cursor-pointer"
+              onClick={onOpenExistingGraph}
+            >
+              {t("extensionStore.openAGraphToInstall")}
+            </p>
+          )}
         </div>
       </div>
 
@@ -312,6 +344,7 @@ export const ExtensionStoreWidget = (props: {
         items={matched}
         versions={versions}
         toolTipSide={toolTipSide}
+        readOnly={!currentWorkspace?.baseDir}
       />
     </div>
   );
@@ -324,11 +357,18 @@ export const ExtensionWidget = (props: {
 }) => {
   const { className, versions, name } = props;
 
+  const { currentWorkspace } = useAppStore();
+
   if (versions?.length === 0) {
     return null;
   }
 
   return (
-    <ExtensionDetails versions={versions} name={name} className={className} />
+    <ExtensionDetails
+      versions={versions}
+      name={name}
+      className={className}
+      readOnly={!currentWorkspace?.baseDir}
+    />
   );
 };
