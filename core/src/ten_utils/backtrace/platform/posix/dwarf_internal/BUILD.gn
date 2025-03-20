@@ -6,12 +6,5 @@
 #
 import("//build/ten_utils/utils.gni")
 
-ten_utils_glob("posix") {
-  deps = [ "dwarf_internal" ]
-
-  if (is_linux) {
-    deps += [ "linux" ]
-  } else if (is_mac) {
-    deps += [ "darwin" ]
-  }
+ten_utils_glob("dwarf_internal") {
 }
