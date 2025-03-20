@@ -37,7 +37,7 @@ export function ModeToggle() {
               "dark:rotate-0 dark:scale-100"
             )}
           />
-          <span className="sr-only">{t("header.theme")}</span>
+          <span className="sr-only">{t("header.theme.title")}</span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
