@@ -60,6 +60,9 @@ out/
 node_modules/
 *.tsbuildinfo
 
+# Package lock files
+core/src/ten_manager/designer_frontend/package-lock.json
+
 # Nodejs binding
 core/src/ten_runtime/binding/nodejs/build
 
