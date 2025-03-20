@@ -118,7 +118,12 @@ static void ten_app_on_endpoint_protocol_created(ten_env_t *ten_env,
   ten_app_start_auto_start_predefined_graph_and_trigger_on_init(self);
 }
 
-void ten_app_on_all_addon_loaders_created(ten_app_t *self) {
+static void ten_app_on_all_addon_loaders_created(ten_env_t *ten_env,
+                                                 void *cb_data) {
+  TEN_ASSERT(ten_env, "Should not happen.");
+  TEN_ASSERT(ten_env_check_integrity(ten_env, true), "Should not happen.");
+
+  ten_app_t *self = (ten_app_t *)cb_data;
   TEN_ASSERT(self && ten_app_check_integrity(self, true), "Should not happen.");
 
   int lock_operation_rc = ten_addon_loader_singleton_store_unlock();
@@ -230,11 +235,8 @@ void ten_app_on_configure_done(ten_env_t *ten_env) {
   // @}
 
   // Create addon loader singleton instances.
-  bool need_to_wait_all_addon_loaders_created =
-      ten_addon_loader_addons_create_singleton_instance(ten_env, &err);
-  if (!need_to_wait_all_addon_loaders_created) {
-    ten_app_on_all_addon_loaders_created(self);
-  }
+  ten_addon_loader_addons_create_singleton_instance(
+      ten_env, ten_app_on_all_addon_loaders_created, self);
 }
 
 void ten_app_on_configure(ten_env_t *ten_env) {

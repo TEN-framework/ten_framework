@@ -42,7 +42,8 @@ static void ten_notify_data_destroy(ten_notify_data_t *self) {
 
 static void ten_notify_to_app_task(void *self_, void *arg) {
   ten_app_t *app = self_;
-  TEN_ASSERT(app && ten_app_check_integrity(app, true), "Invalid argument.");
+  TEN_ASSERT(app, "Invalid argument.");
+  TEN_ASSERT(ten_app_check_integrity(app, true), "Invalid argument.");
 
   ten_notify_data_t *notify_data = (ten_notify_data_t *)arg;
   TEN_ASSERT(notify_data, "Invalid argument.");

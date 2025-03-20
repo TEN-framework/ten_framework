@@ -36,7 +36,4 @@ ten_app_thread_on_addon_create_addon_loader_done_ctx_create(void);
 TEN_RUNTIME_PRIVATE_API void ten_app_thread_on_addon_create_addon_loader_done(
     void *self, void *arg);
 
-TEN_RUNTIME_PRIVATE_API void ten_app_on_all_addon_loaders_created(
-    ten_app_t *self);
-
 TEN_RUNTIME_PRIVATE_API bool ten_app_on_ten_env_proxy_released(ten_env_t *self);

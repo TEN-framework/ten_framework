@@ -16,7 +16,8 @@
 
 bool ten_app_set_property(ten_app_t *app, const char *name, ten_value_t *value,
                           ten_error_t *err) {
-  TEN_ASSERT(app && ten_app_check_integrity(app, true), "Invalid argument.");
+  TEN_ASSERT(app, "Invalid argument.");
+  TEN_ASSERT(ten_app_check_integrity(app, true), "Invalid argument.");
   TEN_ASSERT(name && value && ten_value_check_integrity(value),
              "Invalid argument.");
 
@@ -33,9 +34,9 @@ bool ten_app_set_property(ten_app_t *app, const char *name, ten_value_t *value,
   return ten_value_object_move(&app->property, name, value);
 }
 
-static ten_app_set_property_context_t *set_property_context_create(
-    const char *name, ten_value_t *value, ten_app_set_property_async_cb_t cb,
-    void *cb_data) {
+static ten_app_set_property_context_t *
+set_property_context_create(const char *name, ten_value_t *value,
+                            ten_app_set_property_async_cb_t cb, void *cb_data) {
   ten_app_set_property_context_t *set_prop =
       TEN_MALLOC(sizeof(ten_app_set_property_context_t));
   TEN_ASSERT(set_prop, "Failed to allocate memory.");
@@ -96,7 +97,8 @@ void ten_app_set_property_async(ten_app_t *self, const char *name,
 }
 
 ten_value_t *ten_app_peek_property(ten_app_t *app, const char *name) {
-  TEN_ASSERT(app && ten_app_check_integrity(app, true), "Invalid argument.");
+  TEN_ASSERT(app, "Invalid argument.");
+  TEN_ASSERT(ten_app_check_integrity(app, true), "Invalid argument.");
   TEN_ASSERT(name, "Invalid argument.");
 
   ten_value_t *item = ten_value_object_peek(&app->property, name);
@@ -121,8 +123,8 @@ static ten_app_peek_property_context_t *ten_app_peek_property_context_create(
   return context;
 }
 
-static void ten_app_peek_property_context_destroy(
-    ten_app_peek_property_context_t *self) {
+static void
+ten_app_peek_property_context_destroy(ten_app_peek_property_context_t *self) {
   TEN_ASSERT(self, "Invalid argument.");
 
   ten_string_deinit(&self->name);
@@ -201,8 +203,8 @@ static ten_app_peek_manifest_context_t *ten_app_peek_manifest_context_create(
   return context;
 }
 
-static void ten_app_peek_manifest_context_destroy(
-    ten_app_peek_manifest_context_t *self) {
+static void
+ten_app_peek_manifest_context_destroy(ten_app_peek_manifest_context_t *self) {
   TEN_ASSERT(self, "Invalid argument.");
 
   ten_string_deinit(&self->name);
