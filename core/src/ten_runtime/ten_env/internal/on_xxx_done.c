@@ -26,7 +26,7 @@
 #include "ten_utils/macro/check.h"
 #include "ten_utils/macro/mark.h"
 
-bool ten_env_on_configure_done(ten_env_t *self, ten_error_t *err) {
+bool ten_env_on_configure_done(ten_env_t *self, TEN_UNUSED ten_error_t *err) {
   TEN_ASSERT(self, "Invalid argument.");
   TEN_ASSERT(
       ten_env_check_integrity(
@@ -54,7 +54,7 @@ bool ten_env_on_configure_done(ten_env_t *self, ten_error_t *err) {
   return true;
 }
 
-bool ten_env_on_init_done(ten_env_t *self, ten_error_t *err) {
+bool ten_env_on_init_done(ten_env_t *self, TEN_UNUSED ten_error_t *err) {
   TEN_ASSERT(self, "Invalid argument.");
   TEN_ASSERT(
       ten_env_check_integrity(
@@ -183,10 +183,6 @@ bool ten_env_on_destroy_instance_done(ten_env_t *self, void *context,
   switch (self->attach_to) {
   case TEN_ENV_ATTACH_TO_ADDON:
     ten_addon_on_destroy_instance_done(self, context);
-    break;
-
-  case TEN_ENV_ATTACH_TO_ENGINE:
-    ten_extension_context_on_addon_destroy_extension_group_done(self, context);
     break;
 
   case TEN_ENV_ATTACH_TO_EXTENSION_GROUP:

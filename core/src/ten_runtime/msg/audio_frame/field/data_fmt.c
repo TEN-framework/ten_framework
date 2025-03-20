@@ -14,21 +14,21 @@
 #include "ten_utils/macro/check.h"
 #include "ten_utils/macro/mark.h"
 
-const char *ten_audio_frame_data_fmt_to_string(
-    const TEN_AUDIO_FRAME_DATA_FMT data_fmt) {
+const char *
+ten_audio_frame_data_fmt_to_string(const TEN_AUDIO_FRAME_DATA_FMT data_fmt) {
   switch (data_fmt) {
-    case TEN_AUDIO_FRAME_DATA_FMT_INTERLEAVE:
-      return "interleave";
-    case TEN_AUDIO_FRAME_DATA_FMT_NON_INTERLEAVE:
-      return "non_interleave";
-    default:
-      TEN_ASSERT(0, "Should not happen.");
-      return NULL;
+  case TEN_AUDIO_FRAME_DATA_FMT_INTERLEAVE:
+    return "interleave";
+  case TEN_AUDIO_FRAME_DATA_FMT_NON_INTERLEAVE:
+    return "non_interleave";
+  default:
+    TEN_ASSERT(0, "Should not happen.");
+    return NULL;
   }
 }
 
-TEN_AUDIO_FRAME_DATA_FMT ten_audio_frame_data_fmt_from_string(
-    const char *data_fmt_str) {
+TEN_AUDIO_FRAME_DATA_FMT
+ten_audio_frame_data_fmt_from_string(const char *data_fmt_str) {
   if (!strcmp(data_fmt_str, "interleave")) {
     return TEN_AUDIO_FRAME_DATA_FMT_INTERLEAVE;
   } else if (!strcmp(data_fmt_str, "non_interleave")) {
@@ -53,7 +53,8 @@ void ten_audio_frame_copy_data_fmt(ten_msg_t *self, ten_msg_t *src,
 bool ten_audio_frame_process_data_fmt(ten_msg_t *self,
                                       ten_raw_msg_process_one_field_func_t cb,
                                       void *user_data, ten_error_t *err) {
-  TEN_ASSERT(self && ten_raw_msg_check_integrity(self), "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_raw_msg_check_integrity(self), "Should not happen.");
 
   ten_msg_field_process_data_t data_fmt_field;
   ten_msg_field_process_data_init(&data_fmt_field, TEN_STR_DATA_FMT,

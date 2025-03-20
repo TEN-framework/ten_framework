@@ -84,8 +84,8 @@ static bool ten_engine_close_duplicated_remote_or_upgrade_it_to_normal(
 
 static bool ten_engine_handle_cmd_result_for_cmd_start_graph(
     ten_engine_t *self, ten_shared_ptr_t *cmd_result, ten_error_t *err) {
-  TEN_ASSERT(self && ten_engine_check_integrity(self, true),
-             "Invalid argument.");
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_engine_check_integrity(self, true), "Invalid argument.");
   TEN_ASSERT(cmd_result, "Should not happen.");
   TEN_ASSERT(ten_msg_get_type(cmd_result) == TEN_MSG_TYPE_CMD_RESULT,
              "Should not happen.");
@@ -194,6 +194,12 @@ void ten_engine_handle_cmd_result(ten_engine_t *self,
     bool rc =
         ten_engine_handle_cmd_result_for_cmd_start_graph(self, cmd_result, err);
     TEN_ASSERT(rc, "Should not happen.");
+    break;
+  }
+
+  case TEN_MSG_TYPE_CMD_RESULT: {
+    ten_msg_dump(cmd_result, NULL, "cmd_result: ^m");
+    TEN_ASSERT(0, "Should not happen.");
     break;
   }
 

@@ -95,8 +95,8 @@ void ten_go_addon_unregister(uintptr_t bridge_addr) {
 static void ten_go_addon_on_init_helper(ten_addon_t *addon,
                                         ten_env_t *ten_env) {
   TEN_ASSERT(addon && ten_addon_check_integrity(addon), "Invalid argument.");
-  TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
-             "Invalid argument.");
+  TEN_ASSERT(ten_env, "Invalid argument.");
+  TEN_ASSERT(ten_env_check_integrity(ten_env, true), "Invalid argument.");
 
   ten_go_addon_t *addon_bridge =
       (ten_go_addon_t *)addon->binding_handle.me_in_target_lang;

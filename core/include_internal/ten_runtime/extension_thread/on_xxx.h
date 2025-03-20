@@ -32,6 +32,9 @@ ten_extension_thread_on_extension_group_on_init_done(void *self_, void *arg);
 TEN_RUNTIME_PRIVATE_API void
 ten_extension_thread_on_extension_group_on_deinit_done(void *self_, void *arg);
 
+TEN_RUNTIME_PRIVATE_API void ten_extension_thread_on_removed_from_engine(
+    void *self_, void *arg);
+
 TEN_RUNTIME_PRIVATE_API void ten_extension_thread_on_all_extensions_deleted(
     void *self_, void *arg);
 
@@ -46,3 +49,7 @@ TEN_RUNTIME_PRIVATE_API void ten_extension_thread_create_extension_instance(
 
 TEN_RUNTIME_PRIVATE_API void ten_extension_thread_destroy_addon_instance(
     void *self_, void *arg);
+
+TEN_RUNTIME_PRIVATE_API void
+ten_extension_thread_on_addon_destroy_extension_group_done(void *self_,
+                                                           void *arg);

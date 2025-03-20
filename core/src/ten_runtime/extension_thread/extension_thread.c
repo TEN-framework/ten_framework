@@ -160,19 +160,6 @@ void ten_extension_thread_destroy(ten_extension_thread_t *self) {
   TEN_FREE(self);
 }
 
-void ten_extension_thread_remove_from_extension_context(
-    ten_extension_thread_t *self) {
-  TEN_ASSERT(self, "Invalid argument.");
-  TEN_ASSERT(ten_extension_thread_check_integrity(self, true),
-             "Invalid use of extension_thread %p.", self);
-  TEN_ASSERT(ten_engine_check_integrity(self->extension_context->engine, true),
-             "Should not happen.");
-
-  self->extension_group->extension_thread = NULL;
-
-  ten_extension_thread_destroy(self);
-}
-
 // Notify extension context (engine) that we (extension thread) are closed, so
 // that engine can join this thread to prevent memory leak.
 static void
@@ -246,12 +233,12 @@ ten_extension_thread_inherit_thread_ownership(ten_extension_thread_t *self) {
 static void *ten_extension_thread_main_actual(ten_extension_thread_t *self) {
   TEN_LOGD("Extension thread is started");
 
-  TEN_ASSERT(self &&
-                 // TEN_NOLINTNEXTLINE(thread-check)
-                 // thread-check: The correct threading ownership will be setup
-                 // soon, so we can _not_ check thread safety here.
-                 ten_extension_thread_check_integrity(self, false),
-             "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(
+      // TEN_NOLINTNEXTLINE(thread-check)
+      // thread-check: The correct threading ownership will be setup
+      // soon, so we can _not_ check thread safety here.
+      ten_extension_thread_check_integrity(self, false), "Should not happen.");
 
   ten_extension_thread_inherit_thread_ownership(self);
 

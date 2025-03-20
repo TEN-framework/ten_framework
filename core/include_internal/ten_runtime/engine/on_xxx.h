@@ -23,10 +23,10 @@ typedef struct ten_engine_thread_on_addon_create_protocol_done_ctx_t {
 TEN_RUNTIME_PRIVATE_API void ten_engine_on_extension_thread_closed(void *self_,
                                                                    void *arg);
 
-TEN_RUNTIME_PRIVATE_API void ten_engine_on_addon_create_extension_group_done(
+TEN_RUNTIME_PRIVATE_API void ten_engine_on_remove_extension_thread_from_engine(
     void *self_, void *arg);
 
-TEN_RUNTIME_PRIVATE_API void ten_engine_on_addon_destroy_extension_group_done(
+TEN_RUNTIME_PRIVATE_API void ten_engine_on_addon_create_extension_group_done(
     void *self_, void *arg);
 
 TEN_RUNTIME_PRIVATE_API ten_engine_thread_on_addon_create_protocol_done_ctx_t *

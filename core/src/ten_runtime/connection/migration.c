@@ -42,8 +42,8 @@ bool ten_connection_needs_to_migrate(ten_connection_t *self,
   // thread-check: This function is always called in the app thread, and the
   // engine may have its own thread, so we do not check thread safety here. As
   // the 'ten_engine_t::has_own_loop' is immutable, there is no access issues.
-  TEN_ASSERT(engine && ten_engine_check_integrity(engine, false),
-             "Invalid argument.");
+  TEN_ASSERT(engine, "Invalid argument.");
+  TEN_ASSERT(ten_engine_check_integrity(engine, false), "Invalid argument.");
 
   if (engine->has_own_loop) {
     return self->migration_state == TEN_CONNECTION_MIGRATION_STATE_FIRST_MSG;

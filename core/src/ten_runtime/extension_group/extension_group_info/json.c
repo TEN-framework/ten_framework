@@ -47,9 +47,10 @@ bool ten_extension_group_info_to_json(ten_extension_group_info_t *self,
 
 ten_shared_ptr_t *ten_extension_group_info_from_json(
     ten_json_t *json, ten_list_t *extension_groups_info, ten_error_t *err) {
-  TEN_ASSERT(json && ten_json_check_integrity(json), "Should not happen.");
-  TEN_ASSERT(extension_groups_info &&
-                 ten_list_check_integrity(extension_groups_info),
+  TEN_ASSERT(json, "Should not happen.");
+  TEN_ASSERT(ten_json_check_integrity(json), "Should not happen.");
+  TEN_ASSERT(extension_groups_info, "Should not happen.");
+  TEN_ASSERT(ten_list_check_integrity(extension_groups_info),
              "Should not happen.");
 
   const char *type = ten_json_object_peek_string(json, TEN_STR_TYPE);

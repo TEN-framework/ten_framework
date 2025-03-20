@@ -186,6 +186,7 @@ bool ten_addon_create_protocol_with_uri(
       attach_to != TEN_ENV_ATTACH_TO_ENGINE) {
     TEN_ENV_LOG_ERROR_INTERNAL(ten_env, "Invalid ten_env attach_to: %d",
                                attach_to);
+
     ten_error_set(err, TEN_ERROR_CODE_INVALID_ARGUMENT, "Invalid ten_env.");
     return false;
   }

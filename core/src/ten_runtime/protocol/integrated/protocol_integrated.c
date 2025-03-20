@@ -54,8 +54,8 @@ static void ten_protocol_close_task(void *self_, TEN_UNUSED void *arg) {
 static void
 ten_protocol_on_inputs_based_on_migration_state(ten_protocol_t *self,
                                                 ten_list_t *msgs) {
-  TEN_ASSERT(self && ten_protocol_check_integrity(self, true),
-             "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_protocol_check_integrity(self, true), "Should not happen.");
   TEN_ASSERT(msgs, "Should not happen.");
   TEN_ASSERT(ten_protocol_attach_to(self) == TEN_PROTOCOL_ATTACH_TO_CONNECTION,
              "Should not happen.");
@@ -1012,8 +1012,8 @@ static void ten_protocol_integrated_migrate(ten_protocol_integrated_t *self,
 
 static void ten_protocol_integrated_on_base_protocol_cleaned(
     ten_protocol_t *self, TEN_UNUSED bool is_migration_state_reset) {
-  TEN_ASSERT(self && ten_protocol_check_integrity(self, true),
-             "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_protocol_check_integrity(self, true), "Should not happen.");
 
   // The integrated protocol determines the closing event based on the message
   // size read from the stream, and the stream will be frozen during the

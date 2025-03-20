@@ -36,21 +36,18 @@ struct ten_extension_context_t {
   ten_signature_t signature;
   ten_sanitizer_thread_check_t thread_check;
 
-  ten_list_t extension_groups;
-  size_t extension_groups_cnt_of_being_destroyed;
-
   // Even if enabling runtime Extension-group addition/deletion, all
   // 'extension_threads' relevant operations should be done in the engine's main
   // thread, so we don't need to apply any locking mechanism for it.
   ten_list_t extension_threads;
 
+  size_t extension_threads_total_cnt;
   size_t extension_threads_cnt_of_ready;
   size_t extension_threads_cnt_of_closed;
 
   ten_list_t extension_groups_info_from_graph;
   ten_list_t extensions_info_from_graph;  // ten_extension_info_t*
 
-  ten_atomic_t is_closing;
   ten_extension_context_on_closed_func_t on_closed;
   void *on_closed_data;
 

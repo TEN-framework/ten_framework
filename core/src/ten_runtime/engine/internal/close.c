@@ -91,6 +91,13 @@ static void ten_engine_close_sync(ten_engine_t *self) {
     nothing_to_do = false;
   }
 
+  if (self->has_uncompleted_async_task) {
+    TEN_LOGI("[%s] Engine has an uncompleted async task, do not close.",
+             ten_engine_get_id(self, true));
+
+    nothing_to_do = false;
+  }
+
   if (nothing_to_do) {
     ten_engine_on_close(self);
   }
@@ -219,15 +226,18 @@ static bool ten_engine_could_be_close(ten_engine_t *self) {
 
   size_t unclosed_remotes = ten_engine_unclosed_remotes_cnt(self);
 
-  TEN_LOGD("[%s] engine liveness: %zu remotes, %zu timers, "
-           "extension_context %p",
-           ten_engine_get_id(self, true), unclosed_remotes,
-           ten_list_size(&self->timers), self->extension_context);
-
   if (unclosed_remotes == 0 && ten_list_is_empty(&self->timers) &&
-      (self->extension_context == NULL)) {
+      (self->extension_context == NULL) && !self->has_uncompleted_async_task) {
     return true;
   } else {
+    TEN_LOGI(
+        "[%s] Could not close engine with alive resources: %zu remotes, %zu "
+        "timers, %p extension_context, %s",
+        ten_engine_get_id(self, true), unclosed_remotes,
+        ten_list_size(&self->timers), self->extension_context,
+        self->has_uncompleted_async_task ? "has uncompleted async task"
+                                         : "no uncompleted async task");
+
     return false;
   }
 }

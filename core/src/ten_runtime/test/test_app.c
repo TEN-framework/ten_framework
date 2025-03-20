@@ -49,8 +49,8 @@ static void store_tester_as_app_property(ten_extension_tester_t *tester,
                                          ten_env_t *ten_env) {
   TEN_ASSERT(tester && ten_extension_tester_check_integrity(tester, false),
              "Invalid argument.");
-  TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
-             "Invalid argument.");
+  TEN_ASSERT(ten_env, "Invalid argument.");
+  TEN_ASSERT(ten_env_check_integrity(ten_env, true), "Invalid argument.");
 
   // Store the tester as a property of the app so that the extensions within the
   // app can access the tester's pointer through this app property.
@@ -66,8 +66,8 @@ static void create_ten_env_proxy_for_tester(ten_extension_tester_t *tester,
                                             ten_env_t *ten_env) {
   TEN_ASSERT(tester && ten_extension_tester_check_integrity(tester, false),
              "Invalid argument.");
-  TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
-             "Invalid argument.");
+  TEN_ASSERT(ten_env, "Invalid argument.");
+  TEN_ASSERT(ten_env_check_integrity(ten_env, true), "Invalid argument.");
 
   tester->test_app_ten_env_proxy = ten_env_proxy_create(ten_env, 1, NULL);
   TEN_ASSERT(tester->test_app_ten_env_proxy, "Should not happen.");

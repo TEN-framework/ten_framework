@@ -442,20 +442,22 @@ void ten_addon_on_destroy_instance_done(ten_env_t *self, void *context) {
   TEN_ASSERT(addon_context->destroy_instance_done_cb, "Should not happen.");
 
   switch (addon_context->flow) {
-  case TEN_ADDON_CONTEXT_FLOW_ENGINE_DESTROY_EXTENSION_GROUP: {
-    ten_engine_t *engine = addon_context->flow_target.engine;
-    TEN_ASSERT(engine, "Should not happen.");
+  case TEN_ADDON_CONTEXT_FLOW_EXTENSION_THREAD_DESTROY_EXTENSION_GROUP: {
+    ten_extension_thread_t *extension_thread =
+        addon_context->flow_target.extension_thread;
+    TEN_ASSERT(extension_thread, "Should not happen.");
     TEN_ASSERT(
         // TEN_NOLINTNEXTLINE(thread-check)
         // thread-check: Maybe in the thread other than the
         // engine thread (ex: JS main thread), and all the
         // function calls in this case are thread safe.
-        ten_engine_check_integrity(engine, false), "Should not happen.");
+        ten_extension_thread_check_integrity(extension_thread, false),
+        "Should not happen.");
 
     int rc = ten_runloop_post_task_tail(
-        ten_engine_get_attached_runloop(engine),
-        ten_engine_on_addon_destroy_extension_group_done, engine,
-        addon_context);
+        ten_extension_thread_get_attached_runloop(extension_thread),
+        ten_extension_thread_on_addon_destroy_extension_group_done,
+        extension_thread, addon_context);
     TEN_ASSERT(!rc, "Should not happen.");
     break;
   }

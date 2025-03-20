@@ -94,7 +94,8 @@ bool ten_cmd_stop_graph_set_graph_id(ten_shared_ptr_t *self,
 bool ten_raw_cmd_stop_graph_loop_all_fields(
     ten_msg_t *self, ten_raw_msg_process_one_field_func_t cb, void *user_data,
     ten_error_t *err) {
-  TEN_ASSERT(self && ten_raw_msg_check_integrity(self), "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_raw_msg_check_integrity(self), "Should not happen.");
 
   for (size_t i = 0; i < ten_cmd_stop_graph_fields_info_size; ++i) {
     ten_msg_process_field_func_t process_field =
