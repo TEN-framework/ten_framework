@@ -136,10 +136,12 @@
   },
   "extensionStore": {
     "title": "Extension Store",
+    "readOnly": "Read Only",
     "compatible": "Compatible",
     "dependencies": "Dependencies",
     "searchPlaceholder": "Search Extensions...",
     "installedWithSum": "{{count}} of {{total}} Installed",
+    "openAGraphToInstall": "Open a graph to install extensions",
     "noMatchResult": "No match results",
     "matchResult": "{{count}} match results",
     "install": "Install",

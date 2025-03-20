@@ -17,7 +17,7 @@ export interface IAppStore {
     baseDir: string | null;
     graphName: string | null;
   };
-  setCurrentWorkspace: (currentWorkspace: {
+  updateCurrentWorkspace: (currentWorkspace: {
     baseDir: string | null;
     graphName: string | null;
   }) => void;

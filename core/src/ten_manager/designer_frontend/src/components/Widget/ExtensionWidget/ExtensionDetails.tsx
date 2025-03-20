@@ -100,8 +100,9 @@ export const ExtensionDetails = (props: {
   versions: IListTenCloudStorePackage[];
   name: string;
   className?: string;
+  readOnly?: boolean;
 }) => {
-  const { versions, name, className } = props;
+  const { versions, name, className, readOnly } = props;
   const [selectedVersion, setSelectedVersion] = React.useState<string>(
     versions[0].hash
   );
@@ -199,6 +200,7 @@ export const ExtensionDetails = (props: {
                   "[&>svg]:size-3 px-2 py-0.5 h-fit",
                   "text-xs font-normal"
                 )}
+                disabled={readOnly}
               >
                 <HardDriveDownloadIcon className="size-3" />
                 <span>{t("extensionStore.install")}</span>

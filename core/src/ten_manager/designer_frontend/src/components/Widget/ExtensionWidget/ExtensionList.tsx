@@ -37,8 +37,9 @@ export const ExtensionList = (props: {
   versions: Map<string, IListTenCloudStorePackage[]>;
   className?: string;
   toolTipSide?: TooltipContentProps["side"];
+  readOnly?: boolean;
 }) => {
-  const { items, versions, className, toolTipSide } = props;
+  const { items, versions, className, toolTipSide, readOnly } = props;
 
   const VirtualListItem = (props: {
     index: number;
@@ -66,6 +67,7 @@ export const ExtensionList = (props: {
         toolTipSide={toolTipSide}
         versions={targetVersions}
         isInstalled={item.isInstalled}
+        readOnly={readOnly}
       />
     );
   };
@@ -95,9 +97,10 @@ export const ExtensionBaseItem = React.forwardRef<
     _type?: ETenPackageType;
     isInstalled?: boolean;
     className?: string;
+    readOnly?: boolean;
   } & React.HTMLAttributes<HTMLLIElement>
 >((props, ref) => {
-  const { item, className, isInstalled, _type, ...rest } = props;
+  const { item, className, isInstalled, _type, readOnly, ...rest } = props;
 
   const { t } = useTranslation();
 
@@ -109,7 +112,7 @@ export const ExtensionBaseItem = React.forwardRef<
         "flex gap-2 w-full items-center max-w-full font-roboto h-fit",
         "hover:bg-gray-100 dark:hover:bg-gray-800",
         {
-          "cursor-pointer": !!rest?.onClick,
+          "cursor-pointer": !!rest?.onClick && !readOnly,
         },
         className
       )}
@@ -168,6 +171,7 @@ export const ExtensionBaseItem = React.forwardRef<
               "shadow-none rounded-none",
               "hover:bg-gray-200 dark:hover:bg-gray-700"
             )}
+            disabled={readOnly}
           >
             {t("extensionStore.install")}
           </Button>
@@ -185,6 +189,7 @@ export const ExtensionStoreItem = (props: {
   style?: React.CSSProperties;
   toolTipSide?: TooltipContentProps["side"];
   isInstalled?: boolean;
+  readOnly?: boolean;
 }) => {
   const {
     item,
@@ -193,6 +198,7 @@ export const ExtensionStoreItem = (props: {
     style,
     toolTipSide = "right",
     isInstalled,
+    readOnly,
   } = props;
 
   const { appendWidgetIfNotExists } = useWidgetStore();
@@ -219,6 +225,7 @@ export const ExtensionStoreItem = (props: {
             onClick={handleClick}
             className={className}
             style={style}
+            readOnly={readOnly}
           />
         </TooltipTrigger>
         <TooltipContent
@@ -243,6 +250,7 @@ export const AddonItem = (props: {
   style?: React.CSSProperties;
   toolTipSide?: TooltipContentProps["side"];
   _type?: ETenPackageType;
+  readOnly?: boolean;
 }) => {
   return (
     <ExtensionBaseItem
@@ -250,6 +258,7 @@ export const AddonItem = (props: {
       isInstalled={true}
       style={props.style}
       _type={props._type}
+      readOnly={props.readOnly}
     />
   );
 };
