@@ -16,8 +16,8 @@
       "unloadApp": "Unload App",
       "unloadAppSuccess": "App unloaded successfully",
       "unloadAppFailed": "Failed to unload app",
-      "listAllLoadedApps": "List All Loaded Apps",
-      "installAll": "Install All"
+      "installAll": "Install All",
+      "manageLoadedApps": "Manage Loaded App(s)"
     },
     "menu": {
       "graph": "Graph",
@@ -157,7 +157,7 @@
     "localAddonTip": "(local)"
   },
   "statusBar": {
-    "appsAllListedWithCount": "All {{count}} App(s) Listed",
+    "appsLoadedWithCount": "{{count}} app(s) loaded",
     "appsError": "Failed to get apps"
   }
 }

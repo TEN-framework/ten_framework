@@ -5,7 +5,7 @@
 // Refer to the "LICENSE" file in the root directory for more information.
 //
 import * as React from "react";
-import { LayoutGridIcon } from "lucide-react";
+import { FolderTreeIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
@@ -75,9 +75,9 @@ const StatusApps = () => {
       className=""
       onClick={openAppsManagerPopup}
     >
-      <LayoutGridIcon className="size-3" />
+      <FolderTreeIcon className="size-3" />
       <span className="">
-        {t("statusBar.appsAllListedWithCount", {
+        {t("statusBar.appsLoadedWithCount", {
           count: data.base_dirs.length,
         })}
       </span>

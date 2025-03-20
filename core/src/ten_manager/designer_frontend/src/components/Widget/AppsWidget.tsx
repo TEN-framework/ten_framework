@@ -7,7 +7,12 @@
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { FolderMinusIcon, FolderPlusIcon, FolderSyncIcon } from "lucide-react";
+import {
+  FolderMinusIcon,
+  FolderPlusIcon,
+  FolderSyncIcon,
+  HardDriveDownloadIcon,
+} from "lucide-react";
 
 import {
   Table,
@@ -19,6 +24,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/Table";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
 import { useApps } from "@/api/services/apps";
@@ -102,6 +113,23 @@ export const AppsManagerWidget = (props: { className?: string }) => {
     }
   };
 
+  const handleAppInstall = async () => {
+    // try {
+    //   setIsInstalling(true);
+    //   await postInstallApps();
+    // } catch (error) {
+    //   console.error(error);
+    //   toast.error(
+    //     t("header.menuApp.installAllFailed", {
+    //       description:
+    //         error instanceof Error ? error.message : t("popup.apps.error"),
+    //     })
+    //   );
+    // } finally {
+    //   setIsInstalling(false);
+    // }
+  };
+
   const isLoadingMemo = React.useMemo(() => {
     return isUnloading || isReloading || isLoading;
   }, [isUnloading, isReloading, isLoading]);
@@ -143,28 +171,68 @@ export const AppsManagerWidget = (props: { className?: string }) => {
                   </span>
                 </TableCell>
                 <TableCell className="text-right space-x-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    disabled={isLoadingMemo}
-                    onClick={() => handleUnloadApp(baseDir)}
-                  >
-                    <FolderMinusIcon className="w-4 h-4" />
-                    <span className="sr-only">
-                      {t("header.menuApp.unloadApp")}
-                    </span>
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    disabled={isLoadingMemo}
-                    onClick={() => handleReloadApp(baseDir)}
-                  >
-                    <FolderSyncIcon className="w-4 h-4" />
-                    <span className="sr-only">
-                      {t("header.menuApp.reloadApp")}
-                    </span>
-                  </Button>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          disabled={isLoadingMemo}
+                          onClick={() => handleUnloadApp(baseDir)}
+                        >
+                          <FolderMinusIcon className="w-4 h-4" />
+                          <span className="sr-only">
+                            {t("header.menuApp.unloadApp")}
+                          </span>
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>{t("header.menuApp.unloadApp")}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          disabled={isLoadingMemo}
+                          onClick={() => handleReloadApp(baseDir)}
+                        >
+                          <FolderSyncIcon className="w-4 h-4" />
+                          <span className="sr-only">
+                            {t("header.menuApp.reloadApp")}
+                          </span>
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>{t("header.menuApp.reloadApp")}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          disabled={isLoadingMemo}
+                          onClick={handleAppInstall}
+                        >
+                          <HardDriveDownloadIcon className="w-4 h-4" />
+                          <span className="sr-only">
+                            {t("header.menuApp.installAll")}
+                          </span>
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>{t("header.menuApp.installAll")}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 </TableCell>
               </TableRow>
             ))

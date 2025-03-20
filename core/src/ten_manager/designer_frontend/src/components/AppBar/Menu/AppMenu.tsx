@@ -4,13 +4,7 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-import {
-  HardDriveDownloadIcon,
-  FolderMinusIcon,
-  FolderPlusIcon,
-  FolderSyncIcon,
-  FolderTreeIcon,
-} from "lucide-react";
+import { FolderPlusIcon, FolderCogIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import {
@@ -19,7 +13,6 @@ import {
   NavigationMenuLink,
   NavigationMenuTrigger,
 } from "@/components/ui/NavigationMenu";
-import { Separator } from "@/components/ui/Separator";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
 import { useWidgetStore } from "@/store";
@@ -85,39 +78,8 @@ export function AppMenu() {
               variant="ghost"
               onClick={openAppsManagerPopup}
             >
-              <FolderMinusIcon className="w-4 h-4 me-2" />
-              {t("header.menuApp.unloadApp")}
-            </Button>
-          </NavigationMenuLink>
-          <NavigationMenuLink asChild>
-            <Button
-              className="w-full justify-start"
-              variant="ghost"
-              onClick={openAppsManagerPopup}
-            >
-              <FolderSyncIcon className="w-4 h-4 me-2" />
-              {t("header.menuApp.reloadApp")}
-            </Button>
-          </NavigationMenuLink>
-          <NavigationMenuLink asChild>
-            <Button
-              className="w-full justify-start"
-              variant="ghost"
-              onClick={openAppsManagerPopup}
-            >
-              <FolderTreeIcon className="w-4 h-4 me-2" />
-              {t("header.menuApp.listAllLoadedApps")}
-            </Button>
-          </NavigationMenuLink>
-          <Separator className="w-full" />
-          <NavigationMenuLink asChild>
-            <Button
-              className="w-full justify-start"
-              variant="ghost"
-              // onClick={handleAppInstall}
-            >
-              <HardDriveDownloadIcon className="w-4 h-4 me-2" />
-              {t("header.menu.installAll")}
+              <FolderCogIcon className="w-4 h-4 me-2" />
+              {t("header.menuApp.manageLoadedApps")}
             </Button>
           </NavigationMenuLink>
         </NavigationMenuContent>
