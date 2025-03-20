@@ -19,23 +19,24 @@ bool ten_extension_group_dispatch_msg(ten_extension_group_t *self,
   ten_msg_set_src_to_extension_group(msg, self);
 
   ten_loc_t *dest_loc = ten_msg_get_first_dest_loc(msg);
-  TEN_ASSERT(dest_loc && ten_loc_check_integrity(dest_loc) &&
-                 ten_msg_get_dest_cnt(msg) == 1,
-             "Should not happen.");
+  TEN_ASSERT(dest_loc, "Should not happen.");
+  TEN_ASSERT(ten_loc_check_integrity(dest_loc), "Should not happen.");
+  TEN_ASSERT(ten_msg_get_dest_cnt(msg) == 1, "Should not happen.");
   TEN_ASSERT(!ten_string_is_empty(&dest_loc->app_uri),
              "App URI should not be empty.");
 
   ten_extension_context_t *extension_context = self->extension_context;
-  TEN_ASSERT(extension_context && ten_extension_context_check_integrity(
-                                      extension_context, false),
+  TEN_ASSERT(extension_context, "Invalid argument.");
+  TEN_ASSERT(ten_extension_context_check_integrity(extension_context, false),
              "Invalid argument.");
 
   ten_engine_t *engine = extension_context->engine;
-  TEN_ASSERT(engine && ten_engine_check_integrity(engine, false),
-             "Invalid argument.");
+  TEN_ASSERT(engine, "Invalid argument.");
+  TEN_ASSERT(ten_engine_check_integrity(engine, false), "Invalid argument.");
 
   ten_app_t *app = engine->app;
-  TEN_ASSERT(app && ten_app_check_integrity(app, false), "Invalid argument.");
+  TEN_ASSERT(app, "Invalid argument.");
+  TEN_ASSERT(ten_app_check_integrity(app, false), "Invalid argument.");
 
   if (!ten_string_is_equal_c_str(&dest_loc->app_uri, ten_app_get_uri(app))) {
     // Send to other apps.

@@ -464,7 +464,13 @@ bool ten_engine_dispatch_msg(ten_engine_t *self, ten_shared_ptr_t *msg) {
 
               ten_shared_ptr_destroy(cmd_result);
             } else {
-              // For those non-cmd messages, do nothing, just drop them.
+              // For a non-cmd message, it should be directly dropped without
+              // replying with `cmd_result`. This situation occurs when there
+              // are multiple `extension_thread`s within an `engine`. If
+              // `extension thread A` sends a non-cmd message to `extension
+              // thread B`, and the message first needs to be transmitted to the
+              // `engine`, by the time the `engine` processes this non-cmd
+              // message, `extension thread B` may have already terminated.
             }
           }
         }
