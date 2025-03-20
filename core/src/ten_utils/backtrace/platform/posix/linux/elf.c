@@ -4016,7 +4016,7 @@ static int elf_add(ten_backtrace_t *self, const char *filename, int descriptor,
                    uintptr_t base_address, ten_backtrace_error_func_t error_cb,
                    void *data, ten_backtrace_get_file_line_func_t *fileline_fn,
                    int *found_sym, int *found_dwarf,
-                   struct dwarf_data **fileline_entry, int exe, int debuginfo,
+                   dwarf_data **fileline_entry, int exe, int debuginfo,
                    const char *with_buildid_data, uint32_t with_buildid_size) {
   struct elf_view ehdr_view;
   b_elf_ehdr ehdr;
@@ -4069,7 +4069,7 @@ static int elf_add(ten_backtrace_t *self, const char *filename, int descriptor,
   struct elf_view split_debug_view[DEBUG_MAX];
   unsigned char split_debug_view_valid[DEBUG_MAX];
   struct elf_ppc64_opd_data opd_data, *opd;
-  struct dwarf_sections dwarf_sections;
+  dwarf_sections dwarf_sections;
 
   if (!debuginfo) {
     *found_sym = 0;
@@ -4470,7 +4470,7 @@ static int elf_add(ten_backtrace_t *self, const char *filename, int descriptor,
     debuglink_view_valid = 0;
   }
 
-  struct dwarf_data *fileline_altlink = NULL;
+  dwarf_data *fileline_altlink = NULL;
   if (debugaltlink_name != NULL) {
     int d;
 

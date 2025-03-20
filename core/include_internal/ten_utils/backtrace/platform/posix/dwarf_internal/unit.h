@@ -11,8 +11,10 @@
 #include <stdio.h>
 
 #include "include_internal/ten_utils/backtrace/platform/posix/dwarf_internal/abbreviation.h"
-#include "include_internal/ten_utils/backtrace/platform/posix/dwarf_internal/function.h"
+#include "include_internal/ten_utils/backtrace/vector.h"
 #include "ten_utils/lib/atomic.h"
+
+typedef struct function_addrs function_addrs;
 
 /**
  * @brief DWARF 5 unit header types that identify the kind of compilation unit.
@@ -79,7 +81,7 @@ typedef struct unit {
   // Absolute file name path, only set if needed for resolution.
   const char *abs_filename;
   // The abbreviation table for this unit, used to decode DIE attributes.
-  struct abbrevs abbrevs;
+  abbrevs abbrevs;
 
   // The fields above this point are read during initialization and may be
   // accessed freely. The fields below require synchronization as they may be
@@ -93,7 +95,7 @@ typedef struct unit {
   ten_atomic_t lines_count;
 
   // Array of function address ranges associated with this unit.
-  struct function_addrs *function_addrs;
+  function_addrs *function_addrs;
   // Atomic counter for the number of entries in the function_addrs array.
   ten_atomic_t function_addrs_count;
 } unit;
@@ -140,3 +142,6 @@ typedef struct unit_vector {
   // Number of compilation unit pointers currently stored in the vector.
   size_t count;
 } unit_vector;
+
+TEN_UTILS_PRIVATE_API unit *find_unit(unit **pu, size_t units_count,
+                                      size_t offset);

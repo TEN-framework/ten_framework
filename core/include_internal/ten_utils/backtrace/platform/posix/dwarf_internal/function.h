@@ -10,7 +10,14 @@
 
 #include <stddef.h>
 
+#include "include_internal/ten_utils/backtrace/backtrace.h"
 #include "include_internal/ten_utils/backtrace/vector.h"
+
+typedef struct function_addrs function_addrs;
+typedef struct ten_backtrace_t ten_backtrace_t;
+typedef struct dwarf_data dwarf_data;
+typedef struct line_header line_header;
+typedef struct unit unit;
 
 /**
  * @brief Represents a function described in the DWARF debug information.
@@ -35,7 +42,7 @@ typedef struct function {
   // Array of address ranges associated with this function.
   // For inlined functions, these represent the specific ranges where
   // the function was inlined.
-  struct function_addrs *function_addrs;
+  function_addrs *function_addrs;
 
   // Number of entries in the function_addrs array.
   size_t function_addrs_count;
@@ -67,10 +74,23 @@ typedef struct function_addrs {
  * dynamic memory management.
  */
 typedef struct function_vector {
-  // Underlying vector storage containing struct function_addrs elements.
+  // Underlying vector storage containing function_addrs elements.
   // Memory is managed by the ten_vector_t implementation.
   ten_vector_t vec;
 
   // Number of function address ranges currently stored in the vector.
   size_t count;
 } function_vector;
+
+TEN_UTILS_PRIVATE_API int function_addrs_search(const void *vkey,
+                                                const void *ventry);
+
+TEN_UTILS_PRIVATE_API void read_function_info(
+    ten_backtrace_t *self, dwarf_data *ddata, const line_header *lhdr,
+    ten_backtrace_error_func_t error_cb, void *data, unit *u,
+    function_vector *fvec, function_addrs **ret_addrs, size_t *ret_addrs_count);
+
+TEN_UTILS_PRIVATE_API int report_inlined_functions(
+    ten_backtrace_t *self, uintptr_t pc, struct function *function,
+    ten_backtrace_dump_file_line_func_t dump_file_line_cb, void *data,
+    const char **filename, int *lineno);
