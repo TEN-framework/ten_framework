@@ -15,6 +15,7 @@ export interface IReqTemplate<T, R> {
   query?: string[];
   pathParams?: string[];
   responseSchema: z.ZodType<R>;
+  // requestSchema?: z.ZodType<any>;
 }
 
 // Common endpoints

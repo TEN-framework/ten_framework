@@ -19,6 +19,13 @@
       "installAll": "Install All",
       "manageLoadedApps": "Manage Loaded App(s)"
     },
+    "graphMenu": {
+      "title": "Graph",
+      "openExistingGraph": "Open Existing Graph",
+      "openExtensionStore": "Open Extension Store",
+      "autoLayout": "Auto Layout",
+      "selectLoadedApp": "Select a Loaded App"
+    },
     "menu": {
       "graph": "Graph",
       "openExistingGraph": "Open Existing Graph",

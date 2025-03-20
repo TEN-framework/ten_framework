@@ -16,6 +16,15 @@ import {
   processNodes,
 } from "@/flow/graph";
 import Popup from "@/components/Popup/Popup";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/Select";
 import { Button } from "@/components/ui/Button";
 import { SpinnerLoading } from "@/components/Status/Loading";
 import {
@@ -23,6 +32,7 @@ import {
   getGraphConnections,
   useGraphs,
 } from "@/api/services/graphs";
+import { useApps } from "@/api/services/apps";
 import { useWidgetStore, useFlowStore } from "@/store";
 import { GRAPH_SELECT_POPUP_ID } from "@/constants/widgets";
 
@@ -30,9 +40,19 @@ import type { CustomNodeType } from "@/flow/CustomNode";
 
 export function GraphSelectPopup() {
   const { t } = useTranslation();
-  const { graphs = [], error, isLoading } = useGraphs();
+  const {
+    data: loadedApps,
+    isLoading: isLoadingApps,
+    error: errorApps,
+  } = useApps();
   const { removeWidget } = useWidgetStore();
   const { setNodesAndEdges } = useFlowStore();
+
+  const [selectedApp, setSelectedApp] = React.useState<string | null>(
+    loadedApps?.base_dirs?.[0] ?? null
+  );
+
+  const { graphs = [], error, isLoading } = useGraphs(selectedApp);
 
   const handleSelectGraph = (graphName: string) => async () => {
     try {
@@ -100,33 +120,53 @@ export function GraphSelectPopup() {
       initialHeight={300}
       onCollapseToggle={() => {}}
     >
-      {isLoading ? (
-        <>
-          <SpinnerLoading
-            className="w-full h-full"
-            svgProps={{ className: "size-10" }}
-          />
-        </>
-      ) : (
-        <ul className="flex flex-col gap-2 h-full w-full">
-          {graphs.map((graph) => (
-            <Button
-              asChild
-              key={graph.name}
-              className="justify-start cursor-pointer"
-              variant="ghost"
-              onClick={handleSelectGraph(graph.name)}
-            >
-              <li className="w-full">
-                <span className="text-sm">{graph.name}</span>
-                {graph.auto_start ? (
-                  <span className="text-xs">({t("action.autoStart")})</span>
-                ) : null}
-              </li>
-            </Button>
-          ))}
-        </ul>
-      )}
+      <div className="flex flex-col gap-2 w-full h-full">
+        <Select
+          onValueChange={(value) => setSelectedApp(value)}
+          value={selectedApp ?? undefined}
+        >
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder={t("header.graphMenu.selectLoadedApp")} />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectGroup>
+              <SelectLabel>{t("header.graphMenu.selectLoadedApp")}</SelectLabel>
+              {loadedApps?.base_dirs?.map((app) => (
+                <SelectItem key={app} value={app}>
+                  {app}
+                </SelectItem>
+              ))}
+            </SelectGroup>
+          </SelectContent>
+        </Select>
+        {isLoading ? (
+          <>
+            <SpinnerLoading
+              className="w-full h-full"
+              svgProps={{ className: "size-10" }}
+            />
+          </>
+        ) : (
+          <ul className="flex flex-col gap-2 h-full w-full">
+            {graphs?.map((graph) => (
+              <Button
+                asChild
+                key={graph.name}
+                className="justify-start cursor-pointer"
+                variant="ghost"
+                onClick={handleSelectGraph(graph.name)}
+              >
+                <li className="w-full">
+                  <span className="text-sm">{graph.name}</span>
+                  {graph.auto_start ? (
+                    <span className="text-xs">({t("action.autoStart")})</span>
+                  ) : null}
+                </li>
+              </Button>
+            ))}
+          </ul>
+        )}
+      </div>
     </Popup>
   );
 }

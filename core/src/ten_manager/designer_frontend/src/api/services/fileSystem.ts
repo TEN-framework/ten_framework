@@ -11,6 +11,7 @@ import {
   makeAPIRequest,
   useCancelableSWR,
   prepareReqUrl,
+  getQueryHookCache,
 } from "@/api/services/utils";
 import { ENDPOINT_FILE_SYSTEM } from "@/api/endpoints";
 import { ENDPOINT_METHOD } from "@/api/endpoints/constant";
@@ -111,8 +112,20 @@ export const useDirList = (path: string) => {
   };
 };
 
+// TODO: refine this hook(post should not be used)
 export const useRetrieveDirList = (path: string) => {
-  const [data, setData] = React.useState<IBaseDirResponse | null>(null);
+  const template = ENDPOINT_FILE_SYSTEM.dirList[ENDPOINT_METHOD.POST];
+  const url = prepareReqUrl(template) + `${encodeURIComponent(path)}`;
+  const queryHookCache = getQueryHookCache();
+
+  const [data, setData] = React.useState<IBaseDirResponse | null>(() => {
+    const [cachedData, cachedDataIsExpired] =
+      queryHookCache.get<IBaseDirResponse>(url);
+    if (!cachedData || cachedDataIsExpired) {
+      return null;
+    }
+    return cachedData;
+  });
   const [error, setError] = React.useState<Error | null>(null);
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
 
@@ -121,12 +134,14 @@ export const useRetrieveDirList = (path: string) => {
     try {
       const res = await retrieveDirList(path);
       setData(res);
+      queryHookCache.set(url, res);
     } catch (err) {
       setError(err as Error);
     } finally {
       setIsLoading(false);
     }
-  }, [path]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [path, url]);
 
   React.useEffect(() => {
     fetchData();
