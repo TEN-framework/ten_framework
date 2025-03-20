@@ -15,6 +15,7 @@ import {
 
 import { ThemeProvider } from "@/components/ThemeProvider";
 import AppBar from "@/components/AppBar";
+import StatusBar from "@/components/StatusBar";
 import FlowCanvas, { type FlowCanvasRef } from "@/flow/FlowCanvas";
 import { CustomNodeType } from "@/flow/CustomNode";
 import { CustomEdgeType } from "@/flow/CustomEdge";
@@ -30,6 +31,7 @@ import { useWidgetStore, useFlowStore } from "@/store";
 import { EWidgetDisplayType } from "@/types/widgets";
 import { GlobalPopups } from "@/components/Popup/GlobalPopups";
 import { BackstageWidgets } from "@/components/Widget/BackstageWidgets";
+import { cn } from "@/lib/utils";
 
 const App: React.FC = () => {
   const { nodes, setNodes, edges, setEdges, setNodesAndEdges } = useFlowStore();
@@ -78,10 +80,12 @@ const App: React.FC = () => {
 
   return (
     <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+      <AppBar onAutoLayout={performAutoLayout} className="z-9999" />
+
       <ResizablePanelGroup
         key={`resizable-panel-group-${resizablePanelMode}`}
         direction={resizablePanelMode === "bottom" ? "vertical" : "horizontal"}
-        className="w-screen h-screen min-h-screen min-w-screen"
+        className={cn("w-screen h-screen", "min-h-screen min-w-screen")}
       >
         {resizablePanelMode === "left" && dockWidgetsMemo.length > 0 && (
           <>
@@ -98,8 +102,6 @@ const App: React.FC = () => {
           </>
         )}
         <ResizablePanel defaultSize={dockWidgetsMemo.length > 0 ? 60 : 100}>
-          <AppBar onAutoLayout={performAutoLayout} className="z-9999" />
-
           <FlowCanvas
             ref={flowCanvasRef}
             nodes={nodes}
@@ -110,7 +112,7 @@ const App: React.FC = () => {
               const newEdges = addEdge(connection, edges);
               setEdges(newEdges);
             }}
-            className="w-full h-[calc(100%-40px)] mt-10"
+            className="w-full h-[calc(100%-60px)] mt-10"
           />
         </ResizablePanel>
         {resizablePanelMode !== "left" && dockWidgetsMemo.length > 0 && (
@@ -137,6 +139,8 @@ const App: React.FC = () => {
         {/* [invisible] Global backstage widgets. */}
         <BackstageWidgets />
       </ResizablePanelGroup>
+
+      <StatusBar className="z-9999" />
     </ThemeProvider>
   );
 };

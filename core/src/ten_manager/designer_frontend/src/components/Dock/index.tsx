@@ -201,7 +201,7 @@ export default function DockContainer(props: {
     <div
       className={cn(
         "w-full h-full bg-muted text-muted-foreground",
-        { ["mt-10 h-[calc(100%-40px)]"]: position !== "bottom" },
+        { ["mt-10 h-[calc(100%-60px)]"]: position !== "bottom" },
         className
       )}
     >

@@ -21,7 +21,7 @@ export const AboutPopup = () => {
   return (
     <Popup
       id={ABOUT_POPUP_ID}
-      title={t("header.menu.about")}
+      title={t("header.menuAbout.title")}
       onClose={() => removeWidget(ABOUT_POPUP_ID)}
       initialWidth={400}
       initialHeight={160}

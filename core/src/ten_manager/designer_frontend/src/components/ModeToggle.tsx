@@ -37,18 +37,18 @@ export function ModeToggle() {
               "dark:rotate-0 dark:scale-100"
             )}
           />
-          <span className="sr-only">{t("header.menu.theme")}</span>
+          <span className="sr-only">{t("header.theme.title")}</span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuItem onClick={() => setTheme("light")}>
-          {t("header.menu.theme.light")}
+          {t("header.theme.light")}
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => setTheme("dark")}>
-          {t("header.menu.theme.dark")}
+          {t("header.theme.dark")}
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => setTheme("system")}>
-          {t("header.menu.theme.system")}
+          {t("header.theme.system")}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

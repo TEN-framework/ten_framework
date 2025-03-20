@@ -103,16 +103,16 @@ export interface ILogViewerWidget extends IWidgetBase {
 export enum EDefaultWidgetType {
   GraphSelect = "graph_select",
   About = "about",
-  Preferences = "preferences",
   AppFolder = "app_folder",
+  AppsManager = "apps_manager",
+  AppRun = "app_run",
   ExtensionStore = "extension_store",
 }
 
-export interface IDefaultWidget extends IWidgetBase {
+export interface IDefaultWidget<T extends { type: EDefaultWidgetType }>
+  extends IWidgetBase {
   category: EWidgetCategory.Default;
-  metadata: {
-    type: EDefaultWidgetType;
-  };
+  metadata: T;
 }
 
 export interface IExtensionWidget extends IWidgetBase {
@@ -128,5 +128,5 @@ export type IWidget =
   | IEditorWidget
   | ICustomConnectionWidget
   | ILogViewerWidget
-  | IDefaultWidget
+  | IDefaultWidget<{ type: EDefaultWidgetType; base_dir?: string }>
   | IExtensionWidget;

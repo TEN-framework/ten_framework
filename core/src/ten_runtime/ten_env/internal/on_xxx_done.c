@@ -6,6 +6,7 @@
 //
 #include "ten_runtime/ten_env/internal/on_xxx_done.h"
 
+#include "include_internal/ten_runtime/addon/addon_loader/ten_env/on_xxx.h"
 #include "include_internal/ten_runtime/addon/extension/extension.h"
 #include "include_internal/ten_runtime/addon/ten_env/on_xxx.h"
 #include "include_internal/ten_runtime/app/app.h"
@@ -75,6 +76,10 @@ bool ten_env_on_init_done(ten_env_t *self, TEN_UNUSED ten_error_t *err) {
 
   case TEN_ENV_ATTACH_TO_ADDON:
     ten_addon_on_init_done(self);
+    break;
+
+  case TEN_ENV_ATTACH_TO_ADDON_LOADER:
+    ten_addon_loader_on_init_done(self);
     break;
 
   default:

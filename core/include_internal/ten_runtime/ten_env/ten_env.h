@@ -179,3 +179,16 @@ inline ten_engine_t *ten_env_get_attached_engine(ten_env_t *self) {
 
   return self->attached_target.engine;
 }
+
+inline ten_addon_loader_t *ten_env_get_attached_addon_loader(ten_env_t *self) {
+  TEN_ASSERT(self, "Invalid argument.");
+  // TEN_NOLINTNEXTLINE(thread-check)
+  // thread-check: self->attach_to is not changed after ten is created.
+  TEN_ASSERT(ten_env_check_integrity(self, false), "Invalid use of ten_env %p.",
+             self);
+
+  TEN_ASSERT(self->attach_to == TEN_ENV_ATTACH_TO_ADDON_LOADER,
+             "Should not happen.");
+
+  return self->attached_target.addon_loader;
+}

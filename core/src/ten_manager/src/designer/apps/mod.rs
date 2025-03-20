@@ -9,7 +9,6 @@ pub mod reload;
 pub mod unload;
 
 use std::{
-    collections::HashMap,
     path::Path,
     sync::{Arc, RwLock},
 };
@@ -17,7 +16,6 @@ use std::{
 use actix_web::{web, HttpResponse, Responder};
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
-use ten_rust::pkg_info::PkgInfo;
 
 use crate::{
     designer::{
@@ -40,7 +38,7 @@ pub struct LoadAppResponseData {
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct GetAppsResponseData {
-    pub base_dirs: Option<Vec<String>>,
+    pub base_dirs: Vec<String>,
 }
 
 pub async fn load_app_endpoint(
@@ -102,37 +100,15 @@ pub async fn get_apps_endpoint(
     let response = ApiResponse {
         status: Status::Ok,
         data: GetAppsResponseData {
-            base_dirs: (!state.pkgs_cache.is_empty())
-                .then(|| state.pkgs_cache.keys().cloned().collect()),
+            base_dirs: if state.pkgs_cache.is_empty() {
+                vec![]
+            } else {
+                state.pkgs_cache.keys().cloned().collect()
+            },
         },
         meta: None,
     };
     Ok(HttpResponse::Ok().json(response))
-}
-
-pub fn get_base_dir_from_pkgs_cache(
-    base_dir: Option<String>,
-    pkgs_cache: &HashMap<String, Vec<PkgInfo>>,
-) -> Result<String> {
-    // Determine base_dir based on the requirements.
-    let base_dir = match base_dir {
-        // Use provided base_dir if available.
-        Some(dir) => dir.clone(),
-        // If not provided, check pkgs_cache.
-        None => {
-            if pkgs_cache.len() == 1 {
-                // If only one item in pkgs_cache, use it as base_dir.
-                pkgs_cache.keys().next().unwrap().clone()
-            } else {
-                // If multiple items in pkgs_cache, return error.
-                return Err(anyhow::anyhow!(
-                    "Multiple apps available. Please specify base_dir."
-                ));
-            }
-        }
-    };
-
-    Ok(base_dir)
 }
 
 #[cfg(test)]
@@ -218,7 +194,7 @@ mod tests {
         assert_eq!(
             resp.data,
             GetAppsResponseData {
-                base_dirs: Some(vec![TEST_DIR.to_string()])
+                base_dirs: vec![TEST_DIR.to_string()]
             }
         );
     }
@@ -250,6 +226,6 @@ mod tests {
             test::call_and_read_body_json(&app, req).await;
 
         assert_eq!(resp.status, Status::Ok);
-        assert_eq!(resp.data, GetAppsResponseData { base_dirs: None });
+        assert_eq!(resp.data, GetAppsResponseData { base_dirs: vec![] });
     }
 }

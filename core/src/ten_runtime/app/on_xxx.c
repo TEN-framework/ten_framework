@@ -32,7 +32,8 @@ static void ten_app_thread_on_addon_create_protocol_done_ctx_destroy(
 
 void ten_app_thread_on_addon_create_protocol_done(void *self, void *arg) {
   ten_app_t *app = (ten_app_t *)self;
-  TEN_ASSERT(app && ten_app_check_integrity(app, true), "Invalid argument.");
+  TEN_ASSERT(app, "Invalid argument.");
+  TEN_ASSERT(ten_app_check_integrity(app, true), "Invalid argument.");
 
   ten_app_thread_on_addon_create_protocol_done_ctx_t *ctx =
       (ten_app_thread_on_addon_create_protocol_done_ctx_t *)arg;
@@ -72,7 +73,8 @@ static void ten_app_thread_on_addon_create_addon_loader_done_ctx_destroy(
 
 void ten_app_thread_on_addon_create_addon_loader_done(void *self, void *arg) {
   ten_app_t *app = (ten_app_t *)self;
-  TEN_ASSERT(app && ten_app_check_integrity(app, true), "Invalid argument.");
+  TEN_ASSERT(app, "Invalid argument.");
+  TEN_ASSERT(ten_app_check_integrity(app, true), "Invalid argument.");
 
   ten_app_thread_on_addon_create_addon_loader_done_ctx_t *ctx =
       (ten_app_thread_on_addon_create_addon_loader_done_ctx_t *)arg;

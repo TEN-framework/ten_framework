@@ -27,22 +27,16 @@ use ten_rust::pkg_info::{
     predefined_graphs::extension::get_extension_nodes_in_graph,
 };
 
+use crate::designer::common::{
+    get_designer_api_cmd_likes_from_pkg, get_designer_api_data_likes_from_pkg,
+    get_designer_property_hashmap_from_pkg,
+};
 use crate::designer::response::{ApiResponse, ErrorResponse, Status};
 use crate::designer::DesignerState;
-use crate::designer::{
-    apps::get_base_dir_from_pkgs_cache,
-    common::{
-        get_designer_api_cmd_likes_from_pkg,
-        get_designer_api_data_likes_from_pkg,
-        get_designer_property_hashmap_from_pkg,
-    },
-};
 
 #[derive(Serialize, Deserialize)]
 pub struct GetGraphNodesRequestPayload {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    #[serde(default)]
-    pub base_dir: Option<String>,
+    pub base_dir: String,
     pub graph_name: String,
 }
 
@@ -263,22 +257,9 @@ pub async fn get_graph_nodes_endpoint(
 ) -> Result<impl Responder, actix_web::Error> {
     let state_read = state.read().unwrap();
 
-    let base_dir = match get_base_dir_from_pkgs_cache(
-        request_payload.base_dir.clone(),
-        &state_read.pkgs_cache,
-    ) {
-        Ok(base_dir) => base_dir,
-        Err(e) => {
-            let error_response = ErrorResponse {
-                status: Status::Fail,
-                message: e.to_string(),
-                error: None,
-            };
-            return Ok(HttpResponse::BadRequest().json(error_response));
-        }
-    };
-
-    if let Some(all_pkgs) = &state_read.pkgs_cache.get(&base_dir) {
+    if let Some(all_pkgs) =
+        &state_read.pkgs_cache.get(&request_payload.base_dir)
+    {
         let graph_name = &request_payload.graph_name;
 
         let extension_graph_nodes =
@@ -481,7 +462,7 @@ mod tests {
         .await;
 
         let request_payload = GetGraphNodesRequestPayload {
-            base_dir: Some(TEST_DIR.to_string()),
+            base_dir: TEST_DIR.to_string(),
             graph_name: "default".to_string(),
         };
 
@@ -695,7 +676,7 @@ mod tests {
         .await;
 
         let request_payload = GetGraphNodesRequestPayload {
-            base_dir: Some(TEST_DIR.to_string()),
+            base_dir: TEST_DIR.to_string(),
             graph_name: "no_existing_graph".to_string(),
         };
 
@@ -763,7 +744,7 @@ mod tests {
         .await;
 
         let request_payload = GetGraphNodesRequestPayload {
-            base_dir: Some(TEST_DIR.to_string()),
+            base_dir: TEST_DIR.to_string(),
             graph_name: "addon_not_found".to_string(),
         };
 

@@ -1,28 +1,52 @@
 {
   "tenFramework": "TEN 框架",
+  "ten": "TEN",
   "header": {
     "title": "Ten 管理器",
-    "menu": {
-      "graph": "圖譜",
+    "menuApp": {
+      "title": "應用程式",
+      "loadApp": "載入應用程式",
+      "loadAppSuccess": "應用程式載入成功",
+      "loadAppFailed": "應用程式載入失敗",
+      "reloadApp": "重新載入應用程式",
+      "reloadAppSuccess": "應用程式重新載入成功",
+      "reloadAppFailed": "應用程式重新載入失敗",
+      "reloadAllApps": "重新載入所有應用程式",
+      "reloadAllAppsSuccess": "所有應用程式重新載入成功",
+      "reloadAllAppsFailed": "所有應用程式重新載入失敗",
+      "unloadApp": "卸載應用程式",
+      "unloadAppSuccess": "應用程式卸載成功",
+      "unloadAppFailed": "應用程式卸載失敗",
+      "installAll": "安裝所有",
+      "manageLoadedApps": "管理已載入的應用程式",
+      "runApp": "執行應用程式",
+      "openAppFolder": "開啟應用程式資料夾"
+    },
+    "menuGraph": {
+      "title": "圖譜",
       "openExistingGraph": "開啟現有圖譜",
       "openExtensionStore": "開啟擴充功能商店",
       "autoLayout": "自動佈局",
-      "openAppFolder": "開啟應用程式資料夾",
-      "file": "檔案",
-      "app": "應用程式",
-      "help": "幫助",
-      "about": "關於",
-      "language": "語言",
-      "language.enUS": "English",
-      "language.zhCN": "中文(简体)",
-      "language.zhTW": "中文(繁體)",
-      "theme": "主題",
-      "theme.light": "明亮",
-      "theme.dark": "暗黑",
-      "theme.system": "系統",
-      "start": "啟動",
-      "preferences": "偏好設定",
-      "installAll": "安裝所有"
+      "selectLoadedApp": "選擇已載入的應用程式"
+    },
+    "menuHelp": {
+      "title": "檔案"
+    },
+    "menuAbout": {
+      "title": "關於"
+    },
+    "language": {
+      "title": "語言",
+      "enUS": "English",
+      "zhCN": "中文(简体)",
+      "zhTW": "中文(繁體)",
+      "jaJP": "日本語"
+    },
+    "theme": {
+      "title": "主題",
+      "light": "明亮",
+      "dark": "暗黑",
+      "system": "系統"
     },
     "officialSite": "官方網站",
     "poweredBy": "技術支援",
@@ -50,7 +74,9 @@
     "unsaved": "未保存",
     "launchLogViewer": "查看日誌",
     "stop": "停止",
-    "search": "搜尋"
+    "search": "搜尋",
+    "current": "目前",
+    "run": "執行"
   },
   "toast": {
     "saveFileSuccess": "檔案儲存成功",
@@ -82,6 +108,14 @@
       "errorGetBaseDir": "獲取基礎目錄失敗",
       "errorOpenAppFolder": "打開應用程式資料夾失敗",
       "errorUnknown": "發生未知錯誤。"
+    },
+    "apps": {
+      "manager": "應用程式管理器",
+      "tableCaption": "已載入的應用程式列表。",
+      "baseDir": "基礎目錄",
+      "run": "執行應用程式",
+      "runScript": "執行腳本",
+      "runScriptPlaceholder": "輸入要執行的腳本"
     }
   },
   "dock": {
@@ -93,6 +127,7 @@
   },
   "dataTable": {
     "no": "序號",
+    "name": "名稱",
     "upstream": "上游",
     "downstream": "下游",
     "type": "型別",
@@ -106,10 +141,12 @@
   },
   "extensionStore": {
     "title": "擴充套件商店",
+    "readOnly": "唯讀",
     "compatible": "相容性",
     "dependencies": "相依性",
     "searchPlaceholder": "搜尋擴充套件...",
     "installedWithSum": "已安裝 {{count}}/{{total}} 個",
+    "openAGraphToInstall": "開啟圖譜以安裝擴充套件",
     "noMatchResult": "無符合結果",
     "matchResult": "找到 {{count}} 個符合結果",
     "install": "安裝",
@@ -133,5 +170,14 @@
     "selectVersion": "選擇版本",
     "versionLatest": "最新",
     "localAddonTip": "(本機)"
+  },
+  "statusBar": {
+    "appsLoadedWithCount": "已載入 {{count}} 個應用程式",
+    "appsError": "取得應用程式失敗",
+    "workspace": {
+      "title": "目前工作區",
+      "baseDir": "基礎目錄",
+      "graphName": "圖譜名稱"
+    }
   }
 }

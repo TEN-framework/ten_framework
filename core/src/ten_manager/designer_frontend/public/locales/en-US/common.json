@@ -3,27 +3,50 @@
   "ten": "TEN",
   "header": {
     "title": "Ten Manager",
-    "menu": {
-      "graph": "Graph",
+    "menuApp": {
+      "title": "App",
+      "loadApp": "Load App",
+      "loadAppSuccess": "App loaded successfully",
+      "loadAppFailed": "Failed to load app",
+      "reloadApp": "Reload App",
+      "reloadAppSuccess": "App reloaded successfully",
+      "reloadAppFailed": "Failed to reload app",
+      "reloadAllApps": "Reload All Apps",
+      "reloadAllAppsSuccess": "All apps reloaded successfully",
+      "reloadAllAppsFailed": "Failed to reload all apps",
+      "unloadApp": "Unload App",
+      "unloadAppSuccess": "App unloaded successfully",
+      "unloadAppFailed": "Failed to unload app",
+      "installAll": "Install All",
+      "manageLoadedApps": "Manage Loaded App(s)",
+      "runApp": "Run App",
+      "openAppFolder": "Open App Folder"
+    },
+    "menuGraph": {
+      "title": "Graph",
       "openExistingGraph": "Open Existing Graph",
       "openExtensionStore": "Open Extension Store",
       "autoLayout": "Auto Layout",
-      "openAppFolder": "Open App Folder",
-      "file": "File",
-      "app": "App",
-      "help": "Help",
-      "about": "About",
-      "language": "Language",
-      "language.enUS": "English",
-      "language.zhCN": "中文(简体)",
-      "language.zhTW": "中文(繁體)",
-      "theme": "Theme",
-      "theme.light": "Light",
-      "theme.dark": "Dark",
-      "theme.system": "System",
-      "start": "Start",
-      "preferences": "Preferences",
-      "installAll": "Install All"
+      "selectLoadedApp": "Select a Loaded App"
+    },
+    "menuHelp": {
+      "title": "File"
+    },
+    "menuAbout": {
+      "title": "About"
+    },
+    "language": {
+      "title": "Language",
+      "enUS": "English",
+      "zhCN": "中文(简体)",
+      "zhTW": "中文(繁體)",
+      "jaJP": "日本語"
+    },
+    "theme": {
+      "title": "Theme",
+      "light": "Light",
+      "dark": "Dark",
+      "system": "System"
     },
     "officialSite": "Official Site",
     "poweredBy": "Powered by",
@@ -51,7 +74,9 @@
     "unsaved": "unsaved",
     "launchLogViewer": "View Logs",
     "stop": "Stop",
-    "search": "Search"
+    "search": "Search",
+    "current": "Current",
+    "run": "Run"
   },
   "toast": {
     "saveFileSuccess": "File saved successfully",
@@ -83,6 +108,14 @@
       "errorGetBaseDir": "Failed to get base dir",
       "errorOpenAppFolder": "Failed to open app folder",
       "errorUnknown": "An unknown error occurred."
+    },
+    "apps": {
+      "manager": "Apps Manager",
+      "tableCaption": "A list of your loaded apps.",
+      "baseDir": "Base Dir",
+      "run": "Run App",
+      "runScript": "Run Script",
+      "runScriptPlaceholder": "Enter the script to run"
     }
   },
   "dock": {
@@ -94,6 +127,7 @@
   },
   "dataTable": {
     "no": "No.",
+    "name": "Name",
     "upstream": "Upstream",
     "downstream": "Downstream",
     "type": "Type",
@@ -107,10 +141,12 @@
   },
   "extensionStore": {
     "title": "Extension Store",
+    "readOnly": "Read Only",
     "compatible": "Compatible",
     "dependencies": "Dependencies",
     "searchPlaceholder": "Search Extensions...",
     "installedWithSum": "{{count}} of {{total}} Installed",
+    "openAGraphToInstall": "Open a graph to install extensions",
     "noMatchResult": "No match results",
     "matchResult": "{{count}} match results",
     "install": "Install",
@@ -134,5 +170,14 @@
     "selectVersion": "Select a version",
     "versionLatest": "Latest",
     "localAddonTip": "(local)"
+  },
+  "statusBar": {
+    "appsLoadedWithCount": "{{count}} app(s) loaded",
+    "appsError": "Failed to get apps",
+    "workspace": {
+      "title": "Currently Working in",
+      "baseDir": "Base Dir",
+      "graphName": "Graph Name"
+    }
   }
 }

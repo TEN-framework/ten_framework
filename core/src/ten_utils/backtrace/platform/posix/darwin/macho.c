@@ -561,7 +561,7 @@ static int macho_add_symtab(ten_backtrace_t *self_, int descriptor,
 
   while (1) {
     struct macho_syminfo_data **pp =
-        (struct macho_syminfo_data **)(void *)&self->get_syminfo_data;
+        (struct macho_syminfo_data **)(void *)&self->get_syminfo_user_data;
 
     while (1) {
       struct macho_syminfo_data *p = ten_atomic_ptr_load((void *)pp);
@@ -609,7 +609,7 @@ static void macho_syminfo(ten_backtrace_t *self_, uintptr_t addr,
   sym = NULL;
 
   struct macho_syminfo_data **pp =
-      (struct macho_syminfo_data **)(void *)&self->get_syminfo_data;
+      (struct macho_syminfo_data **)(void *)&self->get_syminfo_user_data;
 
   while (1) {
     sdata = ten_atomic_ptr_load((void *)pp);
@@ -1064,7 +1064,7 @@ fail:
 int ten_backtrace_init_posix(
     ten_backtrace_t *self, const char *filename, int descriptor,
     ten_backtrace_error_func_t error_cb, void *data,
-    ten_backtrace_get_file_line_func_t *get_file_line) {
+    ten_backtrace_get_file_line_func_t *get_file_line_func) {
   ten_backtrace_posix_t *posix_self = (ten_backtrace_posix_t *)self;
   assert(posix_self && "Invalid argument.");
 
@@ -1117,16 +1117,17 @@ int ten_backtrace_init_posix(
   }
 
   if (found_sym) {
-    ten_atomic_ptr_store((void *)&posix_self->get_syminfo, macho_syminfo);
+    ten_atomic_ptr_store((void *)&posix_self->get_syminfo_func, macho_syminfo);
   } else {
-    (void)__sync_bool_compare_and_swap(&posix_self->get_syminfo, NULL,
+    (void)__sync_bool_compare_and_swap(&posix_self->get_syminfo_func, NULL,
                                        macho_nosyms);
   }
 
-  *get_file_line = ten_atomic_ptr_load((void *)&posix_self->get_file_line);
+  *get_file_line_func =
+      ten_atomic_ptr_load((void *)&posix_self->get_file_line_func);
 
-  if (*get_file_line == NULL || *get_file_line == macho_nodebug) {
-    *get_file_line = macho_fileline_fn;
+  if (*get_file_line_func == NULL || *get_file_line_func == macho_nodebug) {
+    *get_file_line_func = macho_fileline_fn;
   }
 
   return 1;
