@@ -19,9 +19,10 @@
 static void ten_engine_timer_on_trigger(ten_timer_t *self,
                                         void *on_trigger_data) {
   ten_engine_t *engine = (ten_engine_t *)on_trigger_data;
-  TEN_ASSERT(engine && ten_engine_check_integrity(engine, true) && self &&
-                 ten_timer_check_integrity(self, true),
-             "Should not happen.");
+  TEN_ASSERT(engine, "Should not happen.");
+  TEN_ASSERT(ten_engine_check_integrity(engine, true), "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_timer_check_integrity(self, true), "Should not happen.");
 
   ten_shared_ptr_t *cmd = ten_cmd_timeout_create(self->id);
 
@@ -36,8 +37,10 @@ static void ten_engine_timer_on_trigger(ten_timer_t *self,
 // NOLINTNEXTLINE(misc-no-recursion)
 void ten_engine_handle_cmd_timer(ten_engine_t *self, ten_shared_ptr_t *cmd,
                                  ten_error_t *err) {
-  TEN_ASSERT(self && ten_engine_check_integrity(self, true) && cmd &&
-                 ten_msg_get_type(cmd) == TEN_MSG_TYPE_CMD_TIMER,
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_engine_check_integrity(self, true), "Should not happen.");
+  TEN_ASSERT(cmd, "Should not happen.");
+  TEN_ASSERT(ten_msg_get_type(cmd) == TEN_MSG_TYPE_CMD_TIMER,
              "Should not happen.");
 
   if (self->is_closing) {

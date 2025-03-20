@@ -31,9 +31,11 @@
 #include "ten_utils/value/value.h"
 #include "ten_utils/value/value_is.h"
 
-static ten_value_t *ten_cmd_start_graph_extensions_info_to_value(
-    ten_msg_t *self, ten_error_t *err) {
-  TEN_ASSERT(self && ten_raw_msg_check_integrity(self), "Should not happen.");
+static ten_value_t *
+ten_cmd_start_graph_extensions_info_to_value(ten_msg_t *self,
+                                             ten_error_t *err) {
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_raw_msg_check_integrity(self), "Should not happen.");
 
   ten_cmd_start_graph_t *cmd = (ten_cmd_start_graph_t *)self;
   ten_list_t *extensions_info =
@@ -59,7 +61,7 @@ static ten_value_t *ten_cmd_start_graph_extensions_info_to_value(
   ten_list_t connections_list = TEN_LIST_INIT_VAL;
 
   ten_list_t unique_extension_list = TEN_LIST_INIT_VAL;
-  ten_list_foreach (extensions_info, iter) {
+  ten_list_foreach(extensions_info, iter) {
     ten_extension_info_t *extension_info =
         ten_shared_ptr_get_data(ten_smart_ptr_listnode_get(iter.node));
     TEN_ASSERT(extension_info, "Should not happen.");
@@ -106,7 +108,7 @@ static ten_value_t *ten_cmd_start_graph_extensions_info_to_value(
                           ten_value_create_array_with_move(&nodes_list)),
       (ten_ptr_listnode_destroy_func_t)ten_value_kv_destroy);
 
-  ten_list_foreach (extensions_info, iter) {
+  ten_list_foreach(extensions_info, iter) {
     ten_extension_info_t *extension_info =
         ten_shared_ptr_get_data(ten_smart_ptr_listnode_get(iter.node));
     TEN_ASSERT(extension_info, "Should not happen.");
@@ -141,7 +143,7 @@ bool ten_cmd_start_graph_copy_extensions_info(
   ten_cmd_start_graph_t *src_cmd = (ten_cmd_start_graph_t *)src;
   ten_cmd_start_graph_t *self_cmd = (ten_cmd_start_graph_t *)self;
 
-  ten_list_foreach (&src_cmd->extension_groups_info, iter) {
+  ten_list_foreach(&src_cmd->extension_groups_info, iter) {
     ten_shared_ptr_t *extension_group_info_ =
         ten_smart_ptr_listnode_get(iter.node);
     ten_extension_group_info_t *extension_group_info =
@@ -163,7 +165,8 @@ bool ten_cmd_start_graph_copy_extensions_info(
 bool ten_cmd_start_graph_process_extensions_info(
     ten_msg_t *self, ten_raw_msg_process_one_field_func_t cb, void *user_data,
     ten_error_t *err) {
-  TEN_ASSERT(self && ten_raw_msg_check_integrity(self), "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_raw_msg_check_integrity(self), "Should not happen.");
 
   ten_cmd_start_graph_t *cmd = (ten_cmd_start_graph_t *)self;
 

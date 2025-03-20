@@ -21,7 +21,8 @@ void ten_raw_msg_src_copy(ten_msg_t *self, ten_msg_t *src,
 bool ten_raw_msg_src_process(ten_msg_t *self,
                              ten_raw_msg_process_one_field_func_t cb,
                              void *user_data, ten_error_t *err) {
-  TEN_ASSERT(self && ten_raw_msg_check_integrity(self), "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_raw_msg_check_integrity(self), "Should not happen.");
 
   ten_value_t *src_value = ten_loc_to_value(&self->src_loc);
   TEN_ASSERT(ten_value_is_object(src_value), "Should not happen.");

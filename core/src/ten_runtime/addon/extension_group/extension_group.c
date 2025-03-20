@@ -83,27 +83,24 @@ bool ten_addon_create_extension_group(
 bool ten_addon_destroy_extension_group(
     ten_env_t *ten_env, ten_extension_group_t *extension_group,
     ten_env_addon_destroy_instance_done_cb_t cb, void *cb_data) {
-  TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true) && cb,
+  TEN_ASSERT(ten_env, "Should not happen.");
+  TEN_ASSERT(ten_env_check_integrity(ten_env, true), "Should not happen.");
+  TEN_ASSERT(cb, "Should not happen.");
+  TEN_ASSERT(extension_group, "Should not happen.");
+  TEN_ASSERT(ten_extension_group_check_integrity(extension_group, true),
              "Should not happen.");
-  TEN_ASSERT(extension_group &&
-                 // TEN_NOLINTNEXTLINE(thread-check)
-                 // thread-check: The extension thread has been stopped.
-                 ten_extension_group_check_integrity(extension_group, false),
+  TEN_ASSERT(ten_env->attach_to == TEN_ENV_ATTACH_TO_EXTENSION_GROUP,
              "Should not happen.");
-  TEN_ASSERT(ten_env->attach_to == TEN_ENV_ATTACH_TO_ENGINE,
-             "Should not happen.");
-
-  ten_engine_t *engine = ten_env_get_attached_engine(ten_env);
-  TEN_ASSERT(engine, "Should not happen.");
-  TEN_ASSERT(ten_engine_check_integrity(engine, true), "Should not happen.");
 
   ten_addon_host_t *addon_host = extension_group->addon_host;
   TEN_ASSERT(addon_host,
              "Should not happen, otherwise, memory leakage will occur.");
 
   ten_addon_context_t *addon_context = ten_addon_context_create();
-  addon_context->flow = TEN_ADDON_CONTEXT_FLOW_ENGINE_DESTROY_EXTENSION_GROUP;
-  addon_context->flow_target.engine = engine;
+  addon_context->flow =
+      TEN_ADDON_CONTEXT_FLOW_EXTENSION_THREAD_DESTROY_EXTENSION_GROUP;
+  addon_context->flow_target.extension_thread =
+      extension_group->extension_thread;
   addon_context->destroy_instance_done_cb = cb;
   addon_context->destroy_instance_done_cb_data = cb_data;
 

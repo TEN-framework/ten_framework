@@ -31,7 +31,8 @@ void ten_extension_group_on_init(ten_env_t *ten_env) {
              "Invalid argument.");
 
   ten_extension_group_t *self = ten_env_get_attached_extension_group(ten_env);
-  TEN_ASSERT(self && ten_extension_group_check_integrity(self, true),
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_extension_group_check_integrity(self, true),
              "Should not happen.");
 
   self->manifest_info =
@@ -47,7 +48,8 @@ void ten_extension_group_on_init(ten_env_t *ten_env) {
 }
 
 void ten_extension_group_on_deinit(ten_extension_group_t *self) {
-  TEN_ASSERT(self && ten_extension_group_check_integrity(self, true),
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_extension_group_check_integrity(self, true),
              "Should not happen.");
   TEN_ASSERT(self->ten_env && ten_env_check_integrity(self->ten_env, true),
              "Should not happen.");
@@ -148,7 +150,8 @@ bool ten_extension_group_on_deinit_done(ten_env_t *self) {
 
 void ten_extension_group_on_create_extensions_done(ten_extension_group_t *self,
                                                    ten_list_t *extensions) {
-  TEN_ASSERT(self && ten_extension_group_check_integrity(self, true),
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_extension_group_check_integrity(self, true),
              "Should not happen.");
   TEN_ASSERT(self->extension_thread, "Should not happen.");
 
@@ -199,7 +202,8 @@ void ten_extension_group_on_create_extensions_done(ten_extension_group_t *self,
 
 void ten_extension_group_on_destroy_extensions_done(
     ten_extension_group_t *self) {
-  TEN_ASSERT(self && ten_extension_group_check_integrity(self, true),
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_extension_group_check_integrity(self, true),
              "Should not happen.");
   TEN_ASSERT(self->extension_thread, "Should not happen.");
 

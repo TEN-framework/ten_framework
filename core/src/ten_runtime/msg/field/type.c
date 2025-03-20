@@ -17,8 +17,10 @@
 
 bool ten_raw_msg_type_from_json(ten_msg_t *self, ten_json_t *json,
                                 TEN_UNUSED ten_error_t *err) {
-  TEN_ASSERT(self && ten_raw_msg_check_integrity(self), "Should not happen.");
-  TEN_ASSERT(json && ten_json_check_integrity(json), "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_raw_msg_check_integrity(self), "Should not happen.");
+  TEN_ASSERT(json, "Should not happen.");
+  TEN_ASSERT(ten_json_check_integrity(json), "Should not happen.");
 
   ten_json_t ten_json = TEN_JSON_INIT_VAL(json->ctx, false);
   bool success = ten_json_object_peek(json, TEN_STR_UNDERLINE_TEN, &ten_json);
@@ -75,7 +77,8 @@ void ten_raw_msg_type_copy(ten_msg_t *self, ten_msg_t *src,
 bool ten_raw_msg_type_process(ten_msg_t *self,
                               ten_raw_msg_process_one_field_func_t cb,
                               void *user_data, ten_error_t *err) {
-  TEN_ASSERT(self && ten_raw_msg_check_integrity(self), "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_raw_msg_check_integrity(self), "Should not happen.");
 
   ten_value_t *type_value = ten_value_create_string(
       ten_msg_type_to_string(ten_raw_msg_get_type(self)));

@@ -28,7 +28,8 @@ void ten_cmd_start_graph_copy_long_running_mode(
 bool ten_cmd_start_graph_process_long_running_mode(
     ten_msg_t *self, ten_raw_msg_process_one_field_func_t cb, void *user_data,
     ten_error_t *err) {
-  TEN_ASSERT(self && ten_raw_msg_check_integrity(self), "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_raw_msg_check_integrity(self), "Should not happen.");
 
   ten_msg_field_process_data_t long_running_mode_field;
   ten_msg_field_process_data_init(

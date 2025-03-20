@@ -91,7 +91,8 @@ bool ten_raw_msg_remove_locked_res_buf(ten_msg_t *self, const uint8_t *data) {
 
 bool ten_msg_add_locked_res_buf(ten_shared_ptr_t *self, const uint8_t *data,
                                 ten_error_t *err) {
-  TEN_ASSERT(self && ten_msg_check_integrity(self), "Invalid argument.");
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_msg_check_integrity(self), "Invalid argument.");
 
   if (!data) {
     TEN_LOGE("Failed to lock res, the data is null.");
@@ -109,7 +110,8 @@ bool ten_msg_add_locked_res_buf(ten_shared_ptr_t *self, const uint8_t *data,
 
 bool ten_msg_remove_locked_res_buf(ten_shared_ptr_t *self, const uint8_t *data,
                                    ten_error_t *err) {
-  TEN_ASSERT(self && ten_msg_check_integrity(self), "Invalid argument.");
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_msg_check_integrity(self), "Invalid argument.");
 
   bool result =
       ten_raw_msg_remove_locked_res_buf(ten_msg_get_raw_msg(self), data);
