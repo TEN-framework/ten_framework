@@ -85,7 +85,8 @@ ten_shared_ptr_t *ten_cmd_start_graph_create(void) {
 static bool ten_raw_cmd_start_graph_as_msg_get_graph_from_json(
     ten_msg_t *self, ten_msg_field_process_data_t *field, void *user_data,
     ten_error_t *err) {
-  TEN_ASSERT(self && ten_raw_msg_check_integrity(self), "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_raw_msg_check_integrity(self), "Should not happen.");
   TEN_ASSERT(field, "Should not happen.");
   TEN_ASSERT(field->field_value &&
                  ten_value_check_integrity(field->field_value),
@@ -128,7 +129,8 @@ bool ten_raw_cmd_start_graph_init_from_json(ten_cmd_start_graph_t *self,
                                             ten_error_t *err) {
   TEN_ASSERT(self && ten_raw_cmd_check_integrity((ten_cmd_t *)self),
              "Should not happen.");
-  TEN_ASSERT(json && ten_json_check_integrity(json), "Should not happen.");
+  TEN_ASSERT(json, "Should not happen.");
+  TEN_ASSERT(ten_json_check_integrity(json), "Should not happen.");
 
   return ten_raw_cmd_start_graph_loop_all_fields(
       (ten_msg_t *)self,
@@ -140,7 +142,8 @@ bool ten_raw_cmd_start_graph_set_graph_from_json(ten_cmd_start_graph_t *self,
                                                  ten_error_t *err) {
   TEN_ASSERT(self && ten_raw_cmd_check_integrity((ten_cmd_t *)self),
              "Should not happen.");
-  TEN_ASSERT(json && ten_json_check_integrity(json), "Should not happen.");
+  TEN_ASSERT(json, "Should not happen.");
+  TEN_ASSERT(ten_json_check_integrity(json), "Should not happen.");
 
   return ten_raw_cmd_start_graph_loop_all_fields(
       (ten_msg_t *)self, ten_raw_cmd_start_graph_as_msg_get_graph_from_json,

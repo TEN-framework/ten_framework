@@ -187,9 +187,11 @@ void ten_engine_handle_cmd_start_graph(ten_engine_t *self,
 
 void ten_engine_return_ok_for_cmd_start_graph(
     ten_engine_t *self, ten_shared_ptr_t *cmd_start_graph) {
-  TEN_ASSERT(self && ten_engine_check_integrity(self, true),
-             "Invalid argument");
-  TEN_ASSERT(cmd_start_graph && ten_cmd_base_check_integrity(cmd_start_graph),
+  TEN_ASSERT(self, "Invalid argument");
+  TEN_ASSERT(ten_engine_check_integrity(self, true), "Invalid argument");
+
+  TEN_ASSERT(cmd_start_graph, "Invalid argument.");
+  TEN_ASSERT(ten_cmd_base_check_integrity(cmd_start_graph),
              "Invalid argument.");
   TEN_ASSERT(
       ten_msg_get_type(cmd_start_graph) == TEN_MSG_TYPE_CMD_START_GRAPH,
@@ -202,9 +204,10 @@ void ten_engine_return_ok_for_cmd_start_graph(
 void ten_engine_return_error_for_cmd_start_graph(
     ten_engine_t *self, ten_shared_ptr_t *cmd_start_graph, const char *fmt,
     ...) {
-  TEN_ASSERT(self && ten_engine_check_integrity(self, true),
-             "Invalid argument.");
-  TEN_ASSERT(cmd_start_graph && ten_cmd_base_check_integrity(cmd_start_graph),
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_engine_check_integrity(self, true), "Invalid argument.");
+  TEN_ASSERT(cmd_start_graph, "Invalid argument.");
+  TEN_ASSERT(ten_cmd_base_check_integrity(cmd_start_graph),
              "The engine should be started because of receiving a "
              "'start_graph' command.");
   TEN_ASSERT(

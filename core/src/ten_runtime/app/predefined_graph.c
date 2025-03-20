@@ -179,8 +179,8 @@ done:
 static void ten_app_start_auto_start_predefined_graph_result_handler(
     ten_env_t *ten_env, ten_shared_ptr_t *cmd_result, void *user_data,
     ten_error_t *err) {
-  TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
-             "Invalid argument.");
+  TEN_ASSERT(ten_env, "Invalid argument.");
+  TEN_ASSERT(ten_env_check_integrity(ten_env, true), "Invalid argument.");
   TEN_ASSERT(cmd_result && ten_cmd_base_check_integrity(cmd_result),
              "Invalid argument.");
 

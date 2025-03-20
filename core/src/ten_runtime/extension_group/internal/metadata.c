@@ -28,7 +28,8 @@ void ten_extension_group_load_metadata(ten_extension_group_t *self) {
 
 void ten_extension_group_merge_properties_from_graph(
     ten_extension_group_t *self) {
-  TEN_ASSERT(self && ten_extension_group_check_integrity(self, true),
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_extension_group_check_integrity(self, true),
              "Should not happen.");
   TEN_ASSERT(self->extension_group_info, "Invalid argument.");
 

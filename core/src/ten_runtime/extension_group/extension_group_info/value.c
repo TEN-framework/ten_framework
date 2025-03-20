@@ -15,7 +15,8 @@
 
 ten_shared_ptr_t *ten_extension_group_info_from_value(
     ten_value_t *value, ten_list_t *extension_groups_info, ten_error_t *err) {
-  TEN_ASSERT(value && extension_groups_info, "Should not happen.");
+  TEN_ASSERT(value, "Should not happen.");
+  TEN_ASSERT(extension_groups_info, "Should not happen.");
 
   const char *app_uri = ten_value_object_peek_string(value, TEN_STR_APP);
   const char *graph_id = ten_value_object_peek_string(value, TEN_STR_GRAPH);
@@ -30,6 +31,7 @@ ten_shared_ptr_t *ten_extension_group_info_from_value(
   }
 
   ten_extension_group_info_t *extension_info = ten_shared_ptr_get_data(self);
+  TEN_ASSERT(extension_info, "Should not happen.");
   TEN_ASSERT(ten_extension_group_info_check_integrity(extension_info),
              "Should not happen.");
 

@@ -110,8 +110,9 @@ ten_extension_group_t *ten_extension_group_create(
     ten_extension_group_on_deinit_func_t on_deinit,
     ten_extension_group_on_create_extensions_func_t on_create_extensions,
     ten_extension_group_on_destroy_extensions_func_t on_destroy_extensions) {
-  TEN_ASSERT(name && on_create_extensions && on_destroy_extensions,
-             "Should not happen.");
+  TEN_ASSERT(name, "Should not happen.");
+  TEN_ASSERT(on_create_extensions, "Should not happen.");
+  TEN_ASSERT(on_destroy_extensions, "Should not happen.");
 
   ten_extension_group_t *self = ten_extension_group_create_internal(
       name, on_configure, on_init, on_deinit, on_create_extensions,
@@ -124,7 +125,8 @@ ten_extension_group_t *ten_extension_group_create(
 void ten_extension_group_destroy(ten_extension_group_t *self) {
   // TODO(Wei): It's strange that JS main thread would call this function, need
   // further investigation.
-  TEN_ASSERT(self && ten_extension_group_check_integrity(self, false),
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_extension_group_check_integrity(self, false),
              "Should not happen.");
   TEN_ASSERT(self->extensions_cnt_of_being_destroyed == 0,
              "Should not happen.");
@@ -167,7 +169,8 @@ void ten_extension_group_destroy(ten_extension_group_t *self) {
 }
 
 void ten_extension_group_create_extensions(ten_extension_group_t *self) {
-  TEN_ASSERT(self && ten_extension_group_check_integrity(self, true),
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_extension_group_check_integrity(self, true),
              "Should not happen.");
   TEN_ASSERT(self->on_create_extensions, "Should not happen.");
   TEN_ASSERT(self->ten_env && ten_env_check_integrity(self->ten_env, true),
@@ -188,7 +191,8 @@ void ten_extension_group_create_extensions(ten_extension_group_t *self) {
 
 void ten_extension_group_destroy_extensions(ten_extension_group_t *self,
                                             ten_list_t extensions) {
-  TEN_ASSERT(self && ten_extension_group_check_integrity(self, true),
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_extension_group_check_integrity(self, true),
              "Should not happen.");
   TEN_ASSERT(self->on_destroy_extensions, "Should not happen.");
   TEN_ASSERT(self->ten_env && ten_env_check_integrity(self->ten_env, true),
@@ -224,9 +228,13 @@ void ten_extension_group_set_addon(ten_extension_group_t *self,
 
 ten_shared_ptr_t *ten_extension_group_create_cmd_result_for_invalid_dest(
     ten_shared_ptr_t *origin_cmd, ten_string_t *target_group_name) {
-  TEN_ASSERT(origin_cmd && ten_msg_is_cmd_and_result(origin_cmd),
-             "Should not happen.");
+  TEN_ASSERT(origin_cmd, "Should not happen.");
   TEN_ASSERT(target_group_name, "Should not happen.");
+
+  if (!ten_msg_is_cmd_and_result(origin_cmd)) {
+    ten_msg_dump(origin_cmd, NULL, "Unexpected message: ^m");
+    TEN_ASSERT(0, "Should not happen.");
+  }
 
   ten_shared_ptr_t *cmd_result =
       ten_cmd_result_create_from_cmd(TEN_STATUS_CODE_ERROR, origin_cmd);
@@ -241,59 +249,59 @@ ten_shared_ptr_t *ten_extension_group_create_cmd_result_for_invalid_dest(
 
 ten_runloop_t *
 ten_extension_group_get_attached_runloop(ten_extension_group_t *self) {
-  TEN_ASSERT(self &&
-                 // TEN_NOLINTNEXTLINE(thread-check)
-                 // thread-check: This function is intended to be called in
-                 // other threads.
-                 ten_extension_group_check_integrity(self, false),
-             "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(
+      // TEN_NOLINTNEXTLINE(thread-check)
+      // thread-check: This function is intended to be called in
+      // other threads.
+      ten_extension_group_check_integrity(self, false), "Should not happen.");
 
   return self->extension_thread->runloop;
 }
 
 ten_list_t *ten_extension_group_get_extension_addon_and_instance_name_pairs(
     ten_extension_group_t *self) {
-  TEN_ASSERT(self &&
-                 // TEN_NOLINTNEXTLINE(thread-check)
-                 // thread-check: This function is intended to be called in
-                 // other threads.
-                 ten_extension_group_check_integrity(self, false),
-             "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(
+      // TEN_NOLINTNEXTLINE(thread-check)
+      // thread-check: This function is intended to be called in
+      // other threads.
+      ten_extension_group_check_integrity(self, false), "Should not happen.");
 
   return &self->extension_addon_and_instance_name_pairs;
 }
 
 ten_env_t *ten_extension_group_get_ten_env(ten_extension_group_t *self) {
-  TEN_ASSERT(self &&
-                 // TEN_NOLINTNEXTLINE(thread-check)
-                 // thread-check: This function is intended to be called in
-                 // other threads.
-                 ten_extension_group_check_integrity(self, false),
-             "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(
+      // TEN_NOLINTNEXTLINE(thread-check)
+      // thread-check: This function is intended to be called in
+      // other threads.
+      ten_extension_group_check_integrity(self, false), "Should not happen.");
 
   return self->ten_env;
 }
 
 void ten_extension_group_set_extension_cnt_of_being_destroyed(
     ten_extension_group_t *self, size_t new_cnt) {
-  TEN_ASSERT(self &&
-                 // TEN_NOLINTNEXTLINE(thread-check)
-                 // thread-check: This function is intended to be called in
-                 // other threads.
-                 ten_extension_group_check_integrity(self, false),
-             "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(
+      // TEN_NOLINTNEXTLINE(thread-check)
+      // thread-check: This function is intended to be called in
+      // other threads.
+      ten_extension_group_check_integrity(self, false), "Should not happen.");
 
   self->extensions_cnt_of_being_destroyed = new_cnt;
 }
 
 size_t ten_extension_group_decrement_extension_cnt_of_being_destroyed(
     ten_extension_group_t *self) {
-  TEN_ASSERT(self &&
-                 // TEN_NOLINTNEXTLINE(thread-check)
-                 // thread-check: This function is intended to be called in
-                 // other threads.
-                 ten_extension_group_check_integrity(self, false),
-             "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(
+      // TEN_NOLINTNEXTLINE(thread-check)
+      // thread-check: This function is intended to be called in
+      // other threads.
+      ten_extension_group_check_integrity(self, false), "Should not happen.");
 
   return --self->extensions_cnt_of_being_destroyed;
 }

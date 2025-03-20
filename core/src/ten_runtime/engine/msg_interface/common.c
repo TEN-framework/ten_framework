@@ -56,8 +56,8 @@ static void ten_engine_prepend_to_in_msgs_queue(ten_engine_t *self,
 }
 
 static void ten_engine_handle_msg(ten_engine_t *self, ten_shared_ptr_t *msg) {
-  TEN_ASSERT(self && ten_engine_check_integrity(self, true),
-             "Invalid argument.");
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_engine_check_integrity(self, true), "Invalid argument.");
   TEN_ASSERT(msg, "Should not happen.");
   TEN_ASSERT(ten_msg_check_integrity(msg), "Should not happen.");
 
@@ -455,13 +455,17 @@ bool ten_engine_dispatch_msg(ten_engine_t *self, ten_shared_ptr_t *msg) {
             //              "Failed to find the destination extension thread for
             //              " "the message ^m");
 
-            ten_shared_ptr_t *cmd_result =
-                ten_extension_group_create_cmd_result_for_invalid_dest(
-                    msg, &dest_loc->extension_group_name);
+            if (ten_msg_is_cmd(msg)) {
+              ten_shared_ptr_t *cmd_result =
+                  ten_extension_group_create_cmd_result_for_invalid_dest(
+                      msg, &dest_loc->extension_group_name);
 
-            ten_engine_dispatch_msg(self, cmd_result);
+              ten_engine_dispatch_msg(self, cmd_result);
 
-            ten_shared_ptr_destroy(cmd_result);
+              ten_shared_ptr_destroy(cmd_result);
+            } else {
+              // For those non-cmd messages, do nothing, just drop them.
+            }
           }
         }
       }
@@ -475,8 +479,8 @@ void ten_engine_create_cmd_result_and_dispatch(ten_engine_t *self,
                                                ten_shared_ptr_t *origin_cmd,
                                                TEN_STATUS_CODE status_code,
                                                const char *detail) {
-  TEN_ASSERT(self && ten_engine_check_integrity(self, true),
-             "Invalid argument.");
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_engine_check_integrity(self, true), "Invalid argument.");
   TEN_ASSERT(origin_cmd && ten_msg_is_cmd(origin_cmd), "Invalid argument.");
 
   ten_shared_ptr_t *cmd_result =

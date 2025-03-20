@@ -74,7 +74,8 @@ void ten_raw_msg_init(ten_msg_t *self, TEN_MSG_TYPE type) {
 }
 
 void ten_raw_msg_deinit(ten_msg_t *self) {
-  TEN_ASSERT(self && ten_raw_msg_check_integrity(self), "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_raw_msg_check_integrity(self), "Should not happen.");
 
   TEN_LOGV("Destroy c_msg %p", self);
 
@@ -90,7 +91,8 @@ void ten_raw_msg_deinit(ten_msg_t *self) {
 }
 
 void ten_raw_msg_set_src_to_loc(ten_msg_t *self, ten_loc_t *loc) {
-  TEN_ASSERT(self && ten_raw_msg_check_integrity(self), "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_raw_msg_check_integrity(self), "Should not happen.");
   ten_loc_set_from_loc(&self->src_loc, loc);
 }
 
@@ -123,7 +125,8 @@ void ten_raw_msg_add_dest(ten_msg_t *self, const char *uri,
                           const char *graph_id,
                           const char *extension_group_name,
                           const char *extension_name) {
-  TEN_ASSERT(self && ten_raw_msg_check_integrity(self), "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_raw_msg_check_integrity(self), "Should not happen.");
 
   ten_list_push_ptr_back(
       &self->dest_loc,
@@ -132,14 +135,16 @@ void ten_raw_msg_add_dest(ten_msg_t *self, const char *uri,
 }
 
 void ten_raw_msg_clear_dest(ten_msg_t *self) {
-  TEN_ASSERT(self && ten_raw_msg_check_integrity(self), "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_raw_msg_check_integrity(self), "Should not happen.");
 
   ten_list_clear(&self->dest_loc);
 }
 
 static void ten_raw_msg_clear_and_set_dest_from_msg_src(ten_msg_t *self,
                                                         ten_shared_ptr_t *cmd) {
-  TEN_ASSERT(self && ten_raw_msg_check_integrity(self), "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_raw_msg_check_integrity(self), "Should not happen.");
 
   ten_msg_t *raw_msg = ten_msg_get_raw_msg(cmd);
 
@@ -161,12 +166,14 @@ void ten_msg_clear_and_set_dest_from_msg_src(ten_shared_ptr_t *self,
 }
 
 static bool ten_raw_msg_src_is_empty(ten_msg_t *self) {
-  TEN_ASSERT(self && ten_raw_msg_check_integrity(self), "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_raw_msg_check_integrity(self), "Should not happen.");
   return ten_loc_is_empty(&self->src_loc);
 }
 
 const char *ten_raw_msg_get_first_dest_uri(ten_msg_t *self) {
-  TEN_ASSERT(self && ten_raw_msg_check_integrity(self), "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_raw_msg_check_integrity(self), "Should not happen.");
   TEN_ASSERT(ten_list_size(&self->dest_loc) == 1, "Should not happen.");
 
   ten_loc_t *first_loc = ten_ptr_listnode_get(ten_list_front(&self->dest_loc));
@@ -224,7 +231,8 @@ static void ten_raw_msg_set_src(ten_msg_t *self, const char *uri,
                                 const char *graph_id,
                                 const char *extension_group_name,
                                 const char *extension_name) {
-  TEN_ASSERT(self && ten_raw_msg_check_integrity(self), "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_raw_msg_check_integrity(self), "Should not happen.");
   ten_loc_set(&self->src_loc, uri, graph_id, extension_group_name,
               extension_name);
 }
@@ -441,7 +449,8 @@ ten_list_t *ten_msg_get_dest(ten_shared_ptr_t *self) {
 }
 
 size_t ten_raw_msg_get_dest_cnt(ten_msg_t *self) {
-  TEN_ASSERT(self && ten_raw_msg_check_integrity(self), "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_raw_msg_check_integrity(self), "Should not happen.");
   return ten_list_size(&self->dest_loc);
 }
 
@@ -467,7 +476,8 @@ void ten_msg_clear_dest(ten_shared_ptr_t *self) {
 }
 
 ten_loc_t *ten_raw_msg_get_src_loc(ten_msg_t *self) {
-  TEN_ASSERT(self && ten_raw_msg_check_integrity(self), "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_raw_msg_check_integrity(self), "Should not happen.");
   return &self->src_loc;
 }
 
@@ -577,7 +587,8 @@ const char *ten_msg_type_to_string(const TEN_MSG_TYPE type) {
 static bool ten_raw_msg_get_one_field_from_json_internal(
     ten_msg_t *self, ten_msg_field_process_data_t *field, void *user_data,
     bool include_internal_field, ten_error_t *err) {
-  TEN_ASSERT(self && ten_raw_msg_check_integrity(self), "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_raw_msg_check_integrity(self), "Should not happen.");
   TEN_ASSERT(field, "Should not happen.");
   TEN_ASSERT(field->field_value &&
                  ten_value_check_integrity(field->field_value),
@@ -671,7 +682,8 @@ bool ten_raw_msg_get_one_field_from_json_include_internal_field(
 static bool ten_raw_msg_put_one_field_to_json_internal(
     ten_msg_t *self, ten_msg_field_process_data_t *field, void *user_data,
     bool include_internal_field, ten_error_t *err) {
-  TEN_ASSERT(self && ten_raw_msg_check_integrity(self), "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_raw_msg_check_integrity(self), "Should not happen.");
   TEN_ASSERT(field, "Should not happen.");
   TEN_ASSERT(field->field_value &&
                  ten_value_check_integrity(field->field_value),
@@ -720,7 +732,8 @@ static bool ten_raw_msg_put_one_field_to_json_internal(
 static bool ten_raw_msg_put_one_field_to_json_include_internal_field(
     ten_msg_t *self, ten_msg_field_process_data_t *field, void *user_data,
     ten_error_t *err) {
-  TEN_ASSERT(self && ten_raw_msg_check_integrity(self), "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_raw_msg_check_integrity(self), "Should not happen.");
   TEN_ASSERT(field, "Should not happen.");
   TEN_ASSERT(field->field_value &&
                  ten_value_check_integrity(field->field_value),
@@ -733,7 +746,8 @@ static bool ten_raw_msg_put_one_field_to_json_include_internal_field(
 bool ten_raw_msg_put_one_field_to_json(ten_msg_t *self,
                                        ten_msg_field_process_data_t *field,
                                        void *user_data, ten_error_t *err) {
-  TEN_ASSERT(self && ten_raw_msg_check_integrity(self), "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_raw_msg_check_integrity(self), "Should not happen.");
   TEN_ASSERT(field, "Should not happen.");
   TEN_ASSERT(field->field_value &&
                  ten_value_check_integrity(field->field_value),
@@ -764,7 +778,8 @@ bool ten_raw_msg_process_field(ten_msg_t *self,
 
 static ten_json_t *
 ten_raw_msg_to_json_include_internal_field(ten_msg_t *self, ten_error_t *err) {
-  TEN_ASSERT(self && ten_raw_msg_check_integrity(self), "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_raw_msg_check_integrity(self), "Should not happen.");
 
   ten_json_t *json = ten_json_create_root_object();
   TEN_ASSERT(json, "Should not happen.");
@@ -819,8 +834,10 @@ void ten_raw_msg_copy_field(ten_msg_t *self, ten_msg_t *src,
 
 static bool ten_raw_msg_init_from_json(ten_msg_t *self, ten_json_t *json,
                                        ten_error_t *err) {
-  TEN_ASSERT(self && ten_raw_msg_check_integrity(self), "Should not happen.");
-  TEN_ASSERT(json && ten_json_check_integrity(json), "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_raw_msg_check_integrity(self), "Should not happen.");
+  TEN_ASSERT(json, "Should not happen.");
+  TEN_ASSERT(ten_json_check_integrity(json), "Should not happen.");
 
   bool rc = ten_raw_msg_loop_all_fields(
       self, ten_raw_msg_get_one_field_from_json, json, err);
@@ -841,7 +858,8 @@ static bool ten_raw_msg_init_from_json(ten_msg_t *self, ten_json_t *json,
 bool ten_msg_from_json(ten_shared_ptr_t *self, ten_json_t *json,
                        ten_error_t *err) {
   TEN_ASSERT(self && ten_msg_check_integrity(self), "Should not happen.");
-  TEN_ASSERT(json && ten_json_check_integrity(json), "Should not happen.");
+  TEN_ASSERT(json, "Should not happen.");
+  TEN_ASSERT(ten_json_check_integrity(json), "Should not happen.");
 
   return ten_raw_msg_init_from_json(ten_shared_ptr_get_data(self), json, err);
 }
@@ -915,7 +933,8 @@ bool ten_msg_type_to_handle_when_closing(ten_shared_ptr_t *msg) {
 }
 
 const char *ten_raw_msg_get_type_string(ten_msg_t *self) {
-  TEN_ASSERT(self && ten_raw_msg_check_integrity(self), "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_raw_msg_check_integrity(self), "Should not happen.");
   return ten_msg_type_to_string(ten_raw_msg_get_type(self));
 }
 
@@ -1107,7 +1126,8 @@ bool ten_msg_dump(ten_shared_ptr_t *msg, ten_error_t *err, const char *fmt,
  */
 static bool ten_raw_msg_set_property(ten_msg_t *self, const char *path,
                                      ten_value_t *value, ten_error_t *err) {
-  TEN_ASSERT(self && ten_raw_msg_check_integrity(self), "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_raw_msg_check_integrity(self), "Should not happen.");
   TEN_ASSERT(value && ten_value_check_integrity(value), "Should not happen.");
 
   if (!path || !strlen(path)) {
@@ -1185,7 +1205,8 @@ bool ten_msg_set_property(ten_shared_ptr_t *self, const char *path,
 
 ten_value_t *ten_raw_msg_peek_property(ten_msg_t *self, const char *path,
                                        ten_error_t *err) {
-  TEN_ASSERT(self && ten_raw_msg_check_integrity(self), "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_raw_msg_check_integrity(self), "Should not happen.");
 
   if (!path || !strlen(path)) {
     // If the path is empty, return all properties.
@@ -1248,7 +1269,8 @@ ten_value_t *ten_msg_peek_property(ten_shared_ptr_t *self, const char *path,
 }
 
 static bool ten_raw_msg_has_locked_res(ten_msg_t *self) {
-  TEN_ASSERT(self && ten_raw_msg_check_integrity(self), "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_raw_msg_check_integrity(self), "Should not happen.");
   return !ten_list_is_empty(&self->locked_res);
 }
 
@@ -1258,7 +1280,8 @@ bool ten_msg_has_locked_res(ten_shared_ptr_t *self) {
 }
 
 const char *ten_raw_msg_get_name(ten_msg_t *self) {
-  TEN_ASSERT(self && ten_raw_msg_check_integrity(self), "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_raw_msg_check_integrity(self), "Should not happen.");
   return ten_value_peek_raw_str(&self->name, NULL);
 }
 
@@ -1273,7 +1296,8 @@ const char *ten_msg_get_name(ten_shared_ptr_t *self) {
 
 bool ten_raw_msg_set_name_with_len(ten_msg_t *self, const char *msg_name,
                                    size_t msg_name_len, ten_error_t *err) {
-  TEN_ASSERT(self && ten_raw_msg_check_integrity(self), "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_raw_msg_check_integrity(self), "Should not happen.");
 
   if (msg_name == NULL) {
     if (err) {
@@ -1290,7 +1314,8 @@ bool ten_raw_msg_set_name_with_len(ten_msg_t *self, const char *msg_name,
 
 bool ten_raw_msg_set_name(ten_msg_t *self, const char *msg_name,
                           ten_error_t *err) {
-  TEN_ASSERT(self && ten_raw_msg_check_integrity(self), "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_raw_msg_check_integrity(self), "Should not happen.");
   return ten_raw_msg_set_name_with_len(self, msg_name, strlen(msg_name), err);
 }
 
