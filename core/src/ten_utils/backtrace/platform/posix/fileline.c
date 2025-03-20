@@ -70,10 +70,10 @@ static int initialize_file_line_mechanism(ten_backtrace_t *self,
     return 0;
   }
 
-  ten_backtrace_get_file_line_func_t get_file_line =
+  ten_backtrace_get_file_line_func_t get_file_line_func =
       (ten_backtrace_get_file_line_func_t)ten_atomic_ptr_load(
-          (void *)&posix_self->get_file_line);
-  if (get_file_line != NULL) {
+          (void *)&posix_self->get_file_line_func);
+  if (get_file_line_func != NULL) {
     return 1;
   }
 
@@ -135,7 +135,7 @@ static int initialize_file_line_mechanism(ten_backtrace_t *self,
 
   if (!failed) {
     if (!ten_backtrace_init_posix(self, filename, descriptor, error_cb, data,
-                                  &get_file_line)) {
+                                  &get_file_line_func)) {
       failed = 1;
     }
   }
@@ -147,7 +147,8 @@ static int initialize_file_line_mechanism(ten_backtrace_t *self,
 
   // TODO(Wei): Note that if two threads initialize at once, one of the data
   // sets may be leaked. Might need to consider a new way to avoid this.
-  ten_atomic_ptr_store((void *)&posix_self->get_file_line, get_file_line);
+  ten_atomic_ptr_store((void *)&posix_self->get_file_line_func,
+                       get_file_line_func);
 
   return 1;
 }
@@ -170,7 +171,7 @@ int ten_backtrace_get_file_line_info(ten_backtrace_t *self, uintptr_t pc,
     return 0;
   }
 
-  return ((ten_backtrace_get_file_line_func_t)(posix_self->get_file_line))(
+  return ((ten_backtrace_get_file_line_func_t)(posix_self->get_file_line_func))(
       self, pc, cb, error_cb, data);
 }
 
@@ -191,7 +192,7 @@ int ten_backtrace_get_syminfo(ten_backtrace_t *self, uintptr_t pc,
     return 0;
   }
 
-  posix_self->get_syminfo(self, pc, cb, error_cb, data);
+  posix_self->get_syminfo_func(self, pc, cb, error_cb, data);
 
   return 1;
 }

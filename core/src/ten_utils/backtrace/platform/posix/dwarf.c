@@ -3251,7 +3251,7 @@ static int dwarf_fileline(ten_backtrace_t *self_, uintptr_t pc,
                           ten_backtrace_error_func_t error_cb, void *data) {
   ten_backtrace_posix_t *self = (ten_backtrace_posix_t *)self_;
 
-  struct dwarf_data **pp = (struct dwarf_data **)&self->get_file_line_data;
+  struct dwarf_data **pp = (struct dwarf_data **)&self->get_file_line_user_data;
   while (1) {
     struct dwarf_data *ddata = ten_atomic_ptr_load((void *)pp);
     if (ddata == NULL) {
@@ -3355,7 +3355,8 @@ int backtrace_dwarf_add(ten_backtrace_t *self_, uintptr_t base_address,
   }
 
   while (1) {
-    struct dwarf_data **pp = (struct dwarf_data **)&self->get_file_line_data;
+    struct dwarf_data **pp =
+        (struct dwarf_data **)&self->get_file_line_user_data;
 
     // Find the last element in the 'dwarf_data' list.
     while (1) {

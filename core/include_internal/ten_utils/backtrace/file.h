@@ -11,6 +11,8 @@
 #include <stdbool.h>
 #include <stddef.h>
 
+#define NORMALIZE_PATH_BUF_SIZE 4096
+
 /**
  * @brief Normalizes a file path by resolving '..' and '.' path components.
  *

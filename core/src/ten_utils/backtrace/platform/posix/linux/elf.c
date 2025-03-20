@@ -345,7 +345,7 @@ static int elf_nodebug(ten_backtrace_t *self_, uintptr_t pc,
   ten_backtrace_posix_t *self = (ten_backtrace_posix_t *)self_;
   assert(self && "Invalid argument.");
 
-  if (self->get_syminfo != NULL && self->get_syminfo != elf_nosyms) {
+  if (self->get_syminfo_func != NULL && self->get_syminfo_func != elf_nosyms) {
     struct backtrace_call_full bt_data;
 
     // Fetch symbol information so that we can least get the function name.
@@ -355,10 +355,10 @@ static int elf_nodebug(ten_backtrace_t *self_, uintptr_t pc,
     bt_data.data = data;
     bt_data.ret = 0;
 
-    self->get_syminfo((ten_backtrace_t *)self, pc,
-                      backtrace_dump_syminfo_to_dump_file_line_cb,
-                      backtrace_dump_syminfo_to_dump_file_line_error_cb,
-                      &bt_data);
+    self->get_syminfo_func((ten_backtrace_t *)self, pc,
+                           backtrace_dump_syminfo_to_dump_file_line_cb,
+                           backtrace_dump_syminfo_to_dump_file_line_error_cb,
+                           &bt_data);
 
     return bt_data.ret;
   }
@@ -495,7 +495,7 @@ static void elf_add_syminfo_data(ten_backtrace_t *self_,
 
   while (1) {
     struct elf_syminfo_data **pp =
-        (struct elf_syminfo_data **)(void *)&self->get_syminfo_data;
+        (struct elf_syminfo_data **)(void *)&self->get_syminfo_user_data;
 
     while (1) {
       struct elf_syminfo_data *p = ten_atomic_ptr_load((void *)pp);
@@ -523,7 +523,7 @@ static void elf_syminfo(ten_backtrace_t *self_, uintptr_t addr,
   struct elf_symbol *sym = NULL;
 
   struct elf_syminfo_data **pp =
-      (struct elf_syminfo_data **)(void *)&self->get_syminfo_data;
+      (struct elf_syminfo_data **)(void *)&self->get_syminfo_user_data;
   while (1) {
     struct elf_syminfo_data *edata = ten_atomic_ptr_load((void *)pp);
     if (edata == NULL) {
@@ -4856,13 +4856,14 @@ int ten_backtrace_init_posix(ten_backtrace_t *self_, const char *filename,
   dl_iterate_phdr(phdr_callback, (void *)&pd);
 
   if (found_sym) {
-    ten_atomic_ptr_store((void *)&self->get_syminfo, elf_syminfo);
+    ten_atomic_ptr_store((void *)&self->get_syminfo_func, elf_syminfo);
   } else {
-    (void)__sync_bool_compare_and_swap(&self->get_syminfo, NULL, elf_nosyms);
+    (void)__sync_bool_compare_and_swap(&self->get_syminfo_func, NULL,
+                                       elf_nosyms);
   }
 
   *fileline_fn = (ten_backtrace_get_file_line_func_t)ten_atomic_ptr_load(
-      (void *)&self->get_file_line);
+      (void *)&self->get_file_line_func);
 
   if (*fileline_fn == NULL || *fileline_fn == elf_nodebug) {
     *fileline_fn = elf_fileline_fn;
