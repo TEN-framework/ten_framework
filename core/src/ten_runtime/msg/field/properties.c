@@ -44,7 +44,8 @@ ten_list_t *ten_raw_msg_get_properties(ten_msg_t *self) {
 }
 
 static ten_list_t *ten_msg_get_properties(ten_shared_ptr_t *self) {
-  TEN_ASSERT(self && ten_msg_check_integrity(self), "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_msg_check_integrity(self), "Should not happen.");
 
   ten_msg_t *raw_msg = ten_msg_get_raw_msg(self);
   TEN_ASSERT(raw_msg, "Should not happen.");
@@ -67,7 +68,8 @@ static bool ten_raw_msg_is_property_exist(ten_msg_t *self, const char *path,
 
 bool ten_msg_is_property_exist(ten_shared_ptr_t *self, const char *path,
                                ten_error_t *err) {
-  TEN_ASSERT(self && ten_msg_check_integrity(self), "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_msg_check_integrity(self), "Should not happen.");
   TEN_ASSERT(path && strlen(path), "path should not be empty.");
 
   if (!path || !strlen(path)) {
@@ -83,7 +85,8 @@ bool ten_msg_is_property_exist(ten_shared_ptr_t *self, const char *path,
 }
 
 bool ten_msg_del_property(ten_shared_ptr_t *self, const char *path) {
-  TEN_ASSERT(self && ten_msg_check_integrity(self), "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_msg_check_integrity(self), "Should not happen.");
   TEN_ASSERT(path && strlen(path), "path should not be empty.");
 
   if (!path || !strlen(path)) {

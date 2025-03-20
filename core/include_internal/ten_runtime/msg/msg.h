@@ -156,7 +156,7 @@ TEN_RUNTIME_PRIVATE_API void ten_msg_correct_dest(ten_shared_ptr_t *msg,
                                                   ten_engine_t *engine);
 
 inline bool ten_raw_msg_is_cmd_and_result(ten_msg_t *self) {
-    TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
   TEN_ASSERT(ten_raw_msg_check_integrity(self), "Should not happen.");
 
   switch (self->type) {
@@ -206,7 +206,7 @@ inline bool ten_raw_msg_is_cmd(ten_msg_t *self) {
 }
 
 inline bool ten_raw_msg_is_cmd_result(ten_msg_t *self) {
-    TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
   TEN_ASSERT(ten_raw_msg_check_integrity(self), "Should not happen.");
 
   switch (self->type) {
@@ -322,49 +322,55 @@ TEN_RUNTIME_PRIVATE_API bool ten_msg_set_name_with_len(ten_shared_ptr_t *self,
                                                        ten_error_t *err);
 
 inline TEN_MSG_TYPE ten_raw_msg_get_type(ten_msg_t *self) {
-    TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
   TEN_ASSERT(ten_raw_msg_check_integrity(self), "Should not happen.");
   return self->type;
 }
 
 inline ten_msg_t *ten_msg_get_raw_msg(ten_shared_ptr_t *self) {
-  TEN_ASSERT(self && ten_msg_check_integrity(self), "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_msg_check_integrity(self), "Should not happen.");
   return (ten_msg_t *)ten_shared_ptr_get_data(self);
 }
 
 inline bool ten_msg_is_cmd_and_result(ten_shared_ptr_t *self) {
-  TEN_ASSERT(self && ten_msg_check_integrity(self), "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_msg_check_integrity(self), "Should not happen.");
   return ten_raw_msg_is_cmd_and_result(ten_msg_get_raw_msg(self));
 }
 
 inline bool ten_msg_is_cmd(ten_shared_ptr_t *self) {
-  TEN_ASSERT(self && ten_msg_check_integrity(self), "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_msg_check_integrity(self), "Should not happen.");
   return ten_raw_msg_is_cmd(ten_msg_get_raw_msg(self));
 }
 
 inline bool ten_msg_is_cmd_result(ten_shared_ptr_t *self) {
-  TEN_ASSERT(self && ten_msg_check_integrity(self), "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_msg_check_integrity(self), "Should not happen.");
   return ten_raw_msg_is_cmd_result(ten_msg_get_raw_msg(self));
 }
 
 inline void ten_raw_msg_set_timestamp(ten_msg_t *self, int64_t timestamp) {
-    TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
   TEN_ASSERT(ten_raw_msg_check_integrity(self), "Should not happen.");
   self->timestamp = timestamp;
 }
 
 inline int64_t ten_raw_msg_get_timestamp(ten_msg_t *self) {
-    TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
   TEN_ASSERT(ten_raw_msg_check_integrity(self), "Should not happen.");
   return self->timestamp;
 }
 
 inline void ten_msg_set_timestamp(ten_shared_ptr_t *self, int64_t timestamp) {
-  TEN_ASSERT(self && ten_msg_check_integrity(self), "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_msg_check_integrity(self), "Should not happen.");
   ten_raw_msg_set_timestamp(ten_msg_get_raw_msg(self), timestamp);
 }
 
 inline int64_t ten_msg_get_timestamp(ten_shared_ptr_t *self) {
-  TEN_ASSERT(self && ten_msg_check_integrity(self), "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_msg_check_integrity(self), "Should not happen.");
   return ten_raw_msg_get_timestamp(ten_msg_get_raw_msg(self));
 }
