@@ -1,22 +1,20 @@
+use ten_rust::pkg_info::graph::connection::{
+    GraphConnection, GraphDestination, GraphMessageFlow,
+};
+
 //
 // Copyright © 2025 Agora
 // This file is part of TEN Framework, an open source project.
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-use ten_rust::pkg_info::graph::{
-    GraphConnection, GraphDestination, GraphMessageFlow,
-};
-
 use crate::designer::graphs::connections::{
     DesignerDestination, DesignerMessageFlow,
-    GetGraphConnectionsSingleResponseData,
+    GraphConnectionsSingleResponseData,
 };
 
-impl From<GetGraphConnectionsSingleResponseData> for GraphConnection {
-    fn from(
-        designer_connection: GetGraphConnectionsSingleResponseData,
-    ) -> Self {
+impl From<GraphConnectionsSingleResponseData> for GraphConnection {
+    fn from(designer_connection: GraphConnectionsSingleResponseData) -> Self {
         GraphConnection {
             app: Some(designer_connection.app),
             extension: designer_connection.extension,

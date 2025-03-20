@@ -12,7 +12,7 @@ use crate::pkg_info::{
     graph::Graph, property::predefined_graph::PredefinedGraph,
 };
 
-use super::graph::{GraphConnection, GraphNode};
+use super::graph::{connection::GraphConnection, node::GraphNode};
 
 pub fn pkg_predefined_graphs_find<F>(
     pkg_predefined_graphs: Option<&Vec<PredefinedGraph>>,

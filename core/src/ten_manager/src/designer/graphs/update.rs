@@ -9,13 +9,14 @@ use std::sync::{Arc, RwLock};
 use actix_web::{web, HttpResponse, Responder};
 use serde::{Deserialize, Serialize};
 
-use ten_rust::pkg_info::graph::{GraphConnection, GraphNode};
+use ten_rust::pkg_info::graph::connection::GraphConnection;
+use ten_rust::pkg_info::graph::node::GraphNode;
 use ten_rust::pkg_info::pkg_type::PkgType;
 use ten_rust::pkg_info::predefined_graphs::get_pkg_predefined_graph_from_nodes_and_connections;
 
 use super::{
-    connections::GetGraphConnectionsSingleResponseData,
-    nodes::GetGraphNodesSingleResponseData,
+    connections::GraphConnectionsSingleResponseData,
+    nodes::GraphNodesSingleResponseData,
 };
 use crate::designer::response::{ApiResponse, ErrorResponse, Status};
 use crate::designer::DesignerState;
@@ -27,8 +28,8 @@ pub struct GraphUpdateRequestPayload {
     pub graph_name: String,
 
     pub auto_start: bool,
-    pub nodes: Vec<GetGraphNodesSingleResponseData>,
-    pub connections: Vec<GetGraphConnectionsSingleResponseData>,
+    pub nodes: Vec<GraphNodesSingleResponseData>,
+    pub connections: Vec<GraphConnectionsSingleResponseData>,
 }
 
 #[derive(Serialize, Debug, PartialEq)]

@@ -5,13 +5,14 @@
 // Refer to the "LICENSE" file in the root directory for more information.
 //
 use ten_rust::pkg_info::{
-    graph::GraphNode, pkg_type::PkgType, pkg_type_and_name::PkgTypeAndName,
+    graph::node::GraphNode, pkg_type::PkgType,
+    pkg_type_and_name::PkgTypeAndName,
 };
 
-use crate::designer::graphs::nodes::GetGraphNodesSingleResponseData;
+use crate::designer::graphs::nodes::GraphNodesSingleResponseData;
 
-impl From<GetGraphNodesSingleResponseData> for GraphNode {
-    fn from(designer_extension: GetGraphNodesSingleResponseData) -> Self {
+impl From<GraphNodesSingleResponseData> for GraphNode {
+    fn from(designer_extension: GraphNodesSingleResponseData) -> Self {
         GraphNode {
             type_and_name: PkgTypeAndName {
                 pkg_type: PkgType::Extension,
