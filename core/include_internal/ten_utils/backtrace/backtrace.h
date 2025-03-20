@@ -14,6 +14,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#define MAX_CAPTURED_CALL_STACK_DEPTH 128
+
 #if defined(__cplusplus)
 extern "C" {
 #endif
