@@ -147,7 +147,8 @@ void ten_addon_loader_load_addon(ten_addon_loader_t *self,
 }
 
 static void ten_app_thread_on_addon_loader_init_done(void *app, void *cb_data) {
-  TEN_ASSERT(app && ten_app_check_integrity(app, true), "Invalid argument.");
+  TEN_ASSERT(app, "Invalid argument.");
+  TEN_ASSERT(ten_app_check_integrity(app, true), "Invalid argument.");
 
   ten_app_on_addon_loader_init_done_ctx_t *ctx =
       (ten_app_on_addon_loader_init_done_ctx_t *)cb_data;
@@ -165,19 +166,22 @@ static void ten_app_thread_on_addon_loader_init_done(void *app, void *cb_data) {
   TEN_FREE(ctx);
 
   if (ten_list_size(ten_addon_loader_singleton_get_all()) == desired_count) {
+    // Call the callback to notify all addon_loader instances have been created.
     on_all_created_ctx->cb(on_all_created_ctx->ten_env,
                            on_all_created_ctx->cb_data);
+
     TEN_FREE(on_all_created_ctx);
   }
 }
 
 static void ten_addon_loader_init_done(ten_env_t *ten_env, void *cb_data) {
-  TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, true),
-             "Invalid argument.");
+  TEN_ASSERT(ten_env, "Invalid argument.");
+  TEN_ASSERT(ten_env_check_integrity(ten_env, true), "Invalid argument.");
   TEN_ASSERT(cb_data, "Invalid argument.");
 
   ten_addon_loader_t *addon_loader = ten_env_get_attached_addon_loader(ten_env);
-  TEN_ASSERT(addon_loader && ten_addon_loader_check_integrity(addon_loader),
+  TEN_ASSERT(addon_loader, "Should not happen.");
+  TEN_ASSERT(ten_addon_loader_check_integrity(addon_loader),
              "Should not happen.");
 
   ten_addon_loader_on_all_singleton_instances_created_ctx_t *ctx =
@@ -185,25 +189,20 @@ static void ten_addon_loader_init_done(ten_env_t *ten_env, void *cb_data) {
   TEN_ASSERT(ctx, "Invalid argument.");
 
   ten_env_t *caller_ten_env = ctx->ten_env;
-  TEN_ASSERT(caller_ten_env && ten_env_check_integrity(
-                                   caller_ten_env,
-                                   // TEN_NOLINTNEXTLINE(thread-check)
-                                   // thread-check: This function is intended to
-                                   // be called in any threads.
-                                   false),
+  TEN_ASSERT(caller_ten_env, "Invalid argument.");
+  // TEN_NOLINTNEXTLINE(thread-check)
+  // thread-check: This function is intended to be called in any threads.
+  TEN_ASSERT(ten_env_check_integrity(caller_ten_env, false),
              "Invalid argument.");
 
   TEN_ASSERT(caller_ten_env->attach_to == TEN_ENV_ATTACH_TO_APP,
              "Should not happen.");
 
   ten_app_t *app = ten_env_get_attached_app(caller_ten_env);
-  TEN_ASSERT(
-      app && ten_app_check_integrity(app,
-                                     // TEN_NOLINTNEXTLINE(thread-check)
-                                     // thread-check: This function is intended
-                                     // to be called in any threads.
-                                     false),
-      "Invalid argument.");
+  TEN_ASSERT(app, "Invalid argument.");
+  // TEN_NOLINTNEXTLINE(thread-check)
+  // thread-check: This function is intended to be called in any threads.
+  TEN_ASSERT(ten_app_check_integrity(app, false), "Invalid argument.");
 
   ten_app_on_addon_loader_init_done_ctx_t *on_addon_loader_init_done_ctx =
       TEN_MALLOC(sizeof(ten_app_on_addon_loader_init_done_ctx_t));
@@ -215,7 +214,10 @@ static void ten_addon_loader_init_done(ten_env_t *ten_env, void *cb_data) {
   int rc = ten_runloop_post_task_tail(ten_app_get_attached_runloop(app),
                                       ten_app_thread_on_addon_loader_init_done,
                                       app, on_addon_loader_init_done_ctx);
-  TEN_ASSERT(!rc, "Should not happen.");
+  if (rc) {
+    TEN_LOGE("Failed to post task to app runloop.");
+    TEN_ASSERT(0, "Should not happen.");
+  }
 }
 
 static void create_addon_loader_done(ten_env_t *ten_env,
@@ -229,7 +231,8 @@ static void create_addon_loader_done(ten_env_t *ten_env,
              "Invalid argument.");
 
   ten_app_t *app = ten_env_get_attached_target(ten_env);
-  TEN_ASSERT(app && ten_app_check_integrity(app, true), "Invalid argument.");
+  TEN_ASSERT(app, "Invalid argument.");
+  TEN_ASSERT(ten_app_check_integrity(app, true), "Invalid argument.");
 
   // Call `on_init` of the addon_loader to initialize the addon_loader.
   ten_addon_loader_init(addon_loader, ten_addon_loader_init_done, cb_data);
@@ -314,17 +317,20 @@ void ten_addon_loader_addons_destroy_singleton_instance(void) {
 
   ten_list_foreach(ten_addon_loader_singleton_get_all(), iter) {
     ten_addon_loader_t *addon_loader = ten_ptr_listnode_get(iter.node);
-    TEN_ASSERT(addon_loader && ten_addon_loader_check_integrity(addon_loader),
+    TEN_ASSERT(addon_loader, "Should not happen.");
+    TEN_ASSERT(ten_addon_loader_check_integrity(addon_loader),
                "Should not happen.");
 
     ten_addon_host_t *addon_host = addon_loader->addon_host;
-    TEN_ASSERT(addon_host && ten_addon_host_check_integrity(addon_host),
+    TEN_ASSERT(addon_host, "Should not happen.");
+    TEN_ASSERT(ten_addon_host_check_integrity(addon_host),
                "Should not happen.");
 
     ten_addon_loader_deinit(addon_loader);
 
     ten_addon_t *addon = addon_host->addon;
-    TEN_ASSERT(addon && ten_addon_check_integrity(addon), "Should not happen.");
+    TEN_ASSERT(addon, "Should not happen.");
+    TEN_ASSERT(ten_addon_check_integrity(addon), "Should not happen.");
 
     addon->on_destroy_instance(addon, addon_host->ten_env, addon_loader, NULL);
   }

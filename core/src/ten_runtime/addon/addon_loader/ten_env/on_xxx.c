@@ -14,7 +14,8 @@ void ten_addon_loader_on_init_done(ten_env_t *self) {
              self);
 
   ten_addon_loader_t *addon_loader = ten_env_get_attached_addon_loader(self);
-  TEN_ASSERT(addon_loader && ten_addon_loader_check_integrity(addon_loader),
+  TEN_ASSERT(addon_loader, "Should not happen.");
+  TEN_ASSERT(ten_addon_loader_check_integrity(addon_loader),
              "Should not happen.");
 
   if (addon_loader->on_init_done_cb) {

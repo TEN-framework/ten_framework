@@ -70,8 +70,8 @@ void ten_go_addon_unregister(uintptr_t bridge_addr) {
   TEN_ASSERT(bridge_addr, "Invalid argument.");
 
   ten_go_addon_t *addon_bridge = (ten_go_addon_t *)bridge_addr;
-  TEN_ASSERT(addon_bridge && ten_go_addon_check_integrity(addon_bridge),
-             "Invalid argument.");
+  TEN_ASSERT(addon_bridge, "Invalid argument.");
+  TEN_ASSERT(ten_go_addon_check_integrity(addon_bridge), "Invalid argument.");
 
   switch (addon_bridge->type) {
   case TEN_ADDON_TYPE_EXTENSION:
@@ -100,8 +100,8 @@ static void ten_go_addon_on_init_helper(ten_addon_t *addon,
 
   ten_go_addon_t *addon_bridge =
       (ten_go_addon_t *)addon->binding_handle.me_in_target_lang;
-  TEN_ASSERT(addon_bridge && ten_go_addon_check_integrity(addon_bridge),
-             "Invalid argument.");
+  TEN_ASSERT(addon_bridge, "Invalid argument.");
+  TEN_ASSERT(ten_go_addon_check_integrity(addon_bridge), "Invalid argument.");
 
   ten_go_ten_env_t *ten_env_bridge = ten_go_ten_env_wrap(ten_env);
 
@@ -111,8 +111,9 @@ static void ten_go_addon_on_init_helper(ten_addon_t *addon,
 
 static void ten_go_addon_on_deinit_helper(ten_addon_t *addon,
                                           ten_env_t *ten_env) {
-  TEN_ASSERT(addon && ten_addon_check_integrity(addon) && ten_env,
-             "Invalid argument.");
+  TEN_ASSERT(addon, "Invalid argument.");
+  TEN_ASSERT(ten_addon_check_integrity(addon), "Invalid argument.");
+  TEN_ASSERT(ten_env, "Invalid argument.");
 
   // TEN_NOLINTNEXTLINE(thread-check)
   // thread-check: This function is intended to be called in any threads.
@@ -120,8 +121,8 @@ static void ten_go_addon_on_deinit_helper(ten_addon_t *addon,
 
   ten_go_addon_t *addon_bridge =
       (ten_go_addon_t *)addon->binding_handle.me_in_target_lang;
-  TEN_ASSERT(addon_bridge && ten_go_addon_check_integrity(addon_bridge),
-             "Invalid argument.");
+  TEN_ASSERT(addon_bridge, "Invalid argument.");
+  TEN_ASSERT(ten_go_addon_check_integrity(addon_bridge), "Invalid argument.");
 
   ten_go_ten_env_t *ten_env_bridge = ten_go_ten_env_wrap(ten_env);
   tenGoAddonOnDeinit(ten_go_addon_go_handle(addon_bridge),
@@ -132,8 +133,10 @@ static void ten_go_addon_create_extension_async_helper(ten_addon_t *addon,
                                                        ten_env_t *ten_env,
                                                        const char *name,
                                                        void *context) {
-  TEN_ASSERT(addon && ten_addon_check_integrity(addon) && name && ten_env,
-             "Should not happen.");
+  TEN_ASSERT(addon, "Should not happen.");
+  TEN_ASSERT(ten_addon_check_integrity(addon), "Should not happen.");
+  TEN_ASSERT(name, "Should not happen.");
+  TEN_ASSERT(ten_env, "Should not happen.");
   TEN_ASSERT(ten_env->attach_to == TEN_ENV_ATTACH_TO_ADDON,
              "Should not happen.");
 
@@ -228,7 +231,8 @@ static void ten_go_addon_destroy_instance_helper(ten_addon_t *addon,
 }
 
 static void ten_go_addon_on_destroy(ten_addon_t *addon) {
-  TEN_ASSERT(addon && ten_addon_check_integrity(addon), "Should not happen.");
+  TEN_ASSERT(addon, "Should not happen.");
+  TEN_ASSERT(ten_addon_check_integrity(addon), "Should not happen.");
 
   ten_go_addon_t *addon_bridge =
       (ten_go_addon_t *)addon->binding_handle.me_in_target_lang;

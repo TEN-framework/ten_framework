@@ -29,8 +29,8 @@ typedef struct ten_addon_loader_on_all_singleton_instances_created_ctx_t {
 } ten_addon_loader_on_all_singleton_instances_created_ctx_t;
 
 typedef struct ten_app_on_addon_loader_init_done_ctx_t {
-    ten_addon_loader_t* addon_loader;
-    void* cb_data;
+  ten_addon_loader_t *addon_loader;
+  void *cb_data;
 } ten_app_on_addon_loader_init_done_ctx_t;
 
 TEN_RUNTIME_PRIVATE_API ten_addon_store_t *ten_addon_loader_get_global_store(
