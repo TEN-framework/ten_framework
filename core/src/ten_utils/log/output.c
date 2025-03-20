@@ -197,6 +197,10 @@ ten_log_output_to_file_ctx_create(int *fd, const char *log_path) {
   ctx->fd = fd;
   ten_string_init_from_c_str_with_size(&ctx->log_path, log_path,
                                        strlen(log_path));
+  ten_atomic_store(&ctx->need_reload, 0);
+  ctx->mutex = ten_mutex_create();
+  TEN_ASSERT(ctx->mutex, "Failed to allocate memory.");
+
   return ctx;
 }
 
@@ -204,6 +208,7 @@ void ten_log_output_to_file_ctx_destroy(ten_log_output_to_file_ctx_t *ctx) {
   TEN_ASSERT(ctx, "Invalid argument.");
 
   ten_string_deinit(&ctx->log_path);
+  ten_mutex_destroy(ctx->mutex);
   TEN_FREE(ctx);
 }
 
@@ -214,6 +219,23 @@ void ten_log_output_to_file_cb(ten_log_t *self, ten_string_t *msg) {
   ten_log_output_to_file_ctx_t *ctx =
       (ten_log_output_to_file_ctx_t *)self->output.user_data;
   TEN_ASSERT(ctx, "Invalid argument.");
+
+  if (ten_atomic_load(&ctx->need_reload) != 0) {
+    ten_mutex_lock(ctx->mutex);
+
+    if (ten_atomic_load(&ctx->need_reload) != 0) {
+      if (self->output.close_cb) {
+        self->output.close_cb(self);
+      }
+
+      ctx->fd = get_log_fd(ten_string_get_raw_str(&ctx->log_path));
+      // TODO(xilin): handle the error
+
+      ten_atomic_store(&ctx->need_reload, 0);
+    }
+
+    ten_mutex_unlock(ctx->mutex);
+  }
 
 #if defined(_WIN32) || defined(_WIN64)
   HANDLE handle = *(HANDLE *)ctx->fd;
@@ -258,6 +280,8 @@ static void ten_log_output_to_file_reload_cb(ten_log_t *self) {
   ten_log_output_to_file_ctx_t *ctx =
       (ten_log_output_to_file_ctx_t *)self->output.user_data;
   TEN_ASSERT(ctx, "Invalid argument.");
+
+  ten_atomic_store(&ctx->need_reload, 1);
 }
 
 void ten_log_set_output_to_file(ten_log_t *self, const char *log_path) {

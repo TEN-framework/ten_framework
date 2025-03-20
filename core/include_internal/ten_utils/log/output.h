@@ -10,6 +10,7 @@
 
 #include <stdbool.h>
 
+#include "ten_utils/lib/atomic.h"
 #include "ten_utils/lib/string.h"
 
 /**
@@ -21,10 +22,13 @@
 
 typedef struct ten_log_t ten_log_t;
 typedef struct ten_string_t ten_string_t;
+typedef struct ten_mutex_t ten_mutex_t;
 
 typedef struct ten_log_output_to_file_ctx_t {
   int *fd;
   ten_string_t log_path;
+  ten_atomic_t need_reload;
+  ten_mutex_t *mutex;
 } ten_log_output_to_file_ctx_t;
 
 TEN_UTILS_PRIVATE_API ten_log_output_to_file_ctx_t *
