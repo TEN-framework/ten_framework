@@ -13,6 +13,7 @@
 
 #include "include_internal/ten_runtime/app/close.h"
 #include "include_internal/ten_runtime/global/global.h"
+#include "include_internal/ten_utils/log/log.h"
 #include "ten_runtime/app/app.h"
 #include "ten_utils/container/list.h"
 #include "ten_utils/container/list_node_ptr.h"
@@ -71,6 +72,10 @@ static void ten_global_signal_handler(int signo, TEN_UNUSED siginfo_t *info,
   if (signo == SIGUSR1) {
     TEN_LOGW("Received SIGUSR1.");
     ten_sanitizer_memory_record_dump();
+  }
+
+  if (signo == SIGHUP) {
+    ten_log_global_reload();
   }
 }
 

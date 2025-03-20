@@ -91,6 +91,14 @@ void ten_log_set_encrypt_deinit_cb(ten_log_t *self,
   self->encryption.deinit_cb = cb;
 }
 
+void ten_log_reload(ten_log_t *self) {
+  TEN_ASSERT(self && ten_log_check_integrity(self), "Invalid argument.");
+
+  if (self->output.reload_cb) {
+    self->output.reload_cb(self->output.user_data);
+  }
+}
+
 static const char *funcname(const char *func) { return func ? func : ""; }
 
 const char *filename(const char *path, size_t path_len, size_t *filename_len) {

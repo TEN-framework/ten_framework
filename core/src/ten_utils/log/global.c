@@ -44,3 +44,5 @@ void ten_log_global_set_encrypt_deinit_cb(ten_log_encrypt_deinit_func_t cb) {
 void ten_log_global_deinit_encryption(void) {
   ten_log_deinit_encryption(&ten_global_log);
 }
+
+void ten_log_global_reload(void) { ten_log_reload(&ten_global_log); }
