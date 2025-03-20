@@ -22,6 +22,7 @@ import {
   AppFolderPopup,
   PreferencesPopup,
   LoadedAppsPopup,
+  AppRunPopup,
 } from "@/components/Popup/AppPopup";
 import {
   ExtensionStorePopup,
@@ -118,6 +119,14 @@ export function GlobalPopups() {
             return <AppFolderPopup key={`AppPopup-${widget.id}`} />;
           case EDefaultWidgetType.AppsManager:
             return <LoadedAppsPopup key={`AppsManagerPopup-${widget.id}`} />;
+          case EDefaultWidgetType.AppRun:
+            return (
+              <AppRunPopup
+                key={`AppRunPopup-${widget.id}`}
+                id={widget.id}
+                data={widget.metadata}
+              />
+            );
           case EDefaultWidgetType.Preferences:
             return <PreferencesPopup key={`PreferencesPopup-${widget.id}`} />;
           case EDefaultWidgetType.ExtensionStore:

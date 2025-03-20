@@ -107,14 +107,14 @@ export enum EDefaultWidgetType {
   Preferences = "preferences",
   AppFolder = "app_folder",
   AppsManager = "apps_manager",
+  AppRun = "app_run",
   ExtensionStore = "extension_store",
 }
 
-export interface IDefaultWidget extends IWidgetBase {
+export interface IDefaultWidget<T extends { type: EDefaultWidgetType }>
+  extends IWidgetBase {
   category: EWidgetCategory.Default;
-  metadata: {
-    type: EDefaultWidgetType;
-  };
+  metadata: T;
 }
 
 export interface IExtensionWidget extends IWidgetBase {

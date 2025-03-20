@@ -7,8 +7,10 @@
 import * as React from "react";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
+import { PlayIcon } from "lucide-react";
 
 import Popup from "@/components/Popup/Popup";
+import { Label } from "@/components/ui/Label";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { useWidgetStore, useAppStore, useFlowStore } from "@/store";
@@ -209,6 +211,75 @@ export const LoadedAppsPopup = () => {
       onCollapseToggle={() => {}}
     >
       <AppsManagerWidget />
+    </Popup>
+  );
+};
+
+export const AppRunPopup = (props: {
+  id: string;
+  data: { base_dir?: string };
+}) => {
+  const { id, data = {} } = props;
+  const { base_dir: baseDir } = data;
+
+  const { t } = useTranslation();
+
+  const { removeWidget } = useWidgetStore();
+  const { runScript, setRunScript } = useAppStore();
+
+  const [inputRunScript, setInputRunScript] = React.useState<string>(runScript);
+
+  const handleRun = () => {
+    setRunScript(inputRunScript || runScript);
+    removeWidget(id);
+  };
+
+  if (!baseDir) {
+    return null;
+  }
+
+  return (
+    <Popup
+      id={id}
+      title={t("popup.apps.run")}
+      onClose={() => removeWidget(id)}
+      resizable
+      initialWidth={600}
+      initialHeight={400}
+      onCollapseToggle={() => {}}
+      preventFocusSteal
+    >
+      <div className="flex flex-col gap-2 w-full h-full">
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="runapp_base_dir">{t("popup.apps.baseDir")}</Label>
+          <Input
+            id="runapp_base_dir"
+            type="text"
+            defaultValue={baseDir}
+            value={baseDir}
+            disabled
+          />
+        </div>
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="runapp_script">{t("popup.apps.runScript")}</Label>
+          <Input
+            id="runapp_script"
+            type="text"
+            defaultValue={runScript}
+            value={inputRunScript}
+            onChange={(e) => setInputRunScript(e.target.value)}
+          />
+        </div>
+        <div className="flex justify-end gap-2 mt-auto">
+          <Button variant="outline" onClick={() => removeWidget(id)}>
+            {t("action.cancel")}
+          </Button>
+          <Button disabled={!inputRunScript?.trim()} onClick={handleRun}>
+            <PlayIcon className="size-4" />
+            {t("action.run")}
+          </Button>
+        </div>
+      </div>
     </Popup>
   );
 };

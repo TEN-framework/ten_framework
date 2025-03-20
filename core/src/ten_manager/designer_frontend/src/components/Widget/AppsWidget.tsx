@@ -12,6 +12,7 @@ import {
   FolderPlusIcon,
   FolderSyncIcon,
   HardDriveDownloadIcon,
+  PlayIcon,
 } from "lucide-react";
 
 import {
@@ -138,6 +139,18 @@ export const AppsManagerWidget = (props: { className?: string }) => {
     });
   };
 
+  const handleRunApp = (baseDir: string) => () => {
+    appendWidgetIfNotExists({
+      id: "app-run-" + baseDir,
+      category: EWidgetCategory.Default,
+      display_type: EWidgetDisplayType.Popup,
+      metadata: {
+        type: EDefaultWidgetType.AppRun,
+        base_dir: baseDir,
+      },
+    });
+  };
+
   const isLoadingMemo = React.useMemo(() => {
     return isUnloading || isReloading || isLoading;
   }, [isUnloading, isReloading, isLoading]);
@@ -178,7 +191,7 @@ export const AppsManagerWidget = (props: { className?: string }) => {
                     {baseDir}
                   </span>
                 </TableCell>
-                <TableCell className="text-right space-x-2">
+                <TableCell className="text-right flex items-center gap-2">
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
@@ -238,6 +251,24 @@ export const AppsManagerWidget = (props: { className?: string }) => {
                       </TooltipTrigger>
                       <TooltipContent>
                         <p>{t("header.menuApp.installAll")}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          disabled={isLoadingMemo}
+                          onClick={handleRunApp(baseDir)}
+                        >
+                          <PlayIcon className="w-4 h-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>{t("header.menuApp.runApp")}</p>
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>

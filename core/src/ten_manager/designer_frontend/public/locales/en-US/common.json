@@ -17,7 +17,8 @@
       "unloadAppSuccess": "App unloaded successfully",
       "unloadAppFailed": "Failed to unload app",
       "installAll": "Install All",
-      "manageLoadedApps": "Manage Loaded App(s)"
+      "manageLoadedApps": "Manage Loaded App(s)",
+      "runApp": "Run App"
     },
     "graphMenu": {
       "title": "Graph",
@@ -75,7 +76,8 @@
     "launchLogViewer": "View Logs",
     "stop": "Stop",
     "search": "Search",
-    "current": "Current"
+    "current": "Current",
+    "run": "Run"
   },
   "toast": {
     "saveFileSuccess": "File saved successfully",
@@ -110,7 +112,11 @@
     },
     "apps": {
       "manager": "Apps Manager",
-      "tableCaption": "A list of your loaded apps."
+      "tableCaption": "A list of your loaded apps.",
+      "baseDir": "Base Dir",
+      "run": "Run App",
+      "runScript": "Run Script",
+      "runScriptPlaceholder": "Enter the script to run"
     }
   },
   "dock": {
