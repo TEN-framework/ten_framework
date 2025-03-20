@@ -1,0 +1,183 @@
+{
+  "tenFramework": "TEN Framework",
+  "ten": "TEN",
+  "header": {
+    "title": "Ten Manager",
+    "menuApp": {
+      "title": "アプリ",
+      "loadApp": "アプリを読み込む",
+      "loadAppSuccess": "アプリの読み込みに成功しました",
+      "loadAppFailed": "アプリの読み込みに失敗しました",
+      "reloadApp": "アプリを再読み込み",
+      "reloadAppSuccess": "アプリの再読み込みに成功しました",
+      "reloadAppFailed": "アプリの再読み込みに失敗しました",
+      "reloadAllApps": "すべてのアプリを再読み込み",
+      "reloadAllAppsSuccess": "すべてのアプリの再読み込みに成功しました",
+      "reloadAllAppsFailed": "すべてのアプリの再読み込みに失敗しました",
+      "unloadApp": "アプリをアンロード",
+      "unloadAppSuccess": "アプリのアンロードに成功しました",
+      "unloadAppFailed": "アプリのアンロードに失敗しました",
+      "installAll": "すべてインストール",
+      "manageLoadedApps": "読み込まれたアプリを管理",
+      "runApp": "アプリを実行",
+      "openAppFolder": "アプリフォルダを開く"
+    },
+    "menuGraph": {
+      "title": "グラフ",
+      "openExistingGraph": "既存のグラフを開く",
+      "openExtensionStore": "拡張機能ストアを開く",
+      "autoLayout": "自動レイアウト",
+      "selectLoadedApp": "読み込まれたアプリを選択"
+    },
+    "menuHelp": {
+      "title": "ファイル"
+    },
+    "menuAbout": {
+      "title": "情報"
+    },
+    "language": {
+      "title": "言語",
+      "enUS": "English",
+      "zhCN": "中文(简体)",
+      "zhTW": "中文(繁體)",
+      "jaJP": "日本語"
+    },
+    "theme": {
+      "title": "テーマ",
+      "light": "ライト",
+      "dark": "ダーク",
+      "system": "システム"
+    },
+    "officialSite": "公式サイト",
+    "poweredBy": "提供:",
+    "poweredByTenFramework": "<0></0>により提供",
+    "github": "GitHub",
+    "tryTENAgent": "TEN Agentを試す"
+  },
+  "action": {
+    "edit": "編集",
+    "delete": "削除",
+    "pinToDock": "ドックに固定",
+    "save": "保存",
+    "discard": "破棄",
+    "launchTerminal": "ターミナルを起動",
+    "ok": "OK",
+    "cancel": "キャンセル",
+    "selected": "選択済み",
+    "autoStart": "自動起動",
+    "confirm": "確認",
+    "upstream": "上流",
+    "downstream": "下流",
+    "popout": "ポップアウト",
+    "close": "閉じる",
+    "closeAllTabs": "すべてのタブを閉じる",
+    "unsaved": "未保存",
+    "launchLogViewer": "ログを表示",
+    "stop": "停止",
+    "search": "検索",
+    "current": "現在",
+    "run": "実行"
+  },
+  "toast": {
+    "saveFileSuccess": "ファイルの保存に成功しました",
+    "saveFileFailed": "ファイルの保存に失敗しました",
+    "fetchFileContentFailed": "ファイル内容の取得に失敗しました"
+  },
+  "popup": {
+    "editor": {
+      "confirmSaveFile": "ファイルを保存してもよろしいですか？",
+      "confirmSaveChanges": "変更を保存しますか？",
+      "confirmCloseAllTabs": "すべてのタブを閉じてもよろしいですか？未保存の変更はすべて失われます。",
+      "confirmChangePosition": "位置を変更してもよろしいですか？未保存の変更はすべて失われます。"
+    },
+    "selectGraph": {
+      "title": "グラフを選択"
+    },
+    "customNodeConn": {
+      "srcTitle": "ノード[{{source}}]の接続",
+      "connectTitle": "接続の詳細",
+      "title": "接続"
+    },
+    "logViewer": {
+      "title": "ログビューア",
+      "appInstall": "アプリのインストール"
+    },
+    "default": {
+      "defaultLabelForAppRun": "アプリ実行のデフォルトラベル",
+      "errorFolderPathEmpty": "フォルダパスは空にできません。",
+      "errorGetBaseDir": "ベースディレクトリの取得に失敗しました",
+      "errorOpenAppFolder": "アプリフォルダを開くことができませんでした",
+      "errorUnknown": "不明なエラーが発生しました。"
+    },
+    "apps": {
+      "manager": "アプリマネージャー",
+      "tableCaption": "読み込まれたアプリの一覧",
+      "baseDir": "ベースディレクトリ",
+      "run": "アプリを実行",
+      "runScript": "スクリプトを実行",
+      "runScriptPlaceholder": "実行するスクリプトを入力"
+    }
+  },
+  "dock": {
+    "notSelected": "タブが選択されていません",
+    "dockSide": "ドック位置",
+    "left": "左",
+    "right": "右",
+    "bottom": "下"
+  },
+  "dataTable": {
+    "no": "No.",
+    "name": "名前",
+    "upstream": "上流",
+    "downstream": "下流",
+    "type": "タイプ",
+    "source": "ソース",
+    "target": "ターゲット",
+    "actions": "アクション",
+    "viewDetails": "詳細を表示",
+    "delete": "削除",
+    "openMenu": "メニューを開く",
+    "noResults": "結果がありません。"
+  },
+  "extensionStore": {
+    "title": "拡張機能ストア",
+    "readOnly": "読み取り専用",
+    "compatible": "互換性あり",
+    "dependencies": "依存関係",
+    "searchPlaceholder": "拡張機能を検索...",
+    "installedWithSum": "{{total}}個中{{count}}個がインストール済み",
+    "openAGraphToInstall": "拡張機能をインストールするにはグラフを開いてください",
+    "noMatchResult": "一致する結果がありません",
+    "matchResult": "{{count}}件の一致する結果",
+    "install": "インストール",
+    "installed": "インストール済み",
+    "filter": {
+      "showUninstalled": "未インストール",
+      "showInstalled": "インストール済み",
+      "sort": "並び替え",
+      "sort-default": "デフォルト",
+      "sort-name": "名前",
+      "sort-name-desc": "名前（降順）",
+      "type": "タイプ"
+    },
+    "extensionTitle": "拡張機能: {{name}}",
+    "os-arch": "OS/アーキテクチャ",
+    "selectOsArch": "OS/アーキテクチャを選択",
+    "os-arch-default": "デフォルト",
+    "version": "バージョン",
+    "hash": "ハッシュ",
+    "versionHistory": "バージョン履歴",
+    "selectVersion": "バージョンを選択",
+    "versionLatest": "最新",
+    "localAddonTip": "（ローカル）"
+  },
+  "statusBar": {
+    "appsLoadedWithCount": "{{count}}個のアプリが読み込まれています",
+    "appsError": "アプリの取得に失敗しました",
+    "workspace": {
+      "title": "現在の作業場所",
+      "baseDir": "ベースディレクトリ",
+      "graphName": "グラフ名"
+    }
+  }
+}

@@ -43,7 +43,7 @@ export function HelpMenu() {
     <>
       <NavigationMenuItem>
         <NavigationMenuTrigger className="submenu-trigger">
-          {t("header.menu.help")}
+          {t("header.menuHelp.title")}
         </NavigationMenuTrigger>
         <NavigationMenuContent
           className={cn("flex flex-col items-center px-1 py-1.5 gap-1.5")}
@@ -55,7 +55,7 @@ export function HelpMenu() {
               onClick={openAbout}
             >
               <InfoIcon />
-              {t("header.menu.about")}
+              {t("header.menuAbout.title")}
             </Button>
           </NavigationMenuLink>
         </NavigationMenuContent>

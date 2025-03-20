@@ -23,25 +23,31 @@ export function LanguageToggle() {
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="icon" className="bg-transparent">
           <LanguagesIcon className="h-[1.2rem] w-[1.2rem]" />
-          <span className="sr-only">{t("header.menu.language")}</span>
+          <span className="sr-only">{t("header.language")}</span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuItem onClick={() => i18n.changeLanguage("en-US")}>
-          <span>{t("header.menu.language.enUS")}</span>
+          <span>{t("header.language.enUS")}</span>
           {i18n.language === "en-US" && (
             <CheckIcon className="ml-auto h-4 w-4" />
           )}
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => i18n.changeLanguage("zh-CN")}>
-          <span>{t("header.menu.language.zhCN")}</span>
+          <span>{t("header.language.zhCN")}</span>
           {i18n.language === "zh-CN" && (
             <CheckIcon className="ml-auto h-4 w-4" />
           )}
         </DropdownMenuItem>{" "}
         <DropdownMenuItem onClick={() => i18n.changeLanguage("zh-TW")}>
-          <span>{t("header.menu.language.zhTW")}</span>
+          <span>{t("header.language.zhTW")}</span>
           {i18n.language === "zh-TW" && (
+            <CheckIcon className="ml-auto h-4 w-4" />
+          )}
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => i18n.changeLanguage("ja-JP")}>
+          <span>{t("header.language.jaJP")}</span>
+          {i18n.language === "ja-JP" && (
             <CheckIcon className="ml-auto h-4 w-4" />
           )}
         </DropdownMenuItem>

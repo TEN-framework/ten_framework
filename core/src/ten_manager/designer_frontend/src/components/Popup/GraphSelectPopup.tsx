@@ -147,13 +147,13 @@ export function GraphSelectPopup() {
           >
             <SelectTrigger className="w-full">
               <SelectValue
-                placeholder={t("header.graphMenu.selectLoadedApp")}
+                placeholder={t("header.menuGraph.selectLoadedApp")}
               />
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>
                 <SelectLabel>
-                  {t("header.graphMenu.selectLoadedApp")}
+                  {t("header.menuGraph.selectLoadedApp")}
                 </SelectLabel>
                 {loadedApps?.base_dirs?.map((app) => (
                   <SelectItem key={app} value={app}>

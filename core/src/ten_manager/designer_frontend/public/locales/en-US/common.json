@@ -4,6 +4,7 @@
   "header": {
     "title": "Ten Manager",
     "menuApp": {
+      "title": "App",
       "loadApp": "Load App",
       "loadAppSuccess": "App loaded successfully",
       "loadAppFailed": "Failed to load app",
@@ -18,36 +19,34 @@
       "unloadAppFailed": "Failed to unload app",
       "installAll": "Install All",
       "manageLoadedApps": "Manage Loaded App(s)",
-      "runApp": "Run App"
+      "runApp": "Run App",
+      "openAppFolder": "Open App Folder"
     },
-    "graphMenu": {
+    "menuGraph": {
       "title": "Graph",
       "openExistingGraph": "Open Existing Graph",
       "openExtensionStore": "Open Extension Store",
       "autoLayout": "Auto Layout",
       "selectLoadedApp": "Select a Loaded App"
     },
-    "menu": {
-      "graph": "Graph",
-      "openExistingGraph": "Open Existing Graph",
-      "openExtensionStore": "Open Extension Store",
-      "autoLayout": "Auto Layout",
-      "openAppFolder": "Open App Folder",
-      "file": "File",
-      "app": "App",
-      "help": "Help",
-      "about": "About",
-      "language": "Language",
-      "language.enUS": "English",
-      "language.zhCN": "中文(简体)",
-      "language.zhTW": "中文(繁體)",
-      "theme": "Theme",
-      "theme.light": "Light",
-      "theme.dark": "Dark",
-      "theme.system": "System",
-      "start": "Start",
-      "preferences": "Preferences",
-      "installAll": "Install All"
+    "menuHelp": {
+      "title": "File"
+    },
+    "menuAbout": {
+      "title": "About"
+    },
+    "language": {
+      "title": "Language",
+      "enUS": "English",
+      "zhCN": "中文(简体)",
+      "zhTW": "中文(繁體)",
+      "jaJP": "日本語"
+    },
+    "theme": {
+      "title": "Theme",
+      "light": "Light",
+      "dark": "Dark",
+      "system": "System"
     },
     "officialSite": "Official Site",
     "poweredBy": "Powered by",

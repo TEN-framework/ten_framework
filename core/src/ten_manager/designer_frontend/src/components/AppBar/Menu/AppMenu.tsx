@@ -57,7 +57,7 @@ export function AppMenu() {
     <>
       <NavigationMenuItem>
         <NavigationMenuTrigger className="submenu-trigger">
-          {t("header.menu.app")}
+          {t("header.menuApp.title")}
         </NavigationMenuTrigger>
         <NavigationMenuContent
           className={cn("flex flex-col items-center px-1 py-1.5 gap-1.5")}

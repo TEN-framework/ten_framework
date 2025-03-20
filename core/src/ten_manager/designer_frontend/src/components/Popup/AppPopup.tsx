@@ -108,7 +108,7 @@ export const AppFolderPopup = () => {
   return (
     <Popup
       id={APP_FOLDER_POPUP_ID}
-      title={t("header.menu.openAppFolder")}
+      title={t("header.menuApp.openAppFolder")}
       onClose={() => removeWidget(APP_FOLDER_POPUP_ID)}
       resizable
       initialWidth={600}
