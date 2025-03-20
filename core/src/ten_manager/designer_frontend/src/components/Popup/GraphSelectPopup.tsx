@@ -108,7 +108,12 @@ export function GraphSelectPopup() {
     } else if (error) {
       toast.error("An unknown error occurred.");
     }
-  }, [error]);
+    if (errorApps instanceof Error) {
+      toast.error(`Failed to fetch apps: ${errorApps.message}`);
+    } else if (errorApps) {
+      toast.error("An unknown error occurred.");
+    }
+  }, [error, errorApps]);
 
   return (
     <Popup
@@ -121,24 +126,35 @@ export function GraphSelectPopup() {
       onCollapseToggle={() => {}}
     >
       <div className="flex flex-col gap-2 w-full h-full">
-        <Select
-          onValueChange={(value) => setSelectedApp(value)}
-          value={selectedApp ?? undefined}
-        >
-          <SelectTrigger className="w-full">
-            <SelectValue placeholder={t("header.graphMenu.selectLoadedApp")} />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectGroup>
-              <SelectLabel>{t("header.graphMenu.selectLoadedApp")}</SelectLabel>
-              {loadedApps?.base_dirs?.map((app) => (
-                <SelectItem key={app} value={app}>
-                  {app}
-                </SelectItem>
-              ))}
-            </SelectGroup>
-          </SelectContent>
-        </Select>
+        {isLoadingApps ? (
+          <SpinnerLoading
+            className="w-full h-full"
+            svgProps={{ className: "size-10" }}
+          />
+        ) : (
+          <Select
+            onValueChange={(value) => setSelectedApp(value)}
+            value={selectedApp ?? undefined}
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue
+                placeholder={t("header.graphMenu.selectLoadedApp")}
+              />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                <SelectLabel>
+                  {t("header.graphMenu.selectLoadedApp")}
+                </SelectLabel>
+                {loadedApps?.base_dirs?.map((app) => (
+                  <SelectItem key={app} value={app}>
+                    {app}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+        )}
         {isLoading ? (
           <>
             <SpinnerLoading
