@@ -29,7 +29,7 @@ import {
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/components/ui/tooltip";
+} from "@/components/ui/Tooltip";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
 import { useApps } from "@/api/services/apps";
@@ -39,8 +39,13 @@ import {
   EDefaultWidgetType,
   EWidgetDisplayType,
   EWidgetCategory,
+  ELogViewerScriptType,
 } from "@/types/widgets";
 import { APP_FOLDER_POPUP_ID } from "@/constants/widgets";
+import {
+  TEN_DEFAULT_BACKEND_WS_ENDPOINT,
+  TEN_PATH_WS_BUILTIN_FUNCTION,
+} from "@/constants";
 import { postReloadApps, postUnloadApps } from "@/api/services/apps";
 
 export const AppsManagerWidget = (props: { className?: string }) => {
@@ -113,21 +118,24 @@ export const AppsManagerWidget = (props: { className?: string }) => {
     }
   };
 
-  const handleAppInstall = async () => {
-    // try {
-    //   setIsInstalling(true);
-    //   await postInstallApps();
-    // } catch (error) {
-    //   console.error(error);
-    //   toast.error(
-    //     t("header.menuApp.installAllFailed", {
-    //       description:
-    //         error instanceof Error ? error.message : t("popup.apps.error"),
-    //     })
-    //   );
-    // } finally {
-    //   setIsInstalling(false);
-    // }
+  const handleAppInstallAll = (baseDir: string) => () => {
+    appendWidgetIfNotExists({
+      id: "app-install-" + Date.now(),
+      category: EWidgetCategory.LogViewer,
+      display_type: EWidgetDisplayType.Popup,
+      metadata: {
+        wsUrl: TEN_DEFAULT_BACKEND_WS_ENDPOINT + TEN_PATH_WS_BUILTIN_FUNCTION,
+        scriptType: ELogViewerScriptType.INSTALL_ALL,
+        script: {
+          type: ELogViewerScriptType.INSTALL_ALL,
+          base_dir: baseDir,
+        },
+        options: {
+          disableSearch: true,
+          title: t("popup.logViewer.appInstall"),
+        },
+      },
+    });
   };
 
   const isLoadingMemo = React.useMemo(() => {
@@ -220,7 +228,7 @@ export const AppsManagerWidget = (props: { className?: string }) => {
                           variant="outline"
                           size="icon"
                           disabled={isLoadingMemo}
-                          onClick={handleAppInstall}
+                          onClick={handleAppInstallAll(baseDir)}
                         >
                           <HardDriveDownloadIcon className="w-4 h-4" />
                           <span className="sr-only">
