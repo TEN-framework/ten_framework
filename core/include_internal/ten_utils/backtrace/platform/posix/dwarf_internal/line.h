@@ -8,10 +8,15 @@
 
 #include "ten_utils/ten_config.h"
 
+#include <stddef.h>
+
 #include "include_internal/ten_utils/backtrace/backtrace.h"
-#include "include_internal/ten_utils/backtrace/platform/posix/dwarf_internal/data.h"
 #include "include_internal/ten_utils/backtrace/platform/posix/dwarf_internal/form.h"
 #include "include_internal/ten_utils/backtrace/vector.h"
+
+typedef struct dwarf_data dwarf_data;
+typedef struct unit unit;
+typedef struct ten_backtrace_t ten_backtrace_t;
 
 /**
  * @brief Standard DWARF line number opcodes used in the line number program.
@@ -110,7 +115,7 @@ typedef struct line_header_format {
   // Line Number Content Type (LNCT) code defining what this entry represents.
   int lnct;
   // DWARF form code specifying how the entry's data is encoded.
-  enum dwarf_form form;
+  dwarf_form form;
 } line_header_format;
 
 /**

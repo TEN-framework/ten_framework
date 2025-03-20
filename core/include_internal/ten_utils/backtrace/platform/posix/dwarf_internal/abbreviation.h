@@ -10,6 +10,7 @@
 
 #include <stddef.h>
 
+#include "include_internal/ten_utils/backtrace/backtrace.h"
 #include "include_internal/ten_utils/backtrace/platform/posix/dwarf_internal/tag.h"
 
 /**
@@ -64,3 +65,19 @@ typedef struct abbrevs {
   // lookup. Each entry contains information about a specific DIE format.
   struct abbrev *abbrevs;
 } abbrevs;
+
+TEN_UTILS_PRIVATE_API void free_abbrevs(ten_backtrace_t *self, abbrevs *abbrevs,
+                                        ten_backtrace_error_func_t error_cb,
+                                        void *data);
+
+TEN_UTILS_PRIVATE_API const abbrev *lookup_abbrev(
+    ten_backtrace_t *self, abbrevs *abbrevs, uint64_t code,
+    ten_backtrace_error_func_t error_cb, void *data);
+
+TEN_UTILS_PRIVATE_API int read_abbrevs(ten_backtrace_t *self,
+                                       uint64_t abbrev_offset,
+                                       const unsigned char *dwarf_abbrev,
+                                       size_t dwarf_abbrev_size,
+                                       int is_bigendian,
+                                       ten_backtrace_error_func_t error_cb,
+                                       void *data, abbrevs *abbrevs);

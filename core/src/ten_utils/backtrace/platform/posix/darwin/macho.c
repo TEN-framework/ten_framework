@@ -277,8 +277,7 @@ static int macho_add_dwarf_section(ten_backtrace_t *self, int descriptor,
                                    const char *sectname, uint32_t offset,
                                    uint64_t size,
                                    ten_backtrace_error_func_t error_cb,
-                                   void *data,
-                                   struct dwarf_sections *dwarf_sections) {
+                                   void *data, dwarf_sections *dwarf_sections) {
   for (size_t i = 0; i < (int)DEBUG_MAX; ++i) {
     if (dwarf_section_names[i][0] != '\0' &&
         strncmp(sectname, dwarf_section_names[i], MACH_O_NAMELEN) == 0) {
@@ -307,8 +306,7 @@ static int macho_add_dwarf_segment(ten_backtrace_t *self, int descriptor,
                                    const char *psecs, size_t sizesecs,
                                    unsigned int nsects,
                                    ten_backtrace_error_func_t error_cb,
-                                   void *data,
-                                   struct dwarf_sections *dwarf_sections) {
+                                   void *data, dwarf_sections *dwarf_sections) {
   size_t sec_header_size;
   size_t secoffset;
   unsigned int i;
@@ -853,7 +851,7 @@ macho_add(ten_backtrace_t *self, const char *filename, int descriptor,
   int is_64;
   ten_mmap_t cmds_view;
   int cmds_view_valid;
-  struct dwarf_sections dwarf_sections;
+  dwarf_sections dwarf_sections;
   int have_dwarf;
   unsigned char uuid[MACH_O_UUID_LEN];
   int have_uuid;
