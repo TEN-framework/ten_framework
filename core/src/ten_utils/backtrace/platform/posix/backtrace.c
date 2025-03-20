@@ -32,6 +32,8 @@ static _Unwind_Reason_Code unwind(struct _Unwind_Context *context, void *data) {
   backtrace_data *bt_data = (backtrace_data *)data;
   int ip_before_insn = 0;
 
+  // _Unwind_GetIPInfo() returns the instruction pointer for the current frame,
+  // and this function is normally thread-safe.
   uintptr_t pc = _Unwind_GetIPInfo(context, &ip_before_insn);
 
   if (bt_data->skip > 0) {
@@ -66,7 +68,8 @@ int ten_backtrace_dump_posix(ten_backtrace_t *self, size_t skip) {
   bt_data.ten_backtrace = self;
   bt_data.ret = 0;
 
-  // _Unwind_Backtrace() performs a stack backtrace using unwind data.
+  // _Unwind_Backtrace() performs a stack backtrace using unwind data, and this
+  // function is normally thread-safe.
   _Unwind_Backtrace(unwind, &bt_data);
 
   return bt_data.ret;

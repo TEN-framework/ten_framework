@@ -45,14 +45,14 @@ typedef struct ten_backtrace_posix_t {
   ten_backtrace_common_t common;
 
   // The function that returns file/line information.
-  ten_backtrace_get_file_line_func_t get_file_line;
-  // The data to pass to 'file_line_fn'.
-  void *get_file_line_data;
+  ten_backtrace_get_file_line_func_t get_file_line_func;
+  // The data to pass to 'get_file_line_func'.
+  void *get_file_line_user_data;
 
   // The function that returns symbol information.
-  ten_ten_backtrace_get_syminfo_func_t get_syminfo;
-  // The data to pass to 'syminfo_fn'.
-  void *get_syminfo_data;
+  ten_ten_backtrace_get_syminfo_func_t get_syminfo_func;
+  // The data to pass to 'get_syminfo_func'.
+  void *get_syminfo_user_data;
 
   // Whether initializing the file/line information failed.
   ten_atomic_t file_line_init_failed;
@@ -64,11 +64,13 @@ TEN_UTILS_PRIVATE_API int ten_backtrace_dump_posix(ten_backtrace_t *self,
 /**
  * @brief Read initial debug data from a descriptor, and set the the following
  * fields of @a self.
- * - get_file_line_data
- * - get_syminfo
- * - get_syminfo_data
+ * - get_file_line_func
+ * - get_file_line_user_data
+ * - get_syminfo_func
+ * - get_syminfo_user_data
  *
- * @param get_file_line The value of the get_file_line field of @a self.
+ * @param get_file_line_func The value of the get_file_line_func field of @a
+ * self.
  * @return 1 on success, 0 on error.
  *
  * @note This function is called after the descriptor has first been opened.
@@ -77,7 +79,7 @@ TEN_UTILS_PRIVATE_API int ten_backtrace_dump_posix(ten_backtrace_t *self,
 TEN_UTILS_PRIVATE_API int ten_backtrace_init_posix(
     ten_backtrace_t *self, const char *filename, int descriptor,
     ten_backtrace_error_func_t error_cb, void *data,
-    ten_backtrace_get_file_line_func_t *get_file_line);
+    ten_backtrace_get_file_line_func_t *get_file_line_func);
 
 // DWARF data read from a file, used for .gnu_debugaltlink.
 struct dwarf_data;

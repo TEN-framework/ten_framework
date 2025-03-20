@@ -19,6 +19,8 @@
 #include "ten_utils/backtrace/backtrace.h"
 #include "ten_utils/macro/mark.h"
 
+#define STRERROR_BUF_SIZE 1024
+
 // Initialize global backtrace pointer to NULL.
 ten_backtrace_t *g_ten_backtrace = NULL;
 
@@ -40,7 +42,7 @@ static char *ten_strerror(int errnum) {
     return NULL;
   }
 
-  size_t size = 1024;
+  size_t size = STRERROR_BUF_SIZE;
   char *buf = malloc(size);
   if (!buf) {
     assert(0 && "Failed to allocate memory.");
@@ -91,7 +93,7 @@ int ten_backtrace_default_dump_cb(ten_backtrace_t *self_, uintptr_t pc,
   const char *safe_function = function ? function : "<unknown function>";
 
   // Normalize the filename to remove ".." path components
-  char normalized_path[4096] = {0};
+  char normalized_path[NORMALIZE_PATH_BUF_SIZE] = {0};
   if (filename && ten_backtrace_normalize_path(safe_filename, normalized_path,
                                                sizeof(normalized_path))) {
     // Use the normalized path if successful
@@ -102,7 +104,7 @@ int ten_backtrace_default_dump_cb(ten_backtrace_t *self_, uintptr_t pc,
   // On Windows, ensure we're using consistent path separators in output.
   // This is only needed if normalization didn't happen or failed.
   if (safe_filename != normalized_path && filename) {
-    char windows_path[4096] = {0};
+    char windows_path[NORMALIZE_PATH_BUF_SIZE] = {0};
     strncpy(windows_path, safe_filename, sizeof(windows_path) - 1);
 
     // Replace forward slashes with backslashes for display
