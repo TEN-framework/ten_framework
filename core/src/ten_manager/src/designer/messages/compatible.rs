@@ -22,16 +22,13 @@ use ten_rust::pkg_info::{
 };
 
 use crate::designer::{
-    apps::get_base_dir_from_pkgs_cache,
     response::{ApiResponse, ErrorResponse, Status},
     DesignerState,
 };
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct GetCompatibleMsgsRequestPayload {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    #[serde(default)]
-    pub base_dir: Option<String>,
+    pub base_dir: String,
 
     pub app: String,
     pub graph: String,
@@ -78,22 +75,8 @@ pub async fn get_compatible_messages_endpoint(
 ) -> Result<impl Responder, actix_web::Error> {
     let state_read = state.read().unwrap();
 
-    let base_dir = match get_base_dir_from_pkgs_cache(
-        request_payload.base_dir.clone(),
-        &state_read.pkgs_cache,
-    ) {
-        Ok(base_dir) => base_dir,
-        Err(e) => {
-            let error_response = ErrorResponse {
-                status: Status::Fail,
-                message: e.to_string(),
-                error: None,
-            };
-            return Ok(HttpResponse::BadRequest().json(error_response));
-        }
-    };
-
-    if let Some(all_pkgs) = state_read.pkgs_cache.get(&base_dir) {
+    if let Some(all_pkgs) = state_read.pkgs_cache.get(&request_payload.base_dir)
+    {
         let extensions = match get_extension_nodes_in_graph(
             &request_payload.graph,
             all_pkgs,
