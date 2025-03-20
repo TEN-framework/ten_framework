@@ -16,7 +16,7 @@ import type {
 } from "@/types/apps";
 
 export const ENDPOINT_APPS = {
-  /* @deprecated */
+  /** @deprecated */
   baseDir: {
     [ENDPOINT_METHOD.PUT]: {
       url: `${API_DESIGNER_V1}/app/base-dir`,

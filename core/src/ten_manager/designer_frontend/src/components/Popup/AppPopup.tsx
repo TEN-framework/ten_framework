@@ -25,7 +25,6 @@ import { postBaseDir } from "@/api/services/apps";
 import { SpinnerLoading } from "@/components/Status/Loading";
 import {
   APP_FOLDER_POPUP_ID,
-  APP_PREFERENCES_POPUP_ID,
   APPS_MANAGER_POPUP_ID,
 } from "@/constants/widgets";
 import { AppsManagerWidget } from "@/components/Widget/AppsWidget";
@@ -135,59 +134,6 @@ export const AppFolderPopup = () => {
             ) : (
               t("action.ok")
             )}
-          </Button>
-        </div>
-      </div>
-    </Popup>
-  );
-};
-
-/** @deprecated */
-export const PreferencesPopup = () => {
-  const { t } = useTranslation();
-
-  const { removeWidget } = useWidgetStore();
-  const { runScript, setRunScript } = useAppStore();
-
-  const [inputRunScript, setInputRunScript] = React.useState<string>(runScript);
-
-  return (
-    <Popup
-      id={APP_PREFERENCES_POPUP_ID}
-      title={t("header.menu.preferences")}
-      onClose={() => removeWidget(APP_PREFERENCES_POPUP_ID)}
-      resizable={false}
-      initialWidth={400}
-      initialHeight={200}
-      onCollapseToggle={() => {}}
-      preventFocusSteal={true}
-    >
-      <div className="flex flex-col gap-2 w-full h-full">
-        <label htmlFor="defaultRunScript">
-          {t("popup.default.defaultLabelForAppRun")}
-        </label>
-        <Input
-          id="defaultRunScript"
-          type="text"
-          defaultValue={runScript}
-          value={inputRunScript}
-          onChange={(e) => setInputRunScript(e.target.value)}
-        />
-        <div className="flex justify-end gap-2 mt-auto">
-          <Button
-            variant="outline"
-            onClick={() => removeWidget(APP_PREFERENCES_POPUP_ID)}
-          >
-            {t("action.cancel")}
-          </Button>
-          <Button
-            disabled={!inputRunScript?.trim()}
-            onClick={() => {
-              setRunScript(inputRunScript || runScript);
-              removeWidget(APP_PREFERENCES_POPUP_ID);
-            }}
-          >
-            {t("action.ok")}
           </Button>
         </div>
       </div>

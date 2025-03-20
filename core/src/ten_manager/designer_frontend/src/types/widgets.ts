@@ -103,8 +103,6 @@ export interface ILogViewerWidget extends IWidgetBase {
 export enum EDefaultWidgetType {
   GraphSelect = "graph_select",
   About = "about",
-  /** @deprecated */
-  Preferences = "preferences",
   AppFolder = "app_folder",
   AppsManager = "apps_manager",
   AppRun = "app_run",

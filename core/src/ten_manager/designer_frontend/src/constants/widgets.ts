@@ -16,10 +16,5 @@ export const APP_FOLDER_POPUP_ID = APP_FOLDER_WIDGET_ID + "-popup";
 export const APPS_WIDGET_ID = "apps";
 export const APPS_MANAGER_POPUP_ID = APPS_WIDGET_ID + "-manager-popup";
 
-/** @deprecated */
-export const APP_PREFERENCES_WIDGET_ID = "app-preferences";
-/** @deprecated */
-export const APP_PREFERENCES_POPUP_ID = APP_PREFERENCES_WIDGET_ID + "-popup";
-
 export const ABOUT_WIDGET_ID = "about";
 export const ABOUT_POPUP_ID = ABOUT_WIDGET_ID + "-popup";

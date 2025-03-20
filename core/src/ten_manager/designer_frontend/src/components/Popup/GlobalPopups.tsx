@@ -20,7 +20,6 @@ import { GraphSelectPopup } from "@/components/Popup/GraphSelectPopup";
 import { AboutPopup } from "@/components/Popup/AboutPopup";
 import {
   AppFolderPopup,
-  PreferencesPopup,
   LoadedAppsPopup,
   AppRunPopup,
 } from "@/components/Popup/AppPopup";
@@ -127,8 +126,6 @@ export function GlobalPopups() {
                 data={widget.metadata}
               />
             );
-          case EDefaultWidgetType.Preferences:
-            return <PreferencesPopup key={`PreferencesPopup-${widget.id}`} />;
           case EDefaultWidgetType.ExtensionStore:
             return (
               <ExtensionStorePopup key={`ExtensionStorePopup-${widget.id}`} />
