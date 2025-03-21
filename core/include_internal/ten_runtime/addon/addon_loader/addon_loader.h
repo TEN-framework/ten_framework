@@ -13,9 +13,25 @@
 
 typedef struct ten_addon_host_t ten_addon_host_t;
 typedef struct ten_addon_store_t ten_addon_store_t;
+typedef struct ten_addon_loader_t ten_addon_loader_t;
 
 #define TEN_REGISTER_ADDON_AS_ADDON_LOADER(ADDON_LOADER_NAME, ADDON) \
   TEN_ADDON_REGISTER(addon_loader, ADDON_LOADER_NAME, ADDON)
+
+typedef void (*ten_addon_loader_on_all_singleton_instances_created_cb_t)(
+    ten_env_t *ten_env, void *cb_data);
+
+typedef struct ten_addon_loader_on_all_singleton_instances_created_ctx_t {
+  ten_env_t *ten_env;
+  size_t desired_count;
+  ten_addon_loader_on_all_singleton_instances_created_cb_t cb;
+  void *cb_data;
+} ten_addon_loader_on_all_singleton_instances_created_ctx_t;
+
+typedef struct ten_app_on_addon_loader_init_done_ctx_t {
+  ten_addon_loader_t *addon_loader;
+  void *cb_data;
+} ten_app_on_addon_loader_init_done_ctx_t;
 
 TEN_RUNTIME_PRIVATE_API ten_addon_store_t *ten_addon_loader_get_global_store(
     void);
@@ -34,8 +50,9 @@ TEN_RUNTIME_PRIVATE_API bool ten_addon_create_addon_loader(
     ten_env_addon_create_instance_done_cb_t cb, void *cb_data,
     ten_error_t *err);
 
-TEN_RUNTIME_PRIVATE_API bool ten_addon_loader_addons_create_singleton_instance(
-    ten_env_t *ten_env, ten_error_t *err);
+TEN_RUNTIME_PRIVATE_API void ten_addon_loader_addons_create_singleton_instance(
+    ten_env_t *ten_env,
+    ten_addon_loader_on_all_singleton_instances_created_cb_t cb, void *cb_data);
 
 TEN_RUNTIME_PRIVATE_API void ten_addon_loader_addons_destroy_singleton_instance(
     void);

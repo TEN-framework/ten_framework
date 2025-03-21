@@ -64,16 +64,16 @@ static int initialize_file_line_mechanism(ten_backtrace_t *self,
   ten_backtrace_posix_t *posix_self = (ten_backtrace_posix_t *)self;
   assert(posix_self && "Invalid argument.");
 
-  ten_atomic_t failed = ten_atomic_load(&posix_self->file_line_init_failed);
+  int64_t failed = ten_atomic_load(&posix_self->file_line_init_failed);
   if (failed) {
     (void)fprintf(stderr, "Failed to read executable information.");
     return 0;
   }
 
-  ten_backtrace_get_file_line_func_t get_file_line =
+  ten_backtrace_get_file_line_func_t get_file_line_func =
       (ten_backtrace_get_file_line_func_t)ten_atomic_ptr_load(
-          (void *)&posix_self->get_file_line);
-  if (get_file_line != NULL) {
+          (void *)&posix_self->get_file_line_func);
+  if (get_file_line_func != NULL) {
     return 1;
   }
 
@@ -82,25 +82,32 @@ static int initialize_file_line_mechanism(ten_backtrace_t *self,
   int descriptor = -1;
   const char *filename = NULL;
   bool called_error_callback = false;
+
   for (size_t pass = 0; pass < 4; ++pass) {
     switch (pass) {
     case 0:
       filename = "/proc/self/exe";
       break;
+
     case 1:
       filename = "/proc/curproc/file";
       break;
+
     case 2: {
       char buf[64] = {0};
+
       int written =
           snprintf(buf, sizeof(buf), "/proc/%ld/object/a.out", (long)getpid());
       assert(written > 0);
+
       filename = buf;
       break;
     }
+
     case 3:
       filename = macho_get_executable_path(self, error_cb, data);
       break;
+
     default:
       abort();
       break;
@@ -135,7 +142,7 @@ static int initialize_file_line_mechanism(ten_backtrace_t *self,
 
   if (!failed) {
     if (!ten_backtrace_init_posix(self, filename, descriptor, error_cb, data,
-                                  &get_file_line)) {
+                                  &get_file_line_func)) {
       failed = 1;
     }
   }
@@ -147,7 +154,8 @@ static int initialize_file_line_mechanism(ten_backtrace_t *self,
 
   // TODO(Wei): Note that if two threads initialize at once, one of the data
   // sets may be leaked. Might need to consider a new way to avoid this.
-  ten_atomic_ptr_store((void *)&posix_self->get_file_line, get_file_line);
+  ten_atomic_ptr_store((void *)&posix_self->get_file_line_func,
+                       get_file_line_func);
 
   return 1;
 }
@@ -170,8 +178,7 @@ int ten_backtrace_get_file_line_info(ten_backtrace_t *self, uintptr_t pc,
     return 0;
   }
 
-  return ((ten_backtrace_get_file_line_func_t)(posix_self->get_file_line))(
-      self, pc, cb, error_cb, data);
+  return (posix_self->get_file_line_func)(self, pc, cb, error_cb, data);
 }
 
 /**
@@ -191,7 +198,7 @@ int ten_backtrace_get_syminfo(ten_backtrace_t *self, uintptr_t pc,
     return 0;
   }
 
-  posix_self->get_syminfo(self, pc, cb, error_cb, data);
+  posix_self->get_syminfo_func(self, pc, cb, error_cb, data);
 
   return 1;
 }

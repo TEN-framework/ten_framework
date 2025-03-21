@@ -14,10 +14,14 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#define MAX_CAPTURED_CALL_STACK_DEPTH 128
+
 #if defined(__cplusplus)
 extern "C" {
 #endif
 
+// This is a virtual type, only used as the type for parameters of public
+// functions.
 typedef struct ten_backtrace_t ten_backtrace_t;
 
 /**

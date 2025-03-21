@@ -31,7 +31,8 @@ static bool ten_py_app_check_integrity(ten_py_app_t *self, bool check_thread) {
 }
 
 static void proxy_on_configure(ten_app_t *app, ten_env_t *ten_env) {
-  TEN_ASSERT(app && ten_app_check_integrity(app, true), "Invalid argument.");
+  TEN_ASSERT(app, "Invalid argument.");
+  TEN_ASSERT(ten_app_check_integrity(app, true), "Invalid argument.");
   TEN_ASSERT(ten_env, "Invalid argument.");
   TEN_ASSERT(ten_env_check_integrity(ten_env, true), "Invalid argument.");
 
@@ -85,7 +86,8 @@ static void proxy_on_configure(ten_app_t *app, ten_env_t *ten_env) {
 }
 
 static void proxy_on_init(ten_app_t *app, ten_env_t *ten_env) {
-  TEN_ASSERT(app && ten_app_check_integrity(app, true), "Invalid argument.");
+  TEN_ASSERT(app, "Invalid argument.");
+  TEN_ASSERT(ten_app_check_integrity(app, true), "Invalid argument.");
   TEN_ASSERT(ten_env, "Invalid argument.");
   TEN_ASSERT(ten_env_check_integrity(ten_env, true), "Invalid argument.");
 
@@ -115,7 +117,8 @@ static void proxy_on_init(ten_app_t *app, ten_env_t *ten_env) {
 }
 
 static void proxy_on_deinit(ten_app_t *app, ten_env_t *ten_env) {
-  TEN_ASSERT(app && ten_app_check_integrity(app, true), "Invalid argument.");
+  TEN_ASSERT(app, "Invalid argument.");
+  TEN_ASSERT(ten_app_check_integrity(app, true), "Invalid argument.");
   TEN_ASSERT(ten_env, "Invalid argument.");
   TEN_ASSERT(ten_env_check_integrity(ten_env, true), "Invalid argument.");
 

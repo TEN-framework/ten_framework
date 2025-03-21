@@ -6,5 +6,5 @@
 #
 import("//build/ten_utils/utils.gni")
 
-ten_utils_glob("pc") {
+ten_utils_glob("elf_internal") {
 }

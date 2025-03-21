@@ -12,7 +12,6 @@ use serde::{Deserialize, Serialize};
 use ten_rust::pkg_info::{pkg_type::PkgType, PkgInfo};
 
 use crate::designer::{
-    apps::get_base_dir_from_pkgs_cache,
     common::{
         get_designer_api_cmd_likes_from_pkg,
         get_designer_api_data_likes_from_pkg,
@@ -25,9 +24,7 @@ use crate::designer::{
 
 #[derive(Serialize, Deserialize)]
 pub struct GetAppAddonsRequestPayload {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    #[serde(default)]
-    pub base_dir: Option<String>,
+    pub base_dir: String,
 
     #[serde(skip_serializing_if = "Option::is_none")]
     #[serde(default)]
@@ -133,24 +130,9 @@ pub async fn get_app_addons_endpoint(
 ) -> Result<impl Responder, actix_web::Error> {
     let state_read = state.read().unwrap();
 
-    let base_dir = match get_base_dir_from_pkgs_cache(
-        request_payload.base_dir.clone(),
-        &state_read.pkgs_cache,
-    ) {
-        Ok(base_dir) => base_dir,
-        Err(e) => {
-            let error_response = ErrorResponse {
-                status: Status::Fail,
-                message: e.to_string(),
-                error: None,
-            };
-            return Ok(HttpResponse::BadRequest().json(error_response));
-        }
-    };
-
     let mut all_addons: Vec<GetAppAddonsSingleResponseData> = state_read
         .pkgs_cache
-        .get(&base_dir)
+        .get(&request_payload.base_dir)
         .unwrap()
         .iter()
         .map(convert_pkg_info_to_addon)
@@ -255,7 +237,7 @@ mod tests {
         .await;
 
         let request_payload = GetAppAddonsRequestPayload {
-            base_dir: Some(TEST_DIR.to_string()),
+            base_dir: TEST_DIR.to_string(),
             addon_name: None,
             addon_type: None,
         };
@@ -491,7 +473,7 @@ mod tests {
         .await;
 
         let request_payload = GetAppAddonsRequestPayload {
-            base_dir: Some(TEST_DIR.to_string()),
+            base_dir: TEST_DIR.to_string(),
             addon_name: Some("extension_addon_1".to_string()),
             addon_type: None,
         };
@@ -564,7 +546,7 @@ mod tests {
         assert_eq!(addons.data, expected_addons);
 
         let request_payload = GetAppAddonsRequestPayload {
-            base_dir: Some(TEST_DIR.to_string()),
+            base_dir: TEST_DIR.to_string(),
             addon_name: Some("non_existent_addon".to_string()),
             addon_type: None,
         };
@@ -636,7 +618,7 @@ mod tests {
 
         // Test filtering by addon_type
         let request_payload = GetAppAddonsRequestPayload {
-            base_dir: Some(TEST_DIR.to_string()),
+            base_dir: TEST_DIR.to_string(),
             addon_name: None,
             addon_type: Some("extension".to_string()),
         };
@@ -662,7 +644,7 @@ mod tests {
 
         // Test filtering by both addon_type and addon_name
         let request_payload = GetAppAddonsRequestPayload {
-            base_dir: Some(TEST_DIR.to_string()),
+            base_dir: TEST_DIR.to_string(),
             addon_name: Some("extension_addon_1".to_string()),
             addon_type: Some("extension".to_string()),
         };

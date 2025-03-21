@@ -4,11 +4,10 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-// This file is modified from
-// https://github.com/ianlancetaylor/libbacktrace [BSD license]
-//
 #pragma once
 
-#include "ten_utils/ten_config.h"
+#include "ten_runtime/ten_config.h"
 
-TEN_UTILS_PRIVATE_API void elf_uncompress_failed(void);
+#include "ten_runtime/ten_env/ten_env.h"
+
+TEN_RUNTIME_PRIVATE_API void ten_addon_loader_on_init_done(ten_env_t *self);

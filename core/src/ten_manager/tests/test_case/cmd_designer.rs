@@ -18,7 +18,7 @@ use ten_manager::{
             connections::{
                 get_graph_connections_endpoint,
                 GetGraphConnectionsRequestPayload,
-                GetGraphConnectionsSingleResponseData,
+                GraphConnectionsSingleResponseData,
             },
             get_graphs_endpoint, GetGraphsRequestPayload,
             GetGraphsResponseData,
@@ -72,10 +72,8 @@ async fn test_cmd_designer_graphs_app_property_not_exist() {
     .await;
 
     let request_payload = GetGraphsRequestPayload {
-        base_dir: Some(
-            "tests/test_data/cmd_designer_graphs_app_property_not_exist"
-                .to_string(),
-        ),
+        base_dir: "tests/test_data/cmd_designer_graphs_app_property_not_exist"
+            .to_string(),
     };
 
     let req = test::TestRequest::post()
@@ -138,10 +136,8 @@ async fn test_cmd_designer_connections_has_msg_conversion() {
     .await;
 
     let request_payload = GetGraphConnectionsRequestPayload {
-        base_dir: Some(
-            "tests/test_data/cmd_designer_connections_has_msg_conversion"
-                .to_string(),
-        ),
+        base_dir: "tests/test_data/cmd_designer_connections_has_msg_conversion"
+            .to_string(),
         graph_name: "default".to_string(),
     };
 
@@ -154,7 +150,7 @@ async fn test_cmd_designer_connections_has_msg_conversion() {
 
     let body = test::read_body(resp).await;
     let body_str = std::str::from_utf8(&body).unwrap();
-    let json: ApiResponse<Vec<GetGraphConnectionsSingleResponseData>> =
+    let json: ApiResponse<Vec<GraphConnectionsSingleResponseData>> =
         serde_json::from_str(body_str).unwrap();
 
     let pretty_json = serde_json::to_string_pretty(&json).unwrap();

@@ -7,10 +7,12 @@
 // This file is modified from
 // https://github.com/ianlancetaylor/libbacktrace [BSD license]
 //
-#include "include_internal/ten_utils/backtrace/platform/posix/linux/uncompress.h"
+#pragma once
 
-/**
- * @brief A function useful for setting a breakpoint for an inflation failure
- * when this code is compiled with -g.
- */
-void elf_uncompress_failed(void) {}
+#include "ten_utils/ten_config.h"
+
+TEN_UTILS_PRIVATE_API void elf_uncompress_failed(void);
+
+TEN_UTILS_PRIVATE_API int elf_fetch_bits(const unsigned char **ppin,
+                                         const unsigned char *pinend,
+                                         uint64_t *pval, unsigned int *pbits);

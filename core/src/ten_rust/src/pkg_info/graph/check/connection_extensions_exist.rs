@@ -7,7 +7,7 @@
 use anyhow::Result;
 
 use crate::pkg_info::{
-    graph::{Graph, GraphMessageFlow},
+    graph::{connection::GraphMessageFlow, Graph},
     pkg_type::PkgType,
 };
 
