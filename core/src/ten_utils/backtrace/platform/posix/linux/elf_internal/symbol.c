@@ -18,11 +18,10 @@
 #include "include_internal/ten_utils/backtrace/sort.h"
 #include "ten_utils/lib/atomic_ptr.h"
 
-// Compare struct elf_symbol for qsort.
-
+// Compare elf_symbol for qsort.
 static int elf_symbol_compare(const void *v1, const void *v2) {
-  const struct elf_symbol *e1 = (const struct elf_symbol *)v1;
-  const struct elf_symbol *e2 = (const struct elf_symbol *)v2;
+  const elf_symbol *e1 = (const elf_symbol *)v1;
+  const elf_symbol *e2 = (const elf_symbol *)v2;
 
   if (e1->address < e2->address) {
     return -1;
@@ -38,13 +37,12 @@ int elf_initialize_syminfo(ten_backtrace_t *self, uintptr_t base_address,
                            const unsigned char *symtab_data, size_t symtab_size,
                            const unsigned char *strtab, size_t strtab_size,
                            ten_backtrace_on_error_func_t on_error, void *data,
-                           struct elf_syminfo_data *sdata,
-                           struct elf_ppc64_opd_data *opd) {
+                           elf_syminfo_data *sdata, elf_ppc64_opd_data *opd) {
   size_t sym_count = 0;
   const b_elf_sym *sym = NULL;
   size_t elf_symbol_count = 0;
   size_t elf_symbol_size = 0;
-  struct elf_symbol *elf_symbols = NULL;
+  elf_symbol *elf_symbols = NULL;
   size_t i = 0;
   unsigned int j = 0;
 
@@ -67,8 +65,8 @@ int elf_initialize_syminfo(ten_backtrace_t *self, uintptr_t base_address,
     return 1;
   }
 
-  elf_symbol_size = elf_symbol_count * sizeof(struct elf_symbol);
-  elf_symbols = (struct elf_symbol *)malloc(elf_symbol_size);
+  elf_symbol_size = elf_symbol_count * sizeof(elf_symbol);
+  elf_symbols = (elf_symbol *)malloc(elf_symbol_size);
   assert(elf_symbols && "Failed to allocate memory.");
   if (elf_symbols == NULL) {
     return 0;
@@ -107,7 +105,7 @@ int elf_initialize_syminfo(ten_backtrace_t *self, uintptr_t base_address,
     ++j;
   }
 
-  backtrace_sort(elf_symbols, elf_symbol_count, sizeof(struct elf_symbol),
+  backtrace_sort(elf_symbols, elf_symbol_count, sizeof(elf_symbol),
                  elf_symbol_compare);
 
   sdata->next = NULL;
@@ -118,8 +116,7 @@ int elf_initialize_syminfo(ten_backtrace_t *self, uintptr_t base_address,
 }
 
 // Add EDATA to the list in STATE.
-void elf_add_syminfo_data(ten_backtrace_t *self_,
-                          struct elf_syminfo_data *edata) {
+void elf_add_syminfo_data(ten_backtrace_t *self_, elf_syminfo_data *edata) {
   ten_backtrace_posix_t *self = (ten_backtrace_posix_t *)self_;
   assert(self && "Invalid argument.");
 

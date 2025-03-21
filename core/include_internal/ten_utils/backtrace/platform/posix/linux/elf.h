@@ -224,7 +224,7 @@ static const char *const dwarf_section_names[DEBUG_MAX] = {
     ".debug_str_offsets", ".debug_line_str", ".debug_rnglists"};
 
 // Information we gather for the sections we care about.
-struct debug_section_info {
+typedef struct debug_section_info {
   // Section file offset.
   off_t offset;
   // Section size.
@@ -233,4 +233,4 @@ struct debug_section_info {
   const unsigned char *data;
   // Whether the SHF_COMPRESSED flag is set for the section.
   int compressed;
-};
+} debug_section_info;

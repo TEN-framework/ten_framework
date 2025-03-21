@@ -50,14 +50,14 @@ typedef struct elf_syminfo_data {
 
   // Array of ELF symbols sorted by address for efficient binary search. Each
   // entry contains a symbol name, address, and size.
-  struct elf_symbol *symbols;
+  elf_symbol *symbols;
 
   // The number of entries in the symbols array.
   size_t count;
 } elf_syminfo_data;
 
 // Information about PowerPC64 ELFv1 .opd section.
-struct elf_ppc64_opd_data {
+typedef struct elf_ppc64_opd_data {
   // Address of the .opd section.
   b_elf_addr addr;
   // Section data.
@@ -65,20 +65,20 @@ struct elf_ppc64_opd_data {
   // Size of the .opd section.
   size_t size;
   // Corresponding section view.
-  struct elf_view view;
-};
+  elf_view view;
+} elf_ppc64_opd_data;
 
 TEN_UTILS_PRIVATE_API void elf_add_syminfo_data(ten_backtrace_t *self_,
-                                                struct elf_syminfo_data *edata);
+                                                elf_syminfo_data *edata);
 
 TEN_UTILS_PRIVATE_API int elf_initialize_syminfo(
     ten_backtrace_t *self, uintptr_t base_address,
     const unsigned char *symtab_data, size_t symtab_size,
     const unsigned char *strtab, size_t strtab_size,
-    ten_backtrace_on_error_func_t on_error, void *data,
-    struct elf_syminfo_data *sdata, struct elf_ppc64_opd_data *opd);
+    ten_backtrace_on_error_func_t on_error, void *data, elf_syminfo_data *sdata,
+    elf_ppc64_opd_data *opd);
 
 TEN_UTILS_PRIVATE_API void elf_syminfo(
     ten_backtrace_t *self_, uintptr_t addr,
-    ten_backtrace_on_dump_syminfo_func_t dump_syminfo_func,
+    ten_backtrace_on_dump_syminfo_func_t on_dump_syminfo,
     ten_backtrace_on_error_func_t on_error, void *data);

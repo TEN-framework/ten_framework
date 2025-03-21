@@ -63,7 +63,7 @@ typedef struct function_addrs {
   uintptr_t high;
 
   // Pointer to the function this address range belongs to.
-  struct function *function;
+  function *func;
 } function_addrs;
 
 /**
@@ -92,5 +92,5 @@ TEN_UTILS_PRIVATE_API void read_function_info(
 
 TEN_UTILS_PRIVATE_API int report_inlined_functions(
     ten_backtrace_t *self, uintptr_t pc, struct function *function,
-    ten_backtrace_on_dump_file_line_func_t dump_file_line_func, void *data,
+    ten_backtrace_on_dump_file_line_func_t on_dump_file_line, void *data,
     const char **filename, int *lineno);

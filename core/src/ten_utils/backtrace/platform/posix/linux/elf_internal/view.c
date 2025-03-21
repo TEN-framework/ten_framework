@@ -21,7 +21,7 @@
 int elf_get_view(ten_backtrace_t *self, int descriptor,
                  const unsigned char *memory, size_t memory_size, off_t offset,
                  uint64_t size, ten_backtrace_on_error_func_t on_error,
-                 void *data, struct elf_view *view) {
+                 void *data, elf_view *view) {
   assert(self && "Invalid argument.");
 
   if (memory == NULL) {
@@ -43,7 +43,7 @@ int elf_get_view(ten_backtrace_t *self, int descriptor,
 /**
  * @brief Release a view read by elf_get_view.
  */
-void elf_release_view(ten_backtrace_t *self, struct elf_view *view,
+void elf_release_view(TEN_UNUSED ten_backtrace_t *self, elf_view *view,
                       TEN_UNUSED ten_backtrace_on_error_func_t on_error,
                       TEN_UNUSED void *data) {
   assert(self && "Invalid argument.");

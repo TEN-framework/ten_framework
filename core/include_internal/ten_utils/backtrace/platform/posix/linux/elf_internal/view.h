@@ -19,18 +19,18 @@
 /**
  * @brief A view that works for either a file or memory.
  */
-struct elf_view {
+typedef struct elf_view {
   ten_mmap_t view;
   int release;  // If non-zero, must call ten_mmap_deinit.
-};
+} elf_view;
 
 TEN_UTILS_PRIVATE_API int elf_get_view(ten_backtrace_t *self, int descriptor,
                                        const unsigned char *memory,
                                        size_t memory_size, off_t offset,
                                        uint64_t size,
                                        ten_backtrace_on_error_func_t on_error,
-                                       void *data, struct elf_view *view);
+                                       void *data, elf_view *view);
 
 TEN_UTILS_PRIVATE_API void elf_release_view(
-    ten_backtrace_t *self, struct elf_view *view,
+    ten_backtrace_t *self, elf_view *view,
     ten_backtrace_on_error_func_t on_error, void *data);

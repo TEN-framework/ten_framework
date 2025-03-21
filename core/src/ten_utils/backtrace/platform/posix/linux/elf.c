@@ -57,13 +57,12 @@
 #define dl_phdr_info x_dl_phdr_info
 #define dl_iterate_phdr x_dl_iterate_phdr
 
-struct dl_phdr_info {
+typedef struct dl_phdr_info {
   uintptr_t dlpi_addr;
   const char *dlpi_name;
-};
+} dl_phdr_info;
 
-static int dl_iterate_phdr(int (*callback)(struct dl_phdr_info *, size_t,
-                                           void *),
+static int dl_iterate_phdr(int (*callback)(dl_phdr_info *, size_t, void *),
                            void *data) {
   return 0;
 }
@@ -117,7 +116,7 @@ static int elf_nodebug(ten_backtrace_t *self, uintptr_t pc,
   // function names.
   if (self_posix->on_get_syminfo != NULL &&
       self_posix->on_get_syminfo != elf_nosyms) {
-    struct backtrace_call_full bt_data;
+    backtrace_call_full bt_data;
 
     // Initialize the adapter structure to convert symbol info to file/line
     // format.
@@ -152,47 +151,47 @@ static int elf_add(ten_backtrace_t *self, const char *filename, int descriptor,
                    const unsigned char *memory, size_t memory_size,
                    uintptr_t base_address,
                    ten_backtrace_on_error_func_t on_error, void *data,
-                   ten_backtrace_on_get_file_line_func_t *get_file_line_func,
+                   ten_backtrace_on_get_file_line_func_t *on_get_file_line,
                    int *found_sym, int *found_dwarf,
                    dwarf_data **fileline_entry, int exe, int debuginfo,
                    const char *with_buildid_data, uint32_t with_buildid_size) {
-  struct elf_view ehdr_view;
+  elf_view ehdr_view;
   b_elf_ehdr ehdr;
   off_t shoff = 0;
   unsigned int shnum = 0;
   unsigned int shstrndx = 0;
-  struct elf_view shdrs_view;
+  elf_view shdrs_view;
   int shdrs_view_valid = 0;
   const b_elf_shdr *shdrs = NULL;
   const b_elf_shdr *shstrhdr = NULL;
   size_t shstr_size = 0;
   off_t shstr_off = 0;
-  struct elf_view names_view;
+  elf_view names_view;
   int names_view_valid = 0;
   const char *names = NULL;
   unsigned int symtab_shndx = 0;
   unsigned int dynsym_shndx = 0;
   unsigned int i = 0;
-  struct debug_section_info sections[DEBUG_MAX];
-  struct debug_section_info zsections[DEBUG_MAX];
-  struct elf_view symtab_view;
+  debug_section_info sections[DEBUG_MAX];
+  debug_section_info zsections[DEBUG_MAX];
+  elf_view symtab_view;
   int symtab_view_valid = 0;
-  struct elf_view strtab_view;
+  elf_view strtab_view;
   int strtab_view_valid = 0;
-  struct elf_view buildid_view;
+  elf_view buildid_view;
   int buildid_view_valid = 0;
   const char *buildid_data = NULL;
   uint32_t buildid_size = 0;
-  struct elf_view debuglink_view;
+  elf_view debuglink_view;
   int debuglink_view_valid = 0;
   const char *debuglink_name = NULL;
   uint32_t debuglink_crc = 0;
-  struct elf_view debugaltlink_view;
+  elf_view debugaltlink_view;
   int debugaltlink_view_valid = 0;
   const char *debugaltlink_name = NULL;
   const char *debugaltlink_buildid_data = NULL;
   uint32_t debugaltlink_buildid_size = 0;
-  struct elf_view gnu_debugdata_view;
+  elf_view gnu_debugdata_view;
   int gnu_debugdata_view_valid = 0;
   size_t gnu_debugdata_size = 0;
   unsigned char *gnu_debugdata_uncompressed = NULL;
@@ -200,14 +199,14 @@ static int elf_add(ten_backtrace_t *self, const char *filename, int descriptor,
   off_t min_offset = 0;
   off_t max_offset = 0;
   off_t debug_size = 0;
-  struct elf_view debug_view;
+  elf_view debug_view;
   int debug_view_valid = 0;
   unsigned int using_debug_view = 0;
   uint16_t *zdebug_table = NULL;
-  struct elf_view split_debug_view[DEBUG_MAX];
+  elf_view split_debug_view[DEBUG_MAX];
   unsigned char split_debug_view_valid[DEBUG_MAX];
-  struct elf_ppc64_opd_data opd_data;
-  struct elf_ppc64_opd_data *opd = NULL;
+  elf_ppc64_opd_data opd_data;
+  elf_ppc64_opd_data *opd = NULL;
   dwarf_sections dwarf_sections;
 
   if (!debuginfo) {
@@ -283,7 +282,7 @@ static int elf_add(ten_backtrace_t *self, const char *filename, int descriptor,
   shstrndx = ehdr.e_shstrndx;
 
   if ((shnum == 0 || shstrndx == SHN_XINDEX) && shoff != 0) {
-    struct elf_view shdr_view;
+    elf_view shdr_view;
     const b_elf_shdr *shdr = NULL;
 
     if (!elf_get_view(self, descriptor, memory, memory_size, shoff, sizeof shdr,
@@ -505,7 +504,7 @@ static int elf_add(ten_backtrace_t *self, const char *filename, int descriptor,
     const b_elf_shdr *symtab_shdr = NULL;
     unsigned int strtab_shndx = 0;
     const b_elf_shdr *strtab_shdr = NULL;
-    struct elf_syminfo_data *sdata = NULL;
+    elf_syminfo_data *sdata = NULL;
 
     symtab_shdr = &shdrs[symtab_shndx - 1];
     strtab_shndx = symtab_shdr->sh_link;
@@ -529,7 +528,7 @@ static int elf_add(ten_backtrace_t *self, const char *filename, int descriptor,
     }
     strtab_view_valid = 1;
 
-    sdata = (struct elf_syminfo_data *)malloc(sizeof *sdata);
+    sdata = (elf_syminfo_data *)malloc(sizeof *sdata);
     if (sdata == NULL) {
       goto fail;
     }
@@ -574,8 +573,8 @@ static int elf_add(ten_backtrace_t *self, const char *filename, int descriptor,
       }
 
       ret = elf_add(self, "", d, NULL, 0, base_address, on_error, data,
-                    get_file_line_func, found_sym, found_dwarf, NULL, 0, 1,
-                    NULL, 0);
+                    on_get_file_line, found_sym, found_dwarf, NULL, 0, 1, NULL,
+                    0);
       if (ret < 0) {
         ten_backtrace_close_file(d);
       } else if (descriptor >= 0) {
@@ -611,8 +610,8 @@ static int elf_add(ten_backtrace_t *self, const char *filename, int descriptor,
       }
 
       ret = elf_add(self, "", d, NULL, 0, base_address, on_error, data,
-                    get_file_line_func, found_sym, found_dwarf, NULL, 0, 1,
-                    NULL, 0);
+                    on_get_file_line, found_sym, found_dwarf, NULL, 0, 1, NULL,
+                    0);
       if (ret < 0) {
         ten_backtrace_close_file(d);
       } else if (descriptor >= 0) {
@@ -635,7 +634,7 @@ static int elf_add(ten_backtrace_t *self, const char *filename, int descriptor,
     if (d >= 0) {
       int ret =
           elf_add(self, filename, d, NULL, 0, base_address, on_error, data,
-                  get_file_line_func, found_sym, found_dwarf, &fileline_altlink,
+                  on_get_file_line, found_sym, found_dwarf, &fileline_altlink,
                   0, 1, debugaltlink_buildid_data, debugaltlink_buildid_size);
       elf_release_view(self, &debugaltlink_view, on_error, data);
       debugaltlink_view_valid = 0;
@@ -663,8 +662,8 @@ static int elf_add(ten_backtrace_t *self, const char *filename, int descriptor,
     if (ret) {
       ret = elf_add(self, filename, -1, gnu_debugdata_uncompressed,
                     gnu_debugdata_uncompressed_size, base_address, on_error,
-                    data, get_file_line_func, found_sym, found_dwarf, NULL, 0,
-                    0, NULL, 0);
+                    data, on_get_file_line, found_sym, found_dwarf, NULL, 0, 0,
+                    NULL, 0);
       if (ret >= 0 && descriptor >= 0) {
         ten_backtrace_close_file(descriptor);
       }
@@ -725,7 +724,7 @@ static int elf_add(ten_backtrace_t *self, const char *filename, int descriptor,
   } else {
     memset(&split_debug_view[0], 0, sizeof split_debug_view);
     for (i = 0; i < (int)DEBUG_MAX; ++i) {
-      struct debug_section_info *dsec = NULL;
+      debug_section_info *dsec = NULL;
 
       if (sections[i].size != 0) {
         dsec = &sections[i];
@@ -870,7 +869,7 @@ static int elf_add(ten_backtrace_t *self, const char *filename, int descriptor,
 
   if (!backtrace_dwarf_add(self, base_address, &dwarf_sections,
                            ehdr.e_ident[EI_DATA] == ELFDATA2MSB,
-                           fileline_altlink, on_error, data, get_file_line_func,
+                           fileline_altlink, on_error, data, on_get_file_line,
                            fileline_entry)) {
     goto fail;
   }
@@ -930,7 +929,7 @@ fail:
  * state of symbol and DWARF debug information discovery.
  */
 typedef struct phdr_data {
-  ten_backtrace_t *self;                  // Backtrace context.
+  ten_backtrace_t *backtrace;             // Backtrace context.
   ten_backtrace_on_error_func_t on_error; // Error callback function.
   void *data;                             // User data for callbacks.
 
@@ -1011,7 +1010,7 @@ static int
   }
 
   // Try to extract debug information from the file.
-  if (elf_add(pd->self, filename, descriptor, NULL, 0, info->dlpi_addr,
+  if (elf_add(pd->backtrace, filename, descriptor, NULL, 0, info->dlpi_addr,
               pd->on_error, pd->data, &on_get_file_line, pd->found_sym,
               &found_dwarf, NULL, 0, 0, NULL, 0)) {
     // If we found DWARF debug info, update the function pointer and flag.
@@ -1060,22 +1059,22 @@ int ten_backtrace_init_posix(
   int ret = 0;
   int found_sym = 0;
   int found_dwarf = 0;
-  ten_backtrace_on_get_file_line_func_t get_file_line_func_ = elf_nodebug;
+  ten_backtrace_on_get_file_line_func_t on_get_file_line_ = elf_nodebug;
 
   // First, try to process the main executable file.
   ret = elf_add(self, filename, descriptor, NULL, 0, 0, on_error, data,
-                &get_file_line_func_, &found_sym, &found_dwarf, NULL, 1, 0,
-                NULL, 0);
+                &on_get_file_line_, &found_sym, &found_dwarf, NULL, 1, 0, NULL,
+                0);
   if (!ret) {
     return 0;
   }
 
   // Set up data for iterating through loaded shared objects.
   phdr_data pd;
-  pd.self = self;
+  pd.backtrace = self;
   pd.on_error = on_error;
   pd.data = data;
-  pd.on_get_file_line = &get_file_line_func_;
+  pd.on_get_file_line = &on_get_file_line_;
   pd.found_sym = &found_sym;
   pd.found_dwarf = &found_dwarf;
   pd.exe_filename = filename;
@@ -1101,7 +1100,7 @@ int ten_backtrace_init_posix(
 
   // If no file/line function is set yet, use the one we determined.
   if (*on_get_file_line == NULL || *on_get_file_line == elf_nodebug) {
-    *on_get_file_line = get_file_line_func_;
+    *on_get_file_line = on_get_file_line_;
   }
 
   return 1;

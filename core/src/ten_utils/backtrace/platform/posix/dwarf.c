@@ -138,7 +138,7 @@ static int line_search(const void *vkey, const void *ventry) {
  */
 static int
 dwarf_lookup_pc(ten_backtrace_t *self, dwarf_data *ddata, uintptr_t pc,
-                ten_backtrace_on_dump_file_line_func_t dump_file_line_func,
+                ten_backtrace_on_dump_file_line_func_t on_dump_file_line,
                 ten_backtrace_on_error_func_t on_error, void *data,
                 int *found) {
   unit_addrs *entry = NULL;
@@ -213,7 +213,7 @@ dwarf_lookup_pc(ten_backtrace_t *self, dwarf_data *ddata, uintptr_t pc,
   // lines == -1.
   while (entry > ddata->addrs && pc >= (entry - 1)->low &&
          pc < (entry - 1)->high) {
-    lines = (line *)ten_atomic_ptr_load((void *)&u->lines);
+    lines = (line *)ten_atomic_ptr_load((ten_atomic_ptr_t *)&u->lines);
     if (lines != (line *)(uintptr_t)-1) {
       break;
     }
@@ -224,7 +224,7 @@ dwarf_lookup_pc(ten_backtrace_t *self, dwarf_data *ddata, uintptr_t pc,
     lines = u->lines;
   }
 
-  lines = ten_atomic_ptr_load((void *)&u->lines);
+  lines = ten_atomic_ptr_load((ten_atomic_ptr_t *)&u->lines);
 
   new_data = 0;
   if (lines == NULL) {
@@ -256,8 +256,9 @@ dwarf_lookup_pc(ten_backtrace_t *self, dwarf_data *ddata, uintptr_t pc,
 
     ten_atomic_store(&u->lines_count, count);
     ten_atomic_store(&u->function_addrs_count, function_addrs_count);
-    ten_atomic_ptr_store((void *)&u->function_addrs, function_addrs);
-    ten_atomic_ptr_store((void *)&u->lines, lines);
+    ten_atomic_ptr_store((ten_atomic_ptr_t *)&u->function_addrs,
+                         function_addrs);
+    ten_atomic_ptr_store((ten_atomic_ptr_t *)&u->lines, lines);
   }
 
   // Now all fields of U have been initialized.
@@ -267,11 +268,11 @@ dwarf_lookup_pc(ten_backtrace_t *self, dwarf_data *ddata, uintptr_t pc,
     // try again to see if there is a better compilation unit for
     // this PC.
     if (new_data) {
-      return dwarf_lookup_pc(self, ddata, pc, dump_file_line_func, on_error,
-                             data, found);
+      return dwarf_lookup_pc(self, ddata, pc, on_dump_file_line, on_error, data,
+                             found);
     }
 
-    return dump_file_line_func(self, pc, NULL, 0, NULL, data);
+    return on_dump_file_line(self, pc, NULL, 0, NULL, data);
   }
 
   // Search for PC within this unit.
@@ -311,20 +312,20 @@ dwarf_lookup_pc(ten_backtrace_t *self, dwarf_data *ddata, uintptr_t pc,
       entry->u->abs_filename = filename;
     }
 
-    return dump_file_line_func(self, pc, entry->u->abs_filename, 0, NULL, data);
+    return on_dump_file_line(self, pc, entry->u->abs_filename, 0, NULL, data);
   }
 
   // Search for function name within this unit.
 
   if (entry->u->function_addrs_count == 0) {
-    return dump_file_line_func(self, pc, ln->filename, ln->lineno, NULL, data);
+    return on_dump_file_line(self, pc, ln->filename, ln->lineno, NULL, data);
   }
 
   p = ((function_addrs *)bsearch(
       &pc, entry->u->function_addrs, entry->u->function_addrs_count,
       sizeof(function_addrs), function_addrs_search));
   if (p == NULL) {
-    return dump_file_line_func(self, pc, ln->filename, ln->lineno, NULL, data);
+    return on_dump_file_line(self, pc, ln->filename, ln->lineno, NULL, data);
   }
 
   // Here pc >= p->low && pc < (p + 1)->low.  The function_addrs are
@@ -353,22 +354,23 @@ dwarf_lookup_pc(ten_backtrace_t *self, dwarf_data *ddata, uintptr_t pc,
 
     --p;
   }
+
   if (fmatch == NULL) {
-    return dump_file_line_func(self, pc, ln->filename, ln->lineno, NULL, data);
+    return on_dump_file_line(self, pc, ln->filename, ln->lineno, NULL, data);
   }
 
-  function = fmatch->function;
+  function = fmatch->func;
 
   filename = ln->filename;
   lineno = ln->lineno;
 
-  ret = report_inlined_functions(self, pc, function, dump_file_line_func, data,
+  ret = report_inlined_functions(self, pc, function, on_dump_file_line, data,
                                  &filename, &lineno);
   if (ret != 0) {
     return ret;
   }
 
-  return dump_file_line_func(self, pc, filename, lineno, function->name, data);
+  return on_dump_file_line(self, pc, filename, lineno, function->name, data);
 }
 
 /**
@@ -376,12 +378,14 @@ dwarf_lookup_pc(ten_backtrace_t *self, dwarf_data *ddata, uintptr_t pc,
  * built earlier.
  */
 static int
-dwarf_fileline(ten_backtrace_t *self_, uintptr_t pc,
-               ten_backtrace_on_dump_file_line_func_t dump_file_line_func,
+dwarf_fileline(ten_backtrace_t *self, uintptr_t pc,
+               ten_backtrace_on_dump_file_line_func_t on_dump_file_line,
                ten_backtrace_on_error_func_t on_error, void *data) {
-  ten_backtrace_posix_t *self = (ten_backtrace_posix_t *)self_;
+  assert(self);
 
-  dwarf_data **pp = (dwarf_data **)&self->on_get_file_line_data;
+  ten_backtrace_posix_t *self_posix = (ten_backtrace_posix_t *)self;
+
+  dwarf_data **pp = (dwarf_data **)&self_posix->on_get_file_line_data;
   while (1) {
     dwarf_data *ddata = ten_atomic_ptr_load((ten_atomic_ptr_t *)pp);
     if (ddata == NULL) {
@@ -389,7 +393,7 @@ dwarf_fileline(ten_backtrace_t *self_, uintptr_t pc,
     }
 
     int found = 0;
-    int ret = dwarf_lookup_pc(self_, ddata, pc, dump_file_line_func, on_error,
+    int ret = dwarf_lookup_pc(self, ddata, pc, on_dump_file_line, on_error,
                               data, &found);
     if (ret != 0 || found) {
       return ret;
@@ -400,7 +404,7 @@ dwarf_fileline(ten_backtrace_t *self_, uintptr_t pc,
 
   // TODO(Wei): See if any libraries have been dlopen'ed.
 
-  return dump_file_line_func(self_, pc, NULL, 0, NULL, data);
+  return on_dump_file_line(self, pc, NULL, 0, NULL, data);
 }
 
 // Initialize our data structures from the DWARF debug info for a
@@ -468,7 +472,7 @@ int backtrace_dwarf_add(ten_backtrace_t *self_, uintptr_t base_address,
                         const dwarf_sections *dwarf_sections, int is_bigendian,
                         dwarf_data *fileline_altlink,
                         ten_backtrace_on_error_func_t on_error, void *data,
-                        ten_backtrace_on_get_file_line_func_t *fileline_fn,
+                        ten_backtrace_on_get_file_line_func_t *on_get_file_line,
                         dwarf_data **fileline_entry) {
   ten_backtrace_posix_t *self = (ten_backtrace_posix_t *)self_;
 
@@ -501,7 +505,7 @@ int backtrace_dwarf_add(ten_backtrace_t *self_, uintptr_t base_address,
     }
   }
 
-  *fileline_fn = dwarf_fileline;
+  *on_get_file_line = dwarf_fileline;
 
   return 1;
 }

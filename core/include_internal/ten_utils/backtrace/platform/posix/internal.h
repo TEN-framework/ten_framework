@@ -92,7 +92,7 @@ TEN_UTILS_PRIVATE_API int backtrace_dwarf_add(
     ten_backtrace_t *self, uintptr_t base_address,
     const dwarf_sections *dwarf_sections, int is_bigendian,
     dwarf_data *fileline_altlink, ten_backtrace_on_error_func_t on_error,
-    void *data, ten_backtrace_on_get_file_line_func_t *fileline_fn,
+    void *data, ten_backtrace_on_get_file_line_func_t *on_get_file_line,
     dwarf_data **fileline_entry);
 
 /**

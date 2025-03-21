@@ -4,6 +4,7 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
+#include "ten_utils/macro/mark.h"
 #include "ten_utils/ten_config.h"
 
 #include <stdlib.h>
@@ -20,10 +21,10 @@
 
 /* Add a new compilation unit address range to a vector.  This is
    called via add_ranges.  Returns 1 on success, 0 on failure.  */
-static int add_unit_addr(ten_backtrace_t *self, void *rdata, uintptr_t lowpc,
-                         uintptr_t highpc,
-                         ten_backtrace_on_error_func_t on_error, void *data,
-                         void *pvec) {
+static int add_unit_addr(TEN_UNUSED ten_backtrace_t *self, void *rdata,
+                         uintptr_t lowpc, uintptr_t highpc,
+                         TEN_UNUSED ten_backtrace_on_error_func_t on_error,
+                         TEN_UNUSED void *data, void *pvec) {
   unit *u = (unit *)rdata;
   unit_addrs_vector *vec = (unit_addrs_vector *)pvec;
   unit_addrs *p = NULL;
@@ -217,15 +218,14 @@ int build_address_map(ten_backtrace_t *self, uintptr_t base_address,
                       const dwarf_sections *dwarf_sections, int is_bigendian,
                       dwarf_data *altlink,
                       ten_backtrace_on_error_func_t on_error, void *data,
-                      struct unit_addrs_vector *addrs,
-                      struct unit_vector *unit_vec) {
+                      unit_addrs_vector *addrs, unit_vector *unit_vec) {
   dwarf_buf info;
   ten_vector_t units;
   size_t units_count = 0;
   size_t i = 0;
   unit **pu = NULL;
   size_t unit_offset = 0;
-  struct unit_addrs *pa = NULL;
+  unit_addrs *pa = NULL;
 
   memset(&addrs->vec, 0, sizeof addrs->vec);
   memset(&unit_vec->vec, 0, sizeof unit_vec->vec);

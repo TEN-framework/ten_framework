@@ -55,7 +55,6 @@ class muxer_extension_t : public extension_t {
   explicit muxer_extension_t(const char *name) : extension_t(name) {}
 
   void on_start(TEN_UNUSED ten_env_t &ten_env) override {
-    TEN_ASSERT(0, "=-=-=");
     ten_env.on_start_done();
   }
 
