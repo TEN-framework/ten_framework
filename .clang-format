@@ -75,9 +75,7 @@ AllowAllConstructorInitializersOnNextLine: true
 FixNamespaceComments: true
 ForEachMacros:
   - ten_list_foreach
-IfMacros:
-  - KJ_IF_MAYBE
-IncludeBlocks: Regroup
+IncludeBlocks: Merge
 IncludeCategories:
   - Regex: '"ten_runtime/ten_config.h"'
     Priority: -1
@@ -156,7 +154,6 @@ RemoveBracesLLVM: false
 SeparateDefinitionBlocks: Leave
 ShortNamespaceLines: 1
 SortIncludes: CaseSensitive
-SortJavaStaticImport: Before
 SortUsingDeclarations: true
 SpaceAfterCStyleCast: false
 SpaceAfterLogicalNot: false

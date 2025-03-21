@@ -4,15 +4,16 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-#include "include_internal/ten_utils/backtrace/backtrace.h"
-#include "include_internal/ten_utils/backtrace/platform/posix/dwarf.h"
-#include "include_internal/ten_utils/backtrace/platform/posix/dwarf_internal/buf.h"
-#include "include_internal/ten_utils/backtrace/sort.h"
 #include "ten_utils/ten_config.h"
+
 #include <stdlib.h>
 #include <string.h>
 
+#include "include_internal/ten_utils/backtrace/backtrace.h"
+#include "include_internal/ten_utils/backtrace/platform/posix/dwarf.h"
 #include "include_internal/ten_utils/backtrace/platform/posix/dwarf_internal/abbreviation.h"
+#include "include_internal/ten_utils/backtrace/platform/posix/dwarf_internal/buf.h"
+#include "include_internal/ten_utils/backtrace/sort.h"
 
 // Sort the abbrevs by the abbrev code.  This function is passed to
 // both qsort and bsearch.
