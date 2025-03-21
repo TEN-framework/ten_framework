@@ -1081,6 +1081,21 @@ int ten_backtrace_init_posix(
   pd.exe_descriptor = ret < 0 ? descriptor : -1;
 
   // Process all loaded shared objects.
+  //
+  // Note: If an ELF binary is dlopened after `dl_iterate_phdr` is called, it
+  // will not be processed. So if we try to dump a backtrace from within such
+  // an ELF binary, some symbols might not be dumped correctly. However, since
+  // `ten_backtrace_init_posix` is only called at the time of the first
+  // backtrace dump (i.e., it’s lazily initialized and not invoked right when
+  // the executable starts), as long as all the ELF binaries that need to be
+  // dlopened (e.g., TEN extensions) have already been loaded, then
+  // `dl_iterate_phdr` will be able to process all the relevant ELF binaries.
+  //
+  // Since it's possible that multiple threads may perform a backtrace dump at
+  // the same time, there could be multiple threads concurrently in the
+  // backtrace initialization phase. Therefore, all fields that are passed
+  // around and stored during this initialization phase for later use are
+  // essentially handled using atomics to ensure thread safety.
   dl_iterate_phdr(phdr_callback, (void *)&pd);
 
   // Set up symbol lookup function based on whether we found symbol information.
