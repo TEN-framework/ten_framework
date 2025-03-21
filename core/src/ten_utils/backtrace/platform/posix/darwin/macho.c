@@ -7,7 +7,6 @@
 // This file is modified from
 // https://github.com/ianlancetaylor/libbacktrace [BSD license]
 //
-#include "include_internal/ten_utils/backtrace/platform/posix/dwarf_internal/section.h"
 #include "ten_utils/ten_config.h"
 
 #include <assert.h>
@@ -19,6 +18,7 @@
 #include <sys/types.h>
 
 #include "include_internal/ten_utils/backtrace/backtrace.h"
+#include "include_internal/ten_utils/backtrace/platform/posix/dwarf_internal/section.h"
 #include "include_internal/ten_utils/backtrace/platform/posix/file.h"
 #include "include_internal/ten_utils/backtrace/platform/posix/internal.h"
 #include "include_internal/ten_utils/backtrace/platform/posix/mmap.h"
@@ -1053,8 +1053,8 @@ fail:
   return 0;
 }
 
-// Initialize the backtrace data we need from a Mach-O executable
-// using the dyld support functions.  This closes descriptor.
+// Initialize the backtrace data we need from a Mach-O executable using the dyld
+// support functions.
 int ten_backtrace_init_posix(
     ten_backtrace_t *self, const char *filename, int descriptor,
     ten_backtrace_error_func_t error_cb, void *data,

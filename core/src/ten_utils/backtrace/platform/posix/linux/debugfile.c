@@ -79,7 +79,7 @@ int elf_open_debug_file_by_build_id(ten_backtrace_t *self,
   return ret;
 }
 
-/// Return whether @a filename is a symlink.
+// Return whether @a filename is a symlink.
 static int elf_is_symlink(const char *filename) {
   struct stat st;
 
@@ -173,9 +173,9 @@ static int elf_find_debug_file_by_debug_link(ten_backtrace_t *self,
 
   const char *slash = NULL;
 
-  /// Resolve symlinks in @a filename. Since @a filename is fairly likely to be
-  /// /proc/self/exe, symlinks are common. We don't try to resolve the whole
-  /// path name, just the base name.
+  // Resolve symlinks in @a filename. Since @a filename is fairly likely to be
+  // /proc/self/exe, symlinks are common. We don't try to resolve the whole
+  // path name, just the base name.
 
   int ret = -1;
   char *alc = NULL;
@@ -240,8 +240,8 @@ static int elf_find_debug_file_by_debug_link(ten_backtrace_t *self,
   const char *prefix = NULL;
   size_t prefix_len = 0;
 
-  /// Alternative 1: Look for @a debug_link_name in the same directory as @a
-  /// filename
+  // Alternative 1: Look for @a debug_link_name in the same directory as @a
+  // filename
 
   slash = strrchr(filename, '/');
   if (slash == NULL) {
@@ -260,8 +260,8 @@ static int elf_find_debug_file_by_debug_link(ten_backtrace_t *self,
     goto done;
   }
 
-  /// Alternative 2: Look for @a debug_link_name in a .debug subdirectory of @a
-  /// filename
+  // Alternative 2: Look for @a debug_link_name in a .debug subdirectory of @a
+  // filename
 
   debug_file_fd = elf_try_debug_file(self, prefix, prefix_len, ".debug/",
                                      strlen(".debug/"), debug_link_name);
@@ -270,7 +270,7 @@ static int elf_find_debug_file_by_debug_link(ten_backtrace_t *self,
     goto done;
   }
 
-  /// Alternative 3: Look for @a debug_link_name in /usr/lib/debug
+  // Alternative 3: Look for @a debug_link_name in /usr/lib/debug
 
   debug_file_fd =
       elf_try_debug_file(self, "/usr/lib/debug/", strlen("/usr/lib/debug/"),
@@ -307,8 +307,8 @@ int elf_open_debug_file_by_debug_link(
   if (debug_link_crc != 0) {
     uint32_t got_crc = elf_crc32_file(self, debug_file_fd, error_cb, data);
     if (got_crc != debug_link_crc) {
-      /// CRC checksum error, the found debug file is not the correct one for @a
-      /// filename.
+      // CRC checksum error, the found debug file is not the correct one for @a
+      // filename.
       ten_backtrace_close_file(debug_file_fd);
       return -1;
     }

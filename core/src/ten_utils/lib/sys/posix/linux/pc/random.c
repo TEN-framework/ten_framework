@@ -11,6 +11,7 @@
 #include <unistd.h>
 
 #include "ten_utils/lib/thread_once.h"
+#include "ten_utils/macro/check.h"
 
 static int g_random_fd = -1;
 static ten_thread_once_t g_init = TEN_THREAD_ONCE_INIT;
@@ -24,6 +25,7 @@ int ten_random(void *buf, size_t size) {
     return -1;
   }
 
+  ten_backtrace_dump_global(0); // =-=-=
   ten_thread_once(&g_init, ten_init_random);
 
   if (g_random_fd < 0) {
