@@ -21,7 +21,7 @@ import {
 } from "@/components/FileManager/utils";
 import { ThreeColumnFileManager } from "@/components/FileManager/AppFolder";
 import { useRetrieveDirList } from "@/api/services/fileSystem";
-import { postBaseDir } from "@/api/services/apps";
+import { postBaseDir, useApps } from "@/api/services/apps";
 import { SpinnerLoading } from "@/components/Status/Loading";
 import {
   APP_FOLDER_POPUP_ID,
@@ -46,11 +46,14 @@ export const AppFolderPopup = () => {
   const { folderPath, setFolderPath, fmItems, setFmItems } = useAppStore();
 
   const { data, error, isLoading } = useRetrieveDirList(folderPath);
+  const { mutate: mutateApps } = useApps();
 
   const handleSetBaseDir = async (folderPath: string) => {
     try {
       await postBaseDir(folderPath.trim());
       setNodesAndEdges([], []); // Clear the contents of the FlowCanvas.
+      mutateApps();
+      toast.success(t("header.menuApp.loadAppSuccess"));
     } catch (error: unknown) {
       if (error instanceof Error) {
         toast.error(t("popup.default.errorOpenAppFolder"), {
