@@ -144,6 +144,12 @@ static void ten_global_setup_sig_handler(void) {
     // NOLINTNEXTLINE(concurrency-mt-unsafe)
     exit(EXIT_FAILURE);
   }
+
+  if (0 != sigaction(SIGHUP, &act, NULL)) {
+    TEN_LOGF("Failed to install SIGHUP handler.");
+    // NOLINTNEXTLINE(concurrency-mt-unsafe)
+    exit(EXIT_FAILURE);
+  }
 }
 
 void ten_global_setup_signal_stuff(void) {
