@@ -7,14 +7,14 @@
 // This file is modified from
 // https://github.com/ianlancetaylor/libbacktrace [BSD license]
 //
-#include "include_internal/ten_utils/backtrace/platform/posix/linux/zlib.h"
+#include "include_internal/ten_utils/backtrace/platform/posix/linux/elf_internal/zlib.h"
 
 #include <stdio.h>
 #include <string.h>
 
 #include "include_internal/ten_utils/backtrace/platform/posix/internal.h"
 #include "include_internal/ten_utils/backtrace/platform/posix/linux/elf.h"
-#include "include_internal/ten_utils/backtrace/platform/posix/linux/uncompress.h"
+#include "include_internal/ten_utils/backtrace/platform/posix/linux/elf_internal/zutils.h"
 
 #if defined(BACKTRACE_GENERATE_FIXED_HUFFMAN_TABLE)
 

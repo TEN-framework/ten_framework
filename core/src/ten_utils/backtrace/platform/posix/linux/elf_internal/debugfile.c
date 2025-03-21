@@ -7,7 +7,7 @@
 // This file is modified from
 // https://github.com/ianlancetaylor/libbacktrace [BSD license]
 //
-#include "include_internal/ten_utils/backtrace/platform/posix/linux/debugfile.h"
+#include "include_internal/ten_utils/backtrace/platform/posix/linux/elf_internal/debugfile.h"
 
 #include <assert.h>
 #include <stdlib.h>
@@ -17,7 +17,7 @@
 #include <unistd.h>
 
 #include "include_internal/ten_utils/backtrace/platform/posix/file.h"
-#include "include_internal/ten_utils/backtrace/platform/posix/linux/crc32.h"
+#include "include_internal/ten_utils/backtrace/platform/posix/linux/elf_internal/crc32.h"
 
 #define SYSTEM_BUILD_ID_DIR "/usr/lib/debug/.build-id/"
 

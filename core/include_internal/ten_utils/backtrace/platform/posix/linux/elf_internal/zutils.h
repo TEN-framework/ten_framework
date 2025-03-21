@@ -12,3 +12,7 @@
 #include "ten_utils/ten_config.h"
 
 TEN_UTILS_PRIVATE_API void elf_uncompress_failed(void);
+
+TEN_UTILS_PRIVATE_API int elf_fetch_bits(const unsigned char **ppin,
+                                         const unsigned char *pinend,
+                                         uint64_t *pval, unsigned int *pbits);

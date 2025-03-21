@@ -25,7 +25,6 @@ int ten_random(void *buf, size_t size) {
     return -1;
   }
 
-  ten_backtrace_dump_global(0); // =-=-=
   ten_thread_once(&g_init, ten_init_random);
 
   if (g_random_fd < 0) {
