@@ -950,56 +950,6 @@ static int
   return 0;
 }
 
-// Compare an ADDR against an elf_symbol for bsearch.  We allocate one
-// extra entry in the array so that this can look safely at the next
-// entry.
-static int elf_symbol_search(const void *vkey, const void *ventry) {
-  const uintptr_t *key = (const uintptr_t *)vkey;
-  const struct elf_symbol *entry = (const struct elf_symbol *)ventry;
-  uintptr_t addr = *key;
-  if (addr < entry->address) {
-    return -1;
-  } else if (addr >= entry->address + entry->size) {
-    return 1;
-  } else {
-    return 0;
-  }
-}
-
-// Return the symbol name and value for an ADDR.
-static void elf_syminfo(ten_backtrace_t *self_, uintptr_t addr,
-                        ten_backtrace_dump_syminfo_func_t callback,
-                        ten_backtrace_error_func_t error_cb, void *data) {
-  ten_backtrace_posix_t *self = (ten_backtrace_posix_t *)self_;
-  assert(self && "Invalid argument.");
-
-  struct elf_symbol *sym = NULL;
-
-  struct elf_syminfo_data **pp =
-      (struct elf_syminfo_data **)(void *)&self->get_syminfo_user_data;
-  while (1) {
-    struct elf_syminfo_data *edata = ten_atomic_ptr_load((void *)pp);
-    if (edata == NULL) {
-      break;
-    }
-
-    sym = ((struct elf_symbol *)bsearch(&addr, edata->symbols, edata->count,
-                                        sizeof(struct elf_symbol),
-                                        elf_symbol_search));
-    if (sym != NULL) {
-      break;
-    }
-
-    pp = &edata->next;
-  }
-
-  if (sym == NULL) {
-    callback(self_, addr, NULL, 0, 0, data);
-  } else {
-    callback(self_, addr, sym->name, sym->address, sym->size, data);
-  }
-}
-
 // Initialize the backtrace data we need from an ELF executable. At the
 // ELF level, all we need to do is find the debug info sections.
 int ten_backtrace_init_posix(

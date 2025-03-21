@@ -6,6 +6,5 @@
 #
 import("//build/ten_utils/utils.gni")
 
-ten_utils_glob("linux") {
-  deps = [ "elf_internal" ]
+ten_utils_glob("elf_internal") {
 }

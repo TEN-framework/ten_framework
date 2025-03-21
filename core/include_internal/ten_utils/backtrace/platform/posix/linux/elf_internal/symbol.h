@@ -55,3 +55,8 @@ TEN_UTILS_PRIVATE_API int elf_initialize_syminfo(
     const unsigned char *strtab, size_t strtab_size,
     ten_backtrace_error_func_t error_cb, void *data,
     struct elf_syminfo_data *sdata, struct elf_ppc64_opd_data *opd);
+
+TEN_UTILS_PRIVATE_API void elf_syminfo(
+    ten_backtrace_t *self_, uintptr_t addr,
+    ten_backtrace_dump_syminfo_func_t callback,
+    ten_backtrace_error_func_t error_cb, void *data);
