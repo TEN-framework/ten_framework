@@ -68,7 +68,7 @@ typedef struct elf_ppc64_opd_data {
   elf_view view;
 } elf_ppc64_opd_data;
 
-TEN_UTILS_PRIVATE_API void elf_add_syminfo_data(ten_backtrace_t *self_,
+TEN_UTILS_PRIVATE_API void elf_add_syminfo_data(ten_backtrace_t *self,
                                                 elf_syminfo_data *edata);
 
 TEN_UTILS_PRIVATE_API int elf_initialize_syminfo(
@@ -79,6 +79,6 @@ TEN_UTILS_PRIVATE_API int elf_initialize_syminfo(
     elf_ppc64_opd_data *opd);
 
 TEN_UTILS_PRIVATE_API void elf_syminfo(
-    ten_backtrace_t *self_, uintptr_t addr,
+    ten_backtrace_t *self, uintptr_t addr,
     ten_backtrace_on_dump_syminfo_func_t on_dump_syminfo,
     ten_backtrace_on_error_func_t on_error, void *data);

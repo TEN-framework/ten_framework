@@ -468,16 +468,17 @@ static dwarf_data *build_dwarf_data(ten_backtrace_t *self,
  *
  * @return 1 on success, 0 on failure.
  */
-int backtrace_dwarf_add(ten_backtrace_t *self_, uintptr_t base_address,
+int backtrace_dwarf_add(ten_backtrace_t *self, uintptr_t base_address,
                         const dwarf_sections *dwarf_sections, int is_bigendian,
                         dwarf_data *fileline_altlink,
                         ten_backtrace_on_error_func_t on_error, void *data,
                         ten_backtrace_on_get_file_line_func_t *on_get_file_line,
                         dwarf_data **fileline_entry) {
-  ten_backtrace_posix_t *self = (ten_backtrace_posix_t *)self_;
+  ten_backtrace_posix_t *self_posix = (ten_backtrace_posix_t *)self;
+  assert(self_posix && "Invalid argument.");
 
   dwarf_data *fdata =
-      build_dwarf_data(self_, base_address, dwarf_sections, is_bigendian,
+      build_dwarf_data(self, base_address, dwarf_sections, is_bigendian,
                        fileline_altlink, on_error, data);
   if (fdata == NULL) {
     return 0;
@@ -488,7 +489,7 @@ int backtrace_dwarf_add(ten_backtrace_t *self_, uintptr_t base_address,
   }
 
   while (1) {
-    dwarf_data **pp = (dwarf_data **)&self->on_get_file_line_data;
+    dwarf_data **pp = (dwarf_data **)&self_posix->on_get_file_line_data;
 
     // Find the last element in the 'dwarf_data' list.
     while (1) {

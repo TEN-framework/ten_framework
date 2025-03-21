@@ -54,7 +54,6 @@ static int elf_lzma_varint(const unsigned char *compressed,
 
 // Normalize the LZMA range decoder, pulling in an extra input byte if
 // needed.
-
 static void elf_lzma_range_normalize(const unsigned char *compressed,
                                      size_t compressed_size, size_t *poffset,
                                      uint32_t *prange, uint32_t *pcode) {
@@ -73,7 +72,6 @@ static void elf_lzma_range_normalize(const unsigned char *compressed,
 
 // Read and return a single bit from the LZMA stream, reading and
 // updating *PROB.  Each bit comes from the range coder.
-
 static int elf_lzma_bit(const unsigned char *compressed, size_t compressed_size,
                         uint16_t *prob, size_t *poffset, uint32_t *prange,
                         uint32_t *pcode) {
@@ -95,7 +93,6 @@ static int elf_lzma_bit(const unsigned char *compressed, size_t compressed_size,
 
 // Read an integer of size BITS from the LZMA stream, most significant
 // bit first.  The bits are predicted using PROBS.
-
 static uint32_t elf_lzma_integer(const unsigned char *compressed,
                                  size_t compressed_size, uint16_t *probs,
                                  uint32_t bits, size_t *poffset,
@@ -114,7 +111,6 @@ static uint32_t elf_lzma_integer(const unsigned char *compressed,
 
 // Read an integer of size BITS from the LZMA stream, least
 // significant bit first.  The bits are predicted using PROBS.
-
 static uint32_t elf_lzma_reverse_integer(const unsigned char *compressed,
                                          size_t compressed_size,
                                          uint16_t *probs, uint32_t bits,

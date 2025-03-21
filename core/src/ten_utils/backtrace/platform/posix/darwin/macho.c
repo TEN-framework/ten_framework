@@ -429,14 +429,14 @@ static int macho_defined_symbol(uint8_t type) {
 }
 
 // Add symbol table information for a Mach-O file.
-static int macho_add_symtab(ten_backtrace_t *self_, int descriptor,
+static int macho_add_symtab(ten_backtrace_t *self, int descriptor,
                             uintptr_t base_address, int is_64, off_t symoff,
                             unsigned int nsyms, off_t stroff,
                             unsigned int strsize,
                             ten_backtrace_on_error_func_t on_error,
                             void *data) {
-  ten_backtrace_posix_t *self = (ten_backtrace_posix_t *)self_;
-  assert(self && "Invalid argument.");
+  ten_backtrace_posix_t *self_posix = (ten_backtrace_posix_t *)self;
+  assert(self_posix && "Invalid argument.");
 
   size_t symsize = 0;
   ten_mmap_t sym_view;
@@ -533,7 +533,7 @@ static int macho_add_symtab(ten_backtrace_t *self_, int descriptor,
     }
 
     if (strx >= strsize) {
-      on_error(self_, "symbol string index out of range", 0, data);
+      on_error(self, "symbol string index out of range", 0, data);
       goto fail;
     }
 
@@ -571,7 +571,8 @@ static int macho_add_symtab(ten_backtrace_t *self_, int descriptor,
   sdata->count = ndefs;
 
   while (1) {
-    macho_syminfo_data **pp = (macho_syminfo_data **)&self->on_get_syminfo_data;
+    macho_syminfo_data **pp =
+        (macho_syminfo_data **)&self_posix->on_get_syminfo_data;
 
     while (1) {
       macho_syminfo_data *p = ten_atomic_ptr_load((ten_atomic_ptr_t *)pp);
@@ -606,19 +607,20 @@ fail:
 }
 
 // Return the symbol name and value for an ADDR.
-static void macho_syminfo(ten_backtrace_t *self_, uintptr_t addr,
+static void macho_syminfo(ten_backtrace_t *self, uintptr_t addr,
                           ten_backtrace_on_dump_syminfo_func_t on_dump_syminfo,
                           TEN_UNUSED ten_backtrace_on_error_func_t on_error,
                           void *data) {
-  ten_backtrace_posix_t *self = (ten_backtrace_posix_t *)self_;
-  assert(self && "Invalid argument.");
+  ten_backtrace_posix_t *self_posix = (ten_backtrace_posix_t *)self;
+  assert(self_posix && "Invalid argument.");
 
   macho_syminfo_data *sdata = NULL;
   macho_symbol *sym = NULL;
 
   sym = NULL;
 
-  macho_syminfo_data **pp = (macho_syminfo_data **)&self->on_get_syminfo_data;
+  macho_syminfo_data **pp =
+      (macho_syminfo_data **)&self_posix->on_get_syminfo_data;
 
   while (1) {
     sdata = ten_atomic_ptr_load((ten_atomic_ptr_t *)pp);
@@ -637,9 +639,9 @@ static void macho_syminfo(ten_backtrace_t *self_, uintptr_t addr,
   }
 
   if (sym == NULL) {
-    on_dump_syminfo(self_, addr, NULL, 0, 0, data);
+    on_dump_syminfo(self, addr, NULL, 0, 0, data);
   } else {
-    on_dump_syminfo(self_, addr, sym->name, sym->address, 0, data);
+    on_dump_syminfo(self, addr, sym->name, sym->address, 0, data);
   }
 }
 
