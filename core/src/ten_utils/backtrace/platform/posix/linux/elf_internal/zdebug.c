@@ -7,12 +7,13 @@
 // This file is modified from
 // https://github.com/ianlancetaylor/libbacktrace [BSD license]
 //
-#include "include_internal/ten_utils/backtrace/backtrace.h"
-#include "include_internal/ten_utils/backtrace/platform/posix/linux/elf.h"
 #include "ten_utils/ten_config.h"
+
 #include <stdlib.h>
 #include <string.h>
 
+#include "include_internal/ten_utils/backtrace/backtrace.h"
+#include "include_internal/ten_utils/backtrace/platform/posix/linux/elf.h"
 #include "include_internal/ten_utils/backtrace/platform/posix/linux/elf_internal/zdebug.h"
 
 // Uncompress the old compressed debug format, the one emitted by
