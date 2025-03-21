@@ -6,6 +6,7 @@
 //
 #include <atomic>
 #include <csignal>
+#include <fstream>
 #include <nlohmann/json.hpp>
 #include <string>
 #include <thread>
@@ -19,6 +20,8 @@
 
 namespace {
 
+int g_log_count = 0;
+
 class test_extension : public ten::extension_t {
  public:
   explicit test_extension(const char *name) : ten::extension_t(name) {}
@@ -28,12 +31,11 @@ class test_extension : public ten::extension_t {
     auto *ten_env_proxy = ten::ten_env_proxy_t::create(ten_env);
 
     log_thread_ = std::thread([this, ten_env_proxy]() {
-      int i = 0;
-
       while (!stop_log_.load()) {
         std::this_thread::sleep_for(std::chrono::milliseconds(50));
 
-        auto log_msg = std::string("log message ") + std::to_string(i++);
+        auto log_msg =
+            std::string("log message ") + std::to_string(++g_log_count);
 
         ten_env_proxy->notify([log_msg](ten::ten_env_t &ten_env) {
           TEN_ENV_LOG_INFO(ten_env, log_msg.c_str());
@@ -109,6 +111,15 @@ TEN_CPP_REGISTER_ADDON_AS_EXTENSION(log_file_reload__test_extension,
 }  // namespace
 
 TEST(LogTest, LogFileReload) {  // NOLINT
+  // Remove the log file if it already exists.
+  std::string log_file_path = "aaa/log_file_reload.log";
+  std::ifstream check_file(log_file_path);
+  if (check_file.good()) {
+    check_file.close();
+    ASSERT_EQ(std::remove(log_file_path.c_str()), 0)
+        << "Failed to remove existing log file";
+  }
+
   auto *app_thread =
       ten_thread_create("app thread", test_app_thread_main, nullptr);
 
@@ -138,6 +149,8 @@ TEST(LogTest, LogFileReload) {  // NOLINT
   ten_test::check_status_code(cmd_result, TEN_STATUS_CODE_OK);
   ten_test::check_detail_with_string(cmd_result, "hello world, too");
 
+  // On Unix-like systems, we can use the SIGHUP signal to reload the log file.
+#ifndef _WIN32
   // Wait for 3 seconds.
   std::this_thread::sleep_for(std::chrono::seconds(3));
 
@@ -151,8 +164,43 @@ TEST(LogTest, LogFileReload) {  // NOLINT
   // Send a signal to reload the log file.
   rc = raise(SIGHUP);
   ASSERT_EQ(rc, 0);
+#endif
 
   delete client;
 
   ten_thread_join(app_thread, -1);
+
+  // Check the log file content.
+  std::ifstream log_file("aaa/log_file_reload.log");
+  EXPECT_TRUE(log_file.good());
+
+  // Make sure the log content contains "log message 1" to "log message
+  // {g_log_count}"
+  std::string line;
+  std::vector<bool> found(g_log_count, false);
+  int total_found = 0;
+
+  while (std::getline(log_file, line)) {
+    size_t pos = line.find("log message ");
+    if (pos != std::string::npos) {
+      int msg_num = 0;
+      try {
+        msg_num = std::stoi(line.substr(pos + 12));
+        if (msg_num > 0 && msg_num <= g_log_count) {
+          if (!found[msg_num - 1]) {
+            found[msg_num - 1] = true;
+            total_found++;
+          }
+        }
+      } catch (const std::exception &e) {
+        continue;
+      }
+    }
+  }
+
+  if (total_found != g_log_count) {
+    std::cout << "Expected " << g_log_count << " messages, but found "
+              << total_found << '\n';
+    FAIL();
+  }
 }
