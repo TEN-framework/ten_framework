@@ -35,6 +35,7 @@ group("python") {
         "get_set_prop_1_python",
         "get_set_prop_2_python",
         "go_app_async_extension_python",
+        "go_app_log_rotate_python",
         "large_json_python",
         "msg_clone_python",
         "multi_process_python",
