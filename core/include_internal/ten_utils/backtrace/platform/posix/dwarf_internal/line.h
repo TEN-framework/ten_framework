@@ -153,11 +153,10 @@ typedef struct line_vector {
 
 TEN_UTILS_PRIVATE_API int read_line_info(ten_backtrace_t *self,
                                          dwarf_data *ddata,
-                                         ten_backtrace_error_func_t error_cb,
+                                         ten_backtrace_on_error_func_t on_error,
                                          void *data, unit *u, line_header *hdr,
                                          line **lines, size_t *lines_count);
 
-TEN_UTILS_PRIVATE_API void free_line_header(ten_backtrace_t *self,
-                                            line_header *hdr,
-                                            ten_backtrace_error_func_t error_cb,
-                                            void *data);
+TEN_UTILS_PRIVATE_API void free_line_header(
+    ten_backtrace_t *self, line_header *hdr,
+    ten_backtrace_on_error_func_t on_error, void *data);

@@ -13,26 +13,48 @@
 
 #include "include_internal/ten_utils/backtrace/backtrace.h"
 #include "include_internal/ten_utils/backtrace/platform/posix/linux/elf.h"
+#include "include_internal/ten_utils/backtrace/platform/posix/linux/elf_internal/view.h"
 
-// Information we keep for an ELF symbol.
-struct elf_symbol {
-  // The name of the symbol.
+/**
+ * @brief Information we keep for an ELF symbol.
+ *
+ * This structure represents a symbol from an ELF file's symbol table. It stores
+ * the essential information needed for address-to-symbol lookups during stack
+ * trace symbolization.
+ */
+typedef struct elf_symbol {
+  // The name of the symbol (function or variable name).
   const char *name;
-  // The address of the symbol.
-  uintptr_t address;
-  // The size of the symbol.
-  size_t size;
-};
 
-// Information to pass to elf_syminfo.
-struct elf_syminfo_data {
-  // Symbols for the next module.
+  // The memory address where the symbol is loaded.
+  uintptr_t address;
+
+  // The size of the symbol in bytes. Used to determine if an address falls
+  // within this symbol's range (address <= pc < address + size).
+  size_t size;
+} elf_symbol;
+
+/**
+ * @brief Data structure containing symbol information for an ELF module.
+ *
+ * This structure holds symbol table information extracted from an ELF file.
+ * It's used by the `elf_syminfo` function to look up symbol information for a
+ * given address during stack trace symbolization. Multiple instances of this
+ * structure can be linked together to form a chain of symbol tables from
+ * different loaded modules (executable and shared libraries).
+ */
+typedef struct elf_syminfo_data {
+  // Pointer to symbol data for the next loaded module in the chain. Forms a
+  // linked list of symbol tables from different modules.
   struct elf_syminfo_data *next;
-  // The ELF symbols, sorted by address.
+
+  // Array of ELF symbols sorted by address for efficient binary search. Each
+  // entry contains a symbol name, address, and size.
   struct elf_symbol *symbols;
-  // The number of symbols.
+
+  // The number of entries in the symbols array.
   size_t count;
-};
+} elf_syminfo_data;
 
 // Information about PowerPC64 ELFv1 .opd section.
 struct elf_ppc64_opd_data {
@@ -53,10 +75,10 @@ TEN_UTILS_PRIVATE_API int elf_initialize_syminfo(
     ten_backtrace_t *self, uintptr_t base_address,
     const unsigned char *symtab_data, size_t symtab_size,
     const unsigned char *strtab, size_t strtab_size,
-    ten_backtrace_error_func_t error_cb, void *data,
+    ten_backtrace_on_error_func_t on_error, void *data,
     struct elf_syminfo_data *sdata, struct elf_ppc64_opd_data *opd);
 
 TEN_UTILS_PRIVATE_API void elf_syminfo(
     ten_backtrace_t *self_, uintptr_t addr,
-    ten_backtrace_dump_syminfo_func_t callback,
-    ten_backtrace_error_func_t error_cb, void *data);
+    ten_backtrace_on_dump_syminfo_func_t dump_syminfo_func,
+    ten_backtrace_on_error_func_t on_error, void *data);

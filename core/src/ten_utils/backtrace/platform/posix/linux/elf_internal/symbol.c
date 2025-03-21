@@ -37,7 +37,7 @@ static int elf_symbol_compare(const void *v1, const void *v2) {
 int elf_initialize_syminfo(ten_backtrace_t *self, uintptr_t base_address,
                            const unsigned char *symtab_data, size_t symtab_size,
                            const unsigned char *strtab, size_t strtab_size,
-                           ten_backtrace_error_func_t error_cb, void *data,
+                           ten_backtrace_on_error_func_t on_error, void *data,
                            struct elf_syminfo_data *sdata,
                            struct elf_ppc64_opd_data *opd) {
   size_t sym_count = 0;
@@ -87,7 +87,7 @@ int elf_initialize_syminfo(ten_backtrace_t *self, uintptr_t base_address,
     }
 
     if (sym->st_name >= strtab_size) {
-      error_cb(self, "symbol string index out of range", 0, data);
+      on_error(self, "symbol string index out of range", 0, data);
       free(elf_symbols);
       return 0;
     }
@@ -124,11 +124,10 @@ void elf_add_syminfo_data(ten_backtrace_t *self_,
   assert(self && "Invalid argument.");
 
   while (1) {
-    struct elf_syminfo_data **pp =
-        (struct elf_syminfo_data **)(void *)&self->get_syminfo_user_data;
+    elf_syminfo_data **pp = (elf_syminfo_data **)&self->on_get_syminfo_data;
 
     while (1) {
-      struct elf_syminfo_data *p = ten_atomic_ptr_load((void *)pp);
+      elf_syminfo_data *p = ten_atomic_ptr_load((ten_atomic_ptr_t *)pp);
       if (p == NULL) {
         break;
       }
@@ -142,52 +141,94 @@ void elf_add_syminfo_data(ten_backtrace_t *self_,
   }
 }
 
-// Compare an ADDR against an elf_symbol for bsearch.  We allocate one
-// extra entry in the array so that this can look safely at the next
-// entry.
+/**
+ * @brief Compare an address against an ELF symbol for binary search.
+ *
+ * This function is used as a comparison callback for `bsearch()` when looking
+ * up symbols by address. It determines if the given address falls within the
+ * memory range occupied by a symbol (address >= symbol.address &&
+ * address < symbol.address + symbol.size).
+ *
+ * @param vkey Pointer to the address to look up (cast to void*).
+ * @param ventry Pointer to the `elf_symbol` structure to compare against (cast
+ * to void*).
+ * @return -1 if address is less than symbol's address range,
+ *          0 if address falls within the symbol's address range,
+ *          1 if address is greater than symbol's address range.
+ *
+ * @note We allocate one extra entry in the symbols array with a very high
+ * address to ensure this function can safely check address ranges even for the
+ * last real symbol in the array.
+ */
 static int elf_symbol_search(const void *vkey, const void *ventry) {
   const uintptr_t *key = (const uintptr_t *)vkey;
-  const struct elf_symbol *entry = (const struct elf_symbol *)ventry;
+  const elf_symbol *entry = (const elf_symbol *)ventry;
   uintptr_t addr = *key;
+
+  // If address is before the symbol's start address.
   if (addr < entry->address) {
     return -1;
-  } else if (addr >= entry->address + entry->size) {
+  }
+  // If address is at or after the symbol's end address (address + size).
+  // Note: For symbols with size 0, we'll only match exact address matches.
+  else if (addr >= entry->address + entry->size) {
     return 1;
-  } else {
+  }
+  // Address is within the symbol's range.
+  else {
     return 0;
   }
 }
 
-// Return the symbol name and value for an ADDR.
-void elf_syminfo(ten_backtrace_t *self_, uintptr_t addr,
-                 ten_backtrace_dump_syminfo_func_t callback,
-                 ten_backtrace_error_func_t error_cb, void *data) {
-  ten_backtrace_posix_t *self = (ten_backtrace_posix_t *)self_;
-  assert(self && "Invalid argument.");
+/**
+ * @brief Look up symbol information for a given address.
+ *
+ * This function searches through all available symbol tables to find
+ * information about the symbol at the specified address. It traverses a linked
+ * list of symbol data structures, each containing an array of symbols sorted by
+ * address. When a matching symbol is found, it calls the provided callback with
+ * the symbol's name, address, and size.
+ *
+ * @param self_ The backtrace context.
+ * @param addr The address to look up.
+ * @param on_dump_syminfo Function to call with the symbol information if found.
+ * @param on_error Function to call to report errors.
+ * @param data User data to pass to the callback.
+ */
+void elf_syminfo(ten_backtrace_t *self, uintptr_t addr,
+                 ten_backtrace_on_dump_syminfo_func_t on_dump_syminfo,
+                 TEN_UNUSED ten_backtrace_on_error_func_t on_error,
+                 void *data) {
+  ten_backtrace_posix_t *self_posix = (ten_backtrace_posix_t *)self;
+  assert(self_posix && "Invalid argument.");
 
-  struct elf_symbol *sym = NULL;
+  elf_symbol *sym = NULL;
 
-  struct elf_syminfo_data **pp =
-      (struct elf_syminfo_data **)(void *)&self->get_syminfo_user_data;
+  // Get the head of the linked list of symbol data structures.
+  elf_syminfo_data **pp = (elf_syminfo_data **)&self_posix->on_get_syminfo_data;
+
+  // Traverse the linked list of symbol data structures.
   while (1) {
-    struct elf_syminfo_data *edata = ten_atomic_ptr_load((void *)pp);
+    elf_syminfo_data *edata = ten_atomic_ptr_load((ten_atomic_ptr_t *)pp);
     if (edata == NULL) {
-      break;
+      break; // End of the list.
     }
 
-    sym = ((struct elf_symbol *)bsearch(&addr, edata->symbols, edata->count,
-                                        sizeof(struct elf_symbol),
-                                        elf_symbol_search));
+    // Binary search for the symbol containing the address.
+    sym = ((elf_symbol *)bsearch(&addr, edata->symbols, edata->count,
+                                 sizeof(elf_symbol), elf_symbol_search));
     if (sym != NULL) {
-      break;
+      break; // Found a matching symbol.
     }
 
+    // Move to the next symbol data structure.
     pp = &edata->next;
   }
 
+  // Call the callback with the symbol information or NULL if not found.
   if (sym == NULL) {
-    callback(self_, addr, NULL, 0, 0, data);
+    on_dump_syminfo(self, addr, NULL, 0, 0, data);
   } else {
-    callback(self_, addr, sym->name, sym->address, sym->size, data);
+    on_dump_syminfo(self, addr, sym->name, sym->address, sym->size, data);
   }
 }

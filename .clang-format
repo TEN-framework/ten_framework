@@ -75,7 +75,7 @@ AllowAllConstructorInitializersOnNextLine: true
 FixNamespaceComments: true
 ForEachMacros:
   - ten_list_foreach
-IncludeBlocks: Merge
+IncludeBlocks: Regroup
 IncludeCategories:
   - Regex: '"ten_runtime/ten_config.h"'
     Priority: -1

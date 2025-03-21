@@ -26,7 +26,7 @@
 int elf_uncompress_zdebug(ten_backtrace_t *self,
                           const unsigned char *compressed,
                           size_t compressed_size, uint16_t *zdebug_table,
-                          ten_backtrace_error_func_t error_cb, void *data,
+                          ten_backtrace_on_error_func_t on_error, void *data,
                           unsigned char **uncompressed,
                           size_t *uncompressed_size) {
   size_t sz = 0;
@@ -79,7 +79,7 @@ int elf_uncompress_zdebug(ten_backtrace_t *self,
 // decompress.
 int elf_uncompress_chdr(ten_backtrace_t *self, const unsigned char *compressed,
                         size_t compressed_size, uint16_t *zdebug_table,
-                        ten_backtrace_error_func_t error_cb, void *data,
+                        ten_backtrace_on_error_func_t on_error, void *data,
                         unsigned char **uncompressed,
                         size_t *uncompressed_size) {
   const b_elf_chdr *chdr = NULL;

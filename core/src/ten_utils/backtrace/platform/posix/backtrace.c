@@ -47,8 +47,8 @@ static _Unwind_Reason_Code unwind(struct _Unwind_Context *context, void *data) {
 
   bt_data->ret = ten_backtrace_get_file_line_info(
       bt_data->ten_backtrace, pc,
-      ((ten_backtrace_common_t *)bt_data->ten_backtrace)->dump_cb,
-      ((ten_backtrace_common_t *)bt_data->ten_backtrace)->error_cb,
+      ((ten_backtrace_common_t *)bt_data->ten_backtrace)->on_dump_file_line,
+      ((ten_backtrace_common_t *)bt_data->ten_backtrace)->on_error,
       ((ten_backtrace_common_t *)bt_data->ten_backtrace)->cb_data);
   if (bt_data->ret != 0) {
     return _URC_END_OF_STACK;

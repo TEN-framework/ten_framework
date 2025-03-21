@@ -35,8 +35,8 @@ ten_backtrace_t *ten_backtrace_create(void) {
     return NULL; // Return NULL if malloc fails, even after assert
   }
 
-  ten_backtrace_common_init(&self->common, ten_backtrace_default_dump_cb,
-                            ten_backtrace_default_error_cb);
+  ten_backtrace_common_init(&self->common, ten_backtrace_default_dump,
+                            ten_backtrace_default_error);
 
   return (ten_backtrace_t *)self;
 }
@@ -98,7 +98,7 @@ void ten_backtrace_dump(ten_backtrace_t *self, size_t skip) {
 
   if (frames <= 0) {
     ten_backtrace_common_t *common_self = (ten_backtrace_common_t *)self;
-    common_self->error_cb(self, "Failed to capture backtrace", -1,
+    common_self->on_error(self, "Failed to capture backtrace", -1,
                           common_self->cb_data);
     return;
   }
@@ -106,7 +106,7 @@ void ten_backtrace_dump(ten_backtrace_t *self, size_t skip) {
   char **strs = backtrace_symbols(call_stack, frames);
   if (!strs) {
     ten_backtrace_common_t *common_self = (ten_backtrace_common_t *)self;
-    common_self->error_cb(self, "Failed to get backtrace symbols", -1,
+    common_self->on_error(self, "Failed to get backtrace symbols", -1,
                           common_self->cb_data);
     return;
   }

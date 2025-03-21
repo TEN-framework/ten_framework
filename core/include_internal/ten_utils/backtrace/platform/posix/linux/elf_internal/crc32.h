@@ -18,4 +18,4 @@ TEN_UTILS_PRIVATE_API uint32_t elf_crc32(uint32_t crc, const unsigned char *buf,
 
 TEN_UTILS_PRIVATE_API uint32_t
 elf_crc32_file(ten_backtrace_t *self, int descriptor,
-               ten_backtrace_error_func_t error_cb, void *data);
+               ten_backtrace_on_error_func_t on_error, void *data);

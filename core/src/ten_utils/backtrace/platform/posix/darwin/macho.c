@@ -226,17 +226,31 @@ typedef struct macho_nlist_64 {
 #define MACH_O_N_TYPE 0x0e // Mask for type bits
 #define MACH_O_N_STAB 0xe0 // Stabs debugging symbol
 
-// Information we keep for a Mach-O symbol.
+/**
+ * @brief Information we keep for a Mach-O symbol.
+ *
+ * This structure represents a symbol from a Mach-O file's symbol table. It
+ * stores the essential information needed for address-to-symbol lookups during
+ * stack trace symbolization.
+ */
 typedef struct macho_symbol {
-  const char *name;  // Symbol name
-  uintptr_t address; // Symbol address
+  const char *name;  // Symbol name (points to string table, not owned).
+  uintptr_t address; // Symbol address (adjusted with base address).
 } macho_symbol;
 
-// Information to pass to macho_syminfo.
+/**
+ * @brief Data structure containing symbol information for a Mach-O module.
+ *
+ * This structure holds symbol table information extracted from a Mach-O file.
+ * It's used by the `macho_syminfo` function to look up symbol information for a
+ * given address during stack trace symbolization. Multiple instances of this
+ * structure can be linked together to form a chain of symbol tables from
+ * different loaded modules (executable and shared libraries).
+ */
 typedef struct macho_syminfo_data {
-  struct macho_syminfo_data *next; // Next module
-  struct macho_symbol *symbols;    // Symbols sorted by address
-  size_t count;                    // Number of symbols
+  struct macho_syminfo_data *next; // Next module in the linked list
+  struct macho_symbol *symbols;    // Array of symbols sorted by address
+  size_t count;                    // Number of symbols in the array
 } macho_syminfo_data;
 
 // Names of sections, indexed by enum dwarf_section in internal.h.
@@ -250,22 +264,23 @@ static const char *const dwarf_section_names[DEBUG_MAX] = {
 static int
 macho_add(ten_backtrace_t *self, const char *filename, int descriptor,
           off_t offset, const unsigned char *match_uuid, uintptr_t base_address,
-          int skip_symtab, ten_backtrace_error_func_t error_cb, void *data,
-          ten_backtrace_get_file_line_func_t *fileline_fn, int *found_sym);
+          int skip_symtab, ten_backtrace_on_error_func_t on_error, void *data,
+          ten_backtrace_on_get_file_line_func_t *fileline_fn, int *found_sym);
 
 // A dummy callback function used when we can't find any debug info.
-static int macho_nodebug(ten_backtrace_t *self, uintptr_t pc,
-                         ten_backtrace_dump_file_line_func_t dump_file_line_cb,
-                         ten_backtrace_error_func_t error_cb, void *data) {
-  error_cb(self, "no debug info in Mach-O executable", -1, data);
+static int
+macho_nodebug(ten_backtrace_t *self, uintptr_t pc,
+              ten_backtrace_on_dump_file_line_func_t dump_file_line_func,
+              ten_backtrace_on_error_func_t on_error, void *data) {
+  on_error(self, "no debug info in Mach-O executable", -1, data);
   return 0;
 }
 
 // A dummy callback function used when we can't find a symbol table.
 static void macho_nosyms(ten_backtrace_t *self, uintptr_t addr,
-                         ten_backtrace_dump_syminfo_func_t dump_syminfo_cb,
-                         ten_backtrace_error_func_t error_cb, void *data) {
-  error_cb(self, "no symbol table in Mach-O executable", -1, data);
+                         ten_backtrace_on_dump_syminfo_func_t dump_syminfo_func,
+                         ten_backtrace_on_error_func_t on_error, void *data) {
+  on_error(self, "no symbol table in Mach-O executable", -1, data);
 }
 
 /**
@@ -276,7 +291,7 @@ static void macho_nosyms(ten_backtrace_t *self, uintptr_t addr,
 static int macho_add_dwarf_section(ten_backtrace_t *self, int descriptor,
                                    const char *sectname, uint32_t offset,
                                    uint64_t size,
-                                   ten_backtrace_error_func_t error_cb,
+                                   ten_backtrace_on_error_func_t on_error,
                                    void *data, dwarf_sections *dwarf_sections) {
   for (size_t i = 0; i < (int)DEBUG_MAX; ++i) {
     if (dwarf_section_names[i][0] != '\0' &&
@@ -304,7 +319,7 @@ static int macho_add_dwarf_segment(ten_backtrace_t *self, int descriptor,
                                    off_t offset, unsigned int cmd,
                                    const char *psecs, size_t sizesecs,
                                    unsigned int nsects,
-                                   ten_backtrace_error_func_t error_cb,
+                                   ten_backtrace_on_error_func_t on_error,
                                    void *data, dwarf_sections *dwarf_sections) {
   size_t sec_header_size = 0;
   size_t secoffset = 0;
@@ -324,7 +339,7 @@ static int macho_add_dwarf_segment(ten_backtrace_t *self, int descriptor,
   secoffset = 0;
   for (i = 0; i < nsects; ++i) {
     if (secoffset + sec_header_size > sizesecs) {
-      error_cb(self, "section overflow withing segment", 0, data);
+      on_error(self, "section overflow withing segment", 0, data);
       return 0;
     }
 
@@ -334,7 +349,7 @@ static int macho_add_dwarf_segment(ten_backtrace_t *self, int descriptor,
 
       memcpy(&section, psecs + secoffset, sizeof section);
       macho_add_dwarf_section(self, descriptor, section.sectname,
-                              offset + section.offset, section.size, error_cb,
+                              offset + section.offset, section.size, on_error,
                               data, dwarf_sections);
     } break;
 
@@ -343,7 +358,7 @@ static int macho_add_dwarf_segment(ten_backtrace_t *self, int descriptor,
 
       memcpy(&section, psecs + secoffset, sizeof section);
       macho_add_dwarf_section(self, descriptor, section.sectname,
-                              offset + section.offset, section.size, error_cb,
+                              offset + section.offset, section.size, on_error,
                               data, dwarf_sections);
     } break;
 
@@ -417,7 +432,8 @@ static int macho_add_symtab(ten_backtrace_t *self_, int descriptor,
                             uintptr_t base_address, int is_64, off_t symoff,
                             unsigned int nsyms, off_t stroff,
                             unsigned int strsize,
-                            ten_backtrace_error_func_t error_cb, void *data) {
+                            ten_backtrace_on_error_func_t on_error,
+                            void *data) {
   ten_backtrace_posix_t *self = (ten_backtrace_posix_t *)self_;
   assert(self && "Invalid argument.");
 
@@ -516,7 +532,7 @@ static int macho_add_symtab(ten_backtrace_t *self_, int descriptor,
     }
 
     if (strx >= strsize) {
-      error_cb(self_, "symbol string index out of range", 0, data);
+      on_error(self_, "symbol string index out of range", 0, data);
       goto fail;
     }
 
@@ -554,11 +570,10 @@ static int macho_add_symtab(ten_backtrace_t *self_, int descriptor,
   sdata->count = ndefs;
 
   while (1) {
-    struct macho_syminfo_data **pp =
-        (struct macho_syminfo_data **)(void *)&self->get_syminfo_user_data;
+    macho_syminfo_data **pp = (macho_syminfo_data **)&self->on_get_syminfo_data;
 
     while (1) {
-      struct macho_syminfo_data *p = ten_atomic_ptr_load((void *)pp);
+      macho_syminfo_data *p = ten_atomic_ptr_load((void *)pp);
       if (p == NULL) {
         break;
       }
@@ -590,20 +605,19 @@ fail:
 }
 
 // Return the symbol name and value for an ADDR.
-
-static void macho_syminfo(ten_backtrace_t *self_, uintptr_t addr,
-                          ten_backtrace_dump_syminfo_func_t dump_syminfo_cb,
-                          ten_backtrace_error_func_t error_cb, void *data) {
+static void
+macho_syminfo(ten_backtrace_t *self_, uintptr_t addr,
+              ten_backtrace_on_dump_syminfo_func_t dump_syminfo_func,
+              ten_backtrace_on_error_func_t on_error, void *data) {
   ten_backtrace_posix_t *self = (ten_backtrace_posix_t *)self_;
   assert(self && "Invalid argument.");
 
-  struct macho_syminfo_data *sdata = NULL;
-  struct macho_symbol *sym = NULL;
+  macho_syminfo_data *sdata = NULL;
+  macho_symbol *sym = NULL;
 
   sym = NULL;
 
-  struct macho_syminfo_data **pp =
-      (struct macho_syminfo_data **)(void *)&self->get_syminfo_user_data;
+  macho_syminfo_data **pp = (macho_syminfo_data **)&self->on_get_syminfo_data;
 
   while (1) {
     sdata = ten_atomic_ptr_load((void *)pp);
@@ -611,9 +625,9 @@ static void macho_syminfo(ten_backtrace_t *self_, uintptr_t addr,
       break;
     }
 
-    sym = ((struct macho_symbol *)bsearch(&addr, sdata->symbols, sdata->count,
-                                          sizeof(struct macho_symbol),
-                                          macho_symbol_search));
+    sym = ((macho_symbol *)bsearch(&addr, sdata->symbols, sdata->count,
+                                   sizeof(struct macho_symbol),
+                                   macho_symbol_search));
     if (sym != NULL) {
       break;
     }
@@ -622,20 +636,22 @@ static void macho_syminfo(ten_backtrace_t *self_, uintptr_t addr,
   }
 
   if (sym == NULL) {
-    dump_syminfo_cb(self_, addr, NULL, 0, 0, data);
+    dump_syminfo_func(self_, addr, NULL, 0, 0, data);
   } else {
-    dump_syminfo_cb(self_, addr, sym->name, sym->address, 0, data);
+    dump_syminfo_func(self_, addr, sym->name, sym->address, 0, data);
   }
 }
 
 // Look through a fat file to find the relevant executable.  Returns 1
 // on success, 0 on failure (in both cases descriptor is closed).
-static int
-macho_add_fat(ten_backtrace_t *self, const char *filename, int descriptor,
-              int swapped, off_t offset, const unsigned char *match_uuid,
-              uintptr_t base_address, int skip_symtab, uint32_t nfat_arch,
-              int is_64, ten_backtrace_error_func_t error_cb, void *data,
-              ten_backtrace_get_file_line_func_t *fileline_fn, int *found_sym) {
+static int macho_add_fat(ten_backtrace_t *self, const char *filename,
+                         int descriptor, int swapped, off_t offset,
+                         const unsigned char *match_uuid,
+                         uintptr_t base_address, int skip_symtab,
+                         uint32_t nfat_arch, int is_64,
+                         ten_backtrace_on_error_func_t on_error, void *data,
+                         ten_backtrace_on_get_file_line_func_t *fileline_fn,
+                         int *found_sym) {
   int arch_view_valid = 0;
   unsigned int cputype = 0;
   size_t arch_size = 0;
@@ -657,7 +673,7 @@ macho_add_fat(ten_backtrace_t *self, const char *filename, int descriptor,
 #elif defined(__ppc64__)
   cputype = MACH_O_CPU_TYPE_PPC64;
 #else
-  error_cb(data, "unknown Mach-O architecture", 0);
+  on_error(data, "unknown Mach-O architecture", 0);
   goto fail;
 #endif
 
@@ -703,12 +719,12 @@ macho_add_fat(ten_backtrace_t *self, const char *filename, int descriptor,
       // FIXME: What about cpusubtype?
       ten_mmap_deinit(&arch_view);
       return macho_add(self, filename, descriptor, foffset, match_uuid,
-                       base_address, skip_symtab, error_cb, data, fileline_fn,
+                       base_address, skip_symtab, on_error, data, fileline_fn,
                        found_sym);
     }
   }
 
-  error_cb(self, "could not find executable in fat file", 0, data);
+  on_error(self, "could not find executable in fat file", 0, data);
 
 fail:
   if (arch_view_valid) {
@@ -725,8 +741,8 @@ fail:
 // 0 on failure.
 static int macho_add_dsym(ten_backtrace_t *self, const char *filename,
                           uintptr_t base_address, const unsigned char *uuid,
-                          ten_backtrace_error_func_t error_cb, void *data,
-                          ten_backtrace_get_file_line_func_t *fileline_fn) {
+                          ten_backtrace_on_error_func_t on_error, void *data,
+                          ten_backtrace_on_get_file_line_func_t *fileline_fn) {
   const char *p = NULL;
   const char *dirname = NULL;
   char *diralc = NULL;
@@ -802,7 +818,7 @@ static int macho_add_dsym(ten_backtrace_t *self, const char *filename,
     return 1;
   }
 
-  if (!macho_add(self, dsym, fd, 0, uuid, base_address, 1, error_cb, data,
+  if (!macho_add(self, dsym, fd, 0, uuid, base_address, 1, on_error, data,
                  fileline_fn, &dummy_found_sym)) {
     goto fail;
   }
@@ -836,8 +852,8 @@ fail:
 static int
 macho_add(ten_backtrace_t *self, const char *filename, int descriptor,
           off_t offset, const unsigned char *match_uuid, uintptr_t base_address,
-          int skip_symtab, ten_backtrace_error_func_t error_cb, void *data,
-          ten_backtrace_get_file_line_func_t *fileline_fn, int *found_sym) {
+          int skip_symtab, ten_backtrace_on_error_func_t on_error, void *data,
+          ten_backtrace_on_get_file_line_func_t *fileline_fn, int *found_sym) {
   ten_mmap_t header_view;
   struct macho_header_32 header;
   off_t hdroffset = 0;
@@ -885,7 +901,7 @@ macho_add(ten_backtrace_t *self, const char *filename, int descriptor,
     memcpy(&fat_header, &header, sizeof fat_header);
     return macho_add_fat(self, filename, descriptor, 0, hdroffset, match_uuid,
                          base_address, skip_symtab, fat_header.nfat_arch,
-                         header.magic == MACH_O_MH_MAGIC_FAT_64, error_cb, data,
+                         header.magic == MACH_O_MH_MAGIC_FAT_64, on_error, data,
                          fileline_fn, found_sym);
   }
   case MACH_O_MH_CIGAM_FAT:
@@ -898,11 +914,11 @@ macho_add(ten_backtrace_t *self, const char *filename, int descriptor,
     nfat_arch = __builtin_bswap32(fat_header.nfat_arch);
     return macho_add_fat(self, filename, descriptor, 1, hdroffset, match_uuid,
                          base_address, skip_symtab, nfat_arch,
-                         header.magic == MACH_O_MH_CIGAM_FAT_64, error_cb, data,
+                         header.magic == MACH_O_MH_CIGAM_FAT_64, on_error, data,
                          fileline_fn, found_sym);
   }
   default:
-    error_cb(self, "executable file is not in Mach-O format", 0, data);
+    on_error(self, "executable file is not in Mach-O format", 0, data);
     goto fail;
   }
 
@@ -912,7 +928,7 @@ macho_add(ten_backtrace_t *self, const char *filename, int descriptor,
   case MACH_O_MH_DSYM:
     break;
   default:
-    error_cb(self, "executable file is not an executable", 0, data);
+    on_error(self, "executable file is not an executable", 0, data);
     goto fail;
   }
 
@@ -949,7 +965,7 @@ macho_add(ten_backtrace_t *self, const char *filename, int descriptor,
         if (!macho_add_dwarf_segment(
                 self, descriptor, offset, load_command.cmd,
                 pcmd + sizeof segcmd, (load_command.cmdsize - sizeof segcmd),
-                segcmd.nsects, error_cb, data, &dwarf_sections)) {
+                segcmd.nsects, on_error, data, &dwarf_sections)) {
           goto fail;
         }
         have_dwarf = 1;
@@ -965,7 +981,7 @@ macho_add(ten_backtrace_t *self, const char *filename, int descriptor,
         if (!macho_add_dwarf_segment(
                 self, descriptor, offset, load_command.cmd,
                 pcmd + sizeof segcmd, (load_command.cmdsize - sizeof segcmd),
-                segcmd.nsects, error_cb, data, &dwarf_sections)) {
+                segcmd.nsects, on_error, data, &dwarf_sections)) {
           goto fail;
         }
         have_dwarf = 1;
@@ -979,7 +995,7 @@ macho_add(ten_backtrace_t *self, const char *filename, int descriptor,
         memcpy(&symcmd, pcmd, sizeof symcmd);
         if (!macho_add_symtab(self, descriptor, base_address, is_64,
                               offset + symcmd.symoff, symcmd.nsyms,
-                              offset + symcmd.stroff, symcmd.strsize, error_cb,
+                              offset + symcmd.stroff, symcmd.strsize, on_error,
                               data)) {
           goto fail;
         }
@@ -1029,13 +1045,13 @@ macho_add(ten_backtrace_t *self, const char *filename, int descriptor,
 #endif
 
     if (!backtrace_dwarf_add(self, base_address, &dwarf_sections, is_big_endian,
-                             NULL, error_cb, data, fileline_fn, NULL)) {
+                             NULL, on_error, data, fileline_fn, NULL)) {
       goto fail;
     }
   }
 
   if (!have_dwarf && have_uuid) {
-    if (!macho_add_dsym(self, filename, base_address, &uuid[0], error_cb, data,
+    if (!macho_add_dsym(self, filename, base_address, &uuid[0], on_error, data,
                         fileline_fn)) {
       goto fail;
     }
@@ -1057,20 +1073,20 @@ fail:
 // support functions.
 int ten_backtrace_init_posix(
     ten_backtrace_t *self, const char *filename, int descriptor,
-    ten_backtrace_error_func_t error_cb, void *data,
-    ten_backtrace_get_file_line_func_t *get_file_line_func) {
+    ten_backtrace_on_error_func_t on_error, void *data,
+    ten_backtrace_on_get_file_line_func_t *on_get_file_line) {
   ten_backtrace_posix_t *posix_self = (ten_backtrace_posix_t *)self;
   assert(posix_self && "Invalid argument.");
 
   int closed_descriptor = 0;
   int found_sym = 0;
-  ten_backtrace_get_file_line_func_t macho_fileline_fn = macho_nodebug;
+  ten_backtrace_on_get_file_line_func_t macho_fileline_fn = macho_nodebug;
 
   uint32_t c = _dyld_image_count();
   for (uint32_t i = 0; i < c; ++i) {
     uintptr_t base_address = 0;
     int d = 0;
-    ten_backtrace_get_file_line_func_t mff = NULL;
+    ten_backtrace_on_get_file_line_func_t mff = NULL;
     int mfs = 0;
 
     const char *name = _dyld_get_image_name(i);
@@ -1093,7 +1109,7 @@ int ten_backtrace_init_posix(
     base_address = _dyld_get_image_vmaddr_slide(i);
 
     mff = macho_nodebug;
-    if (!macho_add(self, name, d, 0, NULL, base_address, 0, error_cb, data,
+    if (!macho_add(self, name, d, 0, NULL, base_address, 0, on_error, data,
                    &mff, &mfs)) {
       continue;
     }
@@ -1111,17 +1127,17 @@ int ten_backtrace_init_posix(
   }
 
   if (found_sym) {
-    ten_atomic_ptr_store((void *)&posix_self->get_syminfo_func, macho_syminfo);
+    ten_atomic_ptr_store((void *)&posix_self->on_get_syminfo, macho_syminfo);
   } else {
-    (void)__sync_bool_compare_and_swap(&posix_self->get_syminfo_func, NULL,
+    (void)__sync_bool_compare_and_swap(&posix_self->on_get_syminfo, NULL,
                                        macho_nosyms);
   }
 
-  *get_file_line_func =
-      ten_atomic_ptr_load((void *)&posix_self->get_file_line_func);
+  *on_get_file_line =
+      ten_atomic_ptr_load((void *)&posix_self->on_get_file_line);
 
-  if (*get_file_line_func == NULL || *get_file_line_func == macho_nodebug) {
-    *get_file_line_func = macho_fileline_fn;
+  if (*on_get_file_line == NULL || *on_get_file_line == macho_nodebug) {
+    *on_get_file_line = macho_fileline_fn;
   }
 
   return 1;

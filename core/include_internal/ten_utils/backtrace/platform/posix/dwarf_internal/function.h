@@ -87,10 +87,10 @@ TEN_UTILS_PRIVATE_API int function_addrs_search(const void *vkey,
 
 TEN_UTILS_PRIVATE_API void read_function_info(
     ten_backtrace_t *self, dwarf_data *ddata, const line_header *lhdr,
-    ten_backtrace_error_func_t error_cb, void *data, unit *u,
+    ten_backtrace_on_error_func_t on_error, void *data, unit *u,
     function_vector *fvec, function_addrs **ret_addrs, size_t *ret_addrs_count);
 
 TEN_UTILS_PRIVATE_API int report_inlined_functions(
     ten_backtrace_t *self, uintptr_t pc, struct function *function,
-    ten_backtrace_dump_file_line_func_t dump_file_line_cb, void *data,
+    ten_backtrace_on_dump_file_line_func_t dump_file_line_func, void *data,
     const char **filename, int *lineno);

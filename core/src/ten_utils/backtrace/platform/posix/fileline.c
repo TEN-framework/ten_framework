@@ -29,7 +29,7 @@
 #include <mach-o/dyld.h>
 
 static char *macho_get_executable_path(ten_backtrace_t *self,
-                                       ten_backtrace_error_func_t error_cb,
+                                       ten_backtrace_on_error_func_t on_error,
                                        void *data) {
   uint32_t len = 0;
   if (_NSGetExecutablePath(NULL, &len) == 0) {
@@ -49,63 +49,77 @@ static char *macho_get_executable_path(ten_backtrace_t *self,
 
 #else /* !defined (HAVE_MACH_O_DYLD_H) */
 
-#define macho_get_executable_path(self, error_cb, data) NULL
+#define macho_get_executable_path(self, on_error, data) NULL
 
 #endif /* !defined (HAVE_MACH_O_DYLD_H) */
 
 /**
  * @brief Initialize the file_line information from the executable.
  *
- * @return 1 on success, 0 on failure.
+ * This function attempts to locate and open the current executable file
+ * using various platform-specific methods:
+ * 1. First tries "/proc/self/exe" (Linux)
+ * 2. Then tries "/proc/curproc/file" (FreeBSD)
+ * 3. Finally tries Mach-O specific method (macOS)
+ *
+ * Once the executable is found, it initializes the file/line lookup mechanism
+ * for stack trace symbolization.
+ *
+ * @param self The backtrace context
+ * @param on_error Callback function for reporting errors
+ * @param data User data to pass to the error callback
+ * @return true on success, false on failure
  */
-static int initialize_file_line_mechanism(ten_backtrace_t *self,
-                                          ten_backtrace_error_func_t error_cb,
-                                          void *data) {
+static bool initialize_file_line_mechanism(
+    ten_backtrace_t *self, ten_backtrace_on_error_func_t on_error, void *data) {
   ten_backtrace_posix_t *posix_self = (ten_backtrace_posix_t *)self;
   assert(posix_self && "Invalid argument.");
 
+  // Check if initialization has already failed.
   int64_t failed = ten_atomic_load(&posix_self->file_line_init_failed);
   if (failed) {
-    (void)fprintf(stderr, "Failed to read executable information.");
-    return 0;
+    (void)fprintf(stderr, "Failed to read executable information.\n");
+    return false;
   }
 
-  ten_backtrace_get_file_line_func_t get_file_line_func =
-      (ten_backtrace_get_file_line_func_t)ten_atomic_ptr_load(
-          (void *)&posix_self->get_file_line_func);
-  if (get_file_line_func != NULL) {
-    return 1;
+  // Check if already initialized successfully.
+  ten_backtrace_on_get_file_line_func_t on_get_file_line =
+      (ten_backtrace_on_get_file_line_func_t)ten_atomic_ptr_load(
+          (ten_atomic_ptr_t *)&posix_self->on_get_file_line);
+  if (on_get_file_line != NULL) {
+    return true;
   }
 
   // We have not initialized the information. Do it now.
 
   int descriptor = -1;
-  const char *filename = NULL;
   bool called_error_callback = false;
+  const char *filename = NULL;
 
-  for (size_t pass = 0; pass < 4; ++pass) {
+  // For storing dynamically allocated filename.
+  char *dynamic_filename = NULL;
+
+  // Try different methods to find the executable path.
+  for (size_t pass = 0; pass < 3; ++pass) {
     switch (pass) {
     case 0:
+      // Linux-specific method.
       filename = "/proc/self/exe";
       break;
 
     case 1:
+      // FreeBSD-specific method.
       filename = "/proc/curproc/file";
       break;
 
-    case 2: {
-      char buf[64] = {0};
+    case 2:
+      // macOS-specific method.
+      // Free any previous dynamic filename.
+      free(dynamic_filename);
+      dynamic_filename = NULL;
 
-      int written =
-          snprintf(buf, sizeof(buf), "/proc/%ld/object/a.out", (long)getpid());
-      assert(written > 0);
-
-      filename = buf;
-      break;
-    }
-
-    case 3:
-      filename = macho_get_executable_path(self, error_cb, data);
+      dynamic_filename = macho_get_executable_path(self, on_error, data);
+      filename = dynamic_filename;
       break;
 
     default:
@@ -114,7 +128,7 @@ static int initialize_file_line_mechanism(ten_backtrace_t *self,
     }
 
     if (filename == NULL) {
-      // Failed to get the executable filename, try next way.
+      // Failed to get the executable filename, try next method.
       continue;
     }
 
@@ -126,51 +140,59 @@ static int initialize_file_line_mechanism(ten_backtrace_t *self,
     }
 
     if (descriptor >= 0) {
-      // Successfully open the executable file.
+      // Successfully opened the executable file.
       break;
     }
 
-    // Failed to open the executable filename, try next way.
+    // Failed to open the executable filename, try next method.
   }
 
   if (descriptor < 0) {
     if (!called_error_callback) {
-      error_cb(data, "Failed to find executable to open.", 0, NULL);
+      on_error(data, "Failed to find executable to open.", 0, NULL);
     }
     failed = 1;
   }
 
   if (!failed) {
-    if (!ten_backtrace_init_posix(self, filename, descriptor, error_cb, data,
-                                  &get_file_line_func)) {
+    if (!ten_backtrace_init_posix(self, filename, descriptor, on_error, data,
+                                  &on_get_file_line)) {
       failed = 1;
     }
   }
 
-  if (failed) {
-    ten_atomic_store(&posix_self->file_line_init_failed, 1);
-    return 0;
+  // Free dynamic_filename after we're done with it.
+  if (dynamic_filename != NULL) {
+    free(dynamic_filename);
+    dynamic_filename = NULL;
   }
 
+  if (failed) {
+    ten_atomic_store(&posix_self->file_line_init_failed, 1);
+    return false;
+  }
+
+  // Store the function pointer atomically to ensure thread safety.
+  //
   // TODO(Wei): Note that if two threads initialize at once, one of the data
   // sets may be leaked. Might need to consider a new way to avoid this.
-  ten_atomic_ptr_store((void *)&posix_self->get_file_line_func,
-                       get_file_line_func);
+  ten_atomic_ptr_store((ten_atomic_ptr_t *)&posix_self->on_get_file_line,
+                       on_get_file_line);
 
-  return 1;
+  return true;
 }
 
 /**
  * @brief Given a PC, find the file name, line number, and function name.
  */
 int ten_backtrace_get_file_line_info(ten_backtrace_t *self, uintptr_t pc,
-                                     ten_backtrace_dump_file_line_func_t cb,
-                                     ten_backtrace_error_func_t error_cb,
+                                     ten_backtrace_on_dump_file_line_func_t cb,
+                                     ten_backtrace_on_error_func_t on_error,
                                      void *data) {
   ten_backtrace_posix_t *posix_self = (ten_backtrace_posix_t *)self;
   assert(posix_self && "Invalid argument.");
 
-  if (!initialize_file_line_mechanism(self, error_cb, data)) {
+  if (!initialize_file_line_mechanism(self, on_error, data)) {
     return 0;
   }
 
@@ -178,19 +200,20 @@ int ten_backtrace_get_file_line_info(ten_backtrace_t *self, uintptr_t pc,
     return 0;
   }
 
-  return (posix_self->get_file_line_func)(self, pc, cb, error_cb, data);
+  return (posix_self->on_get_file_line)(self, pc, cb, on_error, data);
 }
 
 /**
  * @brief Given a PC, find the symbol for it, and its value.
  */
 int ten_backtrace_get_syminfo(ten_backtrace_t *self, uintptr_t pc,
-                              ten_backtrace_dump_syminfo_func_t cb,
-                              ten_backtrace_error_func_t error_cb, void *data) {
+                              ten_backtrace_on_dump_syminfo_func_t cb,
+                              ten_backtrace_on_error_func_t on_error,
+                              void *data) {
   ten_backtrace_posix_t *posix_self = (ten_backtrace_posix_t *)self;
   assert(posix_self && "Invalid argument.");
 
-  if (!initialize_file_line_mechanism(self, error_cb, data)) {
+  if (!initialize_file_line_mechanism(self, on_error, data)) {
     return 0;
   }
 
@@ -198,35 +221,67 @@ int ten_backtrace_get_syminfo(ten_backtrace_t *self, uintptr_t pc,
     return 0;
   }
 
-  posix_self->get_syminfo_func(self, pc, cb, error_cb, data);
+  posix_self->on_get_syminfo(self, pc, cb, on_error, data);
 
   return 1;
 }
 
 /**
- * @brief A ten_backtrace_dump_syminfo_func_t that can call into a
- * ten_backtrace_dump_file_line_func_t, used when we have a symbol table but no
- * debug info.
+ * @brief Adapter function that converts symbol information to file/line format.
+ *
+ * This function is used as a callback for symbol table lookups when we have a
+ * symbol table but no debug information. It adapts the symbol information
+ * (function name) to the file/line callback format, passing NULL for the
+ * filename and 0 for the line number since this information is not available
+ * from symbol tables alone.
+ *
+ * @param self The backtrace context.
+ * @param pc The program counter address being looked up.
+ * @param symname The symbol name found for this address (function name).
+ * @param sym_val The symbol value (address), unused in this adapter.
+ * @param sym_size The symbol size, unused in this adapter.
+ * @param data Pointer to a backtrace_call_full structure containing the
+ * original callbacks.
  */
-void backtrace_dump_syminfo_to_dump_file_line_cb(
-    ten_backtrace_t *self, uintptr_t pc, const char *symname,
-    TEN_UNUSED uintptr_t sym_val, TEN_UNUSED uintptr_t sym_size, void *data) {
-  struct backtrace_call_full *bt_data = (struct backtrace_call_full *)data;
+void backtrace_dump_syminfo_to_file_line(ten_backtrace_t *self, uintptr_t pc,
+                                         const char *symname,
+                                         TEN_UNUSED uintptr_t sym_val,
+                                         TEN_UNUSED uintptr_t sym_size,
+                                         void *data) {
+  backtrace_call_full *bt_data = (backtrace_call_full *)data;
   assert(bt_data && "Invalid argument.");
 
+  // Call the file/line callback with the program counter and symbol name,
+  // but with NULL filename and 0 line number since we don't have that
+  // information.
   bt_data->ret =
-      bt_data->dump_file_line_cb(self, pc, NULL, 0, symname, bt_data->data);
+      bt_data->on_dump_file_line(self, pc, NULL, 0, symname, bt_data->data);
 }
 
 /**
- * @brief An error callback that corresponds to
- * backtrace_syminfo_to_full_callback.
+ * @brief Error callback adapter for symbol-to-file/line conversion.
+ *
+ * This function serves as an error callback adapter when converting symbol
+ * information to file/line format. It forwards error messages from symbol
+ * lookup operations to the original error callback stored in the
+ * `backtrace_call_full` structure.
+ *
+ * This function is paired with backtrace_dump_syminfo_to_file_line() and
+ * is used when we have symbol information but no debug information, allowing
+ * error handling to be properly propagated through the callback chain.
+ *
+ * @param self The backtrace context.
+ * @param msg The error message to report.
+ * @param errnum The error number (errno value) or -1 if not applicable.
+ * @param data Pointer to a backtrace_call_full structure containing the
+ *             original error callback and its user data.
  */
-void backtrace_dump_syminfo_to_dump_file_line_error_cb(ten_backtrace_t *self,
-                                                       const char *msg,
-                                                       int errnum, void *data) {
-  struct backtrace_call_full *bt_data = (struct backtrace_call_full *)data;
+void backtrace_dump_syminfo_to_file_line_error(ten_backtrace_t *self,
+                                               const char *msg, int errnum,
+                                               void *data) {
+  backtrace_call_full *bt_data = (backtrace_call_full *)data;
   assert(bt_data && "Invalid argument.");
 
-  bt_data->error_cb(self, msg, errnum, bt_data->data);
+  // Forward the error to the original error callback.
+  bt_data->on_error(self, msg, errnum, bt_data->data);
 }

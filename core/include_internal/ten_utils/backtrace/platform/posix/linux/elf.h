@@ -9,10 +9,10 @@
 #include "ten_utils/ten_config.h"
 
 #include <stddef.h>
+#include <unistd.h>
 
 #include "include_internal/ten_utils/backtrace/platform/posix/config.h"  // IWYU pragma: keep
 #include "include_internal/ten_utils/backtrace/platform/posix/dwarf_internal/section.h"
-#include "include_internal/ten_utils/backtrace/platform/posix/linux/elf_internal/view.h"
 #include "include_internal/ten_utils/backtrace/platform/posix/linux/elf_internal/zlib.h"  // IWYU pragma: keep
 #include "include_internal/ten_utils/backtrace/platform/posix/linux/elf_internal/zstd.h"  // IWYU pragma: keep
 #include "include_internal/ten_utils/backtrace/platform/posix/linux/elf_internal/zutils.h"  // IWYU pragma: keep

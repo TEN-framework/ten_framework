@@ -20,8 +20,8 @@
  */
 int elf_get_view(ten_backtrace_t *self, int descriptor,
                  const unsigned char *memory, size_t memory_size, off_t offset,
-                 uint64_t size, ten_backtrace_error_func_t error_cb, void *data,
-                 struct elf_view *view) {
+                 uint64_t size, ten_backtrace_on_error_func_t on_error,
+                 void *data, struct elf_view *view) {
   assert(self && "Invalid argument.");
 
   if (memory == NULL) {
@@ -29,7 +29,7 @@ int elf_get_view(ten_backtrace_t *self, int descriptor,
     return ten_mmap_init(&view->view, descriptor, offset, size);
   } else {
     if ((uint64_t)offset + size > (uint64_t)memory_size) {
-      error_cb(self, "out of range for in-memory file", 0, data);
+      on_error(self, "out of range for in-memory file", 0, data);
       return 0;
     }
     view->view.data = (const void *)(memory + offset);
@@ -44,7 +44,7 @@ int elf_get_view(ten_backtrace_t *self, int descriptor,
  * @brief Release a view read by elf_get_view.
  */
 void elf_release_view(ten_backtrace_t *self, struct elf_view *view,
-                      TEN_UNUSED ten_backtrace_error_func_t error_cb,
+                      TEN_UNUSED ten_backtrace_on_error_func_t on_error,
                       TEN_UNUSED void *data) {
   assert(self && "Invalid argument.");
 

@@ -16,7 +16,7 @@
 // offset.
 int resolve_string(ten_backtrace_t *self, const dwarf_sections *dwarf_sections,
                    int is_dwarf64, int is_bigendian, uint64_t str_offsets_base,
-                   const attr_val *val, ten_backtrace_error_func_t error_cb,
+                   const attr_val *val, ten_backtrace_on_error_func_t on_error,
                    void *data, const char **string) {
   switch (val->encoding) {
   case ATTR_VAL_STRING:
@@ -29,7 +29,7 @@ int resolve_string(ten_backtrace_t *self, const dwarf_sections *dwarf_sections,
     uint64_t offset = (val->u.uint * (is_dwarf64 ? 8 : 4)) + str_offsets_base;
     if (offset + (is_dwarf64 ? 8 : 4) >
         dwarf_sections->size[DEBUG_STR_OFFSETS]) {
-      error_cb(self, "DW_FORM_strx value out of range", 0, data);
+      on_error(self, "DW_FORM_strx value out of range", 0, data);
       return 0;
     }
 
@@ -38,7 +38,7 @@ int resolve_string(ten_backtrace_t *self, const dwarf_sections *dwarf_sections,
     offset_buf.buf = dwarf_sections->data[DEBUG_STR_OFFSETS] + offset;
     offset_buf.left = dwarf_sections->size[DEBUG_STR_OFFSETS] - offset;
     offset_buf.is_bigendian = is_bigendian;
-    offset_buf.error_cb = error_cb;
+    offset_buf.on_error = on_error;
     offset_buf.data = data;
     offset_buf.reported_underflow = 0;
 
@@ -61,13 +61,13 @@ int resolve_string(ten_backtrace_t *self, const dwarf_sections *dwarf_sections,
 int resolve_addr_index(ten_backtrace_t *self,
                        const dwarf_sections *dwarf_sections, uint64_t addr_base,
                        int addrsize, int is_bigendian, uint64_t addr_index,
-                       ten_backtrace_error_func_t error_cb, void *data,
+                       ten_backtrace_on_error_func_t on_error, void *data,
                        uintptr_t *address) {
   dwarf_buf addr_buf;
 
   uint64_t offset = (addr_index * addrsize) + addr_base;
   if (offset + addrsize > dwarf_sections->size[DEBUG_ADDR]) {
-    error_cb(self, "DW_FORM_addrx value out of range", 0, data);
+    on_error(self, "DW_FORM_addrx value out of range", 0, data);
     return 0;
   }
 
@@ -76,7 +76,7 @@ int resolve_addr_index(ten_backtrace_t *self,
   addr_buf.buf = dwarf_sections->data[DEBUG_ADDR] + offset;
   addr_buf.left = dwarf_sections->size[DEBUG_ADDR] - offset;
   addr_buf.is_bigendian = is_bigendian;
-  addr_buf.error_cb = error_cb;
+  addr_buf.on_error = on_error;
   addr_buf.data = data;
   addr_buf.reported_underflow = 0;
 

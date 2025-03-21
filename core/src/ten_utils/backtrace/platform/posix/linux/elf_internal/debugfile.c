@@ -293,9 +293,12 @@ done:
  *
  * @return an open file descriptor, or -1.
  */
-int elf_open_debug_file_by_debug_link(
-    ten_backtrace_t *self, const char *filename, const char *debug_link_name,
-    uint32_t debug_link_crc, ten_backtrace_error_func_t error_cb, void *data) {
+int elf_open_debug_file_by_debug_link(ten_backtrace_t *self,
+                                      const char *filename,
+                                      const char *debug_link_name,
+                                      uint32_t debug_link_crc,
+                                      ten_backtrace_on_error_func_t on_error,
+                                      void *data) {
   assert(self && "Invalid argument.");
 
   int debug_file_fd =
@@ -305,7 +308,7 @@ int elf_open_debug_file_by_debug_link(
   }
 
   if (debug_link_crc != 0) {
-    uint32_t got_crc = elf_crc32_file(self, debug_file_fd, error_cb, data);
+    uint32_t got_crc = elf_crc32_file(self, debug_file_fd, on_error, data);
     if (got_crc != debug_link_crc) {
       // CRC checksum error, the found debug file is not the correct one for @a
       // filename.

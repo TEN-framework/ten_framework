@@ -35,6 +35,6 @@ TEN_UTILS_PRIVATE_API int add_ranges(
     uintptr_t base_address, int is_bigendian, unit *u, uintptr_t base,
     const pcrange *pcrange,
     int (*add_range)(ten_backtrace_t *self, void *rdata, uintptr_t lowpc,
-                     uintptr_t highpc, ten_backtrace_error_func_t error_cb,
+                     uintptr_t highpc, ten_backtrace_on_error_func_t on_error,
                      void *data, void *vec),
-    void *rdata, ten_backtrace_error_func_t error_cb, void *data, void *vec);
+    void *rdata, ten_backtrace_on_error_func_t on_error, void *data, void *vec);

@@ -773,7 +773,7 @@ static int elf_uncompress_lzma_block(const unsigned char *compressed,
 // will carry on in that case.
 int elf_uncompress_lzma(ten_backtrace_t *self, const unsigned char *compressed,
                         size_t compressed_size,
-                        ten_backtrace_error_func_t error_cb, void *data,
+                        ten_backtrace_on_error_func_t on_error, void *data,
                         unsigned char **uncompressed,
                         size_t *uncompressed_size) {
   size_t header_size = 0;

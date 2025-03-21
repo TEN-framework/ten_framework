@@ -80,11 +80,11 @@ uint32_t elf_crc32(uint32_t crc, const unsigned char *buf, size_t len) {
  * @brief Return the CRC-32 of the entire file open at @a descriptor.
  */
 uint32_t elf_crc32_file(ten_backtrace_t *self, int descriptor,
-                        ten_backtrace_error_func_t error_cb, void *data) {
+                        ten_backtrace_on_error_func_t on_error, void *data) {
   struct stat st;
 
   if (fstat(descriptor, &st) < 0) {
-    error_cb(self, "fstat", errno, data);
+    on_error(self, "fstat", errno, data);
     return 0;
   }
 

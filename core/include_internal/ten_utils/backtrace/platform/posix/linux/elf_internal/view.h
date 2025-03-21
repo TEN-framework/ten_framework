@@ -28,10 +28,9 @@ TEN_UTILS_PRIVATE_API int elf_get_view(ten_backtrace_t *self, int descriptor,
                                        const unsigned char *memory,
                                        size_t memory_size, off_t offset,
                                        uint64_t size,
-                                       ten_backtrace_error_func_t error_cb,
+                                       ten_backtrace_on_error_func_t on_error,
                                        void *data, struct elf_view *view);
 
-TEN_UTILS_PRIVATE_API void elf_release_view(ten_backtrace_t *self,
-                                            struct elf_view *view,
-                                            ten_backtrace_error_func_t error_cb,
-                                            void *data);
+TEN_UTILS_PRIVATE_API void elf_release_view(
+    ten_backtrace_t *self, struct elf_view *view,
+    ten_backtrace_on_error_func_t on_error, void *data);
