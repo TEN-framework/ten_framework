@@ -7,14 +7,14 @@
 // This file is modified from
 // https://github.com/ianlancetaylor/libbacktrace [BSD license]
 //
-#include "include_internal/ten_utils/backtrace/platform/posix/linux/zlib.h"
+#include "include_internal/ten_utils/backtrace/platform/posix/linux/elf_internal/zlib.h"
 
 #include <stdio.h>
 #include <string.h>
 
 #include "include_internal/ten_utils/backtrace/platform/posix/internal.h"
 #include "include_internal/ten_utils/backtrace/platform/posix/linux/elf.h"
-#include "include_internal/ten_utils/backtrace/platform/posix/linux/uncompress.h"
+#include "include_internal/ten_utils/backtrace/platform/posix/linux/elf_internal/zutils.h"
 
 #if defined(BACKTRACE_GENERATE_FIXED_HUFFMAN_TABLE)
 
@@ -38,14 +38,14 @@ static int elf_zlib_inflate_table(unsigned char *codes, size_t codes_len,
   uint16_t start[16];
   uint16_t prev[16];
   uint16_t firstcode[7];
-  uint16_t *next;
-  size_t i;
-  size_t j;
-  unsigned int code;
-  size_t next_secondary;
+  uint16_t *next = NULL;
+  size_t i = 0;
+  size_t j = 0;
+  unsigned int code = 0;
+  size_t next_secondary = 0;
 
-  /* Count the number of code of each length.  Set NEXT[val] to be the
-     next value after VAL with the same bit length.  */
+  // Count the number of code of each length.  Set NEXT[val] to be the
+  // next value after VAL with the same bit length.
 
   next =
       (uint16_t *)(((unsigned char *)z_debug_table) + ZLIB_TABLE_WORK_OFFSET);
@@ -68,39 +68,40 @@ static int elf_zlib_inflate_table(unsigned char *codes, size_t codes_len,
     ++count[codes[i]];
   }
 
-  /* For each length, fill in the table for the codes of that
-     length.  */
+  // For each length, fill in the table for the codes of that
+  // length.
 
   memset(table, 0, ZLIB_HUFFMAN_TABLE_SIZE * sizeof(uint16_t));
 
-  /* Handle the values that do not require a secondary table.  */
+  // Handle the values that do not require a secondary table.
 
   code = 0;
   for (j = 1; j <= 8; ++j) {
-    unsigned int jcnt;
-    unsigned int val;
+    unsigned int jcnt = 0;
+    unsigned int val = 0;
 
     jcnt = count[j];
-    if (jcnt == 0)
+    if (jcnt == 0) {
       continue;
+    }
 
     if (unlikely(jcnt > (1U << j))) {
       elf_uncompress_failed();
       return 0;
     }
 
-    /* There are JCNT values that have this length, the values
-       starting from START[j] continuing through NEXT[VAL].  Those
-       values are assigned consecutive values starting at CODE.  */
+    // There are JCNT values that have this length, the values
+    // starting from START[j] continuing through NEXT[VAL].  Those
+    // values are assigned consecutive values starting at CODE.
 
     val = start[j];
     for (i = 0; i < jcnt; ++i) {
-      uint16_t tval;
-      size_t ind;
-      unsigned int incr;
+      uint16_t tval = 0;
+      size_t ind = 0;
+      unsigned int incr = 0;
 
-      /* In the compressed bit stream, the value VAL is encoded as
-         J bits with the value C.  */
+      // In the compressed bit stream, the value VAL is encoded as
+      // J bits with the value C.
 
       if (unlikely((val & ~ZLIB_HUFFMAN_VALUE_MASK) != 0)) {
         elf_uncompress_failed();
@@ -109,11 +110,11 @@ static int elf_zlib_inflate_table(unsigned char *codes, size_t codes_len,
 
       tval = val | ((j - 1) << ZLIB_HUFFMAN_BITS_SHIFT);
 
-      /* The table lookup uses 8 bits.  If J is less than 8, we
-         don't know what the other bits will be.  We need to fill
-         in all possibilities in the table.  Since the Huffman
-         code is unambiguous, those entries can't be used for any
-         other code.  */
+      // The table lookup uses 8 bits.  If J is less than 8, we
+      // don't know what the other bits will be.  We need to fill
+      // in all possibilities in the table.  Since the Huffman
+      // code is unambiguous, those entries can't be used for any
+      // other code.
 
       for (ind = code; ind < 0x100; ind += 1 << j) {
         if (unlikely(table[ind] != 0)) {
@@ -123,68 +124,72 @@ static int elf_zlib_inflate_table(unsigned char *codes, size_t codes_len,
         table[ind] = tval;
       }
 
-      /* Advance to the next value with this length.  */
-      if (i + 1 < jcnt)
+      // Advance to the next value with this length.
+      if (i + 1 < jcnt) {
         val = next[val];
+      }
 
-      /* The Huffman codes are stored in the bitstream with the
-         most significant bit first, as is required to make them
-         unambiguous.  The effect is that when we read them from
-         the bitstream we see the bit sequence in reverse order:
-         the most significant bit of the Huffman code is the least
-         significant bit of the value we read from the bitstream.
-         That means that to make our table lookups work, we need
-         to reverse the bits of CODE.  Since reversing bits is
-         tedious and in general requires using a table, we instead
-         increment CODE in reverse order.  That is, if the number
-         of bits we are currently using, here named J, is 3, we
-         count as 000, 100, 010, 110, 001, 101, 011, 111, which is
-         to say the numbers from 0 to 7 but with the bits
-         reversed.  Going to more bits, aka incrementing J,
-         effectively just adds more zero bits as the beginning,
-         and as such does not change the numeric value of CODE.
+      // The Huffman codes are stored in the bitstream with the
+      // most significant bit first, as is required to make them
+      // unambiguous.  The effect is that when we read them from
+      // the bitstream we see the bit sequence in reverse order:
+      // the most significant bit of the Huffman code is the least
+      // significant bit of the value we read from the bitstream.
+      // That means that to make our table lookups work, we need
+      // to reverse the bits of CODE.  Since reversing bits is
+      // tedious and in general requires using a table, we instead
+      // increment CODE in reverse order.  That is, if the number
+      // of bits we are currently using, here named J, is 3, we
+      // count as 000, 100, 010, 110, 001, 101, 011, 111, which is
+      // to say the numbers from 0 to 7 but with the bits
+      // reversed.  Going to more bits, aka incrementing J,
+      // effectively just adds more zero bits as the beginning,
+      // and as such does not change the numeric value of CODE.
 
-         To increment CODE of length J in reverse order, find the
-         most significant zero bit and set it to one while
-         clearing all higher bits.  In other words, add 1 modulo
-         2^J, only reversed.  */
+      // To increment CODE of length J in reverse order, find the
+      // most significant zero bit and set it to one while
+      // clearing all higher bits.  In other words, add 1 modulo
+      // 2^J, only reversed.
 
       incr = 1U << (j - 1);
-      while ((code & incr) != 0)
+      while ((code & incr) != 0) {
         incr >>= 1;
-      if (incr == 0)
+      }
+
+      if (incr == 0) {
         code = 0;
-      else {
+      } else {
         code &= incr - 1;
         code += incr;
       }
     }
   }
 
-  /* Handle the values that require a secondary table.  */
+  // Handle the values that require a secondary table.
 
-  /* Set FIRSTCODE, the number at which the codes start, for each
-     length.  */
+  // Set FIRSTCODE, the number at which the codes start, for each
+  // length.
 
   for (j = 9; j < 16; j++) {
-    unsigned int jcnt;
-    unsigned int k;
+    unsigned int jcnt = 0;
+    unsigned int k = 0;
 
     jcnt = count[j];
-    if (jcnt == 0)
+    if (jcnt == 0) {
       continue;
+    }
 
-    /* There are JCNT values that have this length, the values
-       starting from START[j].  Those values are assigned
-       consecutive values starting at CODE.  */
+    // There are JCNT values that have this length, the values
+    // starting from START[j].  Those values are assigned
+    // consecutive values starting at CODE.
 
     firstcode[j - 9] = code;
 
-    /* Reverse add JCNT to CODE modulo 2^J.  */
+    // Reverse add JCNT to CODE modulo 2^J.
     for (k = 0; k < j; ++k) {
       if ((jcnt & (1U << k)) != 0) {
-        unsigned int m;
-        unsigned int bit;
+        unsigned int m = 0;
+        unsigned int bit = 0;
 
         bit = 1U << (j - k - 1);
         for (m = 0; m < j - k; ++m, bit >>= 1) {
@@ -203,25 +208,26 @@ static int elf_zlib_inflate_table(unsigned char *codes, size_t codes_len,
     }
   }
 
-  /* For J from 9 to 15, inclusive, we store COUNT[J] consecutive
-     values starting at START[J] with consecutive codes starting at
-     FIRSTCODE[J - 9].  In the primary table we need to point to the
-     secondary table, and the secondary table will be indexed by J - 9
-     bits.  We count down from 15 so that we install the larger
-     secondary tables first, as the smaller ones may be embedded in
-     the larger ones.  */
+  // For J from 9 to 15, inclusive, we store COUNT[J] consecutive
+  // values starting at START[J] with consecutive codes starting at
+  // FIRSTCODE[J - 9].  In the primary table we need to point to the
+  // secondary table, and the secondary table will be indexed by J - 9
+  // bits.  We count down from 15 so that we install the larger
+  // secondary tables first, as the smaller ones may be embedded in
+  // the larger ones.
 
-  next_secondary = 0; /* Index of next secondary table (after primary).  */
+  next_secondary = 0; // Index of next secondary table (after primary).
   for (j = 15; j >= 9; j--) {
-    unsigned int jcnt;
-    unsigned int val;
-    size_t primary;        /* Current primary index.  */
-    size_t secondary;      /* Offset to current secondary table.  */
-    size_t secondary_bits; /* Bit size of current secondary table.  */
+    unsigned int jcnt = 0;
+    unsigned int val = 0;
+    size_t primary = 0;        // Current primary index.
+    size_t secondary = 0;      // Offset to current secondary table.
+    size_t secondary_bits = 0; // Bit size of current secondary table.
 
     jcnt = count[j];
-    if (jcnt == 0)
+    if (jcnt == 0) {
       continue;
+    }
 
     val = start[j];
     code = firstcode[j - 9];
@@ -229,20 +235,20 @@ static int elf_zlib_inflate_table(unsigned char *codes, size_t codes_len,
     secondary = 0;
     secondary_bits = 0;
     for (i = 0; i < jcnt; ++i) {
-      uint16_t tval;
-      size_t ind;
-      unsigned int incr;
+      uint16_t tval = 0;
+      size_t ind = 0;
+      unsigned int incr = 0;
 
       if ((code & 0xff) != primary) {
-        uint16_t tprimary;
+        uint16_t tprimary = 0;
 
-        /* Fill in a new primary table entry.  */
+        // Fill in a new primary table entry.
 
         primary = code & 0xff;
 
         tprimary = table[primary];
         if (tprimary == 0) {
-          /* Start a new secondary table.  */
+          // Start a new secondary table.
 
           if (unlikely((next_secondary & ZLIB_HUFFMAN_VALUE_MASK) !=
                        next_secondary)) {
@@ -256,8 +262,8 @@ static int elf_zlib_inflate_table(unsigned char *codes, size_t codes_len,
           table[primary] = (secondary + ((j - 8) << ZLIB_HUFFMAN_BITS_SHIFT) +
                             (1U << ZLIB_HUFFMAN_SECONDARY_SHIFT));
         } else {
-          /* There is an existing entry.  It had better be a
-             secondary table with enough bits.  */
+          // There is an existing entry.  It had better be a
+          // secondary table with enough bits.
           if (unlikely((tprimary & (1U << ZLIB_HUFFMAN_SECONDARY_SHIFT)) ==
                        0)) {
             elf_uncompress_failed();
@@ -273,7 +279,7 @@ static int elf_zlib_inflate_table(unsigned char *codes, size_t codes_len,
         }
       }
 
-      /* Fill in secondary table entries.  */
+      // Fill in secondary table entries.
 
       tval = val | ((j - 8) << ZLIB_HUFFMAN_BITS_SHIFT);
 
@@ -286,15 +292,18 @@ static int elf_zlib_inflate_table(unsigned char *codes, size_t codes_len,
         table[secondary + 0x100 + ind] = tval;
       }
 
-      if (i + 1 < jcnt)
+      if (i + 1 < jcnt) {
         val = next[val];
+      }
 
       incr = 1U << (j - 1);
-      while ((code & incr) != 0)
+      while ((code & incr) != 0) {
         incr >>= 1;
-      if (incr == 0)
+      }
+
+      if (incr == 0) {
         code = 0;
-      else {
+      } else {
         code &= incr - 1;
         code += incr;
       }
@@ -549,7 +558,7 @@ static int elf_zlib_inflate(const unsigned char *in, size_t in_size,
       }
 
       if (type == 0) {
-        uint16_t len;
+        uint16_t len = 0;
 
         // An uncompressed block.
 
@@ -613,16 +622,16 @@ static int elf_zlib_inflate(const unsigned char *in, size_t in_size,
         tlit = elf_zlib_default_table;
         tdist = elf_zlib_default_dist_table;
       } else {
-        unsigned int nlit;
-        unsigned int ndist;
-        unsigned int nclen;
+        unsigned int nlit = 0;
+        unsigned int ndist = 0;
+        unsigned int nclen = 0;
         unsigned char codebits[19];
-        unsigned char *plenbase;
-        unsigned char *plen;
-        unsigned char *plenend;
+        unsigned char *plenbase = NULL;
+        unsigned char *plen = NULL;
+        unsigned char *plenend = NULL;
 
-        /* Read a Huffman encoding table.  The various magic
-           numbers here are from RFC 1951.  */
+        // Read a Huffman encoding table.  The various magic
+        // numbers here are from RFC 1951.
 
         if (!elf_fetch_bits(&in, in_end, &val, &bits)) {
           return 0;
@@ -636,18 +645,18 @@ static int elf_zlib_inflate(const unsigned char *in, size_t in_size,
         val >>= 4;
         bits -= 14;
         if (unlikely(nlit > 286 || ndist > 30)) {
-          /* Values out of range.  */
+          // Values out of range.
           elf_uncompress_failed();
           return 0;
         }
 
-        /* Read and build the table used to compress the
-           literal, length, and distance codes.  */
+        // Read and build the table used to compress the
+        // literal, length, and distance codes.
 
         memset(&codebits[0], 0, 19);
 
-        /* There are always at least 4 elements in the
-           table.  */
+        // There are always at least 4 elements in the
+        // table.
 
         if (!elf_fetch_bits(&in, in_end, &val, &bits)) {
           return 0;
@@ -799,18 +808,18 @@ static int elf_zlib_inflate(const unsigned char *in, size_t in_size,
           return 0;
         }
 
-        /* Read the compressed bit lengths of the literal,
-           length, and distance codes.  We have allocated space
-           at the end of z_debug_table to hold them.  */
+        // Read the compressed bit lengths of the literal,
+        // length, and distance codes.  We have allocated space
+        // at the end of z_debug_table to hold them.
 
         plenbase =
             (((unsigned char *)z_debug_table) + ZLIB_TABLE_CODELEN_OFFSET);
         plen = plenbase;
         plenend = plen + nlit + ndist;
         while (plen < plenend) {
-          uint16_t t;
-          unsigned int b;
-          uint16_t v;
+          uint16_t t = 0;
+          unsigned int b = 0;
+          uint16_t v = 0;
 
           if (!elf_fetch_bits(&in, in_end, &val, &bits)) {
             return 0;
@@ -818,8 +827,8 @@ static int elf_zlib_inflate(const unsigned char *in, size_t in_size,
 
           t = z_debug_table[val & 0xff];
 
-          /* The compression here uses bit lengths up to 7, so
-             a secondary table is never necessary.  */
+          // The compression here uses bit lengths up to 7, so
+          // a secondary table is never necessary.
           if (unlikely((t & (1U << ZLIB_HUFFMAN_SECONDARY_SHIFT)) != 0)) {
             elf_uncompress_failed();
             return 0;
@@ -833,19 +842,19 @@ static int elf_zlib_inflate(const unsigned char *in, size_t in_size,
           if (v < 16) {
             *plen++ = v;
           } else if (v == 16) {
-            unsigned int c;
-            unsigned int prev;
+            unsigned int c = 0;
+            unsigned int prev = 0;
 
-            /* Copy previous entry 3 to 6 times.  */
+            // Copy previous entry 3 to 6 times.
 
             if (unlikely(plen == plenbase)) {
               elf_uncompress_failed();
               return 0;
             }
 
-            /* We used up to 7 bits since the last
-               elf_fetch_bits, so we have at least 8 bits
-               available here.  */
+            // We used up to 7 bits since the last
+            // elf_fetch_bits, so we have at least 8 bits
+            // available here.
 
             c = 3 + (val & 0x3);
             val >>= 2;
@@ -870,13 +879,13 @@ static int elf_zlib_inflate(const unsigned char *in, size_t in_size,
             *plen++ = prev;
             *plen++ = prev;
           } else if (v == 17) {
-            unsigned int c;
+            unsigned int c = 0;
 
-            /* Store zero 3 to 10 times.  */
+            // Store zero 3 to 10 times.
 
-            /* We used up to 7 bits since the last
-               elf_fetch_bits, so we have at least 8 bits
-               available here.  */
+            // We used up to 7 bits since the last
+            // elf_fetch_bits, so we have at least 8 bits
+            // available here.
 
             c = 3 + (val & 0x7);
             val >>= 3;
@@ -912,13 +921,13 @@ static int elf_zlib_inflate(const unsigned char *in, size_t in_size,
             *plen++ = 0;
             *plen++ = 0;
           } else if (v == 18) {
-            unsigned int c;
+            unsigned int c = 0;
 
-            /* Store zero 11 to 138 times.  */
+            // Store zero 11 to 138 times.
 
-            /* We used up to 7 bits since the last
-               elf_fetch_bits, so we have at least 8 bits
-               available here.  */
+            // We used up to 7 bits since the last
+            // elf_fetch_bits, so we have at least 8 bits
+            // available here.
 
             c = 11 + (val & 0x7f);
             val >>= 7;
@@ -936,7 +945,7 @@ static int elf_zlib_inflate(const unsigned char *in, size_t in_size,
           }
         }
 
-        /* Make sure that the stop code can appear.  */
+        // Make sure that the stop code can appear.
 
         plen = plenbase;
         if (unlikely(plen[256] == 0)) {
@@ -944,7 +953,7 @@ static int elf_zlib_inflate(const unsigned char *in, size_t in_size,
           return 0;
         }
 
-        /* Build the decompression tables.  */
+        // Build the decompression tables.
 
         if (!elf_zlib_inflate_table(plen, nlit, z_debug_table, z_debug_table)) {
           return 0;
@@ -958,14 +967,14 @@ static int elf_zlib_inflate(const unsigned char *in, size_t in_size,
         tdist = z_debug_table + ZLIB_HUFFMAN_TABLE_SIZE;
       }
 
-      /* Inflate values until the end of the block.  This is the
-         main loop of the inflation code.  */
+      // Inflate values until the end of the block.  This is the
+      // main loop of the inflation code.
 
       while (1) {
-        uint16_t t;
-        unsigned int b;
-        uint16_t v;
-        unsigned int lit;
+        uint16_t t = 0;
+        unsigned int b = 0;
+        uint16_t v = 0;
+        unsigned int lit = 0;
 
         if (!elf_fetch_bits(&in, in_end, &val, &bits)) {
           return 0;
@@ -995,18 +1004,18 @@ static int elf_zlib_inflate(const unsigned char *in, size_t in_size,
 
           *out++ = lit;
 
-          /* We will need to write the next byte soon.  We ask
-             for high temporal locality because we will write
-             to the whole cache line soon.  */
+          // We will need to write the next byte soon.  We ask
+          // for high temporal locality because we will write
+          // to the whole cache line soon.
           __builtin_prefetch(out, 1, 3);
         } else if (lit == 256) {
-          /* The end of the block.  */
+          // The end of the block.
           break;
         } else {
-          unsigned int dist;
-          unsigned int len;
+          unsigned int dist = 0;
+          unsigned int len = 0;
 
-          /* Convert lit into a length.  */
+          // Convert lit into a length.
 
           if (lit < 265) {
             len = lit - 257 + 3;
@@ -1016,14 +1025,14 @@ static int elf_zlib_inflate(const unsigned char *in, size_t in_size,
             elf_uncompress_failed();
             return 0;
           } else {
-            unsigned int extra;
+            unsigned int extra = 0;
 
             if (!elf_fetch_bits(&in, in_end, &val, &bits)) {
               return 0;
             }
 
-            /* This is an expression for the table of length
-               codes in RFC 1951 3.2.5.  */
+            // This is an expression for the table of length
+            // codes in RFC 1951 3.2.5.
             lit -= 265;
             extra = (lit >> 2) + 1;
             len = (lit & 3) << extra;
@@ -1054,11 +1063,11 @@ static int elf_zlib_inflate(const unsigned char *in, size_t in_size,
             bits -= b + 8;
           }
 
-          /* Convert dist to a distance.  */
+          // Convert dist to a distance.
 
           if (dist == 0) {
-            /* A distance of 1.  A common case, meaning
-               repeat the last character LEN times.  */
+            // A distance of 1.  A common case, meaning
+            // repeat the last character LEN times.
 
             if (unlikely(out == orig_out)) {
               elf_uncompress_failed();
@@ -1079,14 +1088,14 @@ static int elf_zlib_inflate(const unsigned char *in, size_t in_size,
             if (dist < 4) {
               dist = dist + 1;
             } else {
-              unsigned int extra;
+              unsigned int extra = 0;
 
               if (!elf_fetch_bits(&in, in_end, &val, &bits)) {
                 return 0;
               }
 
-              /* This is an expression for the table of
-                 distance codes in RFC 1951 3.2.5.  */
+              // This is an expression for the table of
+              // distance codes in RFC 1951 3.2.5.
               dist -= 4;
               extra = (dist >> 1) + 1;
               dist = (dist & 1) << extra;
@@ -1097,8 +1106,8 @@ static int elf_zlib_inflate(const unsigned char *in, size_t in_size,
               bits -= extra;
             }
 
-            /* Go back dist bytes, and copy len bytes from
-               there.  */
+            // Go back dist bytes, and copy len bytes from
+            // there.
 
             if (unlikely((unsigned int)(out - orig_out) < dist)) {
               elf_uncompress_failed();
@@ -1115,9 +1124,7 @@ static int elf_zlib_inflate(const unsigned char *in, size_t in_size,
               out += len;
             } else {
               while (len > 0) {
-                unsigned int copy;
-
-                copy = len < dist ? len : dist;
+                unsigned int copy = len < dist ? len : dist;
                 memcpy(out, out - dist, copy);
                 len -= copy;
                 out += copy;
@@ -1129,7 +1136,7 @@ static int elf_zlib_inflate(const unsigned char *in, size_t in_size,
     }
   }
 
-  /* We should have filled the output buffer.  */
+  // We should have filled the output buffer.
   if (unlikely(out != out_end)) {
     elf_uncompress_failed();
     return 0;
@@ -1138,34 +1145,35 @@ static int elf_zlib_inflate(const unsigned char *in, size_t in_size,
   return 1;
 }
 
-/* Verify the zlib checksum.  The checksum is in the 4 bytes at
-   CHECKBYTES, and the uncompressed data is at UNCOMPRESSED /
-   UNCOMPRESSED_SIZE.  Returns 1 on success, 0 on failure.  */
+// Verify the zlib checksum.  The checksum is in the 4 bytes at
+// CHECKBYTES, and the uncompressed data is at UNCOMPRESSED /
+// UNCOMPRESSED_SIZE.  Returns 1 on success, 0 on failure.
 
 static int elf_zlib_verify_checksum(const unsigned char *checkbytes,
                                     const unsigned char *uncompressed,
                                     size_t uncompressed_size) {
-  unsigned int i;
-  unsigned int cksum;
-  const unsigned char *p;
-  uint32_t s1;
-  uint32_t s2;
-  size_t hsz;
+  unsigned int i = 0;
+  unsigned int cksum = 0;
+  const unsigned char *p = NULL;
+  uint32_t s1 = 0;
+  uint32_t s2 = 0;
+  size_t hsz = 0;
 
   cksum = 0;
-  for (i = 0; i < 4; i++)
+  for (i = 0; i < 4; i++) {
     cksum = (cksum << 8) | checkbytes[i];
+  }
 
   s1 = 1;
   s2 = 0;
 
-  /* Minimize modulo operations.  */
+  // Minimize modulo operations.
 
   p = uncompressed;
   hsz = uncompressed_size;
   while (hsz >= 5552) {
     for (i = 0; i < 5552; i += 16) {
-      /* Manually unroll loop 16 times.  */
+      // Manually unroll loop 16 times.
       s1 = s1 + *p++;
       s2 = s2 + s1;
       s1 = s1 + *p++;
@@ -1205,7 +1213,7 @@ static int elf_zlib_verify_checksum(const unsigned char *checkbytes,
   }
 
   while (hsz >= 16) {
-    /* Manually unroll loop 16 times.  */
+    // Manually unroll loop 16 times.
     s1 = s1 + *p++;
     s2 = s2 + s1;
     s1 = s1 + *p++;

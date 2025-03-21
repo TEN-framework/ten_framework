@@ -20,6 +20,8 @@
 extern "C" {
 #endif
 
+// This is a virtual type, only used as the type for parameters of public
+// functions.
 typedef struct ten_backtrace_t ten_backtrace_t;
 
 /**
