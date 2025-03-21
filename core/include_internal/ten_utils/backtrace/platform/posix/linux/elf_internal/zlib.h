@@ -56,13 +56,13 @@
 // large enough to hold the maximum number of code lengths, which RFC 1951
 // defines as 286 + 30.
 
-#define ZLIB_TABLE_SIZE                             \
-  (2 * ZLIB_HUFFMAN_TABLE_SIZE * sizeof(uint16_t) + \
-   (286 + 30) * sizeof(uint16_t) + (286 + 30) * sizeof(unsigned char))
+#define ZLIB_TABLE_SIZE                               \
+  ((2 * ZLIB_HUFFMAN_TABLE_SIZE * sizeof(uint16_t)) + \
+   ((286 + 30) * sizeof(uint16_t)) + ((286 + 30) * sizeof(unsigned char)))
 
-#define ZLIB_TABLE_CODELEN_OFFSET                   \
-  (2 * ZLIB_HUFFMAN_TABLE_SIZE * sizeof(uint16_t) + \
-   (286 + 30) * sizeof(uint16_t))
+#define ZLIB_TABLE_CODELEN_OFFSET                     \
+  ((2 * ZLIB_HUFFMAN_TABLE_SIZE * sizeof(uint16_t)) + \
+   ((286 + 30) * sizeof(uint16_t)))
 
 #define ZLIB_TABLE_WORK_OFFSET (2 * ZLIB_HUFFMAN_TABLE_SIZE * sizeof(uint16_t))
 

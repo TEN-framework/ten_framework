@@ -18,7 +18,7 @@
 #include <sys/types.h>
 
 #include "include_internal/ten_utils/backtrace/backtrace.h"
-#include "include_internal/ten_utils/backtrace/platform/posix/dwarf.h"
+#include "include_internal/ten_utils/backtrace/platform/posix/dwarf_internal/section.h"
 #include "include_internal/ten_utils/backtrace/platform/posix/file.h"
 #include "include_internal/ten_utils/backtrace/platform/posix/internal.h"
 #include "include_internal/ten_utils/backtrace/platform/posix/mmap.h"
@@ -27,31 +27,31 @@
 
 // Mach-O file header for a 32-bit executable.
 typedef struct macho_header_32 {
-  uint32_t magic;      /* Magic number (MACH_O_MAGIC_32) */
-  uint32_t cputype;    /* CPU type */
-  uint32_t cpusubtype; /* CPU subtype */
-  uint32_t filetype;   /* Type of file (object, executable) */
-  uint32_t ncmds;      /* Number of load commands */
-  uint32_t sizeofcmds; /* Total size of load commands */
-  uint32_t flags;      /* Flags for special features */
+  uint32_t magic;      // Magic number (MACH_O_MAGIC_32)
+  uint32_t cputype;    // CPU type
+  uint32_t cpusubtype; // CPU subtype
+  uint32_t filetype;   // Type of file (object, executable)
+  uint32_t ncmds;      // Number of load commands
+  uint32_t sizeofcmds; // Total size of load commands
+  uint32_t flags;      // Flags for special features
 } macho_header_32;
 
 // Mach-O file header for a 64-bit executable.
 typedef struct macho_header_64 {
-  uint32_t magic;      /* Magic number (MACH_O_MAGIC_64) */
-  uint32_t cputype;    /* CPU type */
-  uint32_t cpusubtype; /* CPU subtype */
-  uint32_t filetype;   /* Type of file (object, executable) */
-  uint32_t ncmds;      /* Number of load commands */
-  uint32_t sizeofcmds; /* Total size of load commands */
-  uint32_t flags;      /* Flags for special features */
-  uint32_t reserved;   /* Reserved */
+  uint32_t magic;      // Magic number (MACH_O_MAGIC_64)
+  uint32_t cputype;    // CPU type
+  uint32_t cpusubtype; // CPU subtype
+  uint32_t filetype;   // Type of file (object, executable)
+  uint32_t ncmds;      // Number of load commands
+  uint32_t sizeofcmds; // Total size of load commands
+  uint32_t flags;      // Flags for special features
+  uint32_t reserved;   // Reserved
 } macho_header_64;
 
 // Mach-O file header for a fat executable.
 typedef struct macho_header_fat {
-  uint32_t magic;     /* Magic number (MACH_O_MH_(MAGIC|CIGAM)_FAT(_64)?) */
-  uint32_t nfat_arch; /* Number of components */
+  uint32_t magic;     // Magic number (MACH_O_MH_(MAGIC|CIGAM)_FAT(_64)?)
+  uint32_t nfat_arch; // Number of components
 } macho_header_fat;
 
 // Values for the header magic field.
@@ -72,11 +72,11 @@ typedef struct macho_header_fat {
  * followed by nfat_arch instances of this struct.
  */
 typedef struct macho_fat_arch {
-  uint32_t cputype;    /* CPU type */
-  uint32_t cpusubtype; /* CPU subtype */
-  uint32_t offset;     /* File offset of this entry */
-  uint32_t size;       /* Size of this entry */
-  uint32_t align;      /* Alignment of this entry */
+  uint32_t cputype;    // CPU type
+  uint32_t cpusubtype; // CPU subtype
+  uint32_t offset;     // File offset of this entry
+  uint32_t size;       // Size of this entry
+  uint32_t align;      // Alignment of this entry
 } macho_fat_arch;
 
 /**
@@ -85,12 +85,12 @@ typedef struct macho_fat_arch {
  * large to represent in the 32-bit format.
  */
 typedef struct macho_fat_arch_64 {
-  uint32_t cputype;    /* CPU type */
-  uint32_t cpusubtype; /* CPU subtype */
-  uint64_t offset;     /* File offset of this entry */
-  uint64_t size;       /* Size of this entry */
-  uint32_t align;      /* Alignment of this entry */
-  uint32_t reserved;   /* Reserved */
+  uint32_t cputype;    // CPU type
+  uint32_t cpusubtype; // CPU subtype
+  uint64_t offset;     // File offset of this entry
+  uint64_t size;       // Size of this entry
+  uint32_t align;      // Alignment of this entry
+  uint32_t reserved;   // Reserved
 } macho_fat_arch_64;
 
 // Values for the fat_arch cputype field (and the header cputype field).
@@ -106,8 +106,8 @@ typedef struct macho_fat_arch_64 {
 
 // The header of a load command.
 typedef struct macho_load_command {
-  uint32_t cmd;     /* The type of load command */
-  uint32_t cmdsize; /* Size in bytes of the entire command */
+  uint32_t cmd;     // The type of load command
+  uint32_t cmdsize; // Size in bytes of the entire command
 } macho_load_command;
 
 // Values for the load_command cmd field.
@@ -121,42 +121,42 @@ typedef struct macho_load_command {
 
 // LC_SEGMENT load command.
 typedef struct macho_segment_command {
-  uint32_t cmd;                 /* The type of load command (LC_SEGMENT) */
-  uint32_t cmdsize;             /* Size in bytes of the entire command */
-  char segname[MACH_O_NAMELEN]; /* Segment name */
-  uint32_t vmaddr;              /* Virtual memory address */
-  uint32_t vmsize;              /* Virtual memory size */
-  uint32_t fileoff;             /* Offset of data to be mapped */
-  uint32_t filesize;            /* Size of data in file */
-  uint32_t maxprot;             /* Maximum permitted virtual protection */
-  uint32_t initprot;            /* Initial virtual memory protection */
-  uint32_t nsects;              /* Number of sections in this segment */
-  uint32_t flags;               /* Flags */
+  uint32_t cmd;                 // The type of load command (LC_SEGMENT)
+  uint32_t cmdsize;             // Size in bytes of the entire command
+  char segname[MACH_O_NAMELEN]; // Segment name
+  uint32_t vmaddr;              // Virtual memory address
+  uint32_t vmsize;              // Virtual memory size
+  uint32_t fileoff;             // Offset of data to be mapped
+  uint32_t filesize;            // Size of data in file
+  uint32_t maxprot;             // Maximum permitted virtual protection
+  uint32_t initprot;            // Initial virtual memory protection
+  uint32_t nsects;              // Number of sections in this segment
+  uint32_t flags;               // Flags
 } macho_segment_command;
 
 // LC_SEGMENT_64 load command.
 typedef struct macho_segment_64_command {
-  uint32_t cmd;                 /* The type of load command (LC_SEGMENT) */
-  uint32_t cmdsize;             /* Size in bytes of the entire command */
-  char segname[MACH_O_NAMELEN]; /* Segment name */
-  uint64_t vmaddr;              /* Virtual memory address */
-  uint64_t vmsize;              /* Virtual memory size */
-  uint64_t fileoff;             /* Offset of data to be mapped */
-  uint64_t filesize;            /* Size of data in file */
-  uint32_t maxprot;             /* Maximum permitted virtual protection */
-  uint32_t initprot;            /* Initial virtual memory protection */
-  uint32_t nsects;              /* Number of sections in this segment */
-  uint32_t flags;               /* Flags */
+  uint32_t cmd;                 // The type of load command (LC_SEGMENT)
+  uint32_t cmdsize;             // Size in bytes of the entire command
+  char segname[MACH_O_NAMELEN]; // Segment name
+  uint64_t vmaddr;              // Virtual memory address
+  uint64_t vmsize;              // Virtual memory size
+  uint64_t fileoff;             // Offset of data to be mapped
+  uint64_t filesize;            // Size of data in file
+  uint32_t maxprot;             // Maximum permitted virtual protection
+  uint32_t initprot;            // Initial virtual memory protection
+  uint32_t nsects;              // Number of sections in this segment
+  uint32_t flags;               // Flags
 } macho_segment_64_command;
 
 // LC_SYMTAB load command.
 typedef struct macho_symtab_command {
-  uint32_t cmd;     /* The type of load command (LC_SEGMENT) */
-  uint32_t cmdsize; /* Size in bytes of the entire command */
-  uint32_t symoff;  /* File offset of symbol table */
-  uint32_t nsyms;   /* Number of symbols */
-  uint32_t stroff;  /* File offset of string table */
-  uint32_t strsize; /* String table size */
+  uint32_t cmd;     // The type of load command (LC_SEGMENT)
+  uint32_t cmdsize; // Size in bytes of the entire command
+  uint32_t symoff;  // File offset of symbol table
+  uint32_t nsyms;   // Number of symbols
+  uint32_t stroff;  // File offset of string table
+  uint32_t strsize; // String table size
 } macho_symtab_command;
 
 // The length of a Mach-O uuid.
@@ -164,37 +164,37 @@ typedef struct macho_symtab_command {
 
 // LC_UUID load command.
 typedef struct macho_uuid_command {
-  uint32_t cmd;                        /* Type of load command (LC_UUID) */
-  uint32_t cmdsize;                    /* Size in bytes of command */
-  unsigned char uuid[MACH_O_UUID_LEN]; /* UUID */
+  uint32_t cmd;                        // Type of load command (LC_UUID)
+  uint32_t cmdsize;                    // Size in bytes of command
+  unsigned char uuid[MACH_O_UUID_LEN]; // UUID
 } macho_uuid_command;
 
 // 32-bit section header within a LC_SEGMENT segment.
 typedef struct macho_section {
-  char sectname[MACH_O_NAMELEN]; /* Section name */
-  char segment[MACH_O_NAMELEN];  /* Segment of this section */
-  uint32_t addr;                 /* Address in memory */
-  uint32_t size;                 /* Section size */
-  uint32_t offset;               /* File offset */
-  uint32_t align;                /* Log2 of section alignment */
-  uint32_t reloff;               /* File offset of relocations */
-  uint32_t nreloc;               /* Number of relocs for this section */
-  uint32_t flags;                /* Flags */
+  char sectname[MACH_O_NAMELEN]; // Section name
+  char segment[MACH_O_NAMELEN];  // Segment of this section
+  uint32_t addr;                 // Address in memory
+  uint32_t size;                 // Section size
+  uint32_t offset;               // File offset
+  uint32_t align;                // Log2 of section alignment
+  uint32_t reloff;               // File offset of relocations
+  uint32_t nreloc;               // Number of relocs for this section
+  uint32_t flags;                // Flags
   uint32_t reserved1;
   uint32_t reserved2;
 } macho_section;
 
 // 64-bit section header within a LC_SEGMENT_64 segment.
 typedef struct macho_section_64 {
-  char sectname[MACH_O_NAMELEN]; /* Section name */
-  char segment[MACH_O_NAMELEN];  /* Segment of this section */
-  uint64_t addr;                 /* Address in memory */
-  uint64_t size;                 /* Section size */
-  uint32_t offset;               /* File offset */
-  uint32_t align;                /* Log2 of section alignment */
-  uint32_t reloff;               /* File offset of section relocations */
-  uint32_t nreloc;               /* Number of relocs for this section */
-  uint32_t flags;                /* Flags */
+  char sectname[MACH_O_NAMELEN]; // Section name
+  char segment[MACH_O_NAMELEN];  // Segment of this section
+  uint64_t addr;                 // Address in memory
+  uint64_t size;                 // Section size
+  uint32_t offset;               // File offset
+  uint32_t align;                // Log2 of section alignment
+  uint32_t reloff;               // File offset of section relocations
+  uint32_t nreloc;               // Number of relocs for this section
+  uint32_t flags;                // Flags
   uint32_t reserved1;
   uint32_t reserved2;
   uint32_t reserved3;
@@ -202,49 +202,49 @@ typedef struct macho_section_64 {
 
 // 32-bit symbol data.
 typedef struct macho_nlist {
-  uint32_t n_strx;  /* Index of name in string table */
-  uint8_t n_type;   /* Type flag */
-  uint8_t n_sect;   /* Section number */
-  uint16_t n_desc;  /* Stabs description field */
-  uint32_t n_value; /* Value */
+  uint32_t n_strx;  // Index of name in string table
+  uint8_t n_type;   // Type flag
+  uint8_t n_sect;   // Section number
+  uint16_t n_desc;  // Stabs description field
+  uint32_t n_value; // Value
 } macho_nlist;
 
 // 64-bit symbol data.
 typedef struct macho_nlist_64 {
-  uint32_t n_strx;  /* Index of name in string table */
-  uint8_t n_type;   /* Type flag */
-  uint8_t n_sect;   /* Section number */
-  uint16_t n_desc;  /* Stabs description field */
-  uint64_t n_value; /* Value */
+  uint32_t n_strx;  // Index of name in string table
+  uint8_t n_type;   // Type flag
+  uint8_t n_sect;   // Section number
+  uint16_t n_desc;  // Stabs description field
+  uint64_t n_value; // Value
 } macho_nlist_64;
 
 // Value found in nlist n_type field.
-#define MACH_O_N_EXT 0x01  /* Extern symbol */
-#define MACH_O_N_ABS 0x02  /* Absolute symbol */
-#define MACH_O_N_SECT 0x0e /* Defined in section */
+#define MACH_O_N_EXT 0x01  // Extern symbol
+#define MACH_O_N_ABS 0x02  // Absolute symbol
+#define MACH_O_N_SECT 0x0e // Defined in section
 
-#define MACH_O_N_TYPE 0x0e /* Mask for type bits */
-#define MACH_O_N_STAB 0xe0 /* Stabs debugging symbol */
+#define MACH_O_N_TYPE 0x0e // Mask for type bits
+#define MACH_O_N_STAB 0xe0 // Stabs debugging symbol
 
 // Information we keep for a Mach-O symbol.
 typedef struct macho_symbol {
-  const char *name;  /* Symbol name */
-  uintptr_t address; /* Symbol address */
+  const char *name;  // Symbol name
+  uintptr_t address; // Symbol address
 } macho_symbol;
 
 // Information to pass to macho_syminfo.
 typedef struct macho_syminfo_data {
-  struct macho_syminfo_data *next; /* Next module */
-  struct macho_symbol *symbols;    /* Symbols sorted by address */
-  size_t count;                    /* Number of symbols */
+  struct macho_syminfo_data *next; // Next module
+  struct macho_symbol *symbols;    // Symbols sorted by address
+  size_t count;                    // Number of symbols
 } macho_syminfo_data;
 
 // Names of sections, indexed by enum dwarf_section in internal.h.
 static const char *const dwarf_section_names[DEBUG_MAX] = {
     "__debug_info",     "__debug_line",
     "__debug_abbrev",   "__debug_ranges",
-    "__debug_str",      "", /* DEBUG_ADDR */
-    "__debug_str_offs", "", /* DEBUG_LINE_STR */
+    "__debug_str",      "", // DEBUG_ADDR
+    "__debug_str_offs", "", // DEBUG_LINE_STR
     "__debug_rnglists"};
 
 static int
@@ -298,18 +298,17 @@ static int macho_add_dwarf_section(ten_backtrace_t *self, int descriptor,
   return 1;
 }
 
-/* Collect DWARF sections from a DWARF segment.  Returns 1 on success,
-   0 on failure.  */
-
+// Collect DWARF sections from a DWARF segment.  Returns 1 on success,
+// 0 on failure.
 static int macho_add_dwarf_segment(ten_backtrace_t *self, int descriptor,
                                    off_t offset, unsigned int cmd,
                                    const char *psecs, size_t sizesecs,
                                    unsigned int nsects,
                                    ten_backtrace_error_func_t error_cb,
                                    void *data, dwarf_sections *dwarf_sections) {
-  size_t sec_header_size;
-  size_t secoffset;
-  unsigned int i;
+  size_t sec_header_size = 0;
+  size_t secoffset = 0;
+  unsigned int i = 0;
 
   switch (cmd) {
   case MACH_O_LC_SEGMENT:
@@ -358,7 +357,7 @@ static int macho_add_dwarf_segment(ten_backtrace_t *self, int descriptor,
   return 1;
 }
 
-/* Compare struct macho_symbol for qsort.  */
+// Compare struct macho_symbol for qsort.
 
 static int macho_symbol_compare(const void *v1, const void *v2) {
   const struct macho_symbol *m1 = (const struct macho_symbol *)v1;
@@ -373,16 +372,13 @@ static int macho_symbol_compare(const void *v1, const void *v2) {
   }
 }
 
-/* Compare an address against a macho_symbol for bsearch.  We allocate
-   one extra entry in the array so that this can safely look at the
-   next entry.  */
-
+// Compare an address against a macho_symbol for bsearch.  We allocate
+// one extra entry in the array so that this can safely look at the
+// next entry.
 static int macho_symbol_search(const void *vkey, const void *ventry) {
   const uintptr_t *key = (const uintptr_t *)vkey;
   const struct macho_symbol *entry = (const struct macho_symbol *)ventry;
-  uintptr_t addr;
-
-  addr = *key;
+  uintptr_t addr = *key;
 
   if (addr < entry->address) {
     return -1;
@@ -398,9 +394,8 @@ static int macho_symbol_search(const void *vkey, const void *ventry) {
   }
 }
 
-/* Return whether the symbol type field indicates a symbol table entry
-   that we care about: a function or data symbol.  */
-
+// Return whether the symbol type field indicates a symbol table entry
+// that we care about: a function or data symbol.
 static int macho_defined_symbol(uint8_t type) {
   if ((type & MACH_O_N_STAB) != 0) {
     return 0;
@@ -417,8 +412,7 @@ static int macho_defined_symbol(uint8_t type) {
   }
 }
 
-/* Add symbol table information for a Mach-O file.  */
-
+// Add symbol table information for a Mach-O file.
 static int macho_add_symtab(ten_backtrace_t *self_, int descriptor,
                             uintptr_t base_address, int is_64, off_t symoff,
                             unsigned int nsyms, off_t stroff,
@@ -427,18 +421,18 @@ static int macho_add_symtab(ten_backtrace_t *self_, int descriptor,
   ten_backtrace_posix_t *self = (ten_backtrace_posix_t *)self_;
   assert(self && "Invalid argument.");
 
-  size_t symsize;
+  size_t symsize = 0;
   ten_mmap_t sym_view;
-  int sym_view_valid;
+  int sym_view_valid = 0;
   ten_mmap_t str_view;
-  int str_view_valid;
-  size_t ndefs;
-  size_t symtaboff;
-  unsigned int i;
-  size_t macho_symbol_size;
-  struct macho_symbol *macho_symbols;
-  unsigned int j;
-  struct macho_syminfo_data *sdata;
+  int str_view_valid = 0;
+  size_t ndefs = 0;
+  size_t symtaboff = 0;
+  unsigned int i = 0;
+  size_t macho_symbol_size = 0;
+  struct macho_symbol *macho_symbols = NULL;
+  unsigned int j = 0;
+  struct macho_syminfo_data *sdata = NULL;
 
   sym_view_valid = 0;
   str_view_valid = 0;
@@ -470,18 +464,20 @@ static int macho_add_symtab(ten_backtrace_t *self_, int descriptor,
       struct macho_nlist_64 nlist;
 
       memcpy(&nlist, (const char *)sym_view.data + symtaboff, sizeof nlist);
-      if (macho_defined_symbol(nlist.n_type))
+      if (macho_defined_symbol(nlist.n_type)) {
         ++ndefs;
+      }
     } else {
       struct macho_nlist nlist;
 
       memcpy(&nlist, (const char *)sym_view.data + symtaboff, sizeof nlist);
-      if (macho_defined_symbol(nlist.n_type))
+      if (macho_defined_symbol(nlist.n_type)) {
         ++ndefs;
+      }
     }
   }
 
-  /* Add 1 to ndefs to make room for a sentinel.  */
+  // Add 1 to ndefs to make room for a sentinel.
   macho_symbol_size = (ndefs + 1) * sizeof(struct macho_symbol);
   macho_symbols = (struct macho_symbol *)malloc(macho_symbol_size);
   if (macho_symbols == NULL) {
@@ -491,9 +487,9 @@ static int macho_add_symtab(ten_backtrace_t *self_, int descriptor,
   j = 0;
   symtaboff = 0;
   for (i = 0; i < nsyms; ++i, symtaboff += symsize) {
-    uint32_t strx;
-    uint64_t value;
-    const char *name;
+    uint32_t strx = 0;
+    uint64_t value = 0;
+    const char *name = NULL;
 
     strx = 0;
     value = 0;
@@ -539,14 +535,14 @@ static int macho_add_symtab(ten_backtrace_t *self_, int descriptor,
     goto fail;
   }
 
-  /* We need to keep the string table since it holds the names, but we
-     can release the symbol table.  */
+  // We need to keep the string table since it holds the names, but we
+  // can release the symbol table.
 
   ten_mmap_deinit(&sym_view);
   sym_view_valid = 0;
   str_view_valid = 0;
 
-  /* Add a trailing sentinel symbol.  */
+  // Add a trailing sentinel symbol.
   macho_symbols[j].name = "";
   macho_symbols[j].address = ~(uintptr_t)0;
 
@@ -593,7 +589,7 @@ fail:
   return 0;
 }
 
-/* Return the symbol name and value for an ADDR.  */
+// Return the symbol name and value for an ADDR.
 
 static void macho_syminfo(ten_backtrace_t *self_, uintptr_t addr,
                           ten_backtrace_dump_syminfo_func_t dump_syminfo_cb,
@@ -632,20 +628,19 @@ static void macho_syminfo(ten_backtrace_t *self_, uintptr_t addr,
   }
 }
 
-/* Look through a fat file to find the relevant executable.  Returns 1
-   on success, 0 on failure (in both cases descriptor is closed).  */
-
+// Look through a fat file to find the relevant executable.  Returns 1
+// on success, 0 on failure (in both cases descriptor is closed).
 static int
 macho_add_fat(ten_backtrace_t *self, const char *filename, int descriptor,
               int swapped, off_t offset, const unsigned char *match_uuid,
               uintptr_t base_address, int skip_symtab, uint32_t nfat_arch,
               int is_64, ten_backtrace_error_func_t error_cb, void *data,
               ten_backtrace_get_file_line_func_t *fileline_fn, int *found_sym) {
-  int arch_view_valid;
-  unsigned int cputype;
-  size_t arch_size;
+  int arch_view_valid = 0;
+  unsigned int cputype = 0;
+  size_t arch_size = 0;
   ten_mmap_t arch_view;
-  unsigned int i;
+  unsigned int i = 0;
 
   arch_view_valid = 0;
 
@@ -677,13 +672,13 @@ macho_add_fat(ten_backtrace_t *self, const char *filename, int descriptor,
   }
 
   for (i = 0; i < nfat_arch; ++i) {
-    uint32_t fcputype;
-    uint64_t foffset;
+    uint32_t fcputype = 0;
+    uint64_t foffset = 0;
 
     if (is_64) {
       struct macho_fat_arch_64 fat_arch_64;
 
-      memcpy(&fat_arch_64, (const char *)arch_view.data + i * arch_size,
+      memcpy(&fat_arch_64, (const char *)arch_view.data + (i * arch_size),
              arch_size);
       fcputype = fat_arch_64.cputype;
       foffset = fat_arch_64.offset;
@@ -694,7 +689,7 @@ macho_add_fat(ten_backtrace_t *self, const char *filename, int descriptor,
     } else {
       struct macho_fat_arch fat_arch_32;
 
-      memcpy(&fat_arch_32, (const char *)arch_view.data + i * arch_size,
+      memcpy(&fat_arch_32, (const char *)arch_view.data + (i * arch_size),
              arch_size);
       fcputype = fat_arch_32.cputype;
       foffset = (uint64_t)fat_arch_32.offset;
@@ -705,7 +700,7 @@ macho_add_fat(ten_backtrace_t *self, const char *filename, int descriptor,
     }
 
     if (fcputype == cputype) {
-      /* FIXME: What about cpusubtype?  */
+      // FIXME: What about cpusubtype?
       ten_mmap_deinit(&arch_view);
       return macho_add(self, filename, descriptor, foffset, match_uuid,
                        base_address, skip_symtab, error_cb, data, fileline_fn,
@@ -725,27 +720,26 @@ fail:
   return 0;
 }
 
-/* Look for the dsym file for FILENAME.  This is called if FILENAME
-   does not have debug info or a symbol table.  Returns 1 on success,
-   0 on failure.  */
-
+// Look for the dsym file for FILENAME.  This is called if FILENAME
+// does not have debug info or a symbol table.  Returns 1 on success,
+// 0 on failure.
 static int macho_add_dsym(ten_backtrace_t *self, const char *filename,
                           uintptr_t base_address, const unsigned char *uuid,
                           ten_backtrace_error_func_t error_cb, void *data,
                           ten_backtrace_get_file_line_func_t *fileline_fn) {
-  const char *p;
-  const char *dirname;
-  char *diralc;
-  size_t dirnamelen;
-  const char *basename;
-  size_t basenamelen;
-  const char *dsymsuffixdir;
-  size_t dsymsuffixdirlen;
-  size_t dsymlen;
-  char *dsym;
-  char *ps;
+  const char *p = NULL;
+  const char *dirname = NULL;
+  char *diralc = NULL;
+  size_t dirnamelen = 0;
+  const char *basename = NULL;
+  size_t basenamelen = 0;
+  const char *dsymsuffixdir = NULL;
+  size_t dsymsuffixdirlen = 0;
+  size_t dsymlen = 0;
+  char *dsym = NULL;
+  char *ps = NULL;
   bool does_not_exist = false;
-  int dummy_found_sym;
+  int dummy_found_sym = 0;
 
   diralc = NULL;
   dirnamelen = 0;
@@ -802,8 +796,8 @@ static int macho_add_dsym(ten_backtrace_t *self, const char *filename,
 
   int fd = ten_backtrace_open_file(dsym, &does_not_exist);
   if (fd < 0) {
-    /* The file does not exist, so we can't read the debug info.
-       Just return success.  */
+    // The file does not exist, so we can't read the debug info.
+    // Just return success.
     free(dsym);
     return 1;
   }
@@ -827,18 +821,17 @@ fail:
   return 0;
 }
 
-/* Add the backtrace data for a Macho-O file.  Returns 1 on success, 0
-   on failure (in both cases descriptor is closed).
-
-   FILENAME: the name of the executable.
-   DESCRIPTOR: an open descriptor for the executable, closed here.
-   OFFSET: the offset within the file of this executable, for fat files.
-   MATCH_UUID: if not NULL, UUID that must match.
-   BASE_ADDRESS: the load address of the executable.
-   SKIP_SYMTAB: if non-zero, ignore the symbol table; used for dSYM files.
-   FILELINE_FN: set to the fileline function, by backtrace_dwarf_add.
-   FOUND_SYM: set to non-zero if we found the symbol table.
-*/
+// Add the backtrace data for a Macho-O file.  Returns 1 on success, 0
+// on failure (in both cases descriptor is closed).
+//
+// FILENAME: the name of the executable.
+// DESCRIPTOR: an open descriptor for the executable, closed here.
+// OFFSET: the offset within the file of this executable, for fat files.
+// MATCH_UUID: if not NULL, UUID that must match.
+// BASE_ADDRESS: the load address of the executable.
+// SKIP_SYMTAB: if non-zero, ignore the symbol table; used for dSYM files.
+// FILELINE_FN: set to the fileline function, by backtrace_dwarf_add.
+// FOUND_SYM: set to non-zero if we found the symbol table.
 
 static int
 macho_add(ten_backtrace_t *self, const char *filename, int descriptor,
@@ -847,24 +840,24 @@ macho_add(ten_backtrace_t *self, const char *filename, int descriptor,
           ten_backtrace_get_file_line_func_t *fileline_fn, int *found_sym) {
   ten_mmap_t header_view;
   struct macho_header_32 header;
-  off_t hdroffset;
-  int is_64;
+  off_t hdroffset = 0;
+  int is_64 = 0;
   ten_mmap_t cmds_view;
-  int cmds_view_valid;
+  int cmds_view_valid = 0;
   dwarf_sections dwarf_sections;
-  int have_dwarf;
+  int have_dwarf = 0;
   unsigned char uuid[MACH_O_UUID_LEN];
-  int have_uuid;
-  size_t cmdoffset;
-  unsigned int i;
+  int have_uuid = 0;
+  size_t cmdoffset = 0;
+  unsigned int i = 0;
 
   *found_sym = 0;
 
   cmds_view_valid = 0;
 
-  /* The 32-bit and 64-bit file headers start out the same, so we can
-     just always read the 32-bit version.  A fat header is shorter but
-     it will always be followed by data, so it's OK to read extra.  */
+  // The 32-bit and 64-bit file headers start out the same, so we can
+  // just always read the 32-bit version.  A fat header is shorter but
+  // it will always be followed by data, so it's OK to read extra.
 
   if (!ten_mmap_init(&header_view, descriptor, offset,
                      sizeof(struct macho_header_32))) {
@@ -898,7 +891,7 @@ macho_add(ten_backtrace_t *self, const char *filename, int descriptor,
   case MACH_O_MH_CIGAM_FAT:
   case MACH_O_MH_CIGAM_FAT_64: {
     struct macho_header_fat fat_header;
-    uint32_t nfat_arch;
+    uint32_t nfat_arch = 0;
 
     hdroffset = offset + sizeof(struct macho_header_fat);
     memcpy(&fat_header, &header, sizeof fat_header);
@@ -936,7 +929,7 @@ macho_add(ten_backtrace_t *self, const char *filename, int descriptor,
 
   cmdoffset = 0;
   for (i = 0; i < header.ncmds; ++i) {
-    const char *pcmd;
+    const char *pcmd = NULL;
     struct macho_load_command load_command;
 
     if (cmdoffset + sizeof load_command > header.sizeofcmds) {
@@ -972,8 +965,9 @@ macho_add(ten_backtrace_t *self, const char *filename, int descriptor,
         if (!macho_add_dwarf_segment(
                 self, descriptor, offset, load_command.cmd,
                 pcmd + sizeof segcmd, (load_command.cmdsize - sizeof segcmd),
-                segcmd.nsects, error_cb, data, &dwarf_sections))
+                segcmd.nsects, error_cb, data, &dwarf_sections)) {
           goto fail;
+        }
         have_dwarf = 1;
       }
     } break;
@@ -986,8 +980,9 @@ macho_add(ten_backtrace_t *self, const char *filename, int descriptor,
         if (!macho_add_symtab(self, descriptor, base_address, is_64,
                               offset + symcmd.symoff, symcmd.nsyms,
                               offset + symcmd.stroff, symcmd.strsize, error_cb,
-                              data))
+                              data)) {
           goto fail;
+        }
 
         *found_sym = 1;
       }
@@ -1017,17 +1012,16 @@ macho_add(ten_backtrace_t *self, const char *filename, int descriptor,
   cmds_view_valid = 0;
 
   if (match_uuid != NULL) {
-    /* If we don't have a UUID, or it doesn't match, just ignore
-       this file.  */
+    // If we don't have a UUID, or it doesn't match, just ignore
+    // this file.
     if (!have_uuid || memcmp(match_uuid, &uuid[0], MACH_O_UUID_LEN) != 0) {
       return 1;
     }
   }
 
   if (have_dwarf) {
-    int is_big_endian;
+    int is_big_endian = 0;
 
-    is_big_endian = 0;
 #if defined(__BYTE_ORDER__) && defined(__ORDER_BIG_ENDIAN__)
 #if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
     is_big_endian = 1;
@@ -1035,14 +1029,16 @@ macho_add(ten_backtrace_t *self, const char *filename, int descriptor,
 #endif
 
     if (!backtrace_dwarf_add(self, base_address, &dwarf_sections, is_big_endian,
-                             NULL, error_cb, data, fileline_fn, NULL))
+                             NULL, error_cb, data, fileline_fn, NULL)) {
       goto fail;
+    }
   }
 
   if (!have_dwarf && have_uuid) {
     if (!macho_add_dsym(self, filename, base_address, &uuid[0], error_cb, data,
-                        fileline_fn))
+                        fileline_fn)) {
       goto fail;
+    }
   }
 
   return 1;
@@ -1057,8 +1053,8 @@ fail:
   return 0;
 }
 
-/* Initialize the backtrace data we need from a Mach-O executable
-   using the dyld support functions.  This closes descriptor.  */
+// Initialize the backtrace data we need from a Mach-O executable using the dyld
+// support functions.
 int ten_backtrace_init_posix(
     ten_backtrace_t *self, const char *filename, int descriptor,
     ten_backtrace_error_func_t error_cb, void *data,
@@ -1072,10 +1068,10 @@ int ten_backtrace_init_posix(
 
   uint32_t c = _dyld_image_count();
   for (uint32_t i = 0; i < c; ++i) {
-    uintptr_t base_address;
-    int d;
-    ten_backtrace_get_file_line_func_t mff;
-    int mfs;
+    uintptr_t base_address = 0;
+    int d = 0;
+    ten_backtrace_get_file_line_func_t mff = NULL;
+    int mfs = 0;
 
     const char *name = _dyld_get_image_name(i);
     if (name == NULL) {

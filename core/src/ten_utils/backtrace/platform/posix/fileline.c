@@ -64,7 +64,7 @@ static int initialize_file_line_mechanism(ten_backtrace_t *self,
   ten_backtrace_posix_t *posix_self = (ten_backtrace_posix_t *)self;
   assert(posix_self && "Invalid argument.");
 
-  ten_atomic_t failed = ten_atomic_load(&posix_self->file_line_init_failed);
+  int64_t failed = ten_atomic_load(&posix_self->file_line_init_failed);
   if (failed) {
     (void)fprintf(stderr, "Failed to read executable information.");
     return 0;
@@ -82,25 +82,32 @@ static int initialize_file_line_mechanism(ten_backtrace_t *self,
   int descriptor = -1;
   const char *filename = NULL;
   bool called_error_callback = false;
+
   for (size_t pass = 0; pass < 4; ++pass) {
     switch (pass) {
     case 0:
       filename = "/proc/self/exe";
       break;
+
     case 1:
       filename = "/proc/curproc/file";
       break;
+
     case 2: {
       char buf[64] = {0};
+
       int written =
           snprintf(buf, sizeof(buf), "/proc/%ld/object/a.out", (long)getpid());
       assert(written > 0);
+
       filename = buf;
       break;
     }
+
     case 3:
       filename = macho_get_executable_path(self, error_cb, data);
       break;
+
     default:
       abort();
       break;
@@ -171,8 +178,7 @@ int ten_backtrace_get_file_line_info(ten_backtrace_t *self, uintptr_t pc,
     return 0;
   }
 
-  return ((ten_backtrace_get_file_line_func_t)(posix_self->get_file_line_func))(
-      self, pc, cb, error_cb, data);
+  return (posix_self->get_file_line_func)(self, pc, cb, error_cb, data);
 }
 
 /**

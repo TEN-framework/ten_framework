@@ -11,6 +11,7 @@
 #include <unistd.h>
 
 #include "ten_utils/lib/thread_once.h"
+#include "ten_utils/macro/check.h"
 
 static int g_random_fd = -1;
 static ten_thread_once_t g_init = TEN_THREAD_ONCE_INIT;

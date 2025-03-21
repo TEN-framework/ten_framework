@@ -7,7 +7,7 @@
 // This file is modified from
 // https://github.com/ianlancetaylor/libbacktrace [BSD license]
 //
-#include "include_internal/ten_utils/backtrace/platform/posix/linux/view.h"
+#include "include_internal/ten_utils/backtrace/platform/posix/linux/elf_internal/view.h"
 
 #include <assert.h>
 #include <stdint.h>

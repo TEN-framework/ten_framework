@@ -13,15 +13,7 @@
 #include <string.h>
 
 #include "include_internal/ten_utils/backtrace/common.h"
-
-/**
- * @note On Mac, we are currently using a simple method instead of a complicated
- * posix method to dump backtrace. So we only need a field of
- * 'ten_backtrace_common_t'.
- */
-typedef struct ten_backtrace_mac_t {
-  ten_backtrace_common_t common;
-} ten_backtrace_mac_t;
+#include "include_internal/ten_utils/backtrace/platform/posix/darwin/internal.h"
 
 /**
  * @brief Creates a new backtrace object for macOS platform.
