@@ -37,6 +37,8 @@ ten_log_output_to_file_ctx_create(int *fd, const char *log_path);
 TEN_UTILS_PRIVATE_API void ten_log_output_to_file_ctx_destroy(
     ten_log_output_to_file_ctx_t *ctx);
 
+TEN_UTILS_PRIVATE_API void ten_log_output_init(ten_log_t *self);
+
 TEN_UTILS_API void ten_log_set_output_to_stderr(ten_log_t *self);
 
 TEN_UTILS_PRIVATE_API void ten_log_output_to_file_cb(ten_log_t *self,

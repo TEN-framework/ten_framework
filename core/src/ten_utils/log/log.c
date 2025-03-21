@@ -40,6 +40,7 @@ void ten_log_init(ten_log_t *self) {
   ten_signature_set(&self->signature, TEN_LOG_SIGNATURE);
   self->output_level = TEN_LOG_LEVEL_INVALID;
 
+  ten_log_output_init(self);
   ten_log_set_output_to_stderr(self);
   ten_log_encryption_init(&self->encryption);
 }

@@ -212,6 +212,16 @@ void ten_log_output_to_file_ctx_destroy(ten_log_output_to_file_ctx_t *ctx) {
   TEN_FREE(ctx);
 }
 
+void ten_log_output_init(ten_log_t *self) {
+  TEN_ASSERT(self, "Invalid argument.");
+
+  self->output.user_data = NULL;
+  self->output.output_cb = NULL;
+  self->output.close_cb = NULL;
+  self->output.reload_cb = NULL;
+  self->output.deinit_cb = NULL;
+}
+
 void ten_log_output_to_file_cb(ten_log_t *self, ten_string_t *msg) {
   TEN_ASSERT(self, "Invalid argument.");
   TEN_ASSERT(msg, "Invalid argument.");
