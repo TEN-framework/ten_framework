@@ -185,10 +185,10 @@ static bool initialize_file_line_mechanism(
 /**
  * @brief Given a PC, find the file name, line number, and function name.
  */
-int ten_backtrace_get_file_line_info(ten_backtrace_t *self, uintptr_t pc,
-                                     ten_backtrace_on_dump_file_line_func_t cb,
-                                     ten_backtrace_on_error_func_t on_error,
-                                     void *data) {
+int ten_backtrace_get_file_line_info(
+    ten_backtrace_t *self, uintptr_t pc,
+    ten_backtrace_on_dump_file_line_func_t on_dump_file_line,
+    ten_backtrace_on_error_func_t on_error, void *data) {
   ten_backtrace_posix_t *posix_self = (ten_backtrace_posix_t *)self;
   assert(posix_self && "Invalid argument.");
 
@@ -200,16 +200,17 @@ int ten_backtrace_get_file_line_info(ten_backtrace_t *self, uintptr_t pc,
     return 0;
   }
 
-  return (posix_self->on_get_file_line)(self, pc, cb, on_error, data);
+  return (posix_self->on_get_file_line)(self, pc, on_dump_file_line, on_error,
+                                        data);
 }
 
 /**
  * @brief Given a PC, find the symbol for it, and its value.
  */
-int ten_backtrace_get_syminfo(ten_backtrace_t *self, uintptr_t pc,
-                              ten_backtrace_on_dump_syminfo_func_t cb,
-                              ten_backtrace_on_error_func_t on_error,
-                              void *data) {
+int ten_backtrace_get_syminfo(
+    ten_backtrace_t *self, uintptr_t pc,
+    ten_backtrace_on_dump_syminfo_func_t on_dump_syminfo,
+    ten_backtrace_on_error_func_t on_error, void *data) {
   ten_backtrace_posix_t *posix_self = (ten_backtrace_posix_t *)self;
   assert(posix_self && "Invalid argument.");
 
@@ -221,7 +222,7 @@ int ten_backtrace_get_syminfo(ten_backtrace_t *self, uintptr_t pc,
     return 0;
   }
 
-  posix_self->on_get_syminfo(self, pc, cb, on_error, data);
+  posix_self->on_get_syminfo(self, pc, on_dump_syminfo, on_error, data);
 
   return 1;
 }
