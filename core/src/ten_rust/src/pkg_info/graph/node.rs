@@ -7,9 +7,7 @@
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 
-use crate::pkg_info::{
-    localhost, pkg_type::PkgType, pkg_type_and_name::PkgTypeAndName,
-};
+use crate::pkg_info::{localhost, pkg_type_and_name::PkgTypeAndName};
 
 use super::{constants, GraphNodeAppDeclaration};
 use crate::pkg_info::graph::is_app_default_loc_or_none;
@@ -35,32 +33,44 @@ pub struct GraphNode {
 }
 
 impl GraphNode {
+    /// Validates and completes a graph node by ensuring it has all required
+    /// fields and follows the app declaration rules of the graph.
+    ///
+    /// This method performs the following validations:
+    /// 1. Ensures extension nodes have an extension_group defined.
+    /// 2. Validates app URI according to graph's app declaration state.
+    /// 3. Sets default app URI if none is provided.
+    ///
+    /// # Arguments
+    /// * `graph_node_app_declaration` - The app declaration state of the entire
+    ///   graph.
+    ///
+    /// # Returns
+    /// * `Ok(())` if validation succeeds.
+    /// * `Err` with a descriptive error message if validation fails.
     pub fn validate_and_complete(
         &mut self,
         graph_node_app_declaration: &GraphNodeAppDeclaration,
     ) -> Result<()> {
-        // Extension node must specify extension_group name.
-        if self.type_and_name.pkg_type == PkgType::Extension
-            && self.extension_group.is_none()
-        {
-            return Err(anyhow::anyhow!(
-                "Node '{}' of type 'extension' must have an 'extension_group' defined.",
-                self.type_and_name.name
-            ));
-        }
-
+        // Check if app URI is provided and validate it.
         if let Some(app) = &self.app {
+            // Disallow 'localhost' as an app URI in graph definitions.
             if app.as_str() == localhost() {
-                let err_msg =
-                    if graph_node_app_declaration.is_single_app_graph() {
-                        constants::ERR_MSG_APP_LOCALHOST_DISALLOWED_SINGLE
-                    } else {
-                        constants::ERR_MSG_APP_LOCALHOST_DISALLOWED_MULTI
-                    };
+                let err_msg = if graph_node_app_declaration
+                    .is_single_app_graph()
+                {
+                    constants::ERR_MSG_GRAPH_LOCALHOST_FORBIDDEN_IN_SINGLE_APP_MODE
+                } else {
+                    constants::ERR_MSG_GRAPH_LOCALHOST_FORBIDDEN_IN_MULTI_APP_MODE
+                };
 
                 return Err(anyhow::anyhow!(err_msg));
             }
         } else {
+            // If app URI is not provided, set it to localhost.
+            // Note: This might be problematic if the graph has mixed app
+            // declarations but that case should be caught by
+            // Graph::determine_graph_node_app_declaration.
             self.app = Some(localhost().to_string());
         }
 

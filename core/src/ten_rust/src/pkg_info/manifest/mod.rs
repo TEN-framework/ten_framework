@@ -121,9 +121,47 @@ pub fn dump_manifest_str_to_file<P: AsRef<Path>>(
     Ok(())
 }
 
+/// Parses a manifest.json file into a Manifest struct.
+///
+/// This function reads the contents of the specified manifest file,
+/// deserializes it into a Manifest struct, and updates any local dependency
+/// paths to use the manifest file's parent directory as the base directory.
+///
+/// # Arguments
+/// * `manifest_file_path` - Path to the manifest.json file.
+///
+/// # Returns
+/// * `Result<Manifest>` - The parsed Manifest struct on success, or an error if
+///   the file cannot be read or the content is invalid.
 pub fn parse_manifest_from_file<P: AsRef<Path>>(
     manifest_file_path: P,
 ) -> Result<Manifest> {
+    // Check if the manifest file exists.
+    if !manifest_file_path.as_ref().exists() {
+        return Err(anyhow::anyhow!(
+            "Manifest file not found at: {}",
+            manifest_file_path.as_ref().display()
+        ));
+    }
+
+    // Validate the manifest schema first.
+    // This ensures the file conforms to the TEN manifest schema before
+    // attempting to parse it.
+    json_schema::ten_validate_manifest_json_file(
+        manifest_file_path.as_ref().to_str().ok_or_else(|| {
+            anyhow::anyhow!(
+                "Failed to convert path to string: {}",
+                manifest_file_path.as_ref().display()
+            )
+        })?,
+    )
+    .with_context(|| {
+        format!(
+            "Failed to validate {}.",
+            manifest_file_path.as_ref().display()
+        )
+    })?;
+
     // Read the contents of the manifest.json file.
     let content = read_file_to_string(&manifest_file_path)?;
 
@@ -135,6 +173,8 @@ pub fn parse_manifest_from_file<P: AsRef<Path>>(
             )
         })?;
 
+    // Get the parent directory of the manifest file to use as base_dir for
+    // local dependencies.
     let manifest_folder_path =
         manifest_file_path.as_ref().parent().ok_or_else(|| {
             anyhow::anyhow!(
@@ -143,6 +183,8 @@ pub fn parse_manifest_from_file<P: AsRef<Path>>(
             )
         })?;
 
+    // Update the base_dir for all local dependencies to be the manifest's
+    // parent directory.
     if let Some(dependencies) = &mut manifest.dependencies {
         for dep in dependencies.iter_mut() {
             if let ManifestDependency::LocalDependency { base_dir, .. } = dep {
@@ -163,24 +205,29 @@ pub fn parse_manifest_from_file<P: AsRef<Path>>(
     Ok(manifest)
 }
 
+/// Parses a manifest.json file from a specified folder.
+///
+/// This function locates the manifest.json file in the given folder,
+/// validates it against the TEN manifest schema, and then parses it into
+/// a Manifest struct. The validation happens before parsing to ensure the
+/// file conforms to the expected schema structure.
+///
+/// # Arguments
+/// * `folder_path` - Path to the folder containing the manifest.json file.
+///
+/// # Returns
+/// * `Result<Manifest>` - The parsed and validated Manifest struct on success,
+///   or an error if the file cannot be read, parsed, or validated.
 pub fn parse_manifest_in_folder(folder_path: &Path) -> Result<Manifest> {
-    // Path to the manifest.json file.
+    // Construct the path to the manifest.json file.
     let manifest_path = folder_path.join(MANIFEST_JSON_FILENAME);
 
     // Read and parse the manifest.json file.
-    let manifest = crate::pkg_info::manifest::parse_manifest_from_file(
-        manifest_path.clone(),
-    )
-    .with_context(|| format!("Failed to load {}.", manifest_path.display()))?;
-
-    // Validate the manifest schema only if it is present.
-    let manifest_path_str = manifest_path.to_owned();
-    json_schema::ten_validate_manifest_json_file(
-        manifest_path_str.to_str().unwrap(),
-    )
-    .with_context(|| {
-        format!("Failed to validate {}.", manifest_path.display())
-    })?;
+    // This also handles setting the base_dir for local dependencies.
+    let manifest =
+        parse_manifest_from_file(&manifest_path).with_context(|| {
+            format!("Failed to load {}.", manifest_path.display())
+        })?;
 
     Ok(manifest)
 }
