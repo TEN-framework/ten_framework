@@ -22,6 +22,6 @@ typedef struct ten_backtrace_buffer_t {
 TEN_UTILS_PRIVATE_API void ten_backtrace_buffer_init(
     ten_backtrace_buffer_t *self, char *data, size_t capacity);
 
-TEN_UTILS_PRIVATE_API int ten_backtrace_buffer_dump_cb(
+TEN_UTILS_PRIVATE_API int ten_backtrace_buffer_dump(
     ten_backtrace_t *self, uintptr_t pc, const char *filename, int lineno,
     const char *function, void *data);

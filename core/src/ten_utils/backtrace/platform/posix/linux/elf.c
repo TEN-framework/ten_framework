@@ -285,8 +285,8 @@ static int elf_add(ten_backtrace_t *self, const char *filename, int descriptor,
     elf_view shdr_view;
     const b_elf_shdr *shdr = NULL;
 
-    if (!elf_get_view(self, descriptor, memory, memory_size, shoff, sizeof shdr,
-                      on_error, data, &shdr_view)) {
+    if (!elf_get_view(self, descriptor, memory, memory_size, shoff,
+                      sizeof(shdr), on_error, data, &shdr_view)) {
       goto fail;
     }
 
@@ -377,7 +377,7 @@ static int elf_add(ten_backtrace_t *self, const char *filename, int descriptor,
 
     name = names + sh_name;
 
-    for (j = 0; j < (int)DEBUG_MAX; ++j) {
+    for (j = 0; j < DEBUG_MAX; ++j) {
       if (strcmp(name, dwarf_section_names[j]) == 0) {
         sections[j].offset = shdr->sh_offset;
         sections[j].size = shdr->sh_size;
@@ -387,7 +387,7 @@ static int elf_add(ten_backtrace_t *self, const char *filename, int descriptor,
     }
 
     if (name[0] == '.' && name[1] == 'z') {
-      for (j = 0; j < (int)DEBUG_MAX; ++j) {
+      for (j = 0; j < DEBUG_MAX; ++j) {
         if (strcmp(name + 2, dwarf_section_names[j] + 1) == 0) {
           zsections[j].offset = shdr->sh_offset;
           zsections[j].size = shdr->sh_size;
@@ -678,7 +678,7 @@ static int elf_add(ten_backtrace_t *self, const char *filename, int descriptor,
   min_offset = 0;
   max_offset = 0;
   debug_size = 0;
-  for (i = 0; i < (int)DEBUG_MAX; ++i) {
+  for (i = 0; i < DEBUG_MAX; ++i) {
     off_t end = 0;
 
     if (sections[i].size != 0) {
@@ -723,7 +723,7 @@ static int elf_add(ten_backtrace_t *self, const char *filename, int descriptor,
     debug_view_valid = 1;
   } else {
     memset(&split_debug_view[0], 0, sizeof split_debug_view);
-    for (i = 0; i < (int)DEBUG_MAX; ++i) {
+    for (i = 0; i < DEBUG_MAX; ++i) {
       debug_section_info *dsec = NULL;
 
       if (sections[i].size != 0) {
@@ -760,7 +760,7 @@ static int elf_add(ten_backtrace_t *self, const char *filename, int descriptor,
 
   using_debug_view = 0;
   if (debug_view_valid) {
-    for (i = 0; i < (int)DEBUG_MAX; ++i) {
+    for (i = 0; i < DEBUG_MAX; ++i) {
       if (sections[i].size == 0) {
         sections[i].data = NULL;
       } else {
@@ -781,7 +781,7 @@ static int elf_add(ten_backtrace_t *self, const char *filename, int descriptor,
   // Uncompress the old format (--compress-debug-sections=zlib-gnu).
 
   zdebug_table = NULL;
-  for (i = 0; i < (int)DEBUG_MAX; ++i) {
+  for (i = 0; i < DEBUG_MAX; ++i) {
     if (sections[i].size == 0 && zsections[i].size > 0) {
       unsigned char *uncompressed_data = NULL;
       size_t uncompressed_size = 0;
@@ -818,7 +818,7 @@ static int elf_add(ten_backtrace_t *self, const char *filename, int descriptor,
 
   // Uncompress the official ELF format
   // (--compress-debug-sections=zlib-gabi, --compress-debug-sections=zstd).
-  for (i = 0; i < (int)DEBUG_MAX; ++i) {
+  for (i = 0; i < DEBUG_MAX; ++i) {
     unsigned char *uncompressed_data = NULL;
     size_t uncompressed_size = 0;
 
@@ -862,7 +862,7 @@ static int elf_add(ten_backtrace_t *self, const char *filename, int descriptor,
     debug_view_valid = 0;
   }
 
-  for (i = 0; i < (int)DEBUG_MAX; ++i) {
+  for (i = 0; i < DEBUG_MAX; ++i) {
     dwarf_sections.data[i] = sections[i].data;
     dwarf_sections.size[i] = sections[i].size;
   }
@@ -906,7 +906,7 @@ fail:
   if (debug_view_valid) {
     elf_release_view(self, &debug_view, on_error, data);
   }
-  for (i = 0; i < (int)DEBUG_MAX; ++i) {
+  for (i = 0; i < DEBUG_MAX; ++i) {
     if (split_debug_view_valid[i]) {
       elf_release_view(self, &split_debug_view[i], on_error, data);
     }

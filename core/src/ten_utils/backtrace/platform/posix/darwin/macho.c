@@ -268,7 +268,7 @@ macho_add(ten_backtrace_t *self, const char *filename, int descriptor,
           ten_backtrace_on_get_file_line_func_t *fileline_fn, int *found_sym);
 
 // A dummy callback function used when we can't find any debug info.
-static int macho_nodebug(ten_backtrace_t *self, uintptr_t pc,
+static int macho_nodebug(ten_backtrace_t *self, TEN_UNUSED uintptr_t pc,
                          TEN_UNUSED ten_backtrace_on_dump_file_line_func_t
                              on_dump_file_line,
                          ten_backtrace_on_error_func_t on_error, void *data) {
@@ -278,7 +278,7 @@ static int macho_nodebug(ten_backtrace_t *self, uintptr_t pc,
 
 // A dummy callback function used when we can't find a symbol table.
 static void
-macho_nosyms(ten_backtrace_t *self, uintptr_t addr,
+macho_nosyms(ten_backtrace_t *self, TEN_UNUSED uintptr_t addr,
              TEN_UNUSED ten_backtrace_on_dump_syminfo_func_t on_dump_syminfo,
              ten_backtrace_on_error_func_t on_error, void *data) {
   on_error(self, "no symbol table in Mach-O executable", -1, data);
@@ -289,12 +289,12 @@ macho_nosyms(ten_backtrace_t *self, uintptr_t addr,
  *
  * @return 1 on success, 0 on failure.
  */
-static int macho_add_dwarf_section(ten_backtrace_t *self, int descriptor,
-                                   const char *sectname, uint32_t offset,
-                                   uint64_t size,
-                                   ten_backtrace_on_error_func_t on_error,
-                                   void *data, dwarf_sections *dwarf_sections) {
-  for (size_t i = 0; i < (int)DEBUG_MAX; ++i) {
+static int
+macho_add_dwarf_section(TEN_UNUSED ten_backtrace_t *self, int descriptor,
+                        const char *sectname, uint32_t offset, uint64_t size,
+                        TEN_UNUSED ten_backtrace_on_error_func_t on_error,
+                        TEN_UNUSED void *data, dwarf_sections *dwarf_sections) {
+  for (size_t i = 0; i < DEBUG_MAX; ++i) {
     if (dwarf_section_names[i][0] != '\0' &&
         strncmp(sectname, dwarf_section_names[i], MACH_O_NAMELEN) == 0) {
       ten_mmap_t section_view;

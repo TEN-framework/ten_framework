@@ -6,9 +6,6 @@
 //
 #include "ten_utils/sanitizer/memory_check.h"
 
-#include "include_internal/ten_utils/lib/alloc.h"
-#include "ten_utils/container/list_node_ptr.h"
-
 #if defined(TEN_USE_ASAN)
 #include <sanitizer/asan_interface.h>
 #include <sanitizer/lsan_interface.h>
@@ -17,8 +14,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "include_internal/ten_utils/backtrace/backtrace.h"
+#include "include_internal/ten_utils/backtrace/buffer.h"
+#include "include_internal/ten_utils/lib/alloc.h"
 #include "include_internal/ten_utils/sanitizer/memory_check.h"
 #include "ten_utils/container/list.h"
+#include "ten_utils/container/list_node_ptr.h"
 #include "ten_utils/lib/alloc.h"
 #include "ten_utils/lib/mutex.h"
 #include "ten_utils/macro/check.h"
@@ -42,7 +43,10 @@
 
 static ten_sanitizer_memory_records_t g_memory_records = {
     NULL, TEN_LIST_INIT_VAL, {0}, 0};
+
 static bool g_memory_records_enabled = false;
+
+static ten_backtrace_t *g_backtrace_for_memory_check = NULL;
 
 static void ten_sanitizer_memory_record_check_enabled(void) {
 #if defined(TEN_ENABLE_MEMORY_CHECK)
@@ -51,6 +55,21 @@ static void ten_sanitizer_memory_record_check_enabled(void) {
     g_memory_records_enabled = true;
   }
 #endif
+}
+
+static void ten_sanitizer_memory_record_init_backtrace(void) {
+  TEN_ASSERT(g_backtrace_for_memory_check == NULL,
+             "The backtrace for memory check should be initialized only once.");
+
+  g_backtrace_for_memory_check = ten_backtrace_create();
+  TEN_ASSERT(g_backtrace_for_memory_check, "Failed to create backtrace.");
+}
+
+static void ten_sanitizer_memory_record_deinit_backtrace(void) {
+  if (g_backtrace_for_memory_check) {
+    ten_backtrace_destroy(g_backtrace_for_memory_check);
+    g_backtrace_for_memory_check = NULL;
+  }
 }
 
 void ten_sanitizer_memory_record_init(void) {
@@ -62,21 +81,25 @@ void ten_sanitizer_memory_record_init(void) {
 
   ten_sanitizer_memory_record_check_enabled();
 
+  if (g_memory_records_enabled) {
+    ten_sanitizer_memory_record_init_backtrace();
+
 #if defined(TEN_USE_ASAN)
-  // Mark the beginning and end of the globally allocated memory queue as
-  // poisoned, so that LSan will not consider the memory buffer obtained from
-  // there as normal memory, but will instead consider it as leaked.
-  __asan_poison_memory_region(&g_memory_records.records_list.front,
-                              sizeof(ten_listnode_t *));
-  __asan_poison_memory_region(&g_memory_records.records_list.back,
-                              sizeof(ten_listnode_t *));
+    // Mark the beginning and end of the globally allocated memory queue as
+    // poisoned, so that LSan will not consider the memory buffer obtained from
+    // there as normal memory, but will instead consider it as leaked.
+    __asan_poison_memory_region(&g_memory_records.records_list.front,
+                                sizeof(ten_listnode_t *));
+    __asan_poison_memory_region(&g_memory_records.records_list.back,
+                                sizeof(ten_listnode_t *));
 #endif
 
-  g_memory_records.lock = ten_mutex_create();
+    g_memory_records.lock = ten_mutex_create();
 
-  ten_hashtable_init(
-      &g_memory_records.records_hash,
-      offsetof(ten_sanitizer_memory_record_t, hh_in_records_hash));
+    ten_hashtable_init(
+        &g_memory_records.records_hash,
+        offsetof(ten_sanitizer_memory_record_t, hh_in_records_hash));
+  }
 
 #if defined(TEN_USE_ASAN)
   __lsan_enable();
@@ -93,6 +116,8 @@ void ten_sanitizer_memory_record_deinit(void) {
 #endif
 
   ten_sanitizer_memory_record_dump();
+
+  ten_sanitizer_memory_record_deinit_backtrace();
 
   if (g_memory_records.lock) {
     ten_mutex_destroy(g_memory_records.lock);
@@ -183,6 +208,11 @@ ten_sanitizer_memory_record_add(ten_sanitizer_memory_records_t *self,
 
   TEN_UNUSED int rc = ten_mutex_lock(self->lock);
   TEN_ASSERT(!rc, "Failed to lock.");
+
+  // Capture backtrace to buffer.
+  ten_backtrace_capture_to_buffer(g_backtrace_for_memory_check,
+                                  record->backtrace_buffer,
+                                  sizeof(record->backtrace_buffer), 1);
 
 #if defined(TEN_USE_ASAN)
   __asan_unpoison_memory_region(&self->records_list.front,
@@ -298,6 +328,7 @@ void ten_sanitizer_memory_record_dump(void) {
 
     (void)fprintf(stderr, "\t#%zu %p(%zu bytes) in %s %s:%d\n", idx, info->addr,
                   info->size, info->func_name, info->file_name, info->lineno);
+    (void)fprintf(stderr, "\t\t%s\n", info->backtrace_buffer);
 
     idx++;
   }
