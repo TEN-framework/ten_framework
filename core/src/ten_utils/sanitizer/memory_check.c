@@ -54,7 +54,7 @@ static ten_backtrace_t *g_backtrace_for_memory_check = NULL;
 #endif
 
 static void ten_sanitizer_memory_record_check_enabled(void) {
-#if defined(cccccccccccccccccccc)
+#if defined(TEN_ENABLE_MEMORY_CHECK)
   char *enable_memory_sanitizer = getenv("TEN_ENABLE_MEMORY_TRACKING");
   if (enable_memory_sanitizer && !strcmp(enable_memory_sanitizer, "true")) {
     g_memory_records_enabled = true;
@@ -92,7 +92,7 @@ void ten_sanitizer_memory_record_init(void) {
   __lsan_disable();
 #endif
 
-#if defined(OS_LINUX)
+#if defined(TEN_MEMORY_CHECK_ENABLE_BACKTRACE)
   ten_sanitizer_memory_record_init_backtrace();
 #endif
 
@@ -132,7 +132,7 @@ void ten_sanitizer_memory_record_deinit(void) {
 
   ten_sanitizer_memory_record_dump();
 
-#if defined(OS_LINUX)
+#if defined(TEN_MEMORY_CHECK_ENABLE_BACKTRACE)
   ten_sanitizer_memory_record_deinit_backtrace();
 #endif
 
