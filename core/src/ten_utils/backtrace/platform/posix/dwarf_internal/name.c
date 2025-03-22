@@ -14,7 +14,7 @@
 static const char *read_referenced_name(ten_backtrace_t *self,
                                         dwarf_data *ddata, unit *u,
                                         uint64_t offset,
-                                        ten_backtrace_error_func_t error_cb,
+                                        ten_backtrace_on_error_func_t on_error,
                                         void *data) {
   dwarf_buf unit_buf;
   uint64_t code = 0;
@@ -28,7 +28,7 @@ static const char *read_referenced_name(ten_backtrace_t *self,
 
   if (offset < u->unit_data_offset ||
       offset - u->unit_data_offset >= u->unit_data_len) {
-    error_cb(self, "abstract origin or specification out of range", 0, data);
+    on_error(self, "abstract origin or specification out of range", 0, data);
     return NULL;
   }
 
@@ -39,7 +39,7 @@ static const char *read_referenced_name(ten_backtrace_t *self,
   unit_buf.buf = u->unit_data + offset;
   unit_buf.left = u->unit_data_len - offset;
   unit_buf.is_bigendian = ddata->is_bigendian;
-  unit_buf.error_cb = error_cb;
+  unit_buf.on_error = on_error;
   unit_buf.data = data;
   unit_buf.reported_underflow = 0;
 
@@ -50,7 +50,7 @@ static const char *read_referenced_name(ten_backtrace_t *self,
     return NULL;
   }
 
-  abbrev = lookup_abbrev(self, &u->abbrevs, code, error_cb, data);
+  abbrev = lookup_abbrev(self, &u->abbrevs, code, on_error, data);
   if (abbrev == NULL) {
     return NULL;
   }
@@ -76,7 +76,7 @@ static const char *read_referenced_name(ten_backtrace_t *self,
 
       if (!resolve_string(self, &ddata->dwarf_sections, u->is_dwarf64,
                           ddata->is_bigendian, u->str_offsets_base, &val,
-                          error_cb, data, &ret)) {
+                          on_error, data, &ret)) {
         return NULL;
       }
       break;
@@ -88,7 +88,7 @@ static const char *read_referenced_name(ten_backtrace_t *self,
         const char *s = NULL;
         if (!resolve_string(self, &ddata->dwarf_sections, u->is_dwarf64,
                             ddata->is_bigendian, u->str_offsets_base, &val,
-                            error_cb, data, &s)) {
+                            on_error, data, &s)) {
           return NULL;
         }
 
@@ -103,7 +103,7 @@ static const char *read_referenced_name(ten_backtrace_t *self,
       // DW_AT_linkage_name.
       {
         const char *name = read_referenced_name_from_attr(
-            self, ddata, u, &abbrev->attrs[i], &val, error_cb, data);
+            self, ddata, u, &abbrev->attrs[i], &val, on_error, data);
         if (name != NULL) {
           ret = name;
         }
@@ -119,11 +119,9 @@ static const char *read_referenced_name(ten_backtrace_t *self,
 }
 
 // Read the name of a function from a DIE referenced by ATTR with VAL.
-const char *read_referenced_name_from_attr(ten_backtrace_t *self,
-                                           dwarf_data *ddata, unit *u,
-                                           attr *attr, attr_val *val,
-                                           ten_backtrace_error_func_t error_cb,
-                                           void *data) {
+const char *read_referenced_name_from_attr(
+    ten_backtrace_t *self, dwarf_data *ddata, unit *u, attr *attr,
+    attr_val *val, ten_backtrace_on_error_func_t on_error, void *data) {
   switch (attr->name) {
   case DW_AT_abstract_origin:
   case DW_AT_specification:
@@ -143,11 +141,11 @@ const char *read_referenced_name_from_attr(ten_backtrace_t *self,
     }
 
     uint64_t offset = val->u.uint - unit->low_offset;
-    return read_referenced_name(self, ddata, unit, offset, error_cb, data);
+    return read_referenced_name(self, ddata, unit, offset, on_error, data);
   }
 
   if (val->encoding == ATTR_VAL_UINT || val->encoding == ATTR_VAL_REF_UNIT) {
-    return read_referenced_name(self, ddata, u, val->u.uint, error_cb, data);
+    return read_referenced_name(self, ddata, u, val->u.uint, on_error, data);
   }
 
   if (val->encoding == ATTR_VAL_REF_ALT_INFO) {
@@ -159,7 +157,7 @@ const char *read_referenced_name_from_attr(ten_backtrace_t *self,
 
     uint64_t offset = val->u.uint - alt_unit->low_offset;
     return read_referenced_name(self, ddata->altlink, alt_unit, offset,
-                                error_cb, data);
+                                on_error, data);
   }
 
   return NULL;

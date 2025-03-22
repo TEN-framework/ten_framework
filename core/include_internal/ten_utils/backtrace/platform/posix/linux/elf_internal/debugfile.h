@@ -18,4 +18,5 @@ TEN_UTILS_PRIVATE_API int elf_open_debug_file_by_build_id(
 
 TEN_UTILS_PRIVATE_API int elf_open_debug_file_by_debug_link(
     ten_backtrace_t *self, const char *filename, const char *debug_link_name,
-    uint32_t debug_link_crc, ten_backtrace_error_func_t error_cb, void *data);
+    uint32_t debug_link_crc, ten_backtrace_on_error_func_t on_error,
+    void *data);

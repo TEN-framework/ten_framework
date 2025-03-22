@@ -4,6 +4,7 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
+#include "ten_utils/macro/mark.h"
 #include "ten_utils/ten_config.h"
 
 #include <stdlib.h>
@@ -16,17 +17,17 @@
 
 // Add a range to a unit that maps to a function.  This is called via
 // add_ranges.  Returns 1 on success, 0 on error.
-static int add_function_range(ten_backtrace_t *self, void *rdata,
+static int add_function_range(TEN_UNUSED ten_backtrace_t *self, void *rdata,
                               uintptr_t lowpc, uintptr_t highpc,
-                              ten_backtrace_error_func_t error_cb, void *data,
-                              void *pvec) {
-  struct function *function = (struct function *)rdata;
+                              TEN_UNUSED ten_backtrace_on_error_func_t on_error,
+                              TEN_UNUSED void *data, void *pvec) {
+  function *func = (function *)rdata;
   function_vector *vec = (function_vector *)pvec;
   function_addrs *p = NULL;
 
   if (vec->count > 0) {
     p = (function_addrs *)vec->vec.data + (vec->count - 1);
-    if ((lowpc == p->high || lowpc == p->high + 1) && function == p->function) {
+    if ((lowpc == p->high || lowpc == p->high + 1) && func == p->func) {
       if (highpc > p->high) {
         p->high = highpc;
       }
@@ -41,7 +42,7 @@ static int add_function_range(ten_backtrace_t *self, void *rdata,
 
   p->low = lowpc;
   p->high = highpc;
-  p->function = function;
+  p->func = func;
 
   ++vec->count;
 
@@ -67,7 +68,7 @@ static int function_addrs_compare(const void *v1, const void *v2) {
     return -1;
   }
 
-  return strcmp(a1->function->name, a2->function->name);
+  return strcmp(a1->func->name, a2->func->name);
 }
 
 // Read one entry plus all its children.  Add function addresses to
@@ -75,13 +76,13 @@ static int function_addrs_compare(const void *v1, const void *v2) {
 static int read_function_entry(ten_backtrace_t *self, dwarf_data *ddata,
                                unit *u, uintptr_t base, dwarf_buf *unit_buf,
                                const line_header *lhdr,
-                               ten_backtrace_error_func_t error_cb, void *data,
-                               function_vector *vec_function,
+                               ten_backtrace_on_error_func_t on_error,
+                               void *data, function_vector *vec_function,
                                function_vector *vec_inlined) {
   while (unit_buf->left > 0) {
     const abbrev *abbrev = NULL;
     int is_function = 0;
-    struct function *function = NULL;
+    function *func = NULL;
     function_vector *vec = NULL;
     size_t i = 0;
     pcrange pcrange;
@@ -92,7 +93,7 @@ static int read_function_entry(ten_backtrace_t *self, dwarf_data *ddata,
       return 1;
     }
 
-    abbrev = lookup_abbrev(self, &u->abbrevs, code, error_cb, data);
+    abbrev = lookup_abbrev(self, &u->abbrevs, code, on_error, data);
     if (abbrev == NULL) {
       return 0;
     }
@@ -107,14 +108,14 @@ static int read_function_entry(ten_backtrace_t *self, dwarf_data *ddata,
       vec = vec_function;
     }
 
-    function = NULL;
+    func = NULL;
     if (is_function) {
-      function = (struct function *)malloc(sizeof *function);
-      if (function == NULL) {
+      func = (function *)malloc(sizeof *func);
+      if (func == NULL) {
         return 0;
       }
 
-      memset(function, 0, sizeof *function);
+      memset(func, 0, sizeof *func);
     }
 
     memset(&pcrange, 0, sizeof pcrange);
@@ -138,7 +139,7 @@ static int read_function_entry(ten_backtrace_t *self, dwarf_data *ddata,
         } else if (val.encoding == ATTR_VAL_ADDRESS_INDEX) {
           if (!resolve_addr_index(self, &ddata->dwarf_sections, u->addr_base,
                                   u->addrsize, ddata->is_bigendian, val.u.uint,
-                                  error_cb, data, &base)) {
+                                  on_error, data, &base)) {
             return 0;
           }
         }
@@ -155,13 +156,13 @@ static int read_function_entry(ten_backtrace_t *self, dwarf_data *ddata,
                               0);
               return 0;
             }
-            function->caller_filename = lhdr->filenames[val.u.uint];
+            func->caller_filename = lhdr->filenames[val.u.uint];
           }
           break;
 
         case DW_AT_call_line:
           if (val.encoding == ATTR_VAL_UINT) {
-            function->caller_lineno = val.u.uint;
+            func->caller_lineno = val.u.uint;
           }
           break;
 
@@ -175,21 +176,21 @@ static int read_function_entry(ten_backtrace_t *self, dwarf_data *ddata,
 
           {
             const char *name = read_referenced_name_from_attr(
-                self, ddata, u, &abbrev->attrs[i], &val, error_cb, data);
+                self, ddata, u, &abbrev->attrs[i], &val, on_error, data);
             if (name != NULL) {
-              function->name = name;
+              func->name = name;
             }
           }
           break;
 
         case DW_AT_name:
           // Third name preference: don't override.
-          if (function->name != NULL) {
+          if (func->name != NULL) {
             break;
           }
           if (!resolve_string(self, &ddata->dwarf_sections, u->is_dwarf64,
                               ddata->is_bigendian, u->str_offsets_base, &val,
-                              error_cb, data, &function->name)) {
+                              on_error, data, &func->name)) {
             return 0;
           }
           break;
@@ -201,11 +202,11 @@ static int read_function_entry(ten_backtrace_t *self, dwarf_data *ddata,
             const char *s = NULL;
             if (!resolve_string(self, &ddata->dwarf_sections, u->is_dwarf64,
                                 ddata->is_bigendian, u->str_offsets_base, &val,
-                                error_cb, data, &s)) {
+                                on_error, data, &s)) {
               return 0;
             }
             if (s != NULL) {
-              function->name = s;
+              func->name = s;
               have_linkage_name = 1;
             }
           }
@@ -225,8 +226,8 @@ static int read_function_entry(ten_backtrace_t *self, dwarf_data *ddata,
 
     // If we couldn't find a name for the function, we have no use
     // for it.
-    if (is_function && function->name == NULL) {
-      free(function);
+    if (is_function && func->name == NULL) {
+      free(func);
       is_function = 0;
     }
 
@@ -234,19 +235,19 @@ static int read_function_entry(ten_backtrace_t *self, dwarf_data *ddata,
       if (pcrange.have_ranges || (pcrange.have_lowpc && pcrange.have_highpc)) {
         if (!add_ranges(self, &ddata->dwarf_sections, ddata->base_address,
                         ddata->is_bigendian, u, base, &pcrange,
-                        add_function_range, (void *)function, error_cb, data,
+                        add_function_range, (void *)func, on_error, data,
                         (void *)vec)) {
           return 0;
         }
       } else {
-        free(function);
+        free(func);
         is_function = 0;
       }
     }
 
     if (abbrev->has_children) {
       if (!is_function) {
-        if (!read_function_entry(self, ddata, u, base, unit_buf, lhdr, error_cb,
+        if (!read_function_entry(self, ddata, u, base, unit_buf, lhdr, on_error,
                                  data, vec_function, vec_inlined)) {
           return 0;
         }
@@ -258,7 +259,7 @@ static int read_function_entry(ten_backtrace_t *self, dwarf_data *ddata,
 
         memset(&fvec, 0, sizeof fvec);
 
-        if (!read_function_entry(self, ddata, u, base, unit_buf, lhdr, error_cb,
+        if (!read_function_entry(self, ddata, u, base, unit_buf, lhdr, on_error,
                                  data, vec_function, &fvec)) {
           return 0;
         }
@@ -276,7 +277,7 @@ static int read_function_entry(ten_backtrace_t *self, dwarf_data *ddata,
           p->low = 0;
           --p->low;
           p->high = p->low;
-          p->function = NULL;
+          p->func = NULL;
 
           if (!ten_vector_release_remaining_space(&fvec.vec)) {
             return 0;
@@ -286,8 +287,8 @@ static int read_function_entry(ten_backtrace_t *self, dwarf_data *ddata,
           backtrace_sort(faddrs, fvec.count, sizeof(function_addrs),
                          function_addrs_compare);
 
-          function->function_addrs = faddrs;
-          function->function_addrs_count = fvec.count;
+          func->function_addrs = faddrs;
+          func->function_addrs_count = fvec.count;
         }
       }
     }
@@ -302,7 +303,7 @@ static int read_function_entry(ten_backtrace_t *self, dwarf_data *ddata,
  */
 void read_function_info(ten_backtrace_t *self, dwarf_data *ddata,
                         const line_header *lhdr,
-                        ten_backtrace_error_func_t error_cb, void *data,
+                        ten_backtrace_on_error_func_t on_error, void *data,
                         unit *u, function_vector *fvec,
                         function_addrs **ret_addrs, size_t *ret_addrs_count) {
   function_vector lvec;
@@ -325,12 +326,12 @@ void read_function_info(ten_backtrace_t *self, dwarf_data *ddata,
   unit_buf.buf = u->unit_data;
   unit_buf.left = u->unit_data_len;
   unit_buf.is_bigendian = ddata->is_bigendian;
-  unit_buf.error_cb = error_cb;
+  unit_buf.on_error = on_error;
   unit_buf.data = data;
   unit_buf.reported_underflow = 0;
 
   while (unit_buf.left > 0) {
-    if (!read_function_entry(self, ddata, u, 0, &unit_buf, lhdr, error_cb, data,
+    if (!read_function_entry(self, ddata, u, 0, &unit_buf, lhdr, on_error, data,
                              pfvec, pfvec)) {
       return;
     }
@@ -349,7 +350,7 @@ void read_function_info(ten_backtrace_t *self, dwarf_data *ddata,
   p->low = 0;
   --p->low;
   p->high = p->low;
-  p->function = NULL;
+  p->func = NULL;
 
   addrs_count = pfvec->count;
 
@@ -399,15 +400,15 @@ int function_addrs_search(const void *vkey, const void *ventry) {
 // information, and update FILENAME and LINENO for the caller.
 // Returns whatever CALLBACK returns, or 0 to keep going.
 int report_inlined_functions(
-    ten_backtrace_t *self, uintptr_t pc, struct function *function,
-    ten_backtrace_dump_file_line_func_t dump_file_line_cb, void *data,
+    ten_backtrace_t *self, uintptr_t pc, function *func,
+    ten_backtrace_on_dump_file_line_func_t on_dump_file_line, void *data,
     const char **filename, int *lineno) {
   function_addrs *p = NULL;
   function_addrs *match = NULL;
-  struct function *inlined = NULL;
+  function *inlined = NULL;
   int ret = 0;
 
-  if (function->function_addrs_count == 0) {
+  if (func->function_addrs_count == 0) {
     return 0;
   }
 
@@ -418,7 +419,7 @@ int report_inlined_functions(
   }
 
   p = ((function_addrs *)bsearch(
-      &pc, function->function_addrs, function->function_addrs_count,
+      &pc, func->function_addrs, func->function_addrs_count,
       sizeof(function_addrs), function_addrs_search));
   if (p == NULL) {
     return 0;
@@ -439,7 +440,7 @@ int report_inlined_functions(
       match = p;
       break;
     }
-    if (p == function->function_addrs) {
+    if (p == func->function_addrs) {
       break;
     }
     if ((p - 1)->low < p->low) {
@@ -453,17 +454,17 @@ int report_inlined_functions(
 
   // We found an inlined call.
 
-  inlined = match->function;
+  inlined = match->func;
 
   // Report any calls inlined into this one.
-  ret = report_inlined_functions(self, pc, inlined, dump_file_line_cb, data,
+  ret = report_inlined_functions(self, pc, inlined, on_dump_file_line, data,
                                  filename, lineno);
   if (ret != 0) {
     return ret;
   }
 
   // Report this inlined call.
-  ret = dump_file_line_cb(self, pc, *filename, *lineno, inlined->name, data);
+  ret = on_dump_file_line(self, pc, *filename, *lineno, inlined->name, data);
   if (ret != 0) {
     return ret;
   }

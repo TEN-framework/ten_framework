@@ -35,7 +35,7 @@ static int abbrev_compare(const void *v1, const void *v2) {
 
 // Free an abbreviations structure.
 void free_abbrevs(ten_backtrace_t *self, abbrevs *abbrevs,
-                  ten_backtrace_error_func_t error_cb, void *data) {
+                  ten_backtrace_on_error_func_t on_error, void *data) {
   size_t i = 0;
 
   for (i = 0; i < abbrevs->num_abbrevs; ++i) {
@@ -50,7 +50,7 @@ void free_abbrevs(ten_backtrace_t *self, abbrevs *abbrevs,
 // success, 0 on failure.
 int read_abbrevs(ten_backtrace_t *self, uint64_t abbrev_offset,
                  const unsigned char *dwarf_abbrev, size_t dwarf_abbrev_size,
-                 int is_bigendian, ten_backtrace_error_func_t error_cb,
+                 int is_bigendian, ten_backtrace_on_error_func_t on_error,
                  void *data, abbrevs *abbrevs) {
   dwarf_buf abbrev_buf;
   dwarf_buf count_buf;
@@ -60,7 +60,7 @@ int read_abbrevs(ten_backtrace_t *self, uint64_t abbrev_offset,
   abbrevs->abbrevs = NULL;
 
   if (abbrev_offset >= dwarf_abbrev_size) {
-    error_cb(self, "abbrev offset out of range", 0, data);
+    on_error(self, "abbrev offset out of range", 0, data);
     return 0;
   }
 
@@ -69,7 +69,7 @@ int read_abbrevs(ten_backtrace_t *self, uint64_t abbrev_offset,
   abbrev_buf.buf = dwarf_abbrev + abbrev_offset;
   abbrev_buf.left = dwarf_abbrev_size - abbrev_offset;
   abbrev_buf.is_bigendian = is_bigendian;
-  abbrev_buf.error_cb = error_cb;
+  abbrev_buf.on_error = on_error;
   abbrev_buf.data = data;
   abbrev_buf.reported_underflow = 0;
 
@@ -187,13 +187,14 @@ int read_abbrevs(ten_backtrace_t *self, uint64_t abbrev_offset,
   return 1;
 
 fail:
-  free_abbrevs(self, abbrevs, error_cb, data);
+  free_abbrevs(self, abbrevs, on_error, data);
   return 0;
 }
 
 // Return the abbrev information for an abbrev code.
 const abbrev *lookup_abbrev(ten_backtrace_t *self, abbrevs *abbrevs,
-                            uint64_t code, ten_backtrace_error_func_t error_cb,
+                            uint64_t code,
+                            ten_backtrace_on_error_func_t on_error,
                             void *data) {
   abbrev key;
   void *p = NULL;
@@ -211,7 +212,7 @@ const abbrev *lookup_abbrev(ten_backtrace_t *self, abbrevs *abbrevs,
   p = bsearch(&key, abbrevs->abbrevs, abbrevs->num_abbrevs, sizeof(abbrev),
               abbrev_compare);
   if (p == NULL) {
-    error_cb(self, "Invalid abbreviation code", 0, data);
+    on_error(self, "Invalid abbreviation code", 0, data);
     return NULL;
   }
   return (const abbrev *)p;

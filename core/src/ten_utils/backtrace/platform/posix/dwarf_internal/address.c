@@ -4,6 +4,7 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
+#include "ten_utils/macro/mark.h"
 #include "ten_utils/ten_config.h"
 
 #include <stdlib.h>
@@ -20,9 +21,10 @@
 
 /* Add a new compilation unit address range to a vector.  This is
    called via add_ranges.  Returns 1 on success, 0 on failure.  */
-static int add_unit_addr(ten_backtrace_t *self, void *rdata, uintptr_t lowpc,
-                         uintptr_t highpc, ten_backtrace_error_func_t error_cb,
-                         void *data, void *pvec) {
+static int add_unit_addr(TEN_UNUSED ten_backtrace_t *self, void *rdata,
+                         uintptr_t lowpc, uintptr_t highpc,
+                         TEN_UNUSED ten_backtrace_on_error_func_t on_error,
+                         TEN_UNUSED void *data, void *pvec) {
   unit *u = (unit *)rdata;
   unit_addrs_vector *vec = (unit_addrs_vector *)pvec;
   unit_addrs *p = NULL;
@@ -59,8 +61,8 @@ static int find_address_ranges(ten_backtrace_t *self, uintptr_t base_address,
                                dwarf_buf *unit_buf,
                                const dwarf_sections *dwarf_sections,
                                int is_bigendian, dwarf_data *altlink,
-                               ten_backtrace_error_func_t error_cb, void *data,
-                               unit *u, struct unit_addrs_vector *addrs,
+                               ten_backtrace_on_error_func_t on_error,
+                               void *data, unit *u, unit_addrs_vector *addrs,
                                dwarf_tag *unit_tag) {
   while (unit_buf->left > 0) {
     uint64_t code = 0;
@@ -77,7 +79,7 @@ static int find_address_ranges(ten_backtrace_t *self, uintptr_t base_address,
       return 1;
     }
 
-    abbrev = lookup_abbrev(self, &u->abbrevs, code, error_cb, data);
+    abbrev = lookup_abbrev(self, &u->abbrevs, code, on_error, data);
     if (abbrev == NULL) {
       return 0;
     }
@@ -165,14 +167,14 @@ static int find_address_ranges(ten_backtrace_t *self, uintptr_t base_address,
     // DW_AT_str_offsets_base.
     if (have_name_val) {
       if (!resolve_string(self, dwarf_sections, u->is_dwarf64, is_bigendian,
-                          u->str_offsets_base, &name_val, error_cb, data,
+                          u->str_offsets_base, &name_val, on_error, data,
                           &u->filename)) {
         return 0;
       }
     }
     if (have_comp_dir_val) {
       if (!resolve_string(self, dwarf_sections, u->is_dwarf64, is_bigendian,
-                          u->str_offsets_base, &comp_dir_val, error_cb, data,
+                          u->str_offsets_base, &comp_dir_val, on_error, data,
                           &u->comp_dir)) {
         return 0;
       }
@@ -183,7 +185,7 @@ static int find_address_ranges(ten_backtrace_t *self, uintptr_t base_address,
         abbrev->tag == DW_TAG_skeleton_unit) {
       if (!add_ranges(self, dwarf_sections, base_address, is_bigendian, u,
                       pcrange.lowpc, &pcrange, add_unit_addr, (void *)u,
-                      error_cb, data, (void *)addrs)) {
+                      on_error, data, (void *)addrs)) {
         return 0;
       }
 
@@ -199,7 +201,7 @@ static int find_address_ranges(ten_backtrace_t *self, uintptr_t base_address,
 
     if (abbrev->has_children) {
       if (!find_address_ranges(self, base_address, unit_buf, dwarf_sections,
-                               is_bigendian, altlink, error_cb, data, u, addrs,
+                               is_bigendian, altlink, on_error, data, u, addrs,
                                NULL)) {
         return 0;
       }
@@ -214,16 +216,16 @@ static int find_address_ranges(ten_backtrace_t *self, uintptr_t base_address,
    on success, 0 on failure.  */
 int build_address_map(ten_backtrace_t *self, uintptr_t base_address,
                       const dwarf_sections *dwarf_sections, int is_bigendian,
-                      dwarf_data *altlink, ten_backtrace_error_func_t error_cb,
-                      void *data, struct unit_addrs_vector *addrs,
-                      struct unit_vector *unit_vec) {
+                      dwarf_data *altlink,
+                      ten_backtrace_on_error_func_t on_error, void *data,
+                      unit_addrs_vector *addrs, unit_vector *unit_vec) {
   dwarf_buf info;
   ten_vector_t units;
   size_t units_count = 0;
   size_t i = 0;
   unit **pu = NULL;
   size_t unit_offset = 0;
-  struct unit_addrs *pa = NULL;
+  unit_addrs *pa = NULL;
 
   memset(&addrs->vec, 0, sizeof addrs->vec);
   memset(&unit_vec->vec, 0, sizeof unit_vec->vec);
@@ -239,7 +241,7 @@ int build_address_map(ten_backtrace_t *self, uintptr_t base_address,
   info.buf = info.start;
   info.left = dwarf_sections->size[DEBUG_INFO];
   info.is_bigendian = is_bigendian;
-  info.error_cb = error_cb;
+  info.on_error = on_error;
   info.data = data;
   info.reported_underflow = 0;
 
@@ -311,7 +313,7 @@ int build_address_map(ten_backtrace_t *self, uintptr_t base_address,
     abbrev_offset = read_offset(self, &unit_buf, is_dwarf64);
     if (!read_abbrevs(self, abbrev_offset, dwarf_sections->data[DEBUG_ABBREV],
                       dwarf_sections->size[DEBUG_ABBREV], is_bigendian,
-                      error_cb, data, &u->abbrevs)) {
+                      on_error, data, &u->abbrevs)) {
       goto fail;
     }
 
@@ -356,7 +358,7 @@ int build_address_map(ten_backtrace_t *self, uintptr_t base_address,
     u->function_addrs_count = 0;
 
     if (!find_address_ranges(self, base_address, &unit_buf, dwarf_sections,
-                             is_bigendian, altlink, error_cb, data, u, addrs,
+                             is_bigendian, altlink, on_error, data, u, addrs,
                              &unit_tag)) {
       goto fail;
     }
@@ -390,7 +392,7 @@ fail:
   if (units_count > 0) {
     pu = (unit **)units.data;
     for (i = 0; i < units_count; i++) {
-      free_abbrevs(self, &pu[i]->abbrevs, error_cb, data);
+      free_abbrevs(self, &pu[i]->abbrevs, on_error, data);
       free(pu[i]);
     }
     ten_vector_deinit(&units);

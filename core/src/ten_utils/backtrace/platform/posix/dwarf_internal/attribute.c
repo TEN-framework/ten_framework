@@ -21,7 +21,7 @@ int read_attribute(ten_backtrace_t *self, enum dwarf_form form,
                    uint64_t implicit_val, dwarf_buf *buf, int is_dwarf64,
                    int version, int addrsize,
                    const dwarf_sections *dwarf_sections, dwarf_data *altlink,
-                   struct attr_val *val) {
+                   attr_val *val) {
   // Avoid warnings about val.u.FIELD may be used uninitialized if
   // this function is inlined.  The warnings aren't valid but can
   // occur because the different fields are set and used

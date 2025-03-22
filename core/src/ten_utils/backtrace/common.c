@@ -79,11 +79,11 @@ static char *ten_strerror(int errnum) {
   return buf;
 }
 
-int ten_backtrace_default_dump_cb(ten_backtrace_t *self_, uintptr_t pc,
-                                  const char *filename, int lineno,
-                                  const char *function, TEN_UNUSED void *data) {
-  ten_backtrace_common_t *self = (ten_backtrace_common_t *)self_;
-  if (!self) {
+int ten_backtrace_default_dump(ten_backtrace_t *self, uintptr_t pc,
+                               const char *filename, int lineno,
+                               const char *function, TEN_UNUSED void *data) {
+  ten_backtrace_common_t *self_posix = (ten_backtrace_common_t *)self;
+  if (!self_posix) {
     assert(0 && "Invalid argument.");
     return -1;
   }
@@ -129,10 +129,10 @@ int ten_backtrace_default_dump_cb(ten_backtrace_t *self_, uintptr_t pc,
   return 0;
 }
 
-void ten_backtrace_default_error_cb(ten_backtrace_t *self_, const char *msg,
-                                    int errnum, TEN_UNUSED void *data) {
-  ten_backtrace_common_t *self = (ten_backtrace_common_t *)self_;
-  if (!self) {
+void ten_backtrace_default_error(ten_backtrace_t *self, const char *msg,
+                                 int errnum, TEN_UNUSED void *data) {
+  ten_backtrace_common_t *self_common = (ten_backtrace_common_t *)self;
+  if (!self_common) {
     assert(0 && "Invalid argument.");
     return;
   }
@@ -168,17 +168,19 @@ void ten_backtrace_default_error_cb(ten_backtrace_t *self_, const char *msg,
   }
 }
 
-void ten_backtrace_common_init(ten_backtrace_common_t *self,
-                               ten_backtrace_dump_file_line_func_t dump_cb,
-                               ten_backtrace_error_func_t error_cb) {
+void ten_backtrace_common_init(
+    ten_backtrace_common_t *self,
+    ten_backtrace_on_dump_file_line_func_t on_dump_file_line,
+    ten_backtrace_on_error_func_t on_error) {
   if (!self) {
     assert(0 && "Invalid argument.");
     return;
   }
 
   // Use provided callbacks or default ones if NULL.
-  self->dump_cb = dump_cb ? dump_cb : ten_backtrace_default_dump_cb;
-  self->error_cb = error_cb ? error_cb : ten_backtrace_default_error_cb;
+  self->on_dump_file_line =
+      on_dump_file_line ? on_dump_file_line : ten_backtrace_default_dump;
+  self->on_error = on_error ? on_error : ten_backtrace_default_error;
 }
 
 void ten_backtrace_common_deinit(ten_backtrace_t *self) {
