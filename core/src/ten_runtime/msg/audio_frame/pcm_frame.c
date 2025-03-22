@@ -416,40 +416,40 @@ ten_value_t *ten_raw_audio_frame_peek_ten_property(ten_msg_t *self,
     TEN_ASSERT(item, "Invalid argument.");
 
     switch (item->type) {
-      case TEN_VALUE_PATH_ITEM_TYPE_OBJECT_ITEM: {
-        if (!strcmp(TEN_STR_BYTES_PER_SAMPLE,
-                    ten_string_get_raw_str(&item->obj_item_str))) {
-          result = &audio_frame->bytes_per_sample;
-        } else if (!strcmp(TEN_STR_TIMESTAMP,
-                           ten_string_get_raw_str(&item->obj_item_str))) {
-          result = &audio_frame->timestamp;
-        } else if (!strcmp(TEN_STR_CHANNEL_LAYOUT,
-                           ten_string_get_raw_str(&item->obj_item_str))) {
-          result = &audio_frame->channel_layout;
-        } else if (!strcmp(TEN_STR_DATA_FMT,
-                           ten_string_get_raw_str(&item->obj_item_str))) {
-          result = &audio_frame->data_fmt;
-        } else if (!strcmp(TEN_STR_IS_EOF,
-                           ten_string_get_raw_str(&item->obj_item_str))) {
-          result = &audio_frame->is_eof;
-        } else if (!strcmp(TEN_STR_LINE_SIZE,
-                           ten_string_get_raw_str(&item->obj_item_str))) {
-          result = &audio_frame->line_size;
-        } else if (!strcmp(TEN_STR_NUMBER_OF_CHANNEL,
-                           ten_string_get_raw_str(&item->obj_item_str))) {
-          result = &audio_frame->number_of_channel;
-        } else if (!strcmp(TEN_STR_SAMPLE_RATE,
-                           ten_string_get_raw_str(&item->obj_item_str))) {
-          result = &audio_frame->sample_rate;
-        } else if (!strcmp(TEN_STR_SAMPLES_PER_CHANNEL,
-                           ten_string_get_raw_str(&item->obj_item_str))) {
-          result = &audio_frame->samples_per_channel;
-        }
-        break;
+    case TEN_VALUE_PATH_ITEM_TYPE_OBJECT_ITEM: {
+      if (!strcmp(TEN_STR_BYTES_PER_SAMPLE,
+                  ten_string_get_raw_str(&item->obj_item_str))) {
+        result = &audio_frame->bytes_per_sample;
+      } else if (!strcmp(TEN_STR_TIMESTAMP,
+                         ten_string_get_raw_str(&item->obj_item_str))) {
+        result = &audio_frame->timestamp;
+      } else if (!strcmp(TEN_STR_CHANNEL_LAYOUT,
+                         ten_string_get_raw_str(&item->obj_item_str))) {
+        result = &audio_frame->channel_layout;
+      } else if (!strcmp(TEN_STR_DATA_FMT,
+                         ten_string_get_raw_str(&item->obj_item_str))) {
+        result = &audio_frame->data_fmt;
+      } else if (!strcmp(TEN_STR_IS_EOF,
+                         ten_string_get_raw_str(&item->obj_item_str))) {
+        result = &audio_frame->is_eof;
+      } else if (!strcmp(TEN_STR_LINE_SIZE,
+                         ten_string_get_raw_str(&item->obj_item_str))) {
+        result = &audio_frame->line_size;
+      } else if (!strcmp(TEN_STR_NUMBER_OF_CHANNEL,
+                         ten_string_get_raw_str(&item->obj_item_str))) {
+        result = &audio_frame->number_of_channel;
+      } else if (!strcmp(TEN_STR_SAMPLE_RATE,
+                         ten_string_get_raw_str(&item->obj_item_str))) {
+        result = &audio_frame->sample_rate;
+      } else if (!strcmp(TEN_STR_SAMPLES_PER_CHANNEL,
+                         ten_string_get_raw_str(&item->obj_item_str))) {
+        result = &audio_frame->samples_per_channel;
       }
+      break;
+    }
 
-      default:
-        break;
+    default:
+      break;
     }
   }
 

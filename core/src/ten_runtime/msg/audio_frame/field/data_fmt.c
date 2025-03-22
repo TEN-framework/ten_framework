@@ -14,8 +14,8 @@
 #include "ten_utils/macro/check.h"
 #include "ten_utils/macro/mark.h"
 
-const char *
-ten_audio_frame_data_fmt_to_string(const TEN_AUDIO_FRAME_DATA_FMT data_fmt) {
+const char *ten_audio_frame_data_fmt_to_string(
+    const TEN_AUDIO_FRAME_DATA_FMT data_fmt) {
   switch (data_fmt) {
   case TEN_AUDIO_FRAME_DATA_FMT_INTERLEAVE:
     return "interleave";

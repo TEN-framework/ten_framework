@@ -160,23 +160,23 @@ inline bool ten_raw_msg_is_cmd_and_result(ten_msg_t *self) {
   TEN_ASSERT(ten_raw_msg_check_integrity(self), "Should not happen.");
 
   switch (self->type) {
-    case TEN_MSG_TYPE_CMD_CLOSE_APP:
-    case TEN_MSG_TYPE_CMD_STOP_GRAPH:
-    case TEN_MSG_TYPE_CMD_START_GRAPH:
-    case TEN_MSG_TYPE_CMD_TIMER:
-    case TEN_MSG_TYPE_CMD_TIMEOUT:
-    case TEN_MSG_TYPE_CMD:
-    case TEN_MSG_TYPE_CMD_RESULT:
-      return true;
+  case TEN_MSG_TYPE_CMD_CLOSE_APP:
+  case TEN_MSG_TYPE_CMD_STOP_GRAPH:
+  case TEN_MSG_TYPE_CMD_START_GRAPH:
+  case TEN_MSG_TYPE_CMD_TIMER:
+  case TEN_MSG_TYPE_CMD_TIMEOUT:
+  case TEN_MSG_TYPE_CMD:
+  case TEN_MSG_TYPE_CMD_RESULT:
+    return true;
 
-    case TEN_MSG_TYPE_DATA:
-    case TEN_MSG_TYPE_VIDEO_FRAME:
-    case TEN_MSG_TYPE_AUDIO_FRAME:
-      return false;
+  case TEN_MSG_TYPE_DATA:
+  case TEN_MSG_TYPE_VIDEO_FRAME:
+  case TEN_MSG_TYPE_AUDIO_FRAME:
+    return false;
 
-    default:
-      TEN_ASSERT(0, "Invalid message type %d", self->type);
-      return false;
+  default:
+    TEN_ASSERT(0, "Invalid message type %d", self->type);
+    return false;
   }
 }
 
@@ -185,23 +185,23 @@ inline bool ten_raw_msg_is_cmd(ten_msg_t *self) {
   TEN_ASSERT(ten_raw_msg_check_integrity(self), "Should not happen.");
 
   switch (self->type) {
-    case TEN_MSG_TYPE_CMD_CLOSE_APP:
-    case TEN_MSG_TYPE_CMD_STOP_GRAPH:
-    case TEN_MSG_TYPE_CMD_START_GRAPH:
-    case TEN_MSG_TYPE_CMD_TIMER:
-    case TEN_MSG_TYPE_CMD_TIMEOUT:
-    case TEN_MSG_TYPE_CMD:
-      return true;
+  case TEN_MSG_TYPE_CMD_CLOSE_APP:
+  case TEN_MSG_TYPE_CMD_STOP_GRAPH:
+  case TEN_MSG_TYPE_CMD_START_GRAPH:
+  case TEN_MSG_TYPE_CMD_TIMER:
+  case TEN_MSG_TYPE_CMD_TIMEOUT:
+  case TEN_MSG_TYPE_CMD:
+    return true;
 
-    case TEN_MSG_TYPE_CMD_RESULT:
-    case TEN_MSG_TYPE_DATA:
-    case TEN_MSG_TYPE_VIDEO_FRAME:
-    case TEN_MSG_TYPE_AUDIO_FRAME:
-      return false;
+  case TEN_MSG_TYPE_CMD_RESULT:
+  case TEN_MSG_TYPE_DATA:
+  case TEN_MSG_TYPE_VIDEO_FRAME:
+  case TEN_MSG_TYPE_AUDIO_FRAME:
+    return false;
 
-    default:
-      TEN_ASSERT(0, "Invalid message type %d", self->type);
-      return false;
+  default:
+    TEN_ASSERT(0, "Invalid message type %d", self->type);
+    return false;
   }
 }
 
@@ -210,23 +210,23 @@ inline bool ten_raw_msg_is_cmd_result(ten_msg_t *self) {
   TEN_ASSERT(ten_raw_msg_check_integrity(self), "Should not happen.");
 
   switch (self->type) {
-    case TEN_MSG_TYPE_CMD_RESULT:
-      return true;
+  case TEN_MSG_TYPE_CMD_RESULT:
+    return true;
 
-    case TEN_MSG_TYPE_CMD_CLOSE_APP:
-    case TEN_MSG_TYPE_CMD_STOP_GRAPH:
-    case TEN_MSG_TYPE_CMD_START_GRAPH:
-    case TEN_MSG_TYPE_CMD_TIMER:
-    case TEN_MSG_TYPE_CMD_TIMEOUT:
-    case TEN_MSG_TYPE_CMD:
-    case TEN_MSG_TYPE_DATA:
-    case TEN_MSG_TYPE_VIDEO_FRAME:
-    case TEN_MSG_TYPE_AUDIO_FRAME:
-      return false;
+  case TEN_MSG_TYPE_CMD_CLOSE_APP:
+  case TEN_MSG_TYPE_CMD_STOP_GRAPH:
+  case TEN_MSG_TYPE_CMD_START_GRAPH:
+  case TEN_MSG_TYPE_CMD_TIMER:
+  case TEN_MSG_TYPE_CMD_TIMEOUT:
+  case TEN_MSG_TYPE_CMD:
+  case TEN_MSG_TYPE_DATA:
+  case TEN_MSG_TYPE_VIDEO_FRAME:
+  case TEN_MSG_TYPE_AUDIO_FRAME:
+    return false;
 
-    default:
-      TEN_ASSERT(0, "Invalid message type %d", self->type);
-      return false;
+  default:
+    TEN_ASSERT(0, "Invalid message type %d", self->type);
+    return false;
   }
 }
 

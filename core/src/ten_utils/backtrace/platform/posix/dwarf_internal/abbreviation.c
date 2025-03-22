@@ -6,12 +6,13 @@
 //
 #include "ten_utils/ten_config.h"
 
+#include "include_internal/ten_utils/backtrace/platform/posix/dwarf_internal/abbreviation.h"
+
 #include <stdlib.h>
 #include <string.h>
 
 #include "include_internal/ten_utils/backtrace/backtrace.h"
 #include "include_internal/ten_utils/backtrace/platform/posix/dwarf.h"
-#include "include_internal/ten_utils/backtrace/platform/posix/dwarf_internal/abbreviation.h"
 #include "include_internal/ten_utils/backtrace/platform/posix/dwarf_internal/buf.h"
 #include "include_internal/ten_utils/backtrace/sort.h"
 

@@ -23,10 +23,9 @@ typedef struct ten_env_notify_log_ctx_t {
   ten_event_t *completed;
 } ten_env_notify_log_ctx_t;
 
-static ten_env_notify_log_ctx_t *
-ten_env_notify_log_ctx_create(int32_t level, const char *func_name,
-                              const char *file_name, size_t line_no,
-                              const char *msg) {
+static ten_env_notify_log_ctx_t *ten_env_notify_log_ctx_create(
+    int32_t level, const char *func_name, const char *file_name, size_t line_no,
+    const char *msg) {
   ten_env_notify_log_ctx_t *ctx = TEN_MALLOC(sizeof(ten_env_notify_log_ctx_t));
   TEN_ASSERT(ctx, "Failed to allocate memory.");
 

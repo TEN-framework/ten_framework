@@ -59,7 +59,7 @@ static char *ten_strerror(int errnum) {
     }
 
     size_t new_size = size * 2;
-    if (new_size < size) { // Check for overflow.
+    if (new_size < size) {  // Check for overflow.
       assert(0 && "Overflow.");
       free(buf);
       return NULL;
@@ -143,7 +143,7 @@ void ten_backtrace_default_error(ten_backtrace_t *self, const char *msg,
   // Print the error message
   if (fprintf(stderr, "%s", safe_msg) < 0) {
     assert(0 && "Failed to fprintf(stderr).");
-    return; // Error writing to stderr, just return.
+    return;  // Error writing to stderr, just return.
   }
 
   // Print error details if available.
@@ -208,7 +208,7 @@ void ten_backtrace_create_global(void) {
 void ten_backtrace_destroy_global(void) {
   if (g_ten_backtrace) {
     ten_backtrace_destroy(g_ten_backtrace);
-    g_ten_backtrace = NULL; // Clear the pointer after destruction.
+    g_ten_backtrace = NULL;  // Clear the pointer after destruction.
   }
 }
 

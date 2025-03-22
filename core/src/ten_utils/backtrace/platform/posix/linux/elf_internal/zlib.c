@@ -215,13 +215,13 @@ static int elf_zlib_inflate_table(unsigned char *codes, size_t codes_len,
   // secondary tables first, as the smaller ones may be embedded in
   // the larger ones.
 
-  next_secondary = 0; // Index of next secondary table (after primary).
+  next_secondary = 0;  // Index of next secondary table (after primary).
   for (j = 15; j >= 9; j--) {
     unsigned int jcnt = 0;
     unsigned int val = 0;
-    size_t primary = 0;        // Current primary index.
-    size_t secondary = 0;      // Offset to current secondary table.
-    size_t secondary_bits = 0; // Bit size of current secondary table.
+    size_t primary = 0;         // Current primary index.
+    size_t secondary = 0;       // Offset to current secondary table.
+    size_t secondary_bits = 0;  // Bit size of current secondary table.
 
     jcnt = count[j];
     if (jcnt == 0) {
@@ -407,7 +407,7 @@ static int elf_zlib_inflate(const unsigned char *in, size_t in_size,
 
     // Read the two byte zlib header.
 
-    if (unlikely((in[0] & 0xf) != 8)) { // 8 is zlib encoding.
+    if (unlikely((in[0] & 0xf) != 8)) {  // 8 is zlib encoding.
       // Unknown compression method.
       elf_uncompress_failed();
       return 0;

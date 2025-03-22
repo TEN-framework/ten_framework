@@ -157,7 +157,7 @@ static void ten_env_proxy_notify_return_result(ten_env_t *ten_env,
 napi_value ten_nodejs_ten_env_return_result(napi_env env,
                                             napi_callback_info info) {
   const size_t argc = 3;
-  napi_value args[argc]; // this, cmd_result, callback
+  napi_value args[argc];  // this, cmd_result, callback
   if (!ten_nodejs_get_js_func_args(env, info, args, argc)) {
     napi_fatal_error(NULL, NAPI_AUTO_LENGTH,
                      "Incorrect number of parameters passed.",

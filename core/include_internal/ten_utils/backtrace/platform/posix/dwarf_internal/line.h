@@ -94,10 +94,12 @@ typedef struct line_header {
   unsigned int opcode_base;
   // Array of standard opcode lengths, indexed by (opcode - 1).
   const unsigned char *opcode_lengths;
+
   // Number of directory entries in the header.
   size_t dirs_count;
   // Array of directory path strings.
   const char **dirs;
+
   // Number of filename entries in the header.
   size_t filenames_count;
   // Array of filename strings.

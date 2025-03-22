@@ -14,8 +14,8 @@
 #include "ten_utils/macro/check.h"
 #include "ten_utils/value/value.h"
 
-static ten_msg_and_result_conversion_t *
-ten_msg_and_result_conversion_create(void) {
+static ten_msg_and_result_conversion_t *ten_msg_and_result_conversion_create(
+    void) {
   ten_msg_and_result_conversion_t *self =
       (ten_msg_and_result_conversion_t *)TEN_MALLOC(
           sizeof(ten_msg_and_result_conversion_t));
@@ -41,8 +41,8 @@ void ten_msg_and_result_conversion_destroy(
   TEN_FREE(self);
 }
 
-ten_msg_and_result_conversion_t *
-ten_msg_and_result_conversion_from_json(ten_json_t *json, ten_error_t *err) {
+ten_msg_and_result_conversion_t *ten_msg_and_result_conversion_from_json(
+    ten_json_t *json, ten_error_t *err) {
   ten_msg_and_result_conversion_t *pair =
       ten_msg_and_result_conversion_create();
 
@@ -89,8 +89,8 @@ bool ten_msg_and_result_conversion_to_json(
   return true;
 }
 
-ten_msg_and_result_conversion_t *
-ten_msg_and_result_conversion_from_value(ten_value_t *value, ten_error_t *err) {
+ten_msg_and_result_conversion_t *ten_msg_and_result_conversion_from_value(
+    ten_value_t *value, ten_error_t *err) {
   ten_msg_and_result_conversion_t *pair =
       ten_msg_and_result_conversion_create();
 
@@ -112,9 +112,8 @@ ten_msg_and_result_conversion_from_value(ten_value_t *value, ten_error_t *err) {
   return pair;
 }
 
-ten_value_t *
-ten_msg_and_result_conversion_to_value(ten_msg_and_result_conversion_t *self,
-                                       ten_error_t *err) {
+ten_value_t *ten_msg_and_result_conversion_to_value(
+    ten_msg_and_result_conversion_t *self, ten_error_t *err) {
   TEN_ASSERT(self, "Invalid argument.");
 
   ten_value_t *msg_and_result_conversion_value =

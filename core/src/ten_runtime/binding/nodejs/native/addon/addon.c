@@ -98,9 +98,9 @@ static void ten_nodejs_addon_finalize(napi_env env, void *data,
   TEN_LOGI("TEN JS Addon is finalized.");
 
   ten_nodejs_addon_t *addon_bridge = data;
-  TEN_ASSERT(addon_bridge &&
-                 ten_nodejs_addon_check_integrity(addon_bridge, true),
-             "Should not happen.");
+  TEN_ASSERT(
+      addon_bridge && ten_nodejs_addon_check_integrity(addon_bridge, true),
+      "Should not happen.");
 
   napi_status status = napi_ok;
 
@@ -412,7 +412,7 @@ static napi_value ten_nodejs_addon_create(napi_env env,
   TEN_ASSERT(env, "Should not happen.");
 
   const size_t argc = 1;
-  napi_value args[argc]; // this
+  napi_value args[argc];  // this
   if (!ten_nodejs_get_js_func_args(env, info, args, argc)) {
     napi_fatal_error(NULL, NAPI_AUTO_LENGTH,
                      "Incorrect number of parameters passed.",
@@ -463,9 +463,8 @@ done:
   return js_undefined(env);
 }
 
-static void
-ten_nodejs_addon_release_js_on_xxx_tsfn(napi_env env,
-                                        ten_nodejs_addon_t *addon_bridge) {
+static void ten_nodejs_addon_release_js_on_xxx_tsfn(
+    napi_env env, ten_nodejs_addon_t *addon_bridge) {
   TEN_ASSERT(env && addon_bridge, "Should not happen.");
 
   ten_nodejs_tsfn_release(addon_bridge->js_on_init);
@@ -478,7 +477,7 @@ static napi_value ten_nodejs_addon_on_end_of_life(napi_env env,
   TEN_ASSERT(env && info, "Should not happen.");
 
   const size_t argc = 1;
-  napi_value args[argc]; // this
+  napi_value args[argc];  // this
   if (!ten_nodejs_get_js_func_args(env, info, args, argc)) {
     napi_fatal_error(NULL, NAPI_AUTO_LENGTH,
                      "Incorrect number of parameters passed.",
@@ -491,9 +490,9 @@ static napi_value ten_nodejs_addon_on_end_of_life(napi_env env,
   napi_status status = napi_unwrap(env, args[0], (void **)&addon_bridge);
   RETURN_UNDEFINED_IF_NAPI_FAIL(status == napi_ok && addon_bridge != NULL,
                                 "Failed to get addon bridge: %d", status);
-  TEN_ASSERT(addon_bridge &&
-                 ten_nodejs_addon_check_integrity(addon_bridge, true),
-             "Should not happen.");
+  TEN_ASSERT(
+      addon_bridge && ten_nodejs_addon_check_integrity(addon_bridge, true),
+      "Should not happen.");
 
   // From now on, the JS on_xxx callback(s) are useless, so release them all.
   ten_nodejs_addon_release_js_on_xxx_tsfn(env, addon_bridge);

@@ -12,6 +12,7 @@
 
 #include "gtest/gtest.h"
 #include "include_internal/ten_utils/backtrace/sort.h"
+#include "ten_utils/macro/check.h"
 #include "ten_utils/macro/memory.h"
 
 // Compare function - integer ascending.

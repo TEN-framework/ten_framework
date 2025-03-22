@@ -119,9 +119,8 @@ void ten_path_table_check_empty(ten_path_table_t *self) {
              "There should be no OUT path.");
 }
 
-static ten_listnode_t *
-ten_path_table_find_path_from_cmd_id(ten_path_table_t *self, TEN_PATH_TYPE type,
-                                     const char *cmd_id) {
+static ten_listnode_t *ten_path_table_find_path_from_cmd_id(
+    ten_path_table_t *self, TEN_PATH_TYPE type, const char *cmd_id) {
   TEN_ASSERT(self && ten_path_table_check_integrity(self, true),
              "Should not happen.");
   TEN_ASSERT(cmd_id, "Invalid argument.");
@@ -135,7 +134,7 @@ ten_path_table_find_path_from_cmd_id(ten_path_table_t *self, TEN_PATH_TYPE type,
     TEN_LOGE("Too many paths, there might be some issues.");
   }
 
-  ten_list_foreach(list, paths_iter) {
+  ten_list_foreach (list, paths_iter) {
     ten_path_t *path = (ten_path_t *)ten_ptr_listnode_get(paths_iter.node);
     TEN_ASSERT(path && ten_path_check_integrity(path, true),
                "Should not happen.");
@@ -165,9 +164,8 @@ static uint64_t get_expired_time(uint64_t timeout_duration) {
   return current_time_us + timeout_duration;
 }
 
-static uint64_t
-ten_path_table_get_path_timeout_duration(ten_path_table_t *self,
-                                         TEN_PATH_TYPE path_type) {
+static uint64_t ten_path_table_get_path_timeout_duration(
+    ten_path_table_t *self, TEN_PATH_TYPE path_type) {
   TEN_ASSERT(self && ten_path_table_check_integrity(self, true),
              "Invalid argument.");
 
@@ -201,9 +199,9 @@ ten_path_table_get_path_timeout_duration(ten_path_table_t *self,
  * TEN records this kind of path to determine where the messages (ex: the status
  * commands) should go when they follow the backward path.
  */
-ten_path_in_t *
-ten_path_table_add_in_path(ten_path_table_t *self, ten_shared_ptr_t *cmd,
-                           ten_msg_conversion_t *result_conversion) {
+ten_path_in_t *ten_path_table_add_in_path(
+    ten_path_table_t *self, ten_shared_ptr_t *cmd,
+    ten_msg_conversion_t *result_conversion) {
   TEN_ASSERT(self && ten_path_table_check_integrity(self, true),
              "Should not happen.");
   TEN_ASSERT(cmd && ten_cmd_base_check_integrity(cmd) &&
@@ -374,7 +372,7 @@ static void ten_path_table_remove_group_and_all_its_paths(
 
   ten_list_t *group_members = ten_path_group_get_members(path_group);
 
-  ten_list_foreach(group_members, iter) {
+  ten_list_foreach (group_members, iter) {
     ten_path_t *group_path = ten_ptr_listnode_get(iter.node);
     TEN_ASSERT(group_path && ten_path_check_integrity(group_path, true),
                "Invalid argument.");
@@ -552,8 +550,9 @@ bool ten_path_table_process_cmd_result(
         proceed = true;
         ten_cmd_result_set_info_from_path(cmd_result, path_type, path);
 
-        // This path group has completed its task. Cancel the entire path group
-        // and all associated paths, and let this failed `cmd_result` flow back.
+        // This path group has completed its task. Cancel the entire path
+        // group and all associated paths, and let this failed `cmd_result`
+        // flow back.
         ten_path_table_remove_group_and_all_its_paths(self, path_type,
                                                       path_group);
 
@@ -571,7 +570,7 @@ bool ten_path_table_process_cmd_result(
         bool received_all_final_results = true;
         ten_shared_ptr_t *cached_cmd_result = NULL;
 
-        ten_list_foreach(members, iter) {
+        ten_list_foreach (members, iter) {
           ten_path_t *path = ten_ptr_listnode_get(iter.node);
           TEN_ASSERT(path && ten_path_check_integrity(path, true),
                      "Invalid argument.");
@@ -614,7 +613,7 @@ bool ten_path_table_process_cmd_result(
 
       bool received_all_final_results = true;
 
-      ten_list_foreach(members, iter) {
+      ten_list_foreach (members, iter) {
         ten_path_t *path = ten_ptr_listnode_get(iter.node);
         TEN_ASSERT(path && ten_path_check_integrity(path, true),
                    "Invalid argument.");

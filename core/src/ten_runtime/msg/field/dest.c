@@ -23,7 +23,7 @@ void ten_raw_msg_dest_copy(ten_msg_t *self, ten_msg_t *src,
   TEN_ASSERT(src && ten_raw_msg_check_integrity(src), "Should not happen.");
 
   ten_list_clear(&self->dest_loc);
-  ten_list_foreach(&src->dest_loc, iter) {
+  ten_list_foreach (&src->dest_loc, iter) {
     ten_loc_t *dest_loc = ten_ptr_listnode_get(iter.node);
     ten_loc_t *cloned_dest = ten_loc_clone(dest_loc);
     ten_list_push_ptr_back(&self->dest_loc, cloned_dest,
@@ -38,7 +38,7 @@ bool ten_raw_msg_dest_process(ten_msg_t *self,
   TEN_ASSERT(ten_raw_msg_check_integrity(self), "Should not happen.");
 
   ten_list_t dest_value_list = TEN_LIST_INIT_VAL;
-  ten_list_foreach(&self->dest_loc, iter) {
+  ten_list_foreach (&self->dest_loc, iter) {
     ten_loc_t *loc = ten_ptr_listnode_get(iter.node);
     TEN_ASSERT(loc, "Should not happen.");
 

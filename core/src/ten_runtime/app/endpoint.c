@@ -14,9 +14,8 @@
 #include "ten_utils/lib/string.h"
 #include "ten_utils/macro/check.h"
 
-static ten_connection_t *
-create_connection_when_client_accepted(ten_protocol_t *listening_protocol,
-                                       ten_protocol_t *protocol) {
+static ten_connection_t *create_connection_when_client_accepted(
+    ten_protocol_t *listening_protocol, ten_protocol_t *protocol) {
   TEN_ASSERT(listening_protocol &&
                  ten_protocol_check_integrity(listening_protocol, true),
              "Should not happen.");
@@ -41,7 +40,8 @@ create_connection_when_client_accepted(ten_protocol_t *listening_protocol,
 }
 
 bool ten_app_endpoint_listen(ten_app_t *self) {
-  TEN_ASSERT(self && ten_app_check_integrity(self, true), "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_app_check_integrity(self, true), "Should not happen.");
 
   if (!self->endpoint_protocol) {
     return false;

@@ -9,12 +9,13 @@
 //
 #include "ten_utils/ten_config.h"
 
+#include "include_internal/ten_utils/backtrace/platform/posix/linux/elf_internal/zstd.h"
+
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "include_internal/ten_utils/backtrace/platform/posix/internal.h"
-#include "include_internal/ten_utils/backtrace/platform/posix/linux/elf_internal/zstd.h"
 #include "include_internal/ten_utils/backtrace/platform/posix/linux/elf_internal/zutils.h"
 
 static int elf_zstd_build_fse(const int16_t *, int, uint16_t *, int,
@@ -345,10 +346,9 @@ static int elf_zstd_make_literal_baseline_fse(
 
 // Convert the offset length FSE table FSE_TABLE to an FSE baseline table at
 // BASELINE_TABLE.  Note that FSE_TABLE and BASELINE_TABLE will overlap.
-static int
-elf_zstd_make_offset_baseline_fse(const elf_zstd_fse_entry *fse_table,
-                                  int table_bits,
-                                  elf_zstd_fse_baseline_entry *baseline_table) {
+static int elf_zstd_make_offset_baseline_fse(
+    const elf_zstd_fse_entry *fse_table, int table_bits,
+    elf_zstd_fse_baseline_entry *baseline_table) {
   size_t count = 1U << table_bits;
   const elf_zstd_fse_entry *pfse = fse_table + count;
   elf_zstd_fse_baseline_entry *pbaseline = baseline_table + count;
@@ -401,10 +401,9 @@ elf_zstd_make_offset_baseline_fse(const elf_zstd_fse_entry *fse_table,
 
 // Convert the match length FSE table FSE_TABLE to an FSE baseline table at
 // BASELINE_TABLE.  Note that FSE_TABLE and BASELINE_TABLE will overlap.
-static int
-elf_zstd_make_match_baseline_fse(const elf_zstd_fse_entry *fse_table,
-                                 int table_bits,
-                                 elf_zstd_fse_baseline_entry *baseline_table) {
+static int elf_zstd_make_match_baseline_fse(
+    const elf_zstd_fse_entry *fse_table, int table_bits,
+    elf_zstd_fse_baseline_entry *baseline_table) {
   size_t count = 1U << table_bits;
   const elf_zstd_fse_entry *pfse = fse_table + count;
   elf_zstd_fse_baseline_entry *pbaseline = baseline_table + count;
@@ -526,9 +525,9 @@ static int elf_fetch_bits_backward(const unsigned char **ppin,
 
   pin -= 4;
 
-#if defined(__BYTE_ORDER__) && defined(__ORDER_LITTLE_ENDIAN__) &&             \
-    defined(__ORDER_BIG_ENDIAN__) &&                                           \
-    (__BYTE_ORDER__ == __ORDER_BIG_ENDIAN__ ||                                 \
+#if defined(__BYTE_ORDER__) && defined(__ORDER_LITTLE_ENDIAN__) && \
+    defined(__ORDER_BIG_ENDIAN__) &&                               \
+    (__BYTE_ORDER__ == __ORDER_BIG_ENDIAN__ ||                     \
      __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__)
   // We've ensured that PIN is aligned.
   next = *(const uint32_t *)pin;

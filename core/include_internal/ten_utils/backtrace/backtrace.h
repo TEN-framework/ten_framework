@@ -98,7 +98,7 @@ typedef void (*ten_backtrace_on_error_func_t)(ten_backtrace_t *self,
  * @return The first non-zero value returned by @a on_dump_file_line or @a
  * on_error, or 0.
  */
-TEN_UTILS_API int ten_backtrace_get_file_line_info(
+TEN_UTILS_PRIVATE_API int ten_backtrace_get_file_line_info(
     ten_backtrace_t *self, uintptr_t pc,
     ten_backtrace_on_dump_file_line_func_t on_dump_file_line,
     ten_backtrace_on_error_func_t on_error, void *data);
@@ -116,18 +116,18 @@ TEN_UTILS_API int ten_backtrace_get_file_line_info(
  * in the table, @a on_dump_syminfo will be called with a NULL @a sym_name
  * argument. Returns 1 on success, 0 on error.
  */
-TEN_UTILS_API int ten_backtrace_get_syminfo(
+TEN_UTILS_PRIVATE_API int ten_backtrace_get_syminfo(
     ten_backtrace_t *self, uintptr_t pc,
     ten_backtrace_on_dump_syminfo_func_t on_dump_syminfo,
     ten_backtrace_on_error_func_t on_error, void *data);
 
 TEN_UTILS_API void ten_backtrace_create_global(void);
 
-TEN_UTILS_API ten_backtrace_t *ten_backtrace_create(void);
+TEN_UTILS_PRIVATE_API ten_backtrace_t *ten_backtrace_create(void);
 
 TEN_UTILS_API void ten_backtrace_destroy_global(void);
 
-TEN_UTILS_API void ten_backtrace_destroy(ten_backtrace_t *self);
+TEN_UTILS_PRIVATE_API void ten_backtrace_destroy(ten_backtrace_t *self);
 
 /**
  * @brief Get a full stack backtrace.
@@ -143,7 +143,8 @@ TEN_UTILS_API void ten_backtrace_destroy(ten_backtrace_t *self);
  * 'dump' callback or 'error' callback.
  * @note This function requires debug info for the executable.
  */
-TEN_UTILS_API void ten_backtrace_dump(ten_backtrace_t *self, size_t skip);
+TEN_UTILS_PRIVATE_API void ten_backtrace_dump(ten_backtrace_t *self,
+                                              size_t skip);
 
 #if defined(__cplusplus)
 } /* End extern "C".  */

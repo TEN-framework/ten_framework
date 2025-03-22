@@ -43,12 +43,12 @@ static void ten_value_path_snippet_item_destroy(
   TEN_ASSERT(item, "Invalid argument.");
 
   switch (item->type) {
-    case TEN_VALUE_PATH_SNIPPET_ITEM_TYPE_STRING:
-      ten_string_deinit(&item->str);
-      break;
+  case TEN_VALUE_PATH_SNIPPET_ITEM_TYPE_STRING:
+    ten_string_deinit(&item->str);
+    break;
 
-    default:
-      break;
+  default:
+    break;
   }
 
   TEN_FREE(item);
@@ -72,12 +72,12 @@ static void ten_value_path_item_destroy(ten_value_path_item_t *self) {
   TEN_ASSERT(self, "Invalid argument.");
 
   switch (self->type) {
-    case TEN_VALUE_PATH_ITEM_TYPE_OBJECT_ITEM:
-      ten_string_deinit(&self->obj_item_str);
-      break;
+  case TEN_VALUE_PATH_ITEM_TYPE_OBJECT_ITEM:
+    ten_string_deinit(&self->obj_item_str);
+    break;
 
-    default:
-      break;
+  default:
+    break;
   }
 
   TEN_FREE(self);
@@ -209,66 +209,65 @@ ten_value_t *ten_value_peek_from_path(ten_value_t *base, const char *path,
     TEN_ASSERT(item, "Invalid argument.");
 
     switch (item->type) {
-      case TEN_VALUE_PATH_ITEM_TYPE_INVALID:
-        TEN_ASSERT(0, "Should not happen.");
+    case TEN_VALUE_PATH_ITEM_TYPE_INVALID:
+      TEN_ASSERT(0, "Should not happen.");
 
+      result = NULL;
+      goto done;
+
+    case TEN_VALUE_PATH_ITEM_TYPE_OBJECT_ITEM:
+      if (base->type != TEN_TYPE_OBJECT) {
+        if (err) {
+          ten_error_set(err, TEN_ERROR_CODE_INVALID_ARGUMENT,
+                        "Path is not corresponding to the value type.");
+        }
         result = NULL;
         goto done;
+      }
 
-      case TEN_VALUE_PATH_ITEM_TYPE_OBJECT_ITEM:
-        if (base->type != TEN_TYPE_OBJECT) {
-          if (err) {
-            ten_error_set(err, TEN_ERROR_CODE_INVALID_ARGUMENT,
-                          "Path is not corresponding to the value type.");
+      ten_list_foreach (&base->content.object, object_iter) {
+        ten_value_kv_t *kv = ten_ptr_listnode_get(object_iter.node);
+        TEN_ASSERT(kv && ten_value_kv_check_integrity(kv), "Invalid argument.");
+
+        if (ten_string_is_equal(&kv->key, &item->obj_item_str)) {
+          if (item_iter.next) {
+            base = kv->value;
+          } else {
+            result = kv->value;
           }
-          result = NULL;
-          goto done;
+          break;
         }
+      }
+      break;
 
-        ten_list_foreach (&base->content.object, object_iter) {
-          ten_value_kv_t *kv = ten_ptr_listnode_get(object_iter.node);
-          TEN_ASSERT(kv && ten_value_kv_check_integrity(kv),
-                     "Invalid argument.");
+    case TEN_VALUE_PATH_ITEM_TYPE_ARRAY_ITEM:
+      if (base->type != TEN_TYPE_ARRAY) {
+        if (err) {
+          ten_error_set(err, TEN_ERROR_CODE_INVALID_ARGUMENT,
+                        "Path is not corresponding to the value type.");
+        }
+        result = NULL;
+        goto done;
+      }
 
-          if (ten_string_is_equal(&kv->key, &item->obj_item_str)) {
-            if (item_iter.next) {
-              base = kv->value;
-            } else {
-              result = kv->value;
-            }
-            break;
+      ten_list_foreach (&base->content.array, array_iter) {
+        if (array_iter.index == item->arr_idx) {
+          ten_value_t *array_item = ten_ptr_listnode_get(array_iter.node);
+          TEN_ASSERT(array_item, "Invalid argument.");
+
+          if (item_iter.next) {
+            base = array_item;
+          } else {
+            result = array_item;
           }
+          break;
         }
-        break;
+      }
+      break;
 
-      case TEN_VALUE_PATH_ITEM_TYPE_ARRAY_ITEM:
-        if (base->type != TEN_TYPE_ARRAY) {
-          if (err) {
-            ten_error_set(err, TEN_ERROR_CODE_INVALID_ARGUMENT,
-                          "Path is not corresponding to the value type.");
-          }
-          result = NULL;
-          goto done;
-        }
-
-        ten_list_foreach (&base->content.array, array_iter) {
-          if (array_iter.index == item->arr_idx) {
-            ten_value_t *array_item = ten_ptr_listnode_get(array_iter.node);
-            TEN_ASSERT(array_item, "Invalid argument.");
-
-            if (item_iter.next) {
-              base = array_item;
-            } else {
-              result = array_item;
-            }
-            break;
-          }
-        }
-        break;
-
-      default:
-        TEN_ASSERT(0, "Should not happen.");
-        break;
+    default:
+      TEN_ASSERT(0, "Should not happen.");
+      break;
     }
   }
 
@@ -300,195 +299,193 @@ bool ten_value_set_from_path_list_with_move(ten_value_t *base,
     TEN_ASSERT(item, "Invalid argument.");
 
     switch (item->type) {
-      case TEN_VALUE_PATH_ITEM_TYPE_INVALID:
+    case TEN_VALUE_PATH_ITEM_TYPE_INVALID:
+      result = false;
+      goto done;
+
+    case TEN_VALUE_PATH_ITEM_TYPE_OBJECT_ITEM: {
+      if (base->type != TEN_TYPE_OBJECT) {
         result = false;
         goto done;
+      }
 
-      case TEN_VALUE_PATH_ITEM_TYPE_OBJECT_ITEM: {
-        if (base->type != TEN_TYPE_OBJECT) {
-          result = false;
-          goto done;
-        }
+      bool found = false;
 
-        bool found = false;
+      ten_list_foreach (&base->content.object, object_iter) {
+        ten_value_kv_t *kv = ten_ptr_listnode_get(object_iter.node);
+        TEN_ASSERT(kv && ten_value_kv_check_integrity(kv), "Invalid argument.");
 
-        ten_list_foreach (&base->content.object, object_iter) {
-          ten_value_kv_t *kv = ten_ptr_listnode_get(object_iter.node);
-          TEN_ASSERT(kv && ten_value_kv_check_integrity(kv),
-                     "Invalid argument.");
-
-          if (ten_string_is_equal(&kv->key, &item->obj_item_str)) {
-            found = true;
-
-            if (item_iter.next == NULL) {
-              // Override the original value.
-              ten_value_destroy(kv->value);
-              kv->value = value;
-            } else {
-              ten_value_path_item_t *next_item =
-                  ten_ptr_listnode_get(item_iter.next);
-              TEN_ASSERT(next_item, "Invalid argument.");
-
-              switch (next_item->type) {
-                case TEN_VALUE_PATH_ITEM_TYPE_OBJECT_ITEM:
-                  if (!ten_value_is_object(kv->value)) {
-                    ten_value_destroy(kv->value);
-                    kv->value = ten_value_create_object_with_move(NULL);
-                  }
-                  break;
-                case TEN_VALUE_PATH_ITEM_TYPE_ARRAY_ITEM:
-                  if (!ten_value_is_array(kv->value)) {
-                    ten_value_destroy(kv->value);
-                    kv->value = ten_value_create_array_with_move(NULL);
-                  }
-                  break;
-                default:
-                  TEN_ASSERT(0, "Should not happen.");
-                  break;
-              }
-            }
-
-            base = kv->value;
-            break;
-          }
-        }
-
-        if (!found) {
-          ten_value_t *new_base = NULL;
+        if (ten_string_is_equal(&kv->key, &item->obj_item_str)) {
+          found = true;
 
           if (item_iter.next == NULL) {
             // Override the original value.
-            new_base = value;
+            ten_value_destroy(kv->value);
+            kv->value = value;
           } else {
             ten_value_path_item_t *next_item =
                 ten_ptr_listnode_get(item_iter.next);
             TEN_ASSERT(next_item, "Invalid argument.");
 
             switch (next_item->type) {
-              case TEN_VALUE_PATH_ITEM_TYPE_OBJECT_ITEM:
-                new_base = ten_value_create_object_with_move(NULL);
-                break;
-              case TEN_VALUE_PATH_ITEM_TYPE_ARRAY_ITEM:
-                new_base = ten_value_create_array_with_move(NULL);
-                break;
-              default:
-                TEN_ASSERT(0, "Should not happen.");
-                break;
+            case TEN_VALUE_PATH_ITEM_TYPE_OBJECT_ITEM:
+              if (!ten_value_is_object(kv->value)) {
+                ten_value_destroy(kv->value);
+                kv->value = ten_value_create_object_with_move(NULL);
+              }
+              break;
+            case TEN_VALUE_PATH_ITEM_TYPE_ARRAY_ITEM:
+              if (!ten_value_is_array(kv->value)) {
+                ten_value_destroy(kv->value);
+                kv->value = ten_value_create_array_with_move(NULL);
+              }
+              break;
+            default:
+              TEN_ASSERT(0, "Should not happen.");
+              break;
             }
           }
 
-          ten_list_push_ptr_back(
-              &base->content.object,
-              ten_value_kv_create(ten_string_get_raw_str(&item->obj_item_str),
-                                  new_base),
-              (ten_ptr_listnode_destroy_func_t)ten_value_kv_destroy);
-
-          base = new_base;
+          base = kv->value;
+          break;
         }
-        break;
       }
 
-      case TEN_VALUE_PATH_ITEM_TYPE_ARRAY_ITEM: {
-        if (base->type != TEN_TYPE_ARRAY) {
-          result = NULL;
-          goto done;
-        }
+      if (!found) {
+        ten_value_t *new_base = NULL;
 
-        bool found = false;
+        if (item_iter.next == NULL) {
+          // Override the original value.
+          new_base = value;
+        } else {
+          ten_value_path_item_t *next_item =
+              ten_ptr_listnode_get(item_iter.next);
+          TEN_ASSERT(next_item, "Invalid argument.");
 
-        ten_list_foreach (&base->content.array, array_iter) {
-          if (array_iter.index == item->arr_idx) {
-            found = true;
-
-            ten_listnode_t *array_item_node = array_iter.node;
-            TEN_ASSERT(array_item_node, "Invalid argument.");
-
-            ten_value_t *old_value = ten_ptr_listnode_get(array_item_node);
-            if (item_iter.next == NULL) {
-              // Override the original value.
-              ten_value_destroy(old_value);
-
-              ten_ptr_listnode_replace(
-                  array_item_node, value,
-                  (ten_ptr_listnode_destroy_func_t)ten_value_destroy);
-            } else {
-              ten_value_path_item_t *next_item =
-                  ten_ptr_listnode_get(item_iter.next);
-              TEN_ASSERT(next_item, "Invalid argument.");
-
-              switch (next_item->type) {
-                case TEN_VALUE_PATH_ITEM_TYPE_OBJECT_ITEM:
-                  if (!ten_value_is_object(old_value)) {
-                    ten_value_destroy(old_value);
-
-                    ten_ptr_listnode_replace(
-                        array_item_node,
-                        ten_value_create_object_with_move(NULL),
-                        (ten_ptr_listnode_destroy_func_t)ten_value_destroy);
-                  }
-                  break;
-                case TEN_VALUE_PATH_ITEM_TYPE_ARRAY_ITEM:
-                  if (!ten_value_is_array(old_value)) {
-                    ten_value_destroy(old_value);
-
-                    ten_ptr_listnode_replace(
-                        array_item_node, ten_value_create_array_with_move(NULL),
-                        (ten_ptr_listnode_destroy_func_t)ten_value_destroy);
-                  }
-                  break;
-                default:
-                  TEN_ASSERT(0, "Should not happen.");
-                  break;
-              }
-            }
-
-            base = ten_ptr_listnode_get(array_item_node);
+          switch (next_item->type) {
+          case TEN_VALUE_PATH_ITEM_TYPE_OBJECT_ITEM:
+            new_base = ten_value_create_object_with_move(NULL);
+            break;
+          case TEN_VALUE_PATH_ITEM_TYPE_ARRAY_ITEM:
+            new_base = ten_value_create_array_with_move(NULL);
+            break;
+          default:
+            TEN_ASSERT(0, "Should not happen.");
             break;
           }
         }
 
-        if (!found) {
-          for (size_t i = ten_list_size(&base->content.array);
-               i < item->arr_idx; i++) {
-            ten_list_push_ptr_back(
-                &base->content.array, ten_value_create_invalid(),
-                (ten_ptr_listnode_destroy_func_t)ten_value_destroy);
-          }
+        ten_list_push_ptr_back(
+            &base->content.object,
+            ten_value_kv_create(ten_string_get_raw_str(&item->obj_item_str),
+                                new_base),
+            (ten_ptr_listnode_destroy_func_t)ten_value_kv_destroy);
 
-          ten_value_t *new_base = NULL;
+        base = new_base;
+      }
+      break;
+    }
 
+    case TEN_VALUE_PATH_ITEM_TYPE_ARRAY_ITEM: {
+      if (base->type != TEN_TYPE_ARRAY) {
+        result = NULL;
+        goto done;
+      }
+
+      bool found = false;
+
+      ten_list_foreach (&base->content.array, array_iter) {
+        if (array_iter.index == item->arr_idx) {
+          found = true;
+
+          ten_listnode_t *array_item_node = array_iter.node;
+          TEN_ASSERT(array_item_node, "Invalid argument.");
+
+          ten_value_t *old_value = ten_ptr_listnode_get(array_item_node);
           if (item_iter.next == NULL) {
-            new_base = value;
+            // Override the original value.
+            ten_value_destroy(old_value);
+
+            ten_ptr_listnode_replace(
+                array_item_node, value,
+                (ten_ptr_listnode_destroy_func_t)ten_value_destroy);
           } else {
             ten_value_path_item_t *next_item =
                 ten_ptr_listnode_get(item_iter.next);
             TEN_ASSERT(next_item, "Invalid argument.");
 
             switch (next_item->type) {
-              case TEN_VALUE_PATH_ITEM_TYPE_OBJECT_ITEM:
-                new_base = ten_value_create_object_with_move(NULL);
-                break;
-              case TEN_VALUE_PATH_ITEM_TYPE_ARRAY_ITEM:
-                new_base = ten_value_create_array_with_move(NULL);
-                break;
-              default:
-                TEN_ASSERT(0, "Should not happen.");
-                break;
+            case TEN_VALUE_PATH_ITEM_TYPE_OBJECT_ITEM:
+              if (!ten_value_is_object(old_value)) {
+                ten_value_destroy(old_value);
+
+                ten_ptr_listnode_replace(
+                    array_item_node, ten_value_create_object_with_move(NULL),
+                    (ten_ptr_listnode_destroy_func_t)ten_value_destroy);
+              }
+              break;
+            case TEN_VALUE_PATH_ITEM_TYPE_ARRAY_ITEM:
+              if (!ten_value_is_array(old_value)) {
+                ten_value_destroy(old_value);
+
+                ten_ptr_listnode_replace(
+                    array_item_node, ten_value_create_array_with_move(NULL),
+                    (ten_ptr_listnode_destroy_func_t)ten_value_destroy);
+              }
+              break;
+            default:
+              TEN_ASSERT(0, "Should not happen.");
+              break;
             }
           }
 
-          ten_list_push_ptr_back(
-              &base->content.array, new_base,
-              (ten_ptr_listnode_destroy_func_t)ten_value_destroy);
-
-          base = new_base;
+          base = ten_ptr_listnode_get(array_item_node);
+          break;
         }
-        break;
       }
 
-      default:
-        TEN_ASSERT(0, "Should not happen.");
-        break;
+      if (!found) {
+        for (size_t i = ten_list_size(&base->content.array); i < item->arr_idx;
+             i++) {
+          ten_list_push_ptr_back(
+              &base->content.array, ten_value_create_invalid(),
+              (ten_ptr_listnode_destroy_func_t)ten_value_destroy);
+        }
+
+        ten_value_t *new_base = NULL;
+
+        if (item_iter.next == NULL) {
+          new_base = value;
+        } else {
+          ten_value_path_item_t *next_item =
+              ten_ptr_listnode_get(item_iter.next);
+          TEN_ASSERT(next_item, "Invalid argument.");
+
+          switch (next_item->type) {
+          case TEN_VALUE_PATH_ITEM_TYPE_OBJECT_ITEM:
+            new_base = ten_value_create_object_with_move(NULL);
+            break;
+          case TEN_VALUE_PATH_ITEM_TYPE_ARRAY_ITEM:
+            new_base = ten_value_create_array_with_move(NULL);
+            break;
+          default:
+            TEN_ASSERT(0, "Should not happen.");
+            break;
+          }
+        }
+
+        ten_list_push_ptr_back(
+            &base->content.array, new_base,
+            (ten_ptr_listnode_destroy_func_t)ten_value_destroy);
+
+        base = new_base;
+      }
+      break;
+    }
+
+    default:
+      TEN_ASSERT(0, "Should not happen.");
+      break;
     }
   }
 

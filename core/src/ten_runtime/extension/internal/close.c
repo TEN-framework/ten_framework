@@ -55,7 +55,7 @@ void ten_extension_flush_remaining_paths(ten_extension_t *extension) {
     ten_list_t cmd_result_list = TEN_LIST_INIT_VAL;
 
     // Generate an error result for each remaining out path.
-    ten_list_foreach(out_paths, iter) {
+    ten_list_foreach (out_paths, iter) {
       ten_path_t *path = (ten_path_t *)ten_ptr_listnode_get(iter.node);
       TEN_ASSERT(path && ten_path_check_integrity(path, true),
                  "Should not happen.");
@@ -75,7 +75,7 @@ void ten_extension_flush_remaining_paths(ten_extension_t *extension) {
     }
 
     // Send these newly generated error results to the extension.
-    ten_list_foreach(&cmd_result_list, iter) {
+    ten_list_foreach (&cmd_result_list, iter) {
       ten_shared_ptr_t *cmd_result = ten_smart_ptr_listnode_get(iter.node);
       TEN_ASSERT(cmd_result && ten_cmd_base_check_integrity(cmd_result),
                  "Should not happen.");
@@ -121,7 +121,7 @@ void ten_extension_do_pre_close_action(ten_extension_t *self) {
   TEN_ASSERT(self->extension_thread, "Should not happen.");
 
   // Close the timers of the path tables.
-  ten_list_foreach(&self->path_timers, iter) {
+  ten_list_foreach (&self->path_timers, iter) {
     ten_timer_t *timer = ten_ptr_listnode_get(iter.node);
     TEN_ASSERT(timer, "Should not happen.");
 

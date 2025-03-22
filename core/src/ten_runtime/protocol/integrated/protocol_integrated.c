@@ -51,9 +51,8 @@ static void ten_protocol_close_task(void *self_, TEN_UNUSED void *arg) {
   ten_ref_dec_ref(&self->ref);
 }
 
-static void
-ten_protocol_on_inputs_based_on_migration_state(ten_protocol_t *self,
-                                                ten_list_t *msgs) {
+static void ten_protocol_on_inputs_based_on_migration_state(
+    ten_protocol_t *self, ten_list_t *msgs) {
   TEN_ASSERT(self, "Should not happen.");
   TEN_ASSERT(ten_protocol_check_integrity(self, true), "Should not happen.");
   TEN_ASSERT(msgs, "Should not happen.");
@@ -451,9 +450,8 @@ static void ten_protocol_integrated_on_output_task(void *self_,
  * an async task to the attached runloop of the protocol to send out those
  * messages in the correct thread.
  */
-static void
-ten_protocol_integrated_on_output_async(ten_protocol_integrated_t *self,
-                                        ten_list_t *msgs) {
+static void ten_protocol_integrated_on_output_async(
+    ten_protocol_integrated_t *self, ten_list_t *msgs) {
   TEN_ASSERT(self, "Should not happen.");
   TEN_ASSERT(msgs, "Invalid argument.");
 
@@ -601,9 +599,8 @@ static void ten_transport_on_server_connected_after_retry(
  * @param on_trigger_data User data associated with the timer (the connection
  * context).
  */
-static void
-ten_protocol_integrated_on_retry_timer_triggered(TEN_UNUSED ten_timer_t *self,
-                                                 void *on_trigger_data) {
+static void ten_protocol_integrated_on_retry_timer_triggered(
+    TEN_UNUSED ten_timer_t *self, void *on_trigger_data) {
   ten_protocol_integrated_connect_to_context_t *connect_to_context =
       on_trigger_data;
   TEN_ASSERT(connect_to_context, "Should not happen.");
@@ -630,9 +627,10 @@ ten_protocol_integrated_on_retry_timer_triggered(TEN_UNUSED ten_timer_t *self,
     // If the 'ten_transport_connect' directly returns error, it could be due to
     // invalid parameters or other errors which cannot be solved by retrying.
 
-    TEN_LOGW("Failed to connect to %s due to invalid parameters or other fatal "
-             "errors.",
-             ten_string_get_raw_str(&connect_to_context->server_uri));
+    TEN_LOGW(
+        "Failed to connect to %s due to invalid parameters or other fatal "
+        "errors.",
+        ten_string_get_raw_str(&connect_to_context->server_uri));
 
     transport->on_server_connected_user_data = NULL;
     ten_transport_close(transport);
@@ -828,9 +826,9 @@ static void ten_protocol_integrated_connect_to(
   TEN_ASSERT(ten_protocol_check_integrity(&self->base, true),
              "Should not happen.");
   TEN_ASSERT(uri, "Should not happen.");
-  TEN_ASSERT(ten_protocol_attach_to(&self->base) ==
-                 TEN_PROTOCOL_ATTACH_TO_CONNECTION,
-             "Should not happen.");
+  TEN_ASSERT(
+      ten_protocol_attach_to(&self->base) == TEN_PROTOCOL_ATTACH_TO_CONNECTION,
+      "Should not happen.");
 
   // For integrated protocols, this function must be called in the engine
   // thread.
@@ -894,8 +892,8 @@ static void ten_protocol_integrated_connect_to(
   ten_string_destroy(transport_uri);
 }
 
-static void
-ten_protocol_integrated_on_stream_cleaned(ten_protocol_integrated_t *self) {
+static void ten_protocol_integrated_on_stream_cleaned(
+    ten_protocol_integrated_t *self) {
   TEN_ASSERT(self && ten_protocol_check_integrity(&self->base, true),
              "We are in the app thread now.");
 

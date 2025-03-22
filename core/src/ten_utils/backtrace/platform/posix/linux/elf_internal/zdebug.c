@@ -9,13 +9,14 @@
 //
 #include "ten_utils/ten_config.h"
 
+#include "include_internal/ten_utils/backtrace/platform/posix/linux/elf_internal/zdebug.h"
+
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "include_internal/ten_utils/backtrace/backtrace.h"
 #include "include_internal/ten_utils/backtrace/platform/posix/linux/elf.h"
-#include "include_internal/ten_utils/backtrace/platform/posix/linux/elf_internal/zdebug.h"
 
 /**
  * @brief Uncompress the old compressed debug format (zlib-gnu).

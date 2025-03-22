@@ -8,41 +8,7 @@
 
 #include "ten_utils/ten_config.h"
 
-#include "ten_utils/container/hash_handle.h"
-#include "ten_utils/container/hash_table.h"
-#include "ten_utils/container/list.h"
-#include "ten_utils/lib/mutex.h"
-#include "ten_utils/lib/string.h"
-
-// As the source files are compiled in `out/<os>/<cpu>`, the `__FILE__`
-// will be a relative path starts with '../../../'.
-#define TEN_FILE_PATH_RELATIVE_PREFIX_LENGTH 9
-
-typedef struct ten_sanitizer_memory_record_t {
-  void *addr;
-  size_t size;
-
-  // Do not use `ten_string_t` here to avoid a circular dependency between
-  // `ten_string_t` and `ten_malloc`.
-  char *func_name;
-  char *file_name;
-
-  uint32_t lineno;
-
-  ten_listnode_t *node_in_records_list;
-  ten_hashhandle_t hh_in_records_hash;
-} ten_sanitizer_memory_record_t;
-
-typedef struct ten_sanitizer_memory_records_t {
-  ten_mutex_t *lock;
-
-  // The contents of `records_hash` and `records_list` are exactly the same;
-  // `records_hash` is only used to speed up the search in `records_list`.
-  ten_list_t records_list;       // ten_sanitizer_memory_record_t
-  ten_hashtable_t records_hash;  // ten_sanitizer_memory_record_t
-
-  size_t total_size;
-} ten_sanitizer_memory_records_t;
+#include <stddef.h>
 
 TEN_UTILS_API void ten_sanitizer_memory_record_init(void);
 

@@ -30,6 +30,7 @@
 #include "ten_utils/container/list_node_ptr.h"
 #include "ten_utils/container/list_ptr.h"
 #include "ten_utils/lib/error.h"
+#include "ten_utils/lib/ref.h"
 #include "ten_utils/lib/smart_ptr.h"
 #include "ten_utils/lib/string.h"
 #include "ten_utils/macro/check.h"
@@ -61,7 +62,7 @@ ten_remote_t *ten_engine_find_weak_remote(ten_engine_t *self, const char *uri) {
   TEN_ASSERT(ten_engine_check_integrity(self, true),
              "Invalid use of engine %p.", self);
 
-  ten_list_foreach(&self->weak_remotes, iter) {
+  ten_list_foreach (&self->weak_remotes, iter) {
     ten_remote_t *remote = ten_ptr_listnode_get(iter.node);
     TEN_ASSERT(remote, "Invalid argument.");
     TEN_ASSERT(ten_remote_check_integrity(remote, true),
@@ -303,16 +304,30 @@ void ten_engine_link_orphan_connection_to_remote(
                                ten_remote_on_connection_closed, remote);
 }
 
-static void ten_engine_on_protocol_closed(TEN_UNUSED ten_protocol_t *protocol,
+static void ten_engine_on_protocol_closed(ten_protocol_t *protocol,
                                           void *on_closed_data) {
+  TEN_ASSERT(protocol, "Invalid argument.");
+  TEN_ASSERT(ten_protocol_check_integrity(protocol, true),
+             "Invalid use of protocol %p.", protocol);
+
   ten_engine_t *self = (ten_engine_t *)on_closed_data;
   TEN_ASSERT(self, "Invalid argument.");
   TEN_ASSERT(ten_engine_check_integrity(self, true),
              "Invalid use of engine %p.", self);
   TEN_ASSERT(self->is_closing, "Should not happen.");
 
+  // The callback for closing the protocol has already been invoked, so the
+  // engine's `has_uncompleted_async_task` has been completed. The mechanism
+  // that was blocking the engine closing process can now be released.
   self->has_uncompleted_async_task = false;
 
+  // This protocol was created by the engine, so the engine initially holds a
+  // reference count to it. Since the engine will no longer use this protocol,
+  // it decrements the reference count to indicate that the engine no longer
+  // needs it.
+  ten_ref_dec_ref(&protocol->ref);
+
+  // Continue with the engine's original closing flow.
   ten_engine_on_close(self);
 }
 
@@ -330,9 +345,15 @@ static void ten_engine_on_protocol_created(ten_env_t *ten_env,
       (ten_engine_on_protocol_created_ctx_t *)cb_data;
 
   if (self->is_closing) {
-    TEN_LOGW("[%s] Protocol created, but skip to create remote due to engine "
-             "is closing.",
-             ten_engine_get_id(self, true));
+    TEN_LOGW(
+        "[%s] Protocol created, but skip to create remote due to engine "
+        "is closing.",
+        ten_engine_get_id(self, true));
+
+    // Since the engine is about to close, the command originally used to
+    // initiate and create this protocol is no longer needed.
+    ten_shared_ptr_t *cmd = (ten_shared_ptr_t *)ctx->user_data;
+    ten_shared_ptr_destroy(cmd);
 
     ten_engine_on_protocol_created_ctx_destroy(ctx);
 
@@ -587,9 +608,9 @@ void ten_engine_route_msg_to_remote(ten_engine_t *self, ten_shared_ptr_t *msg) {
   TEN_ASSERT(ten_engine_check_integrity(self, true),
              "Invalid use of engine %p.", self);
 
-  TEN_ASSERT(msg && ten_msg_check_integrity(msg) &&
-                 ten_msg_get_dest_cnt(msg) == 1,
-             "Should not happen.");
+  TEN_ASSERT(
+      msg && ten_msg_check_integrity(msg) && ten_msg_get_dest_cnt(msg) == 1,
+      "Should not happen.");
 
   const char *dest_uri = ten_msg_get_first_dest_uri(msg);
   ten_remote_t *remote = ten_engine_find_remote(self, dest_uri);

@@ -18,7 +18,7 @@ void ten_vector_init(ten_vector_t *self, size_t capacity) {
   }
 
   self->size = 0;
-  self->capacity = capacity > 0 ? capacity : 1; // Ensure at least capacity 1.
+  self->capacity = capacity > 0 ? capacity : 1;  // Ensure at least capacity 1.
   self->data = capacity > 0 ? malloc(self->capacity) : NULL;
 
   if (capacity > 0 && !self->data) {
@@ -133,7 +133,7 @@ void *ten_vector_grow(ten_vector_t *self, size_t size) {
       // Initially allocate 32 spaces with 'size' size.
       if (ten_size_mul_would_overflow(32, size)) {
         assert(0 && "Overflow.");
-        alc = size; // Fall back to exact size if would overflow.
+        alc = size;  // Fall back to exact size if would overflow.
       } else {
         alc = 32 * size;
       }

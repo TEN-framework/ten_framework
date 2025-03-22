@@ -178,7 +178,7 @@ static char *elf_readlink(ten_backtrace_t *self, const char *filename,
     return NULL;
   }
 
-  size_t len = 128; // Initial buffer size.
+  size_t len = 128;  // Initial buffer size.
 
   while (1) {
     char *buf = malloc(len);
@@ -196,7 +196,7 @@ static char *elf_readlink(ten_backtrace_t *self, const char *filename,
 
     if ((size_t)rl < len - 1) {
       // We have enough space for the result plus null terminator.
-      buf[rl] = '\0'; // readlink doesn't null-terminate the buffer.
+      buf[rl] = '\0';  // readlink doesn't null-terminate the buffer.
       *plen = len;
       return buf;
     }

@@ -94,8 +94,8 @@ static ten_cmd_result_t *ten_raw_cmd_result_create_empty(void) {
   return raw_cmd;
 }
 
-static ten_cmd_result_t *
-ten_raw_cmd_result_create(const TEN_STATUS_CODE status_code) {
+static ten_cmd_result_t *ten_raw_cmd_result_create(
+    const TEN_STATUS_CODE status_code) {
   ten_cmd_result_t *raw_cmd = ten_raw_cmd_result_create_empty();
 
   ten_value_set_int32(&raw_cmd->status_code, status_code);
@@ -108,9 +108,8 @@ ten_shared_ptr_t *ten_cmd_result_create(const TEN_STATUS_CODE status_code) {
                                ten_raw_cmd_result_destroy);
 }
 
-static void
-ten_raw_cmd_result_set_original_cmd_name(ten_cmd_result_t *self,
-                                         const char *original_cmd_name) {
+static void ten_raw_cmd_result_set_original_cmd_name(
+    ten_cmd_result_t *self, const char *original_cmd_name) {
   TEN_ASSERT(self && ten_raw_cmd_result_check_integrity(self),
              "Invalid argument.");
   TEN_ASSERT(original_cmd_name && strlen(original_cmd_name),
@@ -120,10 +119,8 @@ ten_raw_cmd_result_set_original_cmd_name(ten_cmd_result_t *self,
                             original_cmd_name);
 }
 
-static ten_cmd_result_t *
-ten_raw_cmd_result_create_from_raw_cmd(const TEN_STATUS_CODE status_code,
-                                       ten_cmd_t *original_cmd) {
-
+static ten_cmd_result_t *ten_raw_cmd_result_create_from_raw_cmd(
+    const TEN_STATUS_CODE status_code, ten_cmd_t *original_cmd) {
   ten_cmd_result_t *cmd = ten_raw_cmd_result_create(status_code);
 
   if (original_cmd) {
@@ -170,16 +167,14 @@ ten_raw_cmd_result_create_from_raw_cmd(const TEN_STATUS_CODE status_code,
   return cmd;
 }
 
-static ten_cmd_result_t *
-ten_raw_cmd_result_create_from_cmd(const TEN_STATUS_CODE status_code,
-                                   ten_shared_ptr_t *original_cmd) {
+static ten_cmd_result_t *ten_raw_cmd_result_create_from_cmd(
+    const TEN_STATUS_CODE status_code, ten_shared_ptr_t *original_cmd) {
   return ten_raw_cmd_result_create_from_raw_cmd(
       status_code, original_cmd ? ten_shared_ptr_get_data(original_cmd) : NULL);
 }
 
-ten_shared_ptr_t *
-ten_cmd_result_create_from_cmd(const TEN_STATUS_CODE status_code,
-                               ten_shared_ptr_t *original_cmd) {
+ten_shared_ptr_t *ten_cmd_result_create_from_cmd(
+    const TEN_STATUS_CODE status_code, ten_shared_ptr_t *original_cmd) {
   return ten_shared_ptr_create(
       ten_raw_cmd_result_create_from_cmd(status_code, original_cmd),
       ten_raw_cmd_result_destroy);
@@ -322,9 +317,8 @@ TEN_MSG_TYPE ten_cmd_result_get_original_cmd_type(ten_shared_ptr_t *self) {
       ten_cmd_result_get_raw_cmd(self));
 }
 
-ten_msg_t *
-ten_raw_cmd_result_as_msg_clone(ten_msg_t *self,
-                                TEN_UNUSED ten_list_t *excluded_field_ids) {
+ten_msg_t *ten_raw_cmd_result_as_msg_clone(
+    ten_msg_t *self, TEN_UNUSED ten_list_t *excluded_field_ids) {
   TEN_ASSERT(self && ten_raw_cmd_base_check_integrity((ten_cmd_base_t *)self),
              "Should not happen.");
 
@@ -409,9 +403,9 @@ void ten_cmd_result_set_original_cmd_name(ten_shared_ptr_t *self,
 bool ten_raw_cmd_result_loop_all_fields(ten_msg_t *self,
                                         ten_raw_msg_process_one_field_func_t cb,
                                         void *user_data, ten_error_t *err) {
-  TEN_ASSERT(self && ten_raw_cmd_base_check_integrity((ten_cmd_base_t *)self) &&
-                 cb,
-             "Should not happen.");
+  TEN_ASSERT(
+      self && ten_raw_cmd_base_check_integrity((ten_cmd_base_t *)self) && cb,
+      "Should not happen.");
 
   for (size_t i = 0; i < ten_cmd_result_fields_info_size; ++i) {
     ten_msg_process_field_func_t process_field =

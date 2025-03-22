@@ -9,6 +9,8 @@
 //
 #include "ten_utils/ten_config.h"
 
+#include "include_internal/ten_utils/backtrace/platform/posix/linux/elf.h"
+
 #include <assert.h>
 #include <fcntl.h>
 #include <stdbool.h>
@@ -23,7 +25,6 @@
 #include "include_internal/ten_utils/backtrace/platform/posix/dwarf_internal/section.h"
 #include "include_internal/ten_utils/backtrace/platform/posix/file.h"
 #include "include_internal/ten_utils/backtrace/platform/posix/internal.h"
-#include "include_internal/ten_utils/backtrace/platform/posix/linux/elf.h"
 #include "include_internal/ten_utils/backtrace/platform/posix/linux/elf_internal/debugfile.h"
 #include "include_internal/ten_utils/backtrace/platform/posix/linux/elf_internal/lzma.h"
 #include "include_internal/ten_utils/backtrace/platform/posix/linux/elf_internal/symbol.h"
@@ -67,7 +68,7 @@ static int dl_iterate_phdr(int (*callback)(dl_phdr_info *, size_t, void *),
   return 0;
 }
 
-#endif // ! defined (HAVE_DL_ITERATE_PHDR)
+#endif  // ! defined (HAVE_DL_ITERATE_PHDR)
 
 /**
  * @brief A dummy callback function used when no symbol table is available.
@@ -83,10 +84,10 @@ static int dl_iterate_phdr(int (*callback)(dl_phdr_info *, size_t, void *),
  * @param on_error Function to call to report errors.
  * @param data User data to pass to the error callback.
  */
-static void
-elf_nosyms(ten_backtrace_t *self, TEN_UNUSED uintptr_t pc,
-           TEN_UNUSED ten_backtrace_on_dump_syminfo_func_t on_dump_syminfo,
-           ten_backtrace_on_error_func_t on_error, void *data) {
+static void elf_nosyms(ten_backtrace_t *self, TEN_UNUSED uintptr_t pc,
+                       TEN_UNUSED ten_backtrace_on_dump_syminfo_func_t
+                           on_dump_syminfo,
+                       ten_backtrace_on_error_func_t on_error, void *data) {
   on_error(self, "no symbol table in ELF executable", -1, data);
 }
 
@@ -285,8 +286,8 @@ static int elf_add(ten_backtrace_t *self, const char *filename, int descriptor,
     elf_view shdr_view;
     const b_elf_shdr *shdr = NULL;
 
-    if (!elf_get_view(self, descriptor, memory, memory_size, shoff, sizeof shdr,
-                      on_error, data, &shdr_view)) {
+    if (!elf_get_view(self, descriptor, memory, memory_size, shoff,
+                      sizeof(shdr), on_error, data, &shdr_view)) {
       goto fail;
     }
 
@@ -377,7 +378,7 @@ static int elf_add(ten_backtrace_t *self, const char *filename, int descriptor,
 
     name = names + sh_name;
 
-    for (j = 0; j < (int)DEBUG_MAX; ++j) {
+    for (j = 0; j < DEBUG_MAX; ++j) {
       if (strcmp(name, dwarf_section_names[j]) == 0) {
         sections[j].offset = shdr->sh_offset;
         sections[j].size = shdr->sh_size;
@@ -387,7 +388,7 @@ static int elf_add(ten_backtrace_t *self, const char *filename, int descriptor,
     }
 
     if (name[0] == '.' && name[1] == 'z') {
-      for (j = 0; j < (int)DEBUG_MAX; ++j) {
+      for (j = 0; j < DEBUG_MAX; ++j) {
         if (strcmp(name + 2, dwarf_section_names[j] + 1) == 0) {
           zsections[j].offset = shdr->sh_offset;
           zsections[j].size = shdr->sh_size;
@@ -678,7 +679,7 @@ static int elf_add(ten_backtrace_t *self, const char *filename, int descriptor,
   min_offset = 0;
   max_offset = 0;
   debug_size = 0;
-  for (i = 0; i < (int)DEBUG_MAX; ++i) {
+  for (i = 0; i < DEBUG_MAX; ++i) {
     off_t end = 0;
 
     if (sections[i].size != 0) {
@@ -723,7 +724,7 @@ static int elf_add(ten_backtrace_t *self, const char *filename, int descriptor,
     debug_view_valid = 1;
   } else {
     memset(&split_debug_view[0], 0, sizeof split_debug_view);
-    for (i = 0; i < (int)DEBUG_MAX; ++i) {
+    for (i = 0; i < DEBUG_MAX; ++i) {
       debug_section_info *dsec = NULL;
 
       if (sections[i].size != 0) {
@@ -760,7 +761,7 @@ static int elf_add(ten_backtrace_t *self, const char *filename, int descriptor,
 
   using_debug_view = 0;
   if (debug_view_valid) {
-    for (i = 0; i < (int)DEBUG_MAX; ++i) {
+    for (i = 0; i < DEBUG_MAX; ++i) {
       if (sections[i].size == 0) {
         sections[i].data = NULL;
       } else {
@@ -781,7 +782,7 @@ static int elf_add(ten_backtrace_t *self, const char *filename, int descriptor,
   // Uncompress the old format (--compress-debug-sections=zlib-gnu).
 
   zdebug_table = NULL;
-  for (i = 0; i < (int)DEBUG_MAX; ++i) {
+  for (i = 0; i < DEBUG_MAX; ++i) {
     if (sections[i].size == 0 && zsections[i].size > 0) {
       unsigned char *uncompressed_data = NULL;
       size_t uncompressed_size = 0;
@@ -818,7 +819,7 @@ static int elf_add(ten_backtrace_t *self, const char *filename, int descriptor,
 
   // Uncompress the official ELF format
   // (--compress-debug-sections=zlib-gabi, --compress-debug-sections=zstd).
-  for (i = 0; i < (int)DEBUG_MAX; ++i) {
+  for (i = 0; i < DEBUG_MAX; ++i) {
     unsigned char *uncompressed_data = NULL;
     size_t uncompressed_size = 0;
 
@@ -862,7 +863,7 @@ static int elf_add(ten_backtrace_t *self, const char *filename, int descriptor,
     debug_view_valid = 0;
   }
 
-  for (i = 0; i < (int)DEBUG_MAX; ++i) {
+  for (i = 0; i < DEBUG_MAX; ++i) {
     dwarf_sections.data[i] = sections[i].data;
     dwarf_sections.size[i] = sections[i].size;
   }
@@ -906,7 +907,7 @@ fail:
   if (debug_view_valid) {
     elf_release_view(self, &debug_view, on_error, data);
   }
-  for (i = 0; i < (int)DEBUG_MAX; ++i) {
+  for (i = 0; i < DEBUG_MAX; ++i) {
     if (split_debug_view_valid[i]) {
       elf_release_view(self, &split_debug_view[i], on_error, data);
     }
@@ -929,9 +930,9 @@ fail:
  * state of symbol and DWARF debug information discovery.
  */
 typedef struct phdr_data {
-  ten_backtrace_t *backtrace;             // Backtrace context.
-  ten_backtrace_on_error_func_t on_error; // Error callback function.
-  void *data;                             // User data for callbacks.
+  ten_backtrace_t *backtrace;              // Backtrace context.
+  ten_backtrace_on_error_func_t on_error;  // Error callback function.
+  void *data;                              // User data for callbacks.
 
   // Output parameter for file/line lookup function.
   ten_backtrace_on_get_file_line_func_t *on_get_file_line;
@@ -992,7 +993,7 @@ static int
 
     filename = pd->exe_filename;
     descriptor = pd->exe_descriptor;
-    pd->exe_descriptor = -1; // Mark as used.
+    pd->exe_descriptor = -1;  // Mark as used.
   } else {
     // This is a shared library.
     // Close the executable descriptor if it's still open.
@@ -1026,7 +1027,7 @@ static int
     }
   }
 
-  return 0; // Continue iteration.
+  return 0;  // Continue iteration.
 }
 
 /**

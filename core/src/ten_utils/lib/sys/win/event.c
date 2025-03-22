@@ -5,10 +5,11 @@
 // Refer to the "LICENSE" file in the root directory for more information.
 //
 #include "ten_utils/lib/event.h"
-#include "ten_utils/macro/memory.h"
 
 #include <Windows.h>
 #include <stdlib.h>
+
+#include "ten_utils/macro/memory.h"
 
 typedef struct ten_event_t {
   HANDLE event;

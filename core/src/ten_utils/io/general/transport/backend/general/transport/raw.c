@@ -108,8 +108,8 @@ static void ten_init_stream_raw(void) {
   ten_list_init(&g_all_streams);
 }
 
-static ten_named_queue_t *
-ten_find_named_queue_unsafe(const ten_string_t *name) {
+static ten_named_queue_t *ten_find_named_queue_unsafe(
+    const ten_string_t *name) {
   ten_named_queue_t *queue = NULL;
 
   for (ten_listnode_t *itor = ten_list_front(&g_all_streams); itor;
@@ -272,13 +272,13 @@ static void ten_streambackend_raw_destroy(ten_streambackend_raw_t *raw_stream) {
   ten_runloop_async_close(raw_stream->in->signal, on_stream_in_signal_closed);
 }
 
-static int
-ten_streambackend_raw_start_read(TEN_UNUSED ten_streambackend_t *self) {
+static int ten_streambackend_raw_start_read(
+    TEN_UNUSED ten_streambackend_t *self) {
   return 0;
 }
 
-static int
-ten_streambackend_raw_stop_read(TEN_UNUSED ten_streambackend_t *self) {
+static int ten_streambackend_raw_stop_read(
+    TEN_UNUSED ten_streambackend_t *self) {
   return 0;
 }
 
@@ -327,9 +327,8 @@ static int ten_streambackend_raw_close(ten_streambackend_t *backend) {
   return 0;
 }
 
-static ten_streambackend_raw_t *
-ten_streambackend_raw_create(const char *impl, ten_stream_t *stream,
-                             ten_queue_t *in, ten_queue_t *out) {
+static ten_streambackend_raw_t *ten_streambackend_raw_create(
+    const char *impl, ten_stream_t *stream, ten_queue_t *in, ten_queue_t *out) {
   ten_streambackend_raw_t *backend =
       TEN_MALLOC(sizeof(ten_streambackend_raw_t));
   TEN_ASSERT(backend, "Failed to allocate memory.");
@@ -477,9 +476,8 @@ static void on_delayed_task(ten_runloop_async_t *handle) {
   process_delayed_tasks(self);
 }
 
-static ten_transportbackend_t *
-ten_transportbackend_raw_create(ten_transport_t *transport,
-                                const ten_string_t *name) {
+static ten_transportbackend_t *ten_transportbackend_raw_create(
+    ten_transport_t *transport, const ten_string_t *name) {
   ten_transportbackend_raw_t *self = NULL;
 
   ten_thread_once(&g_init_once, ten_init_stream_raw);

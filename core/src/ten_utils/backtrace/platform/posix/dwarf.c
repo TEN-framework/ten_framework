@@ -9,6 +9,8 @@
 //
 #include "ten_utils/ten_config.h"
 
+#include "include_internal/ten_utils/backtrace/platform/posix/dwarf.h"
+
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -16,7 +18,6 @@
 #include <sys/types.h>
 
 #include "include_internal/ten_utils/backtrace/backtrace.h"
-#include "include_internal/ten_utils/backtrace/platform/posix/dwarf.h"
 #include "include_internal/ten_utils/backtrace/platform/posix/internal.h"
 #include "include_internal/ten_utils/backtrace/sort.h"
 #include "include_internal/ten_utils/backtrace/vector.h"
@@ -136,11 +137,10 @@ static int line_search(const void *vkey, const void *ventry) {
  * @a callback and return whatever it returns. On error, call @a on_error
  * and return 0. Sets @a *found to 1 if the @a pc is found, 0 if not.
  */
-static int
-dwarf_lookup_pc(ten_backtrace_t *self, dwarf_data *ddata, uintptr_t pc,
-                ten_backtrace_on_dump_file_line_func_t on_dump_file_line,
-                ten_backtrace_on_error_func_t on_error, void *data,
-                int *found) {
+static int dwarf_lookup_pc(
+    ten_backtrace_t *self, dwarf_data *ddata, uintptr_t pc,
+    ten_backtrace_on_dump_file_line_func_t on_dump_file_line,
+    ten_backtrace_on_error_func_t on_error, void *data, int *found) {
   unit_addrs *entry = NULL;
   int found_entry = 0;
   unit *u = NULL;
@@ -377,10 +377,10 @@ dwarf_lookup_pc(ten_backtrace_t *self, dwarf_data *ddata, uintptr_t pc,
  * @brief Return the file/line information for a PC using the DWARF mapping we
  * built earlier.
  */
-static int
-dwarf_fileline(ten_backtrace_t *self, uintptr_t pc,
-               ten_backtrace_on_dump_file_line_func_t on_dump_file_line,
-               ten_backtrace_on_error_func_t on_error, void *data) {
+static int dwarf_fileline(
+    ten_backtrace_t *self, uintptr_t pc,
+    ten_backtrace_on_dump_file_line_func_t on_dump_file_line,
+    ten_backtrace_on_error_func_t on_error, void *data) {
   assert(self);
 
   ten_backtrace_posix_t *self_posix = (ten_backtrace_posix_t *)self;

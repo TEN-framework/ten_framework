@@ -302,9 +302,8 @@ static void proxy_on_deinit(ten_app_t *app, ten_env_t *ten_env) {
   TEN_ASSERT(rc, "Failed to call app on_deinit().");
 }
 
-static void
-ten_nodejs_app_create_and_attach_callbacks(napi_env env,
-                                           ten_nodejs_app_t *app_bridge) {
+static void ten_nodejs_app_create_and_attach_callbacks(
+    napi_env env, ten_nodejs_app_t *app_bridge) {
   TEN_ASSERT(app_bridge && ten_nodejs_app_check_integrity(app_bridge, true),
              "Should not happen.");
 
@@ -392,7 +391,7 @@ static napi_value ten_nodejs_app_create(napi_env env, napi_callback_info info) {
   TEN_ASSERT(env, "Should not happen.");
 
   const size_t argc = 1;
-  napi_value args[argc]; // this
+  napi_value args[argc];  // this
   if (!ten_nodejs_get_js_func_args(env, info, args, argc)) {
     napi_fatal_error(NULL, NAPI_AUTO_LENGTH,
                      "Incorrect number of parameters passed.",
@@ -477,7 +476,7 @@ static napi_value ten_nodejs_app_run(napi_env env, napi_callback_info info) {
   TEN_LOGD("App run.");
 
   const size_t argc = 1;
-  napi_value args[1]; // this
+  napi_value args[1];  // this
   if (!ten_nodejs_get_js_func_args(env, info, args, argc)) {
     napi_fatal_error(NULL, NAPI_AUTO_LENGTH,
                      "Incorrect number of parameters passed.",
@@ -535,7 +534,7 @@ static napi_value ten_nodejs_app_close(napi_env env, napi_callback_info info) {
   TEN_LOGD("App close.");
 
   const size_t argc = 1;
-  napi_value args[argc]; // this
+  napi_value args[argc];  // this
   if (!ten_nodejs_get_js_func_args(env, info, args, argc)) {
     napi_fatal_error(NULL, NAPI_AUTO_LENGTH,
                      "Incorrect number of parameters passed.",
@@ -561,7 +560,7 @@ static napi_value ten_nodejs_app_on_end_of_life(napi_env env,
   TEN_ASSERT(env && info, "Should not happen.");
 
   const size_t argc = 1;
-  napi_value args[argc]; // this
+  napi_value args[argc];  // this
   if (!ten_nodejs_get_js_func_args(env, info, args, argc)) {
     napi_fatal_error(NULL, NAPI_AUTO_LENGTH,
                      "Incorrect number of parameters passed.",

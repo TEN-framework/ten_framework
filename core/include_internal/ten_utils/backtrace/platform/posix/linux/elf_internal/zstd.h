@@ -23,10 +23,10 @@
 //   - to build an FSE table: 512 uint16_t values == 1024 bytes
 //   - to build a Huffman tree: 512 uint16_t + 256 uint32_t == 2048 bytes
 
-#define ZSTD_TABLE_SIZE                                                  \
-  (2 * 512 * sizeof(elf_zstd_fse_baseline_entry) +                       \
-   256 * sizeof(elf_zstd_fse_baseline_entry) + 2048 * sizeof(uint16_t) + \
-   512 * sizeof(uint16_t) + 256 * sizeof(uint32_t))
+#define ZSTD_TABLE_SIZE                                                      \
+  ((2 * 512 * sizeof(elf_zstd_fse_baseline_entry)) +                         \
+   (256 * sizeof(elf_zstd_fse_baseline_entry)) + (2048 * sizeof(uint16_t)) + \
+   (512 * sizeof(uint16_t)) + (256 * sizeof(uint32_t)))
 
 #define ZSTD_TABLE_LITERAL_FSE_OFFSET (0)
 

@@ -109,9 +109,8 @@ ten_extension_thread_t *ten_extension_thread_create(void) {
   return self;
 }
 
-static void
-ten_extension_thread_attach_to_group(ten_extension_thread_t *self,
-                                     ten_extension_group_t *extension_group) {
+static void ten_extension_thread_attach_to_group(
+    ten_extension_thread_t *self, ten_extension_group_t *extension_group) {
   TEN_ASSERT(self, "Invalid argument.");
   TEN_ASSERT(ten_extension_thread_check_integrity(self, false),
              "Invalid use of extension_thread %p.", self);
@@ -162,8 +161,8 @@ void ten_extension_thread_destroy(ten_extension_thread_t *self) {
 
 // Notify extension context (engine) that we (extension thread) are closed, so
 // that engine can join this thread to prevent memory leak.
-static void
-ten_extension_thread_notify_engine_we_are_closed(ten_extension_thread_t *self) {
+static void ten_extension_thread_notify_engine_we_are_closed(
+    ten_extension_thread_t *self) {
   TEN_ASSERT(self, "Invalid argument.");
   TEN_ASSERT(ten_extension_thread_check_integrity(self, true),
              "Invalid use of extension_thread %p.", self);
@@ -189,8 +188,8 @@ ten_extension_thread_notify_engine_we_are_closed(ten_extension_thread_t *self) {
   }
 }
 
-ten_runloop_t *
-ten_extension_thread_get_attached_runloop(ten_extension_thread_t *self) {
+ten_runloop_t *ten_extension_thread_get_attached_runloop(
+    ten_extension_thread_t *self) {
   TEN_ASSERT(self, "Should not happen.");
   TEN_ASSERT(
       // TEN_NOLINTNEXTLINE(thread-check)
@@ -201,8 +200,8 @@ ten_extension_thread_get_attached_runloop(ten_extension_thread_t *self) {
   return self->runloop;
 }
 
-static void
-ten_extension_thread_inherit_thread_ownership(ten_extension_thread_t *self) {
+static void ten_extension_thread_inherit_thread_ownership(
+    ten_extension_thread_t *self) {
   TEN_ASSERT(self, "Invalid argument.");
   // TEN_NOLINTNEXTLINE(thread-check)
   // thread-check: The correct threading ownership will be setup
@@ -462,7 +461,7 @@ void ten_extension_thread_start_life_cycle_of_all_extensions_task(
   // From here, it begins calling a series of lifecycle methods for the
   // extension, starting with `on_configure`.
 
-  ten_list_foreach(&self->extensions, iter) {
+  ten_list_foreach (&self->extensions, iter) {
     ten_extension_t *extension = ten_ptr_listnode_get(iter.node);
     TEN_ASSERT(extension && ten_extension_check_integrity(extension, true),
                "Should not happen.");
@@ -490,7 +489,7 @@ void ten_extension_thread_add_all_created_extensions(
           ten_extension_context_check_integrity(extension_context, false),
       "Should not happen.");
 
-  ten_list_foreach(&self->extensions, iter) {
+  ten_list_foreach (&self->extensions, iter) {
     ten_extension_t *extension = ten_ptr_listnode_get(iter.node);
     TEN_ASSERT(ten_extension_check_integrity(extension, true),
                "Should not happen.");

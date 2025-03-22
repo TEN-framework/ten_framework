@@ -36,25 +36,25 @@ inline void extension_t::proxy_on_cmd_internal(
 
   cmd_t *cpp_cmd_ptr = nullptr;
   switch (ten_msg_get_type(cmd)) {
-    case TEN_MSG_TYPE_CMD_START_GRAPH:
-      cpp_cmd_ptr = new cmd_start_graph_t(cmd);
-      break;
+  case TEN_MSG_TYPE_CMD_START_GRAPH:
+    cpp_cmd_ptr = new cmd_start_graph_t(cmd);
+    break;
 
-    case TEN_MSG_TYPE_CMD_STOP_GRAPH:
-      cpp_cmd_ptr = new cmd_stop_graph_t(cmd);
-      break;
+  case TEN_MSG_TYPE_CMD_STOP_GRAPH:
+    cpp_cmd_ptr = new cmd_stop_graph_t(cmd);
+    break;
 
-    case TEN_MSG_TYPE_CMD_CLOSE_APP:
-      cpp_cmd_ptr = new cmd_close_app_t(cmd);
-      break;
+  case TEN_MSG_TYPE_CMD_CLOSE_APP:
+    cpp_cmd_ptr = new cmd_close_app_t(cmd);
+    break;
 
-    case TEN_MSG_TYPE_CMD:
-      cpp_cmd_ptr = new cmd_t(cmd);
-      break;
+  case TEN_MSG_TYPE_CMD:
+    cpp_cmd_ptr = new cmd_t(cmd);
+    break;
 
-    default:
-      TEN_ASSERT(0, "Should not happen.");
-      break;
+  default:
+    TEN_ASSERT(0, "Should not happen.");
+    break;
   }
 
   auto cpp_cmd_unique_ptr = std::unique_ptr<cmd_t>(cpp_cmd_ptr);

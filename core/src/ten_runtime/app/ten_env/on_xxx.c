@@ -40,9 +40,10 @@
 #include "ten_utils/lib/string.h"
 #include "ten_utils/macro/check.h"
 
-static void
-ten_app_adjust_and_validate_property_on_configure_done(ten_app_t *self) {
-  TEN_ASSERT(self && ten_app_check_integrity(self, true), "Should not happen.");
+static void ten_app_adjust_and_validate_property_on_configure_done(
+    ten_app_t *self) {
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_app_check_integrity(self, true), "Should not happen.");
 
   ten_error_t err;
   TEN_ERROR_INIT(err);
@@ -68,9 +69,10 @@ done:
   }
 }
 
-static void
-ten_app_start_auto_start_predefined_graph_and_trigger_on_init(ten_app_t *self) {
-  TEN_ASSERT(self && ten_app_check_integrity(self, true), "Should not happen.");
+static void ten_app_start_auto_start_predefined_graph_and_trigger_on_init(
+    ten_app_t *self) {
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_app_check_integrity(self, true), "Should not happen.");
   TEN_ASSERT(self->ten_env && ten_env_check_integrity(self->ten_env, true),
              "Should not happen.");
 
@@ -93,7 +95,8 @@ static void ten_app_on_endpoint_protocol_created(ten_env_t *ten_env,
   TEN_ASSERT(ten_env_check_integrity(ten_env, true), "Should not happen.");
 
   ten_app_t *self = ten_env_get_attached_app(ten_env);
-  TEN_ASSERT(self && ten_app_check_integrity(self, true), "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_app_check_integrity(self, true), "Should not happen.");
 
   if (!protocol) {
     TEN_LOGE("Failed to create app endpoint protocol, FATAL ERROR.");
@@ -111,6 +114,8 @@ static void ten_app_on_endpoint_protocol_created(ten_env_t *ten_env,
                              ten_app_on_protocol_closed, self);
 
   if (!ten_app_endpoint_listen(self)) {
+    TEN_LOGW("[%s] Failed to listen on endpoint protocol, %s.",
+             ten_string_get_raw_str(&self->uri));
     ten_app_close(self, NULL);
     return;
   }
@@ -124,7 +129,8 @@ static void ten_app_on_all_addon_loaders_created(ten_env_t *ten_env,
   TEN_ASSERT(ten_env_check_integrity(ten_env, true), "Should not happen.");
 
   ten_app_t *self = (ten_app_t *)cb_data;
-  TEN_ASSERT(self && ten_app_check_integrity(self, true), "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_app_check_integrity(self, true), "Should not happen.");
 
   int lock_operation_rc = ten_addon_loader_singleton_store_unlock();
   TEN_ASSERT(!lock_operation_rc, "Should not happen.");
@@ -133,6 +139,8 @@ static void ten_app_on_all_addon_loaders_created(ten_env_t *ten_env,
   TEN_ERROR_INIT(err);
 
   if (!ten_app_get_predefined_graphs_from_property(self)) {
+    TEN_LOGW("[%s] Failed to get predefined graphs from property.",
+             ten_app_get_uri(self));
     goto error;
   }
 
@@ -166,7 +174,8 @@ void ten_app_on_configure_done(ten_env_t *ten_env) {
              "Invalid use of ten_env %p.", ten_env);
 
   ten_app_t *self = ten_env_get_attached_app(ten_env);
-  TEN_ASSERT(self && ten_app_check_integrity(self, true), "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_app_check_integrity(self, true), "Should not happen.");
   TEN_ASSERT(self->loop, "Should not happen.");
 
   ten_error_t err;
@@ -246,7 +255,8 @@ void ten_app_on_configure(ten_env_t *ten_env) {
              "Should not happen.");
 
   ten_app_t *self = ten_env_get_attached_app(ten_env);
-  TEN_ASSERT(self && ten_app_check_integrity(self, true), "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_app_check_integrity(self, true), "Should not happen.");
 
   self->manifest_info =
       ten_metadata_info_create(TEN_METADATA_ATTACH_TO_MANIFEST, self->ten_env);
@@ -269,7 +279,8 @@ void ten_app_on_init(ten_env_t *ten_env) {
              "Should not happen.");
 
   ten_app_t *self = ten_env_get_attached_app(ten_env);
-  TEN_ASSERT(self && ten_app_check_integrity(self, true), "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_app_check_integrity(self, true), "Should not happen.");
 
   self->state = TEN_APP_STATE_ON_INIT;
 
@@ -291,7 +302,8 @@ void ten_app_on_init_done(ten_env_t *ten_env) {
              "Invalid use of ten_env %p.", ten_env);
 
   ten_app_t *self = ten_env_get_attached_app(ten_env);
-  TEN_ASSERT(self && ten_app_check_integrity(self, true), "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_app_check_integrity(self, true), "Should not happen.");
 
   if (self->state != TEN_APP_STATE_ON_INIT) {
     TEN_LOGI("[%s] Failed to on_init_done() because of incorrect timing: %d",
@@ -305,7 +317,8 @@ void ten_app_on_init_done(ten_env_t *ten_env) {
 }
 
 static void ten_app_unregister_addons_after_app_close(ten_app_t *self) {
-  TEN_ASSERT(self && ten_app_check_integrity(self, true), "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_app_check_integrity(self, true), "Should not happen.");
 
   const char *disabled = getenv("TEN_DISABLE_ADDON_UNREGISTER_AFTER_APP_CLOSE");
   if (disabled && !strcmp(disabled, "true")) {
@@ -316,7 +329,8 @@ static void ten_app_unregister_addons_after_app_close(ten_app_t *self) {
 }
 
 void ten_app_on_deinit(ten_app_t *self) {
-  TEN_ASSERT(self && ten_app_check_integrity(self, true), "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_app_check_integrity(self, true), "Should not happen.");
 
   // The world outside of TEN would do some operations after the app_run()
   // returns, so it's best to perform the on_deinit callback _before_ the
@@ -360,7 +374,8 @@ bool ten_app_on_deinit_done(ten_env_t *ten_env) {
              "Invalid use of ten_env %p.", ten_env);
 
   ten_app_t *self = ten_env_get_attached_app(ten_env);
-  TEN_ASSERT(self && ten_app_check_integrity(self, true), "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_app_check_integrity(self, true), "Should not happen.");
 
   ten_mutex_lock(self->state_lock);
 

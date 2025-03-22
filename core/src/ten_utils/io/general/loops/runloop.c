@@ -117,7 +117,7 @@ static const runloop_factory_t runloop_factory[] = {
         NULL,
     }};
 
-#define RUNLOOP_FACTORY_SIZE                                                   \
+#define RUNLOOP_FACTORY_SIZE \
   (sizeof(runloop_factory) / sizeof(runloop_factory[0]))
 
 static const char *get_default_impl(void) { return runloop_factory[0].impl; }

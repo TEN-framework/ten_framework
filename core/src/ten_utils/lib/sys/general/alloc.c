@@ -11,6 +11,7 @@
 #include <string.h>
 
 #include "include_internal/ten_utils/lib/alloc.h"
+#include "ten_utils/macro/check.h"
 
 void *ten_malloc(size_t size) {
   if (!size) {

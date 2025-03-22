@@ -25,9 +25,8 @@
 #include "ten_utils/macro/check.h"
 #include "ten_utils/macro/mark.h"
 
-static TEN_METADATA_LEVEL
-ten_get_metadata_level_from_name(const char **p_name,
-                                 TEN_METADATA_LEVEL default_level) {
+static TEN_METADATA_LEVEL ten_get_metadata_level_from_name(
+    const char **p_name, TEN_METADATA_LEVEL default_level) {
   TEN_ASSERT(p_name, "Invalid argument.");
 
   TEN_METADATA_LEVEL metadata_level = default_level;

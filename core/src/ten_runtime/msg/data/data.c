@@ -219,23 +219,22 @@ bool ten_raw_data_like_set_ten_property(ten_msg_t *self, ten_list_t *paths,
     TEN_ASSERT(item, "Invalid argument.");
 
     switch (item->type) {
-      case TEN_VALUE_PATH_ITEM_TYPE_OBJECT_ITEM: {
-        if (!strcmp(TEN_STR_NAME,
-                    ten_string_get_raw_str(&item->obj_item_str))) {
-          if (ten_value_is_string(value)) {
-            ten_value_init_string_with_size(
-                &self->name, ten_value_peek_raw_str(value, &tmp_err),
-                strlen(ten_value_peek_raw_str(value, &tmp_err)));
-            success = true;
-          } else {
-            success = false;
-          }
+    case TEN_VALUE_PATH_ITEM_TYPE_OBJECT_ITEM: {
+      if (!strcmp(TEN_STR_NAME, ten_string_get_raw_str(&item->obj_item_str))) {
+        if (ten_value_is_string(value)) {
+          ten_value_init_string_with_size(
+              &self->name, ten_value_peek_raw_str(value, &tmp_err),
+              strlen(ten_value_peek_raw_str(value, &tmp_err)));
+          success = true;
+        } else {
+          success = false;
         }
-        break;
       }
+      break;
+    }
 
-      default:
-        break;
+    default:
+      break;
     }
   }
 

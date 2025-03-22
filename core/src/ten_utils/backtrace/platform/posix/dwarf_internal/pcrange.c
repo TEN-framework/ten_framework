@@ -6,9 +6,10 @@
 //
 #include "ten_utils/ten_config.h"
 
+#include "include_internal/ten_utils/backtrace/platform/posix/dwarf_internal/pcrange.h"
+
 #include "include_internal/ten_utils/backtrace/platform/posix/dwarf.h"
 #include "include_internal/ten_utils/backtrace/platform/posix/dwarf_internal/attribute.h"
-#include "include_internal/ten_utils/backtrace/platform/posix/dwarf_internal/pcrange.h"
 
 // Update PCRANGE from an attribute value.
 void update_pcrange(const attr *attr, const attr_val *val, pcrange *pcrange) {
@@ -66,7 +67,6 @@ static int add_low_high_range(
                      void *data, void *vec),
     void *rdata, ten_backtrace_on_error_func_t on_error, void *data,
     void *vec) {
-
   uintptr_t lowpc = pcrange->lowpc;
   if (pcrange->lowpc_is_addr_index) {
     if (!resolve_addr_index(self, dwarf_sections, u->addr_base, u->addrsize,

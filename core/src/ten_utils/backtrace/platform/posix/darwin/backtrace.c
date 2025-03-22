@@ -32,7 +32,7 @@ ten_backtrace_t *ten_backtrace_create(void) {
   ten_backtrace_mac_t *self = malloc(sizeof(ten_backtrace_mac_t));
   if (!self) {
     assert(0 && "Failed to allocate memory.");
-    return NULL; // Return NULL if malloc fails, even after assert
+    return NULL;  // Return NULL if malloc fails, even after assert
   }
 
   ten_backtrace_common_init(&self->common, ten_backtrace_default_dump,

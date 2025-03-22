@@ -38,6 +38,13 @@ ten_addon_manager_t *ten_addon_manager_get_instance(void) {
   return instance;
 }
 
+void ten_addon_manager_destroy(ten_addon_manager_t *self) {
+  TEN_ASSERT(self, "Invalid argument.");
+
+  ten_mutex_destroy(self->mutex);
+  ten_list_destroy(&self->registry);
+}
+
 static void ten_addon_registration_destroy(void *ptr) {
   ten_addon_registration_t *reg = (ten_addon_registration_t *)ptr;
   if (reg) {
@@ -64,7 +71,7 @@ bool ten_addon_manager_add_addon(ten_addon_manager_t *self,
   // Check if addon with the same name already exists.
   bool exists = false;
 
-  ten_list_foreach(&self->registry, iter) {
+  ten_list_foreach (&self->registry, iter) {
     ten_addon_registration_t *reg =
         (ten_addon_registration_t *)ten_ptr_listnode_get(iter.node);
     if (reg) {
@@ -152,7 +159,7 @@ bool ten_addon_manager_register_specific_addon(ten_addon_manager_t *self,
   ten_addon_registration_t *found_reg = NULL;
 
   // Iterate through the registry to find the specific addon.
-  ten_list_foreach(&self->registry, iter) {
+  ten_list_foreach (&self->registry, iter) {
     ten_addon_registration_t *reg =
         (ten_addon_registration_t *)ten_ptr_listnode_get(iter.node);
     if (reg && reg->addon_type == addon_type &&

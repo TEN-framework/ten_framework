@@ -11,6 +11,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "include_internal/ten_utils/backtrace/buffer.h"
 #include "include_internal/ten_utils/backtrace/common.h"
 #include "include_internal/ten_utils/backtrace/platform/posix/internal.h"
 
@@ -33,7 +34,7 @@ ten_backtrace_t *ten_backtrace_create(void) {
   ten_backtrace_posix_t *self = malloc(sizeof(ten_backtrace_posix_t));
   if (!self) {
     assert(0 && "Failed to allocate memory.");
-    return NULL; // Return NULL if malloc fails, even after assert
+    return NULL;  // Return NULL if malloc fails, even after assert
   }
 
   ten_backtrace_common_init(&self->common, ten_backtrace_default_dump,
@@ -94,4 +95,49 @@ void ten_backtrace_dump(ten_backtrace_t *self, size_t skip) {
   }
 
   ten_backtrace_dump_posix(self, skip);
+}
+
+/**
+ * @brief Captures the current call stack and writes it to a provided buffer.
+ *
+ * This function captures the current call stack and writes the formatted
+ * backtrace information to the provided buffer. It skips a specified number
+ * of frames from the top of the call stack.
+ *
+ * @param self Pointer to the backtrace object. Must not be NULL.
+ * @param buffer Pointer to the buffer where the backtrace will be written. Must
+ * not be NULL.
+ * @param buffer_size Size of the buffer in bytes. Must be greater than 0.
+ * @param skip Number of stack frames to skip from the top of the call stack.
+ *             This is useful to exclude this function and its immediate
+ *             callers.
+ *
+ * @return 1 on success, 0 on failure (when invalid arguments are provided).
+ * @note The buffer will be populated with the backtrace information, and it's
+ * the caller's responsibility to ensure the buffer is large enough.
+ */
+int ten_backtrace_capture_to_buffer(ten_backtrace_t *self, char *buffer,
+                                    size_t buffer_size, size_t skip) {
+  assert(self);
+  assert(buffer);
+  assert(buffer_size);
+
+  if (!self || !buffer || buffer_size == 0) {
+    assert(0 &&
+           "Invalid arguments: NULL pointer or zero buffer size provided.");
+    return 0;
+  }
+
+  ten_backtrace_buffer_t backtrace_buffer;
+  ten_backtrace_buffer_init(&backtrace_buffer, buffer, buffer_size);
+
+  ten_backtrace_common_t *common = (ten_backtrace_common_t *)self;
+  common->on_dump_file_line = ten_backtrace_buffer_dump;
+  common->on_error = ten_backtrace_default_error;
+  common->cb_data = &backtrace_buffer;
+
+  // Capture backtrace, adding 1 to skip to account for this function itself.
+  ten_backtrace_dump(self, skip + 1);
+
+  return 1;
 }

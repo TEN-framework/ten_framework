@@ -79,9 +79,8 @@ static void ten_protocol_on_cleaned_task(void *self_, void *arg) {
   ten_ref_dec_ref(&self->ref);
 }
 
-static void
-ten_connection_on_migration_is_done_or_reset(ten_connection_t *self,
-                                             bool is_migration_state_reset) {
+static void ten_connection_on_migration_is_done_or_reset(
+    ten_connection_t *self, bool is_migration_state_reset) {
   TEN_ASSERT(self && ten_connection_check_integrity(self, true),
              "Access across threads.");
 

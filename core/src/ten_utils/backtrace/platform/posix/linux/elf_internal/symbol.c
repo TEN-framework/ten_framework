@@ -9,12 +9,13 @@
 //
 #include "ten_utils/ten_config.h"
 
+#include "include_internal/ten_utils/backtrace/platform/posix/linux/elf_internal/symbol.h"
+
 #include <assert.h>
 #include <stdlib.h>
 
 #include "include_internal/ten_utils/backtrace/platform/posix/internal.h"
 #include "include_internal/ten_utils/backtrace/platform/posix/linux/elf.h"
-#include "include_internal/ten_utils/backtrace/platform/posix/linux/elf_internal/symbol.h"
 #include "include_internal/ten_utils/backtrace/sort.h"
 #include "ten_utils/lib/atomic_ptr.h"
 
@@ -321,7 +322,7 @@ void elf_syminfo(ten_backtrace_t *self, uintptr_t addr,
   while (1) {
     elf_syminfo_data *edata = ten_atomic_ptr_load((ten_atomic_ptr_t *)pp);
     if (edata == NULL) {
-      break; // End of the list.
+      break;  // End of the list.
     }
 
     // Skip empty symbol tables.
@@ -334,7 +335,7 @@ void elf_syminfo(ten_backtrace_t *self, uintptr_t addr,
     sym = (elf_symbol *)bsearch(&addr, edata->symbols, edata->count,
                                 sizeof(elf_symbol), elf_symbol_search);
     if (sym != NULL) {
-      break; // Found a matching symbol.
+      break;  // Found a matching symbol.
     }
 
     // Move to the next symbol data structure.

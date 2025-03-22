@@ -23,7 +23,8 @@
 #include "ten_utils/sanitizer/thread_check.h"
 
 static bool ten_app_has_no_work(ten_app_t *self) {
-  TEN_ASSERT(self && ten_app_check_integrity(self, true), "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_app_check_integrity(self, true), "Should not happen.");
 
   if (ten_list_is_empty(&self->engines) &&
       ten_list_is_empty(&self->orphan_connections)) {
@@ -34,7 +35,8 @@ static bool ten_app_has_no_work(ten_app_t *self) {
 }
 
 static bool ten_app_could_be_close(ten_app_t *self) {
-  TEN_ASSERT(self && ten_app_check_integrity(self, true), "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_app_check_integrity(self, true), "Should not happen.");
 
   if (ten_app_has_no_work(self) && ten_app_is_endpoint_closed(self)) {
     return true;
@@ -44,7 +46,8 @@ static bool ten_app_could_be_close(ten_app_t *self) {
 }
 
 static void ten_app_proceed_to_close(ten_app_t *self) {
-  TEN_ASSERT(self && ten_app_check_integrity(self, true), "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_app_check_integrity(self, true), "Should not happen.");
 
   if (!ten_app_could_be_close(self)) {
     TEN_LOGD("[%s] Could not close alive app.", ten_app_get_uri(self));
@@ -79,12 +82,12 @@ static void ten_app_close_sync(ten_app_t *self) {
   TEN_LOGD("[%s] Try to close app.", ten_app_get_uri(self));
 
   // Close all engines attached to this app.
-  ten_list_foreach(&self->engines, iter) {
+  ten_list_foreach (&self->engines, iter) {
     ten_engine_close_async(ten_ptr_listnode_get(iter.node));
   }
 
   // Close any orphaned connections (not attached to engines).
-  ten_list_foreach(&self->orphan_connections, iter) {
+  ten_list_foreach (&self->orphan_connections, iter) {
     ten_connection_close(ten_ptr_listnode_get(iter.node));
   }
 
@@ -191,7 +194,8 @@ bool ten_app_is_closing(ten_app_t *self) {
 
 void ten_app_check_termination_when_engine_closed(ten_app_t *self,
                                                   ten_engine_t *engine) {
-  TEN_ASSERT(self && ten_app_check_integrity(self, true), "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_app_check_integrity(self, true), "Should not happen.");
 
   if (engine->has_own_loop) {
     // Wait for the engine thread to be reclaimed. Because the engine thread
@@ -204,9 +208,10 @@ void ten_app_check_termination_when_engine_closed(ten_app_t *self,
         -1);
     TEN_ASSERT(!rc, "Should not happen.");
 
-    TEN_LOGD("[%s:%s] Engine thread is reclaimed, and after this point, modify "
-             "fields of 'engine' is safe.",
-             ten_app_get_uri(self), ten_engine_get_id(engine, false));
+    TEN_LOGD(
+        "[%s:%s] Engine thread is reclaimed, and after this point, modify "
+        "fields of 'engine' is safe.",
+        ten_app_get_uri(self), ten_engine_get_id(engine, false));
   }
 
   if (engine->cmd_stop_graph != NULL) {
@@ -259,7 +264,8 @@ void ten_app_on_orphan_connection_closed(ten_connection_t *connection,
              "Should not happen.");
 
   ten_app_t *self = connection->attached_target.app;
-  TEN_ASSERT(self && ten_app_check_integrity(self, true), "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_app_check_integrity(self, true), "Should not happen.");
 
   TEN_LOGD("[%s] Orphan connection %p closed", ten_app_get_uri(self),
            connection);
@@ -284,7 +290,8 @@ void ten_app_on_orphan_connection_closed(ten_connection_t *connection,
 void ten_app_on_protocol_closed(TEN_UNUSED ten_protocol_t *protocol,
                                 void *on_closed_data) {
   ten_app_t *self = (ten_app_t *)on_closed_data;
-  TEN_ASSERT(self && ten_app_check_integrity(self, true), "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_app_check_integrity(self, true), "Should not happen.");
 
   if (ten_app_is_closing(self)) {
     ten_app_proceed_to_close(self);

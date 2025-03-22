@@ -4,10 +4,11 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-#include "ten_utils/lib/string.h"
 #include "ten_utils/ten_config.h"
 
 #include "include_internal/ten_utils/log/encryption.h"
+
+#include "ten_utils/lib/string.h"
 
 void ten_log_encryption_init(ten_log_encryption_t *self) {
   TEN_ASSERT(self, "Invalid argument");

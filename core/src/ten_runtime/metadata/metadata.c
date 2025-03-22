@@ -79,26 +79,26 @@ static bool ten_metadata_load_from_type_ane_value(ten_value_t *metadata,
   bool result = true;
 
   switch (type) {
-    case TEN_METADATA_INVALID:
-      break;
+  case TEN_METADATA_INVALID:
+    break;
 
-    case TEN_METADATA_JSON_STR:
-      if (!ten_metadata_load_from_json_str(metadata, value, err)) {
-        result = false;
-        goto done;
-      }
-      break;
+  case TEN_METADATA_JSON_STR:
+    if (!ten_metadata_load_from_json_str(metadata, value, err)) {
+      result = false;
+      goto done;
+    }
+    break;
 
-    case TEN_METADATA_JSON_FILENAME:
-      if (!ten_metadata_load_from_json_file(metadata, value, err)) {
-        result = false;
-        goto done;
-      }
-      break;
+  case TEN_METADATA_JSON_FILENAME:
+    if (!ten_metadata_load_from_json_file(metadata, value, err)) {
+      result = false;
+      goto done;
+    }
+    break;
 
-    default:
-      TEN_ASSERT(0 && "Handle more types.", "Should not happen.");
-      break;
+  default:
+    TEN_ASSERT(0 && "Handle more types.", "Should not happen.");
+    break;
   }
 
 done:

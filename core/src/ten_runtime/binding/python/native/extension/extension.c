@@ -59,9 +59,9 @@ static void proxy_on_configure(ten_extension_t *extension, ten_env_t *ten_env) {
   ten_py_extension_t *py_extension =
       (ten_py_extension_t *)ten_binding_handle_get_me_in_target_lang(
           (ten_binding_handle_t *)extension);
-  TEN_ASSERT(py_extension &&
-                 ten_py_extension_check_integrity(py_extension, true),
-             "Invalid argument.");
+  TEN_ASSERT(
+      py_extension && ten_py_extension_check_integrity(py_extension, true),
+      "Invalid argument.");
 
   ten_py_ten_env_t *py_ten_env = ten_py_ten_env_wrap(ten_env);
   py_extension->py_ten_env = (PyObject *)py_ten_env;
@@ -104,9 +104,9 @@ static void proxy_on_init(ten_extension_t *extension, ten_env_t *ten_env) {
   ten_py_extension_t *py_extension =
       (ten_py_extension_t *)ten_binding_handle_get_me_in_target_lang(
           (ten_binding_handle_t *)extension);
-  TEN_ASSERT(py_extension &&
-                 ten_py_extension_check_integrity(py_extension, true),
-             "Invalid argument.");
+  TEN_ASSERT(
+      py_extension && ten_py_extension_check_integrity(py_extension, true),
+      "Invalid argument.");
 
   PyObject *py_ten_env = py_extension->py_ten_env;
   TEN_ASSERT(py_ten_env, "Should not happen.");
@@ -137,9 +137,9 @@ static void proxy_on_start(ten_extension_t *extension, ten_env_t *ten_env) {
   ten_py_extension_t *py_extension =
       (ten_py_extension_t *)ten_binding_handle_get_me_in_target_lang(
           (ten_binding_handle_t *)extension);
-  TEN_ASSERT(py_extension &&
-                 ten_py_extension_check_integrity(py_extension, true),
-             "Invalid argument.");
+  TEN_ASSERT(
+      py_extension && ten_py_extension_check_integrity(py_extension, true),
+      "Invalid argument.");
 
   PyObject *py_ten_env = py_extension->py_ten_env;
   TEN_ASSERT(py_ten_env, "Should not happen.");
@@ -170,9 +170,9 @@ static void proxy_on_stop(ten_extension_t *extension, ten_env_t *ten_env) {
   ten_py_extension_t *py_extension =
       (ten_py_extension_t *)ten_binding_handle_get_me_in_target_lang(
           (ten_binding_handle_t *)extension);
-  TEN_ASSERT(py_extension &&
-                 ten_py_extension_check_integrity(py_extension, true),
-             "Invalid argument.");
+  TEN_ASSERT(
+      py_extension && ten_py_extension_check_integrity(py_extension, true),
+      "Invalid argument.");
 
   PyObject *py_ten_env = py_extension->py_ten_env;
   TEN_ASSERT(py_ten_env, "Should not happen.");
@@ -203,9 +203,9 @@ static void proxy_on_deinit(ten_extension_t *extension, ten_env_t *ten_env) {
   ten_py_extension_t *py_extension =
       (ten_py_extension_t *)ten_binding_handle_get_me_in_target_lang(
           (ten_binding_handle_t *)extension);
-  TEN_ASSERT(py_extension &&
-                 ten_py_extension_check_integrity(py_extension, true),
-             "Invalid argument.");
+  TEN_ASSERT(
+      py_extension && ten_py_extension_check_integrity(py_extension, true),
+      "Invalid argument.");
 
   PyObject *py_ten_env = py_extension->py_ten_env;
   TEN_ASSERT(py_ten_env, "Should not happen.");
@@ -236,9 +236,9 @@ static void proxy_on_cmd(ten_extension_t *extension, ten_env_t *ten_env,
   ten_py_extension_t *py_extension =
       (ten_py_extension_t *)ten_binding_handle_get_me_in_target_lang(
           (ten_binding_handle_t *)extension);
-  TEN_ASSERT(py_extension &&
-                 ten_py_extension_check_integrity(py_extension, true),
-             "Invalid argument.");
+  TEN_ASSERT(
+      py_extension && ten_py_extension_check_integrity(py_extension, true),
+      "Invalid argument.");
 
   PyObject *py_ten_env = py_extension->py_ten_env;
   TEN_ASSERT(py_ten_env, "Should not happen.");
@@ -273,9 +273,9 @@ static void proxy_on_data(ten_extension_t *extension, ten_env_t *ten_env,
   ten_py_extension_t *py_extension =
       (ten_py_extension_t *)ten_binding_handle_get_me_in_target_lang(
           (ten_binding_handle_t *)extension);
-  TEN_ASSERT(py_extension &&
-                 ten_py_extension_check_integrity(py_extension, true),
-             "Invalid argument.");
+  TEN_ASSERT(
+      py_extension && ten_py_extension_check_integrity(py_extension, true),
+      "Invalid argument.");
 
   PyObject *py_ten_env = py_extension->py_ten_env;
   TEN_ASSERT(py_ten_env, "Should not happen.");
@@ -311,9 +311,9 @@ static void proxy_on_audio_frame(ten_extension_t *extension, ten_env_t *ten_env,
   ten_py_extension_t *py_extension =
       (ten_py_extension_t *)ten_binding_handle_get_me_in_target_lang(
           (ten_binding_handle_t *)extension);
-  TEN_ASSERT(py_extension &&
-                 ten_py_extension_check_integrity(py_extension, true),
-             "Invalid argument.");
+  TEN_ASSERT(
+      py_extension && ten_py_extension_check_integrity(py_extension, true),
+      "Invalid argument.");
 
   PyObject *py_ten_env = py_extension->py_ten_env;
   TEN_ASSERT(py_ten_env, "Should not happen.");
@@ -401,9 +401,9 @@ static void ten_py_extension_destroy(PyObject *self) {
   // TEN_NOLINTNEXTLINE(thread-check)
   // thread-check: In TEN world, the destroy operations need to be performed in
   // any threads.
-  TEN_ASSERT(py_extension &&
-                 ten_py_extension_check_integrity(py_extension, false),
-             "Invalid argument.");
+  TEN_ASSERT(
+      py_extension && ten_py_extension_check_integrity(py_extension, false),
+      "Invalid argument.");
 
   ten_extension_destroy(py_extension->c_extension);
   py_extension->c_extension = NULL;

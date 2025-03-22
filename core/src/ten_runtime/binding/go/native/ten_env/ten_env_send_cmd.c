@@ -24,9 +24,8 @@ typedef struct ten_env_notify_send_cmd_ctx_t {
   bool is_ex;
 } ten_env_notify_send_cmd_ctx_t;
 
-static ten_env_notify_send_cmd_ctx_t *
-ten_env_notify_send_cmd_ctx_create(ten_shared_ptr_t *c_cmd,
-                                   ten_go_handle_t handler_id, bool is_ex) {
+static ten_env_notify_send_cmd_ctx_t *ten_env_notify_send_cmd_ctx_create(
+    ten_shared_ptr_t *c_cmd, ten_go_handle_t handler_id, bool is_ex) {
   TEN_ASSERT(c_cmd, "Invalid argument.");
 
   ten_env_notify_send_cmd_ctx_t *ctx =
@@ -40,8 +39,8 @@ ten_env_notify_send_cmd_ctx_create(ten_shared_ptr_t *c_cmd,
   return ctx;
 }
 
-static void
-ten_env_notify_send_cmd_ctx_destroy(ten_env_notify_send_cmd_ctx_t *ctx) {
+static void ten_env_notify_send_cmd_ctx_destroy(
+    ten_env_notify_send_cmd_ctx_t *ctx) {
   TEN_ASSERT(ctx, "Invalid argument.");
 
   if (ctx->c_cmd) {

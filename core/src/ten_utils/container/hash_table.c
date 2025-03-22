@@ -15,39 +15,39 @@
 // _not_ use the TEN_MALLOC series of APIs in the hash table-related code;
 // otherwise, there will be a circular dependency issue.
 
-#define HASH_TBL_INIT_BKT_CNT 32U     // Initial number of buckets
-#define HASH_TBL_INIT_BKT_CNT_LOG2 5U // lg2 of initial number of buckets
+#define HASH_TBL_INIT_BKT_CNT 32U      // Initial number of buckets
+#define HASH_TBL_INIT_BKT_CNT_LOG2 5U  // lg2 of initial number of buckets
 
 // The hash function is from Jenkins.
-#define HASH_MIX(a, b, c)                                                      \
-  do {                                                                         \
-    (a) -= (b);                                                                \
-    (a) -= (c);                                                                \
-    (a) ^= ((c) >> 13U);                                                       \
-    (b) -= (c);                                                                \
-    (b) -= (a);                                                                \
-    (b) ^= ((a) << 8U);                                                        \
-    (c) -= (a);                                                                \
-    (c) -= (b);                                                                \
-    (c) ^= ((b) >> 13U);                                                       \
-    (a) -= (b);                                                                \
-    (a) -= (c);                                                                \
-    (a) ^= ((c) >> 12U);                                                       \
-    (b) -= (c);                                                                \
-    (b) -= (a);                                                                \
-    (b) ^= ((a) << 16U);                                                       \
-    (c) -= (a);                                                                \
-    (c) -= (b);                                                                \
-    (c) ^= ((b) >> 5U);                                                        \
-    (a) -= (b);                                                                \
-    (a) -= (c);                                                                \
-    (a) ^= ((c) >> 3U);                                                        \
-    (b) -= (c);                                                                \
-    (b) -= (a);                                                                \
-    (b) ^= ((a) << 10U);                                                       \
-    (c) -= (a);                                                                \
-    (c) -= (b);                                                                \
-    (c) ^= ((b) >> 15U);                                                       \
+#define HASH_MIX(a, b, c) \
+  do {                    \
+    (a) -= (b);           \
+    (a) -= (c);           \
+    (a) ^= ((c) >> 13U);  \
+    (b) -= (c);           \
+    (b) -= (a);           \
+    (b) ^= ((a) << 8U);   \
+    (c) -= (a);           \
+    (c) -= (b);           \
+    (c) ^= ((b) >> 13U);  \
+    (a) -= (b);           \
+    (a) -= (c);           \
+    (a) ^= ((c) >> 12U);  \
+    (b) -= (c);           \
+    (b) -= (a);           \
+    (b) ^= ((a) << 16U);  \
+    (c) -= (a);           \
+    (c) -= (b);           \
+    (c) ^= ((b) >> 5U);   \
+    (a) -= (b);           \
+    (a) -= (c);           \
+    (a) ^= ((c) >> 3U);   \
+    (b) -= (c);           \
+    (b) -= (a);           \
+    (b) ^= ((a) << 10U);  \
+    (c) -= (a);           \
+    (c) -= (b);           \
+    (c) ^= ((b) >> 15U);  \
   } while (0)
 
 PURE uint32_t ten_hash_function(const void *key, const uint32_t keylen) {
@@ -181,8 +181,8 @@ void ten_hashtable_init(ten_hashtable_t *self, ptrdiff_t hh_offset) {
 
   self->bkts_cnt = HASH_TBL_INIT_BKT_CNT;
   self->bkts_cnt_in_log2 = HASH_TBL_INIT_BKT_CNT_LOG2;
-  self->bkts = (ten_hashbucket_t *)calloc(1, HASH_TBL_INIT_BKT_CNT *
-                                                 sizeof(ten_hashbucket_t));
+  self->bkts = (ten_hashbucket_t *)calloc(
+      1, HASH_TBL_INIT_BKT_CNT * sizeof(ten_hashbucket_t));
   TEN_ASSERT(self->bkts, "Failed to allocate memory.");
   self->items_cnt = 0;
 
@@ -379,7 +379,7 @@ void ten_hashtable_del(ten_hashtable_t *self, ten_hashhandle_t *hh) {
   const uint32_t bkt_idx = ten_hash_get_bucket_idx(hh->hashval, self->bkts_cnt);
   ten_hashbucket_del(&(self->bkts[bkt_idx]), hh);
 
-  ten_hashhandle_del_from_app_list(hh); // Remove from the app-ordered list.
+  ten_hashhandle_del_from_app_list(hh);  // Remove from the app-ordered list.
 
   if (hh->destroy) {
     hh->destroy(CONTAINER_OF_FROM_OFFSET(hh, self->hh_offset));

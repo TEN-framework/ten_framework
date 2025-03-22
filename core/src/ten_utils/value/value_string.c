@@ -93,69 +93,69 @@ bool ten_value_to_string(ten_value_t *self, ten_string_t *str,
   TEN_ASSERT(str, "Invalid argument.");
 
   switch (self->type) {
-    case TEN_TYPE_INVALID:
-      TEN_ASSERT(0, "Should not happen.");
-      break;
-    case TEN_TYPE_INT8:
-      ten_string_append_formatted(str, "%d", self->content.int8);
-      break;
-    case TEN_TYPE_INT16:
-      ten_string_append_formatted(str, "%d", self->content.int16);
-      break;
-    case TEN_TYPE_INT32:
-      ten_string_append_formatted(str, "%d", self->content.int32);
-      break;
-    case TEN_TYPE_INT64:
-      ten_string_append_formatted(str, "%ld", self->content.int64);
-      break;
-    case TEN_TYPE_UINT8:
-      ten_string_append_formatted(str, "%u", self->content.uint8);
-      break;
-    case TEN_TYPE_UINT16:
-      ten_string_append_formatted(str, "%u", self->content.uint16);
-      break;
-    case TEN_TYPE_UINT32:
-      ten_string_append_formatted(str, "%u", self->content.uint32);
-      break;
-    case TEN_TYPE_UINT64:
-      ten_string_append_formatted(str, "%lu", self->content.uint64);
-      break;
-    case TEN_TYPE_FLOAT32:
-      ten_string_append_formatted(str, "%f", self->content.float32);
-      break;
-    case TEN_TYPE_FLOAT64:
-      ten_string_append_formatted(str, "%f", self->content.float64);
-      break;
-    case TEN_TYPE_NULL:
-      break;
-    case TEN_TYPE_PTR:
-      ten_string_append_formatted(str, "0x%" PRIXPTR, self->content.ptr);
-      break;
-    case TEN_TYPE_BUF:
-      ten_string_append_formatted(str, "0x%" PRIXPTR, self->content.buf.data);
-      break;
-    case TEN_TYPE_BOOL:
-      ten_string_append_formatted(
-          str, "%s",
-          ten_value_get_bool(self, err) ? TEN_STR_TRUE : TEN_STR_FALSE);
-      break;
-    case TEN_TYPE_STRING:
-      ten_string_append_formatted(
-          str, "%s", ten_string_get_raw_str(&self->content.string));
-      break;
-    case TEN_TYPE_ARRAY:
-      if (!ten_value_array_to_string(self, str, err)) {
-        return false;
-      }
-      break;
-    case TEN_TYPE_OBJECT:
-      if (!ten_value_object_to_string(self, str, err)) {
-        return false;
-      }
-      break;
-    default:
-      TEN_ASSERT(0, "Need to implement more.");
-      break;
+  case TEN_TYPE_INVALID:
+    TEN_ASSERT(0, "Should not happen.");
+    break;
+  case TEN_TYPE_INT8:
+    ten_string_append_formatted(str, "%d", self->content.int8);
+    break;
+  case TEN_TYPE_INT16:
+    ten_string_append_formatted(str, "%d", self->content.int16);
+    break;
+  case TEN_TYPE_INT32:
+    ten_string_append_formatted(str, "%d", self->content.int32);
+    break;
+  case TEN_TYPE_INT64:
+    ten_string_append_formatted(str, "%ld", self->content.int64);
+    break;
+  case TEN_TYPE_UINT8:
+    ten_string_append_formatted(str, "%u", self->content.uint8);
+    break;
+  case TEN_TYPE_UINT16:
+    ten_string_append_formatted(str, "%u", self->content.uint16);
+    break;
+  case TEN_TYPE_UINT32:
+    ten_string_append_formatted(str, "%u", self->content.uint32);
+    break;
+  case TEN_TYPE_UINT64:
+    ten_string_append_formatted(str, "%lu", self->content.uint64);
+    break;
+  case TEN_TYPE_FLOAT32:
+    ten_string_append_formatted(str, "%f", self->content.float32);
+    break;
+  case TEN_TYPE_FLOAT64:
+    ten_string_append_formatted(str, "%f", self->content.float64);
+    break;
+  case TEN_TYPE_NULL:
+    break;
+  case TEN_TYPE_PTR:
+    ten_string_append_formatted(str, "0x%" PRIXPTR, self->content.ptr);
+    break;
+  case TEN_TYPE_BUF:
+    ten_string_append_formatted(str, "0x%" PRIXPTR, self->content.buf.data);
+    break;
+  case TEN_TYPE_BOOL:
+    ten_string_append_formatted(
+        str, "%s",
+        ten_value_get_bool(self, err) ? TEN_STR_TRUE : TEN_STR_FALSE);
+    break;
+  case TEN_TYPE_STRING:
+    ten_string_append_formatted(str, "%s",
+                                ten_string_get_raw_str(&self->content.string));
+    break;
+  case TEN_TYPE_ARRAY:
+    if (!ten_value_array_to_string(self, str, err)) {
+      return false;
+    }
+    break;
+  case TEN_TYPE_OBJECT:
+    if (!ten_value_object_to_string(self, str, err)) {
+      return false;
+    }
+    break;
+  default:
+    TEN_ASSERT(0, "Need to implement more.");
+    break;
   }
 
   return true;
@@ -168,32 +168,32 @@ static bool ten_value_adjust_from_int_type(TEN_TYPE type, ten_value_t *result,
   bool success = false;
 
   switch (type) {
-    case TEN_TYPE_INT8:
-      success = ten_value_convert_to_int8(result, err);
-      break;
-    case TEN_TYPE_INT16:
-      success = ten_value_convert_to_int16(result, err);
-      break;
-    case TEN_TYPE_INT32:
-      success = ten_value_convert_to_int32(result, err);
-      break;
-    case TEN_TYPE_INT64:
-      break;
-    case TEN_TYPE_UINT8:
-      success = ten_value_convert_to_uint8(result, err);
-      break;
-    case TEN_TYPE_UINT16:
-      success = ten_value_convert_to_uint16(result, err);
-      break;
-    case TEN_TYPE_UINT32:
-      success = ten_value_convert_to_uint32(result, err);
-      break;
-    case TEN_TYPE_UINT64:
-      success = ten_value_convert_to_uint64(result, err);
-      break;
-    default:
-      TEN_ASSERT(0, "Should not happen.");
-      break;
+  case TEN_TYPE_INT8:
+    success = ten_value_convert_to_int8(result, err);
+    break;
+  case TEN_TYPE_INT16:
+    success = ten_value_convert_to_int16(result, err);
+    break;
+  case TEN_TYPE_INT32:
+    success = ten_value_convert_to_int32(result, err);
+    break;
+  case TEN_TYPE_INT64:
+    break;
+  case TEN_TYPE_UINT8:
+    success = ten_value_convert_to_uint8(result, err);
+    break;
+  case TEN_TYPE_UINT16:
+    success = ten_value_convert_to_uint16(result, err);
+    break;
+  case TEN_TYPE_UINT32:
+    success = ten_value_convert_to_uint32(result, err);
+    break;
+  case TEN_TYPE_UINT64:
+    success = ten_value_convert_to_uint64(result, err);
+    break;
+  default:
+    TEN_ASSERT(0, "Should not happen.");
+    break;
   }
 
   return success;
@@ -208,90 +208,89 @@ ten_value_t *ten_value_from_type_and_string(TEN_TYPE type, const char *str,
   ten_value_t *result = NULL;
 
   switch (type) {
-    case TEN_TYPE_INT8:
-    case TEN_TYPE_INT16:
-    case TEN_TYPE_INT32:
-    case TEN_TYPE_INT64: {
-      errno = 0;
-      int64_t int64_val = strtol(str, NULL, 10);
-      if (errno == ERANGE) {
-        if (err) {
-          ten_error_set(err, TEN_ERROR_CODE_GENERIC,
-                        "Integer value out of range");
-        }
-        return NULL;
+  case TEN_TYPE_INT8:
+  case TEN_TYPE_INT16:
+  case TEN_TYPE_INT32:
+  case TEN_TYPE_INT64: {
+    errno = 0;
+    int64_t int64_val = strtol(str, NULL, 10);
+    if (errno == ERANGE) {
+      if (err) {
+        ten_error_set(err, TEN_ERROR_CODE_GENERIC,
+                      "Integer value out of range");
       }
-
-      result = ten_value_create_int64(int64_val);
-      success = ten_value_adjust_from_int_type(type, result, err);
-      break;
+      return NULL;
     }
 
-    case TEN_TYPE_UINT8:
-    case TEN_TYPE_UINT16:
-    case TEN_TYPE_UINT32:
-    case TEN_TYPE_UINT64: {
-      errno = 0;
-      uint64_t uint64_val = strtoul(str, NULL, 10);
-      if (errno == ERANGE) {
-        if (err) {
-          ten_error_set(err, TEN_ERROR_CODE_GENERIC,
-                        "Integer value out of range");
-        }
-        return NULL;
-      }
+    result = ten_value_create_int64(int64_val);
+    success = ten_value_adjust_from_int_type(type, result, err);
+    break;
+  }
 
-      result = ten_value_create_uint64(uint64_val);
-      success = ten_value_adjust_from_int_type(type, result, err);
-      break;
+  case TEN_TYPE_UINT8:
+  case TEN_TYPE_UINT16:
+  case TEN_TYPE_UINT32:
+  case TEN_TYPE_UINT64: {
+    errno = 0;
+    uint64_t uint64_val = strtoul(str, NULL, 10);
+    if (errno == ERANGE) {
+      if (err) {
+        ten_error_set(err, TEN_ERROR_CODE_GENERIC,
+                      "Integer value out of range");
+      }
+      return NULL;
     }
 
-    case TEN_TYPE_STRING:
-      result = ten_value_create_string(str);
-      break;
+    result = ten_value_create_uint64(uint64_val);
+    success = ten_value_adjust_from_int_type(type, result, err);
+    break;
+  }
 
-    case TEN_TYPE_BOOL:
-      result = ten_value_create_bool(
-          ten_c_string_is_equal(str, TEN_STR_TRUE) ? true : false);
-      break;
+  case TEN_TYPE_STRING:
+    result = ten_value_create_string(str);
+    break;
 
-    case TEN_TYPE_NULL:
-      result = ten_value_create_null();
-      break;
+  case TEN_TYPE_BOOL:
+    result = ten_value_create_bool(
+        ten_c_string_is_equal(str, TEN_STR_TRUE) ? true : false);
+    break;
 
+  case TEN_TYPE_NULL:
+    result = ten_value_create_null();
+    break;
+
+  case TEN_TYPE_FLOAT32:
+  case TEN_TYPE_FLOAT64: {
+    errno = 0;
+    double double_val = strtod(str, NULL);
+    if (errno == ERANGE) {
+      if (err) {
+        ten_error_set(err, TEN_ERROR_CODE_GENERIC,
+                      "Floating point value out of range");
+      }
+      return NULL;
+    }
+
+    switch (type) {
     case TEN_TYPE_FLOAT32:
-    case TEN_TYPE_FLOAT64: {
-      errno = 0;
-      double double_val = strtod(str, NULL);
-      if (errno == ERANGE) {
-        if (err) {
-          ten_error_set(err, TEN_ERROR_CODE_GENERIC,
-                        "Floating point value out of range");
-        }
-        return NULL;
-      }
-
-      switch (type) {
-        case TEN_TYPE_FLOAT32:
-          result = ten_value_create_float32(double_val < -FLT_MAX ||
-                                                    double_val > FLT_MAX
-                                                ? 0.0F
-                                                : (float)double_val);
-          break;
-        case TEN_TYPE_FLOAT64:
-          result = ten_value_create_float64(
-              double_val < -DBL_MAX || double_val > DBL_MAX ? 0.0 : double_val);
-          break;
-        default:
-          TEN_ASSERT(0, "Should not happen.");
-          break;
-      }
+      result = ten_value_create_float32(
+          double_val < -FLT_MAX || double_val > FLT_MAX ? 0.0F
+                                                        : (float)double_val);
+      break;
+    case TEN_TYPE_FLOAT64:
+      result = ten_value_create_float64(
+          double_val < -DBL_MAX || double_val > DBL_MAX ? 0.0 : double_val);
+      break;
+    default:
+      TEN_ASSERT(0, "Should not happen.");
       break;
     }
+    break;
+  }
 
-    default:
-      TEN_ASSERT(0, "Need to implement more operators.");
-      break;
+  default:
+    TEN_ASSERT(0, "Need to implement more operators.");
+    break;
   }
 
   if (!success) {
