@@ -189,12 +189,12 @@ void ten_extension_tester_add_addon_base_dir(ten_extension_tester_t *self,
 
 static void ten_extension_tester_destroy_test_target(
     ten_extension_tester_t *self) {
-  TEN_ASSERT(self &&
-                 // TEN_NOLINTNEXTLINE(thread-check)
-                 // thread-check: In TEN world, the destroy operations need to
-                 // be performed in any threads.
-                 ten_extension_tester_check_integrity(self, false),
-             "Invalid argument.");
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(
+      // TEN_NOLINTNEXTLINE(thread-check)
+      // thread-check: In TEN world, the destroy operations need to be performed
+      // in any threads.
+      ten_extension_tester_check_integrity(self, false), "Invalid argument.");
 
   if (self->test_mode == TEN_EXTENSION_TESTER_TEST_MODE_SINGLE) {
     ten_string_deinit(&self->test_target.addon.addon_name);
@@ -205,16 +205,18 @@ static void ten_extension_tester_destroy_test_target(
 }
 
 void ten_extension_tester_destroy(ten_extension_tester_t *self) {
-  TEN_ASSERT(self &&
-                 // TEN_NOLINTNEXTLINE(thread-check)
-                 // thread-check: In TEN world, the destroy operations need to
-                 // be performed in any threads.
-                 ten_extension_tester_check_integrity(self, false),
-             "Invalid argument.");
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(
+      // TEN_NOLINTNEXTLINE(thread-check)
+      // thread-check: In TEN world, the destroy operations need to be performed
+      // in any threads.
+      ten_extension_tester_check_integrity(self, false), "Invalid argument.");
 
   // The `ten_env_proxy` of `test_app` should be released in the tester task
   // triggered by the `deinit` of `test_app`.
   TEN_ASSERT(self->test_app_ten_env_proxy == NULL, "Should not happen.");
+
+  TEN_LOGI("Destroying extension_tester.");
 
   if (self->test_app_ten_env_proxy_create_completed) {
     ten_event_destroy(self->test_app_ten_env_proxy_create_completed);
