@@ -41,7 +41,7 @@ static void ten_extension_in_path_timer_on_triggered(ten_timer_t *self,
 
   // Remove all the expired paths in the IN path table.
   size_t removed_count = 0;
-  ten_list_foreach(in_paths, iter) {
+  ten_list_foreach (in_paths, iter) {
     ten_path_t *path = (ten_path_t *)ten_ptr_listnode_get(iter.node);
     TEN_ASSERT(path && ten_path_check_integrity(path, true),
                "Should not happen.");
@@ -77,7 +77,7 @@ static void ten_extension_out_path_timer_on_triggered(ten_timer_t *self,
   // Create a fake error result for those timed-out commands and send it back to
   // the extension.
   ten_list_t timeout_cmd_result_list = TEN_LIST_INIT_VAL;
-  ten_list_foreach(out_paths, iter) {
+  ten_list_foreach (out_paths, iter) {
     ten_path_t *path = (ten_path_t *)ten_ptr_listnode_get(iter.node);
     TEN_ASSERT(path && ten_path_check_integrity(path, true),
                "Should not happen.");
@@ -102,7 +102,7 @@ static void ten_extension_out_path_timer_on_triggered(ten_timer_t *self,
              ten_list_size(&timeout_cmd_result_list));
   }
 
-  ten_list_foreach(&timeout_cmd_result_list, iter) {
+  ten_list_foreach (&timeout_cmd_result_list, iter) {
     ten_shared_ptr_t *cmd_result = ten_smart_ptr_listnode_get(iter.node);
     TEN_ASSERT(cmd_result && ten_cmd_base_check_integrity(cmd_result),
                "Should not happen.");

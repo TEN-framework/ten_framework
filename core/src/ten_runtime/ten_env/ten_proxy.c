@@ -38,44 +38,44 @@ void ten_env_delete_ten_proxy(ten_env_t *self, ten_env_proxy_t *ten_env_proxy) {
 
   if (ten_list_is_empty(&self->ten_proxy_list)) {
     switch (self->attach_to) {
-      case TEN_ENV_ATTACH_TO_EXTENSION: {
-        ten_extension_t *extension = self->attached_target.extension;
-        TEN_ASSERT(extension && ten_extension_check_integrity(extension, true),
-                   "Should not happen.");
+    case TEN_ENV_ATTACH_TO_EXTENSION: {
+      ten_extension_t *extension = self->attached_target.extension;
+      TEN_ASSERT(extension && ten_extension_check_integrity(extension, true),
+                 "Should not happen.");
 
-        if (extension->state == TEN_EXTENSION_STATE_ON_DEINIT_DONE) {
-          ten_extension_on_ten_env_proxy_released(self);
-        }
-        break;
+      if (extension->state == TEN_EXTENSION_STATE_ON_DEINIT_DONE) {
+        ten_extension_on_ten_env_proxy_released(self);
       }
+      break;
+    }
 
-      case TEN_ENV_ATTACH_TO_EXTENSION_GROUP: {
-        ten_extension_group_t *extension_group =
-            self->attached_target.extension_group;
-        TEN_ASSERT(extension_group && ten_extension_group_check_integrity(
-                                          extension_group, true),
-                   "Should not happen.");
+    case TEN_ENV_ATTACH_TO_EXTENSION_GROUP: {
+      ten_extension_group_t *extension_group =
+          self->attached_target.extension_group;
+      TEN_ASSERT(extension_group &&
+                     ten_extension_group_check_integrity(extension_group, true),
+                 "Should not happen.");
 
-        if (extension_group->state == TEN_EXTENSION_GROUP_STATE_DEINIT_DONE) {
-          ten_extension_group_on_ten_env_proxy_released(self);
-        }
-        break;
+      if (extension_group->state == TEN_EXTENSION_GROUP_STATE_DEINIT_DONE) {
+        ten_extension_group_on_ten_env_proxy_released(self);
       }
+      break;
+    }
 
-      case TEN_ENV_ATTACH_TO_APP: {
-        ten_app_t *app = self->attached_target.app;
-        TEN_ASSERT(app && ten_app_check_integrity(app, true),
-                   "Should not happen.");
+    case TEN_ENV_ATTACH_TO_APP: {
+      ten_app_t *app = self->attached_target.app;
+      TEN_ASSERT(app && ten_app_check_integrity(app, true),
+                 "Should not happen.");
 
-        if (ten_app_is_closing(app)) {
-          ten_app_on_ten_env_proxy_released(self);
-        }
-        break;
+      if (ten_app_is_closing(app)) {
+        ten_app_on_ten_env_proxy_released(self);
       }
+      break;
+    }
 
-      default:
-        TEN_ASSERT(0, "Handle more types: %d", self->attach_to);
-        break;
+    default:
+      TEN_ASSERT(0, "Handle more types: %d", self->attach_to);
+      break;
     }
   }
 }

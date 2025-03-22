@@ -20,9 +20,9 @@ ten_extension_addon_and_instance_name_pair_create(
 
   ten_string_init_formatted(&self->addon_name, "%s",
                             extension_addon_name ? extension_addon_name : "");
-  ten_string_init_formatted(&self->instance_name, "%s",
-                            extension_instance_name ? extension_instance_name
-                                                    : "");
+  ten_string_init_formatted(
+      &self->instance_name, "%s",
+      extension_instance_name ? extension_instance_name : "");
 
   return self;
 }

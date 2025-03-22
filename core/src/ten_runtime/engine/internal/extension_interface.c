@@ -120,7 +120,7 @@ static void ten_engine_on_all_extension_threads_are_ready(
     // engine/graph and return the corresponding result to the original
     // requester.
 
-    ten_list_foreach(&extension_context->extension_threads, iter) {
+    ten_list_foreach (&extension_context->extension_threads, iter) {
       ten_extension_thread_t *extension_thread =
           ten_ptr_listnode_get(iter.node);
       TEN_ASSERT(extension_thread, "Should not happen.");
@@ -222,7 +222,7 @@ void ten_engine_find_extension_info_for_all_extensions_of_extension_thread_task(
                  ten_extension_thread_check_integrity(extension_thread, false),
              "Should not happen.");
 
-  ten_list_foreach(&extension_thread->extensions, iter) {
+  ten_list_foreach (&extension_thread->extensions, iter) {
     ten_extension_t *extension = ten_ptr_listnode_get(iter.node);
     TEN_ASSERT(ten_extension_check_integrity(extension, false),
                "Should not happen.");

@@ -55,8 +55,8 @@ ten_shared_ptr_t *ten_cmd_stop_graph_create(void) {
                                ten_raw_cmd_stop_graph_destroy);
 }
 
-static const char *
-ten_raw_cmd_stop_graph_get_graph_id(ten_cmd_stop_graph_t *self) {
+static const char *ten_raw_cmd_stop_graph_get_graph_id(
+    ten_cmd_stop_graph_t *self) {
   TEN_ASSERT(self && ten_raw_cmd_check_integrity((ten_cmd_t *)self) &&
                  ten_raw_msg_get_type((ten_msg_t *)self) ==
                      TEN_MSG_TYPE_CMD_STOP_GRAPH,

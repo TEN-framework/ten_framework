@@ -22,8 +22,8 @@
 #include "ten_utils/macro/check.h"
 #include "ten_utils/macro/mark.h"
 
-static ten_extension_tester_t *
-test_extension_get_extension_tester_ptr(ten_env_t *ten_env) {
+static ten_extension_tester_t *test_extension_get_extension_tester_ptr(
+    ten_env_t *ten_env) {
   ten_value_t *test_info_ptr_value =
       ten_env_peek_property(ten_env, "app:tester_ptr", NULL);
   TEN_ASSERT(test_info_ptr_value, "Should not happen.");
@@ -54,9 +54,8 @@ static void test_extension_on_configure(ten_extension_t *self,
   TEN_ASSERT(rc, "Should not happen.");
 }
 
-static void
-ten_extension_tester_on_test_extension_init_task(void *self_,
-                                                 TEN_UNUSED void *arg) {
+static void ten_extension_tester_on_test_extension_init_task(
+    void *self_, TEN_UNUSED void *arg) {
   ten_extension_tester_t *tester = self_;
   TEN_ASSERT(tester && ten_extension_tester_check_integrity(tester, true),
              "Invalid argument.");
@@ -64,9 +63,8 @@ ten_extension_tester_on_test_extension_init_task(void *self_,
   ten_extension_tester_on_test_extension_init(tester);
 }
 
-static void
-ten_extension_tester_on_test_extension_start_task(void *self_,
-                                                  TEN_UNUSED void *arg) {
+static void ten_extension_tester_on_test_extension_start_task(
+    void *self_, TEN_UNUSED void *arg) {
   ten_extension_tester_t *tester = self_;
   TEN_ASSERT(tester && ten_extension_tester_check_integrity(tester, true),
              "Invalid argument.");
@@ -318,9 +316,8 @@ static void test_extension_on_video_frame(ten_extension_t *self,
   }
 }
 
-static void
-ten_extension_tester_on_test_extension_deinit_task(void *self_,
-                                                   TEN_UNUSED void *arg) {
+static void ten_extension_tester_on_test_extension_deinit_task(
+    void *self_, TEN_UNUSED void *arg) {
   ten_extension_tester_t *tester = self_;
   TEN_ASSERT(tester && ten_extension_tester_check_integrity(tester, true),
              "Invalid argument.");

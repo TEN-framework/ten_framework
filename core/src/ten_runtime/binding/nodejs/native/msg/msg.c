@@ -41,7 +41,7 @@ void ten_nodejs_msg_deinit(ten_nodejs_msg_t *self) {
 static napi_value ten_nodejs_msg_get_name(napi_env env,
                                           napi_callback_info info) {
   const size_t argc = 1;
-  napi_value args[argc]; // this
+  napi_value args[argc];  // this
   if (!ten_nodejs_get_js_func_args(env, info, args, argc)) {
     napi_fatal_error(NULL, NAPI_AUTO_LENGTH,
                      "Incorrect number of parameters passed.",
@@ -74,7 +74,7 @@ static napi_value ten_nodejs_msg_get_name(napi_env env,
 static napi_value ten_nodejs_msg_set_dest(napi_env env,
                                           napi_callback_info info) {
   const size_t argc = 5;
-  napi_value args[argc]; // this, app_uri, graph_id, extension_group, extension
+  napi_value args[argc];  // this, app_uri, graph_id, extension_group, extension
   if (!ten_nodejs_get_js_func_args(env, info, args, argc)) {
     napi_fatal_error(NULL, NAPI_AUTO_LENGTH,
                      "Incorrect number of parameters passed.",
@@ -148,10 +148,10 @@ static napi_value ten_nodejs_msg_set_dest(napi_env env,
   return js_undefined(env);
 }
 
-static napi_value
-ten_nodejs_msg_set_property_from_json(napi_env env, napi_callback_info info) {
+static napi_value ten_nodejs_msg_set_property_from_json(
+    napi_env env, napi_callback_info info) {
   const size_t argc = 3;
-  napi_value args[argc]; // this, path, json_str
+  napi_value args[argc];  // this, path, json_str
   if (!ten_nodejs_get_js_func_args(env, info, args, argc)) {
     napi_fatal_error(NULL, NAPI_AUTO_LENGTH,
                      "Incorrect number of parameters passed.",
@@ -224,7 +224,7 @@ done:
 static napi_value ten_nodejs_msg_get_property_to_json(napi_env env,
                                                       napi_callback_info info) {
   const size_t argc = 2;
-  napi_value args[argc]; // this, path
+  napi_value args[argc];  // this, path
   if (!ten_nodejs_get_js_func_args(env, info, args, argc)) {
     napi_fatal_error(NULL, NAPI_AUTO_LENGTH,
                      "Incorrect number of parameters passed.",
@@ -295,7 +295,7 @@ done:
 static napi_value ten_nodejs_msg_set_property_number(napi_env env,
                                                      napi_callback_info info) {
   const size_t argc = 3;
-  napi_value args[argc]; // this, path, value
+  napi_value args[argc];  // this, path, value
   if (!ten_nodejs_get_js_func_args(env, info, args, argc)) {
     napi_fatal_error(NULL, NAPI_AUTO_LENGTH,
                      "Incorrect number of parameters passed.",
@@ -348,7 +348,7 @@ static napi_value ten_nodejs_msg_set_property_number(napi_env env,
 static napi_value ten_nodejs_msg_get_property_number(napi_env env,
                                                      napi_callback_info info) {
   const size_t argc = 2;
-  napi_value args[argc]; // this, path
+  napi_value args[argc];  // this, path
   if (!ten_nodejs_get_js_func_args(env, info, args, argc)) {
     napi_fatal_error(NULL, NAPI_AUTO_LENGTH,
                      "Incorrect number of parameters passed.",
@@ -417,7 +417,7 @@ done:
 static napi_value ten_nodejs_msg_set_property_string(napi_env env,
                                                      napi_callback_info info) {
   const size_t argc = 3;
-  napi_value args[argc]; // this, path, value
+  napi_value args[argc];  // this, path, value
   if (!ten_nodejs_get_js_func_args(env, info, args, argc)) {
     napi_fatal_error(NULL, NAPI_AUTO_LENGTH,
                      "Incorrect number of parameters passed.",
@@ -472,7 +472,7 @@ static napi_value ten_nodejs_msg_set_property_string(napi_env env,
 static napi_value ten_nodejs_msg_get_property_string(napi_env env,
                                                      napi_callback_info info) {
   const size_t argc = 2;
-  napi_value args[argc]; // this, path
+  napi_value args[argc];  // this, path
   if (!ten_nodejs_get_js_func_args(env, info, args, argc)) {
     napi_fatal_error(NULL, NAPI_AUTO_LENGTH,
                      "Incorrect number of parameters passed.",
@@ -541,7 +541,7 @@ done:
 static napi_value ten_nodejs_msg_set_property_bool(napi_env env,
                                                    napi_callback_info info) {
   const size_t argc = 3;
-  napi_value args[argc]; // this, path, value
+  napi_value args[argc];  // this, path, value
   if (!ten_nodejs_get_js_func_args(env, info, args, argc)) {
     napi_fatal_error(NULL, NAPI_AUTO_LENGTH,
                      "Incorrect number of parameters passed.",
@@ -593,7 +593,7 @@ static napi_value ten_nodejs_msg_set_property_bool(napi_env env,
 static napi_value ten_nodejs_msg_get_property_bool(napi_env env,
                                                    napi_callback_info info) {
   const size_t argc = 2;
-  napi_value args[argc]; // this, path
+  napi_value args[argc];  // this, path
   if (!ten_nodejs_get_js_func_args(env, info, args, argc)) {
     napi_fatal_error(NULL, NAPI_AUTO_LENGTH,
                      "Incorrect number of parameters passed.",
@@ -662,7 +662,7 @@ done:
 static napi_value ten_nodejs_msg_set_property_buf(napi_env env,
                                                   napi_callback_info info) {
   const size_t argc = 3;
-  napi_value args[argc]; // this, path, value
+  napi_value args[argc];  // this, path, value
   if (!ten_nodejs_get_js_func_args(env, info, args, argc)) {
     napi_fatal_error(NULL, NAPI_AUTO_LENGTH,
                      "Incorrect number of parameters passed.",
@@ -719,7 +719,7 @@ static napi_value ten_nodejs_msg_set_property_buf(napi_env env,
 static napi_value ten_nodejs_msg_get_property_buf(napi_env env,
                                                   napi_callback_info info) {
   const size_t argc = 2;
-  napi_value args[argc]; // this, path
+  napi_value args[argc];  // this, path
   if (!ten_nodejs_get_js_func_args(env, info, args, argc)) {
     napi_fatal_error(NULL, NAPI_AUTO_LENGTH,
                      "Incorrect number of parameters passed.",

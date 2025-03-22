@@ -6,6 +6,8 @@
 //
 #include "ten_utils/ten_config.h"
 
+#include "include_internal/ten_utils/backtrace/platform/win/internal.h"
+
 #include <Windows.h>
 #include <assert.h>
 #include <dbghelp.h>
@@ -17,7 +19,6 @@
 
 #include "include_internal/ten_utils/backtrace/backtrace.h"
 #include "include_internal/ten_utils/backtrace/common.h"
-#include "include_internal/ten_utils/backtrace/platform/win/internal.h"
 
 /**
  * @brief Dynamically loads and retrieves function pointers for Windows

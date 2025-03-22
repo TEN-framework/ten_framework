@@ -25,9 +25,8 @@ typedef struct ten_env_notify_send_data_ctx_t {
   ten_go_handle_t callback_handle;
 } ten_env_notify_send_data_ctx_t;
 
-static ten_env_notify_send_data_ctx_t *
-ten_env_notify_send_data_ctx_create(ten_shared_ptr_t *c_data,
-                                    ten_go_handle_t callback_handle) {
+static ten_env_notify_send_data_ctx_t *ten_env_notify_send_data_ctx_create(
+    ten_shared_ptr_t *c_data, ten_go_handle_t callback_handle) {
   TEN_ASSERT(c_data, "Invalid argument.");
 
   ten_env_notify_send_data_ctx_t *ctx =
@@ -40,8 +39,8 @@ ten_env_notify_send_data_ctx_create(ten_shared_ptr_t *c_data,
   return ctx;
 }
 
-static void
-ten_env_notify_send_data_ctx_destroy(ten_env_notify_send_data_ctx_t *ctx) {
+static void ten_env_notify_send_data_ctx_destroy(
+    ten_env_notify_send_data_ctx_t *ctx) {
   TEN_ASSERT(ctx, "Invalid argument.");
 
   if (ctx->c_data) {

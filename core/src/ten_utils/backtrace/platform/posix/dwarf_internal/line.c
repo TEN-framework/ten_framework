@@ -6,6 +6,8 @@
 //
 #include "ten_utils/ten_config.h"
 
+#include "include_internal/ten_utils/backtrace/platform/posix/dwarf_internal/line.h"
+
 #include <stdlib.h>
 #include <string.h>
 
@@ -13,7 +15,6 @@
 #include "include_internal/ten_utils/backtrace/platform/posix/dwarf.h"
 #include "include_internal/ten_utils/backtrace/platform/posix/dwarf_internal/buf.h"
 #include "include_internal/ten_utils/backtrace/platform/posix/dwarf_internal/data.h"
-#include "include_internal/ten_utils/backtrace/platform/posix/dwarf_internal/line.h"
 #include "include_internal/ten_utils/backtrace/sort.h"
 
 // Read a single version 5 LNCT entry for a directory or file name in a

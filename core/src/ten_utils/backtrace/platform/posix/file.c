@@ -6,6 +6,8 @@
 //
 #include "ten_utils/ten_config.h"
 
+#include "include_internal/ten_utils/backtrace/file.h"
+
 #include <assert.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -15,8 +17,6 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
-
-#include "include_internal/ten_utils/backtrace/file.h"
 
 /**
  * @file file.c

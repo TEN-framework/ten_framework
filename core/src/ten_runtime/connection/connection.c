@@ -377,9 +377,8 @@ void ten_connection_clean(ten_connection_t *self) {
   ten_protocol_clean(self->protocol, ten_connection_on_protocol_cleaned);
 }
 
-static void
-ten_connection_handle_command_from_external_client(ten_connection_t *self,
-                                                   ten_shared_ptr_t *cmd) {
+static void ten_connection_handle_command_from_external_client(
+    ten_connection_t *self, ten_shared_ptr_t *cmd) {
   TEN_ASSERT(self, "Invalid argument.");
   TEN_ASSERT(ten_connection_check_integrity(self, true),
              "Invalid use of connection %p.", self);
@@ -435,7 +434,7 @@ void ten_connection_on_msgs(ten_connection_t *self, ten_list_t *msgs) {
   ten_error_t err;
   TEN_ERROR_INIT(err);
 
-  ten_list_foreach(msgs, iter) {
+  ten_list_foreach (msgs, iter) {
     ten_shared_ptr_t *msg = ten_smart_ptr_listnode_get(iter.node);
 
     if (ten_msg_is_cmd_and_result(msg)) {

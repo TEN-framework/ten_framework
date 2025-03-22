@@ -16,10 +16,9 @@
 #include "ten_utils/value/value.h"
 #include "ten_utils/value/value_is.h"
 
-static ten_shared_ptr_t *
-ten_msg_conversion_per_property_convert(ten_msg_conversion_t *msg_conversion,
-                                        ten_shared_ptr_t *msg,
-                                        ten_error_t *err) {
+static ten_shared_ptr_t *ten_msg_conversion_per_property_convert(
+    ten_msg_conversion_t *msg_conversion, ten_shared_ptr_t *msg,
+    ten_error_t *err) {
   TEN_ASSERT(msg_conversion, "Should not happen.");
   TEN_ASSERT(msg, "Invalid argument.");
   TEN_ASSERT(ten_msg_check_integrity(msg), "Invalid argument.");
@@ -64,8 +63,8 @@ void ten_msg_conversion_per_property_destroy(
   TEN_FREE(self);
 }
 
-ten_msg_conversion_per_property_t *
-ten_msg_conversion_per_property_from_json(ten_json_t *json, ten_error_t *err) {
+ten_msg_conversion_per_property_t *ten_msg_conversion_per_property_from_json(
+    ten_json_t *json, ten_error_t *err) {
   ten_json_t rules_json = TEN_JSON_INIT_VAL(json->ctx, false);
   bool success = ten_json_object_peek(json, TEN_STR_RULES, &rules_json);
   if (!success) {
@@ -112,9 +111,8 @@ bool ten_msg_conversion_per_property_to_json(
   return true;
 }
 
-ten_msg_conversion_per_property_t *
-ten_msg_conversion_per_property_from_value(ten_value_t *value,
-                                           ten_error_t *err) {
+ten_msg_conversion_per_property_t *ten_msg_conversion_per_property_from_value(
+    ten_value_t *value, ten_error_t *err) {
   if (!value || !ten_value_is_object(value)) {
     return NULL;
   }

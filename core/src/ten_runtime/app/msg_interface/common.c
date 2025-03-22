@@ -131,9 +131,9 @@ static bool ten_app_handle_msg_default_handler(ten_app_t *self,
         }
 
         dest_engine = predefined_graph_info->engine;
-        TEN_ASSERT(dest_engine &&
-                       ten_engine_check_integrity(dest_engine, false),
-                   "Engine should be valid after starting predefined graph");
+        TEN_ASSERT(
+            dest_engine && ten_engine_check_integrity(dest_engine, false),
+            "Engine should be valid after starting predefined graph");
       }
 
       if (dest_engine) {
@@ -291,7 +291,7 @@ static bool ten_app_handle_stop_graph_cmd(ten_app_t *self,
   ten_engine_t *dest_engine = NULL;
 
   // Find the engine based on the 'dest_graph_id' in the 'cmd'.
-  ten_list_foreach(&self->engines, iter) {
+  ten_list_foreach (&self->engines, iter) {
     ten_engine_t *engine = ten_ptr_listnode_get(iter.node);
 
     if (ten_string_is_equal_c_str(&engine->graph_id, dest_graph_id)) {
@@ -311,7 +311,7 @@ static bool ten_app_handle_stop_graph_cmd(ten_app_t *self,
 
   // The engine is found, set the graph_id to the dest loc and send the 'cmd'
   // to the engine.
-  ten_list_foreach(ten_msg_get_dest(cmd), iter) {
+  ten_list_foreach (ten_msg_get_dest(cmd), iter) {
     ten_loc_t *dest_loc = ten_ptr_listnode_get(iter.node);
     TEN_ASSERT(dest_loc && ten_loc_check_integrity(dest_loc),
                "Should not happen.");
@@ -541,7 +541,7 @@ static void ten_app_handle_in_msgs_sync(ten_app_t *self) {
   rc = ten_mutex_unlock(self->in_msgs_lock);
   TEN_ASSERT(!rc, "Should not happen.");
 
-  ten_list_foreach(&in_msgs_, iter) {
+  ten_list_foreach (&in_msgs_, iter) {
     ten_shared_ptr_t *msg = ten_smart_ptr_listnode_get(iter.node);
     TEN_ASSERT(msg && ten_msg_check_integrity(msg) &&
                    !ten_msg_src_is_empty(msg) &&
@@ -614,9 +614,9 @@ void ten_app_push_to_in_msgs_queue(ten_app_t *self, ten_shared_ptr_t *msg) {
              "Should not happen.");
   TEN_ASSERT(msg && ten_msg_is_cmd_and_result(msg), "Invalid argument.");
   TEN_ASSERT(!ten_cmd_base_cmd_id_is_empty(msg), "Invalid argument.");
-  TEN_ASSERT(ten_msg_get_src_app_uri(msg) &&
-                 strlen(ten_msg_get_src_app_uri(msg)),
-             "Invalid argument.");
+  TEN_ASSERT(
+      ten_msg_get_src_app_uri(msg) && strlen(ten_msg_get_src_app_uri(msg)),
+      "Invalid argument.");
   TEN_ASSERT((ten_msg_get_dest_cnt(msg) == 1), "Invalid argument.");
 
   TEN_UNUSED bool rc = ten_mutex_lock(self->in_msgs_lock);

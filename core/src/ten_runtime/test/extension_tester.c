@@ -183,8 +183,8 @@ void ten_extension_tester_add_addon_base_dir(ten_extension_tester_t *self,
   ten_list_push_str_back(&self->addon_base_dirs, addon_base_dir);
 }
 
-static void
-ten_extension_tester_destroy_test_target(ten_extension_tester_t *self) {
+static void ten_extension_tester_destroy_test_target(
+    ten_extension_tester_t *self) {
   TEN_ASSERT(self &&
                  // TEN_NOLINTNEXTLINE(thread-check)
                  // thread-check: In TEN world, the destroy operations need to
@@ -313,8 +313,8 @@ static void test_app_ten_env_send_start_graph_cmd(ten_env_t *ten_env,
   ten_error_deinit(&err);
 }
 
-static void
-ten_extension_tester_create_and_start_graph(ten_extension_tester_t *self) {
+static void ten_extension_tester_create_and_start_graph(
+    ten_extension_tester_t *self) {
   TEN_ASSERT(self && ten_extension_tester_check_integrity(self, true),
              "Invalid argument.");
   TEN_ASSERT(self->test_mode != TEN_EXTENSION_TESTER_TEST_MODE_INVALID,
@@ -340,7 +340,8 @@ ten_extension_tester_create_and_start_graph(ten_extension_tester_t *self) {
         ten_string_get_raw_str(&self->test_target.addon.property_json);
 
     ten_string_t graph_json_str;
-    ten_string_init_formatted(&graph_json_str, "{\
+    ten_string_init_formatted(&graph_json_str,
+                              "{\
            \"nodes\": [{\
               \"type\": \"extension\",\
               \"name\": \"ten:test_extension\",\
@@ -460,8 +461,8 @@ ten_extension_tester_create_and_start_graph(ten_extension_tester_t *self) {
   self->test_extension_ten_env_proxy_create_completed = NULL;
 }
 
-static void
-ten_extension_tester_create_and_run_app(ten_extension_tester_t *self) {
+static void ten_extension_tester_create_and_run_app(
+    ten_extension_tester_t *self) {
   TEN_ASSERT(self && ten_extension_tester_check_integrity(self, true),
              "Invalid argument.");
 
@@ -611,8 +612,8 @@ static void ten_extension_tester_on_first_task(void *self_,
   ten_extension_tester_create_and_start_graph(self);
 }
 
-static void
-ten_extension_tester_inherit_thread_ownership(ten_extension_tester_t *self) {
+static void ten_extension_tester_inherit_thread_ownership(
+    ten_extension_tester_t *self) {
   // TEN_NOLINTNEXTLINE(thread-check)
   // thread-check: The correct threading ownership will be setup soon, so we can
   // _not_ check thread safety here.
@@ -650,8 +651,8 @@ bool ten_extension_tester_run(ten_extension_tester_t *self) {
   return true;
 }
 
-ten_env_tester_t *
-ten_extension_tester_get_ten_env_tester(ten_extension_tester_t *self) {
+ten_env_tester_t *ten_extension_tester_get_ten_env_tester(
+    ten_extension_tester_t *self) {
   TEN_ASSERT(self && ten_extension_tester_check_integrity(self, true),
              "Invalid argument.");
 

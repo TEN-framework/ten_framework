@@ -44,9 +44,8 @@ void ten_extension_thread_handle_start_msg_task(void *self_,
   ten_extension_group_load_metadata(self->extension_group);
 }
 
-static void
-ten_extension_thread_handle_in_msg_sync(ten_extension_thread_t *self,
-                                        ten_shared_ptr_t *msg) {
+static void ten_extension_thread_handle_in_msg_sync(
+    ten_extension_thread_t *self, ten_shared_ptr_t *msg) {
   TEN_ASSERT(self, "Invalid argument.");
   TEN_ASSERT(ten_extension_thread_check_integrity(self, true),
              "Invalid use of extension_thread %p.", self);
@@ -153,9 +152,8 @@ void ten_extension_thread_handle_in_msg_task(void *self_, void *arg) {
   ten_shared_ptr_destroy(msg);
 }
 
-static void
-ten_extension_thread_process_release_lock_mode_task(void *self_,
-                                                    TEN_UNUSED void *arg) {
+static void ten_extension_thread_process_release_lock_mode_task(
+    void *self_, TEN_UNUSED void *arg) {
   ten_extension_thread_t *self = (ten_extension_thread_t *)self_;
   TEN_ASSERT(self, "Invalid argument.");
   TEN_ASSERT(ten_extension_thread_check_integrity(self, true),

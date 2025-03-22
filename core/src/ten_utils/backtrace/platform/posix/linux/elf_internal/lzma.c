@@ -9,13 +9,14 @@
 //
 #include "ten_utils/ten_config.h"
 
+#include "include_internal/ten_utils/backtrace/platform/posix/linux/elf_internal/lzma.h"
+
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "include_internal/ten_utils/backtrace/platform/posix/internal.h"
 #include "include_internal/ten_utils/backtrace/platform/posix/linux/elf_internal/crc32.h"
-#include "include_internal/ten_utils/backtrace/platform/posix/linux/elf_internal/lzma.h"
 #include "include_internal/ten_utils/backtrace/platform/posix/linux/elf_internal/zutils.h"
 
 // Read an LZMA varint from BUF, reading and updating *POFFSET,

@@ -34,7 +34,7 @@ bool ten_msg_dest_info_to_json(ten_msg_dest_info_t *self,
   ten_json_t dests_json = TEN_JSON_INIT_VAL(json->ctx, false);
   ten_json_object_peek_or_create_array(json, TEN_STR_DEST, &dests_json);
 
-  ten_list_foreach(&self->dest, iter) {
+  ten_list_foreach (&self->dest, iter) {
     ten_weak_ptr_t *dest = ten_smart_ptr_listnode_get(iter.node);
     TEN_ASSERT(dest, "Invalid argument.");
 
@@ -60,8 +60,8 @@ bool ten_msg_dest_info_to_json(ten_msg_dest_info_t *self,
         &dest_json, TEN_STR_EXTENSION,
         ten_string_get_raw_str(&extension_info->loc.extension_name));
 
-    ten_list_foreach(&extension_info->msg_conversion_contexts,
-                     msg_conversion_iter) {
+    ten_list_foreach (&extension_info->msg_conversion_contexts,
+                      msg_conversion_iter) {
       ten_msg_conversion_context_t *msg_conversion =
           ten_ptr_listnode_get(msg_conversion_iter.node);
       TEN_ASSERT(msg_conversion &&

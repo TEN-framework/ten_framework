@@ -8,6 +8,7 @@
 // https://github.com/ianlancetaylor/libbacktrace [BSD license]
 //
 #include "include_internal/ten_utils/backtrace/platform/posix/linux/elf_internal/zutils.h"
+
 #include "include_internal/ten_utils/backtrace/platform/posix/internal.h"
 
 /**
@@ -63,9 +64,9 @@ int elf_fetch_bits(const unsigned char **ppin, const unsigned char *pinend,
     return 0;
   }
 
-#if defined(__BYTE_ORDER__) && defined(__ORDER_LITTLE_ENDIAN__) &&             \
-    defined(__ORDER_BIG_ENDIAN__) &&                                           \
-    (__BYTE_ORDER__ == __ORDER_BIG_ENDIAN__ ||                                 \
+#if defined(__BYTE_ORDER__) && defined(__ORDER_LITTLE_ENDIAN__) && \
+    defined(__ORDER_BIG_ENDIAN__) &&                               \
+    (__BYTE_ORDER__ == __ORDER_BIG_ENDIAN__ ||                     \
      __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__)
 
   // Fast path: read 4 bytes at once when byte order is known at compile time

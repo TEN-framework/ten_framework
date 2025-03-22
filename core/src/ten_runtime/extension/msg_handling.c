@@ -146,7 +146,7 @@ void ten_extension_handle_in_msg(ten_extension_t *self, ten_shared_ptr_t *msg) {
   if (!msg_is_cmd_result) {
     // Create the corresponding IN paths for the input commands.
 
-    ten_list_foreach(&converted_msgs, iter) {
+    ten_list_foreach (&converted_msgs, iter) {
       ten_msg_and_its_result_conversion_t *msg_and_result_conversion =
           ten_ptr_listnode_get(iter.node);
       TEN_ASSERT(msg_and_result_conversion, "Invalid argument.");
@@ -172,7 +172,7 @@ void ten_extension_handle_in_msg(ten_extension_t *self, ten_shared_ptr_t *msg) {
   // be matched with the schema. The correctness of the msg structure is
   // guaranteed by the conversions.
   bool pass_schema_check = true;
-  ten_list_foreach(&converted_msgs, iter) {
+  ten_list_foreach (&converted_msgs, iter) {
     ten_msg_and_its_result_conversion_t *msg_and_result_conversion =
         ten_ptr_listnode_get(iter.node);
     TEN_ASSERT(msg_and_result_conversion, "Invalid argument.");
@@ -191,7 +191,7 @@ void ten_extension_handle_in_msg(ten_extension_t *self, ten_shared_ptr_t *msg) {
     // The schema checking is pass, it's time to start sending the commands to
     // the extension.
 
-    ten_list_foreach(&converted_msgs, iter) {
+    ten_list_foreach (&converted_msgs, iter) {
       ten_msg_and_its_result_conversion_t *msg_and_result_conversion =
           ten_ptr_listnode_get(iter.node);
       TEN_ASSERT(msg_and_result_conversion, "Invalid argument.");

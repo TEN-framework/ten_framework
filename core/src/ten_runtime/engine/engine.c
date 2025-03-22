@@ -59,9 +59,9 @@ static void ten_engine_destroy(ten_engine_t *self) {
 
   // The engine could only be destroyed when there is no extension threads,
   // no prev/next remote apps (connections), no timers associated with it.
-  TEN_ASSERT((self->extension_context == NULL) &&
-                 ten_list_is_empty(&self->timers),
-             "Should not happen.");
+  TEN_ASSERT(
+      (self->extension_context == NULL) && ten_list_is_empty(&self->timers),
+      "Should not happen.");
 
   TEN_LOGD("[%s] Destroy engine.", ten_engine_get_id(self, false));
 
@@ -137,7 +137,7 @@ static void ten_engine_set_graph_id(ten_engine_t *self, ten_shared_ptr_t *cmd) {
                               ten_string_get_raw_str(&graph_id_str));
 
     // Set the newly created graph_id to the 'start_graph' command.
-    ten_list_foreach(ten_msg_get_dest(cmd), iter) {
+    ten_list_foreach (ten_msg_get_dest(cmd), iter) {
       ten_loc_t *dest_loc = ten_ptr_listnode_get(iter.node);
       TEN_ASSERT(dest_loc && ten_loc_check_integrity(dest_loc),
                  "Should not happen.");
@@ -271,9 +271,8 @@ void ten_engine_del_orphan_connection(ten_engine_t *self,
   connection->on_closed_data = NULL;
 }
 
-static void
-ten_engine_on_orphan_connection_closed(ten_connection_t *connection,
-                                       TEN_UNUSED void *on_closed_data) {
+static void ten_engine_on_orphan_connection_closed(
+    ten_connection_t *connection, TEN_UNUSED void *on_closed_data) {
   TEN_ASSERT(connection && ten_connection_check_integrity(connection, true),
              "Should not happen.");
 
@@ -328,7 +327,7 @@ ten_connection_t *ten_engine_find_orphan_connection(ten_engine_t *self,
   TEN_ASSERT(ten_engine_check_integrity(self, true), "Should not happen.");
 
   if (strlen(uri)) {
-    ten_list_foreach(&self->orphan_connections, iter) {
+    ten_list_foreach (&self->orphan_connections, iter) {
       ten_connection_t *connection = ten_ptr_listnode_get(iter.node);
       TEN_ASSERT(connection && ten_connection_check_integrity(connection, true),
                  "Should not happen.");

@@ -79,7 +79,7 @@ static void proxy_return_result_callback(ten_env_t *ten_env,
   }
 
   PyObject *result = PyObject_CallObject(cb_func, arglist);
-  Py_XDECREF(result); // Ensure cleanup if an error occurred.
+  Py_XDECREF(result);  // Ensure cleanup if an error occurred.
 
   bool err_occurred = ten_py_check_and_clear_py_error();
   TEN_ASSERT(!err_occurred, "Should not happen.");
@@ -129,7 +129,7 @@ static void ten_env_proxy_notify_return_result(ten_env_t *ten_env,
           Py_BuildValue("(OO)", py_ten_env->actual_py_ten_env, py_err);
 
       PyObject *result = PyObject_CallObject(ctx->py_cb_func, arglist);
-      Py_XDECREF(result); // Ensure cleanup if an error occurred.
+      Py_XDECREF(result);  // Ensure cleanup if an error occurred.
 
       bool err_occurred = ten_py_check_and_clear_py_error();
       TEN_ASSERT(!err_occurred, "Should not happen.");

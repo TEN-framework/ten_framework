@@ -6,6 +6,8 @@
 //
 #include "ten_utils/ten_config.h"
 
+#include "include_internal/ten_utils/backtrace/platform/posix/mmap.h"
+
 #include <assert.h>
 #include <errno.h>
 #include <stdint.h>
@@ -14,8 +16,6 @@
 #include <sys/mman.h>
 #include <sys/types.h>
 #include <unistd.h>
-
-#include "include_internal/ten_utils/backtrace/platform/posix/mmap.h"
 
 /**
  * @file mmap.c
@@ -54,7 +54,7 @@ bool ten_mmap_init(ten_mmap_t *self, int descriptor, off_t offset,
 
   // Check if size can be safely cast to size_t (in case of 32-bit systems).
   if ((uint64_t)(size_t)size != size) {
-    errno = EFBIG; // File too large
+    errno = EFBIG;  // File too large
     assert(0 && "File too large.");
     return false;
   }

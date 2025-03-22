@@ -28,9 +28,9 @@ static bool ten_extension_determine_ten_namespace_properties(
     ten_extension_t *self, ten_value_t *ten_namespace_properties) {
   TEN_ASSERT(self && ten_extension_check_integrity(self, true),
              "Invalid argument.");
-  TEN_ASSERT(ten_namespace_properties &&
-                 ten_value_is_object(ten_namespace_properties),
-             "Invalid argument.");
+  TEN_ASSERT(
+      ten_namespace_properties && ten_value_is_object(ten_namespace_properties),
+      "Invalid argument.");
 
   ten_error_t err;
   TEN_ERROR_INIT(err);
@@ -161,8 +161,8 @@ static void ten_extension_adjust_in_path_timeout(ten_extension_t *self) {
 
 // Retrieve those property fields that are reserved for the TEN runtime under
 // the 'ten' namespace.
-static ten_value_t *
-ten_extension_get_ten_namespace_properties(ten_extension_t *self) {
+static ten_value_t *ten_extension_get_ten_namespace_properties(
+    ten_extension_t *self) {
   TEN_ASSERT(self && ten_extension_check_integrity(self, true),
              "Should not happen.");
 
@@ -293,9 +293,9 @@ void ten_extension_merge_properties_from_graph(ten_extension_t *self) {
 // }
 bool ten_extension_handle_ten_namespace_properties(
     ten_extension_t *self, ten_extension_context_t *extension_context) {
-  TEN_ASSERT(self && ten_extension_check_integrity(self, true) &&
-                 extension_context,
-             "Should not happen.");
+  TEN_ASSERT(
+      self && ten_extension_check_integrity(self, true) && extension_context,
+      "Should not happen.");
 
   // This function is safe to be called from the extension main threads,
   // because all the resources it accesses are the

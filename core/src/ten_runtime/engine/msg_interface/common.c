@@ -104,7 +104,7 @@ static void ten_engine_handle_in_msgs_sync(ten_engine_t *self) {
   // This list stores any msgs which needs to be put back to the in_msgs queue.
   ten_list_t put_back_msgs = TEN_LIST_INIT_VAL;
 
-  ten_list_foreach(&in_msgs_, iter) {
+  ten_list_foreach (&in_msgs_, iter) {
     ten_shared_ptr_t *msg = ten_smart_ptr_listnode_get(iter.node);
     TEN_ASSERT(msg, "Should not happen.");
     TEN_ASSERT(ten_msg_check_integrity(msg), "Should not happen.");
@@ -419,7 +419,7 @@ bool ten_engine_dispatch_msg(ten_engine_t *self, ten_shared_ptr_t *msg) {
         if (self->extension_context) {
           bool found = false;
 
-          ten_list_foreach(&self->extension_context->extension_threads, iter) {
+          ten_list_foreach (&self->extension_context->extension_threads, iter) {
             ten_extension_thread_t *extension_thread =
                 ten_ptr_listnode_get(iter.node);
             TEN_ASSERT(

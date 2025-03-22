@@ -57,12 +57,11 @@ void ten_addon_init(ten_addon_t *self, ten_addon_on_init_func_t on_init,
   self->user_data = NULL;
 }
 
-ten_addon_t *
-ten_addon_create(ten_addon_on_init_func_t on_init,
-                 ten_addon_on_deinit_func_t on_deinit,
-                 ten_addon_on_create_instance_func_t on_create_instance,
-                 ten_addon_on_destroy_instance_func_t on_destroy_instance,
-                 ten_addon_on_destroy_func_t on_destroy) {
+ten_addon_t *ten_addon_create(
+    ten_addon_on_init_func_t on_init, ten_addon_on_deinit_func_t on_deinit,
+    ten_addon_on_create_instance_func_t on_create_instance,
+    ten_addon_on_destroy_instance_func_t on_destroy_instance,
+    ten_addon_on_destroy_func_t on_destroy) {
   ten_addon_t *self = TEN_MALLOC(sizeof(ten_addon_t));
   TEN_ASSERT(self, "Failed to allocate memory.");
 
@@ -111,9 +110,9 @@ const char *ten_addon_type_to_string(TEN_ADDON_TYPE type) {
 
 static ten_string_t *ten_addon_find_base_dir_from_app(const char *addon_type,
                                                       const char *addon_name) {
-  TEN_ASSERT(addon_type && strlen(addon_type) && addon_name &&
-                 strlen(addon_name),
-             "Invalid argument.");
+  TEN_ASSERT(
+      addon_type && strlen(addon_type) && addon_name && strlen(addon_name),
+      "Invalid argument.");
 
   ten_string_t *base_dir = ten_find_app_base_dir();
   if (!base_dir || ten_string_is_empty(base_dir)) {
@@ -238,9 +237,10 @@ bool ten_addon_create_instance_async(ten_env_t *ten_env,
     // `dlopen`).
     if (!ten_addon_try_load_specific_addon_using_native_addon_loader(
             ten_string_get_raw_str(&app->base_dir), addon_type, addon_name)) {
-      TEN_LOGI("Unable to load addon %s:%s using native addon loader, will try "
-               "other methods.",
-               ten_addon_type_to_string(addon_type), addon_name);
+      TEN_LOGI(
+          "Unable to load addon %s:%s using native addon loader, will try "
+          "other methods.",
+          ten_addon_type_to_string(addon_type), addon_name);
     }
 
     if (!ten_addon_try_load_specific_addon_using_all_addon_loaders(

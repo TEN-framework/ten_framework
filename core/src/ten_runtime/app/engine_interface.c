@@ -30,9 +30,8 @@ static void ten_app_check_termination_when_engine_closed_(void *app_,
   ten_app_check_termination_when_engine_closed(app, engine);
 }
 
-static void
-ten_app_check_termination_when_engine_closed_async(ten_app_t *self,
-                                                   ten_engine_t *engine) {
+static void ten_app_check_termination_when_engine_closed_async(
+    ten_app_t *self, ten_engine_t *engine) {
   TEN_ASSERT(self &&
                  // TEN_NOLINTNEXTLINE(thread-check)
                  // thread-check: This function is intended to be called in
@@ -145,12 +144,12 @@ void ten_app_del_engine(ten_app_t *self, ten_engine_t *engine) {
   ten_list_remove_ptr(&self->engines, engine);
 }
 
-static ten_engine_t *
-ten_app_get_engine_by_graph_id_internal(ten_app_t *self, const char *graph_id) {
+static ten_engine_t *ten_app_get_engine_by_graph_id_internal(
+    ten_app_t *self, const char *graph_id) {
   TEN_ASSERT(self && ten_app_check_integrity(self, true) && graph_id,
              "Should not happen.");
 
-  ten_list_foreach(&self->engines, iter) {
+  ten_list_foreach (&self->engines, iter) {
     ten_engine_t *engine = ten_ptr_listnode_get(iter.node);
 
     if (ten_c_string_is_equal(ten_string_get_raw_str(&engine->graph_id),

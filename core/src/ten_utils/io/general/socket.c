@@ -156,26 +156,26 @@ ten_addr_port_t ten_socket_peer_addr_port(const ten_socket_t *self) {
   getpeername(self->fd, (struct sockaddr *)&sockaddr,
               (socklen_t *)&sockaddr_len);
   switch (sockaddr.ss_family) {
-    case AF_INET: {
-      struct sockaddr_in *addr_in = (struct sockaddr_in *)&sockaddr;
-      const char *ip =
-          inet_ntop(AF_INET, &addr_in->sin_addr, ip_buf, INET_ADDRSTRLEN);
+  case AF_INET: {
+    struct sockaddr_in *addr_in = (struct sockaddr_in *)&sockaddr;
+    const char *ip =
+        inet_ntop(AF_INET, &addr_in->sin_addr, ip_buf, INET_ADDRSTRLEN);
 
-      return (ten_addr_port_t){ten_string_create_formatted(ip),
-                               addr_in->sin_port};
-    }
+    return (ten_addr_port_t){ten_string_create_formatted(ip),
+                             addr_in->sin_port};
+  }
 
-    case AF_INET6: {
-      struct sockaddr_in6 *addr_in6 = (struct sockaddr_in6 *)&sockaddr;
-      const char *ip =
-          inet_ntop(AF_INET6, &addr_in6->sin6_addr, ip_buf, INET6_ADDRSTRLEN);
+  case AF_INET6: {
+    struct sockaddr_in6 *addr_in6 = (struct sockaddr_in6 *)&sockaddr;
+    const char *ip =
+        inet_ntop(AF_INET6, &addr_in6->sin6_addr, ip_buf, INET6_ADDRSTRLEN);
 
-      return (ten_addr_port_t){ten_string_create_formatted(ip),
-                               addr_in6->sin6_port};
-    }
+    return (ten_addr_port_t){ten_string_create_formatted(ip),
+                             addr_in6->sin6_port};
+  }
 
-    default:
-      TEN_ASSERT(0, "Should handle more types: %d", sockaddr.ss_family);
-      return (ten_addr_port_t){NULL, 0};
+  default:
+    TEN_ASSERT(0, "Should handle more types: %d", sockaddr.ss_family);
+    return (ten_addr_port_t){NULL, 0};
   }
 }

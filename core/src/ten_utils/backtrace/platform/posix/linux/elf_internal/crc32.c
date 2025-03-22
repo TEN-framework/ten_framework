@@ -79,7 +79,7 @@ uint32_t elf_crc32(uint32_t crc, const unsigned char *buf, size_t len) {
   // Input validation.
   if (buf == NULL && len > 0) {
     assert(0 && "Invalid argument: NULL pointer provided.");
-    return crc; // Avoid null pointer dereference.
+    return crc;  // Avoid null pointer dereference.
   }
 
   // CRC-32 calculation requires initial complement.

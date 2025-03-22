@@ -283,92 +283,92 @@ napi_value ten_nodejs_create_value_number(napi_env env, ten_value_t *value,
   napi_status status = napi_ok;
 
   switch (value->type) {
-    case TEN_TYPE_INVALID:
-    case TEN_TYPE_NULL:
-    case TEN_TYPE_BOOL:
-    case TEN_TYPE_STRING:
-    case TEN_TYPE_BUF:
-    case TEN_TYPE_ARRAY:
-    case TEN_TYPE_OBJECT:
-    case TEN_TYPE_PTR:
-    case TEN_TYPE_INT8: {
-      status =
-          napi_create_int32(env, ten_value_get_int8(value, error), &js_value);
-      ASSERT_IF_NAPI_FAIL(status == napi_ok, "Failed to create JS int8: %d",
-                          status);
-      break;
-    }
-    case TEN_TYPE_INT16: {
-      status =
-          napi_create_int32(env, ten_value_get_int16(value, error), &js_value);
-      ASSERT_IF_NAPI_FAIL(status == napi_ok, "Failed to create JS int16: %d",
-                          status);
-      break;
-    }
-    case TEN_TYPE_INT32: {
-      status =
-          napi_create_int32(env, ten_value_get_int32(value, error), &js_value);
-      ASSERT_IF_NAPI_FAIL(status == napi_ok, "Failed to create JS int32: %d",
-                          status);
-      break;
-    }
-    case TEN_TYPE_INT64: {
-      status =
-          napi_create_int64(env, ten_value_get_int64(value, error), &js_value);
-      ASSERT_IF_NAPI_FAIL(status == napi_ok, "Failed to create JS int64: %d",
-                          status);
-      break;
-    }
-    case TEN_TYPE_UINT8: {
-      status =
-          napi_create_uint32(env, ten_value_get_uint8(value, error), &js_value);
-      ASSERT_IF_NAPI_FAIL(status == napi_ok, "Failed to create JS uint8: %d",
-                          status);
-      break;
-    }
-    case TEN_TYPE_UINT16: {
-      status = napi_create_uint32(env, ten_value_get_uint16(value, error),
-                                  &js_value);
-      ASSERT_IF_NAPI_FAIL(status == napi_ok, "Failed to create JS uint16: %d",
-                          status);
-      break;
-    }
-    case TEN_TYPE_UINT32: {
-      status = napi_create_uint32(env, ten_value_get_uint32(value, error),
-                                  &js_value);
-      ASSERT_IF_NAPI_FAIL(status == napi_ok, "Failed to create JS uint32: %d",
-                          status);
-      break;
-    }
-    case TEN_TYPE_UINT64: {
-      // We need to convert uint64 to int64 first, because Javascript's number
-      // type supports up to int64, and values exceeding that should use bigint.
-      int64_t value_int64 = ten_value_get_int64(value, error);
-      if (!ten_error_is_success(error)) {
-        break;
-      }
-
-      status = napi_create_int64(env, value_int64, &js_value);
-      ASSERT_IF_NAPI_FAIL(status == napi_ok, "Failed to create JS uint64: %d",
-                          status);
-
+  case TEN_TYPE_INVALID:
+  case TEN_TYPE_NULL:
+  case TEN_TYPE_BOOL:
+  case TEN_TYPE_STRING:
+  case TEN_TYPE_BUF:
+  case TEN_TYPE_ARRAY:
+  case TEN_TYPE_OBJECT:
+  case TEN_TYPE_PTR:
+  case TEN_TYPE_INT8: {
+    status =
+        napi_create_int32(env, ten_value_get_int8(value, error), &js_value);
+    ASSERT_IF_NAPI_FAIL(status == napi_ok, "Failed to create JS int8: %d",
+                        status);
+    break;
+  }
+  case TEN_TYPE_INT16: {
+    status =
+        napi_create_int32(env, ten_value_get_int16(value, error), &js_value);
+    ASSERT_IF_NAPI_FAIL(status == napi_ok, "Failed to create JS int16: %d",
+                        status);
+    break;
+  }
+  case TEN_TYPE_INT32: {
+    status =
+        napi_create_int32(env, ten_value_get_int32(value, error), &js_value);
+    ASSERT_IF_NAPI_FAIL(status == napi_ok, "Failed to create JS int32: %d",
+                        status);
+    break;
+  }
+  case TEN_TYPE_INT64: {
+    status =
+        napi_create_int64(env, ten_value_get_int64(value, error), &js_value);
+    ASSERT_IF_NAPI_FAIL(status == napi_ok, "Failed to create JS int64: %d",
+                        status);
+    break;
+  }
+  case TEN_TYPE_UINT8: {
+    status =
+        napi_create_uint32(env, ten_value_get_uint8(value, error), &js_value);
+    ASSERT_IF_NAPI_FAIL(status == napi_ok, "Failed to create JS uint8: %d",
+                        status);
+    break;
+  }
+  case TEN_TYPE_UINT16: {
+    status =
+        napi_create_uint32(env, ten_value_get_uint16(value, error), &js_value);
+    ASSERT_IF_NAPI_FAIL(status == napi_ok, "Failed to create JS uint16: %d",
+                        status);
+    break;
+  }
+  case TEN_TYPE_UINT32: {
+    status =
+        napi_create_uint32(env, ten_value_get_uint32(value, error), &js_value);
+    ASSERT_IF_NAPI_FAIL(status == napi_ok, "Failed to create JS uint32: %d",
+                        status);
+    break;
+  }
+  case TEN_TYPE_UINT64: {
+    // We need to convert uint64 to int64 first, because Javascript's number
+    // type supports up to int64, and values exceeding that should use bigint.
+    int64_t value_int64 = ten_value_get_int64(value, error);
+    if (!ten_error_is_success(error)) {
       break;
     }
 
-    case TEN_TYPE_FLOAT32: {
-      status = napi_create_double(env, ten_value_get_float32(value, error),
-                                  &js_value);
-      ASSERT_IF_NAPI_FAIL(status == napi_ok, "Failed to create JS float32: %d",
-                          status);
-      break;
-    }
-    case TEN_TYPE_FLOAT64: {
-      status = napi_create_double(env, ten_value_get_float64(value, error),
-                                  &js_value);
-      ASSERT_IF_NAPI_FAIL(status == napi_ok, "Failed to create JS float64: %d",
-                          status);
-      break;
-    }
+    status = napi_create_int64(env, value_int64, &js_value);
+    ASSERT_IF_NAPI_FAIL(status == napi_ok, "Failed to create JS uint64: %d",
+                        status);
+
+    break;
+  }
+
+  case TEN_TYPE_FLOAT32: {
+    status =
+        napi_create_double(env, ten_value_get_float32(value, error), &js_value);
+    ASSERT_IF_NAPI_FAIL(status == napi_ok, "Failed to create JS float32: %d",
+                        status);
+    break;
+  }
+  case TEN_TYPE_FLOAT64: {
+    status =
+        napi_create_double(env, ten_value_get_float64(value, error), &js_value);
+    ASSERT_IF_NAPI_FAIL(status == napi_ok, "Failed to create JS float64: %d",
+                        status);
+    break;
+  }
   }
 
   return js_value;

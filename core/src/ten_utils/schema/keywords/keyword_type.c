@@ -101,34 +101,33 @@ static bool ten_schema_keyword_type_adjust_value(
 
   ten_error_t *err = schema_err->err;
   switch (schema_type) {
-    case TEN_TYPE_INT8:
-      return ten_value_convert_to_int8(value, err);
-    case TEN_TYPE_INT16:
-      return ten_value_convert_to_int16(value, err);
-    case TEN_TYPE_INT32:
-      return ten_value_convert_to_int32(value, err);
-    case TEN_TYPE_INT64:
-      return ten_value_convert_to_int64(value, err);
-    case TEN_TYPE_UINT8:
-      return ten_value_convert_to_uint8(value, err);
-    case TEN_TYPE_UINT16:
-      return ten_value_convert_to_uint16(value, err);
-    case TEN_TYPE_UINT32:
-      return ten_value_convert_to_uint32(value, err);
-    case TEN_TYPE_UINT64:
-      return ten_value_convert_to_uint64(value, err);
-    case TEN_TYPE_FLOAT32:
-      return ten_value_convert_to_float32(value, err);
-    case TEN_TYPE_FLOAT64:
-      return ten_value_convert_to_float64(value, err);
-    default:
-      // Note that the format of error message should be same as the above
-      // functions.
-      ten_error_set(err, TEN_ERROR_CODE_GENERIC,
-                    "unsupported conversion from `%s` to `%s`",
-                    ten_type_to_string(value_type),
-                    ten_type_to_string(self->type));
-      return false;
+  case TEN_TYPE_INT8:
+    return ten_value_convert_to_int8(value, err);
+  case TEN_TYPE_INT16:
+    return ten_value_convert_to_int16(value, err);
+  case TEN_TYPE_INT32:
+    return ten_value_convert_to_int32(value, err);
+  case TEN_TYPE_INT64:
+    return ten_value_convert_to_int64(value, err);
+  case TEN_TYPE_UINT8:
+    return ten_value_convert_to_uint8(value, err);
+  case TEN_TYPE_UINT16:
+    return ten_value_convert_to_uint16(value, err);
+  case TEN_TYPE_UINT32:
+    return ten_value_convert_to_uint32(value, err);
+  case TEN_TYPE_UINT64:
+    return ten_value_convert_to_uint64(value, err);
+  case TEN_TYPE_FLOAT32:
+    return ten_value_convert_to_float32(value, err);
+  case TEN_TYPE_FLOAT64:
+    return ten_value_convert_to_float64(value, err);
+  default:
+    // Note that the format of error message should be same as the above
+    // functions.
+    ten_error_set(
+        err, TEN_ERROR_CODE_GENERIC, "unsupported conversion from `%s` to `%s`",
+        ten_type_to_string(value_type), ten_type_to_string(self->type));
+    return false;
   }
 }
 

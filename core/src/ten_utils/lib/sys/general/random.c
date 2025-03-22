@@ -5,11 +5,12 @@
 // Refer to the "LICENSE" file in the root directory for more information.
 //
 #include "ten_utils/lib/random.h"
-#include "ten_utils/macro/memory.h"
 
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+
+#include "ten_utils/macro/memory.h"
 
 int ten_random_string(char *buf, size_t size) {
   if (!buf || size <= 1) {

@@ -68,7 +68,7 @@ ten_shared_ptr_t *ten_msg_dest_info_clone(ten_shared_ptr_t *self,
 
   ten_msg_dest_info_t *new_self = ten_msg_dest_info_create(msg_name);
 
-  ten_list_foreach(&msg_dest_info->dest, iter) {
+  ten_list_foreach (&msg_dest_info->dest, iter) {
     ten_weak_ptr_t *dest = ten_smart_ptr_listnode_get(iter.node);
     ten_extension_info_t *dest_extension_info =
         ten_extension_info_from_smart_ptr(dest);
@@ -100,7 +100,7 @@ void ten_msg_dest_info_translate_localhost_to_app_uri(ten_msg_dest_info_t *self,
                                                       const char *uri) {
   TEN_ASSERT(self && uri, "Should not happen.");
 
-  ten_list_foreach(&self->dest, iter) {
+  ten_list_foreach (&self->dest, iter) {
     ten_shared_ptr_t *shared_dest =
         ten_weak_ptr_lock(ten_smart_ptr_listnode_get(iter.node));
 

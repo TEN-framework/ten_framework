@@ -4,7 +4,6 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-#include "ten_utils/macro/mark.h"
 #include "ten_utils/ten_config.h"
 
 #include <stdlib.h>
@@ -18,6 +17,7 @@
 #include "include_internal/ten_utils/backtrace/platform/posix/dwarf_internal/pcrange.h"
 #include "include_internal/ten_utils/backtrace/platform/posix/dwarf_internal/section.h"
 #include "include_internal/ten_utils/backtrace/platform/posix/dwarf_internal/tag.h"
+#include "ten_utils/macro/mark.h"
 
 /* Add a new compilation unit address range to a vector.  This is
    called via add_ranges.  Returns 1 on success, 0 on failure.  */

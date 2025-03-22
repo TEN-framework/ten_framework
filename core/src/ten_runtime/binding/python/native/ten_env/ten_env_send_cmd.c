@@ -26,9 +26,8 @@ typedef struct ten_env_notify_send_cmd_ctx_t {
   bool is_ex;
 } ten_env_notify_send_cmd_ctx_t;
 
-static ten_env_notify_send_cmd_ctx_t *
-ten_env_notify_send_cmd_ctx_create(ten_shared_ptr_t *c_cmd,
-                                   PyObject *py_cb_func, bool is_ex) {
+static ten_env_notify_send_cmd_ctx_t *ten_env_notify_send_cmd_ctx_create(
+    ten_shared_ptr_t *c_cmd, PyObject *py_cb_func, bool is_ex) {
   TEN_ASSERT(c_cmd, "Invalid argument.");
 
   ten_env_notify_send_cmd_ctx_t *ctx =
@@ -46,8 +45,8 @@ ten_env_notify_send_cmd_ctx_create(ten_shared_ptr_t *c_cmd,
   return ctx;
 }
 
-static void
-ten_env_notify_send_cmd_ctx_destroy(ten_env_notify_send_cmd_ctx_t *ctx) {
+static void ten_env_notify_send_cmd_ctx_destroy(
+    ten_env_notify_send_cmd_ctx_t *ctx) {
   TEN_ASSERT(ctx, "Invalid argument.");
 
   if (ctx->c_cmd) {
@@ -95,7 +94,7 @@ static void proxy_send_cmd_callback(ten_env_t *ten_env,
   }
 
   PyObject *result = PyObject_CallObject(cb_func, arglist);
-  Py_XDECREF(result); // Ensure cleanup if an error occurred.
+  Py_XDECREF(result);  // Ensure cleanup if an error occurred.
 
   bool err_occurred = ten_py_check_and_clear_py_error();
   TEN_ASSERT(!err_occurred, "Should not happen.");
@@ -154,7 +153,7 @@ static void ten_env_proxy_notify_send_cmd(ten_env_t *ten_env, void *user_data) {
                                         Py_None, py_err);
 
       PyObject *result = PyObject_CallObject(notify_info->py_cb_func, arglist);
-      Py_XDECREF(result); // Ensure cleanup if an error occurred.
+      Py_XDECREF(result);  // Ensure cleanup if an error occurred.
 
       bool err_occurred = ten_py_check_and_clear_py_error();
       TEN_ASSERT(!err_occurred, "Should not happen.");

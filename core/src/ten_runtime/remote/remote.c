@@ -166,9 +166,9 @@ void ten_remote_on_connection_closed(TEN_UNUSED ten_connection_t *connection,
   ten_remote_t *remote = (ten_remote_t *)on_closed_data;
   TEN_ASSERT(remote, "Should not happen.");
   TEN_ASSERT(ten_remote_check_integrity(remote, true), "Should not happen.");
-  TEN_ASSERT(connection && remote->connection &&
-                 remote->connection == connection,
-             "Invalid argument.");
+  TEN_ASSERT(
+      connection && remote->connection && remote->connection == connection,
+      "Invalid argument.");
 
   if (remote->state == TEN_REMOTE_STATE_CLOSING) {
     // The remote is already in CLOSING state, which means the closure was
@@ -389,10 +389,10 @@ bool ten_remote_send_msg(ten_remote_t *self, ten_shared_ptr_t *msg,
  * successful.
  */
 static void on_server_connected(ten_protocol_t *protocol, bool success) {
-  TEN_ASSERT(protocol && ten_protocol_check_integrity(protocol, true) &&
-                 ten_protocol_attach_to(protocol) ==
-                     TEN_PROTOCOL_ATTACH_TO_CONNECTION,
-             "Should not happen.");
+  TEN_ASSERT(
+      protocol && ten_protocol_check_integrity(protocol, true) &&
+          ten_protocol_attach_to(protocol) == TEN_PROTOCOL_ATTACH_TO_CONNECTION,
+      "Should not happen.");
 
   ten_connection_t *connection = protocol->attached_target.connection;
   TEN_ASSERT(connection && ten_connection_check_integrity(connection, true) &&

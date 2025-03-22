@@ -278,7 +278,7 @@ static bool ten_value_array_to_json(ten_value_t *self, ten_json_t *json) {
   TEN_ASSERT(success, "Failed to set the array.");
 
   // Loop each item in the array and convert them to JSON.
-  ten_list_foreach(&self->content.array, iter) {
+  ten_list_foreach (&self->content.array, iter) {
     ten_json_t item_json = TEN_JSON_INIT_VAL(json->ctx, false);
 
     ten_value_t *item = ten_ptr_listnode_get(iter.node);
@@ -322,7 +322,7 @@ static bool ten_value_object_to_json(ten_value_t *self, ten_json_t *json) {
   bool success = ten_json_init_object(json);
   TEN_ASSERT(success, "Failed to set the object.");
 
-  ten_list_foreach(&self->content.object, iter) {
+  ten_list_foreach (&self->content.object, iter) {
     ten_value_kv_t *item = ten_ptr_listnode_get(iter.node);
     if (!item) {
       TEN_ASSERT(0, "Failed to get item from the object.");

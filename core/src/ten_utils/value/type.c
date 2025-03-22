@@ -94,29 +94,29 @@ bool ten_type_is_compatible(TEN_TYPE actual, TEN_TYPE expected) {
   }
 
   switch (expected) {
-    case TEN_TYPE_BOOL:
-      return actual == TEN_TYPE_BOOL;
+  case TEN_TYPE_BOOL:
+    return actual == TEN_TYPE_BOOL;
 
-    case TEN_TYPE_PTR:
-      return actual == TEN_TYPE_PTR;
+  case TEN_TYPE_PTR:
+    return actual == TEN_TYPE_PTR;
 
-    case TEN_TYPE_STRING:
-      return actual == TEN_TYPE_STRING;
+  case TEN_TYPE_STRING:
+    return actual == TEN_TYPE_STRING;
 
-    case TEN_TYPE_ARRAY:
-      return actual == TEN_TYPE_ARRAY;
+  case TEN_TYPE_ARRAY:
+    return actual == TEN_TYPE_ARRAY;
 
-    case TEN_TYPE_OBJECT:
-      return actual == TEN_TYPE_OBJECT;
+  case TEN_TYPE_OBJECT:
+    return actual == TEN_TYPE_OBJECT;
 
-    case TEN_TYPE_BUF:
-      return actual == TEN_TYPE_BUF;
+  case TEN_TYPE_BUF:
+    return actual == TEN_TYPE_BUF;
 
-    case TEN_TYPE_NULL:
-      return actual == TEN_TYPE_NULL;
+  case TEN_TYPE_NULL:
+    return actual == TEN_TYPE_NULL;
 
-    default:
-      return false;
+  default:
+    return false;
   }
 
   TEN_ASSERT(0, "Should not happen.");

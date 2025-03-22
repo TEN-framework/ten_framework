@@ -93,9 +93,8 @@ static void ten_env_proxy_notify_init_property_from_json(ten_env_t *ten_env,
   ten_error_deinit(&err);
 }
 
-static void
-ten_env_proxy_notify_init_property_from_json_async(ten_env_t *ten_env,
-                                                   void *user_data) {
+static void ten_env_proxy_notify_init_property_from_json_async(
+    ten_env_t *ten_env, void *user_data) {
   TEN_ASSERT(user_data, "Invalid argument.");
   TEN_ASSERT(ten_env, "Should not happen.");
   TEN_ASSERT(ten_env_check_integrity(ten_env, true), "Should not happen.");
@@ -127,7 +126,7 @@ ten_env_proxy_notify_init_property_from_json_async(ten_env_t *ten_env,
   }
 
   PyObject *result = PyObject_CallObject(ctx->py_cb_func, arglist);
-  Py_XDECREF(result); // Ensure cleanup if an error occurred.
+  Py_XDECREF(result);  // Ensure cleanup if an error occurred.
 
   bool err_occurred = ten_py_check_and_clear_py_error();
   TEN_ASSERT(!err_occurred, "Should not happen.");

@@ -502,27 +502,27 @@ ten_msg_schema_t *ten_schema_store_get_msg_schema(ten_schema_store_t *self,
 
   ten_hashtable_t *schema_map = NULL;
   switch (msg_type) {
-    case TEN_MSG_TYPE_DATA:
-      schema_map = is_msg_out ? &self->data_out : &self->data_in;
-      break;
+  case TEN_MSG_TYPE_DATA:
+    schema_map = is_msg_out ? &self->data_out : &self->data_in;
+    break;
 
-    case TEN_MSG_TYPE_VIDEO_FRAME:
-      schema_map = is_msg_out ? &self->video_frame_out : &self->video_frame_in;
-      break;
+  case TEN_MSG_TYPE_VIDEO_FRAME:
+    schema_map = is_msg_out ? &self->video_frame_out : &self->video_frame_in;
+    break;
 
-    case TEN_MSG_TYPE_AUDIO_FRAME:
-      schema_map = is_msg_out ? &self->audio_frame_out : &self->audio_frame_in;
-      break;
+  case TEN_MSG_TYPE_AUDIO_FRAME:
+    schema_map = is_msg_out ? &self->audio_frame_out : &self->audio_frame_in;
+    break;
 
-    case TEN_MSG_TYPE_CMD:
-    case TEN_MSG_TYPE_CMD_RESULT:
-      TEN_ASSERT(msg_name && strlen(msg_name), "Invalid argument.");
-      schema_map = is_msg_out ? &self->cmd_out : &self->cmd_in;
-      break;
+  case TEN_MSG_TYPE_CMD:
+  case TEN_MSG_TYPE_CMD_RESULT:
+    TEN_ASSERT(msg_name && strlen(msg_name), "Invalid argument.");
+    schema_map = is_msg_out ? &self->cmd_out : &self->cmd_in;
+    break;
 
-    default:
-      TEN_ASSERT(0, "Invalid argument.");
-      break;
+  default:
+    TEN_ASSERT(0, "Invalid argument.");
+    break;
   }
 
   if (!schema_map) {
@@ -559,25 +559,25 @@ bool ten_schema_store_get_all_msg_names_in_interface_out(
 
   ten_list_t *msg_schemas = NULL;
   switch (msg_type) {
-    case TEN_MSG_TYPE_CMD:
-      msg_schemas = &interface_schema->cmd;
-      break;
+  case TEN_MSG_TYPE_CMD:
+    msg_schemas = &interface_schema->cmd;
+    break;
 
-    case TEN_MSG_TYPE_DATA:
-      msg_schemas = &interface_schema->data;
-      break;
+  case TEN_MSG_TYPE_DATA:
+    msg_schemas = &interface_schema->data;
+    break;
 
-    case TEN_MSG_TYPE_VIDEO_FRAME:
-      msg_schemas = &interface_schema->video_frame;
-      break;
+  case TEN_MSG_TYPE_VIDEO_FRAME:
+    msg_schemas = &interface_schema->video_frame;
+    break;
 
-    case TEN_MSG_TYPE_AUDIO_FRAME:
-      msg_schemas = &interface_schema->audio_frame;
-      break;
+  case TEN_MSG_TYPE_AUDIO_FRAME:
+    msg_schemas = &interface_schema->audio_frame;
+    break;
 
-    default:
-      TEN_ASSERT(0, "Invalid argument.");
-      break;
+  default:
+    TEN_ASSERT(0, "Invalid argument.");
+    break;
   }
 
   if (!msg_schemas) {

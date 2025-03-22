@@ -64,9 +64,9 @@ static void on_addon_create_extension_done(ten_env_t *ten_env,
                                            void *cb_data) {
   TEN_ASSERT(ten_env, "Invalid argument.");
   TEN_ASSERT(ten_env_check_integrity(ten_env, true), "Invalid argument.");
-  TEN_ASSERT(ten_env_get_attach_to(ten_env) ==
-                 TEN_ENV_ATTACH_TO_EXTENSION_GROUP,
-             "Invalid argument.");
+  TEN_ASSERT(
+      ten_env_get_attach_to(ten_env) == TEN_ENV_ATTACH_TO_EXTENSION_GROUP,
+      "Invalid argument.");
 
   ten_addon_create_extension_done_ctx_t *create_extension_done_ctx =
       (ten_addon_create_extension_done_ctx_t *)cb_data;
@@ -131,9 +131,9 @@ static void on_addon_destroy_instance_done(ten_env_t *ten_env,
                                            TEN_UNUSED void *cb_data) {
   TEN_ASSERT(ten_env, "Invalid argument.");
   TEN_ASSERT(ten_env_check_integrity(ten_env, true), "Invalid argument.");
-  TEN_ASSERT(ten_env_get_attach_to(ten_env) ==
-                 TEN_ENV_ATTACH_TO_EXTENSION_GROUP,
-             "Invalid argument.");
+  TEN_ASSERT(
+      ten_env_get_attach_to(ten_env) == TEN_ENV_ATTACH_TO_EXTENSION_GROUP,
+      "Invalid argument.");
 
   ten_extension_group_t *extension_group = ten_env_get_attached_target(ten_env);
   TEN_ASSERT(extension_group, "Invalid argument.");
@@ -164,9 +164,8 @@ static void ten_builtin_extension_group_on_deinit(ten_extension_group_t *self,
   ten_env_on_deinit_done(ten_env, NULL);
 }
 
-static void
-ten_builtin_extension_group_on_create_extensions(ten_extension_group_t *self,
-                                                 ten_env_t *ten_env) {
+static void ten_builtin_extension_group_on_create_extensions(
+    ten_extension_group_t *self, ten_env_t *ten_env) {
   TEN_ASSERT(self, "Invalid argument.");
   TEN_ASSERT(ten_env, "Invalid argument.");
 
@@ -194,7 +193,7 @@ ten_builtin_extension_group_on_create_extensions(ten_extension_group_t *self,
 
   // Get the information of all the extensions which this extension group should
   // create.
-  ten_list_foreach(
+  ten_list_foreach (
       ten_extension_group_get_extension_addon_and_instance_name_pairs(self),
       iter) {
     ten_extension_addon_and_instance_name_pair_t *extension_name_info =
@@ -245,7 +244,7 @@ static void ten_builtin_extension_group_on_destroy_extensions(
   ten_extension_group_set_extension_cnt_of_being_destroyed(
       self, ten_list_size(&extensions));
 
-  ten_list_foreach(&extensions, iter) {
+  ten_list_foreach (&extensions, iter) {
     ten_extension_t *extension = ten_ptr_listnode_get(iter.node);
     TEN_ASSERT(extension && ten_extension_check_integrity(extension, true),
                "Invalid argument.");

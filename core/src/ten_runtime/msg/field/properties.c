@@ -93,7 +93,7 @@ bool ten_msg_del_property(ten_shared_ptr_t *self, const char *path) {
     return false;
   }
 
-  ten_list_foreach(ten_msg_get_properties(self), iter) {
+  ten_list_foreach (ten_msg_get_properties(self), iter) {
     ten_value_kv_t *kv = (ten_value_kv_t *)ten_ptr_listnode_get(iter.node);
     TEN_ASSERT(kv, "Should not happen.");
 

@@ -6,12 +6,13 @@
 //
 #include "ten_utils/ten_config.h"
 
+#include "include_internal/ten_utils/backtrace/platform/posix/dwarf_internal/attribute.h"
+
 #include <assert.h>
 #include <string.h>
 
 #include "include_internal/ten_utils/backtrace/backtrace.h"
 #include "include_internal/ten_utils/backtrace/platform/posix/dwarf.h"
-#include "include_internal/ten_utils/backtrace/platform/posix/dwarf_internal/attribute.h"
 
 // Read an attribute value.  Returns 1 on success, 0 on failure.  If
 // the value can be represented as a uint64_t, sets *VAL and sets

@@ -227,7 +227,7 @@ ten_value_t *ten_go_ten_value_create_ptr(ten_go_handle_t value) {
   // is not an ordinary pointer actually, it is an index pointing to a GO
   // pointer in the handle map in the GO world. So the reinterpreted pointer can
   // not be dereferenced.
-  void *handle = (void *)value; // NOLINT(performance-no-int-to-ptr)
+  void *handle = (void *)value;  // NOLINT(performance-no-int-to-ptr)
 
   // The reason why we need to create a shared_ptr here is as follows.
   //

@@ -76,8 +76,8 @@ static void ten_smart_ptr_ctrl_blk_init(ten_smart_ptr_ctrl_blk_t *self,
   self->destroy = destroy;
 }
 
-static ten_shared_ptr_t *
-ten_smart_ptr_create_without_ctrl_blk(TEN_SMART_PTR_TYPE type) {
+static ten_shared_ptr_t *ten_smart_ptr_create_without_ctrl_blk(
+    TEN_SMART_PTR_TYPE type) {
   TEN_ASSERT((type == TEN_SMART_PTR_SHARED || type == TEN_SMART_PTR_WEAK),
              "Invalid argument.");
 

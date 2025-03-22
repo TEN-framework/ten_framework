@@ -40,8 +40,8 @@
 #include "ten_utils/lib/string.h"
 #include "ten_utils/macro/check.h"
 
-static void
-ten_app_adjust_and_validate_property_on_configure_done(ten_app_t *self) {
+static void ten_app_adjust_and_validate_property_on_configure_done(
+    ten_app_t *self) {
   TEN_ASSERT(self && ten_app_check_integrity(self, true), "Should not happen.");
 
   ten_error_t err;
@@ -68,8 +68,8 @@ done:
   }
 }
 
-static void
-ten_app_start_auto_start_predefined_graph_and_trigger_on_init(ten_app_t *self) {
+static void ten_app_start_auto_start_predefined_graph_and_trigger_on_init(
+    ten_app_t *self) {
   TEN_ASSERT(self && ten_app_check_integrity(self, true), "Should not happen.");
   TEN_ASSERT(self->ten_env && ten_env_check_integrity(self->ten_env, true),
              "Should not happen.");

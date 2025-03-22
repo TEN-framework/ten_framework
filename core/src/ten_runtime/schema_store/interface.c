@@ -183,25 +183,25 @@ bool ten_interface_schema_merge_into_msg_schema(ten_interface_schema_t *self,
 
   ten_list_t *msg_schemas_in_interface = NULL;
   switch (msg_type) {
-    case TEN_MSG_TYPE_CMD:
-      msg_schemas_in_interface = &self->cmd;
-      break;
+  case TEN_MSG_TYPE_CMD:
+    msg_schemas_in_interface = &self->cmd;
+    break;
 
-    case TEN_MSG_TYPE_DATA:
-      msg_schemas_in_interface = &self->data;
-      break;
+  case TEN_MSG_TYPE_DATA:
+    msg_schemas_in_interface = &self->data;
+    break;
 
-    case TEN_MSG_TYPE_VIDEO_FRAME:
-      msg_schemas_in_interface = &self->video_frame;
-      break;
+  case TEN_MSG_TYPE_VIDEO_FRAME:
+    msg_schemas_in_interface = &self->video_frame;
+    break;
 
-    case TEN_MSG_TYPE_AUDIO_FRAME:
-      msg_schemas_in_interface = &self->audio_frame;
-      break;
+  case TEN_MSG_TYPE_AUDIO_FRAME:
+    msg_schemas_in_interface = &self->audio_frame;
+    break;
 
-    default:
-      TEN_ASSERT(0, "Should not happen.");
-      break;
+  default:
+    TEN_ASSERT(0, "Should not happen.");
+    break;
   }
 
   if (!msg_schemas_in_interface) {

@@ -233,9 +233,9 @@ bool ten_app_init_log(ten_app_t *self, ten_value_t *value) {
 static bool ten_app_determine_ten_namespace_properties(
     ten_app_t *self, ten_value_t *ten_namespace_properties) {
   TEN_ASSERT(self && ten_app_check_integrity(self, true), "Should not happen.");
-  TEN_ASSERT(ten_namespace_properties &&
-                 ten_value_is_object(ten_namespace_properties),
-             "Should not happen.");
+  TEN_ASSERT(
+      ten_namespace_properties && ten_value_is_object(ten_namespace_properties),
+      "Should not happen.");
 
   ten_value_object_foreach(ten_namespace_properties, iter) {
     ten_value_kv_t *prop_kv = ten_ptr_listnode_get(iter.node);
@@ -272,9 +272,9 @@ bool ten_app_handle_ten_namespace_properties(ten_app_t *self) {
     return true;
   }
 
-  TEN_ASSERT(ten_namespace_properties &&
-                 ten_value_is_object(ten_namespace_properties),
-             "Should not happen.");
+  TEN_ASSERT(
+      ten_namespace_properties && ten_value_is_object(ten_namespace_properties),
+      "Should not happen.");
 
   // Set default value for app properties and global log level.
   self->one_event_loop_per_engine = false;

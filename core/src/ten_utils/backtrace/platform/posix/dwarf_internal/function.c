@@ -4,7 +4,6 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-#include "ten_utils/macro/mark.h"
 #include "ten_utils/ten_config.h"
 
 #include <stdlib.h>
@@ -14,6 +13,7 @@
 #include "include_internal/ten_utils/backtrace/platform/posix/dwarf.h"
 #include "include_internal/ten_utils/backtrace/platform/posix/dwarf_internal/pcrange.h"
 #include "include_internal/ten_utils/backtrace/sort.h"
+#include "ten_utils/macro/mark.h"
 
 // Add a range to a unit that maps to a function.  This is called via
 // add_ranges.  Returns 1 on success, 0 on error.
@@ -265,7 +265,6 @@ static int read_function_entry(ten_backtrace_t *self, dwarf_data *ddata,
         }
 
         if (fvec.count > 0) {
-
           // Allocate a trailing entry, but don't include it
           // in fvec.count.
           function_addrs *p = (function_addrs *)ten_vector_grow(

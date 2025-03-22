@@ -23,9 +23,8 @@ typedef struct ten_nodejs_send_cmd_callback_call_ctx_t {
   ten_error_t *error;
 } ten_nodejs_send_cmd_callback_call_ctx_t;
 
-static ten_env_notify_send_cmd_ctx_t *
-ten_env_notify_send_cmd_ctx_create(ten_shared_ptr_t *c_cmd,
-                                   ten_nodejs_tsfn_t *js_cb) {
+static ten_env_notify_send_cmd_ctx_t *ten_env_notify_send_cmd_ctx_create(
+    ten_shared_ptr_t *c_cmd, ten_nodejs_tsfn_t *js_cb) {
   ten_env_notify_send_cmd_ctx_t *ctx =
       TEN_MALLOC(sizeof(ten_env_notify_send_cmd_ctx_t));
   TEN_ASSERT(ctx, "Failed to allocate memory.");
@@ -36,8 +35,8 @@ ten_env_notify_send_cmd_ctx_create(ten_shared_ptr_t *c_cmd,
   return ctx;
 }
 
-static void
-ten_env_notify_send_cmd_ctx_destroy(ten_env_notify_send_cmd_ctx_t *ctx) {
+static void ten_env_notify_send_cmd_ctx_destroy(
+    ten_env_notify_send_cmd_ctx_t *ctx) {
   TEN_ASSERT(ctx, "Invalid argument.");
 
   if (ctx->c_cmd) {
@@ -171,7 +170,7 @@ static void ten_env_proxy_notify_send_cmd(ten_env_t *ten_env, void *user_data) {
 
 napi_value ten_nodejs_ten_env_send_cmd(napi_env env, napi_callback_info info) {
   const size_t argc = 3;
-  napi_value args[argc]; // this, cmd, callback
+  napi_value args[argc];  // this, cmd, callback
   if (!ten_nodejs_get_js_func_args(env, info, args, argc)) {
     napi_fatal_error(NULL, NAPI_AUTO_LENGTH,
                      "Incorrect number of parameters passed.",

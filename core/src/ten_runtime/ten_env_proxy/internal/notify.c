@@ -19,9 +19,8 @@
 #include "ten_utils/macro/check.h"
 #include "ten_utils/macro/memory.h"
 
-static ten_notify_data_t *
-ten_notify_data_create(ten_env_proxy_notify_func_t notify_func,
-                       void *user_data) {
+static ten_notify_data_t *ten_notify_data_create(
+    ten_env_proxy_notify_func_t notify_func, void *user_data) {
   TEN_ASSERT(notify_func, "Invalid argument.");
 
   ten_notify_data_t *self =

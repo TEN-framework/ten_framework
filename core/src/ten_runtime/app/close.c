@@ -79,12 +79,12 @@ static void ten_app_close_sync(ten_app_t *self) {
   TEN_LOGD("[%s] Try to close app.", ten_app_get_uri(self));
 
   // Close all engines attached to this app.
-  ten_list_foreach(&self->engines, iter) {
+  ten_list_foreach (&self->engines, iter) {
     ten_engine_close_async(ten_ptr_listnode_get(iter.node));
   }
 
   // Close any orphaned connections (not attached to engines).
-  ten_list_foreach(&self->orphan_connections, iter) {
+  ten_list_foreach (&self->orphan_connections, iter) {
     ten_connection_close(ten_ptr_listnode_get(iter.node));
   }
 
@@ -204,9 +204,10 @@ void ten_app_check_termination_when_engine_closed(ten_app_t *self,
         -1);
     TEN_ASSERT(!rc, "Should not happen.");
 
-    TEN_LOGD("[%s:%s] Engine thread is reclaimed, and after this point, modify "
-             "fields of 'engine' is safe.",
-             ten_app_get_uri(self), ten_engine_get_id(engine, false));
+    TEN_LOGD(
+        "[%s:%s] Engine thread is reclaimed, and after this point, modify "
+        "fields of 'engine' is safe.",
+        ten_app_get_uri(self), ten_engine_get_id(engine, false));
   }
 
   if (engine->cmd_stop_graph != NULL) {

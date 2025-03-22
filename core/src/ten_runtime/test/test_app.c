@@ -30,7 +30,8 @@ static void test_app_on_configure(TEN_UNUSED ten_app_t *app,
     TEN_ASSERT(rc, "Should not happen.");
   } else {
     // The default property.json content of the test app.
-    rc = ten_env_init_property_from_json(ten_env, "{\
+    rc = ten_env_init_property_from_json(ten_env,
+                                         "{\
                                                \"_ten\": {\
                                                  \"log_level\": 2\
                                                }\
@@ -145,7 +146,7 @@ void *ten_builtin_test_app_thread_main(void *args) {
 
   test_app->user_data = tester;
 
-  ten_list_foreach(&tester->addon_base_dirs, iter) {
+  ten_list_foreach (&tester->addon_base_dirs, iter) {
     ten_string_t *addon_base_dir = ten_str_listnode_get(iter.node);
     TEN_ASSERT(addon_base_dir, "Should not happen.");
 

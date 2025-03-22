@@ -68,8 +68,9 @@ int main() {
     exit(EXIT_FAILURE);
   }
 
-  printf("static const elf_zstd_fse_baseline_entry "
-         "elf_zstd_lit_table[64] =\n");
+  printf(
+      "static const elf_zstd_fse_baseline_entry "
+      "elf_zstd_lit_table[64] =\n");
   print_table(lit_baseline, sizeof lit_baseline / sizeof lit_baseline[0]);
   printf("\n");
 
@@ -86,8 +87,9 @@ int main() {
     exit(EXIT_FAILURE);
   }
 
-  printf("static const elf_zstd_fse_baseline_entry "
-         "elf_zstd_match_table[64] =\n");
+  printf(
+      "static const elf_zstd_fse_baseline_entry "
+      "elf_zstd_match_table[64] =\n");
   print_table(match_baseline, sizeof match_baseline / sizeof match_baseline[0]);
   printf("\n");
 
@@ -104,8 +106,9 @@ int main() {
     exit(EXIT_FAILURE);
   }
 
-  printf("static const elf_zstd_fse_baseline_entry "
-         "elf_zstd_offset_table[32] =\n");
+  printf(
+      "static const elf_zstd_fse_baseline_entry "
+      "elf_zstd_offset_table[32] =\n");
   print_table(offset_baseline,
               sizeof offset_baseline / sizeof offset_baseline[0]);
   printf("\n");

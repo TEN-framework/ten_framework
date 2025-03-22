@@ -60,8 +60,8 @@ static ten_string_t *__get_pipe_name(const ten_string_t *uri) {
 
 // Destroy all the resources hold by tpbackend object. Call this only when all
 // the closing flow is completed.
-static void
-ten_transportbackend_pipe_destroy(ten_transportbackend_pipe_t *self) {
+static void ten_transportbackend_pipe_destroy(
+    ten_transportbackend_pipe_t *self) {
   if (!self) {
     return;
   }
@@ -70,8 +70,8 @@ ten_transportbackend_pipe_destroy(ten_transportbackend_pipe_t *self) {
   TEN_FREE(self);
 }
 
-static void
-ten_transportbackend_pipe_on_close(ten_transportbackend_pipe_t *self) {
+static void ten_transportbackend_pipe_on_close(
+    ten_transportbackend_pipe_t *self) {
   TEN_ASSERT(self, "Invalid argument.");
 
   ten_transport_t *transport = self->base.transport;
@@ -274,9 +274,8 @@ static int ten_transportbackend_pipe_listen(ten_transportbackend_t *backend,
   return rc;
 }
 
-static ten_transportbackend_t *
-ten_transportbackend_pipe_create(ten_transport_t *transport,
-                                 const ten_string_t *name) {
+static ten_transportbackend_t *ten_transportbackend_pipe_create(
+    ten_transport_t *transport, const ten_string_t *name) {
   ten_transportbackend_pipe_t *self = NULL;
 
   if (!name || !name->buf || !*name->buf) {

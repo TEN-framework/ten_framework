@@ -4,10 +4,11 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
+#include "ten_utils/lib/path.h"
+
 #include <stdlib.h>
 #include <unistd.h>
 
-#include "ten_utils/lib/path.h"
 #include "ten_utils/macro/memory.h"
 
 ten_string_t *ten_path_get_executable_path(void) {

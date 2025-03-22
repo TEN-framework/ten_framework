@@ -55,10 +55,10 @@ bool ten_msg_conversion_per_property_rule_from_original_convert(
   ten_value_t *msg_property =
       ten_msg_conversion_per_property_rule_from_original_get_value(self, msg);
 
-  return ten_msg_set_property(new_msg, new_msg_property_path,
-                              msg_property ? ten_value_clone(msg_property)
-                                           : ten_value_create_invalid(),
-                              err);
+  return ten_msg_set_property(
+      new_msg, new_msg_property_path,
+      msg_property ? ten_value_clone(msg_property) : ten_value_create_invalid(),
+      err);
 }
 
 void ten_msg_conversion_per_property_rule_from_original_from_json(

@@ -88,9 +88,9 @@ static bool ten_raw_cmd_start_graph_as_msg_get_graph_from_json(
   TEN_ASSERT(self, "Should not happen.");
   TEN_ASSERT(ten_raw_msg_check_integrity(self), "Should not happen.");
   TEN_ASSERT(field, "Should not happen.");
-  TEN_ASSERT(field->field_value &&
-                 ten_value_check_integrity(field->field_value),
-             "Should not happen.");
+  TEN_ASSERT(
+      field->field_value && ten_value_check_integrity(field->field_value),
+      "Should not happen.");
 
   if (ten_c_string_is_equal(field->field_name, TEN_STR_NODES) ||
       ten_c_string_is_equal(field->field_name, TEN_STR_CONNECTIONS)) {
@@ -197,8 +197,8 @@ ten_msg_t *ten_raw_cmd_start_graph_as_msg_clone(
   return (ten_msg_t *)cloned_cmd;
 }
 
-ten_list_t *
-ten_raw_cmd_start_graph_get_extensions_info(ten_cmd_start_graph_t *self) {
+ten_list_t *ten_raw_cmd_start_graph_get_extensions_info(
+    ten_cmd_start_graph_t *self) {
   TEN_ASSERT(self && ten_raw_cmd_check_integrity((ten_cmd_t *)self) &&
                  ten_raw_msg_get_type((ten_msg_t *)self) ==
                      TEN_MSG_TYPE_CMD_START_GRAPH,
@@ -211,8 +211,8 @@ ten_list_t *ten_cmd_start_graph_get_extensions_info(ten_shared_ptr_t *self) {
   return ten_raw_cmd_start_graph_get_extensions_info(get_raw_cmd(self));
 }
 
-ten_list_t *
-ten_raw_cmd_start_graph_get_extension_groups_info(ten_cmd_start_graph_t *self) {
+ten_list_t *ten_raw_cmd_start_graph_get_extension_groups_info(
+    ten_cmd_start_graph_t *self) {
   TEN_ASSERT(self && ten_raw_cmd_check_integrity((ten_cmd_t *)self) &&
                  ten_raw_msg_get_type((ten_msg_t *)self) ==
                      TEN_MSG_TYPE_CMD_START_GRAPH,
@@ -221,8 +221,8 @@ ten_raw_cmd_start_graph_get_extension_groups_info(ten_cmd_start_graph_t *self) {
   return &self->extension_groups_info;
 }
 
-ten_list_t *
-ten_cmd_start_graph_get_extension_groups_info(ten_shared_ptr_t *self) {
+ten_list_t *ten_cmd_start_graph_get_extension_groups_info(
+    ten_shared_ptr_t *self) {
   return ten_raw_cmd_start_graph_get_extension_groups_info(get_raw_cmd(self));
 }
 
@@ -233,7 +233,7 @@ static void ten_cmd_start_graph_collect_connectable_apps(
   TEN_ASSERT(self && ten_cmd_base_check_integrity(self) && app && next,
              "Should not happen.");
 
-  ten_list_foreach(dests, iter_dest) {
+  ten_list_foreach (dests, iter_dest) {
     ten_smart_ptr_t *shared_dest_extension_info =
         ten_smart_ptr_listnode_get(iter_dest.node);
     TEN_ASSERT(shared_dest_extension_info, "Invalid argument.");
@@ -280,7 +280,7 @@ static void ten_cmd_start_graph_collect_all_connectable_apps(
                  app && next,
              "Should not happen.");
 
-  ten_list_foreach(&extension_info->msg_dest_info.cmd, iter_cmd) {
+  ten_list_foreach (&extension_info->msg_dest_info.cmd, iter_cmd) {
     ten_msg_dest_info_t *cmd_dest =
         ten_shared_ptr_get_data(ten_smart_ptr_listnode_get(iter_cmd.node));
     ten_cmd_start_graph_collect_connectable_apps(self, app, extension_info,
@@ -288,8 +288,8 @@ static void ten_cmd_start_graph_collect_all_connectable_apps(
                                                  from_src_point_of_view);
   }
 
-  ten_list_foreach(&extension_info->msg_dest_info.video_frame,
-                   iter_video_frame) {
+  ten_list_foreach (&extension_info->msg_dest_info.video_frame,
+                    iter_video_frame) {
     ten_msg_dest_info_t *video_frame_dest = ten_shared_ptr_get_data(
         ten_smart_ptr_listnode_get(iter_video_frame.node));
     ten_cmd_start_graph_collect_connectable_apps(self, app, extension_info,
@@ -297,8 +297,8 @@ static void ten_cmd_start_graph_collect_all_connectable_apps(
                                                  from_src_point_of_view);
   }
 
-  ten_list_foreach(&extension_info->msg_dest_info.audio_frame,
-                   iter_audio_frame) {
+  ten_list_foreach (&extension_info->msg_dest_info.audio_frame,
+                    iter_audio_frame) {
     ten_msg_dest_info_t *audio_frame_dest = ten_shared_ptr_get_data(
         ten_smart_ptr_listnode_get(iter_audio_frame.node));
     ten_cmd_start_graph_collect_connectable_apps(self, app, extension_info,
@@ -306,7 +306,7 @@ static void ten_cmd_start_graph_collect_all_connectable_apps(
                                                  from_src_point_of_view);
   }
 
-  ten_list_foreach(&extension_info->msg_dest_info.data, iter_data) {
+  ten_list_foreach (&extension_info->msg_dest_info.data, iter_data) {
     ten_msg_dest_info_t *data_dest =
         ten_shared_ptr_get_data(ten_smart_ptr_listnode_get(iter_data.node));
     ten_cmd_start_graph_collect_connectable_apps(self, app, extension_info,
@@ -323,7 +323,7 @@ void ten_cmd_start_graph_collect_all_immediate_connectable_apps(
                  app && next,
              "Should not happen.");
 
-  ten_list_foreach(ten_cmd_start_graph_get_extensions_info(self), iter) {
+  ten_list_foreach (ten_cmd_start_graph_get_extensions_info(self), iter) {
     ten_extension_info_t *extension_info =
         ten_shared_ptr_get_data(ten_smart_ptr_listnode_get(iter.node));
 
@@ -348,7 +348,7 @@ static void ten_raw_cmd_start_graph_add_missing_extension_group_node(
   ten_list_t *extensions_info = &self->extensions_info;
   ten_list_t *extension_groups_info = &self->extension_groups_info;
 
-  ten_list_foreach(extensions_info, iter_extension) {
+  ten_list_foreach (extensions_info, iter_extension) {
     ten_extension_info_t *extension_info = ten_extension_info_from_smart_ptr(
         ten_smart_ptr_listnode_get(iter_extension.node));
 
@@ -360,7 +360,7 @@ static void ten_raw_cmd_start_graph_add_missing_extension_group_node(
 
     // Check whether the extension_group name specified by the extension has a
     // corresponding extension_group item.
-    ten_list_foreach(extension_groups_info, iter_extension_group) {
+    ten_list_foreach (extension_groups_info, iter_extension_group) {
       ten_extension_group_info_t *extension_group_info =
           ten_extension_group_info_from_smart_ptr(
               ten_smart_ptr_listnode_get(iter_extension_group.node));
@@ -448,8 +448,8 @@ bool ten_cmd_start_graph_set_long_running_mode(ten_shared_ptr_t *self,
                             long_running_mode);
 }
 
-ten_string_t *
-ten_raw_cmd_start_graph_get_predefined_graph_name(ten_cmd_start_graph_t *self) {
+ten_string_t *ten_raw_cmd_start_graph_get_predefined_graph_name(
+    ten_cmd_start_graph_t *self) {
   TEN_ASSERT(self && ten_raw_cmd_check_integrity((ten_cmd_t *)self) &&
                  ten_raw_msg_get_type((ten_msg_t *)self) ==
                      TEN_MSG_TYPE_CMD_START_GRAPH,
@@ -458,8 +458,8 @@ ten_raw_cmd_start_graph_get_predefined_graph_name(ten_cmd_start_graph_t *self) {
   return ten_value_peek_string(&self->predefined_graph_name);
 }
 
-ten_string_t *
-ten_cmd_start_graph_get_predefined_graph_name(ten_shared_ptr_t *self) {
+ten_string_t *ten_cmd_start_graph_get_predefined_graph_name(
+    ten_shared_ptr_t *self) {
   TEN_ASSERT(self && ten_cmd_base_check_integrity(self) &&
                  ten_msg_get_type(self) == TEN_MSG_TYPE_CMD_START_GRAPH,
              "Should not happen.");
@@ -494,7 +494,7 @@ ten_cmd_start_graph_get_extension_addon_and_instance_name_pairs_of_specified_ext
 
   ten_list_t *extensions_info = ten_cmd_start_graph_get_extensions_info(self);
 
-  ten_list_foreach(extensions_info, iter) {
+  ten_list_foreach (extensions_info, iter) {
     ten_shared_ptr_t *shared_extension_info =
         ten_smart_ptr_listnode_get(iter.node);
 
@@ -527,8 +527,8 @@ ten_cmd_start_graph_get_extension_addon_and_instance_name_pairs_of_specified_ext
   return result;
 }
 
-ten_list_t
-ten_cmd_start_graph_get_requested_extension_names(ten_shared_ptr_t *self) {
+ten_list_t ten_cmd_start_graph_get_requested_extension_names(
+    ten_shared_ptr_t *self) {
   TEN_ASSERT(self && ten_cmd_base_check_integrity(self) &&
                  ten_msg_get_type(self) == TEN_MSG_TYPE_CMD_START_GRAPH,
              "Should not happen.");
@@ -538,7 +538,7 @@ ten_cmd_start_graph_get_requested_extension_names(ten_shared_ptr_t *self) {
   ten_list_t *requested_extensions_info =
       ten_cmd_start_graph_get_extensions_info(self);
 
-  ten_list_foreach(requested_extensions_info, iter) {
+  ten_list_foreach (requested_extensions_info, iter) {
     ten_extension_info_t *requested_extension_info =
         ten_shared_ptr_get_data(ten_smart_ptr_listnode_get(iter.node));
     TEN_ASSERT(requested_extension_info && ten_extension_info_check_integrity(

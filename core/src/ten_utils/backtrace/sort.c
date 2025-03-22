@@ -9,10 +9,10 @@
 //
 #include "ten_utils/ten_config.h"
 
+#include "include_internal/ten_utils/backtrace/sort.h"
+
 #include <stddef.h>
 #include <sys/types.h>
-
-#include "include_internal/ten_utils/backtrace/sort.h"
 
 /**
  * @file The GNU glibc version of qsort allocates memory, which we must not do

@@ -182,8 +182,8 @@ int ten_shm_channel_inactive(ten_shm_channel_t *channel, int read) {
   return 0;
 }
 
-static inline int
-__ten_shm_channel_get_capacity_unsafe(ten_shm_channel_t *channel) {
+static inline int __ten_shm_channel_get_capacity_unsafe(
+    ten_shm_channel_t *channel) {
   return (int)((channel->region->write_index + TEN_SHM_CHANNEL_SIZE -
                 channel->region->read_index) %
                TEN_SHM_CHANNEL_SIZE);
@@ -194,8 +194,8 @@ static inline int __ten_shm_channel_is_full_unsafe(ten_shm_channel_t *channel) {
          (TEN_SHM_CHANNEL_SIZE - 1);
 }
 
-static inline int
-__ten_shm_channel_is_empty_unsafe(ten_shm_channel_t *channel) {
+static inline int __ten_shm_channel_is_empty_unsafe(
+    ten_shm_channel_t *channel) {
   return __ten_shm_channel_get_capacity_unsafe(channel) == 0;
 }
 

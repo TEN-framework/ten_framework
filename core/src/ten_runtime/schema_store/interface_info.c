@@ -20,10 +20,9 @@
 #include "ten_utils/macro/memory.h"
 #endif
 
-ten_value_t *
-ten_interface_schema_info_resolve(ten_value_t *unresolved_interface_schema_def,
-                                  TEN_UNUSED const char *base_dir,
-                                  ten_error_t *err) {
+ten_value_t *ten_interface_schema_info_resolve(
+    ten_value_t *unresolved_interface_schema_def,
+    TEN_UNUSED const char *base_dir, ten_error_t *err) {
   TEN_ASSERT(unresolved_interface_schema_def &&
                  ten_value_check_integrity(unresolved_interface_schema_def),
              "Invalid argument.");

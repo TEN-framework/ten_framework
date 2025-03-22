@@ -30,8 +30,8 @@
  * @return true if the protocol can be closed, false if it still has active
  * resources
  */
-static bool
-ten_protocol_integrated_could_be_close(ten_protocol_integrated_t *self) {
+static bool ten_protocol_integrated_could_be_close(
+    ten_protocol_integrated_t *self) {
   TEN_ASSERT(self, "Should not happen.");
 
   ten_protocol_t *base_protocol = &self->base;

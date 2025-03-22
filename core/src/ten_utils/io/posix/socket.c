@@ -21,17 +21,17 @@ ten_socket_t *ten_socket_create(TEN_SOCKET_FAMILY family, TEN_SOCKET_TYPE type,
                                 TEN_SOCKET_PROTOCOL protocol) {
   int32_t native_type = SOCK_STREAM;
   switch (type) {
-    case TEN_SOCKET_TYPE_STREAM:
-      native_type = SOCK_STREAM;
-      break;
+  case TEN_SOCKET_TYPE_STREAM:
+    native_type = SOCK_STREAM;
+    break;
 
-    case TEN_SOCKET_TYPE_DATAGRAM:
-      native_type = SOCK_DGRAM;
-      break;
+  case TEN_SOCKET_TYPE_DATAGRAM:
+    native_type = SOCK_DGRAM;
+    break;
 
-    default:
-      TEN_LOGE("Unknown socket type: %d", type);
-      return NULL;
+  default:
+    TEN_LOGE("Unknown socket type: %d", type);
+    return NULL;
   }
 
   int fd = socket(family, native_type, protocol);

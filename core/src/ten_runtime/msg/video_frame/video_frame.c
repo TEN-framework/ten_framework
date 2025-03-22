@@ -316,35 +316,34 @@ bool ten_raw_video_frame_set_ten_property(ten_msg_t *self, ten_list_t *paths,
     TEN_ASSERT(item, "Invalid argument.");
 
     switch (item->type) {
-      case TEN_VALUE_PATH_ITEM_TYPE_OBJECT_ITEM: {
-        if (!strcmp(TEN_STR_PIXEL_FMT,
-                    ten_string_get_raw_str(&item->obj_item_str))) {
-          const char *pixel_fmt_str = ten_value_peek_raw_str(value, err);
-          ten_raw_video_frame_set_pixel_fmt(
-              video_frame,
-              ten_video_frame_pixel_fmt_from_string(pixel_fmt_str));
-          success = ten_error_is_success(err);
-        } else if (!strcmp(TEN_STR_TIMESTAMP,
-                           ten_string_get_raw_str(&item->obj_item_str))) {
-          ten_raw_video_frame_set_timestamp(video_frame,
-                                            ten_value_get_int64(value, err));
-          success = ten_error_is_success(err);
-        } else if (!strcmp(TEN_STR_WIDTH,
-                           ten_string_get_raw_str(&item->obj_item_str))) {
-          ten_raw_video_frame_set_width(video_frame,
-                                        ten_value_get_int32(value, err));
-          success = ten_error_is_success(err);
-        } else if (!strcmp(TEN_STR_HEIGHT,
-                           ten_string_get_raw_str(&item->obj_item_str))) {
-          ten_raw_video_frame_set_height(video_frame,
-                                         ten_value_get_int32(value, err));
-          success = ten_error_is_success(err);
-        }
-        break;
+    case TEN_VALUE_PATH_ITEM_TYPE_OBJECT_ITEM: {
+      if (!strcmp(TEN_STR_PIXEL_FMT,
+                  ten_string_get_raw_str(&item->obj_item_str))) {
+        const char *pixel_fmt_str = ten_value_peek_raw_str(value, err);
+        ten_raw_video_frame_set_pixel_fmt(
+            video_frame, ten_video_frame_pixel_fmt_from_string(pixel_fmt_str));
+        success = ten_error_is_success(err);
+      } else if (!strcmp(TEN_STR_TIMESTAMP,
+                         ten_string_get_raw_str(&item->obj_item_str))) {
+        ten_raw_video_frame_set_timestamp(video_frame,
+                                          ten_value_get_int64(value, err));
+        success = ten_error_is_success(err);
+      } else if (!strcmp(TEN_STR_WIDTH,
+                         ten_string_get_raw_str(&item->obj_item_str))) {
+        ten_raw_video_frame_set_width(video_frame,
+                                      ten_value_get_int32(value, err));
+        success = ten_error_is_success(err);
+      } else if (!strcmp(TEN_STR_HEIGHT,
+                         ten_string_get_raw_str(&item->obj_item_str))) {
+        ten_raw_video_frame_set_height(video_frame,
+                                       ten_value_get_int32(value, err));
+        success = ten_error_is_success(err);
       }
+      break;
+    }
 
-      default:
-        break;
+    default:
+      break;
     }
   }
 
@@ -379,31 +378,31 @@ ten_value_t *ten_raw_video_frame_peek_ten_property(ten_msg_t *self,
     TEN_ASSERT(item, "Invalid argument.");
 
     switch (item->type) {
-      case TEN_VALUE_PATH_ITEM_TYPE_OBJECT_ITEM: {
-        if (!strcmp(TEN_STR_PIXEL_FMT,
-                    ten_string_get_raw_str(&item->obj_item_str))) {
-          result = &video_frame->pixel_fmt;
-        } else if (!strcmp(TEN_STR_TIMESTAMP,
-                           ten_string_get_raw_str(&item->obj_item_str))) {
-          result = &video_frame->timestamp;
-        } else if (!strcmp(TEN_STR_WIDTH,
-                           ten_string_get_raw_str(&item->obj_item_str))) {
-          result = &video_frame->width;
-        } else if (!strcmp(TEN_STR_HEIGHT,
-                           ten_string_get_raw_str(&item->obj_item_str))) {
-          result = &video_frame->height;
-        } else if (!strcmp(TEN_STR_IS_EOF,
-                           ten_string_get_raw_str(&item->obj_item_str))) {
-          result = &video_frame->is_eof;
-        } else if (!strcmp(TEN_STR_DATA,
-                           ten_string_get_raw_str(&item->obj_item_str))) {
-          result = &video_frame->data;
-        }
-        break;
+    case TEN_VALUE_PATH_ITEM_TYPE_OBJECT_ITEM: {
+      if (!strcmp(TEN_STR_PIXEL_FMT,
+                  ten_string_get_raw_str(&item->obj_item_str))) {
+        result = &video_frame->pixel_fmt;
+      } else if (!strcmp(TEN_STR_TIMESTAMP,
+                         ten_string_get_raw_str(&item->obj_item_str))) {
+        result = &video_frame->timestamp;
+      } else if (!strcmp(TEN_STR_WIDTH,
+                         ten_string_get_raw_str(&item->obj_item_str))) {
+        result = &video_frame->width;
+      } else if (!strcmp(TEN_STR_HEIGHT,
+                         ten_string_get_raw_str(&item->obj_item_str))) {
+        result = &video_frame->height;
+      } else if (!strcmp(TEN_STR_IS_EOF,
+                         ten_string_get_raw_str(&item->obj_item_str))) {
+        result = &video_frame->is_eof;
+      } else if (!strcmp(TEN_STR_DATA,
+                         ten_string_get_raw_str(&item->obj_item_str))) {
+        result = &video_frame->data;
       }
+      break;
+    }
 
-      default:
-        break;
+    default:
+      break;
     }
   }
 

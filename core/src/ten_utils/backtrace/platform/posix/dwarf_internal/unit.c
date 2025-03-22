@@ -6,10 +6,10 @@
 //
 #include "ten_utils/ten_config.h"
 
+#include "include_internal/ten_utils/backtrace/platform/posix/dwarf_internal/unit.h"
+
 #include <assert.h>
 #include <stdlib.h>
-
-#include "include_internal/ten_utils/backtrace/platform/posix/dwarf_internal/unit.h"
 
 /**
  * @brief Compare a unit offset against a unit for bsearch.

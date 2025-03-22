@@ -126,7 +126,9 @@ void ten_sanitizer_memory_record_deinit(void) {
 
   ten_sanitizer_memory_record_dump();
 
+#if defined(OS_LINUX)
   ten_sanitizer_memory_record_deinit_backtrace();
+#endif
 
   if (g_memory_records.lock) {
     ten_mutex_destroy(g_memory_records.lock);

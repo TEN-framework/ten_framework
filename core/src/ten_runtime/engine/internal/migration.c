@@ -19,9 +19,8 @@
 #include "ten_utils/macro/mark.h"
 #include "ten_utils/macro/memory.h"
 
-static ten_engine_migration_user_data_t *
-ten_engine_migration_user_data_create(ten_connection_t *connection,
-                                      ten_shared_ptr_t *cmd) {
+static ten_engine_migration_user_data_t *ten_engine_migration_user_data_create(
+    ten_connection_t *connection, ten_shared_ptr_t *cmd) {
   TEN_ASSERT(connection && cmd, "Invalid argument.");
 
   ten_engine_migration_user_data_t *self =
@@ -34,8 +33,8 @@ ten_engine_migration_user_data_create(ten_connection_t *connection,
   return self;
 }
 
-static void
-ten_engine_migration_user_data_destroy(ten_engine_migration_user_data_t *self) {
+static void ten_engine_migration_user_data_destroy(
+    ten_engine_migration_user_data_t *self) {
   TEN_ASSERT(self && self->cmd, "Invalid argument.");
 
   self->connection = NULL;

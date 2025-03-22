@@ -62,7 +62,7 @@ ten_remote_t *ten_engine_find_weak_remote(ten_engine_t *self, const char *uri) {
   TEN_ASSERT(ten_engine_check_integrity(self, true),
              "Invalid use of engine %p.", self);
 
-  ten_list_foreach(&self->weak_remotes, iter) {
+  ten_list_foreach (&self->weak_remotes, iter) {
     ten_remote_t *remote = ten_ptr_listnode_get(iter.node);
     TEN_ASSERT(remote, "Invalid argument.");
     TEN_ASSERT(ten_remote_check_integrity(remote, true),
@@ -345,9 +345,10 @@ static void ten_engine_on_protocol_created(ten_env_t *ten_env,
       (ten_engine_on_protocol_created_ctx_t *)cb_data;
 
   if (self->is_closing) {
-    TEN_LOGW("[%s] Protocol created, but skip to create remote due to engine "
-             "is closing.",
-             ten_engine_get_id(self, true));
+    TEN_LOGW(
+        "[%s] Protocol created, but skip to create remote due to engine "
+        "is closing.",
+        ten_engine_get_id(self, true));
 
     // Since the engine is about to close, the command originally used to
     // initiate and create this protocol is no longer needed.
@@ -607,9 +608,9 @@ void ten_engine_route_msg_to_remote(ten_engine_t *self, ten_shared_ptr_t *msg) {
   TEN_ASSERT(ten_engine_check_integrity(self, true),
              "Invalid use of engine %p.", self);
 
-  TEN_ASSERT(msg && ten_msg_check_integrity(msg) &&
-                 ten_msg_get_dest_cnt(msg) == 1,
-             "Should not happen.");
+  TEN_ASSERT(
+      msg && ten_msg_check_integrity(msg) && ten_msg_get_dest_cnt(msg) == 1,
+      "Should not happen.");
 
   const char *dest_uri = ten_msg_get_first_dest_uri(msg);
   ten_remote_t *remote = ten_engine_find_remote(self, dest_uri);
