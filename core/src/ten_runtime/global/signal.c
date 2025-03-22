@@ -13,6 +13,7 @@
 
 #include "include_internal/ten_runtime/app/close.h"
 #include "include_internal/ten_runtime/global/global.h"
+#include "include_internal/ten_utils/log/log.h"
 #include "ten_runtime/app/app.h"
 #include "ten_utils/container/list.h"
 #include "ten_utils/container/list_node_ptr.h"
@@ -71,6 +72,11 @@ static void ten_global_signal_handler(int signo, TEN_UNUSED siginfo_t *info,
   if (signo == SIGUSR1) {
     TEN_LOGW("Received SIGUSR1.");
     ten_sanitizer_memory_record_dump();
+  }
+
+  if (signo == SIGHUP) {
+    // 由于global log在unload
+    ten_log_global_reload();
   }
 }
 
@@ -135,6 +141,12 @@ static void ten_global_setup_sig_handler(void) {
 
   if (0 != sigaction(SIGUSR1, &act, NULL)) {
     TEN_LOGF("Failed to install SIGUSR1 handler.");
+    // NOLINTNEXTLINE(concurrency-mt-unsafe)
+    exit(EXIT_FAILURE);
+  }
+
+  if (0 != sigaction(SIGHUP, &act, NULL)) {
+    TEN_LOGF("Failed to install SIGHUP handler.");
     // NOLINTNEXTLINE(concurrency-mt-unsafe)
     exit(EXIT_FAILURE);
   }
