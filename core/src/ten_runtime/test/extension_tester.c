@@ -558,6 +558,7 @@ void ten_extension_tester_on_deinit_done(ten_extension_tester_t *self) {
   // the `ten_env_proxy` exists, the extension will not be destroyed.), ensuring
   // that all operations using the extension's `ten_env_proxy` before the
   // releasing of ten_env_proxy are valid.
+  TEN_LOGI("Releasing test extension's ten_env_proxy.");
   rc = ten_env_proxy_release(self->test_extension_ten_env_proxy, NULL);
   TEN_ASSERT(rc, "Should not happen.");
 
