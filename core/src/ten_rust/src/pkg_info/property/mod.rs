@@ -25,11 +25,23 @@ use crate::pkg_info::graph::is_app_default_loc_or_none;
 use crate::{json_schema, pkg_info::localhost};
 use predefined_graph::PredefinedGraph;
 
+/// Represents the property configuration of a TEN package.
+///
+/// The property configuration consists of two parts:
+/// 1. A special `_ten` field that contains TEN-specific configuration.
+/// 2. Additional custom fields that can be defined by the package author.
+///
+/// This structure is typically serialized to and deserialized from a JSON file
+/// named `property.json` in the package directory.
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Property {
+    /// TEN-specific configuration properties.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub _ten: Option<TenInProperty>,
 
+    /// Additional custom fields defined by the package author.
+    /// These fields are flattened into the root of the JSON object when
+    /// serializing/deserializing.
     #[serde(flatten)]
     pub additional_fields: HashMap<String, Value>,
 }
