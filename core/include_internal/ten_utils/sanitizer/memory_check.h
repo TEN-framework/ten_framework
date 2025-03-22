@@ -33,7 +33,9 @@ typedef struct ten_sanitizer_memory_record_t {
 
   uint32_t lineno;
 
+#if defined(OS_LINUX)
   char backtrace_buffer[TEN_MEMORY_CHECK_BACKTRACE_BUFFER_SIZE];
+#endif
 
   ten_listnode_t *node_in_records_list;
   ten_hashhandle_t hh_in_records_hash;

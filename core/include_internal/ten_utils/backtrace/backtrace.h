@@ -146,11 +146,6 @@ TEN_UTILS_PRIVATE_API void ten_backtrace_destroy(ten_backtrace_t *self);
 TEN_UTILS_PRIVATE_API void ten_backtrace_dump(ten_backtrace_t *self,
                                               size_t skip);
 
-TEN_UTILS_PRIVATE_API int ten_backtrace_capture_to_buffer(ten_backtrace_t *self,
-                                                          char *buffer,
-                                                          size_t buffer_size,
-                                                          size_t skip);
-
 #if defined(__cplusplus)
 } /* End extern "C".  */
 #endif

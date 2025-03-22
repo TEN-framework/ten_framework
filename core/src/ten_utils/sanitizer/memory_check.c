@@ -19,6 +19,7 @@
 
 #include "include_internal/ten_utils/backtrace/backtrace.h"
 #include "include_internal/ten_utils/backtrace/buffer.h"
+#include "include_internal/ten_utils/backtrace/platform/posix/linux/internal.h"
 #include "include_internal/ten_utils/lib/alloc.h"
 #include "include_internal/ten_utils/sanitizer/memory_check.h"
 #include "ten_utils/container/list.h"
@@ -48,7 +49,9 @@ static ten_sanitizer_memory_records_t g_memory_records = {
 
 static bool g_memory_records_enabled = false;
 
+#if defined(OS_LINUX)
 static ten_backtrace_t *g_backtrace_for_memory_check = NULL;
+#endif
 
 static void ten_sanitizer_memory_record_check_enabled(void) {
 #if defined(TEN_ENABLE_MEMORY_CHECK)
@@ -59,6 +62,7 @@ static void ten_sanitizer_memory_record_check_enabled(void) {
 #endif
 }
 
+#if defined(OS_LINUX)
 static void ten_sanitizer_memory_record_init_backtrace(void) {
   TEN_ASSERT(g_backtrace_for_memory_check == NULL,
              "The backtrace for memory check should be initialized only once.");
@@ -73,6 +77,7 @@ static void ten_sanitizer_memory_record_deinit_backtrace(void) {
     g_backtrace_for_memory_check = NULL;
   }
 }
+#endif
 
 void ten_sanitizer_memory_record_init(void) {
 #if defined(TEN_ENABLE_MEMORY_CHECK)
@@ -84,7 +89,9 @@ void ten_sanitizer_memory_record_init(void) {
   ten_sanitizer_memory_record_check_enabled();
 
   if (g_memory_records_enabled) {
+#if defined(OS_LINUX)
     ten_sanitizer_memory_record_init_backtrace();
+#endif
 
 #if defined(TEN_USE_ASAN)
     // Mark the beginning and end of the globally allocated memory queue as
@@ -132,10 +139,9 @@ void ten_sanitizer_memory_record_deinit(void) {
 #endif
 }
 
-static ten_sanitizer_memory_record_t *
-ten_sanitizer_memory_record_create(void *addr, size_t size,
-                                   const char *file_name, uint32_t lineno,
-                                   const char *func_name) {
+static ten_sanitizer_memory_record_t *ten_sanitizer_memory_record_create(
+    void *addr, size_t size, const char *file_name, uint32_t lineno,
+    const char *func_name) {
 #if defined(TEN_USE_ASAN)
   __lsan_disable();
 #endif
@@ -182,8 +188,8 @@ ten_sanitizer_memory_record_create(void *addr, size_t size,
   return self;
 }
 
-static void
-ten_sanitizer_memory_record_destroy(ten_sanitizer_memory_record_t *self) {
+static void ten_sanitizer_memory_record_destroy(
+    ten_sanitizer_memory_record_t *self) {
 #if defined(TEN_USE_ASAN)
   __lsan_disable();
 #endif
@@ -199,9 +205,9 @@ ten_sanitizer_memory_record_destroy(ten_sanitizer_memory_record_t *self) {
 #endif
 }
 
-static void
-ten_sanitizer_memory_record_add(ten_sanitizer_memory_records_t *self,
-                                ten_sanitizer_memory_record_t *record) {
+static void ten_sanitizer_memory_record_add(
+    ten_sanitizer_memory_records_t *self,
+    ten_sanitizer_memory_record_t *record) {
 #if defined(TEN_USE_ASAN)
   __lsan_disable();
 #endif
@@ -211,10 +217,12 @@ ten_sanitizer_memory_record_add(ten_sanitizer_memory_records_t *self,
   TEN_UNUSED int rc = ten_mutex_lock(self->lock);
   TEN_ASSERT(!rc, "Failed to lock.");
 
+#if defined(OS_LINUX)
   // Capture backtrace to buffer.
   ten_backtrace_capture_to_buffer(g_backtrace_for_memory_check,
                                   record->backtrace_buffer,
                                   sizeof(record->backtrace_buffer), 1);
+#endif
 
 #if defined(TEN_USE_ASAN)
   __asan_unpoison_memory_region(&self->records_list.front,
@@ -252,9 +260,8 @@ ten_sanitizer_memory_record_add(ten_sanitizer_memory_records_t *self,
 #endif
 }
 
-static void
-ten_sanitizer_memory_record_del(ten_sanitizer_memory_records_t *self,
-                                void *addr) {
+static void ten_sanitizer_memory_record_del(
+    ten_sanitizer_memory_records_t *self, void *addr) {
 #if defined(TEN_USE_ASAN)
   __lsan_disable();
 #endif
@@ -325,13 +332,16 @@ void ten_sanitizer_memory_record_dump(void) {
 #endif
 
   size_t idx = 0;
-  ten_list_foreach(&g_memory_records.records_list, iter) {
+  ten_list_foreach (&g_memory_records.records_list, iter) {
     ten_sanitizer_memory_record_t *info = ten_ptr_listnode_get(iter.node);
 
     (void)fprintf(stderr, "----------------------------------------\n");
     (void)fprintf(stderr, "#%zu %p(%zu bytes) in %s@%s:%d\n", idx, info->addr,
                   info->size, info->func_name, info->file_name, info->lineno);
+
+#if defined(OS_LINUX)
     (void)fprintf(stderr, "%s\n", info->backtrace_buffer);
+#endif
 
     idx++;
   }
