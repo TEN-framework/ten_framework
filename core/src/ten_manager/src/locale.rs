@@ -13,8 +13,13 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy, Serialize, Deserialize)]
 pub enum Locale {
+    #[serde(rename = "en-US")]
     EnUs,
+
+    #[serde(rename = "zh-CN")]
     ZhCn,
+
+    #[serde(rename = "zh-TW")]
     ZhTw,
 }
 

@@ -65,12 +65,11 @@ pub async fn reload_app_endpoint(
         // Case 2: base_dir is not specified, reload all apps.
 
         if pkgs_cache.is_empty() {
-            let error_response = ErrorResponse {
-                status: Status::Fail,
-                message: "No apps are loaded.".to_string(),
-                error: None,
-            };
-            return Ok(HttpResponse::BadRequest().json(error_response));
+            return Ok(HttpResponse::Ok().json(ApiResponse {
+                status: Status::Ok,
+                data: "No apps to reload",
+                meta: None,
+            }));
         }
 
         // Collect all base_dirs first (to avoid borrowing issues).
