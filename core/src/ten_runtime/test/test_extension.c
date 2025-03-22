@@ -29,7 +29,8 @@ static ten_extension_tester_t *test_extension_get_extension_tester_ptr(
   TEN_ASSERT(test_info_ptr_value, "Should not happen.");
 
   ten_extension_tester_t *tester = ten_value_get_ptr(test_info_ptr_value, NULL);
-  TEN_ASSERT(tester && ten_extension_tester_check_integrity(tester, false),
+  TEN_ASSERT(tester, "Should not happen.");
+  TEN_ASSERT(ten_extension_tester_check_integrity(tester, false),
              "Should not happen.");
 
   return tester;
@@ -195,7 +196,8 @@ static void test_extension_on_cmd(ten_extension_t *self, ten_env_t *ten_env,
   TEN_ASSERT(self && ten_env, "Invalid argument.");
 
   ten_extension_tester_t *tester = self->user_data;
-  TEN_ASSERT(tester && ten_extension_tester_check_integrity(tester, false),
+  TEN_ASSERT(tester, "Should not happen.");
+  TEN_ASSERT(ten_extension_tester_check_integrity(tester, false),
              "Should not happen.");
 
   // Inject cmd into the extension_tester thread to ensure thread safety.
@@ -229,7 +231,8 @@ static void test_extension_on_data(ten_extension_t *self, ten_env_t *ten_env,
   TEN_ASSERT(self && ten_env, "Invalid argument.");
 
   ten_extension_tester_t *tester = self->user_data;
-  TEN_ASSERT(tester && ten_extension_tester_check_integrity(tester, false),
+  TEN_ASSERT(tester, "Should not happen.");
+  TEN_ASSERT(ten_extension_tester_check_integrity(tester, false),
              "Should not happen.");
 
   // Inject data into the extension_tester thread to ensure thread safety.
@@ -264,7 +267,8 @@ static void test_extension_on_audio_frame(ten_extension_t *self,
   TEN_ASSERT(self && ten_env, "Invalid argument.");
 
   ten_extension_tester_t *tester = self->user_data;
-  TEN_ASSERT(tester && ten_extension_tester_check_integrity(tester, false),
+  TEN_ASSERT(tester, "Should not happen.");
+  TEN_ASSERT(ten_extension_tester_check_integrity(tester, false),
              "Should not happen.");
 
   // Inject audio_frame into the extension_tester thread to ensure thread
@@ -301,7 +305,8 @@ static void test_extension_on_video_frame(ten_extension_t *self,
   TEN_ASSERT(self && ten_env, "Invalid argument.");
 
   ten_extension_tester_t *tester = self->user_data;
-  TEN_ASSERT(tester && ten_extension_tester_check_integrity(tester, false),
+  TEN_ASSERT(tester, "Should not happen.");
+  TEN_ASSERT(ten_extension_tester_check_integrity(tester, false),
              "Should not happen.");
 
   // Inject video_frame into the extension_tester thread to ensure thread
@@ -333,7 +338,8 @@ static void test_extension_on_deinit(ten_extension_t *self,
   // always destroyed later than the test_extension, so calling the tester
   // within the test_extension is always valid.
   ten_extension_tester_t *tester = self->user_data;
-  TEN_ASSERT(tester && ten_extension_tester_check_integrity(tester, false),
+  TEN_ASSERT(tester, "Should not happen.");
+  TEN_ASSERT(ten_extension_tester_check_integrity(tester, false),
              "Should not happen.");
 
   int post_status = ten_runloop_post_task_tail(

@@ -82,33 +82,35 @@ static void ten_sanitizer_memory_record_deinit_backtrace(void) {
 void ten_sanitizer_memory_record_init(void) {
 #if defined(TEN_ENABLE_MEMORY_CHECK)
 
+  ten_sanitizer_memory_record_check_enabled();
+
+  if (!g_memory_records_enabled) {
+    return;
+  }
+
 #if defined(TEN_USE_ASAN)
   __lsan_disable();
 #endif
 
-  ten_sanitizer_memory_record_check_enabled();
-
-  if (g_memory_records_enabled) {
 #if defined(OS_LINUX)
-    ten_sanitizer_memory_record_init_backtrace();
+  ten_sanitizer_memory_record_init_backtrace();
 #endif
 
 #if defined(TEN_USE_ASAN)
-    // Mark the beginning and end of the globally allocated memory queue as
-    // poisoned, so that LSan will not consider the memory buffer obtained from
-    // there as normal memory, but will instead consider it as leaked.
-    __asan_poison_memory_region(&g_memory_records.records_list.front,
-                                sizeof(ten_listnode_t *));
-    __asan_poison_memory_region(&g_memory_records.records_list.back,
-                                sizeof(ten_listnode_t *));
+  // Mark the beginning and end of the globally allocated memory queue as
+  // poisoned, so that LSan will not consider the memory buffer obtained from
+  // there as normal memory, but will instead consider it as leaked.
+  __asan_poison_memory_region(&g_memory_records.records_list.front,
+                              sizeof(ten_listnode_t *));
+  __asan_poison_memory_region(&g_memory_records.records_list.back,
+                              sizeof(ten_listnode_t *));
 #endif
 
-    g_memory_records.lock = ten_mutex_create();
+  g_memory_records.lock = ten_mutex_create();
 
-    ten_hashtable_init(
-        &g_memory_records.records_hash,
-        offsetof(ten_sanitizer_memory_record_t, hh_in_records_hash));
-  }
+  ten_hashtable_init(
+      &g_memory_records.records_hash,
+      offsetof(ten_sanitizer_memory_record_t, hh_in_records_hash));
 
 #if defined(TEN_USE_ASAN)
   __lsan_enable();
@@ -119,6 +121,10 @@ void ten_sanitizer_memory_record_init(void) {
 
 void ten_sanitizer_memory_record_deinit(void) {
 #if defined(TEN_ENABLE_MEMORY_CHECK)
+
+  if (!g_memory_records_enabled) {
+    return;
+  }
 
 #if defined(TEN_USE_ASAN)
   __lsan_disable();
@@ -210,11 +216,15 @@ static void ten_sanitizer_memory_record_destroy(
 static void ten_sanitizer_memory_record_add(
     ten_sanitizer_memory_records_t *self,
     ten_sanitizer_memory_record_t *record) {
+  TEN_ASSERT(self && record, "Invalid argument.");
+
+  if (!g_memory_records_enabled) {
+    return;
+  }
+
 #if defined(TEN_USE_ASAN)
   __lsan_disable();
 #endif
-
-  TEN_ASSERT(self && record, "Invalid argument.");
 
   TEN_UNUSED int rc = ten_mutex_lock(self->lock);
   TEN_ASSERT(!rc, "Failed to lock.");
@@ -264,11 +274,15 @@ static void ten_sanitizer_memory_record_add(
 
 static void ten_sanitizer_memory_record_del(
     ten_sanitizer_memory_records_t *self, void *addr) {
+  TEN_ASSERT(self && addr, "Invalid argument.");
+
+  if (!g_memory_records_enabled) {
+    return;
+  }
+
 #if defined(TEN_USE_ASAN)
   __lsan_disable();
 #endif
-
-  TEN_ASSERT(self && addr, "Invalid argument.");
 
   TEN_UNUSED int rc = ten_mutex_lock(self->lock);
   TEN_ASSERT(!rc, "Failed to lock.");
@@ -313,6 +327,10 @@ static void ten_sanitizer_memory_record_del(
 
 void ten_sanitizer_memory_record_dump(void) {
 #if defined(TEN_ENABLE_MEMORY_CHECK)
+
+  if (!g_memory_records_enabled) {
+    return;
+  }
 
 #if defined(TEN_USE_ASAN)
   __lsan_disable();

@@ -19,7 +19,8 @@ static void test_app_on_configure(TEN_UNUSED ten_app_t *app,
   // means the tester is currently in a blocking state and not running, so
   // accessing the tester instance here is safe.
   ten_extension_tester_t *tester = app->user_data;
-  TEN_ASSERT(tester && ten_extension_tester_check_integrity(tester, false),
+  TEN_ASSERT(tester, "Should not happen.");
+  TEN_ASSERT(ten_extension_tester_check_integrity(tester, false),
              "Should not happen.");
 
   bool rc = false;
@@ -82,7 +83,8 @@ static void test_app_on_init(ten_app_t *app, ten_env_t *ten_env) {
   // Since the tester will wait for the
   // `test_app_ten_env_proxy_create_completed` event after the app starts,
   // using the tester here is thread-safe.
-  TEN_ASSERT(tester && ten_extension_tester_check_integrity(tester, false),
+  TEN_ASSERT(tester, "Should not happen.");
+  TEN_ASSERT(ten_extension_tester_check_integrity(tester, false),
              "Should not happen.");
 
   store_tester_as_app_property(tester, ten_env);
@@ -118,7 +120,8 @@ static void ten_extension_tester_on_test_app_deinit_task(void *self_,
 
 static void test_app_on_deinit(ten_app_t *app, ten_env_t *ten_env) {
   ten_extension_tester_t *tester = app->user_data;
-  TEN_ASSERT(tester && ten_extension_tester_check_integrity(tester, false),
+  TEN_ASSERT(tester, "Should not happen.");
+  TEN_ASSERT(ten_extension_tester_check_integrity(tester, false),
              "Should not happen.");
 
   int rc = ten_runloop_post_task_tail(
