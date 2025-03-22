@@ -38,6 +38,13 @@ ten_addon_manager_t *ten_addon_manager_get_instance(void) {
   return instance;
 }
 
+void ten_addon_manager_destroy(ten_addon_manager_t *self) {
+  TEN_ASSERT(self, "Invalid argument.");
+
+  ten_mutex_destroy(self->mutex);
+  ten_list_destroy(&self->registry);
+}
+
 static void ten_addon_registration_destroy(void *ptr) {
   ten_addon_registration_t *reg = (ten_addon_registration_t *)ptr;
   if (reg) {

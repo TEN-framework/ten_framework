@@ -28,7 +28,7 @@
 TEN_CONSTRUCTOR(ten_runtime_on_load) {
   ten_sanitizer_memory_record_init();
   ten_global_signal_alt_stack_create();
-  ten_backtrace_create_global();  // Initialize backtrace module.
+  ten_backtrace_create_global(); // Initialize backtrace module.
   ten_global_init();
 
   ten_global_setup_signal_stuff();

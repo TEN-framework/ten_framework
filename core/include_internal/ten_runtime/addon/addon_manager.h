@@ -34,6 +34,9 @@ typedef struct ten_addon_manager_t {
   ten_mutex_t *mutex;
 } ten_addon_manager_t;
 
+TEN_RUNTIME_PRIVATE_API void ten_addon_manager_destroy(
+    ten_addon_manager_t *self);
+
 TEN_RUNTIME_API void ten_addon_manager_register_all_addons(
     ten_addon_manager_t *self, void *register_ctx);
 
