@@ -326,9 +326,10 @@ void ten_sanitizer_memory_record_dump(void) {
   ten_list_foreach(&g_memory_records.records_list, iter) {
     ten_sanitizer_memory_record_t *info = ten_ptr_listnode_get(iter.node);
 
-    (void)fprintf(stderr, "\t#%zu %p(%zu bytes) in %s %s:%d\n", idx, info->addr,
+    (void)fprintf(stderr, "----------------------------------------\n");
+    (void)fprintf(stderr, "#%zu %p(%zu bytes) in %s@%s:%d\n", idx, info->addr,
                   info->size, info->func_name, info->file_name, info->lineno);
-    (void)fprintf(stderr, "\t\t%s\n", info->backtrace_buffer);
+    (void)fprintf(stderr, "%s\n", info->backtrace_buffer);
 
     idx++;
   }
