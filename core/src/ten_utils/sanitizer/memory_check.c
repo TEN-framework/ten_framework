@@ -6,6 +6,9 @@
 //
 #include "ten_utils/sanitizer/memory_check.h"
 
+// This header file must be included before asan/lsan headers.
+#include "ten_utils/macro/check.h"
+
 #if defined(TEN_USE_ASAN)
 #include <sanitizer/asan_interface.h>
 #include <sanitizer/lsan_interface.h>
@@ -22,7 +25,6 @@
 #include "ten_utils/container/list_node_ptr.h"
 #include "ten_utils/lib/alloc.h"
 #include "ten_utils/lib/mutex.h"
-#include "ten_utils/macro/check.h"
 #include "ten_utils/macro/mark.h"
 
 // Note: Since TEN LOG also involves memory operations, to avoid circular

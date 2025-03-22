@@ -7,7 +7,6 @@
 #include "include_internal/ten_runtime/addon/common/common.h"
 
 #include <stdlib.h>
-#include <string.h>
 
 #include "include_internal/ten_runtime/addon/addon_host.h"
 #include "include_internal/ten_runtime/addon/addon_loader/addon_loader.h"
@@ -23,23 +22,23 @@ ten_addon_host_t *ten_addon_store_find_by_type(TEN_ADDON_TYPE addon_type,
   TEN_ASSERT(addon_name, "Should not happen.");
 
   switch (addon_type) {
-    case TEN_ADDON_TYPE_EXTENSION:
-      return ten_addon_store_find(ten_extension_get_global_store(), addon_name);
+  case TEN_ADDON_TYPE_EXTENSION:
+    return ten_addon_store_find(ten_extension_get_global_store(), addon_name);
 
-    case TEN_ADDON_TYPE_EXTENSION_GROUP:
-      return ten_addon_store_find(ten_extension_group_get_global_store(),
-                                  addon_name);
+  case TEN_ADDON_TYPE_EXTENSION_GROUP:
+    return ten_addon_store_find(ten_extension_group_get_global_store(),
+                                addon_name);
 
-    case TEN_ADDON_TYPE_PROTOCOL:
-      return ten_addon_store_find(ten_protocol_get_global_store(), addon_name);
+  case TEN_ADDON_TYPE_PROTOCOL:
+    return ten_addon_store_find(ten_protocol_get_global_store(), addon_name);
 
-    case TEN_ADDON_TYPE_ADDON_LOADER:
-      return ten_addon_store_find(ten_addon_loader_get_global_store(),
-                                  addon_name);
+  case TEN_ADDON_TYPE_ADDON_LOADER:
+    return ten_addon_store_find(ten_addon_loader_get_global_store(),
+                                addon_name);
 
-    default:
-      TEN_ASSERT(0, "Should not happen.");
-      break;
+  default:
+    TEN_ASSERT(0, "Should not happen.");
+    break;
   }
 
   return NULL;
@@ -47,21 +46,21 @@ ten_addon_host_t *ten_addon_store_find_by_type(TEN_ADDON_TYPE addon_type,
 
 int ten_addon_store_lock_by_type(TEN_ADDON_TYPE addon_type) {
   switch (addon_type) {
-    case TEN_ADDON_TYPE_EXTENSION:
-      return ten_addon_store_lock(ten_extension_get_global_store());
+  case TEN_ADDON_TYPE_EXTENSION:
+    return ten_addon_store_lock(ten_extension_get_global_store());
 
-    case TEN_ADDON_TYPE_EXTENSION_GROUP:
-      return ten_addon_store_lock(ten_extension_group_get_global_store());
+  case TEN_ADDON_TYPE_EXTENSION_GROUP:
+    return ten_addon_store_lock(ten_extension_group_get_global_store());
 
-    case TEN_ADDON_TYPE_PROTOCOL:
-      return ten_addon_store_lock(ten_protocol_get_global_store());
+  case TEN_ADDON_TYPE_PROTOCOL:
+    return ten_addon_store_lock(ten_protocol_get_global_store());
 
-    case TEN_ADDON_TYPE_ADDON_LOADER:
-      return ten_addon_store_lock(ten_addon_loader_get_global_store());
+  case TEN_ADDON_TYPE_ADDON_LOADER:
+    return ten_addon_store_lock(ten_addon_loader_get_global_store());
 
-    default:
-      TEN_ASSERT(0, "Should not happen.");
-      return -1;
+  default:
+    TEN_ASSERT(0, "Should not happen.");
+    return -1;
   }
 }
 
@@ -83,21 +82,21 @@ int ten_addon_store_lock_all_type(void) {
 
 int ten_addon_store_unlock_by_type(TEN_ADDON_TYPE addon_type) {
   switch (addon_type) {
-    case TEN_ADDON_TYPE_EXTENSION:
-      return ten_addon_store_unlock(ten_extension_get_global_store());
+  case TEN_ADDON_TYPE_EXTENSION:
+    return ten_addon_store_unlock(ten_extension_get_global_store());
 
-    case TEN_ADDON_TYPE_EXTENSION_GROUP:
-      return ten_addon_store_unlock(ten_extension_group_get_global_store());
+  case TEN_ADDON_TYPE_EXTENSION_GROUP:
+    return ten_addon_store_unlock(ten_extension_group_get_global_store());
 
-    case TEN_ADDON_TYPE_PROTOCOL:
-      return ten_addon_store_unlock(ten_protocol_get_global_store());
+  case TEN_ADDON_TYPE_PROTOCOL:
+    return ten_addon_store_unlock(ten_protocol_get_global_store());
 
-    case TEN_ADDON_TYPE_ADDON_LOADER:
-      return ten_addon_store_unlock(ten_addon_loader_get_global_store());
+  case TEN_ADDON_TYPE_ADDON_LOADER:
+    return ten_addon_store_unlock(ten_addon_loader_get_global_store());
 
-    default:
-      TEN_ASSERT(0, "Should not happen.");
-      return -1;
+  default:
+    TEN_ASSERT(0, "Should not happen.");
+    return -1;
   }
 }
 
