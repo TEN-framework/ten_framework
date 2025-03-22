@@ -49,12 +49,12 @@ static ten_sanitizer_memory_records_t g_memory_records = {
 
 static bool g_memory_records_enabled = false;
 
-#if defined(OS_LINUX)
+#if defined(TEN_MEMORY_CHECK_ENABLE_BACKTRACE)
 static ten_backtrace_t *g_backtrace_for_memory_check = NULL;
 #endif
 
 static void ten_sanitizer_memory_record_check_enabled(void) {
-#if defined(TEN_ENABLE_MEMORY_CHECK)
+#if defined(cccccccccccccccccccc)
   char *enable_memory_sanitizer = getenv("TEN_ENABLE_MEMORY_TRACKING");
   if (enable_memory_sanitizer && !strcmp(enable_memory_sanitizer, "true")) {
     g_memory_records_enabled = true;
@@ -62,7 +62,7 @@ static void ten_sanitizer_memory_record_check_enabled(void) {
 #endif
 }
 
-#if defined(OS_LINUX)
+#if defined(TEN_MEMORY_CHECK_ENABLE_BACKTRACE)
 static void ten_sanitizer_memory_record_init_backtrace(void) {
   TEN_ASSERT(g_backtrace_for_memory_check == NULL,
              "The backtrace for memory check should be initialized only once.");
@@ -229,7 +229,7 @@ static void ten_sanitizer_memory_record_add(
   TEN_UNUSED int rc = ten_mutex_lock(self->lock);
   TEN_ASSERT(!rc, "Failed to lock.");
 
-#if defined(OS_LINUX)
+#if defined(TEN_MEMORY_CHECK_ENABLE_BACKTRACE)
   // Capture backtrace to buffer.
   ten_backtrace_capture_to_buffer(g_backtrace_for_memory_check,
                                   record->backtrace_buffer,
@@ -359,7 +359,7 @@ void ten_sanitizer_memory_record_dump(void) {
     (void)fprintf(stderr, "#%zu %p(%zu bytes) in %s@%s:%d\n", idx, info->addr,
                   info->size, info->func_name, info->file_name, info->lineno);
 
-#if defined(OS_LINUX)
+#if defined(TEN_MEMORY_CHECK_ENABLE_BACKTRACE)
     (void)fprintf(stderr, "%s\n", info->backtrace_buffer);
 #endif
 

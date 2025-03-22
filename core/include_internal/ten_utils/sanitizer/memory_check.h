@@ -20,6 +20,7 @@
 // will be a relative path starts with '../../../'.
 #define TEN_FILE_PATH_RELATIVE_PREFIX_LENGTH 9
 
+// #define TEN_MEMORY_CHECK_ENABLE_BACKTRACE
 #define TEN_MEMORY_CHECK_BACKTRACE_BUFFER_SIZE 4096
 
 typedef struct ten_sanitizer_memory_record_t {
@@ -33,7 +34,7 @@ typedef struct ten_sanitizer_memory_record_t {
 
   uint32_t lineno;
 
-#if defined(OS_LINUX)
+#if defined(TEN_MEMORY_CHECK_ENABLE_BACKTRACE)
   char backtrace_buffer[TEN_MEMORY_CHECK_BACKTRACE_BUFFER_SIZE];
 #endif
 
