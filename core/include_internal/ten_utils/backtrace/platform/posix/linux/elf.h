@@ -9,10 +9,10 @@
 #include "ten_utils/ten_config.h"
 
 #include <stddef.h>
+#include <unistd.h>
 
 #include "include_internal/ten_utils/backtrace/platform/posix/config.h"  // IWYU pragma: keep
 #include "include_internal/ten_utils/backtrace/platform/posix/dwarf_internal/section.h"
-#include "include_internal/ten_utils/backtrace/platform/posix/linux/elf_internal/view.h"
 #include "include_internal/ten_utils/backtrace/platform/posix/linux/elf_internal/zlib.h"  // IWYU pragma: keep
 #include "include_internal/ten_utils/backtrace/platform/posix/linux/elf_internal/zstd.h"  // IWYU pragma: keep
 #include "include_internal/ten_utils/backtrace/platform/posix/linux/elf_internal/zutils.h"  // IWYU pragma: keep
@@ -224,7 +224,7 @@ static const char *const dwarf_section_names[DEBUG_MAX] = {
     ".debug_str_offsets", ".debug_line_str", ".debug_rnglists"};
 
 // Information we gather for the sections we care about.
-struct debug_section_info {
+typedef struct debug_section_info {
   // Section file offset.
   off_t offset;
   // Section size.
@@ -233,4 +233,4 @@ struct debug_section_info {
   const unsigned char *data;
   // Whether the SHF_COMPRESSED flag is set for the section.
   int compressed;
-};
+} debug_section_info;

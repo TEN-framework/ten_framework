@@ -97,8 +97,8 @@ ten_backtrace_t *ten_backtrace_create(void) {
     return NULL;
   }
 
-  ten_backtrace_common_init(&self->common, ten_backtrace_default_dump_cb,
-                            ten_backtrace_default_error_cb);
+  ten_backtrace_common_init(&self->common, ten_backtrace_default_dump,
+                            ten_backtrace_default_error);
   retrieve_windows_backtrace_funcs(self);
 
   return (ten_backtrace_t *)self;
@@ -204,12 +204,13 @@ void ten_backtrace_dump(ten_backtrace_t *self, size_t skip) {
     if (win_self->SymGetLineFromAddr(process, address, &dwLineDisplacement,
                                      &lineInfo)) {
       // Call the dump callback with full information.
-      win_self->common.dump_cb(self, symbol->Address, lineInfo.FileName,
-                               lineInfo.LineNumber, symbol->Name, NULL);
+      win_self->common.on_dump_file_line(self, symbol->Address,
+                                         lineInfo.FileName, lineInfo.LineNumber,
+                                         symbol->Name, NULL);
     } else {
       // Call the dump callback with only symbol information.
-      win_self->common.dump_cb(self, symbol->Address, NULL, 0, symbol->Name,
-                               NULL);
+      win_self->common.on_dump_file_line(self, symbol->Address, NULL, 0,
+                                         symbol->Name, NULL);
     }
   }
 

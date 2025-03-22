@@ -36,14 +36,14 @@ ten_backtrace_t *ten_backtrace_create(void) {
     return NULL; // Return NULL if malloc fails, even after assert
   }
 
-  ten_backtrace_common_init(&self->common, ten_backtrace_default_dump_cb,
-                            ten_backtrace_default_error_cb);
+  ten_backtrace_common_init(&self->common, ten_backtrace_default_dump,
+                            ten_backtrace_default_error);
 
   // Initialize all function pointers and data pointers to NULL.
-  self->get_file_line_func = NULL;
-  self->get_file_line_user_data = NULL;
-  self->get_syminfo_func = NULL;
-  self->get_syminfo_user_data = NULL;
+  self->on_get_file_line = NULL;
+  self->on_get_file_line_data = NULL;
+  self->on_get_syminfo = NULL;
+  self->on_get_syminfo_data = NULL;
 
   ten_atomic_store(&self->file_line_init_failed, 0);
 

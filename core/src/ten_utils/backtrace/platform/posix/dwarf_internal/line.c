@@ -40,7 +40,7 @@ static int read_lnct(ten_backtrace_t *self, dwarf_data *ddata, unit *u,
     case DW_LNCT_path:
       if (!resolve_string(self, &ddata->dwarf_sections, u->is_dwarf64,
                           ddata->is_bigendian, u->str_offsets_base, &val,
-                          hdr_buf->error_cb, hdr_buf->data, &path)) {
+                          hdr_buf->on_error, hdr_buf->data, &path)) {
         return 0;
       }
       break;
@@ -378,7 +378,7 @@ static int read_line_header(ten_backtrace_t *self, dwarf_data *ddata, unit *u,
 // building.  Returns 1 on success, 0 on failure.
 static int add_line(ten_backtrace_t *self, dwarf_data *ddata, uintptr_t pc,
                     const char *filename, int lineno,
-                    ten_backtrace_error_func_t error_cb, void *data,
+                    ten_backtrace_on_error_func_t on_error, void *data,
                     line_vector *vec) {
   line *ln = NULL;
 
@@ -440,7 +440,7 @@ static int read_line_program(ten_backtrace_t *self, dwarf_data *ddata,
           (hdr->min_insn_len * (op_index + advance) / hdr->max_ops_per_insn);
       op_index = (op_index + advance) % hdr->max_ops_per_insn;
       lineno += hdr->line_base + (int)(op % hdr->line_range);
-      add_line(self, ddata, address, filename, lineno, line_buf->error_cb,
+      add_line(self, ddata, address, filename, lineno, line_buf->on_error,
                line_buf->data, vec);
     } else if (op == DW_LNS_extended_op) {
       uint64_t len = read_uleb128(self, line_buf);
@@ -519,7 +519,7 @@ static int read_line_program(ten_backtrace_t *self, dwarf_data *ddata,
     } else {
       switch (op) {
       case DW_LNS_copy:
-        add_line(self, ddata, address, filename, lineno, line_buf->error_cb,
+        add_line(self, ddata, address, filename, lineno, line_buf->on_error,
                  line_buf->data, vec);
         break;
       case DW_LNS_advance_pc: {
@@ -587,7 +587,7 @@ static int read_line_program(ten_backtrace_t *self, dwarf_data *ddata,
 
 // Free the line header information.
 void free_line_header(ten_backtrace_t *self, line_header *hdr,
-                      ten_backtrace_error_func_t error_cb, void *data) {
+                      ten_backtrace_on_error_func_t on_error, void *data) {
   if (hdr->dirs_count != 0) {
     free(hdr->dirs);
   }
@@ -618,7 +618,7 @@ static int line_compare(const void *v1, const void *v2) {
 // Read the line number information for a compilation unit.  Returns 1
 // on success, 0 on failure.
 int read_line_info(ten_backtrace_t *self, dwarf_data *ddata,
-                   ten_backtrace_error_func_t error_cb, void *data, unit *u,
+                   ten_backtrace_on_error_func_t on_error, void *data, unit *u,
                    line_header *hdr, line **lines, size_t *lines_count) {
   line_vector vec;
   dwarf_buf line_buf;
@@ -633,7 +633,7 @@ int read_line_info(ten_backtrace_t *self, dwarf_data *ddata,
 
   if (u->lineoff != (off_t)(size_t)u->lineoff ||
       (size_t)u->lineoff >= ddata->dwarf_sections.size[DEBUG_LINE]) {
-    error_cb(self, "unit line offset out of range", 0, data);
+    on_error(self, "unit line offset out of range", 0, data);
     goto fail;
   }
 
@@ -642,7 +642,7 @@ int read_line_info(ten_backtrace_t *self, dwarf_data *ddata,
   line_buf.buf = ddata->dwarf_sections.data[DEBUG_LINE] + u->lineoff;
   line_buf.left = ddata->dwarf_sections.size[DEBUG_LINE] - u->lineoff;
   line_buf.is_bigendian = ddata->is_bigendian;
-  line_buf.error_cb = error_cb;
+  line_buf.on_error = on_error;
   line_buf.data = data;
   line_buf.reported_underflow = 0;
 
@@ -694,7 +694,7 @@ int read_line_info(ten_backtrace_t *self, dwarf_data *ddata,
 fail:
   ten_vector_deinit(&vec.vec);
 
-  free_line_header(self, hdr, error_cb, data);
+  free_line_header(self, hdr, on_error, data);
   *lines = (line *)(uintptr_t)-1;
   *lines_count = 0;
   return 0;
