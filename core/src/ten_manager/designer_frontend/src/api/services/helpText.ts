@@ -5,17 +5,13 @@
 // Refer to the "LICENSE" file in the root directory for more information.
 //
 import { makeAPIRequest } from "@/api/services/utils";
-import { ENDPOINT_ADDONS } from "@/api/endpoints";
+import { ENDPOINT_HELP_TEXT } from "@/api/endpoints";
 import { ENDPOINT_METHOD } from "@/api/endpoints/constant";
 
-export const retrieveAddons = async (payload: {
-  base_dir?: string;
-  addon_name?: string;
-  addon_type?: string;
-}) => {
-  const template = ENDPOINT_ADDONS.addons[ENDPOINT_METHOD.POST];
+export const retrieveHelpText = async (key: string, locale?: string) => {
+  const template = ENDPOINT_HELP_TEXT.helpText[ENDPOINT_METHOD.POST];
   const req = makeAPIRequest(template, {
-    body: payload,
+    body: { key, locale: locale || "en-US" },
   });
   const res = await req;
   return template.responseSchema.parse(res).data;

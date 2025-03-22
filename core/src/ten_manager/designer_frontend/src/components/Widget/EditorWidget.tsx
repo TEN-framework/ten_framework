@@ -15,7 +15,7 @@ import { type editor } from "monaco-editor";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 
-import { getFileContent, putFileContent } from "@/api/services/fileSystem";
+import { retrieveFileContent, putFileContent } from "@/api/services/fileSystem";
 import { ThemeProviderContext } from "@/components/theme-context";
 import { useDialogStore } from "@/store/dialog";
 import { useWidgetStore } from "@/store/widget";
@@ -50,7 +50,7 @@ const EditorWidget = React.forwardRef<unknown, EditorWidgetProps>(
     useEffect(() => {
       const fetchFileContent = async () => {
         try {
-          const respData = await getFileContent(data.url);
+          const respData = await retrieveFileContent(data.url);
           setFileContent(respData.content);
         } catch (error) {
           console.error("Failed to fetch file content:", error);

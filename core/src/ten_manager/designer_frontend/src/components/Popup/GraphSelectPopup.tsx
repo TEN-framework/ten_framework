@@ -96,7 +96,10 @@ export function GraphSelectPopup() {
         });
 
         // Fetch additional addon information for each node.
-        const nodesWithAddonInfo = await fetchAddonInfoForNodes(initialNodes);
+        const nodesWithAddonInfo = await fetchAddonInfoForNodes(
+          baseDir ?? "",
+          initialNodes
+        );
 
         // Auto-layout the nodes and edges.
         const { nodes: layoutedNodes, edges: layoutedEdges } =

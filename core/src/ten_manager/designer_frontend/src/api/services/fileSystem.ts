@@ -20,12 +20,11 @@ import type { IBaseDirResponse } from "@/types/fileSystem";
 
 // request functions -------------------------------
 
-export const getFileContent = async (path: string) => {
-  const encodedPath = encodeURIComponent(path);
-  const template = ENDPOINT_FILE_SYSTEM.fileContent.get;
+export const retrieveFileContent = async (path: string) => {
+  const template = ENDPOINT_FILE_SYSTEM.fileContent.post;
   const req = makeAPIRequest(template, {
-    pathParams: {
-      path: encodedPath,
+    body: {
+      file_path: path,
     },
   });
   const res = await req;
@@ -36,13 +35,12 @@ export const putFileContent = async (
   path: string,
   data: { content: string }
 ) => {
-  const encodedPath = encodeURIComponent(path);
   const template = ENDPOINT_FILE_SYSTEM.fileContent[ENDPOINT_METHOD.PUT];
   const req = makeAPIRequest(template, {
-    pathParams: {
-      path: encodedPath,
+    body: {
+      file_path: path,
+      content: data.content,
     },
-    body: data,
   });
   const res = await req;
   return res;
@@ -70,23 +68,47 @@ export const retrieveDirList = async (path: string) => {
 
 // query hooks -------------------------------
 
+// TODO: refine this hook(post should not be used)
 export const useFileContent = (path: string) => {
-  const template = ENDPOINT_FILE_SYSTEM.fileContent[ENDPOINT_METHOD.GET];
-  const url = prepareReqUrl(template, {
-    pathParams: {
-      path: encodeURIComponent(path),
-    },
+  const template = ENDPOINT_FILE_SYSTEM.fileContent[ENDPOINT_METHOD.POST];
+  const url = prepareReqUrl(template) + `${encodeURIComponent(path)}`;
+  const queryHookCache = getQueryHookCache();
+
+  const [data, setData] = React.useState<{ content: string } | null>(() => {
+    const [cachedData, cachedDataIsExpired] = queryHookCache.get<{
+      content: string;
+    }>(url);
+    if (!cachedData || cachedDataIsExpired) {
+      return null;
+    }
+    return cachedData;
   });
-  const [{ data, error, isLoading }] = useCancelableSWR<
-    z.infer<typeof template.responseSchema>
-  >(url, {
-    revalidateOnFocus: false,
-    refreshInterval: 0,
-  });
+  const [error, setError] = React.useState<Error | null>(null);
+  const [isLoading, setIsLoading] = React.useState<boolean>(false);
+
+  const fetchData = React.useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const res = await retrieveFileContent(path);
+      setData(res);
+      queryHookCache.set(url, res);
+    } catch (err) {
+      setError(err as Error);
+    } finally {
+      setIsLoading(false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [path, url]);
+
+  React.useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
   return {
-    content: data?.data.content,
+    content: data?.content,
     error,
     isLoading,
+    mutate: fetchData,
   };
 };
 

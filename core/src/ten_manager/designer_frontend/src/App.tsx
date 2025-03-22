@@ -80,7 +80,7 @@ const App: React.FC = () => {
 
   return (
     <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
-      <AppBar onAutoLayout={performAutoLayout} className="z-9999" />
+      <AppBar onAutoLayout={performAutoLayout} className="z-9997" />
 
       <ResizablePanelGroup
         key={`resizable-panel-group-${resizablePanelMode}`}
@@ -140,7 +140,7 @@ const App: React.FC = () => {
         <BackstageWidgets />
       </ResizablePanelGroup>
 
-      <StatusBar className="z-9999" />
+      <StatusBar className="z-9997" />
     </ThemeProvider>
   );
 };

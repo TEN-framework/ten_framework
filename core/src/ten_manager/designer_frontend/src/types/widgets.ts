@@ -67,6 +67,7 @@ export enum ELogViewerScriptType {
   DEFAULT = "default",
   RUN_SCRIPT = "run_script",
   INSTALL_ALL = "install_all",
+  INSTALL = "install",
 }
 
 export const LogViewerScriptSchemaMap = {
@@ -80,6 +81,14 @@ export const LogViewerScriptSchemaMap = {
     base_dir: z.string().default(""),
   }),
   [ELogViewerScriptType.DEFAULT]: z.object({}),
+  [ELogViewerScriptType.INSTALL]: z.object({
+    type: z.literal(ELogViewerScriptType.INSTALL),
+    base_dir: z.string().default(""),
+    name: z.string().default(""),
+    pkg_type: z.string().default(""),
+    pkg_name: z.string().default(""),
+    pkg_version: z.string().default(""),
+  }),
 };
 
 export interface ILogViewerWidgetOptions {
