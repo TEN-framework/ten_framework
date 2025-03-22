@@ -12,6 +12,7 @@ on:
       - ".devcontainer/**"
       - ".github/**"
       - "!.github/workflows/build_linux_ubuntu2204.yml"
+      - "core/src/ten_manager/designer_frontend/**"
       - "**.md"
 
 concurrency:

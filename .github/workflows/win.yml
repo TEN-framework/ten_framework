@@ -12,6 +12,7 @@ on:
       - ".devcontainer/**"
       - ".github/**"
       - "!.github/workflows/build_win.yml"
+      - "core/src/ten_manager/designer_frontend/**"
       - "**.md"
 
 concurrency:
