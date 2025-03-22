@@ -257,7 +257,8 @@ static bool ten_app_handle_msg_default_handler(ten_app_t *self,
 static bool ten_app_handle_close_app_cmd(ten_app_t *self,
                                          ten_connection_t *connection,
                                          ten_error_t *err) {
-  TEN_ASSERT(self && ten_app_check_integrity(self, true), "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_app_check_integrity(self, true), "Should not happen.");
 
   if (connection) {
     TEN_ASSERT(ten_connection_check_integrity(connection, true),
@@ -269,6 +270,8 @@ static bool ten_app_handle_close_app_cmd(ten_app_t *self,
     ten_connection_upgrade_migration_state_to_done(connection, NULL);
   }
 
+  TEN_LOGI("[%s] Close app due to 'close_app' cmd.", ten_app_get_uri(self));
+
   ten_app_close(self, err);
 
   return true;
@@ -277,7 +280,8 @@ static bool ten_app_handle_close_app_cmd(ten_app_t *self,
 static bool ten_app_handle_stop_graph_cmd(ten_app_t *self,
                                           ten_shared_ptr_t *cmd,
                                           TEN_UNUSED ten_error_t *err) {
-  TEN_ASSERT(self && ten_app_check_integrity(self, true), "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_app_check_integrity(self, true), "Should not happen.");
   TEN_ASSERT(cmd && ten_cmd_base_check_integrity(cmd), "Should not happen.");
   TEN_ASSERT(ten_msg_get_type(cmd) == TEN_MSG_TYPE_CMD_STOP_GRAPH,
              "Should not happen.");
@@ -526,7 +530,8 @@ bool ten_app_handle_in_msg(ten_app_t *self, ten_connection_t *connection,
 }
 
 static void ten_app_handle_in_msgs_sync(ten_app_t *self) {
-  TEN_ASSERT(self && ten_app_check_integrity(self, true), "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_app_check_integrity(self, true), "Should not happen.");
 
   ten_error_t err;
   TEN_ERROR_INIT(err);

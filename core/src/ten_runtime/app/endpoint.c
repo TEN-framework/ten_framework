@@ -40,7 +40,8 @@ static ten_connection_t *create_connection_when_client_accepted(
 }
 
 bool ten_app_endpoint_listen(ten_app_t *self) {
-  TEN_ASSERT(self && ten_app_check_integrity(self, true), "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_app_check_integrity(self, true), "Should not happen.");
 
   if (!self->endpoint_protocol) {
     return false;

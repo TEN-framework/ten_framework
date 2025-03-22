@@ -60,7 +60,8 @@ static void set_property_context_destroy(ten_app_set_property_context_t *self) {
 
 static void ten_app_set_property_task(void *self_, void *arg) {
   ten_app_t *self = self_;
-  TEN_ASSERT(self && ten_app_check_integrity(self, true), "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_app_check_integrity(self, true), "Should not happen.");
 
   ten_app_set_property_context_t *set_property_context = arg;
   TEN_ASSERT(set_property_context, "Should not happen.");

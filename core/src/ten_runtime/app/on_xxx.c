@@ -116,6 +116,8 @@ bool ten_app_on_ten_env_proxy_released(ten_env_t *self) {
     return true;
   }
 
+  TEN_LOGI("Stop app's runloop.");
+
   ten_runloop_stop(app->loop);
 
   return true;

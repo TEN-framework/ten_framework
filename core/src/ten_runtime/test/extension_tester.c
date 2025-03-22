@@ -121,7 +121,8 @@ ten_extension_tester_t *ten_extension_tester_create(
 void ten_extension_tester_set_test_mode_single(ten_extension_tester_t *self,
                                                const char *addon_name,
                                                const char *property_json_str) {
-  TEN_ASSERT(self && ten_extension_tester_check_integrity(self, true),
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_extension_tester_check_integrity(self, true),
              "Invalid argument.");
   TEN_ASSERT(addon_name, "Invalid argument.");
 
@@ -155,7 +156,8 @@ void ten_extension_tester_set_test_mode_single(ten_extension_tester_t *self,
 
 void ten_extension_tester_set_test_mode_graph(ten_extension_tester_t *self,
                                               const char *graph_json) {
-  TEN_ASSERT(self && ten_extension_tester_check_integrity(self, true),
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_extension_tester_check_integrity(self, true),
              "Invalid argument.");
   TEN_ASSERT(graph_json, "Invalid argument.");
 
@@ -166,7 +168,8 @@ void ten_extension_tester_set_test_mode_graph(ten_extension_tester_t *self,
 
 void ten_extension_tester_init_test_app_property_from_json(
     ten_extension_tester_t *self, const char *property_json_str) {
-  TEN_ASSERT(self && ten_extension_tester_check_integrity(self, true),
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_extension_tester_check_integrity(self, true),
              "Invalid argument.");
   TEN_ASSERT(property_json_str, "Invalid argument.");
 
@@ -176,7 +179,8 @@ void ten_extension_tester_init_test_app_property_from_json(
 
 void ten_extension_tester_add_addon_base_dir(ten_extension_tester_t *self,
                                              const char *addon_base_dir) {
-  TEN_ASSERT(self && ten_extension_tester_check_integrity(self, true),
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_extension_tester_check_integrity(self, true),
              "Invalid argument.");
   TEN_ASSERT(addon_base_dir, "Invalid argument.");
 
@@ -315,7 +319,8 @@ static void test_app_ten_env_send_start_graph_cmd(ten_env_t *ten_env,
 
 static void ten_extension_tester_create_and_start_graph(
     ten_extension_tester_t *self) {
-  TEN_ASSERT(self && ten_extension_tester_check_integrity(self, true),
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_extension_tester_check_integrity(self, true),
              "Invalid argument.");
   TEN_ASSERT(self->test_mode != TEN_EXTENSION_TESTER_TEST_MODE_INVALID,
              "Invalid test mode.");
@@ -463,7 +468,8 @@ static void ten_extension_tester_create_and_start_graph(
 
 static void ten_extension_tester_create_and_run_app(
     ten_extension_tester_t *self) {
-  TEN_ASSERT(self && ten_extension_tester_check_integrity(self, true),
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_extension_tester_check_integrity(self, true),
              "Invalid argument.");
 
   // Create the tester app.
@@ -513,7 +519,8 @@ void ten_extension_tester_on_start_done(ten_extension_tester_t *self) {
 }
 
 void ten_extension_tester_on_stop_done(ten_extension_tester_t *self) {
-  TEN_ASSERT(self && ten_extension_tester_check_integrity(self, true),
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_extension_tester_check_integrity(self, true),
              "Invalid argument.");
   TEN_ASSERT(self->test_extension_ten_env_proxy,
              "The test extension should have been created its ten_env_proxy.");
@@ -528,7 +535,8 @@ void ten_extension_tester_on_stop_done(ten_extension_tester_t *self) {
 }
 
 void ten_extension_tester_on_deinit_done(ten_extension_tester_t *self) {
-  TEN_ASSERT(self && ten_extension_tester_check_integrity(self, true),
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_extension_tester_check_integrity(self, true),
              "Invalid argument.");
   TEN_ASSERT(self->test_extension_ten_env_proxy,
              "The test extension should have been created its ten_env_proxy.");
@@ -557,7 +565,8 @@ void ten_extension_tester_on_deinit_done(ten_extension_tester_t *self) {
 }
 
 void ten_extension_tester_on_test_extension_init(ten_extension_tester_t *self) {
-  TEN_ASSERT(self && ten_extension_tester_check_integrity(self, true),
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_extension_tester_check_integrity(self, true),
              "Invalid argument.");
 
   if (self->on_init) {
@@ -569,7 +578,8 @@ void ten_extension_tester_on_test_extension_init(ten_extension_tester_t *self) {
 
 void ten_extension_tester_on_test_extension_start(
     ten_extension_tester_t *self) {
-  TEN_ASSERT(self && ten_extension_tester_check_integrity(self, true),
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_extension_tester_check_integrity(self, true),
              "Invalid argument.");
 
   if (self->on_start) {
@@ -580,7 +590,8 @@ void ten_extension_tester_on_test_extension_start(
 }
 
 void ten_extension_tester_on_test_extension_stop(ten_extension_tester_t *self) {
-  TEN_ASSERT(self && ten_extension_tester_check_integrity(self, true),
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_extension_tester_check_integrity(self, true),
              "Invalid argument.");
 
   if (self->on_stop) {
@@ -592,7 +603,8 @@ void ten_extension_tester_on_test_extension_stop(ten_extension_tester_t *self) {
 
 void ten_extension_tester_on_test_extension_deinit(
     ten_extension_tester_t *self) {
-  TEN_ASSERT(self && ten_extension_tester_check_integrity(self, true),
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_extension_tester_check_integrity(self, true),
              "Invalid argument.");
 
   if (self->on_deinit) {
@@ -605,7 +617,8 @@ void ten_extension_tester_on_test_extension_deinit(
 static void ten_extension_tester_on_first_task(void *self_,
                                                TEN_UNUSED void *arg) {
   ten_extension_tester_t *self = (ten_extension_tester_t *)self_;
-  TEN_ASSERT(self && ten_extension_tester_check_integrity(self, true),
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_extension_tester_check_integrity(self, true),
              "Invalid argument.");
 
   ten_extension_tester_create_and_run_app(self);
@@ -653,7 +666,8 @@ bool ten_extension_tester_run(ten_extension_tester_t *self) {
 
 ten_env_tester_t *ten_extension_tester_get_ten_env_tester(
     ten_extension_tester_t *self) {
-  TEN_ASSERT(self && ten_extension_tester_check_integrity(self, true),
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_extension_tester_check_integrity(self, true),
              "Invalid argument.");
 
   return self->ten_env_tester;

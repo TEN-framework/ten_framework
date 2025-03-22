@@ -8,6 +8,7 @@
 
 #include "include_internal/ten_utils/backtrace/platform/posix/dwarf_internal/line.h"
 
+#include <assert.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -72,14 +73,11 @@ static int read_lnct(ten_backtrace_t *self, dwarf_data *ddata, unit *u,
   if (dir == NULL) {
     *string = path;
   } else {
-    size_t dir_len = 0;
-    size_t path_len = 0;
-    char *s = NULL;
-
-    dir_len = strlen(dir);
-    path_len = strlen(path);
-    s = (char *)malloc(dir_len + path_len + 2);
+    size_t dir_len = strlen(dir);
+    size_t path_len = strlen(path);
+    char *s = (char *)malloc(dir_len + path_len + 2);
     if (s == NULL) {
+      assert(0 && "Failed to allocate memory.");
       return 0;
     }
 
@@ -106,7 +104,6 @@ static int read_line_header_format_entries(ten_backtrace_t *self,
   size_t formats_count = 0;
   line_header_format *formats = NULL;
   size_t paths_count = 0;
-  const char **paths = NULL;
   size_t i = 0;
   int ret = 0;
 
@@ -134,8 +131,10 @@ static int read_line_header_format_entries(ten_backtrace_t *self,
     goto exit;
   }
 
-  paths = (const char **)malloc(paths_count * sizeof(const char *));
+  const char **paths =
+      (const char **)malloc(paths_count * sizeof(const char *));
   if (paths == NULL) {
+    assert(0 && "Failed to allocate memory.");
     ret = 0;
     goto exit;
   }
@@ -195,6 +194,7 @@ static int read_v2_paths(ten_backtrace_t *self, unit *u, dwarf_buf *hdr_buf,
   ++hdr->dirs_count;
   hdr->dirs = (const char **)malloc(hdr->dirs_count * sizeof(const char *));
   if (hdr->dirs == NULL) {
+    assert(0 && "Failed to allocate memory.");
     return 0;
   }
 
@@ -589,10 +589,12 @@ static int read_line_program(ten_backtrace_t *self, dwarf_data *ddata,
 // Free the line header information.
 void free_line_header(ten_backtrace_t *self, line_header *hdr,
                       ten_backtrace_on_error_func_t on_error, void *data) {
-  if (hdr->dirs_count != 0) {
+  if ((hdr->dirs_count != 0) && (hdr->dirs != NULL)) {
     free(hdr->dirs);
   }
-  free(hdr->filenames);
+  if ((hdr->filenames_count != 0) && (hdr->filenames != NULL)) {
+    free(hdr->filenames);
+  }
 }
 
 // Sort the line vector by PC.  We want a stable sort here to maintain

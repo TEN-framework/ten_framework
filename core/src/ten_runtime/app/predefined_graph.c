@@ -254,7 +254,8 @@ bool ten_app_start_predefined_graph(
 
 bool ten_app_start_auto_start_predefined_graph(ten_app_t *self,
                                                ten_error_t *err) {
-  TEN_ASSERT(self && ten_app_check_integrity(self, true), "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_app_check_integrity(self, true), "Should not happen.");
 
   ten_list_foreach (&self->predefined_graph_infos, iter) {
     ten_predefined_graph_info_t *predefined_graph_info =
@@ -314,7 +315,8 @@ ten_predefined_graph_info_t *ten_predefined_graph_infos_get_singleton_by_name(
 bool ten_app_get_predefined_graph_extensions_and_groups_info_by_name(
     ten_app_t *self, const char *name, ten_list_t *extensions_info,
     ten_list_t *extension_groups_info, ten_error_t *err) {
-  TEN_ASSERT(self && ten_app_check_integrity(self, true), "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_app_check_integrity(self, true), "Should not happen.");
   TEN_ASSERT(name, "Invalid argument.");
   TEN_ASSERT(extensions_info, "Should not happen.");
 
@@ -354,7 +356,8 @@ ten_engine_t *ten_app_get_singleton_predefined_graph_engine_by_name(
 }
 
 bool ten_app_get_predefined_graphs_from_property(ten_app_t *self) {
-  TEN_ASSERT(self && ten_app_check_integrity(self, true), "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_app_check_integrity(self, true), "Should not happen.");
 
   bool result = true;
 

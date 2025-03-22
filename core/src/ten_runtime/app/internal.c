@@ -87,7 +87,8 @@ void ten_app_start(ten_app_t *self) {
 
 void ten_app_add_orphan_connection(ten_app_t *self,
                                    ten_connection_t *connection) {
-  TEN_ASSERT(self && ten_app_check_integrity(self, true), "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_app_check_integrity(self, true), "Should not happen.");
   TEN_ASSERT(connection && ten_connection_check_integrity(connection, true),
              "Should not happen.");
 
@@ -106,7 +107,8 @@ void ten_app_add_orphan_connection(ten_app_t *self,
 
 void ten_app_del_orphan_connection(ten_app_t *self,
                                    ten_connection_t *connection) {
-  TEN_ASSERT(self && ten_app_check_integrity(self, true), "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_app_check_integrity(self, true), "Should not happen.");
   // TEN_NOLINTNEXTLINE(thread-check)
   // thread-check: this function is always called in the app thread, however,
   // this function maybe called _after_ the connection has migrated to the
@@ -130,7 +132,8 @@ void ten_app_del_orphan_connection(ten_app_t *self,
 
 bool ten_app_has_orphan_connection(ten_app_t *self,
                                    ten_connection_t *connection) {
-  TEN_ASSERT(self && ten_app_check_integrity(self, true), "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_app_check_integrity(self, true), "Should not happen.");
   TEN_ASSERT(connection && ten_connection_check_integrity(connection, true),
              "Should not happen.");
 

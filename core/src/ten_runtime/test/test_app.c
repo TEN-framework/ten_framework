@@ -49,7 +49,8 @@ static void test_app_on_configure(TEN_UNUSED ten_app_t *app,
 // app can access the tester's pointer through this app property.
 static void store_tester_as_app_property(ten_extension_tester_t *tester,
                                          ten_env_t *ten_env) {
-  TEN_ASSERT(tester && ten_extension_tester_check_integrity(tester, false),
+  TEN_ASSERT(tester, "Invalid argument.");
+  TEN_ASSERT(ten_extension_tester_check_integrity(tester, false),
              "Invalid argument.");
   TEN_ASSERT(ten_env, "Invalid argument.");
   TEN_ASSERT(ten_env_check_integrity(ten_env, true), "Invalid argument.");
@@ -66,7 +67,8 @@ static void store_tester_as_app_property(ten_extension_tester_t *tester,
 
 static void create_ten_env_proxy_for_tester(ten_extension_tester_t *tester,
                                             ten_env_t *ten_env) {
-  TEN_ASSERT(tester && ten_extension_tester_check_integrity(tester, false),
+  TEN_ASSERT(tester, "Invalid argument.");
+  TEN_ASSERT(ten_extension_tester_check_integrity(tester, false),
              "Invalid argument.");
   TEN_ASSERT(ten_env, "Invalid argument.");
   TEN_ASSERT(ten_env_check_integrity(ten_env, true), "Invalid argument.");
@@ -144,7 +146,8 @@ void *ten_builtin_test_app_thread_main(void *args) {
   TEN_ASSERT(test_app, "Failed to create app.");
 
   ten_extension_tester_t *tester = args;
-  TEN_ASSERT(tester && ten_extension_tester_check_integrity(tester, false),
+  TEN_ASSERT(tester, "Invalid argument.");
+  TEN_ASSERT(ten_extension_tester_check_integrity(tester, false),
              "Invalid argument.");
 
   test_app->user_data = tester;
@@ -160,7 +163,11 @@ void *ten_builtin_test_app_thread_main(void *args) {
   bool rc = ten_app_run(test_app, false, &err);
   TEN_ASSERT(rc, "Should not happen.");
 
+  TEN_LOGI("test_app's runloop ends.");
+
   ten_app_destroy(test_app);
+
+  TEN_LOGI("test_app is destroyed.");
 
   return NULL;
 }

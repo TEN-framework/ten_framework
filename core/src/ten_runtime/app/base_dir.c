@@ -57,7 +57,8 @@ ten_string_t *ten_find_app_base_dir(void) {
 }
 
 void ten_app_find_and_set_base_dir(ten_app_t *self) {
-  TEN_ASSERT(self && ten_app_check_integrity(self, true), "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_app_check_integrity(self, true), "Should not happen.");
 
   ten_string_t *app_base_dir = ten_find_app_base_dir();
   if (!app_base_dir) {

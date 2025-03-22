@@ -102,7 +102,8 @@ static void ten_app_add_engine(ten_app_t *self, ten_engine_t *engine) {
  *       thread safety when adding the engine to the app's engine list.
  */
 ten_engine_t *ten_app_create_engine(ten_app_t *self, ten_shared_ptr_t *cmd) {
-  TEN_ASSERT(self && ten_app_check_integrity(self, true), "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_app_check_integrity(self, true), "Should not happen.");
   TEN_ASSERT(cmd && ten_cmd_base_check_integrity(cmd), "Should not happen.");
 
   TEN_LOGD("[%s] App creates an engine.", ten_app_get_uri(self));
@@ -177,7 +178,8 @@ static ten_engine_t *ten_app_get_engine_by_graph_id_internal(
 ten_predefined_graph_info_t *
 ten_app_get_singleton_predefined_graph_info_by_name(ten_app_t *self,
                                                     const char *graph_name) {
-  TEN_ASSERT(self && ten_app_check_integrity(self, true), "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_app_check_integrity(self, true), "Should not happen.");
   TEN_ASSERT(graph_name, "Invalid graph_name pointer.");
 
   if (strlen(graph_name) == 0) {
