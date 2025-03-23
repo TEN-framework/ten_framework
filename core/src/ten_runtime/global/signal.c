@@ -259,7 +259,6 @@ void ten_global_setup_signal_stuff(void) {
 
 #else
 
-#include <dbghelp.h>
 #include <windows.h>
 
 static volatile LONG ctrl_c_count = 0;
