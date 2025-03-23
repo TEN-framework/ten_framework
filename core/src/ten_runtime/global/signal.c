@@ -266,7 +266,7 @@ static volatile LONG ctrl_c_count = 0;
 /**
  * @brief Exception filter for handling access violations (segmentation faults).
  */
-LONG WINAPI UnhandledExceptionFilter(EXCEPTION_POINTERS *ExceptionInfo) {
+LONG WINAPI TenUnhandledExceptionFilter(EXCEPTION_POINTERS *ExceptionInfo) {
   // Only handle access violations (segmentation faults).
   if (ExceptionInfo->ExceptionRecord->ExceptionCode ==
       EXCEPTION_ACCESS_VIOLATION) {
@@ -341,7 +341,7 @@ void ten_global_setup_signal_stuff(void) {
     }
 
     // Register exception handler for access violations (segmentation faults).
-    SetUnhandledExceptionFilter(UnhandledExceptionFilter);
+    SetUnhandledExceptionFilter(TenUnhandledExceptionFilter);
   }
 }
 
