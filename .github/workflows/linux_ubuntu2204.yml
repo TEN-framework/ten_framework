@@ -261,7 +261,7 @@ jobs:
 
       - name: Extract tests artifacts preserving permissions
         run: |
-          tar -xzvf out/linux/${{ matrix.arch }}/tests-artifacts.tar.gz
+          tar -xzf out/linux/${{ matrix.arch }}/tests-artifacts.tar.gz
 
       - name: View folder structure content
         run: |
@@ -445,7 +445,7 @@ jobs:
 
       - name: Extract tests artifacts preserving permissions
         run: |
-          tar -xzvf out/linux/${{ matrix.arch }}/tests-artifacts.tar.gz
+          tar -xzf out/linux/${{ matrix.arch }}/tests-artifacts.tar.gz
 
       - name: View folder structure content
         run: |

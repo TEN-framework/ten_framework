@@ -136,7 +136,7 @@ jobs:
 
       - name: Extract tests artifacts preserving permissions
         run: |
-          tar -xzvf out/mac/arm64/tests-artifacts.tar.gz
+          tar -xzf out/mac/arm64/tests-artifacts.tar.gz
 
       - name: View folder structure content
         run: |
