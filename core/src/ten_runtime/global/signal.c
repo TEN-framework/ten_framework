@@ -7,15 +7,15 @@
 #include "include_internal/ten_runtime/global/signal.h"
 
 #include <assert.h>
-#include <pthread.h>
 #include <signal.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <string.h>
-#include <unistd.h>
 
 #if !defined(OS_WINDOWS)
 #include <execinfo.h>
+#include <pthread.h>
+#include <unistd.h>
 #endif
 
 #include "include_internal/ten_runtime/app/close.h"
