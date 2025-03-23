@@ -92,7 +92,7 @@ static void retrieve_windows_backtrace_funcs(ten_backtrace_win_t *self) {
 ten_backtrace_t *ten_backtrace_create(void) {
   ten_backtrace_win_t *self = malloc(sizeof(ten_backtrace_win_t));
   if (!self) {
-    assert(self && "Failed to allocate memory.");
+    assert(0 && "Failed to allocate memory.");
 
     // Return NULL if malloc fails.
     return NULL;
@@ -115,15 +115,9 @@ ten_backtrace_t *ten_backtrace_create(void) {
  * @param self Pointer to the backtrace object to destroy. Must not be NULL.
  */
 void ten_backtrace_destroy(ten_backtrace_t *self) {
-  if (!self) {
-    assert(self && "Invalid argument.");
-
-    // Return early to avoid dereferencing NULL pointer.
-    return;
-  }
+  assert(self && "Invalid argument.");
 
   ten_backtrace_common_deinit(self);
-
   free(self);
 }
 
@@ -174,6 +168,13 @@ void ten_backtrace_dump(ten_backtrace_t *self, size_t skip) {
   USHORT frames = win_self->RtlCaptureStackBackTrace(
       0, MAX_CAPTURED_CALL_STACK_DEPTH, stack, NULL);
 
+  if (skip >= frames) {
+    fprintf(stderr, "Skip count (%zu) exceeds available frames (%hu).\n", skip,
+            frames);
+    win_self->SymCleanup(process);
+    return;
+  }
+
   // Allocate memory for symbol information.
   SYMBOL_INFO *symbol = (SYMBOL_INFO *)calloc(
       offsetof(SYMBOL_INFO, Name) + 256 * sizeof(symbol->Name[0]), 1);
@@ -217,6 +218,5 @@ void ten_backtrace_dump(ten_backtrace_t *self, size_t skip) {
 
   // Clean up.
   free(symbol);
-
   win_self->SymCleanup(process);
 }

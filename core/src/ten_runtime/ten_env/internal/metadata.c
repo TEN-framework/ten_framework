@@ -211,7 +211,8 @@ bool ten_env_init_property_from_json(ten_env_t *self, const char *json_string,
   switch (self->attach_to) {
   case TEN_ENV_ATTACH_TO_EXTENSION: {
     ten_extension_t *extension = self->attached_target.extension;
-    TEN_ASSERT(extension && ten_extension_check_integrity(extension, true),
+    TEN_ASSERT(extension, "Should not happen.");
+    TEN_ASSERT(ten_extension_check_integrity(extension, true),
                "Should not happen.");
 
     if (extension->state != TEN_EXTENSION_STATE_ON_CONFIGURE) {

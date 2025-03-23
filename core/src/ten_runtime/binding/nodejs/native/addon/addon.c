@@ -391,7 +391,8 @@ static void proxy_on_destroy_instance(ten_addon_t *addon, ten_env_t *ten_env,
              "Should not happen.");
 
   ten_extension_t *extension = extension_bridge->c_extension;
-  TEN_ASSERT(extension && ten_extension_check_integrity(extension, true),
+  TEN_ASSERT(extension, "Should not happen.");
+  TEN_ASSERT(ten_extension_check_integrity(extension, true),
              "Should not happen.");
 
   ten_addon_host_t *addon_host = extension->addon_host;

@@ -176,6 +176,8 @@ bool ten_placeholder_resolve(ten_placeholder_t *self,
   switch (self->scope) {
   case TEN_PLACEHOLDER_SCOPE_ENV: {
     const char *variable_name = ten_string_get_raw_str(&self->variable);
+
+    // NOLINTNEXTLINE(concurrency-mt-unsafe)
     const char *env_value = getenv(variable_name);
 
     if (env_value != NULL) {

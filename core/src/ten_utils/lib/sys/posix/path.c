@@ -62,6 +62,7 @@ ten_string_t *ten_path_get_cwd(void) {
 }
 
 ten_string_t *ten_path_get_home_path(void) {
+  // NOLINTNEXTLINE(concurrency-mt-unsafe)
   char *home = getenv("HOME");
   if (!home) {
     TEN_LOGE("Failed to get HOME environment variable: %d", errno);

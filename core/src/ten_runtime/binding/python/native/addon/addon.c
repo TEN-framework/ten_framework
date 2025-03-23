@@ -216,7 +216,8 @@ static void proxy_on_destroy_instance_async(ten_addon_t *addon,
     ten_py_extension_t *py_extension = (ten_py_extension_t *)py_instance;
 
     ten_extension_t *extension = py_extension->c_extension;
-    TEN_ASSERT(extension && ten_extension_check_integrity(extension, true),
+    TEN_ASSERT(extension, "Should not happen.");
+    TEN_ASSERT(ten_extension_check_integrity(extension, true),
                "Should not happen.");
 
     TEN_ASSERT(extension == instance, "Should not happen.");
