@@ -55,6 +55,7 @@ static ten_backtrace_t *g_backtrace_for_memory_check = NULL;
 
 static void ten_sanitizer_memory_record_check_enabled(void) {
 #if defined(TEN_ENABLE_MEMORY_CHECK)
+  // NOLINTNEXTLINE(concurrency-mt-unsafe)
   char *enable_memory_sanitizer = getenv("TEN_ENABLE_MEMORY_TRACKING");
   if (enable_memory_sanitizer && !strcmp(enable_memory_sanitizer, "true")) {
     g_memory_records_enabled = true;

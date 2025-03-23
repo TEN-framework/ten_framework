@@ -14,6 +14,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+#if !defined(OS_WINDOWS)
+#include <unistd.h>
+#endif
+
 #include "include_internal/ten_utils/backtrace/backtrace.h"
 #include "include_internal/ten_utils/backtrace/file.h"
 #include "ten_utils/backtrace/backtrace.h"
@@ -117,12 +121,17 @@ int ten_backtrace_default_dump(ten_backtrace_t *self, uintptr_t pc,
   }
 #endif
 
+#if defined(OS_WINDOWS)
   int result = fprintf(stderr, "%s@%s:%d (0x%0" PRIxPTR ")\n", safe_function,
                        safe_filename, lineno, pc);
+#else
+  int result = dprintf(STDERR_FILENO, "%s@%s:%d (0x%0" PRIxPTR ")\n",
+                       safe_function, safe_filename, lineno, pc);
+#endif
 
-  // Check if fprintf failed.
+  // Check if fprintf/dprintf failed.
   if (result < 0) {
-    assert(0 && "Failed to fprintf(stderr).");
+    assert(0 && "Failed to fprintf/dprintf(stderr).");
     return -1;
   }
 
@@ -222,6 +231,7 @@ void ten_backtrace_dump_global(size_t skip) {
     return;
   }
 
+  // NOLINTNEXTLINE(concurrency-mt-unsafe)
   const char *enable_backtrace_dump = getenv("TEN_ENABLE_BACKTRACE_DUMP");
   // getenv might return NULL, so check that first.
   if (enable_backtrace_dump && !strcmp(enable_backtrace_dump, "true")) {

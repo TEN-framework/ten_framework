@@ -53,7 +53,7 @@ void ten_engine_on_remove_extension_thread_from_engine(void *self_, void *arg) {
   }
 }
 
-void ten_engine_on_extension_thread_closed(void *self_, void *arg) {
+void ten_engine_on_extension_thread_closed_task(void *self_, void *arg) {
   ten_engine_t *self = self_;
   TEN_ASSERT(self, "Should not happen.");
   TEN_ASSERT(ten_engine_check_integrity(self, true), "Should not happen.");
@@ -69,11 +69,13 @@ void ten_engine_on_extension_thread_closed(void *self_, void *arg) {
 
   TEN_LOGD("[%s] Waiting for extension thread (%p) be reclaimed.",
            ten_engine_get_id(self, true), extension_thread);
+
   TEN_UNUSED int rc =
       ten_thread_join(ten_sanitizer_thread_check_get_belonging_thread(
                           &extension_thread->thread_check),
                       -1);
   TEN_ASSERT(!rc, "Should not happen.");
+
   TEN_LOGD("[%s] Extension thread (%p) is reclaimed.",
            ten_engine_get_id(self, true), extension_thread);
 

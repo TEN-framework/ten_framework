@@ -320,6 +320,7 @@ static void ten_app_unregister_addons_after_app_close(ten_app_t *self) {
   TEN_ASSERT(self, "Should not happen.");
   TEN_ASSERT(ten_app_check_integrity(self, true), "Should not happen.");
 
+  // NOLINTNEXTLINE(concurrency-mt-unsafe)
   const char *disabled = getenv("TEN_DISABLE_ADDON_UNREGISTER_AFTER_APP_CLOSE");
   if (disabled && !strcmp(disabled, "true")) {
     return;

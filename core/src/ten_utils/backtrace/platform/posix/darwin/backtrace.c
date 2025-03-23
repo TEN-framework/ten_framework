@@ -11,6 +11,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 #include "include_internal/ten_utils/backtrace/common.h"
 #include "include_internal/ten_utils/backtrace/platform/posix/darwin/internal.h"
@@ -115,8 +116,8 @@ void ten_backtrace_dump(ten_backtrace_t *self, size_t skip) {
   skip = (skip < frames) ? skip : frames;
 
   for (size_t i = skip; i < frames; ++i) {
-    if (fprintf(stderr, "%s\n", strs[i]) < 0) {
-      assert(0 && "Failed to fprintf(stderr).");
+    if (dprintf(STDERR_FILENO, "%s\n", strs[i]) < 0) {
+      assert(0 && "Failed to dprintf(stderr).");
     }
   }
 

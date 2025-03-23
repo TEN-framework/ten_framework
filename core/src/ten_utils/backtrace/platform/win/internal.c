@@ -8,9 +8,7 @@
 
 #include "include_internal/ten_utils/backtrace/platform/win/internal.h"
 
-#include <Windows.h>
 #include <assert.h>
-#include <dbghelp.h>
 #include <inttypes.h>
 #include <stddef.h>
 #include <stdio.h>
@@ -33,45 +31,67 @@
 static void retrieve_windows_backtrace_funcs(ten_backtrace_win_t *self) {
   assert(self && "Invalid argument.");
 
-  HMODULE dll_handle = LoadLibraryA("DbgHelp.dll");
-  if (dll_handle != NULL) {
-    self->SymFromAddr =
-        (win_SymFromAddr_func_t)GetProcAddress(dll_handle, "SymFromAddr");
-    assert(self->SymFromAddr && "Failed to find DbgHelp.SymFromAddr");
+  self->dbghelp_handle = LoadLibraryA("DbgHelp.dll");
+  if (self->dbghelp_handle != NULL) {
+    self->SymFromAddr = (win_SymFromAddr_func_t)GetProcAddress(
+        self->dbghelp_handle, "SymFromAddr");
+    if (!self->SymFromAddr) {
+      fprintf(stderr, "Warning: Failed to find DbgHelp.SymFromAddr\n");
+      assert(0 && "Failed to find DbgHelp.SymFromAddr");
+    }
 
     self->SymGetLineFromAddr = (win_SymGetLineFromAddr_func_t)GetProcAddress(
-        dll_handle, "SymGetLineFromAddr64");
-    assert(self->SymGetLineFromAddr &&
-           "Failed to find DbgHelp.SymGetLineFromAddr");
+        self->dbghelp_handle, "SymGetLineFromAddr64");
+    if (!self->SymGetLineFromAddr) {
+      fprintf(stderr, "Warning: Failed to find DbgHelp.SymGetLineFromAddr\n");
+      assert(0 && "Failed to find DbgHelp.SymGetLineFromAddr");
+    }
 
-    self->SymInitialize =
-        (win_SymInitialize_func_t)GetProcAddress(dll_handle, "SymInitialize");
-    assert(self->SymInitialize && "Failed to find DbgHelp.SymInitialize");
+    self->SymInitialize = (win_SymInitialize_func_t)GetProcAddress(
+        self->dbghelp_handle, "SymInitialize");
+    if (!self->SymInitialize) {
+      fprintf(stderr, "Warning: Failed to find DbgHelp.SymInitialize\n");
+      assert(0 && "Failed to find DbgHelp.SymInitialize");
+    }
 
-    self->SymCleanup =
-        (win_SymCleanup_func_t)GetProcAddress(dll_handle, "SymCleanup");
-    assert(self->SymCleanup && "Failed to find DbgHelp.SymCleanup");
+    self->SymCleanup = (win_SymCleanup_func_t)GetProcAddress(
+        self->dbghelp_handle, "SymCleanup");
+    if (!self->SymCleanup) {
+      fprintf(stderr, "Warning: Failed to find DbgHelp.SymCleanup\n");
+      assert(0 && "Failed to find DbgHelp.SymCleanup");
+    }
 
-    self->SymGetOptions =
-        (win_SymGetOptions_func_t)GetProcAddress(dll_handle, "SymGetOptions");
-    assert(self->SymGetOptions && "Failed to find DbgHelp.SymGetOptions");
+    self->SymGetOptions = (win_SymGetOptions_func_t)GetProcAddress(
+        self->dbghelp_handle, "SymGetOptions");
+    if (!self->SymGetOptions) {
+      fprintf(stderr, "Warning: Failed to find DbgHelp.SymGetOptions\n");
+      assert(0 && "Failed to find DbgHelp.SymGetOptions");
+    }
 
-    self->SymSetOptions =
-        (win_SymSetOptions_func_t)GetProcAddress(dll_handle, "SymSetOptions");
-    assert(self->SymSetOptions && "Failed to find DbgHelp.SymSetOptions");
+    self->SymSetOptions = (win_SymSetOptions_func_t)GetProcAddress(
+        self->dbghelp_handle, "SymSetOptions");
+    if (!self->SymSetOptions) {
+      fprintf(stderr, "Warning: Failed to find DbgHelp.SymSetOptions\n");
+      assert(0 && "Failed to find DbgHelp.SymSetOptions");
+    }
   } else {
-    assert(0 && "Failed to find DbgHelp.dll");
+    fprintf(stderr, "Warning: Failed to load DbgHelp.dll\n");
+    assert(0 && "Failed to load DbgHelp.dll");
   }
 
-  dll_handle = LoadLibraryA("NtDll.dll");
-  if (dll_handle != NULL) {
+  self->ntdll_handle = LoadLibraryA("NtDll.dll");
+  if (self->ntdll_handle != NULL) {
     self->RtlCaptureStackBackTrace =
         (win_RtlCaptureStackBackTrace_func_t)GetProcAddress(
-            dll_handle, "RtlCaptureStackBackTrace");
-    assert(self->RtlCaptureStackBackTrace &&
-           "Failed to find NtDll.RtlCaptureStackBackTrace");
+            self->ntdll_handle, "RtlCaptureStackBackTrace");
+    if (!self->RtlCaptureStackBackTrace) {
+      fprintf(stderr,
+              "Warning: Failed to find NtDll.RtlCaptureStackBackTrace\n");
+      assert(0 && "Failed to find NtDll.RtlCaptureStackBackTrace");
+    }
   } else {
-    assert(0 && "Failed to find NtDll.dll");
+    fprintf(stderr, "Warning: Failed to load NtDll.dll\n");
+    assert(0 && "Failed to load NtDll.dll");
   }
 }
 
@@ -90,11 +110,10 @@ static void retrieve_windows_backtrace_funcs(ten_backtrace_win_t *self) {
  * no longer needed.
  */
 ten_backtrace_t *ten_backtrace_create(void) {
-  ten_backtrace_win_t *self = malloc(sizeof(ten_backtrace_win_t));
+  ten_backtrace_win_t *self = calloc(1, sizeof(ten_backtrace_win_t));
   if (!self) {
-    assert(self && "Failed to allocate memory.");
-
-    // Return NULL if malloc fails.
+    fprintf(stderr, "Error: Failed to allocate memory for backtrace.\n");
+    assert(0 && "Failed to allocate memory.");
     return NULL;
   }
 
@@ -116,14 +135,22 @@ ten_backtrace_t *ten_backtrace_create(void) {
  */
 void ten_backtrace_destroy(ten_backtrace_t *self) {
   if (!self) {
-    assert(self && "Invalid argument.");
-
-    // Return early to avoid dereferencing NULL pointer.
+    assert(0 && "Invalid argument.");
     return;
   }
 
-  ten_backtrace_common_deinit(self);
+  ten_backtrace_win_t *self_win = (ten_backtrace_win_t *)self;
 
+  // Clean up DLL handles
+  if (self_win->dbghelp_handle) {
+    FreeLibrary(self_win->dbghelp_handle);
+  }
+
+  if (self_win->ntdll_handle) {
+    FreeLibrary(self_win->ntdll_handle);
+  }
+
+  ten_backtrace_common_deinit(self);
   free(self);
 }
 
@@ -141,28 +168,30 @@ void ten_backtrace_destroy(ten_backtrace_t *self) {
  */
 void ten_backtrace_dump(ten_backtrace_t *self, size_t skip) {
   if (!self) {
-    assert(self && "Invalid argument.");
+    fprintf(stderr, "Error: Invalid backtrace object.\n");
+    assert(0 && "Invalid argument.");
     return;
   }
 
-  ten_backtrace_win_t *win_self = (ten_backtrace_win_t *)self;
+  ten_backtrace_win_t *self_win = (ten_backtrace_win_t *)self;
 
-  if (win_self->SymInitialize == NULL || win_self->SymCleanup == NULL ||
-      win_self->SymGetOptions == NULL || win_self->SymSetOptions == NULL ||
-      win_self->SymFromAddr == NULL || win_self->SymGetLineFromAddr == NULL ||
-      win_self->RtlCaptureStackBackTrace == NULL) {
-    fprintf(stderr, "Failed to retrieve Windows backtrace functions.\n");
+  // Check if we have all required function pointers.
+  if (!self_win->SymInitialize || !self_win->SymCleanup ||
+      !self_win->SymGetOptions || !self_win->SymSetOptions ||
+      !self_win->SymFromAddr || !self_win->SymGetLineFromAddr ||
+      !self_win->RtlCaptureStackBackTrace) {
+    fprintf(stderr, "Missing required Windows backtrace functions.\n");
     return;
   }
 
   HANDLE process = GetCurrentProcess();
 
   // Configure symbol handler options.
-  win_self->SymSetOptions(win_self->SymGetOptions() | SYMOPT_LOAD_LINES |
+  self_win->SymSetOptions(self_win->SymGetOptions() | SYMOPT_LOAD_LINES |
                           SYMOPT_DEFERRED_LOADS);
 
-  // Initialize symbol handler
-  if (!win_self->SymInitialize(process, NULL, TRUE)) {
+  // Initialize symbol handler.
+  if (!self_win->SymInitialize(process, NULL, TRUE)) {
     fprintf(stderr, "Failed to initialize symbol handler: %lu\n",
             GetLastError());
     return;
@@ -171,19 +200,35 @@ void ten_backtrace_dump(ten_backtrace_t *self, size_t skip) {
   // Capture the stack trace.
   void *stack[MAX_CAPTURED_CALL_STACK_DEPTH] = {0};
 
-  USHORT frames = win_self->RtlCaptureStackBackTrace(
+  USHORT frames = self_win->RtlCaptureStackBackTrace(
       0, MAX_CAPTURED_CALL_STACK_DEPTH, stack, NULL);
 
-  // Allocate memory for symbol information.
-  SYMBOL_INFO *symbol = (SYMBOL_INFO *)calloc(
-      offsetof(SYMBOL_INFO, Name) + 256 * sizeof(symbol->Name[0]), 1);
-  if (!symbol) {
-    fprintf(stderr, "Failed to allocate memory for symbol information.\n");
-    win_self->SymCleanup(process);
+  if (frames == 0) {
+    fprintf(stderr, "Warning: No stack frames captured.\n");
+    self_win->SymCleanup(process);
     return;
   }
 
-  symbol->MaxNameLen = 255;
+  if (skip >= frames) {
+    fprintf(stderr,
+            "Warning: Skip count (%zu) exceeds available frames (%hu).\n", skip,
+            frames);
+    self_win->SymCleanup(process);
+    return;
+  }
+
+  const size_t MAX_SYMBOL_NAME_LEN = 1024;
+
+  SYMBOL_INFO *symbol = (SYMBOL_INFO *)calloc(
+      offsetof(SYMBOL_INFO, Name) + MAX_SYMBOL_NAME_LEN * sizeof(char), 1);
+  if (!symbol) {
+    fprintf(stderr, "Failed to allocate memory for symbol information.\n");
+    assert(0 && "Failed to allocate memory.");
+    self_win->SymCleanup(process);
+    return;
+  }
+
+  symbol->MaxNameLen = MAX_SYMBOL_NAME_LEN - 1;
   symbol->SizeOfStruct = sizeof(SYMBOL_INFO);
 
   // Process each frame in the stack trace.
@@ -191,8 +236,8 @@ void ten_backtrace_dump(ten_backtrace_t *self, size_t skip) {
     DWORD64 address = (DWORD64)(stack[i]);
 
     // Get symbol information.
-    if (!win_self->SymFromAddr(process, address, 0, symbol)) {
-      fprintf(stderr, "Failed to get symbol for address 0x%llx: %lu\n",
+    if (!self_win->SymFromAddr(process, address, 0, symbol)) {
+      fprintf(stderr, "Warning: Failed to get symbol for address 0x%llx: %lu\n",
               (unsigned long long)address, GetLastError());
       continue;
     }
@@ -202,21 +247,20 @@ void ten_backtrace_dump(ten_backtrace_t *self, size_t skip) {
     lineInfo.SizeOfStruct = sizeof(IMAGEHLP_LINE);
     DWORD dwLineDisplacement = 0;
 
-    if (win_self->SymGetLineFromAddr(process, address, &dwLineDisplacement,
+    if (self_win->SymGetLineFromAddr(process, address, &dwLineDisplacement,
                                      &lineInfo)) {
       // Call the dump callback with full information.
-      win_self->common.on_dump_file_line(self, symbol->Address,
-                                         lineInfo.FileName, lineInfo.LineNumber,
-                                         symbol->Name, NULL);
+      self_win->common.on_dump_file_line(self, address, lineInfo.FileName,
+                                         lineInfo.LineNumber, symbol->Name,
+                                         NULL);
     } else {
       // Call the dump callback with only symbol information.
-      win_self->common.on_dump_file_line(self, symbol->Address, NULL, 0,
-                                         symbol->Name, NULL);
+      self_win->common.on_dump_file_line(self, address, NULL, 0, symbol->Name,
+                                         NULL);
     }
   }
 
   // Clean up.
   free(symbol);
-
-  win_self->SymCleanup(process);
+  self_win->SymCleanup(process);
 }

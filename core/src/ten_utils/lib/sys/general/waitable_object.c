@@ -8,7 +8,6 @@
 
 #include <memory.h>
 #include <stdint.h>
-#include <stdlib.h>
 
 #include "ten_utils/lib/alloc.h"
 #include "ten_utils/lib/cond.h"

@@ -90,7 +90,8 @@ static void ten_env_set_property_async_context_destroy(
 static void ten_extension_set_property_async_cb(ten_extension_t *extension,
                                                 bool res, void *cb_data,
                                                 ten_error_t *err) {
-  TEN_ASSERT(extension && ten_extension_check_integrity(extension, true),
+  TEN_ASSERT(extension, "Should not happen.");
+  TEN_ASSERT(ten_extension_check_integrity(extension, true),
              "Should not happen.");
 
   ten_env_set_property_async_context_t *context = cb_data;

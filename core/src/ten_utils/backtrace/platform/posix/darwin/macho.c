@@ -1082,8 +1082,8 @@ int ten_backtrace_init_posix(
     ten_backtrace_t *self, const char *filename, int descriptor,
     ten_backtrace_on_error_func_t on_error, void *data,
     ten_backtrace_on_get_file_line_func_t *on_get_file_line) {
-  ten_backtrace_posix_t *posix_self = (ten_backtrace_posix_t *)self;
-  assert(posix_self && "Invalid argument.");
+  ten_backtrace_posix_t *self_posix = (ten_backtrace_posix_t *)self;
+  assert(self_posix && "Invalid argument.");
 
   int closed_descriptor = 0;
   int found_sym = 0;
@@ -1134,15 +1134,15 @@ int ten_backtrace_init_posix(
   }
 
   if (found_sym) {
-    ten_atomic_ptr_store((ten_atomic_ptr_t *)&posix_self->on_get_syminfo,
+    ten_atomic_ptr_store((ten_atomic_ptr_t *)&self_posix->on_get_syminfo,
                          macho_syminfo);
   } else {
-    (void)__sync_bool_compare_and_swap(&posix_self->on_get_syminfo, NULL,
+    (void)__sync_bool_compare_and_swap(&self_posix->on_get_syminfo, NULL,
                                        macho_nosyms);
   }
 
   *on_get_file_line =
-      ten_atomic_ptr_load((ten_atomic_ptr_t *)&posix_self->on_get_file_line);
+      ten_atomic_ptr_load((ten_atomic_ptr_t *)&self_posix->on_get_file_line);
 
   if (*on_get_file_line == NULL || *on_get_file_line == macho_nodebug) {
     *on_get_file_line = macho_fileline_fn;

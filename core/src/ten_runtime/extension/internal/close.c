@@ -28,7 +28,8 @@ static bool ten_extension_could_be_closed(ten_extension_t *self) {
 }
 
 void ten_extension_flush_remaining_paths(ten_extension_t *extension) {
-  TEN_ASSERT(extension && ten_extension_check_integrity(extension, true),
+  TEN_ASSERT(extension, "Should not happen.");
+  TEN_ASSERT(ten_extension_check_integrity(extension, true),
              "Should not happen.");
 
   ten_path_table_t *path_table = extension->path_table;
@@ -105,7 +106,8 @@ void ten_extension_on_timer_closed(ten_timer_t *timer, void *on_closed_data) {
   TEN_ASSERT(ten_timer_check_integrity(timer, true), "Should not happen.");
 
   ten_extension_t *extension = (ten_extension_t *)on_closed_data;
-  TEN_ASSERT(extension && ten_extension_check_integrity(extension, true),
+  TEN_ASSERT(extension, "Should not happen.");
+  TEN_ASSERT(ten_extension_check_integrity(extension, true),
              "Should not happen.");
 
   ten_list_remove_ptr(&extension->path_timers, timer);

@@ -75,7 +75,8 @@ ten_env_proxy_t *ten_env_proxy_create(ten_env_t *ten_env,
   switch (ten_env->attach_to) {
   case TEN_ENV_ATTACH_TO_EXTENSION: {
     ten_extension_t *extension = ten_env->attached_target.extension;
-    TEN_ASSERT(extension && ten_extension_check_integrity(extension, true),
+    TEN_ASSERT(extension, "Should not happen.");
+    TEN_ASSERT(ten_extension_check_integrity(extension, true),
                "Should not happen.");
 
     ten_extension_thread_t *extension_thread = extension->extension_thread;

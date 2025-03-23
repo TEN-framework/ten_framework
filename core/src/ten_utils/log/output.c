@@ -261,6 +261,7 @@ void ten_log_set_output_to_stderr(ten_log_t *self) {
 
   // The default formatter for `stderr` can be overridden using the below
   // environment variable.
+  // NOLINTNEXTLINE(concurrency-mt-unsafe)
   const char *formatter_env = getenv("TEN_LOG_FORMATTER");
   if (formatter_env) {
     ten_log_formatter_func_t formatter_func_from_env =

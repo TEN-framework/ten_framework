@@ -67,6 +67,10 @@ typedef WORD(WINAPI *win_RtlCaptureStackBackTrace_func_t)(DWORD FramesToSkip,
 typedef struct ten_backtrace_win_t {
   ten_backtrace_common_t common;
 
+  // DLL handles for cleanup.
+  HMODULE dbghelp_handle;
+  HMODULE ntdll_handle;
+
   // @{
   // The Windows functions used to dump backtrace.
 

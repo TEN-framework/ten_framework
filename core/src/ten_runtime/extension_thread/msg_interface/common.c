@@ -55,9 +55,11 @@ static void ten_extension_thread_handle_in_msg_sync(
 
   // Find the extension according to 'loc'.
   ten_loc_t *dest_loc = ten_msg_get_first_dest_loc(msg);
+
   ten_extension_t *extension = ten_extension_store_find_extension(
       self->extension_store, ten_string_get_raw_str(&dest_loc->extension_name),
       self->in_lock_mode ? false : true);
+
   if (!extension) {
     // ten_msg_dump(msg, NULL,
     //              "Failed to find destination extension %s for msg ^m in %s",
@@ -202,6 +204,7 @@ void ten_extension_thread_process_acquire_lock_mode_task(void *self_,
   // lock mode.
   ten_event_set(acquire_result->completed);
 
+  // Extension thread will block here until the outer thread releases this lock.
   rc = ten_mutex_lock(self->lock_mode_lock);
   TEN_ASSERT(!rc, "Should not happen.");
 }
