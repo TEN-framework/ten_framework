@@ -7,13 +7,16 @@
 #include "include_internal/ten_runtime/global/signal.h"
 
 #include <assert.h>
-#include <execinfo.h>
 #include <pthread.h>
 #include <signal.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
+
+#if !defined(OS_WINDOWS)
+#include <execinfo.h>
+#endif
 
 #include "include_internal/ten_runtime/app/close.h"
 #include "include_internal/ten_runtime/global/global.h"
@@ -261,124 +264,11 @@ void ten_global_setup_signal_stuff(void) {
 
 static volatile LONG ctrl_c_count = 0;
 
-// Need to link with Dbghelp.lib.
-#pragma comment(lib, "Dbghelp.lib")
-
-/**
- * @brief Captures and prints the stack trace on Windows.
- *
- * @param thread_handle Handle to the thread whose stack trace is to be
- * captured.
- * @param exception_pointers Exception information.
- */
-static void print_windows_backtrace(HANDLE thread_handle,
-                                    EXCEPTION_POINTERS *exception_pointers) {
-  const int MAX_FRAMES = 50;
-  void *stack[MAX_FRAMES];
-  SYMBOL_INFO *symbol;
-  HANDLE process;
-  DWORD displacement;
-  IMAGEHLP_LINE64 line;
-
-  // Get current process handle.
-  process = GetCurrentProcess();
-
-  // Initialize symbol handler.
-  SymInitialize(process, NULL, TRUE);
-
-  // Allocate symbol info buffer.
-  symbol = (SYMBOL_INFO *)calloc(
-      sizeof(SYMBOL_INFO) + MAX_NAME_LENGTH * sizeof(char), 1);
-  if (!symbol) {
-    (void)fprintf(stderr, "Failed to allocate memory for symbol info\n");
-    return;
-  }
-
-  symbol->MaxNameLen = MAX_NAME_LENGTH;
-  symbol->SizeOfStruct = sizeof(SYMBOL_INFO);
-
-  // Initialize line info.
-  memset(&line, 0, sizeof(IMAGEHLP_LINE64));
-  line.SizeOfStruct = sizeof(IMAGEHLP_LINE64);
-
-  // Get stack frames.
-  CONTEXT context;
-  if (exception_pointers) {
-    context = *exception_pointers->ContextRecord;
-  } else {
-    RtlCaptureContext(&context);
-  }
-
-  STACKFRAME64 stack_frame;
-  memset(&stack_frame, 0, sizeof(STACKFRAME64));
-
-#ifdef _M_IX86
-  stack_frame.AddrPC.Offset = context.Eip;
-  stack_frame.AddrPC.Mode = AddrModeFlat;
-  stack_frame.AddrFrame.Offset = context.Ebp;
-  stack_frame.AddrFrame.Mode = AddrModeFlat;
-  stack_frame.AddrStack.Offset = context.Esp;
-  stack_frame.AddrStack.Mode = AddrModeFlat;
-#elif _M_X64
-  stack_frame.AddrPC.Offset = context.Rip;
-  stack_frame.AddrPC.Mode = AddrModeFlat;
-  stack_frame.AddrFrame.Offset = context.Rbp;
-  stack_frame.AddrFrame.Mode = AddrModeFlat;
-  stack_frame.AddrStack.Offset = context.Rsp;
-  stack_frame.AddrStack.Mode = AddrModeFlat;
-#else
-#error "Platform not supported"
-#endif
-
-  // Print backtrace header.
-  (void)fprintf(stderr, "======= Backtrace =======\n");
-
-  // Walk the stack and print trace.
-  for (int frame_num = 0; frame_num < MAX_FRAMES; frame_num++) {
-    BOOL result = StackWalk64(
-#ifdef _M_IX86
-        IMAGE_FILE_MACHINE_I386,
-#elif _M_X64
-        IMAGE_FILE_MACHINE_AMD64,
-#else
-#error "Platform not supported"
-#endif
-        process, thread_handle, &context, &stack_frame, NULL, NULL,
-        SymFunctionTableAccess64, SymGetModuleBase64, NULL);
-
-    if (!result || stack_frame.AddrPC.Offset == 0) {
-      break;  // End of stack.
-    }
-
-    // Get symbol name.
-    if (SymFromAddr(process, stack_frame.AddrPC.Offset, NULL, symbol)) {
-      // Try to get file and line info.
-      if (SymGetLineFromAddr64(process, stack_frame.AddrPC.Offset,
-                               &displacement, &line)) {
-        (void)fprintf(stderr, "#%d: %s at %s:%d\n", frame_num, symbol->Name,
-                      line.FileName, line.LineNumber);
-      } else {
-        (void)fprintf(stderr, "#%d: %s at unknown location (error: %d)\n",
-                      frame_num, symbol->Name, GetLastError());
-      }
-    } else {
-      (void)fprintf(stderr, "#%d: Unknown symbol at 0x%llx (error: %d)\n",
-                    frame_num, stack_frame.AddrPC.Offset, GetLastError());
-    }
-  }
-
-  (void)fprintf(stderr, "===================================\n");
-
-  // Clean up.
-  free(symbol);
-  SymCleanup(process);
-}
-
 /**
  * @brief Exception filter for handling access violations (segmentation faults).
  */
 LONG WINAPI UnhandledExceptionFilter(EXCEPTION_POINTERS *ExceptionInfo) {
-  // Only handle access violations (segmentation faults)
+  // Only handle access violations (segmentation faults).
   if (ExceptionInfo->ExceptionRecord->ExceptionCode ==
       EXCEPTION_ACCESS_VIOLATION) {
     (void)fprintf(
@@ -393,21 +283,16 @@ LONG WINAPI UnhandledExceptionFilter(EXCEPTION_POINTERS *ExceptionInfo) {
                       ? "writing to"
                       : "reading from");
 
-    // Print backtrace
-    print_windows_backtrace(GetCurrentThread(), ExceptionInfo);
-
-    // Additional debugging info if available
     (void)fprintf(stderr, "===================================\n");
-    (void)fprintf(stderr, "Writing ten backtrace to stderr\n");
     ten_backtrace_dump_global(0);
 
-    // Allow for logs to be written before exiting
+    // Allow for logs to be written before exiting.
     Sleep(1000);  // 1 second
 
-    return EXCEPTION_EXECUTE_HANDLER;  // This will terminate the process
+    return EXCEPTION_EXECUTE_HANDLER;  // This will terminate the process.
   }
 
-  return EXCEPTION_CONTINUE_SEARCH;  // Pass to the next handler
+  return EXCEPTION_CONTINUE_SEARCH;  // Pass to the next handler.
 }
 
 BOOL WINAPI ConsoleHandler(DWORD dwCtrlType) {
