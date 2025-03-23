@@ -79,8 +79,8 @@ pub fn configure_routes(
                 "/registry/packages",
                 web::get().to(registry::packages::get_packages_endpoint),
             )
-            .route("/apps", web::get().to(apps::get_apps_endpoint))
-            .route("/apps", web::post().to(apps::load_app_endpoint))
+            .route("/apps", web::get().to(apps::get::get_apps_endpoint))
+            .route("/apps", web::post().to(apps::load::load_app_endpoint))
             .route(
                 "/apps/unload",
                 web::post().to(apps::unload::unload_app_endpoint),
