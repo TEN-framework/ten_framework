@@ -8,9 +8,7 @@
 
 #include "include_internal/ten_utils/backtrace/platform/win/internal.h"
 
-#include <Windows.h>
 #include <assert.h>
-#include <dbghelp.h>
 #include <inttypes.h>
 #include <stddef.h>
 #include <stdio.h>
