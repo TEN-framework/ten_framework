@@ -20,7 +20,7 @@ fn test_graph_check_extension_not_installed_1() {
     let app_pkg_info = pkg_infos
         .iter()
         .filter(|pkg| pkg.basic_info.type_and_name.pkg_type == PkgType::App)
-        .last();
+        .next_back();
     let app_pkg = app_pkg_info.unwrap();
     let predefined_graphs = app_pkg.get_predefined_graphs().unwrap();
     let pkg_graph = predefined_graphs.first().unwrap();
@@ -44,7 +44,7 @@ fn test_graph_check_extension_not_installed_2() {
     let app_pkg_info = pkg_infos
         .iter()
         .filter(|pkg| pkg.basic_info.type_and_name.pkg_type == PkgType::App)
-        .last();
+        .next_back();
     let app_pkg = app_pkg_info.unwrap();
     let predefined_graphs = app_pkg.get_predefined_graphs().unwrap();
     let pkg_graph = predefined_graphs.first().unwrap();
@@ -68,7 +68,7 @@ fn test_graph_check_predefined_graph_success() {
     let app_pkg_info = pkg_infos
         .iter()
         .filter(|pkg| pkg.basic_info.type_and_name.pkg_type == PkgType::App)
-        .last();
+        .next_back();
     let app_pkg = app_pkg_info.unwrap();
     let predefined_graphs = app_pkg.get_predefined_graphs().unwrap();
     let pkg_graph = predefined_graphs.first().unwrap();
@@ -91,7 +91,7 @@ fn test_graph_check_all_msgs_schema_incompatible() {
     let app_pkg_info = pkg_infos
         .iter()
         .filter(|pkg| pkg.basic_info.type_and_name.pkg_type == PkgType::App)
-        .last();
+        .next_back();
     let app_pkg = app_pkg_info.unwrap();
     let predefined_graphs = app_pkg.get_predefined_graphs().unwrap();
     let pkg_graph = predefined_graphs.first().unwrap();

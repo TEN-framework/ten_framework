@@ -15,7 +15,7 @@ mod tests {
     use ten_manager::{
         config::TmanConfig,
         designer::{
-            apps::reload::{reload_app_endpoint, ReloadPkgsRequestPayload},
+            apps::get::{get_apps_endpoint, GetAppsResponseData},
             response::{ApiResponse, Status},
             DesignerState,
         },
@@ -23,9 +23,8 @@ mod tests {
         package_info::get_all_pkgs::get_all_pkgs,
     };
 
-    /// Test successful package reload with a specified base_dir.
     #[actix_web::test]
-    async fn test_reload_app_success_with_base_dir() {
+    async fn test_get_apps_with_uri() {
         // Set up the designer state with initial data.
         let mut designer_state = DesignerState {
             tman_config: Arc::new(TmanConfig::default()),
@@ -56,22 +55,14 @@ mod tests {
             App::new()
                 .app_data(web::Data::new(designer_state.clone()))
                 .route(
-                    "/api/designer/v1/apps/reload",
-                    web::post().to(reload_app_endpoint),
+                    "/api/designer/v1/apps",
+                    web::get().to(get_apps_endpoint),
                 ),
         )
         .await;
 
-        // Create request with base_dir specified.
-        let request_payload = ReloadPkgsRequestPayload {
-            base_dir: Some(
-                "tests/test_data/cmd_builtin_function_install".to_string(),
-            ),
-        };
-
-        let req = test::TestRequest::post()
-            .uri("/api/designer/v1/apps/reload")
-            .set_json(request_payload)
+        let req = test::TestRequest::get()
+            .uri("/api/designer/v1/apps")
             .to_request();
 
         // Send the request and get the response.
@@ -83,23 +74,22 @@ mod tests {
         let body = test::read_body(resp).await;
         let body_str = std::str::from_utf8(&body).unwrap();
 
-        let api_response: ApiResponse<&str> =
+        let api_response: ApiResponse<GetAppsResponseData> =
             serde_json::from_str(body_str).unwrap();
         assert_eq!(api_response.status, Status::Ok);
-        assert_eq!(api_response.data, "Packages reloaded successfully");
-
-        // Verify that the package cache still contains the base_dir entry
-        // (it was reloaded, not removed).
-        let state_read = designer_state.read().unwrap();
-        assert!(state_read
-            .pkgs_cache
-            .contains_key("tests/test_data/cmd_builtin_function_install"));
+        assert_eq!(api_response.data.app_info.len(), 1);
+        assert_eq!(
+            api_response.data.app_info[0].base_dir,
+            "tests/test_data/cmd_builtin_function_install"
+        );
+        assert_eq!(
+            api_response.data.app_info[0].app_uri,
+            Some("msgpack://localhost:8000".to_string())
+        );
     }
 
-    /// Test successful package reload without specifying base_dir when only one
-    /// app is loaded.
     #[actix_web::test]
-    async fn test_reload_app_success_without_base_dir() {
+    async fn test_get_apps_without_uri() {
         // Set up the designer state with initial data.
         let mut designer_state = DesignerState {
             tman_config: Arc::new(TmanConfig::default()),
@@ -110,14 +100,14 @@ mod tests {
         let _ = get_all_pkgs(
             designer_state.tman_config.clone(),
             &mut designer_state.pkgs_cache,
-            &"tests/test_data/cmd_builtin_function_install".to_string(),
+            &"tests/test_data/cmd_builtin_function_install_all".to_string(),
             &designer_state.out,
         );
 
         assert_eq!(
             designer_state
                 .pkgs_cache
-                .get("tests/test_data/cmd_builtin_function_install")
+                .get("tests/test_data/cmd_builtin_function_install_all")
                 .unwrap()
                 .len(),
             3
@@ -130,18 +120,14 @@ mod tests {
             App::new()
                 .app_data(web::Data::new(designer_state.clone()))
                 .route(
-                    "/api/designer/v1/apps/reload",
-                    web::post().to(reload_app_endpoint),
+                    "/api/designer/v1/apps",
+                    web::get().to(get_apps_endpoint),
                 ),
         )
         .await;
 
-        // Create request without base_dir specified.
-        let request_payload = ReloadPkgsRequestPayload { base_dir: None };
-
-        let req = test::TestRequest::post()
-            .uri("/api/designer/v1/apps/reload")
-            .set_json(request_payload)
+        let req = test::TestRequest::get()
+            .uri("/api/designer/v1/apps")
             .to_request();
 
         // Send the request and get the response.
@@ -153,15 +139,14 @@ mod tests {
         let body = test::read_body(resp).await;
         let body_str = std::str::from_utf8(&body).unwrap();
 
-        let api_response: ApiResponse<&str> =
+        let api_response: ApiResponse<GetAppsResponseData> =
             serde_json::from_str(body_str).unwrap();
         assert_eq!(api_response.status, Status::Ok);
-        assert_eq!(api_response.data, "Packages reloaded successfully");
-
-        // Verify that the package cache still contains the base_dir entry.
-        let state_read = designer_state.read().unwrap();
-        assert!(state_read
-            .pkgs_cache
-            .contains_key("tests/test_data/cmd_builtin_function_install"));
+        assert_eq!(api_response.data.app_info.len(), 1);
+        assert_eq!(
+            api_response.data.app_info[0].base_dir,
+            "tests/test_data/cmd_builtin_function_install_all"
+        );
+        assert_eq!(api_response.data.app_info[0].app_uri, None);
     }
 }

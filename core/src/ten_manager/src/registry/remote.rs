@@ -375,7 +375,7 @@ pub async fn get_package(
         .map_err(|e| anyhow::anyhow!("Invalid URL: {}", e))?;
     let file_name = parsed_url
         .path_segments()
-        .and_then(|segments| segments.last())
+        .and_then(|mut segments| segments.next_back())
         .ok_or_else(|| {
             anyhow::anyhow!("Failed to extract file name from URL")
         })?;

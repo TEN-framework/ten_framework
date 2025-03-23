@@ -30,48 +30,48 @@ use crate::pkg_info::localhost;
 /// - Case 2: all nodes have declared the 'app' field, and all of them have the
 ///   same value. Ex:
 ///
-///   {
-///     "nodes": [
-///       {
-///         "type": "extension",
-///         "app": "http://localhost:8000",
-///         "addon": "addon_1",
-///         "name": "ext_1",
-///         "extension_group": "some_group"
-///       },
-///       {
-///         "type": "extension",
-///         "app": "http://localhost:8000",
-///         "addon": "addon_2",
-///         "name": "ext_2",
-///         "extension_group": "another_group"
-///       }
-///     ]
-///   }
+/// {
+///   "nodes": [
+///     {
+///       "type": "extension",
+///       "app": "http://localhost:8000",
+///       "addon": "addon_1",
+///       "name": "ext_1",
+///       "extension_group": "some_group"
+///     },
+///     {
+///       "type": "extension",
+///       "app": "http://localhost:8000",
+///       "addon": "addon_2",
+///       "name": "ext_2",
+///       "extension_group": "another_group"
+///     }
+///   ]
+/// }
 ///
 ///   The state will be `UniformDeclared`.
 ///
 /// - Case 3: all nodes have declared the 'app' field, but they have different
 ///   values.
 ///
-///   {
-///     "nodes": [
-///       {
-///         "type": "extension",
-///         "app": "http://localhost:8000",
-///         "addon": "addon_1",
-///         "name": "ext_1",
-///         "extension_group": "some_group"
-///       },
-///       {
-///         "type": "extension",
-///         "app": "msgpack://localhost:8001",
-///         "addon": "addon_2",
-///         "name": "ext_2",
-///         "extension_group": "another_group"
-///       }
-///     ]
-///   }
+/// {
+///   "nodes": [
+///     {
+///       "type": "extension",
+///       "app": "http://localhost:8000",
+///       "addon": "addon_1",
+///       "name": "ext_1",
+///       "extension_group": "some_group"
+///     },
+///     {
+///       "type": "extension",
+///       "app": "msgpack://localhost:8001",
+///       "addon": "addon_2",
+///       "name": "ext_2",
+///       "extension_group": "another_group"
+///     }
+///   ]
+/// }
 ///
 ///   The state will be `MixedDeclared`.
 ///
