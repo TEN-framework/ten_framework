@@ -72,11 +72,11 @@ static char *macho_get_executable_path(ten_backtrace_t *self,
  */
 static bool initialize_file_line_mechanism(
     ten_backtrace_t *self, ten_backtrace_on_error_func_t on_error, void *data) {
-  ten_backtrace_posix_t *posix_self = (ten_backtrace_posix_t *)self;
-  assert(posix_self && "Invalid argument.");
+  ten_backtrace_posix_t *self_posix = (ten_backtrace_posix_t *)self;
+  assert(self_posix && "Invalid argument.");
 
   // Check if initialization has already failed.
-  int64_t failed = ten_atomic_load(&posix_self->file_line_init_failed);
+  int64_t failed = ten_atomic_load(&self_posix->file_line_init_failed);
   if (failed) {
     (void)fprintf(stderr, "Failed to read executable information.\n");
     return false;
@@ -85,7 +85,7 @@ static bool initialize_file_line_mechanism(
   // Check if already initialized successfully.
   ten_backtrace_on_get_file_line_func_t on_get_file_line =
       (ten_backtrace_on_get_file_line_func_t)ten_atomic_ptr_load(
-          (ten_atomic_ptr_t *)&posix_self->on_get_file_line);
+          (ten_atomic_ptr_t *)&self_posix->on_get_file_line);
   if (on_get_file_line != NULL) {
     return true;
   }
@@ -168,7 +168,7 @@ static bool initialize_file_line_mechanism(
   }
 
   if (failed) {
-    ten_atomic_store(&posix_self->file_line_init_failed, 1);
+    ten_atomic_store(&self_posix->file_line_init_failed, 1);
     return false;
   }
 
@@ -176,7 +176,7 @@ static bool initialize_file_line_mechanism(
   //
   // TODO(Wei): Note that if two threads initialize at once, one of the data
   // sets may be leaked. Might need to consider a new way to avoid this.
-  ten_atomic_ptr_store((ten_atomic_ptr_t *)&posix_self->on_get_file_line,
+  ten_atomic_ptr_store((ten_atomic_ptr_t *)&self_posix->on_get_file_line,
                        on_get_file_line);
 
   return true;
@@ -189,18 +189,18 @@ int ten_backtrace_get_file_line_info(
     ten_backtrace_t *self, uintptr_t pc,
     ten_backtrace_on_dump_file_line_func_t on_dump_file_line,
     ten_backtrace_on_error_func_t on_error, void *data) {
-  ten_backtrace_posix_t *posix_self = (ten_backtrace_posix_t *)self;
-  assert(posix_self && "Invalid argument.");
+  ten_backtrace_posix_t *self_posix = (ten_backtrace_posix_t *)self;
+  assert(self_posix && "Invalid argument.");
 
   if (!initialize_file_line_mechanism(self, on_error, data)) {
     return 0;
   }
 
-  if (ten_atomic_load(&posix_self->file_line_init_failed)) {
+  if (ten_atomic_load(&self_posix->file_line_init_failed)) {
     return 0;
   }
 
-  return (posix_self->on_get_file_line)(self, pc, on_dump_file_line, on_error,
+  return (self_posix->on_get_file_line)(self, pc, on_dump_file_line, on_error,
                                         data);
 }
 
@@ -211,18 +211,18 @@ int ten_backtrace_get_syminfo(
     ten_backtrace_t *self, uintptr_t pc,
     ten_backtrace_on_dump_syminfo_func_t on_dump_syminfo,
     ten_backtrace_on_error_func_t on_error, void *data) {
-  ten_backtrace_posix_t *posix_self = (ten_backtrace_posix_t *)self;
-  assert(posix_self && "Invalid argument.");
+  ten_backtrace_posix_t *self_posix = (ten_backtrace_posix_t *)self;
+  assert(self_posix && "Invalid argument.");
 
   if (!initialize_file_line_mechanism(self, on_error, data)) {
     return 0;
   }
 
-  if (ten_atomic_load(&posix_self->file_line_init_failed)) {
+  if (ten_atomic_load(&self_posix->file_line_init_failed)) {
     return 0;
   }
 
-  posix_self->on_get_syminfo(self, pc, on_dump_syminfo, on_error, data);
+  self_posix->on_get_syminfo(self, pc, on_dump_syminfo, on_error, data);
 
   return 1;
 }
