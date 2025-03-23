@@ -128,7 +128,7 @@ export const makeAPIRequest = async <T extends ENDPOINT_METHOD, R = unknown>(
       { scope: "api", module: "request", data: { res } },
       "request failed"
     );
-    throw new Error(`Request failed: ${res.status}`);
+    throw new Error(`${res.statusText}`);
   }
   const data = await res.json();
   logger.debug(
