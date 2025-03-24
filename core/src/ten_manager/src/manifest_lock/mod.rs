@@ -23,9 +23,6 @@ use ten_rust::pkg_info::manifest::Manifest;
 use ten_rust::pkg_info::pkg_basic_info::PkgBasicInfo;
 use ten_rust::pkg_info::pkg_type::PkgType;
 use ten_rust::pkg_info::pkg_type_and_name::PkgTypeAndName;
-use ten_rust::pkg_info::supports::{
-    get_manifest_supports_from_pkg, get_pkg_supports_from_manifest_supports,
-};
 use ten_rust::pkg_info::PkgInfo;
 
 // The `manifest-lock.json` structure.
@@ -235,10 +232,7 @@ impl TryFrom<&ManifestLockItem> for PkgBasicInfo {
             type_and_name: PkgTypeAndName::try_from(manifest)?,
             version: manifest.version.clone(),
             // If manifest.supports is None, then supports is an empty vector.
-            // Otherwise, convert the supports to a vector of PkgSupport.
-            supports: get_pkg_supports_from_manifest_supports(
-                &manifest.supports,
-            )?,
+            supports: manifest.supports.clone().unwrap_or_default(),
         })
     }
 }
@@ -305,9 +299,7 @@ impl<'a> From<&'a PkgInfo> for ManifestLockItem {
             dependencies,
             supports: match &pkg_info.basic_info.supports.len() {
                 0 => None,
-                _ => Some(get_manifest_supports_from_pkg(
-                    &pkg_info.basic_info.supports,
-                )),
+                _ => Some(pkg_info.basic_info.supports.clone()),
             },
             path: pkg_info.local_dependency_path.clone(),
         }

@@ -66,7 +66,7 @@
           "items": {
             "$ref": "#/$defs/packageIdentity"
           },
-          "minItems": 1,
+          "minItems": 0,
           "uniqueItems": true
         },
         "supports": {

@@ -9,7 +9,7 @@ use std::sync::Arc;
 use actix::AsyncContext;
 use actix_web_actors::ws::WebsocketContext;
 
-use ten_rust::pkg_info::supports::PkgSupport;
+use ten_rust::pkg_info::manifest::support::ManifestSupport;
 
 use super::{msg::TmanOutputWs, BuiltinFunctionOutput, WsBuiltinFunction};
 use crate::output::TmanOutput;
@@ -23,7 +23,7 @@ impl WsBuiltinFunction {
         let install_command = crate::cmd::cmd_install::InstallCommand {
             package_type: None,
             package_name: None,
-            support: PkgSupport {
+            support: ManifestSupport {
                 os: None,
                 arch: None,
             },

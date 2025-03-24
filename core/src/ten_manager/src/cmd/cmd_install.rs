@@ -22,13 +22,14 @@ use semver::VersionReq;
 use ten_rust::pkg_info::{
     constants::{BUILD_GN_FILENAME, MANIFEST_JSON_FILENAME},
     manifest::dependency::ManifestDependency,
+    manifest::support::ManifestSupport,
     pkg_basic_info::PkgBasicInfo,
 };
 use ten_rust::pkg_info::{
     get_pkg_info_from_path,
     pkg_type::PkgType,
     pkg_type_and_name::PkgTypeAndName,
-    supports::{Arch, Os, PkgSupport},
+    supports::{Arch, Os},
     PkgInfo,
 };
 
@@ -82,7 +83,7 @@ impl std::str::FromStr for LocalInstallMode {
 pub struct InstallCommand {
     pub package_type: Option<String>,
     pub package_name: Option<String>,
-    pub support: PkgSupport,
+    pub support: ManifestSupport,
     pub local_install_mode: LocalInstallMode,
     pub standalone: bool,
     pub cwd: String,
@@ -148,7 +149,7 @@ pub fn parse_sub_cmd(sub_cmd_args: &ArgMatches) -> Result<InstallCommand> {
     let mut cmd = InstallCommand {
         package_type: None,
         package_name: None,
-        support: PkgSupport {
+        support: ManifestSupport {
             os: sub_cmd_args
                 .get_one::<String>("OS")
                 .and_then(|s| s.parse::<Os>().ok()),

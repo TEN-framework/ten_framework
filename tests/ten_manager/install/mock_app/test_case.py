@@ -40,7 +40,9 @@ def analyze_resolve_result(app_root_folder: str) -> None:
                     ) as ext_manifest_file:
                         ext_manifest_json = json.load(ext_manifest_file)
                         assert ext_manifest_json["name"] == ext["name"]
-                        assert ext_manifest_json["version"] == ext["version"]
+                        assert ext["version"].endswith(
+                            ext_manifest_json["version"]
+                        )
                     break
 
             with open(

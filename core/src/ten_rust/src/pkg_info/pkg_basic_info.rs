@@ -14,10 +14,8 @@ use semver::Version;
 use serde::{Deserialize, Serialize};
 
 use super::{
-    manifest::Manifest,
-    pkg_type_and_name::PkgTypeAndName,
-    supports::{get_pkg_supports_from_manifest_supports, PkgSupport},
-    PkgInfo,
+    manifest::support::ManifestSupport, manifest::Manifest,
+    pkg_type_and_name::PkgTypeAndName, PkgInfo,
 };
 
 // Basic info refers to the information used to "uniquely" identify a TEN
@@ -38,7 +36,7 @@ pub struct PkgBasicInfo {
     // 'supports' field represents support for all combinations of
     // environments.
     #[serde(skip_serializing_if = "Vec::is_empty", default)]
-    pub supports: Vec<PkgSupport>,
+    pub supports: Vec<ManifestSupport>,
 }
 
 impl Hash for PkgBasicInfo {
@@ -106,9 +104,10 @@ impl TryFrom<&Manifest> for PkgBasicInfo {
         Ok(PkgBasicInfo {
             type_and_name: PkgTypeAndName::from(manifest),
             version: manifest.version.clone(),
-            supports: get_pkg_supports_from_manifest_supports(
-                &manifest.supports,
-            )?,
+            supports: match &manifest.supports {
+                Some(supports) => supports.clone(),
+                None => Vec::new(),
+            },
         })
     }
 }

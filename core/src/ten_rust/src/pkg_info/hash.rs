@@ -8,8 +8,8 @@ use semver::Version;
 use sha2::{Digest, Sha256};
 
 use super::{
-    manifest::dependency::ManifestDependency, pkg_type::PkgType,
-    supports::PkgSupport, PkgInfo,
+    manifest::dependency::ManifestDependency,
+    manifest::support::ManifestSupport, pkg_type::PkgType, PkgInfo,
 };
 
 impl PkgInfo {
@@ -37,7 +37,7 @@ fn gen_hash_hex(
     name: &String,
     version: &Version,
     dependencies: &Vec<ManifestDependency>,
-    supports: &Vec<PkgSupport>,
+    supports: &Vec<ManifestSupport>,
 ) -> String {
     let mut hasher = Sha256::new();
 

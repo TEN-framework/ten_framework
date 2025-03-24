@@ -19,15 +19,10 @@ use console::Emoji;
 use tempfile::NamedTempFile;
 
 use ten_rust::pkg_info::{
-    constants::MANIFEST_JSON_FILENAME,
-    find_to_be_replaced_local_pkgs, find_untracked_local_packages,
-    get_pkg_info_from_path,
-    manifest::dependency::ManifestDependency,
-    pkg_basic_info::PkgBasicInfo,
-    pkg_type::PkgType,
-    pkg_type_and_name::PkgTypeAndName,
-    supports::{is_pkg_supports_compatible_with, PkgSupport},
-    PkgInfo,
+    constants::MANIFEST_JSON_FILENAME, find_to_be_replaced_local_pkgs,
+    find_untracked_local_packages, get_pkg_info_from_path,
+    manifest::dependency::ManifestDependency, pkg_basic_info::PkgBasicInfo,
+    pkg_type::PkgType, pkg_type_and_name::PkgTypeAndName, PkgInfo,
 };
 
 use super::{config::TmanConfig, registry::get_package};
@@ -42,6 +37,9 @@ use crate::{
     solver::solver_result::filter_solver_results_by_type_and_name,
 };
 use installed_paths::save_installed_paths;
+use ten_rust::pkg_info::manifest::support::{
+    is_manifest_supports_compatible_with, ManifestSupport,
+};
 
 fn install_local_dependency_pkg_info(
     command_data: &InstallCommand,
@@ -427,7 +425,7 @@ pub fn filter_compatible_pkgs_to_candidates(
         PkgTypeAndName,
         HashMap<PkgBasicInfo, PkgInfo>,
     >,
-    support: &PkgSupport,
+    support: &ManifestSupport,
     out: Arc<Box<dyn TmanOutput>>,
 ) {
     for existed_pkg in all_pkgs.to_owned().iter_mut() {
@@ -438,7 +436,7 @@ pub fn filter_compatible_pkgs_to_candidates(
             ));
         }
 
-        let compatible_score = is_pkg_supports_compatible_with(
+        let compatible_score = is_manifest_supports_compatible_with(
             &existed_pkg.basic_info.supports,
             support,
         );

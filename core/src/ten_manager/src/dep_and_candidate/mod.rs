@@ -11,15 +11,15 @@ use std::sync::Arc;
 use anyhow::{anyhow, Context, Result};
 use semver::{Version, VersionReq};
 
-use ten_rust::pkg_info::constants::MANIFEST_JSON_FILENAME;
-use ten_rust::pkg_info::manifest::{
-    dependency::ManifestDependency, parse_manifest_from_file,
+use ten_rust::pkg_info::manifest::parse_manifest_from_file;
+use ten_rust::pkg_info::manifest::support::{
+    is_manifest_supports_compatible_with, ManifestSupport, SupportsDisplay,
 };
-use ten_rust::pkg_info::pkg_basic_info::PkgBasicInfo;
 use ten_rust::pkg_info::pkg_type::PkgType;
-use ten_rust::pkg_info::pkg_type_and_name::PkgTypeAndName;
-use ten_rust::pkg_info::supports::{
-    is_pkg_supports_compatible_with, PkgSupport, SupportsDisplay,
+use ten_rust::pkg_info::{
+    constants::MANIFEST_JSON_FILENAME,
+    manifest::dependency::ManifestDependency, pkg_basic_info::PkgBasicInfo,
+    pkg_type_and_name::PkgTypeAndName,
 };
 use ten_rust::pkg_info::{get_pkg_info_from_path, PkgInfo};
 
@@ -155,7 +155,7 @@ fn process_local_dependency_to_get_candidate(
 #[allow(clippy::too_many_arguments)]
 async fn process_non_local_dependency_to_get_candidate(
     tman_config: Arc<TmanConfig>,
-    support: &PkgSupport,
+    support: &ManifestSupport,
     dependency: &ManifestDependency,
     all_compatible_installed_pkgs: &HashMap<
         PkgTypeAndName,
@@ -243,7 +243,7 @@ async fn process_non_local_dependency_to_get_candidate(
 
     // Filter suitable candidate packages according to `supports`.
     for mut candidate_pkg_info in candidate_pkg_infos {
-        let compatible_score = is_pkg_supports_compatible_with(
+        let compatible_score = is_manifest_supports_compatible_with(
             &candidate_pkg_info.basic_info.supports,
             support,
         );
@@ -281,7 +281,7 @@ async fn process_non_local_dependency_to_get_candidate(
 
 struct DependenciesContext<'a> {
     tman_config: Arc<TmanConfig>,
-    support: &'a PkgSupport,
+    support: &'a ManifestSupport,
     merged_dependencies: &'a mut HashMap<PkgTypeAndName, MergedVersionReq>,
     all_compatible_installed_pkgs:
         &'a HashMap<PkgTypeAndName, HashMap<PkgBasicInfo, PkgInfo>>,
@@ -407,7 +407,7 @@ fn clean_up_all_candidates(
 #[allow(clippy::too_many_arguments)]
 pub async fn get_all_candidates_from_deps(
     tman_config: Arc<TmanConfig>,
-    support: &PkgSupport,
+    support: &ManifestSupport,
     mut pkgs_to_be_searched: Vec<PkgInfo>,
     extra_dep: Option<&ManifestDependency>,
     all_compatible_installed_pkgs: &HashMap<

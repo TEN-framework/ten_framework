@@ -13,7 +13,11 @@ use indicatif::HumanDuration;
 use semver::VersionReq;
 use tempfile;
 
-use ten_rust::pkg_info::{pkg_type::PkgType, supports::PkgSupport};
+use ten_rust::pkg_info::{
+    manifest::support::ManifestSupport,
+    pkg_type::PkgType,
+    supports::{Arch, Os},
+};
 
 use crate::{
     config::TmanConfig,
@@ -28,7 +32,7 @@ pub struct FetchCommand {
     pub pkg_type: PkgType,
     pub pkg_name: String,
     pub version_req: VersionReq,
-    pub support: PkgSupport,
+    pub support: ManifestSupport,
     pub output_dir: PathBuf,
     pub no_extract: bool,
 }
@@ -92,16 +96,14 @@ pub fn parse_sub_cmd(sub_cmd_args: &ArgMatches) -> Result<FetchCommand> {
             format!("Failed to parse package name '{}'", pkg_with_version)
         })?;
 
-    let mut support = PkgSupport {
+    let support = ManifestSupport {
         os: sub_cmd_args
             .get_one::<String>("OS")
-            .and_then(|s| s.parse().ok()),
+            .and_then(|s| s.parse::<Os>().ok()),
         arch: sub_cmd_args
             .get_one::<String>("ARCH")
-            .and_then(|s| s.parse().ok()),
+            .and_then(|s| s.parse::<Arch>().ok()),
     };
-
-    let _ = support.set_defaults();
 
     let output_dir =
         PathBuf::from(sub_cmd_args.get_one::<String>("OUTPUT_DIR").unwrap());
