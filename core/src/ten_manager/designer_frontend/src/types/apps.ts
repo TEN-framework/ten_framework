@@ -26,3 +26,10 @@ export interface IGetAppsResponse {
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface IExtensionAddon
   extends z.infer<typeof TenLocalStorePackageSchema> {}
+
+export enum EWSMessageType {
+  STANDARD_OUTPUT = "stdout",
+  STANDARD_ERROR = "stderr",
+  EXIT = "exit",
+  NORMAL_LINE = "normal_line",
+}

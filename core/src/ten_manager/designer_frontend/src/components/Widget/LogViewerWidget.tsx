@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
 import { useWidgetStore } from "@/store/widget";
 import { ILogViewerWidget, ILogViewerWidgetOptions } from "@/types/widgets";
+import { EWSMessageType } from "@/types/apps";
 import { useAutoScroll } from "@/hooks/use-auto-scroll";
 
 export function LogViewerBackstageWidget(props: ILogViewerWidget) {
@@ -38,10 +39,16 @@ export function LogViewerBackstageWidget(props: ILogViewerWidget) {
       try {
         const msg = JSON.parse(event.data);
 
-        if (msg.type === "stdout" || msg.type === "stderr") {
+        if (
+          msg.type === EWSMessageType.STANDARD_OUTPUT ||
+          msg.type === EWSMessageType.STANDARD_ERROR
+        ) {
           const line = msg.data;
           appendLogViewerHistory(id, [line]);
-        } else if (msg.type === "exit") {
+        } else if (msg.type === EWSMessageType.NORMAL_LINE) {
+          const line = msg.data;
+          appendLogViewerHistory(id, [line]);
+        } else if (msg.type === EWSMessageType.EXIT) {
           const code = msg.code;
           appendLogViewerHistory(id, [
             `Process exited with code ${code}. Closing...`,
