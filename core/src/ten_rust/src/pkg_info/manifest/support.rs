@@ -6,22 +6,22 @@
 //
 use serde::{Deserialize, Serialize};
 
-use crate::pkg_info::supports::PkgSupport;
+use crate::pkg_info::supports::{Arch, Os, PkgSupport};
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct ManifestSupport {
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub os: Option<String>,
+    pub os: Option<Os>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub arch: Option<String>,
+    pub arch: Option<Arch>,
 }
 
 impl From<&PkgSupport> for ManifestSupport {
     fn from(support: &PkgSupport) -> Self {
         ManifestSupport {
-            os: support.os.as_ref().map(|_os| _os.to_string()),
-            arch: support.arch.as_ref().map(|_arch| _arch.to_string()),
+            os: support.os.clone(),
+            arch: support.arch.clone(),
         }
     }
 }

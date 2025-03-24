@@ -7,7 +7,7 @@
 use std::hash::Hash;
 use std::{fmt, str::FromStr};
 
-use anyhow::{Context, Error, Result};
+use anyhow::{Error, Result};
 use serde::{Deserialize, Serialize};
 
 use crate::env::get_env;
@@ -65,18 +65,8 @@ impl TryFrom<&ManifestSupport> for PkgSupport {
 
     fn try_from(manifest_support: &ManifestSupport) -> Result<Self> {
         Ok(PkgSupport {
-            os: manifest_support
-                .os
-                .as_deref()
-                .map(Os::from_str)
-                .transpose()
-                .context("Failed to parse OS from manifest")?,
-            arch: manifest_support
-                .arch
-                .as_deref()
-                .map(Arch::from_str)
-                .transpose()
-                .context("Failed to parse Arch from manifest")?,
+            os: manifest_support.os.clone(),
+            arch: manifest_support.arch.clone(),
         })
     }
 }
