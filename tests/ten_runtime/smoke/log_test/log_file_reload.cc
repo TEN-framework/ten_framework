@@ -176,7 +176,7 @@ TEST(LogTest, LogFileReload) {  // NOLINT
   EXPECT_TRUE(log_file.good());
 
   // Make sure the log content contains "log message 1" to "log message
-  // {g_log_count}"
+  // {g_log_count}". Make sure that no logs are lost.
   std::string line;
   std::vector<bool> found(g_log_count, false);
   int total_found = 0;

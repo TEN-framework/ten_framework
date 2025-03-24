@@ -36,7 +36,8 @@ ten_package_test_prepare_app("go_app_log_rotate_python_app") {
   }
 }
 
-ten_package_test_prepare_auxiliary_resources("go_app_log_rotate_python_test_files") {
+ten_package_test_prepare_auxiliary_resources(
+    "go_app_log_rotate_python_test_files") {
   resources = [
     "__init__.py",
     "test_case.py",

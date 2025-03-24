@@ -30,14 +30,13 @@ TEN_UTILS_PRIVATE_API void ten_log_deinit_encryption(ten_log_t *self);
 
 TEN_UTILS_PRIVATE_API void ten_log_destroy(ten_log_t *self);
 
-TEN_UTILS_PRIVATE_API void ten_log_set_encrypt_cb(ten_log_t *self,
-                                                  ten_log_encrypt_func_t cb,
-                                                  void *cb_data);
+TEN_UTILS_PRIVATE_API void ten_log_set_encrypt_cb(
+    ten_log_t *self, ten_log_encrypt_on_encrypt_func_t cb, void *cb_data);
 
 TEN_UTILS_PRIVATE_API void ten_log_reload(ten_log_t *self);
 
 TEN_UTILS_PRIVATE_API void ten_log_set_encrypt_deinit_cb(
-    ten_log_t *self, ten_log_encrypt_deinit_func_t cb);
+    ten_log_t *self, ten_log_encrypt_on_deinit_func_t cb);
 
 TEN_UTILS_PRIVATE_API const char *filename(const char *path, size_t path_len,
                                            size_t *filename_len);
@@ -63,11 +62,11 @@ TEN_UTILS_API void ten_log_global_set_output_to_stderr(void);
 
 TEN_UTILS_API void ten_log_global_set_output_to_file(const char *log_path);
 
-TEN_UTILS_API void ten_log_global_set_encrypt_cb(ten_log_encrypt_func_t cb,
-                                                 void *cb_data);
+TEN_UTILS_API void ten_log_global_set_encrypt_cb(
+    ten_log_encrypt_on_encrypt_func_t cb, void *cb_data);
 
 TEN_UTILS_API void ten_log_global_set_encrypt_deinit_cb(
-    ten_log_encrypt_deinit_func_t cb);
+    ten_log_encrypt_on_deinit_func_t cb);
 
 TEN_UTILS_API void ten_log_global_deinit_encryption(void);
 

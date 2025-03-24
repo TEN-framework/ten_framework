@@ -275,7 +275,8 @@ inline const char *ten_string_get_raw_str(const ten_string_t *self) {
   // It's possible that the return value of this function is used by "%s", and
   // pass NULL as the value of "%s" is an undefined behavior, so we ensure that
   // the return value of this function is not NULL.
-  TEN_ASSERT(self && ten_string_check_integrity(self), "Invalid argument.");
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_string_check_integrity(self), "Invalid argument.");
   return self ? self->buf : NULL;
 }
 
@@ -285,7 +286,8 @@ inline const char *ten_string_get_raw_str(const ten_string_t *self) {
  * @return The length of the string object.
  */
 inline size_t ten_string_len(const ten_string_t *self) {
-  TEN_ASSERT(self && ten_string_check_integrity(self), "Invalid argument.");
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_string_check_integrity(self), "Invalid argument.");
   return self ? self->first_unused_idx : 0;
 }
 

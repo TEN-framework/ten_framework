@@ -100,36 +100,38 @@ typedef enum TEN_LOG_LEVEL {
 typedef struct ten_string_t ten_string_t;
 typedef struct ten_log_t ten_log_t;
 
-typedef void (*ten_log_output_func_t)(ten_log_t *self, ten_string_t *msg);
-typedef void (*ten_log_close_func_t)(ten_log_t *self);
-typedef void (*ten_log_reload_func_t)(ten_log_t *self);
-typedef void (*ten_log_output_deinit_func_t)(ten_log_t *self);
-typedef void (*ten_log_formatter_func_t)(ten_string_t *buf, TEN_LOG_LEVEL level,
-                                         const char *func_name,
-                                         size_t func_name_len,
-                                         const char *file_name,
-                                         size_t file_name_len, size_t line_no,
-                                         const char *msg, size_t msg_len);
-typedef void (*ten_log_encrypt_func_t)(uint8_t *data, size_t data_len,
-                                       void *user_data);
-typedef void (*ten_log_encrypt_deinit_func_t)(void *user_data);
+typedef void (*ten_log_output_on_output_func_t)(ten_log_t *self,
+                                                ten_string_t *msg);
+typedef void (*ten_log_output_on_close_func_t)(ten_log_t *self);
+typedef void (*ten_log_output_on_reload_func_t)(ten_log_t *self);
+typedef void (*ten_log_output_on_deinit_func_t)(ten_log_t *self);
+
+typedef void (*ten_log_formatter_on_format_func_t)(
+    ten_string_t *buf, TEN_LOG_LEVEL level, const char *func_name,
+    size_t func_name_len, const char *file_name, size_t file_name_len,
+    size_t line_no, const char *msg, size_t msg_len);
+
+typedef void (*ten_log_encrypt_on_encrypt_func_t)(uint8_t *data,
+                                                  size_t data_len,
+                                                  void *user_data);
+typedef void (*ten_log_encrypt_on_deinit_func_t)(void *user_data);
 
 typedef struct ten_log_output_t {
-  ten_log_output_func_t output_cb;
-  ten_log_close_func_t close_cb;
-  ten_log_reload_func_t reload_cb;
-  ten_log_output_deinit_func_t deinit_cb;
+  ten_log_output_on_output_func_t on_output;
+  ten_log_output_on_close_func_t on_close;
+  ten_log_output_on_reload_func_t on_reload;
+  ten_log_output_on_deinit_func_t on_deinit;
   void *user_data;
 } ten_log_output_t;
 
 typedef struct ten_log_encryption_t {
-  ten_log_encrypt_func_t encrypt_cb;
-  ten_log_encrypt_deinit_func_t deinit_cb;
+  ten_log_encrypt_on_encrypt_func_t on_encrypt;
+  ten_log_encrypt_on_deinit_func_t on_deinit;
   void *impl;
 } ten_log_encryption_t;
 
 typedef struct ten_log_formatter_t {
-  ten_log_formatter_func_t format_cb;
+  ten_log_formatter_on_format_func_t on_format;
   void *user_data;  // In case the formatter needs any user data
 } ten_log_formatter_t;
 

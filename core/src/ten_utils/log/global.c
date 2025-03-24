@@ -12,7 +12,7 @@
 
 ten_log_t ten_global_log = {TEN_LOG_SIGNATURE,
                             TEN_LOG_LEVEL_DEBUG,
-                            {ten_log_output_to_stderr_cb, NULL, NULL}};
+                            {ten_log_output_to_stderr, NULL, NULL}};
 
 void ten_log_global_init(void) { ten_log_init(&ten_global_log); }
 
@@ -30,11 +30,12 @@ void ten_log_global_set_output_to_file(const char *log_path) {
   ten_log_set_output_to_file(&ten_global_log, log_path);
 }
 
-void ten_log_global_set_encrypt_cb(ten_log_encrypt_func_t cb, void *cb_data) {
+void ten_log_global_set_encrypt_cb(ten_log_encrypt_on_encrypt_func_t cb,
+                                   void *cb_data) {
   ten_log_set_encrypt_cb(&ten_global_log, cb, cb_data);
 }
 
-void ten_log_global_set_encrypt_deinit_cb(ten_log_encrypt_deinit_func_t cb) {
+void ten_log_global_set_encrypt_deinit_cb(ten_log_encrypt_on_deinit_func_t cb) {
   ten_log_set_encrypt_deinit_cb(&ten_global_log, cb);
 }
 

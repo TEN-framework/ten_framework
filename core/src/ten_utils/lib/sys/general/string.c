@@ -54,7 +54,8 @@ enum { MAX_RETRIES = 10 };
 
 void ten_string_append_from_va_list(ten_string_t *self, const char *fmt,
                                     va_list ap) {
-  TEN_ASSERT(self && ten_string_check_integrity(self), "Invalid argument.");
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_string_check_integrity(self), "Invalid argument.");
 
   size_t retry_count = 0;
 
@@ -114,7 +115,8 @@ ten_string_t *ten_string_clone(const ten_string_t *other) {
 }
 
 void ten_string_destroy(ten_string_t *self) {
-  TEN_ASSERT(self && ten_string_check_integrity(self), "Invalid argument.");
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_string_check_integrity(self), "Invalid argument.");
   ten_string_deinit(self);
   TEN_FREE(self);
 }
@@ -181,7 +183,8 @@ void ten_string_init_from_c_str_with_size(ten_string_t *self, const char *str,
 
 void ten_string_set_from_c_str_with_size(ten_string_t *self, const char *str,
                                          size_t size) {
-  TEN_ASSERT(self && ten_string_check_integrity(self), "Invalid argument.");
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_string_check_integrity(self), "Invalid argument.");
 
   if (str) {
     ten_string_set_formatted(self, "%.*s", size, str);
@@ -189,14 +192,16 @@ void ten_string_set_from_c_str_with_size(ten_string_t *self, const char *str,
 }
 
 void ten_string_set_from_c_str(ten_string_t *self, const char *str) {
-  TEN_ASSERT(self && ten_string_check_integrity(self) && str,
-             "Invalid argument.");
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_string_check_integrity(self), "Invalid argument.");
+  TEN_ASSERT(str, "Invalid argument.");
 
   ten_string_set_formatted(self, "%s", str);
 }
 
 void ten_string_set_formatted(ten_string_t *self, const char *fmt, ...) {
-  TEN_ASSERT(self && ten_string_check_integrity(self), "Invalid argument.");
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_string_check_integrity(self), "Invalid argument.");
 
   ten_string_clear(self);
 
@@ -208,8 +213,9 @@ void ten_string_set_formatted(ten_string_t *self, const char *fmt, ...) {
 
 void ten_string_prepend_from_va_list(ten_string_t *self, const char *fmt,
                                      va_list ap) {
-  TEN_ASSERT(self && ten_string_check_integrity(self) && fmt,
-             "Invalid argument.");
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_string_check_integrity(self), "Invalid argument.");
+  TEN_ASSERT(fmt, "Invalid argument.");
 
   ten_string_t new_str;
   TEN_STRING_INIT(new_str);
@@ -235,8 +241,9 @@ void ten_string_prepend_from_va_list(ten_string_t *self, const char *fmt,
 }
 
 void ten_string_prepend_formatted(ten_string_t *self, const char *fmt, ...) {
-  TEN_ASSERT(self && ten_string_check_integrity(self) && fmt,
-             "Invalid argument.");
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_string_check_integrity(self), "Invalid argument.");
+  TEN_ASSERT(fmt, "Invalid argument.");
 
   va_list ap;
   va_start(ap, fmt);
@@ -256,7 +263,8 @@ void ten_string_append_formatted(ten_string_t *self, const char *fmt, ...) {
 }
 
 static void ten_string_reset(ten_string_t *self) {
-  TEN_ASSERT(self && ten_string_check_integrity(self), "Invalid argument.");
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_string_check_integrity(self), "Invalid argument.");
 
   if (self->buf && self->buf != self->pre_buf) {
     TEN_FREE(self->buf);
@@ -267,20 +275,23 @@ static void ten_string_reset(ten_string_t *self) {
 }
 
 void ten_string_deinit(ten_string_t *self) {
-  TEN_ASSERT(self && ten_string_check_integrity(self), "Invalid argument.");
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_string_check_integrity(self), "Invalid argument.");
 
   ten_string_reset(self);
   ten_signature_set(&self->signature, 0);
 }
 
 void ten_string_clear(ten_string_t *self) {
-  TEN_ASSERT(self && ten_string_check_integrity(self), "Invalid argument.");
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_string_check_integrity(self), "Invalid argument.");
   self->first_unused_idx = 0;
   self->buf[0] = 0;
 }
 
 void ten_string_reserve(ten_string_t *self, size_t extra) {
-  TEN_ASSERT(self && ten_string_check_integrity(self), "Invalid argument.");
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_string_check_integrity(self), "Invalid argument.");
 
   if (extra > SIZE_MAX - self->first_unused_idx) {
     TEN_ASSERT(0, "Size overflow detected.");
@@ -316,7 +327,8 @@ void ten_string_reserve(ten_string_t *self, size_t extra) {
 }
 
 bool ten_string_is_empty(const ten_string_t *self) {
-  TEN_ASSERT(self && ten_string_check_integrity(self), "Invalid argument.");
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_string_check_integrity(self), "Invalid argument.");
   return ten_c_string_is_empty(self->buf);
 }
 
@@ -329,7 +341,8 @@ bool ten_string_starts_with(const ten_string_t *self, const char *start) {
 }
 
 void ten_string_erase_back(ten_string_t *self, size_t count) {
-  TEN_ASSERT(self && ten_string_check_integrity(self), "Invalid argument.");
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_string_check_integrity(self), "Invalid argument.");
 
   size_t len = strlen(self->buf);
   if (count > len) {
@@ -402,14 +415,16 @@ bool ten_string_contains(ten_string_t *self, const char *b) {
 }
 
 void ten_string_to_lower(ten_string_t *self) {
-  TEN_ASSERT(self && ten_string_check_integrity(self), "Invalid argument.");
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_string_check_integrity(self), "Invalid argument.");
   for (size_t i = 0; i < ten_string_len(self); ++i) {
     self->buf[i] = tolower(self->buf[i]);
   }
 }
 
 void ten_string_to_upper(ten_string_t *self) {
-  TEN_ASSERT(self && ten_string_check_integrity(self), "Invalid argument.");
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_string_check_integrity(self), "Invalid argument.");
   for (size_t i = 0; i < ten_string_len(self); ++i) {
     self->buf[i] = toupper(self->buf[i]);
   }
@@ -484,7 +499,8 @@ void ten_c_string_split(const char *src, const char *delimiter,
 
 void ten_string_split(ten_string_t *self, const char *delimiter,
                       ten_list_t *result) {
-  TEN_ASSERT(self && ten_string_check_integrity(self), "Invalid argument.");
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_string_check_integrity(self), "Invalid argument.");
   TEN_ASSERT(delimiter, "Invalid argument.");
   TEN_ASSERT(result && ten_list_check_integrity(result), "Invalid argument.");
 
@@ -582,7 +598,8 @@ void ten_c_string_uri_decode(const char *src, const size_t len,
 }
 
 void ten_string_hex_from_buf(ten_string_t *self, ten_buf_t buf) {
-  TEN_ASSERT(self && ten_string_check_integrity(self), "Invalid argument.");
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_string_check_integrity(self), "Invalid argument.");
 
   for (size_t i = 0; i < buf.content_size; i++) {
     ten_string_append_formatted(self, "%02x", (buf.data)[i]);
@@ -590,7 +607,8 @@ void ten_string_hex_from_buf(ten_string_t *self, ten_buf_t buf) {
 }
 
 void ten_string_trim_trailing_slash(ten_string_t *self) {
-  TEN_ASSERT(self && ten_string_check_integrity(self), "Invalid argument.");
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_string_check_integrity(self), "Invalid argument.");
 
   for (size_t i = ten_string_len(self) - 1;
        i >= 0 && ((self->buf[i] == '/') || (self->buf[i] == '\\')); i--) {
@@ -600,7 +618,8 @@ void ten_string_trim_trailing_slash(ten_string_t *self) {
 }
 
 void ten_string_trim_trailing_whitespace(ten_string_t *self) {
-  TEN_ASSERT(self && ten_string_check_integrity(self), "Invalid argument.");
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_string_check_integrity(self), "Invalid argument.");
 
   for (size_t i = ten_string_len(self) - 1; i >= 0 && isspace(self->buf[i]);
        i--) {
@@ -610,7 +629,8 @@ void ten_string_trim_trailing_whitespace(ten_string_t *self) {
 }
 
 void ten_string_trim_leading_whitespace(ten_string_t *self) {
-  TEN_ASSERT(self && ten_string_check_integrity(self), "Invalid argument.");
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_string_check_integrity(self), "Invalid argument.");
 
   size_t whitespace_cnt = 0;
   for (size_t i = 0; i < ten_string_len(self); i++) {

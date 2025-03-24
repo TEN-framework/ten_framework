@@ -13,20 +13,20 @@
 void ten_log_encryption_init(ten_log_encryption_t *self) {
   TEN_ASSERT(self, "Invalid argument");
 
-  self->encrypt_cb = NULL;
-  self->deinit_cb = NULL;
+  self->on_encrypt = NULL;
+  self->on_deinit = NULL;
   self->impl = NULL;
 }
 
 void ten_log_encryption_deinit(ten_log_encryption_t *self) {
   TEN_ASSERT(self, "Invalid argument");
 
-  if (self->deinit_cb) {
-    self->deinit_cb(self->impl);
+  if (self->on_deinit) {
+    self->on_deinit(self->impl);
   }
 
-  self->encrypt_cb = NULL;
-  self->deinit_cb = NULL;
+  self->on_encrypt = NULL;
+  self->on_deinit = NULL;
   self->impl = NULL;
 }
 
@@ -35,8 +35,8 @@ void ten_log_encrypt_data(ten_log_t *self, uint8_t *data, size_t data_len) {
   TEN_ASSERT(data, "Invalid argument");
   TEN_ASSERT(data_len > 0, "Invalid argument");
 
-  if (self->encryption.encrypt_cb) {
-    self->encryption.encrypt_cb(data, data_len, self->encryption.impl);
+  if (self->encryption.on_encrypt) {
+    self->encryption.on_encrypt(data, data_len, self->encryption.impl);
   }
 }
 
