@@ -6,6 +6,7 @@
 //
 #include "ten_utils/ten_config.h"
 
+#include "ten_utils/lib/mutex.h"
 #include "ten_utils/lib/string.h"
 #include "ten_utils/macro/memory.h"
 

@@ -155,6 +155,16 @@ static void ten_global_sigsegv_handler(TEN_UNUSED int signo, siginfo_t *info,
   _exit(EXIT_FAILURE);
 }
 
+/**
+ * @brief Handler for SIGHUP signal.
+ */
+static void ten_global_sighup_handler(int signo, TEN_UNUSED siginfo_t *info,
+                                      TEN_UNUSED void *context) {
+  (void)dprintf(STDERR_FILENO, "Received SIGHUP (%d)\n", signo);
+
+  ten_log_global_reload();
+}
+
 // The alternate stack size.
 #define ALT_STACK_SIZE (unsigned long)(1024 * 1024)
 
@@ -251,8 +261,9 @@ static void ten_global_setup_sig_handler(void) {
     exit(EXIT_FAILURE);
   }
 
-  if (0 != sigaction(SIGHUP, &act, NULL)) {
-    TEN_LOGF("Failed to install SIGHUP handler.");
+  if (0 != setup_signal_handler(SIGHUP, ten_global_sighup_handler, &act)) {
+    (void)dprintf(STDERR_FILENO, "Failed to install SIGHUP handler\n");
+
     // NOLINTNEXTLINE(concurrency-mt-unsafe)
     exit(EXIT_FAILURE);
   }
