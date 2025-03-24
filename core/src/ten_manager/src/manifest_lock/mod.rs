@@ -282,7 +282,6 @@ impl<'a> From<&'a ManifestLockItem> for PkgInfo {
                 .dependencies
                 .map(|deps| deps.into_iter().map(|dep| (&dep).into()).collect())
                 .unwrap_or_default(),
-            api: None,
             compatible_score: 0, // TODO(xilin): default value.
             is_installed: false,
             url: "".to_string(), // TODO(xilin): default value.

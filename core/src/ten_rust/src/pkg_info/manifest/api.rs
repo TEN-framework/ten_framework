@@ -13,11 +13,6 @@ use serde::{
     Deserialize, Deserializer, Serialize,
 };
 
-use crate::pkg_info::api::{
-    PkgApi, PkgApiCmdLike, PkgApiDataLike, PkgCmdResult, PkgPropertyAttributes,
-    PkgPropertyItem,
-};
-
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct ManifestApi {
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -80,6 +75,7 @@ pub struct ManifestApiCmdLike {
     #[serde(deserialize_with = "deserialize_optional_required", default)]
     pub required: Option<Vec<String>>,
 
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub result: Option<ManifestCmdResult>,
 }
 
@@ -212,166 +208,6 @@ impl<'de> Visitor<'de> for PropertyRequiredVisitor {
             ))
         } else {
             Ok(Some(items))
-        }
-    }
-}
-
-impl From<PkgApi> for ManifestApi {
-    fn from(pkg_api: PkgApi) -> Self {
-        ManifestApi {
-            property: if pkg_api.property.is_empty() {
-                None
-            } else {
-                Some(get_manifest_property_attributes_from_pkg(
-                    pkg_api.property,
-                ))
-            },
-            required: Some(pkg_api.required),
-            cmd_in: if pkg_api.cmd_in.is_empty() {
-                None
-            } else {
-                Some(get_manifest_api_cmd_like_from_pkg(pkg_api.cmd_in))
-            },
-            cmd_out: if pkg_api.cmd_out.is_empty() {
-                None
-            } else {
-                Some(get_manifest_api_cmd_like_from_pkg(pkg_api.cmd_out))
-            },
-            data_in: if pkg_api.data_in.is_empty() {
-                None
-            } else {
-                Some(get_manifest_api_data_like_from_pkg(pkg_api.data_in))
-            },
-            data_out: if pkg_api.data_out.is_empty() {
-                None
-            } else {
-                Some(get_manifest_api_data_like_from_pkg(pkg_api.data_out))
-            },
-            audio_frame_in: if pkg_api.audio_frame_in.is_empty() {
-                None
-            } else {
-                Some(get_manifest_api_data_like_from_pkg(
-                    pkg_api.audio_frame_in,
-                ))
-            },
-            audio_frame_out: if pkg_api.audio_frame_out.is_empty() {
-                None
-            } else {
-                Some(get_manifest_api_data_like_from_pkg(
-                    pkg_api.audio_frame_out,
-                ))
-            },
-            video_frame_in: if pkg_api.video_frame_in.is_empty() {
-                None
-            } else {
-                Some(get_manifest_api_data_like_from_pkg(
-                    pkg_api.video_frame_in,
-                ))
-            },
-            video_frame_out: if pkg_api.video_frame_out.is_empty() {
-                None
-            } else {
-                Some(get_manifest_api_data_like_from_pkg(
-                    pkg_api.video_frame_out,
-                ))
-            },
-        }
-    }
-}
-
-fn get_manifest_property_attributes_from_pkg(
-    items: HashMap<String, PkgPropertyAttributes>,
-) -> HashMap<String, ManifestPropertyAttributes> {
-    items.into_iter().map(|(k, v)| (k, v.into())).collect()
-}
-
-fn get_manifest_api_cmd_like_from_pkg(
-    pkg_api_cmd_like: Vec<PkgApiCmdLike>,
-) -> Vec<ManifestApiCmdLike> {
-    pkg_api_cmd_like.into_iter().map(|v| v.into()).collect()
-}
-
-fn get_manifest_api_data_like_from_pkg(
-    pkg_api_cmd_like: Vec<PkgApiDataLike>,
-) -> Vec<ManifestApiDataLike> {
-    pkg_api_cmd_like.into_iter().map(|v| v.into()).collect()
-}
-
-impl From<PkgPropertyItem> for ManifestPropertyItem {
-    fn from(pkg_property_item: PkgPropertyItem) -> Self {
-        ManifestPropertyItem {
-            name: pkg_property_item.name,
-            attributes: pkg_property_item.attributes.into(),
-        }
-    }
-}
-
-impl From<PkgPropertyAttributes> for ManifestPropertyAttributes {
-    fn from(pkg_property_item: PkgPropertyAttributes) -> Self {
-        ManifestPropertyAttributes {
-            prop_type: pkg_property_item.prop_type.to_string(),
-        }
-    }
-}
-
-fn get_manifest_property_items_from_pkg(
-    pkg_property_items: Vec<PkgPropertyItem>,
-) -> Vec<ManifestPropertyItem> {
-    pkg_property_items.into_iter().map(|v| v.into()).collect()
-}
-
-impl From<PkgCmdResult> for ManifestCmdResult {
-    fn from(pkg_cmd_result: PkgCmdResult) -> Self {
-        ManifestCmdResult {
-            property: get_manifest_property_items_from_pkg(
-                pkg_cmd_result.property,
-            ),
-            required: Some(pkg_cmd_result.required),
-        }
-    }
-}
-
-impl From<PkgApiCmdLike> for ManifestApiCmdLike {
-    fn from(pkg_api_cmd_like: PkgApiCmdLike) -> Self {
-        ManifestApiCmdLike {
-            name: pkg_api_cmd_like.name,
-            property: if pkg_api_cmd_like.property.is_empty() {
-                None
-            } else {
-                Some(get_manifest_property_items_from_pkg(
-                    pkg_api_cmd_like.property,
-                ))
-            },
-            required: if (pkg_api_cmd_like.required).is_empty() {
-                None
-            } else {
-                Some(pkg_api_cmd_like.required)
-            },
-            result: if pkg_api_cmd_like.result.property.is_empty() {
-                None
-            } else {
-                Some(pkg_api_cmd_like.result.into())
-            },
-        }
-    }
-}
-
-impl From<PkgApiDataLike> for ManifestApiDataLike {
-    fn from(pkg_api_data_like: PkgApiDataLike) -> Self {
-        ManifestApiDataLike {
-            name: pkg_api_data_like.name,
-            property: if pkg_api_data_like.property.is_empty() {
-                None
-            } else {
-                Some(get_manifest_property_items_from_pkg(
-                    pkg_api_data_like.property,
-                ))
-            },
-            required: if pkg_api_data_like.required.is_empty() {
-                None
-            } else {
-                Some(pkg_api_data_like.required)
-            },
         }
     }
 }

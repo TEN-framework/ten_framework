@@ -60,67 +60,82 @@ fn convert_pkg_info_to_addon(
             .to_string(),
         addon_name: pkg_info_with_src.basic_info.type_and_name.name.clone(),
         url: pkg_info_with_src.url.clone(),
-        api: pkg_info_with_src.api.as_ref().map(|api| DesignerApi {
-            property: if api.property.is_empty() {
-                None
-            } else {
-                Some(get_designer_property_hashmap_from_pkg(
-                    api.property.clone(),
-                ))
-            },
+        api: pkg_info_with_src
+            .manifest
+            .as_ref()
+            .map(|manifest| DesignerApi {
+                property: manifest
+                    .api
+                    .as_ref()
+                    .and_then(|api| api.property.as_ref())
+                    .map(|prop| {
+                        get_designer_property_hashmap_from_pkg(prop.clone())
+                    }),
 
-            cmd_in: if api.cmd_in.is_empty() {
-                None
-            } else {
-                Some(get_designer_api_cmd_likes_from_pkg(api.cmd_in.clone()))
-            },
-            cmd_out: if api.cmd_out.is_empty() {
-                None
-            } else {
-                Some(get_designer_api_cmd_likes_from_pkg(api.cmd_out.clone()))
-            },
+                cmd_in: manifest
+                    .api
+                    .as_ref()
+                    .and_then(|api| api.cmd_in.as_ref())
+                    .map(|cmd| {
+                        get_designer_api_cmd_likes_from_pkg(cmd.clone())
+                    }),
 
-            data_in: if api.data_in.is_empty() {
-                None
-            } else {
-                Some(get_designer_api_data_likes_from_pkg(api.data_in.clone()))
-            },
-            data_out: if api.data_out.is_empty() {
-                None
-            } else {
-                Some(get_designer_api_data_likes_from_pkg(api.data_out.clone()))
-            },
+                cmd_out: manifest
+                    .api
+                    .as_ref()
+                    .and_then(|api| api.cmd_out.as_ref())
+                    .map(|cmd| {
+                        get_designer_api_cmd_likes_from_pkg(cmd.clone())
+                    }),
 
-            audio_frame_in: if api.audio_frame_in.is_empty() {
-                None
-            } else {
-                Some(get_designer_api_data_likes_from_pkg(
-                    api.audio_frame_in.clone(),
-                ))
-            },
-            audio_frame_out: if api.audio_frame_out.is_empty() {
-                None
-            } else {
-                Some(get_designer_api_data_likes_from_pkg(
-                    api.audio_frame_out.clone(),
-                ))
-            },
+                data_in: manifest
+                    .api
+                    .as_ref()
+                    .and_then(|api| api.data_in.as_ref())
+                    .map(|data| {
+                        get_designer_api_data_likes_from_pkg(data.clone())
+                    }),
 
-            video_frame_in: if api.video_frame_in.is_empty() {
-                None
-            } else {
-                Some(get_designer_api_data_likes_from_pkg(
-                    api.video_frame_in.clone(),
-                ))
-            },
-            video_frame_out: if api.video_frame_out.is_empty() {
-                None
-            } else {
-                Some(get_designer_api_data_likes_from_pkg(
-                    api.video_frame_out.clone(),
-                ))
-            },
-        }),
+                data_out: manifest
+                    .api
+                    .as_ref()
+                    .and_then(|api| api.data_out.as_ref())
+                    .map(|data| {
+                        get_designer_api_data_likes_from_pkg(data.clone())
+                    }),
+
+                audio_frame_in: manifest
+                    .api
+                    .as_ref()
+                    .and_then(|api| api.audio_frame_in.as_ref())
+                    .map(|data| {
+                        get_designer_api_data_likes_from_pkg(data.clone())
+                    }),
+
+                audio_frame_out: manifest
+                    .api
+                    .as_ref()
+                    .and_then(|api| api.audio_frame_out.as_ref())
+                    .map(|data| {
+                        get_designer_api_data_likes_from_pkg(data.clone())
+                    }),
+
+                video_frame_in: manifest
+                    .api
+                    .as_ref()
+                    .and_then(|api| api.video_frame_in.as_ref())
+                    .map(|data| {
+                        get_designer_api_data_likes_from_pkg(data.clone())
+                    }),
+
+                video_frame_out: manifest
+                    .api
+                    .as_ref()
+                    .and_then(|api| api.video_frame_out.as_ref())
+                    .map(|data| {
+                        get_designer_api_data_likes_from_pkg(data.clone())
+                    }),
+            }),
     }
 }
 

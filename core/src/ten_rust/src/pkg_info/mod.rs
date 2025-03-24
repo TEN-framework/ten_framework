@@ -4,7 +4,6 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-pub mod api;
 mod binding;
 pub mod constants;
 pub mod dependencies;
@@ -30,7 +29,6 @@ use pkg_basic_info::PkgBasicInfo;
 use pkg_type_and_name::PkgTypeAndName;
 
 use crate::schema::store::SchemaStore;
-use api::PkgApi;
 use constants::{
     ADDON_LOADER_DIR, EXTENSION_DIR, MANIFEST_JSON_FILENAME, PROTOCOL_DIR,
     SYSTEM_DIR, TEN_PACKAGES_DIR,
@@ -51,7 +49,6 @@ pub struct PkgInfo {
     pub basic_info: PkgBasicInfo,
 
     pub dependencies: Vec<PkgDependency>,
-    pub api: Option<PkgApi>,
 
     pub compatible_score: i32,
 
@@ -96,7 +93,6 @@ impl PkgInfo {
             basic_info: PkgBasicInfo::try_from(manifest)?,
 
             dependencies: get_pkg_dependencies_from_manifest(manifest)?,
-            api: PkgApi::from_manifest(manifest)?,
             compatible_score: -1,
 
             is_installed: false,
