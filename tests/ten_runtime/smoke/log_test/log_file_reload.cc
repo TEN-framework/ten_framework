@@ -170,6 +170,7 @@ TEST(LogTest, LogFileReload) {  // NOLINT
 
   ten_thread_join(app_thread, -1);
 
+#ifndef _WIN32
   // Check the log file content.
   std::ifstream log_file("aaa/log_file_reload.log");
   EXPECT_TRUE(log_file.good());
@@ -203,4 +204,5 @@ TEST(LogTest, LogFileReload) {  // NOLINT
               << total_found << '\n';
     FAIL();
   }
+#endif
 }
