@@ -287,9 +287,8 @@ static void proxy_on_audio_frame(ten_extension_t *self, ten_env_t *ten_env,
                              msg_bridge_addr);
 }
 
-static ten_go_extension_t *
-ten_go_extension_create_internal(ten_go_handle_t go_extension,
-                                 const char *name) {
+static ten_go_extension_t *ten_go_extension_create_internal(
+    ten_go_handle_t go_extension, const char *name) {
   TEN_ASSERT(name, "Invalid argument.");
 
   ten_go_extension_t *extension_bridge =

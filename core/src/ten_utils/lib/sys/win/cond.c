@@ -47,13 +47,17 @@ int ten_cond_wait(ten_cond_t *cond, ten_mutex_t *mutex, int64_t wait_ms) {
     return -1;
   }
 
-  return SleepConditionVariableCS(&cond->cond, lock, wait_ms) ? 0 : -1;
+  if (wait_ms < 0) {
+    return SleepConditionVariableCS(&cond->cond, lock, INFINITE) ? 0 : -1;
+  }
+
+  DWORD timeout_ms = (wait_ms > 0xFFFFFFFF) ? 0xFFFFFFFF : (DWORD)wait_ms;
+  return SleepConditionVariableCS(&cond->cond, lock, timeout_ms) ? 0 : -1;
 }
 
 int ten_cond_wait_while(ten_cond_t *cond, ten_mutex_t *mutex,
                         int (*predicate)(void *), void *arg, int64_t wait_ms) {
   BOOL ret = FALSE;
-  BOOL wait_forever;
   CRITICAL_SECTION *lock =
       (CRITICAL_SECTION *)ten_mutex_get_native_handle(mutex);
 
@@ -64,24 +68,29 @@ int ten_cond_wait_while(ten_cond_t *cond, ten_mutex_t *mutex,
 
   if (wait_ms == 0) {
     int test_result = predicate(arg);
-
     return test_result ? -1 : 0;
   }
 
-  wait_forever = wait_ms < 0;
+  BOOL wait_forever = wait_ms < 0;
 
   while (predicate(arg)) {
     if (wait_forever) {
-      ret = SleepConditionVariableCS(&cond->cond, lock, -1);
-    } else if (wait_ms < 0) {
-      return -1;
+      ret = SleepConditionVariableCS(&cond->cond, lock, INFINITE);
     } else {
+      DWORD timeout_ms = (wait_ms > 0xFFFFFFFF) ? 0xFFFFFFFF : (DWORD)wait_ms;
       int64_t begin = ten_current_time_ms();
-      ret = SleepConditionVariableCS(&cond->cond, lock, wait_ms);
+      ret = SleepConditionVariableCS(&cond->cond, lock, timeout_ms);
       wait_ms -= (ten_current_time_ms() - begin);
+
+      if (wait_ms <= 0 && predicate(arg)) {
+        // Timeout but condition is not satisfied.
+        return -1;
+      }
     }
 
     if (!ret) {
+      DWORD error = GetLastError();
+      TEN_LOGE("SleepConditionVariableCS failed with error: %lu", error);
       return -1;
     }
   }

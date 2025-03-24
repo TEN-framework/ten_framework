@@ -86,21 +86,6 @@ export const ENDPOINT_APPS = {
 };
 
 export const ENDPOINT_ADDONS = {
-  extensionByName: {
-    [ENDPOINT_METHOD.GET]: {
-      url: `${API_DESIGNER_V1}/apps/addons/extensions/:name`,
-      method: ENDPOINT_METHOD.POST,
-      pathParams: ["name"],
-      responseSchema: genResSchema<IExtensionAddon>(
-        z.object({
-          name: z.string(),
-          url: z.string(),
-          api: z.unknown().optional(),
-          type: z.string(),
-        })
-      ),
-    },
-  },
   addons: {
     [ENDPOINT_METHOD.POST]: {
       url: `${API_DESIGNER_V1}/apps/addons`,

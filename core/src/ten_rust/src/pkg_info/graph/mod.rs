@@ -30,48 +30,48 @@ use crate::pkg_info::localhost;
 /// - Case 2: all nodes have declared the 'app' field, and all of them have the
 ///   same value. Ex:
 ///
+/// {
+///   "nodes": [
 ///     {
-///         "nodes": [
-///             {
-///                 "type": "extension",
-///                 "app": "http://localhost:8000",
-///                 "addon": "addon_1",
-///                 "name": "ext_1",
-///                 "extension_group": "some_group"
-///             },
-///             {
-///                 "type": "extension",
-///                 "app": "http://localhost:8000",
-///                 "addon": "addon_2",
-///                 "name": "ext_2",
-///                 "extension_group": "another_group"
-///             }
-///         ]
+///       "type": "extension",
+///       "app": "http://localhost:8000",
+///       "addon": "addon_1",
+///       "name": "ext_1",
+///       "extension_group": "some_group"
+///     },
+///     {
+///       "type": "extension",
+///       "app": "http://localhost:8000",
+///       "addon": "addon_2",
+///       "name": "ext_2",
+///       "extension_group": "another_group"
 ///     }
+///   ]
+/// }
 ///
 ///   The state will be `UniformDeclared`.
 ///
 /// - Case 3: all nodes have declared the 'app' field, but they have different
 ///   values.
 ///
+/// {
+///   "nodes": [
 ///     {
-///         "nodes": [
-///             {
-///                 "type": "extension",
-///                 "app": "http://localhost:8000",
-///                 "addon": "addon_1",
-///                 "name": "ext_1",
-///                 "extension_group": "some_group"
-///             },
-///             {
-///                 "type": "extension",
-///                 "app": "msgpack://localhost:8001",
-///                 "addon": "addon_2",
-///                 "name": "ext_2",
-///                 "extension_group": "another_group"
-///             }
-///         ]
+///       "type": "extension",
+///       "app": "http://localhost:8000",
+///       "addon": "addon_1",
+///       "name": "ext_1",
+///       "extension_group": "some_group"
+///     },
+///     {
+///       "type": "extension",
+///       "app": "msgpack://localhost:8001",
+///       "addon": "addon_2",
+///       "name": "ext_2",
+///       "extension_group": "another_group"
 ///     }
+///   ]
+/// }
 ///
 ///   The state will be `MixedDeclared`.
 ///
@@ -123,6 +123,34 @@ impl FromStr for Graph {
 }
 
 impl Graph {
+    /// Determines how app URIs are declared across all nodes in the graph.
+    ///
+    /// This method analyzes all nodes in the graph to determine the app
+    /// declaration state:
+    /// - If no nodes have an 'app' field declared, returns `NoneDeclared`.
+    /// - If all nodes have the same 'app' URI declared, returns
+    ///   `UniformDeclared`.
+    /// - If all nodes have 'app' fields but with different URIs, returns
+    ///   `MixedDeclared`.
+    /// - If some nodes have 'app' fields and others don't, returns an error as
+    ///   this is invalid.
+    ///
+    /// Graphs can be categorized based on the number of apps:
+    /// - A graph for a single app
+    /// - A graph spanning multiple apps
+    ///
+    /// If none of the nodes have the app field defined, then it represents a
+    /// graph for a single app. If some nodes have the app field defined while
+    /// others do not, then it's not a valid graph, because TEN doesn't know
+    /// which app the nodes without the defined field belong to.
+    ///
+    /// So, the only valid case where nodes don't define the app field is when
+    /// all nodes in the graph lack the app field.
+    ///
+    /// # Returns
+    /// * `Ok(GraphNodeAppDeclaration)` - The determined app declaration state.
+    /// * `Err` - If any node has an empty app URI or if there's a mix of nodes
+    ///   with and without app declarations.
     fn determine_graph_node_app_declaration(
         &self,
     ) -> Result<GraphNodeAppDeclaration> {
@@ -135,7 +163,7 @@ impl Graph {
                     return Err(anyhow::anyhow!(
                         "nodes[{}]: {}",
                         idx,
-                        constants::ERR_MSG_APP_IS_EMPTY
+                        constants::ERR_MSG_GRAPH_APP_FIELD_EMPTY
                     ));
                 }
 
@@ -144,36 +172,60 @@ impl Graph {
             }
         }
 
+        // Case 4: Some nodes have 'app' declared and some don't - this is
+        // invalid.
         if nodes_have_declared_app != 0
             && nodes_have_declared_app != self.nodes.len()
         {
             return Err(anyhow::anyhow!(
-                constants::ERR_MSG_APP_DECLARATION_MISMATCH
+                constants::ERR_MSG_GRAPH_MIXED_APP_DECLARATIONS
             ));
         }
 
         match app_uris.len() {
+            // Case 1: No nodes have 'app' declared.
             0 => Ok(GraphNodeAppDeclaration::NoneDeclared),
+
+            // Case 2: All nodes have the same 'app' URI declared.
             1 => Ok(GraphNodeAppDeclaration::UniformDeclared),
+
+            // Case 3: All nodes have 'app' declared but with different URIs.
             _ => Ok(GraphNodeAppDeclaration::MixedDeclared),
         }
     }
 
+    /// Validates and completes the graph structure by ensuring all nodes and
+    /// connections are properly configured.
+    ///
+    /// This method performs the following steps:
+    /// 1. Determines how app URIs are declared across nodes (none, uniform, or
+    ///    mixed).
+    /// 2. Validates and completes each node with the app declaration context.
+    /// 3. Validates and completes each connection with the app declaration
+    ///    context.
+    ///
+    /// # Returns
+    /// * `Ok(())` if validation succeeds and the graph is properly completed.
+    /// * `Err` with a descriptive error message if validation fails, including
+    ///   the index of the problematic node or connection
     pub fn validate_and_complete(&mut self) -> Result<()> {
+        // First determine how app URIs are declared across all nodes.
         let graph_node_app_declaration =
             self.determine_graph_node_app_declaration()?;
 
-        for (idx, node) in &mut self.nodes.iter_mut().enumerate() {
+        // Validate and complete each node.
+        for (idx, node) in self.nodes.iter_mut().enumerate() {
             node.validate_and_complete(&graph_node_app_declaration)
                 .map_err(|e| anyhow::anyhow!("nodes[{}]: {}", idx, e))?;
         }
 
+        // Validate and complete connections if they exist.
         if let Some(connections) = &mut self.connections {
             for (idx, connection) in connections.iter_mut().enumerate() {
                 connection
                     .validate_and_complete(&graph_node_app_declaration)
                     .map_err(|e| {
-                        anyhow::anyhow!("connections[{}].{}", idx, e)
+                        anyhow::anyhow!("connections[{}]: {}", idx, e)
                     })?;
             }
         }
@@ -223,15 +275,38 @@ impl Graph {
     }
 }
 
-pub fn is_app_default_loc_or_none(app: &Option<String>) -> bool {
-    app.is_none() || app.as_ref().unwrap().as_str() == localhost()
+/// Checks if the application URI is either not specified (None) or set to the
+/// default localhost value.
+///
+/// This function is used to determine if an application's URI is using the
+/// default location, which helps decide whether the URI field should be
+/// included when serializing property data.
+///
+/// # Arguments
+/// * `app_uri` - An Option containing the application's URI string, or None if
+///   not specified.
+///
+/// # Returns
+/// * `true` if the URI is None or matches the default localhost value.
+/// * `false` if the URI is specified and different from the default localhost.
+pub fn is_app_default_loc_or_none(app_uri: &Option<String>) -> bool {
+    match app_uri {
+        None => true,
+        Some(uri) => uri == &localhost(),
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use std::str::FromStr;
 
-    use crate::pkg_info::property::Property;
+    use crate::pkg_info::{
+        graph::constants::{
+            ERR_MSG_GRAPH_APP_FIELD_SHOULD_BE_DECLARED,
+            ERR_MSG_GRAPH_APP_FIELD_SHOULD_NOT_BE_DECLARED,
+        },
+        property::Property,
+    };
 
     use super::*;
 
@@ -326,9 +401,9 @@ mod tests {
         println!("Error: {:?}", property);
 
         let msg = property.err().unwrap().to_string();
-        assert!(
-            msg.contains(constants::ERR_MSG_APP_LOCALHOST_DISALLOWED_SINGLE)
-        );
+        assert!(msg.contains(
+            constants::ERR_MSG_GRAPH_LOCALHOST_FORBIDDEN_IN_SINGLE_APP_MODE
+        ));
     }
 
     #[test]
@@ -343,9 +418,9 @@ mod tests {
         println!("Error: {:?}", graph);
 
         let msg = graph.err().unwrap().to_string();
-        assert!(
-            msg.contains(constants::ERR_MSG_APP_LOCALHOST_DISALLOWED_SINGLE)
-        );
+        assert!(msg.contains(
+            constants::ERR_MSG_GRAPH_LOCALHOST_FORBIDDEN_IN_SINGLE_APP_MODE
+        ));
     }
 
     #[test]
@@ -360,7 +435,9 @@ mod tests {
         println!("Error: {:?}", graph);
 
         let msg = graph.err().unwrap().to_string();
-        assert!(msg.contains(constants::ERR_MSG_APP_LOCALHOST_DISALLOWED_MULTI));
+        assert!(msg.contains(
+            constants::ERR_MSG_GRAPH_LOCALHOST_FORBIDDEN_IN_MULTI_APP_MODE
+        ));
     }
 
     #[test]
@@ -375,9 +452,9 @@ mod tests {
         println!("Error: {:?}", property);
 
         let msg = property.err().unwrap().to_string();
-        assert!(
-            msg.contains(constants::ERR_MSG_APP_LOCALHOST_DISALLOWED_SINGLE)
-        );
+        assert!(msg.contains(
+            constants::ERR_MSG_GRAPH_LOCALHOST_FORBIDDEN_IN_SINGLE_APP_MODE
+        ));
     }
 
     #[test]
@@ -410,9 +487,7 @@ mod tests {
         println!("Error: {:?}", property);
 
         let msg = property.err().unwrap().to_string();
-        assert!(msg.contains(
-            "'app' can not be none, as it has been declared in nodes"
-        ));
+        assert!(msg.contains(ERR_MSG_GRAPH_APP_FIELD_SHOULD_BE_DECLARED));
     }
 
     #[test]
@@ -427,9 +502,7 @@ mod tests {
         println!("Error: {:?}", property);
 
         let msg = property.err().unwrap().to_string();
-        assert!(msg.contains(
-            "'app' should not be declared, as not any node has declared it"
-        ));
+        assert!(msg.contains(ERR_MSG_GRAPH_APP_FIELD_SHOULD_NOT_BE_DECLARED));
     }
 
     #[test]
@@ -444,9 +517,7 @@ mod tests {
         println!("Error: {:?}", property);
 
         let msg = property.err().unwrap().to_string();
-        assert!(msg.contains(
-            "'app' can not be none, as it has been declared in nodes"
-        ));
+        assert!(msg.contains(ERR_MSG_GRAPH_APP_FIELD_SHOULD_BE_DECLARED));
     }
 
     #[test]
@@ -461,9 +532,7 @@ mod tests {
         println!("Error: {:?}", property);
 
         let msg = property.err().unwrap().to_string();
-        assert!(msg.contains(
-            "'app' should not be declared, as not any node has declared it"
-        ));
+        assert!(msg.contains(ERR_MSG_GRAPH_APP_FIELD_SHOULD_NOT_BE_DECLARED));
     }
 
     #[test]
@@ -521,7 +590,7 @@ mod tests {
         println!("Error: {:?}", graph);
 
         let msg = graph.err().unwrap().to_string();
-        assert!(msg.contains(constants::ERR_MSG_APP_IS_EMPTY));
+        assert!(msg.contains(constants::ERR_MSG_GRAPH_APP_FIELD_EMPTY));
     }
 
     #[test]

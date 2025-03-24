@@ -105,7 +105,7 @@ static void ten_extension_context_start(ten_extension_context_t *self) {
   TEN_ASSERT(ten_extension_context_check_integrity(self, true),
              "Invalid use of extension_context %p.", self);
 
-  ten_list_foreach(&self->extension_threads, iter) {
+  ten_list_foreach (&self->extension_threads, iter) {
     ten_extension_thread_start(ten_ptr_listnode_get(iter.node));
   }
 }
@@ -151,7 +151,7 @@ void ten_extension_context_close(ten_extension_context_t *self) {
   self->extension_threads_cnt_of_closed = 0;
   self->extension_threads_total_cnt = ten_list_size(&self->extension_threads);
 
-  ten_list_foreach(&self->extension_threads, iter) {
+  ten_list_foreach (&self->extension_threads, iter) {
     ten_extension_thread_t *extension_thread = ten_ptr_listnode_get(iter.node);
     TEN_ASSERT(extension_thread && ten_extension_thread_check_integrity(
                                        extension_thread, false),
@@ -161,8 +161,8 @@ void ten_extension_context_close(ten_extension_context_t *self) {
   }
 }
 
-static bool
-ten_extension_context_could_be_close(ten_extension_context_t *self) {
+static bool ten_extension_context_could_be_close(
+    ten_extension_context_t *self) {
   TEN_ASSERT(self, "Invalid argument.");
   TEN_ASSERT(ten_extension_context_check_integrity(self, true),
              "Invalid use of extension_context %p.", self);
@@ -235,7 +235,7 @@ ten_extension_info_t *ten_extension_context_get_extension_info_by_name(
 
   ten_extension_info_t *result = NULL;
 
-  ten_list_foreach(&self->extensions_info_from_graph, iter) {
+  ten_list_foreach (&self->extensions_info_from_graph, iter) {
     ten_extension_info_t *extension_info =
         ten_shared_ptr_get_data(ten_smart_ptr_listnode_get(iter.node));
 
@@ -291,7 +291,7 @@ ten_extension_context_get_extension_group_info_by_name(
 
   ten_extension_group_info_t *result = NULL;
 
-  ten_list_foreach(&self->extension_groups_info_from_graph, iter) {
+  ten_list_foreach (&self->extension_groups_info_from_graph, iter) {
     ten_extension_group_info_t *extension_group_info =
         ten_shared_ptr_get_data(ten_smart_ptr_listnode_get(iter.node));
 
@@ -406,7 +406,7 @@ static void ten_extension_context_create_extension_group_done(
 
   size_t extension_groups_cnt_of_the_current_app = 0;
 
-  ten_list_foreach(
+  ten_list_foreach (
       ten_cmd_start_graph_get_extension_groups_info(original_start_graph_cmd),
       iter) {
     ten_extension_group_info_t *extension_group_info =
@@ -480,7 +480,7 @@ bool ten_extension_context_start_extension_group(ten_extension_context_t *self,
   TEN_ASSERT(ten_env->attach_to == TEN_ENV_ATTACH_TO_ENGINE,
              "Should not happen.");
 
-  ten_list_foreach(extension_groups_info, iter) {
+  ten_list_foreach (extension_groups_info, iter) {
     ten_extension_group_info_t *extension_group_info =
         ten_shared_ptr_get_data(ten_smart_ptr_listnode_get(iter.node));
     TEN_ASSERT(extension_group_info, "Invalid argument.");

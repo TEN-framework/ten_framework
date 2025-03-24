@@ -15,7 +15,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#if defined(_WIN32) || defined(_WIN64)
+#if defined(OS_WINDOWS)
 #include <windows.h>
 #endif
 
@@ -302,7 +302,7 @@ bool ten_addon_load_all_from_ten_package_base_dirs(
 
   bool success = true;
 
-  ten_list_foreach(ten_package_base_dirs, iter) {
+  ten_list_foreach (ten_package_base_dirs, iter) {
     ten_string_t *ten_package_base_dir = ten_str_listnode_get(iter.node);
     TEN_ASSERT(ten_package_base_dir &&
                    ten_string_check_integrity(ten_package_base_dir),
@@ -421,7 +421,7 @@ bool ten_addon_try_load_specific_addon_using_all_addon_loaders(
   ten_list_t *addon_loaders = ten_addon_loader_singleton_get_all();
   TEN_ASSERT(addon_loaders, "Should not happen.");
 
-  ten_list_foreach(addon_loaders, iter) {
+  ten_list_foreach (addon_loaders, iter) {
     ten_addon_loader_t *addon_loader = ten_ptr_listnode_get(iter.node);
     TEN_ASSERT(addon_loader, "Should not happen.");
 

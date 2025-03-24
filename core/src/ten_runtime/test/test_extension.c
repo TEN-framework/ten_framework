@@ -22,14 +22,15 @@
 #include "ten_utils/macro/check.h"
 #include "ten_utils/macro/mark.h"
 
-static ten_extension_tester_t *
-test_extension_get_extension_tester_ptr(ten_env_t *ten_env) {
+static ten_extension_tester_t *test_extension_get_extension_tester_ptr(
+    ten_env_t *ten_env) {
   ten_value_t *test_info_ptr_value =
       ten_env_peek_property(ten_env, "app:tester_ptr", NULL);
   TEN_ASSERT(test_info_ptr_value, "Should not happen.");
 
   ten_extension_tester_t *tester = ten_value_get_ptr(test_info_ptr_value, NULL);
-  TEN_ASSERT(tester && ten_extension_tester_check_integrity(tester, false),
+  TEN_ASSERT(tester, "Should not happen.");
+  TEN_ASSERT(ten_extension_tester_check_integrity(tester, false),
              "Should not happen.");
 
   return tester;
@@ -54,9 +55,8 @@ static void test_extension_on_configure(ten_extension_t *self,
   TEN_ASSERT(rc, "Should not happen.");
 }
 
-static void
-ten_extension_tester_on_test_extension_init_task(void *self_,
-                                                 TEN_UNUSED void *arg) {
+static void ten_extension_tester_on_test_extension_init_task(
+    void *self_, TEN_UNUSED void *arg) {
   ten_extension_tester_t *tester = self_;
   TEN_ASSERT(tester && ten_extension_tester_check_integrity(tester, true),
              "Invalid argument.");
@@ -64,9 +64,8 @@ ten_extension_tester_on_test_extension_init_task(void *self_,
   ten_extension_tester_on_test_extension_init(tester);
 }
 
-static void
-ten_extension_tester_on_test_extension_start_task(void *self_,
-                                                  TEN_UNUSED void *arg) {
+static void ten_extension_tester_on_test_extension_start_task(
+    void *self_, TEN_UNUSED void *arg) {
   ten_extension_tester_t *tester = self_;
   TEN_ASSERT(tester && ten_extension_tester_check_integrity(tester, true),
              "Invalid argument.");
@@ -197,7 +196,8 @@ static void test_extension_on_cmd(ten_extension_t *self, ten_env_t *ten_env,
   TEN_ASSERT(self && ten_env, "Invalid argument.");
 
   ten_extension_tester_t *tester = self->user_data;
-  TEN_ASSERT(tester && ten_extension_tester_check_integrity(tester, false),
+  TEN_ASSERT(tester, "Should not happen.");
+  TEN_ASSERT(ten_extension_tester_check_integrity(tester, false),
              "Should not happen.");
 
   // Inject cmd into the extension_tester thread to ensure thread safety.
@@ -231,7 +231,8 @@ static void test_extension_on_data(ten_extension_t *self, ten_env_t *ten_env,
   TEN_ASSERT(self && ten_env, "Invalid argument.");
 
   ten_extension_tester_t *tester = self->user_data;
-  TEN_ASSERT(tester && ten_extension_tester_check_integrity(tester, false),
+  TEN_ASSERT(tester, "Should not happen.");
+  TEN_ASSERT(ten_extension_tester_check_integrity(tester, false),
              "Should not happen.");
 
   // Inject data into the extension_tester thread to ensure thread safety.
@@ -266,7 +267,8 @@ static void test_extension_on_audio_frame(ten_extension_t *self,
   TEN_ASSERT(self && ten_env, "Invalid argument.");
 
   ten_extension_tester_t *tester = self->user_data;
-  TEN_ASSERT(tester && ten_extension_tester_check_integrity(tester, false),
+  TEN_ASSERT(tester, "Should not happen.");
+  TEN_ASSERT(ten_extension_tester_check_integrity(tester, false),
              "Should not happen.");
 
   // Inject audio_frame into the extension_tester thread to ensure thread
@@ -303,7 +305,8 @@ static void test_extension_on_video_frame(ten_extension_t *self,
   TEN_ASSERT(self && ten_env, "Invalid argument.");
 
   ten_extension_tester_t *tester = self->user_data;
-  TEN_ASSERT(tester && ten_extension_tester_check_integrity(tester, false),
+  TEN_ASSERT(tester, "Should not happen.");
+  TEN_ASSERT(ten_extension_tester_check_integrity(tester, false),
              "Should not happen.");
 
   // Inject video_frame into the extension_tester thread to ensure thread
@@ -318,9 +321,8 @@ static void test_extension_on_video_frame(ten_extension_t *self,
   }
 }
 
-static void
-ten_extension_tester_on_test_extension_deinit_task(void *self_,
-                                                   TEN_UNUSED void *arg) {
+static void ten_extension_tester_on_test_extension_deinit_task(
+    void *self_, TEN_UNUSED void *arg) {
   ten_extension_tester_t *tester = self_;
   TEN_ASSERT(tester && ten_extension_tester_check_integrity(tester, true),
              "Invalid argument.");
@@ -336,7 +338,8 @@ static void test_extension_on_deinit(ten_extension_t *self,
   // always destroyed later than the test_extension, so calling the tester
   // within the test_extension is always valid.
   ten_extension_tester_t *tester = self->user_data;
-  TEN_ASSERT(tester && ten_extension_tester_check_integrity(tester, false),
+  TEN_ASSERT(tester, "Should not happen.");
+  TEN_ASSERT(ten_extension_tester_check_integrity(tester, false),
              "Should not happen.");
 
   int post_status = ten_runloop_post_task_tail(

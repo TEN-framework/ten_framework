@@ -198,9 +198,9 @@ static void ten_go_addon_destroy_instance_helper(ten_addon_t *addon,
     TEN_ASSERT(extension && ten_extension_check_integrity(extension, true),
                "Invalid argument.");
 
-    // Because the extension increases the reference count of the corresponding
-    // `addon_host` when it is created, the reference count must be decreased
-    // when the extension is destroyed.
+    // Because the extension increases the reference count of the
+    // corresponding `addon_host` when it is created, the reference count must
+    // be decreased when the extension is destroyed.
     ten_addon_host_t *addon_host = extension->addon_host;
     TEN_ASSERT(addon_host && ten_addon_host_check_integrity(addon_host),
                "Invalid argument.");
@@ -210,9 +210,9 @@ static void ten_go_addon_destroy_instance_helper(ten_addon_t *addon,
     ten_go_extension_t *extension_bridge =
         ten_binding_handle_get_me_in_target_lang(
             (ten_binding_handle_t *)extension);
-    TEN_ASSERT(extension_bridge &&
-                   ten_go_extension_check_integrity(extension_bridge),
-               "Invalid argument.");
+    TEN_ASSERT(
+        extension_bridge && ten_go_extension_check_integrity(extension_bridge),
+        "Invalid argument.");
 
     instance_handle = ten_go_extension_go_handle(extension_bridge);
     break;

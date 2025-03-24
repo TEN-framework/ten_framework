@@ -28,6 +28,9 @@ class test_extension_1 : public ten::extension_t {
     if (cmd->get_name() == "hello_world") {
       auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK, *cmd);
       cmd_result->set_property("detail", "hello world, too");
+
+      TEN_LOGI("Return hello_world cmd result.");
+
       bool rc = ten_env.return_result(std::move(cmd_result));
       EXPECT_EQ(rc, true);
     }
@@ -62,6 +65,10 @@ class extension_tester_1 : public ten::extension_tester_t {
     // Send the first command to the extension.
     auto new_cmd = ten::cmd_t::create("hello_world");
 
+    ten_random_sleep_range_ms(0, 1000);
+
+    TEN_LOGI("Send hello_world cmd.");
+
     ten_env.send_cmd(
         std::move(new_cmd),
         [](ten::ten_env_tester_t &ten_env,
@@ -69,9 +76,11 @@ class extension_tester_1 : public ten::extension_tester_t {
           TEN_ASSERT(result->get_status_code() == TEN_STATUS_CODE_OK,
                      "Should not happen.");
 
+          TEN_LOGI("Received result, stop test.");
+
           ten_env.stop_test();
 
-          ten_sleep_ms(1000);
+          ten_random_sleep_range_ms(0, 1000);
 
           ten_env.on_start_done();
         });

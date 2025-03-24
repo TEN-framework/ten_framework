@@ -107,7 +107,7 @@ static int netlink_recv(int p_socket, void *p_buffer, size_t p_len) {
       return -2;
     }
 
-    if (l_msg.msg_flags & MSG_TRUNC) { // buffer was too small
+    if (l_msg.msg_flags & MSG_TRUNC) {  // buffer was too small
       return -1;
     }
     return l_result;
@@ -186,7 +186,7 @@ static NetlinkList *getResultList(int p_socket, int p_request) {
   int l_done = 0;
   while (!l_done) {
     struct nlmsghdr *l_hdr = getNetlinkResponse(p_socket, &l_size, &l_done);
-    if (!l_hdr) { // error
+    if (!l_hdr) {  // error
       freeResultList(l_list);
       return NULL;
     }
@@ -357,7 +357,7 @@ static void interpretAddr(struct nlmsghdr *p_hdr, struct ifaddrs **p_links,
     case IFA_ADDRESS:
     case IFA_LOCAL:
       if ((l_info->ifa_family == AF_INET || l_info->ifa_family == AF_INET6) &&
-          !l_addedNetmask) { // make room for netmask
+          !l_addedNetmask) {  // make room for netmask
         l_addrSize +=
             NLMSG_ALIGN(calcAddrLen(l_info->ifa_family, l_rtaDataSize));
         l_addedNetmask = 1;
@@ -405,9 +405,9 @@ static void interpretAddr(struct nlmsghdr *p_hdr, struct ifaddrs **p_links,
       }
 
       if (l_rta->rta_type ==
-          IFA_ADDRESS) { // apparently in a point-to-point network
-                         // IFA_ADDRESS contains the dest address and
-                         // IFA_LOCAL contains the local address
+          IFA_ADDRESS) {  // apparently in a point-to-point network
+                          // IFA_ADDRESS contains the dest address and
+                          // IFA_LOCAL contains the local address
         if (l_entry->ifa_addr) {
           l_entry->ifa_dstaddr = (struct sockaddr *)l_addr;
         } else {

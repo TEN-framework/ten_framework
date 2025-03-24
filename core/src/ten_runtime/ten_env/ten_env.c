@@ -113,8 +113,8 @@ ten_env_t *ten_env_create_for_extension(ten_extension_t *extension) {
   return ten_create_with_attach_to(TEN_ENV_ATTACH_TO_EXTENSION, extension);
 }
 
-ten_env_t *
-ten_env_create_for_extension_group(ten_extension_group_t *extension_group) {
+ten_env_t *ten_env_create_for_extension_group(
+    ten_extension_group_t *extension_group) {
   TEN_ASSERT(extension_group, "Should not happen.");
   TEN_ASSERT(ten_extension_group_check_integrity(extension_group, true),
              "Should not happen.");
@@ -320,7 +320,8 @@ ten_app_t *ten_env_get_belonging_app(ten_env_t *self) {
     return ten_env_get_attached_app(self);
   case TEN_ENV_ATTACH_TO_EXTENSION: {
     ten_extension_t *extension = ten_env_get_attached_extension(self);
-    TEN_ASSERT(extension && ten_extension_check_integrity(extension, true),
+    TEN_ASSERT(extension, "Should not happen.");
+    TEN_ASSERT(ten_extension_check_integrity(extension, true),
                "Should not happen.");
 
     ten_extension_thread_t *extension_thread = extension->extension_thread;

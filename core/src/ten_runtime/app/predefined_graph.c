@@ -95,7 +95,7 @@ ten_app_build_start_graph_cmd_to_start_predefined_graph(
   ten_json_t nodes_json = TEN_JSON_INIT_VAL(json_ctx, false);
   ten_json_object_peek_or_create_array(&ten_json, TEN_STR_NODES, &nodes_json);
 
-  ten_list_foreach(&predefined_graph_info->extensions_info, iter) {
+  ten_list_foreach (&predefined_graph_info->extensions_info, iter) {
     ten_extension_info_t *extension_info =
         ten_shared_ptr_get_data(ten_smart_ptr_listnode_get(iter.node));
 
@@ -112,7 +112,7 @@ ten_app_build_start_graph_cmd_to_start_predefined_graph(
     }
   }
 
-  ten_list_foreach(&predefined_graph_info->extension_groups_info, iter) {
+  ten_list_foreach (&predefined_graph_info->extension_groups_info, iter) {
     ten_extension_group_info_t *extension_group_info =
         ten_shared_ptr_get_data(ten_smart_ptr_listnode_get(iter.node));
 
@@ -133,7 +133,7 @@ ten_app_build_start_graph_cmd_to_start_predefined_graph(
   ten_json_object_peek_or_create_array(&ten_json, TEN_STR_CONNECTIONS,
                                        &connections_json);
 
-  ten_list_foreach(&predefined_graph_info->extensions_info, iter) {
+  ten_list_foreach (&predefined_graph_info->extensions_info, iter) {
     ten_extension_info_t *extension_info =
         ten_shared_ptr_get_data(ten_smart_ptr_listnode_get(iter.node));
 
@@ -200,9 +200,9 @@ static void ten_app_start_auto_start_predefined_graph_result_handler(
 bool ten_app_start_predefined_graph(
     ten_app_t *self, ten_predefined_graph_info_t *predefined_graph_info,
     ten_error_t *err) {
-  TEN_ASSERT(self && ten_app_check_integrity(self, true) &&
-                 predefined_graph_info,
-             "Should not happen.");
+  TEN_ASSERT(
+      self && ten_app_check_integrity(self, true) && predefined_graph_info,
+      "Should not happen.");
 
   ten_shared_ptr_t *start_graph_cmd =
       ten_app_build_start_graph_cmd_to_start_predefined_graph(
@@ -254,9 +254,10 @@ bool ten_app_start_predefined_graph(
 
 bool ten_app_start_auto_start_predefined_graph(ten_app_t *self,
                                                ten_error_t *err) {
-  TEN_ASSERT(self && ten_app_check_integrity(self, true), "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_app_check_integrity(self, true), "Should not happen.");
 
-  ten_list_foreach(&self->predefined_graph_infos, iter) {
+  ten_list_foreach (&self->predefined_graph_infos, iter) {
     ten_predefined_graph_info_t *predefined_graph_info =
         (ten_predefined_graph_info_t *)ten_ptr_listnode_get(iter.node);
 
@@ -272,12 +273,11 @@ bool ten_app_start_auto_start_predefined_graph(ten_app_t *self,
   return true;
 }
 
-static ten_predefined_graph_info_t *
-ten_predefined_graph_infos_get_by_name(ten_list_t *predefined_graph_infos,
-                                       const char *graph_name) {
+static ten_predefined_graph_info_t *ten_predefined_graph_infos_get_by_name(
+    ten_list_t *predefined_graph_infos, const char *graph_name) {
   TEN_ASSERT(predefined_graph_infos && graph_name, "Invalid argument.");
 
-  ten_list_foreach(predefined_graph_infos, iter) {
+  ten_list_foreach (predefined_graph_infos, iter) {
     ten_predefined_graph_info_t *predefined_graph_info =
         (ten_predefined_graph_info_t *)ten_ptr_listnode_get(iter.node);
 
@@ -289,8 +289,8 @@ ten_predefined_graph_infos_get_by_name(ten_list_t *predefined_graph_infos,
   return NULL;
 }
 
-static ten_predefined_graph_info_t *
-ten_app_get_predefined_graph_info_by_name(ten_app_t *self, const char *name) {
+static ten_predefined_graph_info_t *ten_app_get_predefined_graph_info_by_name(
+    ten_app_t *self, const char *name) {
   TEN_ASSERT(self && ten_app_check_integrity(self, true) && name,
              "Should not happen.");
 
@@ -315,7 +315,8 @@ ten_predefined_graph_info_t *ten_predefined_graph_infos_get_singleton_by_name(
 bool ten_app_get_predefined_graph_extensions_and_groups_info_by_name(
     ten_app_t *self, const char *name, ten_list_t *extensions_info,
     ten_list_t *extension_groups_info, ten_error_t *err) {
-  TEN_ASSERT(self && ten_app_check_integrity(self, true), "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_app_check_integrity(self, true), "Should not happen.");
   TEN_ASSERT(name, "Invalid argument.");
   TEN_ASSERT(extensions_info, "Should not happen.");
 
@@ -331,7 +332,7 @@ bool ten_app_get_predefined_graph_extensions_and_groups_info_by_name(
     return false;
   }
 
-  ten_list_foreach(&predefined_graph_info->extension_groups_info, iter) {
+  ten_list_foreach (&predefined_graph_info->extension_groups_info, iter) {
     ten_extension_group_info_t *extension_group_info =
         ten_shared_ptr_get_data(ten_smart_ptr_listnode_get(iter.node));
     ten_extension_group_info_clone(extension_group_info, extension_groups_info);
@@ -340,9 +341,8 @@ bool ten_app_get_predefined_graph_extensions_and_groups_info_by_name(
   return true;
 }
 
-ten_engine_t *
-ten_app_get_singleton_predefined_graph_engine_by_name(ten_app_t *self,
-                                                      const char *graph_name) {
+ten_engine_t *ten_app_get_singleton_predefined_graph_engine_by_name(
+    ten_app_t *self, const char *graph_name) {
   TEN_ASSERT(self && ten_app_check_integrity(self, true) && graph_name,
              "Should not happen.");
 
@@ -356,7 +356,8 @@ ten_app_get_singleton_predefined_graph_engine_by_name(ten_app_t *self,
 }
 
 bool ten_app_get_predefined_graphs_from_property(ten_app_t *self) {
-  TEN_ASSERT(self && ten_app_check_integrity(self, true), "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_app_check_integrity(self, true), "Should not happen.");
 
   bool result = true;
 
@@ -380,8 +381,8 @@ bool ten_app_get_predefined_graphs_from_property(ten_app_t *self) {
   }
 
   int graph_idx = -1;
-  ten_list_foreach(ten_value_peek_array(predefined_graphs),
-                   predefined_graphs_iter) {
+  ten_list_foreach (ten_value_peek_array(predefined_graphs),
+                    predefined_graphs_iter) {
     graph_idx++;
 
     ten_value_t *predefined_graph_info_value =
@@ -516,7 +517,7 @@ bool ten_app_get_predefined_graphs_from_property(ten_app_t *self) {
 
   // Update the URI of each extension_info to the one of the current app, if
   // not specified originally.
-  ten_list_foreach(&self->predefined_graph_infos, iter) {
+  ten_list_foreach (&self->predefined_graph_infos, iter) {
     ten_predefined_graph_info_t *predefined_graph_info =
         ten_ptr_listnode_get(iter.node);
 

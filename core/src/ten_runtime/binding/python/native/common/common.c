@@ -50,7 +50,7 @@ void ten_py_initialize_with_config(const char *program,
     config.module_search_paths_set = 1;
 
     TEN_ASSERT(ten_list_check_integrity(module_search_path), "invalid list");
-    ten_list_foreach(module_search_path, iter) {
+    ten_list_foreach (module_search_path, iter) {
       ten_str_listnode_t *str_node = ten_listnode_to_str_listnode(iter.node);
 
       const char *str = ten_string_get_raw_str(&str_node->str);
@@ -92,7 +92,7 @@ void ten_py_add_paths_to_sys(ten_list_t *paths) {
   }
 
   TEN_ASSERT(ten_list_check_integrity(paths), "invalid list");
-  ten_list_foreach(paths, iter) {
+  ten_list_foreach (paths, iter) {
     ten_str_listnode_t *str_node = ten_listnode_to_str_listnode(iter.node);
 
     const char *str = ten_string_get_raw_str(&str_node->str);

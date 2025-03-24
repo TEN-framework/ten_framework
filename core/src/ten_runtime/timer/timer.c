@@ -264,9 +264,8 @@ void ten_timer_destroy(ten_timer_t *self) {
   TEN_FREE(self);
 }
 
-static void
-ten_runloop_timer_on_triggered(TEN_UNUSED ten_runloop_timer_t *timer,
-                               void *arg) {
+static void ten_runloop_timer_on_triggered(
+    TEN_UNUSED ten_runloop_timer_t *timer, void *arg) {
   ten_timer_t *self = arg;
   TEN_ASSERT(self, "Should not happen.");
   TEN_ASSERT(ten_timer_check_integrity(self, true), "Should not happen.");

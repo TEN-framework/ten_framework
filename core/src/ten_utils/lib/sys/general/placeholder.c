@@ -174,55 +174,57 @@ bool ten_placeholder_resolve(ten_placeholder_t *self,
   TEN_ASSERT(placeholder_value != NULL, "Invalid argument.");
 
   switch (self->scope) {
-    case TEN_PLACEHOLDER_SCOPE_ENV: {
-      const char *variable_name = ten_string_get_raw_str(&self->variable);
-      const char *env_value = getenv(variable_name);
+  case TEN_PLACEHOLDER_SCOPE_ENV: {
+    const char *variable_name = ten_string_get_raw_str(&self->variable);
 
-      if (env_value != NULL) {
-        // Environment variable found, set the resolved value
-        ten_value_reset_to_string_with_size(placeholder_value, env_value,
-                                            strlen(env_value));
+    // NOLINTNEXTLINE(concurrency-mt-unsafe)
+    const char *env_value = getenv(variable_name);
+
+    if (env_value != NULL) {
+      // Environment variable found, set the resolved value
+      ten_value_reset_to_string_with_size(placeholder_value, env_value,
+                                          strlen(env_value));
+    } else {
+      // Environment variable not found, use default value.
+      if (!ten_value_is_valid(&self->default_value)) {
+        // If no default value is provided, use 'null' value.
+        TEN_LOGE(
+            "Environment variable %s is not found, neither default value is "
+            "provided.",
+            variable_name);
+
+        // For now, we are handling this issue with a simple direct `exit`.
+        // This might not be too unusual. For example, in Java/Sprintbot, if a
+        // key specified in `application.yaml` is set to be retrieved from an
+        // environment variable, but the environment variable does not exist,
+        // Sprintbot will fail to start and immediately exit the process.
+        //
+        // NOLINTNEXTLINE(concurrency-mt-unsafe)
+        exit(EXIT_FAILURE);
+
+        ten_value_reset_to_null(placeholder_value);
       } else {
-        // Environment variable not found, use default value.
-        if (!ten_value_is_valid(&self->default_value)) {
-          // If no default value is provided, use 'null' value.
-          TEN_LOGE(
-              "Environment variable %s is not found, neither default value is "
-              "provided.",
-              variable_name);
+        const char *default_value =
+            ten_value_peek_raw_str(&self->default_value, err);
 
-          // For now, we are handling this issue with a simple direct `exit`.
-          // This might not be too unusual. For example, in Java/Sprintbot, if a
-          // key specified in `application.yaml` is set to be retrieved from an
-          // environment variable, but the environment variable does not exist,
-          // Sprintbot will fail to start and immediately exit the process.
-          //
-          // NOLINTNEXTLINE(concurrency-mt-unsafe)
-          exit(EXIT_FAILURE);
+        TEN_LOGI(
+            "Environment variable %s is not found, using default value %s.",
+            variable_name, default_value);
 
-          ten_value_reset_to_null(placeholder_value);
-        } else {
-          const char *default_value =
-              ten_value_peek_raw_str(&self->default_value, err);
-
-          TEN_LOGI(
-              "Environment variable %s is not found, using default value %s.",
-              variable_name, default_value);
-
-          ten_value_reset_to_string_with_size(placeholder_value, default_value,
-                                              strlen(default_value));
-        }
+        ten_value_reset_to_string_with_size(placeholder_value, default_value,
+                                            strlen(default_value));
       }
-      break;
     }
+    break;
+  }
 
-    default:
-      if (err) {
-        ten_error_set(err, TEN_ERROR_CODE_GENERIC,
-                      "Unsupported placeholder scope: %d", self->scope);
-      }
-      TEN_ASSERT(0, "Should not happen.");
-      return false;
+  default:
+    if (err) {
+      ten_error_set(err, TEN_ERROR_CODE_GENERIC,
+                    "Unsupported placeholder scope: %d", self->scope);
+    }
+    TEN_ASSERT(0, "Should not happen.");
+    return false;
   }
 
   return true;

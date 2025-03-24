@@ -109,11 +109,14 @@ bool ten_app_on_ten_env_proxy_released(ten_env_t *self) {
   if (!ten_list_is_empty(&self->ten_proxy_list)) {
     // There is still the presence of ten_env_proxy, so the closing process
     // cannot continue.
-    TEN_LOGI("[%s] Waiting for ten_env_proxy to be released, remaining %d "
-             "ten_env_proxy(s).",
-             ten_app_get_uri(app), ten_list_size(&self->ten_proxy_list));
+    TEN_LOGI(
+        "[%s] Waiting for ten_env_proxy to be released, remaining %d "
+        "ten_env_proxy(s).",
+        ten_app_get_uri(app), ten_list_size(&self->ten_proxy_list));
     return true;
   }
+
+  TEN_LOGI("Stop app's runloop.");
 
   ten_runloop_stop(app->loop);
 

@@ -44,7 +44,8 @@ void ten_global_deinit(void) {
 }
 
 void ten_global_add_app(ten_app_t *self) {
-  TEN_ASSERT(self && ten_app_check_integrity(self, true), "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_app_check_integrity(self, true), "Should not happen.");
 
   ten_mutex_lock(g_apps_mutex);
   ten_list_push_ptr_back(&g_apps, self, NULL);

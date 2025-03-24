@@ -6,8 +6,8 @@
 //
 #include "ten_utils/sanitizer/memory_check.h"
 
-#include "include_internal/ten_utils/lib/alloc.h"
-#include "ten_utils/container/list_node_ptr.h"
+// This header file must be included before asan/lsan headers.
+#include "ten_utils/macro/check.h"
 
 #if defined(TEN_USE_ASAN)
 #include <sanitizer/asan_interface.h>
@@ -17,11 +17,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "include_internal/ten_utils/backtrace/backtrace.h"
+#include "include_internal/ten_utils/backtrace/buffer.h"
+#include "include_internal/ten_utils/backtrace/platform/posix/linux/internal.h"
+#include "include_internal/ten_utils/lib/alloc.h"
 #include "include_internal/ten_utils/sanitizer/memory_check.h"
 #include "ten_utils/container/list.h"
+#include "ten_utils/container/list_node_ptr.h"
 #include "ten_utils/lib/alloc.h"
 #include "ten_utils/lib/mutex.h"
-#include "ten_utils/macro/check.h"
 #include "ten_utils/macro/mark.h"
 
 // Note: Since TEN LOG also involves memory operations, to avoid circular
@@ -42,10 +46,16 @@
 
 static ten_sanitizer_memory_records_t g_memory_records = {
     NULL, TEN_LIST_INIT_VAL, {0}, 0};
+
 static bool g_memory_records_enabled = false;
+
+#if defined(TEN_MEMORY_CHECK_ENABLE_BACKTRACE)
+static ten_backtrace_t *g_backtrace_for_memory_check = NULL;
+#endif
 
 static void ten_sanitizer_memory_record_check_enabled(void) {
 #if defined(TEN_ENABLE_MEMORY_CHECK)
+  // NOLINTNEXTLINE(concurrency-mt-unsafe)
   char *enable_memory_sanitizer = getenv("TEN_ENABLE_MEMORY_TRACKING");
   if (enable_memory_sanitizer && !strcmp(enable_memory_sanitizer, "true")) {
     g_memory_records_enabled = true;
@@ -53,14 +63,39 @@ static void ten_sanitizer_memory_record_check_enabled(void) {
 #endif
 }
 
+#if defined(TEN_MEMORY_CHECK_ENABLE_BACKTRACE)
+static void ten_sanitizer_memory_record_init_backtrace(void) {
+  TEN_ASSERT(g_backtrace_for_memory_check == NULL,
+             "The backtrace for memory check should be initialized only once.");
+
+  g_backtrace_for_memory_check = ten_backtrace_create();
+  TEN_ASSERT(g_backtrace_for_memory_check, "Failed to create backtrace.");
+}
+
+static void ten_sanitizer_memory_record_deinit_backtrace(void) {
+  if (g_backtrace_for_memory_check) {
+    ten_backtrace_destroy(g_backtrace_for_memory_check);
+    g_backtrace_for_memory_check = NULL;
+  }
+}
+#endif
+
 void ten_sanitizer_memory_record_init(void) {
 #if defined(TEN_ENABLE_MEMORY_CHECK)
+
+  ten_sanitizer_memory_record_check_enabled();
+
+  if (!g_memory_records_enabled) {
+    return;
+  }
 
 #if defined(TEN_USE_ASAN)
   __lsan_disable();
 #endif
 
-  ten_sanitizer_memory_record_check_enabled();
+#if defined(TEN_MEMORY_CHECK_ENABLE_BACKTRACE)
+  ten_sanitizer_memory_record_init_backtrace();
+#endif
 
 #if defined(TEN_USE_ASAN)
   // Mark the beginning and end of the globally allocated memory queue as
@@ -88,11 +123,19 @@ void ten_sanitizer_memory_record_init(void) {
 void ten_sanitizer_memory_record_deinit(void) {
 #if defined(TEN_ENABLE_MEMORY_CHECK)
 
+  if (!g_memory_records_enabled) {
+    return;
+  }
+
 #if defined(TEN_USE_ASAN)
   __lsan_disable();
 #endif
 
   ten_sanitizer_memory_record_dump();
+
+#if defined(TEN_MEMORY_CHECK_ENABLE_BACKTRACE)
+  ten_sanitizer_memory_record_deinit_backtrace();
+#endif
 
   if (g_memory_records.lock) {
     ten_mutex_destroy(g_memory_records.lock);
@@ -105,10 +148,9 @@ void ten_sanitizer_memory_record_deinit(void) {
 #endif
 }
 
-static ten_sanitizer_memory_record_t *
-ten_sanitizer_memory_record_create(void *addr, size_t size,
-                                   const char *file_name, uint32_t lineno,
-                                   const char *func_name) {
+static ten_sanitizer_memory_record_t *ten_sanitizer_memory_record_create(
+    void *addr, size_t size, const char *file_name, uint32_t lineno,
+    const char *func_name) {
 #if defined(TEN_USE_ASAN)
   __lsan_disable();
 #endif
@@ -155,8 +197,8 @@ ten_sanitizer_memory_record_create(void *addr, size_t size,
   return self;
 }
 
-static void
-ten_sanitizer_memory_record_destroy(ten_sanitizer_memory_record_t *self) {
+static void ten_sanitizer_memory_record_destroy(
+    ten_sanitizer_memory_record_t *self) {
 #if defined(TEN_USE_ASAN)
   __lsan_disable();
 #endif
@@ -172,17 +214,28 @@ ten_sanitizer_memory_record_destroy(ten_sanitizer_memory_record_t *self) {
 #endif
 }
 
-static void
-ten_sanitizer_memory_record_add(ten_sanitizer_memory_records_t *self,
-                                ten_sanitizer_memory_record_t *record) {
+static void ten_sanitizer_memory_record_add(
+    ten_sanitizer_memory_records_t *self,
+    ten_sanitizer_memory_record_t *record) {
+  TEN_ASSERT(self && record, "Invalid argument.");
+
+  if (!g_memory_records_enabled) {
+    return;
+  }
+
 #if defined(TEN_USE_ASAN)
   __lsan_disable();
 #endif
 
-  TEN_ASSERT(self && record, "Invalid argument.");
-
   TEN_UNUSED int rc = ten_mutex_lock(self->lock);
   TEN_ASSERT(!rc, "Failed to lock.");
+
+#if defined(TEN_MEMORY_CHECK_ENABLE_BACKTRACE)
+  // Capture backtrace to buffer.
+  ten_backtrace_capture_to_buffer(g_backtrace_for_memory_check,
+                                  record->backtrace_buffer,
+                                  sizeof(record->backtrace_buffer), 1);
+#endif
 
 #if defined(TEN_USE_ASAN)
   __asan_unpoison_memory_region(&self->records_list.front,
@@ -220,14 +273,17 @@ ten_sanitizer_memory_record_add(ten_sanitizer_memory_records_t *self,
 #endif
 }
 
-static void
-ten_sanitizer_memory_record_del(ten_sanitizer_memory_records_t *self,
-                                void *addr) {
+static void ten_sanitizer_memory_record_del(
+    ten_sanitizer_memory_records_t *self, void *addr) {
+  TEN_ASSERT(self && addr, "Invalid argument.");
+
+  if (!g_memory_records_enabled) {
+    return;
+  }
+
 #if defined(TEN_USE_ASAN)
   __lsan_disable();
 #endif
-
-  TEN_ASSERT(self && addr, "Invalid argument.");
 
   TEN_UNUSED int rc = ten_mutex_lock(self->lock);
   TEN_ASSERT(!rc, "Failed to lock.");
@@ -273,6 +329,10 @@ ten_sanitizer_memory_record_del(ten_sanitizer_memory_records_t *self,
 void ten_sanitizer_memory_record_dump(void) {
 #if defined(TEN_ENABLE_MEMORY_CHECK)
 
+  if (!g_memory_records_enabled) {
+    return;
+  }
+
 #if defined(TEN_USE_ASAN)
   __lsan_disable();
 #endif
@@ -293,11 +353,16 @@ void ten_sanitizer_memory_record_dump(void) {
 #endif
 
   size_t idx = 0;
-  ten_list_foreach(&g_memory_records.records_list, iter) {
+  ten_list_foreach (&g_memory_records.records_list, iter) {
     ten_sanitizer_memory_record_t *info = ten_ptr_listnode_get(iter.node);
 
-    (void)fprintf(stderr, "\t#%zu %p(%zu bytes) in %s %s:%d\n", idx, info->addr,
+    (void)fprintf(stderr, "----------------------------------------\n");
+    (void)fprintf(stderr, "#%zu %p(%zu bytes) in %s@%s:%d\n", idx, info->addr,
                   info->size, info->func_name, info->file_name, info->lineno);
+
+#if defined(TEN_MEMORY_CHECK_ENABLE_BACKTRACE)
+    (void)fprintf(stderr, "%s\n", info->backtrace_buffer);
+#endif
 
     idx++;
   }

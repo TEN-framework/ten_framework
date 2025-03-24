@@ -22,10 +22,9 @@ bool ten_extension_group_set_property(ten_extension_group_t *extension_group,
   return ten_value_object_move(&extension_group->property, name, value);
 }
 
-static ten_extension_group_set_property_context_t *
-set_property_context_create(const char *name, ten_value_t *value,
-                            ten_extension_group_set_property_async_cb_t cb,
-                            void *cb_data) {
+static ten_extension_group_set_property_context_t *set_property_context_create(
+    const char *name, ten_value_t *value,
+    ten_extension_group_set_property_async_cb_t cb, void *cb_data) {
   ten_extension_group_set_property_context_t *set_prop =
       TEN_MALLOC(sizeof(ten_extension_group_set_property_context_t));
   TEN_ASSERT(set_prop, "Failed to allocate memory.");
@@ -39,8 +38,8 @@ set_property_context_create(const char *name, ten_value_t *value,
   return set_prop;
 }
 
-static void
-set_property_context_destroy(ten_extension_group_set_property_context_t *self) {
+static void set_property_context_destroy(
+    ten_extension_group_set_property_context_t *self) {
   TEN_ASSERT(self, "Invalid argument.");
 
   ten_string_deinit(&self->name);
@@ -89,9 +88,8 @@ void ten_extension_group_set_property_async(
   }
 }
 
-ten_value_t *
-ten_extension_group_peek_property(ten_extension_group_t *extension_group,
-                                  const char *name) {
+ten_value_t *ten_extension_group_peek_property(
+    ten_extension_group_t *extension_group, const char *name) {
   TEN_ASSERT(extension_group, "Invalid argument.");
   TEN_ASSERT(ten_extension_group_check_integrity(extension_group, true),
              "Invalid argument.");

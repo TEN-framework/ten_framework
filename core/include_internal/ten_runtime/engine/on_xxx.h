@@ -20,8 +20,8 @@ typedef struct ten_engine_thread_on_addon_create_protocol_done_ctx_t {
   ten_addon_context_t *addon_context;
 } ten_engine_thread_on_addon_create_protocol_done_ctx_t;
 
-TEN_RUNTIME_PRIVATE_API void ten_engine_on_extension_thread_closed(void *self_,
-                                                                   void *arg);
+TEN_RUNTIME_PRIVATE_API void ten_engine_on_extension_thread_closed_task(
+    void *self_, void *arg);
 
 TEN_RUNTIME_PRIVATE_API void ten_engine_on_remove_extension_thread_from_engine(
     void *self_, void *arg);

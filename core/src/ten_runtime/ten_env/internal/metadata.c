@@ -25,9 +25,8 @@
 #include "ten_utils/macro/check.h"
 #include "ten_utils/macro/mark.h"
 
-static TEN_METADATA_LEVEL
-ten_get_metadata_level_from_name(const char **p_name,
-                                 TEN_METADATA_LEVEL default_level) {
+static TEN_METADATA_LEVEL ten_get_metadata_level_from_name(
+    const char **p_name, TEN_METADATA_LEVEL default_level) {
   TEN_ASSERT(p_name, "Invalid argument.");
 
   TEN_METADATA_LEVEL metadata_level = default_level;
@@ -212,7 +211,8 @@ bool ten_env_init_property_from_json(ten_env_t *self, const char *json_string,
   switch (self->attach_to) {
   case TEN_ENV_ATTACH_TO_EXTENSION: {
     ten_extension_t *extension = self->attached_target.extension;
-    TEN_ASSERT(extension && ten_extension_check_integrity(extension, true),
+    TEN_ASSERT(extension, "Should not happen.");
+    TEN_ASSERT(ten_extension_check_integrity(extension, true),
                "Should not happen.");
 
     if (extension->state != TEN_EXTENSION_STATE_ON_CONFIGURE) {

@@ -98,49 +98,49 @@ static ten_schema_t *ten_schema_create_by_type(const char *type) {
 
   TEN_TYPE schema_type = ten_type_from_string(type);
   switch (schema_type) {
-    case TEN_TYPE_OBJECT: {
-      ten_schema_object_t *self = ten_schema_object_create();
-      if (!self) {
-        return NULL;
-      }
-
-      return &self->hdr;
-    }
-
-    case TEN_TYPE_ARRAY: {
-      ten_schema_array_t *self = ten_schema_array_create();
-      if (!self) {
-        return NULL;
-      }
-
-      return &self->hdr;
-    }
-
-    case TEN_TYPE_INT8:
-    case TEN_TYPE_INT16:
-    case TEN_TYPE_INT32:
-    case TEN_TYPE_INT64:
-    case TEN_TYPE_UINT8:
-    case TEN_TYPE_UINT16:
-    case TEN_TYPE_UINT32:
-    case TEN_TYPE_UINT64:
-    case TEN_TYPE_FLOAT32:
-    case TEN_TYPE_FLOAT64:
-    case TEN_TYPE_BOOL:
-    case TEN_TYPE_STRING:
-    case TEN_TYPE_BUF:
-    case TEN_TYPE_PTR: {
-      ten_schema_primitive_t *self = ten_schema_primitive_create();
-      if (!self) {
-        return NULL;
-      }
-
-      return &self->hdr;
-    }
-
-    default:
-      TEN_ASSERT(0, "Invalid schema type, %s.", type);
+  case TEN_TYPE_OBJECT: {
+    ten_schema_object_t *self = ten_schema_object_create();
+    if (!self) {
       return NULL;
+    }
+
+    return &self->hdr;
+  }
+
+  case TEN_TYPE_ARRAY: {
+    ten_schema_array_t *self = ten_schema_array_create();
+    if (!self) {
+      return NULL;
+    }
+
+    return &self->hdr;
+  }
+
+  case TEN_TYPE_INT8:
+  case TEN_TYPE_INT16:
+  case TEN_TYPE_INT32:
+  case TEN_TYPE_INT64:
+  case TEN_TYPE_UINT8:
+  case TEN_TYPE_UINT16:
+  case TEN_TYPE_UINT32:
+  case TEN_TYPE_UINT64:
+  case TEN_TYPE_FLOAT32:
+  case TEN_TYPE_FLOAT64:
+  case TEN_TYPE_BOOL:
+  case TEN_TYPE_STRING:
+  case TEN_TYPE_BUF:
+  case TEN_TYPE_PTR: {
+    ten_schema_primitive_t *self = ten_schema_primitive_create();
+    if (!self) {
+      return NULL;
+    }
+
+    return &self->hdr;
+  }
+
+  default:
+    TEN_ASSERT(0, "Invalid schema type, %s.", type);
+    return NULL;
   }
 }
 
@@ -216,32 +216,32 @@ void ten_schema_destroy(ten_schema_t *self) {
       "Invalid argument.");
 
   switch (keyword_type->type) {
-    case TEN_TYPE_OBJECT: {
-      ten_schema_object_t *schema_object = (ten_schema_object_t *)self;
-      TEN_ASSERT(ten_schema_object_check_integrity(schema_object),
-                 "Invalid argument.");
+  case TEN_TYPE_OBJECT: {
+    ten_schema_object_t *schema_object = (ten_schema_object_t *)self;
+    TEN_ASSERT(ten_schema_object_check_integrity(schema_object),
+               "Invalid argument.");
 
-      ten_schema_object_destroy(schema_object);
-      break;
-    }
+    ten_schema_object_destroy(schema_object);
+    break;
+  }
 
-    case TEN_TYPE_ARRAY: {
-      ten_schema_array_t *schema_array = (ten_schema_array_t *)self;
-      TEN_ASSERT(ten_schema_array_check_integrity(schema_array),
-                 "Invalid argument.");
+  case TEN_TYPE_ARRAY: {
+    ten_schema_array_t *schema_array = (ten_schema_array_t *)self;
+    TEN_ASSERT(ten_schema_array_check_integrity(schema_array),
+               "Invalid argument.");
 
-      ten_schema_array_destroy(schema_array);
-      break;
-    }
+    ten_schema_array_destroy(schema_array);
+    break;
+  }
 
-    default: {
-      ten_schema_primitive_t *schema_primitive = (ten_schema_primitive_t *)self;
-      TEN_ASSERT(ten_schema_primitive_check_integrity(schema_primitive),
-                 "Invalid argument.");
+  default: {
+    ten_schema_primitive_t *schema_primitive = (ten_schema_primitive_t *)self;
+    TEN_ASSERT(ten_schema_primitive_check_integrity(schema_primitive),
+               "Invalid argument.");
 
-      ten_schema_primitive_destroy(schema_primitive);
-      break;
-    }
+    ten_schema_primitive_destroy(schema_primitive);
+    break;
+  }
   }
 }
 

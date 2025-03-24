@@ -305,10 +305,9 @@ ten_go_error_t ten_go_ten_env_set_property_float64(uintptr_t bridge_addr,
                                      callback_handle);
 }
 
-ten_go_error_t
-ten_go_ten_env_set_property_string(uintptr_t bridge_addr, const void *path,
-                                   int path_len, const void *value,
-                                   int value_len, uintptr_t callback_handle) {
+ten_go_error_t ten_go_ten_env_set_property_string(
+    uintptr_t bridge_addr, const void *path, int path_len, const void *value,
+    int value_len, uintptr_t callback_handle) {
   ten_go_ten_env_t *self = ten_go_ten_env_reinterpret(bridge_addr);
   TEN_ASSERT(self && ten_go_ten_env_check_integrity(self),
              "Should not happen.");

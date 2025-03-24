@@ -30,9 +30,8 @@ static void ten_app_check_termination_when_engine_closed_(void *app_,
   ten_app_check_termination_when_engine_closed(app, engine);
 }
 
-static void
-ten_app_check_termination_when_engine_closed_async(ten_app_t *self,
-                                                   ten_engine_t *engine) {
+static void ten_app_check_termination_when_engine_closed_async(
+    ten_app_t *self, ten_engine_t *engine) {
   TEN_ASSERT(self &&
                  // TEN_NOLINTNEXTLINE(thread-check)
                  // thread-check: This function is intended to be called in
@@ -103,7 +102,8 @@ static void ten_app_add_engine(ten_app_t *self, ten_engine_t *engine) {
  *       thread safety when adding the engine to the app's engine list.
  */
 ten_engine_t *ten_app_create_engine(ten_app_t *self, ten_shared_ptr_t *cmd) {
-  TEN_ASSERT(self && ten_app_check_integrity(self, true), "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_app_check_integrity(self, true), "Should not happen.");
   TEN_ASSERT(cmd && ten_cmd_base_check_integrity(cmd), "Should not happen.");
 
   TEN_LOGD("[%s] App creates an engine.", ten_app_get_uri(self));
@@ -145,12 +145,12 @@ void ten_app_del_engine(ten_app_t *self, ten_engine_t *engine) {
   ten_list_remove_ptr(&self->engines, engine);
 }
 
-static ten_engine_t *
-ten_app_get_engine_by_graph_id_internal(ten_app_t *self, const char *graph_id) {
+static ten_engine_t *ten_app_get_engine_by_graph_id_internal(
+    ten_app_t *self, const char *graph_id) {
   TEN_ASSERT(self && ten_app_check_integrity(self, true) && graph_id,
              "Should not happen.");
 
-  ten_list_foreach(&self->engines, iter) {
+  ten_list_foreach (&self->engines, iter) {
     ten_engine_t *engine = ten_ptr_listnode_get(iter.node);
 
     if (ten_c_string_is_equal(ten_string_get_raw_str(&engine->graph_id),
@@ -178,7 +178,8 @@ ten_app_get_engine_by_graph_id_internal(ten_app_t *self, const char *graph_id) {
 ten_predefined_graph_info_t *
 ten_app_get_singleton_predefined_graph_info_by_name(ten_app_t *self,
                                                     const char *graph_name) {
-  TEN_ASSERT(self && ten_app_check_integrity(self, true), "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_app_check_integrity(self, true), "Should not happen.");
   TEN_ASSERT(graph_name, "Invalid graph_name pointer.");
 
   if (strlen(graph_name) == 0) {

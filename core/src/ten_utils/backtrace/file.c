@@ -6,6 +6,8 @@
 //
 #include "ten_utils/ten_config.h"
 
+#include "include_internal/ten_utils/backtrace/file.h"
+
 #include <assert.h>
 #include <fcntl.h>
 #include <stdbool.h>
@@ -14,8 +16,6 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <sys/types.h>
-
-#include "include_internal/ten_utils/backtrace/file.h"
 
 #if defined(_WIN32) || defined(_WIN64)
 #include <windows.h>
@@ -67,7 +67,7 @@ bool ten_backtrace_normalize_path(const char *path, char *normalized_path,
   size_t path_len = strlen(path);
   if (path_len >= buffer_size) {
     assert(0 && "Buffer too small.");
-    return false; // Buffer too small
+    return false;  // Buffer too small
   }
 
   // Handle empty path.
@@ -142,7 +142,7 @@ bool ten_backtrace_normalize_path(const char *path, char *normalized_path,
   // share) as a fixed prefix.
   char *path_to_tokenize = normalized_path;
   char unc_prefix[buffer_size];
-  memset(unc_prefix, 0, buffer_size); // Initialize to zero
+  memset(unc_prefix, 0, buffer_size);  // Initialize to zero
 
   // For UNC paths, we need special handling.
   if (is_unc_path) {
@@ -175,14 +175,14 @@ bool ten_backtrace_normalize_path(const char *path, char *normalized_path,
                              share_name);
           if (ret < 0 || (size_t)ret >= buffer_size) {
             assert(0 && "Buffer too small or encoding error.");
-            return false; // Buffer too small or encoding error.
+            return false;  // Buffer too small or encoding error.
           }
         } else {
           int ret = snprintf(unc_prefix, buffer_size, "//%s/%s", server_name,
                              share_name);
           if (ret < 0 || (size_t)ret >= buffer_size) {
             assert(0 && "Buffer too small or encoding error.");
-            return false; // Buffer too small or encoding error.
+            return false;  // Buffer too small or encoding error.
           }
         }
 
@@ -190,9 +190,9 @@ bool ten_backtrace_normalize_path(const char *path, char *normalized_path,
       } else {
         // No path after the share - just keep the whole string as-is.
         // Convert back to original separator style.
-        char *result = strdup(path); // Use original path.
+        char *result = strdup(path);  // Use original path.
         if (!result) {
-          return false; // Memory allocation failed.
+          return false;  // Memory allocation failed.
         }
         strcpy(normalized_path, result);
         free(result);
@@ -201,10 +201,10 @@ bool ten_backtrace_normalize_path(const char *path, char *normalized_path,
     } else {
       // Just server name, no share - keep as-is.
       // Convert back to original separator style.
-      char *result = strdup(path); // Use original path.
+      char *result = strdup(path);  // Use original path.
       if (!result) {
         assert(0 && "Memory allocation failed.");
-        return false; // Memory allocation failed
+        return false;  // Memory allocation failed
       }
       strcpy(normalized_path, result);
       free(result);
@@ -230,16 +230,16 @@ bool ten_backtrace_normalize_path(const char *path, char *normalized_path,
   char *path_copy = strdup(path_to_tokenize);
   if (!path_copy) {
     assert(0 && "Memory allocation failed.");
-    return false; // Memory allocation failed
+    return false;  // Memory allocation failed
   }
 
   // Use a stack to track directories.
   char **stack = (char **)malloc(
-      buffer_size * sizeof(char *)); // Max possible depth is path length
+      buffer_size * sizeof(char *));  // Max possible depth is path length
   if (!stack) {
     assert(0 && "Memory allocation failed.");
     free(path_copy);
-    return false; // Memory allocation failed
+    return false;  // Memory allocation failed
   }
 
   // Initialize stack to NULL pointers to make cleanup easier.
@@ -251,7 +251,7 @@ bool ten_backtrace_normalize_path(const char *path, char *normalized_path,
   bool cleanup_failed = false;
 
   // Start tokenizing the path.
-  char *saveptr = NULL; // For thread-safe strtok_r.
+  char *saveptr = NULL;  // For thread-safe strtok_r.
   char *token = strtok_r(path_copy, "/", &saveptr);
 
   while (token != NULL && !cleanup_failed) {
@@ -263,9 +263,9 @@ bool ten_backtrace_normalize_path(const char *path, char *normalized_path,
     else if (strcmp(token, "..") == 0) {
       if (stack_size > 0 && strcmp(stack[stack_size - 1], "..") != 0) {
         // Only pop if the top of stack is not a parent directory.
-        free(stack[stack_size - 1]); // Free popped item.
+        free(stack[stack_size - 1]);  // Free popped item.
         stack[stack_size - 1] = NULL;
-        stack_size--; // Pop from stack.
+        stack_size--;  // Pop from stack.
       } else if (!is_absolute) {
         // For relative paths, add .. if we're at root or if top of stack is
         // already a ..
@@ -341,7 +341,7 @@ bool ten_backtrace_normalize_path(const char *path, char *normalized_path,
     char sep_str[2] = {separator, '\0'};
     strcpy(result_path, sep_str);
   } else {
-    result_path[0] = '\0'; // For relative paths, start with empty string.
+    result_path[0] = '\0';  // For relative paths, start with empty string.
   }
 
   // Join the remaining components.
@@ -360,7 +360,7 @@ bool ten_backtrace_normalize_path(const char *path, char *normalized_path,
     }
 
     strcat(result_path, stack[i]);
-    free(stack[i]); // Free each stack item as we use it.
+    free(stack[i]);  // Free each stack item as we use it.
     stack[i] = NULL;
   }
 
@@ -385,14 +385,14 @@ bool ten_backtrace_normalize_path(const char *path, char *normalized_path,
       char sep_str[2] = {separator, '\0'};
       strcpy(result_path, sep_str);
     } else {
-      strcpy(result_path, "."); // Empty relative path becomes "."
+      strcpy(result_path, ".");  // Empty relative path becomes "."
     }
   }
 
   // Copy result to output buffer.
   if (strlen(result_path) >= buffer_size) {
     free(result_path);
-    return false; // Result too large for buffer.
+    return false;  // Result too large for buffer.
   }
 
   strcpy(normalized_path, result_path);

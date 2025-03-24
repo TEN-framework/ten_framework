@@ -9,13 +9,14 @@
 //
 #include "ten_utils/ten_config.h"
 
+#include "include_internal/ten_utils/backtrace/platform/posix/linux/elf_internal/lzma.h"
+
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "include_internal/ten_utils/backtrace/platform/posix/internal.h"
 #include "include_internal/ten_utils/backtrace/platform/posix/linux/elf_internal/crc32.h"
-#include "include_internal/ten_utils/backtrace/platform/posix/linux/elf_internal/lzma.h"
 #include "include_internal/ten_utils/backtrace/platform/posix/linux/elf_internal/zutils.h"
 
 // Read an LZMA varint from BUF, reading and updating *POFFSET,
@@ -54,7 +55,6 @@ static int elf_lzma_varint(const unsigned char *compressed,
 
 // Normalize the LZMA range decoder, pulling in an extra input byte if
 // needed.
-
 static void elf_lzma_range_normalize(const unsigned char *compressed,
                                      size_t compressed_size, size_t *poffset,
                                      uint32_t *prange, uint32_t *pcode) {
@@ -73,7 +73,6 @@ static void elf_lzma_range_normalize(const unsigned char *compressed,
 
 // Read and return a single bit from the LZMA stream, reading and
 // updating *PROB.  Each bit comes from the range coder.
-
 static int elf_lzma_bit(const unsigned char *compressed, size_t compressed_size,
                         uint16_t *prob, size_t *poffset, uint32_t *prange,
                         uint32_t *pcode) {
@@ -95,7 +94,6 @@ static int elf_lzma_bit(const unsigned char *compressed, size_t compressed_size,
 
 // Read an integer of size BITS from the LZMA stream, most significant
 // bit first.  The bits are predicted using PROBS.
-
 static uint32_t elf_lzma_integer(const unsigned char *compressed,
                                  size_t compressed_size, uint16_t *probs,
                                  uint32_t bits, size_t *poffset,
@@ -114,7 +112,6 @@ static uint32_t elf_lzma_integer(const unsigned char *compressed,
 
 // Read an integer of size BITS from the LZMA stream, least
 // significant bit first.  The bits are predicted using PROBS.
-
 static uint32_t elf_lzma_reverse_integer(const unsigned char *compressed,
                                          size_t compressed_size,
                                          uint16_t *probs, uint32_t bits,
@@ -773,7 +770,7 @@ static int elf_uncompress_lzma_block(const unsigned char *compressed,
 // will carry on in that case.
 int elf_uncompress_lzma(ten_backtrace_t *self, const unsigned char *compressed,
                         size_t compressed_size,
-                        ten_backtrace_error_func_t error_cb, void *data,
+                        ten_backtrace_on_error_func_t on_error, void *data,
                         unsigned char **uncompressed,
                         size_t *uncompressed_size) {
   size_t header_size = 0;

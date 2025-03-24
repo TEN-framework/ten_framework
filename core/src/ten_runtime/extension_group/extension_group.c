@@ -247,8 +247,8 @@ ten_shared_ptr_t *ten_extension_group_create_cmd_result_for_invalid_dest(
   return cmd_result;
 }
 
-ten_runloop_t *
-ten_extension_group_get_attached_runloop(ten_extension_group_t *self) {
+ten_runloop_t *ten_extension_group_get_attached_runloop(
+    ten_extension_group_t *self) {
   TEN_ASSERT(self, "Should not happen.");
   TEN_ASSERT(
       // TEN_NOLINTNEXTLINE(thread-check)

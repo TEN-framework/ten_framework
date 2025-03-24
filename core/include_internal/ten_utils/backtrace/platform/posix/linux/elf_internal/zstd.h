@@ -23,23 +23,20 @@
 //   - to build an FSE table: 512 uint16_t values == 1024 bytes
 //   - to build a Huffman tree: 512 uint16_t + 256 uint32_t == 2048 bytes
 
-#define ZSTD_TABLE_SIZE                                   \
-  (2 * 512 * sizeof(struct elf_zstd_fse_baseline_entry) + \
-   256 * sizeof(struct elf_zstd_fse_baseline_entry) +     \
-   2048 * sizeof(uint16_t) + 512 * sizeof(uint16_t) + 256 * sizeof(uint32_t))
+#define ZSTD_TABLE_SIZE                                                      \
+  ((2 * 512 * sizeof(elf_zstd_fse_baseline_entry)) +                         \
+   (256 * sizeof(elf_zstd_fse_baseline_entry)) + (2048 * sizeof(uint16_t)) + \
+   (512 * sizeof(uint16_t)) + (256 * sizeof(uint32_t)))
 
 #define ZSTD_TABLE_LITERAL_FSE_OFFSET (0)
 
-#define ZSTD_TABLE_MATCH_FSE_OFFSET \
-  (512 * sizeof(struct elf_zstd_fse_baseline_entry))
+#define ZSTD_TABLE_MATCH_FSE_OFFSET (512 * sizeof(elf_zstd_fse_baseline_entry))
 
 #define ZSTD_TABLE_OFFSET_FSE_OFFSET \
-  (ZSTD_TABLE_MATCH_FSE_OFFSET +     \
-   512 * sizeof(struct elf_zstd_fse_baseline_entry))
+  (ZSTD_TABLE_MATCH_FSE_OFFSET + 512 * sizeof(elf_zstd_fse_baseline_entry))
 
 #define ZSTD_TABLE_HUFFMAN_OFFSET \
-  (ZSTD_TABLE_OFFSET_FSE_OFFSET + \
-   256 * sizeof(struct elf_zstd_fse_baseline_entry))
+  (ZSTD_TABLE_OFFSET_FSE_OFFSET + 256 * sizeof(elf_zstd_fse_baseline_entry))
 
 #define ZSTD_TABLE_WORK_OFFSET \
   (ZSTD_TABLE_HUFFMAN_OFFSET + 2048 * sizeof(uint16_t))
@@ -60,21 +57,21 @@
 #define ZSTD_MATCH_LENGTH_BASELINE_OFFSET (32)
 
 // An entry in a zstd FSE table.
-struct elf_zstd_fse_entry {
+typedef struct elf_zstd_fse_entry {
   // The value that this FSE entry represents.
   unsigned char symbol;
   // The number of bits to read to determine the next state.
   unsigned char bits;
   // Add the bits to this base to get the next state.
   uint16_t base;
-};
+} elf_zstd_fse_entry;
 
 // An entry in an FSE table used for literal/match/length values.  For these we
 // have to map the symbol to a baseline value, and we have to read zero or more
 // bits and add that value to the baseline value.  Rather than look the values
 // up in a separate table, we grow the FSE table so that we get better memory
 // caching.
-struct elf_zstd_fse_baseline_entry {
+typedef struct elf_zstd_fse_baseline_entry {
   // The baseline for the value that this FSE entry represents..
   uint32_t baseline;
   // The number of bits to read to add to the baseline.
@@ -83,7 +80,14 @@ struct elf_zstd_fse_baseline_entry {
   unsigned char bits;
   // Add the bits to this base to get the next state.
   uint16_t base;
-};
+} elf_zstd_fse_baseline_entry;
+
+// The information used to decompress a sequence code, which can be a literal
+// length, an offset, or a match length.
+typedef struct elf_zstd_seq_decode {
+  const elf_zstd_fse_baseline_entry *table;
+  int table_bits;
+} elf_zstd_seq_decode;
 
 TEN_UTILS_PRIVATE_API int elf_zstd_decompress(const unsigned char *pin,
                                               size_t sin,

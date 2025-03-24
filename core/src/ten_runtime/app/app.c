@@ -151,7 +151,7 @@ void ten_app_destroy(ten_app_t *self) {
   TEN_ASSERT(self && ten_app_check_integrity(self, false),
              "Should not happen.");
 
-  TEN_LOGD("[%s] Destroy a App", ten_app_get_uri(self));
+  TEN_LOGD("[%s] Destroy app.", ten_app_get_uri(self));
 
   ten_global_del_app(self);
 

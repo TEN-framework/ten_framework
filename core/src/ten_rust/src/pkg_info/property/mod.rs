@@ -25,15 +25,43 @@ use crate::pkg_info::graph::is_app_default_loc_or_none;
 use crate::{json_schema, pkg_info::localhost};
 use predefined_graph::PredefinedGraph;
 
+/// Represents the property configuration of a TEN package.
+///
+/// The property configuration consists of two parts:
+/// 1. A special `_ten` field that contains TEN-specific configuration.
+/// 2. Additional custom fields that can be defined by the package author.
+///
+/// This structure is typically serialized to and deserialized from a JSON file
+/// named `property.json` in the package directory.
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Property {
+    /// TEN-specific configuration properties.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub _ten: Option<TenInProperty>,
 
+    /// Additional custom fields defined by the package author.
+    /// These fields are flattened into the root of the JSON object when
+    /// serializing/deserializing.
     #[serde(flatten)]
     pub additional_fields: HashMap<String, Value>,
 }
 
+/// Implements the `FromStr` trait for `Property` to enable parsing from a
+/// string.
+///
+/// This implementation allows creating a `Property` instance from a JSON
+/// string, which is useful for loading property configurations from files or
+/// string literals. After parsing the JSON, it automatically validates and
+/// completes the property configuration to ensure it meets all requirements.
+///
+/// # Arguments
+/// * `s` - A string slice containing a valid JSON representation of a property
+///   configuration.
+///
+/// # Returns
+/// * `Ok(Property)` - A validated and completed property configuration if
+///   parsing succeeds.
+/// * `Err` - An error if JSON parsing fails or if validation fails.
 impl FromStr for Property {
     type Err = anyhow::Error;
 
@@ -45,6 +73,15 @@ impl FromStr for Property {
 }
 
 impl Property {
+    /// Validates and completes the property configuration.
+    ///
+    /// This method ensures that the property configuration is valid and
+    /// complete. If the `_ten` field is present, it delegates validation to
+    /// the `TenInProperty` struct's own validation method.
+    ///
+    /// # Returns
+    /// - `Ok(())` if validation succeeds.
+    /// - `Err` containing the validation error if validation fails.
     pub fn validate_and_complete(&mut self) -> Result<()> {
         if let Some(_ten) = &mut self._ten {
             _ten.validate_and_complete()?;
@@ -52,6 +89,24 @@ impl Property {
         Ok(())
     }
 
+    /// Serializes the property configuration to a JSON file.
+    ///
+    /// This method converts the property structure into a JSON object and
+    /// writes it to the specified file path. It handles both the
+    /// TEN-specific configuration and any additional custom fields defined
+    /// by the package author.
+    ///
+    /// # Arguments
+    /// * `property_file_path` - The path where the property JSON file should be
+    ///   written.
+    ///
+    /// # Returns
+    /// * `Ok(())` if the file was successfully written.
+    /// * `Err` containing the error if serialization or file writing fails.
+    ///
+    /// # Note
+    /// This method manually constructs the JSON object to ensure proper
+    /// formatting and structure of the resulting property.json file.
     pub fn dump_property_to_file(
         &self,
         property_file_path: &PathBuf,
@@ -65,7 +120,7 @@ impl Property {
             );
         }
 
-        // Merge additional fields back into the property JSON
+        // Merge additional fields back into the property JSON.
         for (key, value) in &self.additional_fields {
             property_json.insert(key.clone(), value.clone());
         }
@@ -76,6 +131,15 @@ impl Property {
         Ok(())
     }
 
+    /// Returns the application URI from the property configuration.
+    ///
+    /// # Returns
+    /// * The URI specified in the TEN configuration if it exists.
+    /// * A default localhost URI if no URI is specified in the configuration.
+    ///
+    /// This method retrieves the URI from the TEN-specific part of the property
+    /// configuration. If the TEN configuration is missing or doesn't contain a
+    /// URI, it falls back to a default localhost address.
     pub fn get_app_uri(&self) -> String {
         if let Some(_ten) = &self._ten {
             if let Some(uri) = &_ten.uri {
@@ -87,6 +151,18 @@ impl Property {
     }
 }
 
+/// Represents the TEN-specific configuration within a property.json file.
+///
+/// This structure holds TEN Framework specific settings that are stored in the
+/// property.json file of a package.
+///
+/// # Fields
+/// * `predefined_graphs` - Optional list of predefined graphs that the package
+///   provides.
+/// * `uri` - Optional URI for the application. If not specified, defaults to
+///   localhost.
+/// * `additional_fields` - Captures any additional fields in the TEN
+///   configuration that aren't explicitly defined in this struct.
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct TenInProperty {
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -100,11 +176,26 @@ pub struct TenInProperty {
 }
 
 impl TenInProperty {
+    /// Validates and completes the TEN property configuration.
+    ///
+    /// This method performs two main tasks:
+    /// 1. Validates that all predefined graphs have unique names.
+    /// 2. Ensures each predefined graph is valid by calling its own validation
+    ///    method.
+    /// 3. Sets a default URI (localhost) if none is specified.
+    ///
+    /// # Returns
+    /// * `Ok(())` if validation passes and completion is successful.
+    /// * `Err` with a descriptive message if validation fails
     pub fn validate_and_complete(&mut self) -> Result<()> {
         if let Some(graphs) = &mut self.predefined_graphs {
+            // Check for duplicate graph names in a separate scope to limit the
+            // lifetime of the HashSet to just this validation step
             {
                 let mut seen_graph_names = std::collections::HashSet::new();
                 for graph in graphs.iter() {
+                    // Note: We're storing references to graph names, which is
+                    // correct.
                     if !seen_graph_names.insert(&graph.name) {
                         return Err(anyhow::anyhow!(
                             "Duplicate predefined graph name detected: '{}'. \
@@ -115,11 +206,13 @@ impl TenInProperty {
                 }
             }
 
+            // Validate each individual graph.
             for graph in graphs {
                 graph.validate_and_complete()?;
             }
         }
 
+        // Set default URI if none is provided.
         if self.uri.is_none() {
             self.uri = Some(localhost());
         }
@@ -139,13 +232,38 @@ pub fn check_property_json_of_pkg(pkg_dir: &str) -> Result<()> {
     )
 }
 
+/// Parses a property.json file into a Property struct.
+///
+/// This function reads the contents of the specified property file,
+/// deserializes it into a Property struct, and validates the structure.
+///
+/// # Arguments
+/// * `property_file_path` - Path to the property.json file.
+///
+/// # Returns
+/// * `Result<Property>` - The parsed and validated Property struct on success,
+///   or an error if the file cannot be read or the content is invalid.
 pub fn parse_property_from_file<P: AsRef<Path>>(
     property_file_path: P,
-) -> Result<Property> {
+) -> Result<Option<Property>> {
+    if !property_file_path.as_ref().exists() {
+        return Ok(None);
+    }
+
+    // Validate the property schema only if it is present.
+    json_schema::ten_validate_property_json_file(&property_file_path)
+        .with_context(|| {
+            format!(
+                "Failed to validate {}.",
+                property_file_path.as_ref().display()
+            )
+        })?;
+
     // Read the contents of the property.json file.
     let content = read_file_to_string(property_file_path)?;
 
-    Property::from_str(&content)
+    // Parse the content and validate the property structure.
+    Property::from_str(&content).map(Some)
 }
 
 pub fn parse_property_in_folder(
@@ -153,9 +271,6 @@ pub fn parse_property_in_folder(
 ) -> Result<Option<Property>> {
     // Path to the property.json file.
     let property_path = folder_path.join(PROPERTY_JSON_FILENAME);
-    if !property_path.exists() {
-        return Ok(None);
-    }
 
     // Read and parse the property.json file.
     let property =
@@ -163,12 +278,7 @@ pub fn parse_property_in_folder(
             format!("Failed to load {}.", property_path.display())
         })?;
 
-    // Validate the property schema only if it is present.
-    json_schema::ten_validate_property_json_file(&property_path).with_context(
-        || format!("Failed to validate {}.", property_path.display()),
-    )?;
-
-    Ok(Some(property))
+    Ok(property)
 }
 
 #[cfg(test)]

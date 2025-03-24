@@ -4,7 +4,6 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-#include "ten_utils/macro/check.h"
 #include "ten_utils/ten_config.h"
 
 #include "include_internal/ten_utils/lib/time_cache.h"
@@ -13,6 +12,7 @@
 #include <time.h>
 
 #include "ten_utils/lib/atomic.h"
+#include "ten_utils/macro/check.h"
 
 // There is no 'struct timeval' in Windows.
 #if !defined(OS_WINDOWS)

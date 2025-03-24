@@ -11,6 +11,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 #include "include_internal/ten_utils/backtrace/common.h"
 #include "include_internal/ten_utils/backtrace/platform/posix/darwin/internal.h"
@@ -32,11 +33,11 @@ ten_backtrace_t *ten_backtrace_create(void) {
   ten_backtrace_mac_t *self = malloc(sizeof(ten_backtrace_mac_t));
   if (!self) {
     assert(0 && "Failed to allocate memory.");
-    return NULL; // Return NULL if malloc fails, even after assert
+    return NULL;  // Return NULL if malloc fails, even after assert
   }
 
-  ten_backtrace_common_init(&self->common, ten_backtrace_default_dump_cb,
-                            ten_backtrace_default_error_cb);
+  ten_backtrace_common_init(&self->common, ten_backtrace_default_dump,
+                            ten_backtrace_default_error);
 
   return (ten_backtrace_t *)self;
 }
@@ -98,7 +99,7 @@ void ten_backtrace_dump(ten_backtrace_t *self, size_t skip) {
 
   if (frames <= 0) {
     ten_backtrace_common_t *common_self = (ten_backtrace_common_t *)self;
-    common_self->error_cb(self, "Failed to capture backtrace", -1,
+    common_self->on_error(self, "Failed to capture backtrace", -1,
                           common_self->cb_data);
     return;
   }
@@ -106,7 +107,7 @@ void ten_backtrace_dump(ten_backtrace_t *self, size_t skip) {
   char **strs = backtrace_symbols(call_stack, frames);
   if (!strs) {
     ten_backtrace_common_t *common_self = (ten_backtrace_common_t *)self;
-    common_self->error_cb(self, "Failed to get backtrace symbols", -1,
+    common_self->on_error(self, "Failed to get backtrace symbols", -1,
                           common_self->cb_data);
     return;
   }
@@ -115,8 +116,8 @@ void ten_backtrace_dump(ten_backtrace_t *self, size_t skip) {
   skip = (skip < frames) ? skip : frames;
 
   for (size_t i = skip; i < frames; ++i) {
-    if (fprintf(stderr, "%s\n", strs[i]) < 0) {
-      assert(0 && "Failed to fprintf(stderr).");
+    if (dprintf(STDERR_FILENO, "%s\n", strs[i]) < 0) {
+      assert(0 && "Failed to dprintf(stderr).");
     }
   }
 

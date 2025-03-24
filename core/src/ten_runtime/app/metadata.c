@@ -37,14 +37,16 @@
 // Retrieve those property fields that are reserved for the TEN runtime
 // under the 'ten' namespace.
 ten_value_t *ten_app_get_ten_namespace_properties(ten_app_t *self) {
-  TEN_ASSERT(self && ten_app_check_integrity(self, true), "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_app_check_integrity(self, true), "Should not happen.");
 
   return ten_value_object_peek(&self->property, TEN_STR_UNDERLINE_TEN);
 }
 
 bool ten_app_init_one_event_loop_per_engine(ten_app_t *self,
                                             ten_value_t *value) {
-  TEN_ASSERT(self && ten_app_check_integrity(self, true), "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_app_check_integrity(self, true), "Should not happen.");
   TEN_ASSERT(value && ten_value_check_integrity(value), "Should not happen.");
 
   if (!ten_value_is_bool(value)) {
@@ -64,7 +66,8 @@ bool ten_app_init_one_event_loop_per_engine(ten_app_t *self,
 }
 
 bool ten_app_init_long_running_mode(ten_app_t *self, ten_value_t *value) {
-  TEN_ASSERT(self && ten_app_check_integrity(self, true), "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_app_check_integrity(self, true), "Should not happen.");
   TEN_ASSERT(value && ten_value_check_integrity(value), "Should not happen.");
 
   if (!ten_value_is_bool(value)) {
@@ -83,7 +86,8 @@ bool ten_app_init_long_running_mode(ten_app_t *self, ten_value_t *value) {
 }
 
 bool ten_app_init_uri(ten_app_t *self, ten_value_t *value) {
-  TEN_ASSERT(self && ten_app_check_integrity(self, true), "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_app_check_integrity(self, true), "Should not happen.");
   TEN_ASSERT(value && ten_value_check_integrity(value), "Should not happen.");
 
   if (!ten_value_is_string(value)) {
@@ -106,7 +110,8 @@ bool ten_app_init_uri(ten_app_t *self, ten_value_t *value) {
 }
 
 bool ten_app_init_log_level(ten_app_t *self, ten_value_t *value) {
-  TEN_ASSERT(self && ten_app_check_integrity(self, true), "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_app_check_integrity(self, true), "Should not happen.");
   TEN_ASSERT(value && ten_value_check_integrity(value), "Should not happen.");
 
   ten_error_t err;
@@ -120,7 +125,8 @@ bool ten_app_init_log_level(ten_app_t *self, ten_value_t *value) {
 }
 
 bool ten_app_init_log_file(ten_app_t *self, ten_value_t *value) {
-  TEN_ASSERT(self && ten_app_check_integrity(self, true), "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_app_check_integrity(self, true), "Should not happen.");
   TEN_ASSERT(value && ten_value_check_integrity(value), "Should not happen.");
 
   ten_string_t log_file;
@@ -140,7 +146,8 @@ bool ten_app_init_log_file(ten_app_t *self, ten_value_t *value) {
 }
 
 bool ten_app_init_log(ten_app_t *self, ten_value_t *value) {
-  TEN_ASSERT(self && ten_app_check_integrity(self, true), "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_app_check_integrity(self, true), "Should not happen.");
   TEN_ASSERT(value && ten_value_check_integrity(value), "Should not happen.");
 
   if (!ten_value_is_object(value)) {
@@ -232,10 +239,11 @@ bool ten_app_init_log(ten_app_t *self, ten_value_t *value) {
 
 static bool ten_app_determine_ten_namespace_properties(
     ten_app_t *self, ten_value_t *ten_namespace_properties) {
-  TEN_ASSERT(self && ten_app_check_integrity(self, true), "Should not happen.");
-  TEN_ASSERT(ten_namespace_properties &&
-                 ten_value_is_object(ten_namespace_properties),
-             "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_app_check_integrity(self, true), "Should not happen.");
+  TEN_ASSERT(
+      ten_namespace_properties && ten_value_is_object(ten_namespace_properties),
+      "Should not happen.");
 
   ten_value_object_foreach(ten_namespace_properties, iter) {
     ten_value_kv_t *prop_kv = ten_ptr_listnode_get(iter.node);
@@ -264,7 +272,8 @@ static bool ten_app_determine_ten_namespace_properties(
 }
 
 bool ten_app_handle_ten_namespace_properties(ten_app_t *self) {
-  TEN_ASSERT(self && ten_app_check_integrity(self, true), "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_app_check_integrity(self, true), "Should not happen.");
 
   ten_value_t *ten_namespace_properties =
       ten_app_get_ten_namespace_properties(self);
@@ -272,9 +281,9 @@ bool ten_app_handle_ten_namespace_properties(ten_app_t *self) {
     return true;
   }
 
-  TEN_ASSERT(ten_namespace_properties &&
-                 ten_value_is_object(ten_namespace_properties),
-             "Should not happen.");
+  TEN_ASSERT(
+      ten_namespace_properties && ten_value_is_object(ten_namespace_properties),
+      "Should not happen.");
 
   // Set default value for app properties and global log level.
   self->one_event_loop_per_engine = false;

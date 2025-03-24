@@ -19,7 +19,8 @@ static void test_app_on_configure(TEN_UNUSED ten_app_t *app,
   // means the tester is currently in a blocking state and not running, so
   // accessing the tester instance here is safe.
   ten_extension_tester_t *tester = app->user_data;
-  TEN_ASSERT(tester && ten_extension_tester_check_integrity(tester, false),
+  TEN_ASSERT(tester, "Should not happen.");
+  TEN_ASSERT(ten_extension_tester_check_integrity(tester, false),
              "Should not happen.");
 
   bool rc = false;
@@ -30,7 +31,8 @@ static void test_app_on_configure(TEN_UNUSED ten_app_t *app,
     TEN_ASSERT(rc, "Should not happen.");
   } else {
     // The default property.json content of the test app.
-    rc = ten_env_init_property_from_json(ten_env, "{\
+    rc = ten_env_init_property_from_json(ten_env,
+                                         "{\
                                                \"_ten\": {\
                                                  \"log_level\": 2\
                                                }\
@@ -47,7 +49,8 @@ static void test_app_on_configure(TEN_UNUSED ten_app_t *app,
 // app can access the tester's pointer through this app property.
 static void store_tester_as_app_property(ten_extension_tester_t *tester,
                                          ten_env_t *ten_env) {
-  TEN_ASSERT(tester && ten_extension_tester_check_integrity(tester, false),
+  TEN_ASSERT(tester, "Invalid argument.");
+  TEN_ASSERT(ten_extension_tester_check_integrity(tester, false),
              "Invalid argument.");
   TEN_ASSERT(ten_env, "Invalid argument.");
   TEN_ASSERT(ten_env_check_integrity(ten_env, true), "Invalid argument.");
@@ -64,7 +67,8 @@ static void store_tester_as_app_property(ten_extension_tester_t *tester,
 
 static void create_ten_env_proxy_for_tester(ten_extension_tester_t *tester,
                                             ten_env_t *ten_env) {
-  TEN_ASSERT(tester && ten_extension_tester_check_integrity(tester, false),
+  TEN_ASSERT(tester, "Invalid argument.");
+  TEN_ASSERT(ten_extension_tester_check_integrity(tester, false),
              "Invalid argument.");
   TEN_ASSERT(ten_env, "Invalid argument.");
   TEN_ASSERT(ten_env_check_integrity(ten_env, true), "Invalid argument.");
@@ -81,7 +85,8 @@ static void test_app_on_init(ten_app_t *app, ten_env_t *ten_env) {
   // Since the tester will wait for the
   // `test_app_ten_env_proxy_create_completed` event after the app starts,
   // using the tester here is thread-safe.
-  TEN_ASSERT(tester && ten_extension_tester_check_integrity(tester, false),
+  TEN_ASSERT(tester, "Should not happen.");
+  TEN_ASSERT(ten_extension_tester_check_integrity(tester, false),
              "Should not happen.");
 
   store_tester_as_app_property(tester, ten_env);
@@ -107,17 +112,20 @@ static void ten_extension_tester_on_test_app_deinit_task(void *self_,
   // operations using the app's `ten_env_proxy` before the releasing of
   // ten_env_proxy are valid.
   TEN_ASSERT(tester->test_app_ten_env_proxy, "Should not happen.");
+  TEN_LOGI("Releasing test_app's ten_env_proxy.");
   bool rc = ten_env_proxy_release(tester->test_app_ten_env_proxy, NULL);
   TEN_ASSERT(rc, "Should not happen.");
 
   tester->test_app_ten_env_proxy = NULL;
 
+  TEN_LOGI("Stopping tester's runloop.");
   ten_runloop_stop(tester->tester_runloop);
 }
 
 static void test_app_on_deinit(ten_app_t *app, ten_env_t *ten_env) {
   ten_extension_tester_t *tester = app->user_data;
-  TEN_ASSERT(tester && ten_extension_tester_check_integrity(tester, false),
+  TEN_ASSERT(tester, "Should not happen.");
+  TEN_ASSERT(ten_extension_tester_check_integrity(tester, false),
              "Should not happen.");
 
   int rc = ten_runloop_post_task_tail(
@@ -140,12 +148,13 @@ void *ten_builtin_test_app_thread_main(void *args) {
   TEN_ASSERT(test_app, "Failed to create app.");
 
   ten_extension_tester_t *tester = args;
-  TEN_ASSERT(tester && ten_extension_tester_check_integrity(tester, false),
+  TEN_ASSERT(tester, "Invalid argument.");
+  TEN_ASSERT(ten_extension_tester_check_integrity(tester, false),
              "Invalid argument.");
 
   test_app->user_data = tester;
 
-  ten_list_foreach(&tester->addon_base_dirs, iter) {
+  ten_list_foreach (&tester->addon_base_dirs, iter) {
     ten_string_t *addon_base_dir = ten_str_listnode_get(iter.node);
     TEN_ASSERT(addon_base_dir, "Should not happen.");
 
@@ -156,7 +165,11 @@ void *ten_builtin_test_app_thread_main(void *args) {
   bool rc = ten_app_run(test_app, false, &err);
   TEN_ASSERT(rc, "Should not happen.");
 
+  TEN_LOGI("test_app's runloop ends.");
+
   ten_app_destroy(test_app);
+
+  TEN_LOGI("test_app is destroyed.");
 
   return NULL;
 }

@@ -95,7 +95,7 @@ bool ten_test_tcp_client_init(
 
   char ip[256] = {0};
   int32_t port = 0;
-  ten_list_foreach(&splitted_strs, iter) {
+  ten_list_foreach (&splitted_strs, iter) {
     if (iter.index == 1) {
       ten_string_t *splitted_str = ten_str_listnode_get(iter.node);
       TEN_ASSERT(splitted_str, "Invalid argument.");
@@ -147,10 +147,9 @@ bool ten_test_tcp_client_init(
   return true;
 }
 
-ten_test_tcp_client_t *
-ten_test_tcp_client_create(const char *app_id,
-                           ten_test_tcp_client_msgs_to_buf_func_t msgs_to_buf,
-                           ten_test_tcp_client_buf_to_msgs_func_t buf_to_msgs) {
+ten_test_tcp_client_t *ten_test_tcp_client_create(
+    const char *app_id, ten_test_tcp_client_msgs_to_buf_func_t msgs_to_buf,
+    ten_test_tcp_client_buf_to_msgs_func_t buf_to_msgs) {
   TEN_ASSERT(app_id, "Invalid argument.");
 
   ten_test_tcp_client_t *client =
@@ -263,9 +262,8 @@ ten_shared_ptr_t *ten_test_tcp_client_recv_msg(ten_test_tcp_client_t *self) {
   return NULL;
 }
 
-ten_shared_ptr_t *
-ten_test_tcp_client_send_and_recv_msg(ten_test_tcp_client_t *self,
-                                      ten_shared_ptr_t *msg) {
+ten_shared_ptr_t *ten_test_tcp_client_send_and_recv_msg(
+    ten_test_tcp_client_t *self, ten_shared_ptr_t *msg) {
   TEN_ASSERT(self, "Invalid argument.");
   TEN_ASSERT(msg, "Invalid argument.");
   TEN_ASSERT(ten_msg_check_integrity(msg), "Invalid argument.");

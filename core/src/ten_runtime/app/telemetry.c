@@ -52,7 +52,8 @@ static void ten_app_destroy_metric(ten_app_t *self) {
 
 bool ten_app_init_telemetry_system(ten_app_t *self, ten_value_t *value) {
 #if defined(TEN_ENABLE_TEN_RUST_APIS)
-  TEN_ASSERT(self && ten_app_check_integrity(self, true), "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_app_check_integrity(self, true), "Should not happen.");
   TEN_ASSERT(value && ten_value_check_integrity(value), "Should not happen.");
 
   if (!ten_value_is_object(value)) {

@@ -21,7 +21,16 @@ import {
 } from "@/components/ui/Select";
 import { Separator } from "@/components/ui/Separator";
 import { cn } from "@/lib/utils";
-import { useAppStore } from "@/store";
+import { useAppStore, useWidgetStore } from "@/store";
+import {
+  EWidgetCategory,
+  EWidgetDisplayType,
+  ELogViewerScriptType,
+} from "@/types/widgets";
+import {
+  TEN_DEFAULT_BACKEND_WS_ENDPOINT,
+  TEN_PATH_WS_BUILTIN_FUNCTION,
+} from "@/constants";
 
 import type { IListTenCloudStorePackage } from "@/types/extension";
 
@@ -117,6 +126,8 @@ export const ExtensionDetails = (props: {
   }, [addons, name]);
 
   const { t } = useTranslation();
+  const { appendWidgetIfNotExists } = useWidgetStore();
+  const { currentWorkspace } = useAppStore();
 
   const osArchMemo = React.useMemo(() => {
     const result = new Map<string, IListTenCloudStorePackage[]>();
@@ -154,6 +165,32 @@ export const ExtensionDetails = (props: {
 
   const handleSelectedVersionChange = (value: string) => {
     setSelectedVersion(value);
+  };
+
+  const handleInstall = () => {
+    if (!currentWorkspace.baseDir || !selectedVersionItemMemo) {
+      return;
+    }
+    appendWidgetIfNotExists({
+      id: "ext-install-" + selectedVersionItemMemo.hash,
+      category: EWidgetCategory.LogViewer,
+      display_type: EWidgetDisplayType.Popup,
+      metadata: {
+        wsUrl: TEN_DEFAULT_BACKEND_WS_ENDPOINT + TEN_PATH_WS_BUILTIN_FUNCTION,
+        scriptType: ELogViewerScriptType.INSTALL,
+        script: {
+          type: ELogViewerScriptType.INSTALL,
+          base_dir: currentWorkspace.baseDir,
+          pkg_type: selectedVersionItemMemo.type,
+          pkg_name: selectedVersionItemMemo.name,
+          pkg_version: selectedVersionItemMemo.version,
+        },
+        options: {
+          disableSearch: true,
+          title: t("popup.logViewer.appInstall"),
+        },
+      },
+    });
   };
 
   return (
@@ -201,6 +238,7 @@ export const ExtensionDetails = (props: {
                   "text-xs font-normal"
                 )}
                 disabled={readOnly}
+                onClick={handleInstall}
               >
                 <HardDriveDownloadIcon className="size-3" />
                 <span>{t("extensionStore.install")}</span>

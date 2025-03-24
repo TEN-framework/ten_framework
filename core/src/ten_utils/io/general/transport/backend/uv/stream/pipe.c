@@ -24,8 +24,8 @@ typedef struct ten_uv_write_req_t {
   void *user_data;
 } ten_uv_write_req_t;
 
-static bool
-ten_streambackend_pipe_check_integrity(ten_streambackend_pipe_t *self) {
+static bool ten_streambackend_pipe_check_integrity(
+    ten_streambackend_pipe_t *self) {
   TEN_ASSERT(self, "Invalid argument.");
   if (ten_atomic_load(&self->signature) != TEN_STREAMBACKEND_PIPE_SIGNATURE) {
     return false;
@@ -164,8 +164,8 @@ static int ten_streambackend_pipe_write(ten_streambackend_t *backend,
   return rc;
 }
 
-static void
-ten_streambackend_pipe_destroy(ten_streambackend_pipe_t *pipe_stream) {
+static void ten_streambackend_pipe_destroy(
+    ten_streambackend_pipe_t *pipe_stream) {
   TEN_ASSERT(pipe_stream &&
                  ten_streambackend_pipe_check_integrity(pipe_stream) &&
                  pipe_stream->uv_stream,
@@ -208,8 +208,8 @@ static int ten_streambackend_pipe_close(ten_streambackend_t *backend) {
   return 0;
 }
 
-static ten_streambackend_pipe_t *
-ten_streambackend_pipe_create(ten_stream_t *stream) {
+static ten_streambackend_pipe_t *ten_streambackend_pipe_create(
+    ten_stream_t *stream) {
   TEN_ASSERT(stream, "Invalid argument.");
 
   ten_streambackend_pipe_t *pipe_stream =

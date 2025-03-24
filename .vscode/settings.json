@@ -64,7 +64,7 @@
   "python.analysis.completeFunctionParens": true,
   "python.analysis.extraPaths": [
     "./core/src/ten_runtime/binding/python/interface",
-    "./tests/ten_runtime/integration"
+    "./tests/ten_runtime/integration",
   ],
   "python.analysis.typeCheckingMode": "basic",
   "rust-analyzer.check.command": "clippy",
@@ -85,6 +85,5 @@
     "**/node_modules/*/**": true,
     "**/out/*/**": true,
     "**/third_party/*/**": true
-  },
-  "chat.editor.fontSize": 16
+  }
 }

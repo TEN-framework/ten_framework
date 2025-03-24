@@ -58,22 +58,21 @@ void ten_streambackend_tcp_dump_info(ten_streambackend_tcp_t *tcp_stream,
     }
 
     switch (*++p) {
-      // The IP.
-      case '1':
-        ten_string_append_formatted(&new_fmt, "%s", ip_buf);
-        p++;
-        break;
+    // The IP.
+    case '1':
+      ten_string_append_formatted(&new_fmt, "%s", ip_buf);
+      p++;
+      break;
 
-      // The port.
-      case '2':
-        ten_string_append_formatted(&new_fmt, "%d",
-                                    ntohs(socket_info.sin_port));
-        p++;
-        break;
+    // The port.
+    case '2':
+      ten_string_append_formatted(&new_fmt, "%d", ntohs(socket_info.sin_port));
+      p++;
+      break;
 
-      default:
-        ten_string_append_formatted(&new_fmt, "%c", *p++);
-        break;
+    default:
+      ten_string_append_formatted(&new_fmt, "%c", *p++);
+      break;
     }
   }
 

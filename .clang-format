@@ -1,6 +1,4 @@
 ---
-Language: Cpp
-# BasedOnStyle:  Google
 AccessModifierOffset: -1
 AlignAfterOpenBracket: Align
 AlignArrayOfStructures: None
@@ -75,7 +73,7 @@ AllowAllConstructorInitializersOnNextLine: true
 FixNamespaceComments: true
 ForEachMacros:
   - ten_list_foreach
-IncludeBlocks: Merge
+IncludeBlocks: Regroup
 IncludeCategories:
   - Regex: '"ten_runtime/ten_config.h"'
     Priority: -1
@@ -102,7 +100,7 @@ IncludeCategories:
 IncludeIsMainRegex: "([-_](test|unittest))?$"
 IncludeIsMainSourceRegex: ""
 IndentAccessModifiers: false
-IndentCaseLabels: true
+IndentCaseLabels: false
 IndentCaseBlocks: false
 IndentGotoLabels: true
 IndentPPDirectives: None

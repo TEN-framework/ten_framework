@@ -22,10 +22,7 @@ pub mod supports;
 mod utils;
 pub mod value_type;
 
-use std::{
-    collections::HashMap,
-    path::{Path, PathBuf},
-};
+use std::{collections::HashMap, path::Path};
 
 use anyhow::{anyhow, Result};
 use graph::Graph;
@@ -35,15 +32,14 @@ use pkg_type_and_name::PkgTypeAndName;
 use crate::schema::store::SchemaStore;
 use api::PkgApi;
 use constants::{
-    ADDON_LOADER_DIR, EXTENSION_DIR, MANIFEST_JSON_FILENAME,
-    PROPERTY_JSON_FILENAME, PROTOCOL_DIR, SYSTEM_DIR, TEN_PACKAGES_DIR,
+    ADDON_LOADER_DIR, EXTENSION_DIR, MANIFEST_JSON_FILENAME, PROTOCOL_DIR,
+    SYSTEM_DIR, TEN_PACKAGES_DIR,
 };
 use dependencies::{get_pkg_dependencies_from_manifest, PkgDependency};
 use manifest::{parse_manifest_from_file, parse_manifest_in_folder, Manifest};
 use pkg_type::PkgType;
 use property::{
-    parse_property_from_file, parse_property_in_folder,
-    predefined_graph::PredefinedGraph, Property,
+    parse_property_in_folder, predefined_graph::PredefinedGraph, Property,
 };
 
 pub fn localhost() -> String {
@@ -85,6 +81,10 @@ pub struct PkgInfo {
     pub is_local_dependency: bool,
     pub local_dependency_path: Option<String>,
     pub local_dependency_base_dir: Option<String>,
+
+    /// Direct access to manifest scripts as a key/value mapping. Keys are
+    /// script names, values are the script commands.
+    pub scripts: HashMap<String, String>,
 }
 
 impl PkgInfo {
@@ -110,66 +110,13 @@ impl PkgInfo {
             is_local_dependency: false,
             local_dependency_path: None,
             local_dependency_base_dir: None,
+
+            scripts: manifest.scripts.clone().unwrap_or_default(),
         };
 
         pkg_info.hash = pkg_info.gen_hash_hex();
 
         Ok(pkg_info)
-    }
-
-    /// Compares the in-memory manifest with the manifest file on the
-    /// filesystem.
-    ///
-    /// # Returns
-    /// - `Ok(true)` if the manifests are equal.
-    /// - `Ok(false)` if the manifests are different or if manifest is missing.
-    /// - `Err` if there was an error reading or parsing the manifest file.
-    pub fn is_manifest_equal_to_fs(&self) -> Result<bool> {
-        // If URL is empty, we can't locate the manifest file.
-        if self.url.is_empty() {
-            return Ok(false);
-        }
-
-        // Check if we have a manifest in memory.
-        let manifest_from_pkg = match &self.manifest {
-            Some(manifest) => manifest,
-            None => return Ok(false),
-        };
-
-        // Load manifest from filesystem.
-        let manifest_json_path =
-            PathBuf::from(&self.url).join(MANIFEST_JSON_FILENAME);
-        let manifest_from_fs: Manifest =
-            parse_manifest_from_file(&manifest_json_path)?;
-
-        // Convert both manifests to JSON values for deep comparison.
-        let manifest_pkg_json = serde_json::to_value(manifest_from_pkg)?;
-        let manifest_fs_json = serde_json::to_value(manifest_from_fs)?;
-
-        // Return true if manifests are equal.
-        Ok(manifest_pkg_json == manifest_fs_json)
-    }
-
-    pub fn is_property_equal_to_fs(&self) -> Result<bool> {
-        if self.url.is_empty() {
-            return Ok(false);
-        }
-
-        let property_from_pkg = match &self.property {
-            Some(property) => property,
-            None => return Ok(false),
-        };
-
-        let property_json_path =
-            PathBuf::from(&self.url).join(PROPERTY_JSON_FILENAME);
-        let property_from_fs: Property =
-            parse_property_from_file(&property_json_path)?;
-
-        // Convert to standard JSON struct.
-        let property_pkg_json = serde_json::to_value(property_from_pkg)?;
-        let property_fs_json = serde_json::to_value(property_from_fs)?;
-
-        Ok(property_pkg_json == property_fs_json)
     }
 
     pub fn get_predefined_graphs(&self) -> Option<&Vec<PredefinedGraph>> {
@@ -209,14 +156,26 @@ impl PkgInfo {
     }
 }
 
-/// Retrieve the package represented by the specified path.
+/// Retrieves package information from the specified path.
+///
+/// This function reads and parses the manifest.json and property.json files
+/// from the given path, then constructs a PkgInfo object with the parsed data.
 ///
 /// # Arguments
-/// * `path` - The base directory of the package, required.
-/// * `is_installed` - Indicates whether the package is installed, required.
+/// * `path` - The base directory of the package containing manifest.json and
+///   optionally property.json.
+/// * `is_installed` - Boolean flag indicating whether the package is already
+///   installed in the system.
 ///
 /// # Returns
-/// The package information.
+/// * `Result<PkgInfo>` - The constructed package information on success, or an
+///   error if the manifest couldn't be parsed or the PkgInfo couldn't be
+///   created.
+///
+/// # Errors
+/// * Returns an error if manifest.json is missing or invalid.
+/// * Returns an error if property.json exists but is invalid.
+/// * Returns an error if PkgInfo creation fails.
 pub fn get_pkg_info_from_path(
     path: &Path,
     is_installed: bool,

@@ -21,7 +21,7 @@
 #include "ten_utils/macro/mark.h"
 #include "ten_utils/sanitizer/thread_check.h"
 
-#define TIMEOUT_FOR_ENGINE_THREAD_STARTED 5000 // ms
+#define TIMEOUT_FOR_ENGINE_THREAD_STARTED 5000  // ms
 
 /**
  * @brief Main function for the engine thread.

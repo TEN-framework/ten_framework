@@ -54,8 +54,13 @@ bool ten_env_proxy_acquire_lock_mode(ten_env_proxy_t *self, ten_error_t *err) {
   // disappear, and therefore things related to the extension world, such as
   // extension and extension thread, will still exist and will not change.
   // Therefore, it is safe to access extension and extension_thread below.
-  ten_extension_thread_t *extension_thread =
-      ten_env->attached_target.extension->extension_thread;
+
+  ten_extension_t *extension = ten_env->attached_target.extension;
+  TEN_ASSERT(extension, "Should not happen.");
+  TEN_ASSERT(ten_extension_check_integrity(extension, false),
+             "Should not happen.");
+
+  ten_extension_thread_t *extension_thread = extension->extension_thread;
   TEN_ASSERT(extension_thread, "Should not happen.");
   // TEN_NOLINTNEXTLINE(thread-check)
   // thread-check: This function is intended to be called in any threads other
@@ -94,12 +99,16 @@ bool ten_env_proxy_acquire_lock_mode(ten_env_proxy_t *self, ten_error_t *err) {
     TEN_ASSERT(suspend_result, "Failed to allocate memory.");
 
     ten_error_init(&suspend_result->err);
-    suspend_result->completed = NULL;
-
     suspend_result->completed = ten_event_create(0, 1);
 
+    ten_runloop_t *extension_thread_runloop =
+        ten_extension_thread_get_attached_runloop(extension_thread);
+    TEN_ASSERT(extension_thread_runloop, "Should not happen.");
+    TEN_ASSERT(ten_runloop_check_integrity(extension_thread_runloop, false),
+               "Should not happen.");
+
     int rc = ten_runloop_post_task_front(
-        extension_thread->runloop,
+        extension_thread_runloop,
         ten_extension_thread_process_acquire_lock_mode_task, extension_thread,
         suspend_result);
     if (rc) {
@@ -133,6 +142,9 @@ bool ten_env_proxy_acquire_lock_mode(ten_env_proxy_t *self, ten_error_t *err) {
 
     TEN_FREE(suspend_result);
   }
+
+  // Do _not_ _unlock_ the lock mode lock here, because this is the way we used
+  // to block the extension thread.
 
   ten_mutex_unlock(self->lock);
 

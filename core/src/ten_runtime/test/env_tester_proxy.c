@@ -27,9 +27,8 @@ static bool ten_env_tester_proxy_check_integrity(ten_env_tester_proxy_t *self) {
   return true;
 }
 
-ten_env_tester_proxy_t *
-ten_env_tester_proxy_create(ten_env_tester_t *ten_env_tester,
-                            ten_error_t *err) {
+ten_env_tester_proxy_t *ten_env_tester_proxy_create(
+    ten_env_tester_t *ten_env_tester, ten_error_t *err) {
   if (!ten_env_tester) {
     const char *err_msg =
         "Create ten_env_tester_proxy without specifying ten_env_tester.";
@@ -70,9 +69,9 @@ ten_env_tester_proxy_create(ten_env_tester_t *ten_env_tester,
 static void ten_env_tester_on_proxy_deleted(void *self_, void *arg) {
   ten_env_tester_t *ten_env_tester = self_;
   ten_env_tester_proxy_t *self = arg;
-  TEN_ASSERT(ten_env_tester &&
-                 ten_env_tester_check_integrity(ten_env_tester, true),
-             "Should not happen.");
+  TEN_ASSERT(
+      ten_env_tester && ten_env_tester_check_integrity(ten_env_tester, true),
+      "Should not happen.");
   TEN_ASSERT(self && ten_env_tester_proxy_check_integrity(self),
              "Should not happen.");
 

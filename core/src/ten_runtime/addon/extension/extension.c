@@ -164,7 +164,8 @@ bool ten_addon_destroy_extension(ten_env_t *ten_env, ten_extension_t *extension,
 
   TEN_ASSERT(cb, "Should not happen.");
 
-  TEN_ASSERT(extension && ten_extension_check_integrity(extension, true),
+  TEN_ASSERT(extension, "Should not happen.");
+  TEN_ASSERT(ten_extension_check_integrity(extension, true),
              "Should not happen.");
 
   TEN_ASSERT(ten_env->attach_to == TEN_ENV_ATTACH_TO_EXTENSION_GROUP,

@@ -59,9 +59,8 @@ bool ten_path_is_in_a_group(ten_path_t *self) {
  * allocate memory for the structure, initialize various components of the path
  * group, and return the group.
  */
-static ten_path_group_t *
-ten_path_group_create(ten_path_table_t *table,
-                      TEN_RESULT_RETURN_POLICY policy) {
+static ten_path_group_t *ten_path_group_create(
+    ten_path_table_t *table, TEN_RESULT_RETURN_POLICY policy) {
   ten_path_group_t *self =
       (ten_path_group_t *)TEN_MALLOC(sizeof(ten_path_group_t));
   TEN_ASSERT(self, "Failed to allocate memory.");
@@ -103,7 +102,7 @@ void ten_paths_create_group(ten_list_t *paths,
   ten_shared_ptr_t *path_group_sp = NULL;
 
   ten_path_t *last_path = NULL;
-  ten_list_foreach(paths, iter) {
+  ten_list_foreach (paths, iter) {
     ten_path_t *path = ten_ptr_listnode_get(iter.node);
     TEN_ASSERT(path && ten_path_check_integrity(path, true),
                "Invalid argument.");

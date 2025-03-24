@@ -75,7 +75,8 @@ ten_env_proxy_t *ten_env_proxy_create(ten_env_t *ten_env,
   switch (ten_env->attach_to) {
   case TEN_ENV_ATTACH_TO_EXTENSION: {
     ten_extension_t *extension = ten_env->attached_target.extension;
-    TEN_ASSERT(extension && ten_extension_check_integrity(extension, true),
+    TEN_ASSERT(extension, "Should not happen.");
+    TEN_ASSERT(ten_extension_check_integrity(extension, true),
                "Should not happen.");
 
     ten_extension_thread_t *extension_thread = extension->extension_thread;
@@ -154,7 +155,8 @@ ten_env_proxy_t *ten_env_proxy_create(ten_env_t *ten_env,
 }
 
 static void ten_env_proxy_destroy(ten_env_proxy_t *self) {
-  TEN_ASSERT(self && ten_env_proxy_check_integrity(self), "Invalid argument.");
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_env_proxy_check_integrity(self), "Invalid argument.");
 
   ten_mutex_destroy(self->lock);
   self->lock = NULL;
@@ -192,8 +194,8 @@ static void ten_notify_proxy_is_deleted(void *self_, TEN_UNUSED void *arg) {
              self);
 
   ten_env_proxy_t *ten_env_proxy = arg;
-  TEN_ASSERT(ten_env_proxy && ten_env_proxy_check_integrity(ten_env_proxy),
-             "Invalid argument.");
+  TEN_ASSERT(ten_env_proxy, "Invalid argument.");
+  TEN_ASSERT(ten_env_proxy_check_integrity(ten_env_proxy), "Invalid argument.");
 
   ten_env_delete_ten_proxy(self, ten_env_proxy);
   ten_env_proxy_destroy(ten_env_proxy);
@@ -233,10 +235,12 @@ bool ten_env_proxy_release(ten_env_proxy_t *self, ten_error_t *err) {
     // thread-check: ten_env_proxy is used in any threads other then the
     // belonging extension thread, so we cannot check thread safety here, and
     // the following post_task is thread safe.
-    TEN_ASSERT(ten_env && ten_env_check_integrity(ten_env, false),
-               "Should not happen.");
+    TEN_ASSERT(ten_env, "Should not happen.");
+    TEN_ASSERT(ten_env_check_integrity(ten_env, false), "Should not happen.");
 
     ten_mutex_unlock(self->lock);
+
+    TEN_LOGI("Post task to ten_env's runloop to notify proxy is deleted.");
 
     int rc =
         ten_runloop_post_task_tail(ten_env_get_attached_runloop(ten_env),

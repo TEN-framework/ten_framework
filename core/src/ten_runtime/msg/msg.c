@@ -398,7 +398,7 @@ static void ten_msg_clear_dest_graph_id(ten_shared_ptr_t *self) {
   TEN_ASSERT(self, "Should not happen.");
   TEN_ASSERT(ten_msg_check_integrity(self), "Should not happen.");
 
-  ten_list_foreach(ten_msg_get_dest(self), iter) {
+  ten_list_foreach (ten_msg_get_dest(self), iter) {
     ten_loc_t *loc = ten_ptr_listnode_get(iter.node);
     TEN_ASSERT(loc && ten_loc_check_integrity(loc), "Should not happen.");
 
@@ -413,7 +413,7 @@ void ten_msg_set_dest_engine_if_unspecified_or_predefined_graph_name(
   TEN_ASSERT(ten_msg_check_integrity(self), "Should not happen.");
   TEN_ASSERT(engine, "Should not happen.");
 
-  ten_list_foreach(ten_msg_get_dest(self), iter) {
+  ten_list_foreach (ten_msg_get_dest(self), iter) {
     ten_loc_t *dest_loc = ten_ptr_listnode_get(iter.node);
     TEN_ASSERT(dest_loc && ten_loc_check_integrity(dest_loc),
                "Should not happen.");
@@ -612,9 +612,9 @@ static bool ten_raw_msg_get_one_field_from_json_internal(
   TEN_ASSERT(self, "Should not happen.");
   TEN_ASSERT(ten_raw_msg_check_integrity(self), "Should not happen.");
   TEN_ASSERT(field, "Should not happen.");
-  TEN_ASSERT(field->field_value &&
-                 ten_value_check_integrity(field->field_value),
-             "Should not happen.");
+  TEN_ASSERT(
+      field->field_value && ten_value_check_integrity(field->field_value),
+      "Should not happen.");
 
   ten_json_t *json = (ten_json_t *)user_data;
   TEN_ASSERT(json, "Should not happen.");
@@ -686,10 +686,9 @@ static bool ten_raw_msg_get_one_field_from_json_internal(
   return true;
 }
 
-static bool
-ten_raw_msg_get_one_field_from_json(ten_msg_t *self,
-                                    ten_msg_field_process_data_t *field,
-                                    void *user_data, ten_error_t *err) {
+static bool ten_raw_msg_get_one_field_from_json(
+    ten_msg_t *self, ten_msg_field_process_data_t *field, void *user_data,
+    ten_error_t *err) {
   return ten_raw_msg_get_one_field_from_json_internal(self, field, user_data,
                                                       false, err);
 }
@@ -707,9 +706,9 @@ static bool ten_raw_msg_put_one_field_to_json_internal(
   TEN_ASSERT(self, "Should not happen.");
   TEN_ASSERT(ten_raw_msg_check_integrity(self), "Should not happen.");
   TEN_ASSERT(field, "Should not happen.");
-  TEN_ASSERT(field->field_value &&
-                 ten_value_check_integrity(field->field_value),
-             "Should not happen.");
+  TEN_ASSERT(
+      field->field_value && ten_value_check_integrity(field->field_value),
+      "Should not happen.");
 
   ten_json_t *json = (ten_json_t *)user_data;
   TEN_ASSERT(json, "Should not happen.");
@@ -757,9 +756,9 @@ static bool ten_raw_msg_put_one_field_to_json_include_internal_field(
   TEN_ASSERT(self, "Should not happen.");
   TEN_ASSERT(ten_raw_msg_check_integrity(self), "Should not happen.");
   TEN_ASSERT(field, "Should not happen.");
-  TEN_ASSERT(field->field_value &&
-                 ten_value_check_integrity(field->field_value),
-             "Should not happen.");
+  TEN_ASSERT(
+      field->field_value && ten_value_check_integrity(field->field_value),
+      "Should not happen.");
 
   return ten_raw_msg_put_one_field_to_json_internal(self, field, user_data,
                                                     true, err);
@@ -771,9 +770,9 @@ bool ten_raw_msg_put_one_field_to_json(ten_msg_t *self,
   TEN_ASSERT(self, "Should not happen.");
   TEN_ASSERT(ten_raw_msg_check_integrity(self), "Should not happen.");
   TEN_ASSERT(field, "Should not happen.");
-  TEN_ASSERT(field->field_value &&
-                 ten_value_check_integrity(field->field_value),
-             "Should not happen.");
+  TEN_ASSERT(
+      field->field_value && ten_value_check_integrity(field->field_value),
+      "Should not happen.");
 
   return ten_raw_msg_put_one_field_to_json_internal(self, field, user_data,
                                                     false, err);
@@ -798,8 +797,8 @@ bool ten_raw_msg_process_field(ten_msg_t *self,
   return true;
 }
 
-static ten_json_t *
-ten_raw_msg_to_json_include_internal_field(ten_msg_t *self, ten_error_t *err) {
+static ten_json_t *ten_raw_msg_to_json_include_internal_field(
+    ten_msg_t *self, ten_error_t *err) {
   TEN_ASSERT(self, "Should not happen.");
   TEN_ASSERT(ten_raw_msg_check_integrity(self), "Should not happen.");
 
@@ -835,7 +834,7 @@ void ten_raw_msg_copy_field(ten_msg_t *self, ten_msg_t *src,
     if (excluded_field_ids) {
       bool skip = false;
 
-      ten_list_foreach(excluded_field_ids, iter) {
+      ten_list_foreach (excluded_field_ids, iter) {
         if (ten_msg_fields_info[i].field_id ==
             ten_int32_listnode_get(iter.node)) {
           skip = true;
@@ -1009,7 +1008,7 @@ void ten_msg_correct_dest(ten_shared_ptr_t *msg, ten_engine_t *engine) {
   const char *app_uri = ten_app_get_uri(engine->app);
 
   ten_msg_t *raw_msg = ten_msg_get_raw_msg(msg);
-  ten_list_foreach(&raw_msg->dest_loc, iter) {
+  ten_list_foreach (&raw_msg->dest_loc, iter) {
     ten_loc_t *dest_loc = ten_ptr_listnode_get(iter.node);
 
     bool is_local_app = false;
@@ -1056,7 +1055,7 @@ void ten_msg_correct_dest(ten_shared_ptr_t *msg, ten_engine_t *engine) {
   // We need to replace these 'localhost' references with the actual app URI.
   if (ten_msg_get_type(msg) == TEN_MSG_TYPE_CMD_START_GRAPH) {
     ten_list_t *extensions_info = ten_cmd_start_graph_get_extensions_info(msg);
-    ten_list_foreach(extensions_info, iter) {
+    ten_list_foreach (extensions_info, iter) {
       ten_extension_info_t *extension_info =
           ten_shared_ptr_get_data(ten_smart_ptr_listnode_get(iter.node));
       ten_extension_info_translate_localhost_to_app_uri(extension_info,
@@ -1178,7 +1177,7 @@ static bool ten_raw_msg_set_property(ten_msg_t *self, const char *path,
 
   bool in_ten_namespace = false;
 
-  ten_list_foreach(&paths, item_iter) {
+  ten_list_foreach (&paths, item_iter) {
     ten_value_path_item_t *item = ten_ptr_listnode_get(item_iter.node);
     TEN_ASSERT(item, "Invalid argument.");
 
@@ -1249,7 +1248,7 @@ ten_value_t *ten_raw_msg_peek_property(ten_msg_t *self, const char *path,
 
   bool in_ten_namespace = false;
 
-  ten_list_foreach(&paths, item_iter) {
+  ten_list_foreach (&paths, item_iter) {
     ten_value_path_item_t *item = ten_ptr_listnode_get(item_iter.node);
     TEN_ASSERT(item, "Invalid argument.");
 

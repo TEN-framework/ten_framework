@@ -23,7 +23,8 @@
 bool ten_app_check_start_graph_cmd(ten_app_t *self,
                                    ten_shared_ptr_t *start_graph_cmd,
                                    TEN_UNUSED ten_error_t *err) {
-  TEN_ASSERT(self && ten_app_check_integrity(self, true), "Should not happen.");
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_app_check_integrity(self, true), "Should not happen.");
   TEN_ASSERT(start_graph_cmd, "Invalid argument.");
 
 #if defined(TEN_ENABLE_TEN_RUST_APIS)

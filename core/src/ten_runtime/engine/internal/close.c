@@ -46,7 +46,7 @@ static void ten_engine_close_sync(ten_engine_t *self) {
 
   // Iterate through all timers in the engine and stop/close them. This ensures
   // all timer resources are properly cleaned up during engine shutdown.
-  ten_list_foreach(&self->timers, iter) {
+  ten_list_foreach (&self->timers, iter) {
     ten_timer_t *timer = ten_ptr_listnode_get(iter.node);
     TEN_ASSERT(timer && ten_timer_check_integrity(timer, true),
                "Should not happen.");
@@ -80,7 +80,7 @@ static void ten_engine_close_sync(ten_engine_t *self) {
 
   // Iterate through all weak remotes in the engine and close them. This ensures
   // all weak remote resources are properly cleaned up during engine shutdown.
-  ten_list_foreach(&self->weak_remotes, iter) {
+  ten_list_foreach (&self->weak_remotes, iter) {
     ten_remote_t *remote = ten_ptr_listnode_get(iter.node);
     TEN_ASSERT(remote, "Invalid argument.");
     TEN_ASSERT(ten_remote_check_integrity(remote, true),
@@ -206,7 +206,7 @@ static size_t ten_engine_unclosed_remotes_cnt(ten_engine_t *self) {
     }
   }
 
-  ten_list_foreach(&self->weak_remotes, iter) {
+  ten_list_foreach (&self->weak_remotes, iter) {
     ten_remote_t *remote = ten_ptr_listnode_get(iter.node);
     TEN_ASSERT(remote, "Invalid argument.");
     TEN_ASSERT(ten_remote_check_integrity(remote, true),

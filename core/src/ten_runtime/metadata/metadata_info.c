@@ -94,45 +94,45 @@ static ten_string_t *ten_metadata_info_filename_to_absolute_path(
 
   ten_string_t *path = NULL;
   switch (ten_env_get_attach_to(self->belonging_to)) {
-    case TEN_ENV_ATTACH_TO_APP: {
-      const char *base_dir =
-          ten_app_get_base_dir(ten_env_get_attached_app(self->belonging_to));
-      if (base_dir) {
-        path = ten_string_create_from_c_str(base_dir);
-      }
-      break;
+  case TEN_ENV_ATTACH_TO_APP: {
+    const char *base_dir =
+        ten_app_get_base_dir(ten_env_get_attached_app(self->belonging_to));
+    if (base_dir) {
+      path = ten_string_create_from_c_str(base_dir);
     }
+    break;
+  }
 
-    case TEN_ENV_ATTACH_TO_EXTENSION_GROUP: {
-      const char *base_dir = ten_extension_group_get_base_dir(
-          ten_env_get_attached_extension_group(self->belonging_to));
-      if (base_dir) {
-        path = ten_string_create_from_c_str(base_dir);
-      }
-      break;
+  case TEN_ENV_ATTACH_TO_EXTENSION_GROUP: {
+    const char *base_dir = ten_extension_group_get_base_dir(
+        ten_env_get_attached_extension_group(self->belonging_to));
+    if (base_dir) {
+      path = ten_string_create_from_c_str(base_dir);
     }
+    break;
+  }
 
-    case TEN_ENV_ATTACH_TO_EXTENSION: {
-      const char *base_dir = ten_extension_get_base_dir(
-          ten_env_get_attached_extension(self->belonging_to));
-      if (base_dir) {
-        path = ten_string_create_from_c_str(base_dir);
-      }
-      break;
+  case TEN_ENV_ATTACH_TO_EXTENSION: {
+    const char *base_dir = ten_extension_get_base_dir(
+        ten_env_get_attached_extension(self->belonging_to));
+    if (base_dir) {
+      path = ten_string_create_from_c_str(base_dir);
     }
+    break;
+  }
 
-    case TEN_ENV_ATTACH_TO_ADDON: {
-      const char *base_dir = ten_addon_host_get_base_dir(
-          ten_env_get_attached_addon(self->belonging_to));
-      if (base_dir) {
-        path = ten_string_create_from_c_str(base_dir);
-      }
-      break;
+  case TEN_ENV_ATTACH_TO_ADDON: {
+    const char *base_dir = ten_addon_host_get_base_dir(
+        ten_env_get_attached_addon(self->belonging_to));
+    if (base_dir) {
+      path = ten_string_create_from_c_str(base_dir);
     }
+    break;
+  }
 
-    default:
-      TEN_ASSERT(0, "Should not happen.");
-      break;
+  default:
+    TEN_ASSERT(0, "Should not happen.");
+    break;
   }
 
   if (!path) {
@@ -164,37 +164,36 @@ static void ten_metadata_info_get_debug_display(ten_metadata_info_t *self,
              "Invalid argument.");
 
   switch (ten_env_get_attach_to(self->belonging_to)) {
-    case TEN_ENV_ATTACH_TO_ADDON:
-      ten_string_set_formatted(
-          display, "addon(%s)",
-          ten_addon_host_get_name(
-              ten_env_get_attached_addon(self->belonging_to)));
-      break;
+  case TEN_ENV_ATTACH_TO_ADDON:
+    ten_string_set_formatted(display, "addon(%s)",
+                             ten_addon_host_get_name(ten_env_get_attached_addon(
+                                 self->belonging_to)));
+    break;
 
-    case TEN_ENV_ATTACH_TO_APP: {
-      const char *uri =
-          ten_app_get_uri(ten_env_get_attached_app(self->belonging_to));
-      ten_string_set_formatted(display, "app(%s)", uri);
-      break;
-    }
+  case TEN_ENV_ATTACH_TO_APP: {
+    const char *uri =
+        ten_app_get_uri(ten_env_get_attached_app(self->belonging_to));
+    ten_string_set_formatted(display, "app(%s)", uri);
+    break;
+  }
 
-    case TEN_ENV_ATTACH_TO_EXTENSION_GROUP:
-      ten_string_set_formatted(
-          display, "extension_group(%s)",
-          ten_extension_group_get_name(
-              ten_env_get_attached_extension_group(self->belonging_to), true));
-      break;
+  case TEN_ENV_ATTACH_TO_EXTENSION_GROUP:
+    ten_string_set_formatted(
+        display, "extension_group(%s)",
+        ten_extension_group_get_name(
+            ten_env_get_attached_extension_group(self->belonging_to), true));
+    break;
 
-    case TEN_ENV_ATTACH_TO_EXTENSION:
-      ten_string_set_formatted(
-          display, "extension(%s)",
-          ten_extension_get_name(
-              ten_env_get_attached_extension(self->belonging_to), true));
-      break;
+  case TEN_ENV_ATTACH_TO_EXTENSION:
+    ten_string_set_formatted(
+        display, "extension(%s)",
+        ten_extension_get_name(
+            ten_env_get_attached_extension(self->belonging_to), true));
+    break;
 
-    default:
-      TEN_ASSERT(0, "Should not happen.");
-      break;
+  default:
+    TEN_ASSERT(0, "Should not happen.");
+    break;
   }
 }
 
@@ -231,48 +230,48 @@ bool ten_metadata_info_set(ten_metadata_info_t *self, TEN_METADATA_TYPE type,
     }
 
     switch (self->attach_to) {
-      case TEN_METADATA_ATTACH_TO_MANIFEST:
-        switch (type) {
-          case TEN_METADATA_JSON_STR:
-            if (self->belonging_to->attach_to == TEN_ENV_ATTACH_TO_ADDON) {
-              // TODO(Wei): The current protocol's manifest doesn't fully comply
-              // with the spec, so we'll bypass the validation of the protocol
-              // manifest for now.
-              validated = true;
-            } else {
-              validated = ten_manifest_json_string_is_valid(value, &err);
-            }
-            break;
-
-          case TEN_METADATA_JSON_FILENAME:
-            validated = ten_manifest_json_file_is_valid(value, &err);
-            break;
-
-          default:
-            TEN_ASSERT(0, "Handle more types.");
-            break;
+    case TEN_METADATA_ATTACH_TO_MANIFEST:
+      switch (type) {
+      case TEN_METADATA_JSON_STR:
+        if (self->belonging_to->attach_to == TEN_ENV_ATTACH_TO_ADDON) {
+          // TODO(Wei): The current protocol's manifest doesn't fully comply
+          // with the spec, so we'll bypass the validation of the protocol
+          // manifest for now.
+          validated = true;
+        } else {
+          validated = ten_manifest_json_string_is_valid(value, &err);
         }
         break;
 
-      case TEN_METADATA_ATTACH_TO_PROPERTY:
-        switch (type) {
-          case TEN_METADATA_JSON_STR:
-            validated = ten_property_json_string_is_valid(value, &err);
-            break;
-
-          case TEN_METADATA_JSON_FILENAME:
-            validated = ten_property_json_file_is_valid(value, &err);
-            break;
-
-          default:
-            TEN_ASSERT(0, "Handle more types.");
-            break;
-        }
+      case TEN_METADATA_JSON_FILENAME:
+        validated = ten_manifest_json_file_is_valid(value, &err);
         break;
 
       default:
-        TEN_ASSERT(0, "Should not happen.");
+        TEN_ASSERT(0, "Handle more types.");
         break;
+      }
+      break;
+
+    case TEN_METADATA_ATTACH_TO_PROPERTY:
+      switch (type) {
+      case TEN_METADATA_JSON_STR:
+        validated = ten_property_json_string_is_valid(value, &err);
+        break;
+
+      case TEN_METADATA_JSON_FILENAME:
+        validated = ten_property_json_file_is_valid(value, &err);
+        break;
+
+      default:
+        TEN_ASSERT(0, "Handle more types.");
+        break;
+      }
+      break;
+
+    default:
+      TEN_ASSERT(0, "Should not happen.");
+      break;
     }
 
     if (!validated) {
@@ -308,20 +307,20 @@ bool ten_handle_manifest_info_when_on_configure_done(ten_metadata_info_t **self,
   TEN_ASSERT(manifest, "Invalid argument.");
 
   switch (ten_env_get_attach_to((*self)->belonging_to)) {
-    case TEN_ENV_ATTACH_TO_APP:
-    case TEN_ENV_ATTACH_TO_EXTENSION_GROUP:
-    case TEN_ENV_ATTACH_TO_EXTENSION:
-      if ((*self)->type == TEN_METADATA_INVALID) {
-        ten_set_default_manifest_info(base_dir, (*self), err);
-      }
-      break;
+  case TEN_ENV_ATTACH_TO_APP:
+  case TEN_ENV_ATTACH_TO_EXTENSION_GROUP:
+  case TEN_ENV_ATTACH_TO_EXTENSION:
+    if ((*self)->type == TEN_METADATA_INVALID) {
+      ten_set_default_manifest_info(base_dir, (*self), err);
+    }
+    break;
 
-    case TEN_ENV_ATTACH_TO_ADDON:
-      break;
+  case TEN_ENV_ATTACH_TO_ADDON:
+    break;
 
-    default:
-      TEN_ASSERT(0, "Should not happen.");
-      break;
+  default:
+    TEN_ASSERT(0, "Should not happen.");
+    break;
   }
 
   if (!ten_metadata_load_from_info(manifest, (*self), err)) {
@@ -343,20 +342,20 @@ bool ten_handle_property_info_when_on_configure_done(ten_metadata_info_t **self,
   TEN_ASSERT(property, "Invalid argument.");
 
   switch (ten_env_get_attach_to((*self)->belonging_to)) {
-    case TEN_ENV_ATTACH_TO_APP:
-    case TEN_ENV_ATTACH_TO_EXTENSION_GROUP:
-    case TEN_ENV_ATTACH_TO_EXTENSION:
-      if ((*self)->type == TEN_METADATA_INVALID) {
-        ten_set_default_property_info(base_dir, (*self), NULL);
-      }
-      break;
+  case TEN_ENV_ATTACH_TO_APP:
+  case TEN_ENV_ATTACH_TO_EXTENSION_GROUP:
+  case TEN_ENV_ATTACH_TO_EXTENSION:
+    if ((*self)->type == TEN_METADATA_INVALID) {
+      ten_set_default_property_info(base_dir, (*self), NULL);
+    }
+    break;
 
-    case TEN_ENV_ATTACH_TO_ADDON:
-      break;
+  case TEN_ENV_ATTACH_TO_ADDON:
+    break;
 
-    default:
-      TEN_ASSERT(0, "Should not happen.");
-      break;
+  default:
+    TEN_ASSERT(0, "Should not happen.");
+    break;
   }
 
   if (!ten_metadata_load_from_info(property, (*self), err)) {

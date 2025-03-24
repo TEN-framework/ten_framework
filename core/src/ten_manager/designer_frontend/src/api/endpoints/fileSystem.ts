@@ -15,10 +15,12 @@ import type {
 
 export const ENDPOINT_FILE_SYSTEM = {
   fileContent: {
-    [ENDPOINT_METHOD.GET]: {
-      url: `${API_DESIGNER_V1}/file-content/:path`,
-      method: ENDPOINT_METHOD.GET,
-      pathParams: ["path"],
+    [ENDPOINT_METHOD.POST]: {
+      url: `${API_DESIGNER_V1}/file-content`,
+      method: ENDPOINT_METHOD.POST,
+      requestSchema: z.object({
+        file_path: z.string(),
+      }),
       responseSchema: genResSchema<IFileContentResponse>(
         z.object({
           content: z.string(),
@@ -26,10 +28,10 @@ export const ENDPOINT_FILE_SYSTEM = {
       ),
     },
     [ENDPOINT_METHOD.PUT]: {
-      url: `${API_DESIGNER_V1}/file-content/:path`,
+      url: `${API_DESIGNER_V1}/file-content`,
       method: ENDPOINT_METHOD.PUT,
-      pathParams: ["path"],
       requestSchema: z.object({
+        file_path: z.string(),
         content: z.string(),
       }),
       responseSchema: genResSchema<null>(z.null()),

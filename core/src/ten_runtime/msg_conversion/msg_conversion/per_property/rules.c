@@ -65,7 +65,7 @@ ten_shared_ptr_t *ten_msg_conversion_per_property_rules_convert(
     ten_list_clear(&excluded_field_ids);
   }
 
-  ten_list_foreach(&self->rules, iter) {
+  ten_list_foreach (&self->rules, iter) {
     ten_msg_conversion_per_property_rule_t *property_rule =
         ten_ptr_listnode_get(iter.node);
     TEN_ASSERT(property_rule, "Invalid argument.");
@@ -113,7 +113,7 @@ ten_shared_ptr_t *ten_result_conversion_per_property_rules_convert(
   ten_cmd_base_set_cmd_id(new_msg, ten_cmd_base_get_cmd_id(msg));
 
   // Properties.
-  ten_list_foreach(&self->rules, iter) {
+  ten_list_foreach (&self->rules, iter) {
     ten_msg_conversion_per_property_rule_t *property_rule =
         ten_ptr_listnode_get(iter.node);
     TEN_ASSERT(property_rule, "Invalid argument.");
@@ -164,7 +164,7 @@ bool ten_msg_conversion_per_property_rules_to_json(
   ten_json_object_peek_or_create_array(json, TEN_STR_RULES, &rules_json);
 
   if (ten_list_size(&self->rules) > 0) {
-    ten_list_foreach(&self->rules, iter) {
+    ten_list_foreach (&self->rules, iter) {
       ten_msg_conversion_per_property_rule_t *rule =
           ten_ptr_listnode_get(iter.node);
       TEN_ASSERT(rule, "Invalid argument.");
@@ -192,7 +192,7 @@ ten_msg_conversion_per_property_rules_from_value(ten_value_t *value,
   ten_msg_conversion_per_property_rules_t *rules =
       ten_msg_conversion_per_property_rules_create();
 
-  ten_list_foreach(&value->content.array, iter) {
+  ten_list_foreach (&value->content.array, iter) {
     ten_value_t *array_item_value = ten_ptr_listnode_get(iter.node);
     TEN_ASSERT(array_item_value && ten_value_check_integrity(array_item_value),
                "Invalid argument.");
@@ -217,7 +217,7 @@ ten_msg_conversion_per_property_rules_to_value(
   ten_value_t *rules_value = ten_value_create_array_with_move(NULL);
 
   if (ten_list_size(&self->rules) > 0) {
-    ten_list_foreach(&self->rules, iter) {
+    ten_list_foreach (&self->rules, iter) {
       ten_msg_conversion_per_property_rule_t *rule =
           ten_ptr_listnode_get(iter.node);
       TEN_ASSERT(rule, "Invalid argument.");

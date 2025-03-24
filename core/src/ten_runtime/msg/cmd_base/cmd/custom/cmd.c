@@ -26,9 +26,9 @@
 #include "ten_utils/value/value.h"
 
 static void ten_raw_cmd_custom_destroy(ten_cmd_t *self) {
-  TEN_ASSERT(self &&
-                 ten_raw_msg_get_type((ten_msg_t *)self) == TEN_MSG_TYPE_CMD,
-             "Should not happen.");
+  TEN_ASSERT(
+      self && ten_raw_msg_get_type((ten_msg_t *)self) == TEN_MSG_TYPE_CMD,
+      "Should not happen.");
 
   ten_raw_cmd_deinit(self);
   TEN_FREE(self);
@@ -109,7 +109,7 @@ ten_msg_t *ten_raw_cmd_custom_as_msg_clone(ten_msg_t *self,
     if (excluded_field_ids) {
       bool skip = false;
 
-      ten_list_foreach(excluded_field_ids, iter) {
+      ten_list_foreach (excluded_field_ids, iter) {
         if (ten_cmd_custom_fields_info[i].field_id ==
             ten_int32_listnode_get(iter.node)) {
           skip = true;
@@ -149,7 +149,7 @@ bool ten_raw_cmd_custom_set_ten_property(ten_msg_t *self, ten_list_t *paths,
     err = &tmp_err;
   }
 
-  ten_list_foreach(paths, item_iter) {
+  ten_list_foreach (paths, item_iter) {
     ten_value_path_item_t *item = ten_ptr_listnode_get(item_iter.node);
     TEN_ASSERT(item, "Invalid argument.");
 

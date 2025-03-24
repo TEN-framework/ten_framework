@@ -36,8 +36,8 @@ static void ten_transportbackend_tcp_destroy(ten_transportbackend_tcp_t *self) {
   TEN_FREE(self);
 }
 
-static void
-ten_transportbackend_tcp_on_close(ten_transportbackend_tcp_t *self) {
+static void ten_transportbackend_tcp_on_close(
+    ten_transportbackend_tcp_t *self) {
   TEN_ASSERT(self, "Invalid argument.");
 
   ten_transport_t *transport = self->base.transport;
@@ -283,9 +283,8 @@ static int ten_transportbackend_tcp_listen(ten_transportbackend_t *backend,
   return rc;
 }
 
-static ten_transportbackend_t *
-ten_transportbackend_tcp_create(ten_transport_t *transport,
-                                const ten_string_t *name) {
+static ten_transportbackend_t *ten_transportbackend_tcp_create(
+    ten_transport_t *transport, const ten_string_t *name) {
   ten_transportbackend_tcp_t *self = NULL;
 
   if (!name || !name->buf || !*name->buf) {

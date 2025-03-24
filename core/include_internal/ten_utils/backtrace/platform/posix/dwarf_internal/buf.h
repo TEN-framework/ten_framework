@@ -38,7 +38,7 @@ typedef struct dwarf_buf {
 
   // Callback function for reporting errors encountered during parsing.
   // Must not be NULL when the buffer is used.
-  ten_backtrace_error_func_t error_cb;
+  ten_backtrace_on_error_func_t on_error;
 
   // User-provided context data passed to the error callback function.
   void *data;

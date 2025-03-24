@@ -4,10 +4,10 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-#include "ten_utils/macro/memory.h"
 #include "ten_utils/ten_config.h"
 
 #include "ten_utils/lib/string.h"
+#include "ten_utils/macro/memory.h"
 
 #if defined(_WIN32) || defined(_WIN64)
 #include <io.h>
@@ -158,7 +158,7 @@ static int *get_log_fd(const char *log_path) {
   // Find the directory part of the path.
   char *last_sep = strrchr(path_copy, PATH_SEPARATOR);
   if (last_sep) {
-    *last_sep = '\0'; // Terminate the string to get the directory path.
+    *last_sep = '\0';  // Terminate the string to get the directory path.
 
     // Create directories recursively.
     if (create_directories(path_copy) != true) {
@@ -353,6 +353,7 @@ void ten_log_set_output_to_stderr(ten_log_t *self) {
 
   // The default formatter for `stderr` can be overridden using the below
   // environment variable.
+  // NOLINTNEXTLINE(concurrency-mt-unsafe)
   const char *formatter_env = getenv("TEN_LOG_FORMATTER");
   if (formatter_env) {
     ten_log_formatter_func_t formatter_func_from_env =

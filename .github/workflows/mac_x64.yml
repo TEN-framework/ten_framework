@@ -12,6 +12,7 @@ on:
       - ".devcontainer/**"
       - ".github/**"
       - "!.github/workflows/build_mac.yml"
+      - "core/src/ten_manager/designer_frontend/**"
       - "**.md"
 
 concurrency:
@@ -224,7 +225,7 @@ jobs:
 
       - name: Extract tests artifacts preserving permissions
         run: |
-          tar -xzvf out/mac/x64/tests-artifacts.tar.gz
+          tar -xzf out/mac/x64/tests-artifacts.tar.gz
 
       - name: View folder structure content
         run: |
@@ -374,7 +375,7 @@ jobs:
 
       - name: Extract tests artifacts preserving permissions
         run: |
-          tar -xzvf out/mac/x64/tests-artifacts.tar.gz
+          tar -xzf out/mac/x64/tests-artifacts.tar.gz
 
       - name: View folder structure content
         run: |

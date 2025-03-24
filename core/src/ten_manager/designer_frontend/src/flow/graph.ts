@@ -9,7 +9,7 @@ import dagre from "dagre";
 
 import { CustomNodeType } from "@/flow/CustomNode";
 import { CustomEdgeType } from "@/flow/CustomEdge";
-import { getExtensionAddonByName } from "@/api/services/addons";
+import { retrieveAddons } from "@/api/services/addons";
 import type { IExtensionAddon } from "@/types/apps";
 import {
   type IBackendNode,
@@ -234,14 +234,20 @@ export const processConnections = (
 };
 
 export const fetchAddonInfoForNodes = async (
+  baseDir: string,
   nodes: CustomNodeType[]
 ): Promise<CustomNodeType[]> => {
   return await Promise.all(
     nodes.map(async (node) => {
       try {
-        const addonInfo: IExtensionAddon = await getExtensionAddonByName(
-          node.data.addon
-        );
+        const addonInfoList: IExtensionAddon[] = await retrieveAddons({
+          base_dir: baseDir,
+          addon_name: node.data.addon,
+        });
+        const addonInfo: IExtensionAddon | undefined = addonInfoList?.[0];
+        if (!addonInfo) {
+          throw new Error();
+        }
         console.log(`URL for addon '${node.data.addon}': ${addonInfo.url}`);
         return {
           ...node,

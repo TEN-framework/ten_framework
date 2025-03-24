@@ -112,8 +112,9 @@ void ten_ref_init(ten_ref_t *self, void *supervisee,
   // Ensure the signature is invalid before initialization, to avoid
   // reinitialization.
   if (ten_signature_get(&self->signature) == TEN_REF_SIGNATURE) {
-    TEN_LOGE("Attempting to initialize a reference counter that is already "
-             "initialized.");
+    TEN_LOGE(
+        "Attempting to initialize a reference counter that is already "
+        "initialized.");
     TEN_ASSERT(0, "Double initialization of reference counter.");
     return;
   }

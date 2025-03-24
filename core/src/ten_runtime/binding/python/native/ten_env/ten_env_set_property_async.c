@@ -87,7 +87,7 @@ static void ten_env_proxy_notify_set_property_async(ten_env_t *ten_env,
   ten_error_deinit(&err);
 
   PyObject *result = PyObject_CallObject(ctx->py_cb_func, arglist);
-  Py_XDECREF(result); // Ensure cleanup if an error occurred.
+  Py_XDECREF(result);  // Ensure cleanup if an error occurred.
 
   bool err_occurred = ten_py_check_and_clear_py_error();
   TEN_ASSERT(!err_occurred, "Should not happen.");

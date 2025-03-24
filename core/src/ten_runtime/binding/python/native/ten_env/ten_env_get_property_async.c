@@ -153,7 +153,7 @@ static void ten_py_get_property_to_json_cb(ten_env_t *ten_env,
   }
 
   PyObject *result = PyObject_CallObject(py_cb_func, arglist);
-  Py_XDECREF(result); // Ensure cleanup if an error occurred.
+  Py_XDECREF(result);  // Ensure cleanup if an error occurred.
 
   bool err_occurred = ten_py_check_and_clear_py_error();
   TEN_ASSERT(!err_occurred, "Should not happen.");
@@ -205,7 +205,7 @@ static void ten_py_get_property_int_cb(ten_env_t *ten_env, ten_value_t *value,
   }
 
   PyObject *result = PyObject_CallObject(py_cb_func, arglist);
-  Py_XDECREF(result); // Ensure cleanup if an error occurred.
+  Py_XDECREF(result);  // Ensure cleanup if an error occurred.
 
   bool err_occurred = ten_py_check_and_clear_py_error();
   TEN_ASSERT(!err_occurred, "Should not happen.");
@@ -258,7 +258,7 @@ static void ten_py_get_property_string_cb(ten_env_t *ten_env,
   }
 
   PyObject *result = PyObject_CallObject(py_cb_func, arglist);
-  Py_XDECREF(result); // Ensure cleanup if an error occurred.
+  Py_XDECREF(result);  // Ensure cleanup if an error occurred.
 
   bool err_occurred = ten_py_check_and_clear_py_error();
   TEN_ASSERT(!err_occurred, "Should not happen.");
@@ -311,7 +311,7 @@ static void ten_py_get_property_bool_cb(ten_env_t *ten_env, ten_value_t *value,
   }
 
   PyObject *result = PyObject_CallObject(py_cb_func, arglist);
-  Py_XDECREF(result); // Ensure cleanup if an error occurred.
+  Py_XDECREF(result);  // Ensure cleanup if an error occurred.
 
   bool err_occurred = ten_py_check_and_clear_py_error();
   TEN_ASSERT(!err_occurred, "Should not happen.");
@@ -363,7 +363,7 @@ static void ten_py_get_property_float_cb(ten_env_t *ten_env, ten_value_t *value,
   }
 
   PyObject *result = PyObject_CallObject(py_cb_func, arglist);
-  Py_XDECREF(result); // Ensure cleanup if an error occurred.
+  Py_XDECREF(result);  // Ensure cleanup if an error occurred.
 
   bool err_occurred = ten_py_check_and_clear_py_error();
   TEN_ASSERT(!err_occurred, "Should not happen.");
@@ -405,7 +405,7 @@ static void ten_py_is_property_exist_cb(ten_env_t *ten_env, ten_value_t *value,
   }
 
   PyObject *result = PyObject_CallObject(py_cb_func, arglist);
-  Py_XDECREF(result); // Ensure cleanup if an error occurred.
+  Py_XDECREF(result);  // Ensure cleanup if an error occurred.
 
   bool err_occurred = ten_py_check_and_clear_py_error();
   TEN_ASSERT(!err_occurred, "Should not happen.");

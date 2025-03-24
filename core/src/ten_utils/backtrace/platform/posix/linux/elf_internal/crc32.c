@@ -9,6 +9,7 @@
 //
 #include "include_internal/ten_utils/backtrace/platform/posix/linux/elf_internal/crc32.h"
 
+#include <assert.h>
 #include <errno.h>
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -17,10 +18,19 @@
 #include "include_internal/ten_utils/backtrace/platform/posix/mmap.h"
 
 /**
- * @brief Compute the CRC-32 of @a buf & @a len. This uses the CRC used for
- * .gnu_debuglink files.
+ * @brief Compute the CRC-32 of a buffer.
+ *
+ * This function calculates the CRC-32 checksum of the provided buffer using
+ * the same algorithm as used for .gnu_debuglink files in ELF binaries.
+ * The implementation uses a pre-computed lookup table for efficiency.
+ *
+ * @param crc Initial CRC value (typically 0 for a new calculation).
+ * @param buf Pointer to the buffer containing the data.
+ * @param len Length of the buffer in bytes.
+ * @return The calculated CRC-32 value.
  */
 uint32_t elf_crc32(uint32_t crc, const unsigned char *buf, size_t len) {
+  // Pre-computed CRC-32 lookup table.
   static const uint32_t crc32_table[256] = {
       0x00000000, 0x77073096, 0xee0e612c, 0x990951ba, 0x076dc419, 0x706af48f,
       0xe963a535, 0x9e6495a3, 0x0edb8832, 0x79dcb8a4, 0xe0d5e91e, 0x97d2d988,
@@ -66,31 +76,61 @@ uint32_t elf_crc32(uint32_t crc, const unsigned char *buf, size_t len) {
       0x54de5729, 0x23d967bf, 0xb3667a2e, 0xc4614ab8, 0x5d681b02, 0x2a6f2b94,
       0xb40bbe37, 0xc30c8ea1, 0x5a05df1b, 0x2d02ef8d};
 
-  const unsigned char *end = NULL;
-
-  crc = ~crc;
-  for (end = buf + len; buf < end; ++buf) {
-    crc = crc32_table[(crc ^ *buf) & 0xff] ^ (crc >> 8);
+  // Input validation.
+  if (buf == NULL && len > 0) {
+    assert(0 && "Invalid argument: NULL pointer provided.");
+    return crc;  // Avoid null pointer dereference.
   }
 
+  // CRC-32 calculation requires initial complement.
+  crc = ~crc;
+
+  // Process each byte in the buffer.
+  for (size_t i = 0; i < len; i++) {
+    crc = crc32_table[(crc ^ buf[i]) & 0xff] ^ (crc >> 8);
+  }
+
+  // Return the complemented result.
   return ~crc;
 }
 
 /**
- * @brief Return the CRC-32 of the entire file open at @a descriptor.
+ * @brief Calculate the CRC-32 checksum of the entire file open at the given
+ * descriptor.
+ *
+ * This function memory-maps the file and computes its CRC-32 checksum.
+ * It handles error conditions such as failed file stats and memory mapping.
+ *
+ * @param self The backtrace context.
+ * @param descriptor File descriptor of the open file.
+ * @param on_error Callback function for reporting errors.
+ * @param data User data to pass to the error callback.
+ * @return The calculated CRC-32 checksum, or 0 if an error occurred.
  */
 uint32_t elf_crc32_file(ten_backtrace_t *self, int descriptor,
-                        ten_backtrace_error_func_t error_cb, void *data) {
+                        ten_backtrace_on_error_func_t on_error, void *data) {
+  if (descriptor < 0) {
+    on_error(self, "invalid file descriptor", 0, data);
+    assert(0 && "Invalid file descriptor.");
+    return 0;
+  }
+
   struct stat st;
 
   if (fstat(descriptor, &st) < 0) {
-    error_cb(self, "fstat", errno, data);
+    on_error(self, "fstat", errno, data);
     return 0;
+  }
+
+  // Handle empty files.
+  if (st.st_size == 0) {
+    return elf_crc32(0, NULL, 0);
   }
 
   ten_mmap_t file_view;
 
   if (!ten_mmap_init(&file_view, descriptor, 0, st.st_size)) {
+    on_error(self, "failed to memory map file", 0, data);
     return 0;
   }
 

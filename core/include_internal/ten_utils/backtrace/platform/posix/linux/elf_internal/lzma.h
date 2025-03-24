@@ -167,5 +167,5 @@
 
 TEN_UTILS_PRIVATE_API int elf_uncompress_lzma(
     ten_backtrace_t *self, const unsigned char *compressed,
-    size_t compressed_size, ten_backtrace_error_func_t error_cb, void *data,
+    size_t compressed_size, ten_backtrace_on_error_func_t on_error, void *data,
     unsigned char **uncompressed, size_t *uncompressed_size);

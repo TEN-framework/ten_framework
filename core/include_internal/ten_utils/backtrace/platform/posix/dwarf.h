@@ -69,7 +69,7 @@ TEN_UTILS_PRIVATE_API void dwarf_buf_error(ten_backtrace_t *self,
 TEN_UTILS_PRIVATE_API int resolve_string(
     ten_backtrace_t *self, const dwarf_sections *dwarf_sections, int is_dwarf64,
     int is_bigendian, uint64_t str_offsets_base, const attr_val *val,
-    ten_backtrace_error_func_t error_cb, void *data, const char **string);
+    ten_backtrace_on_error_func_t on_error, void *data, const char **string);
 
 TEN_UTILS_PRIVATE_API uint64_t read_initial_length(ten_backtrace_t *self,
                                                    dwarf_buf *buf,
@@ -78,14 +78,14 @@ TEN_UTILS_PRIVATE_API uint64_t read_initial_length(ten_backtrace_t *self,
 TEN_UTILS_PRIVATE_API int resolve_addr_index(
     ten_backtrace_t *self, const dwarf_sections *dwarf_sections,
     uint64_t addr_base, int addrsize, int is_bigendian, uint64_t addr_index,
-    ten_backtrace_error_func_t error_cb, void *data, uintptr_t *address);
+    ten_backtrace_on_error_func_t on_error, void *data, uintptr_t *address);
 
 TEN_UTILS_PRIVATE_API const char *read_referenced_name_from_attr(
     ten_backtrace_t *self, dwarf_data *ddata, unit *u, attr *attr,
-    attr_val *val, ten_backtrace_error_func_t error_cb, void *data);
+    attr_val *val, ten_backtrace_on_error_func_t on_error, void *data);
 
 TEN_UTILS_PRIVATE_API int build_address_map(
     ten_backtrace_t *self, uintptr_t base_address,
     const dwarf_sections *dwarf_sections, int is_bigendian, dwarf_data *altlink,
-    ten_backtrace_error_func_t error_cb, void *data,
+    ten_backtrace_on_error_func_t on_error, void *data,
     struct unit_addrs_vector *addrs, struct unit_vector *unit_vec);

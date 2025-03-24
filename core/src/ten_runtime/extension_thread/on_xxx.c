@@ -125,7 +125,7 @@ void ten_extension_thread_stop_life_cycle_of_all_extensions(
     ten_extension_group_on_deinit(self->extension_group);
   } else {
     // Loop for all the containing extensions, and call their on_stop().
-    ten_list_foreach(&self->extensions, iter) {
+    ten_list_foreach (&self->extensions, iter) {
       ten_extension_t *extension = ten_ptr_listnode_get(iter.node);
       TEN_ASSERT(ten_extension_check_integrity(extension, true),
                  "Should not happen.");
@@ -301,9 +301,9 @@ void ten_extension_thread_on_addon_destroy_extension_done(void *self_,
   TEN_ASSERT(addon_context, "Should not happen.");
 
   ten_env_t *extension_group_ten = extension_group->ten_env;
-  TEN_ASSERT(extension_group_ten &&
-                 ten_env_check_integrity(extension_group_ten, true),
-             "Should not happen.");
+  TEN_ASSERT(
+      extension_group_ten && ten_env_check_integrity(extension_group_ten, true),
+      "Should not happen.");
 
   // This happens on the extension thread, so it's thread safe.
 

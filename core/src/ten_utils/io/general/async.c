@@ -27,8 +27,8 @@ static bool ten_async_check_integrity(ten_async_t *self, bool check_thread) {
 }
 
 static void ten_async_destroy(ten_async_t *self) {
-  TEN_ASSERT(self && ten_async_check_integrity(self, true),
-             "Invalid argument.");
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_async_check_integrity(self, true), "Invalid argument.");
 
   ten_string_deinit(&self->name);
   ten_runloop_async_destroy(self->async);
@@ -42,8 +42,8 @@ static void async_cb_entry_point(ten_runloop_async_t *async) {
              "Invalid argument.");
 
   ten_async_t *self = (ten_async_t *)(async->data);
-  TEN_ASSERT(self && ten_async_check_integrity(self, true),
-             "Invalid argument.");
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_async_check_integrity(self, true), "Invalid argument.");
 
   if (self->on_trigger) {
     self->on_trigger(self, self->on_trigger_data);
@@ -55,8 +55,8 @@ static void close_cb_entry_point_for_close(ten_runloop_async_t *async) {
              "Invalid argument.");
 
   ten_async_t *self = (ten_async_t *)(async->data);
-  TEN_ASSERT(self && ten_async_check_integrity(self, true),
-             "Invalid argument.");
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_async_check_integrity(self, true), "Invalid argument.");
 
   if (self->on_closed) {
     self->on_closed(self, self->on_closed_data);
@@ -70,8 +70,8 @@ static void close_cb_entry_point(ten_runloop_async_t *async) {
              "Invalid argument.");
 
   ten_async_t *self = (ten_async_t *)(async->data);
-  TEN_ASSERT(self && ten_async_check_integrity(self, true),
-             "Invalid argument.");
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_async_check_integrity(self, true), "Invalid argument.");
 
   ten_runloop_async_close(self->async_for_close,
                           close_cb_entry_point_for_close);
@@ -82,8 +82,8 @@ static void async_cb_for_close(ten_runloop_async_t *async) {
              "Invalid argument.");
 
   ten_async_t *self = (ten_async_t *)(async->data);
-  TEN_ASSERT(self && ten_async_check_integrity(self, true),
-             "Invalid argument.");
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_async_check_integrity(self, true), "Invalid argument.");
 
   ten_runloop_async_close(self->async, close_cb_entry_point);
 }
@@ -126,18 +126,17 @@ ten_async_t *ten_async_create(const char *name, ten_runloop_t *loop,
 }
 
 void ten_async_trigger(ten_async_t *self) {
-  TEN_ASSERT(self &&
-                 // TEN_NOLINTNEXTLINE(thread-check)
-                 // thread-check: This function is intended to be called in any
-                 // threads.
-                 ten_async_check_integrity(self, false),
-             "Invalid argument.");
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(
+      // TEN_NOLINTNEXTLINE(thread-check)
+      // thread-check: This function is intended to be called in any threads.
+      ten_async_check_integrity(self, false), "Invalid argument.");
   ten_runloop_async_notify(self->async);
 }
 
 void ten_async_close(ten_async_t *self) {
-  TEN_ASSERT(self && ten_async_check_integrity(self, true),
-             "Invalid argument.");
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_async_check_integrity(self, true), "Invalid argument.");
 
   if (ten_atomic_bool_compare_swap(&self->close, 0, 1)) {
     ten_runloop_async_notify(self->async_for_close);
@@ -146,8 +145,8 @@ void ten_async_close(ten_async_t *self) {
 
 void ten_async_set_on_closed(ten_async_t *self, void *on_closed,
                              void *on_closed_data) {
-  TEN_ASSERT(self && ten_async_check_integrity(self, true),
-             "Invalid argument.");
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_async_check_integrity(self, true), "Invalid argument.");
 
   self->on_closed = on_closed;
   self->on_closed_data = on_closed_data;

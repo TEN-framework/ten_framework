@@ -9,10 +9,11 @@
 //
 #include "ten_utils/ten_config.h"
 
+#include "include_internal/ten_utils/backtrace/backtrace.h"
+
 #include <assert.h>
 #include <sys/types.h>
 
-#include "include_internal/ten_utils/backtrace/backtrace.h"
 #include "include_internal/ten_utils/backtrace/platform/posix/internal.h"
 #include "unwind.h"
 
@@ -20,9 +21,9 @@
  * @brief Data passed through _Unwind_Backtrace.
  */
 typedef struct backtrace_data {
-  size_t skip; // Number of frames to skip.
+  size_t skip;  // Number of frames to skip.
   ten_backtrace_t *ten_backtrace;
-  int ret; // Value to return from ten_backtrace_dump_posix.
+  int ret;  // Value to return from ten_backtrace_dump_posix.
 } backtrace_data;
 
 /**
@@ -47,8 +48,8 @@ static _Unwind_Reason_Code unwind(struct _Unwind_Context *context, void *data) {
 
   bt_data->ret = ten_backtrace_get_file_line_info(
       bt_data->ten_backtrace, pc,
-      ((ten_backtrace_common_t *)bt_data->ten_backtrace)->dump_cb,
-      ((ten_backtrace_common_t *)bt_data->ten_backtrace)->error_cb,
+      ((ten_backtrace_common_t *)bt_data->ten_backtrace)->on_dump_file_line,
+      ((ten_backtrace_common_t *)bt_data->ten_backtrace)->on_error,
       ((ten_backtrace_common_t *)bt_data->ten_backtrace)->cb_data);
   if (bt_data->ret != 0) {
     return _URC_END_OF_STACK;

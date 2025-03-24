@@ -14,6 +14,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+#if !defined(OS_WINDOWS)
+#include <unistd.h>
+#endif
+
 #include "include_internal/ten_utils/backtrace/backtrace.h"
 #include "include_internal/ten_utils/backtrace/file.h"
 #include "ten_utils/backtrace/backtrace.h"
@@ -59,7 +63,7 @@ static char *ten_strerror(int errnum) {
     }
 
     size_t new_size = size * 2;
-    if (new_size < size) { // Check for overflow.
+    if (new_size < size) {  // Check for overflow.
       assert(0 && "Overflow.");
       free(buf);
       return NULL;
@@ -79,11 +83,11 @@ static char *ten_strerror(int errnum) {
   return buf;
 }
 
-int ten_backtrace_default_dump_cb(ten_backtrace_t *self_, uintptr_t pc,
-                                  const char *filename, int lineno,
-                                  const char *function, TEN_UNUSED void *data) {
-  ten_backtrace_common_t *self = (ten_backtrace_common_t *)self_;
-  if (!self) {
+int ten_backtrace_default_dump(ten_backtrace_t *self, uintptr_t pc,
+                               const char *filename, int lineno,
+                               const char *function, TEN_UNUSED void *data) {
+  ten_backtrace_common_t *self_posix = (ten_backtrace_common_t *)self;
+  if (!self_posix) {
     assert(0 && "Invalid argument.");
     return -1;
   }
@@ -117,22 +121,27 @@ int ten_backtrace_default_dump_cb(ten_backtrace_t *self_, uintptr_t pc,
   }
 #endif
 
+#if defined(OS_WINDOWS)
   int result = fprintf(stderr, "%s@%s:%d (0x%0" PRIxPTR ")\n", safe_function,
                        safe_filename, lineno, pc);
+#else
+  int result = dprintf(STDERR_FILENO, "%s@%s:%d (0x%0" PRIxPTR ")\n",
+                       safe_function, safe_filename, lineno, pc);
+#endif
 
-  // Check if fprintf failed.
+  // Check if fprintf/dprintf failed.
   if (result < 0) {
-    assert(0 && "Failed to fprintf(stderr).");
+    assert(0 && "Failed to fprintf/dprintf(stderr).");
     return -1;
   }
 
   return 0;
 }
 
-void ten_backtrace_default_error_cb(ten_backtrace_t *self_, const char *msg,
-                                    int errnum, TEN_UNUSED void *data) {
-  ten_backtrace_common_t *self = (ten_backtrace_common_t *)self_;
-  if (!self) {
+void ten_backtrace_default_error(ten_backtrace_t *self, const char *msg,
+                                 int errnum, TEN_UNUSED void *data) {
+  ten_backtrace_common_t *self_common = (ten_backtrace_common_t *)self;
+  if (!self_common) {
     assert(0 && "Invalid argument.");
     return;
   }
@@ -143,7 +152,7 @@ void ten_backtrace_default_error_cb(ten_backtrace_t *self_, const char *msg,
   // Print the error message
   if (fprintf(stderr, "%s", safe_msg) < 0) {
     assert(0 && "Failed to fprintf(stderr).");
-    return; // Error writing to stderr, just return.
+    return;  // Error writing to stderr, just return.
   }
 
   // Print error details if available.
@@ -168,17 +177,19 @@ void ten_backtrace_default_error_cb(ten_backtrace_t *self_, const char *msg,
   }
 }
 
-void ten_backtrace_common_init(ten_backtrace_common_t *self,
-                               ten_backtrace_dump_file_line_func_t dump_cb,
-                               ten_backtrace_error_func_t error_cb) {
+void ten_backtrace_common_init(
+    ten_backtrace_common_t *self,
+    ten_backtrace_on_dump_file_line_func_t on_dump_file_line,
+    ten_backtrace_on_error_func_t on_error) {
   if (!self) {
     assert(0 && "Invalid argument.");
     return;
   }
 
   // Use provided callbacks or default ones if NULL.
-  self->dump_cb = dump_cb ? dump_cb : ten_backtrace_default_dump_cb;
-  self->error_cb = error_cb ? error_cb : ten_backtrace_default_error_cb;
+  self->on_dump_file_line =
+      on_dump_file_line ? on_dump_file_line : ten_backtrace_default_dump;
+  self->on_error = on_error ? on_error : ten_backtrace_default_error;
 }
 
 void ten_backtrace_common_deinit(ten_backtrace_t *self) {
@@ -206,7 +217,7 @@ void ten_backtrace_create_global(void) {
 void ten_backtrace_destroy_global(void) {
   if (g_ten_backtrace) {
     ten_backtrace_destroy(g_ten_backtrace);
-    g_ten_backtrace = NULL; // Clear the pointer after destruction.
+    g_ten_backtrace = NULL;  // Clear the pointer after destruction.
   }
 }
 
@@ -220,6 +231,7 @@ void ten_backtrace_dump_global(size_t skip) {
     return;
   }
 
+  // NOLINTNEXTLINE(concurrency-mt-unsafe)
   const char *enable_backtrace_dump = getenv("TEN_ENABLE_BACKTRACE_DUMP");
   // getenv might return NULL, so check that first.
   if (enable_backtrace_dump && !strcmp(enable_backtrace_dump, "true")) {

@@ -52,8 +52,8 @@ bool ten_nodejs_extension_check_integrity(ten_nodejs_extension_t *self,
   return true;
 }
 
-static void
-ten_nodejs_extension_detach_callbacks(ten_nodejs_extension_t *self) {
+static void ten_nodejs_extension_detach_callbacks(
+    ten_nodejs_extension_t *self) {
   TEN_ASSERT(self && ten_nodejs_extension_check_integrity(self, true),
              "Should not happen.");
 
@@ -97,10 +97,10 @@ static void ten_nodejs_invoke_extension_js_on_configure(napi_env env,
   extension_on_xxx_call_info_t *call_info = data;
   TEN_ASSERT(call_info, "Should not happen.");
 
-  TEN_ASSERT(call_info->extension_bridge &&
-                 ten_nodejs_extension_check_integrity(
-                     call_info->extension_bridge, true),
-             "Should not happen.");
+  TEN_ASSERT(
+      call_info->extension_bridge && ten_nodejs_extension_check_integrity(
+                                         call_info->extension_bridge, true),
+      "Should not happen.");
 
   // Export the C ten_env object to the JS world.
   ten_nodejs_ten_env_t *ten_env_bridge = NULL;
@@ -203,10 +203,10 @@ static void ten_nodejs_invoke_extension_js_on_start(napi_env env, napi_value fn,
   extension_on_xxx_call_info_t *call_info = data;
   TEN_ASSERT(call_info, "Should not happen.");
 
-  TEN_ASSERT(call_info->extension_bridge &&
-                 ten_nodejs_extension_check_integrity(
-                     call_info->extension_bridge, true),
-             "Should not happen.");
+  TEN_ASSERT(
+      call_info->extension_bridge && ten_nodejs_extension_check_integrity(
+                                         call_info->extension_bridge, true),
+      "Should not happen.");
 
   TEN_ASSERT(call_info->ten_env_bridge && ten_nodejs_ten_env_check_integrity(
                                               call_info->ten_env_bridge, true),
@@ -254,10 +254,10 @@ static void ten_nodejs_invoke_extension_js_on_stop(napi_env env, napi_value fn,
   extension_on_xxx_call_info_t *call_info = data;
   TEN_ASSERT(call_info, "Should not happen.");
 
-  TEN_ASSERT(call_info->extension_bridge &&
-                 ten_nodejs_extension_check_integrity(
-                     call_info->extension_bridge, true),
-             "Should not happen.");
+  TEN_ASSERT(
+      call_info->extension_bridge && ten_nodejs_extension_check_integrity(
+                                         call_info->extension_bridge, true),
+      "Should not happen.");
 
   TEN_ASSERT(call_info->ten_env_bridge && ten_nodejs_ten_env_check_integrity(
                                               call_info->ten_env_bridge, true),
@@ -307,10 +307,10 @@ static void ten_nodejs_invoke_extension_js_on_deinit(napi_env env,
   extension_on_xxx_call_info_t *call_info = data;
   TEN_ASSERT(call_info, "Should not happen.");
 
-  TEN_ASSERT(call_info->extension_bridge &&
-                 ten_nodejs_extension_check_integrity(
-                     call_info->extension_bridge, true),
-             "Should not happen.");
+  TEN_ASSERT(
+      call_info->extension_bridge && ten_nodejs_extension_check_integrity(
+                                         call_info->extension_bridge, true),
+      "Should not happen.");
 
   TEN_ASSERT(call_info->ten_env_bridge && ten_nodejs_ten_env_check_integrity(
                                               call_info->ten_env_bridge, true),
@@ -615,8 +615,8 @@ static void ten_nodejs_extension_create_and_attach_callbacks(
                     ten_nodejs_invoke_extension_js_on_video_frame);
 }
 
-static void
-ten_nodejs_extension_release_js_on_xxx_tsfn(ten_nodejs_extension_t *self) {
+static void ten_nodejs_extension_release_js_on_xxx_tsfn(
+    ten_nodejs_extension_t *self) {
   TEN_ASSERT(self && ten_nodejs_extension_check_integrity(self, true),
              "Should not happen.");
 
@@ -984,7 +984,7 @@ static napi_value ten_nodejs_extension_create(napi_env env,
   TEN_STRING_INIT(name);
 
   const size_t argc = 2;
-  napi_value args[argc]; // this, name
+  napi_value args[argc];  // this, name
   if (!ten_nodejs_get_js_func_args(env, info, args, argc)) {
     napi_fatal_error(NULL, NAPI_AUTO_LENGTH,
                      "Incorrect number of parameters passed.",
@@ -1059,7 +1059,7 @@ static napi_value ten_nodejs_extension_on_end_of_life(napi_env env,
   TEN_ASSERT(env, "Should not happen.");
 
   const size_t argc = 1;
-  napi_value args[argc]; // this
+  napi_value args[argc];  // this
 
   if (!ten_nodejs_get_js_func_args(env, info, args, argc)) {
     napi_fatal_error(NULL, NAPI_AUTO_LENGTH,

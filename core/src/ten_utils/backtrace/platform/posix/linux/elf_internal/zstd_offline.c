@@ -31,8 +31,7 @@ static int16_t offset[29] = {1, 1, 1, 1, 1, 1, 2, 2, 2, 1,  1,  1,  1,  1, 1,
 
 static uint16_t next[256];
 
-static void print_table(const struct elf_zstd_fse_baseline_entry *table,
-                        size_t size) {
+static void print_table(const elf_zstd_fse_baseline_entry *table, size_t size) {
   size_t i;
 
   printf("{\n");
@@ -49,12 +48,12 @@ static void print_table(const struct elf_zstd_fse_baseline_entry *table,
 }
 
 int main() {
-  struct elf_zstd_fse_entry lit_table[64];
-  struct elf_zstd_fse_baseline_entry lit_baseline[64];
-  struct elf_zstd_fse_entry match_table[64];
-  struct elf_zstd_fse_baseline_entry match_baseline[64];
-  struct elf_zstd_fse_entry offset_table[32];
-  struct elf_zstd_fse_baseline_entry offset_baseline[32];
+  elf_zstd_fse_entry lit_table[64];
+  elf_zstd_fse_baseline_entry lit_baseline[64];
+  elf_zstd_fse_entry match_table[64];
+  elf_zstd_fse_baseline_entry match_baseline[64];
+  elf_zstd_fse_entry offset_table[32];
+  elf_zstd_fse_baseline_entry offset_baseline[32];
 
   if (!elf_zstd_build_fse(lit, sizeof lit / sizeof lit[0], next, 6,
                           lit_table)) {
@@ -69,8 +68,9 @@ int main() {
     exit(EXIT_FAILURE);
   }
 
-  printf("static const struct elf_zstd_fse_baseline_entry "
-         "elf_zstd_lit_table[64] =\n");
+  printf(
+      "static const elf_zstd_fse_baseline_entry "
+      "elf_zstd_lit_table[64] =\n");
   print_table(lit_baseline, sizeof lit_baseline / sizeof lit_baseline[0]);
   printf("\n");
 
@@ -87,8 +87,9 @@ int main() {
     exit(EXIT_FAILURE);
   }
 
-  printf("static const struct elf_zstd_fse_baseline_entry "
-         "elf_zstd_match_table[64] =\n");
+  printf(
+      "static const elf_zstd_fse_baseline_entry "
+      "elf_zstd_match_table[64] =\n");
   print_table(match_baseline, sizeof match_baseline / sizeof match_baseline[0]);
   printf("\n");
 
@@ -105,8 +106,9 @@ int main() {
     exit(EXIT_FAILURE);
   }
 
-  printf("static const struct elf_zstd_fse_baseline_entry "
-         "elf_zstd_offset_table[32] =\n");
+  printf(
+      "static const elf_zstd_fse_baseline_entry "
+      "elf_zstd_offset_table[32] =\n");
   print_table(offset_baseline,
               sizeof offset_baseline / sizeof offset_baseline[0]);
   printf("\n");

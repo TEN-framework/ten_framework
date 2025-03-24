@@ -119,7 +119,7 @@ napi_value ten_nodejs_ten_env_init_property_from_json(napi_env env,
   TEN_ASSERT(env, "Should not happen.");
 
   const size_t argc = 3;
-  napi_value args[argc]; // ten_env, json_str, callback
+  napi_value args[argc];  // ten_env, json_str, callback
 
   if (!ten_nodejs_get_js_func_args(env, info, args, argc)) {
     napi_fatal_error(NULL, NAPI_AUTO_LENGTH,

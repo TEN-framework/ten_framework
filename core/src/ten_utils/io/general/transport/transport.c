@@ -108,8 +108,8 @@ int ten_transport_close(ten_transport_t *self) {
   return -1;
 }
 
-enum TEN_TRANSPORT_DROP_TYPE
-ten_transport_get_drop_type(ten_transport_t *self) {
+enum TEN_TRANSPORT_DROP_TYPE ten_transport_get_drop_type(
+    ten_transport_t *self) {
   TEN_TRANSPORT_DROP_TYPE ret = TEN_TRANSPORT_DROP_NEW;
 
   if (!self) {

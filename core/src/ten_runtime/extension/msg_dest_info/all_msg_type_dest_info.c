@@ -53,22 +53,22 @@ void ten_all_msg_type_dest_info_translate_localhost_to_app_uri(
     ten_all_msg_type_dest_info_t *self, const char *uri) {
   TEN_ASSERT(self && uri, "Invalid argument.");
 
-  ten_list_foreach(&self->cmd, iter) {
+  ten_list_foreach (&self->cmd, iter) {
     translate_localhost_to_app_uri_for_dest(
         iter.node, uri, translate_localhost_to_app_uri_for_msg_dest);
   }
 
-  ten_list_foreach(&self->data, iter) {
+  ten_list_foreach (&self->data, iter) {
     translate_localhost_to_app_uri_for_dest(
         iter.node, uri, translate_localhost_to_app_uri_for_msg_dest);
   }
 
-  ten_list_foreach(&self->video_frame, iter) {
+  ten_list_foreach (&self->video_frame, iter) {
     translate_localhost_to_app_uri_for_dest(
         iter.node, uri, translate_localhost_to_app_uri_for_msg_dest);
   }
 
-  ten_list_foreach(&self->audio_frame, iter) {
+  ten_list_foreach (&self->audio_frame, iter) {
     translate_localhost_to_app_uri_for_dest(
         iter.node, uri, translate_localhost_to_app_uri_for_msg_dest);
   }

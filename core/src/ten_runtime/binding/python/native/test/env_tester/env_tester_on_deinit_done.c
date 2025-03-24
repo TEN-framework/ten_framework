@@ -15,9 +15,9 @@
 
 static void ten_py_ten_env_tester_on_deinit_done_proxy_notify(
     ten_env_tester_t *ten_env_tester, void *user_data) {
-  TEN_ASSERT(
-      ten_env_tester && ten_env_tester_check_integrity(ten_env_tester, true),
-      "Invalid argument.");
+  TEN_ASSERT(ten_env_tester, "Invalid argument.");
+  TEN_ASSERT(ten_env_tester_check_integrity(ten_env_tester, true),
+             "Invalid argument.");
 
   ten_py_ten_env_tester_t *py_ten_env_tester = user_data;
   TEN_ASSERT(py_ten_env_tester, "Should not happen.");

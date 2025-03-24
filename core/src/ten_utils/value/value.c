@@ -396,7 +396,7 @@ static bool ten_value_copy_array(ten_value_t *dest, ten_value_t *src,
   TEN_ASSERT(src->type == TEN_TYPE_ARRAY, "Invalid argument.");
 
   ten_list_init(&dest->content.array);
-  ten_list_foreach(&src->content.array, iter) {
+  ten_list_foreach (&src->content.array, iter) {
     ten_value_t *item = ten_ptr_listnode_get(iter.node);
     TEN_ASSERT(item && ten_value_check_integrity(item), "Invalid argument.");
 
@@ -536,7 +536,7 @@ static bool ten_value_copy_object(ten_value_t *dest, ten_value_t *src,
 
   ten_list_init(&dest->content.object);
 
-  ten_list_foreach(&src->content.object, iter) {
+  ten_list_foreach (&src->content.object, iter) {
     ten_value_kv_t *item = ten_ptr_listnode_get(iter.node);
     TEN_ASSERT(item && ten_value_kv_check_integrity(item), "Invalid argument.");
 
@@ -863,7 +863,7 @@ bool ten_value_is_equal(ten_value_t *self, ten_value_t *target) {
       return false;
     }
 
-    ten_list_foreach(&self->content.object, iter_self) {
+    ten_list_foreach (&self->content.object, iter_self) {
       ten_value_kv_t *kv_self = ten_ptr_listnode_get(iter_self.node);
       TEN_ASSERT(kv_self && ten_value_kv_check_integrity(kv_self),
                  "Invalid argument.");

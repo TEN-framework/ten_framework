@@ -117,28 +117,28 @@ void ten_raw_cmd_destroy(ten_cmd_t *self) {
   TEN_ASSERT(self, "Should not happen.");
 
   switch (self->cmd_base_hdr.msg_hdr.type) {
-    case TEN_MSG_TYPE_CMD:
-      ten_raw_cmd_custom_as_msg_destroy((ten_msg_t *)self);
-      break;
-    case TEN_MSG_TYPE_CMD_STOP_GRAPH:
-      ten_raw_cmd_stop_graph_as_msg_destroy((ten_msg_t *)self);
-      break;
-    case TEN_MSG_TYPE_CMD_CLOSE_APP:
-      ten_raw_cmd_close_app_as_msg_destroy((ten_msg_t *)self);
-      break;
-    case TEN_MSG_TYPE_CMD_TIMEOUT:
-      ten_raw_cmd_timeout_as_msg_destroy((ten_msg_t *)self);
-      break;
-    case TEN_MSG_TYPE_CMD_TIMER:
-      ten_raw_cmd_timer_as_msg_destroy((ten_msg_t *)self);
-      break;
-    case TEN_MSG_TYPE_CMD_START_GRAPH:
-      ten_raw_cmd_start_graph_as_msg_destroy((ten_msg_t *)self);
-      break;
+  case TEN_MSG_TYPE_CMD:
+    ten_raw_cmd_custom_as_msg_destroy((ten_msg_t *)self);
+    break;
+  case TEN_MSG_TYPE_CMD_STOP_GRAPH:
+    ten_raw_cmd_stop_graph_as_msg_destroy((ten_msg_t *)self);
+    break;
+  case TEN_MSG_TYPE_CMD_CLOSE_APP:
+    ten_raw_cmd_close_app_as_msg_destroy((ten_msg_t *)self);
+    break;
+  case TEN_MSG_TYPE_CMD_TIMEOUT:
+    ten_raw_cmd_timeout_as_msg_destroy((ten_msg_t *)self);
+    break;
+  case TEN_MSG_TYPE_CMD_TIMER:
+    ten_raw_cmd_timer_as_msg_destroy((ten_msg_t *)self);
+    break;
+  case TEN_MSG_TYPE_CMD_START_GRAPH:
+    ten_raw_cmd_start_graph_as_msg_destroy((ten_msg_t *)self);
+    break;
 
-    default:
-      TEN_ASSERT(0, "Should not happen.");
-      break;
+  default:
+    TEN_ASSERT(0, "Should not happen.");
+    break;
   }
 }
 
@@ -154,15 +154,15 @@ static TEN_MSG_TYPE ten_cmd_type_from_name_string(const char *name_str) {
   }
 
   switch (msg_type) {
-    case TEN_MSG_TYPE_INVALID:
-    case TEN_MSG_TYPE_DATA:
-    case TEN_MSG_TYPE_VIDEO_FRAME:
-    case TEN_MSG_TYPE_AUDIO_FRAME:
-    case TEN_MSG_TYPE_CMD_RESULT:
-      return TEN_MSG_TYPE_INVALID;
+  case TEN_MSG_TYPE_INVALID:
+  case TEN_MSG_TYPE_DATA:
+  case TEN_MSG_TYPE_VIDEO_FRAME:
+  case TEN_MSG_TYPE_AUDIO_FRAME:
+  case TEN_MSG_TYPE_CMD_RESULT:
+    return TEN_MSG_TYPE_INVALID;
 
-    default:
-      return msg_type;
+  default:
+    return msg_type;
   }
 }
 
@@ -178,20 +178,20 @@ static ten_cmd_t *ten_raw_cmd_create(const char *name, ten_error_t *err) {
   TEN_MSG_TYPE cmd_type = ten_cmd_type_from_name_string(name);
 
   switch (cmd_type) {
-    case TEN_MSG_TYPE_CMD:
-      return ten_raw_cmd_custom_create(name, err);
-    case TEN_MSG_TYPE_CMD_STOP_GRAPH:
-      return (ten_cmd_t *)ten_raw_cmd_stop_graph_create();
-    case TEN_MSG_TYPE_CMD_CLOSE_APP:
-      return (ten_cmd_t *)ten_raw_cmd_close_app_create();
-    case TEN_MSG_TYPE_CMD_TIMER:
-      return (ten_cmd_t *)ten_raw_cmd_timer_create();
-    case TEN_MSG_TYPE_CMD_START_GRAPH:
-      return (ten_cmd_t *)ten_raw_cmd_start_graph_create();
+  case TEN_MSG_TYPE_CMD:
+    return ten_raw_cmd_custom_create(name, err);
+  case TEN_MSG_TYPE_CMD_STOP_GRAPH:
+    return (ten_cmd_t *)ten_raw_cmd_stop_graph_create();
+  case TEN_MSG_TYPE_CMD_CLOSE_APP:
+    return (ten_cmd_t *)ten_raw_cmd_close_app_create();
+  case TEN_MSG_TYPE_CMD_TIMER:
+    return (ten_cmd_t *)ten_raw_cmd_timer_create();
+  case TEN_MSG_TYPE_CMD_START_GRAPH:
+    return (ten_cmd_t *)ten_raw_cmd_start_graph_create();
 
-    default:
-      TEN_ASSERT(0, "Should not happen.");
-      return NULL;
+  default:
+    TEN_ASSERT(0, "Should not happen.");
+    return NULL;
   }
 }
 

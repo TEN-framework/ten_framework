@@ -71,3 +71,4 @@ export { ENDPOINT_GRAPHS } from "@/api/endpoints/graphs";
 export { ENDPOINT_FILE_SYSTEM } from "@/api/endpoints/fileSystem";
 export { ENDPOINT_APPS, ENDPOINT_ADDONS } from "@/api/endpoints/apps";
 export { ENDPOINT_GH } from "@/api/endpoints/github";
+export { ENDPOINT_HELP_TEXT } from "@/api/endpoints/help-text";

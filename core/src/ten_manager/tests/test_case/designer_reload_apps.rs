@@ -16,11 +16,11 @@ mod tests {
         config::TmanConfig,
         designer::{
             apps::reload::{reload_app_endpoint, ReloadPkgsRequestPayload},
-            mock::inject_all_pkgs_for_mock,
             response::{ApiResponse, Status},
             DesignerState,
         },
         output::TmanOutputCli,
+        package_info::get_all_pkgs::get_all_pkgs,
     };
 
     /// Test successful package reload with a specified base_dir.
@@ -33,28 +33,20 @@ mod tests {
             pkgs_cache: HashMap::new(),
         };
 
-        // Inject initial package data.
-        let initial_pkgs_json = vec![(
-            include_str!(
-                "../test_data/cmd_builtin_function_install/manifest.json"
-            )
-            .to_string(),
-            "{}".to_string(),
-        )];
-
-        let inject_ret = inject_all_pkgs_for_mock(
-            "tests/test_data/cmd_builtin_function_install",
+        let _ = get_all_pkgs(
+            designer_state.tman_config.clone(),
             &mut designer_state.pkgs_cache,
-            initial_pkgs_json,
+            &"tests/test_data/cmd_builtin_function_install".to_string(),
+            &designer_state.out,
         );
-        assert!(inject_ret.is_ok());
+
         assert_eq!(
             designer_state
                 .pkgs_cache
                 .get("tests/test_data/cmd_builtin_function_install")
                 .unwrap()
                 .len(),
-            1
+            3
         );
 
         let designer_state = Arc::new(RwLock::new(designer_state));
@@ -115,22 +107,21 @@ mod tests {
             pkgs_cache: HashMap::new(),
         };
 
-        // Inject initial package data.
-        let initial_pkgs_json = vec![(
-            include_str!(
-                "../test_data/cmd_builtin_function_install/manifest.json"
-            )
-            .to_string(),
-            "{}".to_string(),
-        )];
-
-        let inject_ret = inject_all_pkgs_for_mock(
-            "tests/test_data/cmd_builtin_function_install",
+        let _ = get_all_pkgs(
+            designer_state.tman_config.clone(),
             &mut designer_state.pkgs_cache,
-            initial_pkgs_json,
+            &"tests/test_data/cmd_builtin_function_install".to_string(),
+            &designer_state.out,
         );
-        assert!(inject_ret.is_ok());
-        assert_eq!(designer_state.pkgs_cache.len(), 1);
+
+        assert_eq!(
+            designer_state
+                .pkgs_cache
+                .get("tests/test_data/cmd_builtin_function_install")
+                .unwrap()
+                .len(),
+            3
+        );
 
         let designer_state = Arc::new(RwLock::new(designer_state));
 

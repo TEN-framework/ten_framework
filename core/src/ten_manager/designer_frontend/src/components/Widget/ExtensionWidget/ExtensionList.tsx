@@ -18,8 +18,12 @@ import {
   TooltipTrigger,
 } from "@/components/ui/Tooltip";
 import { cn } from "@/lib/utils";
-import { useWidgetStore } from "@/store/widget";
-import { EWidgetCategory, EWidgetDisplayType } from "@/types/widgets";
+import { useWidgetStore, useAppStore } from "@/store";
+import {
+  ELogViewerScriptType,
+  EWidgetCategory,
+  EWidgetDisplayType,
+} from "@/types/widgets";
 // eslint-disable-next-line max-len
 import { ExtensionTooltipContent } from "@/components/Widget/ExtensionWidget/ExtensionDetails";
 import {
@@ -31,6 +35,10 @@ import {
 } from "@/types/extension";
 
 import type { TooltipContentProps } from "@radix-ui/react-tooltip";
+import {
+  TEN_DEFAULT_BACKEND_WS_ENDPOINT,
+  TEN_PATH_WS_BUILTIN_FUNCTION,
+} from "@/constants";
 
 export const ExtensionList = (props: {
   items: (ITenPackage | ITenPackageLocal)[];
@@ -90,19 +98,55 @@ export const ExtensionList = (props: {
   );
 };
 
+export interface IExtensionBaseItemProps<T> {
+  item: T;
+  _type?: ETenPackageType;
+  isInstalled?: boolean;
+  className?: string;
+  readOnly?: boolean;
+}
 export const ExtensionBaseItem = React.forwardRef<
   HTMLLIElement,
-  {
-    item: IListTenCloudStorePackage | IListTenLocalStorePackage;
-    _type?: ETenPackageType;
-    isInstalled?: boolean;
-    className?: string;
-    readOnly?: boolean;
-  } & React.HTMLAttributes<HTMLLIElement>
+  IExtensionBaseItemProps<
+    IListTenCloudStorePackage | IListTenLocalStorePackage
+  > &
+    React.HTMLAttributes<HTMLLIElement>
 >((props, ref) => {
   const { item, className, isInstalled, _type, readOnly, ...rest } = props;
 
   const { t } = useTranslation();
+  const { appendWidgetIfNotExists } = useWidgetStore();
+  const { currentWorkspace } = useAppStore();
+
+  const handleInstall =
+    (baseDir: string, item: IListTenCloudStorePackage) =>
+    (e: React.MouseEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (!baseDir || !item) {
+        return;
+      }
+      appendWidgetIfNotExists({
+        id: "ext-install-" + item.hash,
+        category: EWidgetCategory.LogViewer,
+        display_type: EWidgetDisplayType.Popup,
+        metadata: {
+          wsUrl: TEN_DEFAULT_BACKEND_WS_ENDPOINT + TEN_PATH_WS_BUILTIN_FUNCTION,
+          scriptType: ELogViewerScriptType.INSTALL,
+          script: {
+            type: ELogViewerScriptType.INSTALL,
+            base_dir: baseDir,
+            pkg_type: item.type,
+            pkg_name: item.name,
+            pkg_version: item.version,
+          },
+          options: {
+            disableSearch: true,
+            title: t("popup.logViewer.appInstall"),
+          },
+        },
+      });
+    };
 
   return (
     <li
@@ -171,7 +215,11 @@ export const ExtensionBaseItem = React.forwardRef<
               "shadow-none rounded-none",
               "hover:bg-gray-200 dark:hover:bg-gray-700"
             )}
-            disabled={readOnly}
+            disabled={readOnly || !currentWorkspace?.baseDir}
+            onClick={handleInstall(
+              currentWorkspace?.baseDir || "",
+              item as IListTenCloudStorePackage
+            )}
           >
             {t("extensionStore.install")}
           </Button>
