@@ -21,10 +21,10 @@ use inquire::Confirm;
 use semver::VersionReq;
 use ten_rust::pkg_info::{
     constants::{BUILD_GN_FILENAME, MANIFEST_JSON_FILENAME},
+    manifest::dependency::ManifestDependency,
     pkg_basic_info::PkgBasicInfo,
 };
 use ten_rust::pkg_info::{
-    dependencies::PkgDependency,
     get_pkg_info_from_path,
     pkg_type::PkgType,
     pkg_type_and_name::PkgTypeAndName,
@@ -538,14 +538,10 @@ pub async fn execute_cmd(
                     .clone(),
             },
             version: app_pkg_to_work_with.basic_info.version.clone(),
-            dependency: PkgDependency {
-                type_and_name: PkgTypeAndName {
-                    pkg_type: installing_pkg_type.unwrap(),
-                    name: installing_pkg_name.clone().unwrap(),
-                },
+            dependency: ManifestDependency::RegistryDependency {
+                pkg_type: installing_pkg_type.unwrap(),
+                name: installing_pkg_name.clone().unwrap(),
                 version_req: installing_pkg_version_req,
-                path: Some(local_path_str.clone()),
-                base_dir: Some("".to_string()),
             },
         });
 
@@ -587,14 +583,10 @@ pub async fn execute_cmd(
                     .clone(),
             },
             version: app_pkg_to_work_with.basic_info.version.clone(),
-            dependency: PkgDependency {
-                type_and_name: PkgTypeAndName {
-                    pkg_type: installing_pkg_type_,
-                    name: installing_pkg_name_.clone(),
-                },
+            dependency: ManifestDependency::RegistryDependency {
+                pkg_type: installing_pkg_type_,
+                name: installing_pkg_name_.clone(),
                 version_req: installing_pkg_version_req_.clone(),
-                path: None,
-                base_dir: None,
             },
         });
     }

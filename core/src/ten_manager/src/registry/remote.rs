@@ -115,11 +115,13 @@ async fn get_package_upload_info(
             Box::pin(async move {
                 let payload = json!(PkgRegistryInfo {
                     basic_info: PkgBasicInfo::from(&pkg_info),
-                    dependencies: pkg_info
-                        .dependencies
-                        .clone()
-                        .into_iter()
-                        .collect(),
+                    dependencies: match &pkg_info.manifest {
+                        Some(manifest) => match &manifest.dependencies {
+                            Some(deps) => deps.clone(),
+                            None => vec![],
+                        },
+                        None => vec![],
+                    },
                     hash: pkg_info.hash.clone(),
                     download_url: String::new(),
                     content_format: Some("gzip".to_string()),

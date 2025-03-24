@@ -4,18 +4,22 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
+use semver::VersionReq;
 use serde::{Deserialize, Serialize};
 
-use crate::pkg_info::{dependencies::PkgDependency, PkgInfo};
+use crate::pkg_info::{pkg_type::PkgType, PkgInfo};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(untagged)]
 pub enum ManifestDependency {
     RegistryDependency {
         #[serde(rename = "type")]
-        pkg_type: String,
+        pkg_type: PkgType,
+
         name: String,
-        version: String,
+
+        #[serde(rename = "version")]
+        version_req: VersionReq,
     },
 
     LocalDependency {
@@ -27,26 +31,6 @@ pub enum ManifestDependency {
         #[serde(skip)]
         base_dir: String,
     },
-}
-
-impl From<&PkgDependency> for ManifestDependency {
-    fn from(pkg_dependency: &PkgDependency) -> Self {
-        if pkg_dependency.is_local() {
-            assert!(pkg_dependency.path.is_some(), "Should not happen.");
-            assert!(pkg_dependency.base_dir.is_some(), "Should not happen.");
-
-            ManifestDependency::LocalDependency {
-                path: pkg_dependency.path.as_ref().unwrap().clone(),
-                base_dir: pkg_dependency.base_dir.as_ref().unwrap().clone(),
-            }
-        } else {
-            ManifestDependency::RegistryDependency {
-                pkg_type: pkg_dependency.type_and_name.pkg_type.to_string(),
-                name: pkg_dependency.type_and_name.name.clone(),
-                version: pkg_dependency.version_req.to_string(),
-            }
-        }
-    }
 }
 
 impl From<&PkgInfo> for ManifestDependency {
@@ -72,15 +56,14 @@ impl From<&PkgInfo> for ManifestDependency {
             }
         } else {
             ManifestDependency::RegistryDependency {
-                pkg_type: pkg_info
-                    .basic_info
-                    .type_and_name
-                    .pkg_type
-                    .to_string(),
+                pkg_type: pkg_info.basic_info.type_and_name.pkg_type,
                 name: pkg_info.basic_info.type_and_name.name.clone(),
 
                 // Use the package's version as the declared dependency version.
-                version: pkg_info.basic_info.version.to_string(),
+                version_req: VersionReq::parse(
+                    &pkg_info.basic_info.version.to_string(),
+                )
+                .unwrap(),
             }
         }
     }

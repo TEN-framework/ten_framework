@@ -11,7 +11,6 @@ use std::{
     collections::HashMap,
     fs::{self, OpenOptions},
     path::{Path, PathBuf},
-    str::FromStr,
     sync::Arc,
 };
 
@@ -235,7 +234,7 @@ fn update_package_manifest(
                     ..
                 } => {
                     let manifest_dependency_type_and_name = PkgTypeAndName {
-                        pkg_type: PkgType::from_str(pkg_type)?,
+                        pkg_type: *pkg_type,
                         name: name.clone(),
                     };
 
@@ -339,23 +338,6 @@ fn update_package_manifest(
         }
 
         base_pkg_info.manifest.as_mut().unwrap().dependencies = Some(new_deps);
-    }
-
-    // Also add the dependency to base_pkg_info.dependencies if it does not
-    // exist.
-    if !base_pkg_info.dependencies.iter().any(|dep| {
-        dep.type_and_name == added_dependency.basic_info.type_and_name
-    }) {
-        // Create a new PkgDependency from the added_dependency.
-        let pkg_dep = ten_rust::pkg_info::dependencies::PkgDependency {
-            type_and_name: added_dependency.basic_info.type_and_name.clone(),
-            version_req: semver::VersionReq::parse(
-                &added_dependency.basic_info.version.to_string(),
-            )?,
-            path: added_dependency.local_dependency_path.clone(),
-            base_dir: added_dependency.local_dependency_base_dir.clone(),
-        };
-        base_pkg_info.dependencies.push(pkg_dep);
     }
 
     let manifest_path: PathBuf =

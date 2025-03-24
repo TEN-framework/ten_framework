@@ -6,7 +6,6 @@
 //
 mod binding;
 pub mod constants;
-pub mod dependencies;
 pub mod graph;
 pub mod hash;
 pub mod language;
@@ -33,8 +32,10 @@ use constants::{
     ADDON_LOADER_DIR, EXTENSION_DIR, MANIFEST_JSON_FILENAME, PROTOCOL_DIR,
     SYSTEM_DIR, TEN_PACKAGES_DIR,
 };
-use dependencies::{get_pkg_dependencies_from_manifest, PkgDependency};
-use manifest::{parse_manifest_from_file, parse_manifest_in_folder, Manifest};
+use manifest::{
+    dependency::ManifestDependency, parse_manifest_from_file,
+    parse_manifest_in_folder, Manifest,
+};
 use pkg_type::PkgType;
 use property::{
     parse_property_in_folder, predefined_graph::PredefinedGraph, Property,
@@ -47,8 +48,6 @@ pub fn localhost() -> String {
 #[derive(Clone, Debug)]
 pub struct PkgInfo {
     pub basic_info: PkgBasicInfo,
-
-    pub dependencies: Vec<PkgDependency>,
 
     pub compatible_score: i32,
 
@@ -88,7 +87,6 @@ impl PkgInfo {
         let mut pkg_info = PkgInfo {
             basic_info: PkgBasicInfo::try_from(manifest)?,
 
-            dependencies: get_pkg_dependencies_from_manifest(manifest)?,
             compatible_score: -1,
 
             is_installed: false,
@@ -138,11 +136,32 @@ impl PkgInfo {
         &self,
         pkg_type: &str,
         pkg_name: &str,
-    ) -> Option<&PkgDependency> {
-        self.dependencies.iter().find(|dep| {
-            dep.type_and_name.pkg_type.to_string() == pkg_type
-                && dep.type_and_name.name == pkg_name
-        })
+    ) -> Option<&ManifestDependency> {
+        if let Some(manifest) = &self.manifest {
+            if let Some(dependencies) = &manifest.dependencies {
+                return dependencies.iter().find(|dep| {
+                    match dep {
+                        ManifestDependency::RegistryDependency {
+                            pkg_type: dep_type,
+                            name,
+                            ..
+                        } => {
+                            dep_type.to_string() == pkg_type && name == pkg_name
+                        }
+                        ManifestDependency::LocalDependency { .. } => {
+                            // For local dependencies, we would need to resolve
+                            // the actual type and
+                            // name by examining the
+                            // manifest at the local path, which is beyond the
+                            // scope of this method,
+                            // so we return false.
+                            false
+                        }
+                    }
+                });
+            }
+        }
+        None
     }
 }
 
