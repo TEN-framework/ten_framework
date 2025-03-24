@@ -92,11 +92,6 @@ static void ten_global_sigint_sigterm_handler(int signo,
     // NOLINTNEXTLINE(concurrency-mt-unsafe)
     exit(EXIT_FAILURE);
   }
-
-  if (signo == SIGHUP) {
-    // 由于global log在unload
-    ten_log_global_reload();
-  }
 }
 
 /**
