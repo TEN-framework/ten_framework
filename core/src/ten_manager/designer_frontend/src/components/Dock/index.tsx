@@ -201,7 +201,7 @@ export default function DockContainer(props: {
     <div
       className={cn(
         "w-full h-full bg-muted text-muted-foreground",
-        { ["mt-10 h-[calc(100%-60px)]"]: position !== "bottom" },
+        { ["mt-10 h-[calc(100dvh-60px)]"]: position !== "bottom" },
         className
       )}
     >
@@ -240,7 +240,8 @@ export default function DockContainer(props: {
       {selectedWidgetMemo && (
         <div
           className={cn(
-            "w-full h-[calc(100%-24px)] flex items-center justify-center"
+            "w-full h-[calc(100%-24px)] flex items-center justify-center",
+            { ["h-[calc(100%-24px-20px)]"]: position === "bottom" }
           )}
         >
           {/* {selectedWidgetMemo.id} */}
