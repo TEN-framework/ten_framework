@@ -14,13 +14,14 @@ use anyhow::{anyhow, Result};
 use serde::{Deserialize, Serialize};
 
 use ten_rust::pkg_info::{
-    api::PkgCmdResult, predefined_graphs::extension::get_pkg_info_for_extension,
+    graph::node::GraphNode,
+    manifest::api::{ManifestApiCmdLike, ManifestApiDataLike},
 };
 use ten_rust::pkg_info::{
-    api::{
-        PkgApiCmdLike, PkgApiDataLike, PkgPropertyAttributes, PkgPropertyItem,
+    manifest::api::{
+        ManifestCmdResult, ManifestPropertyAttributes, ManifestPropertyItem,
     },
-    graph::node::GraphNode,
+    predefined_graphs::extension::get_pkg_info_for_extension,
 };
 use ten_rust::pkg_info::{
     pkg_type::PkgType,
@@ -128,16 +129,16 @@ pub struct DesignerPropertyItem {
     pub attributes: DesignerPropertyAttributes,
 }
 
-impl From<PkgPropertyAttributes> for DesignerPropertyAttributes {
-    fn from(api_property: PkgPropertyAttributes) -> Self {
+impl From<ManifestPropertyAttributes> for DesignerPropertyAttributes {
+    fn from(api_property: ManifestPropertyAttributes) -> Self {
         DesignerPropertyAttributes {
             prop_type: api_property.prop_type.to_string(),
         }
     }
 }
 
-impl From<PkgPropertyItem> for DesignerPropertyItem {
-    fn from(item: PkgPropertyItem) -> Self {
+impl From<ManifestPropertyItem> for DesignerPropertyItem {
+    fn from(item: ManifestPropertyItem) -> Self {
         DesignerPropertyItem {
             name: item.name,
             attributes: item.attributes.into(),
@@ -153,19 +154,19 @@ pub struct DesignerCmdResult {
     pub required: Option<Vec<String>>,
 }
 
-impl From<PkgCmdResult> for DesignerCmdResult {
-    fn from(cmd_result: PkgCmdResult) -> Self {
+impl From<ManifestCmdResult> for DesignerCmdResult {
+    fn from(cmd_result: ManifestCmdResult) -> Self {
         DesignerCmdResult {
             property: cmd_result
                 .property
                 .into_iter()
                 .map(|v| v.into())
                 .collect(),
-            required: if cmd_result.required.is_empty() {
-                None
-            } else {
-                Some(cmd_result.required)
-            },
+            required: cmd_result
+                .required
+                .as_ref()
+                .filter(|req| !req.is_empty())
+                .cloned(),
         }
     }
 }
@@ -184,27 +185,21 @@ pub struct DesignerApiCmdLike {
     pub result: Option<DesignerCmdResult>,
 }
 
-impl From<PkgApiCmdLike> for DesignerApiCmdLike {
-    fn from(api_cmd_like: PkgApiCmdLike) -> Self {
+impl From<ManifestApiCmdLike> for DesignerApiCmdLike {
+    fn from(api_cmd_like: ManifestApiCmdLike) -> Self {
         DesignerApiCmdLike {
             name: api_cmd_like.name,
-            property: if api_cmd_like.property.is_empty() {
-                None
-            } else {
-                Some(get_designer_property_items_from_pkg(
-                    api_cmd_like.property,
-                ))
-            },
-            required: if api_cmd_like.required.is_empty() {
-                None
-            } else {
-                Some(api_cmd_like.required)
-            },
-            result: if api_cmd_like.result.property.is_empty() {
-                None
-            } else {
-                Some(api_cmd_like.result.into())
-            },
+            property: api_cmd_like
+                .property
+                .as_ref()
+                .filter(|p| !p.is_empty())
+                .map(|p| get_designer_property_items_from_pkg(p.clone())),
+            required: api_cmd_like
+                .required
+                .as_ref()
+                .filter(|req| !req.is_empty())
+                .cloned(),
+            result: api_cmd_like.result.as_ref().cloned().map(Into::into),
         }
     }
 }
@@ -220,28 +215,26 @@ pub struct DesignerApiDataLike {
     pub required: Option<Vec<String>>,
 }
 
-impl From<PkgApiDataLike> for DesignerApiDataLike {
-    fn from(api_data_like: PkgApiDataLike) -> Self {
+impl From<ManifestApiDataLike> for DesignerApiDataLike {
+    fn from(api_data_like: ManifestApiDataLike) -> Self {
         DesignerApiDataLike {
             name: api_data_like.name,
-            property: if api_data_like.property.is_empty() {
-                None
-            } else {
-                Some(get_designer_property_items_from_pkg(
-                    api_data_like.property,
-                ))
-            },
-            required: if api_data_like.required.is_empty() {
-                None
-            } else {
-                Some(api_data_like.required)
-            },
+            property: api_data_like
+                .property
+                .as_ref()
+                .filter(|p| !p.is_empty())
+                .map(|p| get_designer_property_items_from_pkg(p.clone())),
+            required: api_data_like
+                .required
+                .as_ref()
+                .filter(|req| !req.is_empty())
+                .cloned(),
         }
     }
 }
 
 fn get_designer_property_items_from_pkg(
-    items: Vec<PkgPropertyItem>,
+    items: Vec<ManifestPropertyItem>,
 ) -> Vec<DesignerPropertyItem> {
     items.into_iter().map(|v| v.into()).collect()
 }
@@ -292,75 +285,101 @@ pub async fn get_graph_nodes_endpoint(
                         .clone()
                         .unwrap(),
                     app: extension_graph_node.app.as_ref().unwrap().clone(),
-                    api: pkg_info.api.as_ref().map(|api| DesignerApi {
-                        property: if api.property.is_empty() {
-                            None
-                        } else {
-                            Some(get_designer_property_hashmap_from_pkg(
-                                api.property.clone(),
-                            ))
-                        },
+                    api: pkg_info
+                        .manifest
+                        .as_ref()
+                        .and_then(|manifest| manifest.api.as_ref())
+                        .map(|api| DesignerApi {
+                            property: api
+                                .property
+                                .as_ref()
+                                .filter(|p| !p.is_empty())
+                                .map(|p| {
+                                    get_designer_property_hashmap_from_pkg(
+                                        p.clone(),
+                                    )
+                                }),
 
-                        cmd_in: if api.cmd_in.is_empty() {
-                            None
-                        } else {
-                            Some(get_designer_api_cmd_likes_from_pkg(
-                                api.cmd_in.clone(),
-                            ))
-                        },
-                        cmd_out: if api.cmd_out.is_empty() {
-                            None
-                        } else {
-                            Some(get_designer_api_cmd_likes_from_pkg(
-                                api.cmd_out.clone(),
-                            ))
-                        },
+                            cmd_in: api
+                                .cmd_in
+                                .as_ref()
+                                .filter(|c| !c.is_empty())
+                                .map(|c| {
+                                    get_designer_api_cmd_likes_from_pkg(
+                                        c.clone(),
+                                    )
+                                }),
 
-                        data_in: if api.data_in.is_empty() {
-                            None
-                        } else {
-                            Some(get_designer_api_data_likes_from_pkg(
-                                api.data_in.clone(),
-                            ))
-                        },
-                        data_out: if api.data_out.is_empty() {
-                            None
-                        } else {
-                            Some(get_designer_api_data_likes_from_pkg(
-                                api.data_out.clone(),
-                            ))
-                        },
+                            cmd_out: api
+                                .cmd_out
+                                .as_ref()
+                                .filter(|c| !c.is_empty())
+                                .map(|c| {
+                                    get_designer_api_cmd_likes_from_pkg(
+                                        c.clone(),
+                                    )
+                                }),
 
-                        audio_frame_in: if api.audio_frame_in.is_empty() {
-                            None
-                        } else {
-                            Some(get_designer_api_data_likes_from_pkg(
-                                api.audio_frame_in.clone(),
-                            ))
-                        },
-                        audio_frame_out: if api.audio_frame_out.is_empty() {
-                            None
-                        } else {
-                            Some(get_designer_api_data_likes_from_pkg(
-                                api.audio_frame_out.clone(),
-                            ))
-                        },
+                            data_in: api
+                                .data_in
+                                .as_ref()
+                                .filter(|d| !d.is_empty())
+                                .map(|d| {
+                                    get_designer_api_data_likes_from_pkg(
+                                        d.clone(),
+                                    )
+                                }),
 
-                        video_frame_in: if api.video_frame_in.is_empty() {
-                            None
-                        } else {
-                            Some(get_designer_api_data_likes_from_pkg(
-                                api.video_frame_in.clone(),
-                            ))
-                        },
-                        video_frame_out: if api.video_frame_out.is_empty() {
-                            None
-                        } else {
-                            Some(get_designer_api_data_likes_from_pkg(
-                                api.video_frame_out.clone(),
-                            ))
-                        },
-                    }),
+                            data_out: api
+                                .data_out
+                                .as_ref()
+                                .filter(|d| !d.is_empty())
+                                .map(|d| {
+                                    get_designer_api_data_likes_from_pkg(
+                                        d.clone(),
+                                    )
+                                }),
+
+                            audio_frame_in: api
+                                .audio_frame_in
+                                .as_ref()
+                                .filter(|d| !d.is_empty())
+                                .map(|d| {
+                                    get_designer_api_data_likes_from_pkg(
+                                        d.clone(),
+                                    )
+                                }),
+
+                            audio_frame_out: api
+                                .audio_frame_out
+                                .as_ref()
+                                .filter(|d| !d.is_empty())
+                                .map(|d| {
+                                    get_designer_api_data_likes_from_pkg(
+                                        d.clone(),
+                                    )
+                                }),
+
+                            video_frame_in: api
+                                .video_frame_in
+                                .as_ref()
+                                .filter(|d| !d.is_empty())
+                                .map(|d| {
+                                    get_designer_api_data_likes_from_pkg(
+                                        d.clone(),
+                                    )
+                                }),
+
+                            video_frame_out: api
+                                .video_frame_out
+                                .as_ref()
+                                .filter(|d| !d.is_empty())
+                                .map(|d| {
+                                    get_designer_api_data_likes_from_pkg(
+                                        d.clone(),
+                                    )
+                                }),
+                        }),
                     property: extension_graph_node.property.clone(),
                     is_installed: true,
                 });

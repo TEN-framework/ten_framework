@@ -15,6 +15,7 @@
 
 #include "ten_utils/backtrace/backtrace.h"  // IWYU pragma: keep
 #include "ten_utils/lib/pid.h"              // IWYU pragma: keep
+#include "ten_utils/lib/time.h"             // IWYU pragma: keep
 
 #if defined(__has_feature)
 #if __has_feature(address_sanitizer)
@@ -68,6 +69,8 @@
         assert(0);                                                     \
       }                                                                \
       ten_backtrace_dump_global(0);                                    \
+      /* Wait for a short period to allow backtrace to be written. */  \
+      ten_sleep_ms(200);                                               \
       /* NOLINTNEXTLINE */                                             \
       assert(0);                                                       \
     }                                                                  \
@@ -98,6 +101,8 @@
         abort();                                                       \
       }                                                                \
       ten_backtrace_dump_global(0);                                    \
+      /* Wait for a short period to allow backtrace to be written. */  \
+      ten_sleep_ms(200);                                               \
       /* NOLINTNEXTLINE */                                             \
       abort();                                                         \
     }                                                                  \

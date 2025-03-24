@@ -91,7 +91,6 @@ impl From<&PkgRegistryInfo> for PkgInfo {
         let mut pkg_info = PkgInfo {
             basic_info: pkg_registry_info.basic_info.clone(),
             dependencies: pkg_registry_info.dependencies.clone(),
-            api: None,
             compatible_score: -1,
 
             is_installed: false,
