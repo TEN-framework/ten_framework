@@ -11,15 +11,13 @@
           "type": "extension",
           "name": "ext_a"
         }
-      ],
-      "supports": []
+      ]
     },
     {
       "type": "extension",
       "name": "ext_a",
       "version": "1.2.3",
-      "hash": "7527e7758d3d3c2147047698a17d4d02f22750a105f74e5523f536ebdb9d2e4c",
-      "supports": []
+      "hash": "7527e7758d3d3c2147047698a17d4d02f22750a105f74e5523f536ebdb9d2e4c"
     }
   ]
 }

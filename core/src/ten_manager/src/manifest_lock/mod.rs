@@ -198,7 +198,7 @@ pub struct ManifestLockItem {
     pub pkg_type: String,
 
     pub name: String,
-    pub version: String,
+    pub version: Version,
     pub hash: String,
 
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -228,13 +228,12 @@ impl TryFrom<&ManifestLockItem> for PkgBasicInfo {
     fn try_from(manifest: &ManifestLockItem) -> Result<Self> {
         Ok(PkgBasicInfo {
             type_and_name: PkgTypeAndName::try_from(manifest)?,
-            version: Version::parse(&manifest.version).unwrap(),
+            version: manifest.version.clone(),
             // If manifest.supports is None, then supports is an empty vector.
             // Otherwise, convert the supports to a vector of PkgSupport.
             supports: get_pkg_supports_from_manifest_supports(
                 &manifest.supports,
-            )
-            .unwrap(),
+            )?,
         })
     }
 }
@@ -247,10 +246,10 @@ fn get_encodable_deps_from_pkg_deps(
 
 impl<'a> From<&'a PkgInfo> for ManifestLockItem {
     fn from(pkg_info: &'a PkgInfo) -> Self {
-        let mut item = ManifestLockItem {
+        Self {
             pkg_type: pkg_info.basic_info.type_and_name.pkg_type.to_string(),
             name: pkg_info.basic_info.type_and_name.name.clone(),
-            version: pkg_info.basic_info.version.to_string(),
+            version: pkg_info.basic_info.version.clone(),
             hash: pkg_info.hash.to_string(),
             dependencies: if pkg_info.dependencies.is_empty() {
                 None
@@ -259,17 +258,14 @@ impl<'a> From<&'a PkgInfo> for ManifestLockItem {
                     pkg_info.dependencies.clone(),
                 ))
             },
-            supports: Some(get_manifest_supports_from_pkg(
-                &pkg_info.basic_info.supports,
-            )),
-            path: None,
-        };
-
-        if pkg_info.is_local_dependency {
-            item.path = pkg_info.local_dependency_path.clone();
+            supports: match &pkg_info.basic_info.supports.len() {
+                0 => None,
+                _ => Some(get_manifest_supports_from_pkg(
+                    &pkg_info.basic_info.supports,
+                )),
+            },
+            path: pkg_info.local_dependency_path.clone(),
         }
-
-        item
     }
 }
 
@@ -293,8 +289,6 @@ impl<'a> From<&'a ManifestLockItem> for PkgInfo {
             is_local_dependency: locked_item.path.is_some(),
             local_dependency_path: locked_item.path.clone(),
             local_dependency_base_dir: None,
-
-            scripts: HashMap::new(),
         }
     }
 }

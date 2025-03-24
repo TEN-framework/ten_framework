@@ -4,8 +4,6 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-use std::collections::HashMap;
-
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 
@@ -104,8 +102,6 @@ impl From<&PkgRegistryInfo> for PkgInfo {
             is_local_dependency: false,
             local_dependency_path: None,
             local_dependency_base_dir: None,
-
-            scripts: HashMap::new(),
         };
 
         pkg_info.hash = pkg_info.gen_hash_hex();
