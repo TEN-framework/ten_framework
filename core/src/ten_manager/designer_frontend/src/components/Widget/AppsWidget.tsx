@@ -165,7 +165,9 @@ export const AppsManagerWidget = (props: { className?: string }) => {
   return (
     <div className={cn("flex flex-col gap-2 w-full h-full", props.className)}>
       <Table>
-        <TableCaption>{t("popup.apps.tableCaption")}</TableCaption>
+        <TableCaption className="select-none">
+          {t("popup.apps.tableCaption")}
+        </TableCaption>
         <TableHeader>
           <TableRow>
             <TableHead className="w-14">{t("dataTable.no")}</TableHead>
@@ -187,7 +189,7 @@ export const AppsManagerWidget = (props: { className?: string }) => {
               <TableRow key={app.base_dir}>
                 <TableCell className="font-medium">{index + 1}</TableCell>
                 <TableCell>
-                  <span className="text-xs rounded-md p-1 bg-muted px-2">
+                  <span className={cn("text-xs rounded-md p-1 bg-muted px-2")}>
                     {app.base_dir}
                   </span>
                 </TableCell>
