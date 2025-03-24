@@ -62,8 +62,11 @@ typedef struct ten_backtrace_posix_t {
   ten_atomic_t file_line_init_failed;
 } ten_backtrace_posix_t;
 
-TEN_UTILS_PRIVATE_API int ten_backtrace_dump_posix(ten_backtrace_t *self,
-                                                   size_t skip);
+TEN_UTILS_PRIVATE_API int ten_backtrace_dump_using_libgcc(ten_backtrace_t *self,
+                                                          size_t skip);
+
+TEN_UTILS_PRIVATE_API int ten_backtrace_dump_using_glibc(ten_backtrace_t *self,
+                                                          size_t skip);
 
 /**
  * @brief Read initial debug data from a descriptor, and set the the following

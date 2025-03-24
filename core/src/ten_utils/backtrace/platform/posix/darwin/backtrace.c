@@ -15,6 +15,7 @@
 
 #include "include_internal/ten_utils/backtrace/common.h"
 #include "include_internal/ten_utils/backtrace/platform/posix/darwin/internal.h"
+#include "include_internal/ten_utils/backtrace/platform/posix/internal.h"
 
 /**
  * @brief Creates a new backtrace object for macOS platform.
@@ -87,39 +88,11 @@ void ten_backtrace_dump(ten_backtrace_t *self, size_t skip) {
   }
 
   // NOTE: Currently, the only way to get detailed backtrace via
-  // 'ten_backtrace_dump_posix' is to create .dsym for each executable and
-  // libraries. Otherwise, it will show
+  // 'ten_backtrace_dump_using_libgcc' is to create .dsym for each executable
+  // and libraries. Otherwise, it will show
   //
   // "no debug info in Mach-O executable".
   //
-  // Therefore, we use the macOS builtin method (backtrace_symbols) for now.
-
-  void *call_stack[MAX_CAPTURED_CALL_STACK_DEPTH];
-  int frames = backtrace(call_stack, MAX_CAPTURED_CALL_STACK_DEPTH);
-
-  if (frames <= 0) {
-    ten_backtrace_common_t *common_self = (ten_backtrace_common_t *)self;
-    common_self->on_error(self, "Failed to capture backtrace", -1,
-                          common_self->cb_data);
-    return;
-  }
-
-  char **strs = backtrace_symbols(call_stack, frames);
-  if (!strs) {
-    ten_backtrace_common_t *common_self = (ten_backtrace_common_t *)self;
-    common_self->on_error(self, "Failed to get backtrace symbols", -1,
-                          common_self->cb_data);
-    return;
-  }
-
-  // Ensure skip doesn't exceed the number of frames.
-  skip = (skip < frames) ? skip : frames;
-
-  for (size_t i = skip; i < frames; ++i) {
-    if (dprintf(STDERR_FILENO, "%s\n", strs[i]) < 0) {
-      assert(0 && "Failed to dprintf(stderr).");
-    }
-  }
-
-  free((void *)strs);
+  // Therefore, we use the glibc builtin method (backtrace_symbols) for now.
+  ten_backtrace_dump_using_glibc(self, skip);
 }

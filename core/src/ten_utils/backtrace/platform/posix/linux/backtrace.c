@@ -74,12 +74,17 @@ void ten_backtrace_destroy(ten_backtrace_t *self) {
 }
 
 /**
- * @brief Dumps the current call stack.
+ * @brief Dumps the current call stack using multiple backtrace methods.
  *
  * This function captures the current call stack and processes it using
- * the POSIX implementation for Linux platforms. It delegates the actual
- * work to ten_backtrace_dump_posix which handles the symbol resolution
- * and formatting.
+ * both glibc and libgcc implementations for Linux platforms. It first attempts
+ * to use glibc's backtrace functions which provide basic symbol information,
+ * then tries libgcc's unwinder which can provide more detailed file and line
+ * information when debug symbols are available.
+ *
+ * Using both methods provides more comprehensive backtrace information,
+ * as one method might succeed where the other fails or provides incomplete
+ * information.
  *
  * @param self Pointer to the backtrace object. Must not be NULL.
  * @param skip Number of stack frames to skip from the top of the call stack.
@@ -94,7 +99,12 @@ void ten_backtrace_dump(ten_backtrace_t *self, size_t skip) {
     return;
   }
 
-  ten_backtrace_dump_posix(self, skip);
+  // First try glibc's backtrace which provides basic symbol information
+  ten_backtrace_dump_using_glibc(self, skip);
+
+  // Then try libgcc's unwinder which can provide more detailed information
+  // when debug symbols are available
+  ten_backtrace_dump_using_libgcc(self, skip);
 }
 
 /**
@@ -137,7 +147,7 @@ int ten_backtrace_capture_to_buffer(ten_backtrace_t *self, char *buffer,
   common->cb_data = &backtrace_buffer;
 
   // Capture backtrace, adding 1 to skip to account for this function itself.
-  ten_backtrace_dump(self, skip + 1);
+  ten_backtrace_dump_using_libgcc(self, skip + 1);
 
   return 1;
 }
