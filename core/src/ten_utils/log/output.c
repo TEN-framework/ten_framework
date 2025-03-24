@@ -6,6 +6,7 @@
 //
 #include "ten_utils/ten_config.h"
 
+#include "ten_utils/lib/mutex.h"
 #include "ten_utils/lib/string.h"
 #include "ten_utils/macro/memory.h"
 
@@ -102,22 +103,42 @@ static bool create_directories(const char *path) {
 }
 
 static void ten_log_output_set(ten_log_t *self,
-                               const ten_log_output_func_t output_cb,
-                               const ten_log_close_func_t close_cb,
+                               const ten_log_output_on_output_func_t output_cb,
+                               const ten_log_output_on_close_func_t close_cb,
+                               const ten_log_output_on_reload_func_t reload_cb,
+                               const ten_log_output_on_deinit_func_t deinit_cb,
                                void *user_data) {
   TEN_ASSERT(self, "Invalid argument.");
 
+  // Close the previous output.
+  if (self->output.on_close) {
+    self->output.on_close(self);
+  }
+
+  // Deinitialize the previous output.
+  if (self->output.on_deinit) {
+    self->output.on_deinit(self);
+  }
+
   self->output.user_data = user_data;
-  self->output.output_cb = output_cb;
-  self->output.close_cb = close_cb;
+  self->output.on_output = output_cb;
+  self->output.on_close = close_cb;
+  self->output.on_reload = reload_cb;
+  self->output.on_deinit = deinit_cb;
 }
 
-static void ten_log_close_file_cb(void *user_data) {
-  int *fd = user_data;
+static void ten_log_close_file(ten_log_t *self) {
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_log_check_integrity(self), "Invalid argument.");
+
+  ten_log_output_to_file_ctx_t *ctx =
+      (ten_log_output_to_file_ctx_t *)self->output.user_data;
+  TEN_ASSERT(ctx, "Invalid argument.");
+
+  int *fd = ctx->fd;
   TEN_ASSERT(fd && *fd, "Invalid argument.");
 
 #if defined(_WIN32) || defined(_WIN64)
-  user_data = NULL;
   HANDLE handle = (HANDLE)_get_osfhandle(*fd);
   CloseHandle(handle);
 #else
@@ -125,6 +146,7 @@ static void ten_log_close_file_cb(void *user_data) {
 #endif
 
   TEN_FREE(fd);
+  ctx->fd = NULL;
 }
 
 static int *get_log_fd(const char *log_path) {
@@ -170,17 +192,70 @@ static int *get_log_fd(const char *log_path) {
   return fd_ptr;
 }
 
-void ten_log_output_to_file_cb(ten_log_t *self, ten_string_t *msg,
-                               void *user_data) {
+ten_log_output_to_file_ctx_t *ten_log_output_to_file_ctx_create(
+    int *fd, const char *log_path) {
+  ten_log_output_to_file_ctx_t *ctx =
+      TEN_MALLOC(sizeof(ten_log_output_to_file_ctx_t));
+  TEN_ASSERT(ctx, "Failed to allocate memory.");
+
+  ctx->fd = fd;
+  ten_string_init_from_c_str_with_size(&ctx->log_path, log_path,
+                                       strlen(log_path));
+  ten_atomic_store(&ctx->need_reload, 0);
+
+  ctx->mutex = ten_mutex_create();
+  TEN_ASSERT(ctx->mutex, "Failed to allocate memory.");
+
+  return ctx;
+}
+
+void ten_log_output_to_file_ctx_destroy(ten_log_output_to_file_ctx_t *ctx) {
+  TEN_ASSERT(ctx, "Invalid argument.");
+
+  ten_string_deinit(&ctx->log_path);
+  ten_mutex_destroy(ctx->mutex);
+
+  TEN_FREE(ctx);
+}
+
+void ten_log_output_init(ten_log_output_t *self) {
+  TEN_ASSERT(self, "Invalid argument.");
+
+  self->user_data = NULL;
+  self->on_output = NULL;
+  self->on_close = NULL;
+  self->on_reload = NULL;
+  self->on_deinit = NULL;
+}
+
+void ten_log_output_to_file(ten_log_t *self, ten_string_t *msg) {
   TEN_ASSERT(self, "Invalid argument.");
   TEN_ASSERT(msg, "Invalid argument.");
 
-  if (!user_data) {
-    return;
+  ten_log_output_to_file_ctx_t *ctx =
+      (ten_log_output_to_file_ctx_t *)self->output.user_data;
+  TEN_ASSERT(ctx, "Invalid argument.");
+
+  if (ten_atomic_load(&ctx->need_reload) != 0) {
+    ten_mutex_lock(ctx->mutex);
+
+    if (ten_atomic_load(&ctx->need_reload) != 0) {
+      if (self->output.on_close) {
+        self->output.on_close(self);
+      }
+
+      ctx->fd = get_log_fd(ten_string_get_raw_str(&ctx->log_path));
+      // TODO(xilin): handle the error
+      TEN_ASSERT(ctx->fd, "Should not happen.");
+
+      ten_atomic_store(&ctx->need_reload, 0);
+    }
+
+    ten_mutex_unlock(ctx->mutex);
   }
 
 #if defined(_WIN32) || defined(_WIN64)
-  HANDLE handle = *(HANDLE *)user_data;
+  HANDLE handle = *(HANDLE *)ctx->fd;
 
   // WriteFile() is atomic for local files opened with
   // FILE_APPEND_DATA and without FILE_WRITE_DATA
@@ -188,7 +263,7 @@ void ten_log_output_to_file_cb(ten_log_t *self, ten_string_t *msg,
   WriteFile(handle, ten_string_get_raw_str(msg), (DWORD)ten_string_len(msg),
             &written, 0);
 #else
-  int fd = *(int *)user_data;
+  int fd = *ctx->fd;
 
   // TODO(Wei): write() is atomic for buffers less than or equal to PIPE_BUF,
   // therefore we need to have some locking mechanism here to prevent log
@@ -204,6 +279,29 @@ void ten_log_output_to_file_cb(ten_log_t *self, ten_string_t *msg,
 #endif
 }
 
+static void ten_log_output_to_file_deinit(ten_log_t *self) {
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(self->output.on_output == ten_log_output_to_file,
+             "Invalid argument.");
+
+  ten_log_output_to_file_ctx_t *ctx =
+      (ten_log_output_to_file_ctx_t *)self->output.user_data;
+  TEN_ASSERT(ctx, "Invalid argument.");
+
+  ten_log_output_to_file_ctx_destroy(ctx);
+}
+
+static void ten_log_output_to_file_reload(ten_log_t *self) {
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_log_check_integrity(self), "Invalid argument.");
+
+  ten_log_output_to_file_ctx_t *ctx =
+      (ten_log_output_to_file_ctx_t *)self->output.user_data;
+  TEN_ASSERT(ctx, "Invalid argument.");
+
+  ten_atomic_store(&ctx->need_reload, 1);
+}
+
 void ten_log_set_output_to_file(ten_log_t *self, const char *log_path) {
   TEN_ASSERT(log_path, "Invalid argument.");
 
@@ -214,18 +312,20 @@ void ten_log_set_output_to_file(ten_log_t *self, const char *log_path) {
     return;
   }
 
-  ten_log_output_set(self, ten_log_output_to_file_cb, ten_log_close_file_cb,
-                     fd);
+  ten_log_output_to_file_ctx_t *ctx =
+      ten_log_output_to_file_ctx_create(fd, log_path);
+  TEN_ASSERT(ctx, "Failed to allocate memory.");
+
+  ten_log_output_set(self, ten_log_output_to_file, ten_log_close_file,
+                     ten_log_output_to_file_reload,
+                     ten_log_output_to_file_deinit, ctx);
 
   ten_log_set_formatter(self, ten_log_default_formatter, NULL);
 }
 
-void ten_log_output_to_stderr_cb(ten_log_t *self, ten_string_t *msg,
-                                 void *user_data) {
+void ten_log_output_to_stderr(ten_log_t *self, ten_string_t *msg) {
   TEN_ASSERT(self, "Invalid argument.");
   TEN_ASSERT(msg, "Invalid argument.");
-
-  (void)user_data;
 
 #if defined(_WIN32) || defined(_WIN64)
   // WriteFile() is atomic for local files opened with FILE_APPEND_DATA and
@@ -249,9 +349,9 @@ void ten_log_output_to_stderr_cb(ten_log_t *self, ten_string_t *msg,
 }
 
 void ten_log_set_output_to_stderr(ten_log_t *self) {
-  ten_log_output_set(self, ten_log_output_to_stderr_cb, NULL, NULL);
+  ten_log_output_set(self, ten_log_output_to_stderr, NULL, NULL, NULL, NULL);
 
-  ten_log_formatter_func_t formatter_func = NULL;
+  ten_log_formatter_on_format_func_t formatter_func = NULL;
 
 #if defined(OS_LINUX) || defined(OS_MACOS)
   formatter_func = ten_log_colored_formatter;
@@ -264,7 +364,7 @@ void ten_log_set_output_to_stderr(ten_log_t *self) {
   // NOLINTNEXTLINE(concurrency-mt-unsafe)
   const char *formatter_env = getenv("TEN_LOG_FORMATTER");
   if (formatter_env) {
-    ten_log_formatter_func_t formatter_func_from_env =
+    ten_log_formatter_on_format_func_t formatter_func_from_env =
         ten_log_get_formatter_by_name(formatter_env);
 
     // If the environment variable specifies a formatter, use it; otherwise,
@@ -275,17 +375,4 @@ void ten_log_set_output_to_stderr(ten_log_t *self) {
   }
 
   ten_log_set_formatter(self, formatter_func, NULL);
-}
-
-void ten_log_output_to_file_deinit(ten_log_t *self) {
-  TEN_ASSERT(self, "Invalid argument.");
-  TEN_ASSERT(self->output.output_cb == ten_log_output_to_file_cb,
-             "Invalid argument.");
-
-  TEN_FREE(self->output.user_data);
-}
-
-bool ten_log_is_output_to_file(ten_log_t *self) {
-  TEN_ASSERT(self, "Invalid argument.");
-  return self->output.output_cb == ten_log_output_to_file_cb;
 }

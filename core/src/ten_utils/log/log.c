@@ -40,6 +40,7 @@ void ten_log_init(ten_log_t *self) {
   ten_signature_set(&self->signature, TEN_LOG_SIGNATURE);
   self->output_level = TEN_LOG_LEVEL_INVALID;
 
+  ten_log_output_init(&self->output);
   ten_log_set_output_to_stderr(self);
   ten_log_encryption_init(&self->encryption);
 }
@@ -54,41 +55,60 @@ ten_log_t *ten_log_create(void) {
 }
 
 void ten_log_deinit(ten_log_t *self) {
-  TEN_ASSERT(self && ten_log_check_integrity(self), "Invalid argument.");
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_log_check_integrity(self), "Invalid argument.");
 
   ten_log_deinit_encryption(self);
 
-  if (self->output.close_cb) {
-    self->output.close_cb(self->output.user_data);
+  if (self->output.on_close) {
+    self->output.on_close(self);
+  }
+
+  if (self->output.on_deinit) {
+    self->output.on_deinit(self);
   }
 }
 
 void ten_log_deinit_encryption(ten_log_t *self) {
-  TEN_ASSERT(self && ten_log_check_integrity(self), "Invalid argument.");
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_log_check_integrity(self), "Invalid argument.");
 
   ten_log_encryption_deinit(&self->encryption);
 }
 
 void ten_log_destroy(ten_log_t *self) {
-  TEN_ASSERT(self && ten_log_check_integrity(self), "Invalid argument.");
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_log_check_integrity(self), "Invalid argument.");
 
   ten_log_deinit(self);
   TEN_FREE(self);
 }
 
-void ten_log_set_encrypt_cb(ten_log_t *self, ten_log_encrypt_func_t cb,
+void ten_log_set_encrypt_cb(ten_log_t *self,
+                            ten_log_encrypt_on_encrypt_func_t cb,
                             void *cb_data) {
-  TEN_ASSERT(self && ten_log_check_integrity(self), "Invalid argument.");
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_log_check_integrity(self), "Invalid argument.");
 
-  self->encryption.encrypt_cb = cb;
+  self->encryption.on_encrypt = cb;
   self->encryption.impl = cb_data;
 }
 
 void ten_log_set_encrypt_deinit_cb(ten_log_t *self,
-                                   ten_log_encrypt_deinit_func_t cb) {
-  TEN_ASSERT(self && ten_log_check_integrity(self), "Invalid argument.");
+                                   ten_log_encrypt_on_deinit_func_t cb) {
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_log_check_integrity(self), "Invalid argument.");
 
-  self->encryption.deinit_cb = cb;
+  self->encryption.on_deinit = cb;
+}
+
+void ten_log_reload(ten_log_t *self) {
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_log_check_integrity(self), "Invalid argument.");
+
+  if (self->output.on_reload) {
+    self->output.on_reload(self);
+  }
 }
 
 static const char *funcname(const char *func) { return func ? func : ""; }
@@ -128,7 +148,8 @@ static void ten_log_log_from_va_list(ten_log_t *self, TEN_LOG_LEVEL level,
                                      const char *func_name,
                                      const char *file_name, size_t line_no,
                                      const char *fmt, va_list ap) {
-  TEN_ASSERT(self && ten_log_check_integrity(self), "Invalid argument.");
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_log_check_integrity(self), "Invalid argument.");
 
   if (level < self->output_level) {
     return;
@@ -146,7 +167,8 @@ static void ten_log_log_from_va_list(ten_log_t *self, TEN_LOG_LEVEL level,
 void ten_log_log_formatted(ten_log_t *self, TEN_LOG_LEVEL level,
                            const char *func_name, const char *file_name,
                            size_t line_no, const char *fmt, ...) {
-  TEN_ASSERT(self && ten_log_check_integrity(self), "Invalid argument.");
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_log_check_integrity(self), "Invalid argument.");
 
   if (level < self->output_level) {
     return;
@@ -162,7 +184,8 @@ void ten_log_log_formatted(ten_log_t *self, TEN_LOG_LEVEL level,
 
 void ten_log_log(ten_log_t *self, TEN_LOG_LEVEL level, const char *func_name,
                  const char *file_name, size_t line_no, const char *msg) {
-  TEN_ASSERT(self && ten_log_check_integrity(self), "Invalid argument.");
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_log_check_integrity(self), "Invalid argument.");
 
   if (level < self->output_level) {
     return;
@@ -177,7 +200,8 @@ void ten_log_log_with_size(ten_log_t *self, TEN_LOG_LEVEL level,
                            const char *func_name, size_t func_name_len,
                            const char *file_name, size_t file_name_len,
                            size_t line_no, const char *msg, size_t msg_len) {
-  TEN_ASSERT(self && ten_log_check_integrity(self), "Invalid argument.");
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_log_check_integrity(self), "Invalid argument.");
 
   if (level < self->output_level) {
     return;
@@ -185,14 +209,14 @@ void ten_log_log_with_size(ten_log_t *self, TEN_LOG_LEVEL level,
 
   ten_string_t buf;
 
-  if (self->encryption.encrypt_cb) {
+  if (self->encryption.on_encrypt) {
     TEN_STRING_INIT_ENCRYPTION_HEADER(buf);
   } else {
     TEN_STRING_INIT(buf);
   }
 
-  if (self->formatter.format_cb) {
-    self->formatter.format_cb(&buf, level, func_name, func_name_len, file_name,
+  if (self->formatter.on_format) {
+    self->formatter.on_format(&buf, level, func_name, func_name_len, file_name,
                               file_name_len, line_no, msg, msg_len);
   } else {
     // Use default formatter if none is set.
@@ -202,14 +226,14 @@ void ten_log_log_with_size(ten_log_t *self, TEN_LOG_LEVEL level,
 
   ten_string_append_formatted(&buf, "%s", TEN_LOG_EOL);
 
-  if (self->encryption.encrypt_cb) {
+  if (self->encryption.on_encrypt) {
     // Skip the 5-byte header.
     ten_log_encrypt_data(self, ten_log_get_data_excluding_header(self, &buf),
                          ten_log_get_data_excluding_header_len(self, &buf));
     ten_log_complete_encryption_header(self, &buf);
   }
 
-  self->output.output_cb(self, &buf, self->output.user_data);
+  self->output.on_output(self, &buf);
 
   ten_string_deinit(&buf);
 }

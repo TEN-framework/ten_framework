@@ -20,3 +20,19 @@ TEST(LogTest, FileOutput1) {  // NOLINT
 
   ten_log_deinit(&log);
 }
+
+TEST(LogTest, FileOutputReload) {  // NOLINT
+  ten_log_t log;
+  ten_log_init(&log);
+
+  ten_log_set_output_level(&log, TEN_LOG_LEVEL_ERROR);
+  ten_log_set_output_to_file(&log, "test1.log");
+
+  TEN_LOGE_AUX(&log, "test %s test", "hello");
+
+  ten_log_reload(&log);
+
+  TEN_LOGE_AUX(&log, "test %s test", "hello after reload");
+
+  ten_log_deinit(&log);
+}
