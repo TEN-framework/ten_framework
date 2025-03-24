@@ -81,6 +81,10 @@ pub struct PkgInfo {
     pub is_local_dependency: bool,
     pub local_dependency_path: Option<String>,
     pub local_dependency_base_dir: Option<String>,
+
+    /// Direct access to manifest scripts as a key/value mapping. Keys are
+    /// script names, values are the script commands.
+    pub scripts: HashMap<String, String>,
 }
 
 impl PkgInfo {
@@ -106,6 +110,8 @@ impl PkgInfo {
             is_local_dependency: false,
             local_dependency_path: None,
             local_dependency_base_dir: None,
+
+            scripts: manifest.scripts.clone().unwrap_or_default(),
         };
 
         pkg_info.hash = pkg_info.gen_hash_hex();

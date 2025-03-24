@@ -294,6 +294,8 @@ impl<'a> From<&'a ManifestLockItem> for PkgInfo {
             is_local_dependency: locked_item.path.is_some(),
             local_dependency_path: locked_item.path.clone(),
             local_dependency_base_dir: None,
+
+            scripts: HashMap::new(),
         }
     }
 }

@@ -34,18 +34,8 @@ pub fn extract_command_from_manifest(
 
     let app_pkg = app_pkgs[0];
 
-    // 4) Read the `scripts` field from the `manifest.json`.
-    let scripts = match &app_pkg.manifest {
-        Some(m) => m.scripts.clone().unwrap_or_default(),
-        None => {
-            return Err(anyhow::anyhow!(
-                "No manifest found in the app package"
-            ));
-        }
-    };
-
-    // 5) Find script that matches `name`.
-    let script_cmd = match scripts.get(name) {
+    // Find script that matches `name`.
+    let script_cmd = match app_pkg.scripts.get(name) {
         Some(cmd) => cmd.clone(),
         None => {
             return Err(anyhow::anyhow!(
