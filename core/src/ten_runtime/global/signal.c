@@ -24,6 +24,7 @@
 #include "ten_runtime/app/app.h"
 #include "ten_utils/container/list.h"
 #include "ten_utils/container/list_node_ptr.h"
+#include "ten_utils/lib/time.h"
 #include "ten_utils/macro/mark.h"
 #include "ten_utils/sanitizer/memory_check.h"
 
@@ -113,9 +114,6 @@ static void ten_global_sigusr1_handler(int signo, TEN_UNUSED siginfo_t *info,
  */
 static void ten_global_sigsegv_handler(TEN_UNUSED int signo, siginfo_t *info,
                                        TEN_UNUSED void *context) {
-  const int MAX_FRAMES = 50;
-  void *array[MAX_FRAMES];
-
   // Log crash details.
   (void)dprintf(STDERR_FILENO,
                 "Segmentation fault (SIGSEGV) detected in thread 0x%lx at "
@@ -123,34 +121,10 @@ static void ten_global_sigsegv_handler(TEN_UNUSED int signo, siginfo_t *info,
                 (unsigned long)pthread_self(),
                 info->si_addr ? info->si_addr : "(nil)");
 
-  // Capture backtrace.
-  int size = backtrace(array, MAX_FRAMES);
-  char **symbols = backtrace_symbols(array, size);
-
-  if (symbols != NULL) {
-    // Print backtrace to log.
-    (void)dprintf(STDERR_FILENO, "======= Backtrace (%d frames) =======\n",
-                  size);
-    for (int i = 0; i < size; i++) {
-      (void)dprintf(STDERR_FILENO, "#%d: %s\n", i, symbols[i]);
-    }
-
-    free((void *)symbols);
-  } else {
-    (void)dprintf(STDERR_FILENO, "Failed to get backtrace symbols\n");
-  }
-
-  // For high reliability, we can also dump directly to file descriptor.
-  (void)dprintf(STDERR_FILENO, "===================================\n");
-  (void)dprintf(STDERR_FILENO, "Writing raw backtrace to stderr\n");
-  backtrace_symbols_fd(array, size, STDERR_FILENO);
-
-  (void)dprintf(STDERR_FILENO, "===================================\n");
-  (void)dprintf(STDERR_FILENO, "Writing ten backtrace to stderr\n");
   ten_backtrace_dump_global(0);
 
-  // Exit after a short delay to allow logs to be written.
-  usleep(1 * 1000000);  // 1 seconds.
+  // Wait for a short period to allow backtrace to be written.
+  ten_sleep_ms(200);
 
   _exit(EXIT_FAILURE);
 }
@@ -308,8 +282,8 @@ LONG WINAPI TenUnhandledExceptionFilter(EXCEPTION_POINTERS *ExceptionInfo) {
     (void)fprintf(stderr, "===================================\n");
     ten_backtrace_dump_global(0);
 
-    // Allow for logs to be written before exiting.
-    Sleep(1000);  // 1 second
+    // Wait for a short period to allow backtrace to be written.
+    ten_sleep_ms(200);
 
     return EXCEPTION_EXECUTE_HANDLER;  // This will terminate the process.
   }
