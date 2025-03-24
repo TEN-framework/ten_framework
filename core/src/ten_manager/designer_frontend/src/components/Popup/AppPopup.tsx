@@ -9,7 +9,7 @@ import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import { PlayIcon } from "lucide-react";
 
-import Popup from "@/components/Popup/Popup";
+import { Popup } from "@/components/Popup/Popup";
 import { Label } from "@/components/ui/Label";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -112,11 +112,9 @@ export const AppFolderPopup = () => {
     <Popup
       id={APP_FOLDER_POPUP_ID}
       title={t("header.menuApp.openAppFolder")}
-      onClose={() => removeWidget(APP_FOLDER_POPUP_ID)}
       resizable
-      initialWidth={600}
-      initialHeight={400}
-      onCollapseToggle={() => {}}
+      width={600}
+      height={400}
     >
       <div className="flex flex-col gap-2 w-full h-full">
         <ThreeColumnFileManager
@@ -154,18 +152,8 @@ export const AppFolderPopup = () => {
 export const LoadedAppsPopup = () => {
   const { t } = useTranslation();
 
-  const { removeWidget } = useWidgetStore();
-
   return (
-    <Popup
-      id={APPS_MANAGER_POPUP_ID}
-      title={t("popup.apps.manager")}
-      onClose={() => removeWidget(APPS_MANAGER_POPUP_ID)}
-      resizable
-      initialWidth={600}
-      initialHeight={400}
-      onCollapseToggle={() => {}}
-    >
+    <Popup id={APPS_MANAGER_POPUP_ID} title={t("popup.apps.manager")} resizable>
       <AppsManagerWidget />
     </Popup>
   );
@@ -214,33 +202,17 @@ export const AppRunPopup = (props: {
   }
 
   return (
-    <Popup
-      id={id}
-      title={t("popup.apps.run")}
-      onClose={() => removeWidget(id)}
-      resizable
-      initialWidth={600}
-      initialHeight={400}
-      onCollapseToggle={() => {}}
-      preventFocusSteal
-    >
+    <Popup id={id} title={t("popup.apps.run")} width={600} maxWidth={600}>
       <div className="flex flex-col gap-2 w-full h-full">
         <div className="flex flex-col gap-2">
           <Label htmlFor="runapp_base_dir">{t("popup.apps.baseDir")}</Label>
-          <Input
-            id="runapp_base_dir"
-            type="text"
-            defaultValue={baseDir}
-            value={baseDir}
-            disabled
-          />
+          <Input id="runapp_base_dir" type="text" value={baseDir} disabled />
         </div>
         <div className="flex flex-col gap-2">
           <Label htmlFor="runapp_script">{t("popup.apps.runScript")}</Label>
           <Input
             id="runapp_script"
             type="text"
-            defaultValue={runScript}
             value={inputRunScript}
             onChange={(e) => setInputRunScript(e.target.value)}
           />

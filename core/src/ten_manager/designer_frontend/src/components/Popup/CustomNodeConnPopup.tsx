@@ -8,7 +8,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { BlocksIcon, ArrowBigRightDashIcon } from "lucide-react";
 
-import Popup from "@/components/Popup/Popup";
+import { Popup } from "@/components/Popup/Popup";
 import { Button } from "@/components/ui/Button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/Tabs";
 import { useFlowStore } from "@/store/flow";
@@ -23,7 +23,6 @@ import { dispatchCustomNodeActionPopup } from "@/utils/popup";
 import type { CustomConnectionData } from "@/types/widgets";
 
 const DEFAULT_WIDTH = 800;
-const DEFAULT_HEIGHT = 400;
 
 export interface CustomNodeConnPopupProps extends CustomConnectionData {
   onClose?: () => void;
@@ -53,8 +52,7 @@ const CustomNodeConnPopup: React.FC<CustomNodeConnPopupProps> = ({
       id={id}
       title={titleMemo}
       onClose={() => onClose?.()}
-      initialWidth={DEFAULT_WIDTH}
-      initialHeight={DEFAULT_HEIGHT}
+      width={DEFAULT_WIDTH}
       resizable
     >
       <div className="flex flex-col gap-2 w-full h-[328px]">

@@ -8,7 +8,7 @@ import React, { useRef } from "react";
 import { PinIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
-import Popup from "@/components/Popup/Popup";
+import { Popup } from "@/components/Popup/Popup";
 import TerminalWidget from "@/components/Widget/TerminalWidget";
 import { EWidgetDisplayType } from "@/types/widgets";
 import { useWidgetStore } from "@/store/widget";
@@ -52,13 +52,12 @@ const TerminalPopup: React.FC<TerminalPopupProps> = ({ id, data, onClose }) => {
       id={id}
       title={data.title}
       onClose={onClose}
-      preventFocusSteal
       className="flex-1 p-0"
       contentClassName="p-0"
-      resizable={true}
+      resizable
       onCollapseToggle={handleCollapseToggle}
-      initialWidth={DEFAULT_WIDTH}
-      initialHeight={DEFAULT_HEIGHT}
+      width={DEFAULT_WIDTH}
+      height={DEFAULT_HEIGHT}
       customActions={[
         {
           id: "pin-to-dock",

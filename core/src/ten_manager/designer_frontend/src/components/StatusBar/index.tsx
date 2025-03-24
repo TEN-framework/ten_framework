@@ -88,7 +88,7 @@ const StatusApps = () => {
       <FolderTreeIcon className="size-3" />
       <span className="">
         {t("statusBar.appsLoadedWithCount", {
-          count: data.base_dirs.length,
+          count: data.app_info?.length || 0,
         })}
       </span>
     </Button>
