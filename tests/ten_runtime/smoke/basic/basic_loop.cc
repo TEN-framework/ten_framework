@@ -21,8 +21,6 @@ class test_extension_1 : public ten::extension_t {
 
   void on_cmd(ten::ten_env_t &ten_env,
               std::unique_ptr<ten::cmd_t> cmd) override {
-    TEN_ASSERT(0, "=-=-=");
-
     if (cmd->get_name() == "hello_world") {
       hello_world_cmd = std::move(cmd);
       auto hello_world_1_cmd = ten::cmd_t::create("hello_world_1");
