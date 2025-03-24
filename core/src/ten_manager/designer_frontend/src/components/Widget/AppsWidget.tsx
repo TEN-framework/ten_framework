@@ -183,12 +183,12 @@ export const AppsManagerWidget = (props: { className?: string }) => {
               </TableCell>
             </TableRow>
           ) : (
-            loadedApps?.base_dirs?.map((baseDir, index) => (
-              <TableRow key={baseDir}>
+            loadedApps?.app_info?.map((app, index) => (
+              <TableRow key={app.base_dir}>
                 <TableCell className="font-medium">{index + 1}</TableCell>
                 <TableCell>
                   <span className="text-xs rounded-md p-1 bg-muted px-2">
-                    {baseDir}
+                    {app.base_dir}
                   </span>
                 </TableCell>
                 <TableCell className="text-right flex items-center gap-2">
@@ -199,7 +199,7 @@ export const AppsManagerWidget = (props: { className?: string }) => {
                           variant="outline"
                           size="icon"
                           disabled={isLoadingMemo}
-                          onClick={() => handleUnloadApp(baseDir)}
+                          onClick={() => handleUnloadApp(app.base_dir)}
                         >
                           <FolderMinusIcon className="w-4 h-4" />
                           <span className="sr-only">
@@ -220,7 +220,7 @@ export const AppsManagerWidget = (props: { className?: string }) => {
                           variant="outline"
                           size="icon"
                           disabled={isLoadingMemo}
-                          onClick={() => handleReloadApp(baseDir)}
+                          onClick={() => handleReloadApp(app.base_dir)}
                         >
                           <FolderSyncIcon className="w-4 h-4" />
                           <span className="sr-only">
@@ -241,7 +241,7 @@ export const AppsManagerWidget = (props: { className?: string }) => {
                           variant="outline"
                           size="icon"
                           disabled={isLoadingMemo}
-                          onClick={handleAppInstallAll(baseDir)}
+                          onClick={handleAppInstallAll(app.base_dir)}
                         >
                           <HardDriveDownloadIcon className="w-4 h-4" />
                           <span className="sr-only">
@@ -262,7 +262,7 @@ export const AppsManagerWidget = (props: { className?: string }) => {
                           variant="outline"
                           size="icon"
                           disabled={isLoadingMemo}
-                          onClick={handleRunApp(baseDir)}
+                          onClick={handleRunApp(app.base_dir)}
                         >
                           <PlayIcon className="w-4 h-4" />
                         </Button>

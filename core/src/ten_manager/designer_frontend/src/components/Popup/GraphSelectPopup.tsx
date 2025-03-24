@@ -50,7 +50,7 @@ export function GraphSelectPopup() {
   const { currentWorkspace, updateCurrentWorkspace } = useAppStore();
 
   const [selectedApp, setSelectedApp] = React.useState<string | null>(
-    currentWorkspace.baseDir ?? loadedApps?.base_dirs?.[0] ?? null
+    currentWorkspace.baseDir ?? loadedApps?.app_info?.[0]?.base_dir ?? null
   );
 
   const { graphs = [], error, isLoading } = useGraphs(selectedApp);

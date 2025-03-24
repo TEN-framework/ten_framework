@@ -46,7 +46,12 @@ export const ENDPOINT_APPS = {
       method: ENDPOINT_METHOD.GET,
       responseSchema: genResSchema<IGetAppsResponse>(
         z.object({
-          base_dirs: z.array(z.string()),
+          app_info: z.array(
+            z.object({
+              base_dir: z.string(),
+              app_uri: z.string(),
+            })
+          ),
         })
       ),
     },

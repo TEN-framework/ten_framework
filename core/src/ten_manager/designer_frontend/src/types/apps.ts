@@ -17,7 +17,10 @@ export interface IGetBaseDirResponse {
 }
 
 export interface IGetAppsResponse {
-  base_dirs: string[];
+  app_info: {
+    base_dir: string;
+    app_uri: string;
+  }[];
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
