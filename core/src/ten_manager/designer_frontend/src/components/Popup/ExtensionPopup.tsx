@@ -7,7 +7,7 @@
 import { useTranslation } from "react-i18next";
 import { PinIcon } from "lucide-react";
 
-import Popup from "@/components/Popup/Popup";
+import { Popup } from "@/components/Popup/Popup";
 import { EXTENSION_STORE_POPUP_ID } from "@/constants/widgets";
 import { useWidgetStore } from "@/store/widget";
 import {
@@ -30,11 +30,10 @@ export const ExtensionStorePopup = () => {
       id={EXTENSION_STORE_POPUP_ID}
       title={t("extensionStore.title")}
       onClose={() => removeWidget(EXTENSION_STORE_POPUP_ID)}
-      initialHeight={400}
-      initialWidth={340}
+      height={400}
+      width={340}
       contentClassName="p-0"
       resizable
-      preventFocusSteal
       customActions={[
         {
           id: "pin-to-dock",
@@ -63,11 +62,10 @@ export const ExtensionPopup = (props: {
       id={id}
       title={t("extensionStore.extensionTitle", { name })}
       onClose={() => removeWidget(id)}
-      initialHeight={400}
-      initialWidth={600}
+      height={400}
+      width={600}
       contentClassName="p-0"
       resizable
-      preventFocusSteal
     >
       <ExtensionWidget versions={versions} name={name} />
     </Popup>

@@ -8,7 +8,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { PinIcon, OctagonXIcon } from "lucide-react";
 
-import Popup from "@/components/Popup/Popup";
+import { Popup } from "@/components/Popup/Popup";
 import { LogViewerFrontStageWidget } from "@/components/Widget/LogViewerWidget";
 import {
   EWidgetCategory,
@@ -77,10 +77,9 @@ export function LogViewerPopup(props: {
         </div>
       }
       onClose={handleClose}
-      preventFocusSteal={true}
       resizable={true}
-      initialWidth={DEFAULT_WIDTH}
-      initialHeight={DEFAULT_HEIGHT}
+      width={DEFAULT_WIDTH}
+      height={DEFAULT_HEIGHT}
       contentClassName="p-0"
       customActions={[
         {

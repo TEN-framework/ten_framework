@@ -15,7 +15,7 @@ import {
   processConnections,
   processNodes,
 } from "@/flow/graph";
-import Popup from "@/components/Popup/Popup";
+import { Popup } from "@/components/Popup/Popup";
 import {
   Select,
   SelectContent,
@@ -131,11 +131,8 @@ export function GraphSelectPopup() {
     <Popup
       id={GRAPH_SELECT_POPUP_ID}
       title={t("popup.selectGraph.title")}
-      onClose={() => removeWidget(GRAPH_SELECT_POPUP_ID)}
       resizable={false}
-      initialWidth={400}
-      initialHeight={300}
-      onCollapseToggle={() => {}}
+      width={400}
     >
       <div className="flex flex-col gap-2 w-full h-full">
         {isLoadingApps ? (
@@ -158,9 +155,9 @@ export function GraphSelectPopup() {
                 <SelectLabel>
                   {t("header.menuGraph.selectLoadedApp")}
                 </SelectLabel>
-                {loadedApps?.base_dirs?.map((app) => (
-                  <SelectItem key={app} value={app}>
-                    {app}
+                {loadedApps?.app_info?.map((app) => (
+                  <SelectItem key={app.base_dir} value={app.base_dir}>
+                    {app.base_dir}
                   </SelectItem>
                 ))}
               </SelectGroup>

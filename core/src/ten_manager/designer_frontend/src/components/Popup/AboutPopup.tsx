@@ -6,26 +6,17 @@
 //
 import { useTranslation, Trans } from "react-i18next";
 
-import Popup from "@/components/Popup/Popup";
+import { Popup } from "@/components/Popup/Popup";
 import { Separator } from "@/components/ui/Separator";
 import { cn } from "@/lib/utils";
 import { TEN_FRAMEWORK_URL, TEN_FRAMEWORK_GITHUB_URL } from "@/constants";
-import { useWidgetStore } from "@/store/widget";
 import { ABOUT_POPUP_ID } from "@/constants/widgets";
 
 export const AboutPopup = () => {
   const { t } = useTranslation();
 
-  const { removeWidget } = useWidgetStore();
-
   return (
-    <Popup
-      id={ABOUT_POPUP_ID}
-      title={t("header.menuAbout.title")}
-      onClose={() => removeWidget(ABOUT_POPUP_ID)}
-      initialWidth={400}
-      initialHeight={160}
-    >
+    <Popup id={ABOUT_POPUP_ID} title={t("header.menuAbout.title")}>
       <div className="flex flex-col gap-2 h-full w-full">
         <p
           className={cn(
