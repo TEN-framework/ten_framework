@@ -13,6 +13,7 @@ use std::collections::HashMap;
 use std::{fmt, fs, path::Path, str::FromStr};
 
 use anyhow::{anyhow, Context, Result};
+use semver::Version;
 use serde::{Deserialize, Serialize};
 
 use crate::pkg_info::utils::read_file_to_string;
@@ -24,13 +25,38 @@ use support::ManifestSupport;
 
 use super::pkg_type_and_name::PkgTypeAndName;
 
+// Helper module for serializing and deserializing Version.
+mod version_serde {
+    use semver::Version;
+    use serde::{Deserialize, Deserializer, Serializer};
+
+    pub fn serialize<S>(
+        version: &Version,
+        serializer: S,
+    ) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        serializer.serialize_str(&version.to_string())
+    }
+
+    pub fn deserialize<'de, D>(deserializer: D) -> Result<Version, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let s = String::deserialize(deserializer)?;
+        Version::parse(&s).map_err(serde::de::Error::custom)
+    }
+}
+
 // Define a structure that mirrors the structure of the JSON file.
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Manifest {
     #[serde(flatten)]
     pub type_and_name: PkgTypeAndName,
 
-    pub version: String,
+    #[serde(with = "version_serde")]
+    pub version: Version,
 
     #[serde(skip_serializing_if = "Option::is_none")]
     pub dependencies: Option<Vec<ManifestDependency>>,
@@ -54,9 +80,10 @@ impl FromStr for Manifest {
     type Err = anyhow::Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let mut manifest: Manifest = serde_json::from_str(s)?;
+        let value: serde_json::Value = serde_json::from_str(s)?;
 
-        manifest.validate_and_complete()?;
+        // Now parse the complete manifest.
+        let manifest: Manifest = serde_json::from_value(value)?;
 
         // Return the parsed data.
         Ok(manifest)

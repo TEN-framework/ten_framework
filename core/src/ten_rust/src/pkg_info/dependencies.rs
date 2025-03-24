@@ -151,21 +151,20 @@ impl TryFrom<&ManifestDependency> for PkgDependency {
                 // specification to only support a single-range semver
                 // requirement, which is the common subset of both the npm
                 // semver package and the Rust semver crate.
-                if local_manifest.version.contains("||")
-                    || local_manifest.version.chars().any(|c| c.is_whitespace())
-                    || local_manifest.version.contains(",")
+                let version_str = local_manifest.version.to_string();
+                if version_str.contains("||")
+                    || version_str.chars().any(|c| c.is_whitespace())
+                    || version_str.contains(",")
                 {
                     return Err(anyhow!(
                         "Invalid version requirement '{}' in local manifest: contains forbidden characters (||, whitespace, or ,)",
-                        local_manifest.version
+                        version_str
                     ));
                 }
 
                 Ok(PkgDependency {
                     type_and_name: local_manifest.type_and_name.clone(),
-                    version_req: semver::VersionReq::parse(
-                        &local_manifest.version,
-                    )?,
+                    version_req: semver::VersionReq::parse(&version_str)?,
                     path: Some(path.clone()),
                     base_dir: Some(base_dir.clone()),
                 })
