@@ -40,7 +40,7 @@ impl From<&PkgInfo> for ManifestDependency {
                 pkg_type: manifest.type_and_name.pkg_type,
                 name: manifest.type_and_name.name.clone(),
                 version_req: VersionReq::parse(&format!(
-                    "={}",
+                    "{}",
                     manifest.version
                 ))
                 .unwrap(),

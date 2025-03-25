@@ -379,7 +379,7 @@
       "name": "tman install_app_mock (lldb)",
       "type": "lldb",
       "request": "launch",
-      "program": "${workspaceFolder}/out/linux/x64/ten_manager/bin/tman",
+      "program": "${workspaceFolder}/core/src/ten_manager/target/x86_64-unknown-linux-gnu/debug/tman",
       "cwd": "${workspaceFolder}/out/linux/x64/tests/ten_manager/install/mock_app/mock_app",
       "args": [
         "--config-file=${workspaceFolder}/out/linux/x64/tests/local_registry/config.json",
