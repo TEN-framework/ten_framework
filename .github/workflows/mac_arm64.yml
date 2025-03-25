@@ -127,7 +127,6 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/')
         run: |
           cd out/mac/arm64
-          zip -vr tman-mac-${{ matrix.build_type }}-arm64.zip ten_manager/bin/tman
           zip -vr ten_packages-mac-${{ matrix.build_type }}-arm64.zip \
             app/default_app_cpp \
             app/default_app_go \
@@ -143,7 +142,6 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/')
         with:
           files: |
-            out/mac/arm64/tman-mac-${{ matrix.build_type }}-arm64.zip
             out/mac/arm64/ten_packages-mac-${{ matrix.build_type }}-arm64.zip
 
   test-standalone:
