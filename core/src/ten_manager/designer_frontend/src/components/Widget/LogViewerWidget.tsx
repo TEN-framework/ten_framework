@@ -6,8 +6,9 @@
 //
 import * as React from "react";
 import { useTranslation } from "react-i18next";
+import { VariableSizeList as VirtualList } from "react-window";
+import AutoSizer from "react-virtualized-auto-sizer";
 
-import { ScrollArea } from "@/components/ui/ScrollArea";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
@@ -133,18 +134,13 @@ export function LogViewerFrontStageWidget(props: {
           </Button>
         </div>
       )}
-      <ScrollArea
-        className={cn("h-full w-full p-2", {
-          "h-[calc(100%-3rem)]": options?.disableSearch,
-        })}
-        viewportRef={scrollAreaRef}
-      >
+      <div className="h-full w-full p-2">
         <LogViewerLogItemList
           logs={logsMemo}
           search={defferedSearchInput}
           prefix={`${id}-${currentWidget?.display_type}`}
         />
-      </ScrollArea>
+      </div>
     </div>
   );
 }
@@ -196,14 +192,19 @@ const string2LogItem = (str: string): ILogViewerLogItemProps => {
   };
 };
 
-function LogViewerLogItem(props: ILogViewerLogItemProps & { search?: string }) {
-  const { id, extension, file, line, host, message, search } = props;
+const LogViewerLogItem = React.forwardRef<
+  HTMLDivElement,
+  ILogViewerLogItemProps & { search?: string; className?: string }
+>((props, ref) => {
+  const { id, extension, file, line, host, message, search, className } = props;
 
   return (
     <div
+      ref={ref}
       className={cn(
         "font-mono text-xs py-0.5",
-        "hover:bg-gray-100 dark:hover:bg-gray-800"
+        "hover:bg-gray-100 dark:hover:bg-gray-800",
+        className
       )}
       id={id}
     >
@@ -247,7 +248,46 @@ function LogViewerLogItem(props: ILogViewerLogItemProps & { search?: string }) {
       )}
     </div>
   );
-}
+});
+LogViewerLogItem.displayName = "LogViewerLogItem";
+
+const VirtualListItem = (props: {
+  data: ILogViewerLogItemProps[];
+  index: number;
+  setSize: (index: number, size: number) => void;
+  windowWidth: number;
+  search?: string;
+}) => {
+  const { data, index, setSize, windowWidth, search } = props;
+
+  const rowRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    if (rowRef.current) {
+      setSize(index, rowRef.current.getBoundingClientRect().height);
+    }
+  }, [setSize, index, windowWidth]);
+
+  return (
+    <>
+      {/* <div
+        ref={rowRef}
+        style={{
+          whiteSpace: "pre-wrap",
+          wordBreak: "break-word",
+        }}
+      >
+        {(data[index] as ILogViewerLogItemProps).message}
+      </div> */}
+      <LogViewerLogItem
+        ref={rowRef}
+        {...(data[index] as ILogViewerLogItemProps)}
+        search={search}
+        className="w-full whitespace-break-spaces break-words break-all"
+      />
+    </>
+  );
+};
 
 function LogViewerLogItemList(props: {
   logs: string[];
@@ -267,15 +307,48 @@ function LogViewerLogItemList(props: {
     return logsMemo.filter((log) => log.message.includes(search));
   }, [logsMemo, search]);
 
+  const listRef = React.useRef<VirtualList<ILogViewerLogItemProps[]>>(null);
+  const sizeMap = React.useRef<Record<number, number>>({});
+  const setSize = React.useCallback((index: number, size: number) => {
+    sizeMap.current = { ...sizeMap.current, [index]: size };
+    listRef.current?.resetAfterIndex(index);
+  }, []);
+  const getSize = (index: number) => sizeMap.current[index] || 50;
+
+  // const scrollToBottomCallback = React.useCallback(() => {
+  //   listRef.current?.scrollToItem(filteredLogs.length - 1);
+  // }, []);
+
+  React.useEffect(() => {
+    listRef.current?.scrollToItem(filteredLogs.length - 1);
+  }, [filteredLogs]);
+
   return (
     <>
-      {filteredLogs.map((log) => (
-        <LogViewerLogItem
-          key={`${prefix}-${log.id}`}
-          {...log}
-          search={search}
-        />
-      ))}
+      <AutoSizer key={`LogViewerLogItemList-${prefix}`}>
+        {({ width, height }: { width: number; height: number }) => (
+          <VirtualList
+            ref={listRef}
+            width={width}
+            height={height}
+            itemCount={filteredLogs.length}
+            itemSize={getSize}
+            itemData={filteredLogs}
+          >
+            {({ data, index, style }) => (
+              <div style={style}>
+                <VirtualListItem
+                  data={data}
+                  index={index}
+                  setSize={setSize}
+                  windowWidth={width}
+                  search={search}
+                />
+              </div>
+            )}
+          </VirtualList>
+        )}
+      </AutoSizer>
     </>
   );
 }

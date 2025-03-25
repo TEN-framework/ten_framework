@@ -6,7 +6,9 @@
 //
 import React from "react";
 
-export const useAutoScroll = (ref: React.RefObject<HTMLElement | null>) => {
+export const useAutoScroll = <T extends HTMLElement>(
+  ref: React.RefObject<T | null>
+) => {
   const observerRef = React.useRef<MutationObserver | null>(null);
   const callback: MutationCallback = (mutationList) => {
     mutationList.forEach((mutation) => {
