@@ -38,10 +38,11 @@ pub async fn get_graphs_endpoint(
     let state_read = state.read().unwrap();
 
     if let Some(pkgs) = &state_read.pkgs_cache.get(&request_payload.base_dir) {
-        if let Some(app_pkg) = pkgs
-            .iter()
-            .find(|pkg| pkg.basic_info.type_and_name.pkg_type == PkgType::App)
-        {
+        if let Some(app_pkg) = pkgs.iter().find(|pkg| {
+            pkg.manifest
+                .as_ref()
+                .is_some_and(|m| m.type_and_name.pkg_type == PkgType::App)
+        }) {
             let graphs: Vec<GetGraphsResponseData> = app_pkg
                 .get_predefined_graphs()
                 .unwrap_or(&vec![])

@@ -24,23 +24,28 @@ def analyze_resolve_result(app_root_folder: str) -> None:
 
         # @{
         # Check all expected extensions are installed.
-        for ext in expected_json["extension"]:
+        for expected_dep_in_app_json in expected_json["extension"]:
             found_in_folder = False
             found_in_manifest_deps = False
 
             for dir_item in os.listdir(extension_folder):
-                if dir_item == ext["name"]:
+                if dir_item == expected_dep_in_app_json["name"]:
                     found_in_folder = True
                     with open(
                         os.path.join(
-                            extension_folder, ext["name"], "manifest.json"
+                            extension_folder,
+                            expected_dep_in_app_json["name"],
+                            "manifest.json",
                         ),
                         "r",
                         encoding="utf-8",
                     ) as ext_manifest_file:
                         ext_manifest_json = json.load(ext_manifest_file)
-                        assert ext_manifest_json["name"] == ext["name"]
-                        assert ext["version"].endswith(
+                        assert (
+                            ext_manifest_json["name"]
+                            == expected_dep_in_app_json["name"]
+                        )
+                        assert expected_dep_in_app_json["version"].endswith(
                             ext_manifest_json["version"]
                         )
                     break
@@ -51,10 +56,17 @@ def analyze_resolve_result(app_root_folder: str) -> None:
                 encoding="utf-8",
             ) as app_manifest_file:
                 app_manifest_json = json.load(app_manifest_file)
-                for dep in app_manifest_json["dependencies"]:
-                    if dep["name"] == ext["name"]:
+                for dep_in_app_json in app_manifest_json["dependencies"]:
+                    if (
+                        dep_in_app_json["name"]
+                        == expected_dep_in_app_json["name"]
+                    ):
                         found_in_manifest_deps = True
-                        assert dep["version"] == ext["version"]
+
+                        assert (
+                            dep_in_app_json["version"]
+                            == expected_dep_in_app_json["version"]
+                        )
                         break
 
             assert found_in_folder is True

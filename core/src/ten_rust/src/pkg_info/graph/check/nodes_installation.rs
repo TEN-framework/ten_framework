@@ -67,9 +67,13 @@ impl Graph {
             let found = installed_pkgs_of_app.iter().find(|pkg| {
                 assert!(pkg.is_installed, "Should not happen.");
 
-                pkg.basic_info.type_and_name.pkg_type
-                    == node.type_and_name.pkg_type
-                    && pkg.basic_info.type_and_name.name == node.addon
+                if let Some(manifest) = &pkg.manifest {
+                    manifest.type_and_name.pkg_type
+                        == node.type_and_name.pkg_type
+                        && manifest.type_and_name.name == node.addon
+                } else {
+                    false
+                }
             });
 
             // If the node is not found, add it to the missing packages list.

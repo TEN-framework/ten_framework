@@ -53,12 +53,14 @@ fn convert_pkg_info_to_addon(
     pkg_info_with_src: &PkgInfo,
 ) -> GetAppAddonsSingleResponseData {
     GetAppAddonsSingleResponseData {
-        addon_type: pkg_info_with_src
-            .basic_info
-            .type_and_name
-            .pkg_type
-            .to_string(),
-        addon_name: pkg_info_with_src.basic_info.type_and_name.name.clone(),
+        addon_type: pkg_info_with_src.manifest.as_ref().map_or_else(
+            || PkgType::Extension.to_string(),
+            |m| m.type_and_name.pkg_type.to_string(),
+        ),
+        addon_name: pkg_info_with_src.manifest.as_ref().map_or_else(
+            || "unknown".to_string(),
+            |m| m.type_and_name.name.clone(),
+        ),
         url: pkg_info_with_src.url.clone(),
         api: pkg_info_with_src
             .manifest

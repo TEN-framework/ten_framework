@@ -373,7 +373,13 @@ fn create_input_str_for_dependency_relationship(
                     ManifestDependency::RegistryDependency {
                         version_req,
                         ..
-                    } => version_req.matches(&candidate.1.basic_info.version),
+                    } => {
+                        if let Some(manifest) = &candidate.1.manifest {
+                            version_req.matches(&manifest.version)
+                        } else {
+                            false
+                        }
+                    }
                     ManifestDependency::LocalDependency { .. } => {
                         // For local dependencies, just return true to match all
                         // versions.
@@ -382,15 +388,17 @@ fn create_input_str_for_dependency_relationship(
                 };
 
                 if version_matches {
-                    input_str.push_str(&format!(
+                    if let Some(manifest) = &candidate.1.manifest {
+                        input_str.push_str(&format!(
         "depends_on_declared(\"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\").\n",
         dep_relationship.type_and_name.pkg_type,
         dep_relationship.type_and_name.name,
         dep_relationship.version,
-        candidate.1.basic_info.type_and_name.pkg_type,
-        candidate.1.basic_info.type_and_name.name,
-        candidate.1.basic_info.version,
+        manifest.type_and_name.pkg_type,
+        manifest.type_and_name.name,
+        manifest.version,
                   ));
+                    }
                 }
             }
         } else {
@@ -467,26 +475,36 @@ fn create_input_str_for_pkg_info_dependencies(
                             ManifestDependency::RegistryDependency {
                                 version_req,
                                 ..
-                            } => version_req
-                                .matches(&candidate.1.basic_info.version),
+                            } => {
+                                if let Some(manifest) = &candidate.1.manifest {
+                                    version_req.matches(&manifest.version)
+                                } else {
+                                    false
+                                }
+                            }
                             ManifestDependency::LocalDependency { .. } => {
                                 // For local dependencies, just return true to
-                                // match all
-                                // versions.
+                                // match all versions.
                                 true
                             }
                         };
 
                         if version_matches {
-                            input_str.push_str(&format!(
+                            if let Some(pkg_manifest) = &pkg_info.manifest {
+                                if let Some(candidate_manifest) =
+                                    &candidate.1.manifest
+                                {
+                                    input_str.push_str(&format!(
         "depends_on_declared(\"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\").\n",
-        pkg_info.basic_info.type_and_name.pkg_type,
-        pkg_info.basic_info.type_and_name.name,
-        pkg_info.basic_info.version,
-        candidate.1.basic_info.type_and_name.pkg_type,
-        candidate.1.basic_info.type_and_name.name,
-        candidate.1.basic_info.version,
-                  ));
+        pkg_manifest.type_and_name.pkg_type,
+        pkg_manifest.type_and_name.name,
+        pkg_manifest.version,
+        candidate_manifest.type_and_name.pkg_type,
+        candidate_manifest.type_and_name.name,
+        candidate_manifest.version,
+                                    ));
+                                }
+                            }
 
                             create_input_str_for_pkg_info_dependencies(
                                 input_str,
@@ -591,7 +609,11 @@ fn create_input_str_for_all_possible_pkgs_info(
             // dependency, do not prioritize any candidate packages.
             if !locked_pkg.is_local_dependency {
                 let idx = candidates_vec.iter().position(|pkg_info| {
-                    pkg_info.version == locked_pkg.basic_info.version
+                    if let Some(locked_manifest) = &locked_pkg.manifest {
+                        pkg_info.version == locked_manifest.version
+                    } else {
+                        false
+                    }
                 });
 
                 if let Some(idx) = idx {
