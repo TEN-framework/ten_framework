@@ -46,6 +46,9 @@ pub fn localhost() -> String {
 
 #[derive(Clone, Debug)]
 pub struct PkgInfo {
+    pub manifest: Option<Manifest>,
+    pub property: Option<Property>,
+
     pub compatible_score: i32,
 
     /// This indicates that the package has been installed in the correct
@@ -64,9 +67,6 @@ pub struct PkgInfo {
     pub url: String,
 
     pub hash: String,
-
-    pub manifest: Option<Manifest>,
-    pub property: Option<Property>,
 
     pub schema_store: Option<SchemaStore>,
 
