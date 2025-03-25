@@ -40,7 +40,7 @@ export const useListTenCloudStorePackages = (options?: {
       pageSize: options?.pageSize?.toString() || undefined,
     },
   });
-  const [{ data, error, isLoading }] = useCancelableSWR<
+  const [{ data, error, isLoading, mutate }] = useCancelableSWR<
     z.infer<typeof template.responseSchema>
   >(url, {
     revalidateOnFocus: false,
@@ -51,5 +51,6 @@ export const useListTenCloudStorePackages = (options?: {
     data: data?.data,
     error,
     isLoading,
+    mutate,
   };
 };

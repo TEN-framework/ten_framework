@@ -33,6 +33,7 @@ import {
 } from "@/constants";
 
 import type { IListTenCloudStorePackage } from "@/types/extension";
+import { useListTenCloudStorePackages } from "@/api/services/extension";
 
 export const ExtensionTooltipContent = (props: {
   item: IListTenCloudStorePackage;
@@ -117,6 +118,7 @@ export const ExtensionDetails = (props: {
   );
 
   const { addons, defaultOsArch } = useAppStore();
+  const { mutate } = useListTenCloudStorePackages();
 
   const selectedVersionItemMemo = React.useMemo(() => {
     return versions.find((version) => version.hash === selectedVersion);
@@ -188,6 +190,9 @@ export const ExtensionDetails = (props: {
         options: {
           disableSearch: true,
           title: t("popup.logViewer.appInstall"),
+        },
+        postActions: () => {
+          mutate();
         },
       },
     });

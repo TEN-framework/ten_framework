@@ -41,6 +41,7 @@ import {
   IEditorWidget,
   EDefaultWidgetType,
   IWidget,
+  ILogViewerWidget,
 } from "@/types/widgets";
 import TerminalWidget from "@/components/Widget/TerminalWidget";
 import EditorWidget from "@/components/Widget/EditorWidget";
@@ -128,6 +129,9 @@ export default function DockContainer(props: {
     const hasEditorTabs = dockWidgetsMemo.some(
       (w) => w.category === EWidgetCategory.Editor
     );
+    const hasLogViewerTabs = dockWidgetsMemo.some(
+      (w) => w.category === EWidgetCategory.LogViewer
+    );
     if (hasEditorTabs) {
       appendDialog({
         id: "close-all-tabs",
@@ -143,9 +147,15 @@ export default function DockContainer(props: {
       });
       return;
     }
-    removeBackstageWidgets(dockWidgetsMemo.map((w) => w.id));
-    removeLogViewerHistories(dockWidgetsMemo.map((w) => w.id));
-    removeWidgets(dockWidgetsMemo.map((w) => w.id));
+    if (hasLogViewerTabs) {
+      const logViewerPostActions = dockWidgetsMemo
+        .filter((w) => w.category === EWidgetCategory.LogViewer)
+        .map((w) => w.metadata?.postActions);
+      removeBackstageWidgets(dockWidgetsMemo.map((w) => w.id));
+      removeLogViewerHistories(dockWidgetsMemo.map((w) => w.id));
+      removeWidgets(dockWidgetsMemo.map((w) => w.id));
+      logViewerPostActions?.forEach((postAction) => postAction?.());
+    }
   };
 
   const handleCloseTab = (id: string) => () => {
@@ -167,9 +177,13 @@ export default function DockContainer(props: {
       return;
     }
     if (tabCategory === EWidgetCategory.LogViewer) {
+      const targetWidget = dockWidgetsMemo.find((w) => w.id === id);
+      const targetWidgetPostActions = (targetWidget as ILogViewerWidget)
+        ?.metadata?.postActions;
       removeBackstageWidget(id);
       removeLogViewerHistory(id);
       removeWidget(id);
+      targetWidgetPostActions?.();
       return;
     }
     removeWidget(id);
@@ -262,7 +276,10 @@ export default function DockContainer(props: {
             />
           )}
           {selectedWidgetMemo.category === EWidgetCategory.LogViewer && (
-            <LogViewerFrontStageWidget id={selectedWidgetMemo.id} />
+            <LogViewerFrontStageWidget
+              id={selectedWidgetMemo.id}
+              options={selectedWidgetMemo.metadata?.options}
+            />
           )}
           {selectedWidgetMemo.category === EWidgetCategory.Default &&
             selectedWidgetMemo?.metadata?.type ===
