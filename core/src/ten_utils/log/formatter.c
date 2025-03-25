@@ -21,7 +21,7 @@
 
 typedef struct ten_log_formatter_entry_t {
   const char *name;
-  ten_log_formatter_func_t formatter_func;
+  ten_log_formatter_on_format_func_t formatter_func;
 } ten_log_formatter_entry_t;
 
 static ten_log_formatter_entry_t registered_formatters[] = {
@@ -32,10 +32,11 @@ static ten_log_formatter_entry_t registered_formatters[] = {
 static const size_t registered_formatters_size =
     sizeof(registered_formatters) / sizeof(ten_log_formatter_entry_t);
 
-ten_log_formatter_func_t ten_log_get_formatter_by_name(const char *name) {
+ten_log_formatter_on_format_func_t
+ten_log_get_formatter_by_name(const char *name) {
   TEN_ASSERT(name, "Invalid argument.");
 
-  ten_log_formatter_func_t result = NULL;
+  ten_log_formatter_on_format_func_t result = NULL;
 
   for (size_t i = 0; i < registered_formatters_size; i++) {
     if (strcmp(registered_formatters[i].name, name) == 0) {
@@ -46,11 +47,12 @@ ten_log_formatter_func_t ten_log_get_formatter_by_name(const char *name) {
   return NULL;
 }
 
-void ten_log_set_formatter(ten_log_t *self, ten_log_formatter_func_t format_cb,
+void ten_log_set_formatter(ten_log_t *self,
+                           ten_log_formatter_on_format_func_t format_cb,
                            void *user_data) {
   TEN_ASSERT(self, "Invalid argument.");
 
-  self->formatter.format_cb = format_cb;
+  self->formatter.on_format = format_cb;
   self->formatter.user_data = user_data;
 }
 
@@ -106,23 +108,23 @@ void ten_log_colored_formatter(ten_string_t *buf, TEN_LOG_LEVEL level,
   // Determine color based on log level.
   const char *level_color = NULL;
   switch (level) {
-    case TEN_LOG_LEVEL_FATAL:
-    case TEN_LOG_LEVEL_ERROR:
-      level_color = TEN_LOG_COLOR_RED;
-      break;
-    case TEN_LOG_LEVEL_WARN:
-      level_color = TEN_LOG_COLOR_YELLOW;
-      break;
-    case TEN_LOG_LEVEL_INFO:
-      level_color = TEN_LOG_COLOR_GREEN;
-      break;
-    case TEN_LOG_LEVEL_DEBUG:
-    case TEN_LOG_LEVEL_VERBOSE:
-      level_color = TEN_LOG_COLOR_CYAN;
-      break;
-    default:
-      level_color = TEN_LOG_COLOR_WHITE;
-      break;
+  case TEN_LOG_LEVEL_FATAL:
+  case TEN_LOG_LEVEL_ERROR:
+    level_color = TEN_LOG_COLOR_RED;
+    break;
+  case TEN_LOG_LEVEL_WARN:
+    level_color = TEN_LOG_COLOR_YELLOW;
+    break;
+  case TEN_LOG_LEVEL_INFO:
+    level_color = TEN_LOG_COLOR_GREEN;
+    break;
+  case TEN_LOG_LEVEL_DEBUG:
+  case TEN_LOG_LEVEL_VERBOSE:
+    level_color = TEN_LOG_COLOR_CYAN;
+    break;
+  default:
+    level_color = TEN_LOG_COLOR_WHITE;
+    break;
   }
 
   ten_string_append_formatted(buf, " %" PRId64 "(%" PRId64 ") %s%c%s", pid, tid,

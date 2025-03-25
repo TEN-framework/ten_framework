@@ -6,16 +6,13 @@
 //
 #include "ten_utils/ten_config.h"
 
-#include <assert.h>
-#include <stdlib.h>
-
 #include "include_internal/ten_utils/log/level.h"
 #include "include_internal/ten_utils/log/log.h"
 #include "include_internal/ten_utils/log/output.h"
 
 ten_log_t ten_global_log = {TEN_LOG_SIGNATURE,
                             TEN_LOG_LEVEL_DEBUG,
-                            {ten_log_output_to_stderr_cb, NULL, NULL}};
+                            {ten_log_output_to_stderr, NULL, NULL}};
 
 void ten_log_global_init(void) { ten_log_init(&ten_global_log); }
 
@@ -26,12 +23,11 @@ void ten_log_global_set_output_level(TEN_LOG_LEVEL level) {
 }
 
 void ten_log_global_set_output_to_stderr(void) {
-  if (ten_log_is_output_to_file(&ten_global_log)) {
-    ten_log_output_to_file_deinit(&ten_global_log);
-  }
   ten_log_set_output_to_stderr(&ten_global_log);
 }
 
 void ten_log_global_set_output_to_file(const char *log_path) {
   ten_log_set_output_to_file(&ten_global_log, log_path);
 }
+
+void ten_log_global_reload(void) { ten_log_reload(&ten_global_log); }

@@ -6,7 +6,6 @@
 //
 #include "include_internal/ten_runtime/common/log.h"
 
-#include <assert.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -17,9 +16,10 @@
 #include "include_internal/ten_utils/log/output.h"
 #include "ten_utils/lib/signature.h"
 #include "ten_utils/lib/string.h"
+#include "ten_utils/macro/memory.h"
 
 bool ten_log_check_integrity(ten_log_t *self) {
-  assert(self && "Invalid argument.");
+  TEN_ASSERT(self, "Invalid argument.");
 
   if (ten_signature_get(&self->signature) !=
       (ten_signature_t)TEN_LOG_SIGNATURE) {
@@ -34,17 +34,18 @@ bool ten_log_check_integrity(ten_log_t *self) {
 }
 
 void ten_log_init(ten_log_t *self) {
-  assert(self && "Invalid argument.");
+  TEN_ASSERT(self, "Invalid argument.");
 
   ten_signature_set(&self->signature, TEN_LOG_SIGNATURE);
   self->output_level = TEN_LOG_LEVEL_INVALID;
 
+  ten_log_output_init(&self->output);
   ten_log_set_output_to_stderr(self);
 }
 
 ten_log_t *ten_log_create(void) {
-  ten_log_t *log = malloc(sizeof(ten_log_t));
-  assert(log && "Failed to allocate memory.");
+  ten_log_t *log = TEN_MALLOC(sizeof(ten_log_t));
+  TEN_ASSERT(log, "Failed to allocate memory.");
 
   ten_log_init(log);
 
@@ -52,24 +53,39 @@ ten_log_t *ten_log_create(void) {
 }
 
 void ten_log_deinit(ten_log_t *self) {
-  assert(self && ten_log_check_integrity(self) && "Invalid argument.");
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_log_check_integrity(self), "Invalid argument.");
 
-  if (self->output.close_cb) {
-    self->output.close_cb(self->output.user_data);
+  if (self->output.on_close) {
+    self->output.on_close(self);
+  }
+
+  if (self->output.on_deinit) {
+    self->output.on_deinit(self);
   }
 }
 
 void ten_log_destroy(ten_log_t *self) {
-  assert(self && ten_log_check_integrity(self) && "Invalid argument.");
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_log_check_integrity(self), "Invalid argument.");
 
   ten_log_deinit(self);
-  free(self);
+  TEN_FREE(self);
+}
+
+void ten_log_reload(ten_log_t *self) {
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_log_check_integrity(self), "Invalid argument.");
+
+  if (self->output.on_reload) {
+    self->output.on_reload(self);
+  }
 }
 
 static const char *funcname(const char *func) { return func ? func : ""; }
 
 const char *filename(const char *path, size_t path_len, size_t *filename_len) {
-  assert(filename_len && "Invalid argument.");
+  TEN_ASSERT(filename_len, "Invalid argument.");
 
   if (!path || path_len == 0) {
     *filename_len = 0;
@@ -99,10 +115,12 @@ const char *filename(const char *path, size_t path_len, size_t *filename_len) {
   return filename;
 }
 
-void ten_log_log_from_va_list(ten_log_t *self, TEN_LOG_LEVEL level,
-                              const char *func_name, const char *file_name,
-                              size_t line_no, const char *fmt, va_list ap) {
-  assert(self && ten_log_check_integrity(self) && "Invalid argument.");
+static void ten_log_log_from_va_list(ten_log_t *self, TEN_LOG_LEVEL level,
+                                     const char *func_name,
+                                     const char *file_name, size_t line_no,
+                                     const char *fmt, va_list ap) {
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_log_check_integrity(self), "Invalid argument.");
 
   if (level < self->output_level) {
     return;
@@ -117,32 +135,11 @@ void ten_log_log_from_va_list(ten_log_t *self, TEN_LOG_LEVEL level,
   ten_string_deinit(&msg);
 }
 
-void ten_log_log_with_size_from_va_list(ten_log_t *self, TEN_LOG_LEVEL level,
-                                        const char *func_name,
-                                        size_t func_name_len,
-                                        const char *file_name,
-                                        size_t file_name_len, size_t line_no,
-                                        const char *fmt, va_list ap) {
-  assert(self && ten_log_check_integrity(self) && "Invalid argument.");
-
-  if (level < self->output_level) {
-    return;
-  }
-
-  ten_string_t msg;
-  ten_string_init_from_va_list(&msg, fmt, ap);
-
-  ten_log_log_with_size(self, level, func_name, func_name_len, file_name,
-                        file_name_len, line_no, ten_string_get_raw_str(&msg),
-                        ten_string_len(&msg));
-
-  ten_string_deinit(&msg);
-}
-
 void ten_log_log_formatted(ten_log_t *self, TEN_LOG_LEVEL level,
                            const char *func_name, const char *file_name,
                            size_t line_no, const char *fmt, ...) {
-  assert(self && ten_log_check_integrity(self) && "Invalid argument.");
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_log_check_integrity(self), "Invalid argument.");
 
   if (level < self->output_level) {
     return;
@@ -158,7 +155,8 @@ void ten_log_log_formatted(ten_log_t *self, TEN_LOG_LEVEL level,
 
 void ten_log_log(ten_log_t *self, TEN_LOG_LEVEL level, const char *func_name,
                  const char *file_name, size_t line_no, const char *msg) {
-  assert(self && ten_log_check_integrity(self) && "Invalid argument.");
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_log_check_integrity(self), "Invalid argument.");
 
   if (level < self->output_level) {
     return;
@@ -173,7 +171,8 @@ void ten_log_log_with_size(ten_log_t *self, TEN_LOG_LEVEL level,
                            const char *func_name, size_t func_name_len,
                            const char *file_name, size_t file_name_len,
                            size_t line_no, const char *msg, size_t msg_len) {
-  assert(self && ten_log_check_integrity(self) && "Invalid argument.");
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_log_check_integrity(self), "Invalid argument.");
 
   if (level < self->output_level) {
     return;
@@ -182,8 +181,8 @@ void ten_log_log_with_size(ten_log_t *self, TEN_LOG_LEVEL level,
   ten_string_t buf;
   ten_string_init(&buf);
 
-  if (self->formatter.format_cb) {
-    self->formatter.format_cb(&buf, level, func_name, func_name_len, file_name,
+  if (self->formatter.on_format) {
+    self->formatter.on_format(&buf, level, func_name, func_name_len, file_name,
                               file_name_len, line_no, msg, msg_len);
   } else {
     // Use default formatter if none is set.
@@ -191,7 +190,9 @@ void ten_log_log_with_size(ten_log_t *self, TEN_LOG_LEVEL level,
                               file_name_len, line_no, msg, msg_len);
   }
 
-  self->output.output_cb(&buf, self->output.user_data);
+  ten_string_append_formatted(&buf, "%s", TEN_LOG_EOL);
+
+  self->output.on_output(self, &buf);
 
   ten_string_deinit(&buf);
 }
