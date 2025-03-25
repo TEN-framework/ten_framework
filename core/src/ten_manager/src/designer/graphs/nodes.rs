@@ -131,7 +131,8 @@ impl From<ManifestPropertyAttributes> for DesignerPropertyAttributes {
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct DesignerCmdResult {
-    pub property: HashMap<String, DesignerPropertyAttributes>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub property: Option<HashMap<String, DesignerPropertyAttributes>>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
     pub required: Option<Vec<String>>,
@@ -140,11 +141,9 @@ pub struct DesignerCmdResult {
 impl From<ManifestCmdResult> for DesignerCmdResult {
     fn from(cmd_result: ManifestCmdResult) -> Self {
         DesignerCmdResult {
-            property: cmd_result
-                .property
-                .into_iter()
-                .map(|(k, v)| (k, v.into()))
-                .collect(),
+            property: cmd_result.property.map(|prop| {
+                prop.into_iter().map(|(k, v)| (k, v.into())).collect()
+            }),
             required: cmd_result
                 .required
                 .as_ref()

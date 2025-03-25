@@ -48,7 +48,8 @@ pub struct ManifestPropertyAttributes {
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct ManifestCmdResult {
     #[serde(default)]
-    pub property: HashMap<String, ManifestPropertyAttributes>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub property: Option<HashMap<String, ManifestPropertyAttributes>>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
     pub required: Option<Vec<String>>,
