@@ -25,13 +25,21 @@ use ten_rust::pkg_info::pkg_type::PkgType;
 use ten_rust::pkg_info::pkg_type_and_name::PkgTypeAndName;
 use ten_rust::pkg_info::PkgInfo;
 
+// Helper function to check if an Option<Vec> is None or an empty Vec.
+fn is_none_or_empty<T>(option: &Option<Vec<T>>) -> bool {
+    match option {
+        None => true,
+        Some(vec) => vec.is_empty(),
+    }
+}
+
 // The `manifest-lock.json` structure.
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct ManifestLock {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub version: Option<u32>,
 
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "is_none_or_empty")]
     pub packages: Option<Vec<ManifestLockItem>>,
 }
 
@@ -203,10 +211,10 @@ pub struct ManifestLockItem {
     pub version: Version,
     pub hash: String,
 
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "is_none_or_empty")]
     pub dependencies: Option<Vec<ManifestLockItemDependencyItem>>,
 
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "is_none_or_empty")]
     pub supports: Option<Vec<ManifestSupport>>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
