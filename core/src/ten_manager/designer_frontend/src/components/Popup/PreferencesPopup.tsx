@@ -12,6 +12,7 @@ import { toast } from "sonner";
 
 import { Popup } from "@/components/Popup/Popup";
 import { Separator } from "@/components/ui/Separator";
+import { Label } from "@/components/ui/Label";
 import { Button } from "@/components/ui/Button";
 import {
   Form,
@@ -33,6 +34,9 @@ import {
   EPreferencesTabs,
 } from "@/types/apps";
 import { getZodDefaults } from "@/utils";
+import { LanguageToggle } from "@/components/LangSwitch";
+import { ModeToggle } from "@/components/ModeToggle";
+import { useTheme } from "@/components/use-theme";
 
 export const PreferencesPopup = () => {
   const { t } = useTranslation();
@@ -69,7 +73,61 @@ export const PreferencesPopup = () => {
 };
 
 export const PreferencesGeneralTab = () => {
-  return <div>PreferencesGeneralTab</div>;
+  const { t, i18n } = useTranslation();
+  const { theme } = useTheme();
+
+  const getLangLabel = (lang: string) => {
+    switch (lang) {
+      case "en-US":
+        return t("header.language.enUS");
+      case "zh-CN":
+        return t("header.language.zhCN");
+      case "zh-TW":
+        return t("header.language.zhTW");
+      case "ja-JP":
+        return t("header.language.jaJP");
+      default:
+        return t("preferences.general.language");
+    }
+  };
+  const getThemeLabel = (theme?: string) => {
+    switch (theme) {
+      case "light":
+        return t("header.theme.light");
+      case "dark":
+        return t("header.theme.dark");
+      case "system":
+        return t("header.theme.system");
+      default:
+        return t("preferences.general.theme");
+    }
+  };
+
+  console.log(theme);
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center gap-2 justify-between">
+        <Label>{t("preferences.general.language")}</Label>
+        <LanguageToggle
+          buttonProps={{
+            className: "w-fit px-2 font-normal",
+            children: getLangLabel(i18n.language),
+          }}
+        />
+      </div>
+      <div className="flex items-center gap-2 justify-between">
+        <Label>{t("preferences.general.theme")}</Label>
+        <ModeToggle
+          hideIcon
+          buttonProps={{
+            className: "w-fit px-2 font-normal",
+            children: getThemeLabel(theme),
+          }}
+        />
+      </div>
+    </div>
+  );
 };
 
 export const PreferencesLogTab = (props: {
@@ -95,7 +153,7 @@ export const PreferencesLogTab = (props: {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         <FormField
           control={form.control}
           name="maxLines"
@@ -103,7 +161,12 @@ export const PreferencesLogTab = (props: {
             <FormItem>
               <FormLabel>{t("preferences.log.maxLines")}</FormLabel>
               <FormControl>
-                <Input type="number" {...field} />
+                <Input
+                  type="number"
+                  {...field}
+                  value={Number(field.value)}
+                  onChange={(e) => field.onChange(Number(e.target.value))}
+                />
               </FormControl>
               <FormDescription>
                 {t("preferences.log.maxLinesDescription")}

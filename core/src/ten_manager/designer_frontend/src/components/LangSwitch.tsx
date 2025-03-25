@@ -7,23 +7,37 @@
 import { useTranslation } from "react-i18next";
 import { LanguagesIcon, CheckIcon } from "lucide-react";
 
-import { Button } from "@/components/ui/Button";
+import { Button, ButtonProps } from "@/components/ui/Button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/DropdownMenu";
+import { cn } from "@/lib/utils";
 
-export function LanguageToggle() {
+export function LanguageToggle(props: { buttonProps?: ButtonProps }) {
+  const {
+    buttonProps: {
+      className: btnClassName,
+      children: btnChildren,
+      ...restButtonProps
+    } = {},
+  } = props;
   const { i18n, t } = useTranslation();
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" className="bg-transparent">
+        <Button
+          variant="ghost"
+          size="icon"
+          className={cn("bg-transparent", btnClassName)}
+          {...restButtonProps}
+        >
           <LanguagesIcon className="h-[1.2rem] w-[1.2rem]" />
-          <span className="sr-only">{t("header.language.title")}</span>
+          <span className={cn("sr-only")}>{t("header.language.title")}</span>
+          {btnChildren}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
