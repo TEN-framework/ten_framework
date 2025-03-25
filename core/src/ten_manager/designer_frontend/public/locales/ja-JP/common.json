@@ -30,10 +30,13 @@
       "selectLoadedApp": "読み込まれたアプリを選択"
     },
     "menuHelp": {
-      "title": "ファイル"
+      "title": "ヘルプ",
+      "about": "TEN Manager Designerについて"
     },
-    "menuAbout": {
-      "title": "情報"
+    "menuDesigner": {
+      "title": "デザイナー",
+      "about": "TEN Manager Designerについて",
+      "preferences": "設定"
     },
     "language": {
       "title": "言語",
@@ -179,5 +182,21 @@
       "baseDir": "ベースディレクトリ",
       "graphName": "グラフ名"
     }
+  },
+  "preferences": {
+    "general": {
+      "title": "一般",
+      "language": "言語",
+      "theme": "テーマ"
+    },
+    "log": {
+      "title": "ログ",
+      "maxLines": "最大行数",
+      "maxLinesDescription": "ログビューアに表示する最大行数。"
+    },
+    "save": "保存",
+    "cancel": "キャンセル",
+    "saved": "保存済み",
+    "savedSuccess": "設定 {{key}} が正常に保存されました"
   }
 }

@@ -30,10 +30,13 @@
       "selectLoadedApp": "Select a Loaded App"
     },
     "menuHelp": {
-      "title": "File"
+      "title": "Help",
+      "about": "About TEN Manager Designer"
     },
-    "menuAbout": {
-      "title": "About"
+    "menuDesigner": {
+      "title": "Designer",
+      "about": "About TEN Manager Designer",
+      "preferences": "Preferences"
     },
     "language": {
       "title": "Language",
@@ -179,5 +182,21 @@
       "baseDir": "Base Dir",
       "graphName": "Graph Name"
     }
+  },
+  "preferences": {
+    "general": {
+      "title": "General",
+      "language": "Language",
+      "theme": "Theme"
+    },
+    "log": {
+      "title": "Log",
+      "maxLines": "Max Lines",
+      "maxLinesDescription": "The maximum number of lines to display in the log viewer."
+    },
+    "save": "Save",
+    "cancel": "Cancel",
+    "saved": "Saved",
+    "savedSuccess": "Preferences {{key}} saved successfully"
   }
 }

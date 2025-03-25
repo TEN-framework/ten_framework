@@ -12,6 +12,8 @@ import {
   type EWidgetDisplayType,
   type IWidget,
 } from "@/types/widgets";
+import { getZodDefaults } from "@/utils";
+import { PreferencesLogSchema } from "@/types/apps";
 
 export const useWidgetStore = create<{
   widgets: IWidget[];
@@ -38,9 +40,14 @@ export const useWidgetStore = create<{
   logViewerHistory: {
     [id: string]: {
       history: string[];
+      maxLength: number;
     };
   };
-  appendLogViewerHistory: (id: string, history: string[]) => void;
+  appendLogViewerHistory: (
+    id: string,
+    history: string[],
+    options?: { override?: boolean; maxLength?: number }
+  ) => void;
   removeLogViewerHistory: (id: string) => void;
   removeLogViewerHistories: (ids: string[]) => void;
 
@@ -125,14 +132,27 @@ export const useWidgetStore = create<{
 
     // log viewer ---
     logViewerHistory: {},
-    appendLogViewerHistory: (id: string, history: string[], override = false) =>
+    appendLogViewerHistory: (
+      id: string,
+      history: string[],
+      options?: { override?: boolean; maxLength?: number }
+    ) =>
       set((state) => ({
         logViewerHistory: {
           ...state.logViewerHistory,
           [id]: {
-            history: override
-              ? history
-              : [...(state.logViewerHistory[id]?.history || []), ...history],
+            history: (() => {
+              const maxLength =
+                options?.maxLength ||
+                getZodDefaults(PreferencesLogSchema).maxLines;
+              const newHistory = options?.override
+                ? history
+                : [...(state.logViewerHistory[id]?.history || []), ...history];
+              return newHistory.slice(-maxLength);
+            })(),
+            maxLength:
+              options?.maxLength ||
+              getZodDefaults(PreferencesLogSchema).maxLines,
           },
         },
       })),
