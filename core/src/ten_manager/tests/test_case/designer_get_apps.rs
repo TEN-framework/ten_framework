@@ -100,14 +100,14 @@ mod tests {
         let _ = get_all_pkgs(
             designer_state.tman_config.clone(),
             &mut designer_state.pkgs_cache,
-            &"tests/test_data/app_with_uri".to_string(),
+            &"tests/test_data/app_without_uri".to_string(),
             &designer_state.out,
         );
 
         assert_eq!(
             designer_state
                 .pkgs_cache
-                .get("tests/test_data/app_with_uri")
+                .get("tests/test_data/app_without_uri")
                 .unwrap()
                 .len(),
             3
@@ -145,7 +145,7 @@ mod tests {
         assert_eq!(api_response.data.app_info.len(), 1);
         assert_eq!(
             api_response.data.app_info[0].base_dir,
-            "tests/test_data/app_with_uri"
+            "tests/test_data/app_without_uri"
         );
         assert_eq!(api_response.data.app_info[0].app_uri, None);
     }
