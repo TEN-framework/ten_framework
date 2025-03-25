@@ -24,7 +24,6 @@ use std::{collections::HashMap, path::Path};
 
 use anyhow::{anyhow, Result};
 use graph::Graph;
-use pkg_basic_info::PkgBasicInfo;
 use pkg_type_and_name::PkgTypeAndName;
 
 use crate::schema::store::SchemaStore;
@@ -47,7 +46,8 @@ pub fn localhost() -> String {
 
 #[derive(Clone, Debug)]
 pub struct PkgInfo {
-    pub basic_info: PkgBasicInfo,
+    pub manifest: Option<Manifest>,
+    pub property: Option<Property>,
 
     pub compatible_score: i32,
 
@@ -68,9 +68,6 @@ pub struct PkgInfo {
 
     pub hash: String,
 
-    pub manifest: Option<Manifest>,
-    pub property: Option<Property>,
-
     pub schema_store: Option<SchemaStore>,
 
     /// Indicates that the `pkg_info` represents a local dependency package.
@@ -85,8 +82,6 @@ impl PkgInfo {
         property: &Option<Property>,
     ) -> Result<Self> {
         let mut pkg_info = PkgInfo {
-            basic_info: PkgBasicInfo::try_from(manifest)?,
-
             compatible_score: -1,
 
             is_installed: false,
@@ -150,11 +145,9 @@ impl PkgInfo {
                         }
                         ManifestDependency::LocalDependency { .. } => {
                             // For local dependencies, we would need to resolve
-                            // the actual type and
-                            // name by examining the
+                            // the actual type and name by examining the
                             // manifest at the local path, which is beyond the
-                            // scope of this method,
-                            // so we return false.
+                            // scope of this method, so we return false.
                             false
                         }
                     }
@@ -214,11 +207,17 @@ fn collect_pkg_info_from_path<'a>(
     let pkg_type_name = PkgTypeAndName::from(&pkg_info);
 
     match pkgs_info.entry(pkg_type_name) {
-        std::collections::hash_map::Entry::Occupied(_) => Err(anyhow!(
-            "Duplicated package, type: {}, name: {}",
-            pkg_info.basic_info.type_and_name.pkg_type,
-            pkg_info.basic_info.type_and_name.name
-        )),
+        std::collections::hash_map::Entry::Occupied(_) => {
+            if let Some(manifest) = &pkg_info.manifest {
+                Err(anyhow!(
+                    "Duplicated package, type: {}, name: {}",
+                    manifest.type_and_name.pkg_type,
+                    manifest.type_and_name.name
+                ))
+            } else {
+                Err(anyhow!("Duplicated package with missing manifest"))
+            }
+        }
         std::collections::hash_map::Entry::Vacant(entry) => {
             let inserted = entry.insert(pkg_info);
             Ok(inserted)
@@ -235,10 +234,14 @@ pub fn get_app_installed_pkgs_to_hashmap(
 
     // Process the manifest.json file in the root path.
     let app_pkg = collect_pkg_info_from_path(app_path, &mut pkgs_info)?;
-    if app_pkg.basic_info.type_and_name.pkg_type != PkgType::App {
-        return Err(anyhow!(
-            "The current working directory does not belong to the `app`."
-        ));
+    if let Some(manifest) = &app_pkg.manifest {
+        if manifest.type_and_name.pkg_type != PkgType::App {
+            return Err(anyhow!(
+                "The current working directory does not belong to the `app`."
+            ));
+        }
+    } else {
+        return Err(anyhow!("App package missing manifest"));
     }
 
     // Define the sub-folders for searching packages.
@@ -311,25 +314,33 @@ pub fn find_untracked_local_packages<'a>(
     dependencies: &[&'a PkgInfo],
     local_pkgs: &[&'a PkgInfo],
 ) -> Vec<&'a PkgInfo> {
-    let mut untracked_local_packages: Vec<&PkgInfo> = vec![];
+    let mut untracked_pkgs = Vec::new();
 
-    for local_pkg in local_pkgs {
-        if local_pkg.basic_info.type_and_name.pkg_type == PkgType::App {
+    for pkg in local_pkgs {
+        let Some(pkg_manifest) = &pkg.manifest else {
             continue;
-        }
+        };
 
-        // Check if the package is in dependencies list.
-        if !dependencies.iter().any(|dependency| {
-            dependency.basic_info.type_and_name.pkg_type
-                == local_pkg.basic_info.type_and_name.pkg_type
-                && dependency.basic_info.type_and_name.name
-                    == local_pkg.basic_info.type_and_name.name
-        }) {
-            untracked_local_packages.push(local_pkg);
+        // Check all dependencies to see if this local package is tracked.
+        let is_tracked = dependencies.iter().any(|dep| {
+            let Some(dep_manifest) = &dep.manifest else {
+                return false;
+            };
+
+            // Compare type, name, and version
+            pkg_manifest.type_and_name.pkg_type
+                == dep_manifest.type_and_name.pkg_type
+                && pkg_manifest.type_and_name.name
+                    == dep_manifest.type_and_name.name
+                && pkg_manifest.version == dep_manifest.version
+        });
+
+        if !is_tracked {
+            untracked_pkgs.push(*pkg);
         }
     }
 
-    untracked_local_packages.into_iter().collect()
+    untracked_pkgs
 }
 
 /// Return a list of tuples, each tuple contains a local installed package
@@ -342,34 +353,34 @@ pub fn find_to_be_replaced_local_pkgs<'a>(
     dependencies: &[&'a PkgInfo],
     local_pkgs: &[&'a PkgInfo],
 ) -> Vec<(&'a PkgInfo, &'a PkgInfo)> {
-    let mut result: Vec<(&PkgInfo, &PkgInfo)> = vec![];
+    let mut to_be_replaced = Vec::new();
 
-    for local_pkg in local_pkgs {
-        let pkg_in_dependencies = dependencies.iter().find(|pkg| {
-            pkg.basic_info.type_and_name.pkg_type
-                == local_pkg.basic_info.type_and_name.pkg_type
-                && pkg.basic_info.type_and_name.name
-                    == local_pkg.basic_info.type_and_name.name
-        });
+    for dep in dependencies {
+        let Some(dep_manifest) = &dep.manifest else {
+            continue;
+        };
 
-        if let Some(pkg_in_dependencies) = pkg_in_dependencies {
-            // If the supports of a locally installed package are incompatible,
-            // it will not be included in the initial candidate list, so there
-            // will not be any package with the same identity in the dependency
-            // tree with `is_local_installed` set to `true`.
-            //
-            // Additionally, if the version calculated by the dependency tree
-            // differs from the currently installed local version, the
-            // `is_local_installed` of that package in the dependency tree will
-            // also not be `true`. Therefore, we will uniformly use
-            // `is_local_installed` to make overall judgments.
-            if !pkg_in_dependencies.is_installed {
-                result.push((pkg_in_dependencies, local_pkg));
+        // For each dependency, look for a local package with the same type and
+        // name.
+        for pkg in local_pkgs {
+            let Some(pkg_manifest) = &pkg.manifest else {
+                continue;
+            };
+
+            // If type and name match but versions differ, this package will be
+            // replaced.
+            if dep_manifest.type_and_name.pkg_type
+                == pkg_manifest.type_and_name.pkg_type
+                && dep_manifest.type_and_name.name
+                    == pkg_manifest.type_and_name.name
+                && dep_manifest.version != pkg_manifest.version
+            {
+                to_be_replaced.push((*dep, *pkg));
             }
         }
     }
 
-    result
+    to_be_replaced
 }
 
 /// Check the graph for current app.
@@ -386,28 +397,20 @@ pub fn ten_rust_check_graph_for_app(
     graph_json: &str,
     app_uri: &str,
 ) -> Result<()> {
+    // Get all installed packages.
     let app_path = Path::new(app_base_dir);
-    if !app_path.exists() {
-        return Err(anyhow::anyhow!(
-            "The app base dir [{}] is not found.",
-            app_base_dir
-        ));
-    }
+    let pkgs_info = get_app_installed_pkgs(app_path)?;
 
+    // Create a map of all installed packages across all apps.
     let mut installed_pkgs_of_all_apps: HashMap<String, Vec<PkgInfo>> =
         HashMap::new();
-    let pkgs_info = get_app_installed_pkgs(app_path)?;
+
+    // Insert packages for this app.
     installed_pkgs_of_all_apps.insert(app_uri.to_string(), pkgs_info);
 
-    // `Graph::from_str` calls `validate`, and `validate` checks that there are
-    // no `localhost` entries in the graph JSON (as per our rule). However, the
-    // TEN runtime first processes the content of the graph JSON, inserting
-    // the appropriate `localhost` string before passing it to the Rust
-    // side. Therefore, the graph JSON received here might already includes the
-    // `localhost` string processed by the TEN runtime, so `Graph::from_str`
-    // cannot be used in this context.
-    //
+    // Parse the graph JSON.
     // let graph = Graph::from_str(graph_json)?;
     let graph: Graph = serde_json::from_str(graph_json)?;
+
     graph.check_for_single_app(&installed_pkgs_of_all_apps)
 }

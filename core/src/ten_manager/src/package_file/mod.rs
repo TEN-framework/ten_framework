@@ -27,10 +27,15 @@ use crate::{constants::DOT_TEN_DIR, fs::pathbuf_to_string_lossy};
 use package::tar_gz_files_to_file;
 
 pub fn get_tpkg_file_name(pkg_info: &PkgInfo) -> Result<String> {
+    let manifest = pkg_info
+        .manifest
+        .as_ref()
+        .ok_or_else(|| anyhow::anyhow!("Missing manifest in package info"))?;
+
     let output_pkg_file_name = format!(
         "{}_{}{}",
-        pkg_info.basic_info.type_and_name.name,
-        pkg_info.basic_info.version,
+        manifest.type_and_name.name,
+        manifest.version,
         TEN_PACKAGE_FILE_EXTENSION
     );
 

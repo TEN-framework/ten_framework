@@ -46,8 +46,9 @@ pub async fn get_apps_endpoint(
                         let app_uri = pkg_infos
                             .iter()
                             .find(|pkg_info| {
-                                pkg_info.basic_info.type_and_name.pkg_type
-                                    == PkgType::App
+                                pkg_info.manifest.as_ref().is_some_and(|m| {
+                                    m.type_and_name.pkg_type == PkgType::App
+                                })
                             })
                             .and_then(|pkg_info| pkg_info.property.as_ref())
                             .and_then(|property| property._ten.as_ref())

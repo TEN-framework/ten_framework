@@ -46,10 +46,13 @@ pub async fn update_graph_endpoint(
     if let Some(pkgs) =
         state_write.pkgs_cache.get_mut(&request_payload.base_dir)
     {
-        if let Some(app_pkg) = pkgs
-            .iter_mut()
-            .find(|pkg| pkg.basic_info.type_and_name.pkg_type == PkgType::App)
-        {
+        if let Some(app_pkg) = pkgs.iter_mut().find(|pkg| {
+            if let Some(manifest) = &pkg.manifest {
+                manifest.type_and_name.pkg_type == PkgType::App
+            } else {
+                false
+            }
+        }) {
             let graph_name = &request_payload.graph_name;
 
             // Collect nodes into a Vec<GraphNode>.
@@ -207,7 +210,13 @@ mod tests {
         let pkgs = designer_state.pkgs_cache.get(TEST_DIR).unwrap();
         let app_pkg = pkgs
             .iter()
-            .find(|pkg| pkg.basic_info.type_and_name.pkg_type == PkgType::App)
+            .find(|pkg| {
+                if let Some(manifest) = &pkg.manifest {
+                    manifest.type_and_name.pkg_type == PkgType::App
+                } else {
+                    false
+                }
+            })
             .unwrap();
 
         let predefined_graphs = app_pkg.get_predefined_graphs().unwrap();

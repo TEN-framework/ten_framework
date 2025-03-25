@@ -101,8 +101,12 @@ impl ManifestLock {
                 removed_pkgs.push(old_pkg);
             } else {
                 let new_pkg = new_pkgs.get(idt).unwrap();
-                if old_pkg.basic_info.version != new_pkg.basic_info.version {
-                    updated_pkgs.push((old_pkg, new_pkg));
+                if let (Some(old_manifest), Some(new_manifest)) =
+                    (&old_pkg.manifest, &new_pkg.manifest)
+                {
+                    if old_manifest.version != new_manifest.version {
+                        updated_pkgs.push((old_pkg, new_pkg));
+                    }
                 }
             }
         }
@@ -119,8 +123,13 @@ impl ManifestLock {
                 println!(
                     "{}  Adding package {} v{}",
                     Emoji("➕", ""),
-                    pkg.basic_info.type_and_name.name,
-                    pkg.basic_info.version
+                    pkg.manifest.as_ref().map_or("unknown".to_string(), |m| m
+                        .type_and_name
+                        .name
+                        .clone()),
+                    pkg.manifest.as_ref().map_or("unknown".to_string(), |m| m
+                        .version
+                        .to_string())
                 );
             }
         }
@@ -130,8 +139,13 @@ impl ManifestLock {
                 println!(
                     "{}  Removing package {} v{}",
                     Emoji("🗑️", ""),
-                    pkg.basic_info.type_and_name.name,
-                    pkg.basic_info.version
+                    pkg.manifest.as_ref().map_or("unknown".to_string(), |m| m
+                        .type_and_name
+                        .name
+                        .clone()),
+                    pkg.manifest.as_ref().map_or("unknown".to_string(), |m| m
+                        .version
+                        .to_string())
                 );
             }
         }
@@ -141,9 +155,22 @@ impl ManifestLock {
                 println!(
                     "{}  Updating package {} v{} to v{}",
                     Emoji("🔄", ""),
-                    old_pkg.basic_info.type_and_name.name,
-                    old_pkg.basic_info.version,
-                    new_pkg.basic_info.version
+                    old_pkg.manifest.as_ref().map_or(
+                        "unknown".to_string(),
+                        |m| m.type_and_name.name.clone()
+                    ),
+                    old_pkg
+                        .manifest
+                        .as_ref()
+                        .map_or("unknown".to_string(), |m| m
+                            .version
+                            .to_string()),
+                    new_pkg
+                        .manifest
+                        .as_ref()
+                        .map_or("unknown".to_string(), |m| m
+                            .version
+                            .to_string())
                 );
             }
         }
@@ -299,15 +326,33 @@ impl<'a> From<&'a PkgInfo> for ManifestLockItem {
             None => None,
         };
 
+        let (pkg_type, name, version, supports) =
+            if let Some(manifest) = &pkg_info.manifest {
+                (
+                    manifest.type_and_name.pkg_type.to_string(),
+                    manifest.type_and_name.name.clone(),
+                    manifest.version.clone(),
+                    manifest.supports.clone().unwrap_or_default(),
+                )
+            } else {
+                (
+                    "unknown".to_string(),
+                    "unknown".to_string(),
+                    Version::new(0, 0, 0),
+                    Vec::new(),
+                )
+            };
+
         Self {
-            pkg_type: pkg_info.basic_info.type_and_name.pkg_type.to_string(),
-            name: pkg_info.basic_info.type_and_name.name.clone(),
-            version: pkg_info.basic_info.version.clone(),
+            pkg_type,
+            name,
+            version,
             hash: pkg_info.hash.to_string(),
             dependencies,
-            supports: match &pkg_info.basic_info.supports.len() {
-                0 => None,
-                _ => Some(pkg_info.basic_info.supports.clone()),
+            supports: if supports.is_empty() {
+                None
+            } else {
+                Some(supports)
             },
             path: pkg_info.local_dependency_path.clone(),
         }
@@ -348,14 +393,13 @@ impl<'a> From<&'a ManifestLockItem> for PkgInfo {
             type_and_name: type_and_name.clone(),
             version: locked_item.version.clone(),
             dependencies: dependencies_option,
-            supports: None,
+            supports: locked_item.supports.clone(),
             api: None,
             package: None,
             scripts: None,
         };
 
         PkgInfo {
-            basic_info: PkgBasicInfo::try_from(locked_item).unwrap(),
             compatible_score: 0, // TODO(xilin): default value.
             is_installed: false,
             url: "".to_string(), // TODO(xilin): default value.
@@ -363,7 +407,6 @@ impl<'a> From<&'a ManifestLockItem> for PkgInfo {
             manifest: Some(manifest),
             property: None,
             schema_store: None,
-
             is_local_dependency: locked_item.path.is_some(),
             local_dependency_path: locked_item.path.clone(),
             local_dependency_base_dir: None,

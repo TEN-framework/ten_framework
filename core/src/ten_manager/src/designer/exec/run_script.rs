@@ -23,7 +23,11 @@ pub fn extract_command_from_manifest(
     // Find the package of type == app.
     let app_pkgs: Vec<&PkgInfo> = all_pkgs
         .iter()
-        .filter(|p| p.basic_info.type_and_name.pkg_type == PkgType::App)
+        .filter(|p| {
+            p.manifest
+                .as_ref()
+                .is_some_and(|m| m.type_and_name.pkg_type == PkgType::App)
+        })
         .collect();
 
     if app_pkgs.len() != 1 {

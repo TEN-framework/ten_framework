@@ -89,7 +89,6 @@ impl From<&PkgInfo> for PkgRegistryInfo {
 impl From<&PkgRegistryInfo> for PkgInfo {
     fn from(pkg_registry_info: &PkgRegistryInfo) -> Self {
         let mut pkg_info = PkgInfo {
-            basic_info: pkg_registry_info.basic_info.clone(),
             compatible_score: -1,
             is_installed: false,
             url: pkg_registry_info.download_url.clone(),
@@ -107,7 +106,7 @@ impl From<&PkgRegistryInfo> for PkgInfo {
             type_and_name: pkg_registry_info.basic_info.type_and_name.clone(),
             version: pkg_registry_info.basic_info.version.clone(),
             dependencies: Some(pkg_registry_info.dependencies.clone()),
-            supports: None,
+            supports: Some(pkg_registry_info.basic_info.supports.clone()),
             api: None,
             package: None,
             scripts: None,

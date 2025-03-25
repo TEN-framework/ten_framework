@@ -54,15 +54,17 @@ pub fn extract_solver_results_from_raw_solver_results(
                 })
                 .unwrap()
             {
-                if candidate.1.basic_info.type_and_name.pkg_type != pkg_type
-                    || candidate.1.basic_info.type_and_name.name != name
-                {
-                    panic!("Should not happen.");
-                }
+                if let Some(manifest) = &candidate.1.manifest {
+                    if manifest.type_and_name.pkg_type != pkg_type
+                        || manifest.type_and_name.name != name
+                    {
+                        panic!("Should not happen.");
+                    }
 
-                if candidate.1.basic_info.version == semver {
-                    results_info.push(candidate.1.clone());
-                    continue 'outer;
+                    if manifest.version == semver {
+                        results_info.push(candidate.1.clone());
+                        continue 'outer;
+                    }
                 }
             }
         }
@@ -87,12 +89,22 @@ pub fn filter_solver_results_by_type_and_name<'a>(
         // LLVM/Clang to prevent ASAN linking errors), we disable this specific
         // Clippy warning here.
         #[allow(clippy::unnecessary_map_or)]
-        let matches_type = pkg_type
-            .map_or(true, |pt| result.basic_info.type_and_name.pkg_type == *pt);
+        let matches_type = pkg_type.map_or(true, |pt| {
+            if let Some(manifest) = &result.manifest {
+                manifest.type_and_name.pkg_type == *pt
+            } else {
+                false
+            }
+        });
 
         #[allow(clippy::unnecessary_map_or)]
-        let matches_name =
-            name.map_or(true, |n| result.basic_info.type_and_name.name == *n);
+        let matches_name = name.map_or(true, |n| {
+            if let Some(manifest) = &result.manifest {
+                manifest.type_and_name.name == *n
+            } else {
+                false
+            }
+        });
 
         let matches = matches_type && matches_name;
 
@@ -141,30 +153,37 @@ pub async fn install_solver_results_in_app_folder(
         .map(|solver_result| {
             let tman_config = tman_config.clone();
             let out = out.clone();
-            let base_dir = match solver_result.basic_info.type_and_name.pkg_type
-            {
-                PkgType::Extension => {
-                    app_dir.join(TEN_PACKAGES_DIR).join(EXTENSION_DIR)
+            let base_dir = if let Some(manifest) = &solver_result.manifest {
+                match manifest.type_and_name.pkg_type {
+                    PkgType::Extension => {
+                        app_dir.join(TEN_PACKAGES_DIR).join(EXTENSION_DIR)
+                    }
+                    PkgType::Protocol => {
+                        app_dir.join(TEN_PACKAGES_DIR).join(PROTOCOL_DIR)
+                    }
+                    PkgType::System => {
+                        app_dir.join(TEN_PACKAGES_DIR).join(SYSTEM_DIR)
+                    }
+                    PkgType::AddonLoader => {
+                        app_dir.join(TEN_PACKAGES_DIR).join(ADDON_LOADER_DIR)
+                    }
+                    PkgType::App => app_dir.to_path_buf(),
                 }
-                PkgType::Protocol => {
-                    app_dir.join(TEN_PACKAGES_DIR).join(PROTOCOL_DIR)
-                }
-                PkgType::System => {
-                    app_dir.join(TEN_PACKAGES_DIR).join(SYSTEM_DIR)
-                }
-                PkgType::AddonLoader => {
-                    app_dir.join(TEN_PACKAGES_DIR).join(ADDON_LOADER_DIR)
-                }
-                PkgType::App => app_dir.to_path_buf(),
+            } else {
+                app_dir.to_path_buf() // Default if manifest is missing
             };
 
             let bar_clone = bar.clone();
             let progress_counter = progress_counter.clone();
-            let pkg_name = format!(
-                "{}/{}",
-                solver_result.basic_info.type_and_name.pkg_type,
-                solver_result.basic_info.type_and_name.name
-            );
+            let pkg_name = if let Some(manifest) = &solver_result.manifest {
+                format!(
+                    "{}/{}",
+                    manifest.type_and_name.pkg_type,
+                    manifest.type_and_name.name
+                )
+            } else {
+                "unknown/unknown".to_string()
+            };
 
             async move {
                 // Install the package
