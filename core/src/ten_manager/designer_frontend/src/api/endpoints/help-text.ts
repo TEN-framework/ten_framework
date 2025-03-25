@@ -32,3 +32,8 @@ export const ENDPOINT_HELP_TEXT = {
     },
   },
 };
+
+export enum EHelpTextKey {
+  TEN_AGENT = "ten_agent",
+  TEN_FRAMEWORK = "ten_framework",
+}
