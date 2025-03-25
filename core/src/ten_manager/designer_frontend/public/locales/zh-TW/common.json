@@ -30,10 +30,13 @@
       "selectLoadedApp": "選擇已載入的應用程式"
     },
     "menuHelp": {
-      "title": "檔案"
+      "title": "說明",
+      "about": "關於 TEN Manager Designer"
     },
-    "menuAbout": {
-      "title": "關於"
+    "menuDesigner": {
+      "title": "設計器",
+      "about": "關於 TEN Manager Designer",
+      "preferences": "偏好設定"
     },
     "language": {
       "title": "語言",
@@ -179,5 +182,21 @@
       "baseDir": "基礎目錄",
       "graphName": "圖譜名稱"
     }
+  },
+  "preferences": {
+    "general": {
+      "title": "一般",
+      "language": "語言",
+      "theme": "主題"
+    },
+    "log": {
+      "title": "日誌",
+      "maxLines": "最大行數",
+      "maxLinesDescription": "日誌檢視器中顯示的最大行數。"
+    },
+    "save": "儲存",
+    "cancel": "取消",
+    "saved": "已儲存",
+    "savedSuccess": "偏好設定 {{key}} 儲存成功"
   }
 }

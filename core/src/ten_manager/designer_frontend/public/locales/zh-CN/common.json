@@ -30,10 +30,13 @@
       "selectLoadedApp": "选择已加载应用"
     },
     "menuHelp": {
-      "title": "文件"
+      "title": "帮助",
+      "about": "关于 TEN Manager Designer"
     },
-    "menuAbout": {
-      "title": "关于"
+    "menuDesigner": {
+      "title": "设计器",
+      "about": "关于 TEN Manager Designer",
+      "preferences": "偏好设置"
     },
     "language": {
       "title": "语言",
@@ -179,5 +182,21 @@
       "baseDir": "基础目录",
       "graphName": "图谱名称"
     }
+  },
+  "preferences": {
+    "general": {
+      "title": "通用",
+      "language": "语言",
+      "theme": "主题"
+    },
+    "log": {
+      "title": "日志",
+      "maxLines": "最大行数",
+      "maxLinesDescription": "日志查看器显示的最大行数。"
+    },
+    "save": "保存",
+    "cancel": "取消",
+    "saved": "已保存",
+    "savedSuccess": "偏好设置 {{key}} 保存成功"
   }
 }
