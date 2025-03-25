@@ -16,7 +16,7 @@ export const AboutPopup = () => {
   const { t } = useTranslation();
 
   return (
-    <Popup id={ABOUT_POPUP_ID} title={t("header.menuAbout.title")}>
+    <Popup id={ABOUT_POPUP_ID} title={t("header.menuDesigner.about")}>
       <div className="flex flex-col gap-2 h-full w-full">
         <p
           className={cn(

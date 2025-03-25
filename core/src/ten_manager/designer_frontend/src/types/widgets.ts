@@ -116,6 +116,7 @@ export enum EDefaultWidgetType {
   AppsManager = "apps_manager",
   AppRun = "app_run",
   ExtensionStore = "extension_store",
+  Preferences = "preferences",
 }
 
 export interface IDefaultWidget<T extends { type: EDefaultWidgetType }>
