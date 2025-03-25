@@ -277,8 +277,8 @@ jobs:
           chmod +x unit_test
           chmod +x integration_test
 
-          ./unit_test || { echo "ten_rust unit test failed"; exit 1; }
-          ./integration_test || { echo "ten_rust integration test failed"; exit 1; }
+          ./unit_test --nocapture || { echo "ten_rust unit test failed"; exit 1; }
+          ./integration_test --nocapture || { echo "ten_rust integration test failed"; exit 1; }
 
           df -h .
 
@@ -294,8 +294,8 @@ jobs:
           chmod +x unit_test
           chmod +x integration_test
 
-          ./unit_test || { echo "ten_manager unit test failed"; exit 1; }
-          ./integration_test || { echo "ten_manager integration test failed"; exit 1; }
+          ./unit_test --nocapture || { echo "ten_manager unit test failed"; exit 1; }
+          ./integration_test --nocapture || { echo "ten_manager integration test failed"; exit 1; }
 
           df -h .
 
