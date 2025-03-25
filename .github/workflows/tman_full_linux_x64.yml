@@ -1,4 +1,4 @@
-name: Tman Designer UI (Playwright Tests)
+name: Tman Linux x64 (Including Designer UI)
 
 on:
   release:
