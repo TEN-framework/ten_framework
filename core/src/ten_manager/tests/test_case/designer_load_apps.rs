@@ -53,8 +53,7 @@ mod tests {
 
         // Create request with base_dir specified.
         let request_payload = LoadAppRequestPayload {
-            base_dir: "tests/test_data/cmd_builtin_function_install"
-                .to_string(),
+            base_dir: "tests/test_data/app_with_uri".to_string(),
         };
 
         let req = test::TestRequest::post()
@@ -109,8 +108,7 @@ mod tests {
 
         // Create request with base_dir specified.
         let request_payload = LoadAppRequestPayload {
-            base_dir: "tests/test_data/cmd_builtin_function_install_all"
-                .to_string(),
+            base_dir: "tests/test_data/app_without_uri".to_string(),
         };
 
         let req = test::TestRequest::post()
