@@ -1,4 +1,4 @@
-name: Tman Mac x64 (Including Designer UI)
+name: Tman Windows x64 (Including Designer UI)
 
 on:
   release:
@@ -10,12 +10,14 @@ on:
       - "core/src/ten_rust/**"
 
 concurrency:
-  group: tman-full-mac-x64-${{ github.head_ref }}
+  group: tman-full-win-x64-${{ github.head_ref }}
   cancel-in-progress: true
 
 jobs:
   build:
-    runs-on: macos-13
+    runs-on: windows-latest
+    env:
+      PYTHONIOENCODING: utf-8
     strategy:
       matrix:
         build_type: [release]
@@ -29,6 +31,7 @@ jobs:
         run: git config --global --add safe.directory "${GITHUB_WORKSPACE}"
 
       - name: Initialize and update submodules except docs/
+        shell: bash
         run: |
           # Retrieve all submodule paths, excluding `docs/`.
           submodules=$(git config --file .gitmodules --get-regexp path | awk '$2 != "docs" { print $2 }')
@@ -48,6 +51,8 @@ jobs:
         with:
           bun-version: latest
 
+      - uses: ilammy/msvc-dev-cmd@v1
+
       - uses: actions/setup-python@v5
         with:
           python-version: "3.10"
@@ -59,72 +64,61 @@ jobs:
 
       - name: Install tools and dependencies
         run: |
-
-          if [ ${{ matrix.build_type }} == "debug" ]; then
-            # Since the TEN runtime and TEN manager are a combination of C and
-            # Rust, to enable ASan, the ASan versions used by both the C and
-            # Rust compilation environments must be consistent. Therefore, it is
-            # necessary to lock the LLVM and Rust versions to enable ASan.
-            brew install llvm@18
-            rustup default nightly-2024-07-19
-          else
-            rustup default nightly
-          fi
-
-          brew install tree
-          brew install gettext
-
           pip3 install --use-pep517 python-dotenv jinja2
-
           go install golang.org/dl/go1.20.12@latest && go1.20.12 download
           go env -w GOFLAGS="-buildvcs=false"
-
+          rustup default nightly
           cargo install --force cbindgen
+
+      - name: Get Python executable path
+        run: |
+          $pythonPath = python -c "import sys; print(sys.executable)"
+          Write-Output "Python executable path: $pythonPath"
+
+          $pythonDir = Split-Path $pythonPath
+          Write-Output "Python directory path: $pythonDir"
+
+          echo "PYTHON3_PATH=$pythonDir" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+        shell: pwsh
+
+      - name: Use Python path
+        run: |
+          Write-Output "The Python directory is located at: $env:PYTHON3_PATH"
+        shell: pwsh
 
       - name: Build
         run: |
-          if [ ${{ matrix.build_type }} == "debug" ]; then
-            export PATH="/usr/local/opt/llvm@18/bin:$PATH"
-          fi
-          export PATH=$(pwd)/core/ten_gn:$PATH
-          echo $PATH
-
-          df -h .
-
-          tgn gen mac x64 ${{ matrix.build_type }} -- log_level=1 enable_serialized_actions=true ten_enable_serialized_rust_action=true ten_rust_enable_gen_cargo_config=false ten_enable_cargo_clean=true ten_enable_python_binding=true ten_enable_advanced_python_integration_tests=false ten_enable_rust_incremental_build=false ten_manager_enable_frontend=true ten_enable_integration_tests_prebuilt=false ten_enable_nodejs_binding=false ten_enable_ten_rust=true ten_enable_ten_manager=true
-
-          tgn build:ten_manager_package mac x64 ${{ matrix.build_type }}
-
-          df -h .
-          tree -I 'gen|obj' out
-      #   continue-on-error: true
-      # - name: Setup tmate session
-      #   uses: mxschmitt/action-tmate@v3
+          $ENV:PATH += ";$PWD/core/ten_gn"
+          tgn gen win x64 ${{ matrix.build_type }} -- vs_version=2022 log_level=1 enable_serialized_actions=true ten_enable_serialized_rust_action=true ten_rust_enable_gen_cargo_config=false ten_enable_cargo_clean=true ten_enable_python_binding=false ten_enable_go_binding=false ten_enable_nodejs_binding=false ten_enable_rust_incremental_build=false ten_manager_enable_frontend=true ten_enable_integration_tests_prebuilt=false ten_enable_ten_rust=true ten_enable_ten_manager=true
+          tgn build:ten_manager_package win x64 ${{ matrix.build_type }}
 
       - name: Package assets
         if: startsWith(github.ref, 'refs/tags/')
+        shell: pwsh
+        working-directory: out/win/x64
         run: |
-          cd out/mac/x64
-          zip -vr tman-mac-${{ matrix.build_type }}-x64.zip ten_manager/bin/tman
+          Write-Host "Current directory: $(Get-Location)"
 
-          df -h .
+          Compress-Archive -Path ten_manager -DestinationPath tman-win-${{ matrix.build_type }}-x64.zip -CompressionLevel Optimal
 
       - name: Publish to release assets
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/')
         with:
           files: |
-            out/mac/x64/tman-mac-${{ matrix.build_type }}-x64.zip
+            out/win/x64/tman-win-${{ matrix.build_type }}-x64.zip
 
       - name: Install Playwright Browsers
+        shell: bash
         run: |
           cd core/src/ten_manager/designer_frontend
           npx playwright install --with-deps
 
       - name: Run Playwright tests
+        shell: bash
         run: |
           # Start the tman designer backend
-          cd ${GITHUB_WORKSPACE}/out/mac/x64/ten_manager/bin
+          cd ${GITHUB_WORKSPACE}/out/win/x64/ten_manager/bin
           ./tman --verbose designer &
           TMAN_PID=$!
           echo "Started tman designer with PID $TMAN_PID"
@@ -172,6 +166,6 @@ jobs:
         uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
         with:
-          name: playwright-report-${{ matrix.build_type }}-mac-x64
+          name: playwright-report-${{ matrix.build_type }}-win-x64
           path: core/src/ten_manager/designer_frontend/playwright-report/
           retention-days: 7
