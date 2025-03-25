@@ -11,7 +11,6 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
 import { Popup } from "@/components/Popup/Popup";
-import { Separator } from "@/components/ui/Separator";
 import { Label } from "@/components/ui/Label";
 import { Button } from "@/components/ui/Button";
 import {
@@ -28,19 +27,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/Tabs";
 import { cn } from "@/lib/utils";
 import { PREFERENCES_POPUP_ID } from "@/constants/widgets";
 import { useAppStore, useWidgetStore } from "@/store";
-import {
-  PreferencesSchema,
-  PreferencesLogSchema,
-  EPreferencesTabs,
-} from "@/types/apps";
-import { getZodDefaults } from "@/utils";
+import { PreferencesLogSchema, EPreferencesTabs } from "@/types/apps";
 import { LanguageToggle } from "@/components/LangSwitch";
 import { ModeToggle } from "@/components/ModeToggle";
 import { useTheme } from "@/components/use-theme";
 
 export const PreferencesPopup = () => {
   const { t } = useTranslation();
-  const { preferences, setPreferences } = useAppStore();
   const { removeWidget } = useWidgetStore();
 
   const onClose = () => {
