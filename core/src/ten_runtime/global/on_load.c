@@ -27,8 +27,12 @@
 // provided by Clang/GCC.
 TEN_CONSTRUCTOR(ten_runtime_on_load) {
   ten_sanitizer_memory_record_init();
+
+#if !defined(OS_WINDOWS)
   ten_global_signal_alt_stack_create();
-  ten_backtrace_create_global();  // Initialize backtrace module.
+#endif
+
+  ten_backtrace_create_global(); // Initialize backtrace module.
   ten_global_init();
 
   ten_global_setup_signal_stuff();
@@ -40,6 +44,10 @@ TEN_DESTRUCTOR(ten_runtime_on_unload) {
   ten_global_deinit();
   ten_log_global_deinit();
   ten_backtrace_destroy_global();
+
+#if !defined(OS_WINDOWS)
   ten_global_signal_alt_stack_destroy();
+#endif
+
   ten_sanitizer_memory_record_deinit();
 }
