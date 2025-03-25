@@ -27,8 +27,13 @@ mod tests {
     #[actix_web::test]
     async fn test_load_app_success_with_app_uri() {
         // Set up the designer state with initial data.
+        let tman_config = TmanConfig {
+            verbose: true,
+            ..TmanConfig::default()
+        };
+
         let designer_state = DesignerState {
-            tman_config: Arc::new(TmanConfig::default()),
+            tman_config: Arc::new(tman_config),
             out: Arc::new(Box::new(TmanOutputCli)),
             pkgs_cache: HashMap::new(),
         };
@@ -60,11 +65,16 @@ mod tests {
         // Send the request and get the response.
         let resp = test::call_service(&app, req).await;
 
-        // Verify the response.
-        assert_eq!(resp.status(), StatusCode::OK);
-
+        let resp_status = &resp.status();
         let body = test::read_body(resp).await;
         let body_str = std::str::from_utf8(&body).unwrap();
+
+        // Verify the response.
+        if resp_status != &StatusCode::OK {
+            println!("{}", body_str);
+
+            panic!("Failed to load app");
+        }
 
         let api_response: ApiResponse<LoadAppResponseData> =
             serde_json::from_str(body_str).unwrap();
