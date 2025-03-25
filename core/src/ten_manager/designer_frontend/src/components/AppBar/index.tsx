@@ -12,7 +12,7 @@ import { ModeToggle } from "@/components/ModeToggle";
 import { LanguageToggle } from "@/components/LangSwitch";
 import { AppMenu } from "@/components/AppBar/Menu/AppMenu";
 import { GraphMenu } from "@/components/AppBar/Menu/GraphMenu";
-import { HelpMenu } from "@/components/AppBar/Menu/HelpMenu";
+import { DesignerMenu } from "@/components/AppBar/Menu/DesignerMenu";
 import { AppStatus } from "@/components/AppBar/AppStatus";
 import { GHStargazersCount, GHTryTENAgent } from "@/components/Widget/GH";
 import { Version } from "@/components/AppBar/Version";
@@ -54,9 +54,9 @@ export default function AppBar({ onAutoLayout, className }: AppBarProps) {
     >
       <NavigationMenu onValueChange={onNavChange}>
         <NavigationMenuList>
+          <DesignerMenu />
           <AppMenu />
           <GraphMenu onAutoLayout={onAutoLayout} />
-          <HelpMenu />
         </NavigationMenuList>
       </NavigationMenu>
 

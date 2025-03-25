@@ -4,7 +4,7 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-import { InfoIcon } from "lucide-react";
+import { InfoIcon, SettingsIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import {
@@ -13,6 +13,7 @@ import {
   NavigationMenuLink,
   NavigationMenuTrigger,
 } from "@/components/ui/NavigationMenu";
+import { Separator } from "@/components/ui/Separator";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
 import { useWidgetStore } from "@/store/widget";
@@ -21,9 +22,9 @@ import {
   EWidgetCategory,
   EWidgetDisplayType,
 } from "@/types/widgets";
-import { ABOUT_POPUP_ID } from "@/constants/widgets";
+import { ABOUT_POPUP_ID, PREFERENCES_POPUP_ID } from "@/constants/widgets";
 
-export function HelpMenu() {
+export function DesignerMenu() {
   const { t } = useTranslation();
 
   const { appendWidgetIfNotExists } = useWidgetStore();
@@ -39,11 +40,22 @@ export function HelpMenu() {
     });
   };
 
+  const openPreferences = () => {
+    appendWidgetIfNotExists({
+      id: PREFERENCES_POPUP_ID,
+      category: EWidgetCategory.Default,
+      display_type: EWidgetDisplayType.Popup,
+      metadata: {
+        type: EDefaultWidgetType.Preferences,
+      },
+    });
+  };
+
   return (
     <>
       <NavigationMenuItem>
-        <NavigationMenuTrigger className="submenu-trigger">
-          {t("header.menuHelp.title")}
+        <NavigationMenuTrigger className="submenu-trigger font-bold">
+          {t("header.menuDesigner.title")}
         </NavigationMenuTrigger>
         <NavigationMenuContent
           className={cn("flex flex-col items-center px-1 py-1.5 gap-1.5")}
@@ -55,7 +67,18 @@ export function HelpMenu() {
               onClick={openAbout}
             >
               <InfoIcon />
-              {t("header.menuAbout.title")}
+              {t("header.menuDesigner.about")}
+            </Button>
+          </NavigationMenuLink>
+          <Separator className="w-full" />
+          <NavigationMenuLink asChild>
+            <Button
+              className="w-full justify-start max-w-(--breakpoint-sm)"
+              variant="ghost"
+              onClick={openPreferences}
+            >
+              <SettingsIcon />
+              {t("header.menuDesigner.preferences")}
             </Button>
           </NavigationMenuLink>
         </NavigationMenuContent>

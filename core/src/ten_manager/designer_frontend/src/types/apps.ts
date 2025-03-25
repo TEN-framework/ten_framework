@@ -33,3 +33,16 @@ export enum EWSMessageType {
   EXIT = "exit",
   NORMAL_LINE = "normal_line",
 }
+
+export enum EPreferencesTabs {
+  GENERAL = "general",
+  LOG = "log",
+}
+
+export const PreferencesLogSchema = z.object({
+  maxLines: z.number().min(1).default(1000),
+});
+
+export const PreferencesSchema = z.object({
+  [EPreferencesTabs.LOG]: PreferencesLogSchema,
+});
