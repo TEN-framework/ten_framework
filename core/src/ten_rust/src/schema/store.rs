@@ -192,14 +192,14 @@ fn parse_msg_schema_from_manifest(
 //   "required": []
 // }
 fn create_property_schema(
-    property: &[ManifestPropertyItem],
+    property: &HashMap<String, ManifestPropertyItem>,
     required: &Option<Vec<String>>,
 ) -> Result<TenSchema> {
     let mut property_json_value = serde_json::json!({});
     let property_json_object = property_json_value.as_object_mut().unwrap();
-    property.iter().for_each(|item| {
+    property.iter().for_each(|(key, item)| {
         property_json_object.insert(
-            item.name.clone(),
+            key.clone(),
             serde_json::to_value(&item.attributes).unwrap(),
         );
     });

@@ -45,7 +45,6 @@ pub struct ManifestApi {
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct ManifestPropertyItem {
-    pub name: String,
     pub attributes: ManifestPropertyAttributes,
 }
 
@@ -58,7 +57,7 @@ pub struct ManifestPropertyAttributes {
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct ManifestCmdResult {
     #[serde(deserialize_with = "deserialize_property_items", default)]
-    pub property: Vec<ManifestPropertyItem>,
+    pub property: HashMap<String, ManifestPropertyItem>,
 
     #[serde(deserialize_with = "deserialize_optional_required", default)]
     pub required: Option<Vec<String>>,
@@ -70,7 +69,7 @@ pub struct ManifestApiCmdLike {
     pub name: String,
 
     #[serde(deserialize_with = "deserialize_optional_property_items", default)]
-    pub property: Option<Vec<ManifestPropertyItem>>,
+    pub property: Option<HashMap<String, ManifestPropertyItem>>,
 
     #[serde(deserialize_with = "deserialize_optional_required", default)]
     pub required: Option<Vec<String>>,
@@ -85,7 +84,7 @@ pub struct ManifestApiDataLike {
     pub name: String,
 
     #[serde(deserialize_with = "deserialize_optional_property_items", default)]
-    pub property: Option<Vec<ManifestPropertyItem>>,
+    pub property: Option<HashMap<String, ManifestPropertyItem>>,
 
     #[serde(deserialize_with = "deserialize_optional_required", default)]
     pub required: Option<Vec<String>>,
@@ -106,27 +105,24 @@ where
 
 fn deserialize_property_items<'de, D>(
     deserializer: D,
-) -> Result<Vec<ManifestPropertyItem>, D::Error>
+) -> Result<HashMap<String, ManifestPropertyItem>, D::Error>
 where
     D: Deserializer<'de>,
 {
     let map: LinkedHashMap<String, ManifestPropertyAttributes> =
         Deserialize::deserialize(deserializer)?;
 
-    let mut items: Vec<ManifestPropertyItem> = Vec::new();
-    for (key, value) in map.into_iter() {
-        items.push(ManifestPropertyItem {
-            name: key,
-            attributes: value,
-        });
-    }
+    let items: HashMap<String, ManifestPropertyItem> = map
+        .into_iter()
+        .map(|(key, value)| (key, ManifestPropertyItem { attributes: value }))
+        .collect();
 
     Ok(items)
 }
 
 fn deserialize_optional_property_items<'de, D>(
     deserializer: D,
-) -> Result<Option<Vec<ManifestPropertyItem>>, D::Error>
+) -> Result<Option<HashMap<String, ManifestPropertyItem>>, D::Error>
 where
     D: Deserializer<'de>,
 {
@@ -136,7 +132,7 @@ where
 struct PropertyVisitor;
 
 impl<'de> Visitor<'de> for PropertyVisitor {
-    type Value = Option<Vec<ManifestPropertyItem>>;
+    type Value = Option<HashMap<String, ManifestPropertyItem>>;
 
     fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
         formatter.write_str("an optional map of property items")
@@ -159,13 +155,12 @@ impl<'de> Visitor<'de> for PropertyVisitor {
         let map: LinkedHashMap<String, ManifestPropertyAttributes> =
             Deserialize::deserialize(deserializer)?;
 
-        let mut items: Vec<ManifestPropertyItem> = Vec::new();
-        for (key, value) in map.into_iter() {
-            items.push(ManifestPropertyItem {
-                name: key,
-                attributes: value,
-            });
-        }
+        let items: HashMap<String, ManifestPropertyItem> = map
+            .into_iter()
+            .map(|(key, value)| {
+                (key, ManifestPropertyItem { attributes: value })
+            })
+            .collect();
 
         Ok(Some(items))
     }

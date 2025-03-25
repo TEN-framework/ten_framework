@@ -87,3 +87,9 @@ core/src/ten_rust/target/
 
 # zlib auto-generated files
 third_party/zlib/zconf.h.included
+
+# Test data
+core/src/ten_manager/tests/test_data/cmd_builtin_function_install/ten_packages/
+core/src/ten_manager/tests/test_data/cmd_builtin_function_install/manifest-lock.json
+core/src/ten_manager/tests/test_data/cmd_builtin_function_install_all/ten_packages/
+core/src/ten_manager/tests/test_data/cmd_builtin_function_install_all/manifest-lock.json

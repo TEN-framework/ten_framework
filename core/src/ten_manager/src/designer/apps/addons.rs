@@ -284,34 +284,55 @@ mod tests {
                     cmd_out: Some(vec![
                         DesignerApiCmdLike {
                             name: "test_cmd".to_string(),
-                            property: Some(vec![DesignerPropertyItem {
-                                name: "test_property".to_string(),
-                                attributes: DesignerPropertyAttributes {
-                                    prop_type: "int8".to_string(),
-                                },
-                            }]),
+                            property: Some({
+                                let mut map = HashMap::new();
+                                map.insert(
+                                    "test_property".to_string(),
+                                    DesignerPropertyItem {
+                                        attributes:
+                                            DesignerPropertyAttributes {
+                                                prop_type: "int8".to_string(),
+                                            },
+                                    },
+                                );
+                                map
+                            }),
                             required: None,
                             result: None,
                         },
                         DesignerApiCmdLike {
                             name: "has_required".to_string(),
-                            property: Some(vec![DesignerPropertyItem {
-                                name: "foo".to_string(),
-                                attributes: DesignerPropertyAttributes {
-                                    prop_type: "string".to_string(),
-                                },
-                            }]),
+                            property: Some({
+                                let mut map = HashMap::new();
+                                map.insert(
+                                    "foo".to_string(),
+                                    DesignerPropertyItem {
+                                        attributes:
+                                            DesignerPropertyAttributes {
+                                                prop_type: "string".to_string(),
+                                            },
+                                    },
+                                );
+                                map
+                            }),
                             required: Some(vec!["foo".to_string()]),
                             result: None,
                         },
                         DesignerApiCmdLike {
                             name: "has_required_mismatch".to_string(),
-                            property: Some(vec![DesignerPropertyItem {
-                                name: "foo".to_string(),
-                                attributes: DesignerPropertyAttributes {
-                                    prop_type: "string".to_string(),
-                                },
-                            }]),
+                            property: Some({
+                                let mut map = HashMap::new();
+                                map.insert(
+                                    "foo".to_string(),
+                                    DesignerPropertyItem {
+                                        attributes:
+                                            DesignerPropertyAttributes {
+                                                prop_type: "string".to_string(),
+                                            },
+                                    },
+                                );
+                                map
+                            }),
                             required: Some(vec!["foo".to_string()]),
                             result: None,
                         },
@@ -333,45 +354,73 @@ mod tests {
                     cmd_in: Some(vec![
                         DesignerApiCmdLike {
                             name: "test_cmd".to_string(),
-                            property: Some(vec![DesignerPropertyItem {
-                                name: "test_property".to_string(),
-                                attributes: DesignerPropertyAttributes {
-                                    prop_type: "int32".to_string(),
-                                },
-                            }]),
+                            property: Some({
+                                let mut map = HashMap::new();
+                                map.insert(
+                                    "test_property".to_string(),
+                                    DesignerPropertyItem {
+                                        attributes:
+                                            DesignerPropertyAttributes {
+                                                prop_type: "int32".to_string(),
+                                            },
+                                    },
+                                );
+                                map
+                            }),
                             required: None,
                             result: None,
                         },
                         DesignerApiCmdLike {
                             name: "another_test_cmd".to_string(),
-                            property: Some(vec![DesignerPropertyItem {
-                                name: "test_property".to_string(),
-                                attributes: DesignerPropertyAttributes {
-                                    prop_type: "int8".to_string(),
-                                },
-                            }]),
+                            property: Some({
+                                let mut map = HashMap::new();
+                                map.insert(
+                                    "test_property".to_string(),
+                                    DesignerPropertyItem {
+                                        attributes:
+                                            DesignerPropertyAttributes {
+                                                prop_type: "int8".to_string(),
+                                            },
+                                    },
+                                );
+                                map
+                            }),
                             required: None,
                             result: None,
                         },
                         DesignerApiCmdLike {
                             name: "has_required".to_string(),
-                            property: Some(vec![DesignerPropertyItem {
-                                name: "foo".to_string(),
-                                attributes: DesignerPropertyAttributes {
-                                    prop_type: "string".to_string(),
-                                },
-                            }]),
+                            property: Some({
+                                let mut map = HashMap::new();
+                                map.insert(
+                                    "foo".to_string(),
+                                    DesignerPropertyItem {
+                                        attributes:
+                                            DesignerPropertyAttributes {
+                                                prop_type: "string".to_string(),
+                                            },
+                                    },
+                                );
+                                map
+                            }),
                             required: Some(vec!["foo".to_string()]),
                             result: None,
                         },
                         DesignerApiCmdLike {
                             name: "has_required_mismatch".to_string(),
-                            property: Some(vec![DesignerPropertyItem {
-                                name: "foo".to_string(),
-                                attributes: DesignerPropertyAttributes {
-                                    prop_type: "string".to_string(),
-                                },
-                            }]),
+                            property: Some({
+                                let mut map = HashMap::new();
+                                map.insert(
+                                    "foo".to_string(),
+                                    DesignerPropertyItem {
+                                        attributes:
+                                            DesignerPropertyAttributes {
+                                                prop_type: "string".to_string(),
+                                            },
+                                    },
+                                );
+                                map
+                            }),
                             required: None,
                             result: None,
                         },
@@ -380,12 +429,18 @@ mod tests {
                     data_in: None,
                     data_out: Some(vec![DesignerApiDataLike {
                         name: "data_has_required".to_string(),
-                        property: Some(vec![DesignerPropertyItem {
-                            name: "foo".to_string(),
-                            attributes: DesignerPropertyAttributes {
-                                prop_type: "int8".to_string(),
-                            },
-                        }]),
+                        property: Some({
+                            let mut map = HashMap::new();
+                            map.insert(
+                                "foo".to_string(),
+                                DesignerPropertyItem {
+                                    attributes: DesignerPropertyAttributes {
+                                        prop_type: "int8".to_string(),
+                                    },
+                                },
+                            );
+                            map
+                        }),
                         required: Some(vec!["foo".to_string()]),
                     }]),
                     audio_frame_in: None,
@@ -402,24 +457,36 @@ mod tests {
                     property: None,
                     cmd_in: Some(vec![DesignerApiCmdLike {
                         name: "test_cmd".to_string(),
-                        property: Some(vec![DesignerPropertyItem {
-                            name: "test_property".to_string(),
-                            attributes: DesignerPropertyAttributes {
-                                prop_type: "string".to_string(),
-                            },
-                        }]),
+                        property: Some({
+                            let mut map = HashMap::new();
+                            map.insert(
+                                "test_property".to_string(),
+                                DesignerPropertyItem {
+                                    attributes: DesignerPropertyAttributes {
+                                        prop_type: "string".to_string(),
+                                    },
+                                },
+                            );
+                            map
+                        }),
                         required: None,
                         result: None,
                     }]),
                     cmd_out: None,
                     data_in: Some(vec![DesignerApiDataLike {
                         name: "data_has_required".to_string(),
-                        property: Some(vec![DesignerPropertyItem {
-                            name: "foo".to_string(),
-                            attributes: DesignerPropertyAttributes {
-                                prop_type: "int8".to_string(),
-                            },
-                        }]),
+                        property: Some({
+                            let mut map = HashMap::new();
+                            map.insert(
+                                "foo".to_string(),
+                                DesignerPropertyItem {
+                                    attributes: DesignerPropertyAttributes {
+                                        prop_type: "int8".to_string(),
+                                    },
+                                },
+                            );
+                            map
+                        }),
                         required: Some(vec!["foo".to_string()]),
                     }]),
                     data_out: None,
@@ -519,34 +586,52 @@ mod tests {
                 cmd_out: Some(vec![
                     DesignerApiCmdLike {
                         name: "test_cmd".to_string(),
-                        property: Some(vec![DesignerPropertyItem {
-                            name: "test_property".to_string(),
-                            attributes: DesignerPropertyAttributes {
-                                prop_type: "int8".to_string(),
-                            },
-                        }]),
+                        property: Some({
+                            let mut map = HashMap::new();
+                            map.insert(
+                                "test_property".to_string(),
+                                DesignerPropertyItem {
+                                    attributes: DesignerPropertyAttributes {
+                                        prop_type: "int8".to_string(),
+                                    },
+                                },
+                            );
+                            map
+                        }),
                         required: None,
                         result: None,
                     },
                     DesignerApiCmdLike {
                         name: "has_required".to_string(),
-                        property: Some(vec![DesignerPropertyItem {
-                            name: "foo".to_string(),
-                            attributes: DesignerPropertyAttributes {
-                                prop_type: "string".to_string(),
-                            },
-                        }]),
+                        property: Some({
+                            let mut map = HashMap::new();
+                            map.insert(
+                                "foo".to_string(),
+                                DesignerPropertyItem {
+                                    attributes: DesignerPropertyAttributes {
+                                        prop_type: "string".to_string(),
+                                    },
+                                },
+                            );
+                            map
+                        }),
                         required: Some(vec!["foo".to_string()]),
                         result: None,
                     },
                     DesignerApiCmdLike {
                         name: "has_required_mismatch".to_string(),
-                        property: Some(vec![DesignerPropertyItem {
-                            name: "foo".to_string(),
-                            attributes: DesignerPropertyAttributes {
-                                prop_type: "string".to_string(),
-                            },
-                        }]),
+                        property: Some({
+                            let mut map = HashMap::new();
+                            map.insert(
+                                "foo".to_string(),
+                                DesignerPropertyItem {
+                                    attributes: DesignerPropertyAttributes {
+                                        prop_type: "string".to_string(),
+                                    },
+                                },
+                            );
+                            map
+                        }),
                         required: Some(vec!["foo".to_string()]),
                         result: None,
                     },
