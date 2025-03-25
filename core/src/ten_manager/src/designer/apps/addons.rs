@@ -11,13 +11,12 @@ use serde::{Deserialize, Serialize};
 
 use ten_rust::pkg_info::{pkg_type::PkgType, PkgInfo};
 
+use crate::designer::common::{
+    get_designer_api_cmd_likes_from_pkg, get_designer_api_data_likes_from_pkg,
+    get_designer_property_hashmap_from_pkg,
+};
+use crate::designer::graphs::nodes::DesignerApi;
 use crate::designer::{
-    common::{
-        get_designer_api_cmd_likes_from_pkg,
-        get_designer_api_data_likes_from_pkg,
-        get_designer_property_hashmap_from_pkg,
-    },
-    graphs::nodes::DesignerApi,
     response::{ApiResponse, ErrorResponse, Status},
     DesignerState,
 };
@@ -188,23 +187,21 @@ pub async fn get_app_addons_endpoint(
 
 #[cfg(test)]
 mod tests {
-    use std::collections::HashMap;
-
     use crate::{
         config::TmanConfig,
         constants::TEST_DIR,
-        designer::{
-            graphs::nodes::{
-                DesignerApiCmdLike, DesignerApiDataLike,
-                DesignerPropertyAttributes, DesignerPropertyItem,
-            },
-            mock::inject_all_pkgs_for_mock,
-        },
+        designer::{mock::inject_all_pkgs_for_mock, DesignerState},
         output::TmanOutputCli,
     };
+    use actix_web::{test, App};
+    use std::collections::HashMap;
+    use std::sync::{Arc, RwLock};
 
     use super::*;
-    use actix_web::{test, App};
+    use crate::designer::graphs::nodes::{
+        DesignerApi, DesignerApiCmdLike, DesignerApiDataLike,
+        DesignerPropertyAttributes,
+    };
 
     #[actix_web::test]
     async fn test_get_addons() {
@@ -288,11 +285,8 @@ mod tests {
                                 let mut map = HashMap::new();
                                 map.insert(
                                     "test_property".to_string(),
-                                    DesignerPropertyItem {
-                                        attributes:
-                                            DesignerPropertyAttributes {
-                                                prop_type: "int8".to_string(),
-                                            },
+                                    DesignerPropertyAttributes {
+                                        prop_type: "int8".to_string(),
                                     },
                                 );
                                 map
@@ -306,11 +300,8 @@ mod tests {
                                 let mut map = HashMap::new();
                                 map.insert(
                                     "foo".to_string(),
-                                    DesignerPropertyItem {
-                                        attributes:
-                                            DesignerPropertyAttributes {
-                                                prop_type: "string".to_string(),
-                                            },
+                                    DesignerPropertyAttributes {
+                                        prop_type: "string".to_string(),
                                     },
                                 );
                                 map
@@ -324,11 +315,8 @@ mod tests {
                                 let mut map = HashMap::new();
                                 map.insert(
                                     "foo".to_string(),
-                                    DesignerPropertyItem {
-                                        attributes:
-                                            DesignerPropertyAttributes {
-                                                prop_type: "string".to_string(),
-                                            },
+                                    DesignerPropertyAttributes {
+                                        prop_type: "string".to_string(),
                                     },
                                 );
                                 map
@@ -358,11 +346,8 @@ mod tests {
                                 let mut map = HashMap::new();
                                 map.insert(
                                     "test_property".to_string(),
-                                    DesignerPropertyItem {
-                                        attributes:
-                                            DesignerPropertyAttributes {
-                                                prop_type: "int32".to_string(),
-                                            },
+                                    DesignerPropertyAttributes {
+                                        prop_type: "int32".to_string(),
                                     },
                                 );
                                 map
@@ -376,11 +361,8 @@ mod tests {
                                 let mut map = HashMap::new();
                                 map.insert(
                                     "test_property".to_string(),
-                                    DesignerPropertyItem {
-                                        attributes:
-                                            DesignerPropertyAttributes {
-                                                prop_type: "int8".to_string(),
-                                            },
+                                    DesignerPropertyAttributes {
+                                        prop_type: "int8".to_string(),
                                     },
                                 );
                                 map
@@ -394,11 +376,8 @@ mod tests {
                                 let mut map = HashMap::new();
                                 map.insert(
                                     "foo".to_string(),
-                                    DesignerPropertyItem {
-                                        attributes:
-                                            DesignerPropertyAttributes {
-                                                prop_type: "string".to_string(),
-                                            },
+                                    DesignerPropertyAttributes {
+                                        prop_type: "string".to_string(),
                                     },
                                 );
                                 map
@@ -412,11 +391,8 @@ mod tests {
                                 let mut map = HashMap::new();
                                 map.insert(
                                     "foo".to_string(),
-                                    DesignerPropertyItem {
-                                        attributes:
-                                            DesignerPropertyAttributes {
-                                                prop_type: "string".to_string(),
-                                            },
+                                    DesignerPropertyAttributes {
+                                        prop_type: "string".to_string(),
                                     },
                                 );
                                 map
@@ -433,10 +409,8 @@ mod tests {
                             let mut map = HashMap::new();
                             map.insert(
                                 "foo".to_string(),
-                                DesignerPropertyItem {
-                                    attributes: DesignerPropertyAttributes {
-                                        prop_type: "int8".to_string(),
-                                    },
+                                DesignerPropertyAttributes {
+                                    prop_type: "int8".to_string(),
                                 },
                             );
                             map
@@ -461,10 +435,8 @@ mod tests {
                             let mut map = HashMap::new();
                             map.insert(
                                 "test_property".to_string(),
-                                DesignerPropertyItem {
-                                    attributes: DesignerPropertyAttributes {
-                                        prop_type: "string".to_string(),
-                                    },
+                                DesignerPropertyAttributes {
+                                    prop_type: "string".to_string(),
                                 },
                             );
                             map
@@ -479,10 +451,8 @@ mod tests {
                             let mut map = HashMap::new();
                             map.insert(
                                 "foo".to_string(),
-                                DesignerPropertyItem {
-                                    attributes: DesignerPropertyAttributes {
-                                        prop_type: "int8".to_string(),
-                                    },
+                                DesignerPropertyAttributes {
+                                    prop_type: "int8".to_string(),
                                 },
                             );
                             map
@@ -590,10 +560,8 @@ mod tests {
                             let mut map = HashMap::new();
                             map.insert(
                                 "test_property".to_string(),
-                                DesignerPropertyItem {
-                                    attributes: DesignerPropertyAttributes {
-                                        prop_type: "int8".to_string(),
-                                    },
+                                DesignerPropertyAttributes {
+                                    prop_type: "int8".to_string(),
                                 },
                             );
                             map
@@ -607,10 +575,8 @@ mod tests {
                             let mut map = HashMap::new();
                             map.insert(
                                 "foo".to_string(),
-                                DesignerPropertyItem {
-                                    attributes: DesignerPropertyAttributes {
-                                        prop_type: "string".to_string(),
-                                    },
+                                DesignerPropertyAttributes {
+                                    prop_type: "string".to_string(),
                                 },
                             );
                             map
@@ -624,10 +590,8 @@ mod tests {
                             let mut map = HashMap::new();
                             map.insert(
                                 "foo".to_string(),
-                                DesignerPropertyItem {
-                                    attributes: DesignerPropertyAttributes {
-                                        prop_type: "string".to_string(),
-                                    },
+                                DesignerPropertyAttributes {
+                                    prop_type: "string".to_string(),
                                 },
                             );
                             map

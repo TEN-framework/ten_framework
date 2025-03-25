@@ -8,23 +8,15 @@ use std::collections::HashMap;
 
 use ten_rust::pkg_info::manifest::api::{
     ManifestApiCmdLike, ManifestApiDataLike, ManifestPropertyAttributes,
-    ManifestPropertyItem,
 };
 
 use super::graphs::nodes::{
     DesignerApiCmdLike, DesignerApiDataLike, DesignerPropertyAttributes,
-    DesignerPropertyItem,
 };
 
 pub fn get_designer_property_hashmap_from_pkg(
     items: HashMap<String, ManifestPropertyAttributes>,
 ) -> HashMap<String, DesignerPropertyAttributes> {
-    items.into_iter().map(|(k, v)| (k, v.into())).collect()
-}
-
-pub fn get_designer_property_items_hashmap_from_pkg(
-    items: HashMap<String, ManifestPropertyItem>,
-) -> HashMap<String, DesignerPropertyItem> {
     items.into_iter().map(|(k, v)| (k, v.into())).collect()
 }
 
