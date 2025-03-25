@@ -21,14 +21,15 @@ use inquire::Confirm;
 use semver::VersionReq;
 use ten_rust::pkg_info::{
     constants::{BUILD_GN_FILENAME, MANIFEST_JSON_FILENAME},
+    manifest::dependency::ManifestDependency,
+    manifest::support::ManifestSupport,
     pkg_basic_info::PkgBasicInfo,
 };
 use ten_rust::pkg_info::{
-    dependencies::PkgDependency,
     get_pkg_info_from_path,
     pkg_type::PkgType,
     pkg_type_and_name::PkgTypeAndName,
-    supports::{Arch, Os, PkgSupport},
+    supports::{Arch, Os},
     PkgInfo,
 };
 
@@ -82,7 +83,7 @@ impl std::str::FromStr for LocalInstallMode {
 pub struct InstallCommand {
     pub package_type: Option<String>,
     pub package_name: Option<String>,
-    pub support: PkgSupport,
+    pub support: ManifestSupport,
     pub local_install_mode: LocalInstallMode,
     pub standalone: bool,
     pub cwd: String,
@@ -148,7 +149,7 @@ pub fn parse_sub_cmd(sub_cmd_args: &ArgMatches) -> Result<InstallCommand> {
     let mut cmd = InstallCommand {
         package_type: None,
         package_name: None,
-        support: PkgSupport {
+        support: ManifestSupport {
             os: sub_cmd_args
                 .get_one::<String>("OS")
                 .and_then(|s| s.parse::<Os>().ok()),
@@ -538,14 +539,10 @@ pub async fn execute_cmd(
                     .clone(),
             },
             version: app_pkg_to_work_with.basic_info.version.clone(),
-            dependency: PkgDependency {
-                type_and_name: PkgTypeAndName {
-                    pkg_type: installing_pkg_type.unwrap(),
-                    name: installing_pkg_name.clone().unwrap(),
-                },
+            dependency: ManifestDependency::RegistryDependency {
+                pkg_type: installing_pkg_type.unwrap(),
+                name: installing_pkg_name.clone().unwrap(),
                 version_req: installing_pkg_version_req,
-                path: Some(local_path_str.clone()),
-                base_dir: Some("".to_string()),
             },
         });
 
@@ -587,14 +584,10 @@ pub async fn execute_cmd(
                     .clone(),
             },
             version: app_pkg_to_work_with.basic_info.version.clone(),
-            dependency: PkgDependency {
-                type_and_name: PkgTypeAndName {
-                    pkg_type: installing_pkg_type_,
-                    name: installing_pkg_name_.clone(),
-                },
+            dependency: ManifestDependency::RegistryDependency {
+                pkg_type: installing_pkg_type_,
+                name: installing_pkg_name_.clone(),
                 version_req: installing_pkg_version_req_.clone(),
-                path: None,
-                base_dir: None,
             },
         });
     }

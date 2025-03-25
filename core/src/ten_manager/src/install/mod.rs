@@ -11,7 +11,6 @@ use std::{
     collections::HashMap,
     fs::{self, OpenOptions},
     path::{Path, PathBuf},
-    str::FromStr,
     sync::Arc,
 };
 
@@ -20,15 +19,10 @@ use console::Emoji;
 use tempfile::NamedTempFile;
 
 use ten_rust::pkg_info::{
-    constants::MANIFEST_JSON_FILENAME,
-    find_to_be_replaced_local_pkgs, find_untracked_local_packages,
-    get_pkg_info_from_path,
-    manifest::dependency::ManifestDependency,
-    pkg_basic_info::PkgBasicInfo,
-    pkg_type::PkgType,
-    pkg_type_and_name::PkgTypeAndName,
-    supports::{is_pkg_supports_compatible_with, PkgSupport},
-    PkgInfo,
+    constants::MANIFEST_JSON_FILENAME, find_to_be_replaced_local_pkgs,
+    find_untracked_local_packages, get_pkg_info_from_path,
+    manifest::dependency::ManifestDependency, pkg_basic_info::PkgBasicInfo,
+    pkg_type::PkgType, pkg_type_and_name::PkgTypeAndName, PkgInfo,
 };
 
 use super::{config::TmanConfig, registry::get_package};
@@ -43,6 +37,9 @@ use crate::{
     solver::solver_result::filter_solver_results_by_type_and_name,
 };
 use installed_paths::save_installed_paths;
+use ten_rust::pkg_info::manifest::support::{
+    is_manifest_supports_compatible_with, ManifestSupport,
+};
 
 fn install_local_dependency_pkg_info(
     command_data: &InstallCommand,
@@ -235,7 +232,7 @@ fn update_package_manifest(
                     ..
                 } => {
                     let manifest_dependency_type_and_name = PkgTypeAndName {
-                        pkg_type: PkgType::from_str(pkg_type)?,
+                        pkg_type: *pkg_type,
                         name: name.clone(),
                     };
 
@@ -341,23 +338,6 @@ fn update_package_manifest(
         base_pkg_info.manifest.as_mut().unwrap().dependencies = Some(new_deps);
     }
 
-    // Also add the dependency to base_pkg_info.dependencies if it does not
-    // exist.
-    if !base_pkg_info.dependencies.iter().any(|dep| {
-        dep.type_and_name == added_dependency.basic_info.type_and_name
-    }) {
-        // Create a new PkgDependency from the added_dependency.
-        let pkg_dep = ten_rust::pkg_info::dependencies::PkgDependency {
-            type_and_name: added_dependency.basic_info.type_and_name.clone(),
-            version_req: semver::VersionReq::parse(
-                &added_dependency.basic_info.version.to_string(),
-            )?,
-            path: added_dependency.local_dependency_path.clone(),
-            base_dir: added_dependency.local_dependency_base_dir.clone(),
-        };
-        base_pkg_info.dependencies.push(pkg_dep);
-    }
-
     let manifest_path: PathBuf =
         Path::new(&base_pkg_info.url).join(MANIFEST_JSON_FILENAME);
     let manifest_file = OpenOptions::new()
@@ -445,7 +425,7 @@ pub fn filter_compatible_pkgs_to_candidates(
         PkgTypeAndName,
         HashMap<PkgBasicInfo, PkgInfo>,
     >,
-    support: &PkgSupport,
+    support: &ManifestSupport,
     out: Arc<Box<dyn TmanOutput>>,
 ) {
     for existed_pkg in all_pkgs.to_owned().iter_mut() {
@@ -456,7 +436,7 @@ pub fn filter_compatible_pkgs_to_candidates(
             ));
         }
 
-        let compatible_score = is_pkg_supports_compatible_with(
+        let compatible_score = is_manifest_supports_compatible_with(
             &existed_pkg.basic_info.supports,
             support,
         );

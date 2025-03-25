@@ -14,9 +14,11 @@ use clingo::{
 };
 
 use semver::Version;
+use ten_rust::pkg_info::constants::MANIFEST_JSON_FILENAME;
+use ten_rust::pkg_info::manifest::dependency::ManifestDependency;
 use ten_rust::pkg_info::{
-    dependencies::PkgDependency, pkg_basic_info::PkgBasicInfo,
-    pkg_type::PkgType, pkg_type_and_name::PkgTypeAndName, PkgInfo,
+    pkg_basic_info::PkgBasicInfo, pkg_type::PkgType,
+    pkg_type_and_name::PkgTypeAndName, PkgInfo,
 };
 
 use crate::config::TmanConfig;
@@ -25,7 +27,7 @@ use crate::output::TmanOutput;
 pub struct DependencyRelationship {
     pub type_and_name: PkgTypeAndName,
     pub version: Version,
-    pub dependency: PkgDependency,
+    pub dependency: ManifestDependency,
 }
 
 fn get_model(
@@ -298,7 +300,7 @@ fn solve(
                         // Clingo will only output increasingly optimized
                         // models, so we need to take the last model without an
                         // error statement from all outputted models, not just
-                        // the first good one. Therefore, we shouldn’t break
+                        // the first good one. Therefore, we shouldn't break
                         // here.
                     } else {
                         non_usable_models.push(m); // Collect error models.
@@ -341,16 +343,45 @@ fn create_input_str_for_dependency_relationship(
     all_candidates: &HashMap<PkgTypeAndName, HashMap<PkgBasicInfo, PkgInfo>>,
 ) -> Result<()> {
     if let Some(dep_relationship) = dep_relationship {
-        let candidates =
-            all_candidates.get(&(&dep_relationship.dependency).into());
+        let pkg_type_and_name = match &dep_relationship.dependency {
+            ManifestDependency::RegistryDependency {
+                pkg_type, name, ..
+            } => PkgTypeAndName {
+                pkg_type: *pkg_type,
+                name: name.clone(),
+            },
+            ManifestDependency::LocalDependency { path, base_dir } => {
+                // Get type and name from the manifest.
+                let abs_path = std::path::Path::new(base_dir).join(path);
+                let dep_manifest_path = abs_path.join(MANIFEST_JSON_FILENAME);
+
+                // Parse manifest to get type and name.
+                let manifest =
+                    ten_rust::pkg_info::manifest::parse_manifest_from_file(
+                        &dep_manifest_path,
+                    )?;
+                manifest.type_and_name
+            }
+        };
+
+        let candidates = all_candidates.get(&pkg_type_and_name);
 
         if let Some(candidates) = candidates {
             for candidate in candidates.iter() {
-                if dep_relationship
-                    .dependency
-                    .version_req
-                    .matches(&candidate.1.basic_info.version)
-                {
+                // Get version requirement from dependency.
+                let version_matches = match &dep_relationship.dependency {
+                    ManifestDependency::RegistryDependency {
+                        version_req,
+                        ..
+                    } => version_req.matches(&candidate.1.basic_info.version),
+                    ManifestDependency::LocalDependency { .. } => {
+                        // For local dependencies, just return true to match all
+                        // versions.
+                        true
+                    }
+                };
+
+                if version_matches {
                     input_str.push_str(&format!(
         "depends_on_declared(\"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\").\n",
         dep_relationship.type_and_name.pkg_type,
@@ -364,10 +395,19 @@ fn create_input_str_for_dependency_relationship(
             }
         } else {
             return Err(anyhow!(
-                "Failed to find candidates for {}:{}@{}",
-                dep_relationship.dependency.type_and_name.pkg_type,
-                dep_relationship.dependency.type_and_name.name,
-                dep_relationship.version,
+                "Failed to find candidates for {}",
+                match &dep_relationship.dependency {
+                    ManifestDependency::RegistryDependency {
+                        pkg_type,
+                        name,
+                        ..
+                    } => format!(
+                        "{}:{} @ {}",
+                        pkg_type, name, dep_relationship.version
+                    ),
+                    ManifestDependency::LocalDependency { path, .. } =>
+                        format!("local:{} @ {}", path, dep_relationship.version),
+                }
             ));
         }
     }
@@ -387,18 +427,58 @@ fn create_input_str_for_pkg_info_dependencies(
     }
     dumped_pkgs_info.insert(pkg_info.into());
 
-    for dependency in &pkg_info.dependencies {
-        let candidates = all_candidates.get(&(dependency).into());
+    // Get dependencies from the manifest
+    if let Some(manifest) = &pkg_info.manifest {
+        if let Some(dependencies) = &manifest.dependencies {
+            for dependency in dependencies {
+                let pkg_type_and_name = match dependency {
+                    ManifestDependency::RegistryDependency {
+                        pkg_type,
+                        name,
+                        ..
+                    } => PkgTypeAndName {
+                        pkg_type: *pkg_type,
+                        name: name.clone(),
+                    },
+                    ManifestDependency::LocalDependency { path, base_dir } => {
+                        // Get type and name from the manifest.
+                        let abs_path =
+                            std::path::Path::new(base_dir).join(path);
+                        let dep_manifest_path =
+                            abs_path.join(MANIFEST_JSON_FILENAME);
 
-        if let Some(candidates) = candidates {
-            let mut found_matched = false;
+                        // Parse manifest to get type and name.
+                        let manifest =
+                            ten_rust::pkg_info::manifest::parse_manifest_from_file(
+                                &dep_manifest_path,
+                            )?;
+                        manifest.type_and_name
+                    }
+                };
 
-            for candidate in candidates {
-                if dependency
-                    .version_req
-                    .matches(&candidate.1.basic_info.version)
-                {
-                    input_str.push_str(&format!(
+                let candidates = all_candidates.get(&pkg_type_and_name);
+
+                if let Some(candidates) = candidates {
+                    let mut found_matched = false;
+
+                    for candidate in candidates {
+                        // Get version requirement from dependency.
+                        let version_matches = match dependency {
+                            ManifestDependency::RegistryDependency {
+                                version_req,
+                                ..
+                            } => version_req
+                                .matches(&candidate.1.basic_info.version),
+                            ManifestDependency::LocalDependency { .. } => {
+                                // For local dependencies, just return true to
+                                // match all
+                                // versions.
+                                true
+                            }
+                        };
+
+                        if version_matches {
+                            input_str.push_str(&format!(
         "depends_on_declared(\"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\").\n",
         pkg_info.basic_info.type_and_name.pkg_type,
         pkg_info.basic_info.type_and_name.name,
@@ -408,32 +488,56 @@ fn create_input_str_for_pkg_info_dependencies(
         candidate.1.basic_info.version,
                   ));
 
-                    create_input_str_for_pkg_info_dependencies(
-                        input_str,
-                        candidate.1,
-                        dumped_pkgs_info,
-                        all_candidates,
-                    )?;
+                            create_input_str_for_pkg_info_dependencies(
+                                input_str,
+                                candidate.1,
+                                dumped_pkgs_info,
+                                all_candidates,
+                            )?;
 
-                    found_matched = true;
+                            found_matched = true;
+                        }
+                    }
+
+                    if !found_matched {
+                        return Err(anyhow!(
+                            "Failed to find candidates for {}",
+                            match dependency {
+                                ManifestDependency::RegistryDependency {
+                                    pkg_type,
+                                    name,
+                                    version_req,
+                                } => format!(
+                                    "[{}]{} ({})",
+                                    pkg_type, name, version_req
+                                ),
+                                ManifestDependency::LocalDependency {
+                                    path,
+                                    ..
+                                } => format!("local:{}", path),
+                            }
+                        ));
+                    }
+                } else {
+                    return Err(anyhow!(
+                        "Failed to find candidates for {}",
+                        match dependency {
+                            ManifestDependency::RegistryDependency {
+                                pkg_type,
+                                name,
+                                version_req,
+                            } => format!(
+                                "{}:{} @ {}",
+                                pkg_type, name, version_req
+                            ),
+                            ManifestDependency::LocalDependency {
+                                path,
+                                ..
+                            } => format!("local:{}", path),
+                        }
+                    ));
                 }
             }
-
-            if !found_matched {
-                return Err(anyhow!(
-                    "Failed to find candidates for [{}]{}({})",
-                    dependency.type_and_name.pkg_type,
-                    dependency.type_and_name.name,
-                    dependency.version_req
-                ));
-            }
-        } else {
-            return Err(anyhow!(
-                "Failed to find candidates for {}:{}@{}",
-                dependency.type_and_name.pkg_type,
-                dependency.type_and_name.name,
-                dependency.version_req
-            ));
         }
     }
 

@@ -4,15 +4,13 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-use std::str::FromStr;
 
 use anyhow::{anyhow, Result};
 use semver::VersionReq;
 use serde::{Deserialize, Serialize};
 
 use super::{
-    constants::MANIFEST_JSON_FILENAME, pkg_type::PkgType,
-    pkg_type_and_name::PkgTypeAndName,
+    constants::MANIFEST_JSON_FILENAME, pkg_type_and_name::PkgTypeAndName,
 };
 use crate::pkg_info::manifest::{dependency::ManifestDependency, Manifest};
 
@@ -80,22 +78,23 @@ impl TryFrom<&ManifestDependency> for PkgDependency {
                 // specification to only support a single-range semver
                 // requirement, which is the common subset of both the npm
                 // semver package and the Rust semver crate.
-                if version.contains("||")
-                    || version.chars().any(|c| c.is_whitespace())
-                    || version.contains(",")
+                let version_str = version.to_string();
+                if version_str.contains("||")
+                    || version_str.chars().any(|c| c.is_whitespace())
+                    || version_str.contains(",")
                 {
                     return Err(anyhow!(
                         "Invalid version requirement '{}' in manifest: contains forbidden characters (||, whitespace, or ,)",
-                        version
+                        version_str
                     ));
                 }
 
                 Ok(PkgDependency {
                     type_and_name: PkgTypeAndName {
-                        pkg_type: PkgType::from_str(pkg_type)?,
+                        pkg_type: *pkg_type,
                         name: name.clone(),
                     },
-                    version_req: VersionReq::parse(version)?,
+                    version_req: version.clone(),
                     path: None,
                     base_dir: None,
                 })
@@ -173,19 +172,6 @@ impl TryFrom<&ManifestDependency> for PkgDependency {
     }
 }
 
-pub fn get_pkg_dependencies_from_manifest(
-    manifest: &Manifest,
-) -> Result<Vec<PkgDependency>> {
-    match &manifest.dependencies {
-        Some(manifest_dependencies) => {
-            Ok(get_pkg_dependencies_from_manifest_dependencies(
-                manifest_dependencies,
-            )?)
-        }
-        None => Ok(vec![]),
-    }
-}
-
 fn get_pkg_dependencies_from_manifest_dependencies(
     manifest_dependencies: &[ManifestDependency],
 ) -> Result<Vec<PkgDependency>> {
@@ -193,10 +179,4 @@ fn get_pkg_dependencies_from_manifest_dependencies(
         .iter()
         .map(PkgDependency::try_from)
         .collect()
-}
-
-pub fn get_manifest_dependencies_from_pkg(
-    pkg_dependencies: Vec<PkgDependency>,
-) -> Vec<ManifestDependency> {
-    pkg_dependencies.into_iter().map(|v| (&v).into()).collect()
 }

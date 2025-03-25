@@ -13,8 +13,9 @@ use indicatif::HumanDuration;
 use semver::VersionReq;
 
 use ten_rust::pkg_info::{
+    manifest::support::ManifestSupport,
     pkg_type::PkgType,
-    supports::{Arch, Os, PkgSupport},
+    supports::{Arch, Os},
 };
 
 use crate::{
@@ -26,7 +27,7 @@ use crate::{
 pub struct CreateCommand {
     pub pkg_type: PkgType,
     pub pkg_name: String,
-    pub support: PkgSupport,
+    pub support: ManifestSupport,
     pub template_name: String,
     pub template_version_req: VersionReq,
     pub template_data: HashMap<String, String>,
@@ -93,14 +94,15 @@ pub fn parse_sub_cmd(sub_cmd_args: &ArgMatches) -> Result<CreateCommand> {
         .cloned()
         .ok_or_else(|| anyhow!("Missing required argument: PACKAGE_NAME"))?;
 
-    let support = PkgSupport {
-        os: sub_cmd_args
-            .get_one::<String>("OS")
-            .and_then(|s| s.parse::<Os>().ok()),
-        arch: sub_cmd_args
-            .get_one::<String>("ARCH")
-            .and_then(|s| s.parse::<Arch>().ok()),
-    };
+    let os = sub_cmd_args
+        .get_one::<String>("OS")
+        .and_then(|s| s.parse::<Os>().ok());
+
+    let arch = sub_cmd_args
+        .get_one::<String>("ARCH")
+        .and_then(|s| s.parse::<Arch>().ok());
+
+    let support = ManifestSupport { os, arch };
 
     let mut cmd = CreateCommand {
         pkg_type,

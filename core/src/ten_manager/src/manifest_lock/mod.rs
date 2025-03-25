@@ -4,24 +4,34 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-use std::{collections::HashMap, fs, path::Path, str::FromStr};
+use std::collections::HashMap;
+use std::path::Path;
+use std::{fs, str::FromStr};
 
-use anyhow::{Ok, Result};
+use anyhow::Result;
 use console::Emoji;
 use semver::{Version, VersionReq};
 use serde::{Deserialize, Serialize};
 
 use ten_rust::json_schema::validate_manifest_lock_json_string;
-use ten_rust::pkg_info::constants::MANIFEST_LOCK_JSON_FILENAME;
-use ten_rust::pkg_info::dependencies::PkgDependency;
+use ten_rust::pkg_info::constants::{
+    MANIFEST_JSON_FILENAME, MANIFEST_LOCK_JSON_FILENAME,
+};
+use ten_rust::pkg_info::manifest::dependency::ManifestDependency;
 use ten_rust::pkg_info::manifest::support::ManifestSupport;
+use ten_rust::pkg_info::manifest::Manifest;
 use ten_rust::pkg_info::pkg_basic_info::PkgBasicInfo;
-use ten_rust::pkg_info::supports::{
-    get_manifest_supports_from_pkg, get_pkg_supports_from_manifest_supports,
-};
-use ten_rust::pkg_info::{
-    pkg_type::PkgType, pkg_type_and_name::PkgTypeAndName, PkgInfo,
-};
+use ten_rust::pkg_info::pkg_type::PkgType;
+use ten_rust::pkg_info::pkg_type_and_name::PkgTypeAndName;
+use ten_rust::pkg_info::PkgInfo;
+
+// Helper function to check if an Option<Vec> is None or an empty Vec.
+fn is_none_or_empty<T>(option: &Option<Vec<T>>) -> bool {
+    match option {
+        None => true,
+        Some(vec) => vec.is_empty(),
+    }
+}
 
 // The `manifest-lock.json` structure.
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -29,7 +39,7 @@ pub struct ManifestLock {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub version: Option<u32>,
 
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "is_none_or_empty")]
     pub packages: Option<Vec<ManifestLockItem>>,
 }
 
@@ -201,10 +211,10 @@ pub struct ManifestLockItem {
     pub version: Version,
     pub hash: String,
 
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "is_none_or_empty")]
     pub dependencies: Option<Vec<ManifestLockItemDependencyItem>>,
 
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "is_none_or_empty")]
     pub supports: Option<Vec<ManifestSupport>>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -230,39 +240,74 @@ impl TryFrom<&ManifestLockItem> for PkgBasicInfo {
             type_and_name: PkgTypeAndName::try_from(manifest)?,
             version: manifest.version.clone(),
             // If manifest.supports is None, then supports is an empty vector.
-            // Otherwise, convert the supports to a vector of PkgSupport.
-            supports: get_pkg_supports_from_manifest_supports(
-                &manifest.supports,
-            )?,
+            supports: manifest.supports.clone().unwrap_or_default(),
         })
     }
 }
 
 fn get_encodable_deps_from_pkg_deps(
-    pkg_deps: Vec<PkgDependency>,
+    manifest_deps: Vec<ManifestDependency>,
 ) -> Vec<ManifestLockItemDependencyItem> {
-    pkg_deps.into_iter().map(|dep| dep.into()).collect()
+    manifest_deps
+        .into_iter()
+        .map(|dep| match dep {
+            ManifestDependency::RegistryDependency {
+                pkg_type, name, ..
+            } => ManifestLockItemDependencyItem {
+                pkg_type: pkg_type.to_string(),
+                name,
+            },
+            ManifestDependency::LocalDependency { path, base_dir } => {
+                // For local dependencies, we need to extract info from the
+                // manifest.
+                let abs_path = std::path::Path::new(&base_dir).join(&path);
+                let dep_manifest_path = abs_path.join(MANIFEST_JSON_FILENAME);
+
+                let manifest_result =
+                    ten_rust::pkg_info::manifest::parse_manifest_from_file(
+                        &dep_manifest_path,
+                    );
+
+                match manifest_result {
+                    Ok(local_manifest) => ManifestLockItemDependencyItem {
+                        pkg_type: local_manifest
+                            .type_and_name
+                            .pkg_type
+                            .to_string(),
+                        name: local_manifest.type_and_name.name,
+                    },
+                    Err(_) => {
+                        // If we can't parse the manifest, use a placeholder.
+                        ManifestLockItemDependencyItem {
+                            pkg_type: "unknown".to_string(),
+                            name: path,
+                        }
+                    }
+                }
+            }
+        })
+        .collect()
 }
 
 impl<'a> From<&'a PkgInfo> for ManifestLockItem {
     fn from(pkg_info: &'a PkgInfo) -> Self {
+        let dependencies = match &pkg_info.manifest {
+            Some(manifest) => manifest
+                .dependencies
+                .as_ref()
+                .map(|deps| get_encodable_deps_from_pkg_deps(deps.clone())),
+            None => None,
+        };
+
         Self {
             pkg_type: pkg_info.basic_info.type_and_name.pkg_type.to_string(),
             name: pkg_info.basic_info.type_and_name.name.clone(),
             version: pkg_info.basic_info.version.clone(),
             hash: pkg_info.hash.to_string(),
-            dependencies: if pkg_info.dependencies.is_empty() {
-                None
-            } else {
-                Some(get_encodable_deps_from_pkg_deps(
-                    pkg_info.dependencies.clone(),
-                ))
-            },
+            dependencies,
             supports: match &pkg_info.basic_info.supports.len() {
                 0 => None,
-                _ => Some(get_manifest_supports_from_pkg(
-                    &pkg_info.basic_info.supports,
-                )),
+                _ => Some(pkg_info.basic_info.supports.clone()),
             },
             path: pkg_info.local_dependency_path.clone(),
         }
@@ -271,18 +316,51 @@ impl<'a> From<&'a PkgInfo> for ManifestLockItem {
 
 impl<'a> From<&'a ManifestLockItem> for PkgInfo {
     fn from(locked_item: &'a ManifestLockItem) -> Self {
+        use ten_rust::pkg_info::manifest::dependency::ManifestDependency;
+        use ten_rust::pkg_info::pkg_type_and_name::PkgTypeAndName;
+
+        let dependencies_option =
+            locked_item.clone().dependencies.map(|deps| {
+                deps.into_iter()
+                    .map(|dep| {
+                        let pkg_type = match PkgType::from_str(&dep.pkg_type) {
+                            Ok(pkg_type) => pkg_type,
+                            Err(_) => PkgType::Extension,
+                        };
+                        ManifestDependency::RegistryDependency {
+                            pkg_type,
+                            name: dep.name,
+                            // Default version requirement.
+                            version_req: VersionReq::parse("*").unwrap(),
+                        }
+                    })
+                    .collect()
+            });
+
+        let type_and_name = PkgTypeAndName {
+            pkg_type: PkgType::from_str(&locked_item.pkg_type)
+                .unwrap_or(PkgType::Extension),
+            name: locked_item.name.clone(),
+        };
+
+        // Create a manifest with the dependencies.
+        let manifest = Manifest {
+            type_and_name: type_and_name.clone(),
+            version: locked_item.version.clone(),
+            dependencies: dependencies_option,
+            supports: None,
+            api: None,
+            package: None,
+            scripts: None,
+        };
+
         PkgInfo {
             basic_info: PkgBasicInfo::try_from(locked_item).unwrap(),
-            dependencies: locked_item
-                .clone()
-                .dependencies
-                .map(|deps| deps.into_iter().map(|dep| (&dep).into()).collect())
-                .unwrap_or_default(),
             compatible_score: 0, // TODO(xilin): default value.
             is_installed: false,
             url: "".to_string(), // TODO(xilin): default value.
             hash: locked_item.hash.clone(),
-            manifest: None,
+            manifest: Some(manifest),
             property: None,
             schema_store: None,
 
@@ -299,27 +377,4 @@ pub struct ManifestLockItemDependencyItem {
     pub pkg_type: String,
 
     pub name: String,
-}
-
-impl From<PkgDependency> for ManifestLockItemDependencyItem {
-    fn from(pkg_dep: PkgDependency) -> Self {
-        ManifestLockItemDependencyItem {
-            pkg_type: pkg_dep.type_and_name.pkg_type.to_string(),
-            name: pkg_dep.type_and_name.name,
-        }
-    }
-}
-
-impl From<&ManifestLockItemDependencyItem> for PkgDependency {
-    fn from(dependency: &ManifestLockItemDependencyItem) -> Self {
-        PkgDependency {
-            type_and_name: PkgTypeAndName {
-                pkg_type: PkgType::from_str(&dependency.pkg_type).unwrap(),
-                name: dependency.name.clone(),
-            },
-            version_req: VersionReq::default(),
-            path: None,
-            base_dir: None,
-        }
-    }
 }

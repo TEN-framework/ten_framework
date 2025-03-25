@@ -2,11 +2,11 @@
   "extension": [
     {
       "name": "ext_a",
-      "version": "3.0.0"
+      "version": "^3.0.0"
     },
     {
       "name": "ext_b",
-      "version": "0.2.6"
+      "version": "^0.2.6"
     }
   ]
 }
