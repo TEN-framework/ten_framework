@@ -31,12 +31,13 @@ export function GHStargazersCount(props: {
 }) {
   const { owner, repo, className } = props;
 
+  const { i18n } = useTranslation();
   const { repository, error, isLoading } = useGHRepository(owner, repo);
   const {
     data: helpText,
     error: helpTextError,
     isLoading: helpTextIsLoading,
-  } = useHelpText(EHelpTextKey.TEN_FRAMEWORK);
+  } = useHelpText(EHelpTextKey.TEN_FRAMEWORK, i18n.language);
 
   const shouldFallbackMemo = React.useMemo(() => {
     return isLoading || error || !repository?.stargazers_count;
@@ -91,12 +92,12 @@ export function GHStargazersCount(props: {
 export function GHTryTENAgent(props: { className?: string }) {
   const { className } = props;
 
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const {
     data: helpText,
     error: helpTextError,
     isLoading: helpTextIsLoading,
-  } = useHelpText(EHelpTextKey.TEN_AGENT);
+  } = useHelpText(EHelpTextKey.TEN_AGENT, i18n.language);
 
   React.useEffect(() => {
     if (helpTextError) {
