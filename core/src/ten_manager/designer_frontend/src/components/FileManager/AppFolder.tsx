@@ -9,6 +9,7 @@ import { FolderClosedIcon, FileIcon, FolderOpenIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
 import { SpinnerLoading } from "@/components/Status/Loading";
 import { cn } from "@/lib/utils";
 import type { IFMItem } from "@/components/FileManager/utils";
@@ -186,14 +187,6 @@ export function FileManager(props: {
         })[][]
       )
       .reverse();
-    console.log(
-      "selectedPathDepth",
-      selectedPathDepth,
-      "currentPathDepth",
-      currentPathDepth,
-      data,
-      filteredData
-    );
     return filteredData;
   }, [data, selectedPath]);
 
@@ -205,21 +198,7 @@ export function FileManager(props: {
 
   return (
     <div className={cn("w-full h-full space-y-2", className)}>
-      <div
-        className={cn(
-          "w-full h-10 bg-gray-50 dark:bg-gray-900 rounded-lg",
-          "px-4 flex items-center select-text"
-        )}
-      >
-        <span
-          className={cn(
-            "text-xs text-gray-500 dark:text-gray-400",
-            "whitespace-nowrap overflow-x-scroll"
-          )}
-        >
-          {selectedPath}
-        </span>
-      </div>
+      <Input className="h-10" value={selectedPath} readOnly />
       <div
         className={cn(
           "flex py-2 w-full h-[calc(100%-3rem)]",
