@@ -22,6 +22,9 @@ use serde::{Deserialize, Serialize};
     Deserialize,
 )]
 pub enum PkgType {
+    #[serde(rename = "invalid")]
+    Invalid,
+
     #[serde(rename = "system")]
     System,
 
@@ -56,6 +59,7 @@ impl FromStr for PkgType {
 impl fmt::Display for PkgType {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
+            PkgType::Invalid => write!(f, "invalid"),
             PkgType::System => write!(f, "system"),
             PkgType::App => write!(f, "app"),
             PkgType::Extension => write!(f, "extension"),

@@ -19,6 +19,15 @@ pub struct PkgTypeAndName {
     pub name: String,
 }
 
+impl Default for PkgTypeAndName {
+    fn default() -> Self {
+        Self {
+            pkg_type: PkgType::Invalid,
+            name: String::new(),
+        }
+    }
+}
+
 impl Hash for PkgTypeAndName {
     fn hash<H: Hasher>(&self, state: &mut H) {
         self.pkg_type.hash(state);

@@ -15,7 +15,9 @@ use std::{fmt, fs, path::Path, str::FromStr};
 use anyhow::{anyhow, Context, Result};
 use semver::Version;
 use serde::{Deserialize, Serialize};
+use serde_json::{Map, Value};
 
+use crate::pkg_info::pkg_type::PkgType;
 use crate::pkg_info::utils::read_file_to_string;
 use crate::{json_schema, pkg_info::constants::MANIFEST_JSON_FILENAME};
 use api::ManifestApi;
@@ -25,55 +27,91 @@ use support::ManifestSupport;
 
 use super::pkg_type_and_name::PkgTypeAndName;
 
-// Helper module for serializing and deserializing Version.
-mod version_serde {
-    use semver::Version;
-    use serde::{Deserialize, Deserializer, Serializer};
-
-    pub fn serialize<S>(
-        version: &Version,
-        serializer: S,
-    ) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        serializer.serialize_str(&version.to_string())
-    }
-
-    pub fn deserialize<'de, D>(deserializer: D) -> Result<Version, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        let s = String::deserialize(deserializer)?;
-        Version::parse(&s).map_err(serde::de::Error::custom)
-    }
-}
-
 // Define a structure that mirrors the structure of the JSON file.
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Debug, Clone)]
 pub struct Manifest {
-    #[serde(flatten)]
     pub type_and_name: PkgTypeAndName,
-
-    #[serde(with = "version_serde")]
     pub version: Version,
-
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub dependencies: Option<Vec<ManifestDependency>>,
 
     // Note: For future extensions, use the 'features' field to describe the
     // functionality of each package.
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub supports: Option<Vec<ManifestSupport>>,
-
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub api: Option<ManifestApi>,
-
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub package: Option<PackageConfig>,
-
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub scripts: Option<HashMap<String, String>>,
+
+    /// All fields from manifest.json, stored with order preserved.
+    pub all_fields: Map<String, Value>,
+}
+
+impl Serialize for Manifest {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        self.all_fields.serialize(serializer)
+    }
+}
+
+impl<'de> Deserialize<'de> for Manifest {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        let all_fields = Map::deserialize(deserializer)?;
+
+        // Now extract the fields from all_fields
+        let type_and_name = extract_type_and_name(&all_fields)
+            .map_err(serde::de::Error::custom)?;
+        let version =
+            extract_version(&all_fields).map_err(serde::de::Error::custom)?;
+        let dependencies = extract_dependencies(&all_fields)
+            .map_err(serde::de::Error::custom)?;
+        let supports =
+            extract_supports(&all_fields).map_err(serde::de::Error::custom)?;
+        let api = extract_api(&all_fields).map_err(serde::de::Error::custom)?;
+        let package =
+            extract_package(&all_fields).map_err(serde::de::Error::custom)?;
+        let scripts =
+            extract_scripts(&all_fields).map_err(serde::de::Error::custom)?;
+
+        Ok(Manifest {
+            type_and_name,
+            version,
+            dependencies,
+            supports,
+            api,
+            package,
+            scripts,
+            all_fields,
+        })
+    }
+}
+
+impl Default for Manifest {
+    fn default() -> Self {
+        let mut all_fields = Map::new();
+        all_fields
+            .insert("type".to_string(), Value::String("invalid".to_string()));
+        all_fields.insert("name".to_string(), Value::String(String::new()));
+        all_fields
+            .insert("version".to_string(), Value::String("0.0.0".to_string()));
+
+        Self {
+            type_and_name: PkgTypeAndName {
+                pkg_type: PkgType::Invalid,
+                name: String::new(),
+            },
+            version: Version::new(0, 0, 0),
+            dependencies: None,
+            supports: None,
+            api: None,
+            package: None,
+            scripts: None,
+            all_fields,
+        }
+    }
 }
 
 impl FromStr for Manifest {
@@ -81,18 +119,135 @@ impl FromStr for Manifest {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let value: serde_json::Value = serde_json::from_str(s)?;
+        let all_fields = match value {
+            Value::Object(map) => map,
+            _ => return Err(anyhow!("Expected JSON object")),
+        };
 
-        // Now parse the complete manifest.
-        let manifest: Manifest = serde_json::from_value(value)?;
+        // Extract key fields into the struct fields for easier access.
+        let type_and_name = extract_type_and_name(&all_fields)?;
+        let version = extract_version(&all_fields)?;
+        let dependencies = extract_dependencies(&all_fields)?;
+        let supports = extract_supports(&all_fields)?;
+        let api = extract_api(&all_fields)?;
+        let package = extract_package(&all_fields)?;
+        let scripts = extract_scripts(&all_fields)?;
 
-        // Return the parsed data.
+        // Create manifest with all fields.
+        let manifest = Manifest {
+            type_and_name,
+            version,
+            dependencies,
+            supports,
+            api,
+            package,
+            scripts,
+            all_fields,
+        };
+
         Ok(manifest)
+    }
+}
+
+fn extract_type_and_name(map: &Map<String, Value>) -> Result<PkgTypeAndName> {
+    let pkg_type = if let Some(Value::String(t)) = map.get("type") {
+        PkgType::from_str(t)?
+    } else {
+        return Err(anyhow!("Missing or invalid 'type' field"));
+    };
+
+    let name = if let Some(Value::String(n)) = map.get("name") {
+        n.clone()
+    } else {
+        return Err(anyhow!("Missing or invalid 'name' field"));
+    };
+
+    Ok(PkgTypeAndName { pkg_type, name })
+}
+
+fn extract_version(map: &Map<String, Value>) -> Result<Version> {
+    if let Some(Value::String(v)) = map.get("version") {
+        Version::parse(v).map_err(|e| anyhow!("Invalid version: {}", e))
+    } else {
+        Err(anyhow!("Missing or invalid 'version' field"))
+    }
+}
+
+fn extract_dependencies(
+    map: &Map<String, Value>,
+) -> Result<Option<Vec<ManifestDependency>>> {
+    if let Some(Value::Array(deps)) = map.get("dependencies") {
+        let mut result = Vec::new();
+        for dep in deps {
+            let dep_value = serde_json::from_value(dep.clone())?;
+            result.push(dep_value);
+        }
+        Ok(Some(result))
+    } else if map.contains_key("dependencies") {
+        Err(anyhow!("'dependencies' field is not an array"))
+    } else {
+        Ok(None)
+    }
+}
+
+fn extract_supports(
+    map: &Map<String, Value>,
+) -> Result<Option<Vec<ManifestSupport>>> {
+    if let Some(Value::Array(supports)) = map.get("supports") {
+        let mut result = Vec::new();
+        for support in supports {
+            let support_value = serde_json::from_value(support.clone())?;
+            result.push(support_value);
+        }
+        Ok(Some(result))
+    } else if map.contains_key("supports") {
+        Err(anyhow!("'supports' field is not an array"))
+    } else {
+        Ok(None)
+    }
+}
+
+fn extract_api(map: &Map<String, Value>) -> Result<Option<ManifestApi>> {
+    if let Some(api_value) = map.get("api") {
+        let api = serde_json::from_value(api_value.clone())?;
+        Ok(Some(api))
+    } else {
+        Ok(None)
+    }
+}
+
+fn extract_package(map: &Map<String, Value>) -> Result<Option<PackageConfig>> {
+    if let Some(package_value) = map.get("package") {
+        let package = serde_json::from_value(package_value.clone())?;
+        Ok(Some(package))
+    } else {
+        Ok(None)
+    }
+}
+
+fn extract_scripts(
+    map: &Map<String, Value>,
+) -> Result<Option<HashMap<String, String>>> {
+    if let Some(Value::Object(scripts_map)) = map.get("scripts") {
+        let mut result = HashMap::new();
+        for (key, value) in scripts_map {
+            if let Value::String(script) = value {
+                result.insert(key.clone(), script.clone());
+            } else {
+                return Err(anyhow!("Script value must be a string"));
+            }
+        }
+        Ok(Some(result))
+    } else if map.contains_key("scripts") {
+        Err(anyhow!("'scripts' field is not an object"))
+    } else {
+        Ok(None)
     }
 }
 
 impl fmt::Display for Manifest {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match serde_json::to_string_pretty(&self) {
+        match serde_json::to_string_pretty(&self.all_fields) {
             Ok(json_str) => write!(f, "{}", json_str),
             Err(_) => write!(f, "Failed to serialize manifest"),
         }
@@ -192,13 +347,8 @@ pub fn parse_manifest_from_file<P: AsRef<Path>>(
     // Read the contents of the manifest.json file.
     let content = read_file_to_string(&manifest_file_path)?;
 
-    let mut manifest: Manifest =
-        serde_json::from_str(&content).with_context(|| {
-            format!(
-                "Failed to parse JSON from '{}'",
-                manifest_file_path.as_ref().display()
-            )
-        })?;
+    // Parse the content into a Manifest.
+    let mut manifest: Manifest = content.parse()?;
 
     // Get the parent directory of the manifest file to use as base_dir for
     // local dependencies.

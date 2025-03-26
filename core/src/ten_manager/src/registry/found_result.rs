@@ -6,6 +6,7 @@
 //
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
+use serde_json;
 
 use ten_rust::pkg_info::manifest::dependency::ManifestDependency;
 use ten_rust::pkg_info::manifest::Manifest;
@@ -110,6 +111,45 @@ impl From<&PkgRegistryInfo> for PkgInfo {
             api: None,
             package: None,
             scripts: None,
+            all_fields: {
+                let mut map = serde_json::Map::new();
+
+                // Add type and name from PkgTypeAndName.
+                let type_and_name = &pkg_registry_info.basic_info.type_and_name;
+                map.insert(
+                    "type".to_string(),
+                    serde_json::Value::String(
+                        type_and_name.pkg_type.to_string(),
+                    ),
+                );
+                map.insert(
+                    "name".to_string(),
+                    serde_json::Value::String(type_and_name.name.clone()),
+                );
+
+                // Add version.
+                map.insert(
+                    "version".to_string(),
+                    serde_json::Value::String(
+                        pkg_registry_info.basic_info.version.to_string(),
+                    ),
+                );
+
+                // Add dependencies.
+                let deps_json =
+                    serde_json::to_value(&pkg_registry_info.dependencies)
+                        .unwrap_or(serde_json::Value::Array(vec![]));
+                map.insert("dependencies".to_string(), deps_json);
+
+                // Add supports.
+                let supports_json = serde_json::to_value(
+                    &pkg_registry_info.basic_info.supports,
+                )
+                .unwrap_or(serde_json::Value::Array(vec![]));
+                map.insert("supports".to_string(), supports_json);
+
+                map
+            },
         };
 
         pkg_info.manifest = Some(manifest);
