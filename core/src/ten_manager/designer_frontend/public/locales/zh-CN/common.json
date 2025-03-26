@@ -79,7 +79,8 @@
     "stop": "停止",
     "search": "搜索",
     "current": "当前",
-    "run": "运行"
+    "run": "运行",
+    "viewDetails": "查看详情"
   },
   "toast": {
     "saveFileSuccess": "文件保存成功",
@@ -99,7 +100,8 @@
     "customNodeConn": {
       "srcTitle": "节点[{{source}}]连接",
       "connectTitle": "连接详情",
-      "title": "连接"
+      "title": "连接",
+      "filters": "过滤器"
     },
     "logViewer": {
       "title": "日志查看器",

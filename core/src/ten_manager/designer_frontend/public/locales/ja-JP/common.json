@@ -79,7 +79,8 @@
     "stop": "停止",
     "search": "検索",
     "current": "現在",
-    "run": "実行"
+    "run": "実行",
+    "viewDetails": "詳細を表示"
   },
   "toast": {
     "saveFileSuccess": "ファイルの保存に成功しました",
@@ -99,7 +100,8 @@
     "customNodeConn": {
       "srcTitle": "ノード[{{source}}]の接続",
       "connectTitle": "接続の詳細",
-      "title": "接続"
+      "title": "接続",
+      "filters": "フィルター"
     },
     "logViewer": {
       "title": "ログビューア",
