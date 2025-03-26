@@ -54,8 +54,12 @@ impl Graph {
     ) -> Option<&'a TenSchema> {
         // Attempt to find the addon package. If not found, return None.
         let addon_pkg = app_installed_pkgs.iter().find(|pkg| {
-            pkg.basic_info.type_and_name.pkg_type == PkgType::Extension
-                && pkg.basic_info.type_and_name.name == addon
+            if let Some(manifest) = &pkg.manifest {
+                manifest.type_and_name.pkg_type == PkgType::Extension
+                    && manifest.type_and_name.name == addon
+            } else {
+                false
+            }
         })?;
 
         // Access the schema_store. If it's None, propagate None.
@@ -142,8 +146,12 @@ impl Graph {
     ) -> Option<&'a CmdSchema> {
         // Attempt to find the addon package. If not found, return None.
         let addon_pkg = app_installed_pkgs.iter().find(|pkg| {
-            pkg.basic_info.type_and_name.pkg_type == PkgType::Extension
-                && pkg.basic_info.type_and_name.name == addon
+            if let Some(manifest) = &pkg.manifest {
+                manifest.type_and_name.pkg_type == PkgType::Extension
+                    && manifest.type_and_name.name == addon
+            } else {
+                false
+            }
         })?;
 
         // Access the schema_store. If it's None, propagate None.

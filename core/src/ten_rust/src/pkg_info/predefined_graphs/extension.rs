@@ -35,10 +35,13 @@ pub fn get_extension_nodes_in_graph(
     all_pkgs: &[PkgInfo],
 ) -> Result<Vec<GraphNode>> {
     // Find the application package within the `all_pkgs`.
-    if let Some(app_pkg) = all_pkgs
-        .iter()
-        .find(|pkg| pkg.basic_info.type_and_name.pkg_type == PkgType::App)
-    {
+    if let Some(app_pkg) = all_pkgs.iter().find(|pkg| {
+        if let Some(manifest) = &pkg.manifest {
+            manifest.type_and_name.pkg_type == PkgType::App
+        } else {
+            false
+        }
+    }) {
         if app_pkg.property.is_none() {
             return Err(anyhow::anyhow!(
                 "Property information is missing".to_string(),
@@ -88,8 +91,12 @@ pub fn get_pkg_info_for_extension<'a>(
     all_pkgs: &'a [PkgInfo],
 ) -> Option<&'a PkgInfo> {
     all_pkgs.iter().find(|pkg| {
-        pkg.basic_info.type_and_name.pkg_type == PkgType::Extension
-            && pkg.basic_info.type_and_name.name == extension.addon
+        if let Some(manifest) = &pkg.manifest {
+            manifest.type_and_name.pkg_type == PkgType::Extension
+                && manifest.type_and_name.name == extension.addon
+        } else {
+            false
+        }
     })
 }
 

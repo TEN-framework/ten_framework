@@ -40,9 +40,18 @@ impl From<&Manifest> for PkgTypeAndName {
 
 impl From<&PkgInfo> for PkgTypeAndName {
     fn from(pkg_info: &PkgInfo) -> Self {
-        PkgTypeAndName {
-            pkg_type: pkg_info.basic_info.type_and_name.pkg_type,
-            name: pkg_info.basic_info.type_and_name.name.clone(),
+        if let Some(manifest) = &pkg_info.manifest {
+            manifest.type_and_name.clone()
+        } else {
+            // This is a fallback case that should not happen in practice
+            // but is necessary to maintain compatibility.
+            panic!("PkgInfo does not contain a manifest.");
+
+            #[allow(unreachable_code)]
+            PkgTypeAndName {
+                pkg_type: PkgType::Extension, // Default type.
+                name: String::new(),
+            }
         }
     }
 }

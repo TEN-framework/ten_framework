@@ -127,7 +127,6 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/')
         run: |
           cd out/mac/arm64
-          zip -vr tman-mac-${{ matrix.build_type }}-arm64.zip ten_manager/bin/tman
           zip -vr ten_packages-mac-${{ matrix.build_type }}-arm64.zip \
             app/default_app_cpp \
             app/default_app_go \
@@ -143,7 +142,6 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/')
         with:
           files: |
-            out/mac/arm64/tman-mac-${{ matrix.build_type }}-arm64.zip
             out/mac/arm64/ten_packages-mac-${{ matrix.build_type }}-arm64.zip
 
   test-standalone:
@@ -288,8 +286,8 @@ jobs:
           chmod +x unit_test
           chmod +x integration_test
 
-          ./unit_test || { echo "ten_rust unit test failed"; exit 1; }
-          ./integration_test || { echo "ten_rust integration test failed"; exit 1; }
+          ./unit_test --nocapture || { echo "ten_rust unit test failed"; exit 1; }
+          ./integration_test --nocapture || { echo "ten_rust integration test failed"; exit 1; }
 
           df -h .
 
@@ -305,8 +303,8 @@ jobs:
           chmod +x unit_test
           chmod +x integration_test
 
-          ./unit_test || { echo "ten_manager unit test failed"; exit 1; }
-          ./integration_test || { echo "ten_manager integration test failed"; exit 1; }
+          ./unit_test --nocapture || { echo "ten_manager unit test failed"; exit 1; }
+          ./integration_test --nocapture || { echo "ten_manager integration test failed"; exit 1; }
 
           df -h .
 

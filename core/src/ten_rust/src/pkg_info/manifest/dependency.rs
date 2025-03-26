@@ -35,35 +35,22 @@ pub enum ManifestDependency {
 
 impl From<&PkgInfo> for ManifestDependency {
     fn from(pkg_info: &PkgInfo) -> Self {
-        if pkg_info.is_local_dependency {
-            ManifestDependency::LocalDependency {
-                path: {
-                    assert!(
-                        pkg_info.local_dependency_path.is_some(),
-                        "Should not happen."
-                    );
-
-                    pkg_info.local_dependency_path.as_ref().unwrap().clone()
-                },
-                base_dir: {
-                    assert!(
-                        pkg_info.local_dependency_base_dir.is_some(),
-                        "Should not happen."
-                    );
-
-                    pkg_info.local_dependency_base_dir.as_ref().unwrap().clone()
-                },
+        if let Some(manifest) = &pkg_info.manifest {
+            ManifestDependency::RegistryDependency {
+                pkg_type: manifest.type_and_name.pkg_type,
+                name: manifest.type_and_name.name.clone(),
+                version_req: VersionReq::parse(&format!(
+                    "{}",
+                    manifest.version
+                ))
+                .unwrap(),
             }
         } else {
+            // This should not happen in practice but we need a fallback
             ManifestDependency::RegistryDependency {
-                pkg_type: pkg_info.basic_info.type_and_name.pkg_type,
-                name: pkg_info.basic_info.type_and_name.name.clone(),
-
-                // Use the package's version as the declared dependency version.
-                version_req: VersionReq::parse(
-                    &pkg_info.basic_info.version.to_string(),
-                )
-                .unwrap(),
+                pkg_type: PkgType::Extension,
+                name: String::new(),
+                version_req: VersionReq::parse("=0.0.0").unwrap(),
             }
         }
     }

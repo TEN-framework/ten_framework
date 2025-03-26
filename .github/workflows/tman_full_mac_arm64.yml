@@ -18,7 +18,7 @@ jobs:
     runs-on: macos-latest
     strategy:
       matrix:
-        build_type: [debug, release]
+        build_type: [release]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -92,7 +92,7 @@ jobs:
             EXTRA_ARGS="ten_enable_python_binding=true ten_enable_advanced_python_integration_tests=false"
           fi
 
-          tgn gen mac arm64 ${{ matrix.build_type }} -- log_level=1 enable_serialized_actions=true ten_enable_serialized_rust_action=true ten_rust_enable_gen_cargo_config=false ten_enable_cargo_clean=true ten_enable_rust_incremental_build=false ten_manager_enable_frontend=false ten_enable_integration_tests_prebuilt=false ten_enable_nodejs_binding=false ten_enable_ten_rust=true ten_enable_ten_manager=true $EXTRA_ARGS
+          tgn gen mac arm64 ${{ matrix.build_type }} -- log_level=1 enable_serialized_actions=true ten_enable_serialized_rust_action=true ten_rust_enable_gen_cargo_config=false ten_enable_cargo_clean=true ten_enable_rust_incremental_build=false ten_manager_enable_frontend=true ten_enable_integration_tests_prebuilt=false ten_enable_nodejs_binding=false ten_enable_ten_rust=true ten_enable_ten_manager=true $EXTRA_ARGS
 
           tgn build:ten_manager_package mac arm64 ${{ matrix.build_type }}
 
@@ -113,3 +113,63 @@ jobs:
         with:
           files: |
             out/mac/arm64/tman-mac-${{ matrix.build_type }}-arm64.zip
+
+      - name: Install Playwright Browsers
+        run: |
+          cd core/src/ten_manager/designer_frontend
+          npx playwright install --with-deps
+
+      - name: Run Playwright tests
+        run: |
+          # Start the tman designer backend
+          cd ${GITHUB_WORKSPACE}/out/mac/arm64/ten_manager/bin
+          ./tman --verbose designer &
+          TMAN_PID=$!
+          echo "Started tman designer with PID $TMAN_PID"
+
+          # Start the frontend preview server
+          cd ${GITHUB_WORKSPACE}/core/src/ten_manager/designer_frontend
+          # bun run preview &
+          # PREVIEW_PID=$!
+          # echo "Started frontend preview server with PID $PREVIEW_PID"
+
+          # Wait for the server to be available (max 30 seconds)
+          echo "Waiting for server to be available..."
+          timeout=30
+          while [ $timeout -gt 0 ]; do
+            if curl -s http://127.0.0.1:49483/ > /dev/null; then
+              echo "Server is up and running!"
+              break
+            fi
+            echo "Server not ready yet, waiting... ($timeout seconds left)"
+            sleep 1
+            timeout=$((timeout-1))
+          done
+
+          if [ $timeout -eq 0 ]; then
+            echo "Timed out waiting for server to start"
+            echo "Checking if tman designer is running:"
+            ps -p $TMAN_PID || true
+            # echo "Checking if preview server is running:"
+            # ps -p $PREVIEW_PID || true
+            exit 1
+          fi
+
+          # Run the tests
+          npx playwright test
+          TEST_EXIT_CODE=$?
+
+          # Cleanup background processes
+          kill $TMAN_PID || true
+          # kill $PREVIEW_PID || true
+
+          # Return the test exit code
+          exit $TEST_EXIT_CODE
+
+      - name: Upload tests relevant artifacts
+        uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: playwright-report-${{ matrix.build_type }}-mac-arm64
+          path: core/src/ten_manager/designer_frontend/playwright-report/
+          retention-days: 7

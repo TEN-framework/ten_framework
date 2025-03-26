@@ -16,6 +16,7 @@ use std::{
 
 use anyhow::{anyhow, Context, Result};
 use console::Emoji;
+use semver::Version;
 use tempfile::NamedTempFile;
 
 use ten_rust::pkg_info::{
@@ -136,9 +137,9 @@ async fn install_non_local_dependency_pkg_info(
     let mut temp_file = NamedTempFile::new()?;
     get_package(
         tman_config,
-        &pkg_info.basic_info.type_and_name.pkg_type,
-        &pkg_info.basic_info.type_and_name.name,
-        &pkg_info.basic_info.version,
+        &get_pkg_type(pkg_info),
+        &get_pkg_name(pkg_info),
+        &get_pkg_version(pkg_info),
         &pkg_info.url,
         &mut temp_file,
         out,
@@ -155,8 +156,8 @@ async fn install_non_local_dependency_pkg_info(
         .map_err(|e| {
             anyhow::anyhow!(
                 "Failed to check property.json for {}:{}, {}",
-                pkg_info.basic_info.type_and_name.pkg_type,
-                pkg_info.basic_info.type_and_name.name,
+                get_pkg_type(pkg_info),
+                get_pkg_name(pkg_info),
                 e
             )
         })?;
@@ -180,15 +181,14 @@ pub async fn install_pkg_info(
         if tman_config.verbose {
             out.normal_line(&format!(
                 "{}:{} has already been installed.",
-                pkg_info.basic_info.type_and_name.pkg_type,
-                pkg_info.basic_info.type_and_name.name
+                get_pkg_type(pkg_info),
+                get_pkg_name(pkg_info)
             ));
         }
         return Ok(());
     }
 
-    let target_path = PathBuf::from(&base_dir)
-        .join(pkg_info.basic_info.type_and_name.name.clone());
+    let target_path = PathBuf::from(&base_dir).join(get_pkg_name(pkg_info));
 
     let dest_dir_path = target_path.to_string_lossy().to_string();
 
@@ -237,7 +237,7 @@ fn update_package_manifest(
                     };
 
                     if manifest_dependency_type_and_name
-                        == added_dependency.basic_info.type_and_name
+                        == PkgTypeAndName::from(added_dependency)
                     {
                         if !added_dependency.is_local_dependency {
                             is_present = true;
@@ -263,8 +263,15 @@ fn update_package_manifest(
                             }
                         };
 
-                    if manifest_dependency_pkg_info.basic_info.type_and_name
-                        == added_dependency.basic_info.type_and_name
+                    if manifest_dependency_pkg_info
+                        .manifest
+                        .as_ref()
+                        .is_some_and(|m| {
+                            m.type_and_name.pkg_type
+                                == get_pkg_type(added_dependency)
+                                && m.type_and_name.name
+                                    == get_pkg_name(added_dependency)
+                        })
                     {
                         if added_dependency.is_local_dependency {
                             assert!(
@@ -437,7 +444,7 @@ pub fn filter_compatible_pkgs_to_candidates(
         }
 
         let compatible_score = is_manifest_supports_compatible_with(
-            &existed_pkg.basic_info.supports,
+            &get_pkg_supports(existed_pkg),
             support,
         );
 
@@ -447,8 +454,8 @@ pub fn filter_compatible_pkgs_to_candidates(
             if tman_config.verbose {
                 out.normal_line(&format!(
                     "The existed {} package {} is compatible with the current system.",
-                    existed_pkg.basic_info.type_and_name.pkg_type,
-                    existed_pkg.basic_info.type_and_name.name
+                    get_pkg_type(existed_pkg),
+                    get_pkg_name(existed_pkg)
                 ));
             }
 
@@ -463,8 +470,8 @@ pub fn filter_compatible_pkgs_to_candidates(
                 out.normal_line(&format!(
                     "The existed {} package {} is not compatible with the current \
                 system.",
-                    existed_pkg.basic_info.type_and_name.pkg_type,
-                    existed_pkg.basic_info.type_and_name.name
+                    get_pkg_type(existed_pkg),
+                    get_pkg_name(existed_pkg)
                 ));
             }
         }
@@ -472,9 +479,7 @@ pub fn filter_compatible_pkgs_to_candidates(
 }
 
 fn get_supports_str(pkg: &PkgInfo) -> String {
-    let support_items: Vec<String> = pkg
-        .basic_info
-        .supports
+    let support_items: Vec<String> = get_pkg_supports(pkg)
         .iter()
         .filter_map(|s| match (s.os.as_ref(), s.arch.as_ref()) {
             (Some(os), Some(arch)) => {
@@ -512,9 +517,9 @@ pub fn compare_solver_results_with_installed_pkgs(
         for pkg in untracked_local_pkgs {
             out.normal_line(&format!(
                 " {}:{}@{}",
-                pkg.basic_info.type_and_name.pkg_type,
-                pkg.basic_info.type_and_name.name,
-                pkg.basic_info.version
+                get_pkg_type(pkg),
+                get_pkg_name(pkg),
+                get_pkg_version(pkg)
             ));
         }
     }
@@ -538,28 +543,54 @@ pub fn compare_solver_results_with_installed_pkgs(
             if old_supports_str != new_supports_str {
                 out.normal_line(&format!(
                     " {}:{}@{}{} -> {}:{}@{}{}",
-                    old_pkg.basic_info.type_and_name.pkg_type,
-                    old_pkg.basic_info.type_and_name.name,
-                    old_pkg.basic_info.version,
+                    get_pkg_type(old_pkg),
+                    get_pkg_name(old_pkg),
+                    get_pkg_version(old_pkg),
                     old_supports_str,
-                    new_pkg.basic_info.type_and_name.pkg_type,
-                    new_pkg.basic_info.type_and_name.name,
-                    new_pkg.basic_info.version,
+                    get_pkg_type(new_pkg),
+                    get_pkg_name(new_pkg),
+                    get_pkg_version(new_pkg),
                     new_supports_str
                 ));
             } else {
                 out.normal_line(&format!(
                     " {}:{}@{} -> {}:{}@{}",
-                    old_pkg.basic_info.type_and_name.pkg_type,
-                    old_pkg.basic_info.type_and_name.name,
-                    old_pkg.basic_info.version,
-                    new_pkg.basic_info.type_and_name.pkg_type,
-                    new_pkg.basic_info.type_and_name.name,
-                    new_pkg.basic_info.version
+                    get_pkg_type(old_pkg),
+                    get_pkg_name(old_pkg),
+                    get_pkg_version(old_pkg),
+                    get_pkg_type(new_pkg),
+                    get_pkg_name(new_pkg),
+                    get_pkg_version(new_pkg)
                 ));
             }
         }
     }
 
     conflict
+}
+
+// Helper function for accessing type and name and version
+fn get_pkg_type(pkg: &PkgInfo) -> PkgType {
+    pkg.manifest
+        .as_ref()
+        .map_or(PkgType::Extension, |m| m.type_and_name.pkg_type)
+}
+
+fn get_pkg_name(pkg: &PkgInfo) -> String {
+    pkg.manifest
+        .as_ref()
+        .map_or("unknown".to_string(), |m| m.type_and_name.name.clone())
+}
+
+fn get_pkg_version(pkg: &PkgInfo) -> Version {
+    pkg.manifest
+        .as_ref()
+        .map_or_else(|| Version::new(0, 0, 0), |m| m.version.clone())
+}
+
+fn get_pkg_supports(pkg: &PkgInfo) -> Vec<ManifestSupport> {
+    pkg.manifest
+        .as_ref()
+        .and_then(|m| m.supports.as_ref())
+        .map_or_else(Vec::new, |s| s.clone())
 }

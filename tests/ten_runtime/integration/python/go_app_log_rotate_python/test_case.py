@@ -202,6 +202,17 @@ def test_go_app_log_rotate_python():
         assert os.path.exists(os.path.join(app_root_path, "test.log.1"))
         assert os.path.exists(os.path.join(app_root_path, "test.log.2"))
 
+        # Print log file contents regardless of test outcome.
+        for log_file in ["test.log.1", "test.log.2", "test.log"]:
+            file_path = os.path.join(app_root_path, log_file)
+            print(f"\n----- Contents of {log_file} -----")
+            try:
+                with open(file_path, "r", encoding="utf-8") as f:
+                    print(f.read())
+            except Exception as e:
+                print(f"Error reading {log_file}: {e}")
+            print(f"----- End of {log_file} -----\n")
+
         if build_config_args.ten_enable_tests_cleanup is True:
             # Testing complete. If builds are only created during the testing
             # phase, we can clear the build results to save disk space.

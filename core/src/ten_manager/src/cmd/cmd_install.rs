@@ -18,7 +18,7 @@ use console::Emoji;
 use indicatif::HumanDuration;
 use inquire::Confirm;
 
-use semver::VersionReq;
+use semver::{Version, VersionReq};
 use ten_rust::pkg_info::{
     constants::{BUILD_GN_FILENAME, MANIFEST_JSON_FILENAME},
     manifest::dependency::ManifestDependency,
@@ -491,10 +491,20 @@ pub async fn execute_cmd(
         let local_pkg_info =
             get_pkg_info_from_path(&local_manifest_dir, false)?;
 
-        installing_pkg_type =
-            Some(local_pkg_info.basic_info.type_and_name.pkg_type);
-        installing_pkg_name =
-            Some(local_pkg_info.basic_info.type_and_name.name.clone());
+        installing_pkg_type = Some(
+            local_pkg_info
+                .manifest
+                .as_ref()
+                .map_or(PkgType::Extension, |m| m.type_and_name.pkg_type),
+        );
+        installing_pkg_name = Some(
+            local_pkg_info
+                .manifest
+                .as_ref()
+                .map_or("unknown".to_string(), |m| {
+                    m.type_and_name.name.clone()
+                }),
+        );
 
         // Currently, tman uses the Rust semver crate, while the cloud store
         // uses the npm semver package. The semver requirement specifications of
@@ -514,7 +524,11 @@ pub async fn execute_cmd(
         // Therefore, the current approach is to simplify the specification to
         // only support a single-range semver requirement, which is the common
         // subset of both the npm semver package and the Rust semver crate.
-        let local_version_str = local_pkg_info.basic_info.version.to_string();
+        let local_version_str = local_pkg_info
+            .manifest
+            .as_ref()
+            .map_or_else(|| Version::new(0, 0, 0), |m| m.version.clone())
+            .to_string();
         if local_version_str.contains("||")
             || local_version_str.chars().any(|c| c.is_whitespace())
             || local_version_str.contains(",")
@@ -529,16 +543,20 @@ pub async fn execute_cmd(
         dep_relationship_from_cmd_line = Some(DependencyRelationship {
             type_and_name: PkgTypeAndName {
                 pkg_type: app_pkg_to_work_with
-                    .basic_info
-                    .type_and_name
-                    .pkg_type,
+                    .manifest
+                    .as_ref()
+                    .map_or(PkgType::Extension, |m| m.type_and_name.pkg_type),
                 name: app_pkg_to_work_with
-                    .basic_info
-                    .type_and_name
-                    .name
-                    .clone(),
+                    .manifest
+                    .as_ref()
+                    .map_or("unknown".to_string(), |m| {
+                        m.type_and_name.name.clone()
+                    }),
             },
-            version: app_pkg_to_work_with.basic_info.version.clone(),
+            version: app_pkg_to_work_with
+                .manifest
+                .as_ref()
+                .map_or_else(|| Version::new(0, 0, 0), |m| m.version.clone()),
             dependency: ManifestDependency::RegistryDependency {
                 pkg_type: installing_pkg_type.unwrap(),
                 name: installing_pkg_name.clone().unwrap(),
@@ -574,16 +592,20 @@ pub async fn execute_cmd(
         dep_relationship_from_cmd_line = Some(DependencyRelationship {
             type_and_name: PkgTypeAndName {
                 pkg_type: app_pkg_to_work_with
-                    .basic_info
-                    .type_and_name
-                    .pkg_type,
+                    .manifest
+                    .as_ref()
+                    .map_or(PkgType::Extension, |m| m.type_and_name.pkg_type),
                 name: app_pkg_to_work_with
-                    .basic_info
-                    .type_and_name
-                    .name
-                    .clone(),
+                    .manifest
+                    .as_ref()
+                    .map_or("unknown".to_string(), |m| {
+                        m.type_and_name.name.clone()
+                    }),
             },
-            version: app_pkg_to_work_with.basic_info.version.clone(),
+            version: app_pkg_to_work_with
+                .manifest
+                .as_ref()
+                .map_or_else(|| Version::new(0, 0, 0), |m| m.version.clone()),
             dependency: ManifestDependency::RegistryDependency {
                 pkg_type: installing_pkg_type_,
                 name: installing_pkg_name_.clone(),
@@ -627,8 +649,14 @@ from manifest-lock.json...",
     // Find an answer (a dependency tree) that satisfies all dependencies.
     let (usable_model, non_usable_models) = solve_all(
         tman_config.clone(),
-        &app_pkg_to_work_with.basic_info.type_and_name.pkg_type,
-        &app_pkg_to_work_with.basic_info.type_and_name.name,
+        &app_pkg_to_work_with
+            .manifest
+            .as_ref()
+            .map_or(PkgType::Extension, |m| m.type_and_name.pkg_type),
+        &app_pkg_to_work_with
+            .manifest
+            .as_ref()
+            .map_or("unknown".to_string(), |m| m.type_and_name.name.clone()),
         dep_relationship_from_cmd_line.as_ref(),
         &all_candidates,
         locked_pkgs.as_ref(),
@@ -665,8 +693,20 @@ from manifest-lock.json...",
         // this package already exists and does not need to be installed.
         let remaining_solver_results = filter_solver_results_by_type_and_name(
             &solver_results,
-            Some(&app_pkg_to_work_with.basic_info.type_and_name.pkg_type),
-            Some(&app_pkg_to_work_with.basic_info.type_and_name.name),
+            Some(
+                &app_pkg_to_work_with
+                    .manifest
+                    .as_ref()
+                    .map_or(PkgType::Extension, |m| m.type_and_name.pkg_type),
+            ),
+            Some(
+                &app_pkg_to_work_with
+                    .manifest
+                    .as_ref()
+                    .map_or("unknown".to_string(), |m| {
+                        m.type_and_name.name.clone()
+                    }),
+            ),
             false,
         )?;
 

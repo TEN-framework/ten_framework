@@ -14,21 +14,29 @@ use super::{
 
 impl PkgInfo {
     pub fn gen_hash_hex(&self) -> String {
-        let dependencies = match &self.manifest {
-            Some(manifest) => match &manifest.dependencies {
-                Some(deps) => deps,
-                None => &Vec::new(),
-            },
-            None => &Vec::new(),
-        };
+        if let Some(manifest) = &self.manifest {
+            // Get dependencies or use empty vector if None
+            let dependencies = manifest.dependencies.as_ref().map_or_else(
+                || &[] as &[ManifestDependency],
+                |deps| deps.as_slice(),
+            );
 
-        gen_hash_hex(
-            &self.basic_info.type_and_name.pkg_type,
-            &self.basic_info.type_and_name.name,
-            &self.basic_info.version,
-            dependencies,
-            &self.basic_info.supports,
-        )
+            // Get supports or use empty vector if None
+            let supports = manifest.supports.as_ref().map_or_else(
+                || &[] as &[ManifestSupport],
+                |supports| supports.as_slice(),
+            );
+
+            gen_hash_hex(
+                &manifest.type_and_name.pkg_type,
+                &manifest.type_and_name.name,
+                &manifest.version,
+                dependencies,
+                supports,
+            )
+        } else {
+            String::new() // Cannot generate hash without manifest
+        }
     }
 }
 
@@ -36,8 +44,8 @@ fn gen_hash_hex(
     pkg_type: &PkgType,
     name: &String,
     version: &Version,
-    dependencies: &Vec<ManifestDependency>,
-    supports: &Vec<ManifestSupport>,
+    dependencies: &[ManifestDependency],
+    supports: &[ManifestSupport],
 ) -> String {
     let mut hasher = Sha256::new();
 

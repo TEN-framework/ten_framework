@@ -244,7 +244,12 @@ async fn process_non_local_dependency_to_get_candidate(
     // Filter suitable candidate packages according to `supports`.
     for mut candidate_pkg_info in candidate_pkg_infos {
         let compatible_score = is_manifest_supports_compatible_with(
-            &candidate_pkg_info.basic_info.supports,
+            &candidate_pkg_info
+                .manifest
+                .as_ref()
+                .map_or_else(Vec::new, |m| {
+                    m.supports.clone().unwrap_or_default()
+                }),
             support,
         );
 
@@ -257,10 +262,26 @@ async fn process_non_local_dependency_to_get_candidate(
             if tman_config.verbose {
                 out.normal_line(&format!(
                     "=> Found a candidate: {}:{}@{}[{}]",
-                    candidate_pkg_info.basic_info.type_and_name.pkg_type,
-                    candidate_pkg_info.basic_info.type_and_name.name,
-                    candidate_pkg_info.basic_info.version,
-                    SupportsDisplay(&candidate_pkg_info.basic_info.supports),
+                    candidate_pkg_info
+                        .manifest
+                        .as_ref()
+                        .map_or(PkgType::Extension, |m| m
+                            .type_and_name
+                            .pkg_type),
+                    candidate_pkg_info.manifest.as_ref().map_or(
+                        "unknown".to_string(),
+                        |m| m.type_and_name.name.clone()
+                    ),
+                    candidate_pkg_info.manifest.as_ref().map_or_else(
+                        || Version::new(0, 0, 0),
+                        |m| m.version.clone()
+                    ),
+                    SupportsDisplay(
+                        &candidate_pkg_info.manifest.as_ref().map_or_else(
+                            Vec::new,
+                            |m| m.supports.clone().unwrap_or_default()
+                        )
+                    ),
                 ));
             }
 
@@ -370,19 +391,29 @@ fn clean_up_all_candidates(
         for pkg_info in pkg_infos.iter() {
             // Check if the candidate is a locked one.
             if let Some(locked_pkg) = locked_pkg {
-                if locked_pkg.basic_info.version
-                    == pkg_info.1.basic_info.version
-                    && locked_pkg.hash == pkg_info.1.hash
+                if locked_pkg.manifest.as_ref().map_or_else(
+                    || Version::new(0, 0, 0),
+                    |m| m.version.clone(),
+                ) == pkg_info.1.manifest.as_ref().map_or_else(
+                    || Version::new(0, 0, 0),
+                    |m| m.version.clone(),
+                ) && locked_pkg.hash == pkg_info.1.hash
                 {
                     locked_pkgs_map.insert(
-                        pkg_info.1.basic_info.version.clone(),
+                        pkg_info.1.manifest.as_ref().map_or_else(
+                            || Version::new(0, 0, 0),
+                            |m| m.version.clone(),
+                        ),
                         pkg_info.1,
                     );
                 }
             }
 
             version_map
-                .entry(pkg_info.1.basic_info.version.clone())
+                .entry(pkg_info.1.manifest.as_ref().map_or_else(
+                    || Version::new(0, 0, 0),
+                    |m| m.version.clone(),
+                ))
                 .and_modify(|existing_pkg_info| {
                     if pkg_info.1.compatible_score
                         > existing_pkg_info.compatible_score
@@ -539,8 +570,12 @@ pub fn get_pkg_info_from_candidates(
     let pkg_info = all_candidates
         .get(&pkg_type_name)
         .and_then(|set| {
-            set.iter()
-                .find(|pkg| pkg.1.basic_info.version == version_parsed)
+            set.iter().find(|pkg| {
+                pkg.1.manifest.as_ref().map_or_else(
+                    || Version::new(0, 0, 0),
+                    |m| m.version.clone(),
+                ) == version_parsed
+            })
         })
         .ok_or_else(|| {
             anyhow!(

@@ -36,14 +36,14 @@ mod tests {
         let _ = get_all_pkgs(
             designer_state.tman_config.clone(),
             &mut designer_state.pkgs_cache,
-            &"tests/test_data/cmd_builtin_function_install".to_string(),
+            &"tests/test_data/app_with_uri".to_string(),
             &designer_state.out,
         );
 
         assert_eq!(
             designer_state
                 .pkgs_cache
-                .get("tests/test_data/cmd_builtin_function_install")
+                .get("tests/test_data/app_with_uri")
                 .unwrap()
                 .len(),
             3
@@ -64,9 +64,7 @@ mod tests {
 
         // Create request with base_dir specified.
         let request_payload = ReloadPkgsRequestPayload {
-            base_dir: Some(
-                "tests/test_data/cmd_builtin_function_install".to_string(),
-            ),
+            base_dir: Some("tests/test_data/app_with_uri".to_string()),
         };
 
         let req = test::TestRequest::post()
@@ -93,7 +91,7 @@ mod tests {
         let state_read = designer_state.read().unwrap();
         assert!(state_read
             .pkgs_cache
-            .contains_key("tests/test_data/cmd_builtin_function_install"));
+            .contains_key("tests/test_data/app_with_uri"));
     }
 
     /// Test successful package reload without specifying base_dir when only one
@@ -110,14 +108,14 @@ mod tests {
         let _ = get_all_pkgs(
             designer_state.tman_config.clone(),
             &mut designer_state.pkgs_cache,
-            &"tests/test_data/cmd_builtin_function_install".to_string(),
+            &"tests/test_data/app_with_uri".to_string(),
             &designer_state.out,
         );
 
         assert_eq!(
             designer_state
                 .pkgs_cache
-                .get("tests/test_data/cmd_builtin_function_install")
+                .get("tests/test_data/app_with_uri")
                 .unwrap()
                 .len(),
             3
@@ -162,6 +160,6 @@ mod tests {
         let state_read = designer_state.read().unwrap();
         assert!(state_read
             .pkgs_cache
-            .contains_key("tests/test_data/cmd_builtin_function_install"));
+            .contains_key("tests/test_data/app_with_uri"));
     }
 }

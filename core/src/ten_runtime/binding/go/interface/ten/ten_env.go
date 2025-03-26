@@ -304,7 +304,6 @@ func (p *tenEnv) OnConfigureDone() error {
 }
 
 func (p *tenEnv) OnInitDone() error {
-	p.LogDebug("OnInitDone")
 	C.ten_go_ten_env_on_init_done(p.cPtr)
 
 	return nil
