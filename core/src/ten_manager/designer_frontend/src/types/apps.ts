@@ -9,7 +9,7 @@ import z from "zod";
 import { TenLocalStorePackageSchema } from "@/types/extension";
 
 export interface ISetBaseDirResponse {
-  success: boolean;
+  app_uri: string;
 }
 
 export interface IGetBaseDirResponse {

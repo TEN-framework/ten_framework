@@ -12,160 +12,23 @@ import { Button } from "@/components/ui/Button";
 import { SpinnerLoading } from "@/components/Status/Loading";
 import { cn } from "@/lib/utils";
 import type { IFMItem } from "@/components/FileManager/utils";
-import {
-  EFMItemType,
-  calculateDirDepth,
-  getSelectedPathAndNeighbors,
-} from "@/components/FileManager/utils";
+import { EFMItemType, calculateDirDepth } from "@/components/FileManager/utils";
 
 const DEFAULT_SELECTED_PATH = "/";
 
-export function ThreeColumnFileManager(props: {
-  allowSelectTypes?: EFMItemType[];
-  onSelect?: (path: string) => void;
-  data?: IFMItem[][];
-  selectedPath?: string;
-  className?: string;
-  isLoading?: boolean;
-}) {
-  const {
-    onSelect,
-    data,
-    selectedPath = DEFAULT_SELECTED_PATH,
-    allowSelectTypes,
-    className,
-    isLoading,
-  } = props;
-
-  const [colsMemo, metaMemo] = React.useMemo(() => {
-    const cols = getSelectedPathAndNeighbors(data || [], selectedPath);
-    const selectedPathDepth = calculateDirDepth(selectedPath);
-    if (selectedPathDepth === 1) {
-      return [
-        [cols.current, cols.next1, cols.next2],
-        { selectedPathDepth, currentSelectedCol: 0 },
-      ];
-    } else if (selectedPathDepth === 2) {
-      return [
-        [cols.prev1, cols.current, cols.next1],
-        { selectedPathDepth, currentSelectedCol: 1 },
-      ];
-    } else {
-      // if selectedPathDepth > 2, we need to check if the last path is empty
-      const colChild = cols.next1;
-      if (colChild.length === 0) {
-        return [
-          [cols.prev2, cols.prev1, cols.current],
-          { selectedPathDepth, currentSelectedCol: 2 },
-        ];
-      }
-    }
-    return [
-      [cols.prev1, cols.current, cols.next1],
-      { selectedPathDepth, currentSelectedCol: 1 },
-    ];
-  }, [data, selectedPath]);
-
-  const handleSelect = (path: string) => {
-    onSelect?.(path);
-  };
-
-  return (
-    <div className={cn("w-full h-full space-y-2", className)}>
-      <div
-        className={cn(
-          "w-full h-10 bg-gray-50 dark:bg-gray-900 rounded-lg",
-          "px-4 flex items-center select-text"
-        )}
-      >
-        <span
-          className={cn(
-            "text-xs text-gray-500 dark:text-gray-400",
-            "whitespace-nowrap overflow-x-scroll"
-          )}
-        >
-          {selectedPath}
-        </span>
-      </div>
-      <div
-        className={cn(
-          "flex py-2 w-full h-[calc(100%-3rem)]",
-          "bg-gray-50 dark:bg-gray-900 rounded-lg"
-        )}
-      >
-        <FileManagerColumn
-          className="w-1/3 border-r border-gray-300"
-          isLoading={isLoading && metaMemo.currentSelectedCol === 0}
-        >
-          {colsMemo[0].map((item) => (
-            <FMColumnItem
-              key={item.path}
-              data={item}
-              onClick={() => handleSelect(item.path)}
-              selectStatus={
-                selectedPath === item.path
-                  ? metaMemo.currentSelectedCol === 0
-                    ? "selected"
-                    : "selected-parent"
-                  : "unselected"
-              }
-              disabled={
-                allowSelectTypes ? !allowSelectTypes.includes(item.type) : false
-              }
-            />
-          ))}
-        </FileManagerColumn>
-        <FileManagerColumn
-          className="w-1/3 border-r border-gray-300"
-          isLoading={isLoading && metaMemo.currentSelectedCol === 1}
-        >
-          {colsMemo[1].map((item) => (
-            <FMColumnItem
-              key={item.path}
-              data={item}
-              onClick={() => handleSelect(item.path)}
-              selectStatus={
-                selectedPath === item.path
-                  ? metaMemo.currentSelectedCol === 1
-                    ? "selected"
-                    : "selected-parent"
-                  : "unselected"
-              }
-              disabled={
-                allowSelectTypes ? !allowSelectTypes.includes(item.type) : false
-              }
-            />
-          ))}
-        </FileManagerColumn>
-        <FileManagerColumn
-          className="w-1/3 px-2 overflow-y-auto"
-          isLoading={isLoading && metaMemo.currentSelectedCol === 2}
-        >
-          {colsMemo[2].map((item) => (
-            <FMColumnItem
-              key={item.path}
-              data={item}
-              onClick={() => handleSelect(item.path)}
-              selectStatus={
-                selectedPath === item.path ? "selected" : "unselected"
-              }
-              disabled={
-                allowSelectTypes ? !allowSelectTypes.includes(item.type) : false
-              }
-            />
-          ))}
-        </FileManagerColumn>
-      </div>
-    </div>
-  );
+enum EFMItemSelectedStatus {
+  UNSELECTED = "unselected",
+  SELECTED = "selected",
+  SELECTED_PARENT = "selected-parent",
 }
 
 function FileManagerColumn(props: {
   className?: string;
   children?: React.ReactNode;
   isLoading?: boolean;
+  style?: React.CSSProperties;
 }) {
-  const { className, children, isLoading } = props;
+  const { className, children, isLoading, style } = props;
 
   return (
     <ul
@@ -177,13 +40,14 @@ function FileManagerColumn(props: {
         },
         className
       )}
+      style={style}
     >
       {isLoading ? <SpinnerLoading /> : children}
     </ul>
   );
 }
 
-function FMColumnItem(props: {
+function FileManagerColumnItem(props: {
   data: IFMItem;
   onClick?: () => void;
   className?: string;
@@ -232,5 +96,163 @@ function FMColumnItem(props: {
         </span>
       </Button>
     </li>
+  );
+}
+
+export function FileManager(props: {
+  allowSelectTypes?: EFMItemType[];
+  onSelect?: (path: string) => void;
+  data?: IFMItem[][];
+  selectedPath?: string;
+  className?: string;
+  isLoading?: boolean;
+  colWidth?: number;
+}) {
+  const {
+    onSelect,
+    data,
+    selectedPath = DEFAULT_SELECTED_PATH,
+    allowSelectTypes,
+    className,
+    isLoading,
+    colWidth,
+  } = props;
+
+  const colsEndEleRef = React.useRef<HTMLDivElement>(null);
+
+  const colsMemo = React.useMemo(() => {
+    const selectedPathDepth = calculateDirDepth(selectedPath);
+    const currentPathDepth = Math.max(1, selectedPathDepth + 1);
+    const levelData = data?.slice(1, currentPathDepth + 1) || [];
+    const filteredData = levelData
+      .reverse()
+      .reduce(
+        (
+          prev: (IFMItem & {
+            selectedStatus?: EFMItemSelectedStatus;
+          })[][],
+          cur: IFMItem[],
+          curIdx: number
+        ): (IFMItem & {
+          selectedStatus?: EFMItemSelectedStatus;
+        })[][] => {
+          if (curIdx === 0) {
+            const filteredItems = cur
+              .filter((item) => item.path.startsWith(selectedPath))
+              .map((item) => ({
+                ...item,
+                selectedStatus: EFMItemSelectedStatus.UNSELECTED,
+              }));
+            prev.push(filteredItems);
+            return prev;
+          }
+          const selectedPathParentList = selectedPath
+            .split("/")
+            .slice(0, -curIdx)
+            .join("/");
+          const selectedPathCurrentList = selectedPath
+            .split("/")
+            .slice(0, -curIdx + 1)
+            .join("/");
+          const filteredItems = cur
+            .filter((item) => item.path.startsWith(selectedPathParentList))
+            .map((item) => ({
+              ...item,
+              selectedStatus: EFMItemSelectedStatus.UNSELECTED,
+              selectedPathParentList,
+              selectedPathCurrentList,
+            }));
+          if (curIdx === 1) {
+            const selectedItem = filteredItems.find(
+              (item) => item.path === selectedPath
+            );
+            if (selectedItem) {
+              selectedItem.selectedStatus = EFMItemSelectedStatus.SELECTED;
+            }
+          } else {
+            const selectedParentItem = filteredItems.find(
+              (item) => item.path === selectedPathCurrentList
+            );
+            if (selectedParentItem) {
+              selectedParentItem.selectedStatus =
+                EFMItemSelectedStatus.SELECTED_PARENT;
+            }
+          }
+          prev.push(filteredItems);
+          return prev;
+        },
+        [] as (IFMItem & {
+          selectedStatus?: EFMItemSelectedStatus;
+        })[][]
+      )
+      .reverse();
+    console.log(
+      "selectedPathDepth",
+      selectedPathDepth,
+      "currentPathDepth",
+      currentPathDepth,
+      data,
+      filteredData
+    );
+    return filteredData;
+  }, [data, selectedPath]);
+
+  React.useEffect(() => {
+    if (colsEndEleRef.current) {
+      colsEndEleRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [colsMemo?.length]);
+
+  return (
+    <div className={cn("w-full h-full space-y-2", className)}>
+      <div
+        className={cn(
+          "w-full h-10 bg-gray-50 dark:bg-gray-900 rounded-lg",
+          "px-4 flex items-center select-text"
+        )}
+      >
+        <span
+          className={cn(
+            "text-xs text-gray-500 dark:text-gray-400",
+            "whitespace-nowrap overflow-x-scroll"
+          )}
+        >
+          {selectedPath}
+        </span>
+      </div>
+      <div
+        className={cn(
+          "flex py-2 w-full h-[calc(100%-3rem)]",
+          "bg-gray-50 dark:bg-gray-900 rounded-lg",
+          "overflow-x-auto"
+        )}
+      >
+        <div className="flex w-fit">
+          {colsMemo?.map((item, idx) => (
+            <FileManagerColumn
+              key={idx}
+              className="border-r border-gray-300"
+              style={{ width: colWidth }}
+              isLoading={isLoading && idx === colsMemo.length - 1}
+            >
+              {item.map((item) => (
+                <FileManagerColumnItem
+                  key={item.path}
+                  data={item}
+                  onClick={() => onSelect?.(item.path)}
+                  selectStatus={item.selectedStatus}
+                  disabled={
+                    allowSelectTypes
+                      ? !allowSelectTypes.includes(item.type)
+                      : false
+                  }
+                />
+              ))}
+            </FileManagerColumn>
+          ))}
+        </div>
+        <div ref={colsEndEleRef} />
+      </div>
+    </div>
   );
 }

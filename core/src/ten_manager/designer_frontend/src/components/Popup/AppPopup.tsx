@@ -19,7 +19,7 @@ import {
   EFMItemType,
   fmItemsToFMArray,
 } from "@/components/FileManager/utils";
-import { ThreeColumnFileManager } from "@/components/FileManager/AppFolder";
+import { FileManager } from "@/components/FileManager/AppFolder";
 import { useRetrieveDirList } from "@/api/services/fileSystem";
 import { postBaseDir, useApps } from "@/api/services/apps";
 import { SpinnerLoading } from "@/components/Status/Loading";
@@ -117,13 +117,14 @@ export const AppFolderPopup = () => {
       height={400}
     >
       <div className="flex flex-col gap-2 w-full h-full">
-        <ThreeColumnFileManager
+        <FileManager
           data={fmItems}
           allowSelectTypes={[EFMItemType.FOLDER]}
           className="w-full h-[calc(100%-3rem)]"
           onSelect={(path) => setFolderPath(path)}
           selectedPath={folderPath}
           isLoading={isLoading}
+          colWidth={200}
         />
         <div className="flex justify-end h-fit gap-2">
           <Button
