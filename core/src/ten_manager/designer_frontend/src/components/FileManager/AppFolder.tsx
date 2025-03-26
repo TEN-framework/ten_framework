@@ -5,10 +5,24 @@
 // Refer to the "LICENSE" file in the root directory for more information.
 //
 import * as React from "react";
-import { FolderClosedIcon, FileIcon, FolderOpenIcon } from "lucide-react";
+import {
+  FolderClosedIcon,
+  FileIcon,
+  FolderOpenIcon,
+  ArrowDownUpIcon,
+} from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/ui/Button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/DropdownMenu";
 import { Input } from "@/components/ui/Input";
 import { SpinnerLoading } from "@/components/Status/Loading";
 import { cn } from "@/lib/utils";
@@ -119,6 +133,12 @@ export function FileManager(props: {
     colWidth,
   } = props;
 
+  const [sortType, setSortType] = React.useState<"default" | "asc" | "desc">(
+    "default"
+  );
+
+  const { t } = useTranslation();
+
   const colsEndEleRef = React.useRef<HTMLDivElement>(null);
 
   const colsMemo = React.useMemo(() => {
@@ -198,7 +218,37 @@ export function FileManager(props: {
 
   return (
     <div className={cn("w-full h-full space-y-2", className)}>
-      <Input className="h-10" value={selectedPath} readOnly />
+      <div className="flex items-center gap-2 justify-between">
+        <Input className="h-10" value={selectedPath} readOnly />
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon">
+              <ArrowDownUpIcon className="w-4 h-4" />
+              <span className="sr-only">{t("extensionStore.filter.sort")}</span>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="w-56">
+            <DropdownMenuLabel>
+              {t("extensionStore.filter.sort")}
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuRadioGroup
+              value={sortType}
+              onValueChange={setSortType as (value: string) => void}
+            >
+              <DropdownMenuRadioItem value="default">
+                {t("extensionStore.filter.sort-default")}
+              </DropdownMenuRadioItem>
+              <DropdownMenuRadioItem value="asc">
+                {t("extensionStore.filter.sort-name")}
+              </DropdownMenuRadioItem>
+              <DropdownMenuRadioItem value="desc">
+                {t("extensionStore.filter.sort-name-desc")}
+              </DropdownMenuRadioItem>
+            </DropdownMenuRadioGroup>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
       <div
         className={cn(
           "flex py-2 w-full h-[calc(100%-3rem)]",
@@ -214,19 +264,25 @@ export function FileManager(props: {
               style={{ width: colWidth }}
               isLoading={isLoading && idx === colsMemo.length - 1}
             >
-              {item.map((item) => (
-                <FileManagerColumnItem
-                  key={item.path}
-                  data={item}
-                  onClick={() => onSelect?.(item.path)}
-                  selectStatus={item.selectedStatus}
-                  disabled={
-                    allowSelectTypes
-                      ? !allowSelectTypes.includes(item.type)
-                      : false
-                  }
-                />
-              ))}
+              {item
+                .sort((a, b) => {
+                  if (sortType === "default") return 0;
+                  if (sortType === "asc") return a.name.localeCompare(b.name);
+                  return b.name.localeCompare(a.name);
+                })
+                .map((item) => (
+                  <FileManagerColumnItem
+                    key={item.path}
+                    data={item}
+                    onClick={() => onSelect?.(item.path)}
+                    selectStatus={item.selectedStatus}
+                    disabled={
+                      allowSelectTypes
+                        ? !allowSelectTypes.includes(item.type)
+                        : false
+                    }
+                  />
+                ))}
             </FileManagerColumn>
           ))}
         </div>
