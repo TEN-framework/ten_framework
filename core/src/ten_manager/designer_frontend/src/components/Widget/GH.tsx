@@ -23,6 +23,7 @@ import { formatNumberWithCommas } from "@/lib/utils";
 import { TEN_AGENT_URL } from "@/constants";
 import { useHelpText } from "@/api/services/helpText";
 import { EHelpTextKey } from "@/api/endpoints";
+import { Separator } from "@/components/ui/Separator";
 
 export function GHStargazersCount(props: {
   owner: string;
@@ -66,7 +67,9 @@ export function GHStargazersCount(props: {
                 <GHIcon className="size-4" />
               ) : (
                 <>
-                  <StarIcon className="size-4 text-yellow-500" />
+                  <GHIcon className="size-4" />
+                  <Separator orientation="vertical" className="h-4" />
+                  <StarIcon className="text-yellow-500" />
                   <span>
                     {formatNumberWithCommas(
                       repository?.stargazers_count as number
@@ -109,7 +112,7 @@ export function GHTryTENAgent(props: { className?: string }) {
     <TooltipProvider delayDuration={100}>
       <Tooltip>
         <TooltipTrigger asChild>
-          <Button asChild variant="ghost" size="icon">
+          <Button asChild variant="ghost" size="sm">
             <a
               href={TEN_AGENT_URL}
               target="_blank"
@@ -117,7 +120,8 @@ export function GHTryTENAgent(props: { className?: string }) {
               className={cn("flex items-center gap-1.5", "text-sm", className)}
             >
               <BotIcon className="size-4" />
-              <span className="sr-only">{t("header.tryTENAgent")}</span>
+              <Separator orientation="vertical" className="h-4" />
+              <span className="">{t("header.tryTENAgent")}</span>
             </a>
           </Button>
         </TooltipTrigger>
