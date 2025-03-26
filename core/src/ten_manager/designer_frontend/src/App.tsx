@@ -129,16 +129,16 @@ const App: React.FC = () => {
             </ResizablePanel>
           </>
         )}
-
-        {/* Global popups. */}
-        <GlobalPopups />
-
-        {/* Global dialogs. */}
-        <GlobalDialogs />
-
-        {/* [invisible] Global backstage widgets. */}
-        <BackstageWidgets />
       </ResizablePanelGroup>
+
+      {/* Global popups. */}
+      <GlobalPopups />
+
+      {/* Global dialogs. */}
+      <GlobalDialogs />
+
+      {/* [invisible] Global backstage widgets. */}
+      <BackstageWidgets />
 
       <StatusBar className="z-9997" />
     </ThemeProvider>
