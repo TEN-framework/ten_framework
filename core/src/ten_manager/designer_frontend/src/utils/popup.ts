@@ -4,15 +4,24 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
+import { EConnectionType } from "@/types/graphs";
+
 export const dispatchCustomNodeActionPopup = (
   action: string,
   source: string,
-  target?: string
+  target?: string,
+  metadata?: {
+    filters?: {
+      type?: EConnectionType;
+      source?: boolean;
+      target?: boolean;
+    };
+  }
 ) => {
   if (typeof window !== "undefined") {
     window.dispatchEvent(
       new CustomEvent("customNodeAction", {
-        detail: { action, source, target },
+        detail: { action, source, target, metadata },
       })
     );
   }

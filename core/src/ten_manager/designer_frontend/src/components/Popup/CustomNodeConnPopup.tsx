@@ -6,11 +6,12 @@
 //
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { BlocksIcon, ArrowBigRightDashIcon } from "lucide-react";
+import { BlocksIcon, ArrowBigRightDashIcon, XIcon } from "lucide-react";
 
 import { Popup } from "@/components/Popup/Popup";
 import { Button } from "@/components/ui/Button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/Tabs";
+import { Badge } from "@/components/ui/Badge";
 import { useFlowStore } from "@/store/flow";
 import {
   DataTable as ConnectionDataTable,
@@ -21,8 +22,10 @@ import {
 import { dispatchCustomNodeActionPopup } from "@/utils/popup";
 
 import type { CustomConnectionData } from "@/types/widgets";
+import { EConnectionType } from "@/types/graphs";
 
 const DEFAULT_WIDTH = 800;
+const SUPPORTED_FILTERS = ["type"];
 
 export interface CustomNodeConnPopupProps extends CustomConnectionData {
   onClose?: () => void;
@@ -32,6 +35,7 @@ const CustomNodeConnPopup: React.FC<CustomNodeConnPopupProps> = ({
   id,
   source,
   target,
+  filters,
   onClose,
 }) => {
   const { t } = useTranslation();
@@ -57,9 +61,11 @@ const CustomNodeConnPopup: React.FC<CustomNodeConnPopupProps> = ({
     >
       <div className="flex flex-col gap-2 w-full h-[328px]">
         {source && target && (
-          <EdgeInfoContent source={source} target={target} />
+          <EdgeInfoContent source={source} target={target} filters={filters} />
         )}
-        {source && !target && <CustomNodeConnPopupContent source={source} />}
+        {source && !target && (
+          <CustomNodeConnPopupContent source={source} filters={filters} />
+        )}
       </div>
     </Popup>
   );
@@ -67,8 +73,25 @@ const CustomNodeConnPopup: React.FC<CustomNodeConnPopupProps> = ({
 
 export default CustomNodeConnPopup;
 
-function EdgeInfoContent(props: { source: string; target: string }) {
-  const { source, target } = props;
+function EdgeInfoContent(props: {
+  source: string;
+  target: string;
+  filters?: {
+    type?: EConnectionType;
+    source?: boolean;
+    target?: boolean;
+  };
+}) {
+  const { source, target, filters: initialFilters } = props;
+  const [filters, setFilters] = React.useState<TFilterItem[]>(() => {
+    if (!initialFilters) return [];
+    return Object.entries(initialFilters)
+      .map(([key, value]) => ({
+        label: key,
+        value,
+      }))
+      .filter((item) => SUPPORTED_FILTERS.includes(item.label));
+  });
 
   const { edges } = useFlowStore();
 
@@ -76,14 +99,27 @@ function EdgeInfoContent(props: { source: string; target: string }) {
     const relatedEdges = edges.filter(
       (e) => e.source === source && e.target === target
     );
-    const rows = relatedEdges.map((e) => ({
-      id: e.id,
-      type: e.data?.connectionType,
-      source: e.source,
-      target: e.target,
-    }));
+    const rows = relatedEdges
+      .map((e) => ({
+        id: e.id,
+        type: e.data?.connectionType,
+        source: e.source,
+        target: e.target,
+      }))
+      .filter((row) => {
+        const enabledFilters = filters.filter((i) =>
+          SUPPORTED_FILTERS.includes(i.label)
+        );
+        return enabledFilters.every(
+          (f) => row[f.label as keyof typeof row] === f.value
+        );
+      });
     return [relatedEdges, rows];
-  }, [edges, source, target]);
+  }, [edges, source, target, filters]);
+
+  const handleRemoveFilter = (label: string) => {
+    setFilters(filters.filter((f) => f.label !== label));
+  };
 
   return (
     <>
@@ -106,6 +142,10 @@ function EdgeInfoContent(props: { source: string; target: string }) {
           <span>{target}</span>
         </Button>
       </div>
+      <Filters
+        items={filters}
+        onRemove={(label) => handleRemoveFilter(label)}
+      />
       <ConnectionDataTable
         columns={connectionColumns}
         data={rowsMemo}
@@ -115,11 +155,31 @@ function EdgeInfoContent(props: { source: string; target: string }) {
   );
 }
 
-function CustomNodeConnPopupContent(props: { source: string }) {
-  const { source } = props;
+function CustomNodeConnPopupContent(props: {
+  source: string;
+  filters?: {
+    type?: EConnectionType;
+    source?: boolean;
+    target?: boolean;
+  };
+}) {
+  const { source, filters: initialFilters } = props;
+  const [filters, setFilters] = React.useState<TFilterItem[]>(() => {
+    if (!initialFilters) return [];
+    return Object.entries(initialFilters)
+      .map(([key, value]) => ({
+        label: key,
+        value,
+      }))
+      .filter((item) => SUPPORTED_FILTERS.includes(item.label));
+  });
   const [flowDirection, setFlowDirection] = React.useState<
     "upstream" | "downstream"
-  >("upstream");
+  >(() => {
+    if (initialFilters?.source) return "downstream";
+    if (initialFilters?.target) return "upstream";
+    return "upstream";
+  });
 
   const { t } = useTranslation();
 
@@ -129,14 +189,27 @@ function CustomNodeConnPopupContent(props: { source: string }) {
     const relatedEdges = edges.filter((e) =>
       flowDirection === "upstream" ? e.target === source : e.source === source
     );
-    const rows = relatedEdges.map((e) => ({
-      id: e.id,
-      type: e.data?.connectionType,
-      upstream: flowDirection === "upstream" ? e.source : e.target,
-      downstream: flowDirection === "upstream" ? e.source : e.target,
-    }));
+    const rows = relatedEdges
+      .map((e) => ({
+        id: e.id,
+        type: e.data?.connectionType,
+        upstream: flowDirection === "upstream" ? e.source : e.target,
+        downstream: flowDirection === "upstream" ? e.source : e.target,
+      }))
+      .filter((row) => {
+        const enabledFilters = filters.filter((i) =>
+          SUPPORTED_FILTERS.includes(i.label)
+        );
+        return enabledFilters.every(
+          (f) => row[f.label as keyof typeof row] === f.value
+        );
+      });
     return [rows, relatedEdges];
-  }, [flowDirection, edges, source]);
+  }, [flowDirection, edges, source, filters]);
+
+  const handleRemoveFilter = (label: string) => {
+    setFilters(filters.filter((f) => f.label !== label));
+  };
 
   return (
     <>
@@ -152,6 +225,10 @@ function CustomNodeConnPopupContent(props: { source: string }) {
           <TabsTrigger value="downstream">{t("action.downstream")}</TabsTrigger>
         </TabsList>
       </Tabs>
+      <Filters
+        items={filters}
+        onRemove={(label) => handleRemoveFilter(label)}
+      />
       <ConnectionDataTable
         columns={
           flowDirection === "upstream"
@@ -168,3 +245,45 @@ function CustomNodeConnPopupContent(props: { source: string }) {
     </>
   );
 }
+
+type TFilterItem = {
+  label: string;
+  value: boolean | number | string;
+};
+
+const Filters = (props: {
+  items: TFilterItem[];
+  onRemove?: (label: string) => void;
+}) => {
+  const { items, onRemove } = props;
+
+  const { t } = useTranslation();
+
+  if (items.length === 0) return null;
+
+  return (
+    <div className="flex items-center gap-2">
+      <span>{t("popup.customNodeConn.filters")}</span>
+      <ul className="flex flex-wrap gap-2">
+        {items.map((item) => (
+          <li key={item.label} className="flex">
+            <Badge variant="secondary" className="flex items-center gap-1">
+              <span>
+                {item.label}: {item.value}
+              </span>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="[&>svg]:size-3 h-4 w-4 cursor-pointer"
+                disabled={!onRemove}
+                onClick={() => onRemove?.(item.label)}
+              >
+                <XIcon />
+              </Button>
+            </Badge>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+};

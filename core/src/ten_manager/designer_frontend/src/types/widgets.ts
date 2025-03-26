@@ -6,6 +6,7 @@
 //
 import { z } from "zod";
 import { IListTenCloudStorePackage } from "@/types/extension";
+import { EConnectionType } from "@/types/graphs";
 
 export interface TerminalData {
   title: string;
@@ -26,6 +27,11 @@ export interface CustomConnectionData {
   id: string;
   source: string;
   target?: string;
+  filters?: {
+    type?: EConnectionType;
+    source?: boolean;
+    target?: boolean;
+  };
 }
 
 export enum EWidgetDisplayType {

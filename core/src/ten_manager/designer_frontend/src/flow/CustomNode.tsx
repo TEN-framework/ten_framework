@@ -8,185 +8,229 @@ import * as React from "react";
 import { Position, NodeProps, Connection, Edge, Node } from "@xyflow/react";
 import {
   BlocksIcon as ExtensionIcon,
-  LogsIcon,
-  CableIcon,
-  InfoIcon,
+  TerminalIcon,
+  DatabaseIcon,
+  AudioLinesIcon,
+  VideoIcon,
 } from "lucide-react";
 
+import { Separator } from "@/components/ui/Separator";
 import { cn } from "@/lib/utils";
 import { dispatchCustomNodeActionPopup } from "@/utils/popup";
 import CustomHandle from "@/flow/CustomHandle";
+import { EConnectionType } from "@/types/graphs";
 
 const onConnect = (params: Connection | Edge) =>
   console.log("Handle onConnect", params);
 
-export type CustomNodeType = Node<
-  {
-    name: string;
-    addon: string;
-    sourceCmds: string[];
-    targetCmds: string[];
-    sourceData: string[];
-    targetData: string[];
-    sourceAudioFrame: string[];
-    targetAudioFrame: string[];
-    sourceVideoFrame: string[];
-    targetVideoFrame: string[];
-    url?: string;
-  },
-  "customNode"
->;
+export type TCustomNodeData = {
+  name: string;
+  addon: string;
+  sourceCmds: string[];
+  targetCmds: string[];
+  sourceData: string[];
+  targetData: string[];
+  sourceAudioFrame: string[];
+  targetAudioFrame: string[];
+  sourceVideoFrame: string[];
+  targetVideoFrame: string[];
+  url?: string;
+};
+
+export type CustomNodeType = Node<TCustomNodeData, "customNode">;
 
 export function CustomNode({ data, isConnectable }: NodeProps<CustomNodeType>) {
   return (
     <>
       <div
         className={cn(
-          "absolute top-0 -right-3 -translate-y-1/2 z-1 flex gap-1"
+          "flex flex-col gap-x-4",
+          "max-w-sm items-center rounded-xl bg-popover py-2",
+          "shadow-lg outline outline-black/5",
+          "dark:shadow-none dark:-outline-offset-1 dark:outline-white/10",
+          "font-roboto"
         )}
       >
-        <div
-          className={cn(
-            "gradient",
-            "w-6 h-6 p-0.5",
-            "rounded-full flex transform overflow-hidden z-1",
-            "shadow-lg dark:shadow-[0_0_15px_rgba(255,255,255,0.2)]",
-            "text-popover-foreground"
-          )}
-        >
-          <div
+        <div className="px-4">
+          <div className="text-base font-medium flex items-center gap-x-2">
+            <ExtensionIcon className="size-5 shrink-0" />
+            <span className="text-base font-medium">{data.name}</span>
+          </div>
+          <p
             className={cn(
-              "relative bg-popover text-popover-foreground",
-              "grow flex justify-center items-center rounded-full",
-              "cursor-pointer"
+              "text-gray-500 dark:text-gray-400 text-xs",
+              "font-roboto-condensed"
             )}
-            onClick={() => {
-              dispatchCustomNodeActionPopup("connections", data.name);
-            }}
           >
-            <CableIcon className="w-3 h-3" />
-          </div>
+            {data.addon}
+          </p>
         </div>
-
-        <div
-          className={cn(
-            "gradient",
-            "w-6 h-6 p-0.5",
-            "rounded-full flex transform overflow-hidden z-1",
-            "shadow-lg dark:shadow-[0_0_15px_rgba(255,255,255,0.2)]",
-            "text-popover-foreground"
-          )}
-        >
-          <div
-            className={cn(
-              "relative bg-popover text-popover-foreground",
-              "grow flex justify-center items-center rounded-full"
-            )}
-            onClick={() => {
-              console.log("clicked LogsIcon === ", data);
-            }}
-          >
-            <LogsIcon className="w-3 h-3" />
-          </div>
-        </div>
-
-        <div
-          className={cn(
-            "gradient",
-            "w-6 h-6 p-0.5",
-            "rounded-full flex transform overflow-hidden z-1",
-            "shadow-lg dark:shadow-[0_0_15px_rgba(255,255,255,0.2)]",
-            "text-popover-foreground"
-          )}
-        >
-          <div
-            className={cn(
-              "relative bg-popover text-popover-foreground",
-              "grow flex justify-center items-center rounded-full"
-            )}
-            onClick={() => {
-              console.log("clicked InfoIcon === ", data);
-            }}
-          >
-            <InfoIcon className="w-3 h-3" />
-          </div>
-        </div>
-      </div>
-
-      <div className="wrapper gradient">
-        <div
-          className={cn(
-            "flex flex-col justify-center flex-grow-1",
-            "bg-popover px-5 py-4 rounded-lg relative"
-          )}
-        >
-          <div className="flex">
-            <div className="mr-2">
-              <ExtensionIcon className="h-4 w-4" />
-            </div>
-            <div>
-              <div className="text-base mb-0.5 leading-none">{data.name}</div>
-              <div className="text-xs text-muted-foreground">{data.addon}</div>
-            </div>
-          </div>
-
-          {/* Render target handles (for incoming edges) */}
-          {/* {data.targetCmds.map((cmd, index) => (
-            <CustomHandle
-              key={`target-${cmd}`}
-              type="target"
-              position={Position.Left}
-              id={`target-${cmd}`}
-              label={cmd}
-              labelOffsetX={0}
-              // labelOffsetY={index * 20}
-              // style={{ top: index * 20, background: "#555" }}
-              isConnectable={isConnectable}
-              onConnect={onConnect}
-            />
-          ))} */}
-          <CustomHandle
-            key={`target-${data.addon}`}
-            type="target"
-            position={Position.Left}
-            id={`target-${data.addon}`}
-            label={data.addon}
-            labelOffsetX={0}
-            // labelOffsetY={index * 20}
-            // style={{ top: index * 20, background: "#555" }}
+        <Separator className="w-full my-2" />
+        <div className="flex flex-col gap-y-0.5 text-xs font-roboto w-full">
+          <HandleGroupItem
+            data={data}
             isConnectable={isConnectable}
             onConnect={onConnect}
+            connectionType={EConnectionType.CMD}
           />
-
-          {/* Render source handles (for outgoing edges) */}
-          {/* {data.sourceCmds.map((cmd, index) => (
-            <CustomHandle
-              key={`source-${cmd}`}
-              type="source"
-              position={Position.Right}
-              id={`source-${cmd}`}
-              label={cmd}
-              labelOffsetX={0}
-              // labelOffsetY={index * 20}
-              // style={{ top: index * 20, background: "#555" }}
-              isConnectable={isConnectable}
-            />
-          ))} */}
-          <CustomHandle
-            key={`source-${data.addon}`}
-            type="source"
-            position={Position.Right}
-            id={`source-${data.addon}`}
-            label={data.addon}
-            labelOffsetX={0}
-            // labelOffsetY={index * 20}
-            // style={{ top: index * 20, background: "#555" }}
+          <Separator className="w-full" />
+          <HandleGroupItem
+            data={data}
             isConnectable={isConnectable}
+            onConnect={onConnect}
+            connectionType={EConnectionType.DATA}
+          />
+          <Separator className="w-full" />
+          <HandleGroupItem
+            data={data}
+            isConnectable={isConnectable}
+            onConnect={onConnect}
+            connectionType={EConnectionType.AUDIO_FRAME}
+          />
+          <Separator className="w-full" />
+          <HandleGroupItem
+            data={data}
+            isConnectable={isConnectable}
+            onConnect={onConnect}
+            connectionType={EConnectionType.VIDEO_FRAME}
           />
         </div>
       </div>
     </>
   );
 }
+
+const HandleGroupItem = (props: {
+  data: TCustomNodeData;
+  isConnectable: boolean;
+  onConnect: (params: Connection | Edge) => void;
+  connectionType: EConnectionType;
+}) => {
+  const { data, isConnectable, onConnect, connectionType } = props;
+
+  const handleClickDetails =
+    ({
+      type,
+      source,
+      target,
+    }: {
+      type?: EConnectionType;
+      source?: boolean;
+      target?: boolean;
+    }) =>
+    () => {
+      dispatchCustomNodeActionPopup("connections", data.addon, undefined, {
+        filters: {
+          type,
+          source,
+          target,
+        },
+      });
+    };
+
+  return (
+    <div className="flex items-center gap-x-4 justify-between">
+      <div className="flex items-center gap-x-2">
+        <CustomHandle
+          key={`target-${data.addon}-${connectionType}`}
+          type="target"
+          position={Position.Left}
+          id={`target-${data.addon}-${connectionType}`}
+          label={data.addon}
+          labelOffsetX={0}
+          isConnectable={isConnectable}
+          onConnect={onConnect}
+        />
+        <ConnectionCount
+          onClick={handleClickDetails({
+            type: connectionType,
+            target: true,
+          })}
+        >
+          {connectionType === EConnectionType.CMD && (
+            <span>{data.targetCmds?.length || 0}</span>
+          )}
+          {connectionType === EConnectionType.DATA && (
+            <span>{data.targetData?.length || 0}</span>
+          )}
+          {connectionType === EConnectionType.AUDIO_FRAME && (
+            <span>{data.targetAudioFrame?.length || 0}</span>
+          )}
+          {connectionType === EConnectionType.VIDEO_FRAME && (
+            <span>{data.targetVideoFrame?.length || 0}</span>
+          )}
+        </ConnectionCount>
+      </div>
+      <div
+        className={cn("flex items-center gap-x-1", {
+          ["cursor-pointer"]: handleClickDetails,
+        })}
+        onClick={handleClickDetails({
+          type: connectionType,
+        })}
+      >
+        {connectionType === EConnectionType.CMD && (
+          <TerminalIcon className="size-3 shrink-0" />
+        )}
+        {connectionType === EConnectionType.DATA && (
+          <DatabaseIcon className="size-3 shrink-0" />
+        )}
+        {connectionType === EConnectionType.AUDIO_FRAME && (
+          <AudioLinesIcon className="size-3 shrink-0" />
+        )}
+        {connectionType === EConnectionType.VIDEO_FRAME && (
+          <VideoIcon className="size-3 shrink-0" />
+        )}
+        <span>{connectionType.toUpperCase()}</span>
+      </div>
+      <div className="flex items-center gap-x-2">
+        <ConnectionCount
+          onClick={handleClickDetails({
+            type: connectionType,
+            source: true,
+          })}
+        >
+          {connectionType === EConnectionType.CMD && (
+            <span>{data.sourceCmds?.length || 0}</span>
+          )}
+          {connectionType === EConnectionType.DATA && (
+            <span>{data.sourceData?.length || 0}</span>
+          )}
+          {connectionType === EConnectionType.AUDIO_FRAME && (
+            <span>{data.sourceAudioFrame?.length || 0}</span>
+          )}
+          {connectionType === EConnectionType.VIDEO_FRAME && (
+            <span>{data.sourceVideoFrame?.length || 0}</span>
+          )}
+        </ConnectionCount>
+        <CustomHandle
+          key={`source-${data.addon}-${connectionType}`}
+          type="source"
+          position={Position.Right}
+          id={`source-${data.addon}-${connectionType}`}
+          label={data.addon}
+          labelOffsetX={0}
+          isConnectable={isConnectable}
+        />
+      </div>
+    </div>
+  );
+};
+
+const ConnectionCount = (props: {
+  children: React.ReactNode;
+  onClick?: () => void;
+}) => {
+  return (
+    <div
+      className={cn("bg-muted px-1 py-0.5 rounded-md text-xs w-8 text-center", {
+        ["cursor-pointer"]: props.onClick,
+      })}
+      onClick={props.onClick}
+    >
+      {props.children}
+    </div>
+  );
+};
 
 export default React.memo(CustomNode);

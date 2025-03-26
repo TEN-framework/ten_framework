@@ -79,7 +79,8 @@
     "stop": "Stop",
     "search": "Search",
     "current": "Current",
-    "run": "Run"
+    "run": "Run",
+    "viewDetails": "View Details"
   },
   "toast": {
     "saveFileSuccess": "File saved successfully",
@@ -99,7 +100,8 @@
     "customNodeConn": {
       "srcTitle": "Node[{{source}}] Connection",
       "connectTitle": "Connection Details",
-      "title": "Connection"
+      "title": "Connection",
+      "filters": "Filters"
     },
     "logViewer": {
       "title": "Log Viewer",
