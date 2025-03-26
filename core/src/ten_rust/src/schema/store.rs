@@ -12,7 +12,7 @@ use super::{create_schema_from_json, TenSchema};
 use crate::pkg_info::manifest::{
     api::{
         ManifestApi, ManifestApiCmdLike, ManifestApiDataLike,
-        ManifestPropertyItem,
+        ManifestPropertyAttributes,
     },
     Manifest,
 };
@@ -192,17 +192,18 @@ fn parse_msg_schema_from_manifest(
 //   "required": []
 // }
 fn create_property_schema(
-    property: &[ManifestPropertyItem],
+    property: &Option<HashMap<String, ManifestPropertyAttributes>>,
     required: &Option<Vec<String>>,
 ) -> Result<TenSchema> {
     let mut property_json_value = serde_json::json!({});
     let property_json_object = property_json_value.as_object_mut().unwrap();
-    property.iter().for_each(|item| {
-        property_json_object.insert(
-            item.name.clone(),
-            serde_json::to_value(&item.attributes).unwrap(),
-        );
-    });
+
+    if let Some(prop_map) = property {
+        prop_map.iter().for_each(|(key, attr)| {
+            property_json_object
+                .insert(key.clone(), serde_json::to_value(attr).unwrap());
+        });
+    }
 
     let mut property_schema_value: serde_json::Value =
         serde_json::json!({"type": "object"});
@@ -236,8 +237,10 @@ fn create_cmd_schema_from_manifest(
     }
 
     if let Some(manifest_property) = &manifest_cmd.property {
-        let property_schema =
-            create_property_schema(manifest_property, &manifest_cmd.required)?;
+        let property_schema = create_property_schema(
+            &Some(manifest_property.clone()),
+            &manifest_cmd.required,
+        )?;
         schema.cmd = Some(property_schema);
     }
 
@@ -252,8 +255,10 @@ fn create_msg_schema_from_manifest(
     manifest_data: &ManifestApiDataLike,
 ) -> Result<Option<TenSchema>> {
     if let Some(manifest_property) = &manifest_data.property {
-        let schema =
-            create_property_schema(manifest_property, &manifest_data.required)?;
+        let schema = create_property_schema(
+            &Some(manifest_property.clone()),
+            &manifest_data.required,
+        )?;
         Ok(Some(schema))
     } else {
         Ok(None)

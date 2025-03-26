@@ -18,9 +18,7 @@ use ten_rust::pkg_info::{
     manifest::api::{ManifestApiCmdLike, ManifestApiDataLike},
 };
 use ten_rust::pkg_info::{
-    manifest::api::{
-        ManifestCmdResult, ManifestPropertyAttributes, ManifestPropertyItem,
-    },
+    manifest::api::{ManifestCmdResult, ManifestPropertyAttributes},
     predefined_graphs::extension::get_pkg_info_for_extension,
 };
 use ten_rust::pkg_info::{
@@ -123,12 +121,6 @@ pub struct DesignerPropertyAttributes {
     pub prop_type: String,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
-pub struct DesignerPropertyItem {
-    pub name: String,
-    pub attributes: DesignerPropertyAttributes,
-}
-
 impl From<ManifestPropertyAttributes> for DesignerPropertyAttributes {
     fn from(api_property: ManifestPropertyAttributes) -> Self {
         DesignerPropertyAttributes {
@@ -137,18 +129,10 @@ impl From<ManifestPropertyAttributes> for DesignerPropertyAttributes {
     }
 }
 
-impl From<ManifestPropertyItem> for DesignerPropertyItem {
-    fn from(item: ManifestPropertyItem) -> Self {
-        DesignerPropertyItem {
-            name: item.name,
-            attributes: item.attributes.into(),
-        }
-    }
-}
-
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct DesignerCmdResult {
-    pub property: Vec<DesignerPropertyItem>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub property: Option<HashMap<String, DesignerPropertyAttributes>>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
     pub required: Option<Vec<String>>,
@@ -157,11 +141,9 @@ pub struct DesignerCmdResult {
 impl From<ManifestCmdResult> for DesignerCmdResult {
     fn from(cmd_result: ManifestCmdResult) -> Self {
         DesignerCmdResult {
-            property: cmd_result
-                .property
-                .into_iter()
-                .map(|v| v.into())
-                .collect(),
+            property: cmd_result.property.map(|prop| {
+                prop.into_iter().map(|(k, v)| (k, v.into())).collect()
+            }),
             required: cmd_result
                 .required
                 .as_ref()
@@ -176,7 +158,7 @@ pub struct DesignerApiCmdLike {
     pub name: String,
 
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub property: Option<Vec<DesignerPropertyItem>>,
+    pub property: Option<HashMap<String, DesignerPropertyAttributes>>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
     pub required: Option<Vec<String>>,
@@ -193,7 +175,11 @@ impl From<ManifestApiCmdLike> for DesignerApiCmdLike {
                 .property
                 .as_ref()
                 .filter(|p| !p.is_empty())
-                .map(|p| get_designer_property_items_from_pkg(p.clone())),
+                .map(|p| {
+                    p.iter()
+                        .map(|(k, v)| (k.clone(), v.clone().into()))
+                        .collect()
+                }),
             required: api_cmd_like
                 .required
                 .as_ref()
@@ -209,7 +195,7 @@ pub struct DesignerApiDataLike {
     pub name: String,
 
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub property: Option<Vec<DesignerPropertyItem>>,
+    pub property: Option<HashMap<String, DesignerPropertyAttributes>>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
     pub required: Option<Vec<String>>,
@@ -223,7 +209,11 @@ impl From<ManifestApiDataLike> for DesignerApiDataLike {
                 .property
                 .as_ref()
                 .filter(|p| !p.is_empty())
-                .map(|p| get_designer_property_items_from_pkg(p.clone())),
+                .map(|p| {
+                    p.iter()
+                        .map(|(k, v)| (k.clone(), v.clone().into()))
+                        .collect()
+                }),
             required: api_data_like
                 .required
                 .as_ref()
@@ -231,12 +221,6 @@ impl From<ManifestApiDataLike> for DesignerApiDataLike {
                 .cloned(),
         }
     }
-}
-
-fn get_designer_property_items_from_pkg(
-    items: Vec<ManifestPropertyItem>,
-) -> Vec<DesignerPropertyItem> {
-    items.into_iter().map(|v| v.into()).collect()
 }
 
 /// Retrieve graph nodes for a specific graph.
@@ -511,34 +495,46 @@ mod tests {
                     cmd_out: Some(vec![
                         DesignerApiCmdLike {
                             name: "test_cmd".to_string(),
-                            property: Some(vec![DesignerPropertyItem {
-                                name: "test_property".to_string(),
-                                attributes: DesignerPropertyAttributes {
-                                    prop_type: "int8".to_string(),
-                                },
-                            }]),
+                            property: Some({
+                                let mut map = HashMap::new();
+                                map.insert(
+                                    "test_property".to_string(),
+                                    DesignerPropertyAttributes {
+                                        prop_type: "int8".to_string(),
+                                    },
+                                );
+                                map
+                            }),
                             required: None,
                             result: None,
                         },
                         DesignerApiCmdLike {
                             name: "has_required".to_string(),
-                            property: Some(vec![DesignerPropertyItem {
-                                name: "foo".to_string(),
-                                attributes: DesignerPropertyAttributes {
-                                    prop_type: "string".to_string(),
-                                },
-                            }]),
+                            property: Some({
+                                let mut map = HashMap::new();
+                                map.insert(
+                                    "foo".to_string(),
+                                    DesignerPropertyAttributes {
+                                        prop_type: "string".to_string(),
+                                    },
+                                );
+                                map
+                            }),
                             required: Some(vec!["foo".to_string()]),
                             result: None,
                         },
                         DesignerApiCmdLike {
                             name: "has_required_mismatch".to_string(),
-                            property: Some(vec![DesignerPropertyItem {
-                                name: "foo".to_string(),
-                                attributes: DesignerPropertyAttributes {
-                                    prop_type: "string".to_string(),
-                                },
-                            }]),
+                            property: Some({
+                                let mut map = HashMap::new();
+                                map.insert(
+                                    "foo".to_string(),
+                                    DesignerPropertyAttributes {
+                                        prop_type: "string".to_string(),
+                                    },
+                                );
+                                map
+                            }),
                             required: Some(vec!["foo".to_string()]),
                             result: None,
                         },
@@ -563,45 +559,61 @@ mod tests {
                     cmd_in: Some(vec![
                         DesignerApiCmdLike {
                             name: "test_cmd".to_string(),
-                            property: Some(vec![DesignerPropertyItem {
-                                name: "test_property".to_string(),
-                                attributes: DesignerPropertyAttributes {
-                                    prop_type: "int32".to_string(),
-                                },
-                            }]),
+                            property: Some({
+                                let mut map = HashMap::new();
+                                map.insert(
+                                    "test_property".to_string(),
+                                    DesignerPropertyAttributes {
+                                        prop_type: "int32".to_string(),
+                                    },
+                                );
+                                map
+                            }),
                             required: None,
                             result: None,
                         },
                         DesignerApiCmdLike {
                             name: "another_test_cmd".to_string(),
-                            property: Some(vec![DesignerPropertyItem {
-                                name: "test_property".to_string(),
-                                attributes: DesignerPropertyAttributes {
-                                    prop_type: "int8".to_string(),
-                                },
-                            }]),
+                            property: Some({
+                                let mut map = HashMap::new();
+                                map.insert(
+                                    "test_property".to_string(),
+                                    DesignerPropertyAttributes {
+                                        prop_type: "int8".to_string(),
+                                    },
+                                );
+                                map
+                            }),
                             required: None,
                             result: None,
                         },
                         DesignerApiCmdLike {
                             name: "has_required".to_string(),
-                            property: Some(vec![DesignerPropertyItem {
-                                name: "foo".to_string(),
-                                attributes: DesignerPropertyAttributes {
-                                    prop_type: "string".to_string(),
-                                },
-                            }]),
+                            property: Some({
+                                let mut map = HashMap::new();
+                                map.insert(
+                                    "foo".to_string(),
+                                    DesignerPropertyAttributes {
+                                        prop_type: "string".to_string(),
+                                    },
+                                );
+                                map
+                            }),
                             required: Some(vec!["foo".to_string()]),
                             result: None,
                         },
                         DesignerApiCmdLike {
                             name: "has_required_mismatch".to_string(),
-                            property: Some(vec![DesignerPropertyItem {
-                                name: "foo".to_string(),
-                                attributes: DesignerPropertyAttributes {
-                                    prop_type: "string".to_string(),
-                                },
-                            }]),
+                            property: Some({
+                                let mut map = HashMap::new();
+                                map.insert(
+                                    "foo".to_string(),
+                                    DesignerPropertyAttributes {
+                                        prop_type: "string".to_string(),
+                                    },
+                                );
+                                map
+                            }),
                             required: None,
                             result: None,
                         },
@@ -610,12 +622,16 @@ mod tests {
                     data_in: None,
                     data_out: Some(vec![DesignerApiDataLike {
                         name: "data_has_required".to_string(),
-                        property: Some(vec![DesignerPropertyItem {
-                            name: "foo".to_string(),
-                            attributes: DesignerPropertyAttributes {
-                                prop_type: "int8".to_string(),
-                            },
-                        }]),
+                        property: Some({
+                            let mut map = HashMap::new();
+                            map.insert(
+                                "foo".to_string(),
+                                DesignerPropertyAttributes {
+                                    prop_type: "int8".to_string(),
+                                },
+                            );
+                            map
+                        }),
                         required: Some(vec!["foo".to_string()]),
                     }]),
                     audio_frame_in: None,
@@ -637,24 +653,32 @@ mod tests {
                     property: None,
                     cmd_in: Some(vec![DesignerApiCmdLike {
                         name: "test_cmd".to_string(),
-                        property: Some(vec![DesignerPropertyItem {
-                            name: "test_property".to_string(),
-                            attributes: DesignerPropertyAttributes {
-                                prop_type: "string".to_string(),
-                            },
-                        }]),
+                        property: Some({
+                            let mut map = HashMap::new();
+                            map.insert(
+                                "test_property".to_string(),
+                                DesignerPropertyAttributes {
+                                    prop_type: "string".to_string(),
+                                },
+                            );
+                            map
+                        }),
                         required: None,
                         result: None,
                     }]),
                     cmd_out: None,
                     data_in: Some(vec![DesignerApiDataLike {
                         name: "data_has_required".to_string(),
-                        property: Some(vec![DesignerPropertyItem {
-                            name: "foo".to_string(),
-                            attributes: DesignerPropertyAttributes {
-                                prop_type: "int8".to_string(),
-                            },
-                        }]),
+                        property: Some({
+                            let mut map = HashMap::new();
+                            map.insert(
+                                "foo".to_string(),
+                                DesignerPropertyAttributes {
+                                    prop_type: "int8".to_string(),
+                                },
+                            );
+                            map
+                        }),
                         required: Some(vec!["foo".to_string()]),
                     }]),
                     data_out: None,
