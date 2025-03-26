@@ -6,6 +6,11 @@
 //
 import { EConnectionType } from "@/types/graphs";
 
+export enum ECustomEventName {
+  CustomNodeAction = "customNodeAction",
+  BringToFrontPopup = "bringToFrontPopup",
+}
+
 export const dispatchCustomNodeActionPopup = (
   action: string,
   source: string,
@@ -20,8 +25,20 @@ export const dispatchCustomNodeActionPopup = (
 ) => {
   if (typeof window !== "undefined") {
     window.dispatchEvent(
-      new CustomEvent("customNodeAction", {
+      new CustomEvent(ECustomEventName.CustomNodeAction, {
         detail: { action, source, target, metadata },
+      })
+    );
+  }
+};
+
+export const dispatchBringToFrontPopup = (widgetId: string) => {
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(
+      new CustomEvent(ECustomEventName.BringToFrontPopup, {
+        detail: {
+          id: widgetId,
+        },
       })
     );
   }

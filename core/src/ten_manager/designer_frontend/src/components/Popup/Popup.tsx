@@ -22,6 +22,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/Tooltip";
 import { useWidgetStore } from "@/store";
+import { ECustomEventName } from "@/utils/popup";
 
 const POPUP_MIN_HEIGHT = 100;
 const POPUP_MIN_WIDTH = 100;
@@ -150,6 +151,27 @@ export const Popup = (props: {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [autoFocus]);
+
+  React.useEffect(() => {
+    const bringToFrontEvent = (event: CustomEvent) => {
+      if (event.detail.id === id) {
+        handleBringToFront();
+      }
+    };
+
+    window.addEventListener(
+      ECustomEventName.BringToFrontPopup,
+      bringToFrontEvent as EventListener
+    );
+
+    return () => {
+      window.removeEventListener(
+        ECustomEventName.BringToFrontPopup,
+        bringToFrontEvent as EventListener
+      );
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <motion.div
