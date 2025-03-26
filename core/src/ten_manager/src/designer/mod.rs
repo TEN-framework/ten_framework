@@ -16,6 +16,7 @@ pub mod graphs;
 mod help_text;
 mod messages;
 pub mod mock;
+pub mod packages;
 pub mod registry;
 pub mod response;
 pub mod terminal;
@@ -92,6 +93,11 @@ pub fn configure_routes(
             .route(
                 "/apps/addons",
                 web::post().to(apps::addons::get_app_addons_endpoint),
+            )
+            .route(
+                "/packages/scripts",
+                web::post()
+                    .to(packages::scripts::get_packages_scripts_endpoint),
             )
             .route("/dir-list", web::post().to(dir_list::list_dir_endpoint))
             .route(
