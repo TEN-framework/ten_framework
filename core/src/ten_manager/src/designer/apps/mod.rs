@@ -8,4 +8,5 @@ pub mod addons;
 pub mod get;
 pub mod load;
 pub mod reload;
+pub mod scripts;
 pub mod unload;
