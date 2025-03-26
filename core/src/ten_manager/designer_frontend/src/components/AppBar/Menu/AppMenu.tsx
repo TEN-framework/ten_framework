@@ -26,7 +26,13 @@ import {
   APPS_MANAGER_POPUP_ID,
 } from "@/constants/widgets";
 
-export function AppMenu() {
+export function AppMenu(props: {
+  disableMenuClick?: boolean;
+  idx: number;
+  triggerListRef?: React.RefObject<HTMLButtonElement[]>;
+}) {
+  const { disableMenuClick, idx, triggerListRef } = props;
+
   const { t } = useTranslation();
 
   const { appendWidgetIfNotExists } = useWidgetStore();
@@ -56,7 +62,19 @@ export function AppMenu() {
   return (
     <>
       <NavigationMenuItem>
-        <NavigationMenuTrigger className="submenu-trigger">
+        <NavigationMenuTrigger
+          className="submenu-trigger"
+          ref={(ref) => {
+            if (triggerListRef?.current && ref) {
+              triggerListRef.current[idx] = ref;
+            }
+          }}
+          onClick={(e) => {
+            if (disableMenuClick) {
+              e.preventDefault();
+            }
+          }}
+        >
           {t("header.menuApp.title")}
         </NavigationMenuTrigger>
         <NavigationMenuContent

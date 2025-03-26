@@ -4,6 +4,8 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
+import * as React from "react";
+
 import {
   NavigationMenu,
   NavigationMenuList,
@@ -25,6 +27,49 @@ interface AppBarProps {
 }
 
 export default function AppBar({ onAutoLayout, className }: AppBarProps) {
+  // init disable state
+  const [disableMenuClick, setDisableMenuClick] = React.useState(false);
+
+  // init reference array
+  const targetMenuListRef = React.useRef<HTMLButtonElement[]>([]);
+
+  // Create observer on first render
+  React.useEffect(() => {
+    // Callback function
+    const observerCallback = (mutationsList: MutationRecord[]) => {
+      for (const mutation of mutationsList) {
+        if (
+          mutation.type === "attributes" &&
+          mutation.attributeName === "data-state" &&
+          (mutation.target as HTMLElement).dataset.state === "open"
+        ) {
+          setDisableMenuClick(true);
+          const timeout = setTimeout(() => {
+            setDisableMenuClick(false);
+            clearTimeout(timeout);
+          }, 1000);
+        }
+      }
+    };
+
+    // Init MutationObserver
+    const observer = new MutationObserver(observerCallback);
+
+    // Add ref nodes to observer watch
+    targetMenuListRef.current.forEach((element) => {
+      if (element) {
+        observer.observe(element, {
+          attributes: true,
+        });
+      }
+    });
+
+    // Disconnect on dismount
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
+
   const onNavChange = () => {
     setTimeout(() => {
       const triggers = document.querySelectorAll(
@@ -54,9 +99,22 @@ export default function AppBar({ onAutoLayout, className }: AppBarProps) {
     >
       <NavigationMenu onValueChange={onNavChange}>
         <NavigationMenuList>
-          <DesignerMenu />
-          <AppMenu />
-          <GraphMenu onAutoLayout={onAutoLayout} />
+          <DesignerMenu
+            disableMenuClick={disableMenuClick}
+            idx={0}
+            triggerListRef={targetMenuListRef}
+          />
+          <AppMenu
+            disableMenuClick={disableMenuClick}
+            idx={1}
+            triggerListRef={targetMenuListRef}
+          />
+          <GraphMenu
+            disableMenuClick={disableMenuClick}
+            idx={2}
+            triggerListRef={targetMenuListRef}
+            onAutoLayout={onAutoLayout}
+          />
         </NavigationMenuList>
       </NavigationMenu>
 
