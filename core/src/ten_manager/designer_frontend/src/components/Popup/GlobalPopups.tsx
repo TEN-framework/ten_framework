@@ -98,6 +98,7 @@ export function GlobalPopups() {
           key={`CustomNodeConnPopup-${widget.id}`}
           source={widget.metadata.source}
           target={widget.metadata.target}
+          filters={widget.metadata.filters}
           onClose={() => removeWidget(widget.id)}
         />
       ))}

@@ -35,6 +35,7 @@ import {
   type EditorData,
   ELogViewerScriptType,
 } from "@/types/widgets";
+import { EConnectionType } from "@/types/graphs";
 
 // Import react-flow style.
 import "@xyflow/react/dist/style.css";
@@ -85,12 +86,24 @@ const FlowCanvas = forwardRef<FlowCanvasRef, FlowCanvasProps>(
       });
     };
 
-    const launchConnPopup = (source: string, target?: string) => {
+    const launchConnPopup = (
+      source: string,
+      target?: string,
+      metadata?: {
+        filters?: {
+          type?: EConnectionType;
+          source?: boolean;
+          target?: boolean;
+        };
+      }
+    ) => {
       const id = `${source}-${target ?? ""}`;
+      const filters = metadata?.filters;
+      console.log("filters", filters);
       appendWidgetIfNotExists({
         id,
         category: EWidgetCategory.CustomConnection,
-        metadata: { id, source, target },
+        metadata: { id, source, target, filters },
         display_type: EWidgetDisplayType.Popup,
       });
     };
@@ -179,7 +192,11 @@ const FlowCanvas = forwardRef<FlowCanvasRef, FlowCanvasProps>(
       const handleCustomNodeAction = (event: CustomEvent) => {
         switch (event.detail.action) {
           case "connections":
-            launchConnPopup(event.detail.source, event.detail.target);
+            launchConnPopup(
+              event.detail.source,
+              event.detail.target,
+              event.detail.metadata
+            );
             break;
           default:
             break;
