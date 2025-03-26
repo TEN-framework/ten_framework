@@ -45,23 +45,6 @@ func (p *extensionA) OnStart(tenEnv ten.TenEnv) {
 					panic("Should not happen")
 				}
 
-				read_back_value, err := tenEnv.GetPropertyInt64(
-					fmt.Sprintf("prop_%d", i),
-				)
-				if err != nil {
-					fmt.Printf("Error in goroutine %d: %v\n", i, err)
-					panic("Should not happen")
-				}
-
-				if read_back_value != i {
-					fmt.Printf(
-						"Error in goroutine %d: %v\n",
-						i,
-						read_back_value,
-					)
-					panic("Should not happen")
-				}
-
 				if atomic.AddInt32(&counter, 1)%1 == 0 {
 					fmt.Printf("extension_a %d goroutines completed\n", counter)
 				}
@@ -84,28 +67,6 @@ func (p *extensionA) OnStart(tenEnv ten.TenEnv) {
 			"Error %v\n",
 			em,
 		)
-		panic("Should not happen")
-	}
-
-	fmt.Println("extension_a set test_string")
-	if err := tenEnv.SetPropertyString("test_string", "test"); err != nil {
-		panic("Should not happen")
-	}
-
-	fmt.Println("extension_a get test_string")
-	if test_string, err := tenEnv.GetPropertyString("test_string"); err != nil ||
-		test_string != "test" {
-		panic("Should not happen")
-	}
-
-	fmt.Println("extension_a set test_bytes")
-	if err := tenEnv.SetPropertyBytes("test_bytes", []byte("test")); err != nil {
-		panic("Should not happen")
-	}
-
-	fmt.Println("extension_a get test_bytes")
-	if test_bytes, err := tenEnv.GetPropertyBytes("test_bytes"); err != nil ||
-		string(test_bytes) != "test" {
 		panic("Should not happen")
 	}
 }

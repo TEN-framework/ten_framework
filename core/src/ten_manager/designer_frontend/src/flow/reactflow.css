@@ -18,8 +18,9 @@
 
   --xy-node-border-default: 1px solid #ededed;
 
-  --xy-node-boxshadow-default: 0px 3.54px 4.55px 0px #00000005,
-    0px 3.54px 4.55px 0px #0000000d, 0px 0.51px 1.01px 0px #0000001a;
+  --xy-node-boxshadow-default:
+    0px 3.54px 4.55px 0px #00000005, 0px 3.54px 4.55px 0px #0000000d,
+    0px 0.51px 1.01px 0px #0000001a;
 
   --xy-node-border-radius-default: 8px;
 
@@ -47,7 +48,8 @@
 
   --xy-edge-label-color-default: #a0a0a0;
 
-  --xy-node-boxshadow-default: 0px 3.54px 4.55px 0px rgba(255, 255, 255, 0.05),
+  --xy-node-boxshadow-default:
+    0px 3.54px 4.55px 0px rgba(255, 255, 255, 0.05),
     0px 3.54px 4.55px 0px rgba(255, 255, 255, 0.13),
     0px 0.51px 1.01px 0px rgba(255, 255, 255, 0.2);
 }
@@ -130,56 +132,13 @@
   --bg-color: rgb(17, 17, 17);
   --text-color: rgb(243, 244, 246);
   /* --node-border-radius: 10px; */
-  --node-box-shadow: 10px 0 15px rgba(42, 138, 246, 0.3),
-    -10px 0 15px rgba(233, 42, 103, 0.3);
+  --node-box-shadow:
+    10px 0 15px rgba(42, 138, 246, 0.3), -10px 0 15px rgba(233, 42, 103, 0.3);
   /* background-color: var(--bg-color);
   color: var(--text-color); */
 }
 
 /* Custom Styles */
-.react-flow__node-customNode {
-  @apply rounded-lg flex h-16 min-w-36 font-mono font-medium tracking-tight;
-  box-shadow: var(--node-box-shadow);
-}
-
-.react-flow__node-customNode .wrapper {
-  @apply rounded-lg overflow-hidden flex p-0.5 relative flex-grow;
-}
-
-.gradient:before {
-  content: "";
-  position: absolute;
-  padding-bottom: calc(100% * 1.41421356237);
-  width: calc(100% * 1.41421356237);
-  background: conic-gradient(
-    from -160deg at 50% 50%,
-    #60a5fa 0deg,
-    /* Soft blue */ rgba(129, 140, 248, 0.9) 100deg,
-    /* Indigo */ rgba(192, 132, 252, 0.9) 220deg,
-    /* Purple */ rgba(96, 165, 250, 0.9) 320deg,
-    #60a5fa 360deg /* Back to soft blue */
-  );
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  border-radius: 100%;
-  filter: blur(2px);
-}
-
-.react-flow__node-customNode.selected .wrapper.gradient:before {
-  content: "";
-  background: conic-gradient(
-    from -160deg at 50% 50%,
-    rgba(96, 165, 250, 0.9) 0deg,
-    rgba(129, 140, 248, 0.8) 100deg,
-    rgba(192, 132, 252, 0.7) 220deg,
-    rgba(96, 165, 250, 0) 320deg
-  );
-  animation: spinner 4s linear infinite;
-  transform: translate(-50%, -50%) rotate(0deg);
-  z-index: -1;
-  filter: blur(3px);
-}
 
 @keyframes spinner {
   100% {
@@ -187,7 +146,7 @@
   }
 }
 
-.react-flow__handle {
+/* .react-flow__handle {
   opacity: 0;
 }
 
@@ -197,9 +156,9 @@
 
 .react-flow__handle.target {
   left: -10px;
-}
+} */
 
-.react-flow__node:focus {
+/* .react-flow__node:focus {
   outline: none;
 }
 
@@ -220,4 +179,4 @@
   stroke-width: 3;
   stroke-opacity: 0.85;
   cursor: pointer;
-}
+} */

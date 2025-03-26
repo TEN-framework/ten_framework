@@ -92,7 +92,19 @@ export const getLayoutedElements = (
     };
   });
 
-  return { nodes: layoutedNodes, edges };
+  const edgesWithNewHandles = edges.map((edge) => {
+    const type = edge.data?.connectionType;
+    if (type) {
+      return {
+        ...edge,
+        sourceHandle: `source-${edge.source}-${type}`,
+        targetHandle: `target-${edge.target}-${type}`,
+      };
+    }
+    return edge;
+  });
+
+  return { nodes: layoutedNodes, edges: edgesWithNewHandles };
 };
 
 export const processNodes = (
@@ -212,6 +224,9 @@ export const processConnections = (
               targetHandle: `target-${targetNodeId}`,
               markerEnd: {
                 type: MarkerType.ArrowClosed,
+                width: 20,
+                height: 20,
+                color: "#FF0072",
               },
             });
           });

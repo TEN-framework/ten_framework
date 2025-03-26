@@ -6,10 +6,11 @@
 //
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { FaEdit, FaTrash } from "react-icons/fa";
+import { PencilIcon, ListCollapseIcon, TrashIcon } from "lucide-react";
 
-import ContextMenu, { ContextMenuItem } from "./ContextMenu";
-import { CustomEdgeType } from "../CustomEdge";
+import ContextMenu, { ContextMenuItem } from "@/flow/ContextMenu/ContextMenu";
+import { CustomEdgeType } from "@/flow/CustomEdge";
+import { dispatchCustomNodeActionPopup } from "@/utils/popup";
 
 interface EdgeContextMenuProps {
   visible: boolean;
@@ -23,21 +24,30 @@ const EdgeContextMenu: React.FC<EdgeContextMenuProps> = ({
   visible,
   x,
   y,
+  edge,
   onClose,
 }) => {
   const { t } = useTranslation();
 
   const items: ContextMenuItem[] = [
     {
+      label: t("action.viewDetails"),
+      icon: <ListCollapseIcon />,
+      onClick: () => {
+        dispatchCustomNodeActionPopup("connections", edge.source, edge.target);
+        onClose();
+      },
+    },
+    {
       label: t("action.edit"),
-      icon: <FaEdit />,
+      icon: <PencilIcon />,
       onClick: () => {
         onClose();
       },
     },
     {
       label: t("action.delete"),
-      icon: <FaTrash />,
+      icon: <TrashIcon />,
       onClick: () => {
         onClose();
       },
