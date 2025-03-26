@@ -203,7 +203,7 @@ def test_go_app_log_rotate_python():
         assert os.path.exists(os.path.join(app_root_path, "test.log.2"))
 
         # Print log file contents regardless of test outcome.
-        for log_file in ["test.log", "test.log.1", "test.log.2"]:
+        for log_file in ["test.log.1", "test.log.2", "test.log"]:
             file_path = os.path.join(app_root_path, log_file)
             print(f"\n----- Contents of {log_file} -----")
             try:

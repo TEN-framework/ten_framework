@@ -15,7 +15,7 @@ import (
 	"ten_framework/ten"
 )
 
-const concurrency = 1000
+const concurrency = 100
 
 type extensionA struct {
 	ten.DefaultExtension
@@ -32,23 +32,39 @@ func (p *extensionA) OnStart(tenEnv ten.TenEnv) {
 
 		wg.Add(concurrency)
 
-		for i := 0; i < concurrency; i++ {
-			go func(i int) {
+		for i := int64(0); i < concurrency; i++ {
+			go func(i int64) {
 				defer wg.Done()
 
 				err := tenEnv.SetProperty(
 					fmt.Sprintf("prop_%d", i),
 					i,
 				)
-
 				if err != nil {
 					fmt.Printf("Error in goroutine %d: %v\n", i, err)
+					panic("Should not happen")
 				}
 
-				if atomic.AddInt32(&counter, 1)%5000 == 0 {
+				read_back_value, err := tenEnv.GetPropertyInt64(
+					fmt.Sprintf("prop_%d", i),
+				)
+				if err != nil {
+					fmt.Printf("Error in goroutine %d: %v\n", i, err)
+					panic("Should not happen")
+				}
+
+				if read_back_value != i {
+					fmt.Printf(
+						"Error in goroutine %d: %v\n",
+						i,
+						read_back_value,
+					)
+					panic("Should not happen")
+				}
+
+				if atomic.AddInt32(&counter, 1)%1 == 0 {
 					fmt.Printf("extension_a %d goroutines completed\n", counter)
 				}
-
 			}(i % 100)
 		}
 
@@ -56,12 +72,40 @@ func (p *extensionA) OnStart(tenEnv ten.TenEnv) {
 		tenEnv.OnStartDone()
 	}()
 
+	fmt.Println("extension_a set empty_string")
 	if err := tenEnv.SetPropertyString("empty_string", ""); err != nil {
 		panic("Should not happen")
 	}
 
+	fmt.Println("extension_a get empty_string")
 	if em, err := tenEnv.GetPropertyString("empty_string"); err != nil ||
 		em != "" {
+		fmt.Printf(
+			"Error %v\n",
+			em,
+		)
+		panic("Should not happen")
+	}
+
+	fmt.Println("extension_a set test_string")
+	if err := tenEnv.SetPropertyString("test_string", "test"); err != nil {
+		panic("Should not happen")
+	}
+
+	fmt.Println("extension_a get test_string")
+	if test_string, err := tenEnv.GetPropertyString("test_string"); err != nil ||
+		test_string != "test" {
+		panic("Should not happen")
+	}
+
+	fmt.Println("extension_a set test_bytes")
+	if err := tenEnv.SetPropertyBytes("test_bytes", []byte("test")); err != nil {
+		panic("Should not happen")
+	}
+
+	fmt.Println("extension_a get test_bytes")
+	if test_bytes, err := tenEnv.GetPropertyBytes("test_bytes"); err != nil ||
+		string(test_bytes) != "test" {
 		panic("Should not happen")
 	}
 }
