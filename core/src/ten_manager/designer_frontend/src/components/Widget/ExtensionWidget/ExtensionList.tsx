@@ -33,12 +33,13 @@ import {
   ITenPackage,
   ITenPackageLocal,
 } from "@/types/extension";
-
-import type { TooltipContentProps } from "@radix-ui/react-tooltip";
+import { useListTenCloudStorePackages } from "@/api/services/extension";
 import {
   TEN_DEFAULT_BACKEND_WS_ENDPOINT,
   TEN_PATH_WS_BUILTIN_FUNCTION,
 } from "@/constants";
+
+import type { TooltipContentProps } from "@radix-ui/react-tooltip";
 
 export const ExtensionList = (props: {
   items: (ITenPackage | ITenPackageLocal)[];
@@ -117,6 +118,7 @@ export const ExtensionBaseItem = React.forwardRef<
   const { t } = useTranslation();
   const { appendWidgetIfNotExists } = useWidgetStore();
   const { currentWorkspace } = useAppStore();
+  const { mutate } = useListTenCloudStorePackages();
 
   const handleInstall =
     (baseDir: string, item: IListTenCloudStorePackage) =>
@@ -143,6 +145,9 @@ export const ExtensionBaseItem = React.forwardRef<
           options: {
             disableSearch: true,
             title: t("popup.logViewer.appInstall"),
+          },
+          postActions: () => {
+            mutate();
           },
         },
       });

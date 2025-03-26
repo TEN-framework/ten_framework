@@ -26,8 +26,13 @@ import {
   EWidgetDisplayType,
 } from "@/types/widgets";
 
-export function GraphMenu(props: { onAutoLayout: () => void }) {
-  const { onAutoLayout } = props;
+export function GraphMenu(props: {
+  onAutoLayout: () => void;
+  disableMenuClick?: boolean;
+  idx: number;
+  triggerListRef?: React.RefObject<HTMLButtonElement[]>;
+}) {
+  const { onAutoLayout, disableMenuClick, idx, triggerListRef } = props;
 
   const { t } = useTranslation();
   const { appendWidgetIfNotExists } = useWidgetStore();
@@ -56,7 +61,19 @@ export function GraphMenu(props: { onAutoLayout: () => void }) {
 
   return (
     <NavigationMenuItem>
-      <NavigationMenuTrigger className="submenu-trigger">
+      <NavigationMenuTrigger
+        className="submenu-trigger"
+        ref={(ref) => {
+          if (triggerListRef?.current && ref) {
+            triggerListRef.current[idx] = ref;
+          }
+        }}
+        onClick={(e) => {
+          if (disableMenuClick) {
+            e.preventDefault();
+          }
+        }}
+      >
         {t("header.menuGraph.title")}
       </NavigationMenuTrigger>
       <NavigationMenuContent

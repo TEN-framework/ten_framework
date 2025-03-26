@@ -26,7 +26,7 @@ export const ENDPOINT_APPS = {
       }),
       responseSchema: genResSchema<ISetBaseDirResponse>(
         z.object({
-          success: z.boolean(),
+          app_uri: z.string(),
         })
       ),
     },
@@ -63,7 +63,7 @@ export const ENDPOINT_APPS = {
       }),
       responseSchema: genResSchema<ISetBaseDirResponse>(
         z.object({
-          success: z.boolean(),
+          app_uri: z.string(),
         })
       ),
     },

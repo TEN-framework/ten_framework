@@ -24,7 +24,13 @@ import {
 } from "@/types/widgets";
 import { ABOUT_POPUP_ID, PREFERENCES_POPUP_ID } from "@/constants/widgets";
 
-export function DesignerMenu() {
+export function DesignerMenu(props: {
+  disableMenuClick?: boolean;
+  idx: number;
+  triggerListRef?: React.RefObject<HTMLButtonElement[]>;
+}) {
+  const { disableMenuClick, idx, triggerListRef } = props;
+
   const { t } = useTranslation();
 
   const { appendWidgetIfNotExists } = useWidgetStore();
@@ -54,7 +60,19 @@ export function DesignerMenu() {
   return (
     <>
       <NavigationMenuItem>
-        <NavigationMenuTrigger className="submenu-trigger font-bold">
+        <NavigationMenuTrigger
+          className="submenu-trigger font-bold"
+          ref={(ref) => {
+            if (triggerListRef?.current && ref) {
+              triggerListRef.current[idx] = ref;
+            }
+          }}
+          onClick={(e) => {
+            if (disableMenuClick) {
+              e.preventDefault();
+            }
+          }}
+        >
           {t("header.menuDesigner.title")}
         </NavigationMenuTrigger>
         <NavigationMenuContent

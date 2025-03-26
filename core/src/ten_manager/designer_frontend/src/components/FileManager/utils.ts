@@ -66,6 +66,7 @@ export const fmItemsToFMArray = (
   return result;
 };
 
+/** @deprecated */
 export const getSelectedPathAndNeighbors = (
   fmItems: IFMItem[][],
   selectedPath: string
