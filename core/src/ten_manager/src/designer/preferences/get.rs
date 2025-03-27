@@ -6,16 +6,15 @@
 //
 use std::sync::{Arc, RwLock};
 
-use actix_web::{web, HttpResponse, Responder};
-use serde::{Deserialize, Serialize};
-use serde_json::Value;
-
+use crate::config::Designer;
 use crate::designer::response::{ApiResponse, Status};
 use crate::designer::DesignerState;
+use actix_web::{web, HttpResponse, Responder};
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct GetPreferencesResponseData {
-    pub preferences: Value,
+    pub preferences: Designer,
 }
 
 /// Get the full content of designer frontend preferences.
@@ -23,8 +22,7 @@ pub async fn get_preferences_endpoint(
     state: web::Data<Arc<RwLock<DesignerState>>>,
 ) -> Result<impl Responder, actix_web::Error> {
     let state_read = state.read().unwrap();
-    let preferences = serde_json::to_value(&state_read.tman_config.designer)
-        .map_err(actix_web::error::ErrorInternalServerError)?;
+    let preferences = state_read.tman_config.designer.clone();
 
     let response_data = GetPreferencesResponseData { preferences };
     let response = ApiResponse {
