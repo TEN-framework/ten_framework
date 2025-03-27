@@ -55,7 +55,13 @@
     "poweredBy": "技術支援",
     "poweredByTenFramework": "由 <0></0> 提供支援",
     "github": "GitHub",
-    "tryTENAgent": "嘗試 TEN Agent"
+    "tryTENAgent": "嘗試 TEN Agent",
+    "currentVersion": "目前版本",
+    "latestVersion": "最新版本",
+    "currentIsLatest": "目前已是最新版本",
+    "currentIsLatestDescription": "您正在使用最新版本的 TEN Framework。\n更多關於最新版本的資訊可以在 <0>TEN Framework GitHub 發布頁面</0> 查看。",
+    "newVersionAvailable": "有新版本可用",
+    "newVersionAvailableDescription": "TEN Framework 有新版本可用。\n更多關於新版本的資訊可以在 <0>TEN Framework GitHub 發布頁面</0> 查看。"
   },
   "action": {
     "edit": "編輯",

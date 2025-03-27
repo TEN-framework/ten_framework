@@ -55,7 +55,13 @@
     "poweredBy": "提供:",
     "poweredByTenFramework": "<0></0>により提供",
     "github": "GitHub",
-    "tryTENAgent": "TEN Agentを試す"
+    "tryTENAgent": "TEN Agentを試す",
+    "currentVersion": "現在のバージョン",
+    "latestVersion": "最新バージョン",
+    "currentIsLatest": "現在のバージョンが最新です",
+    "currentIsLatestDescription": "TEN Frameworkの最新バージョンをご利用中です。\n最新バージョンの詳細は<0>TEN Framework GitHubリリースページ</0>でご確認いただけます。",
+    "newVersionAvailable": "新しいバージョンが利用可能です",
+    "newVersionAvailableDescription": "TEN Frameworkの新しいバージョンが利用可能です。\n新バージョンの詳細は<0>TEN Framework GitHubリリースページ</0>でご確認いただけます。"
   },
   "action": {
     "edit": "編集",
