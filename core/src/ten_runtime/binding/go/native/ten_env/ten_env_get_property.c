@@ -17,11 +17,9 @@
 #include "ten_runtime/ten_env_proxy/ten_env_proxy.h"
 #include "ten_utils/lib/alloc.h"
 #include "ten_utils/lib/error.h"
-#include "ten_utils/lib/event.h"
 #include "ten_utils/lib/string.h"
 #include "ten_utils/macro/check.h"
 #include "ten_utils/value/value.h"
-#include "ten_utils/value/value_get.h"
 
 typedef struct ten_go_ten_env_notify_peek_property_ctx_t {
   ten_string_t path;
