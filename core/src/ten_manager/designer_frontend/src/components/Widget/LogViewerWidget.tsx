@@ -15,7 +15,6 @@ import { cn } from "@/lib/utils";
 import { useWidgetStore } from "@/store/widget";
 import { ILogViewerWidget, ILogViewerWidgetOptions } from "@/types/widgets";
 import { EWSMessageType } from "@/types/apps";
-import { useAutoScroll } from "@/hooks/use-auto-scroll";
 
 export function LogViewerBackstageWidget(props: ILogViewerWidget) {
   const { id, metadata: { wsUrl, scriptType, script } = {} } = props;
@@ -101,10 +100,6 @@ export function LogViewerFrontStageWidget(props: {
 
   const { logViewerHistory, widgets } = useWidgetStore();
 
-  const scrollAreaRef = React.useRef<HTMLDivElement>(null);
-
-  const { mutate: mutateAutoScroll } = useAutoScroll(scrollAreaRef);
-
   const { t } = useTranslation();
 
   const logsMemo = React.useMemo(() => {
@@ -114,10 +109,6 @@ export function LogViewerFrontStageWidget(props: {
   const currentWidget = React.useMemo(() => {
     return widgets.find((w) => w.id === id);
   }, [widgets, id]);
-
-  React.useEffect(() => {
-    mutateAutoScroll();
-  }, [currentWidget?.display_type, mutateAutoScroll]);
 
   return (
     <div className="flex h-full w-full flex-col" id={id}>
@@ -320,8 +311,10 @@ function LogViewerLogItemList(props: {
   // }, []);
 
   React.useEffect(() => {
-    listRef.current?.scrollToItem(filteredLogs.length - 1);
-  }, [filteredLogs]);
+    setTimeout(() => {
+      listRef.current?.scrollToItem(filteredLogs.length - 1, "end");
+    }, 0);
+  }, [filteredLogs, prefix]);
 
   return (
     <>

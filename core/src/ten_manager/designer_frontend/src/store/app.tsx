@@ -28,7 +28,9 @@ export interface IAppStore {
     baseDir: string | null;
     graphName: string | null;
   }) => void;
+  /** @deprecated */
   runScript: string;
+  /** @deprecated */
   setRunScript: (runScript: string) => void;
   folderPath: string;
   setFolderPath: (folderPath: string) => void;

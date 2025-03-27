@@ -55,7 +55,13 @@
     "poweredBy": "技术支持",
     "poweredByTenFramework": "由 <0></0> 提供支持",
     "github": "GitHub",
-    "tryTENAgent": "尝试 TEN Agent"
+    "tryTENAgent": "尝试 TEN Agent",
+    "currentVersion": "当前版本",
+    "latestVersion": "最新版本",
+    "currentIsLatest": "当前已是最新版本",
+    "currentIsLatestDescription": "您正在使用最新版本的 TEN Framework。\n更多关于最新版本的信息可以在 <0>TEN Framework GitHub 发布页面</0> 查看。",
+    "newVersionAvailable": "有新版本可用",
+    "newVersionAvailableDescription": "TEN Framework 有新版本可用。\n更多关于新版本的信息可以在 <0>TEN Framework GitHub 发布页面</0> 查看。"
   },
   "action": {
     "edit": "编辑",
@@ -95,7 +101,11 @@
       "confirmChangePosition": "确定要更改 Dock 位置吗？所有未保存的更改将会丢失。"
     },
     "selectGraph": {
-      "title": "选择图谱"
+      "title": "选择应用/图谱",
+      "app": "应用",
+      "graph": "图谱",
+      "unspecified": "<未指定>",
+      "updateSuccess": "应用/图谱更新成功"
     },
     "customNodeConn": {
       "srcTitle": "节点[{{source}}]连接",

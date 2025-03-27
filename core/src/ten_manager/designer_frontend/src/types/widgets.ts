@@ -145,5 +145,9 @@ export type IWidget =
   | IEditorWidget
   | ICustomConnectionWidget
   | ILogViewerWidget
-  | IDefaultWidget<{ type: EDefaultWidgetType; base_dir?: string }>
+  | IDefaultWidget<{
+      type: EDefaultWidgetType;
+      base_dir?: string;
+      scripts?: string[];
+    }>
   | IExtensionWidget;

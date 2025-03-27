@@ -88,6 +88,22 @@ export const ENDPOINT_APPS = {
       responseSchema: genResSchema(z.any()),
     },
   },
+  appScripts: {
+    [ENDPOINT_METHOD.POST]: {
+      url: `${API_DESIGNER_V1}/apps/scripts`,
+      method: ENDPOINT_METHOD.POST,
+      requestSchema: z.object({
+        base_dir: z.string(),
+      }),
+      responseSchema: genResSchema<{
+        scripts?: string[] | null;
+      }>(
+        z.object({
+          scripts: z.array(z.string()).optional().nullable(),
+        })
+      ),
+    },
+  },
 };
 
 export const ENDPOINT_ADDONS = {

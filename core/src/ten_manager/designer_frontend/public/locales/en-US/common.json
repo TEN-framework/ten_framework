@@ -55,7 +55,13 @@
     "poweredBy": "Powered by",
     "poweredByTenFramework": "Powered by <0></0>",
     "github": "GitHub",
-    "tryTENAgent": "Try TEN Agent"
+    "tryTENAgent": "Try TEN Agent",
+    "currentVersion": "Current Version",
+    "latestVersion": "Latest Version",
+    "currentIsLatest": "Current is the latest version",
+    "currentIsLatestDescription": "You are using the latest version of TEN Framework.\nMore information about the latest version can be found on the <0>TEN Framework GitHub Release Page</0>.",
+    "newVersionAvailable": "New version available",
+    "newVersionAvailableDescription": "A new version of TEN Framework is available.\nMore information about the new version can be found on the <0>TEN Framework GitHub Release Page</0>."
   },
   "action": {
     "edit": "Edit",
@@ -95,7 +101,11 @@
       "confirmChangePosition": "Are you sure you want to change the position? All unsaved changes will be lost."
     },
     "selectGraph": {
-      "title": "Select a Graph"
+      "title": "Select a App/Graph",
+      "app": "App",
+      "graph": "Graph",
+      "unspecified": "<Unspecified>",
+      "updateSuccess": "App/Graph updated successfully"
     },
     "customNodeConn": {
       "srcTitle": "Node[{{source}}] Connection",

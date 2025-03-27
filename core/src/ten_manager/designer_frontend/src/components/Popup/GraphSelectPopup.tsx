@@ -7,6 +7,7 @@
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
+import { CheckIcon } from "lucide-react";
 
 import {
   enhanceNodesWithCommands,
@@ -25,6 +26,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/Select";
+import { Label } from "@/components/ui/Label";
 import { Button } from "@/components/ui/Button";
 import { SpinnerLoading } from "@/components/Status/Loading";
 import {
@@ -40,6 +42,7 @@ import type { CustomNodeType } from "@/flow/CustomNode";
 
 export function GraphSelectPopup() {
   const { t } = useTranslation();
+
   const {
     data: loadedApps,
     isLoading: isLoadingApps,
@@ -54,6 +57,15 @@ export function GraphSelectPopup() {
   );
 
   const { graphs = [], error, isLoading } = useGraphs(selectedApp);
+
+  const [tmpSelectedGraph, setTmpSelectedGraph] = React.useState<string | null>(
+    currentWorkspace.graphName ?? null
+  );
+
+  const handleSelectApp = (app?: string | null) => {
+    setSelectedApp(app ?? null);
+    setTmpSelectedGraph(null);
+  };
 
   const handleSelectGraph =
     (graphName: string, baseDir: string | null) => async () => {
@@ -114,6 +126,39 @@ export function GraphSelectPopup() {
       }
     };
 
+  const handleCancel = () => {
+    removeWidget(GRAPH_SELECT_POPUP_ID);
+    handleSelectApp(currentWorkspace.baseDir);
+    setTmpSelectedGraph(currentWorkspace.graphName);
+  };
+
+  const handleSave = async () => {
+    if (!tmpSelectedGraph) {
+      updateCurrentWorkspace({
+        baseDir: selectedApp,
+        graphName: null,
+      });
+      toast.success(t("popup.selectGraph.updateSuccess"), {
+        description: (
+          <>
+            <p>{`${t("popup.selectGraph.app")}: ${selectedApp}`}</p>
+          </>
+        ),
+      });
+    } else {
+      await handleSelectGraph(tmpSelectedGraph, selectedApp)();
+      toast.success(t("popup.selectGraph.updateSuccess"), {
+        description: (
+          <>
+            <p>{`${t("popup.selectGraph.app")}: ${selectedApp}`}</p>
+            <p>{`${t("popup.selectGraph.graph")}: ${tmpSelectedGraph}`}</p>
+          </>
+        ),
+      });
+    }
+    removeWidget(GRAPH_SELECT_POPUP_ID);
+  };
+
   React.useEffect(() => {
     if (error instanceof Error) {
       toast.error(`Failed to fetch graphs: ${error.message}`);
@@ -135,6 +180,7 @@ export function GraphSelectPopup() {
       width={400}
     >
       <div className="flex flex-col gap-2 w-full h-full">
+        <Label>{t("popup.selectGraph.app")}</Label>
         {isLoadingApps ? (
           <SpinnerLoading
             className="w-full h-full"
@@ -142,7 +188,7 @@ export function GraphSelectPopup() {
           />
         ) : (
           <Select
-            onValueChange={(value) => setSelectedApp(value)}
+            onValueChange={(value) => handleSelectApp(value)}
             value={selectedApp ?? undefined}
           >
             <SelectTrigger className="w-full">
@@ -164,6 +210,7 @@ export function GraphSelectPopup() {
             </SelectContent>
           </Select>
         )}
+        <Label>{t("popup.selectGraph.graph")}</Label>
         {isLoading ? (
           <>
             <SpinnerLoading
@@ -172,16 +219,39 @@ export function GraphSelectPopup() {
             />
           </>
         ) : (
-          <ul className="flex flex-col gap-2 h-full w-full">
+          <ul className="flex flex-col gap-1 h-full w-full">
+            <Button
+              asChild
+              key={"null"}
+              className="justify-start cursor-pointer"
+              variant="ghost"
+              onClick={() => setTmpSelectedGraph(null)}
+            >
+              <li className="w-full">
+                {tmpSelectedGraph === null ? (
+                  <CheckIcon className="size-4" />
+                ) : (
+                  <div className="size-4" />
+                )}
+                <span className="text-sm">
+                  {t("popup.selectGraph.unspecified")}
+                </span>
+              </li>
+            </Button>
             {graphs?.map((graph) => (
               <Button
                 asChild
                 key={graph.name}
                 className="justify-start cursor-pointer"
                 variant="ghost"
-                onClick={handleSelectGraph(graph.name, selectedApp)}
+                onClick={() => setTmpSelectedGraph(graph.name)}
               >
                 <li className="w-full">
+                  {tmpSelectedGraph === graph.name ? (
+                    <CheckIcon className="size-4" />
+                  ) : (
+                    <div className="size-4" />
+                  )}
                   <span className="text-sm">{graph.name}</span>
                   {graph.auto_start ? (
                     <span className="text-xs">({t("action.autoStart")})</span>
@@ -195,6 +265,12 @@ export function GraphSelectPopup() {
             ))}
           </ul>
         )}
+        <div className="flex justify-end gap-2">
+          <Button variant="outline" onClick={handleCancel}>
+            {t("action.cancel")}
+          </Button>
+          <Button onClick={handleSave}>{t("action.save")}</Button>
+        </div>
       </div>
     </Popup>
   );

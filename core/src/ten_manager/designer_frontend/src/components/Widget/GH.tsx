@@ -8,7 +8,7 @@ import * as React from "react";
 import { StarIcon, BotIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
-import { Button } from "@/components/ui/Button";
+import { badgeVariants } from "@/components/ui/Badge";
 import {
   Tooltip,
   TooltipContent,
@@ -23,6 +23,9 @@ import { formatNumberWithCommas } from "@/lib/utils";
 import { TEN_AGENT_URL } from "@/constants";
 import { useHelpText } from "@/api/services/helpText";
 import { EHelpTextKey } from "@/api/endpoints";
+import { Separator } from "@/components/ui/Separator";
+
+import { type VariantProps } from "class-variance-authority";
 
 export function GHStargazersCount(props: {
   owner: string;
@@ -55,27 +58,32 @@ export function GHStargazersCount(props: {
     <TooltipProvider delayDuration={100}>
       <Tooltip>
         <TooltipTrigger asChild>
-          <Button asChild variant="ghost" size="sm">
-            <a
-              href={`https://github.com/${owner}/${repo}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={cn("flex items-center gap-1.5", "text-sm", className)}
-            >
-              {shouldFallbackMemo ? (
-                <GHIcon className="size-4" />
-              ) : (
-                <>
-                  <StarIcon className="size-4 text-yellow-500" />
-                  <span>
-                    {formatNumberWithCommas(
-                      repository?.stargazers_count as number
-                    )}
-                  </span>
-                </>
-              )}
-            </a>
-          </Button>
+          <BadgeLink
+            href={`https://github.com/${owner}/${repo}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={cn(
+              "flex items-center gap-1.5",
+              "text-sm",
+              badgeVariants({ variant: "secondary" }),
+              className
+            )}
+          >
+            {shouldFallbackMemo ? (
+              <GHIcon className="size-3" />
+            ) : (
+              <>
+                <GHIcon className="size-3" />
+                <Separator orientation="vertical" className="h-3" />
+                <StarIcon className="size-3 text-yellow-500" />
+                <span>
+                  {formatNumberWithCommas(
+                    repository?.stargazers_count as number
+                  )}
+                </span>
+              </>
+            )}
+          </BadgeLink>
         </TooltipTrigger>
         <TooltipContent className="max-w-md">
           {helpTextIsLoading ? (
@@ -109,17 +117,21 @@ export function GHTryTENAgent(props: { className?: string }) {
     <TooltipProvider delayDuration={100}>
       <Tooltip>
         <TooltipTrigger asChild>
-          <Button asChild variant="ghost" size="icon">
-            <a
-              href={TEN_AGENT_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={cn("flex items-center gap-1.5", "text-sm", className)}
-            >
-              <BotIcon className="size-4" />
-              <span className="sr-only">{t("header.tryTENAgent")}</span>
-            </a>
-          </Button>
+          <BadgeLink
+            href={TEN_AGENT_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={cn(
+              "flex items-center gap-1.5",
+              "text-sm",
+              badgeVariants({ variant: "secondary" }),
+              className
+            )}
+          >
+            <BotIcon className="size-3" />
+            <Separator orientation="vertical" className="h-3" />
+            <span className="">{t("header.tryTENAgent")}</span>
+          </BadgeLink>
         </TooltipTrigger>
         <TooltipContent className="max-w-md">
           {helpTextIsLoading ? (
@@ -132,3 +144,12 @@ export function GHTryTENAgent(props: { className?: string }) {
     </TooltipProvider>
   );
 }
+
+const BadgeLink = React.forwardRef<
+  HTMLAnchorElement,
+  React.AnchorHTMLAttributes<HTMLAnchorElement> &
+    VariantProps<typeof badgeVariants>
+>((props, ref) => {
+  const { className, ...rest } = props;
+  return <a className={cn(className)} {...rest} ref={ref} />;
+});
