@@ -66,14 +66,20 @@ export function Version() {
                   </span>
                 </Badge>
                 <ChevronsRightIcon className="size-4" />
-                <Badge variant="secondary">
-                  <span className="uppercase">
-                    {updateData?.latest_version}
-                  </span>
-                  <span className="text-xs font-normal italic">
-                    ({t("header.latestVersion")})
-                  </span>
-                </Badge>
+                <a
+                  href={updateData?.release_page || TEN_FRAMEWORK_RELEASE_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <Badge variant="secondary">
+                    <span className="uppercase">
+                      {updateData?.latest_version}
+                    </span>
+                    <span className="text-xs font-normal italic">
+                      ({t("header.latestVersion")})
+                    </span>
+                  </Badge>
+                </a>
               </div>
               {updateData?.message && (
                 <p className="my-1">{updateData?.message}</p>
