@@ -24,20 +24,37 @@ func (p *tenEnv) getPropertyTypeAndSize(
 	defer p.keepAlive()
 
 	var ptInC propTypeInC
-	apiStatus := C.ten_go_ten_env_get_property_type_and_size(
-		p.cPtr,
-		unsafe.Pointer(unsafe.StringData(path)),
-		C.int(len(path)),
-		&ptInC,
-		size,
-		cValue,
-	)
-	err := withCGoError(&apiStatus)
+	done := make(chan error, 1)
+
+	err := withCGOLimiter(func() error {
+		callbackHandle := newGoHandle(done)
+
+		apiStatus := C.ten_go_ten_env_get_property_type_and_size(
+			p.cPtr,
+			unsafe.Pointer(unsafe.StringData(path)),
+			C.int(len(path)),
+			&ptInC,
+			size,
+			cValue,
+			C.uintptr_t(callbackHandle),
+		)
+
+		err := withCGoError(&apiStatus)
+		if err != nil {
+			loadAndDeleteGoHandle(callbackHandle)
+		}
+
+		return err
+	})
+
 	if err != nil {
 		return propTypeInvalid, err
 	}
 
-	return propType(ptInC), nil
+	// Wait for the async operation to complete.
+	err = <-done
+
+	return propType(ptInC), err
 }
 
 func (p *tenEnv) GetPropertyInt8(path string) (int8, error) {
@@ -48,15 +65,32 @@ func (p *tenEnv) GetPropertyInt8(path string) (int8, error) {
 		)
 	}
 
-	return getPropInt8(func(v *C.int8_t) C.ten_go_error_t {
-		defer p.keepAlive()
-		return C.ten_go_ten_env_get_property_int8(
-			p.cPtr,
-			unsafe.Pointer(unsafe.StringData(path)),
-			C.int(len(path)),
-			v,
+	var cValue C.uintptr_t = 0
+	var pSize propSizeInC = 0
+	var cv C.int8_t
+	_, err := p.getPropertyTypeAndSize(path, &pSize, &cValue)
+	if err != nil {
+		return 0, err
+	}
+
+	// The value should be found if no error.
+	if cValue == 0 {
+		return 0, newTenError(
+			ErrorCodeGeneric,
+			"Not found.",
 		)
+	}
+
+	err = withCGOLimiter(func() error {
+		apiStatus := C.ten_go_value_get_int8(cValue, &cv)
+		return withCGoError(&apiStatus)
 	})
+
+	if err != nil {
+		return 0, err
+	}
+
+	return int8(cv), nil
 }
 
 func (p *tenEnv) GetPropertyInt16(path string) (int16, error) {
@@ -67,15 +101,31 @@ func (p *tenEnv) GetPropertyInt16(path string) (int16, error) {
 		)
 	}
 
-	return getPropInt16(func(v *C.int16_t) C.ten_go_error_t {
-		defer p.keepAlive()
-		return C.ten_go_ten_env_get_property_int16(
-			p.cPtr,
-			unsafe.Pointer(unsafe.StringData(path)),
-			C.int(len(path)),
-			v,
+	var cValue C.uintptr_t = 0
+	var pSize propSizeInC = 0
+	var cv C.int16_t
+	_, err := p.getPropertyTypeAndSize(path, &pSize, &cValue)
+	if err != nil {
+		return 0, err
+	}
+
+	if cValue == 0 {
+		return 0, newTenError(
+			ErrorCodeGeneric,
+			"Not found.",
 		)
+	}
+
+	err = withCGOLimiter(func() error {
+		apiStatus := C.ten_go_value_get_int16(cValue, &cv)
+		return withCGoError(&apiStatus)
 	})
+
+	if err != nil {
+		return 0, err
+	}
+
+	return int16(cv), nil
 }
 
 func (p *tenEnv) GetPropertyInt32(path string) (int32, error) {
@@ -86,15 +136,31 @@ func (p *tenEnv) GetPropertyInt32(path string) (int32, error) {
 		)
 	}
 
-	return getPropInt32(func(v *C.int32_t) C.ten_go_error_t {
-		defer p.keepAlive()
-		return C.ten_go_ten_env_get_property_int32(
-			p.cPtr,
-			unsafe.Pointer(unsafe.StringData(path)),
-			C.int(len(path)),
-			v,
+	var cValue C.uintptr_t = 0
+	var pSize propSizeInC = 0
+	var cv C.int32_t
+	_, err := p.getPropertyTypeAndSize(path, &pSize, &cValue)
+	if err != nil {
+		return 0, err
+	}
+
+	if cValue == 0 {
+		return 0, newTenError(
+			ErrorCodeGeneric,
+			"Not found.",
 		)
+	}
+
+	err = withCGOLimiter(func() error {
+		apiStatus := C.ten_go_value_get_int32(cValue, &cv)
+		return withCGoError(&apiStatus)
 	})
+
+	if err != nil {
+		return 0, err
+	}
+
+	return int32(cv), nil
 }
 
 func (p *tenEnv) GetPropertyInt64(path string) (int64, error) {
@@ -105,15 +171,31 @@ func (p *tenEnv) GetPropertyInt64(path string) (int64, error) {
 		)
 	}
 
-	return getPropInt64(func(v *C.int64_t) C.ten_go_error_t {
-		defer p.keepAlive()
-		return C.ten_go_ten_env_get_property_int64(
-			p.cPtr,
-			unsafe.Pointer(unsafe.StringData(path)),
-			C.int(len(path)),
-			v,
+	var cValue C.uintptr_t = 0
+	var pSize propSizeInC = 0
+	var cv C.int64_t
+	_, err := p.getPropertyTypeAndSize(path, &pSize, &cValue)
+	if err != nil {
+		return 0, err
+	}
+
+	if cValue == 0 {
+		return 0, newTenError(
+			ErrorCodeGeneric,
+			"Not found.",
 		)
+	}
+
+	err = withCGOLimiter(func() error {
+		apiStatus := C.ten_go_value_get_int64(cValue, &cv)
+		return withCGoError(&apiStatus)
 	})
+
+	if err != nil {
+		return 0, err
+	}
+
+	return int64(cv), nil
 }
 
 func (p *tenEnv) GetPropertyUint8(path string) (uint8, error) {
@@ -124,15 +206,31 @@ func (p *tenEnv) GetPropertyUint8(path string) (uint8, error) {
 		)
 	}
 
-	return getPropUint8(func(v *C.uint8_t) C.ten_go_error_t {
-		defer p.keepAlive()
-		return C.ten_go_ten_env_get_property_uint8(
-			p.cPtr,
-			unsafe.Pointer(unsafe.StringData(path)),
-			C.int(len(path)),
-			v,
+	var cValue C.uintptr_t = 0
+	var pSize propSizeInC = 0
+	var cv C.uint8_t
+	_, err := p.getPropertyTypeAndSize(path, &pSize, &cValue)
+	if err != nil {
+		return 0, err
+	}
+
+	if cValue == 0 {
+		return 0, newTenError(
+			ErrorCodeGeneric,
+			"Not found.",
 		)
+	}
+
+	err = withCGOLimiter(func() error {
+		apiStatus := C.ten_go_value_get_uint8(cValue, &cv)
+		return withCGoError(&apiStatus)
 	})
+
+	if err != nil {
+		return 0, err
+	}
+
+	return uint8(cv), nil
 }
 
 func (p *tenEnv) GetPropertyUint16(path string) (uint16, error) {
@@ -143,15 +241,31 @@ func (p *tenEnv) GetPropertyUint16(path string) (uint16, error) {
 		)
 	}
 
-	return getPropUint16(func(v *C.uint16_t) C.ten_go_error_t {
-		defer p.keepAlive()
-		return C.ten_go_ten_env_get_property_uint16(
-			p.cPtr,
-			unsafe.Pointer(unsafe.StringData(path)),
-			C.int(len(path)),
-			v,
+	var cValue C.uintptr_t = 0
+	var pSize propSizeInC = 0
+	var cv C.uint16_t
+	_, err := p.getPropertyTypeAndSize(path, &pSize, &cValue)
+	if err != nil {
+		return 0, err
+	}
+
+	if cValue == 0 {
+		return 0, newTenError(
+			ErrorCodeGeneric,
+			"Not found.",
 		)
+	}
+
+	err = withCGOLimiter(func() error {
+		apiStatus := C.ten_go_value_get_uint16(cValue, &cv)
+		return withCGoError(&apiStatus)
 	})
+
+	if err != nil {
+		return 0, err
+	}
+
+	return uint16(cv), nil
 }
 
 func (p *tenEnv) GetPropertyUint32(path string) (uint32, error) {
@@ -162,15 +276,31 @@ func (p *tenEnv) GetPropertyUint32(path string) (uint32, error) {
 		)
 	}
 
-	return getPropUint32(func(v *C.uint32_t) C.ten_go_error_t {
-		defer p.keepAlive()
-		return C.ten_go_ten_env_get_property_uint32(
-			p.cPtr,
-			unsafe.Pointer(unsafe.StringData(path)),
-			C.int(len(path)),
-			v,
+	var cValue C.uintptr_t = 0
+	var pSize propSizeInC = 0
+	var cv C.uint32_t
+	_, err := p.getPropertyTypeAndSize(path, &pSize, &cValue)
+	if err != nil {
+		return 0, err
+	}
+
+	if cValue == 0 {
+		return 0, newTenError(
+			ErrorCodeGeneric,
+			"Not found.",
 		)
+	}
+
+	err = withCGOLimiter(func() error {
+		apiStatus := C.ten_go_value_get_uint32(cValue, &cv)
+		return withCGoError(&apiStatus)
 	})
+
+	if err != nil {
+		return 0, err
+	}
+
+	return uint32(cv), nil
 }
 
 func (p *tenEnv) GetPropertyUint64(path string) (uint64, error) {
@@ -181,15 +311,31 @@ func (p *tenEnv) GetPropertyUint64(path string) (uint64, error) {
 		)
 	}
 
-	return getPropUint64(func(v *C.uint64_t) C.ten_go_error_t {
-		defer p.keepAlive()
-		return C.ten_go_ten_env_get_property_uint64(
-			p.cPtr,
-			unsafe.Pointer(unsafe.StringData(path)),
-			C.int(len(path)),
-			v,
+	var cValue C.uintptr_t = 0
+	var pSize propSizeInC = 0
+	var cv C.uint64_t
+	_, err := p.getPropertyTypeAndSize(path, &pSize, &cValue)
+	if err != nil {
+		return 0, err
+	}
+
+	if cValue == 0 {
+		return 0, newTenError(
+			ErrorCodeGeneric,
+			"Not found.",
 		)
+	}
+
+	err = withCGOLimiter(func() error {
+		apiStatus := C.ten_go_value_get_uint64(cValue, &cv)
+		return withCGoError(&apiStatus)
 	})
+
+	if err != nil {
+		return 0, err
+	}
+
+	return uint64(cv), nil
 }
 
 func (p *tenEnv) GetPropertyFloat32(path string) (float32, error) {
@@ -200,15 +346,31 @@ func (p *tenEnv) GetPropertyFloat32(path string) (float32, error) {
 		)
 	}
 
-	return getPropFloat32(func(v *C.float) C.ten_go_error_t {
-		defer p.keepAlive()
-		return C.ten_go_ten_env_get_property_float32(
-			p.cPtr,
-			unsafe.Pointer(unsafe.StringData(path)),
-			C.int(len(path)),
-			v,
+	var cValue C.uintptr_t = 0
+	var pSize propSizeInC = 0
+	var cv C.float
+	_, err := p.getPropertyTypeAndSize(path, &pSize, &cValue)
+	if err != nil {
+		return 0, err
+	}
+
+	if cValue == 0 {
+		return 0, newTenError(
+			ErrorCodeGeneric,
+			"Not found.",
 		)
+	}
+
+	err = withCGOLimiter(func() error {
+		apiStatus := C.ten_go_value_get_float32(cValue, &cv)
+		return withCGoError(&apiStatus)
 	})
+
+	if err != nil {
+		return 0, err
+	}
+
+	return float32(cv), nil
 }
 
 func (p *tenEnv) GetPropertyFloat64(path string) (float64, error) {
@@ -219,15 +381,31 @@ func (p *tenEnv) GetPropertyFloat64(path string) (float64, error) {
 		)
 	}
 
-	return getPropFloat64(func(v *C.double) C.ten_go_error_t {
-		defer p.keepAlive()
-		return C.ten_go_ten_env_get_property_float64(
-			p.cPtr,
-			unsafe.Pointer(unsafe.StringData(path)),
-			C.int(len(path)),
-			v,
+	var cValue C.uintptr_t = 0
+	var pSize propSizeInC = 0
+	var cv C.double
+	_, err := p.getPropertyTypeAndSize(path, &pSize, &cValue)
+	if err != nil {
+		return 0, err
+	}
+
+	if cValue == 0 {
+		return 0, newTenError(
+			ErrorCodeGeneric,
+			"Not found.",
 		)
+	}
+
+	err = withCGOLimiter(func() error {
+		apiStatus := C.ten_go_value_get_float64(cValue, &cv)
+		return withCGoError(&apiStatus)
 	})
+
+	if err != nil {
+		return 0, err
+	}
+
+	return float64(cv), nil
 }
 
 func (p *tenEnv) GetPropertyBool(path string) (bool, error) {
@@ -238,15 +416,31 @@ func (p *tenEnv) GetPropertyBool(path string) (bool, error) {
 		)
 	}
 
-	return getPropBool(func(v *C.bool) C.ten_go_error_t {
-		defer p.keepAlive()
-		return C.ten_go_ten_env_get_property_bool(
-			p.cPtr,
-			unsafe.Pointer(unsafe.StringData(path)),
-			C.int(len(path)),
-			v,
+	var cValue C.uintptr_t = 0
+	var pSize propSizeInC = 0
+	var cv C.bool
+	_, err := p.getPropertyTypeAndSize(path, &pSize, &cValue)
+	if err != nil {
+		return false, err
+	}
+
+	if cValue == 0 {
+		return false, newTenError(
+			ErrorCodeGeneric,
+			"Not found.",
 		)
+	}
+
+	err = withCGOLimiter(func() error {
+		apiStatus := C.ten_go_value_get_bool(cValue, &cv)
+		return withCGoError(&apiStatus)
 	})
+
+	if err != nil {
+		return false, err
+	}
+
+	return bool(cv), nil
 }
 
 func (p *tenEnv) GetPropertyPtr(path string) (any, error) {
@@ -257,15 +451,31 @@ func (p *tenEnv) GetPropertyPtr(path string) (any, error) {
 		)
 	}
 
-	return getPropPtr(func(v *cHandle) C.ten_go_error_t {
-		defer p.keepAlive()
-		return C.ten_go_ten_env_get_property_ptr(
-			p.cPtr,
-			unsafe.Pointer(unsafe.StringData(path)),
-			C.int(len(path)),
-			v,
+	var cValue C.uintptr_t = 0
+	var pSize propSizeInC = 0
+	var cv cHandle
+	_, err := p.getPropertyTypeAndSize(path, &pSize, &cValue)
+	if err != nil {
+		return nil, err
+	}
+
+	if cValue == 0 {
+		return nil, newTenError(
+			ErrorCodeGeneric,
+			"Not found.",
 		)
+	}
+
+	err = withCGOLimiter(func() error {
+		apiStatus := C.ten_go_value_get_ptr(cValue, &cv)
+		return withCGoError(&apiStatus)
 	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return loadGoHandle(goHandle(cv)), nil
 }
 
 // GetPropertyString retrieves the string property stored in a ten. This
@@ -781,19 +991,42 @@ func (p *tenEnv) SetPropertyFromJSONBytes(path string, value []byte) error {
 	return err
 }
 
-func (p *tenEnv) getPropertyToJSONBytes(path string) ([]byte, error) {
-	defer p.keepAlive()
+// GetPropertyToJSONBytes retrieves the property and parses it as a json data.
+// This function uses a bytes pool to improve the performance. ReleaseBytes is
+// recommended to be called after the []byte is no longer used.
+func (p *tenEnv) GetPropertyToJSONBytes(path string) ([]byte, error) {
+	if len(path) == 0 {
+		return nil, newTenError(
+			ErrorCodeInvalidArgument,
+			"the property path is required.",
+		)
+	}
 
+	var cValue C.uintptr_t = 0
+	var pSize propSizeInC = 0
 	var cJSONStr *C.char
 	var cJSONStrLen C.uintptr_t
-	apiStatus := C.ten_go_ten_env_get_property_json_and_size(
-		p.cPtr,
-		unsafe.Pointer(unsafe.StringData(path)),
-		C.int(len(path)),
-		&cJSONStrLen,
-		&cJSONStr,
-	)
-	err := withCGoError(&apiStatus)
+	_, err := p.getPropertyTypeAndSize(path, &pSize, &cValue)
+	if err != nil {
+		return nil, err
+	}
+
+	if cValue == 0 {
+		return nil, newTenError(
+			ErrorCodeGeneric,
+			"Not found.",
+		)
+	}
+
+	err = withCGOLimiter(func() error {
+		apiStatus := C.ten_go_value_to_json(
+			cValue,
+			&cJSONStrLen,
+			&cJSONStr,
+		)
+		return withCGoError(&apiStatus)
+	})
+
 	if err != nil {
 		return nil, err
 	}
@@ -807,26 +1040,8 @@ func (p *tenEnv) getPropertyToJSONBytes(path string) ([]byte, error) {
 		)
 	}
 
-	// Refer to the comments in `getPropertyToJSONBytes` in msg.go for the
-	// reason why we do not use `C.GoBytes`.
 	return getPropBytes(size, func(v unsafe.Pointer) C.ten_go_error_t {
 		return C.ten_go_copy_c_str_to_slice_and_free(cJSONStr, v)
-	})
-}
-
-// GetPropertyToJSONBytes retrieves the property and parses it as a json data.
-// This function uses a bytes pool to improve the performance. ReleaseBytes is
-// recommended to be called after the []byte is no longer used.
-func (p *tenEnv) GetPropertyToJSONBytes(path string) ([]byte, error) {
-	if len(path) == 0 {
-		return nil, newTenError(
-			ErrorCodeInvalidArgument,
-			"the property path is required.",
-		)
-	}
-
-	return withCGOLimiterHasReturnValue[[]byte](func() ([]byte, error) {
-		return p.getPropertyToJSONBytes(path)
 	})
 }
 

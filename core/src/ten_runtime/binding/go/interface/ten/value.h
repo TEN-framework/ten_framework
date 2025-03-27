@@ -36,3 +36,31 @@ void ten_go_value_destroy(uintptr_t value_addr);
 ten_go_error_t ten_go_value_get_string(uintptr_t value_addr, void *value);
 
 ten_go_error_t ten_go_value_get_buf(uintptr_t value_addr, void *value);
+
+ten_go_error_t ten_go_value_get_int8(uintptr_t value_addr, int8_t *value);
+
+ten_go_error_t ten_go_value_get_int16(uintptr_t value_addr, int16_t *value);
+
+ten_go_error_t ten_go_value_get_int32(uintptr_t value_addr, int32_t *value);
+
+ten_go_error_t ten_go_value_get_int64(uintptr_t value_addr, int64_t *value);
+
+ten_go_error_t ten_go_value_get_uint8(uintptr_t value_addr, uint8_t *value);
+
+ten_go_error_t ten_go_value_get_uint16(uintptr_t value_addr, uint16_t *value);
+
+ten_go_error_t ten_go_value_get_uint32(uintptr_t value_addr, uint32_t *value);
+
+ten_go_error_t ten_go_value_get_uint64(uintptr_t value_addr, uint64_t *value);
+
+ten_go_error_t ten_go_value_get_float32(uintptr_t value_addr, float *value);
+
+ten_go_error_t ten_go_value_get_float64(uintptr_t value_addr, double *value);
+
+ten_go_error_t ten_go_value_get_bool(uintptr_t value_addr, bool *value);
+
+ten_go_error_t ten_go_value_get_ptr(uintptr_t value_addr, uintptr_t *value);
+
+ten_go_error_t ten_go_value_to_json(uintptr_t value_addr,
+                                    uintptr_t *json_str_len,
+                                    const char **json_str);
