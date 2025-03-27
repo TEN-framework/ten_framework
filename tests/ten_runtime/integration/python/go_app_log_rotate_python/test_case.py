@@ -192,10 +192,17 @@ def test_go_app_log_rotate_python():
             print("The go_app_log_rotate_python can not stop after 30 seconds.")
             server.kill()
 
-        exit_code = server.wait()
-        print("The exit code of go_app_log_rotate_python: ", exit_code)
-
-        assert exit_code == 0
+        # Print log file contents regardless of test outcome.
+        try:
+            # Wait with a 10-minute timeout
+            exit_code = server.wait(timeout=600)
+            print("The exit code of go_app_log_rotate_python: ", exit_code)
+        except subprocess.TimeoutExpired:
+            print("TIMEOUT: server.wait() blocked for more than 10 minutes")
+            # Log dump will happen in the finally block.
+            # Force terminate the server after timeout.
+            server.kill()
+            exit_code = None
 
         # check the log file
         assert os.path.exists(os.path.join(app_root_path, "test.log"))
@@ -212,6 +219,14 @@ def test_go_app_log_rotate_python():
             except Exception as e:
                 print(f"Error reading {log_file}: {e}")
             print(f"----- End of {log_file} -----\n")
+
+        # Fail the test if we hit a timeout.
+        if exit_code is None:
+            assert (
+                False
+            ), "Test failed due to timeout waiting for server to exit"
+        else:
+            assert exit_code == 0
 
         if build_config_args.ten_enable_tests_cleanup is True:
             # Testing complete. If builds are only created during the testing
