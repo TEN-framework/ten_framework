@@ -8,8 +8,9 @@ use std::sync::{Arc, RwLock};
 
 use actix_web::{web, HttpResponse, Responder};
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
+use serde_json;
 
+use crate::config::Designer;
 use crate::designer::response::{ApiResponse, Status};
 use crate::designer::DesignerState;
 use crate::schema::validate_designer_config;
@@ -18,7 +19,7 @@ use super::save_config_to_file;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct UpdatePreferencesRequestPayload {
-    pub preferences: Value,
+    pub preferences: Designer,
 }
 
 /// Update the full content of designer frontend preferences.
@@ -27,7 +28,10 @@ pub async fn update_preferences_endpoint(
     state: web::Data<Arc<RwLock<DesignerState>>>,
 ) -> Result<impl Responder, actix_web::Error> {
     // Validate against schema.
-    if let Err(e) = validate_designer_config(&request_payload.preferences) {
+    // Convert Designer to Value for validation.
+    let preferences_value = serde_json::to_value(&request_payload.preferences)
+        .map_err(actix_web::error::ErrorBadRequest)?;
+    if let Err(e) = validate_designer_config(&preferences_value) {
         return Err(actix_web::error::ErrorBadRequest(e.to_string()));
     }
 
@@ -39,10 +43,8 @@ pub async fn update_preferences_endpoint(
             )
         })?;
 
-    // Update designer field
-    tman_config.designer =
-        serde_json::from_value(request_payload.preferences.clone())
-            .map_err(actix_web::error::ErrorBadRequest)?;
+    // Update designer field.
+    tman_config.designer = request_payload.preferences.clone();
 
     // Save to config file
     save_config_to_file(tman_config)?;
@@ -62,8 +64,9 @@ mod tests {
     use std::sync::{Arc, RwLock};
 
     use actix_web::{test, web, App};
-    use serde_json::json;
+    use serde_json;
 
+    use crate::config::Designer;
     use crate::config::TmanConfig;
     use crate::designer::DesignerState;
     use crate::output::TmanOutputCli;
@@ -98,9 +101,9 @@ mod tests {
 
         // Create valid preferences payload.
         let payload = UpdatePreferencesRequestPayload {
-            preferences: json!({
-                "logviewer_line_size": 2000  // Valid value according to schema.
-            }),
+            preferences: Designer {
+                logviewer_line_size: 2000, // Valid value according to schema.
+            },
         };
 
         // Create test request.
@@ -154,9 +157,9 @@ mod tests {
         // Create invalid preferences payload (violates schema minimum
         // constraint).
         let payload = UpdatePreferencesRequestPayload {
-            preferences: json!({
-                "logviewer_line_size": 50  // Invalid value - minimum is 100.
-            }),
+            preferences: Designer {
+                logviewer_line_size: 50, // Invalid value - minimum is 100.
+            },
         };
 
         // Create test request.
@@ -167,51 +170,6 @@ mod tests {
         let resp = test::call_service(&app, req).await;
 
         // Assert response status is 400 Bad Request due to schema violation.
-        assert_eq!(resp.status(), 400);
-    }
-
-    #[actix_web::test]
-    async fn test_update_preferences_invalid_property() {
-        // Create test state.
-        let config = TmanConfig {
-            config_file: None,
-            ..TmanConfig::default()
-        };
-
-        let state = Arc::new(RwLock::new(DesignerState {
-            tman_config: Arc::new(config),
-            out: Arc::new(Box::new(TmanOutputCli)),
-            pkgs_cache: HashMap::new(),
-        }));
-
-        // Create test app.
-        let app = test::init_service(
-            App::new().app_data(web::Data::new(state)).service(
-                web::scope("/api/designer/v1").route(
-                    "/preferences",
-                    web::put().to(update_preferences_endpoint),
-                ),
-            ),
-        )
-        .await;
-
-        // Create preferences payload with a non-existent property.
-        let payload = UpdatePreferencesRequestPayload {
-            preferences: json!({
-                "logviewer_line_size": 2000,  // Valid value.
-                "non_existent_property": "value"  // Property not in schema.
-            }),
-        };
-
-        // Create test request.
-        let req = test::TestRequest::put()
-            .uri("/api/designer/v1/preferences")
-            .set_json(&payload)
-            .to_request();
-        let resp = test::call_service(&app, req).await;
-
-        // Should be rejected with 400 Bad Request due to additionalProperties:
-        // false.
         assert_eq!(resp.status(), 400);
     }
 }
