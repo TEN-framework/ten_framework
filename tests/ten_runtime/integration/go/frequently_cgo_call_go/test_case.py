@@ -127,5 +127,4 @@ def test_frequently_cgo_call_go():
     if build_config_args.ten_enable_tests_cleanup is True:
         # Testing complete. If builds are only created during the testing phase,
         # we can clear the build results to save disk space.
-        # fs_utils.remove_tree(app_root_path)
-        pass
+        fs_utils.remove_tree(app_root_path)

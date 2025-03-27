@@ -612,6 +612,28 @@ func (p *tenEnv) SetProperty(path string, value any) error {
 	}
 
 	// Wait for the async operation to complete.
+	//
+	// !IMPORTANT!
+	// `withCGOLimiter(fn)` is used to limit the number of concurrent executions
+	// of `fn`. The reason for this is that `fn` typically contains calls to
+	// cgo, and if the concurrency of these cgo calls isn't controlled, it can
+	// lead to the creation of a large number of pthreads. This may cause
+	// excessive use of system resources and even system crashes.
+	//
+	// Because of this, **there must be no blocking behavior inside the `fn`
+	// passed to `withCGOLimiter(fn)`**. For example, blocking operations like
+	// waiting on a channel should be avoided. This is due to the current Go
+	// binding architecture, where `on_xxx` callbacks run on the extension
+	// thread. If `withCGOLimiter(fn)` is invoked inside an `on_xxx` callback,
+	// it might end up blocking the extension thread (since the limit on
+	// concurrent `withCGOLimiter(fn)` calls is reached and it has to wait for a
+	// previous `fn` to finish). However, that earlier `fn` might also be stuck
+	// waiting — usually on the extension thread to complete the second half of
+	// some async task — resulting in a **deadlock**.
+	//
+	// To put it simply, `withCGOLimiter(fn)` is necessary to limit the number
+	// of concurrent cgo calls. But we **must not** perform any blocking
+	// operations inside the `fn` passed to it.
 	err = <-done
 
 	return err
