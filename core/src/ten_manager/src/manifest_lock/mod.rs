@@ -6,6 +6,7 @@
 //
 use std::collections::HashMap;
 use std::path::Path;
+use std::sync::Arc;
 use std::{fs, str::FromStr};
 
 use anyhow::Result;
@@ -24,6 +25,8 @@ use ten_rust::pkg_info::pkg_basic_info::PkgBasicInfo;
 use ten_rust::pkg_info::pkg_type::PkgType;
 use ten_rust::pkg_info::pkg_type_and_name::PkgTypeAndName;
 use ten_rust::pkg_info::PkgInfo;
+
+use crate::output::TmanOutput;
 
 // Helper function to check if an Option<Vec> is None or an empty Vec.
 fn is_none_or_empty<T>(option: &Option<Vec<T>>) -> bool {
@@ -87,7 +90,11 @@ impl ManifestLock {
             .unwrap_or_default()
     }
 
-    pub fn print_changes(&self, old_resolve: &ManifestLock) {
+    pub fn print_changes(
+        &self,
+        old_resolve: &ManifestLock,
+        out: Arc<Box<dyn TmanOutput>>,
+    ) {
         let old_pkgs = old_resolve.get_pkgs();
         let new_pkgs = self.get_pkgs();
 
@@ -120,7 +127,7 @@ impl ManifestLock {
 
         if !added_pkgs.is_empty() {
             for pkg in added_pkgs.iter() {
-                println!(
+                out.normal_line(&format!(
                     "{}  Adding package {} v{}",
                     Emoji("➕", ""),
                     pkg.manifest.as_ref().map_or("unknown".to_string(), |m| m
@@ -130,13 +137,13 @@ impl ManifestLock {
                     pkg.manifest.as_ref().map_or("unknown".to_string(), |m| m
                         .version
                         .to_string())
-                );
+                ));
             }
         }
 
         if !removed_pkgs.is_empty() {
             for pkg in removed_pkgs.iter() {
-                println!(
+                out.normal_line(&format!(
                     "{}  Removing package {} v{}",
                     Emoji("🗑️", ""),
                     pkg.manifest.as_ref().map_or("unknown".to_string(), |m| m
@@ -146,13 +153,13 @@ impl ManifestLock {
                     pkg.manifest.as_ref().map_or("unknown".to_string(), |m| m
                         .version
                         .to_string())
-                );
+                ));
             }
         }
 
         if !updated_pkgs.is_empty() {
             for (old_pkg, new_pkg) in updated_pkgs.iter() {
-                println!(
+                out.normal_line(&format!(
                     "{}  Updating package {} v{} to v{}",
                     Emoji("🔄", ""),
                     old_pkg.manifest.as_ref().map_or(
@@ -171,7 +178,7 @@ impl ManifestLock {
                         .map_or("unknown".to_string(), |m| m
                             .version
                             .to_string())
-                );
+                ));
             }
         }
     }

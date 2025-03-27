@@ -11,6 +11,6 @@
   ],
   "scripts": {
     "start": "bin/default_app_cpp",
-    "build": "sh -c tgn gen linux x64 debug && tgn build linux x64 debug"
+    "build": "tgn gen linux x64 debug && tgn build linux x64 debug"
   }
 }
