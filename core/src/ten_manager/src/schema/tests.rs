@@ -172,11 +172,8 @@ fn test_additional_properties() {
     });
 
     let result = validate_tman_config(&config_json);
-    // By default, JSON Schema allows additional properties.
-    assert!(
-        result.is_ok(),
-        "Should allow additional properties by default"
-    );
+    // Additional fields should cause validation failure.
+    assert!(result.is_err(), "Should reject additional properties");
 
     let designer_json = serde_json::json!({
         "logviewer_line_size": 2000,
@@ -185,8 +182,8 @@ fn test_additional_properties() {
 
     let result = validate_designer_config(&designer_json);
     assert!(
-        result.is_ok(),
-        "Should allow additional properties in designer schema"
+        result.is_err(),
+        "Should reject additional properties in designer schema"
     );
 }
 

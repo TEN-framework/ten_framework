@@ -16,6 +16,7 @@ pub mod graphs;
 mod help_text;
 mod messages;
 pub mod mock;
+pub mod preferences;
 pub mod registry;
 pub mod response;
 pub mod terminal;
@@ -46,39 +47,13 @@ pub fn configure_routes(
     cfg.service(
         web::scope("/api/designer/v1")
             .app_data(state)
+            // Version endpoints.
             .route("/version", web::get().to(version::get_version_endpoint))
             .route(
                 "/check-update",
                 web::get().to(version::check_update_endpoint),
             )
-            .route("/env", web::get().to(env::get_env_endpoint))
-            .route("/graphs", web::post().to(graphs::get_graphs_endpoint))
-            .route(
-                "/graphs",
-                web::put().to(graphs::update::update_graph_endpoint),
-            )
-            .route(
-                "/graphs/nodes",
-                web::post().to(graphs::nodes::get_graph_nodes_endpoint),
-            )
-            .route(
-                "/graphs/connections",
-                web::post()
-                    .to(graphs::connections::get_graph_connections_endpoint),
-            )
-            .route(
-                "/help-text",
-                web::post().to(help_text::get_help_text_endpoint),
-            )
-            .route(
-                "/messages/compatible",
-                web::post()
-                    .to(messages::compatible::get_compatible_messages_endpoint),
-            )
-            .route(
-                "/registry/packages",
-                web::get().to(registry::packages::get_packages_endpoint),
-            )
+            // Apps endpoints.
             .route("/apps", web::get().to(apps::get::get_apps_endpoint))
             .route("/apps", web::post().to(apps::load::load_app_endpoint))
             .route(
@@ -97,6 +72,43 @@ pub fn configure_routes(
                 "/apps/scripts",
                 web::post().to(apps::scripts::get_app_scripts_endpoint),
             )
+            // Graphs endpoints.
+            .route("/graphs", web::post().to(graphs::get_graphs_endpoint))
+            .route(
+                "/graphs",
+                web::put().to(graphs::update::update_graph_endpoint),
+            )
+            .route(
+                "/graphs/nodes",
+                web::post().to(graphs::nodes::get_graph_nodes_endpoint),
+            )
+            .route(
+                "/graphs/connections",
+                web::post()
+                    .to(graphs::connections::get_graph_connections_endpoint),
+            )
+            // Preferences endpoints.
+            .route(
+                "/preferences/schema",
+                web::get().to(
+                    preferences::get_schema::get_preferences_schema_endpoint,
+                ),
+            )
+            .route(
+                "/preferences",
+                web::get().to(preferences::get::get_preferences_endpoint),
+            )
+            .route(
+                "/preferences",
+                web::put().to(preferences::update::update_preferences_endpoint),
+            )
+            .route(
+                "/preferences/field",
+                web::patch().to(
+                    preferences::update_field::update_preferences_field_endpoint,
+                ),
+            )
+            // File system endpoints.
             .route("/dir-list", web::post().to(dir_list::list_dir_endpoint))
             .route(
                 "/file-content",
@@ -106,6 +118,7 @@ pub fn configure_routes(
                 "/file-content",
                 web::put().to(file_content::save_file_content_endpoint),
             )
+            // Websocket endpoints.
             .route(
                 "/ws/builtin-function",
                 web::get().to(builtin_function::builtin_function_endpoint),
@@ -114,6 +127,21 @@ pub fn configure_routes(
             .route(
                 "/ws/terminal",
                 web::get().to(terminal::ws_terminal_endpoint),
-            ),
+            )
+            // Misc endpoints.
+            .route(
+                "/help-text",
+                web::post().to(help_text::get_help_text_endpoint),
+            )
+            .route(
+                "/messages/compatible",
+                web::post()
+                    .to(messages::compatible::get_compatible_messages_endpoint),
+            )
+            .route(
+                "/registry/packages",
+                web::get().to(registry::packages::get_packages_endpoint),
+            )
+            .route("/env", web::get().to(env::get_env_endpoint)),
     );
 }
