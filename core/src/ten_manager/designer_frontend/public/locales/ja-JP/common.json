@@ -101,7 +101,11 @@
       "confirmChangePosition": "位置を変更してもよろしいですか？未保存の変更はすべて失われます。"
     },
     "selectGraph": {
-      "title": "グラフを選択"
+      "title": "アプリ/グラフを選択",
+      "app": "アプリ",
+      "graph": "グラフ",
+      "unspecified": "<未指定>",
+      "updateSuccess": "アプリ/グラフの更新に成功しました"
     },
     "customNodeConn": {
       "srcTitle": "ノード[{{source}}]の接続",

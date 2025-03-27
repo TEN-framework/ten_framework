@@ -101,7 +101,11 @@
       "confirmChangePosition": "確定要更改 Dock 位置嗎？所有未儲存的變更將會遺失。"
     },
     "selectGraph": {
-      "title": "選擇圖譜"
+      "title": "選擇應用/圖譜",
+      "app": "應用",
+      "graph": "圖譜",
+      "unspecified": "<未指定>",
+      "updateSuccess": "應用/圖譜更新成功"
     },
     "customNodeConn": {
       "srcTitle": "節點[{{source}}]連接",

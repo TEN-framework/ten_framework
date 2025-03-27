@@ -101,7 +101,11 @@
       "confirmChangePosition": "Are you sure you want to change the position? All unsaved changes will be lost."
     },
     "selectGraph": {
-      "title": "Select a Graph"
+      "title": "Select a App/Graph",
+      "app": "App",
+      "graph": "Graph",
+      "unspecified": "<Unspecified>",
+      "updateSuccess": "App/Graph updated successfully"
     },
     "customNodeConn": {
       "srcTitle": "Node[{{source}}] Connection",
