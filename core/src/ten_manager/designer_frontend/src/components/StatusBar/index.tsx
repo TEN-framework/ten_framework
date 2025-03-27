@@ -56,6 +56,7 @@ const StatusApps = () => {
   const { t } = useTranslation();
   const { data, error, isLoading } = useApps();
   const { appendWidgetIfNotExists } = useWidgetStore();
+  const { currentWorkspace, updateCurrentWorkspace } = useAppStore();
 
   const openAppsManagerPopup = () => {
     appendWidgetIfNotExists({
@@ -67,6 +68,16 @@ const StatusApps = () => {
       },
     });
   };
+
+  React.useEffect(() => {
+    if (!currentWorkspace?.baseDir && data?.app_info?.[0]?.base_dir) {
+      updateCurrentWorkspace({
+        baseDir: data?.app_info?.[0]?.base_dir,
+        graphName: null,
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data, currentWorkspace?.baseDir]);
 
   React.useEffect(() => {
     if (error) {
@@ -142,8 +153,13 @@ const StatusWorkspace = () => {
           >
             <FolderOpenIcon className="size-3" />
             <span className="">{baseDirAbbrMemo}</span>
-            <ChevronRightIcon className="size-3" />
-            <span className="">{graphNameMemo}</span>
+
+            {graphNameMemo && (
+              <>
+                <ChevronRightIcon className="size-3" />
+                <span className="">{graphNameMemo}</span>
+              </>
+            )}
           </Button>
         </TooltipTrigger>
         <TooltipContent className="flex flex-col gap-1">
@@ -154,7 +170,9 @@ const StatusWorkspace = () => {
           </p>
           <p className="flex gap-1 justify-between">
             <span className="">{t("statusBar.workspace.graphName")}</span>
-            <span className="">{graphNameMemo}</span>
+            <span className="">
+              {graphNameMemo ?? t("popup.selectGraph.unspecified")}
+            </span>
           </p>
         </TooltipContent>
       </Tooltip>

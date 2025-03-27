@@ -40,6 +40,7 @@ import { EConnectionType } from "@/types/graphs";
 // Import react-flow style.
 import "@xyflow/react/dist/style.css";
 import "@/flow/reactflow.css";
+import { ECustomEventName } from "@/utils/popup";
 
 export interface FlowCanvasRef {
   performAutoLayout: () => void;
@@ -204,13 +205,13 @@ const FlowCanvas = forwardRef<FlowCanvasRef, FlowCanvasProps>(
       };
       window.addEventListener("click", handleClick);
       window.addEventListener(
-        "customNodeAction",
+        ECustomEventName.CustomNodeAction,
         handleCustomNodeAction as EventListener
       );
       return () => {
         window.removeEventListener("click", handleClick);
         window.removeEventListener(
-          "customNodeAction",
+          ECustomEventName.CustomNodeAction,
           handleCustomNodeAction as EventListener
         );
       };

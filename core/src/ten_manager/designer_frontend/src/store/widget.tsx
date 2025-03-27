@@ -14,6 +14,7 @@ import {
 } from "@/types/widgets";
 import { getZodDefaults } from "@/utils";
 import { PreferencesLogSchema } from "@/types/apps";
+import { dispatchBringToFrontPopup } from "@/utils/popup";
 
 export const useWidgetStore = create<{
   widgets: IWidget[];
@@ -71,12 +72,14 @@ export const useWidgetStore = create<{
     widgets: [],
     appendWidget: (widget: IWidget) =>
       set((state) => ({ widgets: [...state.widgets, widget] })),
-    appendWidgetIfNotExists: (widget: IWidget) =>
+    appendWidgetIfNotExists: (widget: IWidget) => {
       set((state) => ({
         widgets: state.widgets.find((w) => w.id === widget.id)
           ? state.widgets
           : [...state.widgets, widget],
-      })),
+      }));
+      dispatchBringToFrontPopup(widget.id);
+    },
     removeWidget: (widgetId: string) =>
       set((state) => ({
         widgets: state.widgets.filter((w) => w.id !== widgetId),

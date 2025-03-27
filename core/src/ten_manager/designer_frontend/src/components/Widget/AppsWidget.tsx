@@ -33,7 +33,7 @@ import {
 } from "@/components/ui/Tooltip";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
-import { useApps } from "@/api/services/apps";
+import { useApps, useAppScripts } from "@/api/services/apps";
 import { SpinnerLoading } from "@/components/Status/Loading";
 import { useWidgetStore } from "@/store/widget";
 import {
@@ -119,7 +119,7 @@ export const AppsManagerWidget = (props: { className?: string }) => {
     }
   };
 
-  const handleAppInstallAll = (baseDir: string) => () => {
+  const handleAppInstallAll = (baseDir: string) => {
     appendWidgetIfNotExists({
       id: "app-install-" + Date.now(),
       category: EWidgetCategory.LogViewer,
@@ -139,7 +139,7 @@ export const AppsManagerWidget = (props: { className?: string }) => {
     });
   };
 
-  const handleRunApp = (baseDir: string) => () => {
+  const handleRunApp = (baseDir: string, scripts: string[]) => {
     appendWidgetIfNotExists({
       id: "app-run-" + baseDir,
       category: EWidgetCategory.Default,
@@ -147,6 +147,7 @@ export const AppsManagerWidget = (props: { className?: string }) => {
       metadata: {
         type: EDefaultWidgetType.AppRun,
         base_dir: baseDir,
+        scripts: scripts,
       },
     });
   };
@@ -193,88 +194,14 @@ export const AppsManagerWidget = (props: { className?: string }) => {
                     {app.base_dir}
                   </span>
                 </TableCell>
-                <TableCell className="text-right flex items-center gap-2">
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          disabled={isLoadingMemo}
-                          onClick={() => handleUnloadApp(app.base_dir)}
-                        >
-                          <FolderMinusIcon className="w-4 h-4" />
-                          <span className="sr-only">
-                            {t("header.menuApp.unloadApp")}
-                          </span>
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>{t("header.menuApp.unloadApp")}</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          disabled={isLoadingMemo}
-                          onClick={() => handleReloadApp(app.base_dir)}
-                        >
-                          <FolderSyncIcon className="w-4 h-4" />
-                          <span className="sr-only">
-                            {t("header.menuApp.reloadApp")}
-                          </span>
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>{t("header.menuApp.reloadApp")}</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          disabled={isLoadingMemo}
-                          onClick={handleAppInstallAll(app.base_dir)}
-                        >
-                          <HardDriveDownloadIcon className="w-4 h-4" />
-                          <span className="sr-only">
-                            {t("header.menuApp.installAll")}
-                          </span>
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>{t("header.menuApp.installAll")}</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          disabled={isLoadingMemo}
-                          onClick={handleRunApp(app.base_dir)}
-                        >
-                          <PlayIcon className="w-4 h-4" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>{t("header.menuApp.runApp")}</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                </TableCell>
+                <AppRowActions
+                  baseDir={app.base_dir}
+                  isLoading={isLoading}
+                  handleUnloadApp={handleUnloadApp}
+                  handleReloadApp={handleReloadApp}
+                  handleAppInstallAll={handleAppInstallAll}
+                  handleRunApp={handleRunApp}
+                />
               </TableRow>
             ))
           )}
@@ -305,5 +232,127 @@ export const AppsManagerWidget = (props: { className?: string }) => {
         </TableFooter>
       </Table>
     </div>
+  );
+};
+
+const AppRowActions = (props: {
+  baseDir: string;
+  isLoading?: boolean;
+  handleUnloadApp: (baseDir: string) => void;
+  handleReloadApp: (baseDir: string) => void;
+  handleAppInstallAll: (baseDir: string) => void;
+  handleRunApp: (baseDir: string, scripts: string[]) => void;
+}) => {
+  const {
+    baseDir,
+    isLoading,
+    handleUnloadApp,
+    handleReloadApp,
+    handleAppInstallAll,
+    handleRunApp,
+  } = props;
+
+  const { t } = useTranslation();
+  const {
+    data: scripts,
+    isLoading: isScriptsLoading,
+    error: scriptsError,
+  } = useAppScripts(baseDir);
+
+  React.useEffect(() => {
+    if (scriptsError) {
+      toast.error(t("popup.apps.error"), {
+        description:
+          scriptsError instanceof Error
+            ? scriptsError.message
+            : t("popup.apps.error"),
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [scriptsError]);
+
+  return (
+    <TableCell className="text-right flex items-center gap-2">
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="outline"
+              size="icon"
+              disabled={isLoading}
+              onClick={() => handleUnloadApp(baseDir)}
+            >
+              <FolderMinusIcon className="w-4 h-4" />
+              <span className="sr-only">{t("header.menuApp.unloadApp")}</span>
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>{t("header.menuApp.unloadApp")}</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="outline"
+              size="icon"
+              disabled={isLoading}
+              onClick={() => handleReloadApp(baseDir)}
+            >
+              <FolderSyncIcon className="w-4 h-4" />
+              <span className="sr-only">{t("header.menuApp.reloadApp")}</span>
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>{t("header.menuApp.reloadApp")}</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="outline"
+              size="icon"
+              disabled={isLoading}
+              onClick={() => handleAppInstallAll(baseDir)}
+            >
+              <HardDriveDownloadIcon className="w-4 h-4" />
+              <span className="sr-only">{t("header.menuApp.installAll")}</span>
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>{t("header.menuApp.installAll")}</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="outline"
+              size="icon"
+              disabled={isLoading || isScriptsLoading || scripts?.length === 0}
+              onClick={() => {
+                handleRunApp(baseDir, scripts);
+              }}
+            >
+              {isScriptsLoading ? (
+                <SpinnerLoading className="size-4" />
+              ) : (
+                <PlayIcon className="size-4" />
+              )}
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>{t("header.menuApp.runApp")}</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    </TableCell>
   );
 };
