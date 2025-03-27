@@ -399,9 +399,10 @@ func (p *tenEnv) SetProperty(path string, value any) error {
 		return err
 	}
 
-	return withCGOLimiter(func() error {
-		// Create a channel to wait for the async operation in C to complete.
-		done := make(chan error, 1)
+	// Create a channel to wait for the async operation in C to complete.
+	done := make(chan error, 1)
+
+	err := withCGOLimiter(func() error {
 		callbackHandle := newGoHandle(done)
 
 		var err error
@@ -601,14 +602,19 @@ func (p *tenEnv) SetProperty(path string, value any) error {
 		if err != nil {
 			// Clean up the handle if there was an error.
 			loadAndDeleteGoHandle(callbackHandle)
-			return err
 		}
-
-		// Wait for the async operation to complete.
-		err = <-done
 
 		return err
 	})
+
+	if err != nil {
+		return err
+	}
+
+	// Wait for the async operation to complete.
+	err = <-done
+
+	return err
 }
 
 // SetPropertyString sets a string as property in the ten. This function has one
@@ -624,9 +630,10 @@ func (p *tenEnv) SetPropertyString(
 		)
 	}
 
-	return withCGOLimiter(func() error {
-		// Create a channel to wait for the async operation in C to complete.
-		done := make(chan error, 1)
+	// Create a channel to wait for the async operation in C to complete.
+	done := make(chan error, 1)
+
+	err := withCGOLimiter(func() error {
 		callbackHandle := newGoHandle(done)
 
 		apiStatus := C.ten_go_ten_env_set_property_string(
@@ -641,14 +648,19 @@ func (p *tenEnv) SetPropertyString(
 		if err != nil {
 			// Clean up the handle if there was an error.
 			loadAndDeleteGoHandle(callbackHandle)
-			return err
 		}
-
-		// Wait for the async operation to complete.
-		err = <-done
 
 		return err
 	})
+
+	if err != nil {
+		return err
+	}
+
+	// Wait for the async operation to complete.
+	err = <-done
+
+	return err
 }
 
 // SetPropertyBytes sets a []byte as property in the ten. This function has one
@@ -664,9 +676,10 @@ func (p *tenEnv) SetPropertyBytes(
 		)
 	}
 
-	return withCGOLimiter(func() error {
-		// Create a channel to wait for the async operation in C to complete.
-		done := make(chan error, 1)
+	// Create a channel to wait for the async operation in C to complete.
+	done := make(chan error, 1)
+
+	err := withCGOLimiter(func() error {
 		callbackHandle := newGoHandle(done)
 
 		apiStatus := C.ten_go_ten_env_set_property_buf(
@@ -684,35 +697,12 @@ func (p *tenEnv) SetPropertyBytes(
 		if err != nil {
 			// Clean up the handle if there was an error.
 			loadAndDeleteGoHandle(callbackHandle)
-			return err
 		}
-
-		// Wait for the async operation to complete.
-		err = <-done
 
 		return err
 	})
-}
 
-func (p *tenEnv) setPropertyFromJSONBytes(path string, value []byte) error {
-	defer p.keepAlive()
-
-	// Create a channel to wait for the async operation in C to complete.
-	done := make(chan error, 1)
-	callbackHandle := newGoHandle(done)
-
-	apiStatus := C.ten_go_ten_env_set_property_json_bytes(
-		p.cPtr,
-		unsafe.Pointer(unsafe.StringData(path)),
-		C.int(len(path)),
-		unsafe.Pointer(unsafe.SliceData(value)),
-		C.int(len(value)),
-		C.uintptr_t(callbackHandle),
-	)
-	err := withCGoError(&apiStatus)
 	if err != nil {
-		// Clean up the handle if there was an error.
-		loadAndDeleteGoHandle(callbackHandle)
 		return err
 	}
 
@@ -736,9 +726,37 @@ func (p *tenEnv) SetPropertyFromJSONBytes(path string, value []byte) error {
 		)
 	}
 
-	return withCGOLimiter(func() error {
-		return p.setPropertyFromJSONBytes(path, value)
+	// Create a channel to wait for the async operation in C to complete.
+	done := make(chan error, 1)
+
+	err := withCGOLimiter(func() error {
+		callbackHandle := newGoHandle(done)
+
+		apiStatus := C.ten_go_ten_env_set_property_json_bytes(
+			p.cPtr,
+			unsafe.Pointer(unsafe.StringData(path)),
+			C.int(len(path)),
+			unsafe.Pointer(unsafe.SliceData(value)),
+			C.int(len(value)),
+			C.uintptr_t(callbackHandle),
+		)
+		err := withCGoError(&apiStatus)
+		if err != nil {
+			// Clean up the handle if there was an error.
+			loadAndDeleteGoHandle(callbackHandle)
+		}
+
+		return err
 	})
+
+	if err != nil {
+		return err
+	}
+
+	// Wait for the async operation to complete.
+	err = <-done
+
+	return err
 }
 
 func (p *tenEnv) getPropertyToJSONBytes(path string) ([]byte, error) {
