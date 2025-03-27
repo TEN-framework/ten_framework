@@ -34,17 +34,7 @@
       "default": true
     },
     "designer": {
-      "type": "object",
-      "properties": {
-        "logviewer_line_size": {
-          "type": "integer",
-          "minimum": 100,
-          "default": 1000
-        }
-      },
-      "required": [
-        "logviewer_line_size"
-      ]
+      "$ref": "designer.schema.json"
     }
   },
   "required": [
