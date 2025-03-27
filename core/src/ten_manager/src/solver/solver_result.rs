@@ -168,6 +168,9 @@ pub async fn install_solver_results_in_app_folder(
                         app_dir.join(TEN_PACKAGES_DIR).join(ADDON_LOADER_DIR)
                     }
                     PkgType::App => app_dir.to_path_buf(),
+                    PkgType::Invalid => {
+                        panic!("Should not happen.");
+                    }
                 }
             } else {
                 app_dir.to_path_buf() // Default if manifest is missing

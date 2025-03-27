@@ -392,11 +392,48 @@ impl<'a> From<&'a ManifestLockItem> for PkgInfo {
         let manifest = Manifest {
             type_and_name: type_and_name.clone(),
             version: locked_item.version.clone(),
-            dependencies: dependencies_option,
+            dependencies: dependencies_option.clone(),
             supports: locked_item.supports.clone(),
             api: None,
             package: None,
             scripts: None,
+            all_fields: {
+                let mut map = serde_json::Map::new();
+
+                // Add type and name.
+                map.insert(
+                    "type".to_string(),
+                    serde_json::Value::String(
+                        type_and_name.pkg_type.to_string(),
+                    ),
+                );
+                map.insert(
+                    "name".to_string(),
+                    serde_json::Value::String(type_and_name.name.clone()),
+                );
+
+                // Add version.
+                map.insert(
+                    "version".to_string(),
+                    serde_json::Value::String(locked_item.version.to_string()),
+                );
+
+                // Add dependencies if present.
+                if let Some(deps) = &dependencies_option {
+                    let deps_json = serde_json::to_value(deps)
+                        .unwrap_or(serde_json::Value::Array(vec![]));
+                    map.insert("dependencies".to_string(), deps_json);
+                }
+
+                // Add supports if present.
+                if let Some(supports) = &locked_item.supports {
+                    let supports_json = serde_json::to_value(supports)
+                        .unwrap_or(serde_json::Value::Array(vec![]));
+                    map.insert("supports".to_string(), supports_json);
+                }
+
+                map
+            },
         };
 
         PkgInfo {
