@@ -8,5 +8,9 @@
       "name": "ext_b",
       "version": "^1.0.0"
     }
-  ]
+  ],
+  "scripts": {
+    "start": "bin/default_app_cpp",
+    "build": "sh -c tgn gen linux x64 debug && tgn build linux x64 debug"
+  }
 }

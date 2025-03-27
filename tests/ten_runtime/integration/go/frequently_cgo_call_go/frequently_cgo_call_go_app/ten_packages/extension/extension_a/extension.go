@@ -8,6 +8,8 @@
 package default_extension_go
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"sync"
 	"sync/atomic"
@@ -62,7 +64,7 @@ func (p *extensionA) OnStart(tenEnv ten.TenEnv) {
 					panic("Should not happen")
 				}
 
-				if atomic.AddInt32(&counter, 1)%1 == 0 {
+				if atomic.AddInt32(&counter, 1)%10 == 0 {
 					fmt.Printf("extension_a %d goroutines completed\n", counter)
 				}
 			}(i % 100)
@@ -72,41 +74,105 @@ func (p *extensionA) OnStart(tenEnv ten.TenEnv) {
 		tenEnv.OnStartDone()
 	}()
 
-	fmt.Println("extension_a set empty_string")
-	if err := tenEnv.SetPropertyString("empty_string", ""); err != nil {
-		panic("Should not happen")
-	}
+	for i := int64(0); i < 100; i++ {
+		if err := tenEnv.SetProperty(fmt.Sprintf("prop_bool_%d", i), true); err != nil {
+			panic("Should not happen")
+		}
 
-	fmt.Println("extension_a get empty_string")
-	if em, err := tenEnv.GetPropertyString("empty_string"); err != nil ||
-		em != "" {
-		fmt.Printf(
-			"Error %v\n",
-			em,
-		)
-		panic("Should not happen")
-	}
+		if em, err := tenEnv.GetPropertyBool(fmt.Sprintf("prop_bool_%d", i)); err != nil ||
+			em != true {
+			fmt.Printf(
+				"Error %v\n",
+				em,
+			)
+			panic("Should not happen")
+		}
 
-	fmt.Println("extension_a set test_string")
-	if err := tenEnv.SetPropertyString("test_string", "test"); err != nil {
-		panic("Should not happen")
-	}
+		if i%10 == 0 {
+			fmt.Printf("set prop_bool_%d\n and get check passed\n", i)
+		}
 
-	fmt.Println("extension_a get test_string")
-	if test_string, err := tenEnv.GetPropertyString("test_string"); err != nil ||
-		test_string != "test" {
-		panic("Should not happen")
-	}
+		if err := tenEnv.SetProperty(fmt.Sprintf("prop_int_%d", i), int64(i)); err != nil {
+			panic("Should not happen")
+		}
 
-	fmt.Println("extension_a set test_bytes")
-	if err := tenEnv.SetPropertyBytes("test_bytes", []byte("test")); err != nil {
-		panic("Should not happen")
-	}
+		if em, err := tenEnv.GetPropertyInt64(fmt.Sprintf("prop_int_%d", i)); err != nil ||
+			em != int64(i) {
+			fmt.Printf(
+				"Error %v\n",
+				em,
+			)
+			panic("Should not happen")
+		}
 
-	fmt.Println("extension_a get test_bytes")
-	if test_bytes, err := tenEnv.GetPropertyBytes("test_bytes"); err != nil ||
-		string(test_bytes) != "test" {
-		panic("Should not happen")
+		if i%10 == 0 {
+			fmt.Printf("set prop_int_%d\n and get check passed\n", i)
+		}
+
+		if err := tenEnv.SetPropertyString(fmt.Sprintf("prop_string_%d", i), fmt.Sprintf("string_%d", i)); err != nil {
+			panic("Should not happen")
+		}
+
+		if em, err := tenEnv.GetPropertyString(fmt.Sprintf("prop_string_%d", i)); err != nil ||
+			em != fmt.Sprintf("string_%d", i) {
+			fmt.Printf(
+				"Error %v\n",
+				em,
+			)
+			panic("Should not happen")
+		}
+
+		if i%10 == 0 {
+			fmt.Printf("set prop_string_%d\n and get check passed\n", i)
+		}
+
+		if err := tenEnv.SetPropertyBytes(fmt.Sprintf("prop_bytes_%d", i), []byte(fmt.Sprintf("bytes_%d", i))); err != nil {
+			panic("Should not happen")
+		}
+
+		em, err := tenEnv.GetPropertyBytes(fmt.Sprintf("prop_bytes_%d", i))
+		if err != nil {
+			fmt.Printf("Error in goroutine %d: %v\n", i, err)
+			panic("Should not happen")
+		}
+
+		// compare the bytes
+		if !bytes.Equal(em, []byte(fmt.Sprintf("bytes_%d", i))) {
+			fmt.Printf("Error in goroutine %d: %v\n", i, em)
+			panic("Should not happen")
+		}
+
+		if i%10 == 0 {
+			fmt.Printf("set prop_bytes_%d\n and get check passed\n", i)
+		}
+
+		if err := tenEnv.SetPropertyFromJSONBytes(fmt.Sprintf("prop_json_%d", i), []byte(fmt.Sprintf("{\"key\":\"value_%d\"}", i))); err != nil {
+			panic("Should not happen")
+		}
+
+		// Parse the JSON bytes to a map[string]interface{}
+		jsonBytes, err := tenEnv.GetPropertyToJSONBytes(fmt.Sprintf("prop_json_%d", i))
+		if err != nil {
+			panic("Should not happen")
+		}
+
+		var jsonMap map[string]interface{}
+		err = json.Unmarshal(jsonBytes, &jsonMap)
+		if err != nil {
+			panic("Should not happen")
+		}
+
+		if jsonMap["key"] != fmt.Sprintf("value_%d", i) {
+			fmt.Printf(
+				"Error %v\n",
+				jsonMap,
+			)
+			panic("Should not happen")
+		}
+
+		if i%10 == 0 {
+			fmt.Printf("set prop_json_%d\n and get check passed\n", i)
+		}
 	}
 }
 

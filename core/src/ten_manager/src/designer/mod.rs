@@ -93,6 +93,10 @@ pub fn configure_routes(
                 "/apps/addons",
                 web::post().to(apps::addons::get_app_addons_endpoint),
             )
+            .route(
+                "/apps/scripts",
+                web::post().to(apps::scripts::get_app_scripts_endpoint),
+            )
             .route("/dir-list", web::post().to(dir_list::list_dir_endpoint))
             .route(
                 "/file-content",

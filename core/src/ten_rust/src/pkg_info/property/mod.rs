@@ -15,7 +15,7 @@ use std::{
 
 use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
+use serde_json::{Map, Value};
 
 use super::{
     constants::{PROPERTY_JSON_FILENAME, TEN_FIELD_IN_PROPERTY},
@@ -29,21 +29,23 @@ use predefined_graph::PredefinedGraph;
 ///
 /// The property configuration consists of two parts:
 /// 1. A special `_ten` field that contains TEN-specific configuration.
-/// 2. Additional custom fields that can be defined by the package author.
+/// 2. All fields from property.json, stored with preserved order.
 ///
 /// This structure is typically serialized to and deserialized from a JSON file
-/// named `property.json` in the package directory.
+/// named `property.json` in the package directory. The `_ten` field serves as a
+/// cache for the "_ten" field in property.json for faster access, while
+/// `all_fields` stores all fields from property.json with preserved order.
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Property {
-    /// TEN-specific configuration properties.
-    #[serde(skip_serializing_if = "Option::is_none")]
+    /// TEN-specific configuration properties as a cache for faster access.
+    /// This field is not serialized and is only used for internal processing.
+    #[serde(skip)]
     pub _ten: Option<TenInProperty>,
 
-    /// Additional custom fields defined by the package author.
-    /// These fields are flattened into the root of the JSON object when
-    /// serializing/deserializing.
+    /// All fields from property.json, stored with order preserved.
+    /// This includes the "_ten" field if it exists in property.json.
     #[serde(flatten)]
-    pub additional_fields: HashMap<String, Value>,
+    pub all_fields: Map<String, Value>,
 }
 
 /// Implements the `FromStr` trait for `Property` to enable parsing from a
@@ -67,6 +69,15 @@ impl FromStr for Property {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let mut property: Property = serde_json::from_str(s)?;
+
+        // Extract _ten field from all_fields if it exists.
+        if let Some(ten_value) = property.all_fields.get(TEN_FIELD_IN_PROPERTY)
+        {
+            let ten_in_property: TenInProperty =
+                serde_json::from_value(ten_value.clone())?;
+            property._ten = Some(ten_in_property);
+        }
+
         property.validate_and_complete()?;
         Ok(property)
     }
@@ -91,10 +102,9 @@ impl Property {
 
     /// Serializes the property configuration to a JSON file.
     ///
-    /// This method converts the property structure into a JSON object and
-    /// writes it to the specified file path. It handles both the
-    /// TEN-specific configuration and any additional custom fields defined
-    /// by the package author.
+    /// This method writes the `all_fields` map directly to the specified file
+    /// path. This preserves the original order of fields in the
+    /// `property.json` file.
     ///
     /// # Arguments
     /// * `property_file_path` - The path where the property JSON file should be
@@ -103,29 +113,11 @@ impl Property {
     /// # Returns
     /// * `Ok(())` if the file was successfully written.
     /// * `Err` containing the error if serialization or file writing fails.
-    ///
-    /// # Note
-    /// This method manually constructs the JSON object to ensure proper
-    /// formatting and structure of the resulting property.json file.
     pub fn dump_property_to_file(
         &self,
         property_file_path: &PathBuf,
     ) -> Result<()> {
-        let mut property_json = serde_json::Map::new();
-
-        if let Some(_ten) = &self._ten {
-            property_json.insert(
-                TEN_FIELD_IN_PROPERTY.to_string(),
-                serde_json::to_value(_ten)?,
-            );
-        }
-
-        // Merge additional fields back into the property JSON.
-        for (key, value) in &self.additional_fields {
-            property_json.insert(key.clone(), value.clone());
-        }
-
-        let new_property_str = serde_json::to_string_pretty(&property_json)?;
+        let new_property_str = serde_json::to_string_pretty(&self.all_fields)?;
         fs::write(property_file_path, new_property_str)?;
 
         Ok(())
@@ -310,7 +302,8 @@ mod tests {
         assert_eq!(ten_in_property.uri.unwrap(), "http://example.com");
         assert!(ten_in_property.predefined_graphs.is_some());
         assert!(ten_in_property.additional_fields.is_empty());
-        assert!(property.additional_fields.is_empty());
+        assert_eq!(property.all_fields.len(), 1); // Should contain _ten field.
+        assert!(property.all_fields.contains_key("_ten"));
     }
 
     #[test]
@@ -340,8 +333,10 @@ mod tests {
             "value1"
         );
 
+        // Should contain _ten and global_field_1.
+        assert_eq!(property.all_fields.len(), 2);
         assert_eq!(
-            property.additional_fields.get("global_field_1").unwrap(),
+            property.all_fields.get("global_field_1").unwrap(),
             "global_value1"
         );
     }
@@ -357,9 +352,16 @@ mod tests {
             additional_fields: HashMap::new(),
         };
 
+        // Create a property with all_fields containing _ten data.
+        let mut all_fields = Map::new();
+        all_fields.insert(
+            TEN_FIELD_IN_PROPERTY.to_string(),
+            serde_json::to_value(&ten_in_property).unwrap(),
+        );
+
         let property = Property {
             _ten: Some(ten_in_property),
-            additional_fields: HashMap::new(),
+            all_fields,
         };
 
         property.dump_property_to_file(&file_path).unwrap();

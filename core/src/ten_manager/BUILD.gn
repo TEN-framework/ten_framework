@@ -256,7 +256,7 @@ if (ten_enable_ten_manager) {
 
     if (use_shared_lib) {
       # Copy relevant resources files.
-      deps += [ ":copy_clingo_config_files" ]
+      # deps += [ ":copy_clingo_config_files" ]
     }
   }
 
