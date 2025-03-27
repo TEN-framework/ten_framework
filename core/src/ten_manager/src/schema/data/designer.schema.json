@@ -8,5 +8,6 @@
       "minimum": 100,
       "default": 1000
     }
-  }
+  },
+  "additionalProperties": false
 }

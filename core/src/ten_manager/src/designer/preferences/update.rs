@@ -169,4 +169,49 @@ mod tests {
         // Assert response status is 400 Bad Request due to schema violation.
         assert_eq!(resp.status(), 400);
     }
+
+    #[actix_web::test]
+    async fn test_update_preferences_invalid_property() {
+        // Create test state.
+        let config = TmanConfig {
+            config_file: None,
+            ..TmanConfig::default()
+        };
+
+        let state = Arc::new(RwLock::new(DesignerState {
+            tman_config: Arc::new(config),
+            out: Arc::new(Box::new(TmanOutputCli)),
+            pkgs_cache: HashMap::new(),
+        }));
+
+        // Create test app.
+        let app = test::init_service(
+            App::new().app_data(web::Data::new(state)).service(
+                web::scope("/api/designer/v1").route(
+                    "/preferences",
+                    web::put().to(update_preferences_endpoint),
+                ),
+            ),
+        )
+        .await;
+
+        // Create preferences payload with a non-existent property.
+        let payload = UpdatePreferencesRequestPayload {
+            preferences: json!({
+                "logviewer_line_size": 2000,  // Valid value.
+                "non_existent_property": "value"  // Property not in schema.
+            }),
+        };
+
+        // Create test request.
+        let req = test::TestRequest::put()
+            .uri("/api/designer/v1/preferences")
+            .set_json(&payload)
+            .to_request();
+        let resp = test::call_service(&app, req).await;
+
+        // Should be rejected with 400 Bad Request due to additionalProperties:
+        // false.
+        assert_eq!(resp.status(), 400);
+    }
 }

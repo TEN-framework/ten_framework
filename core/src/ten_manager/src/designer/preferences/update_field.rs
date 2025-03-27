@@ -222,18 +222,10 @@ mod tests {
             .to_request();
         let resp = test::call_service(&app, req).await;
 
-        // This test verifies that our schema validation handles additional
+        // This test verifies that our schema validation rejects additional
         // properties. The JSON schema for designer frontend preferences (in
-        // schema/data/designer.schema.json) doesn't have additionalProperties:
-        // false, so adding a non-existent field is actually valid.
-        //
-        // If the schema is updated to disallow additional properties, this test
-        // would need to be updated to expect a 400 Bad Request response.
-        assert!(resp.status().is_success());
-
-        // Parse response body to verify success.
-        let body = test::read_body(resp).await;
-        let json: serde_json::Value = serde_json::from_slice(&body).unwrap();
-        assert_eq!(json["status"], "ok");
+        // schema/data/designer.schema.json) now has additionalProperties:
+        // false, so adding a non-existent field should be rejected.
+        assert_eq!(resp.status(), 400);
     }
 }
