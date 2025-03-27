@@ -107,9 +107,7 @@ export function Version() {
                   t={t}
                   i18nKey="header.currentIsLatestDescription"
                   components={[
-                    <TooltipContentLink href={TEN_FRAMEWORK_RELEASE_URL}>
-                      {t("header.tenFrameworkGitHubReleasePage")}
-                    </TooltipContentLink>,
+                    <TooltipContentLink href={TEN_FRAMEWORK_RELEASE_URL} />,
                   ]}
                 />
               </p>
