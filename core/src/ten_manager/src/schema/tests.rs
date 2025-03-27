@@ -8,6 +8,19 @@ use serde_json;
 
 use super::{validate_designer_config, validate_tman_config};
 
+// Test empty config - now empty config should be valid.
+#[test]
+fn test_empty_config() {
+    let config_json = serde_json::json!({});
+
+    let result = validate_tman_config(&config_json);
+    assert!(
+        result.is_ok(),
+        "Empty config should be valid now: {:?}",
+        result
+    );
+}
+
 // Test minimal valid config.
 #[test]
 fn test_minimal_valid_config() {
@@ -52,19 +65,6 @@ fn test_full_valid_config() {
     );
 }
 
-// Test case for missing required field.
-#[test]
-fn test_invalid_missing_required_field() {
-    let config_json = serde_json::json!({
-        // Missing registry field.
-        "admin_token": "admin-token",
-        "user_token": "user-token"
-    });
-
-    let result = validate_tman_config(&config_json);
-    assert!(result.is_err(), "Should fail when missing required field");
-}
-
 // Test case for invalid field type.
 #[test]
 fn test_invalid_field_type() {
@@ -75,6 +75,20 @@ fn test_invalid_field_type() {
 
     let result = validate_tman_config(&config_json);
     assert!(result.is_err(), "Should fail with invalid field type");
+}
+
+// Test case for empty designer config - since the required field was removed,
+// empty config should be valid.
+#[test]
+fn test_empty_designer_config() {
+    let designer_json = serde_json::json!({});
+
+    let result = validate_designer_config(&designer_json);
+    assert!(
+        result.is_ok(),
+        "Empty designer config should be valid now: {:?}",
+        result
+    );
 }
 
 // Test case for valid designer config.
@@ -92,7 +106,7 @@ fn test_valid_designer_config() {
     );
 }
 
-// Test case for designer config validation - minimum value constraint.
+// Test case for minimum value constraint in designer config.
 #[test]
 fn test_designer_config_minimum_constraint() {
     let designer_json = serde_json::json!({
@@ -106,21 +120,7 @@ fn test_designer_config_minimum_constraint() {
     );
 }
 
-// Test case for designer config validation - missing required field.
-#[test]
-fn test_designer_config_missing_required_field() {
-    let designer_json = serde_json::json!({
-        // Missing logviewer_line_size field
-    });
-
-    let result = validate_designer_config(&designer_json);
-    assert!(
-        result.is_err(),
-        "Should fail when logviewer_line_size is missing"
-    );
-}
-
-// Test case for designer config validation - invalid field type.
+// Test case for invalid field type in designer config.
 #[test]
 fn test_designer_config_invalid_field_type() {
     let designer_json = serde_json::json!({
@@ -152,30 +152,6 @@ fn test_designer_section_in_full_config() {
     assert!(
         result.is_err(),
         "Should fail when designer section has invalid values"
-    );
-}
-
-// Test case for designer section with default values.
-#[test]
-fn test_designer_section_with_default_values() {
-    // Use the default value defined in the JSON schema (1000).
-    let config_json = serde_json::json!({
-        "registry": {
-            "default": {
-                "index": "https://test-registry.com"
-            }
-        },
-        "designer": {
-            // logviewer_line_size not specified, should use default.
-        }
-    });
-
-    // Note: The jsonschema validator does not automatically apply defaults.
-    // This test is more to document the behavior than to validate it.
-    let result = validate_tman_config(&config_json);
-    assert!(
-        result.is_err(),
-        "Schema validation doesn't apply defaults automatically"
     );
 }
 
@@ -253,4 +229,11 @@ fn test_get_designer_schema() {
     } else {
         panic!("Properties field not found in schema");
     }
+
+    // Verify there is no required field (or it is empty).
+    let required = schema_json.get("required");
+    assert!(
+        required.is_none() || required.unwrap().as_array().unwrap().is_empty(),
+        "Schema should not have 'required' field anymore"
+    );
 }

@@ -8,8 +8,5 @@
       "minimum": 100,
       "default": 1000
     }
-  },
-  "required": [
-    "logviewer_line_size"
-  ]
+  }
 }

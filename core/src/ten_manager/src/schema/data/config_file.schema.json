@@ -36,8 +36,5 @@
     "designer": {
       "$ref": "designer.schema.json"
     }
-  },
-  "required": [
-    "registry"
-  ]
+  }
 }
