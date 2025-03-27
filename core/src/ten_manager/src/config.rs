@@ -10,16 +10,31 @@ use std::path::PathBuf;
 
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
+use serde_json;
+
+use crate::constants::DESIGNER_FRONTEND_DEFAULT_LOGVIEWER_LINE_SIZE;
 
 use super::constants::{DEFAULT, DEFAULT_REGISTRY};
+use super::schema::validate_tman_config;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Registry {
     pub index: String,
 }
 
+#[derive(Serialize, Deserialize, Debug, Clone, Default)]
+pub struct Designer {
+    pub logviewer_line_size: usize,
+}
+
 fn default_enable_package_cache() -> bool {
     true
+}
+
+fn default_designer() -> Designer {
+    Designer {
+        logviewer_line_size: DESIGNER_FRONTEND_DEFAULT_LOGVIEWER_LINE_SIZE,
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug, Default)]
@@ -31,6 +46,9 @@ pub struct TmanConfigFile {
 
     #[serde(default = "default_enable_package_cache")]
     pub enable_package_cache: bool,
+
+    #[serde(default = "default_designer")]
+    pub designer: Designer,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -45,6 +63,8 @@ pub struct TmanConfig {
     pub assume_yes: bool,
 
     pub enable_package_cache: bool,
+
+    pub designer: Designer,
 }
 
 impl Default for TmanConfig {
@@ -65,6 +85,7 @@ impl Default for TmanConfig {
             verbose: false,
             assume_yes: false,
             enable_package_cache: true,
+            designer: default_designer(),
         }
     }
 }
@@ -113,7 +134,25 @@ pub fn read_config(
     if config_path.exists() {
         match config_data {
             Ok(data) => match serde_json::from_str(&data) {
-                Ok(config) => Ok(Some(config)),
+                Ok(config_json) => {
+                    // Validate the config against schema.
+                    if let Err(e) = validate_tman_config(&config_json) {
+                        return Err(anyhow::anyhow!(
+                            "Failed to validate config file: {}",
+                            e
+                        ));
+                    }
+
+                    // Parse the config.
+                    match serde_json::from_value::<TmanConfigFile>(config_json)
+                    {
+                        Ok(config) => Ok(Some(config)),
+                        Err(e) => Err(anyhow::anyhow!(
+                            "Failed to parse config file: {}",
+                            e
+                        )),
+                    }
+                }
                 Err(e) => {
                     Err(anyhow::anyhow!("Failed to parse config file: {}", e))
                 }

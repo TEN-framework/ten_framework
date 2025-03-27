@@ -32,6 +32,8 @@ inquire = { version = "0.7.5" }
 jaq-core = "2.0.0"
 jaq-json = { version = "1.0.0", features = ["serde_json"] }
 jaq-std = "2.0.0"
+json5 = { version = "0.4" }
+jsonschema = { version = "0.28", default-features = false }
 mime_guess = { version = "2.0.5" }
 portable-pty = { version = "0.8.1" }
 regex = { version = "1.11" }
