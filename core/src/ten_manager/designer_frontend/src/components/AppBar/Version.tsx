@@ -89,9 +89,9 @@ export function Version() {
                   t={t}
                   i18nKey="header.newVersionAvailableDescription"
                   components={[
-                    <TooltipContentLink href={TEN_FRAMEWORK_RELEASE_URL}>
-                      {t("header.tenFrameworkGitHubReleasePage")}
-                    </TooltipContentLink>,
+                    <TooltipContentLink
+                      href={TEN_FRAMEWORK_RELEASE_URL}
+                    ></TooltipContentLink>,
                   ]}
                 />
               </p>
@@ -126,7 +126,7 @@ const TooltipContentLink = ({
   children,
 }: {
   href: string;
-  children: React.ReactNode;
+  children?: React.ReactNode;
 }) => {
   return (
     <a
