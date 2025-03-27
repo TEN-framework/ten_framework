@@ -11,8 +11,11 @@ use std::{
 
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, PartialEq, Eq, Clone, Copy, Serialize, Deserialize)]
+#[derive(
+    Debug, PartialEq, Eq, Clone, Copy, Serialize, Deserialize, Default,
+)]
 pub enum Locale {
+    #[default]
     #[serde(rename = "en-US")]
     EnUs,
 

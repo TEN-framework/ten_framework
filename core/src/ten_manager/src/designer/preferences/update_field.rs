@@ -79,6 +79,8 @@ mod tests {
     use serde_json::json;
 
     use crate::config::TmanConfig;
+    use crate::designer::locale::Locale;
+    use crate::designer::theme::Theme;
     use crate::designer::DesignerState;
     use crate::output::TmanOutputCli;
 
@@ -227,5 +229,116 @@ mod tests {
         // schema/data/designer.schema.json) now has additionalProperties:
         // false, so adding a non-existent field should be rejected.
         assert_eq!(resp.status(), 400);
+    }
+
+    #[actix_web::test]
+    async fn test_update_preferences_field_theme() {
+        // Create test state with mock config file path to avoid writing to real
+        // file.
+        let config = TmanConfig {
+            config_file: None,
+            ..TmanConfig::default()
+        };
+
+        let state = Arc::new(RwLock::new(DesignerState {
+            tman_config: Arc::new(config),
+            out: Arc::new(Box::new(TmanOutputCli)),
+            pkgs_cache: HashMap::new(),
+        }));
+
+        // Create test app.
+        let app = test::init_service(
+            App::new().app_data(web::Data::new(state.clone())).service(
+                web::scope("/api/designer/v1").route(
+                    "/preferences/field",
+                    web::patch().to(update_preferences_field_endpoint),
+                ),
+            ),
+        )
+        .await;
+
+        // Create valid field update payload.
+        let payload = UpdatePreferencesFieldRequestPayload {
+            field: "theme".to_string(),
+            value: json!("dark"), // Valid value according to schema.
+        };
+
+        // Create test request.
+        let req = test::TestRequest::patch()
+            .uri("/api/designer/v1/preferences/field")
+            .set_json(&payload)
+            .to_request();
+        let resp = test::call_service(&app, req).await;
+
+        // Assert response status is 200 OK.
+        assert!(resp.status().is_success());
+
+        // Parse response body.
+        let body = test::read_body(resp).await;
+        let json: serde_json::Value = serde_json::from_slice(&body).unwrap();
+
+        // Assert response structure.
+        assert_eq!(json["status"], "ok");
+
+        // Verify config was updated
+        let state_read = state.read().unwrap();
+        assert!(matches!(state_read.tman_config.designer.theme, Theme::Dark));
+    }
+
+    #[actix_web::test]
+    async fn test_update_preferences_field_locale() {
+        // Create test state with mock config file path to avoid writing to real
+        // file.
+        let config = TmanConfig {
+            config_file: None,
+            ..TmanConfig::default()
+        };
+
+        let state = Arc::new(RwLock::new(DesignerState {
+            tman_config: Arc::new(config),
+            out: Arc::new(Box::new(TmanOutputCli)),
+            pkgs_cache: HashMap::new(),
+        }));
+
+        // Create test app.
+        let app = test::init_service(
+            App::new().app_data(web::Data::new(state.clone())).service(
+                web::scope("/api/designer/v1").route(
+                    "/preferences/field",
+                    web::patch().to(update_preferences_field_endpoint),
+                ),
+            ),
+        )
+        .await;
+
+        // Create valid field update payload.
+        let payload = UpdatePreferencesFieldRequestPayload {
+            field: "locale".to_string(),
+            value: json!("zh-CN"), // Valid value according to schema.
+        };
+
+        // Create test request.
+        let req = test::TestRequest::patch()
+            .uri("/api/designer/v1/preferences/field")
+            .set_json(&payload)
+            .to_request();
+        let resp = test::call_service(&app, req).await;
+
+        // Assert response status is 200 OK.
+        assert!(resp.status().is_success());
+
+        // Parse response body.
+        let body = test::read_body(resp).await;
+        let json: serde_json::Value = serde_json::from_slice(&body).unwrap();
+
+        // Assert response structure.
+        assert_eq!(json["status"], "ok");
+
+        // Verify config was updated
+        let state_read = state.read().unwrap();
+        assert!(matches!(
+            state_read.tman_config.designer.locale,
+            Locale::ZhCn
+        ));
     }
 }

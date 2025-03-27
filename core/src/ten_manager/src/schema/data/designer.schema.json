@@ -7,6 +7,24 @@
       "type": "integer",
       "minimum": 100,
       "default": 1000
+    },
+    "theme": {
+      "type": "string",
+      "enum": [
+        "dark",
+        "light"
+      ],
+      "default": "Light"
+    },
+    "locale": {
+      "type": "string",
+      "enum": [
+        "en-US",
+        "zh-CN",
+        "zh-TW",
+        "ja-JP"
+      ],
+      "default": "en-US"
     }
   },
   "additionalProperties": false

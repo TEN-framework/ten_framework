@@ -33,7 +33,6 @@ mod file_type;
 mod fs;
 pub mod http;
 mod install;
-pub mod locale;
 mod manifest_lock;
 pub mod output;
 mod package_file;

@@ -6,11 +6,12 @@
 //
 use std::sync::{Arc, RwLock};
 
-use crate::config::Designer;
 use crate::designer::response::{ApiResponse, Status};
 use crate::designer::DesignerState;
 use actix_web::{web, HttpResponse, Responder};
 use serde::{Deserialize, Serialize};
+
+use super::Designer;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct GetPreferencesResponseData {
@@ -89,6 +90,12 @@ mod tests {
         // TmanConfig.
         let preferences = &json["data"]["preferences"];
         assert!(preferences["logviewer_line_size"].is_number());
+        assert!(preferences["theme"].is_string());
+        assert!(preferences["locale"].is_string());
+
+        // Check default values.
+        assert_eq!(preferences["theme"], "light");
+        assert_eq!(preferences["locale"], "en-US");
     }
 
     #[actix_web::test]
